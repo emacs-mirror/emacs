@@ -1,5 +1,5 @@
 /* terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -94,11 +94,25 @@ int (*set_terminal_window_hook) ();
 int (*read_socket_hook) ();
 
 /* Return the current position of the mouse.
-   Set `bar' to point to the scrollbar if the mouse movement started
-   in a scrollbar, or zero if it started elsewhere in the frame.
-   This should clear mouse_moved until the next motion event arrives.  */
+
+   Set *f to the frame the mouse is in, or zero if the mouse is in no
+   Emacs frame.  If it is set to zero, all the other arguments are
+   garbage.
+
+   If the motion started in a scrollbar, set *bar_window to the
+   scrollbar's window, *part to the part the mouse is currently over,
+   *x to the position of the mouse along the scrollbar, and *y to the
+   overall length of the scrollbar.
+
+   Otherwise, set *bar_window to Qnil, and *x and *y to the column and
+   row of the character cell the mouse is over.
+
+   Set *time to the time the mouse was at the returned position.
+
+   This should clear mouse_moved until the next motion
+   event arrives.  */
 void (*mouse_position_hook) ( /* FRAME_PTR *f,
-				 struct scrollbar **bar,
+				 Lisp_Object *bar_window,
 				 enum scrollbar_part *part,
 				 Lisp_Object *x,
 				 Lisp_Object *y,
@@ -111,15 +125,15 @@ void (*mouse_position_hook) ( /* FRAME_PTR *f,
    the highlight.  */
 void (*frame_rehighlight_hook) ( /* FRAME_PTR f */ );
 
-/* Set vertical scollbar BAR to have its upper left corner at (TOP,
-   LEFT), and be LENGTH rows high.  Set its handle to indicate that we
-   are displaying PORTION characters out of a total of WHOLE
-   characters, starting at POSITION.  Return BAR.  If BAR is zero,
-   create a new scrollbar and return a pointer to it.  */
-struct scrollbar *(*set_vertical_scrollbar_hook)
-     ( /* struct scrollbar *BAR,
-	  struct window *window,
+/* Set the vertical scrollbar for WINDOW to have its upper left corner
+   at (TOP, LEFT), and be LENGTH rows high.  Set its handle to
+   indicate that we are displaying PORTION characters out of a total
+   of WHOLE characters, starting at POSITION.  If WINDOW doesn't yet
+   have a scrollbar, create one for it.  */
+void (*set_vertical_scrollbar_hook)
+     ( /* struct window *window,
 	  int portion, int whole, int position */ );
+
 
 /* The following three hooks are used when we're doing a thorough
    redisplay of the frame.  We don't explicitly know which scrollbars
@@ -131,16 +145,34 @@ struct scrollbar *(*set_vertical_scrollbar_hook)
 
 /* Arrange for all scrollbars on FRAME to be removed at the next call
    to `*judge_scrollbars_hook'.  A scrollbar may be spared if
-   `*redeem_scrollbar_hook' is applied to it before the judgement.  */
-void (*condemn_scrollbars_hook)( /* FRAME_PTR *FRAME */ );
+   `*redeem_scrollbar_hook' is applied to its window before the judgement. 
 
-/* Unmark BAR for deletion in this judgement cycle.  */
-void (*redeem_scrollbar_hook)( /* struct scrollbar *BAR */ );
+   This should be applied to each frame each time its window tree is
+   redisplayed, even if it is not displaying scrollbars at the moment;
+   if the HAS_SCROLLBARS flag has just been turned off, only calling
+   this and the judge_scrollbars_hook will get rid of them.
+
+   If non-zero, this hook should be safe to apply to any frame,
+   whether or not it can support scrollbars, and whether or not it is
+   currently displaying them.  */
+void (*condemn_scrollbars_hook)( /* FRAME_PTR *frame */ );
+
+/* Unmark WINDOW's scrollbar for deletion in this judgement cycle.
+   Note that it's okay to redeem a scrollbar that is not condemned.  */
+void (*redeem_scrollbar_hook)( /* struct window *window */ );
 
 /* Remove all scrollbars on FRAME that haven't been saved since the
-   last call to `*condemn_scrollbars_hook'.  */
-void (*judge_scrollbars_hook)( /* FRAME_PTR *FRAME */ );
+   last call to `*condemn_scrollbars_hook'.  
 
+   This should be applied to each frame after each time its window
+   tree is redisplayed, even if it is not displaying scrollbars at the
+   moment; if the HAS_SCROLLBARS flag has just been turned off, only
+   calling this and condemn_scrollbars_hook will get rid of them.
+
+   If non-zero, this hook should be safe to apply to any frame,
+   whether or not it can support scrollbars, and whether or not it is
+   currently displaying them.  */
+void (*judge_scrollbars_hook)( /* FRAME_PTR *FRAME */ );
 
 
 /* Strings, numbers and flags taken from the termcap entry.  */
