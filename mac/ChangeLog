@@ -1,3 +1,12 @@
+2002-12-08  Steven Tamm  <steventamm@mac.com>
+
+	* INSTALL: Added description about make-package
+
+	* make-package: Fixed --self-contained option to place the
+	directories in the correct locations for
+	init_mac_osx_environment and use hardlink by default for the
+	application.  Script fails with invalid option.
+
 2002-12-02  Andrew Choi  <akochoi@shaw.ca>
 
 	* make-bin-dist, osx-install: Remove.
