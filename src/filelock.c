@@ -39,6 +39,12 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #endif
 
+#ifdef __FreeBSD__
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#endif /* __FreeBSD__ */
+
 #include "lisp.h"
 #include "buffer.h"
 #include "charset.h"
@@ -142,6 +148,23 @@ get_boot_time ()
       /* Otherwise, try again to read the uptime.  */
       time_before = after;
     }
+#if defined (CTL_KERN) && defined (KERN_BOOTTIME)
+  {
+    int mib[2];
+    size_t size;
+    struct timeval boottime_val;
+
+    mib[0] = CTL_KERN;
+    mib[1] = KERN_BOOTTIME;
+    size = sizeof (boottime_val);
+
+    if (sysctl (mib, 2, &boottime_val, &size, NULL, 0) >= 0)
+      {
+	boot_time = boottime_val.tv_sec;
+	return boot_time;
+      }
+  }
+#endif /* defined (CTL_KERN) && defined (KERN_BOOTTIME) */
 
   /* Try to get boot time from the current wtmp file.  */
   get_boot_time_1 (WTMP_FILE);
