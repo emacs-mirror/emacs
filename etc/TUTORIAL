@@ -667,7 +667,7 @@ area contains the bottom line of the screen.
 The line immediately above the echo area it is called the "mode line".
 The mode line says something like this:
 
---**-Emacs: TUTORIAL          (Fundamental)--L670--58%----------------
+--:**  TUTORIAL          (Fundamental)--L670--58%----------------
 
 This line gives useful information about the status of Emacs and
 the text you are editing.
