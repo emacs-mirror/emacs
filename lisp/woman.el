@@ -836,28 +836,28 @@ or different fonts."
   :type 'boolean
   :group 'woman-faces)
 
+;; This is overkill!  Troff uses just italic; Nroff uses just underline.
+;; You should probably select either italic or underline as you prefer, but
+;; not both, although italic and underline work together perfectly well!
 (defface woman-italic-face
-  `((t (:italic t :underline t	:foreground "red")))
-  "Face for italic font in man pages.
-Default: italic, underlined, foreground red.
-This is overkill!  Troff uses just italic\; Nroff uses just underline.
-You should probably select either italic or underline as you prefer,
-but not both, although italic and underline work together perfectly well!"
+  `((((background light)) (:italic t :underline t :foreground "red"))
+    (((background dark)) (:italic t :underline t)))
+  "Face for italic font in man pages."
   :group 'woman-faces)
 
 (defface woman-bold-face
-  '((t (:bold t :foreground "blue")))
-  "Face for bold font in man pages.
-Default: bold, foreground blue."
+  '((((background light)) (:bold t :foreground "blue"))
+    (((background dark)) (:bold t :foreground "green2")))
+  "Face for bold font in man pages."
   :group 'woman-faces)
 
+;; Brown is a good compromise: it is distinguishable from the default
+;; but not enough so to make font errors look terrible.  (Files that use
+;; non-standard fonts seem to do so badly or in idiosyncratic ways!)
 (defface woman-unknown-face
-  '((t (:foreground "brown")))
-  "Face for all unknown fonts in man pages.
-Default: foreground brown.
-Brown is a good compromise: it is distinguishable from the default but
-not enough so to make font errors look terrible.  (Files that use
-non-standard fonts seem to do so badly or in idiosyncratic ways!)"
+  '((((background light)) (:foreground "brown"))
+    (((background dark)) (:foreground "cyan")))
+  "Face for all unknown fonts in man pages."
   :group 'woman-faces)
 
 (defface woman-addition-face
@@ -866,17 +866,19 @@ non-standard fonts seem to do so badly or in idiosyncratic ways!)"
 Default: foreground orange."
   :group 'woman-faces)
 
-(defun woman-colour-faces ()
-  "Set foreground colours of italic and bold faces to red and blue."
+(defun woman-default-faces ()
+  "Set foreground colours of italic and bold faces to their default values."
   (interactive)
-  (set-face-foreground 'woman-italic-face "Red")
-  (set-face-foreground 'woman-bold-face "Blue"))
+  (face-spec-set 'woman-italic-face
+		 (face-user-default-spec 'woman-italic-face))
+  (face-spec-set 'woman-bold-face (face-user-default-spec 'woman-bold-face)))
 
-(defun woman-black-faces ()
-  "Set foreground colours of italic and bold faces both to black."
+(defun woman-monochrome-faces ()
+  "Set foreground colours of italic and bold faces to that of the default face.
+This is usually either black or white."
   (interactive)
-  (set-face-foreground 'woman-italic-face "Black")
-  (set-face-foreground 'woman-bold-face "Black"))
+  (set-face-foreground 'woman-italic-face 'unspecified)
+  (set-face-foreground 'woman-bold-face 'unspecified))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Experimental font support, initially only for MS-Windows.
@@ -1744,8 +1746,8 @@ Argument EVENT is the invoking mouse event."
    ["Use Full Frame Width" woman-toggle-fill-frame
     :active t :style toggle :selected woman-fill-frame]
    ["Reformat Last Man Page" woman-reformat-last-file t]
-   ["Use Coloured Main Faces" woman-colour-faces t]
-   ["Use Black Main Faces" woman-black-faces t]
+   ["Use Monochrome Main Faces" woman-monochrome-faces t]
+   ["Use Default Main Faces" woman-default-faces t]
    ["Make Contents Menu" (woman-imenu t) (not woman-imenu-done)]
    "--"
    ["Describe (Wo)Man Mode" describe-mode t]
