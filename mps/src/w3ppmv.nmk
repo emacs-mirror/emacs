@@ -1,13 +1,13 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!ntppmv.nmk(trunk.5) $
+# $HopeName: MMsrc!ntppmv.nmk(trunk.6) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
 PFM = ntppmv
 PFMDEFS = /DWIN32 /D_WINDOWS
 
-MPM = <assert> <ring> <mpsliban> <mpm> \
+MPM = <assert> <ring> <mpsliban> <mpm> <bt> \
       <arenavm> <vmnt> <space> <pool> <poolmfs> \
       <poolmv> <root> <format> <buffer> <locknt> \
       <ref> <trace> <protnt> <shield> \
