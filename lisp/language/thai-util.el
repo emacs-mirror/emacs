@@ -164,8 +164,12 @@ positions (integers or markers) specifying the region."
 	(work-buf (get-buffer-create " *thai-work*")))
     (set-buffer work-buf)
     (erase-buffer)
-    (insert-buffer-substring old-buf from to)
-    (decompose-region (point-min) (point-max))))
+    (if (stringp from)
+	(insert from)
+      (insert-buffer-substring old-buf from to))
+    (decompose-region (point-min) (point-max))
+    ;; Should return nil as annotations.
+    nil))
 
 ;;
 (provide 'language/thai-util)
