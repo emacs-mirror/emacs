@@ -402,7 +402,7 @@ child_setup (in, out, err, new_argv, env)
   close_process_descs ();
 #endif
 
-  if (XTYPE (current_buffer->directory) == Lisp_String)
+  if (STRINGP (current_buffer->directory))
     chdir (XSTRING (current_buffer->directory)->data);
 }
 
@@ -506,7 +506,7 @@ if you quit, the process is killed.")
     status = get_pty_channel (inDevName, outDevName, &inchannel, &outchannel);
     if (!(status & 1))
       error ("Error getting PTY channel: %x", status);
-    if (XTYPE (buffer) == Lisp_Int)
+    if (INTEGERP (buffer))
       {
 	dout.l = strlen ("NLA0:");
 	dout.a = "NLA0:";
@@ -545,7 +545,7 @@ if you quit, the process is killed.")
   /*
       Start a read on the process channel
   */
-  if (XTYPE (buffer) != Lisp_Int)
+  if (!INTEGERP (buffer))
     {
       start_vms_process_read (vs);
       SpawnFlags = CLI$M_NOWAIT;
@@ -574,7 +574,7 @@ if you quit, the process is killed.")
     }
   pid = vs->pid;
 
-  if (XTYPE (buffer) == Lisp_Int)
+  if (INTEGERP (buffer))
     {
 #ifndef subprocesses
       wait_without_blocking ();
@@ -589,7 +589,7 @@ if you quit, the process is killed.")
 			 Fcons (make_number (fd[0]), make_number (pid)));
 
 
-  if (XTYPE (buffer) == Lisp_Buffer)
+  if (BUFFERP (buffer))
     Fset_buffer (buffer);
 
   immediate_quit = 1;
