@@ -1,3 +1,8 @@
+2001-09-27  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* ediff-mult.el (ediff-get-meta-info): Installed Gerd's changes.
+	Added comments.
+	
 2001-09-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el (comment-normalize-vars): Use " \t" rather than

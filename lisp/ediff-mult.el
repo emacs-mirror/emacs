@@ -26,7 +26,7 @@
 ;; Users are encouraged to add functionality to this file.
 ;; The present file contains all the infrastructure needed for that.
 ;;
-;; Generally, to to implement a new multisession capability within Ediff,
+;; Generally, to implement a new multisession capability within Ediff,
 ;; you need to tell it 
 ;;
 ;;	1. How to display the session group buffer.
@@ -49,7 +49,7 @@
 ;;	   or string).  The function ediff-redraw-registry-buffer displays the
 ;;	   second through last of these in the registry buffer. 
 ;;	   Also, keep in mind that the function ediff-prepare-meta-buffer
-;;	   (which see) prepends the session group buffer to the descriptor and
+;;	   (which see) prepends the session group buffer to the descriptor, and
 ;;	   nil in front of each subsequent list (i.e., the above list 
 ;;	   will become
 ;;              ((meta-buf descriptor) (nil obj1 obj2 obj3) (nil ...) ...)
@@ -225,6 +225,13 @@ buffers."
 
 ;;; API for ediff-meta-list
 
+;; Structure of the meta-list:
+;; (HEADER SESSION1 SESSION2 ...)
+;;    HEADER: (GROUP-BUF REGEXP OBJA OBJB OBJC SAVE-DIR)
+;;               OBJA - first directory
+;;               OBJB - second directory
+;;               OBJC - third directory
+;; SESSION1/2/... are described below
 ;; group buffer/regexp
 (defsubst ediff-get-group-buffer (meta-list)
   (nth 0 (car meta-list)))
@@ -241,6 +248,13 @@ buffers."
 (defsubst ediff-get-group-merge-autostore-dir (meta-list)
   (nth 5 (car meta-list)))
 
+;; ELT is a session meta descriptor (what is being preserved as
+;; 'ediff-meta-info)
+;;  The structure is:  (SESSION-CTL-BUFFER STATUS OBJA OBJB OBJC)
+;;   STATUS is ?I, ?*, ?H
+;;   OBJA/B/C is (FILENAME EQSTATUS)
+;;     EQSTATUS is ?= or nil (?= means that this file is equal to some other
+;;     	       	       	       file in this session)
 ;; session buffer
 (defsubst ediff-get-session-buffer (elt)
   (nth 0 elt))
@@ -1263,6 +1277,9 @@ Useful commands:
 ;; Sets overlay around a meta record with 'ediff-meta-info property PROP
 ;; If optional SESSION-NUMBER, make it a property of the overlay,
 ;; ediff-meta-session-number
+;; PROP is either the ctl or meta buffer (used when we work with the registry)
+;; or a session meta descriptor of the form
+;;                 (SESSION-CTL-BUFFER STATUS OBJA OBJB OBJC)
 (defun ediff-set-meta-overlay (b e prop &optional session-number hidden)
   (let (overl)
     (setq overl (ediff-make-overlay b e))
@@ -1964,12 +1981,11 @@ If this is a session registry buffer then just bury it."
 			(ediff-overlay-get tmp 'ediff-meta-info)))
 	    (setq olist (overlays-at point))
 	    (setq olist
-		  (mapcar (lambda (elt) (overlay-get elt 'ediff-meta-info))
+		  (mapcar (lambda (elt)
+			    (unless (overlay-get elt 'invisible)
+			      (overlay-get elt 'ediff-meta-info)))
 			  olist))
-	    (while (and olist
-			(or (null (car olist))
-			    (and (overlayp (car olist))
-				 (overlay-get (car olist) 'invisible))))
+	    (while (and olist (null (car olist)))
 	      (setq olist (cdr olist)))
 	    (setq result (car olist)))))
     (if result
