@@ -1,3 +1,8 @@
+2004-04-19  John Paul Wallington  <jpw@gnu.org>
+
+	* fns.c (Feql): New function.
+	(syms_of_fns): defsubr it.
+
 2004-04-18  Jason Rumney  <jasonr@gnu.org>
 
 	* w32select.c (Fw32_set_clipboard_data): Get sequence number
