@@ -51,6 +51,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'ucs-tables))
+
 (define-ccl-program ccl-decode-mule-utf-8
   ;;
   ;;        charset         | bytes in utf-8 | bytes in emacs
@@ -181,6 +183,8 @@
     (loop
      (read-multibyte-character r0 r1)
 
+     (translate-character ucs-mule-8859-to-mule-unicode r0 r1)
+
      (if (r0 == ,(charset-id 'ascii))
 	 (write r1)
 
@@ -277,14 +281,25 @@ Unicode characters out of these ranges are decoded
 into eight-bit-control or eight-bit-graphic."
 
  '(ccl-decode-mule-utf-8 . ccl-encode-mule-utf-8)
- '((safe-charsets
+ `((safe-charsets
     ascii
     eight-bit-control
     eight-bit-graphic
     latin-iso8859-1
+    latin-iso8859-15
+    latin-iso8859-14
+    latin-iso8859-9
+    hebrew-iso8859-8
+    greek-iso8859-7
+    cyrillic-iso8859-5
+    latin-iso8859-4
+    latin-iso8859-3
+    latin-iso8859-2
     mule-unicode-0100-24ff
     mule-unicode-2500-33ff
     mule-unicode-e000-ffff)
-   (mime-charset . utf-8)))
+   (mime-charset . utf-8)
+   ;; Kluge to ensure the translation table is loaded.
+   `(pre-write-conversion . ,(lambda (junk) (require 'ucs-tables)))))
 
 (define-coding-system-alias 'utf-8 'mule-utf-8)
