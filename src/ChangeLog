@@ -1,3 +1,22 @@
+2000-07-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (construct_mouse_click, x_scroll_bar_to_input_event)
+	(x_scroll_bar_handle_click, SET_SAVED_MENU_EVENT, XTread_socket):
+	Always set `arg' member of input_events.
+	(construct_menu_click): Unused function removed.
+
+	* msdos.c (dos_rawgetc): Always set `arg' member of input_events.
+
+	* w32term.c (construct_mouse_click, construct_mouse_wheel)
+	(construct_drag_n_drop, x_scroll_bar_handle_click)
+	(w32_read_socket): Always set `arg' member of input_events.
+
+	* keyboard.c (show_help_echo): Use eval_form.  Add comment.
+
+	* lisp.h (eval_form): Add prototype.
+
+	* xdisp.c (eval_form): Make it externally visible.
+
 2000-07-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_handle_tool_bar_click): Store the frame in the

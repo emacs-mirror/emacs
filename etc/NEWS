@@ -1250,6 +1250,9 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** The value of the `help-echo' text property is evaluated, if it
+is not a string already, to obtain a help string.
+
 ** Function `make-obsolete' now has an optional arg to say when the
 function was declared obsolete.
 
@@ -2814,11 +2817,13 @@ moves over a tool-bar item or a piece of text that has a text property
 `help-echo'.  This feature also applies to strings in the mode line
 that have a `help-echo' property.
 
-The value of the `help-echo' property must be a string.  For tool-bar
-items, their key definition is used to determine the help to display.
-If their definition contains a property `:help FORM', FORM is
-evaluated to determine the help string.  Otherwise, the caption of the
-tool-bar item is used.
+If the value of the `help-echo' property is not a string. it is
+evaluated to obtain a help string.
+
+For tool-bar items, their key definition is used to determine the help
+to display.  If their definition contains a property `:help FORM',
+FORM is evaluated to determine the help string.  Otherwise, the
+caption of the tool-bar item is used.
 
 The hook `show-help-function' can be set to a function that displays
 help differently.  For example, enabling a tooltip window causes the
