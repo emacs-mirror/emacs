@@ -1739,6 +1739,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
   int tem;
   int update_mode_line;
   struct Lisp_Char_Table *dp = window_display_table (w);
+  int really_switched_buffer = 0;
 
   if (Z == Z_BYTE && lpoint != lpoint_byte)
     abort ();
@@ -1794,7 +1795,11 @@ redisplay_window (window, just_this_one, preserve_echo_area)
   /* Otherwise set up data on this window; select its buffer and point value */
 
   if (update_mode_line)
-    set_buffer_internal_1 (XBUFFER (w->buffer));
+    /* Really select the buffer, for the sake of buffer-local variables.  */
+    {
+      set_buffer_internal_1 (XBUFFER (w->buffer));
+      really_switched_buffer = 1;
+    }
   else
     set_buffer_temp (XBUFFER (w->buffer));
 
@@ -1925,8 +1930,12 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	{
 	  Lisp_Object temp[3];
 
-	  set_buffer_temp (old);
-	  set_buffer_internal_1 (XBUFFER (w->buffer));
+	  if (!really_switched_buffer)
+	    {
+	      set_buffer_temp (old);
+	      set_buffer_internal_1 (XBUFFER (w->buffer));
+	    }
+	  really_switched_buffer = 1;
 	  update_mode_line = 1;
 	  w->update_mode_line = Qt;
 	  if (! NILP (Vwindow_scroll_functions))
@@ -2170,8 +2179,11 @@ redisplay_window (window, just_this_one, preserve_echo_area)
   /* Redisplay the mode line.  Select the buffer properly for that.  */
   if (!update_mode_line)
     {
-      set_buffer_temp (old);
-      set_buffer_internal_1 (XBUFFER (w->buffer));
+      if (!really_switched_buffer)
+	{
+	  set_buffer_temp (old);
+	  set_buffer_internal_1 (XBUFFER (w->buffer));
+	}
       update_mode_line = 1;
       w->update_mode_line = Qt;
     }
@@ -2357,7 +2369,18 @@ done:
        || (!NILP (w->column_number_displayed)
 	   && XFASTINT (w->column_number_displayed) != current_column ()))
       && height != XFASTINT (w->height))
-    display_mode_line (w);
+    {
+      FRAME_PTR oframe = selected_frame;
+      if (!really_switched_buffer)
+	{
+	  set_buffer_temp (old);
+	  set_buffer_internal_1 (XBUFFER (w->buffer));
+	  really_switched_buffer = 1;
+	}
+      selected_frame = f;
+      display_mode_line (w);
+      selected_frame = oframe;
+    }
   if (! line_number_displayed
       && ! BUFFERP (w->base_line_pos))
     {
@@ -2414,7 +2437,7 @@ done:
     }
 
   TEMP_SET_PT_BOTH (opoint, opoint_byte);
-  if (update_mode_line)
+  if (really_switched_buffer)
     set_buffer_internal_1 (old);
   else
     set_buffer_temp (old);
