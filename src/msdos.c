@@ -728,7 +728,8 @@ IT_write_glyphs (GLYPH *str, int str_len)
 	  ch = FAST_GLYPH_CHAR (g);
 	  if (unibyte_display_via_language_environment
 	      && SINGLE_BYTE_CHAR_P (ch)
-	      && (ch >= 0240 || !NILP (Vnonascii_translation_table)))
+	      && (ch >= 0240
+		  || (ch >= 0200 && !NILP (Vnonascii_translation_table))))
 	    ch = unibyte_char_to_multibyte (ch);
 
 	  /* Invalid characters are displayed with a special glyph.  */
