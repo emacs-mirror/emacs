@@ -1,3 +1,13 @@
+2003-07-11  John Paul Wallington  <jpw@gnu.org>
+
+	* emacs-lisp/ring.el (ring-empty-p): Use `zerop'.
+	(ring-p, ring-plus1, ring-minus1, ring-length, ring-index)
+	(ring-empty-p, ring-size, ring-copy, ring-ref): Doc fixes.
+
+2003-07-11  NAKAJIMA Mikio  <minakaji@namazu.org>  (tiny change)
+
+	* emacs-lisp/ring.el (ring-elements): Doc fix.
+
 2003-07-11  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/timeclock.el (timeclock-relative)
