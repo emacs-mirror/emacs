@@ -130,6 +130,8 @@ This variable has an effect only when the value of
 ;; I recommend that you set this to nil.
 (defvar dabbrev-case-replace 'case-replace
   "*Non-nil means dabbrev should preserve case when expanding the abbreviation.
+More precisely, it preserves the case pattern of the abbreviation as you
+typed it--as opposed to the case pattern of the expansion that is copied.
 The value of this variable is an expression; it is evaluated
 and the resulting value determines the decision.
 For example, setting this to `case-replace' means evaluate that
