@@ -1,3 +1,8 @@
+2000-11-23  Eli Zaretskii <eliz@is.elta.co.il>
+
+	* hscroll.el (turn-on-hscroll, hscroll-mode, hscroll-global-mode)
+	(hscroll-window-maybe): Docstring fix.
+
 2000-11-23  Dave Love  <fx@gnu.org>
 
 	* rect.el (string-rectangle): Don't test delete-selection-mode.
