@@ -10489,7 +10489,7 @@ xpm_load (f, img)
      string buffer containing data in the same format as an XPM file.  */
 
   specified_file = image_spec_value (img->spec, QCfile, NULL);
-  
+
   {
     HDC frame_dc = get_frame_dc (f);
     hdc = CreateCompatibleDC (frame_dc);
@@ -10535,7 +10535,7 @@ xpm_load (f, img)
 	  fn_XImageFree (xpm_image);
 	}
       if (xpm_mask && xpm_mask->bitmap)
-	{	  
+	{
 	  /* The mask appears to be inverted compared with what we expect.
 	     TODO: invert our expectations.  See other places where we
 	     have to invert bits because our idea of masks is backwards.  */
@@ -10546,7 +10546,7 @@ xpm_load (f, img)
 	  SelectObject (hdc, old_obj);
 
 	  img->mask = xpm_mask->bitmap;
-	  fn_XImageFree (xpm_mask);	  
+	  fn_XImageFree (xpm_mask);
 	  DeleteDC (hdc);
 	}
 

@@ -78,7 +78,7 @@ CHINESE-NON-TIT=${NON-TIT-GB} ${NON-TIT-BIG5}
 
 CHINESE-GB=${TIT-GB} ${NON-TIT-GB}
 
-CHINESE-BIG5=${TIT-BIG5} ${NON-TIT-BIG5} 
+CHINESE-BIG5=${TIT-BIG5} ${NON-TIT-BIG5}
 
 JAPANESE=${srcdir}/quail/japanese.elc ${srcdir}/ja-dic/ja-dic.elc
 

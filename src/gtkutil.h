@@ -66,7 +66,7 @@ typedef struct xg_list_node_
 typedef struct xg_menu_cb_data_
 {
   xg_list_node  ptrs;
-  
+
   FRAME_PTR     f;
   Lisp_Object   menu_bar_vector;
   int           menu_bar_items_used;
@@ -85,7 +85,7 @@ typedef struct xg_menu_item_cb_data_
   Lisp_Object   help;
   gpointer	call_data;
   xg_menu_cb_data *cl_data;
-  
+
 } xg_menu_item_cb_data;
 
 
@@ -98,7 +98,7 @@ typedef struct _widget_value
   char		*name;
   /* value (meaning depend on widget type) */
   char		*value;
-  /* keyboard equivalent. no implications for XtTranslations */ 
+  /* keyboard equivalent. no implications for XtTranslations */
   char		*key;
   /* Help string or nil if none.
      GC finds this string through the frame's menu_bar_vector

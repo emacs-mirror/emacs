@@ -47,7 +47,7 @@ XMakeAssoc(dpy, table, x_id, data)
 	register XAssoc *bucket;
 	register XAssoc *Entry;
 	register XAssoc *new_entry;
-	
+
 	/* Hash the XId to get the bucket number. */
 	hash = x_id & (table->size - 1);
 	/* Look up the bucket to get the entries in that bucket. */

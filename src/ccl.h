@@ -44,7 +44,7 @@ struct ccl_program {
   int private_state;            /* CCL instruction may use this
 				   for private use, mainly for saving
 				   internal states on suspending.
-				   This variable is set to 0 when ccl is 
+				   This variable is set to 0 when ccl is
 				   set up.  */
   int last_block;		/* Set to 1 while processing the last
 				   block. */

@@ -187,7 +187,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   WRITE (outfd, data_org, datalen,
 	 "write error on %s", new_name);
 
-  for (i = 2, segpos += (2 * sizeof (struct xseg)); 
+  for (i = 2, segpos += (2 * sizeof (struct xseg));
        i < nsegs;
        i++, segpos += sizeof (struct xseg))
     {

@@ -88,7 +88,7 @@ vt100|vt100-am|vt100am|dec vt100:\
     :sc=\E7:rc=\E8:cs=\E[%i%d;%dr:
 -----
 
-To build the `info' files in versions prior to Mac OS X 10.2, you need 
+To build the `info' files in versions prior to Mac OS X 10.2, you need
 to install the texinfo software.
 
 To install from source, obtain texinfo-4.2.tar.gz from ftp.gnu.org or
@@ -98,7 +98,7 @@ a mirror.  Un-tar it, enter its directory and type
   make
   make install
 
-The last step may need to be performed as root (sudo make install). 
+The last step may need to be performed as root (sudo make install).
 
 You may also like to install ispell, which will allow you to use
 ispell and flyspell-mode.  To install ispell from source, you first
@@ -110,7 +110,7 @@ Un-tar it, enter its directory, type
   ./configure --host=powerpc-apple-bsd
   make
   make install
-    
+
 Again, the last step may need to be performed as root.  Note that if you
 run `make check', the test for `pr' will fail.
 
@@ -148,14 +148,14 @@ in a file called EmacsInstaller.dmg.  This file can be then distributed
 to whomever would like a binary distribution.  Here are the common
 options to user
 
---with-x         -  Use the X11 GUI instead of the Carbon GUI. 
+--with-x         -  Use the X11 GUI instead of the Carbon GUI.
 --prefix=DIR     -  Place the common emacs files in the given DIR.  The
 		    default is /usr/local.  See note below if placing
 		    in /usr
 --self-contained -  Place the common emacs files inside the Emacs.app
 		    itself.  This makes the application trivial to
 		    uninstall and copy between computers.
---app-symlink    -  Use a symlink inside the Application to the 
+--app-symlink    -  Use a symlink inside the Application to the
 	      	    $prefix/bin/emacs to reduce disk space.  Note, this
 		    option may removed in the future.
 

@@ -57,7 +57,7 @@ distributions, such as Debian, may already have applied such a patch.)
 --- lisp/un-define.el	6 Mar 2001 22:41:38 -0000	1.30
 +++ lisp/un-define.el	19 Apr 2002 18:34:26 -0000
 @@ -610,13 +624,21 @@ by calling post-read-conversion and pre-
- 
+
   (mapcar
    (lambda (x)
 -    (mapcar
@@ -221,17 +221,17 @@ patch to assert.h should solve this:
    * If not debugging, assert does nothing.
    */
 ! #define assert(x)	((void)0);
-  
+
   #else /* debugging enabled */
-  
+
 --- 41,47 ----
   /*
    * If not debugging, assert does nothing.
    */
 ! #define assert(x)	((void)0)
-  
+
   #else /* debugging enabled */
-  
+
 
 
 * Improving performance with slow X connections
@@ -882,7 +882,7 @@ load-path.
 
 An example of such an error is:
 
-  x-complement-fontset-spec: "Wrong type argument: stringp, nil" 
+  x-complement-fontset-spec: "Wrong type argument: stringp, nil"
 
 This can be another symptom of stale *.elc files in your classpath.
 The following command will print any duplicate Lisp files that are
@@ -975,7 +975,7 @@ keyboard(5).
 
 Changing Alt_L to Meta_L fixes it:
 % xmodmap -e 'keysym Alt_L = Meta_L Alt_L'
-% xmodmap -e 'keysym Alt_R = Meta_R Alt_R'  
+% xmodmap -e 'keysym Alt_R = Meta_R Alt_R'
 
 * Error "conflicting types for `initstate'" compiling with GCC on Irix 6.
 
@@ -1050,7 +1050,7 @@ Reportedly this patch in X fixes the problem.
 
 
 * Emacs crashes on Irix 6.5 on the SGI R10K, when compiled with GCC.
-  
+
 This seems to be fixed in GCC 2.95.
 
 * Emacs crashes in utmpname on Irix 5.3.
@@ -1075,7 +1075,7 @@ the fr.ISO-8859-15 locale (and maybe other related locales).
 You can fix this by editing the file:
 
 	/usr/openwin/lib/locale/iso8859-15/Compose
-	
+
 Near the bottom there is a line that reads:
 
 	Ctrl<t> <quotedbl> <Y>                  : "\276"        threequarters
@@ -1111,8 +1111,8 @@ change this.
 When the display is set to an Exceed X-server and fonts are specified
 (either explicitly with the -fn option or implicitly with X resources)
 then the fonts may appear "too tall".  The actual character sizes are
-correct but there is too much vertical spacing between rows,  which 
-gives the appearance of "double spacing".  
+correct but there is too much vertical spacing between rows,  which
+gives the appearance of "double spacing".
 
 To prevent this, turn off the Exceed's "automatic font substitution"
 feature (in the font part of the configuration window).
@@ -1230,7 +1230,7 @@ This is not an Emacs bug; it is caused by something in SGI patch
 
 The VM mail package, which is not part of Emacs, sometimes does
   (standard-display-european t)
-That should be changed to 
+That should be changed to
   (standard-display-european 1 t)
 
 * Installing Emacs gets an error running `install-info'.
@@ -1808,8 +1808,8 @@ you install all the latest patches (as of June 1996), the bug is fixed.
 We suspect the crucial patch is one of these, but we don't know
 for certain.
 
-        103093-03: [README] SunOS 5.5: kernel patch (2140557 bytes) 
-        102832-01: [README] OpenWindows 3.5: Xview Jumbo Patch (4181613 bytes) 
+        103093-03: [README] SunOS 5.5: kernel patch (2140557 bytes)
+        102832-01: [README] OpenWindows 3.5: Xview Jumbo Patch (4181613 bytes)
 	103242-04: [README] SunOS 5.5: linker patch (595363 bytes)
 
 (One user reports that the bug was fixed by those patches together
@@ -1901,7 +1901,7 @@ On AIX, many terminal type definitions are not installed by default.
 Definitions" to make them defined.
 
 * On SunOS, you get linker errors
-   ld: Undefined symbol 
+   ld: Undefined symbol
       _get_wmShellWidgetClass
       _get_applicationShellWidgetClass
 
@@ -2061,7 +2061,7 @@ exist.  The first line in the `/etc/hosts' file should look like this
 Also make sure that the `/etc/host.conf' files contains the following
 lines:
 
-    order hosts, bind 
+    order hosts, bind
     multi on
 
 Any changes, permanent and temporary, to the host name should be
@@ -2290,12 +2290,12 @@ releasing Ctrl/Act while not pressing or holding any other keys.
 * display-time causes kernel problems on ISC systems.
 
 Under Interactive Unix versions 3.0.1 and 4.0 (and probably other
-versions), display-time causes the loss of large numbers of STREVENT 
+versions), display-time causes the loss of large numbers of STREVENT
 cells.  Eventually the kernel's supply of these cells is exhausted.
-This makes emacs and the whole system run slow, and can make other 
+This makes emacs and the whole system run slow, and can make other
 processes die, in particular pcnfsd.
-	
-Other emacs functions that communicate with remote processes may have 
+
+Other emacs functions that communicate with remote processes may have
 the same problem.  Display-time seems to be far the worst.
 
 The only known fix: Don't run display-time.
@@ -2367,7 +2367,7 @@ problem by adding this to your .cshrc file:
 
     if ($?EMACS) then
         if ($EMACS == "t") then
-            unset edit 
+            unset edit
             stty  -icrnl -onlcr -echo susp ^Z
         endif
     endif
@@ -2658,7 +2658,7 @@ again to say this:
 
 * On a Sun running SunOS 4.1.1, you get this error message from GNU ld:
 
-    /lib/libc.a(_Q_sub.o): Undefined symbol __Q_get_rp_rd referenced from text segment 
+    /lib/libc.a(_Q_sub.o): Undefined symbol __Q_get_rp_rd referenced from text segment
 
 The problem is in the Sun shared C library, not in GNU ld.
 
@@ -2680,18 +2680,18 @@ Use `smit pty' to reinstall them properly.
 christos@theory.tn.cornell.edu says:
 
 The problem is that in your .cshrc you have something that tries to
-execute `tty`. If you are not running the shell on a real tty then 
-tty will print "not a tty". Csh expects one word in some places, 
+execute `tty`. If you are not running the shell on a real tty then
+tty will print "not a tty". Csh expects one word in some places,
 but tty is giving it back 3.
 
 The solution is to add a pair of quotes around `tty` to make it a single
-word: 
+word:
 
-if (`tty` == "/dev/console") 
+if (`tty` == "/dev/console")
 
 should be changed to:
 
-if ("`tty`" == "/dev/console") 
+if ("`tty`" == "/dev/console")
 
 Even better, move things that set up terminal sections out of .cshrc
 and into .login.
@@ -2711,7 +2711,7 @@ the environment.
 
 If the error message says that a symbol such as `f68881_used' or
 `ffpa_used' or `start_float' is undefined, this probably indicates
-that you have compiled some libraries, such as the X libraries, 
+that you have compiled some libraries, such as the X libraries,
 with a floating point option other than the default.
 
 It's not terribly hard to make this work with small changes in
@@ -2737,7 +2737,7 @@ This problem seems to be a matter of configuring the DECserver to use
 * M-x shell persistently reports "Process shell exited abnormally with code 1".
 
 This happened on Suns as a result of what is said to be a bug in Sunos
-version 4.0.x.  The only fix was to reboot the machine. 
+version 4.0.x.  The only fix was to reboot the machine.
 
 * Programs running under terminal emulator do not recognize `emacs'
   terminal type.
@@ -2767,7 +2767,7 @@ You may be able to compensate for the bug by doing (set-input-mode nil nil).
 However, that has the disadvantage of turning off interrupts, so that
 you are unable to quit out of a Lisp program by typing C-g.
 
-The easy way to do this is to put 
+The easy way to do this is to put
 
   (setq x-sigio-bug t)
 

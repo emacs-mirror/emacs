@@ -173,7 +173,7 @@ of function calling.
 
 By printing the remaining elements of args, you can see the argument
 values.  Here's how to print the first argument:
-  
+
    p args[1]
    pr
 
@@ -194,7 +194,7 @@ First, use these commands:
     cd src
     gdb emacs
     b xmenu.c:1209
-    r -q 
+    r -q
 
 Then type C-x 5 2 to create a new frame, and it hits the breakpoint:
 
@@ -207,9 +207,9 @@ Then type C-x 5 2 to create a new frame, and it hits the breakpoint:
     $2 = (struct frame *) 0x3f0800
     (gdb) p *$
     $3 = {
-      size = 536871989, 
-      next = 0x366240, 
-      name = 809661752, 
+      size = 536871989,
+      next = 0x366240,
+      name = 809661752,
       [...]
     }
     (gdb) p $3->name
@@ -258,7 +258,7 @@ this vector.  `recent_keys' is updated in keyboard.c by the command
   XVECTOR (recent_keys)->contents[recent_keys_index] = c;
 
 So we define a GDB command `xvector-elts', so the last 10 keystrokes
-are printed by 
+are printed by
 
     xvector-elts recent_keys recent_keys_index 10
 
@@ -270,7 +270,7 @@ where you can define xvector-elts as follows:
     xvector
     set $foo = $
     while $i < $arg2
-    p $foo->contents[$arg1-($i++)] 
+    p $foo->contents[$arg1-($i++)]
     pr
     end
     document xvector-elts
@@ -339,7 +339,7 @@ configure makes a mistake.  But note that config.cache reads:
 
 # Giving --cache-file=/dev/null disables caching, for debugging configure.
 
-or more simply, 
+or more simply,
 
 rm config.cache
 ./configure

@@ -90,7 +90,7 @@ Boston, MA 02111-1307, USA.  */
 #define WCOREDUMP(w) ((w&0200) != 0)
 #endif
 
-#else 
+#else
 
 #ifdef BSD4_1
 #include <wait.h>

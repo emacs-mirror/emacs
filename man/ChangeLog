@@ -299,7 +299,7 @@
 
 	* gnus.texi: File deleted.
 
-1995-11-02  Stephen Gildea <gildea@stop.mail-abuse.org>
+1995-11-02  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* mh-e.texi: "Function Index" -> "Command Index" to work with
 	Emacs 19.30 C-h C-k support of separately-documented commands.
@@ -314,7 +314,7 @@
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add viper targets.
 	(../info/viper, viper.dvi): New targets.
 
-1995-04-20  Kevin Rodgers <kevinr@ihs.com>
+1995-04-20  Kevin Rodgers  <kevinr@ihs.com>
 
 	* dired-x.texi (Installation): Change the example to set
 	buffer-local variables like dired-omit-files-p in

@@ -96,7 +96,7 @@ extern SIGMASKTYPE sigprocmask_set;
 #ifdef USG
 
 #ifndef sigunblock
-#define sigunblock(sig) 
+#define sigunblock(sig)
 #endif
 
 #else

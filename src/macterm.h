@@ -45,7 +45,7 @@ Boston, MA 02111-1307, USA.  */
 /* Structure recording bitmaps and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
 
-struct mac_bitmap_record 
+struct mac_bitmap_record
 {
   char *bitmap_data;
   int refcount;
@@ -321,7 +321,7 @@ struct mac_output {
   /* Foreground color for scroll bars.  A value of -1 means use the
      default (black for non-toolkit scroll bars).  */
   unsigned long scroll_bar_foreground_pixel;
-  
+
   /* Background color for scroll bars.  A value of -1 means use the
      default (background color of the frame for non-toolkit scroll
      bars).  */
@@ -337,7 +337,7 @@ struct mac_output {
   /* Window whose cursor is hourglass_cursor.  This window is temporarily
      mapped to display a hourglass-cursor.  */
   Window hourglass_window;
-  
+
   /* Non-zero means hourglass cursor is currently displayed.  */
   unsigned hourglass_p : 1;
 
@@ -558,7 +558,7 @@ struct scroll_bar {
 
 /* Return the length of the rectangle within which the top of the
    handle must stay.  This isn't equivalent to the inside height,
-   because the scroll bar handle has a minimum height.  
+   because the scroll bar handle has a minimum height.
 
    This is the real range of motion for the scroll bar, so when we're
    scaling buffer positions to scroll bar positions, we use this, not
@@ -626,7 +626,7 @@ struct scroll_bar {
    + (f)->output_data.mac->internal_border_width)
 
 
-/* Return the row/column (zero-based) of the character cell containing 
+/* Return the row/column (zero-based) of the character cell containing
    the pixel on FRAME at ROW/COL.  */
 #define PIXEL_TO_CHAR_ROW(f, row) \
   (((row) - (f)->output_data.mac->internal_border_width) \

@@ -84,7 +84,7 @@ don't hold down @key{ESC} while typing the next character; instead,
 you press it and release it, then you enter the next character.
 @key{ESC} is allowed on terminals with @key{META} keys, too, in case
 you have formed a habit of using it.
-  
+
   The X Window System provides several other modifier keys that can be
 applied to any input character.  These are called @key{SUPER},
 @key{HYPER} and @key{ALT}.  We write @samp{s-}, @samp{H-} and @samp{A-}
@@ -183,7 +183,7 @@ There are a few prefix keys for which @kbd{C-h} does not
 work---for historical reasons, they have other meanings for @kbd{C-h}
 which are not easy to change.  But @key{F1} should work for all prefix
 keys.
-  
+
 @node Commands, Text Characters, Keys, Top
 @section Keys and Commands
 

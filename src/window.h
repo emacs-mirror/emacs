@@ -212,7 +212,7 @@ struct window
     /* Original window height and top before mini-window was
        enlarged. */
     Lisp_Object orig_height, orig_top;
-    
+
     /* No Lisp data may follow below this point without changing
        mark_object in alloc.c.  The member current_matrix must be the
        first non-Lisp member.  */
@@ -228,17 +228,17 @@ struct window
     /* Intended cursor position.   This is a position within the
        glyph matrix.  */
     struct cursor_pos cursor;
-    
+
     /* Where the cursor actually is.  */
     struct cursor_pos phys_cursor;
-    
-    /* Cursor type and width of last cursor drawn on the window.  
+
+    /* Cursor type and width of last cursor drawn on the window.
        Used for X and w32 frames; -1 initially.  */
     int phys_cursor_type, phys_cursor_width;
 
     /* This is handy for undrawing the cursor.  */
     int phys_cursor_ascent, phys_cursor_height;
-    
+
     /* Non-zero means the cursor is currently displayed.  This can be
        set to zero by functions overpainting the cursor image.  */
     unsigned phys_cursor_on_p : 1;
@@ -261,7 +261,7 @@ struct window
     /* Amount by which lines of this window are scrolled in
        y-direction (smooth scrolling).  */
     int vscroll;
-    
+
     /* Z_BYTE - the buffer position of the last glyph in the current matrix
        of W.  Only valid if WINDOW_END_VALID is not nil.  */
     int window_end_bytepos;
@@ -284,7 +284,7 @@ struct window
 /* Return the window column at which the text in window W starts.
    This is different from the `left' field because it does not include
    a left-hand scroll bar if any.  */
-   
+
 #define WINDOW_LEFT_MARGIN(W) \
      (XFASTINT ((W)->left) \
       + FRAME_LEFT_SCROLL_BAR_WIDTH (XFRAME (WINDOW_FRAME (W))))
@@ -305,16 +305,16 @@ struct window
          ? FRAME_SCROLL_BAR_COLS (XFRAME (WINDOW_FRAME (W))) \
          : 0))
 
-/* 1 if window W takes up the full width of its frame.  */ 
+/* 1 if window W takes up the full width of its frame.  */
 
 #define WINDOW_FULL_WIDTH_P(W) \
      (XFASTINT ((W)->width) == FRAME_WINDOW_WIDTH (XFRAME (WINDOW_FRAME (W))))
 
-/* 1 if window W's has no other windows to its right in its frame.  */ 
+/* 1 if window W's has no other windows to its right in its frame.  */
 
 #define WINDOW_RIGHTMOST_P(W) \
      (WINDOW_RIGHT_EDGE (W) == FRAME_WINDOW_WIDTH (XFRAME (WINDOW_FRAME (W))))
-     
+
 
 /* This is the window in which the terminal's cursor should
    be left when nothing is being done with it.  This must

@@ -60,7 +60,7 @@ main (int argc, char **argv)
       case 'n':
 	ncolors = atoi (optarg);
 	break;
-	
+
       case '?':
 	usage (argv[0]);
       }
@@ -98,7 +98,7 @@ main (int argc, char **argv)
 	      ++nallocated;
 	    }
 	}
-      
+
       ++color.red;
       ++color.green;
       ++color.blue;

@@ -37,14 +37,14 @@ XAssocTable *XCreateAssocTable(size)
 	register XAssocTable *table;	/* XAssocTable to be initialized. */
 	register XAssoc *buckets;	/* Pointer to the first bucket in */
 					/* the bucket array. */
-	
+
 	/* Malloc the XAssocTable. */
 	if ((table = (XAssocTable *)malloc(sizeof(XAssocTable))) == NULL) {
 		/* malloc call failed! */
 		errno = ENOMEM;
 		return(NULL);
 	}
-	
+
 	/* calloc the buckets (actually just their headers). */
 	buckets = (XAssoc *)calloc((unsigned)size, (unsigned)sizeof(XAssoc));
 	if (buckets == NULL) {

@@ -52,7 +52,7 @@
    and none have sioctl.h, so might as well define this.  */
 #define NO_SIOCTL_H
 
-#if 0 /* autoconf should be detecting the presence or absence of 
+#if 0 /* autoconf should be detecting the presence or absence of
 	 random and srandom now.  */
 /* If you use X11R4 you must define this.  If you use
    X11R5 you must comment this out */

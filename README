@@ -53,10 +53,10 @@ this script will help you distribute your version to others.
 There are several subdirectories:
 
 `src'       holds the C code for Emacs (the Emacs Lisp interpreter and
-            its primitives, the redisplay code, and some basic editing 
+            its primitives, the redisplay code, and some basic editing
             functions).
 `lisp'      holds the Emacs Lisp code for Emacs (most everything else).
-`leim'      holds the library of Emacs input methods, Lisp code and 
+`leim'      holds the library of Emacs input methods, Lisp code and
             auxiliary data files required to type international characters
             which can't be directly produced by your keyboard.
 `lib-src'   holds the source code for some utility programs for use by or

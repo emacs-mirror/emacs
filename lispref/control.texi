@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c  Free Software Foundation, Inc. 
+@c  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/control
 @node Control Structures, Variables, Evaluation, Top
@@ -154,7 +154,7 @@ based on the value of @var{condition}.  If the evaluated @var{condition} is
 non-@code{nil}, @var{then-form} is evaluated and the result returned.
 Otherwise, the @var{else-forms} are evaluated in textual order, and the
 value of the last one is returned.  (The @var{else} part of @code{if} is
-an example of an implicit @code{progn}.  @xref{Sequencing}.) 
+an example of an implicit @code{progn}.  @xref{Sequencing}.)
 
 If @var{condition} has the value @code{nil}, and no @var{else-forms} are
 given, @code{if} returns @code{nil}.
@@ -165,8 +165,8 @@ never evaluated---it is ignored.  Thus, in the example below,
 
 @example
 @group
-(if nil 
-    (print 'true) 
+(if nil
+    (print 'true)
   'very-false)
 @result{} very-false
 @end group
@@ -260,7 +260,7 @@ clauses was successful.  To do this, we use @code{t} as the
 never @code{nil}, so this clause never fails, provided the @code{cond}
 gets to it at all.
 
-For example, 
+For example,
 
 @example
 @group
@@ -376,7 +376,7 @@ expression returns @code{nil}.  Just @code{(or)}, with no
 @var{conditions} turned out @code{nil}.  (Think about it; which one
 did not?)
 
-For example, this expression tests whether @code{x} is either 
+For example, this expression tests whether @code{x} is either
 @code{nil} or the integer zero:
 
 @example
@@ -401,7 +401,7 @@ You could almost write @code{or} in terms of @code{if}, but not quite:
 @example
 @group
 (if @var{arg1} @var{arg1}
-  (if @var{arg2} @var{arg2} 
+  (if @var{arg2} @var{arg2}
     @var{arg3}))
 @end group
 @end example
@@ -663,7 +663,7 @@ return points at once.  First, two return points with the same tag,
 @end group
 
 @group
-(catch 'hack 
+(catch 'hack
   (print (catch2 'hack))
   'no)
 @print{} yes
@@ -745,7 +745,7 @@ which you call for other purposes, such as if you try to take the
 buffer.  You can also signal errors explicitly with the functions
 @code{error} and @code{signal}.
 
-  Quitting, which happens when the user types @kbd{C-g}, is not 
+  Quitting, which happens when the user types @kbd{C-g}, is not
 considered an error, but it is handled almost like an error.
 @xref{Quitting}.
 
@@ -1000,9 +1000,9 @@ message (but without a beep), then returns a very large number.
 @smallexample
 @group
 (defun safe-divide (dividend divisor)
-  (condition-case err                
+  (condition-case err
       ;; @r{Protected form.}
-      (/ dividend divisor)              
+      (/ dividend divisor)
 @end group
 @group
     ;; @r{The handler.}
@@ -1046,7 +1046,7 @@ including those signaled with @code{error}:
       ;; @r{This is a call to the function @code{error}.}
       (error "Rats!  The variable %s was %s, not 35" 'baz baz))
   ;; @r{This is the handler; it is not a form.}
-  (error (princ (format "The error was: %s" err)) 
+  (error (princ (format "The error was: %s" err))
          2))
 @print{} The error was: (error "Rats!  The variable baz was 34, not 35")
 @result{} 2
@@ -1096,7 +1096,7 @@ message @samp{peculiar error} is used.
 @group
 (put 'new-error
      'error-conditions
-     '(error my-own-errors new-error))       
+     '(error my-own-errors new-error))
 @result{} (error my-own-errors new-error)
 @end group
 @group
@@ -1112,7 +1112,7 @@ classification; and @code{error}, which is the widest of all.
 
   The error string should start with a capital letter but it should
 not end with a period.  This is for consistency with the rest of Emacs.
- 
+
   Naturally, Emacs will never signal @code{new-error} on its own; only
 an explicit call to @code{signal} (@pxref{Signaling Errors}) in your
 code can do this:

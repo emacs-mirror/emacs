@@ -900,7 +900,7 @@ options.
 
 @defopt mm-inline-media-tests
 This is an alist where the key is a @sc{mime} type, the second element
-is a function to display the part @dfn{inline} (i.e., inside Emacs), and 
+is a function to display the part @dfn{inline} (i.e., inside Emacs), and
 the third element is a form to be @code{eval}ed to say whether the part
 can be displayed inline.
 
@@ -923,7 +923,7 @@ be displayed automatically.
 
 @defopt mm-attachment-override-types
 Some @sc{mime} agents create parts that have a content-disposition of
-@samp{attachment}.  This variable allows overriding that disposition and 
+@samp{attachment}.  This variable allows overriding that disposition and
 displaying the part inline.  (Note that the disposition is only
 overridden if we are able to, and want to, display the part inline.)
 @end defopt
@@ -981,7 +981,7 @@ Here's an example viewer for displaying @samp{text/enriched} inline:
 @end lisp
 
 We see that the function takes a @sc{mime} handle as its parameter.  It
-then goes to a temporary buffer, inserts the text of the part, does some 
+then goes to a temporary buffer, inserts the text of the part, does some
 work on the text, stores the result, goes back to the buffer it was
 called from and inserts the result.
 

@@ -1,5 +1,5 @@
-Czytasz w³a¶nie krótki samouczek Emacsa. Copyright (c) 1985, 2001 
-Free Software Foundation, Inc. Szczegó³y na koñcu pliku. 
+Czytasz w³a¶nie krótki samouczek Emacsa. Copyright (c) 1985, 2001
+Free Software Foundation, Inc. Szczegó³y na koñcu pliku.
 
 Polecenia Emacsa wymagaj± na ogó³ wci¶niêcia klawisza CONTROL (oznaczanego
 czasami Ctrl lub CTL) lub klawisza META (oznaczanego czasami EDIT
@@ -7,7 +7,7 @@ albo ALT). Dalej bêdziemy stosowaæ nastêpuj±ce skróty:
 
 C-<znak> oznacza przytrzymanie klawisza CONTROL przy naciskaniu
 	klawisza <znak>. Na przyk³ad C-f bêdzie odpowiada³o
-	naci¶niêciu f przy wci¶niêtym klawiszu CONTROL.  
+	naci¶niêciu f przy wci¶niêtym klawiszu CONTROL.
 M-<znak> oznacza przytrzymanie klawisza META lub ALT przy naciskaniu
 	klawisza <znak>. Zamiast tego mo¿na nacisn±æ i pu¶ciæ klawisz
 	ESC, a potem nacisn±æ klawisz <znak>.
@@ -69,7 +69,7 @@ albo kolumnê w okre¶lonym kierunku. Oto schemat, który to obrazuje:
 
                  Poprzednia linia, C-p
                  (ang. previous line)
-                         : 
+                         :
                          :
     Do ty³u, C-b .... Kursor .... Do przodu, C-f
              (ang. back) : (ang. forward)
@@ -155,7 +155,7 @@ w³±cznie z operacjami dotycz±cymi s³ów i zdañ:
 	M-f Do przodu o s³owo
 	M-b Do ty³u o s³owo
 
-	C-n Nastêpna linia	
+	C-n Nastêpna linia
 	C-p Poprzednia linia
 
 	C-a Pocz±tek linii
@@ -328,7 +328,7 @@ poprzedzaj±cy bie¿±c± pozycjê kursora.
 
 >> Sprawd¼ to teraz: wstaw kilka znaków, po czym usuñ je, kilka razy
    naciskaj±c <Delback>. Nie martw siê, ¿e zmieniasz w ten sposób
-   niniejszy plik, w istocie nie zmieniasz g³ównego pliku samouczka. 
+   niniejszy plik, w istocie nie zmieniasz g³ównego pliku samouczka.
    Pracujesz teraz na jego kopii.
 
 Gdy linia tekstu staje siê zbyt d³uga, by zmie¶ciæ siê w jednym
@@ -344,8 +344,8 @@ wskazuje, ¿e dana linia jest kontynuowana w nastêpnym wierszu ekranu.
    mie¶ci³a siê na ekranie; linia kontynuacji zniknie.
 
 Znak nowej linii mo¿na skasowaæ tak jak ka¿dy inny znak. Usuniêcie znaku
-nowej linii miêdzy dwiema liniami spowoduje ich po³±czenie. Je¶li powsta³a 
-w wyniku tego linia tekstu jest zbyt d³uga, by zmie¶ciæ siê na szeroko¶æ 
+nowej linii miêdzy dwiema liniami spowoduje ich po³±czenie. Je¶li powsta³a
+w wyniku tego linia tekstu jest zbyt d³uga, by zmie¶ciæ siê na szeroko¶æ
 ekranu, to zostanie wy¶wietlona z lini± kontynuacji.
 
 >> Przesuñ kursor na pocz±tek linii i naci¶nij <Delback>. Bie¿±ca
@@ -354,8 +354,8 @@ ekranu, to zostanie wy¶wietlona z lini± kontynuacji.
 >> Naci¶nij <Return>, by z powrotem wstawiæ znak nowej linii, który
    skasowa³e¶.
 
-Jak ju¿ wiesz, wiêkszo¶æ poleceñ Emacsa mo¿na wywo³aæ z parametrem 
-liczby powtórzeñ; dotyczy to tak¿e znaków tekstu. Argument liczbowy 
+Jak ju¿ wiesz, wiêkszo¶æ poleceñ Emacsa mo¿na wywo³aæ z parametrem
+liczby powtórzeñ; dotyczy to tak¿e znaków tekstu. Argument liczbowy
 powoduje wstawienie znaku odpowiadaj±c± mu liczbê razy.
 
 >> Wypróbuj to teraz -- naci¶nij C-u 8 *, a uzyskasz ********.
@@ -768,7 +768,7 @@ nastêpuj±cego:
 --:** TUTORIAL (Fundamental)--L670--58%----------------
 
 Linia ta podaje u¿yteczne informacje o stanie Emacsa i tekstu, który
-edytujesz. 
+edytujesz.
 
 Wiesz ju¿, jakie jest znaczenie nazwy: oznacza ona plik,
 który odwiedzi³e¶. --NN%-- informuje o bie¿±cej pozycji wewn±trz
@@ -1097,7 +1097,7 @@ preferencji. Wpisz nazwê zmiennej, gdy Emacs o ni± poprosi.
 		Dla niektórych poleceñ Apropos wypisze jedno- lub
 		dwuznakowe sekwencje, które wywo³uj± te polecenia.
 
->> Napisz C-h a file<Return>. 
+>> Napisz C-h a file<Return>.
 
 Zobaczysz listê wszystkich poleceñ,
 dostêpnych za pomoc± M-x, które maja s³owo "file" w swojej nazwie.

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/searching
 @node Searching and Matching, Syntax Tables, Non-ASCII Characters, Top
@@ -325,7 +325,7 @@ multibyte character @var{c2}, the range is divided into two parts: one
 is @samp{@var{c}..?\377}, the other is @samp{@var{c1}..@var{c2}}, where
 @var{c1} is the first character of the charset to which @var{c2}
 belongs.
- 
+
 You cannot always match all non-@sc{ascii} characters with the regular
 expression @code{"[\200-\377]"}.  This works when searching a unibyte
 buffer or string (@pxref{Text Representations}), but not in a multibyte
@@ -670,7 +670,7 @@ an @code{invalid-regexp} error is signaled.
 
   Here is a complicated regexp, used by Emacs to recognize the end of a
 sentence together with any whitespace that follows.  It is the value of
-the variable @code{sentence-end}.  
+the variable @code{sentence-end}.
 
   First, we show the regexp as a string in Lisp syntax to distinguish
 spaces from tab characters.  The string constant begins and ends with a
@@ -689,7 +689,7 @@ will see the following:
 @example
 @group
 sentence-end
-     @result{} "[.?!][]\"')@}]*\\($\\| $\\|  \\|  \\)[       
+     @result{} "[.?!][]\"')@}]*\\($\\| $\\|  \\|  \\)[
 ]*"
 @end group
 @end example
@@ -1325,7 +1325,7 @@ positions within the text:
 @group
 (string-match "\\(qu\\)\\(ick\\)"
               "The quick fox jumped quickly.")
-              ;0123456789      
+              ;0123456789
      @result{} 4
 @end group
 

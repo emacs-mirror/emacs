@@ -62,7 +62,7 @@ flyttar markören en rad eller en kolumn i en bestämd riktning på
 skärmen. Här visas dessa fyra kommandon och i vilken riktning de
 flyttar markören:
 
- 
+
 			 Föregående rad, C-p
                                   :
                                   :
@@ -361,7 +361,7 @@ Emacs och att rätta fel. Du kan radera ord och rader också. Här är en
 
         C-k          raderar från markören till slutet av raden
         M-k          raderar till slutet av stycket
-        
+
 Lägg märke till att <Delete> och C-d kontra M-<Delete> och M-d följer
 mönstret som började med C-f och M-f. (<Delete> är inte precis
 ett kontrolltecken men låt oss inte bry oss om det.) C-k och M-k
@@ -444,7 +444,7 @@ till startpunkten (texten som sist blev borttagen).
    M-y och se vad du får. Fortsätt med detta tills du får tillbaka den
    första raden igen och sedan några gånger till. Om du vill kan du
    prova med positiva och negativa argument till M-y.
- 
+
 
 * ÅNGRA
 -------
@@ -797,7 +797,7 @@ genom ett numeriskt argument.
    att använda C-x f en gång till.
 
 Om du gör förändringar mitt i en rad så kommer inte sidoläget Auto
-Fill att kunna omformattera raderna för dig. 
+Fill att kunna omformattera raderna för dig.
 För att göra detta kan du trycka M-q med markören inne i det avsnittet
 du önskar att omformatera.
 
@@ -885,7 +885,7 @@ skärmen samtidig.
 >> Skriv C-x o (o för other) för att flytta markören till det
    nedre fönstret.
 
->> Använd C-v och M-v i det nedre fönstret för att flytta upp 
+>> Använd C-v och M-v i det nedre fönstret för att flytta upp
    och ned i texten. Fortsätt att läsa den här texten i det övre
    fönstret.
 

@@ -21,11 +21,11 @@
 
 use File::Basename;
 
-if (@ARGV < 3) 
+if (@ARGV < 3)
 {
   print <<USAGE;
 revdiff FILE OLD NEW
-    
+
 Get a diff of FILE between revisions OLD and NEW.  Store the
 diff in a file named FILE-OLD-NEW.diff.
 
@@ -48,7 +48,7 @@ USAGE
 $file = shift @ARGV;
 $old  = shift @ARGV;
 
-sub diffit 
+sub diffit
 {
   my ($old, $new) = @_;
   print "cvs diff -r$old -r$new $file >$file-$old-$new.diff\n";
@@ -64,9 +64,9 @@ sub current_revision ($)
   die "Can't find $entries" unless -f $entries;
   open (IN, "<$entries") or die "Cannot open $entries";
   my $rev;
-  while ($line = <IN>) 
+  while ($line = <IN>)
     {
-      if ($line =~ m,/$base/([^/]+),) 
+      if ($line =~ m,/$base/([^/]+),)
 	{
 	  $rev = $1;
 	  break;
@@ -81,7 +81,7 @@ if ($old eq "-")
   {
     $old = current_revision ($file);
   }
-elsif ($old =~ /^-(\d+)$/) 
+elsif ($old =~ /^-(\d+)$/)
   {
     my $offset = $1;
     $old = current_revision ($file);
@@ -90,15 +90,15 @@ elsif ($old =~ /^-(\d+)$/)
     $old = sprintf ("%d.%d", $1, $minor);
   }
 
-while (@ARGV) 
+while (@ARGV)
   {
     my $new = shift @ARGV;
     if ($new =~ /^[+]\d+$/)
       {
 	my $n = $new;
-	for ($i = 0; $i < $n; ++$i) 
+	for ($i = 0; $i < $n; ++$i)
 	  {
-	    unless ($old =~ /(.*)\.(\d+)$/) 
+	    unless ($old =~ /(.*)\.(\d+)$/)
 	      {
 		die "Internal error";
 	      }
@@ -107,13 +107,13 @@ while (@ARGV)
 	    diffit ($old, $new);
 	    $old = $new;
 	  }
-      } 
-    elsif ($new =~ /^[-]\d+$/) 
+      }
+    elsif ($new =~ /^[-]\d+$/)
       {
 	my $n = - $new;
-	for ($i = 0; $i < $n; ++$i) 
+	for ($i = 0; $i < $n; ++$i)
 	  {
-	    unless ($old =~ /(.*)\.(\d+)$/) 
+	    unless ($old =~ /(.*)\.(\d+)$/)
 	      {
 		die "Internal error";
 	      }
@@ -123,7 +123,7 @@ while (@ARGV)
 	    $old = $new;
 	  }
       }
-    else 
+    else
       {
 	diffit ($old, $new);
 	$old = $new;

@@ -1,5 +1,5 @@
 \input texinfo  @c -*-texinfo-*-
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.16 2002/10/02 23:24:31 karl Exp $"
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.17 2002/12/10 13:16:31 pj Exp $"
 @c %**start of header
 @setfilename ../info/eshell
 @settitle Eshell: The Emacs Shell
@@ -82,17 +82,17 @@ handling the sort of tasks accomplished by those tools.
 @menu
 * What is Eshell?::             A brief introduction to the Emacs Shell.
 * Installation::                For users of Emacs 20 and XEmacs.
-* Command basics::              The basics of command usage.     
-* Commands::                    
-* Arguments::                   
-* Input/Output::                
-* Process control::             
-* Extension modules::           
-* Extras and Goodies::          
+* Command basics::              The basics of command usage.
+* Commands::
+* Arguments::
+* Input/Output::
+* Process control::
+* Extension modules::
+* Extras and Goodies::
 * Bugs and ideas::              Known problems, and future ideas.
-* Concept Index::               
-* Function and Variable Index::  
-* Key Index::                   
+* Concept Index::
+* Function and Variable Index::
+* Key Index::
 @end menu
 
 @node What is Eshell?
@@ -479,11 +479,11 @@ on your mind.  Have fun!
 @chapter Commands
 
 @menu
-* Invocation::                  
-* Completion::                  
-* Aliases::                     
-* History::                     
-* Scripts::                     
+* Invocation::
+* Completion::
+* Aliases::
+* History::
+* Scripts::
 * Built-ins::
 @end menu
 
@@ -507,7 +507,7 @@ command, follows these steps:
 
 @enumerate
 @item Parse the command string into separate arguments.
-@item 
+@item
 @end enumerate
 
 @node Completion
@@ -572,11 +572,11 @@ With @samp{cd -42}, you can access the directory stack by number.
 @chapter Arguments
 
 @menu
-* The Parser::                  
-* Variables::                   
-* Substitution::                
-* Globbing::                    
-* Predicates::                  
+* The Parser::
+* Variables::
+* Substitution::
+* Globbing::
+* Predicates::
 @end menu
 
 @node The Parser
@@ -606,13 +606,13 @@ With @samp{cd -42}, you can access the directory stack by number.
 @chapter Extension modules
 
 @menu
-* Writing a module::            
-* Module testing::              
-* Directory handling::          
-* Key rebinding::               
-* Smart scrolling::             
-* Terminal emulation::          
-* Built-in UNIX commands::      
+* Writing a module::
+* Module testing::
+* Directory handling::
+* Key rebinding::
+* Smart scrolling::
+* Terminal emulation::
+* Built-in UNIX commands::
 @end menu
 
 @node Writing a module
@@ -659,7 +659,7 @@ extensions to this package, I would like to hear from you.  I hope you
 find this package useful!
 
 @menu
-* Known problems::              
+* Known problems::
 @end menu
 
 @node Known problems
@@ -1091,7 +1091,7 @@ perform this on-thy-fly rewriting.
 @item Write an alias for @command{less} that brings up a @code{view-mode} buffer
 
 Such that the user can press @key{SPC} and @key{DEL}, and then @key{q}
-to return to Eshell.  It would be equivalent to: 
+to return to Eshell.  It would be equivalent to:
 @samp{X > #<buffer Y>; view-buffer #<buffer Y>}.
 
 @item Make @code{eshell-mode} as much a full citizen as @code{shell-mode}

@@ -266,7 +266,7 @@ Beispiel: C-u 8 C-f bewegt den Cursor acht Zeichen vorwärts.
 >> Versuchen Sie, C-n oder C-p mit einem numerischen Argument zu
    verwenden und bewegen Sie den Cursor mit nur einem Befehl ungefähr
    hierher.
-	
+
 Wie gesagt, die meisten Befehle verwenden das numerische Argument als
 Wiederholungszähler, jedoch nicht alle.  Einige davon, die allerdings
 noch nicht besprochen wurden, benützen es als Flag (`Flagge'), d.h.,

@@ -30,7 +30,7 @@ use Mail::Address;
 use Date::Parse;
 
 my($whoami) = basename $0;
-my($version) = '$Revision: 1.3 $';
+my($version) = '$Revision: 1.4 $';
 my($usage) = "Usage: $whoami [--help] [--version] [--[no]full-headers] [Babyl-file]
 \tBy default, full headers are printed.\n";
 
@@ -80,7 +80,7 @@ while (<>) {
     $labels = $1;
 
     # Strip the integer indicating whether the header is pruned
-    $labels =~ s/^(\d+)[,\s]*//; 
+    $labels =~ s/^(\d+)[,\s]*//;
     $pruned = $1;
 
     s/(?:((?:.+\n)+)\n*)?\*\*\* EOOH \*\*\*\n+// || goto malformatted;
@@ -113,7 +113,7 @@ while (<>) {
     $labels =~ s/[,\s]+$//;
     # Now collapse extra commas and whitespace in the remaining label string
     $labels =~ s/[,\s]+/, /g;
-    
+
     foreach my $rmail_header qw(summary-line x-coding-system) {
 	$full_header =~ s/(^|\n)$rmail_header:.*\n/$1/i;
     }

@@ -34,14 +34,14 @@
 #      with them.
 #
 #      Delete `.dvi' files here if they are not part of the distribution.
-# 
+#
 # make distclean
 #      Delete all files from the current directory that are created by
 #      configuring or building the program.  If you have unpacked the
 #      source and built the program without creating any other files,
 #      `make distclean' should leave only the files that were in the
 #      distribution.
-# 
+#
 # make maintainer-clean
 #      Delete everything from the current directory that can be
 #      reconstructed with this Makefile.  This typically includes
@@ -171,7 +171,7 @@ lisppath=@lisppath@
 # building.  This is only used during the process of
 # compiling Emacs, to help Emacs find its lisp files
 # before they've been installed in their final location.
-# It's usually identical to lisppath, except that 
+# It's usually identical to lisppath, except that
 # it does not include locallisppath, and the
 # entry for the directory containing the installed lisp
 # files has been replaced with ../lisp.  This should be a
@@ -236,7 +236,7 @@ COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = ${etcdir} ${lispdir}
 
 # Set to FRC to force running autoconf and autoheader
-MAINT = 
+MAINT =
 
 all: ${SUBDIR} leim
 
@@ -579,7 +579,7 @@ mostlyclean: FRC
 ###      record the configuration.  Also preserve files that could be made
 ###      by building, but normally aren't because the distribution comes
 ###      with them.
-### 
+###
 ###      Delete `.dvi' files here if they are not part of the distribution.
 clean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) clean)
@@ -618,7 +618,7 @@ distclean: FRC
 ###      reconstructed with this Makefile.  This typically includes
 ###      everything deleted by distclean, plus more: C source files
 ###      produced by Bison, tags tables, info files, and so on.
-### 
+###
 ###      One exception, however: `make maintainer-clean' should not delete
 ###      `configure' even if `configure' can be remade using a rule in the
 ###      Makefile.  More generally, `make maintainer-clean' should not delete

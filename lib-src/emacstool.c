@@ -189,7 +189,7 @@ time_delta (now_sec, now_usec, prev_sec, prev_usec)
 /*
  * Filter function to translate selected input events for emacs
  * Mouse button events become ^X^@(button x-col y-line time-delta) .
- * Function keys: ESC-*{c}{lrt} l,r,t for Left, Right, Top; 
+ * Function keys: ESC-*{c}{lrt} l,r,t for Left, Right, Top;
  * {c} encodes the keynumber as a character [a-o]
  */
 static Notify_value

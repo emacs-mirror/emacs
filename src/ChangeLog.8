@@ -1089,7 +1089,7 @@
 	* xfns.c (Fx_show_busy_cursor): Doc-fix.
 	(Fx_hide_busy_cursor): Ditto.
 
-1999-11-17  Marco Walther <walther@siemens-pyramid.com>
+1999-11-17  Marco Walther  <walther@siemens-pyramid.com>
 
 	* unexsni.c (unexec): Handle .rel.dyn section.
 
@@ -1807,7 +1807,7 @@
 	Don't call XSetInputFocus because that can generate additional
 	FocusIn events.
 
-1999-10-07  Jeffrey C Honig <jch@bsdi.com>
+1999-10-07  Jeffrey C Honig  <jch@bsdi.com>
 
 	* bsdos4.h [HAVE_LIBNCURSES]: Define TERMINFO and LIBS_TERMCAP.
 
@@ -4039,7 +4039,7 @@
 	(Fputhash): Ditto.
 	(Fremhash): Ditto.
 
-1999-07-26  Gerd Moellmann <gerd@gnu.org>
+1999-07-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* widget.c (EmacsFrameSetCharSize): Don't add XtNborderWidth
 	value to frame width and height.
@@ -11346,7 +11346,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* editfns.c (Fuser_full_name): Doc fix.
 
-1999-06-14  Tak Ota <ota@atc.sel.sony.com>
+1999-06-14  Tak Ota  <ota@atc.sel.sony.com>
 
 	* w32bdf.c: (clear_cached_bitmap_slots): Remove.
 	(get_bitmap_with_cache): Check if CreateBitmap failed.
@@ -11355,7 +11355,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	Do cache clearing inline.  Move global variables to local scope.
 
 
-1999-06-13  Wolfgang Glas <Wolfgang.Glas@hfm.tu-graz.ac.at>
+1999-06-13  Wolfgang Glas  <Wolfgang.Glas@hfm.tu-graz.ac.at>
 
 	* unexsgi.c (unexec): Dump the .rodata section from memory
 	under IRIX6.5 in order to be able to unexec with gcc.
@@ -11536,11 +11536,11 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* w32term.c (dumpglyphs): Always fill background for italic fonts.
 
-1999-05-03  Eli Zaretskii <eliz@is.elta.co.il>
+1999-05-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired.c (make_time): Make argument type be time_t.
 
-1999-05-02  Eli Zaretskii <eliz@is.elta.co.il>
+1999-05-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (unibyte_display_via_language_environment): Add extern.
 
@@ -11813,7 +11813,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* filelock.c (get_boot_time): Test tempname, not filename.
 
-1999-03-17  Jason Rumney <jasonr@altavista.net>
+1999-03-17  Jason Rumney  <jasonr@altavista.net>
 
 	* w32bdf.h: Merged patches from Meadow; introduce bitmap cache to
 	speed display.
@@ -11851,7 +11851,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	* macros.c (Fexecute_kbd_macro): Initialize executing_macro_iterations
 	at beginning.
 
-1999-03-14  Jason Rumney <jasonr@altavista.net>
+1999-03-14  Jason Rumney  <jasonr@altavista.net>
 
 	* w32fns.c (w32_strict_fontnames): New variable.
 	(Fx_create_frame): Formatting fix.
@@ -11902,7 +11902,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* makefile.nt: Remove common multiple file compilation commands.
 
-1999-03-04  Takeshi YAMADA <yamada@cslab.kecl.ntt.co.jp>
+1999-03-04  Takeshi YAMADA  <yamada@cslab.kecl.ntt.co.jp>
 
 	* fns.c (Fbase64_encode_string): Allocate sufficient memory for
 	newlines added when the arg NO-LINE-BREAK is nil.
@@ -12229,7 +12229,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* makefile.nt: Use full path to temacs.exe when dumping.
 
-1999-01-27  Jason Rumney <jasonr@altavista.net>
+1999-01-27  Jason Rumney  <jasonr@altavista.net>
 
 	* w32fns.c (w32_load_system_font): Do not load unlisted fonts if
 	list was reliable.
@@ -12291,7 +12291,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	to set prev_from_syntax, above start of main loop.
 	At startinstring, check syntax when checking for a match.
 
-1999-01-22  Jason Rumney <jasonr@altavista.net>
+1999-01-22  Jason Rumney  <jasonr@altavista.net>
 
 	* w32bdf.c: New file.
 	* w32bdf.h: New file.
@@ -12349,7 +12349,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	* xterm.c (same_x_server): Detect treat ":0" and "unix:0"
 	as the same.  Treat "myname:0" as the same as those two.
 
-1999-01-19  Jason Rumney <jasonr@altavista.net>
+1999-01-19  Jason Rumney  <jasonr@altavista.net>
 
 	* w32fns.c (x_to_w32_charset): Add iso8859-9.
 	(w32_to_x_charset): Fix charset mappings.
@@ -13203,7 +13203,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* m/ews4800.h, s/ux4800.h: New files.
 
-1998-11-03  Theodore Jump <tjump@tertius.com>
+1998-11-03  Theodore Jump  <tjump@tertius.com>
 
 	* makefile.nt: Compile multiple source files when possible.
 

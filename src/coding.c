@@ -6514,7 +6514,7 @@ find_safe_codings_2 (p, pend, safe_codings, work_table, single_byte_char_found)
   int c, len, i;
   Lisp_Object val, ch;
   Lisp_Object prev, tail;
-  
+
   while (p < pend)
     {
       c = STRING_CHAR_AND_LENGTH (p, pend - p, len);
@@ -6635,7 +6635,7 @@ DEFUN ("find-coding-systems-region-internal-2",
       else
 	/* ... and append generic coding systems.  */
 	val = Fcopy_sequence (XCAR (Vcoding_system_safe_chars));
-      
+
       for (; CONSP (safe_codings); safe_codings = XCDR (safe_codings))
 	val = Fcons (XCAR (XCAR (safe_codings)), val);
       safe_codings = val;

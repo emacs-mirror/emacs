@@ -81,7 +81,7 @@ extern time_t timezone;
 	result in DEST.  SRC should not be negative.
 
    EMACS_SUB_TIME (DEST, SRC1, SRC2) subtracts SRC2 from SRC1 and
-	stores the result in DEST.  SRC should not be negative. 
+	stores the result in DEST.  SRC should not be negative.
    EMACS_TIME_NEG_P (TIME) is true iff TIME is negative.
 
 */

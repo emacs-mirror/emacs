@@ -130,7 +130,7 @@ directory_files_internal_unwind (dh)
   return Qnil;
 }
 
-/* Function shared by Fdirectory_files and Fdirectory_files_and_attributes.  
+/* Function shared by Fdirectory_files and Fdirectory_files_and_attributes.
    When ATTRS is zero, return a list of directory filenames; when
    non-zero, return a list of directory filenames and their attributes.  */
 
@@ -187,7 +187,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
      have to make sure it gets closed, and setting up an
      unwind_protect to do so would be a pain.  */
  retry:
-  
+
   d = opendir (SDATA (dirfilename));
   if (d == NULL)
     report_file_error ("Opening directory", Fcons (directory, Qnil));
@@ -219,7 +219,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
       if (dp == NULL && errno == EAGAIN)
 	continue;
 #endif
-      
+
       if (dp == NULL)
 	break;
 
@@ -233,7 +233,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
 	  len = NAMLEN (dp);
 	  name = finalname = make_unibyte_string (dp->d_name, len);
 	  GCPRO2 (finalname, name);
-	  
+
 	  /* Note: ENCODE_FILE can GC; it should protect its argument,
 	     though.  */
 	  name = DECODE_FILE (name);
@@ -261,24 +261,24 @@ directory_files_internal (directory, full, match, nosort, attrs)
 		  fullname = make_uninit_multibyte_string (nbytes, nbytes);
 		  bcopy (SDATA (directory), SDATA (fullname),
 			 directory_nbytes);
-		  
+
 		  if (needsep)
 		    SSET (fullname, directory_nbytes, DIRECTORY_SEP);
-		  
+
 		  bcopy (SDATA (name),
 			 SDATA (fullname) + directory_nbytes + needsep,
 			 len);
-		  
+
 		  nchars = chars_in_text (SDATA (fullname), nbytes);
 
 		  /* Some bug somewhere.  */
 		  if (nchars > nbytes)
 		    abort ();
-		      
+
 		  STRING_SET_CHARS (fullname, nchars);
 		  if (nchars == nbytes)
 		    STRING_SET_UNIBYTE (fullname);
-		  
+
 		  finalname = fullname;
 		}
 	      else
@@ -328,7 +328,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
   if (NILP (nosort))
     list = Fsort (Fnreverse (list),
 		  attrs ? Qfile_attributes_lessp : Qstring_lessp);
-  
+
   RETURN_UNGCPRO (list);
 }
 
@@ -686,7 +686,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		  /* This tests that the current file is an exact match
 		     but BESTMATCH is not (it is too long).  */
 		  if ((matchsize == len
-		       && matchsize + !!directoryp 
+		       && matchsize + !!directoryp
 			  < SCHARS (bestmatch))
 		      ||
 		      /* If there is no exact match ignoring case,
@@ -699,7 +699,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 			 either both or neither are exact.  */
 		      (((matchsize == len)
 			==
-			(matchsize + !!directoryp 
+			(matchsize + !!directoryp
 			 == SCHARS (bestmatch)))
 		       && !bcmp (p2, SDATA (encoded_file), SCHARS (encoded_file))
 		       && bcmp (p1, SDATA (encoded_file), SCHARS (encoded_file))))

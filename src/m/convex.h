@@ -19,7 +19,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="bsd4-3"  */
 
@@ -38,7 +38,7 @@ Boston, MA 02111-1307, USA.  */
  * to be corrected before they can be used as byte counts.  */
 
 /* #define WORD_MACHINE */
-  
+
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically.  */
 #ifndef convex  /* The compiler doesn't always do this.  */
@@ -54,7 +54,7 @@ Boston, MA 02111-1307, USA.  */
 		    and Ralph Sobek <Ralph.Sobek@cerfacs.fr> agree
 		    must ignore one arg when compiled with convex compiler.  */
 #define CRT0_DUMMIES ignore,
-#else 
+#else
 #define CRT0_DUMMIES
 #endif
 
@@ -86,9 +86,9 @@ Boston, MA 02111-1307, USA.  */
 /*#define VIRT_ADDR_VARIES*/
 
 /* Must use the system's termcap.  It does special things.  */
-  
+
 #define LIBS_TERMCAP -ltermcap
-  
+
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
    when Emacs is dumped.  If you define this, the preloaded Lisp

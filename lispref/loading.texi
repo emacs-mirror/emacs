@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/loading
 @node Loading, Byte Compilation, Customization, Top
@@ -391,7 +391,7 @@ object, then it is defined as an autoload object like this:
 (autoload @var{filename} @var{docstring} @var{interactive} @var{type})
 @end example
 
-For example, 
+For example,
 
 @example
 @group
@@ -580,7 +580,7 @@ file should call @code{provide} at the top level to add the feature to
 @code{features}; if it fails to do so, @code{require} signals an error.
 @cindex load error with require
 
-  For example, in @file{emacs/lisp/prolog.el}, 
+  For example, in @file{emacs/lisp/prolog.el},
 the definition for @code{run-prolog} includes the following code:
 
 @smallexample

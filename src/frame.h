@@ -150,7 +150,7 @@ struct frame
      or modified with modify-frame-parameters.  */
   Lisp_Object param_alist;
 
-  /* List of scroll bars on this frame.  
+  /* List of scroll bars on this frame.
      Actually, we don't specify exactly what is stored here at all; the
      scroll bar implementation code can use it to store anything it likes.
      This field is marked by the garbage collector.  It is here
@@ -224,7 +224,7 @@ struct frame
   int tool_bar_lines;
 
   int n_tool_bar_items;
-  
+
   /* A buffer for decode_mode_line. */
   char *decode_mode_spec_buffer;
 
@@ -253,7 +253,7 @@ struct frame
 
   /* A structure of auxiliary data used for displaying the contents.
      struct x_output is used for X window frames;
-     it is defined in xterm.h.  
+     it is defined in xterm.h.
      struct w32_output is used for W32 window frames;
      it is defined in w32term.h.  */
   union output_data
@@ -325,7 +325,7 @@ struct frame
   /* True if frame actually has a minibuffer window on it.
      0 if using a minibuffer window that isn't on this frame.  */
   char has_minibuffer;
-     
+
   /* 0 means, if this frame has just one window,
      show no modeline for that window.  */
   char wants_modeline;
@@ -525,8 +525,8 @@ typedef struct frame *FRAME_PTR;
 /* The currently selected window of the window tree of frame F.  */
 #define FRAME_SELECTED_WINDOW(f) (f)->selected_window
 
-#define FRAME_INSERT_COST(f) (f)->insert_line_cost    
-#define FRAME_DELETE_COST(f) (f)->delete_line_cost    
+#define FRAME_INSERT_COST(f) (f)->insert_line_cost
+#define FRAME_DELETE_COST(f) (f)->delete_line_cost
 #define FRAME_INSERTN_COST(f) (f)->insert_n_lines_cost
 #define FRAME_DELETEN_COST(f) (f)->delete_n_lines_cost
 #define FRAME_MESSAGE_BUF(f) (f)->message_buf
@@ -623,7 +623,7 @@ typedef struct frame *FRAME_PTR;
 /* Return the size of message_buf of the frame F.  We multiply the
    width of the frame by 4 because multi-byte form may require at most
    4-byte for a character.  */
-     
+
 #define FRAME_MESSAGE_BUF_SIZE(f) (((int) (f)->width) * 4)
 
 /* Emacs's redisplay code could become confused if a frame's
@@ -649,7 +649,7 @@ typedef struct frame *FRAME_PTR;
    Also, if a frame used to be invisible, but has just become visible,
    it must be marked as garbaged, since redisplay hasn't been keeping
    up its contents.  */
-     
+
 #define FRAME_SAMPLE_VISIBILITY(f) \
   (((f)->async_visible && (f)->visible != (f)->async_visible) ? \
    SET_FRAME_GARBAGED (f) : 0, \
@@ -674,7 +674,7 @@ typedef struct frame *FRAME_PTR;
    loop will set FRAME_VAR, a Lisp_Object, to each frame in
    Vframe_list in succession and execute the statement.  LIST_VAR
    should be a Lisp_Object too; it is used to iterate through the
-   Vframe_list.  
+   Vframe_list.
 
    This macro is a holdover from a time when multiple frames weren't always
    supported.  An alternate definition of the macro would expand to
@@ -731,7 +731,7 @@ enum text_cursor_kinds get_window_cursor_type P_ ((struct window *, int *, int *
 
 /* Return the height in lines of the vertical scroll bar in w.  If the
    window has a mode line, don't make the scroll bar extend that far.  */
-     
+
 #define WINDOW_VERTICAL_SCROLL_BAR_HEIGHT(w) (window_internal_height (w))
 
 /* The currently selected frame.  */
@@ -779,7 +779,7 @@ extern Lisp_Object selected_frame;
      (FRAME_WINDOW_P (F) ? FRAME_X_LEFT_FRINGE_WIDTH (F) : 0)
 #define FRAME_RIGHT_FRINGE_WIDTH(F) \
      (FRAME_WINDOW_P (F) ? FRAME_X_RIGHT_FRINGE_WIDTH (F) : 0)
-     
+
 #else /* not HAVE_WINDOW_SYSTEM */
 
 #define FRAME_FRINGE_WIDTH(F)	0
@@ -788,7 +788,7 @@ extern Lisp_Object selected_frame;
 #define FRAME_RIGHT_FRINGE_WIDTH(F) 0
 
 #endif /* not HAVE_WINDOW_SYSTEM */
-     
+
 
 
 
@@ -803,16 +803,16 @@ extern Lisp_Object selected_frame;
 /* Convert canonical value X to pixels.  F is the frame whose
    canonical char width is to be used.  X must be a Lisp integer or
    float.  Value is a C integer.  */
-     
+
 #define PIXEL_X_FROM_CANON_X(F, X)			\
      (INTEGERP (X)					\
       ? XINT (X) * CANON_X_UNIT (F)			\
       : (int) (XFLOAT_DATA (X) * CANON_X_UNIT (F)))
-      
+
 /* Convert canonical value Y to pixels.  F is the frame whose
    canonical character height is to be used.  X must be a Lisp integer
    or float.  Value is a C integer.  */
-     
+
 #define PIXEL_Y_FROM_CANON_Y(F, Y)			\
      (INTEGERP (Y)					\
       ? XINT (Y) * CANON_Y_UNIT (F)			\
@@ -836,6 +836,6 @@ extern Lisp_Object selected_frame;
 #define CANON_Y_FROM_PIXEL_Y(F, Y)			\
      ((Y) % CANON_Y_UNIT (F) 				\
       ? make_float ((double) (Y) / CANON_Y_UNIT (F))	\
-      : make_number ((Y) / CANON_Y_UNIT (F)))	
-			     
+      : make_number ((Y) / CANON_Y_UNIT (F)))
+
 #endif /* not EMACS_FRAME_H */

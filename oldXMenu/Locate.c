@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/Locate.c,v 1.1 1992/04/11 22:10:20 jimb Exp $ */
+/* $Header: /cvs/emacs/oldXMenu/Locate.c,v 1.1 1999/10/03 19:35:09 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -31,7 +31,7 @@ XMenuLocate(display, menu, p_num, s_num, x_pos, y_pos, ul_x, ul_y, width, height
 {
     register XMPane *p_ptr;	/* XMPane pointer. */
     register XMSelect *s_ptr;	/* XMSelect pointer. */
-    
+
     /*
      * Are the position arguments positive?
      */

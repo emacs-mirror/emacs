@@ -1750,7 +1750,7 @@ Place a copy of specified lines after @var{addr}.  If @var{addr} is
 @item (.,.@:) d[elete] @var{register} @var{count} @var{flags}
 Delete specified lines.  Text will be saved in a named @var{register} if a
 lower-case letter is given, and appended to a register if a capital letter is
-given. 
+given.
 @item e[dit] !@: +@var{addr} @var{file}
 @itemx e[x] !@: +@var{addr} @var{file}
 @itemx vi[sual] !@: +@var{addr} @var{file}

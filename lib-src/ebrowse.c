@@ -2511,7 +2511,7 @@ parm_list (flags)
     {
       switch (LA1)
         {
-	  /* Skip over grouping parens or parameter lists in parameter 
+	  /* Skip over grouping parens or parameter lists in parameter
 	     declarations.  */
         case '(':
           skip_matching ();
@@ -3148,7 +3148,7 @@ class_definition (containing, tag, flags, nested)
      settings.  */
   if ((tag != CLASS && !f_structs) || (nested && !f_nested_classes))
     current = NULL;
-  else 
+  else
     {
       current = add_sym (yytext, containing);
       current->pos = BUFFER_POS ();
@@ -3167,7 +3167,7 @@ class_definition (containing, tag, flags, nested)
         {
           switch (LA1)
             {
-            case VIRTUAL: case PUBLIC: case PROTECTED: case PRIVATE: 
+            case VIRTUAL: case PUBLIC: case PROTECTED: case PRIVATE:
               MATCH ();
               break;
 

@@ -49,7 +49,7 @@ Boston, MA 02111-1307, USA.  */
 #define LOAD_AVE_TYPE double
 
 #undef LIBS_MACHINE
-#define LIBS_MACHINE 
+#define LIBS_MACHINE
 
 #undef LD_SWITCH_MACHINE
 #define LD_SWITCH_MACHINE -xa

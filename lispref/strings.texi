@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/strings
 @node Strings and Characters, Lists, Numbers, Top
@@ -158,7 +158,7 @@ position up to which the substring is copied.  The character whose index
 is 3 is actually the fourth character in the string.
 
 A negative number counts from the end of the string, so that @minus{}1
-signifies the index of the last character of the string.  For example: 
+signifies the index of the last character of the string.  For example:
 
 @example
 @group
@@ -410,7 +410,7 @@ no characters is less than any other string.
 (string< "abc" "ab")
      @result{} nil
 (string< "" "")
-     @result{} nil                   
+     @result{} nil
 @end group
 @end example
 @end defun
@@ -597,7 +597,7 @@ in how they use the result of formatting.
 
 @defun format string &rest objects
 This function returns a new string that is made by copying
-@var{string} and then replacing any format specification 
+@var{string} and then replacing any format specification
 in the copy with encodings of the corresponding @var{objects}.  The
 arguments @var{objects} are the computed values to be formatted.
 
@@ -707,9 +707,9 @@ operation} error.
 (format "The buffer object prints as %s." (current-buffer))
      @result{} "The buffer object prints as strings.texi."
 
-(format "The octal value of %d is %o, 
+(format "The octal value of %d is %o,
          and the hex value is %x." 18 18 18)
-     @result{} "The octal value of 18 is 22, 
+     @result{} "The octal value of 18 is 22,
          and the hex value is 12."
 @end group
 @end example
@@ -745,32 +745,32 @@ only 3 letters, so 4 blank spaces are inserted for padding.  In the
 second case, the string @code{"specification"} is 13 letters wide but is
 not truncated.  In the third case, the padding is on the right.
 
-@smallexample 
+@smallexample
 @group
 (format "The word `%7s' actually has %d letters in it."
         "foo" (length "foo"))
-     @result{} "The word `    foo' actually has 3 letters in it."  
+     @result{} "The word `    foo' actually has 3 letters in it."
 @end group
 
 @group
 (format "The word `%7s' actually has %d letters in it."
-        "specification" (length "specification")) 
-     @result{} "The word `specification' actually has 13 letters in it."  
+        "specification" (length "specification"))
+     @result{} "The word `specification' actually has 13 letters in it."
 @end group
 
 @group
 (format "The word `%-7s' actually has %d letters in it."
         "foo" (length "foo"))
-     @result{} "The word `foo    ' actually has 3 letters in it."  
+     @result{} "The word `foo    ' actually has 3 letters in it."
 @end group
 @end smallexample
 
 @node Case Conversion
-@comment node-name, next, previous, up 
+@comment node-name, next, previous, up
 @section Case Conversion in Lisp
-@cindex upper case 
-@cindex lower case 
-@cindex character case 
+@cindex upper case
+@cindex lower case
+@cindex character case
 @cindex case conversion in Lisp
 
   The character case functions change the case of single characters or

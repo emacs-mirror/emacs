@@ -303,7 +303,7 @@ Returns the abbrev symbol, if expansion took place.  */)
 	  c = FETCH_BYTE (idx_byte);
 	  idx++, idx_byte++;
 	}
-	  
+
       if (UPPERCASEP (c))
 	c = DOWNCASE (c), uccount++;
       else if (! NOCASEP (c))

@@ -104,7 +104,7 @@
  ("," ?,LQ(B)
  ("." ?,Ln(B)
  ("/" ?/)
- 
+
  ("!" ?!)
  ("@" ?\")
  ("#" ?')
@@ -266,7 +266,7 @@
  (">" ?,LN(B)
  ("?" ?,))
 
-;; Mikhailian couldn't check the next two.  
+;; Mikhailian couldn't check the next two.
 
 ;; This seems to have the same layout for letters as mk in XKB, but at
 ;; least the top row is different.
@@ -328,7 +328,7 @@
  ("," ?,)
  ("." ?.)
  ("/" ?-)
- 
+
  ("!" ?!)
  ("@" ?\")
  ("#" ?#)
@@ -437,7 +437,7 @@
  ("," ?,)
  ("." ?.)
  ("/" ?-)
- 
+
  ("!" ?!)
  ("@" ?\")
  ("#" ?#)
@@ -545,7 +545,7 @@
 ;;  ("n" ?,L](B)
 ;;  ("m" ?,L\(B)
 ;;  ("/" ?-)
- 
+
 ;;  ("@" ?\")
 ;;  ("^" ?&)
 ;;  ("&" ?')
@@ -605,7 +605,7 @@
 ;; happily with this little change.  [See "ukrainian-computer" below.]
 
 ;; Fixme: add GHE_WITH_UPTURN.
-(quail-define-package 
+(quail-define-package
  "cyrillic-ukrainian" "Ukrainian" ",L6(BU" nil
  ",L$'5@B7(B-,L&.(B UKRAINIAN (ISO 8859-5 encoding)
 
@@ -665,7 +665,7 @@ Sorry, but 'ghe with upturn' is not included in ISO 8859-5."
  ("," ?,)
  ("." ?.)
  ("/" ?-)
- 
+
  ("!" ?!)
  ("@" ?\")
  ("#" ?#)
@@ -826,7 +826,7 @@ Sorry, but 'ghe with upturn' is not included in ISO 8859-5."
 ;; Alexander Mikhailian says this is of limited use.  It has been
 ;; popular among emigrants or foreigners who have to type in Cyrillic
 ;; (mostly Russian) from time to time.
-(quail-define-package 
+(quail-define-package
  "cyrillic-yawerty" "Cyrillic" ",L6O(B" nil
  ",LO25@BK(B Roman transcription (ISO 8859-5 encoding)
 
@@ -897,7 +897,7 @@ as follows.
  ("," ?,)
  ("." ?.)
  ("/" ?/)
- 
+
  ("!" ?!)
  ("@" ?,Lq(B)
  ("#" ?,Lj(B)
@@ -945,7 +945,7 @@ as follows.
  ("<" ?<)
  (">" ?>)
  ("?" ??)
- 
+
  ("/q" ?,Lr(B)
  ("/w" ?,Ls(B)
  ("/e" ?,Lt(B)
@@ -959,7 +959,7 @@ as follows.
  ("/a" ?,L|(B)
  ("/s" ?,L~(B)
  ("/d" ?,L(B)
- 
+
  ("/Q" ?,L"(B)
  ("/W" ?,L#(B)
  ("/E" ?,L$(B)
@@ -1005,53 +1005,53 @@ Should handle most cases. However:
 Russian alphabet: a b v=w g d e yo=jo zh z i j=j' k l m n o p r s t
 u f h=kh=x c ch sh shch=sj=/s=/sht ~ y ' e' yu=ju ya=ja=q
 
-Also included are Ukrainian ,Lt(B (YE) = \"/e\" and ,Lw(B (YI) = \"yi\", 
+Also included are Ukrainian ,Lt(B (YE) = \"/e\" and ,Lw(B (YI) = \"yi\",
 Belarusian ,L~(B (SHORT U) = \"u'\",
-Serbo-Croatian ,Lr(B (DJE) = \"/d\", ,L{(B (CHJE)= \"/ch\", 
+Serbo-Croatian ,Lr(B (DJE) = \"/d\", ,L{(B (CHJE)= \"/ch\",
 Macedonian ,Ls(B (GJE) = \"/g\", ,Lu(B (DZE) = \"/s\", ,L|(B (KJE) = \"/k\",
-cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\", 
+cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
 ,Ly(B (LJE) = \"/l\", ,Lz(B (NJE) = \"/n\" and ,L(B (DZE) =\"/z\"."
  nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules
- ("a" ?,LP(B)("b" ?,LQ(B) ("v" ?,LR(B) ("w" ?,LR(B) ("g" ?,LS(B) ("d" ?,LT(B) 
- ("e" ?,LU(B) ("je" ?,LU(B) 
+ ("a" ?,LP(B)("b" ?,LQ(B) ("v" ?,LR(B) ("w" ?,LR(B) ("g" ?,LS(B) ("d" ?,LT(B)
+ ("e" ?,LU(B) ("je" ?,LU(B)
  ("yo" ?,Lq(B) ("jo" ?,Lq(B)
- ("zh" ?,LV(B) ("z" ?,LW(B) ("i" ?,LX(B) 
+ ("zh" ?,LV(B) ("z" ?,LW(B) ("i" ?,LX(B)
  ("j" ?,LY(B) ("j'" ?,LY(B) ("j`" ?,LY(B) ("k" ?,LZ(B) ("l" ?,L[(B)
  ("m" ?,L\(B) ("n" ?,L](B) ("o" ?,L^(B) ("p" ?,L_(B) ("r" ?,L`(B) ("s" ?,La(B) ("t" ?,Lb(B) ("u" ?,Lc(B)
  ("f" ?,Ld(B) ("x" ?,Le(B) ("h" ?,Le(B) ("kh" ?,Le(B)
  ("c" ?,Lf(B) ("ch" ?,Lg(B)
- ("sh" ?,Lh(B) 
- ("shch" ?,Li(B) ("sj" ?,Li(B) 
- ("/sht" ?,Li(B) ("/t" ?,Li(B) 
- ("~" ?,Lj(B) ("y" ?,Lk(B) ("'" ?,Ll(B) ("`" ?,Ll(B) 
- ("e'" ?,Lm(B) ("e`" ?,Lm(B) ("@" ?,Lm(B) 
- ("yu" ?,Ln(B) ("ju" ?,Ln(B) 
+ ("sh" ?,Lh(B)
+ ("shch" ?,Li(B) ("sj" ?,Li(B)
+ ("/sht" ?,Li(B) ("/t" ?,Li(B)
+ ("~" ?,Lj(B) ("y" ?,Lk(B) ("'" ?,Ll(B) ("`" ?,Ll(B)
+ ("e'" ?,Lm(B) ("e`" ?,Lm(B) ("@" ?,Lm(B)
+ ("yu" ?,Ln(B) ("ju" ?,Ln(B)
  ("ya" ?,Lo(B) ("ja" ?,Lo(B) ("q" ?,Lo(B)
 
- ("A" ?,L0(B) ("B" ?,L1(B) ("V" ?,L2(B) ("W" ?,L2(B) ("G" ?,L3(B) ("D" ?,L4(B) 
+ ("A" ?,L0(B) ("B" ?,L1(B) ("V" ?,L2(B) ("W" ?,L2(B) ("G" ?,L3(B) ("D" ?,L4(B)
  ("E" ?,L5(B) ("Je" ?,L5(B) ("JE" ?,L5(B)
- ("Yo" ?,L!(B) ("YO" ?,L!(B) ("Jo" ?,L!(B) ("JO" ?,L!(B) 
- ("Zh" ?,L6(B) ("ZH" ?,L6(B) ("Z" ?,L7(B) ("I" ?,L8(B) 
+ ("Yo" ?,L!(B) ("YO" ?,L!(B) ("Jo" ?,L!(B) ("JO" ?,L!(B)
+ ("Zh" ?,L6(B) ("ZH" ?,L6(B) ("Z" ?,L7(B) ("I" ?,L8(B)
  ("J" ?,L9(B) ("J'" ?,L9(B) ("J`" ?,L9(B) ("K" ?,L:(B) ("L" ?,L;(B)
  ("M" ?,L<(B) ("N" ?,L=(B) ("O" ?,L>(B) ("P" ?,L?(B) ("R" ?,L@(B) ("S" ?,LA(B) ("T" ?,LB(B) ("U" ?,LC(B)
  ("F" ?,LD(B) ("X" ?,LE(B) ("H" ?,LE(B) ("Kh" ?,LE(B) ("KH" ?,LE(B)
- ("C" ?,LF(B) ("Ch" ?,LG(B) ("CH" ?,LG(B) 
- ("Sh" ?,LH(B) ("SH" ?,LH(B) 
- ("Shch" ?,LI(B) ("SHCH" ?,LI(B) ("Sj" ?,LI(B) ("SJ" ?,LI(B) 
- ("/Sht" ?,LI(B) ("/SHT" ?,LI(B) ("/T" ?,LI(B) 
- ("~~" ",LJ(B") ("Y" ?,LK(B) ("''" ",LL(B") ("E'" ?,LM(B) ("E`" ?,LM(B) 
- ("Yu" ?,LN(B) ("YU" ?,LN(B) ("Ju" ?,LN(B) ("JU" ?,LN(B) 
+ ("C" ?,LF(B) ("Ch" ?,LG(B) ("CH" ?,LG(B)
+ ("Sh" ?,LH(B) ("SH" ?,LH(B)
+ ("Shch" ?,LI(B) ("SHCH" ?,LI(B) ("Sj" ?,LI(B) ("SJ" ?,LI(B)
+ ("/Sht" ?,LI(B) ("/SHT" ?,LI(B) ("/T" ?,LI(B)
+ ("~~" ",LJ(B") ("Y" ?,LK(B) ("''" ",LL(B") ("E'" ?,LM(B) ("E`" ?,LM(B)
+ ("Yu" ?,LN(B) ("YU" ?,LN(B) ("Ju" ?,LN(B) ("JU" ?,LN(B)
  ("Ya" ?,LO(B) ("YA" ?,LO(B) ("Ja" ?,LO(B) ("JA" ?,LO(B) ("Q" ?,LO(B)
 
  ("/e" ?,Lt(B) ("yi" ?,Lw(B) ("u'" ?,L~(B)
  ("/d" ?,Lr(B) ("/ch" ?,L{(B)
  ("/g" ?,Ls(B) ("/s" ?,Lu(B) ("/k" ?,L|(B)
  ("/i" ?,Lv(B) ("/j" ?,Lx(B) ("/l" ?,Ly(B) ("/n" ?,Lz(B) ("/z" ?,L(B)
- ("/E" ?,L$(B) ("YE" ?,L$(B) ("Yi" ?,L'(B) ("YI" ?,L'(B) ("U'" ?,L.(B) 
+ ("/E" ?,L$(B) ("YE" ?,L$(B) ("Yi" ?,L'(B) ("YI" ?,L'(B) ("U'" ?,L.(B)
  ("/D" ?,L"(B) ("/Ch" ?,L+(B) ("/CH" ?,L+(B)
- ("/G" ?,L#(B) ("/S" ?,L%(B) ("/K" ?,L,(B) 
+ ("/G" ?,L#(B) ("/S" ?,L%(B) ("/K" ?,L,(B)
  ("/I" ?,L&(B) ("/J" ?,L((B) ("/L" ?,L)(B) ("/N" ?,L*(B) ("/Z" ?,L/(B)
 )
 

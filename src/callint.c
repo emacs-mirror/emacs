@@ -743,7 +743,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	      args[i] = Qnil;
 	      varies[i] = -1;
 	    }
-	  else 
+	  else
 	    {
 	      args[i]
 		= Fread_non_nil_coding_system (build_string (callint_message));
@@ -820,7 +820,7 @@ supply if the command inquires which events were used to invoke it.  */)
     UNGCPRO;
     return unbind_to (speccount, val);
   }
-}  
+}
 
 DEFUN ("prefix-numeric-value", Fprefix_numeric_value, Sprefix_numeric_value,
        1, 1, 0,
@@ -831,7 +831,7 @@ Its numeric meaning is what you would get from `(interactive "p")'.  */)
      Lisp_Object raw;
 {
   Lisp_Object val;
-  
+
   if (NILP (raw))
     XSETFASTINT (val, 1);
   else if (EQ (raw, Qminus))

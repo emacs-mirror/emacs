@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;; Key translation maps were originally copied from iso-acc.el.
-;; latin-1-prefix: extra special characters added, adapted from the vim 
+;; latin-1-prefix: extra special characters added, adapted from the vim
 ;;                 digraphs (from J.H.M.Dassen <jdassen@wi.leidenuniv.nl>)
 ;;                 by R.F. Smith <rsmith@xs4all.nl>
 ;;
@@ -710,7 +710,7 @@ For example, the character named `aogonek' is obtained by `/a'."
  ("/e" ?,Bj(B)
  ("/l" ?,B3(B)
  ("/n" ?,Bq(B)
- ("/o" ?,Bs(B) 
+ ("/o" ?,Bs(B)
  ("/s" ?,B6(B)
  ("/x" ?,B<(B)
  ("/z" ?,B?(B)
@@ -719,7 +719,7 @@ For example, the character named `aogonek' is obtained by `/a'."
  ("/E" ?,BJ(B)
  ("/L" ?,B#(B)
  ("/N" ?,BQ(B)
- ("/O" ?,BS(B) 
+ ("/O" ?,BS(B)
  ("/S" ?,B&(B)
  ("/X" ?,B,(B)
  ("/Z" ?,B/(B))

@@ -8783,12 +8783,12 @@ xg_scroll_callback (widget, data)
   gdouble position;
   gdouble *p;
   int diff;
-  
+
   int part = -1, whole = 0, portion = 0;
   GtkAdjustment *adj = GTK_ADJUSTMENT (widget);
-  
+
   if (xg_ignore_gtk_scrollbar) return;
-  
+
   position = gtk_adjustment_get_value (adj);
 
   p = g_object_get_data (G_OBJECT (widget), XG_LAST_SB_DATA);
@@ -8803,7 +8803,7 @@ xg_scroll_callback (widget, data)
   *p = position;
 
   diff = (int) (position - previous);
-  
+
   if (diff == (int) adj->step_increment)
     {
       part = scroll_bar_down_arrow;
@@ -8831,7 +8831,7 @@ xg_scroll_callback (widget, data)
       portion = min (position, whole);
       bar->dragging = make_number (portion);
     }
-  
+
   if (part >= 0)
     {
       xg_ignore_next_thumb = 1;
@@ -10221,7 +10221,7 @@ enum
    Returns non-zero if the event was filtered, caller shall not process
    this event further.
    Returns zero if event is wasn't filtered.  */
-   
+
 #ifdef HAVE_X_I18N
 static int
 x_filter_event (dpyinfo, event)
@@ -10286,7 +10286,7 @@ event_handler_gdk (gxev, ev, data)
 
 
 /* Handles the XEvent EVENT on display DPYINFO.
-   
+
    *FINISH is X_EVENT_GOTO_OUT if caller should stop reading events.
    *FINISH is zero if caller should continue reading events.
    *FINISH is X_EVENT_DROP if event should not be passed to the toolkit.
@@ -10294,7 +10294,7 @@ event_handler_gdk (gxev, ev, data)
    Events representing keys are stored in buffer *BUFP_R,
    which can hold up to *NUMCHARSP characters.
    We return the number of characters stored into the buffer. */
-   
+
 static int
 handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
      struct x_display_info *dpyinfo;
@@ -10312,7 +10312,7 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
   XEvent event = *eventp;
 
   *finish = X_EVENT_NORMAL;
-  
+
   switch (event.type)
     {
     case ClientMessage:
@@ -11541,7 +11541,7 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
     }
 
   goto ret;
-  
+
  out:
   *finish = X_EVENT_GOTO_OUT;
 
@@ -11549,7 +11549,7 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
   *bufp_r = bufp;
   *numcharsp = numchars;
   *eventp = event;
-  
+
   return count;
 }
 
@@ -11569,11 +11569,11 @@ x_dispatch_event (event, display)
   struct input_event *bufpp = bufp;
   int numchars = 10;
   int finish = X_EVENT_NORMAL;
-      
+
   for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
     if (dpyinfo->display == display)
       break;
-          
+
   if (dpyinfo)
     {
       int i, events;
@@ -11681,7 +11681,7 @@ XTread_socket (sd, bufp, numchars, expected)
          We use a bunch of globals to communicate with our filter function,
          that is kind of ugly, but it works. */
       current_dpyinfo = dpyinfo;
-      
+
       while (gtk_events_pending ())
         {
           static int nr = 0;
@@ -11703,7 +11703,7 @@ XTread_socket (sd, bufp, numchars, expected)
       while (XPending (dpyinfo->display))
 	{
           int finish;
-          
+
 	  XNextEvent (dpyinfo->display, &event);
 
 #ifdef HAVE_X_I18N
@@ -14105,7 +14105,7 @@ x_free_frame_resources (f)
           FRAME_GTK_OUTER_WIDGET (f) = 0;
         }
 #endif /* USE_GTK */
-          
+
       if (FRAME_X_WINDOW (f))
 	XDestroyWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 #endif /* !USE_X_TOOLKIT */
@@ -14208,7 +14208,7 @@ x_wm_set_size_hint (f, flags, user_position)
   int ac = 0;
   Dimension widget_width, widget_height;
 #endif
-  
+
   Window window = FRAME_OUTER_WINDOW (f);
 
   /* Setting PMaxSize caused various problems.  */
@@ -15198,7 +15198,7 @@ x_term_init (display_name, xrm_option, resource_name)
 
     argv[argc++] = "--name";
     argv[argc++] = resource_name;
-    
+
 #ifdef HAVE_X11R5
     XSetLocaleModifiers ("");
 #endif
@@ -15210,7 +15210,7 @@ x_term_init (display_name, xrm_option, resource_name)
     xg_initialize ();
 
     dpy = GDK_DISPLAY ();
-    
+
     /* NULL window -> events for all windows go to our function */
     gdk_window_add_filter (NULL, event_handler_gdk, NULL);
 
@@ -15226,10 +15226,10 @@ x_term_init (display_name, xrm_option, resource_name)
 
       if (! NILP (abs_file) && Ffile_readable_p (abs_file))
         gtk_rc_parse (SDATA (abs_file));
-      
+
       UNGCPRO;
     }
-    
+
     XSetErrorHandler (x_error_handler);
     XSetIOErrorHandler (x_io_error_quitter);
   }

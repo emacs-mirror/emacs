@@ -440,7 +440,7 @@ extern char *get_emacs_configuration_options (void);
 
 #include <sys/stat.h>
 
-/* Define for those source files that do not include enough NT 
+/* Define for those source files that do not include enough NT
    system files.  */
 #ifndef NULL
 #ifdef __cplusplus

@@ -30,7 +30,7 @@ Boston, MA 02111-1307, USA.  */
 
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
-LPBYTE 
+LPBYTE
 w32_get_string_resource (name, class, dwexptype)
      char *name, *class;
      DWORD dwexptype;
@@ -41,23 +41,23 @@ w32_get_string_resource (name, class, dwexptype)
   DWORD cbData;
   BOOL ok = FALSE;
   HKEY hive = HKEY_CURRENT_USER;
-  
+
  trykey:
 
   BLOCK_INPUT;
-  
+
   /* Check both the current user and the local machine to see if we have
      any resources */
 
   if (RegOpenKeyEx (hive, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
     {
       char *keyname;
-      
+
       if (RegQueryValueEx (hrootkey, name, NULL, &dwType, NULL, &cbData) == ERROR_SUCCESS
 	  && dwType == dwexptype)
 	{
 	  keyname = name;
-	} 
+	}
       else if (RegQueryValueEx (hrootkey, class, NULL, &dwType, NULL, &cbData) == ERROR_SUCCESS
 	       && dwType == dwexptype)
 	{
@@ -67,17 +67,17 @@ w32_get_string_resource (name, class, dwexptype)
 	{
 	  keyname = NULL;
 	}
-      
+
       ok = (keyname
 	    && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
 	    && RegQueryValueEx (hrootkey, keyname, NULL, NULL, lpvalue, &cbData) == ERROR_SUCCESS);
-      
+
       RegCloseKey (hrootkey);
     }
-  
+
   UNBLOCK_INPUT;
-  
-  if (!ok) 
+
+  if (!ok)
     {
       if (lpvalue)
 	{
@@ -90,7 +90,7 @@ w32_get_string_resource (name, class, dwexptype)
 	  goto trykey;
 	}
       return (NULL);
-    } 
+    }
   return (lpvalue);
 }
 

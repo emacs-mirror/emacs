@@ -147,7 +147,7 @@ extern Lisp_Object composition_temp;
 
    When a composition is assigned an ID number (by
    get_composition_id), this structure is allocated for the
-   composition and linked in composition_table[ID].  
+   composition and linked in composition_table[ID].
 
    Identical compositions appearing at different places have the same
    ID, and thus share the same instance of this structure.  */

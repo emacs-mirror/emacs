@@ -65,7 +65,7 @@ There are several ways you can do this.  You can use the arrow keys,
 but it's more efficient to keep your hands in the standard position
 and use the commands C-p, C-b, C-f, and C-n.  These characters
 are equivalent to the four arrow keys, like this:
- 
+
 			  Previous line, C-p
 				  :
 				  :
@@ -198,7 +198,7 @@ any terminal.  The numeric argument is also called a "prefix argument",
 because you type the argument before the command it applies to.
 
 For instance, C-u 8 C-f moves forward eight characters.
-	
+
 >> Try using C-n or C-p with a numeric argument, to move the cursor
    to a line near this one with just one command.
 
@@ -749,7 +749,7 @@ no stars, just dashes.
 
 The part of the mode line inside the parentheses is to tell you what
 editing modes you are in.  The default mode is Fundamental which is
-what you are using now.  It is an example of a "major mode".  
+what you are using now.  It is an example of a "major mode".
 
 Emacs has many different major modes.  Some of them are meant for
 editing different languages and/or kinds of text, such as Lisp mode,

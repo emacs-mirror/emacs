@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1995, 1998 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1995, 1998 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Calendar, System Interface, Display, Top
 @chapter Customizing the Calendar and Diary
@@ -16,7 +16,7 @@ diary suit your personal tastes.
 * Daylight Savings::       Changing the default.
 * Diary Customizing::      Defaults you can set.
 * Hebrew/Islamic Entries:: How to obtain them.
-* Fancy Diary Display::    Enhancing the diary display, sorting entries, 
+* Fancy Diary Display::    Enhancing the diary display, sorting entries,
                              using included diary files.
 * Sexp Diary Entries::     Fancy things you can do.
 * Appt Customizing::	   Customizing appointment reminders.
@@ -543,7 +543,7 @@ the fourth pattern.
 well as entries based on the world-standard Gregorian calendar.
 However, because recognition of such entries is time-consuming and most
 people don't use them, you must explicitly enable their use.  If you
-want the diary to recognize Hebrew-date diary entries, for example, 
+want the diary to recognize Hebrew-date diary entries, for example,
 you must do this:
 
 @vindex nongregorian-diary-listing-hook
@@ -603,7 +603,7 @@ entry matches any date that has the same Hebrew day-within-month as the
 selected date.
 @item i h y
 Add a diary entry for the day of the Hebrew year corresponding to the
-selected date (@code{insert-yearly-hebrew-diary-entry}).  This diary 
+selected date (@code{insert-yearly-hebrew-diary-entry}).  This diary
 entry matches any date which has the same Hebrew month and day-within-month
 as the selected date.
 @item i i d
@@ -626,7 +626,7 @@ selected date (@code{insert-yearly-islamic-diary-entry}).
   These commands work much like the corresponding commands for ordinary
 diary entries: they apply to the date that point is on in the calendar
 window, and what they do is insert just the date portion of a diary entry
-at the end of your diary file.  You must then insert the rest of the 
+at the end of your diary file.  You must then insert the rest of the
 diary entry.
 
 @node Fancy Diary Display

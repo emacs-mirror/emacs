@@ -1243,7 +1243,7 @@ xlwmenu_window_p (w, window)
 {
   XlwMenuWidget mw = (XlwMenuWidget) w;
   int i;
-  
+
   for (i = 0; i < mw->menu.windows_length; ++i)
     if (window == mw->menu.windows[i].window)
       break;

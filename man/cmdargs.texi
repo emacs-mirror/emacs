@@ -432,7 +432,7 @@ removed from the end if it was present.  On Windows, the default value
 of @env{HOME} is @file{C:/}, the root directory of drive @file{C:}.
 @item HOSTNAME
 The name of the machine that Emacs is running on.
-@item INCPATH 
+@item INCPATH
 A colon-separated list of directories.  Used by the @code{complete} package
 to search for files.
 @item INFOPATH
@@ -629,7 +629,7 @@ all users of the machine.  Settings you add to the
 override machine wide settings.
 
 @node Display X
-@appendixsec Specifying the Display Name 
+@appendixsec Specifying the Display Name
 @cindex display name (X Window System)
 @cindex @env{DISPLAY} environment variable
 
@@ -913,7 +913,7 @@ text-only terminals as well as on window systems.
 @cindex specifying fullscreen for Emacs frame
 
   Here is a list of the command-line options for specifying size and
-position of the initial Emacs frame: 
+position of the initial Emacs frame:
 
 @table @samp
 @item -g @var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}

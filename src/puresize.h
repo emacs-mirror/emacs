@@ -90,7 +90,7 @@ extern char my_edata[];
 #else /* not VIRT_ADDRESS_VARIES, not PNTR_COMPARISON_TYPE */
 
 extern char my_edata[];
-    
+
 #define PURE_P(obj) \
   (XPNTR (obj) < (unsigned int) my_edata)
 

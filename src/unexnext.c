@@ -44,7 +44,7 @@ int malloc_cookie;
  * pages it vm_allocated and write only those out into the data segment.
  *
  * This kludge may break when we stop using fixed virtual address
- * shared libraries. Actually, emacs will probably continue working, but be 
+ * shared libraries. Actually, emacs will probably continue working, but be
  * much larger on disk than it needs to be (because non-malloced data will
  * be in the file).
  */
@@ -73,7 +73,7 @@ grow(
 		*the_commands = malloc(sizeof(*the_commands));
 	} else {
 		(*the_commands_len)++;
-		*the_commands = realloc(*the_commands, 
+		*the_commands = realloc(*the_commands,
 					(*the_commands_len *
 					 sizeof(**the_commands)));
 	}
@@ -125,7 +125,7 @@ read_macho(
 		return (0);
 	}
 	for (i = 0; i < the_header->ncmds; i++) {
-		if (read(fd, &command, sizeof(struct load_command)) != 
+		if (read(fd, &command, sizeof(struct load_command)) !=
 		    sizeof(struct load_command)) {
 		  	fatal_unexec("cannot read macho load command header");
 			return (0);
@@ -138,8 +138,8 @@ read_macho(
 		buf = malloc(command.cmdsize);
 		buf->cmd = command.cmd;
 		buf->cmdsize = command.cmdsize;
-		if (read(fd, ((char *)buf + 
-			      sizeof(struct load_command)), 
+		if (read(fd, ((char *)buf +
+			      sizeof(struct load_command)),
 			 size) != size) {
 		  	fatal_unexec("cannot read load command data");
 			return (0);
@@ -184,31 +184,31 @@ get_data_region(
 	region.address = 0;
 	*address = 0;
 	for (;;) {
-		ret = vm_region(task_self(), 
-				&region.address, 
-				&region.size, 
-				&region.protection, 
-				&region.max_protection, 
+		ret = vm_region(task_self(),
+				&region.address,
+				&region.size,
+				&region.protection,
+				&region.max_protection,
 				&region.inheritance,
-				&region.shared, 
-				&region.object_name, 
+				&region.shared,
+				&region.object_name,
 				&region.offset);
 		if (ret != KERN_SUCCESS || region.address >= VM_HIGHDATA) {
 			break;
 		}
 		if (*address != 0) {
 			if (region.address > *address + *size) {
-				if (!filldatagap(*address, size, 
+				if (!filldatagap(*address, size,
 						 region.address)) {
 					return (0);
 				}
-			} 
+			}
 			*size += region.size;
 		} else {
 			if (region.address == sect->addr) {
 				*address = region.address;
 				*size = region.size;
-			} 
+			}
 		}
 		region.address += region.size;
 	}
@@ -293,7 +293,7 @@ unexec_doit(
 				if (strcmp(segment->segname, SEG_DATA) == 0) {
 					fdatastart = segment->fileoff;
 					fdatasize = segment->filesize;
-					fgrowth = (data_size - 
+					fgrowth = (data_size -
 						   segment->filesize);
 					segment->vmsize = data_size;
 					segment->filesize = data_size;
@@ -332,37 +332,37 @@ unexec_doit(
 				break;
 			}
 		}
-		
+
 		/*
 		 * Write header
 		 */
-		if (write(outfd, &the_header, 
+		if (write(outfd, &the_header,
 			  sizeof(the_header)) != sizeof(the_header)) {
 			fatal_unexec("cannot write output file");
 			return (0);
 		}
-		
+
 		/*
 		 * Write commands
 		 */
 		for (i = 0; i < the_commands_len; i++) {
-			if (write(outfd, the_commands[i], 
-				  the_commands[i]->cmdsize) != 
+			if (write(outfd, the_commands[i],
+				  the_commands[i]->cmdsize) !=
 			    the_commands[i]->cmdsize) {
 			  	fatal_unexec("cannot write output file");
 				return (0);
 			}
 		}
-		
+
 		/*
 		 * Write original text
 		 */
-		if (lseek(infd, the_header.sizeofcmds + sizeof(the_header), 
+		if (lseek(infd, the_header.sizeofcmds + sizeof(the_header),
 			  L_SET) < 0) {
 		  	fatal_unexec("cannot seek input file");
 			return (0);
 		}
-		size = fdatastart - (sizeof(the_header) + 
+		size = fdatastart - (sizeof(the_header) +
 				     the_header.sizeofcmds);
 		buf = my_malloc(size);
 		if (read(infd, buf, size) != size) {
@@ -375,17 +375,17 @@ unexec_doit(
 			return (0);
 		}
 		my_free(buf, size);
-		
-		
+
+
 		/*
 		 * Write new data
 		 */
-		if (write(outfd, (char *)data_address, 
+		if (write(outfd, (char *)data_address,
 			  data_size) != data_size) {
 			fatal_unexec("cannot write output file");
 			return (0);
 		}
-		
+
 	}
 
 	/*
@@ -424,7 +424,7 @@ unexec_doit(
 		fatal_unexec("cannot seek input file");
 		return (0);
 	}
-        
+
         for (i = 0; i < nextrel; i++)
         {
           long zeroval = 0;
@@ -482,7 +482,7 @@ unexec(
 	  	fatal_unexec("cannot open input file `%s'", infile);
 		exit(1);
 	}
-	
+
 	tmpnam(tmpbuf);
 	tmpfile = rindex(tmpbuf, '/');
 	if (tmpfile == NULL) {

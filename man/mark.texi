@@ -162,7 +162,7 @@ This makes the mark active and thus begins highlighting of the region.
 As you move point, you will see the highlighted region grow and
 shrink.
 
-@item 
+@item
 The mouse commands for specifying the mark also make it active.  So do
 keyboard commands whose purpose is to specify a region, including
 @kbd{M-@@}, @kbd{C-M-@@}, @kbd{M-h}, @kbd{C-M-h}, @kbd{C-x C-p}, and

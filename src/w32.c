@@ -343,7 +343,7 @@ getwd (char *dir)
 int
 gethostname (char *buffer, int size)
 {
-  /* NT only allows small host names, so the buffer is 
+  /* NT only allows small host names, so the buffer is
      certainly large enough.  */
   return !GetComputerName (buffer, &size);
 }
@@ -356,7 +356,7 @@ getloadavg (double loadavg[], int nelem)
   int i;
 
   /* A faithful emulation is going to have to be saved for a rainy day.  */
-  for (i = 0; i < nelem; i++) 
+  for (i = 0; i < nelem; i++)
     {
       loadavg[i] = 0.0;
     }
@@ -373,7 +373,7 @@ static char the_passwd_gecos[PASSWD_FIELD_SIZE];
 static char the_passwd_dir[PASSWD_FIELD_SIZE];
 static char the_passwd_shell[PASSWD_FIELD_SIZE];
 
-static struct passwd the_passwd = 
+static struct passwd the_passwd =
 {
   the_passwd_name,
   the_passwd_passwd,
@@ -385,30 +385,30 @@ static struct passwd the_passwd =
   the_passwd_shell,
 };
 
-int 
-getuid () 
-{ 
+int
+getuid ()
+{
   return the_passwd.pw_uid;
 }
 
-int 
-geteuid () 
-{ 
+int
+geteuid ()
+{
   /* I could imagine arguing for checking to see whether the user is
      in the Administrators group and returning a UID of 0 for that
      case, but I don't know how wise that would be in the long run.  */
-  return getuid (); 
+  return getuid ();
 }
 
-int 
-getgid () 
-{ 
+int
+getgid ()
+{
   return the_passwd.pw_gid;
 }
 
-int 
-getegid () 
-{ 
+int
+getegid ()
+{
   return getgid ();
 }
 
@@ -424,7 +424,7 @@ struct passwd *
 getpwnam (char *name)
 {
   struct passwd *pw;
-  
+
   pw = getpwuid (getuid ());
   if (!pw)
     return pw;
@@ -782,57 +782,57 @@ is_unc_volume (const char *filename)
 
 /* Routines that are no-ops on NT but are defined to get Emacs to compile.  */
 
-int 
-sigsetmask (int signal_mask) 
-{ 
+int
+sigsetmask (int signal_mask)
+{
   return 0;
 }
 
-int 
-sigmask (int sig) 
-{ 
+int
+sigmask (int sig)
+{
   return 0;
 }
 
-int 
-sigblock (int sig) 
-{ 
+int
+sigblock (int sig)
+{
   return 0;
 }
 
-int 
-sigunblock (int sig) 
-{ 
+int
+sigunblock (int sig)
+{
   return 0;
 }
 
-int 
-setpgrp (int pid, int gid) 
-{ 
+int
+setpgrp (int pid, int gid)
+{
   return 0;
 }
 
-int 
-alarm (int seconds) 
-{ 
+int
+alarm (int seconds)
+{
   return 0;
 }
 
-void 
-unrequest_sigio (void) 
-{ 
+void
+unrequest_sigio (void)
+{
   return;
 }
 
 void
-request_sigio (void) 
-{ 
+request_sigio (void)
+{
   return;
 }
 
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
-LPBYTE 
+LPBYTE
 w32_get_resource (key, lpdwtype)
     char *key;
     LPDWORD lpdwtype;
@@ -841,42 +841,42 @@ w32_get_resource (key, lpdwtype)
   HKEY hrootkey = NULL;
   DWORD cbData;
   BOOL ok = FALSE;
-  
-  /* Check both the current user and the local machine to see if 
+
+  /* Check both the current user and the local machine to see if
      we have any resources.  */
-  
+
   if (RegOpenKeyEx (HKEY_CURRENT_USER, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
     {
       lpvalue = NULL;
 
-      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS 
-	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL 
-	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
-	{
-	  return (lpvalue);
-	}
-
-      if (lpvalue) xfree (lpvalue);
-	
-      RegCloseKey (hrootkey);
-    } 
-  
-  if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
-    {
-      lpvalue = NULL;
-	
       if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
 	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
 	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
 	{
 	  return (lpvalue);
 	}
-	
+
       if (lpvalue) xfree (lpvalue);
-	
+
       RegCloseKey (hrootkey);
-    } 
-  
+    }
+
+  if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
+    {
+      lpvalue = NULL;
+
+      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
+	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
+	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
+	{
+	  return (lpvalue);
+	}
+
+      if (lpvalue) xfree (lpvalue);
+
+      RegCloseKey (hrootkey);
+    }
+
   return (NULL);
 }
 
@@ -933,7 +933,7 @@ init_environment (char ** argv)
     {
       char * name;
       char * def_value;
-    } env_vars[] = 
+    } env_vars[] =
     {
       {"HOME", "C:/"},
       {"PRELOAD_WINSOCK", NULL},
@@ -987,7 +987,7 @@ init_environment (char ** argv)
 	  *p = 0;
 	  for (p = modname; *p; p++)
 	    if (*p == '\\') *p = '/';
-		  
+
 	  _snprintf (buf, sizeof(buf)-1, "emacs_dir=%s", modname);
 	  _putenv (strdup (buf));
 	}
@@ -1019,7 +1019,7 @@ init_environment (char ** argv)
 		else if (dwType == REG_SZ)
 		  {
 		    char buf[SET_ENV_BUF_SIZE];
-		  
+
 		    _snprintf (buf, sizeof(buf)-1, "%s=%s", env_vars[i].name, lpval);
 		    _putenv (strdup (buf));
 		  }
@@ -1113,7 +1113,7 @@ get_emacs_configuration (void)
   static char configuration_buffer[32];
 
   /* Determine the processor type.  */
-  switch (get_processor_type ()) 
+  switch (get_processor_type ())
     {
 
 #ifdef PROCESSOR_INTEL_386
@@ -1230,7 +1230,7 @@ get_emacs_configuration_options (void)
 #include <sys/timeb.h>
 
 /* Emulate gettimeofday (Ulrich Leodolter, 1/11/95).  */
-void 
+void
 gettimeofday (struct timeval *tv, struct timezone *tz)
 {
   struct timeb tb;
@@ -1238,7 +1238,7 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
 
   tv->tv_sec = tb.time;
   tv->tv_usec = tb.millitm * 1000L;
-  if (tz) 
+  if (tz)
     {
       tz->tz_minuteswest = tb.timezone;	/* minutes west of Greenwich  */
       tz->tz_dsttime = tb.dstflag;	/* type of dst correction  */
@@ -1250,7 +1250,7 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
 /* ------------------------------------------------------------------------- */
 
 /* Place a wrapper around the MSVC version of ctime.  It returns NULL
-   on network directories, so we handle that case here.  
+   on network directories, so we handle that case here.
    (Ulrich Leodolter, 1/11/95).  */
 char *
 sys_ctime (const time_t *t)
@@ -1356,7 +1356,7 @@ GetCachedVolumeInformation (char * root_dir)
      tell whether they are or not.  Also, the UNC association of drive
      letters mapped to remote volumes can be changed at any time (even
      by other processes) without notice.
-   
+
      As a compromise, so we can benefit from caching info for remote
      volumes, we use a simple expiry mechanism to invalidate cache
      entries that are more than ten seconds old.  */
@@ -1462,7 +1462,7 @@ get_volume_info (const char * name, const char ** pPath)
 
   if (pPath)
     *pPath = name;
-    
+
   info = GetCachedVolumeInformation (rootname);
   if (info != NULL)
     {
@@ -1600,7 +1600,7 @@ is_exec (const char * name)
 	 stricmp (p, ".cmd") == 0));
 }
 
-/* Emulate the Unix directory procedures opendir, closedir, 
+/* Emulate the Unix directory procedures opendir, closedir,
    and readdir.  We can't use the procedures supplied in sysdep.c,
    so we provide them here.  */
 
@@ -1673,8 +1673,8 @@ readdir (DIR *dirp)
 {
   if (wnet_enum_handle != INVALID_HANDLE_VALUE)
     {
-      if (!read_unc_volume (wnet_enum_handle, 
-			      dir_find_data.cFileName, 
+      if (!read_unc_volume (wnet_enum_handle,
+			      dir_find_data.cFileName,
 			      MAX_PATH))
 	return NULL;
     }
@@ -1700,14 +1700,14 @@ readdir (DIR *dirp)
       if (!FindNextFile (dir_find_handle, &dir_find_data))
 	return NULL;
     }
-  
+
   /* Emacs never uses this value, so don't bother making it match
      value returned by stat().  */
   dir_static.d_ino = 1;
-  
+
   dir_static.d_reclen = sizeof (struct direct) - MAXNAMLEN + 3 +
     dir_static.d_namlen - dir_static.d_namlen % 4;
-  
+
   dir_static.d_namlen = strlen (dir_find_data.cFileName);
   strcpy (dir_static.d_name, dir_find_data.cFileName);
   if (dir_is_fat)
@@ -1721,27 +1721,27 @@ readdir (DIR *dirp)
       if (!*p)
 	_strlwr (dir_static.d_name);
     }
-  
+
   return &dir_static;
 }
 
 HANDLE
 open_unc_volume (char *path)
 {
-  NETRESOURCE nr; 
+  NETRESOURCE nr;
   HANDLE henum;
   int result;
 
-  nr.dwScope = RESOURCE_GLOBALNET; 
-  nr.dwType = RESOURCETYPE_DISK; 
-  nr.dwDisplayType = RESOURCEDISPLAYTYPE_SERVER; 
-  nr.dwUsage = RESOURCEUSAGE_CONTAINER; 
-  nr.lpLocalName = NULL; 
+  nr.dwScope = RESOURCE_GLOBALNET;
+  nr.dwType = RESOURCETYPE_DISK;
+  nr.dwDisplayType = RESOURCEDISPLAYTYPE_SERVER;
+  nr.dwUsage = RESOURCEUSAGE_CONTAINER;
+  nr.lpLocalName = NULL;
   nr.lpRemoteName = map_w32_filename (path, NULL);
-  nr.lpComment = NULL; 
-  nr.lpProvider = NULL;   
+  nr.lpComment = NULL;
+  nr.lpProvider = NULL;
 
-  result = WNetOpenEnum(RESOURCE_GLOBALNET, RESOURCETYPE_DISK,  
+  result = WNetOpenEnum(RESOURCE_GLOBALNET, RESOURCETYPE_DISK,
 			RESOURCEUSAGE_CONNECTABLE, &nr, &henum);
 
   if (result == NO_ERROR)
@@ -1802,7 +1802,7 @@ unc_volume_file_attributes (char *path)
 
 /* Shadow some MSVC runtime functions to map requests for long filenames
    to reasonable short names if necessary.  This was originally added to
-   permit running Emacs on NT 3.1 on a FAT partition, which doesn't support 
+   permit running Emacs on NT 3.1 on a FAT partition, which doesn't support
    long file names.  */
 
 int
@@ -2452,7 +2452,7 @@ stat (const char * path, struct stat * buf)
     permission = _S_IREAD;
   else
     permission = _S_IREAD | _S_IWRITE;
-  
+
   if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     permission |= _S_IEXEC;
   else if (is_exec (name))
@@ -2536,7 +2536,7 @@ fstat (int desc, struct stat * buf)
     permission = _S_IREAD;
   else
     permission = _S_IREAD | _S_IWRITE;
-  
+
   if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     permission |= _S_IEXEC;
   else
@@ -2788,7 +2788,7 @@ struct {
   WSAEFAULT               , "Bad address",
   WSAEINVAL               , "Invalid argument",
   WSAEMFILE               , "Too many open files",
-			
+
   WSAEWOULDBLOCK          , "Resource temporarily unavailable",
   WSAEINPROGRESS          , "Operation now in progress",
   WSAEALREADY             , "Operation already in progress",
@@ -2826,7 +2826,7 @@ struct {
   WSAEDQUOT               , "Double quote in host name",    /* really not sure */
   WSAESTALE               , "Data is stale",		    /* not sure */
   WSAEREMOTE              , "Remote error",		    /* not sure */
-			
+
   WSASYSNOTREADY          , "Network subsystem is unavailable",
   WSAVERNOTSUPPORTED      , "WINSOCK.DLL version out of range",
   WSANOTINITIALISED       , "Winsock not initialized successfully",
@@ -2844,7 +2844,7 @@ struct {
   WSA_E_CANCELLED         , "Operation already cancelled",  /* really not sure */
   WSAEREFUSED             , "Operation refused",	    /* not sure */
 #endif
-			
+
   WSAHOST_NOT_FOUND       , "Host not found",
   WSATRY_AGAIN            , "Authoritative host not found during name lookup",
   WSANO_RECOVERY          , "Non-recoverable error during name lookup",
@@ -2899,7 +2899,7 @@ sys_socket(int af, int type, int protocol)
 
   /* call the real socket function */
   s = pfn_socket (af, type, protocol);
-  
+
   if (s != INVALID_SOCKET)
     return socket_to_fd (s);
 
@@ -2972,7 +2972,7 @@ socket_to_fd (SOCKET s)
 		  {
 		    CloseHandle (new_s);
 		  }
-	      } 
+	      }
 	  }
       }
       fd_info[fd].hnd = (HANDLE) s;
@@ -3185,7 +3185,7 @@ sys_setsockopt (int s, int level, int optname, const char * optval, int optlen)
       return rc;
     }
   h_errno = ENOTSOCK;
-  return SOCKET_ERROR;      
+  return SOCKET_ERROR;
 }
 
 int
@@ -3206,7 +3206,7 @@ sys_listen (int s, int backlog)
       return rc;
     }
   h_errno = ENOTSOCK;
-  return SOCKET_ERROR;      
+  return SOCKET_ERROR;
 }
 
 int
@@ -3227,7 +3227,7 @@ sys_getsockname (int s, struct sockaddr * name, int * namelen)
       return rc;
     }
   h_errno = ENOTSOCK;
-  return SOCKET_ERROR;      
+  return SOCKET_ERROR;
 }
 
 int
@@ -3425,7 +3425,7 @@ sys_dup2 (int src, int dst)
   /* make sure we close the destination first if it's a pipe or socket */
   if (src != dst && fd_info[dst].flags != 0)
     sys_close (dst);
-  
+
   rc = _dup2 (src, dst);
   if (rc == 0)
     {
@@ -3485,9 +3485,9 @@ _sys_read_ahead (int fd)
       DebPrint (("_sys_read_ahead: internal error: fd %d is not a pipe or socket!\n", fd));
       abort ();
     }
-  
+
   cp->status = STATUS_READ_IN_PROGRESS;
-  
+
   if (fd_info[fd].flags & FILE_PIPE)
     {
       rc = _read (fd, &cp->chr, sizeof (char));
@@ -3529,7 +3529,7 @@ _sys_read_ahead (int fd)
 	}
     }
 #endif
-  
+
   if (rc == sizeof (char))
     cp->status = STATUS_READ_SUCCEEDED;
   else
@@ -3728,7 +3728,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
 		  next[0] = '\n';
 		  dst = next + 1;
 		  count++;
-		}	    
+		}
 	      else
 		/* copied remaining partial line -> now finished */
 		break;
@@ -3781,7 +3781,7 @@ check_windows_init_file ()
      it cannot find the Windows installation file.  If this file does
      not exist in the expected place, tell the user.  */
 
-  if (!noninteractive && !inhibit_window_system) 
+  if (!noninteractive && !inhibit_window_system)
     {
       extern Lisp_Object Vwindow_system, Vload_path, Qfile_exists_p;
       Lisp_Object objs[2];
@@ -3794,14 +3794,14 @@ check_windows_init_file ()
       full_load_path = Fappend (2, objs);
       init_file = build_string ("term/w32-win");
       fd = openp (full_load_path, init_file, Vload_suffixes, NULL, Qnil);
-      if (fd < 0) 
+      if (fd < 0)
 	{
 	  Lisp_Object load_path_print = Fprin1_to_string (full_load_path, Qnil);
 	  char *init_file_name = SDATA (init_file);
 	  char *load_path = SDATA (load_path_print);
 	  char *buffer = alloca (1024);
 
-	  sprintf (buffer, 
+	  sprintf (buffer,
 		   "The Emacs Windows initialization file \"%s.el\" "
 		   "could not be found in your Emacs installation.  "
 		   "Emacs checked the following directories for this file:\n"
@@ -3866,14 +3866,14 @@ init_ntproc ()
 
     /* ignore errors when duplicating and closing; typically the
        handles will be invalid when running as a gui program. */
-    DuplicateHandle (parent, 
-		     GetStdHandle (STD_INPUT_HANDLE), 
+    DuplicateHandle (parent,
+		     GetStdHandle (STD_INPUT_HANDLE),
 		     parent,
-		     &stdin_save, 
-		     0, 
-		     FALSE, 
+		     &stdin_save,
+		     0,
+		     FALSE,
 		     DUPLICATE_SAME_ACCESS);
-    
+
     DuplicateHandle (parent,
 		     GetStdHandle (STD_OUTPUT_HANDLE),
 		     parent,
@@ -3881,7 +3881,7 @@ init_ntproc ()
 		     0,
 		     FALSE,
 		     DUPLICATE_SAME_ACCESS);
-    
+
     DuplicateHandle (parent,
 		     GetStdHandle (STD_ERROR_HANDLE),
 		     parent,
@@ -3889,7 +3889,7 @@ init_ntproc ()
 		     0,
 		     FALSE,
 		     DUPLICATE_SAME_ACCESS);
-    
+
     fclose (stdin);
     fclose (stdout);
     fclose (stderr);
@@ -3926,7 +3926,7 @@ init_ntproc ()
     while (*drive <= 'Z')
     {
       /* Record if this drive letter refers to a fixed drive. */
-      fixed_drives[DRIVE_INDEX (*drive)] = 
+      fixed_drives[DRIVE_INDEX (*drive)] =
 	(GetDriveType (drive) == DRIVE_FIXED);
 
       (*drive)++;
@@ -3935,7 +3935,7 @@ init_ntproc ()
     /* Reset the volume info cache.  */
     volume_cache = NULL;
   }
-  
+
   /* Check to see if Emacs has been installed correctly.  */
   check_windows_init_file ();
 }

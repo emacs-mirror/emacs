@@ -81,7 +81,7 @@ record_point (pt)
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
 
-  /* If we are just after an undo boundary, and 
+  /* If we are just after an undo boundary, and
      point wasn't at start of deleted range, record where it was.  */
   if (at_boundary
       && last_point_position != pt
@@ -175,7 +175,7 @@ record_marker_adjustment (marker, adjustment)
   if (NILP (pending_boundary))
     pending_boundary = Fcons (Qnil, Qnil);
 
-  if (!BUFFERP (last_undo_buffer) 
+  if (!BUFFERP (last_undo_buffer)
       || current_buffer != XBUFFER (last_undo_buffer))
     Fundo_boundary ();
   XSETBUFFER (last_undo_buffer, current_buffer);
@@ -312,7 +312,7 @@ truncate_undo_list (list, minsize, maxsize)
      If the first element is an undo boundary, skip past it.
 
      Skip, skip, skip the undo, skip, skip, skip the undo,
-     Skip, skip, skip the undo, skip to the undo bound'ry. 
+     Skip, skip, skip the undo, skip to the undo bound'ry.
      (Get it?  "Skip to my Loo?")  */
   if (CONSP (next) && NILP (XCAR (next)))
     {
@@ -402,7 +402,7 @@ Return what remains of the list.  */)
   Lisp_Object next;
   int count = SPECPDL_INDEX ();
   register int arg;
-  
+
 #if 0  /* This is a good feature, but would make undo-start
 	  unable to do what is expected.  */
   Lisp_Object tem;

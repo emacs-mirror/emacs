@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/variables
 @node Variables, Functions, Control Structures, Top
@@ -207,7 +207,7 @@ Here is an example of this: @code{Z} is bound to the old value of
      @result{} 2
 @end group
 @group
-(let ((Y 1) 
+(let ((Y 1)
       (Z Y))
   (list Y Z))
      @result{} (1 2)
@@ -767,7 +767,7 @@ The value of the @code{setq} form is the value of the last @var{form}.
 x                   ; @r{@code{x} now has a global value.}
      @result{} 3
 @group
-(let ((x 5)) 
+(let ((x 5))
   (setq x 6)        ; @r{The local binding of @code{x} is set.}
   x)
      @result{} 6
@@ -784,7 +784,7 @@ second @var{symbol} is set, and so on:
 @group
 (setq x 10          ; @r{Notice that @code{x} is set before}
       y (1+ x))     ;   @r{the value of @code{y} is computed.}
-     @result{} 11             
+     @result{} 11
 @end group
 @end example
 @end defspec
@@ -1350,7 +1350,7 @@ then the variable appears directly in the resulting list.
     (mode-name . "Fundamental")
     @dots{}
 @group
-    ;; @r{Next, non-built-in buffer-local variables.} 
+    ;; @r{Next, non-built-in buffer-local variables.}
     ;; @r{This one is buffer-local and void:}
     foobar
     ;; @r{This one is buffer-local and nonvoid:}

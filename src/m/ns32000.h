@@ -20,7 +20,7 @@ Boston, MA 02111-1307, USA.  */
 
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="usg5-2"  */
 

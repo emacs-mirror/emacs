@@ -19,7 +19,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="usg5-2"  */
 
@@ -34,7 +34,7 @@ Boston, MA 02111-1307, USA.  */
 #define m68000
 #endif
 
-#define sps7  
+#define sps7
 
 /* Use type int rather than a union, to represent Lisp_Object */
 
@@ -99,7 +99,7 @@ Boston, MA 02111-1307, USA.  */
 /* Use -T32 for 68020, -T16 otherwise */
 
 #define C_SWITCH_MACHINE -T32
-  
+
 #define BROKEN_SIGIO
 
 /* Other than 68020 use ld16, as32, or undefine (defaults ld and as). */

@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/InsSel.c,v 1.1 1992/04/11 22:10:19 jimb Exp $ */
+/* $Header: /cvs/emacs/oldXMenu/InsSel.c,v 1.1 1999/10/03 19:35:05 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -32,7 +32,7 @@ XMenuInsertSelection(menu, p_num, s_num, data, label, active)
 
     int label_length;		/* Label length in characters. */
     int label_width;		/* Label width in pixels. */
-    
+
     /*
      * Check for NULL pointers!
      */

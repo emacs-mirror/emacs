@@ -1,13 +1,13 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1998 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1998 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/hooks
 @node Standard Hooks, Index, Standard Keymaps, Top
 @appendix Standard Hooks
 
 The following is a list of hook variables that let you provide
-functions to be called from within Emacs on suitable occasions. 
+functions to be called from within Emacs on suitable occasions.
 
 Most of these variables have names ending with @samp{-hook}.  They are
 @dfn{normal hooks}, run by means of @code{run-hooks}.  The value of such

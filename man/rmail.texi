@@ -94,7 +94,7 @@ changed).  @kbd{C-x s} is a good enough way to do this
 @section Scrolling Within a Message
 
   When Rmail displays a message that does not fit on the screen, you
-must scroll through it to read the rest.  You could do this with 
+must scroll through it to read the rest.  You could do this with
 @kbd{C-v}, @kbd{M-v} and @kbd{M-<}, but in Rmail scrolling is so
 frequent that it deserves to be easier to type.
 

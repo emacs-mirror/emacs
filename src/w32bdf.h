@@ -34,7 +34,7 @@ Boston, MA 02111-1307, USA.  */
 #define BDF_FONT_CACHE_SIZE 3000
 #define BDF_FONT_CLEAR_SIZE 600
 
-/* 
+/*
    GLYPH METRIC (# ... character's reference point)
    ^
  y |              (urx, ury)

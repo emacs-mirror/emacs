@@ -172,7 +172,7 @@ Other features we would like:
 
 * Add a feature to Info similar to "info --apropos SUBJECT".
 
-* Add support for SVG (Scalable Vector Graphics) rendering to 
+* Add support for SVG (Scalable Vector Graphics) rendering to
   Emacs.
 
 * Allow unknown image types to be rendered via an external program

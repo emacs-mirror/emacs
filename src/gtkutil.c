@@ -180,7 +180,7 @@ static void
 xg_list_insert (xg_list_node *list, xg_list_node *node)
 {
   xg_list_node *list_start = list->next;
-  
+
   if (list_start) list_start->prev = node;
   node->next = list_start;
   node->prev = 0;
@@ -213,7 +213,7 @@ get_utf8_string (str)
      char *str;
 {
   char *utf8_str = str;
-  
+
   /* If not UTF-8, try current locale.  */
   if (str && !g_utf8_validate (str, -1, NULL))
     utf8_str = g_locale_to_utf8 (str, -1, 0, 0, 0);
@@ -242,7 +242,7 @@ xg_set_geometry (f)
     int top = f->output_data.x->top_pos;
     int yneg = f->output_data.x->size_hint_flags & YNegative;
     char geom_str[32];
-    
+
     if (xneg)
       left = -left;
     if (yneg)
@@ -260,7 +260,7 @@ xg_set_geometry (f)
   }
 }
 
-     
+
 /* Resize the outer window of frame F after chainging the height.
    This happend when the menu bar or the tool bar is added or removed.
    COLUMNS/ROWS is the size the edit area shall have after the resize.  */
@@ -299,7 +299,7 @@ xg_resize_widgets (f, pixelwidth, pixelheight)
   int tbheight = FRAME_TOOLBAR_HEIGHT (f);
   int rows = PIXEL_TO_CHAR_HEIGHT (f, pixelheight - mbheight - tbheight);
   int columns = PIXEL_TO_CHAR_WIDTH (f, pixelwidth);
-  
+
   if (FRAME_GTK_WIDGET (f)
       && (columns != FRAME_WIDTH (f) || rows != FRAME_HEIGHT (f)
           || pixelwidth != PIXEL_WIDTH (f) || pixelheight != PIXEL_HEIGHT (f)))
@@ -333,7 +333,7 @@ xg_frame_set_char_size (f, cols, rows)
   int pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows)
     + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
   int pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
-  
+
   /* Take into account the size of the scroll bar.  Always use the
      number of columns occupied by the scroll bar here otherwise we
      might end up with a frame width that is not a multiple of the
@@ -374,7 +374,7 @@ xg_win_to_widget (wdesc)
       event.any.window = gdkwin;
       gwdesc = gtk_get_event_widget (&event);
     }
-  
+
   UNBLOCK_INPUT;
   return gwdesc;
 }
@@ -404,13 +404,13 @@ xg_create_frame_widgets (f)
   GtkRcStyle *style;
   int i;
   char *title = 0;
-  
+
   BLOCK_INPUT;
 
   wtop = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   wvbox = gtk_vbox_new (FALSE, 0);
   wfixed = gtk_fixed_new ();  /* Must have this to place scroll bars  */
-  
+
   if (! wtop || ! wvbox || ! wfixed)
     {
       if (wtop) gtk_widget_destroy (wtop);
@@ -430,7 +430,7 @@ xg_create_frame_widgets (f)
   else if (! NILP (f->name)) title = SDATA (f->name);
 
   if (title) gtk_window_set_title (GTK_WINDOW (wtop), title);
-    
+
   FRAME_GTK_OUTER_WIDGET (f) = wtop;
   FRAME_GTK_WIDGET (f) = wfixed;
   f->output_data.x->vbox_widget = wvbox;
@@ -440,7 +440,7 @@ xg_create_frame_widgets (f)
   gtk_widget_set_size_request (wfixed,
                                PIXEL_WIDTH (f),
                                PIXEL_HEIGHT (f));
-  
+
   gtk_container_add (GTK_CONTAINER (wtop), wvbox);
   gtk_box_pack_end (GTK_BOX (wvbox), wfixed, TRUE, TRUE, 0);
 
@@ -456,11 +456,11 @@ xg_create_frame_widgets (f)
      later on when tool bar items are added.  */
   if (FRAME_EXTERNAL_TOOL_BAR (f) && FRAME_TOOLBAR_HEIGHT (f) == 0)
     FRAME_TOOLBAR_HEIGHT (f) = 34;
-  
+
   gtk_widget_set_double_buffered (wvbox, FALSE);
   gtk_widget_set_double_buffered (wfixed, FALSE);
   gtk_widget_set_double_buffered (wtop, FALSE);
-  
+
   /* GTK documents says use gtk_window_set_resizable.  But then a user
      can't shrink the window from its starting size.  */
   gtk_window_set_policy (GTK_WINDOW (wtop), TRUE, TRUE, TRUE);
@@ -472,7 +472,7 @@ xg_create_frame_widgets (f)
      GTK is to destroy the widget.  We want Emacs to do that instead.  */
   g_signal_connect (G_OBJECT (wtop), "delete-event",
                     G_CALLBACK (gtk_true), 0);
-  
+
   /* Convert our geometry parameters into a geometry string
      and specify it.
      GTK will itself handle calculating the real position this way.  */
@@ -508,7 +508,7 @@ xg_create_frame_widgets (f)
   /* Must use g_strdup because gtk_widget_modify_style does g_free.  */
   style->bg_pixmap_name[GTK_STATE_NORMAL] = g_strdup ("<none>");
   gtk_widget_modify_style (wfixed, style);
-  
+
   /* GTK does not set any border, and they look bad with GTK.  */
   f->output_data.x->border_width = 0;
   f->output_data.x->internal_border_width = 0;
@@ -538,7 +538,7 @@ x_wm_set_size_hint (f, flags, user_position)
     int base_width, base_height;
     int min_rows = 0, min_cols = 0;
     int win_gravity = f->output_data.x->win_gravity;
-    
+
     if (flags)
       {
         memset (&size_hints, 0, sizeof (size_hints));
@@ -547,7 +547,7 @@ x_wm_set_size_hint (f, flags, user_position)
       }
      else
        flags = f->output_data.x->size_hint_flags;
-    
+
     size_hints = f->output_data.x->size_hints;
     hint_flags = f->output_data.x->hint_flags;
 
@@ -567,7 +567,7 @@ x_wm_set_size_hint (f, flags, user_position)
     size_hints.min_width  = base_width + min_cols * size_hints.width_inc;
     size_hints.min_height = base_height + min_rows * size_hints.height_inc;
 
-    
+
     /* These currently have a one to one mapping with the X values, but I
        don't think we should rely on that.  */
     hint_flags |= GDK_HINT_WIN_GRAVITY;
@@ -648,7 +648,7 @@ static char *
 get_dialog_title (char key)
 {
   char *title = "";
-  
+
   switch (key) {
   case 'E': case 'e':
     title = "Error";
@@ -746,7 +746,7 @@ create_dialog (wv, select_cb, deactivate_cb)
 
   g_signal_connect (G_OBJECT (wdialog), "delete-event",
                     G_CALLBACK (dialog_delete_callback), 0);
-  
+
   if (deactivate_cb)
     {
       g_signal_connect (G_OBJECT (wdialog), "close", deactivate_cb, 0);
@@ -876,7 +876,7 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p)
   GtkFileSelection *filesel;
   int filesel_done = XG_FILE_NOT_DONE;
   char *fn = 0;
-  
+
   filewin = gtk_file_selection_new (prompt);
   filesel = GTK_FILE_SELECTION (filewin);
 
@@ -909,9 +909,9 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p)
       gtk_file_selection_hide_fileop_buttons (filesel);
     }
 
-  
+
   gtk_widget_show_all (filewin);
-  
+
   while (filesel_done == XG_FILE_NOT_DONE)
     gtk_main_iteration ();
 
@@ -950,7 +950,7 @@ static xg_list_node xg_menu_item_cb_list;
 
    The menu bar and all sub menus under the menu bar in a frame
    share the same structure, hence the reference count.
-   
+
    Returns CL_DATA if CL_DATA is not NULL,  or a pointer to a newly
    allocated xg_menu_cb_data if CL_DATA is NULL.  */
 static xg_menu_cb_data *
@@ -1069,7 +1069,7 @@ menuitem_highlight_callback (w, event, client_data)
     {
       xg_menu_item_cb_data *data = (xg_menu_item_cb_data*) client_data;
       gpointer call_data = event->type == GDK_LEAVE_NOTIFY ? 0 : client_data;
-      
+
       if (! NILP (data->help) && data->cl_data->highlight_cb)
         {
           GtkCallback func = (GtkCallback) data->cl_data->highlight_cb;
@@ -1125,14 +1125,14 @@ make_widget_for_menu_item (utf8_label, utf8_key)
   GtkWidget *wlbl;
   GtkWidget *wkey;
   GtkWidget *wbox;
-  
+
   wbox = gtk_hbox_new (FALSE, 0);
   wlbl = gtk_label_new_with_mnemonic (utf8_label);
   wkey = gtk_label_new (utf8_key);
 
   gtk_misc_set_alignment (GTK_MISC (wlbl), 0.0, 0.5);
   gtk_misc_set_alignment (GTK_MISC (wkey), 0.0, 0.5);
-              
+
   gtk_box_pack_start (GTK_BOX (wbox), wlbl, TRUE, TRUE, 0);
   gtk_box_pack_start (GTK_BOX (wbox), wkey, FALSE, FALSE, 0);
 
@@ -1146,7 +1146,7 @@ make_widget_for_menu_item (utf8_label, utf8_key)
    UTF8_LABEL is the text for the menu item (GTK uses UTF8 internally).
    UTF8_KEY is the text representing the key binding.
    ITEM is the widget_value describing the menu item.
-   
+
    GROUP is an in/out parameter.  If the menu item to be created is not
    part of any radio menu group, *GROUP contains NULL on entry and exit.
    If the menu item to be created is part of a radio menu group, on entry
@@ -1164,10 +1164,10 @@ make_menu_item (utf8_label, utf8_key, item, group)
 {
   GtkWidget *w;
   GtkWidget *wtoadd = 0;
-  
+
   if (utf8_key)
     wtoadd = make_widget_for_menu_item (utf8_label, utf8_key);
-  
+
   if (item->button_type == BUTTON_TYPE_TOGGLE)
     {
       *group = NULL;
@@ -1189,7 +1189,7 @@ make_menu_item (utf8_label, utf8_key, item, group)
       if (utf8_key) w = gtk_menu_item_new ();
       else w = gtk_menu_item_new_with_mnemonic (utf8_label);
     }
-  
+
   if (wtoadd) gtk_container_add (GTK_CONTAINER (w), wtoadd);
   if (! item->enabled) gtk_widget_set_sensitive (w, FALSE);
 
@@ -1230,7 +1230,7 @@ tearoff_remove (widget, event, client_data)
 /* Callback invoked when a menu is detached.  It sets the xg_did_tearoff
    variable.
    WIDGET is the GtkTearoffMenuItem.
-   CLIENT_DATA is not used.  */ 
+   CLIENT_DATA is not used.  */
 static void
 tearoff_activate (widget, client_data)
      GtkWidget *widget;
@@ -1257,7 +1257,7 @@ xg_keep_popup (menu, submenu)
 
   /* Find the top widget for the detached menu.  */
   p = gtk_widget_get_toplevel (submenu);
-    
+
   /* Delay destroying the menu until the detached menu is removed.  */
   g_signal_connect (G_OBJECT (p), "unmap_event",
                     G_CALLBACK (tearoff_remove), menu);
@@ -1308,7 +1308,7 @@ xg_create_one_menuitem (item, f, select_cb, highlight_cb, cl_data, group)
   cb_data->help = item->help;
   cb_data->cl_data = cl_data;
   cb_data->call_data = item->call_data;
-      
+
   g_signal_connect (G_OBJECT (w),
                     "destroy",
                     G_CALLBACK (menuitem_destroy_callback),
@@ -1395,7 +1395,7 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
       g_object_set_data (G_OBJECT (wmenu), XG_FRAME_DATA, (gpointer)cl_data);
       g_signal_connect (G_OBJECT (wmenu), "destroy",
                         G_CALLBACK (menu_destroy_callback), cl_data);
-      
+
       if (name)
         gtk_widget_set_name (wmenu, name);
 
@@ -1406,7 +1406,7 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
       g_signal_connect (G_OBJECT (wmenu),
                         "grab-notify", G_CALLBACK (menu_grab_callback), 0);
     }
-  
+
   if (! menu_bar_p && add_tearoff_p)
     {
       GtkWidget *tearoff = gtk_tearoff_menu_item_new ();
@@ -1419,7 +1419,7 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
   for (item = data; item; item = item->next)
     {
       GtkWidget *w;
-      
+
       if (pop_up_p && !item->contents && !item->call_data
           && !xg_separator_p (item->name))
         {
@@ -1585,7 +1585,7 @@ remove_from_container (wcont, list)
       /* Add a ref to w so we can explicitly destroy it later.  */
       gtk_widget_ref (w);
       gtk_container_remove (GTK_CONTAINER (wcont), w);
-  
+
       /* If there is a menu under this widget that has been detached,
          there is a reference to it, and just removing w from the
          container does not destroy the submenu.  By explicitly
@@ -1679,7 +1679,7 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
                 Current:  A B C
                 New:      A C
               Remove B.  */
-          
+
           gtk_widget_ref (GTK_WIDGET (witem));
           gtk_container_remove (GTK_CONTAINER (menubar), GTK_WIDGET (witem));
           gtk_widget_destroy (GTK_WIDGET (witem));
@@ -1707,7 +1707,7 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
               is up to date when leaving the minibuffer.  */
           GtkLabel *wlabel = GTK_LABEL (gtk_bin_get_child (GTK_BIN (witem)));
           char *utf8_label = get_utf8_string (val->name);
-          
+
           gtk_label_set_text_with_mnemonic (wlabel, utf8_label);
 
           iter = g_list_next (iter);
@@ -1787,8 +1787,8 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
   const char *old_label = 0;
   const char *old_key = 0;
   xg_menu_item_cb_data *cb_data;
-  
-  wchild = gtk_bin_get_child (GTK_BIN (w));  
+
+  wchild = gtk_bin_get_child (GTK_BIN (w));
   utf8_label = get_utf8_string (val->name);
   utf8_key = get_utf8_string (val->key);
 
@@ -1830,10 +1830,10 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
         }
     }
 
-  
+
   if (wkey) old_key = gtk_label_get_label (wkey);
   if (wlbl) old_label = gtk_label_get_label (wlbl);
-  
+
   if (wkey && utf8_key && (! old_key || strcmp (utf8_key, old_key) != 0))
     gtk_label_set_text (wkey, utf8_key);
 
@@ -1842,7 +1842,7 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
 
   if (utf8_key && utf8_key != val->key) g_free (utf8_key);
   if (utf8_label && utf8_label != val->name) g_free (utf8_label);
-  
+
   if (! val->enabled && GTK_WIDGET_SENSITIVE (w))
     gtk_widget_set_sensitive (w, FALSE);
   else if (val->enabled && ! GTK_WIDGET_SENSITIVE (w))
@@ -1855,7 +1855,7 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
       cb_data->call_data = val->call_data;
       cb_data->help = val->help;
       cb_data->cl_data = cl_data;
-      
+
       /* We assume the callback functions don't change.  */
       if (val->call_data && ! val->contents)
         {
@@ -1951,10 +1951,10 @@ xg_update_submenu (submenu, f, val,
   widget_value *cur;
   int has_tearoff_p = 0;
   GList *first_radio = 0;
-  
+
   if (submenu)
     list = gtk_container_get_children (GTK_CONTAINER (submenu));
-  
+
   for (cur = val, iter = list;
        cur && iter;
        iter = g_list_next (iter), cur = cur->next)
@@ -2046,7 +2046,7 @@ xg_update_submenu (submenu, f, val,
       if (cur && first_radio) remove_from_container (submenu, first_radio);
       else remove_from_container (submenu, iter);
     }
-  
+
   if (cur)
     {
       /* More items added.  Create them.  */
@@ -2062,7 +2062,7 @@ xg_update_submenu (submenu, f, val,
                              cl_data,
                              0);
     }
-    
+
   if (list) g_list_free (list);
 
   return newsub;
@@ -2091,7 +2091,7 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
   GList *list = gtk_container_get_children (GTK_CONTAINER (menubar));
 
   if (! list) return;
-  
+
   cl_data = (xg_menu_cb_data*) g_object_get_data (G_OBJECT (menubar),
                                                   XG_FRAME_DATA);
 
@@ -2129,7 +2129,7 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
                   break;
                 }
             }
-          
+
           newsub = xg_update_submenu (sub,
                                       f,
                                       cur->contents,
@@ -2159,7 +2159,7 @@ xg_update_frame_menubar (f)
 {
   struct x_output *x = f->output_data.x;
   GtkRequisition req;
-  
+
   if (!x->menubar_widget || GTK_WIDGET_MAPPED (x->menubar_widget))
     return 0;
 
@@ -2177,7 +2177,7 @@ xg_update_frame_menubar (f)
   /* The height has changed, resize outer widget and set columns
      rows to what we had before adding the menu bar.  */
   xg_resize_outer_widget (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
-  
+
   SET_FRAME_GARBAGED (f);
   UNBLOCK_INPUT;
 }
@@ -2311,7 +2311,7 @@ xg_gtk_scroll_destroy (widget, data)
 {
   gpointer p;
   int id = (int)data;
-  
+
   p = g_object_get_data (G_OBJECT (widget), XG_LAST_SB_DATA);
   if (p) xfree (p);
   xg_remove_widget_from_map (id);
@@ -2355,7 +2355,7 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
   GtkWidget *wscroll;
   GtkObject *vadj;
   int scroll_id;
-  
+
   /* Page, step increment values are not so important here, they
      will be corrected in x_set_toolkit_scroll_bar_thumb. */
   vadj = gtk_adjustment_new (XG_SB_MIN, XG_SB_MIN, XG_SB_MAX,
@@ -2364,9 +2364,9 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
   wscroll = gtk_vscrollbar_new (GTK_ADJUSTMENT (vadj));
   gtk_widget_set_name (wscroll, scroll_bar_name);
   gtk_range_set_update_policy (GTK_RANGE (wscroll), GTK_UPDATE_CONTINUOUS);
-  
+
   scroll_id = xg_store_widget_in_map (wscroll);
-  
+
   g_signal_connect (G_OBJECT (vadj),
                     "value-changed",
                     scroll_callback,
@@ -2386,7 +2386,7 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
                     "button-release-event",
                     G_CALLBACK (scroll_bar_button_cb),
                     0);
-  
+
   gtk_fixed_put (GTK_FIXED (f->output_data.x->edit_widget),
                  wscroll, 0, 0);
 
@@ -2426,7 +2426,7 @@ xg_remove_scroll_bar (f, scrollbar_id)
    TOP/LEFT are the new pixel positions where the bar shall appear.
    WIDTH, HEIGHT is the size in pixels the bar shall have.  */
 void
-xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)     
+xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
      FRAME_PTR f;
      int scrollbar_id;
      int top;
@@ -2483,7 +2483,7 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
       gdouble shown;
       gdouble top;
       int size, value;
-      
+
       adj = gtk_range_get_adjustment (GTK_RANGE (wscroll));
 
       if (whole <= 0)
@@ -2552,7 +2552,7 @@ xg_tool_bar_callback (w, client_data)
     return;
 
   idx *= TOOL_BAR_ITEM_NSLOTS;
-  
+
   key = AREF (f->tool_bar_items, idx + TOOL_BAR_ITEM_KEY);
   XSETFRAME (frame, f);
   event.kind = TOOL_BAR_EVENT;
@@ -2678,10 +2678,10 @@ xg_create_tool_bar (f)
   x->handlebox_widget = gtk_handle_box_new ();
   gtk_container_add (GTK_CONTAINER (x->handlebox_widget),
                      x->toolbar_widget);
-      
+
   gtk_box_pack_start (GTK_BOX (x->vbox_widget), x->handlebox_widget,
                       FALSE, FALSE, 0);
-      
+
   gtk_box_reorder_child (GTK_BOX (x->vbox_widget), x->handlebox_widget,
                          vbox_pos);
 
@@ -2694,11 +2694,11 @@ xg_create_tool_bar (f)
 
   gtk_widget_size_request (x->toolbar_widget, &req);
   FRAME_TOOLBAR_HEIGHT (f) = req.height;
-  
+
   /* The height has changed, resize outer widget and set columns
      rows to what we had before adding the tool bar.  */
   xg_resize_outer_widget (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
-  
+
   SET_FRAME_GARBAGED (f);
 }
 
@@ -2716,7 +2716,7 @@ update_frame_tool_bar (f)
     return;
 
   BLOCK_INPUT;
-      
+
   if (! x->toolbar_widget)
     xg_create_tool_bar (f);
 
@@ -2724,7 +2724,7 @@ update_frame_tool_bar (f)
 
   icon_list = gtk_container_get_children (GTK_CONTAINER (x->toolbar_widget));
   iter = icon_list;
-  
+
   for (i = 0; i < f->n_tool_bar_items; ++i)
     {
 #define PROP(IDX) AREF (f->tool_bar_items, i * TOOL_BAR_ITEM_NSLOTS + (IDX))
@@ -2775,7 +2775,7 @@ update_frame_tool_bar (f)
           if (wicon) gtk_widget_hide (wicon);
           continue;
         }
-          
+
       if (! wicon)
         {
           GdkPixmap *gpix = gdk_pixmap_foreign_new (img->pixmap);
@@ -2788,7 +2788,7 @@ update_frame_tool_bar (f)
                                    w,
                                    GTK_SIGNAL_FUNC (xg_tool_bar_callback),
                                    (gpointer)i);
-          
+
           /* Save the image so we can see if an update is needed when
              this function is called again.  */
           g_object_set_data (G_OBJECT (w), XG_TOOL_BAR_IMAGE_DATA,
@@ -2798,7 +2798,7 @@ update_frame_tool_bar (f)
              of the GtkImage parent.  Go upwards until we find the button.  */
           while (! GTK_IS_BUTTON (w))
             w = gtk_widget_get_parent (w);
-          
+
           if (w)
             {
               /* Save the frame in the button so the xg_tool_bar_callback
@@ -2848,7 +2848,7 @@ update_frame_tool_bar (f)
           gtk_widget_set_sensitive (wicon, enabled_p);
           gtk_widget_show (wicon);
         }
-  
+
 #undef PROP
     }
 

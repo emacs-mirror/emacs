@@ -216,13 +216,13 @@ main (argc, argv)
   user_id = get_user_id ();
   if (user_id == NULL)
     lose_syserr ("Couldn't determine user id");
-  
+
   if (stat (scorefile, &buf) < 0)
     lose_syserr ("Failed to access scores file");
-		
+
   if (lock_file (scorefile, &lockstate) < 0)
     lose_syserr ("Failed to lock scores file");
-		  
+
   if (read_scores (scorefile, &scores, &scorecount) < 0)
     {
       unlock_file (scorefile, lockstate);
@@ -283,7 +283,7 @@ read_score (f, score)
     char *username = malloc (unamelen);
     if (!username)
       return -1;
-    
+
     while ((c = getc (f)) != EOF
 	   && !isspace (c))
       {
@@ -293,7 +293,7 @@ read_score (f, score)
 	username[unameread] = c;
 	unameread++;
       }
-    if (c == EOF)    
+    if (c == EOF)
       return -1;
     username[unameread] = '\0';
     score->username = username;
@@ -342,12 +342,12 @@ read_scores (filename, scores, count)
   int readval, scorecount, cursize;
   struct score_entry *ret;
   FILE *f = fopen (filename, "r");
-  if (!f) 
+  if (!f)
     return -1;
   scorecount = 0;
   cursize = 16;
   ret = (struct score_entry *) malloc (sizeof (struct score_entry) * cursize);
-  if (!ret) 
+  if (!ret)
     return -1;
   while ((readval = read_score (f, &ret[scorecount])) == 0)
     {
@@ -388,7 +388,7 @@ score_compare_reverse (a, b)
 }
 
 int
-push_score (scores, count, newscore, username, newdata) 
+push_score (scores, count, newscore, username, newdata)
      struct score_entry **scores;
      int *count; int newscore;
      char *username;
@@ -406,12 +406,12 @@ push_score (scores, count, newscore, username, newdata)
   *scores = newscores;
   return 0;
 }
-  
+
 void
 sort_scores (scores, count, reverse)
      struct score_entry *scores;
      int count;
-     int reverse; 
+     int reverse;
 {
   qsort (scores, count, sizeof (struct score_entry),
 	reverse ? score_compare_reverse : score_compare);
@@ -421,9 +421,9 @@ int
 write_scores (filename, scores, count)
      const char *filename;
      const struct score_entry * scores;
-     int count; 
+     int count;
 {
-  FILE *f;  
+  FILE *f;
   int i;
   char *tempfile = malloc (strlen (filename) + strlen (".tempXXXXXX") + 1);
   if (!tempfile)
@@ -448,7 +448,7 @@ write_scores (filename, scores, count)
     return -1;
   return 0;
 }
-  
+
 int
 lock_file (filename, state)
   const char *filename;
@@ -491,7 +491,7 @@ lock_file (filename, state)
   close (fd);
   return 0;
 }
- 
+
 int
 unlock_file (filename, state)
   const char *filename;

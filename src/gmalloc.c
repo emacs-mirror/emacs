@@ -420,7 +420,7 @@ protect_malloc_state (protect_p)
 
   last_state_size = _heaplimit * sizeof *_heapinfo;
   last_heapinfo   = _heapinfo;
-  
+
   if (protect_p != state_protected_p)
     {
       state_protected_p = protect_p;
@@ -992,7 +992,7 @@ _free_internal (ptr)
     return;
 
   PROTECT_MALLOC_STATE (0);
-  
+
   for (l = _aligned_blocks; l != NULL; l = l->next)
     if (l->aligned == ptr)
       {
@@ -1214,7 +1214,7 @@ _free_internal (ptr)
 	}
       break;
     }
-  
+
   PROTECT_MALLOC_STATE (1);
 }
 
@@ -1380,7 +1380,7 @@ _realloc_internal (ptr, size)
   block = BLOCK (ptr);
 
   PROTECT_MALLOC_STATE (0);
-  
+
   type = _heapinfo[block].busy.type;
   switch (type)
     {
@@ -1843,7 +1843,7 @@ freehook (ptr)
      __ptr_t ptr;
 {
   struct hdr *hdr;
-    
+
   if (ptr)
     {
       hdr = ((struct hdr *) ptr) - 1;
@@ -1853,7 +1853,7 @@ freehook (ptr)
     }
   else
     hdr = NULL;
-  
+
   __free_hook = old_free_hook;
   free (hdr);
   __free_hook = freehook;
@@ -1887,7 +1887,7 @@ reallochook (ptr, size)
 {
   struct hdr *hdr = NULL;
   __malloc_size_t osize = 0;
-    
+
   if (ptr)
     {
       hdr = ((struct hdr *) ptr) - 1;
@@ -1897,7 +1897,7 @@ reallochook (ptr, size)
       if (size < osize)
 	flood ((char *) ptr + size, FREEFLOOD, osize - size);
     }
-  
+
   __free_hook = old_free_hook;
   __malloc_hook = old_malloc_hook;
   __realloc_hook = old_realloc_hook;

@@ -895,7 +895,7 @@ Point is the place in the buffer at which insertion and deletion
 occur.  Point is considered to be between two characters, not at one
 character.  The terminal's cursor (q.v.@:) indicates the location of
 point.  @xref{Basic,Point,Basic Editing}.
-	
+
 @item Prefix Argument
 See `numeric argument.'
 

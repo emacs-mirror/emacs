@@ -299,7 +299,7 @@ scan_keyword_or_put_char (ch, state)
 	  while (ch != ' ' && ch != ')');
 	  put_char ('f', state);
 	  put_char ('n', state);
-	  
+
 	  /* Put back the last character.  */
 	  ungetc (ch, state->in_file);
 	}

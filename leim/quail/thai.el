@@ -82,7 +82,7 @@ The difference from the ordinal Thai keyboard:
     Don't know where to assign characters ',Tz(B' and ',T{(B'."
  nil t t t t nil nil nil 'quail-thai-update-translation nil t)
 
-(quail-install-map 
+(quail-install-map
  (thai-generate-quail-map
   [
    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0	; control codes
@@ -110,7 +110,7 @@ The difference from the ordinal Thai keyboard:
  "Thai Pattachote input method with TIS620 keyboard layout"
  nil t t t t nil nil nil 'quail-thai-update-translation nil t)
 
-(quail-install-map 
+(quail-install-map
  (thai-generate-quail-map
   [ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0	; control codes
     0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0	; control codes

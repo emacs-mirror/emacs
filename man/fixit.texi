@@ -173,7 +173,7 @@ Check and correct spelling of each word in the buffer.
 @item M-x ispell-region
 Check and correct spelling of each word in the region.
 @item M-x ispell-message
-Check and correct spelling of each word in a draft mail message, 
+Check and correct spelling of each word in a draft mail message,
 excluding cited material.
 @item M-x ispell-change-dictionary @key{RET} @var{dict} @key{RET}
 Restart the Ispell process, using @var{dict} as the dictionary.

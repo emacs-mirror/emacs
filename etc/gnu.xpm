@@ -8,10 +8,10 @@ static char * image_name [] = {
 /**/
 " 	s mask	c none",
 "B      c blue",
-"x      c black",          	    
-":      c sandy brown",  	    
+"x      c black",
+":      c sandy brown",
 "+      c saddle brown",
-"'      c grey",		       	    
+"'      c grey",
 ".      c white",
 "                                                  ",
 "                                                  ",

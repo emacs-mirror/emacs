@@ -253,7 +253,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
 #ifndef subprocesses
   /* Without asynchronous processes we cannot have BUFFER == 0.  */
-  if (nargs >= 3 
+  if (nargs >= 3
       && (INTEGERP (CONSP (args[2]) ? XCAR (args[2]) : args[2])))
     error ("Operating system cannot handle asynchronous subprocesses");
 #endif /* subprocesses */
@@ -339,7 +339,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  CHECK_BUFFER (buffer);
 	}
     }
-  else 
+  else
     buffer = Qnil;
 
   /* Make sure that the child will be able to chdir to the current
@@ -431,7 +431,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       *tempfile = '\0';
     }
   dostounix_filename (tempfile);
-  if (*tempfile == '\0' || tempfile[strlen (tempfile) - 1] != '/') 
+  if (*tempfile == '\0' || tempfile[strlen (tempfile) - 1] != '/')
     strcat (tempfile, "/");
   strcat (tempfile, "detmp.XXX");
   mktemp (tempfile);
@@ -545,7 +545,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
          code does not handle passing the environment to the synchronous
          Mac subprocess.  */
       char *infn, *outfn, *errfn, *currdn;
-      
+
       /* close these files so subprocess can write to them */
       close (outfilefd);
       if (fd_error != outfilefd)
@@ -780,7 +780,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
 	/* Now NREAD is the total amount of data in the buffer.  */
 	immediate_quit = 0;
-	
+
 	if (!NILP (buffer))
 	  {
 	    if (! CODING_MAY_REQUIRE_DECODING (&process_coding))
@@ -793,7 +793,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	      repeat_decoding:
 		size = decoding_buffer_size (&process_coding, nread);
 		decoding_buf = (char *) xmalloc (size);
-		
+
 		/* We can't use the macro CODING_REQUIRE_DETECTION
 		   because it always returns nonzero if the coding
 		   system requires EOL detection.  Here, we have to
@@ -807,10 +807,10 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		  }
 		if (process_coding.cmp_data)
 		  process_coding.cmp_data->char_offset = PT;
-		
+
 		decode_coding (&process_coding, bufptr, decoding_buf,
 			       nread, size);
-		
+
 		if (display_on_the_fly
 		    && saved_coding.type == coding_type_undecided
 		    && process_coding.type != coding_type_undecided)
@@ -825,7 +825,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		    carryover = nread;
 		    continue;
 		  }
-		
+
 		if (process_coding.produced > 0)
 		  insert_1_both (decoding_buf, process_coding.produced_char,
 				 process_coding.produced, 0, 1, 0);
@@ -840,9 +840,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 			/* CRs have been replaced with LFs.  Undo
 			   that in the text inserted above.  */
 			unsigned char *p;
-			
+
 			move_gap_both (PT, PT_BYTE);
-			
+
 			p = BYTE_POS_ADDR (pt_byte_orig);
 			for (; p < GPT_ADDR; ++p)
 			  if (*p == '\n')
@@ -858,7 +858,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 			old_pt = PT;
 			old_pt_byte = PT_BYTE;
 			nCR = 0;
-			
+
 			for (bytepos = PT_BYTE - 1;
 			     bytepos >= pt_byte_orig;
 			     --bytepos)
@@ -882,13 +882,13 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		      coding = AREF (eol_type, CODING_EOL_LF);
 		    else
 		      coding = saved_coding.symbol;
-		    
+
 		    process_coding.symbol = coding;
 		    process_coding.eol_type = CODING_EOL_LF;
 		    process_coding.mode
 		      &= ~CODING_MODE_INHIBIT_INCONSISTENT_EOL;
 		  }
-		
+
 		nread -= process_coding.consumed;
 		carryover = nread;
 		if (carryover > 0)
@@ -1106,7 +1106,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     unbind_to (count1, Qnil);
   }
 
-  /* Note that Fcall_process takes care of binding 
+  /* Note that Fcall_process takes care of binding
      coding-system-for-read.  */
 
   record_unwind_protect (delete_temp_file, filename_string);
@@ -1144,7 +1144,7 @@ static int relocate_fd ();
    of environ around the vfork and the call to this function.
 
    SET_PGRP is nonzero if we should put the subprocess into a separate
-   process group.  
+   process group.
 
    CURRENT_DIR is an elisp string giving the path of the current
    directory the subprocess should have.  Since we can't really signal
@@ -1467,7 +1467,7 @@ egetenv (var)
 #endif /* not VMS */
 
 /* This is run before init_cmdargs.  */
-  
+
 void
 init_callproc_1 ()
 {
@@ -1475,7 +1475,7 @@ init_callproc_1 ()
   char *doc_dir = egetenv ("EMACSDOC");
 
   Vdata_directory
-    = Ffile_name_as_directory (build_string (data_dir ? data_dir 
+    = Ffile_name_as_directory (build_string (data_dir ? data_dir
 					     : PATH_DATA));
   Vdoc_directory
     = Ffile_name_as_directory (build_string (doc_dir ? doc_dir
@@ -1494,7 +1494,7 @@ void
 init_callproc ()
 {
   char *data_dir = egetenv ("EMACSDATA");
-    
+
   register char * sh;
   Lisp_Object tempdir;
 
@@ -1512,7 +1512,7 @@ init_callproc ()
 	  Vexec_path = Fcons (tem, Vexec_path);
 	  Vexec_path = nconc2 (decode_env_path ("PATH", ""), Vexec_path);
 	}
-      
+
       Vexec_directory = Ffile_name_as_directory (tem);
 #endif /* not DOS_NT */
 

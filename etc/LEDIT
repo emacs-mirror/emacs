@@ -17,7 +17,7 @@ To get it to work, one must:
 
      cc leditcfns.c
 
-   - Edit ledit.l, changing the line beginning "(cfasl" to 
+   - Edit ledit.l, changing the line beginning "(cfasl" to
      have the right pathname for the cfns file you compiled in
      the last step.
 
@@ -69,7 +69,7 @@ doesn't run under Unix, this is probably the next best thing.
 I have tried the 2 window method (shell in lower window, lisp code in
 upper), and have found it a little awkward.  It does have certain
 advantages, but most of the time, I get be fine using M-C-D to save a
-defun for lisp, and C-X Z to jump back to LISP.  C-E RETURN from lisp 
+defun for lisp, and C-X Z to jump back to LISP.  C-E RETURN from lisp
 is also mnemonic for getting back to gnumacs.
 
 I hope this helps somewhat.

@@ -35,10 +35,10 @@
 %   ftp://tug.org/tex/texinfo.tex
 %     (and all CTAN mirrors, see http://www.ctan.org),
 %   and /home/gd/gnu/doc/texinfo.tex on the GNU machines.
-% 
+%
 % The texinfo.tex in any given Texinfo distribution could well be out
 % of date, so if that's what you're using, please check.
-% 
+%
 % Texinfo has a small home page at http://texinfo.org/ and also
 % http://www.gnu.org/software/texinfo.
 %
@@ -175,7 +175,7 @@
 
 % add check for \lastpenalty to plain's definitions.  If the last thing
 % we did was a \nobreak, we don't want to insert more space.
-% 
+%
 \def\smallbreak{\ifnum\lastpenalty<10000\par\ifdim\lastskip<\smallskipamount
   \removelastskip\penalty-50\smallskip\fi\fi}
 \def\medbreak{\ifnum\lastpenalty<10000\par\ifdim\lastskip<\medskipamount
@@ -730,10 +730,10 @@ where each line of input produces a line of output.}
 % @inmargin{TEXT [, RIGHT-TEXT]}
 % (if RIGHT-TEXT is given, use TEXT for left page, RIGHT-TEXT for right;
 % else use TEXT for both).
-% 
+%
 \def\inmargin#1{\parseinmargin #1,,\finish}
 \def\parseinmargin#1,#2,#3\finish{% not perfect, but better than nothing.
-  \setbox0 = \hbox{\ignorespaces #2}% 
+  \setbox0 = \hbox{\ignorespaces #2}%
   \ifdim\wd0 > 0pt
     \def\lefttext{#1}%  have both texts
     \def\righttext{#2}%
@@ -797,7 +797,7 @@ where each line of input produces a line of output.}
 % @paragraphindent NCHARS
 % We'll use ems for NCHARS, close enough.
 % We cannot implement @paragraphindent asis, though.
-% 
+%
 \def\asisword{asis} % no translation, these are keywords
 \def\noneword{none}
 %
@@ -840,7 +840,7 @@ where each line of input produces a line of output.}
 % We don't use $'s directly in the definition of \math because we need
 % to set catcodes according to plain TeX first, to allow for subscripts,
 % superscripts, special math chars, etc.
-% 
+%
 % @math does not do math typesetting in section titles, index
 % entries, and other such contexts where the catcodes are set before
 % @math gets a chance to work.  This could perhaps be fixed, but for now
@@ -852,7 +852,7 @@ where each line of input produces a line of output.}
 % an actual _ character, as in @math{@var{some_variable} + 1}.  So make
 % _ within @math be active (mathcode "8000), and distinguish by seeing
 % if the current family is \slfam, which is what @var uses.
-% 
+%
 {\catcode95 = \active  % 95 = _
 \gdef\mathunderscore{%
   \catcode95=\active
@@ -863,7 +863,7 @@ where each line of input produces a line of output.}
 % FYI, plain.tex uses \\ as a temporary control sequence (why?), but
 % this is not advertised and we don't care.  Texinfo does not
 % otherwise define @\.
-% 
+%
 % The \mathchar is class=0=ordinary, family=7=ttfam, position=5C=\.
 \def\mathbackslash{\ifnum\fam=\ttfam \mathchar"075C \else\backslash \fi}
 %
@@ -986,11 +986,11 @@ where each line of input produces a line of output.}
   \def\pdfmakeoutlines{{%
     \openin 1 \jobname.toc
     \ifeof 1\else\begingroup
-      \closein 1 
+      \closein 1
       \indexnofonts
       \def\tt{}
       \let\_ = \normalunderscore
-      % Thanh's hack / proper braces in bookmarks  
+      % Thanh's hack / proper braces in bookmarks
       \edef\mylbrace{\iftrue \string{\else}\fi}\let\{=\mylbrace
       \edef\myrbrace{\iffalse{\else\string}\fi}\let\}=\myrbrace
       %
@@ -1032,7 +1032,7 @@ where each line of input produces a line of output.}
       \let\nextmakelinks=\makelinks
       \ifnum\lnkcount>0,\fi
       \picknum{#1}%
-      \startlink attr{/Border [0 0 0]} 
+      \startlink attr{/Border [0 0 0]}
         goto name{\pdfmkpgn{\the\pgn}}%
       \linkcolor #1%
       \advance\lnkcount by 1%
@@ -1087,7 +1087,7 @@ where each line of input produces a line of output.}
     \ifx\first0\adn0
     \else\ifx\first1\adn1 \else\ifx\first2\adn2 \else\ifx\first3\adn3
     \else\ifx\first4\adn4 \else\ifx\first5\adn5 \else\ifx\first6\adn6
-    \else\ifx\first7\adn7 \else\ifx\first8\adn8 \else\ifx\first9\adn9 
+    \else\ifx\first7\adn7 \else\ifx\first8\adn8 \else\ifx\first9\adn9
     \else
       \ifnum0=\countA\else\makelink\fi
       \ifx\first.\let\next=\done\else
@@ -1521,7 +1521,7 @@ where each line of input produces a line of output.}
 
 % rms does not like angle brackets --karl, 17may97.
 % So now @email is just like @uref, unless we are pdf.
-% 
+%
 %\def\email#1{\angleleft{\tt #1}\angleright}
 \ifpdf
   \def\email#1{\doemail#1,,\finish}
@@ -2742,10 +2742,10 @@ width0pt\relax} \fi
 
 % @synindex foo bar    makes index foo feed into index bar.
 % Do this instead of @defindex foo if you don't want it as a separate index.
-% 
+%
 % @syncodeindex foo bar   similar, but put all entries made for index foo
 % inside @code.
-% 
+%
 \def\synindex#1 #2 {\dosynindex\doindex{#1}{#2}}
 \def\syncodeindex#1 #2 {\dosynindex\docodeindex{#1}{#2}}
 
@@ -2787,13 +2787,13 @@ width0pt\relax} \fi
 % Take care of texinfo commands likely to appear in an index entry.
 % (Must be a way to avoid doing expansion at all, and thus not have to
 % laboriously list every single command here.)
-% 
+%
 \def\indexdummies{%
 \def\ { }%
 \def\@{@}% change to @@ when we switch to @ as escape char in aux files.
 % Need these in case \tex is in effect and \{ is a \delimiter again.
 % But can't use \lbracecmd and \rbracecmd because texindex assumes
-% braces and backslashes are used only as delimiters.  
+% braces and backslashes are used only as delimiters.
 \let\{ = \mylbrace
 \let\} = \myrbrace
 \def\_{{\realbackslash _}}%
@@ -3348,7 +3348,7 @@ width0pt\relax} \fi
   \wd0=\hsize \wd2=\hsize
   \hbox to\pagewidth{\box0\hfil\box2}%
 }
-% 
+%
 % All done with double columns.
 \def\enddoublecolumns{%
   \output = {%
@@ -4149,7 +4149,7 @@ width0pt\relax} \fi
 % @foo ... @end foo.
 
 % @point{}, @result{}, @expansion{}, @print{}, @equiv{}.
-% 
+%
 % Since these characters are used in examples, it should be an even number of
 % \tt widths. Each \tt character is 1en, so two makes it 1em.
 %
@@ -4161,7 +4161,7 @@ width0pt\relax} \fi
 
 % The @error{} command.
 % Adapted from the TeXbook's \boxit.
-% 
+%
 \newbox\errorbox
 %
 {\tentt \global\dimen0 = 3em}% Width of the box.
@@ -4469,7 +4469,7 @@ width0pt\relax} \fi
 
 
 % LaTeX-like @verbatim...@end verbatim and @verb{<char>...<char>}
-% If we want to allow any <char> as delimiter, 
+% If we want to allow any <char> as delimiter,
 % we need the curly braces so that makeinfo sees the @verb command, eg:
 % `@verbx...x' would look like the '@verbx' command.  --janneke@gnu.org
 %
@@ -4543,8 +4543,8 @@ width0pt\relax} \fi
   \everypar{\starttabbox}%
 }
 
-% Do the @verb magic: verbatim text is quoted by unique 
-% delimiter characters.  Before first delimiter expect a 
+% Do the @verb magic: verbatim text is quoted by unique
+% delimiter characters.  Before first delimiter expect a
 % right brace, after last delimiter expect closing brace:
 %
 %    \def\doverb'{'<char>#1<char>'}'{#1}
@@ -4563,7 +4563,7 @@ width0pt\relax} \fi
 %
 %     \def\doverbatim#1@end verbatim{#1}
 %
-% For Texinfo it's a lot easier than for LaTeX, 
+% For Texinfo it's a lot easier than for LaTeX,
 % because texinfo's \verbatim doesn't stop at '\end{verbatim}':
 % we need not redefine '\', '{' and '}'
 %
@@ -4621,7 +4621,7 @@ width0pt\relax} \fi
 
 % @copying ... @end copying.
 % Save the text away for @insertcopying later.
-% 
+%
 \newbox\copyingbox
 %
 \def\copying{\begingroup
@@ -4631,7 +4631,7 @@ width0pt\relax} \fi
 }
 
 % @insertcopying.
-% 
+%
 \def\insertcopying{\unvcopy\copyingbox}
 
 
@@ -4734,7 +4734,7 @@ width0pt\relax} \fi
 % #1 is the \E... control sequence to end the definition (which we define).
 % #2 is the \...x control sequence (which our caller defines).
 % #3 is the control sequence to process the header, such as \defunheader.
-% 
+%
 \def\parsebodycommon#1#2#3{%
   \begingroup\inENV
   % If there are two @def commands in a row, we'll have a \nobreak,
@@ -4791,7 +4791,7 @@ width0pt\relax} \fi
 % to account for this both in the \...x definition and in parsing the
 % input at hand.  Thus also need a control sequence (passed as #5) for
 % the \E... definition to assign the category name to.
-% 
+%
 \def\deftypeopparsebody#1#2#3#4#5 #6 {%
   \parsebodycommon{#1}{#2}{#3}%
   \def#2##1 ##2 ##3 {%
@@ -5148,7 +5148,7 @@ width0pt\relax} \fi
 
 % These definitions are used if you use @defunx (etc.)
 % anywhere other than immediately after a @defun or @defunx.
-% 
+%
 \def\defcvx#1 {\errmessage{@defcvx in invalid context}}
 \def\deffnx#1 {\errmessage{@deffnx in invalid context}}
 \def\defivarx#1 {\errmessage{@defivarx in invalid context}}
@@ -5949,7 +5949,7 @@ width0pt\relax} \fi
     \nobreak\bigskip
     % Usually we'll have text after the image which will insert
     % \parskip glue, so insert it here too to equalize the space
-    % above and below. 
+    % above and below.
     \nobreak\vskip\parskip
     \nobreak
     \line\bgroup\hss
@@ -6065,7 +6065,7 @@ should work if nowhere else does.}
 }
 
 % Use `small' versions.
-% 
+%
 \def\smallenvironments{%
   \let\smalldisplay = \smalldisplayx
   \let\smallexample = \smalllispx
@@ -6322,7 +6322,7 @@ should work if nowhere else does.}
 % Say @foo, not \foo, in error messages.
 @escapechar = `@@
 
-% These look ok in all fonts, so just make them not special.  
+% These look ok in all fonts, so just make them not special.
 @catcode`@& = @other
 @catcode`@# = @other
 @catcode`@% = @other

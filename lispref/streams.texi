@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/streams
 @node Read and Print, Minibuffers, Debugging, Top
@@ -489,7 +489,7 @@ in reverse order.
 
 @group
 last-output
-     @result{} (10 34 116 117 112 116 117 111 32 101 104 
+     @result{} (10 34 116 117 112 116 117 111 32 101 104
     116 32 115 105 32 115 105 104 84 34 10)
 @end group
 @end example
@@ -566,13 +566,13 @@ characters are used.  @code{print} returns @var{object}.  For example:
 (progn (print 'The\ cat\ in)
        (print "the hat")
        (print " came back"))
-     @print{} 
+     @print{}
      @print{} The\ cat\ in
-     @print{} 
+     @print{}
      @print{} "the hat"
-     @print{} 
+     @print{}
      @print{} " came back"
-     @print{} 
+     @print{}
      @result{} " came back"
 @end group
 @end example
@@ -586,8 +586,8 @@ This function outputs the printed representation of @var{object} to
 
 @example
 @group
-(progn (prin1 'The\ cat\ in) 
-       (prin1 "the hat") 
+(progn (prin1 'The\ cat\ in)
+       (prin1 "the hat")
        (prin1 " came back"))
      @print{} The\ cat\ in"the hat"" came back"
      @result{} " came back"
@@ -771,12 +771,12 @@ exceeding this limit is abbreviated with an ellipsis.  A value of
 @code{nil} (which is the default) means no limit.
 @end defvar
 
-  These variables are used for detecting and reporting circular 
+  These variables are used for detecting and reporting circular
 and shared structure---but they are only defined in Emacs 21.
 
 @tindex print-circle
 @defvar print-circle
-If non-@code{nil}, this variable enables detection of circular 
+If non-@code{nil}, this variable enables detection of circular
 and shared structure in printing.
 @end defvar
 

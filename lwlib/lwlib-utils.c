@@ -3,13 +3,13 @@
 
 This file is part of the Lucid Widget Library.
 
-The Lucid Widget Library is free software; you can redistribute it and/or 
+The Lucid Widget Library is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
 
 The Lucid Widget Library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of 
+but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
@@ -60,7 +60,7 @@ XtNoClearRefreshWidget (widget)
 }
 
 
-/* 
+/*
  * Apply a function to all the subwidgets of a given widget recursively.
 */
 void
@@ -177,7 +177,7 @@ XtSafelyDestroyWidget (widget)
     }
   else
     XtDestroyWidget (widget);
-  
+
 #else
   abort ();
 #endif

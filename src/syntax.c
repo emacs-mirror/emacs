@@ -1774,7 +1774,7 @@ forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
 }
 
 DEFUN ("forward-comment", Fforward_comment, Sforward_comment, 1, 1, 0,
-       doc: /* 
+       doc: /*
 Move forward across up to COUNT comments.  If COUNT is negative, move backward.
 Stop scanning if we find something other than a comment or whitespace.
 Set point to where scanning stops.

@@ -189,7 +189,7 @@ void print_interval ();
    and must start with PRINTPREPARE, end with PRINTFINISH,
    and use PRINTDECLARE to declare common variables.
    Use PRINTCHAR to output one character,
-   or call strout to output a block of characters. */ 
+   or call strout to output a block of characters. */
 
 #define PRINTDECLARE							\
    struct buffer *old = current_buffer;					\
@@ -321,7 +321,7 @@ printchar (ch, fun)
       int len = CHAR_STRING (ch, str);
 
       QUIT;
-      
+
       if (NILP (fun))
 	{
 	  if (print_buffer_pos_byte + len >= print_buffer_size)
@@ -340,7 +340,7 @@ printchar (ch, fun)
 	{
 	  int multibyte_p
 	    = !NILP (current_buffer->enable_multibyte_characters);
-	  
+
 	  setup_echo_area_for_printing (multibyte_p);
 	  insert_char (ch);
 	  message_dolog (str, len, 0, multibyte_p);
@@ -397,10 +397,10 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
       int i;
       int multibyte_p
 	= !NILP (current_buffer->enable_multibyte_characters);
-      
+
       setup_echo_area_for_printing (multibyte_p);
       message_dolog (ptr, size_byte, 0, multibyte_p);
-      
+
       if (size == size_byte)
 	{
 	  for (i = 0; i < size; ++i)
@@ -415,7 +415,7 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
 	      insert_char (ch);
 	    }
 	}
-      
+
 #ifdef MAX_PRINT_CHARS
       if (max_print)
         print_chars += size;
@@ -653,7 +653,7 @@ to display it temporarily selected.
 
 If variable `temp-buffer-show-function' is non-nil, call it at the end
 to get the buffer displayed instead of just displaying the non-selected
-buffer and calling the hook.  It gets one argument, the buffer to display.  
+buffer and calling the hook.  It gets one argument, the buffer to display.
 
 usage: (with-output-to-temp-buffer BUFFNAME BODY ...)  */)
      (args)
@@ -1005,7 +1005,7 @@ print_error_message (data, stream, context, caller)
       else
 	Fprin1 (obj, stream);
     }
-  
+
   UNGCPRO;
 }
 
@@ -1016,9 +1016,9 @@ print_error_message (data, stream, context, caller)
  * largest float, printed in the biggest notation.  This is undoubtedly
  * 20d float_output_format, with the negative of the C-constant "HUGE"
  * from <math.h>.
- * 
+ *
  * On the vax the worst case is -1e38 in 20d format which takes 61 bytes.
- * 
+ *
  * I assume that IEEE-754 format numbers can take 329 bytes for the worst
  * case of -1e307 in 20d float_output_format. What is one to do (short of
  * re-writing _doprnt to be more sane)?
@@ -1032,7 +1032,7 @@ float_to_string (buf, data)
 {
   unsigned char *cp;
   int width;
-      
+
   /* Check for plus infinity in a way that won't lose
      if there is no plus infinity.  */
   if (data == data / 2 && data > 1.0)
@@ -1061,7 +1061,7 @@ float_to_string (buf, data)
 	    *buf++ = '-';
 	    break;
 	  }
-      
+
       strcpy (buf, "0.0e+NaN");
       return;
     }
@@ -1598,7 +1598,7 @@ print_object (obj, printcharfun, escapeflag)
       else
 	{
 	  PRINTCHAR ('(');
-	  
+
 	  /* If the first element is a backquote form,
 	     print it old-style so it won't be misunderstood.  */
 	  if (print_quoted && CONSP (XCAR (obj))
@@ -1670,18 +1670,18 @@ print_object (obj, printcharfun, escapeflag)
 			    }
 		      }
 		  }
-		
+
 		if (i++)
 		  PRINTCHAR (' ');
-		
+
 		if (print_length && i > print_length)
 		  {
 		    strout ("...", 3, 3, printcharfun, 0);
 		    goto end_of_list;
 		  }
-		
+
 		print_object (XCAR (obj), printcharfun, escapeflag);
-		
+
 		obj = XCDR (obj);
 		if (!(i & 1))
 		  halftail = XCDR (halftail);
@@ -1694,7 +1694,7 @@ print_object (obj, printcharfun, escapeflag)
 	      strout (" . ", 3, 3, printcharfun, 0);
 	      print_object (obj, printcharfun, escapeflag);
 	    }
-	  
+
 	end_of_list:
 	  PRINTCHAR (')');
 	}

@@ -54,7 +54,7 @@ INFOSOURCES = info.texi
 	texi2dvi $<
 
 TEXI2DVI = texi2dvi
-ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)" 
+ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
 
 EMACSSOURCES= \
 	${srcdir}/emacs.texi \
@@ -176,7 +176,7 @@ forms.dvi: forms.texi
 ../info/gnus: gnus.texi
 	cd $(srcdir); $(MAKEINFO) gnus.texi
 gnus.dvi: gnus.texi
-	sed -e '/@iflatex/,/@end iflatex/d' ${srcdir}/gnus.texi > gnustmp.texi 
+	sed -e '/@iflatex/,/@end iflatex/d' ${srcdir}/gnus.texi > gnustmp.texi
 	$(ENVADD) $(TEXI2DVI) gnustmp.texi
 	cp gnustmp.dvi $*.dvi
 	rm gnustmp.*

@@ -372,7 +372,7 @@ writing.
 *** Speedbar
 
 There is now support for the speedbar. Try "M-x speedbar" (closes SF
-#503727). 
+#503727).
 
 Press the middle mouse button on the `+' icons to open a folder,
 middle mouse button on a folder name to open the folder. Folders with
@@ -453,7 +453,7 @@ http://freshmeat.net/redir/compface/1439/url_tgz/compface-1.4.tar.gz.
 
 It has also been observed that if you don't see the faces, you might
 have to do this (for unknown reasons):
-    
+
     mv /usr/local/include/compface.h /usr/include/
 
 *** Graphical Smileys
@@ -639,7 +639,7 @@ gave supercite fits (closes SF #629153).
 "M-q (fill-paragraph)" now fills quoted paragraphs (for example,
 starting with "> ") correctly (closes SF #489927).
 
-*** mh-next-undeleted-msg, mh-previous-undeleted-msg 
+*** mh-next-undeleted-msg, mh-previous-undeleted-msg
 
 If there are no more undeleted messages the point remains at its
 original position and a message is produced (closes SF #494304).
@@ -853,7 +853,7 @@ visible. If the bottom of a message is showing, SPC (mh-page-msg)
 moves to the next message (respecting the direction you are moving
 through the folder).
 
-The threading commands "T u (mh-next-unseen-subject-thread)", 
+The threading commands "T u (mh-next-unseen-subject-thread)",
 "T t (mh-toggle-subject-thread)", "T s (mh-narrow-to-subject-thread)",
 and "T k (mh-delete-subject-thread)" have been added. These functions
 do not offer threading in the true sense of the word, but do allow

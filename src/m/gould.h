@@ -25,7 +25,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="note"
 
@@ -37,11 +37,11 @@ Gould Power Node (-machine=gould -opsystem=bsd4-2 or bsd4-3)
 
   On UTX/32 2.0, use -opsystem=bsd4-3
 
-  On UTX/32 1.2 and UTX/32S 1.0, use -opsystem=bsd4-2 and note that compiling 
-  lib-src/sorted-doc tickles a compiler bug:  remove the -g flag to cc in the 
+  On UTX/32 1.2 and UTX/32S 1.0, use -opsystem=bsd4-2 and note that compiling
+  lib-src/sorted-doc tickles a compiler bug:  remove the -g flag to cc in the
   makefile.
 
-  UTX/32 1.3 has a bug in the bcopy library routine.  Fix it by 
+  UTX/32 1.3 has a bug in the bcopy library routine.  Fix it by
   #undef BSTRING in gould.h.
 
   Version 19 incorporates support for releases 2.1 and later of UTX/32.
@@ -70,7 +70,7 @@ NOTE-END */
 #define GOULD
 #endif
 
-/* sel is an old preprocessor name on gould machines 
+/* sel is an old preprocessor name on gould machines
   - it is no longer needed and interferes with a variable in xmenu.c */
 #undef sel
 

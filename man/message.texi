@@ -1092,8 +1092,8 @@ posting a prepared news message.
 Symbol naming a @sc{mime} charset.  Non-ASCII characters in messages are
 assumed to be encoded using this charset.  The default is @code{nil},
 which means ask the user.  (This variable is used only on non-@sc{mule}
-Emacsen.  
-@xref{Charset Translation, , Charset Translation, emacs-mime, 
+Emacsen.
+@xref{Charset Translation, , Charset Translation, emacs-mime,
       Emacs MIME Manual}, for details on the @sc{mule}-to-@sc{mime}
 translation process.
 

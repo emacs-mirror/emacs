@@ -18,14 +18,14 @@ in the larger process of developing and maintaining programs.
 * Compilation Mode::    The mode for visiting compiler errors.
 * Compilation Shell::   Customizing your shell properly
                           for use in the compilation buffer.
-* Debuggers::	        Running symbolic debuggers for non-Lisp programs. 
-* Executing Lisp::      Various modes for editing Lisp programs, 
+* Debuggers::	        Running symbolic debuggers for non-Lisp programs.
+* Executing Lisp::      Various modes for editing Lisp programs,
                           with different facilities for running
-                          the Lisp programs. 
+                          the Lisp programs.
 * Libraries: Lisp Libraries.      Creating Lisp programs to run in Emacs.
 * Interaction: Lisp Interaction.  Executing Lisp in an Emacs buffer.
 * Eval: Lisp Eval.      Executing a single Lisp expression in Emacs.
-* External Lisp::         Communicating through Emacs with a separate Lisp. 
+* External Lisp::         Communicating through Emacs with a separate Lisp.
 @end menu
 
 @node Compilation

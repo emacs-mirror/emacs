@@ -41,7 +41,7 @@ license to the document, as described in section 6 of the license.
 
 @dircategory Emacs
 @direntry
-* SC: (sc).		Supercite lets you cite parts of messages you're 
+* SC: (sc).		Supercite lets you cite parts of messages you're
 			  replying to, in flexible ways.
 @end direntry
 
@@ -1178,7 +1178,7 @@ Executing @code{sc-cite-original} performs the following steps as it
 initializes the reply buffer:
 
 @enumerate
-@item 
+@item
 @vindex sc-pre-hook
 @vindex pre-hook (sc-)
 @emph{Runs @code{sc-pre-hook}.}
@@ -1222,7 +1222,7 @@ Supercite sets an undo boundary before it begins to modify the original
 yanked text.  This allows you to easily undo Supercite's changes to
 affect alternative citing styles.
 
-@item 
+@item
 @emph{Processes the mail headers.}
 @vindex sc-confirm-always-p
 @vindex confirm-always-p (sc-)
@@ -1275,7 +1275,7 @@ Once the mail headers have been processed, Supercite selects a
 attribution string and a citation string which it will use to cite the
 original message.  @xref{Selecting an Attribution}, for details.
 
-@item 
+@item
 @emph{Cites the message body.}
 @vindex sc-cite-region-limit
 @vindex cite-region-limit (sc-)b
@@ -1316,7 +1316,7 @@ wouldn't encounter them all anyway.  But you can configure Supercite to
 recognize those styles you see often.
 @xref{Configuring the Citation Engine}, for details.@refill
 
-@item 
+@item
 @emph{Runs @code{sc-post-hook}.}
 @vindex sc-post-hook
 @vindex post-hook (sc-)
@@ -1581,7 +1581,7 @@ Use the last selected attribution, if there is one.
 @item
 Use the value of the @code{"x-attribution"} key.
 
-@item 
+@item
 Use the author's first name.
 
 @item
@@ -1590,11 +1590,11 @@ Use the author's last name.
 @item
 Use the author's initials.
 
-@item 
+@item
 Find the first non-@code{nil}, non-empty attribution string in the
 attribution alist.
 
-@item 
+@item
 @code{sc-default-attribution} is used.
 @end enumerate
 
@@ -2135,7 +2135,7 @@ together is bound on @kbd{C-c C-p C-p}.@refill
 
 Finally, the command @kbd{C-c C-p C-t h} (also @kbd{C-c C-p C-t ?})
 brings up a Help message on the toggling keymap.
-  
+
 
 @node  Mail Field Commands, Miscellaneous Commands, Variable Toggling Shortcuts, Post-yank Formatting Commands
 @comment  node-name,  next,  previous,  up
@@ -2299,7 +2299,7 @@ setting up a reply or forward buffer, your MUA should follow these
 steps:
 
 @enumerate
-@item 
+@item
 Insert the original message, including the mail headers into the reply
 buffer. At this point you should not modify the raw text in any way, and
 you should place all the original headers into the body of the reply.
@@ -2307,7 +2307,7 @@ This means that many of the mail headers will be duplicated, one copy
 above the @code{mail-header-separator} line and one copy below,
 however there will probably be more headers below this line.@refill
 
-@item 
+@item
 Set @samp{point} to the beginning of the line containing the first mail
 header in the body of the reply. Set @samp{mark} at the end of the
 message text.  It is very important that the region be set around the
@@ -2319,7 +2319,7 @@ Emacs 19, the region need not be set active.  Supercite will work
 properly when the region is inactive, as should any other like-minded
 package.@refill
 
-@item 
+@item
 Run the hook @code{mail-citation-hook}. You will probably want to
 provide some kind of default citation functions in cases where the user
 does not have Supercite installed.  By default, your MUA should

@@ -175,7 +175,7 @@ int unexec (char *new_name, char *a_name,
       || unrelocate_symbols (new, a_out, a_name, new_name) < 0)
     {
       close (new);
-      return -1;	
+      return -1;
     }
 
   close (new);
@@ -358,7 +358,7 @@ make_hdr (int new, int a_out,
 	    s->s_scnptr += bias;
 	    ptr = s->s_scnptr;
 	  }
-  
+
 	ptr = ptr + s->s_size;
       }
   }
@@ -413,7 +413,7 @@ make_hdr (int new, int a_out,
 }
 
 /* ****************************************************************
- 
+
  *
  * Copy the text and data segments from memory to the new a.out
  */
@@ -589,7 +589,7 @@ unrelocate_symbols (int new, int a_out, char *a_name, char *new_name)
 #ifndef ALIGN_DATA_RELOC
   ulong d_reloc = (ulong) &_data - f_ohdr.data_start;
 #else
-  /* This worked (and was needed) before AIX 4.2. 
+  /* This worked (and was needed) before AIX 4.2.
      I have no idea why. -- Mike */
   ulong d_reloc = (ulong) &_data - ALIGN(f_ohdr.data_start, 2);
 #endif

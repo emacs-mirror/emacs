@@ -112,11 +112,11 @@ extern char * w32_strerror (int error_no);
 extern BOOL w32_get_long_filename (char * name, char * buf, int size);
 
 /* Prepare our standard handles for proper inheritance by child processes.  */
-extern void prepare_standard_handles (int in, int out, 
+extern void prepare_standard_handles (int in, int out,
 				      int err, HANDLE handles[4]);
 
 /* Reset our standard handles to their original state.  */
-extern void reset_standard_handles (int in, int out, 
+extern void reset_standard_handles (int in, int out,
 				    int err, HANDLE handles[4]);
 
 /* Return the string resource associated with KEY of type TYPE.  */

@@ -400,7 +400,7 @@ and postfix: Eee -> Ee, ajj -> aj, etc.
 ;("$$$" ["$$"])
 
  ;; escape from composition
- ("\\w" ?w)	; breve or horn 
+ ("\\w" ?w)	; breve or horn
  ("\\W" ?W)
  ("\\a" ?a)	; a circumflex
  ("\\A" ?A)	; A circumflex

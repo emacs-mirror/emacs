@@ -19,7 +19,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="ptx"  */
 
@@ -95,7 +95,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 /* #undef NO_REMAP */
 
-/* If a valid PTX executable could be dumped without NO_REMAP defined, 
+/* If a valid PTX executable could be dumped without NO_REMAP defined,
    here's a guess at some defines to make it work.  */
 #ifndef NO_REMAP
 

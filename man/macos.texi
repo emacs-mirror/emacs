@@ -173,7 +173,7 @@ EMACS_UNIBYTE=1
 @section Volumes and Directories on the Mac
 @cindex file names (Mac OS)
 
-  The directory structure in the Mac OS is seen by Emacs as 
+  The directory structure in the Mac OS is seen by Emacs as
 
 @example
 /@var{volumename}/@var{filename}

@@ -19,15 +19,15 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
-   USUAL-OPSYS="note"  
+   USUAL-OPSYS="note"
 
 NOTE-START
 Use -opsystem=bsd4-2, or -opsystem=bsd4-3 on newer systems.
 NOTE-END */
 
-/* NOTE: this file works for DYNIX release 2.0 
+/* NOTE: this file works for DYNIX release 2.0
 	  (not tested on 1.3) on NS32000's */
 
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word

@@ -480,7 +480,7 @@ knows, and the file name rules for guessing the language.  It also prints
 a list of all the available @code{etags} options, together with a short
 explanation.  If followed by one or more @samp{--language=@var{lang}}
 options, prints detailed information about how tags are generated for
-@var{lang}. 
+@var{lang}.
 
 @node Etags Regexps
 @subsection Etags Regexps

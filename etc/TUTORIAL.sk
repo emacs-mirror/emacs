@@ -65,7 +65,7 @@ pou¾itie príkazov C-p, C-b, C-f a C-n.  Ka¾dý z týchto príkazov presunie
 kurzor na obrazovke o jeden riadok alebo ståpec v danom smere.
 Tu je tabuµka znázoròujúca smer posunu kurzoru vyvolaný týmito ¹tyrmi
 príkazmi:
- 
+
 			Predchádzajúci riadok, C-p
 				  :
 				  :
@@ -415,7 +415,7 @@ Teraz obnovte naposledy zru¹ený text:
 
 >> Stlaète C-y.  Potom posuòte kurzor o niekoµko riadkov ni¾¹ie a stlaète
    C-y znovu.  Teraz vidíte, ako je mo¾né kopírova» text.
-   
+
 Èo keï máte nejaký text, ktorý by ste radi vhodili spä» a potom zru¹íte
 nieèo iného?  C-y by vlo¾ilo posledný zru¹ený text.  Ale predchádzajúci
 text ni je stratený.  Mô¾ete ho získa» spä» pou¾itím príkazu M-y.  Potom,
@@ -833,7 +833,7 @@ vraví, ¾e Emacs sa nacháza v stave, ktorý sa nazýva inkrementálne hµadanie,
 a èaká, kým mu zadáte, èo chcete hµada».  <RET> hµadanie ukonèí.
 
 >> Teraz zaènite hµadanie stlaèením C-s.  POMALY, písmeno po písmene, pí¹te
-   slovo 'kurzor'.  Po ka¾dom písmene si v¹imnite, èo sa deje s kurzorom.  
+   slovo 'kurzor'.  Po ka¾dom písmene si v¹imnite, èo sa deje s kurzorom.
    Teraz ste vyhµadali "kurzor" prvý krát.
 >> Stlaète C-s znova, aby ste na¹li ïal¹í výskyt slova "kurzor".
 >> Teraz ¹tyri krát stlaète <Delback> a pozerajte, ako sa kurzor

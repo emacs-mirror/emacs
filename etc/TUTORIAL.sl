@@ -14,7 +14,7 @@ vedno izpisali s celim imenom, bomo uporabili naslednji okraj¹avi:
  	  pritisnemo tipko <chr>. Tipko ESC bomo oznaèevali z <ESC>.
 
 Pomembno: Emacs zapustimo z ukazom C-x C-c (dva znaka).
-V uèbeniku so vaje, s katerimi preskusite nove ukaze. Oznaèujeta jih 
+V uèbeniku so vaje, s katerimi preskusite nove ukaze. Oznaèujeta jih
 znaka ,>>` ob levem robu. Zgled:
 <<Blank lines inserted here by startup of help-with-tutorial>>
 [Sredina strani je iz didaktiènih razlogov prazna. Besedilo se nadaljuje spodaj]
@@ -129,7 +129,7 @@ deluje podobno, a v nasprotni smeri.
 
 Ste opazili paralelo med C-f in C-b na eni strani ter M-f in M-b na
 drugi? V Emacsu se dostikrat ukazi Meta nana¹ajo na operacije nad
-enotami jezika (besede, stavki, odstavki), medtem ko se ukazi Control 
+enotami jezika (besede, stavki, odstavki), medtem ko se ukazi Control
 nana¹ajo na operacije, neodvisne od zvrsti besedila (znaki, vrstice
 ipd.).
 
@@ -372,8 +372,8 @@ ukazov za brisanje:
 Èrka ,d` je iz angle¹ke besede ,delete` (pobrisati), èrka ,k` pa iz
 besede ,kill` (pobiti). Ste opazili, da <Delback> in C-d na eni, ter
 M-<Delback> in M-d na drugi strani nadaljujeta paralelo, ki sta jo zaèela
-C-f in M-f (<Delback> pravzaprav ni kontrolni znak, kar pa naj nas ne 
-moti).  C-k in M-k sta v enakem sorodu s C-e in M-e: prvi deluje na 
+C-f in M-f (<Delback> pravzaprav ni kontrolni znak, kar pa naj nas ne
+moti).  C-k in M-k sta v enakem sorodu s C-e in M-e: prvi deluje na
 vrstice, drugi na stavke.
 
 Obstaja tudi splo¹en postopek za brisanje kateregakoli dela delovnega
@@ -494,7 +494,7 @@ C-y. Preklic ukaza pa velja za eno in drugo.
 Da bi bile spremembe v besedilu trajne, morate besedilo shraniti v
 datoteko. V nasprotnem primeru jih boste za vedno izgubili tisti hip,
 ko boste zapustili Emacs. Besedilo postavimo v datoteko tako, da
-na disku ,,poi¹èemo`` (angl. find) datoteko, preden zaènemo tipkati 
+na disku ,,poi¹èemo`` (angl. find) datoteko, preden zaènemo tipkati
 (pravimo tudi, da ,,obi¹èemo`` datoteko).
 
 Poiskati datoteko pomeni, da v Emacsu vidimo vsebino datoteke. To je
@@ -646,7 +646,7 @@ podroèje C-x s vpra¹a, èe ga ¾elite shraniti.
 * RAZ©IRJEN NABOR UKAZOV
 ------------------------
 
-©e mnogo, mnogo je ukazov Emacsa, ki bi zaslu¾ili, da jih obesimo na 
+©e mnogo, mnogo je ukazov Emacsa, ki bi zaslu¾ili, da jih obesimo na
 razne kontrolne in meta znake. Emacs se temu izogne z ukazom X (iz angl.
 eXtend - raz¹iriti), ki uvede ukaz iz raz¹irjenega nabora. Dveh vrst je:
 
@@ -705,7 +705,7 @@ Ukaz replace-string potrebuje dva argumenta -- niz, ki ga ¾elite
 zamenjati, in niz, s katerim bi radi zamenjali prvega. Vsakega posebej
 vnesete in zakljuèite s pritiskom na tipko Return.
 
->> Premaknite kazalèek na prazno vrstico dve vrstici pod to, zatem 
+>> Premaknite kazalèek na prazno vrstico dve vrstici pod to, zatem
    vtipkajte M-x repl s<Return>zamenjala<Return>spremenila<Return>.
 
    Opazite, kako se je ta vrstica zamenjala? Vse besede
@@ -729,7 +729,7 @@ datoteka ni veè potrebna, in Emacs jo pobri¹e.
 shranjeno besedilo tako, da normalno poi¹èete datoteko (pravo ime
 datoteke, ne ime avtomatièno shranjene datoteke), zatem pa vtipkate M-x
 recover file<Return>. Ko vas vpra¹a za potrditev, vtipkajte yes<Return>
-za nadaljevanje in povrnitev avtomatièno shranjenenih podatkov. 
+za nadaljevanje in povrnitev avtomatièno shranjenenih podatkov.
 
 
 * ODZIVNO PODROÈJE
@@ -947,14 +947,14 @@ sicer tisto, v katerem sem zdaj.``)
 Seveda ni nujno, da obe okni ka¾eta isto delovno podroèje. Èe v enem
 oknu izvedete C-x C-f in poi¹èete novo datoteko, se vsebina drugega
 okna ne spremeni. V vsakem oknu lahko neodvisno obdelujete drugo
-datoteko. 
+datoteko.
 
 Pa ¹e ena pot, kako v dveh oknih prika¾ete dve razlièni datoteki:
 
 >> Vtipkajte C-x 4 C-f, in na pozivnik vtipkajte ime ene va¹ih
    datotek. Konèajte z <Return>. Odpre se ¹e eno okno in izbrana
    datoteka se pojavi v drugem oknu. Tudi kazalèek se preseli v drugo
-   okno. 
+   okno.
 
 >> Vtipkajte C-x o, da se vrnete nazaj v zgornje okno, in C-x 1, da
    zaprete spodnje okno.
@@ -1025,12 +1025,12 @@ To odpre novo okno in v njem prika¾e dokumentacijo o funkciji, obenem
 z njenim imenom. Ko ste opravili, vtipkajte C-x 1, da se znebite okna
 z pomoèjo. Tega seveda ni potrebno napraviti takoj, ampak lahko
 urejate, medtem ko imate odprto okno s pomoèjo, in ga zaprete, ko ste
-konèali. 
+konèali.
 
 Sledi ¹e nekaj uporabnih mo¾nosti, ki jih ponuja pomoè:
 
    C-h f	Opi¹i funkcijo. Kot argument morate podati ime
-		funkcije. 
+		funkcije.
 
 >> Poskusite C-h f previous-line<Return>.
    To izpi¹e vse podatke, ki jih ima Emacs o funkciji, ki izvede ukaz C-p.
@@ -1050,14 +1050,14 @@ spremenljivke.
 To odpre novo okno, v katerem so vsa dolga imena ukazov, ki vsebujejo
 ,,file`` v imenu. Izvedete jih lahko z M-x. Pri nekaterih se izpi¹e
 tudi kratek ukaz, npr. C-x C-f ali C-x C-w pri ukazih find-file in
-write-file. 
+write-file.
 
 >> Pritisnite C-M-v, da se sprehajate po oknu s pomoèjo. Poskusite
-   nekajkrat. 
+   nekajkrat.
 
 >> Vtipkajte C-x 1, da zaprete okno s pomoèjo.
 
-   C-h i         Priroèniki z navodili za uporabo (tkim. datoteke 
+   C-h i         Priroèniki z navodili za uporabo (tkim. datoteke
 		 "info"). Ta ukaz vas prestavi v posebno delovno
 		 podroèje, imenovano "info". V njem lahko prebirate
 		 priroènike za programe, ki so name¹èeni v sistemu. Z
@@ -1097,8 +1097,8 @@ Priroènik opisuje tudi mnoge druge mo¾nosti Emacsa.
 -----------
 
 Zapomnite si, da Emacs zapustite z ukazom C-x C-c. Èe bi radi samo
-zaèasno skoèili v ukazno lupino in se kasneje vrnili v Emacs, pa 
-storite to z ukazom C-z. 
+zaèasno skoèili v ukazno lupino in se kasneje vrnili v Emacs, pa
+storite to z ukazom C-z.
 
 Ta uèbenik je napisan z namenom, da bi bil razumljiv vsem novincem v
 Emacsu. Èe se vam kaj ne zdi jasno napisano, ne valite krivde nase -
@@ -1122,7 +1122,7 @@ Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software Foundation
    avtorstvu in to dovoljenje, ter da distributer dovoljuje prejemniku
    nadaljnje raz¹irjanje pod pogoji, navedenimi v tem dovoljenju.
 
-   Pod pogoji iz prej¹njega odstavka je dovoljeno raz¹irjati 
+   Pod pogoji iz prej¹njega odstavka je dovoljeno raz¹irjati
    spremenjene verzije tega spisa ali njegovih delov, èe je jasno
    oznaèeno, kdo je nazadnje vnesel spremembe.
 

@@ -132,12 +132,12 @@ start_atimer (type, time, fn, client_data)
     case ATIMER_ABSOLUTE:
       t->expiration = time;
       break;
-      
+
     case ATIMER_RELATIVE:
       EMACS_GET_TIME (t->expiration);
       EMACS_ADD_TIME (t->expiration, t->expiration, time);
       break;
-      
+
     case ATIMER_CONTINUOUS:
       EMACS_GET_TIME (t->expiration);
       EMACS_ADD_TIME (t->expiration, t->expiration, time);
@@ -151,7 +151,7 @@ start_atimer (type, time, fn, client_data)
 
   /* Arrange for a SIGALRM at the time the next atimer is ripe.  */
   set_alarm ();
-  
+
   return t;
 }
 
@@ -163,14 +163,14 @@ cancel_atimer (timer)
      struct atimer *timer;
 {
   int i;
-  
+
   BLOCK_ATIMERS;
 
   for (i = 0; i < 2; ++i)
     {
       struct atimer *t, *prev;
       struct atimer **list = i ? &stopped_atimers : &atimers;
-      
+
       /* See if TIMER is active or stopped.  */
       for (t = *list, prev = NULL; t && t != timer; prev = t, t = t->next)
 	;
@@ -184,7 +184,7 @@ cancel_atimer (timer)
 	    prev->next = t->next;
 	  else
 	    *list = t->next;
-	  
+
 	  t->next = free_atimers;
 	  free_atimers = t;
 	  break;
@@ -209,7 +209,7 @@ append_atimer_lists (list1, list2)
   else
     {
       struct atimer *p;
-      
+
       for (p = list1; p->next; p = p->next)
 	;
       p->next = list2;
@@ -225,11 +225,11 @@ stop_other_atimers (t)
      struct atimer *t;
 {
   BLOCK_ATIMERS;
-  
+
   if (t)
     {
       struct atimer *p, *prev;
-      
+
       /* See if T is active.  */
       for (p = atimers, prev = 0; p && p != t; p = p->next)
 	;
@@ -246,7 +246,7 @@ stop_other_atimers (t)
 	/* T is not active.  Let's handle this like T == 0.  */
 	t = NULL;
     }
-  
+
   stopped_atimers = append_atimer_lists (atimers, stopped_atimers);
   atimers = t;
   UNBLOCK_ATIMERS;
@@ -263,18 +263,18 @@ run_all_atimers ()
     {
       struct atimer *t = atimers;
       struct atimer *next;
-      
+
       BLOCK_ATIMERS;
       atimers = stopped_atimers;
       stopped_atimers = NULL;
-      
+
       while (t)
 	{
 	  next = t->next;
 	  schedule_atimer (t);
 	  t = next;
 	}
-      
+
       UNBLOCK_ATIMERS;
     }
 }
@@ -301,7 +301,7 @@ set_alarm ()
      must reestablish each time.  */
   signal (SIGALRM, alarm_signal_handler);
 #endif /* USG */
-  
+
   if (atimers)
     {
       EMACS_TIME now, time;
@@ -320,7 +320,7 @@ set_alarm ()
 	  EMACS_SET_SECS (time, 0);
 	  EMACS_SET_USECS (time, 1000);
 	}
-      
+
       bzero (&it, sizeof it);
       it.it_value = time;
       setitimer (ITIMER_REAL, &it, 0);
@@ -350,7 +350,7 @@ schedule_atimer (t)
     prev->next = t;
   else
     atimers = t;
-  
+
   t->next = a;
 }
 
@@ -363,20 +363,20 @@ alarm_signal_handler (signo)
      int signo;
 {
   EMACS_TIME now;
-  
+
   EMACS_GET_TIME (now);
   pending_atimers = 0;
-  
+
   while (atimers
 	 && (pending_atimers = interrupt_input_blocked) == 0
 	 && EMACS_TIME_LE (atimers->expiration, now))
     {
       struct atimer *t;
-      
+
       t = atimers;
       atimers = atimers->next;
       t->fn (t);
-      
+
       if (t->type == ATIMER_CONTINUOUS)
 	{
 	  EMACS_ADD_TIME (t->expiration, now, t->interval);
@@ -387,10 +387,10 @@ alarm_signal_handler (signo)
 	  t->next = free_atimers;
 	  free_atimers = t;
 	}
-      
+
       EMACS_GET_TIME (now);
     }
-  
+
   set_alarm ();
 }
 

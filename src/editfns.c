@@ -289,16 +289,16 @@ region_limit (beginningp)
 {
   extern Lisp_Object Vmark_even_if_inactive; /* Defined in callint.c. */
   Lisp_Object m;
-  
+
   if (!NILP (Vtransient_mark_mode)
       && NILP (Vmark_even_if_inactive)
       && NILP (current_buffer->mark_active))
     Fsignal (Qmark_inactive, Qnil);
-  
+
   m = Fmarker_position (current_buffer->mark);
   if (NILP (m))
     error ("The mark is not set now, so there is no region");
-  
+
   if ((PT < XFASTINT (m)) == beginningp)
     m = make_number (PT);
   return m;
@@ -456,7 +456,7 @@ get_pos_property (position, prop, object)
 		}
 	    }
 	}
-      
+
     }
 
   { /* Now check the text-properties.  */
@@ -881,7 +881,7 @@ save_excursion_restore (info)
   /* visible */
   info = XCDR (info);
   visible_p = !NILP (XCAR (info));
-  
+
 #if 0 /* We used to make the current buffer visible in the selected window
 	 if that was true previously.  That avoids some anomalies.
 	 But it creates others, and it wasn't documented, and it is simpler
@@ -2952,7 +2952,7 @@ save_restriction_restore (data)
 			     clip_to_bounds (beg->charpos, pt, end->charpos),
 			     clip_to_bounds (beg->bytepos, BUF_PT_BYTE (buf),
 					     end->bytepos));
-	  
+
 	  buf->clip_changed = 1; /* Remember that the narrowing changed. */
 	}
     }

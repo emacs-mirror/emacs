@@ -273,7 +273,7 @@ particularly under OpenWindows and Gnome.
   The command @kbd{M-x menu-bar-enable-clipboard} makes the @code{Cut},
 @code{Paste} and @code{Copy} menu items, as well as the keys of the same
 names, all use the clipboard.
- 
+
   You can customize the option @code{x-select-enable-clipboard} to make
 the Emacs yank functions consult the clipboard before the primary
 selection, and to make the kill functions to store in the clipboard as
@@ -394,7 +394,7 @@ subcommands.  The difference is that @kbd{C-x 5} commands create a new
 frame rather than just a new window in the selected frame (@pxref{Pop
 Up Window}).  If an existing visible or iconified frame already displays
 the requested material, these commands use the existing frame, after
-raising or deiconifying as necessary. 
+raising or deiconifying as necessary.
 
   The various @kbd{C-x 5} commands differ in how they find or create the
 buffer to select:

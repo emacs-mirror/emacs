@@ -54,7 +54,7 @@ megabytes.
 * Kill Buffer::	        Killing buffers you no longer need.
 * Several Buffers::     How to go through the list of all buffers
 			  and operate variously on several of them.
-* Indirect Buffers::    An indirect buffer shares the text of another buffer. 
+* Indirect Buffers::    An indirect buffer shares the text of another buffer.
 * Buffer Convenience::  Convenience and customization features for
                           buffer handling.
 @end menu
@@ -155,10 +155,10 @@ current buffer.  Here is an example of a buffer list:@refill
  MR Buffer         Size  Mode           File
  -- ------         ----  ----           ----
 .*  emacs.tex      383402 Texinfo       /u2/emacs/man/emacs.tex
-    *Help*         1287  Fundamental	
+    *Help*         1287  Fundamental
     files.el       23076 Emacs-Lisp     /u2/emacs/lisp/files.el
   % RMAIL          64042 RMAIL          /u/rms/RMAIL
- *% man            747   Dired          /u2/emacs/man/		
+ *% man            747   Dired          /u2/emacs/man/
     net.emacs      343885 Fundamental   /u/rms/net.emacs
     fileio.c       27691 C              /u2/emacs/src/fileio.c
     NEWS           67340 Text           /u2/emacs/etc/NEWS
@@ -498,7 +498,7 @@ convenient to switch between buffers.
 @menu
 * Uniquify::               Buffer names can contain directory parts.
 * Iswitchb::               Switching between buffers with substrings.
-* Buffer Menus::           Configurable buffer menu.     
+* Buffer Menus::           Configurable buffer menu.
 @end menu
 
 @node Uniquify

@@ -59,7 +59,7 @@ lose!!
 	data
 	text
 	globl	_alloca
-_alloca	
+_alloca
 	move.l	(sp)+,a0	; pop return addr from top of stack
 	move.l	(sp)+,d0	; pop size in bytes from top of stack
 	add.l	#ROUND,d0	; round size up to long word
@@ -112,7 +112,7 @@ copy_regs_loop:			/* save caller's saved registers */
 alloca:
 #ifdef MOTOROLA_DELTA
 /* slightly modified version of alloca to motorola sysV/68 pcc - based
-   compiler. 
+   compiler.
    this compiler saves used registers relative to %sp instead of %fp.
    alright, just make new copy of saved register set whenever we allocate
    new space from stack..
@@ -251,9 +251,9 @@ alloca:
  * We have to copy registers, and therefore waste 32 bytes.
  *
  * Stack layout:
- * new	sp ->	junk	
+ * new	sp ->	junk
  *	 	registers (copy)
- *	r0 ->	new data		
+ *	r0 ->	new data
  *		 | 	  (orig retval)
  *		 |	  (orig arg)
  * old  sp ->	regs	  (orig)

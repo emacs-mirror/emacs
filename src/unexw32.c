@@ -148,17 +148,17 @@ open_input_file (file_data *p_file, char *filename)
 
   file = CreateFile (filename, GENERIC_READ, FILE_SHARE_READ, NULL,
 		     OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-  if (file == INVALID_HANDLE_VALUE) 
+  if (file == INVALID_HANDLE_VALUE)
     return FALSE;
 
   size = GetFileSize (file, &upper_size);
-  file_mapping = CreateFileMapping (file, NULL, PAGE_READONLY, 
+  file_mapping = CreateFileMapping (file, NULL, PAGE_READONLY,
 				    0, size, NULL);
-  if (!file_mapping) 
+  if (!file_mapping)
     return FALSE;
 
   file_base = MapViewOfFile (file_mapping, FILE_MAP_READ, 0, 0, size);
-  if (file_base == 0) 
+  if (file_base == 0)
     return FALSE;
 
   p_file->name = filename;
@@ -179,18 +179,18 @@ open_output_file (file_data *p_file, char *filename, unsigned long size)
 
   file = CreateFile (filename, GENERIC_READ | GENERIC_WRITE, 0, NULL,
 		     CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-  if (file == INVALID_HANDLE_VALUE) 
+  if (file == INVALID_HANDLE_VALUE)
     return FALSE;
 
-  file_mapping = CreateFileMapping (file, NULL, PAGE_READWRITE, 
+  file_mapping = CreateFileMapping (file, NULL, PAGE_READWRITE,
 				    0, size, NULL);
-  if (!file_mapping) 
+  if (!file_mapping)
     return FALSE;
-  
+
   file_base = MapViewOfFile (file_mapping, FILE_MAP_WRITE, 0, 0, size);
-  if (file_base == 0) 
+  if (file_base == 0)
     return FALSE;
-  
+
   p_file->name = filename;
   p_file->size = size;
   p_file->file = file;
@@ -345,24 +345,24 @@ get_section_info (file_data *p_infile)
   PIMAGE_NT_HEADERS nt_header;
   PIMAGE_SECTION_HEADER section;
   int overlap;
-  
+
   dos_header = (PIMAGE_DOS_HEADER) p_infile->file_base;
-  if (dos_header->e_magic != IMAGE_DOS_SIGNATURE) 
+  if (dos_header->e_magic != IMAGE_DOS_SIGNATURE)
     {
       printf ("Unknown EXE header in %s...bailing.\n", p_infile->name);
       exit (1);
     }
-  nt_header = (PIMAGE_NT_HEADERS) (((unsigned long) dos_header) + 
+  nt_header = (PIMAGE_NT_HEADERS) (((unsigned long) dos_header) +
 				   dos_header->e_lfanew);
-  if (nt_header == NULL) 
+  if (nt_header == NULL)
     {
-      printf ("Failed to find IMAGE_NT_HEADER in %s...bailing.\n", 
+      printf ("Failed to find IMAGE_NT_HEADER in %s...bailing.\n",
 	     p_infile->name);
       exit (1);
     }
 
   /* Check the NT header signature ...  */
-  if (nt_header->Signature != IMAGE_NT_SIGNATURE) 
+  if (nt_header->Signature != IMAGE_NT_SIGNATURE)
     {
       printf ("Invalid IMAGE_NT_SIGNATURE 0x%x in %s...bailing.\n",
 	      nt_header->Signature, p_infile->name);
@@ -482,7 +482,7 @@ get_section_info (file_data *p_infile)
 /* The dump routines.  */
 
 void
-copy_executable_and_dump_data (file_data *p_infile, 
+copy_executable_and_dump_data (file_data *p_infile,
 			       file_data *p_outfile)
 {
   unsigned char *dst, *dst_save;
@@ -537,10 +537,10 @@ copy_executable_and_dump_data (file_data *p_infile,
      Note that dst is updated implicitly by each COPY_CHUNK.  */
 
   dos_header = (PIMAGE_DOS_HEADER) p_infile->file_base;
-  nt_header = (PIMAGE_NT_HEADERS) (((unsigned long) dos_header) + 
+  nt_header = (PIMAGE_NT_HEADERS) (((unsigned long) dos_header) +
 				   dos_header->e_lfanew);
   section = IMAGE_FIRST_SECTION (nt_header);
- 
+
   dst = (unsigned char *) p_outfile->file_base;
 
   COPY_CHUNK ("Copying DOS header...", dos_header,
@@ -736,7 +736,7 @@ unexec (char *new_name, char *old_name, void *start_data, void *start_bss,
   if ((q = strrchr (new_name, '/')) == NULL)
     abort ();
   strcpy (p, q);
-  
+
   /* Make sure that the output filename has the ".exe" extension...patch
      it up if not.  */
   p = out_filename + strlen (out_filename) - 4;
@@ -752,7 +752,7 @@ unexec (char *new_name, char *old_name, void *start_data, void *start_bss,
   /* Open the undumped executable file.  */
   if (!open_input_file (&in_file, in_filename))
     {
-      printf ("Failed to open %s (%d)...bailing.\n", 
+      printf ("Failed to open %s (%d)...bailing.\n",
 	      in_filename, GetLastError ());
       exit (1);
     }
@@ -768,7 +768,7 @@ unexec (char *new_name, char *old_name, void *start_data, void *start_bss,
     extra_bss_size_static;
   if (!open_output_file (&out_file, out_filename, size))
     {
-      printf ("Failed to open %s (%d)...bailing.\n", 
+      printf ("Failed to open %s (%d)...bailing.\n",
 	      out_filename, GetLastError ());
       exit (1);
     }

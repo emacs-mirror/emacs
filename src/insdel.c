@@ -373,7 +373,7 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
 	  if (! m->insertion_type)
 	    /* Normal markers will end up at the beginning of the
 	       re-inserted text after undoing a deletion, and must be
-	       adjusted to move them to the correct place.  */ 
+	       adjusted to move them to the correct place.  */
 	    record_marker_adjustment (marker, from - charpos);
 	  else if (charpos < to)
 	    /* Before-insertion markers will automatically move forward
@@ -536,7 +536,7 @@ make_gap_larger (nbytes_added)
      That won't work because so many places use `int'.
 
      Make sure we don't introduce overflows in the calculation.  */
-     
+
   if (Z_BYTE - BEG_BYTE + GAP_SIZE
       >= (((EMACS_INT) 1 << (min (VALBITS, BITS_PER_INT) - 1)) - 1
 	  - nbytes_added))
@@ -990,7 +990,7 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
 {
   if (nchars == 0)
     return;
-  
+
   if (NILP (current_buffer->enable_multibyte_characters))
     nchars = nbytes;
 
@@ -1173,7 +1173,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
   /* Get the intervals for the part of the string we are inserting.  */
   if (nbytes < SBYTES (string))
     intervals = copy_intervals (intervals, pos, nchars);
-			       
+
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, PT, nchars,
 			       current_buffer, inherit);
@@ -1239,13 +1239,13 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 
       if (chunk < incoming_nbytes)
 	outgoing_after_gap
-	  = count_size_as_multibyte (BUF_BYTE_ADDRESS (buf, 
+	  = count_size_as_multibyte (BUF_BYTE_ADDRESS (buf,
 						       from_byte + chunk),
 				     incoming_nbytes - chunk);
 
       outgoing_nbytes = outgoing_before_gap + outgoing_after_gap;
     }
-  
+
   /* Make sure point-max won't overflow after this insertion.  */
   XSETINT (temp, outgoing_nbytes + Z);
   if (outgoing_nbytes + Z != XINT (temp))
@@ -1329,7 +1329,7 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 	from += nchars;
       intervals = copy_intervals (intervals, from, nchars);
     }
-			       
+
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, PT, nchars, current_buffer, inherit);
 
@@ -2129,7 +2129,7 @@ signal_after_change (charpos, lendel, lenins)
       return;
     }
 
-  if (!NILP (combine_after_change_list)) 
+  if (!NILP (combine_after_change_list))
     Fcombine_after_change_execute ();
 
   if (!NILP (Vafter_change_functions))
@@ -2260,7 +2260,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
      that was changed.  */
   begpos = BEG + beg;
   endpos = Z - end;
-  
+
   /* We are about to handle these, so discard them.  */
   combine_after_change_list = Qnil;
 

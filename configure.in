@@ -77,7 +77,7 @@ dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the path of X, and it's best to
 dnl keep them together visually.
 AC_ARG_WITH(x-toolkit,
-[  --with-x-toolkit=KIT    use an X toolkit 
+[  --with-x-toolkit=KIT    use an X toolkit
                               (KIT = yes/lucid/athena/motif/gtk/no)],
 [	  case "${withval}" in
 	    y | ye | yes )	val=athena ;;
@@ -1068,7 +1068,7 @@ case "${canonical}" in
       *-xenix* )		opsys=xenix ;;
       *-linux-gnu* )		opsys=gnu-linux ;;
       *-sco3.2v4* )		opsys=sco4 ; NON_GNU_CPP=/lib/cpp  ;;
-      *-sco3.2v5* )		opsys=sco5 
+      *-sco3.2v5* )		opsys=sco5
 				NON_GNU_CPP=/lib/cpp
 				# Prevent -belf from being passed to $CPP.
 				# /lib/cpp does not accept it.
@@ -1112,7 +1112,7 @@ case "${canonical}" in
 
   ## AMD x86-64 Linux-based GNU system
   x86_64-*-linux-gnu* )
-    machine=amdx86-64 opsys=gnu-linux 
+    machine=amdx86-64 opsys=gnu-linux
   ;;
 
   * )
@@ -1333,7 +1333,7 @@ configure___ use_mmap_for_buffers=no
 
 #ifndef LD_SWITCH_X_SITE_AUX
 #define LD_SWITCH_X_SITE_AUX
-#endif  
+#endif
 
 configure___ ld_switch_system=LD_SWITCH_SYSTEM
 configure___ ld_switch_machine=LD_SWITCH_MACHINE
@@ -1447,7 +1447,7 @@ AC_CACHE_CHECK(for speed_t, emacs_cv_speed_t,
   [AC_TRY_COMPILE([#include <termios.h>], [speed_t x = 1;],
     emacs_cv_speed_t=yes, emacs_cv_speed_t=no)])
 if test $emacs_cv_speed_t = yes; then
-  AC_DEFINE(HAVE_SPEED_T, 1, 
+  AC_DEFINE(HAVE_SPEED_T, 1,
   	   [Define to 1 if `speed_t' is declared by <termios.h>.])
 fi
 
@@ -1469,7 +1469,7 @@ if test $emacs_cv_struct_timeval = yes; then
 fi
 
 AC_CACHE_CHECK(for struct exception, emacs_cv_struct_exception,
-AC_TRY_COMPILE([#include <math.h>], 
+AC_TRY_COMPILE([#include <math.h>],
 [static struct exception x; x.arg1 = x.arg2 = x.retval; x.name = ""; x.type = 1;],
   emacs_cv_struct_exception=yes, emacs_cv_struct_exception=no))
 HAVE_EXCEPTION=$emacs_cv_struct_exception
@@ -1498,7 +1498,7 @@ dnl This isn't useful because we can't turn on use of `inline' unless
 dnl the compiler groks `extern inline'.
 dnl AC_C_INLINE
 AC_CACHE_CHECK([for void * support], emacs_cv_void_star,
-  [AC_TRY_COMPILE(, [void * foo;], 
+  [AC_TRY_COMPILE(, [void * foo;],
                    emacs_cv_void_star=yes, emacs_cv_void_star=no)])
 if test $emacs_cv_void_star = yes; then
   AC_DEFINE(POINTER_TYPE, void)
@@ -1599,7 +1599,7 @@ HAVE_MENUS=no
 case ${HAVE_X11} in
   yes ) HAVE_MENUS=yes ;;
 esac
-  
+
 if test "${opsys}" = "hpux9"; then
   case "${x_libraries}" in
     *X11R4* )
@@ -1827,7 +1827,7 @@ AC_DEFUN(PKG_CHECK_MODULES, [
         else
             $1_CFLAGS=""
             $1_LIBS=""
-            ## If we have a custom action on failure, don't print errors, but 
+            ## If we have a custom action on failure, don't print errors, but
             ## do set a variable so people can do so.
             $1_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$2"`
             ifelse([$4], ,echo $$1_PKG_ERRORS,)
@@ -1978,7 +1978,7 @@ Motif version prior to 2.1.
     if test ${HAVE_LIBXP} = yes; then
       AC_DEFINE(HAVE_LIBXP, 1,
 		[Define to 1 if you have the Xp library (-lXp).])
-    fi	
+    fi
   fi
 fi
 
@@ -1996,7 +1996,7 @@ if test "${HAVE_X11}" = "yes"; then
     fi
   fi
 fi
-  
+
 dnl Use toolkit scroll bars if configured for GTK or X toolkit and either
 dnl using Motif or Xaw3d is available, and unless
 dnl --with-toolkit-scroll-bars=no was specified.
@@ -2055,7 +2055,7 @@ no_return_alloc_pixels
     AC_DEFINE(HAVE_XPM, 1, [Define to 1 if you have the Xpm libary (-lXpm).])
   fi
 fi
-  
+
 ### Use -ljpeg if available, unless `--with-jpeg=no'.
 HAVE_JPEG=no
 if test "${HAVE_X11}" = "yes"; then
@@ -2072,13 +2072,13 @@ if test "${HAVE_X11}" = "yes"; then
     AC_EGREP_CPP([version= *(6[2-9]|[7-9][0-9])],
         [#include <jpeglib.h>
 	 version=JPEG_LIB_VERSION
-],    
+],
         AC_DEFINE(HAVE_JPEG),
         [AC_MSG_WARN([libjpeg found, but not version 6b or later])
         HAVE_JPEG=no])
   fi
 fi
-  
+
 ### Use -lpng if available, unless `--with-png=no'.
 HAVE_PNG=no
 if test "${HAVE_X11}" = "yes"; then
@@ -2091,7 +2091,7 @@ if test "${HAVE_X11}" = "yes"; then
     AC_DEFINE(HAVE_PNG, 1, [Define to 1 if you have the png library (-lpng).])
   fi
 fi
-  
+
 ### Use -ltiff if available, unless `--with-tiff=no'.
 HAVE_TIFF=no
 if test "${HAVE_X11}" = "yes"; then
@@ -2107,7 +2107,7 @@ if test "${HAVE_X11}" = "yes"; then
     AC_DEFINE(HAVE_TIFF, 1, [Define to 1 if you have the tiff library (-ltiff).])
   fi
 fi
-  
+
 ### Use -lgif if available, unless `--with-gif=no'.
 HAVE_GIF=no
 if test "${HAVE_X11}" = "yes"; then
@@ -2158,7 +2158,7 @@ if test "${HAVE_X11}" = "yes"; then
     esac
   fi
 fi
-  
+
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
 AC_CACHE_CHECK(whether netdb declares h_errno,
 	       emacs_cv_netdb_declares_h_errno,
@@ -2588,7 +2588,7 @@ Boston, MA 02111-1307, USA.  */
 
 
 /* No code in Emacs #includes config.h twice, but some bits of code
-   intended to work with other packages as well (like gmalloc.c) 
+   intended to work with other packages as well (like gmalloc.c)
    think they can include it as many times as they like.  */
 #ifndef EMACS_CONFIG_H
 #define EMACS_CONFIG_H
@@ -2812,7 +2812,7 @@ typedef unsigned size_t;
 #ifdef __GNUC__
 #  ifndef GC_SETJMP_WORKS
   /* GC_SETJMP_WORKS is nearly always appropriate for GCC --
-     see NON_SAVING_SETJMP in the target descriptions.  */   
+     see NON_SAVING_SETJMP in the target descriptions.  */
   /* Exceptions (see NON_SAVING_SETJMP in target description) are ns32k,
      SCO5 non-ELF (but Emacs specifies ELF) and SVR3 on x86.
      Fixme: Deal with ns32k, SVR3.  */
@@ -2835,7 +2835,7 @@ typedef unsigned size_t;
 
 #endif /* EMACS_CONFIG_H */
 
-/* 
+/*
 Local Variables:
 mode: c
 End:

@@ -451,11 +451,11 @@ window so that the location of point becomes invisible.  */)
 
   CHECK_NUMBER (ncol);
   hscroll = max (0, XINT (ncol));
-  
+
   /* Prevent redisplay shortcuts when changing the hscroll.  */
   if (XINT (w->hscroll) != hscroll)
     XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
-  
+
   w->hscroll = make_number (hscroll);
   return ncol;
 }
@@ -543,7 +543,7 @@ coordinates_in_window (w, x, y)
 
   if (*x < x0 || *x >= x1)
     return ON_NOTHING;
-  
+
   /* In what's below, we subtract 1 when computing right_x because we
      want the rightmost pixel, which is given by left_pixel+width-1.  */
   if (w->pseudo_window_p)
@@ -578,7 +578,7 @@ coordinates_in_window (w, x, y)
 	 as the vertical border.    If scroll bars on the left,
 	 return the right window.  */
       part = ON_MODE_LINE;
-      
+
       if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f))
 	{
 	  if (abs (*x - x0) < grabbable_width)
@@ -592,7 +592,7 @@ coordinates_in_window (w, x, y)
 	   && *y >= top_y)
     {
       part = ON_HEADER_LINE;
-      
+
       if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f))
 	{
 	  if (abs (*x - x0) < grabbable_width)
@@ -626,7 +626,7 @@ coordinates_in_window (w, x, y)
 	{
 	  /* Other lines than the mode line don't include fringes and
 	     scroll bars on the left.  */
-      
+
 	  /* Convert X and Y to window-relative pixel coordinates.  */
 	  *x -= left_x;
 	  *y -= top_y;
@@ -659,7 +659,7 @@ coordinates_in_window (w, x, y)
 	{
 	  /* Other lines than the mode line don't include fringes and
 	     scroll bars on the left.  */
-      
+
 	  /* Convert X and Y to window-relative pixel coordinates.  */
 	  *x -= left_x;
 	  *y -= top_y;
@@ -744,7 +744,7 @@ If they are in the windows's left or right marginal areas, `left-margin'\n\
     case ON_TEXT:
       /* X and Y are now window relative pixel coordinates.  Convert
 	 them to canonical char units before returning them.  */
-      return Fcons (CANON_X_FROM_PIXEL_X (f, x), 
+      return Fcons (CANON_X_FROM_PIXEL_X (f, x),
 		    CANON_Y_FROM_PIXEL_Y (f, y));
 
     case ON_MODE_LINE:
@@ -758,13 +758,13 @@ If they are in the windows's left or right marginal areas, `left-margin'\n\
 
     case ON_LEFT_FRINGE:
       return Qleft_fringe;
-      
+
     case ON_RIGHT_FRINGE:
       return Qright_fringe;
 
     case ON_LEFT_MARGIN:
       return Qleft_margin;
-      
+
     case ON_RIGHT_MARGIN:
       return Qright_margin;
 
@@ -805,7 +805,7 @@ check_window_containing (w, user_data)
       XSETWINDOW (*cw->window, w);
       continue_p = 0;
     }
-  
+
   return continue_p;
 }
 
@@ -839,7 +839,7 @@ window_from_coordinates (f, x, y, part, tool_bar_p)
   window = Qnil;
   cw.window = &window, cw.x = &x, cw.y = &y; cw.part = part;
   foreach_window (f, check_window_containing, &cw);
-  
+
   /* If not found above, see if it's in the tool bar window, if a tool
      bar exists.  */
   if (NILP (window)
@@ -876,7 +876,7 @@ column 0.  */)
   CHECK_NUMBER_OR_FLOAT (x);
   CHECK_NUMBER_OR_FLOAT (y);
 
-  return window_from_coordinates (f, 
+  return window_from_coordinates (f,
 				  PIXEL_X_FROM_CANON_X (f, x),
 				  PIXEL_Y_FROM_CANON_Y (f, y),
 				  &part, 0);
@@ -976,13 +976,13 @@ if it isn't already recorded.  */)
 	  old_buffer = current_buffer;
 	  set_buffer_internal (b);
 	}
-      
+
       start_display (&it, w, startp);
       move_it_vertically (&it, window_box_height (w));
       if (it.current_y < it.last_visible_y)
 	move_it_past_eol (&it);
       value = make_number (IT_CHARPOS (it));
-      
+
       if (old_buffer)
 	set_buffer_internal (old_buffer);
     }
@@ -1010,7 +1010,7 @@ DEFUN ("set-window-point", Fset_window_point, Sset_window_point, 2, 2, 0,
      the new value of point.  */
   if (!EQ (window, selected_window))
     ++windows_or_buffers_changed;
-  
+
   return pos;
 }
 
@@ -1093,7 +1093,7 @@ window_display_table (w)
   else if (BUFFERP (w->buffer))
     {
       struct buffer *b = XBUFFER (w->buffer);
-      
+
       if (DISP_TABLE_P (b->display_table))
 	dp = XCHAR_TABLE (b->display_table);
       else if (DISP_TABLE_P (Vstandard_display_table))
@@ -1159,7 +1159,7 @@ unshow_buffer (w)
 			 clip_to_bounds (BUF_BEGV_BYTE (b),
 					 marker_byte_position (w->pointm),
 					 BUF_ZV_BYTE (b)));
-  
+
   if (WINDOWP (b->last_selected_window)
       && w == XWINDOW (b->last_selected_window))
     b->last_selected_window = Qnil;
@@ -1441,7 +1441,7 @@ window_list ()
 	  Vwindow_list = Fnconc (2, args);
 	}
     }
-  
+
   return Vwindow_list;
 }
 
@@ -1518,14 +1518,14 @@ decode_next_window_args (window, minibuf, all_frames)
     *window = selected_window;
   else
     CHECK_LIVE_WINDOW (*window);
-  
+
   /* MINIBUF nil may or may not include minibuffers.  Decide if it
      does.  */
   if (NILP (*minibuf))
     *minibuf = minibuf_level ? minibuf_window : Qlambda;
   else if (!EQ (*minibuf, Qt))
     *minibuf = Qlambda;
-  
+
   /* Now *MINIBUF can be t => count all minibuffer windows, `lambda'
      => count none of them, or a specific minibuffer window (the
      active one) to count.  */
@@ -1543,7 +1543,7 @@ decode_next_window_args (window, minibuf, all_frames)
     ;
   else if (!EQ (*all_frames, Qt))
     *all_frames = Qnil;
-  
+
   /* Now *ALL_FRAMES is t meaning search all frames, nil meaning
      search just current frame, `visible' meaning search just visible
      frames, 0 meaning search visible and iconified frames, or a
@@ -1563,17 +1563,17 @@ next_window (window, minibuf, all_frames, next_p)
      int next_p;
 {
   decode_next_window_args (&window, &minibuf, &all_frames);
-  
+
   /* If ALL_FRAMES is a frame, and WINDOW isn't on that frame, just
      return the first window on the frame.  */
   if (FRAMEP (all_frames)
       && !EQ (all_frames, XWINDOW (window)->frame))
     return Fframe_first_window (all_frames);
-  
+
   if (next_p)
     {
       Lisp_Object list;
-      
+
       /* Find WINDOW in the list of all windows.  */
       list = Fmemq (window, window_list ());
 
@@ -1597,7 +1597,7 @@ next_window (window, minibuf, all_frames, next_p)
   else
     {
       Lisp_Object candidate, list;
-      
+
       /* Scan through the list of windows for candidates.  If there are
 	 candidate windows in front of WINDOW, the last one of these
 	 is the one we want.  If there are candidates following WINDOW
@@ -1703,7 +1703,7 @@ argument ALL_FRAMES is non-nil, cycle through all frames.  */)
 
   CHECK_NUMBER (arg);
   window = selected_window;
-  
+
   for (i = XINT (arg); i > 0; --i)
     window = Fnext_window (window, Qnil, all_frames);
   for (; i < 0; ++i)
@@ -1748,11 +1748,11 @@ window_list_1 (window, minibuf, all_frames)
 
   decode_next_window_args (&window, &minibuf, &all_frames);
   list = Qnil;
-  
+
   for (tail = window_list (); CONSP (tail); tail = XCDR (tail))
     if (candidate_window_p (XCAR (tail), window, minibuf, all_frames))
       list = Fcons (XCAR (tail), list);
-  
+
   return Fnreverse (list);
 }
 
@@ -1787,7 +1787,7 @@ window_loop (type, obj, mini, frames)
   Lisp_Object window, windows, best_window, frame_arg;
   struct frame *f;
   struct gcpro gcpro1;
-  
+
   /* If we're only looping through windows on a particular frame,
      frame points to that frame.  If we're looping through windows
      on all frames, frame is 0.  */
@@ -1797,7 +1797,7 @@ window_loop (type, obj, mini, frames)
     f = SELECTED_FRAME ();
   else
     f = NULL;
-  
+
   if (f)
     frame_arg = Qlambda;
   else if (XFASTINT (frames) == 0)
@@ -1826,10 +1826,10 @@ window_loop (type, obj, mini, frames)
   for (; CONSP (windows); windows = CDR (windows))
     {
       struct window *w;
-      
+
       window = XCAR (windows);
       w = XWINDOW (window);
-      
+
       /* Note that we do not pay attention here to whether the frame
 	 is visible, since Fwindow_list skips non-visible frames if
 	 that is desired, under the control of frame_arg.  */
@@ -1891,7 +1891,7 @@ window_loop (type, obj, mini, frames)
 			   && EQ (XWINDOW (XCAR (windows))->frame,
 				  XWINDOW (XCAR (XCDR (windows)))->frame))
 		      windows = XCDR (windows);
-		    
+
 		    /* Now we can safely delete the frame.  */
 		    Fdelete_frame (w->frame, Qnil);
 		  }
@@ -1916,7 +1916,7 @@ window_loop (type, obj, mini, frames)
 	      /* Ignore dedicated windows and minibuffers.  */
 	      if (MINI_WINDOW_P (w) || EQ (w->dedicated, Qt))
 		break;
-	      
+
 	      if (NILP (best_window))
 		best_window = window;
 	      else
@@ -1934,10 +1934,10 @@ window_loop (type, obj, mini, frames)
 	      {
 		Lisp_Object buffer;
 		struct frame *f = XFRAME (w->frame);
-		
+
 		/* Find another buffer to show in this window.  */
 		buffer = Fother_buffer (obj, Qnil, w->frame);
-		
+
 		/* If this window is dedicated, and in a frame of its own,
 		   kill the frame.  */
 		if (EQ (window, FRAME_ROOT_WINDOW (f))
@@ -1950,7 +1950,7 @@ window_loop (type, obj, mini, frames)
 			   && EQ (XWINDOW (XCAR (windows))->frame,
 				  XWINDOW (XCAR (XCDR (windows)))->frame))
 		      windows = XCDR (windows);
-		    
+
 		    /* Now we can safely delete the frame.  */
 		    Fdelete_frame (w->frame, Qnil);
 		  }
@@ -2136,7 +2136,7 @@ If FRAME is a frame, search only that frame.  */)
       CHECK_BUFFER (buffer);
       window_loop (DELETE_BUFFER_WINDOWS, buffer, 0, frame);
     }
-  
+
   return Qnil;
 }
 
@@ -2212,7 +2212,7 @@ check_frame_size (frame, rows, cols)
     = ((FRAME_MINIBUF_ONLY_P (frame) || ! FRAME_HAS_MINIBUF_P (frame))
        ? MIN_SAFE_WINDOW_HEIGHT
        : 2 * MIN_SAFE_WINDOW_HEIGHT);
-  
+
   if (FRAME_TOP_MARGIN (frame) > 0)
     min_height += FRAME_TOP_MARGIN (frame);
 
@@ -2236,11 +2236,11 @@ window_fixed_size_p (w, width_p, check_siblings_p)
 {
   int fixed_p;
   struct window *c;
-  
+
   if (!NILP (w->hchild))
     {
       c = XWINDOW (w->hchild);
-      
+
       if (width_p)
 	{
 	  /* A horiz. combination is fixed-width if all of if its
@@ -2261,7 +2261,7 @@ window_fixed_size_p (w, width_p, check_siblings_p)
   else if (!NILP (w->vchild))
     {
       c = XWINDOW (w->vchild);
-      
+
       if (width_p)
 	{
 	  /* A vert. combination is fixed-width if one of if its
@@ -2287,7 +2287,7 @@ window_fixed_size_p (w, width_p, check_siblings_p)
 	{
 	  struct buffer *old = current_buffer;
 	  Lisp_Object val;
-      
+
 	  current_buffer = XBUFFER (w->buffer);
 	  val = find_symbol_value (Qwindow_size_fixed);
 	  current_buffer = old;
@@ -2296,7 +2296,7 @@ window_fixed_size_p (w, width_p, check_siblings_p)
 	  if (!EQ (val, Qunbound))
 	    {
 	      fixed_p = !NILP (val);
-	      
+
 	      if (fixed_p
 		  && ((EQ (val, Qheight) && width_p)
 		      || (EQ (val, Qwidth) && !width_p)))
@@ -2309,7 +2309,7 @@ window_fixed_size_p (w, width_p, check_siblings_p)
       if (!fixed_p && check_siblings_p && WINDOWP (w->parent))
 	{
 	  Lisp_Object child;
-	  
+
 	  for (child = w->prev; !NILP (child); child = XWINDOW (child)->prev)
 	    if (!window_fixed_size_p (XWINDOW (child), width_p, 0))
 	      break;
@@ -2328,7 +2328,7 @@ window_fixed_size_p (w, width_p, check_siblings_p)
 
   return fixed_p;
 }
-  
+
 
 /* Return the minimum size of window W, not taking fixed-width windows
    into account.  WIDTH_P non-zero means return the minimum width,
@@ -2342,12 +2342,12 @@ window_min_size_1 (w, width_p)
 {
   struct window *c;
   int size;
-  
+
   if (!NILP (w->hchild))
     {
       c = XWINDOW (w->hchild);
       size = 0;
-      
+
       if (width_p)
 	{
 	  /* The min width of a horizontal combination is
@@ -2374,7 +2374,7 @@ window_min_size_1 (w, width_p)
     {
       c = XWINDOW (w->vchild);
       size = 0;
-      
+
       if (width_p)
 	{
 	  /* The min width of a vertical combination is
@@ -2433,15 +2433,15 @@ window_min_size (w, width_p, ignore_fixed_p, fixed)
     fixed_p = 0;
   else
     fixed_p = window_fixed_size_p (w, width_p, 1);
-  
+
   if (fixed)
     *fixed = fixed_p;
-  
+
   if (fixed_p)
     size = width_p ? XFASTINT (w->width) : XFASTINT (w->height);
   else
     size = window_min_size_1 (w, width_p);
-      
+
   return size;
 }
 
@@ -2470,7 +2470,7 @@ size_window (window, size, width_p, nodelete_p)
 
   check_min_window_sizes ();
   size = max (0, size);
-  
+
   /* If the window has been "too small" at one point,
      don't delete it for being "too small" in the future.
      Preserve it as long as that is at all possible.  */
@@ -2495,7 +2495,7 @@ size_window (window, size, width_p, nodelete_p)
 	min_size = width_p ? MIN_SAFE_WINDOW_WIDTH : MIN_SAFE_WINDOW_HEIGHT;
       else
 	min_size = width_p ? window_min_width : window_min_height;
-      
+
       if (size < min_size)
 	{
 	  delete_window (window);
@@ -2547,11 +2547,11 @@ size_window (window, size, width_p, nodelete_p)
       for (child = *forward; !NILP (child); child = c->next, ++nchildren)
 	{
 	  int child_size;
-	  
+
 	  c = XWINDOW (child);
 	  child_size = width_p ? XINT (c->width) : XINT (c->height);
 	  total += child_size;
-	  
+
 	  if (window_fixed_size_p (c, width_p, 0))
 	    {
 	      fixed_size += child_size;
@@ -2576,7 +2576,7 @@ size_window (window, size, width_p, nodelete_p)
       for (child = *forward; !NILP (child); child = c->next)
 	{
 	  int new_size, old_size;
-	  
+
 	  c = XWINDOW (child);
 	  old_size = width_p ? XFASTINT (c->width) : XFASTINT (c->height);
 	  new_size = old_size;
@@ -2594,7 +2594,7 @@ size_window (window, size, width_p, nodelete_p)
 	      new_size = old_size + each + extra;
 	      extra = 0;
 	    }
-	  
+
 	  /* Set new height.  Note that size_window also propagates
 	     edge positions to children, so it's not a no-op if we
 	     didn't change the child's size.  */
@@ -2607,7 +2607,7 @@ size_window (window, size, width_p, nodelete_p)
 
       /* We should have covered the parent exactly with child windows.  */
       xassert (size == last_pos - first_pos);
-      
+
       /* Now delete any children that became too small.  */
       if (!nodelete_p)
 	for (child = *forward; !NILP (child); child = c->next)
@@ -2779,7 +2779,7 @@ selects the buffer of the selected window before each command.  */)
 
 /* Note that selected_window can be nil
    when this is called from Fset_window_configuration.  */
- 
+
 static Lisp_Object
 select_window_1 (window, recordflag)
      register Lisp_Object window;
@@ -2862,9 +2862,9 @@ display_buffer_1 (window)
 {
   Lisp_Object frame = XWINDOW (window)->frame;
   FRAME_PTR f = XFRAME (frame);
-  
+
   FRAME_SAMPLE_VISIBILITY (f);
-  
+
   if (!EQ (frame, selected_frame))
     {
       if (FRAME_ICONIFIED_P (f))
@@ -2872,7 +2872,7 @@ display_buffer_1 (window)
       else if (FRAME_VISIBLE_P (f))
 	Fraise_frame (frame);
     }
-  
+
   return window;
 }
 
@@ -2908,7 +2908,7 @@ See `special-display-buffer-names', and `special-display-regexps'.  */)
 	return XCDR (car);
     }
   return Qnil;
-}  
+}
 
 DEFUN ("same-window-p", Fsame_window_p, Ssame_window_p, 1, 1, 0,
        doc: /* Returns non-nil if a new buffer named BUFFER-NAME would use the same window.
@@ -3011,7 +3011,7 @@ displayed.  */)
     XSETFASTINT (tem, 0);
   else
     XSETFRAME (tem, last_nonminibuf_frame);
-  
+
   window = Fget_buffer_window (buffer, tem);
   if (!NILP (window)
       && (NILP (not_this_window) || !EQ (window, selected_window)))
@@ -3418,7 +3418,7 @@ window_width (window)
   return XFASTINT (p->width);
 }
 
-	
+
 #define CURBEG(w) \
   *(widthflag ? &(XWINDOW (w)->left) : &(XWINDOW (w)->top))
 
@@ -3461,19 +3461,19 @@ enlarge_window (window, delta, widthflag, preserve_before)
     {
       p = XWINDOW (window);
       parent = p->parent;
-      
+
       if (NILP (parent))
 	{
 	  if (widthflag)
 	    error ("No other window to side of this one");
 	  break;
 	}
-      
+
       if (widthflag
 	  ? !NILP (XWINDOW (parent)->hchild)
 	  : !NILP (XWINDOW (parent)->vchild))
 	break;
-      
+
       window = parent;
     }
 
@@ -3563,19 +3563,19 @@ enlarge_window (window, delta, widthflag, preserve_before)
 		{
 		  if (this_one > delta)
 		    this_one = delta;
-		  
+
 		  (*setsizefun) (next, (*sizefun) (next) - this_one, 0);
 		  (*setsizefun) (window, XINT (*sizep) + this_one, 0);
 
 		  delta -= this_one;
 		}
-	      
+
 	      next = XWINDOW (next)->next;
 	    }
-	  
+
 	  if (delta == 0)
 	    break;
-	  
+
 	  if (!preserve_before && ! NILP (prev))
 	    {
 	      int this_one = ((*sizefun) (prev)
@@ -3585,15 +3585,15 @@ enlarge_window (window, delta, widthflag, preserve_before)
 		{
 		  if (this_one > delta)
 		    this_one = delta;
-		  
+
 		  first_affected = prev;
-		  
+
 		  (*setsizefun) (prev, (*sizefun) (prev) - this_one, 0);
 		  (*setsizefun) (window, XINT (*sizep) + this_one, 0);
 
 		  delta -= this_one;
 		}
-	      
+
 	      prev = XWINDOW (prev)->prev;
 	    }
 	}
@@ -3657,7 +3657,7 @@ enlarge_window (window, delta, widthflag, preserve_before)
 
 	     The function size_window will compute the new height h'
 	     of the window from delta1 as:
-	     
+
 	     e = delta1/n
 	     x = delta1 - delta1/n * n for the 1st resizable child
 	     h' = h + e + x
@@ -3665,11 +3665,11 @@ enlarge_window (window, delta, widthflag, preserve_before)
 	     where n is the number of children that can be resized.
 	     We can ignore x by choosing a delta1 that is a multiple of
 	     n.  We want the height of this window to come out as
-	     
+
 	     h' = h + delta
 
 	     So, delta1 must be
-	     
+
 	     h + e = h + delta
 	     delta1/n = delta
 	     delta1 = n * delta.
@@ -3731,7 +3731,7 @@ enum save_restore_action
     RESTORE_ORIG_SIZES
 };
 
-static int save_restore_orig_size P_ ((struct window *, 
+static int save_restore_orig_size P_ ((struct window *,
                                        enum save_restore_action));
 
 /* Shrink windows rooted in window W to HEIGHT.  Take the space needed
@@ -3773,7 +3773,7 @@ shrink_window_lowest_first (w, height)
       int last_top;
 
       last_child = Qnil;
-      
+
       /* Find the last child.  We are taking space from lowest windows
 	 first, so we iterate over children from the last child
 	 backwards.  */
@@ -3784,7 +3784,7 @@ shrink_window_lowest_first (w, height)
       for (child = last_child; delta && !NILP (child); child = c->prev)
 	{
 	  int this_one;
-	  
+
 	  c = XWINDOW (child);
 	  this_one = XFASTINT (c->height) - MIN_SAFE_WINDOW_HEIGHT;
 
@@ -3814,7 +3814,7 @@ shrink_window_lowest_first (w, height)
    If ACTION is CHECK_ORIG_SIZES, check if orig_top and orig_height
    members are valid for all windows in the window tree.  Value is
    non-zero if they are valid.
-   
+
    If ACTION is SAVE_ORIG_SIZES, save members top and height in
    orig_top and orig_height for all windows in the tree.
 
@@ -3840,7 +3840,7 @@ save_restore_orig_size (w, action)
 	  if (!save_restore_orig_size (XWINDOW (w->vchild), action))
 	    success_p = 0;
 	}
-      
+
       switch (action)
 	{
 	case CHECK_ORIG_SIZES:
@@ -3885,10 +3885,10 @@ grow_mini_window (w, delta)
 {
   struct frame *f = XFRAME (w->frame);
   struct window *root;
-  
+
   xassert (MINI_WINDOW_P (w));
   xassert (delta >= 0);
-	   
+
   /* Check values of window_min_width and window_min_height for
      validity.  */
   check_min_window_sizes ();
@@ -3904,7 +3904,7 @@ grow_mini_window (w, delta)
 	   min_height.  */
 	delta = max (0, XFASTINT (root->height) - min_height);
     }
-    
+
   if (delta)
     {
       /* Save original window sizes and positions, if not already done.  */
@@ -3919,7 +3919,7 @@ grow_mini_window (w, delta)
       w->height = make_number (XFASTINT (w->height) + delta);
       XSETFASTINT (w->last_modified, 0);
       XSETFASTINT (w->last_overlay_modified, 0);
-      
+
       adjust_glyphs (f);
     }
 }
@@ -4085,7 +4085,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
   int vscrolled = 0;
 
   SET_TEXT_POS_FROM_MARKER (start, w->start);
-  
+
   /* If PT is not visible in WINDOW, move back one half of
      the screen.  Allow PT to be partially visible, otherwise
      something like (scroll-down 1) with PT in the line before
@@ -4099,7 +4099,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
       init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
       it.current_y = it.last_visible_y;
       move_it_vertically (&it, - window_box_height (w) / 2);
-      
+
       /* The function move_iterator_vertically may move over more than
 	 the specified y-distance.  If it->w is small, e.g. a
 	 mini-buffer window, we may end up in front of the window's
@@ -4207,9 +4207,9 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	 window-scroll-functions.  */
       w->force_start = Qt;
     }
-  
+
   it.current_y = it.vpos = 0;
-  
+
   /* Preserve the screen position if we must.  */
   if (preserve_y >= 0)
     {
@@ -4250,7 +4250,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	  /* Save our position, in case it's correct.  */
 	  charpos = IT_CHARPOS (it);
 	  bytepos = IT_BYTEPOS (it);
-      
+
 	  /* See if point is on a partially visible line at the end.  */
 	  move_it_by_lines (&it, 1, 1);
 	  if (it.current_y > it.last_visible_y)
@@ -4584,7 +4584,7 @@ by this function.  */)
   Lisp_Object result;
   int hscroll;
   struct window *w = XWINDOW (selected_window);
-  
+
   if (NILP (arg))
     XSETFASTINT (arg, window_internal_width (w) - 2);
   else
@@ -4614,7 +4614,7 @@ by this function.  */)
   Lisp_Object result;
   int hscroll;
   struct window *w = XWINDOW (selected_window);
-  
+
   if (NILP (arg))
     XSETFASTINT (arg, window_internal_width (w) - 2);
   else
@@ -4622,7 +4622,7 @@ by this function.  */)
 
   hscroll = XINT (w->hscroll) - XINT (arg);
   result = Fset_window_hscroll (selected_window, make_number (hscroll));
-  
+
   if (interactive_p (0))
     w->min_hscroll = w->hscroll;
 
@@ -4754,7 +4754,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	{
 	  struct it it;
 	  struct text_pos pt;
-	  
+
 	  SET_TEXT_POS (pt, PT, PT_BYTE);
 	  start_display (&it, w, pt);
 	  move_it_vertically (&it, - window_box_height (w) / 2);
@@ -4766,7 +4766,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	  struct it it;
 	  struct text_pos pt;
 	  int y0, y1, h, nlines;
-	  
+
 	  SET_TEXT_POS (pt, PT, PT_BYTE);
 	  start_display (&it, w, pt);
 	  y0 = it.current_y;
@@ -4783,7 +4783,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	     the end of the buffer, count in some empty lines.  */
 	  if (it.vpos < nlines)
 	    y1 += (nlines - it.vpos) * CANON_Y_UNIT (it.f);
-	  
+
 	  h = window_box_height (w) - (y1 - y0);
 
 	  start_display (&it, w, pt);
@@ -4808,7 +4808,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	arg = make_number (ht / 2);
       else if (XINT (arg) < 0)
 	arg = make_number (XINT (arg) + ht);
-      
+
       pos = *vmotion (PT, - XINT (arg), w);
       charpos = pos.bufpos;
       bytepos = pos.bytepos;
@@ -4817,14 +4817,14 @@ and redisplay normally--don't erase and redraw the frame.  */)
   /* Set the new window start.  */
   set_marker_both (w->start, w->buffer, charpos, bytepos);
   w->window_end_valid = Qnil;
-  
+
   w->optional_new_start = Qt;
 
   if (bytepos == BEGV_BYTE || FETCH_BYTE (bytepos - 1) == '\n')
     w->start_at_line_beg = Qt;
   else
     w->start_at_line_beg = Qnil;
-  
+
   set_buffer_internal (obuf);
   return Qnil;
 }
@@ -5000,7 +5000,7 @@ the return value is nil.  Otherwise the value is t.  */)
 
   frame = XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame;
   f = XFRAME (frame);
-  
+
   /* If f is a dead frame, don't bother rebuilding its window tree.
      However, there is other stuff we should still try to do below.  */
   if (FRAME_LIVE_P (f))
@@ -5057,7 +5057,7 @@ the return value is nil.  Otherwise the value is t.  */)
       FRAME_WINDOW_SIZES_CHANGED (f) = 1;
 
       /* Problem: Freeing all matrices and later allocating them again
-	 is a serious redisplay flickering problem.  What we would 
+	 is a serious redisplay flickering problem.  What we would
 	 really like to do is to free only those matrices not reused
 	 below.   */
       root_window = XWINDOW (FRAME_ROOT_WINDOW (f));
@@ -5192,7 +5192,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	set_marker_restricted (XWINDOW (data->current_window)->pointm,
 			       make_number (old_point),
 			       XWINDOW (data->current_window)->buffer);
-		  
+
       Fselect_window (data->current_window);
       XBUFFER (XWINDOW (selected_window)->buffer)->last_selected_window
 	= selected_window;
@@ -5231,14 +5231,14 @@ the return value is nil.  Otherwise the value is t.  */)
 	  if (NILP (leaf_windows[i]->buffer))
 	    {
 	      /* Assert it's not reused as a combination.  */
-	      xassert (NILP (leaf_windows[i]->hchild) 
+	      xassert (NILP (leaf_windows[i]->hchild)
 		       && NILP (leaf_windows[i]->vchild));
 	      free_window_matrices (leaf_windows[i]);
 	    }
 	  else if (EQ (leaf_windows[i]->buffer, new_current_buffer))
 	    ++n;
 	}
-      
+
       adjust_glyphs (f);
 
       UNBLOCK_INPUT;
@@ -5314,7 +5314,7 @@ count_windows (window)
 }
 
 
-/* Fill vector FLAT with leaf windows under W, starting at index I.  
+/* Fill vector FLAT with leaf windows under W, starting at index I.
    Value is last index + 1.  */
 
 static int
@@ -5329,7 +5329,7 @@ get_leaf_windows (w, flat, i)
 	i = get_leaf_windows (XWINDOW (w->hchild), flat, i);
       else if (!NILP (w->vchild))
 	i = get_leaf_windows (XWINDOW (w->vchild), flat, i);
-      else 
+      else
 	flat[i++] = w;
 
       w = NILP (w->next) ? 0 : XWINDOW (w->next);
@@ -5541,7 +5541,7 @@ A nil width parameter means no margin.  */)
      XSETFASTINT (left, 0);
   if (INTEGERP (left) && XFASTINT (left) == 0)
     left = Qnil;
-  
+
   if ((INTEGERP (right) && XINT (right) < 0)
       || (FLOATP (right) && XFLOAT_DATA (right) <= 0))
     XSETFASTINT (right, 0);
@@ -5587,14 +5587,14 @@ Value is a multiple of the canonical character height of WINDOW.  */)
   Lisp_Object result;
   struct frame *f;
   struct window *w;
-  
+
   if (NILP (window))
     window = selected_window;
   else
     CHECK_WINDOW (window);
   w = XWINDOW (window);
   f = XFRAME (w->frame);
-  
+
   if (FRAME_WINDOW_P (f))
     result = CANON_Y_FROM_PIXEL_Y (f, -w->vscroll);
   else
@@ -5613,20 +5613,20 @@ multiple of the canonical character height of WINDOW.  */)
 {
   struct window *w;
   struct frame *f;
-  
+
   if (NILP (window))
     window = selected_window;
   else
     CHECK_WINDOW (window);
   CHECK_NUMBER_OR_FLOAT (vscroll);
-  
+
   w = XWINDOW (window);
   f = XFRAME (w->frame);
 
   if (FRAME_WINDOW_P (f))
     {
       int old_dy = w->vscroll;
-      
+
       w->vscroll = - CANON_Y_UNIT (f) * XFLOATINT (vscroll);
       w->vscroll = min (w->vscroll, 0);
 
@@ -5634,14 +5634,14 @@ multiple of the canonical character height of WINDOW.  */)
 	 area becomes larger than before.  */
       if (w->vscroll < 0 && w->vscroll < old_dy)
 	adjust_glyphs (f);
-      
+
       /* Prevent redisplay shortcuts.  */
       XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
     }
-  
+
   return Fwindow_vscroll (window);
 }
-       
+
 
 /* Call FN for all leaf windows on frame F.  FN is called with the
    first argument being a pointer to the leaf window, and with
@@ -5669,16 +5669,16 @@ foreach_window_1 (w, fn, user_data)
      void *user_data;
 {
   int cont;
-  
+
   for (cont = 1; w && cont;)
     {
       if (!NILP (w->hchild))
  	cont = foreach_window_1 (XWINDOW (w->hchild), fn, user_data);
       else if (!NILP (w->vchild))
  	cont = foreach_window_1 (XWINDOW (w->vchild), fn, user_data);
-      else 
+      else
 	cont = fn (w, user_data);
-      
+
       w = NILP (w->next) ? 0 : XWINDOW (w->next);
     }
 
@@ -5701,7 +5701,7 @@ freeze_window_start (w, freeze_p)
 	  && ! NILP (Vminibuf_scroll_window)
 	  && w == XWINDOW (Vminibuf_scroll_window)))
     freeze_p = NULL;
-  
+
   w->frozen_window_start_p = freeze_p != NULL;
   return 1;
 }
@@ -5740,7 +5740,7 @@ compare_window_configurations (c1, c2, ignore_positions)
     wrong_type_argument (Qwindow_configuration_p, c1);
   if (!WINDOW_CONFIGURATIONP (c2))
     wrong_type_argument (Qwindow_configuration_p, c2);
-  
+
   d1 = (struct save_window_data *) XVECTOR (c1);
   d2 = (struct save_window_data *) XVECTOR (c2);
   sw1 = XVECTOR (d1->saved_windows);
@@ -5871,7 +5871,7 @@ syms_of_window ()
 {
   Qwindow_size_fixed = intern ("window-size-fixed");
   staticpro (&Qwindow_size_fixed);
-  
+
   staticpro (&Qwindow_configuration_change_hook);
   Qwindow_configuration_change_hook
     = intern ("window-configuration-change-hook");

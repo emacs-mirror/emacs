@@ -249,7 +249,7 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
     }
 
   /* This composition is a new one.  We must register it.  */
-	  
+
   /* Check if we have sufficient memory to store this information.  */
   if (composition_table_size == 0)
     {
@@ -485,7 +485,7 @@ update_compositions (from, to, check_mask)
 
   if (inhibit_modification_hooks)
     return;
-  
+
   /* If FROM and TO are not in a valid range, do nothing.  */
   if (! (BEGV <= from && from <= to && to <= ZV))
     return;
@@ -754,7 +754,7 @@ for the composition.  See `compose-string' for more detail.  */)
 }
 
 DEFUN ("find-composition-internal", Ffind_composition_internal,
-       Sfind_composition_internal, 4, 4, 0, 
+       Sfind_composition_internal, 4, 4, 0,
        doc: /* Internal use only.
 
 Return information about composition at or nearest to position POS.
@@ -775,7 +775,7 @@ See `find-composition' for more detail.  */)
     }
   else
     end = -1;
-  
+
   if (!NILP (string))
     {
       CHECK_STRING (string);
@@ -839,7 +839,7 @@ syms_of_composite ()
   {
     Lisp_Object args[6];
     extern Lisp_Object QCsize;
-    
+
     args[0] = QCtest;
     args[1] = Qequal;
     args[2] = QCweakness;

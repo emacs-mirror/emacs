@@ -151,7 +151,7 @@ get_doc_string (filepos, unibyte, definition)
 
   if (!STRINGP (file))
     return Qnil;
-    
+
   /* Put the file name in NAME as a C string.
      If it is relative, combine it with Vdoc_directory.  */
 
@@ -375,12 +375,12 @@ string is passed through `substitute-command-keys'.  */)
  documentation:
 
   doc = Qnil;
-  
+
   if (SYMBOLP (function)
       && (tem = Fget (function, Qfunction_documentation),
 	  !NILP (tem)))
     return Fdocumentation_property (function, Qfunction_documentation, raw);
-  
+
   fun = Findirect_function (function);
   if (SUBRP (fun))
     {
@@ -487,7 +487,7 @@ aren't strings.  */)
   Lisp_Object tem;
 
  documentation_property:
-  
+
   tem = Fget (symbol, prop);
   if (EQ (tem, make_number (0)))
     tem = Qnil;
@@ -512,7 +512,7 @@ aren't strings.  */)
   else if (!STRINGP (tem))
     /* Feval protects its argument.  */
     tem = Feval (tem);
-  
+
   if (NILP (raw) && STRINGP (tem))
     tem = Fsubstitute_command_keys (tem);
   return tem;
@@ -918,7 +918,7 @@ syms_of_doc ()
 {
   Qfunction_documentation = intern ("function-documentation");
   staticpro (&Qfunction_documentation);
-  
+
   DEFVAR_LISP ("internal-doc-file-name", &Vdoc_file_name,
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);
   Vdoc_file_name = Qnil;

@@ -80,7 +80,7 @@ mode (@pxref{Transient Mark}).
                           blank areas.
 * Killing by Lines::    How to kill entire lines of text at one time.
 * Other Kill Commands:: Commands to kill large regions of text and
-                          syntactic units such as words and sentences. 
+                          syntactic units such as words and sentences.
 @end menu
 
 @need 1500
@@ -550,7 +550,7 @@ a line.
 
 @table @kbd
 @item C-x r k
-Kill the text of the region-rectangle, saving its contents as the 
+Kill the text of the region-rectangle, saving its contents as the
 ``last killed rectangle'' (@code{kill-rectangle}).
 @item C-x r d
 Delete the text of the region-rectangle (@code{delete-rectangle}).
@@ -641,6 +641,6 @@ if the string is wider than the rectangle, the text after the
 rectangle shifts right.
 
 @findex string-insert-rectangle
-  The command @kbd{M-x string-insert-rectangle} is similar to 
-@code{string-rectangle}, but inserts the string on each line, 
+  The command @kbd{M-x string-insert-rectangle} is similar to
+@code{string-rectangle}, but inserts the string on each line,
 shifting the original text to the right.

@@ -57,7 +57,7 @@ to set `gnus-select-method'.  A "method" is a way of specifying *how*
 the news is to be found, and from *where*.
 
 Say you want to read news from you local, friendly nntp server
-"news.my.local.server". 
+"news.my.local.server".
 
 (setq gnus-select-method '(nntp "news.my.local.server"))
 
@@ -132,14 +132,14 @@ So if you want to go with nnmbox, you can simply say:
 
 (The same for the other methods, kind of.)
 
-You should also set `nnmail-split-methods' to something sensible: 
+You should also set `nnmail-split-methods' to something sensible:
 
-(setq nnmail-split-methods 
+(setq nnmail-split-methods
       '(("mail.junk" "From:.*Lars")
 	("mail.misc "")))
 
 This will put all mail from me in you junk mail group, and the rest in
-"mail.misc". 
+"mail.misc".
 
 These groups will be subscribe the same way as the normal groups, so
 you will probably find them among the zombie groups after you set
@@ -152,11 +152,11 @@ Date: Fri Feb 24 13:40:45 1995
 Subject: Foreign newsgroups
 Message-ID: <lars-doc5@eyesore.no>
 
-These are groups that do not come from `gnus-select-method'. 
+These are groups that do not come from `gnus-select-method'.
 
 Say you want to read "alt.furniture.couches" from "news.funet.fi".  You
 can then either type `B news.funet.fi <RET>' to browse that server and
-subscribe to that group, or you can type 
+subscribe to that group, or you can type
 `G m alt.furniture.couches<RET>nntp<RET>news.funet.fi<RET>', if you
 like to type a lot.
 
@@ -178,7 +178,7 @@ Message-ID: <lars-doc6@eyesore.no>
 Gnus really isn't GNUS, even though it looks like it.  If you scrape
 the surface, you'll find that most things have changed.
 
-This means that old code that relies on GNUS internals will fail.  
+This means that old code that relies on GNUS internals will fail.
 
 In particular, `gnus-newsrc-hashtb', `gnus-newsrc-assoc',
 `gnus-killed-list', the `nntp-header-' macros and the display formats
@@ -196,7 +196,7 @@ There is absolutely no chance, whatsoever, of getting Gnus to work
 with Emacs 18.  It won't even work on Emacsen older than Emacs
 19.30/XEmacs 19.13.  Upgrade your Emacs or die.
 
-	
+
 From lars Thu Feb 23 23:20:38 1995
 From: larsi@ifi.uio.no (ding)
 Date: Fri Feb 24 13:40:45 1995
@@ -226,7 +226,7 @@ Create the group by saying
 
 This will create the group "nnvirtual:my.virtual.newsgroup", which
 will collect all articles from all the groups in the "rec.aquaria"
-hierarchy.  
+hierarchy.
 
 If you want to edit the regular expression, just type `M-e' on the
 group line.
@@ -258,7 +258,7 @@ the lines of:
 
 (setq gnus-select-group-hook
       (lambda ()
-  	(if (eq 'nnvirtual (car (gnus-find-method-for-group 
+  	(if (eq 'nnvirtual (car (gnus-find-method-for-group
 	                          gnus-newsgroup-name)))
 	    (progn
 	      (make-local-variable 'gnus-thread-sort-functions)
@@ -281,7 +281,7 @@ version.  If the bug persists, please re-submit your bug report.
 When a bug occurs, I need a recipe for how to trigger the bug.  You
 have to tell me exactly what you do to uncover the bug, and you should
 (setq debug-on-error t) and send me the backtrace along with the bug
-report.  
+report.
 
 If I am not able to reproduce the bug, I won't be able to fix it.
 

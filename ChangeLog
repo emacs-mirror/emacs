@@ -1932,7 +1932,7 @@
 
 	* make-dist: Make links for files under lisp/language.
 
-1997-02-20  Kenichi Handa <handa@etl.go.jp>
+1997-02-20  Kenichi Handa  <handa@etl.go.jp>
 
 	* update-subdirs: Exclude the directory "language" from subdirs.
 
@@ -2114,7 +2114,7 @@
 	* config.sub: Use `pc', not `unknown', when canonicalizing
 	the vendor for ...86.
 
-1996-07-15  David Mosberger-Tang <davidm@AZStarNet.com>
+1996-07-15  David Mosberger-Tang  <davidm@AZStarNet.com>
 
 	* configure.in: Check for termios.h header.
 
@@ -3029,7 +3029,7 @@
 	* configure.in (arm-acorn-riscix1.1*, arm-acorn-riscix1.2*):
 	riscix.h renamed to acorn.h.
 
-1994-09-21  Michael Ben-Gershon (mybg@cs.huji.ac.il)
+1994-09-21  Michael Ben-Gershon  (mybg@cs.huji.ac.il)
 
 	* configure.in (arm-acorn-riscix1.1*, arm-acorn-riscix1.2*):
 	New configurations.

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/functions
 @node Functions, Macros, Variables, Top
@@ -18,7 +18,7 @@ define them.
 * Defining Functions::    Lisp expressions for defining functions.
 * Calling Functions::     How to use an existing function.
 * Mapping Functions::     Applying a function to each element of a list, etc.
-* Anonymous Functions::   Lambda expressions are functions with no names.    
+* Anonymous Functions::   Lambda expressions are functions with no names.
 * Function Cells::        Accessing or setting the function definition
                             of a symbol.
 * Inline Functions::	  Defining functions that the compiler will open code.
@@ -746,10 +746,10 @@ length of @var{sequence}.
   "Apply FUNCTION to successive cars of all ARGS.
 Return the list of results."
   ;; @r{If no list is exhausted,}
-  (if (not (memq 'nil args))              
+  (if (not (memq 'nil args))
       ;; @r{apply function to @sc{car}s.}
-      (cons (apply function (mapcar 'car args))  
-            (apply 'mapcar* function             
+      (cons (apply function (mapcar 'car args))
+            (apply 'mapcar* function
                    ;; @r{Recurse for rest of elements.}
                    (mapcar 'cdr args)))))
 @end group
@@ -779,7 +779,7 @@ The argument @var{function} must be a function that can take one
 argument and return a string.  The argument @var{sequence} can be any
 kind of sequence except a char-table; that is, a list, a vector, a
 bool-vector, or a string.
-  
+
 @smallexample
 @group
 (mapconcat 'symbol-name
@@ -841,7 +841,7 @@ your program.  For example, you might want to pass one as an argument to
 the function @code{mapcar}, which applies any given function to each
 element of a list.
 
-  Here we define a function @code{change-property} which 
+  Here we define a function @code{change-property} which
 uses a function as its third argument:
 
 @example
@@ -915,7 +915,7 @@ comment:
 
 @cindex @samp{#'} syntax
   The read syntax @code{#'} is a short-hand for using @code{function}.
-For example, 
+For example,
 
 @example
 #'(lambda (x) (* x x))

@@ -107,7 +107,7 @@ for accessing the value now called ``point.''
 @node Echo Area
 @section The Echo Area
 @cindex echo area
-@c 
+@c
 
   The line at the bottom of the frame (below the mode line) is the
 @dfn{echo area}.  It is used to display small amounts of text for

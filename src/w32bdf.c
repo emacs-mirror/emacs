@@ -54,7 +54,7 @@ cache_bitmap *pcached_bitmap_latest = cached_bitmap_slots;
 
 #define FONT_CACHE_SLOT_OVER_P(p) ((p) >= cached_bitmap_slots + BDF_FONT_CACHE_SIZE)
 
-static int 
+static int
 search_file_line(char *key, char *start, int len, char **val, char **next)
 {
   unsigned int linelen;
@@ -73,7 +73,7 @@ search_file_line(char *key, char *start, int len, char **val, char **next)
       *val = start + strlen(key);
       return 1;
     }
-  
+
   return 0;
 }
 
@@ -276,7 +276,7 @@ w32_init_bdf_font(char *filename)
     }
 
   bdffontp = (bdffont *) xmalloc(sizeof(bdffont));
-  
+
   for(i = 0;i < BDF_FIRST_OFFSET_TABLE;i++)
     bdffontp->chtbl[i] = NULL;
   bdffontp->size = fileinfo.nFileSizeLow;
@@ -285,7 +285,7 @@ w32_init_bdf_font(char *filename)
   bdffontp->hfilemap = hfilemap;
   bdffontp->filename = (char*) xmalloc(strlen(filename) + 1);
   strcpy(bdffontp->filename, filename);
-  
+
   if (!set_bdf_font_info(bdffontp))
     {
       w32_free_bdf_font(bdffontp);
@@ -364,7 +364,7 @@ cache_char_offset(bdffont *fontp, int index, unsigned char *offset)
     {
       pch = fontp->chtbl[BDF_FIRST_OFFSET(index)] =
 	(font_char*) HeapAlloc(hbdf_cp_heap,
-			       HEAP_ZERO_MEMORY, 
+			       HEAP_ZERO_MEMORY,
 			       sizeof(font_char) *
                                BDF_SECOND_OFFSET_TABLE);
       if (!pch) return NULL;
@@ -578,7 +578,7 @@ get_bitmap_with_cache(bdffont *fontp, int index)
   pcb->row_byte_size = glyph.row_byte_size;
 
   pch->pcbmp = pcb;
-  
+
   pcached_bitmap_latest++;
   if (FONT_CACHE_SLOT_OVER_P(pcached_bitmap_latest))
     pcached_bitmap_latest = cached_bitmap_slots;
@@ -649,7 +649,7 @@ w32_BDF_TextOut(bdffont *fontp, HDC hdc, int left,
     return 0;
 
   textalign = GetTextAlign(hdc);
-  
+
   hFgBrush = CreateSolidBrush(GetTextColor(hdc));
   hOrgBrush = SelectObject(hdc, hFgBrush);
 
@@ -679,7 +679,7 @@ w32_BDF_TextOut(bdffont *fontp, HDC hdc, int left,
 	{
 	  width = pcb->metric.bbw;
 	  height = pcb->metric.bbh;
-	  
+
 	  if (!(hBMP
 		&& (DIBsection_hdc == hdc)
 		&& (DIBsection_width == width)

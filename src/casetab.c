@@ -71,7 +71,7 @@ check_case_table (obj)
   while (tem = Fcase_table_p (obj), NILP (tem))
     obj = wrong_type_argument (Qcase_table_p, obj);
   return (obj);
-}   
+}
 
 DEFUN ("current-case-table", Fcurrent_case_table, Scurrent_case_table, 0, 0, 0,
        doc: /* Return the case table of the current buffer.  */)

@@ -1,7 +1,7 @@
 /* machine description file for Alliant Concentrix 4.0 or later.
    Use alliant.h for versions 2 and 3.  */
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="bsd4-2"  */
 

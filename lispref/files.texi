@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/files
 @node Files, Backups and Auto-Saving, Documentation, Top
@@ -92,7 +92,7 @@ temporary buffer.  Visiting the file is not necessary and takes longer.
 
 @deffn Command find-file filename &optional wildcards
 This command selects a buffer visiting the file @var{filename},
-using an existing buffer if there is one, and otherwise creating a 
+using an existing buffer if there is one, and otherwise creating a
 new buffer and reading the file into it.  It also returns that buffer.
 
 The body of the @code{find-file} function is very simple and looks
@@ -548,7 +548,7 @@ offset from the start of the file and writes the data from there.
 
 If @var{mustbenew} is non-@code{nil}, then @code{write-region} asks
 for confirmation if @var{filename} names an existing file.
-Starting in Emacs 21, if @var{mustbenew} is the symbol @code{excl}, 
+Starting in Emacs 21, if @var{mustbenew} is the symbol @code{excl},
 then @code{write-region} does not ask for confirmation, but instead
 it signals an error @code{file-already-exists} if the file already
 exists.
@@ -865,7 +865,7 @@ name of a text file, a directory, or even another symbolic link, or it
 may be a nonexistent file name.
 
 If the file @var{filename} is not a symbolic link (or there is no such file),
-@code{file-symlink-p} returns @code{nil}.  
+@code{file-symlink-p} returns @code{nil}.
 
 @example
 @group
@@ -1107,11 +1107,11 @@ For example, here are the file attributes for @file{files.texi}:
 @example
 @group
 (file-attributes "files.texi")
-     @result{}  (nil 1 2235 75 
-          (8489 20284) 
-          (8489 20284) 
+     @result{}  (nil 1 2235 75
+          (8489 20284)
+          (8489 20284)
           (8489 20285)
-          14906 "-rw-rw-rw-" 
+          14906 "-rw-rw-rw-"
           nil 129500 -32252)
 @end group
 @end example
@@ -1530,7 +1530,7 @@ first character of the file name's last component.  For example,
 @end defun
 
 @ignore
-Andrew Innes says that this 
+Andrew Innes says that this
 
 @c @defvar directory-sep-char
 @c @tindex directory-sep-char
@@ -1974,12 +1974,12 @@ default directory, and has five files whose names begin with @samp{f}:
 @example
 @group
 (file-name-all-completions "f" "")
-     @result{} ("foo" "file~" "file.c.~2~" 
+     @result{} ("foo" "file~" "file.c.~2~"
                 "file.c.~1~" "file.c")
 @end group
 
 @group
-(file-name-all-completions "fo" "")  
+(file-name-all-completions "fo" "")
      @result{} ("foo")
 @end group
 @end example
@@ -2126,7 +2126,7 @@ then the user will probably be happier if you do sort the names.
 @group
 (directory-files "~lewis")
      @result{} ("#foo#" "#foo.el#" "." ".."
-         "dired-mods.el" "files.texi" 
+         "dired-mods.el" "files.texi"
          "files.texi.~1~")
 @end group
 @end example
@@ -2388,7 +2388,7 @@ for an operation it does not recognize.  Here's one way to do this:
         @dots{}
         ;; @r{Handle any operation we don't know about.}
         (t (let ((inhibit-file-name-handlers
-                  (cons 'my-file-handler 
+                  (cons 'my-file-handler
                         (and (eq inhibit-file-name-operation operation)
                              inhibit-file-name-handlers)))
                  (inhibit-file-name-operation operation))

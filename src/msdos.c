@@ -4929,7 +4929,7 @@ gethostname (p, size)
 /* When time zones are set from Ms-Dos too many C-libraries are playing
    tricks with time values.  We solve this by defining our own version
    of `gettimeofday' bypassing GO32.  Our version needs to be initialized
-   once and after each call to `tzset' with TZ changed.  That is 
+   once and after each call to `tzset' with TZ changed.  That is
    accomplished by aliasing tzset to init_gettimeofday. */
 
 static struct tm time_rec;
@@ -5092,7 +5092,7 @@ sigprocmask (how, new_set, old_set)
 #else /* not POSIX_SIGNALS */
 
 sigsetmask (x) int x; { return 0; }
-sigblock (mask) int mask; { return 0; } 
+sigblock (mask) int mask; { return 0; }
 
 #endif /* not POSIX_SIGNALS */
 #endif /* not __DJGPP_MINOR__ < 2 */

@@ -4,7 +4,7 @@
 
 #undef sigsetmask  /* use sys_sigsetmask */
 #undef _longjmp /* use system versions, not conservative aliases */
-#undef _setjmp 
+#undef _setjmp
 
 #define SETPGRP_RELEASES_CTTY
 
@@ -73,7 +73,7 @@ char *_getpty();
 
 /* Since we use POSIX constructs in PTY_OPEN, we must force POSIX
    throughout. */
-#define POSIX_SIGNALS  
+#define POSIX_SIGNALS
 
 /* Info from simon@lia.di.epfl.ch (Simon Leinen) suggests this is needed.  */
 #define GETPGRP_NO_ARG

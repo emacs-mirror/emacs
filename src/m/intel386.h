@@ -19,7 +19,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="note"
 
@@ -185,7 +185,7 @@ NOTE-END */
 #endif /* not USG5_4 */
 #endif /* LIB_STANDARD */
 
-#define NO_REMAP 
+#define NO_REMAP
 #define TEXT_START 0
 #endif /* USG */
 #endif /* not XENIX */

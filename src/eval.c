@@ -234,13 +234,13 @@ call_debugger (arg)
   int debug_while_redisplaying;
   int count = SPECPDL_INDEX ();
   Lisp_Object val;
-  
+
   if (lisp_eval_depth + 20 > max_lisp_eval_depth)
     max_lisp_eval_depth = lisp_eval_depth + 20;
-  
+
   if (specpdl_size + 40 > max_specpdl_size)
     max_specpdl_size = specpdl_size + 40;
-  
+
 #ifdef HAVE_X_WINDOWS
   if (display_hourglass_p)
     cancel_hourglass ();
@@ -261,7 +261,7 @@ call_debugger (arg)
 	 redisplay, which necessarily leads to display problems.  */
   specbind (Qinhibit_eval_during_redisplay, Qt);
 #endif
-  
+
   val = apply1 (Vdebugger, arg);
 
   /* Interrupting redisplay and resuming it later is not safe under
@@ -535,7 +535,7 @@ usage: (setq SYM VAL SYM VAL ...)  */)
   UNGCPRO;
   return val;
 }
-     
+
 DEFUN ("quote", Fquote, Squote, 1, UNEVALLED, 0,
        doc: /* Return the argument, without evaluating it.  `(quote x)' yields `x'.
 usage: (quote ARG)  */)
@@ -544,7 +544,7 @@ usage: (quote ARG)  */)
 {
   return Fcar (args);
 }
-     
+
 DEFUN ("function", Ffunction, Sfunction, 1, UNEVALLED, 0,
        doc: /* Like `quote', but preferred for objects which are functions.
 In byte compilation, `function' causes its argument to be compiled.
@@ -614,7 +614,7 @@ interactive_p (exclude_subrs_p)
   fun = Findirect_function (*btp->function);
   if (exclude_subrs_p && SUBRP (fun))
     return 0;
-  
+
   /* btp points to the frame of a Lisp function that called interactive-p.
      Return t if that function was called interactively.  */
   if (btp && btp->next && EQ (*btp->next->function, Qcall_interactively))
@@ -694,7 +694,7 @@ usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
 	  call2 (Vmacro_declaration_function, fn_name, Fcar (tail));
 	  UNGCPRO;
 	}
-      
+
       tail = Fcdr (tail);
     }
 
@@ -703,7 +703,7 @@ usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
   else
     tail = Fcons (lambda_list, Fcons (doc, tail));
   defn = Fcons (Qmacro, Fcons (Qlambda, tail));
-  
+
   if (!NILP (Vpurify_flag))
     defn = Fpurecopy (defn);
   if (CONSP (XSYMBOL (fn_name)->function)
@@ -835,7 +835,7 @@ value of `standard-value' or of `custom-autoload' on its property list).  */)
      Lisp_Object variable;
 {
   Lisp_Object documentation;
-  
+
   if (!SYMBOLP (variable))
       return Qnil;
 
@@ -856,7 +856,7 @@ value of `standard-value' or of `custom-autoload' on its property list).  */)
       || (!NILP (Fget (variable, intern ("custom-autoload")))))
     return Qt;
   return Qnil;
-}  
+}
 
 DEFUN ("let*", FletX, SletX, 1, UNEVALLED, 0,
        doc: /* Bind variables according to VARLIST then eval BODY.
@@ -1168,7 +1168,7 @@ unwind_to_catch (catch, value)
 #endif
   backtrace_list = catch->backlist;
   lisp_eval_depth = catch->lisp_eval_depth;
-  
+
   _longjmp (catch->jmp, 1);
 }
 
@@ -1207,7 +1207,7 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
 
   record_unwind_protect (0, Fcdr (args));
   val = Feval (Fcar (args));
-  return unbind_to (count, val);  
+  return unbind_to (count, val);
 }
 
 /* Chain of condition handlers currently in effect.
@@ -1288,7 +1288,7 @@ usage: (condition-case VAR BODYFORM HANDLERS...)  */)
     }
   c.next = catchlist;
   catchlist = &c;
-  
+
   h.var = var;
   h.handler = handlers;
   h.next = handlerlist;
@@ -1486,7 +1486,7 @@ See also the function `condition-case'.  */)
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
-#endif 
+#endif
 
   /* This hook is used by edebug.  */
   if (! NILP (Vsignal_hook_function)
@@ -1512,13 +1512,13 @@ See also the function `condition-case'.  */)
   for (; handlerlist; handlerlist = handlerlist->next)
     {
       register Lisp_Object clause;
-      
+
       if (lisp_eval_depth + 20 > max_lisp_eval_depth)
 	max_lisp_eval_depth = lisp_eval_depth + 20;
-  
+
       if (specpdl_size + 40 > max_specpdl_size)
 	max_specpdl_size = specpdl_size + 40;
-  
+
       clause = find_handler_clause (handlerlist->handler, conditions,
 				    error_symbol, data, &debugger_value);
 
@@ -1608,7 +1608,7 @@ skip_debugger (conditions, data)
 	      error_message = Ferror_message_string (data);
 	      first_string = 0;
 	    }
-	  
+
 	  if (fast_string_match (XCAR (tail), error_message) >= 0)
 	    return 1;
 	}
@@ -1933,7 +1933,7 @@ do_autoload (fundef, funname)
 
   /* Preserve the match data.  */
   record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
-  
+
   /* Value saved here is to be restored into Vautoload_queue.  */
   record_unwind_protect (un_autoload, Vautoload_queue);
   Vautoload_queue = Qt;
@@ -1981,7 +1981,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 
   if (handling_signal)
     abort ();
-  
+
   if (SYMBOLP (form))
     return Fsymbol_value (form);
   if (!CONSP (form))
@@ -2162,7 +2162,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 
 #ifdef HAVE_CARBON
   mac_check_for_quit_char();
-#endif  
+#endif
   return val;
 }
 
@@ -2185,7 +2185,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
   funcall_args = 0;
   spread_arg = args [nargs - 1];
   CHECK_LIST (spread_arg);
-  
+
   numargs = XINT (Flength (spread_arg));
 
   if (numargs == 0)
@@ -2280,7 +2280,7 @@ usage: (run-hooks &rest HOOKS)  */)
 
   return Qnil;
 }
-      
+
 DEFUN ("run-hook-with-args", Frun_hook_with_args,
        Srun_hook_with_args, 1, MANY, 0,
        doc: /* Run HOOK with the specified arguments ARGS.
@@ -2523,7 +2523,7 @@ call1 (fn, arg1)
 {
   struct gcpro gcpro1;
 #ifdef NO_ARG_ARRAY
-  Lisp_Object args[2];  
+  Lisp_Object args[2];
 
   args[0] = fn;
   args[1] = arg1;
@@ -2779,7 +2779,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	default:
 
 	  /* If a subr takes more than 8 arguments without using MANY
-	     or UNEVALLED, we need to extend this function to support it. 
+	     or UNEVALLED, we need to extend this function to support it.
 	     Until this is done, there is no way to call the function.  */
 	  abort ();
 	}
@@ -2887,11 +2887,11 @@ funcall_lambda (fun, nargs, arg_vector)
   for (; CONSP (syms_left); syms_left = XCDR (syms_left))
     {
       QUIT;
-      
+
       next = XCAR (syms_left);
       while (!SYMBOLP (next))
 	next = Fsignal (Qinvalid_function, Fcons (fun, Qnil));
-      
+
       if (EQ (next, Qand_rest))
 	rest = 1;
       else if (EQ (next, Qand_optional))
@@ -2928,7 +2928,7 @@ funcall_lambda (fun, nargs, arg_vector)
 			AREF (fun, COMPILED_CONSTANTS),
 			AREF (fun, COMPILED_STACK_DEPTH));
     }
-  
+
   return unbind_to (count, val);
 }
 
@@ -3006,7 +3006,7 @@ specbind (symbol, value)
   else
     {
       Lisp_Object valcontents;
-      
+
       ovalue = find_symbol_value (symbol);
       specpdl_ptr->func = 0;
       specpdl_ptr->old_value = ovalue;
@@ -3020,7 +3020,7 @@ specbind (symbol, value)
 	  Lisp_Object where, current_buffer;
 
 	  current_buffer = Fcurrent_buffer ();
-	  
+
 	  /* For a local variable, record both the symbol and which
 	     buffer's or frame's value we are saving.  */
 	  if (!NILP (Flocal_variable_p (symbol, Qnil)))
@@ -3112,7 +3112,7 @@ unbind_to (count, value)
 	    Fset_default (symbol, specpdl_ptr->old_value);
 	  else if (BUFFERP (where))
 	    set_internal (symbol, specpdl_ptr->old_value, XBUFFER (where), 1);
-	  else 
+	  else
 	    set_internal (symbol, specpdl_ptr->old_value, NULL, 1);
 	}
       else
@@ -3126,7 +3126,7 @@ unbind_to (count, value)
 	    set_internal (specpdl_ptr->symbol, specpdl_ptr->old_value, 0, 1);
 	}
     }
-  
+
   if (NILP (Vquit_flag) && quitf)
     Vquit_flag = Qt;
 
@@ -3300,7 +3300,7 @@ before making `inhibit-quit' nil.  */);
 
   Qdeclare = intern ("declare");
   staticpro (&Qdeclare);
-  
+
   /* Note that the process handling also uses Qexit, but we don't want
      to staticpro it twice, so we just do it here.  */
   Qexit = intern ("exit");

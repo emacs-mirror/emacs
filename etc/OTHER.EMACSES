@@ -496,7 +496,7 @@ Other rectangle commands include
   extract-rectangle and delete-extract-rectangle
     these functions return the text of a rectangle
     as a list of strings.  They are for use in writing
-    other functions that operate on rectangles.   
+    other functions that operate on rectangles.
 
 *** Keyboard Macros
 
@@ -903,7 +903,7 @@ GNU Emacs Lisp does not have a distinction between Lisp functions
 and Emacs functions, or between Lisp variables and Emacs variables.
 The Lisp and the editor are integrated.  A Lisp function defined
 with defun is callable as an editor command if you put an
-interactive calling spec in it; for example, 
+interactive calling spec in it; for example,
   (defun forward-character (n)
     (interactive "p")
     (goto-char (+ (point) n)))

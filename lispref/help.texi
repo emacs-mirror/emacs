@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/help
 @node Documentation, Files, Modes, Top
@@ -164,7 +164,7 @@ All symbols that have PATTERN in their name are described
 in the `*Help*' buffer."
   (interactive "sDescribe symbols matching: ")
   (let ((describe-func
-         (function 
+         (function
           (lambda (s)
 @end group
 @group
@@ -172,30 +172,30 @@ in the `*Help*' buffer."
             (if (fboundp s)             ; @r{It is a function.}
                 (princ
                  (format "%s\t%s\n%s\n\n" s
-                   (if (commandp s) 
+                   (if (commandp s)
                        (let ((keys (where-is-internal s)))
                          (if keys
                              (concat
                               "Keys: "
-                              (mapconcat 'key-description 
+                              (mapconcat 'key-description
                                          keys " "))
                            "Keys: none"))
                      "Function")
 @end group
 @group
-                   (or (documentation s) 
+                   (or (documentation s)
                        "not documented"))))
-            
+
             (if (boundp s)              ; @r{It is a variable.}
 @end group
 @group
                 (princ
                  (format "%s\t%s\n%s\n\n" s
-                   (if (user-variable-p s) 
+                   (if (user-variable-p s)
                        "Option " "Variable")
 @end group
 @group
-                   (or (documentation-property 
+                   (or (documentation-property
                          s 'variable-documentation)
                        "not documented")))))))
         sym-list)
@@ -203,7 +203,7 @@ in the `*Help*' buffer."
 
 @group
     ;; @r{Build a list of symbols that match pattern.}
-    (mapatoms (function 
+    (mapatoms (function
                (lambda (sym)
                  (if (string-match pattern (symbol-name sym))
                      (setq sym-list (cons sym sym-list))))))
@@ -225,7 +225,7 @@ but provides more information.
 (describe-symbols "goal")
 
 ---------- Buffer: *Help* ----------
-goal-column     Option 
+goal-column     Option
 *Semipermanent goal column for vertical motion, as set by @dots{}
 @end group
 @c Do not blithely break or fill these lines.
@@ -306,11 +306,11 @@ can also call that function yourself.
 stands for a key sequence that will invoke @var{command}, or @samp{M-x
 @var{command}} if @var{command} has no key bindings.
 
-@item \@{@var{mapvar}@} 
+@item \@{@var{mapvar}@}
 stands for a summary of the keymap which is the value of the variable
 @var{mapvar}.  The summary is made using @code{describe-bindings}.
 
-@item \<@var{mapvar}> 
+@item \<@var{mapvar}>
 stands for no text itself.  It is used only for a side effect: it
 specifies @var{mapvar}'s value as the keymap for any following
 @samp{\[@var{command}]} sequences in this documentation string.
@@ -335,13 +335,13 @@ user's own customized key bindings.
 
 @smallexample
 @group
-(substitute-command-keys 
+(substitute-command-keys
    "To abort recursive edit, type: \\[abort-recursive-edit]")
 @result{} "To abort recursive edit, type: C-]"
 @end group
 
 @group
-(substitute-command-keys 
+(substitute-command-keys
    "The keys that are defined for the minibuffer here are:
   \\@{minibuffer-local-must-match-map@}")
 @result{} "The keys that are defined for the minibuffer here are:
@@ -605,7 +605,7 @@ Emacs versions, @code{exec-directory} was used for this.
 
 @c Emacs 19 feature
 @defmac make-help-screen fname help-line help-text help-map
-This macro defines a help command named @var{fname} that acts like a 
+This macro defines a help command named @var{fname} that acts like a
 prefix key that shows a list of the subcommands it offers.
 
 When invoked, @var{fname} displays @var{help-text} in a window, then

@@ -80,14 +80,14 @@ foreach $config (@configs)
     unlink "config.cache";
 
     $rc = system ("$root/configure $configure_options >>$log 2>&1");
-    if ($rc != 0) 
+    if ($rc != 0)
       {
 	print "configure failed\n";
 	exit 1;
       }
 
     $rc = system ("make-emacs --all $make_options >>$log 2>&1");
-    if ($rc != 0) 
+    if ($rc != 0)
       {
 	print "Make failed\n";
 	exit 1;

@@ -22,7 +22,7 @@ Boston, MA 02111-1307, USA.  */
 
 
 /* No code in Emacs #includes config.h twice, but some bits of code
-   intended to work with other packages as well (like gmalloc.c) 
+   intended to work with other packages as well (like gmalloc.c)
    think they can include it as many times as they like.  */
 #ifndef EMACS_CONFIG_H
 #define EMACS_CONFIG_H
@@ -999,7 +999,7 @@ typedef unsigned size_t;
 #ifdef __GNUC__
 #  ifndef GC_SETJMP_WORKS
   /* GC_SETJMP_WORKS is nearly always appropriate for GCC --
-     see NON_SAVING_SETJMP in the target descriptions.  */   
+     see NON_SAVING_SETJMP in the target descriptions.  */
   /* Exceptions (see NON_SAVING_SETJMP in target description) are ns32k,
      SCO5 non-ELF (but Emacs specifies ELF) and SVR3 on x86.
      Fixme: Deal with ns32k, SVR3.  */
@@ -1022,7 +1022,7 @@ typedef unsigned size_t;
 
 #endif /* EMACS_CONFIG_H */
 
-/* 
+/*
 Local Variables:
 mode: c
 End:

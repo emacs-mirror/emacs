@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997, 1998, 1999, 2000, 2002 Free Software Foundation, Inc. 
+@c Copyright (C) 1997, 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/customize
 @node Customization, Loading, Macros, Top
@@ -13,8 +13,8 @@ definitions---as well as face definitions (@pxref{Defining Faces}).
 
 @menu
 * Common Keywords::
-* Group Definitions::            
-* Variable Definitions::         
+* Group Definitions::
+* Variable Definitions::
 * Customization Types::
 @end menu
 
@@ -502,7 +502,7 @@ example,
 @end smallexample
 
 @noindent
-instead of 
+instead of
 
 @smallexample
 (defcustom cons-alist '(("foo" . 1) ("bar" . 2) ("baz" . 3))
@@ -527,14 +527,14 @@ Similarily, you can have alists with more values associated with each
 key, using variations of this trick:
 
 @smallexample
-(defcustom person-data '(("brian"  50 t) 
+(defcustom person-data '(("brian"  50 t)
                          ("dorith" 55 nil)
                          ("ken"    52 t))
   "Alist of basic info about people.
 Each element has the form (NAME AGE MALE-FLAG)."
   :type '(alist :value-type (group age boolean)))
 
-(defcustom pets '(("brian") 
+(defcustom pets '(("brian")
                   ("dorith" "dog" "guppy")
                   ("ken" "cat"))
   "Alist of people's pets.
@@ -930,7 +930,7 @@ Substitute the tag here.  You specify the tag with the @code{:tag}
 keyword.
 
 @item %%
-Display a literal @samp{%}. 
+Display a literal @samp{%}.
 @end table
 
 @item :action @var{action}
@@ -1033,7 +1033,7 @@ implemented.
 @item
 Widgets with tabbing order @code{-1} are ignored.
 
-@item 
+@item
 (Unimplemented) When on a widget with tabbing order @var{n}, go to the
 next widget in the buffer with tabbing order @var{n+1} or @code{nil},
 whichever comes first.

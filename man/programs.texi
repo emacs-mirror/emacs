@@ -1400,7 +1400,7 @@ display, so you can use it even on read-only buffers.  You can use the
 command @kbd{M-x glasses-mode} to enable or disable the mode in the
 current buffer; you can also add @code{glasses-mode} to the mode hook
 of the programming language major modes in which you normally want
-to use Glasses mode.        
+to use Glasses mode.
 
 @node Misc for Programs
 @section Other Features Useful for Editing Programs

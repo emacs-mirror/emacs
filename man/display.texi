@@ -529,7 +529,7 @@ back on screen.  By default, @code{scroll-conservatively} is 0.
 
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively
-@vindex scroll-down-aggressively 
+@vindex scroll-down-aggressively
   When the window does scroll by a longer distance, you can control
 how aggressively it scrolls, by setting the variables
 @code{scroll-up-aggressively} and @code{scroll-down-aggressively}.

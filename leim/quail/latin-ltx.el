@@ -62,7 +62,7 @@ system, including many technical ones.  Examples:
  ("$^1$" ?,A9(B)
  ("$^o$" ?,A:(B)
  ("?`" ?,A?(B)
- 
+
  ("\\`{A}" ?,A@(B)  ("\\`A" ?,A@(B)
  ("\\'{A}" ?,AA(B)  ("\\'A" ?,AA(B)
  ("\\^{A}" ?,AB(B)  ("\\^A" ?,AB(B)

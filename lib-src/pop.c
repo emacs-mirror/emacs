@@ -261,7 +261,7 @@ pop_open (host, username, password, flags)
 #else
 #define DONT_NEED_PASSWORD 0
 #endif
- 
+
   if ((! password) && (! DONT_NEED_PASSWORD))
     {
       if (! (flags & POP_NO_GETPASS))
@@ -560,7 +560,7 @@ pop_list (server, message, IDs, sizes)
  * 		of lines with '>'.
  *	msg_buf	Output parameter to which a buffer containing the
  * 		message is assigned.
- * 
+ *
  * Return value: The number of bytes in msg_buf, which may contain
  * 	embedded nulls, not including its final null, or -1 on error
  * 	with pop_error set.
@@ -643,7 +643,7 @@ pop_retrieve (server, message, markfrom, msg_buf)
 
   free (ptr);
   return (-1);
-}     
+}
 
 int
 pop_retrieve_first (server, message, response)

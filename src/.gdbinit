@@ -334,7 +334,7 @@ end
 
 define xbacktrace
   set $bt = backtrace_list
-  while $bt 
+  while $bt
     set $type = (enum Lisp_Type) ((*$bt->function >> gdb_valbits) & 0x7)
     if $type == Lisp_Symbol
       xprintsym *$bt->function
@@ -353,7 +353,7 @@ define xbacktrace
 end
 document xbacktrace
   Print a backtrace of Lisp function calls from backtrace_list.
-  Set a breakpoint at Fsignal and call this to see from where 
+  Set a breakpoint at Fsignal and call this to see from where
   an error was signaled.
 end
 

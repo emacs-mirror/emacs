@@ -112,7 +112,7 @@ static struct sensemode {
 
 #ifdef NEED_BSDTTY
 #include <sys/bsdtty.h>
-#endif 
+#endif
 
 #if defined (HPUX) && defined (HAVE_PTYS)
 #include <sys/ptyio.h>

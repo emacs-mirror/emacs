@@ -72,7 +72,7 @@ CHINESE_NON_TIT=$(NON_TIT_GB) $(NON_TIT_BIG5)
 
 CHINESE_GB=$(TIT_GB) $(NON_TIT_GB)
 
-CHINESE_BIG5=$(TIT_BIG5) $(NON_TIT_BIG5) 
+CHINESE_BIG5=$(TIT_BIG5) $(NON_TIT_BIG5)
 
 JAPANESE=$(srcdir)/quail/japanese.elc $(srcdir)/ja-dic/ja-dic.elc
 

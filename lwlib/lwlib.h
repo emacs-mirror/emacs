@@ -5,12 +5,12 @@
 
 /*
 ** Widget values depend on the Widget type:
-** 
+**
 ** widget:   (name value key enabled data contents/selected)
 **
 ** label:    ("name" "string" NULL NULL NULL NULL)
 ** button:   ("name" "string" "key" T/F data <default-button-p>)
-** button w/menu: 
+** button w/menu:
 **           ("name" "string" "key" T/F data (label|button|button w/menu...))
 ** menubar:  ("name" NULL NULL T/F data (button w/menu))
 ** selectable thing:
@@ -67,7 +67,7 @@ typedef struct _widget_value
   char*		name;
   /* value (meaning depend on widget type) */
   char*		value;
-  /* keyboard equivalent. no implications for XtTranslations */ 
+  /* keyboard equivalent. no implications for XtTranslations */
   char*		key;
   /* Help string or nil if none.
      GC finds this string through the frame's menu_bar_vector

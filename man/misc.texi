@@ -47,7 +47,7 @@ To start Gnus, type @kbd{M-x gnus @key{RET}}.
 As opposed to most normal Emacs packages, Gnus uses a number of
 different buffers to display information and to receive commands.  The
 three buffers users spend most of their time in are the @dfn{group
-buffer}, the @dfn{summary buffer} and the @dfn{article buffer}.  
+buffer}, the @dfn{summary buffer} and the @dfn{article buffer}.
 
 The @dfn{group buffer} contains a list of groups.  This is the first
 buffer Gnus displays when it starts up.  It normally displays only the
@@ -161,7 +161,7 @@ In the group buffer, select the group on the line under the cursor
 and display the first unread article in that group.
 
 @need 1000
-In the summary buffer, 
+In the summary buffer,
 
 @itemize @bullet
 @item
@@ -291,7 +291,7 @@ Save articles. @xref{Saving Articles, , , gnus, The Gnus Manual}.
 @item
 Have Gnus score articles according to various criteria, like author
 name, subject, or string in the body of the articles.@*
-@xref{Scoring, , , gnus, The Gnus Manual}. 
+@xref{Scoring, , , gnus, The Gnus Manual}.
 
 @item
 Send an article to a newsgroup.@*

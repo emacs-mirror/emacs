@@ -4,7 +4,7 @@
 			      Version 20.7
 
 			     June 13, 2000
-		
+
   This directory contains source and precompiled distributions for GNU
   Emacs on Windows NT and Windows 95/98/2000.  This port is a part of
   the standard GNU Emacs distribution from the Free Software Foundation;
@@ -116,7 +116,7 @@
 * Unpacking distributions
 
   Programs for handling the distribution file formats can be found in
-  the utilities directory: 
+  the utilities directory:
 
     ftp://ftp.gnu.org/gnu/windows/emacs/utilities
 

@@ -67,7 +67,7 @@
 Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software
 Foundation, Inc.
 
-@quotation     
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -1202,7 +1202,7 @@ Example:
 
 @defun tramp-set-completion-function method function-list
 This function sets @var{function-list} as list of completion functions
-for @var{method}. 
+for @var{method}.
 
 Example:
 @example
@@ -1620,7 +1620,7 @@ If you, for example, type @kbd{C-x C-f @value{tramp-prefix}t
 @value{tramp-prefix-single-hop}telnet@value{tramp-postfix-single-hop}				   @value{tramp-prefix-single-hop}toto@value{tramp-postfix}
 @end ifset
 @end example
-     
+
 @samp{@value{tramp-prefix-single-hop}telnet@value{tramp-postfix-single-hop}}
 is a possible completion for the respective method,
 @ifset emacs
@@ -1898,7 +1898,7 @@ operations on files accessed via @tramp{}.
 
 In the case of a remote file, the @code{shell-command} interface is
 used, with some wrapper code, to provide the same functionality on the
-remote machine as would be seen on the local machine. 
+remote machine as would be seen on the local machine.
 
 
 @node Changed workfiles

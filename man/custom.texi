@@ -27,17 +27,17 @@ customizations for future sessions, this actually works by editing
 			  you can control their functioning.
 * Keyboard Macros::	A keyboard macro records a sequence of
 			  keystrokes to be replayed with a single
-			  command. 
+			  command.
 * Key Bindings::	The keymaps say what command each key runs.
 			  By changing them, you can "redefine keys".
 * Keyboard Translations::
                         If your keyboard passes an undesired code
 			   for a key, you can tell Emacs to
-			   substitute another code. 
+			   substitute another code.
 * Syntax::		The syntax table controls how words and
 			   expressions are parsed.
 * Init File::		How to write common customizations in the
-			  @file{.emacs} file. 
+			  @file{.emacs} file.
 @end menu
 
 @node Minor Modes
@@ -328,10 +328,10 @@ Confirm Kill Emacs: [Hide] [Value Menu] Don't confirm
    [State]: this option is unchanged from its standard setting.
 How to ask for confirmation when leaving Emacs. [More]
 
-Editing group: [Go to Group] 
+Editing group: [Go to Group]
 Basic text editing facilities.
 
-External group: [Go to Group] 
+External group: [Go to Group]
 Interfacing to external utilities.
 
 @var{more second-level groups}
@@ -693,7 +693,7 @@ that match @var{regexp}.
 @item M-x customize-changed-options @key{RET} @var{version} @key{RET}
 Set up a customization buffer with all the options, faces and groups
 whose meaning has changed since Emacs version @var{version}.
-@item M-x customize-saved 
+@item M-x customize-saved
 Set up a customization buffer containing all options and faces that you
 have saved with customization buffers.
 @item M-x customize-customized
@@ -1575,7 +1575,7 @@ press the key, a message like this appears so that you can confirm that
 you are binding the key you want:
 
 @example
-Set key C-z to command: 
+Set key C-z to command:
 @end example
 
   You can redefine function keys and mouse events in the same way; just

@@ -69,7 +69,7 @@ typedef struct _widget_value
   char*		name;
   /* value (meaning depend on widget type) */
   char*		value;
-  /* keyboard equivalent. no implications for XtTranslations */ 
+  /* keyboard equivalent. no implications for XtTranslations */
   char*		key;
   /* Help string or nil if none.
      GC finds this string through the frame's menu_bar_vector
@@ -500,7 +500,7 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
 
 /* This is a subroutine of single_keymap_panes that handles one
    keymap entry.
-   KEY is a key in a keymap and ITEM is its binding. 
+   KEY is a key in a keymap and ITEM is its binding.
    PENDING_MAPS_PTR points to a list of keymaps waiting to be made into
    separate panes.
    If NOTREAL is nonzero, only check for equivalent key bindings, don't
@@ -516,7 +516,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
   Lisp_Object map, item_string, enabled;
   struct gcpro gcpro1, gcpro2;
   int res;
-  
+
   /* Parse the menu item and leave the result in item_properties.  */
   GCPRO2 (key, item);
   res = parse_menu_item (item, notreal, 0);
@@ -525,7 +525,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
     return;			/* Not a menu item.  */
 
   map = AREF (item_properties, ITEM_PROPERTY_MAP);
-  
+
   if (notreal)
     {
       /* We don't want to make a menu, just traverse the keymaps to
@@ -536,7 +536,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
     }
 
   enabled = AREF (item_properties, ITEM_PROPERTY_ENABLE);
-  item_string = AREF (item_properties, ITEM_PROPERTY_NAME); 
+  item_string = AREF (item_properties, ITEM_PROPERTY_NAME);
 
   if (!NILP (map) && SREF (item_string, 0) == '@')
     {
@@ -811,7 +811,7 @@ cached information about equivalent key sequences.  */)
 
       keymaps = 0;
     }
-  
+
   if (NILP (position))
     {
       discard_menu_items ();
@@ -828,8 +828,8 @@ cached information about equivalent key sequences.  */)
       discard_menu_items ();
       UNGCPRO;
       return Qnil;
-    }    
-  
+    }
+
   /* Display them in a menu.  */
   BLOCK_INPUT;
 
@@ -974,7 +974,7 @@ on the left of the dialog box and all following items on the right.
    But first we recompute the menu bar contents (the whole tree).
 
    This way we can safely execute Lisp code.  */
-   
+
 void
 x_activate_menubar (f)
      FRAME_PTR f;
@@ -1105,7 +1105,7 @@ free_menubar_widget_value_tree (wv)
      widget_value *wv;
 {
   if (! wv) return;
-  
+
   wv->name = wv->value = wv->key = (char *) 0xDEADBEEF;
 
   if (wv->contents && (wv->contents != (widget_value*)1))
@@ -1171,7 +1171,7 @@ parse_single_submenu (item_key, item_name, maps)
 			       item_key, 0, 10);
 	}
     }
-  
+
   return top_level_items;
 }
 
@@ -1200,7 +1200,7 @@ digest_single_submenu (start, end, top_level_items)
   first_wv = wv;
   save_wv = 0;
   prev_wv = 0;
- 
+
   /* Loop over all panes and items made by the preceding call
      to parse_single_submenu and construct a tree of widget_value objects.
      Ignore the panes and items used by previous calls to
@@ -1304,7 +1304,7 @@ digest_single_submenu (start, end, top_level_items)
 #endif /* not HAVE_MULTILINGUAL_MENU */
 
 	  wv = xmalloc_widget_value ();
-	  if (prev_wv) 
+	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
 	    save_wv->contents = wv;
@@ -1477,7 +1477,7 @@ set_frame_menubar (f, first_time, deep_p)
 	  menu_items_n_panes = submenu_n_panes[i];
 	  wv = digest_single_submenu (submenu_start[i], submenu_end[i],
 				      submenu_top_level_items[i]);
-	  if (prev_wv) 
+	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
 	    first_wv->contents = wv;
@@ -1559,7 +1559,7 @@ set_frame_menubar (f, first_time, deep_p)
 	     This value just has to be different from small integers.  */
 	  wv->call_data = (void *) (EMACS_INT) (-1);
 
-	  if (prev_wv) 
+	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
 	    first_wv->contents = wv;
@@ -1595,7 +1595,7 @@ set_frame_menubar (f, first_time, deep_p)
 
     f->output_data.w32->menubar_widget = menubar_widget;
     SetMenu (FRAME_W32_WINDOW (f), f->output_data.w32->menubar_widget);
-    /* Causes flicker when menu bar is updated 
+    /* Causes flicker when menu bar is updated
     DrawMenuBar (FRAME_W32_WINDOW (f)); */
 
     /* Force the window size to be recomputed so that the frame's text
@@ -1697,7 +1697,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
   wv->help = Qnil;
   first_wv = wv;
   first_pane = 1;
- 
+
   /* Loop over all panes and items, filling in the tree.  */
   i = 0;
   while (i < menu_items_used)
@@ -1800,9 +1800,9 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 #endif /* not HAVE_MULTILINGUAL_MENU */
 
 	  wv = xmalloc_widget_value ();
-	  if (prev_wv) 
+	  if (prev_wv)
 	    prev_wv->next = wv;
-	  else 
+	  else
 	    save_wv->contents = wv;
 	  wv->name = (char *) SDATA (item_name);
 	  if (!NILP (descrip))
@@ -1872,7 +1872,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
   menu_item_selection = 0;
 
   /* Display the menu.  */
-  menu_item_selection = SendMessage (FRAME_W32_WINDOW (f), 
+  menu_item_selection = SendMessage (FRAME_W32_WINDOW (f),
 				     WM_EMACS_TRACKPOPUPMENU,
 				     (WPARAM)menu, (LPARAM)&pos);
 
@@ -1981,7 +1981,7 @@ w32_dialog_show (f, keymaps, title, error)
     pane_name = AREF (menu_items, MENU_ITEMS_PANE_NAME);
     prefix = AREF (menu_items, MENU_ITEMS_PANE_PREFIX);
     pane_string = (NILP (pane_name)
-		   ? "" : (char *) SDATA (pane_name));  
+		   ? "" : (char *) SDATA (pane_name));
     prev_wv = xmalloc_widget_value ();
     prev_wv->value = pane_string;
     if (keymaps && !NILP (prefix))
@@ -1990,12 +1990,12 @@ w32_dialog_show (f, keymaps, title, error)
     prev_wv->name = "message";
     prev_wv->help = Qnil;
     first_wv = prev_wv;
- 
+
     /* Loop over all panes and items, filling in the tree.  */
     i = MENU_ITEMS_PANE_LENGTH;
     while (i < menu_items_used)
       {
-	
+
 	/* Create a new item within current pane.  */
 	Lisp_Object item_name, enable, descrip, help;
 
@@ -2003,7 +2003,7 @@ w32_dialog_show (f, keymaps, title, error)
 	enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
 	descrip = AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY);
         help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
-	
+
 	if (NILP (item_name))
 	  {
 	    free_menubar_widget_value_tree (first_wv);
@@ -2087,7 +2087,7 @@ w32_dialog_show (f, keymaps, title, error)
   /* Process events that apply to the menu.  */
   popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), dialog_id);
 
-  lw_destroy_all_widgets (dialog_id); 
+  lw_destroy_all_widgets (dialog_id);
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
@@ -2164,7 +2164,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       fuFlags = MF_SEPARATOR;
       out_string = NULL;
     }
-  else 
+  else
     {
       if (wv->enabled)
 	fuFlags = MF_STRING;

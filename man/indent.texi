@@ -151,7 +151,7 @@ indentation for part of your text.
 @node Tab Stops, Just Spaces, Indentation Commands, Indentation
 @section Tab Stops
 
-@cindex tab stops 
+@cindex tab stops
 @cindex using tab stops in making tables
 @cindex tables, indentation for
 @kindex M-i

@@ -215,7 +215,7 @@ static Lisp_Object load_descriptor_unwind P_ ((Lisp_Object));
    The READCHAR and UNREAD macros are meant for reading/unreading a
    byte code; they do not handle multibyte characters.  The caller
    should manage them if necessary.
-   
+
    [ Actually that seems to be a lie; READCHAR will definitely read
      multibyte characters from buffer sources, at least.  Is the
      comment just out of date?
@@ -233,7 +233,7 @@ readchar (readcharfun)
   register int c;
 
   readchar_count++;
-  
+
   if (BUFFERP (readcharfun))
     {
       register struct buffer *inbuffer = XBUFFER (readcharfun);
@@ -411,7 +411,7 @@ unreadchar (readcharfun, c)
 static Lisp_Object read_internal_start P_ ((Lisp_Object, Lisp_Object,
 					    Lisp_Object));
 static Lisp_Object read0 P_ ((Lisp_Object));
-static Lisp_Object read1 P_ ((Lisp_Object, int *, int)); 
+static Lisp_Object read1 P_ ((Lisp_Object, int *, int));
 
 static Lisp_Object read_list P_ ((int, Lisp_Object));
 static Lisp_Object read_vector P_ ((Lisp_Object, int));
@@ -457,7 +457,7 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
-  
+
   delayed_switch_frame = Qnil;
 
   /* Read until we get an acceptable event.  */
@@ -498,7 +498,7 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
 		XSETFASTINT (val, XINT (tem1) | XINT (Fcar (Fcdr (tem))));
 	    }
 	}
-	  
+
       /* If we don't have a character now, deal with it appropriately.  */
       if (!INTEGERP (val))
 	{
@@ -709,7 +709,7 @@ Return t if file exists.  */)
     }
   else
     file = Fsubstitute_in_file_name (file);
-    
+
 
   /* Avoid weird lossage with null string as arg,
      since it would try to load a directory as a Lisp file */
@@ -1550,7 +1550,7 @@ read_internal_start (stream, start, end)
       read_from_string_index_byte = string_char_to_byte (stream, startval);
       read_from_string_limit = endval;
     }
-      
+
   retval = read0 (stream);
   if (EQ (Vread_with_symbol_positions, Qt)
       || EQ (Vread_with_symbol_positions, stream))
@@ -1751,7 +1751,7 @@ read_escape (readcharfun, stringp, byterep)
 		break;
 	      }
 	  }
-	
+
 	*byterep = 1;
 	return i;
       }
@@ -1825,11 +1825,11 @@ read_integer (readcharfun, radix)
 	}
       else if (c == '+')
 	c = READCHAR;
-  
+
       while (c >= 0)
 	{
 	  int digit;
-      
+
 	  if (c >= '0' && c <= '9')
 	    digit = c - '0';
 	  else if (c >= 'a' && c <= 'z')
@@ -1894,7 +1894,7 @@ to_multibyte (p, end, nchars)
   if (nbytes != *nchars)
     nbytes = str_as_multibyte (read_buffer, read_buffer_size,
 			       *p - read_buffer, nchars);
-  
+
   *p = read_buffer + nbytes;
 }
 
@@ -1992,7 +1992,7 @@ read1 (readcharfun, pch, first_in_list)
 			== (SCHARS (tmp) - 1) * BITS_PER_CHAR))
 		Fsignal (Qinvalid_read_syntax,
 			 Fcons (make_string ("#&...", 5), Qnil));
-		
+
 	      val = Fmake_bool_vector (length, Qnil);
 	      bcopy (SDATA (tmp), XBOOL_VECTOR (val)->data,
 		     size_in_chars);
@@ -2047,7 +2047,7 @@ read1 (readcharfun, pch, first_in_list)
 	  UNGCPRO;
 	  return tmp;
 	}
-      
+
       /* #@NUMBER is used to skip NUMBER following characters.
 	 That's used in .elc files to skip over doc strings
 	 and function definitions.  */
@@ -2064,7 +2064,7 @@ read1 (readcharfun, pch, first_in_list)
 	    }
 	  if (c >= 0)
 	    UNREAD (c);
-	  
+
 	  if (load_force_doc_strings && EQ (readcharfun, Qget_file_char))
 	    {
 	      /* If we are supposed to force doc strings into core right now,
@@ -2170,7 +2170,7 @@ read1 (readcharfun, pch, first_in_list)
 
 	      /* ...and #n# will use the real value from now on.  */
 	      Fsetcdr (cell, tem);
-	      
+
 	      return tem;
 	    }
 	  /* #n# returns a previously read object.  */
@@ -2183,7 +2183,7 @@ read1 (readcharfun, pch, first_in_list)
 	    }
 	  else if (c == 'r' ||  c == 'R')
 	    return read_integer (readcharfun, n);
-	  
+
 	  /* Fall through to error message.  */
 	}
       else if (c == 'x' || c == 'X')
@@ -2442,7 +2442,7 @@ read1 (readcharfun, pch, first_in_list)
 		  p = read_buffer + offset;
 		  end = read_buffer + read_buffer_size;
 		}
-	      
+
 	      if (c == '\\')
 		{
 		  c = READCHAR;
@@ -2536,7 +2536,7 @@ read1 (readcharfun, pch, first_in_list)
 	    : intern (read_buffer);
 	  if (EQ (Vread_with_symbol_positions, Qt)
 	      || EQ (Vread_with_symbol_positions, readcharfun))
-	    Vread_symbol_positions_list = 
+	    Vread_symbol_positions_list =
 	      /* Kind of a hack; this will probably fail if characters
 		 in the symbol name were escaped.  Not really a big
 		 deal, though.  */
@@ -2567,7 +2567,7 @@ substitute_object_in_subtree (object, placeholder)
   /* Make all the substitutions. */
   check_object
     = substitute_object_recurse (object, placeholder, object);
-  
+
   /* Clear seen_list because we're done with it. */
   seen_list = Qnil;
 
@@ -2611,7 +2611,7 @@ substitute_object_recurse (object, placeholder, subtree)
      read_objects.  */
   if (!EQ (Qnil, Frassq (subtree, read_objects)))
     seen_list = Fcons (subtree, seen_list);
-      
+
   /* Recurse according to subtree's type.
      Every branch must return a Lisp_Object.  */
   switch (XTYPE (subtree))
@@ -2624,7 +2624,7 @@ substitute_object_recurse (object, placeholder, subtree)
 	  {
 	    Lisp_Object idx = make_number (i);
 	    SUBSTITUTE (Faref (subtree, idx),
-			Faset (subtree, idx, true_value)); 
+			Faset (subtree, idx, true_value));
 	  }
 	return subtree;
       }
@@ -2645,7 +2645,7 @@ substitute_object_recurse (object, placeholder, subtree)
 
 	INTERVAL    root_interval = STRING_INTERVALS (subtree);
 	Lisp_Object arg           = Fcons (object, placeholder);
-	   
+
 	traverse_intervals_noorder (root_interval,
 				    &substitute_in_interval, arg);
 
@@ -2682,7 +2682,7 @@ isfloat_string (cp)
      register char *cp;
 {
   register int state;
-  
+
   char *start = cp;
 
   state = 0;
@@ -2813,7 +2813,7 @@ read_vector (readcharfun, bytecodeflag)
     }
   return vector;
 }
-  
+
 /* FLAG = 1 means check for ] to terminate rather than ) and .
    FLAG = -1 means check for starting with defun
     and make structure pure.  */
@@ -2832,7 +2832,7 @@ read_list (flag, readcharfun)
   struct gcpro gcpro1, gcpro2;
   /* 0 is the normal case.
      1 means this list is a doc reference; replace it with the number 0.
-     2 means this list is a doc reference; replace it with the doc string.  */ 
+     2 means this list is a doc reference; replace it with the doc string.  */
   int doc_reference = 0;
 
   /* Initialize this to 1 if we are reading a list.  */
@@ -3321,7 +3321,7 @@ init_obarray ()
   /* Intern nil in the obarray */
   XSYMBOL (Qnil)->interned = SYMBOL_INTERNED_IN_INITIAL_OBARRAY;
   XSYMBOL (Qnil)->constant = 1;
-  
+
   /* These locals are to kludge around a pyramid compiler bug. */
   hash = hash_string ("nil", 3);
   /* Separate statement here to avoid VAXC bug. */
@@ -3454,7 +3454,7 @@ defvar_per_buffer (namestring, address, type, doc)
   SET_SYMBOL_VALUE (sym, val);
   PER_BUFFER_SYMBOL (offset) = sym;
   PER_BUFFER_TYPE (offset) = type;
-  
+
   if (PER_BUFFER_IDX (offset) == 0)
     /* Did a DEFVAR_PER_BUFFER without initializing the corresponding
        slot of buffer_local_flags */
@@ -3626,8 +3626,8 @@ init_lread ()
 #endif
 
 #ifndef WINDOWSNT
-  /* When Emacs is invoked over network shares on NT, PATH_LOADSEARCH is 
-     almost never correct, thereby causing a warning to be printed out that 
+  /* When Emacs is invoked over network shares on NT, PATH_LOADSEARCH is
+     almost never correct, thereby causing a warning to be printed out that
      confuses users.  Since PATH_LOADSEARCH is always overridden by the
      EMACSLOADPATH environment variable below, disable the warning on NT.  */
 
@@ -3750,7 +3750,7 @@ symbol from the position where `read' or `read-from-string' started.
 Note that a symbol will appear multiple times in this list, if it was
 read multiple times.  The list is in the same order as the symbols
 were read in. */);
-  Vread_symbol_positions_list = Qnil;  
+  Vread_symbol_positions_list = Qnil;
 
   DEFVAR_LISP ("load-path", &Vload_path,
 	       doc: /* *List of directories to search for files to load.
@@ -3914,7 +3914,7 @@ to load.  See also `load-dangerous-libraries'.  */);
   staticpro (&read_objects);
   read_objects = Qnil;
   staticpro (&seen_list);
-  
+
   Vloads_in_progress = Qnil;
   staticpro (&Vloads_in_progress);
 }

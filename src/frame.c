@@ -92,7 +92,7 @@ set_menu_bar_lines_1 (window, n)
   XSETFASTINT (w->last_modified, 0);
   XSETFASTINT (w->top, XFASTINT (w->top) + n);
   XSETFASTINT (w->height, XFASTINT (w->height) - n);
-  
+
   if (INTEGERP (w->orig_top))
     XSETFASTINT (w->orig_top, XFASTINT (w->orig_top) + n);
   if (INTEGERP (w->orig_height))
@@ -367,7 +367,7 @@ make_frame_without_minibuffer (mini_window, kb, display)
 	    call1 (intern ("make-initial-minibuffer-frame"), display);
           UNGCPRO;
 	}
-   
+
       mini_window = XFRAME (kb->Vdefault_minibuffer_frame)->minibuffer_window;
     }
 
@@ -576,7 +576,7 @@ do_switch_frame (frame, track, for_deletion)
      int track, for_deletion;
 {
   struct frame *sf = SELECTED_FRAME ();
-  
+
   /* If FRAME is a switch-frame event, extract the frame we should
      switch to.  */
   if (CONSP (frame)
@@ -774,7 +774,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
      Lisp_Object frame;
 {
   Lisp_Object window;
-  
+
   if (NILP (frame))
     window = SELECTED_FRAME ()->root_window;
   else
@@ -782,7 +782,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
       CHECK_LIVE_FRAME (frame);
       window = XFRAME (frame)->root_window;
     }
-  
+
   return window;
 }
 
@@ -794,7 +794,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
      Lisp_Object frame;
 {
   Lisp_Object window;
-  
+
   if (NILP (frame))
     window = SELECTED_FRAME ()->selected_window;
   else
@@ -816,7 +816,7 @@ If FRAME is the selected frame, this makes WINDOW the selected window.  */)
 {
   if (NILP (frame))
     frame = selected_frame;
-  
+
   CHECK_LIVE_FRAME (frame);
   CHECK_LIVE_WINDOW (window);
 
@@ -1016,7 +1016,7 @@ Otherwise, include all frames.  */)
 {
   if (NILP (frame))
     frame = selected_frame;
-  
+
   CHECK_LIVE_FRAME (frame);
   return next_frame (frame, miniframe);
 }
@@ -1211,8 +1211,8 @@ The functions are run with one arg, the frame to be deleted.  */)
     x_clear_frame_selections (f);
 #endif
 
-  /* Free glyphs. 
-     This function must be called before the window tree of the 
+  /* Free glyphs.
+     This function must be called before the window tree of the
      frame is deleted because windows contain dynamically allocated
      memory. */
   free_glyphs (f);
@@ -1592,7 +1592,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
 {
   if (NILP (frame))
     frame = selected_frame;
-  
+
   CHECK_LIVE_FRAME (frame);
 
 #if 0 /* This isn't logically necessary, and it can do GC.  */
@@ -1701,7 +1701,7 @@ doesn't support multiple overlapping frames, this function does nothing.  */)
     frame = selected_frame;
 
   CHECK_LIVE_FRAME (frame);
-  
+
   if (frame_raise_lower_hook)
     (*frame_raise_lower_hook) (XFRAME (frame), 0);
 
@@ -1749,7 +1749,7 @@ The redirection lasts until `redirect-frame-focus' is called to change it.  */)
 
   if (frame_rehighlight_hook)
     (*frame_rehighlight_hook) (XFRAME (frame));
-  
+
   return Qnil;
 }
 
@@ -1949,7 +1949,7 @@ store_frame_param (f, prop, val)
 
   /* Update some other special parameters in their special places
      in addition to the alist.  */
-  
+
   if (EQ (prop, Qbuffer_predicate))
     f->buffer_predicate = val;
 
@@ -1999,7 +1999,7 @@ If FRAME is omitted, return information on the currently selected frame.  */)
 
   alist = Fcopy_alist (f->param_alist);
   GCPRO1 (alist);
-  
+
   if (!FRAME_WINDOW_P (f))
     {
       int fg = FRAME_FOREGROUND_PIXEL (f);
@@ -2088,10 +2088,10 @@ If FRAME is nil, describe the currently selected frame.  */)
   else
     CHECK_FRAME (frame);
   CHECK_SYMBOL (parameter);
-  
+
   f = XFRAME (frame);
   value = Qnil;
-  
+
   if (FRAME_LIVE_P (f))
     {
       /* Avoid consing in frequent cases.  */
@@ -2146,12 +2146,12 @@ If FRAME is nil, describe the currently selected frame.  */)
       else
 	value = Fcdr (Fassq (parameter, Fframe_parameters (frame)));
     }
-  
+
   return value;
 }
 
 
-DEFUN ("modify-frame-parameters", Fmodify_frame_parameters, 
+DEFUN ("modify-frame-parameters", Fmodify_frame_parameters,
        Smodify_frame_parameters, 2, 2, 0,
        doc: /* Modify the parameters of frame FRAME according to ALIST.
 If FRAME is nil, it defaults to the selected frame.
@@ -2278,7 +2278,7 @@ For a terminal screen, the value is always 1.  */)
     return make_number (1);
 }
 
-DEFUN ("frame-pixel-height", Fframe_pixel_height, 
+DEFUN ("frame-pixel-height", Fframe_pixel_height,
        Sframe_pixel_height, 0, 1, 0,
        doc: /* Return a FRAME's height in pixels.
 This counts only the height available for text lines,
@@ -2303,7 +2303,7 @@ If FRAME is omitted, the selected frame is used.  */)
     return make_number (FRAME_HEIGHT (f));
 }
 
-DEFUN ("frame-pixel-width", Fframe_pixel_width, 
+DEFUN ("frame-pixel-width", Fframe_pixel_width,
        Sframe_pixel_width, 0, 1, 0,
        doc: /* Return FRAME's width in pixels.
 For a terminal frame, the result really gives the width in characters.
@@ -2411,7 +2411,7 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
   return Qnil;
 }
 
-DEFUN ("set-frame-position", Fset_frame_position, 
+DEFUN ("set-frame-position", Fset_frame_position,
        Sset_frame_position, 3, 3, 0,
        doc: /* Sets position of FRAME in pixels to XOFFSET by YOFFSET.
 This is actually the position of the upper left corner of the frame.
@@ -2525,7 +2525,7 @@ which need to do mouse handling at the Lisp level.  */);
   Vmouse_position_function = Qnil;
 
   DEFVAR_LISP ("mouse-highlight", &Vmouse_highlight,
-	       doc: /* If non-nil, clickable text is highlighted when mouse is over it.  
+	       doc: /* If non-nil, clickable text is highlighted when mouse is over it.
 If the value is an integer, highlighting is only shown after moving the
 mouse, while keyboard input turns off the highlight even when the mouse
 is over the clickable text.  However, the mouse shape still indicates

@@ -918,7 +918,7 @@ the hook @code{outline-mode-hook} (@pxref{Hooks}).
 @menu
 * Format: Outline Format.	   What the text of an outline looks like.
 * Motion: Outline Motion.	   Special commands for moving through
-                                     outlines. 
+                                     outlines.
 * Visibility: Outline Visibility.  Commands to control what is visible.
 * Views: Outline Views.            Outlines and multiple views.
 * Foldout::                        Folding editing.
@@ -1060,7 +1060,7 @@ Make the body of this heading line, and of all its subheadings,
 invisible (@code{hide-leaves}).
 @item C-c C-k
 Make all subheadings of this heading line, at all levels, visible
-(@code{show-branches}). 
+(@code{show-branches}).
 @item C-c C-i
 Make immediate subheadings (one level down) of this heading line
 visible (@code{show-children}).
@@ -1847,7 +1847,7 @@ contains a list of ideas for future enhancements.
 * Color: Format Colors.         Changing the color of text.
 * Indent: Format Indentation.   Changing the left and right margins.
 * Justification: Format Justification.
-                                Centering, setting text flush with the 
+                                Centering, setting text flush with the
                                   left or right margin, etc.
 * Other: Format Properties.     The "special" text properties submenu.
 * Forcing Enriched Mode::       How to force use of Enriched mode.
@@ -2146,7 +2146,7 @@ Prefix}.
 
 @node Format Justification
 @subsection Justification in Formatted Text
-            
+
   When editing formatted text, you can specify various styles of
 justification for a paragraph.  The style you specify automatically
 affects the Emacs fill commands.
@@ -2218,7 +2218,7 @@ region.
   The default justification style is specified by the variable
 @code{default-justification}.  Its value should be one of the symbols
 @code{left}, @code{right}, @code{full}, @code{center}, or @code{none}.
-         
+
 @node Format Properties
 @subsection Setting Other Text Properties
 
@@ -2258,7 +2258,7 @@ When you @emph{insert} a file into a buffer, rather than visiting it.
 Emacs does the necessary conversions on the text which you insert, but
 it does not enable Enriched mode.  If you wish to do that, type @kbd{M-x
 enriched-mode}.
-@end itemize 
+@end itemize
 
   The command @code{format-decode-buffer} translates text in various
 formats into Emacs's internal format.  It asks you to specify the format

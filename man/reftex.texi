@@ -116,7 +116,7 @@ Introduction
 
 * Installation::                     How to install and activate RefTeX.
 * RefTeX in a Nutshell::             A brief summary and quick guide.
- 
+
 Labels and References
 
 * Creating Labels::
@@ -287,7 +287,7 @@ additional labeled environments you have defined yourself (variable
 
 @itemize @bullet
 @item
-@b{Creating Labels}@* 
+@b{Creating Labels}@*
 Type @kbd{C-c (} (@code{reftex-label}) to insert a label at point.
 @b{Ref@TeX{}} will either
 @itemize @minus
@@ -295,7 +295,7 @@ Type @kbd{C-c (} (@code{reftex-label}) to insert a label at point.
 derive a label from context (default for section labels)
 @item
 prompt for a label string (default for figures and tables) or
-@item 
+@item
 insert a simple label made of a prefix and a number (all other
 environments)@refill
 @end itemize
@@ -415,7 +415,7 @@ can do in each of the different special buffers, press @kbd{?}.  Read
 the manual if you get stuck, of if you are curious what else might be
 available.  The first part of the manual explains in
 a tutorial way how to use and customize @b{Ref@TeX{}}.  The second
-part is a command and variable reference.@refill  
+part is a command and variable reference.@refill
 @end enumerate
 
 @node Table of Contents, Labels and References, Introduction, Top
@@ -514,7 +514,7 @@ Kill the @file{*toc*} buffer, return to the position where
 
 @item C-c >
 Switch to the @file{*Index*} buffer of this document.  With prefix
-@samp{2}, restrict the index to the section at point in the @file{*toc*} 
+@samp{2}, restrict the index to the section at point in the @file{*toc*}
 buffer.
 
 @tablesubheading{Controlling what gets displayed}
@@ -550,7 +550,7 @@ Toggle the display of index entries in the @file{*toc*} buffer.  The
 default for this flag can be set with the variable
 @code{reftex-toc-include-index-entries}.  When called with a prefix
 argument, @b{Ref@TeX{}} will prompt for a specific index and include
-only entries in the selected index in the @file{*toc*} buffer.  The mode 
+only entries in the selected index in the @file{*toc*} buffer.  The mode
 line @samp{I<>} indicator shows which index is used.@refill
 
 @item c
@@ -799,7 +799,7 @@ Goto next section heading.
 Goto previous section heading.
 
 @item N z
-Jump to section N, using the prefix arg.  For example @kbd{3 z} jumps to 
+Jump to section N, using the prefix arg.  For example @kbd{3 z} jumps to
 section 3.@refill
 
 @tablesubheading{Displaying Context}
@@ -893,7 +893,7 @@ buffer.@refill
 
 @tablesubheading{Controlling what gets displayed}
 @vindex reftex-label-menu-flags
-The defaults for the following flags can be configured with the variable 
+The defaults for the following flags can be configured with the variable
 @code{reftex-label-menu-flags} (@pxref{Options (Referencing Labels)}).
 
 @item c
@@ -906,7 +906,7 @@ selection buffer.@refill
 
 @item t
 Toggle the display of the table of contents in the selection buffer.
-With prefix @var{arg}, change the maximum level of toc entries displayed 
+With prefix @var{arg}, change the maximum level of toc entries displayed
 to @var{arg}.  Chapters are level 1, section are level 2.@refill
 
 @item #
@@ -1320,7 +1320,7 @@ Again, here the configuration in the customization buffer:
 @example
 [INS] [DEL] Package or Detailed   : [Value Menu] Detailed:
             Environment or \macro : [Value Menu] String: \myfig[]@{@}@{@}@{*@}@{@}
-            Type specification    : [Value Menu] Char  : f 
+            Type specification    : [Value Menu] Char  : f
             Label prefix string   : [Value Menu] Default
             Label reference format: [Value Menu] Default
             Context method        : [Value Menu] Macro arg nr: 3
@@ -1417,7 +1417,7 @@ Here is the setup:@refill
 
 (defun detect-be-ee (bound)
   ;; Search backward for the macros or an empty line
-  (if (re-search-backward 
+  (if (re-search-backward
        "\\(^[ \t]*\n\\|\\\\ee\\>\\)\\|\\(\\\\be\\>\\)" bound t)
       (if (match-beginning 2)
           (match-beginning 2)  ; Return start of environment
@@ -1456,14 +1456,14 @@ for @b{Ref@TeX{}}.
 (defun detect-linguex (bound)
   (let ((cnt 0))
     (catch 'exit
-      (while 
+      (while
           ;; Search backward for all possible delimiters
           (re-search-backward
            (concat "\\(^[ \t]*\n\\)\\|\\(\\\\z\\.\\)\\|"
                    "\\(\\ex[ig]?\\.\\)\\|\\(\\\\a\\.\\)")
            nil t)
         ;; Check which delimiter was matched.
-        (cond 
+        (cond
          ((match-beginning 1)
           ;; empty line terminates all - return nil
           (throw 'exit nil))
@@ -1784,7 +1784,7 @@ SELECT A CITATION FORMAT
 
 Following the most generic of these packages, @code{natbib}, the builtin
 citation packages always accept the @kbd{t} key for a @emph{textual}
-citation (like: @code{Jones et al. (1997) have shown...})  as well as 
+citation (like: @code{Jones et al. (1997) have shown...})  as well as
 the @kbd{p} key for a parenthetical citation (like: @code{As shown
 earlier (Jones et al, 1997)}).@refill
 
@@ -2015,13 +2015,13 @@ repeat @var{word} outside the macro.@refill
 
 Phrases for indexing can be collected while writing the document.  The
 command @kbd{C-c \} (@code{reftex-index-phrase-selection-or-word})
-copies the current selection (if active) or the word near point into the 
+copies the current selection (if active) or the word near point into the
 phrases buffer.  It then selects this buffer, so that the phrase line
 can be edited.  To return to the LaTeX document, press @kbd{C-c C-c}
 (@code{reftex-index-phrases-save-and-return}).
 
 You can also prepare the list of index phrases in a different way and
-copy it into the phrases file.  For example you might want to start from 
+copy it into the phrases file.  For example you might want to start from
 a word list of the document and remove all words which should not be
 indexed.
 
@@ -2030,7 +2030,7 @@ The phrase lines in the phrase buffer must have a specific format.
 format.  A phrase line looks like this:
 
 @example
-[@var{key}] <TABs> @var{phrase} [<TABs> @var{arg}[&&@var{arg}]... [ || @var{arg}]...] 
+[@var{key}] <TABs> @var{phrase} [<TABs> @var{arg}[&&@var{arg}]... [ || @var{arg}]...]
 @end example
 
 @code{<TABs>} stands for white space containing at least one @key{TAB}.
@@ -2124,7 +2124,7 @@ may not last long enough to do everything in one go.@refill
 @b{Ref@TeX{}} will start at the first phrase line and search the phrase
 globally in the whole document.  At each match it will stop, compute the
 replacement string and offer you the following choices@footnote{Windows
-users: Restrict yourself to the described keys during indexing.  Pressing 
+users: Restrict yourself to the described keys during indexing.  Pressing
 @key{Help} at the indexing prompt can apparently hang Emacs.}:@refill
 
 @table @kbd
@@ -2238,7 +2238,7 @@ Prefix argument.
 @tablesubheading{Moving around}
 @item ! A..Z
 Pressing any capital letter will jump to the corresponding section in
-the @file{*Index*} buffer.  The exclamation mark is special and jumps to 
+the @file{*Index*} buffer.  The exclamation mark is special and jumps to
 the first entries alphabetically sorted below @samp{A}.  These are
 usually non-alphanumeric characters.@refill
 @item n
@@ -2248,7 +2248,7 @@ Go to previous entry.@refill
 
 @tablesubheading{Access to document locations}
 @item @key{SPC}
-Show the place in the document where this index entry is defined.@refill 
+Show the place in the document where this index entry is defined.@refill
 
 @item @key{TAB}
 Go to the definition of the current index entry in another
@@ -2299,19 +2299,19 @@ prefix, kill the entire @var{visual} part.@refill
 
 @item (
 Toggle the beginning of page range property @samp{|(} of the
-entry.@refill 
+entry.@refill
 
 @item )
-Toggle the end of page range property @samp{|)} of the entry.@refill 
+Toggle the end of page range property @samp{|)} of the entry.@refill
 
 @item _
 Make the current entry a subentry.  This command will prompt for the
 superordinate entry and insert it.@refill
 
 @item ^
-Remove the highest superordinate entry.  If the current entry is a 
+Remove the highest superordinate entry.  If the current entry is a
 subitem (@samp{aaa!bbb!ccc}), this function moves it up the hierarchy
-(@samp{bbb!ccc}).@refill 
+(@samp{bbb!ccc}).@refill
 
 @tablesubheading{Exiting}
 @item q
@@ -2364,7 +2364,7 @@ buffer.@refill
 
 @item s
 Switch to a different index (for documents with multiple
-indices).@refill 
+indices).@refill
 @end table
 
 
@@ -2427,7 +2427,7 @@ quick identification of these macros when @b{Ref@TeX{}} inserts new
 index entries with @code{reftex-index}.  These codes need to be
 unique. @code{?i}, @code{?I}, and @code{?g} are reserved for the
 @code{\index}, @code{\index*}, and @code{\glossary} macros,
-respectively. 
+respectively.
 
 The following string is empty unless your macro adds a superordinate
 entry to the index key - this is the case for the @code{\astobj} macro.
@@ -2450,14 +2450,14 @@ Repeat:
             Macro with args: \ix@{*@}
             Index Tag      : [Value Menu] String: idx
             Access Key     : x
-            Key Prefix     : 
+            Key Prefix     :
             Exclusion hook : nil
             Repeat Outside : [Toggle]  off (nil)
 [INS] [DEL] List:
             Macro with args: \nindex@{*@}
             Index Tag      : [Value Menu] String: name
             Access Key     : n
-            Key Prefix     : 
+            Key Prefix     :
             Exclusion hook : nil
             Repeat Outside : [Toggle]  off (nil)
 [INS] [DEL] List:
@@ -2558,7 +2558,7 @@ and @code{\glossary} macros, all macros configured in
 While the display of cross referencing information for the above
 mentioned macros is hard--coded, you can configure additional relations
 in the variable @code{reftex-view-crossref-extra}.
-    
+
 @iftex
 @chapter All the Rest
 @end iftex
@@ -2748,7 +2748,7 @@ see @ref{Adding Magic Words}.
 
 @vindex reftex-multiref-punctuation
 @vindex reftex-cite-punctuation
-@item 
+@item
 @b{Ref@TeX{}} inserts ``punctuation'' for multiple references and
 for the author list in citations.  Some of this may be language
 dependent.  See the variables @code{reftex-multiref-punctuation} and
@@ -2802,7 +2802,7 @@ variables and configure @b{Ref@TeX{}} to use them instead:
 Specify the full search path directly in @b{Ref@TeX{}}'s variables.
 
 @lisp
-(setq reftex-texpath-environment-variables 
+(setq reftex-texpath-environment-variables
       '("./inp:/home/cd/tex//:/usr/local/tex//"))
 (setq reftex-bibpath-environment-variables
       '("/home/cd/tex/lit/"))
@@ -2820,7 +2820,7 @@ command depends upon the version of that program.
 (setq reftex-use-external-file-finders t)
 (setq reftex-external-file-finders
       '(("tex" . "kpsewhich -format=.tex %f")
-        ("bib" . "kpsewhich -format=.bib %f")))      
+        ("bib" . "kpsewhich -format=.bib %f")))
 @end lisp
 @end itemize
 
@@ -2835,9 +2835,9 @@ the new extension must also be known to AUCTeX via the variable
 @code{TeX-file-extension}.  For example:
 
 @lisp
-(setq reftex-file-extensions 
+(setq reftex-file-extensions
       '(("nw" "tex" ".tex" ".ltx") ("bib" ".bib")))
-(setq TeX-file-extensions 
+(setq TeX-file-extensions
       '( "nw" "tex" "sty" "cls" "ltx" "texi" "texinfo"))
 @end lisp
 
@@ -3148,7 +3148,7 @@ file @file{natbib.el} for the Natbib citation style does switch
          (reftex-set-cite-format 'natbib))))
 @end lisp
 
-@findex reftex-add-index-macros 
+@findex reftex-add-index-macros
 The hook may contain a call to @code{reftex-add-index-macros} to
 define additional @code{\index}-like macros.  The argument must have
 the same format as @code{reftex-index-macros}.  It may be a symbol, to
@@ -3282,7 +3282,7 @@ literally for speed reasons.  Then both short context and section
 headings may look different from what you usually see on your screen.
 In rare cases @code{reftex-toc} may have problems to jump to an affected
 section heading.  There are three possible ways to deal with
-this:@refill 
+this:@refill
 @itemize @minus
 @item
 @vindex reftex-keep-temporary-buffers
@@ -3332,7 +3332,7 @@ The first line is just a normal configuration for a macro.  For the
 argument (which really is a second argument to the macro @code{\begin})
 as a label of type @code{?p}.  Argument count for this macro starts only
 after the @samp{@{step+@}}, also when specifying how to get
-context.@refill 
+context.@refill
 
 @item
 @b{Idle timers in XEmacs}@*
@@ -3455,7 +3455,7 @@ When called with one or two @kbd{C-u} prefixes, first rescans the
 document.  When called with a numeric prefix, make that many citations.
 When called with point inside the braces of a @code{\cite} command, it
 will add another key, ignoring the value of
-@code{reftex-cite-format}.@refill @* 
+@code{reftex-cite-format}.@refill @*
 The regular expression uses an expanded syntax: @samp{&&} is interpreted
 as @code{and}.  Thus, @samp{aaaa&&bbb} matches entries which contain
 both @samp{aaaa} and @samp{bbb}.  While entering the regexp, completion
@@ -3668,7 +3668,7 @@ Non-@code{nil} means, initially turn automatic recentering of toc on.
 When active, the @file{*TOC*} buffer will always show the section you
 are currently working in.  Recentering happens whenever Emacs is idle
 for more than `reftex-idle-time' seconds.
-This feature can be turned on and off from the menu 
+This feature can be turned on and off from the menu
 (Ref->Options).
 @end defopt
 
@@ -4154,7 +4154,7 @@ called.@refill
 
 @deffn {Normal Hook} reftex-select-label-mode-hook
 Normal hook which is run when a selection buffer enters
-@code{reftex-select-label-mode}.@refill 
+@code{reftex-select-label-mode}.@refill
 @end deffn
 
 @deffn Keymap reftex-select-label-map
@@ -4287,14 +4287,14 @@ normal names separator, like @samp{, } in Jones, Brown and Miller
 @item
 final names separator, like @samp{ and }  in Jones, Brown and Miller
 @item
-The @samp{et al.} string, like @samp{ @{\it et al.@}} in 
+The @samp{et al.} string, like @samp{ @{\it et al.@}} in
 Jones @{\it et al.@}
 @end enumerate
 @end defopt
 
 @deffn {Normal Hook} reftex-select-bib-mode-hook
 Normal hook which is run when a selection buffer enters
-@code{reftex-select-bib-mode}.@refill 
+@code{reftex-select-bib-mode}.@refill
 @end deffn
 
 @deffn Keymap reftex-select-bib-map
@@ -4318,7 +4318,7 @@ document.@refill
 
 @defopt reftex-index-special-chars
 List of special characters in index entries, given as strings.  These
-correspond to the @code{MakeIndex} keywords 
+correspond to the @code{MakeIndex} keywords
 @code{(@var{level} @var{encap} @var{actual} @var{quote} @var{escape})}.
 @end defopt
 
@@ -4533,7 +4533,7 @@ This is used when `reftex-view-crossref' is called with point in an
 argument of a macro.  Note that crossref viewing for citations,
 references (both ways) and index entries is hard-coded.  This variable
 is only to configure additional structures for which crossreference
-viewing can be useful.  Each entry has the structure 
+viewing can be useful.  Each entry has the structure
 @example
 (@var{macro-re} @var{search-re} @var{highlight}).
 @end example
@@ -4556,7 +4556,7 @@ display.  This feature can be turned on and off from the menu
 @end defopt
 
 @defopt reftex-idle-time
-Time (secs) Emacs has to be idle before automatic crossref display 
+Time (secs) Emacs has to be idle before automatic crossref display
 or toc recentering is done.@refill
 @end defopt
 
@@ -4626,7 +4626,7 @@ be expanded recursively.  See also @code{reftex-use-external-file-finders}.
 
 @defopt reftex-file-extensions
 Association list with file extensions for different file types.
-This is a list of items, each item is like: 
+This is a list of items, each item is like:
 @code{(@var{type} . (@var{def-ext} @var{other-ext} ...))}
 @example
 @var{type}:       @r{File type like @code{"bib"} or @code{"tex"}.}
@@ -5250,7 +5250,7 @@ Fixed bug with empty context strings.
 @item
 Parse files @file{MASTER.rel} made compatible between Emacs and XEmacs.
 @item
-@code{kill-emacs-hook} and @code{kill-buffer-hook} now write the parse 
+@code{kill-emacs-hook} and @code{kill-buffer-hook} now write the parse
 file.
 @item
 The cursor inside a @code{\ref} or @code{\cite} macro can now trigger
@@ -5357,7 +5357,7 @@ labels like @samp{eq:13} sequentially through a document.
 @item
 Multiple selection buffers are now hidden buffers (they start with a
 SPACE).
-@item 
+@item
 Fixed bug with file search when TEXINPUTS environment variable is empty.
 @end itemize
 @noindent @b{Version 3.34}
@@ -5392,9 +5392,9 @@ to be on the macro argument.
 @itemize @bullet
 @item
 New options @code{reftex-texpath-environment-variables},
-@code{reftex-use-external-file-finders}, 
-@code{reftex-external-file-finders}, 
-@code{reftex-search-unrecursed-path-first}. 
+@code{reftex-use-external-file-finders},
+@code{reftex-external-file-finders},
+@code{reftex-search-unrecursed-path-first}.
 @item
 @emph{kpathsearch} support.  See new options and
 @code{reftex-bibpath-environment-variables}.
@@ -5430,7 +5430,7 @@ Reading a parse file now checks consistency.
 @noindent @b{Version 4.00}
 @itemize @bullet
 @item
-RefTeX has been split into several smaller files which are autoloaded on 
+RefTeX has been split into several smaller files which are autoloaded on
 demand.
 @item
 Index support, along with many new options.
@@ -5480,9 +5480,9 @@ Multiple @code{thebibliography} environments recognized.
 @item
 New option @code{reftex-toc-max-level} to limit the depth of the toc.
 New key binding @kbd{t} in the @file{*toc*} buffer to change this
-setting.@refill 
+setting.@refill
 @item
-RefTeX maintains an @file{Index Phrases} file in which phrases can be 
+RefTeX maintains an @file{Index Phrases} file in which phrases can be
 collected.  When the document is ready, RefTeX can search all
 these phrases and assist indexing all matches.@refill
 @item
@@ -5497,7 +5497,7 @@ default stuff which has been moved to a constant.@refill
 @item
 Environments like theorems can be placed into the TOC by putting
 entries for @samp{"begin@{theorem@}"} in
-@code{reftex-setion-levels}.@refill 
+@code{reftex-setion-levels}.@refill
 @end itemize
 @noindent @b{Version 4.10}
 @itemize @bullet
@@ -5531,7 +5531,7 @@ Improved interaction with Emacs LaTeX mode.
 @end ignore
 @noindent @b{Version 4.17}
 @itemize @bullet
-@item 
+@item
 The toc window can be split off horizontally.  See new options
 @code{reftex-toc-split-windows-horizontally},
 @code{reftex-toc-split-windows-horizontally-fraction}.

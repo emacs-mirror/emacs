@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1999 Free Software Foundation, Inc. 
+@c Copyright (C) 1999 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/hash
 @node Hash Tables, Symbols, Sequences Arrays Vectors, Top
@@ -176,7 +176,7 @@ association in @var{table}.
 @end defun
 
 @tindex puthash
-@defun puthash key value table 
+@defun puthash key value table
 This function enters an association for @var{key} in @var{table}, with
 value @var{value}.  If @var{key} already has an association in
 @var{table}, @var{value} replaces the old associated value.
@@ -270,7 +270,7 @@ compared case-insensitively.
 (defun case-fold-string-hash (a)
   (sxhash (upcase a)))
 
-(define-hash-table-test 'case-fold 'case-fold-string= 
+(define-hash-table-test 'case-fold 'case-fold-string=
                         'case-fold-string-hash))
 
 (make-hash-table :test 'case-fold)

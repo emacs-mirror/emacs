@@ -66,7 +66,7 @@ extern struct frame *x_window_to_frame ();
 /* Structure recording bitmaps and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
 
-struct w32_bitmap_record 
+struct w32_bitmap_record
 {
   Pixmap pixmap;
   char *file;
@@ -337,7 +337,7 @@ struct w32_output
   /* Foreground color for scroll bars.  A value of -1 means use the
      default (black for non-toolkit scroll bars).  */
   COLORREF scroll_bar_foreground_pixel;
-  
+
   /* Background color for scroll bars.  A value of -1 means use the
      default (background color of the frame for non-toolkit scroll
      bars).  */
@@ -355,7 +355,7 @@ struct w32_output
   /* Window whose cursor is hourglass_cursor.  This window is
      temporarily mapped to display an hourglass cursor.  */
   Window hourglass_window;
-  
+
   /* Non-zero means hourglass cursor is currently displayed.  */
   unsigned hourglass_p : 1;
 
@@ -595,7 +595,7 @@ struct scroll_bar {
 
 /* Return the length of the rectangle within which the top of the
    handle must stay.  This isn't equivalent to the inside height,
-   because the scroll bar handle has a minimum height.  
+   because the scroll bar handle has a minimum height.
 
    This is the real range of motion for the scroll bar, so when we're
    scaling buffer positions to scroll bar positions, we use this, not
@@ -658,7 +658,7 @@ struct scroll_bar {
    + (f)->output_data.w32->internal_border_width)
 
 
-/* Return the row/column (zero-based) of the character cell containing 
+/* Return the row/column (zero-based) of the character cell containing
    the pixel on FRAME at ROW/COL.  */
 #define PIXEL_TO_CHAR_ROW(f, row) \
   (((row) - (f)->output_data.w32->internal_border_width) \
@@ -739,11 +739,11 @@ extern void x_fullscreen_adjust P_ ((struct frame *f, int *, int *,
 #define WM_EMACS_SETCURSOR             (WM_EMACS_START + 19)
 #define WM_EMACS_END                   (WM_EMACS_START + 20)
 
-#define WND_FONTWIDTH_INDEX    (0) 
-#define WND_LINEHEIGHT_INDEX   (4) 
-#define WND_BORDER_INDEX       (8) 
-#define WND_SCROLLBAR_INDEX    (12) 
-#define WND_BACKGROUND_INDEX   (16) 
+#define WND_FONTWIDTH_INDEX    (0)
+#define WND_LINEHEIGHT_INDEX   (4)
+#define WND_BORDER_INDEX       (8)
+#define WND_SCROLLBAR_INDEX    (12)
+#define WND_BACKGROUND_INDEX   (16)
 #define WND_LAST_INDEX         (20)
 
 #define WND_EXTRA_BYTES     (WND_LAST_INDEX)
@@ -831,7 +831,7 @@ extern BOOL parse_button ();
 #define WM_MOUSELEAVE 0x02A3
 #define TME_LEAVE 0x00000002;
 
-typedef struct tagTRACKMOUSEEVENT 
+typedef struct tagTRACKMOUSEEVENT
 {
   DWORD cbSize;
   DWORD dwFlags;

@@ -464,13 +464,13 @@ copy_overlays (b, list)
       OVERLAY_START (overlay) = start;
       OVERLAY_END (overlay) = end;
       OVERLAY_PLIST (overlay) = Fcopy_sequence (OVERLAY_PLIST (old_overlay));
-      
+
       result = Fcons (overlay, result);
     }
 
   return Fnreverse (result);
 }
-     
+
 
 /* Clone per-buffer values of buffer FROM.
 
@@ -487,7 +487,7 @@ clone_per_buffer_values (from, to)
   int offset;
 
   XSETBUFFER (to_buffer, to);
-  
+
   for (offset = PER_BUFFER_VAR_OFFSET (name) + sizeof (Lisp_Object);
        offset < sizeof *to;
        offset += sizeof (Lisp_Object))
@@ -507,7 +507,7 @@ clone_per_buffer_values (from, to)
     }
 
   bcopy (from->local_flags, to->local_flags, sizeof to->local_flags);
-  
+
   to->overlays_before = copy_overlays (to, from->overlays_before);
   to->overlays_after = copy_overlays (to, from->overlays_after);
 }
@@ -816,7 +816,7 @@ If BUFFER is not indirect, return nil.  */)
 }
 
 DEFUN ("buffer-local-value", Fbuffer_local_value,
-       Sbuffer_local_value, 2, 2, 0, 
+       Sbuffer_local_value, 2, 2, 0,
        doc: /* Return the value of VARIABLE in BUFFER.
 If VARIABLE does not have a buffer-local binding in BUFFER, the value
 is the default binding of variable. */)
@@ -833,7 +833,7 @@ is the default binding of variable. */)
 
   /* Look in local_var_list */
   result = Fassoc (symbol, buf->local_var_alist);
-  if (NILP (result)) 
+  if (NILP (result))
     {
       int offset, idx;
       int found = 0;
@@ -846,8 +846,8 @@ is the default binding of variable. */)
 	{
 	  idx = PER_BUFFER_IDX (offset);
 	  if ((idx == -1 || PER_BUFFER_VALUE_P (buf, idx))
-	      && SYMBOLP (PER_BUFFER_SYMBOL (offset)) 
-	      && EQ (PER_BUFFER_SYMBOL (offset), symbol)) 
+	      && SYMBOLP (PER_BUFFER_SYMBOL (offset))
+	      && EQ (PER_BUFFER_SYMBOL (offset), symbol))
 	    {
 	      result = PER_BUFFER_VALUE (buf, offset);
 	      found = 1;
@@ -1005,7 +1005,7 @@ A non-nil FLAG means mark the buffer modified.  */)
 #endif /* CLASH_DETECTION */
 
   SAVE_MODIFF = NILP (flag) ? MODIFF : 0;
-  
+
   /* Set update_mode_lines only if buffer is displayed in some window.
      Packages like jit-lock or lazy-lock preserve a buffer's modified
      state by recording/restoring the state around blocks of code.
@@ -1024,7 +1024,7 @@ A non-nil FLAG means mark the buffer modified.  */)
       ++update_mode_lines;
       current_buffer->prevent_redisplay_optimizations_p = 1;
     }
-  
+
   return flag;
 }
 
@@ -1038,7 +1038,7 @@ state of the current buffer.  Use with care.  */)
 {
 #ifdef CLASH_DETECTION
   Lisp_Object fn;
-  
+
   /* If buffer becoming modified, lock the file.
      If buffer becoming unmodified, unlock the file.  */
 
@@ -1053,7 +1053,7 @@ state of the current buffer.  Use with care.  */)
 	unlock_file (fn);
     }
 #endif /* CLASH_DETECTION */
-  
+
   SAVE_MODIFF = NILP (flag) ? MODIFF : 0;
   return flag;
 }
@@ -1152,7 +1152,7 @@ If BUFFER is omitted or nil, some interesting buffer is returned.  */)
 
   /* Consider buffers that have been seen in the selected frame
      before other buffers.  */
-    
+
   tem = frame_buffer_list (frame);
   add_ons = Qnil;
   while (CONSP (tem))
@@ -1354,7 +1354,7 @@ with SIGHUP.  */)
 
       UNGCPRO;
     }
-  
+
   /* Make this buffer not be current.
      In the process, notice if this is the sole visible buffer
      and give up if so.  */
@@ -1495,7 +1495,7 @@ record_buffer (buf)
     Vbuffer_alist = XCDR (Vbuffer_alist);
   else
     XSETCDR (prev, XCDR (XCDR (prev)));
-	
+
   XSETCDR (link, Vbuffer_alist);
   Vbuffer_alist = link;
 
@@ -1519,7 +1519,7 @@ record_buffer (buf)
 			       XCDR (frame_buffer_list (frame)));
       else
 	XSETCDR (prev, XCDR (XCDR (prev)));
-	
+
       XSETCDR (link, frame_buffer_list (frame));
       set_frame_buffer_list (frame, link);
     }
@@ -1549,7 +1549,7 @@ the current buffer's major mode.  */)
 	  && NILP (Fget (current_buffer->major_mode, Qmode_class)))
 	function = current_buffer->major_mode;
     }
-  
+
   if (NILP (function) || EQ (function, Qfundamental_mode))
     return Qnil;
 
@@ -1709,7 +1709,7 @@ set_buffer_internal_1 (b)
   if (b->text->beg == NULL)
     enlarge_buffer_text (b, 0);
 #endif /* USE_MMAP_FOR_BUFFERS */
-  
+
   if (current_buffer == b)
     return;
 
@@ -1937,7 +1937,7 @@ selected window if it is displayed there.  */)
   else
     {
       Lisp_Object buf1;
-      
+
       buf1 = Fget_buffer (buffer);
       if (NILP (buf1))
 	nsberror (buffer);
@@ -2175,7 +2175,7 @@ but the contents viewed as characters do change.  */)
 	      p = GAP_END_ADDR;
 	      stop = Z;
 	    }
-	      
+
 	  if (UNIBYTE_STR_AS_MULTIBYTE_P (p, stop - pos, bytes))
 	    p += bytes, pos += bytes;
 	  else
@@ -2328,7 +2328,7 @@ the normal hook `change-major-mode-hook'.  */)
 
   /* Any which are supposed to be permanent,
      make local again, with the same values they had.  */
-     
+
   for (alist = oalist; !NILP (alist); alist = XCDR (alist))
     {
       sym = XCAR (XCAR (alist));
@@ -2390,7 +2390,7 @@ swap_out_buffer_local_variables (b)
 }
 
 /* Find all the overlays in the current buffer that contain position POS.
-   Return the number found, and store them in a vector in *VEC_PTR.  
+   Return the number found, and store them in a vector in *VEC_PTR.
    Store in *LEN_PTR the size allocated for the vector.
    Store in *NEXT_PTR the next position after POS where an overlay starts,
      or ZV if there are no more overlays.
@@ -2542,7 +2542,7 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr, change_req)
 /* Find all the overlays in the current buffer that overlap the range BEG-END
    or are empty at BEG.
 
-   Return the number found, and store them in a vector in *VEC_PTR.  
+   Return the number found, and store them in a vector in *VEC_PTR.
    Store in *LEN_PTR the size allocated for the vector.
    Store in *NEXT_PTR the next position after POS where an overlay starts,
      or ZV if there are no more overlays.
@@ -2691,7 +2691,7 @@ mouse_face_overlay_overlaps (overlay)
   int end = OVERLAY_POSITION (OVERLAY_END (overlay));
   int n, i, size;
   Lisp_Object *v, tem;
-  
+
   size = 10;
   v = (Lisp_Object *) alloca (size * sizeof *v);
   n = overlays_in (start, end, 0, &v, &size, NULL, NULL);
@@ -3545,7 +3545,7 @@ rear delimiter advance when text is inserted there.  */)
   XOVERLAY (overlay)->end = end;
   XOVERLAY (overlay)->plist = Qnil;
 
-  /* Put the new overlay on the wrong list.  */ 
+  /* Put the new overlay on the wrong list.  */
   end = OVERLAY_END (overlay);
   if (OVERLAY_POSITION (end) < XINT (b->overlay_center))
     b->overlays_after = Fcons (overlay, b->overlays_after);
@@ -3576,7 +3576,7 @@ modify_overlay (buf, start, end)
     }
 
   BUF_COMPUTE_UNCHANGED (buf, start, end);
-  
+
   /* If this is a buffer not in the selected window,
      we must do other windows.  */
   if (buf != XBUFFER (XWINDOW (selected_window)->buffer))
@@ -3682,7 +3682,7 @@ buffer.  */)
   Fset_marker (OVERLAY_START (overlay), beg, buffer);
   Fset_marker (OVERLAY_END   (overlay), end, buffer);
 
-  /* Put the overlay on the wrong list.  */ 
+  /* Put the overlay on the wrong list.  */
   end = OVERLAY_END (overlay);
   if (OVERLAY_POSITION (end) < XINT (b->overlay_center))
     b->overlays_after = Fcons (overlay, b->overlays_after);
@@ -3712,7 +3712,7 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
 
   b = XBUFFER (buffer);
   specbind (Qinhibit_quit, Qt);
-  
+
   b->overlays_before = Fdelq (overlay, b->overlays_before);
   b->overlays_after = Fdelq (overlay, b->overlays_after);
   modify_overlay (b,
@@ -4276,21 +4276,21 @@ buffer_slot_type_mismatch (offset)
 {
   Lisp_Object sym;
   char *type_name;
-  
+
   switch (XINT (PER_BUFFER_TYPE (offset)))
     {
     case Lisp_Int:
       type_name = "integers";
       break;
-      
+
     case Lisp_String:
       type_name = "strings";
       break;
-      
+
     case Lisp_Symbol:
       type_name = "symbols";
       break;
-      
+
     default:
       abort ();
     }
@@ -4353,7 +4353,7 @@ struct mmap_region
 {
   /* User-specified size.  */
   size_t nbytes_specified;
-  
+
   /* Number of bytes mapped */
   size_t nbytes_mapped;
 
@@ -4444,7 +4444,7 @@ mmap_find (start, end)
 {
   struct mmap_region *r;
   char *s = (char *) start, *e = (char *) end;
-  
+
   for (r = mmap_regions; r; r = r->next)
     {
       char *rstart = (char *) r;
@@ -4478,7 +4478,7 @@ mmap_free_1 (r)
     r->prev->next = r->next;
   else
     mmap_regions = r->next;
-  
+
   if (munmap ((POINTER_TYPE *) r, r->nbytes_mapped) == -1)
     {
       fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
@@ -4516,7 +4516,7 @@ mmap_enlarge (r, npages)
   else if (npages > 0)
     {
       nbytes = npages * mmap_page_size;
-      
+
       /* Try to map additional pages at the end of the region.  We
 	 cannot do this if the address range is already occupied by
 	 something else because mmap deletes any previous mapping.
@@ -4524,7 +4524,7 @@ mmap_enlarge (r, npages)
       if (!MMAP_ALLOCATED_P (region_end, region_end + nbytes))
 	{
 	  POINTER_TYPE *p;
-      
+
 	  p = mmap (region_end, nbytes, PROT_READ | PROT_WRITE,
 		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, mmap_fd, 0);
 	  if (p == MAP_FAILED)
@@ -4605,7 +4605,7 @@ mmap_alloc (var, nbytes)
   map = ROUND (nbytes + MMAP_REGION_STRUCT_SIZE, mmap_page_size);
   p = mmap (NULL, map, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE,
 	    mmap_fd, 0);
-  
+
   if (p == MAP_FAILED)
     {
       if (errno != ENOMEM)
@@ -4615,7 +4615,7 @@ mmap_alloc (var, nbytes)
   else
     {
       struct mmap_region *r = (struct mmap_region *) p;
-      
+
       r->nbytes_specified = nbytes;
       r->nbytes_mapped = map;
       r->var = var;
@@ -4624,10 +4624,10 @@ mmap_alloc (var, nbytes)
       if (r->next)
 	r->next->prev = r;
       mmap_regions = r;
-      
+
       p = MMAP_USER_AREA (p);
     }
-  
+
   return *var = p;
 }
 
@@ -4643,12 +4643,12 @@ mmap_realloc (var, nbytes)
      size_t nbytes;
 {
   POINTER_TYPE *result;
-  
+
   mmap_init ();
 
   if (*var == NULL)
     result = mmap_alloc (var, nbytes);
-  else if (nbytes == 0) 
+  else if (nbytes == 0)
     {
       mmap_free (var);
       result = mmap_alloc (var, nbytes);
@@ -4657,7 +4657,7 @@ mmap_realloc (var, nbytes)
     {
       struct mmap_region *r = MMAP_REGION (*var);
       size_t room = r->nbytes_mapped - MMAP_REGION_STRUCT_SIZE;
-      
+
       if (room < nbytes)
 	{
 	  /* Must enlarge.  */
@@ -4718,7 +4718,7 @@ mmap_free (var)
      POINTER_TYPE **var;
 {
   mmap_init ();
-  
+
   if (*var)
     {
       mmap_free_1 (MMAP_REGION (*var));
@@ -4747,11 +4747,11 @@ mmap_init ()
   if (mmap_initialized_p)
     return;
   mmap_initialized_p = 1;
-  
+
 #if MAP_ANON != 0
   mmap_fd = -1;
 #endif
-  
+
   mmap_page_size = getpagesize ();
 }
 
@@ -4778,7 +4778,7 @@ alloc_buffer_text (b, nbytes)
      size_t nbytes;
 {
   POINTER_TYPE *p;
-  
+
   BLOCK_INPUT;
 #if defined USE_MMAP_FOR_BUFFERS
   p = mmap_alloc ((POINTER_TYPE **) &b->text->beg, nbytes);
@@ -4787,7 +4787,7 @@ alloc_buffer_text (b, nbytes)
 #else
   p = xmalloc (nbytes);
 #endif
-  
+
   if (p == NULL)
     {
       UNBLOCK_INPUT;
@@ -4817,7 +4817,7 @@ enlarge_buffer_text (b, delta)
 #else
   p = xrealloc (b->text->beg, nbytes);
 #endif
-  
+
   if (p == NULL)
     {
       UNBLOCK_INPUT;
@@ -4844,7 +4844,7 @@ free_buffer_text (b)
 #else
   xfree (b->text->beg);
 #endif
-  
+
   BUF_BEG_ADDR (b) = NULL;
   UNBLOCK_INPUT;
 }
@@ -4975,7 +4975,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.cache_long_line_scans, idx); ++idx;
   XSETFASTINT (buffer_local_flags.category_table, idx); ++idx;
   XSETFASTINT (buffer_local_flags.direction_reversed, idx); ++idx;
-  XSETFASTINT (buffer_local_flags.buffer_file_coding_system, idx); 
+  XSETFASTINT (buffer_local_flags.buffer_file_coding_system, idx);
   /* Make this one a permanent local.  */
   buffer_permanent_local_flags[idx++] = 1;
   XSETFASTINT (buffer_local_flags.left_margin_width, idx); ++idx;
@@ -4991,7 +4991,7 @@ init_buffer_once ()
   if (idx >= MAX_PER_BUFFER_VARS)
     abort ();
   last_per_buffer_idx = idx;
-  
+
   Vbuffer_alist = Qnil;
   current_buffer = 0;
   all_buffers = 0;
@@ -5036,13 +5036,13 @@ init_buffer ()
       text pointers will have been set to null in the dumped Emacs.
       Map new memory.  */
    struct buffer *b;
-   
+
    for (b = all_buffers; b; b = b->next)
      if (b->text->beg == NULL)
        enlarge_buffer_text (b, 0);
  }
 #endif /* USE_MMAP_FOR_BUFFERS */
-  
+
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
   if (NILP (buffer_defaults.enable_multibyte_characters))
     Fset_buffer_multibyte (Qnil);
@@ -5181,17 +5181,17 @@ This is the same as (default-value 'ctl-arrow).  */);
 		      &buffer_defaults.direction_reversed,
 		      doc: /* Default value of `direction_reversed' for buffers that do not override it.
 This is the same as (default-value 'direction-reversed).  */);
- 
+
    DEFVAR_LISP_NOPRO ("default-enable-multibyte-characters",
 		      &buffer_defaults.enable_multibyte_characters,
 		      doc: /* *Default value of `enable-multibyte-characters' for buffers not overriding it.
 This is the same as (default-value 'enable-multibyte-characters).  */);
- 
+
    DEFVAR_LISP_NOPRO ("default-buffer-file-coding-system",
 		      &buffer_defaults.buffer_file_coding_system,
 		      doc: /* Default value of `buffer-file-coding-system' for buffers not overriding it.
 This is the same as (default-value 'buffer-file-coding-system).  */);
- 
+
   DEFVAR_LISP_NOPRO ("default-truncate-lines",
 		     &buffer_defaults.truncate_lines,
 		     doc: /* Default value of `truncate-lines' for buffers that do not override it.
@@ -5218,7 +5218,7 @@ This is the same as (default-value 'tab-width).  */);
 This is the same as (default-value 'case-fold-search).  */);
 
 #ifdef DOS_NT
-  DEFVAR_LISP_NOPRO ("default-buffer-file-type", 
+  DEFVAR_LISP_NOPRO ("default-buffer-file-type",
 		     &buffer_defaults.buffer_file_type,
 		     doc: /* Default file type for buffers that do not override it.
 This is the same as (default-value 'buffer-file-type).
@@ -5234,31 +5234,31 @@ This is the same as (default-value 'left-margin-width).  */);
 		     &buffer_defaults.right_margin_width,
 		     doc: /* Default value of `right_margin_width' for buffers that don't override it.
 This is the same as (default-value 'right-margin-width).  */);
-  
+
   DEFVAR_LISP_NOPRO ("default-indicate-empty-lines",
 		     &buffer_defaults.indicate_empty_lines,
 		     doc: /* Default value of `indicate-empty-lines' for buffers that don't override it.
 This is the same as (default-value 'indicate-empty-lines).  */);
-  
+
   DEFVAR_LISP_NOPRO ("default-scroll-up-aggressively",
 		     &buffer_defaults.scroll_up_aggressively,
 		     doc: /* Default value of `scroll-up-aggressively'.
 This value applies in buffers that don't have their own local values.
 This variable is an alias for (default-value 'scroll-up-aggressively).  */);
-  
+
   DEFVAR_LISP_NOPRO ("default-scroll-down-aggressively",
 		     &buffer_defaults.scroll_down_aggressively,
 		     doc: /* Default value of `scroll-down-aggressively'.
 This value applies in buffers that don't have their own local values.
 This variable is an alias for (default-value 'scroll-down-aggressively).  */);
-  
+
   DEFVAR_PER_BUFFER ("header-line-format",
 		     &current_buffer->header_line_format,
 		     Qnil,
 		     doc: /* Analogous to `mode-line-format', but controls the header line.
 The header line appears, optionally, at the top of a window;
 the mode line appears at the bottom.  */);
-  
+
   DEFVAR_PER_BUFFER ("mode-line-format", &current_buffer->mode_line_format,
 		     Qnil,
 		     doc: /* Template for displaying mode line for current buffer.
@@ -5269,7 +5269,7 @@ For a symbol, its value is used (but it is ignored if t or nil).
  A string appearing directly as the value of a symbol is processed verbatim
  in that the %-constructs below are not recognized.
  Note that unless the symbol is marked as a `risky-local-variable', all
- properties in any strings, as well as all :eval and :propertize forms 
+ properties in any strings, as well as all :eval and :propertize forms
  in the value of that symbol will be ignored.
 For a list of the form `(:eval FORM)', FORM is evaluated and the result
  is used as a mode line element.  Be careful--FORM should not load any files,
@@ -5506,18 +5506,18 @@ See also the functions `display-table-slot' and `set-display-table-slot'.  */);
 		     Qnil,
 		     doc: /* *Width of left marginal area for display of a buffer.
 A value of nil means no marginal area.  */);
-  
+
   DEFVAR_PER_BUFFER ("right-margin-width", &current_buffer->right_margin_width,
 		     Qnil,
 		     doc: /* *Width of right marginal area for display of a buffer.
 A value of nil means no marginal area.  */);
-  
+
   DEFVAR_PER_BUFFER ("indicate-empty-lines",
 		     &current_buffer->indicate_empty_lines, Qnil,
 		     doc: /* *Visually indicate empty lines after the buffer end.
 If non-nil, a bitmap is displayed in the left fringe of a window on
 window-systems.  */);
-  
+
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
 		     &current_buffer->scroll_up_aggressively, Qnil,
 		     doc: /* How far to scroll windows upward.
@@ -5530,7 +5530,7 @@ case that you moved off with C-f means scrolling just one line.  1.0 means
 point goes at the top, so that in that simple case, the window
 window scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
-  
+
   DEFVAR_PER_BUFFER ("scroll-down-aggressively",
 		     &current_buffer->scroll_down_aggressively, Qnil,
 		     doc: /* How far to scroll windows downward.
@@ -5543,7 +5543,7 @@ case that you moved off with C-b means scrolling just one line.  1.0 means
 point goes at the bottom, so that in that simple case, the window
 window scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
-  
+
 /*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
     "Don't ask.");
 */

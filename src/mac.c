@@ -2770,7 +2770,7 @@ sys_select (n, rfds, wfds, efds, timeout)
   if (!inhibit_window_system && rfds && FD_ISSET (0, rfds))
     return 1;
   else if (inhibit_window_system || noninteractive ||
-	   (timeout && (EMACS_SECS(*timeout)==0) && 
+	   (timeout && (EMACS_SECS(*timeout)==0) &&
 	    (EMACS_USECS(*timeout)==0)))
     return select(n, rfds, wfds, efds, timeout);
   else
@@ -2780,22 +2780,22 @@ sys_select (n, rfds, wfds, efds, timeout)
       EMACS_GET_TIME (end_time);
       if (timeout)
 	EMACS_ADD_TIME (end_time, end_time, *timeout);
-      
+
       do
 	{
 	  int r;
 	  EMACS_TIME one_second;
 	  SELECT_TYPE orfds;
-	  
+
 	  FD_ZERO (&orfds);
 	  if (rfds)
 	    {
 	      orfds = *rfds;
 	    }
-	  
+
 	  EMACS_SET_SECS (one_second, 1);
 	  EMACS_SET_USECS (one_second, 0);
-	  
+
 	  if (timeout && EMACS_TIME_LT(*timeout, one_second))
 	    one_second = *timeout;
 
@@ -2806,12 +2806,12 @@ sys_select (n, rfds, wfds, efds, timeout)
 	    }
 
 	  mac_check_for_quit_char();
-	  
+
 	  EMACS_GET_TIME (now);
 	  EMACS_SUB_TIME (now, end_time, now);
 	}
       while (!timeout || !EMACS_TIME_NEG_P (now));
-      
+
       return 0;
     }
 }
@@ -2835,7 +2835,7 @@ int sys_read (fds, buf, nbyte)
       if (sys_select (fds+1, &rfds, 0, 0, NULL) < 0)
 	return -1;
     }
-      
+
   return read (fds, buf, nbyte);
 }
 

@@ -230,7 +230,7 @@ search_dir (char *dir, char *exec, int bufsize, char *buffer)
   int i, rc;
 
   /* Search the directory for the program.  */
-  for (i = 0; i < n_exts; i++) 
+  for (i = 0; i < n_exts; i++)
     {
       rc = SearchPath (dir, exec, exts[i], bufsize, buffer, &dummy);
       if (rc > 0)
@@ -240,7 +240,7 @@ search_dir (char *dir, char *exec, int bufsize, char *buffer)
   return 0;
 }
 
-/* Return the absolute name of executable file PROG, including 
+/* Return the absolute name of executable file PROG, including
    any file extensions.  If an absolute name for PROG cannot be found,
    return NULL.  */
 char *
@@ -272,18 +272,18 @@ make_absolute (char *prog)
 	return NULL;
     }
 
-  if (GetCurrentDirectory (MAX_PATH, curdir) <= 0) 
+  if (GetCurrentDirectory (MAX_PATH, curdir) <= 0)
     return NULL;
 
   /* Relative path; search in current dir. */
-  if (strpbrk (prog, "\\")) 
+  if (strpbrk (prog, "\\"))
     {
       if (search_dir (curdir, prog, MAX_PATH, absname) > 0)
 	return strdup (absname);
-      else 
+      else
 	return NULL;
     }
-  
+
   /* Just filename; search current directory then PATH.  */
   path = alloca (strlen (getenv ("PATH")) + strlen (curdir) + 2);
   strcpy (path, curdir);
@@ -304,7 +304,7 @@ make_absolute (char *prog)
 
       /* Move to the next directory.  */
       path = p + 1;
-    } 
+    }
 
   return NULL;
 }
@@ -322,7 +322,7 @@ setup_argv (void)
   char * cmdline = GetCommandLine ();
   int arg_bytes = 0;
 
-  
+
 }
 #endif
 
@@ -384,7 +384,7 @@ spawn (char * progname, char * cmdline, char * dir, int * retcode)
   sec_attrs.nLength = sizeof (sec_attrs);
   sec_attrs.lpSecurityDescriptor = NULL;
   sec_attrs.bInheritHandle = FALSE;
-  
+
   memset (&start, 0, sizeof (start));
   start.cb = sizeof (start);
 

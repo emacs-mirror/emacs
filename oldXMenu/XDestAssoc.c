@@ -18,7 +18,7 @@ without express or implied warranty.
 
 /*
  * XDestroyAssocTable - Destroy (free the memory associated with)
- * an XAssocTable.  
+ * an XAssocTable.
  */
 XDestroyAssocTable(table)
 	register XAssocTable *table;

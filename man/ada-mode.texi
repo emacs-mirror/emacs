@@ -161,7 +161,7 @@ not use these extensions and if you want Emacs to automatically start the
 Ada mode every time you edit an Ada file.
 
 Also, for general usage variables that you might want to set,
-see 
+see
 @iftex
 @cite{The GNU Emacs Manual}.
 @end iftex
@@ -337,7 +337,7 @@ choice is to use this variable settings, and otherwise
 @item C-c u
 @findex ada-customize
 Create or edit the project file for the current buffer (@code{ada-customize}).
-@item C-c c   
+@item C-c c
 @findex ada-change-prj
 Change the project file associated with the current Ada buffer (@code{ada-change-prj}).
 @item C-c d

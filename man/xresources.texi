@@ -458,7 +458,7 @@ Emacs.pane.menubar.popup_*.popup_*.Spell Checking.Complete Word: @var{value}
 
 @noindent
 (This should be one long line.)
-  
+
   It's impossible to specify a resource for all the menu-bar items
 without also specifying it for the submenus as well.  So if you want the
 submenu items to look different from the menu bar itself, you must ask
@@ -533,7 +533,7 @@ The color for the border shadow, on the top and the left.
   If the Emacs installed at your site was built to use the GTK widget set,
 then the menu bar, scroll bar and the dialogs can be customized with
 the standard GTK @file{~/.gtkrc-2.0} file or with the Emacs specific
-@file{~/.emacs.d/gtkrc} file; note that these files are only for 
+@file{~/.emacs.d/gtkrc} file; note that these files are only for
 customizing specific GTK widget features.  To customize Emacs font,
 background, faces etc., use the normal X resources, see @ref{Resources}.
 
@@ -568,7 +568,7 @@ gtk-font-name = "courier 12"
 
   If GTK at your site is installed under @var{prefix},
 the resource file syntax is fully described in the GTK API
-document 
+document
 @file{@var{prefix}/share/gtk-doc/html/gtk/gtk-resource-files.html}.
 @var{prefix} is usually @file{/usr} or @file{/usr/local}.
 You can find the same document online at
@@ -586,7 +586,7 @@ You can find the same document online at
 @appendixsubsec GTK widget names
 @cindex GTK widget names
 
-  Widgets are specified by widget class or by widget name. 
+  Widgets are specified by widget class or by widget name.
 The widget class is the type of the widget, for example @code{GtkMenuBar}.
 The widget name is the name given to a specific widget within a program.
 A widget always have a class but it is not mandatory to give a name to
@@ -649,8 +649,8 @@ widget "*menu*" style "my_style"
 @cindex GTK widget classes
 
   In Emacs the top level widget for a frame is a @code{GtkWindow} that
-contains a @code{GtkVBox}.  The @code{GtkVBox} contains the 
-@code{GtkMenuBar} and a @code{GtkFixed} widget.  
+contains a @code{GtkVBox}.  The @code{GtkVBox} contains the
+@code{GtkMenuBar} and a @code{GtkFixed} widget.
 The vertical scroll bars, @code{GtkVScrollbar},
 are contained in the @code{GtkFixed} widget.
 The text you write in Emacs is drawn in the @code{GtkFixed} widget.
@@ -669,7 +669,7 @@ widget_class "GtkWindow.GtkVBox.GtkMenuBar" style "my_style"
 For the scroll bar, the absolute class name is:
 
 @smallexample
-widget_class 
+widget_class
   "GtkWindow.GtkVBox.GtkFixed.GtkVScrollbar"
      style "my_style"
 @end smallexample
@@ -705,7 +705,7 @@ widget "Emacs.pane.emacs.verticalScrollbar" style "my_style"
 @end smallexample
 
   GTK absolute names are quite strange when it comes to menus
-and dialogs.  The names do not start with @samp{Emacs}, as they are 
+and dialogs.  The names do not start with @samp{Emacs}, as they are
 free-standing windows and not contained (in the GTK sense) by the
 Emacs GtkWindow.  To customize the dialogs and menus, use wildcards like this:
 
@@ -720,7 +720,7 @@ This file is only read by Emacs, so anything in @file{~/.emacs.d/gtkrc}
 affects Emacs but leaves other applications unaffected.
 For example, the drop down menu in the file dialog can not
 be customized by any absolute widget name, only by an absolute
-class name.  This is so because the widgets in the drop down menu does not 
+class name.  This is so because the widgets in the drop down menu does not
 have names and the menu is not contained in the Emacs GtkWindow.
 To have all menus in Emacs look the same, use this in @file{~/.emacs.d/gtkrc}:
 
@@ -766,7 +766,7 @@ style "default"
   bg_pixmap[NORMAL] = "background.xpm"
   bg_pixmap[INSENSITIVE] = "background.xpm"
   bg_pixmap[ACTIVE] = "background.xpm"
-  bg_pixmap[PRELIGHT] = "<none>" 
+  bg_pixmap[PRELIGHT] = "<none>"
 
 @}
 
@@ -788,7 +788,7 @@ The possible states are
 This is the default state for widgets.
 @item ACTIVE
 This is the state for a widget that is ready to do something.  It is
-also for the trough of a scroll bar, i.e.  @code{bg[ACTIVE] = "red"} 
+also for the trough of a scroll bar, i.e.  @code{bg[ACTIVE] = "red"}
 sets the scroll bar trough to red.  Buttons that have been pressed but
 not released yet (``armed'') are in this state.
 @item PRELIGHT
@@ -817,7 +817,7 @@ editable text, use @code{base} for that.
 
 @item base[@var{state}] = @var{color}
 This is the background color for editable text.
-In Emacs, this color is used for the background of the text fields in the 
+In Emacs, this color is used for the background of the text fields in the
 file dialog.
 
 @item bg_pixmap[@var{state}] = "@var{pixmap}"
@@ -844,7 +844,7 @@ of text in menus and buttons.  It is also the color for the arrows in the
 scroll bar.  For editable text, use @code{text}.
 
 @item text[@var{state}] = @var{color}
-This is the color for editable text.  In Emacs, this color is used for the 
+This is the color for editable text.  In Emacs, this color is used for the
 text fields in the file dialog.
 
 @item font_name = "@var{font}"
@@ -861,7 +861,7 @@ A color name is written within double quotes, for example @code{"red"}.
 
 @noindent
 A hexadecimal form is written within double quotes.  There are four forms,
-@code{#rrrrggggbbbb}, @code{#rrrgggbbb}, 
+@code{#rrrrggggbbbb}, @code{#rrrgggbbb},
 @code{#rrggbb}, or @code{#rgb}.  In each of these r, g and b are hex digits.
 
 @noindent

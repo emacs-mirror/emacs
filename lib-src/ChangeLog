@@ -3746,7 +3746,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* b2m.c: Use <...> to include config.h.
 	Don't include stdlib.h.
 
-1994-03-03  Heiko Muenkel (muenkel@tnt.uni-hannover.de)
+1994-03-03  Heiko Muenkel  (muenkel@tnt.uni-hannover.de)
 
 	* b2m.c (main): Change delimiter from "^L" to "^_^L".
 	Allow for text following "BABYL OPTIONS:".
@@ -3963,7 +3963,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* Version 19.20 released.
 
-1993-11-08  Tom Hageman (tom@basil.icce.rug.nl)
+1993-11-08  Tom Hageman  (tom@basil.icce.rug.nl)
 
 	* etags.c: (C_entries): Keep track of ()-parenthesis level so that
 	functions returning a pointer to a function, a la `signal', can be

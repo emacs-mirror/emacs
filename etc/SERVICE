@@ -195,7 +195,7 @@ Services:
 Updated:  2001-05-11
 ^_
 Don Barry, Ph.D.       <don@astro.cornell.edu>
-Ithaca, NY          
+Ithaca, NY
 
 Astrophysicist with extensive and varied hacker background.  Substantial
 expertise in mathematical modeling, instrument interface, low-level and
@@ -845,16 +845,16 @@ Updated:  2000-12-19
  +46 31 50 79 00 voice
  +46 31 50 79 39 fax
  http://www.netg.se
- 
+
 NetGuide Scandinavia AB is a company that does consultant jobs and holds
 courses in the fields of Unix software, TCP/IP networking and Internet
 applications. The people behind NetGuide Scandinavia AB have many years of
 general Unix experience, both as system administrators and as
 programmers, and also extensive experience in maintaining the GNU
 programs; in administration as well as finding and fixing bugs.
- 
+
 Services offered:
- 
+
  - Installation and customizing GNU and other free software.  We will
    make free software as easy to install and use as shrink wrapped
    programs.
@@ -869,7 +869,7 @@ Services offered:
  - Support on Internet service software, especially the free
  - Support on GNU/Linux.
  - Freeware based courses in Unix usage, C, C++, or any GNU tools
- 
+
  Rates: For courses, contact us for a quote,
  For consulting, $60-120/hour, depending on contract length.
 
@@ -918,26 +918,26 @@ Sweden                             Sweden)
 
 Phone: +46-21-144831
 E-mail: <jonas@gnu.org>
-    
+
 I offer support for most GNU software including the GNU
 Hurd and also do system administration on GNU systems.
 I can do free software development and have a good
 understanding of automake, autoconf, flex, bison, guile,
 texinfo and much more. Rates around USD$100.
-    
+
 Updated: 2001-05-09
 ^_
   Peter Olsen
   P.O. Box 410
   Simpsonville, MD 21150
- 
+
   <p@sigmaxi.org>
- 
+
   What I do:  Mathematical modeling and model building using Gnu
           and other Free Software.  Scientific and engineering
           analysis, modeling, and programming in FORTRAN, C, LISP,
           and Java.  Statistical analysis.  Emacs customization.
- 
+
   Examples of my previous work:
                1. I built the model used predict the
           amount of work required to clean up the Exxon Valdez oil
@@ -947,24 +947,24 @@ Updated: 2001-05-09
                2. I built a model applying commercial capital
           investment standards to a Federal Agency budget, helped
           support $250 Million budget increase.
- 
+
   Credo:  Engineering is the art of applying a professional
           knowledge of mathematics and the physical sciences to
           improve the quality of life.
- 
+
   Rates:  $135/hour (+ travel and expenses) on site,
            $95/hour remote access.
- 
+
   Notes:  1. Visiting Lecturer for Society for Industrial and Applied
           Mathematics:  Will speak without fee about Valdez model
           (or other work) to Educational and not-for-profit
           organizations (plus most-economical travel and living
           expenses or travel or living arrangements in kind).
- 
+
           2. I do not accept offers which pose the danger
           of conflict of interest with any present or former client
           or employer.
- 
+
 
 Updated: 2000-12-13
 ^_
@@ -1012,33 +1012,33 @@ Qualifications: Electronic Engineering degree, Pisa.  Full time
 
 Updated:  2001-05-09
 ^_
-Quoll Systems Pty Ltd, see http://quoll.com.au 
+Quoll Systems Pty Ltd, see http://quoll.com.au
 8 Brown St, Fannie Bay, Darwin, NT, Australia.
-Phone: +61 8 8941 7150 Fax: +61 8 8941 7151 Mobile: 0409 691 399 
+Phone: +61 8 8941 7150 Fax: +61 8 8941 7151 Mobile: 0409 691 399
 e-mail: <pjm@gnu.org> or <info@quoll.com.au>
- 
+
 QS is a small (4 full-time staff + 15 part-timers) which does a variety
 of things in the *IX, technical computing area including:
- 
+
  	   o Systems development/maintainence (in most programming languages)
  	   o Training (GNU/Linux, FreeBSD, OpenBSD, Apache, Perl, ...)
  	   o Consulting in areas such as security, reliability,
- 
+
 Recent projects have included wind turbine generator control, water
 quality databases, remote area satelliate communications, Apache Web
 serving, ISP configurations, *nix training. Staff have provided some
 small contributions to the GNU and BSD projects over the years. We
-also have a bit of expertise in the embedded(inside people) systems 
-area in addition to the standard building work. 
+also have a bit of expertise in the embedded(inside people) systems
+area in addition to the standard building work.
 
-We can provide local (i.e. southern hemisphere/south east asia) support 
+We can provide local (i.e. southern hemisphere/south east asia) support
 for most of the vast range of free software systems including: GNU/Linux,
 FreeBSD, OpenBSD , OpenSSH, Sendmail, various compilers and networking
 tools. Remote support can also be arranged.
 
-Rates: vary depending on the work, period and staff provided but let 
+Rates: vary depending on the work, period and staff provided but let
        us pick 100$US/hr as a starting point for senior staff.
- 
+
 Updated: 2000-12-13
 ^_
 Red Hat, Inc.
@@ -1049,7 +1049,7 @@ Toll free: 866-2REDHAT ext. 3005
 +1 408 542 9600 voice
 +1 408 542 9699 fax
 
-GNUPro Tools 
+GNUPro Tools
 Red Hat provides supported and maintained versions of gcc, g++, gdb
 with GUI, GNU linker and GNU macro assembler.  In addition, Red Hat
 provides these GNU software development tools for well over many
@@ -1130,9 +1130,9 @@ http://www.sra.co.jp/wingnut/chirashi-e.html
 http://www.sra.co.jp/wingnut/service.html
 http://osb.sra.co.jp/WingnutSupport/
 
-We provide GNU software support at a reasonable charge, 
-aiming to promote the sound growth of free software and to 
-create a new culture in the software world. 
+We provide GNU software support at a reasonable charge,
+aiming to promote the sound growth of free software and to
+create a new culture in the software world.
 
 News:
 
@@ -1142,21 +1142,21 @@ News:
 
 What we provide is:
 
-   1. Research and development of GNU software. 
-   2. Development, porting, and customization of GNU software itself. 
-   3. Helping people who are willing to port and provide GNU software 
-      to their customers, but are unable to do so due to  a lack of resources. 
-   4. Providing a variety of educational and training services including 
-      how to port or to customize. 
-   5. The result of the work will become free software covered under the 
+   1. Research and development of GNU software.
+   2. Development, porting, and customization of GNU software itself.
+   3. Helping people who are willing to port and provide GNU software
+      to their customers, but are unable to do so due to  a lack of resources.
+   4. Providing a variety of educational and training services including
+      how to port or to customize.
+   5. The result of the work will become free software covered under the
       GNU licenses (GPL or LGPL), so it will be possible not only to share
-      the results with others but to eliminate unnecessary investment also. 
-   6. Passing the result to the program package maintainers (if needed). 
-   7. Also, making contributions to FSF (Free Software Foundation, Inc.) 
+      the results with others but to eliminate unnecessary investment also.
+   6. Passing the result to the program package maintainers (if needed).
+   7. Also, making contributions to FSF (Free Software Foundation, Inc.)
       which is the organization that develops and distributes GNU software
-      worldwide. 
+      worldwide.
 
-   Furthermore, we provide services *native to Japan*, that is, 
+   Furthermore, we provide services *native to Japan*, that is,
    services for Japanese-speaking people --- receiving inquiries and
    answering in Japanese.
 
@@ -1255,13 +1255,13 @@ Tel +44 (0) 1273 20 11 66
 Fax +44 (0) 1273 20 11 68
 http://www.swingdigital.com
 
-Swing Digital actively supports the development of the GNU.FREE 
-Internet Voting system. Through this support we have gained the 
-unique expertise to support, install and run GUN.FREE-based Internet 
-votes. We are also available in a consultancy basis to offer advice 
+Swing Digital actively supports the development of the GNU.FREE
+Internet Voting system. Through this support we have gained the
+unique expertise to support, install and run GUN.FREE-based Internet
+votes. We are also available in a consultancy basis to offer advice
 for organisations wishing to run GNU.FREE themselves.
 
-Our consultancy fees start at 900 Euro (550 UK pounds) per day. We 
+Our consultancy fees start at 900 Euro (550 UK pounds) per day. We
 are also able to securely host Internet Votes, prices on application.
 
 Updated: 2001-07-23

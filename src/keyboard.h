@@ -210,7 +210,7 @@ extern Lisp_Object internal_last_event_frame;
    Using a Lisp vector to hold this information while we decode it
    takes care of protecting all the data from GC.  */
 extern Lisp_Object item_properties;
- 
+
 /* This describes the elements of item_properties.
    The first element is not a property, it is a pointer to the item properties
    that is saved for GC protection. */

@@ -30,7 +30,7 @@ Boston, MA 02111-1307, USA.  */
 #include <X11/StringDefs.h>
 #include <X11/IntrinsicP.h>	/* CoreP.h needs this */
 #include <X11/CoreP.h>		/* foul, but we need this to use our own
-				   window inside a widget instead of one 
+				   window inside a widget instead of one
 				   that Xt creates... */
 #include <X11/StringDefs.h>
 
@@ -77,7 +77,7 @@ typedef GtkWidget *xt_or_gtk_widget;
 #ifdef PBaseSize
 /* AIX 3.1's X is somewhere between X11R3 and X11R4.  It has
    PBaseSize, but not XWithdrawWindow, XSetWMName, XSetWMNormalHints,
-   XSetWMIconName.  
+   XSetWMIconName.
    AIX 3.2 is at least X11R4.  */
 #if (!defined AIX) || (defined AIX3_2)
 #define HAVE_X11R4
@@ -138,51 +138,51 @@ struct x_display_info
 {
   /* Chain of all x_display_info structures.  */
   struct x_display_info *next;
-  
+
   /* Connection number (normally a file descriptor number).  */
   int connection;
-  
+
   /* This says how to access this display in Xlib.  */
   Display *display;
-  
+
   /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).
      The same cons cell also appears in x_display_name_list.  */
   Lisp_Object name_list_element;
-  
+
   /* Number of frames that are on this display.  */
   int reference_count;
-  
+
   /* The Screen this connection is connected to.  */
   Screen *screen;
 
   /* Dots per inch of the screen.  */
   double resx, resy;
-  
+
   /* The Visual being used for this display.  */
   Visual *visual;
 
   /* The colormap being used.  */
   Colormap cmap;
-  
+
   /* Number of panes on this screen.  */
   int n_planes;
-  
+
   /* Dimensions of this screen.  */
   int height, width;
-  
+
   /* Mask of things that cause the mouse to be grabbed.  */
   int grabbed;
-  
+
   /* Emacs bitmap-id of the default icon bitmap for this frame.
      Or -1 if none has been allocated yet.  */
   int icon_bitmap_id;
-  
+
   /* The root window of this screen.  */
   Window root_window;
-  
+
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
-  
+
   /* X Resource data base */
   XrmDatabase xrdb;
 
@@ -274,19 +274,19 @@ struct x_display_info
 
   /* Communication with window managers.  */
   Atom Xatom_wm_protocols;
-  
+
   /* Kinds of protocol things we may receive.  */
   Atom Xatom_wm_take_focus;
   Atom Xatom_wm_save_yourself;
   Atom Xatom_wm_delete_window;
-  
+
   /* Atom for indicating window state to the window manager.  */
   Atom Xatom_wm_change_state;
-  
+
   /* Other WM communication */
   Atom Xatom_wm_configure_denied; /* When our config request is denied */
   Atom Xatom_wm_window_moved;     /* When the WM moves us.  */
-  
+
   /* EditRes protocol */
   Atom Xatom_editres;
 
@@ -476,7 +476,7 @@ struct x_output
   GtkWidget *toolbar_widget;
   /* The handle box that makes the tool bar detachable.  */
   GtkWidget *handlebox_widget;
-  
+
   /* The last size hints set.  */
   GdkGeometry size_hints;
   long hint_flags;
@@ -508,7 +508,7 @@ struct x_output
   /* Foreground color for scroll bars.  A value of -1 means use the
      default (black for non-toolkit scroll bars).  */
   unsigned long scroll_bar_foreground_pixel;
-  
+
   /* Background color for scroll bars.  A value of -1 means use the
      default (background color of the frame for non-toolkit scroll
      bars).  */
@@ -530,7 +530,7 @@ struct x_output
   /* Window whose cursor is hourglass_cursor.  This window is temporarily
      mapped to display an hourglass cursor.  */
   Window hourglass_window;
-  
+
   /* Non-zero means hourglass cursor is currently displayed.  */
   unsigned hourglass_p : 1;
 
@@ -629,7 +629,7 @@ struct x_output
   /* As x_pixels_diff, but to FRAME_OUTER_WINDOW.  For some reason the
      two might differ by a pixel, depending on WM */
   int x_pixels_outer_diff;
-  
+
   /* As y_pixels_diff, but to FRAME_OUTER_WINDOW.  In the toolkit version,
      these may differ because this does not take into account possible
      menubar.  y_pixels_diff is with menubar height included */
@@ -878,7 +878,7 @@ struct scroll_bar
 
 /* Return the length of the rectangle within which the top of the
    handle must stay.  This isn't equivalent to the inside height,
-   because the scroll bar handle has a minimum height.  
+   because the scroll bar handle has a minimum height.
 
    This is the real range of motion for the scroll bar, so when we're
    scaling buffer positions to scroll bar positions, we use this, not
@@ -941,7 +941,7 @@ struct scroll_bar
    + (f)->output_data.x->internal_border_width)
 
 
-/* Return the row/column (zero-based) of the character cell containing 
+/* Return the row/column (zero-based) of the character cell containing
    the pixel on FRAME at ROW/COL.  */
 #define PIXEL_TO_CHAR_ROW(f, row) \
   (((row) - (f)->output_data.x->internal_border_width) \

@@ -147,7 +147,7 @@ Boston, MA 02111-1307, USA.  */
 #define SEGMENT_MASK	(64 * 1024 - 1)
 
 
-/* crt0.c needs this for compilation because it uses asm.  */  
+/* crt0.c needs this for compilation because it uses asm.  */
 
 #define C_SWITCH_ASM -q nodirect_code
 

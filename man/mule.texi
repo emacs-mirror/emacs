@@ -477,7 +477,7 @@ Display a list of all the supported input methods.
 input method name from the minibuffer; the name normally starts with the
 language environment that it is meant to be used with.  The variable
 @code{current-input-method} records which input method is selected.
-  
+
 @findex toggle-input-method
 @kindex C-\
   Input methods use various sequences of ASCII characters to stand for

@@ -62,7 +62,7 @@ Use \\[end-kbd-macro] to finish recording and make the macro available.
 Use \\[name-last-kbd-macro] to give it a permanent name.
 Non-nil arg (prefix arg) means append to last macro defined;
 this begins by re-executing that macro as if you typed it again.
-If optional second arg, NO-EXEC, is non-nil, do not re-execute last 
+If optional second arg, NO-EXEC, is non-nil, do not re-execute last
 macro before appending to it. */)
      (append, no_exec)
      Lisp_Object append, no_exec;
@@ -127,7 +127,7 @@ macro before appending to it. */)
       message ("Appending to kbd macro...");
     }
   current_kboard->defining_kbd_macro = Qt;
-  
+
   return Qnil;
 }
 
@@ -155,7 +155,7 @@ With numeric arg, repeat macro now that many times,
 counting the definition just completed as the first repetition.
 An argument of zero means repeat until error.
 
-In Lisp, optional second arg LOOPFUNC may be a function that is called prior to 
+In Lisp, optional second arg LOOPFUNC may be a function that is called prior to
 each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
      (repeat, loopfunc)
      Lisp_Object repeat, loopfunc;
@@ -198,7 +198,7 @@ store_kbd_macro_char (c)
       if (kb->kbd_macro_ptr - kb->kbd_macro_buffer == kb->kbd_macro_bufsize)
 	{
 	  int ptr_offset, end_offset, nbytes;
-	  
+
 	  ptr_offset = kb->kbd_macro_ptr - kb->kbd_macro_buffer;
 	  end_offset = kb->kbd_macro_end - kb->kbd_macro_buffer;
 	  kb->kbd_macro_bufsize *= 2;
@@ -208,7 +208,7 @@ store_kbd_macro_char (c)
 	  kb->kbd_macro_ptr = kb->kbd_macro_buffer + ptr_offset;
 	  kb->kbd_macro_end = kb->kbd_macro_buffer + end_offset;
 	}
-      
+
       *kb->kbd_macro_ptr++ = c;
     }
 }
@@ -248,9 +248,9 @@ DEFUN ("call-last-kbd-macro", Fcall_last_kbd_macro, Scall_last_kbd_macro,
 A prefix argument serves as a repeat count.  Zero means repeat until error.
 
 To make a macro permanent so you can call it even after
-defining others, use \\[name-last-kbd-macro].  
+defining others, use \\[name-last-kbd-macro].
 
-In Lisp, optional second arg LOOPFUNC may be a function that is called prior to 
+In Lisp, optional second arg LOOPFUNC may be a function that is called prior to
 each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
      (prefix, loopfunc)
      Lisp_Object prefix, loopfunc;
@@ -295,9 +295,9 @@ pop_kbd_macro (info)
 DEFUN ("execute-kbd-macro", Fexecute_kbd_macro, Sexecute_kbd_macro, 1, 3, 0,
        doc: /* Execute MACRO as string of editor command characters.
 If MACRO is a symbol, its function definition is used.
-COUNT is a repeat count, or nil for once, or 0 for infinite loop. 
+COUNT is a repeat count, or nil for once, or 0 for infinite loop.
 
-Optional third arg LOOPFUNC may be a function that is called prior to 
+Optional third arg LOOPFUNC may be a function that is called prior to
 each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
      (macro, count, loopfunc)
      Lisp_Object macro, count, loopfunc;

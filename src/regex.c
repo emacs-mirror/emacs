@@ -2065,7 +2065,7 @@ re_wctype_to_bit (cc)
 static void
 extend_range_table_work_area (work_area)
      struct range_table_work_area *work_area;
-{									
+{
   work_area->allocated += 16 * sizeof (int);
   if (work_area->table)
     work_area->table
@@ -2104,7 +2104,7 @@ set_image_of_range_1 (work_area, start, end, translate)
 
      `strange' indicates a character that has more than one
      case-equivalent.  */
-     
+
   enum case_type {one_case, two_case, strange};
 
   /* Describe the run that is in progress,
@@ -2174,7 +2174,7 @@ set_image_of_range_1 (work_area, start, end, translate)
 	    }
 	  run_type = strange;
 	}
-	      
+
       if (this_type == strange)
 	{
 	  /* For a strange character, add each of its equivalents, one
@@ -2624,7 +2624,7 @@ regex_compile (pattern, size, syntax, bufp)
 		      (simple || !analyse_first (laststart, b, NULL, 0))
 		      ? on_failure_jump : on_failure_jump_loop;
 		    assert (skip_one_char (laststart) <= b);
-		    
+
 		    if (!zero_times_ok && simple)
 		      { /* Since simple * loops can be made faster by using
 		    	   on_failure_keep_string_jump, we turn simple P+
@@ -3941,7 +3941,7 @@ analyse_first (p, pend, fastmap, multibyte)
 	     case has already been handled, so we only need to look at the
 	     fallthrough case.  */
 	  continue;
-	  
+
 	case succeed_n:
 	  /* If N == 0, it should be an on_failure_jump_loop instead.  */
 	  DEBUG_STATEMENT (EXTRACT_NUMBER (j, p + 2); assert (j > 0));
@@ -4424,7 +4424,7 @@ skip_one_char (p)
     {
     case anychar:
       break;
-      
+
     case exactn:
       p += *p + 1;
       break;
@@ -4441,7 +4441,7 @@ skip_one_char (p)
       else
 	p += 1 + CHARSET_BITMAP_SIZE (p - 1);
       break;
-      
+
     case syntaxspec:
     case notsyntaxspec:
 #ifdef emacs
@@ -4524,7 +4524,7 @@ mutually_exclusive_p (bufp, p1, p2)
 	  return 1;
 	}
       break;
-      
+
     case endline:
     case exactn:
       {
@@ -4634,7 +4634,7 @@ mutually_exclusive_p (bufp, p1, p2)
 	  }
       }
       break;
-      
+
     case charset_not:
       switch (SWITCH_ENUM_CAST (*p1))
 	{
@@ -5318,7 +5318,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
 	  assert (!REG_UNSET (regstart[*p]));
 	  /* Strictly speaking, there should be code such as:
-	     
+
 		assert (REG_UNSET (regend[*p]));
 		PUSH_FAILURE_REGSTOP ((unsigned int)*p);
 
@@ -5735,7 +5735,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      PREFETCH ();
 	      c2 = RE_STRING_CHAR (d, dend - d);
 	      s2 = SYNTAX (c2);
-	
+
 	      /* Case 2: S2 is not Sword. */
 	      if (s2 != Sword)
 		goto fail;

@@ -8001,7 +8001,7 @@ redisplay_tool_bar (f)
   struct it it;
   struct glyph_row *row;
   int change_height_p = 0;
-  
+
 #ifdef USE_GTK
   if (FRAME_EXTERNAL_TOOL_BAR(f))
     update_frame_tool_bar (f);
@@ -10908,7 +10908,7 @@ redisplay_window (window, just_this_one_p)
       redisplay_tool_bar_p = WINDOWP (f->tool_bar_window)
         && (FRAME_TOOL_BAR_LINES (f) > 0
             || auto_resize_tool_bars_p);
-      
+
 #endif
 
       if (redisplay_tool_bar_p)

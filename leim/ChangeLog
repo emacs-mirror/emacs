@@ -75,7 +75,7 @@
 
 	* quail/vntelex.el: Use proper charset.
 
-2002-04-22  Koaunghi Un <koaunghi@ling.cnu.ac.kr>
+2002-04-22  Koaunghi Un  <koaunghi@ling.cnu.ac.kr>
 
 	* quail/hanja.el ("Od"): Remove rule.
 
@@ -189,7 +189,7 @@
 
 	* makefile.nt (INDIAN): Likewise.
 
-2001-11-21  KAWABATA, Taichi <batta@beige.ocn.ne.jp>
+2001-11-21  KAWABATA, Taichi  <batta@beige.ocn.ne.jp>
 
 	* quail/devanagari.el: Renamed to indian.el.
 
@@ -680,7 +680,7 @@
 	* quail/tibetan.el: Change all tibetan-1-column characters to
 	tibetan.  Quail map for "tibetan-wylie" fixed.
 
-2000-03-31  Wlodzimierz Bzyl <matwb@monika.univ.gda.pl>
+2000-03-31  Wlodzimierz Bzyl  <matwb@monika.univ.gda.pl>
 
 	* quail/latin-pre.el ("polish-slash"): New input method.
 
@@ -726,7 +726,7 @@
 
 	* makefile.nt: New file.
 
-1999-10-26  Gerd Moellmann <gerd@gnu.org>
+1999-10-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.noleim: New.
 
@@ -958,7 +958,7 @@
 	* Makefile.in (${TIT}): To byte-compile quail packages, use just
 	built quail.
 
-1997-12-09  Koaunghi Un <koanughi.un@zdv.uni-tuebingen.de>
+1997-12-09  Koaunghi Un  <koanughi.un@zdv.uni-tuebingen.de>
 
 	* quail/hanja3.el: New file.
 

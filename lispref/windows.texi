@@ -1685,7 +1685,7 @@ If @var{window} is @code{nil}, the function uses the selected window.
 
 @tindex window-body-height
 @defun window-body-height &optional window
-Like @code{window-height} but the value does not include the 
+Like @code{window-height} but the value does not include the
 mode line (if any) or the header line (if any).
 @end defun
 

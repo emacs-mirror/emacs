@@ -306,12 +306,12 @@ looking_at_1 (string, posix)
     }
 
   re_match_object = Qnil;
-  
+
   i = re_match_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 		  PT_BYTE - BEGV_BYTE, &search_regs,
 		  ZV_BYTE - BEGV_BYTE);
   immediate_quit = 0;
-  
+
   if (i == -2)
     matcher_overflow ();
 
@@ -390,7 +390,7 @@ string_match_1 (regexp, string, start, posix)
 			  STRING_MULTIBYTE (string));
   immediate_quit = 1;
   re_match_object = string;
-  
+
   val = re_search (bufp, (char *) SDATA (string),
 		   SBYTES (string), pos_byte,
 		   SBYTES (string) - pos_byte,
@@ -458,7 +458,7 @@ fast_string_match (regexp, string)
 			  0, STRING_MULTIBYTE (string));
   immediate_quit = 1;
   re_match_object = string;
-  
+
   val = re_search (bufp, (char *) SDATA (string),
 		   SBYTES (string), 0,
 		   SBYTES (string), 0);
@@ -550,7 +550,7 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
      int allow_quit;
 {
   struct region_cache *newline_cache;
-  int direction; 
+  int direction;
 
   if (count > 0)
     {
@@ -611,7 +611,7 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
 	ceiling_byte = min (tem, ceiling_byte);
 
         {
-          /* The termination address of the dumb loop.  */ 
+          /* The termination address of the dumb loop.  */
           register unsigned char *ceiling_addr
 	    = BYTE_POS_ADDR (ceiling_byte) + 1;
           register unsigned char *cursor
@@ -856,7 +856,7 @@ find_before_next_newline (from, to, cnt)
 
   if (shortage == 0)
     pos--;
-  
+
   return pos;
 }
 
@@ -1062,7 +1062,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	  s2 = 0;
 	}
       re_match_object = Qnil;
-  
+
       while (n < 0)
 	{
 	  int val;
@@ -1528,7 +1528,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
   int infinity, limit, stride_for_teases = 0;
   register int *BM_tab;
   int *BM_tab_base;
-  register unsigned char *cursor, *p_limit;  
+  register unsigned char *cursor, *p_limit;
   register int i, j;
   unsigned char *pat, *pat_end;
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
@@ -1561,14 +1561,14 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
   /* a single test, a test for having gone past the end of the */
   /* permissible match region, to test for both possible matches (when */
   /* the stride goes past the end immediately) and failure to */
-  /* match (where you get nudged past the end one stride at a time). */ 
+  /* match (where you get nudged past the end one stride at a time). */
 
   /* Here we make a "mickey mouse" BM table.  The stride of the search */
   /* is determined only by the last character of the putative match. */
   /* If that character does not match, we will stride the proper */
   /* distance to propose a match that superimposes it on the last */
   /* instance of a character that matches it (per trt), or misses */
-  /* it entirely if there is none. */  
+  /* it entirely if there is none. */
 
   dirlen = len_byte * direction;
   infinity = dirlen - (lim_byte + pos_byte + len_byte + len_byte) * direction;
@@ -1656,7 +1656,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 
 	  BM_tab[j] = dirlen - i;
 	  /* A translation table is accompanied by its inverse -- see */
-	  /* comment following downcase_table for details */ 
+	  /* comment following downcase_table for details */
 	  if (this_translated)
 	    {
 	      int starting_ch = ch;
@@ -1844,7 +1844,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      /* This loop can be coded for space rather than */
 	      /* speed because it will usually run only once. */
 	      /* (the reach is at most len + 21, and typically */
-	      /* does not exceed len) */    
+	      /* does not exceed len) */
 	      while ((limit - pos_byte) * direction >= 0)
 		pos_byte += BM_tab[FETCH_BYTE (pos_byte)];
 	      /* now run the same tests to distinguish going off the */
@@ -1957,7 +1957,7 @@ wordify (string)
   for (i = 0, i_byte = 0; i < len; )
     {
       int c;
-      
+
       FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
 
       if (SYNTAX (c) != Sword)
@@ -1992,7 +1992,7 @@ wordify (string)
     {
       int c;
       int i_byte_orig = i_byte;
-      
+
       FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
 
       if (SYNTAX (c) == Sword)
@@ -2360,7 +2360,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	      if (c == '\\')
 		{
 		  FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
-		      
+
 		  if (c == '&')
 		    {
 		      substart = search_regs.start[sub];
@@ -2593,7 +2593,7 @@ since only regular expressions have distinguished subexpressions.  */)
 
   /* Now move point "officially" to the start of the inserted replacement.  */
   move_if_not_intangible (newpoint);
-  
+
   return Qnil;
 }
 
@@ -2639,7 +2639,7 @@ Zero means the entire text matched by the whole regexp or whole string.  */)
      Lisp_Object subexp;
 {
   return match_limit (subexp, 0);
-} 
+}
 
 DEFUN ("match-data", Fmatch_data, Smatch_data, 0, 2, 0,
        doc: /* Return a list containing all info on what the last search matched.
@@ -2687,7 +2687,7 @@ to hold all the values, and if INTEGERS is non-nil, no consing is done.  */)
 			   last_thing_searched);
 	      data[2 * i + 1] = Fmake_marker ();
 	      Fset_marker (data[2 * i + 1],
-			   make_number (search_regs.end[i]), 
+			   make_number (search_regs.end[i]),
 			   last_thing_searched);
 	    }
 	  else
@@ -2740,7 +2740,7 @@ LIST should have been created by calling `match-data' previously.  */)
   if (!CONSP (list) && !NILP (list))
     list = wrong_type_argument (Qconsp, list);
 
-  /* Unless we find a marker with a buffer in LIST, assume that this 
+  /* Unless we find a marker with a buffer in LIST, assume that this
      match data came from a string.  */
   last_thing_searched = Qt;
 
@@ -2809,7 +2809,7 @@ LIST should have been created by calling `match-data' previously.  */)
       list = Fcdr (list);
     }
 
-  return Qnil;  
+  return Qnil;
 }
 
 /* If non-zero the match data have been saved in saved_search_regs
@@ -2873,7 +2873,7 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 
   in = SDATA (string);
   end = in + SBYTES (string);
-  out = temp; 
+  out = temp;
 
   for (; in != end; in++)
     {
@@ -2890,7 +2890,7 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 				out - temp,
 				STRING_MULTIBYTE (string));
 }
-  
+
 void
 syms_of_search ()
 {

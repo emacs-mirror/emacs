@@ -19,7 +19,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="usg5-3"  */
 
@@ -54,7 +54,7 @@ Boston, MA 02111-1307, USA.  */
 /* Use type int rather than a union, to represent Lisp_Object */
 /* This is desirable for most machines.  */
 
-#define NO_UNION_TYPE 
+#define NO_UNION_TYPE
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the 24-bit bit field into an int.  In other words, if bit fields
@@ -84,7 +84,7 @@ Boston, MA 02111-1307, USA.  */
    Otherwise Emacs assumes that text space precedes data space,
    numerically.  */
 
-/* #define VIRT_ADDR_VARIES */ 
+/* #define VIRT_ADDR_VARIES */
 
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
@@ -96,13 +96,13 @@ Boston, MA 02111-1307, USA.  */
 /* Motorola SysV has PTYs.  Not all usg3-5 systems do, so this is defined
    here. */
 
-#define HAVE_PTYS 
+#define HAVE_PTYS
 #define SYSV_PTYS
 
 /* Ditto for IPC. */
 
 
-/* 
+/*
  * we now have job control in R32V1
  */
 #undef NOMULTIPLEJOBS
@@ -134,7 +134,7 @@ Boston, MA 02111-1307, USA.  */
 /* previously defined in usg5-4, if we choose to use that.  */
 #ifndef LIBS_SYSTEM
 #ifdef USG5_4
-#define LIBS_SYSTEM -lsocket -lnsl 
+#define LIBS_SYSTEM -lsocket -lnsl
 #else
 #define LIBS_SYSTEM -lbsd -lg
 #endif /* USG5_4 */

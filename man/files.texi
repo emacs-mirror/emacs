@@ -1083,7 +1083,7 @@ links point to directories.
   If you visit two names for the same file, normally Emacs makes
 two different buffers, but it warns you about the situation.
 
-@vindex find-file-existing-other-name 
+@vindex find-file-existing-other-name
 @vindex find-file-suppress-same-file-warnings
   Normally, if you visit a file which Emacs is already visiting under
 a different name, Emacs displays a message in the echo area and uses
@@ -1112,7 +1112,7 @@ implies the effect of @code{find-file-existing-other-name}.
   @dfn{Version control systems} are packages that can record multiple
 versions of a source file, usually storing the unchanged parts of the
 file just once.  Version control systems also record history information
-such as the creation time of each version, who created it, and a 
+such as the creation time of each version, who created it, and a
 description of what was changed in that version.
 
   The Emacs version control interface is called VC.  Its commands work
@@ -1239,7 +1239,7 @@ check-in time.  However, CVS can also be set up to require locking.
 @node Types of Log File
 @subsubsection Types of Log File
 @cindex types of log file
-@cindex log File, types of 
+@cindex log File, types of
 @cindex version control log
 
 GNU projects under a revision control system generally possess
@@ -1310,8 +1310,8 @@ in your @file{~/.emacs} file.  (@xref{Init Rebinding}.)
 * Advanced C-x v v::    Advanced features available with a prefix argument.
 * Log Buffer::          Features available in log entry buffers.
 @end menu
-               
-@node VC with Locking                 
+
+@node VC with Locking
 @subsubsection Basic Version Control with Locking
 
   If locking is used for the file (as with SCCS, and RCS in its default
@@ -1540,7 +1540,7 @@ use once a day.
 * Registering::         Putting a file under version control.
 * VC Status::           Viewing the VC status of files.
 * VC Undo::             Cancelling changes before or after check-in.
-* VC Dired Mode::       Listing files managed by version control. 
+* VC Dired Mode::       Listing files managed by version control.
 * VC Dired Commands::   Commands to use in a VC Dired buffer.
 @end menu
 
@@ -1807,7 +1807,7 @@ example above have branch numbers 1.2.1 and 1.2.2.
 * Switching Branches::    How to get to another existing branch.
 * Creating Branches::     How to start a new branch.
 * Merging::               Transferring changes between branches.
-* Multi-User Branching::  Multiple users working at multiple branches 
+* Multi-User Branching::  Multiple users working at multiple branches
                             in parallel.
 @end menu
 
@@ -2225,7 +2225,7 @@ won't really work as retrieved.
 
 @menu
 * Change Logs and VC::  Generating a change log file from log entries.
-* Renaming and VC::     A command to rename both the source and master 
+* Renaming and VC::     A command to rename both the source and master
                           file correctly.
 * Version Headers::     Inserting version control headers into working files.
 @end menu

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/syntax
 @node Syntax Tables, Abbrevs, Searching and Matching, Top
@@ -664,36 +664,36 @@ The result is a list of nine elements describing the final state of
 the parse:
 
 @enumerate 0
-@item 
+@item
 The depth in parentheses, counting from 0.
 
-@item 
+@item
 @cindex innermost containing parentheses
 The character position of the start of the innermost parenthetical
 grouping containing the stopping point; @code{nil} if none.
 
-@item 
+@item
 @cindex previous complete subexpression
 The character position of the start of the last complete subexpression
 terminated; @code{nil} if none.
 
-@item 
+@item
 @cindex inside string
 Non-@code{nil} if inside a string.  More precisely, this is the
 character that will terminate the string, or @code{t} if a generic
 string delimiter character should terminate it.
 
-@item 
+@item
 @cindex inside comment
 @code{t} if inside a comment (of either style),
 or the comment nesting level if inside a kind of comment
 that can be nested.
 
-@item 
+@item
 @cindex quote character
 @code{t} if point is just after a quote character.
 
-@item 
+@item
 The minimum parenthesis depth encountered during this scan.
 
 @item

@@ -262,7 +262,7 @@ if you set the variable @code{next-line-add-newlines} to a
 non-@code{nil} value, @kbd{C-n} on the last line of a buffer creates
 an additional line at the end and moves down onto it.
 
-@node Erasing	
+@node Erasing
 @section Erasing Text
 
 @table @kbd
@@ -611,7 +611,7 @@ point and the character after it.  It displays a line in the echo area
 that looks like this:
 
 @smallexample
-Char: c (0143, 99, 0x63)  point=21044 of 26883(78%)  column 53 
+Char: c (0143, 99, 0x63)  point=21044 of 26883(78%)  column 53
 @end smallexample
 
 @noindent
@@ -641,7 +641,7 @@ additional text describing the currently accessible range.  For example, it
 might display this:
 
 @smallexample
-Char: C (0103, 67, 0x43)  point=252 of 889(28%) <231 - 599>  column 0 
+Char: C (0103, 67, 0x43)  point=252 of 889(28%) <231 - 599>  column 0
 @end smallexample
 
 @noindent

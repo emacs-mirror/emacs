@@ -162,7 +162,7 @@ extern void (*set_vertical_scroll_bar_hook)
 
 /* Arrange for all scroll bars on FRAME to be removed at the next call
    to `*judge_scroll_bars_hook'.  A scroll bar may be spared if
-   `*redeem_scroll_bar_hook' is applied to its window before the judgement. 
+   `*redeem_scroll_bar_hook' is applied to its window before the judgement.
 
    This should be applied to each frame each time its window tree is
    redisplayed, even if it is not displaying scroll bars at the moment;
@@ -179,7 +179,7 @@ extern void (*condemn_scroll_bars_hook) P_ ((struct frame *frame));
 extern void (*redeem_scroll_bar_hook) P_ ((struct window *window));
 
 /* Remove all scroll bars on FRAME that haven't been saved since the
-   last call to `*condemn_scroll_bars_hook'.  
+   last call to `*condemn_scroll_bars_hook'.
 
    This should be applied to each frame after each time its window
    tree is redisplayed, even if it is not displaying scroll bars at the
@@ -241,8 +241,8 @@ enum event_kind
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
 #if defined(WINDOWSNT) || defined(MAC_OSX)
-  MOUSE_WHEEL_EVENT,		/* A mouse-wheel event is generated 
-				   on WINDOWSNT or MAC_OSX by a 
+  MOUSE_WHEEL_EVENT,		/* A mouse-wheel event is generated
+				   on WINDOWSNT or MAC_OSX by a
 				   wheel on a mouse (e.g., MS Intellimouse).
 				   The event contains a delta that corresponds
 				   to the amount and direction that the wheel
@@ -298,7 +298,7 @@ enum event_kind
 				   files selected outside of Emacs are dropped
 				   onto an Emacs window.
 				   Currently used only on Windows NT.
-				   .modifiers holds the state of the 
+				   .modifiers holds the state of the
 				   modifier keys.
 				   .x and .y give the mouse position,
 				   in characters, within the window.
@@ -346,7 +346,7 @@ struct input_event
 {
   /* What kind of event was this?  */
   enum event_kind kind;
-  
+
   /* For an ASCII_KEYSTROKE_EVENT and MULTIBYTE_CHAR_KEYSTROKE_EVENT,
      this is the character.
      For a NON_ASCII_KEYSTROKE_EVENT, this is the keysym code.
@@ -386,7 +386,7 @@ extern void (*frame_up_to_date_hook) P_ ((struct frame *));
 
 /* Bits in the modifiers member of the input_event structure.
    Note that reorder_modifiers assumes that the bits are in canonical
-   order.  
+   order.
 
    The modifiers applied to mouse clicks are rather ornate.  The
    window-system-specific code should store mouse clicks with

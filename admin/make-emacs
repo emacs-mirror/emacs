@@ -111,7 +111,7 @@ if (@ARGV && $ARGV[0] eq "all")
 
 system ("$make clean versionclean") if $all;
 
-if ($wall) 
+if ($wall)
   {
     $warn = "-Wall";
   }
@@ -125,14 +125,14 @@ $defs = "-DGLYPH_DEBUG=1" unless $optim;
 $defs = "$defs -DGC_CHECK_MARKED_OBJECTS=1" if $check_marked;
 $defs = "$defs -DENABLE_CHECKING=1" if $enable_checking;
 
-if ($profile) 
+if ($profile)
   {
     $opts = "-pg";
     $defs = "$defs -DPROFILING=1";
   }
 else
   {
-    if ($use_stabs) 
+    if ($use_stabs)
       {
 	$opts = "-gstabs";
       }

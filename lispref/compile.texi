@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/compile
 @node Byte Compilation, Advising Functions, Loading, Top
@@ -64,7 +64,7 @@ Here is an example:
 (defun silly-loop (n)
   "Return time before and after N iterations of a loop."
   (let ((t1 (current-time-string)))
-    (while (> (setq n (1- n)) 
+    (while (> (setq n (1- n))
               0))
     (list t1 (current-time-string))))
 @result{} silly-loop
@@ -530,7 +530,7 @@ they still serve their purpose.
 @group
 0   constant 1              ; @r{Push 1 onto stack.}
 
-1   varref   integer        ; @r{Get value of @code{integer}} 
+1   varref   integer        ; @r{Get value of @code{integer}}
                             ;   @r{from the environment}
                             ;   @r{and push the value}
                             ;   @r{onto the stack.}
@@ -573,7 +573,7 @@ they still serve their purpose.
 @group
                             ; @r{Stack now contains:}
                             ;   @minus{} @r{decremented value of @code{integer}}
-                            ;   @minus{} @r{@code{factorial}} 
+                            ;   @minus{} @r{@code{factorial}}
                             ;   @minus{} @r{value of @code{integer}}
                             ;   @minus{} @r{@code{*}}
 @end group
@@ -616,7 +616,7 @@ The @code{silly-loop} function is somewhat more complex:
 (defun silly-loop (n)
   "Return time before and after N iterations of a loop."
   (let ((t1 (current-time-string)))
-    (while (> (setq n (1- n)) 
+    (while (> (setq n (1- n))
               0))
     (list t1 (current-time-string))))
      @result{} silly-loop
@@ -717,7 +717,7 @@ The @code{silly-loop} function is somewhat more complex:
 @end group
 
 @group
-19  constant current-time-string  ; @r{Push} 
+19  constant current-time-string  ; @r{Push}
                                   ;   @r{@code{current-time-string}}
                                   ;   @r{onto top of stack.}
 @end group

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/lists
 @node Lists, Sequences Arrays Vectors, Strings and Characters, Top
@@ -498,7 +498,7 @@ This macro provides an alternative way to write
 It is new in Emacs 21.
 
 @example
-(setq l '(a b)) 
+(setq l '(a b))
      @result{} (a b)
 (push 'c l)
      @result{} (c a b)
@@ -738,7 +738,7 @@ destructively.  See @ref{Sets And Lists}.
 @cindex destructive list operations
 
   You can modify the @sc{car} and @sc{cdr} contents of a cons cell with the
-primitives @code{setcar} and @code{setcdr}.  We call these ``destructive'' 
+primitives @code{setcar} and @code{setcdr}.  We call these ``destructive''
 operations because they change existing list structure.
 
 @cindex CL note---@code{rplaca} vrs @code{setcar}

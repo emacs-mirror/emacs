@@ -210,7 +210,7 @@ char_to_string_1 (c, str)
       /* If C still has any modifier bits, just ignore it.  */
       c &= ~CHAR_MODIFIER_MASK;
     }
-  
+
   if (SINGLE_BYTE_CHAR_P (c))
     {
       if (ASCII_BYTE_P (c) || c >= 0xA0)
@@ -345,7 +345,7 @@ char_printable_p (c)
     return 0;
   else if (c >= MAX_CHAR)
     return 0;
-  
+
   SPLIT_CHAR (c, charset, c1, c2);
   if (! CHARSET_DEFINED_P (charset))
     return 0;
@@ -817,7 +817,7 @@ find_charset_in_text (ptr, nchars, nbytes, charsets, table)
 	    {
 	      maskbits |= (*ptr < 0x80 ? 1 : *ptr < 0xA0 ? 2 : 4);
 	      ptr++;
-	    }	      
+	    }
 
 	  if (maskbits & 1)
 	    charsets[CHARSET_ASCII] = 1;
@@ -1548,7 +1548,7 @@ str_as_multibyte (str, len, nbytes, nchars)
 	{
 	  while (n--)
 	    *to++ = *p++;
-	}	  
+	}
       else
 	{
 	  *to++ = LEADING_CODE_8_BIT_CONTROL;
@@ -1600,7 +1600,7 @@ str_to_multibyte (str, len, bytes)
   endp = str + len;
   safe_bcopy (p, endp - bytes, bytes);
   p = endp - bytes;
-  while (p < endp)      
+  while (p < endp)
     {
       if (*p < 0x80 || *p >= 0xA0)
 	*to++ = *p++;
@@ -1624,7 +1624,7 @@ str_as_unibyte (str, bytes)
 
   while (p < endp && *p != LEADING_CODE_8_BIT_CONTROL) p++;
   to = p;
-  while (p < endp)      
+  while (p < endp)
     {
       if (*p == LEADING_CODE_8_BIT_CONTROL)
 	*to++ = *(p + 1) - 0x20, p += 2;

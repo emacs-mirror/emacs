@@ -89,7 +89,7 @@
 		      (format ofile "(insert-file \"~A\")"
 			             *ledit-ppfile*)
 		      (format ofile "(lisp-mode)"))
-	   
+
 		 (t (format t "~&~A -- unknown option~%" (cdr args))))
 	   (close ofile))))
 

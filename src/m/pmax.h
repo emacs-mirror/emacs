@@ -2,9 +2,9 @@
 
 #include "mips.h"
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
-   USUAL-OPSYS="note"  
+   USUAL-OPSYS="note"
 
 NOTE-START
 The operating system would be either osf1, ultrix, or NetBSD.

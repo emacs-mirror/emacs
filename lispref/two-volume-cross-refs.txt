@@ -28,7 +28,7 @@ and in Volume II:
     list motion .........117
 
 All other references and the table of contents work the same way.  I
-find this *very* helpful. 
+find this *very* helpful.
 
 
 In brief: you run tex on a .texi file with
@@ -126,16 +126,16 @@ Create volume specific .toc files with volume numbers in them.
 % cp elisp-toc-2vol.toc elisp1-toc.toc
 % cp elisp-toc-2vol.toc elisp2-toc.toc
 
-Use keyboard macro to put I: in first half of elisp1-toc.toc and 
+Use keyboard macro to put I: in first half of elisp1-toc.toc and
 II: in first half of elisp2-toc.toc
 
 Copy the tocs to something you can remember more easily
 
-% cp elisp2-toc.toc elisp1-toc-ready.toc 
-% cp elisp1-toc.toc elisp2-toc-ready.toc 
+% cp elisp2-toc.toc elisp1-toc-ready.toc
+% cp elisp1-toc.toc elisp2-toc-ready.toc
 
-Then, edit vol1.texi to input elisp1-toc-ready.toc 
-and vol2.texi to input elisp2-toc-ready.toc 
+Then, edit vol1.texi to input elisp1-toc-ready.toc
+and vol2.texi to input elisp2-toc-ready.toc
 
 
 ### Now format the two volumes:
@@ -217,7 +217,7 @@ Then insert marked file into other volume's .aux file."
 
 (defun volume-index-markup (arg)
   "Prepend  `NUMBER:' to page number.  Use Roman Numeral.
-Apply only to unsorted index file, 
+Apply only to unsorted index file,
 Then insert marked file into other volume's unsorted index file.
 Then run texindex on that file and save."
   (interactive
@@ -236,11 +236,11 @@ The steps:
 1. Run TeX, texindex and TeX on file1.
 2. Run TeX, texindex and TeX on file2.
 
-3. Copy both .aux files into specially named files 
+3. Copy both .aux files into specially named files
 
-4. In the case of the elisp ref manual, 
+4. In the case of the elisp ref manual,
 
-   copy the *unsorted* function index files into specially named files 
+   copy the *unsorted* function index files into specially named files
    (no other index used in elisp ref manual)
 
 
@@ -249,7 +249,7 @@ The steps:
    Run a function on the specially named .aux files to label each
    entry according to volume.  Save these files.
 
-   i.e., convert     
+   i.e., convert
    'xrdef {Special-pg}{7}  to 'xrdef {Special-pg}{7, vol.'tie1}
 
 5a.Insert each specially named .aux file into the regular .aux file of

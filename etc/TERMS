@@ -54,7 +54,7 @@ is `cS', which I invented.
 	to use this even though the Unix termcap does not accept it
 	because programs other than Emacs probably won't look for `rp'
 	anyway.
-	
+
 `cs'    set scroll region.  Takes two parameters, the vertical
 	positions of the first line to include in the scroll region
 	and the last line to include in the scroll region.
@@ -196,12 +196,12 @@ AT386-M|at386-m|386AT-M|386at-m|at/386 console,
 	sgr0=\E[0;10m, smacs=\E[12m, smso=\E[7m, smul=\E[4m,
 
 #
-# AT&T 386 color console 
+# AT&T 386 color console
 #
 AT386|at386|386AT|386at|at/386 console,
 	colors#8, ncv#3, pairs#64,
 	is2=\E[0;10;39m,
-	op=\E[0m, 
+	op=\E[0m,
 	setb=\E[%?%p1%{0}%=%t40m
                 %e%p1%{1}%=%t44m
                 %e%p1%{2}%=%t42m

@@ -8,13 +8,13 @@
 	* INSTALL: Added documentation about --enable-carbon-app and
 	changed documentation concerning Emacs.app location
 	Removed some of the documentation about make-package that isn't
-	needed 
+	needed
 	Changed comment about requiring root permission to install to
 	saying that it might be necessary depending on where you install
 	Refered to /usr caveat in more places
 	* make-package (make_options): Use new carbon_appdir option to
 	specify directory to install Application and lets the makefile
-	install 
+	install
 
 2003-01-01  Steven Tamm  <steventamm@mac.com>
 

@@ -7,7 +7,7 @@
   If you used WinZip to unpack the distribution, we suggest to
   remove the files and unpack again with a different program!
   WinZip is known to create some subtle and hard to debug problems,
-  such as converting files to DOS CR-LF format, not creating empty 
+  such as converting files to DOS CR-LF format, not creating empty
   directories, etc.  We suggest to use djtarnt.exe from the GNU FTP
   site.
 
@@ -35,7 +35,7 @@
   In addition, using 4NT as your shell is known to fail the build process,
   at least for 4NT version 3.01.  Use cmd.exe, the default NT shell,
   instead.
- 
+
                                          sh exists     no sh
 
     cygwin b20.1 make (3.75):            fails[1, 5]   fails[2, 5]
@@ -46,7 +46,7 @@
     cygwin compiled gmake 3.77:          fails[1, 5]   fails[2, 5]
     cygwin compiled make 3.78.1:         fails[5]      fails[2, 5]
     cygwin compiled make 3.79.1:         fails[3, 5]   fails[2?, 5]
-    mingw32 compiled make 3.79.1:        okay          okay 
+    mingw32 compiled make 3.79.1:        okay          okay
 
   Notes:
 

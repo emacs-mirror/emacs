@@ -44,7 +44,7 @@ VERSION=2.9
 manual = elisp-manual-21-$(VERSION)
 
 # Uncomment this line for permuted index.
-# permuted_index = 1 
+# permuted_index = 1
 
 # List of all the texinfo files in the manual:
 
@@ -144,7 +144,7 @@ install: elisp
 clean:
 	rm -f *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \
               *.vr *.vrs *.pg *.pgs *.ky *.kys
-	rm -f make.out core 
+	rm -f make.out core
 	rm -f index.texi
 
 distclean: clean

@@ -76,7 +76,7 @@ static void tty_hide_cursor P_ ((void));
          tputs (a, (int) (FRAME_HEIGHT (XFRAME (selected_frame))	\
 			  - curY), cmputc);				\
      } while (0)
-     
+
 #define OUTPUT1_IF(a) do { if (a) tputs (a, 1, cmputc); } while (0)
 
 /* Function to use to ring the bell.  */
@@ -203,7 +203,7 @@ void (*set_vertical_scroll_bar_hook)
 
 /* Arrange for all scroll bars on FRAME to be removed at the next call
    to `*judge_scroll_bars_hook'.  A scroll bar may be spared if
-   `*redeem_scroll_bar_hook' is applied to its window before the judgment. 
+   `*redeem_scroll_bar_hook' is applied to its window before the judgment.
 
    This should be applied to each frame each time its window tree is
    redisplayed, even if it is not displaying scroll bars at the moment;
@@ -222,7 +222,7 @@ void (*condemn_scroll_bars_hook) P_ ((FRAME_PTR frame));
 void (*redeem_scroll_bar_hook) P_ ((struct window *window));
 
 /* Remove all scroll bars on FRAME that haven't been saved since the
-   last call to `*condemn_scroll_bars_hook'.  
+   last call to `*condemn_scroll_bars_hook'.
 
    This should be applied to each frame after each time its window
    tree is redisplayed, even if it is not displaying scroll bars at the
@@ -431,7 +431,7 @@ ring_bell ()
 	 We don't specbind it, because that would carefully
 	 restore the bad value if there's an error
 	 and make the loop of errors happen anyway.  */
-      
+
       function = Vring_bell_function;
       Vring_bell_function = Qnil;
 
@@ -499,7 +499,7 @@ update_end (f)
     }
   else
     update_end_hook (f);
-  
+
   updating_frame = NULL;
 }
 
@@ -523,7 +523,7 @@ set_scroll_region (start, stop)
 {
   char *buf;
   struct frame *sf = XFRAME (selected_frame);
-  
+
   if (TS_set_scroll_region)
     buf = tparam (TS_set_scroll_region, 0, 0, start, stop - 1);
   else if (TS_set_scroll_region_1)
@@ -533,7 +533,7 @@ set_scroll_region (start, stop)
 		  FRAME_HEIGHT (sf));
   else
     buf = tparam (TS_set_window, 0, 0, start, 0, stop, FRAME_WIDTH (sf));
-  
+
   OUTPUT (buf);
   xfree (buf);
   losecursor ();
@@ -644,7 +644,7 @@ cursor_to (vpos, hpos)
      int vpos, hpos;
 {
   struct frame *f = updating_frame ? updating_frame : XFRAME (selected_frame);
-  
+
   if (! FRAME_TERMCAP_P (f) && cursor_to_hook)
     {
       (*cursor_to_hook) (vpos, hpos);
@@ -720,7 +720,7 @@ void
 clear_frame ()
 {
   struct frame *sf = XFRAME (selected_frame);
-  
+
   if (clear_frame_hook
       && ! FRAME_TERMCAP_P ((updating_frame ? updating_frame : sf)))
     {
@@ -872,7 +872,7 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 		  coding->src_multibyte = STRING_MULTIBYTE (tbase[g]);
 		}
 	    }
-	  
+
 	  result = encode_coding (coding, buf, dst, len, dst_end - dst);
 	  len -= coding->consumed;
 	  dst += coding->produced;
@@ -895,7 +895,7 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 	}
       src++;
     }
-  
+
   *consumed = src - src_start;
   return (dst - dst_start);
 }
@@ -933,17 +933,17 @@ write_glyphs (string, len)
     return;
 
   cmplus (len);
-  
+
   /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
      the tail.  */
   terminal_coding.mode &= ~CODING_MODE_LAST_BLOCK;
-  
+
   while (len > 0)
     {
       /* Identify a run of glyphs with the same face.  */
       int face_id = string->face_id;
       int n;
-      
+
       for (n = 1; n < len; ++n)
 	if (string[n].face_id != face_id)
 	  break;
@@ -977,7 +977,7 @@ write_glyphs (string, len)
       turn_off_face (f, face_id);
       turn_off_highlight ();
     }
-  
+
   /* We may have to output some codes to terminate the writing.  */
   if (CODING_REQUIRE_FLUSHING (&terminal_coding))
     {
@@ -994,12 +994,12 @@ write_glyphs (string, len)
 		    termscript);
 	}
     }
-  
+
   cmcheckmagic ();
 }
 
 /* If start is zero, insert blanks instead of a string at start */
- 
+
 void
 insert_glyphs (start, len)
      register struct glyph *start;
@@ -1087,7 +1087,7 @@ insert_glyphs (start, len)
 	  turn_off_highlight ();
 	}
     }
-  
+
   cmcheckmagic ();
 }
 
@@ -1148,7 +1148,7 @@ ins_del_lines (vpos, n)
     }
 
   sf = XFRAME (selected_frame);
-  
+
   /* If the lines below the insertion are being pushed
      into the end of the window, this is the same as clearing;
      and we know the lines are already clear, since the matching
@@ -1462,7 +1462,7 @@ static char **term_get_fkeys_arg;
 static Lisp_Object term_get_fkeys_1 ();
 
 /* Find the escape codes sent by the function keys for Vfunction_key_map.
-   This function scans the termcap function key sequence entries, and 
+   This function scans the termcap function key sequence entries, and
    adds entries to Vfunction_key_map for each function key it finds.  */
 
 void
@@ -1567,7 +1567,7 @@ term_get_fkeys_1 ()
 			 Fmake_vector (make_number (1),	\
 				       intern (sym)));	\
 	}
-	  
+
       /* if there's no key_next keycap, map key_npage to `next' keysym */
       CONDITIONAL_REASSIGN ("%5", "kN", "next");
       /* if there's no key_prev keycap, map key_ppage to `previous' keysym */
@@ -1607,7 +1607,7 @@ static void append_glyph P_ ((struct it *));
    for which to produce glyphs; IT->face_id contains the character's
    face.  Padding glyphs are appended if IT->c has a IT->pixel_width >
    1.  */
-   
+
 static void
 append_glyph (it)
      struct it *it;
@@ -1620,8 +1620,8 @@ append_glyph (it)
 	   + it->glyph_row->used[it->area]);
   end = it->glyph_row->glyphs[1 + it->area];
 
-  for (i = 0; 
-       i < it->pixel_width && glyph < end; 
+  for (i = 0;
+       i < it->pixel_width && glyph < end;
        ++i)
     {
       glyph->type = CHAR_GLYPH;
@@ -1631,7 +1631,7 @@ append_glyph (it)
       glyph->padding_p = i > 0;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
-      
+
       ++it->glyph_row->used[it->area];
       ++glyph;
     }
@@ -1656,7 +1656,7 @@ append_glyph (it)
    Callers usually don't call produce_glyphs directly;
    instead they use the macro PRODUCE_GLYPHS.  */
 
-void 
+void
 produce_glyphs (it)
      struct it *it;
 {
@@ -1665,7 +1665,7 @@ produce_glyphs (it)
 	   || it->what == IT_COMPOSITION
 	   || it->what == IT_IMAGE
 	   || it->what == IT_STRETCH);
-  
+
   /* Nothing but characters are supported on terminal frames.  For a
      composition sequence, it->c is the first character of the
      sequence.  */
@@ -1684,8 +1684,8 @@ produce_glyphs (it)
     {
       int absolute_x = (it->current_x
 			+ it->continuation_lines_width);
-      int next_tab_x 
-	= (((1 + absolute_x + it->tab_width - 1) 
+      int next_tab_x
+	= (((1 + absolute_x + it->tab_width - 1)
 	    / it->tab_width)
 	   * it->tab_width);
       int nspaces;
@@ -1696,17 +1696,17 @@ produce_glyphs (it)
 	 continued line.  So, we will get the right number of spaces
 	 here.  */
       nspaces = next_tab_x - absolute_x;
-      
+
       if (it->glyph_row)
 	{
 	  int n = nspaces;
-	  
+
 	  it->c = ' ';
 	  it->pixel_width = it->len = 1;
-	  
+
 	  while (n--)
 	    append_glyph (it);
-	  
+
 	  it->c = '\t';
 	}
 
@@ -1734,12 +1734,12 @@ produce_glyphs (it)
 
       it->pixel_width = CHARSET_WIDTH (charset);
       it->nglyphs = it->pixel_width;
-      
+
       if (it->glyph_row)
 	append_glyph (it);
     }
 
-  /* Advance current_x by the pixel width as a convenience for 
+  /* Advance current_x by the pixel width as a convenience for
      the caller.  */
   if (it->area == TEXT_AREA)
     it->current_x += it->pixel_width;
@@ -1760,7 +1760,7 @@ produce_special_glyphs (it, what)
      enum display_element_type what;
 {
   struct it temp_it;
-  
+
   temp_it = *it;
   temp_it.dp = NULL;
   temp_it.what = IT_CHARACTER;
@@ -1780,7 +1780,7 @@ produce_special_glyphs (it, what)
 	}
       else
 	temp_it.c = '\\';
-      
+
       produce_glyphs (&temp_it);
       it->pixel_width = temp_it.pixel_width;
       it->nglyphs = temp_it.pixel_width;
@@ -1797,7 +1797,7 @@ produce_special_glyphs (it, what)
 	}
       else
 	temp_it.c = '$';
-      
+
       produce_glyphs (&temp_it);
       it->pixel_width = temp_it.pixel_width;
       it->nglyphs = temp_it.pixel_width;
@@ -1918,7 +1918,7 @@ turn_on_face (f, face_id)
   if (TN_max_colors > 0)
     {
       char *p;
-      
+
       if (fg >= 0 && TS_set_foreground)
 	{
 	  p = tparam (TS_set_foreground, NULL, 0, (int) fg);
@@ -1934,7 +1934,7 @@ turn_on_face (f, face_id)
 	}
     }
 }
-  
+
 
 /* Turn off appearances of face FACE_ID on tty frame F.  */
 
@@ -1986,8 +1986,8 @@ turn_off_face (f, face_id)
 	      && face->background != FACE_TTY_DEFAULT_BG_COLOR)))
     OUTPUT1_IF (TS_orig_pair);
 }
-  
-    
+
+
 /* Return non-zero if the terminal on frame F supports all of the
    capabilities in CAPS simultaneously, with foreground and background
    colors FG and BG.  */
@@ -2316,7 +2316,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   TS_cursor_visible = tgetstr ("vs", address);
   TS_cursor_invisible = tgetstr ("vi", address);
   TS_set_window = tgetstr ("wi", address);
-  
+
   TS_enter_underline_mode = tgetstr ("us", address);
   TS_exit_underline_mode = tgetstr ("ue", address);
   TS_enter_bold_mode = tgetstr ("md", address);
@@ -2326,7 +2326,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   TS_enter_alt_charset_mode = tgetstr ("as", address);
   TS_exit_alt_charset_mode = tgetstr ("ae", address);
   TS_exit_attribute_mode = tgetstr ("me", address);
-  
+
   MultiUp = tgetstr ("UP", address);
   MultiDown = tgetstr ("DO", address);
   MultiLeft = tgetstr ("LE", address);
@@ -2346,10 +2346,10 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	  TS_set_foreground = tgetstr ("Sf", address);
 	  TS_set_background = tgetstr ("Sb", address);
 	}
-      
+
       TN_max_colors = tgetnum ("Co");
       TN_max_pairs = tgetnum ("pa");
-      
+
       TN_no_color_video = tgetnum ("NC");
       if (TN_no_color_video == -1)
 	TN_no_color_video = 0;
@@ -2387,7 +2387,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     SET_FRAME_WIDTH (sf, FRAME_WIDTH (sf));
   if (FRAME_HEIGHT (sf) <= 0)
     FRAME_HEIGHT (sf) = tgetnum ("li");
-  
+
   if (FRAME_HEIGHT (sf) < 3 || FRAME_WIDTH (sf) < 3)
     fatal ("Screen size %dx%d is too small",
 	   FRAME_HEIGHT (sf), FRAME_WIDTH (sf));
@@ -2414,7 +2414,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   if (TabWidth < 0)
     TabWidth = 8;
-  
+
 /* Turned off since /etc/termcap seems to have :ta= for most terminals
    and newer termcap doc does not seem to say there is a default.
   if (!Wcm.cm_tab)

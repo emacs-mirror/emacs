@@ -1,12 +1,12 @@
 /*
  * yow.c
- * 
+ *
  * Print a quotation from Zippy the Pinhead.
  * Qux <Kaufman-David@Yale> March 6, 1986
  *
  * This file is in the public domain because the author published it
  * with no copyright notice before the US signed the Bern Convention.
- * 
+ *
  * With dynamic memory allocation.
  */
 
@@ -114,7 +114,7 @@ setup_yow(fp)
   header_len = ftell(fp);
   if (header_len > AVG_LEN)
     header_len -= AVG_LEN;	/* allow the first quotation to appear */
-	
+
   if (fseek(fp, 0L, 2) == -1) {
     perror("yow");
     exit(1);
@@ -167,7 +167,7 @@ yow (fp)
   buf[i++] = c;
   while ((c = getc(fp)) != SEP && c != EOF) {
     buf[i++] = c;
-	
+
     if (i == bufsize-1) {
       /* Yow! Is this quotation too long yet? */
       bufsize *= 2;

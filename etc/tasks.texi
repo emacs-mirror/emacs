@@ -82,7 +82,7 @@ If you did not obtain this file directly from the GNU project and
 recently, please check for a newer version.  You can ftp the task list
 from any GNU FTP host in directory @file{/pub/gnu/tasks/}.  The task
 list is available there in several different formats: @file{tasks.text},
-@file{tasks.texi}, @file{tasks.info}, and @file{tasks.dvi}.  
+@file{tasks.texi}, @file{tasks.info}, and @file{tasks.dvi}.
 @c to fix an overfill, join the paragraphs -len
 The task list is also available on the GNU World Wide Web server:
 @uref{http://www.gnu.org/prep/tasks_toc.html}.

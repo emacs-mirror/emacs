@@ -116,10 +116,10 @@ fi
 
 if test "$display_usage" = "yes"; then
   cat <<EOF
-\`make-package' generates a Mac OS X installer package from an Emacs 
-distribution.  By default, this first runs ./configure on the emacs 
-directory.  Then make install to create the emacs distribution.  
-Then some mac-specific commands to generate the required information 
+\`make-package' generates a Mac OS X installer package from an Emacs
+distribution.  By default, this first runs ./configure on the emacs
+directory.  Then make install to create the emacs distribution.
+Then some mac-specific commands to generate the required information
 for the mac package.  The installer will, by default, create a
 Carbon application called Emacs in the ${appsdir} directory, with the
 shared emacs files in /usr/local
@@ -133,7 +133,7 @@ Options:
       --no-conf           Do not run the configure script before running
                           make install.
       --without-app       Do not create the Emacs application bundle
-      --with-x            Setup the install to use X Windows for its 
+      --with-x            Setup the install to use X Windows for its
                           windowed display, instead of carbon.  Implies
                           --without-app.
       --without-full-dist Do not include all the .el files in the distribution.
@@ -142,10 +142,10 @@ Options:
                           to the install in [prefix]/bin/emacs and have
                           the emacs executable link to emacs-${version}
       --self-contained    Create an Emacs.app that is self-contained;
-                          prefix will be ignored and all files installed 
-                          inside the application 
+                          prefix will be ignored and all files installed
+                          inside the application
       --build-in-place    Build the application in the source directory
-                          instead of a temporary directory.  
+                          instead of a temporary directory.
       --build-dir=DIR     Build the application in the specified directory
                           instead of a temporary directory.  Mutually exclusive
                           with --build-in-place.
@@ -357,7 +357,7 @@ echo 'UseUserMask NO' >> ${infofile}
 echo 'OverwritePermissions NO' >> ${infofile}
 echo 'InstallFat NO' >> ${infofile}
 
-### Set the install directory to install files as root...  
+### Set the install directory to install files as root...
 ### Not sure if this is a good diea
 # echo "Setting owner to root"
 # chown -Rh 0 ${tempparentfull}
@@ -402,7 +402,7 @@ fi
 
 if [ ! -d /Volumes/Emacs ]; then
   echo "Could not create disc image.  The Emacs installer package (Emacs.pkg)
-in this directory should be correct.  Please use the Disc Copy program to 
+in this directory should be correct.  Please use the Disc Copy program to
 create a disc image." >&2
   exit 0
 fi

@@ -1350,7 +1350,7 @@ them.
 @example
 Monday
   9:30am Coffee break
- 12:00pm Lunch        
+ 12:00pm Lunch
 @end example
 
 @noindent

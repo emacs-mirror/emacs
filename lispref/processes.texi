@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/processes
 @node Processes, Display, Abbrevs, Top
@@ -108,7 +108,7 @@ must use @var{args} to provide those.
 specify overrides for it with @code{process-environment}.  @xref{System
 Environment}.
 
-@defvar exec-directory 
+@defvar exec-directory
 @pindex movemail
 The value of this variable is a string, the name of a directory that
 contains programs that come with GNU Emacs, programs intended for Emacs
@@ -355,8 +355,8 @@ inputinput@point{}
 
 @smallexample
 @group
-(call-process-region 
- start end         
+(call-process-region
+ start end
  shell-file-name      ; @r{Name of program.}
  nil                  ; @r{Do not delete region.}
  buffer               ; @r{Send output to @code{buffer}.}
@@ -866,7 +866,7 @@ which is called the associated buffer of the process, or a function
 called the @dfn{filter function} can be called to act on the output.  If
 the process has no buffer and no filter function, its output is
 discarded.
- 
+
   When a subprocess terminates, Emacs reads any pending output,
 then stops reading output from that subprocess.  Therefore, if the
 subprocess has children that are still live and still producing
@@ -1205,7 +1205,7 @@ describing the type of event.
   The string describing the event looks like one of the following:
 
 @itemize @bullet
-@item 
+@item
 @code{"finished\n"}.
 
 @item
@@ -1301,7 +1301,7 @@ was not.
 @end defun
 
 @node Query Before Exit
-@section Querying Before Exit 
+@section Querying Before Exit
 
   When Emacs exits, it terminates all its subprocesses by sending them
 the @code{SIGHUP} signal.  Because some subprocesses are doing

@@ -74,14 +74,14 @@ For instance, typing \"S\" followed by TAB will tell you
  ("x"	?ㅌ)
  ("v"	?ㅍ)
  ("g"	?ㅎ)
- 
+
  ("R"	?ㄲ)
  ("E"	?ㄸ)
  ("Q"	?ㅃ)
  ("W"	?ㅉ)
  ("T"	?ㅆ)
  ("P"	?ㅖ)
- 
+
  ("k"	?ㅏ)
  ("i"	?ㅑ)
  ("j"	?ㅓ)
@@ -95,7 +95,7 @@ For instance, typing \"S\" followed by TAB will tell you
  ("l"	?ㅣ)
  ("o"	?ㅐ)
  ("O"	?ㅒ)
- 
+
  ("rk"	?가)
  ("rkr"	?각)
  ("rks"	?간)
@@ -942,7 +942,7 @@ For instance, typing \"S\" followed by TAB will tell you
  ("ahkT"	?뫘)
  ("ahkd"	?뫙)
  ("ahl"	?뫼)
- 
+
  ("ahls"	?묀)
  ("ahlf"	?묄)
  ("ahlq"	?묍)
@@ -977,7 +977,7 @@ For instance, typing \"S\" followed by TAB will tell you
  ("anls"	?뮌)
  ("anlf"	?뮐)
  ("ab"	?뮤)
- 
+
  ("abs"	?뮨)
  ("abf"	?뮬)
  ("aba"	?뮴)
@@ -2448,7 +2448,7 @@ For instance, typing \"S\" followed by TAB will tell you
  ("glq"	?힙)
  ("glt"	?힛)
  ("gld"	?힝)
- 
+
  ("Z!"	?！)
  ("Z\""	?＂)
  ("Z#"	?＃)
@@ -2543,7 +2543,7 @@ For instance, typing \"S\" followed by TAB will tell you
  ("Z|"	?｜)
  ("Z}"	?｝)
  ("Z^-"	?￣)
- 
+
  ("HS"	?ㅥ)
  ("Hse"	?ㅦ)
  ("Hst"	?ㅧ)
@@ -2586,7 +2586,7 @@ For instance, typing \"S\" followed by TAB will tell you
  ("Hbl"	?ㆌ)
  ("H."	?ㆍ)
  ("H.l"	?ㆎ)
- 
+
  ("SY"	?￥)
  ("SP"	?￡)
  ("S%"	?‰)

@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.  */
 
 
 /* No code in Emacs #includes config.h twice, but some of the code
-   intended to work with other packages as well (like gmalloc.c) 
+   intended to work with other packages as well (like gmalloc.c)
    think they can include it as many times as they like.  */
 #ifndef EMACS_CONFIG_H
 #define EMACS_CONFIG_H
@@ -41,7 +41,7 @@ Boston, MA 02111-1307, USA.  */
 /* Define REL_ALLOC if you want to use the relocating allocator for
    buffer space. */
 /* #undef REL_ALLOC */
-  
+
 /* Define HAVE_X_WINDOWS if you want to use the X window system.  */
 /* #undef HAVE_X_WINDOWS */
 

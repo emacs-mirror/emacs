@@ -42,7 +42,7 @@ Boston, MA 02111-1307, USA.  */
    BLOCK_INPUT and UNBLOCK_INPUT may be nested.
 
    * Any complicated interrupt handling code should test
-   interrupt_input_blocked, and put off its work until later.  
+   interrupt_input_blocked, and put off its work until later.
 
    * If the interrupt handling code wishes, it may set
    interrupt_input_pending to a non-zero value.  If that flag is set
