@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- Tools for customizating Emacs and Lisp packages.
 ;;
-;; Copyright (C) 1996, 1997, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
@@ -2922,7 +2922,7 @@ restoring it to the state of a face that has never been customized."
   :tag "Hook")
 
 (defun custom-hook-convert-widget (widget)
-  ;; Handle `:custom-options'.
+  ;; Handle `:options'.
   (let* ((options (widget-get widget :options))
 	 (other `(editable-list :inline t
 				:entry-format "%i %d%v"
