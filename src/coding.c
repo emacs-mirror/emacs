@@ -411,6 +411,12 @@ Lisp_Object Vcharset_revision_alist;
 /* Default coding systems used for process I/O.  */
 Lisp_Object Vdefault_process_coding_system;
 
+/* Global flag to tell that we can't call post-read-conversion and
+   pre-write-conversion functions.  Usually the value is zero, but it
+   is set to 1 temporarily while such functions are running.  This is
+   to avoid infinite recursive call.  */
+static int inhibit_pre_post_conversion;
+
 
 /*** 2. Emacs internal format (emacs-mule) handlers ***/
 
@@ -2941,8 +2947,14 @@ setup_coding_system (coding_system, coding)
      `post-read-conversion', `pre-write-conversion',
      `translation-table-for-decode', `translation-table-for-encode'.  */
   plist = XVECTOR (coding_spec)->contents[3];
-  coding->post_read_conversion = Fplist_get (plist, Qpost_read_conversion);
-  coding->pre_write_conversion = Fplist_get (plist, Qpre_write_conversion);
+  /* Pre & post conversion functions should be disabled if
+     inhibit_eol_conversion is nozero.  This is the case that a code
+     conversion function is called while those functions are running.  */
+  if (! inhibit_pre_post_conversion)
+    {
+      coding->post_read_conversion = Fplist_get (plist, Qpost_read_conversion);
+      coding->pre_write_conversion = Fplist_get (plist, Qpre_write_conversion);
+    }
   val = Fplist_get (plist, Qtranslation_table_for_decode);
   if (SYMBOLP (val))
     val = Fget (val, Qtranslation_table_for_decode);
@@ -4221,6 +4233,14 @@ static int shrink_conversion_region_threshhold = 1024;
       }									\
   } while (0)
 
+static Lisp_Object
+code_convert_region_unwind (dummy)
+     Lisp_Object dummy;
+{
+  inhibit_pre_post_conversion = 0;
+  return Qnil;
+}
+
 /* Decode (if ENCODEP is zero) or encode (if ENCODEP is nonzero) the
    text from FROM to TO (byte positions are FROM_BYTE and TO_BYTE) by
    coding system CODING, and return the status code of code conversion
@@ -4345,9 +4365,18 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
          new buffer.  */
       struct buffer *prev = current_buffer;
       Lisp_Object new;
+      int count = specpdl_ptr - specpdl;
 
+      record_unwind_protect (code_convert_region_unwind, Qnil);
+      /* We should not call any more pre-write/post-read-conversion
+         functions while this pre-write-conversion is running.  */
+      inhibit_pre_post_conversion = 1;
       call2 (coding->pre_write_conversion,
 	     make_number (from), make_number (to));
+      inhibit_pre_post_conversion = 0;
+      /* Discard the unwind protect.  */
+      specpdl_ptr--;
+
       if (current_buffer != prev)
 	{
 	  len = ZV - BEGV;
@@ -4626,11 +4655,19 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   if (! encodep && ! NILP (coding->post_read_conversion))
     {
       Lisp_Object val;
+      int count = specpdl_ptr - specpdl;
 
       if (from != PT)
 	TEMP_SET_PT_BOTH (from, from_byte);
       prev_Z = Z;
+      record_unwind_protect (code_convert_region_unwind, Qnil);
+      /* We should not call any more pre-write/post-read-conversion
+         functions while this post-read-conversion is running.  */
+      inhibit_pre_post_conversion = 1;
       val = call1 (coding->post_read_conversion, make_number (inserted));
+      inhibit_pre_post_conversion = 0;
+      /* Discard the unwind protect.  */
+      specpdl_ptr--;
       CHECK_NUMBER (val, 0);
       inserted += Z - prev_Z;
     }
@@ -4671,34 +4708,34 @@ code_convert_string (str, coding, encodep, nocopy)
   int result;
 
   saved_coding_symbol = Qnil;
-  if (encodep && !NILP (coding->pre_write_conversion)
-      || !encodep && !NILP (coding->post_read_conversion))
+  if ((encodep && !NILP (coding->pre_write_conversion)
+       || !encodep && !NILP (coding->post_read_conversion)))
     {
       /* Since we have to call Lisp functions which assume target text
-         is in a buffer, after setting a temporary buffer, call
-         code_convert_region.  */
+	 is in a buffer, after setting a temporary buffer, call
+	 code_convert_region.  */
       int count = specpdl_ptr - specpdl;
       struct buffer *prev = current_buffer;
+      int multibyte = STRING_MULTIBYTE (str);
 
       record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+      record_unwind_protect (code_convert_region_unwind, Qnil);
+      inhibit_pre_post_conversion = 1;
+      GCPRO1 (str);
       temp_output_buffer_setup (" *code-converting-work*");
       set_buffer_internal (XBUFFER (Vstandard_output));
-      if (encodep)
-	insert_from_string (str, 0, 0, to, to_byte, 0);
-      else
-	{
-	  /* We must insert the contents of STR as is without
-             unibyte<->multibyte conversion.  */
-	  current_buffer->enable_multibyte_characters = Qnil;
-	  insert_from_string (str, 0, 0, to_byte, to_byte, 0);
-	  current_buffer->enable_multibyte_characters = Qt;
-	}
+      /* We must insert the contents of STR as is without
+	 unibyte<->multibyte conversion.  For that, we adjust the
+	 multibyteness of the working buffer to that of STR.  */
+      Ferase_buffer ();		/* for safety */
+      current_buffer->enable_multibyte_characters = multibyte ? Qt : Qnil;
+      insert_from_string (str, 0, 0, to, to_byte, 0);
+      UNGCPRO;
       code_convert_region (BEGV, BEGV_BYTE, ZV, ZV_BYTE, coding, encodep, 1);
-      if (encodep)
-	/* We must return the buffer contents as unibyte string.  */
-	current_buffer->enable_multibyte_characters = Qnil;
+      /* Make a unibyte string if we are encoding, otherwise make a
+         multibyte string.  */
+      Fset_buffer_multibyte (encodep ? Qnil : Qt);
       str = make_buffer_string (BEGV, ZV, 0);
-      set_buffer_internal (prev);
       return unbind_to (count, str);
     }
 
@@ -5493,6 +5530,8 @@ init_coding_once ()
 #else
   system_eol_type = CODING_EOL_LF;
 #endif
+
+  inhibit_pre_post_conversion = 0;
 }
 
 #ifdef emacs
