@@ -36,7 +36,7 @@
 
 ;;; Code:
 
-(require 'cl)				;and ah ain't kiddin' 'bout it
+(eval-when-compile (require 'cl))		;and ah ain't kiddin' 'bout it
 
 (put 'parse-time-syntax 'char-table-extra-slots 0)
 
