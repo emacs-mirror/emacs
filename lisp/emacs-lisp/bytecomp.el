@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.32 $")
+(defconst byte-compile-version "$Revision: 2.33 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1460,15 +1460,17 @@ With argument, insert value in current buffer after the form."
 
 (defun byte-compile-output-file-form (form)
   ;; writes the given form to the output buffer, being careful of docstrings
-  ;; in defun, defmacro, defvar, defconst and autoload because make-docfile is
-  ;; so amazingly stupid.
+  ;; in defun, defmacro, defvar, defconst, autoload and
+  ;; custom-declare-variable because make-docfile is so amazingly stupid.
   ;; defalias calls are output directly by byte-compile-file-form-defmumble;
   ;; it does not pay to first build the defalias in defmumble and then parse
   ;; it here.
-  (if (and (memq (car-safe form) '(defun defmacro defvar defconst autoload))
+  (if (and (memq (car-safe form) '(defun defmacro defvar defconst autoload
+				   custom-declare-variable))
 	   (stringp (nth 3 form)))
       (byte-compile-output-docform nil nil '("\n(" 3 ")") form nil
-				   (eq (car form) 'autoload))
+				   (memq (car form)
+					 '(autoload custom-declare-variable)))
     (let ((print-escape-newlines t)
 	  (print-length nil)
 	  (print-level nil)
@@ -1488,7 +1490,7 @@ we output that argument and the following argument (the constants vector)
 together, for lazy loading.
 QUOTED says that we have to put a quote before the
 list that represents a doc string reference.
-`autoload' needs that."
+`autoload' and `custom-declare-variable' need that."
   ;; We need to examine byte-compile-dynamic-docstrings
   ;; in the input buffer (now current), not in the output buffer.
   (let ((dynamic-docstrings byte-compile-dynamic-docstrings))
