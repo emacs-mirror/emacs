@@ -3563,6 +3563,7 @@ init_buffer_once ()
   buffer_defaults.buffer_file_type = Qnil; /* TEXT */
 #endif
   buffer_defaults.enable_multibyte_characters = Qt;
+  buffer_defaults.buffer_file_coding_system = Qnil;
   XSETFASTINT (buffer_defaults.fill_column, 70);
   XSETFASTINT (buffer_defaults.left_margin, 0);
   buffer_defaults.cache_long_line_scans = Qnil;
@@ -3623,7 +3624,10 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.enable_multibyte_characters, 0x80000);
   /* Make this one a permanent local.  */
   buffer_permanent_local_flags |= 0x80000;
-
+  XSETFASTINT (buffer_local_flags.buffer_file_coding_system, 0x100000);
+  /* Make this one a permanent local.  */
+  buffer_permanent_local_flags |= 0x100000;
+  
   Vbuffer_alist = Qnil;
   current_buffer = 0;
   all_buffers = 0;
@@ -3773,6 +3777,11 @@ This is the same as (default-value 'ctl-arrow).");
      "Default value of `enable-multibyte-characters' for buffers not overriding it.\n\
  This is the same as (default-value 'enable-multibyte-characters).");
  
+   DEFVAR_LISP_NOPRO ("default-buffer-file-coding-system",
+ 	      &buffer_defaults.buffer_file_coding_system,
+     "Default value of `buffer-file-coding-system' for buffers not overriding it.\n\
+ This is the same as (default-value 'buffer-file-coding-system).");
+ 
   DEFVAR_LISP_NOPRO ("default-truncate-lines",
 	      &buffer_defaults.truncate_lines,
     "Default value of `truncate-lines' for buffers that do not override it.\n\
@@ -3895,6 +3904,16 @@ in the current display table (if there is one).");
     "Non-nil means the buffer contents are regarded as multi-byte form\n\
 of characters, not a binary code.  This affects the display, file I/O,\n\
 and behaviors of various editing commands.");
+
+  DEFVAR_PER_BUFFER ("buffer-file-coding-system",
+		     &current_buffer->buffer_file_coding_system, Qnil,
+    "Coding system to be used for encoding the buffer contents on saving.\n\
+If it is nil, the buffer is saved without any code conversion unless\n\
+some coding system is specified in file-coding-system-alist\n\
+for the buffer file.\n\
+\n\
+This variable is never applied to a way of decoding\n\
+a file while reading it.");
 
   DEFVAR_PER_BUFFER ("direction-reversed", &current_buffer->direction_reversed,
 		     Qnil,
