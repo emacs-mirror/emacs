@@ -1609,31 +1609,51 @@ x_set_border_pixel (f, pix)
     }
 }
 
-void
-x_set_cursor_type (f, arg, oldval)
-     FRAME_PTR f;
-     Lisp_Object arg, oldval;
+
+/* Value is the internal representation of the specified cursor type
+   ARG.  If type is BAR_CURSOR, return in *WIDTH the specified width
+   of the bar cursor.  */
+
+enum text_cursor_kinds
+x_specified_cursor_type (arg, width)
+     Lisp_Object arg;
+     int *width;
 {
+  enum text_cursor_kinds type;
+  
   if (EQ (arg, Qbar))
     {
-      FRAME_DESIRED_CURSOR (f) = BAR_CURSOR;
-      f->output_data.x->cursor_width = 2;
+      type = BAR_CURSOR;
+      *width = 2;
     }
   else if (CONSP (arg)
 	   && EQ (XCAR (arg), Qbar)
 	   && INTEGERP (XCDR (arg))
 	   && XINT (XCDR (arg)) >= 0)
     {
-      FRAME_DESIRED_CURSOR (f) = BAR_CURSOR;
-      f->output_data.x->cursor_width = XINT (XCDR (arg));
+      type = BAR_CURSOR;
+      *width = XINT (XCDR (arg));
     }
   else if (NILP (arg))
-    FRAME_DESIRED_CURSOR (f) = NO_CURSOR;
+    type = NO_CURSOR;
   else
     /* Treat anything unknown as "box cursor".
        It was bad to signal an error; people have trouble fixing
        .Xdefaults with Emacs, when it has something bad in it.  */
-    FRAME_DESIRED_CURSOR (f) = FILLED_BOX_CURSOR;
+    type = FILLED_BOX_CURSOR;
+
+  return type;
+}
+
+void
+x_set_cursor_type (f, arg, oldval)
+     FRAME_PTR f;
+     Lisp_Object arg, oldval;
+{
+  int width;
+  
+  FRAME_DESIRED_CURSOR (f) = x_specified_cursor_type (arg, &width);
+  f->output_data.x->cursor_width = width;
 
   /* Make sure the cursor gets redrawn.  This is overkill, but how
      often do people change cursor types?  */
