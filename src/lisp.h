@@ -1379,3 +1379,5 @@ extern void xfree ();
 
 extern char *egetenv ();
  
+/* Return the name of the machine we're running on.  */
+extern char *get_system_name ();
