@@ -1,3 +1,8 @@
+2002-06-07  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-file-or-variation-thereof): Just use
+	Info-suffix-list, as suggested by Stefan Monnier.
+
 2002-06-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* select.el (xselect-convert-to-string): If VALUE is a string,
