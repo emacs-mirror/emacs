@@ -1679,7 +1679,7 @@ ffap most of the time."
      (global-set-key "\C-x\C-f" 'find-file-at-point)
      (global-set-key "\C-x4f"   'ffap-other-window)
      (global-set-key "\C-x5f"   'ffap-other-frame)
-     (define-key ctl-x-map "\C-xd" 'dired-at-point)
+     (global-set-key "\C-xd"    'dired-at-point)
      (add-hook 'gnus-summary-mode-hook 'ffap-gnus-hook)
      (add-hook 'gnus-article-mode-hook 'ffap-gnus-hook)
      (add-hook 'vm-mode-hook 'ffap-ro-mode-hook)
