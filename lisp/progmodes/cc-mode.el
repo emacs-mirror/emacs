@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
-;; Version:    5.12
+;; Version:    5.13
 ;; Keywords:   c languages oop
 
 ;; NOTE: Read the commentary below for the right way to submit bug reports!
@@ -90,6 +90,25 @@
 (require 'cc-defs)
 
 
+;; Other modes and packages which depend on CC Mode should do the
+;; following to make sure everything is loaded and available for their
+;; use:
+;;
+;; (require 'cc-mode)
+;; (c-initialize-cc-mode)
+
+(defun c-initialize-cc-mode ()
+  ;; make sure all necessary components of CC Mode are loaded in.
+  (require 'cc-vars)
+  (require 'cc-engine)
+  (require 'cc-langs)
+  (require 'cc-menus)
+  (require 'cc-align)
+  (require 'cc-styles)
+  (require 'cc-cmds))
+
+
+
 ;;;###autoload
 (defun c-mode ()
   "Major mode for editing K&R and ANSI C code.
@@ -107,7 +126,7 @@ run first.
 Key bindings:
 \\{c-mode-map}"
   (interactive)
-  (c-load-all)
+  (c-initialize-cc-mode)
   (kill-all-local-variables)
   (set-syntax-table c-mode-syntax-table)
   (setq major-mode 'c-mode
@@ -146,7 +165,7 @@ variable is bound and has a non-nil value.  Also the hook
 Key bindings:
 \\{c++-mode-map}"
   (interactive)
-  (c-load-all)
+  (c-initialize-cc-mode)
   (kill-all-local-variables)
   (set-syntax-table c++-mode-syntax-table)
   (setq major-mode 'c++-mode
@@ -187,7 +206,7 @@ is run first.
 Key bindings:
 \\{objc-mode-map}"
   (interactive)
-  (c-load-all)
+  (c-initialize-cc-mode)
   (kill-all-local-variables)
   (set-syntax-table objc-mode-syntax-table)
   (setq major-mode 'objc-mode
@@ -230,7 +249,7 @@ set styles in `c-mode-common-hook'.
 Key bindings:
 \\{java-mode-map}"
   (interactive)
-  (c-load-all)
+  (c-initialize-cc-mode)
   (kill-all-local-variables)
   (set-syntax-table java-mode-syntax-table)
   (setq major-mode 'java-mode
@@ -259,7 +278,7 @@ Key bindings:
 
 
 ;; defuns for submitting bug reports
-(defconst c-version "5.12"
+(defconst c-version "5.13"
   "CC Mode version number.")
 
 (defconst c-mode-help-address
