@@ -6,7 +6,7 @@
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.33 $
+;; Ada Core Technologies's version:   $Revision: 1.34 $
 ;; Keywords: languages ada
 
 ;; This file is not part of GNU Emacs
@@ -654,7 +654,7 @@ both file locations can be clicked on and jumped to."
                                "./"))
           (if (stringp line)
               (goto-line (string-to-number line)))
-          (set 'source (point-marker))))
+          (setq source (point-marker))))
       (funcall (symbol-function 'compilation-goto-locus)
                (cons source error-pos))
       ))
@@ -701,7 +701,7 @@ both file locations can be clicked on and jumped to."
 The standard table declares `_' as a symbol constituent, the second one
 declares it as a word constituent."
   (interactive)
-  (set 'ada-mode-syntax-table (make-syntax-table))
+  (setq ada-mode-syntax-table (make-syntax-table))
   (set-syntax-table  ada-mode-syntax-table)
 
   ;; define string brackets (`%' is alternative string bracket, but
@@ -749,7 +749,7 @@ declares it as a word constituent."
   (modify-syntax-entry ?\( "()" ada-mode-syntax-table)
   (modify-syntax-entry ?\) ")(" ada-mode-syntax-table)
 
-  (set 'ada-mode-symbol-syntax-table (copy-syntax-table ada-mode-syntax-table))
+  (setq ada-mode-symbol-syntax-table (copy-syntax-table ada-mode-syntax-table))
   (modify-syntax-entry ?_ "w" ada-mode-symbol-syntax-table)
   )
 
@@ -766,14 +766,14 @@ declares it as a word constituent."
         (save-excursion
           (goto-char from)
           (while (re-search-forward "'\\([(\")#]\\)'" to t)
-            (set 'change (cons (list (match-beginning 1)
+            (setq change (cons (list (match-beginning 1)
                                      1
                                      (match-string 1))
                                change))
             (replace-match "'A'"))
           (goto-char from)
           (while (re-search-forward "\\(#[0-9a-fA-F]*#\\)" to t)
-            (set 'change (cons (list (match-beginning 1)
+            (setq change (cons (list (match-beginning 1)
                                      (length (match-string 1))
                                      (match-string 1))
                                change))
@@ -784,7 +784,7 @@ declares it as a word constituent."
             (goto-char (caar change))
             (delete-char (cadar change))
             (insert (caddar change))
-            (set 'change (cdr change)))))))
+            (setq change (cdr change)))))))
 
 (defun ada-deactivate-properties ()
   "Deactivate ada-mode's properties handling.
@@ -852,7 +852,7 @@ If parse-result is non-nil, use is instead of calling parse-partial-sexp."
 
 (defsubst ada-in-string-or-comment-p (&optional parse-result)
   "Returns t if inside a comment or string."
-  (set 'parse-result (or parse-result
+  (setq parse-result (or parse-result
                          (parse-partial-sexp
                           (save-excursion (beginning-of-line) (point)) (point))))
   (or (ada-in-string-p parse-result) (ada-in-comment-p parse-result)))
@@ -887,7 +887,7 @@ where the mouse button was clicked."
   ;;  in the contextual menu does not hide the region in
   ;;  transient-mark-mode.
   (let ((deactivate-mark nil))
-    (set 'ada-contextual-menu-last-point
+    (setq ada-contextual-menu-last-point
          (list (point) (current-buffer)))
     (mouse-set-point last-input-event)
 
@@ -901,9 +901,9 @@ where the mouse button was clicked."
                ))
     (let (choice)
       (if ada-xemacs
-          (set 'choice (funcall (symbol-function 'popup-menu)
+          (setq choice (funcall (symbol-function 'popup-menu)
                                 ada-contextual-menu))
-        (set 'choice (x-popup-menu position ada-contextual-menu)))
+        (setq choice (x-popup-menu position ada-contextual-menu)))
       (if choice
           (funcall (lookup-key ada-contextual-menu (vector (car choice))))))
     (set-buffer (cadr ada-contextual-menu-last-point))
@@ -1003,8 +1003,8 @@ If you use ada-xref.el:
 
   (make-local-variable 'comment-start)
   (if ada-fill-comment-prefix
-      (set 'comment-start ada-fill-comment-prefix)
-    (set 'comment-start "-- "))
+      (setq comment-start ada-fill-comment-prefix)
+    (setq comment-start "-- "))
 
   ;;  Set the paragraph delimiters so that one can select a whole block
   ;;  simply with M-h
@@ -1044,9 +1044,9 @@ If you use ada-xref.el:
       (set (make-local-variable 'parse-sexp-lookup-properties) t)
       ))
 
-  (set 'case-fold-search t)
+  (setq case-fold-search t)
   (if (boundp 'imenu-case-fold-search)
-      (set 'imenu-case-fold-search t))
+      (setq imenu-case-fold-search t))
 
   (set (make-local-variable 'fill-paragraph-function)
        'ada-fill-comment-paragraph)
@@ -1058,7 +1058,7 @@ If you use ada-xref.el:
   ;;  We just substitute our own functions to go to the error.
   (add-hook 'compilation-mode-hook
             (lambda()
-	      (set 'compile-auto-highlight 40)
+	      (setq compile-auto-highlight 40)
 	      (define-key compilation-minor-mode-map [mouse-2]
 		'ada-compile-mouse-goto-error)
 	      (define-key compilation-minor-mode-map "\C-c\C-c"
@@ -1106,7 +1106,7 @@ If you use ada-xref.el:
                                "\\(body[ \t]+\\)?"
                                "\\(\\(\\sw\\|[_.]\\)+\\)\\.\\(\\sw\\|_\\)+[ \t\n]+is"))
                      (lambda ()
-		       (set 'fname (ff-get-file
+		       (setq fname (ff-get-file
 				    ada-search-directories
 				    (ada-make-filename-from-adaname
 				     (match-string 3))
@@ -1116,7 +1116,7 @@ If you use ada-xref.el:
   (add-to-list 'ff-special-constructs
                (cons "^separate[ \t\n]*(\\(\\(\\sw\\|[_.]\\)+\\))"
                      (lambda ()
-		       (set 'fname (ff-get-file
+		       (setq fname (ff-get-file
 				    ada-search-directories
 				    (ada-make-filename-from-adaname
 				     (match-string 1))
@@ -1131,7 +1131,7 @@ If you use ada-xref.el:
          (assoc "^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)" ff-special-constructs))
         (new-cdr
          (lambda ()
-	   (set 'fname (ff-get-file
+	   (setq fname (ff-get-file
 			ada-search-directories
 			(ada-make-filename-from-adaname
 			 (match-string 1))
@@ -1148,7 +1148,7 @@ If you use ada-xref.el:
   (set (make-local-variable 'outline-level) 'ada-outline-level)
 
   ;;  Support for imenu : We want a sorted index
-  (set 'imenu-sort-function 'imenu--sort-by-name)
+  (setq imenu-sort-function 'imenu--sort-by-name)
 
   ;;  Support for which-function-mode is provided in ada-support (support
   ;;  for nested subprograms)
@@ -1159,14 +1159,14 @@ If you use ada-xref.el:
 
   ;;  Support for Abbreviations (the user still need to "M-x abbrev-mode"
   (define-abbrev-table 'ada-mode-abbrev-table ())
-  (set 'local-abbrev-table ada-mode-abbrev-table)
+  (setq local-abbrev-table ada-mode-abbrev-table)
 
   ;;  Support for indent-new-comment-line (Especially for XEmacs)
-  (set 'comment-multi-line nil)
+  (setq comment-multi-line nil)
   (defconst comment-indent-function (lambda () comment-column))
 
-  (set 'major-mode 'ada-mode)
-  (set 'mode-name "Ada")
+  (setq major-mode 'ada-mode)
+  (setq mode-name "Ada")
 
   (use-local-map ada-mode-map)
 
@@ -1200,9 +1200,9 @@ If you use ada-xref.el:
   ;; inside the hook (MH)
 
   (cond ((eq ada-language-version 'ada83)
-         (set 'ada-keywords ada-83-keywords))
+         (setq ada-keywords ada-83-keywords))
         ((eq ada-language-version 'ada95)
-         (set 'ada-keywords ada-95-keywords)))
+         (setq ada-keywords ada-95-keywords)))
 
   (if ada-auto-case
       (ada-activate-keys-for-case)))
@@ -1234,9 +1234,9 @@ The standard casing rules will no longer apply to this word."
         )
 
     (cond ((stringp ada-case-exception-file)
-           (set 'file-name ada-case-exception-file))
+           (setq file-name ada-case-exception-file))
           ((listp ada-case-exception-file)
-           (set 'file-name (car ada-case-exception-file)))
+           (setq file-name (car ada-case-exception-file)))
           (t
            (error "No exception file specified")))
 
@@ -1244,7 +1244,7 @@ The standard casing rules will no longer apply to this word."
     (unless word
       (save-excursion
         (skip-syntax-backward "w")
-        (set 'word (buffer-substring-no-properties
+        (setq word (buffer-substring-no-properties
                     (point) (save-excursion (forward-word 1) (point))))))
 
     ;;  Reread the exceptions file, in case it was modified by some other,
@@ -1323,7 +1323,7 @@ The standard casing rules will no longer apply to this word."
   (interactive)
 
   ;;  Reinitialize the casing exception list
-  (set 'ada-case-exception '())
+  (setq ada-case-exception '())
 
   (cond ((stringp ada-case-exception-file)
          (ada-case-read-exceptions-from-file ada-case-exception-file))
@@ -1347,7 +1347,7 @@ the exceptions defined in `ada-case-exception-file'."
                                    (point)))
             match)
         ;;  If we have an exception, replace the word by the correct casing
-        (if (set 'match (assoc-ignore-case (buffer-substring start end)
+        (if (setq match (assoc-ignore-case (buffer-substring start end)
                                            ada-case-exception))
 
             (progn
@@ -1448,8 +1448,8 @@ ARG is the prefix the user entered with \C-u."
   ;; when casing is activated.
   ;; The 'or ...' is there to be sure that the value will not
   ;; be changed again when Ada mode is called more than once
-  (or ada-ret-binding    (set 'ada-ret-binding (key-binding "\C-M")))
-  (or ada-lfd-binding    (set 'ada-lfd-binding (key-binding "\C-j")))
+  (or ada-ret-binding    (setq ada-ret-binding (key-binding "\C-M")))
+  (or ada-lfd-binding    (setq ada-lfd-binding (key-binding "\C-j")))
 
   ;; Call case modifying function after certain keys.
   (mapcar (function (lambda(key) (define-key
@@ -1471,7 +1471,7 @@ ARG is ignored, and is there for compatibility with `capitalize-word' only."
       (while (and (or first (search-forward "_" end t))
                   (< (point) end))
         (and first
-             (set 'first nil))
+             (setq first nil))
         (insert-char (upcase (following-char)) 1)
         (delete-char 1)))))
 
@@ -1512,12 +1512,12 @@ Attention: This function might take very long for big regions !"
           ;; loop: look for all identifiers, keywords, and attributes
           ;;
           (while (re-search-backward "\\<\\(\\sw+\\)\\>" from t)
-            (set 'end (match-end 1))
-            (set 'attribp
+            (setq end (match-end 1))
+            (setq attribp
                  (and (> (point) from)
                       (save-excursion
                         (forward-char -1)
-                        (set 'attribp (looking-at "'.[^']")))))
+                        (setq attribp (looking-at "'.[^']")))))
             (or
              ;; do nothing if it is a string or comment
              (ada-in-string-or-comment-p)
@@ -1525,8 +1525,8 @@ Attention: This function might take very long for big regions !"
                ;;
                ;; get the identifier or keyword or attribute
                ;;
-               (set 'begin (point))
-               (set 'keywordp (looking-at ada-keywords))
+               (setq begin (point))
+               (setq keywordp (looking-at ada-keywords))
                (goto-char end)
                ;;
                ;; casing according to user-option
@@ -1584,20 +1584,20 @@ ATTENTION: This function might take very long for big buffers !"
            (concat ada-subprog-start-re "\\|\\<body\\>" ) t nil)
           (down-list 1)
           (backward-char 1)
-          (set 'begin (point))
+          (setq begin (point))
 
           ;; find end of parameter-list
           (forward-sexp 1)
-          (set 'delend (point))
+          (setq delend (point))
           (delete-char -1)
           (insert "\n")
 
           ;; find end of last parameter-declaration
           (forward-comment -1000)
-          (set 'end (point))
+          (setq end (point))
 
           ;; build a list of all elements of the parameter-list
-          (set 'paramlist (ada-scan-paramlist (1+ begin) end))
+          (setq paramlist (ada-scan-paramlist (1+ begin) end))
 
           ;; delete the original parameter-list
           (delete-region begin  delend)
@@ -1628,26 +1628,26 @@ Returns the equivalent internal parameter list."
 
       ;; find first character of parameter-declaration
       (ada-goto-next-non-ws)
-      (set 'apos (point))
+      (setq apos (point))
 
       ;; find last character of parameter-declaration
-      (if (set 'match-cons
+      (if (setq match-cons
                (ada-search-ignore-string-comment "[ \t\n]*;" nil end t))
           (progn
-            (set 'epos (car match-cons))
-            (set 'semipos (cdr match-cons)))
-        (set 'epos end))
+            (setq epos (car match-cons))
+            (setq semipos (cdr match-cons)))
+        (setq epos end))
 
       ;; read name(s) of parameter(s)
       (goto-char apos)
       (looking-at "\\(\\(\\sw\\|[_, \t\n]\\)*\\(\\sw\\|_\\)\\)[ \t\n]*:[^=]")
 
-      (set 'param (list (match-string 1)))
+      (setq param (list (match-string 1)))
       (ada-search-ignore-string-comment ":" nil epos t 'search-forward)
 
       ;; look for 'in'
-      (set 'apos (point))
-      (set 'param
+      (setq apos (point))
+      (setq param
            (append param
                    (list
                     (consp
@@ -1656,7 +1656,7 @@ Returns the equivalent internal parameter list."
 
       ;; look for 'out'
       (goto-char apos)
-      (set 'param
+      (setq param
            (append param
                    (list
                     (consp
@@ -1665,7 +1665,7 @@ Returns the equivalent internal parameter list."
 
       ;; look for 'access'
       (goto-char apos)
-      (set 'param
+      (setq param
            (append param
                    (list
                     (consp
@@ -1683,27 +1683,27 @@ Returns the equivalent internal parameter list."
       ;; We accept spaces in the name, since some software like Rose
       ;; generates something like: "A : B 'Class"
       (looking-at "\\<\\(\\sw\\|[_.' \t]\\)+\\>")
-      (set 'param
+      (setq param
            (append param
                    (list (match-string 0))))
 
       ;; read default-expression, if there is one
-      (goto-char (set 'apos (match-end 0)))
-      (set 'param
+      (goto-char (setq apos (match-end 0)))
+      (setq param
            (append param
                    (list
-                    (if (set 'match-cons
+                    (if (setq match-cons
                              (ada-search-ignore-string-comment
                               ":=" nil epos t 'search-forward))
                         (buffer-substring (car match-cons) epos)
                       nil))))
 
       ;; add this parameter-declaration to the list
-      (set 'paramlist (append paramlist (list param)))
+      (setq paramlist (append paramlist (list param)))
 
       ;; check if it was the last parameter
       (if (eq epos end)
-          (set 'notend nil)
+          (setq notend nil)
         (goto-char semipos))
       )
     (reverse paramlist)))
@@ -1721,22 +1721,22 @@ Returns the equivalent internal parameter list."
 
     ;; loop until last parameter
     (while (not (zerop i))
-      (set 'i (1- i))
+      (setq i (1- i))
 
       ;; get max length of parameter-name
-      (set 'parlen (max parlen (length (nth 0 (nth i paramlist)))))
+      (setq parlen (max parlen (length (nth 0 (nth i paramlist)))))
 
       ;; get max length of type-name
-      (set 'typlen (max typlen (length (nth 4 (nth i paramlist)))))
+      (setq typlen (max typlen (length (nth 4 (nth i paramlist)))))
 
       ;; is there any 'in' ?
-      (set 'inp (or inp (nth 1 (nth i paramlist))))
+      (setq inp (or inp (nth 1 (nth i paramlist))))
 
       ;; is there any 'out' ?
-      (set 'outp (or outp (nth 2 (nth i paramlist))))
+      (setq outp (or outp (nth 2 (nth i paramlist))))
 
       ;; is there any 'access' ?
-      (set 'accessp (or accessp (nth 3 (nth i paramlist))))
+      (setq accessp (or accessp (nth 3 (nth i paramlist))))
       )
 
     ;; does paramlist already start on a separate line ?
@@ -1763,19 +1763,19 @@ Returns the equivalent internal parameter list."
     (insert "(")
     (ada-indent-current)
 
-    (set 'firstcol (current-column))
-    (set 'i (length paramlist))
+    (setq firstcol (current-column))
+    (setq i (length paramlist))
 
     ;; loop until last parameter
     (while (not (zerop i))
-      (set 'i (1- i))
-      (set 'column firstcol)
+      (setq i (1- i))
+      (setq column firstcol)
 
       ;; insert parameter-name, space and colon
       (insert (nth 0 (nth i paramlist)))
       (indent-to (+ column parlen 1))
       (insert ": ")
-      (set 'column (current-column))
+      (setq column (current-column))
 
       ;; insert 'in' or space
       (if (nth 1 (nth i paramlist))
@@ -1799,7 +1799,7 @@ Returns the equivalent internal parameter list."
       (if (nth 3 (nth i paramlist))
           (insert "access "))
 
-      (set 'column (current-column))
+      (setq column (current-column))
 
       ;; insert type-name and, if necessary, space and default-expression
       (insert (nth 4 (nth i paramlist)))
@@ -1928,7 +1928,7 @@ command like:
       (ada-indent-region (point-min) (point-max))
       (ada-adjust-case-buffer)
       (write-file source))
-    (set 'command-line-args-left (cdr command-line-args-left)))
+    (setq command-line-args-left (cdr command-line-args-left)))
   (message "Done")
   (kill-emacs 0))
 
@@ -1957,7 +1957,7 @@ offset."
               (ad-activate 'parse-partial-sexp t))
 
           (save-excursion
-            (set 'cur-indent
+            (setq cur-indent
 
                  ;; Not First line in the buffer ?
                  (if (save-excursion (zerop (forward-line -1)))
@@ -1979,11 +1979,11 @@ offset."
           (while (not (null tmp-indent))
             (cond
              ((numberp (car tmp-indent))
-              (set 'prev-indent (+ prev-indent (car tmp-indent))))
+              (setq prev-indent (+ prev-indent (car tmp-indent))))
              (t
-              (set 'prev-indent (+ prev-indent (eval (car tmp-indent)))))
+              (setq prev-indent (+ prev-indent (eval (car tmp-indent)))))
              )
-            (set 'tmp-indent (cdr tmp-indent)))
+            (setq tmp-indent (cdr tmp-indent)))
 
           ;; only re-indent if indentation is different then the current
           (if (= (save-excursion (back-to-indentation) (current-column)) prev-indent)
@@ -2019,7 +2019,7 @@ offset."
                     (forward-line 1)
                     (point))))
 
-    (set 'result
+    (setq result
     (cond
 
      ;;-----------------------------
@@ -2028,7 +2028,7 @@ offset."
      
      ((and ada-indent-to-open-paren
 	   (not (ada-in-paramlist-p))
-	   (set 'column (ada-in-open-paren-p)))
+	   (setq column (ada-in-open-paren-p)))
       
       ;; check if we have something like this  (Table_Component_Type =>
       ;;                                          Source_File_Record)
@@ -2073,10 +2073,10 @@ offset."
 		  (looking-at ".+\\<loop\\>"))
 		(progn
 		  (save-excursion
-		    (set 'limit (car (ada-search-ignore-string-comment ";" t))))
+		    (setq limit (car (ada-search-ignore-string-comment ";" t))))
 		  (if (save-excursion
 			(and
-			 (set 'match-cons
+			 (setq match-cons
 			      (ada-search-ignore-string-comment ada-loop-start-re t limit))
 			 (not (looking-at "\\<loop\\>"))))
 		      (progn
@@ -2084,7 +2084,7 @@ offset."
 			(save-excursion
 			  (beginning-of-line)
 			  (if (looking-at ada-named-block-re)
-			      (set 'label (- ada-label-indent))))))))
+			      (setq label (- ada-label-indent))))))))
 	    
 	    (list (+ (save-excursion (back-to-indentation) (point)) label) 0))))
 
@@ -2147,7 +2147,7 @@ offset."
      
      ((and (= (char-after) ?l)
 	   (looking-at "loop\\>"))
-      (set 'pos (point))
+      (setq pos (point))
       (save-excursion
         (goto-char (match-end 0))
         (ada-goto-stmt-start)
@@ -2218,11 +2218,11 @@ offset."
 	    (if (looking-at "renames")
 		(let (pos)
 		  (save-excursion
-		    (set 'pos (ada-search-ignore-string-comment ";\\|return\\>" t)))
+		    (setq pos (ada-search-ignore-string-comment ";\\|return\\>" t)))
 		  (if (and pos
 			   (= (char-after (car pos)) ?r))
 		      (goto-char (car pos)))
-		  (set 'var 'ada-indent-renames)))
+		  (setq var 'ada-indent-renames)))
 	    
 	    (forward-comment -1000)
 	    (if (= (char-before) ?\))
@@ -2239,7 +2239,7 @@ offset."
 			       (looking-at "function\\>"))
 			     (progn
 			       (backward-word 1)
-			       (set 'num-back 2)
+			       (setq num-back 2)
 			       (looking-at "function\\>")))))
 		  
 		  ;; The indentation depends of the value of ada-indent-return
@@ -2306,7 +2306,7 @@ offset."
 						      (end-of-line) (point))
 						    t))
 			 (unless (ada-in-string-p)
-			   (set 'pos (point))))
+			   (setq pos (point))))
 		       pos))
 		(list (- pos 2) 0)
 		
@@ -2359,7 +2359,7 @@ offset."
 	    ;;  avoid "with procedure"... in generic parts
 	    (save-excursion
 	      (forward-word -1)
-	      (set 'found (not (looking-at "with"))))))
+	      (setq found (not (looking-at "with"))))))
 	    
 	(if (looking-at "generic")
 	    (list (progn (back-to-indentation) (point)) 0)
@@ -2527,7 +2527,7 @@ ORGPOINT is the limit position used in the calculation."
            ;; a named block end
            ;;
            ((looking-at ada-ident-re)
-            (set 'defun-name (match-string 0))
+            (setq defun-name (match-string 0))
             (save-excursion
               (ada-goto-matching-start 0)
               (ada-check-defun-name defun-name))
@@ -2540,7 +2540,7 @@ ORGPOINT is the limit position used in the calculation."
               (ada-goto-matching-start 0)
               (if (looking-at "\\<begin\\>")
                   (progn
-                    (set 'indent (list (point) 0))
+                    (setq indent (list (point) 0))
                     (if (ada-goto-matching-decl-start t)
                         (list (progn (back-to-indentation) (point)) 0)
                       indent)))))
@@ -2564,7 +2564,7 @@ ORGPOINT is the limit position used in the calculation."
      ;; case..is..when..=>
      ;;
      ((save-excursion
-        (set 'match-cons (and
+        (setq match-cons (and
                           ;; the `=>' must be after the keyword `is'.
                           (ada-search-ignore-string-comment
                            "is" nil orgpoint nil 'word-search-forward)
@@ -2579,7 +2579,7 @@ ORGPOINT is the limit position used in the calculation."
      ;; case..is..when
      ;;
      ((save-excursion
-        (set 'match-cons (ada-search-ignore-string-comment
+        (setq match-cons (ada-search-ignore-string-comment
                           "when" nil orgpoint nil 'word-search-forward)))
       (goto-char (cdr match-cons))
       (list (save-excursion (back-to-indentation) (point)) 'ada-broken-indent))
@@ -2587,7 +2587,7 @@ ORGPOINT is the limit position used in the calculation."
      ;; case..is
      ;;
      ((save-excursion
-        (set 'match-cons (ada-search-ignore-string-comment
+        (setq match-cons (ada-search-ignore-string-comment
                           "is" nil orgpoint nil 'word-search-forward)))
       (list (save-excursion (back-to-indentation) (point)) 'ada-when-indent))
      ;;
@@ -2613,7 +2613,7 @@ ORGPOINT is the limit position used in the calculation."
     ;;
     ;; Move to the correct then (ignore all "and then")
     ;;
-    (while (and (set 'match-cons (ada-search-ignore-string-comment
+    (while (and (setq match-cons (ada-search-ignore-string-comment
                                   "\\<\\(then\\|and[ \t]*then\\)\\>"
                                   nil orgpoint))
                 (= (char-after (car match-cons)) ?a)))
@@ -2628,7 +2628,7 @@ ORGPOINT is the limit position used in the calculation."
           (if (save-excursion
                 (back-to-indentation)
                 (looking-at "\\<then\\>"))
-              (set 'cur-indent (save-excursion (back-to-indentation) (point))))
+              (setq cur-indent (save-excursion (back-to-indentation) (point))))
           ;; skip 'then'
           (forward-word 1)
           (list cur-indent 'ada-indent))
@@ -2642,7 +2642,7 @@ ORGPOINT is the limit position used in the calculation."
     (cond
      ((save-excursion
         (forward-word 1)
-        (set 'pos (ada-goto-next-non-ws orgpoint)))
+        (setq pos (ada-goto-next-non-ws orgpoint)))
       (goto-char pos)
       (save-excursion
         (ada-indent-on-previous-lines t orgpoint)))
@@ -2661,14 +2661,14 @@ ORGPOINT is the limit position used in the calculation."
     ;; is there an 'is' in front of point ?
     ;;
     (if (save-excursion
-          (set 'match-cons
+          (setq match-cons
                (ada-search-ignore-string-comment
                 "\\<\\(is\\|do\\)\\>" nil orgpoint)))
         ;;
         ;; yes, then skip to its end
         ;;
         (progn
-          (set 'foundis t)
+          (setq foundis t)
           (goto-char (cdr match-cons)))
       ;;
       ;; no, then goto next non-ws, if there is one in front of point
@@ -2693,7 +2693,7 @@ ORGPOINT is the limit position used in the calculation."
      ((and
        foundis
        (save-excursion
-         (set 'match-cons
+         (setq match-cons
               (ada-search-ignore-string-comment
                "\\<\\(separate\\|new\\|abstract\\)\\>"
                nil orgpoint))))
@@ -2705,7 +2705,7 @@ ORGPOINT is the limit position used in the calculation."
      ;;
      ((and
        foundis
-       (save-excursion (set 'match-cons (ada-goto-next-non-ws orgpoint)))
+       (save-excursion (setq match-cons (ada-goto-next-non-ws orgpoint)))
        (goto-char match-cons)
        (ada-indent-on-previous-lines t orgpoint)))
      ;;
@@ -2746,20 +2746,20 @@ ORGPOINT is the limit position used in the calculation."
        ;;  top level
        (t
         (if (looking-at ada-named-block-re)
-            (set 'label (- ada-label-indent))
+            (setq label (- ada-label-indent))
 
           (let (p)
 
             ;;  "with private" or "null record" cases
             (if (or (save-excursion
                       (and (ada-search-ignore-string-comment "\\<private\\>" nil orgpoint)
-                           (set 'p (point))
+                           (setq p (point))
                            (save-excursion (forward-char -7);; skip back "private"
                                            (ada-goto-previous-word)
                                            (looking-at "with"))))
                     (save-excursion
                       (and (ada-search-ignore-string-comment "\\<record\\>" nil orgpoint)
-                           (set 'p (point))
+                           (setq p (point))
                            (save-excursion (forward-char -6);; skip back "record"
                                            (ada-goto-previous-word)
                                            (looking-at "null")))))
@@ -2783,14 +2783,14 @@ ORGPOINT is the limit position used in the calculation."
     (cond
      ;; loop label
      ((save-excursion
-        (set 'match-cons (ada-search-ignore-string-comment
+        (setq match-cons (ada-search-ignore-string-comment
                           ada-loop-start-re nil orgpoint)))
       (goto-char (car match-cons))
       (ada-get-indent-loop orgpoint))
 
      ;; declare label
      ((save-excursion
-        (set 'match-cons (ada-search-ignore-string-comment
+        (setq match-cons (ada-search-ignore-string-comment
                           "\\<declare\\|begin\\>" nil orgpoint)))
       (goto-char (car match-cons))
       (list (save-excursion (back-to-indentation) (point)) 'ada-indent))
@@ -2832,7 +2832,7 @@ ORGPOINT is the limit position used in the calculation."
      ;; simple loop
      ;;
      ((looking-at "loop\\>")
-      (set 'pos (ada-get-indent-block-start orgpoint))
+      (setq pos (ada-get-indent-block-start orgpoint))
       (if (equal label 0)
           pos
         (list (+ (car pos) label) (cdr pos))))
@@ -2857,7 +2857,7 @@ ORGPOINT is the limit position used in the calculation."
            ;; check if there is a 'record' before point
            ;;
            (progn
-             (set 'match-cons (ada-search-ignore-string-comment
+             (setq match-cons (ada-search-ignore-string-comment
                                "record" nil orgpoint nil 'word-search-forward))
              t)))
         (if match-cons
@@ -2867,7 +2867,7 @@ ORGPOINT is the limit position used in the calculation."
        ;; for..loop
        ;;
        ((save-excursion
-          (set 'match-cons (ada-search-ignore-string-comment
+          (setq match-cons (ada-search-ignore-string-comment
                             "loop" nil orgpoint nil 'word-search-forward)))
         (goto-char (car match-cons))
         ;;
@@ -2895,7 +2895,7 @@ ORGPOINT is the limit position used in the calculation."
       ;; while..loop ?
       ;;
       (if (save-excursion
-            (set 'match-cons (ada-search-ignore-string-comment
+            (setq match-cons (ada-search-ignore-string-comment
                               "loop" nil orgpoint nil 'word-search-forward)))
 
           (progn
@@ -2924,7 +2924,7 @@ ORGPOINT is the limit position used in the calculation."
      ;;
      ((save-excursion
         (and
-         (set 'match-dat (ada-search-ignore-string-comment
+         (setq match-dat (ada-search-ignore-string-comment
                           "end" nil orgpoint nil 'word-search-forward))
          (ada-goto-next-non-ws)
          (looking-at "\\<record\\>")
@@ -2937,7 +2937,7 @@ ORGPOINT is the limit position used in the calculation."
      ;; record type
      ;;
      ((save-excursion
-        (set 'match-dat (ada-search-ignore-string-comment
+        (setq match-dat (ada-search-ignore-string-comment
                          "record" nil orgpoint nil 'word-search-forward)))
       (goto-char (car match-dat))
       (list (save-excursion (back-to-indentation) (point)) 'ada-indent))
@@ -2977,7 +2977,7 @@ open parenthesis."
   (let ((match-dat nil)
         (orgpoint (point)))
 
-    (set 'match-dat (ada-search-prev-end-stmt))
+    (setq match-dat (ada-search-prev-end-stmt))
     (if match-dat
 	
 	;;
@@ -2992,7 +2992,7 @@ open parenthesis."
 	      ;; nothing follows => it's the end-statement directly in
 	      ;;                    front of point => search again
 	      ;;
-	      (set 'match-dat (ada-search-prev-end-stmt)))
+	      (setq match-dat (ada-search-prev-end-stmt)))
 	    ;;
 	    ;; if found the correct end-statement => goto next non-ws
 	    ;;
@@ -3026,7 +3026,7 @@ match."
     (while
         (and
          (not found)
-         (set 'match-dat (ada-search-ignore-string-comment
+         (setq match-dat (ada-search-ignore-string-comment
                           ada-end-stmt-re t)))
 
       (goto-char (car match-dat))
@@ -3049,7 +3049,7 @@ match."
                                (regexp-opt '("separate" "access" "array"
                                              "abstract" "new") t)
                                "\\>\\|(")))
-              (set 'found t))))
+              (setq found t))))
         ))
 
     (if found
@@ -3062,7 +3062,7 @@ match."
 Stop the search at LIMIT.
 Do not call this function from within a string."
   (unless limit
-    (set 'limit (point-max)))
+    (setq limit (point-max)))
   (while (and (<= (point) limit)
               (progn (forward-comment 10000)
                      (if (and (not (eobp))
@@ -3094,7 +3094,7 @@ Returns the new position of point or nil if not found."
     (modify-syntax-entry ?_ "w")
     (unless backward
       (skip-syntax-forward "w"))
-    (if (set 'match-cons
+    (if (setq match-cons
              (if backward
                  (ada-search-ignore-string-comment "\\w" t nil t)
                (ada-search-ignore-string-comment "\\w" nil nil t)))
@@ -3182,7 +3182,7 @@ If NOERROR is non-nil, it only returns nil if no match was found."
     ;;                                       begin ...
     ;;                                       exception ... )
     (if (looking-at "begin")
-        (set 'stop-at-when t))
+        (setq stop-at-when t))
 
     (if (or
          (looking-at "\\<\\(package\\|procedure\\|function\\)\\>")
@@ -3190,7 +3190,7 @@ If NOERROR is non-nil, it only returns nil if no match was found."
            (ada-search-ignore-string-comment
             "\\<\\(package\\|procedure\\|function\\|generic\\)\\>" t)
            (looking-at "generic")))
-        (set 'count-generic t))
+        (setq count-generic t))
 
     ;; search backward for interesting keywords
     (while (and
@@ -3229,30 +3229,30 @@ If NOERROR is non-nil, it only returns nil if no match was found."
                   (if (looking-at "end")
                       (ada-goto-matching-decl-start noerror t)
 
-                    (set 'loop-again nil)
+                    (setq loop-again nil)
                     (unless (looking-at "begin")
-                      (set 'nest-count (1+ nest-count))))
+                      (setq nest-count (1+ nest-count))))
                   ))
               )))
        ;;
        ((looking-at "generic")
         (if count-generic
             (progn
-              (set 'first nil)
-              (set 'nest-count (1- nest-count)))))
+              (setq first nil)
+              (setq nest-count (1- nest-count)))))
        ;;
        ((looking-at "if")
 	(save-excursion
 	  (forward-word -1)
 	  (unless (looking-at "\\<end[ \t\n]*if\\>")
 	    (progn
-	      (set 'nest-count (1- nest-count))
-	      (set 'first nil)))))
+	      (setq nest-count (1- nest-count))
+	      (setq first nil)))))
        
        ;;
        ((looking-at "declare\\|generic")
-        (set 'nest-count (1- nest-count))
-        (set 'first nil))
+        (setq nest-count (1- nest-count))
+        (setq first nil))
        ;;
        ((looking-at "is")
         ;; check if it is only a type definition, but not a protected
@@ -3281,8 +3281,8 @@ If NOERROR is non-nil, it only returns nil if no match was found."
                   ))                    ; end of `or'
             (goto-char (match-beginning 0))
           (progn
-            (set 'nest-count (1- nest-count))
-            (set 'first nil))))
+            (setq nest-count (1- nest-count))
+            (setq first nil))))
 
        ;;
        ((looking-at "new")
@@ -3293,16 +3293,16 @@ If NOERROR is non-nil, it only returns nil if no match was found."
        ;;
        ((and first
              (looking-at "begin"))
-        (set 'nest-count 0))
+        (setq nest-count 0))
        ;;
        ((looking-at "when")
         (if stop-at-when
-            (set 'nest-count (1- nest-count)))
-        (set 'first nil))
+            (setq nest-count (1- nest-count)))
+        (setq first nil))
        ;;
        (t
-        (set 'nest-count (1+ nest-count))
-        (set 'first nil)))
+        (setq nest-count (1+ nest-count))
+        (setq first nil)))
 
       );; end of loop
 
@@ -3344,12 +3344,12 @@ If GOTOTHEN is non-nil, point moves to the 'then' following 'if'."
           (cond
            ;; found block end => increase nest depth
            ((looking-at "end")
-            (set 'nest-count (1+ nest-count)))
+            (setq nest-count (1+ nest-count)))
 
            ;; found loop/select/record/case/if => check if it starts or
            ;; ends a block
            ((looking-at "loop\\|select\\|record\\|case\\|if")
-            (set 'pos (point))
+            (setq pos (point))
             (save-excursion
               ;;
               ;; check if keyword follows 'end'
@@ -3358,10 +3358,10 @@ If GOTOTHEN is non-nil, point moves to the 'then' following 'if'."
               (if (looking-at "\\<end\\>[ \t]*[^;]")
                   ;; it ends a block => increase nest depth
                   (progn
-                    (set 'nest-count (1+ nest-count))
-                    (set 'pos (point)))
+                    (setq nest-count (1+ nest-count))
+                    (setq pos (point)))
                 ;; it starts a block => decrease nest depth
-                (set 'nest-count (1- nest-count))))
+                (setq nest-count (1- nest-count))))
             (goto-char pos))
 
            ;; found package start => check if it really is a block
@@ -3384,7 +3384,7 @@ If GOTOTHEN is non-nil, point moves to the 'then' following 'if'."
                   (ada-goto-next-non-ws)
                   ;; ignore it if it is only a declaration with 'new'
                   (if (not (looking-at "\\<\\(new\\|separate\\)\\>"))
-                      (set 'nest-count (1- nest-count)))))))
+                      (setq nest-count (1- nest-count)))))))
            ;; found task start => check if it has a body
            ((looking-at "task")
             (save-excursion
@@ -3410,20 +3410,20 @@ If GOTOTHEN is non-nil, point moves to the 'then' following 'if'."
                           (progn
                             (goto-char (car tmp))
                             (if (looking-at "is")
-                                (set 'nest-count (1- nest-count)))))))))
+                                (setq nest-count (1- nest-count)))))))))
                (t
                 ;; Check if that task declaration had a block attached to
                 ;; it (i.e do nothing if we have just "task name;")
                 (unless (progn (forward-word 1)
                                (looking-at "[ \t]*;"))
-                  (set 'nest-count (1- nest-count)))))))
+                  (setq nest-count (1- nest-count)))))))
            ;; all the other block starts
            (t
-            (set 'nest-count (1- nest-count)))) ; end of 'cond'
+            (setq nest-count (1- nest-count)))) ; end of 'cond'
 
           ;; match is found, if nest-depth is zero
           ;;
-          (set 'found (zerop nest-count))))) ; end of loop
+          (setq found (zerop nest-count))))) ; end of loop
 
     (if found
         ;;
@@ -3484,7 +3484,7 @@ If NOERROR is non-nil, it only returns nil if found no matching start."
       (cond
        ;; found block end => decrease nest depth
        ((looking-at "\\<end\\>")
-        (set 'nest-count (1- nest-count))
+        (setq nest-count (1- nest-count))
         ;; skip the following keyword
         (if (progn
               (skip-chars-forward "end")
@@ -3499,15 +3499,15 @@ If NOERROR is non-nil, it only returns nil if found no matching start."
         ;; ignore and skip it if it is only a 'new' package
         (if (looking-at "\\<new\\>")
             (goto-char (match-end 0))
-          (set 'nest-count (1+ nest-count))))
+          (setq nest-count (1+ nest-count))))
        ;; all the other block starts
        (t
-        (set 'nest-count (1+ nest-count))
+        (setq nest-count (1+ nest-count))
         (forward-word 1)))              ; end of 'cond'
 
       ;; match is found, if nest-depth is zero
       ;;
-      (set 'found (zerop nest-count)))  ; end of loop
+      (setq found (zerop nest-count)))  ; end of loop
 
     (if found
         t
@@ -3534,7 +3534,7 @@ Point is moved at the beginning of the search-re."
         (previous-syntax-table (syntax-table)))
 
     (unless search-func
-      (set 'search-func (if backward 're-search-backward 're-search-forward)))
+      (setq search-func (if backward 're-search-backward 're-search-forward)))
 
     ;;
     ;; search until found or end-of-buffer
@@ -3546,10 +3546,10 @@ Point is moved at the beginning of the search-re."
                     (or (and backward (<= limit (point)))
                         (>= limit (point))))
                 (funcall search-func search-re limit 1))
-      (set 'begin (match-beginning 0))
-      (set 'end (match-end 0))
+      (setq begin (match-beginning 0))
+      (setq end (match-end 0))
 
-      (set 'parse-result (parse-partial-sexp
+      (setq parse-result (parse-partial-sexp
                           (save-excursion (beginning-of-line) (point))
                           (point)))
 
@@ -3598,7 +3598,7 @@ Point is moved at the beginning of the search-re."
        ;; found what we were looking for
        ;;
        (t
-        (set 'found t))))               ; end of loop
+        (setq found t))))               ; end of loop
 
     (set-syntax-table previous-syntax-table)
 
@@ -3690,7 +3690,7 @@ Returns nil if the private is part of the package name, as in
   "Like `ada-search-ignore-string-comment', except that it also ignores
 boolean expressions 'and then' and 'or else'."
   (let (result)
-  (while (and (set 'result (ada-search-ignore-string-comment regexp backwardp))
+  (while (and (setq result (ada-search-ignore-string-comment regexp backwardp))
 	      (save-excursion (forward-word -1)
 			      (looking-at "and then\\|or else"))))
   result))
@@ -3857,7 +3857,7 @@ of the region.  Otherwise, operates only on the current line."
                     (or (looking-at "[ \t]*\\<end\\>")
                         (error "not on end ...;")))
                   (ada-goto-matching-start 1)
-                  (set 'pos (point))
+                  (setq pos (point))
 
                   ;;
                   ;; on 'begin' => go on, according to user option
@@ -3865,7 +3865,7 @@ of the region.  Otherwise, operates only on the current line."
                   ada-move-to-declaration
                   (looking-at "\\<begin\\>")
                   (ada-goto-matching-decl-start)
-                  (set 'pos (point))))
+                  (setq pos (point))))
 
             )                           ; end of save-excursion
 
@@ -3929,7 +3929,7 @@ Moves to 'begin' if in a declarative part."
              ;; (hopefully ;-) everything else
              (t
               (ada-goto-matching-end 1)))
-            (set 'pos (point))
+            (setq pos (point))
             )
 
           ;; now really move to the position found
@@ -4069,17 +4069,17 @@ can add its own items."
         )
 
     ;; Option menu present only if in Ada mode
-    (set 'm (append m (list (append (list "Options"
+    (setq m (append m (list (append (list "Options"
                                           (if ada-xemacs :included  :visible)
                                           '(string= mode-name "Ada"))
                                     option))))
 
     ;; Customize menu always present
-    (set 'm (append m '(["Customize" (customize-group 'ada)
+    (setq m (append m '(["Customize" (customize-group 'ada)
                          (>= emacs-major-version 20)])))
 
     ;; Goto and Edit menus present only if in Ada mode
-    (set 'm (append m (list (append (list "Goto"
+    (setq m (append m (list (append (list "Goto"
                                           (if ada-xemacs :included :visible)
                                           '(string= mode-name "Ada"))
                                     goto)
@@ -4093,7 +4093,7 @@ can add its own items."
         (progn
           (easy-menu-add ada-mode-menu ada-mode-map)
           (define-key ada-mode-map [menu-bar] ada-mode-menu)
-          (set 'mode-popup-menu (cons "Ada mode" ada-mode-menu)))
+          (setq mode-popup-menu (cons "Ada mode" ada-mode-menu)))
       )
     ))
 
@@ -4180,7 +4180,7 @@ The paragraph is indented on the first line."
 	  (insert "\n")
 	(back-to-indentation)))
     (beginning-of-line)
-    (set 'to (point-marker))
+    (setq to (point-marker))
     (goto-char opos)
 
     ;;  Find beginning of paragraph
@@ -4194,11 +4194,11 @@ The paragraph is indented on the first line."
     (unless (bobp)
       (forward-line 1))
     (beginning-of-line)
-    (set 'from (point-marker))
+    (setq from (point-marker))
 
     ;;  Calculate the indentation we will need for the paragraph
     (back-to-indentation)
-    (set 'indent (current-column))
+    (setq indent (current-column))
     ;;  unindent the first line of the paragraph
     (delete-region from (point))
 
@@ -4215,13 +4215,13 @@ The paragraph is indented on the first line."
       (replace-match " "))
     
     (goto-char (1- to))
-    (set 'to (point-marker))
+    (setq to (point-marker))
 
     ;;  Indent and justify the paragraph
-    (set 'fill-prefix ada-fill-comment-prefix)
+    (setq fill-prefix ada-fill-comment-prefix)
     (set-left-margin from to indent)
     (if postfix
-        (set 'fill-column (- fill-column (length ada-fill-comment-postfix))))
+        (setq fill-column (- fill-column (length ada-fill-comment-postfix))))
 
     (fill-region-as-paragraph from to justify)
 
@@ -4269,7 +4269,7 @@ The paragraph is indented on the first line."
   "Determine the filename in which ADANAME is found.
 This is a generic function, independent from any compiler."
   (while (string-match "\\." adaname)
-    (set 'adaname (replace-match "-" t t adaname)))
+    (setq adaname (replace-match "-" t t adaname)))
   (downcase adaname)
   )
 
@@ -4291,17 +4291,17 @@ otherwise."
       (if (string-match (concat "\\(.*\\)" (car suffixes) "$") name)
 	  (setq is-spec t
 		name    (match-string 1 name)))
-      (set 'suffixes (cdr suffixes)))
+      (setq suffixes (cdr suffixes)))
 
     (if (not is-spec)
 	(progn
-	  (set 'suffixes ada-body-suffixes)
+	  (setq suffixes ada-body-suffixes)
 	  (while (and (not is-body)
 		      suffixes)
 	    (if (string-match (concat "\\(.*\\)" (car suffixes) "$") name)
 		(setq is-body t
 		      name    (match-string 1 name)))
-	    (set 'suffixes (cdr suffixes)))))
+	    (setq suffixes (cdr suffixes)))))
     
     ;;  If this wasn't in either list, return name itself
     (if (not (or is-spec is-body))
@@ -4309,26 +4309,26 @@ otherwise."
       
       ;;  Else find the other possible names
       (if is-spec
-	  (set 'suffixes ada-body-suffixes)
-	(set 'suffixes ada-spec-suffixes))
-      (set 'is-spec name)
+	  (setq suffixes ada-body-suffixes)
+	(setq suffixes ada-spec-suffixes))
+      (setq is-spec name)
 
       (while suffixes
 	(if (file-exists-p (concat name (car suffixes)))
-	    (set 'is-spec (concat name (car suffixes))))
-	(set 'suffixes (cdr suffixes)))
+	    (setq is-spec (concat name (car suffixes))))
+	(setq suffixes (cdr suffixes)))
 
       is-spec)))
 
 (defun ada-which-function-are-we-in ()
   "Return the name of the function whose definition/declaration point is in.
 Redefines the function `ff-which-function-are-we-in'."
-  (set 'ff-function-name nil)
+  (setq ff-function-name nil)
   (save-excursion
     (end-of-line);;  make sure we get the complete name
     (if (or (re-search-backward ada-procedure-start-regexp nil t)
             (re-search-backward ada-package-start-regexp nil t))
-        (set 'ff-function-name (match-string 0)))
+        (setq ff-function-name (match-string 0)))
     ))
 
 
@@ -4375,7 +4375,7 @@ Since the search can be long, the results are cached."
 
         (while (and (not found)
                     (re-search-backward ada-imenu-subprogram-menu-re nil t))
-          (set 'func-name (match-string 2))
+          (setq func-name (match-string 2))
           (if (and (not (ada-in-comment-p))
                    (not (save-excursion
                           (goto-char (match-end 0))
@@ -4383,10 +4383,10 @@ Since the search can be long, the results are cached."
               (save-excursion
                 (if (ada-search-ignore-string-comment
                      (concat "end[ \t]+" func-name "[ \t]*;"))
-                    (set 'end-pos (point))
-                  (set 'end-pos (point-max)))
+                    (setq end-pos (point))
+                  (setq end-pos (point-max)))
                 (if (>= end-pos pos)
-                    (set 'found func-name))))
+                    (setq found func-name))))
           )
         (setq ada-last-which-function-line line
               ada-last-which-function-subprog found)
@@ -4414,7 +4414,7 @@ If SPEC-NAME is nil, returns the body for the current package.
 Returns nil if no body was found."
   (interactive)
 
-  (unless spec-name (set 'spec-name (buffer-file-name)))
+  (unless spec-name (setq spec-name (buffer-file-name)))
 
   ;; If find-file.el was available, use its functions
   (if (functionp 'ff-get-file)
@@ -4560,11 +4560,11 @@ for ada-procedure-start-regexp."
   (let (func-found procname functype)
     (cond
      ((or (looking-at "^[ \t]*procedure")
-          (set 'func-found (looking-at "^[ \t]*function")))
+          (setq func-found (looking-at "^[ \t]*function")))
       ;; treat it as a proc/func
       (forward-word 2)
       (forward-word -1)
-      (set 'procname (buffer-substring (point) (cdr match))) ; store  proc name
+      (setq procname (buffer-substring (point) (cdr match))) ; store  proc name
 
       ;; goto end of procname
       (goto-char (cdr match))
@@ -4578,7 +4578,7 @@ for ada-procedure-start-regexp."
           (progn
             (forward-word 1)
             (skip-chars-forward " \t\n")
-            (set 'functype (buffer-substring (point)
+            (setq functype (buffer-substring (point)
                                              (progn
                                                (skip-chars-forward
                                                 "a-zA-Z0-9_\.")
@@ -4633,19 +4633,19 @@ This function typically is to be hooked into `ff-file-created-hooks'."
   (ada-mode)
 
   (let (found ada-procedure-or-package-start-regexp)
-    (if (set 'found
+    (if (setq found
              (ada-search-ignore-string-comment ada-package-start-regexp nil))
         (progn (goto-char (cdr found))
                (insert " body")
                )
       (error "No package"))
 
-    (set 'ada-procedure-or-package-start-regexp
+    (setq ada-procedure-or-package-start-regexp
          (concat ada-procedure-start-regexp
                  "\\|"
                  ada-package-start-regexp))
 
-    (while (set 'found
+    (while (setq found
                 (ada-search-ignore-string-comment
                  ada-procedure-or-package-start-regexp nil))
       (progn
@@ -4670,10 +4670,10 @@ This function typically is to be hooked into `ff-file-created-hooks'."
               (progn
                 (ada-search-ignore-string-comment ")" nil)
                 (ada-search-ignore-string-comment ";" nil)))
-          (set 'spec (buffer-substring spec (point)))
+          (setq spec (buffer-substring spec (point)))
 
           ;; If find-file.el was available, use its functions
-          (set 'body-file (ada-get-body-name))
+          (setq body-file (ada-get-body-name))
           (if body-file
               (find-file body-file)
             (error "No body found for the package. Create it first."))
