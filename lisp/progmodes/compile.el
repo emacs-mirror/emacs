@@ -1415,7 +1415,13 @@ at the end of the line."
 		;; failed to find the relevant file.  See
 		;; compilation-next-error-locus.
 		(or (null (marker-buffer (caar compilation-error-list)))
-		    (> (point) (caar compilation-error-list))))
+		    (and (> (point) (caar compilation-error-list))
+			 (cdr compilation-error-list)
+			 ;; Don't skip too far: the text between two errors
+			 ;; belongs to the first.  Especially since this
+			 ;; in-between text might be other errors on the same
+			 ;; line (see compilation-skip-to-next-location).
+			 (>= (point) (caadr compilation-error-list)))))
       (setq compilation-error-list (cdr compilation-error-list)))
     (or compilation-error-list
 	(error "No error to go to")))
@@ -1446,7 +1452,9 @@ other kinds of prefix arguments are ignored."
 	      ;; failed to find the relevant file.  See
 	      ;; compilation-next-error-locus.
 	      (or (null (marker-buffer (caar compilation-error-list)))
-		  (> (point) (caar compilation-error-list))))
+		  (and (> (point) (caar compilation-error-list))
+		       (cdr compilation-error-list)
+		       (>= (point) (caadr compilation-error-list)))))
     (setq compilation-error-list (cdr compilation-error-list)))
 
   (push-mark)
@@ -1701,9 +1709,8 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
       ;; display the source in another window.
       (let ((pop-up-windows t))
 	(pop-to-buffer (marker-buffer (cdr next-error))))
-    (if (and (window-dedicated-p (selected-window))
-	     (eq (selected-window) (frame-root-window)))
-	(switch-to-buffer-other-frame (marker-buffer (cdr next-error)))
+    (if (window-dedicated-p (selected-window))
+	(pop-to-buffer (marker-buffer (cdr next-error)))
       (switch-to-buffer (marker-buffer (cdr next-error)))))
   (goto-char (cdr next-error))
   ;; If narrowing got in the way of
