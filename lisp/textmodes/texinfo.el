@@ -673,6 +673,7 @@ The value of `texinfo-tex-trailer' is appended to the temporary file after the r
   (interactive)
 
   ;; Make sure TeX shell is running.
+  (require 'tex-mode)
   (if (get-buffer "*tex-shell*")
       (quit-process (get-process "tex-shell") t)
     (tex-start-shell))
@@ -730,6 +731,7 @@ This runs the shell command defined by `tex-dvi-print-command'."
 You are prompted for the job number (use a number shown by a previous
 \\[texinfo-show-tex-print-queue] command)."
   (interactive "nPrinter job number for deletion: ")
+  (require 'tex-mode)
   (if (tex-shell-running)
       (tex-kill-job)
     (tex-start-shell))
