@@ -172,6 +172,13 @@ Switch to a buffer editing the last file dropped."
 	  '(lambda ()
 	     (defvar mac-ready-for-drag-n-drop t)))
 
+(defun iconify-or-deiconify-frame ()
+  "Iconify the selected frame, or deiconify if it's currently an icon."
+  (interactive)
+  (if (eq (cdr (assq 'visibility (frame-parameters))) t)
+      (iconify-frame)
+    (make-frame-visible)))
+
 ; Define constant values to be set to mac-keyboard-text-encoding
 (defconst kTextEncodingMacRoman 0)
 (defconst kTextEncodingISOLatin1 513 "0x201")
