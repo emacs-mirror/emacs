@@ -77,7 +77,7 @@ Lisp_Object Vminibuffer_history_variable;
 
 Lisp_Object Vminibuffer_history_position;
 
-Lisp_Object Qminibuffer_history;
+Lisp_Object Qminibuffer_history, Qbuffer_name_history;
 
 Lisp_Object Qread_file_name_internal;
 
@@ -855,7 +855,8 @@ If optional third arg REQUIRE-MATCH is non-nil, only existing buffer names are a
 	}
 
       return Fcompleting_read (prompt, Vbuffer_alist, Qnil,
-			       require_match, Qnil, Qnil, def, Qnil);
+			       require_match, Qnil, Qbuffer_name_history,
+			       def, Qnil);
     }
   else
     {
@@ -2102,6 +2103,9 @@ syms_of_minibuf ()
 
   Qminibuffer_history = intern ("minibuffer-history");
   staticpro (&Qminibuffer_history);
+
+  Qbuffer_name_history = intern ("buffer-name-history");
+  staticpro (&Qbuffer_name_history);
 
   Qminibuffer_setup_hook = intern ("minibuffer-setup-hook");
   staticpro (&Qminibuffer_setup_hook);
