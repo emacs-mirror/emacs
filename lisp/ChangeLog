@@ -1,3 +1,7 @@
+2003-02-11  Kevin Ryde  <user42@zip.com.au>
+
+	* info-xref.el: New file.
+
 2003-02-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* ffap.el (ffap-complete-as-file-p):
