@@ -1,3 +1,8 @@
+2003-06-16  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* simple.el (vis-mode): New function.
+	(saved-buffer-invisibility-spec): New variable.
+
 2003-06-16  Juanma Barranquero  <lektu@terra.es>
 
 	* progmodes/sh-script.el (sh-while-getopts, sh-if, sh-case):
