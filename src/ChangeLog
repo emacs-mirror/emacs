@@ -1,3 +1,9 @@
+2002-08-18  Dave Love  <fx@gnu.org>
+
+	* character.c (Funibyte_char_to_multibyte): Doc fix.
+
+	* xfns.c [HAVE_STDLIB_H]: Fix last change.
+
 2002-08-15  Kenichi Handa  <handa@etl.go.jp>
 
 	* fontset.c (fontset_add): Make the type `int'.
@@ -316,10 +322,10 @@
 
 	* charset.h (Vcharset_ordered_list): Extern it.
 	(charset_ordered_list_tick): Extern it.
-	(EMACS_MULE_LEADING_CODE_PRIVATE_11,
-	EMACS_MULE_LEADING_CODE_PRIVATE_12,
-	EMACS_MULE_LEADING_CODE_PRIVATE_21,
-	EMACS_MULE_LEADING_CODE_PRIVATE_22): New macros
+	(EMACS_MULE_LEADING_CODE_PRIVATE_11)
+	(EMACS_MULE_LEADING_CODE_PRIVATE_12)
+	(EMACS_MULE_LEADING_CODE_PRIVATE_21)
+	(EMACS_MULE_LEADING_CODE_PRIVATE_22): New macros
 	(Funify_charset): Adjusted for the change of Funify_charset.
 
 	* charset.c (charset_ordered_list_tick): New variable.
@@ -335,9 +341,9 @@
 	(Fmap_charset_chars): Fix handling of default value for FROM_CODE
 	and TO_CODE.
 
-	* coding.c (LEADING_CODE_PRIVATE_11, LEADING_CODE_PRIVATE_12,
-	LEADING_CODE_PRIVATE_21, LEADING_CODE_PRIVATE_22): Macros
-	deleted.  Callers changes to use
+	* coding.c (LEADING_CODE_PRIVATE_11, LEADING_CODE_PRIVATE_12)
+	(LEADING_CODE_PRIVATE_21, LEADING_CODE_PRIVATE_22): Macros
+	deleted.  Callers changed to use
 	EMACS_MULE_LEADING_CODE_PRIVATE_11, etc.
 	(decode_coding_ccl): Add `const' to local variables.
 	(consume_chars): Likewise.
