@@ -2989,7 +2989,7 @@ char *sys_siglist[NSIG + 1] =
 
 #include <dirent.h>
 
-#if defined(INTERRUPTIBLE_CLOSE) || !defined(HAVE_CLOSEDIR)
+#if defined(BROKEN_CLOSEDIR) || !defined(HAVE_CLOSEDIR)
 
 int
 closedir (dirp)
@@ -3009,7 +3009,7 @@ closedir (dirp)
 
   return rtnval;
 }
-#endif /* INTERRUPTIBLE_CLOSE or not HAVE_CLOSEDIR */
+#endif /* BROKEN_CLOSEDIR or not HAVE_CLOSEDIR */
 #endif /* SYSV_SYSTEM_DIR */
 
 #ifdef NONSYSTEM_DIR_LIBRARY
