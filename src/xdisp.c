@@ -836,7 +836,7 @@ update:
 	{
 	  w->update_mode_line = Qnil;
 	  XFASTINT (w->last_modified) = BUF_MODIFF (b);
-	  w->window_end_valid = Qt;
+	  w->window_end_valid = w->buffer;
 	  last_arrow_position = Voverlay_arrow_position;
 	  last_arrow_string = Voverlay_arrow_string;
 	  if (do_verify_charstarts)
@@ -910,7 +910,7 @@ mark_window_display_accurate (window, flag)
 			       : Qnil);
 	}
 
-      w->window_end_valid = Qt;
+      w->window_end_valid = w->buffer;
       w->update_mode_line = Qnil;
 
       if (!NILP (w->vchild))
@@ -1635,7 +1635,24 @@ try_window_id (window)
 	  tem = scroll_frame_lines (f, bp.vpos + top - scroll_amount,
 				    top + height - max (0, scroll_amount),
 				    scroll_amount, bp.bufpos);
-	  if (!tem) stop_vpos = height;
+	  if (!tem)
+	    stop_vpos = height;
+	  else
+	    {
+	      /* scroll_frame_lines did not properly adjust subsequent
+		 lines' charstarts in the case where the text of the
+		 screen line at bp.vpos has changed.
+		 (This can happen in a deletion that ends in mid-line.)
+		 To adjust properly, we need to make things constent at
+		 the position ep.
+		 So do a second adjust to make that happen.
+		 Note that stop_vpos >= ep.vpos, so it is sufficient
+		 to update the charstarts for lines at ep.vpos and below.  */
+	      int oldstart
+		= FRAME_CURRENT_GLYPHS (f)->charstarts[ep.vpos + top][0];
+	      adjust_window_charstarts (w, ep.vpos + top - 1,
+					ep.bufpos - oldstart);
+	    }
 	}
       else if (scroll_amount)
 	{
@@ -1966,7 +1983,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
   register int pause;
   register unsigned char *p;
   GLYPH *endp;
-  register GLYPH *startp;
+  register GLYPH *leftmargin;
   register GLYPH *p1prev = 0;
   register GLYPH *p1start;
   int *charstart;
@@ -1978,10 +1995,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
   int lastpos;
   int invis;
   int hscroll = XINT (w->hscroll);
-  int truncate = hscroll
-    || (truncate_partial_width_windows
-	&& XFASTINT (w->width) < FRAME_WIDTH (f))
-    || !NILP (current_buffer->truncate_lines);
+  int truncate = (hscroll
+		  || (truncate_partial_width_windows
+		      && XFASTINT (w->width) < FRAME_WIDTH (f))
+		  || !NILP (current_buffer->truncate_lines));
 
   /* 1 if we should highlight the region.  */
   int highlight_region
@@ -2071,8 +2088,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
   /* In case we don't ever write anything into it...  */
   *charstart = -1;
   end = ZV;
-  startp = desired_glyphs->glyphs[vpos] + XFASTINT (w->left);
-  endp = startp + width;
+  leftmargin = desired_glyphs->glyphs[vpos] + XFASTINT (w->left);
+  endp = leftmargin + width;
 
   /* Arrange the overlays nicely for our purposes.  Usually, we call
      display_text_line on only one line at a time, in which case this
@@ -2094,7 +2111,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
     {
       /* Record which glyph starts a character,
 	 and the character position of that character.  */
-      if (p1 >= p1start)
+      if (p1 >= leftmargin)
 	charstart[p1 - p1start] = pos;
 
       if (p1 >= endp)
@@ -2112,7 +2129,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  if (pos == point && cursor_vpos < 0)
 	    {
 	      cursor_vpos = vpos;
-	      cursor_hpos = p1 - startp;
+	      cursor_hpos = p1 - leftmargin;
 	    }
 
 #ifdef USE_TEXT_PROPERTIES
@@ -2140,7 +2157,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 		  if (pos < point && next_invisible >= point)
 		    {
 		      cursor_vpos = vpos;
-		      cursor_hpos = p1 - startp;
+		      cursor_hpos = p1 - leftmargin;
 		    }
 		  pos = next_invisible;
 		}
@@ -2181,7 +2198,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
       if (c >= 040 && c < 0177
 	  && (dp == 0 || XTYPE (DISP_CHAR_VECTOR (dp, c)) != Lisp_Vector))
 	{
-	  if (p1 >= startp)
+	  if (p1 >= leftmargin)
 	    *p1 = MAKE_GLYPH (f, c, current_face);
 	  p1++;
 	}
@@ -2197,10 +2214,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      if (FETCH_CHAR (pos - 1) == '\n')
 		pos--;
 	    }
-	  if (invis && selective_rlen > 0 && p1 >= startp)
+	  if (invis && selective_rlen > 0 && p1 >= leftmargin)
 	    {
 	      p1 += selective_rlen;
-	      if (p1 - startp > width)
+	      if (p1 - leftmargin > width)
 		p1 = endp;
 	      copy_part_of_rope (f, p1prev, p1prev, invis_vector_contents,
 				 (p1 - p1prev), current_face);
@@ -2218,11 +2235,11 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	{
 	  do
 	    {
-	      if (p1 >= startp && p1 < endp)
+	      if (p1 >= leftmargin && p1 < endp)
 		*p1 = MAKE_GLYPH (f, ' ', current_face);
 	      p1++;
 	    }
-	  while ((p1 - startp + taboffset + hscroll - (hscroll > 0))
+	  while ((p1 - leftmargin + taboffset + hscroll - (hscroll > 0))
 		 % tab_width);
 	}
       else if (c == Ctl ('M') && selective == -1)
@@ -2233,7 +2250,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  if (selective_rlen > 0)
 	    {
 	      p1 += selective_rlen;
-	      if (p1 - startp > width)
+	      if (p1 - leftmargin > width)
 		p1 = endp;
 	      copy_part_of_rope (f, p1prev, p1prev, invis_vector_contents,
 				 (p1 - p1prev), current_face);
@@ -2249,42 +2266,42 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	}
       else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
 	{
-	  p1 = copy_part_of_rope (f, p1, startp,
+	  p1 = copy_part_of_rope (f, p1, leftmargin,
 				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->contents,
 				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->size,
 				  current_face);
 	}
       else if (c < 0200 && ctl_arrow)
 	{
-	  if (p1 >= startp)
+	  if (p1 >= leftmargin)
 	    *p1 = fix_glyph (f, (dp && XTYPE (DISP_CTRL_GLYPH (dp)) == Lisp_Int
 				 ? XINT (DISP_CTRL_GLYPH (dp)) : '^'),
 			     current_face);
 	  p1++;
-	  if (p1 >= startp && p1 < endp)
+	  if (p1 >= leftmargin && p1 < endp)
 	    *p1 = MAKE_GLYPH (f, c ^ 0100, current_face);
 	  p1++;
 	}
       else
 	{
-	  if (p1 >= startp)
+	  if (p1 >= leftmargin)
 	    *p1 = fix_glyph (f, (dp && XTYPE (DISP_ESCAPE_GLYPH (dp)) == Lisp_Int
 				 ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
 			     current_face);
 	  p1++;
-	  if (p1 >= startp && p1 < endp)
+	  if (p1 >= leftmargin && p1 < endp)
 	    *p1 = MAKE_GLYPH (f, (c >> 6) + '0', current_face);
 	  p1++;
-	  if (p1 >= startp && p1 < endp)
+	  if (p1 >= leftmargin && p1 < endp)
 	    *p1 = MAKE_GLYPH (f, (7 & (c >> 3)) + '0', current_face);
 	  p1++;
-	  if (p1 >= startp && p1 < endp)
+	  if (p1 >= leftmargin && p1 < endp)
 	    *p1 = MAKE_GLYPH (f, (7 & c) + '0', current_face);
 	  p1++;
 	}
 
       /* Do nothing here for a char that's entirely off the left edge.  */
-      if (p1 >= p1start)
+      if (p1 >= leftmargin)
 	{
 	  /* For all the glyphs occupied by this character, except for the
 	     first, store -1 in charstarts.  */
@@ -2296,7 +2313,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      /* The window's left column should always
 		 contain a character position.
 		 And don't clobber anything to the left of that.  */
-	      if (p1prev < p1start)
+	      if (p1prev < leftmargin)
 		{
 		  charstart[0] = pos;
 		  p2x = charstart;
@@ -2395,7 +2412,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
   if (start <= point && point <= lastpos && cursor_vpos < 0)
     {
       cursor_vpos = vpos;
-      cursor_hpos = p1 - startp;
+      cursor_hpos = p1 - leftmargin;
     }
 
   if (cursor_vpos == vpos)
@@ -2431,15 +2448,15 @@ display_text_line (w, start, vpos, hpos, taboffset)
   /* If hscroll and line not empty, insert truncation-at-left marker */
   if (hscroll && lastpos != start)
     {
-      *startp = fix_glyph (f, truncator, 0);
-      if (p1 <= startp)
-	p1 = startp + 1;
+      *leftmargin = fix_glyph (f, truncator, 0);
+      if (p1 <= leftmargin)
+	p1 = leftmargin + 1;
     }
 
   if (XFASTINT (w->width) + XFASTINT (w->left) != FRAME_WIDTH (f))
     {
       endp++;
-      if (p1 < startp) p1 = startp;
+      if (p1 < leftmargin) p1 = leftmargin;
       while (p1 < endp) *p1++ = SPACEGLYPH;
 
       /* Don't draw vertical bars if we're using scroll bars.  They're
@@ -2470,10 +2487,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
       if (len > width)
 	len = width;
       for (i = 0; i < len; i++)
-	startp[i] = p[i];
+	leftmargin[i] = p[i];
 
       /* Bug in SunOS 4.1.1 compiler requires this intermediate variable.  */
-      arrow_end = (startp - desired_glyphs->glyphs[vpos]) + len;
+      arrow_end = (leftmargin - desired_glyphs->glyphs[vpos]) + len;
       if (desired_glyphs->used[vpos] < arrow_end)
 	desired_glyphs->used[vpos] = arrow_end;
 
