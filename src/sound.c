@@ -35,6 +35,10 @@ Boston, MA 02111-1307, USA.  */
 #include <signal.h>
 #include "syssignal.h"
 
+#ifndef MSDOS
+#include <sys/ioctl.h>
+#endif
+
 /* FreeBSD has machine/soundcard.h.  Voxware sound driver docs mention
    sys/soundcard.h.  So, let's try whatever's there.  */
 
@@ -45,7 +49,6 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/soundcard.h>
 #endif
 #ifdef HAVE_SOUNDCARD_H
-#include <sys/ioctl.h>
 #include <soundcard.h>
 #endif
 
