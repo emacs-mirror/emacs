@@ -812,7 +812,7 @@ Command Line Options and Arguments
 * Environment::         Environment variables that Emacs uses.
 * Display X::           Changing the default display and using remote login.
 * Font X::	        Choosing a font for text, under X.
-* Colors X::	        Choosing colors, under X.
+* Colors::	        Choosing disply colors.
 * Window Size X::       Start-up window size, under X.
 * Borders X::	        Internal and external borders, under X.
 * Title X::             Specifying the initial frame's title.

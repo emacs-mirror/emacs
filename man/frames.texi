@@ -691,7 +691,7 @@ Press @kbd{S-Mouse-1} to activate this menu.
 font-setting functions don't affect menus and the menu bar, since they
 are displayed by their own widget classes.  To change the appearance of
 the menus and menu bar, you must use X resources (@pxref{Resources}).
-@xref{Colors X}, regarding colors.  @xref{Font X}, regarding choice of
+@xref{Colors}, regarding colors.  @xref{Font X}, regarding choice of
 font.
 
   Colors, fonts, and other attributes of the frame's display can also
