@@ -1189,7 +1189,7 @@ unless NOMODES is non-nil."
 	   (msg
 	    (cond ((and error (file-attributes buffer-file-name))
 		   (setq buffer-read-only t)
-		   "File exists, but cannot be read.")
+		   "File exists, but cannot be read")
 		  ((not buffer-read-only)
 		   (if (and warn
 			    (file-newer-than-file-p (make-auto-save-file-name)
@@ -1216,6 +1216,10 @@ unless NOMODES is non-nil."
 	    (or not-serious (sit-for 1 nil t)))))
     (if (and auto-save-default (not noauto))
 	(auto-save-mode t)))
+  ;; Make people do a little extra work (C-x C-q)
+  ;; before altering a backup file.
+  (if (backup-file-name-p buffer-file-name)
+      (setq buffer-read-only t))
   (if nomodes
       nil
     (and view-read-only view-mode
