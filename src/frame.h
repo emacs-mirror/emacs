@@ -41,7 +41,7 @@ enum output_method
 
 struct frame
 {
-  int size;
+  EMACS_INT size;
   struct Lisp_Vector *next;
 
   /* glyphs as they appear on the frame */
@@ -78,8 +78,8 @@ struct frame
   GLYPH phys_cursor_glyph;
 
   /* Size of this frame, in units of characters.  */
-  int height;
-  int width;
+  EMACS_INT height;
+  EMACS_INT width;
 
   /* New height and width for pending size change.  0 if no change pending.  */
   int new_height, new_width;
@@ -381,8 +381,8 @@ extern Lisp_Object Vterminal_frame;
    element explicitly.  */
 extern struct frame the_only_frame;
 
-extern int selected_frame;
-extern int last_nonminibuf_frame;
+extern EMACS_INT selected_frame;
+extern EMACS_INT last_nonminibuf_frame;
 
 #define XFRAME(f) selected_frame
 #define WINDOW_FRAME(w) selected_frame
