@@ -2225,7 +2225,13 @@ __write (int handle, const void *buffer, size_t count)
 
 #endif /* __DJGPP__ == 2 && __DJGPP_MINOR__ == 0 */
 
-
+DEFUN ("msdos-long-file-names", Fmsdos_long_file_names, Smsdos_long_file_names,
+  0, 0, 0,
+  "Return non-nil if long file names are supported on MSDOS.")
+  ()
+{
+  return (_USE_LFN ? Qt : Qnil);
+}
 
 /* The Emacs root directory as determined by init_environment.  */
 
@@ -2917,6 +2923,7 @@ syms_of_msdos ()
   staticpro (&recent_doskeys);
 
   defsubr (&Srecent_doskeys);
+  defsubt (&Smsdos_long_file_names);
 }
 
 #endif /* MSDOS */
