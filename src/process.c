@@ -248,12 +248,11 @@ static Lisp_Object get_process ();
 /* Maximum number of bytes to send to a pty without an eof.  */
 static int pty_max_bytes;
 
-/* Open an available pty, returning a file descriptor.
-   Return -1 on failure.
-   The file name of the terminal corresponding to the pty
-   is left in the variable pty_name.  */
+#ifdef HAVE_PTYS
+/* The file name of the pty opened by allocate_pty.  */
 
 static char pty_name[24];
+#endif
 
 /* Compute the Lisp form of the process status, p->status, from
    the numeric status that was returned by `wait'.  */
@@ -362,6 +361,11 @@ status_message (status)
 }
 
 #ifdef HAVE_PTYS
+
+/* Open an available pty, returning a file descriptor.
+   Return -1 on failure.
+   The file name of the terminal corresponding to the pty
+   is left in the variable pty_name.  */
 
 int
 allocate_pty ()
@@ -1499,7 +1503,12 @@ create_process (process, new_argv, current_dir)
   if (forkin != forkout && forkout >= 0)
     close (forkout);
 
-  XPROCESS (process)->tty_name = pty_flag ? build_string (pty_name) : Qnil;
+#ifdef HAVE_PTYS
+  if (pty_flag)
+    XPROCESS (process)->tty_name = build_string (pty_name);
+  else
+#endif
+    XPROCESS (process)->tty_name = Qnil;
 
 #ifdef SIGCHLD
 #ifdef BSD4_1
