@@ -48,6 +48,43 @@ or a list to evaluate when the item is chosen.
 ENABLE is an expression; the item is enabled for selection
 whenever this expression's value is non-nil.
 
+Alternatively, a menu item may have the form: 
+
+   [ NAME CALLBACK [ KEYWORD ARG ] ... ]
+
+Where KEYWORD is one of the symbol defined below.
+
+   :keys KEYS
+
+KEYS is a string; a complex keyboard equivalent to this menu item.
+This is normally not needed because keyboard equivalents are usually
+computed automatically.
+
+   :active ENABLE
+
+ENABLE is an expression; the item is enabled for selection
+whenever this expression's value is non-nil.
+
+   :suffix NAME
+
+NAME is a string; the name of an argument to CALLBACK.
+
+   :style 
+   
+STYLE is a symbol describing the type of menu item.  The following are
+defined:  
+
+toggle: A checkbox.  
+        Currently just prepend the name with the string \"Toggle \".
+radio: A radio button. 
+nil: An ordinary menu item.
+
+   :selected SELECTED
+
+SELECTED is an expression; the checkbox or radio button is selected
+whenever this expression's value is non-nil.
+Currently just disable radio buttons, no effect on checkboxes.
+
 A menu item can be a string.  Then that string appears in the menu as
 unselectable text.  A string consisting solely of hyphens is displayed
 as a solid horizontal line.
@@ -56,14 +93,22 @@ A menu item can be a list.  It is treated as a submenu.
 The first element should be the submenu name.  That's used as the
 menu item in the top-level menu.  The cdr of the submenu list
 is a list of menu items, as above."
-  (` (let* ((maps (, maps))
-	    (menu (, menu))
-	    (keymap (easy-menu-create-keymaps (car menu) (cdr menu))))
-       (and (keymapp maps) (setq maps (list maps)))
-       (while maps
-	 (define-key (car maps) (vector 'menu-bar (intern (car menu)))
-	   (cons (car menu) keymap))
-	 (setq maps (cdr maps))))))
+  (` (progn
+       (defvar (, symbol) nil (, doc))
+       (easy-menu-do-define (quote (, symbol)) (, maps) (, doc) (, menu)))))
+
+(defun easy-menu-do-define (symbol maps doc menu)
+  ;; We can't do anything that might differ between Emacs dialects in
+  ;; `easy-menu-define' in order to make byte compiled files
+  ;; compatible.  Therefore everything interesting is done in this
+  ;; function. 
+  (set symbol (easy-menu-create-keymaps (car menu) (cdr menu)))
+  (fset symbol (` (lambda (event) (, doc) (interactive "@e")
+		    (easy-popup-menu event (, symbol)))))
+  (mapcar (function (lambda (map) 
+	    (define-key map (vector 'menu-bar (intern (car menu)))
+	      (cons (car menu) (symbol-value symbol)))))
+	  (if (keymapp maps) (list maps) maps)))
 
 (defvar easy-menu-item-count 0)
 
@@ -89,8 +134,39 @@ is a list of menu items, as above."
 	       (setq command (make-symbol (format "menu-function-%d"
 						  easy-menu-item-count)))
 	       (setq easy-menu-item-count (1+ easy-menu-item-count))
-	       (put command 'menu-enable (aref item 2))
-	       (setq name (aref item 0))	       
+	       (setq name (aref item 0))
+	       (let ((keyword (aref item 2)))
+		 (if (and (symbolp keyword)
+			  (= ?: (aref (symbol-name keyword) 0)))
+		     (let ((count 2)
+			   style selected active keys
+			   arg)
+		       (while (> (length item) count)
+			 (setq keyword (aref item count))
+			 (setq arg (aref item (1+ count)))
+			 (setq count (+ 2 count))
+			 (cond ((eq keyword ':keys)
+				(setq keys arg))
+			       ((eq keyword ':active)
+				(setq active arg))
+			       ((eq keyword ':suffix)
+				(setq name (concat name " " arg)))
+			       ((eq keyword ':style)
+				(setq style arg))
+			       ((eq keyword ':selected)
+				(setq selected arg))))
+		       (if keys
+			   (setq name (concat name "  (" keys ")")))
+		       (if (eq style 'toggle)
+			   ;; Simulate checkboxes.
+			   (setq name (concat "Toggle " name)))
+		       (if active 
+			   (put command 'menu-enable active)
+			 (and (eq style 'radio)
+			      selected
+			      ;; Simulate radio buttons with menu-enable.
+			      (put command 'menu-enable
+				   (list 'not selected)))))))	       
 	       (if (keymapp callback)
 		   (setq name (concat name " ...")))
 	       (if (symbolp callback)
@@ -119,9 +195,9 @@ Call this from `activate-menubar-hook' to implement dynamic menus."
 	(setcdr map (cdr (easy-menu-create-keymaps name items)))
       (error "Malformed menu in `easy-menu-change'"))))
 
-(defmacro easy-menu-remove (menu))
+(defun easy-menu-remove (menu))
 
-(defmacro easy-menu-add (menu &optional map))
+(defun easy-menu-add (menu &optional map))
 
 (provide 'easymenu)
 
