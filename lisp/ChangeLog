@@ -1,3 +1,8 @@
+2001-07-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* progmodes/make-mode.el (makefile-macroassign-regex): Recognize
+	the ?= operator.  From Jonathan Kamens <jik@curl.com>.
+
 2001-07-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* vc.el (vc-switch-backend): Fix autoload cookie.
