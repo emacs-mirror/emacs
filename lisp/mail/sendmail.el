@@ -328,10 +328,10 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat (regexp-quote mail-header-separator)
-				"$\\|[ \t]*[-_][-_][-_]+$\\|"
+				"$\\|[ \t]*[-_][-_][-_]+$\\|-- \\|"
 				paragraph-start))
   (setq paragraph-separate (concat (regexp-quote mail-header-separator)
-				   "$\\|[ \t]*[-_][-_][-_]+$\\|"
+				   "$\\|[ \t]*[-_][-_][-_]+$\\|-- \\|"
 				   paragraph-separate))
   (run-hooks 'text-mode-hook 'mail-mode-hook))
 
