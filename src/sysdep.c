@@ -1255,14 +1255,6 @@ emacs_set_tty (fd, settings, flushp)
 }
 
 
-/* The initial tty mode bits */
-struct emacs_tty old_tty;
-
-/* 1 if we have been through init_sys_modes.  */
-int term_initted;
-
-/* 1 if outer tty status has been recorded.  */
-int old_tty_valid;
 
 #ifdef BSD4_1
 /* BSD 4.1 needs to keep track of the lmode bits in order to start
@@ -1298,7 +1290,18 @@ static struct tchars new_tchars = {-1,-1,-1,-1,-1,-1};
 #endif
 
 void
-init_sys_modes ()
+init_all_sys_modes (void)
+{
+  struct tty_output *tty = tty_list;
+  while (tty) {
+    init_sys_modes (tty);
+    tty = tty->next;
+  }
+}
+
+void
+init_sys_modes (otty)
+     struct tty_output *otty;
 {
   struct emacs_tty tty;
 
@@ -1367,14 +1370,14 @@ nil means don't delete them until `list-processes' is run.  */);
   if (!read_socket_hook && EQ (Vwindow_system, Qnil))
 #endif
     {
-      EMACS_GET_TTY (input_fd, &old_tty);
+      EMACS_GET_TTY (input_fd, &otty->old_tty);
 
-      old_tty_valid = 1;
+      otty->old_tty_valid = 1;
 
-      tty = old_tty;
+      tty = otty->old_tty;
 
 #if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
-      XSETINT (Vtty_erase_char, old_tty.main.c_cc[VERASE]);
+      XSETINT (Vtty_erase_char, otty->old_tty.main.c_cc[VERASE]);
 
 #ifdef DGUX
       /* This allows meta to be sent on 8th bit.  */
@@ -1539,7 +1542,7 @@ nil means don't delete them until `list-processes' is run.  */);
 	  tty.tchars.t_stopc = '\023';
 	}
 
-      tty.lmode = LDECCTQ | LLITOUT | LPASS8 | LNOFLSH | old_tty.lmode;
+      tty.lmode = LDECCTQ | LLITOUT | LPASS8 | LNOFLSH | otty->old_tty.lmode;
 #ifdef ultrix
       /* Under Ultrix 4.2a, leaving this out doesn't seem to hurt
 	 anything, and leaving it in breaks the meta key.  Go figure.  */
@@ -1557,7 +1560,7 @@ nil means don't delete them until `list-processes' is run.  */);
       tty.ltchars = new_ltchars;
 #endif /* HAVE_LTCHARS */
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
-      if (!term_initted)
+      if (!otty->term_initted)
 	internal_terminal_init ();
       dos_ttraw ();
 #endif
@@ -1646,14 +1649,14 @@ nil means don't delete them until `list-processes' is run.  */);
 #endif
       )
 #endif
-    set_terminal_modes ();
+    set_terminal_modes (otty);
 
-  if (!term_initted
+  if (!otty->term_initted
       && FRAMEP (Vterminal_frame)
       && FRAME_TERMCAP_P (XFRAME (Vterminal_frame)))
     init_frame_faces (XFRAME (Vterminal_frame));
 
-  if (term_initted && no_redraw_on_reenter)
+  if (otty->term_initted && no_redraw_on_reenter)
     {
       if (display_completed)
 	direct_output_forward_char (0);
@@ -1665,7 +1668,7 @@ nil means don't delete them until `list-processes' is run.  */);
 	FRAME_GARBAGED_P (XFRAME (Vterminal_frame)) = 1;
     }
 
-  term_initted = 1;
+  otty->term_initted = 1;
 }
 
 /* Return nonzero if safe to use tabs in output.
@@ -1778,10 +1781,21 @@ set_window_size (fd, height, width)
 }
 
 
+void
+reset_all_sys_modes (void)
+{
+  struct tty_output *tty = tty_list;
+  while (tty) {
+    reset_sys_modes (tty);
+    tty = tty->next;
+  }
+}
+
 /* Prepare the terminal for exiting Emacs; move the cursor to the
    bottom of the frame, turn off interrupt-driven I/O, etc.  */
 void
-reset_sys_modes ()
+reset_sys_modes (otty)
+     struct tty_output *otty;
 {
   struct frame *sf;
 
@@ -1790,7 +1804,7 @@ reset_sys_modes ()
       fflush (stdout);
       return;
     }
-  if (!term_initted)
+  if (!otty->term_initted)
     return;
 #ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
@@ -1820,7 +1834,7 @@ reset_sys_modes ()
   }
 #endif
 
-  reset_terminal_modes ();
+  reset_terminal_modes (otty);
   fflush (stdout);
 #ifdef BSD_SYSTEM
 #ifndef BSD4_1
@@ -1848,8 +1862,8 @@ reset_sys_modes ()
     reset_sigio ();
 #endif /* BSD4_1 */
 
-  if (old_tty_valid)
-    while (EMACS_SET_TTY (input_fd, &old_tty, 0) < 0 && errno == EINTR)
+  if (otty->old_tty_valid)
+    while (EMACS_SET_TTY (input_fd, &otty->old_tty, 0) < 0 && errno == EINTR)
       ;
 
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
@@ -1860,7 +1874,7 @@ reset_sys_modes ()
   /* Ultrix's termios *ignores* any line discipline except TERMIODISC.
      A different old line discipline is therefore not restored, yet.
      Restore the old line discipline by hand.  */
-  ioctl (0, TIOCSETD, &old_tty.main.c_line);
+  ioctl (0, TIOCSETD, &otty->old_tty.main.c_line);
 #endif
 
 #ifdef AIXHFT
@@ -3470,7 +3484,7 @@ croak (badfunc)
      char *badfunc;
 {
   printf ("%s not yet implemented\r\n", badfunc);
-  reset_sys_modes ();
+  reset_all_sys_modes ();
   exit (1);
 }
 
@@ -5056,7 +5070,7 @@ croak (badfunc)
      char *badfunc;
 {
   printf ("%s not yet implemented\r\n", badfunc);
-  reset_sys_modes ();
+  reset_all_sys_modes ();
   exit (1);
 }
 
@@ -5126,8 +5140,8 @@ hft_init ()
   }
   /* The HFT system on AIX doesn't optimize for scrolling, so it's really ugly
      at times.  */
-  TERMINAL_LINE_INS_DEL_OK (CURRENT_TERMINAL ()) = 0;
-  TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ()) = 0;
+  TTY_LINE_INS_DEL_OK (CURTTY ()) = 0;
+  TTY_CHAR_INS_DEL_OK (CURTTY ()) = 0;
 }
 
 /* Reset the rubout key to backspace.  */

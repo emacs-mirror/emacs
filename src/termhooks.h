@@ -25,9 +25,6 @@ Boston, MA 02111-1307, USA.  */
 struct glyph;
 struct frame;
 
-/* If nonzero, send all terminal output characters to this stream also.  */
-extern FILE *termscript;
-
 /* Only use prototypes when lisp.h has been included.  */
 #ifndef P_
 #define P_(X) ()

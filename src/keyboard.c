@@ -22,6 +22,7 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include <signal.h>
 #include <stdio.h>
+#include "systty.h" /* This must be included befor termchar.h. */
 #include "termchar.h"
 #include "termopts.h"
 #include "lisp.h"
@@ -55,7 +56,6 @@ Boston, MA 02111-1307, USA.  */
 #endif /* not MSDOS */
 
 #include "syssignal.h"
-#include "systty.h"
 
 #include <sys/types.h>
 #ifdef HAVE_UNISTD_H
@@ -10067,7 +10067,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
 
   GCPRO1 (stuffstring);
   get_frame_size (&old_width, &old_height);
-  reset_sys_modes ();
+  reset_all_sys_modes ();
   /* sys_suspend can get an error if it tries to fork a subshell
      and the system resources aren't available for that.  */
   record_unwind_protect ((Lisp_Object (*) P_ ((Lisp_Object))) init_sys_modes,
@@ -10206,7 +10206,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
       sigblock (sigmask (SIGINT));
 
       fflush (stdout);
-      reset_sys_modes ();
+      reset_all_sys_modes ();
 
 #ifdef SIGTSTP			/* Support possible in later USG versions */
 /*
@@ -10285,7 +10285,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
       printf ("Continuing...\n");
 #endif /* not MSDOS */
       fflush (stdout);
-      init_sys_modes ();
+      init_all_sys_modes ();
       sigfree ();
     }
   else
@@ -10372,7 +10372,7 @@ See also `current-input-mode'.  */)
 
 #ifndef DOS_NT
   /* this causes startup screen to be restored and messes with the mouse */
-  reset_sys_modes ();
+  reset_all_sys_modes ();
 #endif
 
 #ifdef SIGIO
@@ -10410,7 +10410,7 @@ See also `current-input-mode'.  */)
     quit_char = XINT (quit) & (meta_key ? 0377 : 0177);
 
 #ifndef DOS_NT
-  init_sys_modes ();
+  init_all_sys_modes ();
 #endif
 
 #ifdef POLL_FOR_INPUT

@@ -26,6 +26,9 @@ Boston, MA 02111-1307, USA.  */
 #include <ctype.h>
 #include <string.h>
 
+#include <sys/file.h>
+
+#include "systty.h" /* For emacs_tty in termchar.h */
 #include "termchar.h"
 #include "termopts.h"
 #include "lisp.h"
@@ -60,32 +63,36 @@ extern int tgetnum P_ ((char *id));
 #include "macterm.h"
 #endif
 
+#ifndef O_RDWR
+#define O_RDWR 2
+#endif
+
 static void turn_on_face P_ ((struct frame *, int face_id));
 static void turn_off_face P_ ((struct frame *, int face_id));
 static void tty_show_cursor P_ ((void));
 static void tty_hide_cursor P_ ((void));
 
-#define OUTPUT(a) \
-     tputs (a, (int) (FRAME_LINES (XFRAME (selected_frame)) - curY), cmputc)
-#define OUTPUT1(a) tputs (a, 1, cmputc)
-#define OUTPUTL(a, lines) tputs (a, lines, cmputc)
+#define OUTPUT(tty, a) \
+    emacs_tputs ((tty), a, (int) (FRAME_LINES (XFRAME (selected_frame)) - curY), cmputc)
+#define OUTPUT1(tty, a) emacs_tputs ((tty), a, 1, cmputc)
+#define OUTPUTL(tty, a, lines) emacs_tputs ((tty), a, lines, cmputc)
 
-#define OUTPUT_IF(a)							\
+#define OUTPUT_IF(tty, a)                                               \
      do {								\
-       if (a)								\
-         tputs (a, (int) (FRAME_LINES (XFRAME (selected_frame))	\
+       if (a)                                                           \
+         emacs_tputs ((tty), a, (int) (FRAME_LINES (XFRAME (selected_frame)) \
 			  - curY), cmputc);				\
      } while (0)
 
-#define OUTPUT1_IF(a) do { if (a) tputs (a, 1, cmputc); } while (0)
+#define OUTPUT1_IF(tty, a) do { if (a) emacs_tputs ((tty), a, 1, cmputc); } while (0)
 
 /* Function to use to ring the bell.  */
 
 Lisp_Object Vring_bell_function;
 
 /* Terminal characteristics that higher levels want to look at. */
-static struct terminal _current_terminal;
-TERMINAL_PTR current_terminal = &_current_terminal;
+
+struct tty_output *tty_list;
 
 /* Nonzero means no need to redraw the entire frame on resuming
    a suspended Emacs.  This is useful on terminals with multiple pages,
@@ -421,18 +428,19 @@ ring_bell ()
     }
   else if (!FRAME_TERMCAP_P (XFRAME (selected_frame)))
     (*ring_bell_hook) ();
-  else
-    OUTPUT (TS_visible_bell && visible_bell ? TS_visible_bell : TS_bell);
+  else {
+    OUTPUT (CURTTY (), TS_visible_bell && visible_bell ? TS_visible_bell : TS_bell);
+  }
 }
 
 void
-set_terminal_modes ()
+set_terminal_modes (struct tty_output *tty)
 {
   if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
     {
-      OUTPUT_IF (TS_termcap_modes);
-      OUTPUT_IF (TS_cursor_visible);
-      OUTPUT_IF (TS_keypad_mode);
+      OUTPUT_IF (tty, TS_termcap_modes);
+      OUTPUT_IF (tty, TS_cursor_visible);
+      OUTPUT_IF (tty, TS_keypad_mode);
       losecursor ();
     }
   else
@@ -440,17 +448,18 @@ set_terminal_modes ()
 }
 
 void
-reset_terminal_modes ()
+reset_terminal_modes (struct tty_output *tty)
 {
   if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
     {
       turn_off_highlight ();
       turn_off_insert ();
-      OUTPUT_IF (TS_end_keypad_mode);
-      OUTPUT_IF (TS_cursor_normal);
-      OUTPUT_IF (TS_end_termcap_modes);
-      OUTPUT_IF (TS_orig_pair);
+      OUTPUT_IF (tty, TS_end_keypad_mode);
+      OUTPUT_IF (tty, TS_cursor_normal);
+      OUTPUT_IF (tty, TS_end_termcap_modes);
+      OUTPUT_IF (tty, TS_orig_pair);
       /* Output raw CR so kernel can track the cursor hpos.  */
+      current_tty = tty;
       cmputc ('\r');
     }
   else if (reset_terminal_modes_hook)
@@ -490,7 +499,7 @@ set_terminal_window (size)
   if (FRAME_TERMCAP_P (updating_frame))
     {
       specified_window = size ? size : FRAME_LINES (updating_frame);
-      if (TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ()))
+      if (TTY_SCROLL_REGION_OK (FRAME_TTY (updating_frame)))
 	set_scroll_region (0, specified_window);
     }
   else
@@ -514,7 +523,7 @@ set_scroll_region (start, stop)
   else
     buf = tparam (TS_set_window, 0, 0, start, 0, stop, FRAME_COLS (sf));
 
-  OUTPUT (buf);
+  OUTPUT (CURTTY (), buf);
   xfree (buf);
   losecursor ();
 }
@@ -524,7 +533,7 @@ static void
 turn_on_insert ()
 {
   if (!insert_mode)
-    OUTPUT (TS_insert_mode);
+    OUTPUT (CURTTY (), TS_insert_mode);
   insert_mode = 1;
 }
 
@@ -532,7 +541,7 @@ void
 turn_off_insert ()
 {
   if (insert_mode)
-    OUTPUT (TS_end_insert_mode);
+    OUTPUT (CURTTY (), TS_end_insert_mode);
   insert_mode = 0;
 }
 
@@ -542,7 +551,7 @@ void
 turn_off_highlight ()
 {
   if (standout_mode)
-    OUTPUT_IF (TS_end_standout_mode);
+    OUTPUT_IF (CURTTY (), TS_end_standout_mode);
   standout_mode = 0;
 }
 
@@ -550,7 +559,7 @@ static void
 turn_on_highlight ()
 {
   if (!standout_mode)
-    OUTPUT_IF (TS_standout_mode);
+    OUTPUT_IF (CURTTY(), TS_standout_mode);
   standout_mode = 1;
 }
 
@@ -572,7 +581,7 @@ tty_hide_cursor ()
   if (tty_cursor_hidden == 0)
     {
       tty_cursor_hidden = 1;
-      OUTPUT_IF (TS_cursor_invisible);
+      OUTPUT_IF (CURTTY (), TS_cursor_invisible);
     }
 }
 
@@ -585,8 +594,8 @@ tty_show_cursor ()
   if (tty_cursor_hidden)
     {
       tty_cursor_hidden = 0;
-      OUTPUT_IF (TS_cursor_normal);
-      OUTPUT_IF (TS_cursor_visible);
+      OUTPUT_IF (CURTTY (), TS_cursor_normal);
+      OUTPUT_IF (CURTTY (), TS_cursor_visible);
     }
 }
 
@@ -642,7 +651,7 @@ cursor_to (vpos, hpos)
     background_highlight ();
   if (!TF_insmode_motion)
     turn_off_insert ();
-  cmgoto (vpos, hpos);
+  cmgoto (FRAME_TTY (f), vpos, hpos);
 }
 
 /* Similar but don't take any account of the wasted characters.  */
@@ -663,7 +672,7 @@ raw_cursor_to (row, col)
     background_highlight ();
   if (!TF_insmode_motion)
     turn_off_insert ();
-  cmgoto (row, col);
+  cmgoto (FRAME_TTY (f), row, col);
 }
 
 /* Erase operations */
@@ -682,7 +691,7 @@ clear_to_end ()
   if (TS_clr_to_bottom)
     {
       background_highlight ();
-      OUTPUT (TS_clr_to_bottom);
+      OUTPUT (CURTTY (), TS_clr_to_bottom);
     }
   else
     {
@@ -710,7 +719,7 @@ clear_frame ()
   if (TS_clr_frame)
     {
       background_highlight ();
-      OUTPUT (TS_clr_frame);
+      OUTPUT (FRAME_TTY (updating_frame ? updating_frame : sf), TS_clr_frame);
       cmat (0, 0);
     }
   else
@@ -750,7 +759,7 @@ clear_end_of_line (first_unused_hpos)
   background_highlight ();
   if (TS_clr_line)
     {
-      OUTPUT1 (TS_clr_line);
+      OUTPUT1 (CURTTY (), TS_clr_line);
     }
   else
     {			/* have to do it the hard way */
@@ -764,9 +773,9 @@ clear_end_of_line (first_unused_hpos)
 
       for (i = curX; i < first_unused_hpos; i++)
 	{
-	  if (termscript)
-	    fputc (' ', termscript);
-	  putchar (' ');
+	  if (TTY_TERMSCRIPT (CURTTY ()))
+	    fputc (' ', TTY_TERMSCRIPT (CURTTY ()));
+	  fputc (' ', TTY_OUTPUT (CURTTY ()));
 	}
       cmplus (first_unused_hpos - curX);
     }
@@ -942,11 +951,13 @@ write_glyphs (string, len)
 					   &consumed);
 	  if (produced > 0)
 	    {
-	      fwrite (conversion_buffer, 1, produced, stdout);
-	      if (ferror (stdout))
-		clearerr (stdout);
-	      if (termscript)
-		fwrite (conversion_buffer, 1, produced, termscript);
+	      fwrite (conversion_buffer, 1, produced,
+                      TTY_OUTPUT (FRAME_TTY (f)));
+	      if (ferror (TTY_OUTPUT (FRAME_TTY (f))))
+		clearerr (TTY_OUTPUT (FRAME_TTY (f)));
+	      if (TTY_TERMSCRIPT (FRAME_TTY (f)))
+		fwrite (conversion_buffer, 1, produced,
+                        TTY_TERMSCRIPT (FRAME_TTY (f)));
 	    }
 	  len -= consumed;
 	  n -= consumed;
@@ -966,16 +977,17 @@ write_glyphs (string, len)
 		     0, conversion_buffer_size);
       if (terminal_coding.produced > 0)
 	{
-	  fwrite (conversion_buffer, 1, terminal_coding.produced, stdout);
-	  if (ferror (stdout))
-	    clearerr (stdout);
-	  if (termscript)
+	  fwrite (conversion_buffer, 1, terminal_coding.produced,
+                  TTY_OUTPUT (FRAME_TTY (f)));
+	  if (ferror (TTY_OUTPUT (FRAME_TTY (f))))
+	    clearerr (TTY_OUTPUT (FRAME_TTY (f)));
+	  if (TTY_TERMSCRIPT (FRAME_TTY (f)))
 	    fwrite (conversion_buffer, 1, terminal_coding.produced,
-		    termscript);
+		    TTY_TERMSCRIPT (FRAME_TTY (f)));
 	}
     }
 
-  cmcheckmagic ();
+  cmcheckmagic (FRAME_TTY (f));
 }
 
 /* If start is zero, insert blanks instead of a string at start */
@@ -1004,7 +1016,7 @@ insert_glyphs (start, len)
   if (TS_ins_multi_chars)
     {
       buf = tparam (TS_ins_multi_chars, 0, 0, len);
-      OUTPUT1 (buf);
+      OUTPUT1 (FRAME_TTY (f), buf);
       xfree (buf);
       if (start)
 	write_glyphs (start, len);
@@ -1021,7 +1033,7 @@ insert_glyphs (start, len)
       unsigned char conversion_buffer[1024];
       int conversion_buffer_size = sizeof conversion_buffer;
 
-      OUTPUT1_IF (TS_ins_char);
+      OUTPUT1_IF (FRAME_TTY (f), TS_ins_char);
       if (!start)
 	{
 	  conversion_buffer[0] = SPACEGLYPH;
@@ -1037,7 +1049,7 @@ insert_glyphs (start, len)
 	     occupies more than one column.  */
 	  while (len && CHAR_GLYPH_PADDING_P (*start))
 	    {
-	      OUTPUT1_IF (TS_ins_char);
+	      OUTPUT1_IF (FRAME_TTY (f), TS_ins_char);
 	      start++, len--;
 	    }
 
@@ -1053,14 +1065,16 @@ insert_glyphs (start, len)
 
       if (produced > 0)
 	{
-	  fwrite (conversion_buffer, 1, produced, stdout);
-	  if (ferror (stdout))
-	    clearerr (stdout);
-	  if (termscript)
-	    fwrite (conversion_buffer, 1, produced, termscript);
+	  fwrite (conversion_buffer, 1, produced,
+                  TTY_OUTPUT (FRAME_TTY (f)));
+	  if (ferror (TTY_OUTPUT (FRAME_TTY (f))))
+	    clearerr (TTY_OUTPUT (FRAME_TTY (f)));
+	  if (TTY_TERMSCRIPT (FRAME_TTY (f)))
+	    fwrite (conversion_buffer, 1, produced,
+                    TTY_TERMSCRIPT (FRAME_TTY (f)));
 	}
 
-      OUTPUT1_IF (TS_pad_inserted_char);
+      OUTPUT1_IF (FRAME_TTY (f), TS_pad_inserted_char);
       if (start)
 	{
 	  turn_off_face (f, glyph->face_id);
@@ -1068,7 +1082,7 @@ insert_glyphs (start, len)
 	}
     }
 
-  cmcheckmagic ();
+  cmcheckmagic (FRAME_TTY (f));
 }
 
 void
@@ -1091,20 +1105,20 @@ delete_glyphs (n)
   else
     {
       turn_off_insert ();
-      OUTPUT_IF (TS_delete_mode);
+      OUTPUT_IF (FRAME_TTY (updating_frame), TS_delete_mode);
     }
 
   if (TS_del_multi_chars)
     {
       buf = tparam (TS_del_multi_chars, 0, 0, n);
-      OUTPUT1 (buf);
+      OUTPUT1 (FRAME_TTY (updating_frame), buf);
       xfree (buf);
     }
   else
     for (i = 0; i < n; i++)
-      OUTPUT1 (TS_del_char);
+      OUTPUT1 (FRAME_TTY (updating_frame), TS_del_char);
   if (!delete_in_insert_mode)
-    OUTPUT_IF (TS_end_delete_mode);
+    OUTPUT_IF (FRAME_TTY (updating_frame), TS_end_delete_mode);
 }
 
 /* Insert N lines at vpos VPOS.  If N is negative, delete -N lines.  */
@@ -1136,10 +1150,10 @@ ins_del_lines (vpos, n)
   /* If the lines below the deletion are blank lines coming
      out of the end of the window, don't bother,
      as there will be a matching inslines later that will flush them. */
-  if (TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ())
+  if (TTY_SCROLL_REGION_OK (FRAME_TTY (sf))
       && vpos + i >= specified_window)
     return;
-  if (!TERMINAL_MEMORY_BELOW_FRAME (CURRENT_TERMINAL ())
+  if (!TTY_MEMORY_BELOW_FRAME (FRAME_TTY (sf))
       && vpos + i >= FRAME_LINES (sf))
     return;
 
@@ -1148,7 +1162,7 @@ ins_del_lines (vpos, n)
       raw_cursor_to (vpos, 0);
       background_highlight ();
       buf = tparam (multi, 0, 0, i);
-      OUTPUT (buf);
+      OUTPUT (FRAME_TTY (sf), buf);
       xfree (buf);
     }
   else if (single)
@@ -1156,7 +1170,7 @@ ins_del_lines (vpos, n)
       raw_cursor_to (vpos, 0);
       background_highlight ();
       while (--i >= 0)
-	OUTPUT (single);
+	OUTPUT (FRAME_TTY (sf), single);
       if (TF_teleray)
 	curX = 0;
     }
@@ -1169,12 +1183,12 @@ ins_del_lines (vpos, n)
 	raw_cursor_to (vpos, 0);
       background_highlight ();
       while (--i >= 0)
-	OUTPUTL (scroll, specified_window - vpos);
+	OUTPUTL (FRAME_TTY (sf), scroll, specified_window - vpos);
       set_scroll_region (0, specified_window);
     }
 
-  if (!TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ())
-      && TERMINAL_MEMORY_BELOW_FRAME (CURRENT_TERMINAL ())
+  if (!TTY_SCROLL_REGION_OK (FRAME_TTY (sf))
+      && TTY_MEMORY_BELOW_FRAME (FRAME_TTY (sf))
       && n < 0)
     {
       cursor_to (FRAME_LINES (sf) + n, 0);
@@ -1306,7 +1320,8 @@ calculate_costs (frame)
 
   FRAME_COST_BAUD_RATE (frame) = baud_rate;
 
-  TERMINAL_SCROLL_REGION_COST (CURRENT_TERMINAL ()) = string_cost (f);
+  if (FRAME_TERMCAP_P (frame))
+    TTY_SCROLL_REGION_COST (frame->output_data.tty) = string_cost (f);
 
   /* These variables are only used for terminal stuff.  They are allocated
      once for the terminal frame of X-windows emacs, but not used afterwards.
@@ -1866,23 +1881,23 @@ turn_on_face (f, face_id)
   if (face->tty_bold_p)
     {
       if (MAY_USE_WITH_COLORS_P (NC_BOLD))
-	OUTPUT1_IF (TS_enter_bold_mode);
+	OUTPUT1_IF (FRAME_TTY (f), TS_enter_bold_mode);
     }
   else if (face->tty_dim_p)
     if (MAY_USE_WITH_COLORS_P (NC_DIM))
-      OUTPUT1_IF (TS_enter_dim_mode);
+      OUTPUT1_IF (FRAME_TTY (f), TS_enter_dim_mode);
 
   /* Alternate charset and blinking not yet used.  */
   if (face->tty_alt_charset_p
       && MAY_USE_WITH_COLORS_P (NC_ALT_CHARSET))
-    OUTPUT1_IF (TS_enter_alt_charset_mode);
+    OUTPUT1_IF (FRAME_TTY (f), TS_enter_alt_charset_mode);
 
   if (face->tty_blinking_p
       && MAY_USE_WITH_COLORS_P (NC_BLINK))
-    OUTPUT1_IF (TS_enter_blink_mode);
+    OUTPUT1_IF (FRAME_TTY (f), TS_enter_blink_mode);
 
   if (face->tty_underline_p && MAY_USE_WITH_COLORS_P (NC_UNDERLINE))
-    OUTPUT1_IF (TS_enter_underline_mode);
+    OUTPUT1_IF (FRAME_TTY (f), TS_enter_underline_mode);
 
   if (TN_max_colors > 0)
     {
@@ -1891,14 +1906,14 @@ turn_on_face (f, face_id)
       if (fg >= 0 && TS_set_foreground)
 	{
 	  p = tparam (TS_set_foreground, NULL, 0, (int) fg);
-	  OUTPUT (p);
+	  OUTPUT (FRAME_TTY (f), p);
 	  xfree (p);
 	}
 
       if (bg >= 0 && TS_set_background)
 	{
 	  p = tparam (TS_set_background, NULL, 0, (int) bg);
-	  OUTPUT (p);
+	  OUTPUT (FRAME_TTY (f), p);
 	  xfree (p);
 	}
     }
@@ -1928,23 +1943,23 @@ turn_off_face (f, face_id)
 	  || face->tty_blinking_p
 	  || face->tty_underline_p)
 	{
-	  OUTPUT1_IF (TS_exit_attribute_mode);
+	  OUTPUT1_IF (FRAME_TTY (f), TS_exit_attribute_mode);
 	  if (strcmp (TS_exit_attribute_mode, TS_end_standout_mode) == 0)
 	    standout_mode = 0;
 	}
 
       if (face->tty_alt_charset_p)
-	OUTPUT_IF (TS_exit_alt_charset_mode);
+	OUTPUT_IF (FRAME_TTY (f), TS_exit_alt_charset_mode);
     }
   else
     {
       /* If we don't have "me" we can only have those appearances
 	 that have exit sequences defined.  */
       if (face->tty_alt_charset_p)
-	OUTPUT_IF (TS_exit_alt_charset_mode);
+	OUTPUT_IF (FRAME_TTY (f), TS_exit_alt_charset_mode);
 
       if (face->tty_underline_p)
-	OUTPUT_IF (TS_exit_underline_mode);
+	OUTPUT_IF (FRAME_TTY (f), TS_exit_underline_mode);
     }
 
   /* Switch back to default colors.  */
@@ -1953,7 +1968,7 @@ turn_off_face (f, face_id)
 	   && face->foreground != FACE_TTY_DEFAULT_FG_COLOR)
 	  || (face->background != FACE_TTY_DEFAULT_COLOR
 	      && face->background != FACE_TTY_DEFAULT_BG_COLOR)))
-    OUTPUT1_IF (TS_orig_pair);
+    OUTPUT1_IF (FRAME_TTY (f), TS_orig_pair);
 }
 
 
@@ -2144,12 +2159,46 @@ set_tty_color_mode (f, val)
 #endif /* !WINDOWSNT */
 
 
+
+struct tty_output *
+get_named_tty (name)
+     char *name;
+{
+  struct tty_output *tty = tty_list;
+
+  while (tty) {
+    if ((tty->name == 0 && name == 0)
+        || (name && tty->name && !strcmp (tty->name, name)))
+      return tty;
+    tty = tty->next;
+  };
+
+  return 0;
+}
+
+
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
 
-void
-term_init (terminal_type)
+struct tty_output *
+term_dummy_init (void)
+{
+  if (initialized || tty_list)
+    error ("tty already initialized");
+
+  tty_list = xmalloc (sizeof (struct tty_output));
+  bzero (tty_list, sizeof (struct tty_output));
+  TTY_NAME (tty_list) = 0;
+  TTY_INPUT (tty_list) = stdin;
+  TTY_OUTPUT (tty_list) = stdout;
+  return tty_list;
+}
+
+
+struct tty_output *
+term_init (name, terminal_type)
+     char *name;
      char *terminal_type;
 {
   char *area;
@@ -2159,6 +2208,52 @@ term_init (terminal_type)
   register char *p;
   int status;
   struct frame *sf = XFRAME (selected_frame);
+
+  struct tty_output *tty;
+
+  tty = get_named_tty (name);
+  if (tty)
+    {
+      /* Return the previously initialized terminal, except if it is the dummy
+         terminal created for the initial frame. */
+      if (tty->type)
+        return tty;
+    }
+  else
+    {
+      if (!terminal_type)
+        error ("Unknown terminal type");
+
+      tty = (struct tty_output *) xmalloc (sizeof (struct tty_output));
+      bzero (tty, sizeof (struct tty_output));
+      tty->next = tty_list;
+      tty_list = tty;
+    }
+
+  if (name)
+    {
+      int fd;
+      FILE *f;
+      fd = emacs_open (name, O_RDWR, 0);
+      if (fd < 0)
+        {
+          tty_list = tty->next;
+          xfree (tty);
+          error ("could not open file: %s", name);
+        }
+      f = fdopen (fd, "w+");
+      TTY_NAME (tty) = xstrdup (name);
+      TTY_INPUT (tty) = f;
+      TTY_OUTPUT (tty) = f;
+    }
+  else
+    {
+      TTY_NAME (tty) = 0;
+      TTY_INPUT (tty) = stdin;
+      TTY_OUTPUT (tty) = stdout;
+    }
+
+  init_sys_modes (tty);
 
 #ifdef WINDOWSNT
   initialize_w32_display ();
@@ -2174,15 +2269,15 @@ term_init (terminal_type)
   delete_in_insert_mode = 1;
 
   UseTabs = 0;
-  TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ()) = 0;
+  TTY_SCROLL_REGION_OK (tty) = 0;
 
   /* Seems to insert lines when it's not supposed to, messing
      up the display.  In doing a trace, it didn't seem to be
      called much, so I don't think we're losing anything by
      turning it off.  */
+  TTY_LINE_INS_DEL_OK (tty) = 0;
 
-  TERMINAL_LINE_INS_DEL_OK (CURRENT_TERMINAL ()) = 0;
-  TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ()) = 1;
+  TTY_CHAR_INS_DEL_OK (tty) = 1;
 
   baud_rate = 19200;
 
@@ -2190,10 +2285,12 @@ term_init (terminal_type)
   FRAME_VERTICAL_SCROLL_BAR_TYPE (sf) = vertical_scroll_bar_none;
   TN_max_colors = 16;  /* Required to be non-zero for tty-display-color-p */
 
-  return;
+  return tty;
 #else  /* not WINDOWSNT */
 
   Wcm_clear ();
+
+  TTY_TYPE (tty) = xstrdup (terminal_type);
 
   buffer = (char *) xmalloc (buffer_size);
   status = tgetent (buffer, terminal_type);
@@ -2213,14 +2310,14 @@ If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
-	     terminal_type);
+             terminal_type);
 #else
       fatal ("Terminal type %s is not defined.\n\
 If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
-	     terminal_type);
+             terminal_type);
 #endif
     }
 
@@ -2326,7 +2423,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
       TN_no_color_video = tgetnum ("NC");
       if (TN_no_color_video == -1)
-	TN_no_color_video = 0;
+        TN_no_color_video = 0;
     }
 
   tty_default_color_capabilities (1);
@@ -2335,9 +2432,9 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Since we make MagicWrap terminals look like AutoWrap, we need to have
      the former flag imply the latter.  */
   AutoWrap = MagicWrap || tgetflag ("am");
-  TERMINAL_MEMORY_BELOW_FRAME (CURRENT_TERMINAL ()) = tgetflag ("db");
+  TTY_MEMORY_BELOW_FRAME (tty) = tgetflag ("db");
   TF_hazeltine = tgetflag ("hz");
-  TERMINAL_MUST_WRITE_SPACES (CURRENT_TERMINAL ()) = tgetflag ("in");
+  TTY_MUST_WRITE_SPACES (tty) = tgetflag ("in");
   meta_key = tgetflag ("km") || tgetflag ("MT");
   TF_insmode_motion = tgetflag ("mi");
   TF_standout_motion = tgetflag ("ms");
@@ -2364,12 +2461,12 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   if (FRAME_LINES (sf) < 3 || FRAME_COLS (sf) < 3)
     fatal ("Screen size %dx%d is too small",
-	   FRAME_LINES (sf), FRAME_COLS (sf));
+           FRAME_LINES (sf), FRAME_COLS (sf));
 
 #if 0  /* This is not used anywhere. */
-  TERMINAL_MIN_PADDING_SPEED (CURRENT_TERMINAL ()) = tgetnum ("pb");
+  TTY_MIN_PADDING_SPEED (tty) = tgetnum ("pb");
 #endif
-  
+
   TabWidth = tgetnum ("tw");
 
 #ifdef VMS
@@ -2424,9 +2521,9 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     {
       char *s = tgetstr ("me", address);
       if (s != 0)
-	TS_end_standout_mode = s;
+        TS_end_standout_mode = s;
       else
-	TS_standout_mode = 0;
+        TS_standout_mode = 0;
     }
 
   if (TF_teleray)
@@ -2445,7 +2542,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   if (!strcmp (terminal_type, "supdup"))
     {
-      TERMINAL_MEMORY_BELOW_FRAME (CURRENT_TERMINAL ()) = 1;
+      TTY_MEMORY_BELOW_FRAME (tty) = 1;
       Wcm.cm_losewrap = 1;
     }
   if (!strncmp (terminal_type, "c10", 3)
@@ -2455,7 +2552,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	 This string is not valid in general since it works only
 	 for windows starting at the upper left corner;
 	 but that is all Emacs uses.
-
+	 
 	 This string works only if the frame is using
 	 the top of the video memory, because addressing is memory-relative.
 	 So first check the :ti string to see if that is true.
@@ -2472,7 +2569,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	    TS_set_window = "\033v%C %C %C %C ";
 	}
       /* Termcap entry often fails to have :in: flag */
-      TERMINAL_MUST_WRITE_SPACES (CURRENT_TERMINAL ()) = 1;
+      TTY_MUST_WRITE_SPACES (tty) = 1;
       /* :ti string typically fails to have \E^G! in it */
       /* This limits scope of insert-char to one line.  */
       strcpy (area, TS_termcap_modes);
@@ -2481,13 +2578,13 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
       area += strlen (area) + 1;
       p = AbsPosition;
       /* Change all %+ parameters to %C, to handle
-	 values above 96 correctly for the C100.  */
+         values above 96 correctly for the C100.  */
       while (*p)
-	{
-	  if (p[0] == '%' && p[1] == '+')
-	    p[1] = 'C';
-	  p++;
-	}
+        {
+          if (p[0] == '%' && p[1] == '+')
+            p[1] = 'C';
+          p++;
+        }
     }
 
   FrameRows = FRAME_LINES (sf);
@@ -2504,21 +2601,21 @@ or `define EMACS_TERM \"terminal type\"' for non-DEC terminals.",
            terminal_type);
 #else /* not VMS */
 # ifdef TERMINFO
-    fatal ("Terminal type \"%s\" is not powerful enough to run Emacs.\n\
+  fatal ("Terminal type \"%s\" is not powerful enough to run Emacs.\n\
 It lacks the ability to position the cursor.\n\
 If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
-	   terminal_type);
+         terminal_type);
 # else /* TERMCAP */
-    fatal ("Terminal type \"%s\" is not powerful enough to run Emacs.\n\
+  fatal ("Terminal type \"%s\" is not powerful enough to run Emacs.\n\
 It lacks the ability to position the cursor.\n\
 If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
-	   terminal_type);
+         terminal_type);
 # endif /* TERMINFO */
 #endif /*VMS */
   if (FRAME_LINES (sf) <= 0
@@ -2527,34 +2624,34 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   delete_in_insert_mode
     = TS_delete_mode && TS_insert_mode
-      && !strcmp (TS_delete_mode, TS_insert_mode);
+    && !strcmp (TS_delete_mode, TS_insert_mode);
 
   se_is_so = (TS_standout_mode
-	      && TS_end_standout_mode
-	      && !strcmp (TS_standout_mode, TS_end_standout_mode));
+              && TS_end_standout_mode
+              && !strcmp (TS_standout_mode, TS_end_standout_mode));
 
   UseTabs = tabs_safe_p () && TabWidth == 8;
 
-  TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ())
+  TTY_SCROLL_REGION_OK (tty)
     = (Wcm.cm_abs
        && (TS_set_window || TS_set_scroll_region || TS_set_scroll_region_1));
 
-  TERMINAL_LINE_INS_DEL_OK (CURRENT_TERMINAL ())
+  TTY_LINE_INS_DEL_OK (tty)
     = (((TS_ins_line || TS_ins_multi_lines)
         && (TS_del_line || TS_del_multi_lines))
-       || (TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ())
+       || (TTY_SCROLL_REGION_OK (tty)
            && TS_fwd_scroll && TS_rev_scroll));
-  
-  TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ())
+
+  TTY_CHAR_INS_DEL_OK (tty)
     = ((TS_ins_char || TS_insert_mode
         || TS_pad_inserted_char || TS_ins_multi_chars)
        && (TS_del_char || TS_del_multi_chars));
 
-  TERMINAL_FAST_CLEAR_END_OF_LINE (CURRENT_TERMINAL ()) = TS_clr_line != 0;
+  TTY_FAST_CLEAR_END_OF_LINE (tty) = TS_clr_line != 0;
 
   init_baud_rate ();
-  if (read_socket_hook)		/* Baudrate is somewhat */
-				/* meaningless in this case */
+  if (read_socket_hook)		/* Baudrate is somewhat
+                                   meaningless in this case */
     baud_rate = 9600;
 
   FRAME_CAN_HAVE_SCROLL_BARS (sf) = 0;
@@ -2562,6 +2659,8 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 #endif /* WINDOWSNT */
 
   xfree (buffer);
+
+  return tty;
 }
 
 /* VARARGS 1 */
@@ -2596,6 +2695,13 @@ The function should accept no arguments.  */);
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);
 }
+
+struct tty_output *
+get_current_tty ()
+{
+  return CURTTY();
+}
+
 
 /* arch-tag: 498e7449-6f2e-45e2-91dd-b7d4ca488193
    (do not change this comment) */

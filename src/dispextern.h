@@ -2724,8 +2724,8 @@ extern Lisp_Object Qredisplay_dont_pause;
 /* Defined in term.c */
 
 extern void ring_bell P_ ((void));
-extern void set_terminal_modes P_ ((void));
-extern void reset_terminal_modes P_ ((void));
+extern void set_terminal_modes P_ ((struct tty_output *));
+extern void reset_terminal_modes P_ ((struct tty_output *));
 extern void update_begin P_ ((struct frame *));
 extern void update_end P_ ((struct frame *));
 extern void set_terminal_window P_ ((int));
@@ -2743,7 +2743,8 @@ extern int per_line_cost P_ ((char *));
 extern void calculate_costs P_ ((struct frame *));
 extern void set_tty_color_mode P_ ((struct frame *, Lisp_Object));
 extern void tty_setup_colors P_ ((int));
-extern void term_init P_ ((char *));
+extern struct tty_output *term_init P_ ((char *, char *));
+extern struct tty_output *term_dummy_init P_ ((void));
 extern void fatal P_ ((/* char *, ... */));
 void cursor_to P_ ((int, int));
 extern int tty_capable_p P_ ((struct frame *, unsigned, unsigned long, unsigned long));

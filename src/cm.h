@@ -162,10 +162,13 @@ extern char PC;			/* Pad character */
 extern int cost;
 extern int evalcost ();
 
-extern void cmcheckmagic ();
-extern int cmputc ();
+#define emacs_tputs(tty, str, affcnt, putc) (current_tty = (tty), tputs (str, affcnt, putc))
+
+extern struct tty_output *current_tty;
+extern void cmcheckmagic P_ ((struct tty_output *));
+extern int cmputc P_ ((int));
 extern void cmcostinit ();
-extern void cmgoto ();
+extern void cmgoto P_ ((struct tty_output *, int, int));
 extern void Wcm_clear ();
 extern int Wcm_init ();
 

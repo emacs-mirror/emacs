@@ -29,6 +29,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #include "lisp.h"
+#include "systty.h"             /* For emacs_tty in termchar.h */
 #include "termchar.h"
 #include "termopts.h"
 #include "termhooks.h"
@@ -257,10 +258,6 @@ Lisp_Object selected_frame;
    the address of the_only_frame.  */
 
 struct frame *last_nonminibuf_frame;
-
-/* Stdio stream being used for copy of all output.  */
-
-FILE *termscript;
 
 /* Structure for info on cursor positioning.  */
 
@@ -1397,7 +1394,7 @@ line_hash_code (row)
 	{
 	  int c = glyph->u.ch;
 	  int face_id = glyph->face_id;
-	  if (TERMINAL_MUST_WRITE_SPACES (CURRENT_TERMINAL ()))
+	  if (TTY_MUST_WRITE_SPACES (CURTTY ()))
 	    c -= SPACEGLYPH;
 	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + c;
 	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + face_id;
@@ -1429,7 +1426,7 @@ line_draw_cost (matrix, vpos)
   int glyph_table_len = GLYPH_TABLE_LENGTH;
 
   /* Ignore trailing and leading spaces if we can.  */
-  if (!TERMINAL_MUST_WRITE_SPACES (CURRENT_TERMINAL ()))
+  if (!TTY_MUST_WRITE_SPACES (CURTTY ()))
     {
       /* Skip from the end over trailing spaces.  */
       while (end > beg && CHAR_GLYPH_SPACE_P (*(end - 1)))
@@ -1643,8 +1640,10 @@ realloc_glyph_pool (pool, matrix_dim)
 #if GLYPH_DEBUG
 
 
-/* Flush standard output.  This is sometimes useful to call from
-   the debugger.  */
+/* Flush standard output.  This is sometimes useful to call from the debugger.
+   XXX Maybe this should be changed to flush the current terminal instead of
+   stdout.
+*/
 
 void
 flush_stdout ()
@@ -3318,7 +3317,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
 
   update_begin (f);
   if (FRAME_MSDOS_P (f))
-    set_terminal_modes ();
+    set_terminal_modes (0);
   clear_frame ();
   clear_current_matrices (f);
   update_end (f);
@@ -3462,7 +3461,7 @@ direct_output_for_insert (g)
 
   /* If we can't insert glyphs, we can use this method only
      at the end of a line.  */
-  if (!TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ()))
+  if (!TTY_CHAR_INS_DEL_OK (CURTTY ()))
     if (PT != ZV && FETCH_BYTE (PT_BYTE) != '\n')
       return 0;
 
@@ -3841,9 +3840,9 @@ update_frame (f, force_p, inhibit_hairy_id_p)
       paused_p = update_frame_1 (f, force_p, inhibit_hairy_id_p);
       update_end (f);
 
-      if (termscript)
-	fflush (termscript);
-      fflush (stdout);
+      if (TTY_TERMSCRIPT (FRAME_TTY (f)))
+	fflush (TTY_TERMSCRIPT (FRAME_TTY (f)));
+      fflush (TTY_OUTPUT (FRAME_TTY (f)));
 
       /* Check window matrices for lost pointers.  */
 #if GLYPH_DEBUG
@@ -5075,7 +5074,7 @@ update_frame_1 (f, force_p, inhibit_id_p)
     }
 
   /* If we cannot insert/delete lines, it's no use trying it.  */
-  if (!TERMINAL_LINE_INS_DEL_OK (CURRENT_TERMINAL ()))
+  if (!TTY_LINE_INS_DEL_OK (FRAME_TTY (f)))
     inhibit_id_p = 1;
 
   /* See if any of the desired lines are enabled; don't compute for
@@ -5293,7 +5292,7 @@ scrolling (frame)
     }
 
   /* If changed lines are few, don't allow preemption, don't scroll.  */
-  if ((!TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ())
+  if ((!TTY_SCROLL_REGION_OK (FRAME_TTY (frame))
        && changed_lines < baud_rate / 2400)
       || unchanged_at_bottom == FRAME_LINES (frame))
     return 1;
@@ -5301,14 +5300,14 @@ scrolling (frame)
   window_size = (FRAME_LINES (frame) - unchanged_at_top
 		 - unchanged_at_bottom);
 
-  if (TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ()))
+  if (TTY_SCROLL_REGION_OK (FRAME_TTY (frame)))
     free_at_end_vpos -= unchanged_at_bottom;
-  else if (TERMINAL_MEMORY_BELOW_FRAME (CURRENT_TERMINAL ()))
+  else if (TTY_MEMORY_BELOW_FRAME (FRAME_TTY (frame)))
     free_at_end_vpos = -1;
 
   /* If large window, fast terminal and few lines in common between
      current frame and desired frame, don't bother with i/d calc.  */
-  if (!TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ())
+  if (!TTY_SCROLL_REGION_OK (FRAME_TTY (frame))
       && window_size >= 18 && baud_rate > 2400
       && (window_size >=
 	  10 * scrolling_max_lines_saved (unchanged_at_top,
@@ -5389,7 +5388,7 @@ update_frame_line (f, vpos)
   struct glyph_row *current_row = MATRIX_ROW (current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (desired_matrix, vpos);
   int must_write_whole_line_p;
-  int write_spaces_p = TERMINAL_MUST_WRITE_SPACES (CURRENT_TERMINAL ());
+  int write_spaces_p = TTY_MUST_WRITE_SPACES (FRAME_TTY (f));
   int colored_spaces_p = (FACE_FROM_ID (f, DEFAULT_FACE_ID)->background
 			  != FACE_TTY_DEFAULT_BG_COLOR);
 
@@ -5468,7 +5467,7 @@ update_frame_line (f, vpos)
       nlen--;
 
   /* If there's no i/d char, quickly do the best we can without it.  */
-  if (!TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ()))
+  if (!TTY_CHAR_INS_DEL_OK (FRAME_TTY (f)))
     {
       int i, j;
 
@@ -5571,7 +5570,7 @@ update_frame_line (f, vpos)
 
   tem = (nlen - nsp) - (olen - osp);
   if (endmatch && tem
-      && (!TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ())
+      && (!TTY_CHAR_INS_DEL_OK (FRAME_TTY (f))
           || endmatch <= char_ins_del_cost (f)[tem]))
     endmatch = 0;
 
@@ -5581,7 +5580,7 @@ update_frame_line (f, vpos)
      Is it worth it?  */
 
   if (nsp != osp
-      && (!TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ())
+      && (!TTY_CHAR_INS_DEL_OK (FRAME_TTY (f))
 	  || begmatch + endmatch <= char_ins_del_cost (f)[nsp - osp]))
     {
       begmatch = 0;
@@ -6113,14 +6112,15 @@ FILE = nil means just close any termscript file currently open.  */)
      (file)
      Lisp_Object file;
 {
-  if (termscript != 0) fclose (termscript);
-  termscript = 0;
+  if (TTY_TERMSCRIPT (CURTTY ()) != 0)
+    fclose (TTY_TERMSCRIPT (CURTTY ()));
+  TTY_TERMSCRIPT (CURTTY ()) = 0;
 
   if (! NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
-      termscript = fopen (SDATA (file), "w");
-      if (termscript == 0)
+      TTY_TERMSCRIPT (CURTTY ()) = fopen (SDATA (file), "w");
+      if (TTY_TERMSCRIPT (CURTTY ()) == 0)
 	report_file_error ("Opening termscript", Fcons (file, Qnil));
     }
   return Qnil;
@@ -6136,14 +6136,15 @@ Control characters in STRING will have terminal-dependent effects.  */)
 {
   /* ??? Perhaps we should do something special for multibyte strings here.  */
   CHECK_STRING (string);
-  fwrite (SDATA (string), 1, SBYTES (string), stdout);
-  fflush (stdout);
-  if (termscript)
+  if (TTY_TERMSCRIPT (CURTTY ()))
     {
       fwrite (SDATA (string), 1, SBYTES (string),
-	      termscript);
-      fflush (termscript);
+	      TTY_TERMSCRIPT (CURTTY ()));
+      fflush (TTY_TERMSCRIPT (CURTTY ()));
     }
+  fwrite (SDATA (string), 1, SBYTES (string),
+          TTY_OUTPUT (CURTTY ()));
+  fflush (TTY_OUTPUT (CURTTY ()));
   return Qnil;
 }
 
@@ -6463,8 +6464,6 @@ the current state.  */)
 			    Initialization
 ***********************************************************************/
 
-char *terminal_type;
-
 /* Initialization done when Emacs fork is started, before doing stty.
    Determine terminal type and set terminal_driver.  Then invoke its
    decoding routine to set up variables in the terminal package.  */
@@ -6472,6 +6471,8 @@ char *terminal_type;
 void
 init_display ()
 {
+  char *terminal_type;
+
 #ifdef HAVE_X_WINDOWS
   extern int display_arg;
 #endif
@@ -6593,7 +6594,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
   }
 #endif /* VMS */
 
-  term_init (terminal_type);
+  term_init (0, terminal_type);
 
   {
     struct frame *sf = SELECTED_FRAME ();

@@ -48,6 +48,8 @@ Boston, MA 02111-1307, USA.  */
 #include "systime.h"
 #include "termhooks.h"
 #include "atimer.h"
+#include "systty.h"
+#include "termchar.h"
 
 #ifdef HAVE_X_WINDOWS
 

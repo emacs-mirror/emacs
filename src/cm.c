@@ -22,8 +22,16 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 #include <stdio.h>
+
+/* For CURTTY */
+#include "lisp.h"
+#include "frame.h"
+
 #include "cm.h"
 #include "termhooks.h"
+#include "systty.h" /* For emacs_tty in termchar.h */
+#include "termchar.h"
+
 
 /* For now, don't try to include termcap.h.  On some systems,
    configure finds a non-standard termcap.h that the main build
@@ -41,6 +49,7 @@ extern char *tgoto P_ ((const char *, int, int));
 
 extern char *BC, *UP;
 
+
 int cost;		/* sums up costs */
 
 /* ARGSUSED */
@@ -52,13 +61,16 @@ evalcost (c)
   return c;
 }
 
+/* The terminal to use for low-level output. */
+struct tty_output * current_tty;
+
 int
 cmputc (c)
      char c;
 {
-  if (termscript)
-    fputc (c & 0177, termscript);
-  putchar (c & 0177);
+  if (TTY_TERMSCRIPT (current_tty))
+    putc (c & 0177, TTY_TERMSCRIPT (current_tty));
+  putc (c & 0177, TTY_OUTPUT (current_tty));
   return c;
 }
 
@@ -122,18 +134,19 @@ addcol (n) {
  * after we reach the last column; this takes us to a known state.
  */
 void
-cmcheckmagic ()
+cmcheckmagic (tty)
+     struct tty_output *tty;
 {
   if (curX == FrameCols)
     {
       if (!MagicWrap || curY >= FrameRows - 1)
 	abort ();
-      if (termscript)
-	putc ('\r', termscript);
-      putchar ('\r');
-      if (termscript)
-	putc ('\n', termscript);
-      putchar ('\n');
+      if (TTY_TERMSCRIPT (tty))
+	putc ('\r', TTY_TERMSCRIPT (tty));
+      putc ('\r', TTY_OUTPUT (tty));
+      if (TTY_TERMSCRIPT (tty))
+	putc ('\n', TTY_TERMSCRIPT (tty));
+      putc ('\n', TTY_OUTPUT (tty));
       curX = 0;
       curY++;
     }
@@ -187,8 +200,7 @@ cmcostinit ()
  */
 
 static int
-calccost (srcy, srcx, dsty, dstx, doit)
-     int srcy, srcx, dsty, dstx, doit;
+calccost (struct tty_output *tty, int srcy, int srcx, int dsty, int dstx, int doit)
 {
     register int    deltay,
                     deltax,
@@ -223,7 +235,7 @@ calccost (srcy, srcx, dsty, dstx, doit)
     totalcost = c * deltay;
     if (doit)
 	while (--deltay >= 0)
-	    tputs (p, 1, cmputc);
+          emacs_tputs (tty, p, 1, cmputc);
 x:
     if ((deltax = dstx - srcx) == 0)
 	goto done;
@@ -278,7 +290,7 @@ x:
 	totalcost += tabcost;	/* use the tabs */
 	if (doit)
 	    while (--ntabs >= 0)
-		tputs (Wcm.cm_tab, 1, cmputc);
+              emacs_tputs (tty, Wcm.cm_tab, 1, cmputc);
 	srcx = tabx;
     }
 
@@ -305,7 +317,7 @@ fail:
     totalcost += c * deltax;
     if (doit)
 	while (--deltax >= 0)
-	    tputs (p, 1, cmputc);
+          emacs_tputs (tty, p, 1, cmputc);
 done:
     return totalcost;
 }
@@ -323,7 +335,8 @@ losecursor ()
 #define	USECR	3
 
 void
-cmgoto (row, col)
+cmgoto (tty, row, col)
+     struct tty_output *tty;
      int row, col;
 {
     int     homecost,
@@ -346,24 +359,24 @@ cmgoto (row, col)
        * start where we are.  Examine the options, and pick the cheapest.
        */
 
-      relcost = calccost (curY, curX, row, col, 0);
+      relcost = calccost (tty, curY, curX, row, col, 0);
       use = USEREL;
       if ((homecost = Wcm.cc_home) < BIG)
-	  homecost += calccost (0, 0, row, col, 0);
+          homecost += calccost (tty, 0, 0, row, col, 0);
       if (homecost < relcost)
-	  relcost = homecost, use = USEHOME;
+          relcost = homecost, use = USEHOME;
       if ((llcost = Wcm.cc_ll) < BIG)
-	  llcost += calccost (Wcm.cm_rows - 1, 0, row, col, 0);
+          llcost += calccost (tty, Wcm.cm_rows - 1, 0, row, col, 0);
       if (llcost < relcost)
-	  relcost = llcost, use = USELL;
+          relcost = llcost, use = USELL;
       if ((crcost = Wcm.cc_cr) < BIG) {
 	  if (Wcm.cm_autolf)
 	      if (curY + 1 >= Wcm.cm_rows)
 		  crcost = BIG;
 	      else
-		  crcost += calccost (curY + 1, 0, row, col, 0);
+                  crcost += calccost (tty, curY + 1, 0, row, col, 0);
 	  else
-	      crcost += calccost (curY, 0, row, col, 0);
+	      crcost += calccost (tty, curY, 0, row, col, 0);
       }
       if (crcost < relcost)
 	  relcost = crcost, use = USECR;
@@ -389,10 +402,10 @@ cmgoto (row, col)
       cost = 0;
       p = dcm == Wcm.cm_habs ? tgoto (dcm, row, col) :
 			       tgoto (dcm, col, row);
-      tputs (p, 1, evalcost);
+      emacs_tputs (tty, p, 1, evalcost);
       if (cost <= relcost)
 	{	/* really is cheaper */
-	  tputs (p, 1, cmputc);
+	  emacs_tputs (tty, p, 1, cmputc);
 	  curY = row, curX = col;
 	  return;
 	}
@@ -401,24 +414,24 @@ cmgoto (row, col)
   switch (use)
     {
     case USEHOME:
-      tputs (Wcm.cm_home, 1, cmputc);
+      emacs_tputs (tty, Wcm.cm_home, 1, cmputc);
       curY = 0, curX = 0;
       break;
 
     case USELL:
-      tputs (Wcm.cm_ll, 1, cmputc);
+      emacs_tputs (tty, Wcm.cm_ll, 1, cmputc);
       curY = Wcm.cm_rows - 1, curX = 0;
       break;
 
     case USECR:
-      tputs (Wcm.cm_cr, 1, cmputc);
+      emacs_tputs (tty, Wcm.cm_cr, 1, cmputc);
       if (Wcm.cm_autolf)
 	curY++;
       curX = 0;
       break;
     }
 
-  (void) calccost (curY, curX, row, col, 1);
+  (void) calccost (tty, curY, curX, row, col, 1);
   curY = row, curX = col;
 }
 

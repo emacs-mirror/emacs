@@ -389,8 +389,6 @@ extern struct w32_output w32term_display;
 #define FRAME_W32_WINDOW(f) ((f)->output_data.w32->window_desc)
 #define FRAME_X_WINDOW(f) ((f)->output_data.w32->window_desc)
 
-#define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
-#define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
 #define FRAME_FONT(f) ((f)->output_data.w32->font)
 #define FRAME_FONTSET(f) ((f)->output_data.w32->fontset)
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.w32->baseline_offset)

@@ -1,0 +1,129 @@
+			-*- coding: utf-8; -*-
+GOAL
+----
+
+The ultimate goal of this branch is to implement support for opening
+multiple, different tty devices and simultaneous X and tty frames from
+a single Emacs session.
+
+WHO IS DOING IT
+---------------
+
+I'm Károly Lőrentey.  My address: lorentey@elte.hu.
+
+Patches or suggestions are welcome!
+
+
+STATUS
+------
+
+We can create frames on new tty devices, but there are problems with
+refresh (only the (single) selected frame is refreshed), and input is
+read only from the initial terminal.  At the moment, the type of the
+new terminals must be the same as the initial terminal.
+
+To try it out, start up emacs, and evaluate the following:
+
+	(make-terminal-frame '((tty . "/dev/pts/5") (tty-type . "xterm")))
+
+(With your own values, of course.)  If you switch to the new frame
+with M-x other-frame, the new tty is refreshed with the frame
+contents.  The result of input from the original terminal appears on
+the new.  If you exit emacs, both terminals are restored to their
+previous states.
+
+X, Mac, Windows and DOS support is broken.
+
+NEWS
+----
+
+For the NEWS file:
+
+** Support for multiple terminal devices has been added.  You can
+   specify a terminal device (`tty' parameter) and a terminal type
+   (`tty-type' parameter) to `make-terminal-frame'.
+
+
+CHANGELOG
+---------
+
+See arch logs.
+
+
+THINGS THAT ARE DONE
+--------------------
+
+-- Introduce a new abstraction for terminal devices.  
+
+   (Done, see struct tty_output.  The abstraction is not yet
+   complete.)
+
+
+-- Change the bootstrap procedure to initialize tty_list.
+
+   (Done, but needs review.)
+
+
+-- Change make-terminal-frame to support specifying another tty.
+
+   (Done, new frame parameters: `tty' and `tty-type'.)
+
+
+THINGS TO DO
+------------
+
+** Make make-terminal-frame look up the tty and tty-type parameters
+   from the currently selected terminal before the global default.
+
+** Move optimalization parameters (costs) from union output_data to
+   struct frame.
+
+** Implement terminal deletion, i.e., closing the tty device and
+   restoring its previous state without exiting Emacs.  This should be
+   exported to the Lisp interpreter.
+
+** Implement automatic deletion of terminals, when the last frame on
+   that terminal is closed.
+
+** Put all cached terminal escape sequences into struct tty_output.
+   Currently, they are still stored in global variables, so we don't
+   really support multiple terminal types.
+
+** Support different terminal sizes.  (Should be solved by the
+   previous entry.)
+
+** Make sure terminal resizes are handled gracefully.  (Could be
+   problematic.)
+
+** Implement support for reading from multiple terminals.
+
+** other-frame should cycle through the frames on the `current'
+   terminal.  This means that Emacs must know from which terminal the
+   last keyboard event came from.  (Multikeyboard support may help
+   with this.)
+
+** Redisplay must refresh the topmost on all terminals, not just
+   the initial terminal.
+
+** Make struct tty_output available from Lisp.
+
+** Extend emacsclient to automatically open a new tty when it connects
+   to Emacs.
+
+** Implement support for starting an interactive Emacs session without
+   an initial frame.  (The user would connect to it and open frames
+   later, with emacsclient.)  Not necessary a good idea.
+
+** Fix X support.
+
+** Allow simultaneous X and tty frames.
+
+** Fix Mac support (I can't do this myself).
+
+** Fix W32 support (I can't do this myself).
+
+** Fix DOS support (I can't do this myself).
+
+
+
+;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

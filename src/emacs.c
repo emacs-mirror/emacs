@@ -1566,7 +1566,7 @@ main (argc, argv
 #ifdef VMS
       init_vms_input ();/* init_display calls get_frame_size, that needs this.  */
 #endif /* VMS */
-      init_display ();	/* Determine terminal type.  init_sys_modes uses results.  */
+      init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
     }
 #ifndef MAC_OS8
   /* Called before init_window_once for Mac OS Classic.  */
@@ -1575,7 +1575,7 @@ main (argc, argv
 #ifdef VMS
   init_vmsproc ();	/* And this too.  */
 #endif /* VMS */
-  init_sys_modes ();	/* Init system terminal modes (RAW or CBREAK, etc.).  */
+  /* init_sys_modes (); */	/* Init system terminal modes (RAW or CBREAK, etc.).  */
 #if defined (HAVE_X_WINDOWS) || defined (WINDOWSNT)
   init_xfns ();
 #endif /* HAVE_X_WINDOWS */
@@ -1992,7 +1992,7 @@ shut_down_emacs (sig, no_x, stuff)
 	&& tpgrp == pgrp)
       {
 	fflush (stdout);
-	reset_sys_modes ();
+	reset_all_sys_modes ();
 	if (sig && sig != SIGTERM)
 	  fprintf (stderr, "Fatal error (%d)", sig);
       }

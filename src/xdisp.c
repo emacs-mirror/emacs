@@ -173,6 +173,7 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "frame.h"
 #include "window.h"
+#include "systty.h" /* For emacs_tty in termchar.h */
 #include "termchar.h"
 #include "dispextern.h"
 #include "buffer.h"
@@ -12889,7 +12890,7 @@ try_window_id (w)
 
   /* Window must either use window-based redisplay or be full width.  */
   if (!FRAME_WINDOW_P (f)
-      && (!TERMINAL_LINE_INS_DEL_OK (CURRENT_TERMINAL ())
+      && (!TTY_LINE_INS_DEL_OK (CURTTY ())
 	  || !WINDOW_FULL_WIDTH_P (w)))
     GIVE_UP (4);
 
@@ -13322,7 +13323,7 @@ try_window_id (w)
 
 	      /* On dumb terminals delete dvpos lines at the end
 		 before inserting dvpos empty lines.  */
-	      if (!TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ()))
+	      if (!TTY_SCROLL_REGION_OK (CURTTY ()))
 		ins_del_lines (end - dvpos, -dvpos);
 
 	      /* Insert dvpos empty lines in front of
@@ -13343,7 +13344,7 @@ try_window_id (w)
 
 	      /* On a dumb terminal insert dvpos empty lines at the
                  end.  */
-	      if (!TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ()))
+	      if (!TTY_SCROLL_REGION_OK (CURTTY ()))
 		ins_del_lines (end + dvpos, -dvpos);
 	    }
 

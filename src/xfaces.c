@@ -241,6 +241,8 @@ Boston, MA 02111-1307, USA.  */
 #include "blockinput.h"
 #include "window.h"
 #include "intervals.h"
+#include "systty.h" /* For emacs_tty in termchar.h */
+#include "termchar.h"
 
 #ifdef HAVE_X_WINDOWS
 

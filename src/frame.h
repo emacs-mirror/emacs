@@ -84,11 +84,15 @@ struct x_output
 #endif /* ! HAVE_X_WINDOWS */
 
 
-#define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
-#define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
+#define FRAME_FOREGROUND_PIXEL(f)             \
+  (((f)->output_method == output_termcap)     \
+   ? ((f)->output_data.tty->foreground_pixel) \
+   : ((f)->output_data.x->foreground_pixel))
 
-/* A structure describing a termcap frame display.  */
-extern struct x_output tty_display;
+#define FRAME_BACKGROUND_PIXEL(f)             \
+  (((f)->output_method == output_termcap)     \
+   ? ((f)->output_data.tty->background_pixel) \
+   : ((f)->output_data.x->background_pixel))
 
 #endif /* ! MSDOS && ! WINDOWSNT && ! MAC_OS */
 
@@ -283,12 +287,15 @@ struct frame
   enum output_method output_method;
 
   /* A structure of auxiliary data used for displaying the contents.
+     struct tty_output is used for terminal frames;
+     it is defined in term.h.
      struct x_output is used for X window frames;
      it is defined in xterm.h.
      struct w32_output is used for W32 window frames;
      it is defined in w32term.h.  */
   union output_data
   {
+    struct tty_output *tty;
     struct x_output *x;
     struct w32_output *w32;
     struct mac_output *mac;
@@ -779,7 +786,7 @@ extern Lisp_Object Qframep, Qframe_live_p;
 
 extern struct frame *last_nonminibuf_frame;
 
-extern struct frame *make_terminal_frame P_ ((void));
+extern struct frame *make_terminal_frame P_ ((char *tty, char *tty_type));
 extern struct frame *make_frame P_ ((int));
 #ifdef HAVE_WINDOW_SYSTEM
 extern struct frame *make_minibuffer_frame P_ ((void));

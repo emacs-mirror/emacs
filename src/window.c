@@ -29,6 +29,7 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "commands.h"
 #include "indent.h"
+#include "systty.h" /* For emacs_tty in termchar.h */
 #include "termchar.h"
 #include "disptab.h"
 #include "dispextern.h"
@@ -6381,7 +6382,7 @@ and scrolling positions.  */)
 void
 init_window_once ()
 {
-  struct frame *f = make_terminal_frame ();
+  struct frame *f = make_terminal_frame (0, 0);
   XSETFRAME (selected_frame, f);
   Vterminal_frame = selected_frame;
   minibuf_window = f->minibuffer_window;

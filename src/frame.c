@@ -42,6 +42,8 @@ Boston, MA 02111-1307, USA.  */
 #include "fontset.h"
 #endif
 #include "blockinput.h"
+#include "systty.h" /* For emacs_tty in termchar.h */
+#include "termchar.h"
 #include "termhooks.h"
 #include "dispextern.h"
 #include "window.h"
@@ -106,6 +108,7 @@ Lisp_Object Qmenu_bar_lines, Qtool_bar_lines;
 Lisp_Object Qleft_fringe, Qright_fringe;
 Lisp_Object Qbuffer_predicate, Qbuffer_list;
 Lisp_Object Qtty_color_mode;
+Lisp_Object Qtty, Qtty_type;
 
 Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
 
@@ -179,8 +182,6 @@ set_menu_bar_lines (f, value, oldval)
 
 Lisp_Object Vemacs_iconified;
 Lisp_Object Vframe_list;
-
-struct x_output tty_display;
 
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object get_minibuffer ();
@@ -474,12 +475,14 @@ make_minibuffer_frame ()
 }
 #endif /* HAVE_WINDOW_SYSTEM */
 
-/* Construct a frame that refers to the terminal (stdin and stdout).  */
+/* Construct a frame that refers to a terminal.  */
 
 static int terminal_frame_count;
 
 struct frame *
-make_terminal_frame ()
+make_terminal_frame (tty, tty_type)
+     char *tty;
+     char *tty_type;
 {
   register struct frame *f;
   Lisp_Object frame;
@@ -537,12 +540,16 @@ make_terminal_frame ()
 #else
 #ifdef WINDOWSNT
   f->output_method = output_termcap;
-  f->output_data.x = &tty_display;
+  f->output_data.x = &tty_display; /* XXX */
 #else
 #ifdef MAC_OS8
   make_mac_terminal_frame (f);
 #else
-  f->output_data.x = &tty_display;
+  f->output_method = output_termcap;
+  if (initialized)
+    f->output_data.tty = term_init (tty, tty_type);
+  else
+    f->output_data.tty = term_dummy_init ();
 #ifdef CANNOT_DUMP
   FRAME_FOREGROUND_PIXEL(f) = FACE_TTY_DEFAULT_FG_COLOR;
   FRAME_BACKGROUND_PIXEL(f) = FACE_TTY_DEFAULT_BG_COLOR;
@@ -559,11 +566,19 @@ make_terminal_frame ()
 
 DEFUN ("make-terminal-frame", Fmake_terminal_frame, Smake_terminal_frame,
        1, 1, 0,
-       doc: /* Create an additional terminal frame.
-You can create multiple frames on a text-only terminal in this way.
-Only the selected terminal frame is actually displayed.
+       doc: /* Create an additional terminal frame, possibly on another terminal.
 This function takes one argument, an alist specifying frame parameters.
-In practice, generally you don't need to specify any parameters.
+
+You can create multiple frames on a single text-only terminal, but
+only one of them (the selected terminal frame) is actually displayed.
+
+In practice, generally you don't need to specify any parameters,
+except when you want to create a new frame on another terminal.
+In that case, the `tty' parameter specifies the device file to open,
+and the `tty-type' parameter specifies the terminal type.  Example:
+
+   (make-terminal-frame '((tty . "/dev/pts/5") (tty-type . "xterm")))
+
 Note that changing the size of one terminal frame automatically affects all.  */)
      (parms)
      Lisp_Object parms;
@@ -587,7 +602,44 @@ Note that changing the size of one terminal frame automatically affects all.  */
 #endif
 #endif /* not MSDOS */
 
-  f = make_terminal_frame ();
+  { 
+    Lisp_Object tty, tty_type;
+    char *name = 0, *type = 0;
+
+    /* XXX Ugh, there must be a better way to do this. */
+    tty = Fassq (Qtty, parms);
+    if (EQ (tty, Qnil))
+      tty = Fassq (Qtty, Vdefault_frame_alist);
+    if (! EQ (tty, Qnil))
+      tty = XCDR (tty);
+    if (EQ (tty, Qnil) || !STRINGP (tty))
+      tty = Qnil;
+
+    tty_type = Fassq (Qtty_type, parms);
+    if (EQ (tty_type, Qnil))
+      tty_type = Fassq (Qtty_type, Vdefault_frame_alist);
+    if (! EQ (tty_type, Qnil))
+      tty_type = XCDR (tty_type);
+    if (EQ (tty_type, Qnil) || !STRINGP (tty_type))
+      tty_type = Qnil;
+
+    if (! EQ (tty, Qnil))
+      {
+        name = (char *) alloca (SBYTES (tty) + 1);
+        strncpy (name, SDATA (tty), SBYTES (tty));
+        name[SBYTES (tty)] = 0;
+      }
+
+    if (! EQ (tty_type, Qnil))
+      {
+        type = (char *) alloca (SBYTES (tty_type) + 1);
+        strncpy (type, SDATA (tty_type), SBYTES (tty_type));
+        type[SBYTES (tty_type)] = 0;
+      }
+
+    
+    f = make_terminal_frame (name, type);
+  }
 
   change_frame_size (f, FRAME_LINES (sf),
 		     FRAME_COLS (sf), 0, 0, 0);
@@ -3937,6 +3989,10 @@ syms_of_frame ()
   staticpro (&Qbackground_mode);
   Qtty_color_mode = intern ("tty-color-mode");
   staticpro (&Qtty_color_mode);
+  Qtty = intern ("tty");
+  staticpro (&Qtty);
+  Qtty_type = intern ("tty-type");
+  staticpro (&Qtty_type);
 
   Qface_set_after_frame_default = intern ("face-set-after-frame-default");
   staticpro (&Qface_set_after_frame_default);

@@ -2580,7 +2580,7 @@ internal_terminal_init ()
   set_terminal_modes_hook = IT_set_terminal_modes;
   reset_terminal_modes_hook = IT_reset_terminal_modes;
   set_terminal_window_hook = IT_set_terminal_window;
-  TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ()) = 0;
+  TTY_CHAR_INS_DEL_OK (CURTTY ()) = 0;
 #endif
 }
 
