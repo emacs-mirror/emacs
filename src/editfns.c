@@ -1218,10 +1218,10 @@ update_buffer_properties (start, end)
 				    Vbuffer_access_fontified_property,
 				    Qnil, Qnil);
 	  if (! NILP (tem))
-	    Frun_hook_with_args (3, &args);
+	    Frun_hook_with_args (3, args);
 	}
       else
-	Frun_hook_with_args (3, &args);
+	Frun_hook_with_args (3, args);
     }
 #endif
 }
