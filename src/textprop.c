@@ -525,7 +525,7 @@ If POSITION is at the end of OBJECT, the value is nil.")
 DEFUN ("get-char-property", Fget_char_property, Sget_char_property, 2, 3, 0,
   "Return the value of position POS's property PROP, in OBJECT.\n\
 OBJECT is optional and defaults to the current buffer.\n\
-If POSITION is at the end of OBJECT, the value is nil.\n\
+If POS is at the end of OBJECT, the value is nil.\n\
 If OBJECT is a buffer, then overlay properties are considered as well as\n\
 text properties.\n\
 If OBJECT is a window, then that window's buffer is used, but window-specific\n\
