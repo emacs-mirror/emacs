@@ -24,6 +24,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "config.h"
 
+#ifdef VMS
+#include <string.h>
+#include <rms.h>
+#include <rmsdef.h>
+#endif
+
 #ifdef SYSV_SYSTEM_DIR
 
 #include <dirent.h>
@@ -216,19 +222,6 @@ These are all file names in directory DIR which begin with FILE.")
   return file_name_completion (file, dirname, 1, 0);
 }
 
-#ifdef VMS
-
-DEFUN ("file-name-all-versions", Ffile_name_all_versions,
-  Sfile_name_all_versions, 2, 2, 0,
-  "Return a list of all versions of file name FILE in directory DIR.")
-  (file, dirname)
-     Lisp_Object file, dirname;
-{
-  return file_name_completion (file, dirname, 1, 1);
-}
-
-#endif /* VMS */
-
 Lisp_Object
 file_name_completion (file, dirname, all_flag, ver_flag)
      Lisp_Object file, dirname;
@@ -412,6 +405,47 @@ file_name_completion_stat (dirname, dp, st_addr)
   return stat (fullname, st_addr);
 }
 
+#ifdef VMS
+
+DEFUN ("file-name-all-versions", Ffile_name_all_versions,
+  Sfile_name_all_versions, 2, 2, 0,
+  "Return a list of all versions of file name FILE in directory DIR.")
+  (file, dirname)
+     Lisp_Object file, dirname;
+{
+  return file_name_completion (file, dirname, 1, 1);
+}
+
+DEFUN ("file-version-limit", Ffile_version_limit, Sfile_version_limit, 1, 1, 0,
+  "Return the maximum number of versions allowed for FILE.\n\
+Returns nil if the file cannot be opened or if there is no version limit.")
+  (filename)
+     Lisp_Object filename;
+{
+  Lisp_Object retval;
+  struct FAB    fab;
+  struct RAB    rab;
+  struct XABFHC xabfhc;
+  int status;
+
+  filename = Fexpand_file_name (filename, Qnil);
+  fab      = cc$rms_fab;
+  xabfhc   = cc$rms_xabfhc;
+  fab.fab$l_fna = XSTRING (filename)->data;
+  fab.fab$b_fns = strlen (fab.fab$l_fna);
+  fab.fab$l_xab = (char *) &xabfhc;
+  status = sys$open (&fab, 0, 0);
+  if (status != RMS$_NORMAL)	/* Probably non-existent file */
+    return Qnil;
+  sys$close (&fab, 0, 0);
+  if (xabfhc.xab$w_verlimit == 32767)
+    return Qnil;		/* No version limit */
+  else
+    return make_number (xabfhc.xab$w_verlimit);
+}
+
+#endif /* VMS */
+
 Lisp_Object
 make_time (time)
      int time;
@@ -512,6 +546,7 @@ syms_of_dired ()
   defsubr (&Sfile_name_completion);
 #ifdef VMS
   defsubr (&Sfile_name_all_versions);
+  defsubr (&Sfile_version_limit);
 #endif /* VMS */
   defsubr (&Sfile_name_all_completions);
   defsubr (&Sfile_attributes);
