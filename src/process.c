@@ -2116,7 +2116,7 @@ read_process_output (proc, channel)
 #ifdef VMS
       start_vms_process_read (vs);
 #endif
-      unbind_to (count);
+      unbind_to (count, Qnil);
       return nchars;
     }
 
@@ -2882,7 +2882,7 @@ exec_sentinel (proc, reason)
   /* Inhibit quit so that random quits don't screw up a running filter.  */
   specbind (Qinhibit_quit, Qt);
   call2 (sentinel, proc, reason);
-  unbind_to (count);
+  unbind_to (count, Qnil);
 }
 
 /* Report all recent events of a change in process status
