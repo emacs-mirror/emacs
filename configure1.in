@@ -526,9 +526,10 @@ case "${configuration}" in
   ;;
   hppa*-hp-hpux* )
     ## Cross-compilation?  Nah!
-    case "`uname -m`" in
-      9000/8?? ) machine=hp9000s800 opsys=hpux ;;
-      9000/7?? ) machine=hp9000s800 opsys=hpux8 ;;
+    case "`uname -r`" in
+      *.08.* ) machine=hp9000s800 opsys=hpux ;;
+      *.09.* ) machine=hp9000s800 opsys=hpux8 ;;
+      *) machine=hp9000s800 opsys=hpux ;;
     esac
   ;;
 
