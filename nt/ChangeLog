@@ -1,3 +1,10 @@
+2002-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* config.nt (HAVE_SENDTO, HAVE_RECVFROM, HAVE_GETSOCKOPT)
+	(HAVE_SETSOCKOPT, HAVE_GETSOCKNAME, HAVE_GETPEERNAME): Define.
+	(HAVE_SYS_UN_H): Undef.
+	From David Ponce <dponce@voila.fr>.
+
 2002-03-13  Jason Rumney  <jasonr@gnu.org>
 
 	* config.nt (STRFTIME_NO_POSIX2): Define.

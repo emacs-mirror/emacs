@@ -1,3 +1,8 @@
+2002-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* makefile.w32-in (LIBS): Add $(WSOCK32).
+	From David Ponce <dponce@voila.fr>.
+
 2002-03-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* process.c (wait_reading_process_input): Move variables `pname'
