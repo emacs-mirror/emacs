@@ -1209,7 +1209,10 @@ This function also forces redisplay of the mode line.\n\
 Every function to select a new major mode starts by\n\
 calling this function.\n\n\
 As a special exception, local variables whose names have\n\
-a non-nil `permanent-local' property are not eliminated by this function.")
+a non-nil `permanent-local' property are not eliminated by this function.\n\
+\n\
+The first thing this function does is run\n\
+the normal hook `change-major-mode-hook'.")
   ()
 {
   register Lisp_Object alist, sym, tem;
