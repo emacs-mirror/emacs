@@ -1,12 +1,15 @@
 1999-11-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* bytecode.c (Fbyte_code): Use BEFORE_POTENTIAL_GC and
+	AFTER_POTENTIAL_GC around internal_catch.
+
 	* alloc.c (Fgarbage_collect): Call mark_byte_stack and
 	relocate_byte_pcs.
 	(init_alloc_once, init_alloc): Set byte_stack_list to null.
 
 	* eval.c (struct catchtag): Add member byte_stack.
 	(internal_catch, Fcondition_case, internal_condition_case)
-	(internal_condition_case_1: Save value of byte_stack_list in
+	(internal_condition_case_1): Save value of byte_stack_list in
 	catchtag.
 	(unwind_to_catch): Restore byte_stack_list from catchtag.
 
