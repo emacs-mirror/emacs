@@ -31,27 +31,27 @@ extern struct display_line **ophys_lines;
 
 /* All costs measured in characters.
    So no cost can exceed the area of a frame, measured in characters.
-   Let's hope this is never more than 15000 characters.  */
+   Let's hope this is never more than 1000000 characters.  */
 
-#define INFINITY 15000
+#define INFINITY 1000000
 
 struct matrix_elt
   {
     /* Cost of outputting through this line
        if no insert/delete is done just above it.  */
-    short writecost;
+    int writecost;
     /* Cost of outputting through this line
        if an insert is done just above it.  */
-    short insertcost;
+    int insertcost;
     /* Cost of outputting through this line
        if a delete is done just above it.  */
-    short deletecost;
+    int deletecost;
     /* Number of inserts so far in this run of inserts,
        for the cost in insertcost.  */
-    char insertcount;
+    unsigned char insertcount;
     /* Number of deletes so far in this run of deletes,
        for the cost in deletecost.  */
-    char deletecount;
+    unsigned char deletecount;
   };
 
 
