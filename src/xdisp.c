@@ -7905,16 +7905,11 @@ update_menu_bar (f, save_match_data)
   window = FRAME_SELECTED_WINDOW (f);
   w = XWINDOW (window);
 
-#if 1 /* The if statement below this if statement used to include the
+#if 0 /* The if statement below this if statement used to include the
          condition !NILP (w->update_mode_line), rather than using
          update_mode_lines directly, and this if statement may have
          been added to make that condition work.  Now the if
          statement below matches its comment, this isn't needed.  */
-  /* We need to set w->update_mode_line to Qt so that update_tool_bar
-     rebuilds tool bar items.  For example, to notice when a tool bar item
-     goes from enabled to disabled state.
-     A better way would be to notice tool bar, menu bar and mode line
-     changes separately, but for now update_mode_line is all we got.  */
   if (update_mode_lines)
     w->update_mode_line = Qt;
 #endif
@@ -8124,6 +8119,7 @@ update_tool_bar (f, save_match_data)
 	 windows_or_buffers_changed anyway.  */
       if (windows_or_buffers_changed
 	  || !NILP (w->update_mode_line)
+	  || update_mode_lines
 	  || ((BUF_SAVE_MODIFF (XBUFFER (w->buffer))
 	       < BUF_MODIFF (XBUFFER (w->buffer)))
 	      != !NILP (w->last_had_star))
@@ -8133,6 +8129,8 @@ update_tool_bar (f, save_match_data)
 	{
 	  struct buffer *prev = current_buffer;
 	  int count = SPECPDL_INDEX ();
+	  Lisp_Object old_tool_bar;
+	  struct gcpro gcpro1;
 
 	  /* Set current_buffer to the buffer of the selected
 	     window of the frame, so that we get the right local
@@ -8150,12 +8148,16 @@ update_tool_bar (f, save_match_data)
 	      specbind (Qoverriding_local_map, Qnil);
 	    }
 
+	  old_tool_bar = f->tool_bar_items;
+	  GCPRO1 (old_tool_bar);
+
 	  /* Build desired tool-bar items from keymaps.  */
 	  f->tool_bar_items
 	    = tool_bar_items (f->tool_bar_items, &f->n_tool_bar_items);
 
-	  /* Redisplay the tool-bar in case we changed it.  */
-	  w->update_mode_line = Qt;
+	  /* Redisplay the tool-bar if we changed it.  */
+	  if (! NILP (Fequal (old_tool_bar, f->tool_bar_items)))
+	    w->update_mode_line = Qt;
 
 	  unbind_to (count, Qnil);
 	  set_buffer_internal_1 (prev);
