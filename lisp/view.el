@@ -37,7 +37,10 @@
 (make-variable-buffer-local 'view-mode)
 
 (defvar view-mode-auto-exit nil
-  "Non-nil means scrolling past the end of buffer exits View mode.")
+  "Non-nil means scrolling past the end of buffer exits View mode.
+Some commands, such as \\[view-file], set this to t locally;
+the only way to override that is to set it to nil using `view-mode-hook'.")
+
 (make-variable-buffer-local 'view-mode-auto-exit)
 
 (defvar view-old-buffer-read-only nil)
