@@ -9,7 +9,7 @@
 ;; LCD Archive Entry:
 ;; edebug|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A source level debugger for Emacs Lisp.
-;; |$Date: 1997/05/05 01:03:53 $|$Revision: 3.16 $|~/modes/edebug.el|
+;; |$Date: 1997/05/29 06:32:44 $|$Revision: 3.17 $|~/modes/edebug.el|
 
 ;; This file is part of GNU Emacs.
 
@@ -86,7 +86,7 @@
 ;;; Code:
 
 (defconst edebug-version
-  (let ((raw-version "$Revision: 3.16 $"))
+  (let ((raw-version "$Revision: 3.17 $"))
     (substring raw-version (string-match "[0-9.]*" raw-version)
 	       (match-end 0))))
      
@@ -289,6 +289,11 @@ After execution is resumed, the error is signaled again."
   "*If non-nil, an expression to test for at every stop point.
 If the result is non-nil, then break.  Errors are ignored."
   :type 'sexp
+  :group 'edebug)
+
+(defcustom edebug-sit-for-seconds 1
+  "*Number of seconds to pause when execution mode is `trace'."
+  :type 'number
   :group 'edebug)
 
 ;;; Form spec utilities.
@@ -2661,7 +2666,7 @@ MSG is printed after `::::} '."
 	     (t (setq edebug-stop t))))
 	   ;; not edebug-break
 	   ((eq edebug-execution-mode 'trace)
-	    (edebug-sit-for 1))		; Force update and pause.
+	    (edebug-sit-for edebug-sit-for-seconds)) ; Force update and pause.
 	   ((eq edebug-execution-mode 'Trace-fast)
 	    (edebug-sit-for 0))		; Force update and continue.
 	   )
