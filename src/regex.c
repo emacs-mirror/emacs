@@ -3323,9 +3323,11 @@ re_compile_fastmap (bufp)
 
 
 	case charset_not:
-	  /* Chars beyond end of map must be allowed.  End of map is
-	     `127' if bufp->multibyte is nonzero.  */
-	  simple_char_max = bufp->multibyte ? 0x80 : (1 << BYTEWIDTH);
+	  /* Chars beyond end of bitmap are possible matches.
+	     All the single-byte codes can occur in multibyte buffers.
+	     So any that are not listed in the charset
+	     are possible matches, even in multibyte buffers.  */
+	  simple_char_max = (1 << BYTEWIDTH);
 	  for (j = CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH;
 	       j < simple_char_max; j++)
 	    fastmap[j] = 1;
@@ -3352,7 +3354,9 @@ re_compile_fastmap (bufp)
 
 
 	case wordchar:
-	  simple_char_max = bufp->multibyte ? 0x80 : (1 << BYTEWIDTH);
+	  /* All the single-byte codes can occur in multibyte buffers,
+	     and they may have word syntax.  So do consider them.  */
+	  simple_char_max = (1 << BYTEWIDTH);
 	  for (j = 0; j < simple_char_max; j++)
 	    if (SYNTAX (j) == Sword)
 	      fastmap[j] = 1;
@@ -3365,7 +3369,9 @@ re_compile_fastmap (bufp)
 
 
 	case notwordchar:
-	  simple_char_max = bufp->multibyte ? 0x80 : (1 << BYTEWIDTH);
+	  /* All the single-byte codes can occur in multibyte buffers,
+	     and they may not have word syntax.  So do consider them.  */
+	  simple_char_max = (1 << BYTEWIDTH);
 	  for (j = 0; j < simple_char_max; j++)
 	    if (SYNTAX (j) != Sword)
 	      fastmap[j] = 1;
@@ -3445,7 +3451,7 @@ re_compile_fastmap (bufp)
 
 	case categoryspec:
 	  k = *p++;
-	  simple_char_max = bufp->multibyte ? 0x80 : (1 << BYTEWIDTH);
+	  simple_char_max = (1 << BYTEWIDTH);
 	  for (j = 0; j < simple_char_max; j++)
 	    if (CHAR_HAS_CATEGORY (j, k))
 	      fastmap[j] = 1;
@@ -3459,7 +3465,7 @@ re_compile_fastmap (bufp)
 
 	case notcategoryspec:
 	  k = *p++;
-	  simple_char_max = bufp->multibyte ? 0x80 : (1 << BYTEWIDTH);
+	  simple_char_max = (1 << BYTEWIDTH);
 	  for (j = 0; j < simple_char_max; j++)
 	    if (!CHAR_HAS_CATEGORY (j, k))
 	      fastmap[j] = 1;
