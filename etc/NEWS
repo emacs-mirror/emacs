@@ -2401,6 +2401,11 @@ configuration files.
 * Lisp Changes in Emacs 21.4
 
 +++
+** If a buffer sets buffer-save-without-query to non-nil,
+save-some-buffers will always save that buffer without asking
+(if it's modified).
+
++++
 ** The function symbol-file tells you which file defined
 a certain function or variable.
 

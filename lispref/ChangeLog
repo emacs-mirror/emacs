@@ -1,5 +1,7 @@
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
+	* Makefile.in (MAKEINFO): Specify --force.
+
 	* buffers.texi (Killing Buffers): Add buffer-save-without-query.
 
 	* modes.texi (Emulating Mode Line): Document format's BUFFER arg.
