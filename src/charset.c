@@ -1535,6 +1535,23 @@ str_as_multibyte (str, len, nbytes, nchars)
   return (to - str);
 }
 
+/* Parse unibyte string at STR of LEN bytes, and return the number of
+   bytes it may ocupy when converted to multibyte string by
+   `str_to_multibyte'.  */
+
+int
+parse_str_to_multibyte (str, len)
+     unsigned char *str;
+     int len;
+{
+  unsigned char *endp = str + len;
+  int bytes;
+
+  for (bytes = 0; str < endp; str++)
+    bytes += (*str < 0x80 || *str >= 0xA0) ? 1 : 2;
+  return bytes;
+}
+
 /* Convert unibyte text at STR of NBYTES bytes to multibyte text
    that contains the same single-byte characters.  It actually
    converts all 8-bit characters to multibyte forms.  It is assured
