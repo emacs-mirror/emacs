@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree
 ;; Version: $Name:  $
-;; Revision: $Id: cvs-status.el,v 1.6 2000/08/16 20:46:32 monnier Exp $
+;; Revision: $Id: cvs-status.el,v 1.7 2000/09/29 02:19:10 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -28,7 +28,6 @@
 
 ;; Todo:
 
-;; - Rename to cvs-status-mode.el
 ;; - Somehow allow cvs-status-tree to work on-the-fly
 
 ;;; Code:
@@ -88,7 +87,7 @@
 	     (forward-line 1))
       (1 font-lock-function-name-face)))))
 (defconst cvs-status-font-lock-defaults
-  '(cvs-status-font-lock-keywords t nil nil nil))
+  '(cvs-status-font-lock-keywords t nil nil nil (font-lock-multiline . t)))
   
 
 (put 'cvs-status-mode 'mode-class 'special)
@@ -279,9 +278,11 @@ BEWARE:  because of stability issues, this is not a symetric operation."
 		     (cvs-tree-merge (cvs-cdr rev1) (cvs-cdr rev2)))
 	       (cvs-tree-merge (cdr tree1) (cdr tree2))))))
      ((> l1 l2)
-      (cvs-tree-merge (list (cons (cvs-tag-make (butlast vl1)) tree1)) tree2))
+      (cvs-tree-merge
+       (list (cons (cvs-tag-make (cvs-butlast vl1)) tree1)) tree2))
      ((< l1 l2)
-      (cvs-tree-merge tree1 (list (cons (cvs-tag-make (butlast vl2)) tree2)))))))))
+      (cvs-tree-merge
+       tree1 (list (cons (cvs-tag-make (cvs-butlast vl2)) tree2)))))))))
 
 (defun cvs-tag-make-tag (tag)
   (let ((vl (mapcar 'string-to-number (split-string (nth 2 tag) "\\."))))
@@ -290,12 +291,13 @@ BEWARE:  because of stability issues, this is not a symetric operation."
 (defun cvs-tags->tree (tags)
   "Make a tree out of a list of TAGS."
   (let ((tags
-	 (mapcar (lambda (tag)
-		   (let ((tag (cvs-tag-make-tag tag)))
-		     (list (if (not (eq (cvs-tag->type tag) 'branch)) tag
-			     (list (cvs-tag-make (butlast (cvs-tag->vlist tag)))
-				   tag)))))
-		 tags)))
+	 (mapcar
+	  (lambda (tag)
+	    (let ((tag (cvs-tag-make-tag tag)))
+	      (list (if (not (eq (cvs-tag->type tag) 'branch)) tag
+		      (list (cvs-tag-make (cvs-butlast (cvs-tag->vlist tag)))
+			    tag)))))
+	  tags)))
     (while (cdr tags)
       (let (tl)
 	(while tags
@@ -337,7 +339,7 @@ the list is a three-string list TAG, KIND, REV."
 	   (setq tags (nreverse tags)))
 
 	 (progn				; new tree style listing
-	   (let* ((re-lead "[ \t]*\\(-+\\)?\\(|\n?[ \t]+\\)?")
+	   (let* ((re-lead "[ \t]*\\(-+\\)?\\(|\n?[ \t]+\\)*")
 		  (re3 (concat re-lead "\\(\\.\\)?\\(" cvs-status-rev-re "\\)"))
 		  (re2 (concat re-lead cvs-status-tag-re "\\(\\)"))
 		  (re1 (concat re-lead cvs-status-tag-re
@@ -373,39 +375,34 @@ the list is a three-string list TAG, KIND, REV."
 	  (save-restriction
 	    (narrow-to-region (point) (point))
 	    ;;(newline)
-	    (cvs-tree-print (cvs-tags->tree tags) 'cvs-tag->string 3))
+	    (combine-after-change-calls
+	      (cvs-tree-print (cvs-tags->tree tags) 'cvs-tag->string 3)))
 	  ;;(cvs-refontify pt (point))
-	  (sit-for 0)
+	  ;;(sit-for 0)
 	  ;;)
 	  ))))
 
-;;;; 
+;;;;
 ;;;; CVSTree-style trees
-;;;; 
+;;;;
 
-;; chars sets.  Ripped from cvstree
-(defvar cvs-tree-dstr-2byte-ready
-  (when (featurep 'mule)
-      (if (boundp 'current-language-environment)
-	  (string= current-language-environment "Japanese")
-	t))				; mule/emacs-19
-  "*Variable that specifies characters set used in cvstree tree graph.
-If non-nil, 2byte (Japanese?) characters set is used.
-If nil, 1byte characters set is used.
-2byte characters might be available with Mule or Emacs with Mule extension.")
+(defvar cvs-tree-use-jisx0208
+  nil ;; (and (char-display-font 'japanese-jisx0208) t)
+  "*Non-nil if we should use the graphical glyphs from `japanese-jisx0208'.
+Otherwise, default to ASCII chars like +, - and |.")
 
-(defconst cvs-tree-dstr-char-space
-  (if cvs-tree-dstr-2byte-ready "　" "  "))
-(defconst cvs-tree-dstr-char-hbar
-  (if cvs-tree-dstr-2byte-ready "━" "--"))
-(defconst cvs-tree-dstr-char-vbar
-  (if cvs-tree-dstr-2byte-ready "┃" "| "))
-(defconst cvs-tree-dstr-char-branch
-  (if cvs-tree-dstr-2byte-ready "┣" "+-"))
-(defconst cvs-tree-dstr-char-eob		;end of branch
-  (if cvs-tree-dstr-2byte-ready "┗" "`-"))
-(defconst cvs-tree-dstr-char-bob		;beginning of branch
-  (if cvs-tree-dstr-2byte-ready "┳" "+-"))
+(defconst cvs-tree-char-space
+  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 33 33) "  "))
+(defconst cvs-tree-char-hbar
+  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 44) "--"))
+(defconst cvs-tree-char-vbar
+  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 45) "| "))
+(defconst cvs-tree-char-branch
+  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 50) "+-"))
+(defconst cvs-tree-char-eob		;end of branch
+  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 49) "`-"))
+(defconst cvs-tree-char-bob		;beginning of branch
+  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 51) "+-"))
 
 (defun cvs-tag-lessp (tag1 tag2)
   (eq (cvs-tag-compare tag1 tag2) 'more2))
@@ -416,6 +413,18 @@ If nil, 1byte characters set is used.
   "Look for a list of tags, and replace it with a tree.
 Optional prefix ARG chooses between two representations."
   (interactive "P")
+  (when (and cvs-tree-use-jisx0208
+	     (not enable-multibyte-characters))
+    ;; We need to convert the buffer from unibyte to multibyte
+    ;; since we'll use multibyte chars for the tree.
+    (let ((modified (buffer-modified-p))
+	  (inhibit-read-only t)
+	  (inhibit-modification-hooks t))
+      (unwind-protect
+	  (progn
+	    (decode-coding-region (point-min) (point-max) 'undecided)
+	    (set-buffer-multibyte t))
+	(restore-buffer-modified-p modified))))
   (save-excursion
     (goto-char (point-min))
     (let ((inhibit-read-only t)
@@ -429,9 +438,11 @@ Optional prefix ARG chooses between two representations."
 	  (let* ((first (car tags))
 		 (prev (if (cvs-tag-p first)
 			   (list (car (cvs-tag->vlist first))) nil)))
-	    (cvs-tree-tags-insert tags prev)
+	    (combine-after-change-calls
+	      (cvs-tree-tags-insert tags prev))
 	    ;;(cvs-refontify pt (point))
-	    (sit-for 0)))))))
+	    ;;(sit-for 0)
+	    ))))))
 
 (defun cvs-tree-tags-insert (tags prev)
   (when tags
@@ -463,16 +474,16 @@ Optional prefix ARG chooses between two representations."
 	  (let* ((na+char
 		  (if (car as)
 		      (if eq
-			  (if next-eq (cons t cvs-tree-dstr-char-vbar)
-			    (cons t cvs-tree-dstr-char-branch))
-			(cons nil cvs-tree-dstr-char-bob))
+			  (if next-eq (cons t cvs-tree-char-vbar)
+			    (cons t cvs-tree-char-branch))
+			(cons nil cvs-tree-char-bob))
 		    (if eq
-			(if next-eq (cons nil cvs-tree-dstr-char-space)
-			  (cons t cvs-tree-dstr-char-eob))
+			(if next-eq (cons nil cvs-tree-char-space)
+			  (cons t cvs-tree-char-eob))
 		      (cons nil (if (and (eq (cvs-tag->type tag) 'branch)
 					 (cvs-every 'null as))
-				    cvs-tree-dstr-char-space
-				  cvs-tree-dstr-char-hbar))))))
+				    cvs-tree-char-space
+				  cvs-tree-char-hbar))))))
 	    (insert (cdr na+char))
 	    (push (car na+char) nas))
 	  (setq pe eq)))
@@ -506,6 +517,9 @@ Optional prefix ARG chooses between two representations."
 
 ;;; Change Log:
 ;; $Log: cvs-status.el,v $
+;; Revision 1.7  2000/09/29 02:19:10  monnier
+;; (cvs-status-entry-leader-re): Minor fix.
+;;
 ;; Revision 1.6  2000/08/16 20:46:32  monnier
 ;; *** empty log message ***
 ;;
