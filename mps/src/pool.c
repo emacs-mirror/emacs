@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.58) $
+ * $HopeName: MMsrc!pool.c(trunk.59) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.58) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.59) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -119,12 +119,19 @@ Res PoolInitV(Pool pool, Arena arena,
               PoolClass class, va_list args)
 {
   Res res;
+  Word classId;
 
   AVER(pool != NULL);
   AVERT(Arena, arena);
   AVERT(PoolClass, class);
 
   pool->class = class;
+  /* label the pool class with its name */
+  /* @@@@ need a field in the class to stop doing this repeatedly */
+  classId = EventInternString(class->name);
+  /* @@@@ this breaks design.mps.type.addr.use */
+  EventLabelAddr((Addr)class, classId);
+
   pool->arena = arena;
   /* .ring.init: See .ring.finish */
   RingInit(&pool->arenaRing);
