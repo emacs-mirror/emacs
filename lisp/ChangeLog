@@ -59,6 +59,9 @@
 
 2000-11-22  Dave Love  <fx@gnu.org>
 
+	* calendar/todo-mode.el (todo-top-priorities): Use
+	todo-tmp-buffer-name.  From Milan Zamazal <Milan.Zamazal@qbizm.com>.
+
 	* language/chinese.el, language/cyrillic.el:
 	* language/devanagari.el, language/ethiopic.el, language/greek.el:
 	* language/hebrew.el, language/indian.el, language/japanese.el:
