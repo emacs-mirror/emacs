@@ -9185,7 +9185,7 @@ lookup_image (f, spec)
       else
 	{
 	  /* Handle image type independent image attributes
-	     `:ascent PERCENT', `:margin MARGIN', `:relief RELIEF',
+	     `:ascent ASCENT', `:margin MARGIN', `:relief RELIEF',
 	     `:background COLOR'.  */
 	  Lisp_Object ascent, margin, relief, bg;
 
@@ -10238,7 +10238,7 @@ static struct image_keyword xpm_format[XPM_LAST] =
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":data",		IMAGE_STRING_VALUE,			0},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -10296,9 +10296,7 @@ xpm_image_p (object)
 	  /* Either no `:color-symbols' or it's a list of conses
 	     whose car and cdr are strings.  */
 	  && (fmt[XPM_COLOR_SYMBOLS].count == 0
-	      || xpm_valid_color_symbols_p (fmt[XPM_COLOR_SYMBOLS].value))
-	  && (fmt[XPM_ASCENT].count == 0
-	      || XFASTINT (fmt[XPM_ASCENT].value) < 100));
+	      || xpm_valid_color_symbols_p (fmt[XPM_COLOR_SYMBOLS].value)));
 }
 
 
@@ -11063,7 +11061,7 @@ x_build_heuristic_mask (f, img, how)
 	  char color_name[30];
 	  sprintf (color_name, "#%04x%04x%04x", rgb[0], rgb[1], rgb[2]);
 	  bg = x_alloc_image_color (f, img, build_string (color_name), 0)
-	    & 0xffffff; // Filter out palette info.
+	    & 0x00ffffff; /* Filter out palette info.  */
 	  use_img_background = 0;
 	}
     }
@@ -11137,7 +11135,7 @@ static struct image_keyword pbm_format[PBM_LAST] =
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":data",		IMAGE_STRING_VALUE,			0},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -11169,9 +11167,7 @@ pbm_image_p (object)
 
   bcopy (pbm_format, fmt, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, PBM_LAST, Qpbm)
-      || (fmt[PBM_ASCENT].count
-	  && XFASTINT (fmt[PBM_ASCENT].value) > 100))
+  if (!parse_image_spec (object, fmt, PBM_LAST, Qpbm))
     return 0;
 
   /* Must specify either :data or :file.  */
@@ -11517,7 +11513,7 @@ static struct image_keyword png_format[PNG_LAST] =
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -11547,9 +11543,7 @@ png_image_p (object)
   struct image_keyword fmt[PNG_LAST];
   bcopy (png_format, fmt, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, PNG_LAST, Qpng)
-      || (fmt[PNG_ASCENT].count
-	  && XFASTINT (fmt[PNG_ASCENT].value) > 100))
+  if (!parse_image_spec (object, fmt, PNG_LAST, Qpng))
     return 0;
 
   /* Must specify either the :data or :file keyword.  */
@@ -12037,7 +12031,7 @@ static struct image_keyword jpeg_format[JPEG_LAST] =
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversions",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -12068,9 +12062,7 @@ jpeg_image_p (object)
 
   bcopy (jpeg_format, fmt, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, JPEG_LAST, Qjpeg)
-      || (fmt[JPEG_ASCENT].count
-	  && XFASTINT (fmt[JPEG_ASCENT].value) > 100))
+  if (!parse_image_spec (object, fmt, JPEG_LAST, Qjpeg))
     return 0;
 
   /* Must specify either the :data or :file keyword.  */
@@ -12400,7 +12392,7 @@ static struct image_keyword tiff_format[TIFF_LAST] =
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversions",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -12430,9 +12422,7 @@ tiff_image_p (object)
   struct image_keyword fmt[TIFF_LAST];
   bcopy (tiff_format, fmt, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, TIFF_LAST, Qtiff)
-      || (fmt[TIFF_ASCENT].count
-	  && XFASTINT (fmt[TIFF_ASCENT].value) > 100))
+  if (!parse_image_spec (object, fmt, TIFF_LAST, Qtiff))
     return 0;
 
   /* Must specify either the :data or :file keyword.  */
@@ -12755,7 +12745,7 @@ static struct image_keyword gif_format[GIF_LAST] =
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -12785,9 +12775,7 @@ gif_image_p (object)
   struct image_keyword fmt[GIF_LAST];
   bcopy (gif_format, fmt, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, GIF_LAST, Qgif)
-      || (fmt[GIF_ASCENT].count
-	  && XFASTINT (fmt[GIF_ASCENT].value) > 100))
+  if (!parse_image_spec (object, fmt, GIF_LAST, Qgif))
     return 0;
 
   /* Must specify either the :data or :file keyword.  */
@@ -13074,7 +13062,7 @@ static struct image_keyword gs_format[GS_LAST] =
   {":file",		IMAGE_STRING_VALUE,			1},
   {":loader",		IMAGE_FUNCTION_VALUE,			0},
   {":bounding-box",	IMAGE_DONT_CHECK_VALUE_TYPE,		1},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -13121,9 +13109,7 @@ gs_image_p (object)
 
   bcopy (gs_format, fmt, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, GS_LAST, Qpostscript)
-      || (fmt[GS_ASCENT].count
-	  && XFASTINT (fmt[GS_ASCENT].value) > 100))
+  if (!parse_image_spec (object, fmt, GS_LAST, Qpostscript))
     return 0;
 
   /* Bounding box must be a list or vector containing 4 integers.  */
