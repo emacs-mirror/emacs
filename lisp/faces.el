@@ -1383,6 +1383,7 @@ created."
     (t
      (:background "gray")))
   "Basic face for bitmap areas under X."
+  :version "21.1"
   :group 'basic-faces)
 
 
