@@ -297,6 +297,7 @@ Each argument may be a list, vector or string.")
    nested sub char table are not copied.  */
 static Lisp_Object
 copy_sub_char_table (arg)
+     Lisp_Object arg;
 {
   Lisp_Object copy = make_sub_char_table (XCHAR_TABLE (arg)->defalt);
   int i;
@@ -1366,6 +1367,54 @@ or a character code.")
 
   return value;
 }
+
+DEFUN ("set-char-table-default", Fset_char_table_default,
+       Sset_char_table_default, 3, 3, 0,
+  "Set the default value in CHAR-TABLE for a generic character CHAR to VALUE.\n\
+The generic character specifies the group of characters.\n\
+See also the documentation of make-char.")
+  (char_table, ch, value)
+     Lisp_Object char_table, ch, value;
+{
+  int c, i, charset, code1, code2;
+  Lisp_Object temp;
+
+  CHECK_CHAR_TABLE (char_table, 0);
+  CHECK_NUMBER (ch, 1);
+
+  c = XINT (ch);
+  SPLIT_NON_ASCII_CHAR (c, charset, code1, code2);
+  if (! CHARSET_DEFINED_P (charset))
+    error ("Invalid character: %d", c);
+
+  if (charset == CHARSET_ASCII)
+    return (XCHAR_TABLE (char_table)->defalt = value);
+
+  /* Even if C is not a generic char, we had better behave as if a
+     generic char is specified.  */
+  if (CHARSET_DIMENSION (charset) == 1)
+    code1 = 0;
+  temp = XCHAR_TABLE (char_table)->contents[charset + 128];
+  if (!code1)
+    {
+      if (SUB_CHAR_TABLE_P (temp))
+	XCHAR_TABLE (temp)->defalt = value;
+      else
+	XCHAR_TABLE (char_table)->contents[charset + 128] = value;
+      return value;
+    }
+  char_table = temp;
+  if (! SUB_CHAR_TABLE_P (char_table))
+    char_table = (XCHAR_TABLE (char_table)->contents[charset + 128]
+	    = make_sub_char_table (temp));
+  temp = XCHAR_TABLE (char_table)->contents[code1];
+  if (SUB_CHAR_TABLE_P (temp))
+    XCHAR_TABLE (temp)->defalt = value;
+  else
+    XCHAR_TABLE (char_table)->contents[code1] = value;
+  return value;
+}
+
 
 /* Map C_FUNCTION or FUNCTION over SUBTABLE, calling it for each
    character or group of characters that share a value.
@@ -1955,6 +2004,7 @@ Used by `featurep' and `require', and altered by `provide'.");
   defsubr (&Sset_char_table_extra_slot);
   defsubr (&Schar_table_range);
   defsubr (&Sset_char_table_range);
+  defsubr (&Sset_char_table_default);
   defsubr (&Smap_char_table);
   defsubr (&Snconc);
   defsubr (&Smapcar);
