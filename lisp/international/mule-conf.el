@@ -672,7 +672,7 @@ is treated as a character."
 (define-coding-system-alias 'mule-utf-8 'utf-8)
 
 (define-coding-system 'utf-8-emacs
-  "UTF-8 will full support for Emacs characters."
+  "Support for all Emacs characters (including non-Unicode characters)."
   :coding-type 'utf-8
   :mnemonic ?U
   :charset-list '(emacs))
