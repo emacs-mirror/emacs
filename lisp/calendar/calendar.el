@@ -51,11 +51,11 @@
 ;; The following files are part of the calendar/diary code:
 
 ;;       appt.el                       Appointment notification
-;;       cal-chinese.el                Chinese calendar
+;;       cal-china.el                  Chinese calendar
 ;;       cal-coptic.el                 Coptic/Ethiopic calendars
 ;;       cal-dst.el                    Daylight savings time rules
 ;;       cal-hebrew.el                 Hebrew calendar
-;;       cal-islamic.el                Islamic calendar
+;;       cal-islam.el                  Islamic calendar
 ;;       cal-iso.el                    ISO calendar
 ;;       cal-julian.el                 Julian/astronomical calendars
 ;;       cal-mayan.el                  Mayan calendars
@@ -1295,15 +1295,15 @@ calendar."
   "Move cursor to previous instance of Mayan Haab/Tzolkin combination."
   t)
 
-(autoload 'calendar-goto-chinese-date "cal-chinese"
+(autoload 'calendar-goto-chinese-date "cal-china"
    "Move cursor to Chinese date."
    t)
 
-(autoload 'calendar-print-chinese-date "cal-chinese"
+(autoload 'calendar-print-chinese-date "cal-china"
  "Show the Chinese date equivalents of date."
  t)
 
-(autoload 'calendar-chinese-date-string "cal-chinese"
+(autoload 'calendar-chinese-date-string "cal-china"
   "String of Chinese date of Gregorian date."
   t)
 
@@ -1349,11 +1349,11 @@ Driven by the variable `calendar-date-display-form'."
   "String of ISO date of Gregorian date."
   t)
 
-(autoload 'calendar-print-islamic-date "cal-islamic"
+(autoload 'calendar-print-islamic-date "cal-islam"
   "Show the Islamic date equivalents of date."
   t)
 
-(autoload 'calendar-islamic-date-string "cal-islamic"
+(autoload 'calendar-islamic-date-string "cal-islam"
   "String of Islamic date of Gregorian date."
   t)
 
@@ -1453,17 +1453,17 @@ to the date indicated by point."
 to the date indicated by point."
   t)
 
-(autoload 'insert-islamic-diary-entry "cal-islamic"
+(autoload 'insert-islamic-diary-entry "cal-islam"
   "Insert a diary entry for the Islamic date corresponding to the date
 indicated by point."
   t)
 
-(autoload 'insert-monthly-islamic-diary-entry "cal-islamic"
+(autoload 'insert-monthly-islamic-diary-entry "cal-islam"
   "Insert a monthly diary entry for the day of the Islamic month corresponding
 to the date indicated by point."
   t)
 
-(autoload 'insert-yearly-islamic-diary-entry "cal-islamic"
+(autoload 'insert-yearly-islamic-diary-entry "cal-islam"
   "Insert an annual diary entry for the day of the Islamic year corresponding
 to the date indicated by point."
   t)

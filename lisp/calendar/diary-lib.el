@@ -116,23 +116,23 @@ The holidays are those in the list `calendar-holidays'."
   "Astronomical (Julian) day number diary entry."
   t)
 
-(autoload 'diary-chinese-date "cal-chinese"
+(autoload 'diary-chinese-date "cal-china"
   "Chinese calendar equivalent of date diary entry."
   t)
 
-(autoload 'diary-islamic-date "cal-islamic"
+(autoload 'diary-islamic-date "cal-islam"
   "Islamic calendar equivalent of date diary entry."
   t)
 
-(autoload 'list-islamic-diary-entries "cal-islamic"
+(autoload 'list-islamic-diary-entries "cal-islam"
   "Add any Islamic date entries from the diary file to `diary-entries-list'."
   t)
 
-(autoload 'mark-islamic-diary-entries "cal-islamic"
+(autoload 'mark-islamic-diary-entries "cal-islam"
   "Mark days in the calendar window that have Islamic date diary entries."
   t)
 
-(autoload 'mark-islamic-calendar-date-pattern "cal-islamic"
+(autoload 'mark-islamic-calendar-date-pattern "cal-islam"
    "Mark dates in calendar window that conform to Islamic date MONTH/DAY/YEAR."
   t)
 

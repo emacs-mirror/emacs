@@ -73,11 +73,11 @@
   "List of dates around Tisha B'Av, as visible in calendar window."
   t)
 
-(autoload 'holiday-islamic "cal-islamic"
+(autoload 'holiday-islamic "cal-islam"
   "Holiday on MONTH, DAY (Islamic) called STRING."
   t)
 
-(autoload 'holiday-chinese-new-year "cal-chinese"
+(autoload 'holiday-chinese-new-year "cal-china"
   "Date of Chinese New Year."
   t)
 
