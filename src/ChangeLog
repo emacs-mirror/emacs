@@ -1,3 +1,8 @@
+1999-10-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (echo_area_display) [HAVE_X_WINDOWS]: Do nothing if
+	Vterminal_frame is selected and Vwindow_system is non-nil.
+
 1999-10-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (echo_area_display): Put previous change in #if 0.
