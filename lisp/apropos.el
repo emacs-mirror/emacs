@@ -421,7 +421,7 @@ found."
 	 (symbolp apropos-label-face)
 	 (setq apropos-label-face `(face ,apropos-label-face
 					 mouse-face highlight)))
-    (with-output-to-temp-buffer "*Help*"
+    (with-output-to-temp-buffer "*Apropos*"
       (let ((p apropos-accumulator)
 	    (old-buffer (current-buffer))
 	    symbol item point1 point2)
@@ -537,7 +537,7 @@ found."
 			   (1+ (next-single-property-change (point) 'item)))))
 		    'item)))
     (if (consp item)
-	(error "%s is just a lonely smbol." (car item)))
+	(error "%s is just a lonely symbol" (car item)))
     (while (if (setq action-point
 		     (next-single-property-change (point) 'action))
 	       (<= action-point point))
@@ -546,10 +546,7 @@ found."
     (funcall
      (prog1 (get-text-property (or action action-point (point)) 'action)
        (if other (set-buffer other)))
-     item))
-  (message "%sype %s (undo) to get back to apropos-listing."
-	   (if other "In *Help* buffer t" "T")
-	   (key-description (where-is-internal 'undo nil 1))))
+     item)))
 
 
 
