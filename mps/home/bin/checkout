@@ -1,17 +1,16 @@
 #!/bin/sh
-# ==== ROBOT CHECKOUT SCRIPT ====
+# impl.sh.checkout: ROBOT CHECKOUT SCRIPT
 #
-# $Id: bin:checkout,v 1.4 1997/06/05 08:12:48 drj Exp $
+# $HopeName$
 #
-# This script is run in the MM Project Robot's home directory (~mm) as the
-# user `mm'.  It checks out the HOMEmm compound in order be sure that the
-# robot's files are up to date before running the main overnight build
-# script.
-#
+# This script is run in the MM Project Robot's home directory (~mm) as
+# the user `mm'.  It checks out the HOMEmm compound and updates the
+# crontab, in order be sure that the robot's files are up to date
+# before the other overnight scripts run.
 
-script="`basename $0`"
+hostname=`hostname`; hostname=${hostname%%.*}
 
 cd $HOME &&
 hope checkout -compound HOMEmm -recursive -writable-files quit \
   -extra-files delete &&
-crontab < $HOME/etc/`hostname`.cron
+crontab < $HOME/etc/$hostname.cron
