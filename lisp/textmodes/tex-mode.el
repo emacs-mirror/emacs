@@ -95,6 +95,13 @@ otherwise, the file name, preceded by blank, is added at the end."
   :type 'string
   :group 'tex-run)
 
+(defcustom tex-start-options-string " \\\\nonstopmode\\\\input"
+  "*TeX options to use when running TeX.
+These precede the input file name."
+  :type 'string
+  :group 'tex-run
+  :version "20.4")
+
 ;;;###autoload
 (defcustom latex-run-command "latex"
   "*Command used to run LaTeX subjob.
@@ -1065,7 +1072,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 
 (defun tex-start-tex (command file)
   "Start a TeX run, using COMMAND on FILE."
-  (let* ((cmd (concat command " \\\\nonstopmode\\\\input"))
+  (let* ((cmd (concat command tex-start-options-string))
          (star (string-match "\\*" cmd))
          (compile-command
           (if star (concat (substring cmd 0 star)
