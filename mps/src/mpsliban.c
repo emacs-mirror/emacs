@@ -1,6 +1,6 @@
 /* impl.c.mpsliban: HARLEQUIN MEMORY POOL SYSTEM LIBRARY INTERFACE (ANSI)
  *
- * $HopeName: MMsrc!mpsliban.c(trunk.4) $
+ * $HopeName: MMsrc!mpsliban.c(trunk.5) $
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  * PURPOSE
@@ -76,6 +76,11 @@ void mps_lib_abort(void)
 void *mps_lib_memset(void *s, int c, size_t n)
 {
   return memset(s, c, n);
+}
+
+void *mps_lib_memcpy(void *s1, const void *s2, size_t n)
+{
+  return memcpy(s1, s2, n);
 }
 
 /* @@@@ Platform specific conversion? */
