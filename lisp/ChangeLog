@@ -1,4 +1,12 @@
+2002-05-26  Dave Love  <fx@gnu.org>
+
+	* international/mule.el (coding-system-iso-2022-flags): Revert
+	last change.
+
 2002-05-25  Dave Love  <fx@gnu.org>
+
+	* international/characters.el: Additional double width
+	specifications.
 
 	* international/mule-diag.el (print-coding-system): Incomplete
 	updates.

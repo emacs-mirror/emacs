@@ -1,5 +1,10 @@
 2002-05-25  Dave Love  <fx@gnu.org>
 
+	* charset.c (Fcharset_priority_list, Fset_charset_priority): New
+	functions.
+
+	* character.c (Fstring): Doc fix.
+
 	* charset.c (Fdefine_charset_alias): Update Vcharset_list.
 
 	* fontset.c (Ffontset_info): Doc fix.  Return charset names, not
