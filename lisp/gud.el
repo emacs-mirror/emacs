@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -648,17 +648,31 @@ containing the executable being debugged.")
 ;; correct line number, but life's too short.
 ;;   d.love@dl.ac.uk (Dave Love) can be blamed for this
 
-(defvar gud-irix-p (string-match "^mips-[^-]*-irix" system-configuration)
+(defvar gud-irix-p
+  (and (string-match "^mips-[^-]*-irix" system-configuration)
+       (not (string-match "irix[6-9]\\.[1-9]" system-configuration)))
   "Non-nil to assume the interface appropriate for IRIX dbx.
-This works in IRIX 4, 5 and 6.")
+This works in IRIX 4, 5 and 6, but `gud-dbx-use-stopformat-p' provides
+a better solution in 6.1 upwards.")
+(defvar gud-dbx-use-stopformat-p
+  (string-match "irix[6-9]\\.[1-9]" system-configuration)
+  "Non-nil to use the dbx feature present at least from Irix 6.1
+  whereby $stopformat=1 produces an output format compatiable with
+  `gud-dbx-marker-filter'.")
 ;; [Irix dbx seems to be a moving target.  The dbx output changed
 ;; subtly sometime between OS v4.0.5 and v5.2 so that, for instance,
 ;; the output from `up' is no longer spotted by gud (and it's probably
 ;; not distinctive enough to try to match it -- use C-<, C->
 ;; exclusively) .  For 5.3 and 6.0, the $curline variable changed to
 ;; `long long'(why?!), so the printf stuff needed changing.  The line
-;; number is cast to `long' as a compromise between the new `long
-;; long' and the original `int'.  The process filter is also somewhat
+;; number was cast to `long' as a compromise between the new `long
+;; long' and the original `int'.  This is reported not to work in 6.2,
+;; so it's changed back to int -- don't make your sources too long.
+;; From Irix6.1 (but not 6.0?) dbx supports an undocumented feature
+;; whereby `set $stopformat=1' reportedly produces output compatible
+;; with `gud-dbx-marker-filter', which we prefer.
+
+;; The process filter is also somewhat
 ;; unreliable, sometimes not spotting the markers; I don't know
 ;; whether there's anything that can be done about that.  It would be
 ;; much better if SGI could be persuaded to (re?)instate the MIPS
@@ -685,7 +699,7 @@ This works in IRIX 4, 5 and 6.")
 	  ;; prod dbx into printing out the line number and file
 	  ;; name in a form we can grok as below
 	  (process-send-string (get-buffer-process gud-comint-buffer)
-			       "printf \"\032\032%1ld:\",(long)$curline;file\n"))
+			       "printf \"\032\032%1d:\",(int)$curline;file\n"))
 	 ;; look for result of, say, "up" e.g.:
 	 ;; .pplot.pplot(0x800) ["src/pplot.f":261, 0x400c7c]
 	 ;; (this will also catch one of the lines printed by "where")
@@ -764,13 +778,16 @@ and source-file directory for your debugger."
     (gud-def gud-break "stop at \"%d%f\":%l"
 				  "\C-b" "Set breakpoint at current line.")
     (gud-def gud-finish "return"  "\C-f" "Finish executing current function.")
-    (gud-def gud-up     "up %p; printf \"\032\032%1ld:\",(long)$curline;file\n"
+    (gud-def gud-up     "up %p; printf \"\032\032%1d:\",(int)$curline;file\n"
 	     "<" "Up (numeric arg) stack frames.")
-    (gud-def gud-down "down %p; printf \"\032\032%1ld:\",(long)$curline;file\n"
+    (gud-def gud-down "down %p; printf \"\032\032%1d:\",(int)$curline;file\n"
 	     ">" "Down (numeric arg) stack frames.")
     ;; Make dbx give out the source location info that we need.
     (process-send-string (get-buffer-process gud-comint-buffer)
-			 "printf \"\032\032%1ld:\",(long)$curline;file\n"))
+			 "printf \"\032\032%1d:\",(int)$curline;file\n"))
+   (gud-dbx-use-stopformat-p
+    (process-send-string (get-buffer-process gud-comint-buffer) 
+			 "set $stopformat=1\n"))
    (t
     (gud-def gud-up     "up %p"         "<" "Up (numeric arg) stack frames.")
     (gud-def gud-down   "down %p" ">" "Down (numeric arg) stack frames.")
