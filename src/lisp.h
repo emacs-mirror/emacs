@@ -576,16 +576,16 @@ struct Lisp_Free
 
 /* In a marker, the markbit of the chain field is used as the gc mark bit */
 struct Lisp_Marker
-  {
-    int type : 16;	/* = Lisp_Misc_Marker */
-    int spacer : 15;
-    /* 1 means normal insertion at the marker's position
-       leaves the marker after the inserted text.  */
-    int insertion_type : 1;
-    struct buffer *buffer;
-    Lisp_Object chain;
-    int bufpos;
-  };
+{
+  int type : 16;		/* = Lisp_Misc_Marker */
+  int spacer : 15;
+  /* 1 means normal insertion at the marker's position
+     leaves the marker after the inserted text.  */
+  unsigned int insertion_type : 1;
+  struct buffer *buffer;
+  Lisp_Object chain;
+  int bufpos;
+};
 
 /* Forwarding pointer to an int variable.
    This is allowed only in the value cell of a symbol,
