@@ -1,5 +1,7 @@
 2000-10-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (cursor_row_p): Take continued lines into account.
+
 	* alloc.c (mark_object) [GC_CHECK_STRING_BYTES]: Check validity of
 	string's size_byte.
 	(check_string_bytes) [GC_CHECK_STRING_BYTES]: New function.
