@@ -482,6 +482,7 @@ See `occur-revert-function'.")
 Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 
 \\{occur-mode-map}"
+  (interactive)
   (kill-all-local-variables)
   (use-local-map occur-mode-map)
   (setq major-mode 'occur-mode)
