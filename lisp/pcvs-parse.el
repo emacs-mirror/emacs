@@ -1,6 +1,6 @@
 ;;; pcvs-parse.el --- the CVS output parser
 
-;; Copyright (C) 1991,92,93,94,95,96,97,98,99,2000,2002
+;; Copyright (C) 1991,92,93,94,95,96,97,98,99,2000,02,2003
 ;; 		 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
@@ -266,7 +266,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        (and
 	(cvs-match "New directory `\\(.*\\)' -- ignored$" (dir 1))
 	;; (cvs-parsed-fileinfo 'MESSAGE " " (file-name-as-directory dir))
-	(cvs-parsed-fileinfo '(NEED-UPDATE . NEW-DIR) dir))
+	(cvs-parsed-fileinfo '(NEED-UPDATE . NEW-DIR) dir t))
 
        ;; File removed, since it is removed (by third party) in repository.
        (and
