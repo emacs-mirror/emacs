@@ -1475,7 +1475,9 @@ Initialize colors of certain faces from frame parameters."
   (dolist (face (face-list))
     (face-spec-set face (face-user-default-spec face) frame)
     (internal-merge-in-global-face face frame)
-    (when (memq window-system '(x w32 mac))
+    (when (and (memq window-system '(x w32 mac))
+	       (or (not (boundp 'inhibit-default-face-x-resources))
+		   (not (eq face 'default))))
       (make-face-x-resource-internal face frame)))
 
   ;; Initialize attributes from frame parameters.
