@@ -89,7 +89,6 @@ extern char *get_system_name ();
 #define malloc xmalloc
 #define realloc xrealloc
 #define free xfree
-extern long *xmalloc (), *xrealloc ();
 #endif
 
 char *x_get_string_resource ();
@@ -227,11 +226,11 @@ magic_file_p (string, string_len, class, escaped_suffix, suffix)
 		    free (path);
 		    return NULL;
 		  }
-		
+
 		next = lang;
 		next_len = strlen (next);
 		break;
-	      
+
 	      case 't':
 	      case 'c':
 		free (path);
@@ -247,7 +246,7 @@ magic_file_p (string, string_len, class, escaped_suffix, suffix)
 	  path_size = (path_len + next_len + 1) * 2;
 	  path = (char *) realloc (path, path_size);
 	}
-      
+
       bcopy (next, path + path_len, next_len);
       path_len += next_len;
 
@@ -309,7 +308,7 @@ gethomedir ()
 	ptr = pw->pw_dir;
     }
 
-  if (ptr == NULL) 
+  if (ptr == NULL)
     return "/";
 
   copy = (char *) malloc (strlen (ptr) + 2);
@@ -333,7 +332,7 @@ file_p (path)
 
 
 /* Find the first element of SEARCH_PATH which exists and is readable,
-   after expanding the %-escapes.  Return 0 if we didn't find any, and 
+   after expanding the %-escapes.  Return 0 if we didn't find any, and
    the path name of the one we found otherwise.  */
 
 static char *
@@ -346,7 +345,7 @@ search_magic_path (search_path, class, escaped_suffix, suffix)
     {
       for (p = s; *p && *p != ':'; p++)
 	;
-      
+
       if (p > s)
 	{
 	  char *path = magic_file_p (s, p - s, class, escaped_suffix, suffix);
@@ -419,7 +418,7 @@ get_user_app (class)
       || ((path = getenv ("XAPPLRESDIR"))
 	  && ((file = search_magic_path (path, class, "/%L/%N", 0))
 	      || (file = search_magic_path (path, class, "/%N", 0))))
-      
+
       /* Check in the home directory.  This is a bit of a hack; let's
 	 hope one's home directory doesn't contain any %-escapes.  */
       || (free_it = gethomedir (),
@@ -542,7 +541,7 @@ x_load_resources (display, xrm_string, myname, myclass)
   /* Add some font defaults.  If the font `helv' doesn't exist, widgets
      will use some other default font.  */
 #ifdef USE_MOTIF
-  
+
   sprintf (line, "%s*fontList: %s", myname, helv);
   XrmPutLineResource (&rdb, line);
   sprintf (line, "%s*menu*background: grey75", myname);
@@ -585,7 +584,7 @@ x_load_resources (display, xrm_string, myname, myclass)
     }
 
 #else /* not USE_MOTIF */
-  
+
   sprintf (line, "Emacs.dialog*.font: %s", helv);
   XrmPutLineResource (&rdb, line);
   sprintf (line, "Emacs.dialog*.background: grey75");
@@ -596,7 +595,7 @@ x_load_resources (display, xrm_string, myname, myclass)
   XrmPutLineResource (&rdb, line);
   sprintf (line, "Emacs*verticalScrollBar.background: grey75");
   XrmPutLineResource (&rdb, line);
-  
+
 #endif /* not USE_MOTIF */
 
   user_database = get_user_db (display);
@@ -631,7 +630,7 @@ x_load_resources (display, xrm_string, myname, myclass)
   db = get_environ_db ();
   if (db != NULL)
     XrmMergeDatabases (db, &rdb);
-  
+
   /* Last, merge in any specification from the command line. */
   if (xrm_string != NULL)
     {

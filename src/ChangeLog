@@ -1,3 +1,7 @@
+2000-06-20  Sam Steingold  <sds@gnu.org>
+
+	* xrdb.c: Don't declare xmalloc, xrealloc.
+
 2000-06-20  Stefan Monnier  <monnier@cs.yale.edu>
 	Based on a patch by Larry Jones <larry.jones@sdrc.com>.
 
@@ -162,7 +166,7 @@
 	* keymap.c (describe_buffer_bindings): Add `\f\n' in front
 	of titles.
 
-	* dispnew.c (update_frame_1): Handle case that cursor vpos is 
+	* dispnew.c (update_frame_1): Handle case that cursor vpos is
 	out of bounds.
 
 2000-06-15  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -196,7 +200,7 @@
 	message_log_maybe_newline if message_buf_print is not set.
 
 	* print.c (printchar, strout): Don't check message_buf_print
-	before calling setup_echo_area_for_printing because that 
+	before calling setup_echo_area_for_printing because that
 	function does something useful even when message_buf_print is
 	already set.
 
@@ -232,7 +236,7 @@
 2000-06-13  Richard Stallman  <rms@caffeine.ai.mit.edu>
 
 	* frame.c (Fmodify_frame_parameters): Doc fix.
-	
+
 	* xfns.c (x_set_frame_parameters): Comment fix.
 
 	* frame.c (store_frame_param): Call swap_in_global_binding if the
@@ -350,7 +354,7 @@
 
 	* window.c (displayed_window_lines): Take empty lines at
 	the bottom of a window into account.
-	
+
 	* window.c (displayed_window_lines): New function.
 	(Fmove_to_window_line): Use displayed_window_lines to determine
 	the number of lines to move, instead of using the window's height.
@@ -359,7 +363,7 @@
 	to stop reading, even if the form read sets point to a different
 	value when evaluated.
 
-	* xdisp.c (display_line): Fix code deciding in which line to 
+	* xdisp.c (display_line): Fix code deciding in which line to
 	put the cursor.
 
 2000-06-07  Kenichi Handa  <handa@etl.go.jp>
@@ -441,7 +445,7 @@
 	* lisp.h (DEFUN, EXFUN): Test PROTOTYPES.
 	(Foptimize_char_table, make_temp_name): Declare.
 
-	* s/irix4-0.h: 
+	* s/irix4-0.h:
 	* s/irix5-0.h:
 	* s/netbsd.h: Don't define autoconfiscated MATHERR.
 
@@ -462,7 +466,7 @@
 
 	* sysdep.c: Conditionally include stdlib.h, unistd.h.
 	(VFORK_RETURN_TYPE): Remove.
-	
+
 	* config.in: Add NO_MATHERR.
 
 2000-06-01  Dave Love  <fx@gnu.org>
@@ -759,7 +763,7 @@
 
 	* callproc.c, emacs.c, sysdep.c (setpgrp) [HAVE_SETPGID]: Define
 	as setpgid.
-	
+
 2000-05-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (SOME_MACHINE_LISP): Add disp-table.elc,
@@ -789,7 +793,7 @@
 	adjust_markers_for_insert, not adjust_markers_for_replace.
 
 2000-05-20  NIIBE Yutaka  <gniibe@mri.co.jp>
-	
+
 	* s/gnu-linux.h (UNIX98_PTYS) [HAVE_GRANDPT]: Define.
 	(PTY_ITERATION, PTY_NAME_SPRINTF, PTY_OPEN, PTY_TTY_NAME_SPRINTF)
 	[HAVE_GRANDPT]: Define.
@@ -1030,7 +1034,7 @@
 	adjust_after_replace, replace_range, del_range_2) Delete codes for
 	handling byte combining.
 	(adjust_before_replace): Deleted.
-	
+
 	* keymap.c (Fsingle_key_description): Use SPLIT_CHAR instead of
 	SPLIT_NON_ASCII_CHAR.
 	(describe_vector): Use MAKE_CHAR instead of MAKE_NON_ASCII_CHAR.
@@ -1275,7 +1279,7 @@
 	* lread.c (end_of_file_error): New function.
 	(read1): Call it instead of signaling `end-of-file' directly.
 
-	* print.c (print_error_message): Print data of `end-of-file' 
+	* print.c (print_error_message): Print data of `end-of-file'
 	with Fprinc instead of Fprin1.
 
 2000-04-26  Ken Raeburn  <raeburn@gnu.org>
@@ -1325,7 +1329,7 @@
 	(Fx_create_frame): Set line spacing from resources.
 	(Qline_spacing): New variable.
 	(syms_of_xfns): Initialize Qline_spacing.
-	
+
 	* emacs.c (USAGE2): Add `--line-spacing' and `-lsp'.
 
 	* buffer.c (init_buffer_once): Handle extra_line_spacing.
@@ -1399,7 +1403,7 @@
 	(ORDINARY_LINK): Define for NetBSD.
 
 	* m/macppc.h (ORDINARY_LINK): Define for NetBSD.
-	
+
 2000-04-19  Dave Love  <fx@gnu.org>
 
 	* s/bsd386.h, s/freebsd.h, s/gnu.h, s/netbsd.h: Revert 2000-04-14
@@ -1415,7 +1419,7 @@
 
 	* lread.c (read_filtered_event): Cancel and start busy cursor.
 
-	* xterm.c (x_produce_glyphs) <ASCII chars>: Take into account 
+	* xterm.c (x_produce_glyphs) <ASCII chars>: Take into account
 	that the per-character metrics may be null.
 
 2000-04-17  Gerd Moellmann  <gerd@gnu.org>
@@ -1852,7 +1856,7 @@
 	* s/freebsd.h (GC_SETJMP_WORKS): Define.
 
 	* s/msdos.h (GC_SETJMP_WORKS): Define.
-	
+
 	* alloc.c (mark_maybe_object): New function.
 	(mark_memory): Use it.
 	(SETJMP_WILL_LIKELY_WORK, SETJMP_WILL_NOT_WORK): New macros.
@@ -1867,7 +1871,7 @@
 	* dispnew.c (direct_output_for_insert): Use DEC_TEXT_POS
 	with parameter MULTIBYTE_P.
 
-	* dispextern.h (INC_TEXT_POS, DEC_TEXT_POS): Add parameter 
+	* dispextern.h (INC_TEXT_POS, DEC_TEXT_POS): Add parameter
 	MULTIBYTE_P.
 
 	* editfns.c (Fsubst_char_in_region): Don't use INC_POS in unibyte
@@ -1913,7 +1917,7 @@
 2000-03-26  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (enum re_opcode_t): New opcode on_failure_jump_nastyloop.
-	(print_partial_compiled_pattern, re_compile_fastmap): Handle new 
+	(print_partial_compiled_pattern, re_compile_fastmap): Handle new
 	opcode.
 	(regex_compile): Use on_failure_jump_nastyloop for non-greedy loops.
 	(re_match_2_internal): Add code for on_failure_jump_nastyloop when
@@ -2013,7 +2017,7 @@
 	(add-menu-item): Set help string in MIIM_DATA for menu item.
 	Load SetMenuItemInfoA explicitly.
 	(w32_menu_display_help): New function.
-	
+
 	* w32fns.c (w32_wnd_proc): Handle WM_MENUSELECT message.
 	(QCdata): Moved to xdisp.c.
 
@@ -2450,7 +2454,7 @@
 	* atimer.c (cancel_atimer): Break out of the loop as soon as timer
 	has been found.  Fix bug not computing timer's predecessor.
 
-	* fileio.c (Fread_file_name): Handle case that DIR contains a 
+	* fileio.c (Fread_file_name): Handle case that DIR contains a
 	file name.
 
 	* window.c (Fsave_window_excursion): Doc fix.
@@ -2808,7 +2812,7 @@
 	* sysdep.c (start_of_text): Don't define this function for NetBSD
 	with ELF.
 
-	* m/pmax.h (START_FILES, CANNOT_DUMP) [__NetBSD__ || __OpenBSD__]: 
+	* m/pmax.h (START_FILES, CANNOT_DUMP) [__NetBSD__ || __OpenBSD__]:
 	Don't define.
 	(UNEXEC) [__NetBSD__ || __OpenBSD__]: Define to unexelf.o.
 	(LINKER): Don't undef if __NetBSD__ is defined.
@@ -2881,7 +2885,7 @@
 	* emacs.c (main): Remove code snippet commented out with `//'.
 
 2000-02-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
-	
+
 	* fileio.c (Ffile_symlink_p): If result starts with a `/'
 	and contains a `:', prepend `/:'.
 
@@ -3056,7 +3060,7 @@
 	* lisp.h (GC_USE_GCPROS_AS_BEFORE, GC_MAKE_GCPROS_NOOPS)
 	(GC_MARK_STACK_CHECK_GCPROS, GC_USE_GCPROS_CHECK_ZOMBIES)
 	[GC_MARK_STACK]: New defines.
-	(GCPRO1, GCPRO2, GCPRO3, GCPRO4, GCPRO5, UNGCPRO) 
+	(GCPRO1, GCPRO2, GCPRO3, GCPRO4, GCPRO5, UNGCPRO)
 	[GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS]: Define as no-ops.
 
 	* emacs.c (main) [GC_MARK_STACK]: Initialize stack_base.
@@ -3071,7 +3075,7 @@
 	(lisp_malloc): Add parameter TYPE, call mem_insert if
 	GC_MARK_STACK is defined.
 	(allocate_buffer): New function.
-	(lisp_free) [GC_MARK_STACK]: Call mem_delete. 
+	(lisp_free) [GC_MARK_STACK]: Call mem_delete.
 	(free_float) [GC_MARK_STACK]: Set type to Vdead.
 	(free_cons) [GC_MARK_STACK]: Set car to Vdead.
 	(stack_base, mem_root, mem_z) [GC_MARK_STACK]: New variables.
@@ -3099,7 +3103,7 @@
 	Makefile.in: Remove `LISP_FLOAT_TYPE' and `standalone'.
 
 	* frame.c (make_frame): Set frame initiallly to `garbaged'.
-	
+
 2000-02-17  Kenichi Handa  <handa@etl.go.jp>
 
 	* xdisp.c (decode_mode_spec_coding): Delete superfluous code to
@@ -3200,7 +3204,7 @@
 
 	* atimer.h (stop_other_atimers, run_all_atimers)
 	(unwind_stop_other_atimers): Add function prototypes.
-	
+
 	* s/hpux10.h (HAVE_XRMSETDATABASE): Define if not already defined.
 
 2000-02-11  Ken Raeburn  <raeburn@gnu.org>
@@ -3362,7 +3366,7 @@
 	* xterm.c (x_delete_display): Update next_noop_dpyinfo to ensure
 	that XTread_socket does not crash by trying to call XNoOp on a
 	closed display.
-	
+
 2000-01-30  Jason Rumney  <jasonr@gnu.org>
 
 	* w32inevt.c (get_frame, w32_console_mouse_position, mouse_moved_to):
@@ -3422,7 +3426,7 @@
 	(best_xim_style): Renamed from best_style.
 	(create_frame_xic): Renamed from xic_create_frame.
 	(free_frame_xic): Renamed from xic_destroy_frame.
-	
+
 2000-01-29  INOUE Seiichiro <inoue@ainet.or.jp>
 
 	* xterm.c (XTread_socket) [HAVE_X_I18N]: If event is for none of
@@ -3545,7 +3549,7 @@
 	(start_polling, stop_polling): Rewritten.
 
 	* keyboard.h (polling_for_input): Removed.
-	
+
 	* atimer.h, atimer.c: New files.
 
 	* Makefile.in (obj): Add atimer.o.
@@ -3570,7 +3574,7 @@
 	(x_make_frame_visible): Call poll_for_input_1 instead of
 	input_poll_signal.  Don't call alarm.
 	(x_initialize): Install timer calling x_process_timeouts.
-	
+
 2000-01-24  Dave Love  <fx@gnu.org>
 
 	* s/irix5-0.h: Don't set LD_SWITCH_SYSTEM -- we use unexelf now.
@@ -3702,11 +3706,11 @@
 	in the proper buffer.
 
 	* data.c (set_internal): New arg BUF.
-	
+
 	* eval.c (specbind, unbind_to): Pass new arg to set_internal.
 	* data.c (Fset): Pass new arg to set_internal.
 	* bytecode.c (Fbyte_code): Pass new arg to set_internal.
-	
+
 2000-01-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* .gdbinit: Adapt to new strings.  Add xbacktrace, xreload,
@@ -3742,7 +3746,7 @@
 	Check that input style is supported before trying to create an
 	IC for it.
 	(x_window): Call x_create_im.
-	
+
 2000-01-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (current_gif_memory_src): New variable.
@@ -3761,7 +3765,7 @@
 	(parse_sound): Parse :data.
 	(parse_sound): Handle sound data in strings.
 	(find_sound_type): Function renamed from find_sound_file_type.
-	(wav_init, au_init): Fail if sound's header_size is smaller than 
+	(wav_init, au_init): Fail if sound's header_size is smaller than
 	needed header size.
 	(wav_play, au_play): Play sounds from string data.
 
@@ -3807,7 +3811,7 @@
 	(mark_object): Mark strings differently.  Mark symbol names
 	differently.
 	(survives_gc_p): Test marked strings differently.
-	(gc_sweep): Sweep strings differently, unmark strings in 
+	(gc_sweep): Sweep strings differently, unmark strings in
 	symbol names.
 	(compact_strings): Removed.
 
@@ -3819,7 +3823,7 @@
 2000-01-04  Kenichi Handa  <handa@etl.go.jp>
 
 	* fileio.c (Finsert_file_contents): Signal error if visiting file
-	in a non-empty buffer. 
+	in a non-empty buffer.
 
 	* term.c (encode_terminal_code): Fix the previous change.
 
@@ -4224,7 +4228,7 @@
 	(doc.o): Depend on charset.h.
 	(keyboard.o) (textprop.o) (intervals.o): Depend on INTERVAL_SRC.
 	(composite.o): New target.
-	
+
 	* alloc.c (Fmake_string): Adjusted for the change of CHAR_STRING.
 
 	* callproc.c (Fcall_process): Call code_convert_string to encode
@@ -4269,7 +4273,7 @@
 	(MAX_LENGTH_OF_MULTI_BYTE_FORM): Deleted.
 	(find_charset_in_str): Argument adjusted.
 	(CHAR_LEN): Modified.
-	
+
 	* charset.c: In this entry, just `Modified' means that codes for a
 	composite character is deleted.
 	(Qcomposition) (leading_code_composition)
@@ -4440,7 +4444,7 @@
 	* intervals.h: Include composite.h.
 	(get_property_and_range): Extern it.
 	(Vtext_property_default_nonsticky): Extern it.
-	
+
 	* intervals.c (adjust_intervals_for_insertion): To check stickines
 	of properties, pay attention to text-property-default-nonsticky.
 	(merge_properties_sticky): Likewise.
@@ -4645,7 +4649,7 @@
 	IRIX6).  Change #ifdef __mips to __sgi, since it's IRIX-specific.
 	Adjust test for presence of .mdebug section to the new return
 	value of find_section.
-	
+
 1999-12-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* unexelf.c: Merge changes from 20.5.
@@ -4653,7 +4657,7 @@
 
 	* m/iris4d.h (UNEXEC) [USG5_4]: Use unexelf.o instead of
 	unexsgi.o again.
-	
+
 	* m/iris5d.h (UNEXEC): Likewise.
 
 1999-12-06  Stefan Monnier  <monnier@cs.yale.edu>
@@ -4676,7 +4680,7 @@
 1999-12-04  Hrvoje Niksic  <hniksic@iskon.hr>
 
 	* lread.c (Fintern_soft): Accept a symbol argument.
-	
+
 1999-12-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Reduce to 40000.
@@ -4815,7 +4819,7 @@
 
 	* m/iris4d.h (UNEXEC) [USG5_4]: Use unexsgi.o instead of
 	unexelf.o.
-	
+
 	* m/iris5d.h (UNEXEC): Use unexsgi.o instead of unexelf.o.
 
 1999-12-01  Dave Love  <fx@gnu.org>
@@ -4840,7 +4844,7 @@
 	* window.c (Fwindow_end): Don't call temp_set_pt_both with
 	out of range position.
 
-	* xterm.c (XTread_socket) <ClientMessage, Xatom_Scrollbar>: 
+	* xterm.c (XTread_socket) <ClientMessage, Xatom_Scrollbar>:
 	Switch off busy-cursor by setting inhibit_busy_cursor to 2.
 
 1999-11-28  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -4917,7 +4921,7 @@
 
 	* unexaix.c (unexec): Use unsigned instead of uintptr_t because
 	that fails on IBM PowerPC, AIX 4.2.
-	
+
 1999-11-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* buffer.c (syms_of_buffer): Add %z, %Z, %m and %& to the doc
@@ -4930,7 +4934,7 @@
 
 	* emacs.c (gdb_valbits, gdb_gctypebits, gdb_emacs_intbits)
 	(gdb_data_seg_bits): New variables.
-	
+
 	* lisp.h (enum gdb_lisp_params): Put in #if 0, since it doesn't
 	work on systems not allowing enumerators > INT_MAX, and it
 	won't work if EMACS_INT is long long.
@@ -4940,7 +4944,7 @@
 	Port to SunOS 4.1.x again.  Help out with Alpha port.
 	Rename messages-locale to system-messages-locale,
 	and likewise for time-locale.
-	
+
 	* callproc.c (strerror): Remove decl.
 	* fileio.c (strerror): Likewise.
 	* process.c (strerror): Likewise.
@@ -5203,7 +5207,7 @@
 
 1999-11-01  Gerd Moellmann  <gerd@gnu.org>
 
-	* xfns.c (png_load) [PNG_READ_sRGB_SUPPORTED]: Put code using 
+	* xfns.c (png_load) [PNG_READ_sRGB_SUPPORTED]: Put code using
 	png_get_sRGB in #ifdef.
 
 	* dispnew.c (Finternal_show_cursor): Renamed from Fshow_cursor.
@@ -5352,7 +5356,7 @@
 
 1999-10-23  Gerd Moellmann  <gerd@gnu.org>
 
-	* Makefile.in (bootstrap, bootstrap-emacs, bootstrap-temacs): 
+	* Makefile.in (bootstrap, bootstrap-emacs, bootstrap-temacs):
 	New targets.
 
 1999-10-22  Dave Love  <fx@gnu.org>
@@ -5368,14 +5372,14 @@
 
 	* s/freebsd.h (HAVE_GETLOADAVG): Define as 1 because config.h
 	defines it that way.
-	
+
 	* xdisp.c (echo_area_display) [HAVE_X_WINDOWS]: Do nothing
 	if selected_frame is equal to Vterminal_frame.
 
 1999-10-19  Paul Eggert  <eggert@twinsun.com>
-	
+
 	Add support for large files, 64-bit Solaris, system locale codings.
-	
+
 	* Makefile.in (emacs): Set the LC_ALL environment variable to "C"
 	when dumping, so that the dumped Emacs doesn't have stray locale info.
 	(dired.o): Depend on systime.h.
@@ -5403,7 +5407,7 @@
 	(emacs_strerror): New function.
 
 	* coding.h (emacs_strerror, Vlocale_coding_system): New decls.
-	
+
 	* config.in (HAVE_STDIO_EXT_H, HAVE_TM_GMTOFF, HAVE___FPENDING,
 	HAVE_FTELLO, HAVE_GETLOADAVG, HAVE_MBLEN, HAVE_MBRLEN,
 	HAVE_STRSIGNAL): New macros.
@@ -5426,7 +5430,7 @@
 	Vlocale_coding_system, and convert result back.  Synchronize time
 	locale before invoking lower level function.  Invoke
 	emacs_memftimeu, passing ut, instead of emacs_memftime.
-	
+
 	* emacs.c: Include <locale.h> if HAVE_SETLOCALE is defined.
 	(Vmessages_locale, Vprevious_messages_locale, Vtime_locale,
 	Vprevious_time_locale): New variables.
@@ -5486,7 +5490,7 @@
 	* s/ptx4.h:
 	(SIGINFO): Do not undef.
 	(BROKEN_SIGINFO): New macros.
-	
+
 	* m/delta.h, s/ptx.h, s/template.h: Doc fix.
 
 	* mktime.c, strftime.c: Update to glibc 2.1.2 version, with
@@ -5497,11 +5501,11 @@
 
 	* process.c (sys_siglist): Omit if HAVE_STRSIGNAL.
 	(wait_reading_process_input): Use emacs_strerror, not strerror.
-	
+
 	* process.c (status_message, sigchld_handler): Synchronize locale,
 	then use strsignal istead of sys_siglist.
 	* w32proc.c (sys_wait): Likewise.
-	
+
 	* s/aix3-1.h, s/bsd4-1.h, s/dgux.h, s/gnu-linux.h, s/hiuxmpp.h,
 	s/hpux.h, s/iris3-5.h, s/iris3-6.h, s/irix3-3.h, s/osf1.h, s/rtu.h,
 	s/sunos4-1.h, s/unipl5-0.h, s/unipl5-2.h, s/usg5-0.h, s/usg5-2-2.h,
@@ -5614,7 +5618,7 @@
 	(Ffield_beginning, Ffield_end): Add ESCAPE_FROM_EDGE parameter.
 	(Fconstrain_to_field): Likewise.
 	(syms_of_editfns): Init Sfield_string_no_properties.
-	(Ffield_string, Ferase_field, Ffield_end): 
+	(Ffield_string, Ferase_field, Ffield_end):
 	Supply new MERGE_AT_BOUNDARY argument to find_field.
 	(Fline_beginning_position, Fline_end_position): Supply new
 	ESCAPE_FROM_EDGE parameter to Fconstrain_to_field.
@@ -5665,7 +5669,7 @@
 	(syms_of_minibuf): Remove initializations of
 	Sminibuffer_prompt_width and Sminibuffer_prompt_end.
 	* buffer.h (struct buffer): Remove prompt_end_charpos field.
-	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer, Fkill_buffer): 
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer, Fkill_buffer):
 	Don't initialize prompt_end_charpos field.
 	* syntax.c (Fforward_word): Likewise.
 	Constrain to any field.
@@ -5680,7 +5684,7 @@
 	list.
 	(shrink_mini_window): Restore old window sizes only if old
 	size information is valid in all windows in a window tree.
-	
+
 1999-10-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* xmenu.c (set_frame_menubar): Don't call
@@ -5705,7 +5709,7 @@
 1999-10-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (auto-save-interval): Fix documentation.
-	
+
 1999-10-09  Richard M. Stallman  <rms@gnu.org>
 
 	* print.c (print): When removing objects from Vprint_number_table,
@@ -5733,7 +5737,7 @@
 	* xterm.c (XTread_socket) <ClientMessage, WM_TAKE_FOCUS>:
 	Don't call XSetInputFocus because that can generate additional
 	FocusIn events.
-	
+
 1999-10-07  Jeffrey C Honig <jch@bsdi.com>
 
 	* bsdos4.h [HAVE_LIBNCURSES]: Define TERMINFO and LIBS_TERMCAP.
@@ -5914,7 +5918,7 @@
 	* casefiddle.c (casify_object): Remove unused variables.
 	(casify_region): Ditto.
 
-	* filelock.c (get_boot_time): Put local variable used in 
+	* filelock.c (get_boot_time): Put local variable used in
 	conditinally compiled section in #ifdef.
 	(toplevel): Include stdio.h.
 
@@ -6105,7 +6109,7 @@
 	* xdisp.c (resize_mini_window): Don't report changed window
 	height if it actually hasn't changed.
 
-	* widget.c (set_frame_size, EmacsFrameSetCharSize):  Remove 
+	* widget.c (set_frame_size, EmacsFrameSetCharSize):  Remove
 	unused variables.
 	(mark_shell_size_user_specified): Put in #if 0 because not used.
 	(create_frame_gcs): Put in #if 0 because currently unused.
@@ -6149,7 +6153,7 @@
 	(x_set_menu_bar_lines): Put local variable used only for
 	non-toolkit case in #ifdef/#endif.
 	(x_figure_window_size): Remove unused variable(s).
-	(x_figure_window_size, x_window, lookup_image, 
+	(x_figure_window_size, x_window, lookup_image,
 	xbm_read_bitmap_file_data, x_build_heuristic_mask, pbm_load,
 	png_load, jpeg_load, gif_load, x_create_tip_frame,
 	x_create_tip_frame, Fx_show_tip, x_set_border_pixel): Ditto.
@@ -6430,7 +6434,7 @@
 	* buffer.h (prompt_end_charpos): Replaces
 	minibuffer_prompt_length.
 
-	* minibuf.c (read_minibuf): Return mini-buffer contents 
+	* minibuf.c (read_minibuf): Return mini-buffer contents
 	without the prompt.
 
 	* editfns.c (make_buffer_string_both): Take out the code
@@ -6740,7 +6744,7 @@
 1999-09-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (Qwindow_size_fixed): Replaces Qfixed_window_size.
-	(window_fixed_size_p): Use Qwindow_size_fixed instead of 
+	(window_fixed_size_p): Use Qwindow_size_fixed instead of
 	Qfixed_window_size.
 	(syms_of_window): Ditto.
 
@@ -6792,7 +6796,7 @@
 
 	* callproc.c (call-process) [macintosh]: Call mac_run_command in
 	sysdep.c.  The Mac code is modeled after the DOS code.
-	
+
 	* dispextern.h [macintosh]: Include macterm.h to define substitute X
 	Window types and macros.
 
@@ -6800,35 +6804,35 @@
 	(enum output_method): Add mac_output frame type.
 	(union output_data): Add new alternative `mac'.
 	(FRAME_MAC_P): New macro.
-	
+
 	* frame.c (Fframep) [macintosh]: Handle mac frame type.
 	(syms_of_frame_1): Initialize Qmac.
 	(make_terminal_frame) [macintosh]: Initialize output_data.mac fields.
 	(Fmake_terminal_frame) [macintosh]: Add an alternate error check.
 	(Fmodify_frame_parameters) [macintosh]: Call
 	mac_set_frame_parameter in macterm.c.
-	
+
 	* keyboard.c [macintosh]: Set KBD_BUFFER_SIZE to a smaller value
 	(512) because Mac compilers limit local data of a function to 32K.
-	
+
 	* make-docfiles.c: Correctly handle input files with Mac-style
 	eol's.
-	
+
 	* sysdep.c: Define numerous routines to emulate Unix system calls.
-	
+
 	* xfaces.c: on MacOS, define the set of colors listed in rgb.txt
 	file of an X Window environment.
-	
+
 	* xfaces.c: on MacOS, define the Lisp functions x-display-color-p,
 	x-display-grayscale, x-color-defined-p, and x-color-values.
-	
+
 	* sysdep.c [macintosh] (stat, fstat, mkdir, rmdir, utime, access)
 	(open, creat, unlink, read, write, rename, fopen, pause, alarm)
 	(signal, sleep, gmtime, localtime, ctime, time, index, mktemp)
 	(getpwuid, getpwnam, dup, dup2, isatty, getgid, getegid, getuid)
 	(geteuid, getpid, getenv, uname, opendir, closedir, readdir, getwd.):
 	New functions, replacing POSIX features.
-	
+
 	* sysdep.c [macintosh] (Mac2UnixPathname, Unix2MacPathname, CheckAlarm)
 	(InitMyPasswd, GetTempDirName, mystrchr, mystrtok, mystrcpy):
 	(InitEmacsPasswdDir, run_mac_command): New subroutines.
@@ -6900,7 +6904,7 @@
 	(VALID_MULTIBYTE_CHAR_P): This macro deleted.
 	(PARSE_COMPOSITE_SEQ): New macro.
 	(PARSE_CHARACTER_SEQ): New macro.
-	(PARSE_MULTIBYTE_SEQ): New macro. 
+	(PARSE_MULTIBYTE_SEQ): New macro.
 	(CHAR_PRINTABLE_P): New macro.
 	(STRING_CHAR): Adjusted for the change of string_to_non_ascii_char.
 	(STRING_CHAR_AND_LENGTH): Likewise.
@@ -7028,7 +7032,7 @@
 	(window_internal_width): Subtract FRAME_FLAGS_AREA_WIDTH once
 	instead of twice.
 
-	* widget.c (set_frame_size): Set flags_area_extra to 
+	* widget.c (set_frame_size): Set flags_area_extra to
 	FRAME_FLAGS_AREA_WIDTH instead of 2 * that width.
 	(EmacsFrameSetCharSize): Ditto.
 
@@ -7134,7 +7138,7 @@
 	(resize_mini_window): Save/restore window configuration
 	differently.
 
-	* lisp.h (Vresize_mini_config, resize_mini_frame, 
+	* lisp.h (Vresize_mini_config, resize_mini_frame,
 	resize_mini_initial_height): Add extern declarations.
 
 	* xterm.c (expose_window_tree): Fix typo CANON_Y_UNIT to
@@ -7234,7 +7238,7 @@
 
 	* buffer.c (modify_overlay): Compute beg/end_unchanged
 	per buffer.
-	(Fget_buffer_create): Initialize new members of the buffer 
+	(Fget_buffer_create): Initialize new members of the buffer
 	structure.
 
 1999-08-22  Gerd Moellmann  <gerd@gnu.org>
@@ -7251,19 +7255,19 @@
 1999-08-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c: Call change_frame_size and do_pending_window_change with
-        new parameter.  
+        new parameter.
 
 1999-08-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (resize_mini_window): Do it for truncate-lines t as
 	well.
-	(redisplay_internal): Resize mini-window only if text might 
+	(redisplay_internal): Resize mini-window only if text might
 	have changed.
 	(display_echo_area): Reset displayed echo_area_buffer to nil
 	at the end if we're displaying a nil message.
 
 1999-08-21  Gerd Moellmann  <gerd@gnu.org>
-	
+
 	* fns.c (hash_lookup): Test with EQ before calling key comparion
 	function.
 	(hash_remove): Ditto.
@@ -7291,7 +7295,7 @@
 	and change_frame_size.
 
 	* xfaces.c (face_at_buffer_position): Don't xassert that
-	window's buffers equals current_buffer; this is not the 
+	window's buffers equals current_buffer; this is not the
 	case during echo area display.
 
 1999-08-21  Gerd Moellmann  <gerd@gnu.org>
@@ -7324,7 +7328,7 @@
 
 	* dispextern.h, lisp.h: Add function prototypes.
 
-	* dispnew.c (set_window_cursor_after_update): Do the 
+	* dispnew.c (set_window_cursor_after_update): Do the
 	cursor_in_echo_area case only for a mini-window showing
 	a message.  Don't let cursor end up after the end of a row.
 
@@ -7345,7 +7349,7 @@
 	(display_echo_area, display_echo_area_1): New.
 
 	(current_message, current_message_1): New.
-	(push_message, restore_message, pop_message, 
+	(push_message, restore_message, pop_message,
 	check_message_stack): New.
 	(truncate_echo_area): Rewritten.
 	(truncate_message_1): New.
@@ -7354,7 +7358,7 @@
 	(redisplay_internal): Check for needed echo area update
 	differently.
 	(redisplay_preserve_echo_area): Rewritten.
-	(redisplay_window): Check for mini-window displaying echo area 
+	(redisplay_window): Check for mini-window displaying echo area
 	message differently.
 	(syms_of_xdisp): Initialize Vmessage_stack and echo area buffers.
 	Remove initialzation of removed variables.
@@ -7370,7 +7374,7 @@
 
 	* print.c: Remove conditional compilation on `standalone'.
 	(glyph_len, str_to_glyph_cpy, str_to_glyph_ncpy,
-	glyph_to_str_cpy):  Remove that section because GLYPHs are no 
+	glyph_to_str_cpy):  Remove that section because GLYPHs are no
 	longer used in that way.
 	(PRINTDECLARE): Add multibyte.
 	(PRINTPREPARE, PRINTFINISH): Handle printcharfun t differently.
@@ -7401,7 +7405,7 @@
 	* fileio.c (Fdo_auto_save): Use push_message, restore_message,
 	pop_message.
 
-	* minibuf.c (read_minibuf): Use clear_message instead of 
+	* minibuf.c (read_minibuf): Use clear_message instead of
 	setting echo_area_glyphs.
 	(Fminibuffer_completion_help): Ditto.
 
@@ -7453,7 +7457,7 @@
 	here.
 
 1999-08-18  Gerd Moellmann  <gerd@gnu.org>
-	
+
 	* dispnew.c (update_frame_line): Fix previous change.  If writing
 	whole line clear to end of frame.
 
@@ -7536,12 +7540,12 @@
 	(sorted_font_list): If Vfont_list_limit is an integer > 0, list
 	maximally that number of fonts, otherwise use
 	DEFAULT_FONT_LIST_LIMIT.
-	(Fx_font_family_list): Bind `font-list-limit' to higher values 
+	(Fx_font_family_list): Bind `font-list-limit' to higher values
 	until we have all fonts.
 	(Fxfont_list): Additionally return the full names of fonts and
 	their registry and encoding.
 
-	* xterm.c (XTset_vertical_scroll_bar) [USE_TOOLKIT_SCROLL_BARS]: 
+	* xterm.c (XTset_vertical_scroll_bar) [USE_TOOLKIT_SCROLL_BARS]:
 	Simplify clearing "under" scroll bar.
 
 	* window.c (Qfixed_window_size): New.
@@ -7577,7 +7581,7 @@
 
 	* window.h (struct window): New field too_small_ok.
 
-	* window.c (set_window_height, set_window_width): 
+	* window.c (set_window_height, set_window_width):
 	If window starts out "too small", set its too_small_ok flag.
 	If window's too_small_ok flag is set, don't delete it
 	unless it is so small it would cause a crash.
@@ -7669,7 +7673,7 @@
 
 1999-08-06  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* dired.c (directory_files_internal, Fdirectory_files_and_attributes, 
+	* dired.c (directory_files_internal, Fdirectory_files_and_attributes,
 	Ffile_attributes_lessp): New functions.
 	(Fdirectory_files): Use directory_files_internal.
 	(syms_of_dired): Initialize Fdirectory_files_and_attributes,
@@ -7681,7 +7685,7 @@
 	* w32fns.c (x_set_icon_type): Support setting frame icons.
 	* w32term.c (x_bitmap_icon): New function.
 	(x_make_frame_visible, x_iconify_frame): Invoke x_bitmap_icon.
-	
+
 1999-08-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (set_iterator_to_next): After delivering a character
@@ -7693,7 +7697,7 @@
 	* xdisp.c (reseat_at_next_visible_line_start): New parameter
 	on_newline_p.
 	(set_iterator_to_next):  After delivering last char
-	from display vector, reseat on next visible line start if 
+	from display vector, reseat on next visible line start if
 	dpvec_char_len < 0.
 	(next_element_from_buffer): Set dpvec_char_len to -1 for
 	selective display.
@@ -7826,7 +7830,7 @@
 
 1999-07-31  Richard M. Stallman  <rms@gnu.org>
 
-	* xfns.c (x_set_internal_border_width): 
+	* xfns.c (x_set_internal_border_width):
 	Call do_pending_window_change.  Don't block input, don't call XFlush.
 	(x_set_vertical_scroll_bars): Call do_pending_window_change.
 	(x_set_scroll_bar_width, x_set_font): Likewise.
@@ -7949,7 +7953,7 @@
 
 	* xfaces.c (load_face_colors): Load background color if setting
 	stipple, too.
-	(prepare_face_for_display): Use FillOpaqueStippled instead of 
+	(prepare_face_for_display): Use FillOpaqueStippled instead of
 	FillStippled.
 
 1999-07-26  Ken'ichi Handa  <handa@gnu.org>
@@ -7967,12 +7971,12 @@
 
 1999-07-26  Markus Rost  <rost@gnu.org>
 
-	* fns.c (Fgethash): Fix order of variables (patch by gerd). 
+	* fns.c (Fgethash): Fix order of variables (patch by gerd).
 	(Fputhash): Ditto.
 	(Fremhash): Ditto.
 
 1999-07-26  Gerd Moellmann <gerd@gnu.org>
-	
+
 	* widget.c (EmacsFrameSetCharSize): Don't add XtNborderWidth
 	value to frame width and height.
 
@@ -7988,7 +7992,7 @@
 
 	* xfns.c (x_set_mouse_color): Always unload the old color.
 	Don't allow nil as color value.
-	(x_set_cursor_color, x_set_background_color, x_set_foreground_color): 
+	(x_set_cursor_color, x_set_background_color, x_set_foreground_color):
 	Always unload the old color.
 
 	* indent.c (Fmove_to_column): Extend end of line only if FORCE is t.
@@ -8053,7 +8057,7 @@
 	* xterm.c (x_calc_absolute_position): Subtract menu bar height
 	for YNegative, if using X toolkit.
 
-	* xfns.c (x_real_positions): Don't subtract window borders 
+	* xfns.c (x_real_positions): Don't subtract window borders
 	from positions returned.
 
 1999-07-17  Gerd Moellmann  <gerd@gnu.org>
@@ -8179,7 +8183,7 @@
 	* xdisp.c (next_element_from_string): Give padding spaces
 	a position of -1.
 
-	* dispnew.c (adjust_glyph_matrix): Some work to support 
+	* dispnew.c (adjust_glyph_matrix): Some work to support
 	marginals areas on tty frames in a future version.
 	(allocate_matrices_for_frame_redisplay): Ditto.
 
@@ -8225,7 +8229,7 @@
 
 1999-07-07  Gerd Moellmann  <gerd@gnu.org>
 
-	* xdisp.c (redisplay_internal): Ensure that redisplayinp_p 
+	* xdisp.c (redisplay_internal): Ensure that redisplayinp_p
 	doesn't become negative when decrementing it.
 
 	* eval.c (Fsignal): Reset redisplaying_p to zero.
@@ -8251,7 +8255,7 @@
 	* dispnew.c (shift_glyph_matrix): Move some computations out
 	of the loop.
 
-	* dispnew.c (margin_glyphs_to_reserve): Use NUMBERP and 
+	* dispnew.c (margin_glyphs_to_reserve): Use NUMBERP and
 	XFLOATINT.
 
 1999-07-06  Gerd Moellmann  <gerd@gnu.org>
@@ -8287,7 +8291,7 @@
 
 	* keyboard.c (kbd_store_ptr): Declare it as a volatile pointer
 	instead of a pointer to a volatile input_event.
-	(kbd_buffer_store_event): Remove volatile modifier from 
+	(kbd_buffer_store_event): Remove volatile modifier from
 	declaration of local variable `sp'.
 	(Fdiscard_input): Don't cast when assigning kbd_store_ptr
 	to kbd_fetch_ptr.
@@ -8362,7 +8366,7 @@
 
 1999-06-28  Gerd Moellmann  <gerd@gnu.org>
 
-	* dispnew.c (update_window): Use mode_line_p flag of rows 
+	* dispnew.c (update_window): Use mode_line_p flag of rows
 	instead of WINDOW_WANTS_MODELINE_P.
 
 	* xterm.c (clear_mouse_face): Make externally visible.
@@ -8457,7 +8461,7 @@
 	scrolling.
 	(compute_window_start_on_continuation_line): Take top line into
 	account.
-	(redisplay_window): Ditto.  If top line height has changed, 
+	(redisplay_window): Ditto.  If top line height has changed,
 	trigger a new redisplay.
 	(try_window_reusing_current_matrix): Take top line into account.
 	(find_last_row_displaying_text): Ditto.
@@ -8546,7 +8550,7 @@
 
 	* xfns.c: Move the PNG section before the JPEG one to avoid
 	problems surrounding setjmp.h/png.h on GNU/Linux.
-	
+
 1999-06-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_kill_gs_process): Don't free colors.
@@ -8804,10 +8808,10 @@
 	* xterm.c (note_mouse_highlight): Check overlays for help-text
 	property.
 	(XTread_socket): Fix compiler warning.
-	
+
 1999-03-05  Gerd Moellmann  <gerd@gnu.org>
 
-	* xterm.c (note_mouse_highlight): Don't restrict number of 
+	* xterm.c (note_mouse_highlight): Don't restrict number of
 	overlay to 10.  Call overlays_at so that it doesn't try to
 	extend the vector.
 
@@ -8961,14 +8965,14 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(struct face): Added two new members.
 	underline_color, underline_defaulted_p.
 
-	* xfaces.c (merge_face_vector_with_property): 
+	* xfaces.c (merge_face_vector_with_property):
 	(check_lface_attrs): Accept the string value for underline.
-	(Finternal_set_lisp_face_attribute): Likewise. 
+	(Finternal_set_lisp_face_attribute): Likewise.
 
 	* xfaces.c (load_color): Change the last argument type to enum
 	lface_attribute_index from int. And addec code for underling coloring.
 	(load_face_colors): Pass LFACE_*_INDEX to load_color.
-	
+
 1999-02-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (Fx_image_header): Removed.
@@ -8998,7 +9002,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 1999-01-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (Fx_create_frame): Initialize scroll bar pixel color
-	values in x_output structure.  
+	values in x_output structure.
 	(Qscroll_bar_foreground, Qscroll_bar_background): New.
 	(syms_of_xfns): Initialize these symbols.
 
@@ -9099,7 +9103,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(handle_face_prop): Use it.
 	(Qheight): Replaces Qsmaller.
 	(handle_height_prop): Replaces handle_smaller_prop.
-	(handle_face_prop): If iterator's font_height is not an 
+	(handle_face_prop): If iterator's font_height is not an
 	integer, evaluate it to get the font height to use.
 
 	* dispextern.h (HEIGHT_PROP_IDX): Replaces SMALLER_PROP_IDX.
@@ -9242,7 +9246,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 1998-11-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* xmenu.c (xmenu_show): Add workaround for remaining button grab
-	under LessTif   Use the widget of the frame as parent for the 
+	under LessTif   Use the widget of the frame as parent for the
 	menu, again.
 
 1998-11-19  Gerd Moellmann  <gerd@gnu.org>
@@ -9282,7 +9286,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(Fx_file_dialog): New.
 	* fileio.c (Fread_file_name): Call it.
 
-	* xrdb.c (x_load_resources): Add default resoures for file 
+	* xrdb.c (x_load_resources): Add default resoures for file
 	selection dialog.
 
 1998-11-14  Gerd Moellmann  <gerd@gnu.org>
@@ -9339,7 +9343,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(x_get_glyph_string_clip_rect): Draw a toolbar window over the
 	internal border at the top of a frame.
 	(x_init_glyph_string): Likewise.
-	(x_draw_glyph_string_relief): Correct right x by 1 pixel for 
+	(x_draw_glyph_string_relief): Correct right x by 1 pixel for
 	full-width lines.
 	(XTflash): Don't flash the toolbar window.
 
@@ -9396,7 +9400,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 1998-11-06  Gerd Moellmann  <gerd@gnu.org>
 
-	* xmenu.c (single_submenu): Set button_type of menu to 
+	* xmenu.c (single_submenu): Set button_type of menu to
 	BUTTON_TYPE_NONE.
 	(single_submenu): Likewise for panes and menu items.
 	(set_frame_menubar): Set button_type of menu bar to none.
@@ -9465,7 +9469,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(Fx_show_tip): New.
 	(Fx_hide_tip): New.
 
-	* xterm.c (x_destroy_window): Handle case that we don't have 
+	* xterm.c (x_destroy_window): Handle case that we don't have
 	a widget.
 
 	* dispextern.h (struct glyph_row): Rename no_marginal_areas_p
@@ -9515,7 +9519,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* xdisp.c (redisplay_window): Handle values of PT in front
 	of invisible, intangible text.
-	(try_window_id): Set overlay_arrow_seen to zero before 
+	(try_window_id): Set overlay_arrow_seen to zero before
 	displaying lines.
 	(display_mode_element): Assign to glyphs written for a mode
 	line spec `%x' as object the Lisp format string, as position
@@ -9641,7 +9645,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xterm.c (XTread_socket): Dispatch expose event to widget
 	if using toolkit scroll bars.
 	(x_scroll_bar_expose): Make no-op for toolkit scroll bars.
-	(x_scroll_bar_create): Create and show a scroll bar widget 
+	(x_scroll_bar_create): Create and show a scroll bar widget
 	if using toolkit scroll bars.
 	(x_scroll_bar_move): Handle tookit scroll bars.
 
@@ -9649,11 +9653,11 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* configure.in (USE_TOOLKIT_SCROLL_BARS): New.
 	(HAVE_XAW3D): New.
-	
+
 	* config.in (USE_TOOLKIT_SCROLL_BARS): New.
 	(HAVE_XAW3D): New.
 
-	* xterm.c (XTset_vertical_scroll_bar): Correct position of 
+	* xterm.c (XTset_vertical_scroll_bar): Correct position of
 	right vertical scroll bar.
 
 1998-10-20  Gerd Moellmann  <gerd@gnu.org>
@@ -9772,7 +9776,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	IMAGE_BOOL_VALUE.
 	(parse_image_spec): Handle them.
 	(image_spec_value): Additional parameter found.
-	(free_image): Remove image from the vector `images' of the 
+	(free_image): Remove image from the vector `images' of the
 	image cache.
 	(clear_image_cache): Additional parameter force_p.
 	(Fclear_image_cache): New.
@@ -9907,7 +9911,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 1998-10-10  Gerd Moellmann  <gerd@gnu.org>
 
-	* dispnew.c (buffer_posn_from_coords): Don't screw up if 
+	* dispnew.c (buffer_posn_from_coords): Don't screw up if
 	window start is not in the range BEGV..ZV.
 
 1998-10-09  Gerd Moellmann  <gerd@gnu.org>
@@ -9928,7 +9932,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 1998-10-06  Gerd Moellmann  <gerd@gnu.org>
 
-	* minibuf.c (Fminibuffer_complete_word): Fix computation of 
+	* minibuf.c (Fminibuffer_complete_word): Fix computation of
 	i_byte when prompts are inserted into minibuffers.
 
 	* dispextern.h (FRAME_INTERNAL_BORDER_WIDTH_SAFE): New.
@@ -10059,7 +10063,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* xfaces.c (realize_default_face): Use empty strings to indicate
 	that the face should use the default foreground/background
-	color of the terminal.  Fill font-related attributes with 
+	color of the terminal.  Fill font-related attributes with
 	appropriate values for tty frames.
 
 	* emacs.c (main): Call syms_of_xfaces before init_window_once.
@@ -10097,7 +10101,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xterm.c (x_draw_glyph_string_relief): Draw top and bottom lines
 	1 pixel longer.
 
-	* xdisp.c (face_before_or_after_it_pos): Fix computation 
+	* xdisp.c (face_before_or_after_it_pos): Fix computation
 	of face in buffer.
 
 	* editfns.c (make_buffer_string_both): If prompt in buffer,
@@ -10298,7 +10302,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	the specified frame font in Vx_unibyte_registry_and_encoding.
 	(face_at_buffer_position): Handle unibyte.
 	(face_at_string_position): Likewise.
-	(realize_face): New parameter unibyte_registry.  
+	(realize_face): New parameter unibyte_registry.
 	(compute_char_face): Handle the unibyte case.
 
 	* dispextern.h (struct glyph): Add bit multibyte_p.
@@ -10335,9 +10339,9 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* xdisp.c (get_next_display_element): Don't check for charset
 	changes if multi-byte characters are not enabled.
-	
+
 	* xdisp.c (echo_area_display): Use the flush function from the
-	redisplay interface.  
+	redisplay interface.
 	* keyboard.c (detect_input_pending_run_timers): Likewise.
 
 	* dispextern.h (produce_*glyphs_hook): Removed.
@@ -10379,7 +10383,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 1998-07-30  Gerd Moellmann  <gerd@gnu.org>
 
-	* dispnew.c (adjust_glyph_matrix): Use a different check to 
+	* dispnew.c (adjust_glyph_matrix): Use a different check to
 	decide to do nothing.
 
 	* xfaces.c (face_at_string_position): Additional parameter
@@ -10410,7 +10414,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xfaces.c (free_realized_faces): Don't clear current matrices
 	of a frame being destroyed.
 
-	* frame.c (make_frame): Call set_window_buffer instead of 
+	* frame.c (make_frame): Call set_window_buffer instead of
 	Fset_window_buffer.
 
 	* window.c (set_window_buffer): Extracted from Fset_window_buffer,
@@ -10487,7 +10491,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(charset_at_position): Take charpos/bytepos into account.
 	(back_to_previous_line_start): Set iterator to previous line start.
 	(forward_to_next_line_start): Set iterator to next line start.
-	(back_to_previous_visible_line_start): Renamed from 
+	(back_to_previous_visible_line_start): Renamed from
 	move_iterator_previous_visible_line_start.
 	(set_iterator_to_next_visible_line_start): Handle charpos/bytepos.
 	(get_face_at_it_pos): Renamed from get_face_from_cursor_pos.
@@ -10533,11 +10537,11 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(check_matrix_invariants): Add additional checks for charpos/
 	bytepos consistency.
 	(direct_output_for_insert): Changed for charpos/bytepos.
-	(buffer_posn_from_coords): Likewise.  Put code dealing with 
+	(buffer_posn_from_coords): Likewise.  Put code dealing with
 	`direction-reversed' in #if 0.
 
 	* xterm.h: Merge with 20.2.97.
-	
+
 	* frame.h: Merge with 20.2.97.
 
 	* window.h: Merge with 20.2.97.  Add window_end_bytepos.
@@ -10656,7 +10660,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	RES_TYPE_BOOLEAN etc. because of conflict of `boolean' with
 	jpeglib.h.
 
-	* configure.in (HAVE_JPEG, --with-jpeg): Added.  On systems 
+	* configure.in (HAVE_JPEG, --with-jpeg): Added.  On systems
 	where the library is installed in /usr/local/lib, e.g. FreeBSD,
 	configure must be run with `--x-includes=/usr/X11R6/include:
 	/usr/local/include --x-libraries=/usr/X11R6/lib:/usr/local/lib'.
@@ -10670,7 +10674,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(ct_free): Free color table.
 	(ct_lookup): Look an RGB color up.
 	(ct_allocated_colors): Get vector of allocated colors.
-	(pbm_image_p): Test if image specification is a valid PPM 
+	(pbm_image_p): Test if image specification is a valid PPM
 	image specification.
 	(pbm_scan_number): Scan a decimal ASCII number from a file.
 	(pbm_load): Load a PPM image.
@@ -10858,16 +10862,16 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* xdisp.c (set_iterator_to_next): Handle next_element_from_stretch.
 
-	* xterm.c (x_produce_image_glyph): Add to current_x only if 
+	* xterm.c (x_produce_image_glyph): Add to current_x only if
 	in text area.
 	(x_produce_glyphs): Ditto.
 
-	* xdisp.c (display_line): Compute row height from glyphs in 
+	* xdisp.c (display_line): Compute row height from glyphs in
 	marginal areas.
 
-	* xterm.c (x_draw_image_glyph_string_background): Draw 
+	* xterm.c (x_draw_image_glyph_string_background): Draw
 	background of an image glyph string.
-	(x_draw_glyph_string_bg_rect): Draw a rectangular region of 
+	(x_draw_glyph_string_bg_rect): Draw a rectangular region of
 	the background of a glyph string.
 	(x_draw_image_glyph_string_foreground): Draw the foreground of
 	an image glyph string.
@@ -10899,7 +10903,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* dispextern.h (struct image_type): Additional clipping rect
 	parameters for drawing functions.
 
-	* xterm.c (x_get_glyph_string_clip_rect): Get clip rect for 
+	* xterm.c (x_get_glyph_string_clip_rect): Get clip rect for
 	a glyph string.
 	(x_draw_image_glyph_string): Use it and pass the rect to the
 	image drawing function.
@@ -10916,7 +10920,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	row of selected window.
 
 	* xdisp.c (display_line): Remove start_pos.
-	(display_line): Fix bug preventing display optimization for 
+	(display_line): Fix bug preventing display optimization for
 	cursor line of selected window.
 	(next_element_from_buffer): Avoid XSETBUFFER, use it->w->buffer
 	instead.
@@ -10948,7 +10952,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(redisplay_window): When recentering, and cursor vpos is -1
 	after display, assume middle of window is in first line displayed
 	in window, and display again.
-	(fill_iterator_from_glyph_property): Assign image glyph 
+	(fill_iterator_from_glyph_property): Assign image glyph
 	the position of the first character having the glyph property.
 
 	* dispextern.h (IMAGE_ASCENT): Compute ascent of image.
@@ -10960,7 +10964,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* Makefile.in: Extraneous #define of LIBXPM removed.
 
 	* xterm.c (x_produce_glyphs): Produce a STRETCH_GLYPH for tabs.
-	(x_fill_stretch_glyph_string): Fill a glyph string from a 
+	(x_fill_stretch_glyph_string): Fill a glyph string from a
 	stretch glyph.
 	(x_compute_glyph_string_overhangs): Compute overhangs only
 	for text glyph strings.
@@ -10992,7 +10996,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* xterm.c (expose_frame): Don't try to redraw if basic faces
 	haven't benn realized yet.
-	(x_draw_image_glyph_string): Fill background only if image 
+	(x_draw_image_glyph_string): Fill background only if image
 	is not as tall as row.
 
 1998-05-04  Gerd Moellmann  <gerd@gnu.org>
@@ -11017,9 +11021,9 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(xbm_keyword_index): Remove XBM_DEPTH.
 	(xbm_format): Remove `:depth'.
 	(xbm_image_spec_from_file): Removed to reduce consing.
-	(xbm_load_image_from_file): Added for the same reason. 
+	(xbm_load_image_from_file): Added for the same reason.
 
-	* xterm.c (x_fill_image_glyph_string): Don't set ybase of 
+	* xterm.c (x_fill_image_glyph_string): Don't set ybase of
 	glyph string.
 	(x_draw_image_glyph_string): Pass ybase to image draw function.
 
@@ -11046,7 +11050,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 1998-05-03  Gerd Moellmann  <gerd@gnu.org>
 
-	* dispextern.h (ITERATOR_AT_END_OF_LINE_P): Test for 
+	* dispextern.h (ITERATOR_AT_END_OF_LINE_P): Test for
 	DISP_CHARACTER.
 
 	* xterm.c (x_produce_image_glyph): Poduce image glyphs.
@@ -11082,7 +11086,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* alloc.c (mark_object): Mark objects in image cache.
 
-	* xfns.c (x_set_internal_border_width): Correct call to 
+	* xfns.c (x_set_internal_border_width): Correct call to
 	widget_store_internal_border_width.
 
 	* widget.c (widget_store_internal_border): Return void.
@@ -11135,7 +11139,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(x_load_font): Change allocation of font_info structures so
 	that it is possible to free fonts.
 
-	* xfns.c (Fx_close_connection): Use xfree instead of free. 
+	* xfns.c (Fx_close_connection): Use xfree instead of free.
 	Only free fonts from filled font table entries.
 
 	* xfaces.c (best_matching_font): Support use of scalable fonts.
@@ -11147,7 +11151,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* xfaces.c (split_font_name): Don't reject scalable fonts.
 
-	* xterm.c (x_list_fonts): Set code exclusing scalable fonts 
+	* xterm.c (x_list_fonts): Set code exclusing scalable fonts
 	in #if 0.
 
 	* xfaces.c (xlfd_point_size): Return 0 for fonts whose real
@@ -11174,7 +11178,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* dispextern.h (struct face): Member non_ascii_gc removed.
 
 	* xterm.c (x_get_char_font_and_encoding): Return face's font
-	for characters < 0177 in default face.  Prepare face for 
+	for characters < 0177 in default face.  Prepare face for
 	display before returning it.
 	(x_produce_glyphs): Use it->charset.
 	(x_get_char_font_and_encoding): Simplified.
@@ -11195,7 +11199,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* xdisp.c (set_iterator_stop_pos): Take glyph_check_pos into
 	account.
-	(reseat_iterator): Set glyph_check_pos. Handle case where 
+	(reseat_iterator): Set glyph_check_pos. Handle case where
 	new position is < original position.
 	(check_iterator_glyph_property): Handle glyph property in strings.
 	(next_element_from_string): Call above function.
@@ -11245,7 +11249,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xdisp.c (get_next_display_element): Put code choosing a face
 	when the charset changes in #ifdef HAVE_FACES.
 
-	* dispextern.h (FACE_FOR_CHARSET): Replacement for function 
+	* dispextern.h (FACE_FOR_CHARSET): Replacement for function
 	lookup_face_for_charset.
 
 	* xfaces.c (free_font_names): Renamed from free_split_font_names.
@@ -11301,7 +11305,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* xfaces.c (load_color): Set them.
 	(free_face_colors): Check them.
-	(xlfd_point_size): Return -1 if resolution or point size of 
+	(xlfd_point_size): Return -1 if resolution or point size of
 	font unknown.
 
 	* xfaces.c (free_font): Removed.
@@ -11314,7 +11318,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xterm.c (x_term_init): Initialize it.
 	* xfaces.c (xlfd_point_size): Use it.
 	(split_font_name): Compute numeric XLFD_RESY.
-	(cmp_font_names): Make fonts with an y-resolution more 
+	(cmp_font_names): Make fonts with an y-resolution more
 	similar to that of the frame appear first in the result.
 
 	* xfaces.c (cache_face): If fontset_chosen_for_realization_p
@@ -11366,12 +11370,12 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xfaces.c (split_font_name): Additional parameter numeric_p.
 	Don't compute numeric values if it is non-zero.
 	(choose_face_fontset): Call split_font_name with numeric_p == 0.
-	(choose_face_fontset): Print a message if fontset contains a 
+	(choose_face_fontset): Print a message if fontset contains a
 	font whose name cannot be split into fields.
 
 1998-04-21  Gerd Moellmann  <gerd@gnu.org>
 
-	* xfaces.c (try_font_list): Try to load a list of fonts, 
+	* xfaces.c (try_font_list): Try to load a list of fonts,
 	possibly using less restrictive patterns.
 	(choose_face_font): Use it.
 
@@ -11416,7 +11420,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(find_best_slant_font): Likewise for slant.
 	(choose_face_font): Use them.
 	(get_lface_attributes): Always return frame-local face attrs.
-	(Finternal_merge_in_global_face): Merge local face with 
+	(Finternal_merge_in_global_face): Merge local face with
 	global face attributes.
 
 	* xfaces.c (check_lface_attrs, check_lface): Check consistency of
@@ -11427,7 +11431,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xfaces.c (Finternal_set_lisp_face_attribute): Add :bold
 	and :italic for compatibility.
 	(Finternal_set_lisp_face_attribute_from_resource): Handle
-	:bold and :italic.  Handle boolean resource values for 
+	:bold and :italic.  Handle boolean resource values for
 	:underline and :italic.
 
 	* xfns.c (display_x_get_resource): Make it externally visible.
@@ -11472,7 +11476,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* xfaces.c (recompute_basic_faces): Free realized faces.  Reset
 	face_attributes_changed_p.
-	(remove_all_realized_faces): Remove all realized faces on 
+	(remove_all_realized_faces): Remove all realized faces on
 	all frames.
 	(Finternal_set_lisp_face_attribute): Call remove_all_realized_faces.
 
@@ -11503,13 +11507,13 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* xfaces.c (same_size_fonts): Removed.
 
-	* xterm.c (x_set_glyph_string_gc): Add post-condition 
+	* xterm.c (x_set_glyph_string_gc): Add post-condition
 	s->gc != 0.
 	(x_set_mouse_face_gc): Ditto.
 	(x_set_mode_line_face_gc): Ditto.
 
-	* xfaces.c (realize_default_face): Return int.  Value is 
-	zero if frame params don't contain enough information to 
+	* xfaces.c (realize_default_face): Return int.  Value is
+	zero if frame params don't contain enough information to
 	realize the default face.
 	(realize_basic_faces): Ditto.
 	(init_frame_faces): Realize basic faces.
@@ -11532,7 +11536,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(face_at_string_position): Renamed from
 	compute_face_at_string_pos. Parameter charset removed; always
 	compute for CHARSET_ASCII.
-	(lookup_face_for_charset): Take frame parameter instead of 
+	(lookup_face_for_charset): Take frame parameter instead of
 	face_cache.
 	(lookup_face): Ditto.
 	(compute_char_face): Renamed from compute_glyph_face.
@@ -11686,7 +11690,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xdisp.c (setup_iterator_overlay_strings_from_glyph_pos): If
 	position is not in an overlay string, set iterator's position and
 	method explicitly so.
-	(set_cursor_from_row): Correct cursor position calculation. 
+	(set_cursor_from_row): Correct cursor position calculation.
 	Make it externally visible.
 	(redisplay_window): Call set_cursor_from_row so that there is only
 	one place where the cursor position is calculated from a current
@@ -11924,11 +11928,11 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xterm.h (struct relief): New structure type holding relief info:
 	GCs, colors, and whether colors are allocated.
 
-	* xterm.c (x_alloc_lighter_color): If multiplying by factor 
+	* xterm.c (x_alloc_lighter_color): If multiplying by factor
 	produces the same color, try adding a delta to RGB values.
 	(x_setup_relief_colors): Free color cells.
 
-	* xterm.h (struct x_output): New members white_relief_pixel, 
+	* xterm.h (struct x_output): New members white_relief_pixel,
 	black_relief_pixel holding the foreground colors allocated for
 	relief GCs.  New members white_allocated_p, black_allocated_p.
 
@@ -11936,7 +11940,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	This resets updated_window when called from scrolling_window.
 
 	* dispextern.h (scroll_run_hook): Renamed from line_dance_hook.
-	
+
 	* xterm.c (x_scroll_run): Additional window parameter.  Set
 	and reset updated_window.
 
@@ -11979,7 +11983,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 1998-02-19  Gerd Moellmann  <gerd@gnu.org>
 
-	* xterm.c (x_redraw_cursor): Don't redraw the cursor if the 
+	* xterm.c (x_redraw_cursor): Don't redraw the cursor if the
 	frame hasn't the focus.
 
 	* window.c (make_window): Initialize dy.
@@ -11989,7 +11993,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	a window is scrolled "smoothly".
 
 	* xterm.c (x_set_glyph_string_clipping): Don't use glyph string's
-	y-position because it can be negative. 
+	y-position because it can be negative.
 	(x_draw_row_bitmaps): Don't clear with negative y-position like
 	above.
 	(x_clear_end_of_line): Same theme as above.
@@ -11999,7 +12003,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	defined_color.
 	(x_alloc_lighter_color): Allocate a color that is lighter or
 	darker than a given color by a specified factor.
-	(x_setup_relief_colors): Set up relief line colors based on 
+	(x_setup_relief_colors): Set up relief line colors based on
 	the background color of a glyph string face.
 	(x_draw_glyph_string_relief): Call x_setup_relief_colors.
 
@@ -12041,7 +12045,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xterm.c (XTset_vertical_scroll_bar): Use
 	WINDOW_DISPLAY_TEXT_AREA_PIXEL_HEIGHT instead of
 	VERTICAL_SCROLL_BAR_PIXEL_HEIGHT.
-	(x_draw_glyphs): Draw over flags areas when drawing a mode line 
+	(x_draw_glyphs): Draw over flags areas when drawing a mode line
 	or menu.
 	(x_set_glyph_string_clipping): Set clipping differently if drawing
 	a mode line or menu line.
@@ -12059,7 +12063,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* dispnew.c (direct_output_for_insert): When checking for tabs in
 	the line, set it2.endpos to ZV.
-	
+
 	* window.h (struct window): New member cursor_off_p.
 	* xterm.c (x_redraw_cursor): Implementation of redraw_cursor_hook
 	for X.
@@ -12114,7 +12118,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xdisp.c (init_iterator): Show region in window mini-buffer
 	window refers to.
 
-	* dispextern.h (struct display_iterator): Redundant member 
+	* dispextern.h (struct display_iterator): Redundant member
 	region_showing_p removed.  Test for region_beg > 0 instead.
 
 	* dispnew.c (update_text_area): Clear to end of line if cursor is
@@ -12152,7 +12156,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xdisp.c (display_line): If row ends in ZV, make the space
 	that is added to place the cursor on it appear in default face.
 
-	* xterm.c (expose_area): New function redrawing a single 
+	* xterm.c (expose_area): New function redrawing a single
 	glyph row area.
 	(expose_line): Use it to redraw all areas of a row.
 
@@ -12172,7 +12176,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	case of changing window height.
 
 	* xterm.c (x_draw_row_bitmaps): Don't clear vertical window
-	border to the left. 
+	border to the left.
 
 	* dispextern.h (struct glyph_row): Remove right_to_left_p.  RMS
 	says this aspect of Emacs is currently redesigned.
@@ -12213,19 +12217,19 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 1998-01-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_erase_phys_cursor): Clear area under the cursor only
-	if displaying hollow box cursor.  draw_glyphs should handle 
+	if displaying hollow box cursor.  draw_glyphs should handle
 	other cases.
 	(draw_glyphs): Move start to the left and end to the right if they
-	overlap with previous or following characters.  
+	overlap with previous or following characters.
 	(draw_glyphs): If background is cleared for hl == DRAW_CURSOR,
-	make sure XDrawString uses function GXset.  Otherwise the 
+	make sure XDrawString uses function GXset.  Otherwise the
 	character under the cursor would be invisible.
 	(x_draw_bar_cursor): Don't draw over previous character if it
 	has right_overhang.
 
 	* window.c (get_phys_cursor_glyph): Return the glyph under a
 	window's physical cursor.
-	
+
 	* xterm.c (x_draw_hollow_cursor): Use get_phys_cursor_glyph.
 	(x_draw_bar_cursor): Ditto.
 	(x_erase_phys_cursor): Ditto.
@@ -12236,7 +12240,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(replace_window): Ditto.
 
 	* window.h (struct window): Remove phys_cursor_glyph.  There is
-	now always a glyph present for placing the cursor on it in 
+	now always a glyph present for placing the cursor on it in
 	each glyph row, even at the end of a line.
 
 	* xdisp.c (append_space): Function to add a space to an iterators
@@ -12244,7 +12248,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(display_line): Add spaces at the end of lines that are used to
 	place the cursor on them.
 	(compute_line_metrics): If row consists of a space only that was
-	added to place the cursor on it, use that space's height as the 
+	added to place the cursor on it, use that space's height as the
 	line height.
 
 1998-01-29  Gerd Moellmann  <gerd@gnu.org>
@@ -12258,7 +12262,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(XTproduce_glyphs): Set it->left_overhang and it->right_overhang.
 
 	* dispextern.h (struct glyph): Add left_overhang and
-	right_overhang.  
+	right_overhang.
 	(struct display_iterator): Ditto.
 
 	* dispnew.c (direct_output_for_insert): Give up if newly inserted
@@ -12270,7 +12274,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(display_string): Ditto.
 
 	* window.h (struct window): New members phys_cursor_ascent and
-	phys_cursor_descent.  
+	phys_cursor_descent.
 
 	* xterm.c (x_phys_cursor_in_rect_p): Use them.
 	(x_draw_hollow_cursor): Ditto.
@@ -12321,7 +12325,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* xdisp.c (move_iterator_vertically_backward): Change algorithm.
 
-	* dispnew.c (direct_output_for_insert): Give up if start 
+	* dispnew.c (direct_output_for_insert): Give up if start
 	position has overlay strings.
 
 	* xdisp.c (display_line): Don't set cursor if row ends in middle
@@ -12368,7 +12372,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xfaces.c (Fset_face_attribute_internal): Adjust glyphs
 	for font change.
 	(min_char_bounds): Check face->font != NULL.
-	(font_min_bounds): Return minimum font metrics.  Capture the 
+	(font_min_bounds): Return minimum font metrics.  Capture the
 	case of invalid min_bounds contents.
 	(min_char_bounds): Call font_min_bounds.
 
@@ -12382,7 +12386,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* minibuf.c (Fminibuffer_prompt_width): Return value from
 	current_buffer if PROMPT_IN_BUFFER.
-	(read_minibuf): If PROMPT_IN_BUFFER, insert prompt into 
+	(read_minibuf): If PROMPT_IN_BUFFER, insert prompt into
 	mini-buffer and make it read-only.
 	(Fminibuffer_complete_and_exit): If PROMPT_IN_BUFFER, use
 	minibuffer_prompt_length instead of BEGV.
@@ -12422,12 +12426,12 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* dispextern.h (struct display_iterator):
 	next_ovstr_face_check_pos renamed next_string_face_check_pos.
 
-	* xfaces.c (compute_string_char_face): Compute face for 
+	* xfaces.c (compute_string_char_face): Compute face for
 	arbitrary Lisp string.  Renamed from compute_overlay_string_char_face.
 
 	* xdisp.c (next_element_from_string): Renamed from
 	next_element_from_overlay_string.
-	(compute_face_at_iterator_string_position): Renamed from 
+	(compute_face_at_iterator_string_position): Renamed from
 	compute_face_at_iterator_overlay_string_position.
 
 	* dispextern.h (struct display_iterator): Member overlay_string
@@ -12526,7 +12530,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	over.
 	(move_iterator_via_matrix): Look for it->pos in the matrix, and
 	calculate it->vpos and it->current_y relative to this row.
-	(move_iterator_via_matrix): Set in #if 0.  It doesn't seem to 
+	(move_iterator_via_matrix): Set in #if 0.  It doesn't seem to
 	have a big effect and it is complex.
 	(move_iterator_to): Call to move_iterator_via_matrix in #if 0.
 
@@ -12550,7 +12554,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xdisp.c (try_window_id): Always search for the cursor by setting
 	w->cursor.vpos = -1.  Search in unchanged rows at the top and
 	bottom if cursor not found in displayed lines.
-	(display_mode_line): First extend face, then set right shadow 
+	(display_mode_line): First extend face, then set right shadow
 	flag.  Otherwise the wrong glyph gets the right shadow.
 
 	* dispnew.c (direct_output_for_insert): Give up if line contains
@@ -12608,7 +12612,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	bitmaps if bitmaps don't fill the entire area.
 	(draw_bitmap): Draw bitmaps horizontally centered in flags area.
 
-	* xterm.h (FRAME_FLAGS_BITMAP_HEIGHT): Macro giving the 
+	* xterm.h (FRAME_FLAGS_BITMAP_HEIGHT): Macro giving the
 	pixel height of flags bitmaps.
 
 	* frame.h (FRAME_FLAGS_AREA_COLS): Use FRAME_X_FLAGS_AREA_COLS.
@@ -12655,7 +12659,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	matrix if just_this_one_p is zero.
 
 	* x-list-font.c (Fx_list_fonts): Additional parameter fixed.
-	specifying that fixed-width, variable-width fonts or both 
+	specifying that fixed-width, variable-width fonts or both
 	should be returned.
 
 	* xfaces.c (Qfixed, Qvariable): Symbols for use by x-list-fonts.
@@ -12732,10 +12736,10 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(redisplay_window): Don't use vmotion because it gives wrong
 	results if lines are continued and variable width fonts are used.
 
-	* dispextern.h (struct glyph_pos): New member dpvec_index.  
+	* dispextern.h (struct glyph_pos): New member dpvec_index.
 	(MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P): Test if row ends in the
 	the middle of a character.
-	(MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P): Test if row starts in 
+	(MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P): Test if row starts in
 	the middle of a character.
 
 	* xdisp.c (set_iterator_to_next): Increment it->dpvec_index, reset
@@ -12753,7 +12757,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(direct_output_forward_char): Step through glyph row to find
 	cursor position.
 
-	* xterm.c (x_get_cursor_gc): Don't return cursor_gc for font == 
+	* xterm.c (x_get_cursor_gc): Don't return cursor_gc for font ==
 	frame font if line height differs from font height.
 
 	* xdisp.c (set_iterator_to_next): Renamed from
@@ -12798,7 +12802,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* dispextern.h (struct glyph_row): New member
 	continuation_lines_width.  Member continuation_line_p removed.
-	(MATRIX_ROW_CONTINUATION_LINE_P): Non-zero if row displays a 
+	(MATRIX_ROW_CONTINUATION_LINE_P): Non-zero if row displays a
 	continuation line.
 	* xdisp.c (display_line): Set row->continuation_lines_width.
 	(get_row_start_continuation_line_width): Set continuation lines
@@ -12807,7 +12811,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(set_window_cursor): Make it inline.
 	(try_window_id): Use MATRIX_ROW_CONTINUATION_LINE_P.
 	(Fdump_redisplay_state): Ditto.
-	
+
 	* dispnew.c (update_window_line): Use MATRIX_ROW_CONTINUATION_LINE_P.
 	* xterm.c (x_draw_row_bitmaps): Use MATRIX_ROW_CONTINUATION_LINE_P.
 
@@ -12830,7 +12834,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xdisp.c (hscroll_windows): Change hscroll of windows.
 	(redisplay_internal): Call it.
 
-	* dispnew.c (direct_output_for_insert): Give up if a glyph 
+	* dispnew.c (direct_output_for_insert): Give up if a glyph
 	doesn't fit completely on the line.
 	(direct_output_forward_char): Give up for non-ASCII chars.
 	(direct_output_forward_char): Set redisplay_performed_directly_p.
@@ -12857,7 +12861,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(draw_glyphs): Unused parameter just_foreground_p removed. New
 	parameter composite_glyph.
 	(draw_glyphs): Use enumeration for parameter hl.
-	(draw_glyphs): Pass a display area relative x-position to 
+	(draw_glyphs): Pass a display area relative x-position to
 	draw_glyphs when calling it recursively for composite chars.
 
 1997-12-27  Gerd Moellmann  <gerd@acm.org>
@@ -12880,10 +12884,10 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(setup_frame_gcs): Initialize them.
 	(EmacsFrameDestroy): Free them.
 
-	* xdisp.c (try_window_id): Get continuation lines width if 
+	* xdisp.c (try_window_id): Get continuation lines width if
 	last_unchanged_at_beg_row is continued or a continuation line.
 	(move_iterator_via_matrix): Don't do it for mini-buffer windows.
-	(redisplay_window): Case point has changed, and it has not 
+	(redisplay_window): Case point has changed, and it has not
 	moved off the frame.  Don't increment row if PT equals the row
 	end if the row ends in ZV.
 
@@ -12930,7 +12934,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	display_height - 1.
 
 	* dispnew.c (set_frame_matrix_frame): Make it INLINE.
-	(update_window_line): Call after_update_window_line_hook if 
+	(update_window_line): Call after_update_window_line_hook if
 	rows have different y-positions, or different height.
 
 1997-12-14  Gerd Moellmann  <gerd@acm.org>
@@ -12960,8 +12964,8 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* term.c (frame_mode_line_height): Get the pixel height of a
 	frame's mode line.
 	(frame_mode_line_height_hook): Hook to implement system dependent
-	versions.  
-	
+	versions.
+
 	* xterm.c (x_initialize): Set the hook.
 	(XTframe_mode_line_height): X version of frame_mode_line_height.
 
@@ -12980,7 +12984,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xfaces.c (compute_overlay_string_char_face): Compute the
 	face of a character in an overlay string.
 	* xterm.h (compute_overlay_string_char_face): Prototype.
-	* xdisp.c (compute_face_at_iterator_overlay_string_position): 
+	* xdisp.c (compute_face_at_iterator_overlay_string_position):
 	Use it.
 
 	* xdisp.c (set_iterator_to_next_overlay_string): Formerly
@@ -13000,8 +13004,8 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* dispextern.h (struct display_iterator): New vector
 	overlay_strings and new member n_overlay_strings---formerly
-	overlays and n_overlays.  
-	(struct glyph_pos): Remove after_string_p; overlay_index 
+	overlays and n_overlays.
+	(struct glyph_pos): Remove after_string_p; overlay_index
 	renamed to string_index.
 
 1997-12-13  Gerd Moellmann  <gerd@acm.org>
@@ -13058,7 +13062,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* window.h: Include blocker around dispextern.h removed.
 
 	* eval.c (Feval): Check interrupt_input_block == 0.
-	
+
 	* dispextern.h (struct display_iterator): Former ovstr made a
 	Lisp_Object overlay_string.  New next_ovstr_face_check_pos and
 	next_ovstr_invisble_check_pos; check at these positions for
@@ -13091,7 +13095,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(merge_face_list): Ditto.
 	(intern_computed_face): Ditto.
 
-	* xdisp.c (redisplay_window): Cursor movement in unchanged 
+	* xdisp.c (redisplay_window): Cursor movement in unchanged
 	window if PT > w->last_point.  Goto try_to_scroll if bottom Y
 	of row is > instead of >= last_y.
 
@@ -13100,7 +13104,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xdisp.c (reseat_iterator_to_string): Clear iterator position.
 	* dispextern.h (GET_NEXT_DISPLAY_ELEMENT): Removed.
 
-	* xdisp.c (release_iterator): Release dynamically allocated 
+	* xdisp.c (release_iterator): Release dynamically allocated
 	memory of a display_iterator.
 	(copy_iterator): Copy an iterator.
 	(restore_iterator): Restore an iterator from a backup copy.
@@ -13135,7 +13139,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(init_string_iterator): Renamed from init_string_cursor.
 	(get_next_display_element): Renamed from next_display_element.
 	(move_iterator_forward): Renamed from advance_display_cursor.
-	(get_overlays_at_iterator_position): Allocate overlays vector 
+	(get_overlays_at_iterator_position): Allocate overlays vector
 	dynamically.
 
 	* xdisp.c: display_cursor renamed display_iterator.
@@ -13188,12 +13192,12 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* dispnew.c (make_empty_enabled_row): Make an empty, enabled row
 	of height CANON_Y_UNIT.
 	* dispextern.h: Prototype for that function.
-	* xdisp.c (echo_area_display): Don't use display_string to 
+	* xdisp.c (echo_area_display): Don't use display_string to
 	produce empty rows.  Use make_empty_enabled_row instead.
 
 	* dispnew.c (scrolling_window): New version using diff-like
 	algorithm activated.
-	
+
 1997-11-15  Gerd Moellmann  <gerd@acm.org>
 
 	* dispnew.c (clear_current_matrices): Clear matrix of menu_bar_window
@@ -13262,10 +13266,10 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* dispnew.c (update_window): Use WINDOW_WANTS_MODELINE_P.
 
-	* window.c (syms_of_window): Functions for marginal areas if 
+	* window.c (syms_of_window): Functions for marginal areas if
 	WITH_MARGINAL_AREAS is defined.
 
-	* xdisp.c (try_window_reusing_current_matrix): Trace fprintf 
+	* xdisp.c (try_window_reusing_current_matrix): Trace fprintf
 	removed.
 
 	* dispnew.c (scrolling): Call line_hash_code because hash values
@@ -13343,7 +13347,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* dispextern.h (WINDOW_TEXT_TO_FRAME_PIXEL_X): Convert text
 	area X coordinates to frame coordinates.
-	(WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH): Width of left marginal area. 
+	(WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH): Width of left marginal area.
 	(WINDOW_DISPLAY_RIGHT_AREA_PIXEL_WIDTH): Same for right area.
 	(WINDOW_DISPLAY_TEXT_AREA_PIXEL_WIDTH): Same for text area.
 
@@ -13376,7 +13380,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	split windows.
 
 	* dispnew.c (set_window_cursor_after_update): Accept out
-	of bounds cursor positions. 
+	of bounds cursor positions.
 
 	* xdisp.c (redisplay_internal): Check that after cursor motion
 	within line, PT is on same line.
@@ -13423,7 +13427,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xdisp.c (redisplay_internal): Optimization 1 change partially
 	reverted.  Check this again later.
 	(skip_via_matrix): Remove redundent test for
-	MATRIX_ROW_DISPLAYS_TEXT_P. 
+	MATRIX_ROW_DISPLAYS_TEXT_P.
 
 1997-10-27  Gerd Moellmann  <gerd@acm.org>
 
@@ -13435,7 +13439,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	dispextern.h.
 	(struct window): phys_cursor_glyph as struct glyph.  * window.c
 	(make_window): Initialize it.
-	(replace_window): Ditto.  
+	(replace_window): Ditto.
 	* dispnew.c (free_window_matrices): Remove freeing of
 	phys_cursor_glyph.
 	(check_matrix_invariants): Renamed from check_current_matrix_...
@@ -13482,7 +13486,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* dispextern.h (struct face): New member shadow_thickness.
 
-	* xdisp.c (compute_cursor_face): Set limit for text property 
+	* xdisp.c (compute_cursor_face): Set limit for text property
 	search to 100.
 
 	* dispnew.c (update_window_line): Try to resynch with current line
@@ -13490,7 +13494,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 1997-10-26  Gerd Moellmann  <gerd@acm.org>
 
-	* dispnew.c (set_window_cursor_after_update): React again 
+	* dispnew.c (set_window_cursor_after_update): React again
 	on cursor_in_echo_area >= 0.
 
 	* xdisp.c (echo_area_display): Clear desired matrix before
@@ -13589,7 +13593,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* dispnew.c (direct_output_for_insert): Increment row end position.
 
-	* window.c (Fpos_visible_in_window_p): Use old meaning of 
+	* window.c (Fpos_visible_in_window_p): Use old meaning of
 	window_end_pos.
 
 	* xdisp.c (init_display_cursor_from_glyph_pos): New.
@@ -13602,7 +13606,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	glyphs with positions <= 0.
 
 	* dispextern.h (struct glyph_pos): Structure desribing a text
-	position including position in overlay. 
+	position including position in overlay.
 	(struct glyph_row): Use it for start and end positions.
 	(struct display_cursor): Use it.
 	* xdisp.c: Use it.
@@ -13630,7 +13634,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* dispnew.c (matrix_row_last_pos): New function.
 	* dispextern.h (MATRIX_ROW_LAST_POS): Call it.
-	Large comment moved to xdisp.c. 
+	Large comment moved to xdisp.c.
 
 	* xdisp.c (redisplay_window): Bug fix: PT set to value > Z.
 	(skip_via_matrix): Check window_end_valid instead of
@@ -13643,7 +13647,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xdisp.c (try_window_id): Correct parameters to
 	scroll_glyph_matrix_range.
 
-	* xterm.c (XTupdate_end): XFlush commented out.  
+	* xterm.c (XTupdate_end): XFlush commented out.
 
 	* window.h: Comments for window_end_pos/vpos.
 
@@ -13660,7 +13664,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* dispextern.h (MATRIX_ROW_LAST_POS): Go back one glyph if this is
 	a face extending glyph.
 
-	* xdisp.c (try_window_id): Check if point will appear.  
+	* xdisp.c (try_window_id): Check if point will appear.
 	(set_cursor_from_row): Set cursor position from a glyph row.
 
 	* dispnew.c (update_window_line): Write entire line if hash
@@ -13720,7 +13724,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xdisp.c (skip_via_matrix): Check for rows that don't contain
 	a position.
 
-	* xterm.c (XTmouse_position): Calculate LAST_MOUSE_GLYPH 
+	* xterm.c (XTmouse_position): Calculate LAST_MOUSE_GLYPH
 	rectangle based on minimum character bounds.
 
 	* keyboard.c (make_lispy_event): Mouse clicks; don't do frame
@@ -13733,8 +13737,8 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* dispextern.h (MATRIX_ROW_BOTTOM_Y): Return bottom pixel y of
 	given row.
 
-	* xdisp.c (skip_via_matrix): Skip using current matrix if up to 
-	date. 
+	* xdisp.c (skip_via_matrix): Skip using current matrix if up to
+	date.
 	(skip_to): Use it.
 	(redisplay_window): Remove code skipping using current matrix.
 
@@ -13743,7 +13747,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xdisp.c (redisplay_window): Use available current matrix to
 	skip faster when only point is moved withing the window.
 
-	* intervals.c: Include stdio.h.  
+	* intervals.c: Include stdio.h.
 	(find_interval): Trace to stderr to catch some nasty error
 	that did not yet occur again with tracing.
 	(set_point): Ditto.
@@ -13759,7 +13763,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* window.c (make_window): start_y removed.
 	(replace_window): Ditto.
 
-	* xdisp.c (last_max_ascent, last_max_descent):  Ascent and 
+	* xdisp.c (last_max_ascent, last_max_descent):  Ascent and
 	descent values of the last line processed by skip_to.
 	(redisplay_window): Use them.
 	(skip_to): Set them.
@@ -13780,7 +13784,7 @@ Sun Aug 24 08:50:52 1997  Gerd Moellmann  <gerd@acm.org>
 	* termhooks.h: Some hooks with prototypes.
 
 	* term.c: Some hooks with function prototypes.
-	
+
 	* xdisp.c (reseat_cursor):  Additional argument force_p.  Avoid
 	computing face if possible.
 
@@ -13789,11 +13793,11 @@ Sun Aug 24 08:50:52 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* emacs.c: FreeBSD headers for profiling removed.
 
-	* dispnew.c (direct_output_for_insert): Don't use PT-1 for 
-	display cursor, use DEC_POS instread. 
+	* dispnew.c (direct_output_for_insert): Don't use PT-1 for
+	display cursor, use DEC_POS instread.
 
 	* xfaces.c (load_font): Use x_load_font to load fonts so that
-	all fonts are in the font table. 
+	all fonts are in the font table.
 	(unload_font): Don't XFreeFont.
 
 	* dispnew.c (row_equal_p): Compare ascent, descent and visible
@@ -13829,7 +13833,7 @@ Sun Aug 24 08:50:52 1997  Gerd Moellmann  <gerd@acm.org>
 	* dispnew.c (adjust_glyph_matrix): Additional parameter W.
 	Handle own storage for purely window based redisplay.
 	(allocate_matrices_for_frame_redisplay): Formerly part of
-	allocate_matrices.  
+	allocate_matrices.
 	(allocate_matrices_for_window_redisplay): Ditto.
 
 	* dispextern.h (struct glyph_matrix): window_top_y,
@@ -13869,7 +13873,7 @@ Fri Aug 22 18:46:43 1997  Gerd Moellmann  <gerd@acm.org>
 	that rows should really be cleared.  Used for current matrices.
 
         * dispnew.c (scrolling_window):  Bug fix.
-	(line_dance_hook):  Formerly line_dance_fn, take only one 
+	(line_dance_hook):  Formerly line_dance_fn, take only one
 	parameter.
 
 	* dispextern.h (struct run): Remove current_vpos.
@@ -13880,7 +13884,7 @@ Fri Aug 22 18:46:43 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* dispextern.h (struct glyph_row): New flag continued_p.
 	Fix truncated_on_left_p and truncated_on_right_p to be bits.
-	(struct glyph_row): 
+	(struct glyph_row):
 
 Thu Aug 21 14:37:34 1997  Gerd Moellmann  <gerd@acm.org>
 
@@ -13922,7 +13926,7 @@ Wed Aug 20 11:23:28 1997  Gerd Moellmann  <gerd@acm.org>
 	* xdisp.c (compute_line_metrics): Reset max_ascent and max_descent
 	of info struct.
 
-	* xfaces.c (Fset_face_attribute_internal): Don't call 
+	* xfaces.c (Fset_face_attribute_internal): Don't call
 	frame_update_line_height.
 	(merge_faces): Don't use default font if new font has different
 	size.
@@ -13954,7 +13958,7 @@ Mon Aug 18 09:39:18 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* xdisp.c (next_display_element): Don't display overlay strings
 	within invisible text.
-	(skip_vertically_backward):  Skip display lines. 
+	(skip_vertically_backward):  Skip display lines.
 
 Sat Aug 16 13:13:32 1997  Gerd Moellmann  <gerd@acm.org>
 
@@ -13969,14 +13973,14 @@ Sat Aug 16 13:13:32 1997  Gerd Moellmann  <gerd@acm.org>
 	* xdisp.c (next_display_element):  Set last_invisible_text_pos
 	to the last position at which invisible text was found.  Don't
 	decrement cursor.pos for newlines and cr with ellipsis.  Set
-	dpvec for `...' due to invisible text directly.  
+	dpvec for `...' due to invisible text directly.
 	(redisplay_internal):  Don't assert that cursor is at PT after
 	skip_to.  It may be in invisible text.
 
-	* keyboard.c (make_lispy_event): For mouse clicks, use 
+	* keyboard.c (make_lispy_event): For mouse clicks, use
 	x_y_to_hpos_vpos.
 
-	* xdisp.c (next_display_element):  Call get_overlays_for_cursor when 
+	* xdisp.c (next_display_element):  Call get_overlays_for_cursor when
 	next_overlay_pos is reached.  Use limit cursor.pos + 100 when
 	checking for invisible text.
 
@@ -13999,15 +14003,15 @@ Sat Aug 16 13:13:32 1997  Gerd Moellmann  <gerd@acm.org>
 	* xdisp.c (echo_area_display):  Ignore calls for terminal frames
 	under a window system.
 
-	* dispnew.c (adjust_frame_glyphs): Call redraw_frame if 
+	* dispnew.c (adjust_frame_glyphs): Call redraw_frame if
 	necessary.
-	(update_window_line): Add width of face padding glyph to 
+	(update_window_line): Add width of face padding glyph to
 	displayed widths of rows.
 
 	* xterm.c (x_display_and_set_cursor):  Set clipping after
 	erasing cursor.
-	
-	* window.c (Fset_window_configuration): Free only those 
+
+	* window.c (Fset_window_configuration): Free only those
 	window matrices not reused.
 	(get_leaf_windows): Build vector of leaf windows.
 	Corrupted archive restored from v77.
@@ -14037,7 +14041,7 @@ Thu Aug 14 10:41:41 1997  Gerd Moellmann  <gerd@acm.org>
 	(draw_glyphs): Call it
 	(draw_bitmap): Call it.
 
-	* dispnew.c (adjust_frame_glyphs): Optimize frame garbaging. 
+	* dispnew.c (adjust_frame_glyphs): Optimize frame garbaging.
 	(allocate_leaf_matrix): Return flags.
 	(row_equal_p): Compare enabled_p.
 
@@ -14045,28 +14049,28 @@ Thu Aug 14 10:41:41 1997  Gerd Moellmann  <gerd@acm.org>
 	for type == -1.
 
 	* xterm.c (x_display_and_set_cursor): Bar cursor 1 pixel taller.
-	(draw_glyphs):  Clip height one pixel taller. 
+	(draw_glyphs):  Clip height one pixel taller.
 
-	* dispnew.c (direct_output_for_insert): Give up for hscrolled 
+	* dispnew.c (direct_output_for_insert): Give up for hscrolled
 	mini window.
 
 	* xdisp.c (display_line): Don't scroll mini prompt.
 
-	* xdisp.c (echo_area_display): Call update_single_window if 
-	possible. 
+	* xdisp.c (echo_area_display): Call update_single_window if
+	possible.
 
 	* dispnew.c (update_window_line):  Call scrolling_window.
 	(scrolling_window): Work on enabled desired lines only.
 	(update_single_window): Update a single window like update_frame
 	does for all windows.
-	(update_window, update_window_tree): Additional argument 
+	(update_window, update_window_tree): Additional argument
 	no_scrolling_p.
 	(update_frame): Pass no_scrolling_p to update_window_tree.
 	(update_window): Don't call scrolling_window if no_scrolling_p.
 
 	* xterm.c (x_erase_phys_cursor): Do nothing if type == -1.
-	Erase under hollow cursor. 
-	(x_display_and_set_cursor): Do nothing if cursor glyph row 
+	Erase under hollow cursor.
+	(x_display_and_set_cursor): Do nothing if cursor glyph row
 	not enabled.  Draw bar cursor 1 pixel smaller.
 
 	* dispnew.c (adjust_frame_glyphs): Don't set frame garbaged
@@ -14078,7 +14082,7 @@ Thu Aug 14 10:41:41 1997  Gerd Moellmann  <gerd@acm.org>
 	overlay arrow bitmap.
 
 	* xdisp.c (display_line): For truncated lines, consider everything
-	up to the final \n as part of the line for cursor positioning. 
+	up to the final \n as part of the line for cursor positioning.
 
 	* xterm.c (draw_truncation): Take FRAME_X_TRUNC_WIDTH into account.
 	(x_after_update_window_line): Clear trunc marks.
@@ -14088,10 +14092,10 @@ Thu Aug 14 10:41:41 1997  Gerd Moellmann  <gerd@acm.org>
 	* frame.h (FRAME_TRUNC_WIDTH):  Width of area at the left margin
 	of a window reserved for truncation mark.
 
-	* dispextern.h: Take FRAME_TRUNC_WIDTH into account. 
+	* dispextern.h: Take FRAME_TRUNC_WIDTH into account.
 
 	* dispnew.c (update_window_line): Call after_update_windwo_line-
-	hook.  
+	hook.
 
 	* xdisp.c (display_line): Set overlay_arrow_p in row.
 
@@ -14105,7 +14109,7 @@ Thu Aug 14 10:41:41 1997  Gerd Moellmann  <gerd@acm.org>
 	* xterm.c (x_draw_row_borders): Convert y to frame coords.
 	Correct y by 1.
 	(x_display_cursor): Use default font width if width not
-	known. 
+	known.
 
 	* xdisp.c (echo_area_display): Set row->y.
 
@@ -14117,7 +14121,7 @@ Thu Aug 14 10:41:41 1997  Gerd Moellmann  <gerd@acm.org>
 	(skip_in_display_line_to): Check cursor.position after call to
 	next_display_element.
 
-	* dispextern.h (CURSOR_AT_P): Test if cursor has reached 
+	* dispextern.h (CURSOR_AT_P): Test if cursor has reached
 	buffer position.
 
 	* xdisp.c (display_line): Set row->y here.
@@ -14133,7 +14137,7 @@ Thu Aug 14 10:41:41 1997  Gerd Moellmann  <gerd@acm.org>
 	* xdisp.c (next_display_element): Don't translate control chars
 	from display table entries.
 
-	* dispnew.c (direct_output_for_insert): Set cursor before 
+	* dispnew.c (direct_output_for_insert): Set cursor before
 	update end to prevent cursor flickering.  Revert changes to
 	setting cursor.endpos.
 
@@ -14143,8 +14147,8 @@ Wed Aug 13 10:46:12 1997  Gerd Moellmann  <gerd@acm.org>
 	to PT because this prevents multi-byte characters from being
 	recognized.
 
-	* xdisp.c (skip_to, display_line):  Advance cursor at end of 
-	truncated line. 
+	* xdisp.c (skip_to, display_line):  Advance cursor at end of
+	truncated line.
 
 	* xterm.c (x_draw_3d_borders): Use CapRound. Struct rect
 	replaced by XRectangle.
@@ -14152,7 +14156,7 @@ Wed Aug 13 10:46:12 1997  Gerd Moellmann  <gerd@acm.org>
         * dispnew.c (scrolling_window): New method.
 
 	* xterm.c (do_line_dance): New implementation, new method.
-	 
+
 	* xdisp.c (draw_glyphs):  Draw truncation bitmaps. Clip to
 	visible part of line.
 
@@ -14161,7 +14165,7 @@ Wed Aug 13 10:46:12 1997  Gerd Moellmann  <gerd@acm.org>
 	(update_window): Handle completely empty matrices.
 	(set_window_cursor_after_update): Bug fix.
 
-	* xterm.c (draw_glyphs): Stop drawing at right window end. 
+	* xterm.c (draw_glyphs): Stop drawing at right window end.
 
 	* dispnew.c (update_window_line): Don't ignore spaces, don't
 	fill with spaces.
@@ -14170,7 +14174,7 @@ Wed Aug 13 10:46:12 1997  Gerd Moellmann  <gerd@acm.org>
 	the first glyph having width 0.
 
 	* xterm.c (draw_glyphs): Let a glyph pixel with of 0 denote
-	a glyph that extends to the end of the line. 
+	a glyph that extends to the end of the line.
 
 	* xdisp.c (display_line): Insert one padding glyph
 
@@ -14204,22 +14208,22 @@ Wed Aug 13 10:46:12 1997  Gerd Moellmann  <gerd@acm.org>
 Tue Aug 12 14:53:04 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* xterm.c (draw_glyphs): Clip rows that would paint over
-	the mode line. 
+	the mode line.
 
-	* dispnew.c (update_window): Take mode line border into 
-	account. 
+	* dispnew.c (update_window): Take mode line border into
+	account.
 
 	* xterm.h (FRAME_MODE_LINE_BORDER_WIDTH): Number of pixels
-	of border around mode line. 
+	of border around mode line.
 
 	* xterm.c (x_draw_row_borders): Bug fix.
 	(x_erase_phys_cursor): Set pyhs_cursor.x/y before calling
 	drawing functions.
 
 	* xterm.c (x_draw_row_border): Experimental; draw 3d borders
-	around modeline instead of inverting it. 
+	around modeline instead of inverting it.
 
-	* xterm.c (glyph_to_pixel_coords): Use current matrix. 
+	* xterm.c (glyph_to_pixel_coords): Use current matrix.
 
 	* dispnew.c (buffer_posn_from_coords): Use SKIP_TO.  Now takes
 	window relative pixel coordinates as arguments.
@@ -14231,7 +14235,7 @@ Tue Aug 12 14:53:04 1997  Gerd Moellmann  <gerd@acm.org>
 Mon Aug 11 12:32:34 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* xdisp.c (start_display): Use SKIP_TO instead of SKIP_IN-
-	DISPLAY_LINE.  
+	DISPLAY_LINE.
 
 	* keyboard.c (make_lispy_event): WINDOW_FROM_COORDINATES with
 	pixel coords.
@@ -14269,7 +14273,7 @@ Tue Aug  5 09:59:08 1997  Gerd Moellmann  <gerd@acm.org>
 	shift_left_by.
 
 	* dispextern.h (struct glyph_row): FIRST_SHIFTED_LEFT_GLYPH
-	removed.  Remove references to it everywhere.  Reverse_p in 
+	removed.  Remove references to it everywhere.  Reverse_p in
 	glyph_row -> right_to_left_p.  Change references to it.
 
 Mon Aug  4 18:09:27 1997  Gerd Moellmann  <gerd@acm.org>
@@ -14359,7 +14363,7 @@ Mon Jul 28 14:23:06 1997  Gerd Moellmann  <gerd@acm.org>
 
 Sun Jul 27 18:57:24 1997  Gerd Moellmann  <gerd@acm.org>
 
-	* dispnew.c (compute_char_cursor_face): Compute the face for a 
+	* dispnew.c (compute_char_cursor_face): Compute the face for a
 	CHAR_CURSOR.
 	(init_char_cursor): Initialize a CHAR_CURSOR.
 	(get_char_and_advance): Get next character to display.
@@ -14383,7 +14387,7 @@ Sat Jul 26 13:33:03 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* dispextern.h: Character display information.
 
-	* xterm.c (x_get_char_font_and_encoding): Get font and 
+	* xterm.c (x_get_char_font_and_encoding): Get font and
 	encode character.
 	(XTget_char_info): Get display information about a character.
 
@@ -14395,17 +14399,17 @@ Wed Jul 23 16:50:18 1997  Gerd Moellmann  <gerd@acm.org>
 	* xdisp.c: Include xterm.h or w32term.h for FRAME_LINE_HEIGHT.
 	(try_window): DISPLAY_TEXT_LINE as long as Y < DISPLAY_HEIGHT.
 
-	* dispnew.c (assign_row): Assign row pixel height. 
+	* dispnew.c (assign_row): Assign row pixel height.
 	(clear_glyph_row): Clear pixel height.
 	(update_window): Use PIXEL_HEIGHT.
 
 	* xdisp.c (display_string): Set row pixel height temporarily.
 	(display_text_line): Ditto.
 
-	* dispextern.h (GLYPH_PIXEL_WIDTH): 
+	* dispextern.h (GLYPH_PIXEL_WIDTH):
 	(GLYPH_PIXEL_HEIGHT): Get glyph pixel dimension.
 
-	* frame.h (FRAME_DEFAULT_PIXEL_LINE_HEIGHT): Get height of 
+	* frame.h (FRAME_DEFAULT_PIXEL_LINE_HEIGHT): Get height of
 	line in default font.
 	(FRAME_DEFAULT_GLYPH_PIXEL_WIDTH): Get width of character
 	in default font.
@@ -14417,12 +14421,12 @@ Wed Jul 23 16:50:18 1997  Gerd Moellmann  <gerd@acm.org>
 	* dispnew.c (allocate_leaf_matrix): Use window pixel macros.
 
 	* dispextern.h (WINDOW_DISPLAY_PIXEL_WIDTH):
-	(WINDOW_DISPLAY_PIXEL_HEIGHT): 
-	(WINDOW_DISPLAY_MODE_LINE_HEIGHT): 
-	(WINDOW_DISPLAY_PIXEL_HEIGHT_WITHOUT_MODE_LINE): 
-	(WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X): 
-	(WINDOW_DISPLAY_RIGHT_EDGE_PIXEL_X): 
-	(WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y): 
+	(WINDOW_DISPLAY_PIXEL_HEIGHT):
+	(WINDOW_DISPLAY_MODE_LINE_HEIGHT):
+	(WINDOW_DISPLAY_PIXEL_HEIGHT_WITHOUT_MODE_LINE):
+	(WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X):
+	(WINDOW_DISPLAY_RIGHT_EDGE_PIXEL_X):
+	(WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y):
 	(WINDOW_DISPLAY_BOTTOM_EDGE_PIXEL_Y): Macros to get various
 	pixel values related to windows.
 
@@ -14465,7 +14469,7 @@ Wed Jul 16 13:37:51 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* xdisp.c (echo_area_display): Set MUST_BE_UPDATED_P instead of
 	building frame matrix.
-	(redisplay_internal): Set window update flags instead of 
+	(redisplay_internal): Set window update flags instead of
 	building frame matrix.
 
 	* minibuf.c (read_minibuf): Set MUST_BE_UPDATED_P instead of
@@ -14478,14 +14482,14 @@ Wed Jul 16 13:37:51 1997  Gerd Moellmann  <gerd@acm.org>
 	I don't believe this is really necessary.
 
 	* dispnew.c (build_frame_matrix_from_leaf_window): Determine
-	border glyph once. 
+	border glyph once.
 
 Tue Jul 15 13:58:33 1997  Gerd Moellmann  <gerd@acm.org>
 
-	* window.c (mark_window_cursors_off): Mark all cursors in 
+	* window.c (mark_window_cursors_off): Mark all cursors in
 	window tree off.
 
-	* xterm.c (x_display_box_cursor): Window paraemter.  Use 
+	* xterm.c (x_display_box_cursor): Window paraemter.  Use
 	window matrix.
 	(glyph_to_pixel_pos): Convert matrix pos -> pixels.
 	(pixel_to_glyph_pos): Convert pixel pos -> matrix pos.
@@ -14634,7 +14638,7 @@ Sat Jul 12 12:58:48 1997  Gerd Moellmann  <gerd@acm.org>
 	(this_line_vpos): Renamed to THIS_LINE_WINDOW_VPOS for the same
 	reason.
 
-	* dispnew.c (build_frame_matrix): Don't clear rows of the 
+	* dispnew.c (build_frame_matrix): Don't clear rows of the
 	menu bar.
 	(clear_window_records): Clear window rows.
 	(clear_frame_records): Clear window and frame rows.
@@ -14652,7 +14656,7 @@ Sat Jul 12 12:58:48 1997  Gerd Moellmann  <gerd@acm.org>
 	(mirror_make_current): Use it.
 	(update_line): Rely on MIRRORED_MAKE_CURRENT to set flags and
 	used counters for the current glyph row.
-	
+
 
 Fri Jul 11 13:16:50 1997  Gerd Moellmann  <gerd@acm.org>
 
@@ -14686,8 +14690,8 @@ Fri Jul 11 13:16:50 1997  Gerd Moellmann  <gerd@acm.org>
 	* xdisp.c (try_window_id): Use DISPLAY_TEXT_LINE with window
 	relative VPOS.
 
-	* dispextern.h (WINDOW_TO_FRAME_VPOS): Convert window vpos 
-	to frame vpos. 
+	* dispextern.h (WINDOW_TO_FRAME_VPOS): Convert window vpos
+	to frame vpos.
 	(WINDOW_TO_FRAME_HPOS): Convert window hpos to frame hpos.
 	(FRAME_TO_WINDOW_VPOS): Convert frame vpos to window vpos.
 	(FRAME_TO_WINDOW_HPOS): Convert frame hpos to window hpos.
@@ -14704,7 +14708,7 @@ Fri Jul 11 13:16:50 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* dispextern.h: Prototype for SCROLL_FULL_WIDTH_WINDOW.
 
-	* dispnew.c (scroll_frame_lines): Make it work on window 
+	* dispnew.c (scroll_frame_lines): Make it work on window
 	matrix.  Change name to scroll_full_width_window.
 
 	* xdisp.c (message2_nolog): Don't fwrite NULL message If
@@ -14713,7 +14717,7 @@ Fri Jul 11 13:16:50 1997  Gerd Moellmann  <gerd@acm.org>
 Mon Jul  7 14:44:38 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* dispnew.c (init_desired_glyphs): Clear both frame matrix
-	and window matrices. 
+	and window matrices.
 	(adjust_window_charstarts): Use window matrix.
 	(cancel_my_columns): Use window matrix.
 	(direct_output_for_insert): Use window matrix, only.
@@ -14760,7 +14764,7 @@ Sun Jul  6 17:02:26 1997  Gerd Moellmann  <gerd@acm.org>
 Sat Jul  5 14:55:44 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* dispnew.c (scroll_frame_lines): Don't assume first scolled
-	line is non-empty. 
+	line is non-empty.
 	(realloc_glyph_pool): Don't add 1 to the pool size.
 	(adjust_glyph_matrix): Don't add 1 to pointers to glyph areas.
 
@@ -14809,7 +14813,7 @@ Fri Jul  4 13:27:46 1997  Gerd Moellmann  <gerd@acm.org>
 	(do_direct_scrolling): Simplified.
 	(scrolling_1): Pass CURRENT_MATRIX instead of FRAME to
  	DO_.*SCROLLING.
-	
+
 
 	* dispnew.c (ins_del_glyph_rows): Insert/delete rows in a matrix.
 	(rotate_vector): Removed.
@@ -14841,7 +14845,7 @@ Wed Jul  2 13:43:35 1997  Gerd Moellmann  <gerd@acm.org>
 	* dispnew.c (scroll_frame_lines): Simplified.  Use
  	SCROLL_GLYPH_MATRIX.
 	(make_glyph_row_empty): Mark a glyph row empty.
-	(increment_glyph_row_buffer_positions): Increment 
+	(increment_glyph_row_buffer_positions): Increment
 	buffer positions in a glyph row.
 	(increment_glyph_matrix_buffer_positions): Increment buffer
 	positions in a range of rows.
@@ -14851,7 +14855,7 @@ Wed Jul  2 13:43:35 1997  Gerd Moellmann  <gerd@acm.org>
 	(glyph_row_slice_p): Return 1 if one row is a slice of another.
 	(init_display): Initialize SPACE_GLYPH.
 	(fill_up_glyph_row_areas_with_spaces): Fill up areas with
-	spaces. 
+	spaces.
 
 Tue Jul  1 13:49:55 1997  Gerd Moellmann  <gerd@acm.org>
 
@@ -14908,17 +14912,17 @@ Mon Jun 30 20:39:38 1997  Gerd Moellmann  <gerd@acm.org>
  	UPDATE_FRAME, SCROLLING, BUFFER_POSN_FROM_COORDS,
  	DO_PENDING_WINDOW_CHANGE, CHANGE_FRAME_SIZE, BITCH_AT_USER,
 	SIT_FOR, INIT_DISPLAY, SYMS_OF_DISPLAY,
-	
+
 	* dispnew.c (redraw_frame): FRAME_PTR -> struct frame.  Return
  	void.
 	(cancel_line): Return void.
 	(clear_frame_records):	Return void.
-	
+
 	* dispextern.h (struct glyph): Remove GLYPH, add bit-fields.
 	(SET_CHAR_GLYPH): Fill a character glyph.
 	(SET_CHAR_GLYPH_FROM_GLYPH): Set a character glyph from a GLYPH.
 	(GLYPH_FROM_CHAR_GLYPH): Construct a GLYPH from a character
-	glyph. 
+	glyph.
 	(CHAR_GLYPH_CHAR_CODE): Return character code of a glyph.
 	(SET_CHAR_GLYPH_CHAR_CODE): Set character code of a glyph.
 	(CHAR_GLYPH_FACE_ID): Return face id of a glyph.
@@ -14980,7 +14984,7 @@ Fri Jun 27 14:51:15 1997  Gerd Moellmann  <gerd@acm.org>
 
 Thu Jun 26 00:00:55 1997  Gerd Moellmann  <gerd@acm.org>
 
-	* scroll.c (do_direct_scrolling): Don't assume that the 
+	* scroll.c (do_direct_scrolling): Don't assume that the
 	line moving algorithm has no intermediate steps.
 	(do_scrolling): Ditto.
 
@@ -15011,7 +15015,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	* scroll.c (do_direct_scrolling): Remove TEMP_MATRIX.
 	(do_scrolling): Ditto.
 
-	* frame.h (struct frame): TEMP_MATRIX removed.  
+	* frame.h (struct frame): TEMP_MATRIX removed.
 	DECODE_MODE_SPEC_BUFFER added.
 
 	* window.h: TEMP_MATRIX removed.
@@ -15085,7 +15089,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	* term.c: Include dispextern.h
 
 	* dispnew.c (direct_output_forward_char): Old glyph functions
-	removed, new inserted. 
+	removed, new inserted.
 	(line_hash_code): Use new glyphs.
 	(line_draw_cost): Ditto
 	(cancel_line): Ditto
@@ -15115,7 +15119,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	* window.h (struct window): Remove old glyphs, add new.
 
 	* frame.h (struct frame): Remove old glyphs, add new.
-	
+
 1999-07-20  Dave Love  <fx@gnu.org>
 
 	* buffer.c (syms_of_buffer): Make
@@ -15564,7 +15568,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	* coding.c (setup_raw_text_coding_system): Call
 	setup_coding_system to initialize the fields of struct
 	coding_system correctly.
-	
+
 1999-04-26  Kenichi HANDA  <handa@etl.go.jp>
 
 	* xterm.c (x_list_fonts): Fix previous change.
@@ -15718,9 +15722,9 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* makefile.nt (PREPARED_HEADERS): Change name of paths.h to epaths.h.
 	(epaths.h): Renamed from paths.h.
-	(clean): 
-	($(BLD)\filelock.obj): 
-	($(BLD)\lread.obj): 
+	(clean):
+	($(BLD)\filelock.obj):
+	($(BLD)\lread.obj):
 	($(BLD)\w32fns.obj): Renamed paths.h to epaths.h.
 
 1999-03-23  Ken'ichi Handa  <handa@gnu.org>
@@ -15764,7 +15768,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	(Vw32_system_coding_system): New variable.
 	(w32_strict_filenames): Add comment.
 	(w32_to_x_font): Decode font name using Vw32_system_coding_system.
-	(x_to_w32_font): Encode font name using Vw32_system_coding_system. 
+	(x_to_w32_font): Encode font name using Vw32_system_coding_system.
 	(syms_of_w32fns): Add w32-system-coding-system.
 
 1999-03-15  Richard M. Stallman  <rms@gnu.org>
@@ -15900,7 +15904,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	* filelock.c (get_boot_time): Use WTMP_FILE for file name.
 	(WTMP_FILE): Default definition in case not defined.
 	(get_boot_time_1): Test that file exists before trying to read it.
-	
+
 1999-02-25  Ken'ichi Handa  <handa@gnu.org>
 
 	* keymap.c (push_key_description): If enable-multibyte-characters
@@ -16005,7 +16009,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	(get_boot_time): Use /proc/uptime if available.
 	Otherwise, if nothing found in wtmp, try wtmp.1.gz and so on.
 	(get_boot_time_1): New subroutine taken from get_boot_time.
-	
+
 1999-02-16  Richard Stallman  <rms@gnu.org>
 
 	* emacs.c (Qusr1_signal, Qusr2_signal): New variables.
@@ -16131,7 +16135,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	* process.c (process_send_signal): If CURRENT_GROUP is `lambda'
 	then don't send the signal if the shell owns the terminal.
 	(Finterrupt_process): Doc change.
-	
+
 1999-01-31  Andrew Innes  <andrewi@gnu.org>
 
 	* unexw32.c: (ROUND_UP_DST_AND_ZERO): New macro.
@@ -16172,7 +16176,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	(w32_list_fonts): Use maxnames.  Use EnumFontFamiliesEx when
 	available instead of EnumFontFamilies.  List synthesized fonts if
 	Vw32_enable_italics is non-nil.
-	
+
 1999-01-27  Richard Stallman  <rms@gnu.org>
 
 	* s/ptx4.h (SETUP_SLAVE_PTY): Use the ptem module if it exists.
@@ -16244,7 +16248,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	w32-charset-to-codepage-alist.
 	Replace "ksc5601" with "ksc5601.1987" in w32-charset-to-codepage-alist.
 	Add "ksc5601.1992' to w32-charset-to-codepage-alist.
-	
+
 	* w32fns.c (Vw32_bdf_filename_alist): New variable.
 	(x_destroy_bitmap): Returns void not int.
 	(x_set_border_pixel): Returns void.
@@ -16295,8 +16299,8 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	operation is assigned to int.
 	(Vw32_charset_to_codepage_alist): New variable.
 	(w32_codepage_for_charset): Removed.
-	(w32_codepage_for_font): New function, replacing 
-	w32_codepage_for_charset. 
+	(w32_codepage_for_font): New function, replacing
+	w32_codepage_for_charset.
 	(syms_of_w32term): Add and initialize
 	w32-charset-to-codepage-alist.
 
@@ -16415,7 +16419,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	function-key-map, handle symbol with array as fn def.
 	In function-key-map, handle symbol with keymap as fn def,
 	and autoloaded definitions.
-	
+
 	* puresize.h (BASE_PURESIZE): Increment to 500000.
 
 	* print.c (Qtemp_buffer_setup_hook): New variable.
@@ -16517,7 +16521,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	(menu_bar_item): Update and test menu_bar_one_keymap_changed_items.
 	(syms_of_keyboard): Staticpro and init it.
 
-	* xmenu.c (single_keymap_panes): 
+	* xmenu.c (single_keymap_panes):
 
 1998-12-28  Andrew Innes  <andrewi@delysid.gnu.org>
 
@@ -16531,7 +16535,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	(Fw32_reconstruct_hot_key): Use pre-interned symbols.
 	(Fw32_send_sys_command): Wait for system command to
 	complete before returning.
- 
+
 	* w32term.c (x_iconify_frame): Wait for frame to be iconified; do
 	not set async_iconified flag though.
 
@@ -16689,7 +16693,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* w32.c (w32_get_long_filename): Handle root dirs correctly.
 
-	* s/ms-w32.h (LOCALTIME_CACHE): Define. 
+	* s/ms-w32.h (LOCALTIME_CACHE): Define.
 
 1998-12-09  Richard Stallman  <rms@gnu.org>
 
@@ -16871,7 +16875,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* window.c (window_loop): For UNSHOW_BUFFER,
 	always do consider minibuffer windows.
-	
+
 1998-11-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.h (SINGLE_BYTE_CHAR_P): Check if C is negative or not.
@@ -16934,11 +16938,11 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 1998-11-10  Andrew Innes  <andrewi@harlequin.co.uk>
 
 	* w32term.h (struct w32_display_info): New element faked_key.
-	(WM_EMACS_SETKEYBOARDLAYOUT): 
-	(WM_EMACS_REGISTER_HOT_KEY): 
+	(WM_EMACS_SETKEYBOARDLAYOUT):
+	(WM_EMACS_REGISTER_HOT_KEY):
 	(WM_EMACS_UNREGISTER_HOT_KEY): New message definitions.
-	(LEFT_WIN_PRESSED): 
-	(RIGHT_WIN_PRESSED): 
+	(LEFT_WIN_PRESSED):
+	(RIGHT_WIN_PRESSED):
 	(APPS_PRESSED): New console keyboard modifier flags.
 
 	* w32term.c (convert_to_key_event): Removed.
@@ -16951,15 +16955,15 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	(Fw32_get_locale_info): Allow LONGFORM parameter to specify an
 	arbitrary locale property using a numerical index.
 	(Vw32_valid_codepages): New variable.
-	(enum_codepage_fn): 
-	(Fw32_get_valid_codepages): 
-	(Fw32_get_console_codepage): 
-	(Fw32_set_console_codepage): 
-	(Fw32_get_console_output_codepage): 
-	(Fw32_set_console_output_codepage): 
-	(Fw32_get_codepage_charset): 
-	(Fw32_get_valid_keyboard_layouts): 
-	(Fw32_get_keyboard_layout): 
+	(enum_codepage_fn):
+	(Fw32_get_valid_codepages):
+	(Fw32_get_console_codepage):
+	(Fw32_set_console_codepage):
+	(Fw32_get_console_output_codepage):
+	(Fw32_set_console_output_codepage):
+	(Fw32_get_codepage_charset):
+	(Fw32_get_valid_keyboard_layouts):
+	(Fw32_get_keyboard_layout):
 	(Fw32_set_keyboard_layout): New functions, exposing Windows locale
 	handling functions.
 	(syms_of_ntproc): Register them.
@@ -17141,7 +17145,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	* makefile.nt: Compile multiple source files when possible.
 
 	* w32faces.c (Qmouse_face): Replace definition with extern decl.
-	
+
 1998-11-03  Andrew Innes  <andrewi@delysid.gnu.org>
 
 	* w32.c (stat): GetFileInformationByHandle can legitimately fail,
@@ -17259,7 +17263,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* w32console.c (Fset_message_beep): Recognize 'silent.
 	(w32_sys_ring_bell): Do nothing for the 'silent sound.
-	
+
 	* w32fns.c (w32_color_map_lookup): Remove duplicate definition.
 
 	* w32select.c (Vnext_selection_coding_system): New variable.
@@ -17268,7 +17272,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	non-nil.  Always convert multibyte strings.
 	(Fw32_get_clipboard_data): Use Vnext_selection_coding_system if
 	non-nil.  Always convert a string that includes non-ASCII characters.
-	
+
 1998-10-27  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
 	* fns.c (Fbase64_decode_string): Doc fix.
@@ -17321,7 +17325,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 1998-10-21  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
 	* alloc.c (Fgarbage_collect): Block input around most of the function.
-	
+
 1998-10-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (setup_coding_system): Fix setting up
@@ -17332,7 +17336,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	conversion even if the length of conversion region is zero.
 
 	* fontset.c: Include frame.h before fontset.h.
-	(list_fonts_func): Fix prototype.	
+	(list_fonts_func): Fix prototype.
 
 	* frame.c: Include frame.h before fontset.h.
 
@@ -17376,7 +17380,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	(syms_of_w32fns): New lisp variables initialised.  Function
 	pointers for fontset.c set up.
 
-	* w32term.c: Include fontset.h.  Define codepage macros. 
+	* w32term.c: Include fontset.h.  Define codepage macros.
 	Add ENCODE_BIG5 macro from coding.c.
 	(w32_no_unicode_output): New variable.
 	(w32_codepage_for_charset, w32_use_unicode_for_codepage): New
@@ -17387,10 +17391,10 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	(x_new_fontset): New function based on the one in xterm.c.
 	(syms_of_w32term): Add w32-no-unicode-output flag.
 
-	* w32term.h: Remove redundant font_info struct definition. 
+	* w32term.h: Remove redundant font_info struct definition.
 	(Vx_pixel_size_width_font_regexp,
 	unibyte_display_via_language_environment): Declare variables.
-	(w32_list_fonts, w32_get_font_info, w32_query_font, w32_load_font): 
+	(w32_list_fonts, w32_get_font_info, w32_query_font, w32_load_font):
 	Declare functions.
 	(w32_output): New fields font_baseline and fontset.
 	(FRAME_FONTSET, FRAME_W32_FONT_TABLE): New macros.
@@ -17444,7 +17448,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 1998-10-14  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
-	* process.c (exec_sentinel, read_process_output): 
+	* process.c (exec_sentinel, read_process_output):
 	Restore waiting_for_user_input_p after running Lisp code.
 
 	* keyboard.c (parse_menu_item): Avoid initialization for Lisp_Object.
@@ -17648,7 +17652,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	outputing a string to notify an error, check the case that
 	DST_BYTES is zero.
 
-	* coding.h (CODING_FINISH_INTERRUPT): New macro. 
+	* coding.h (CODING_FINISH_INTERRUPT): New macro.
 
 	* coding.c (ccl_coding_driver): If ccl_driver is interrupted by a
 	user or the CCL program executed an invalid command, return
