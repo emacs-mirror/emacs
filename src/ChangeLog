@@ -1,3 +1,7 @@
+2005-03-10  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (pos_visible_p): Fix X value in last line of buffer.
+
 2005-03-08  Kenichi Handa  <handa@m17n.org>
 
 	* frame.c (x_set_font): Call set_default_ascii_font if an
