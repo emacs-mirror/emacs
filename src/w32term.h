@@ -731,7 +731,9 @@ extern void w32_unload_font ();
 #define WM_EMACS_REGISTER_HOT_KEY      (WM_EMACS_START + 12)
 #define WM_EMACS_UNREGISTER_HOT_KEY    (WM_EMACS_START + 13)
 #define WM_EMACS_TOGGLE_LOCK_KEY       (WM_EMACS_START + 14)
-#define WM_EMACS_END                   (WM_EMACS_START + 15)
+#define WM_EMACS_TRACK_CARET           (WM_EMACS_START + 15)
+#define WM_EMACS_DESTROY_CARET         (WM_EMACS_START + 16)
+#define WM_EMACS_END                   (WM_EMACS_START + 17)
 
 #define WND_FONTWIDTH_INDEX    (0) 
 #define WND_LINEHEIGHT_INDEX   (4) 
