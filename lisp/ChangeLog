@@ -1,3 +1,10 @@
+2002-05-22  Markus Rost  <rost@math.ohio-state.edu>
+
+	* files.el (file-newest-backup): Use file-name-sans-versions.
+
+	* diff.el (diff-latest-backup-file): Replace the main code by
+	a call of file-newest-backup.
+
 2002-05-22  Mike Williams  <mdub@bigfoot.com>
 
 	* textmodes/sgml-mode.el (sgml-guess-indent): Look further into
