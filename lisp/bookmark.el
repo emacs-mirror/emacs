@@ -106,7 +106,8 @@
 ;; These are the distribution keybindings suggested by RMS, everything
 ;; else will be done with M-x or the menubar:
 ;;;###autoload
-(if (symbolp (key-binding "\C-xr"))
+(if (or (symbolp (key-binding "\C-xr"))
+	(fboundp 'bookmark-set))
     nil
   (progn (define-key ctl-x-map "rb" 'bookmark-jump)
          (define-key ctl-x-map "rm" 'bookmark-set)

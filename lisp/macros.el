@@ -235,7 +235,6 @@ and then select the region of un-tablified names and use
       (set-marker end-marker nil)
       (set-marker next-line-marker nil))))
 
-;;;###autoload
-(define-key ctl-x-map "q" 'kbd-macro-query)
+;;;###autoload (define-key ctl-x-map "q" 'kbd-macro-query)
 
 ;;; macros.el ends here

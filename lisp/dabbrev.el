@@ -205,8 +205,7 @@ with the next possible expansion not yet tried."
       (setq last-dabbrevs-expansion expansion)
       (setq last-dabbrevs-expansion-location loc))))
 
-;;;###autoload
-(define-key esc-map "/" 'dabbrev-expand)
+;;;###autoload (define-key esc-map "/" 'dabbrev-expand)
 
 
 ;; Search function used by dabbrevs library.  
