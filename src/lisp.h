@@ -2857,6 +2857,7 @@ extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
 extern char *getenv (), *ctime (), *getwd ();
 extern long *xmalloc (), *xrealloc ();
 extern void xfree ();
+extern char *xstrdup P_ ((char *));
 
 extern char *egetenv P_ ((char *));
 
