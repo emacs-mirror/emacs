@@ -911,13 +911,14 @@ Type \\[describe-distribution] for information on getting the latest version."))
 
 (defun command-line-normalize-file-name (file)
   "Collapse multiple slashes to one, to handle non-Emacs file names."
-  ;; Use arg 1 so that we don't collapse // at the start of the file name.
-  ;; That is significant on some systems.
-  ;; However, /// at the beginning is supposed to mean just /, not //.
-  (if (string-match "^///+" file)
-    (setq file (replace-match "/" t t file)))
-  (while (string-match "//+" file 1)
-    (setq file (replace-match "/" t t file)))
-  file)
+  (save-match-data
+    ;; Use arg 1 so that we don't collapse // at the start of the file name.
+    ;; That is significant on some systems.
+    ;; However, /// at the beginning is supposed to mean just /, not //.
+    (if (string-match "^///+" file)
+	(setq file (replace-match "/" t t file)))
+    (while (string-match "//+" file 1)
+      (setq file (replace-match "/" t t file)))
+    file))
 
 ;;; startup.el ends here
