@@ -270,7 +270,7 @@ Netscape version 1.1N or later or XMosaic version 2.5 or later."
 
 (defcustom browse-url-netscape-display nil
   "*The X display for running Netscape, if not same as Emacs's."
-  :type 'string
+  :type '(choice string (const nil))
   :group 'browse-url)
 
 (defcustom browse-url-mosaic-arguments nil
@@ -373,7 +373,7 @@ These might set the port, for instance."
 
 (defcustom browse-url-generic-program nil
   "*The name of the browser program used by `browse-url-generic'."
-  :type 'string
+  :type '(choice string (const nil))
   :group 'browse-url)
 
 (defcustom browse-url-generic-args nil
