@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: 1994/09/29 12:42:45 $
-;; Version:		$Revision: 1.50 $
+;; Last-Modified:	$Date: 1994/10/01 13:27:15 $
+;; Version:		$Revision: 1.51 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -92,9 +92,26 @@
 ;;   be led to believe that the manpages in the missing directories do
 ;;   not exist.
 
+
 ;;; Code:
 
 (require 'assoc)
+
+;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;; empty defvars (keep the compiler quiet)
+
+(defvar Man-notify)
+(defvar Man-current-page)
+(defvar Man-page-list)
+(defvar Man-filter-list)
+(defvar Man-original-frame)
+(defvar Man-arguments)
+(defvar Man-fontify-manpage-flag)
+(defvar Man-sections-alist)
+(defvar Man-refpages-alist)
+(defvar Man-uses-untabify-flag)
+(defvar Man-page-mode-string)
+(defvar Man-sed-script)
 
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ;; user variables
@@ -307,7 +324,7 @@ This is necessary if one wants to dump man.el with emacs."
     ;;                Man-untabify-command nil nil nil
     ;;                (append Man-untabify-command-args
     ;;                        (list "/etc/passwd")))))
-    "Use `untabify', because Man-untabify-command cannot do that.")
+    "When non-nil use `untabify' instead of Man-untabify-command.")
 
   (defconst Man-sed-script
     (cond
@@ -373,6 +390,16 @@ commands appear in the association list.  The final output is placed in
 the manpage buffer.")
 )
 
+(defsubst Man-match-substring (&optional n string)
+  "Return the substring matched by the last search.
+Optional arg N means return the substring matched by the Nth paren
+grouping.  Optional second arg STRING means return a substring from
+that string instead of from the current buffer."
+  (if (null n) (setq n 0))
+  (if string
+      (substring string (match-beginning n) (match-end n))
+    (buffer-substring (match-beginning n) (match-end n))))
+
 (defsubst Man-make-page-mode-string ()
   "Formats part of the mode line for Man mode."
   (format "%s page %d of %d"
@@ -432,16 +459,6 @@ and the Man-section-translations-alist variables)."
 			    s2)
 		  slist nil))))
       (concat Man-specified-section-option section " " name))))
-
-(defsubst Man-match-substring (&optional n string)
-  "Return the substring matched by the last search.
-Optional arg N means return the substring matched by the Nth paren
-grouping.  Optinal second arg STRING means return a substring from
-that string instead of from the current buffer."
-  (if (null n) (setq n 0))
-  (if string
-      (substring string (match-beginning n) (match-end n))
-    (buffer-substring (match-beginning n) (match-end n))))
 
 
 ;; ======================================================================
@@ -526,7 +543,7 @@ Optional OVERRIDE-REUSE-P, when non-nil, means to
 start a background process even if a buffer already exists and
 `Man-reuse-okay-flag' is non-nil."
   (let* ((man-args topic)
-	 (bufname (concat "*man " man-args "*"))
+	 (bufname (concat "*Man " man-args "*"))
 	 (buffer  (get-buffer bufname)))
     (if (and Man-reuse-okay-flag
 	     (not override-reuse-p)
@@ -798,7 +815,7 @@ The following key bindings are currently in effect in the buffer:
 		      (aput 'Man-refpages-alist word))))
 	      (skip-chars-forward " \t\n,")))))))
 
-(defsubst Man-build-page-list ()
+(defun Man-build-page-list ()
   "Build the list of separate manpages in the buffer."
   (setq Man-page-list nil)
   (let ((page-start (point-min))
@@ -830,7 +847,7 @@ The following key bindings are currently in effect in the buffer:
       (setq page-start page-end)
       )))
 
-(defsubst Man-strip-page-headers ()
+(defun Man-strip-page-headers ()
   "Strip all the page headers but the first from the manpage."
   (let ((buffer-read-only nil)
 	(case-fold-search nil)
@@ -855,7 +872,7 @@ The following key bindings are currently in effect in the buffer:
 	     (replace-match "")))
       (setq page-list (cdr page-list)))))
 
-(defsubst Man-unindent ()
+(defun Man-unindent ()
   "Delete the leading spaces that indent the manpage."
   (let ((buffer-read-only nil)
 	(case-fold-search nil)
