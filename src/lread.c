@@ -1620,7 +1620,29 @@ read1 (readcharfun, pch, first_in_list)
 		end = read_buffer + read_buffer_size;
 	      }
 	    if (c == '\\')
-	      c = read_escape (readcharfun);
+	      {
+		c = read_escape (readcharfun);
+		if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_META)))
+		  {
+		    char workbuf[4];
+		    char *str = workbuf;
+		    int length;
+
+		    length = non_ascii_char_to_string (c, workbuf, &str);
+
+		    if (p + length > end)
+		      {
+			char *new = (char *) xrealloc (read_buffer, read_buffer_size *= 2);
+			p += new - read_buffer;
+			read_buffer += new - read_buffer;
+			end = read_buffer + read_buffer_size;
+		      }
+ 
+		    bcopy (str, p, length);
+		    p += length;
+		    continue;
+		  }
+	      }
 	    /* c is -1 if \ newline has just been seen */
 	    if (c == -1)
 	      {
