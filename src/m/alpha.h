@@ -183,8 +183,3 @@ NOTE-END
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
 
 #define XPNTR(a) XUINT (a)
-
-
-/* Similarly, for XSETINT */
-
-#define XSETINT(a, b)   ((a) = (long)((a) & ~VALMASK) | (long)((b) & VALMASK))
