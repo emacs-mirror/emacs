@@ -1,3 +1,10 @@
+2001-11-23  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (with-vc-properties): Don't bind `filename' locally.
+	(with-vc-file, edit-vc-file): Use `make-symbol' for local bindings
+	to avoid name clashes.  Fix `lisp-indent-function' property for
+	both.
+
 2001-11-23  Francesco Potorti`  <pot@gnu.org>
 
 	* generic-x.el (mailrc-generic-mode): Highlight the `source' keyword.
