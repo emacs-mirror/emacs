@@ -345,7 +345,8 @@
 (defgroup speedbar nil
   "File and tag browser frame."
   :group 'tags
-  :group 'tools)
+  :group 'tools
+  :version "20.3")
 
 (defgroup speedbar-faces nil
   "Faces used in speedbar."
