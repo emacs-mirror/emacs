@@ -46,6 +46,12 @@
 ;; same buffer.
 (setq find-file-visit-truename t)
 
+(defun w32-version ()
+  "Return the MS-Windows version numbers.
+The value is a list of three integers: the major and minor version
+numbers, and the build number."
+  (x-server-version))
+
 (defvar w32-system-shells '("cmd" "cmd.exe" "command" "command.com"
 			    "4nt" "4nt.exe" "4dos" "4dos.exe"
 			    "ndos" "ndos.exe")
