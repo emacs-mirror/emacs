@@ -733,13 +733,18 @@ setting of Scroll Bar mode similarly.  @xref{Resources X}.
 @section Scrolling With ``Wheeled'' Mice
 
 @cindex mouse wheel
-@findex mouse-wheel-install
-  Some mice have a ``wheel'' instead of a third button.  You can usually
-click the wheel to act as @kbd{Mouse-3}.  You can also use the wheel to
+@cindex wheel, mouse
+@findex mouse-wheel-mode
+@cindex Mouse Wheel minor mode
+@cindex mode, Mouse Wheel
+  Some mice have a ``wheel'' instead of a third button.  You can
+usually click the wheel to act as either @kbd{Mouse-2} or
+@kbd{Mouse-3}, depending on the setup.  You can also use the wheel to
 scroll windows instead of using the scroll bar or keyboard commands.
-Use @kbd{M-x mouse-wheel-install} to set up the wheel for scrolling or put
-@samp{(require 'mouse-wheel)} in your @file{.emacs}.  (Support for the wheel
-depends on the system generating appropriate events for Emacs.)
+To do so, turn on Mouse Wheel global minor mode with the command
+@kbd{M-x mouse-wheel-mode} or by customizing the option
+@code{mouse-wheel-mode}.  Support for the wheel depends on the system
+generating appropriate events for Emacs.
 
 @vindex mouse-wheel-follow-mouse
 @vindex mouse-wheel-scroll-amount
@@ -897,4 +902,6 @@ window.  In a terminal emulator which is compatible with @code{xterm},
 you can use @kbd{M-x xterm-mouse-mode} to enable simple use of the
 mouse---only single clicks are supported.  The normal @code{xterm} mouse
 functionality is still available by holding down the @kbd{SHIFT} key
-when you press the mouse button.
+when you press the mouse button.  The Linux console supports this
+mode if it has support for the mouse enabled, e.g.@: using the
+@command{gpm} daemon.
