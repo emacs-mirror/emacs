@@ -339,9 +339,8 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
   (list
    ;; Special highlighting of "module procedure".
    '("\\<\\(module[ \t]*procedure\\)\\>" (1 font-lock-keyword-face))
-   ;; Highlight declaration of derived type.
-   '("\\<\\(\\(?:end[ \t]*\\)?type\\)\\>[ \t]*\\([^()\n]*::[ \t]*\\)?\
-\\(\\sw+\\)"
+   ;; Highlight definition of derived type.
+   '("\\<\\(\\(?:end[ \t]*\\)?type\\)\\>\\([^()\n]*::\\)?[ \t]*\\(\\sw+\\)"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face))
    ;; Other functions and declarations.
    '("\\<\\(\\(?:end[ \t]*\\)?\\(program\\|module\\|function\\|\
@@ -633,7 +632,7 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
   "Regexp matching the end of a TYPE, INTERFACE, BLOCK DATA section.")
 
 (defconst f90-type-def-re
-  "\\<\\(type\\)\\>[ \t]*\\(?:[^()\n]*::[ \t]*\\)?\\(\\sw+\\)"
+  "\\<\\(type\\)\\>\\(?:[^()\n]*::\\)?[ \t]*\\(\\sw+\\)"
   "Regexp matching the definition of a derived type.")
 
 (defconst f90-no-break-re
