@@ -3,9 +3,11 @@
 	* descr-text.el (describe-text-properties): Sort the output by the
 	size of the values.  Put `font-lock-face' property on property
 	names.
+	(toplevel): Provide `descr-text'.
 
-	* international/mule-diag.el (describe-char-after): Just call
-	`describe-text-properties' to describe text properties.
+	* international/mule-diag.el (describe-char-after): When there are
+	text properties, require `descr-text', and just call
+	`describe-text-properties'.
 
 	* international/mule.el (sgml-html-meta-auto-coding-function): New
 	function.
