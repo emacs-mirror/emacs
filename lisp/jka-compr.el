@@ -189,7 +189,10 @@ invoked."
 
 (defvar jka-compr-mode-alist-additions
   (list (cons "\\.tgz\\'" 'tar-mode))
-  "A list of pairs to add to auto-mode-alist when jka-compr is installed.")
+  "A list of pairs to add to `auto-mode-alist' when jka-compr is installed.")
+
+;; List of all the elements we actually added to file-coding-system-alist.
+(defvar jka-compr-added-to-file-coding-system-alist nil)
 
 (defvar jka-compr-file-name-handler-entry
   nil
@@ -499,7 +502,19 @@ There should be no more than seven characters after the final `/'."
 	       (jka-compr-run-real-handler 'file-local-copy (list filename)))
 	      local-file
 	      size start
-              (coding-system-for-read (or coding-system-for-read 'undecided)) )
+              (coding-system-for-read
+	       (or coding-system-for-read
+		   (let ((tail file-coding-system-alist)
+			 (newfile
+			  (jka-compr-byte-compiler-base-file-name file))
+			 result)
+		     (while tail
+		       (if (string-match (car (car tail)) newfile)
+			   (setq result (car (cdr (car tail)))
+				 tail nil))
+		       (setq tail (cdr tail)))
+		     result)
+		   'undecided)) )
 
 	  (setq local-file (or local-copy filename))
 
@@ -785,8 +800,18 @@ and `inhibit-first-line-modes-suffixes'."
   (setq file-name-handler-alist (cons jka-compr-file-name-handler-entry
 				      file-name-handler-alist))
 
+  (setq jka-compr-added-to-file-coding-system-alist nil)
+
   (mapcar
    (function (lambda (x)
+	       ;; Don't do multibyte encoding on the compressed files.
+	       (let ((elt (cons (jka-compr-info-regexp x)
+				 '(no-conversion . no-conversion))))
+		 (setq file-coding-system-alist
+		       (cons elt file-coding-system-alist))
+		 (setq jka-compr-added-to-file-coding-system-alist
+		       (cons elt jka-compr-added-to-file-coding-system-alist)))
+
 	       (and (jka-compr-info-strip-extension x)
 		    ;; Make entries in auto-mode-alist so that modes
 		    ;; are chosen right according to the file names
@@ -844,7 +869,19 @@ by `jka-compr-installed'."
 	  (setcdr last (cdr (cdr last)))
 	(setq last (cdr last))))
     
-    (setq auto-mode-alist (cdr ama))))
+    (setq auto-mode-alist (cdr ama)))
+
+  (let* ((ama (cons nil file-coding-system-alist))
+	 (last ama)
+	 entry)
+
+    (while (cdr last)
+      (setq entry (car (cdr last)))
+      (if (member entry jka-compr-added-to-file-coding-system-alist)
+	  (setcdr last (cdr (cdr last)))
+	(setq last (cdr last))))
+    
+    (setq file-coding-system-alist (cdr ama))))
 
       
 (defun jka-compr-installed-p ()
