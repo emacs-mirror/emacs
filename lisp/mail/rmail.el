@@ -443,9 +443,6 @@ Note:    it means the file has no messages in it.\n\^_")))
 (define-key rmail-mode-map [menu-bar mail]
   (cons "Mail" (make-sparse-keymap "Mail")))
 
-(define-key rmail-mode-map [menu-bar mail resend]
-  '("Re-send" . rmail-resend))
-
 (define-key rmail-mode-map [menu-bar mail continue]
   '("Get New Mail" . rmail-get-new-mail))
 
@@ -454,6 +451,9 @@ Note:    it means the file has no messages in it.\n\^_")))
 
 (define-key rmail-mode-map [menu-bar mail continue]
   '("Continue" . rmail-continue))
+
+(define-key rmail-mode-map [menu-bar mail resend]
+  '("Re-send" . rmail-resend))
 
 (define-key rmail-mode-map [menu-bar mail forward]
   '("Forward" . rmail-forward))
