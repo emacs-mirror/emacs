@@ -221,7 +221,10 @@ the first time the mode is used."
   (if (boundp (derived-mode-syntax-table-name mode))
       t
     (eval (` (defvar (, (derived-mode-syntax-table-name mode))
-	       (make-vector 256 nil)
+	       ;; Make a syntax table which doesn't specify anything
+	       ;; for any char.  Valid data will be merged in by
+	       ;; derived-mode-merge-syntax-tables.
+	       (make-char-table 'syntax-table nil)
 	       (, (format "Syntax table for %s." mode)))))
     (put (derived-mode-syntax-table-name mode) 'derived-mode-unmerged t))
 
@@ -327,12 +330,11 @@ be automatic inheritance."
 (defun derived-mode-merge-syntax-tables (old new)
   "Merge an old syntax table into a new one.
 Where the new table already has an entry, nothing is copied from the old one."
-  (let ((idx 0)
-	(end (min (length new) (length old))))
-    (while (< idx end)
-      (if (not (aref new idx))
-	  (aset new idx (aref old idx)))
-      (setq idx (1+ idx)))))
+  (map-char-table
+   (function (lambda (key value)
+	       (or (char-table-range new key)
+		   (set-char-table-range new key value))))
+   old))
 
 ;; Merge an old abbrev table into a new one.
 ;; This function requires internal knowledge of how abbrev tables work,
