@@ -1,5 +1,10 @@
 2001-01-11  Dave Love  <fx@gnu.org>
 
+	* international/mule-cmds.el (standard-display-european-internal):
+	Set display table for 2208 as for 160.
+
+	* progmodes/ada-mode.el (ada-popup-key): Fix last change.
+
 	* progmodes/fortran.el (fortran-mode-map): Modify Customization
 	entry for custom-menu-create change.
 	(fortran-strip-sqeuence-nos): Make arg optional.  Fix regexp and

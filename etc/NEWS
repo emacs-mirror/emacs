@@ -2305,8 +2305,10 @@ buffer's local map and the map specified by the `local-map' property.
 This is probably what most current uses of `local-map' want, rather
 than replacing the local map.
 
-** The obsolete variables before-change-function and
-after-change-function are no longer acted upon and have been removed.
+** The obsolete variables `before-change-function' and
+`after-change-function' are no longer acted upon and have been
+removed.  Use `before-change-functions' and `after-change-functions'
+instead.
 
 ** The function `apropos-mode' runs the hook `apropos-mode-hook'.
 
