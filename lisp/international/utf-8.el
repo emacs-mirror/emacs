@@ -190,7 +190,7 @@ Setting this variable outside customize has no effect."
   :type 'boolean
   :group 'mule)
 
-(defcustom utf-translate-cjk nil
+(define-minor-mode utf-translate-cjk-mode
   "Whether the UTF based coding systems should decode/encode CJK characters.
 Enabling this loads tables which allow the coding systems mule-utf-8,
 mule-utf-16-le and mule-utf-16-be to encode characters in the charsets
@@ -205,59 +205,59 @@ Chinese-Big5 and jisx for other environments.
 
 The tables are large (over 40000 entries), so this option is not the
 default.  Also, installing them may be rather slow."
-  :set (lambda (s v)
-	 (if v
-	     ;; Fixme: Allow the use of the CJK charsets to be
-	     ;; customized by reordering and possible omission.
-	     (progn
-	       ;; Redefine them with realistic initial sizes and a
-	       ;; smallish rehash size to avoid wasting significant
-	       ;; space after they're built.
-	       (setq ucs-mule-cjk-to-unicode
-		     (make-hash-table :test 'eq :size 43000 :rehash-size 1000)
-		     ucs-unicode-to-mule-cjk
-		     (make-hash-table :test 'eq :size 43000 :rehash-size 1000))
-	       ;; Load the files explicitly, to avoid having to keep
-	       ;; around the large tables they contain (as well as the
-	       ;; ones which get built).
-	       (cond
-		((string= "Korean" current-language-environment)
-		 (load "subst-jis")
-		 (load "subst-big5")
-		 (load "subst-gb2312")
-		 (load "subst-ksc"))
-		((string= "Chinese-BIG5" current-language-environment)
-		 (load "subst-jis")
-		 (load "subst-ksc")
-		 (load "subst-gb2312")
-		 (load "subst-big5"))
-		((string= "Chinese-GB" current-language-environment)
-		 (load "subst-jis")
-		 (load "subst-ksc")
-		 (load "subst-big5")
-		 (load "subst-gb2312"))
-		(t
-		 (load "subst-ksc")
-		 (load "subst-gb2312")
-		 (load "subst-big5")
-		 (load "subst-jis")))   ; jis covers as much as big5, gb2312
-	       (let ((table (make-char-table 'translation-table)))
-		 (maphash (lambda (k v)
-			    (aset table k t))
-			  ucs-mule-cjk-to-unicode)
-	       (define-translation-hash-table 'utf-subst-table-for-decode
-		 ucs-unicode-to-mule-cjk)
-	       (define-translation-hash-table 'utf-subst-table-for-encode
-		 ucs-mule-cjk-to-unicode))
-	   (define-translation-hash-table 'utf-subst-table-for-decode
-	     (make-hash-table :test 'eq))
-	   (define-translation-hash-table 'utf-subst-table-for-encode
-	     (make-hash-table :test 'eq))))
-	 (set-default s v))
+  :init-value nil
   :version "21.4"
   :type 'boolean
   :set-after '(current-language-environment)
-  :group 'mule)
+  :group 'mule
+  :global t
+  (if utf-translate-cjk-mode
+      ;; Fixme: Allow the use of the CJK charsets to be
+      ;; customized by reordering and possible omission.
+      (progn
+	;; Redefine them with realistic initial sizes and a
+	;; smallish rehash size to avoid wasting significant
+	;; space after they're built.
+	(setq ucs-mule-cjk-to-unicode
+	      (make-hash-table :test 'eq :size 43000 :rehash-size 1000)
+	      ucs-unicode-to-mule-cjk
+	      (make-hash-table :test 'eq :size 43000 :rehash-size 1000))
+	;; Load the files explicitly, to avoid having to keep
+	;; around the large tables they contain (as well as the
+	;; ones which get built).
+	(cond
+	 ((string= "Korean" current-language-environment)
+	  (load "subst-jis")
+	  (load "subst-big5")
+	  (load "subst-gb2312")
+	  (load "subst-ksc"))
+	 ((string= "Chinese-BIG5" current-language-environment)
+	  (load "subst-jis")
+	  (load "subst-ksc")
+	  (load "subst-gb2312")
+	  (load "subst-big5"))
+	 ((string= "Chinese-GB" current-language-environment)
+	  (load "subst-jis")
+	  (load "subst-ksc")
+	  (load "subst-big5")
+	  (load "subst-gb2312"))
+	 (t
+	  (load "subst-ksc")
+	  (load "subst-gb2312")
+	  (load "subst-big5")
+	  (load "subst-jis")))	  ; jis covers as much as big5, gb2312
+	(let ((table (make-char-table 'translation-table)))
+	  (maphash (lambda (k v)
+		     (aset table k t))
+		   ucs-mule-cjk-to-unicode)
+	  (define-translation-hash-table 'utf-subst-table-for-decode
+	    ucs-unicode-to-mule-cjk)
+	  (define-translation-hash-table 'utf-subst-table-for-encode
+	    ucs-mule-cjk-to-unicode))
+	(define-translation-hash-table 'utf-subst-table-for-decode
+	  (make-hash-table :test 'eq))
+	(define-translation-hash-table 'utf-subst-table-for-encode
+	  (make-hash-table :test 'eq)))))
 
 (define-ccl-program ccl-decode-mule-utf-8
   ;;
