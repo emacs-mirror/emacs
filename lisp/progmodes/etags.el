@@ -341,14 +341,14 @@ Returns non-nil iff it is a valid table."
     ;; Loop over the list, looking for a table containing tags for THIS-FILE.
     (while (and (not found)
 		tables)
-      (and (not core-only)
-	   (eq (nth 1 tables) t)
-	   ;; This table has not been read into core yet.  Read it in now.
-	   (tags-table-extend-computed-list))
 
-      (if (eq (nth 1 tables) t)
-	  ;; Skip this table not in core.
-	  (setq tables (cdr (cdr tables))))
+      (if core-only
+	  ;; Skip tables not in core.
+	  (while (eq (nth 1 tables) t)
+	    (setq tables (cdr (cdr tables))))
+	(if (eq (nth 1 tables) t)
+	    ;; This table has not been read into core yet.  Read it in now.
+	    (tags-table-extend-computed-list)))
 
       (if tables
 	  ;; Select the tags table buffer and get the file list up to date.
