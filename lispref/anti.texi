@@ -15,6 +15,11 @@ the following section, we carry this information back to Emacs
 
 @itemize @bullet
 @item
+The function @code{bitmap-spec-p} has been renamed to
+@code{pixmap-spec-p} to encourage users to practice Emacs' help system
+while trying to find it.
+
+@item
 The @code{push} and @code{pop} macros are not defined.
 
 @item
