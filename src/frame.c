@@ -1788,7 +1788,9 @@ DEFUN ("modify-frame-parameters", Fmodify_frame_parameters,
   "Modify the parameters of frame FRAME according to ALIST.\n\
 ALIST is an alist of parameters to change and their new values.\n\
 Each element of ALIST has the form (PARM . VALUE), where PARM is a symbol.\n\
-The meaningful PARMs depend on the kind of frame; undefined PARMs are ignored.")
+The meaningful PARMs depend on the kind of frame.\n\
+Undefined PARMs are ignored, but stored in the frame's parameter list\n\
+so that `frame-parameters' will return them.")
   (frame, alist)
      Lisp_Object frame, alist;
 {
