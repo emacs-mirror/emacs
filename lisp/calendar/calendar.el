@@ -191,6 +191,13 @@ The marking symbol is specified by the variable `diary-entry-marker'."
   :type 'boolean
   :group 'diary)
 
+;;;###autoload
+(defcustom calendar-remove-frame-by-deleting nil
+  "*Determine how the calendar mode removes a frame no longer needed.
+If nil, make an icon of the frame.  If non-nil, delete the frame."
+  :type 'boolean
+  :group 'view)
+
 (when window-system
   (add-to-list 'facemenu-unlisted-faces 'diary-face)
   (defface diary-face
@@ -341,7 +348,7 @@ functions that move by days and weeks."
 (defcustom calendar-move-hook nil
   "*List of functions called whenever the cursor moves in the calendar.
 
-For example, 
+For example,
 
   (add-hook 'calendar-move-hook (lambda () (view-diary-entries 1)))
 
@@ -1130,24 +1137,24 @@ with descriptive strings such as
 (defmacro increment-calendar-month (mon yr n)
   "Move the variables MON and YR to the month and year by N months.
 Forward if N is positive or backward if N is negative."
-  (` (let (( macro-y (+ (* (, yr) 12) (, mon) -1 (, n) )))
-       (setq (, mon) (1+ (% macro-y 12) ))
-       (setq (, yr) (/ macro-y 12)))))
+  `(let ((macro-y (+ (* ,yr 12) ,mon -1 ,n)))
+    (setq ,mon (1+ (% macro-y 12)))
+    (setq ,yr (/ macro-y 12))))
 
 (defmacro calendar-for-loop (var from init to final do &rest body)
   "Execute a for loop."
-  (` (let (( (, var) (1- (, init)) ))
-       (while (>= (, final) (setq (, var) (1+ (, var))))
-         (,@ body)))))
+  `(let ((,var (1- ,init)))
+    (while (>= ,final (setq ,var (1+ ,var)))
+      ,@body)))
 
 (defmacro calendar-sum (index initial condition expression)
   "For INDEX = INITIAL et seq, as long as CONDITION holds, sum EXPRESSION."
-  (` (let (( (, index) (, initial))
-             (sum 0))
-       (while (, condition)
-         (setq sum (+ sum (, expression) ))
-         (setq (, index) (1+ (, index))))
-       sum)))
+  `(let ((,index ,initial)
+         (sum 0))
+    (while ,condition
+      (setq sum (+ sum ,expression))
+      (setq ,index (1+ ,index)))
+    sum))
 
 ;; The following are in-line for speed; they can be called thousands of times
 ;; when looking up holidays or processing the diary.  Here, for example, are
@@ -1333,7 +1340,7 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
 
 (autoload 'calendar-two-frame-setup "cal-x"
   "Start calendar and diary in separate, dedicated frames.")
-  
+
 ;;;###autoload
 (defvar calendar-setup nil
   "The frame set up of the calendar.
@@ -1699,7 +1706,7 @@ It applies to the week that point is in.
 Optional prefix argument specifies number of weeks.
 Holidays are included if `cal-tex-holidays' is t.")
 
-(autoload 'cal-tex-cursor-week2 "cal-tex" 
+(autoload 'cal-tex-cursor-week2 "cal-tex"
   "Make a buffer with LaTeX commands for a two-page one-week calendar.
 It applies to the week that point is in.
 Optional prefix argument specifies number of weeks.
@@ -1726,13 +1733,13 @@ Holidays are included if `cal-tex-holidays' is t.")
 (autoload 'cal-tex-cursor-filofax-week "cal-tex"
   "One-week-at-a-glance Filofax style calendar for week indicated by cursor.
 Optional prefix argument specifies number of weeks.
-Weeks start on Monday. 
+Weeks start on Monday.
 Diary entries are included if cal-tex-diary is t.
 Holidays are included if `cal-tex-holidays' is t.")
 
 (autoload 'cal-tex-cursor-filofax-daily "cal-tex"
   "Day-per-page Filofax style calendar for week indicated by cursor.
-Optional prefix argument specifies number of weeks.  Weeks start on Monday. 
+Optional prefix argument specifies number of weeks.  Weeks start on Monday.
 Diary entries are included if `cal-tex-diary' is t.
 Holidays are included if `cal-tex-holidays' is t.")
 
@@ -2139,7 +2146,9 @@ the STRINGS are just concatenated and the result truncated."
                                       (window-frame window))))))
           nil)
          ((and window-system (window-dedicated-p window))
-          (iconify-frame (window-frame window)))
+          (if calendar-remove-frame-by-deleting
+              (delete-frame (window-frame window))
+              (iconify-frame (window-frame window))))
          ((not (and (select-window window) (one-window-p window)))
           (delete-window window))
          (t (set-buffer buffer)

@@ -1,3 +1,11 @@
+1999-11-12  Sam Steingold  <sds@ksp.com>
+
+	* calendar/calendar.el (calendar-remove-frame-by-deleting):
+	New user variable.
+	(calendar-hide-window): Use it.
+	(increment-calendar-month, calendar-for-loop, calendar-sum):
+	Use the new backquote syntax.
+
 1999-11-12  Andrew Innes  <andrewi@gnu.org>
 
 	* select.el (x-set-selection): Call buffer-substring, not
@@ -8,7 +16,7 @@
 	* progmodes/ps-mode.el (ps-mode-submit-bug-report): Added list
 	of customizable variables to bug report message. Added
 	system-type to package name in bug report.
-	
+
 1999-11-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* buff-menu.el (list-buffers-noselect): Use abbreviate-file-name
@@ -43,7 +51,7 @@
 
 1999-11-08  Markus Rost  <rost@ias.edu>
 
-	* wid-edit.el (widget-button-click): Wrap with save-excursion 
+	* wid-edit.el (widget-button-click): Wrap with save-excursion
 	to restore track-mouse in the correct buffer.
 
 1999-11-08  Gerd Moellmann  <gerd@gnu.org>
@@ -55,7 +63,7 @@
 	* progmodes/ps-mode.el (ps-mode-print-function): Changed default
 	lpr-command to "lp" for some system-types. (copied from lpr.el
 	Emacs version 20.2.1).
-	
+
 1999-11-04  Markus Rost  <rost@ias.edu>
 
 	* simple.el (comment-region): Strip off white space at end of
