@@ -63,24 +63,6 @@
 
 (defvar hl-line-overlay nil)
 
-(defun hl-line-highlight ()
-  "Active the Hl-Line overlay on the current line in the current window.
-\(Unless it's a minibuffer window.)"
-  (when hl-line-mode			; Could be made buffer-local.
-    (unless (window-minibuffer-p (selected-window)) ; silly in minibuffer
-      (unless hl-line-overlay
-	(setq hl-line-overlay (make-overlay 1 1)) ; to be moved
-	(overlay-put hl-line-overlay 'face hl-line-face))
-      (overlay-put hl-line-overlay 'window (selected-window))
-      (move-overlay hl-line-overlay
-		    (line-beginning-position) (1+ (line-end-position))
-		    (current-buffer)))))
-
-(defun hl-line-unhighlight ()
-  "Deactivate the Hl-Line overlay on the current line in the current window."
-  (if hl-line-overlay
-      (delete-overlay hl-line-overlay)))
-
 ;;;###autoload
 (define-minor-mode hl-line-mode
   "Minor mode to highlight the line about point in the current window.
@@ -100,6 +82,24 @@ Uses functions `hl-line-unhighlight' and `hl-line-highlight' on
 (easy-mmode-define-global-mode
  global-hl-line-mode hl-line-mode hl-line-mode
  :group 'hl-line)
+
+(defun hl-line-highlight ()
+  "Active the Hl-Line overlay on the current line in the current window.
+\(Unless it's a minibuffer window.)"
+  (when hl-line-mode			; Could be made buffer-local.
+    (unless (window-minibuffer-p (selected-window)) ; silly in minibuffer
+      (unless hl-line-overlay
+	(setq hl-line-overlay (make-overlay 1 1)) ; to be moved
+	(overlay-put hl-line-overlay 'face hl-line-face))
+      (overlay-put hl-line-overlay 'window (selected-window))
+      (move-overlay hl-line-overlay
+		    (line-beginning-position) (1+ (line-end-position))
+		    (current-buffer)))))
+
+(defun hl-line-unhighlight ()
+  "Deactivate the Hl-Line overlay on the current line in the current window."
+  (if hl-line-overlay
+      (delete-overlay hl-line-overlay)))
 
 (provide 'hl-line)
 
