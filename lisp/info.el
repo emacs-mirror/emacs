@@ -1406,6 +1406,13 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 (defvar Info-complete-cache nil)
 
 (defun Info-complete-menu-item (string predicate action)
+  ;; This uses two dynamically bound variables:
+  ;; - `Info-complete-menu-buffer' which contains the buffer in which
+  ;; is the menu of items we're trying to complete.
+  ;; - `Info-complete-next-re' which, if non-nil, indicates that we should
+  ;; also look for menu items in subsequent nodes as long as those
+  ;; nodes' names match `Info-complete-next-re'.  This feature is currently
+  ;; only used for completion in Info-index.
   (save-excursion
     (set-buffer Info-complete-menu-buffer)
     (let ((completion-ignore-case t)
