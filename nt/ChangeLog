@@ -2,6 +2,7 @@
 
 	* nmake.defs:
 	* gmake.defs:
+	* makefile.w32-in:
 	* makefile.def:
 	* makefile.nt: Add "-*- makefile -*-" mode tag.
 

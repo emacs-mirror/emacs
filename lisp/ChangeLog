@@ -1,3 +1,7 @@
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
+
 2004-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-next-error): New fun.
