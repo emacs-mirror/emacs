@@ -3920,7 +3920,7 @@ back_to_previous_visible_line_start (it)
 	 are invisible.  */
       if (it->selective > 0
 	  && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
-				(float) it->selective)) /* iftc */
+				(double) it->selective)) /* iftc */
 	visible_p = 0;
       else
 	{
@@ -3980,7 +3980,7 @@ reseat_at_next_visible_line_start (it, on_newline_p)
   if (it->selective > 0)
     while (IT_CHARPOS (*it) < ZV
 	   && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
-				 (float) it->selective)) /* iftc */
+				 (double) it->selective)) /* iftc */
       {
 	xassert (FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
 	newline_found_p = forward_to_next_line_start (it, &skipped_p);
@@ -4873,7 +4873,7 @@ next_element_from_buffer (it)
 		  && IT_CHARPOS (*it) + 1 < ZV
 		  && indented_beyond_p (IT_CHARPOS (*it) + 1,
 					IT_BYTEPOS (*it) + 1,
-					(float) it->selective)) /* iftc */
+					(double) it->selective)) /* iftc */
 		{
 		  success_p = next_element_from_ellipsis (it);
 		  it->dpvec_char_len = -1;
@@ -5656,6 +5656,9 @@ message_dolog (m, nbytes, nlflag, multibyte)
      char *m;
      int nbytes, nlflag, multibyte;
 {
+  if (!NILP (Vmemory_full))
+    return;
+
   if (!NILP (Vmessage_log_max))
     {
       struct buffer *oldbuf;
@@ -6216,8 +6219,8 @@ update_echo_area ()
 }
 
 
-/* Make sure echo area buffers in echo_buffers[] are life.  If they
-   aren't, make new ones.  */
+/* Make sure echo area buffers in `echo_buffers' are live.
+   If they aren't, make new ones.  */
 
 static void
 ensure_echo_area_buffers ()
@@ -6448,6 +6451,7 @@ setup_echo_area_for_printing (multibyte_p)
 	{
 	  int count = SPECPDL_INDEX ();
 	  specbind (Qinhibit_read_only, Qt);
+	  /* Note that undo recording is always disabled.  */
 	  del_range (BEG, Z);
 	  unbind_to (count, Qnil);
 	}
