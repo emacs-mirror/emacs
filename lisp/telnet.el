@@ -216,16 +216,16 @@ Data is sent to the remote host when RET is typed.
   (use-local-map telnet-mode-map)
   (run-hooks 'telnet-mode-hook))
 
-;;;###autoload (add-hook 'same-window-regexps "\\*[^-]*-rsh\\*\\(\\|<[0-9]*>\\)")
+;;;###autoload (add-hook 'same-window-regexps "\\*rsh-[^-]*\\*\\(\\|<[0-9]*>\\)")
 
 ;;;###autoload
 (defun rsh (host)
   "Open a network login connection to host named HOST (a string).
-Communication with HOST is recorded in a buffer `*HOST-rsh*'.
+Communication with HOST is recorded in a buffer `*rsh-HOST*'.
 Normally input is edited in Emacs and sent a line at a time."
   (interactive "sOpen rsh connection to host: ")
   (require 'shell)
-  (let ((name (concat host "-rsh" )))
+  (let ((name (concat "rsh-" host )))
     (pop-to-buffer (make-comint name remote-shell-program nil host))
     (set-process-filter (get-process name) 'telnet-initial-filter)
     (telnet-mode)
