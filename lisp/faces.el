@@ -598,12 +598,14 @@ set its foreground and background to the default background and foreground."
 	(progn
 	  (set-face-foreground face bg frame)
 	  (set-face-background face fg frame))
-      (set-face-foreground face (or (face-background 'default frame)
-				    (cdr (assq 'background-color (frame-parameters frame))))
-			   frame)
-      (set-face-background face (or (face-foreground 'default frame)
-				    (cdr (assq 'foreground-color (frame-parameters frame))))
-			   frame)))
+      (let* ((frame-bg (cdr (assq 'background-color (frame-parameters frame))))
+	     (default-bg (or (face-background 'default frame)
+			     frame-bg))
+	     (frame-fg (cdr (assq 'foreground-color (frame-parameters frame))))
+	     (default-fg (or (face-foreground 'default frame)
+			     frame-fg)))
+	(set-face-foreground face default-bg frame)
+	(set-face-background face default-fg frame))))
   face)
 
 
