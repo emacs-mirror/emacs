@@ -1,3 +1,8 @@
+2004-04-27  Jesper Harder  <harder@ifa.au.dk>
+
+	* info.el (info-apropos): Make it an index node.  Align node names
+	like makeinfo.
+
 2004-04-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* net/browse-url.el (browse-url-netscape-sentinel)

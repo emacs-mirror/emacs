@@ -2493,14 +2493,18 @@ Build a menu of the possible matches."
 	  (message "No matches found")
 	(with-current-buffer (get-buffer-create " *info-apropos*")
 	  (erase-buffer)
-	  (insert "\n\nFile: apropos, Node: Top, Up: (dir)\n")
+	  (insert "\n\nFile: apropos, Node: Index, Up: (dir)\n")
 	  (insert "* Menu: \nNodes whose indices contain \"" string "\"\n\n")
 	  (dolist (entry matches)
-	    (insert "* " (nth 1 entry) " [" (nth 0 entry)
-                    "]: (" (nth 0 entry) ")" (nth 2 entry) "."
-                    (if (nth 3 entry) (concat " (line " (nth 3 entry) ")") "")
-                    "\n")))
-	(Info-find-node "apropos" "top")
+	    (insert
+	     (format "* %-38s (%s)%s.%s\n"
+		     (concat (nth 1 entry) " [" (nth 0 entry) "]:")
+		     (nth 0 entry)
+		     (nth 2 entry)
+		     (if (nth 3 entry)
+			 (concat " (line " (nth 3 entry) ")")
+		       "")))))
+	(Info-find-node "apropos" "Index")
 	(setq Info-complete-cache nil)))))
 
 (defun Info-undefined ()
