@@ -1,3 +1,8 @@
+2001-02-13  Miles Bader  <miles@gnu.org>
+
+	* faces.el (set-face-background, set-face-foreground) 
+	(set-face-stipple): Treat a value of nil as being `unspecified'.
+
 2001-02-12  Dave Love  <d.love@dl.ac.uk>
 
 	* international/latin1-disp.el:  Doc fixes.
