@@ -2298,7 +2298,7 @@ void free_realized_face P_ ((struct frame *, struct face *));
 extern Lisp_Object Qforeground_color, Qbackground_color;
 extern char unspecified_fg[], unspecified_bg[];
 extern void check_face_attributes P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-extern int generate_ascii_font P_ ((Lisp_Object, Lisp_Object));
+extern Lisp_Object generate_ascii_font P_ ((Lisp_Object, Lisp_Object));
 
 /* Defined in xfns.c  */
 
