@@ -1,3 +1,8 @@
+2002-02-21  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* toolbar/tool-bar.el (tool-bar-mode): Revert the :init-value to
+	nil, and then explicitly set the standard-value to t.
+
 2002-02-20  Sam Steingold  <sds@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-mode): Autoload the variable

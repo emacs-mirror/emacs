@@ -47,7 +47,7 @@ With numeric ARG, display the tool bar if and only if ARG is positive.
 
 See `tool-bar-add-item' and `tool-bar-add-item-from-menu' for
 conveniently adding tool bar items."
-  :init-value t
+  :init-value nil
   :global t
   :group 'mouse
   :group 'frames
@@ -67,6 +67,17 @@ conveniently adding tool bar items."
 		(display-graphic-p)
 		(= 1 (length (default-value 'tool-bar-map)))) ; not yet setup
 	   (tool-bar-setup))))
+
+;;;###autoload
+;; We want to pretend the toolbar by standard is on, as this will make
+;; customize consider disabling the toolbar a customization, and save
+;; that.  We could do this for real by setting :init-value above, but
+;; that would turn on the toolbar in MS Windows where it is currently
+;; useless, and it would overwrite disabling the tool bar from X
+;; resources.  If anyone want to implement this in a cleaner way,
+;; please do so.
+;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-21.
+(put 'tool-bar-mode 'standard-value '(t))
 
 (defvar tool-bar-map (make-sparse-keymap)
   "Keymap for the tool bar.
