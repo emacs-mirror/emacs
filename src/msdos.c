@@ -1225,6 +1225,23 @@ static struct dos_keyboard_map fr_keyboard = {
   "  ~#{[|`\\^@]}             œ                              "
 };
 
+/*
+ * Italian keyboard support, country code 39.
+ * '<' 56:3c*0000
+ * '>' 56:3e*0000
+ * added also {,},` as, respectively, AltGr-8, AltGr-9, AltGr-'
+ * Donated by Stefano Brozzi <brozzis@mag00.cedi.unipr.it>
+ */
+static struct dos_keyboard_map it_keyboard = {
+/* 0          1         2         3         4         5     */
+/* 0 123456789012345678901234567890123456789012345678901234 */
+  "\\1234567890'ç  qwertyuiopä+   asdfghjklïÖó   zxcvbnm,.-  ",
+/* 01 23456789012345678901234567890123456789012345678901234 */
+  "|!\"ú$%&/()=?^  QWERTYUIOPÇ*   ASDFGHJKLá¯ı   ZXCVBNM;:_  ",
+/* 0123456789012345678901234567890123456789012345678901234 */
+  "        {}~`             []             @#               "
+};
+
 static struct dos_keyboard_map dk_keyboard = {
 /* 0         1         2         3         4         5      */
 /* 0123456789012345678901234567890123456789012345678901234 */
@@ -1243,6 +1260,7 @@ static struct keyboard_layout_list
 {
   1, &us_keyboard,
   33, &fr_keyboard,
+  39, &it_keyboard,
   45, &dk_keyboard
 };
 
