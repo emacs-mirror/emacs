@@ -40,6 +40,11 @@
 ;; this is what I was using during testing:
 ;; (define-key ctl-x-map "p" 'toggle-save-place)
 
+(defgroup save-place nil
+  "Automatically save place in files."
+  :group 'data)
+
+
 (defvar save-place-alist nil
   "Alist of saved places to go back to when revisiting files.
 Each element looks like (FILENAME . POSITION);
@@ -47,7 +52,7 @@ visiting file FILENAME goes automatically to position POSITION
 rather than the beginning of the buffer.
 This alist is saved between Emacs sessions.")
 
-(defvar save-place nil
+(defcustom save-place nil
   "*Non-nil means automatically save place in each file.
 This means when you visit a file, point goes to the last place
 where it was when you previously visited the same file.
@@ -56,25 +61,37 @@ This variable is automatically buffer-local.
 If you wish your place in any file to always be automatically saved,
 simply put this in your `~/.emacs' file:
 
-\(setq-default save-place t\)")
+\(setq-default save-place t\)"
+  :type 'boolean
+  :group 'save-place)
 
 (make-variable-buffer-local 'save-place)
 
-(defvar save-place-file (convert-standard-filename "~/.emacs-places")
-  "*Name of the file that records `save-place-alist' value.")
+(defcustom save-place-file (convert-standard-filename "~/.emacs-places")
+  "*Name of the file that records `save-place-alist' value."
+  :type 'file
+  :group 'save-place)
 
-(defvar save-place-version-control 'nospecial
+(defcustom save-place-version-control 'nospecial
   "*Controls whether to make numbered backups of master save-place file.
 It can have four values: t, nil, `never', and `nospecial'.  The first
 three have the same meaning that they do for the variable
 `version-control', and the final value `nospecial' means just use the
-value of `version-control'.")
+value of `version-control'."
+  :type '(radio (const :tag "Unconditionally" t)
+		(const :tag "For VC Files" nil)
+		(const never)
+		(const :tag "Use value of version-control" nospecial))
+  :group 'save-place)
 
 (defvar save-place-loaded nil
   "Non-nil means that the `save-place-file' has been loaded.")
 
-(defvar save-place-limit nil
-  "Maximum number of entries to retain in the list; nil means no limit.")
+(defcustom save-place-limit nil
+  "Maximum number of entries to retain in the list; nil means no limit."
+  :type '(choice (integer :tag "Entries" :value 1)
+		 (const :tag "No Limit" nil))
+  :group 'save-place)
 
 (defun toggle-save-place (&optional parg)
   "Toggle whether to save your place in this file between sessions.
