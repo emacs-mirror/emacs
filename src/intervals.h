@@ -207,6 +207,7 @@ extern Lisp_Object Vinhibit_point_motion_hooks;
 /* Sticky properties */
 extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
+extern Lisp_Object Fget_char_property (), Fget_text_property ();
 extern Lisp_Object Ftext_properties_at ();
 extern Lisp_Object Fnext_property_change (), Fprevious_property_change ();
 extern Lisp_Object Fadd_text_properties (), Fset_text_properties ();
