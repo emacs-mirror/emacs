@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, extensions, faces, hypermedia
-;; Version: 1.9904
+;; Version: 1.9905
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -54,7 +54,7 @@
   :tag-glyph :off-glyph :on-glyph :valid-regexp
   :secret :sample-face :sample-face-get :case-fold 
   :create :convert-widget :format :value-create :offset :extra-offset
-  :tag :doc :from :to :args :value :value-from :value-to :action
+  :tag :doc :from :to :args :value :action
   :value-set :value-delete :match :parent :delete :menu-tag-get
   :value-get :choice :void :menu-tag :on :off :on-type :off-type
   :notify :entry-format :button :children :buttons :insert-before

@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
-;; Version: 1.9904
+;; Version: 1.9905
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -901,7 +901,6 @@ This button will have a menu with all three reset operations."
   (custom-mode)
   (widget-insert "This is a customization buffer.
 Push RET or click mouse-2 on the word ")
-  ;; (put-text-property 1 2 'start-open nil)
   (widget-create 'info-link 
 		 :tag "help"
 		 :help-echo "Read the online help."
@@ -981,14 +980,6 @@ Make the modifications default for future sessions."
   (message "Creating customization setup...")
   (widget-setup)
   (goto-char (point-min))
-  (when (fboundp 'map-extents)  
-    ;; This horrible kludge should make bob and eob read-only in XEmacs.
-    (map-extents (lambda (extent &rest junk)
-		   (set-extent-property extent 'start-closed t))
-		 nil (point-min) (1+ (point-min)))
-    (map-extents (lambda (extent &rest junk)
-		   (set-extent-property extent 'end-closed t))
-		 nil (1- (point-max)) (point-max)))
   (message "Creating customization buffer...done"))
 
 ;;; Modification of Basic Widgets.
@@ -1312,11 +1303,12 @@ and `face'."
 
 (defun custom-notify (widget &rest args)
   "Keep track of changes."
-  (unless (memq (widget-get widget :custom-state) '(nil unknown hidden))
-    (widget-put widget :custom-state 'modified))
-  (let ((buffer-undo-list t))
-    (custom-magic-reset widget))
-  (apply 'widget-default-notify widget args))
+  (let ((state (widget-get widget :custom-state)))
+    (unless (eq state 'modified)
+      (unless (memq state '(nil unknown hidden))
+	(widget-put widget :custom-state 'modified))
+      (custom-magic-reset widget)
+      (apply 'widget-default-notify widget args))))
 
 (defun custom-redraw (widget)
   "Redraw WIDGET with current settings."

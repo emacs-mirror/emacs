@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.97
+;; Version: 1.9905
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -92,9 +92,9 @@ if that value is non-nil."
 (defun widget-browse-at (pos)
   "Browse the widget under point."
   (interactive "d")
-  (let* ((field (get-text-property pos 'field))
-	 (button (get-text-property pos 'button))
-	 (doc (get-text-property pos 'widget-doc))
+  (let* ((field (get-char-property pos 'field))
+	 (button (get-char-property pos 'button))
+	 (doc (get-char-property pos 'widget-doc))
 	 (text (cond (field "This is an editable text area.")
 		     (button "This is an active area.")
 		     (doc "This is documentation text.")

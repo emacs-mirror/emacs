@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.9904
+;; Version: 1.9905
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -44,26 +44,6 @@
 	(require 'overlay)
       (error (load-library "x-overlay"))))
   
-  (if (string-match "XEmacs" emacs-version)
-      ;; XEmacs spell `intangible' as `atomic'.
-      (defun widget-make-intangible (from to side)
-	"Make text between FROM and TO atomic with regard to movement.
-Third argument should be `start-open' if it should be sticky to the rear,
-and `end-open' if it should sticky to the front."
-	(require 'atomic-extents)
-	(let ((ext (make-extent from to)))
-	   ;; XEmacs doesn't understant different kinds of read-only, so
-	   ;; we have to use extents instead.  
-	  (put-text-property from to 'read-only nil)
-	  (set-extent-property ext 'read-only t)
-	  (set-extent-property ext 'start-open nil)
-	  (set-extent-property ext 'end-open nil)
-	  (set-extent-property ext side t)
-	  (set-extent-property ext 'atomic t)))
-    (defun widget-make-intangible (from to size)
-      "Make text between FROM and TO intangible."
-      (put-text-property from to 'intangible 'front)))
-	  
   (if (string-match "XEmacs" emacs-version)
       (defun widget-event-point (event)
 	"Character position of the end of event if that exists, or nil."
@@ -274,122 +254,46 @@ minibuffer."
 (defun widget-specify-text (from to)
   ;; Default properties.
   (add-text-properties from to (list 'read-only t
-				     ;; Emacs is sticky.
 				     'front-sticky t
 				     'rear-nonsticky nil
-				     ;; XEmacs is non-sticky.
-				     'start-open t
-				     'end-open t
-				     ;; This is because `insert'
-				     ;; inherit sticky text properties
-				     ;; in XEmacs but not in Emacs. 
-				     )))
+				     'start-open nil
+				     'end-open nil)))
 
 (defun widget-specify-field (widget from to)
-  ;; Specify editable button for WIDGET between FROM and TO.
-  (widget-specify-field-update widget from to)
-
-  ;; Make it possible to edit the front end of the field.
-  (add-text-properties (1- from) from (list 'rear-nonsticky t
-					      'end-open t
-					      'invisible t))
-  (when (or (string-match "\\(.\\|\n\\)%v" (widget-get widget :format))
-	    (widget-get widget :hide-front-space))
-    ;; WARNING: This is going to lose horrible if the character just
-    ;; before the field can be modified (e.g. if it belongs to a
-    ;; choice widget).  We try to compensate by checking the format
-    ;; string, and hope the user hasn't changed the :create method.
-    (widget-make-intangible (- from 2) from 'end-open))
-  
-  ;; Make it possible to edit back end of the field.
-  (add-text-properties to (1+ to) (list 'front-sticky nil
-					'read-only t
-					'start-open t))
-
-  (cond ((widget-get widget :size)
-	 (put-text-property to (1+ to) 'invisible t)
-	 (when (or (string-match "%v\\(.\\|\n\\)" (widget-get widget :format))
-		   (widget-get widget :hide-rear-space))
-	   ;; WARNING: This is going to lose horrible if the character just
-	   ;; after the field can be modified (e.g. if it belongs to a
-	   ;; choice widget).  We try to compensate by checking the format
-	   ;; string, and hope the user hasn't changed the :create method.
-	   (widget-make-intangible to (+ to 2) 'start-open)))
-	((string-match "XEmacs" emacs-version)
-	 ;; XEmacs does not allow you to insert before a read-only
-	 ;; character, even if it is start.open.
-	 ;; XEmacs does allow you to delete an read-only extent, so
-	 ;; making the terminating newline read only doesn't help.
-	 ;; I tried putting an invisible intangible read-only space
-	 ;; before the newline, which gave really weird effects.
-	 ;; So for now, we just have trust the user not to delete the
-	 ;; newline.  
-	 (put-text-property to (1+ to) 'read-only nil))))
-
-(defun widget-specify-field-update (widget from to)
-  ;; Specify editable button for WIDGET between FROM and TO.
+  "Specify editable button for WIDGET between FROM and TO."
+  (put-text-property from to 'read-only nil)
+  (add-text-properties (1- from) from 
+		       '(rear-nonsticky t end-open t read-only from))
+  (add-text-properties to (1+ to) 
+		       '(front-sticky nil start-open t read-only to))
   (let ((map (widget-get widget :keymap))
-	(secret (widget-get widget :secret))
-	(secret-to to)
-	(size (widget-get widget :size))
-	(face (or (widget-get widget :value-face)
-		  'widget-field-face))
-	(help-echo (widget-get widget :help-echo)))
+	(face (or (widget-get widget :value-face) 'widget-field-face))
+	(help-echo (widget-get widget :help-echo))
+	(overlay (make-overlay from to nil nil t)))
     (unless (or (stringp help-echo) (null help-echo))
-      (setq help-echo 'widget-mouse-help))
+      (setq help-echo 'widget-mouse-help))    
+    (widget-put widget :field-overlay overlay)
+    (overlay-put overlay 'detachable nil)
+    (overlay-put overlay 'field widget)
+    (overlay-put overlay 'local-map map)
+    (overlay-put overlay 'keymap map)
+    (overlay-put overlay 'face face)
+    (overlay-put overlay 'balloon-help help-echo)
+    (overlay-put overlay 'help-echo help-echo)))
 
-    (when secret 
-      (while (and size
-		  (not (zerop size))
-		  (> secret-to from)
-		  (eq (char-after (1- secret-to)) ?\ ))
-	(setq secret-to (1- secret-to)))
-
-      (save-excursion
-	(goto-char from)
-	(while (< (point) secret-to)
-	  (let ((old (get-text-property (point) 'secret)))
-	    (when old
-	      (subst-char-in-region (point) (1+ (point)) secret old)))
-	  (forward-char))))
-
-    (set-text-properties from to (list 'field widget
-				       'read-only nil
-				       'keymap map
-				       'local-map map
-				       'balloon-help help-echo
-				       'help-echo help-echo
-				       'face face))
-    
-    (when secret 
-      (save-excursion
-	(goto-char from)
-	(while (< (point) secret-to)
-	  (let ((old (following-char)))
-	    (subst-char-in-region (point) (1+ (point)) old secret)
-	    (put-text-property (point) (1+ (point)) 'secret old))
-	  (forward-char))))
-
-    (unless (widget-get widget :size)
-      (add-text-properties to (1+ to) (list 'field widget
-					    'balloon-help help-echo
-					    'help-echo help-echo
-					    'face face)))
-    (add-text-properties to (1+ to) (list 'local-map map
-					  'keymap map))))
 (defun widget-specify-button (widget from to)
-  ;; Specify button for WIDGET between FROM and TO.
+  "Specify button for WIDGET between FROM and TO."
   (let ((face (widget-apply widget :button-face-get))
-	(help-echo (widget-get widget :help-echo)))
+	(help-echo (widget-get widget :help-echo))
+	(overlay (make-overlay from to nil t nil)))
+    (widget-put widget :button-overlay overlay)
     (unless (or (null help-echo) (stringp help-echo))
       (setq help-echo 'widget-mouse-help))
-    (add-text-properties from to (list 'button widget
-				       'mouse-face widget-mouse-face
-				       'start-open t
-				       'end-open t
-				       'balloon-help help-echo
-				       'help-echo help-echo
-				       'face face))))
+    (overlay-put overlay 'button widget)
+    (overlay-put overlay 'mouse-face widget-mouse-face)
+    (overlay-put overlay 'balloon-help help-echo)
+    (overlay-put overlay 'help-echo help-echo)
+    (overlay-put overlay 'face face)))
 
 (defun widget-mouse-help (extent)
   "Find mouse help string for button in extent."
@@ -532,9 +436,10 @@ ARGS are passed as extra arguments to the function."
 
 (defun widget-apply-action (widget &optional event)
   "Apply :action in WIDGET in response to EVENT."
-  (if (widget-apply widget :active)
-      (widget-apply widget :action event)
-    (error "Attempt to perform action on inactive widget")))
+  (let (after-change-functions)
+    (if (widget-apply widget :active)
+	(widget-apply widget :action event)
+      (error "Attempt to perform action on inactive widget"))))
 
 ;;; Helper functions.
 ;;
@@ -857,7 +762,7 @@ Recommended as a parent keymap for modes using widgets.")
 (defun widget-field-activate (pos &optional event)
   "Invoke the ediable field at point."
   (interactive "@d")
-  (let ((field (get-text-property pos 'field)))
+  (let ((field (get-char-property pos 'field)))
     (if field
 	(widget-apply-action field event)
       (call-interactively
@@ -879,15 +784,15 @@ Recommended as a parent keymap for modes using widgets.")
 	 (widget-glyph-click event))
 	((widget-event-point event)
 	 (let* ((pos (widget-event-point event))
-		(button (get-text-property pos 'button)))
+		(button (get-char-property pos 'button)))
 	   (if button
-	       (let ((begin (previous-single-property-change (1+ pos) 'button))
-		     (end (next-single-property-change pos 'button))
-		     overlay)
+	       (let* ((overlay (widget-get button :button-overlay))
+		      (face (overlay-get overlay 'face))
+		      (mouse-face (overlay-get overlay 'face)))
 		 (unwind-protect
 		     (let ((track-mouse t))
-		       (setq overlay (make-overlay begin end))
-		       (overlay-put overlay 'face 'widget-button-pressed-face)
+		       (overlay-put overlay
+				    'face 'widget-button-pressed-face)
 		       (overlay-put overlay 
 				    'mouse-face 'widget-button-pressed-face)
 		       (unless (widget-apply button :mouse-down-action event)
@@ -897,7 +802,7 @@ Recommended as a parent keymap for modes using widgets.")
 					 (next-event))
 				 pos (widget-event-point event))
 			   (if (and pos
-				    (eq (get-text-property pos 'button)
+				    (eq (get-char-property pos 'button)
 					button))
 			       (progn 
 				 (overlay-put overlay 
@@ -906,13 +811,13 @@ Recommended as a parent keymap for modes using widgets.")
 				 (overlay-put overlay 
 					      'mouse-face 
 					      'widget-button-pressed-face))
-			     (overlay-put overlay 'face nil)
-			     (overlay-put overlay 'mouse-face nil))))
-		       
+			     (overlay-put overlay 'face face)
+			     (overlay-put overlay 'mouse-face mouse-face))))
 		       (when (and pos 
-				  (eq (get-text-property pos 'button) button))
+				  (eq (get-char-property pos 'button) button))
 			 (widget-apply-action button event)))
-		   (delete-overlay overlay)))
+		   (overlay-put overlay 'face face)
+		   (overlay-put overlay 'mouse-face mouse-face)))
 	     (call-interactively 
 	      (or (lookup-key widget-global-map [ button2 ])
 		  (lookup-key widget-global-map [ down-mouse-2 ])
@@ -958,7 +863,7 @@ Recommended as a parent keymap for modes using widgets.")
 (defun widget-button-press (pos &optional event)
   "Invoke button at POS."
   (interactive "@d")
-  (let ((button (get-text-property pos 'button)))
+  (let ((button (get-char-property pos 'button)))
     (if button
 	(widget-apply-action button event)
       (let ((command (lookup-key widget-global-map (this-command-keys))))
@@ -968,79 +873,47 @@ Recommended as a parent keymap for modes using widgets.")
 (defun widget-move (arg)
   "Move point to the ARG next field or button.
 ARG may be negative to move backward."
-  (while (> arg 0)
-    (setq arg (1- arg))
-    (let ((next (cond ((get-text-property (point) 'button)
-		       (next-single-property-change (point) 'button))
-		      ((get-text-property (point) 'field)
-		       (next-single-property-change (point) 'field))
-		      (t
-		       (point)))))
-      (if (null next)			; Widget extends to end. of buffer
-	  (setq next (point-min)))
-      (let ((button (next-single-property-change next 'button))
-	    (field (next-single-property-change next 'field)))
-	(cond ((or (get-text-property next 'button)
-		   (get-text-property next 'field))
-	       (goto-char next))
-	      ((and button field)
-	       (goto-char (min button field)))
-	      (button (goto-char button))
-	      (field (goto-char field))
-	      (t
-	       (let ((button (next-single-property-change (point-min) 'button))
-		     (field (next-single-property-change (point-min) 'field)))
-		 (cond ((and button field) (goto-char (min button field)))
-		       (button (goto-char button))
-		       (field (goto-char field))
-		       (t
-			(error "No buttons or fields found"))))))
-	(setq button (widget-at (point)))
-	(if (or (and button (widget-get button :tab-order)
-		     (< (widget-get button :tab-order) 0))
-		(and button (not (widget-apply button :active))))
-	    (setq arg (1+ arg))))))
-  (while (< arg 0)
-    (if (= (point-min) (point))
+  (or (bobp) (> arg 0) (backward-char))
+  (let ((pos)
+	(number arg)
+	(old (or (get-char-property (point) 'button)
+		 (get-char-property (point) 'field)))
+	new)
+    ;; Forward.
+    (while (> arg 0)
+      (if (eobp)
+	  (goto-char (point-min))
 	(forward-char 1))
-    (setq arg (1+ arg))
-    (let ((previous (cond ((get-text-property (1- (point)) 'button)
-			   (previous-single-property-change (point) 'button))
-			  ((get-text-property (1- (point)) 'field)
-			   (previous-single-property-change (point) 'field))
-			  (t
-			   (point)))))
-      (if (null previous)		; Widget extends to beg. of buffer
-	  (setq previous (point-max)))
-      (let ((button (previous-single-property-change previous 'button))
-	    (field (previous-single-property-change previous 'field)))
-	(cond ((and button field)
-	       (goto-char (max button field)))
-	      (button (goto-char button))
-	      (field (goto-char field))
-	      (t
-	       (let ((button (previous-single-property-change
-			      (point-max) 'button))
-		     (field (previous-single-property-change
-			     (point-max) 'field)))
-		 (cond ((and button field) (goto-char (max button field)))
-		       (button (goto-char button))
-		       (field (goto-char field))
-		       (t
-			(error "No buttons or fields found"))))))))
-    (let ((button (previous-single-property-change (point) 'button))
-	  (field (previous-single-property-change (point) 'field)))
-      (cond ((and button field)
-	     (goto-char (max button field)))
-	    (button (goto-char button))
-	    (field (goto-char field)))
-      (setq button (widget-at (point)))
-      (if (or (and button (widget-get button :tab-order)
-		   (< (widget-get button :tab-order) 0))
-	      (and button (not (widget-apply button :active))))
-	  (setq arg (1- arg)))))
-  (widget-echo-help (point))
-  (run-hooks 'widget-move-hook))
+      (and (eq pos (point))
+	   (eq arg number)
+	   (error "No buttons or fields found"))
+      (let ((new (or (get-char-property (point) 'button)
+		     (get-char-property (point) 'field))))
+	(when new
+	  (unless (eq new old)
+	    (unless (and (widget-get new :tab-order)
+			 (< (widget-get new :tab-order) 0))
+	      (setq arg (1- arg)))
+	    (setq old new)))))
+    ;; Backward.
+    (while (< arg 0)
+      (if (bobp)
+	  (goto-char (point-max))
+	(backward-char 1))
+      (and (eq pos (point))
+	   (eq arg number)
+	   (error "No buttons or fields found"))
+      (let ((new (or (get-char-property (point) 'button)
+		     (get-char-property (point) 'field))))
+	(when new
+	  (unless (eq new old)
+	    (unless (and (widget-get new :tab-order)
+			 (< (widget-get new :tab-order) 0))
+	      (setq arg (1+ arg)))))))
+    (while  (or (get-char-property (point) 'button)
+		(get-char-property (point) 'field))
+      (backward-char))
+    (forward-char)))
 
 (defun widget-forward (arg)
   "Move point to the next field or button.
@@ -1073,7 +946,7 @@ With optional ARG, move across that many fields."
 (defun widget-kill-line ()
   "Kill to end of field or end of line, whichever is first."
   (interactive)
-  (let ((field (get-text-property (point) 'field))
+  (let ((field (get-char-property (point) 'field))
 	(newline (save-excursion (forward-line 1)))
 	(next (next-single-property-change (point) 'field)))
     (if (and field (> newline next))
@@ -1099,15 +972,15 @@ With optional ARG, move across that many fields."
       (setq field (car widget-field-new)
 	    widget-field-new (cdr widget-field-new)
 	    widget-field-list (cons field widget-field-list))
-      (let ((from (widget-get field :value-from))
-	    (to (widget-get field :value-to)))
+      (let ((from (car (widget-get field :field-overlay)))
+	    (to (cdr (widget-get field :field-overlay))))
 	(widget-specify-field field from to)
-	(move-marker from (1- from))
-	(move-marker to (1+ to)))))
+	(set-marker from nil)
+	(set-marker to nil))))
   (widget-clear-undo)
   ;; We need to maintain text properties and size of the editing fields.
   (make-local-variable 'after-change-functions)
-  (if widget-field-list
+  (if (and widget-field-list)
       (setq after-change-functions '(widget-after-change))
     (setq after-change-functions nil)))
 
@@ -1119,63 +992,66 @@ With optional ARG, move across that many fields."
 ;; The widget data before the change.
 (make-variable-buffer-local 'widget-field-was)
 
+(defun widget-field-buffer (widget)
+  "Return the start of WIDGET's editing field."
+  (overlay-buffer (widget-get widget :field-overlay)))
+
+(defun widget-field-start (widget)
+  "Return the start of WIDGET's editing field."
+  (overlay-start (widget-get widget :field-overlay)))
+
+(defun widget-field-end (widget)
+  "Return the end of WIDGET's editing field."
+  (overlay-end (widget-get widget :field-overlay)))
+
 (defun widget-field-find (pos)
-  ;; Find widget whose editing field is located at POS.
-  ;; Return nil if POS is not inside and editing field.
-  ;; 
-  ;; This is only used in `widget-field-modified', since ordinarily
-  ;; you would just test the field property.
+  "Return the field at POS.
+Unlike (get-char-property POS 'field) this, works with empty fields too."
   (let ((fields widget-field-list)
 	field found)
     (while fields
       (setq field (car fields)
 	    fields (cdr fields))
-      (let ((from (widget-get field :value-from))
-	    (to (widget-get field :value-to)))
-	(if (and from to (< from pos) (> to  pos))
-	    (setq fields nil
-		  found field))))
+      (let ((start (widget-field-start field))
+	    (end (widget-field-end field)))
+	(when (and (<= start pos) (<= pos end))
+	  (when found
+	    (debug "Overlapping fields"))
+	  (setq found field))))
     found))
 
 (defun widget-after-change (from to old)
   ;; Adjust field size and text properties.
   (condition-case nil
       (let ((field (widget-field-find from))
-	    (inhibit-read-only t))
-	(cond ((null field))
-	      ((not (eq field (widget-field-find to)))
-	       (debug)
-	       (message "Error: `widget-after-change' called on two fields"))
-	      (t
-	       (let ((size (widget-get field :size)))
-		 (if size 
-		     (let ((begin (1+ (widget-get field :value-from)))
-			   (end (1- (widget-get field :value-to))))
-		       (widget-specify-field-update field begin end)
-		       (cond ((< (- end begin) size)
-			      ;; Field too small.
-			      (save-excursion
-				(goto-char end)
-				(insert-char ?\  (- (+ begin size) end))
-				(widget-specify-field-update field 
-							     begin
-							     (+ begin size))))
-			     ((> (- end begin) size)
-			      ;; Field too large and
-			      (if (or (< (point) (+ begin size))
-				      (> (point) end))
-				  ;; Point is outside extra space.
-				  (setq begin (+ begin size))
-				;; Point is within the extra space.
-				(setq begin (point)))
-			      (save-excursion
-				(goto-char end)
-				(while (and (eq (preceding-char) ?\ )
-					    (> (point) begin))
-				  (delete-backward-char 1))))))
-		   (widget-specify-field-update field from to)))
-	       (widget-apply field :notify field))))
-    (error (debug))))
+	    (other (widget-field-find to)))
+	(when field
+	  (unless (eq field other)
+	    (debug "Change in different fields"))
+	  (let ((size (widget-get field :size)))
+	    (when size 
+	      (let ((begin (widget-field-start field))
+		    (end (widget-field-end field)))
+		(cond ((< (- end begin) size)
+		       ;; Field too small.
+		       (save-excursion
+			 (goto-char end)
+			 (insert-char ?\  (- (+ begin size) end))))
+		      ((> (- end begin) size)
+		       ;; Field too large and
+		       (if (or (< (point) (+ begin size))
+			       (> (point) end))
+			   ;; Point is outside extra space.
+			   (setq begin (+ begin size))
+			 ;; Point is within the extra space.
+			 (setq begin (point)))
+		       (save-excursion
+			 (goto-char end)
+			 (while (and (eq (preceding-char) ?\ )
+				     (> (point) begin))
+			   (delete-backward-char 1))))))))
+	  (widget-apply field :notify field)))
+    (error (debug "After Change"))))
 
 ;;; Widget Functions
 ;;
@@ -1370,8 +1246,8 @@ Optional EVENT is the event that triggered the action."
 	(to (widget-get widget :to))
 	(inactive-overlay (widget-get widget :inactive))
 	(button-overlay (widget-get widget :button-overlay))
-	(inhibit-read-only t)
-	after-change-functions)
+	after-change-functions
+	(inhibit-read-only t))
     (widget-apply widget :value-delete)
     (when inactive-overlay
       (delete-overlay inactive-overlay))
@@ -1469,15 +1345,14 @@ Optional EVENT is the event that triggered the action."
 (defun widget-sublist (list start &optional end)
   "Return the sublist of LIST from START to END.
 If END is omitted, it defaults to the length of LIST."
-  (let (len)
-    (if (> start 0) (setq list (nthcdr start list)))
-    (if end
-	(if (<= end start)
-	    nil
-	  (setq list (copy-sequence list))
-	  (setcdr (nthcdr (- end start 1) list) nil)
-	  list)
-      (copy-sequence list))))
+  (if (> start 0) (setq list (nthcdr start list)))
+  (if end
+      (if (<= end start)
+	  nil
+	(setq list (copy-sequence list))
+	(setcdr (nthcdr (- end start 1) list) nil)
+	list)
+    (copy-sequence list)))
 
 (defun widget-item-action (widget &optional event)
   ;; Just notify itself.
@@ -1631,8 +1506,8 @@ If END is omitted, it defaults to the length of LIST."
 		   (widget-value widget))))
       (let ((answer (widget-apply widget :prompt-value prompt value invalid) ))
 	(widget-value-set widget answer)))
-    (widget-apply widget :notify widget event)
-    (widget-setup)))
+    (widget-setup)
+    (widget-apply widget :notify widget event)))
 
 (defun widget-field-validate (widget)
   ;; Valid if the content matches `:valid-regexp'.
@@ -1645,47 +1520,43 @@ If END is omitted, it defaults to the length of LIST."
 
 (defun widget-field-value-create (widget)
   ;; Create an editable text field.
-  (insert " ")
   (let ((size (widget-get widget :size))
 	(value (widget-get widget :value))
-	(from (point)))
+	(from (point))
+	(overlay (cons (make-marker) (make-marker))))
+    (widget-put widget :field-overlay overlay)
     (insert value)
     (and size
 	 (< (length value) size)
 	 (insert-char ?\  (- size (length value))))
     (unless (memq widget widget-field-list)
       (setq widget-field-new (cons widget widget-field-new)))
-    (widget-put widget :value-to (copy-marker (point)))
-    (set-marker-insertion-type (widget-get widget :value-to) nil)
-    (if (null size)
-	(insert ?\n)
-      (insert ?\ ))
-    (widget-put widget :value-from (copy-marker from))
-    (set-marker-insertion-type (widget-get widget :value-from) t)))
+    (move-marker (cdr overlay) (point))
+    (set-marker-insertion-type (cdr overlay) nil)
+    (when (null size)
+      (insert ?\n))
+    (move-marker (car overlay) from)
+    (set-marker-insertion-type (car overlay) t)))
 
 (defun widget-field-value-delete (widget)
   ;; Remove the widget from the list of active editing fields.
   (setq widget-field-list (delq widget widget-field-list))
   ;; These are nil if the :format string doesn't contain `%v'.
-  (when (widget-get widget :value-from)
-    (set-marker (widget-get widget :value-from) nil))
-  (when (widget-get widget :value-from)
-    (set-marker (widget-get widget :value-to) nil))
-  (when (widget-get widget :field-overlay)
-    (delete-overlay (widget-get widget :field-overlay))))
+  (let ((overlay (widget-get widget :field-overlay)))
+    (when overlay
+      (delete-overlay overlay))))
 
 (defun widget-field-value-get (widget)
   ;; Return current text in editing field.
-  (let ((from (widget-get widget :value-from))
-	(to (widget-get widget :value-to))
+  (let ((from (widget-field-start widget))
+	(to (widget-field-end widget))
+	(buffer (widget-field-buffer widget))
 	(size (widget-get widget :size))
 	(secret (widget-get widget :secret))
 	(old (current-buffer)))
     (if (and from to)
 	(progn 
-	  (set-buffer (marker-buffer from))
-	  (setq from (1+ from)
-		to (1- to))
+	  (set-buffer buffer)
 	  (while (and size
 		      (not (zerop size))
 		      (> to from)
@@ -1696,7 +1567,7 @@ If END is omitted, it defaults to the length of LIST."
 	      (let ((index 0))
 		(while (< (+ from index) to)
 		  (aset result index
-			(get-text-property (+ from index) 'secret))
+			(get-char-property (+ from index) 'secret))
 		  (setq index (1+ index)))))
 	    (set-buffer old)
 	    result))
@@ -1830,8 +1701,8 @@ when he invoked the menu."
       (widget-value-set widget 
 			(widget-apply current :value-to-external
 				      (widget-get current :value)))
-      (widget-apply widget :notify widget event)
-      (widget-setup))))
+      (widget-setup)
+      (widget-apply widget :notify widget event))))
 
 (defun widget-choice-validate (widget)
   ;; Valid if we have made a valid choice.
@@ -2380,7 +2251,7 @@ when he invoked the menu."
 	    (setq children (cdr children)))
 	  (setcdr children (cons child (cdr children)))))))
   (widget-setup)
- widget (widget-apply widget :notify widget))
+  (widget-apply widget :notify widget))
 
 (defun widget-editable-list-delete-at (widget child)
   ;; Delete child from list of children.
@@ -2667,8 +2538,8 @@ It will read a file name from the minibuffer when invoked."
 	 (answer (read-file-name (concat menu-tag ": (default `" value "') ")
 				 dir nil must-match file)))
     (widget-value-set widget (abbreviate-file-name answer))
-    (widget-apply widget :notify widget event)
-    (widget-setup)))
+    (widget-setup)
+    (widget-apply widget :notify widget event)))
 
 (define-widget 'directory 'file
   "A directory widget.  
@@ -3013,8 +2884,8 @@ It will read a directory name from the minibuffer when invoked."
 			(read-string prompt (widget-value widget))))))
     (unless (zerop (length answer))
       (widget-value-set widget answer)
-      (widget-apply widget :notify widget event)
-      (widget-setup))))
+      (widget-setup)
+      (widget-apply widget :notify widget event))))
 
 ;;; The Help Echo
 
@@ -3052,8 +2923,8 @@ Enable with (run-with-idle-timer 1 t 'widget-echo-help-mouse)"
 
 (defun widget-at (pos)
   "The button or field at POS."
-  (or (get-text-property pos 'button)
-      (get-text-property pos 'field)))
+  (or (get-char-property pos 'button)
+      (get-char-property pos 'field)))
 
 (defun widget-echo-help (pos)
   "Display the help echo for widget at POS."
