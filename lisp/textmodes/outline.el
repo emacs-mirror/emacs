@@ -248,14 +248,14 @@ See the command `outline-mode' for more information on this mode."
 	(make-local-variable 'line-move-ignore-invisible)
 	(setq line-move-ignore-invisible t)
 	;; Cause use of ellipses for invisible text.
-	(setq buffer-invisibility-spec '((t . t))))
-    (run-hooks 'outline-minor-mode-hook)
+	(setq buffer-invisibility-spec '((t . t)))
+	(run-hooks 'outline-minor-mode-hook))
     (setq line-move-ignore-invisible nil)
     ;; Cause use of ellipses for invisible text.
     (setq buffer-invisibility-spec t))
-  ;; When turning off outline mode, get rid of any invisible props.
+  ;; When turning off outline mode, get rid of any outline hiding.
   (or outline-minor-mode
-      (outline-flag-region (point-min) (point-max) nil))
+      (show-all))
   (set-buffer-modified-p (buffer-modified-p)))
 
 (defvar outline-level 'outline-level
@@ -288,7 +288,7 @@ at the end of the buffer."
 (defun outline-next-heading ()
   "Move to the next (possibly invisible) heading line."
   (interactive)
-  (if (re-search-forward (concat "^\\(" outline-regexp "\\)")
+  (if (re-search-forward (concat "\n\\(" outline-regexp "\\)")
 			 nil 'move)
       (goto-char (1+ (match-beginning 0)))))
 
@@ -363,6 +363,11 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 	    (overlay-put o 'invisible flag)
 	    (overlay-put o 'outline t))))))
 
+;; Exclude from the region BEG ... END all overlays
+;; with a non-nil PROP property.
+;; Exclude them by shrinking them to exclude BEG ... END,
+;; or even by splitting them if necessary.
+;; Overlays without a non-nil PROP property are not touched.
 (defun outline-discard-overlays (beg end prop)
   (if (< end beg)
       (setq beg (prog1 end (setq end beg))))
@@ -387,8 +392,10 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 	  (setq overlays (cdr overlays))))
       (goto-char (next-overlay-change (point))))))
 
+;; Make a copy of overlay O, with the same beginning, end and properties.
 (defun outline-copy-overlay (o)
-  (let ((o1 (make-overlay (overlay-start o) (overlay-end o)))
+  (let ((o1 (make-overlay (overlay-start o) (overlay-end o)
+			  (overlay-buffer o)))
 	(props (overlay-properties o)))
     (while props
       (overlay-put o1 (car props) (nth 1 props))
