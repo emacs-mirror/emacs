@@ -831,7 +831,11 @@ Commands for sorting the summary:
   "Scroll the Rmail window forward."
   (interactive "P")
   (let ((other-window-scroll-buffer rmail-buffer))
-    (scroll-other-window dist)))
+    (if (get-buffer-window rmail-buffer)
+	(scroll-other-window dist)
+      ;; This forces rmail-buffer to be sized correctly later.
+      (display-buffer rmail-buffer)
+      (setq rmail-current-message nil))))
 
 (defun rmail-summary-scroll-msg-down (&optional dist)
   "Scroll the Rmail window backward."
