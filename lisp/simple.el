@@ -2804,18 +2804,21 @@ not end the comment.  Blank lines do not get comments."
 	(goto-char beg)
 	(if (or (eq numarg t) (< numarg 0))
 	    (while (not (eobp))
-	      (progn
+	      (let (found-comment)
 		;; Delete comment start from beginning of line.
 		(if (eq numarg t)
 		    (while (looking-at (regexp-quote cs))
+		      (setq found-comment t)
 		      (delete-char (length cs)))
 		  (let ((count numarg))
 		    (while (and (> 1 (setq count (1+ count)))
 				(looking-at (regexp-quote cs)))
+		      (setq found-comment t)
 		      (delete-char (length cs)))))
 		;; Delete comment padding from beginning of line
-		(when (and comment-padding (looking-at (regexp-quote cp)))
-		    (delete-char comment-padding))
+		(when (and found-comment comment-padding
+			   (looking-at (regexp-quote cp)))
+		  (delete-char comment-padding))
 		;; Delete comment end from end of line.
 		(if (string= "" ce)
 		    nil
