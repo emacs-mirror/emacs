@@ -1,6 +1,6 @@
 ;;; diary.el --- diary functions.
 
-;; Copyright (C) 1989, 1990, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -67,9 +67,7 @@ in the displayed three-month calendar."
   (let ((d-file (substitute-in-file-name diary-file)))
     (if (and d-file (file-exists-p d-file))
         (if (file-readable-p d-file)
-            (list-diary-entries (or (calendar-cursor-to-date)
-                                    (error "Cursor is not on a date!"))
-                                arg)
+            (list-diary-entries (calendar-cursor-to-date t) arg)
           (error "Your diary file is not readable!"))
       (error "You don't have a diary file!"))))
 
@@ -1339,9 +1337,7 @@ ending of that number (that is, `st', `nd', `rd' or `th', as appropriate."
 
 (defun diary-islamic-date ()
   "Islamic calendar equivalent of date diary entry."
-  (let ((i (calendar-islamic-date-string
-            (or (calendar-cursor-to-date)
-                (error "Cursor is not on a date!")))))
+  (let ((i (calendar-islamic-date-string (calendar-cursor-to-date t))))
     (if (string-equal i "")
         "Date is pre-Islamic"
       (format "Islamic date (until sunset): %s" i))))
