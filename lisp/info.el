@@ -1735,7 +1735,7 @@ the variable `Info-file-list-for-emacs'."
 			 (if (> num-matches 2) "ies" "y")
 			 (substitute-command-keys "\\[Info-last]")
 			 (if (> num-matches 2) "them" "it")))))
-      (error "Couldn't find documentation for %s." command))))
+      (error "Couldn't find documentation for %s" command))))
 
 ;;;###autoload
 (defun Info-goto-emacs-key-command-node (key)
