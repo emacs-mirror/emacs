@@ -1,5 +1,11 @@
 2001-10-28  Richard M. Stallman  <rms@gnu.org>
 
+	* textmodes/ispell.el (version18p, version20p): Vars deleted.
+	All uses removed--assume Emacs version is >= 20.
+
+	* mail/supercite.el (sc-emacs-features): Test for "Emacs 19"
+	by really checking that it is not version 18.
+
 	* emacs-lisp/lisp-mode.el (eval-defun): Doc fix.
 
 2001-10-28  Miles Bader  <miles@gnu.org>
