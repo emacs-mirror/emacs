@@ -241,13 +241,22 @@ Keymap for what is displayed by `mode-line-mode-name'.")
 (defvar mode-line-mode-menu-keymap nil "\
 Keymap for mode operations menu in the mode line.")
 
-(defun mode-line-unbury-buffer () "\
+(defun mode-line-unbury-buffer (event) "\
 Switch to the last buffer in the buffer list that is not hidden."
-  (interactive)
-  (let ((list (reverse (buffer-list))))
-    (while (eq (aref (buffer-name (car list)) 0) ? )
-      (setq list (cdr list)))
-    (switch-to-buffer (car list))))
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (let ((list (reverse (buffer-list))))
+      (while (eq (aref (buffer-name (car list)) 0) ? )
+	(setq list (cdr list)))
+      (switch-to-buffer (car list)))))
+
+(defun mode-line-bury-buffer (event) "\
+Like bury-buffer, but temporarily select EVENT's window."
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (bury-buffer)))
 
 (defun mode-line-other-buffer () "\
 Switch to the most recently selected buffer other than the current one."
@@ -334,10 +343,16 @@ Return a string to display in the mode line for the current mode name."
 ;; of the mode line.or header line.
 ;
 (let ((map (make-sparse-keymap)))
+  ;; Bind down- events so that the global keymap won't ``shine
+  ;; through''.
+  (define-key map [mode-line down-mouse-1] 'ignore)
   (define-key map [mode-line mouse-1] 'mode-line-unbury-buffer)
+  (define-key map [header-line down-mouse-1] 'ignore)
   (define-key map [header-line mouse-1] 'mode-line-unbury-buffer)
-  (define-key map [mode-line mouse-3] 'bury-buffer)
-  (define-key map [header-line mouse-3] 'bury-buffer)
+  (define-key map [header-line down-mouse-3] 'ignore)
+  (define-key map [mode-line mouse-3] 'mode-line-bury-buffer)
+  (define-key map [header-line down-mouse-3] 'ignore)
+  (define-key map [header-line mouse-3] 'mode-line-bury-buffer)
   (setq mode-line-buffer-identification-keymap map))
 
 (defun propertized-buffer-identification (fmt)
