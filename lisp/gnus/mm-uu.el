@@ -94,18 +94,6 @@ decoder, such as hexbin."
   "The default disposition of uu parts.
 This can be either \"inline\" or \"attachment\".")
 
-(defcustom mm-uu-configure-list nil
-  "A list of mm-uu configuration.
-To disable dissecting shar codes, for instance, add
-`(shar . disabled)' to this list."
-  :type '(repeat (choice (const :tag "postscript" (postscript . disabled))
-			 (const :tag "uu" (uu . disabled))
-			 (const :tag "binhax" (binhex . disabled))
-			 (const :tag "shar" (shar . disabled))
-			 (const :tag "forward" (forward . disabled))))
-  :group 'gnus-article-mime
-  :set 'mm-uu-configure)
-
 (defun mm-uu-configure-p  (key val)
   (member (cons key val) mm-uu-configure-list))
 
@@ -122,6 +110,18 @@ To disable dissecting shar codes, for instance, add
 			      (intern (concat "mm-uu-" (symbol-name type)
 					      "-begin-line")))))))
 	  '(uu postscript binhex shar forward)))
+
+(defcustom mm-uu-configure-list nil
+  "A list of mm-uu configuration.
+To disable dissecting shar codes, for instance, add
+`(shar . disabled)' to this list."
+  :type '(repeat (choice (const :tag "postscript" (postscript . disabled))
+			 (const :tag "uu" (uu . disabled))
+			 (const :tag "binhax" (binhex . disabled))
+			 (const :tag "shar" (shar . disabled))
+			 (const :tag "forward" (forward . disabled))))
+  :group 'gnus-article-mime
+  :set 'mm-uu-configure)
 
 (mm-uu-configure)
 
