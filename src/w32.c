@@ -84,6 +84,7 @@ Boston, MA 02111-1307, USA.
 #undef gethostname
 #undef gethostbyname
 #undef getservbyname
+#undef getpeername
 #undef shutdown
 #undef setsockopt
 #undef listen
@@ -2424,7 +2425,7 @@ unsigned long (PASCAL *pfn_inet_addr) (const char * cp);
 int (PASCAL *pfn_gethostname) (char * name, int namelen);
 struct hostent * (PASCAL *pfn_gethostbyname) (const char * name);
 struct servent * (PASCAL *pfn_getservbyname) (const char * name, const char * proto);
-
+int (PASCAL *pfn_getpeername) (SOCKET s, struct sockaddr *addr, int * namelen);
 int (PASCAL *pfn_setsockopt) (SOCKET s, int level, int optname,
 			      const char * optval, int optlen);
 int (PASCAL *pfn_listen) (SOCKET s, int backlog);
@@ -2504,6 +2505,7 @@ init_winsock (int load_now)
       LOAD_PROC( gethostname );
       LOAD_PROC( gethostbyname );
       LOAD_PROC( getservbyname );
+      LOAD_PROC( getpeername );
       LOAD_PROC( WSACleanup );
       LOAD_PROC( setsockopt );
       LOAD_PROC( listen );
@@ -2923,6 +2925,28 @@ sys_getservbyname(const char * name, const char * proto)
 }
 
 int
+sys_getpeername (int s, struct sockaddr *addr, int * namelen)
+{
+  if (winsock_lib == NULL)
+    {
+      h_errno = ENETDOWN;
+      return SOCKET_ERROR;
+    }
+
+  check_errno ();
+  if (fd_info[s].flags & FILE_SOCKET)
+    {
+      int rc = pfn_getpeername (SOCK_HANDLE (s), addr, namelen);
+      if (rc == SOCKET_ERROR)
+	set_errno ();
+      return rc;
+    }
+  h_errno = ENOTSOCK;
+  return SOCKET_ERROR;
+}
+
+
+int
 sys_shutdown (int s, int how)
 {
   if (winsock_lib == NULL)
@@ -3069,6 +3093,40 @@ sys_sendto (int s, const char * buf, int len, int flags,
       if (rc == SOCKET_ERROR)
 	set_errno ();
       return rc;
+    }
+  h_errno = ENOTSOCK;
+  return SOCKET_ERROR;
+}
+
+/* Windows does not have an fcntl function.  Provide an implementation
+   solely for making sockets non-blocking.  */
+int
+fcntl (int s, int cmd, int options)
+{
+  if (winsock_lib == NULL)
+    {
+      h_errno = ENETDOWN;
+      return -1;
+    }
+
+  check_errno ();
+  if (fd_info[s].flags & FILE_SOCKET)
+    {
+      if (cmd == F_SETFL && options == O_NDELAY)
+	{
+	  unsigned long nblock = 1;
+	  int rc = pfn_ioctlsocket (SOCK_HANDLE (s), FIONBIO, &nblock);
+	  if (rc == SOCKET_ERROR)
+	    set_errno();
+	  /* Keep track of the fact that we set this to non-blocking.  */
+	  fd_info[s].flags |= FILE_NDELAY;
+	  return rc;
+	}
+      else
+	{
+	  h_errno = EINVAL;
+	  return SOCKET_ERROR;
+	}
     }
   h_errno = ENOTSOCK;
   return SOCKET_ERROR;
@@ -3257,7 +3315,20 @@ _sys_read_ahead (int fd)
     }
 #ifdef HAVE_SOCKETS
   else if (fd_info[fd].flags & FILE_SOCKET)
-    rc = pfn_recv (SOCK_HANDLE (fd), &cp->chr, sizeof (char), 0);
+    {
+      unsigned long nblock = 0;
+      /* We always want this to block, so temporarily disable NDELAY.  */
+      if (fd_info[fd].flags & FILE_NDELAY)
+	pfn_ioctlsocket (SOCK_HANDLE (fd), FIONBIO, &nblock);
+
+      rc = pfn_recv (SOCK_HANDLE (fd), &cp->chr, sizeof (char), 0);
+
+      if (fd_info[fd].flags & FILE_NDELAY)
+	{
+	  nblock = 1;
+	  pfn_ioctlsocket (SOCK_HANDLE (fd), FIONBIO, &nblock);
+	}
+    }
 #endif
   
   if (rc == sizeof (char))
