@@ -43,7 +43,7 @@
    DGUX
    eunice			UNIX emulator under VMS.
    hpux
-   MSDOS			No-op for MSDOS.
+   __MSDOS__			No-op for MSDOS.
    NeXT
    sgi
    sequent			Sequent Dynix 3.x.x (BSD)
@@ -52,7 +52,7 @@
    UMAX
    UMAX4_3
    VMS
-   WIN32			No-op for Windows95/NT.
+   WINDOWS32			No-op for Windows95/NT.
    __linux__			Linux: assumes /proc filesystem mounted.
    				Support from Michael K. Johnson.
    __NetBSD__			NetBSD: assumes /kern filesystem mounted.
@@ -824,7 +824,7 @@ getloadavg (loadavg, nelem)
        : (load_ave.tl_avenrun.l[0] / (double) load_ave.tl_lscale));
 # endif	/* OSF_MIPS */
 
-# if !defined (LDAV_DONE) && (defined (MSDOS) || defined (WIN32))
+# if !defined (LDAV_DONE) && (defined (__MSDOS__) || defined (WINDOWS32))
 #  define LDAV_DONE
 
   /* A faithful emulation is going to have to be saved for a rainy day.  */
@@ -832,7 +832,7 @@ getloadavg (loadavg, nelem)
     {
       loadavg[elem] = 0.0;
     }
-# endif  /* MSDOS */
+# endif  /* __MSDOS__ || WINDOWS32 */
 
 # if !defined (LDAV_DONE) && defined (OSF_ALPHA)
 #  define LDAV_DONE
