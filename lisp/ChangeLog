@@ -1,3 +1,10 @@
+2002-04-28  Markus Rost  <rost@math.ohio-state.edu>
+
+	* net/ange-ftp.el (ange-ftp-passive-host-alist) 
+	(ange-ftp-bs2000-additional-pubsets):  Fix custom type.
+
+	* files.el (small-temporary-file-directory): Fix custom type.
+
 2002-04-28  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el (f90-xemacs-flag): New variable.
