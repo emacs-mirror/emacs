@@ -552,15 +552,16 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
       ;; in dired-noselect.
       (insert-directory (expand-file-name dir-or-list) switches wildcard full-p))
     ;; Quote certain characters, unless ls quoted them for us.
-    (cond ((not (string-match "b" dired-actual-switches))
-	   (setq end (point-marker))
-	   (goto-char opoint)
-	   (while (search-forward "\\" end t)
-	     (replace-match "\\\\" nil t))
-	   (goto-char opoint)
-	   (while (search-forward "\^m" end t)
-	     (replace-match "\\015" nil t))
-	   (set-marker end nil)))
+    (if (not (string-match "b" dired-actual-switches))
+	(save-excursion
+	  (setq end (point-marker))
+	  (goto-char opoint)
+	  (while (search-forward "\\" end t)
+	    (replace-match "\\\\" nil t))
+	  (goto-char opoint)
+	  (while (search-forward "\^m" end t)
+	    (replace-match "\\015" nil t))
+	  (set-marker end nil)))
     (dired-insert-set-properties opoint (point)))
   (setq dired-directory dir-or-list))
 
