@@ -161,7 +161,7 @@ When t this still needs to be initialized.")
 ;;;###autoload
 (defun expand-mail-aliases (beg end &optional exclude)
   "Expand all mail aliases in suitable header fields found between BEG and END.
-If interactive, expand in header fields before `mail-header-separator'.
+If interactive, expand in header fields.
 Suitable header fields are `To', `From', `CC' and `BCC', `Reply-to', and
 their `Resent-' variants.
 
@@ -170,7 +170,7 @@ removed from alias expansions."
   (interactive
    (save-excursion
      (list (goto-char (point-min))
-	   (search-forward (concat "\n" mail-header-separator "\n")))))
+	   (mail-header-end))))
   (sendmail-sync-aliases)
   (when (eq mail-aliases t)
     (setq mail-aliases nil)
@@ -375,9 +375,7 @@ current header, calls `mail-complete-function' and passes prefix arg if any."
 	(if (file-exists-p mail-personal-alias-file)
 	    (build-mail-aliases))))
   (let ((list mail-complete-alist))
-    (if (and (save-excursion (search-forward
-			      (concat "\n" mail-header-separator "\n")
-			      nil t))
+    (if (and (> 0 (mail-header-end))
 	     (save-excursion
 	       (if (re-search-backward "^[^\t]" nil t)
 		   (while list
