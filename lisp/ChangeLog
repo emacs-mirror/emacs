@@ -6,6 +6,9 @@
 
 2005-04-06  Lute Kamstra  <lute@gnu.org>
 
+	* add-log.el (change-log-font-lock-keywords): Complete 2005-04-03
+	change.
+
 	* emacs-lisp/copyright.el (copyright-update-year): Replace the
 	right subexpression.  Suggested by Jay Bingham <jay.bingham@hp.com>.
 
