@@ -18,6 +18,23 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+/* We introduce new member `tab_offset'.  We need it because of the
+   existence of wide-column characters.  There is a case that the
+   line-break occurs at a wide-column character and the number of
+   colums of the line gets less than width.
+
+   Example (where W_ stands for a wide-column character):
+	     ----------
+	     abcdefgh\\
+	     W_      
+	     ----------
+
+   To handle this case, we should not calculate the tab offset by 
+  	tab_offset += width;
+
+   Instead, we must remember tab_offset of the line. 
+
+ */
 
 struct position
   {
@@ -29,6 +46,7 @@ struct position
     /* Number of characters we have already handled
        from the before and after strings at this position.  */
     int ovstring_chars_done;
+    int tab_offset;
   };
 
 struct position *compute_motion ();
