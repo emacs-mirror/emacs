@@ -124,7 +124,7 @@ sigset_t sys_sigsetmask (/*sigset_t new_mask*/);
 #define sigblockx(sig) sigblock (sigmask (sig))
 #define sigunblockx(sig) sigunblock (sigmask (sig))
 #define sigpausex(sig) sigpause (0)
-#endif /* BSD4_1 */
+#endif /* not BSD4_1 */
 
 #ifdef BSD4_1
 #define SIGIO SIGTINT
@@ -132,7 +132,7 @@ sigset_t sys_sigsetmask (/*sigset_t new_mask*/);
 #define sigblockx(sig) sighold (sig)
 #define sigunblockx(sig) sigrelse (sig)
 #define sigpausex(sig) sigpause (sig)
-#endif /* ! defined (BSD4_1) */
+#endif /* BSD4_1 */
 
 /* On bsd, [man says] kill does not accept a negative number to kill a pgrp.
    Must do that using the killpg call.  */
