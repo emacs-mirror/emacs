@@ -202,6 +202,8 @@ lock_file (fn)
   register Lisp_Object attack;
   register char *lfname;
 
+  fn = Fexpand_file_name (fn, Qnil);
+
   MAKE_LOCK_NAME (lfname, fn);
 
   /* See if this file is visited and has changed on disk since it was
@@ -328,6 +330,8 @@ unlock_file (fn)
      register Lisp_Object fn;
 {
   register char *lfname;
+
+  fn = Fexpand_file_name (fn, Qnil);
 
   MAKE_LOCK_NAME (lfname, fn);
 
