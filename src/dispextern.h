@@ -2256,6 +2256,7 @@ int popup_activated P_ ((void));
 
 /* Defined in dispnew.c  */
 
+extern void ensure_frame_matrix P_ ((struct frame *));
 int estimate_mode_line_height P_ ((struct frame *, enum face_id));
 Lisp_Object mode_line_string P_ ((struct window *, int, int, int, int *));
 extern void redraw_frame P_ ((struct frame *));
