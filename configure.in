@@ -592,6 +592,9 @@ case "${canonical}" in
   mips-sgi-irix4* )
     machine=iris4d opsys=irix4-0
   ;;
+  mips-sgi-irix6* )
+    machine=iris4d opsys=irix6-0
+  ;;
   mips-sgi-irix5.[01]* )
     machine=iris4d opsys=irix5-0
   ;;
