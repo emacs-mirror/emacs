@@ -1,3 +1,11 @@
+2003-03-31  Kenichi Handa  <handa@etlken2>
+
+	* international/utf-16.el (ccl-decode-mule-utf-16-le): Don't
+	assume the signature bytes.
+	(ccl-decode-mule-utf-16-be): Likewise.
+	(ccl-encode-mule-utf-16-le): Don't produce the signature bytes.
+	(ccl-encode-mule-utf-16-be): Likewise.
+
 2003-03-30  Kevin Ryde  <user42@zip.com.au>
 
 	* info-look.el (sh-mode): Add doc-specs for commands and variables.
