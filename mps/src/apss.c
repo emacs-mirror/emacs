@@ -1,6 +1,6 @@
 /* impl.c.apss: AP MANUAL ALLOC STRESS TEST
  *
- * $HopeName$
+ * $HopeName: MMsrc!apss.c(trunk.2) $
  * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
  */
 
@@ -142,11 +142,11 @@ static int testInArena(mps_arena_t arena)
   die(stress(mps_class_mvff(), arena, randomSize8,
              (size_t)65536, (size_t)32, (size_t)4, TRUE, TRUE, TRUE),
       "stress MVFF");
-  printf("MV\n\n");
+  printf("MV debug\n\n");
   die(stress(mps_class_mv_debug(), arena, randomSize8,
              &debugOptions, (size_t)65536, (size_t)32, (size_t)65536),
       "stress MV debug");
-  printf("MV debug\n\n");
+  printf("MV\n\n");
   die(stress(mps_class_mv(), arena, randomSize8,
              (size_t)65536, (size_t)32, (size_t)65536),
       "stress MV");
@@ -154,13 +154,12 @@ static int testInArena(mps_arena_t arena)
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
   mps_arena_t arena;
   int i;
 
-  /* Randomize the random number generator a bit. */
-  for (i = time(NULL) % 67; i > 0; --i) rnd();
+  randomize(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
