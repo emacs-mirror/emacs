@@ -1,4 +1,4 @@
-;;; nnultimate.el --- interfacing with the Ultimate Bulletin Board system
+;;; nnultimate.el --- interfacing with the Ultimate Bulletin Board system -*- coding: iso-latin-1 -*-
 ;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
