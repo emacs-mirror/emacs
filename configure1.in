@@ -1,4 +1,7 @@
-#!/bin/sh
+
+### The above line is deliberately left blank.  If it starts with a #,
+### some CSH's will think this is a csh script.
+
 #### Configuration script for GNU Emacs
 #### Copyright (C) 1992 Free Software Foundation, Inc.
 
