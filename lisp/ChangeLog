@@ -1,3 +1,7 @@
+2001-06-28  Karl Fogel  <kfogel@red-bean.com>
+
+	* saveplace.el: Update maintainer email address.
+
 2001-06-27  Francesco Potorti`  <pot@gnu.org>
 
 	* uniquify.el: (uniquify-rationalize-file-buffer-names): Undo

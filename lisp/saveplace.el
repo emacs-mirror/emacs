@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
-;; Author: Karl Fogel <kfogel@cs.oberlin.edu>
+;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: FSF
 ;; Created: July, 1993
 ;; Keywords: bookmarks, placeholders
