@@ -1,7 +1,7 @@
 /* impl.h.eventcom -- Event Logging Common Types
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!eventcom.h(trunk.5) $
+ * $HopeName: MMsrc!eventcom.h(trunk.6) $
  *
  * .readership: MPS developers.
  * .sources: mps.design.telemetry
@@ -46,7 +46,7 @@ typedef Word EventType;
 #define EventAMCScanBegin   ((EventType)0xEFA3C5CB) /* AMC SCan Begin */
 #define EventAMCScanEnd     ((EventType)0xEFA3C5CE) /* AMC SCan End */
 #define EventAMCFix         ((EventType)0xEFA3CF18) /* AMC FIX */
-#define EventAMCFixAmbig    ((EventType)0xEFA3CF8A) /* AMC FiX Ambig */
+#define EventAMCFixInPlace  ((EventType)0xEFA3CF8A) /* AMC FiX Ambig */
 #define EventAMCFixForward  ((EventType)0xEFA3CF8F) /* AMC FiX Forward */
 #define EventAMCReclaim     ((EventType)0xEFA3C6EC) /* AMC REClaim */
 #define EventAMCTraceEnd    ((EventType)0xEFA3C26E) /* AMC TRace End */
@@ -60,6 +60,7 @@ typedef Word EventType;
 #define EventTraceScan      ((EventType)0xEF26AC5C) /* TRACe SCan */
 #define EventTraceAccess    ((EventType)0xEF26AACC) /* TRAce ACCess */
 #define EventTracePoll      ((EventType)0xEF26AB01) /* TRAce POLl */
+#define EventTraceStep      ((EventType)0xEF26A52B) /* TRAce STeP */
 #define EventTraceFix       ((EventType)0xEF26AF18) /* TRAce FIX */
 #define EventTraceFixSeg    ((EventType)0xEF26AF85) /* TRAce FiX Seg */
 #define EventTraceFixWhite  ((EventType)0xEF26AF83) /* TRAce FiX White */

@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.31) $
+ * $HopeName: MMsrc!poolawl.c(trunk.32) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.31) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.32) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -569,7 +569,7 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
 }
 
 
-static Res AWLScan(ScanState ss, Pool pool, Seg seg)
+static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
   AWL awl;
   AWLGroup group;
@@ -577,6 +577,7 @@ static Res AWLScan(ScanState ss, Pool pool, Seg seg)
   Bool scanAllObjects;
   Res res;
 
+  AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
   AVERT(Pool, pool);
   AVERT(Seg, seg);
@@ -593,14 +594,11 @@ static Res AWLScan(ScanState ss, Pool pool, Seg seg)
   /* segment on return. */
   scanAllObjects =
     (TraceSetDiff(ss->traces, SegWhite(seg)) != TraceSetEMPTY);
-  if(!scanAllObjects) {
-    ScanStateSetSummary(ss, RefSetUnion(ScanStateSummary(ss),
-                                        SegSummary(seg)));
-  }
 
   do {
     res = awlScanSinglePass(&anyScanned, ss, pool, seg, scanAllObjects);
     if(res != ResOK) {
+      *totalReturn = FALSE;
       return res;
     }
   /* we are done if we scanned all the objects or if we did a pass */
@@ -608,6 +606,7 @@ static Res AWLScan(ScanState ss, Pool pool, Seg seg)
   /* gotten fixed) */
   } while(!scanAllObjects && anyScanned);
 
+  *totalReturn = scanAllObjects;
   return ResOK;
 }
 
@@ -828,6 +827,7 @@ struct PoolClassStruct PoolClassAWLStruct = {
   AWLGrey,
   AWLBlacken,
   AWLScan,
+  AWLFix,
   AWLFix,
   AWLReclaim,
   AWLBenefit,

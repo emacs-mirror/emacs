@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.48) $
+ * $HopeName: MMsrc!mpmst.h(trunk.49) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -91,6 +91,7 @@ typedef struct PoolClassStruct {
   PoolBlackenMethod blacken;    /* blacken grey objects without scanning */
   PoolScanMethod scan;          /* find references during tracing */
   PoolFixMethod fix;            /* referent reachable during tracing */
+  PoolFixEmergencyMethod fixEmergency;  /* as fix, no failure allowed */
   PoolReclaimMethod reclaim;    /* reclaim dead objects after tracing */
   PoolBenefitMethod benefit;    /* calculate benefit of action */
   PoolActMethod act;            /* do an action */
@@ -473,7 +474,7 @@ typedef struct RootStruct {
 #define ScanStateSig    ((Sig)0x5195CA45) /* SIGnature SCAN State */
 
 typedef struct ScanStateStruct {
-  Res (*fix)(ScanState, Addr *);/* fix function */
+  TraceFixMethod fix;           /* fix function */
   Word zoneShift;               /* copy of arena->zoneShift.  See .ss.zone */
   RefSet white;                 /* white set, for inline fix test */
   RefSet unfixedSummary;        /* accumulated summary of scanned references */
@@ -505,6 +506,7 @@ typedef struct TraceStruct {
   RefSet white;                 /* superset of refs in white set */
   RefSet mayMove;		/* superset of refs in moving set */
   TraceState state;             /* current state of trace */
+  Bool emergency;               /* true iff ran out of memory during trace */
   Size condemned;               /* condemned bytes */
   Size foundation;              /* initial grey set size */
   Size rate;                    /* bytes to scan per increment */

@@ -1,6 +1,6 @@
 /* impl.c.pooln: NULL POOL CLASS
  *
- * $HopeName: MMsrc!pooln.c(trunk.17) $
+ * $HopeName: MMsrc!pooln.c(trunk.18) $
  * Copyright(C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MPS developers
@@ -9,7 +9,7 @@
 #include "mpm.h"
 #include "pooln.h"
 
-SRCID(pooln, "$HopeName: MMsrc!pooln.c(trunk.17) $");
+SRCID(pooln, "$HopeName: MMsrc!pooln.c(trunk.18) $");
 
 
 typedef struct PoolNStruct {
@@ -199,15 +199,15 @@ static void NBlacken(Pool pool, TraceSet traceSet, Seg seg)
 }
 
 
-static Res NScan(ScanState ss, Pool pool, Seg seg)
+static Res NScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
   PoolN poolN;
 
+  AVER(totalReturn != NULL);
+  AVERT(ScanState, ss);
   AVERT(Pool, pool);
   poolN = PoolPoolN(pool);
   AVERT(PoolN, poolN);
-
-  AVERT(ScanState, ss);
   AVERT(Seg, seg);
 
   return ResOK;
@@ -265,6 +265,7 @@ static PoolClassStruct PoolClassNStruct = {
   NBlacken,                             /* blacken */
   NScan,                                /* scan */
   NFix,                                 /* fix */
+  NFix,                                 /* emergency fix */
   NReclaim,                             /* reclaim */
   PoolNoBenefit,			/* benefit */
   PoolNoAct,                            /* act */
