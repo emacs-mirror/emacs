@@ -22,6 +22,11 @@
 
 ;;; Commentary:
 
+;; [NB.  This file should only be used with Emacs 21 because it
+;; depends on the `safe-chars' coding-system property.  It was
+;; intended to be used with a somewhat-modified version of
+;; mule-diag.el.]
+
 ;; Definitions of miscellaneous 8-bit coding systems based on ASCII
 ;; (we can't cope with EBCDIC, for instance), mainly for PC `code
 ;; pages'.  They are decoded into Latin-1 and mule-unicode charsets
@@ -44,7 +49,11 @@
 ;; few CPs from codepage.el (770, 773, 774) aren't covered (in the
 ;; absence of translation tables to Unicode).
 
-;; Compile this to avoid loading `ccl' at runtime.
+;; Compile this, to avoid loading `ccl' at runtime.
+
+;; Although the tables used here aren't very big, it might be worth
+;; splitting the file and autoloading the coding systems if/when my
+;; (or similar) autoloading code is installed.
 
 ;;; Code:
 
@@ -142,14 +151,13 @@ characters used by the IBM codepages, typically in conjunction with files
 read/written by MS-DOS software, or for display on the MS-DOS terminal."
   (interactive
    (let ((completion-ignore-case t)
-	  (candidates (cp-supported-codepages)))
+	 (candidates (cp-supported-codepages)))
      (list (completing-read "Setup DOS Codepage: (default 437) " candidates
-			        nil t nil nil "437"))))
+			    nil t nil nil "437"))))
   (let ((cp (format "cp%s" codepage)))
     (unless (coding-system-p (intern cp))
       (cp-make-coding-systems-for-codepage
-       cp (cp-charset-for-codepage cp) (cp-offset-for-codepage cp))))))
-  )
+       cp (cp-charset-for-codepage cp) (cp-offset-for-codepage cp)))))))
 
 ;; Somewhat ammended from the version in mule-diag.el, needed below.
 (defvar non-iso-charset-alist
@@ -206,7 +214,7 @@ of the first byte, and the cdr part is the ranges of the second byte.")
 V is a 128-long vector of characters to translate the upper half of
 the charactert set.  DOC-STRING and MNEMONIC are used as the
 corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
-?D is used."
+?* is used."
   (let* ((encoder (intern (format "encode-%s" name)))
 	 (decoder (intern (format "decode-%s" name)))
 	 (ccl-decoder
@@ -236,7 +244,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 	 (char-table-extra-slot translation-table 0))
        (cp-fix-safe-chars ',name)
        (make-coding-system
-	',name 4 ,(or mnemonic ?D)
+	',name 4 ,(or mnemonic ?*)
 	(or ,doc-string (format "%s encoding" ',name))
 	(cons ,ccl-decoder ,ccl-encoder)
 	(list (cons 'safe-chars (get ',encoder 'translation-table))
@@ -2230,7 +2238,8 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\¤
   ?\■
   ?\ ]
- "CP866 (Cyrillic Alternativnyj) encoding using Unicode.")
+ "CP866 (Cyrillic Alternativnyj) encoding using Unicode."
+ ?A)
 (define-coding-system-alias 'alternativnyj 'cp866)
 (cp-fix-safe-chars 'cyrillic-alternativnyj)
 (define-coding-system-alias 'cyrillic-alternativnyj 'cp866)
@@ -2626,8 +2635,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ü
   ?\ý
   ?\ţ
-  ?\˙]
- "CP1250/Windows-1250 Encoding")
+  ?\˙])
 
 ;; be_BY, bg_BG
 (cp-make-coding-system
@@ -2760,7 +2768,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\э
   ?\ю
   ?\я]
- "CP1251/Windows-1251 Encoding")
+ nil ?b)
 
 (cp-make-coding-system
  windows-1252
@@ -2891,8 +2899,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ü
   ?\ý
   ?\þ
-  ?\ÿ]
- "CP1252/Windows-1252 (Western) Encoding")
+  ?\ÿ])
 
 (cp-make-coding-system
  windows-1253
@@ -3024,7 +3031,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ύ
   ?\ώ
   nil]
- "CP1253/Windows-1253 Encoding")
+ nil ?g) ;; Greek
 
 (cp-make-coding-system
  windows-1254
@@ -3155,8 +3162,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ü
   ?\ı
   ?\ş
-  ?\ÿ]
-"CP1254/Windows-1254 Encoding")
+  ?\ÿ])
 
 ;; yi_US
 (cp-make-coding-system
@@ -3289,7 +3295,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\‎
   ?\‏
   nil]
- "CP1255/Windows-1255 Encoding")
+ nil ?h) ;; Hebrew
 
 (cp-make-coding-system
  windows-1256
@@ -3421,7 +3427,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\‎
   ?\‏
   ?\ÿ]
- "CP1256/Windows-1256 Encoding")
+ nil ?a) ;; Arabic
 
 (cp-make-coding-system
  windows-1257
@@ -3552,8 +3558,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ü
   ?\ż
   ?\ž
-  nil]
- "CP1257/Windows-1257 Encoding")
+  nil])
 
 (cp-make-coding-system
  windows-1258
@@ -3684,8 +3689,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ü
   ?\ư
   ?\₫
-  ?\ÿ]
- "CP1258/Windows-1258 Encoding")
+  ?\ÿ])
 
 (cp-make-coding-system
  next
@@ -4351,11 +4355,14 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ę
   ?\ț
   ?\ÿ]
- "Unicode-based encoding for Latin-10 (MIME: ISO-8859-16)")
+ "Unicode-based encoding for Latin-10 (MIME: ISO-8859-16)"
+ ?r) ;; Romanian
 (coding-system-put 'iso-latin-10 'mime-charset 'iso-8859-16)
 (define-coding-system-alias 'iso-8859-16 'iso-latin-10)
 (define-coding-system-alias 'latin-10 'iso-latin-10)
 
+;; Unicode-based alternative which has the possible advantage of
+;; having its relative sparseness specified.
 (cp-make-coding-system
  ;; The base system uses arabic-iso-8bit, but that's not a MIME charset.
  iso-8859-6
@@ -4415,7 +4422,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
   nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
   nil nil nil nil nil nil nil nil nil nil nil]
- "Arabic ISO/IEC 8859-6 (MIME: ISO-8859-6) using Unicode"
+ "Unicode-based Arabic ISO/IEC 8859-6 (MIME: ISO-8859-6)"
  ?6)
 (define-coding-system-alias 'arabic-iso-8bit 'iso-8859-6)
 
@@ -4530,102 +4537,104 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
   nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil 
   ?\ 
-  ?\Ą
-  ?\Ē
-  ?\Ģ
-  ?\Ī
-  ?\Ĩ
-  ?\Ķ
+  ?\¡
+  ?\¢
+  ?\£
+  ?\¤
+  ?\„
+  ?\¦
   ?\§
-  ?\Ļ
-  ?\Đ
-  ?\Š
-  ?\Ŧ
-  ?\Ž
+  ?\¨
+  ?\©
+  ?\ª
+  ?\«
+  ?\¬
   ?\­
-  ?\Ū
-  ?\Ŋ
+  ?\®
+  ?\¯
   ?\°
-  ?\ą
-  ?\ē
-  ?\ģ
-  ?\ī
-  ?\ĩ
-  ?\ķ
+  ?\±
+  ?\²
+  ?\³
+  ?\“
+  ?\µ
+  ?\¶
   ?\·
-  ?\ļ
-  ?\đ
-  ?\š
-  ?\ŧ
-  ?\ž
-  ?\―
-  ?\ū
-  ?\ŋ
+  ?\¸
+  ?\¹
+  ?\º
+  ?\»
+  ?\¼
+  ?\½
+  ?\¾
+  ?\¿
+  ?\Ą
+  ?\Į
   ?\Ā
-  ?\Á
-  ?\Â
-  ?\Ã
+  ?\Ć
   ?\Ä
   ?\Å
-  ?\Æ
-  ?\Į
+  ?\Ę
+  ?\Ē
   ?\Č
   ?\É
-  ?\Ę
-  ?\Ë
+  ?\Ź
   ?\Ė
-  ?\Í
-  ?\Î
-  ?\Ï
-  ?\Ð
+  ?\Ģ
+  ?\Ķ
+  ?\Ī
+  ?\Ļ
+  ?\Š
+  ?\Ń
   ?\Ņ
-  ?\Ō
   ?\Ó
-  ?\Ô
+  ?\Ō
   ?\Õ
   ?\Ö
-  ?\Ũ
-  ?\Ø
+  ?\×
   ?\Ų
-  ?\Ú
-  ?\Û
+  ?\Ł
+  ?\Ś
+  ?\Ū
   ?\Ü
-  ?\Ý
-  ?\Þ
+  ?\Ż
+  ?\Ž
   ?\ß
+  ?\ą
+  ?\į
   ?\ā
-  ?\á
-  ?\â
-  ?\ã
+  ?\ć
   ?\ä
   ?\å
-  ?\æ
-  ?\į
+  ?\ę
+  ?\ē
   ?\č
   ?\é
-  ?\ę
-  ?\ë
+  ?\ź
   ?\ė
-  ?\í
-  ?\î
-  ?\ï
-  ?\ð
+  ?\ģ
+  ?\ķ
+  ?\ī
+  ?\ļ
+  ?\š
+  ?\ń
   ?\ņ
-  ?\ō
   ?\ó
-  ?\ô
+  ?\ō
   ?\õ
   ?\ö
-  ?\ũ
-  ?\ø
+  ?\÷
   ?\ų
-  ?\ú
-  ?\û
+  ?\ł
+  ?\ś
+  ?\ū
   ?\ü
-  ?\ý
-  ?\þ
-  ?\ĸ]
- "Unicode-based encoding for Latin-7 (MIME: ISO-8859-13)")
+  ?\ż
+  ?\ž
+  ?\’
+  ]
+ "Unicode-based encoding for Latin-7 (MIME: ISO-8859-13)"
+ ?l) ;; Lithuanian/Latvian
 (coding-system-put 'iso-latin-7 'mime-charset 'iso-8859-13)
 (define-coding-system-alias 'iso-8859-13 'iso-latin-7)
 (define-coding-system-alias 'latin-7 'iso-latin-7)
@@ -4760,21 +4769,29 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ý
   ?\þ
   ?\ÿ]
- "Unicode-based encoding for georgian-ps")
+ nil ?G)
 (coding-system-put 'georgian-ps 'mime-charset nil) ; not in IANA list
 
 ;; From http://www.microsoft.com/globaldev/reference/oem/720.htm
 (cp-make-coding-system
  cp720
- [?\é
+ [nil
+  nil
+  ?\é
   ?\â
+  nil
   ?\à
+  nil
   ?\ç
   ?\ê
   ?\ë
   ?\è
   ?\ï
   ?\î
+  nil
+  nil
+  nil
+  nil
   ?\ّ
   ?\ْ
   ?\ô
