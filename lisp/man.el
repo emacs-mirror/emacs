@@ -62,7 +62,7 @@
 ;;   is done in the background. The cleaning commands are configurable.
 ;; + Syntax is the same as Un*x man
 ;; + Functionality is the same as Un*x man, including "man -k" and
-;;   "man <section>, etc.
+;;   "man <section>", etc.
 ;; + Provides a manual browsing mode with keybindings for traversing
 ;;   the sections of a manpage, following references in the SEE ALSO
 ;;   section, and more.
@@ -93,27 +93,31 @@ Any other value of `Man-notify' is equivalent to `meek'.")
   "*Reuse a manpage buffer if possible.
 When t, and a manpage buffer already exists with the same invocation,
 man just indicates the manpage is ready according to the value of
-Man-notify. When nil, it always fires off a background process, putting
+`Man-notify'.  When nil, it always fires off a background process, putting
 the results in a uniquely named buffer.")
 
 (defvar Man-downcase-section-letters-p t
   "*Letters in sections are converted to lower case.
 Some Un*x man commands can't handle uppercase letters in sections, for
 example \"man 2V chmod\", but they are often displayed in the manpage
-with the upper case letter. When this variable is t, the section
+with the upper case letter.  When this variable is t, the section
 letter (e.g., \"2V\") is converted to lowercase (e.g., \"2v\") before
 being sent to the man background process.")
 
 (defvar Man-circular-pages-p t
   "*If t, the manpage list is treated as circular for traversal.")
 
+;; I changed this to nil because it is a bad idea
+;; to fail to recognize things in other sections.
 (defvar Man-auto-section-alist
-  '((c-mode . ("2" "3"))
-    (c++-mode . ("2" "3"))
-    (shell-mode . ("1" "8"))
-    (cmushell-mode . ("1" "8"))
-    (text-mode . "1")
-    )
+  nil
+;;  '((c-mode . ("2" "3"))
+;;    (c++-mode . ("2" "3"))
+;;    (c++-c-mode . ("2" "3"))
+;;    (shell-mode . ("1" "8"))
+;;    (cmushell-mode . ("1" "8"))
+;;    (text-mode . "1")
+;;    )
   "*Association list of major modes and their default section numbers.
 List is of the form: (MAJOR-MODE . [SECTION | (SECTION*)]). If current
 major mode is not in list, then the default is to check for manpages
@@ -124,13 +128,13 @@ in all sections.")
     ("1-UCB" . ""))
   "*Association list of bogus sections to real section numbers.
 Some manpages (e.g. the Sun C++ 2.1 manpages) have section numbers in
-their references which Un*x man(1) does not recognize.  This
+their references which Un*x `man' does not recognize.  This
 association list is used to translate those sections, when found, to
 the associated section number.")
 
 (defvar Man-filter-list
   '(("sed "
-     ("-e 's/.\010//g'"
+     (;;"-e 's/.\010//g'"
       "-e '/[Nn]o such file or directory/d'"
       "-e '/Reformatting page.  Wait... done/d'"
       "-e '/^\\([A-Z][A-Z.]*([0-9A-Za-z][-0-9A-Za-z+]*)\\).*\\1$/d'"
@@ -158,9 +162,9 @@ This variable contains an association list of the following form:
 '((command-string (phrase-string*))*)
 
 Each phrase-string is concatenated onto the command-string to form a
-command filter. The (standard) output (and standard error) of the Un*x
+command filter.  The (standard) output (and standard error) of the Un*x
 man command is piped through each command filter in the order the
-commands appear in the association list. The final output is placed in
+commands appear in the association list.  The final output is placed in
 the manpage buffer.")
 
 (defvar Man-mode-line-format
@@ -173,10 +177,10 @@ the manpage buffer.")
   "*Mode line format for manual mode buffer.")
 
 (defvar Man-mode-map nil
-  "*Keymap for Man-mode.")
+  "*Keymap for Man mode.")
 
 (defvar Man-mode-hooks nil
-  "*Hooks for Man-mode.")
+  "*Hooks for Man mode.")
 
 (defvar Man-section-regexp "[0-9][a-zA-Z+]*"
   "*Regular expression describing a manpage section within parentheses.")
@@ -200,10 +204,6 @@ This regular expression should start with a `^' character.")
 
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ;; end user variables
-
-(defconst Man-version-number "1.1"
-  "man's version number.")
-
 
 ;; other variables and keymap initializations
 (make-variable-buffer-local 'Man-sections-alist)
@@ -236,7 +236,6 @@ This regular expression should start with a `^' character.")
   (define-key Man-mode-map "s"    'Man-goto-see-also-section)
   (define-key Man-mode-map "q"    'Man-quit)
   (define-key Man-mode-map "m"    'manual-entry)
-  (define-key Man-mode-map "v"    'Man-version)
   (define-key Man-mode-map "?"    'describe-mode)
   )
 
@@ -315,7 +314,7 @@ This regular expression should start with a `^' character.")
 
 (defun Man-linepos (&optional position col-p)
   "Return the character position at various line/buffer positions.
-Preserves the state of point, mark, etc. Optional POSITION can be one
+Preserves the state of point, mark, etc.  Optional arg POSITION can be one
 of the following symbols:
      bol == beginning of line
      boi == beginning of indentation
@@ -323,7 +322,8 @@ of the following symbols:
      bob == beginning of buffer
      eob == end of buffer
 
-Optional COL-P non-nil returns current-column instead of character position."
+Optional arg COL-P, if non-nil, means to return
+the current column instead of character position."
   (let ((tpnt (point))
 	rval)
     (cond
@@ -341,7 +341,7 @@ Optional COL-P non-nil returns current-column instead of character position."
 ;; default man entry and get word under point
 
 (defun Man-default-man-args (manword)
-  "Build the default man args from MANWORD and major-mode."
+  "Build the default man args from MANWORD and buffer's major mode."
   (let ((mode major-mode)
 	(slist Man-auto-section-alist))
     (while (and slist
@@ -362,7 +362,7 @@ Optional COL-P non-nil returns current-column instead of character position."
 (defun Man-default-man-entry ()
   "Make a guess at a default manual entry.
 This guess is based on the text surrounding the cursor, and the
-default section number is selected from Man-auto-section-alist."
+default section number is selected from `Man-auto-section-alist'."
   (let ((default-section nil)
 	default-title)
     (save-excursion
@@ -405,11 +405,11 @@ default section number is selected from Man-auto-section-alist."
 ;;;###autoload
 (defun manual-entry (arg)
   "Get a Un*x manual page and put it in a buffer.
-This command is the top-level command in the man package. It runs a Un*x
+This command is the top-level command in the man package.  It runs a Un*x
 command to retrieve and clean a manpage in the background and places the
-results in a Man-mode (manpage browsing) buffer. See variable
-Man-notify for what happens when the buffer is ready.
-Universal argument ARG, is passed to Man-getpage-in-background."
+results in a Man mode (manpage browsing) buffer.  See variable
+`Man-notify' for what happens when the buffer is ready.
+Universal argument ARG, is passed to `Man-getpage-in-background'."
   (interactive "P")
   (let* ((default-entry (Man-default-man-entry))
 	 (man-args
@@ -433,12 +433,13 @@ Universal argument ARG, is passed to Man-getpage-in-background."
     (Man-getpage-in-background man-args (consp arg))
     ))
 
-(defun Man-getpage-in-background (man-args &optional override-reuse-p)
-  "Uses MAN-ARGS to build and fire off the manpage and cleaning command.
-Optional OVERRIDE-REUSE-P, when supplied non-nil forces man to
+(defun Man-getpage-in-background (TOPIC &optional override-reuse-p)
+  "Uses TOPIC to build and fire off the manpage and cleaning command.
+Optional OVERRIDE-REUSE-P, when non-nil, means to
 start a background process even if a buffer already exists and
-Man-reuse-okay-p is non-nil."
-  (let* ((bufname (concat "*man " man-args "*"))
+`Man-reuse-okay-p' is non-nil."
+  (let* ((man-args (Man-default-man-args TOPIC))
+	 (bufname (concat "*man " man-args "*"))
 	 (buffer  (get-buffer bufname)))
     (if (and Man-reuse-okay-p
 	     (not override-reuse-p)
@@ -476,6 +477,17 @@ See the variable `Man-notify' for the different notification behaviors."
     (message ""))
    ))
 
+(defun Man-set-fonts ()
+  (goto-char (point-min))
+  (while (re-search-forward "\\(.\b.\\)+" nil t)
+    (let ((st (match-beginning 0)) (en (match-end 0)))
+      (goto-char st)
+      (if window-system
+	  (put-text-property st en 'face 
+			     (if (looking-at "_") 'underline 'bold)))
+      (while (and (< (point) en) (looking-at ".\b"))
+	(replace-match "") (forward-char 1)))))
+
 (defun Man-bgproc-sentinel (process msg)
   "Manpage background process sentinel."
   (let ((Man-buffer (process-buffer process))
@@ -507,6 +519,7 @@ See the variable `Man-notify' for the different notification behaviors."
 	(save-window-excursion
 	  (save-excursion
 	    (set-buffer Man-buffer)
+	    (Man-set-fonts)
 	    (Man-mode)
 	    (set-buffer-modified-p nil)))
 	(Man-notify-when-ready Man-buffer))
@@ -520,7 +533,7 @@ See the variable `Man-notify' for the different notification behaviors."
 ;; set up manual mode in buffer and build alists
 
 (defun Man-mode ()
-  "SUPERMAN 1.1: A mode for browsing Un*x manual pages.
+  "A mode for browsing Un*x manual pages.
 
 The following man commands are available in the buffer. Try
 \"\\[describe-key] <key> RET\" for more information:
@@ -534,7 +547,6 @@ The following man commands are available in the buffer. Try
 \\[Man-goto-section]       Go to a manpage section.
 \\[Man-goto-see-also-section]       Jumps to the SEE ALSO manpage section.
 \\[Man-quit]       Deletes the manpage, its buffer, and window.
-\\[Man-version]       Prints man's version number.
 \\[describe-mode]       Prints this help text.
 
 The following variables may be of some use. Try
@@ -555,14 +567,13 @@ Man-heading-regexp              Regexp describing section headers.
 Man-see-also-regexp             Regexp for SEE ALSO section (or your equiv).
 Man-first-heading-regexp        Regexp for first heading on a manpage.
 Man-reference-regexp            Regexp matching a references in SEE ALSO.
-Man-version-number              Superman version number.
 Man-switches			Background `man' command switches.
 
 The following key bindings are currently in effect in the buffer:
 \\{Man-mode-map}"
   (interactive)
   (setq major-mode 'Man-mode
-	mode-name "Manual"
+	mode-name "Man"
 	buffer-auto-save-file-name nil
 	mode-line-format Man-mode-line-format
 	truncate-lines t
@@ -686,7 +697,7 @@ Returns t if section is found, nil otherwise."
 
 (defun Man-goto-see-also-section ()
   "Move point the the \"SEE ALSO\" section.
-Actually the section moved to is described by Man-see-also-regexp."
+Actually the section moved to is described by `Man-see-also-regexp'."
   (interactive)
   (if (not (Man-find-section Man-see-also-regexp))
       (error (concat "No " Man-see-also-regexp
@@ -694,8 +705,8 @@ Actually the section moved to is described by Man-see-also-regexp."
 
 (defun Man-follow-manual-reference (arg)
   "Get one of the manpages referred to in the \"SEE ALSO\" section.
-Queries you for the page to retrieve. Of course it does this in the
-background. Universal argument ARG is passed to Man-getpage-in-background."
+Queries you for the page to retrieve.  Of course it does this in the
+background.  Universal argument ARG is passed to `Man-getpage-in-background'."
   (interactive "P")
   (if (not Man-refpages-alist)
       (error (concat "No references found in current manpage."))
@@ -768,17 +779,6 @@ background. Universal argument ARG is passed to Man-getpage-in-background."
     (if Man-circular-pages-p
 	(Man-goto-page (length Man-page-list))
       (error "You're looking at the first manpage in the buffer."))))
-
-(defun Man-version (arg)
-  "Show man's version.
-Universal argument (\\[universal-argument]) ARG inserts version
-information in the current buffer instead of printing the message in
-the echo area."
-  (interactive "P")
-  (if (consp arg)
-      (insert "Using Superman version " Man-version-number ".")
-    (message "Using Superman version %s." Man-version-number)))
-
 
 (provide 'man)
 
