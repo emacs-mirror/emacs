@@ -1,3 +1,10 @@
+2001-07-26  Andrew Innes  <andrewi@gnu.org>
+
+	* w32term.c (x_display_list): New variable.
+	(w32_term_init): Set it.
+
+	* w32term.h (x_display_list): New extern.
+
 2001-07-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (resize_mini_window): Give up when inhibit-redisplay
