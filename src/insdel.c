@@ -23,6 +23,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
+#include "charset.h"
 #include "window.h"
 #include "blockinput.h"
 
@@ -153,6 +154,7 @@ gap_left (pos, newgap)
      or may be where a quit was detected.  */
   adjust_markers (pos + 1, GPT, GAP_SIZE);
   GPT = pos + 1;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
   QUIT;
 }
 
@@ -231,6 +233,7 @@ gap_right (pos)
 
   adjust_markers (GPT + GAP_SIZE, pos + 1 + GAP_SIZE, - GAP_SIZE);
   GPT = pos + 1;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
   QUIT;
 }
 
@@ -290,6 +293,7 @@ adjust_markers_for_insert (pos, amount)
      register int pos, amount;
 {
   Lisp_Object marker;
+  int adjusted = 0;
 
   marker = BUF_MARKERS (current_buffer);
 
@@ -297,9 +301,16 @@ adjust_markers_for_insert (pos, amount)
     {
       register struct Lisp_Marker *m = XMARKER (marker);
       if (m->insertion_type && m->bufpos == pos)
-	m->bufpos += amount;
+	{
+	  m->bufpos += amount;
+	  adjusted = 1;
+	}
       marker = m->chain;
     }
+  if (adjusted)
+    /* Adjusting only markers whose insertion-type is t may result in
+       disordered overlays in the slot `overlays_before'.  */
+    fix_overlays_before (current_buffer, pos, pos + amount);
 }
 
 /* Add the specified amount to point.  This is used only when the value
@@ -339,7 +350,8 @@ make_gap (increment)
     error ("Buffer exceeds maximum size");
 
   BLOCK_INPUT;
-  result = BUFFER_REALLOC (BEG_ADDR, (Z - BEG + GAP_SIZE + increment));
+  /* We allocate extra 1-byte `\0' at the tail for anchoring a search.  */
+  result = BUFFER_REALLOC (BEG_ADDR, (Z - BEG + GAP_SIZE + increment + 1));
 
   if (result == 0)
     {
@@ -369,6 +381,9 @@ make_gap (increment)
   /* Now combine the two into one large gap.  */
   GAP_SIZE += old_gap_size;
   GPT = real_gap_loc;
+
+  /* Put an anchor.  */
+  *(Z_ADDR) = 0;
 
   Vinhibit_quit = tem;
 }
@@ -432,6 +447,7 @@ insert_1 (string, length, inherit, prepare)
   GPT += length;
   ZV += length;
   Z += length;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
   adjust_overlays_for_insert (PT, length);
   adjust_markers_for_insert (PT, length);
   adjust_point (length);
@@ -500,6 +516,7 @@ insert_from_string_1 (string, pos, length, inherit)
   GPT += length;
   ZV += length;
   Z += length;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
   adjust_overlays_for_insert (PT, length);
   adjust_markers_for_insert (PT, length);
 
@@ -576,6 +593,7 @@ insert_from_buffer_1 (buf, pos, length, inherit)
   GPT += length;
   ZV += length;
   Z += length;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
   adjust_overlays_for_insert (PT, length);
   adjust_markers_for_insert (PT, length);
   adjust_point (length);
@@ -590,9 +608,12 @@ insert_from_buffer_1 (buf, pos, length, inherit)
 
 void
 insert_char (c)
-     unsigned char c;
+     int c;
 {
-  insert (&c, 1);
+  unsigned char workbuf[4], *str;
+  int len = CHAR_STRING (c, workbuf, str);
+
+  insert (str, len);
 }
 
 /* Insert the null-terminated string S before point */
@@ -714,6 +735,7 @@ del_range_1 (from, to, prepare)
   ZV -= numdel;
   Z -= numdel;
   GPT = from;
+  *(GPT_ADDR) = 0;		/* Put an anchor.  */
 
   if (GPT - BEG < beg_unchanged)
     beg_unchanged = GPT - BEG;
