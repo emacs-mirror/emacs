@@ -1,5 +1,10 @@
 2003-12-24  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* tparam.c (tparam1): Add handling for `%pN', which
+	means use param N for the next substitution.
+
+2003-12-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* xfaces.c (Fcolor_gray_p): Fix omission bug:
 	In case `frame' is nil, consult the selected frame.
 	(Fcolor_supported_p): Likewise.
