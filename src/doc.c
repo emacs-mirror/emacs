@@ -337,6 +337,7 @@ read_doc_string (filepos)
 
 static int
 reread_doc_file (file)
+     Lisp_Object file;
 {
   Lisp_Object reply, prompt[3];
   struct gcpro gcpro1;
