@@ -1,6 +1,6 @@
 ;;; tooltip.el --- Show tooltip windows
 
-;; Copyright (C) 1997, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
 ;; Keywords: help c mouse tools
@@ -247,14 +247,14 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
     delay))
 
 
-(defun tooltip-disable-timeout ()
+(defun tooltip-cancel-delayed-tip ()
   "Disable the tooltip timeout."
   (when tooltip-timeout-id
     (disable-timeout tooltip-timeout-id)
     (setq tooltip-timeout-id nil)))
 
 
-(defun tooltip-add-timeout ()
+(defun tooltip-start-delayed-tip ()
   "Add a one-shot timeout to call function tooltip-timeout."
   (setq tooltip-timeout-id
 	(add-timeout (tooltip-delay) 'tooltip-timeout nil)))
@@ -305,7 +305,7 @@ ACTIVATEP non-nil means activate mouse motion events."
   (tooltip-hide)
   (when (car (mouse-pixel-position))
     (setq tooltip-last-mouse-motion-event (copy-sequence event))
-    (tooltip-add-timeout)))
+    (tooltip-start-delayed-tip)))
 
 
 
@@ -330,11 +330,11 @@ change the existing association.  Value is the resulting alist."
 	(let ((params (copy-sequence tooltip-frame-parameters))
 	      (fg (face-attribute 'tooltip :foreground))
 	      (bg (face-attribute 'tooltip :background)))
-	  (unless (eq 'unspecified fg)
-	    (setq params (tooltip-set-param params 'foreground-color fg)))
-	  (unless (eq 'unspecified bg)
-	    (setq params (tooltip-set-param params 'background-color bg))
-	    (setq params (tooltip-set-param params 'border-color bg)))
+	  (when (stringp fg)
+	    (setq params (tooltip-set-param params 'foreground-color fg))
+	    (setq params (tooltip-set-param params 'border-color fg)))
+	  (when (stringp bg)
+	    (setq params (tooltip-set-param params 'background-color bg)))
 	  (x-show-tip (propertize text 'face 'tooltip)
 		      (selected-frame)
 		      params
@@ -350,7 +350,7 @@ change the existing association.  Value is the resulting alist."
 (defun tooltip-hide (&optional ignored-arg)
   "Hide a tooltip, if one is displayed.
 Value is non-nil if tooltip was open."
-  (tooltip-disable-timeout)
+  (tooltip-cancel-delayed-tip)
   (when (x-hide-tip)
     (setq tooltip-hide-time (float-time))))
 
@@ -502,22 +502,27 @@ MSG is either a help string to display, or nil to cancel the display."
   (let ((previous-help tooltip-help-message))
     (setq tooltip-help-message msg)
     (cond ((null msg)
+	   ;; Cancel display.  This also cancels a delayed tip, if
+	   ;; there is one.
 	   (tooltip-hide))
-	  ((or (not (stringp previous-help))
-	       (not (string= msg previous-help)))
-	   (tooltip-hide)
-	   (tooltip-add-timeout))
+	  ((equal previous-help msg)
+	   ;; Same help as before (but possibly the mouse has moved).
+	   ;; Keep what we have.
+	   )
 	  (t
-	   (tooltip-disable-timeout)
-	   (tooltip-add-timeout)))))
+	   ;; A different help.  Remove a previous tooltip, and 
+	   ;; display a new one, with some delay.
+	   (tooltip-hide)
+	   (tooltip-start-delayed-tip)))))
 
 
 (defun tooltip-help-tips (event)
   "Hook function to display a help tooltip.
+This is installed on the hook `tooltip-hook', which is run when
+the the timer with ID `tooltip-timeout-id' fires.
 Value is non-nil if this function handled the tip."
   (when (stringp tooltip-help-message)
     (tooltip-show tooltip-help-message)
-    (setq tooltip-help-message nil)
     t))
 
 
