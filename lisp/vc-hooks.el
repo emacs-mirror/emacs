@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.1 2000/09/06 09:19:14 gerd Exp gerd $
+;; $Id: vc-hooks.el,v 1.118 2000/09/06 10:41:10 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -284,9 +284,9 @@ registered, use `vc-backend'."
   (symbol-name (vc-backend file)))
 
 (defun vc-name (file)
-  "Return the master name of FILE.  If the file is not registered, or
-the master name is not known, return nil."
-  ;; TODO: This should ultimately become obsolete, at least up here 
+  "Return the master name of FILE.
+If the file is not registered, or the master name is not known, return nil."
+  ;; TODO: This should ultimately become obsolete, at least up here
   ;; in vc-hooks.
   (or (vc-file-getprop file 'vc-name)
       (if (vc-backend file)
@@ -323,7 +323,7 @@ UID is returned as a string."
 (defun vc-state (file)
   "Return the version control state of FILE.
 
-The value returned is one of: 
+The value returned is one of:
 
   'up-to-date        The working file is unmodified with respect to the
                      latest version on the current branch, and not locked.
@@ -359,9 +359,9 @@ The value returned is one of:
   (eq (vc-state file) 'up-to-date))
 
 (defun vc-default-state-heuristic (backend file)
-  "Default implementation of vc-state-heuristic.  It simply calls the
-real state computation function `vc-BACKEND-state' and does not employ
-any heuristic at all."
+  "Default implementation of vc-state-heuristic.
+It simply calls the real state computation function `vc-BACKEND-state'
+and does not employ any heuristic at all."
    (vc-call-backend backend 'state file))
 
 (defun vc-workfile-version (file)
@@ -420,7 +420,7 @@ this function."
   (let ((dirname (or (file-name-directory file) ""))
         (basename (file-name-nondirectory file)))
     (catch 'found
-      (mapcar 
+      (mapcar
        (lambda (s)
 	 (let ((trial (vc-possible-master s dirname basename)))
 	   (if (and trial (file-exists-p trial)
@@ -455,7 +455,7 @@ to do that, use this command a second time with no argument."
 
 (defun vc-after-save ()
   "Function to be called by `basic-save-buffer' (in files.el)."
-  ;; If the file in the current buffer is under version control, 
+  ;; If the file in the current buffer is under version control,
   ;; up-to-date, and locking is not used for the file, set
   ;; the state to 'edited and redisplay the mode line.
   (let ((file (buffer-file-name)))
@@ -569,7 +569,7 @@ current, and kill the buffer that visits the link."
 		       ;; it again.  GUD does that, and repeated questions
 		       ;; are painful.
 		       (get-file-buffer
-			(abbreviate-file-name 
+			(abbreviate-file-name
                          (file-chase-links buffer-file-name))))
 		       
 		   (vc-follow-link)
@@ -596,7 +596,7 @@ Used in `find-file-not-found-hooks'."
   ;; from a previous visit.
   (vc-file-clearprops buffer-file-name)
   (if (and (vc-backend buffer-file-name)
-	   (yes-or-no-p 
+	   (yes-or-no-p
 	    (format "File %s was lost; check out from version control? "
 		    (file-name-nondirectory buffer-file-name))))
     (save-excursion
