@@ -1,3 +1,9 @@
+2002-08-10  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (unencodable_char_position): New function.
+	(Funencodable_char_position): New function.
+	(syms_of_coding): Defsubr Funencodable_char_position.
+
 2002-08-10  Andrew Choi  <akochoi@shaw.ca>
 
 	* mac.c (sys_select) [MAC_OSX]: New function.

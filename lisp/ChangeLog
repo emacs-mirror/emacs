@@ -1,3 +1,11 @@
+2002-08-10  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-cmds.el (search-unencodable-char): New
+	function.
+	(select-safe-coding-system): Show unencodable characters.
+	(unencodable-char-position): Deleted, and implemented by C in
+	coding.c.
+
 2002-04-09  John Wiegley  <johnw@gnu.org>
 
 	* esh-util.el: Removed eshell-under-cygwin-p, and all uses of it.
