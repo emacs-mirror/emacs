@@ -1,3 +1,9 @@
+2003-11-03  Eli Zaretskii  <eliz@elta.co.il>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format): If
+	base64-decode-region signals an error, catch it and silently
+	ignore it.
+
 2003-11-01  Mark A. Hershberger  <mah@everybody.org>
 
 	* xml.el: Allow comments following the top-level element.
