@@ -1,3 +1,9 @@
+2002-01-08  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/eldoc.el (eldoc-minor-mode-string): Fix custom type.
+
+	* textmodes/flyspell.el (flyspell-mode-line-string): Fix custom type.
+
 2002-01-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* progmodes/ada-mode.el (ada-initialize-properties, ada-mode): Do
