@@ -126,6 +126,19 @@ These directories are not searched for merging the `dir' file."
   :type '(repeat directory)
   :group 'info)
 
+(defcustom Info-scroll-prefer-subnodes t
+  "*If non-nil, \\<Info-mode-map>\\[Info-scroll-up] in a menu visits subnodes.
+If this is non-nil, and you scroll far enough in a node that its menu
+appears on the screen, the next \\<Info-mode-map>\\[Info-scroll-up]
+moves to a subnode indicated by the following menu item.  This means
+that you visit a subnode before getting to the end of the menu.
+
+Setting this option to nil results in behavior similar to the stand-alone
+Info reader program, which visits the first subnode from the menu only
+when you hit the end of the current node."
+  :type 'boolean
+  :group 'info)
+
 (defvar Info-current-file nil
   "Info file that Info is now looking at, or nil.
 This is the name that was specified in Info, not the actual file name.
@@ -1619,13 +1632,16 @@ N is the digit argument used to invoke this command."
 (defun Info-scroll-up ()
   "Scroll one screenful forward in Info, considering all nodes as one sequence.
 Once you scroll far enough in a node that its menu appears on the screen
-but after point, the next scroll moves into its first subnode.
+but after point, the next scroll moves into its first subnode, unless
+`Info-scroll-prefer-subnodes' is nil.
 
-When you scroll past the end of a node, that goes to the next node; if
-this node has no successor, it moves to the parent node's successor,
-and so on.  If point is inside the menu of a node, it moves to
-subnode indicated by the following menu item.  (That case won't
-normally result from this command, but can happen in other ways.)"
+When you scroll past the end of a node, that goes to the next node if
+`Info-scroll-prefer-subnodes' is non-nil and to the first subnode otherwise;
+if this node has no successor, it moves to the parent node's successor,
+and so on.  If `Info-scroll-prefer-subnodes' is non-nil and point is inside
+the menu of a node, it moves to subnode indicated by the following menu
+item.  (That case won't normally result from this command, but can happen
+in other ways.)"
 
   (interactive)
   (if (or (< (window-start) (point-min))
@@ -1634,12 +1650,16 @@ normally result from this command, but can happen in other ways.)"
   (let* ((case-fold-search t)
 	 (virtual-end (save-excursion
 			(goto-char (point-min))
-			(if (search-forward "\n* Menu:" nil t)
+			(if (and Info-scroll-prefer-subnodes
+				 (search-forward "\n* Menu:" nil t))
 			    (point)
 			  (point-max)))))
     (if (or (< virtual-end (window-start))
 	    (pos-visible-in-window-p virtual-end))
-	(Info-next-preorder)
+	(cond
+	 (Info-scroll-prefer-subnodes (Info-next-preorder))
+	 ((Info-no-error (Info-goto-node (Info-extract-menu-counting 1))))
+	 (t (Info-next-preorder)))
       (scroll-up))))
 
 (defun Info-scroll-down ()
