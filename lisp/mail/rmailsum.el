@@ -722,6 +722,8 @@ Commands for sorting the summary:
 (define-key rmail-summary-mode-map [menu-bar move next]
   '("Next" . rmail-summary-next-all))
 
+(defvar rmail-summary-overlay nil)
+
 (defun rmail-summary-goto-msg (&optional n nowarn skip-rmail)
   (interactive "P")
   (if (consp n) (setq n (prefix-numeric-value n)))
@@ -729,9 +731,14 @@ Commands for sorting the summary:
   (beginning-of-line)
   (let ((buf rmail-buffer)
 	(cur (point))
+	message-not-found
 	(curmsg (string-to-int
 		 (buffer-substring (point)
 				   (min (point-max) (+ 5 (point)))))))
+    ;; If message number N was specified, find that message's line
+    ;; or set message-not-found.
+    ;; If N wasn't specified or that message can't be found.
+    ;; set N by default.
     (if (not n)
 	(setq n curmsg)
       (if (< n 1)
@@ -745,6 +752,7 @@ Commands for sorting the summary:
       (if (not (re-search-forward (concat "^ *" (int-to-string n)) nil t))
 	  (progn (or nowarn (message "Message %d not found" n))
 		 (setq n curmsg)
+		 (setq message-not-found t)
 		 (goto-char cur))))
     (beginning-of-line)
     (skip-chars-forward " ")
@@ -753,6 +761,19 @@ Commands for sorting the summary:
 			(let ((buffer-read-only nil))
 			  (delete-char 1)
 			  (insert " "))))
+    ;; Make sure we have an overlay to use.
+    (or rmail-summary-overlay
+	(progn
+	  (make-local-variable 'rmail-summary-overlay)
+	  (setq rmail-summary-overlay (make-overlay (point) (point)))))
+    ;; If this message is in the summary, use the overlay to highlight it.
+    ;; Otherwise, don't highlight anything.
+    (if message-not-found
+	(overlay-put rmail-summary-overlay 'face nil)
+      (move-overlay rmail-summary-overlay
+		    (save-excursion (beginning-of-line) (1+ (point)))
+		    (point))
+      (overlay-put rmail-summary-overlay 'face 'highlight))
     (beginning-of-line)
     (if skip-rmail
 	nil
