@@ -1197,8 +1197,7 @@ and selects that window."
 	    (setq tail (buffer-list))
 	    (while tail
 	      (let ((elt (car tail)))
-		(if (not (string-match "^ "
-				       (buffer-name elt)))
+		(if (/= (aref (buffer-name elt) 0) ?\ )
 		    (setq head
 			  (cons
 			   (cons
