@@ -1,3 +1,8 @@
+2002-12-03  Andreas Schwab  <schwab@suse.de>
+
+	* callint.c (Fcall_interactively): Use next_event only if less
+	than key_count.
+
 2002-12-02  Andrew Choi  <akochoi@shaw.ca>
 
 	* macmenu.c (add_menu_item, fill_menubar): Truncate menu item

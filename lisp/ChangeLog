@@ -1,3 +1,7 @@
+2002-12-03  Andreas Schwab  <schwab@suse.de>
+
+	* whitespace.el (whitespace-highlight-face): Fix face spec.
+
 2002-12-02  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* simple.el (completion-setup-function): Fix last change to use
