@@ -1,3 +1,8 @@
+2002-02-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (current_minor_maps): `override' only shadows its
+	correspondent in minor-mode-map-alist, not the whole tail.
+
 2002-02-02  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (enlarge_window): Fix last change.
