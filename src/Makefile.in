@@ -225,7 +225,7 @@ SHORT= shortnames
 
    -DHAVE_CONFIG_H is needed for some other files to take advantage of
    the information in `config.h'.  */
-CFLAGS=-g
+
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
 ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAG) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM ${CFLAGS}
