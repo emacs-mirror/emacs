@@ -240,9 +240,14 @@
 			     res (cdr res)))
 		     buf)))))))))
 
+(defvar calc-eval-error nil
+  "Determines how calc handles errors.
+NIL means return a list containing the character position of error.
+STRING means return error message as string rather than list.
+T means abort and give an error message.")
+
 (defun calc-eval-error (msg)
-  (if (and (boundp 'calc-eval-error)
-	   calc-eval-error)
+  (if calc-eval-error
       (if (eq calc-eval-error 'string)
 	  (nth 1 msg)
 	(error "%s" (nth 1 msg)))
@@ -385,6 +390,8 @@
     (and (> (length calc-alg-exp) 0) (setq calc-previous-alg-entry calc-alg-exp))
     (exit-minibuffer)))
 
+(defvar calc-buffer)
+
 (defun calcAlg-enter ()
   (interactive)
   (let* ((str (minibuffer-contents))
@@ -442,6 +449,10 @@
 	 ((eq last-command-char ?@) "0@ ")
 	 (t (char-to-string last-command-char)))))
 
+;; The variable calc-digit-value is initially declared in calc.el,
+;; but can be set by calcDigit-algebraic and calcDigit-edit.
+(defvar calc-digit-value)
+
 (defun calcDigit-algebraic ()
   (interactive)
   (if (calc-minibuffer-contains ".*[@oh] *[^'m ]+[^'m]*\\'")
@@ -458,14 +469,15 @@
 
 ;;; Algebraic expression parsing.   [Public]
 
-;;; The next few variables are local to math-read-exprs (and math-read-expr)
-;;; but are set in functions they call.
+;; The next few variables are local to math-read-exprs (and math-read-expr
+;; in calc-ext.el), but are set in functions they call.
 
 (defvar math-exp-pos)
 (defvar math-exp-str)
 (defvar math-exp-old-pos)
 (defvar math-exp-token)
 (defvar math-exp-keep-spaces)
+(defvar math-expr-data)
 
 (defun math-read-exprs (math-exp-str)
   (let ((math-exp-pos 0)
@@ -727,6 +739,9 @@
 		   math-expr-data (char-to-string ch)
 		   math-exp-pos (1+ math-exp-pos)))))))
 
+(defconst math-alg-inequalities
+  '(calcFunc-lt calcFunc-gt calcFunc-leq calcFunc-geq
+		calcFunc-eq calcFunc-neq))
 
 (defun math-read-expr-level (exp-prec &optional exp-term)
   (let* ((x (math-read-factor)) (first t) op op2)
@@ -940,10 +955,6 @@
 	      math-expr-data save-exp-data
 	      matches "Failed"))
     matches))
-
-(defconst math-alg-inequalities
-  '(calcFunc-lt calcFunc-gt calcFunc-leq calcFunc-geq
-		calcFunc-eq calcFunc-neq))
 
 (defun math-remove-dashes (x)
   (if (string-match "\\`\\(.*\\)-\\(.*\\)\\'" x)
