@@ -2222,6 +2222,9 @@ Calling `write-region' for any purpose other than saving the buffer
 will still use `buffer-file-coding-system'; this variable has no effect
 in such cases.")
 
+(make-variable-buffer-local 'save-buffer-coding-system)
+(put 'save-buffer-coding-system 'permanent-local t)
+
 (defun basic-save-buffer ()
   "Save the current buffer in its visited file, if it has been modified.
 The hooks `write-contents-hooks', `local-write-file-hooks' and
@@ -2311,10 +2314,13 @@ After saving the buffer, this function runs `after-save-hook'."
 ;; but inhibited if one of write-file-hooks returns non-nil.
 ;; It returns a value to store in setmodes.
 (defun basic-save-buffer-1 ()
-  (let ((buffer-file-coding-system
-	 (or save-buffer-coding-system
-	     buffer-file-coding-system))
-	tempsetmodes setmodes)
+  (if save-buffer-coding-system
+      (let ((coding-system-for-write save-buffer-coding-system))
+	(basic-save-buffer-2))
+    (basic-save-buffer-2)))
+
+(defun basic-save-buffer-2 ()
+  (let (tempsetmodes setmodes)
     (if (not (file-writable-p buffer-file-name))
 	(let ((dir (file-name-directory buffer-file-name)))
 	  (if (not (file-directory-p dir))
