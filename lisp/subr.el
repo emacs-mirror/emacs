@@ -95,41 +95,48 @@ change the list."
 
 (defmacro when (cond &rest body)
   "If COND yields non-nil, do BODY, else return nil."
+  (declare (indent 1) (debug t))
   (list 'if cond (cons 'progn body)))
 
 (defmacro unless (cond &rest body)
   "If COND yields nil, do BODY, else return nil."
+  (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
 (defmacro dolist (spec &rest body)
-  "(dolist (VAR LIST [RESULT]) BODY...): loop over a list.
+  "Loop over a list.
 Evaluate BODY with VAR bound to each car from LIST, in turn.
-Then evaluate RESULT to get return value, default nil."
+Then evaluate RESULT to get return value, default nil.
+
+\(dolist (VAR LIST [RESULT]) BODY...)"
+  (declare (indent 1) (debug ((symbolp form &optional form) body)))
   (let ((temp (make-symbol "--dolist-temp--")))
-    (list 'let (list (list temp (nth 1 spec)) (car spec))
-	  (list 'while temp
-		(list 'setq (car spec) (list 'car temp))
-		(cons 'progn
-		      (append body
-			      (list (list 'setq temp (list 'cdr temp))))))
-	  (if (cdr (cdr spec))
-	      (cons 'progn
-		    (cons (list 'setq (car spec) nil) (cdr (cdr spec))))))))
+    `(let ((,temp ,(nth 1 spec))
+	   ,(car spec))
+       (while ,temp
+	 (setq ,(car spec) (car ,temp))
+	 (setq ,temp (cdr ,temp))
+	 ,@body)
+       ,@(if (cdr (cdr spec))
+	     `((setq ,(car spec) nil) ,@(cdr (cdr spec)))))))
 
 (defmacro dotimes (spec &rest body)
-  "(dotimes (VAR COUNT [RESULT]) BODY...): loop a certain number of times.
+  "Loop a certain number of times.
 Evaluate BODY with VAR bound to successive integers running from 0,
 inclusive, to COUNT, exclusive.  Then evaluate RESULT to get
-the return value (nil if RESULT is omitted)."
-  (let ((temp (make-symbol "--dotimes-temp--")))
-    (list 'let (list (list temp (nth 1 spec)) (list (car spec) 0))
-	   (list 'while (list '< (car spec) temp)
-		 (cons 'progn
-		       (append body (list (list 'setq (car spec)
-						(list '1+ (car spec)))))))
-	   (if (cdr (cdr spec))
-	       (car (cdr (cdr spec)))
-	     nil))))
+the return value (nil if RESULT is omitted).
+
+\(dotimes (VAR COUNT [RESULT]) BODY...)"
+  (declare (indent 1) (debug dolist))
+  (let ((temp (make-symbol "--dotimes-temp--"))
+	(start 0)
+	(end (nth 1 spec)))
+    `(let ((,temp ,end)
+	   (,(car spec) ,start))
+       (while (< ,(car spec) ,temp)
+	 ,@body
+	 (setq ,(car spec) (1+ ,(car spec))))
+       ,@(cdr (cdr spec)))))
 
 (defsubst caar (x)
   "Return the car of the car of X."
@@ -204,8 +211,9 @@ SEQ must be a list, vector, or string.  The comparison is done with `equal'."
     (delete elt (copy-sequence seq))))
 
 (defun remq (elt list)
-  "Return a copy of LIST with all occurrences of ELT removed.
-The comparison is done with `eq'."
+  "Return LIST with all occurrences of ELT removed.
+The comparison is done with `eq'.  Contrary to `delq', this does not use
+side-effects, and the argument LIST is not modified."
   (if (memq elt list)
       (delq elt (copy-sequence list))
     list))
@@ -565,7 +573,7 @@ The normal global definition of the character C-x indirects to this keymap.")
 			(if (> c 127)
 			    (logxor c listify-key-sequence-1)
 			  c)))
-	    (append key nil))))
+	    key)))
 
 (defsubst eventp (obj)
   "True if the argument is an event object."
@@ -1140,7 +1148,7 @@ any other non-digit terminates the character code and is then used as input."))
 	     (setq code (+ (* code read-quoted-char-radix) (- translated ?0)))
 	     (and prompt (setq prompt (message "%s %c" prompt translated))))
 	    ((and (<= ?a (downcase translated))
-		  (< (downcase translated) (+ ?a -10 (min 26 read-quoted-char-radix))))
+		  (< (downcase translated) (+ ?a -10 (min 36 read-quoted-char-radix))))
 	     (setq code (+ (* code read-quoted-char-radix)
 			   (+ 10 (- (downcase translated) ?a))))
 	     (and prompt (setq prompt (message "%s %c" prompt translated))))
@@ -1230,9 +1238,8 @@ user can undo the change normally."
 	     (accept-change-group ,handle)
 	   (cancel-change-group ,handle))))))
 
-(defun prepare-change-group (&optional buffer)
+(defun prepare-change-group ()
   "Return a handle for the current buffer's state, for a change group.
-If you specify BUFFER, make a handle for BUFFER's state instead.
 
 Pass the handle to `activate-change-group' afterward to initiate
 the actual changes of the change group.
@@ -1598,9 +1605,19 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
   "Execute the forms in BODY with BUFFER as the current buffer.
 The value returned is the value of the last form in BODY.
 See also `with-temp-buffer'."
-  (cons 'save-current-buffer
-	(cons (list 'set-buffer buffer)
-	      body)))
+  (declare (indent 1) (debug t))
+  `(save-current-buffer
+     (set-buffer ,buffer)
+     ,@body))
+
+(defmacro with-selected-window (window &rest body)
+  "Execute the forms in BODY with WINDOW as the selected window.
+The value returned is the value of the last form in BODY.
+See also `with-temp-buffer'."
+  (declare (indent 1) (debug t))
+  `(save-selected-window
+     (select-window ,window 'norecord)
+     ,@body))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
@@ -1646,6 +1663,7 @@ Use a MESSAGE of \"\" to temporarily clear the echo area."
 (defmacro with-temp-buffer (&rest body)
   "Create a temporary buffer, and evaluate BODY there like `progn'.
 See also `with-temp-file' and `with-output-to-string'."
+  (declare (indent 0) (debug t))
   (let ((temp-buffer (make-symbol "temp-buffer")))
     `(let ((,temp-buffer
 	    (get-buffer-create (generate-new-buffer-name " *temp*"))))
@@ -1657,6 +1675,7 @@ See also `with-temp-file' and `with-output-to-string'."
 
 (defmacro with-output-to-string (&rest body)
   "Execute BODY, return the text it sent to `standard-output', as a string."
+  (declare (indent 0) (debug t))
   `(let ((standard-output
 	  (get-buffer-create (generate-new-buffer-name " *string-output*"))))
      (let ((standard-output standard-output))
@@ -1686,6 +1705,7 @@ functions can't be deferred, so in that case this macro has no effect.
 
 Do not alter `after-change-functions' or `before-change-functions'
 in BODY."
+  (declare (indent 0) (debug t))
   `(unwind-protect
        (let ((combine-after-change-calls t))
 	 . ,body)
@@ -1760,6 +1780,7 @@ The value returned is the value of the last form in BODY."
   ;; It is better not to use backquote here,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
+  (declare (indent 0) (debug t))
   (list 'let
 	'((save-match-data-internal (match-data)))
 	(list 'unwind-protect
