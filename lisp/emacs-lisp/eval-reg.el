@@ -199,10 +199,13 @@ This version calls `eval-region' on the whole buffer."
   (eval-region (point-min) (point-max) elisp-output))
 
 
-(defun elisp-eval-buffer (&optional elisp-bufname elisp-printflag)
+(defun elisp-eval-buffer (&optional elisp-bufname elisp-printflag filename)
   "Execute BUFFER as Lisp code.  Use current buffer if BUFFER is nil.
 Programs can pass argument PRINTFLAG which controls printing of
 output: nil means discard it; anything else is stream for print.
+
+The argument FILENAME is accepted and ignored, just to avoid
+crashes.
 
 This version calls `eval-region' on the whole buffer."
   (interactive)
