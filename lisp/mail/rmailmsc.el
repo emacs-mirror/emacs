@@ -25,8 +25,8 @@
 
 (defun set-rmail-inbox-list (file-name)
   "Set the inbox list of the current RMAIL file to FILE-NAME.
-This may be a list of file names separated by commas.
-If FILE-NAME is empty, remove any inbox list."
+You can specify one file name, or several names separated by commas.
+If FILE-NAME is empty, remove any existing inbox list."
   (interactive "sSet mailbox list to (comma-separated list of filenames): ")
   (save-excursion
     (let ((names (rmail-parse-file-inboxes))
