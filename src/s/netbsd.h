@@ -70,6 +70,9 @@
 #ifdef HAVE_CRTIN
 #define START_FILES_1 /usr/lib/crti.o 
 #define END_FILES_1 /usr/lib/crtn.o
+#else
+#define START_FILES_1
+#define END_FILES_1
 #endif
 
 #define HAVE_WAIT_HEADER
