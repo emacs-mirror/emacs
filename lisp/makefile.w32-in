@@ -72,6 +72,8 @@ DONTCOMPILE = \
 	$(lisp)/international/mule-conf.el \
 	$(lisp)/language/czech.el \
 	$(lisp)/language/devanagari.el \
+	$(lisp)/language/malayalam.el \
+	$(lisp)/language/tamil.el \
 	$(lisp)/language/english.el \
 	$(lisp)/language/greek.el \
 	$(lisp)/language/hebrew.el \
