@@ -76,7 +76,7 @@ static Lisp_Object region_limit P_ ((int));
 static int lisp_time_argument P_ ((Lisp_Object, time_t *, int *));
 static size_t emacs_memftimeu P_ ((char *, size_t, const char *,
 				   size_t, const struct tm *, int));
-static void general_insert_function P_ ((void (*) (unsigned char *, int),
+static void general_insert_function P_ ((void (*) (const unsigned char *, int),
 					 void (*) (Lisp_Object, int, int, int,
 						   int, int),
 					 int, int, Lisp_Object *));
@@ -1901,7 +1901,7 @@ set_time_zone_rule (tzstring)
 static void
 general_insert_function (insert_func, insert_from_string_func,
 			 inherit, nargs, args)
-     void (*insert_func) P_ ((unsigned char *, int));
+     void (*insert_func) P_ ((const unsigned char *, int));
      void (*insert_from_string_func) P_ ((Lisp_Object, int, int, int, int, int));
      int inherit, nargs;
      register Lisp_Object *args;
