@@ -2468,7 +2468,7 @@ If this property is omitted, it defaults to 50.
 
 @item :margin @var{margin}
 The @code{:margin} property specifies how many pixels to add as an
-extra margin around the image.  The value, @var{margin}, must be a a
+extra margin around the image.  The value, @var{margin}, must be a
 non-negative number, or a pair @code{(@var{x} . @var{y})} of such
 numbers.  If it is a pair, @var{x} specifies how many pixels to add
 horizontally, and @var{y} specifies how many pixels to add vertically.
