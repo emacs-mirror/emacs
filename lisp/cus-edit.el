@@ -2549,7 +2549,7 @@ Match frames with dark backgrounds.")
   "Customize face."
   :sample-face 'custom-face-tag-face
   :help-echo "Set or reset this face."
-  :documentation-property #'face-doc-string)
+  :documentation-property #'face-doc-string
   :value-create 'custom-face-value-create
   :action 'custom-face-action
   :custom-category 'face
