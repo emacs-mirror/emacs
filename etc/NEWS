@@ -62,6 +62,9 @@ See the files mac/README and mac/INSTALL for build instructions.
 When the file is maintained under version control, that information
 appears between the position information and the major mode.
 
+** C-x s (save-some-buffers) now offers an option `d' to diff a buffer
+against its file, so you can see what changes you would be saving.
+
 +++
 ** You can now customize the use of window fringes.  To control this
 for all frames, use M-x fringe-mode or the Show/Hide submenu of the

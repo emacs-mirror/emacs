@@ -1,7 +1,17 @@
+2002-09-01  Richard M. Stallman  <rms@gnu.org>
+
+	* term/x-win.el (function-key-map): Define S-iso-lefttab.
+
 2002-09-02  Kim F. Storm  <storm@cua.dk>
 
 	* edmacro.el (edit-kbd-macro): Recognize new default binding for
 	C-x e in addition to old binding.
+
+2002-09-01  Mario Lang  <mlang@debian.org>
+
+	* files.el (save-some-buffers-action-alist): New variable.
+	(save-some-buffers): Use that.
+	(diff-buffer-with-file): New function.
 
 2002-09-01  Richard M. Stallman  <rms@gnu.org>
 
