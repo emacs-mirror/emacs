@@ -31,10 +31,9 @@
 ;; Hilit19 knows (or thinks it knows) how to highlight emacs buffers in
 ;; about 25 different modes.
 ;; 
-;; WHERE TO GET THE LATEST VERSIONS OF HILIT19.EL (beta and release), 
-;; PLUS LOTS OF OTHER *WAY COOL* STUFF VIA ANONYMOUS FTP:
+;; WHERE TO GET THE LATEST VERSIONS OF HILIT19.EL (beta and release):
 ;;
-;;      ftp.hackvan.com:/pub/stig/src/elisp/hilit19.el.gz
+;;      http://hackvan.com/pub/stig/src/elisp/
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -406,12 +405,12 @@ your init file.")
 (eval-when-compile (require 'reporter))	; no compilation gripes
 
 (defun hilit-submit-feedback ()
-  "Submit feedback on hilit19 to the author: stig@hackvan.com"
+  "Submit feedback on hilit19 to hilit@hackvan.com"
   (interactive)
   (require 'reporter)
   (and (y-or-n-p "Do you really want to submit a report on hilit19? ")
        (reporter-submit-bug-report
-	"Jonathan Stigelman <stig@hackvan.com>"
+	"Jonathan Stigelman <hilit@hackvan.com>"
 	"hilit19.el (Release 2.19)"
 	(and (y-or-n-p "Do you need to include a dump hilit variables? ")
 	     (append
