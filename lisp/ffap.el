@@ -5,7 +5,8 @@
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Created: 29 Mar 1993
 ;; Keywords: files, hypermedia, matching, mouse
-;; X-URL: ftp://ftp.mathcs.emory.edu:/pub/mic/emacs/
+;; X-URL: ftp://ftp.mathcs.emory.edu/pub/mic/emacs/
+;; X-Source: this file is generated from ffap.epp
 
 ;; This file is part of GNU Emacs.
 
@@ -67,10 +68,10 @@
 ;; (setq ffap-machine-p-known 'accept)  ; no pinging
 ;; (setq ffap-url-regexp nil)           ; disable URL features in ffap
 ;;
-;; ffap uses w3 (if found) or else browse-url to fetch URL's.  For
-;; a hairier `ffap-url-fetcher', try ffap-url.el (same ftp site).
+;; ffap uses `browse-url' (if found, else `w3-fetch') to fetch URL's.
+;; For a hairier `ffap-url-fetcher', try ffap-url.el (same ftp site).
 ;; Also, you can add `ffap-menu-rescan' to various hooks to fontify
-;; the file and URL references within a buffer.
+;; the file and URL references within a buffer.  
 
 
 ;;; Change Log:
@@ -97,16 +98,21 @@
 
 (provide 'ffap)
 
+;; Please do not delete this variable, it is checked in bug reports.
+(defconst ffap-version "1.9-fsf <97/06/25 13:21:41 mic>"
+  "The version of ffap: \"Major.Minor-Build <Timestamp>\"")
+
+
+(defgroup ffap nil
+  "Find file or URL at point."
+  :link '(url-link :tag "URL" "ftp://ftp.mathcs.emory.edu/pub/mic/emacs/")
+  :group 'matching)
+
 ;; The code is organized in pages, separated by formfeed characters.
 ;; See the next two pages for standard customization ideas.
 
 
 ;;; User Variables:
-
-(defgroup ffap nil
-  "Find file or URL at point."
-  :group 'matching)
-
 
 (defun ffap-soft-value (name &optional default)
   "Return value of symbol with NAME, if it is interned.
@@ -218,16 +224,17 @@ ffap most of the time."
 (put 'ffap-file-finder 'risky-local-variable t)
 
 (defcustom ffap-url-fetcher
-  (cond ((fboundp 'w3-fetch) 'w3-fetch)
-	((fboundp 'browse-url-netscape) 'browse-url-netscape)
-	(t 'w3-fetch))
+  (if (fboundp 'browse-url)
+      'browse-url			; rely on browse-url-browser-function
+    'w3-fetch)
   ;; Remote control references:
   ;; http://www.ncsa.uiuc.edu/SDG/Software/XMosaic/remote-control.html
   ;; http://home.netscape.com/newsref/std/x-remote.html
   "*A function of one argument, called by ffap to fetch an URL.
-Reasonable choices are `w3-fetch' or `browse-url-netscape'.
-For a fancier alternative, get ffap-url.el."
+Reasonable choices are `w3-fetch' or a `browse-url-*' function.
+For a fancy alternative, get ffap-url.el."
   :type '(choice (const w3-fetch)
+		 (const browse-url)	; in recent versions of browse-url
 		 (const browse-url-netscape)
 		 (const browse-url-mosaic)
 		 function)
@@ -235,18 +242,16 @@ For a fancier alternative, get ffap-url.el."
 (put 'ffap-url-fetcher 'risky-local-variable t)
 
 
-;;; Compatibility (XEmacs code suppressed in this version):
+;;; Compatibility:
+;;
+;; This version of ffap supports Emacs 20 only, see the ftp site
+;; for a more general version.  The following functions are necessary
+;; "leftovers" from the more general version.
 
-(progn
-  (defalias 'ffap-make-overlay 'make-overlay)
-  (defalias 'ffap-delete-overlay 'delete-overlay) ; reusable
-  (defalias 'ffap-move-overlay 'move-overlay)
-  (defalias 'ffap-overlay-put 'overlay-put) ; 'face
-  (defalias 'ffap-find-face 'internal-find-face)
-  (defun ffap-mouse-event nil		; current mouse event, or nil
-    (and (listp last-nonmenu-event) last-nonmenu-event))
-  (defun ffap-event-buffer (event) (window-buffer (car (event-start event))))
-  )
+(defun ffap-mouse-event nil		; current mouse event, or nil
+  (and (listp last-nonmenu-event) last-nonmenu-event))
+(defun ffap-event-buffer (event)
+  (window-buffer (car (event-start event))))
 
 
 ;;; Find Next Thing in buffer (`ffap-next'):
@@ -355,8 +360,9 @@ What `ffap-machine-p' does with hostnames that have an unknown domain
 (defun ffap-what-domain (domain)
   ;; Like what-domain in mail-extr.el, returns string or nil.
   (require 'mail-extr)
-  (get (intern-soft (downcase domain) mail-extr-all-top-level-domains)
-       'domain-name))
+  (let ((ob (or (ffap-soft-value "mail-extr-all-top-level-domains")
+		(ffap-soft-value "all-top-level-domains")))) ; XEmacs
+    (and ob (get (intern-soft (downcase domain) ob) 'domain-name))))
 
 (defun ffap-machine-p (host &optional service quiet strategy)
   "Decide whether HOST is the name of a real, reachable machine.
@@ -444,15 +450,37 @@ Returned values:
 	 (funcall found fullname name))))
 ;; (ffap-replace-path-component "/who@foo.com:/whatever" "/new")
 
-(defun ffap-file-exists-string (file)
-  ;; With certain packages (ange-ftp, jka-compr?) file-exists-p
-  ;; sometimes returns a nicer string than it is given.  Otherwise, it
-  ;; just returns nil or t.
-  "Return FILE \(maybe modified\) if it exists, else nil."
-  (and file				; quietly reject nil
-       (let ((exists (file-exists-p file)))
-	 (and exists (if (stringp exists) exists file)))))
+(defun ffap-file-suffix (file)
+  "Return trailing \".foo\" suffix of FILE, or nil if none."
+  (let ((pos (string-match "\\.[^./]*\\'" file)))
+    (and pos (substring file pos nil))))
 
+(defvar ffap-compression-suffixes '(".gz" ".Z")	; .z is mostly dead
+  "List of suffixes tried by `ffap-file-exists-string'.")
+
+(defun ffap-file-exists-string (file &optional nomodify)
+  ;; Early jka-compr versions modified file-exists-p to return the
+  ;; filename, maybe modified by adding a suffix like ".gz".  That
+  ;; broke the interface of file-exists-p, so it was later dropped.
+  ;; Here we document and simulate the old behavior.
+  "Return FILE \(maybe modified\) if it exists, else nil.
+When using jka-compr (a.k.a. `auto-compression-mode'), the returned
+name may have a suffix added from `ffap-compression-suffixes'.
+The optional NOMODIFY argument suppresses the extra search."
+  (cond
+   ((not file) nil)			; quietly reject nil
+   ((file-exists-p file) file)		; try unmodified first
+   ;; three reasons to suppress search:
+   (nomodify nil)
+   ((not (rassq 'jka-compr-handler file-name-handler-alist)) nil)
+   ((member (ffap-file-suffix file) ffap-compression-suffixes) nil)
+   (t					; ok, do the search
+    (let ((list ffap-compression-suffixes) try ret)
+      (while list
+	(if (file-exists-p (setq try (concat file (car list))))
+	    (setq ret try list nil)
+	  (setq list (cdr list))))
+      ret))))
 
 (defun ffap-file-remote-p (filename)
   "If FILENAME looks remote, return it \(maybe slightly improved\)."
@@ -562,12 +590,9 @@ Looks at `ffap-ftp-default-user', returns \"\" for \"localhost\"."
    ((and ffap-url-unwrap-local (ffap-url-unwrap-local url)))
    ((and ffap-url-unwrap-remote ffap-ftp-regexp
 	 (ffap-url-unwrap-remote url)))
-   ;; This might autoload the url package, oh well:
-   (t (let ((normal (and (fboundp 'url-normalize-url)
-			 (url-normalize-url url))))
-	;; In case url-normalize-url is confused:
-	(or (and normal (not (zerop (length normal))) normal)
-	    url)))))
+   ((fboundp 'url-normalize-url)	; may autoload url (part of w3)
+    (url-normalize-url url))
+   (url)))
 
 
 ;;; Path Handling:
@@ -659,24 +684,23 @@ kpathsea, a library used by some versions of TeX."
 	       (list dir))))
 	  path)))
 
-(defvar ffap-locate-jka-suffixes t
-  "List of compression suffixes tried by `ffap-locate-file'.
-
-If not a list, it will be initialized by `ffap-locate-file', depending
-on whether you use jka-compr (a.k.a. `auto-compression-mode').
-Typical values are nil or '(\".gz\" \".Z\").") ; .z is dead
-
-(defun ffap-locate-file (file &optional nosuffix path)
-  ;; Note the Emacs 20 version of locate-library could almost
-  ;; replace this function, except that it does not let us overrride
-  ;; the list of suffixes.
+(defun ffap-locate-file (file &optional nosuffix path dir-ok)
+  ;; The Emacs 20 version of locate-library could almost replace this,
+  ;; except it does not let us overrride the suffix list.  The
+  ;; compression-suffixes search moved to ffap-file-exists-string.
   "A generic path-searching function, mimics `load' by default.
 Returns path to file that \(load FILE\) would load, or nil.
 Optional NOSUFFIX, if nil or t, is like the fourth argument
 for load: whether to try the suffixes (\".elc\" \".el\" \"\").
 If a nonempty list, it is a list of suffixes to try instead.
-Optional PATH is a list of directories instead of `load-path'."
+Optional PATH is a list of directories instead of `load-path'.
+Optional DIR-OK means that returning a directory is allowed,
+DIR-OK is already implicit if FILE looks like a directory.
+
+This uses ffap-file-exists-string, which may try adding suffixes from
+`ffap-compression-suffixes'."
   (or path (setq path load-path))
+  (or dir-ok (setq dir-ok (equal "" (file-name-nondirectory file))))
   (if (file-name-absolute-p file)
       (setq path (list (file-name-directory file))
 	    file (file-name-nondirectory file)))
@@ -684,36 +708,19 @@ Optional PATH is a list of directories instead of `load-path'."
 	 (cond
 	  ((consp nosuffix) nosuffix)
 	  (nosuffix '(""))
-	  (t '(".elc" ".el" "")))))
-    ;; Note we no longer check for old versions of jka-compr, that
-    ;; would aggressively try to convert any foo to foo.gz.
-    (or (listp ffap-locate-jka-suffixes)
-	(setq ffap-locate-jka-suffixes
-	      (and (rassq 'jka-compr-handler file-name-handler-alist)
-		   '(".gz" ".Z"))))	; ".z" is dead, "" is implicit
-    (if ffap-locate-jka-suffixes	;
-	(setq suffixes-to-try
-	      (apply 'nconc
-		     (mapcar
-		      (function
-		       (lambda (suf)
-			 (cons suf
-			       (mapcar
-				(function (lambda (x) (concat suf x)))
-				ffap-locate-jka-suffixes))))
-		      suffixes-to-try))))
-    (let (found suffixes)
-      (while (and path (not found))
-	(setq suffixes suffixes-to-try)
-	(while (and suffixes (not found))
-	  (let ((try (expand-file-name
-		      (concat file (car suffixes))
-		      (car path))))
-	    (if (and (file-exists-p try) (not (file-directory-p try)))
-		(setq found try)))
-	  (setq suffixes (cdr suffixes)))
-	(setq path (cdr path)))
-      found)))
+	  (t '(".elc" ".el" ""))))
+	suffixes try found)
+    (while path
+      (setq suffixes suffixes-to-try)
+      (while suffixes
+	(setq try (ffap-file-exists-string
+		   (expand-file-name
+		    (concat file (car suffixes)) (car path))))
+	(if (and try (or dir-ok (not (file-directory-p try))))
+	    (setq found try suffixes nil path nil)
+	  (setq suffixes (cdr suffixes))))
+      (setq path (cdr path)))
+    found))
 
 
 ;;; Action List (`ffap-alist'):
@@ -731,6 +738,7 @@ Optional PATH is a list of directories instead of `load-path'."
     ("\\`[-a-z]+\\'" . ffap-info-3)	; (emacs)Top [only in the parentheses]
     ("\\.elc?\\'" . ffap-el)		; simple.el, simple.elc
     (emacs-lisp-mode . ffap-el-mode)	; rmail, gnus, simple, custom
+    ;; (lisp-interaction-mode . ffap-el-mode) ; maybe
     (finder-mode . ffap-el-mode)	; type {C-h p} and try it
     (help-mode . ffap-el-mode)		; maybe useful
     (c++-mode . ffap-c-mode)		; search ffap-c-path
@@ -757,6 +765,21 @@ On a match, \(FUNCTION NAME\) is called and should return a file, an
 url, or nil. If nil, search the alist for further matches.")
 
 (put 'ffap-alist 'risky-local-variable t)
+
+;; Example `ffap-alist' modifications:
+;;
+;; (setq ffap-alist                   ; remove a feature in `ffap-alist'
+;;	 (delete (assoc 'c-mode ffap-alist) ffap-alist))
+;;
+;; (setq ffap-alist                   ; add something to `ffap-alist'
+;;	 (cons
+;;	  (cons "^YSN[0-9]+$"
+;;		(defun ffap-ysn (name)
+;;		  (concat
+;;		   "http://www.physics.uiuc.edu/"
+;;                 "ysn/httpd/htdocs/ysnarchive/issuefiles/"
+;;		   (substring name 3) ".html")))
+;;	  ffap-alist))
 
 
 ;;; Action Definitions:
@@ -1157,7 +1180,9 @@ which may actually result in an url rather than a filename."
     (or (ffap-url-p guess)
 	(progn
 	  (or (ffap-file-remote-p guess)
-	      (setq guess (abbreviate-file-name (expand-file-name guess))))
+	      (setq guess
+		    (abbreviate-file-name (expand-file-name guess))
+		    ))
 	  (setq dir (file-name-directory guess))))
     (setq guess
 	  (completing-read
@@ -1242,22 +1267,24 @@ Uses the face `ffap' if it is defined, or else `highlight'."
   (cond
    (remove
     (and ffap-highlight-overlay
-	 (ffap-delete-overlay ffap-highlight-overlay)))
+	 (delete-overlay ffap-highlight-overlay))
+    )
    ((not ffap-highlight) nil)
    (ffap-highlight-overlay
-    (ffap-move-overlay ffap-highlight-overlay
-		       (car ffap-string-at-point-region)
-		       (nth 1 ffap-string-at-point-region)
-		       (current-buffer)))
+    (move-overlay
+     ffap-highlight-overlay
+     (car ffap-string-at-point-region)
+     (nth 1 ffap-string-at-point-region)
+     (current-buffer)))
    (t
     (setq ffap-highlight-overlay
-	  (apply 'ffap-make-overlay ffap-string-at-point-region))
-    (ffap-overlay-put ffap-highlight-overlay 'face
-		      (if (ffap-find-face 'ffap)
+	  (apply 'make-overlay ffap-string-at-point-region))
+    (overlay-put ffap-highlight-overlay 'face
+		      (if (internal-find-face 'ffap)
 			  'ffap 'highlight)))))
 
 
-;;; The big cheese (`ffap'):
+;;; Main Entrance (`find-file-at-point' == `ffap'):
 
 (defun ffap-guesser nil
   "Return file or URL or nil, guessed from text around point."
@@ -1271,12 +1298,15 @@ Uses the face `ffap' if it is defined, or else `highlight'."
   ;; Does guess and prompt step for find-file-at-point.
   ;; Extra complication for the temporary highlighting.
   (unwind-protect
-      (ffap-read-file-or-url
-       (if ffap-url-regexp "Find file or URL: " "Find file: ")
-       (prog1
-	   (setq guess (or guess (ffap-guesser)))
-	 (and guess (ffap-highlight))
-	 ))
+      ;; This catch will let ffap-alist entries do their own prompting
+      ;; and then maybe skip over this prompt (ff-paths, for example).
+      (catch 'ffap-prompter
+	(ffap-read-file-or-url
+	 (if ffap-url-regexp "Find file or URL: " "Find file: ")
+	 (prog1
+	     (setq guess (or guess (ffap-guesser))) ; using ffap-alist here
+	   (and guess (ffap-highlight))
+	   )))
     (ffap-highlight t)))
 
 ;;;###autoload
@@ -1336,9 +1366,9 @@ For example, try \":/\" for URL (and some ftp) references.")
 (make-variable-buffer-local 'ffap-menu-alist)
 
 (defvar ffap-menu-text-plist
-  (and window-system
-       '(face bold mouse-face highlight) ; keymap <mousy-map>
-       )
+  (cond
+   ((not window-system) nil)
+   (t '(face bold mouse-face highlight))) ; keymap <mousy-map>
   "Text properties applied to strings found by `ffap-menu-rescan'.
 These properties may be used to fontify the menu references.")
 
@@ -1470,8 +1500,11 @@ Ignored when `ffap-at-mouse' is called programmatically.")
 ;;;###autoload
 (defun ffap-at-mouse (e)
   "Find file or url guessed from text around mouse click.
-Interactively, calls `ffap-at-mouse-fallback' if nothing is found.
-Returns t or nil to indicate success."
+Interactively, calls `ffap-at-mouse-fallback' if no guess is found.
+Return value:
+  * if a guess string is found, return it (after finding it)
+  * if the fallback is called, return whatever it returns
+  * otherwise, nil"
   (interactive "e")
   (let ((guess
 	 ;; Maybe less surprising without the save-excursion?
@@ -1489,12 +1522,13 @@ Returns t or nil to indicate success."
 	    (sit-for 0)			; display
 	    (message "Finding `%s'" guess)
 	    (find-file-at-point guess)
-	    t)				; success: return non-nil
+	    guess)			; success: return non-nil
 	(ffap-highlight t)))
      ((interactive-p)
       (if ffap-at-mouse-fallback
 	  (call-interactively ffap-at-mouse-fallback)
-	(message "No file or url found at mouse click.")))
+	(message "No file or url found at mouse click.")
+	nil))				; no fallback, return nil
      ;; failure: return nil
      )))
 
@@ -1542,7 +1576,7 @@ Only intended for interactive use."
   (let ((reporter-prompt-for-summary-p t))
     (reporter-submit-bug-report
      "Michelangelo Grigni <mic@mathcs.emory.edu>"
-     "ffap"				; version? just rely on Emacs version
+     "ffap"
      (mapcar 'intern (all-completions "ffap-" obarray 'boundp)))))
 
 (fset 'ffap-submit-bug 'ffap-bug)	; another likely name
@@ -1594,19 +1628,19 @@ Only intended for interactive use."
 ;;; Offer default global bindings (`ffap-bindings'):
 
 (defvar ffap-bindings
-  '(
-    (global-set-key [S-mouse-3] 'ffap-at-mouse)
-    (global-set-key [C-S-mouse-3] 'ffap-menu)
-    (global-set-key "\C-x\C-f" 'find-file-at-point)
-    (global-set-key "\C-x4f"   'ffap-other-window)
-    (global-set-key "\C-x5f"   'ffap-other-frame)
-    (add-hook 'gnus-summary-mode-hook 'ffap-gnus-hook)
-    (add-hook 'gnus-article-mode-hook 'ffap-gnus-hook)
-    (add-hook 'vm-mode-hook 'ffap-ro-mode-hook)
-    (add-hook 'rmail-mode-hook 'ffap-ro-mode-hook)
-    ;; (setq dired-x-hands-off-my-keys t) ; the default
-    )
-  "List of binding forms evaluated by function `ffap-bindings'.
+   '(
+     (global-set-key [S-mouse-3] 'ffap-at-mouse)
+     (global-set-key [C-S-mouse-3] 'ffap-menu)
+     (global-set-key "\C-x\C-f" 'find-file-at-point)
+     (global-set-key "\C-x4f"   'ffap-other-window)
+     (global-set-key "\C-x5f"   'ffap-other-frame)
+     (add-hook 'gnus-summary-mode-hook 'ffap-gnus-hook)
+     (add-hook 'gnus-article-mode-hook 'ffap-gnus-hook)
+     (add-hook 'vm-mode-hook 'ffap-ro-mode-hook)
+     (add-hook 'rmail-mode-hook 'ffap-ro-mode-hook)
+     ;; (setq dired-x-hands-off-my-keys t) ; the default
+     )
+     "List of binding forms evaluated by function `ffap-bindings'.
 A reasonable ffap installation needs just these two lines:
   (require 'ffap)
   (ffap-bindings)
@@ -1615,21 +1649,6 @@ Of course if you do not like these bindings, just roll your own!")
 (defun ffap-bindings nil
   "Evaluate the forms in variable `ffap-bindings'."
   (eval (cons 'progn ffap-bindings)))
-
-;; Example modifications:
-;;
-;; (setq ffap-alist                   ; remove a feature in `ffap-alist'
-;;	 (delete (assoc 'c-mode ffap-alist) ffap-alist))
-;;
-;; (setq ffap-alist                   ; add something to `ffap-alist'
-;;	 (cons
-;;	  (cons "^YSN[0-9]+$"
-;;		(defun ffap-ysn (name)
-;;		  (concat
-;;		   "http://www.physics.uiuc.edu/"
-;;                 "ysn/httpd/htdocs/ysnarchive/issuefiles/"
-;;		   (substring name 3) ".html")))
-;;	  ffap-alist))
 
 
 ;;; ffap.el ends here
