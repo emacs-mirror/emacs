@@ -1,3 +1,7 @@
+2001-10-15  Sam Steingold  <sds@gnu.org>
+
+	* fns.c (Vafter_load_alist): Declare extern (w32 build problem).
+
 2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* process.c (process-inherit-coding-system-flag,
@@ -14,7 +18,7 @@
 
 	* window.c (window_loop): Don't check for Fother_buffer returning
 	nil.
-	
+
 	* window.c (select_window_1): Unfreeze window start.  Remove a
 	doubled test for WINDOW being live.
 
@@ -569,7 +573,7 @@
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* Branch for 21.1.
-	
+
 2001-10-03  Miles Bader  <miles@gnu.org>
 
 	* callproc.c (syms_of_callproc): Explicitly state in the
@@ -792,7 +796,7 @@
 2001-09-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* minibuf.c (read_minibuf_unwind): Bind inhibit-modification-hooks.
-	
+
 	* minibuf.c (read_minibuf): Bind inhibit-modification-hooks to t,
 	in addition to read-only.
 
@@ -850,7 +854,7 @@
 
 	* xdisp.c (string_buffer_position): Use *single_char_property*
 	functions instead of the *single_property* functions.
-	
+
 2001-09-04  Andrew Innes  <andrewi@gnu.org>
 
 	* w32term.c (w32_read_socket): Add more information to debugging

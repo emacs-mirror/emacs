@@ -3026,7 +3026,8 @@ shortened list, containing only those averages which are available.  */
   return ret;
 }
 
-Lisp_Object Vfeatures, Qsubfeatures, Vafter_load_alist;
+Lisp_Object Vfeatures, Qsubfeatures;
+extern Lisp_Object Vafter_load_alist;
 
 DEFUN ("featurep", Ffeaturep, Sfeaturep, 1, 2, 0,
   /* Returns t if FEATURE is present in this Emacs.
