@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
-;; Copyright (C) 1993, 94, 95, 96, 97, 1999, 2001, 2003
+;; Copyright (C) 1993, 94, 95, 96, 97, 1999, 2001, 03, 2004
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -917,7 +917,7 @@ be indented (i.e. a <<- was used rather than just <<)."
 	  ;; Skip through one pattern
 	  (while
 	      (or (/= 0 (skip-syntax-backward "w_"))
-		  (/= 0 (skip-chars-backward "?[]*/\\"))
+		  (/= 0 (skip-chars-backward "?[]*@/\\"))
 		  (and (sh-is-quoted-p (1- (point)))
 		       (goto-char (- (point) 2)))
 		  (when (memq (char-before) '(?\" ?\'))
