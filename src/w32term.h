@@ -441,8 +441,12 @@ enum
   FULLSCREEN_MOVE_WAIT  = 8,
 };
 
+/* Return the X output data for frame F.  */
+#define FRAME_X_OUTPUT(f) ((f)->output_data.w32)
+
 /* Return the window associated with the frame F.  */
 #define FRAME_W32_WINDOW(f) ((f)->output_data.w32->window_desc)
+#define FRAME_X_WINDOW(f) ((f)->output_data.w32->window_desc)
 
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
@@ -458,6 +462,9 @@ enum
 /* This gives the w32_display_info structure for the display F is on.  */
 #define FRAME_W32_DISPLAY_INFO(f) (&one_w32_display_info)
 #define FRAME_X_DISPLAY_INFO(f) (&one_w32_display_info)
+
+/* This is the `Display *' which frame F is on.  */
+#define FRAME_X_DISPLAY(f) (0)
 
 /* This is the 'font_info *' which frame F has.  */
 #define FRAME_W32_FONT_TABLE(f) (FRAME_W32_DISPLAY_INFO (f)->font_table)
@@ -851,3 +858,12 @@ struct frame * check_x_frame (Lisp_Object);
 EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
 int image_ascent P_ ((struct image *, struct face *));
+
+#define FONT_TYPE_FOR_UNIBYTE(font, ch)			\
+  ((font)->bdf ? BDF_1D_FONT : ANSI_FONT)
+
+#define FONT_TYPE_FOR_MULTIBYTE(font, ch)		\
+  (!(font)->bdf						\
+   ? UNICODE_FONT					\
+   : ((CHARSET_DIMENSION (CHAR_CHARSET ((ch))) == 1)	\
+      ? BDF_1D_FONT : BDF_2D_FONT))
