@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.62) $
+ * $HopeName: MMsrc!poolawl.c(trunk.63) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -41,7 +41,7 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.62) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.63) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -84,12 +84,15 @@ typedef struct AWLStruct {
   AWLStatTotalStruct stats;
 } AWLStruct, *AWL;
 
+
 static Bool AWLCheck(AWL awl);
+
 
 /* PoolPoolAWL -- convert generic Pool to AWL */
 
 #define PoolPoolAWL(pool) \
   PARENT(AWLStruct, poolStruct, (pool))
+
 
 /* ActionAWL -- converts action to the enclosing AWL */
 
@@ -1122,11 +1125,13 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
 }
 
 
+/* AWLBenefit -- calculate the benefit of starting an AWL-only collection */
+
 static double AWLBenefit(Pool pool, Action action)
 {
   AWL awl;
   Arena arena;
-  double f;             /* frequency of collection, in Mb of alloc */
+  double f;             /* frequency of collection, in kB of alloc */
 
   AVERT(Pool, pool);
   awl = PoolPoolAWL(pool);
@@ -1154,7 +1159,7 @@ static double AWLBenefit(Pool pool, Action action)
 
   arena = PoolArena(pool);
 
-  return (ArenaMutatorAllocSize(arena) - awl->lastCollected) - f * 1024*1024L;
+  return (ArenaMutatorAllocSize(arena) - awl->lastCollected) - f * 1024uL;
 }
 
 
