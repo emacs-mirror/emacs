@@ -2507,7 +2507,7 @@ kbd_buffer_get_event (KBOARD **kbp)
 	 If there is no valid info, it does not store anything
 	 so x remains nil.  */
       x = Qnil;
-      (*mouse_position_hook) (&f, &bar_window, &part, &x, &y, &time);
+      (*mouse_position_hook) (&f, 0, &bar_window, &part, &x, &y, &time);
 
       obj = Qnil;
 
