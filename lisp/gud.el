@@ -411,11 +411,7 @@ This is implemented using the GDB `complete' command which isn't
 available with older versions of GDB."
   (interactive)
   (let* ((end (point))
-	 (command (save-excursion
-		    (beginning-of-line)
-		    (and (looking-at comint-prompt-regexp)
-			 (goto-char (match-end 0)))
-		    (buffer-substring (point) end)))
+	 (command (buffer-substring (comint-line-beginning-position) end))
 	 command-word)
     ;; Find the word break.  This match will always succeed.
     (string-match "\\(\\`\\| \\)\\([^ ]*\\)\\'" command)
