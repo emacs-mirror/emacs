@@ -534,7 +534,7 @@ x_draw_vertical_window_border (w, x, y0, y1)
      int x, y0, y1;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  
+
   XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 	     f->output_data.x->normal_gc, x, y0, x, y1);
 }
@@ -3988,7 +3988,7 @@ xt_action_hook (widget, client_data, action_name, event, params,
       x_send_scroll_bar_event (window_being_scrolled,
 			       scroll_bar_end_scroll, 0, 0);
       w = XWINDOW (window_being_scrolled);
-      
+
       if (!NILP (XSCROLL_BAR (w->vertical_scroll_bar)->dragging))
 	{
 	  XSCROLL_BAR (w->vertical_scroll_bar)->dragging = Qnil;
@@ -6725,7 +6725,7 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
              do this one, the right one will come later.
              The toolkit version doesn't seem to need this, but we
              need to reset it below.  */
-          int dont_resize 
+          int dont_resize
 	    = ((f->want_fullscreen & FULLSCREEN_WAIT)
 	       && f->new_text_cols != 0);
           int rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, event.xconfigure.height);
@@ -7464,24 +7464,36 @@ x_bitmap_icon (f, file)
   if (FRAME_X_WINDOW (f) == 0)
     return 1;
 
-  /* Free up our existing icon bitmap if any.  */
+  /* Free up our existing icon bitmap and mask if any.  */
   if (f->output_data.x->icon_bitmap > 0)
     x_destroy_bitmap (f, f->output_data.x->icon_bitmap);
   f->output_data.x->icon_bitmap = 0;
 
   if (STRINGP (file))
-    bitmap_id = x_create_bitmap_from_file (f, file);
+    {
+#ifdef USE_GTK
+      /* Use gtk_window_set_icon_from_file() if available,
+	 It's not restricted to bitmaps */
+      if (!xg_set_icon(f, file))
+	return 0;
+#endif /* USE_GTK */
+      bitmap_id = x_create_bitmap_from_file (f, file);
+      x_create_bitmap_mask(f, bitmap_id);
+    }
   else
     {
-      /* Create the GNU bitmap if necessary.  */
+      /* Create the GNU bitmap and mask if necessary.  */
       if (FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id < 0)
-	FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id
-	  = x_create_bitmap_from_data (f, gnu_bits,
-				       gnu_width, gnu_height);
+	{
+	  FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id
+	    = x_create_bitmap_from_data (f, gnu_bits,
+					 gnu_width, gnu_height);
+	  x_create_bitmap_mask(f, FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id);
+	}
 
-      /* The first time we create the GNU bitmap,
+      /* The first time we create the GNU bitmap and mask,
 	 this increments the ref-count one extra time.
-	 As a result, the GNU bitmap is never freed.
+	 As a result, the GNU bitmap and mask are never freed.
 	 That way, we don't have to worry about allocating it again.  */
       x_reference_bitmap (f, FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id);
 
@@ -9296,7 +9308,7 @@ x_wm_set_icon_pixmap (f, pixmap_id)
      struct frame *f;
      int pixmap_id;
 {
-  Pixmap icon_pixmap;
+  Pixmap icon_pixmap, icon_mask;
 
 #ifndef USE_X_TOOLKIT
   Window window = FRAME_OUTER_WINDOW (f);
@@ -9306,6 +9318,8 @@ x_wm_set_icon_pixmap (f, pixmap_id)
     {
       icon_pixmap = x_bitmap_pixmap (f, pixmap_id);
       f->output_data.x->wm_hints.icon_pixmap = icon_pixmap;
+      icon_mask = x_bitmap_mask (f, pixmap_id);
+      f->output_data.x->wm_hints.icon_mask = icon_mask;
     }
   else
     {
@@ -9318,6 +9332,7 @@ x_wm_set_icon_pixmap (f, pixmap_id)
 	 best to explicitly give up.  */
 #if 0
       f->output_data.x->wm_hints.icon_pixmap = None;
+      f->output_data.x->wm_hints.icon_mask = None;
 #else
       return;
 #endif
@@ -9329,11 +9344,13 @@ x_wm_set_icon_pixmap (f, pixmap_id)
     Arg al[1];
     XtSetArg (al[0], XtNiconPixmap, icon_pixmap);
     XtSetValues (f->output_data.x->widget, al, 1);
+    XtSetArg (al[0], XtNiconMask, icon_mask);
+    XtSetValues (f->output_data.x->widget, al, 1);
   }
 
 #else /* not USE_X_TOOLKIT */
 
-  f->output_data.x->wm_hints.flags |= IconPixmapHint;
+  f->output_data.x->wm_hints.flags |= (IconPixmapHint | IconMaskHint);
   XSetWMHints (FRAME_X_DISPLAY (f), window, &f->output_data.x->wm_hints);
 
 #endif /* not USE_X_TOOLKIT */
@@ -10523,7 +10540,7 @@ x_term_init (display_name, xrm_option, resource_name)
 	    || !strcmp (SDATA (value), "on")))
       XSynchronize (dpyinfo->display, True);
   }
-  
+
   {
     Lisp_Object value;
     value = display_x_get_resource (dpyinfo,
