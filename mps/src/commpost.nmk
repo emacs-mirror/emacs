@@ -216,7 +216,7 @@ $(PFM)\$(VARIETY)\mmdw.lib: $(MPMOBJ) $(AMCOBJ) $(DWOBJ) \
 $(PFM)\$(VARIETY)\mps_conf.lib: $(CONFIGURAOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
         $(MVFFOBJ) $(AMSOBJ)
 	$(ECHO) $@
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $(DONGLELIB) $**
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
 $(PFM)\$(VARIETY)\mpsplan.lib: $(PLINTHOBJ)
 	$(ECHO) $@

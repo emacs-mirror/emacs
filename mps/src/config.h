@@ -274,9 +274,7 @@
 #define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
 #define THREAD_SINGLE
 #define PROTECTION
-#define DONGLE
-/* global dongles have customerID 0 */
-#define DONGLE_CUSTOMER_ID ((int)1)
+#define DONGLE_NONE
 
 #elif defined(CONFIG_PROD_MPS)
 #define MPS_PROD_STRING         "mps"
