@@ -85,11 +85,11 @@ shortversion=`grep 'defconst[	 ]*emacs-version' lisp/version.el \
 version=`grep 'defconst[	 ]*emacs-version' lisp/version.el \
 	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
 if [ ! "${version}" ]; then
-  echo "${progname}: can't find current Emacs version in \`./lisp/version.el'." >&2
+  echo "${progname}: can't find current Emacs version in \`./lisp/version.el'" >&2
   exit 1
 fi
 
-echo $version and $shortversion
+echo Version numbers are $version and $shortversion
 
 if grep -s "GNU Emacs version ${shortversion}" ./man/emacs.texi > /dev/null; then
   true
@@ -131,23 +131,29 @@ rm -f /tmp/el /tmp/elc
 
 ### Make sure configure is newer than configure.in.
 if [ "x`ls -t configure configure.in | head -1`" != "xconfigure" ]; then
-  echo "\`./configure.in' seems to be newer than \`./configure.'" >&2
-  echo "Attempting to run autoconf." >&2
+  echo "\`./configure.in' is newer than \`./configure'" >&2
+  echo "Running autoconf" >&2
   autoconf
 fi
 
 ### Update getdate.c.
 (cd lib-src; make -f Makefile getdate.c YACC="bison -y")
 
-echo "Updating Info files."
+echo "Updating Info files"
 
 (cd man; make info)
 
-echo "Updating finder-inf.el."
+echo "Updating finder-inf.el"
 
-### update finder-inf.el.
 (cd lisp; ../src/emacs -batch -l finder -f finder-compile-keywords)
-(cd lisp; ../src/emacs -batch -f batch-byte-compile finder-inf.el)
+
+echo "Recompiling Lisp files"
+
+src/emacs -batch -f batch-byte-recompile-directory lisp
+
+echo "Updating autoloads"
+
+src/emacs -batch -f batch-update-autoloads lisp
 
 echo "Making lisp/MANIFEST"
 
@@ -161,7 +167,7 @@ tempdir="${tempparent}/${emacsname}"
 ### This trap ensures that the staging directory will be cleaned up even
 ### when the script is interrupted in mid-career.
 if [ "${clean_up}" = yes ]; then
-  trap "echo 'Interrupted...cleaning up the staging directory.'; rm -rf ${tempparent}; exit 1" 1 2 15
+  trap "echo 'Interrupted...cleaning up the staging directory'; rm -rf ${tempparent}; exit 1" 1 2 15
 fi
 
 echo "Creating top directory: \`${tempdir}'"
@@ -171,7 +177,7 @@ mkdir ${tempdir}
 ### hopes that this will make the top-level files appear first in the
 ### tar file; this means that people can start reading the INSTALL and
 ### README while the rest of the tar file is still unpacking.  Whoopee.
-echo "Making links to top-level files." 
+echo "Making links to top-level files"
 ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README BUGS move-if-change ${tempdir}
 ln ChangeLog Makefile.in configure configure.in ${tempdir}
 ln config.bat make-dist update-subdirs vpath.sed ${tempdir}
@@ -181,7 +187,7 @@ cp config.sub ${tempdir}
 cp config.guess ${tempdir}
 cp install.sh ${tempdir}
 
-echo "Updating version number in README."
+echo "Updating version number in README"
 (cd ${tempdir}
  awk \
    '$1 " " $2 " " $3 " " $4 " " $5 == "This directory tree holds version" { $6 = version; print $0 }
@@ -190,7 +196,7 @@ echo "Updating version number in README."
  mv tmp.README README)
 
 
-echo "Creating subdirectories."
+echo "Creating subdirectories"
 for subdir in lisp lisp/term site-lisp \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys \
@@ -198,7 +204,7 @@ for subdir in lisp lisp/term site-lisp \
   mkdir ${tempdir}/${subdir}
 done
 
-echo "Making links to \`lisp'."
+echo "Making links to \`lisp'"
 ### Don't distribute TAGS, =*.el files, site-init.el, site-load.el, or default.el.
 (cd lisp
  ln [a-zA-Z]*.el ../${tempdir}/lisp
@@ -215,7 +221,7 @@ echo "Making links to \`lisp'."
  rm -f site-start site-start.el site-start.elc
  rm -f default default.el default.elc)
 
-#echo "Making links to \`lisp/calc-2.02'."
+#echo "Making links to \`lisp/calc-2.02'"
 #### Don't distribute =*.el files, TAGS or backups.
 #(cd lisp/calc-2.02
 # ln [a-zA-Z]*.el ../../${tempdir}/lisp/calc-2.02
@@ -225,7 +231,7 @@ echo "Making links to \`lisp'."
 # cd ../../${tempdir}/lisp/calc-2.02
 # rm -f *~ TAGS)
 
-echo "Making links to \`lisp/term'."
+echo "Making links to \`lisp/term'"
 ### Don't distribute =*.el files or TAGS.
 (cd lisp/term
  ln [a-zA-Z]*.el ../../${tempdir}/lisp/term
@@ -233,7 +239,7 @@ echo "Making links to \`lisp/term'."
  ln README ../../${tempdir}/lisp/term
  rm -f =* TAGS)
 
-echo "Making links to \`src'."
+echo "Making links to \`src'"
 ### Don't distribute =*.[ch] files, or the configured versions of
 ### config.in, paths.in, or Makefile.in, or TAGS.
 (cd src
@@ -252,20 +258,20 @@ echo "Making links to \`src'."
  rm -f config.h paths.h Makefile Makefile.c
  rm -f =* TAGS)
 
-echo "Making links to \`src/bitmaps'."
+echo "Making links to \`src/bitmaps'"
 (cd src/bitmaps
  ln README *.xbm ../../${tempdir}/src/bitmaps)
 
-echo "Making links to \`src/m'."
+echo "Making links to \`src/m'"
 (cd src/m
  # We call files for miscellaneous input (to linker etc) .inp.
  ln README [a-zA-Z0-9]*.h *.inp ../../${tempdir}/src/m)
 
-echo "Making links to \`src/s'."
+echo "Making links to \`src/s'"
 (cd src/s
  ln README [a-zA-Z0-9]*.h ../../${tempdir}/src/s)
 
-echo "Making links to \`lib-src'."
+echo "Making links to \`lib-src'"
 (cd lib-src
  ln [a-zA-Z]*.[chy] ../${tempdir}/lib-src
  ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
@@ -274,39 +280,39 @@ echo "Making links to \`lib-src'."
  rm -f getdate.tab.c y.tab.c y.tab.h Makefile.c
  rm -f =* TAGS)
 
-echo "Making links to \`nt'."
+echo "Making links to \`nt'"
 (cd nt
  ln emacs.ico emacs.rc config.nt config.w95 [a-z]*.in [a-z]*.c ../${tempdir}/nt
  ln [a-z]*.bat [a-z]*.h makefile.def makefile.nt ../${tempdir}/nt
  ln TODO ChangeLog INSTALL README ../${tempdir}/nt)
 
-echo "Making links to \`nt/inc'."
+echo "Making links to \`nt/inc'"
 (cd nt/inc
  ln [a-z]*.h ../../${tempdir}/nt/inc)
 
-echo "Making links to \`nt/inc/sys'."
+echo "Making links to \`nt/inc/sys'"
 (cd nt/inc/sys
  ln [a-z]*.h ../../../${tempdir}/nt/inc/sys)
 
-echo "Making links to \`msdos'."
+echo "Making links to \`msdos'"
 (cd msdos
  ln  ChangeLog emacs.ico emacs.pif ../${tempdir}/msdos
  ln mainmake sed*.inp ../${tempdir}/msdos
  cd ../${tempdir}/msdos
  rm -f =*)
 
-echo "Making links to \`oldXMenu'."
+echo "Making links to \`oldXMenu'"
 (cd oldXMenu
  ln *.c *.h *.in ../${tempdir}/oldXMenu
  ln README Imakefile ChangeLog ../${tempdir}/oldXMenu
  ln compile.com descrip.mms ../${tempdir}/oldXMenu)
 
-echo "Making links to \`lwlib'."
+echo "Making links to \`lwlib'"
 (cd lwlib
  ln *.c *.h *.in ../${tempdir}/lwlib
  ln README Imakefile ChangeLog ../${tempdir}/lwlib)
 
-echo "Making links to \`etc'."
+echo "Making links to \`etc'"
 ### Don't distribute = files, TAGS, DOC files, backups, autosaves, or
 ### tex litter.
 (cd etc
@@ -315,17 +321,17 @@ echo "Making links to \`etc'."
  rm -f DOC* *~ \#*\# *.dvi *.log *.orig *.rej *,v =* core
  rm -f TAGS)
 
-echo "Making links to \`etc/e'."
+echo "Making links to \`etc/e'"
 (cd etc/e
  ln `ls -d * | grep -v 'RCS'` ../../${tempdir}/etc/e
  cd ../../${tempdir}/etc/e
  rm -f *~ \#*\# *,v =* core)
 
-echo "Making links to \`cpp'."
+echo "Making links to \`cpp'"
 (cd cpp
  ln cccp.c cexp.y Makefile README ../${tempdir}/cpp)
 
-echo "Making links to \`info'."
+echo "Making links to \`info'"
 # Don't distribute backups or autosaves.
 (cd info
  ln [a-zA-Z]* ../${tempdir}/info
@@ -334,7 +340,7 @@ echo "Making links to \`info'."
  ln emacs dummy~ ; ln emacs \#dummy\#
  rm -f *~ \#*\# core)
 
-echo "Making links to \`man'."
+echo "Making links to \`man'"
 (cd man
  ln *.texi *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/man
  test -f README && ln README ../${tempdir}/man
@@ -345,7 +351,7 @@ echo "Making links to \`man'."
  rm -f \#*\# =* *~ core emacs-index* *.Z *.z xmail
  rm -f emacs.?? termcap.?? gdb.?? *.log *.toc *.dvi *.oaux)
 
-echo "Making links to \`vms'."
+echo "Making links to \`vms'"
 (cd vms
  ln [0-9a-zA-Z]* ../${tempdir}/vms
  cd ../${tempdir}/vms
@@ -353,7 +359,7 @@ echo "Making links to \`vms'."
 
 ### It would be nice if they could all be symlinks to etc's copy, but
 ### you're not supposed to have any symlinks in distribution tar files.
-echo "Making sure copying notices are all copies of \`etc/COPYING'."
+echo "Making sure copying notices are all copies of \`etc/COPYING'"
 rm -f ${tempdir}/etc/COPYING
 cp etc/COPYING ${tempdir}/etc/COPYING
 for subdir in lisp src lib-src info msdos; do
@@ -379,7 +385,7 @@ rm -f $tempdir/lib-src/alloca.c
 cp $tempdir/src/alloca.c $tempdir/lib-src/alloca.c
 
 if [ "${newer}" ]; then
-  echo "Removing files older than $newer."
+  echo "Removing files older than $newer"
   ## We remove .elc files unconditionally, on the theory that anyone picking
   ## up an incremental distribution already has a running Emacs to byte-compile
   ## them with.
@@ -388,7 +394,7 @@ fi
 
 if [ "${make_tar}" = yes ]; then
   if [ "${default_gzip}" = "" ]; then
-    echo "Looking for gzip."
+    echo "Looking for gzip"
     temppath=`echo $PATH | sed 's/^:/.:/
 				s/::/:.:/g
 				s/:$/:./
@@ -404,14 +410,14 @@ if [ "${make_tar}" = yes ]; then
     compress* ) gzip_extension=.Z ;;
     * )         gzip_extension=.gz ;;
   esac
-  echo "Creating tar file."
+  echo "Creating tar file"
   (cd ${tempparent} ; tar cvf - ${emacsname} ) \
     | ${default_gzip} \
     > ${emacsname}.tar${gzip_extension}
 fi
 
 if [ "${clean_up}" = yes ]; then
-  echo "Cleaning up the staging directory."
+  echo "Cleaning up the staging directory"
   rm -rf ${tempparent}
 else
   (cd ${tempparent}; mv ${emacsname} ..)
