@@ -1,3 +1,10 @@
+2001-04-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (realizing_basic_faces_p): Renamed from
+	realize_default_face_p.
+	(realize_basic_faces): Set/clear realizing_basic_faces_p.
+	(realize_default_face): Don't set the flag.
+
 2001-04-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* lisp.h (echoing, echo_message_buffer, cancel_echoing): Declare.
