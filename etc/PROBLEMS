@@ -792,7 +792,7 @@ files.  Emacs cannot work with subdirs.el compressed, since the
 Auto-compress mode it needs for this will not be loaded until later,
 when your .emacs file is processed.  (The package `fontset.el' is
 required to set up fonts used to display text on window systems, and
-its loaded very early in the startup procedure.)
+it's loaded very early in the startup procedure.)
 
 Similarly, any other .el file for which there's no corresponding .elc
 file could fail to load if it is compressed.

@@ -3950,7 +3950,7 @@ Returns nil if PROCESS has already terminated."
       (set-process-sentinel new-process (process-sentinel process))
       new-process)))
 
-;; things to maybe add (currently partly covered by `funcall mode':
+;; things to maybe add (currently partly covered by `funcall mode'):
 ;; - syntax-table
 ;; - overlays
 (defun clone-buffer (&optional newname display-flag)
