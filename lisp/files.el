@@ -84,8 +84,9 @@ names that the old file had will now refer to the new (edited) file.
 The file's owner and group are unchanged.
 
 The choice of renaming or copying is controlled by the variables
-`backup-by-copying', `backup-by-copying-when-linked' and
-`backup-by-copying-when-mismatch'.  See also `backup-inhibited'."
+`backup-by-copying', `backup-by-copying-when-linked',
+`backup-by-copying-when-mismatch' and
+`backup-by-copying-when-privileged-mismatch'.  See also `backup-inhibited'."
   :type 'boolean
   :group 'backup)
 
@@ -118,6 +119,18 @@ that is, for files which are owned by you and whose group matches
 the default for a new file created there by you.
 This variable is relevant only if `backup-by-copying' is nil."
   :type 'boolean
+  :group 'backup)
+
+(defcustom backup-by-copying-when-privileged-mismatch 200
+  "*Non-nil means create backups by copying to preserve a privileged owner.
+Renaming may still be used (subject to control of other variables)
+when it would not result in changing the owner of the file or if the owner
+has a user id greater than the value of this variable.  This is useful
+when low-numbered uid's are used for special system users (such as root)
+that must maintain ownership of certain files.
+This variable is relevant only if `backup-by-copying' and
+`backup-by-copying-when-mismatch' are nil."
+  :type '(choice (const nil) integer)
   :group 'backup)
 
 (defvar backup-enable-predicate
@@ -2010,14 +2023,19 @@ no longer accessible under its old name."
 		  ;; Actually write the back up file.
 		  (condition-case ()
 		      (if (or file-precious-flag
-    ;			  (file-symlink-p buffer-file-name)
+    ;			      (file-symlink-p buffer-file-name)
 			      backup-by-copying
 			      (and backup-by-copying-when-linked
 				   (> (file-nlinks real-file-name) 1))
-			      (and backup-by-copying-when-mismatch
+			      (and (or backup-by-copying-when-mismatch 
+				       (integerp backup-by-copying-when-privileged-mismatch))
 				   (let ((attr (file-attributes real-file-name)))
-				     (or (nth 9 attr)
-					 (not (file-ownership-preserved-p real-file-name))))))
+				     (and (or backup-by-copying-when-mismatch 
+					      (and (integerp (nth 2 attr))
+						   (integerp backup-by-copying-when-privileged-mismatch)
+						   (<= (nth 2 attr) backup-by-copying-when-privileged-mismatch)))
+					  (or (nth 9 attr)
+					      (not (file-ownership-preserved-p real-file-name)))))))
 			  (condition-case ()
 			      (copy-file real-file-name backupname t t)
 			    (file-error
