@@ -1313,6 +1313,11 @@ struct face
   unsigned tty_reverse_p : 1;
   unsigned tty_blinking_p : 1;
 
+  /* 1 means that colors of this face may not be freed because they
+     have been copied bitwise from a base face (see
+     realize_x_face).  */
+  unsigned colors_copied_bitwise_p : 1;
+
   /* Next and previous face in hash collision list of face cache.  */
   struct face *next, *prev;
 
