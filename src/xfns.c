@@ -1,5 +1,5 @@
 /* Functions for the X window system.
-   Copyright (C) 1989, 92, 93, 94, 95, 96, 1997, 1998, 1999, 2000, 2001
+   Copyright (C) 1989, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 01, 02, 03
      Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -6244,6 +6244,14 @@ xpm_lookup_color (f, color_name, color)
     {
       color->pixel = lookup_rgb_color (f, color->red, color->green,
 				       color->blue);
+      p = xpm_cache_color (f, color_name, color, h);
+    }
+  /* You get `opaque' at least from ImageMagick converting pbm to xpm
+     with transparency, and it's useful.  */
+  else if (strcmp ("opaque", color_name) == 0)
+    {
+      bzero (color, sizeof (XColor));  /* Is this necessary/correct?  */
+      color->pixel = FRAME_FOREGROUND_PIXEL (f);
       p = xpm_cache_color (f, color_name, color, h);
     }
 
