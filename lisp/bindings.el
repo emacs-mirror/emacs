@@ -372,10 +372,10 @@ for \\[find-tag] (which see)."
 
 (define-key global-map "\C-@" 'set-mark-command)
 ;; Many people are used to typing C-SPC and getting C-@.
-(define-key global-map [?\C-\ ] 'set-mark-command)
+(define-key global-map [?\C- ] 'set-mark-command)
 (define-key ctl-x-map "\C-x" 'exchange-point-and-mark)
 (define-key ctl-x-map "\C-@" 'pop-global-mark)
-(define-key ctl-x-map [?\C-\ ] 'pop-global-mark)
+(define-key ctl-x-map [?\C- ] 'pop-global-mark)
 
 (define-key global-map "\C-n" 'next-line)
 (define-key global-map "\C-p" 'previous-line)

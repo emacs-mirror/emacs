@@ -302,7 +302,7 @@ LEIM is available from the same ftp directory as Emacs."))
     (define-key map "\C-h" 'quail-translation-help)
 ;;; This interferes with handling of escape sequences on non-X terminals.
 ;;;    (define-key map "\e" '(keymap (t . quail-execute-non-quail-command)))
-    (define-key map [?\C-\ ] 'quail-select-current)
+    (define-key map [?\C- ] 'quail-select-current)
     (define-key map [tab] 'quail-completion)
     (define-key map [delete] 'quail-delete-last-char)
     (define-key map [backspace] 'quail-delete-last-char)
