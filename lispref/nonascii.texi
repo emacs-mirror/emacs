@@ -191,6 +191,12 @@ The function @code{unibyte-char-to-multibyte} is used to convert
 each unibyte character to a multibyte character.
 @end defun
 
+@defun string-to-multibyte string
+This function returns a multibyte string containing the same sequence
+of character codes as @var{string}.  If @var{string} is a multibyte
+string, the value is the equal to @var{string}.
+@end defun
+
 @node Selecting a Representation
 @section Selecting a Representation
 
@@ -503,6 +509,11 @@ coding systems that don't specify any other translation table.
 @defvar standard-translation-table-for-encode
 This is the default translation table for encoding, for
 coding systems that don't specify any other translation table.
+@end defvar
+
+@defvar translation-table-for-input
+Self-inserting characters are translated through this translation
+table before they are inserted.
 @end defvar
 
 @node Coding Systems
@@ -887,6 +898,22 @@ The value should be a cons cell of the form @code{(@var{input-coding}
 the subprocess, and @var{output-coding} applies to output to it.
 @end defvar
 
+@defvar auto-coding-functions
+This variable holds a list of functions that try to determine a
+coding system for a file based on its undecoded contents.
+
+Each function in this list should be written to look at text in the
+current buffer, but should not modify it in any way.  The buffer will
+contain undecoded text of parts of the file.  Each function should
+take one argument, @var{size}, which tells it how many characters to
+look at, starting from point.  If the function succeeds in determining
+a coding system for the file, it should return that coding system.
+Otherwise, it should return @code{nil}.
+
+If a file has a @samp{coding:} tag, that takes precedence, so these
+functions won't be called.
+@end defvar
+
 @defun find-operation-coding-system operation &rest arguments
 This function returns the coding system to use (by default) for
 performing @var{operation} with @var{arguments}.  The value has this
@@ -1038,6 +1065,17 @@ system @var{coding-system}.  It returns a new string containing the
 decoded text.  To make explicit decoding useful, the contents of
 @var{string} ought to be a sequence of byte values, but a multibyte
 string is acceptable.
+@end defun
+
+@defun decode-coding-inserted-region from to filename &optional visit beg end replace
+This function decodes the text from @var{from} to @var{to} as if
+it were being read from file @var{filename} using @code{insert-file-contents}
+using the rest of the arguments provided.
+
+The normal way to use this function is after reading text from a file
+without decoding, if you decide you would rather have decoded it.
+Instead of deleting the text and reading it again, this time with
+decoding, you can call this function.
 @end defun
 
 @node Terminal I/O Encoding
@@ -1235,3 +1273,31 @@ conventions of a different language.  If the variable is @code{nil}, the
 locale is specified by environment variables in the usual POSIX fashion.
 @end defvar
 
+@defun locale-info item
+This function returns locale data @var{item} for the current POSIX
+locale, if available.  @var{item} should be one of these symbols:
+
+@table @code
+@item codeset
+Return the character set as a string (locale item @code{CODESET}).
+
+@item days
+Return a 7-element vector of day names (locale items
+@code{DAY_1} through @code{DAY_7});
+
+@item months
+Return a 12-element vector of month names (locale items @code{MON_1}
+through @code{MON_12}).
+
+@item paper
+Return a list @code{(@var{width} @var{height})} for the default paper
+size measured in milimeters (locale items @code{PAPER_WIDTH} and
+@code{PAPER_HEIGHT}).
+@end table
+
+If the system can't provide the requested information, or if
+@var{item} is not one of those symbols, the value is @code{nil}.  All
+strings in the return value are decoded using
+@code{locale-coding-system}.  @xref{Locales,,, libc, GNU Libc Manual},
+for more information about locales and locale items.
+@end defun
