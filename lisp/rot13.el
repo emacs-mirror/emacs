@@ -48,7 +48,8 @@
 ;;;###autoload
 (defun rot13-other-window ()
   "Display current buffer in rot 13 in another window.
-To terminate the rot13 display, delete that window."
+To terminate the rot13 display, delete that window.
+See also `toggle-rot13-mode'."
   (interactive)
   (let ((w (display-buffer (current-buffer) t)))
     (set-window-display-table w rot13-display-table)))
