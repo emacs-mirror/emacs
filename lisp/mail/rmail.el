@@ -1248,8 +1248,8 @@ change the invisible header text."
 	;; Put at the end of messages-head
 	;; the entry for message N+1, which marks
 	;; the end of message N.  (N = number of messages).
-	(search-backward "\n\^_")
-	(forward-char 1)
+	(search-backward "\n\^_" nil t)
+	(if (/= (point) (point-max)) (forward-char 1))
 	(setq messages-head (list (point-marker)))
 	(rmail-set-message-counters-counter (min (point) point-save))
 	(setq messages-after-point total-messages)
@@ -1982,14 +1982,16 @@ the body of the original message."
 (defun rmail-bury ()
   "Bury current Rmail buffer and its summary buffer."
   (interactive)
-  (let ((rmail-buffer (current-buffer)))
+  ;; This let var was called rmail-buffer, but that interfered
+  ;; with the buffer-local var used in summary buffers.
+  (let ((buffer-to-bury (current-buffer)))
     (if (rmail-summary-exists)
 	(let (window)
 	  (while (setq window (get-buffer-window rmail-summary-buffer))
 	    (set-window-buffer window (other-buffer rmail-summary-buffer)))
 	  (bury-buffer rmail-summary-buffer)))
     (switch-to-buffer (other-buffer (current-buffer)))
-    (bury-buffer rmail-buffer)))
+    (bury-buffer buffer-to-bury)))
 
 (defun rmail-summary-exists ()
   "Non-nil iff in an RMAIL buffer and an associated summary buffer exists.
