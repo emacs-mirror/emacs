@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.279 2000/10/08 19:12:52 monnier Exp $
+;; $Id: vc.el,v 1.280 2000/10/10 01:25:40 ttn Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1212,10 +1212,9 @@ If WRITABLE is non-nil, make sure the retrieved file is writable.
 REV defaults to the latest revision."
   (and writable
        (not rev)
-       (vc-call make-version-backups file)
+       (vc-call make-version-backups-p file)
        (vc-up-to-date-p file)
-       (copy-file file (vc-version-backup-file-name file)
-		  'ok-if-already-exists 'keep-date))
+       (vc-make-version-backup file))
   (with-vc-properties
    file
    (condition-case err
@@ -1574,10 +1573,13 @@ If `F.~REV~' already exists, it is used instead of being re-created."
   (let* ((version (if (string-equal rev "")
 		      (vc-workfile-version buffer-file-name)
 		    rev))
-	 (filename (concat buffer-file-name ".~" version "~")))
-    (or (file-exists-p filename)
-	(vc-call checkout buffer-file-name nil version filename))
-    (find-file-other-window filename)))
+	 (automatic-backup (vc-version-backup-file-name file version))
+         (manual-backup (vc-version-backup-file-name file version 'manual)))
+    (unless (file-exists-p manual-backup)
+      (if (file-exists-p automatic-backup)
+          (copy-file automatic-backup manual-backup nil 'keep-date)
+        (vc-call checkout buffer-file-name nil version manual-backup)))
+    (find-file-other-window manual-backup)))
 
 ;; Header-insertion code
 
@@ -2212,10 +2214,14 @@ changes found in the master file; use \\[universal-argument] \\[vc-next-action] 
   "If version backups should be used for FILE, and there exists
 such a backup for REV or the current workfile version of file,
 return the name of it; otherwise return nil."
-  (when (vc-call make-version-backups file)
+  (when (vc-call make-version-backups-p file)
     (let ((backup-file (vc-version-backup-file-name file rev)))
-      (and (file-exists-p backup-file)
-	   backup-file))))
+      (if (file-exists-p backup-file)
+          backup-file
+        ;; there is no automatic backup, but maybe the user made one manually
+        (setq backup-file (vc-version-backup-file-name file rev 'manual))
+        (if (file-exists-p backup-file)
+            backup-file)))))
 
 (defun vc-revert-file (file)
   "Revert FILE back to the version it was based on."
@@ -2225,7 +2231,7 @@ return the name of it; otherwise return nil."
      (if (not backup-file)
 	 (vc-call revert file)
        (copy-file backup-file file 'ok-if-already-exists 'keep-date)
-       (delete-file backup-file)))
+       (vc-delete-automatic-version-backups file)))
    `((vc-state . up-to-date)
      (vc-checkout-time . ,(nth 5 (file-attributes file)))))
   (vc-resynch-buffer file t t))
