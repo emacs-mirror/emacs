@@ -2900,11 +2900,18 @@ it defaults to the value of `obarray'.")
   if (!NILP (Vpurify_flag))
     string = Fpurecopy (string);
   sym = Fmake_symbol (string);
-  XSYMBOL (sym)->obarray = obarray;
+
+  if (EQ (obarray, initial_obarray))
+    XSYMBOL (sym)->interned = SYMBOL_INTERNED_IN_INITIAL_OBARRAY;
+  else
+    XSYMBOL (sym)->interned = SYMBOL_INTERNED;
 
   if ((XSTRING (string)->data[0] == ':')
       && EQ (obarray, initial_obarray))
-    XSYMBOL (sym)->value = sym;
+    {
+      XSYMBOL (sym)->constant = 1;
+      XSYMBOL (sym)->value = sym;
+    }
 
   ptr = &XVECTOR (obarray)->contents[XINT (tem)];
   if (SYMBOLP (*ptr))
@@ -2977,7 +2984,9 @@ OBARRAY defaults to the value of the variable `obarray'.")
   if (SYMBOLP (name) && !EQ (name, tem))
     return Qnil;
 
-  XSYMBOL (tem)->obarray = Qnil;
+  XSYMBOL (tem)->interned = SYMBOL_UNINTERNED;
+  XSYMBOL (tem)->constant = 0;
+  XSYMBOL (tem)->indirect_variable = 0;
 
   hash = oblookup_last_bucket_number;
 
@@ -3134,7 +3143,9 @@ init_obarray ()
   initial_obarray = Vobarray;
   staticpro (&initial_obarray);
   /* Intern nil in the obarray */
-  XSYMBOL (Qnil)->obarray = Vobarray;
+  XSYMBOL (Qnil)->interned = SYMBOL_INTERNED_IN_INITIAL_OBARRAY;
+  XSYMBOL (Qnil)->constant = 1;
+  
   /* These locals are to kludge around a pyramid compiler bug. */
   hash = hash_string ("nil", 3);
   /* Separate statement here to avoid VAXC bug. */
@@ -3151,6 +3162,7 @@ init_obarray ()
   XSYMBOL (Qnil)->value = Qnil;
   XSYMBOL (Qnil)->plist = Qnil;
   XSYMBOL (Qt)->value = Qt;
+  XSYMBOL (Qt)->constant = 1;
 
   /* Qt is correct even if CANNOT_DUMP.  loadup.el will set to nil at end.  */
   Vpurify_flag = Qt;
@@ -3196,7 +3208,7 @@ defvar_int (namestring, address)
   val = allocate_misc ();
   XMISCTYPE (val) = Lisp_Misc_Intfwd;
   XINTFWD (val)->intvar = address;
-  XSYMBOL (sym)->value = val;
+  SET_SYMBOL_VALUE (sym, val);
 }
 
 /* Similar but define a variable whose value is T if address contains 1,
@@ -3211,7 +3223,7 @@ defvar_bool (namestring, address)
   val = allocate_misc ();
   XMISCTYPE (val) = Lisp_Misc_Boolfwd;
   XBOOLFWD (val)->boolvar = address;
-  XSYMBOL (sym)->value = val;
+  SET_SYMBOL_VALUE (sym, val);
   Vbyte_boolean_vars = Fcons (sym, Vbyte_boolean_vars);
 }
 
@@ -3230,7 +3242,7 @@ defvar_lisp_nopro (namestring, address)
   val = allocate_misc ();
   XMISCTYPE (val) = Lisp_Misc_Objfwd;
   XOBJFWD (val)->objvar = address;
-  XSYMBOL (sym)->value = val;
+  SET_SYMBOL_VALUE (sym, val);
 }
 
 void
@@ -3263,7 +3275,7 @@ defvar_per_buffer (namestring, address, type, doc)
 
   XMISCTYPE (val) = Lisp_Misc_Buffer_Objfwd;
   XBUFFER_OBJFWD (val)->offset = offset;
-  XSYMBOL (sym)->value = val;
+  SET_SYMBOL_VALUE (sym, val);
   PER_BUFFER_SYMBOL (offset) = sym;
   PER_BUFFER_TYPE (offset) = type;
   
@@ -3287,7 +3299,7 @@ defvar_kboard (namestring, offset)
   val = allocate_misc ();
   XMISCTYPE (val) = Lisp_Misc_Kboard_Objfwd;
   XKBOARD_OBJFWD (val)->offset = offset;
-  XSYMBOL (sym)->value = val;
+  SET_SYMBOL_VALUE (sym, val);
 }
 
 /* Record the value of load-path used at the start of dumping
