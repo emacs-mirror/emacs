@@ -590,7 +590,7 @@ Do the same for the keys of the same name."
 (defmacro menu-bar-make-mm-toggle (fname doc help &optional props)
   "Make a menu-item for a global minor mode toggle.
 FNAME is the minor mode's name (variable and function).
-DOC is the text to use the menu entry.
+DOC is the text to use for the menu entry.
 HELP is the text to use for the tooltip.
 PROPS are additional properties."
   `'(menu-item ,doc ,fname
@@ -637,7 +637,8 @@ by \"Save Options\" in Custom buffers.")
     ;; These are set with menu-bar-make-mm-toggle, which does not
     ;; put on a customized-value property.
     (dolist (elt '(line-number-mode column-number-mode cua-mode show-paren-mode
-		   transient-mark-mode global-font-lock-mode))
+		   transient-mark-mode global-font-lock-mode
+		   blink-cursor-mode))
       (and (customize-mark-to-save elt)
 	   (setq need-save t)))
     ;; These are set with `customize-set-variable'.
@@ -959,6 +960,14 @@ by \"Save Options\" in Custom buffers.")
 			"Enter Lisp debugger when an error is signaled"))
 (define-key menu-bar-options-menu [debugger-separator]
   '("--"))
+
+(define-key menu-bar-options-menu [blink-cursor-mode]
+  (menu-bar-make-mm-toggle blink-cursor-mode
+			   "Blinking Cursor"
+			   "Whether the cursor blinks (Blink Cursor mode)"))
+(define-key menu-bar-options-menu [cursor-separator]
+  '("--"))
+
 (define-key menu-bar-options-menu [toggle-auto-compression]
   '(menu-item "Automatic File De/compression"
 	      auto-compression-mode

@@ -90,7 +90,7 @@
 
 ;;; Code:
 
-(defconst icalendar-version 0.10
+(defconst icalendar-version 0.11
   "Version number of icalendar.el.")
 
 ;; ======================================================================
@@ -415,8 +415,10 @@ FIXME: multiple comma-separated values should be allowed!"
   "Return ISODURATIONSTRING in format like `decode-time'.
 Converts from ISO-8601 to Emacs representation.  If ISODURATIONSTRING
 specifies UTC time (trailing letter Z) the decoded time is given in
-the local time zone! FIXME: TZID-attributes are ignored....! FIXME:
-multiple comma-separated values should be allowed!"
+the local time zone!
+
+FIXME: TZID-attributes are ignored....!
+FIXME: multiple comma-separated values should be allowed!"
   (if isodurationstring
       (save-match-data
         (string-match
@@ -672,7 +674,7 @@ would be \"pm\"."
 ;; Export -- convert emacs-diary to icalendar
 ;; ======================================================================
 
-;; User function
+;;;###autoload
 (defun icalendar-export-file (diary-filename ical-filename)
   "Export diary file to iCalendar format.
 All diary entries in the file DIARY-FILENAME are converted to iCalendar
@@ -686,7 +688,7 @@ Finto iCalendar file: ")
 (defalias 'icalendar-convert-diary-to-ical 'icalendar-export-file)
 (make-obsolete 'icalendar-convert-diary-to-ical 'icalendar-export-file)
 
-;; User function
+;;;###autoload
 (defun icalendar-export-region (min max ical-filename)
   "Export region in diary file to iCalendar format.
 All diary entries in the region from MIN to MAX in the current buffer are
@@ -1112,7 +1114,7 @@ FExport diary data into iCalendar file: ")
 ;; Import -- convert icalendar to emacs-diary
 ;; ======================================================================
 
-;; User function
+;;;###autoload
 (defun icalendar-import-file (ical-filename diary-filename
                                             &optional non-marking)
   "Import a iCalendar file and append to a diary file.
@@ -1129,7 +1131,7 @@ p")
     (set-buffer (find-file ical-filename))
     (icalendar-import-buffer diary-filename t non-marking)))
 
-;; User function
+;;;###autoload
 (defun icalendar-import-buffer (&optional diary-file do-not-ask
                                           non-marking)
   "Extract iCalendar events from current buffer.
@@ -1423,10 +1425,7 @@ written into the buffer ` *icalendar-errors*'."
              ((not (string= start-d end-d))
               (icalendar--dmsg "non-recurring event")
               (let ((ds (icalendar--datetime-to-diary-date dtstart))
-                    (de (icalendar--datetime-to-diary-date
-                         (icalendar--decode-isodatetime
-                          (icalendar--get-event-property e 'DTEND)
-                          -1))))
+                    (de (icalendar--datetime-to-diary-date dtend)))
                 (setq diary-string
                       (format "%%%%(and (diary-block %s %s))"
                               ds de)))

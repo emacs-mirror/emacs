@@ -335,11 +335,8 @@ few false positives here."
   :link '(custom-manual "(message)Message Headers")
   :type 'regexp)
 
-;; Fixme: Why are all these things autoloaded?
-
 ;;; marking inserted text
 
-;;;###autoload
 (defcustom message-mark-insert-begin
   "--8<---------------cut here---------------start------------->8---\n"
   "How to mark the beginning of some inserted text."
@@ -348,7 +345,6 @@ few false positives here."
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-various)
 
-;;;###autoload
 (defcustom message-mark-insert-end
   "--8<---------------cut here---------------end--------------->8---\n"
   "How to mark the end of some inserted text."
@@ -357,9 +353,7 @@ few false positives here."
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-various)
 
-;;;###autoload
-(defcustom message-archive-header
-  "X-No-Archive: Yes\n"
+(defcustom message-archive-header "X-No-Archive: Yes\n"
   "Header to insert when you don't want your article to be archived.
 Archives \(such as groups.google.com\) respect this header."
   :version "22.1"
@@ -367,7 +361,6 @@ Archives \(such as groups.google.com\) respect this header."
   :link '(custom-manual "(message)Header Commands")
   :group 'message-various)
 
-;;;###autoload
 (defcustom message-archive-note
   "X-No-Archive: Yes - save http://groups.google.com/"
   "Note to insert why you wouldn't want this posting archived.
@@ -385,7 +378,6 @@ If nil, don't insert any text in the body."
   "Old target for cross-posts or follow-ups.")
 (make-variable-buffer-local 'message-cross-post-old-target)
 
-;;;###autoload
 (defcustom message-cross-post-default t
   "When non-nil `message-cross-post-followup-to' will perform a crosspost.
 If nil, `message-cross-post-followup-to' will only do a followup.  Note that
@@ -395,25 +387,19 @@ you can explicitly override this setting by calling
   :type 'boolean
   :group 'message-various)
 
-;;;###autoload
-(defcustom message-cross-post-note
-  "Crosspost & Followup-To: "
+(defcustom message-cross-post-note "Crosspost & Followup-To: "
   "Note to insert before signature to notify of cross-post and follow-up."
   :version "22.1"
   :type 'string
   :group 'message-various)
 
-;;;###autoload
-(defcustom message-followup-to-note
-  "Followup-To: "
+(defcustom message-followup-to-note "Followup-To: "
   "Note to insert before signature to notify of follow-up only."
   :version "22.1"
   :type 'string
   :group 'message-various)
 
-;;;###autoload
-(defcustom message-cross-post-note-function
-  'message-cross-post-insert-note
+(defcustom message-cross-post-note-function 'message-cross-post-insert-note
   "Function to use to insert note about Crosspost or Followup-To.
 The function will be called with four arguments.  The function should not only
 insert a note, but also ensure old notes are deleted.  See the documentation
@@ -1766,7 +1752,7 @@ see `message-narrow-to-headers-or-head'."
 ;;; Start of functions adopted from `message-utils.el'.
 
 (defun message-strip-subject-trailing-was (subject)
-  "Remove trailing \"(Was: <old subject>)\" from SUBJECT lines.
+  "Remove trailing \"(was: <old subject>)\" from SUBJECT lines.
 Leading \"Re: \" is not stripped by this function.  Use the function
 `message-strip-subject-re' for this."
   (let* ((query message-subject-trailing-was-query)
@@ -5675,7 +5661,10 @@ because discussions that are spread over several lists tend to be
 fragmented and very difficult to follow.
 
 Also, some source/announcement lists are not intended for discussion;
-responses here are directed to other addresses.")))
+responses here are directed to other addresses.
+
+You may customize the variable `message-use-mail-followup-to', if you
+want to get rid of this query permanently.")))
 	(setq recipients (concat ", " mft)))
        (to-address
 	(setq recipients (concat ", " to-address))
@@ -5871,7 +5860,10 @@ You should normally obey the Followup-To: header.
 `Followup-To: poster' sends your response via e-mail instead of news.
 
 A typical situation where `Followup-To: poster' is used is when the poster
-does not read the newsgroup, so he wouldn't see any replies sent to it."))
+does not read the newsgroup, so he wouldn't see any replies sent to it.
+
+You may customize the variable `message-use-followup-to', if you
+want to get rid of this query permanently."))
 		  (progn
 		    (setq message-this-is-news nil)
 		    (cons 'To (or mrt reply-to from "")))
@@ -5894,7 +5886,10 @@ because discussions that are spread over several newsgroup tend to
 be fragmented and very difficult to follow.
 
 Also, some source/announcement newsgroups are not intended for discussion;
-responses here are directed to other newsgroups."))
+responses here are directed to other newsgroups.
+
+You may customize the variable `message-use-followup-to', if you
+want to get rid of this query permanently."))
 		  (cons 'Newsgroups followup-to)
 		(cons 'Newsgroups newsgroups))))))
 	  (posted-to

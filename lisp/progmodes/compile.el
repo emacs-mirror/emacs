@@ -514,6 +514,10 @@ Faces `compilation-error-face', `compilation-warning-face',
       (and (cdr type) (match-end (cdr type)) compilation-info-face)
       compilation-error-face))
 
+;; Internal function for calculating the text properties of a directory
+;; change message.  The directory property is important, because it is
+;; the stack of nested enter-messages.  Relative filenames on the following
+;; lines are relative to the top of the stack.
 (defun compilation-directory-properties (idx leave)
   (if leave (setq leave (match-end leave)))
   ;; find previous stack, and push onto it, or if `leave' pop it

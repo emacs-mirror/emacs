@@ -1,6 +1,6 @@
 ;;; diary-lib.el --- diary functions
 
-;; Copyright (C) 1989, 1990, 1992, 1993, 1994, 1995, 2003, 2004
+;; Copyright (C) 1989, 1990, 1992, 1993, 1994, 1995, 2003, 2004, 2005
 ;;           Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -841,6 +841,10 @@ Each entry in the diary file visible in the calendar window is marked.
 After the entries are marked, the hooks `nongregorian-diary-marking-hook' and
 `mark-diary-entries-hook' are run."
   (interactive)
+  ;; To remove any deleted diary entries.
+  (when mark-diary-entries-in-calendar
+    (setq mark-diary-entries-in-calendar nil)
+    (redraw-calendar))
   (let ((marking-diary-entries t)
         file-glob-attrs marks)
     (save-excursion
@@ -1647,11 +1651,26 @@ Do nothing if DATE or STRING is nil."
           (append diary-entries-list
                   (list (list date string specifier marker globcolor))))))
 
+(defun diary-redraw-calendar ()
+  "If `calendar-buffer' is live and diary entries are marked, redraw it."
+  (and mark-diary-entries-in-calendar
+       (redraw-calendar))
+  ;; Return value suitable for `write-contents-functions'.
+  nil)
+
 (defun make-diary-entry (string &optional nonmarking file)
   "Insert a diary entry STRING which may be NONMARKING in FILE.
-If omitted, NONMARKING defaults to nil and FILE defaults to `diary-file'."
+If omitted, NONMARKING defaults to nil and FILE defaults to
+`diary-file'.  Adds `diary-redraw-calendar' to
+`write-contents-functions' for FILE, so that the calendar will be
+redrawn with the new entry marked, if necessary."
   (let ((pop-up-frames (window-dedicated-p (selected-window))))
     (find-file-other-window (substitute-in-file-name (or file diary-file))))
+  (add-hook 'write-contents-functions 'diary-redraw-calendar nil t)
+  (when selective-display
+    (subst-char-in-region (point-min) (point-max) ?\^M ?\n t)
+    (setq selective-display nil)
+    (kill-local-variable 'mode-line-format))
   (widen)
   (goto-char (point-max))
   (when (let ((case-fold-search t))

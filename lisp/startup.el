@@ -290,6 +290,8 @@ from being initialized."
 
 (defvar normal-top-level-add-subdirs-inode-list nil)
 
+(defvar no-blinking-cursor nil)
+
 (defvar pure-space-overflow nil
   "Non-nil if building Emacs overflowed pure space.")
 
@@ -674,7 +676,8 @@ opening the first frame (e.g. open a connection to the server).")
     ;; does things.
     (while (and (not done) args)
       (let* ((longopts '(("--no-init-file") ("--no-site-file") ("--user")
-                         ("--debug-init") ("--iconic") ("--icon-type")))
+                         ("--debug-init") ("--iconic") ("--icon-type")
+			 ("--no-blinking-cursor")))
              (argi (pop args))
              (orig-argi argi)
              argval)
@@ -697,6 +700,7 @@ opening the first frame (e.g. open a connection to the server).")
 	 ((equal argi "-Q")
 	  (setq init-file-user nil
 		site-run-file nil
+		no-blinking-cursor t
 		emacs-quick-startup t)
 	  (push '(vertical-scroll-bars . nil) initial-frame-alist))
 	 ((member argi '("-q" "-no-init-file"))
@@ -712,6 +716,8 @@ opening the first frame (e.g. open a connection to the server).")
 	  (push '(visibility . icon) initial-frame-alist))
 	 ((member argi '("-icon-type" "-i" "-itype"))
 	  (push '(icon-type . t) default-frame-alist))
+	 ((member argi '("-nbc" "-no-blinking-cursor"))
+	  (setq no-blinking-cursor t))
 	 ;; Push the popped arg back on the list of arguments.
 	 (t
           (push argi args)
@@ -747,7 +753,7 @@ opening the first frame (e.g. open a connection to the server).")
   ;; you should also change the corresponding expression in the
   ;; defcustom in frame.el, or Custom will be badly confused.
   (unless (or noninteractive
-	      emacs-quick-startup
+	      no-blinking-cursor
               (eq system-type 'ms-dos)
               (not (memq initial-window-system '(x w32))))
     (blink-cursor-mode 1))

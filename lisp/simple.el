@@ -733,10 +733,48 @@ that uses or sets the mark."
 
 ;; Counting lines, one way or another.
 
-(defun goto-line (arg)
-  "Goto line ARG, counting from line 1 at beginning of buffer."
-  (interactive "NGoto line: ")
-  (setq arg (prefix-numeric-value arg))
+(defun goto-line (arg &optional buffer)
+  "Goto line ARG, counting from line 1 at beginning of buffer.
+Normally, move point in the curren buffer.
+With just C-u as argument, move point in the most recently displayed
+other buffer, and switch to it.
+
+If there's a number in the buffer at point, it is the default for ARG."
+  (interactive
+   (if (and current-prefix-arg (not (consp current-prefix-arg)))
+       (list (prefix-numeric-value current-prefix-arg))
+     ;; Look for a default, a number in the buffer at point.
+     (let* ((default
+	      (save-excursion
+		(skip-chars-backward "0-9")
+		(if (looking-at "[0-9]")
+		    (buffer-substring-no-properties
+		     (point)
+		     (progn (skip-chars-forward "0-9")
+			    (point))))))
+	    ;; Decide if we're switching buffers.
+	    (buffer
+	     (if (consp current-prefix-arg)
+		 (other-buffer (current-buffer) t)))
+	    (buffer-prompt
+	     (if buffer
+		 (concat " in " (buffer-name buffer))
+	       "")))
+       ;; Read the argument, offering that number (if any) as default.
+       (list (read-from-minibuffer (format (if default "Goto line%s (%s): "
+					     "Goto line%s: ")
+					   buffer-prompt
+					   default)
+				   nil nil t
+				   'minibuffer-history
+				   default)
+	     buffer))))
+  ;; Switch to the desired buffer, one way or another.
+  (if buffer
+      (let ((window (get-buffer-window buffer)))
+	(if window (select-window window)
+	  (switch-to-buffer-other-window buffer))))
+  ;; Move to the specified line number in that buffer.
   (save-restriction
     (widen)
     (goto-char 1)

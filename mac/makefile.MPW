@@ -21,7 +21,8 @@
 # Boston, MA 02111-1307, USA.  */
 #
 # Defines the following targets:
-#   Emacs (default) - normal Emacs build.
+#   Emacs (default) - normal Carbon Emacs build.
+#   NonCarbon - non-Carbon Emacs build.
 #   Clean - remove all object and executable files to prepare for a fresh build.
 #   Doc - generate the "DOC" file in ~emacs/etc/.
 #   Make-DocFile - build the make-docfile tool, utility for generating "DOC".
@@ -38,7 +39,9 @@ Lisp = ::lisp:						# emacs's lisp directory
 Make-DocFileDir = {Lib-Src}			# directory containing make-docfile tool
 
 Makefile = makefile.MPW			# self reference
+NonCarbonMakeOut = NonCarbon.MakeOut	# temporary file for non-Carbon build script
 
+CarbonOption = -d HAVE_CARBON
 SymOption = # -sym on			# remove hash mark before "-sym on" to enable source debugging
 OptOption = # -opt speed			# alternatively set to -opt off or -opt size
 
@@ -47,7 +50,7 @@ OptOption = # -opt speed			# alternatively set to -opt off or -opt size
 PPCCOptions = {SymOption} {OptOption} -noMapCR -enum int -alloca ¶
 	-typecheck relaxed -w off ¶
 	-includes unix -i {Includes},{Src} ¶
-	-d emacs=1 -d HAVE_CONFIG_H -d MAC_OS -d MAC_OS8
+	-d emacs=1 -d HAVE_CONFIG_H -d MAC_OS -d MAC_OS8 {CarbonOption}
 
 LinkOptions = {SymOption} -d
 
@@ -132,28 +135,41 @@ MacObjects = ¶
 	"{Src}macmenu.c.x" ¶
 	"{Src}macterm.c.x"
 
+StdLibraries = ¶
+	"{SharedLibraries}CarbonLib" ¶
+	"{SharedLibraries}StdCLib" ¶
+	"{PPCLibraries}StdCRuntime.o" ¶
+	"{PPCLibraries}PPCCRuntime.o"
+
+NonCarbonLibs = ¶
+	"{SharedLibraries}InterfaceLib" ¶
+	"{SharedLibraries}StdCLib" ¶
+	"{SharedLibraries}MathLib" ¶
+	"{SharedLibraries}AppleScriptLib" ¶
+	"{SharedLibraries}TextEncodingConverter" ¶
+	"{SharedLibraries}AppearanceLib" ¶
+	"{SharedLibraries}QuickTimeLib" ¶
+	"{PPCLibraries}StdCRuntime.o" ¶
+	"{PPCLibraries}PPCCRuntime.o" ¶
+	"{PPCLibraries}PPCToolLibs.o"
+
 # The next two are the dependency rules for building Emacs.
 
 Emacs ÄÄ {Makefile} {DocTarget}DOC {EmacsObjects} {MacObjects}
 	PPCLink ¶
 		{LinkOptions} ¶
 		{EmacsObjects} {MacObjects} ¶
-		"{SharedLibraries}InterfaceLib" ¶
-		"{SharedLibraries}StdCLib" ¶
-		"{SharedLibraries}MathLib" ¶
-		"{SharedLibraries}AppleScriptLib" ¶
-		"{SharedLibraries}TextEncodingConverter" ¶
-		"{SharedLibraries}AppearanceLib" ¶
-		"{SharedLibraries}QuickTimeLib" ¶
-		"{PPCLibraries}StdCRuntime.o" ¶
-		"{PPCLibraries}PPCCRuntime.o" ¶
-		"{PPCLibraries}PPCToolLibs.o" ¶
+		{StdLibraries} ¶
 		-o "{EmacsTarget}"
 
 Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
-	Rez -a "{Source}"Emacs.maclf.r -o "{EmacsTarget}"
-	Rez -a "{Source}"EmacsMPW.maclf.r -o "{EmacsTarget}"
+	Rez {CarbonOption} -a "{Source}"Emacs.maclf.r -o "{EmacsTarget}"
+	Rez {CarbonOption} -a "{Source}"EmacsMPW.maclf.r -o "{EmacsTarget}"
 	SetFile "{EmacsTarget}" -t APPL -c 'EMAx' -a B
+
+NonCarbon Ä
+	Make -f "{Makefile}" -d CarbonOption="" -d StdLibraries='{NonCarbonLibs}' > "{NonCarbonMakeOut}"
+	"{NonCarbonMakeOut}"
 
 # Rez cannot handle files with Unix style end lines at all.  So generate
 # them.  It does not hurt if Emacs.r and EmacsMPW.r already have Mac end
@@ -951,6 +967,7 @@ Clean Ä
 	Delete -i stdout stderr
 	Delete -i {Make-DocFile-Objects} {Make-DocFileDir}make-docfile
 	Delete -i "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
+	Delete -i "{NonCarbonMakeOut}"
 
 DistClean Ä Clean
 	Delete -i "Emacs CW"Å

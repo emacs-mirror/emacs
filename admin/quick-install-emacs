@@ -19,15 +19,16 @@ VERBOSE=''
 
 me="`basename $0`"
 
-# Install commands (these commands are also expected to understand the
-# GNU -v (--verbose) option)
+# Install commands (if the user specifies the `--verbose' option, it is
+# passed to these commands, so that feature only works if these commands
+# implement it too)
 LINK='cp -lf'
 COPY='cp -f'
 REMOVE='rm -r'
+MKDIR='mkdir -p'
 
 # Used to execute commands once once we create them
 EXEC='sh'
-MKDIR='mkdir --verbose -p'
 
 NAWK=/usr/bin/nawk
 
@@ -157,7 +158,7 @@ DST_INFO="$prefix/info"
 maybe_mkdir ()
 {
   if ! test -d "$1"; then
-    $MKDIR "$1" 2>&1 | sed "s/^mkdir:/$me:/" 1>&2
+    $MKDIR $VERBOSE "$1" 2>&1 | sed "s/^mkdir:/$me:/" 1>&2
   fi
 }
 

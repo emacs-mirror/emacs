@@ -1,3 +1,32 @@
+2005-03-05  Richard M. Stallman  <rms@gnu.org>
+
+	* debugging.texi (Error Debugging): Remove stack-trace-on-error.
+
+2005-03-04  Lute Kamstra  <lute@gnu.org>
+
+	* debugging.texi (Error Debugging): Document stack-trace-on-error.
+
+2005-03-03  Lute Kamstra  <lute@gnu.org>
+
+	* edebug.texi (Instrumenting Macro Calls): Fix typo.
+
+2005-03-01  Lute Kamstra  <lute@gnu.org>
+
+	* debugging.texi (Debugger Commands): Update `j'.
+
+2005-02-28  Lute Kamstra  <lute@gnu.org>
+
+	* debugging.texi (Debugging): Fix typo.
+	(Error Debugging): Document eval-expression-debug-on-error.
+	(Function Debugging): Update example.
+	(Using Debugger): Mention starred stack frames.
+	(Debugger Commands): Document `j' and `l'.
+	(Invoking the Debugger): `d' and `j' exit recursive edit too.
+	Update the messages that the debugger displays.
+	(Internals of Debugger): Add cross reference.  Update example.
+	(Excess Open): Minor improvement.
+	(Excess Close): Minor improvement.
+
 2005-02-26  Richard M. Stallman  <rms@gnu.org>
 
 	* tips.texi (Coding Conventions): Clarify.

@@ -1341,7 +1341,7 @@ Note that this command is effective only when Emacs
 displays through a window system, because then Emacs does its own
 cursor display.  On a text-only terminal, this is not implemented."
   :init-value (not (or noninteractive
-		       emacs-quick-startup
+		       (if (boundp 'no-blinking-cursor) no-blinking-cursor)
 		       (eq system-type 'ms-dos)
 		       (not (memq initial-window-system '(x w32)))))
   :group 'cursor

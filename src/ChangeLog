@@ -1,6 +1,115 @@
+2005-03-05  Juri Linkov  <juri@jurta.org>
+
+	* emacs.c (USAGE1): Replace Info node name "command arguments"
+	with "emacs invocation".
+	(USAGE3): Fix usage of `--color=MODE' which actually doesn't
+	allow arguments `--color' and `MODE' to be separated by space.
+	Add --no-blinking-cursor, -nbc.
+	(standard_args): Add -nbc, --no-blinking-cursor.
+
+2005-03-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* s/vms.h: Define NO_HYPHENS_IN_FILENAMES.
+	* s/vms4-4.h, s/vms5-5.h: Undefine NO_HYPHENS_IN_FILENAMES.
+	* fileio.c (Fexpand_file_name) [VMS]:
+	Use NO_HYPHENS_IN_FILENAMES, not VMS4_4.
+	* doc.c (munge_doc_file_name) [VMS]: Likewise.
+	(Fsnarf_documentation): Call munge_doc_file_name.
+
+2005-03-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* s/vms.h (FILE_SYSTEM_CASE): New macro.
+	* fileio.c (Fexpand_file_name) [VMS]: Don't upcase the name
+	"manually"; this is now handled generally via FILE_SYSTEM_CASE.
+
+2005-03-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (main): Change `#ifdef HAVE_CARBON' to `#if
+	defined (MAC_OSX) && defined (HAVE_CARBON)'.
+
+	* image.c [!MAC_OSX && TARGET_API_MAC_CARBON]: Include
+	QuickTime.h.
+
+	* mac.c [!MAC_OSX && HAVE_CARBON]: Include Carbon.h.
+	[!MAC_OSX] (select) [TARGET_API_MAC_CARBON]: Use ReceiveNextEvent.
+	(posix_pathname_to_fsspec, fsspec_to_posix_pathname): New
+	functions.
+	(mac_clear_font_name_table): Move extern to macterm.h.
+
+	* macfns.c (install_window_handler): Move extern to macterm.h.
+	(Fx_file_dialog): Check STRINGP (default_filename) to see it is
+	valid.  Don't check !NILP (dir) because it is already checked with
+	CHECK_STRING.
+	(Fx_file_dialog) [!MAC_OSX]: Use FSSpec instead of FSRef for
+	specifying the default location and obtaining the selected
+	filename.
+
+	* macgui.h [!MAC_OSX && HAVE_CARBON]: Include Carbon.h.
+
+	* macmenu.c [TARGET_API_MAC_CARBON]: Don't include headers that
+	are included via Carbon.h.
+
+	* macterm.c [TARGET_API_MAC_CARBON && !MAC_OSX]: Define
+	USE_CARBON_EVENTS to 1.
+	(qd) [__MRC__ && TARGET_API_MAC_CARBON]: Don't declare.
+	(x_free_frame_resources): Call remove_window_handler for
+	non-tooltip windows.
+	[TARGET_API_MAC_CARBON]: Don't include headers that are included
+	via Carbon.h.
+	[TARGET_API_MAC_CARBON] (mac_do_track_dragUPP)
+	(mac_do_receive_dragUPP): New variables.
+	(mac_handle_service_event, init_service_handler): Put declarations
+	and definitions in #ifdef MAC_OSX.
+	(install_window_handler) [TARGET_API_MAC_CARBON]: Create UPPs for
+	drag-and-drop handler functions and register them.
+	(remove_window_handler): New function.
+	(do_ae_open_documents, mac_do_receive_drag) [!MAC_OSX]: Use
+	fsspec_to_posix_pathname.
+	(main): Change #if !TARGET_API_MAC_CARBON to #ifdef MAC_OS8.
+	(XTread_socket) [!MAC_OSX]: Don't pass keyboard events to TSM.
+	[MAC_OS8] (make_mac_terminal_frame) [TARGET_API_MAC_CARBON]: Set
+	default cursors.
+	(mac_initialize) [USE_CARBON_EVENTS && !MAC_OSX] : Don't call
+	init_service_handler or init_quit_char_handler.
+	(mac_initialize) [!MAC_OSX]: Don't call MakeMeTheFrontProcess.
+
+	* macterm.h (install_window_handler, remove_window_handler)
+	(posix_pathname_to_fsspec, fsspec_to_posix_pathname)
+	(mac_clear_font_name_table): New externs.
+
+2005-03-03  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* fileio.c (FILE_SYSTEM_CASE): Define macro if not already defined.
+	(Ffile_name_directory): Use FILE_SYSTEM_CASE unconditionally.
+	(Fexpand_file_name): Likewise.
+
+2005-03-03  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs.c (Fkill_emacs): Use EXIT_SUCCESS;
+	no longer special-case VMS.  Add bogus return value.
+
+2005-03-02  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (XASSERTS): Define to 0 if not already defined.
+	(xassert) [!XASSERTS]: Define dummy version.
+
+2005-03-02  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): YABX (yet another bogus xassert).
+	Reported by David Kastrup.
+
+2005-03-01  Ehud Karni  <ehud@unix.mvs.co.il>
+
+	* xdisp.c (get_next_display_element): Fix control and escape
+	glyph from display vector.
+
+2005-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (Fposn_at_x_y): Check integerness of X and Y.
+
 2005-02-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c (xg_resize_outer_widget): Removed unneeded call to
+	* gtkutil.c (xg_resize_outer_widget): Remove unneeded call to
 	gtk_window_resize and x_wm_set_size_hint.
 
 2005-02-25  Kim F. Storm  <storm@cua.dk>
@@ -30,7 +139,7 @@
 	* window.c (window_scroll_pixel_based): When scrolling backwards,
 	handle partial visible line at end of window even when we hit PT.
 
-2005-02-21  Stefan  <monnier@iro.umontreal.ca>
+2005-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.h: Declare Fcurrent_active_maps, used in doc.c.
 
@@ -88,8 +197,7 @@
 	(Fx_window_property): Likewise.
 
 	* xselect.c (Fx_disown_selection_internal): Use union of struct
-	input_event and struct selection_input_event to avoid aliasing
-	issues.
+	input_event and struct selection_input_event to avoid aliasing issues.
 
 	* xterm.c (handle_one_xevent): Use union of struct input_event and
 	struct selection_input_event to avoid aliasing issues.
@@ -118,21 +226,20 @@
 	clipboard operations and delayed rendering.
 
 	Drop last_clipboard_text and related code, keep track of
-	ownership via clipboard_owner instead.  Drop old #if0
-	sections.
+	ownership via clipboard_owner instead.  Drop old #if0 sections.
 
 	(DEFAULT_LCID, ANSICP, OEMCP, QUNICODE, QANSICP, QOEMCP)
 	(clipboard_owner, modifying_clipboard, cfg_coding_system)
 	(cfg_codepage, cfg_lcid, cfg_clipboard_type, current_text)
 	(current_coding_system, current_requires_encoding)
-	(current_num_nls, current_clipboard_type, current_lcid): New
-	static variables.
+	(current_num_nls, current_clipboard_type, current_lcid):
+	New static variables.
 
 	(convert_to_handle_as_ascii, convert_to_handle_as_coded)
 	(render, render_all, run_protected, lisp_error_handler)
 	(owner_callback, create_owner, setup_config)
-	(enum_locale_callback, cp_from_locale, coding_from_cp): New
-	local functions.
+	(enum_locale_callback, cp_from_locale, coding_from_cp):
+	New local functions.
 
 	(term_w32select, globals_of_w32select): New global functions.
 
@@ -332,8 +439,7 @@
 	(casify_region): Fix loop condition, args to replace_range_2, and
 	update opoint_byte.
 
-	* insdel.c (replace_range_2): Fix bugs in adjusting markers and
-	point.
+	* insdel.c (replace_range_2): Fix bugs in adjusting markers and point.
 
 2005-02-01  Kim F. Storm  <storm@cua.dk>
 
@@ -761,7 +867,7 @@
 	[TARGET_API_MAC_CARBON] (mac_do_track_drag): Likewise.
 	Reject only when there are no filename items.  Set background color
 	before (un)highlighting the window below the dragged items.
-	(XTread_socket) [!USE_CARBON_EVENTS]: Don't call do_window_update.
+	(XTread_socket) [USE_CARBON_EVENTS]: Don't call do_window_update.
 
 2005-01-05  Romain Francoise  <romain@orebokech.com>
 
@@ -11015,9 +11121,9 @@
 	These changes were in part based upon suggestions made by Peter
 	'Luna' Runestig [peter@runestig.com].
 
-	* w32.c (g_b_init_is_windows_9x, g_b_init_open_process_token,
-	g_b_init_get_token_information, g_b_init_lookup_account_sid,
-	g_b_init_get_sid_identifier_authority ): Add several static
+	* w32.c (g_b_init_is_windows_9x, g_b_init_open_process_token)
+	(g_b_init_get_token_information, g_b_init_lookup_account_sid)
+	(g_b_init_get_sid_identifier_authority ): Add several static
 	global variables.
 
 	* w32.c (globals_of_w32): New function.  Used to initialize those

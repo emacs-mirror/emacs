@@ -1,6 +1,6 @@
 ;;; ibuf-ext.el --- extensions for ibuffer
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -753,7 +753,10 @@ of replacing the current filters."
   "Disable all filters currently in effect in this buffer."
   (interactive)
   (setq ibuffer-filtering-qualifiers nil)
-  (ibuffer-update nil t))
+  (let ((buf (ibuffer-current-buffer)))
+    (ibuffer-update nil t)
+    (when buf
+      (ibuffer-jump-to-buffer (buffer-name buf)))))
 
 ;;;###autoload
 (defun ibuffer-pop-filter ()
@@ -762,7 +765,10 @@ of replacing the current filters."
   (when (null ibuffer-filtering-qualifiers)
     (error "No filters in effect"))
   (pop ibuffer-filtering-qualifiers)
-  (ibuffer-update nil t))
+  (let ((buf (ibuffer-current-buffer)))
+    (ibuffer-update nil t)
+    (when buf
+      (ibuffer-jump-to-buffer (buffer-name buf)))))
 
 (defun ibuffer-push-filter (qualifier)
   "Add QUALIFIER to `ibuffer-filtering-qualifiers'."

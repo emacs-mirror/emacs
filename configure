@@ -856,6 +856,7 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-carbon-app[=DIR]  [DIR=/Application]
                           specify install directory for Emacs.app on Mac OS X
+  --enable-asserts        compile code with asserts enabled
   --enable-maintainer-mode enable make rules and dependencies not useful
                           (and sometimes confusing) to the casual installer
   --disable-largefile     omit support for large files
@@ -1518,6 +1519,14 @@ fi;
 if test "${enable_carbon_app+set}" = set; then
   enableval="$enable_carbon_app"
    carbon_appdir_x=${enableval}
+fi;
+
+# Check whether --enable-asserts or --disable-asserts was given.
+if test "${enable_asserts+set}" = set; then
+  enableval="$enable_asserts"
+  USE_XASSERTS=$enableval
+else
+  USE_XASSERTS=no
 fi;
 
 # Check whether --enable-maintainer-mode or --disable-maintainer-mode was given.
@@ -21976,28 +21985,14 @@ echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 
-if test "$emacs_cv_randomheap" = warn; then
-  { echo "$as_me:$LINENO: WARNING:
-**********************************************************************
-
-Heap start address is randomized and no workaround is known.
-Emacs will probably dump core when temacs is run in the build phase.
-Maybe exec-shield is turned on.  Read about exec-shield in \`etc/PROBLEMS'
-for further information.
-
-**********************************************************************
-" >&5
-echo "$as_me: WARNING:
-**********************************************************************
-
-Heap start address is randomized and no workaround is known.
-Emacs will probably dump core when temacs is run in the build phase.
-Maybe exec-shield is turned on.  Read about exec-shield in \`etc/PROBLEMS'
-for further information.
-
-**********************************************************************
-" >&2;}
+if test $USE_XASSERTS = yes; then
+   echo "  Compiling with asserts turned on."
+   CFLAGS="$CFLAGS -DXASSERTS=1"
+   CPPFLAGS="$CPPFLAGS -DXASSERTS=1"
+   echo
 fi
+
+
 
 # Remove any trailing slashes in these variables.
 test "${prefix}" != NONE &&

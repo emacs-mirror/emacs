@@ -2169,11 +2169,13 @@ the inserted text.  Value is always t."
   t)
 
 (defun redraw-calendar ()
-  "Redraw the calendar display."
+  "Redraw the calendar display, if `calendar-buffer' is live."
   (interactive)
-  (let ((cursor-date (calendar-cursor-to-nearest-date)))
-    (generate-calendar-window displayed-month displayed-year)
-    (calendar-cursor-to-visible-date cursor-date)))
+  (if (get-buffer calendar-buffer)
+      (with-current-buffer calendar-buffer
+        (let ((cursor-date (calendar-cursor-to-nearest-date)))
+          (generate-calendar-window displayed-month displayed-year)
+          (calendar-cursor-to-visible-date cursor-date)))))
 
 (defcustom calendar-debug-sexp nil
   "*Turn debugging on when evaluating a sexp in the diary or holiday list."

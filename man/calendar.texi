@@ -1206,7 +1206,10 @@ make a nonmarking diary entry, give a numeric argument to the command.
 For example, @kbd{C-u i w} makes a nonmarking weekly diary entry.
 
   When you modify the diary file, be sure to save the file before
-exiting Emacs.
+exiting Emacs.  Saving the diary file after using any of the above
+insertion commands will automatically update the diary marks in the
+calendar window, if appropriate.  You can use the command
+@code{redraw-calendar} to force an update at any time.
 
 @node Special Diary Entries
 @subsection Special Diary Entries
@@ -1402,8 +1405,6 @@ present) may not work correctly (if at all) for recurring events.
 Exporting of diary files into iCalendar files should work correctly for
 most diary entries.  Please note that @file{icalendar.el} is work in
 progress, so usage may evolve in future.
-
-  To activate the package, use @code{(require 'icalendar)}.
 
 @findex icalendar-import-buffer
   The command @code{icalendar-import-buffer} extracts

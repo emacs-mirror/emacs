@@ -604,10 +604,17 @@ extern void XSetWindowBackground P_ ((Display *, WindowPtr, unsigned long));
 extern void mac_draw_line_to_pixmap P_ ((Display *, Pixmap, GC, int, int,
 					 int, int));
 extern void mac_unload_font P_ ((struct mac_display_info *, XFontStruct *));
+extern OSErr install_window_handler P_ ((WindowPtr));
+extern void remove_window_handler P_ ((WindowPtr));
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
 
+/* Defined in mac.c.  */
+
+extern OSErr posix_pathname_to_fsspec P_ ((const char *, FSSpec *));
+extern OSErr fsspec_to_posix_pathname P_ ((const FSSpec *, char *, int));
+extern void mac_clear_font_name_table P_ ((void));
 #if TARGET_API_MAC_CARBON
 extern CFStringRef cfstring_create_with_utf8_cstring P_ ((const char *));
 #endif

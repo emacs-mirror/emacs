@@ -1,3 +1,9 @@
+2005-03-02  Miles Bader  <miles@gnu.org>
+
+	* quick-install-emacs: Only use the mkdir --verbose option if the
+	script's --verbose option was specified (this avoids problems with
+	default usage on systems where mkdir doesn't support that option).
+
 2005-02-15  Jason Rumney  <jasonr@gnu.org>
 
 	* nt/makedist.bat: Do not rely on non-standard behaviour of

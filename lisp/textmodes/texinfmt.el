@@ -1,7 +1,7 @@
 ;;; texinfmt.el --- format Texinfo files into Info files
 
 ;; Copyright (C) 1985, 1986, 1988, 1990, 1991, 1992, 1993,
-;;               1994, 1995, 1996, 1997, 1998, 2000, 2001
+;;               1994, 1995, 1996, 1997, 1998, 2000, 2001, 2005
 ;;    Free Software Foundation, Inc.
 
 ;; Maintainer: Robert J. Chassell <bug-texinfo@gnu.org>
@@ -37,7 +37,7 @@
     (defmacro defcustom (var value doc &rest ignore)
       `(defvar ,var ,value ,doc)))
 
-(defvar texinfmt-version "2.40 of  6 Dec 2002")
+(defvar texinfmt-version "2.41 of  1 Mar 2005")
 
 (defun texinfmt-version (&optional here)
   "Show the version of texinfmt.el in the minibuffer.
@@ -486,7 +486,8 @@ if large.  You can use Info-split to do this manually."
    ;;     I don't know if this causes other problems.
    ;;     I suspect itemized lists don't get filled properly and a
    ;;     more precise fix is required.  Bob
-   "itemize\\|"
+   ;; commented out on 2005 Feb 28 by Bob
+   ;; "itemize\\|"
    "direntry\\|"
    "lisp\\|"
    "smalllisp\\|"
@@ -636,7 +637,7 @@ Do not append @refill to paragraphs containing @w{TEXT} or @*."
 	    (forward-char 1)
 	    (unless (re-search-backward "@c[ \t\n]\\|@comment[ \t\n]" line-beg t)
 	      (forward-char -1))
-	    (unless (re-search-backward "@refill\\|@bye" line-beg t)
+	    (unless (re-search-backward "@refill\\|^[ \t]*@" line-beg t)
 	      (insert "@refill")))
           (forward-line 1))))))
 

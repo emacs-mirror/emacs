@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 
-;; This is a major mode documented in the Emacs manual.
+;; This is a major mode documented in the Emacs Lisp manual.
 
 ;;; Code:
 
@@ -51,15 +51,11 @@ the middle is discarded, and just the beginning and end are displayed."
   :group 'debugger
   :version "21.1")
 
-(defcustom debug-function-list nil
-  "List of functions currently set for debug on entry."
-  :type '(repeat function)
-  :group 'debugger)
+(defvar debug-function-list nil
+  "List of functions currently set for debug on entry.")
 
-(defcustom debugger-step-after-exit nil
-  "Non-nil means \"single-step\" after the debugger exits."
-  :type 'boolean
-  :group 'debugger)
+(defvar debugger-step-after-exit nil
+  "Non-nil means \"single-step\" after the debugger exits.")
 
 (defvar debugger-value nil
   "This is the value for the debugger to return, when it returns.")
@@ -92,6 +88,21 @@ This is to optimize `debugger-make-xrefs'.")
 (defvar debugger-outer-standard-output)
 (defvar debugger-outer-inhibit-redisplay)
 (defvar debugger-outer-cursor-in-echo-area)
+
+(defvar inhibit-debug-on-entry nil
+  "Non-nil means that debug-on-entry is disabled.")
+
+(defvar debugger-jumping-flag nil
+  "Non-nil means that debug-on-entry is disabled.
+This variable is used by `debugger-jump' and `debugger-reenable'.")
+
+;; When you change this, you may also need to change the number of
+;; frames that the debugger skips.
+(defconst debug-entry-code
+  '(if (or inhibit-debug-on-entry debugger-jumping-flag)
+       nil
+     (debug 'debug))
+  "Code added to a function to cause it to call the debugger upon entry.")
 
 ;;;###autoload
 (setq debugger 'debug)
@@ -147,6 +158,8 @@ first will be printed into the backtrace buffer."
       (setq overriding-terminal-local-map nil)
       ;; Don't let these magic variables affect the debugger itself.
       (let ((last-command nil) this-command track-mouse
+	    (inhibit-trace t)
+	    (inhibit-debug-on-entry t)
 	    unread-command-events
 	    unread-post-input-method-events
 	    last-input-event last-command-event last-nonmenu-event
@@ -185,12 +198,11 @@ first will be printed into the backtrace buffer."
 		  (message "%s" (buffer-string))
 		  (kill-emacs))
 		(if (eq (car debugger-args) 'debug)
-		    ;; Skip the frames for backtrace-debug, byte-code, and debug.
-		    (backtrace-debug 3 t))
-		(debugger-reenable)
+		    ;; Skip the frames for backtrace-debug, byte-code,
+		    ;; and debug-entry-code.
+		    (backtrace-debug 4 t))
 		(message "")
-		(let ((inhibit-trace t)
-		      (standard-output nil)
+		(let ((standard-output nil)
 		      (buffer-read-only t))
 		  (message "")
 		  ;; Make sure we unbind buffer-read-only in the right buffer.
@@ -250,7 +262,9 @@ That buffer should be current already."
   (delete-region (point)
 		 (progn
 		   (search-forward "\n  debug(")
-		   (forward-line 1)
+		   (forward-line (if (eq (car debugger-args) 'debug)
+				     2	; Remove debug-entry-code frame.
+				   1))
 		   (point)))
   (insert "Debugger entered")
   ;; lambda is for debug-on-call when a function call is next.
@@ -395,25 +409,17 @@ will be used, such as in a debug on exit from a frame."
   "Continue to exit from this frame, with all debug-on-entry suspended."
   (interactive)
   (debugger-frame)
-  ;; Turn off all debug-on-entry functions
-  ;; but leave them in the list.
-  (let ((list debug-function-list))
-    (while list
-      (fset (car list)
-	    (debug-on-entry-1 (car list) (symbol-function (car list)) nil))
-      (setq list (cdr list))))
+  (setq debugger-jumping-flag t)
+  (add-hook 'post-command-hook 'debugger-reenable)
   (message "Continuing through this frame")
   (exit-recursive-edit))
 
 (defun debugger-reenable ()
-  "Turn all debug-on-entry functions back on."
-  (let ((list debug-function-list))
-    (while list
-      (or (consp (symbol-function (car list)))
-	  (debug-convert-byte-code (car list)))
-      (fset (car list)
-	    (debug-on-entry-1 (car list) (symbol-function (car list)) t))
-      (setq list (cdr list)))))
+  "Turn all debug-on-entry functions back on.
+This function is put on `post-command-hook' by `debugger-jump' and
+removes itself from that hook."
+  (setq debugger-jumping-flag nil)
+  (remove-hook 'post-command-hook 'debugger-reenable))
 
 (defun debugger-frame-number ()
   "Return number of frames in backtrace before the one point points at."
@@ -423,14 +429,13 @@ will be used, such as in a debug on exit from a frame."
 	  (count 0))
       (while (not (eq (cadr (backtrace-frame count)) 'debug))
 	(setq count (1+ count)))
+      ;; Skip debug-entry-code frame.
+      (when (member '(debug (quote debug)) (cdr (backtrace-frame (1+ count))))
+	(setq count (1+ count)))
       (goto-char (point-min))
-      (if (or (equal (buffer-substring (point) (+ (point) 6))
-		     "Signal")
-	      (equal (buffer-substring (point) (+ (point) 6))
-		     "Return"))
-	  (progn
-	    (search-forward ":")
-	    (forward-sexp 1)))
+      (when (looking-at "Debugger entered--\\(Lisp error\\|returning value\\):")
+	(goto-char (match-end 0))
+	(forward-sexp 1))
       (forward-line 1)
       (while (progn
 	       (forward-char 2)
@@ -475,8 +480,6 @@ Applies to the frame whose line point is on in the backtrace."
 	(delete-char 1)
 	(insert ? )))
   (beginning-of-line))
-
-
 
 (put 'debugger-env-macro 'lisp-indent-function 0)
 (defmacro debugger-env-macro (&rest body)
@@ -626,7 +629,6 @@ which must be written in Lisp, not predefined.
 Use \\[cancel-debug-on-entry] to cancel the effect of this command.
 Redefining FUNCTION also cancels it."
   (interactive "aDebug on entry (to function): ")
-  (debugger-reenable)
   ;; Handle a function that has been aliased to some other function.
   (if (and (subrp (symbol-function function))
 	   (eq (cdr (subr-arity (symbol-function function))) 'unevalled))
@@ -657,7 +659,6 @@ If argument is nil or an empty string, cancel for all functions."
 				 (mapcar 'symbol-name debug-function-list)
 				 nil t nil)))
 	   (if name (intern name)))))
-  (debugger-reenable)
   (if (and function (not (string= function "")))
       (progn
 	(let ((f (debug-on-entry-1 function (symbol-function function) nil)))
@@ -698,22 +699,18 @@ If argument is nil or an empty string, cancel for all functions."
 	(debug-on-entry-1 function (cdr defn) flag)
       (or (eq (car defn) 'lambda)
 	  (error "%s not user-defined Lisp function" function))
-      (let ((tail (cddr defn)))
+      (let ((tail (cdr defn)))
 	;; Skip the docstring.
-	(if (stringp (car tail)) (setq tail (cdr tail)))
+	(when (and (stringp (cadr tail)) (cddr tail))
+	  (setq tail (cdr tail)))
 	;; Skip the interactive form.
-	(if (eq 'interactive (car-safe (car tail))) (setq tail (cdr tail)))
-	(unless (eq flag (equal (car tail) '(debug 'debug)))
-	  ;; If the function has no body, add nil as a body element.
-	  (when (null tail)
-	    (setq tail (list nil))
-	    (nconc defn tail))
+	(when (eq 'interactive (car-safe (cadr tail)))
+	  (setq tail (cdr tail)))
+	(unless (eq flag (equal (cadr tail) debug-entry-code))
 	  ;; Add/remove debug statement as needed.
-	  (if (not flag)
-	      (progn (setcar tail (cadr tail))
-		     (setcdr tail (cddr tail)))
-	    (setcdr tail (cons (car tail) (cdr tail)))
-	    (setcar tail '(debug 'debug))))
+	  (if flag
+	      (setcdr tail (cons debug-entry-code (cdr tail)))
+	    (setcdr tail (cddr tail))))
 	defn))))
 
 (defun debugger-list-functions ()

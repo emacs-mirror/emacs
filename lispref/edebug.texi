@@ -1,6 +1,6 @@
 @comment -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1992, 1993, 1994, 1998, 1999 Free Software Foundation, Inc.
+@c Copyright (C) 1992, 1993, 1994, 1998, 1999, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
 @c This file can also be used by an independent Edebug User
@@ -1082,7 +1082,7 @@ the @code{for} example macro (@pxref{Argument Evaluation}).
 (defmacro for (var from init to final do &rest body)
   "Execute a simple \"for\" loop.
 For example, (for i from 1 to 10 do (print i))."
-  (declare (edebug symbolp "from" form "to" form "do" &rest form))
+  (declare (debug symbolp "from" form "to" form "do" &rest form))
   ...)
 @end example
 

@@ -251,7 +251,7 @@ Run Emacs, the extensible, customizable, self-documenting real-time\n\
 display editor.  The recommended way to start Emacs for normal editing\n\
 is with no options at all.\n\
 \n\
-Run M-x info RET m emacs RET m command arguments RET inside Emacs to\n\
+Run M-x info RET m emacs RET m emacs invocation RET inside Emacs to\n\
 read the main documentation for these command-line arguments.\n\
 \n\
 Initialization options:\n\
@@ -297,7 +297,7 @@ Display options:\n\
 --background-color, -bg COLOR   window background color\n\
 --border-color, -bd COLOR       main border color\n\
 --border-width, -bw WIDTH       width of main border\n\
---color MODE                    color mode for character terminals;\n\
+--color, --color=MODE           color mode for character terminals;\n\
                                   MODE defaults to `auto', and can also\n\
                                   be `never', `auto', `always',\n\
                                   or a mode name like `ansi8'\n\
@@ -314,6 +314,7 @@ Display options:\n\
 --line-spacing, -lsp PIXELS     additional space to put between lines\n\
 --mouse-color, -ms COLOR        mouse cursor color in Emacs window\n\
 --name NAME                     title for initial Emacs frame\n\
+--no-blinking-cursor, -nbc      disable blinking cursor\n\
 --reverse-video, -r, -rv        switch foreground and background\n\
 --title, -T TITLE               title for initial Emacs frame\n\
 --vertical-scroll-bars, -vb     enable vertical scroll bars\n\
@@ -1483,7 +1484,7 @@ main (argc, argv
   init_ntproc ();	/* must precede init_editfns.  */
 #endif
 
-#ifdef HAVE_CARBON
+#if defined (MAC_OSX) && defined (HAVE_CARBON)
   if (initialized)
     init_mac_osx_environment ();
 #endif
@@ -1627,12 +1628,12 @@ main (argc, argv
       syms_of_fontset ();
 #endif /* HAVE_NTGUI */
 
-#ifdef HAVE_CARBON
+#if defined (MAC_OSX) && defined (HAVE_CARBON)
       syms_of_macterm ();
       syms_of_macfns ();
       syms_of_macmenu ();
       syms_of_fontset ();
-#endif /* HAVE_CARBON */
+#endif /* MAC_OSX && HAVE_CARBON */
 
 #ifdef SYMS_SYSTEM
       SYMS_SYSTEM;
@@ -1824,6 +1825,7 @@ struct standard_args standard_args[] =
   { "-ib", "--internal-border", 10, 1 },
   { "-ms", "--mouse-color", 10, 1 },
   { "-cr", "--cursor-color", 10, 1 },
+  { "-nbc", "--no-blinking-cursor", 10, 0 },
   { "-fn", "--font", 10, 1 },
   { "-font", 0, 10, 1 },
   { "-fs", "--fullscreen", 10, 0 },
@@ -2052,14 +2054,9 @@ all of which are called before Emacs is actually killed.  */)
   if (STRINGP (Vauto_save_list_file_name))
     unlink (SDATA (Vauto_save_list_file_name));
 
-  exit (INTEGERP (arg) ? XINT (arg)
-#ifdef VMS
-	: 1
-#else
-	: 0
-#endif
-	);
+  exit (INTEGERP (arg) ? XINT (arg) : EXIT_SUCCESS);
   /* NOTREACHED */
+  return 0;
 }
 
 

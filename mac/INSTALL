@@ -182,6 +182,12 @@ makefile.mpw.  I.e., execute the commands
   make Emacs -f makefile.MPW > Emacs.MakeScript
   Emacs.MakeScript
 
+The above commands create an executable that uses the Carbon API.  The
+non-Carbon version can also be created by replacing all the
+occurrences of `Emacs' above with `NonCarbon'.  Not that the
+non-Carbon version does not support some features such as file
+dialogs, drag-and-drop, and unicode menus.
+
 To build Emacs using CodeWarrior, start up the CodeWarrior IDE, choose
 File->Import Project...  and select the file cw6-mcp.xml.  When
 prompted to save the project, navigate to same directory as the file

@@ -42,6 +42,18 @@ resource 'SIZE' (-1) {
 	reserved,
 	reserved,
 	reserved,
-	16777216,
+	33554432,
 	16777216
 };
+
+#ifdef HAVE_CARBON
+resource 'cfrg' (0) {
+    {
+	kPowerPCCFragArch, kIsCompleteCFrag, kNoVersionNum, kNoVersionNum,
+	311296, /* 48K (default) + 256K (EXTRA_STACK_ALLOC in macterm.c) */
+	kNoAppSubFolder,
+	kApplicationCFrag, kDataForkCFragLocator, kZeroOffset, kCFragGoesToEOF,
+	"",
+    }
+};
+#endif

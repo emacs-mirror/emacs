@@ -1,7 +1,147 @@
+2005-03-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (goto-line): Remove unbalanced final parenthesis.
+
+2005-03-05  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (goto-line): Use a number at point as the default.
+	With C-u as arg, switch buffers.
+
+2005-03-05  Juri Linkov  <juri@jurta.org>
+
+	* frame.el (blink-cursor-mode): Replace `emacs-quick-startup'
+	with `no-blinking-cursor'.
+
+	* startup.el (no-blinking-cursor): New defvar.
+	(command-line): Add `--no-blinking-cursor' to longopts.
+	Set `no-blinking-cursor' to t for command line arguments
+	-Q, -nbc, --no-blinking-cursor.  Replace `emacs-quick-startup'
+	with `no-blinking-cursor' in the condition for calling
+	`blink-cursor-mode'.
+
+2005-03-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* menu-bar.el (menu-bar-make-mm-toggle): Doc fix.
+	(menu-bar-options-save): Add blink-cursor-mode.
+	(menu-bar-options-menu): Add blink-cursor-mode.
+
+2005-03-04  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-version): Increase to 0.11.
+	(icalendar-export-file, icalendar-export-region)
+	(icalendar-import-file, icalendar-import-buffer): Add autoload
+	cookies.
+	(icalendar--convert-ical-to-diary): Fix problem with DURATION.
+
+2005-03-04  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-step-after-exit): Make it a
+	defvar.
+	(debug-function-list): Ditto.
+
+2005-03-04  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* textmodes/texinfmt.el (texinfo-append-refill):
+	Redefine the types of line to which @refill
+	is not appended by replacing a search for `@refill\\|@bye' with
+	`@refill\\|^[ \t]*@'.  The intent is to solve both the `@end
+	itemize@refill' bug and the unfilled long lines bug.
+	(texinfmt-version): update number and date.
+
+2005-03-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* international/code-pages.el (windows-1250, windows-125[2-8])
+	(iso-8859-10, -13, -16, georgian-ps): Add autoload cookies.
+
+2005-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.el (blink-cursor-mode): `emacs-quick-startup' may not be
+	bound yet.
+
+2005-03-02  Romain Francoise  <romain@orebokech.com>
+
+	* ibuf-ext.el (ibuffer-filter-disable): Move back to the current
+	buffer after removing limits.
+	(ibuffer-pop-filter): Ditto.
+	Update copyright.
+
+2005-03-02  Miles Bader  <miles@gnu.org>
+
+	* button.el (make-text-button): If the user doesn't specify a
+	type, use the default.  Rewrite to use `add-text-properties' and
+	plist functions.
+
+2005-03-01  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (inhibit-debug-on-entry): Add docstring.
+	(debugger-jumping-flag): New var.
+	(debug-entry-code): Use it.
+	(debugger-jump): Use debugger-jumping-flag and add
+	debugger-reenable to post-command-hook.
+	(debugger-reenable): Use debugger-jumping-flag and remove itself
+	from post-command-hook.
+	(debug, debug-on-entry, cancel-debug-on-entry): Remove call to
+	debugger-reenable.
+
+2005-03-01  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* textmodes/texinfmt.el (texinfo-no-refill-regexp): Comment out
+	inclusion of "itemize\\|", which may be unnecessary, is certainly
+	inelegant, and stops refilling in itemize lists when formatting
+	Japanese Texinfo files to Info.
+	Update copyright to 2005.
+
+2005-03-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-get-location): Use a warning instead
+	of an error if GDB can't find the source file.
+
+2005-03-01  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (redraw-calendar): Work from any buffer,
+	not just the calendar.
+
+	* calendar/diary-lib.el (mark-diary-entries): Remove any old marks
+	first.
+	(diary-redraw-calendar): New function.
+	(make-diary-entry): Add diary-redraw-calendar to local
+	write-contents-functions.  Turn off selective display before
+	inserting in diary.
+
+2005-03-01  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/copyright.el (copyright-fix-years): New command.
+
+2005-03-01  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debug-on-entry-1): Reimplement to make sure
+	that debug-entry-code can be safely removed from a function while
+	this code is being evaluated.  Revert the 2005-02-27 change as the
+	new implementation no longer requires it.  Make sure that a
+	function body containing just a string is not mistaken for a
+	docstring.
+	(debug): Skip one more frame in case of debug on entry.
+	(debugger-setup-buffer): Delete one more frame line in case of
+	debug on entry.
+	(debugger-frame-number): Update to use the new text introduced by
+	the 1999-11-03 change.  Skip one more frame in case of debug on entry.
+
+2005-02-28  Kim F. Storm  <storm@cua.dk>
+
+	* double.el (double-translate-key): Call force-window-update after
+	read-event to avoid crash in redisplay.
+
+2005-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (inhibit-debug-on-entry): New var.
+	(debug): Use it.  Move the inhibit-trace earlier.
+	(debug-entry-code): New const.
+	(debug-on-entry-1): Use it.
+
 2005-02-28  Chong Yidong" <cyd@stupidchicken.com> (tiny change)
 
-	* international/utf-16.el (ccl-encode-mule-utf-16le): Fix
-	BUFFER_MAGNIFICATION to 2.
+	* international/utf-16.el (ccl-encode-mule-utf-16le):
+	Fix BUFFER_MAGNIFICATION to 2.
 	(ccl-encode-mule-utf-16be): Likewise.
 
 2005-02-28  Kenichi Handa  <handa@m17n.org>

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999, 2005
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/debugging
@@ -14,7 +14,7 @@ depending on what you are doing with the program when the problem appears.
 @item
 If the problem occurs when you run the program, you can use a Lisp
 debugger to investigate what is happening during execution.  In addition
-to the ordinary debugger, Emacs comes with a source level debugger,
+to the ordinary debugger, Emacs comes with a source-level debugger,
 Edebug.  This chapter describes both of them.
 
 @item
@@ -115,6 +115,15 @@ during editing but rarely result from bugs in Lisp programs.  However,
 matches this list, you will need to change this list in order to debug
 the error.  The easiest way is usually to set
 @code{debug-ignored-errors} to @code{nil}.
+@end defopt
+
+@defopt eval-expression-debug-on-error
+If you set this variable to a non-@code{nil} value, then
+@code{debug-on-error} will be set to @code{t} when evaluating with the
+command @code{eval-expression}.  If
+@code{eval-expression-debug-on-error} is @code{nil}, then the value of
+@code{debug-on-error} is not changed.  @xref{Lisp Eval,, Evaluating
+Emacs-Lisp Expressions, emacs, The GNU Emacs Manual}.
 @end defopt
 
 @defopt debug-on-signal
@@ -240,14 +249,12 @@ Here's an example to illustrate use of this function:
 
 @group
 ------ Buffer: *Backtrace* ------
-Entering:
+Debugger entered--entering a function:
 * fact(3)
-  eval-region(4870 4878 t)
-  byte-code("...")
+  eval((fact 3))
+  eval-last-sexp-1(nil)
   eval-last-sexp(nil)
-  (let ...)
-  eval-insert-last-sexp(nil)
-* call-interactively(eval-insert-last-sexp)
+  call-interactively(eval-last-sexp)
 ------ Buffer: *Backtrace* ------
 @end group
 
@@ -317,7 +324,9 @@ moving point to the line describing that frame.  (A stack frame is the
 place where the Lisp interpreter records information about a particular
 invocation of a function.)  The frame whose line point is on is
 considered the @dfn{current frame}.  Some of the debugger commands
-operate on the current frame.
+operate on the current frame.  If a line starts with a star, that means
+that exiting that frame will call the debugger again.  This is useful
+for examining the return value of a function.
 
   If a function name is underlined, that means the debugger knows
 where its source code is located.  You can click @kbd{Mouse-2} on that
@@ -327,8 +336,6 @@ name, or move to it and type @key{RET}, to visit the source code.
 assumptions about how many stack frames are used for the debugger
 itself.  These assumptions are false if the debugger is running
 interpreted.
-
-@need 3000
 
 @node Debugger Commands
 @subsection Debugger Commands
@@ -378,6 +385,11 @@ Don't enter the debugger when the current frame is exited.  This
 cancels a @kbd{b} command on that frame.  The visible effect is to
 remove the star from the line in the backtrace buffer.
 
+@item j
+Flag the current frame like @kbd{b}.  Then continue execution like
+@kbd{c}, but temporarily disable break-on-entry for all functions that
+are set up to do so by @code{debug-on-entry}.
+
 @item e
 Read a Lisp expression in the minibuffer, evaluate it, and print the
 value in the echo area.  The debugger alters certain important
@@ -410,6 +422,13 @@ used as the value of that frame.  It is also useful if you call
 effect as @kbd{c}, and the specified return value does not matter.
 
 You can't use @kbd{r} when the debugger was entered due to an error.
+
+@item l
+Display a list of functions that will invoke the debugger when called.
+This is a list of functions that are set to break on entry by means of
+@code{debug-on-entry}.  @strong{Warning:} if you redefine such a
+function and thus cancel the effect of @code{debug-on-entry}, it may
+erroneously show up in this list.
 @end table
 
 @node Invoking the Debugger
@@ -425,10 +444,10 @@ recursive entry to the debugger, etc.), and fills it with information
 about the stack of Lisp function calls.  It then enters a recursive
 edit, showing the backtrace buffer in Debugger mode.
 
-The Debugger mode @kbd{c} and @kbd{r} commands exit the recursive edit;
-then @code{debug} switches back to the previous buffer and returns to
-whatever called @code{debug}.  This is the only way the function
-@code{debug} can return to its caller.
+The Debugger mode @kbd{c}, @kbd{d}, @kbd{j}, and @kbd{r} commands exit
+the recursive edit; then @code{debug} switches back to the previous
+buffer and returns to whatever called @code{debug}.  This is the only
+way the function @code{debug} can return to its caller.
 
 The use of the @var{debugger-args} is that @code{debug} displays the
 rest of its arguments at the top of the @samp{*Backtrace*} buffer, so
@@ -443,41 +462,41 @@ is a table of these special values:
 @table @code
 @item lambda
 @cindex @code{lambda} in debug
-A first argument of @code{lambda} means @code{debug} was called because
-of entry to a function when @code{debug-on-next-call} was
-non-@code{nil}.  The debugger displays @samp{Entering:} as a line of
-text at the top of the buffer.
+A first argument of @code{lambda} means @code{debug} was called
+because of entry to a function when @code{debug-on-next-call} was
+non-@code{nil}.  The debugger displays @samp{Debugger
+entered--entering a function:} as a line of text at the top of the
+buffer.
 
 @item debug
-@code{debug} as first argument indicates a call to @code{debug} because
-of entry to a function that was set to debug on entry.  The debugger
-displays @samp{Entering:}, just as in the @code{lambda} case.  It also
-marks the stack frame for that function so that it will invoke the
-debugger when exited.
+@code{debug} as first argument indicates a call to @code{debug}
+because of entry to a function that was set to debug on entry.  The
+debugger displays @samp{Debugger entered--entering a function:}, just
+as in the @code{lambda} case.  It also marks the stack frame for that
+function so that it will invoke the debugger when exited.
 
 @item t
 When the first argument is @code{t}, this indicates a call to
 @code{debug} due to evaluation of a list form when
-@code{debug-on-next-call} is non-@code{nil}.  The debugger displays the
-following as the top line in the buffer:
-
-@smallexample
-Beginning evaluation of function call form:
-@end smallexample
+@code{debug-on-next-call} is non-@code{nil}.  The debugger displays
+@samp{Debugger entered--beginning evaluation of function call form:}
+as the top line in the buffer.
 
 @item exit
-When the first argument is @code{exit}, it indicates the exit of a stack
-frame previously marked to invoke the debugger on exit.  The second
-argument given to @code{debug} in this case is the value being returned
-from the frame.  The debugger displays @samp{Return value:} in the top
-line of the buffer, followed by the value being returned.
+When the first argument is @code{exit}, it indicates the exit of a
+stack frame previously marked to invoke the debugger on exit.  The
+second argument given to @code{debug} in this case is the value being
+returned from the frame.  The debugger displays @samp{Debugger
+entered--returning value:} in the top line of the buffer, followed by
+the value being returned.
 
 @item error
 @cindex @code{error} in debug
 When the first argument is @code{error}, the debugger indicates that
-it is being entered because an error or @code{quit} was signaled and not
-handled, by displaying @samp{Signaling:} followed by the error signaled
-and any arguments to @code{signal}.  For example,
+it is being entered because an error or @code{quit} was signaled and
+not handled, by displaying @samp{Debugger entered--Lisp error:}
+followed by the error signaled and any arguments to @code{signal}.
+For example,
 
 @example
 @group
@@ -487,7 +506,7 @@ and any arguments to @code{signal}.  For example,
 
 @group
 ------ Buffer: *Backtrace* ------
-Signaling: (arith-error)
+Debugger entered--Lisp error: (arith-error)
   /(1 0)
 ...
 ------ Buffer: *Backtrace* ------
@@ -522,7 +541,7 @@ some kind of debugger.  The default value of the variable is
 
 The first argument that Lisp hands to the function indicates why it
 was called.  The convention for arguments is detailed in the description
-of @code{debug}.
+of @code{debug} (@pxref{Invoking the Debugger}).
 @end defvar
 
 @deffn Command backtrace
@@ -567,17 +586,14 @@ forms are elided.
   (save-excursion ...)
   (let ...)
   (with-output-to-temp-buffer ...)
-  eval-region(1973 2142 #<buffer *scratch*>)
-  byte-code("...  for eval-print-last-sexp ...")
+  eval((with-output-to-temp-buffer ...))
+  eval-last-sexp-1(nil)
 @group
-  eval-print-last-sexp(nil)
-* call-interactively(eval-print-last-sexp)
+  eval-last-sexp(nil)
+  call-interactively(eval-last-sexp)
 ----------- Buffer: backtrace-output ------------
 @end group
 @end smallexample
-
-The character @samp{*} indicates a frame whose debug-on-exit flag is
-set.
 @end deffn
 
 @ignore @c Not worth mentioning
@@ -687,8 +703,8 @@ find the mismatch.)
 
   The first step is to find the defun that is unbalanced.  If there is
 an excess open parenthesis, the way to do this is to go to the end of
-the file and type @kbd{C-u C-M-u}.  This will move you to the beginning
-of the defun that is unbalanced.
+the file and type @kbd{C-u C-M-u}.  This will move you to the
+beginning of the first defun that is unbalanced.
 
   The next step is to determine precisely what is wrong.  There is no
 way to be sure of this except by studying the program, but often the
@@ -719,9 +735,9 @@ anything.
 @node Excess Close
 @subsection Excess Close Parentheses
 
-  To deal with an excess close parenthesis, first go to the beginning of
-the file, then type @kbd{C-u -1 C-M-u} to find the end of the unbalanced
-defun.
+  To deal with an excess close parenthesis, first go to the beginning
+of the file, then type @kbd{C-u -1 C-M-u} to find the end of the first
+unbalanced defun.
 
   Then find the actual matching close parenthesis by typing @kbd{C-M-f}
 at the beginning of that defun.  This will leave you somewhere short of

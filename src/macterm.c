@@ -34,12 +34,12 @@ Boston, MA 02111-1307, USA.  */
 #include <alloca.h>
 #endif
 
-#ifdef MAC_OSX
+#if TARGET_API_MAC_CARBON
 /* USE_CARBON_EVENTS determines if the Carbon Event Manager is used to
    obtain events from the event queue.  If set to 0, WaitNextEvent is
    used instead.  */
 #define USE_CARBON_EVENTS 1
-#else /* not MAC_OSX */
+#else /* not TARGET_API_MAC_CARBON */
 #include <Quickdraw.h>
 #include <ToolUtils.h>
 #include <Sound.h>
@@ -58,7 +58,7 @@ Boston, MA 02111-1307, USA.  */
 #if __profile__
 #include <profiler.h>
 #endif
-#endif /* not MAC_OSX */
+#endif /* not TARGET_API_MAC_CARBON */
 
 #include "systty.h"
 #include "systime.h"
@@ -245,7 +245,7 @@ extern XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
 
 extern int inhibit_window_system;
 
-#if __MRC__
+#if __MRC__ && !TARGET_API_MAC_CARBON
 QDGlobals qd;  /* QuickDraw global information structure.  */
 #endif
 
@@ -5574,6 +5574,9 @@ x_free_frame_resources (f)
 
   BLOCK_INPUT;
 
+  if (wp != tip_window)
+    remove_window_handler (wp);
+
   DisposeWindow (wp);
   if (wp == tip_window)
     /* Neither WaitNextEvent nor ReceiveNextEvent receives `window
@@ -7078,7 +7081,7 @@ x_find_ccl_program (fontp)
 
 /* The Mac Event loop code */
 
-#ifndef MAC_OSX
+#if !TARGET_API_MAC_CARBON
 #include <Events.h>
 #include <Quickdraw.h>
 #include <Balloons.h>
@@ -7099,7 +7102,7 @@ x_find_ccl_program (fontp)
 #if __MWERKS__
 #include <unix.h>
 #endif
-#endif /* ! MAC_OSX */
+#endif /* ! TARGET_API_MAC_CARBON */
 
 #define M_APPLE 128
 #define I_ABOUT 1
@@ -7200,12 +7203,16 @@ static pascal OSErr do_ae_quit_application (AppleEvent *, AppleEvent *, long);
 /* Drag and Drop */
 static pascal OSErr mac_do_track_drag (DragTrackingMessage, WindowPtr, void*, DragReference);
 static pascal OSErr mac_do_receive_drag (WindowPtr, void*, DragReference);
+static DragTrackingHandlerUPP mac_do_track_dragUPP = NULL;
+static DragReceiveHandlerUPP mac_do_receive_dragUPP = NULL;
 #endif
 
 #if USE_CARBON_EVENTS
+#ifdef MAC_OSX
 /* Preliminary Support for the OSX Services Menu */
 static OSStatus mac_handle_service_event (EventHandlerCallRef,EventRef,void*);
 static void init_service_handler ();
+#endif
 /* Window Event Handler */
 static pascal OSStatus mac_handle_window_event (EventHandlerCallRef,
 						EventRef, void *);
@@ -7844,7 +7851,7 @@ init_required_apple_events ()
 }
 
 #if USE_CARBON_EVENTS
-
+#ifdef MAC_OSX
 void
 init_service_handler ()
 {
@@ -7940,7 +7947,7 @@ mac_handle_service_event (EventHandlerCallRef callRef,
     }
   return err;
 }
-
+#endif
 
 static pascal OSStatus
 mac_handle_window_event (next_handler, event, data)
@@ -8037,14 +8044,30 @@ install_window_handler (window)
 				   NULL, NULL);
 #endif
 #if TARGET_API_MAC_CARBON
+  if (mac_do_track_dragUPP == NULL)
+    mac_do_track_dragUPP = NewDragTrackingHandlerUPP (mac_do_track_drag);
+  if (mac_do_receive_dragUPP == NULL)
+    mac_do_receive_dragUPP = NewDragReceiveHandlerUPP (mac_do_receive_drag);
+
   if (err == noErr)
-    err = InstallTrackingHandler (mac_do_track_drag, window, NULL);
+    err = InstallTrackingHandler (mac_do_track_dragUPP, window, NULL);
   if (err == noErr)
-    err = InstallReceiveHandler (mac_do_receive_drag, window, NULL);
+    err = InstallReceiveHandler (mac_do_receive_dragUPP, window, NULL);
 #endif
   return err;
 }
 
+void
+remove_window_handler (window)
+     WindowPtr window;
+{
+#if TARGET_API_MAC_CARBON
+  if (mac_do_track_dragUPP)
+    RemoveTrackingHandler (mac_do_track_dragUPP, window);
+  if (mac_do_receive_dragUPP)
+    RemoveReceiveHandler (mac_do_receive_dragUPP, window);
+#endif
+}
 
 /* Open Application Apple Event */
 static pascal OSErr
@@ -8123,9 +8146,9 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
         /* AE file list is one based so just use that for indexing here.  */
         for (i = 1; i <= num_files_to_open; i++)
 	  {
+	    char unix_path_name[MAXPATHLEN];
 #ifdef MAC_OSX
 	    FSRef fref;
-	    char unix_path_name[MAXPATHLEN];
 
 	    err = AEGetNthPtr (&the_desc, i, typeFSRef, &keyword,
 			       &actual_type, &fref, sizeof (FSRef),
@@ -8137,15 +8160,13 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
 		== noErr)
 #else
 	    FSSpec fs;
-	    Str255 path_name, unix_path_name;
 
 	    err = AEGetNthPtr(&the_desc, i, typeFSS, &keyword, &actual_type,
 			      (Ptr) &fs, sizeof (fs), &actual_size);
 	    if (err != noErr) continue;
 
-	    if (path_from_vol_dir_name (path_name, 255, fs.vRefNum, fs.parID,
-					fs.name) &&
-		mac_to_posix_pathname (path_name, unix_path_name, 255))
+	    if (fsspec_to_posix_pathname (&fs, unix_path_name,
+					  sizeof (unix_path_name) - 1) == noErr)
 #endif
 	      /* x-dnd functions expect undecoded filenames.  */
 	      drag_and_drop_file_list =
@@ -8264,10 +8285,9 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
 	{
 #ifdef MAC_OSX
 	  FSRef fref;
-	  char unix_path_name[MAXPATHLEN];
-#else
-	  Str255 path_name, unix_path_name;
 #endif
+	  char unix_path_name[MAXPATHLEN];
+
 	  GetFlavorData (theDrag, theItem, flavorTypeHFS, &data, &size, 0L);
 #ifdef MAC_OSX
 	  /* Use Carbon routines, otherwise it converts the file name
@@ -8275,9 +8295,8 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
 	  FSpMakeFSRef (&data.fileSpec, &fref);
 	  if (! FSRefMakePath (&fref, unix_path_name, sizeof (unix_path_name)));
 #else
-	  if (path_from_vol_dir_name (path_name, 255, data.fileSpec.vRefNum,
-				      data.fileSpec.parID, data.fileSpec.name) &&
-	      mac_to_posix_pathname (path_name, unix_path_name, 255))
+	  if (fsspec_to_posix_pathname (&data.fileSpec, unix_path_name,
+					sizeof (unix_path_name) - 1) == noErr)
 #endif
 	    /* x-dnd functions expect undecoded filenames.  */
             drag_and_drop_file_list =
@@ -8374,7 +8393,7 @@ profiler_exit_proc ()
    hints and prompts in the minibuffer after the user stops typing for
    a wait, etc.  */
 
-#if !TARGET_API_MAC_CARBON
+#ifdef MAC_OS8
 #undef main
 int
 main (void)
@@ -8956,7 +8975,7 @@ XTread_socket (sd, expected, hold_quit)
 	    int keycode = (er.message & keyCodeMask) >> 8;
 	    int xkeysym;
 
-#if USE_CARBON_EVENTS
+#if USE_CARBON_EVENTS && defined (MAC_OSX)
 	    /* When using Carbon Events, we need to pass raw keyboard
 	       events to the TSM ourselves.  If TSM handles it, it
 	       will pass back noErr, otherwise it will pass back
@@ -9265,12 +9284,21 @@ make_mac_terminal_frame (struct frame *f)
   f->output_data.mac->mouse_pixel = 0xff00ff;
   f->output_data.mac->cursor_foreground_pixel = 0x0000ff;
 
+#if TARGET_API_MAC_CARBON
+  f->output_data.mac->text_cursor = kThemeIBeamCursor;
+  f->output_data.mac->nontext_cursor = kThemeArrowCursor;
+  f->output_data.mac->modeline_cursor = kThemeArrowCursor;
+  f->output_data.mac->hand_cursor = kThemePointingHandCursor;
+  f->output_data.mac->hourglass_cursor = kThemeWatchCursor;
+  f->output_data.mac->horizontal_drag_cursor = kThemeResizeLeftRightCursor;
+#else
   f->output_data.mac->text_cursor = GetCursor (iBeamCursor);
   f->output_data.mac->nontext_cursor = &arrow_cursor;
   f->output_data.mac->modeline_cursor = &arrow_cursor;
   f->output_data.mac->hand_cursor = &arrow_cursor;
   f->output_data.mac->hourglass_cursor = GetCursor (watchCursor);
   f->output_data.mac->horizontal_drag_cursor = &arrow_cursor;
+#endif
 
   FRAME_FONTSET (f) = -1;
   f->output_data.mac->explicit_parent = 0;
@@ -9806,7 +9834,7 @@ mac_initialize ()
 #if TARGET_API_MAC_CARBON
   init_required_apple_events ();
 
-#if USE_CARBON_EVENTS
+#if USE_CARBON_EVENTS && defined (MAC_OSX)
   init_service_handler ();
 
   init_quit_char_handler ();
@@ -9814,8 +9842,10 @@ mac_initialize ()
 
   DisableMenuCommand (NULL, kHICommandQuit);
 
+#ifdef MAC_OSX
   if (!inhibit_window_system)
     MakeMeTheFrontProcess ();
+#endif
 #endif
   UNBLOCK_INPUT;
 }
