@@ -316,51 +316,77 @@ an optional alist of possible values."
 		       (string :tag "Description")))
   :group 'sgml)
 
+(defcustom sgml-xml nil
+  "*When non-nil, tag insertion functions will be XML-compliant.
+If this variable is customized, the custom value is used always.
+Otherwise, it is set to be buffer-local when the file has
+ a DOCTYPE or an XML declaration."
+  :type 'boolean
+  :version "21.2"
+  :group 'sgml)
+
+(defun sgml-xml-guess ()
+  "Guess whether the current buffer is XML."
+  (save-excursion
+    (goto-char (point-min))
+    (cond ((or (string= "xml" (file-name-extension (or buffer-file-name "")))
+               (looking-at "\\s-*<\\?xml"))
+           (set (make-local-variable 'sgml-xml) t))
+          ((re-search-forward
+            (eval-when-compile
+             (mapconcat 'identity
+                        '("<!DOCTYPE" "\\(\\w+\\)" "\\(\\w+\\)"
+                          "\"\\([^\"]+\\)+\"" "\"\\([^\"]+\\)+\"")
+                        "\\s-+"))
+            nil t)
+           (let ((name (match-string 1))
+                 (pub (match-string 2))
+                 (id (match-string 3))
+                 (url (match-string 4)))
+             (cond ((string= name "html")
+                    (set (make-local-variable 'sgml-xml)
+                         (not (null (string-match "XHTML" id)))))
+                   ((string-match "XML" id)
+                    (set (make-local-variable 'sgml-xml) t))))))))
+
 (defvar v2)				; free for skeleton
 
 (defun sgml-mode-common ()
   "Common code for setting up `sgml-mode' and derived modes."
-  (make-local-variable 'indent-line-function)
-  (make-local-variable 'paragraph-start)
-  (make-local-variable 'paragraph-separate)
-  (make-local-variable 'adaptive-fill-regexp)
   (make-local-variable 'sgml-saved-validate-command)
-  (make-local-variable 'comment-start)
-  (make-local-variable 'comment-end)
-  (make-local-variable 'comment-indent-function)
-  (make-local-variable 'skeleton-transformation)
-  (make-local-variable 'skeleton-further-elements)
-  (make-local-variable 'skeleton-end-hook)
-  (make-local-variable 'font-lock-defaults)
-  (make-local-variable 'facemenu-add-face-function)
   (make-local-variable 'facemenu-end-add-face)
   ;;(make-local-variable 'facemenu-remove-face-function)
-  (setq indent-line-function 'indent-relative-maybe
-	;; A start or end tag by itself on a line separates a paragraph.
-	;; This is desirable because SGML discards a newline that appears
-	;; immediately after a start tag or immediately before an end tag.
-	paragraph-separate "[ \t]*$\\|\
-\[ \t]*</?\\([A-Za-z]\\([-.A-Za-z0-9= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>$"
-	paragraph-start "[ \t]*$\\|\
-\[ \t]*</?\\([A-Za-z]\\([-.A-Za-z0-9= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>"
-	adaptive-fill-regexp "[ \t]*"
-	comment-start "<!-- "
-	comment-end " -->"
-	comment-indent-function 'sgml-comment-indent
-	skeleton-transformation sgml-transformation
-	skeleton-further-elements '((completion-ignore-case t))
-	skeleton-end-hook (lambda ()
-			    (or (eolp)
-				(not (or (eq v2 '\n)
-					 (eq (car-safe v2) '\n)))
-				(newline-and-indent)))
-	font-lock-defaults '((sgml-font-lock-keywords
-			      sgml-font-lock-keywords-1
-			      sgml-font-lock-keywords-2)
-			     nil t nil nil
-			     (font-lock-syntactic-keywords
-			      . sgml-font-lock-syntactic-keywords))
-	facemenu-add-face-function 'sgml-mode-facemenu-add-face-function)
+  (set (make-local-variable 'indent-line-function) 'indent-relative-maybe)
+  ;; A start or end tag by itself on a line separates a paragraph.
+  ;; This is desirable because SGML discards a newline that appears
+  ;; immediately after a start tag or immediately before an end tag.
+  (set (make-local-variable 'paragraph-separate) "[ \t]*$\\|\
+\[ \t]*</?\\([A-Za-z]\\([-.A-Za-z0-9= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>$")
+  (set (make-local-variable 'paragraph-start) "[ \t]*$\\|\
+\[ \t]*</?\\([A-Za-z]\\([-.A-Za-z0-9= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>")
+  (set (make-local-variable 'adaptive-fill-regexp) "[ \t]*")
+  (set (make-local-variable 'comment-start) "<!-- ")
+  (set (make-local-variable 'comment-end) " -->")
+  (set (make-local-variable 'comment-indent-function) 'sgml-comment-indent)
+  (set (make-local-variable 'skeleton-transformation) sgml-transformation)
+  (set (make-local-variable 'skeleton-further-elements)
+       '((completion-ignore-case t)))
+  (set (make-local-variable 'skeleton-end-hook)
+       (lambda ()
+         (or (eolp)
+             (not (or (eq v2 '\n) (eq (car-safe v2) '\n)))
+             (newline-and-indent))))
+  (set (make-local-variable 'font-lock-defaults)
+       '((sgml-font-lock-keywords
+          sgml-font-lock-keywords-1
+          sgml-font-lock-keywords-2)
+         nil t nil nil
+         (font-lock-syntactic-keywords
+          . sgml-font-lock-syntactic-keywords)))
+  (set (make-local-variable 'facemenu-add-face-function)
+       'sgml-mode-facemenu-add-face-function)
+  ;; `sgml-xml' not customized -- guess
+  (unless (get 'sgml-xml 'saved-value) (sgml-xml-guess))
   ;; This will allow existing comments within declarations to be
   ;; recognized.
   (set (make-local-variable 'comment-start-skip) "\\(?:<!\\)?--[ \t]*")
@@ -396,11 +422,11 @@ Do \\[describe-variable] sgml- SPC to see available variables.
 Do \\[describe-key] on the following bindings to discover what they do.
 \\{sgml-mode-map}"
   (sgml-mode-common)
-  ;; Set imenu-generic-expression here, rather than in sgml-mode-common,
+  (when sgml-xml (setq mode-name "XML"))
+  ;; Set `imenu-generic-expression' here, rather than in `sgml-mode-common',
   ;; because this definition probably is not useful in HTML mode.
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression
-	"<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\([A-Za-z][-A-Za-z.0-9]*\\)"))
+  (set (make-local-variable 'imenu-generic-expression)
+       "<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\([A-Za-z][-A-Za-z.0-9]*\\)"))
 
 
 (defun sgml-comment-indent ()
@@ -500,7 +526,6 @@ encoded keyboard operation."
   (message "sgml name entity mode is now %s"
 	   (if sgml-name-8bit-mode "ON" "OFF")))
 
-
 ;; When an element of a skeleton is a string "str", it is passed
 ;; through skeleton-transformation and inserted.  If "str" is to be
 ;; inserted literally, one should obtain it as the return value of a
@@ -517,7 +542,7 @@ skeleton-transformation RET upcase RET, or put this in your `.emacs':
   ?< str |
   (("") -1 '(undo-boundary) (identity "&lt;")) |	; see comment above
   `(("") '(setq v2 (sgml-attributes ,str t))
-    (if (and (eq major-mode html-mode) html-xhtml (eq v2 t)) "/>" ">")
+    (if (and sgml-xml (eq v2 t)) "/>" ">")
     (if (string= "![" ,str)
 	(prog1 '(("") " [ " _ " ]]")
 	  (backward-char))
@@ -820,8 +845,7 @@ If this can't be done, return t."
 	   (match-end 0))
 	t)))
 
-(defun sgml-skip-close-p (obj)
-  (and (eq obj t) (not html-xhtml)))
+(defun sgml-skip-close-p (obj) (and (eq obj t) (not sgml-xml)))
 
 (defun sgml-value (alist)
   "Interactively insert value taken from attributerule ALIST.
@@ -970,15 +994,6 @@ This takes effect when first loading the library.")
   "Value of `sgml-display-text' for HTML mode.")
 
 
-(defcustom html-xhtml nil
-  "*When non-nil, tag insertion functions will be XHTML-compliant.
-If this variable is customized, the custom value is used always.
-Otherwise, it is set to be buffer-local when the file has
- a DOCTYPE declaration."
-  :type 'boolean
-  :version "21.2"
-  :group 'sgml)
-
 ;; should code exactly HTML 3 here when that is finished
 (defvar html-tag-alist
   (let* ((1-7 '(("1") ("2") ("3") ("4") ("5") ("6") ("7")))
@@ -995,7 +1010,7 @@ Otherwise, it is set to be buffer-local when the file has
 		 ("rev" ,@rel)
 		 ("title")))
 	 (list '((nil \n ("List item: " "<li>" str
-                          (if html-xhtml "</li>") \n))))
+                          (if sgml-xml "</li>") \n))))
 	 (cell `(t
 		 ,@align
 		 ("valign" ,@valign)
@@ -1063,16 +1078,16 @@ Otherwise, it is set to be buffer-local when the file has
       ("center" \n)
       ("cite")
       ("code" \n)
-      ("dd" ,(not html-xhtml))
+      ("dd" ,(not sgml-xml))
       ("del")
       ("dfn")
       ("div")
       ("dl" (nil \n
 		 ( "Term: "
-		   "<dt>" str (if html-xhtml "</dt>")
-                   "<dd>" _ (if html-xhtml "</dd>") \n)))
-      ("dt" (t _ (if html-xhtml "</dt>")
-             "<dd>" (if html-xhtml "</dd>") \n))
+		   "<dt>" str (if sgml-xml "</dt>")
+                   "<dd>" _ (if sgml-xml "</dd>") \n)))
+      ("dt" (t _ (if sgml-xml "</dt>")
+             "<dd>" (if sgml-xml "</dd>") \n))
       ("em")
       ;("fn" "id" "fn")  ; ???
       ("head" \n)
@@ -1091,7 +1106,7 @@ Otherwise, it is set to be buffer-local when the file has
       ("isindex" t ("action") ("prompt"))
       ("kbd")
       ("lang")
-      ("li" ,(not html-xhtml))
+      ("li" ,(not sgml-xml))
       ("math" \n)
       ("nobr")
       ("option" t ("value") ("label") ("selected" t))
@@ -1274,17 +1289,7 @@ To work around that, do:
 	outline-level (lambda ()
 			(char-after (1- (match-end 0)))))
   (setq imenu-create-index-function 'html-imenu-index)
-  (unless (get 'html-xhtml 'saved-value)
-    ;; not customized -- set from the DocType
-    (save-excursion
-      (goto-char (point-min))
-      (when (re-search-forward
-             "<!DOCTYPE\\s-+html\\s-+PUBLIC\\s-+\"-//W3C//DTD \\(X?\\)HTML"
-             nil t)
-        (set (make-local-variable 'html-xhtml)
-             (string= "X" (match-string 1))))))
-  (when html-xhtml
-    (setq mode-name "XHTML"))
+  (when sgml-xml (setq mode-name "XHTML"))
   ;; It's for the user to decide if it defeats it or not  -stef
   ;; (make-local-variable 'imenu-sort-function)
   ;; (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
@@ -1370,44 +1375,44 @@ Can be used as a value for `html-mode-hook'."
 (define-skeleton html-horizontal-rule
   "HTML horizontal rule tag."
   nil
-  (if html-xhtml "<hr/>" "<hr>") \n)
+  (if sgml-xml "<hr/>" "<hr>") \n)
 
 (define-skeleton html-image
   "HTML image tag."
   nil
   "<img src=\"" _ "\""
-  (if html-xhtml "/>" ">"))
+  (if sgml-xml "/>" ">"))
 
 (define-skeleton html-line
   "HTML line break tag."
   nil
-  (if html-xhtml "<br/>" "<br>") \n)
+  (if sgml-xml "<br/>" "<br>") \n)
 
 (define-skeleton html-ordered-list
   "HTML ordered list tags."
   nil
   "<ol>" \n
-  "<li>" _ (if html-xhtml "</li>") \n
+  "<li>" _ (if sgml-xml "</li>") \n
   "</ol>")
 
 (define-skeleton html-unordered-list
   "HTML unordered list tags."
   nil
   "<ul>" \n
-  "<li>" _ (if html-xhtml "</li>") \n
+  "<li>" _ (if sgml-xml "</li>") \n
   "</ul>")
 
 (define-skeleton html-list-item
   "HTML list item tag."
   nil
   (if (bolp) nil '\n)
-  "<li>" _ (if html-xhtml "</li>"))
+  "<li>" _ (if sgml-xml "</li>"))
 
 (define-skeleton html-paragraph
   "HTML paragraph tag."
   nil
   (if (bolp) nil ?\n)
-  \n "<p>" _ (if html-xhtml "</p>"))
+  \n "<p>" _ (if sgml-xml "</p>"))
 
 (define-skeleton html-checkboxes
   "Group of connected checkbox inputs."
@@ -1420,11 +1425,11 @@ Can be used as a value for `html-mode-hook'."
    "\" value=\"" str ?\"
    (when (y-or-n-p "Set \"checked\" attribute? ")
      (funcall skeleton-transformation " checked"))
-   (if html-xhtml "/>" ">")
+   (if sgml-xml "/>" ">")
    (skeleton-read "Text: " (capitalize str))
    (or v2 (setq v2 (if (y-or-n-p "Newline after text? ")
 		       (funcall skeleton-transformation
-                                (if html-xhtml "<br/>" "<br>"))
+                                (if sgml-xml "<br/>" "<br>"))
 		     "")))
    \n))
 
@@ -1439,11 +1444,11 @@ Can be used as a value for `html-mode-hook'."
    "\" value=\"" str ?\"
    (when (and (not v1) (setq v1 (y-or-n-p "Set \"checked\" attribute? ")))
      (funcall skeleton-transformation " checked"))
-   (if html-xhtml "/>" ">")
+   (if sgml-xml "/>" ">")
    (skeleton-read "Text: " (capitalize str))
    (or (cdr v2) (setcdr v2 (if (y-or-n-p "Newline after text? ")
 			       (funcall skeleton-transformation
-                                        (if html-xhtml "<br/>" "<br>"))
+                                        (if sgml-xml "<br/>" "<br>"))
 			     "")))
    \n))
 

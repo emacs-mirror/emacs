@@ -1,3 +1,15 @@
+2001-10-27  Sam Steingold  <sds@gnu.org>
+
+	* textmodes/sgml-mode.el (sgml-xml): Renamed from `html-xhtml'.
+	(sgml-xml-guess): Extracted from `html-mode' and generalized.
+	(sgml-mode-common): Call it.
+	(sgml-mode, html-mode): Set `mode-name' based on `sgml-xml'.
+	(sgml-tag, sgml-skip-close-p, html-tag-alist, html-line)
+	(html-horizontal-rule, html-image, html-ordered-list):
+	(html-unordered-list, html-list-item, html-paragraph):
+	(html-checkboxes, html-radio-buttons): Use `sgml-xml' instead of
+	`html-xhtml'.
+
 2001-10-26  Masayuki Ataka  <ataka@milk.freemail.ne.jp>
 
 	* textmodes/texinfmt.el (texinfo-format-ifnotinfo): New function.
