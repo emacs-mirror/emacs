@@ -821,12 +821,7 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
 {
   int voide = (XTYPE (newval) == Lisp_Void || EQ (newval, Qunbound));
 
-#ifndef RTPC_REGISTER_BUG
   register Lisp_Object valcontents, tem1, current_alist_element;
-#else /* RTPC_REGISTER_BUG */
-  register Lisp_Object tem1;
-  Lisp_Object valcontents, current_alist_element;
-#endif /* RTPC_REGISTER_BUG */
 
   CHECK_SYMBOL (sym, 0);
   if (NILP (sym) || EQ (sym, Qt))
@@ -1026,11 +1021,7 @@ for this variable.")
   if (XTYPE (valcontents) == Lisp_Buffer_Objfwd)
     {
       register int idx = XUINT (valcontents);
-#ifndef RTPC_REGISTER_BUG
       register struct buffer *b;
-#else
-      struct buffer *b;
-#endif
       register int mask = *(int *) (idx + (char *) &buffer_local_flags);
 
       if (mask > 0)
