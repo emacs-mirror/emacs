@@ -1,4 +1,4 @@
-/* This file is the configuration file for the Linux operating system.
+/* This file is the configuration file for the GNU/Linux operating system.
    Copyright (C) 1985, 1986, 1992, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -144,7 +144,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef emacs
 #include <stdio.h>  /* Get the definition of _IO_STDIO_H.  */
-#ifdef _IO_STDIO_H
+#if defined(_IO_STDIO_H) || defined(_STDIO_USES_IOSTREAM)
 /* new C libio names */
 #define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
   ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
@@ -155,8 +155,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif /* !_IO_STDIO_H */
 #endif /* emacs */
 
+#ifndef __ELF__
 /* Linux has crt0.o in a non-standard place */
 #define START_FILES pre-crt0.o /usr/lib/crt0.o
+#else
+#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
+#endif
 
 /* As of version 1.1.51, Linux does not actually implement SIGIO.  */
 /* Here we assume that signal.h is already included.  */
@@ -186,7 +190,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Best not to include -lg, unless it is last on the command line */
 #define LIBS_DEBUG
 #define LIBS_TERMCAP -ltermcap -lcurses /* save some space with shared libs*/
+#ifndef __ELF__
 #define LIB_STANDARD -lc /* avoid -lPW */
+#else
+#define LIB_GCC
+#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
+#endif
 
 /* Don't use -g in test compiles in configure.
    This is so we will use the same shared libs for that linking
@@ -214,6 +223,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 #define HAVE_SYSVIPC
+
+#ifdef __ELF__
+#define UNEXEC unexelf.o
+#endif
 
 #ifdef LINUX_QMAGIC
 
