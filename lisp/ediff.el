@@ -5,14 +5,8 @@
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, version control.
 
-(defconst ediff-version "2.19" "The current version of Ediff")
-(defconst ediff-date "March 14, 1995" "Date of last update")  
-
-;; LCD Archive Entry:
-;; ediff|Michael Kifer|kifer@cs.sunysb.edu|
-;; A comprehensive visual interface to diff and patch|
-;; 14-March-95|2.19|~/packages/ediff.shar.Z|
-
+(defconst ediff-version "2.26" "The current version of Ediff")
+(defconst ediff-date "June 3, 1995" "Date of last update")  
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +32,7 @@
 ;; Merge with ease!
 
 ;; This package provides a convenient way of simultaneous browsing through
-;; the differences between a pair (or a tripple) of files or buffers.  The
+;; the differences between a pair (or a triple) of files or buffers.  The
 ;; files being compared, file-A, file-B, and file-C (if applicable) are
 ;; shown in separate windows (side by side, one above the another, or in
 ;; separate frames), and the differences are highlighted as you step
@@ -54,6 +48,10 @@
 ;; region from file_orig to file, thereby undoing any particular patch that
 ;; you don't like).
 
+;; Ediff is aware of version control, which lets the user compare
+;; files with their older versions. Ediff can also work with remote and
+;; compressed files. Details are given below.
+
 ;; This package builds upon the ideas borrowed from emerge.el and
 ;; several Ediff's functions are adaptations from emerge.el. 
 ;; Much of the functionality of Ediff is also influenced by emerge.el.
@@ -63,126 +61,7 @@
 ;; it can do patching and 2-way and 3-way file comparison in addition to
 ;; merging.
 
-;; Ediff is aware of version control, which lets the user compare
-;; files with their older versions. Ediff can also work with remote and
-;; compressed files. Details are given below.
 
-
-;;; Remarks: 
-;;  -------
-
-;;  1. Ediff is heavily dependent on the new features of Emacs 19.
-;;     It won't run under Emacs 18 at all.
-;;  2. If running XEmacs, Ediff requires at least version 19.9.
-;;  3. The function ediff-revision requires the version of vc.el that comes
-;;     with Emacs 19.22 and XEmacs 19.10 and later, or rcs.el version 1.67 
-;;     or later. See "Version control support", below.
-
-
-;;; Installation and use:
-;;  ---------------------
-
-;; The user can invoke Ediff interactively using the following functions:
-;;
-;;  	    ediff-files   	    	    	 - compare two files
-;;  	    ediff   	    	    	    	 - alias for ediff-files
-;;  	    ediff-buffers   	    	    	 - compare two buffers
-;;
-;;  	    ediff-files3   	    	    	 - compare three files
-;;  	    ediff3   	    	    	    	 - alias for ediff-files3
-;;  	    ediff-buffers3   	    	    	 - compare three buffers
-;;
-;;	    ediff-windows			 - compare windows
-;;	    ediff-small-regions			 - compare small regions
-;;	    ediff-large-regions			 - compare large regions
-;;
-;;  	    ediff-revision 	    	    	 - compare buffer & version
-;;
-;;  	    ediff-patch-file	    	    	 - patch file then compare
-;;  	    epatch  	    	    	    	 - alias for ediff-patch-file
-;;  	    ediff-patch-buffer	    	    	 - patch buffer then compare
-;;  	    epatch-buffer   	    	    	 - alias for ediff-patch-buffer
-;;
-;;          ediff-merge-files			 - merge two files
-;;          ediff-merge				 - alias for ediff-merge-files
-;;	    ediff-merge-files-with-ancestor	 - same but with ancestor
-;;	    ediff-merge-with-ancestor		 - alias for the above
-;;	    ediff-merge-buffers			 - merge two buffers
-;;	    ediff-merge-buffers-with-ancestor	 - same but with ancestor
-;;	    ediff-merge-revisions	    	 - same but with ancestor
-;;	    ediff-merge-revisions-with-ancestor	 - same but with ancestor
-;;
-;;
-;;
-;; To use Ediff, put this in your .emacs file:
-;;
-;;  (autoload 'ediff-buffers "ediff" "Visual interface to diff" t)
-;;  (autoload 'ediff  "ediff"  "Visual interface to diff" t)
-;;  (autoload 'ediff-files "ediff" "Visual interface to diff" t)
-;;  (autoload 'ediff-buffers3 "ediff" "Visual interface to diff" t)
-;;  (autoload 'ediff3  "ediff3"  "Visual interface to diff" t)
-;;  (autoload 'ediff-files3 "ediff" "Visual interface to diff" t)
-;;  (autoload 'ediff-merge "ediff" "Visual interface to diff" t)
-;;  (autoload 'ediff-merge-files "ediff" "Visual interface to diff" t)
-;;  (autoload 'ediff-merge-files-with-ancestor "ediff"
-;;                                             "Visual interface to diff" t)
-;;  (autoload 'ediff-merge-with-ancestor "ediff" "Visual interface to diff" t)
-;;  (autoload 'ediff-merge-buffers "ediff" "Visual interface to diff" t)
-;;  (autoload 'ediff-merge-buffers-with-ancestor "ediff"
-;;                                             "Visual interface to diff" t)
-;;  (autoload 'ediff-merge-revisions "ediff" "Visual interface to diff" t)
-;;  (autoload 'ediff-merge-revisions-with-ancestor "ediff"
-;;                                             "Visual interface to diff" t)
-;;  (autoload 'ediff-windows "ediff" "Visual interface to diff" t)
-;;  (autoload 'ediff-small-regions "ediff" "Visual interface to diff" t)
-;;  (autoload 'ediff-large-regions "ediff" "Visual interface to diff" t)
-;;  (autoload 'epatch  "ediff"  "Visual interface to patch" t)
-;;  (autoload 'ediff-patch-file "ediff" "Visual interface to patch" t)
-;;  (autoload 'ediff-patch-buffer "ediff" "Visual interface to patch" t)
-;;  (autoload 'epatch-buffer "ediff" "Visual interface to patch" t)
-;;  (autoload 'ediff-revision "ediff"
-;;  	    	    	"Interface to diff & version control" t) 
-;;
-;;
-;; If you want Ediff to be loaded from the very beginning, you should have
-;;
-;;  (require 'ediff)
-;;
-;; in your .emacs file.  This way it is also easier to figure out changes
-;; to the default Ediff setting, if such changes become necessary --- see
-;; Customization.
-;;
-;; All the above functions use the diff program to find different
-;; regions. They process diff output and display it to the user in a
-;; convenient form.
-;;
-;; The functions ediff-files, ediff-buffers, ediff-files3, ediff-buffers3 
-;; first display the coarse, line-based difference regions, as commonly
-;; found by the diff program.
-;; Since diff may report fairly large chunks of text as being
-;; different even though the difference may be contained in a few words or
-;; even in the white space or line breaks, Ediff will further refine the
-;; regions to indicate which exact words differ. If the only difference is
-;; in the white space and line breaks, Ediff will say so.
-;;
-;; The functions ediff-windows, ediff-small-regions and ediff-large-regions
-;; do comparison on parts of buffers (which must already exist).
-;; Since ediff-windows  and ediff-small-regions are intended for relatively
-;; small segments of the buffers, comparison is done on the
-;; word-basis rather than line basis. No refinement is necessary in this
-;; case. This technique is effective only for relatively small
-;; regions (perhaps, up to 100 lines), as these functions have a relatively
-;; slow startup.
-;; To compare large regions, use ediff-large-regions. In this mode, Ediff
-;; displays differences as it would if invoked via ediff-files or
-;; ediff-buffers.
-;;
-;; The functions ediff-patch-file and ediff-patch-buffer apply a patch
-;; to a file or a buffer and then run Ediff on these buffers, displaying
-;; the difference regions.
-;;
-;; Finally, for files under version control, ediff-revisions will compare a
-;; file to one of its versions.
 
 ;;; Compilation
 ;;  -----------
@@ -190,854 +69,6 @@
 ;; When you byte-compile Ediff, you will get some warnings about functions
 ;; being undefined.  These can be safely ignored.
 ;;
-
-;;; Customization:
-;;  --------------
-
-;; Hooks:
-;; -----
-;; If you don't like the default setting, you can change it through the
-;; various variables and hooks.  In particular, the following hooks are
-;; available: 
-
-;;	    ediff-load-hooks
-;;          ediff-keymap-setup-hooks
-;;  	    ediff-before-setup-windows-hooks
-;;  	    ediff-after-setup-windows-hooks
-;;	    ediff-before-setup-control-frame-hooks
-;;	    ediff-after-setup-control-frame-hooks
-;;  	    ediff-startup-hooks
-;;  	    ediff-select-hooks
-;;  	    ediff-unselect-hooks
-;;  	    ediff-suspend-hooks
-;;  	    ediff-quit-hooks
-;;  	    ediff-prepare-buffer-hooks
-;;          ediff-display-help-hooks
-
-;; The hooks in ediff-load-hooks can be used to change defaults after Ediff
-;; is loaded. The hooks in ediff-keymap-setup-hooks can be used to alter
-;; bindings in Ediff's keymap. These hooks are called right after the
-;; default bindings are set.
-;;
-;; The hooks in ediff-before/after-setup-windows-hooks,
-;; ediff-suspend-hooks, and ediff-quit-hooks can be used to save and then
-;; restore whatever window configuration you want.
-
-;; Note that, by default, ediff-quit-hooks is set to a function,
-;; ediff-cleanup-mess, which cleans after Ediff, as appropriate in most
-;; cases. It is rather unlikely that the user will want to change
-;; it. However, the user may want add other hooks to ediff-quit-hooks,
-;; either before or after ediff-cleanup-mess (see the documentation for
-;; add-hook on how to do this).  One should be aware that hooks executing
-;; before ediff-cleanup-mess start in ediff-control-buffer; they should
-;; also leave ediff-control-buffer as the current buffer. Hooks that are
-;; executed after ediff-cleanup-mess will have either buffer A or buffer B
-;; as the current buffer.
-
-;; If you are using packages such as mode-line.el to alter
-;; the buffer identification field in the mode line, you may have to
-;; restore this field after exiting Ediff by calling an appropriate
-;; function from a hook in ediff-quit-hooks (in case of mode-line.el, the
-;; function to call would be mode-line-abbreviate-buffer-identification).
-;; This should be done from a hook that runs before ediff-default-quit-hook,
-;; since such hooks run from within ediff-control-buffer, where buffers
-;; A, B, and C can be accessed via the variables ediff-buffer-A,
-;; ediff-buffer-B, ediff-buffer-C.
-
-;; The hooks ediff-before/after-setup-control-frame-hooks can be used to
-;; change how and where Ediff Control Panel is displayed, when it is
-;; displayed in a separate frame. 
-
-;; However, be aware that many variables that drive Ediff are local to
-;; Ediff Control Panel, which requires special care in writing these hooks.
-;; Take a look at ediff-default-suspend-hook and ediff-default-quit-hook to
-;; see what's involved.
-
-;; The hooks in ediff-prepare-buffer-hooks are executed for each Ediff
-;; buffer (A, B, C) right after these buffers are arranged.  Ediff runs the
-;; hooks in ediff-display-help-hooks each time after setting up the help
-;; message.  Finally, ediff-mode-hooks are run just after ediff-mode is set
-;; up in the control buffer. This is done before any windows or frames are
-;; created. One can use it to set local variables that determine the
-;; look of the display.
-
-;; Quick help:
-;; ----------
-;;
-;;  Ediff provides quick help using its control panel window. Since this
-;;  window takes a fair share of the screen real estate, you can toggle it
-;;  off by hitting `?'. The control window will then shrink to just one
-;;  line and a mode line, displaying a short help message. The variable 
-;;
-;;	ediff-prefer-long-help-message
-;;
-;;  Tells Ediff whether the user wants the short message initially or the
-;;  long one. By default, it is set to nil, meaning that the short message
-;;  will be shown on startup. Set this to t, if you want the long message
-;;  initially. 
-;;  If you want to change the appearance of the help message on a
-;;  per-buffer basis, you must use ediff-startup-hooks to change the value
-;;  of ediff-help-message, which is a variable local to ediff-control-buffer.
-
-;; Window and frame configuration:
-;; -------------------------------
-
-;; In a non-windowing display, Ediff sets things up in one frame, splitting
-;; it between a small control window and the windows for file-A, file-B,
-;; and file-C. The split between these latter windows can be horizontal or
-;; vertical, which can be changed interactively by hitting `|' while the
-;; cursor is in the control window.
-;;
-;; On a window display, Ediff sets up a dedicated frame for Ediff Control
-;; Panel and then it would choose windows as follows: If one of the buffers
-;; is invisible, it will be displayed in the currently selected frame.  If
-;; a buffer is visible, it will be displayed in the frame it is visible.
-;; If, according to the above criteria, the two buffers fall into the same
-;; frame, then be it---the frame will be shared by the two.  The same
-;; algorithm works when you hit `C-l' (ediff-recenter), `p'
-;; (ediff-previous-difference), `n', etc.
-;;
-;; Thus, you can compare files in one frame or in different frames.
-;; The former is done by default, while the latter can be achieved by
-;; arranging files A, B (and C, if applicable) to be seen in different
-;; frames.  Ediff respects these arrangements, automatically adapting
-;; itself to the multi-frame mode.
-
-;; Ediff uses the variables
-;;
-;;    ediff-control-frame-parameters
-;;    ediff-control-frame-position-function
-;;
-;; to set up its control panels. The user can change or augment
-;; ediff-control-frame-parameters including the font, color, etc. The X
-;; resource name of Ediff Control Panel frames is `Ediff'. Under X-windows,
-;; you can use this name to set up preferences in your ~/.Xdefaults
-;; (~/.xrdb, or whatever is in use). Usually this is preferable to changing
-;; ediff-control-frame-parameters directly.  For instance, you can specify
-;; in ~/.Xdefaults where the control frame is to be sitting on the screen
-;; using the resource 
-;;
-;;    Ediff*geometry
-;;
-;; In general, any X resource pertaining the control frame can be reached
-;; via the prefix `Ediff*'.
-;;
-;; The prefered way of specifying the position of the control frame is by
-;; setting the variable ediff-control-frame-position-function to be a
-;; function to be called in order to determine the desired location for the
-;; control frame. The default value of this variable is
-;; `ediff-make-frame-position'. This function places the control frame in
-;; the vicinity of the North-East corner of the frame displaying buffer A.
-;; A pair of variables,
-;;
-;;    ediff-narrow-control-frame-leftward-shift
-;;    ediff-wide-control-frame-rightward-shift
-;;    ediff-control-frame-upward-shift
-;;
-;; can be used to adjust the location produced by ediff-make-frame-position.
-;; The first variable specifies the number of characters for shifting
-;; the control frame from the rightmost edge of frame A when the control
-;; frame is displayed as a small window. 
-;; The second variable specifies the rightward shift of the control frame
-;; from the left edge of frame A when the control frame shows the full
-;; menu of options.
-;; The third variable specifies the number of pixels for the upward shift
-;; of the control frame.
-;;
-;; If you truly and absolutely dislike the way Ediff sets up windows and if
-;; you can't customize this via frame parameters, the last resort is to
-;; rewrite the function `ediff-setup-windows'.  However, we believe that
-;; detaching Ediff Control Panel from the rest and making it into a
-;; separate frame offers an important opportunity by allowing you to
-;; iconify that frame. Under Emacs, the icon will usually accept all of the
-;; Ediff commands, but will free up valuable real estate on your screen
-;; (this may depend on the window manager, though). Iconifying won't do any
-;; good under XEmacs since XEmacs icons do not seem to be sensitive to
-;; keyboard input.  The saving grace is that, even if not iconified, the
-;; control frame is very small, smaller than some icons, so it doesn't take
-;; much space in any case.
-;;
-;; The variable 
-;;
-;;      ediff-prefer-iconified-control-frame
-;;
-;; if t, will cause the control frame to become iconified automatically when
-;; the help message is toggled off. This saves valuable real estate on the
-;; screen. Toggling help back will deiconify the control frame.
-;;
-;; To start ediff with an iconified Control Panel, you should set the above
-;; to t and ediff-prefer-long-help-message to nil.
-
-;; The variable
-;;
-;;	ediff-window-setup-function
-;;
-;; Controls the way windows are setup. The above multiframe setup is
-;; achieved via ediff-setup-windows-multiframe function, which is a default
-;; on windowing displays (except for XEmacs 19.10 and earlier, which has a
-;; bug that breaks the multiframe display). The plain setup, one where all
-;; windows are always in one frame, is done via ediff-setup-windows-plain,
-;; which is the default on a non-windowing display (or in an xterm window).
-;; In fact, under Emacs, you can switch freely between these two setups by
-;; executing the command `ediff-toggle-multiframe'. However, don't try to
-;; do it under XEmacs, as it gets thoroughly confused if you switch from
-;; multiframe setup to plain setup within the same Ediff session. 
-
-;; If you don't like either of these setups, write your own function. See
-;; the documentation for ediff-window-setup-function for the basic
-;; guidelines. However, writing window setups is not easy, so, before
-;; embarking on this job, you may want to take a close look at
-;; ediff-setup-windows-plain and ediff-setup-windows-multiframe.
-
-;;  The user can run multiple Ediff sessions at once, by invoking it several
-;;  times without exiting the previous Ediff sessions. Different sessions
-;;  may even operate on the same pair of files.  So, in principle, it is
-;;  possible to do, say, pairwise comparison of three (or more) different
-;;  files.  Each session would have its own Ediff Control Panel and all the
-;;  regarding a particular session is local to the associated control panel
-;;  buffer.  You can switch between sessions by suspending one session and
-;;  then switching to another control panel. (Different control panel
-;;  buffers are distinguished by a numerical suffix, e.g., Ediff Control
-;;  Panel<3>.)  Thus, if you would like to compare three files pairwise,
-;;  you can do this by preparing three different frames, each with its data
-;;  buffer to be compared.  (No, I am not saying that such a 3way
-;;  comparison is very easy to do.)
-;;
-;; If you need to conduct multiple Ediff sessions on the same file, one
-;; thing should be kept in mind: each time you invoke Ediff on a buffer that
-;; already participates in another Ediff session, that buffer should not
-;; have any ASCII Ediff flags in it. (Highlighting with faces is OK.)  If
-;; flags are not removed, difference overlays won't be set correctly
-;; for the second invocation of Ediff.  The simplest way to remove ASCII
-;; flags from an Ediff buffer is to hit `h' and thus switch to highlighting
-;; with faces (unhighlighting on a dumb terminal).
-
-;;  Remote and Compressed Files
-;;   ---------------------------
-
-;;  Ediff will work with remote, compressed, and encrypted files. Ediff
-;;  supports ange-ftp.el, jka-compr.el, uncompress.el and crypt++.el, but
-;;  it may work with other similar packages as well. This
-;;  means that you can compare files residing on another machine, or you
-;;  can apply a patch to a file on another machine (even the patch itself
-;;  can be a remote file!).
-;;
-;;  When patching compressed or remote files, Ediff doesn't rename the
-;;  source file into source-file-name_orig (unlike what `patch' would
-;;  usually do). Instead, the source file retains its name and the result
-;;  of applying the patch is placed in a temporary file that has the suffix
-;;  `_patched'.  Generally, this applies to files that are handled using
-;;  black magic, such as special file handlers (ange-ftp and some
-;;  compression and encryption packages all use this method).
-;;
-;;  Regular files are treated by `patch' in the usual manner, i.e., the
-;;  original is renamed into source-name_orig and the result of the patch
-;;  is placed into the file source-name. (Ediff uses `_orig' instead of
-;;  the usual `.orig' for compatibility with systems like VMS.)
-
-;;
-;; Selective browsing: Control over stepping through difference regions
-;; -------------------------------------------------------------------- 
-;;
-;; Sometimes it is convenient to be able to step through only some
-;; difference regions, those that satisfy certain conditions and to ignore
-;; all others. The commands `#f' and `#h' let the user specify regular
-;; expressions to control the way Ediff skips to the next or previous
-;; difference. Typing `#f' lets one specify of regular expressions,
-;; regexp-A, regexp-B, and regexp-C.
-;; Ediff will then start stepping only through those difference regions where
-;; the region in buffer A matches regexp-A and/or the region in buffer B
-;; matches regexp-B, etc. Whether `and' or `or' should be used depends on
-;; how the user responds to a prompt.
-;; Similarly, using `#h', one specifies expressions that match difference
-;; regions to be ignored while stepping through the differences. That is, if
-;; the buffer A part matches regexp-A, the buffer B part matches regexp B
-;; and (if applicable) buffer-C part matches regexp-C, then the region will
-;; be ignored by ediff-next-difference and ediff-previous-difference commands.
-;;
-;;  Hitting `#f' and `#h' toggles this feature on/off.
-;;
-;; Note that selective browsing affects only ediff-next-difference and
-;; ediff-previous-difference, i.e., the commands invoked by typing n/SPC
-;; and p/DEL. You can still jump directly (using `j' or `ga/gb/gc') to any
-;; numbered  difference. Also, it should be understood, that #f and #h do
-;; not change the position of the point in the buffers. The effect of these
-;; commands is seen only when the user types `n' or `p', i.e., when
-;; Ediff is told to jump to the next or previous difference.
-;;
-;; Users can supply their own functions that specify how Ediff should do
-;; selective browsing. To change the default Ediff function, add a function to
-;; ediff-load-hooks which will do the following assignments:
-;;
-;;  	(fset ediff-hide-regexp-matches 'your-hide-function) 
-;;  	(fset ediff-focus-on-regexp-matches 'your-focus-function)
-;;
-;; Useful hints: To specify a regexp that matches everything, don't simply
-;; type RET in response to a prompt. Typing RET tells Ediff to accept the
-;; default value, which may not be what you want. Instead, one should enter
-;; something like `^' or `$' --- which would match every line. 
-;;
-;; If the user doesn't remember if selective browsing is in effect and
-;; which regexps are being used, the status command, `i', will supply
-;; the requisite information.
-;;
-;; In addition to the ability to ignore regions that match regular
-;; expressions, Ediff can be ordered to start skipping over certain
-;; `inessential' regions. This is controlled by the variable
-;;
-;;      ediff-ignore-similar-regions
-;;
-;; which, if set to t, will cause Ediff to skip over difference regions
-;; that has been found similar, i.e., where the only differences are those
-;; in the white space and newlines.
-;;
-;; Note: In order for this feature to work, auto-refining of difference
-;; regions must be on, since otherwise Ediff won't know if there are no
-;; fine differences between regions. Under X, auto-refining is a default,
-;; but it is nixed on a dumb terminal or in an Xterm window. Therefore, in
-;; a non-windowing environment, the user must explicitly turn
-;; auto-refining on (e.g., by typing `@').
-;;
-;; CAUTION: If many inessential regions appear in a row, Ediff may take a
-;; long time to jump to the next region because it has to compute fine
-;; differences of all intermediate regions.
-;;
-;;
-;; Highlighting difference regions
-;; -------------------------------
-;; The second group of Ediff variables that could be changed, if you so
-;; wish, is: 
-;;
-;;  	    ediff-before-flag-bol
-;;  	    ediff-after-flag-eol
-;;  	    ediff-before-flag-mol
-;;  	    ediff-after-flag-mol
-;;
-;;  	    ediff-current-diff-face-A
-;;  	    ediff-current-diff-face-B
-;;  	    ediff-current-diff-face-C
-;;  	    ediff-fine-diff-face-A
-;;  	    ediff-fine-diff-face-B
-;;  	    ediff-fine-diff-face-C
-;;  	    ediff-even-diff-face-A
-;;  	    ediff-even-diff-face-B
-;;  	    ediff-even-diff-face-C
-;;  	    ediff-odd-diff-face-A
-;;  	    ediff-odd-diff-face-B
-;;  	    ediff-odd-diff-face-C
-;
-;; The first four are ASCII strings that mark the beginning and the end of
-;; the differences found in files A, B, and C. Ediff uses different flags
-;; to highlight regions that begin/end at the beginning of a line or in a
-;; middle of a line.
-
-;; The rest are the faces used to highlight text on X displays.  On X
-;; displays, Ediff uses ediff-current-diff-face-A/B/C to highlight the
-;; current difference region. 
-;;
-;; The faces ediff-fine-diff-face-A/B/C
-;; are used to show the fine differences between the current differences
-;; regions in buffers A, B, and C, respectively.
-;;
-;; Non-current difference regions are displayed in alternating
-;; faces: ediff-even/odd-diff-face-A/B/C.   The odd and the even
-;; faces are actually identical on monochrome displays, because it is
-;; rather poor in what you can do on such a display. So, I chose to use
-;; italics to highlight other differences. Any ideas would be welcome.
-;; There are two ways to change the default setting for highlighting faces:
-;; either change the variables, as in
-;;
-;; (setq ediff-current-diff-face-A 'bold-italic)
-;;
-;; or
-;;
-;; (setq ediff-current-diff-face-A
-;;  	 (copy-face 'bold-italic 'ediff-current-diff-face-A))
-;;
-;; or by selectively modifying the defaults:
-;;
-;; (add-hook 'ediff-load-hooks
-;;   (function (lambda () 
-;;                (set-face-foreground ediff-current-diff-face-B "blue")
-;;                (set-face-background ediff-current-diff-face-B "red")
-;;                (make-face-italic ediff-current-diff-face-B))))
-;;
-;; You may also want to take a look at how the above faces are defined in
-;; Ediff. 
-;;
-;; Note: it is not recommended to use `internal-get-face' (or `get-face' in
-;;  	 XEmacs) when defining faces for Ediff, since this may cause
-;;  	 problems when there are several frames with different font sizes.
-;;       Instead, use copy-face or set/make-face-* as shown above.
-;;
-;; The last variable in this group,
-;;
-;;  	    ediff-highlight-all-diffs
-;;
-;; indicates whether---on a window system---the user wants differences to be
-;; marked using ASCII strings (like on a dumb terminal) or using colors and
-;; highlighting. Normally, Ediff highlights all differences, but the selected
-;; difference is highlighted more visibly. One can cycle through various
-;; modes of highlighting by hitting `h'. By default, Ediff starts in the
-;; mode where all difference regions are highlighted. If you prefer to
-;; start in the mode where unselected differences are not highlighted, you
-;; should set ediff-highlight-all-diffs to nil. 
-;; You will still be able to turn on highlighting of all differences by
-;; hitting `h'.
-;;
-;; If you want to change the above variables, they must be set
-;; BEFORE Ediff is loaded. 
-;;
-;; Note: Ediff lets you switch between the two types of highlighting.  That
-;; is you can switch, interactively, from highlighting using faces to
-;; highlighting using ASCII flags, and back.  Of course, toggling has
-;; effect only on a window system.  On a dumb terminal or in an xterm
-;; window, the only available option is highlighting with ASCII flags.
-;;
-;; Selective display
-;; -----------------
-;; If buffers being compared are narrowed at the time of invocation of Ediff,
-;; ediff-buffers will preserve the narrowing range. However, if ediff-files
-;; is invoked on the files visited by these buffers, narrowing will be
-;; turned off, since we assume that the user wants to compare the entire files.
-;;
-;; Invocation of ediff-small/large-regions and ediff-windows will cause
-;; Ediff to set new narrowing ranges. However, the old ranges are preserved
-;; and will be returned to after quitting or by hitting `%'. 
-;;
-;; Two variables control the behavior of ediff-windows,
-;; ediff-small-regions, and ediff-large-regions with respect to narrowing:
-;;
-;;	ediff-start-narrowed
-;;	ediff-quit-widened
-;;
-;; If ediff-start-narrowed is t, then Ediff will narrow display to the
-;; appropriate range if it is invoked as ediff-windows or
-;; ediff-small/large-regions.
-;; If it is nil, then narrowing will not take place. However, the user can
-;; still toggle narrowing on and off by typing `%'.
-;; Similarly, ediff-quit-widened controls whether Ediff should restore
-;; the visibility range that existed before the current invocation.
-;;
-;;
-;; Refinement of difference regions
-;; --------------------------------
-;; Ediff has variables that control the way fine differences are
-;; highlighted. This feature lets the user highlight the exact words that 
-;; make the difference regions in comparison buffers different. This process
-;; ignores spaces, tabs, and newlines.
-;;
-;;  	    ediff-auto-refine
-;;  	    ediff-auto-refine-limit
-;;
-;; By default, `ediff-auto-refine' is `on', which means that fine differences
-;; within regions will be highlighted automatically. On a slow system, this
-;; feature may be undesirable. In any case, the user can always toggle
-;; auto-refining on/off/nix by hitting `@'. When auto-refining is off, fine
-;; differences will be shown only for regions for which these differences
-;; have been computed and saved before. If auto-refining is nixed, fine
-;; differences will not be shown at all. Hitting `*' will compute and
-;; display fine differences for the current difference region regardless of
-;; whether auto-refining is on, off, or nixed. 
-;; If auto-refining is on, the variable `ediff-auto-refine-limit' limits
-;; the size of the regions to be auto-refined. This variable guards against
-;; possible slow-down that may be caused by an extraordinary large
-;; difference region.
-;;
-;; However, the user can always force region refining by typing `*'.
-;;
-;; Sometimes, when a difference region has too many differences between the
-;; variants, highlighting of fine differences stands in the way, especially
-;; on color displays. If that is the case, the user can invoke `*' with a
-;; negative prefix argument, which would unhighlight fine diffs for the
-;; current region.
-;;
-;; To unhighlight fine differences in all diff regions, use the command
-;; `@'. Repeated typing of this key cycles through three different states:
-;; auto-refining, no-auto-refining, and unhighlighting of all fine
-;; differences.
-;;
-;; The variable
-;;
-;;  	    ediff-forward-word-function
-;;
-;; allows the user to control how fine differences are computed.
-;; The value must be a lisp function that determines how the
-;; current difference region should be split into words. 
-;;
-;; Fine diferences are computed by first splitting the current difference
-;; region into words and then passing this along to
-;; `ediff-diff-program'. For the default ediff-forward-word-function,
-;; `ediff-forward-word', a word is a string consisting of letters, `-', or
-;; `_', a string of punctuation symbols, a string of digits, or a string
-;; consisting of symbols that are neither space, nor a letter.
-;;
-;; Patch and diff programs
-;; -----------------------
-;; The next group of variables determines the programs to be used for
-;; applying patches and for computing the main difference regions (not the
-;; fine difference regions):
-;;
-;;  	    ediff-patch-program
-;;  	    ediff-patch-options
-;;  	    ediff-diff-program
-;;  	    ediff-diff-options
-;;  	    ediff-diff3-program
-;;  	    ediff-diff3-options
-;;
-;; Warning about VMS: The output from VMS DIFF is not yet supported.
-;; Instead, make sure some implementation of Unix diff on VMS is used.
-;;
-;; These specify the functions that produce differences and do patching.
-;; The *-options variables specify which options to pass to these programs.
-;; It is unlikely that you would want to change these.
-;; However, sometimes you may want to tell diff to ignore spaces and
-;; such. Use the option '-w' for that.
-;; Diff has several other useful options (type 'man diff' to find out). 
-;;
-;; However, Ediff doesn't let you use the option '-c', as it doesn't
-;; recognize this format yet. However, if you need to save the output from
-;; diff in a special form, Ediff lets you specify ``custom'' diff format
-;; using the following two variables:
-;;
-;;  	    ediff-custom-diff-program
-;;  	    ediff-custom-diff-options
-;;
-;; The output generated by ediff-custom-diff-program (which doesn't even
-;; have to be a Unix-style diff!) is not used by Ediff, except that you can
-;; save if using ediff-save-buffer function (normally bound to `wd' key
-;; sequence).
-;; However, Ediff is not the preferred way of producing diff output in
-;; Emacs, unless you also intend to use Ediff to browse through the diff'ed
-;; files.  This is because diff.el (M-x diff), which also comes with Emacs,
-;; is much faster in yielding the output of diff, while Ediff consumes many
-;; resources.
-
-;; Support for diff3 and merging
-;; -----------------------------
-
-;; Ediff supports 3way comparison via the functions `ediff-files3' and
-;; `ediff-buffers3'. The interface is the same as for 2-way comparison.
-;; In 3-way comparison and merging, Ediff indicates if any two difference
-;; regions are identical. For instance, if the current region in buffer A
-;; is the same as the region in buffer C, then the mode line of buffer A will
-;; display [=diff(C)] and the mode line of buffer C will display [=diff(A)]. 
-;;
-;; Merging is done according to the following algorithm.
-;;
-;; If a diff region in one of the buffers, say B, differs from the ancestor
-;; while the region in the other buffer, A, doesn't, then the merge buffer,
-;; C, gets the B's region. Similarly when buffer A's region differs from
-;; the ancestor and B's doesn't.
-;;
-;; If both regions, A and B, differ from the ancestor, then Ediff chooses
-;; according to the value of
-;;
-;;    ediff-default-variant
-;;
-;; If the value is `default-A' then A's region is chosen. If it is
-;; `default-B' then B's region is chosen. If the value of the above
-;; variable is `combined' then the region in buffer C will look like this:
-;;
-;;    #ifdef NEW  /* variant A */
-;;    diff region from buffer A
-;;    #else  /* variant B */
-;;    diff region from buffer B
-;;    #endif  /* NEW */
-;;
-;; The actual strings that separate the regions copied from bufer A and B
-;; are controled by the variable
-;;
-;;    ediff-combination-pattern
-;;
-;; which must be a list of three strings.
-;;
-;; In addition to the state of the difference, during merging Ediff
-;; displays the state of the merge for each region. If a difference came
-;; from buffer A by default (because both regions A and B were different
-;; from the ancestor and ediff-default-variant was set to `default-A')
-;; then [=diff(A) default-A] is displayed in the mode line.  If the
-;; difference in buffer C came, say, from buffer B because the diff region
-;; in that buffer differs from the ancestor, but the region in buffer A
-;; doesn't (if merging with an ancestor) then [=diff(B) prefer-B] is
-;; displayed. The indicators default-A/B and prefer-A/B are inspired by
-;; emerge.el and have the same meaning. 
-;;
-;; Another indicator of the state of merge is `combined'. It appears
-;; with any difference region in buffer C that was obtained by combining
-;; the difference regions in buffers A and B as explained above.
-;;
-;; Note that the state-of-difference indicators `=diff(A)' and `=diff(B)'
-;; above are not redundant, even in the present of a state-of-merge
-;; indicator, as the two serve different purposes. For instance, if the
-;; mode line displays [=diff(B) prefer(B)] and you copy a diff region from
-;; buffer A to buffer C then `=diff(B)' will change to `diff-A' and the
-;; mode line will display [=diff(A) prefer-B]. 
-;; This indicates that the difference region in buffer C is identical to
-;; that in buffer A, but originally buffer C's region came from buffer B.
-;; This is useful to know because the original diff region in buffer C can
-;; be recovered by typing `r'.
-;;
-;; Ediff never changes the state-of-merge indicator, except as a result of
-;; the `!' command (see below), in which case the indicator is lost.
-;; On the other hand, the state-of-difference indicator is changed
-;; automatically by the copying/recovery commands, `a', `b', `r', `+'.
-;;
-;; If Ediff is asked to recompute differences via the command `!', the
-;; information about origins of the regions in the merge buffer (default-A,
-;; prefer-B, or combined) will be lost. This is because recomputing 
-;; differences in this case means running diff3 on buffers A, B, and the
-;; merge buffer, not on the ancestor buffer. (It makes no sense to
-;; recompute differences with the ancestor, since Ediff assumes that the user
-;; doesn't edit buffers A and B, but he may have edited buffer C, and these
-;; changes are to be preserved.)  Since some difference regions
-;; may disappear as a result of editing in buffer C and others may arise,
-;; there is generally no simple way to tell where the various regions
-;; in the merge buffer came from.
-;;
-;; In 3-way comparison, Ediff tries to disregard regions consisting of
-;; white space only as much as possible. For instance, if, say, the current
-;; region in buffer A consists of the white space only (or if it is empty),
-;; Ediff will not take it into account for the purpose of computing fine
-;; differences. The result is that Ediff can provide more visual
-;; information regarding the actual fine differences in the non-white
-;; regions B and C. Moreover, if the regions in buffers B and C differ in
-;; the white space only, then a message to this effect will be displayed.
-;;
-;; In merging, the variable
-;;
-;;	ediff-merge-window-share
-;;
-;; controls the split between window C (the window for the merge-buffer)
-;; and the windows for buffers A and B. The default is 0.5. To make the
-;; merge-buffer window smaller, reduce this amount. It is not recommended
-;; to increase the size of the merge-window to more than half the frame
-;; (i.e., to increase the default value of ediff-merge-window-share),
-;; since it is then hard to see the contents of buffers A and B.
-;;
-;; The user can temporarily shrink the merge window to just one line by
-;; typing `s'. This change is temporary, until Ediff finds a reason to
-;; redraw the screen. Typing `s' again will restore the original window size.
-;;
-;; With a positive prefix argument, this command will make the merge window
-;; slightly taller. This change will hold throughout the current Ediff
-;; session. With `-' or a negative prefix argument, the command `s' makes
-;; the merge window slightly shorter. This change also holds through the
-;; entire current Ediff session.
-;;
-;; Ediff lets the user automatically skip regions where one of the buffer's
-;; regions is prefered because it disagrees with the ancestor, while the
-;; other buffer agrees with the ancestor. In this case, Ediff displays only
-;; the difference regions where the changes made to the original clash with
-;; each other. The variable that controls this behavior is
-;;
-;;	ediff-show-clashes-only
-;;
-;; The value of this variable can be toggled interactively, by typing `$'.
-;; Note that this variable controls only how Ediff chooses the
-;; next/previous difference to show. The user can still jump directly to
-;; any difference using the command `j' (with prefix argument specifying
-;; the difference number).
-
-;; Version control support
-;; -----------------------
-;; Ediff supports version control via vc.el (in the standard
-;; distribution of Emacs 19) and rcs.el. The latter is a package written by 
-;; Sebastian Kremer <sk@thp.Uni-Koeln.DE>, which is available in
-;;
-;;         ftp.cs.buffalo.edu:pub/Emacs/rcs.tar.Z
-;;         ftp.uni-koeln.de:/pub/gnu/emacs/rcs.tar.Z
-;;
-;; To specify which version control package you are using, set the variable
-;; ediff-version-control-package, e.g.,
-;;	(setq ediff-version-control-package 'rcs)
-;; The default, is `vc'.
-;; Note: both packages provide access to RCS, but only vc.el comes standard
-;; with Emacs and XEmacs.
-;; For files under revision control, one key (usually `=') is bound to the
-;; function ediff-revision, which runs Ediff on the current buffer and one
-;; of its versions. Use the variable 
-;;
-;;	   ediff-revision-key
-;;
-;; if you want to change this binding, e.g., (setq ediff-revision-key "\C-cD")
-
-;;
-;; Mode line
-;; ---------
-;;
-;; When Ediff is running, the mode line of Ediff Control Panel buffer
-;; displays the current difference being displayed and the total number of
-;; difference regions in the two files. 
-;;
-;; The mode line of the buffers being compared displays the type of the
-;; buffer (`A:' or `B:') and (usually) the file name. Ediff is trying to be
-;; intelligent in choosing mode line buffer identification. In particular,
-;; it works well with uniquify.el and mode-line.el packages (which improve
-;; on the default way in which Emacs displays buffer identification).
-;; If you don't like the way Ediff identifies its buffers, there is always
-;; ediff-prepare-buffer-hooks, which can be used to modify the mode line.
-;;
-;; Miscellaneous
-;; -------------
-;; The last batch of variables that can be modified is
-;;
-;;  	    ediff-split-window-function
-;;  	    ediff-merge-split-window-function
-;;          ediff-make-wide-display-function
-;;  	    ediff-use-last-dir
-;;  	    ediff-no-emacs-help-in-control-buffer
-;;  	    ediff-toggle-read-only-function
-
-;; ediff-split-window-function controls the way you want the window be
-;; split between file-A and file-B (and file-C, if applicable).  It
-;; defaults to vertical split, but you can set it to
-;; split-window-horizontally, if you want.
-;; The variable ediff-merge-split-window-function controls how windows are
-;; split between buffers A and B in merging jobs.
-
-;; Ediff lets you toggle the way
-;; windows are split, so you can try different settings interactively.
-;; Note: if file-A and file-B (and file-C, if applicable) are in different
-;; frames, windows are not split, regardless of the value
-;; ediff-split-window-function.  Instead, other windows on these frames are
-;; deleted and Ediff starts displaying file-A/B/C using these
-;; frames, one file per frame.  You can then switch to one-frame mode
-;; simply by hiding one of the buffers A/B/C.
-;;
-;; Note that if Ediff detects that the two buffers it compares are residing in
-;; separate frames, it assumes that the user wants them to be so displayed
-;; and stops splitting windows.  Instead, it will arrange each buffer to
-;; occupy its own frame (possibly shared with Ediff's help window).
-;;
-;; The user can swap the windows in which buffers are displayed by typing `~'.
-;; Furthermore, the user can toggle wide/regular display by typing
-;; `m'. This is particularly useful when files are compared side-by-side.
-;; By default, the display is widened without changing its height. However,
-;; the user can set the variable
-;;
-;;    ediff-make-wide-display-function
-;;
-;; to contain the name of a function to be called to widen the frame in
-;; which to display the buffers. See the documentation string for
-;; `ediff-make-wide-display-function' for details. It is also recommended
-;; to look into how the default function, `ediff-make-wide-display' is
-;; written.
-;;
-;;
-;; The variable ediff-use-last-dir controls the way Ediff presents the
-;; default directory when it prompts the user for files to compare.  If nil,
-;; Ediff will use the default directory of the current buffer when it
-;; prompts the user for file names.  Otherwise, it will use the
-;; directories it had previously used for file-A/B/C.
-;;
-;; The variable ediff-no-emacs-help-in-control-buffer, if set to t, makes C-h
-;; behave like the DEL key, i.e., it will move you back to the previous
-;; difference rather than invoking help.  This is useful when, in an xterm
-;; window or on a dumb terminal, the Backspace key is bound to C-h and is
-;; positioned more conveniently than the DEL key.
-;;
-;; The variable ediff-toggle-read-only-function can be used to change the
-;; way Ediff toggles the read-only property in its buffers.
-;; By default, Ediff uses toggle-read-only. For files under version
-;; control, Ediff first tries to check the files out.
-
-
-;;; Commands
-;;  --------
-
-;; All Ediff commands are displayed in a help window, unless you hit '?' to
-;; shrink it to just one line.  You can redisplay the help window by hitting
-;; '?' again.
-;;
-;; Many Ediff commands take numeric prefix arguments.  For instance, if you
-;; hit a number, N, and then `j' (ediff-jump-to-difference), Ediff will
-;; take you to Nth difference.  Hitting a number, N, and then `ab'
-;; (ediff-diff-to-diff) will copy Nth difference from buffer A to buffer B.
-;; Hitting `ba' does copying in the other direction. Likewise, `ca' would
-;; copy from buffer C to buffer A (if buffer C exists, of course).
-;; Likewise, a number, N, followed by `ra' will restore the Nth difference
-;; region in buffer A (if it was previously saved as a result of copying
-;; from buffer B to A). 
-;;
-;; Without the prefix argument, all commands operate on the current
-;; difference region.
-;;
-;; The total number of differences and the current difference number are
-;; always displayed in the mode line of the control window. 
-;;
-;; If, after making changes to buffers A, B, or C, you decide to save them,
-;; it is recommended to use `ediff-save-buffer', which is bound to `wa', `wb',
-;; and `wc' (`wa will save buffer A, `wb' saves buffer B, etc.).
-;;
-;; Typing `wd' saves the diff output in a file. 
-
-;; The command `s' is used only for merging. It allows the user to shrink
-;; window C to its minimal size, thereby exposing as much of buffers A and
-;; B as possible. 
-;; This command is intended only for temporary viewing. Therefore, Ediff
-;; will restore the original window size for buffer C whenever window
-;; configuration is changed by the user (on toggling help, split,
-;; etc.). However, recentering and jumping to a difference doesn't affect
-;; window C. Typing `s' again restores the original size of the merge
-;; window.
-;;
-;; With a positive prefix argument, the command `s' makes the merge
-;; window, window C, slightly taller. With `-' or a negative prefix
-;; argument, `s' makes window C slightly shorter.
-;;
-;; While browsing through differences in the merge mode, one may discover
-;; that the default variant was chosen inappropriately, which means that
-;; the user will have to do a lot of copying manually. To facilitate this,
-;; there is a command, bound to `&', which will cause Ediff to start
-;; merging anew beginning with the current difference and using the
-;; alternative default variant (the user is asked to type in the new
-;; default for merging, which can be either `default-A', `default-B', or
-;; `combined'.
-;;
-;; Such repeated merging affects only difference regions that have
-;; default-A/B status, and only if they were not changed with respect to
-;; their originals.
-;;
-;; Another command that is used for merging only is `+'. Its effect is to
-;; combine the current difference regions of buffers A and B and put the
-;; combination into the merge buffer. See `ediff-combine-diffs' and
-;; `ediff-combination-pattern' for details.
-;;
-;; There is also one command the is not bound to any key:
-;;
-;;     ediff-revert-buffers-then-recompute-diffs
-;;
-;; It is useful when, after making changes, you decided to make a fresh
-;; start, or if at some point you changed the files being compared but want
-;; to discard any changes to comparison buffers that were done since then.
-;; This command will ask for confirmation before reverting files. With a
-;; prefix argument, it will revert files without asking.
-
-;;; Heavy-duty customization:
-;;  -------------------------
-
-;; Some users need to customize Ediff in rather sophisticated ways, which
-;; requires different defaults for different kinds of files (e.g., SGML, etc.).
-;; Ediff supports this kind of customization is several ways.
-;; First, most customization variables are buffer-local. Those that aren't
-;; are usually accessible from within Ediff Control Panel, so one can make
-;; thel local to the panel by calling make-local-variable from within
-;; ediff-startup-hooks.
-;; Second, there is now a new optional (6-th) argument to ediff-setup,
-;; which has the form ( (var-name-1 . val-1) (var-name-2 . val-2) ...).
-;; The function ediff-setup will set the variables on the list to the
-;; respective values in the ediff control buffer. This is an easy way to
-;; throw in custom variables (which usually should be buffer-local) that
-;; can then be tested in various hooks.
-;; Make sure the variable ediff-job-name and ediff-word-mode are set
-;; properly in this case, as some things in Ediff depend on this.
-;; Finally, if custom-tailored help messages are desired, Ediff has
-;; ediff-brief-help-message-custom and ediff-long-help-message-custom,
-;; which are local variables that can be either set to
-;; a function that returns a string.
-
-
 ;;; Bugs:
 ;;  -----
 
@@ -1050,12 +81,7 @@
 ;;  If at any point you feel that difference regions are no longer correct,
 ;;  you can hit '!' to recompute the differences.
 
-;;  2. Emacs 19.xx, where xx < 23, has several bugs related to overlays and
-;;  faces. Somethimes, these may cause highlighting of the refinements or
-;;  of the unselected differences to disappear. Hitting `!' will bring them
-;;  back.  In version 19.23 and later, these problems no longer occur.
-
-;;  3. On a monochrome display, the repertoire of faces with which to
+;;  2. On a monochrome display, the repertoire of faces with which to
 ;;  highlight fine differences is limited. By default, Ediff is using
 ;;  underlining. However, if the region is already underlied by some other
 ;;  overlays, there is no simple way to temporarily remove that residual
@@ -1066,32 +92,7 @@
 ;;  commands in `ediff-prepare-buffer-hooks' (which will unhighlight every
 ;;  buffer used by Ediff) or you can execute them interactively, at any time
 ;;  and on any buffer.
-
-;;  4. In XEmacs (statically linked with Motif libraries), emerge.el
-;;  and hence Ediff won't start, unless you set (setq scrollbar-width 0).
-;;  This is a Motif-related bug, I was told.
-
-;;  5. XEmacs 19.11 (and, probably, earlier versions) has trouble
-;;  positioning the point withing Ediff buffers on Ediff's startup.
-;;  This doesn't get in the way, though, since when the user start looking
-;;  at the diff regions, they are positioned correctly. It seems that
-;;  XEmacs doesn't have enough time to redisplay windows---it does this
-;;  correctly when it is told to redisplay (sit-for 0).
-
-;;  6. It seems that XEmacs icons are insensitive to keyboard events. This
-;;  deprives XEmacs users from being able to iconify Ediff's control panel,
-;;  thereby saving space onthe screen. Also, it seems that XEmacs doesn't
-;;  let one create minibuffer-less frames, which leaves Ediff control Panel
-;;  with a useless minibuffer. The "unsplittable" property is also ignored
-;;  in XEmacs, some further minor annoyances are possible.
-
-;;  7. XEmacs (19.11 and below) doesn't let one create minibufferless
-;;  frames. This causes the problem that messages are displayed in a small
-;;  control frame window, when help is toggled off. Ediff overcomes this by
-;;  setting synchronize-minibuffers to t, which causes all messages to be
-;;  displayed in all minibuffers. If you detest this, set
-;;  synchronize-minibuffers to nil after quitting Ediff.
-
+;;
 
 ;;; Change Log:
 ;;  ----------
@@ -1328,8 +329,7 @@
 ;; Tue May 31, 1994
 
 ;;     Added ediff-forward-word-function (as suggested by Job Ganzevoort
-;;     <Job.Ganzevoort@cwi.nl>). Modified ediff-default-quit-hook so it
-;;     will clean things up in a more satisfactory way.
+;;     <Job.Ganzevoort@cwi.nl>).
 
 ;; Thu Jun 2, 1994
 
@@ -1401,8 +401,6 @@
 ;;     rcs.el. This is controled by ediff-version-control-package
 ;;     variable. Functions vc-ediff, rcs-ediff are replaced by their
 ;;     internal versions.
-;;     Added ediff-find-file-name-handler function to smooth out the
-;;     transition from Emacs 19.22/XEmacs 19.9 to 19.23/19/10
 
 ;; Thu September 1, 1994
 
@@ -1451,7 +449,7 @@
 
 ;; Wed October 12, 1994
 
-;;     ediff-window-visible-p now makes a call to ediff-frame-visible-p
+;;     ediff-window-visible-p now makes a call to frame-visible-p
 ;;     only when window-system is non-nil. Rearranged the block of fset's
 ;;     so that the wrong things won't be defined when window-system is nil.
 ;;     Added ediff-revert-buffers-then-recompute-diffs function.
@@ -1512,8 +510,8 @@
 
 ;; Fri December 9, 1994
 
-;;     Added ediff-toggle-multiframe (it doesn't work with XEmacs for some
-;;     reason). Fixed ediff-pop-diff and ediff-copy-diff, so that they will
+;;     Added ediff-toggle-multiframe.
+;;     Fixed ediff-pop-diff and ediff-copy-diff, so that they will
 ;;     invoke auto-refining, if necessary.
 
 ;; Mon December 12, 1994
@@ -1625,9 +623,33 @@
 ;;     ediff-debug-info for civilized display of the difference vectors
 ;;     (and possibly more in the future).
 
-;; Tue March 14
+;; Tue March 18
 
-;;	Fixed ediff-diff-at-point.
+;;	Fixed ediff-diff-at-point and ediff-toggle-multiframe.
+;;	Added ediff-destroy-control-frame, ediff-window-display-p. The latter
+;;      replaces window-system in many cases. Needed because in XEmacs 19.12
+;;      window-system returns 'tty on a tty display.
+;;	Converted xemacs *screen* nomenclature to *frame*.
+;;	Made ediff-patch-buffer cope with buffers that don't visit any file.
+;;	Fixed ediff-toggle-read-only so it knows the difference between
+;;	version-controlled files and others. It also knows whether we are using
+;;	patch or not.
+;;	Renamed ediff-windows to ediff-windows-wordwise, added
+;;	ediff-windows-linewise. Changed ediff-small/large-regions to
+;;      ediff-regions-wordwise/linewise 
+
+;; Tue May 2
+
+;;	Added ediff-documentation. Fixes for XEmacs 19.12.
+;;	Merge buffer now assumes the major mode of ediff-default-variant.
+
+;; Mon May 31, 1995
+
+;;     Ediff-revision now takes a prefix argument. Can compare two versions of
+;;     the same file. Cleaned up ediff-make-control-frame.
+;;     Fixed a bug in ediff-get-visible-buffer-window.
+;;     Added ediff-cleanup-hooks, ediff-janitor.
+;;     ediff-cleanup-hooks is called before ediff-quit-hooks.
 
 
 ;;; TO DO:
@@ -1655,7 +677,8 @@
 ;; Job Ganzevoort <Job.Ganzevoort@cwi.nl>, Boris Goldowsky
 ;; <boris@cs.rochester.edu>, Allan Gottlieb <gottlieb@allan.ultra.nyu.edu>,
 ;; Xiaoli Huang <hxl@epic.com>, Larry Gouge <larry@itginc.com>,
-;; irvine@lks.csi.com, jaffe@chipmunk.cita.utoronto.ca, David Karr
+;; Karl Heuer <kwzh@gnu.ai.mit.edu>, <irvine@lks.csi.com>,
+;; <jaffe@chipmunk.cita.utoronto.ca>, David Karr
 ;; <dkarr@nmo.gtegsc.com>, Norbert Kiesel
 ;; <norbert@i3.informatik.rwth-aachen.de>, Fritz Knabe <Fritz.Knabe@ecrc.de>,
 ;; Heinz Knutzen <hk@informatik.uni-kiel.d400.de>, Ken Laprade
@@ -1711,8 +734,9 @@ distribution.")
 ;;; Patching
 
 ;;;###autoload
-(defun ediff-patch-file (source-filename &optional startup-hooks)
+(defun ediff-patch-file (source-filename &optional startup-hooks job-name)
   "Run Ediff by patching FILE-TP-PATCH."
+  ;; This now returns the control buffer
   (interactive 
    (list (ediff-read-file-name "File to patch"
 			       (if ediff-use-last-dir
@@ -1721,7 +745,11 @@ distribution.")
 			       nil)))
   
   (setq source-filename (expand-file-name source-filename))
-  (ediff-get-patch-buffer (file-name-directory source-filename))
+  (ediff-get-patch-buffer
+   (if (eq job-name 'ediff-patch-buffer)
+       (ediff-eval-in-buffer (get-file-buffer source-filename)
+	 default-directory)
+     (file-name-directory source-filename)))
   
   (let* ((backup-extension 
 	  ;; if the user specified a -b option, extract the backup
@@ -1738,7 +766,7 @@ distribution.")
 	 ;; file for the purpose of patching.
 	 (true-source-filename source-filename)
 	 (target-filename source-filename)
-	 target-buf buf-to-patch file-name-magic-p)
+	 target-buf buf-to-patch file-name-magic-p ctl-buf)
 	  
     ;; if the user didn't specify a backup extension, use _orig
     (if (string= backup-extension "")
@@ -1758,9 +786,10 @@ distribution.")
     (setq file-name-magic-p (not (equal (file-truename true-source-filename)
 					(file-truename source-filename))))
     
-    ;; Checkout orig file, if necessary so that the patched file could be
+    ;; Checkout orig file, if necessary, so that the patched file could be
     ;; checked back in.
-    (ediff-toggle-read-only buf-to-patch)
+    (if (ediff-file-checked-in-p (buffer-file-name buf-to-patch))
+	(ediff-toggle-read-only buf-to-patch))
     
     (ediff-eval-in-buffer ediff-patch-diagnostics
       (message "Applying patch ... ")(sit-for 0)
@@ -1811,23 +840,25 @@ distribution.")
     
     ;; make orig buffer read-only
     (setq startup-hooks
-	  (cons 'ediff-toggle-read-only-patch-orig startup-hooks))
+	  (cons 'ediff-set-read-only-in-buf-A startup-hooks))
     
     ;; set up a buf for the patched file
-    (ediff-eval-in-buffer
-	(setq target-buf (find-file-noselect target-filename))
-      ;; files to be patched are always checked out first
-      (setq ediff-file-checked-out-flag t))
+    (setq target-buf (find-file-noselect target-filename))
     
-    (ediff-buffers buf-to-patch target-buf startup-hooks 'epatch)
+    (setq ctl-buf
+	  (ediff-buffers-internal
+	   buf-to-patch target-buf nil
+	   startup-hooks '(or job-name ediff-patch-file)))
   
     (bury-buffer ediff-patch-diagnostics)
-    (message "Patch diagnostics available in buffer %s"
-	     (buffer-name ediff-patch-diagnostics))))
+    (message "Patch diagnostics are available in buffer %s"
+	     (buffer-name ediff-patch-diagnostics))
+    ctl-buf))
   
-(defun ediff-toggle-read-only-patch-orig ()
+(defun ediff-set-read-only-in-buf-A ()
   "Used as a startup hook to set `_orig' patch file read-only."
-  (ediff-toggle-read-only ediff-buffer-A))
+  (ediff-eval-in-buffer ediff-buffer-A
+    (toggle-read-only 1)))
 
 ;;;###autoload
 (defalias 'epatch 'ediff-patch-file)
@@ -1930,7 +961,7 @@ assigned the hook to be executed after `ediff-startup' is finished.
 `ediff-find-file' arranges that the temp files it might create will be
 deleted."
   (let* ((file (symbol-value file-var))
-	 (file-magic (ediff-find-file-name-handler file))
+	 (file-magic (find-file-name-handler file 'find-file-noselect))
 	 (temp-file-name-prefix (file-name-nondirectory file)))
     (if (not (file-readable-p file))
 	(error "File `%s' does not exist or is not readable" file))
@@ -2086,16 +1117,34 @@ deleted."
 ;;; Compare regions and windows
 
 ;;;###autoload
-(defun ediff-windows (dumb-mode &optional wind-A wind-B startup-hooks)
-  "Compare WIND-A and WIND-B, which are selected by clicking.
+(defun ediff-windows-wordwise (dumb-mode &optional wind-A wind-B startup-hooks)
+  "Compare WIND-A and WIND-B, which are selected by clicking, wordwise.
 With prefix argument, DUMB-MODE, or on a non-windowing display, works as
 follows:
 If WIND-A is nil, use selected window.
 If WIND-B is nil, use window next to WIND-A."
-
   (interactive "P")
+  (ediff-windows dumb-mode wind-A wind-B
+		 startup-hooks 'ediff-windows-wordwise 'word-mode))
+		 
+;;;###autoload
+(defun ediff-windows-linewise (dumb-mode &optional wind-A wind-B startup-hooks)
+  "Compare WIND-A and WIND-B, which are selected by clicking, linewise.
+With prefix argument, DUMB-MODE, or on a non-windowing display, works as
+follows:
+If WIND-A is nil, use selected window.
+If WIND-B is nil, use window next to WIND-A."
+  (interactive "P")
+  (ediff-windows dumb-mode wind-A wind-B
+		 startup-hooks 'ediff-windows-linewise nil))
       
-  (if (or dumb-mode (not window-system))
+;; Compare WIND-A and WIND-B, which are selected by clicking.
+;; With prefix argument, DUMB-MODE, or on a non-windowing display,
+;; works as follows:
+;; If WIND-A is nil, use selected window.
+;; If WIND-B is nil, use window next to WIND-A.
+(defun ediff-windows (dumb-mode wind-A wind-B startup-hooks job-name word-mode)
+  (if (or dumb-mode (not (ediff-window-display-p)))
       (setq wind-A (ediff-get-next-window wind-A nil)
 	    wind-B (ediff-get-next-window wind-B wind-A))
     (setq wind-A (ediff-get-window-by-clicking wind-A nil 1)
@@ -2116,14 +1165,14 @@ If WIND-B is nil, use window next to WIND-A."
 	      end-B (window-end))))
     (ediff-regions-internal
      buffer-A beg-A end-A buffer-B beg-B end-B
-     startup-hooks 'ediff-windows 'word-mode)))
+     startup-hooks job-name word-mode)))
      
 ;;;###autoload
-(defun ediff-small-regions (buffer-A buffer-B &optional startup-hooks)
+(defun ediff-regions-wordwise (buffer-A buffer-B &optional startup-hooks)
   "Run Ediff on a pair of regions in two different buffers.
 Regions \(i.e., point and mark\) are assumed to be set in advance.
 This function is effective only for relatively small regions, up to 200
-lines. For large regions, use `ediff-large-regions'."
+lines. For large regions, use `ediff-regions-linewise'."
   (interactive 
    (let (bf)
      (list (setq bf (read-buffer "Region's A buffer: "
@@ -2153,15 +1202,15 @@ lines. For large regions, use `ediff-large-regions'."
     (ediff-regions-internal
      (get-buffer buffer-A) reg-A-beg reg-A-end
      (get-buffer buffer-B) reg-B-beg reg-B-end
-     startup-hooks 'ediff-small-regions 'word-mode)))
+     startup-hooks 'ediff-regions-wordwise 'word-mode)))
      
 ;;;###autoload
-(defun ediff-large-regions (buffer-A buffer-B &optional startup-hooks)
+(defun ediff-regions-linewise (buffer-A buffer-B &optional startup-hooks)
   "Run Ediff on a pair of regions in two different buffers.
 Regions \(i.e., point and mark\) are assumed to be set in advance.
 Each region is enlarged to contain full lines.
 This function is effective for large regions, over 100-200
-lines. For small regions, use `ediff-small-regions'."
+lines. For small regions, use `ediff-regions-wordwise'."
   (interactive 
    (let (bf)
      (list (setq bf (read-buffer "Region A's buffer: "
@@ -2209,7 +1258,7 @@ lines. For small regions, use `ediff-small-regions'."
     (ediff-regions-internal
      (get-buffer buffer-A) reg-A-beg reg-A-end
      (get-buffer buffer-B) reg-B-beg reg-B-end
-     startup-hooks 'ediff-large-regions nil))) ; no word mode
+     startup-hooks 'ediff-regions-linewise nil))) ; no word mode
 	
 ;; compare region beg-A to end-A of buffer-A
 ;; to regions beg-B -- end-B in buffer-B. 
@@ -2487,13 +1536,44 @@ The file is the one visited by the current buffer."
   "Run Ediff by patching BUFFER-NAME."
   (interactive "bBuffer to patch: ")
   
-  (let* ((file-buffer (get-buffer buffer-name))
-	 (file-name (if file-buffer (buffer-file-name  file-buffer))))
-    (if (not file-name)
-	(error "Buffer %s doesn't exist or doesn't visit any file.  Why patch?"
-	       buffer-name))
+  (let* ((buf-to-patch (get-buffer buffer-name))
+	 (file-name-ok (if buf-to-patch (buffer-file-name  buf-to-patch)))
+	 (buf-mod-status (buffer-modified-p buf-to-patch))
+	 default-dir file-name ctl-buf)
+    (if file-name-ok
+	(setq file-name file-name-ok)
+      (ediff-eval-in-buffer buffer-name
+	(setq default-dir default-directory)
+	(setq file-name (ediff-make-temp-file))
+	(set-visited-file-name file-name)
+	(setq buffer-auto-save-file-name nil) ; don't create auto-save file
+	(rename-buffer buffer-name) ; don't confuse the user with new buf name
+	(set-buffer-modified-p nil)
+	(set-visited-file-modtime) ; sync buffer and temp file
+	(setq default-directory default-dir)
+	))
     
-    (ediff-patch-file file-name startup-hooks)))
+    (setq ctl-buf
+	  (ediff-patch-file file-name startup-hooks 'ediff-patch-buffer))
+    
+    (if file-name-ok
+	()
+      (ediff-eval-in-buffer ctl-buf
+	(delete-file (buffer-file-name ediff-buffer-A))
+	(delete-file (buffer-file-name ediff-buffer-B))
+	(ediff-eval-in-buffer ediff-buffer-A
+	  (if default-dir (setq default-directory default-dir))
+	  (set-visited-file-name nil)
+	  (rename-buffer buffer-name)
+	  (set-buffer-modified-p buf-mod-status))
+	(ediff-eval-in-buffer ediff-buffer-B
+	  (setq buffer-auto-save-file-name nil) ; don't create auto-save file
+	  (if default-dir (setq default-directory default-dir))
+	  (set-visited-file-name nil)
+	  (rename-buffer (ediff-unique-buffer-name 
+			  (concat buffer-name "_patched") ""))
+	  (set-buffer-modified-p t))))
+    ))
 
 
 (defun ediff-get-patch-buffer (dir)
@@ -2505,16 +1585,10 @@ Else, read patch file into a new buffer."
     (setq ediff-patch-buf
 	  (find-file-noselect (read-file-name "Patch file name: " dir))))
   
-  ;; secure the patch buffer against accidental changes
-  (ediff-eval-in-buffer ediff-patch-buf
-    (setq buffer-read-only t))
-   
   (setq ediff-patch-diagnostics
 	(get-buffer-create "*ediff patch diagnostics*"))
-  (ediff-eval-in-buffer
-      ediff-patch-diagnostics
-    (insert-buffer ediff-patch-buf))
-  )
+  (ediff-eval-in-buffer ediff-patch-diagnostics
+    (insert-buffer ediff-patch-buf)))
 
 
       
@@ -2523,15 +1597,25 @@ Else, read patch file into a new buffer."
 ;;; Versions Control functions      
       
 ;;;###autoload
-(defun ediff-revision (revision)
+(defun ediff-revision (arg)
   "Call `vc.el' or `rcs.el' depending on `ediff-version-control-package'.
-This function is introduced to provide a uniform interface to version
-control packages from Ediff."
-  (interactive "sVersion to Ediff with (default: the latest version): ")
-  (ediff-load-version-control)
-  (funcall
-   (intern (format "%S-ediff-internal" ediff-version-control-package))
-   revision))
+Without prefix argument, compares the current buffer with an older version.
+With prefix argument, compares two older versions of the current buffer."
+  (interactive "P")
+  (let (rev1 rev2)
+    (if arg
+	(setq rev1
+	      (read-string
+	       "This buffer's version-1 to compare (default: the latest version): ")
+	      rev2
+	      (read-string "This buffer's version-2 to compare (default: the latest version): "))
+      (setq rev1
+	    (read-string "Version to compare the current buffer with (default: the latest version): ")))
+    (ediff-load-version-control)
+    (funcall
+     (intern (format "%S-ediff-internal" ediff-version-control-package))
+     rev1 rev2)
+    ))
    
 ;; Backward compatibility
 ;;;###autoload
@@ -2563,25 +1647,36 @@ and `ediff-revision-key' for customization.")))
 			(t  global-map))
 		  ediff-revision-key 'ediff-revision)))
 	(or silent
-	    (error "Version control package %S.el not found. Use vc.el instead" 
+	    (error "Version control package %S.el not found. Use vc.el instead"
 		   ediff-version-control-package)))))
   
       
-;; Note: this function will work only with Emacs 19.22 or later.
-(defun vc-ediff-internal (rev)
-  "Run Ediff on version REV of the current buffer in another window.
+(defun vc-ediff-internal (rev1 &optional rev2)
+  "Run Ediff on versions of the current buffer.
+If both REV1 and REV2 are given then these two versions are compared.
+If only REV1 is given then the current buffer is compared against version REV1.
 If the current buffer is named `F', the version is named `F.~REV~'.
 If `F.~REV~' already exists, it is used instead of being re-created."
-  (let ((newvers (current-buffer)))
-    (vc-version-other-window rev)
-    ;; current-buffer is now supposed to contain the old version
-    ;; in another window
-    ;; We delete the temp file that was created by vc.el for the old
-    ;; version
-    (ediff-buffers (current-buffer) newvers
-		   (list (` (lambda () (delete-file (, (buffer-file-name))))))
-		   'ediff-revision)
-    ))
+  (let ((curbuf (current-buffer))
+	(curwind (selected-window))
+	file1 file2
+	rev1buf rev2buf)
+    (vc-version-other-window rev1)
+    (setq rev1buf (current-buffer)
+	  file1 (buffer-file-name))
+    (select-window curwind)
+    (if (not (stringp rev2))
+	(setq rev2buf curbuf)
+      (vc-version-other-window rev2)
+      (setq rev2buf (current-buffer)
+	    file2 (buffer-file-name)))
+    (ediff-buffers
+     rev1buf rev2buf
+     (list (` (lambda ()
+		(delete-file (, file1))
+		(if (, file2) (delete-file (, file2)))
+		)))
+     'ediff-revision)))
     
 (defun rcs-ediff-view-revision (&optional rev)
   "View previous RCS revision of current file.
@@ -2620,14 +1715,16 @@ With prefix argument, prompts for a revision name."
       (erase-buffer))
     buf))
 
-(defun rcs-ediff-internal (rev)
+(defun rcs-ediff-internal (rev1 &optional rev2)
   "Run Ediff on the current buffer, comparing it with previous RCS revision."
-  (let ((newvers (current-buffer))
-	(oldvers (rcs-ediff-view-revision rev)))
+  (let ((rev2buf (if (stringp rev2)
+		     (rcs-ediff-view-revision rev2)
+		   (current-buffer)))
+	(rev1buf (rcs-ediff-view-revision rev1)))
 	
     ;; rcs.el doesn't create temp version files, so we don't have to delete
     ;; anything in startup hooks to ediff-buffers
-    (ediff-buffers oldvers newvers nil 'ediff-revision)
+    (ediff-buffers rev1buf rev2buf nil 'ediff-revision)
     ))
 
 ;;; Menu bar
@@ -2654,6 +1751,15 @@ With prefix argument, prompts for a revision name."
       (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu))
       ))
 
+;;;   These must be placed in menu-bar.el in Emacs
+;;
+;;      (define-key menu-bar-tools-menu [epatch]
+;;	'("Apply Patch" . menu-bar-epatch-menu))
+;;      (define-key menu-bar-tools-menu [ediff-merge]
+;;	'("Merge" . menu-bar-ediff-merge-menu))
+;;      (define-key menu-bar-tools-menu [ediff]
+;;	'("Compare" . menu-bar-ediff-menu))
+
 
 ;;;###autoload
 (if purify-flag
@@ -2662,20 +1768,7 @@ With prefix argument, prompts for a revision name."
 	()
       (define-key menu-bar-ediff-menu [ediff-revision]
 	'("File with Revision ..." . ediff-revision))
-      (define-key menu-bar-ediff-menu [ediff-large-regions]
-	'("Large Regions ..." . ediff-large-regions))
-      (define-key menu-bar-ediff-menu [ediff-small-regions]
-	'("Small Regions ..." . ediff-small-regions))
-;;; Too confusing to have this and compare-windows in the same menu.
-;;      (define-key menu-bar-ediff-menu [ediff-windows]
-;;	'("Windows ..." . ediff-windows))
-      ))
-
-;;;###autoload
-(if purify-flag
-    ;; explicit string-match, as ediff-xemacs-p is not defined at build time
-    (if (string-match "\\(Lucid\\|Xemacs\\)" emacs-version)
-	()
+      (define-key menu-bar-file-menu [separator-ediff-files] '("--"))
       (define-key menu-bar-ediff-menu [ediff-buffers3]
 	'("Three Buffers ..." . ediff-buffers3))
       (define-key menu-bar-ediff-menu [ediff-files3]
@@ -2691,11 +1784,29 @@ With prefix argument, prompts for a revision name."
     ;; explicit string-match, as ediff-xemacs-p is not defined at build time
     (if (string-match "\\(Lucid\\|Xemacs\\)" emacs-version)
 	()
+      (define-key menu-bar-file-menu [separator-ediff-regions] '("--"))
+      (define-key menu-bar-ediff-menu [ediff-regions-linewise]
+	'("Regions Line-by-line ..." . ediff-regions-linewise))
+      (define-key menu-bar-ediff-menu [ediff-regions-wordwise]
+	'("Regions Word-by-word ..." . ediff-regions-wordwise))
+      (define-key menu-bar-file-menu [separator-ediff-windows] '("--"))
+      (define-key menu-bar-ediff-menu [ediff-windows-linewise]
+	'("Windows Line-by-line ..." . ediff-windows-linewise))
+      (define-key menu-bar-ediff-menu [ediff-windows-wordwise]
+	'("Windows Word-by-word ..." . ediff-windows-wordwise))
+      ))
+
+;;;###autoload
+(if purify-flag
+    ;; explicit string-match, as ediff-xemacs-p is not defined at build time
+    (if (string-match "\\(Lucid\\|Xemacs\\)" emacs-version)
+	()
       (define-key
 	menu-bar-ediff-merge-menu [ediff-merge-revisions-with-ancestor]
 	'("Revisions with Ancestor ..." . ediff-merge-revisions-with-ancestor))
       (define-key menu-bar-ediff-merge-menu [ediff-merge-revisions]
 	'("Revisions ..." . ediff-merge-revisions))
+      (define-key menu-bar-file-menu [separator-ediff-merge] '("--"))
       (define-key menu-bar-ediff-merge-menu [ediff-merge-buffers-with-ancestor]
 	'("Buffers with Ancestor ..." . ediff-merge-buffers-with-ancestor))
       (define-key menu-bar-ediff-merge-menu [ediff-merge-buffers]
@@ -2724,40 +1835,39 @@ With prefix argument, prompts for a revision name."
     (if (string-match "\\(Lucid\\|Xemacs\\)" emacs-version)
 	(progn
 	  (defvar ediff-menu
-	    '(""
+	    '("Compare"
 	      ["Two Files ..."  ediff-files t]
 	      ["Two Buffers ..." ediff-buffers t]
 	      ["Three Files ..."  ediff-files3 t]
 	      ["Three Buffers ..." ediff-buffers3 t]
-	      ["Windows ..." ediff-windows t]
-	      ["Small Regions ..." ediff-small-regions t]
-	      ["Large Regions ..." ediff-large-regions t]
-	      ["File with Revision ..."  ediff-revision t]))
+	      "---"
+	      ["File with Revision ..."  ediff-revision t]
+	      "---"
+	      ["Windows Word-by-word ..." ediff-windows-wordwise t]
+	      ["Windows Line-by-line ..." ediff-windows-linewise t]
+	      "---"
+	      ["Regions Word-by-word ..." ediff-regions-wordwise t]
+	      ["Regions Line-by-line ..." ediff-regions-linewise t]))
 	  (defvar ediff-merge-menu
-	    '(""
+	    '("Merge"
 	      ["Files ..."  ediff-merge-files t]
 	      ["Files with Ancestor ..." ediff-merge-files-with-ancestor t]
 	      ["Buffers ..."  ediff-merge-buffers t]
 	      ["Buffers with Ancestor ..."
 	       ediff-merge-buffers-with-ancestor t]
+	      "---"
 	      ["Revisions ..."  ediff-merge-revisions t]
 	      ["Revisions with Ancestor ..."
 	       ediff-merge-revisions-with-ancestor t]))
 	  (defvar epatch-menu
-	    '(""
+	    '("Apply Patch"
 	      ["To a file ..."  ediff-patch-file t]
 	      ["To a buffer ..." ediff-patch-buffer t]))
-	  (add-menu '("File") "Compare" 
-		    ediff-menu
-		    "New Frame")
-	  (add-menu '("File") "Merge" 
-		    ediff-merge-menu
-		    "New Frame")
-	  (add-menu '("File") "Apply Patch" 
-		    epatch-menu
-		    "New Frame")
+	  (add-submenu '("Tools") ediff-menu "VC")
+	  (add-submenu '("Tools") ediff-merge-menu "VC")
+	  (add-submenu '("Tools") epatch-menu "VC")
 	  ;; Display a solid horizontal line 
-	  (add-menu-item '("File") "---" nil nil "New Screen")
+	  (add-menu-button '("Tools") ["---" nil nil] "VC")
 	  )))
 
 
