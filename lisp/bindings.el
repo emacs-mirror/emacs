@@ -138,6 +138,12 @@ is okay.  See `mode-line-format'.")
 	 ".glo" ".idx" ".lot"
 	 ;; TeX-related
 	 ".dvi" ".fmt"
+	 ;; Java compiled
+	 ".class"
+	 ;; Clisp
+	 ".fas" ".lib"
+	 ;; CMUCL
+	 ".x86f"
 	 ;; Texinfo-related
 	 ".toc" ".log" ".aux"
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
@@ -146,6 +152,7 @@ is okay.  See `mode-line-format'.")
 (setq debug-ignored-errors
       '(beginning-of-line beginning-of-buffer end-of-line
 	end-of-buffer end-of-file buffer-read-only
+	file-supersession
       	"^Previous command was not a yank$"
 	"^Minibuffer window is not active$"
 	"^End of history; no next item$"
