@@ -32,7 +32,7 @@ Boston, MA 02111-1307, USA.  */
    be compared to the sizes recorded in Lisp strings.  */
 
 #define GC_CHECK_STRING_BYTES 1
-#endif /* 0*/
+#endif /* 0 */
 
 
 /* These are default choices for the types to use.  */
@@ -2767,7 +2767,6 @@ extern Lisp_Object make_temp_name P_ ((Lisp_Object, int));
 
 /* Defined in abbrev.c */
 
-extern Lisp_Object Vfundamental_mode_abbrev_table;
 extern void syms_of_abbrev P_ ((void));
 
 /* defined in search.c */
