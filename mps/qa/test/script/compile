@@ -3,12 +3,17 @@
 # provides subroutines to compile or compile and link
 # tests and test libraries.
 #
-# In future, this will probably do some clever stuff
-# depending on the platform &c, but for now it's just
-# what works on SunOS.
+# it should work at least on SunOS, Solaris and NT
 #
 
 1;
+
+sub debug {
+ local ($text) = @_;
+ if ($DEBUG_INFO eq "on") {
+  print $text."\n";
+ }
+}
 
 %plat_link = ();
 $plat_link{"sol2.4_sparc"} = "-lm";
@@ -22,6 +27,7 @@ sub compiler_settings {
   $cc_conly = "/c";
   $cc_obj = "/Fo";
   $cc_exe = "/Fe";
+  $obj_suffix = ".obj";
   $try_command = "";
  } elsif ($PLATFORM =~ "^(sun|sol)") {
   if ($PLATFORM =~ "^sol") {
@@ -38,10 +44,63 @@ sub compiler_settings {
   $cc_conly = "-c";
   $cc_obj = "-o ";
   $cc_exe = "-o ";
+  $obj_suffix = ".o";
   $try_command = "sh -c ";
  } else {
   die "Sorry: I don't know how to compile on ".$PLATFORM."\n";
  }
+}
+
+sub log_settings {
+ if ($PLATFORM =~ "^nt_") {
+  
+ } elsif ($PLATFORM =~ "^(sun|sol)") {
+  $catcommand = "cat";
+  $comwrap = "sh -c \"ulimit -c 0; ";
+  $comwrapend = "\"";
+  $stdout_red = ">";
+  $err_red = "2>";
+  $stdout_dup = "| tee";
+ } else {
+  die "Sorry: I don't know how to take log files on ".$PLATFORM."n";
+ }
+}
+
+sub mysystem {
+ local ($command) = @_;
+ &debug("SYSTEM >>$command<<");
+ system($command);
+}
+
+sub log_system {
+ local ($command, $output, $logfile, $time0, $time1) = @_;
+
+ &log_settings;
+ $std_log = "$obj_dir/std_log.log";
+ $err_log = "$obj_dir/err_log.log";
+
+ &debug("LOG SYSTEM:\n c>$command\n o>$output\n l>$logfile");
+
+ $time0 = time;
+
+ if ($logfile) {
+  if ($output eq "no") {
+   &mysystem("$comwrap$command$comwrapend $stdout_red $std_log $err_red $err_log");
+  } else {
+   &mysystem("$comwrap$command$comwrapend $err_red $err_log $stdout_dup $std_log");
+# there's no way to duplicate std_err as far as I know.
+   &mysystem("$catcommand $err_log");
+  }
+  &mysystem("$catcommand $std_log $err_log $stdout_red $logfile");
+ } else {
+  if ($output eq "no") {
+   ERROR;
+  } else {
+   &mysystem("$comwrap$command$comwrapend");
+  }
+ }
+ $time1 = time;
+ $testtotaltime = $time1-$time0;
 }
 
 sub compile {
@@ -51,7 +110,7 @@ sub compile {
  $command = "$cc_command $cc_conly $cc_opts $cc_obj$objfile ".
   "$srcfile $cc_include";
 
- if (system($command)) {
+ if (&mysystem($command)) {
   return 0;
  } else {
   return 1;
@@ -62,10 +121,15 @@ sub compile_and_link {
  local($srcfile, $exefile, $linkfiles) = @_;
 
  &compiler_settings;
+ $linkfiles = " ".$linkfiles;
+ $linkfiles =~ s/ +/ $obj_dir\//g;
+ $linkfiles = $linkfiles." ";
+ $linkfiles =~ s/\.o /$obj_suffix /g;
+
  $command = "$cc_command $cc_opts $cc_exe$exefile $srcfile ".
   "$linkfiles $MPS_LINK_OBJ $cc_link $cc_include";
  
- if (system($command)) {
+ if (&mysystem($command)) {
   return 0;
  } else {
   return 1;
@@ -73,36 +137,24 @@ sub compile_and_link {
 }
 
 sub try_test {
- local ($exefile, $tim0) = @_;
+ local ($exefile) = @_;
 
- $tim0 = time;
- system($try_command.$exefile);
- $seconds = time-$tim0;
- print "$seconds second";
- unless ($seconds == 1) {print "s"};
- print ".\n";
+ $testlogfile = "$obj_dir/tmp_log.log";
+ &log_system($exefile, "yes", $testlogfile);
+
+ &read_results($testlogfile);
+ &verdict;
+ &describe_test("result");
 }
 
 sub run_test {
  local ($exefile) = @_;
 
- local ($tempfile) = "$obj_dir/tmp_f";
+ $testlogfile = "$obj_dir/tmp_log.log";
+ &log_system($exefile, "no", $testlogfile);
 
- system($try_command.$exefile." >> ".$tempfile."1 2> ".$tempfile."2");
- system("cat ".$tempfile."1 ".$tempfile."2 | ".$tempfile."3");
-
-die "*** need to munge $tempfile3 into results format";
-
- open(OUTPUT, "tmp_output");
- &filevars(OUTPUT);  
-# *** need new version of this here!
- close(OUTPUT);
-
- if (&passfail()) {
-  print "RESULT: PASS\n";
- } else {
-  print "RESULT: FAIL\n";
- }
-
+ &read_results($testlogfile);
+ &verdict;
+ &describe_test("full");
 }
 
