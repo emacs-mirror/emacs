@@ -38,6 +38,17 @@
 (defvar compilation-window-height nil
   "*Number of lines in a compilation window.  If nil, use Emacs default.")
 
+(defvar compile-highlight-display-limit nil
+  "*Specify how many compiler errors to highlight (and parse) initially.
+If this is a number N, all compiler error messages in the first N lines
+are highlighted and parsed as soon as they arrive in Emacs.
+If t, highlight and parse the whole compilation buffer as soon as possible.
+If nil, don't highlight or parse any of the buffer until you try to
+move to the error messages.
+
+Those which are not parsed and highlighted initially
+will be parsed and highlighted as soon as you try to move to them.")
+
 (defvar compilation-error-list nil
   "List of error message descriptors for visiting erring functions.
 Each error descriptor is a cons (or nil).  Its car is a marker pointing to
@@ -618,6 +629,14 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
     (force-mode-line-update)
     (if (and opoint (< opoint omax))
 	(goto-char opoint))
+    ;; Automatically parse (and highlight) error messages:
+    (cond ((eq compile-highlight-display-limit t)
+	   (compile-reinitialize-errors nil (point-max)))
+	  ((numberp compile-highlight-display-limit)
+	   (compile-reinitialize-errors nil (save-excursion
+					      (goto-line
+					       compile-highlight-display-limit)
+					      (point)))))
     (if compilation-finish-function
 	(funcall compilation-finish-function (current-buffer) msg))
     (let ((functions compilation-finish-functions))
@@ -847,6 +866,16 @@ Does NOT find the source line like \\[next-error]."
 		;; We started in the middle of an existing list of parsed
 		;; errors before parsing more; restore that position.
 		(setq compilation-error-list error-list-pos))
+	    ;; Highlight (the first line of) each error message when the
+	    ;; mouse pointer moves over it:
+	    (let ((inhibit-read-only t)
+		  (error-list compilation-error-list))
+	      (while error-list
+		(save-excursion
+		  (put-text-property (goto-char (car (car error-list)))
+				     (progn (end-of-line) (point))
+				     'mouse-face 'highlight))
+		(setq error-list (cdr error-list))))
 	    )))))
 
 (defun compile-mouse-goto-error (event)
@@ -1230,7 +1259,11 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
     (setq compilation-old-error-list (cdr compilation-old-error-list)))
   (setq compilation-error-list nil
 	compilation-directory-stack nil
-	compilation-parsing-end 1))
+	compilation-parsing-end 1)
+  ;; Remove the highlighting added by compile-reinitialize-errors:
+  (let ((inhibit-read-only t))
+    (remove-text-properties (point-min) (point-max) '(mouse-face highlight)))
+  )
 
 
 (defun count-regexp-groupings (regexp)
