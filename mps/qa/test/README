@@ -1,7 +1,8 @@
-$HopeName: MMQA_harness!README(trunk.5) $
+$HopeName: MMQA_harness!README(trunk.6) $
 
-This is release MMQA_chinker of the QA harness
-for MM testing. Please report any problems and
-questions to Richard Tucker <rit> (ext 5453).
+This is the trunk of the MMQA test harness. For
+a more reliable version, check out the MMQA_chinker
+release, i.e. MMQA_harness!(MMQA_chinker).
+
 
 
