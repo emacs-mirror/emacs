@@ -1,3 +1,7 @@
+2001-05-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* help.el (describe-variable): Deal with variable aliases.
+
 2001-05-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* replace.el (keep-lines-read-args): Use `copy-marker'.

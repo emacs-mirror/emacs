@@ -39,9 +39,10 @@
 
 	* alloc.c (Fmake_symbol): Adapt to changes of struct Lisp_Symbol.
 
-	* abbrev.c, buffer.c, coding.c, fns.c, frame.c, keyboard.c: Use
-	SYMBOL_VALUE/ SET_SYMBOL_VALUE macros instead of accessing
-	symbols' value directly.
+	* abbrev.c, buffer.c, coding.c, fns.c, frame.c, keyboard.c: 
+	* minibuf.c, sunfns.c, w16select.c: Use SYMBOL_VALUE/
+	SET_SYMBOL_VALUE macros instead of accessing symbols' value
+	directly.
 
 2001-05-18  Gerd Moellmann  <gerd@gnu.org>
 
