@@ -41,6 +41,11 @@
   "SGML editing mode"
   :group 'languages)
 
+(defcustom sgml-basic-offset 2
+  "*Specifies the basic indentation level for `sgml-indent-line'."
+  :type 'integer
+  :group 'sgml)
+
 (defcustom sgml-transformation 'identity
   "*Default value for `skeleton-transformation' (which see) in SGML mode."
   :type 'function
@@ -237,20 +242,21 @@ separated by a space."
   :type '(choice (const nil) integer)
   :group 'sgml)
 
-(defconst sgml-tag-name-re "<\\([!/?]?[[:alpha:]][-_.:[:alnum:]]*\\)")
-(defconst sgml-start-tag-regex
-  "<[[:alpha:]]\\([-_.:[:alnum:]= \n\t]\\|\"[^\"]*\"\\|'[^']*'\\)*"
+(defconst sgml-name-re "[_:[:alpha:]][-_.:[:alnum:]]*")
+(defconst sgml-tag-name-re (concat "<\\([!/?]?" sgml-name-re "\\)"))
+(defconst sgml-attrs-re "\\(?:[^\"'/><]\\|\"[^\"]*\"\\|'[^']*'\\)*")
+(defconst sgml-start-tag-regex (concat "<" sgml-name-re sgml-attrs-re)
   "Regular expression that matches a non-empty start tag.
 Any terminating `>' or `/' is not matched.")
 
 
 ;; internal
 (defconst sgml-font-lock-keywords-1
-  '(("<\\([!?][[:alpha:]][-_.:[:alnum:]]*\\)" 1 font-lock-keyword-face)
-    ("<\\(/?[[:alpha:]][-_.:[:alnum:]]*\\)" 1 font-lock-function-name-face)
+  `((,(concat "<\\([!?]" sgml-name-re "\\)") 1 font-lock-keyword-face)
+    (,(concat "<\\(/?" sgml-name-re"\\)") 1 font-lock-function-name-face)
     ;; FIXME: this doesn't cover the variables using a default value.
-    ("\\([[:alpha:]][-_.:[:alnum:]]*\\)=[\"']" 1 font-lock-variable-name-face)
-    ("[&%][[:alpha:]][-_.:[:alnum:]]*;?" . font-lock-variable-name-face)))
+    (,(concat "\\(" sgml-name-re "\\)=[\"']") 1 font-lock-variable-name-face)
+    (,(concat "[&%]" sgml-name-re ";?") . font-lock-variable-name-face)))
 
 (defconst sgml-font-lock-keywords-2
   (append
@@ -344,6 +350,9 @@ Otherwise, it is set to be buffer-local when the file has
 (defvar sgml-empty-tags nil
   "List of tags whose !ELEMENT definition says EMPTY.")
 
+(defvar sgml-unclosed-tags nil
+  "List of tags whose !ELEMENT definition says the end-tag is optional.")
+
 (defun sgml-xml-guess ()
   "Guess whether the current buffer is XML."
   (save-excursion
@@ -396,10 +405,10 @@ Do \\[describe-key] on the following bindings to discover what they do.
   ;; A start or end tag by itself on a line separates a paragraph.
   ;; This is desirable because SGML discards a newline that appears
   ;; immediately after a start tag or immediately before an end tag.
-  (set (make-local-variable 'paragraph-separate) "[ \t]*$\\|\
-\[ \t]*</?\\([[:alpha:]]\\([-_.:[:alnum:]= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>$")
-  (set (make-local-variable 'paragraph-start) "[ \t]*$\\|\
-\[ \t]*</?\\([[:alpha:]]\\([-_.:[:alnum:]= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>")
+  (set (make-local-variable 'paragraph-start) (concat "[ \t]*$\\|\
+\[ \t]*</?\\(" sgml-name-re sgml-attrs-re "\\)?>"))
+  (set (make-local-variable 'paragraph-separate)
+       (concat paragraph-start "$"))
   (set (make-local-variable 'adaptive-fill-regexp) "[ \t]*")
   (set (make-local-variable 'comment-start) "<!-- ")
   (set (make-local-variable 'comment-end) " -->")
@@ -430,7 +439,8 @@ Do \\[describe-key] on the following bindings to discover what they do.
   (set (make-local-variable 'comment-end-skip) "[ \t]*--\\([ \t\n]*>\\)?")
   ;; This definition probably is not useful in derived modes.
   (set (make-local-variable 'imenu-generic-expression)
-       "<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\([[:alpha:]][-_.:[:alnum:]]*\\)"))
+       (concat "<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\("
+	       sgml-name-re "\\)")))
 
 
 (defun sgml-comment-indent ()
@@ -846,22 +856,22 @@ If non-nil LIMIT is a nearby position before point outside of any tag."
   (save-excursion
     (let ((pos (point))
 	  (state nil))
-      ;; Hopefully this regexp will match something that's not inside
-      ;; a tag and also hopefully the match is nearby.
-      (when (or (and limit (goto-char limit))
-		(re-search-backward "^[ \t]*<" nil t))
-	(with-syntax-table sgml-tag-syntax-table
-	  (while (< (point) pos)
-	    ;; When entering this loop we're inside text.
-	    (skip-chars-forward "^<" pos)
-	    ;; We skipped text and reached a tag.  Parse it.
-	    ;; FIXME: this does not handle CDATA and funny stuff yet.
-	    (setq state (parse-partial-sexp (point) pos 0)))
-	  (cond
-	   ((nth 3 state) (cons 'string (nth 8 state)))
-	   ((nth 4 state) (cons 'comment (nth 8 state)))
-	   ((and state (> (nth 0 state) 0)) (cons 'tag (nth 1 state)))
-	   (t nil)))))))
+      (if limit (goto-char limit)
+	;; Hopefully this regexp will match something that's not inside
+	;; a tag and also hopefully the match is nearby.
+	(re-search-backward "^[ \t]*<[_:[:alpha:]/%!?#]" nil 'move))
+      (with-syntax-table sgml-tag-syntax-table
+	(while (< (point) pos)
+	  ;; When entering this loop we're inside text.
+	  (skip-chars-forward "^<" pos)
+	  ;; We skipped text and reached a tag.  Parse it.
+	  ;; FIXME: this does not handle CDATA and funny stuff yet.
+	  (setq state (parse-partial-sexp (point) pos 0)))
+	(cond
+	 ((nth 3 state) (cons 'string (nth 8 state)))
+	 ((nth 4 state) (cons 'comment (nth 8 state)))
+	 ((and state (> (nth 0 state) 0)) (cons 'tag (nth 1 state)))
+	 (t nil))))))
 
 (defun sgml-beginning-of-tag (&optional top-level)
   "Skip to beginning of tag and return its name.
@@ -965,18 +975,15 @@ With prefix argument, unquote the region."
        (let ((context (xml-lite-get-context)))
 	 (cond
 	  ((null context) 0)		; no context
-	  ;; Align closing tag with the opening one.
-	  ;; ((and (eq (length context) 1) (looking-at "</"))
-	  ;;  (goto-char (xml-lite-tag-start (car context)))
-	  ;;  (current-column))
 	  (t
 	   (let ((here (point)))
 	     (goto-char (xml-lite-tag-end (car context)))
 	     (skip-chars-forward " \t\n")
-	     (if (< (point) here)
+	     (if (and (< (point) here) (xml-lite-at-indentation-p))
 		 (current-column)
 	       (goto-char (xml-lite-tag-start (car context)))
-	       (+ (current-column) sgml-basic-offset))))))))))
+	       (+ (current-column)
+		  (* sgml-basic-offset (length context))))))))))))
 
 (defun sgml-indent-line ()
   "Indent the current line as SGML."
@@ -984,14 +991,28 @@ With prefix argument, unquote the region."
   (let* ((savep (point))
 	 (indent-col
 	  (save-excursion
-	    (beginning-of-line)
-	    (skip-chars-forward " \t")
+	    (back-to-indentation)
 	    (if (>= (point) savep) (setq savep nil))
-	    ;; calculate basic indent
 	    (sgml-calculate-indent))))
     (if savep
 	(save-excursion (indent-line-to indent-col))
       (indent-line-to indent-col))))
+
+(defun sgml-parse-dtd ()
+  "Simplistic parse of the current buffer as a DTD.
+Currently just returns (EMPTY-TAGS UNCLOSED-TAGS)."
+  (goto-char (point-min))
+  (let ((empty nil)
+	(unclosed nil))
+    (while (re-search-forward "<!ELEMENT[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+[-O][ \t\n]+\\([-O]\\)[ \t\n]+\\([^ \t\n]+\\)" nil t)
+      (cond
+       ((string= (match-string 3) "EMPTY")
+	(push (match-string-no-properties 1) empty))
+       ((string= (match-string 2) "O")
+	(push (match-string-no-properties 1) unclosed))))
+    (setq empty (sort (mapcar 'downcase empty) 'string<))
+    (setq unclosed (sort (mapcar 'downcase unclosed) 'string<))
+    (list empty unclosed)))
 
 ;;; HTML mode
 
@@ -1404,8 +1425,14 @@ To work around that, do:
   (setq imenu-create-index-function 'html-imenu-index)
   (when sgml-xml-mode (setq mode-name "XHTML"))
   (set (make-local-variable 'sgml-empty-tags)
-       '("br" "hr" "img" "input" "area" "link" "param" "col"
-	 "base" "meta" "basefont" "frame" "isindex" "wbr"))
+       ;; From HTML-4.01's loose.dtd, parsed with `sgml-parse-dtd',
+       ;; plus manual addition of "wbr".
+       '("area" "base" "basefont" "br" "col" "frame" "hr" "img" "input"
+	 "isindex" "link" "meta" "param" "wbr"))
+  (set (make-local-variable 'sgml-unclosed-tags)
+       ;; From HTML-4.01's loose.dtd, parsed with `sgml-parse-dtd'.
+       '("body" "colgroup" "dd" "dt" "head" "html" "li" "option"
+	 "p" "tbody" "td" "tfoot" "th" "thead" "tr"))
   ;; It's for the user to decide if it defeats it or not  -stef
   ;; (make-local-variable 'imenu-sort-function)
   ;; (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
