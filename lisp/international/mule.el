@@ -582,7 +582,7 @@ encoding.  This attribute has a meaning only when `:coding-type' is
 				 :coding-type
 				 :charset-list
 				 :ascii-compatible-p
-				 :docode-translation-table
+				 :decode-translation-table
 				 :encode-translation-table
 				 :post-read-conversion
 				 :pre-write-conversion
