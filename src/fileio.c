@@ -794,7 +794,7 @@ file names in the file system.\n\
 An initial `~/' expands to your home directory.\n\
 An initial `~USER/' expands to USER's home directory.\n\
 See also the function `substitute-in-file-name'.")
-     (name, default_directory)
+  (name, default_directory)
      Lisp_Object name, default_directory;
 {
   unsigned char *nm;
@@ -829,7 +829,8 @@ See also the function `substitute-in-file-name'.")
   /* Use the buffer's default-directory if DEFAULT_DIRECTORY is omitted.  */
   if (NILP (default_directory))
     default_directory = current_buffer->directory;
-  CHECK_STRING (default_directory, 1);
+  if (! STRINGP (default_directory))
+    default_directory = build_string ("/");
 
   if (!NILP (default_directory))
     {
@@ -1242,7 +1243,7 @@ See also the function `substitute-in-file-name'.")
 	}
 
       /* Keep only a prefix from newdir if nm starts with slash
-         (//server/share for UNC, nothing otherwise). */
+         (//server/share for UNC, nothing otherwise).  */
       if (IS_DIRECTORY_SEP (nm[0]) && collapse_newdir)
 	{
 #ifdef WINDOWSNT
@@ -1265,7 +1266,7 @@ See also the function `substitute-in-file-name'.")
   if (newdir)
     {
       /* Get rid of any slash at the end of newdir, unless newdir is
-       just // (an incomplete UNC name). */
+	 just // (an incomplete UNC name).  */
       length = strlen (newdir);
       if (length > 0 && IS_DIRECTORY_SEP (newdir[length - 1])
 #ifdef WINDOWSNT
@@ -1369,7 +1370,7 @@ See also the function `substitute-in-file-name'.")
       else if (IS_DIRECTORY_SEP (p[0]) && IS_DIRECTORY_SEP (p[1])
 #if defined (APOLLO) || defined (WINDOWSNT)
 	       /* // at start of filename is meaningful in Apollo
-		  and WindowsNT systems */
+		  and WindowsNT systems.  */
 	       && o != target
 #endif /* APOLLO || WINDOWSNT */
 	       )
@@ -1464,7 +1465,7 @@ See also the function `substitute-in-file-name'.")
   nm = XSTRING (name)->data;
 
   /* If nm is absolute, flush ...// and detect /./ and /../.
-     If no /./ or /../ we can return right away. */
+     If no /./ or /../ we can return right away.  */
   if (
       nm[0] == '/'
 #ifdef VMS
@@ -1478,7 +1479,7 @@ See also the function `substitute-in-file-name'.")
 	{
 	  if (p[0] == '/' && p[1] == '/'
 #ifdef APOLLO
-	      /* // at start of filename is meaningful on Apollo system */
+	      /* // at start of filename is meaningful on Apollo system.  */
 	      && nm != p
 #endif /* APOLLO */
 	      )
@@ -1711,7 +1712,7 @@ See also the function `substitute-in-file-name'.")
 	}
       else if (!strncmp (p, "//", 2)
 #ifdef APOLLO
-	       /* // at start of filename is meaningful in Apollo system */
+	       /* // at start of filename is meaningful in Apollo system.  */
 	       && o != target
 #endif /* APOLLO */
 	       )
@@ -1787,14 +1788,14 @@ duplicates what `expand-file-name' does.")
 #endif
   endp = nm + XSTRING (filename)->size;
 
-  /* If /~ or // appears, discard everything through first slash. */
+  /* If /~ or // appears, discard everything through first slash.  */
 
   for (p = nm; p != endp; p++)
     {
       if ((p[0] == '~'
 #if defined (APOLLO) || defined (WINDOWSNT)
 	   /* // at start of file name is meaningful in Apollo and
-	      WindowsNT systems */
+	      WindowsNT systems.  */
 	   || (IS_DIRECTORY_SEP (p[0]) && p - 1 != nm)
 #else /* not (APOLLO || WINDOWSNT) */
 	   || IS_DIRECTORY_SEP (p[0])
@@ -1928,7 +1929,7 @@ duplicates what `expand-file-name' does.")
 
   *x = 0;
 
-  /* If /~ or // appears, discard everything through first slash. */
+  /* If /~ or // appears, discard everything through first slash.  */
 
   for (p = xnm; p != x; p++)
     if ((p[0] == '~'
