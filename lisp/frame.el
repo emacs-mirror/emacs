@@ -84,7 +84,7 @@ These supersede the values given in `default-frame-alist'.")
 ;; Display BUFFER in its own frame, reusing an existing window if any.
 ;; Return the window chosen.
 ;; Currently we do not insist on selecting the window within its frame.
-(defun special-display-popup-frame (buffer)
+(defun special-display-popup-frame (buffer &optional params)
   (let ((window (get-buffer-window buffer t)))
     (if window
 	;; If we have a window already, make it visible.
@@ -93,7 +93,7 @@ These supersede the values given in `default-frame-alist'.")
 	  (raise-frame frame)
 	  window)
       ;; If no window yet, make one in a new frame.
-      (let ((frame (make-frame special-display-frame-alist)))
+      (let ((frame (make-frame (append params special-display-frame-alist))))
 	(set-window-buffer (frame-selected-window frame) buffer)
 	(set-window-dedicated-p (frame-selected-window frame) t)
 	(frame-selected-window frame)))))
