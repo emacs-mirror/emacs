@@ -1,6 +1,6 @@
 ;;; vcursor.el --- manipulate an alternative ("virtual") cursor.
 
-;; Copyright (C) 1994, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1998 Free Software Foundation, Inc.
 
 ;; Author:   Peter Stephenson <pws@ifh.de>
 ;; Keywords: virtual cursor, display, copying
@@ -24,12 +24,26 @@
 
 ;;; Commentary:
 
+;; Latest changes (1.6)
+;; ====================
+;;
+;; - works on dumb terminals with Emacs 19.29 and later
+;; - new keymap vcursor-map for binding to a prefix key
+;; - vcursor-compare-windows substantially improved
+;; - vcursor-execute-{key,command} much better about using the
+;;   right keymaps and arranging for the correct windows to be used
+;; - vcursor-window-funcall can call functions interactively
+;; - vcursor-interpret-input for special effects
+;;
+;; Introduction
+;; ============
+;;
 ;; Virtual cursor commands.  I got this idea from the old BBC micro.
-;; You need Emacs 19 (I have not tried XEmacs) and a windowing
-;; system: I have tried X Windows and Oemacs but any system which
-;; supports multiple windows should have the ability to run vcursor.
-;; In fact, only overlays are required to work, though some of the
-;; key-bindings may need changing.
+;; You need Emacs 19 or 20 and a window system for the best effects.
+;; For character terminals, at least Emacs 19.29 is required
+;; (special behaviour for the overlay property
+;; "before-string" must be implemented).  Search for "dumb terminals"
+;; for more information.
 ;;
 ;; This is much easier to use than the instructions are to read.
 ;; I suggest you simply load it and play around with holding down Ctrl
@@ -61,7 +75,9 @@
 ;; people and that it would be easy to type with the left hand.
 ;; Inevitably it will clash with some other packages, but I can't help
 ;; that: an intuitive binding is a prerequisite here.  See below for
-;; other alternatives (search for "Oemacs").
+;; other alternatives (search for "Oemacs").  There is also a keymap
+;; which you can bind to a prefix key, which may give some more
+;; intuitive alternatives in some cases, see `The vcursor keymap' below.
 ;; 
 ;; Holding down control and shift and pressing insert (vcursor-copy)
 ;; copies one character from wherever the virtual cursor is to point;
@@ -87,7 +103,7 @@
 ;; that simply moving the cursor and virtual cursor on top of one
 ;; another does not have this effect.
 ;; 
-;; If you gave C-S-return a positive prefix arg, it will also delete the
+;; If you give C-S-return a positive prefix arg, it will also delete the
 ;; window (unless it's the current one).  Whenever the virtual cursor
 ;; goes off-screen in its own window, point in that window is moved as
 ;; well to restore it to view.  (It's easier that way, that's why.
@@ -148,6 +164,15 @@
 ;; you hit return.  This was in keeping with the line-by-line way of
 ;; entering BASIC, but is less appropriate here.)
 ;;
+;; vcursor-compare-windows is now a reliable adaption of
+;; compare-windows, which compares between point in the current buffer
+;; and the vcursor location in the other one.  It is an error if
+;; vcursor is not set, however it will be brought up in another window
+;; if it is not currently visible.  The prefix argument acts just like
+;; compare-windows, ignoring whitespace if set.  (In versions before
+;; 1.6, this simply called compare-windows, which was much less likely
+;; to pick the two windows you wanted.)
+;;
 ;; There is a way of moving the virtual cursor using ordinary
 ;; commands: C-S-f9 (vcursor-execute-key) reads a key string,
 ;; moves to the virtual cursor position, executes the command bound to
@@ -155,12 +180,16 @@
 ;; moves the virtual cursor back to the first non-whitespace character
 ;; on its line.  As the command is called interactively all the usual
 ;; ways of passing information to the command called, such as by a
-;; prefix argument, are available.  C-S-f10 (C-S-x)
-;; (vcursor-execute-command) behaves the same way but you enter the
-;; name of the command.  Of course, only some commands are useful
-;; here, mainly simple movement commands.  Killing at the virtual
-;; cursor position in this way works as well; you can even save
-;; another buffer with C-S-f9 C-x C-s.  To do anything more
+;; prefix argument, are available.  This has many uses not necessarily
+;; related to moving the vcursor itself; it can do essentially
+;; everything that the \C-x 4 series of commands can do and a lot
+;; more.  Note, however, that a new window is not used if the vcursor
+;; is visible in the current one:  this can lead to some strange effects,
+;; but it is preferable to making a new window every time the vcursor
+;; is moved in this may.
+;;
+;; C-S-f10 (C-S-x) (vcursor-execute-command) behaves the same way but
+;; you enter the name of the command.  To do anything really
 ;; complicated, you are better off using M-C-S-tab
 ;; (vcursor-swap-point), doing whatever it is, then calling M-C-S-tab
 ;; again.
@@ -170,6 +199,9 @@
 ;; (vcursor-copy) together with (vcursor-get-char-count).  If you want to
 ;; do something in a different window, use (vcursor-window-funcall).
 ;;
+;; Key bindings
+;; ============
+;; 
 ;; There is an alternative set of key bindings which will be used
 ;; automatically for a PC if Oemacs is detected.  This set uses separate
 ;; control, shift and meta keys with function keys 1 to 10.  In
@@ -188,7 +220,56 @@
 ;; oemacs set will work on an X terminal with function keys, but the
 ;; xterm set will not work under Oemacs.
 ;;
-;; Un-features:
+;; Usage on dumb terminals
+;; =======================
+;;
+;; If Emacs has set the variable window-system to nil, vcursor will
+;; assume that overlays cannot be displayed in a different face,
+;; and will instead use an string (the variable vcursor-string, by
+;; default "**>") to show its position.  This was first implemented
+;; in Emacs 19.29.  Unlike the old-fashioned overlay arrow (as used
+;; by debuggers), this appears between existing text, which can
+;; make it hard to read if you're not used to it.  (This seemed the
+;; better option here.)  This means moving the vcursor up and down is
+;; a very efficient way of locating it!
+;;
+;; Everything else should function as expected, but there is no way to
+;; get an easy key binding for the vcursor keys on a generic terminal.
+;; Consequently a special keymap is defined for you to use traditional
+;; methods: the keymap, however, is available on any terminal type.
+;; 
+;; The vcursor keymap
+;; ==================
+;;
+;; In addition to any other bindings, vcursor-map contains key definitions
+;; for handling the vcursor.  You should assign this to a prefix key
+;; in the usual way, e.g.
+;;      (global-set-key [f14] vcursor-map)
+;; and also as usual \C-h in this map will list the key definitions, which
+;; are designed to be easy to remember.
+;;
+;; A special feature is provided by (vcursor-toggle-vcursor-map), bound
+;; to t in that keymap.  With this in effect, the main keymap
+;; is overridden by the vcursor map, so keys like \C-p and so on
+;; move the vcursor instead.  Remember how to turn it off (type t),
+;; or you are in serious trouble!  Note that the cursor keys are not
+;; bound by default in this keymap and will continue to move the
+;; ordinary cursor.
+;;
+;; Interpreted input
+;; =================
+;;
+;; Just occasionally, you may want to pretend the strings copied from
+;; the vcursor position are to be interpreted as if you had typed them
+;; from the keyboard.  Normally, they will just insert themselves anyway,
+;; but in some modes (Info and calc for example) typing ordinary characters
+;; does something else.  To get this effect, set
+;; vcursor-interpret-input to t.  This is normally not a good idea as
+;; interpreting input is very much slower than copying text.
+;; 
+;; Un-features
+;; ===========
+;;
 ;;  - The vcursor will not move to point-max, since otherwise it would
 ;;    disappear.  However, no error is flagged as point-max is a valid
 ;;    point in the buffer.  Thus cursor right or down at the second
@@ -224,7 +305,8 @@
 (or (memq 'vcursor (face-list))
     (progn
       (copy-face 'modeline 'vcursor)
-      (if (or (fboundp 'oemacs-version) (x-display-color-p))
+      (if (or (fboundp 'oemacs-version)
+	      (and (eq window-system 'x) (x-display-color-p)))
 	  (progn
 	    (set-face-foreground 'vcursor "blue")
 	    (set-face-background 'vcursor "cyan")))
@@ -240,7 +322,16 @@ If t (the default), guess; if xterm, use bindings suitable for an
 X terminal; if oemacs, use bindings which work on a PC with Oemacs.
 If nil, don't define any key bindings.")
 
-(defvar vcursor-overlay nil
+(defvar vcursor-interpret-input nil
+  "*If non-nil, input from the vcursor is treated as interactive input.
+This will cause text insertion to be much slower.  Note that no special
+interpretation of strings is done: \"\C-x\" is a string of four
+characters.  The default is simply to copy strings.")
+
+(defvar vcursor-string "**>"
+  "String used to show the vcursor position on dumb terminals.")
+
+(defvar vcursor-overlay nil 
   "Overlay for the virtual cursor.
 It is nil if that is not enabled.")
 
@@ -260,6 +351,43 @@ scrolling set this.  It is used by the `vcursor-auto-disable' code.")
 
 (defvar vcursor-temp-goal-column nil
   "Keeps track of temporary goal columns for the virtual cursor.")
+
+(defvar vcursor-use-vcursor-map nil
+  "Non-nil if the vcursor map is mapped directly onto the main keymap.
+See vcursor-toggle-vcursor-map.")
+(make-variable-buffer-local 'vcursor-use-vcursor-map)
+
+(defvar vcursor-map nil "Keymap for vcursor command.")
+(define-prefix-command 'vcursor-map)
+
+(define-key vcursor-map "t" 'vcursor-toggle-vcursor-map)
+
+(define-key vcursor-map "\C-p" 'vcursor-previous-line)
+(define-key vcursor-map "\C-n" 'vcursor-next-line)
+(define-key vcursor-map "\C-b" 'vcursor-backward-char)
+(define-key vcursor-map "\C-f" 'vcursor-forward-char)
+
+(define-key vcursor-map "\r" 'vcursor-disable)
+(define-key vcursor-map " " 'vcursor-copy)
+(define-key vcursor-map "\C-y" 'vcursor-copy-word)
+(define-key vcursor-map "\C-i" 'vcursor-toggle-copy)
+(define-key vcursor-map "<" 'vcursor-beginning-of-buffer)
+(define-key vcursor-map ">" 'vcursor-end-of-buffer)
+(define-key vcursor-map "\M-v" 'vcursor-scroll-down)
+(define-key vcursor-map "\C-v" 'vcursor-scroll-up)
+(define-key vcursor-map "o" 'vcursor-other-window)
+(define-key vcursor-map "g" 'vcursor-goto)
+(define-key vcursor-map "x" 'vcursor-swap-point)
+(define-key vcursor-map "\C-s" 'vcursor-isearch-forward)
+(define-key vcursor-map "\C-r" 'vcursor-isearch-backward)
+(define-key vcursor-map "\C-a" 'vcursor-beginning-of-line)
+(define-key vcursor-map "\C-e" 'vcursor-end-of-line)
+(define-key vcursor-map "\M-w" 'vcursor-forward-word)
+(define-key vcursor-map "\M-b" 'vcursor-backward-word)
+(define-key vcursor-map "\M-l" 'vcursor-copy-line)
+(define-key vcursor-map "c" 'vcursor-compare-windows)
+(define-key vcursor-map "k" 'vcursor-execute-key)
+(define-key vcursor-map "\M-x" 'vcursor-execute-command)
 
 (cond
  ((not vcursor-key-bindings))  ;; don't set any key bindings
@@ -445,23 +573,38 @@ Display a message unless optional NOMSG is non-nil."
 		     (if vcursor-copy-flag "on" "off")))
   )
 
-(defun vcursor-move (pt)
+(defun vcursor-move (pt &optional leave-b leave-w)
   "Move the virtual cursor to the character to the right of PT.
-PT is an absolute location in the current buffer.
+PT is an absolute location in the current buffer.  With optional
+LEAVE-B, PT is in the same buffer the vcursor is currently in.
 
 If the new virtual cursor location would not be visible, display it in
-another window."
+another window.  With LEAVE-W, use the current `vcursor-window'."
   ;; this works even if we're on-mass-shell, but usually we won't be.
 
-  (if (eq pt (point-max)) (setq pt (1- pt)))
-  (if (vcursor-check t)
-      (move-overlay vcursor-overlay pt (+ pt 1) (current-buffer))
-    (setq vcursor-overlay (make-overlay pt (+ pt 1)))
-    (overlay-put vcursor-overlay 'face 'vcursor))
-  (vcursor-find-window nil t)
-  ;; vcursor-window now contains the right buffer
-  (or (pos-visible-in-window-p pt vcursor-window)
-      (set-window-point vcursor-window pt))
+  (save-excursion
+    (and leave-b (vcursor-check t)
+	 (set-buffer (overlay-buffer vcursor-overlay)))
+    (if (eq pt (point-max))
+	  (setq pt (1- pt)))
+    (if (vcursor-check t)
+	(move-overlay vcursor-overlay pt (+ pt 1) (current-buffer))
+      (setq vcursor-overlay (make-overlay pt (+ pt 1)))
+      (or window-system
+	  (overlay-put vcursor-overlay 'before-string vcursor-string))
+      (overlay-put vcursor-overlay 'face 'vcursor))
+    (or leave-w (vcursor-find-window nil t))
+    ;; vcursor-window now contains the right buffer
+    (or (pos-visible-in-window-p pt vcursor-window)
+	(set-window-point vcursor-window pt)))
+  )
+
+(defun vcursor-insert (text)
+  "Insert TEXT, respecting `vcursor-interpret-input'."
+  (if vcursor-interpret-input
+      (setq unread-command-events
+	    (append (listify-key-sequence text) unread-command-events))
+    (insert text))
   )
 
 (defun vcursor-relative-move (fn &rest args)
@@ -477,7 +620,7 @@ This is called by most of the virtual-cursor motion commands."
 	   (signal 'end-of-buffer nil))
       (vcursor-move (point))
       (if vcursor-copy-flag (setq text (buffer-substring opoint (point)))))
-    (if text (insert text)))
+    (if text (vcursor-insert text)))
   (setq vcursor-last-command t)
   )
 
@@ -536,25 +679,48 @@ cursor stays where it was."
   (vcursor-window-funcall 'isearch-forward rep norecurs)
   )
 
+(defun vcursor-isearch-backward (&optional rep norecurs)
+  "Perform backward incremental search in the virtual cursor window.
+The virtual cursor is moved to the resulting point; the ordinary
+cursor stays where it was."
+
+  (interactive "P")
+  (vcursor-window-funcall 'isearch-backward rep norecurs)
+  )
+
 (defun vcursor-window-funcall (func &rest args)
   "Call FUNC with ARGS ... in a virtual cursor window.
 A window other than the currently-selected one will always be used.
 The virtual cursor is moved to the value of point when the function
-returns."
+returns.
 
-  (vcursor-find-window t t)
-  (let ((sw (selected-window)) text)
-    ;; We can't use save-window-excursion because that would restore
-    ;; the original display in the window we may want to alter.
-    (unwind-protect
-	(let ((here (point)))
-	  (select-window vcursor-window)
-	  (vcursor-locate)
-	  (apply func args)
-	  (if vcursor-copy-flag (setq text (buffer-substring here (point))))
-	  (vcursor-move (point)))
-      (select-window sw))
-    (if text (insert text)))
+If FUNC is a list, call the car of the list interactively, ignoring
+ARGS.  In this case, a new window will not be created if the vcursor
+is visible in the current one."
+;; that's to avoid messing up compatibility with old versions
+;; by introducing a new argument, which would have to come before ARGS.
+
+  (vcursor-find-window (not (and (listp func) (vcursor-check t))) t)
+  (save-excursion
+    (let ((sw (selected-window)) text)
+      ;; We can't use save-window-excursion because that would restore
+      ;; the original display in the window we may want to alter.
+      (unwind-protect
+	  (let ((here (point)))
+	    (select-window vcursor-window)
+	    (vcursor-locate)
+	    (if (listp func)
+		(call-interactively (car func))
+	      (apply func args))
+	    (setq vcursor-window (selected-window))
+	    (and vcursor-copy-flag
+		 (eq (current-buffer) (overlay-buffer vcursor-overlay))
+		 (setq text (buffer-substring here (point))))
+	    ;; vcursor-window and the current buffer are definitely
+	    ;; right, so make sure vcursor-move doesn't pick others.
+	    (vcursor-move (point) nil t))
+	(select-window sw))
+      (if text (vcursor-insert text))))
   (setq vcursor-last-command t)
   )
 
@@ -607,10 +773,11 @@ not copy text until you turn it on again."
    ((not (vcursor-find-window t)))
    ((or (not arg) (< (prefix-numeric-value arg) 0)))
    ((delete-window vcursor-window)))
-  (and arg (< (prefix-numeric-value arg) 0)
-       (progn
-         (vcursor-move (point))
-         (setq vcursor-window (selected-window))))
+  (cond
+   ((and arg (< (prefix-numeric-value arg) 0))
+    (vcursor-move (point))
+    (setq vcursor-window (selected-window)))
+   (vcursor-use-vcursor-map (vcursor-toggle-vcursor-map 0)))
   (setq vcursor-copy-flag nil)
   )
 
@@ -641,14 +808,95 @@ ALL-FRAMES is also used to decide whether to split the window."
 	(vcursor-disable -1))))
   )
 
-(defun vcursor-compare-windows (&optional arg)
-  "Call `compare-windows' in the vcursor window.
-This has the effect of comparing the vcursor window with whichever
-window `next-window' returns there, which may not be the selected one.
+;; vcursor-compare-windows is copied from compare-w.el with only
+;; minor modifications; these are too bound up with the function
+;; to make it really useful to call compare-windows itself.
+(defun vcursor-compare-windows (&optional ignore-whitespace)
+  "Compare text in current window with text in window with vcursor.
+Compares the text starting at point in the current window and at the
+vcursor position in the other window, moving over text in each one as
+far as they match.
 
-A prefix argument, if any, is passed to `compare-windows'."
+A prefix argument, if any, means ignore changes in whitespace.
+The variable `compare-windows-whitespace' controls how whitespace is skipped.
+If `compare-ignore-case' is non-nil, changes in case are also ignored."
   (interactive "P")
-  (vcursor-window-funcall 'compare-windows arg))
+  ;; (vcursor-window-funcall 'compare-windows arg)
+  (require 'compare-w)
+  (let* (p1 p2 maxp1 maxp2 b1 b2 w2
+	    success size
+	    (opoint1 (point))
+	    opoint2
+	    (skip-whitespace (if ignore-whitespace
+				 compare-windows-whitespace)))
+    (setq p1 (point) b1 (current-buffer))
+    (setq w2 (vcursor-find-window t t))
+    (if (or (eq w2 (selected-window)) (not w2))
+	(error "No other window with vcursor"))
+    (save-excursion
+      (vcursor-locate)
+      (setq p2 (point) b2 (current-buffer)))
+    (setq opoint2 p2)
+    (setq maxp1 (point-max))
+    (save-excursion
+      (set-buffer b2)
+      (setq maxp2 (point-max)))
+
+    (setq success t)
+    (while success
+      (setq success nil)
+      ;; if interrupted, show how far we've gotten
+      (goto-char p1)
+      (vcursor-move p2 t)
+
+      ;; If both buffers have whitespace next to point,
+      ;; optionally skip over it.
+
+      (and skip-whitespace
+	   (save-excursion
+	     (let (p1a p2a w1 w2 result1 result2)
+	       (setq result1
+		     (if (stringp skip-whitespace)
+			 (compare-windows-skip-whitespace opoint1)
+		       (funcall skip-whitespace opoint1)))
+	       (setq p1a (point))
+	       (set-buffer b2)
+	       (goto-char p2)
+	       (setq result2
+		     (if (stringp skip-whitespace)
+			 (compare-windows-skip-whitespace opoint2)
+		       (funcall skip-whitespace opoint2)))
+	       (setq p2a (point))
+	       (if (or (stringp skip-whitespace)
+		       (and result1 result2 (eq result1 result2)))
+		   (setq p1 p1a
+			 p2 p2a)))))
+
+      ;; Try advancing comparing 1000 chars at a time.
+      ;; When that fails, go 500 chars at a time, and so on.
+      (let ((size 1000)
+	    success-1
+	    (case-fold-search compare-ignore-case))
+	(while (> size 0)
+	  (setq success-1 t)
+	  ;; Try comparing SIZE chars at a time, repeatedly, till that fails.
+	  (while success-1
+	    (setq size (min size (- maxp1 p1) (- maxp2 p2)))
+	    (setq success-1
+		  (and (> size 0)
+		       (= 0 (compare-buffer-substrings b2 p2 (+ size p2)
+						       b1 p1 (+ size p1)))))
+	    (if success-1
+		(setq p1 (+ p1 size) p2 (+ p2 size)
+		      success t)))
+	  ;; If SIZE chars don't match, try fewer.
+	  (setq size (/ size 2)))))
+
+    (goto-char p1)
+    (vcursor-move p2 t)
+    (if (= (point) opoint1)
+	(ding)))
+)
 
 (defun vcursor-next-line (arg)
   "Move the virtual cursor forward ARG lines."
@@ -676,7 +924,7 @@ A prefix argument, if any, is passed to `compare-windows'."
       (vcursor-move (point))
       (setq vcursor-temp-goal-column temporary-goal-column
 	    vcursor-last-command t))
-    (if text (insert text)))
+    (if text (vcursor-insert text)))
   )
 
 (defun vcursor-previous-line (arg)
@@ -756,32 +1004,31 @@ would be invisible."
 COMMAND is called interactively.  Not all commands (in fact, only a
 small subset) are useful."
   (interactive "CCommand: ")
-  (let (text opoint)
-    (save-excursion
-      (vcursor-locate)
-      (setq opoint (point))
-      (call-interactively cmd)
-      (if vcursor-copy-flag (setq text (buffer-substring opoint (point))))
-      (vcursor-move (point)))
-    (if text (insert text)))
-  (setq vcursor-last-command t)
+  (vcursor-window-funcall (list cmd))
   )
 
-(defun vcursor-execute-key (keys)
-  "Execute the command bound to KEYS for the virtual cursor.
-The command found is called interactively, so prefix argument etc.
-are usable."
-
-  (interactive "kKey sequence: ")
-  (let ((cmd (key-binding keys)))
-    (if cmd (vcursor-execute-command (key-binding keys))))
+(defun vcursor-execute-key ()
+  "Read a key sequence and execute the bound command for the virtual cursor.
+The key sequence is read at the vcursor location.  The command found
+is called interactively, so prefix argument etc. are usable."
+  (interactive)
+  (let (cmd)
+    (save-excursion
+      ;; We'd like to avoid the display changing when we locate
+      ;; to the vcursor position and read a key sequence.
+      (vcursor-find-window (not (vcursor-check t)) t)
+      (save-window-excursion
+	(select-window vcursor-window)
+	(vcursor-locate)
+	(setq cmd (key-binding (read-key-sequence "Key sequence: ")))))
+    (vcursor-window-funcall (list cmd)))
   )
 
 (defun vcursor-copy (arg)
   "Copy ARG characters from the virtual cursor position to point."
   (interactive "p")
   (vcursor-check)
-  (insert
+  (vcursor-insert
    (save-excursion
      (set-buffer (overlay-buffer vcursor-overlay))
      (let* ((ostart (overlay-start vcursor-overlay))
@@ -810,6 +1057,33 @@ line is treated like ordinary characters."
   (let* ((num (prefix-numeric-value arg))
 	 (count (vcursor-get-char-count 'end-of-line num)))
     (vcursor-copy (if (or (= count 0) arg) (1+ count) count)))
+  )
+
+(defun vcursor-toggle-vcursor-map (&optional force noredisp)
+  "Toggle the state of the vcursor key map.
+When on, the keys defined in it are mapped directly on top of the main
+keymap,  allowing you to move the vcursor with ordinary motion keys.
+An indication \"!VC\" appears in the mode list.  The effect is
+local to the current buffer.
+With prefix FORCE, turn on, or off if it is 0.
+With NOREDISP, don't force redisplay.
+Disabling the vcursor automatically turns this off."
+  (interactive "P")
+  (let ((new (cond ((not force) (not vcursor-use-vcursor-map))
+		   ((eq force 0) nil)
+		   (t))))
+    (or (eq new vcursor-use-vcursor-map)
+	(progn
+	  (setq vcursor-use-vcursor-map new)
+	  (or (assq 'vcursor-use-vcursor-map minor-mode-map-alist)
+	      (setq minor-mode-map-alist
+		    (cons (cons 'vcursor-use-vcursor-map vcursor-map)
+			  minor-mode-map-alist)))
+	  (or (assq 'vcursor-use-vcursor-map minor-mode-alist)
+	      (setq minor-mode-alist
+		    (cons (list 'vcursor-use-vcursor-map " !VC")
+			  minor-mode-alist)))
+	  (or noredisp (redraw-display)))))
   )
 
 (defun vcursor-post-command ()
