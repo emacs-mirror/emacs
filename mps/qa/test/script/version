@@ -1,8 +1,8 @@
-# $HopeName: MMQA_harness!script:version(trunk.11) $
-# This file should be updated automatically whenever the test
-# harness changes. Edit with care!
+# $HopeName: MMQA_harness!script:version(MMQA_harness_dev.2) $
+# This file should be updated whenever the test harness changes.
+# Edit with care!
 
-$HARNESS_VERSION="3.2";
+$HARNESS_VERSION="3.3";
 
 # Version history:
 # [Recorded history begins with version 2.0]
@@ -27,6 +27,9 @@ $HARNESS_VERSION="3.2";
 #  3.1 -- clib now takes notes of compilation failures, and records in
 #         the record whether it succeeded or not
 #  3.2 -- better settings for platform nt_x86_cap
+#  3.3 -- interface checks on individual tests (symbols only)
+#         capture of compiler errors
+#         improved display of long output and output containing newlines
 #
 #
 
