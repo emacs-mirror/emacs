@@ -2357,7 +2357,7 @@ extern void init_baud_rate P_ ((void));
 
 /* defined in filelock.c */
 EXFUN (Funlock_buffer, 0);
-EXFUN (Ffile_locked_p, 1);;
+EXFUN (Ffile_locked_p, 1);
 extern void unlock_all_files P_ ((void));
 extern void lock_file P_ ((Lisp_Object));
 extern void unlock_file P_ ((Lisp_Object));
