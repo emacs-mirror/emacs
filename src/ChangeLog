@@ -1,5 +1,7 @@
 2000-09-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* alloc.c (mark_image): Use GC_NILP instead of NILP.
+
 	* keyboard.c (show_help_echo): Set help_echo_showing_p.
 	(read_char): If help-echo is showing, preserve the echo area
 	when redisplaying.
