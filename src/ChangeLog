@@ -1,3 +1,8 @@
+2003-04-14  Andrew Choi  <akochoi@shaw.ca>
+
+	* macterm.c (mac_check_for_quit_char): Don't check more often than
+	once a second.
+
 2003-04-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keyboard.c (kbd_buffer_get_event): Don't handle SELECT_WINDOW_EVENT

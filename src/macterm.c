@@ -132,6 +132,10 @@ static int any_help_event_p;
 
 int x_autoselect_window_p;
 
+/* Non-zero means make use of UNDERLINE_POSITION font properties.  */
+
+int x_use_underline_position_properties;
+
 /* Non-zero means draw block and hollow cursor as wide as the glyph
    under it.  For example, if a block cursor is over a tab, it will be
    drawn as wide as that tab on the display.  */
@@ -8571,34 +8575,47 @@ quit_char_comp (EventRef inEvent, void *inCompData)
 }
 
 void
-mac_check_for_quit_char()
+mac_check_for_quit_char ()
 {
   EventRef event;
-  /* If windows are not initialized, return immediately (keep it bouncin')*/
+  static EMACS_TIME last_check_time = { 0, 0 };
+  static EMACS_TIME one_second = { 1, 0 };
+  EMACS_TIME now, t;
+
+  /* If windows are not initialized, return immediately (keep it bouncin').  */
   if (!mac_quit_char_modifiers)
     return;
 
+  /* Don't check if last check is less than a second ago.  */
+  EMACS_GET_TIME (now);
+  EMACS_SUB_TIME (t, now, last_check_time);
+  if (EMACS_TIME_LT (t, one_second))
+    return;
+  last_check_time = now;
+
   /* Redetermine modifiers because they are based on lisp variables */
-  mac_determine_quit_char_modifiers();
+  mac_determine_quit_char_modifiers ();
 
   /* Fill the queue with events */
   ReceiveNextEvent (0, NULL, kEventDurationNoWait, false, &event);
-  event = FindSpecificEventInQueue (GetMainEventQueue(), quit_char_comp, NULL);
+  event = FindSpecificEventInQueue (GetMainEventQueue (), quit_char_comp,
+				    NULL);
   if (event)
     {
       struct input_event e;
-      struct mac_output *mwp = (mac_output*) GetWRefCon (FrontNonFloatingWindow ());
+      struct mac_output *mwp =
+	(mac_output *) GetWRefCon (FrontNonFloatingWindow ());
       /* Use an input_event to emulate what the interrupt handler does. */
       e.kind = ASCII_KEYSTROKE_EVENT;
       e.code = quit_char;
       e.arg = NULL;
       e.modifiers = NULL;
-      e.timestamp = EventTimeToTicks(GetEventTime(event))*(1000/60);
-      XSETFRAME(e.frame_or_window, mwp->mFP);
+      e.timestamp = EventTimeToTicks (GetEventTime (event)) * (1000/60);
+      XSETFRAME (e.frame_or_window, mwp->mFP);
       /* Remove event from queue to prevent looping. */
-      RemoveEventFromQueue(GetMainEventQueue(), event);
-      ReleaseEvent(event);
-      kbd_buffer_store_event(&e);
+      RemoveEventFromQueue (GetMainEventQueue (), event);
+      ReleaseEvent (event);
+      kbd_buffer_store_event (&e);
     }
 }
 
@@ -8766,6 +8783,14 @@ syms_of_macterm ()
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
   Vx_toolkit_scroll_bars = Qt;
+
+  DEFVAR_BOOL ("x-use-underline-position-properties",
+               &x_use_underline_position_properties,
+     doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
+nil means ignore them.  If you encounter fonts with bogus
+UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
+to 4.1, set this to nil.  */);
+  x_use_underline_position_properties = 0;
 
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
