@@ -323,7 +323,12 @@ negative arg -N means kill backward to Nth start of paragraph."
 With arg N, kill back to Nth start of paragraph;
 negative arg -N means kill forward to Nth end of paragraph."
   (interactive "*p")
-  (kill-region (point) (progn (backward-paragraph arg) (point))))
+  (let ((start (point))
+	(end (progn (backward-paragraph arg) (point)))
+	(prompt-end (minibuffer-prompt-end)))
+    (when (> end prompt-end)
+      (goto-char (setq end prompt-end)))
+    (kill-region start end)))
 
 (defun transpose-paragraphs (arg)
   "Interchange this (or next) paragraph with previous one."
@@ -393,7 +398,12 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
   "Kill back from point to start of sentence.
 With arg, repeat, or kill forward to Nth end of sentence if negative arg -N."
   (interactive "*p")
-  (kill-region (point) (progn (backward-sentence arg) (point))))
+  (let ((start (point))
+	(end (progn (backward-sentence arg) (point)))
+	(prompt-end (minibuffer-prompt-end)))
+    (when (> end prompt-end)
+      (goto-char (setq end prompt-end)))
+    (kill-region start end)))
 
 (defun mark-end-of-sentence (arg)
   "Put mark at end of sentence.  Arg works as in `forward-sentence'."
