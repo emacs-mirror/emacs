@@ -1502,11 +1502,16 @@ redisplay_window (window, just_this_one)
      unless the specified location is outside the accessible range.  */
   if (!NILP (w->force_start))
     {
+      w->force_start = Qnil;
       /* Forget any recorded base line for line number display.  */
       w->base_line_number = Qnil;
       /* Redisplay the mode line.  Select the buffer properly for that.
 	 Also, run the hook window-scroll-functions
 	 because we have scrolled.  */
+      /* Note, we do this after clearing force_start because
+	 if there's an error, it is better to forget about force_start
+	 than to get into an infinite loop calling the hook functions
+	 and having them get more errors.  */
       if (!update_mode_line
 	  || ! NILP (Vwindow_scroll_functions))
 	{
@@ -1520,7 +1525,6 @@ redisplay_window (window, just_this_one)
 	    run_hook_with_args_2 (Qwindow_scroll_functions, window,
 				  make_number (startp));
 	}
-      w->force_start = Qnil;
       XSETFASTINT (w->last_modified, 0);
       if (startp < BEGV) startp = BEGV;
       if (startp > ZV)   startp = ZV;
@@ -1718,6 +1722,9 @@ recenter:
   w->base_line_number = Qnil;
 
   pos = *vmotion (PT, - (height / 2), w);
+  /* Set startp here explicitly in case that helps avoid an infinite loop
+     in case the window-scroll-functions functions get errors.  */
+  Fset_marker (w->start, make_number (pos), Qnil);
   if (! NILP (Vwindow_scroll_functions))
     run_hook_with_args_2 (Qwindow_scroll_functions, window,
 			  make_number (pos.bufpos));
