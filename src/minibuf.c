@@ -470,12 +470,22 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     {
       Lisp_Object expr_and_pos;
       unsigned char *p;
+      int pos;
 
       expr_and_pos = Fread_from_string (val, Qnil, Qnil);
-      /* Ignore trailing whitespace; any other trailing junk is an error.  */
-      for (p = XSTRING (val)->data + XINT (Fcdr (expr_and_pos)); *p; p++)
-	if (*p != ' ' && *p != '\t' && *p != '\n')
-	  error ("Trailing garbage following expression");
+      pos = XINT (Fcdr (expr_and_pos));
+      if (pos != XSTRING (val)->size)
+	{
+	  /* Ignore trailing whitespace; any other trailing junk is an error.  */
+	  int i;
+	  pos = string_char_to_byte (val, pos);
+	  for (i = pos; i < XSTRING (val)->size_byte; i++)
+	    {
+	      int c = XSTRING (val)->data[i];
+	      if (c != ' ' && c != '\t' && c != '\n')
+		error ("Trailing garbage following expression");
+	    }
+	}
       val = Fcar (expr_and_pos);
     }
 
