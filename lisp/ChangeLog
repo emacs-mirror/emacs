@@ -4,6 +4,15 @@
 
 2002-05-08  Markus Rost  <rost@math.ohio-state.edu>
 
+	* help-fns.el (describe-function-1): If the source is
+	`loaddefs.el', look for the real source.  This is necessary only
+	for defaliases.
+
+	* emacs-lisp/find-func.el (find-function-search-for-symbol): Add
+	autoload cookie.
+	(find-function-regexp):  Include
+	"\(quote " to match the defaliases in loaddefs.el.
+
 	* filesets.el (filesets-conditional-sort): Use copy-sequence, not
 	copy-list.
 	(filesets-menu-path, filesets-menu-before, filesets-menu-in-menu):
