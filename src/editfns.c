@@ -455,6 +455,14 @@ is in effect, in which case it is less.")
   return buildmark (ZV, ZV_BYTE);
 }
 
+DEFUN ("position-bytes", Fposition_bytes, Sposition_bytes, 1, 1, 0,
+  "Return the byte position for character position POSITION.")
+  (position)
+{
+  CHECK_NUMBER (position, 1);
+  return make_number (CHAR_TO_BYTE (position));
+}
+
 DEFUN ("following-char", Ffollowing_char, Sfollowing_char, 0, 0, 0,
   "Return the character following point, as a number.\n\
 At the end of the buffer or accessible region, return 0.\n\
@@ -2268,6 +2276,11 @@ Use %% to put a single % into the output.")
 	else if (SYMBOLP (args[n]))
 	  {
 	    XSETSTRING (args[n], XSYMBOL (args[n])->name);
+	    if (STRING_MULTIBYTE (args[n]) && ! multibyte)
+	      {
+		multibyte = 1;
+		goto retry;
+	      }
 	    goto string;
 	  }
 	else if (STRINGP (args[n]))
@@ -2396,7 +2409,14 @@ Use %% to put a single % into the output.")
 	      nchars += this_nchars;
 	    }
 	}
-      else if (multibyte && !STRING_MULTIBYTE (args[0]))
+      else if (STRING_MULTIBYTE (args[0]))
+	{
+	  /* Copy a whole multibyte character.  */
+	  *p++ = *format++;
+	  while (! CHAR_HEAD_P (*format)) *p++ = *format++;
+	  nchars++;
+	}
+      else if (multibyte)
 	{
 	  /* Convert a single-byte character to multibyte.  */
 	  int len = copy_text (format, p, 1, 0, 1);
@@ -2890,6 +2910,10 @@ functions if all the text being accessed has this property.");
   defsubr (&Spoint);
   defsubr (&Sregion_beginning);
   defsubr (&Sregion_end);
+
+  defsubr (&Sline_beginning_position);
+  defsubr (&Sline_end_position);
+
 /*  defsubr (&Smark); */
 /*  defsubr (&Sset_mark); */
   defsubr (&Ssave_excursion);
@@ -2900,9 +2924,7 @@ functions if all the text being accessed has this property.");
   defsubr (&Spoint_min);
   defsubr (&Spoint_min_marker);
   defsubr (&Spoint_max_marker);
-
-  defsubr (&Sline_beginning_position);
-  defsubr (&Sline_end_position);
+  defsubr (&Sposition_bytes);
 
   defsubr (&Sbobp);
   defsubr (&Seobp);
