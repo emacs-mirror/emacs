@@ -212,7 +212,6 @@ extern Lisp_Object Valternative_fontname_alist;
 extern Lisp_Object Vhighlight_wrong_size_font;
 extern Lisp_Object Vclip_large_size_font;
 
-#endif /* _FONTSET_H */
 extern int font_idx_temp;
 
 /* Load a font named FONTNAME for displaying CHARSET on frame F.
@@ -231,3 +230,4 @@ extern int font_idx_temp;
    ? font_table + font_idx_temp						  \
    : fs_load_font (f, font_table, charset, fontname, fontset))
 
+#endif /* _FONTSET_H */
