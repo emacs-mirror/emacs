@@ -326,8 +326,10 @@ if that value is non-nil."
   "Evaluate sexp before point; print value in minibuffer.
 With argument, print output into current buffer."
   (interactive "P")
-  (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
-    (prin1 (eval (let ((stab (syntax-table))
+  (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t))
+	(debug-on-error eval-expression-debug-on-error))
+    (let ((value
+	   (eval (let ((stab (syntax-table))
 		       (opoint (point))
 		       ignore-quotes
 		       expr)
@@ -368,7 +370,10 @@ With argument, print output into current buffer."
 							expr
 							'args)))))
 			   expr))
-		     (set-syntax-table stab)))))))
+		     (set-syntax-table stab))))))
+      (let ((print-length eval-expression-print-length)
+	    (print-level eval-expression-print-level))
+	(print value)))))
 
 ;; Change defvar into defconst within FORM,
 ;; and likewise for other constructs as necessary.
@@ -398,30 +403,33 @@ if it already has a value.\)
 With argument, insert value in current buffer after the defun.
 Return the result of evaluation."
   (interactive "P")
-  (save-excursion
-    ;; Arrange for eval-region to "read" the (possibly) altered form.
-    ;; eval-region handles recording which file defines a function or
-    ;; variable.  Re-written using `apply' to avoid capturing
-    ;; variables like `end'.
-    (apply
-     #'eval-region 
-     (let ((standard-output (if eval-defun-arg-internal (current-buffer) t))
-	   beg end form)
-       ;; Read the form from the buffer, and record where it ends.
-       (save-excursion
-	 (end-of-defun)
-	 (beginning-of-defun)
-	 (setq beg (point))
-	 (setq form (read (current-buffer)))
-	 (setq end (point)))
-       ;; Alter the form if necessary, changing defvar into defconst, etc.
-       (setq form (eval-defun-1 (macroexpand form)))
-       (list beg end standard-output
-	     `(lambda (ignore)
-	       ;; Skipping to the end of the specified region
-	       ;; will make eval-region return.
-	       (goto-char ,end)
-	       ',form)))))
+  (let ((debug-on-error eval-expression-debug-on-error)
+	(print-length eval-expression-print-length)
+	(print-level eval-expression-print-level))
+    (save-excursion
+      ;; Arrange for eval-region to "read" the (possibly) altered form.
+      ;; eval-region handles recording which file defines a function or
+      ;; variable.  Re-written using `apply' to avoid capturing
+      ;; variables like `end'.
+      (apply
+       #'eval-region 
+       (let ((standard-output (if eval-defun-arg-internal (current-buffer) t))
+	     beg end form)
+	 ;; Read the form from the buffer, and record where it ends.
+	 (save-excursion
+	   (end-of-defun)
+	   (beginning-of-defun)
+	   (setq beg (point))
+	   (setq form (read (current-buffer)))
+	   (setq end (point)))
+	 ;; Alter the form if necessary, changing defvar into defconst, etc.
+	 (setq form (eval-defun-1 (macroexpand form)))
+	 (list beg end standard-output
+	       `(lambda (ignore)
+		 ;; Skipping to the end of the specified region
+		 ;; will make eval-region return.
+		 (goto-char ,end)
+		 ',form))))))
   ;; The result of evaluation has been put onto VALUES.  So return it.
   (car values))
 
