@@ -580,30 +580,31 @@ the user from the mailer."
 		(save-excursion
 		  (set-buffer errbuf)
 		  (erase-buffer))))
-	  (apply 'call-process-region
-		 (append (list (point-min) (point-max)
-			       (if (boundp 'sendmail-program)
-				   sendmail-program
-				 "/usr/lib/sendmail")
-			       nil errbuf nil "-oi")
-			 ;; Always specify who from,
-			 ;; since some systems have broken sendmails.
-			 (list "-f" (user-login-name))
-;;;			 ;; Don't say "from root" if running under su.
-;;;			 (and (equal (user-real-login-name) "root")
-;;;			      (list "-f" (user-login-name)))
-			 (and mail-alias-file
-			      (list (concat "-oA" mail-alias-file)))
-			 ;; These mean "report errors by mail"
-			 ;; and "deliver in background".
-			 (if (null mail-interactive) '("-oem" "-odb"))
-			 ;; Get the addresses from the message
-			 ;; unless this is a resend.
-			 ;; We must not do that for a resend
-			 ;; because we would find the original addresses.
-			 ;; For a resend, include the specific addresses.
-			 (or resend-to-addresses
-			     '("-t"))))
+	  (let ((default-directory "/"))
+	    (apply 'call-process-region
+		   (append (list (point-min) (point-max)
+				 (if (boundp 'sendmail-program)
+				     sendmail-program
+				   "/usr/lib/sendmail")
+				 nil errbuf nil "-oi")
+			   ;; Always specify who from,
+			   ;; since some systems have broken sendmails.
+			   (list "-f" (user-login-name))
+;;;			   ;; Don't say "from root" if running under su.
+;;;			   (and (equal (user-real-login-name) "root")
+;;;				(list "-f" (user-login-name)))
+			   (and mail-alias-file
+				(list (concat "-oA" mail-alias-file)))
+			   ;; These mean "report errors by mail"
+			   ;; and "deliver in background".
+			   (if (null mail-interactive) '("-oem" "-odb"))
+			   ;; Get the addresses from the message
+			   ;; unless this is a resend.
+			   ;; We must not do that for a resend
+			   ;; because we would find the original addresses.
+			   ;; For a resend, include the specific addresses.
+			   (or resend-to-addresses
+			       '("-t")))))
 	  (if mail-interactive
 	      (save-excursion
 		(set-buffer errbuf)
@@ -993,8 +994,6 @@ The seventh argument ACTIONS is a list of actions to take
 ;;;	      (message "Auto save file for draft message exists; consider M-x mail-recover"))
 ;;;          t))
   (pop-to-buffer "*mail*")
-  (if (file-exists-p (expand-file-name "~/"))
-      (setq default-directory (expand-file-name "~/")))
   (auto-save-mode auto-save-default)
   (mail-mode)
   ;; Disconnect the buffer from its visited file
@@ -1020,7 +1019,9 @@ The seventh argument ACTIONS is a list of actions to take
 	     (if (not (eq system-type 'vax-vms))
 		 (with-output-to-temp-buffer "*Directory*"
 		   (buffer-disable-undo standard-output)
-		   (call-process "ls" nil standard-output nil "-l" file-name)))
+		   (let ((default-directory "/"))
+		     (call-process
+		      "ls" nil standard-output nil "-l" file-name))))
 	     (yes-or-no-p (format "Recover auto save file %s? " file-name)))
 	   (let ((buffer-read-only nil))
 	     (erase-buffer)
