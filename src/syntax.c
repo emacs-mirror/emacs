@@ -970,8 +970,7 @@ text property.  */)
 }
 
 /* I really don't know why this is interactive
-   help-form should at least be made useful whilst reading the second arg
-*/
+   help-form should at least be made useful whilst reading the second arg.  */
 DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3, 
   "cSet syntax for character: \nsSet syntax for %s to: ",
        doc: /* Set syntax for character CHAR according to string NEWENTRY.
