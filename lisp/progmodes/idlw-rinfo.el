@@ -1,9 +1,9 @@
 ;;; idlw-rinfo.el --- Routine Information for IDLWAVE
 ;; Copyright (c) 1999 Carsten Dominik
-;; Copyright (c) 1999 Free Software Foundation
+;; Copyright (c) 1999, 2000 Free Software Foundation
 
 ;; Author: Carsten Dominik <dominik@strw.leidenuniv.nl>
-;; Version: 3.12
+;; Version: 3.15
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -29,7 +29,7 @@
 ;; and procedures.  This information is extracted automatically from
 ;; the IDL documentation.
 ;;
-;; Created by get_rinfo on Wed Jan  5 13:17:23 2000
+;; Created by get_rinfo on Mon Jan 17 14:28:10 2000
 ;; IDL version: 5.3
 ;; Number of files scanned:  5
 ;;       903 syntax entries in file refguide.txt.bz2
