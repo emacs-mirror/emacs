@@ -113,3 +113,9 @@ char *_getpty();
 #ifndef __GNUC__
 #define C_SWITCH_SYSTEM -cckr
 #endif
+
+/* -g does not work on Irix, and since gcc warns if you use it,
+   turn off the warning.  */
+#ifdef __GNUC__
+#define C_DEBUG_SWITCH
+#endif
