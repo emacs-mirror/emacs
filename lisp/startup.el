@@ -862,7 +862,7 @@ Recover Session		recover files you were editing before a crash
 
 "
 	   )
-  (:face 'variable-pitch
+  (:face variable-pitch
 	   "You can do basic editing with the menu bar and scroll bar \
 using the mouse.\n\n"
 	   :face (variable-pitch :weight bold)
