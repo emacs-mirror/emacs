@@ -828,7 +828,7 @@ otherwise it is then available as input (as a command if nothing else).
 Display MESSAGE (optional fourth arg) in the echo area.
 If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
   (or exit-char (setq exit-char ?\ ))
-  (let ((buffer-read-only nil)
+  (let ((inhibit-read-only t)
 	;; Don't modify the undo list at all.
 	(buffer-undo-list t)
 	(modified (buffer-modified-p))
