@@ -1,5 +1,7 @@
 2001-11-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* config.in: Add #undef HAVE_COFF_H.
+
 	* unexec.c (coff.h): Don't include unless HAVE_COFF_H is defined.
 	Required for ISC 4.1.
 
