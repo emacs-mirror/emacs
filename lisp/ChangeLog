@@ -1,7 +1,7 @@
 2000-12-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-cmds.el (select-safe-coding-system): Check
-	coding-category-list more rigidly.
+	coding-category-list more rigidly.  Improve help message.
 
 	* dired.el (dired-move-to-filename-regexp): Fix previous change.
 
