@@ -1,6 +1,6 @@
 ;;; cal-mayan.el --- calendar functions for the Mayan calendars.
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Stewart M. Clamen <clamen@cs.cmu.edu>
 ;;	Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -345,9 +345,7 @@ Defaults to today's date if DATE is not given."
   "Show the Mayan long count, tzolkin, and haab equivalents of date."
   (interactive)
   (message "Mayan date: %s"
-           (calendar-mayan-date-string
-            (or (calendar-cursor-to-date)
-                (error "Cursor is not on a date!")))))
+           (calendar-mayan-date-string (calendar-cursor-to-date t))))
 
 (defun calendar-goto-mayan-long-count-date (date &optional noecho)
   "Move cursor to Mayan long count DATE.  Echo Mayan date unless NOECHO is t."
