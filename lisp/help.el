@@ -328,13 +328,22 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 
 (defun describe-mode ()
   "Display documentation of current major mode and minor modes.
+The major mode description comes first, followed by the minor modes,
+each on a separate page.
+
 For this to work correctly for a minor mode, the mode's indicator variable
 \(listed in `minor-mode-alist') must also be a function whose documentation
 describes the minor mode."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
-    (let ((minor-modes minor-mode-alist)
-	  (first t))
+    (when minor-mode-alist
+      (princ "The major mode is described first.
+For minor modes, see following pages.\n\n"))
+    (princ mode-name)
+    (princ " mode:\n")
+    (princ (documentation major-mode))
+    (help-setup-xref (list #'help-xref-mode (current-buffer)) (interactive-p))
+    (let ((minor-modes minor-mode-alist))
       (while minor-modes
 	(let* ((minor-mode (car (car minor-modes)))
 	       (indicator (car (cdr (car minor-modes)))))
@@ -353,22 +362,14 @@ describes the minor mode."
 			    (boundp indicator)
 			    (not (eq indicator (symbol-value indicator))))
 		  (setq indicator (symbol-value indicator)))
-		(if first
-		    (princ "The minor modes are described first,
-followed by the major mode, which is described on the last page.\n\f\n"))
-		(setq first nil)
+		(princ "\n\f\n")
 		(princ (format "%s minor mode (%s):\n"
 			       pretty-minor-mode
 			       (if indicator
 				   (format "indicator%s" indicator)
 				 "no indicator")))
-		(princ (documentation minor-mode))
-		(princ "\n\f\n"))))
+		(princ (documentation minor-mode)))))
 	(setq minor-modes (cdr minor-modes))))
-    (princ mode-name)
-    (princ " mode:\n")
-    (princ (documentation major-mode))
-    (help-setup-xref (list #'help-xref-mode (current-buffer)) (interactive-p))
     (print-help-return-message)))
 
 ;; So keyboard macro definitions are documented correctly
