@@ -1001,7 +1001,7 @@ If DIR is positive skip forward; if negative, skip backward."
 
 ;; Momentarily show where the mark is, if highlighting doesn't show it.
 
-(defvar mouse-region-delete-keys '([delete])
+(defvar mouse-region-delete-keys '([delete] [deletechar])
   "List of keys which shall cause the mouse region to be deleted.")
 
 (defun mouse-show-mark ()
