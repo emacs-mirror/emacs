@@ -1,7 +1,7 @@
-2002-10-09  Markus Rost  <rost@math.ohio-state.edu>
+2002-10-10  Markus Rost  <rost@math.ohio-state.edu>
 
-	* cus-test.el: Clean up workarounds.  Shorten variable names.
-	Use cus-test-vars-with-changed-state in a different way.
+	* cus-test.el: Extended and reorganized.  There are now 3 tests
+	which can be run in batch mode.  See the Commentary section.
 
 2002-10-08  Markus Rost  <rost@math.ohio-state.edu>
 
