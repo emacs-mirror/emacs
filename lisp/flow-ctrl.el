@@ -62,10 +62,14 @@ With arg, enable flow control mode if arg is positive, otherwise disable."
       (progn
 	;; Turn flow control off, and stop exchanging chars.
 	(set-input-mode t nil (nth 2 (current-input-mode)))
-	(aset keyboard-translate-table flow-control-c-s-replacement nil)
-	(aset keyboard-translate-table ?\^s nil)
-	(aset keyboard-translate-table flow-control-c-q-replacement nil)
-	(aset keyboard-translate-table ?\^q nil))
+	(if keyboard-translate-table
+	    (progn
+	      (aset keyboard-translate-table flow-control-c-s-replacement
+		    flow-control-c-s-replacement)
+	      (aset keyboard-translate-table ?\^s ?\^s)
+	      (aset keyboard-translate-table flow-control-c-q-replacement
+		    flow-control-c-q-replacement)
+	      (aset keyboard-translate-table ?\^q ?\^q))))
     ;; Turn flow control on.
     ;; Tell emacs to pass C-s and C-q to OS.
     (set-input-mode nil t (nth 2 (current-input-mode)))
