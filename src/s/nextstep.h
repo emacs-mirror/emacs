@@ -109,3 +109,9 @@ Boston, MA 02111-1307, USA.  */
 #define TEXT_END get_etext ()
 /* This seems to be right for end_of_data, but it may not be used anyway.  */
 #define DATA_END get_edata ()
+
+/* Don't include string.h--it causes trouble.  */
+#undef HAVE_STRING_H
+
+/* Tell emacs.c not to define abort.  */
+#define NO_ABORT
