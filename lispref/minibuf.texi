@@ -1174,6 +1174,13 @@ We show successive lines of echo area messages, but only one actually
 appears on the screen at a time.
 @end defun
 
+@defun y-or-n-p-with-timeout prompt seconds default-value
+Like @code{y-or-n-p}, except that if the user fails to answer within
+@var{seconds} seconds, this function stops waiting and returns
+@var{default-value}.  It works by setting up a timer; see @ref{Timers}.
+The argument @var{seconds} may be an integer or a floating point number.
+@end defun
+
 @defun yes-or-no-p prompt
 This function asks the user a question, expecting input in the
 minibuffer.  It returns @code{t} if the user enters @samp{yes},
