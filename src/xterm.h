@@ -581,6 +581,13 @@ struct x_output
   /* The background for which the above relief GCs were set up.
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
+
+  /* Xt waits for a ConfigureNotify event from the window manager in
+     EmacsFrameSetCharSize when the shell widget is resized.  For some
+     window managers like fvwm2 2.2.5 and KDE 2.1 this event doesn't
+     arrive for an unknown reason and Emacs hangs in Xt.  If this is
+     zero, tell Xt not to wait.  */
+  int wait_for_wm;
 };
 
 /* Return the X window used for displaying data in frame F.  */
