@@ -2031,8 +2031,8 @@ Note: Other faces cannot inherit from the cursor face."
 
 (defface escape-glyph '((((background dark)) :foreground "cyan")
 			(((type pc)) :foreground "magenta")
-			(t :foreground "dark blue"))
-  "Face for displaying \\ and ^ in multichar glyphs."
+			(t :foreground "blue"))
+  "Face for characters displayed as ^-sequences or \-sequences."
   :group 'basic-faces)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
