@@ -3,6 +3,9 @@
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H13PRO009
 
 ;; Keywords: multilingual, charset, coding system, fontset, diagnosis, i18n
 
@@ -677,14 +680,23 @@ which font is being used for displaying the character."
 ;; Print information of designation of each graphic register in FLAGS
 ;; in human readable format.  See the documentation of
 ;; `make-coding-system' for the meaning of FLAGS.
-(defun print-designation (flags)
-  (let ((graphic-register 0)
+(defun print-designation (charset-list initial request)
+  (let ((gr (make-vector 4 nil))
 	charset)
-    (while (< graphic-register 4)
+    (dotimes (i 4)
+      (let ((val (aref initial i)))
+	(cond ((symbolp val)
+	       (aset gr i (list val)))
+	      ((eq val -1)
+	       (aset gr i (list t))))))
+    (dolist (elt request)
+      (let ((reg (cdr elt)))
+	(nconc (aref gr reg) (list (car elt)))))
+    (dotimes (i 4)
       (setq charset (aref flags graphic-register))
       (princ (format
 	      "  G%d -- %s\n"
-	      graphic-register
+	      i
 	      (cond ((null charset)
 		     "never used")
 		    ((eq charset t)
@@ -714,6 +726,16 @@ which font is being used for displaying the character."
 	  (setq charset (cdr charset))))
       (setq graphic-register (1+ graphic-register)))))
 
+(defun print-iso-2022-flags (flags)
+  (princ "Other specifications: \n  ")
+  (let ((i 0)
+	(l nil))
+    (dolist (elt coding-system-iso-2022-flags)
+      (if (/= (logand flags (lsh 1 i)) 0)
+	  (setq l (cons elt l))))
+    (princ l))
+  (terpri))
+
 ;;;###autoload
 (defun describe-coding-system (coding-system)
   "Display information about CODING-SYSTEM."
@@ -724,46 +746,30 @@ which font is being used for displaying the character."
 		     (interactive-p))
     (with-output-to-temp-buffer (help-buffer)
       (print-coding-system-briefly coding-system 'doc-string)
-      (princ "\n")
-      (let ((coding-spec (coding-system-spec coding-system)))
+      (let* ((type (coding-system-type coding-system))
+	     (extra-spec (coding-system-extra-spec coding-system)))
 	(princ "Type: ")
-	(let ((type (coding-system-type coding-system))
-	      (flags (coding-system-flags coding-system)))
-	  (princ type)
-	  (cond ((eq type nil)
-		 (princ " (do no conversion)"))
-		((eq type t)
-		 (princ " (do automatic conversion)"))
-		((eq type 0)
-		 (princ " (Emacs internal multibyte form)"))
-		((eq type 1)
-		 (princ " (Shift-JIS, MS-KANJI)"))
-		((eq type 2)
-		 (princ " (variant of ISO-2022)\n")
-		 (princ "Initial designations:\n")
-		 (print-designation flags)
-		 (princ "Other Form: \n  ")
-		 (princ (if (aref flags 4) "short-form" "long-form"))
-		 (if (aref flags 5) (princ ", ASCII@EOL"))
-		 (if (aref flags 6) (princ ", ASCII@CNTL"))
-		 (princ (if (aref flags 7) ", 7-bit" ", 8-bit"))
-		 (if (aref flags 8) (princ ", use-locking-shift"))
-		 (if (aref flags 9) (princ ", use-single-shift"))
-		 (if (aref flags 10) (princ ", use-roman"))
-		 (if (aref flags 11) (princ ", use-old-jis"))
-		 (if (aref flags 12) (princ ", no-ISO6429"))
-		 (if (aref flags 13) (princ ", init-bol"))
-		 (if (aref flags 14) (princ ", designation-bol"))
-		 (if (aref flags 15) (princ ", convert-unsafe"))
-		 (if (aref flags 16) (princ ", accept-latin-extra-code"))
-		 (princ "."))
-		((eq type 3)
-		 (princ " (Big5)"))
-		((eq type 4)
-		 (princ " (do conversion by CCL program)"))
-		((eq type 5)
-		 (princ " (text with random binary characters)"))
-		(t (princ ": invalid coding-system."))))
+	(princ type)
+	(cond ((eq type 'undecided)
+	       (princ " (do automatic conversion)"))
+	      ((eq type 'utf-8)
+	       (princ " (UTF-8: Emacs internal multibyte form)"))
+	      ((eq type 'sjis)
+	       (princ " (Shift-JIS, MS-KANJI)"))
+	      ((eq type 'iso-2022)
+	       (princ " (variant of ISO-2022)\n")
+	       (princ "Initial designations:\n")
+	       (print-designation (coding-system-charset-list coding-system)
+				  (aref extra-spec 0) (aref extra-spec 1))
+	       (print-iso-2022-flags (aref extra-spec 2))
+	       (princ "."))
+	      ((eq type 'charset)
+	       (princ " (charset)"))
+	      ((eq type 'ccl)
+	       (princ " (do conversion by CCL program)"))
+	      ((eq type 'raw-text)
+	       (princ " (text with random binary characters)"))
+	      (t (princ ": invalid coding-system.")))
 	(princ "\nEOL type: ")
 	(let ((eol-type (coding-system-eol-type coding-system)))
 	  (cond ((vectorp eol-type)
@@ -902,30 +908,22 @@ in place of `..':
 
       (princ "
 Priority order for recognizing coding systems when reading files:\n")
-      (let ((l coding-category-list)
-	    (i 1)
-	    (coding-list nil)
-	    coding aliases)
-	(while l
-	  (setq coding (symbol-value (car l)))
-	  ;; Do not list up the same coding system twice.
-	  (when (and coding (not (memq coding coding-list)))
-	    (setq coding-list (cons coding coding-list))
-	    (princ (format "  %d. %s " i coding))
-	    (setq aliases (coding-system-get coding 'alias-coding-systems))
-	    (if (eq coding (car aliases))
+      (let ((i 1))
+	(dolist (elt (coding-system-priority-list))
+	  (princ (format "  %d. %s " i elt))
+	  (let ((aliases (coding-system-aliases elt)))
+	    (if (eq elt (car aliases))
 		(if (cdr aliases)
-		    (princ (cons 'alias: (cdr aliases))))
-	      (if (memq coding aliases)
-		  (princ (list 'alias 'of (car aliases)))))
+		    (princ (cons 'alias: (cdr base-aliases))))
+	      (princ (list 'alias 'of (car aliases))))
 	    (terpri)
-	    (setq i (1+ i)))
-	  (setq l (cdr l))))
+	    (setq i (1+ i)))))
 
       (princ "\n  Other coding systems cannot be distinguished automatically
   from these, and therefore cannot be recognized automatically
   with the present coding system priorities.\n\n")
 
+      (if nil
       (let ((categories '(coding-category-iso-7 coding-category-iso-7-else))
 	    coding-system codings)
 	(while categories
@@ -954,7 +952,7 @@ Priority order for recognizing coding systems when reading files:\n")
 		    (goto-char (point-max)))
 		  (setq codings (cdr codings)))
 		(insert "\n\n")))
-	  (setq categories (cdr categories))))
+	  (setq categories (cdr categories)))))
 
       (princ "Particular coding systems specified for certain file names:\n")
       (terpri)
