@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.38) $
+ * $HopeName: MMsrc!poolamc.c(trunk.39) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.38) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.39) $");
 
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
@@ -1090,7 +1090,11 @@ static Res AMCAct(Pool pool, Action action)
   RefSet condemnedSet;
   Serial topCondemnedGenSerial, currGenSerial;
   Bool inRampMode, haveRampGen;
-  Size capacity;
+  Size capacity = (Size)0;
+  Size duration = (Size)0; /* requested duration of trace (in alloc time) */  
+
+  Size sSwap, sAvail, sFoundation, sCondemned, sSurvivors, sConsTrace;
+  double tTraceInScan; /* tTrace/cScan */
 
   AVERT(Pool, pool);
   amc = PoolPoolAMC(pool);
@@ -1154,12 +1158,32 @@ static Res AMCAct(Pool pool, Action action)
       break;
     case 1: capacity = inRampMode ? TraceGen1RampmodeSize : TraceGen1Size;
       break;
-    case 2: capacity = inRampMode ? TraceGen2RampmodeSize : TraceGen2Size;
-      break;
-    /* @@@@ Top generation should be done as in strategy.lisp-machine. */
+    case 2:
+      if (currGenSerial != TraceTopGen) {
+        capacity = inRampMode ? TraceGen2RampmodeSize : TraceGen2Size;
+        break;
+      }
     default: {
       if(currGenSerial == AMCRampGen) {
         capacity = TraceRampGenSize;
+      } else if (currGenSerial == TraceTopGen) {
+        /* Top generation as in strategy.lisp-machine. */
+
+        sSwap = ArenaReserved(arena);
+        if (sSwap > ArenaCommitLimit(arena)) sSwap = ArenaCommitLimit(arena);
+        /* @@@@ sSwap should take actual paging file size into account. */
+        sAvail = sSwap - ArenaCommitted(arena);
+        sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
+        sCondemned = ArenaCommitted(arena); /* @@@@ should be scannable only */
+        sSurvivors = sCondemned * (1 - TraceTopGenMortality);
+        tTraceInScan = sFoundation + (sSurvivors * (1 + TRACE_COPY_SCAN_RATIO));
+        sConsTrace = sSurvivors + tTraceInScan / TraceWorkFactor;
+        if (sConsTrace >= sAvail) {
+          capacity = (Size)0; /* Do it now. */
+          duration = sAvail;
+        } else {
+          capacity = (gen->size + sAvail) / (Size)1024;
+        }
       } else {
         capacity = inRampMode
                    ? (TraceGen2RampmodeSize
@@ -1207,8 +1231,13 @@ static Res AMCAct(Pool pool, Action action)
       goto failCondemn;
   }
 
-  TraceStart(trace, TraceMortalityEstimate,
-             TraceGen0IncrementalityMultiple * TraceGen0Size * 1024uL);
+  TraceStart(trace,
+             (topCondemnedGenSerial == TraceTopGen)
+             ? TraceTopGenMortality
+             : TraceEphemeralMortality,
+             (topCondemnedGenSerial == TraceTopGen)
+             ? duration
+             : (TraceGen0IncrementalityMultiple * TraceGen0Size * 1024uL));
 
   return ResOK;
 
