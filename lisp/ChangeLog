@@ -1,3 +1,10 @@
+2000-04-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* subr.el (add-minor-mode): Use `set' instead of `setq'.
+
+	* gud.el (gud-gdb-find-file): Call find-file-noselect with NOWARN
+	argument.
+
 2000-04-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* subr.el (add-minor-mode): Make argument MAP optional.

@@ -1,3 +1,11 @@
+2000-04-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* lread.c (end_of_file_error): New function.
+	(read1): Call it instead of signaling `end-of-file' directly.
+
+	* print.c (print_error_message): Print data of `end-of-file' 
+	with Fprinc instead of Fprin1.
+
 2000-04-26  Ken Raeburn  <raeburn@gnu.org>
 
 	* window.c (freeze_window_start): Check that minibuffer scroll
