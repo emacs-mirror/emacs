@@ -1,3 +1,7 @@
+2001-11-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (finder_setwins, setwins): Exclude Calc.
+
 2001-11-09  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* wid-edit.el (checklist): Removed `:menu-tag'.
