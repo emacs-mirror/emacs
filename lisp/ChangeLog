@@ -1,3 +1,8 @@
+2000-11-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* dired.el (dired-between-files): Add `^. find' as an alternative
+	to the regular expression, for find-dired.
+
 2000-11-06  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/texnfo-upd.el: Require texinfo.
