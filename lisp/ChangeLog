@@ -1,8 +1,3 @@
-2002-02-05  Per Abrahamsen  <abraham@dina.kvl.dk>
-
-	* cus-edit.el (customize-mark-to-save): New function.
-	* menu-bar.el (menu-bar-options-save): Rewrote.
-
 2002-02-06  Kim F. Storm  <storm@cua.dk>
 
 	* help.el (where-is): Report remapped commands.
@@ -89,7 +84,11 @@
 	* gud.el (gud-refresh): Call recenter only after we are sure we
 	are in the right window.
 
->>>>>>> 1.3415
+2002-02-05  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* cus-edit.el (customize-mark-to-save): New function.
+	* menu-bar.el (menu-bar-options-save): Rewrote.
+
 2002-02-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* cus-start.el (x-use-underline-position-properties):
