@@ -23,6 +23,7 @@
 ;;; Boston, MA 02111-1307, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (require 'url-parse)
+(require 'url-util)
 
 (defcustom url-cache-directory
   (expand-file-name "cache" url-configuration-directory)
@@ -138,7 +139,7 @@ FILE can be created or overwritten."
 
 (defun url-cache-create-filename-using-md5 (url)
   "Create a cached filename using MD5.
- Very fast if you are in XEmacs, suitably fast otherwise."
+Very fast if you have an `md5' primitive function, suitably fast otherwise."
   (require 'md5)
   (if url
       (let* ((url (if (vectorp url) (url-recreate-url url) url))
