@@ -475,10 +475,14 @@ All the directories are returned as absolute directories."
      (or ada-xref-project-files '(nil)))
 
      (if (not ada-xemacs)
-         (if (lookup-key ada-mode-map [menu-bar Ada Project])
-             (setcdr (lookup-key ada-mode-map [menu-bar Ada Project])
-		     submenu)))
-    ))
+         (if (and (lookup-key ada-mode-map [menu-bar Ada])
+		  (lookup-key ada-mode-map [menu-bar Ada Project]))
+	     (setcdr (lookup-key ada-mode-map [menu-bar Ada Project])
+		     submenu)
+	   (if (lookup-key ada-mode-map [menu-bar ada Project])
+	       (setcdr (lookup-key ada-mode-map [menu-bar ada Project])
+		       submenu))))
+     ))
 
 
 ;;-------------------------------------------------------------
@@ -725,8 +729,8 @@ name as was passed to `ada-create-menu'."
 				(not ada-tight-gvd-integration)))
 			:button (:toggle . ada-tight-gvd-integration)) t))
 
-      (define-key ada-mode-map [menu-bar Ada Edit rem3] '("------------" . nil))
-      (define-key ada-mode-map [menu-bar Ada Edit open-file-from-src-path]
+      (define-key edit-menu [rem3] '("------------" . nil))
+      (define-key edit-menu [open-file-from-src-path]
 	'("Search File on source path..." . ada-find-file))
       )
     )
