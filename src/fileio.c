@@ -3291,7 +3291,8 @@ This does code conversion according to the value of\n\
 		 we cannot use this method; giveup and try the other.  */
 	      if (same_at_end > same_at_start
 		  && FETCH_BYTE (same_at_end - 1) >= 0200
-		  && ! NILP (current_buffer->enable_multibyte_characters))
+		  && ! NILP (current_buffer->enable_multibyte_characters)
+		  && CODING_REQUIRE_CONVERSION (&coding))
 		giveup_match_end = 1;
 	      break;
 	    }
@@ -3301,6 +3302,12 @@ This does code conversion according to the value of\n\
       if (! giveup_match_end)
 	{
 	  /* We win!  We can handle REPLACE the optimized way.  */
+
+	  /* Extends the end of non-matching text area to multibyte
+             character boundary.  */
+	  if (! NILP (current_buffer->enable_multibyte_characters))
+	    while (same_at_end < ZV && ! CHAR_HEAD_P (POS_ADDR (same_at_end)))
+	      same_at_end++;
 
 	  /* Don't try to reuse the same piece of text twice.  */
 	  overlap = same_at_start - BEGV - (same_at_end + st.st_size - ZV);
