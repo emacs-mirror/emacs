@@ -928,8 +928,9 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 			   (buffer-name buf))))
 		       (with-current-buffer buf
 			 (revert-buffer t t)))))
-	    (when (not (eq rawfile (not (null find-file-literally))))
-	      (with-current-buffer buf
+	    (with-current-buffer buf
+	      (when (not (eq (not (null rawfile))
+			     (not (null find-file-literally))))
 		(if (buffer-modified-p)
 		    (if (y-or-n-p (if rawfile
 				      "Save file and revisit literally? "
