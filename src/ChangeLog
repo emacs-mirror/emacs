@@ -1,3 +1,7 @@
+2000-10-27  Ken Raeburn  <raeburn@gnu.org>
+
+	* window.h (Fwindow_live_p): Declare.
+
 2000-10-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* lisp.h (KEYMAPP): New macro.
