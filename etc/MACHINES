@@ -102,6 +102,29 @@ Amdahl UTS (580-amdahl-sysv)
   even worth trying to use it.  Success was obtained with the
   uts native C compiler on uts version 5.2.5.
 
+Apple PowerPC Macintosh running GNU/Linux
+
+  There are special considerations for a variety of this system which
+  is known as the ``Yellow Dog Linux'': Emacs may crash during
+  dumping.  To solve this, edit the header file src/m/macppc.h in the
+  Emacs distribution, and remove the "#if 0" and "#endif" directives
+  which surround the following block near the end of the file:
+
+    #if 0  /* This breaks things on PPC GNU/Linux ecept for Yellowdog,
+	      even with identical GCC, as, ld.  Let's take it out until we
+	      know what's really going on here.  */
+    /* GCC 2.95 and newer on GNU/Linux PPC changed the load address to
+       0x10000000.  */
+    #if defined __linux__
+    #if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95)
+    #define DATA_SEG_BITS  0x10000000
+    #endif
+    #endif
+    #endif /* 0 */
+
+  After that, reconfigure and rebuild Emacs.  It should now build
+  successfully.
+
 Apollo running X Windows (m68k-apollo-bsd)
 
   Apollo version now supports dumping.  It has been tested on SR10.3 and
