@@ -174,16 +174,13 @@ See `interactive'.\n\
 \n\
 Optional second arg RECORD-FLAG non-nil\n\
 means unconditionally put this command in the command-history.\n\
-Otherwise, this is done only if an arg is read using the minibuffer.\n\n\
-FUNCTION may be a list (FUNCTION ARGS...), which means to provide\n\
-the arguments ARGS before the ones read by FUNCTION's interactive spec.")
+Otherwise, this is done only if an arg is read using the minibuffer.")
   (function, record, keys)
      Lisp_Object function, record, keys;
 {
   Lisp_Object *args, *visargs;
   unsigned char **argstrings;
   Lisp_Object fun;
-  Lisp_Object given_args;
   Lisp_Object funcar;
   Lisp_Object specs;
   Lisp_Object teml;
@@ -221,16 +218,6 @@ the arguments ARGS before the ones read by FUNCTION's interactive spec.")
 
   /* Save this now, since use of minibuffer will clobber it. */
   prefix_arg = Vcurrent_prefix_arg;
-
-  /* Separate out any initial args specified by the caller.  */
-  if (CONSP (function) && ! EQ (XCONS (function)->car, Qlambda)
-      && ! EQ (XCONS (function)->car, Qautoload))
-    {
-      given_args = XCONS (function)->cdr;
-      function = XCONS (function)->car;
-    }
-  else
-    given_args = Qnil;
 
  retry:
 
@@ -303,7 +290,7 @@ the arguments ARGS before the ones read by FUNCTION's interactive spec.")
       i = num_input_chars;
       input = specs;
       /* Compute the arg values using the user's expression.  */
-      specs = nconc2 (Fcopy_sequence (given_args), Feval (specs));
+      specs = Feval (specs);
       if (i != num_input_chars || !NILP (record))
 	{
 	  /* We should record this command on the command history.  */
@@ -416,8 +403,7 @@ the arguments ARGS before the ones read by FUNCTION's interactive spec.")
       else
 	tem = (unsigned char *) "";
     }
-  /* Add in the number of args the caller specified.  */
-  count = j + XINT (Flength (given_args));
+  count = j;
 
   args = (Lisp_Object *) alloca ((count + 1) * sizeof (Lisp_Object));
   visargs = (Lisp_Object *) alloca ((count + 1) * sizeof (Lisp_Object));
@@ -431,16 +417,6 @@ the arguments ARGS before the ones read by FUNCTION's interactive spec.")
       varies[i] = 0;
     }
 
-  /* Put any args that the caller specified
-     into the vector.  */
-  i = 1;
-  while (!NILP (given_args))
-    {
-      visargs[i] = args[i] = XCONS (given_args)->car;
-      given_args = XCONS (given_args)->cdr;
-      i++;
-    }
-
   GCPRO4 (prefix_arg, function, *args, *visargs);
   gcpro3.nvars = (count + 1);
   gcpro4.nvars = (count + 1);
@@ -449,7 +425,7 @@ the arguments ARGS before the ones read by FUNCTION's interactive spec.")
     specbind (Qenable_recursive_minibuffers, Qt);
 
   tem = string;
-  for (; *tem; i++)
+  for (i = 1; *tem; i++)
     {
       strncpy (prompt1, tem + 1, sizeof prompt1 - 1);
       prompt1[sizeof prompt1 - 1] = 0;
