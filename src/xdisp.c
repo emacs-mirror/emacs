@@ -42,6 +42,8 @@ extern void set_frame_menubar ();
 extern int interrupt_input;
 extern int command_loop_level;
 
+extern Lisp_Object Qface;
+
 /* Nonzero means print newline before next minibuffer message.  */
 
 int noninteractive_need_newline;
@@ -2488,8 +2490,26 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
       if (len > width)
 	len = width;
-      for (i = 0; i < len; i++)
-	leftmargin[i] = p[i];
+      if (!NULL_INTERVAL_P (XSTRING (Voverlay_arrow_string)->intervals))
+	{
+	  /* If the arrow string has text props, obey them when displaying.  */
+	  for (i = 0; i < len; i++)
+	    {
+	      int c = p[i];
+	      Lisp_Object face, ilisp;
+	      int newface;
+
+	      XFASTINT (ilisp) = i;
+	      face = Fget_text_property (ilisp, Qface, Voverlay_arrow_string);
+	      newface = compute_glyph_face_1 (f, face, 0);
+	      leftmargin[i] = FAST_MAKE_GLYPH (c, newface);
+	    }
+	}
+      else
+	{
+	  for (i = 0; i < len; i++)
+	    leftmargin[i] = p[i];
+	}
 
       /* Bug in SunOS 4.1.1 compiler requires this intermediate variable.  */
       arrow_end = (leftmargin - desired_glyphs->glyphs[vpos]) + len;
