@@ -1,3 +1,12 @@
+2001-11-12  Jason Rumney  <jasonr@gnu.org>
+
+	* w32console.c, w32fns.c, w32menu.c, w32proc.c, w32select.c,
+	* w32term.c: Change doc-string comments to `new style'.
+	[w/`doc:' keyword]. Doc fixes.
+
+	* w32fns.c: Don't define max.
+	(Fx_open_connection): Only execute once.
+
 2001-11-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* ccl.c: Change macros to use do-while block instead of if-else.
