@@ -2178,35 +2178,33 @@ Only the 12 low bits of MODE are used.")
   return Qnil;
 }
 
-DEFUN ("set-umask", Fset_umask, Sset_umask, 1, 1, 0,
-    "Select which permission bits to disable in newly created files.\n\
-MASK should be an integer; if a permission's bit in MASK is 1,\n\
-subsequently created files will not have that permission enabled.\n\
-Only the low 9 bits are used.\n\
+DEFUN ("set-default-file-mode", Fset_default_file_mode, Sset_default_file_mode, 1, 1, 0,
+    "Set the file permission bits for newly created files.\n\
+The argument MODE should be an integer; only the low 9 bits are used.\n\
 This setting is inherited by subprocesses.")
-  (mask)
-     Lisp_Object mask;
+  (mode)
+     Lisp_Object mode;
 {
-  CHECK_NUMBER (mask, 0);
+  CHECK_NUMBER (mode, 0);
   
-  umask (XINT (mask) & 0777);
+  umask ((~ XINT (mode)) & 0777);
 
   return Qnil;
 }
 
-DEFUN ("umask", Fumask, Sumask, 0, 0, 0,
-    "Return the current umask value.\n\
-The umask value determines which permissions are enabled in newly\n\
-created files.  If a permission's bit in the umask is 1, subsequently\n\
-created files will not have that permission enabled.")
+DEFUN ("default-file-mode", Fdefault_file_mode, Sdefault_file_mode, 0, 0, 0,
+    "Return the default file protection for created files.\n\
+The value is an integer.")
   ()
 {
-  Lisp_Object mask;
+  int realmask;
+  Lisp_Object value;
 
-  XSET (mask, Lisp_Int, umask (0));
-  umask (XINT (mask));
+  realmask = umask (0);
+  umask (realmask);
 
-  return mask;
+  XSET (value, Lisp_Int, (~ realmask) & 0777);
+  return value;
 }
 
 #ifdef unix
@@ -3335,8 +3333,8 @@ for its argument.");
   defsubr (&Sfile_accessible_directory_p);
   defsubr (&Sfile_modes);
   defsubr (&Sset_file_modes);
-  defsubr (&Sset_umask);
-  defsubr (&Sumask);
+  defsubr (&Sset_default_file_mode);
+  defsubr (&Sdefault_file_mode);
   defsubr (&Sfile_newer_than_file_p);
   defsubr (&Sinsert_file_contents);
   defsubr (&Swrite_region);
