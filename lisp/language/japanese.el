@@ -29,15 +29,15 @@
 
 ;;; Code:
 
-(define-coding-system-alias 'iso-2022-7bit 'iso-2022-jp)
-(define-coding-system-alias 'iso-2022-7bit 'junet)
+(define-coding-system-alias 'iso-2022-jp 'iso-2022-7bit)
+(define-coding-system-alias 'junet 'iso-2022-7bit)
 
 (make-coding-system
  'japanese-shift-jis 1 ?S
  "Shift-JIS 8-bit encoding for Japanese (MIME:SHIFT_JIS)")
 
-(define-coding-system-alias 'japanese-shift-jis 'shift_jis)
-(define-coding-system-alias 'japanese-shift-jis 'sjis)
+(define-coding-system-alias 'shift_jis 'japanese-shift-jis)
+(define-coding-system-alias 'sjis 'japanese-shift-jis)
 
 (make-coding-system
  'japanese-iso-7bit-1978-irv 2 ?j
@@ -45,8 +45,8 @@
  '((ascii t) nil nil nil
    short ascii-eol ascii-cntl seven nil nil use-roman use-oldjis))
 
-(define-coding-system-alias 'japanese-iso-7bit-1978-irv 'iso-2022-jp-1978-irv)
-(define-coding-system-alias 'japanese-iso-7bit-1978-irv 'old-jis)
+(define-coding-system-alias 'iso-2022-jp-1978-irv 'japanese-iso-7bit-1978-irv)
+(define-coding-system-alias 'old-jis 'japanese-iso-7bit-1978-irv)
 
 (make-coding-system
  'japanese-iso-8bit 2 ?E
@@ -54,9 +54,9 @@
  '(ascii japanese-jisx0208 katakana-jisx0201 japanese-jisx0212
 	 short ascii-eol ascii-cntl nil nil single-shift))
 
-(define-coding-system-alias 'japanese-iso-8bit 'euc-japan-1990)
-(define-coding-system-alias 'japanese-iso-8bit 'euc-japan)
-(define-coding-system-alias 'japanese-iso-8bit 'euc-jp)
+(define-coding-system-alias 'euc-japan-1990 'japanese-iso-8bit)
+(define-coding-system-alias 'euc-japan 'japanese-iso-8bit)
+(define-coding-system-alias 'euc-jp 'japanese-iso-8bit)
 
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment)

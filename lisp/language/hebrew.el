@@ -34,7 +34,7 @@
  '((ascii t) (hebrew-iso8859-8 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil nil t))
 
-(define-coding-system-alias 'hebrew-iso-8bit 'iso-8859-8)
+(define-coding-system-alias 'iso-8859-8 'hebrew-iso-8bit)
 
 (defun setup-hebrew-environment ()
   "Setup multilingual environment (MULE) for Hebrew.

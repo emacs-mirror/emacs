@@ -34,8 +34,8 @@
  '((ascii t) korean-ksc5601 nil nil
    nil ascii-eol ascii-cntl))
 
-(define-coding-system-alias 'korean-iso-8bit 'euc-kr)
-(define-coding-system-alias 'korean-iso-8bit 'euc-korea)
+(define-coding-system-alias 'euc-kr 'korean-iso-8bit)
+(define-coding-system-alias 'euc-korea 'korean-iso-8bit)
 
 (make-coding-system
  'korean-iso-7bit-lock 2 ?k
@@ -44,7 +44,7 @@
 	 nil ascii-eol ascii-cntl seven locking-shift nil nil nil nil nil
 	 designation-bol))
 
-(define-coding-system-alias 'korean-iso-7bit-lock 'iso-2022-kr)
+(define-coding-system-alias 'iso-2022-kr 'korean-iso-7bit-lock)
 
 (defun setup-korean-environment ()
   "Setup multilingual environment (MULE) for Korean."

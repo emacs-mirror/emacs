@@ -44,8 +44,8 @@
    nil ascii-eol ascii-cntl seven locking-shift single-shift nil nil nil
    init-bol))
 
-(define-coding-system-alias 'chinese-iso-7bit 'iso-2022-cn)
-(define-coding-system-alias 'chinese-iso-7bit 'iso-2022-cn-ext)
+(define-coding-system-alias 'iso-2022-cn 'chinese-iso-7bit)
+(define-coding-system-alias 'iso-2022-cn-ext 'chinese-iso-7bit)
 
 (define-prefix-command 'describe-chinese-environment-map)
 (define-key-after describe-language-environment-map [Chinese]
@@ -67,8 +67,8 @@
  '((ascii t) chinese-gb2312 chinese-sisheng nil
    nil ascii-eol ascii-cntl nil nil single-shift nil))
 
-(define-coding-system-alias 'chinese-iso-8bit 'cn-gb-2312)
-(define-coding-system-alias 'chinese-iso-8bit 'euc-china)
+(define-coding-system-alias 'cn-gb-2312 'chinese-iso-8bit)
+(define-coding-system-alias 'euc-china 'chinese-iso-8bit)
 
 (make-coding-system
  'chinese-hz 0 ?z
@@ -77,8 +77,8 @@
 (put 'chinese-hz 'post-read-conversion 'post-read-decode-hz)
 (put 'chinese-hz 'pre-write-conversion 'pre-write-encode-hz)
 
-(define-coding-system-alias 'chinese-hz 'hz-gb-2312)
-(define-coding-system-alias 'chinese-hz 'hz)
+(define-coding-system-alias 'hz-gb-2312 'chinese-hz)
+(define-coding-system-alias 'hz 'chinese-hz)
 
 (defun post-read-decode-hz (len)
   (let ((pos (point)))
@@ -113,8 +113,8 @@
 (make-coding-system
  'chinese-big5 3 ?B "BIG5 8-bit encoding for Chinese (MIME:CN-BIG5)")
 
-(define-coding-system-alias 'chinese-big5 'big5)
-(define-coding-system-alias 'chinese-big5 'cn-big5)
+(define-coding-system-alias 'big5 'chinese-big5)
+(define-coding-system-alias 'cn-big5 'chinese-big5)
 
 ;; Big5 font requires special encoding.
 (define-ccl-program ccl-encode-big5-font

@@ -34,7 +34,7 @@
  '((ascii t) (greek-iso8859-7 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil))
 
-(define-coding-system-alias 'greek-iso-8bit 'iso-8859-7)
+(define-coding-system-alias 'iso-8859-7 'greek-iso-8bit)
 
 (defun setup-greek-environment ()
   "Setup multilingual environment (MULE) for Greek."

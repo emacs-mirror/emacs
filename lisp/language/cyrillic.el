@@ -37,7 +37,7 @@
  '((ascii t) (cyrillic-iso8859-5 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil))
 
-(define-coding-system-alias 'cyrillic-iso-8bit 'iso-8859-5)
+(define-coding-system-alias 'iso-8859-5 'cyrillic-iso-8bit)
 
 ;; KOI-8 staff
 
@@ -93,8 +93,8 @@
  ?R "KOI8 8-bit encoding for Cyrillic (MIME: KOI8-R)"
  (cons ccl-decode-koi8 ccl-encode-koi8))
 
-(define-coding-system-alias 'cyrillic-koi8 'koi8-r)
-(define-coding-system-alias 'cyrillic-koi8 'koi8)
+(define-coding-system-alias 'koi8-r 'cyrillic-koi8)
+(define-coding-system-alias 'koi8 'cyrillic-koi8)
 
 (define-ccl-program ccl-encode-koi8-font
   '(0
@@ -162,7 +162,7 @@
  "ALTERNATIVNYJ 8-bit encoding for Cyrillic"
  (cons ccl-decode-alternativnyj ccl-encode-alternativnyj))
 
-(define-coding-system-alias 'cyrillic-alternativnyj 'alternativnyj)
+(define-coding-system-alias 'alternativnyj 'cyrillic-alternativnyj)
 
 (define-ccl-program ccl-encode-alternativnyj-font
   '(0
