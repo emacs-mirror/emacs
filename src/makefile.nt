@@ -39,6 +39,7 @@ LOCAL_FLAGS     = $(LOCAL_FLAGS) -DHAVE_NTGUI=1
 
 EMACS           = $(BLD)\emacs.exe
 TEMACS          = $(BLD)\temacs.exe
+TEMACS_TMP      = $(BLD)\temacs.bin
 TLIB0           = $(BLD)\temacs0.lib
 TLIB1           = $(BLD)\temacs1.lib
 TLIB2           = $(BLD)\temacs2.lib
@@ -200,10 +201,15 @@ $(EMACS):       $(PREPARED_HEADERS) $(DOC) $(TEMACS)
 
 #
 # The undumped executable
+# Note the extra post-link step to insert a static preload heap section.
+# If preload runs out of memory, increase the last argument to addsection
+# (it is the preload heap size in MB).
 #
 temacs:         $(BLD) $(TEMACS)
 $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIB2) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES)
-		$(LINK) -out:$(TEMACS) $(LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
+		$(LINK) -out:$(TEMACS_TMP) $(LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
+		..\nt\$(BLD)\addsection $(TEMACS_TMP) $(TEMACS) EMHEAP 16
+		rm $(TEMACS_TMP)
 
 #
 # The resource file.  NT 3.10 requires the use of cvtres; even though
