@@ -22,7 +22,6 @@
 /* TODO:
    - detect nasty infinite loops like "\\(\\)+?ab" when matching "ac".
    - use analyze_first to optimize non-empty loops
-   - reduce code duplication
    - optimize succeed_n and jump_n away when possible
    - clean up multibyte issues
    - structure the opcode space into opcode+flag.
@@ -133,11 +132,8 @@ char *realloc ();
 
 /* Define the syntax stuff for \<, \>, etc.  */
 
-/* This must be nonzero for the wordchar pattern
-   commands in re_match_2.  */
-#ifndef Sword
-#define Sword 1
-#endif
+/* Sword must be nonzero for the wordchar pattern commands in re_match_2.  */
+enum syntaxcode { Swhitespace = 0, Sword = 1 };
 
 #ifdef SWITCH_ENUM_BUG
 #define SWITCH_ENUM_CAST(x) ((int)(x))
@@ -3462,7 +3458,7 @@ re_compile_fastmap (bufp)
 	  not = (re_opcode_t)p[-1] == notsyntaxspec;
 	  k = *p++;
 	  for (j = 0; j < (1 << BYTEWIDTH); j++)
-	    if ((SYNTAX (j) == (re_opcode_t) k) ^ not)
+	    if ((SYNTAX (j) == (enum syntaxcode) k) ^ not)
 	      fastmap[j] = 1;
 	  break;
 #else  /* emacs */
@@ -5363,7 +5359,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		 looks like multibyte form.  */
 	      c = *d, len = 1;
 
-	    if ((SYNTAX (c) != (re_opcode_t) mcnt) ^ not)
+	    if ((SYNTAX (c) != (enum syntaxcode) mcnt) ^ not)
 	      goto fail;
 	    d += len;
 	  }
