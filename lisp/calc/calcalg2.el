@@ -981,9 +981,8 @@
 
     ;; Integration by substitution, for various likely sub-expressions.
     ;; (In first pass, we look only for sub-exprs that are linear in X.)
-    (or (if math-linear-subst-tried
-	    (math-integ-try-substitutions expr)
-	  (math-integ-try-linear-substitutions expr))
+    (or (math-integ-try-linear-substitutions expr)
+        (math-integ-try-substitutions expr)
 
 	;; If function has sines and cosines, try tan(x/2) substitution.
 	(and (let ((p (setq rat-in (math-expr-rational-in expr))))
