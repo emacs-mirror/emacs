@@ -1238,8 +1238,12 @@ echo '
 #ifndef C_SWITCH_SYSTEM
 #define C_SWITCH_SYSTEM
 #endif
+#ifndef C_SWITCH_MACHINE
+#define C_SWITCH_MACHINE
+#endif
 configure___ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
 configure___ c_switch_system=C_SWITCH_SYSTEM
+configure___ c_switch_machine=C_SWITCH_MACHINE
 
 #ifndef LIB_X11_LIB
 #define LIB_X11_LIB -lX11
@@ -1310,7 +1314,7 @@ LISP_FLOAT_TYPE=yes
 #### Add the libraries to LIBS and check for some functions.
 
 ]
-DEFS="$c_switch_system $DEFS"
+DEFS="$c_switch_system $c_switch_machine $DEFS"
 LIBS="$libsrc_libs"
 
 dnl If found, this defines HAVE_LIBDNET, which m/pmax.h checks,
@@ -1387,6 +1391,7 @@ AC_SUBST(etcdir)
 AC_SUBST(lockdir)
 AC_SUBST(archlibdir)
 AC_SUBST(c_switch_system)
+AC_SUBST(c_switch_machine)
 AC_SUBST(libsrc_libs)
 AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(LD_SWITCH_X_SITE_AUX)
