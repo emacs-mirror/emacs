@@ -7,7 +7,7 @@
 ;; Maintainer: friedman@prep.ai.mit.edu
 ;; Keywords: minibuffer, window, frame, display
 
-;; $Id: rsz-mini.el,v 1.20 1998/04/20 02:41:08 done Exp done $
+;; $Id: rsz-mini.el,v 1.21 1998/06/04 16:00:22 done Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -70,8 +70,7 @@ You must modify via \\[customize] for this variable to have an effect."
   :initialize 'custom-initialize-default
   :type 'boolean
   :group 'resize-minibuffer
-  :require 'rsz-mini
-  :version "20.3")
+  :require 'rsz-mini)
 
 ;;;###autoload
 (defcustom resize-minibuffer-window-max-height nil
