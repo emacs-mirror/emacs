@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.45) $
+ * $HopeName: MMsrc!poolawl.c(trunk.46) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -46,7 +46,7 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.45) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.46) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -576,8 +576,8 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer)
 
 /* AWLWhiten -- segment condemning method */
 
-static void AWLRangeWhiten(AWLGroup group, Index base, Index limit)
 /* Split out of AWLWhiten because it's used in more than one place. */
+static void AWLRangeWhiten(AWLGroup group, Index base, Index limit)
 {
   if(base != limit) {
     AVER(base < limit);
@@ -611,11 +611,20 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   } else {
     /* Whiten everything except the buffer. */
     Addr base = SegBase(group->seg);
+    Index scanLimitIndex = awlIndexOfAddr(base, awl, 
+					  BufferScanLimit(buffer));
+    Index limitIndex = awlIndexOfAddr(base, awl, 
+					  BufferLimit(buffer));
 
-    AWLRangeWhiten(group, 0,
-                   awlIndexOfAddr(base, awl, BufferScanLimit(buffer)));
-    AWLRangeWhiten(group, awlIndexOfAddr(base, awl, BufferLimit(buffer)),
-                   group->grains);
+    AWLRangeWhiten(group, 0, scanLimitIndex);
+    AWLRangeWhiten(group, limitIndex, group->grains);
+
+    /* Check the buffer is black. */
+    /* This really ought to change when we have a non-trivial */
+    /* pre-flip phase. @@@@ ('coz then we'll be allocating white) */
+    AVER(BTIsSetRange(group->mark, scanLimitIndex, limitIndex));
+    AVER(BTIsSetRange(group->scanned, scanLimitIndex, limitIndex));
+
     /* We didn't condemn the buffer, subtract it from the count. */
     /* @@@@ We could subtract all the free grains. */
     trace->condemned += SegSize(seg)
@@ -627,6 +636,19 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   return ResOK;
 }
 
+/* AWLRangeGrey -- subroutine for AWLGrey */
+static void AWLRangeGrey(AWLGroup group, Index base, Index limit)
+{
+  /* AWLGroup not checked as that's already been done */
+  AVER(limit <= group->grains);
+  /* copes with degenerate case as that makes caller simpler */
+  if(base < limit) {
+    BTSetRange(group->mark, base, limit);
+    BTResRange(group->scanned, base, limit);
+  } else {
+    AVER(base == limit);
+  }
+}
 
 static void AWLGrey(Pool pool, Trace trace, Seg seg)
 {
@@ -644,8 +666,18 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
     AVERT(AWLGroup, group);
 
     SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace->ti));
-    BTSetRange(group->mark, 0, group->grains);
-    BTResRange(group->scanned, 0, group->grains);
+    if(SegBuffer(seg) != NULL) {
+      Addr base = SegBase(seg);
+      Buffer buffer = SegBuffer(seg);
+      AWLRangeGrey(group,
+                   0,
+		   awlIndexOfAddr(base, awl, BufferScanLimit(buffer)));
+      AWLRangeGrey(group,
+                   awlIndexOfAddr(base, awl, BufferLimit(buffer)),
+		   group->grains);
+    } else {
+      AWLRangeGrey(group, 0, group->grains);
+    }
   }
 }
 
