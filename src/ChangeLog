@@ -1,3 +1,7 @@
+2001-10-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* keymap.c (access_keymap): Remove unused variable `charset'.
+
 2001-10-28  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (merge_face_heights): Handle TO being relative as well.
