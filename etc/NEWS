@@ -107,7 +107,8 @@ C-c <left> and C-c <right>, respectively.  This is an incompatible change.
 
 ** Help commands `describe-funcion' and `describe-key' now show function
 arguments in lowercase italics on displays that support it.  To change the
-default, redefine the function `help-default-arg-highlight'.
+default, customize face `help-argument-name' or redefine the function
+`help-default-arg-highlight'.
 
 ---
 ** The comint prompt can now be made read-only, using the new user
@@ -3031,6 +3032,10 @@ whether a given set of face attributes is actually displayable.
 A new predicate `supports' has also been added to the `defface' face
 specification language, which can be used to do this test for faces
 defined with defface.
+
+** The function face-differs-from-default-p now truly checks whether the
+given face displays differently from the default face or not (previously
+it did only a very cursory check).
 
 +++
 ** face-attribute, face-foreground, face-background, and face-stipple now

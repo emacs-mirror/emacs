@@ -240,27 +240,24 @@ If FRAME is omitted or nil, use the selected frame."
 
 
 (defun face-differs-from-default-p (face &optional frame)
-  "Non-nil if FACE displays differently from the default face.
+  "Return non-nil if FACE displays differently from the default face.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame.
-A face is considered to be ``the same'' as the default face if it is
-actually specified in the same way (equal attributes) or if it is
-fully-unspecified, and thus inherits the attributes of any face it
-is displayed on top of."
-  (cond ((eq frame t) (setq frame nil))
-	((null frame) (setq frame (selected-frame))))
-  (let* ((v1 (internal-lisp-face-p face frame))
-	 (n (if v1 (length v1) 0))
-	 (v2 (internal-lisp-face-p 'default frame))
-	 (i 1))
-    (unless v1
-      (error "Not a face: %S" face))
-    (while (and (< i n)
-		(or (eq 'unspecified (aref v1 i))
-		    (equal (aref v1 i) (aref v2 i))))
-      (setq i (1+ i)))
-    (< i n)))
+If FRAME is omitted or nil, use the selected frame."
+  (let ((attrs
+	 '(:family :width :height :weight :slant :foreground
+	   :foreground :background :underline :overline
+	   :strike-through :box :inverse-video))
+	(differs nil))
+    (while (and attrs (not differs))
+      (let* ((attr (pop attrs))
+	     (attr-val (face-attribute face attr frame t)))
+	(when (and
+	       (not (eq attr-val 'unspecified))
+	       (display-supports-face-attributes-p (list attr attr-val)
+						   frame))
+	  (setq differs attr))))
+    differs))
 
 
 (defun face-nontrivial-p (face &optional frame)
@@ -1488,33 +1485,6 @@ If omitted or nil, that stands for the selected frame's display."
       (x-display-grayscale-p display))
      (t
       (> (tty-color-gray-shades display) 2)))))
-
-(defun display-supports-face-attributes-p (attributes &optional display)
-  "Return non-nil if all the face attributes in ATTRIBUTES are supported.
-The optional argument DISPLAY can be a display name, a frame, or
-nil (meaning the selected frame's display)
-
-The definition of `supported' is somewhat heuristic, but basically means
-that a face containing all the attributes in ATTRIBUTES, when merged
-with the default face for display, can be represented in a way that's
-
- (1) different in appearance than the default face, and
- (2) `close in spirit' to what the attributes specify, if not exact.
-
-Point (2) implies that a `:weight black' attribute will be satisfied by
-any display that can display bold, and a `:foreground \"yellow\"' as long
-as it can display a yellowish color, but `:slant italic' will _not_ be
-satisfied by the tty display code's automatic substitution of a `dim'
-face for italic."
-  (let ((frame
-	 (if (framep display)
-	     display
-	   (car (frames-on-display-list display)))))
-    ;; For now, we assume that non-tty displays can support everything.
-    ;; Later, we should add the ability to query about specific fonts,
-    ;; colors, etc.
-    (or (memq (framep frame) '(x w32 mac))
-	(tty-supports-face-attributes-p attributes frame))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

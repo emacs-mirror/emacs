@@ -237,14 +237,19 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	    (concat "src/" file)
 	  file)))))
 
+;;;###autoload
+(defface help-argument-name '((((supports :slant italic)) :inherit italic))
+  "Face to highlight argument names in *Help* buffers.")
+
 (defun help-default-arg-highlight (arg)
   "Default function to highlight arguments in *Help* buffers.
-It returns ARG in lowercase italics, if the display supports it;
-else ARG is returned in uppercase normal."
-  (let ((attrs '(:slant italic)))
-    (if (display-supports-face-attributes-p attrs)
-        (propertize (downcase arg) 'face attrs)
-      arg)))
+It returns ARG in face `help-argument-name'; ARG is also
+downcased if it displays differently than the default
+face (according to `face-differs-from-default-p')."
+  (propertize (if (face-differs-from-default-p 'help-argument-name)
+                  (downcase arg)
+                arg)
+              'face 'help-argument-name))
 
 (defun help-do-arg-highlight (doc args)
   (with-syntax-table (make-syntax-table emacs-lisp-mode-syntax-table)
