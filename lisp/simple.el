@@ -778,6 +778,8 @@ An uppercase letter in REGEXP makes the search case-sensitive."
 	   (prefix-numeric-value current-prefix-arg))))
   (previous-matching-history-element regexp (- n)))
 
+(defvar minibuffer-temporary-goal-position nil)
+
 (defun next-history-element (n)
   "Insert the next element of the minibuffer history into the minibuffer."
   (interactive "p")
@@ -794,6 +796,13 @@ An uppercase letter in REGEXP makes the search case-sensitive."
 	      (error "End of history; no default available")))
 	(if (> narg (length (symbol-value minibuffer-history-variable)))
 	    (error "Beginning of history; no preceding item"))
+	(unless (or (eq last-command 'next-history-element)
+		    (eq last-command 'previous-history-element))
+	  (let ((prompt-end (field-beginning (point-max))))
+	    (set (make-local-variable 'minibuffer-temporary-goal-position)
+		 (cond ((<= (point) prompt-end) prompt-end)
+		       ((eobp) nil)
+		       (t (point))))))
 	(goto-char (point-max))
 	(delete-field)
 	(setq minibuffer-history-position narg)
@@ -811,7 +820,7 @@ An uppercase letter in REGEXP makes the search case-sensitive."
 	     (let ((print-level nil))
 	       (prin1-to-string elt))
 	   elt))
-	(goto-char (field-beginning)))))
+	(goto-char (or minibuffer-temporary-goal-position (point-max))))))
 
 (defun previous-history-element (n)
   "Inserts the previous element of the minibuffer history into the minibuffer."
