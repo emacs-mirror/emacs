@@ -208,7 +208,8 @@ EMACS = emacs
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution
 # and you cannot remake them without installing Emacs first.
-SUBDIR = lib-src src leim
+# leim is not included because it needs special handling.
+SUBDIR = lib-src src
 
 # The makefiles of the directories in $SUBDIR.
 SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile
@@ -222,7 +223,7 @@ SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile src/Makefile oldXMenu/Makefile 
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = ${etcdir} ${lispdir}
 
-all: ${SUBDIR}
+all: ${SUBDIR} leim
 
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
@@ -243,13 +244,19 @@ epaths-force: FRC
 	${srcdir}/move-if-change epaths.h.$$$$ src/epaths.h
 
 # For parallel make, src should be build before leim.
-leim:   src
+# "export PARALLEL=0" is for SGI's Make, to prevent it from
+# running more than 1 process in the leim directory, especially for
+# the $TIT files there.
+leim:   src ${SUBDIR_MAKEFILES} FRC
+	(export PARALLEL; PARALLEL=0; cd $@; $(MAKE) all $(MFLAGS) \
+	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
+	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}')
 
 src:	lib-src FRC
 
 lib-src: FRC src/config.stamp
 
-.RECURSIVE: ${SUBDIR}
+.RECURSIVE: ${SUBDIR} leim
 
 ${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
 	cd $@; $(MAKE) all $(MFLAGS) \
@@ -582,7 +589,7 @@ maintainer-clean: FRC
 ### the coding standards seem to come from.  It's like distclean, but
 ### it deletes backup and autosave files too.
 extraclean:
-	for i in ${SUBDIR}; do (cd $$i; $(MAKE) $(MFLAGS) extraclean); done
+	for i in ${SUBDIR} leim; do (cd $$i; $(MAKE) $(MFLAGS) extraclean); done
 	${top_distclean}
 	-rm -f config-tmp-*
 	-rm -f *~ \#*
