@@ -1,12 +1,13 @@
 ;;; delim-col.el --- Prettify all columns in a region or rectangle.
 
-;; Copyright (C) 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Time-stamp:	<99/08/21 19:51:13 vinicius>
-;; Version: 1.3
-;; Keywords: internal
+;; Author:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Time-stamp:	<2000/10/23 10:51:25 vinicius>
+;; Version:	2.0
+;; Keywords:	internal
+;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +39,7 @@
 ;;
 ;;	a	b	c	d
 ;;	aaaa	bb	ccc	ddddd
-;;	aaa	bbb	cccc   	dddd
+;;	aaa	bbb	cccc	dddd
 ;;	aa	bb	ccccccc	ddd
 ;;
 ;; And the following settings:
@@ -46,7 +47,11 @@
 ;;    (setq delimit-columns-str-before "[ ")
 ;;    (setq delimit-columns-str-after " ]")
 ;;    (setq delimit-columns-str-separator ", ")
+;;    (setq delimit-columns-before "")
+;;    (setq delimit-columns-after "")
 ;;    (setq delimit-columns-separator "\t")
+;;    (setq delimit-columns-format 'separator)
+;;    (setq delimit-columns-extra t)
 ;;
 ;; If you select the lines above and type:
 ;;
@@ -59,7 +64,7 @@
 ;;	[ aaa , bbb, cccc   , dddd  ]
 ;;	[ aa  , bb , ccccccc, ddd   ]
 ;;
-;; But if you select start from the very first b and the very last c and type:
+;; But if you select start from the very first b to the very last c and type:
 ;;
 ;;    M-x delimit-columns-rectangle RET
 ;;
@@ -70,11 +75,32 @@
 ;;	aaa	[ bbb, cccc    ]	dddd
 ;;	aa	[ bb , ccccccc ]	ddd
 ;;
+;; Now, if we change settings to:
+;;
+;;    (setq delimit-columns-before "<")
+;;    (setq delimit-columns-after ">")
+;;
+;; For the `delimit-columns-region' example above, the result is:
+;;
+;;	[ <a>   , <b>  , <c>      , <d>     ]
+;;	[ <aaaa>, <bb> , <ccc>    , <ddddd> ]
+;;	[ <aaa> , <bbb>, <cccc>   , <dddd>  ]
+;;	[ <aa>  , <bb> , <ccccccc>, <ddd>   ]
+;;
+;; And for the `delimit-columns-rectangle' example above, the result is:
+;;
+;;	a	[ <b>  , <c>       ]	d
+;;	aaaa	[ <bb> , <ccc>     ]	ddddd
+;;	aaa	[ <bbb>, <cccc>    ]	dddd
+;;	aa	[ <bb> , <ccccccc> ]	ddd
+;;
 ;; Note that `delimit-columns-region' operates over all text region
 ;; selected, extending the region start to the beginning of line and the
 ;; region end to the end of line.  While `delimit-columns-rectangle'
 ;; operates over the text rectangle selected which rectangle diagonal is
 ;; given by the region start and end.
+;;
+;; See `delimit-columns-format' variable documentation for column formating.
 ;;
 ;; `delimit-columns-region' is useful when you have columns of text that
 ;; are not well aligned, like:
@@ -89,6 +115,8 @@
 ;;	horse	apple	bus
 ;;	dog	pineapple	car	EXTRA
 ;;	porcupine	strawberry	airplane
+;;
+;; Use `delimit-columns-customize' to customize delim-col package variables.
 
 ;;; Code:
 
@@ -96,21 +124,130 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Options:
 
-(defvar delimit-columns-str-before ""
-  "*Specify a string to be inserted before all columns.")
+(defgroup columns nil
+  "Prettify columns"
+  :link '(emacs-library-link :tag "Source Lisp File" "delim-col.el")
+  :prefix "delimit-columns-"
+  :group 'internal)
 
-(defvar delimit-columns-str-separator ", "
-  "*Specify a string to be inserted between each column.")
+(defcustom delimit-columns-str-before ""
+  "*Specify a string to be inserted before all columns."
+  :type '(string :tag "Before All Columns")
+  :group 'columns)
 
-(defvar delimit-columns-str-after ""
-  "*Specify a string to be inserted after all columns.")
+(defcustom delimit-columns-str-separator ", "
+  "*Specify a string to be inserted between each column."
+  :type '(string :tag "Between Each Column")
+  :group 'columns)
 
-(defvar delimit-columns-separator "\t"
-  "*Specify a regexp which separates each column.")
+(defcustom delimit-columns-str-after ""
+  "*Specify a string to be inserted after all columns."
+  :type '(string :tag "After All Columns")
+  :group 'columns)
+
+(defcustom delimit-columns-before ""
+  "*Specify a string to be inserted before each column."
+  :type '(string :tag "Before Each Column")
+  :group 'columns)
+
+(defcustom delimit-columns-after ""
+  "*Specify a string to be inserted after each column."
+  :type '(string :tag "After Each Column")
+  :group 'columns)
+
+(defcustom delimit-columns-separator "\t"
+  "*Specify a regexp which separates each column."
+  :type '(regexp :tag "Column Separator")
+  :group 'columns)
+
+(defcustom delimit-columns-format t
+  "*Specify how to format columns.
+
+For examples below, consider:
+
+   + columns `ccc' and `dddd',
+   + the maximum column length for each column is 6,
+   + and the following settings:
+      (setq delimit-columns-before \"<\")
+      (setq delimit-columns-after \">\")
+      (setq delimit-columns-separator \":\")
+
+Valid values are:
+
+   nil		no formating.  That is, `delimit-columns-after' is followed by
+		`delimit-columns-separator'.
+		For example, the result is: \"<ccc>:<dddd>:\"
+
+   t		align columns.  That is, `delimit-columns-after' is followed by
+		`delimit-columns-separator' and then followed by spaces.
+		For example, the result is: \"<ccc>:   <dddd>:  \"
+
+   'separator	align separators.  That is, `delimit-columns-after' is followed
+		by spaces and then followed by `delimit-columns-separator'.
+		For example, the result is: \"<ccc>   :<dddd>  :\"
+
+   'padding	format column by filling with spaces before
+		`delimit-columns-after'.  That is, spaces are followed by
+		`delimit-columns-after' and then followed by
+		`delimit-columns-separator'.
+		For example, the result is: \"<ccc   >:<dddd  >:\"
+
+Any other value is treated as t."
+  :type '(choice :menu-tag "Column Formating"
+		 :tag "Column Formating"
+		 (const :tag "No Formating" nil)
+		 (const :tag "Column Alignment" t)
+		 (const :tag "Separator Aligment" separator)
+		 (const :tag "Column Padding" padding))
+  :group 'columns)
+
+(defcustom delimit-columns-extra t
+  "*Non-nil means that lines will have the same number of columns.
+
+This has effect only when there are lines with different number of columns."
+  :type '(boolean :tag "Lines With Same Number Of Column")
+  :group 'columns)
+
+(defcustom delimit-columns-start 0
+  "*Specify column number to start prettifing.
+
+See also `delimit-columns-end' for documentation.
+
+The following relation must hold:
+   0 <= delimit-columns-start <= delimit-columns-end
+
+The column number start from 0 and it's relative to the beginning of selected
+region.  So if you selected a text region, the first column (column 0) is
+located at beginning of line.  If you selected a text rectangle, the first
+column (column 0) is located at left corner."
+  :type '(integer :tag "Column Start")
+  :group 'columns)
+
+(defcustom delimit-columns-end 1000000
+  "*Specify column number to end prettifing.
+
+See also `delimit-columns-start' for documentation.
+
+The following relation must hold:
+   0 <= delimit-columns-start <= delimit-columns-end
+
+The column number start from 0 and it's relative to the beginning of selected
+region.  So if you selected a text region, the first column (column 0) is
+located at beginning of line.  If you selected a text rectangle, the first
+column (column 0) is located at left corner."
+  :type '(integer :tag "Column End")
+  :group 'columns)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Commands:
+
+
+;;;###autoload
+(defun delimit-columns-customize ()
+  "Customization of `columns' group."
+  (interactive)
+  (customize-group 'columns))
 
 
 ;;;###autoload
@@ -131,30 +268,49 @@ START and END delimits the text region."
 	 (if (stringp delimit-columns-str-after)
 	     delimit-columns-str-after
 	   ""))
+	(delimit-columns-before
+	 (if (stringp delimit-columns-before)
+	     delimit-columns-before
+	   ""))
+	(delimit-columns-after
+	 (if (stringp delimit-columns-after)
+	     delimit-columns-after
+	   ""))
+	(delimit-columns-start
+	 (if (and (integerp delimit-columns-start)
+		  (>= delimit-columns-start 0))
+	     delimit-columns-start
+	   0))
+	(delimit-columns-end
+	 (if (integerp delimit-columns-end)
+	     delimit-columns-end
+	   1000000))
 	(delimit-columns-limit (make-marker))
 	(the-end (copy-marker end))
 	delimit-columns-max)
-    (save-excursion
-      (goto-char start)
-      (beginning-of-line)
-      ;; get maximum length for each column
+    (when (<= delimit-columns-start delimit-columns-end)
       (save-excursion
+	(goto-char start)
+	(beginning-of-line)
+	;; get maximum length for each column
+	(and delimit-columns-align-columns
+	     (save-excursion
+	       (while (< (point) the-end)
+		 (delimit-columns-rectangle-max
+		  (prog1
+		      (point)
+		    (end-of-line)))
+		 (forward-char 1))))
+	;; prettify columns
 	(while (< (point) the-end)
-	  (delimit-columns-rectangle-max
+	  (delimit-columns-rectangle-line
 	   (prog1
 	       (point)
 	     (end-of-line)))
-	  (forward-char 1)))
-      ;; prettify columns
-      (while (< (point) the-end)
-	(delimit-columns-rectangle-line
-	 (prog1
-	     (point)
-	   (end-of-line)))
-	(forward-char 1))
-      ;; nullify markers
-      (set-marker delimit-columns-limit nil)
-      (set-marker the-end nil))))
+	  (forward-char 1))
+	;; nullify markers
+	(set-marker delimit-columns-limit nil)
+	(set-marker the-end nil)))))
 
 
 (require 'rect)
@@ -178,20 +334,39 @@ START and END delimits the corners of text rectangle."
 	 (if (stringp delimit-columns-str-after)
 	     delimit-columns-str-after
 	   ""))
+	(delimit-columns-before
+	 (if (stringp delimit-columns-before)
+	     delimit-columns-before
+	   ""))
+	(delimit-columns-after
+	 (if (stringp delimit-columns-after)
+	     delimit-columns-after
+	   ""))
+	(delimit-columns-start
+	 (if (and (integerp delimit-columns-start)
+		  (>= delimit-columns-start 0))
+	     delimit-columns-start
+	   0))
+	(delimit-columns-end
+	 (if (integerp delimit-columns-end)
+	     delimit-columns-end
+	   1000000))
 	(delimit-columns-limit (make-marker))
 	(the-end (copy-marker end))
 	delimit-columns-max)
-    ;; get maximum length for each column
-    (save-excursion
-      (operate-on-rectangle 'delimit-columns-rectangle-max
-			    start the-end t))
-    ;; prettify columns
-    (save-excursion
-      (operate-on-rectangle 'delimit-columns-rectangle-line
-			    start the-end t))
-    ;; nullify markers
-    (set-marker delimit-columns-limit nil)
-    (set-marker the-end nil)))
+    (when (<= delimit-columns-start delimit-columns-end)
+      ;; get maximum length for each column
+      (and delimit-columns-align-columns
+	   (save-excursion
+	     (operate-on-rectangle 'delimit-columns-rectangle-max
+				   start the-end nil)))
+      ;; prettify columns
+      (save-excursion
+	(operate-on-rectangle 'delimit-columns-rectangle-line
+			      start the-end nil))
+      ;; nullify markers
+      (set-marker delimit-columns-limit nil)
+      (set-marker the-end nil))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -237,33 +412,81 @@ START and END delimits the corners of text rectangle."
 
 
 (defun delimit-columns-rectangle-line (startpos &optional ignore ignore)
-  (let ((ncol 0)
-	(len (length delimit-columns-max))
+  (let ((len  (length delimit-columns-max))
+	(ncol 0)
 	origin)
     (set-marker delimit-columns-limit (point))
     (goto-char startpos)
-    (insert delimit-columns-str-before)
+    ;; skip initial columns
+    (while (and (< ncol delimit-columns-start)
+		(< (point) delimit-columns-limit)
+		(re-search-forward delimit-columns-separator
+				   delimit-columns-limit 'move))
+      (setq ncol (1+ ncol)))
+    ;; insert first formating
+    (insert delimit-columns-str-before delimit-columns-before)
     ;; Adjust all columns but last one
     (while (progn
 	     (setq origin (current-column))
 	     (and (< (point) delimit-columns-limit)
 		  (re-search-forward delimit-columns-separator
-				     delimit-columns-limit 'move)))
+				     delimit-columns-limit 'move)
+		  (or (< ncol delimit-columns-end)
+		      (progn
+			(goto-char (match-beginning 0))
+			nil))))
       (delete-region (match-beginning 0) (point))
-      (insert (make-string (- (aref delimit-columns-max ncol)
-			      (- (current-column) origin))
-			   ?\ )
-	      delimit-columns-str-separator)
-      (setq ncol (1+ ncol)))
-    ;; Adjust last column
-    (insert (make-string (- (aref delimit-columns-max ncol)
+      (delimit-columns-format
+       (and delimit-columns-format
+	    (make-string (- (aref delimit-columns-max ncol)
 			    (- (current-column) origin))
-			 ?\ ))
-    ;; Adjust extra columns, if needed
-    (while (< (setq ncol (1+ ncol)) len)
-      (insert delimit-columns-str-separator
-	      (make-string (aref delimit-columns-max ncol) ?\ )))
-    (insert delimit-columns-str-after)))
+			 ?\ )))
+      (setq ncol (1+ ncol)))
+    ;; Prepare last column spaces
+    (let ((spaces (and delimit-columns-format
+		       (make-string (- (aref delimit-columns-max ncol)
+				       (- (current-column) origin))
+				    ?\ ))))
+      ;; Adjust extra columns, if needed
+      (and delimit-columns-extra
+	   (while (and (< (setq ncol (1+ ncol)) len)
+		       (<= ncol delimit-columns-end))
+	     (delimit-columns-format spaces)
+	     (setq spaces (and delimit-columns-format
+			       (make-string (aref delimit-columns-max ncol)
+					    ?\ )))))
+      ;; insert last formating
+      (cond ((null delimit-columns-format)
+	     (insert delimit-columns-after delimit-columns-str-after))
+	    ((eq delimit-columns-format 'padding)
+	     (insert spaces delimit-columns-after delimit-columns-str-after))
+	    (t
+	     (insert delimit-columns-after spaces delimit-columns-str-after))
+	    ))
+    (goto-char (max (point) delimit-columns-limit))))
+
+
+(defun delimit-columns-format (spaces)
+  (cond ((null delimit-columns-format)
+	 (insert delimit-columns-after
+		 delimit-columns-str-separator
+		 delimit-columns-before))
+	((eq delimit-columns-format 'separator)
+	 (insert delimit-columns-after
+		 spaces
+		 delimit-columns-str-separator
+		 delimit-columns-before))
+	((eq delimit-columns-format 'padding)
+	 (insert spaces
+		 delimit-columns-after
+		 delimit-columns-str-separator
+		 delimit-columns-before))
+	(t
+	 (insert delimit-columns-after
+		 delimit-columns-str-separator
+		 spaces
+		 delimit-columns-before))
+	))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
