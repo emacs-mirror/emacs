@@ -1,3 +1,8 @@
+2001-11-05  Andrew Innes  <andrewi@gnu.org>
+
+	* w32proc.c (Fw32_set_keyboard_layout): Use CHECK_NUMBER_CAR and
+	CHECK_NUMBER_CDR.
+
 2001-11-05  Richard M. Stallman  <rms@gnu.org>
 
 	* unexelf.c (unexec): Minor changes; clean up comments.

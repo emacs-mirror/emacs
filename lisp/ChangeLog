@@ -1,3 +1,8 @@
+2001-11-05  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (bootstrap-clean-CMD, bootstrap-clean-SH): Don't
+	attempt to remake autoloads before nuking .elc files.
+
 2001-11-04  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (last-sexp-toggle-display): Cope if
