@@ -1,3 +1,41 @@
+2002-07-22  Kenichi Handa  <handa@etl.go.jp>
+
+	* character.h (TRAILING_CODE_P): New macro.
+	(MAYBE_UNIFY_CHAR): Adjusted for the change of Funify_charset.
+	(string_char_with_unification): Fix prototype.
+	(Vscript_alist): Extern it.
+
+	* charset.h (Vcharset_ordered_list): Extern it.
+	(charset_ordered_list_tick): Extern it.
+	(EMACS_MULE_LEADING_CODE_PRIVATE_11,
+	EMACS_MULE_LEADING_CODE_PRIVATE_12,
+	EMACS_MULE_LEADING_CODE_PRIVATE_21,
+	EMACS_MULE_LEADING_CODE_PRIVATE_22): New macros
+	(Funify_charset): Adjusted for the change of Funify_charset.
+
+	* charset.c (charset_ordered_list_tick): New variable.
+	(Fdefine_charset_internal): Increment charset_ordered_list_tick.
+	(Funify_charset): New optional arg DEUNIFY.  If it is non-nil,
+	deunify intead of unify a charset.
+	(string_xstring_p): Add `const' to local variables.
+	(find_charsets_in_text): Add `const' to arguemnts and local
+	variables.
+	(encode_char): Adjusted for the change of Funify_charset.  Fix
+	detecting of invalid code.
+	(Fset_charset_priority): Increment charset_ordered_list_tick.
+
+	* coding.c (LEADING_CODE_PRIVATE_11, LEADING_CODE_PRIVATE_12,
+	LEADING_CODE_PRIVATE_21, LEADING_CODE_PRIVATE_22): Macros
+	deleted.  Callers changes to use
+	EMACS_MULE_LEADING_CODE_PRIVATE_11, etc.
+	(decode_coding_ccl): Add `const' to local variables.
+	(consume_chars): Likewise.
+	(Ffind_coding_systems_region_internal): Likewise.
+	(Fcheck_coding_systems_region): Likewise.
+
+	* print.c (print_object): Use octal form for printing the
+	contents of a bool vector.
+
 2002-07-18  Dave Love  <fx@gnu.org>
 
 	* lread.c (Fload) <!load_dangerous_libraries>: Don't leak fd.
