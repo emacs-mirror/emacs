@@ -848,9 +848,15 @@ extern Lisp_Object Vtransient_mark_mode;
 /* Allocation of buffer text.  */
 
 #ifdef REL_ALLOC
-#define BUFFER_ALLOC(data,size) ((unsigned char *) r_alloc (&data, (size)))
-#define BUFFER_REALLOC(data,size) ((unsigned char *) r_re_alloc (&data, (size)))
-#define BUFFER_FREE(data) (r_alloc_free (&data))
+
+extern char *r_alloc P_ ((char **, unsigned long));
+extern void r_alloc_free P_ ((char **ptr));
+
+#define BUFFER_ALLOC(data,size) \
+     ((unsigned char *) r_alloc ((char **)&data, (size)))
+#define BUFFER_REALLOC(data,size) \
+     ((unsigned char *) r_re_alloc ((char **) &data, (size)))
+#define BUFFER_FREE(data) (r_alloc_free ((char **) &data))
 #define R_ALLOC_DECLARE(var,data) (r_alloc_declare (&var, (data)))
 #else
 #define BUFFER_ALLOC(data,size) (data = (unsigned char *) malloc ((size)))
