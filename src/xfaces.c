@@ -487,6 +487,10 @@ int tty_suppress_bold_inverse_default_colors_p;
 
 static Lisp_Object Vparam_value_alist;
 
+/* Non-zero while realizing the default face.  */
+
+static int realizing_default_face_p;
+
 /* The total number of colors currently allocated.  */
 
 #if GLYPH_DEBUG
@@ -505,14 +509,12 @@ struct table_entry;
 static void map_tty_color P_ ((struct frame *, struct face *,
 			       enum lface_attribute_index, int *));
 static Lisp_Object resolve_face_name P_ ((Lisp_Object));
-static int may_use_scalable_font_p P_ ((struct font_name *, char *));
+static int may_use_scalable_font_p P_ ((char *));
 static void set_font_frame_param P_ ((Lisp_Object, Lisp_Object));
 static int better_font_p P_ ((int *, struct font_name *, struct font_name *,
 			      int, int));
-static int first_font_matching P_ ((struct frame *f, char *,
-				    struct font_name *));
 static int x_face_list_fonts P_ ((struct frame *, char *,
-				  struct font_name *, int, int, int));
+				  struct font_name *, int, int));
 static int font_scalable_p P_ ((struct font_name *));
 static int get_lface_attributes P_ ((struct frame *, Lisp_Object, Lisp_Object *, int));
 static int load_pixmap P_ ((struct frame *, Lisp_Object, unsigned *, unsigned *));
@@ -532,7 +534,7 @@ static int font_list_1 P_ ((struct frame *, Lisp_Object, Lisp_Object,
 			    Lisp_Object, struct font_name **));
 static int font_list P_ ((struct frame *, Lisp_Object, Lisp_Object,
 			  Lisp_Object, struct font_name **));
-static int try_font_list P_ ((struct frame *, Lisp_Object *, Lisp_Object,
+static int try_font_list P_ ((struct frame *, Lisp_Object *, 
 			      Lisp_Object, Lisp_Object, struct font_name **));
 static int cmp_font_names P_ ((const void *, const void *));
 static struct face *realize_face P_ ((struct face_cache *, Lisp_Object *, int,
@@ -2287,23 +2289,20 @@ sort_fonts (f, fonts, nfonts, cmpfn)
    display in x_display_list.  FONTS is a pointer to a vector of
    NFONTS font_name structures.  TRY_ALTERNATIVES_P non-zero means try
    alternative patterns from Valternate_fontname_alist if no fonts are
-   found matching PATTERN.  SCALABLE_FONTS_P non-zero means include
-   scalable fonts.
+   found matching PATTERN.
 
    For all fonts found, set FONTS[i].name to the name of the font,
    allocated via xmalloc, and split font names into fields.  Ignore
    fonts that we can't parse.  Value is the number of fonts found.  */
 
 static int
-x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
-		   scalable_fonts_p)
+x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p)
      struct frame *f;
      char *pattern;
      struct font_name *fonts;
      int nfonts, try_alternatives_p;
-     int scalable_fonts_p;
 {
-  int n;
+  int n, nignored;
 
   /* NTEMACS_TODO : currently this uses w32_list_fonts, but it may be
      better to do it the other way around. */
@@ -2318,17 +2317,18 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
   lfonts = w32_list_fonts (f, lpattern, 0, nfonts);
   UNBLOCK_INPUT;
 #else
-  lfonts = x_list_fonts (f, lpattern, scalable_fonts_p ? -1 : 0, nfonts);
+  lfonts = x_list_fonts (f, lpattern, -1, nfonts);
 #endif
 
   /* Make a copy of the font names we got from X, and
      split them into fields.  */
-  n = 0;
-  for (tem = lfonts; CONSP (tem); tem = XCDR (tem))
+  n = nignored = 0;
+  for (tem = lfonts; CONSP (tem) && n < nfonts; tem = XCDR (tem))
     {
       Lisp_Object elt, tail;
       char *name = XSTRING (XCAR (tem))->data;
 
+      /* Ignore fonts matching a pattern from face-ignored-fonts.  */
       for (tail = Vface_ignored_fonts; CONSP (tail); tail = XCDR (tail))
 	{
 	  elt = XCAR (tail);
@@ -2337,24 +2337,44 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
 	    break;
 	}
       if (!NILP (tail))
-	continue;
+	{
+	  ++nignored;
+	  continue;
+	}
 
       /* Make a copy of the font name.  */
       fonts[n].name = xstrdup (name);
 
-      /* Ignore fonts having a name that we can't parse.  */
-      if (!split_font_name (f, fonts + n, 1))
-	xfree (fonts[n].name);
-      else if (font_scalable_p (fonts + n))
+      if (split_font_name (f, fonts + n, 1))
 	{
-	  if (!scalable_fonts_p
-	      || !may_use_scalable_font_p (fonts + n, name))
-	    xfree (fonts[n].name);
+	  if (font_scalable_p (fonts + n)
+	      && !may_use_scalable_font_p (name))
+	    {
+	      ++nignored;
+	      xfree (fonts[n].name);
+	    }
 	  else
 	    ++n;
 	}
       else
-	++n;
+	xfree (fonts[n].name);
+    }
+
+  /* If someone specified a default font that's scalable, try
+     to do the right thing.  */
+  if (realizing_default_face_p
+      && try_alternatives_p
+      && n == 0
+      && nignored > 0)
+    {
+      for (tem = lfonts; CONSP (tem) && n < nfonts; tem = XCDR (tem))
+	{
+	  fonts[n].name = xstrdup (XSTRING (XCAR (tem))->data);
+	  if (split_font_name (f, fonts + n, 1))
+	    ++n;
+	  else
+	    xfree (fonts[n].name);
+	}
     }
 
   /* If no fonts found, try patterns from Valternate_fontname_alist.  */
@@ -2385,42 +2405,13 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
 		    already with no success.  */
 		 && (strcmp (XSTRING (name)->data, pattern) == 0
 		     || (n = x_face_list_fonts (f, XSTRING (name)->data,
-						fonts, nfonts, 0,
-						scalable_fonts_p),
+						fonts, nfonts, 0),
 			 n == 0)))
 	    patterns = XCDR (patterns);
 	}
     }
 
   return n;
-}
-
-
-/* Determine the first font matching PATTERN on frame F.  Return in
-   *FONT the matching font name, split into fields.  Value is non-zero
-   if a match was found.  */
-
-static int
-first_font_matching (f, pattern, font)
-     struct frame *f;
-     char *pattern;
-     struct font_name *font;
-{
-  int nfonts = 100;
-  struct font_name *fonts;
-
-  fonts = (struct font_name *) xmalloc (nfonts * sizeof *fonts);
-  nfonts = x_face_list_fonts (f, pattern, fonts, nfonts, 1, 0);
-
-  if (nfonts > 0)
-    {
-      bcopy (&fonts[0], font, sizeof *font);
-
-      fonts[0].name = NULL;
-      free_font_names (fonts, nfonts);
-    }
-
-  return nfonts > 0;
 }
 
 
@@ -2447,7 +2438,7 @@ sorted_font_list (f, pattern, cmpfn, fonts)
     nfonts = XFASTINT (Vfont_list_limit);
 
   *fonts = (struct font_name *) xmalloc (nfonts * sizeof **fonts);
-  nfonts = x_face_list_fonts (f, pattern, *fonts, nfonts, 1, 1);
+  nfonts = x_face_list_fonts (f, pattern, *fonts, nfonts, 1);
 
   /* Sort the resulting array and return it in *FONTS.  If no
      fonts were found, make sure to set *FONTS to null.  */
@@ -5677,9 +5668,8 @@ build_scalable_font_name (f, font, specified_pt)
    with input blocked.  */
 
 static int
-may_use_scalable_font_p (font, name)
-     struct font_name *font;
-     char *name;
+may_use_scalable_font_p (font)
+     char *font;
 {
   if (EQ (Vscalable_fonts_allowed, Qt))
     return 1;
@@ -5691,7 +5681,7 @@ may_use_scalable_font_p (font, name)
 	{
 	  regexp = XCAR (tail);
 	  if (STRINGP (regexp)
-	      && fast_c_string_match_ignore_case (regexp, name) >= 0)
+	      && fast_c_string_match_ignore_case (regexp, font) >= 0)
 	    return 1;
 	}
     }
@@ -5817,16 +5807,23 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio)
 }
 
 
-/* Try to get a list of fonts on frame F with font family FAMILY and
-   registry/encoding REGISTRY.  Return in *FONTS a pointer to a vector
-   of font_name structures for the fonts matched.  Value is the number
-   of fonts found.  */
+/* Get a list of matching fonts on frame F.
+
+   FAMILY, if a string, specifies a font family.  If nil, use
+   the family specified in Lisp face attributes ATTRS instead.
+
+   REGISTRY, if a string, specifies a font registry and encoding to
+   match.  A value of nil means include fonts of any registry and
+   encoding.
+   
+   Return in *FONTS a pointer to a vector of font_name structures for
+   the fonts matched.  Value is the number of fonts found.  */
 
 static int
-try_font_list (f, attrs, pattern, family, registry, fonts)
+try_font_list (f, attrs, family, registry, fonts)
      struct frame *f;
      Lisp_Object *attrs;
-     Lisp_Object pattern, family, registry;
+     Lisp_Object family, registry;
      struct font_name **fonts;
 {
   int nfonts;
@@ -5834,7 +5831,7 @@ try_font_list (f, attrs, pattern, family, registry, fonts)
   if (NILP (family) && STRINGP (attrs[LFACE_FAMILY_INDEX]))
     family = attrs[LFACE_FAMILY_INDEX];
 
-  nfonts = font_list (f, pattern, family, registry, fonts);
+  nfonts = font_list (f, Qnil, family, registry, fonts);
   if (nfonts == 0 && !NILP (family))
     {
       Lisp_Object alter;
@@ -5928,8 +5925,7 @@ choose_face_font (f, attrs, fontset, c)
 
   /* Get a list of fonts matching that pattern and choose the
      best match for the specified face attributes from it.  */
-  nfonts = try_font_list (f, attrs, Qnil, XCAR (pattern), XCDR (pattern),
-			  &fonts);
+  nfonts = try_font_list (f, attrs, XCAR (pattern), XCDR (pattern), &fonts);
   width_ratio = (SINGLE_BYTE_CHAR_P (c)
 		 ? 1
 		 : CHARSET_WIDTH (CHAR_CHARSET (c)));
@@ -6085,7 +6081,11 @@ realize_default_face (f)
   xassert (lface_fully_specified_p (XVECTOR (lface)->contents));
   check_lface (lface);
   bcopy (XVECTOR (lface)->contents, attrs, sizeof attrs);
+  
+  realizing_default_face_p = 1;
   face = realize_face (c, attrs, 0, NULL, DEFAULT_FACE_ID);
+  realizing_default_face_p = 0;
+
   return 1;
 }
 
