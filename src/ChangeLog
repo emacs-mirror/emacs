@@ -1,6 +1,7 @@
 1999-11-02  Dave Love  <fx@gnu.org>
 
-	* process.c: Use string.h for strsignal.
+	* process.c: Define _GNU_SOURCE before config.h to get strsignal
+	declared with glibc2.
 
 1999-11-02  Gerd Moellmann  <gerd@gnu.org>
 
