@@ -1,3 +1,8 @@
+2000-11-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (update_text_area): Don't skip over equal glyphs
+	when the last current glyph overlaps the glyph to its right.
+
 2000-11-18  Miles Bader  <miles@gnu.org>
 
 	* xdisp.c (message_log_check_duplicate): Let "..."-detection match
