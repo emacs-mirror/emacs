@@ -45,7 +45,7 @@
   (require 'cl)
 
   (cond
-   ((eq (sref (emacs-version) 0) ?X)
+   ((eq (aref (emacs-version) 0) ?X)
     (defmacro winner-active-region ()
       '(region-active-p))
     (defsetf winner-active-region () (store)
