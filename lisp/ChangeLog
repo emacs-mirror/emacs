@@ -1,3 +1,8 @@
+2003-09-13  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* electric.el (Electric-pop-up-window): For the `one-window' case,
+	no longer disconcertingly move point in the original buffer.
+
 2003-09-13  Kevin Rodgers  <ihs_4664@yahoo.com> (tiny change)
 
 	* hl-line.el: Documentation (comments-only) fix.
@@ -156,7 +161,7 @@
 
 2003-08-29  Richard M. Stallman  <rms@gnu.org>
 
-	* mail/sendmail.el (sendmail-sync-aliases, mail-setup): 
+	* mail/sendmail.el (sendmail-sync-aliases, mail-setup):
 	Do nothing with mail-personal-alias-file if it is nil.
 
 	* mail/mailabbrev.el (mail-abbrevs-sync-aliases):
@@ -164,7 +169,7 @@
 
 	* term.el (term-exec-1): Bind coding-system-for-read.
 
-	* dired.el (dired-mouse-find-file-other-window): 
+	* dired.el (dired-mouse-find-file-other-window):
 	Use dired-view-command-alist here, as in dired-view-file.
 	(dired-view-command-alist): Use %s to substitute file name.
 	Handle .ps_pages, .eps, .jpg, .gif, .png.
@@ -276,7 +281,7 @@
 	* calendar/diary-lib.el (simple-diary-display, make-diary-entry):
 	Allow the diary to pop up a new frame, if needed.
 
-	* mail/sendmail.el (mail-specify-envelope-from): Doc change.	
+	* mail/sendmail.el (mail-specify-envelope-from): Doc change.
 	* mail/smtpmail.el (smtpmail-mail-address): Doc change.
 	(smtpmail-send-it): Make treatment of envelope-from consistent with
 	sendmail.el.
@@ -287,7 +292,7 @@
 	(sh-add-completer): Fix nil branch of case statement.
 
 2003-08-24  Masatake YAMATO  <jet@gyve.org>
-	
+
 	* progmodes/ld-script.el: New file.
 
 2003-08-23  Markus Rost  <rost@math.ohio-state.edu>
@@ -296,7 +301,7 @@
 
 2003-08-23  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc-hooks.el (vc-ignore-vc-files, vc-master-templates): Better 
+	* vc-hooks.el (vc-ignore-vc-files, vc-master-templates): Better
 	explain obsolescence, and what to use instead.
 
 2003-08-23  Masatake YAMATO  <jet@gyve.org>
@@ -306,7 +311,7 @@
 
 2003-08-20  Dave Love  <fx@gnu.org>
 
-	* international/mule.el (make-coding-system) 
+	* international/mule.el (make-coding-system)
 	(set-buffer-file-coding-system): Doc fix.
 
 	* emacs-lisp/lisp-mode.el (common-lisp-mode): New.
