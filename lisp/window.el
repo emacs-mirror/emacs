@@ -338,7 +338,8 @@ returning fewer lines than actually exist in the case where the real
 value cannot be determined."
   (with-current-buffer (window-buffer window)
     (- (window-height window)
-       (if mode-line-format
+       (if (and (not (window-minibuffer-p window))
+		mode-line-format)
 	   (1+ (mode-line-window-height-fudge))
 	 0)
        (if header-line-format
