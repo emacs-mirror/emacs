@@ -4,7 +4,7 @@
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
-;; Version: 3.1
+;; Version: 3.2
 ;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
@@ -29,8 +29,7 @@
 ;;;
 ;;;  Revision and Version Information
 ;;;
-(defconst tpu-version "3.1" "TPU-edt version number.")
-(defconst tpu-revision "$Revision: 1.4 $" "Revision number of TPU-edt.")
+(defconst tpu-version "3.2" "TPU-edt version number.")
 
 
 ;;;
@@ -477,6 +476,14 @@ its ASCII decimal value."
   (if overwrite-mode (delete-char 1))
   (insert (if num num 0)))
 
+(defun tpu-quoted-insert (num)
+  "Read next input character and insert it.
+This is useful for inserting control characters."
+  (interactive "*p")
+  (let ((char (read-char)) )
+    (if overwrite-mode (delete-char num))
+    (insert-char char num)))
+
 
 ;;;
 ;;;  TPU line-mode commands
@@ -560,6 +567,16 @@ its ASCII decimal value."
 
 (fset 'help 'tpu-help)
 (fset 'HELP 'tpu-help)
+
+(fset 'set\ cursor\ free 'tpu-set-cursor-free)
+(fset 'SET\ CURSOR\ FREE 'tpu-set-cursor-free)
+
+(fset 'set\ cursor\ bound 'tpu-set-cursor-bound)
+(fset 'SET\ CURSOR\ BOUND 'tpu-set-cursor-bound)
+
+(fset 'set\ scroll\ margins 'tpu-set-scroll-margins)
+(fset 'SET\ SCROLL\ MARGINS 'tpu-set-scroll-margins)
+
 
 ;; Around emacs version 18.57, function line-move was renamed to
 ;; next-line-internal.  If we're running under an older emacs,
@@ -1798,7 +1815,7 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
 (define-key GOLD-map "C" 'repeat-complex-command)             ; C
 (define-key GOLD-map "D" 'shell-command)                      ; D
 (define-key GOLD-map "E" 'tpu-exit)                           ; E
-(define-key GOLD-map "F" 'nil)                                ; F
+(define-key GOLD-map "F" 'tpu-set-cursor-free)                ; F
 (define-key GOLD-map "G" 'tpu-get)                            ; G
 (define-key GOLD-map "H" 'nil)                                ; H
 (define-key GOLD-map "I" 'tpu-include)                        ; I
@@ -1829,7 +1846,7 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
 (define-key GOLD-map "c" 'repeat-complex-command)             ; c
 (define-key GOLD-map "d" 'shell-command)                      ; d
 (define-key GOLD-map "e" 'tpu-exit)                           ; e
-(define-key GOLD-map "f" 'nil)                                ; f
+(define-key GOLD-map "f" 'tpu-set-cursor-free)                ; f
 (define-key GOLD-map "g" 'tpu-get)                            ; g
 (define-key GOLD-map "h" 'nil)                                ; h
 (define-key GOLD-map "i" 'tpu-include)                        ; i
@@ -1949,14 +1966,13 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
 (define-key global-map "\C-a" 'tpu-toggle-overwrite-mode)     ; ^A
 (define-key global-map "\C-b" 'repeat-complex-command)        ; ^B
 (define-key global-map "\C-e" 'tpu-current-end-of-line)       ; ^E
-(define-key global-map "\C-f" 'set-visited-file-name)         ; ^F
 (define-key global-map "\C-h" 'tpu-next-beginning-of-line)    ; ^H (BS)
 (define-key global-map "\C-j" 'tpu-delete-previous-word)      ; ^J (LF)
 (define-key global-map "\C-k" 'tpu-define-macro-key)          ; ^K
 (define-key global-map "\C-l" 'tpu-insert-formfeed)           ; ^L (FF)
 (define-key global-map "\C-r" 'recenter)                      ; ^R
 (define-key global-map "\C-u" 'tpu-delete-to-bol)             ; ^U
-(define-key global-map "\C-v" 'quoted-insert)                 ; ^V
+(define-key global-map "\C-v" 'tpu-quoted-insert)             ; ^V
 (define-key global-map "\C-w" 'redraw-display)                ; ^W
 (define-key global-map "\C-z" 'tpu-exit)                      ; ^Z
 
@@ -1979,7 +1995,6 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
  	     (define-key global-map "\C-a" (lookup-key map "\C-a"))     ; ^A
  	     (define-key global-map "\C-b" (lookup-key map "\C-b"))     ; ^B
  	     (define-key global-map "\C-e" (lookup-key map "\C-e"))     ; ^E
- 	     (define-key global-map "\C-f" (lookup-key map "\C-f"))     ; ^F
 	     (define-key global-map "\C-h" (lookup-key map "\C-h"))     ; ^H (BS)
 	     (define-key global-map "\C-j" (lookup-key map "\C-j"))     ; ^J (LF)
 	     (define-key global-map "\C-k" (lookup-key map "\C-k"))     ; ^K
