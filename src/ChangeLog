@@ -1,3 +1,12 @@
+2002-06-03  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (message_with_string): Error if STRING is not a string.
+
+	* fns.c (md5): Pass FILE arg to Vselect_safe_coding_system_function.
+
+	* fileio.c (choose_write_coding_system): Pass FILE arg to
+	Vselect_safe_coding_system_function.
+
 2002-06-03  Ken Raeburn  <raeburn@raeburn.org>
 
 	* buffer.c (fix_overlays_before): Fix list-walking bug in 05-19
@@ -3397,8 +3406,6 @@
 
 	* xfaces.c (Fface_attributes_as_vector): Doc fix.
 
-	* w32fns.c (Fx_synchronize): Reindent.
-
 	* fns.c: Doc fix.
 
 	* emacs.c: Doc fix.
@@ -3408,36 +3415,6 @@
 	* cmds.c, composite.c, dired.c, doc.c, filelock.c, floatfns.c,
 	* fontset.c, insdel.c, keymap.c: Change doc-string comments to
 	`new style' [w/`doc:' keyword].
-
-	* xmenu.c (x-popup-menu): Reindent.
-	(x-popup-dialog): Likewise.
-
-	* xfaces.c (Finternal_set_alternative_font_family_alist): Reindent.
-
-	* xdisp.c (Fdump_tool_bar_row): Reindent.
-
-	* minibuf.c (Fminibuffer_complete_word): Reindent.
-	(Fminibuffer_complete_and_exit): Likewise.
-	(Fminibuffer_completion_help): Likewise.
-	(Fminibuffer_message): Likewise.
-
-	* fns.c (Freverse): Reindent.
-
-	* eval.c (Fif): Reindent.
-	(Fand): Likewise.
-
-	* editfns.c (Fuser_real_login_name): Reindent.
-	(Finsert_buffer_substring): Likewise.
-	(Fcompare_buffer_substrings): Likewise.
-	(Fsubst_char_in_region): Likewise.
-
-	* dispnew.c (Fsit_for): Reindent.
-	(Fframe_or_buffer_changed_p): Likewise.
-	(Finternal_show_cursor_p): Likewise.
-	(syms_of_display): Likewise.
-
-	* alloc.c (Flist): Reindent.
-	(Fvector): Likewise.
 
 2001-11-12  Richard M. Stallman  <rms@gnu.org>
 
@@ -3741,15 +3718,6 @@
 
 	* xfaces.c (Finternal_set_lisp_face_attribute_from_resource):
 	Handle :box so that it is possible to specify sexprs.
-
-2001-11-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
-
-	* xfaces.c (Finternal_merge_in_global_face): Reindent.
-	(Fface_font): Ditto.
-	(Finternal_set_alternative_font_registry_alist): Ditto.
-	(Ftty_suppress_bold_inverse_default_colors): Ditto.
-
-	* xfns.c (x-get-resource): Reindent.
 
 2001-10-31  Eli Zaretskii  <eliz@is.elta.co.il>
 

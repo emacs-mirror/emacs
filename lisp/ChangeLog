@@ -1,3 +1,17 @@
+2002-06-03  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.el (dired-do-shell-command): Doc fix in autoload.
+
+	* info.el (Info-extract-pointer): Ignore Info-header-line.
+
+	* progmodes/cc-mode.el (c-postprocess-file-styles):
+	Do nothing except in CC modes.
+
+	* international/mule-cmds.el (select-safe-coding-system):
+	When computing auto-cs, narrow to FROM...TO.
+	Put save-excursion outside save-restriction.
+	New arg FILE; use that for set-auto-coding.
+
 2002-06-01  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (choose-completion-string-functions): Doc fix.
