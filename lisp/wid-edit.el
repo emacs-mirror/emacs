@@ -424,7 +424,7 @@ Otherwise, just return the value."
 
 (defun widget-member (widget property)
   "Non-nil iff there is a definition in WIDGET for PROPERTY."
-  (cond ((widget-plist-member (cdr widget) property)
+  (cond ((plist-member (cdr widget) property)
 	 t)
 	((car widget)
 	 (widget-member (get (car widget) 'widget-type) property))
