@@ -812,8 +812,8 @@ run `normal-mode' explicitly."
 				'(("\\.text\\'" . text-mode)
 				  ("\\.c\\'" . c-mode)
 				  ("\\.h\\'" . c-mode)
-				  ("\\.tex\\'" . TeX-mode)
-				  ("\\.ltx\\'" . LaTeX-mode)
+				  ("\\.tex\\'" . tex-mode)
+				  ("\\.ltx\\'" . latex-mode)
 				  ("\\.el\\'" . emacs-lisp-mode)
 				  ("\\.mm\\'" . nroff-mode)
 				  ("\\.me\\'" . nroff-mode)
@@ -849,9 +849,10 @@ run `normal-mode' explicitly."
 ;; The following should come after the ChangeLog pattern
 ;; for the sake of ChangeLog.1, etc.
 				  ("\\.[12345678]\\'" . nroff-mode)
-				  ("\\.TeX\\'" . TeX-mode)
-				  ("\\.sty\\'" . LaTeX-mode)
-				  ("\\.bbl\\'" . LaTeX-mode)
+				  ("\\.TeX\\'" . tex-mode)
+				  ("\\.sty\\'" . latex-mode)
+! 				  ("\\.cls\\'" . latex-mode) ;LaTeX 2e class
+				  ("\\.bbl\\'" . latex-mode)
 				  ("\\.bib\\'" . bibtex-mode)
 				  ("\\.article\\'" . text-mode)
 				  ("\\.letter\\'" . text-mode)
@@ -864,6 +865,7 @@ run `normal-mode' explicitly."
 				  ;; /tmp/Re.... or Message
 				  ("^/tmp/Re" . text-mode)
 				  ("/Message[0-9]*\\'" . text-mode)
++ 				  ("/drafts/[0-9]+\\'" . mh-letter-mode)
 				  ;; some news reader is reported to use this
 				  ("^/tmp/fol/" . text-mode)
 				  ("\\.y\\'" . c-mode)
@@ -1241,6 +1243,8 @@ nil or empty string as argument means make buffer not be visiting any file.
 Remember to delete the initial contents of the minibuffer
 if you wish to pass an empty string as the argument."
   (interactive "FSet visited file name: ")
+  (if (buffer-base-buffer)
+      (error "An indirect buffer cannot visit a file"))
   (let (truename)
     (if filename
 	(setq filename
@@ -1604,62 +1608,66 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 (defun basic-save-buffer ()
   "Save the current buffer in its visited file, if it has been modified."
   (interactive)
-  (if (buffer-modified-p)
-      (let ((recent-save (recent-auto-save-p))
-	    setmodes tempsetmodes)
-	;; On VMS, rename file and buffer to get rid of version number.
-	(if (and (eq system-type 'vax-vms)
-		 (not (string= buffer-file-name
-			       (file-name-sans-versions buffer-file-name))))
-	    (let (buffer-new-name)
-	      ;; Strip VMS version number before save.
-	      (setq buffer-file-name
-		    (file-name-sans-versions buffer-file-name))
-	      ;; Construct a (unique) buffer name to correspond.
-	      (let ((buf (create-file-buffer (downcase buffer-file-name))))
-		(setq buffer-new-name (buffer-name buf))
-		(kill-buffer buf))
-	      (rename-buffer buffer-new-name)))
-	;; If buffer has no file name, ask user for one.
-	(or buffer-file-name
-	    (set-visited-file-name
-	     (expand-file-name (read-file-name "File to save in: ") nil)))
-	(or (verify-visited-file-modtime (current-buffer))
-	    (not (file-exists-p buffer-file-name))
-	    (yes-or-no-p
-	     (format "%s has changed since visited or saved.  Save anyway? "
-		     (file-name-nondirectory buffer-file-name)))
-	    (error "Save not confirmed"))
-	(save-restriction
-	  (widen)
-	  (and (> (point-max) 1)
-	       (/= (char-after (1- (point-max))) ?\n)
-	       (not (and (eq selective-display t)
-			 (= (char-after (1- (point-max))) ?\r)))
-	       (or (eq require-final-newline t)
-		   (and require-final-newline
-			(y-or-n-p
-			 (format "Buffer %s does not end in newline.  Add one? "
-				 (buffer-name)))))
-	       (save-excursion
-		 (goto-char (point-max))
-		 (insert ?\n)))
-	  (or (run-hook-with-args-until-success 'write-contents-hooks)
-	      (run-hook-with-args-until-success 'local-write-file-hooks)
-	      (run-hook-with-args-until-success 'write-file-hooks)
-	      ;; If a hook returned t, file is already "written".
-	      ;; Otherwise, write it the usual way now.
-	      (setq setmodes (basic-save-buffer-1)))
-	  (setq buffer-file-number (nth 10 (file-attributes buffer-file-name)))
-	  (if setmodes
-	      (condition-case ()
-		  (set-file-modes buffer-file-name setmodes)
-		(error nil))))
-	;; If the auto-save file was recent before this command,
-	;; delete it now.
-	(delete-auto-save-file-if-necessary recent-save)
-	(run-hooks 'after-save-hook))
-    (message "(No changes need to be saved)")))
+  (save-excursion
+    ;; In an indirect buffer, save its base buffer instead.
+    (if (buffer-base-buffer)
+	(set-buffer (buffer-base-buffer)))
+    (if (buffer-modified-p)
+	(let ((recent-save (recent-auto-save-p))
+	      setmodes tempsetmodes)
+	  ;; On VMS, rename file and buffer to get rid of version number.
+	  (if (and (eq system-type 'vax-vms)
+		   (not (string= buffer-file-name
+				 (file-name-sans-versions buffer-file-name))))
+	      (let (buffer-new-name)
+		;; Strip VMS version number before save.
+		(setq buffer-file-name
+		      (file-name-sans-versions buffer-file-name))
+		;; Construct a (unique) buffer name to correspond.
+		(let ((buf (create-file-buffer (downcase buffer-file-name))))
+		  (setq buffer-new-name (buffer-name buf))
+		  (kill-buffer buf))
+		(rename-buffer buffer-new-name)))
+	  ;; If buffer has no file name, ask user for one.
+	  (or buffer-file-name
+	      (set-visited-file-name
+	       (expand-file-name (read-file-name "File to save in: ") nil)))
+	  (or (verify-visited-file-modtime (current-buffer))
+	      (not (file-exists-p buffer-file-name))
+	      (yes-or-no-p
+	       (format "%s has changed since visited or saved.  Save anyway? "
+		       (file-name-nondirectory buffer-file-name)))
+	      (error "Save not confirmed"))
+	  (save-restriction
+	    (widen)
+	    (and (> (point-max) 1)
+		 (/= (char-after (1- (point-max))) ?\n)
+		 (not (and (eq selective-display t)
+			   (= (char-after (1- (point-max))) ?\r)))
+		 (or (eq require-final-newline t)
+		     (and require-final-newline
+			  (y-or-n-p
+			   (format "Buffer %s does not end in newline.  Add one? "
+				   (buffer-name)))))
+		 (save-excursion
+		   (goto-char (point-max))
+		   (insert ?\n)))
+	    (or (run-hook-with-args-until-success 'write-contents-hooks)
+		(run-hook-with-args-until-success 'local-write-file-hooks)
+		(run-hook-with-args-until-success 'write-file-hooks)
+		;; If a hook returned t, file is already "written".
+		;; Otherwise, write it the usual way now.
+		(setq setmodes (basic-save-buffer-1)))
+	    (setq buffer-file-number (nth 10 (file-attributes buffer-file-name)))
+	    (if setmodes
+		(condition-case ()
+		    (set-file-modes buffer-file-name setmodes)
+		  (error nil))))
+	  ;; If the auto-save file was recent before this command,
+	  ;; delete it now.
+	  (delete-auto-save-file-if-necessary recent-save)
+	  (run-hooks 'after-save-hook))
+      (message "(No changes need to be saved)"))))
 
 ;; This does the "real job" of writing a buffer into its visited file
 ;; and making a backup file.  This is what is normally done
@@ -1739,6 +1747,7 @@ Optional second argument EXITING means ask about certain non-file buffers
 	    (function
 	     (lambda (buffer)
 	       (and (buffer-modified-p buffer)
+		    (not (buffer-base-buffer buffer))
 		    (or
 		     (buffer-file-name buffer)
 		     (and exiting
