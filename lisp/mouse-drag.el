@@ -106,7 +106,7 @@
 ;;
 
 (defun mouse-drag-safe-scroll (row-delta &optional col-delta)
-  "* Scroll down ROW-DELTA lines and right COL-DELTA, ignoring buffer edge errors.
+  "Scroll down ROW-DELTA lines and right COL-DELTA, ignoring buffer edge errors.
 Keep the cursor on the screen as needed."
   (if (and row-delta
 	   (/= 0 row-delta))
@@ -120,7 +120,7 @@ Keep the cursor on the screen as needed."
 	(scroll-right col-delta)
 	;; Make sure that the point stays on the visible screen
 	;; (if truncation-lines in set).
-	;; This code mimics the behavior we automatically get 
+	;; This code mimics the behavior we automatically get
 	;; when doing vertical scrolling.
 	;; Problem identified and a fix suggested by Tom Wurgler.
 	(cond
@@ -130,12 +130,12 @@ Keep the cursor on the screen as needed."
 	  (move-to-column (+ (window-width) (window-hscroll) -3)))))))
 
 (defun mouse-drag-repeatedly-safe-scroll (row-delta &optional col-delta)
-  "* Scroll ROW-DELTA rows and COL-DELTA cols until an event happens."
+  "Scroll ROW-DELTA rows and COL-DELTA cols until an event happens."
   (while (sit-for mouse-scroll-delay)
     (mouse-drag-safe-scroll row-delta col-delta)))
 
 (defun mouse-drag-events-are-point-events-p (start-posn end-posn)
-  "* Determine if START-POSN and END-POSN are \"close\"."
+  "Determine if START-POSN and END-POSN are \"close\"."
   (let*
       ((start-col-row (posn-col-row start-posn))
        (end-col-row (posn-col-row end-posn)))
@@ -152,7 +152,7 @@ Keep the cursor on the screen as needed."
   "If non-nil, mouse-drag on a long line enables truncate-lines.")
 
 (defun mouse-drag-should-do-col-scrolling ()
-  "* Determine if it's wise to enable col-scrolling for the current window.
+  "Determine if it's wise to enable col-scrolling for the current window.
 Basically, we check for existing horizontal scrolling."
   (or truncate-lines
       (> (window-hscroll (selected-window)) 0)
@@ -168,10 +168,10 @@ Basically, we check for existing horizontal scrolling."
 	     nil))))))
 
 (defvar mouse-throw-with-scroll-bar nil
-  "* Set direction of mouse-throwing.
+  "*Set direction of mouse-throwing.
 If nil, the text moves in the direction the mouse moves.
 If t, the scroll bar moves in the direction the mouse moves.")
-(defconst mouse-throw-magnifier-with-scroll-bar 
+(defconst mouse-throw-magnifier-with-scroll-bar
       [-16 -8 -4 -2 -1 0 0 0  1  2  4  8  16])
 (defconst mouse-throw-magnifier-with-mouse-movement
       [ 16  8  4  2  1 0 0 0 -1 -2 -4 -8 -16])
