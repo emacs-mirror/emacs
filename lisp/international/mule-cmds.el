@@ -1822,8 +1822,10 @@ specifies the character set for the major languages of Western Europe."
 		   (string= "The XFree86 Project, Inc" (x-server-vendor))
 		   (> (aref (number-to-string (nth 2 (x-server-version))) 0)
 		      ?3))
-	  (aset standard-display-table ?' [?$,1ry(B])
-	  (aset standard-display-table ?` [?$,1rx(B])
+	  ;; We suppress these setting for the moment because the
+	  ;; above assumption is wrong.
+	  ;; (aset standard-display-table ?' [?$,1ry(B])
+	  ;; (aset standard-display-table ?` [?$,1rx(B])
 	  ;; The fonts don't have the relevant bug.
 	  (aset standard-display-table 160 nil)
 	  (aset standard-display-table (make-char 'latin-iso8859-1 160)
