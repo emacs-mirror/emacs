@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_test_function!118.c(trunk.1) $
 TEST_HEADER
  summary = Collect with a fully initialised (but not committed) buffer
  language = c
@@ -7,20 +7,9 @@ END_HEADER
  * Copyright (C) 1998 Harlequin Group, all rights reserved
  */
 
-#include <stdio.h>
-
 #include "testlib.h"
-#include "mps.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
-#include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
-
 
 #define testArenaSIZE     ((size_t)64<<20)
 /* objSIZE should be such that when this size is requested in a reserve */
@@ -85,14 +74,6 @@ static mps_addr_t make(void)
   return p;
 }
 
-static void test_stepper(mps_addr_t object, void *p, size_t s)
-{
-  (*(unsigned long *)p)++;
-  testlib_unused(s);
-  testlib_unused(object);
-}
-
-
 static void *test(void *arg, size_t s)
 {
   mps_addr_t busy_init;
@@ -148,6 +129,6 @@ int main(void)
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 
-  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
+  pass();
   return 0;
 }
