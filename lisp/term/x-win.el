@@ -498,9 +498,22 @@ This returns ARGS with the arguments that have been processed removed."
 (put 'return 'ascii-character 13)
 (put 'escape 'ascii-character ?\e)
 
+;; Set up to recognize vendor-specific keysyms.
+;; Unless/until there is a real conflict,
+;; we need not try to make this list depend on
+;; the type of X server in use.
 (setq vendor-key-syms
       '(
 	;; These are some HP keys.
+	(  168 . mute-acute)
+	(  169 . mute-grave)
+	(  170 . mute-asciicircum)
+	(  171 . mute-diaeresis)
+	(  172 . mute-asciitilde)
+	(  175 . lira)
+	(  190 . guilder)
+	(  252 . block)
+	(  256 . longminus)
 	(65388 . reset)
 	(65389 . system)
 	(65390 . user)
@@ -513,6 +526,10 @@ This returns ARGS with the arguments that have been processed removed."
 	(65397 . kp-backtab)
 	;; This is used on some system or other.
 	(0 . remove)
+	;; These are for Sun.
+	(392976 . f35)
+    	(392977 . f36)
+	(393056 . req)))
 	))
 
 ;;;; Selections and cut buffers
