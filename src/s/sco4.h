@@ -77,7 +77,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LIBS_SYSTEM -lsocket
 
 /* SCO has gettimeofday in socket library */
+/* Autoconf should determine this, but for now, 
+   play safe to avoid error rather than deleting this
+   and risking the wrong result.  */
+#ifndef HAVE_GETTIMEOFDAY
 #define HAVE_GETTIMEOFDAY
+#endif
 #endif
 
 /* We don't have -loldX, and we don't need it.  */
