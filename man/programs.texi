@@ -1728,7 +1728,7 @@ In Python code, @code{def} or @code{class} at the beginning of a line
 generate a tag.
 @end itemize
 
-  You can also generate tags based on regexp matching (@pxref{Using
+  You can also generate tags based on regexp matching (@pxref{Etags
 Regexps}) to handle other formats and languages.
 
 @node Create Tags Table
