@@ -1,5 +1,7 @@
 2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* fns.c (Freverse): Reindent.
+
 	* eval.c (Fif): Reindent.
 	(Fand): Likewise.
 
