@@ -1,3 +1,26 @@
+2003-01-10  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el: Enable the default fontset to use
+	unicode fonts for ASCII characters.
+	(x-decompose-font-name): Don't try to resolve PATTERN by
+	x-resolve-font-name.
+	(x-complement-fontset-spec): Never prepend an ASCII font.
+	(create-fontset-from-fontset-spec): If a fontset of the same name
+	already exists, override it instead of signalling an error.  Don't
+	turn `ascii' into `latin'.  Don't update fontset-alias-alist here.
+
+	* international/mule-conf.el (unicode-bmp): Delete duplicated
+	definition.  Give it :code-offset 0.
+
+	* international/mule-diag.el (print-fontset-element): New
+	function.
+	(print-fontset): Use print-fontset-element to print the elements
+	of a fontset.  Use it also to print fonts fallen back to the
+	default fontsets.
+
+	* term/x-win.el: Delete the code to create a fontset from the X
+	resource "Font".
+
 2003-01-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (print-fontset): Insert proper

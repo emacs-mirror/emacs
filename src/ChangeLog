@@ -1,3 +1,55 @@
+2003-01-10  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (check_face_attributes, generate_ascii_font_name)
+	(font_name_registry): Don't extern them.
+	(split_font_name_into_vector, build_font_name_from_vector): Extern
+	them.
+
+	* fontset.h (Qfontset): Don't extern it.
+	(new_fontset_from_font_name): Extern it.
+
+	* fontset.c: Give 8 extra slots to fontset objects.
+	(Qfontset_info): New variable.
+	(syms_of_fontset): Defsym it.
+	(FONTSET_FALLBACK): New macro.
+	(fontset_face): Try also the default fontset.
+	(make_fontset): Realize a fallback fontset from the default
+	fontset.
+	(generate_ascii_font_name): Moved from xfaces.c.  Rewritten by
+	using split_font_name_into_vector and build_font_name_from_vector.
+	(Fset_fontset_font): Access the elements of font_spec by enum
+	FONT_SPEC_INDEX.  If font_spec is a string, extract the registry
+	name by using split_font_name_into_vector.
+	(Fnew_fontset): If no ASCII font is specified in FONTLIST,
+	generate a proper font name from the fontset name.  Update
+	Vfontset_alias_alist.
+	(n_auto_fontsets): New variable.
+	(new_fontset_from_font_name): New function.
+	(Ffont_info): Store the information about fonts generated from the
+	default fontset in the first extra slot of the returned
+	char-table.
+
+	* xfaces.c (generate_ascii_font_name): Moved to fontset.c.
+	(font_name_registry): Function deleted.
+	(split_font_name_into_vector): New function.
+	(build_font_name_from_vector): New function.
+	(font_list): The argument REGISTRY is now a list of registry
+	names.
+	(choose_face_font): If we are choosing an ASCII font, and ATTRS
+	specifies an explicit font name, return the name as is.  Make a
+	list of registy names.
+
+	* xfns.c (x_set_font, x_create_tip_frame): Adjusted to the change
+	of x_new_fontset.
+	(Fx_create_frame): Don't call x_new_fontset here.  Just use
+	x_list_fonts to check the existence of fonts.
+
+	* xterm.h (x_new_fontset): Prototype adjusted.
+
+	* xterm.c (x_new_fontset): Change the arg FONTSETNAME to Lisp
+	string.  Use new_fontset_from_font_name to create a fontset from a
+	font name.
+
 2003-01-07  Dave Love  <fx@gnu.org>
 
 	* Makefile.in: Fix some dependencies.
