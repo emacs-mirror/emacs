@@ -2141,6 +2141,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  && NILP (XCDR (c)))
 	c = XCAR (c);
 
+      /* If the queued event is something that used the mouse,
+         set used_mouse_menu accordingly.  */
+      if (used_mouse_menu
+	  && (EQ (c, Qtool_bar) || EQ (c, Qmenu_bar)))
+	*used_mouse_menu = 1;
+      
       reread = 1;
       goto reread_for_input_method;
     }
