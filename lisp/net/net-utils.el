@@ -5,7 +5,7 @@
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Mar 16 1997
 ;; Keywords: network communications
-;; Time-stamp: <2001-07-15 00:34:52 pavel>
+;; Time-stamp: <2001-12-25 11:44:47 pavel>
 
 ;; This file is part of GNU Emacs.
 
@@ -781,7 +781,7 @@ from SEARCH-STRING.  With argument, prompt for whois server."
   (make-local-variable 'network-connection-host)
   (setq network-connection-host host)
   (make-local-variable 'network-connection-service)
-  (setq network-connection-service service)))
+  (setq network-connection-service service))
 
 ;;;###autoload
 (defun network-connection-to-service (host service)
