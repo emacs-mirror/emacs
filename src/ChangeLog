@@ -1,3 +1,8 @@
+2003-11-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fns.c (Freverse): Doc fix.
+	(Fnreverse): Doc fix.
+
 2003-11-19  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (init_iterator): Initialize it->start to position
