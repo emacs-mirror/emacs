@@ -333,7 +333,8 @@ Leave one space or none, according to the context."
   "Delete all spaces and tabs around point."
   (interactive "*")
   (skip-chars-backward " \t")
-  (delete-region (point) (progn (skip-chars-forward " \t") (point))))
+  (let ((start (max (minibuffer-prompt-end) (point))))
+    (delete-region start (progn (skip-chars-forward " \t") (point)))))
 
 (defun just-one-space ()
   "Delete all spaces and tabs around point, leaving one space."
