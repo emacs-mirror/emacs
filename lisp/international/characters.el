@@ -937,6 +937,11 @@
 	(setq script-list (cons (nth 2 elt) script-list))))
   (set-char-table-extra-slot char-script-table 0 (nreverse script-list)))
 
+(map-charset-chars 
+ #'(lambda (range ignore)
+     (set-char-table-range char-script-table range 'tibetan))
+ 'tibetan)
+
 
 ;;; Setting word boundary.
 
