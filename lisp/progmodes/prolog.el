@@ -26,7 +26,7 @@
 
 ;; This package provides a major mode for editing Prolog.  It knows
 ;; about Prolog syntax and comments, and can send regions to an inferior
-;; Prolog interpreter process.
+;; Prolog interpreter process.  Font locking is tuned towards GNU Prolog.
 
 ;;; Code:
 
@@ -38,7 +38,7 @@
   "Major mode for editing and running Prolog under Emacs"
   :group 'languages)
 
-  
+
 (defcustom prolog-program-name "prolog"
   "*Program name for invoking an inferior Prolog with `run-prolog'."
   :type 'string
@@ -65,13 +65,23 @@ nil means send actual operating system end of file."
   :type 'integer
   :group 'prolog)
 
+(defvar prolog-font-lock-keywords
+  '(("\\(#[<=]=>\\|:-\\)\\|\\(#=\\)\\|\\(#[#<>\\/][=\\/]*\\|!\\)"
+     0 font-lock-keyword-face)
+    ("\\<\\(is\\|write\\|nl\\|read_\\sw+\\)\\>"
+     1 font-lock-keyword-face)
+    ("^\\(\\sw+\\)\\s-*\\((\\(.+\\))\\)*"
+     (1 font-lock-function-name-face)
+     (3 font-lock-variable-name-face)))
+  "Font-lock keywords for Prolog mode.")
+
 (if prolog-mode-syntax-table
     ()
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?_ "w" table)
     (modify-syntax-entry ?\\ "\\" table)
-    (modify-syntax-entry ?/ "." table)
-    (modify-syntax-entry ?* "." table)
+    (modify-syntax-entry ?/ ". 14" table)
+    (modify-syntax-entry ?* ". 23" table)
     (modify-syntax-entry ?+ "." table)
     (modify-syntax-entry ?- "." table)
     (modify-syntax-entry ?= "." table)
@@ -129,6 +139,10 @@ if that value is non-nil."
   (setq major-mode 'prolog-mode)
   (setq mode-name "Prolog")
   (prolog-mode-variables)
+  ;; font lock
+  (setq font-lock-defaults '(prolog-font-lock-keywords
+                             nil nil nil
+                             beginning-of-line))
   (run-hooks 'prolog-mode-hook))
 
 (defun prolog-indent-line (&optional whole-exp)
