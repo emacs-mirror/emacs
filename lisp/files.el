@@ -839,6 +839,20 @@ If the element has the form (REGEXP FUNCTION), then after calling
 FUNCTION, we delete the suffix that matched REGEXP and search the list
 again for another match.")
 
+(defconst interpreter-mode-alist
+  '(("perl" . perl-mode)
+    ("scope" . tcl-mode)
+    ("wish" . tcl-mode)
+    ("shell" . tcl-mode)
+    ("form" . tcl-mode)
+    ("tcl" . tcl-mode))
+  "Alist mapping interpreter names to major modes.
+This alist applies to files whose first line starts with `#!'.
+Each element looks like (INTERPRETER . MODE).
+The car of each element is compared with
+the name of the interpreter specified in the first line.
+If it matches, mode MODE is selected.")
+
 (defconst inhibit-local-variables-regexps '("\\.tar$")
   "List of regexps; if one matches a file name, don't look for local vars.")
 
@@ -928,7 +942,25 @@ If `enable-local-variables' is nil, this function does not check for a
 			(setq mode (cdr (car alist))
 			      keep-going nil)))
 		  (setq alist (cdr alist)))
-		(if mode (funcall mode)))))))))
+		(if mode
+		    (funcall mode)
+		  ;; If we can't deduce a mode from the file name,
+		  ;; look for an interpreter specified in the first line.
+		  (let ((interpreter
+			 (save-excursion
+			   (goto-char (point-min))
+			   (if (looking-at "#! *")
+			       (progn
+				 (goto-char (match-end 0))
+				 (buffer-substring (point)
+						   (progn (end-of-line) (point))))
+			     "")))
+			elt)
+		    ;; Map interpreter name to a mode.
+		    (setq elt (assoc (file-name-nondirectory interpreter)
+				     interpreter-mode-alist))
+		    (if elt
+			(funcall (cdr elt))))))))))))
 
 (defun hack-local-variables-prop-line ()
   ;; Set local variables specified in the -*- line.
