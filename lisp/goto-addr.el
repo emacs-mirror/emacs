@@ -36,13 +36,8 @@
 ;;
 ;; To use goto-address in a particular mode (for example, while
 ;; reading mail in mh-e), add something like this in your .emacs file:
-;; 
+;;
 ;; (add-hook 'mh-show-mode-hook 'goto-address)
-;;
-;; By default, goto-address now sends using `mail' instead of `mh-send'.
-;; To use mh-e to send mail, add the following to your .emacs file:
-;;
-;; (setq goto-address-mail-method 'goto-address-send-using-mh-e)
 ;;
 ;; The mouse click method is bound to [mouse-2] on highlighted URL's or
 ;; e-mail addresses only; it functions normally everywhere else.  To bind
@@ -105,14 +100,6 @@ But only if `goto-address-highlight-p' is also non-nil."
 	  "[0-9]*\\)?[-a-zA-Z0-9_=?#$@~`%&*+|\\/.,]*"
 	  "[-a-zA-Z0-9_=#$@~`%&*+|\\/]")
   "A regular expression probably matching a URL.")
-
-(defcustom goto-address-mail-method
-  'goto-address-send-using-mail
-  "*Function to compose mail.
-Two pre-made functions are `goto-address-send-using-mail' (sendmail);
-and `goto-address-send-using-mh-e' (MH-E)."
-  :type 'function
-  :group 'goto-address)
 
 (defvar goto-address-highlight-keymap
   (let ((m (make-sparse-keymap)))
@@ -197,7 +184,7 @@ there, then load the URL at or before the position of the mouse click."
 	      (if (string-equal url "")
 		  (error "No e-mail address or URL found")
 		(browse-url url)))
-	  (funcall goto-address-mail-method address))))))
+            (compose-mail address))))))
 
 ;;;###autoload
 (defun goto-address-at-point ()
@@ -213,7 +200,7 @@ there, then load the URL at or before point."
 	    (if (string-equal url "")
 		(error "No e-mail address or URL found")
 	      (browse-url url)))
-	(funcall goto-address-mail-method address)))))
+          (compose-mail address)))))
 
 (defun goto-address-find-address-at-point ()
   "Find e-mail address around or before point.
@@ -226,23 +213,7 @@ address.  If no e-mail address found, return the empty string."
 	      (and (re-search-forward goto-address-mail-regexp eol 'lim)
 		   (goto-char (match-beginning 0)))))
 	(buffer-substring (match-beginning 0) (match-end 0))
-      "")))
-
-(defun goto-address-send-using-mh-e (to)
-  (require 'mh-comp)
-  (mh-find-path)
-  (let ((cc (mh-read-address "Cc: "))
-	(subject (read-string "Subject: "))
-	(config (current-window-configuration)))
-    (delete-other-windows)
-    (mh-send-sub to cc subject config)))
-
-(fset 'goto-address-send-using-mhe 'goto-address-send-using-mh-e)
-
-(defun goto-address-send-using-mail (to)
-  (mail-other-window nil to)
-  (and (goto-char (point-min))
-       (end-of-line 2)))
+      "")))m
 
 ;;;###autoload
 (defun goto-address ()

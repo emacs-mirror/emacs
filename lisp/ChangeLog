@@ -1,3 +1,11 @@
+1999-02-22  Sam Steingold  <sds@goems.com>
+ 
+	* goto-addr.el (goto-address-at-mouse,
+	goto-address-find-address-at-point): use compose-mail.
+	(goto-address-mail-method): removed variable.
+	(goto-address-send-using-mh-e, goto-address-send-using-mhe,
+	goto-address-send-using-mail): removed functions.
+ 
 1998-11-03  Sam Steingold  <sds@goems.com>
  
 	* simple.el (backward-delete-char-untabify):
