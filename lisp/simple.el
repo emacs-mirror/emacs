@@ -5069,6 +5069,7 @@ the front of the list of recently selected ones."
 (defcustom normal-erase-is-backspace
   (and (not noninteractive)
        (or (memq system-type '(ms-dos windows-nt))
+	   (eq window-system 'mac)
 	   (and (memq window-system '(x))
 		(fboundp 'x-backspace-delete-keys-p)
 		(x-backspace-delete-keys-p))
