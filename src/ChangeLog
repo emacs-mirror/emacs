@@ -1,9 +1,9 @@
 2002-12-07  Steven Tamm  <steventamm@mac.com>
 
-	* sysdep.c (emacs_read): Have emacs_read use sys_read.
+	* sysdep.c (emacs_read) [HAVE_CARBON]: Have emacs_read use sys_read.
 
-	* eval.c (Feval): Calls mac_check_for_quit_char at each stack
-	frame.  This may change as it could be time consuming.
+	* eval.c (Feval) [HAVE_CARBON]: Calls mac_check_for_quit_char at
+	each stack frame.  This may change as it could be time consuming.
 	
 	* macterm.c (mac_check_for_quit_char, quit_char_comp) 
 	(init_quit_char_handler, mac_determine_quit_char_modifiers) 
