@@ -691,6 +691,144 @@ unrequest_sigio ()
 #endif /* FASYNC */
 #endif /* F_SETFL */
 
+/* Getting and setting emacs_tty structures.  */
+
+/* Set *TC to the parameters associated with the terminal FD.
+   Return zero if all's well, or -1 if we ran into an error we
+   couldn't deal with.  */
+int
+emacs_get_tty (fd, settings)
+     int fd;
+     struct emacs_tty *settings;
+{
+  /* Retrieve the primary parameters - baud rate, character size, etcetera.  */
+#ifdef HAVE_TCATTR
+  /* We have those nifty POSIX tcmumbleattr functions.  */
+  if (tcgetattr (fd, &settings->main) < 0)
+    return -1;
+
+#else
+#ifdef HAVE_TERMIO
+  /* The SYSV-style interface?  */
+  if (ioctl (fd, TCGETA, &settings->main) < 0)
+    return -1;
+
+#else
+#ifdef VMS
+  /* Vehemently Monstrous System?  :-)  */
+  if (! (SYS$QIOW (0, fd, IO$_SENSEMODE, settings, 0, 0,
+		   &settings->main.class, 12, 0, 0, 0, 0)
+	 & 1))
+    return -1;
+
+#else
+  /* I give up - I hope you have the BSD ioctls.  */
+  if (ioctl (fd, TIOCGETP, &settings->main) < 0)
+    return -1;
+
+#endif
+#endif
+#endif
+
+  /* Suivant - Do we have to get struct ltchars data?  */
+#ifdef TIOCGLTC
+  if (ioctl (fd, TIOCGLTC, &settings->ltchars) < 0)
+    return -1;
+#endif
+
+  /* How about a struct tchars and a wordful of lmode bits?  */
+#ifdef TIOCGETC
+  if (ioctl (fd, TIOCGETC, &settings->tchars) < 0
+      || ioctl (fd, TIOCLGET, &settings->lmode) < 0)
+    return -1;
+#endif
+
+  /* We have survived the tempest.  */
+  return 0;
+}
+
+
+/* Set the parameters of the tty on FD according to the contents of
+   *SETTINGS.  If WAITP is non-zero, we wait for all queued output to
+   be written before making the change; otherwise, we forget any
+   queued input and make the change immediately.
+   Return 0 if all went well, and -1 if anything failed.  */
+int
+emacs_set_tty (fd, settings, waitp)
+     int fd;
+     struct emacs_tty *settings;
+     int waitp;
+{
+  /* Set the primary parameters - baud rate, character size, etcetera.  */
+#ifdef HAVE_TCATTR
+  /* We have those nifty POSIX tcmumbleattr functions.
+     William J. Smith <wjs@wiis.wang.com> writes:
+     "POSIX 1003.1 defines tcsetattr() to return success if it was
+     able to perform any of the requested actions, even if some
+     of the requested actions could not be performed.
+     We must read settings back to ensure tty setup properly.
+     AIX requires this to keep tty from hanging occasionally."  */
+  for (;;)
+    if (tcsetattr (fd, waitp ? TCSAFLUSH : TCSADRAIN, &settings->main) < 0)
+      {
+	if (errno == EINTR)
+	  continue;
+	else
+	  return -1;
+      }
+    else
+      {
+	struct termios new;
+
+	/* Get the current settings, and see if they're what we asked for.  */
+	tcgetattr (fd, &new);
+	if (memcmp (&new, &settings->main, sizeof (new)))
+	  continue;
+	else
+	  break;
+      }
+
+#else
+#ifdef HAVE_TERMIO
+  /* The SYSV-style interface?  */
+  if (ioctl (fd, waitp ? TCSETAW : TCSETAF, &settings->main) < 0)
+    return -1;
+
+#else
+#ifdef VMS
+  /* Vehemently Monstrous System?  :-)  */
+  if (! (SYS$QIOW (0, fd, IO$_SETMODE, &input_iosb, 0, 0,
+		   &settings->main.class, 12, 0, 0, 0, 0)
+	 & 1))
+    return -1;
+
+#else
+  /* I give up - I hope you have the BSD ioctls.  */
+  if (ioctl (fd, (waitp) ? TIOCSETP : TIOCSETN, &settings->main) < 0)
+    return -1;
+
+#endif
+#endif
+#endif
+
+  /* Suivant - Do we have to get struct ltchars data?  */
+#ifdef TIOCGLTC
+  if (ioctl (fd, TIOCSLTC, &settings->ltchars) < 0)
+    return -1;
+#endif
+
+  /* How about a struct tchars and a wordful of lmode bits?  */
+#ifdef TIOCGETC
+  if (ioctl (fd, TIOCSETC, &settings->tchars) < 0
+      || ioctl (fd, TIOCLSET, &settings->lmode) < 0)
+    return -1;
+#endif
+  
+  /* We have survived the tempest.  */
+  return 0;
+}
+
+
 /* The initial tty mode bits */
 struct emacs_tty old_tty;
 
