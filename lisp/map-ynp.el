@@ -202,7 +202,10 @@ ESC or `q' to exit;\n"
 			       (if action-alist ";\n")
 			       (format "or . (period) to %s \
 the current %s and exit."
-				       action object)))))
+				       action object))))
+			   (save-excursion
+			     (set-buffer standard-output)
+			     (help-mode)))
 
 			 (setq next (` (lambda ()
 					 (setq next '(, next))
