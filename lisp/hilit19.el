@@ -266,7 +266,7 @@
 ;; Revision 2.3  1993/07/27  02:15:49  stig
 ;; (hilit-lookup-face-create) incorporated patch which improves it's behavior
 ;; with more than one frame...  Still can't have bold on the same face in two
-;; differrent fonts sizes at the same time...
+;; different fonts sizes at the same time...
 ;;
 ;; Revision 2.2  1993/07/27  02:02:59  stig
 ;; vastly improved the makefile patterns
@@ -440,7 +440,7 @@ your init file.")
 	  "  [ ] You're a RIGHTEOUS HACKER, what are your rates?\n"
 	  "  [ ] I've used the force and read the source, but I'M CONFUSED\n"
 	  "  [ ] a PATCH. (output of 'diff -uw old.el new.el' or 'diff -cw')\n"
-	  "  [ ] a SERIOUS AND REPRODUCABLE BUG that is not an EMACS bug\n"
+	  "  [ ] a SERIOUS AND REPRODUCIBLE BUG that is not an EMACS bug\n"
 	  "     - I *swear* that it's not already mentioned in the KNOWN BUGS\n"
 	  "     - I HAVE CHECKED ftp.hackvan.com:/pub/stig/src/elisp/hilit19.el.gz\n"
 	  "       for a newer release that fixes the problem.\n"
@@ -472,7 +472,7 @@ your init file.")
     (glob-struct  magenta	    Plum1	       default-bold-underline)
     (named-param  DarkGoldenrod	    Goldenrod	       underline)
 	
-    ;; and anotherone for LaTeX
+    ;; and another one for LaTeX
     (crossref	  DarkGoldenrod	    Goldenrod	       underline)
     (formula	  Goldenrod	    DarkGoldenrod      underline)
  
@@ -561,7 +561,7 @@ See the documentation for hilit-lookup-face-create for names of valid faces."
 
 (defun hilit-lookup-face-create (face &optional force)
   "Get a FACE, or create it if it doesn't exist.  In order for it to
-properly create the face, the followwing naming convention must be used:
+properly create the face, the following naming convention must be used:
     [reverse-](fgcolor[/bgcolor])[-bold][-italic][-underline]
 Example: (hilit-lookup-face-create 'comment-face) might create and return 'red
 
@@ -896,7 +896,7 @@ the entire buffer is forced."
 ;; ; For the Jargon-impaired, WYSIWYG === What You See Is What You Get
 ;; ; Sure, it sucks to type.  Oh, well.
 ;; (defun hilit-wysiwyg-replace ()
-;;   "Replace overstruck text with normal text that's been overlayed with the 
+;;   "Replace overstruck text with normal text that's been overlaid with the 
 ;; appropriate text attribute.  Suitable for a find-file hook."
 ;;   (save-excursion
 ;;     (goto-char (point-min))
@@ -1499,7 +1499,7 @@ number of backslashes."
 ;; this:
 ;;         "This is a somewhat long -
 ;;          string, written on three -
-;;          succesive lines"
+;;          successive lines"
 ;; in order to insert a double quote in a string, you have to escape it
 ;; with a \), bu also a character set constant (named a charset), which
 ;; uses single quotes instead of double ones. It would seem intuitive to
