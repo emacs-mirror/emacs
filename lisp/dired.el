@@ -1304,6 +1304,7 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 			 "\"")))))
     (and file buffer-file-coding-system
 	 (not file-name-coding-system)
+	 (not default-file-name-coding-system)
 	 (setq file (encode-coding-string file buffer-file-coding-system)))
     (if (eq localp 'no-dir)
 	file
