@@ -9,7 +9,6 @@
   This chapter describes the Emacs commands that add, remove, or
 adjust indentation.
 
-@c WideCommands
 @table @kbd
 @item @key{TAB}
 Indent the current line ``appropriately'' in a mode-dependent fashion.

@@ -465,7 +465,6 @@ a description of all the help facilities.  @xref{Help}.@refill
   Here are special commands and techniques for putting in and taking out
 blank lines.
 
-@c widecommands
 @table @kbd
 @item C-o
 Insert one or more blank lines after the cursor (@code{open-line}).

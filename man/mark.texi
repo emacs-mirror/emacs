@@ -52,7 +52,6 @@ mark in the @dfn{mark ring}.
 
   Here are some commands for setting the mark:
 
-@c WideCommands
 @table @kbd
 @item C-@key{SPC}
 Set the mark where point is (@code{set-mark-command}).

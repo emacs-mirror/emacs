@@ -211,7 +211,6 @@ following newline.  This variable is normally @code{nil}.
 @findex kill-region
 @kindex C-w
 
-@c DoubleWideCommands
 @table @kbd
 @item C-w
 Kill region (from point to the mark) (@code{kill-region}).

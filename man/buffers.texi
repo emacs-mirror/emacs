@@ -249,7 +249,6 @@ the buffers you no longer need.  On most operating systems, killing a
 buffer releases its space back to the operating system so that other
 programs can use it.  Here are some commands for killing buffers:
 
-@c WideCommands
 @table @kbd
 @item C-x k @var{bufname} @key{RET}
 Kill buffer @var{bufname} (@code{kill-buffer}).
