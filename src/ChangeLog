@@ -1,3 +1,32 @@
+2001-01-13  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fimage_size, image_ascent, lookup_image)
+	(IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR, parse_image_spec)
+	(xbm_format, xpm_format, pbm_format, png_format, jpeg_format) 
+	(tiff_format, gif_format, gs_format): Adapt to change of image
+	margins.
+
+	* w32term.c (x_produce_image_glyph, x_draw_image_foreground) 
+	(x_draw_image_relief, x_draw_image_foreground_1) 
+	(x_draw_image_glyph_string): Adapt to change of image margins.
+
+	* w32.c (init_environment, sys_shutdown, sys_pipe): Remove unused
+	variables.
+
+	* w32bdf.c (search_file_line, get_cached_font_char)
+	(cache_char_offset, create_offscreen_bitmap): Remove unused variables.
+
+	* w32inevt.c (w32_console_toggle_lock_key): Add parentheses.
+
+	* w32fns.c (x_to_w32_color, x_set_icon_name, xlfd_strip_height)
+	(w32_list_synthesized_fonts, lookup_image, Fx_file_dialog)
+	(Fw32_send_sys_command): Remove unused variables.
+	(w32_msg_pump): Add parentheses.
+
+	* w32term.c (w32_fill_rect, w32_read_socket, x_bitmap_icon)
+	(x_new_fontset, x_calc_absolute_position, x_iconify_frame):
+	Add parentheses.
+
 2001-01-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (Vtool_bar_button_margin): Replaces tool_bar_button_margin.
