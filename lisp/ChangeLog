@@ -14,6 +14,17 @@
 
 2000-03-21  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* diff-mode.el (diff-mode-*-map): use `easy-mmode-defmap'.
+	(diff-end-of-hunk): Return the end position for use in
+	`easy-mmode-define-navigation'.
+	(diff-recenter): Remove.
+	(diff-(next|prev)-*): Rename `diff-*-(prev|next)' and defined in terms
+	of `easy-mmode-define-navigation'.
+	(diff-kill-*): Rename `diff-*-kill' (for consistency with the
+	previous renaming) and fix to use new names.
+	(diff-merge-strings): Use \n as separator: simpler, faster.
+	(diff-mode): Use `define-derived-mode'.
+
 	* derived.el (define-derived-mode): Don't autoload anymore.
 	Prefer the macro-only version provided by easy-mmode.el.
 
