@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.154 2003/07/26 13:05:10 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.155 2003/07/26 15:54:53 rost Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -742,7 +742,7 @@ current, and kill the buffer that visits the link."
 (defun vc-file-not-found-hook ()
   "When file is not found, try to check it out from version control.
 Returns t if checkout was successful, nil otherwise.
-Used in `find-file-not-found-hooks'."
+Used in `find-file-not-found-functions'."
   ;; When a file does not exist, ignore cached info about it
   ;; from a previous visit.
   (vc-file-clearprops buffer-file-name)
