@@ -653,20 +653,7 @@ changed by, or (parse-state) if line starts in a quoted string."
 		((looking-at (or nochange perl-nochange)) 0)
 		(t
 		 (skip-chars-forward " \t\f")
-		 (cond ((looking-at "\\(\\w\\|\\s_\\)+:[^:]")
-			(setq indent (max 1 (+ indent perl-label-offset))))
-		       ((= (char-syntax (following-char)) ?\))
-			(setq indent
-			      (save-excursion
-				(forward-char 1)
-				(forward-sexp -1)
-				(forward-char 1)
-				(if (perl-hanging-paren-p)
-				    (- indent perl-indent-level)
-				  (forward-char -1)
-				  (current-column)))))
-		       ((= (following-char) ?{)
-			(setq indent (+ indent perl-brace-offset))))
+		 (setq indent (perl-indent-new-calculate nil indent bof))
 		 (- indent (current-column)))))
     (skip-chars-forward " \t\f")
     (if (and (numberp shift-amt) (/= 0 shift-amt))
@@ -702,13 +689,30 @@ changed by, or (parse-state) if line starts in a quoted string."
        (save-excursion
 	 (skip-syntax-backward " (") (not (bolp)))))
 
+(defun perl-indent-new-calculate (&optional virtual default parse-start)
+  (or
+   (and virtual (save-excursion (skip-chars-backward " \t") (bolp))
+	(current-column))
+   (and (looking-at "\\(\\w\\|\\s_\\)+:[^:]")
+	(max 1 (+ (or default (perl-calculate-indent parse-start))
+		  perl-label-offset)))
+   (and (= (char-syntax (following-char)) ?\))
+	(save-excursion
+	  (forward-char 1)
+	  (forward-sexp -1)
+	  (perl-indent-new-calculate 'virtual nil parse-start)))
+   (and (and (= (following-char) ?{)
+	     (save-excursion (forward-char) (perl-hanging-paren-p)))
+	(+ (or default (perl-calculate-indent parse-start))
+	   perl-brace-offset))
+   (or default (perl-calculate-indent parse-start))))
+
 (defun perl-calculate-indent (&optional parse-start)
   "Return appropriate indentation for current line as Perl code.
 In usual case returns an integer: the column to indent to.
 Returns (parse-state) if line starts inside a string.
 Optional argument PARSE-START should be the position of `beginning-of-defun'."
   (save-excursion
-    (beginning-of-line)
     (let ((indent-point (point))
 	  (case-fold-search nil)
 	  (colon-line-end 0)
