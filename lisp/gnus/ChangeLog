@@ -1,3 +1,8 @@
+2001-11-05  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mml.el (mml-generate-mime-1): Use mm-with-unibyte-current-buffer.
+	Suggested by  Dave Love  <fx@gnu.org>.
+	
 2001-11-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* mm-util.el (mm-charset-synonym-alist): Revert (some).

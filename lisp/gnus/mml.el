@@ -305,6 +305,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	(setq type (or (cdr (assq 'type cont)) "text/plain"))
 	(if (and (not raw)
 		 (member (car (split-string type "/")) '("text" "message")))
+	    (progn
 	    (with-temp-buffer
 	      (cond
 	       ((cdr (assq 'buffer cont))
@@ -342,6 +343,9 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		(setq encoding (mm-body-encoding
 				charset (cdr (assq 'encoding cont))))))
 	      (setq coded (buffer-string)))
+	    (mml-insert-mime-headers cont type charset encoding)
+	    (insert "\n")
+	    (insert coded))
 	  (mm-with-unibyte-buffer
 	    (cond
 	     ((cdr (assq 'buffer cont))
@@ -353,10 +357,11 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	     (t
 	      (insert (cdr (assq 'contents cont)))))
 	    (setq encoding (mm-encode-buffer type)
-		  coded (buffer-string))))
-	(mml-insert-mime-headers cont type charset encoding)
-	(insert "\n")
-	(insert coded)))
+		  coded (buffer-string)))
+	  (mml-insert-mime-headers cont type charset encoding)
+	  (insert "\n")
+	  (mm-with-unibyte-current-buffer
+	    (insert coded)))))
      ((eq (car cont) 'external)
       (insert "Content-Type: message/external-body")
       (let ((parameters (mml-parameter-string
