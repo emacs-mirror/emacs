@@ -1488,14 +1488,16 @@ Initialize colors of certain faces from frame parameters."
 		  (scroll-bar-foreground scroll-bar :foreground)
 		  (scroll-bar-background scroll-bar :background)
 		  (mouse-color mouse :background))))
-    (while params
-      (let ((param-name (nth 0 (car params)))
-	    (face (nth 1 (car params)))
-	    (attr (nth 2 (car params)))
-	    value)
-	(when (setq value (frame-parameter frame param-name))
-	  (set-face-attribute face frame attr value)))
-      (setq params (cdr params)))))
+    (dolist (param params)
+      (let ((frame-param (frame-parameter frame (nth 0 param)))
+	    (face (nth 1 param))
+	    (attr (nth 2 param)))
+	(when (and frame-param
+		   ;; Don't override face attributes explicitly
+		   ;; specified for new frames.
+		   (eq (face-attribute face attr t) 'unspecified))
+	  (set-face-attribute face frame attr frame-param))))))
+
 
 (defun tty-handle-reverse-video (frame parameters)
   "Handle the reverse-video frame parameter for terminal frames."
