@@ -347,7 +347,7 @@ to keep: LEN chars starting BEG chars from the beginning."
 ;;; from ange-ftp.
 
 (defcustom jka-compr-temp-name-template
-  (expand-file-name "jka-com" system-tmp-directory)
+  (expand-file-name "jka-com" temporary-file-directory)
   "Prefix added to all temp files created by jka-compr.
 There should be no more than seven characters after the final `/'."
   :type 'string
