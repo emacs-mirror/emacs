@@ -27,8 +27,8 @@
 
 ;;; Commentary:
 
-;; The coding-system `mule-utf-8' supports encoding/decoding of the
-;; following character sets to and from UTF-8:
+;; The coding-system `mule-utf-8' basically supports encoding/decoding
+;; of the following character sets to and from UTF-8:
 ;;
 ;;   ascii
 ;;   eight-bit-control
@@ -37,18 +37,19 @@
 ;;   mule-unicode-2500-33ff
 ;;   mule-unicode-e000-ffff
 ;;
-;; Characters of other character sets cannot be encoded with
-;; mule-utf-8.
-;;
 ;; On decoding, Unicode characters that do not fit into the above
 ;; character sets are handled as `eight-bit-control' or
 ;; `eight-bit-graphic' characters to retain the information about the
-;; original byte sequence.
+;; original byte sequence and text properties record the corresponding
+;; unicode.
 ;;
-;; Fixme: note that reading and writing invalid utf-8, even without
-;; editing it, may alter the text.  Fixing that needs a new charset to
-;; represent the raw bytes in the eight-bit-control range, which are
-;; otherwise valid unicodes.
+;; Fixme: note that reading and writing invalid utf-8 may not be
+;; idempotent -- to represent the bytes to fix that needs a new charset.
+;;
+;; Characters from other character sets can be encoded with mule-utf-8
+;; by populating the translation-table
+;; `utf-translation-table-for-encode' and registering the translation
+;; with `register-char-codings'.
 
 ;; UTF-8 is defined in RFC 2279.  A sketch of the encoding is:
 
@@ -60,6 +61,14 @@
 ;; zzzz yyyy yyxx xxxx | 1110 zzzz | 10yy yyyy | 10xx xxxx
 
 ;;; Code:
+
+(defvar ucs-mule-to-mule-unicode (make-char-table 'translation-table nil)
+  "Char table mapping characters to latin-iso8859-1 or mule-unicode-*.
+
+If `unify-8859-on-encoding-mode' is non-nil, this table populates the
+translation-table named `utf-translation-table-for-encode'.")
+
+(define-translation-table 'utf-translation-table-for-encode)
 
 (define-ccl-program ccl-decode-mule-utf-8
   ;;
@@ -259,9 +268,10 @@
 
   "CCL program to decode UTF-8.
 Basic decoding is done into the charsets ascii, latin-iso8859-1 and
-mule-unicode-*.  Encodings of un-representable Unicode characters are
-decoded asis into eight-bit-control and eight-bit-graphic
-characters.")
+mule-unicode-*, but see also `utf-fragmentation-table' and
+`ucs-mule-cjk-to-unicode'.
+Encodings of un-representable Unicode characters are decoded asis into
+eight-bit-control and eight-bit-graphic characters.")
 
 (define-ccl-program ccl-encode-mule-utf-8
   `(1
@@ -269,7 +279,8 @@ characters.")
      (loop
       (if (r5 < 0)
 	  ((r1 = -1)
-	   (read-multibyte-character r0 r1))
+	   (read-multibyte-character r0 r1)
+	   (translate-character utf-translation-table-for-encode r0 r1))
 	(;; We have already done read-multibyte-character.
 	 (r0 = r5)
 	 (r1 = r6)
@@ -376,30 +387,26 @@ characters.")
 	  ((write #xc2)
 	   (write r1)))))
 
-  "CCL program to encode into UTF-8.
-Only characters from the charsets ascii, eight-bit-control,
-eight-bit-graphic, latin-iso8859-1 and mule-unicode-* are recognized.
-Others are encoded as U+FFFD.")
+  "CCL program to encode into UTF-8.")
 
 (make-coding-system
  'mule-utf-8 4 ?u
  "UTF-8 encoding for Emacs-supported Unicode characters.
-The supported Emacs character sets are:
-   ascii
-   eight-bit-control
-   eight-bit-graphic
-   latin-iso8859-1
-   mule-unicode-0100-24ff
-   mule-unicode-2500-33ff
-   mule-unicode-e000-ffff
+It supports Unicode characters of these ranges:
+    U+0000..U+33FF, U+E000..U+FFFF.
+They correspond to these Emacs character sets:
+    ascii, latin-iso8859-1, mule-unicode-0100-24ff,
+    mule-unicode-2500-33ff, mule-unicode-e000-ffff
 
-Unicode characters out of the ranges U+0000-U+33FF and U+E200-U+FFFF
-are decoded into sequences of eight-bit-control and eight-bit-graphic
-characters to preserve their byte sequences.  The byte sequence is
-preserved on i/o for valid utf-8, but not necessarily for invalid
-utf-8.
+On decoding (e.g. reading a file), Unicode characters not in the above
+ranges are decoded into sequences of eight-bit-control and
+eight-bit-graphic characters to preserve their byte sequences.  The
+byte sequence is preserved on i/o for valid utf-8, but not necessarily
+for invalid utf-8.
 
-Emacs characters not from the above charsets are encoded into U+FFFD."
+On encoding (e.g. writing a file), Emacs characters not belonging to
+any of the character sets listed above are encoded into the UTF-8 byte
+sequence representing U+FFFD (REPLACEMENT CHARACTER)."
 
  '(ccl-decode-mule-utf-8 . ccl-encode-mule-utf-8)
  '((safe-charsets
@@ -412,7 +419,10 @@ Emacs characters not from the above charsets are encoded into U+FFFD."
     mule-unicode-e000-ffff)
    (mime-charset . utf-8)
    (coding-category . coding-category-utf-8)
-   (valid-codes (0 . 255))))
+   (valid-codes (0 . 255))
+   (post-read-conversion . utf-8-post-read-conversion)
+   (dependency unify-8859-on-encoding-mode
+	       unify-8859-on-decoding-mode)))
 
 (define-coding-system-alias 'utf-8 'mule-utf-8)
 
