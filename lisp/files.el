@@ -3770,7 +3770,8 @@ preference to the program given by this variable."
   :type '(choice (string :tag "Program") (const :tag "None" nil))
   :group 'dired)
 
-(defcustom directory-free-space-args "-Pk"
+(defcustom directory-free-space-args
+  (if (eq system-type 'darwin) "-k" "-Pk")
   "*Options to use when running `directory-free-space-program'."
   :type 'string
   :group 'dired)

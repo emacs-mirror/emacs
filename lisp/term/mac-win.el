@@ -104,10 +104,7 @@
 ;; Don't have this yet.
 (fset 'x-get-resource 'ignore)
 
-(if (eq system-type 'darwin)
-    ;; df on Darwin does not understand -P
-    (setq directory-free-space-args "-k")
-
+(unless (eq system-type 'darwin)
   ;; This variable specifies the Unix program to call (as a process) to
   ;; deteremine the amount of free space on a file system (defaults to
   ;; df).  If it is not set to nil, ls-lisp will not work correctly
