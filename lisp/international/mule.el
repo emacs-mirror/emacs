@@ -769,7 +769,8 @@ LIST is a list of coding categories ordered by priority."
       (setq current-list (delq (car l) current-list))
       (setq l (cdr l)))
     ;; Update `coding-category-list' and return it.
-    (setq coding-category-list (append arg current-list))))
+    (setq coding-category-list (append arg current-list))
+    (set-coding-priority-internal)))
 
 ;;; FILE I/O
 
