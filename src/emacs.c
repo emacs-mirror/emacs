@@ -78,6 +78,7 @@ EMACS_INT gdb_data_seg_bits = DATA_SEG_BITS;
 #else
 EMACS_INT  gdb_data_seg_bits = 0;
 #endif
+EMACS_INT PVEC_FLAG = PSEUDOVECTOR_FLAG;
 
 /* Command line args from shell, as list of strings */
 Lisp_Object Vcommand_line_args;
