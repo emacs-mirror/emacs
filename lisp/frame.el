@@ -651,7 +651,8 @@ on `after-make-frame-functions' are run with one arg, the newly created frame."
       (error "Don't know how to create a frame on window system %s" w))
     (run-hooks 'before-make-frame-hook)
     (setq frame (funcall frame-creation-function parameters))
-    (modify-frame-parameters frame (assq w window-system-default-frame-alist))
+    (modify-frame-parameters frame
+			     (cdr (assq w window-system-default-frame-alist)))
     (run-hook-with-args 'after-make-frame-functions frame)
     frame))
 
