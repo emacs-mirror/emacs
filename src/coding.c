@@ -5356,6 +5356,10 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 		 encodings again in vain.  */
 	      coding->type = coding_type_emacs_mule;
 	      coding->category_idx = CODING_CATEGORY_IDX_EMACS_MULE;
+	      /* As emacs-mule decoder will handle composition, we
+		 need this setting to allocate coding->cmp_data
+		 later.  */
+	      coding->composing = COMPOSITION_NO;
 	    }
 	}
       if (coding->eol_type == CODING_EOL_UNDECIDED
@@ -5808,7 +5812,14 @@ decode_coding_string (str, coding, nocopy)
 	{
 	  detect_coding (coding, XSTRING (str)->data, to_byte);
 	  if (coding->type == coding_type_undecided)
-	    coding->type = coding_type_emacs_mule;
+	    {
+	      coding->type = coding_type_emacs_mule;
+	      coding->category_idx = CODING_CATEGORY_IDX_EMACS_MULE;
+	      /* As emacs-mule decoder will handle composition, we
+		 need this setting to allocate coding->cmp_data
+		 later.  */
+	      coding->composing = COMPOSITION_NO;
+	    }
 	}
       if (coding->eol_type == CODING_EOL_UNDECIDED
 	  && coding->type != coding_type_ccl)
