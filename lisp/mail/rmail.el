@@ -2512,7 +2512,7 @@ see the documentation of `rmail-resend'."
 	      (set-marker-insertion-type end t)
 	      (insert-buffer-substring forward-buffer)
 	      (goto-char beg)
-	      (while (re-search-forward "^-" nil t)
+	      (while (re-search-forward "^-" end t)
 		(beginning-of-line)
 		(insert "- ")
 		(forward-line 1))
