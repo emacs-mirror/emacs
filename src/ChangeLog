@@ -1,3 +1,9 @@
+2003-01-16  Kenichi Handa  <handa@m17n.org>
+
+	* regex.c (GET_CHAR_BEFORE_2): Fix for the case that the previous
+	char is eight-bit-graphic.
+	(re_search_2): Likewise.
+
 2003-01-15  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (message_dolog): Fix bug of the case that *Message*
