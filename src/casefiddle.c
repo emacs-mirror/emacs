@@ -118,7 +118,7 @@ casify_region (flag, b, e)
 
   validate_region (&b, &e);
   modify_region (current_buffer, XFASTINT (b), XFASTINT (e));
-  record_change (current_buffer, XFASTINT (b), XFASTINT (e) - XFASTINT (b));
+  record_change (XFASTINT (b), XFASTINT (e) - XFASTINT (b));
 
   for (i = XFASTINT (b); i < XFASTINT (e); i++)
     {
