@@ -3396,8 +3396,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   for ac_declaration in \
-   ''\
-   '#include <stdlib.h>' \
+   '' \
    'extern "C" void std::exit (int) throw (); using std::exit;' \
    'extern "C" void std::exit (int); using std::exit;' \
    'extern "C" void exit (int) throw ();' \
@@ -3411,8 +3410,8 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <stdlib.h>
 $ac_declaration
+#include <stdlib.h>
 int
 main ()
 {
@@ -8894,6 +8893,10 @@ cat >>confdefs.h <<\_ACEOF
 #define USE_XIM 1
 _ACEOF
 
+  late_CFLAGS=$CFLAGS
+  if test "$GCC" = yes; then
+    CFLAGS="$CFLAGS --pedantic-errors"
+  fi
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 /* confdefs.h.  */
@@ -8913,6 +8916,12 @@ char *res_name;
 char *res_class;
 XIMProc  callback;
 XPointer *client_data;
+#ifndef __GNUC__
+/* If we're not using GCC, it's probably not XFree86, and this is
+   probably right, but we can't use something like --pedantic-errors.  */
+extern Bool XRegisterIMInstantiateCallback(Display*, XrmDatabase, char*,
+                                           char*, XIMProc, XPointer*);
+#endif
 (void)XRegisterIMInstantiateCallback(display, db, res_name, res_class, callback,
    client_data);
   ;
@@ -8950,6 +8959,7 @@ _ACEOF
 _ACEOF
 
   fi
+  CFLAGS=$late_CFLAGS
 fi
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
