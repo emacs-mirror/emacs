@@ -53,6 +53,10 @@ to look for the next message from the ISPELL program.")
 ;be on the bad-words list
 (defvar ispell-recently-accepted nil)
 
+;; Non-nil means we have started showing an alternatives window.
+;; This is the window config from before then.
+(defvar ispell-window-configuration)
+
 ;t when :dump command needed
 (defvar ispell-dump-needed nil)
 
@@ -225,10 +229,16 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
   (setq buf (get-buffer buf))
   (if (null buf)
       (error "Can't find buffer"))
+  ;; Deactivate the mark, because we'll do it anyway if we change something,
+  ;; and a region highlight while in the Ispell loop is distracting.
+  (if transient-mark-mode
+      (progn
+	(setq mark-active nil)
+	(run-hooks 'deactivate-mark-hook)))
   (save-excursion
     (set-buffer buf)
     (let ((filename buffer-file-name)
-          (delete-temp nil))
+	  (delete-temp nil))
       (unwind-protect
 	  (progn
 	    (cond ((null filename)
@@ -244,10 +254,10 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
 		(ispell-cmd ":tex")
 	      (ispell-cmd ":generic"))
 	    (ispell-cmd (format ":file %s %d %d" filename start end)))
-        (if delete-temp
-            (condition-case ()
-                (delete-file filename)
-              (file-error nil)))))
+	(if delete-temp
+	    (condition-case ()
+		(delete-file filename)
+	      (file-error nil)))))
     (message "Parsing ispell output ...")
     (ispell-flush-bad-words)
     (let (pos bad-words)
@@ -273,17 +283,21 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
 (defun ispell-next ()
   "Resume command loop for most recent ispell command."
   (interactive)
+  (setq ispell-window-configuration nil)
   (unwind-protect
       (catch 'quit
-	(save-window-excursion
-	  (save-excursion
-	    (let (next)
-	      (while (markerp (setq next (car ispell-bad-words)))
-		(switch-to-buffer (marker-buffer next))
-		(push-mark)
-		(ispell-point next "at saved position.")
-		(setq ispell-bad-words (cdr ispell-bad-words))
-		(set-marker next nil))))))
+	;; There used to be a save-excursion here,
+	;; but that was annoying: it's better if point doesn't move
+	;; when you type q.
+	(let (next)
+	  (while (markerp (setq next (car ispell-bad-words)))
+	    (switch-to-buffer (marker-buffer next))
+	    (push-mark)
+	    (ispell-point next "at saved position.")
+	    (setq ispell-bad-words (cdr ispell-bad-words))
+	    (set-marker next nil))))
+    (if ispell-window-configuration
+	(set-window-configuration ispell-window-configuration))
     (cond ((null ispell-bad-words)
 	   (error "Ispell has not yet been run."))
 	  ((markerp (car ispell-bad-words))
@@ -368,7 +382,9 @@ With a prefix argument, resume handling of the previous Ispell command."
   (let ((wend (make-marker))
 	rescan
 	end)
-  (save-excursion
+    ;; There used to be a save-excursion here,
+    ;; but that was annoying: it's better if point doesn't move
+    ;; when you type q.
     (goto-char start)
     (ispell-find-word-start)		;find correct word start
     (setq start (point-marker))
@@ -386,8 +402,9 @@ With a prefix argument, resume handling of the previous Ispell command."
       (setq rescan nil)
       (setq word (buffer-substring start wend))
       (cond ((ispell-still-bad word)
-	     (goto-char start);just to show user where we are working
-	     (sit-for 0)
+;;; This just causes confusion. -- rms.
+;;;	     (goto-char start)
+;;;	     (sit-for 0)
 	     (message (format "Ispell checking %s" word))
 	     (ispell-cmd word)
 	     (let ((message (ispell-next-message)))
@@ -411,7 +428,7 @@ With a prefix argument, resume handling of the previous Ispell command."
 	     (erase-buffer))))
     (set-marker start nil)
     (set-marker end nil)
-    (set-marker wend nil))))
+    (set-marker wend nil)))
   
 (defun ispell-still-bad (word)
   (let ((words ispell-recently-accepted)
@@ -431,6 +448,8 @@ With a prefix argument, resume handling of the previous Ispell command."
 	 (resize (eq selwin (next-window)))
 	 (buf (get-buffer-create "*ispell choices*"))
 	 w)
+    (or ispell-window-configuration
+	(setq ispell-window-configuration (current-window-configuration)))
     (setq w (display-buffer buf))
     (buffer-disable-undo buf)
     (if resize
