@@ -893,7 +893,8 @@ When you have finished composing, type \\[bookmark-send-annotation].
   (make-local-variable 'bookmark-annotation-name)
   (setq bookmark-annotation-name bookmark)
   (use-local-map bookmark-edit-annotation-mode-map)
-  (setq major-mode 'bookmark-edit-annotation-mode)
+  (setq major-mode 'bookmark-edit-annotation-mode
+        mode-name "Edit Bookmark Annotation")
   (insert (funcall bookmark-read-annotation-text-func bookmark))
   (let ((annotation (bookmark-get-annotation bookmark)))
     (if (and annotation (not (string-equal annotation "")))
@@ -902,7 +903,8 @@ When you have finished composing, type \\[bookmark-send-annotation].
 
 
 (defun bookmark-send-edited-annotation ()
-  "Use buffer contents (minus beginning with `#' as annotation for a bookmark."
+  "Use buffer contents as annotation for a bookmark.
+Lines beginning with `#' are ignored."
   (interactive)
   (if (not (eq major-mode 'bookmark-edit-annotation-mode))
       (error "Not in bookmark-edit-annotation-mode"))
