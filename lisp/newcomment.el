@@ -734,12 +734,11 @@ This is used for `extra-line' style (or `box' style if BLOCK is specified)."
     (cons (concat cs "\n" (make-string min-indent ? ) ccs)
 	  (concat cce "\n" (make-string (+ min-indent eindent) ? ) ce))))
 
-(def-edebug-spec comment-with-narrowing t)
-(put 'comment-with-narrowing 'lisp-indent-function 2)
 (defmacro comment-with-narrowing (beg end &rest body)
   "Execute BODY with BEG..END narrowing.
 Space is added (and then removed) at the beginning for the text's
 indentation to be kept as it was before narrowing."
+  (declare (debug t) (indent 2))
   (let ((bindent (make-symbol "bindent")))
     `(let ((,bindent (save-excursion (goto-char beg) (current-column))))
        (save-restriction
