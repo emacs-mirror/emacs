@@ -1317,9 +1317,9 @@ configure___ system_malloc=no
 #endif
 
 #ifdef __GNUC__
-configure___ CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH
+configure___ CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH $(CFLAGS)
 #else
-configure___ CFLAGS=C_DEBUG_SWITCH
+configure___ CFLAGS=C_DEBUG_SWITCH $(CFLAGS)
 #endif
 ' > ${tempcname}
 # The value of CPP is a quoted variable reference, so we need to do this
@@ -1409,7 +1409,6 @@ if [ -f /usr/lpp/X11/bin/smt.exp ]; then
   [
 fi
 
-
 #### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
 ]
@@ -1433,7 +1432,6 @@ AC_SUBST(archlibdir)
 AC_SUBST(docdir)
 AC_SUBST(c_switch_system)
 AC_SUBST(c_switch_machine)
-AC_SUBST(libsrc_libs)
 AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(LD_SWITCH_X_SITE_AUX)
 AC_SUBST(C_SWITCH_X_SITE)
@@ -1537,6 +1535,7 @@ Configured for \`${canonical}'.
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use the relocating allocator for buffers?  ${REL_ALLOC}
   What window system should Emacs use?                    ${window_system}${x_includes+
+  What toolkit should Emacs use?                          ${USE_X_TOOLKIT}
   Where do we find X Windows header files?                }${x_includes}${x_libraries+
   Where do we find X Windows libraries?                   }${x_libraries}
 
@@ -1549,6 +1548,7 @@ test -n "${exec_prefix}" &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 ]
 AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile lwlib/Makefile src/Makefile.in, [
+
 # Build src/Makefile from ${srcdir}/src/Makefile.in.  This must be done
 # after src/config.h is built, since we rely on that file.
 
@@ -1578,3 +1578,30 @@ echo creating src/Makefile
   chmod 444 Makefile.new;
   mv -f Makefile.new Makefile;
 )])
+
+# Now recalculate libsrc_libs based on the new decisions made above,
+# and substitute it into lib-src/Makefile.
+# This is necessary in case the m/ or s/ file contains conditionals
+# that test macros defined by config.h.
+
+[
+echo '
+#include "'${srcdir}'/src/'${opsysfile}'"
+#include "'${srcdir}'/src/'${machfile}'"
+#ifndef LIBS_MACHINE
+#define LIBS_MACHINE
+#endif
+#ifndef LIBS_SYSTEM
+#define LIBS_SYSTEM
+#endif
+configure___ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
+' > ${tempcname}
+${CPP} -Isrc ${tempcname} \
+       | grep 'configure___' \
+       | sed -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/' > foofoo1
+eval `cat foofoo1`
+rm ${tempcname}
+
+cat lib-src/Makefile | sed -e "s/@libsrc_libs@/$libsrc_libs/" > lib-src/Makefoo
+mv lib-src/Makefoo lib-src/Makefile
+]
