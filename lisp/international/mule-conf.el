@@ -461,6 +461,9 @@ for decoding and encoding files, process I/O, etc."
    nil ascii-eol ascii-cntl nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii)))
 
+(define-coding-system-alias
+  'us-ascii 'iso-safe)
+
 ;; Use iso-safe for terminal output if some other coding system is not
 ;; specified explicitly.
 (set-safe-terminal-coding-system-internal 'iso-safe)
