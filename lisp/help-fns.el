@@ -207,9 +207,7 @@ and the file name is displayed in the echo area."
     (princ ".")
     (terpri)
     (when (commandp function)
-      (let* ((binding (and (symbolp function) (commandp function)
-			   (key-binding function nil t)))
-	     (remapped (and (symbolp binding) (commandp binding) binding))
+      (let* ((remapped (remap-command function))
 	     (keys (where-is-internal
 		   (or remapped function) overriding-local-map nil nil)))
 	(when remapped
