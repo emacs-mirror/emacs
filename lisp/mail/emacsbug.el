@@ -97,7 +97,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
       ;; Insert warnings for novice users.
       (insert "This bug report will be sent to the Free Software Foundation,\n")
       (let ((pos (point)))
-	(insert " not to your local site managers!!")
+	(insert "not to your local site managers!")
 	(put-text-property pos (point) 'face 'highlight))
       (insert "\nPlease write in ")
       (let ((pos (point)))
