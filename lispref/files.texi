@@ -2405,6 +2405,16 @@ shown above; the details are crucial for proper behavior in the case of
 multiple handlers, and for operations that have two file names that may
 each have handlers.
 
+@kindex safe-magic (@r{property})
+Handlers that don't really do anything specal for actual access to the
+file---such as the ones that implement completion of host names for
+remote file names---should have a non-@code{nil} @code{safe-magic}
+property.  For instance, Emacs normally ``protects'' directory names
+it finds in @code{PATH} from becoming magic, if they look like magic
+file names, by prefixing them with @samp{/:}.  But if the handler that
+would be used for them has a non-@code{nil} @code{safe-magic}
+property, the @samp{/:} is not added.
+
 @defvar inhibit-file-name-handlers
 This variable holds a list of handlers whose use is presently inhibited
 for a certain operation.
