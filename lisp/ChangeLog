@@ -1,3 +1,9 @@
+2004-10-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* indent.el (set-left-margin, set-right-margin): Delete redundant
+	code.
+	(increase-right-margin): Remove erroneous call to `interactive-p'.
+
 2004-10-24  Kim F. Storm  <storm@cua.dk>
 
 	* help.el (describe-mode): Fix 2004-10-13 change.
