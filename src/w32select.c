@@ -456,8 +456,8 @@ A default value is `compound-text'");
   DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
     "Coding system for the next communication with other X clients.\n\
 Usually, `selection-coding-system' is used for communicating with\n\
-other X clients.   But, if this variable is set, it is used for the\n\
-next communication only.   After the communication, this variable is\n\
+other X clients.  But, if this variable is set, it is used for the\n\
+next communication only.  After the communication, this variable is\n\
 set to nil.");
   Vnext_selection_coding_system = Qnil;
 
