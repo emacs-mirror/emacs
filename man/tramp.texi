@@ -12,7 +12,7 @@
 @c Makefile, so you should edit the top-level Makefile to change
 @c the version number.
 @macro trampver{}
-2.0.25
+2.0.28
 @end macro
 
 @c Entries for @command{install-info} to use
@@ -463,7 +463,7 @@ make EMACS=@value{emacs-dir} all
 
 @item
 NOTE: If you run into problems running the example @command{make}
-command, don't dispare.  You can still byte compile the @file{*.el}
+command, don't despair.  You can still byte compile the @file{*.el}
 files by opening @value{emacs-name} in @command{dired} (@command{C-x
 d}) mode, at @file{~/@value{emacs-dir}/tramp/lisp}.  Mark the lisp files with
 @kbd{m}, then press @kbd{B} to byte compile your selections.
@@ -666,7 +666,7 @@ access to external commands to perform that task.
 will be used.  The search path can be customized, see @ref{Remote
 Programs}.
 
-If both commands are'nt available on the remote host, @tramp{}
+If both commands aren't available on the remote host, @tramp{}
 transfers a small piece of Perl code to the remote host, and tries to
 apply it for encoding and decoding.
 
@@ -752,7 +752,7 @@ with.
 Note that this procedure does not eliminate questions asked by
 @command{ssh} itself.  For example, @command{ssh} might ask ``Are you
 sure you want to continue connecting?'' if the host key of the remote
-host is not known.  Tramp does not know how to deal with such a
+host is not known.  @tramp{} does not know how to deal with such a
 question (yet), therefore you will need to make sure that you can log
 in without such questions.
 
@@ -786,8 +786,8 @@ remote host.
 CCC: Do we have to connect to the remote host once from the command
 line to accept the SSH key?  Maybe this can be made automatic?
 
-CCC: Does @command{plink} support the @samp{-p} option?  Tramp
-will support that, anyway.
+CCC: Does @command{plink} support the @samp{-p} option?  @tramp{} will
+support that, anyway.
 
 @end table
 
@@ -865,7 +865,7 @@ know what these are, you do not need these options.
 
 All the @command{ssh} based methods support the kludgy @samp{-p}
 feature where you can specify a port number to connect to in the host
-name.  For example, the host name @file{host#42} tells Tramp to
+name.  For example, the host name @file{host#42} tells @tramp{} to
 specify @samp{-p 42} in the argument list for @command{ssh}.
 
 
@@ -885,7 +885,7 @@ the file exists only on one side of the connection.
 
 The @command{rsync} based method may be considerably faster than the
 @command{rcp} based methods when writing to the remote system. Reading
-files to the local machine is no faster than with a direct copy. 
+files to the local machine is no faster than with a direct copy.
 
 This method supports the @samp{-p} hack.
 
@@ -962,9 +962,52 @@ anyway.
 @cindex method ftp
 @cindex ftp method
 
-This is not a natural @tramp{} method. Instead of, it forwards all
+This is not a native @tramp{} method. Instead of, it forwards all
 requests to @value{ftp-package-name}.
 @end ifset
+
+
+@item @option{smb} --- @command{smbclient}
+@cindex method smb
+@cindex smb method
+
+This is another not natural @tramp{} method.  It uses the
+@command{smbclient} command on different Unices in order to connect to
+an SMB server.  An SMB server might be a Samba (or CIFS) server on
+another UNIX host or, more interesting, a host running MS Windows.  So
+far, it is tested towards MS Windows NT, MS Windows 2000, and MS
+Windows XP.
+
+The first directory in the path must be a share name on the remote
+host.  Remember, that the @code{$} character in which default shares
+usually end, must be written @code{$$} due to environment variable
+substitution in file names.  If no share name is given (i.e. remote
+directory @code{/}), all available shares are listed.
+
+Since authorization is done on share level, you will be prompted
+always for a password if you access another share on the same host.
+Due to security reasons, the password is not cached.
+
+MS Windows uses for authorization both a user name and a domain name.
+Because of this, the @tramp{} syntax has been extended: you can
+specify a user name which looks like @code{user%domain} (the real user
+name, then a percent sign, then the domain name).  So, to connect to
+the machine @code{melancholia} as user @code{daniel} of the domain
+@code{BIZARRE}, and edit @file{.emacs} in the home directory (share
+@code{daniel$}) I would specify the filename
+@file{@value{tramp-prefix}smb@value{tramp-postfix-single-hop}daniel%BIZARRE@@melancholia@value{tramp-postfix}/daniel$$/.emacs}.
+
+The domain name as well as the user name are optional.  If no user
+name is specified at all, the anonymous user (without password
+prompting) is assumed.  This is different from all other @tramp{}
+methods, where in such a case the local user name is taken.
+
+The @option{smb} method supports the @samp{-p} hack.
+
+@strong{Please note:} If Emacs runs locally under MS Windows, this
+method isn't available.  Instead of, you can use UNC file names like
+@file{//melancholia/daniel$$/.emacs}.  The only disadvantage is that
+there's no possiblity to specify another user name.
 
 @end table
 
@@ -1134,7 +1177,7 @@ variable, accessible with @kbd{C-h v tramp-methods @key{RET}}.
 @vindex tramp-completion-function-alist
 
 The variable @code{tramp-completion-function-alist} is intended to
-customize, which files are taken into account for user and host name
+customize which files are taken into account for user and host name
 completion (@pxref{Filename completion}).  For every method, it keeps
 a set of configuration files, accompanied by a Lisp function able to
 parse that file.  Entries in @code{tramp-completion-function-alist}
@@ -1293,7 +1336,7 @@ The package, therefore, pursues a combined approach.  It tries to figure
 out some of the more common setups, and only requires you to avoid
 really exotic stuff.  For example, it looks through a list of
 directories to find some programs on the remote host.  And also, it
-knows that it is not obvious how to check whether a file exist, and
+knows that it is not obvious how to check whether a file exists, and
 therefore it tries different possibilities.  (On some hosts and shells,
 the command @code{test -e} does the trick, on some hosts the shell
 builtin doesn't work but the program @code{/usr/bin/test -e} or
@@ -1313,12 +1356,12 @@ shell.  The strategy here is to wait for the shell prompt.  In order to
 recognize the shell prompt, the variable @code{shell-prompt-pattern} has
 to be set correctly to recognize the shell prompt on the remote host.
 
-Note that Tramp requires the match for @code{shell-prompt-pattern} to
-be at the end of the buffer.  Many people have something like the
+Note that @tramp{} requires the match for @code{shell-prompt-pattern}
+to be at the end of the buffer.  Many people have something like the
 following as the value for the variable: @code{"^[^>$][>$] *"}.  Now
-suppose your shell prompt is @code{a <b> c $ }.  In this case, Tramp
-recognizes the @code{>} character as the end of the prompt, but it is
-not at the end of the buffer.
+suppose your shell prompt is @code{a <b> c $ }.  In this case,
+@tramp{} recognizes the @code{>} character as the end of the prompt,
+but it is not at the end of the buffer.
 
 @item @var{tramp-shell-prompt-pattern}
 @vindex tramp-shell-prompt-pattern
@@ -1363,12 +1406,43 @@ the variables @code{tramp-actions-before-shell} and
 
 This section needs a lot of work!  Please help.
 
-@cindex method smx with Cygwin
-@cindex smx method with Cygwin
+@cindex method sshx with Cygwin
+@cindex sshx method with Cygwin
 If you use the Cygwin installation of ssh (you have to explicitly select
 it in the installer), then it should work out of the box to just select
-@code{smx} as the connection method.  You can find information about
+@code{sshx} as the connection method.  You can find information about
 setting up Cygwin in their FAQ at @uref{http://cygwin.com/faq/}.
+
+@cindex method scpx with Cygwin
+@cindex scpx method with Cygwin
+If you wish to use the @code{scpx} connection method, then you might
+have the problem that Emacs calls @code{scp} with a Windows filename
+such as @code{c:/foo}.  The Cygwin version of @code{scp} does not know
+about Windows filenames and interprets this as a remote filename on the
+host @code{c}.
+
+One possible workaround is to write a wrapper script for @code{scp}
+which converts the Windows filename to a Cygwinized filename.
+
+I guess that another workaround is to run Emacs under Cygwin, or to run
+a Cygwinized Emacs.
+
+@cindex Cygwin and ssh-agent
+@cindex SSH_AUTH_SOCK and Emacs on Windows
+If you want to use either @code{ssh} based method on Windows, then you
+might encounter problems with @code{ssh-agent}.  Using this program,
+you can avoid typing the pass-phrase every time you log in (and the
+@code{scpx} method more or less requires you to use @code{ssh-agent}
+because it does not allow you to type a password or pass-phrase).
+However, if you start Emacs from a desktop shortcut, then the
+environment variable @code{SSH_AUTH_SOCK} is not set and so Emacs and
+thus @tramp{} and thus @code{ssh} and @code{scp} started from @tramp{}
+cannot communicate with @code{ssh-agent}.  It works better to start
+Emacs from the shell.
+
+If anyone knows how to start @code{ssh-agent} under Windows in such a
+way that desktop shortcuts can profit, please holler.  I don't really
+know anything at all about Windows@dots{}
 
 
 @node Usage
@@ -1457,7 +1531,7 @@ It is also possible to specify other file transfer methods
 This is done by putting the method before the user and host name, as
 in
 @file{@value{tramp-prefix}@var{method}@value{tramp-postfix-single-hop}}
-(note the trailing colon).
+(Note the trailing colon).
 @end ifset
 @ifset xemacs
 This is done by replacing the initial
@@ -1500,7 +1574,7 @@ specification.  The second part is
 and specifies the hops.  The final part is @file{/path/to.file} and
 specifies the file name on the remote host.
 
-The first part and the final part should be clear.  @ref{Multi-hop
+The first part and the final part should be clear.  See @ref{Multi-hop
 Methods}, for a list of alternatives for the method specification.
 
 The second part can be subdivided again into components, so-called
@@ -1656,8 +1730,8 @@ The package was intended to work on Unix, and it really expects a
 Unix-like system on the remote end, but some people seemed to have some
 success getting it to work on NT Emacs.
 
-There are some informations on Tramp on NT at the following URL; many
-thanks to Joe Stoy for providing the information:
+There is some informations on @tramp{} on NT at the following URL;
+many thanks to Joe Stoy for providing the information:
 @uref{ftp://ftp.comlab.ox.ac.uk/tmp/Joe.Stoy/}
 
 The above mostly contains patches to old ssh versions; Tom Roche has a
@@ -1708,7 +1782,7 @@ File name completion does not work in large directories
 
 @tramp{} uses globbing for some operations.  (Globbing means to use the
 shell to expand wildcards such as `*.c'.)  This might create long
-command lines, especially in directories with many files.  Some shell
+command lines, especially in directories with many files.  Some shells
 choke on long command lines, or don't cope well with the globbing
 itself.
 
@@ -1982,9 +2056,9 @@ Ange-FTP and @tramp{} so that users don't have to learn a new
 syntax.  It is sufficient to learn some extensions to the old syntax.
 
 For the XEmacs maintainers, the problems caused from using a unified
-filename syntax are greater than the gains.  The XEmacs package
-system uses EFS for downloading new packages.  So, obviously, EFS has
-to be installed from the start.  If the filenames were unified, Tramp
+filename syntax are greater than the gains.  The XEmacs package system
+uses EFS for downloading new packages.  So, obviously, EFS has to be
+installed from the start.  If the filenames were unified, @tramp{}
 would have to be installed from the start, too.
 
 @end itemize

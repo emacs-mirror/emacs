@@ -1,3 +1,8 @@
+2002-12-26  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* tramp.texi (External transfer methods): New method `smb'.  From
+	Michael Albinus.
+
 2002-11-05  Karl Berry  <karl@gnu.org>
 
 	* info.texi (Info-fontify): reorder face list to avoid bad line
