@@ -1878,7 +1878,7 @@ mark_perdisplays ()
     {
       mark_object (&perd->Vprefix_arg);
       mark_object (&perd->Vcurrent_prefix_arg);
-      mark_object (&perd->kbd_buffer_frame_or_window);
+      mark_object (&perd->kbd_queue);
     }
 }
 
