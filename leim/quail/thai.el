@@ -175,7 +175,8 @@ This variable is used in Quail internally only.")
   (let ((quail-package-name (quail-name)))
     (setq thai-current-keyboard-type
 	  (cond ((string= quail-package-name "thai-pattachote") 'pattachote)
-		(t (string= quail-package-name "thai-kesmanee") 'kesmanee)))
+		((string= quail-package-name "thai-kesmanee") 'kesmanee)
+		(t (error "Invalid Quail package %s" quail-package-name))))
     (copy-alist (nth 2 (thai-keyboard-info thai-current-keyboard-type)))))
 
 ;; Thai Kesmanee keyboard support.
