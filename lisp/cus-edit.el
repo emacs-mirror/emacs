@@ -758,7 +758,7 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
   (interactive (custom-prompt-variable "Set variable: "
 				       "Set %s to value: "
 				       current-prefix-arg))
-   
+
   (cond ((string= comment "")
  	 (put variable 'variable-comment nil))
  	(comment
@@ -2515,7 +2515,7 @@ to switch between two values."
   :button-args '(:help-echo "Control whether this attribute has any effect.")
   :value-to-internal 'custom-face-edit-fix-value
   :match (lambda (widget value)
-	   (widget-checklist-match widget 
+	   (widget-checklist-match widget
 				   (custom-face-edit-fix-value widget value)))
   :convert-widget 'custom-face-edit-convert-widget
   :args (mapcar (lambda (att)
@@ -2543,7 +2543,7 @@ Also change :reverse-video to :inverse-video."
 		  ((eq key :reverse-video)
 		   (push :inverse-video result)
 		   (push val result))
-		  (t 
+		  (t
 		   (push key result)
 		   (push val result))))
 	  (setq value (cdr (cdr value))))
@@ -2606,7 +2606,7 @@ Also change :reverse-video to :inverse-video."
       (delete-region (car (cdr inactive))
 		     (+ (car (cdr inactive)) (cdr (cdr inactive))))
       (widget-put widget :inactive nil))))
-      
+
 
 (defun custom-face-edit-attribute-tag (widget)
   "Returns the first :tag property in WIDGET or one of its children."
@@ -3709,7 +3709,8 @@ or (if there were none) at the end of the buffer."
 	   (when (or (and spec
 			  (eq (nth 0 spec) 'user)
 			  (eq (nth 1 spec) 'set))
-		     comment)
+		     comment
+		     (and (null spec) (get symbol 'saved-value)))
 	     (unless (bolp)
 	       (princ "\n"))
 	     (princ " '(")
@@ -3779,7 +3780,8 @@ or (if there were none) at the end of the buffer."
 	   (when (or (and theme-spec
 			  (eq (nth 0 theme-spec) 'user)
 			  (eq (nth 1 theme-spec) 'set))
-		     comment)
+		     comment
+		     (and (null theme-spec) (get symbol 'saved-face)))
 	     ;; Don't print default face here.
 	     (unless (bolp)
 	       (princ "\n"))
@@ -3833,7 +3835,7 @@ or (if there were none) at the end of the buffer."
       (mapatoms mapper)
       (when started-writing
 	(princ ")\n")))))
-			
+
 (defun custom-save-loaded-themes ()
   (let ((themes (reverse (get 'user 'theme-loads-themes)))
 	(standard-output (current-buffer)))
@@ -3843,7 +3845,7 @@ or (if there were none) at the end of the buffer."
       (mapc (lambda (theme)
 	      (princ "\n   '")
 	      (prin1 theme)) themes)
-      (princ " )\n"))))	
+      (princ " )\n"))))
 
 ;;;###autoload
 (defun customize-save-customized ()
