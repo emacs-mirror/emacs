@@ -5172,7 +5172,7 @@ This function is an internal primitive--use `make-frame' instead.")
       }
     /* Try out a font which we hope has bold and italic variations.  */
     if (!STRINGP (font))
-      font = x_new_font (f, "-*-Courier New-normal-r-*-*-13-*-*-*-c-*-iso8859-1");
+      font = x_new_font (f, "-*-Courier New-normal-r-*-*-*-120-*-*-c-*-iso8859-1");
     if (! STRINGP (font))
       font = x_new_font (f, "-*-Courier-normal-r-*-*-13-*-*-*-c-*-iso8859-1");
     /* If those didn't work, look for something which will at least work.  */
@@ -5798,7 +5798,7 @@ w32_codepage_for_font (char *fontname)
   /* Extract charset part of font string.  */
   if (sscanf (fontname,
               "-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%19s",
-              charset_str) == EOF)
+              charset_str) < 1)
     return CP_DEFAULT;
 
   /* Remove leading "*-".  */
@@ -5952,7 +5952,7 @@ x_to_w32_font (lpxstr, lplogfont)
       char name[50], weight[20], slant, pitch, pixels[10], height[10],
         width[10], resy[10], remainder[20];
       char * encoding;
-      int dpi = one_w32_display_info.height_in;
+      int dpi = one_w32_display_info.resy;
 
       fields = sscanf (lpxstr,
 		       "-%*[^-]-%49[^-]-%19[^-]-%c-%*[^-]-%*[^-]-%9[^-]-%9[^-]-%*[^-]-%9[^-]-%c-%9[^-]-%19s",
