@@ -91,6 +91,7 @@
   (define-key Buffer-menu-mode-map "m" 'Buffer-menu-mark)
   (define-key Buffer-menu-mode-map "t" 'Buffer-menu-visit-tags-table)
   (define-key Buffer-menu-mode-map "%" 'Buffer-menu-toggle-read-only)
+  (define-key Buffer-menu-mode-map "b" 'Buffer-menu-bury)
   (define-key Buffer-menu-mode-map "g" 'Buffer-menu-revert)
   (define-key Buffer-menu-mode-map [mouse-2] 'Buffer-menu-mouse-select)
 )
@@ -425,6 +426,10 @@ The current window remains selected."
             (delete-char 1)
             (insert char))))))
 
+(defun Buffer-menu-bury ()
+  "Bury the buffer listed on this line."
+  (interactive)
+  (bury-buffer (Buffer-menu-buffer t)))
 
 
 (define-key ctl-x-map "\C-b" 'list-buffers)
