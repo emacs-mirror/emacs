@@ -345,9 +345,7 @@ static short grey_bits[] = {
 static Pixmap GreyPixmap = 0;
 #endif /* ! defined (HAVE_X11) */
 
-#ifdef X_IO_BUG
 static int x_noop_count;
-#endif
 
 
 /* From time to time we get info on an Emacs window, here.  */
@@ -4390,11 +4388,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	}
     }
 
-#ifdef X_IO_BUG
+  /* On some systems, an X bug causes Emacs to get no more events
+     when the window is destroyed.  Detect that.  (1994.)  */
   if (! event_found) 
     {
-      /* On some systems, an X bug causes Emacs to get no more events
-	 when the window is destroyed.  Detect that.  (1994.)  */
       /* Emacs and the X Server eats up CPU time if XNoOp is done every time.
 	 One XNOOP in 100 loops will make Emacs terminate.
 	 B. Bretthauer, 1994 */
@@ -4405,7 +4402,6 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  XNoOp (x_current_display);
 	}
     }
-#endif /* X_IO_BUG */
 
 #if 0 /* This fails for serial-line connections to the X server, 
 	 because the characters arrive one by one, and a partial
@@ -6219,9 +6215,7 @@ x_term_init (display_name, xrm_option, resource_name)
 #endif /* ! defined (F_SETOWN) */
 #endif /* F_SETOWN_BUG */
   
-#ifdef X_IO_BUG
   x_noop_count = 0;
-#endif
 
   x_focus_frame = x_highlight_frame = 0;
 
