@@ -39,6 +39,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "keyboard.h"
+#include "charset.h"
 
 Lisp_Object Vdoc_file_name;
 
@@ -478,7 +479,9 @@ when doc strings are referred to later in the dumped Emacs.")
       if (p != end)
 	{
 	  end = index (p, '\n');
-	  sym = oblookup (Vobarray, p + 2, end - p - 2);
+	  sym = oblookup (Vobarray, p + 2,
+			  multibyte_chars_in_text (p + 2, end - p - 2),
+			  end - p - 2);
 	  if (SYMBOLP (sym))
 	    {
 	      /* Attach a docstring to a variable?  */
@@ -536,6 +539,8 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
   int length;
   Lisp_Object name;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  int multibyte;
+  int nchars;
 
   if (NILP (string))
     return Qnil;
@@ -546,6 +551,9 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
   name = Qnil;
   GCPRO4 (string, tem, keymap, name);
 
+  multibyte = STRING_MULTIBYTE (string);
+  nchars = 0;
+
   /* KEYMAP is either nil (which means search all the active keymaps)
      or a specified local map (which means search just that and the
      global map).  If non-nil, it might come from Voverriding_local_map,
@@ -554,38 +562,55 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
   if (NILP (keymap))
     keymap = Voverriding_local_map;
 
-  bsize = XSTRING (string)->size;
+  bsize = XSTRING (string)->size_byte;
   bufp = buf = (unsigned char *) xmalloc (bsize);
 
   strp = (unsigned char *) XSTRING (string)->data;
-  while (strp < (unsigned char *) XSTRING (string)->data + XSTRING (string)->size)
+  while (strp < XSTRING (string)->data + XSTRING (string)->size_byte)
     {
       if (strp[0] == '\\' && strp[1] == '=')
 	{
 	  /* \= quotes the next character;
 	     thus, to put in \[ without its special meaning, use \=\[.  */
 	  changed = 1;
-	  *bufp++ = strp[2];
-	  strp += 3;
+	  strp += 2;
+	  if (multibyte)
+	    {
+	      int len;
+	      int maxlen = XSTRING (string)->data + XSTRING (string)->size_byte - strp;
+
+	      STRING_CHAR_AND_LENGTH (strp, maxlen, len);
+	      if (len == 1)
+		*bufp = *strp;
+	      else
+		bcopy (strp, bufp, len);
+	      strp += len;
+	      bufp += len;
+	      nchars++;
+	    }
+	  else
+	    *bufp++ = *strp++, nchars++;
 	}
       else if (strp[0] == '\\' && strp[1] == '[')
 	{
 	  Lisp_Object firstkey;
+	  int length_byte;
 
 	  changed = 1;
 	  strp += 2;		/* skip \[ */
 	  start = strp;
 
 	  while ((strp - (unsigned char *) XSTRING (string)->data
-		  < XSTRING (string)->size)
+		  < XSTRING (string)->size_byte)
 		 && *strp != ']')
 	    strp++;
-	  length = strp - start;
+	  length_byte = strp - start;
+
 	  strp++;		/* skip ] */
 
 	  /* Save STRP in IDX.  */
 	  idx = strp - (unsigned char *) XSTRING (string)->data;
-	  tem = Fintern (make_string (start, length), Qnil);
+	  tem = Fintern (make_string (start, length_byte), Qnil);
 	  tem = Fwhere_is_internal (tem, keymap, Qt, Qnil);
 
 	  /* Disregard menu bar bindings; it is positively annoying to
@@ -605,6 +630,11 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	      buf = new;
 	      bcopy ("M-x ", bufp, 4);
 	      bufp += 4;
+	      nchars += 4;
+	      if (multibyte)
+		length = multibyte_chars_in_text (start, length_byte);
+	      else
+		length = length_byte;
 	      goto subst;
 	    }
 	  else
@@ -618,6 +648,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
       else if (strp[0] == '\\' && (strp[1] == '{' || strp[1] == '<'))
 	{
 	  struct buffer *oldbuf;
+	  int length_byte;
 
 	  changed = 1;
 	  strp += 2;		/* skip \{ or \< */
@@ -627,7 +658,8 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 		  < XSTRING (string)->size)
 		 && *strp != '}' && *strp != '>')
 	    strp++;
-	  length = strp - start;
+
+	  length_byte = strp - start;
 	  strp++;			/* skip } or > */
 
 	  /* Save STRP in IDX.  */
@@ -636,7 +668,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  /* Get the value of the keymap in TEM, or nil if undefined.
 	     Do this while still in the user's current buffer
 	     in case it is a local variable.  */
-	  name = Fintern (make_string (start, length), Qnil);
+	  name = Fintern (make_string (start, length_byte), Qnil);
 	  tem = Fboundp (name);
 	  if (! NILP (tem))
 	    {
@@ -653,7 +685,9 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	    {
 	      name = Fsymbol_name (name);
 	      insert_string ("\nUses keymap \"");
-	      insert_from_string (name, 0, XSTRING (name)->size, 1);
+	      insert_from_string (name, 0, 0,
+				  XSTRING (name)->size,
+				  XSTRING (name)->size_byte, 1);
 	      insert_string ("\", which is not currently defined.\n");
 	      if (start[-1] == '<') keymap = Qnil;
 	    }
@@ -668,21 +702,37 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	subst_string:
 	  start = XSTRING (tem)->data;
 	  length = XSTRING (tem)->size;
+	  length_byte = XSTRING (tem)->size_byte;
 	subst:
-	  new = (unsigned char *) xrealloc (buf, bsize += length);
+	  new = (unsigned char *) xrealloc (buf, bsize += length_byte);
 	  bufp += new - buf;
 	  buf = new;
-	  bcopy (start, bufp, length);
-	  bufp += length;
+	  bcopy (start, bufp, length_byte);
+	  bufp += length_byte;
+	  nchars += length;
 	  /* Check STRING again in case gc relocated it.  */
 	  strp = (unsigned char *) XSTRING (string)->data + idx;
 	}
-      else			/* just copy other chars */
-	*bufp++ = *strp++;
+      else if (! multibyte)		/* just copy other chars */
+	*bufp++ = *strp++, nchars++;
+      else
+	{
+	  int len;
+	  int maxlen = XSTRING (string)->data + XSTRING (string)->size_byte - strp;
+
+	  STRING_CHAR_AND_LENGTH (strp, maxlen, len);
+	  if (len == 1)
+	    *bufp = *strp;
+	  else
+	    bcopy (strp, bufp, len);
+	  strp += len;
+	  bufp += len;
+	  nchars++;
+	}
     }
 
   if (changed)			/* don't bother if nothing substituted */
-    tem = make_string (buf, bufp - buf);
+    tem = make_multibyte_string (buf, nchars, bufp - buf);
   else
     tem = string;
   xfree (buf);
