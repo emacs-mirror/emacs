@@ -25,6 +25,7 @@ Boston, MA 02111-1307, USA.  */
 #include "config.h"
 #include "lisp.h"
 #include "charset.h"
+#include "keyboard.h"
 #include "frame.h"
 #include "dispextern.h"
 #include "fontset.h"
@@ -60,7 +61,7 @@ search_file_line(char *key, char *start, int len, char **val, char **next)
 
   p = memchr(start, '\n', len);
   if (!p) return -1;
-  for (;start < p;start++)
+  for (;(unsigned char *)start < p;start++)
     {
       if ((*start != ' ') && (*start != '\t')) break;
     }
@@ -129,15 +130,16 @@ set_bdf_font_info(bdffont *fontp)
   fontp->slant = NULL;
 /*  fontp->width = NULL; */
 
-  flag = proceed_file_line("FONTBOUNDINGBOX", start, &len, &p, &q);
+  flag = proceed_file_line("FONTBOUNDINGBOX", start, &len,
+			   (char **)&p, (char **)&q);
   if (!flag) return 0;
-  bbw = strtol(p, &start, 10);
+  bbw = strtol(p, (char **)&start, 10);
   p = start;
-  bbh = strtol(p, &start, 10);
+  bbh = strtol(p, (char **)&start, 10);
   p = start;
-  bbx = strtol(p, &start, 10);
+  bbx = strtol(p, (char **)&start, 10);
   p = start;
-  bby = strtol(p, &start, 10);
+  bby = strtol(p, (char **)&start, 10);
 
   fontp->llx = bbx;
   fontp->lly = bby;
@@ -146,70 +148,82 @@ set_bdf_font_info(bdffont *fontp)
   fontp->width = bbw;
   fontp->height = bbh;
   start = q;
-  flag = proceed_file_line("STARTPROPERTIES", start, &len, &p, &q);
+  flag = proceed_file_line("STARTPROPERTIES", start, &len,
+			   (char **)&p, (char **)&q);
   if (!flag) return 1;
 
   flag = 0;
 
   do {
     start = q;
-    if (search_file_line("PIXEL_SIZE", start, len, &p, &q) == 1)
+    if (search_file_line("PIXEL_SIZE", start, len,
+			 (char **)&p, (char **)&q) == 1)
       {
 	val1 = atoi(p);
         fontp->pixsz = val1;
       }
-    else if (search_file_line("FONT_ASCENT", start, len, &p, &q) == 1)
+    else if (search_file_line("FONT_ASCENT", start, len,
+			      (char **)&p, (char **)&q) == 1)
       {
 	val1 = atoi(p);
 	fontp->ury = val1;
       }
-    else if (search_file_line("FONT_DESCENT", start, len, &p, &q) == 1)
+    else if (search_file_line("FONT_DESCENT", start, len,
+			      (char **)&p, (char **)&q) == 1)
       {
 	val1 = atoi(p);
 	fontp->lly = -val1;
       }
-    else if (search_file_line("_MULE_BASELINE_OFFSET", start, len, &p, &q) == 1)
+    else if (search_file_line("_MULE_BASELINE_OFFSET", start, len,
+			      (char **)&p, (char **)&q) == 1)
       {
 	val1 = atoi(p);
 	fontp->yoffset = -val1;
       }
-    else if (search_file_line("_MULE_RELATIVE_COMPOSE", start, len, &p, &q) == 1)
+    else if (search_file_line("_MULE_RELATIVE_COMPOSE", start, len,
+			      (char **)&p, (char **)&q) == 1)
       {
 	val1 = atoi(p);
 	fontp->relative_compose = val1;
       }
-    else if (search_file_line("_MULE_DEFAULT_ASCENT", start, len, &p, &q) == 1)
+    else if (search_file_line("_MULE_DEFAULT_ASCENT", start, len,
+			      (char **)&p, (char **)&q) == 1)
       {
 	val1 = atoi(p);
 	fontp->default_ascent = val1;
       }
-    else if (search_file_line("CHARSET_REGISTRY", start, len, &p, &q) == 1)
+    else if (search_file_line("CHARSET_REGISTRY", start, len,
+			      (char **)&p, (char **)&q) == 1)
       {
         fontp->registry = get_quoted_string(p, q);
       }
-    else if (search_file_line("CHARSET_ENCODING", start, len, &p, &q) == 1)
+    else if (search_file_line("CHARSET_ENCODING", start, len,
+			      (char **)&p, (char **)&q) == 1)
       {
         fontp->encoding = get_quoted_string(p, q);
       }
-    else if (search_file_line("SLANT", start, len, &p, &q) == 1)
+    else if (search_file_line("SLANT", start, len,
+			      (char **)&p, (char **)&q) == 1)
       {
         fontp->slant = get_quoted_string(p, q);
       }
 /*
-    else if (search_file_line("SETWIDTH_NAME", start, len, &p, &q) == 1)
+    else if (search_file_line("SETWIDTH_NAME", start, len,
+    			      (char **)&p, (char **)&q) == 1)
       {
         fontp->width = get_quoted_string(p, q);
       }
 */
     else
       {
-	flag = search_file_line("ENDPROPERTIES", start, len, &p, &q);
+	flag = search_file_line("ENDPROPERTIES", start, len,
+				(char **)&p, (char **)&q);
       }
     if (flag == -1) return 0;
     len -= (q - start);
   }while(flag == 0);
   start = q;
-  flag = proceed_file_line("CHARS", start, &len, &p, &q);
+  flag = proceed_file_line("CHARS", start, &len, (char **)&p, (char **)&q);
   if (!flag) return 0;
   fontp->nchars = atoi(p);
   fontp->seeked = q;
@@ -375,7 +389,8 @@ seek_char(bdffont *fontp, int index)
   len = fontp->size - (start - fontp->font);
 
   do {
-    flag = proceed_file_line("ENCODING", start, &len, &p, &q);
+    flag = proceed_file_line("ENCODING", start, &len,
+			     (char **)&p, (char **)&q);
     if (!flag)
       {
 	fontp->seeked = NULL;
@@ -446,27 +461,27 @@ w32_get_bdf_glyph(bdffont *fontp, int index, int size, glyph_struct *glyph)
 
   len = fontp->size - (start - fontp->font);
 
-  flag = proceed_file_line("DWIDTH", start, &len, &p, &q);
+  flag = proceed_file_line("DWIDTH", start, &len, (char **)&p, (char **)&q);
   if (!flag)
     return 0;
   glyph->metric.dwidth = atoi(p);
 
   start = q;
-  flag = proceed_file_line("BBX", start, &len, &p, &q);
+  flag = proceed_file_line("BBX", start, &len, (char **)&p, (char **)&q);
   if (!flag)
     return 0;
-  glyph->metric.bbw = strtol(p, &start, 10);
+  glyph->metric.bbw = strtol(p, (char **)&start, 10);
   p = start;
-  glyph->metric.bbh = strtol(p, &start, 10);
+  glyph->metric.bbh = strtol(p, (char **)&start, 10);
   p = start;
-  glyph->metric.bbox = strtol(p, &start, 10);
+  glyph->metric.bbox = strtol(p, (char **)&start, 10);
   p = start;
-  glyph->metric.bboy = strtol(p, &start, 10);
+  glyph->metric.bboy = strtol(p, (char **)&start, 10);
 
   if (size == 0) return 1;
 
   start = q;
-  flag = proceed_file_line("BITMAP", start, &len, &p, &q);
+  flag = proceed_file_line("BITMAP", start, &len, (char **)&p, (char **)&q);
   if (!flag)
     return 0;
 
@@ -488,11 +503,14 @@ w32_get_bdf_glyph(bdffont *fontp, int index, int size, glyph_struct *glyph)
       if (!q) return 0;
       for(j = 0;((q > p) && (j < rowbytes));j++)
 	{
-	  val1 = GET_HEX_VAL(*p);
-	  if (val1 == -1) return 0;
+	  int ival = GET_HEX_VAL(*p);
+
+	  if (ival == -1) return 0;
+	  val1 = ival;
 	  p++;
-	  val2 = GET_HEX_VAL(*p);
-	  if (val2 == -1) return 0;
+	  ival = GET_HEX_VAL(*p);
+	  if (ival == -1) return 0;
+	  val2 = ival;
 	  p++;
 	  val = (unsigned char)((val1 << 4) | val2);
 	  if (val) flag = 1;
