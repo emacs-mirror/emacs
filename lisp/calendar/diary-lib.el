@@ -594,7 +594,7 @@ is created."
 (defcustom diary-mail-days 7
   "*Number of days for `diary-mail-entries' to check."
   :group 'diary
-  :type integer)
+  :type 'integer)
 
 (defun diary-mail-entries (&optional ndays)
   "Send a mail message showing diary entries for next NDAYS days.
