@@ -375,7 +375,11 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 
   register int pid = getpid();
 
-  setpriority (PRIO_PROCESS, pid, 0);
+  {
+    extern int emacs_priority;
+
+    nice (- emacs_priority);
+  }
 
 #ifdef subprocesses
   /* Close Emacs's descriptors that this process should not have.  */
