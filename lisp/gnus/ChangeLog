@@ -1,3 +1,25 @@
+2000-11-23  Dave Love  <fx@gnu.org>
+
+	* mm-uu.el (uudecode): Require.
+	(uudecode-decode-region, uudecode-decode-region-external): Don't
+	autoload.
+	(mm-uu-copy-to-buffer): Doc fix.
+	(mm-uu-decode-function, mm-uu-binhex-decode-function): Doc, custom
+	type fix.
+
+	* mailcap.el: Doc fixes.
+	(mailcap-mime-data): Various adjustments.
+	(mailcap): New group.
+	(mailcap-download-directory): Customize.
+	(mailcap-generate-unique-filename, mailcap-binary-suffixes)
+	(mailcap-temporary-directory): Deleted (unused).
+	(mailcap-unescape-mime-test): Simplify slightly.
+	(mailcap-viewer-passes-test): Use functionp.
+	(mailcap-command-p): Aliased to executable-find.
+
+	* rfc2047.el (rfc2047-encode-message-header): Don't encode if
+	default-enable-multibyte-characters is nil.
+
 2000-11-22  Simon Josefsson  <simon@josefsson.org>
 
 	* gnus-uu.el (gnus-uu-digest-mail-forward): Search for "from:"
