@@ -151,6 +151,47 @@ static int menu_items_submenu_depth;
    Xt on behalf of one of the widget sets.  */
 static int popup_activated_flag;
 
+/* This holds a Lisp vector
+   which contains frames that have menu bars.
+   Each frame that has a menu bar is found at some index in this vector
+   and the menu bar widget refers to the frame through that index.  */
+static Lisp_Object frame_vector;
+
+/* Return the index of FRAME in frame_vector.
+   If FRAME isn't in frame_vector yet, put it in,
+   lengthening the vector if necessary.  */
+
+static int
+frame_vector_add_frame (f)
+     FRAME_PTR *f;
+{
+  int length = XVECTOR (frame_vector)->size;
+  int i, empty = -1;
+  Lisp_Object new, frame;
+
+  XSETFRAME (frame, f);
+
+  for (i = 0; i < length; i++)
+    {
+      if (EQ (frame, XVECTOR (frame_vector)->contents[i]))
+	return i;
+      if (NILP (XVECTOR (frame_vector)->contents[i]))
+	empty = i;
+    }
+
+  if (empty >= 0)
+    {
+      XVECTOR (frame_vector)->contents[empty] = frame;
+      return empty;
+    }
+
+  new = Fmake_vector (make_number (length * 2), Qnil);
+  bcopy (XVECTOR (frame_vector)->contents,
+	 XVECTOR (new)->contents, sizeof (Lisp_Object) * length);
+  
+  XVECTOR (frame_vector)->contents[length] = frame;
+  return length;
+}
 
 /* Initialize the menu_items structure if we haven't already done so.
    Also mark it as currently empty.  */
@@ -1060,7 +1101,7 @@ menubar_selection_callback (widget, id, client_data)
      XtPointer client_data;
 {
   Lisp_Object prefix;
-  FRAME_PTR f = (FRAME_PTR) id;
+  FRAME_PTR f = XFRAME (XVECTOR (frame_vector)->contents[id]);
   Lisp_Object vector;
   Lisp_Object *subprefix_stack;
   int submenu_depth = 0;
@@ -1378,10 +1419,12 @@ set_frame_menubar (f, first_time)
      int first_time;
 {
   Widget menubar_widget = f->display.x->menubar_widget;
-  int id = (int) f;
-  Lisp_Object tail, items;
+  Lisp_Object tail, items, frame;
   widget_value *wv, *first_wv, *prev_wv = 0;
   int i;
+  int id;
+
+  id = frame_vector_add_frame (f);
 
   BLOCK_INPUT;
 
@@ -1493,12 +1536,13 @@ free_frame_menubar (f)
   int id;
 
   menubar_widget = f->display.x->menubar_widget;
-  id = (int) f;
   
   if (menubar_widget)
     {
+      id = frame_vector_add_frame (f);
       BLOCK_INPUT;
       lw_destroy_all_widgets (id);
+      XVECTOR (frame_vector)->contents[id] = Qnil;
       UNBLOCK_INPUT;
     }
 }
@@ -2351,6 +2395,9 @@ syms_of_xmenu ()
 #ifdef USE_X_TOOLKIT
   widget_id_tick = (1<<16);	
 #endif
+
+  staticpro (&frame_vector);
+  frame_vector = Fmake_vector (make_number (10), Qnil);
 
   defsubr (&Sx_popup_menu);
   defsubr (&Sx_popup_dialog);
