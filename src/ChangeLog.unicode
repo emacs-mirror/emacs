@@ -1,3 +1,8 @@
+2005-03-14  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (set_default_ascii_font): Fix the change for
+	syncing with CVS head.
+
 2005-01-30  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Fset_fontset_font): Check family element of a given
