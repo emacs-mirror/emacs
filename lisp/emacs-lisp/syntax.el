@@ -1,6 +1,6 @@
 ;;; syntax.el --- helper functions to find syntactic context
 
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2003 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; The main exported function is `syntax-ppss'.  You might also need
-;; to call `syntax-ppss-after-change-function' or to add it to
+;; to call `syntax-ppss-flush-cache' or to add it to
 ;; after-change-functions'(although this is automatically done by
 ;; syntax-ppss when needed, but that might fail if syntax-ppss is
 ;; called in a context where after-change-functions is temporarily
@@ -73,7 +73,9 @@ point (where the PPSS is equivalent to nil).")
   "Cache of (LAST-POS . LAST-PPSS).")
 (make-variable-buffer-local 'syntax-ppss-last)
 
-(defun syntax-ppss-after-change-function (beg &rest ignored)
+(defalias 'syntax-ppss-after-change-function 'syntax-ppss-flush-cache)
+(defun syntax-ppss-flush-cache (beg &rest ignored)
+  "Flush the cache of `syntax-ppss' starting at position BEG."
   ;; Flush invalid cache entries.
   (while (and syntax-ppss-cache (> (caar syntax-ppss-cache) beg))
     (setq syntax-ppss-cache (cdr syntax-ppss-cache)))
@@ -106,10 +108,6 @@ point (where the PPSS is equivalent to nil).")
   "Parse-Partial-Sexp State at POS.
 The returned value is the same as `parse-partial-sexp' except that
 the 2nd and 6th values of the returned state cannot be relied upon.
-
-If the caller knows the PPSS of a nearby position, she can pass it
-in OLP-PPSS (with or without its corresponding OLD-POS) to try and
-avoid a more expansive scan.
 Point is at POS when this function returns."
   ;; Default values.
   (unless pos (setq pos (point)))
@@ -172,8 +170,7 @@ Point is at POS when this function returns."
 
 	  ;; Setup the after-change function if necessary.
 	  (unless (or syntax-ppss-cache syntax-ppss-last)
-	    (add-hook 'after-change-functions
-		      'syntax-ppss-after-change-function nil t))
+	    (add-hook 'after-change-functions 'syntax-ppss-flush-cache nil t))
 
 	  ;; Use the best of OLD-POS and CACHE.
 	  (if (or (not old-pos) (< old-pos pt-min))
