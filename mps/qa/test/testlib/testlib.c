@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.12) $
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.13) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -364,6 +364,8 @@ int read_event(log_event* event) {
   }
   error("unknown event");
  }
+ /* to make compiler happy */
+ return 0;
 }
 
 
