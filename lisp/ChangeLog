@@ -1,3 +1,8 @@
+2002-03-04  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): 
+	Use "P" in interactive spec of minor mode commands.
+
 2002-03-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* net/snmp-mode.el: Require tempo when compiling to prevent
