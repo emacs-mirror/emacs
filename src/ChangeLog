@@ -42,7 +42,7 @@
 
 	The following changes consolidates the fringe handling from
 	xterm.c, w32term.c, and macterm.c into xdisp.c.
-	
+
 	* xdisp.c: Consolidate fringe handling code here.
 	(left_bits, right_bits, continued_bits, continuation_bits)
 	(ov_bits, zv_bits): Define fringe bitmaps.
@@ -67,10 +67,14 @@
 	* w32term.c: Remove generic fringe code.
 	(w32_draw_fringe_bitmap): Only perform actual fringe drawing.
 	(w32_redisplay_interface): Add w32_draw_fringe_bitmap member.
-	
+
 	* macterm.c: Remove generic fringe code.
 	(x_draw_fringe_bitmap): Only perform actual fringe drawing.
 	(x_redisplay_interface): Add x_draw_fringe_bitmap member.
+
+2003-03-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* print.c (Fprin1_to_string): Return unibyte string if possible.
 
 2003-03-09  David Kastrup  <dak@gnu.org>
 
@@ -88,7 +92,7 @@
 	also.
 	(handle_one_xevent): ButtonPress/Release:  If event is for a toolkit
 	scrollbar and control is pressed, call x_scroll_bar_handle_click.
-	
+
 	* gtkutil.h: Declare xg_get_scroll_id_for_window.
 
 	* gtkutil.c (xg_get_scroll_id_for_window): New function.
@@ -102,7 +106,7 @@
 2003-03-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Compare pixmap ID instead of
-	struct image* when desciding to update (struct image* may have been
+	struct image* when deciding to update (struct image* may have been
 	deleted from the image cache).
 
 	* xterm.c (handle_one_xevent): Pass ReparentNotify to Xt even if
@@ -113,7 +117,7 @@
 	* coding.c (CODING_ADD_COMPOSITION_COMPONENT): If the number of
 	composition components reaches the limit, terminate composing.
 	(COMPOSITION_OK): New macro.
-	(detect_coding_iso2022): Use it if an escapse sequence for
+	(detect_coding_iso2022): Use it if an escape sequence for
 	composition is found.
 	(coding_restore_composition): Adjust the number of composition
 	components if it is not sane.
