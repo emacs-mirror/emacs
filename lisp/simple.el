@@ -63,8 +63,6 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
 		   (bolp)
 		   ;; Make sure no functions want to be told about
 		   ;; the range of the changes.
-		   (not after-change-function)
-		   (not before-change-function)
 		   (not after-change-functions)
 		   (not before-change-functions)
 		   ;; Make sure there are no markers here.
