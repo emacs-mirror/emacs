@@ -893,7 +893,7 @@ At end of the node's text, moves to the next node."
   (define-key Info-mode-map "q" 'Info-exit)
   (define-key Info-mode-map "s" 'Info-search)
   (define-key Info-mode-map "u" 'Info-up)
-  (define-key Info-mode-map "\177" 'scroll-down)
+  (define-key Info-mode-map "\177" 'Info-scroll-down)
   )
 
 ;; Info mode is suitable only for specially formatted data.
@@ -919,8 +919,11 @@ Selecting other nodes:
 \\[Info-last]	Move to the last node you were at.
 
 Moving within a node:
-\\[scroll-up]	scroll forward a full screen.     \\[scroll-down]  scroll backward.
-\\[beginning-of-buffer]	Go to beginning of node.
+\\[scroll-up]	Normally, scroll forward a full screen.  If the end of the buffer is
+already visible, try to go to the next menu entry, or up if there is none.
+\\[scroll-down]  Normally, scroll backward.  If the beginning of the buffer is
+already visible, try to go to the previous menu entry, or up if there is none.
+\\[beginning-of-buffer]	Go to beginning of node.  
 
 Advanced commands:
 \\[Info-exit]	Quit Info: reselect previously selected buffer.
@@ -930,7 +933,10 @@ Advanced commands:
 \\[Info-goto-node]	Move to node specified by name.
 	You may include a filename as well, as (FILENAME)NODENAME.
 \\[Info-search]	Search through this Info file for specified regexp,
-	and select the node in which the next occurrence is found."
+	and select the node in which the next occurrence is found.
+\\[Info-next-preorder]	Next-preorder; that is, try to go to the next menu item,
+	and if that fails try to move up, and if that fails, tell user
+ 	he/she is done reading."
   (kill-all-local-variables)
   (setq major-mode 'Info-mode)
   (setq mode-name "Info")

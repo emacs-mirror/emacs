@@ -75,7 +75,7 @@
   (define-key view-mode-map "x" 'exchange-point-and-mark)
   (define-key view-mode-map "h" 'Helper-describe-bindings)
   (define-key view-mode-map "?" 'Helper-describe-bindings)
-  (define-key view-mode-map "\C-h" 'Helper-help)
+  (define-key view-mode-map (char-to-string help-char) 'Helper-help)
   (define-key view-mode-map "\C-n" 'next-line)
   (define-key view-mode-map "\C-p" 'previous-line)
   (define-key view-mode-map "\C-s" 'isearch-forward)
@@ -193,7 +193,7 @@ C-r or r	do reverse incremental search.
 		  successful search and when jump to line to occurs.
 		  The mark is set on jump to buffer start or end.
 ? or h		provide help message (list of commands).
-C-h		provides help (list of commands or description of a command).
+\\[Helper-help]		provides help (list of commands or description of a command).
 C-n		moves down lines vertically.
 C-p		moves upward lines vertically.
 C-l		recenters the screen.
@@ -282,10 +282,10 @@ If you viewed a file that was not present in Emacs, its buffer is killed."
 
 (defun view-helpful-message ()
   (message
-   (if (and (eq (key-binding "\C-h") 'Helper-help)
+   (if (and (eq (key-binding (char-to-string help-char)) 'Helper-help)
 	    (eq (key-binding "?") 'Helper-describe-bindings)
 	    (eq (key-binding "\C-c") 'view-exit))
-       "Type C-h for help, ? for commands, C-c to quit"
+       "Type \\[Helper-help] for help, ? for commands, C-c to quit"
      (substitute-command-keys
       "Type \\[Helper-help] for help, \\[Helper-describe-bindings] for commands, \\[view-exit] to quit."))))
 
