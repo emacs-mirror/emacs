@@ -179,7 +179,7 @@ redraw_frame (f)
 
 #else
 
-DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, "",
+DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   "Clear frame FRAME and output again what is supposed to appear on it.")
   (frame)
      Lisp_Object frame;
