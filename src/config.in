@@ -112,6 +112,8 @@ Boston, MA 02111-1307, USA.  */
 #undef KERBEROS
 /* Define to use Kerberos 5 instead of Kerberos 4 */
 #undef KERBEROS5
+/* Define to support GSS-API in addition to (or instead of) Kerberos */
+#undef GSSAPI
 
 /* Define to support using a Hesiod database to find the POP server.  */
 #undef HESIOD
@@ -159,6 +161,11 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_KERBEROS_DES_H
 #undef HAVE_KERBEROS_KRB_H
 #undef HAVE_COM_ERR_H
+
+/* GSS-API libraries and headers */
+#undef HAVE_LIBGSSAPI_KRB5
+#undef HAVE_LIBGSSAPI
+#undef HAVE_GSSAPI_H
 
 /* Mail-file locking */
 #undef HAVE_LIBMAIL
