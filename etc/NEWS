@@ -1788,6 +1788,7 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
++++
 ** New function `delete-dups' destructively removes `equal' duplicates
 from a list.  Of several `equal' occurrences of an element in the list,
 the last one is kept.

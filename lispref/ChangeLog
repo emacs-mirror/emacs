@@ -1,3 +1,7 @@
+2004-01-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Sets And Lists): Add delete-dups.
+
 2004-01-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* edebug.texi (Instrumenting Macro Calls): `declare' is not a
