@@ -3262,7 +3262,7 @@ direct_output_for_insert (g)
 
       delta += 1;
       delta_bytes += it.len;
-      set_iterator_to_next (&it);
+      set_iterator_to_next (&it, 1);
     }
 
   /* Give up if we hit the right edge of the window.  We would have
@@ -3280,7 +3280,7 @@ direct_output_for_insert (g)
     {
       if (it2.c == '\t')
 	return 0;
-      set_iterator_to_next (&it2);
+      set_iterator_to_next (&it2, 1);
     }
 
   /* Number of new glyphs produced.  */
