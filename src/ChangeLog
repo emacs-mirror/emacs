@@ -1,3 +1,8 @@
+2002-08-03  Gerd Moellmann  <gerd.moellmann@t-online.de>
+
+	* xdisp.c (forward_to_next_line_start): Fix a condition that
+	lead to a newline being skipped.
+
 2002-08-02  Andrew Choi  <akochoi@shaw.ca>
 
 	* mac.c (syms_of_mac): Defsubr Sx_selection_exists_p.
