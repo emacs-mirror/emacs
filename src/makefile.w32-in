@@ -166,7 +166,7 @@ $(EMACS):       $(DOC) $(TEMACS)
 temacs:         $(BLD) $(TEMACS)
 $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES)
 	$(LINK) $(LINK_OUT)$(TEMACS_TMP) $(FULL_LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
-	"../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 18
+	"../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 20
 
 bootstrap: bootstrap-emacs
 
