@@ -280,7 +280,7 @@ A prefix arg suppresses display of that buffer."
 
 (defun cpp-parse-error (error)
   ;; Error message issued by the cpp parser.
-  (error (concat error " at line %d") (count-lines (point-min) (point))))
+  (error "%s at line %d" error (count-lines (point-min) (point))))
 
 (defun cpp-parse-reset ()
   "Reset display of cpp conditionals to normal."
