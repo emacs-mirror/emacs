@@ -1454,7 +1454,8 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 
   /* Some precondition checks.  */
   xassert (w != NULL && it != NULL);
-  xassert (charpos < 0 || (charpos > 0 && charpos <= ZV));
+  xassert (charpos < 0 || (charpos >= BUF_BEG (current_buffer)
+			   && charpos <= ZV));
 
   /* If face attributes have been changed since the last redisplay,
      free realized faces now because they depend on face definitions
@@ -14501,91 +14502,51 @@ display_string (string, lisp_string, face_string, face_string_pos,
 
 
 
-#define DOLIST(var, list, code)				\
-  {							\
-    register Lisp_Object tail;				\
-    for (tail = list; CONSP (tail); tail = XCDR (tail))	\
-      {							\
-	var = XCAR (tail);				\
-	code;						\
-      }							\
-  }
-
-/* Loop through the properties in PROPVAL and call CODE for each.
-   CODE can access the current element in `propelt'.  */
-
-#define LOOP_PROPVAL(var, propval, code)			\
-  {								\
-    var = (propval);						\
-    code;							\
-    								\
-    if (CONSP (propval))					\
-      {								\
-	register Lisp_Object tail;				\
-	for (tail = propval; CONSP (tail); tail = XCDR (tail))	\
-	  {							\
-	    var = XCAR (tail);					\
-	    code;						\
-	  }							\
-      }								\
-    return 0;							\
-  }
-
-/* This is like a combination of memq and assq.  Return 1 if PROPVAL
+/* This is like a combination of memq and assq.  Return 1/2 if PROPVAL
    appears as an element of LIST or as the car of an element of LIST.
    If PROPVAL is a list, compare each element against LIST in that
-   way, and return 1 if any element of PROPVAL is found in LIST.
-   Otherwise return 0.  This function cannot quit.  */
+   way, and return 1/2 if any element of PROPVAL is found in LIST.
+   Otherwise return 0.  This function cannot quit.
+   The return value is 2 if the text is invisible but with an ellipsis
+   and 1 if it's invisible and without an ellipsis.  */
 
 int
 invisible_p (propval, list)
      register Lisp_Object propval;
      Lisp_Object list;
 {
-  register Lisp_Object propelt, tem;
-  LOOP_PROPVAL (propelt, propval,
-		DOLIST (tem, list,
-			if (EQ (propelt, tem))
-			  return 1;
-			if (CONSP (tem) && EQ (propelt, XCAR (tem)))
-			  return 1;));
+  register Lisp_Object tail, proptail;
+  
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
+    {
+      register Lisp_Object tem;
+      tem = XCAR (tail);
+      if (EQ (propval, tem))
+	return 1;
+      if (CONSP (tem) && EQ (propval, XCAR (tem)))
+	return NILP (XCDR (tem)) ? 1 : 2;
+    }
+  
+  if (CONSP (propval))
+    {
+      for (proptail = propval; CONSP (proptail); proptail = XCDR (proptail))
+	{
+	  Lisp_Object propelt;
+	  propelt = XCAR (proptail);
+	  for (tail = list; CONSP (tail); tail = XCDR (tail))
+	    {
+	      register Lisp_Object tem;
+	      tem = XCAR (tail);
+	      if (EQ (propelt, tem))
+		return 1;
+	      if (CONSP (tem) && EQ (propelt, XCAR (tem)))
+		return NILP (XCDR (tem)) ? 1 : 2;
+	    }
+	}
+    }
+  
+  return 0;
 }
-
-
-/* Return 1 if PROPVAL appears as the car of an element of LIST and
-   the cdr of that element is non-nil.  If PROPVAL is a list, check
-   each element of PROPVAL in that way, and the first time some
-   element is found, return 1 if the cdr of that element is non-nil.
-   Otherwise return 0.  This function cannot quit.  */
-
-int
-invisible_ellipsis_p (propval, list)
-     register Lisp_Object propval;
-     Lisp_Object list;
-{
-  register Lisp_Object propelt, tem;
-  LOOP_PROPVAL (propelt, propval,
-		DOLIST (tem, list,
-			if (CONSP (tem) && EQ (propelt, XCAR (tem)))
-			  return !NILP (XCDR (tem))));
-}
-
-/* As above but for "completely" invisible (no ellipsis).  */
-
-int
-invisible_noellipsis_p (propval, list)
-     register Lisp_Object propval;
-     Lisp_Object list;
-{
-  register Lisp_Object propelt, tem;
-  LOOP_PROPVAL (propelt, propval,
-		DOLIST (tem, list,
-			if (EQ (propelt, tem))
-			  return 1;
-			if (CONSP (tem) && EQ (propelt, XCAR (tem)))
-			  return NILP (XCDR (tem))));
-}
-
 
 
 /***********************************************************************
