@@ -2574,7 +2574,7 @@ doesn't exist, it is created."
 (defun make-backup-file-name-1 (file)
   "Subroutine of `make-backup-file-name' and `find-backup-file-name'."
   (let ((alist backup-directory-alist)
-	elt backup-directory dir-sep-string)
+	elt backup-directory)
     (while alist
       (setq elt (pop alist))
       (if (string-match (car elt) file)
@@ -2589,29 +2589,28 @@ doesn't exist, it is created."
       (if (file-name-absolute-p backup-directory)
 	  (progn
 	    (when (memq system-type '(windows-nt ms-dos))
-	      ;; Normalize DOSish file names: convert all slashes to
-	      ;; directory-sep-char, downcase the drive letter, if any,
-	      ;; and replace the leading "x:" with "/drive_x".
+	      ;; Normalize DOSish file names: downcase the drive
+	      ;; letter, if any, and replace the leading "x:" with
+	      ;; "/drive_x".
 	      (or (file-name-absolute-p file)
 		  (setq file (expand-file-name file))) ; make defaults explicit
 	      ;; Replace any invalid file-name characters (for the
 	      ;; case of backing up remote files).
 	      (setq file (expand-file-name (convert-standard-filename file)))
-	      (setq dir-sep-string (char-to-string directory-sep-char))
 	      (if (eq (aref file 1) ?:)
-		  (setq file (concat dir-sep-string
+		  (setq file (concat "/"
 				     "drive_"
 				     (char-to-string (downcase (aref file 0)))
-				     (if (eq (aref file 2) directory-sep-char)
+				     (if (eq (aref file 2) ?/)
 					 ""
-				       dir-sep-string)
+				       "/")
 				     (substring file 2)))))
 	    ;; Make the name unique by substituting directory
 	    ;; separators.  It may not really be worth bothering about
 	    ;; doubling `!'s in the original name...
 	    (expand-file-name
 	     (subst-char-in-string
-	      directory-sep-char ?!
+	      ?/ ?!
 	      (replace-regexp-in-string "!" "!!" file))
 	     backup-directory))
 	(expand-file-name (file-name-nondirectory file)
@@ -3563,7 +3562,7 @@ See also `auto-save-file-name-p'."
 		(setq filename (concat
 				(file-name-directory result)
 				(subst-char-in-string
-				 directory-sep-char ?!
+				 ?/ ?!
 				 (replace-regexp-in-string "!" "!!"
 							   filename))))
 	      (setq filename result)))
