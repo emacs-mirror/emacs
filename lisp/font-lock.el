@@ -2049,27 +2049,27 @@ The item is delimited by (match-beginning 1) and (match-end 1).
 If (match-beginning 2) is non-nil, the item is followed by a `('.
 
 This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
-  (when (looking-at "[ \t*]*\\(\\sw+\\)[ \t]*\\(((?\\)?")
+  (when (looking-at "[ \n\t*]*\\(\\sw+\\)[ \t\n]*\\(((?\\)?")
     (when (and (match-end 2) (> (- (match-end 2) (match-beginning 2)) 1))
       ;; If `word' is followed by a double open-paren, it's probably
       ;; a macro used for "int myfun P_ ((int arg1))".  Let's go back one
       ;; word to try and match `myfun' rather than `P_'.
       (let ((pos (point)))
-	(skip-chars-backward " \t")
+	(skip-chars-backward " \t\n")
 	(skip-syntax-backward "w")
-	(unless (looking-at "\\(\\sw+\\)[ \t]*\\sw*_\\sw*[ \t]*\\((\\)?")
+	(unless (looking-at "\\(\\sw+\\)[ \t\n]*\\sw*_\\sw*[ \t\n]*\\((\\)?")
 	  ;; Looks like it was something else, so go back to where we
 	  ;; were and reset the match data by rematching.
 	  (goto-char pos)
-	  (looking-at "[ \t*]*\\(\\sw+\\)[ \t]*\\(((?\\)?"))))
+	  (looking-at "[ \n\t*]*\\(\\sw+\\)[ \t\n]*\\(((?\\)?"))))
     (save-match-data
       (condition-case nil
 	  (save-restriction
-	    ;; Restrict to the end of line, currently guaranteed to be LIMIT.
+	    ;; Restrict to the LIMIT.
 	    (narrow-to-region (point-min) limit)
 	    (goto-char (match-end 1))
 	    ;; Move over any item value, etc., to the next item.
-	    (while (not (looking-at "[ \t]*\\(\\(,\\)\\|;\\|$\\)"))
+	    (while (not (looking-at "[ \t\n]*\\(\\(,\\)\\|;\\|\\'\\)"))
 	      (goto-char (or (scan-sexps (point) 1) (point-max))))
 	    (goto-char (match-end 2)))
 	(error t)))))
