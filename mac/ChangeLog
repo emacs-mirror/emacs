@@ -1,3 +1,12 @@
+2001-08-21  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
+
+	* src/macterm.c (mac_scroll_area): Call CopyBits with local
+	coordinates and portBits instead of global coordinates and
+	screenBits.  Set fore color and back color to black and white,
+	respectively, before calling CopyBits.
+
+	* src/macterm.c (local_to_global_coord): Comment out.
+
 2001-07-26  Andrew Choi  <akochoi@i-cable.com>
 
 	* inc/macterm.h (x_display_list): Declare extern.

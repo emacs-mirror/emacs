@@ -836,6 +836,7 @@ mac_copy_area (display, src, dest, gc, src_x, src_y, width, height, dest_x,
 }
 
 
+#if 0
 /* Convert a pair of local coordinates to global (screen) coordinates.
    Assume graphic port has been properly set.  */
 static void
@@ -851,7 +852,7 @@ local_to_global_coord (short *h, short *v)
   *h = p.h;
   *v = p.v;
 }
-
+#endif
 
 /* Mac replacement for XCopyArea: used only for scrolling.  */
 
@@ -867,11 +868,14 @@ mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
   Rect src_r, dest_r;
 
   SetPort (w);
+#if 0
   mac_set_colors (gc);
+#endif
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
   SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
 
+#if 0
   /* Need to use global coordinates and screenBits since src and dest
      areas overlap in general.  */
   local_to_global_coord (&src_r.left, &src_r.top);
@@ -880,6 +884,15 @@ mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
   local_to_global_coord (&dest_r.right, &dest_r.bottom);
 
   CopyBits (&qd.screenBits, &qd.screenBits, &src_r, &dest_r, srcCopy, 0);
+#else
+  /* In Color QuickDraw, set ForeColor and BackColor as follows to avoid
+     color mapping in CopyBits.  Otherwise, it will be slow.  */
+  ForeColor (blackColor);
+  BackColor (whiteColor);
+  CopyBits (&(w->portBits), &(w->portBits), &src_r, &dest_r, srcCopy, 0);
+  
+  mac_set_colors (gc);
+#endif
 }
 
 
