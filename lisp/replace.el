@@ -152,7 +152,7 @@ which will run faster and will not set the mark or print anything."
 A match split across lines preserves all the lines it lies in.
 Applies to all lines after point."
   (interactive (list (read-from-minibuffer
-		      "sKeep lines (containing match for regexp): "
+		      "Keep lines (containing match for regexp): "
 		      nil nil nil 'regexp-history)))
   (save-excursion
     (or (bolp) (forward-line 1))
@@ -179,7 +179,7 @@ Applies to all lines after point."
 If a match is split across lines, all the lines it lies in are deleted.
 Applies to lines after point."
   (interactive (list (read-from-minibuffer
-		      "sFlush lines (containing match for regexp): "
+		      "Flush lines (containing match for regexp): "
 		      nil nil nil 'regexp-history)))
   (save-excursion
     (while (and (not (eobp))
@@ -193,7 +193,7 @@ Applies to lines after point."
 (defun how-many (regexp)
   "Print number of matches for REGEXP following point."
   (interactive (list (read-from-minibuffer
-		      "sHow many matches for (regexp): "
+		      "How many matches for (regexp): "
 		      nil nil nil 'regexp-history)))
   (let ((count 0) opoint)
     (save-excursion
