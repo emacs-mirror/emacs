@@ -84,6 +84,7 @@ Lisp_Object Qname;
 Lisp_Object Qonly;
 Lisp_Object Qunsplittable;
 Lisp_Object Qmenu_bar_lines;
+Lisp_Object Qtoolbar_lines;
 Lisp_Object Qwidth;
 Lisp_Object Qx;
 Lisp_Object Qw32;
@@ -120,6 +121,8 @@ syms_of_frame_1 ()
   staticpro (&Qunsplittable);
   Qmenu_bar_lines = intern ("menu-bar-lines");
   staticpro (&Qmenu_bar_lines);
+  Qtoolbar_lines = intern ("toolbar-lines");
+  staticpro (&Qtoolbar_lines);
   Qwidth = intern ("width");
   staticpro (&Qwidth);
   Qx = intern ("x");
@@ -200,6 +203,7 @@ set_menu_bar_lines (f, value, oldval)
       FRAME_WINDOW_SIZES_CHANGED (f) = 1;
       FRAME_MENU_BAR_LINES (f) = nlines;
       set_menu_bar_lines_1 (f->root_window, nlines - olines);
+      adjust_glyphs (f);
     }
 }
 
@@ -277,10 +281,12 @@ make_frame (mini_p)
   f = (struct frame *)vec;
   XSETFRAME (frame, f);
 
-  f->cursor_x = 0;
-  f->cursor_y = 0;
-  f->current_glyphs = 0;
-  f->desired_glyphs = 0;
+  f->desired_matrix = 0;
+  f->current_matrix = 0;
+  f->desired_pool = 0;
+  f->current_pool = 0;
+  f->glyphs_initialized_p = 0;
+  f->decode_mode_spec_buffer = 0;
   f->visible = 0;
   f->async_visible = 0;
   f->output_data.nothing = 0;
@@ -300,6 +306,7 @@ make_frame (mini_p)
   f->scroll_bars = Qnil;
   f->condemned_scroll_bars = Qnil;
   f->face_alist = Qnil;
+  f->face_cache = NULL;
   f->menu_bar_items = Qnil;
   f->menu_bar_vector = Qnil;
   f->menu_bar_items_used = 0;
@@ -310,6 +317,11 @@ make_frame (mini_p)
 #endif
   f->namebuf = 0;
   f->title = Qnil;
+  f->menu_bar_window = Qnil;
+  f->toolbar_window = Qnil;
+  f->desired_toolbar_items = f->current_toolbar_items = Qnil;
+  f->desired_toolbar_string = f->current_toolbar_string = Qnil;
+  f->n_desired_toolbar_items = f->n_current_toolbar_items = 0;
 
   root_window = make_window ();
   if (mini_p)
@@ -357,18 +369,25 @@ make_frame (mini_p)
        a space), try to find another one.  */
     if (XSTRING (Fbuffer_name (buf))->data[0] == ' ')
       buf = Fother_buffer (buf, Qnil, Qnil);
-    Fset_window_buffer (root_window, buf);
 
+    /* Use set_window_buffer, not Fset_window_buffer, and don't let
+       hooks be run by it.  The reason is that the whole frame/window
+       arrangement is not yet fully intialized at this point.  Windows
+       don't have the right size, glyph matrices aren't initialized
+       etc.  Running Lisp functions at this point surely ends in a
+       SEGV.  */
+    set_window_buffer (root_window, buf, 0);
     f->buffer_list = Fcons (buf, Qnil);
   }
 
   if (mini_p)
     {
       XWINDOW (mini_window)->buffer = Qt;
-      Fset_window_buffer (mini_window,
-			  (NILP (Vminibuffer_list)
-			   ? get_minibuffer (0)
-			   : Fcar (Vminibuffer_list)));
+      set_window_buffer (mini_window,
+			 (NILP (Vminibuffer_list)
+			  ? get_minibuffer (0)
+			  : Fcar (Vminibuffer_list)),
+			 0);
     }
 
   f->root_window = root_window;
@@ -519,10 +538,10 @@ make_terminal_frame ()
 #ifdef MSDOS
   f->output_data.x = &the_only_x_display;
   f->output_method = output_msdos_raw;
-  init_frame_faces (f);
 #else /* not MSDOS */
   f->output_data.nothing = 1;	/* Nonzero means frame isn't deleted.  */
 #endif
+  init_frame_faces (f);
   return f;
 }
 
@@ -550,7 +569,7 @@ Note that changing the size of one terminal frame automatically affects all.")
   f = make_terminal_frame ();
   change_frame_size (f, FRAME_HEIGHT (selected_frame),
 		     FRAME_WIDTH (selected_frame), 0, 0);
-  remake_frame_glyphs (f);
+  adjust_glyphs (f);
   calculate_costs (f);
   XSETFRAME (frame, f);
   Fmodify_frame_parameters (frame, Vdefault_frame_alist);
@@ -1150,6 +1169,12 @@ but if the second optional argument FORCE is non-nil, you may do so.")
     x_clear_frame_selections (f);
 #endif
 
+  /* Free glyphs. 
+     This function must be called before the window tree of the 
+     frame is deleted because windows contain dynamically allocated
+     memory. */
+  free_glyphs (f);
+
   /* Mark all the windows that used to be on FRAME as deleted, and then
      remove the reference to them.  */
   delete_all_subwindows (XWINDOW (f->root_window));
@@ -1165,23 +1190,17 @@ but if the second optional argument FORCE is non-nil, you may do so.")
     }
 
   if (f->namebuf)
-    free (f->namebuf);
-  if (FRAME_CURRENT_GLYPHS (f))
-    free_frame_glyphs (f, FRAME_CURRENT_GLYPHS (f));
-  if (FRAME_DESIRED_GLYPHS (f))
-    free_frame_glyphs (f, FRAME_DESIRED_GLYPHS (f));
-  if (FRAME_TEMP_GLYPHS (f))
-    free_frame_glyphs (f, FRAME_TEMP_GLYPHS (f));
+    xfree (f->namebuf);
   if (FRAME_INSERT_COST (f))
-    free (FRAME_INSERT_COST (f));
+    xfree (FRAME_INSERT_COST (f));
   if (FRAME_DELETEN_COST (f))
-    free (FRAME_DELETEN_COST (f));
+    xfree (FRAME_DELETEN_COST (f));
   if (FRAME_INSERTN_COST (f))
-    free (FRAME_INSERTN_COST (f));
+    xfree (FRAME_INSERTN_COST (f));
   if (FRAME_DELETE_COST (f))
-    free (FRAME_DELETE_COST (f));
+    xfree (FRAME_DELETE_COST (f));
   if (FRAME_MESSAGE_BUF (f))
-    free (FRAME_MESSAGE_BUF (f));
+    xfree (FRAME_MESSAGE_BUF (f));
 
 #ifdef HAVE_WINDOW_SYSTEM
   /* Free all fontset data.  */
