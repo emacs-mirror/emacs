@@ -670,18 +670,23 @@ range of code points of targer characters.  */)
 
   CHECK_CHARSET_GET_CHARSET (charset, cs);
   if (NILP (from_code))
-    from_code = make_number (0);
-  CHECK_NATNUM (from_code);
-  from = XINT (from_code);
-  if (from < CHARSET_MIN_CODE (cs))
     from = CHARSET_MIN_CODE (cs);
+  else
+    {
+      CHECK_NATNUM (from_code);
+      from = XINT (from_code);
+      if (from < CHARSET_MIN_CODE (cs))
+	from = CHARSET_MIN_CODE (cs);
+    }
   if (NILP (to_code))
-    to_code = make_number (0xFFFFFFFF);
-  CHECK_NATNUM (from_code);
-  to = XINT (to_code);
-  if (to > CHARSET_MAX_CODE (cs))
-    to_code = make_number (CHARSET_MAX_CODE (cs));
-
+    to = CHARSET_MAX_CODE (cs);
+  else
+    {
+      CHECK_NATNUM (to_code);
+      to = XINT (to_code);
+      if (to > CHARSET_MAX_CODE (cs))
+	to = CHARSET_MAX_CODE (cs);
+    }
   map_charset_chars (NULL, function, arg, cs, from, to);
   return Qnil;
 }
