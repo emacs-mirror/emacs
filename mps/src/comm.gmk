@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.1) $
+# $HopeName: MMsrc!comm.gmk(trunk.2) $
 # Copyright (C) 1995,1996 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -180,14 +180,15 @@ endif
 # "all" builds all varieties of all targets
 # %%TARGET: Add the target to the all dependencies.
 
-all: mpmss amcss dwstress mpsicv lockcov poolncv lo.a locv qs weakcv
+all: mpmss amcss dwstress mpsicv lockcov poolncv mps.a \
+     lo.a locv qs weakcv
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-mpmss amcss dwstress mpsicv lockcov poolncv lo.a \
+mpmss amcss dwstress mpsicv lockcov poolncv mps.a lo.a \
   locv qs weakcv mmsw.a: phony
 	$(MAKE) -f $(PFM).gmk TARGET=$@ target
 
@@ -261,6 +262,8 @@ $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
 
 $(PFM)/$(VARIETY)/qs: $(PFM)/$(VARIETY)/qs.o \
 	$(AMCOBJ) $(MPMOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(PFM)/$(VARIETY)/amc.o $(PFM)/$(VARIETY)/lo.o $(PFM)/$(VARIETY)/pooln.o
 
 $(PFM)/$(VARIETY)/mpm.a: $(MPMOBJ)
 
