@@ -144,7 +144,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef KERNEL_FILE
 #define KERNEL_FILE "/sysv68"
 #undef LDAV_SYMBOL
-#define SHORT_FILE_NAMES
 
 /* The standard C library is -lc881, not -lc.
    -lbsd brings sigblock and sigsetmask.
