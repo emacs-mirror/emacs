@@ -34,7 +34,7 @@ is intended to be a functional replacement for command shells such as
 bash, zsh, rc, 4dos; since Emacs itself is capable of handling most of
 the tasks accomplished by such tools."
   :tag "The Emacs shell"
-  :link '(info-link "(eshell.info)The Emacs shell")
+  :link '(info-link "(eshell)The Emacs shell")
   :group 'applications)
 
 ;;; Commentary:
@@ -254,7 +254,7 @@ the tasks accomplished by such tools."
   "`eshell-buffer-name' is a member of `same-window-buffer-names'"
   (member eshell-buffer-name same-window-buffer-names))
 
-(defcustom eshell-directory-name "~/.eshell/"
+(defcustom eshell-directory-name (convert-standard-filename "~/.eshell/")
   "*The directory where Eshell control files should be kept."
   :type 'directory
   :group 'eshell)
