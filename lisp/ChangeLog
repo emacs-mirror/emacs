@@ -1,3 +1,13 @@
+2001-03-31  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/titdic-cnv.el (quail-cxterm-package-ext-info):
+	Delete entries for "chinese-py" and "chinese-ziranma".
+	(quail-misc-package-ext-info): New variable. 
+	(tsang-quick-converter): New function.
+	(tsang-b5-converter, quick-b5-converter, tsang-cns-converter) 
+	(quick-cns-converter, py-converter, ziranma-converter) 
+	(miscdic-convert, batch-miscdic-convert): New functions.
+
 2001-03-30  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/utf-8.el (ccl-encode-mule-utf-8): Fix handling of

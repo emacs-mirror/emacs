@@ -1,3 +1,25 @@
+2001-03-31  Kenichi Handa  <handa@etl.go.jp>
+
+	* Makefile.in (TIT-GB): Delete quail/PY.elc and quail/ZIRANMA.elc
+	(NON-TIT-BIG5): Delete ${srcdir}/quail/quick-b5.elc
+	${srcdir}/quail/tsang-b5.elc.
+	(CHINESE-NON-TIT): Delete ${NON-TIT-CNS}.
+	(CHINESE-CNS): Delete it.
+	(MISC-DIC): New variable.
+	(CHINESE): Delete ${CHINESE-CNS}.
+	(WORLD): Delete ${MISC-DIC}.
+	(all): Depends on ${MISC-DIC}.
+	(${MISC-DIC}): New target.
+	(clean mostlyclean): Delete also ${MISC-DIC} ${MISC-DIC:.elc=.el}.
+
+	* MISC-DIC/cangjie-table.b5, MISC-DIC/cangjie-table.cns,
+	MISC-DIC/pinyin.map, MISC-DIC/ziranma.cin: New files.
+
+	* CXTERM-DIC/PY.tit, CXTERM-DIC/ZIRANMA.tit: Delete them.
+
+	* quail/tsang-b5.el, quail/tsang-cns.el, quail/quick-b5.el,
+	quail/quick-cns.el: Delete them.
+	
 2001-03-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (${TIT}): Fix whitespace.
