@@ -271,6 +271,10 @@ reset_buffer (b)
   b->auto_save_file_name = Qnil;
   b->read_only = Qnil;
   b->fieldlist = Qnil;
+
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  INITIALIZE_INTERVAL (b, NULL_INTERVAL);
+
   reset_buffer_local_variables(b);
 }
 
@@ -728,6 +732,10 @@ with `delete-process'.")
       m->chain = Qnil;
     }
   b->markers = Qnil;
+
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  INITIALIZE_INTERVAL (b, NULL_INTERVAL);
+  /* Perhaps we should explicitly free the interval tree here... */
 
   b->name = Qnil;
   BUFFER_FREE (BUF_BEG_ADDR (b));
