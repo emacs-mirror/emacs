@@ -1,3 +1,9 @@
+2001-10-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (notice_overwritten_cursor): Renamed from
+	note_overwritten_text_cursor.  Rewritten to take glyph widths into
+	account.
+
 2001-10-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* lread.c (syms_of_lread) <load-suffixes>: Fix last change:
