@@ -23,6 +23,12 @@
 
 ;;; Code:
 
+;;; Commentary:
+
+;; Window-system-independent bindings of mouse clicks on the scroll bar.
+;; Presently emulates the scroll-bar behavior of xterm.
+;;; Code:
+
 (require 'mouse)
 
 

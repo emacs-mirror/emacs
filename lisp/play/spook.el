@@ -4,6 +4,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: games
+;; Created: May 1987
 
 ;; This file is part of GNU Emacs.
 
@@ -26,8 +27,7 @@
 ; Steve Strassmann (straz@media-lab.media.mit.edu) didn't write
 ; this, and even if he did, he really didn't mean for you to use it
 ; in an anarchistic way.
-; May 1987
-
+;
 ; To use this:
 ;  Make sure you have the variable SPOOK-PHRASES-FILE pointing to 
 ;  a valid phrase file. Phrase files are in the same format as
@@ -38,7 +38,7 @@
 ;  Just before sending mail, do M-x spook.
 ;  A number of phrases will be inserted into your buffer, to help
 ;  give your message that extra bit of attractiveness for automated
-;  keyword scanners.
+;  keyword scanners.  Help defeat the NSA trunk trawler!
 
 ;;; Code:
 

@@ -18,6 +18,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; A grab-bag of basic Emacs commands not specifically related to some
+;; major mode or to file-handling.
+
 ;;; Code:
 
 (defun open-line (arg)

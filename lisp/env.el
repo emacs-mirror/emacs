@@ -3,7 +3,7 @@
 ;;; Copyright Free Software Foundation 1991
 
 ;; Maintainer: FSF
-;; Keywords: extensions
+;; Keywords: processes, unix
 
 ;;; This file is part of GNU Emacs.
 
@@ -20,6 +20,13 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
+
+;; UNIX processes inherit a list of name-to-string associations from
+;; their parents called their `environment'; these are commonly used
+;; to control program options.  This package permits you to set
+;; environment variables to be passed to any sub-process run under Emacs.
 
 ;;; Code:
 

@@ -3,6 +3,7 @@
 ;; Copyright (C) 1991 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Ernst <mernst@theory.lcs.mit.edu>
+;; Created: Jan 1991
 ;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
@@ -22,8 +23,6 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
-
-;;; Written by Michael D. Ernst, mernst@theory.lcs.mit.edu, Jan 1991.
 
 ;;; Reposition-window makes an entire function definition or comment visible,
 ;;; or, if it is already visible, places it at the top of the window;

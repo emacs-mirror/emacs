@@ -21,6 +21,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package of functions emulates and somewhat extends the venerable
+;; TECO's `register' feature, which permits you to save various useful
+;; pieces of buffer state to named variables.  The entry points are
+;; documented in the Emacs user's manual.
+
 ;;; Code:
 
 (defvar register-alist nil

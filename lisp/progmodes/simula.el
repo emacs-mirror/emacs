@@ -26,7 +26,11 @@
 
 ;;; Commentary:
 
-;; Hans Henrik Eriksen may be reached at:
+;; A major mode for editing the Simula language.  It knows about Simula
+;; syntax and standard indentation commands.  It also provides convenient
+;; abbrevs for Simula keywords.
+;;
+;; Hans Henrik Eriksen (the author) may be reached at:
 ;;         Institutt for informatikk,
 ;;         Universitetet i Oslo
 

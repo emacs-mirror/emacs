@@ -21,6 +21,12 @@
 ;; It should be in a file named COPYING.  Among other things, the
 ;; copyright notice and this notice must be preserved on all copies.
 
+;;; Commentary:
+
+;; A major mode for editing source in written for the Scribe text formatter.
+;; Knows about Scribe syntax and standard layout rules.  The command to
+;; run Scribe on a buffer is bogus; someone interested should fix it.
+
 ;;; Code:
 
 (defvar scribe-mode-syntax-table nil

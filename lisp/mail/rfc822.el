@@ -22,6 +22,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; Support functions for parsing RFC-822 headers, used by mail and news
+;; modes.  
+
 ;;; Code:
 
 ;; uses address-start free, throws to address

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
-;; Keywords: wp
+;; Keywords: wp, unix
 
 ;; This file is part of GNU Emacs.
 
@@ -20,6 +20,13 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
+
+;; This mode orovides an Emacs interface to the UNIX spell(1) program.
+;; Entry points are `spell-buffer', `spell-word', `spell-region' and
+;; `spell-string'.  These facilities are documented in the Emacs user's
+;; manual.
 
 ;;; Code:
 

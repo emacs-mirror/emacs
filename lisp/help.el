@@ -21,6 +21,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This code implements GNU Emac's on-line help system, the one invoked by
+;;`M-x help-for-help'.
+
 ;;; Code:
 
 ;; Get the macro make-help-screen when this is compiled,

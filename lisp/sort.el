@@ -22,6 +22,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;;; This package provides the sorting facilities documented in the Emacs
+;;; user's manual.
+
 ;;; Code:
 
 (defun sort-subr (reverse nextrecfun endrecfun &optional startkeyfun endkeyfun)

@@ -20,6 +20,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; Commands to optimize spaces to tabs or expand tabs to spaces in a region
+;; (`tabify' and `untabify').  The variable tab-width does the obvious.
+
 ;;; Code:
 
 ;;;###autoload

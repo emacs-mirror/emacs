@@ -5,6 +5,12 @@
 
 ;; Keywords: games
 
+;;; Commentary:
+
+;; Functions to studlycapsify a region, word, or buffer.  Possibly the
+;; esoteric significance of studlycapsification escapes you; that is,
+;; you suffer from autostudlycapsifibogotification.  Too bad.
+
 ;;; Code:
 
 (defun studlify-region (begin end)
