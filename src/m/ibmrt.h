@@ -135,8 +135,5 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define NO_REMAP
 
-/* rocky@watson.ibm.com says this is needed.  */
-#define HAVE_FTIME
-
 /* Use the bitmap files that come with Emacs.  */
 #define EMACS_BITMAP_FILES
