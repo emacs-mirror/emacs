@@ -314,7 +314,10 @@ The truename of a file name is found by chasing symbolic links
 both at the level of the file and at the level of the directories
 containing it, until no links are left at any level."
   (if (string= filename "~")
-      (setq filename (expand-file-name filename)))
+      (progn
+	(setq filename (expand-file-name filename))
+	(if (string= filename "")
+	    (setq filename "/"))))
   (let ((handler (find-file-name-handler filename)))
     ;; For file name that has a special handler, call handler.
     ;; This is so that ange-ftp can save time by doing a no-op.
