@@ -1,3 +1,19 @@
+2000-09-14  Dave Love  <fx@gnu.org>
+
+	* toolbar/cancel.xpm, toolbar/close.xpm, toolbar/copy.xpm,
+	toolbar/cut.xpm, toolbar/exit.xpm, toolbar/fld_open.xpm,
+	toolbar/help.xpm, toolbar/info.xpm, toolbar/mail.xpm,
+	toolbar/mail_compose.xpm, toolbar/new.xpm, toolbar/open.xpm,
+	toolbar/paste.xpm, toolbar/preferences.xpm, toolbar/print.xpm,
+	toolbar/save.xpm, toolbar/saveas.xpm, toolbar/search-replace.xpm,
+	toolbar/search.xpm, toolbar/spell.xpm, toolbar/undo.xpm:  New.
+	From Tuomas Kuosmanen <tigert@gimp.org>.  (Gnome icons fetched
+	from <URL:http://tigert.gimp.org/gnome/gnome-stock/>.)
+
+	* toolbar/toolbar.el: New.
+
+	* subdirs.el: Add toolbar.
+
 2000-09-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* indent.el (indent-for-tab-command): Doc fix.
