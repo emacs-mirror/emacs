@@ -136,7 +136,7 @@ contributions.  Emacs has a special command for maintaining the
 
 @findex authors
   The @kbd{M-x authors} command prompts for the name of the root of the
-Emacs source directory.  It then scans @file{ChageLog} files and Lisp
+Emacs source directory.  It then scans @file{ChangeLog} files and Lisp
 source files under that directory for information about authors of
 individual packages and people who made changes in source files, and
 puts the information it gleans into a buffer named @samp{*Authors*}.
