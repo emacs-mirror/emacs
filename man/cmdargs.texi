@@ -696,6 +696,7 @@ Specify the color of the Emacs cursor which indicates where point is.
 @itemx --mouse-color=@var{color} 
 Specify the color for the mouse cursor when the mouse is in the Emacs window.
 @item -r
+@itemx -rv
 @itemx --reverse-video
 Reverse video---swap the foreground and background colors.
 @end table
