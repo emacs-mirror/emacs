@@ -188,16 +188,43 @@ main (argc, argv)
   char *spool_name;
 #endif
 
+#ifdef MAIL_USE_POP
+  int pop_flags = POP_NO_GETPASS | POP_NO_GSSAPI;
+# define ARGSTR "gkp"
+#else /* ! MAIL_USE_POP */
+# define ARGSTR "p"
+#endif /* MAIL_USE_POP */
+
   delete_lockname = 0;
 
-  while ((c = getopt (argc, argv, "p")) != EOF)
+  /*
+    'g' enables Kerberos and disables GSS-API.
+    'k' enables GSS-API and disables Kerberos.
+
+    By default, Kerberos is enabled (if it is compiled in) and
+    GSS-API is disabled, i.e., "-k" is the default.  However, I'm
+    putting the flag in anyway, in case we decide to add new
+    authentication methods or change the default later.
+  */
+
+  while ((c = getopt (argc, argv, ARGSTR)) != EOF)
     {
       switch (c) {
+#ifdef MAIL_USE_POP
+      case 'g':
+	pop_flags |= POP_NO_KERBEROS;
+	pop_flags &= ~POP_NO_GSSAPI;
+	break;
+      case 'k':
+	pop_flags |= POP_NO_GSSAPI;
+	pop_flags &= ~POP_NO_KERBEROS;
+	break;
+#endif
       case 'p':
 	preserve_mail++;
 	break;
       default:
-	exit(1);
+	goto usage;
       }
     }
 
@@ -209,11 +236,12 @@ main (argc, argv)
 #endif
       )
     {
-      fprintf (stderr, "Usage: movemail [-p] inbox destfile%s\n",
+    usage:
+      fprintf (stderr, "Usage: movemail %s[-p] inbox destfile%s\n",
 #ifdef MAIL_USE_POP
-	       " [POP-password]"
+	       "[-g|-k] ", " [POP-password]"
 #else
-	       ""
+	       "", ""
 #endif
 	       );
       exit (1);
@@ -254,7 +282,7 @@ main (argc, argv)
       int status;
 
       status = popmail (inname + 3, outname, preserve_mail,
-			(argc - optind == 3) ? argv[optind+2] : NULL);
+			(argc - optind == 3) ? argv[optind+2] : NULL, pop_flags);
       exit (status);
     }
 
@@ -673,11 +701,12 @@ char ibuffer[BUFSIZ];
 char obuffer[BUFSIZ];
 char Errmsg[80];
 
-popmail (user, outfile, preserve, password)
+popmail (user, outfile, preserve, password, flags)
      char *user;
      char *outfile;
      int preserve;
      char *password;
+     int flags;
 {
   int nmsgs, nbytes;
   register int i;
@@ -686,7 +715,7 @@ popmail (user, outfile, preserve, password)
   char *getenv ();
   popserver server;
 
-  server = pop_open (0, user, password, POP_NO_GETPASS);
+  server = pop_open (0, user, password, flags);
   if (! server)
     {
       error (pop_error);
