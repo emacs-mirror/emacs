@@ -920,7 +920,7 @@ DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
       && NILP (XCDR (XCDR (obj))))
     return XCAR (XCDR (obj));
 
-  print_error_message (obj, Vprin1_to_string_buffer);
+  print_error_message (obj, Vprin1_to_string_buffer, 0, Qnil);
 
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
   value = Fbuffer_string ();
@@ -937,12 +937,26 @@ DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
    STREAM (suitable for the print functions).  */
 
 void
-print_error_message (data, stream)
+print_error_message (data, stream, context, caller)
      Lisp_Object data, stream;
+     char *context;
+     Lisp_Object caller;
 {
   Lisp_Object errname, errmsg, file_error, tail;
   struct gcpro gcpro1;
   int i;
+
+  if (context != 0)
+    write_string_1 (context, -1, stream);
+
+  /* If we know from where the error was signaled, show it in
+   *Messages*.  */
+  if (!NILP (caller) && SYMBOLP (caller))
+    {
+      const char *name = SDATA (SYMBOL_NAME (caller));
+      message_dolog (name, strlen (name), 0, 0);
+      message_dolog (": ", 2, 0, 0);
+    }
 
   errname = Fcar (data);
 
