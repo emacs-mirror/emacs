@@ -1,0 +1,210 @@
+;; Mode for editing assembler code
+;; Copyright (C) 1991 Free Software Foundation, Inc.
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 1, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;; This mode was written for Eric S. Raymond <eric@snark.thyrsus.com>,
+;; inspired by an earlier asm-mode by Martin Neitzel.
+;; 	@(#)asm-mode.el	1.1
+
+;; This minor mode is based on text mode.  It defines a private abbrev table
+;; that can be used to save abbrevs for assembler mnemonics.  It binds just
+;; five keys:
+;;
+;;	TAB		tab to next tab stop
+;;	:		outdent preceding label, tab to tab stop
+;;	;		place or move comment
+;;	C-j, C-m	newline and tab to tab stop
+;;
+;; Code is indented to the first tab stop level.
+;; The ; key inserts copies of the value of asm-comment-char at an
+;; appropriate spot.
+;; This mode runs two hooks:
+;;   1) An asm-set-comment-hook before the part of the initialization
+;; depending on asm-comment-char, and
+;;   2) an asm-mode-hook at the end of initialization.
+
+(defvar asm-comment-char ?;
+  "*The comment-start character assumed by asm-mode.")
+
+(defvar asm-mode-syntax-table nil
+  "Syntax table used while in asm mode.")
+
+(defvar asm-mode-abbrev-table nil
+  "Abbrev table used while in asm mode.")
+(define-abbrev-table 'asm-mode-abbrev-table ())
+
+(defvar asm-mode-map nil
+  "Keymap for asm-mode")
+
+(if asm-mode-map
+    nil
+  (setq asm-mode-map (make-sparse-keymap))
+  (define-key asm-mode-map ";"		'asm-comment)
+  (define-key asm-mode-map ":"		'asm-colon)
+  (define-key asm-mode-map "\C-i"	'tab-to-tab-stop)
+  (define-key asm-mode-map "\C-j"	'asm-newline)
+  (define-key asm-mode-map "\C-m"	'asm-newline)
+  )
+
+(defvar asm-code-level-empty-comment-pattern nil)
+(defvar asm-flush-left-empty-comment-pattern nil)
+(defvar asm-inline-empty-comment-pattern nil)
+
+;;;###autoload
+(defun asm-mode ()
+  "Major mode for editing typical assembler code.
+Features a private asm-mode-abbrev-table and the following bindings:
+
+\\[asm-colon]\toutdent a preceding label, tab to next tab stop.
+\\[tab-to-tab-stop]\ttab to next tab stop.
+\\[asm-newline]\tnewline, then tab to next tab stop.
+\\[asm-comment]\tsmart placement of assembler comments.
+
+The character used for making comments is set by the variable
+asm-comment-char (which defaults to ?;).  You may want to set this
+appropriately for the assembler on your machine in defaults.el.
+
+Alternatively, you may set this variable in asm-set-comment-hook, which is
+called near the beginning of mode initialization.
+
+Turning on asm-mode calls the value of the variable asm-mode-hook,
+if that value is non-nil, at the end of initialization.
+
+Special commands:\\{asm-mode-map}
+"
+  (interactive)
+  (kill-all-local-variables)
+  (use-local-map asm-mode-map)
+  (setq mode-name "Assembler")
+  (setq major-mode 'asm-mode)
+  (setq local-abbrev-table asm-mode-abbrev-table)
+  (make-local-variable 'asm-mode-syntax-table)
+  (setq asm-mode-syntax-table (make-syntax-table))
+  (set-syntax-table asm-mode-syntax-table)
+  (run-hooks 'asm-mode-set-comment-hook)
+  (modify-syntax-entry	asm-comment-char
+			"<" asm-mode-syntax-table)
+  (modify-syntax-entry	?\n
+			 ">" asm-mode-syntax-table)
+  (let ((cs (regexp-quote (char-to-string asm-comment-char))))
+    (make-local-variable 'comment-start)
+    (setq comment-start (concat cs " "))
+    (make-local-variable 'comment-start-skip)
+    (setq comment-start-skip (concat cs "+[ \t]*"))
+    (setq asm-inline-empty-comment-pattern (concat "^.+" cs "+ *$"))
+    (setq asm-code-level-empty-comment-pattern (concat "^[\t ]+" cs cs " *$"))
+    (setq asm-flush-left-empty-comment-pattern (concat "^" cs cs cs " *$"))
+    )
+  (make-local-variable 'comment-end)
+  (setq comment-end "")
+  (make-local-variable 'comment-column)
+  (setq comment-column 32)
+  (auto-fill-mode 1)
+  (setq fill-prefix "\t")
+  (run-hooks 'asm-mode-hook)
+  )
+
+
+(defun asm-colon ()
+  "Insert a colon; if it follows a label, delete the label's indentation."
+  (interactive)
+  (save-excursion
+    (beginning-of-line)
+    (if (looking-at "[ \t]+\\(\\sw\\|\\s_\\)+$")
+	(delete-horizontal-space)))
+  (insert ":")
+  (tab-to-tab-stop)
+  )
+
+(defun asm-newline ()
+  "Insert LFD + fill-prefix, to bring us back to code-indent level."
+  (interactive)
+  (if (eolp) (delete-horizontal-space))
+  (insert "\n")
+  (tab-to-tab-stop)
+  )
+
+(defun asm-line-matches (pattern &optional withcomment)
+  (save-excursion
+    (beginning-of-line)
+    (looking-at pattern)))
+
+(defun asm-pop-comment-level ()
+  ;; Delete an empty comment ending current line.  Then set up for a new one,
+  ;; on the current line if it was all comment, otherwise above it
+  (end-of-line)
+  (delete-horizontal-space)
+  (while (= (preceding-char) asm-comment-char)
+    (delete-backward-char 1))
+  (delete-horizontal-space)
+  (if (bolp)
+      nil
+    (beginning-of-line)
+    (open-line 1))
+  )
+
+
+(defun asm-comment ()
+  "Convert an empty comment to a `larger' kind, or start a new one.
+These are the known comment classes:
+
+   1 -- comment to the right of the code (at the comment-column)
+   2 -- comment on its own line, indented like code
+   3 -- comment on its own line, beginning at the left-most column.
+
+Suggested usage:  while writing your code, trigger asm-comment
+repeatedly until you are satisfied with the kind of comment."
+  (interactive)
+  (cond
+
+   ;; Blank line?  Then start comment at code indent level.
+   ((asm-line-matches "^[ \t]*$")
+    (delete-horizontal-space)
+    (tab-to-tab-stop)
+    (insert asm-comment-char comment-start))
+
+   ;; Nonblank line with no comment chars in it?
+   ;; Then start a comment at the current comment column
+   ((asm-line-matches (format "^[^%c]+$" asm-comment-char))
+    (indent-for-comment))
+
+   ;; Flush-left comment present?  Just insert character.
+   ((asm-line-matches asm-flush-left-empty-comment-pattern)
+    (insert asm-comment-char))
+
+   ;; Empty code-level comment already present?
+   ;; Then start flush-left comment, on line above if this one is nonempty. 
+   ((asm-line-matches asm-code-level-empty-comment-pattern)
+    (asm-pop-comment-level)
+    (insert asm-comment-char asm-comment-char comment-start))
+
+   ;; Empty comment ends line?
+   ;; Then make code-level comment, on line above if this one is nonempty. 
+   ((asm-line-matches asm-inline-empty-comment-pattern)
+    (asm-pop-comment-level)
+    (tab-to-tab-stop)
+    (insert asm-comment-char comment-start))
+
+   ;; If all else fails, insert character
+   (t
+    (insert asm-comment-char))
+
+   )
+  (end-of-line))
+
+;;; asm-mode.el ends here
