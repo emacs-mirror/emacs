@@ -1,3 +1,9 @@
+2002-03-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-conf.el (utf-16-le): Use :bom attribute
+	instead of :signature.
+	(utf-16-be): Likewise.
+
 2002-03-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/czech.el ("Czech"): Set `iso-8859-2' for

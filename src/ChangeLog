@@ -1,9 +1,5 @@
 2002-03-07  Kenichi Handa  <handa@etl.go.jp>
 
-	* coding.c (decode_coding_utf_16): 
-
-	* insdel.c (insert_from_gap): Call record_insert.
-
 	* coding.c (encode_coding_utf_8): Initialize produced_chars to 0.
 	(decode_coding_utf_16): Fix converting high and low bytes to
 	code-point.
@@ -13,6 +9,8 @@
 	(setup_coding_system): Initialize `surrogate' of
 	coding->spec.utf_16 to 0.
 	(EMIT_ONE_BYTE): Fix for multibyte case.
+
+	* insdel.c (insert_from_gap): Call record_insert.
 
 2002-03-04  Kenichi Handa  <handa@etl.go.jp>
 
