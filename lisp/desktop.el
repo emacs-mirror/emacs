@@ -227,7 +227,16 @@ the like shorter."
     (if (consp here)
 	(setcdr here nil))))
 ;; ----------------------------------------------------------------------------
-(defun desktop-clear () "Empty the Desktop."
+(defcustom desktop-clear-preserve-buffers
+  '("*scratch*" "*Messages*")
+  "*Buffer names that `desktop-clear' should not delete."
+  :type '(repeat string)
+  :group 'desktop)
+
+(defun desktop-clear ()
+  "Empty the Desktop.
+This kills all buffers except for internal ones
+and those listed in `desktop-clear-preserve-buffers'."
   (interactive)
   (setq kill-ring nil
 	kill-ring-yank-pointer nil
@@ -235,8 +244,14 @@ the like shorter."
 	search-ring-yank-pointer nil
 	regexp-search-ring nil
 	regexp-search-ring-yank-pointer nil)
-;;;  What a screw!
-;;;  (mapcar (function kill-buffer) (buffer-list))
+  (let ((buffers (buffer-list)))
+    (while buffers
+      (or (member (buffer-name (car buffers)) desktop-clear-preserve-buffers)
+	  ;; Don't kill buffers made for internal purposes.
+	  (and (not (equal (buffer-name (car buffers)) ""))
+	       (eq (aref (buffer-name (car buffers)) 0) ?\ ))
+	  (kill-buffer (car buffers)))
+      (setq buffers (cdr buffers))))
   (delete-other-windows))
 ;; ----------------------------------------------------------------------------
 (add-hook 'kill-emacs-hook 'desktop-kill)
