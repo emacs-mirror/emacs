@@ -440,3 +440,11 @@ extern char *getenv ();
 #include "string.h"
 #endif
 #endif
+
+#ifndef NO_RETURN
+#if defined __GNUC__ && (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR >= 5))
+#define NO_RETURN	__attribute__ ((__noreturn__))
+#else
+#define NO_RETURN	/* nothing */
+#endif
+#endif
