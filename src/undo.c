@@ -135,8 +135,8 @@ but another undo command will undo to the previous boundary.")
 /* At garbage collection time, make an undo list shorter at the end,
    returning the truncated list.
    MINSIZE and MAXSIZE are the limits on size allowed, as described below.
-   In practice, these are the values of undo-threshold and
-   undo-high-threshold.  */
+   In practice, these are the values of undo-limit and
+   undo-strong-limit.  */
 
 Lisp_Object
 truncate_undo_list (list, minsize, maxsize)
