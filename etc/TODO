@@ -166,6 +166,8 @@ Other features we would like:
 
 * Use the XIE X extension, if available, for image display.
 
+* Add support for rendering antialiased text, probably using FreeType.
+
 * Rewrite make-docfile to something sane.
 
 * Port the conservative stack marking code of Emacs' garbage collector
