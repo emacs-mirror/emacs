@@ -173,3 +173,11 @@
    jmp_buf.  */
 
 #define GC_SETJMP_WORKS 1
+
+/* In FreeBSD 4, we must use terminfo.o instead of tparam.o.  Termcap
+   capabilities use %-specifiers that tparm.o cannot handle.
+   Libtermcap.a contains a `tparm' that terminfo.c can use.  */
+
+#if __FreeBSD__ >= 4
+#define TERMCAP_OBJ terminfo.o
+#endif
