@@ -256,6 +256,9 @@ Lisp_Object Qgc_cons_threshold, Qchar_table_extra_slots;
 
 Lisp_Object Vpost_gc_hook, Qpost_gc_hook;
 
+Lisp_Object Vgc_elapsed;	/* accumulated elapsed time in GC  */
+EMACS_INT gcs_done;		/* accumulated GCs  */
+
 static void mark_buffer P_ ((Lisp_Object));
 static void mark_kboards P_ ((void));
 static void gc_sweep P_ ((void));
@@ -645,8 +648,8 @@ lisp_free (block)
    elsewhere in the code should be inside a BLOCK_INPUT/UNBLOCK_INPUT
    pairs; unfortunately, we have no idea what C library functions
    might call malloc, so we can't really protect them unless you're
-   using GNU malloc.  Fortunately, most of the major operating can use
-   GNU malloc.  */
+   using GNU malloc.  Fortunately, most of the major operating systems
+   can use GNU malloc.  */
 
 #ifndef SYSTEM_MALLOC
 #ifndef DOUG_LEA_MALLOC
@@ -1236,7 +1239,7 @@ string_bytes (s)
   return nbytes;
 }
     
-/* Check validity Lisp strings' string_bytes member in B.  */
+/* Check validity of Lisp strings' string_bytes member in B.  */
 
 void
 check_sblock (b)
@@ -4085,6 +4088,9 @@ Garbage collection happens automatically if you cons more than
   int message_p;
   Lisp_Object total[8];
   int count = SPECPDL_INDEX ();
+  EMACS_TIME t1, t2, t3;
+
+  EMACS_GET_TIME (t1);
 
   /* Can't GC if pure storage overflowed because we can't determine
      if something is a pure object or not.  */
@@ -4370,7 +4376,16 @@ Garbage collection happens automatically if you cons more than
       safe_run_hooks (Qpost_gc_hook);
       unbind_to (count, Qnil);
     }
-  
+
+  /* Accumulate statistics.  */
+  EMACS_GET_TIME (t2);
+  EMACS_SUB_TIME (t3, t2, t1);
+  if (FLOATP (Vgc_elapsed))
+    XSETFLOAT (Vgc_elapsed, make_float (XFLOAT_DATA (Vgc_elapsed) +
+					EMACS_SECS (t3) +
+					EMACS_USECS (t3) * 1.0e-6));
+  gcs_done++;
+
   return Flist (sizeof total / sizeof *total, total);
 }
 
@@ -5525,6 +5540,8 @@ init_alloc ()
   setjmp_tested_p = longjmps_done = 0;
 #endif
 #endif
+  Vgc_elapsed = make_float (0.0);
+  gcs_done = 0;
 }
 
 void
@@ -5613,6 +5630,14 @@ which includes both saved text and other data.  */);
 
   staticpro (&Qchar_table_extra_slots);
   Qchar_table_extra_slots = intern ("char-table-extra-slots");
+
+  DEFVAR_LISP ("gc-elapsed", &Vgc_elapsed,
+	       doc: /* Accumulated time elapsed in garbage collections.
+The time is in seconds as a floating point value.
+Programs may reset this to get statistics in a specific period.  */);
+  DEFVAR_INT ("gcs-done", &gcs_done,
+	      doc: /* Accumulated number of garbage collections done.
+Programs may reset this to get statistics in a specific period.  */);
 
   defsubr (&Scons);
   defsubr (&Slist);
