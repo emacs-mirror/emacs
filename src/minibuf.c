@@ -485,6 +485,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       val = read_minibuf_noninteractive (map, initial, prompt, backup_n,
 					 expflag, histvar, histpos, defalt,
 					 allow_props, inherit_input_method);
+      UNGCPRO;
       return unbind_to (count, val);
     }
 
@@ -738,7 +739,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* The appropriate frame will get selected
      in set-window-configuration.  */
-  RETURN_UNGCPRO (unbind_to (count, val));
+  UNGCPRO;
+  return unbind_to (count, val);
 }
 
 /* Return a buffer to be used as the minibuffer at depth `depth'.
@@ -1125,7 +1127,8 @@ minibuf_conform_representation (string, basis)
 
 DEFUN ("try-completion", Ftry_completion, Stry_completion, 2, 3, 0,
        doc: /* Return common substring of all completions of STRING in ALIST.
-Each car of each element of ALIST is tested to see if it begins with STRING.
+Each car of each element of ALIST (or each element if it is not a cons cell)
+is tested to see if it begins with STRING.
 All that match are compared together; the longest initial sequence
 common to all matches is returned as a string.
 If there is no match at all, nil is returned.
@@ -1367,7 +1370,8 @@ is used to further constrain the set of candidates.  */)
 
 DEFUN ("all-completions", Fall_completions, Sall_completions, 2, 4, 0,
        doc: /* Search for partial matches to STRING in ALIST.
-Each car of each element of ALIST is tested to see if it begins with STRING.
+Each car of each element of ALIST (or each element if it is not a cons cell)
+is tested to see if it begins with STRING.
 The value is a list of all the strings from ALIST that match.
 
 If ALIST is a hash-table, all the string keys are the possible matches.
