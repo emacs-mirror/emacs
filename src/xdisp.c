@@ -8352,7 +8352,7 @@ compute_fringe_widths (f, redraw)
       int left_wid = left_fringe_width >= 0 ? left_fringe_width : -left_fringe_width;
       int right_wid = right_fringe_width >= 0 ? right_fringe_width : -right_fringe_width;
       int conf_wid = left_wid + right_wid;
-      int font_wid = FONT_WIDTH (f->output_data.x->font);
+      int font_wid = FONT_WIDTH (FRAME_FONT (f));
       int cols = (left_wid + right_wid + font_wid-1) / font_wid;
       int real_wid = cols * font_wid;
       if (left_wid && right_wid)
