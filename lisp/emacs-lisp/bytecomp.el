@@ -1426,6 +1426,8 @@ With argument, insert value in current buffer after the form."
       (byte-compile-output-docform nil nil '("\n(" 3 ")") form nil
 				   (eq (car form) 'autoload))
     (let ((print-escape-newlines t)
+	  (print-length nil)
+	  (print-level nil)
 	  (print-readably t)	; print #[] for bytecode, 'x for (quote x)
 	  (print-gensym nil))	; this is too dangerous for now
       (princ "\n" outbuffer)
