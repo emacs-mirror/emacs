@@ -350,12 +350,10 @@ To record all your input on a file, use `open-dribble-file'."
   (interactive)
   (help-setup-xref (list #'view-lossage) (interactive-p))
   (with-output-to-temp-buffer (help-buffer)
-    (princ (mapconcat (function (lambda (key)
-				  (if (or (integerp key)
-					  (symbolp key)
-					  (listp key))
-				      (single-key-description key)
-				    (prin1-to-string key nil))))
+    (princ (mapconcat (lambda (key)
+			(if (or (integerp key) (symbolp key) (listp key))
+			    (single-key-description key)
+			  (prin1-to-string key nil)))
 		      (recent-keys)
 		      " "))
     (with-current-buffer standard-output
@@ -450,10 +448,24 @@ or `keymap' property, return the binding of KEY in the string's keymap."
 	(setq defn (and local-map (lookup-key local-map key)))))
     defn))
 
-(defun describe-key-briefly (key &optional insert)
+(defun help-key-description (key untranslated)
+  (let ((string (key-description key)))
+    (if (or (not untranslated) (eq (aref untranslated 0) ?\e))
+	string
+      (let ((otherstring (key-description untranslated)))
+	(if (equal string otherstring)
+	    string
+	  (format "%s (translated from %s)" string otherstring))))))
+	  
+(defun describe-key-briefly (key &optional insert untranslated)
   "Print the name of the function KEY invokes.  KEY is a string.
-If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
-  (interactive "kDescribe key briefly: \nP")
+If INSERT (the prefix arg) is non-nil, insert the message in the buffer.
+If non-nil UNTRANSLATED is a vector of the untranslated events.
+It can also be a number in which case the untranslated events from
+the last key hit are used."
+  (interactive "kDescribe key briefly: \nP\np")
+  (if (numberp untranslated)
+      (setq untranslated (this-single-command-raw-keys)))
   (save-excursion
     (let ((modifiers (event-modifiers (aref key 0)))
 	  (standard-output (if insert (current-buffer) t))
@@ -472,7 +484,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
       ;; Ok, now look up the key and name the command.
       (let ((defn (or (string-key-binding key)
 		      (key-binding key)))
-	    (key-desc (key-description key)))
+	    (key-desc (help-key-description key untranslated)))
 	(if (or (null defn) (integerp defn) (equal defn 'undefined))
 	    (princ (format "%s is undefined" key-desc))
 	  (princ (format (if (windowp window)
@@ -482,11 +494,16 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 			 (if (symbolp defn) defn (prin1-to-string defn)))))))))
 
 
-(defun describe-key (key)
+(defun describe-key (key &optional untranslated)
   "Display documentation of the function invoked by KEY.
 KEY should be a key sequence--when calling from a program,
-pass a string or a vector."
-  (interactive "kDescribe key: ")
+pass a string or a vector.
+If non-nil UNTRANSLATED is a vector of the untranslated events.
+It can also be a number in which case the untranslated events from
+the last key hit are used."
+  (interactive "kDescribe key: \np")
+  (if (numberp untranslated)
+      (setq untranslated (this-single-command-raw-keys)))
   (save-excursion
     (let ((modifiers (event-modifiers (aref key 0)))
 	  window position)
@@ -502,10 +519,10 @@ pass a string or a vector."
 	(goto-char position))
       (let ((defn (or (string-key-binding key) (key-binding key))))
 	(if (or (null defn) (integerp defn) (equal defn 'undefined))
-	    (message "%s is undefined" (key-description key))
+	    (message "%s is undefined" (help-key-description key untranslated))
 	  (help-setup-xref (list #'describe-function defn) (interactive-p))
 	  (with-output-to-temp-buffer (help-buffer)
-	    (princ (key-description key))
+	    (princ (help-key-description key untranslated))
 	    (if (windowp window)
 		(princ " at that spot"))
 	    (princ " runs the command ")
