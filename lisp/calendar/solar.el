@@ -382,9 +382,9 @@ Format used is given by `calendar-time-display-form'."
 (defun solar-sunrise-sunset (date)
   "String giving local times of sunrise and sunset on Gregorian DATE."
   (let* ((rise (solar-sunrise date))
-         (adj-rise (solar-adj-time-for-dst date rise))
+         (adj-rise (if rise (solar-adj-time-for-dst date rise)))
          (set (solar-sunset date))
-         (adj-set (solar-adj-time-for-dst date set)))
+         (adj-set (if set (solar-adj-time-for-dst date set))))
     (format "%s, %s at %s"
 	    (if (and rise (calendar-date-equal date (car adj-rise)))
 		(concat "Sunrise " (apply 'solar-time-string (cdr adj-rise)))
