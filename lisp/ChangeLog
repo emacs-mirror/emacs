@@ -1,3 +1,8 @@
+2000-10-05  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-mysql-options): New variable.
+	(sql-mysql): Use it.
+
 2000-10-05  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* image.el (image): New group.
