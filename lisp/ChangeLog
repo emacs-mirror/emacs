@@ -1,3 +1,17 @@
+2002-12-21  Richard M. Stallman  <rms@gnu.org>
+
+	* man.el (Man-getpage-in-background): Put GROFF_NO_SGR in env.
+
+	* ls-lisp.el (original-insert-directory): Make this a variable,
+	don't set its function definition.
+	(insert-directory): Use funcall to call that function.
+
+	* bindings.el (help-echo): Change tooltip string.
+
+	* chistory.el (command-history-map): Move definition up.
+
+	* faces.el (help-xref-stack): Add defvar to avoid warning.
+
 2002-12-21  Andreas Schwab  <schwab@suse.de>
 
 	* dired.el (dired-insert-directory): Preserve text properties
@@ -4963,12 +4977,11 @@
 	* dired.el: Hide disabling of dired-find-alternate-file behind
 	autoload-cookie.
 
-2002-07-31  Juanma Barranquero  <lektu@terra.es>
+2002-07-31  Tak Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
 
 	* makefile.w32-in: Revert some changes from 2002-07-23 because they
 	don't work on MSVC/nmake builds.
 	(update-subdirs-CMD): Generate the right list of subdirectories.
-	From Tak Ota <Takaaki.Ota@am.sony.com>.
 
 2002-07-30  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
