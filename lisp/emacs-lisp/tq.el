@@ -112,10 +112,13 @@ that's how we tell where the answer ends."
       (if (re-search-forward (tq-queue-head-regexp tq) nil t)
 	  (let ((answer (buffer-substring (point-min) (point))))
 	    (delete-region (point-min) (point))
-	    (funcall (tq-queue-head-fn tq)
-		     (tq-queue-head-closure tq)
-		     answer)
-	    (tq-queue-pop tq)
+	    (unwind-protect
+		(condition-case nil
+		    (funcall (tq-queue-head-fn tq)
+			     (tq-queue-head-closure tq)
+			     answer)
+		  (error nil))
+	      (tq-queue-pop tq))
 	    (tq-process-buffer tq))))))
 
 (provide 'tq)
