@@ -1,3 +1,9 @@
+2001-03-26  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-diag.el (describe-coding-system): For
+	raw-text and emacs-mule, don't add anymore text about what
+	charsets they can encode.
+
 2001-03-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* help.el (view-lossage): Mention open-dribble-file in the doc
