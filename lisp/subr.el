@@ -311,12 +311,10 @@ The normal global definition of the character C-x indirects to this keymap.")
 
 ;;;; Event manipulation functions.
 
-;; This code exists specifically to make sure that the
-;; resulting number does not appear in the .elc file.
-;; The number is negative on most machines, but not on all!
-(defconst listify-key-sequence-1
-   (lsh 1 7))
-(setq listify-key-sequence-1 (logior (lsh 1 27) listify-key-sequence-1))
+;; The call to `read' is to ensure that the value is computed at load time
+;; and not compiled into the .elc file.  The value is negative on most
+;; machines, but not on all!
+(defconst listify-key-sequence-1 (logior 128 (read "?\\M-\\^@")))
 
 (defun listify-key-sequence (key)
   "Convert a key sequence to a list of events."
@@ -348,19 +346,19 @@ and `down'."
     (if (symbolp type)
 	(cdr (get type 'event-symbol-elements))
       (let ((list nil))
-	(or (zerop (logand type (lsh 1 23)))
+	(or (zerop (logand type ?\M-\^@))
 	    (setq list (cons 'meta list)))
-	(or (and (zerop (logand type (lsh 1 22)))
+	(or (and (zerop (logand type ?\C-\^@))
 		 (>= (logand type 127) 32))
 	    (setq list (cons 'control list)))
-	(or (and (zerop (logand type (lsh 1 21)))
+	(or (and (zerop (logand type ?\S-\^@))
 		 (= (logand type 255) (downcase (logand type 255))))
 	    (setq list (cons 'shift list)))
-	(or (zerop (logand type (lsh 1 20)))
+	(or (zerop (logand type ?\H-\^@))
 	    (setq list (cons 'hyper list)))
-	(or (zerop (logand type (lsh 1 19)))
+	(or (zerop (logand type ?\s-\^@))
 	    (setq list (cons 'super list)))
-	(or (zerop (logand type (lsh 1 18)))
+	(or (zerop (logand type ?\A-\^@))
 	    (setq list (cons 'alt list)))
 	list))))
 
