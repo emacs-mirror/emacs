@@ -61,12 +61,6 @@ static int delete_exited_processes;
 #undef fwrite
 #endif
 
-#ifdef TRY_AGAIN
-#ifndef HAVE_H_ERRNO
-extern int h_errno;
-#endif
-#endif /* TRY_AGAIN */
-
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -2282,6 +2276,12 @@ extern Lisp_Object Vsystem_name;
 #endif /* HAVE_SOCKETS */
 #endif /* not VMS */
 #endif /* not BSD4_1 */
+
+#ifdef TRY_AGAIN
+#ifndef HAVE_H_ERRNO
+extern int h_errno;
+#endif
+#endif /* TRY_AGAIN */
 
 void
 init_system_name ()
