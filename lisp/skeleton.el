@@ -98,10 +98,6 @@ skeleton elements.")
   "*Replacement for %s in prompts of recursive subskeletons.")
 
 
-(defvar skeleton-abbrev-cleanup nil
-  "Variable used to delete the character that led to abbrev expansion.")
-
-
 (defvar skeleton-debug nil
   "*If non-nil `define-skeleton' will override previous definition.")
 
@@ -169,61 +165,6 @@ of `str' whereas the skeleton's interactor is then ignored."
   ;; Return non-nil to tell expand-abbrev that expansion has happened.
   ;; Otherwise the no-self-insert is ignored.
   t)
-
-;; This command isn't meant to be called, only its aliases with meaningful
-;; names are.
-;;;###autoload
-(defun skeleton-proxy (&optional str arg)
-  "Insert skeleton defined by variable of same name (see `skeleton-insert').
-Prefix ARG allows wrapping around words or regions (see `skeleton-insert').
-If no ARG was given, but the region is visible, ARG defaults to -1 depending
-on `skeleton-autowrap'.  An ARG of  M-0  will prevent this just for once.
-This command can also be an abbrev expansion (3rd and 4th columns in
-\\[edit-abbrevs]  buffer: \"\"  command-name).
-
-When called as a function, optional first argument STR may also be a string
-which will be the value of `str' whereas the skeleton's interactor is then
-ignored."
-  (interactive "*P\nP")
-  (let ((function (nth 1 (backtrace-frame 1))))
-    (if (eq function 'nth)		; uncompiled Lisp function
-	(setq function (nth 1 (backtrace-frame 5)))
-      (if (eq function 'byte-code)	; tracing byte-compiled function
-	  (setq function (nth 1 (backtrace-frame 2)))))
-    (if (not (setq function (funcall skeleton-filter (symbol-value function))))
-	(if (memq this-command '(self-insert-command
-				 skeleton-pair-insert-maybe
-				 expand-abbrev))
-	    (setq buffer-undo-list (primitive-undo 1 buffer-undo-list)))
-      (skeleton-insert function
-		       (if (setq skeleton-abbrev-cleanup
-				 (or (eq this-command 'self-insert-command)
-				     (eq this-command
-					 'skeleton-pair-insert-maybe)))
-			   ()
-			 ;; Pretend  C-x a e  passed its prefix arg to us
-			 (if (or arg current-prefix-arg)
-			     (prefix-numeric-value (or arg
-						       current-prefix-arg))
-			   (and skeleton-autowrap
-				(or (eq last-command 'mouse-drag-region)
-				    (and transient-mark-mode mark-active))
-				-1)))
-		       (if (stringp str)
-			   str))
-      (and skeleton-abbrev-cleanup
-	   (setq skeleton-abbrev-cleanup (point))
-	   (add-hook 'post-command-hook 'skeleton-abbrev-cleanup nil t)))))
-
-
-(defun skeleton-abbrev-cleanup (&rest list)
-  "Value for `post-command-hook' to remove char that expanded abbrev."
-  (if (integerp skeleton-abbrev-cleanup)
-      (progn
-	(delete-region skeleton-abbrev-cleanup (point))
-	(setq skeleton-abbrev-cleanup)
-	(remove-hook 'post-command-hook 'skeleton-abbrev-cleanup t))))
-
 
 ;;;###autoload
 (defun skeleton-insert (skeleton &optional regions str)
