@@ -1179,7 +1179,7 @@ init_strings ()
   current_string_block->pos = 0;
   large_string_blocks = 0;
 }
-
+
 DEFUN ("make-string", Fmake_string, Smake_string, 2, 2, 0,
   "Return a newly created string of length LENGTH, with each element being INIT.\n\
 Both LENGTH and INIT must be numbers.")
@@ -1197,7 +1197,7 @@ Both LENGTH and INIT must be numbers.")
   if (SINGLE_BYTE_CHAR_P (c))
     {
       nbytes = XINT (length);
-      val = make_uninit_multibyte_string (nbytes, nbytes);
+      val = make_uninit_string (nbytes);
       p = XSTRING (val)->data;
       end = p + XSTRING (val)->size;
       while (p != end)
@@ -1255,9 +1255,10 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.")
 
   return val;
 }
-
+
 /* Make a string from NBYTES bytes at CONTENTS,
-   and compute the number of characters from the contents.  */
+   and compute the number of characters from the contents.
+   This string may be unibyte or multibyte, depending on the contents.  */
 
 Lisp_Object
 make_string (contents, nbytes)
@@ -1268,11 +1269,12 @@ make_string (contents, nbytes)
   int nchars = chars_in_text (contents, nbytes);
   val = make_uninit_multibyte_string (nchars, nbytes);
   bcopy (contents, XSTRING (val)->data, nbytes);
+  if (STRING_BYTES (XSTRING (val)) == XSTRING (val)->size)
+    SET_STRING_BYTES (XSTRING (val), -1);
   return val;
 }
 
-/* Make a string from LENGTH bytes at CONTENTS,
-   assuming each byte is a character.  */
+/* Make a unibyte string from LENGTH bytes at CONTENTS.  */
 
 Lisp_Object
 make_unibyte_string (contents, length)
@@ -1282,10 +1284,12 @@ make_unibyte_string (contents, length)
   register Lisp_Object val;
   val = make_uninit_string (length);
   bcopy (contents, XSTRING (val)->data, length);
+  SET_STRING_BYTES (XSTRING (val), -1);
   return val;
 }
 
-/* Make a string from NCHARS characters occupying NBYTES bytes at CONTENTS.  */
+/* Make a multibyte string from NCHARS characters
+   occupying NBYTES bytes at CONTENTS.  */
 
 Lisp_Object
 make_multibyte_string (contents, nchars, nbytes)
@@ -1298,6 +1302,40 @@ make_multibyte_string (contents, nchars, nbytes)
   return val;
 }
 
+/* Make a string from NCHARS characters
+   occupying NBYTES bytes at CONTENTS.
+   It is a multibyte string if NBYTES != NCHARS.  */
+
+Lisp_Object
+make_string_from_bytes (contents, nchars, nbytes)
+     char *contents;
+     int nchars, nbytes;
+{
+  register Lisp_Object val;
+  val = make_uninit_multibyte_string (nchars, nbytes);
+  bcopy (contents, XSTRING (val)->data, nbytes);
+  if (STRING_BYTES (XSTRING (val)) == XSTRING (val)->size)
+    SET_STRING_BYTES (XSTRING (val), -1);
+  return val;
+}
+
+/* Make a multibyte string from NCHARS characters
+   occupying NBYTES bytes at CONTENTS.  */
+
+Lisp_Object
+make_specified_string (contents, nchars, nbytes, multibyte)
+     char *contents;
+     int nchars, nbytes;
+     int multibyte;
+{
+  register Lisp_Object val;
+  val = make_uninit_multibyte_string (nchars, nbytes);
+  bcopy (contents, XSTRING (val)->data, nbytes);
+  if (!multibyte)
+    SET_STRING_BYTES (XSTRING (val), -1);
+  return val;
+}
+
 /* Make a string from the data at STR,
    treating it as multibyte if the data warrants.  */
 
@@ -1307,12 +1345,15 @@ build_string (str)
 {
   return make_string (str, strlen (str));
 }
-
+
 Lisp_Object
 make_uninit_string (length)
      int length;
 {
-  return make_uninit_multibyte_string (length, length);
+  Lisp_Object val;
+  val = make_uninit_multibyte_string (length, length);
+  SET_STRING_BYTES (XSTRING (val), -1);
+  return val;
 }
 
 Lisp_Object
@@ -1382,7 +1423,7 @@ make_uninit_multibyte_string (length, length_byte)
 
   return val;
 }
-
+
 /* Return a newly created vector or string with specified arguments as
    elements.  If all the arguments are characters that can fit
    in a string of events, make a string; otherwise, make a vector.
@@ -1430,11 +1471,13 @@ make_event_array (nargs, args)
  then the string is not protected from gc. */
 
 Lisp_Object
-make_pure_string (data, length, length_byte)
+make_pure_string (data, length, length_byte, multibyte)
      char *data;
      int length;
      int length_byte;
+     int multibyte;
 {
+
   register Lisp_Object new;
   register int size = STRING_FULLSIZE (length_byte);
 
@@ -1442,7 +1485,7 @@ make_pure_string (data, length, length_byte)
     error ("Pure Lisp storage exhausted");
   XSETSTRING (new, PUREBEG + pureptr);
   XSTRING (new)->size = length;
-  SET_STRING_BYTES (XSTRING (new), length_byte);
+  SET_STRING_BYTES (XSTRING (new), (multibyte ? length_byte : -1));
   bcopy (data, XSTRING (new)->data, length_byte);
   XSTRING (new)->data[length_byte] = 0;
 
@@ -1548,7 +1591,8 @@ Does not copy symbols.")
 #endif /* LISP_FLOAT_TYPE */
   else if (STRINGP (obj))
     return make_pure_string (XSTRING (obj)->data, XSTRING (obj)->size,
-			     STRING_BYTES (XSTRING (obj)));
+			     STRING_BYTES (XSTRING (obj)),
+			     STRING_MULTIBYTE (obj));
   else if (COMPILEDP (obj) || VECTORP (obj))
     {
       register struct Lisp_Vector *vec;
@@ -2646,7 +2690,7 @@ compact_strings ()
 
 	  register struct Lisp_String *newaddr;
 	  register EMACS_INT size = nextstr->size;
-	  EMACS_INT size_byte = STRING_BYTES (nextstr);
+	  EMACS_INT size_byte = nextstr->size_byte;
 
 	  /* NEXTSTR is the old address of the next string.
 	     Just skip it if it isn't marked.  */
@@ -2660,6 +2704,9 @@ compact_strings ()
 		    size ^= MARKBIT | DONT_COPY_FLAG;
 		  size = *(EMACS_INT *)size & ~MARKBIT;
 		}
+
+	      if (size_byte < 0)
+		size_byte = size;
 
 	      total_string_size += size_byte;
 
@@ -2720,6 +2767,9 @@ compact_strings ()
 		}
 #endif /* USE_TEXT_PROPERTIES */
 	    }
+	  else if (size_byte < 0)
+	    size_byte = size;
+
 	  pos += STRING_FULLSIZE (size_byte);
 	}
     }
