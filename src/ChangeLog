@@ -1,3 +1,14 @@
+2002-09-05  Richard M. Stallman  <rms@gnu.org>
+
+	* regex.c (set_image_of_range_1): In no-TRANSLATE case,
+	call EXTEND_RANGE_TABLE and return a proper value.
+	(set_image_of_range): Don't call set_image_of_range_1
+	if no TRANSLATE or if range includes all of Latin-1.
+	Only call it for the Latin-1 part of the range.
+	For other cases, make two separate ranges,
+	one for the original specified characters and one for
+	their case-conversions.
+
 2002-09-04  Richard M. Stallman  <rms@gnu.org>
 
 	* s/sol2-5.h (UNEXEC): Use unexsol.o.
