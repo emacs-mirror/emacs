@@ -148,7 +148,7 @@ directory name of the directory where the `.emacs' file was looked for.")
 	   (setq version-control 'never))))
 
   ;; Choose a good default value for split-window-keep-point.
-  (setq split-window-keep-point (> baud-rate 2400))
+  (setq split-window-keep-point (> (baud-rate) 2400))
 
   ;; Read window system's init file if using a window system.
   (if (and window-system (not noninteractive))

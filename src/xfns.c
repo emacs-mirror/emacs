@@ -1424,6 +1424,7 @@ x_get_arg (alist, param, screen_name, attribute, type)
      enum resource_types type;
 {
   register Lisp_Object tem;
+  int i;
 
   tem = Fassq (param, alist);
   if (EQ (tem, Qnil))
@@ -4417,9 +4418,9 @@ Values can be the symbols Always, WhenMapped, or NotUseful.");
   defsubr (&Sx_defined_color);
 #if 0
   defsubr (&Sx_track_pointer);
-#endif
   defsubr (&Sx_grab_pointer);
   defsubr (&Sx_ungrab_pointer);
+#endif
 #else
   defsubr (&Sx_get_default);
   defsubr (&Sx_store_cut_buffer);
