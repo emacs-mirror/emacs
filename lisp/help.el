@@ -91,23 +91,29 @@
 (define-key help-map "q" 'help-quit)
 
 (defvar help-font-lock-keywords
-  (let ((name-char "[-+a-zA-Z0-9_*]") (sym-char "[-+a-zA-Z0-9_:*]"))
-    (list
-     ;;
-     ;; The symbol itself.
-     (list (concat "\\`\\(" name-char "+\\)\\(:\\)?")
-	   '(1 (if (match-beginning 2)
-		   font-lock-function-name-face
-		 font-lock-variable-name-face)
-	       nil t))
-     ;;
-     ;; Words inside `' which tend to be symbol names.
-     (list (concat "`\\(" sym-char sym-char "+\\)'")
-	   1 'font-lock-reference-face t)
-     ;;
-     ;; CLisp `:' keywords as references.
-     (list (concat "\\<:" sym-char "+\\>") 0 'font-lock-reference-face t)))
+  (eval-when-compile
+    (let ((name-char "[-+a-zA-Z0-9_*]") (sym-char "[-+a-zA-Z0-9_:*]"))
+      (list
+       ;;
+       ;; The symbol itself.
+       (list (concat "\\`\\(" name-char "+\\)\\(\\(:\\)\\|\\('\\)\\)")
+	     '(1 font-lock-function-name-face))
+       ;;
+       ;; Words inside `' which tend to be symbol names.
+       (list (concat "`\\(" sym-char sym-char "+\\)'")
+	     1 'font-lock-reference-face t)
+       ;;
+       ;; CLisp `:' keywords as references.
+       (list (concat "\\<:" sym-char "+\\>") 0 'font-lock-reference-face t))))
   "Default expressions to highlight in Help mode.")
+
+(defun help-fontify-buffer-function ()
+  ;; This function's symbol is bound to font-lock-fontify-buffer-function.
+  (let ((font-lock-fontify-region-function 'font-lock-default-fontify-region))
+    ;; Fontify as normal.
+    (font-lock-default-fontify-buffer)
+    ;; Prevent Font Lock mode from kicking in.
+    (setq font-lock-fontified t)))
 
 (defun help-mode ()
   "Major mode for viewing help text.
@@ -120,7 +126,11 @@ Commands:
   (setq mode-name "Help")
   (setq major-mode 'help-mode)
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(help-font-lock-keywords))
+  (setq font-lock-defaults
+	'(help-font-lock-keywords nil nil nil nil
+	  (font-lock-inhibit-thing-lock . (lazy-lock-mode))
+	  (font-lock-fontify-region-function . ignore)
+	  (font-lock-fontify-buffer-function . help-fontify-buffer-function)))
   (view-mode)
   (run-hooks 'help-mode-hook))
 
