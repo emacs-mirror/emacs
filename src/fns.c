@@ -38,6 +38,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include "buffer.h"
 #include "keyboard.h"
+#include "keymap.h"
 #include "intervals.h"
 #include "frame.h"
 #include "window.h"

@@ -45,6 +45,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "puresize.h"
 #include "keyboard.h"
+#include "keymap.h"
 
 /* Test for membership, allowing for t (actually any non-cons) to mean the
    universal set.  */

@@ -36,6 +36,7 @@ Boston, MA 02111-1307, USA.  */
 #include "termhooks.h"
 #include "dispextern.h"
 #include "window.h"
+#include "keymap.h"
 
 /* For now, don't try to include termcap.h.  On some systems,
    configure finds a non-standard termcap.h that the main build

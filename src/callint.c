@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "window.h"
 #include "mocklisp.h"
+#include "keymap.h"
 
 #ifdef HAVE_INDEX
 extern char *index P_ ((const char *, int));

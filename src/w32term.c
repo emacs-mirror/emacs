@@ -35,6 +35,7 @@ Boston, MA 02111-1307, USA.  */
 #include "systty.h"
 #include "systime.h"
 #include "atimer.h"
+#include "keymap.h"
 
 #include <ctype.h>
 #include <errno.h>

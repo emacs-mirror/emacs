@@ -40,6 +40,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "keyboard.h"
 #include "charset.h"
+#include "keymap.h"
 
 #ifdef HAVE_INDEX
 extern char *index P_ ((const char *, int));

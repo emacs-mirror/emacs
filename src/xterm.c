@@ -84,6 +84,7 @@ Boston, MA 02111-1307, USA.  */
 #include "intervals.h"
 #include "process.h"
 #include "atimer.h"
+#include "keymap.h"
 
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>

@@ -31,6 +31,7 @@ Boston, MA 02111-1307, USA.  */
 #include "blockinput.h"
 #include "puresize.h"
 #include "intervals.h"
+#include "keymap.h"
 
 /* The number of elements in keymap vectors.  */
 #define DENSE_TABLE_SIZE (0200)

@@ -32,6 +32,7 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "syntax.h"
 #include "intervals.h"
+#include "keymap.h"
 
 extern int quit_char;
 
