@@ -450,7 +450,9 @@ be compared with that of the former text.
 
 @deffn Command delete-region start end
 This command deletes the text in the current buffer in the region
-defined by @var{start} and @var{end}.  The value is @code{nil}.
+defined by @var{start} and @var{end}.  The value is @code{nil}.  If
+point was inside the deleted region, its value afterward is @var{start}.
+Otherwise, point relocates with the surrounding text, as markers do.
 @end deffn
 
 @deffn Command delete-char count &optional killp
