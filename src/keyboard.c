@@ -8129,7 +8129,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       if (!NILP (orig_keymap))
 	submaps[nmaps++] = orig_keymap;
 
-      bcopy (maps, (void *) submaps + nmaps,
+      bcopy (maps, (void *) (submaps + nmaps),
 	     nminor * sizeof (submaps[0]));
 
       nmaps += nminor;
