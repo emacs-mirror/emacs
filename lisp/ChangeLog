@@ -1,3 +1,8 @@
+2002-01-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* eshell/esh-cmd.el (eshell-eval-command): If eshell-resume-eval
+	returns t, don't treat that as an error.
+
 2002-01-25  Jason Rumney  <jasonr@gnu.org>
 
 	* faces.el (face-font-registry-alternatives) [windows-nt]: Add

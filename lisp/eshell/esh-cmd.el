@@ -1008,7 +1008,9 @@ at the moment are:
     (setq eshell-current-command command)
     (let ((delim (catch 'eshell-incomplete
 		   (eshell-resume-eval))))
-      (if delim
+      ;; On systems that don't support async subprocesses, eshell-resume
+      ;; can return t.  Don't treat that as an error.
+      (if (and delim (not (eq delim t)))
 	  (error "Unmatched delimiter: %c"
 		 (if (listp delim)
 		     (car delim)
