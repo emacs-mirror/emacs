@@ -2700,6 +2700,7 @@ EXFUN (Fmake_frame_invisible, 2);
 EXFUN (Ficonify_frame, 1);
 EXFUN (Fframe_visible_p, 1);
 EXFUN (Fvisible_frame_list, 0);
+EXFUN (Fframe_parameter, 2);
 EXFUN (Fframe_parameters, 1);
 EXFUN (Fmodify_frame_parameters, 2);
 EXFUN (Fset_frame_height, 3);

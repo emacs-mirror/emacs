@@ -1,5 +1,7 @@
 2001-02-28  Ken Raeburn  <raeburn@gnu.org>
 
+	* lisp.h (Fframe_parameter): Declare.
+
 	* window.c (set_window_buffer): Field vscroll is an int, not a
 	lisp object.
 
