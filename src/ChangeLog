@@ -1,3 +1,7 @@
+1999-10-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (code_convert_region): Update `dst' correctly.
+
 1999-10-28  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* regex.c (POP_FAILURE_POINT): Use failure_id.integer
