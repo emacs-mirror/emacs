@@ -120,6 +120,24 @@ but still shows the full information."
 	  (list-character-sets-1 sort-key)
 	  (help-setup-xref (list #'list-character-sets nil) t)))))
 
+(defun charset-multibyte-form-string (charset)
+  (let ((info (charset-info charset)))
+    (cond ((eq charset 'ascii)
+	   "xx")
+	  ((eq charset 'eight-bit-control)
+	   (format "%2X Xx" (aref info 6)))
+	  ((eq charset 'eight-bit-graphic)
+	   "XX")
+	  (t
+	   (let ((str (format "%2X" (aref info 6))))
+	     (if (> (aref info 7) 0)
+		 (setq str (format "%s %2X"
+				   str (aref info 7))))
+	     (setq str (concat str " XX"))
+	     (if (> (aref info 2) 1)
+		 (setq str (concat str " XX")))
+	     str)))))
+
 ;; Insert a list of character sets sorted by SORT-KEY.  SORT-KEY
 ;; should be one of `id', `name', and `iso-spec'.  If SORT-KEY is nil,
 ;; it defaults to `id'.
@@ -141,21 +159,7 @@ but still shows the full information."
       (setq charset-info-list
 	    (cons (list (charset-id charset)	; ID-NUM
 			charset			; CHARSET-NAME
-			(cond ((eq charset 'ascii) ; MULTIBYTE-FORM
-			       "xx")
-			      ((eq charset 'eight-bit-control)
-			       (format "%2X Xx" (aref info 6)))
-			      ((eq charset 'eight-bit-graphic)
-			       "XX")
-			      (t
-			       (let ((str (format "%2X" (aref info 6))))
-				 (if (> (aref info 7) 0)
-				     (setq str (format "%s %2X"
-						       str (aref info 7))))
-				 (setq str (concat str " XX"))
-				 (if (> (aref info 2) 1)
-				     (setq str (concat str " XX")))
-				 str)))
+			(charset-multibyte-form-string charset); MULTIBYTE-FORM
 			(aref info 2)		; DIMENSION
 			(aref info 3)		; CHARS
 			(aref info 8)		; FINAL-CHAR
@@ -470,6 +474,42 @@ detailed meanings of these arguments."
 
 
 ;;;###autoload
+(defun describe-character-set (charset)
+  "Display information about character set CHARSET."
+  (interactive (list (let ((non-iso-charset-alist nil))
+		       (read-charset "Charset: "))))
+  (or (charsetp charset)
+      (error "Invalid charset: %S" charset))
+  (let ((info (charset-info charset)))
+    (with-output-to-temp-buffer "*Help*"
+      (save-excursion
+	(set-buffer standard-output)
+	(insert "Character set: " (symbol-name charset)
+		(format " (ID:%d)\n\n" (aref info 0)))
+	(insert (aref info 13) "\n\n")	; description
+	(insert "number of contained characters: "
+		(if (= (aref info 2) 1)
+		    (format "%d\n" (aref info 3))
+		  (format "%dx%d\n" (aref info 3) (aref info 3))))
+	(insert "the final char of ISO2022's desgination sequence: ")
+	(if (aref info 8)
+	    (insert (format "`%c'\n" (aref info 8)))
+	  (insert "not assigned\n"))
+	(insert (format "width (how many columns on screen): %d\n"
+			(aref info 4)))
+	(insert (format "internal multibyte sequence: %s\n"
+			(charset-multibyte-form-string charset)))
+	(let ((coding (plist-get (aref info 14) 'preferred-coding-system)))
+	  (when coding
+	    (insert (format "prefered coding system: %s\n" coding))
+	    (search-backward (symbol-name coding))
+	    (help-xref-button 0 #'describe-coding-system coding
+			      "mouse-2, RET: describe this coding system")))
+	(help-setup-xref (list #'describe-character-set charset)
+			 (interactive-p))
+	))))
+
+;;;###autoload
 (defun describe-char-after (&optional pos)
   "Display information of in current buffer at position POS.
 The information includes character code, charset and code points in it,
@@ -683,19 +723,22 @@ which font is being used for displaying the character."
 	  (princ "\n  ")
 	  (princ prewrite)
 	  (princ "\n")))
-      (let ((charsets (coding-system-get coding-system 'safe-charsets)))
-	(when charsets
-	  (if (eq charsets t)
-	      (princ "This coding system can encode all charsets.\n")
-	    (princ "This coding system encode the following charsets:\n")
-	    (princ " ")
-	    (while charsets
-	      (princ " ")
-	      (princ (car charsets))
-	      (setq charsets (cdr charsets))))))
       (save-excursion
 	(set-buffer standard-output)
-	(help-mode)))))
+	(let ((charsets (coding-system-get coding-system 'safe-charsets)))
+	  (when charsets
+	    (if (eq charsets t)
+		(insert "This coding system can encode all charsets.\n")
+	      (insert "This coding system encode the following charsets:\n ")
+	      (while charsets
+		(insert " " (symbol-name (car charsets)))
+		(search-backward (symbol-name (car charsets)))
+		(help-xref-button 0 #'describe-character-set (car charsets))
+		(goto-char (point-max))
+		(setq charsets (cdr charsets))))))
+	(help-setup-xref (list #'describe-coding-system coding-system)
+			 (interactive-p))))))
+
 
 ;;;###autoload
 (defun describe-current-coding-system-briefly ()
