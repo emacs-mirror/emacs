@@ -1,3 +1,9 @@
+2002-06-26  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (Fbury_buffer): Use frames_discard_buffer.
+
+	* frame.c (frames_bury_buffer): Function deleted.
+
 2002-06-25  Miles Bader  <miles@gnu.org>
 
 	* callint.c (Fcall_interactively): When checking to see if doprnt hit
