@@ -39,8 +39,20 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
   ;; the end of the previous line.
   (let ((flag (and (not (bobp)) 
 		   (bolp)
+		   ;; Make sure no functions want to be told about
+		   ;; the range of the changes.
+		   (not after-change-function)
+		   (not before-change-function)
+		   (not after-change-functions)
+		   (not before-change-functions)
 		   ;; Make sure there are no markers here.
 		   (not (buffer-has-markers-at (1- (point))))
+		   ;; Make sure no text properties want to know
+		   ;; where the change was.
+		   (not (get-char-property (1- (point)) 'modification-hooks))
+		   (not (get-char-property (1- (point)) 'insert-behind-hooks))
+		   (or (eobp)
+		       (not (get-char-property (point) 'insert-in-front-hooks)))
 		   ;; Make sure the newline before point isn't intangible.
 		   (not (get-char-property (1- (point)) 'intangible))
 		   ;; Make sure the newline before point isn't read-only.
@@ -1003,8 +1015,10 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   (interactive "P")
   (if (consp arg)
       (setq prefix-arg (list (* 4 (car arg))))
-    (setq prefix-arg arg)
-    (setq overriding-terminal-local-map nil))
+    (if (eq arg '-)
+	(setq prefix-arg (list -4))
+      (setq prefix-arg arg)
+      (setq overriding-terminal-local-map nil)))
   (setq universal-argument-num-events (length (this-command-keys))))
 
 (defun negative-argument (arg)
