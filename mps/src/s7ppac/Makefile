@@ -1,6 +1,6 @@
 # impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.20) $
+# $HopeName: MMsrc!s7ppac:Makefile(trunk.21) $
 #
 # Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
 #
@@ -122,6 +122,7 @@ mmsw_{Variety}.o  Ä  ¶
                 arenacl{OSffx} ¶
                 arenavmx{OSffx} ¶
                 arena{OSffx} ¶
+                tract{OSffx} ¶
                 walk{OSffx} ¶
                 reserv{OSffx} ¶
                 pool{OSffx} ¶
