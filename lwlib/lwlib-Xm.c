@@ -544,8 +544,10 @@ update_one_menu_entry (instance, widget, val, deep_p)
 	      /* Non-zero values don't work reliably in
 		 conjunction with Emacs' event loop */
 	      XtSetArg (al [ac], XmNmappingDelay, 0); ac++;
+#ifdef XmNpositionIndex /* This is undefined on SCO ODT 2.0.  */
 	      /* Tell Motif to put it in the right place */
-	      XtSetArg (al [ac], XmNpositionIndex, i); ac++;
+	      XtSetArg (al [ac], XmNpositionIndex , i); ac++;
+#endif
 	      button = XmCreateCascadeButtonGadget (parent, val->name, al, ac);
 	      xm_update_label (instance, button, val);
 	      
