@@ -2396,6 +2396,7 @@ request_sigio () {}
 setpgrp () {return 0; }
 setpriority (x,y,z) int x,y,z; { return 0; }
 sigsetmask (x) int x; { return 0; }
+sigblock (mask) int mask; { return 0; } 
 unrequest_sigio () {}
 
 #ifndef HAVE_SELECT
