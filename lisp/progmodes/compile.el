@@ -805,7 +805,11 @@ Returns the compilation buffer created."
 	    (funcall compilation-process-setup-function))
 	;; Start the compilation.
 	(if (fboundp 'start-process)
-	    (let* ((process-environment (cons "EMACS=t" process-environment))
+	    (let* ((process-environment
+		    ;; Don't override users' setting of $EMACS.
+		    (if (getenv "EMACS")
+			process-environment
+		      (cons "EMACS=t" process-environment)))
 		   (proc (start-process-shell-command (downcase mode-name)
 						      outbuf
 						      command)))
