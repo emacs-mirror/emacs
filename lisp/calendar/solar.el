@@ -25,8 +25,8 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements the features of calendar.el and
-;; diary.el that deal with times of day, sunrise/sunset, and
+;; This collection of functions implements the features of calendar.el,
+;; diary.el, and holiday.el that deal with times of day, sunrise/sunset, and
 ;; eqinoxes/solstices.
 
 ;; Based on the ``Almanac for Computers 1984,'' prepared by the Nautical
@@ -54,7 +54,7 @@
 
 (if (fboundp 'atan)
     (require 'lisp-float-type)
-  (error "Solar calculations impossible since floating point is unavailable."))
+  (error "Solar/lunar calculations impossible since floating point is unavailable."))
 
 (require 'cal-dst)
 
@@ -77,32 +77,69 @@ would give military-style times like `21:07 (UTC)'.")
 
 ;;;###autoload
 (defvar calendar-latitude nil
-  "*Latitude of `calendar-location-name' in degrees, + north, - south.
-For example, 40.7 for New York City.
-It may not be a good idea to set this in advance for your site;
-if there may be users running Emacs at your site
-who are physically located elsewhere, they would get the wrong
-value and might not know how to override it.")
+  "*Latitude of `calendar-location-name' in degrees.
+
+The value can be either a decimal fraction (one place of accuracy is
+sufficient), + north, - south, such as 40.7 for New York City, or the value
+can be a vector [degrees minutes north/south] such as [40 50 north] for New
+York City.
+
+This variable should be set in site-local.el.")
 
 ;;;###autoload
 (defvar calendar-longitude nil
-  "*Longitude of `calendar-location-name' in degrees, + east, - west.
-For example, -74.0 for New York City.
-It may not be a good idea to set this in advance for your site;
-if there may be users running Emacs at your site
-who are physically located elsewhere, they would get the wrong
-value and might not know how to override it.")
+  "*Longitude of `calendar-location-name' in degrees.
+
+The value can be either a decimal fraction (one place of accuracy is
+sufficient), + east, - west, such as -73.9 for New York City, or the value
+can be a vector [degrees minutes east/west] such as [73 55 west] for New
+York City.
+
+This variable should be set in site-local.el.")
+
+(defsubst calendar-latitude ()
+  "Convert calendar-latitude to a signed decimal fraction, if needed."
+  (if (numberp calendar-latitude)
+      calendar-latitude
+    (let ((lat (+ (aref calendar-latitude 0)
+                  (/ (aref calendar-latitude 1) 60.0))))
+      (if (equal (aref calendar-latitude 2) 'north)
+          lat
+        (- lat)))))
+
+(defsubst calendar-longitude ()
+  "Convert calendar-longitude to a signed decimal fraction, if needed."
+  (if (numberp calendar-longitude)
+      calendar-longitude
+    (let ((long (+ (aref calendar-longitude 0)
+                  (/ (aref calendar-longitude 1) 60.0))))
+      (if (equal (aref calendar-longitude 2) 'east)
+          long
+        (- long)))))
 
 ;;;###autoload
 (defvar calendar-location-name
   '(let ((float-output-format "%.1f"))
      (format "%s%s, %s%s"
-	     (abs calendar-latitude)
-	     (if (> calendar-latitude 0) "N" "S")
-	     (abs calendar-longitude)
-	     (if (> calendar-longitude 0) "E" "W")))
+             (if (numberp calendar-latitude)
+                 (abs calendar-latitude)
+               (+ (aref calendar-latitude 0)
+                  (/ (aref calendar-latitude 1) 60.0)))
+             (if (numberp calendar-latitude)
+                 (if (> calendar-latitude 0) "N" "S")
+               (if (equal (aref calendar-latitude 2) 'north) "N" "S"))
+             (if (numberp calendar-longitude)
+                 (abs calendar-longitude)
+               (+ (aref calendar-longitude 0)
+                  (/ (aref calendar-longitude 1) 60.0)))
+             (if (numberp calendar-longitude)
+                 (if (> calendar-longitude 0) "E" "W")
+               (if (equal (aref calendar-latitude 2) 'east) "E" "W"))))
   "*Expression evaluating to name of `calendar-longitude', calendar-latitude'.
-Default value is just the latitude, longitude pair.")
+For example, \"New York City\".  Default value is just the latitude, longitude
+pair.
+
+This variable should be set in site-local.el.")
 
 (defvar solar-n-hemi-seasons
   '("Vernal Equinox" "Summer Solstice" "Autumnal Equinox" "Winter Solstice")
@@ -135,10 +172,10 @@ Returns nil if nothing was entered."
     (if (not (string-equal x ""))
         (string-to-int x))))
 
-(defun solar-sin-degrees (x)
+(defsubst solar-sin-degrees (x)
   (sin (degrees-to-radians x)))
 
-(defun solar-cosine-degrees (x)
+(defsubst solar-cosine-degrees (x)
   (cos (degrees-to-radians x)))
 
 (defun solar-tangent-degrees (x)
@@ -182,11 +219,11 @@ Returns nil if nothing was entered."
 (defconst solar-earth-orbit-eccentricity 0.016718
   "Eccentricity of orbit of the earth around the sun.")
 
-(defmacro solar-degrees-to-hours (deg)
-  (list '/ deg 15.0))
+(defsubst solar-degrees-to-hours (deg)
+  (/ deg 15.0))
 
-(defmacro solar-hours-to-days (hour)
-  (list '/ hour 24.0))
+(defsubst solar-hours-to-days (hour)
+  (/ hour 24.0))
 
 (defun solar-longitude-of-sun (day)
   "Longitude of the sun at DAY in the year."
@@ -221,7 +258,7 @@ that location on that day."
 	 (approx-sunrise
           (+ day-of-year
              (solar-hours-to-days
-              (-  6 (solar-degrees-to-hours calendar-longitude)))))
+              (-  6 (solar-degrees-to-hours (calendar-longitude))))))
 	 (solar-longitude-of-sun-at-sunrise
           (solar-longitude-of-sun approx-sunrise))
 	 (solar-right-ascension-at-sunrise
@@ -231,9 +268,9 @@ that location on that day."
 	 (cos-local-sunrise
           (/ (- (solar-cosine-degrees (+ 90 (/ 50.0 60.0)))
                 (* (solar-sin-degrees solar-declination-at-sunrise)
-                   (solar-sin-degrees calendar-latitude)))
+                   (solar-sin-degrees (calendar-latitude))))
              (* (solar-cosine-degrees solar-declination-at-sunrise)
-                (solar-cosine-degrees calendar-latitude)))))
+                (solar-cosine-degrees (calendar-latitude))))))
     (if (<= (abs cos-local-sunrise) 1);; otherwise, no sunrise that day
       (let* ((local-sunrise (solar-degrees-to-hours
                              (- 360 (solar-arccos cos-local-sunrise))))
@@ -242,7 +279,7 @@ that location on that day."
 		      (+ (* 0.065710 approx-sunrise)
 			 6.622))
 		   24)))
-	(+ (- local-mean-sunrise (solar-degrees-to-hours calendar-longitude))
+	(+ (- local-mean-sunrise (solar-degrees-to-hours (calendar-longitude)))
 	   (/ calendar-time-zone 60.0))))))
 
 (defun solar-sunset (date)
@@ -256,7 +293,7 @@ that location on that day."
 	 (approx-sunset
           (+ day-of-year
              (solar-hours-to-days
-              (- 18 (solar-degrees-to-hours calendar-longitude)))))
+              (- 18 (solar-degrees-to-hours (calendar-longitude))))))
 	 (solar-longitude-of-sun-at-sunset
           (solar-longitude-of-sun approx-sunset))
 	 (solar-right-ascension-at-sunset
@@ -266,9 +303,9 @@ that location on that day."
 	 (cos-local-sunset
           (/ (- (solar-cosine-degrees (+ 90 (/ 50.0 60.0)))
                 (* (solar-sin-degrees solar-declination-at-sunset)
-                   (solar-sin-degrees calendar-latitude)))
+                   (solar-sin-degrees (calendar-latitude))))
              (* (solar-cosine-degrees solar-declination-at-sunset)
-                (solar-cosine-degrees calendar-latitude)))))
+                (solar-cosine-degrees (calendar-latitude))))))
     (if (<= (abs cos-local-sunset) 1);; otherwise, no sunset that day
       (let* ((local-sunset (solar-degrees-to-hours
                             (solar-arccos cos-local-sunset)))
@@ -276,7 +313,7 @@ that location on that day."
 	      (mod (- (+ local-sunset solar-right-ascension-at-sunset)
 		      (+ (* 0.065710 approx-sunset) 6.622))
 		   24)))
-	(+ (- local-mean-sunset (solar-degrees-to-hours calendar-longitude))
+	(+ (- local-mean-sunset (solar-degrees-to-hours (calendar-longitude)))
 	   (/ calendar-time-zone 60.0))))))
 
 (defun solar-adj-time-for-dst (date time &optional style)
@@ -441,10 +478,21 @@ This function is suitable for execution in a .emacs file."
          (if (< arg 16) calendar-location-name
            (let ((float-output-format "%.1f"))
              (format "%s%s, %s%s"
-                     (abs calendar-latitude)
-                     (if (> calendar-latitude 0) "N" "S")
-                     (abs calendar-longitude)
-                     (if (> calendar-longitude 0) "E" "W")))))
+                     (if (numberp calendar-latitude)
+                         (abs calendar-latitude)
+                       (+ (aref calendar-latitude 0)
+                          (/ (aref calendar-latitude 1) 60.0)))
+                     (if (numberp calendar-latitude)
+                         (if (> calendar-latitude 0) "N" "S")
+                       (if (equal (aref calendar-latitude 2) 'north) "N" "S"))
+                     (if (numberp calendar-longitude)
+                         (abs calendar-longitude)
+                       (+ (aref calendar-longitude 0)
+                          (/ (aref calendar-longitude 1) 60.0)))
+                     (if (numberp calendar-longitude)
+                         (if (> calendar-longitude 0) "E" "W")
+                       (if (equal (aref calendar-latitude 2) 'east)
+                           "E" "W"))))))
         (calendar-standard-time-zone-name
          (if (< arg 16) calendar-standard-time-zone-name
            (cond ((= calendar-time-zone 0) "UTC")
@@ -522,7 +570,7 @@ Requires floating point."
            (calendar-time-zone (if calendar-time-zone calendar-time-zone 0))
            (k (1- (/ m 3)))
 	   (date (solar-equinoxes/solstices k y))
-	   (s-hemi (and calendar-latitude (< calendar-latitude 0)))
+	   (s-hemi (and calendar-latitude (< (calendar-latitude) 0)))
 	   (day (extract-calendar-day date))
            (adj (solar-adj-time-for-dst
                  (list (extract-calendar-month date)
