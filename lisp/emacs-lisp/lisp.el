@@ -184,7 +184,7 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
 		(progn
 		  (forward-list 1)
 		  (skip-chars-forward " \t")
-		  (if (looking-at "[;\n]")
+		  (if (looking-at "\\s<\\|\n")
 		      (forward-line 1)))
 	      (goto-char (point-min)))))
       (setq arg (1+ arg)))))
