@@ -252,35 +252,46 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
   (setq inhibit-startup-message nil)
 
   ;; Load that user's init file, or the default one, or none.
-  (let ((debug-on-error init-file-debug)
-	;; This function actually reads the init files.
-	(inner
-	 (function
-	  (lambda ()
-	    (if init-file-user
-		(progn (load (if (eq system-type 'vax-vms)
-				 "sys$login:.emacs"
-			       (concat "~" init-file-user "/.emacs"))
-			     t t t)
-		       (or inhibit-default-init
-			   (let ((inhibit-startup-message nil))
-			     ;; Users are supposed to be told their rights.
-			     ;; (Plus how to get help and how to undo.)
-			     ;; Don't you dare turn this off for anyone
-			     ;; except yourself.
-			     (load "default" t t)))))))))
-    (if init-file-debug
-	;; Do this without a condition-case if the user wants to debug.
-	(funcall inner)
-      (condition-case error
-	  (progn
-	    (funcall inner)
-	    (setq init-file-had-error nil))
-	(error (message "Error in init file: %s%s%s"
-			(get (car error) 'error-message)
-			(if (cdr error) ": ")
-			(mapconcat 'prin1-to-string (cdr error) ", "))
-	       (setq init-file-had-error t)))))
+  (let (debug-on-error-from-init-file
+	debug-on-error-should-be-set
+	(debug-on-error-initial
+	 (if (eq init-file-debug t) 'startup init-file-debug)))
+    (let ((debug-on-error debug-on-error-initial)
+	  ;; This function actually reads the init files.
+	  (inner
+	   (function
+	    (lambda ()
+	      (if init-file-user
+		  (progn (load (if (eq system-type 'vax-vms)
+				   "sys$login:.emacs"
+				 (concat "~" init-file-user "/.emacs"))
+			       t t t)
+			 (or inhibit-default-init
+			     (let ((inhibit-startup-message nil))
+			       ;; Users are supposed to be told their rights.
+			       ;; (Plus how to get help and how to undo.)
+			       ;; Don't you dare turn this off for anyone
+			       ;; except yourself.
+			       (load "default" t t)))))))))
+      (if init-file-debug
+	  ;; Do this without a condition-case if the user wants to debug.
+	  (funcall inner)
+	(condition-case error
+	    (progn
+	      (funcall inner)
+	      (setq init-file-had-error nil))
+	  (error (message "Error in init file: %s%s%s"
+			  (get (car error) 'error-message)
+			  (if (cdr error) ": ")
+			  (mapconcat 'prin1-to-string (cdr error) ", "))
+		 (setq init-file-had-error t))))
+      ;; If we can tell that the init file altered debug-on-error.,
+      ;; arrange to preserve the value that it set up.
+      (or (eq debug-on-error debug-on-error-initial)
+	  (setq debug-on-error-should-be-set t
+		debug-on-error-from-init-file debug-on-error)))
+    (if debug-on-error-should-be-set
+	(setq debug-on-error debug-on-error-from-init-file)))
 
   (run-hooks 'after-init-hook)
 
