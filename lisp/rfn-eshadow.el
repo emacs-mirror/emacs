@@ -1,6 +1,6 @@
 ;;; rfn-eshadow.el --- Highlight `shadowed' part of read-file-name input text
 ;;
-;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience
@@ -181,13 +181,14 @@ been set up by `rfn-eshadow-setup-minibuffer'."
   ;; substitute-in-file-name would expand; currently it just assumes any
   ;; environment variable contains an absolute filename.
   (save-excursion
-    (goto-char (minibuffer-prompt-end))
-    ;; Update the overlay (which will evaporate if it's empty).
-    (move-overlay rfn-eshadow-overlay
-		  (point)
-		  (if (looking-at rfn-eshadow-regexp)
-		      (match-end 1)
-		    (point)))))
+    (let ((inhibit-point-motion-hooks t))
+      (goto-char (minibuffer-prompt-end))
+      ;; Update the overlay (which will evaporate if it's empty).
+      (move-overlay rfn-eshadow-overlay
+		    (point)
+		    (if (looking-at rfn-eshadow-regexp)
+			(match-end 1)
+		      (point))))))
 
 
 ;;; Note this definition must be at the end of the file, because
