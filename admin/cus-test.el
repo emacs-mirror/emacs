@@ -63,7 +63,11 @@
 ;;
 ;;    M-x cus-test-all
 ;;
-;; This function is suitable for batch mode.
+;; This function is suitable for batch mode.  E.g., invoke
+;;
+;;   src/emacs -batch -l admin/cus-test.el -f cus-test-all
+;;
+;; in the emacs source directory.
 ;;
 ;; To make cus-test work one has usually to work-around some existing
 ;; bugs/problems.  Therefore this file contains a "Workaround"
@@ -178,13 +182,13 @@ It is run after `cus-test-load-custom-loads' and `cus-test-load-libs'")
   "List of problematic variables found by `cus-test-apropos'.")
 
 ;; I haven't understood this :get stuff.  However, there are only very
-;; few variables with a custom-get property.  Such Symbols are stored
+;; few variables with a custom-get property.  Such symbols are stored
 ;; in `cus-test-variables-with-custom-get'.
 (defvar cus-test-variables-with-custom-get nil
   "Set by `cus-test-apropos' to a list of options with :get property.")
 
-;; This loads cus-loads.el, too.
 (require 'cus-edit)
+(require 'cus-load)
 
 (defun cus-test-apropos (regexp)
   "Check the options matching REGEXP.
@@ -331,9 +335,11 @@ This function is useful to detect load problems of libraries."
 
 (defun cus-test-all nil
   "Run a maximal test by cus-test.
-This function is suitable for batch mode, e.g., invoke
+This function is suitable for batch mode.  E.g., invoke
 
-emacs -batch -l cus-test.el -f cus-test-all"
+  src/emacs -batch -l admin/cus-test.el -f cus-test-all
+
+in the emacs source directory."
   (interactive)
   ;; This does not seem to increase the number of tested options.
   ;;  (message "Running %s" 'cus-test-load-libs)
