@@ -2851,7 +2851,6 @@ init_marker ()
   marker_block_index = MARKER_BLOCK_SIZE;
   marker_free_list = 0;
   n_marker_blocks = 0;
-  fprintf(stderr, "union Lisp_Misc = %d\n", sizeof (union Lisp_Misc));
 }
 
 /* Return a newly allocated Lisp_Misc object, with no substructure.  */
