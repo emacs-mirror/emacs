@@ -1205,20 +1205,22 @@ without any interpretation."
 
 (defun term-send-raw-meta ()
   (interactive)
-  (if (symbolp last-input-char)
+  (let ((char last-input-char))
+    (when (symbolp last-input-char)
       ;; Convert `return' to C-m, etc.
-      (let ((tmp (get last-input-char 'event-symbol-elements)))
-	(if tmp
-	    (setq last-input-char (car tmp)))
-	(if (symbolp last-input-char)
-	    (progn
-	      (setq tmp (get last-input-char 'ascii-character))
-	      (if tmp (setq last-input-char tmp))))))
-  (term-send-raw-string (if (and (numberp last-input-char)
-				 (> last-input-char 127)
-				 (< last-input-char 256))
-			    (make-string 1 last-input-char)
-			  (format "\e%c" last-input-char))))
+      (let ((tmp (get char 'event-symbol-elements)))
+	(when tmp
+	  (setq char (car tmp)))
+	(when (symbolp char)
+	  (setq tmp (get char 'ascii-character))
+	  (when tmp
+	    (setq char tmp)))))
+    (setq char (event-basic-type char))
+    (term-send-raw-string (if (and (numberp char)
+				   (> char 127)
+				   (< char 256))
+			      (make-string 1 char)
+			    (format "\e%c" char)))))
 
 (defun term-mouse-paste (click arg)
   "Insert the last stretch of killed text at the position clicked on."
