@@ -558,7 +558,7 @@ x_reply_selection_request (event, format, data, size, type)
 	}
 
       if (x_window_to_frame (dpyinfo, window)) /* #### debug */
-	error ("attempt to transfer an INCR to ourself!");
+	error ("Attempt to transfer an INCR to ourself!");
 #if 0
       fprintf (stderr, "\nINCR %d\n", bytes_remaining);
 #endif
@@ -967,7 +967,7 @@ wait_for_property_change (location)
       wait_reading_process_input (secs, usecs, property_change_reply, 0);
 
       if (NILP (XCONS (property_change_reply)->car))
-	error ("timed out waiting for property-notify event");
+	error ("Timed out waiting for property-notify event");
     }
 
   unbind_to (count, Qnil);
@@ -1138,7 +1138,9 @@ x_get_foreign_selection (selection_symbol, target_type)
   UNBLOCK_INPUT;
 
   if (NILP (XCONS (reading_selection_reply)->car))
-    error ("timed out waiting for reply from selection owner");
+    error ("Timed out waiting for reply from selection owner");
+  if (EQ (XCONS (reading_selection_reply)->car, Qlambda))
+    error ("No `%s' selection", XSYMBOL (selection_symbol)->name->data);
 
   /* Otherwise, the selection is waiting for us on the requested property.  */
   return
@@ -1691,7 +1693,9 @@ clean_local_selection_data (obj)
 }
 
 /* Called from XTread_socket to handle SelectionNotify events.
-   If it's the selection we are waiting for, stop waiting.  */
+   If it's the selection we are waiting for, stop waiting
+   by setting the car of reading_selection_reply to non-nil.
+   We store t there if the reply is successful, lambda if not.  */
 
 void
 x_handle_selection_notify (event)
@@ -1702,7 +1706,8 @@ x_handle_selection_notify (event)
   if (event->selection != reading_which_selection)
     return;
 
-  XCONS (reading_selection_reply)->car = Qt;
+  XCONS (reading_selection_reply)->car
+    = (event->property != 0 ? Qt : Qlambda);
 }
 
 
@@ -1719,7 +1724,7 @@ anything that the functions on `selection-converter-alist' know about.")
 {
   check_x ();
   CHECK_SYMBOL (selection_name, 0);
-  if (NILP (selection_value)) error ("selection-value may not be nil.");
+  if (NILP (selection_value)) error ("selection-value may not be nil");
   x_own_selection (selection_name, selection_value);
   return selection_value;
 }
