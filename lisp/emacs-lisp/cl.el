@@ -576,7 +576,7 @@ Keywords supported:  :test :test-not :key"
 	   coerce equalp cl-map-keymap maplist mapc mapl mapcan mapcon
 	   cl-map-keymap cl-map-keymap-recursively cl-map-intervals
 	   cl-map-overlays cl-set-frame-visible-p cl-float-limits
-	   gcd lcm isqrt expt floor* ceiling* truncate* round*
+	   gcd lcm isqrt floor* ceiling* truncate* round*
 	   mod* rem* signum random* make-random-state random-state-p
 	   subseq concatenate cl-mapcar-many map some every notany
 	   notevery revappend nreconc list-length tailp copy-tree get* getf
@@ -586,13 +586,13 @@ Keywords supported:  :test :test-not :key"
 	   cl-macroexpand-all)
 	  ("cl-seq" nil
 	   reduce fill replace remq remove remove* remove-if remove-if-not
-	   delete delete* delete-if delete-if-not remove-duplicates
+	   delete* delete-if delete-if-not remove-duplicates
 	   delete-duplicates substitute substitute-if substitute-if-not
 	   nsubstitute nsubstitute-if nsubstitute-if-not find find-if
 	   find-if-not position position-if position-if-not count count-if
 	   count-if-not mismatch search sort* stable-sort merge member*
 	   member-if member-if-not cl-adjoin assoc* assoc-if assoc-if-not
-	   rassoc* rassoc rassoc-if rassoc-if-not union nunion intersection
+	   rassoc* rassoc-if rassoc-if-not union nunion intersection
 	   nintersection set-difference nset-difference set-exclusive-or
 	   nset-exclusive-or subsetp subst-if subst-if-not nsubst nsubst-if
 	   nsubst-if-not sublis nsublis tree-equal)
