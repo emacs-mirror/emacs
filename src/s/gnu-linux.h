@@ -268,4 +268,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 /* The regex.o routines are a part of the GNU C-library used with Linux.  */
-#define REGEXP_IN_LIBC
+/* However, sometimes they disagree with the src/regex.h that comes with Emacs,
+   and that can make trouble in etags.c because it gets the regex.h from Emacs
+   and the function definitions in libc.  So turn this off.  */
+/* #define REGEXP_IN_LIBC */
+
