@@ -112,8 +112,17 @@
 
 2001-11-13  Simon Josefsson  <jas@extundo.com>
 
-	* mail/smtpmail.el: Cleanup previous patch.  From "Stefan Monnier"
-	<monnier+gnu/emacs@flint.cs.yale.edu>.
+	* mail/smtpmail.el (top-level): Change maintainer to Simon
+	Josefsson, cleanup the smtpmail.el header.
+
+	* mail/smtpmail.el (top-level): Don't require cl or base64.
+	(smtpmail-cred-server, smtpmail-cred-port, smtpmail-cred-key)
+	(smtpmail-cred-user, smtpmail-cred-cert, smtpmail-cred-passwd):
+	Defsubst instead of defmacro.
+	(smtpmail-intersection): Return value in reverse order.
+	(smtpmail-open-stream): Use stringp instead of string-to-list.
+	(smtpmail-open-stream, smtpmail-try-auth-methods): New functions,
+	separated from smtpmail-via-smtp.
 
 	* mail/smtpmail.el (top-level): Autoload starttls, mail-utils and
 	rfc2104.  Require base64 and cl.
