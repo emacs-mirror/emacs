@@ -208,15 +208,12 @@ function), and the arguments passed to this function would be the list
   (set (make-local-variable 'eshell-special-chars-outside-quoting)
        (append eshell-special-chars-outside-quoting '(?$)))
 
-  (make-local-hook 'eshell-parse-argument-hook)
   (add-hook 'eshell-parse-argument-hook 'eshell-interpolate-variable t t)
 
-  (make-local-hook 'eshell-prepare-command-hook)
   (add-hook 'eshell-prepare-command-hook
 	    'eshell-handle-local-variables nil t)
 
   (when (eshell-using-module 'eshell-cmpl)
-    (make-local-hook 'pcomplete-try-first-hook)
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-variable-reference nil t)
     (add-hook 'pcomplete-try-first-hook
