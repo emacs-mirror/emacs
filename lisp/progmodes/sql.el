@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 1998, 1999  Free Software Foundation, Inc.
 
-;; Author: Alex Schroeder <alex@gnu.org>
-;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.4.2
+;; Author: Alex Schroeder <a.schroeder@bsiag.ch>
+;; Maintainer: Alex Schroeder <a.schroeder@bsiag.ch>
+;; Version: 1.4.5
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -160,6 +160,12 @@ buffer is shown using `display-buffer'."
 
 (defcustom sql-input-ring-file-name nil
   "*If non-nil, name of the file to read/write input history.
+
+You have to set this variable if you want the history of your commands
+saved from one Emacs session to the next.  If this variable is set,
+exiting the SQL interpreter in an SQLi buffer will write the input
+history to the specified file.  Starting a new process in a SQLi buffer
+will read the input history from the specified file.
 
 This is used to locally set `comint-input-ring-file-name' when reading
 or writing the input history."
