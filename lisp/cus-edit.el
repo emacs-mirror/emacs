@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
-;; Version: 1.9951
+;; Version: 1.9954
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -1428,7 +1428,7 @@ and `face'."
 	 (text (or (and (eq category 'group)
 			(nth 4 entry))
 		   (nth 3 entry)))
-	 (lisp (eq (widget-get parent :custom-form) 'lisp))
+	 (form (widget-get parent :custom-form))
 	 children)
     (while (string-match "\\`\\(.*\\)%c\\(.*\\)\\'" text)
       (setq text (concat (match-string 1 text) 
@@ -1457,8 +1457,10 @@ and `face'."
 	(if (eq custom-magic-show 'long)
 	    (insert text)
 	  (insert (symbol-name state)))
-	(when lisp 
-	  (insert " (lisp)"))
+	(cond ((eq form 'lisp)
+	       (insert " (lisp)"))
+	      ((eq form 'mismatch)
+	       (insert " (mismatch)")))
 	(put-text-property start (point) 'face 'custom-state-face))
       (insert "\n"))
     (when (and (eq category 'group)
@@ -1479,7 +1481,7 @@ and `face'."
 	     :button-suffix ""
 	     :help-echo "Change the state."
 	     :format (if hidden "%t" "%[%t%]")
-	     :tag (if lisp 
+	     :tag (if (memq form '(lisp mismatch))
 		      (concat "(" magic ")")
 		    (concat "[" magic "]")))
 	    children)
@@ -1603,7 +1605,8 @@ and `face'."
 		   (require load)
 		 (error nil)))
 	      ;; Don't reload a file already loaded.
-	      ((member load preloaded-file-list))
+	      ((and (boundp 'preloaded-file-list)
+		    (member load preloaded-file-list)))
 	      ((assoc load load-history))
 	      ((assoc (locate-library load) load-history))
 	      (t
@@ -1789,7 +1792,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
     (when (eq state 'unknown)
       (unless (widget-apply conv :match value)
 	;; (widget-apply (widget-convert type) :match value)
-	(setq form 'lisp)))
+	(setq form 'mismatch)))
     ;; Now we can create the child widget.
     (cond ((eq custom-buffer-style 'tree)
 	   (insert prefix (if last " `--- " " |--- "))
@@ -1813,7 +1816,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 		  :action 'custom-toggle-parent
 		  nil)
 		 buttons))
-	  ((eq form 'lisp)
+	  ((memq form '(lisp mismatch))
 	   ;; In lisp mode edit the saved value when possible.
 	   (let* ((value (cond ((get symbol 'saved-value)
 				(car (get symbol 'saved-value)))
@@ -1956,10 +1959,10 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
     ("---" ignore ignore)
     ("Don't show as Lisp expression" custom-variable-edit 
      (lambda (widget)
-       (not (eq (widget-get widget :custom-form) 'edit))))
+       (eq (widget-get widget :custom-form) 'lisp)))
     ("Show as Lisp expression" custom-variable-edit-lisp
      (lambda (widget)
-       (not (eq (widget-get widget :custom-form) 'lisp)))))
+       (eq (widget-get widget :custom-form) 'edit))))
   "Alist of actions for the `custom-variable' widget.
 Each entry has the form (NAME ACTION FILTER) where NAME is the name of
 the menu entry, ACTION is the function to call on the widget when the
@@ -2010,7 +2013,7 @@ Optional EVENT is the location for the menu."
 	  ((setq val (widget-apply child :validate))
 	   (goto-char (widget-get val :from))
 	   (error "%s" (widget-get val :error)))
-	  ((eq form 'lisp)
+	  ((memq form '(lisp mismatch))
 	   (funcall set symbol (eval (setq val (widget-value child))))
 	   (put symbol 'customized-value (list val)))
 	  (t
@@ -2032,7 +2035,7 @@ Optional EVENT is the location for the menu."
 	  ((setq val (widget-apply child :validate))
 	   (goto-char (widget-get val :from))
 	   (error "%s" (widget-get val :error)))
-	  ((eq form 'lisp)
+	  ((memq form '(lisp mismatch))
 	   (put symbol 'saved-value (list (widget-value child)))
 	   (funcall set symbol (eval (widget-value child))))
 	  (t
@@ -2481,6 +2484,13 @@ Optional EVENT is the location for the menu."
 
 (define-widget 'hook 'list
   "A emacs lisp hook"
+  :value-to-internal (lambda (widget value)
+		       (if (symbolp value)
+			   (list value)
+			 value))
+  :match (lambda (widget value)
+	   (or (symbolp value)
+	       (widget-editable-list-match widget value)))
   :convert-widget 'custom-hook-convert-widget
   :tag "Hook")
 
@@ -2586,7 +2596,7 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
   "Insert a customize group for WIDGET in the current buffer."
   (let* ((state (widget-get widget :custom-state))
 	 (level (widget-get widget :custom-level))
-	 (indent (widget-get widget :indent))
+	 ;; (indent (widget-get widget :indent))
 	 (prefix (widget-get widget :custom-prefix))
 	 (buttons (widget-get widget :buttons))
 	 (tag (widget-get widget :tag))
