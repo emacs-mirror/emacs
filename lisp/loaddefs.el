@@ -4683,7 +4683,7 @@ The backup file is the first file given to `diff'." t nil)
 ;;;***
 
 ;;;### (autoloads (diff-minor-mode diff-mode) "diff-mode" "diff-mode.el"
-;;;;;;  (15279 8859))
+;;;;;;  (15479 23172))
 ;;; Generated autoloads from diff-mode.el
 
 (autoload (quote diff-mode) "diff-mode" "\
@@ -5525,7 +5525,7 @@ It returns the old style symbol." t nil)
 ;;;;;;  ebrowse-back-in-position-stack ebrowse-tags-search-member-use
 ;;;;;;  ebrowse-tags-query-replace ebrowse-tags-loop-continue ebrowse-tags-complete-symbol
 ;;;;;;  ebrowse-electric-choose-tree ebrowse-tree-mode) "ebrowse"
-;;;;;;  "progmodes/ebrowse.el" (15318 46704))
+;;;;;;  "progmodes/ebrowse.el" (15503 44516))
 ;;; Generated autoloads from progmodes/ebrowse.el
 
 (autoload (quote ebrowse-tree-mode) "ebrowse" "\
@@ -6219,7 +6219,7 @@ Please include any configuration details that might be involved." t nil)
 ;;;;;;  find-tag find-tag-noselect tags-table-files visit-tags-table
 ;;;;;;  find-tag-default-function find-tag-hook tags-add-tables tags-compression-info-list
 ;;;;;;  tags-table-list tags-case-fold-search) "etags" "progmodes/etags.el"
-;;;;;;  (15318 46721))
+;;;;;;  (15479 23181))
 ;;; Generated autoloads from progmodes/etags.el
 
 (defvar tags-file-name nil "\
@@ -6296,7 +6296,7 @@ or just \\[negative-argument]), pop back to the previous tag gone to.
 
 If third arg REGEXP-P is non-nil, treat TAGNAME as a regexp.
 
-A marker representing the point when this command is onvoked is pushed
+A marker representing the point when this command is invoked is pushed
 onto a ring and may be popped back to with \\[pop-tag-mark].
 Contrast this with the ring of marks gone to by the command.
 
@@ -6315,7 +6315,7 @@ or just \\[negative-argument]), pop back to the previous tag gone to.
 
 If third arg REGEXP-P is non-nil, treat TAGNAME as a regexp.
 
-A marker representing the point when this command is onvoked is pushed
+A marker representing the point when this command is invoked is pushed
 onto a ring and may be popped back to with \\[pop-tag-mark].
 Contrast this with the ring of marks gone to by the command.
 
@@ -6336,7 +6336,7 @@ just \\[negative-argument]), pop back to the previous tag gone to.
 
 If third arg REGEXP-P is non-nil, treat TAGNAME as a regexp.
 
-A marker representing the point when this command is onvoked is pushed
+A marker representing the point when this command is invoked is pushed
 onto a ring and may be popped back to with \\[pop-tag-mark].
 Contrast this with the ring of marks gone to by the command.
 
@@ -6357,7 +6357,7 @@ just \\[negative-argument]), pop back to the previous tag gone to.
 
 If third arg REGEXP-P is non-nil, treat TAGNAME as a regexp.
 
-A marker representing the point when this command is onvoked is pushed
+A marker representing the point when this command is invoked is pushed
 onto a ring and may be popped back to with \\[pop-tag-mark].
 Contrast this with the ring of marks gone to by the command.
 
@@ -6376,7 +6376,7 @@ just \\[negative-argument]), pop back to the previous tag gone to.
 
 If third arg OTHER-WINDOW is non-nil, select the buffer in another window.
 
-A marker representing the point when this command is onvoked is pushed
+A marker representing the point when this command is invoked is pushed
 onto a ring and may be popped back to with \\[pop-tag-mark].
 Contrast this with the ring of marks gone to by the command.
 
@@ -9067,7 +9067,7 @@ Switches to the buffer `*ielm*', or creates it if it does not exist." t nil)
 
 ;;;### (autoloads (defimage find-image remove-images insert-image
 ;;;;;;  put-image create-image image-type-available-p image-type-from-file-header
-;;;;;;  image-type-from-data) "image" "image.el" (15234 6088))
+;;;;;;  image-type-from-data) "image" "image.el" (15503 44494))
 ;;; Generated autoloads from image.el
 
 (autoload (quote image-type-from-data) "image" "\
@@ -11640,7 +11640,7 @@ Open a network connection to HOST on PORT." t nil)
 ;;;;;;  uncomment-region comment-kill comment-set-column comment-indent
 ;;;;;;  comment-indent-default comment-multi-line comment-padding
 ;;;;;;  comment-style comment-column) "newcomment" "newcomment.el"
-;;;;;;  (15353 27896))
+;;;;;;  (15503 44495))
 ;;; Generated autoloads from newcomment.el
 
 (defalias (quote indent-for-comment) (quote comment-indent))
@@ -16046,7 +16046,7 @@ tetris-mode keybindings:
 ;;;;;;  tex-start-options-string slitex-run-command latex-run-command
 ;;;;;;  tex-run-command tex-offer-save tex-main-file tex-first-line-header-regexp
 ;;;;;;  tex-directory tex-shell-file-name) "tex-mode" "textmodes/tex-mode.el"
-;;;;;;  (15478 8892))
+;;;;;;  (15503 44517))
 ;;; Generated autoloads from textmodes/tex-mode.el
 
 (defvar tex-shell-file-name nil "\
@@ -16526,7 +16526,7 @@ See also docstring of the function tibetan-compose-region." t nil)
 ;;;***
 
 ;;;### (autoloads (tildify-buffer tildify-region) "tildify" "textmodes/tildify.el"
-;;;;;;  (15214 19672))
+;;;;;;  (15503 44517))
 ;;; Generated autoloads from textmodes/tildify.el
 
 (autoload (quote tildify-region) "tildify" "\
@@ -17278,7 +17278,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME." t nil)
 ;;;;;;  vc-resolve-conflicts vc-merge vc-insert-headers vc-version-other-window
 ;;;;;;  vc-diff vc-register vc-next-action vc-do-command edit-vc-file
 ;;;;;;  with-vc-file vc-before-checkin-hook vc-checkin-hook vc-checkout-hook)
-;;;;;;  "vc" "vc.el" (15347 40805))
+;;;;;;  "vc" "vc.el" (15503 44498))
 ;;; Generated autoloads from vc.el
 
 (defvar vc-checkout-hook nil "\
