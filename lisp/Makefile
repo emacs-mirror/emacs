@@ -3,11 +3,11 @@
 #
 EMACS = emacs
 SOURCES = *.el COPYING Makefile
-lisptagsfiles = [a-zA-Z]*.el */[a-zA-Z]*.el
+lisptagsfiles = [a-zA-Z]*.el [a-zA-Z]*/[a-zA-Z]*.el
 
 dontcompilefiles: bindings.el blessmail.el bruce.el cus-load.el cus-start.el
 dontcompilefiles: forms-d2.el forms-pass.el 
-dontcompilefiles: latin-1.el latin-2.el latin-3.el latin-4.el
+dontcompilefiles: latin-1.el latin-2.el latin-3.el latin-4.el latin-5.el
 dontcompilefiles: loaddefs.el loadup.el mule-conf.el patcomp.el
 dontcompilefiles: paths.el sc.el subdirs.el term-nasty.el version.el 
 
@@ -25,7 +25,7 @@ custom-deps: doit
 finder-data: doit
 	subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS) ;; \
+	   case $$file in */Old | */RCS | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done; \
@@ -34,7 +34,7 @@ finder-data: doit
 autoloads: doit
 	subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS) ;; \
+	   case $$file in */Old | */RCS | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done; \
@@ -43,7 +43,7 @@ autoloads: doit
 update-subdirs: doit
 	subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS) ;; \
+	   case $$file in */Old | */RCS | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done; \
@@ -54,7 +54,7 @@ update-subdirs: doit
 updates: doit
 	subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS) ;; \
+	   case $$file in */Old | */RCS | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done; \
