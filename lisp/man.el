@@ -583,7 +583,9 @@ If a buffer already exists for this man page, it will display immediately."
 	(setq Man-original-frame (selected-frame))
 	(setq Man-arguments man-args))
       (let ((process-environment (copy-sequence process-environment))
-	    (inhibit-eol-conversion t)	; so Awk script gets \n intact
+	    ;; The following is so Awk script gets \n intact
+	    ;; But don't prevent decoding of the outside.
+	    (coding-system-for-write 'raw-text-unix)
 	    ;; Avoid possible error by using a directory that always exists.
 	    (default-directory "/"))
 	;; Prevent any attempt to use display terminal fanciness.
