@@ -1,3 +1,12 @@
+2000-08-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* lisp.h (CHECK) [ENABLE_CHECKING]: Make both side of the
+	conditional have void type, for standard C compilers.
+
+	* xdisp.c (redisplay_internal): Compare windows for equality with
+	EQ, instead of applying XWINDOW to something that might not
+	be a window.
+	
 2000-08-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* fontset.c (Finternal_char_font): Search only the selected frame
