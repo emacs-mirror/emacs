@@ -82,6 +82,22 @@ System V rel 4 (-opsystem=usg5-4)
   The standard C preprocessor generate xmakefile incorrectly.  However,
   /lib/cpp will work, so use `make CPP=/lib/cpp'.
 
+  Versions 3 and earlier of V.4, on the Intel 386 and 860, had problems
+  in the X11 libraries.  These prevent Emacs from working with X.
+  You can use Emacs with X provided your copy of X is based on X11
+  release 4 or newer.  Unfortunately, the only way you can tell whether
+  your X11 library is new enough is to try compiling Emacs to use X.
+  If xemacs runs, your X11 library is new enough.
+
+  In this context, GSV4 and GSV4i are alternate names for X11R4.
+  OL2.* is X11R3 based.  OL3 is in between X11R3 and X11R4, and may or
+  may not work, depending on who made the Unix system.
+
+  Most versions of V.4 support sockets.  If `/usr/lib/libsocket.so'
+  exists, your system supports them.  If yours does not, you must add
+  #undef HAVE_SOCKETS in config.h, aftern the inclusion of s-usg5-4.h.
+  (Any system that supports Internet should implement sockets.)
+
 Ultrix (-opsystem=bsd4-2)
 
   DEC's Ultrix OS is essentially Berkeley 4.2.  It does not correctly
