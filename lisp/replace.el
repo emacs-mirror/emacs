@@ -568,14 +568,14 @@ the matching is case-sensitive."
 	 (current-tab-width tab-width)
 	 ;; Minimum width of line number plus trailing colon.
 	 (min-line-number-width 6)
-	 ;; Actual width of line number prefix.  Choose a width that's
-	 ;; a multiple of `tab-width' in the original buffer so that
-	 ;; lines in *Occur* appear right.
-	 (line-number-width (* (/ (- (+ min-line-number-width
-					tab-width)
-				     1)
-				  tab-width)
-			       tab-width))
+	 ;; Width of line number prefix without the colon.  Choose a
+	 ;; width that's a multiple of `tab-width' in the original
+	 ;; buffer so that lines in *Occur* appear right.
+	 (line-number-width (1- (* (/ (- (+ min-line-number-width
+					    tab-width)
+					 1)
+				      tab-width)
+				   tab-width)))
 	 ;; Format string for line numbers.
 	 (line-number-format (format "%%%dd" line-number-width))
 	 (empty (make-string line-number-width ?\ ))
