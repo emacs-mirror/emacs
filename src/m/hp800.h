@@ -154,8 +154,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* no underscore please */
 #define LDAV_SYMBOL "avenrun"
-#define CPTIME_SYMBOL "cp_time"
-#define DKXFER_SYMBOL "dk_xfer"
 
 #if 0   /* Supposedly no longer true.  */
 /* In hpux, for unknown reasons, S_IFLNK is defined even though
