@@ -577,7 +577,9 @@ Running Debuggers Under Emacs
 Maintaining Programs
 
 * Change Log::	        Maintaining a change history for your program.
+@ignore
 * Authors::             Maintaining the Emacs @file{AUTHORS} file.
+@end ignore
 * Tags::	        Go direct to any function in your program in one
 			  command.  Tags remembers which file it is in.
 * Emerge::	        A convenient way of merging two versions of a program.

@@ -13,7 +13,6 @@ particularly useful for this purpose.
 
 @menu
 * Change Log::	        Maintaining a change history for your program.
-* Authors::             Maintaining the Emacs @file{AUTHORS} file.
 * Tags::	        Go direct to any function in your program in one
 			  command.  Tags remembers which file it is in.
 * Emerge::	        A convenient way of merging two versions of a program.
@@ -136,6 +135,10 @@ versions of Emacs.
   Version control systems are another way to keep track of changes in your
 program and keep a change log.  @xref{Log Buffer}.
 
+@ignore
+@c This is commented out because the command is specific
+@c to maintenance of Emacs itself.
+
 @node Authors
 @section @file{AUTHORS} files
 @cindex @file{AUTHORS} file
@@ -158,6 +161,7 @@ existing @file{AUTHORS} file.
 assume that a person not listed in the output was not a contributor.
 If you merged in someone's contribution and did not put his name
 in the change log, he won't show up in @kbd{M-x authors} either.
+@end ignore
 
 @node Tags
 @section Tags Tables
