@@ -45,6 +45,8 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
        (not (vectorp (symbol-function symbol)))
        (error "Function %s is already defined and not a keyboard macro."
 	      symbol))
+  (if (string-equal symbol "")
+      (error "No command name given"))
   (fset symbol last-kbd-macro))
 
 ;;;###autoload
