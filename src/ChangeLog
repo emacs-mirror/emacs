@@ -1,3 +1,8 @@
+2001-03-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacs.c (main): Update the copyright year.  From Werner LEMBERG
+	<wl@gnu.org>.
+
 2001-03-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (init_from_display_pos): Test invisible property
