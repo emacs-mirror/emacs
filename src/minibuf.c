@@ -197,7 +197,7 @@ static Lisp_Object read_minibuf ();
 
 static Lisp_Object
 read_minibuf (map, initial, prompt, backup_n, expflag,
-	      histvar, histpos, defalt, allow_props)
+	      histvar, histpos, defalt, allow_props, disable_multibyte)
      Lisp_Object map;
      Lisp_Object initial;
      Lisp_Object prompt;
@@ -206,6 +206,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
      Lisp_Object histvar;
      Lisp_Object histpos;
      Lisp_Object defalt;
+     int disable_multibyte;
 {
   Lisp_Object val;
   int count = specpdl_ptr - specpdl;
@@ -642,7 +643,7 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
   val = read_minibuf (keymap, initial_contents, prompt,
 		      make_number (pos), !NILP (read),
 		      histvar, histpos, default_value,
-		      minibuffer_allow_text_properties);
+		      minibuffer_allow_text_properties, 0);
   if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (default_value))
     val = default_value;
   UNGCPRO;
@@ -661,7 +662,7 @@ is a string to insert in the minibuffer before reading.")
     CHECK_STRING (initial_contents, 1);
   return read_minibuf (Vminibuffer_local_map, initial_contents,
 		       prompt, Qnil, 1, Qminibuffer_history,
-		       make_number (0), Qnil, 0);
+		       make_number (0), Qnil, 0, 0);
 }
 
 DEFUN ("eval-minibuffer", Feval_minibuffer, Seval_minibuffer, 1, 2, 0,
@@ -700,7 +701,7 @@ Prompt with PROMPT, and provide INIT as an initial value of the input string.")
     CHECK_STRING (init, 1);
 
   return read_minibuf (Vminibuffer_local_ns_map, init, prompt, Qnil,
-		       0, Qminibuffer_history, make_number (0), Qnil, 0);
+		       0, Qminibuffer_history, make_number (0), Qnil, 0, 0);
 }
 
 DEFUN ("read-command", Fread_command, Sread_command, 1, 2, 0,
@@ -1164,6 +1165,7 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 7, 0,
   int pos = 0;
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1;
+  int disable_multibyte = EQ (table, Qread_file_name_internal);
 
   GCPRO1 (def);
 
@@ -1209,7 +1211,7 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 7, 0,
 		      ? Vminibuffer_local_completion_map
 		      : Vminibuffer_local_must_match_map,
 		      init, prompt, make_number (pos), 0,
-		      histvar, histpos, def, 0);
+		      histvar, histpos, def, 0, disable_multibyte);
   if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (def))
     val = def;
   RETURN_UNGCPRO (unbind_to (count, val));
