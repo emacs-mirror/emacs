@@ -46,6 +46,22 @@
   :mime-charset 'windows-1253)
 (define-coding-system-alias 'cp1253 'windows-1253)
 
+(define-coding-system 'cp851
+  "DOS codepage 851 (Greek)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp851)
+  :mime-charset 'cp851)
+(define-coding-system-alias 'ibm851 'cp851)
+
+(define-coding-system 'cp869
+  "DOS codepage 869 (Greek)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp869)
+  :mime-charset 'cp869)
+(define-coding-system-alias 'ibm869 'cp869)
+
 (set-language-info-alist
  "Greek" '((charset iso-8859-7)
 	   (coding-system . (greek-iso-8bit))
