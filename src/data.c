@@ -1549,7 +1549,7 @@ or a byte-code object.  IDX starts at 0.")
 	args_out_of_range (array, idx);
       if (idxval < CHAR_TABLE_SINGLE_BYTE_SLOTS)
 	{
-	  /* For ASCII or 8-bit European characters, the element is
+	  /* For ASCII and 8-bit European characters, the element is
              stored in the top table.  */
 	  val = XCHAR_TABLE (array)->contents[idxval];
 	  if (NILP (val))
@@ -1567,44 +1567,50 @@ or a byte-code object.  IDX starts at 0.")
 	}
       else
 	{
-	  int idx[3];		/* For charset, code1, and code2.  */
-	  int i, len;
-	  Lisp_Object sub_array;
+	  int code[4], i;
+	  Lisp_Object sub_table;
 
-	  SPLIT_NON_ASCII_CHAR (idxval, idx[0], idx[1], idx[2]);
-	  len = (COMPOSITE_CHAR_P (idxval) || idx[2]) ? 3 : (idx[1] ? 2 : 1);
-	  /* The top level char-table should be indexed from 256 for
-             each non-ASCII charsets.  */
-	  idx[0] += 128;
+	  SPLIT_NON_ASCII_CHAR (idxval, code[0], code[1], code[2]);
+	  if (code[0] != CHARSET_COMPOSITION)
+	    {
+	      if (code[1] < 32) code[1] = -1;
+	      else if (code[2] < 32) code[2] = -1;
+	    }
+	  /* Here, the possible range of CODE[0] (== charset ID) is
+	    128..MAX_CHARSET.  Since the top level char table contains
+	    data for multibyte characters after 256th element, we must
+	    increment CODE[0] by 128 to get a correct index.  */
+	  code[0] += 128;
+	  code[3] = -1;		/* anchor */
 
 	try_parent_char_table:
-	  sub_array = array;
-	  for (i = 0; i < len; i++)
+	  sub_table = array;
+	  for (i = 0; code[i] >= 0; i++)
 	    {
-	      val = XCHAR_TABLE (sub_array)->contents[idx[i]];
-	      if (NILP (val))
-		val = XCHAR_TABLE (sub_array)->defalt;
-	      if (NILP (val))
+	      val = XCHAR_TABLE (sub_table)->contents[code[i]];
+	      if (SUB_CHAR_TABLE_P (val))
+		sub_table = val;
+	      else
 		{
-		  array = XCHAR_TABLE (array)->parent;
-		  if (NILP (array))
-		    return Qnil;
-		  goto try_parent_char_table;
+		  if (NILP (val))
+		    val = XCHAR_TABLE (sub_table)->defalt;
+		  if (NILP (val))
+		    {
+		      array = XCHAR_TABLE (array)->parent;
+		      if (!NILP (array))
+			goto try_parent_char_table;
+		    }
+		  return val;
 		}
-	      if (!CHAR_TABLE_P (val))
-		return val;
-	      sub_array = val;
 	    }
-	  /* We come here because ARRAY is deeper than the specified
-	     indices.  We return a default value stored at the deepest
-	     level specified.  */
-	  val = XCHAR_TABLE (sub_array)->defalt;
+	  /* Here, VAL is a sub char table.  We try the default value
+             and parent.  */
+	  val = XCHAR_TABLE (val)->defalt;
 	  if (NILP (val))
 	    {
 	      array = XCHAR_TABLE (array)->parent;
-	      if (NILP (array))
-		return Qnil;
-	      goto try_parent_char_table;
+	      if (!NILP (array))
+		goto try_parent_char_table;
 	    }
 	  return val;
 	}
@@ -1672,33 +1678,30 @@ ARRAY may be a vector or a string.  IDX starts at 0.")
 	XCHAR_TABLE (array)->contents[idxval] = newelt;
       else
 	{
-	  int idx[3];		/* For charset, code1, and code2.  */
-	  int i, len;
+	  int code[4], i;
 	  Lisp_Object val;
 
-	  SPLIT_NON_ASCII_CHAR (idxval, idx[0], idx[1], idx[2]);
-	  len = (COMPOSITE_CHAR_P (idxval) || idx[2]) ? 2 : (idx[1] ? 1 : 0);
-	  /* The top level char-table should be indexed from 256 for
-             each non-ASCII charsets.  */
-	  idx[0] += 128;
-
-	  for (i = 0; i < len; i++)
+	  SPLIT_NON_ASCII_CHAR (idxval, code[0], code[1], code[2]);
+	  if (code[0] != CHARSET_COMPOSITION)
 	    {
-	      val = XCHAR_TABLE (array)->contents[idx[i]];
-	      if (CHAR_TABLE_P (val))
-		/* Look into this deeper array.  */
+	      if (code[1] < 32) code[1] = -1;
+	      else if (code[2] < 32) code[2] = -1;
+	    }
+	  /* See the comment of the corresponding part in Faref.  */
+	  code[0] += 128;
+	  code[3] = -1;		/* anchor */
+	  for (i = 0; code[i + 1] >= 0; i++)
+	    {
+	      val = XCHAR_TABLE (array)->contents[code[i]];
+	      if (SUB_CHAR_TABLE_P (val))
 		array = val;
 	      else
-		{
-		  /* VAL is the leaf.  Create a deeper array with the
-                     default value VAL, set it in the slot of VAL, and
-                     look into it.  */
-		  array = XCHAR_TABLE (array)->contents[idx[i]]
-		    = Fmake_char_table (Qnil, Qnil);
-		  XCHAR_TABLE (array)->defalt = val;
-		}
+		/* VAL is a leaf.  Create a sub char table with the
+		   default value VAL here and look into it.  */
+		array = (XCHAR_TABLE (array)->contents[code[i]]
+			 = make_sub_char_table (val));
 	    }
-	  return XCHAR_TABLE (array)->contents[idx[i]] = newelt;
+	  XCHAR_TABLE (array)->contents[code[i]] = newelt;
 	}
     }
   else
