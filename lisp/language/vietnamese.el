@@ -28,7 +28,7 @@
 
 ;;; Code:
 
-(eval-when-compile
+(eval-and-compile
 
 (defvar viet-viscii-decode-table
   [;; VISCII is a full 8-bit code.
@@ -48,7 +48,7 @@
    ?,2p(B ?,1Q(B ?,2r(B ?,2s(B ?,2t(B ?,1U(B ?,1V(B ?,1W(B ?,1X(B ?,2y(B ?,2z(B ?,1[(B ?,1\(B ?,2}(B ?,1^(B ?,1_(B
    ?,1`(B ?,1a(B ?,1b(B ?,1c(B ?,1d(B ?,1e(B ?,1f(B ?,1g(B ?,1h(B ?,1i(B ?,1j(B ?,1k(B ?,1l(B ?,1m(B ?,1n(B ?,1o(B
    ?,1p(B ?,1q(B ?,1r(B ?,1s(B ?,1t(B ?,1u(B ?,1v(B ?,1w(B ?,1x(B ?,1y(B ?,1z(B ?,1{(B ?,1|(B ?,1}(B ?,1~(B ?,2f(B ]
-  "Vietnamese VISCII encoding table.")
+  "Vietnamese VISCII decoding table.")
 
 (defvar viet-viscii-encode-table
   (let ((table-lower (make-vector 128 0))
@@ -63,8 +63,8 @@
 	     (aset table-upper (nth 1 char-component) i)))
       (setq i (1+ i)))
     (cons table-lower table-upper))
-  "Vietnamese VISCII decoding table.
-Cons of tables for decoding lower-case chars and upper-case characterss.
+  "Vietnamese VISCII encoding table.
+Cons of tables for encoding lower-case chars and upper-case characters.
 Both tables are indexed by the position code of Vietnamese characters.")
 
 (defvar viet-vscii-decode-table
@@ -85,7 +85,7 @@ Both tables are indexed by the position code of Vietnamese characters.")
    ?,1i(B ?,1)(B ?,1+(B ?,1,(B ?,1-(B ?,1*(B ?,1.(B ?,1l(B ?,1o(B ?,2-(B ?,2*(B ?,20(B ?,1n(B ?,1m(B ?,18(B ?,1r(B
    ?,21(B ?,1v(B ?,1u(B ?,1s(B ?,1w(B ?,10(B ?,11(B ?,12(B ?,1/(B ?,15(B ?,16(B ?,17(B ?,1^(B ?,1>(B ?,1~(B ?,1y(B
    ?,22(B ?,1|(B ?,1{(B ?,1z(B ?,1x(B ?,1W(B ?,1X(B ?,1f(B ?,1Q(B ?,1q(B ?,1O(B ?,1V(B ?,1[(B ?,1}(B ?,1\(B ?,2/(B]
-  "Vietnamese VSCII code table.")
+  "Vietnamese VSCII decoding table.")
 
 (defvar viet-vscii-encode-table
   (let ((table-lower (make-vector 128 0))
@@ -100,8 +100,8 @@ Both tables are indexed by the position code of Vietnamese characters.")
 	     (aset table-upper (nth 1 char-component) i)))
       (setq i (1+ i)))
     (cons table-lower table-upper))
-  "Vietnamese VSCII decoding table.
-Cons of tables for decoding lower-case chars and upper-case characterss.
+  "Vietnamese VSCII encoding table.
+Cons of tables for encoding lower-case chars and upper-case characters.
 Both tables are indexed by the position code of Vietnamese characters.")
 
 )
@@ -205,7 +205,8 @@ Both tables are indexed by the position code of Vietnamese characters.")
  "8-bit encoding for Vietnamese VISCII 1.1 (MIME:VISCII)"
  '(ccl-decode-viscii . ccl-encode-viscii)
  '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)
-   (mime-charset . viscii)))
+   (mime-charset . viscii)
+   (valid-codes (0 255))))
 
 (define-coding-system-alias 'viscii 'vietnamese-viscii)
 
@@ -213,7 +214,8 @@ Both tables are indexed by the position code of Vietnamese characters.")
  'vietnamese-vscii 4 ?v
  "8-bit encoding for Vietnamese VSCII-1"
  '(ccl-decode-vscii . ccl-encode-vscii)
- '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)))
+ '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)
+   (valid-codes (0 255))))
 
 (define-coding-system-alias 'vscii 'vietnamese-vscii)
 
@@ -233,9 +235,18 @@ Both tables are indexed by the position code of Vietnamese characters.")
 (setq font-ccl-encoder-alist
       (cons (cons "vscii" ccl-encode-vscii-font) font-ccl-encoder-alist))
 
+(defvar viet-viscii-nonascii-translation-table
+  (make-translation-table-from-vector viet-viscii-decode-table)
+  "Value of `nonascii-translation-table' in Vietnamese language environment.")
+
 (set-language-info-alist
- "Vietnamese" '((setup-function . setup-vietnamese-environment)
+ "Vietnamese" `((setup-function . setup-vietnamese-environment)
 		(charset vietnamese-viscii-lower vietnamese-viscii-upper)
+		(nonascii-translation-table
+		 . ,viet-viscii-nonascii-translation-table)
+		(charset-origin-alist
+		 (vietnamese-viscii-lower "VISCII" viet-encode-viscii-char)
+		 (vietnamese-viscii-upper "VISCII" viet-encode-viscii-char))
 		(coding-system vietnamese-viscii vietnamese-vscii
 			       vietnamese-viqr)
 		(coding-priority vietnamese-viscii)
