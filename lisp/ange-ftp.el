@@ -560,15 +560,15 @@
 ;;       ange-ftp-dired-host-type for local buffers.
 ;;
 ;; t = a remote host of unknown type. Think t as in true, it's remote.
-;;     Currently, 'unix is used as the default remote host type.
+;;     Currently, `unix' is used as the default remote host type.
 ;;     Maybe we should use t.
 ;;
-;; 'type = a remote host of TYPE type.
+;; TYPE = a remote host of TYPE type.
 ;;
-;; 'type:list = a remote host of TYPE type, using a specialized ftp listing
-;;              program called list. This is currently only used for Unix
-;;              dl (descriptive listings), when ange-ftp-dired-host-type
-;;              is set to 'unix:dl.
+;; TYPE:LIST = a remote host of TYPE type, using a specialized ftp listing
+;;             program called list. This is currently only used for Unix
+;;             dl (descriptive listings), when ange-ftp-dired-host-type
+;;             is set to `unix:dl'.
 
 ;; Bug report codes:
 ;;
@@ -2157,29 +2157,33 @@ Create a new process if needed."
   "Return a symbol which represents the type of the HOST given.
 If the optional argument USER is given, attempts to guess the
 host-type by logging in as USER."
-  (if (eq host ange-ftp-host-cache)
-      ange-ftp-host-type-cache
-    ;; Trigger an ftp connection, in case we need to guess at the host type.
-    (if (and user (ange-ftp-get-process host user) (eq host ange-ftp-host-cache))
-	ange-ftp-host-type-cache
-      (setq ange-ftp-host-cache host
-	    ange-ftp-host-type-cache
-	    (cond ((ange-ftp-dumb-unix-host host)
-		   'dumb-unix)
-;;		  ((and (fboundp 'ange-ftp-vos-host)
-;;			(ange-ftp-vos-host host))
-;;		   'vos)
-		  ((and (fboundp 'ange-ftp-vms-host)
-			(ange-ftp-vms-host host))
-		   'vms)
-		  ((and (fboundp 'ange-ftp-mts-host)
-			(ange-ftp-mts-host host))
-		   'mts)
-		  ((and (fboundp 'ange-ftp-cms-host)
-			(ange-ftp-cms-host host))
-		   'cms)
-		  (t
-		   'unix))))))
+  (cond ((null host) 'unix)
+	;; Return `unix' if HOST is nil, since that's the most vanilla
+	;; possible return value.
+	((eq host ange-ftp-host-cache)
+	 ange-ftp-host-type-cache)
+	;; Trigger an ftp connection, in case we need to guess at the host type.
+	((and user (ange-ftp-get-process host user) (eq host ange-ftp-host-cache))
+	 ange-ftp-host-type-cache)
+	(t
+         (setq ange-ftp-host-cache host
+	       ange-ftp-host-type-cache
+	       (cond ((ange-ftp-dumb-unix-host host)
+		      'dumb-unix)
+		     ;;		  ((and (fboundp 'ange-ftp-vos-host)
+		     ;;			(ange-ftp-vos-host host))
+		     ;;		   'vos)
+		     ((and (fboundp 'ange-ftp-vms-host)
+			   (ange-ftp-vms-host host))
+		      'vms)
+		     ((and (fboundp 'ange-ftp-mts-host)
+			   (ange-ftp-mts-host host))
+		      'mts)
+		     ((and (fboundp 'ange-ftp-cms-host)
+			   (ange-ftp-cms-host host))
+		      'cms)
+		     (t
+		      'unix))))))
 
 ;; It would be nice to abstract the functions ange-ftp-TYPE-host and
 ;; ange-ftp-add-TYPE-host. The trick is to abstract these functions
@@ -3143,7 +3147,8 @@ system TYPE.")
 	       ;; of the transfer is irrelevant, i.e. we can use binary mode
 	       ;; regardless. Maybe a system-type to host-type lookup?
 	       (binary (or (ange-ftp-binary-file filename)
-			   (eq (ange-ftp-host-type host user) 'unix)))
+			   (memq (ange-ftp-host-type host user)
+				 '(unix dumb-unix))))
 	       (cmd (if append 'append 'put))
 	       (abbr (ange-ftp-abbreviate-filename filename))
 	       ;; we need to reset `last-coding-system-used' to its
