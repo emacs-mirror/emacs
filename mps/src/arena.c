@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.46) $
+ * $HopeName: MMsrc!arena.c(trunk.47) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.46) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.47) $");
 
 
 /* Forward declarations */
@@ -259,7 +259,7 @@ static Res ArenaAllocSegFromReservoir(Seg *segReturn, Arena arena,
   AVERT(Pool, reservoir);
 
   /* Return the first segment which is big enough */
-  ring = PoolSegRing(pool);
+  ring = PoolSegRing(reservoir);
   RING_FOR(node, ring, nextNode) {
     Seg seg = SegOfPoolRing(node);
     Size segSize = SegSize(seg);
