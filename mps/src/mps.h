@@ -1,7 +1,7 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.59) $
- * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!mps.h(trunk.60) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
  * .sources: design.mps.interface.c.
@@ -319,7 +319,7 @@ extern void mps_sac_flush(mps_sac_t);
 extern mps_res_t mps_sac_fill(mps_addr_t *, mps_sac_t, size_t, mps_bool_t);
 extern void mps_sac_empty(mps_sac_t, mps_addr_t, size_t);
 
-#define MPS_SAC_ALLOC(res_o, p_o, sac, size, has_reservoir_permit) \
+#define MPS_SAC_ALLOC_FAST(res_o, p_o, sac, size, has_reservoir_permit) \
   MPS_BEGIN \
     size_t _mps_i, _mps_s; \
     \
@@ -343,7 +343,7 @@ extern void mps_sac_empty(mps_sac_t, mps_addr_t, size_t);
                              has_reservoir_permit); \
   MPS_END
 
-#define MPS_SAC_FREE(sac, _p, size) \
+#define MPS_SAC_FREE_FAST(sac, p, size) \
   MPS_BEGIN \
     size_t _mps_i, _mps_s; \
     \
@@ -359,12 +359,17 @@ extern void mps_sac_empty(mps_sac_t, mps_addr_t, size_t);
     } \
     if ((sac)->mps_freelists[_mps_i].mps_count \
         < (sac)->mps_freelists[_mps_i].mps_count_max) { \
-       *(mps_addr_t *)(_p) = (sac)->mps_freelists[_mps_i].mps_blocks; \
-      (sac)->mps_freelists[_mps_i].mps_blocks = (_p); \
+       *(mps_addr_t *)(p) = (sac)->mps_freelists[_mps_i].mps_blocks; \
+      (sac)->mps_freelists[_mps_i].mps_blocks = (p); \
       ++(sac)->mps_freelists[_mps_i].mps_count; \
     } else \
-      mps_sac_empty(sac, _p, _mps_s); \
+      mps_sac_empty(sac, p, _mps_s); \
   MPS_END
+
+/* backward compatibility */
+#define MPS_SAC_ALLOC(res_o, p_o, sac, size, has_reservoir_permit) \
+      MPS_SAC_ALLOC_FAST(res_o, p_o, sac, size, has_reservoir_permit)
+#define MPS_SAC_FREE(sac, p, size) MPS_SAC_FREE_FAST(sac, p, size)
 
 
 /* Low memory reservoir */
