@@ -38,9 +38,12 @@ Boston, MA 02111-1307, USA.  */
 #include "dosfns.h"
 #include "msdos.h"
 #include "dispextern.h"
+#include "charset.h"
+#include "coding.h"
 #include <dpmi.h>
 #include <go32.h>
 #include <dirent.h>
+#include <sys/vfs.h>
 
 #ifndef __DJGPP_MINOR__
 # define __tb _go32_info_block.linear_address_of_transfer_buffer;
@@ -508,6 +511,32 @@ x_set_title (f, name)
 }
 #endif /* !HAVE_X_WINDOWS */
 
+DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
+  "Return storage information about the file system FILENAME is on.\n\
+Value is a list of floats (TOTAL FREE AVAIL), where TOTAL is the total\n\
+storage of the file system, FREE is the free storage, and AVAIL is the\n\
+storage available to a non-superuser.  All 3 numbers are in bytes.\n\
+If the underlying system call fails, value is nil.")
+  (filename)
+  Lisp_Object filename;
+{
+  struct statfs stfs;
+  Lisp_Object encoded, value;
+
+  CHECK_STRING (filename, 0);
+  filename = Fexpand_file_name (filename, Qnil);
+  encoded = ENCODE_FILE (filename);
+
+  if (statfs (XSTRING (encoded)->data, &stfs))
+    value = Qnil;
+  else
+    value = list3 (make_float ((double) stfs.f_bsize * stfs.f_blocks),
+		   make_float ((double) stfs.f_bsize * stfs.f_bfree),
+		   make_float ((double) stfs.f_bsize * stfs.f_bavail));
+
+  return value;
+}
+
 void
 dos_cleanup (void)
 {
@@ -536,6 +565,7 @@ syms_of_dosfns ()
   defsubr (&Smsdos_set_keyboard);
   defsubr (&Sinsert_startup_screen);
   defsubr (&Smsdos_mouse_disable);
+  defsubr (&Sfile_system_info);
 #ifndef HAVE_X_WINDOWS
   defsubr (&Smsdos_mouse_p);
 #endif
