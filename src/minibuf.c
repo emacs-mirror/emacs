@@ -817,7 +817,7 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
   if (NILP (keymap))
     keymap = Vminibuffer_local_map;
   else
-    keymap = get_keymap (keymap);
+    keymap = get_keymap (keymap, 1, 0);
 
   if (SYMBOLP (hist))
     {

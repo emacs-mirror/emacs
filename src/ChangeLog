@@ -1,3 +1,50 @@
+2000-10-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* lisp.h (KEYMAPP): New macro.
+	(get_keymap): Remove.
+	(get_keymap_1): Rename get_keymap.
+
+	* keyboard.h (get_keymap_1, Fkeymapp): Remove prototype.
+
+	* xterm.c (note_mode_line_highlight): Use KEYMAPP.
+
+	* xmenu.c (single_submenu): Use KEYMAPP.
+	(Fx_popup_menu): Fetch keymaps rather than checking Fkeymapp.
+	Use KEYMAPP rather than Fkeymapp.
+
+	* w32term.c (note_mode_line_highlight): Use KEYMAPP.
+
+	* w32menu.c (True, False): Remove (use TRUE and FALSE instead).
+	(Fx_popup_menu): Fetch keymaps rather than checking Fkeymapp.
+	Use KEYMAPP rather than Fkeymapp.
+	(single_submenu): Use KEYMAPP.
+	(w32_menu_show, w32_dialog_show): Use TRUE.
+
+	* minibuf.c (Fread_from_minibuffer): Update call to get_keymap.
+
+	* keymap.c (KEYMAPP): Remove (moved to lisp.h).
+	(Fkeymapp): Use KEYMAPP.
+	(get_keymap): Rename from get_keymap_1.  Remove old def.
+	Return t when autoload=0 and error=0 and the keymap needs autoloading.
+	(Fcopy_keymap): Check (eq (car x) 'keymap) rather than using Fkeymapp.
+	(Fminor_mode_key_binding): Don't raise an error if the binding
+	is not a keymap.
+	(Fuse_global_map, Fuse_local_map): Allow autoloading.
+	(Faccessible_keymaps): Fetch keymaps rather than checking Fkeymapp.
+
+	* keyboard.c (read_char): get_keymap_1 -> get_keymap.
+	Allow Vspecial_event_map to be autoloaded.
+	(menu_bar_items): Fetch the keymap rather than using keymapp.
+	(menu_bar_one_keymap): No need to follow func-indirect any more.
+	(parse_menu_item): get_keymap_1 -> get_keymap.
+	(tool_bar_items): Fetch the keymap rather than using keymapp.
+	(read_key_sequence): Use KEYMAPP.
+
+	* intervals.c (get_local_map): Use get_keymap rather than following
+	function-indirections explicitly.
+
+	* doc.c (Fsubstitute_command_keys): get_keymap_1 -> get_keymap.
+
 2000-10-27  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_create_frame): Make default fontsize on w32 10

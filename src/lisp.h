@@ -2582,6 +2582,7 @@ extern void keys_of_keyboard P_ ((void));
 
 /* defined in keymap.c */
 
+#define KEYMAPP(m) (!NILP (get_keymap (m, 0, 0)))
 extern Lisp_Object Qkeymap, Qmenu_bar;
 extern Lisp_Object current_global_map;
 EXFUN (Fmake_sparse_keymap, 1);
@@ -2594,8 +2595,7 @@ EXFUN (Fsingle_key_description, 2);
 EXFUN (Fwhere_is_internal, 4);
 extern Lisp_Object access_keymap P_ ((Lisp_Object, Lisp_Object, int, int, int));
 extern Lisp_Object get_keyelt P_ ((Lisp_Object, int));
-extern Lisp_Object get_keymap P_ ((Lisp_Object));
-extern Lisp_Object get_keymap_1 P_ ((Lisp_Object, int, int));
+extern Lisp_Object get_keymap P_ ((Lisp_Object, int, int));
 extern void describe_vector P_ ((Lisp_Object, Lisp_Object,
 				 void (*) (Lisp_Object), int,
 				 Lisp_Object, Lisp_Object, int *, int));

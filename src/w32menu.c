@@ -53,9 +53,6 @@ Boston, MA 02111-1307, USA.  */
 typedef void * XtPointer;
 typedef char Boolean;
 
-#define True 1
-#define False 0
-
 enum button_type
 {
   BUTTON_TYPE_NONE,
@@ -722,15 +719,11 @@ cached information about equivalent key sequences.")
 
   /* Decode the menu items from what was specified.  */
 
-  keymap = Fkeymapp (menu);
-  tem = Qnil;
-  if (CONSP (menu))
-    tem = Fkeymapp (Fcar (menu));
-  if (!NILP (keymap))
+  keymap = get_keymap (menu, 0, 0);
+  if (CONSP (keymap))
     {
       /* We were given a keymap.  Extract menu info from the keymap.  */
       Lisp_Object prompt;
-      keymap = get_keymap (menu);
 
       /* Extract the detailed info to make one pane.  */
       keymap_panes (&menu, 1, NILP (position));
@@ -747,7 +740,7 @@ cached information about equivalent key sequences.")
 
       keymaps = 1;
     }
-  else if (!NILP (tem))
+  else if (CONSP (menu) && KEYMAPP (XCAR (menu)))
     {
       /* We were given a list of keymaps.  */
       int nmaps = XFASTINT (Flength (menu));
@@ -763,7 +756,7 @@ cached information about equivalent key sequences.")
 	{
 	  Lisp_Object prompt;
 
-	  maps[i++] = keymap = get_keymap (Fcar (tem));
+	  maps[i++] = keymap = get_keymap (Fcar (tem), 1, 0);
 
 	  prompt = map_prompt (keymap);
 	  if (NILP (title) && !NILP (prompt))
@@ -1117,8 +1110,7 @@ single_submenu (item_key, item_name, maps)
   for (i = 0; i < len; i++)
     {
       if (SYMBOLP (mapvec[i])
-	  || (CONSP (mapvec[i])
-	      && NILP (Fkeymapp (mapvec[i]))))
+	  || (CONSP (mapvec[i]) && !KEYMAPP (mapvec[i])))
 	{
 	  /* Here we have a command at top level in the menu bar
 	     as opposed to a submenu.  */
@@ -1734,8 +1726,8 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	title = ENCODE_SYSTEM (title);
 #endif
       wv_title->name = (char *) XSTRING (title)->data;
-      wv_title->enabled = True;
-      wv_title->title = True;
+      wv_title->enabled = TRUE;
+      wv_title->title = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
       wv_title->next = wv_sep;
       first_wv->contents = wv_title;
@@ -1954,7 +1946,7 @@ w32_dialog_show (f, keymaps, title, error)
   menu = lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
 			   f->output_data.w32->widget, 1, 0,
 			   dialog_selection_callback, 0);
-  lw_modify_all_widgets (dialog_id, first_wv->contents, True);
+  lw_modify_all_widgets (dialog_id, first_wv->contents, TRUE);
 #endif
 
   /* Free the widget_value objects we used to specify the contents.  */

@@ -2208,11 +2208,8 @@ get_local_map (position, buffer, type)
   BUF_ZV_BYTE (buffer) = old_zv_byte;
 
   /* Use the local map only if it is valid.  */
-  /* Do allow symbols that are defined as keymaps.  */
-  if (SYMBOLP (prop) && !NILP (prop))
-    prop = indirect_function (prop);
-  if (!NILP (prop)
-      && (tem = Fkeymapp (prop), !NILP (tem)))
+  prop = get_keymap (prop, 0, 0);
+  if (CONSP (prop))
     return prop;
 
   if (type == keymap)

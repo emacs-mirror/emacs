@@ -737,8 +737,8 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	      tem = Fsymbol_value (name);
 	      if (! NILP (tem))
 		{
-		  tem = get_keymap_1 (tem, 0, 1);
-		  /* Note that get_keymap_1 can GC.  */
+		  tem = get_keymap (tem, 0, 1);
+		  /* Note that get_keymap can GC.  */
 		  strp = XSTRING (string)->data + idx;
 		  start = XSTRING (string)->data + start_idx;
 		}

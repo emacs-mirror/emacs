@@ -38,9 +38,9 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include "lisp.h"
 #include "termhooks.h"
+#include "keyboard.h"
 #include "frame.h"
 #include "window.h"
-#include "keyboard.h"
 #include "blockinput.h"
 #include "buffer.h"
 
@@ -788,15 +788,11 @@ cached information about equivalent key sequences.")
 
   /* Decode the menu items from what was specified.  */
 
-  keymap = Fkeymapp (menu);
-  tem = Qnil;
-  if (CONSP (menu))
-    tem = Fkeymapp (Fcar (menu));
-  if (!NILP (keymap))
+  keymap = get_keymap (menu, 0, 0);
+  if (CONSP (keymap))
     {
       /* We were given a keymap.  Extract menu info from the keymap.  */
       Lisp_Object prompt;
-      keymap = get_keymap (menu);
 
       /* Extract the detailed info to make one pane.  */
       keymap_panes (&menu, 1, NILP (position));
@@ -813,7 +809,7 @@ cached information about equivalent key sequences.")
 
       keymaps = 1;
     }
-  else if (!NILP (tem))
+  else if (CONSP (menu) && KEYMAPP (XCAR (menu)))
     {
       /* We were given a list of keymaps.  */
       int nmaps = XFASTINT (Flength (menu));
@@ -829,7 +825,7 @@ cached information about equivalent key sequences.")
 	{
 	  Lisp_Object prompt;
 
-	  maps[i++] = keymap = get_keymap (Fcar (tem));
+	  maps[i++] = keymap = get_keymap (Fcar (tem), 1, 0);
 
 	  prompt = map_prompt (keymap);
 	  if (NILP (title) && !NILP (prompt))
@@ -1396,8 +1392,7 @@ single_submenu (item_key, item_name, maps)
   for (i = 0; i < len; i++)
     {
       if (SYMBOLP (mapvec[i])
-	  || (CONSP (mapvec[i])
-	      && NILP (Fkeymapp (mapvec[i]))))
+	  || (CONSP (mapvec[i]) && !KEYMAPP (mapvec[i])))
 	{
 	  /* Here we have a command at top level in the menu bar
 	     as opposed to a submenu.  */

@@ -2574,7 +2574,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      and loop around to read another event.  */
   save = Vquit_flag;
   Vquit_flag = Qnil;
-  tem = access_keymap (get_keymap_1 (Vspecial_event_map, 0, 0), c, 0, 0, 1);
+  tem = access_keymap (get_keymap (Vspecial_event_map, 0, 1), c, 0, 0, 1);
   Vquit_flag = save;
 
   if (!NILP (tem))
@@ -6259,9 +6259,9 @@ menu_bar_items (old)
   for (mapno = nmaps - 1; mapno >= 0; mapno--)
     if (!NILP (maps[mapno]))
       {
-	def = access_keymap (maps[mapno], Qmenu_bar, 1, 0, 0);
-	tem = Fkeymapp (def);
-	if (!NILP (tem))
+	def = get_keymap (access_keymap (maps[mapno], Qmenu_bar, 1, 0, 0),
+			  0, 0);
+	if (CONSP (def))
 	  menu_bar_one_keymap (def);
       }
 
@@ -6326,11 +6326,6 @@ menu_bar_one_keymap (keymap)
      Lisp_Object keymap;
 {
   Lisp_Object tail, item;
-
-  /* If KEYMAP is a symbol, its function definition is the keymap
-     to use.  */
-  if (SYMBOLP (keymap))
-    keymap = indirect_function (keymap);
 
   menu_bar_one_keymap_changed_items = Qnil;
 
@@ -6661,9 +6656,9 @@ parse_menu_item (item, notreal, inmenubar)
 
   /* See if this is a separate pane or a submenu.  */
   def = AREF (item_properties, ITEM_PROPERTY_DEF);
-  tem = get_keymap_1 (def, 0, 1);
+  tem = get_keymap (def, 0, 1);
   /* For a subkeymap, just record its details and exit.  */
-  if (!NILP (tem))
+  if (CONSP (tem))
     {
       AREF (item_properties, ITEM_PROPERTY_MAP) = tem;
       AREF (item_properties, ITEM_PROPERTY_DEF) = tem;
@@ -6918,16 +6913,11 @@ tool_bar_items (reuse, nitems)
 	Lisp_Object keymap;
 
 	/* Why set the `noinherit' flag ?  -sm  */
-	keymap = access_keymap (maps[i], Qtool_bar, 1, 1, 0);
-	if (!NILP (Fkeymapp (keymap)))
+	keymap = get_keymap (access_keymap (maps[i], Qtool_bar, 1, 1, 0), 0, 0);
+	if (CONSP (keymap))
 	  {
 	    Lisp_Object tail;
 	    
-	    /* If KEYMAP is a symbol, its function definition is the
-	       keymap to use.  */
-	    if (SYMBOLP (keymap))
-	      keymap = indirect_function (keymap);
-
 	    /* KEYMAP is a list `(keymap (KEY . BINDING) ...)'.  */
 	    for (tail = keymap; CONSP (tail); tail = XCDR (tail))
 	      {
@@ -7144,7 +7134,7 @@ parse_tool_bar_item (key, item)
 					       PROP (TOOL_BAR_ITEM_BINDING))));
 
   /* See if the binding is a keymap.  Give up if it is.  */
-  if (!NILP (get_keymap_1 (PROP (TOOL_BAR_ITEM_BINDING), 0, 1)))
+  if (CONSP (get_keymap (PROP (TOOL_BAR_ITEM_BINDING), 0, 1)))
     return 0;
 
   /* Enable or disable selection of item.  */
@@ -7627,7 +7617,7 @@ follow_key (key, nmaps, current, defs, next)
   /* Given the set of bindings we've found, produce the next set of maps.  */
   if (first_binding < nmaps)
     for (i = 0; i < nmaps; i++)
-      next[i] = NILP (defs[i]) ? Qnil : get_keymap_1 (defs[i], 0, 1);
+      next[i] = NILP (defs[i]) ? Qnil : get_keymap (defs[i], 0, 1);
 
   return first_binding;
 }
@@ -7793,11 +7783,11 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   keytran_map = Vkey_translation_map;
 
   /* If there is no function-key-map, turn off function key scanning.  */
-  if (NILP (Fkeymapp (Vfunction_key_map)))
+  if (!KEYMAPP (Vfunction_key_map))
     fkey_start = fkey_end = bufsize + 1;
 
   /* If there is no key-translation-map, turn off scanning.  */
-  if (NILP (Fkeymapp (Vkey_translation_map)))
+  if (!KEYMAPP (Vkey_translation_map))
     keytran_start = keytran_end = bufsize + 1;
 
   if (INTERACTIVE)
@@ -8452,7 +8442,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		 or an array.  */
 	      if (SYMBOLP (fkey_next) && ! NILP (Ffboundp (fkey_next))
 		  && (!NILP (Farrayp (XSYMBOL (fkey_next)->function))
-		      || !NILP (Fkeymapp (XSYMBOL (fkey_next)->function))))
+		      || KEYMAPP (XSYMBOL (fkey_next)->function)))
 		fkey_next = XSYMBOL (fkey_next)->function;
 
 #if 0 /* I didn't turn this on, because it might cause trouble
@@ -8525,11 +8515,11 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		  goto replay_sequence;
 		}
 
-	      fkey_map = get_keymap_1 (fkey_next, 0, 1);
+	      fkey_map = get_keymap (fkey_next, 0, 1);
 
 	      /* If we no longer have a bound suffix, try a new positions for
 		 fkey_start.  */
-	      if (NILP (fkey_map))
+	      if (!CONSP (fkey_map))
 		{
 		  fkey_end = ++fkey_start;
 		  fkey_map = Vfunction_key_map;
@@ -8562,7 +8552,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	       or an array.  */
 	    if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next))
 		&& (!NILP (Farrayp (XSYMBOL (keytran_next)->function))
-		    || !NILP (Fkeymapp (XSYMBOL (keytran_next)->function))))
+		    || KEYMAPP (XSYMBOL (keytran_next)->function)))
 	      keytran_next = XSYMBOL (keytran_next)->function;
 	    
 	    /* If the key translation map gives a function, not an
@@ -8626,11 +8616,11 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		goto replay_sequence;
 	      }
 
-	    keytran_map = get_keymap_1 (keytran_next, 0, 1);
+	    keytran_map = get_keymap (keytran_next, 0, 1);
 
 	    /* If we no longer have a bound suffix, try a new positions for
 	       keytran_start.  */
-	    if (NILP (keytran_map))
+	    if (!CONSP (keytran_map))
 	      {
 		keytran_end = ++keytran_start;
 		keytran_map = Vkey_translation_map;

@@ -6502,13 +6502,13 @@ note_mode_line_highlight (w, x, mode_line_p)
 	  /* Change the mouse pointer according to what is under X/Y.  */
 	  map = Fget_text_property (make_number (glyph->charpos),
 				    Qlocal_map, glyph->object);
-	  if (!NILP (Fkeymapp (map)))
+	  if (KEYMAPP (map))
 	    cursor = f->output_data.x->nontext_cursor;
 	  else
 	    {
 	      map = Fget_text_property (make_number (glyph->charpos),
 					Qkeymap, glyph->object);
-	      if (!NILP (Fkeymapp (map)))
+	      if (KEYMAPP (map))
 		cursor = f->output_data.x->nontext_cursor;
 	    }
 	}
