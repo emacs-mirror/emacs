@@ -905,15 +905,14 @@ update_menu_bars (window)
      Lisp_Object window;
 {
   for (; !NILP (window); window = XWINDOW (window)->next)
-    update_menu_bar (window, 0);
+    update_menu_bar (window);
 }
 
 /* Update the menu bar item list for window WINDOW and its subwindows.  */
 
 static void
-update_menu_bar (window, just_this_one)
+update_menu_bar (window)
      Lisp_Object window;
-     int just_this_one;
 {
   register struct window *w = XWINDOW (window);
   struct buffer *old = current_buffer;
