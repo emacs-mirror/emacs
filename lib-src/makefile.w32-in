@@ -2,17 +2,17 @@
 #  Copyright (c) 2000-2001 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.
-#  
+#
 #  GNU Emacs is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2, or (at your option)
 #  any later version.
-#  
+#
 #  GNU Emacs is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with GNU Emacs; see the file COPYING.  If not, write to the
 #  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -126,7 +126,7 @@ $(BLD)/ctags.$(O): ctags.c
 #
 # From ..\src\makefile.nt.
 #
-obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c cm.c cmds.c charset.c coding.c category.c ccl.c data.c dired.c dispnew.c doc.c  doprnt.c editfns.c emacs.c eval.c fileio.c filelock.c filemode.c fns.c fontset.c indent.c insdel.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c xfaces.c print.c process.c regex.c scroll.c search.c syntax.c sysdep.c term.c termcap.c tparam.c undo.c unexw32.c window.c xdisp.c casetab.c floatfns.c frame.c gmalloc.c intervals.c ralloc.c textprop.c vm-limit.c region-cache.c strftime.c w32.c w32console.c xfaces.c w32fns.c w32heap.c w32inevt.c w32proc.c w32reg.c w32menu.c w32select.c w32term.c w32xfns.c 
+obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c cm.c cmds.c charset.c coding.c category.c ccl.c data.c dired.c dispnew.c doc.c doprnt.c editfns.c emacs.c eval.c fileio.c filelock.c filemode.c fns.c fontset.c indent.c insdel.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c xfaces.c print.c process.c regex.c scroll.c search.c syntax.c sysdep.c term.c termcap.c tparam.c undo.c unexw32.c window.c xdisp.c casetab.c floatfns.c frame.c gmalloc.c intervals.c ralloc.c textprop.c vm-limit.c region-cache.c strftime.c w32.c w32console.c xfaces.c w32fns.c w32heap.c w32inevt.c w32proc.c w32reg.c w32menu.c w32select.c w32term.c w32xfns.c
 
 #
 # These are the lisp files that are loaded up in loadup.el
@@ -183,7 +183,7 @@ lisp= \
 	$(lispsource)language/chinese.elc \
 	$(lispsource)language/cyrillic.elc \
 	$(lispsource)language/indian.elc \
-	$(lispsource)language/devanagari.elc \
+	$(lispsource)language/devanagari.el \
 	$(lispsource)language/english.el \
 	$(lispsource)language/ethiopic.elc \
 	$(lispsource)language/european.elc \
@@ -223,7 +223,7 @@ lisp= \
 	$(lispsource)version.el
 
 
-DOC	      = DOC 
+DOC	      = DOC
 $(DOC):		make-docfile
 		- $(DEL) $(DOC)
 		"$(THISDIR)/$(BLD)/make-docfile" -d ../src $(obj) > $(DOC)
@@ -257,7 +257,7 @@ install:	$(INSTALL_FILES)
 
 #
 # Maintenance
-# 
+#
 clean:
 		- $(DEL) *~ DOC* $(COMPILER_TEMP_FILES)
 		- $(DEL) ctags.c
