@@ -1,3 +1,22 @@
+2000-11-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (Fpos_visible_in_window_p): Call pos_visible with
+	extra argument.
+
+	* xdisp.c (current_mode_line_height, current_header_line_height):
+	New variables.
+	(init_xdisp): Initialize them.
+	(pos_visible_p): Add parameter EXACT_MODE_LINE_HEIGHTS_P.  Compute
+	and use exact mode line heights if it is set.
+
+	* lisp.h (pos_visible_p): Change prototype.
+
+	* dispextern.h (CURRENT_MODE_LINE_HEIGHT)
+	(CURRENT_HEADER_LINE_HEIGHT):  Look at current_mode_line_height
+	and current_header_line_height first.
+	(current_mode_line_height, current_header_line_height): Declare
+	extern.
+
 2000-11-14  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* xterm.c (x_alloc_lighter_color): Use real brightness calculation.
