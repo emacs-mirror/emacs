@@ -369,6 +369,8 @@ Do the same for the keys of the same name."
   '("Specific Face..." . customize-face))
 (define-key menu-bar-custom-menu [customize-option]
   '("Specific Option..." . customize-option))
+(define-key menu-bar-custom-menu [customize-changed-options]
+  '("Changed Options..." . customize-changed-options))
 (define-key menu-bar-custom-menu [separator-3]
   '("--"))
 (define-key menu-bar-custom-menu [customize-browse]
