@@ -1,3 +1,9 @@
+2003-02-23  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* dired.c (directory_files_internal): Don't expand directory.
+	(Fdirectory_files, Fdirectory_files_and_attributes): Do it here
+	instead.  From Lars Hansen <larsh@math.ku.dk>.
+
 2003-02-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* fns.c (string_to_multibyte): Remove unused var i.

@@ -153,7 +153,6 @@ directory_files_internal (directory, full, match, nosort, attrs)
      Ffuncall, and cause a GC.  */
   list = encoded_directory = dirfilename = Qnil;
   GCPRO5 (match, directory, list, dirfilename, encoded_directory);
-  directory = Fexpand_file_name (directory, Qnil);
   dirfilename = Fdirectory_file_name (directory);
 
   if (!NILP (match))
@@ -345,6 +344,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
      Lisp_Object directory, full, match, nosort;
 {
   Lisp_Object handler;
+  directory = Fexpand_file_name (directory, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -378,6 +378,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
      Lisp_Object directory, full, match, nosort;
 {
   Lisp_Object handler;
+  directory = Fexpand_file_name (directory, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
