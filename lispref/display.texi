@@ -2300,10 +2300,14 @@ supported in the current configuration.
   An image description is a list of the form @code{(image
 . @var{props})}, where @var{props} is a property list containing
 alternating keyword symbols (symbols whose names start with a colon) and
-their values.  Every image descriptor must contain the property
-@code{:type @var{type}} to specify the format of the image.  The value
-of @var{type} should be an image type symbol; for example, @code{xpm}
-for an image in XPM format.
+their values.  You can use any Lisp object as a property, but the only
+properties that have any special meaning are certain symbols, all of
+them keywords.
+
+  Every image descriptor must contain the property @code{:type
+@var{type}} to specify the format of the image.  The value of @var{type}
+should be an image type symbol; for example, @code{xpm} for an image in
+XPM format.
 
   Here is a list of other properties that are meaningful for all image
 types:
