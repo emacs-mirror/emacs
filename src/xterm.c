@@ -8047,7 +8047,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
      dragged.  */
   if (NILP (bar->dragging))
     {
-      int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, pixel_height);
+      int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, height);
 
       if (whole == 0)
 	x_scroll_bar_set_handle (bar, 0, top_range, 0);
