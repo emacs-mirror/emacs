@@ -1,3 +1,8 @@
+2000-10-21  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_cache_char_metrics): Double check that font is
+	really fixed pitch before trusting tmPitchAndFamily.
+
 2000-10-21  Andrew Innes  <andrewi@gnu.org>
 
 	* w32gui.h (w32_char_font_type): Move enum from w32term.c
