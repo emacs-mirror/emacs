@@ -1132,7 +1132,7 @@ x_menu_wait_for_event (void *data)
 
   while (
 #ifdef USE_X_TOOLKIT
-         XtAppPending (Xt_app_con)
+         ! XtAppPending (Xt_app_con)
 #elif defined USE_GTK
          ! gtk_events_pending ()
 #else
@@ -1171,6 +1171,15 @@ x_menu_wait_for_event (void *data)
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
 
+#ifdef USE_X_TOOLKIT
+
+static Lisp_Object
+pop_down_menu (dummy)
+     int dummy;
+{
+  popup_activated_flag = 0;
+}
+
 /* Loop in Xt until the menu pulldown or dialog popup has been
    popped down (deactivated).  This is used for x-popup-menu
    and x-popup-dialog; it is not used for the menu bar.
@@ -1180,7 +1189,6 @@ x_menu_wait_for_event (void *data)
    NOTE: All calls to popup_get_selection should be protected
    with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */
 
-#ifdef USE_X_TOOLKIT
 static void
 popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
      XEvent *initial_event;
@@ -1190,6 +1198,9 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
      int down_on_keypress;
 {
   XEvent event;
+
+  int specpdl_count = SPECPDL_INDEX ();
+  record_unwind_protect (pop_down_menu, Qnil);
 
   while (popup_activated_flag)
     {
@@ -1240,6 +1251,8 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
 
       x_dispatch_event (&event, event.xany.display);
     }
+
+  unbind_to (specpdl_count, Qnil);
 }
 
 #endif /* USE_X_TOOLKIT */
@@ -1247,10 +1260,29 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
 #ifdef USE_GTK
 /* Loop util popup_activated_flag is set to zero in a callback.
    Used for popup menus and dialogs. */
-static void
-popup_widget_loop (do_timers)
-     int do_timers;
+static GtkWidget *current_menu;
+
+static Lisp_Object
+pop_down_menu (dummy)
+     int dummy;
 {
+  if (current_menu)
+    {
+      gtk_widget_unmap (current_menu);
+      current_menu = 0;
+      popup_activated_flag = 0;
+    }
+}
+
+static void
+popup_widget_loop (do_timers, widget)
+     int do_timers;
+     GtkWidget *widget;
+{
+  int specpdl_count = SPECPDL_INDEX ();
+  current_menu = widget;
+  record_unwind_protect (pop_down_menu, Qnil);
+
   ++popup_activated_flag;
 
   /* Process events in the Gtk event loop until done.  */
@@ -1259,6 +1291,8 @@ popup_widget_loop (do_timers)
       if (do_timers) x_menu_wait_for_event (0);
       gtk_main_iteration ();
     }
+
+  unbind_to (specpdl_count, Qnil);
 }
 #endif
 
@@ -2456,7 +2490,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
      two.  show_help_echo uses this to detect popup menus.  */
   popup_activated_flag = 1;
   /* Process events that apply to the menu.  */
-  popup_widget_loop (1);
+  popup_widget_loop (1, 0);
 
   gtk_widget_destroy (menu);
 
@@ -2865,7 +2899,7 @@ create_and_show_dialog (f, first_wv)
       gtk_widget_show_all (menu);
 
       /* Process events that apply to the menu.  */
-      popup_widget_loop (1);
+      popup_widget_loop (1, menu);
 
       gtk_widget_destroy (menu);
     }
