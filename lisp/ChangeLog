@@ -1,3 +1,7 @@
+2001-02-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* msb.el (toplevel): Quote hook symbols.
+
 2001-02-01  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (make-coding-system): Add description
