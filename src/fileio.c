@@ -1386,6 +1386,8 @@ See also the function `substitute-in-file-name'.")
 	{
 	  while (o != target && (--o) && !IS_DIRECTORY_SEP (*o))
 	    ;
+	  if (o == target && IS_ANY_SEP (*o))
+	    ++o;
 	  p += 3;
 	}
       else
