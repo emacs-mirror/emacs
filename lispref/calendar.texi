@@ -38,13 +38,14 @@ your @file{.emacs} file:@refill
 @end example
 
 @noindent
-they display both the calendar and diary windows whenever you start Emacs.
+this displays both the calendar and diary windows whenever you start Emacs.
 
 @vindex view-calendar-holidays-initially
   Similarly, if you set the variable
 @code{view-calendar-holidays-initially} to @code{t}, entering the
-calendar automatically displays a list of holidays for the current three
-month period.  The holiday list appears in a separate window.@refill
+calendar automatically displays a list of holidays for the current
+three-month period.  The holiday list appears in a separate
+window.
 
 @vindex mark-diary-entries-in-calendar
   You can set the variable @code{mark-diary-entries-in-calendar} to
@@ -118,13 +119,13 @@ the current date is @emph{not} visible in the window.
 @vindex hebrew-holidays
 @vindex islamic-holidays
   Emacs knows about holidays defined by entries on one of several lists.
-You can customize theses lists of holidays to your own needs, adding
-holidays or deleting lists of holidays.  The lists of holidays that
-Emacs uses are for general holidays (@code{general-holidays}), local
-holidays (@code{local-holidays}), Christian holidays
-(@code{christian-holidays}), Hebrew (Jewish) holidays
-(@code{hebrew-holidays}), Islamic (Moslem) holidays
-(@code{islamic-holidays}), and other holidays (@code{other-holidays}).
+You can customize these lists of holidays to your own needs, adding or
+deleting holidays.  The lists of holidays that Emacs uses are for
+general holidays (@code{general-holidays}), local holidays
+(@code{local-holidays}), Christian holidays (@code{christian-holidays}),
+Hebrew (Jewish) holidays (@code{hebrew-holidays}), Islamic (Moslem)
+holidays (@code{islamic-holidays}), and other holidays
+(@code{other-holidays}).
 
 @vindex general-holidays
   The general holidays are, by default, holidays common throughout the
@@ -140,7 +141,7 @@ described below.
 @vindex all-hebrew-calendar-holidays
 @vindex all-islamic-calendar-holidays
   By default, Emacs does not include all the holidays of the religions
-that it knows; only those commonly found in secular calendars.  For a
+that it knows, only those commonly found in secular calendars.  For a
 more extensive collection of religious holidays, you can set any (or
 all) of the variables @code{all-christian-calendar-holidays},
 @code{all-hebrew-calendar-holidays}, or
@@ -161,14 +162,13 @@ holidays.  This list, normally empty, is intended for individual use.
 sometimes a list of holidays).
 
   Here is a table of the possible kinds of holiday form.  Day numbers
-and month numbers count starting from 1, but day-within-week numbers
+and month numbers count starting from 1, but ``dayname'' numbers
 count Sunday as 0.  The element @var{string} is always the
 name of the holiday, as a string.
 
 @table @code
 @item (holiday-fixed @var{month} @var{day} @var{string})
-A fixed date on the Gregorian calendar; @var{month} and
-@var{day} are numbers.
+A fixed date on the Gregorian calendar.
 
 @item (holiday-float @var{month} @var{dayname} @var{k} @var{string})
 The @var{k}th @var{dayname} in @var{month} on the Gregorian calendar
@@ -176,27 +176,27 @@ The @var{k}th @var{dayname} in @var{month} on the Gregorian calendar
 from the end of the month.
 
 @item (holiday-hebrew @var{month} @var{day} @var{string})
-A fixed date on the Hebrew calendar; @var{month} and @var{day} are
-numbers.
+A fixed date on the Hebrew calendar.
 
 @item (holiday-islamic @var{month} @var{day} @var{string})
-A fixed date on the Islamic calendar; @var{month} and @var{day} are
-numbers.
+A fixed date on the Islamic calendar.
 
 @item (holiday-julian @var{month} @var{day} @var{string})
-A fixed date on the Julian calendar; @var{month} and @var{day} are
-numbers.
+A fixed date on the Julian calendar.
 
 @item (holiday-sexp @var{sexp} @var{string})
 A date calculated by the Lisp expression @var{sexp}.  The expression
-should use the variable @code{year} to compute the date of a holiday, or
-@code{nil} if the holiday doesn't happen this year.  The value of @var{sexp}
-must represent the date as a list of the form @code{(@var{month} @var{day}
-@var{year})}.
+should use the variable @code{year} to compute and return the date of a
+holiday, or @code{nil} if the holiday doesn't happen this year.  The
+value of @var{sexp} must represent the date as a list of the form
+@code{(@var{month} @var{day} @var{year})}.
+
+@item (if @var{condition} @var{holiday-form})
+A holiday that happens only if @var{condition} is true.
 
 @item (@var{function} @r{[}@var{args}@r{]})
-A date calculated by the function @var{function}, called with arguments
-@var{args}.
+A list of dates calculated by the function @var{function}, called with
+arguments @var{args}.
 @end table
 
   For example, suppose you want to add Bastille Day, celebrated in
@@ -250,9 +250,9 @@ divisible by 4:
 @smallexample
 (holiday-sexp (if (= 0 (% year 4))
                    (calendar-gregorian-from-absolute
-                 (1+ (calendar-dayname-on-or-before
-                       1 (+ 6 (calendar-absolute-from-gregorian
-                                (list 11 1 year))))))
+                    (1+ (calendar-dayname-on-or-before
+                          1 (+ 6 (calendar-absolute-from-gregorian
+                                  (list 11 1 year))))))
               "US Presidential Election"))
 @end smallexample
 
@@ -286,13 +286,13 @@ visible in the calendar window, with descriptive strings, like this:
 @section Date Display Format
 @vindex calendar-date-display-form
 
-  You can customize the manner of displaying dates in the diary,
-in mode lines, and in messages by setting
-@code{calendar-date-display-form}.  This variable holds a list of
-expressions that can involve the variables @code{month}, @code{day}, and
-@code{year}, all numbers in string form, and @code{monthname} and
-@code{dayname}, both alphabetic strings.  In the American style, the
-default value of this list is as follows:
+  You can customize the manner of displaying dates in the diary, in mode
+lines, and in messages by setting @code{calendar-date-display-form}.
+This variable holds a list of expressions that can involve the variables
+@code{month}, @code{day}, and @code{year}, which are all numbers in
+string form, and @code{monthname} and @code{dayname}, which are both
+alphabetic strings.  In the American style, the default value of this
+list is as follows:
 
 @smallexample
 ((if dayname (concat dayname ", ")) monthname " " day ", " year)
@@ -329,10 +329,10 @@ and either @samp{am} or @samp{pm}.  If you prefer the European style,
 also known in the US as military, in which the hours go from 00 to 23,
 you can alter the variable @code{calendar-time-display-form}.  This
 variable is a list of expressions that can involve the variables
-@code{12-hours}, @code{24-hours}, and @code{minutes}, all numbers in
-string form, and @code{am-pm} and @code{time-zone}, both alphabetic
-strings.  The default value of @code{calendar-time-display-form} is as
-follows:
+@code{12-hours}, @code{24-hours}, and @code{minutes}, which are all
+numbers in string form, and @code{am-pm} and @code{time-zone}, which are
+both alphabetic strings.  The default value of
+@code{calendar-time-display-form} is as follows:
 
 @smallexample
 (12-hours ":" minutes am-pm
@@ -362,23 +362,24 @@ know which rules to use.
 where you are; on these systems, Emacs gets the information it needs
 from the system automatically.  If some or all of this information is
 missing, Emacs fills in the gaps with the rules currently used in
-Cambridge, Massachusetts, which is the center of GNU's world.  If the
-default choice of rules is not appropriate for your location, you can
-tell Emacs the rules to use by setting certain variables.
+Cambridge, Massachusetts, which is the center of GNU's world.
+
 
 @vindex calendar-daylight-savings-starts
 @vindex calendar-daylight-savings-ends
-  These variables are @code{calendar-daylight-savings-starts} together
-with @code{calendar-daylight-savings-ends}.  Their values should be Lisp
+  If the default choice of rules is not appropriate for your location,
+you can tell Emacs the rules to use by setting the variables
+@code{calendar-daylight-savings-starts} and
+@code{calendar-daylight-savings-ends}.  Their values should be Lisp
 expressions that refer to the variable @code{year}, and evaluate to the
 Gregorian date on which daylight savings time starts or (respectively)
 ends, in the form of a list @code{(@var{month} @var{day} @var{year})}.
 The values should be @code{nil} if your area does not use daylight
 savings time.
 
-  Emacs uses these expressions to determine the starting date of
-daylight savings time for the holiday list and for correcting times of
-day in the solar and lunar calculations.
+  Emacs uses these expressions to determine the start and end dates of
+daylight savings time as holidays and for correcting times of day in the
+solar and lunar calculations.
 
   The values for Cambridge, Massachusetts are as follows:
 
@@ -450,11 +451,11 @@ initial display when @code{view-diary-entries-initially} is @code{t}, as
 well as the command @kbd{M-x diary}.  For example, the default value is
 1, which says to display only the current day's diary entries.  If the
 value is 2, both the current day's and the next day's entries are
-displayed.  The value can also be a vector of seven elements: if the
-value is @code{[0 2 2 2 2 4 1]} then no diary entries appear on Sunday,
-the current date's and the next day's diary entries appear Monday
-through Thursday, Friday through Monday's entries appear on Friday,
-while on Saturday only that day's entries appear.
+displayed.  The value can also be a vector of seven elements: for
+example, if the value is @code{[0 2 2 2 2 4 1]} then no diary entries
+appear on Sunday, the current date's and the next day's diary entries
+appear Monday through Thursday, Friday through Monday's entries appear
+on Friday, while on Saturday only that day's entries appear.
 
 @vindex print-diary-entries-hook
 @findex print-diary-entries
@@ -591,7 +592,7 @@ Add a diary entry for the Hebrew date corresponding to the selected date
 @item i h m
 Add a diary entry for the day of the Hebrew month corresponding to the
 selected date (@code{insert-monthly-hebrew-diary-entry}).  This diary
-entry matches any date which has the same Hebrew day-within-month as the
+entry matches any date that has the same Hebrew day-within-month as the
 selected date.
 @item i h y
 Add a diary entry for the day of the Hebrew year corresponding to the
@@ -616,7 +617,7 @@ selected date (@code{insert-yearly-islamic-diary-entry}).
 @findex insert-monthly-islamic-diary-entry
 @findex insert-yearly-islamic-diary-entry
   These commands work much like the corresponding commands for ordinary
-diary entries: they apply to the date that point is on, in the calendar
+diary entries: they apply to the date that point is on in the calendar
 window, and what they do is insert just the date portion of a diary entry
 at the end of your diary file.  You must then insert the rest of the 
 diary entry.
@@ -683,7 +684,7 @@ that apply to all of them.  Lines in the diary file of this form:
 
 @noindent
 includes the diary entries from the file @var{filename} in the fancy
-diary buffer The include mechanism is recursive, so that included files
+diary buffer.  The include mechanism is recursive, so that included files
 can include other files, and so on; you must be careful not to have a
 cycle of inclusions, of course.  Here is how to enable the include
 facility:
@@ -765,7 +766,7 @@ to find the date being considered; its value is a list (@var{month}
 @var{day} @var{year}) that refers to the Gregorian calendar.
 
   Suppose you get paid on the 21st of the month if it is a weekday, and
-to the Friday before if the 21st is on a weekend.  Here is how to write
+on the Friday before if the 21st is on a weekend.  Here is how to write
 a sexp diary entry that matches those dates:
 
 @smallexample
@@ -827,8 +828,8 @@ Hebrew calendar, if you are using the fancy diary display.  (With simple
 diary display, the line @samp{&%%(diary-hebrew-date)} appears in the
 diary for any date, but does nothing particularly useful.)
 
-  These functions can be used in sexp diary entries based on the Hebrew
-calendar in certain standard ways:
+  These functions can be used to construct sexp diary entries based on
+the Hebrew calendar in certain standard ways:
 
 @cindex rosh hodesh
 @findex diary-rosh-hodesh
@@ -862,9 +863,8 @@ the European style, the order of the parameters is changed to @var{day},
 @node Appt Customizing
 @section Customizing Appointment Reminders
 
-  You can specify exactly how Emacs reminds you of an appointment and
-how far in advance it begins doing so.  Here are the variables that you
-can set:
+  You can specify exactly how Emacs reminds you of an appointment, and
+how far in advance it begins doing so, by setting these variables:
 
 @vindex appt-message-warning-time
 @vindex appt-audible
@@ -883,7 +883,7 @@ If this is non-@code{nil}, Emacs rings the
 terminal bell for appointment reminders.  The default is @code{t}.
 @item appt-visible
 If this is non-@code{nil}, Emacs displays the appointment
-message in echo area.  The default is @code{t}.
+message in the echo area.  The default is @code{t}.
 @item appt-display-mode-line
 If this is non-@code{nil}, Emacs displays the number of minutes
 to the appointment on the mode line.  The default is @code{t}.

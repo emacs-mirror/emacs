@@ -19,15 +19,15 @@ in the same major mode share one abbrev table.  There is also a global
 abbrev table.  Normally both are used.
 
   An abbrev table is represented as an obarray containing a symbol for
-each abbreviation.  The symbol's name is the abbreviation.  Its value is
+each abbreviation.  The symbol's name is the abbreviation; its value is
 the expansion; its function definition is the hook function to do the
-expansion (if any); its property list cell contains the use count, the
-number of times the abbreviation has been expanded.  Because these
-symbols are not interned in the usual obarray, they will never appear as
-the result of reading a Lisp expression; in fact, normally they are
-never used except by the code that handles abbrevs.  Therefore, it is
-safe to use them in an extremely nonstandard way.  @xref{Creating
-Symbols}.
+expansion (@pxref{Defining Abbrevs}); its property list cell contains
+the use count, the number of times the abbreviation has been expanded.
+Because these symbols are not interned in the usual obarray, they will
+never appear as the result of reading a Lisp expression; in fact,
+normally they are never used except by the code that handles abbrevs.
+Therefore, it is safe to use them in an extremely nonstandard way.
+@xref{Creating Symbols}.
 
   For the user-level commands for abbrevs, see @ref{Abbrevs,, Abbrev
 Mode, emacs, The GNU Emacs Manual}.
@@ -58,7 +58,7 @@ This variable automatically becomes local when set in any fashion.
 @end defvar
 
 @defvar default-abbrev-mode
-This is the value @code{abbrev-mode} for buffers that do not override it.
+This is the value of @code{abbrev-mode} for buffers that do not override it.
 This is the same as @code{(default-value 'abbrev-mode)}.
 @end defvar
 
@@ -97,7 +97,7 @@ abbrev table.  The value is always @code{nil}.
 
 If @var{human} is non-@code{nil}, the description is human-oriented.
 Otherwise the description is a Lisp expression---a call to
-@code{define-abbrev-table} which would define @var{name} exactly as it
+@code{define-abbrev-table} that would define @var{name} exactly as it
 is currently defined.
 @end defun
 
@@ -111,13 +111,14 @@ is currently defined.
 user.
 
 @defun add-abbrev table type arg
-This function adds an abbreviation to abbrev table @var{table}.  The
-argument @var{type} is a string describing in English the kind of abbrev
-this will be (typically, @code{"global"} or @code{"mode-specific"});
-this is used in prompting the user.  The argument @var{arg} is the
-number of words in the expansion.
+This function adds an abbreviation to abbrev table @var{table} based on
+information from the user.  The argument @var{type} is a string
+describing in English the kind of abbrev this will be (typically,
+@code{"global"} or @code{"mode-specific"}); this is used in prompting
+the user.  The argument @var{arg} is the number of words in the
+expansion.
 
-The return value is the symbol which internally represents the new
+The return value is the symbol that internally represents the new
 abbrev, or @code{nil} if the user declines to confirm redefining an
 existing abbrev.
 @end defun
@@ -125,17 +126,17 @@ existing abbrev.
 @defun define-abbrev table name expansion hook
 This function defines an abbrev in @var{table} named @var{name}, to
 expand to @var{expansion}, and call @var{hook}.  The return value is an
-uninterned symbol which represents the abbrev inside Emacs; its name is
+uninterned symbol that represents the abbrev inside Emacs; its name is
 @var{name}.
 
 The argument @var{name} should be a string.  The argument
-@var{expansion} should be a string, or @code{nil}, to undefine the
+@var{expansion} should be a string, or @code{nil} to undefine the
 abbrev.
 
 The argument @var{hook} is a function or @code{nil}.  If @var{hook} is
 non-@code{nil}, then it is called with no arguments after the abbrev is
 replaced with @var{expansion}; point is located at the end of
-@var{expansion}.
+@var{expansion} when @var{hook} is called.
 
 The use count of the abbrev is initialized to zero.
 @end defun
@@ -144,7 +145,7 @@ The use count of the abbrev is initialized to zero.
 If this variable is non-@code{nil}, it means that the user plans to use
 global abbrevs only.  This tells the commands that define mode-specific
 abbrevs to define global ones instead.  This variable does not alter the
-functioning of the functions in this section; it is examined by their
+behavior of the functions in this section; it is examined by their
 callers.
 @end defopt
 
@@ -189,7 +190,7 @@ save your abbrevs.
 
 @deffn Command write-abbrev-file filename
 Save all abbrev definitions, in all abbrev tables, in the file
-@var{filename}, in the form of a Lisp program which when loaded will
+@var{filename}, in the form of a Lisp program that when loaded will
 define the same abbrevs.  This function returns @code{nil}.
 @end deffn
 
@@ -211,19 +212,32 @@ first the current buffer's local abbrev table, and second the global
 abbrev table.
 @end defun
 
+@defun abbrev-expansion abbrev &optional table
+This function returns the string that @var{abbrev} would expand into (as
+defined by the abbrev tables used for the current buffer).  The optional
+argument @var{table} specifies the abbrev table to use, as in
+@code{abbrev-symbol}.
+@end defun
+
+@deffn Command expand-abbrev
+This command expands the abbrev before point, if any.
+If point does not follow an abbrev, this command does nothing.
+The command returns @code{t} if it did expansion, @code{nil} otherwise.
+@end deffn
+
+@deffn Command abbrev-prefix-mark &optional arg
+Mark current point as the beginning of an abbrev.  The next call to
+@code{expand-abbrev} will use the text from here to point (where it is
+then) as the abbrev to expand, rather than using the previous word as
+usual.
+@end deffn
+
 @defopt abbrev-all-caps
 When this is set non-@code{nil}, an abbrev entered entirely in upper
 case is expanded using all upper case.  Otherwise, an abbrev entered
 entirely in upper case is expanded by capitalizing each word of the
 expansion.
 @end defopt
-
-@defun abbrev-expansion abbrev &optional table
-This function returns the string that @var{abbrev} would expand into (as
-defined by the abbrev tables used for the current buffer).  The optional
-argument @var{table} specifies the abbrev table to use; if it is
-specified, the abbrev is looked up in that table only.
-@end defun
 
 @defvar abbrev-start-location
 This is the buffer position for @code{expand-abbrev} to use as the start
@@ -253,11 +267,10 @@ information left by @code{expand-abbrev} for the sake of the
 @end defvar
 
 @defvar last-abbrev-text
-This is the exact expansion  text of the last abbrev expanded, as
-results from case conversion.  Its value is
-@code{nil} if the abbrev has already been unexpanded.  This
-contains information left by @code{expand-abbrev} for the sake of the
-@code{unexpand-abbrev} command.
+This is the exact expansion text of the last abbrev expanded, after case
+conversion (if any).  Its value is @code{nil} if the abbrev has already
+been unexpanded.  This contains information left by @code{expand-abbrev}
+for the sake of the @code{unexpand-abbrev} command.
 @end defvar
 
 @c Emacs 19 feature
@@ -284,7 +297,7 @@ aborts expansion if it is not confirmed.
 ;; @r{user entered some other character, this function asks whether}
 ;; @r{expansion should continue.}
 
-;; @r{If the user enters the prompt with @kbd{y}, the function returns}
+;; @r{If the user answers the prompt with @kbd{y}, the function returns}
 ;; @r{@code{nil} (because of the @code{not} function), but that is}
 ;; @r{acceptable; the return value has no effect on expansion.}
 
@@ -314,8 +327,8 @@ abbreviation table of the current buffer.
 @end defvar
 
 @defvar fundamental-mode-abbrev-table
-This is the local abbrev table used in Fundamental mode.  It is the
-local abbrev table in all buffers in Fundamental mode.
+This is the local abbrev table used in Fundamental mode; in other words,
+it is the local abbrev table in all buffers in Fundamental mode.
 @end defvar
 
 @defvar text-mode-abbrev-table
