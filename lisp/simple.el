@@ -160,8 +160,10 @@ This is useful for inserting control characters.
 
 If the first character you type after this command is an octal digit,
 you should type a sequence of octal digits which specify a character code.
-Any nondigit terminates the sequence.  If the terminator is a space,
+Any nondigit terminates the sequence.  If the terminator is a RET,
 it is discarded; any other terminator is used itself as input.
+The variable `read-quoted-char-radix' specifies the radix for this feature;
+set it to 10 or 16 to use decimal or hex instead of octal.
 
 In overwrite mode, this function inserts the character anyway, and
 does not handle octal digits specially.  This means that if you use
