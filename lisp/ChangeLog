@@ -1,3 +1,9 @@
+2002-10-09  Markus Rost  <rost@math.ohio-state.edu>
+
+	* cus-edit.el (Custom-reset-current):  Don't test for
+	default-boundp.
+	(Custom-reset-saved):  Don't test for saved-value.
+
 2002-10-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* vc.el (vc-find-version): Use the new backend op `find-version'.
