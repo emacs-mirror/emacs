@@ -1604,8 +1604,7 @@ column, or at the end of the line if it is not long enough.
 If there is no line in the buffer after this one, behavior depends on the
 value of `next-line-add-newlines'.  If non-nil, it inserts a newline character
 to create a line, and moves the cursor to that line.  Otherwise it moves the
-cursor to the end of the buffer (if already at the end of the buffer, an error
-is signaled).
+cursor to the end of the buffer.
 
 The command \\[set-goal-column] can be used to create
 a semipermanent goal column to which this command always moves.
@@ -1876,7 +1875,8 @@ If this is zero, point is always centered after it moves off frame.")
 ;;  (hscroll-point-visible))
 
 (defun scroll-other-window-down (lines)
-  "Scroll the \"other window\" down."
+  "Scroll the \"other window\" down.
+For more details, see the documentation for `scroll-other-window'."
   (interactive "P")
   (scroll-other-window
    ;; Just invert the argument's meaning.
@@ -1884,6 +1884,7 @@ If this is zero, point is always centered after it moves off frame.")
    (if (eq lines '-) nil
      (if (null lines) '-
        (- (prefix-numeric-value lines))))))
+(define-key esc-map [?\C-\S-v] 'scroll-other-window-down)
 
 (defun beginning-of-buffer-other-window (arg)
   "Move point to the beginning of the buffer in the other window.
@@ -2317,7 +2318,7 @@ Setting this variable automatically makes it local to the current buffer.")
       ;; Choose a fill-prefix automatically.
       (if (and adaptive-fill-mode
 	       (or (null fill-prefix) (string= fill-prefix "")))
-	  (let (start end)
+	  (let (start end temp)
 	    (save-excursion
 	      (end-of-line)
 	      (setq end (point))
@@ -2328,71 +2329,73 @@ Setting this variable automatically makes it local to the current buffer.")
 	      ;; because then the next line will probably also become one.
 	      ;; In text mode, when the user indents the first line of a
 	      ;; paragraph, we don't want all the lines to be indented.
-	      (and (not (looking-at paragraph-start))
-		   (re-search-forward adaptive-fill-regexp end t)
-		   (setq fill-prefix
-			 (buffer-substring-no-properties start (point)))))))
+	      (if (not (looking-at paragraph-start))
+		  (cond ((re-search-forward adaptive-fill-regexp end t)
+			 (setq fill-prefix
+			       (buffer-substring-no-properties start (point))))
+			((setq temp (funcall adaptive-fill-function))
+			 (setq fill-prefix temp)))))))
 
       (while (and (not give-up) (> (current-column) fc))
-	  ;; Determine where to split the line.
-	  (let ((fill-point
-		 (let ((opoint (point))
-		       bounce
-		       (first t))
-		   (save-excursion
-		     (move-to-column (1+ fc))
-		     ;; Move back to a word boundary.
-		     (while (or first
-				;; If this is after period and a single space,
-				;; move back once more--we don't want to break
-				;; the line there and make it look like a
-				;; sentence end.
-				(and (not (bobp))
-				     (not bounce)
-				     sentence-end-double-space
-				     (save-excursion (forward-char -1)
-						     (and (looking-at "\\. ")
-							  (not (looking-at "\\.  "))))))
-		       (setq first nil)
-		       (skip-chars-backward "^ \t\n")
-		       ;; If we find nowhere on the line to break it,
-		       ;; break after one word.  Set bounce to t
-		       ;; so we will not keep going in this while loop.
-		       (if (bolp)
-			   (progn
-			     (re-search-forward "[ \t]" opoint t)
-			     (setq bounce t)))
-		       (skip-chars-backward " \t"))
-		     ;; Let fill-point be set to the place where we end up.
-		     (point)))))
-	    ;; If that place is not the beginning of the line,
-	    ;; break the line there.
-	    (if (save-excursion
-		  (goto-char fill-point)
-		  (not (bolp)))
-		(let ((prev-column (current-column)))
-		  ;; If point is at the fill-point, do not `save-excursion'.
-		  ;; Otherwise, if a comment prefix or fill-prefix is inserted,
-		  ;; point will end up before it rather than after it.
-		  (if (save-excursion
-			(skip-chars-backward " \t")
-			(= (point) fill-point))
-		      (indent-new-comment-line t)
-		    (save-excursion
-		      (goto-char fill-point)
-		      (indent-new-comment-line t)))
-		  ;; Now do justification, if required
-		  (if (not (eq justify 'left))
-		      (save-excursion 
-			(end-of-line 0)
-			(justify-current-line justify nil t)))
-		  ;; If making the new line didn't reduce the hpos of
-		  ;; the end of the line, then give up now;
-		  ;; trying again will not help.
-		  (if (>= (current-column) prev-column)
-		      (setq give-up t)))
-	      ;; No place to break => stop trying.
-	      (setq give-up t))))
+	;; Determine where to split the line.
+	(let ((fill-point
+	       (let ((opoint (point))
+		     bounce
+		     (first t))
+		 (save-excursion
+		   (move-to-column (1+ fc))
+		   ;; Move back to a word boundary.
+		   (while (or first
+			      ;; If this is after period and a single space,
+			      ;; move back once more--we don't want to break
+			      ;; the line there and make it look like a
+			      ;; sentence end.
+			      (and (not (bobp))
+				   (not bounce)
+				   sentence-end-double-space
+				   (save-excursion (forward-char -1)
+						   (and (looking-at "\\. ")
+							(not (looking-at "\\.  "))))))
+		     (setq first nil)
+		     (skip-chars-backward "^ \t\n")
+		     ;; If we find nowhere on the line to break it,
+		     ;; break after one word.  Set bounce to t
+		     ;; so we will not keep going in this while loop.
+		     (if (bolp)
+			 (progn
+			   (re-search-forward "[ \t]" opoint t)
+			   (setq bounce t)))
+		     (skip-chars-backward " \t"))
+		   ;; Let fill-point be set to the place where we end up.
+		   (point)))))
+	  ;; If that place is not the beginning of the line,
+	  ;; break the line there.
+	  (if (save-excursion
+		(goto-char fill-point)
+		(not (bolp)))
+	      (let ((prev-column (current-column)))
+		;; If point is at the fill-point, do not `save-excursion'.
+		;; Otherwise, if a comment prefix or fill-prefix is inserted,
+		;; point will end up before it rather than after it.
+		(if (save-excursion
+		      (skip-chars-backward " \t")
+		      (= (point) fill-point))
+		    (indent-new-comment-line t)
+		  (save-excursion
+		    (goto-char fill-point)
+		    (indent-new-comment-line t)))
+		;; Now do justification, if required
+		(if (not (eq justify 'left))
+		    (save-excursion 
+		      (end-of-line 0)
+		      (justify-current-line justify nil t)))
+		;; If making the new line didn't reduce the hpos of
+		;; the end of the line, then give up now;
+		;; trying again will not help.
+		(if (>= (current-column) prev-column)
+		    (setq give-up t)))
+	    ;; No place to break => stop trying.
+	    (setq give-up t))))
       ;; justify last line
       (justify-current-line justify t t)))) 
 
