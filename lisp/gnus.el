@@ -8606,8 +8606,7 @@ or a straight list of headers."
 	   ;; If the article lies outside the current limit,
 	   ;; then we do not display it.
 	   ((and (not (memq number gnus-newsgroup-limit))
-		 ;(not gnus-tmp-dummy-line)
-		 )
+		 (not gnus-tmp-dummy-line))
 	    (setq gnus-tmp-gathered
 		  (nconc (mapcar
 			  (lambda (h) (mail-header-number (car h)))
