@@ -1856,6 +1856,7 @@ Return index number of the registered CCL program.")
     }
 
   XVECTOR (Vccl_program_table)->contents[i] = Fcons (name, ccl_prog);
+  Fput (name, Qccl_program_idx, make_number (i));
   return make_number (i);
 }
 
