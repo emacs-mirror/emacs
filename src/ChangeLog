@@ -1,3 +1,9 @@
+1999-11-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (direct_output_for_insert): Set glyph row's
+	displays_text_p flag.  Correct window's window_end_vpos if
+	necessary.
+
 1999-11-25  Paul Eggert  <eggert@twinsun.com>
 
 	* emacs.c (fixup_locale): Don't bother to record initial locale.
