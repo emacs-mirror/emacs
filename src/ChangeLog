@@ -59,12 +59,12 @@
 	WM_EMACS_SETCURSOR.
 	(x-create-frame): Setup Cursor types.
 
-2003-01-21  David Ponce <david@dponce.com>
-	
+2003-01-21  David Ponce  <david@dponce.com>
+
 	* w32term.c (w32_encode_char): For DIM=1 charset, set
 	ccl->reg[2] to -1 before calling ccl_driver. (Sync. with xterm.c
 	x_encode_char change by Kenichi Handa <handa@m17n.org> on
-	2002-09-30.
+	2002-09-30.)
 	(w32_draw_relief_rect): Declare all args.
 	(w32_define_cursor): New.
 
@@ -552,7 +552,7 @@
 	* window.c (Fset_window_configuration): Set old_point to correct
 	value when new_current_buffer == current_buffer.
 
-2002-12-17  Ben Key <bkey1@tampabay.rr.com>
+2002-12-17  Ben Key  <bkey1@tampabay.rr.com>
 
 	* Revisited my earlier fix for the following entry in
 	etc/PROBLEMS:
@@ -945,7 +945,7 @@
 	for this face/font combo.
 	(set_font_frame_param: Pass new argument to choose_face_font.
 
-2002-11-17  Ben Key <BKey1@tampabay.rr.com>
+2002-11-17  Ben Key  <BKey1@tampabay.rr.com>
 
 	This change is my fix for the following entry in etc/PROBLEMS:
 	"Emacs built on Windows 9x/ME crashes at startup on Windows XP,
@@ -982,7 +982,7 @@
 	reinitialize the function pointers set_menu_item_info and
 	get_menu_item_info.
 
-2002-11-17  Ben Key <BKey1@tampabay.rr.com>
+2002-11-17  Ben Key  <BKey1@tampabay.rr.com>
 
 	* sound.c: Added a partial implementation of play-sound-internal
 	for Microsoft Windows.  Added various #ifdef / #else / #endif
