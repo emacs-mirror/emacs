@@ -727,6 +727,9 @@ struct ccl_prog_stack
     int ic;			/* Instruction Counter.  */
   };
 
+/* For the moment, we only support depth 256 of stack.  */ 
+static struct ccl_prog_stack ccl_prog_stack_struct[256];
+
 int
 ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
      struct ccl_program *ccl;
@@ -742,9 +745,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
   unsigned char *dst = destination, *dst_end = dst + dst_bytes;
   int jump_address;
   int i, j, op;
-  int stack_idx = 0;
-  /* For the moment, we only support depth 256 of stack.  */ 
-  struct ccl_prog_stack ccl_prog_stack_struct[256];
+  int stack_idx = ccl->stack_idx;
   /* Instruction counter of the current CCL code. */
   int this_ic;
 
@@ -1211,7 +1212,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    case CCL_WriteMultibyteChar2:
 	      i = reg[RRR]; /* charset */
 	      if (i == CHARSET_ASCII)
-		i = reg[rrr] & 0x8F;
+		i = reg[rrr] & 0xFF;
 	      else if (i == CHARSET_COMPOSITION)
 		i = MAKE_COMPOSITE_CHAR (reg[rrr]);
 	      else if (CHARSET_DIMENSION (i) == 1)
@@ -1612,6 +1613,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 
  ccl_finish:
   ccl->ic = ic;
+  ccl->stack_idx = stack_idx;
+  ccl->prog = ccl_prog;
   if (consumed) *consumed = src - source;
   return (dst ? dst - destination : 0);
 }
@@ -1641,6 +1644,7 @@ setup_ccl_program (ccl, vec)
   ccl->last_block = 0;
   ccl->private_state = 0;
   ccl->status = 0;
+  ccl->stack_idx = 0;
 }
 
 /* Resolve symbols in the specified CCL code (Lisp vector).  This
