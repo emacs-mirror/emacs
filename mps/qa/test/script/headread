@@ -18,15 +18,19 @@
 # size1>20
 # END_HEADER ...
 #
-# header information is stored in associative arrays:
+# information is stored in associative arrays:
 # %test_header
 # %spec_output
 # %spec_rel
+#
+# analysing results gives
+# %real_output, like %spec_output
 #
 # $test_header{key} = value;
 # $spec_output{key} = value;
 # $spec_rel{key} = relation;
 #
+# 
 
 sub readheader {
  local($infile, $loud) = @_;
@@ -88,6 +92,78 @@ sub readvals {
    unless (m/^\W*/) {
     print "Bad header item: ".$_." in $infile.\n";
    }
+  }
+ }
+}
+
+#
+# &read_results reads in a log file and sets up %real_output
+# as appropriate
+#
+
+sub read_results {
+ local ($logfile) = @_;
+
+ &debug("read_results >$logfile<");
+ open(LOGFILE, $logfile);
+ %real_output = ("seconds", $testtotaltime);
+
+ while (<LOGFILE>) {
+  &debug($_);
+  if (/^!/) {
+# result variable
+   if  (/^!(\w+)\s*=\s*(.+)\s*/) {
+    $real_output{$1} = $2
+   } else {
+    die "Badly formatted result line in output:\n$_\n";
+   }
+  } elsif (/MPS ASSERTION FAILURE/) {
+# MPS assertion failure
+   $real_output{"assert"} = "true";
+   $_=<LOGFILE>; $_=<LOGFILE>; /Id:\s*(.*)$/;
+   $real_output{"assertid"} = $1;
+   $_=<LOGFILE>; /File:\s*(.*)$/;
+   $real_output{"assertfile"} = $1;
+   $_=<LOGFILE>; /Line:\s*(.*)$/;
+   $real_output{"assertline"} = $1;
+   $_=<LOGFILE>; /Condition:\s*(.*)$/;
+   $real_output{"assertcond"} = $1;
+   $_ = "%";
+  } elsif (/^Abort/) {
+# abort for other reason
+   $real_output{"abort"} = "true";
+  } elsif (/^%/ || /^\s$/) {
+# comment or blank line
+  } else {
+   die "Unexpected line in output:\n$_\n";
+  }
+ }
+ close(LOGFILE);
+}
+
+#
+# &verdict has the job of setting $testconclusion, $testconcreason
+#
+
+sub verdict {
+ local ($key, $act, $ope, $spe);
+
+ $testconclusion = "PASS";
+ $testconcreason = "";
+
+ foreach $key (keys %spec_output) {
+  $act = ($real_output{$key} || "NONE");
+  $ope = $spec_rel{$key};
+  $spe = $spec_output{$key};
+&debug("require: $key: $act $ope $spe");
+  if ($ope eq "=" && $spe ne $act
+   || $ope eq "<" && $spe <= $act
+   || $ope eq ">" && $spe >= $act
+   || $ope eq "<=" && $spe < $act
+   || $ope eq ">=" && $spe > $act) {
+   $testconclusion = "FAIL";
+   $testconcreason = "failed on $key: wanted $ope $spe, was $act";
+   last;
   }
  }
 }
