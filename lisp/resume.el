@@ -34,11 +34,13 @@
 ;; (add-hook 'suspend-resume-hook 'resume-process-args)
 
 ;; You can't get the benefit of this library by using the `emacs' command,
-;; since that always starts a new Emacs job.  Instead you must run a shell
-;; script which knows how to resume an existing Emacs job if you have one.
-;; Emacs comes with two suitable scripts: etc/emacs.csh for CSH,
-;; and etc/emacs.bash for BASH.  These scripts start an Emacs job
-;; if you do not have one, and resume an Emacs job if you have one.
+;; since that always starts a new Emacs job.  Instead you must use a
+;; command called `edit' which knows how to resume an existing Emacs job
+;; if you have one, or start a new Emacs job if you don't have one.
+
+;; To define the `edit' command, run the script etc/emacs.csh (if you use CSH),
+;; or etc/emacs.bash if you use BASH.  You would normally do this in your
+;; login script.
 
 ;; Stephan Gildea suggested bug fix (gildea@bbn.com).
 ;; Ideas from Michael DeCorte and other people.
