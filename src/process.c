@@ -125,11 +125,11 @@ Boston, MA 02111-1307, USA.  */
 Lisp_Object Qprocessp;
 Lisp_Object Qrun, Qstop, Qsignal;
 Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
-Lisp_Object Qlocal;
-Lisp_Object QCname, QCbuffer, QChost, QCservice;
+Lisp_Object Qlocal, Qdatagram;
+Lisp_Object QCname, QCbuffer, QChost, QCservice, QCtype;
 Lisp_Object QClocal, QCremote, QCcoding;
-Lisp_Object QCserver, QCdatagram, QCnowait, QCnoquery, QCstop;
-Lisp_Object QCsentinel, QClog, QCoptions, QCfeature;
+Lisp_Object QCserver, QCnowait, QCnoquery, QCstop;
+Lisp_Object QCsentinel, QClog, QCoptions;
 Lisp_Object Qlast_nonmenu_event;
 /* QCfamily is declared and initialized in xfaces.c,
    QCfilter in keyboard.c.  */
@@ -2380,94 +2380,6 @@ reuseaddr=BOOL -- Allow reusing a recently used address.  */)
   return process;
 }
 
-/* Check whether a given KEY VALUE pair is supported on this system.  */
-
-static int
-network_process_featurep (key, value)
-       Lisp_Object key, value;
-{
-
-  if (EQ (key, QCnowait))
-    {
-#ifdef NON_BLOCKING_CONNECT
-      return 1;
-#else
-      return NILP (value);
-#endif
-    }
-
-  if (EQ (key, QCdatagram))
-    {
-#ifdef DATAGRAM_SOCKETS
-      return 1;
-#else
-      return NILP (value);
-#endif
-    }
-
-  if (EQ (key, QCfamily))
-    {
-      if (NILP (value))
-	return 1;
-#ifdef HAVE_LOCAL_SOCKETS
-      if (EQ (key, Qlocal))
-	return 1;
-#endif
-      return 0;
-    }
-
-  if (EQ (key, QCname))
-    return STRINGP (value);
-
-  if (EQ (key, QCbuffer))
-    return (NILP (value) || STRINGP (value) || BUFFERP (value));
-
-  if (EQ (key, QClocal) || EQ (key, QCremote))
-    {
-      int family;
-      return get_lisp_to_sockaddr_size (value, &family);
-    }
-
-  if (EQ (key, QChost))
-    return (NILP (value) || STRINGP (value));
-
-  if (EQ (key, QCservice))
-    {
-#ifdef HAVE_GETSOCKNAME
-      if (EQ (value, Qt))
-	return 1;
-#endif
-      return (INTEGERP (value) || STRINGP (value));
-    }
-
-  if (EQ (key, QCserver))
-    {
-#ifndef TERM
-      return 1;
-#else
-      return NILP (value);
-#endif
-    }
-
-  if (EQ (key, QCoptions))
-    return set_socket_options (-1, value, 0);
-
-  if (EQ (key, QCcoding))
-    return 1;
-  if (EQ (key, QCsentinel))
-    return 1;
-  if (EQ (key, QCfilter))
-    return 1;
-  if (EQ (key, QClog))
-    return 1;
-  if (EQ (key, QCnoquery))
-    return 1;
-  if (EQ (key, QCstop))
-    return 1;
-
-  return 0;
-}
-
 /* A version of request_sigio suitable for a record_unwind_protect.  */
 
 Lisp_Object
@@ -2516,6 +2428,9 @@ host, and only clients connecting to that address will be accepted.
 integer specifying a port number to connect to.  If SERVICE is t,
 a random port number is selected for the server.
 
+:type TYPE -- TYPE is the type of connection.  The default (nil) is a
+stream type connection, `datagram' creates a datagram type connection.
+
 :family FAMILY -- FAMILY is the address (and protocol) family for the
 service specified by HOST and SERVICE.  The default address family is
 Inet (or IPv4) for the host and port number specified by HOST and
@@ -2544,9 +2459,6 @@ this format in portable code, as it may depend on implementation
 defined constants, data sizes, and data structure alignment.
 
 :coding CODING -- CODING is coding system for this process.
-
-:datagram BOOL -- Create a datagram type connection if BOOL is
-non-nil.  Default is a stream type connection.
 
 :options OPTIONS -- Set the specified options for the network process.
 See `set-process-options' for details.
@@ -2600,10 +2512,6 @@ the server process, but via `network-server-log-function' hook, a log
 of the accepted (and failed) connections may be recorded in the server
 process' buffer.
 
-The following special call returns t iff a given KEY VALUE
-pair is supported on this system:
-  (make-network-process :feature KEY VALUE)
-
 usage: (make-network-process &rest ARGS)  */)
      (nargs, args)
      int nargs;
@@ -2645,19 +2553,11 @@ usage: (make-network-process &rest ARGS)  */)
   Lisp_Object filter, sentinel;
   int is_non_blocking_client = 0;
   int is_server = 0;
-  int socktype = SOCK_STREAM;
+  int socktype;
   int family = -1;
 
   if (nargs == 0)
     return Qnil;
-
-  /* Handle :feature KEY VALUE query.  */
-  if (EQ (args[0], QCfeature))
-    {
-      if (nargs != 3)
-	return Qnil;
-      return network_process_featurep (args[1], args[2]) ? Qt : Qnil;
-    }
 
   /* Save arguments for process-contact and clone-process.  */
   contact = Flist (nargs, args);
@@ -2668,16 +2568,16 @@ usage: (make-network-process &rest ARGS)  */)
   init_winsock (TRUE);
 #endif
 
-  /* :datagram BOOL */
-  tem = Fplist_get (contact, QCdatagram);
-  if (!NILP (tem))
-    {
-#ifndef DATAGRAM_SOCKETS
-      error ("Datagram connections not supported");
-#else
-      socktype = SOCK_DGRAM;
+  /* :type TYPE  (nil: stream, datagram */
+  tem = Fplist_get (contact, QCtype);
+  if (NILP (tem))
+    socktype = SOCK_STREAM;
+#ifdef DATAGRAM_SOCKETS
+  else if (EQ (tem, Qdatagram))
+    socktype = SOCK_DGRAM;
 #endif
-    }
+  else
+    error ("Unsupported connection type");
 
   /* :server BOOL */
   tem = Fplist_get (contact, QCserver);
@@ -6111,6 +6011,7 @@ void
 init_process ()
 {
   register int i;
+  Lisp_Object subfeatures;
 
 #ifdef SIGCHLD
 #ifndef CANNOT_DUMP
@@ -6137,6 +6038,51 @@ init_process ()
 #ifdef DATAGRAM_SOCKETS
   bzero (datagram_address, sizeof datagram_address);
 #endif
+
+#define ADD_SUBFEATURE(key, val) \
+  subfeatures = Fcons (Fcons (key, Fcons (val, Qnil)), subfeatures)
+
+  subfeatures = Qnil;
+#ifdef NON_BLOCKING_CONNECT
+  ADD_SUBFEATURE (QCnowait, Qt);
+#endif
+#ifdef DATAGRAM_SOCKETS
+  ADD_SUBFEATURE (QCtype, Qdatagram);
+#endif
+#ifdef HAVE_LOCAL_SOCKETS
+  ADD_SUBFEATURE (QCfamily, Qlocal);
+#endif
+#ifdef HAVE_GETSOCKNAME
+  ADD_SUBFEATURE (QCservice, Qt);
+#endif
+#ifndef TERM
+  ADD_SUBFEATURE (QCserver, Qt);
+#endif
+#ifdef SO_BINDTODEVICE
+  ADD_SUBFEATURE (QCoptions, intern ("bindtodevice"));
+#endif
+#ifdef SO_BROADCAST
+  ADD_SUBFEATURE (QCoptions, intern ("broadcast"));
+#endif
+#ifdef SO_DONTROUTE
+  ADD_SUBFEATURE (QCoptions, intern ("dontroute"));
+#endif
+#ifdef SO_KEEPALIVE
+  ADD_SUBFEATURE (QCoptions, intern ("keepalive"));
+#endif
+#ifdef SO_LINGER
+  ADD_SUBFEATURE (QCoptions, intern ("linger"));
+#endif
+#ifdef SO_OOBINLINE
+  ADD_SUBFEATURE (QCoptions, intern ("oobinline"));
+#endif
+#ifdef SO_PRIORITY
+  ADD_SUBFEATURE (QCoptions, intern ("priority"));
+#endif
+#ifdef SO_REUSEADDR
+  ADD_SUBFEATURE (QCoptions, intern ("reuseaddr"));
+#endif
+  Fprovide (intern ("make-network-process"), subfeatures);
 }
 
 void
@@ -6169,6 +6115,8 @@ syms_of_process ()
   staticpro (&Qlisten);
   Qlocal = intern ("local");
   staticpro (&Qlocal);
+  Qdatagram = intern ("datagram");
+  staticpro (&Qdatagram);
 
   QCname = intern (":name");
   staticpro (&QCname);
@@ -6178,6 +6126,8 @@ syms_of_process ()
   staticpro (&QChost);
   QCservice = intern (":service");
   staticpro (&QCservice);
+  QCtype = intern (":type");
+  staticpro (&QCtype);
   QClocal = intern (":local");
   staticpro (&QClocal);
   QCremote = intern (":remote");
@@ -6186,8 +6136,6 @@ syms_of_process ()
   staticpro (&QCcoding);
   QCserver = intern (":server");
   staticpro (&QCserver);
-  QCdatagram = intern (":datagram");
-  staticpro (&QCdatagram);
   QCnowait = intern (":nowait");
   staticpro (&QCnowait);
   QCsentinel = intern (":sentinel");
@@ -6200,8 +6148,6 @@ syms_of_process ()
   staticpro (&QCstop);
   QCoptions = intern (":options");
   staticpro (&QCoptions);
-  QCfeature = intern (":feature");
-  staticpro (&QCfeature);
     
   Qlast_nonmenu_event = intern ("last-nonmenu-event");
   staticpro (&Qlast_nonmenu_event);
@@ -6290,6 +6236,8 @@ extern int frame_garbaged;
 
 extern EMACS_TIME timer_check ();
 extern int timers_run;
+
+Lisp_Object QCtype;
 
 /* As described above, except assuming that there are no subprocesses:
 
@@ -6566,6 +6514,9 @@ init_process ()
 void
 syms_of_process ()
 {
+  QCtype = intern (":type");
+  staticpro (&QCtype);
+
   defsubr (&Sget_buffer_process);
   defsubr (&Sprocess_inherit_coding_system_flag);
 }
