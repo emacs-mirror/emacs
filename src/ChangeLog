@@ -1,3 +1,8 @@
+2001-10-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (grow_mini_window): Handle case that the root
+	window is already smaller than the nominal mininum height.
+
 2001-10-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs.c (main): Don't call keys_of_macros any more.
