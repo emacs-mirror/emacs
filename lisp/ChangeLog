@@ -1,5 +1,9 @@
 2001-04-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* progmodes/compile.el (grep-compute-defaults): Use null-device
+	instead of literal /dev/null. Reported by Jens Schmidt
+	<schmidt@mathematik.uni-kl.de>.
+
 	* simple.el (normal-erase-is-backspace-mode): Doc fix.
 
 2001-04-06  Dave Love  <fx@gnu.org>
