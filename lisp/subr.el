@@ -1563,7 +1563,18 @@ Replaces `category' properties with their defined properties."
 (defvar yank-undo-function)
 
 (defun insert-for-yank (string)
+  "Calls `insert-for-yank-1' repetitively for each `yank-handler' segment.
+
+See `insert-for-yank-1' for more details."
+  (let (to)
+    (while (setq to (next-single-property-change 0 'yank-handler string))
+      (insert-for-yank-1 (substring string 0 to))
+      (setq string (substring string to))))
+  (insert-for-yank-1 string))
+
+(defun insert-for-yank-1 (string)
   "Insert STRING at point, stripping some text properties.
+
 Strip text properties from the inserted text according to
 `yank-excluded-properties'.  Otherwise just like (insert STRING).
 
