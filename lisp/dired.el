@@ -2601,17 +2601,17 @@ With a zero prefix arg, renaming by regexp affects the complete
 
 (autoload 'dired-do-copy-regexp "dired-aux"
   "Copy all marked files containing REGEXP to NEWNAME.
-See function `dired-rename-regexp' for more info."
+See function `dired-do-rename-regexp' for more info."
   t)
 
 (autoload 'dired-do-hardlink-regexp "dired-aux"
   "Hardlink all marked files containing REGEXP to NEWNAME.
-See function `dired-rename-regexp' for more info."
+See function `dired-do-rename-regexp' for more info."
   t)
 
 (autoload 'dired-do-symlink-regexp "dired-aux"
   "Symlink all marked files containing REGEXP to NEWNAME.
-See function `dired-rename-regexp' for more info."
+See function `dired-do-rename-regexp' for more info."
   t)
 
 (autoload 'dired-upcase "dired-aux"

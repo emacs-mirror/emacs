@@ -1382,7 +1382,7 @@ Normally, only the non-directory part of the file name is used and changed."
 ;;;###autoload
 (defun dired-do-copy-regexp (regexp newname &optional arg whole-path)
   "Copy all marked files containing REGEXP to NEWNAME.
-See function `dired-rename-regexp' for more info."
+See function `dired-do-rename-regexp' for more info."
   (interactive (dired-mark-read-regexp "Copy"))
   (dired-do-create-files-regexp
    (function dired-copy-file)
@@ -1392,7 +1392,7 @@ See function `dired-rename-regexp' for more info."
 ;;;###autoload
 (defun dired-do-hardlink-regexp (regexp newname &optional arg whole-path)
   "Hardlink all marked files containing REGEXP to NEWNAME.
-See function `dired-rename-regexp' for more info."
+See function `dired-do-rename-regexp' for more info."
   (interactive (dired-mark-read-regexp "HardLink"))
   (dired-do-create-files-regexp
    (function add-name-to-file)
@@ -1401,7 +1401,7 @@ See function `dired-rename-regexp' for more info."
 ;;;###autoload
 (defun dired-do-symlink-regexp (regexp newname &optional arg whole-path)
   "Symlink all marked files containing REGEXP to NEWNAME.
-See function `dired-rename-regexp' for more info."
+See function `dired-do-rename-regexp' for more info."
   (interactive (dired-mark-read-regexp "SymLink"))
   (dired-do-create-files-regexp
    (function make-symbolic-link)
