@@ -1,3 +1,9 @@
+2001-11-03  Richard M. Stallman  <rms@gnu.org>
+
+	* cvtmail.c (xrealloc): Always pass two args to `fatal'.
+
+	* movemail.c (popmail): Always pass two args to `error'.
+
 2001-10-24  Ken Raeburn  <raeburn@gnu.org>
 
 	* Makefile.in (HESIODLIB) [HAVE_LIBHESIOD]: Set to include
