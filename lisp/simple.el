@@ -648,7 +648,12 @@ This cannot be done asynchronously."
 	     ;; aliases for shell commands then they can still have them.
 	     (call-process shell-file-name nil t nil
 			   "-c" command)
-	     (exchange-point-and-mark))
+	     ;; This is like exchange-point-and-mark, but doesn't activate the mark.
+	     ;; It is cleaner to avoid activation, even though the command
+	     ;; loop would deactivate the mark because we inserted text.
+	     (goto-char (prog1 (mark t)
+			  (set-marker (mark-marker) (point)
+				      (current-buffer)))))
     ;; Preserve the match data in case called from a program.
     (let ((data (match-data)))
       (unwind-protect
