@@ -1,5 +1,8 @@
 2001-05-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (split_font_name): Make sure to leave the loop
+	with the right value of `i'.
+	
 	* xfaces.c (split_font_name): Handle matrix transformations
 	in the pixel and point size fields of XLFD font names.
 	(xlfd_point_size): Likewise.
