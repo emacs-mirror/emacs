@@ -636,7 +636,7 @@ typedef unsigned char UCHAR;
   {							\
     if (XTYPE ((x)) != Lisp_Window			\
 	|| NILP (XWINDOW ((x))->buffer))		\
-      x = wrong_type_argument (Qlive_window_p, (x));	\
+      x = wrong_type_argument (Qwindow_live_p, (x));	\
   }
 
 #define CHECK_PROCESS(x, i) \
@@ -1160,7 +1160,7 @@ extern Lisp_Object get_keyelt (), get_keymap();
 extern Lisp_Object Fvertical_motion (), Findent_to (), Fcurrent_column ();
 
 /* defined in window.c */
-extern Lisp_Object Qwindowp, Qlive_window_p;
+extern Lisp_Object Qwindowp, Qwindow_live_p;
 extern Lisp_Object Fget_buffer_window ();
 extern Lisp_Object Fsave_window_excursion ();
 extern Lisp_Object Fset_window_configuration (), Fcurrent_window_configuration ();

@@ -29,7 +29,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "disptab.h"
 #include "keyboard.h"
 
-Lisp_Object Qwindowp, Qlive_window_p;
+Lisp_Object Qwindowp, Qwindow_live_p;
 
 Lisp_Object Fnext_window (), Fdelete_window (), Fselect_window ();
 Lisp_Object Fset_window_buffer (), Fsplit_window (), Frecenter ();
@@ -102,7 +102,7 @@ DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
   return XTYPE (obj) == Lisp_Window ? Qt : Qnil;
 }
 
-DEFUN ("live-window-p", Flive_window_p, Slive_window_p, 1, 1, 0,
+DEFUN ("window-live-p", Fwindow_live_p, Swindow_live_p, 1, 1, 0,
   "Returns t if OBJ is a window which is currently visible.")
      (obj)
      Lisp_Object obj;
@@ -2873,8 +2873,8 @@ syms_of_window ()
   Qwindowp = intern ("windowp");
   staticpro (&Qwindowp);
 
-  Qlive_window_p = intern ("live-window-p");
-  staticpro (&Qlive_window_p);
+  Qwindow_live_p = intern ("window-live-p");
+  staticpro (&Qwindow_live_p);
 
 #ifndef MULTI_FRAME
   /* Make sure all windows get marked */
@@ -2956,7 +2956,7 @@ If there is only one window, it is split regardless of this value.");
   defsubr (&Sminibuffer_window);
   defsubr (&Swindow_minibuffer_p);
   defsubr (&Swindowp);
-  defsubr (&Slive_window_p);
+  defsubr (&Swindow_live_p);
   defsubr (&Spos_visible_in_window_p);
   defsubr (&Swindow_buffer);
   defsubr (&Swindow_height);
