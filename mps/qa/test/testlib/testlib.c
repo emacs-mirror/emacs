@@ -193,7 +193,7 @@ void asserts(int expr, const char *format, ...)
 /* my own assertion handler, insalled by easy_tramp
 */
 
-void my_assert_handler(const char *cond, const char *id,
+static void my_assert_handler(const char *cond, const char *id,
                        const char *file, unsigned line) {
  comment("MPS ASSERTION FAILURE");
  report("assert", "true");
