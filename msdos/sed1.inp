@@ -19,6 +19,7 @@ s!/bin/sh!command.com!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
 /^@SET_MAKE@$/s/@SET_MAKE@//
 /^.\${libsrc}make-docfile.*>/s!make-docfile!make-doc.exe -o ../etc/DOC!
+/^.\${libsrc}make-docfile.*-a/s!make-docfile!make-doc.exe!
 /^.\${libsrc}make-doc/s!>.*$!!
 /^[ 	]*$/d
 /^temacs:/s/prefix-args//
