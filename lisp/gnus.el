@@ -973,13 +973,13 @@ with some simple extensions.
 
 %S  The subject")
 
-(defvar gnus-summary-mode-line-format "Gnus  %G/%A %Z"
+(defvar gnus-summary-mode-line-format "Gnus: %b [%A] %Z"
   "*The format specification for the summary mode line.")
 
-(defvar gnus-article-mode-line-format "Gnus  %G/%A %S"
+(defvar gnus-article-mode-line-format "Gnus: %b %S"
   "*The format specification for the article mode line.")
 
-(defvar gnus-group-mode-line-format "Gnus  List of groups   {%M:%S}  "
+(defvar gnus-group-mode-line-format "Gnus: %b {%M:%S}  "
   "*The format specification for the group mode line.")
 
 (defvar gnus-valid-select-methods
@@ -1013,7 +1013,7 @@ updated with information that may be pertinent.
 If this variable is nil, screen refresh may be quicker.")
 
 ;; Added by Keinonen Kari <kk85613@cs.tut.fi>.
-(defvar gnus-mode-non-string-length 21
+(defvar gnus-mode-non-string-length nil
   "*Max length of mode-line non-string contents.
 If this is nil, Gnus will take space as is needed, leaving the rest
 of the modeline intact.")
@@ -1339,11 +1339,13 @@ variable (string, integer, character, etc).")
 	(list ?S 'subject ?s)
 	(list ?e 'unselected ?d)
 	(list ?u 'user-defined ?s)
+	(list ?b 'buffer-name ?s)
 	(list ?s '(gnus-current-score-file-nondirectory) ?s)))
 
 (defconst gnus-group-mode-line-format-alist 
   (list (list ?S 'news-server ?s)
 	(list ?M 'news-method ?s)
+	(list ?b '(buffer-name) ?s)
 	(list ?u 'user-defined ?s)))
 
 (defvar gnus-have-read-active-file nil)
@@ -6977,6 +6979,10 @@ If WHERE is `summary', the summary mode line format will be used."
 	  (let* ((mformat (if (eq where 'article) 
 			      gnus-article-mode-line-format-spec
 			    gnus-summary-mode-line-format-spec))
+		 (buffer-name (if (eq where 'article)
+				  (buffer-name
+				   (get-buffer gnus-article-buffer))
+				(buffer-name)))
 		 (group-name gnus-newsgroup-name)
 		 (article-number (or gnus-current-article 0))
 		 (unread (- (length gnus-newsgroup-unreads)
@@ -9770,7 +9776,7 @@ even ticked and dormant ones."
   (gnus-set-global-variables)
   (let ((buffer-read-only nil)
 	(orig-article 
-	 (progn
+	 (let ((gnus-summary-check-current t))
 	   (gnus-summary-search-forward t)
 	   (gnus-summary-article-number)))
 	(marks (concat "^[" marks "]")))
