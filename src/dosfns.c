@@ -26,6 +26,7 @@ Boston, MA 02111-1307, USA.  */
 /* The entire file is within this conditional */
 
 #include <stdio.h>
+#include <string.h>
 #include <dos.h>
 #include "lisp.h"
 #include "buffer.h"
@@ -36,6 +37,7 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "dosfns.h"
 #include "msdos.h"
+#include "dispextern.h"
 #include <dpmi.h>
 #include <go32.h>
 #include <dirent.h>
@@ -401,6 +403,44 @@ init_dosfns ()
 }
 
 #ifndef HAVE_X_WINDOWS
+
+/* Emulation of some X window features from xfns.c and xfaces.c.  */
+
+/* Standard VGA colors, in the order of their standard numbering
+   in the default VGA palette.  */
+static char *vga_colors[16] = {
+  "black", "blue", "green", "cyan", "red", "magenta", "brown",
+  "lightgray", "darkgray", "lightblue", "lightgreen", "lightcyan",
+  "lightred", "lightmagenta", "yellow", "white"
+};
+
+/* Given a color name, return its index, or -1 if not found.  Note
+   that this only performs case-insensitive comparison against the
+   standard names.  For anything more sophisticated, like matching
+   "gray" with "grey" or translating X color names into their MSDOS
+   equivalents, call the Lisp function Qmsdos_color_translate (defined
+   on lisp/term/pc-win.el).  */
+int
+msdos_stdcolor_idx (const char *name)
+{
+  int i;
+
+  for (i = 0; i < sizeof (vga_colors) / sizeof (vga_colors[0]); i++)
+    if (strcasecmp (name, vga_colors[i]) == 0)
+      return i;
+
+  return FACE_TTY_DEFAULT_COLOR;
+}
+
+/* Given a color index, return its standard name.  */
+const char *
+msdos_stdcolor_name (int idx)
+{
+  if (idx < 0 || idx >= sizeof (vga_colors) / sizeof (vga_colors[0]))
+    return "";	/* meaning the default */
+  return vga_colors[idx];
+}
+
 /* Support for features that are available when we run in a DOS box
    on MS-Windows.  */
 int
