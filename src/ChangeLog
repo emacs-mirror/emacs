@@ -1,3 +1,9 @@
+2000-08-26  Kenichi Handa  <handa@etl.go.jp>
+
+	* charset.c (char_to_string): Check the character validity.
+	(char_valid_p): If C is not less than MAX_CHAR, be sure to return
+	0.
+
 2000-08-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (PUSH_FAILURE_COUNT): New macro.
