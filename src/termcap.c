@@ -46,6 +46,10 @@ char *realloc ();
 #define NULL (char *) 0
 #endif
 
+#ifndef O_RDONLY
+#define O_RDONLY 0
+#endif
+
 /* BUFSIZE is the initial size allocated for the buffer
    for reading the termcap file.
    It is not a limit.
@@ -459,9 +463,9 @@ tgetent (bp, name)
   /* Here we know we must search a file and termcap_name has its name.  */
 
 #ifdef MSDOS
-  fd = open (termcap_name, O_TEXT, 0);
+  fd = open (termcap_name, O_RDONLY|O_TEXT, 0);
 #else
-  fd = open (termcap_name, 0, 0);
+  fd = open (termcap_name, O_RDONLY, 0);
 #endif
   if (fd < 0)
     return -1;
