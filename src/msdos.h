@@ -45,7 +45,6 @@ void mouse_moveto (int, int);
 void mouse_check_moved ();
 int mouse_pressed (int, int *, int *);
 int mouse_released (int, int *, int *);
-void init_gettimeofday ();
 
 #ifndef HAVE_X_WINDOWS
 /* Dummy types.  */
