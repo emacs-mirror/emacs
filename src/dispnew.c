@@ -1,5 +1,6 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 1997
+       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1117,14 +1118,12 @@ direct_output_forward_char (n)
   register FRAME_PTR frame = selected_frame;
   register struct window *w = XWINDOW (selected_window);
   Lisp_Object position;
-  /* This check is redundant.  It's checked at "losing cursor" below.  */
-#if 0
   int hpos = FRAME_CURSOR_X (frame);
 
   /* Give up if in truncated text at end of line.  */
+  /* This check is not redundant.  */
   if (hpos >= WINDOW_LEFT_MARGIN (w) + window_internal_width (w) - 1)
     return 0;
-#endif /* 0 */
 
   /* Give up if the buffer's direction is reversed (i.e. right-to-left).  */
   if (!NILP (XBUFFER(w->buffer)->direction_reversed))
