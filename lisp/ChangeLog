@@ -1,5 +1,8 @@
 2002-04-30  Richard M. Stallman  <rms@gnu.org>
 
+	* align.el (align-region): Fix call to `message'.
+	Check that (car rule) is a symbol.
+
 	* autoinsert.el (auto-insert-directory): Doc fix.
 
 	* facemenu.el (describe-text-at and stuff): Moved to descr-text.el.
