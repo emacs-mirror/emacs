@@ -2245,7 +2245,7 @@ w32_free_submenu_strings (menu)
   for (i = 0; i < num; i++)
     {
       MENUITEMINFO info;
-
+      bzero (&info, sizeof (info));
       info.cbSize = sizeof (info);
       info.fMask = MIIM_DATA | MIIM_TYPE | MIIM_SUBMENU;
 
