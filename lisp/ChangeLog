@@ -1,5 +1,8 @@
 2000-11-22  Dave Love  <fx@gnu.org>
 
+	* cus-edit.el (custom-buffer-create-internal): Save some consing.
+	(custom-variable-set): Improve validation error mesage.
+
 	* rect.el (string-rectangle): Revert last change.
 	(string-rectangle-line): New arg DELETE.
 	(string-rectangle): Check delete-selection-mode.
