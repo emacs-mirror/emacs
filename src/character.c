@@ -247,7 +247,7 @@ the current primary charset (value of `charset-primary').  */)
   charset = CHARSET_FROM_ID (charset_primary);
   c = DECODE_CHAR (charset, c);
   if (c < 0)
-    error ("Can't convert to multibyte character: %d", XINT (ch));
+    c = BYTE8_TO_CHAR (XFASTINT (ch));
   return make_number (c);
 }
 
@@ -260,17 +260,12 @@ the current primary charset (value of `charset-primary').  */)
      Lisp_Object ch;
 {
   int c;
-  unsigned code;
   struct charset *charset;
 
   CHECK_CHARACTER (ch);
   c = XFASTINT (ch);
-  charset = CHARSET_FROM_ID (charset_primary);
-  code = ENCODE_CHAR (charset, c);
-  if (code < CHARSET_MIN_CODE (charset)
-      || code > CHARSET_MAX_CODE (charset))
-    error ("Can't convert to unibyte character: %d", XINT (ch));
-  return make_number (code);
+  c = CHAR_TO_BYTE8 (c);
+  return make_number (c);
 }
 
 DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
