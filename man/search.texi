@@ -53,7 +53,7 @@ Incremental search backward (@code{isearch-backward}).
   @kbd{C-s} starts a forward incremental search.  It reads characters
 from the keyboard, and moves point past the next occurrence of those
 characters.  If you type @kbd{C-s} and then @kbd{F}, that puts the
-cursor after the first @samp{F} (following the starting point, since
+cursor after the first @samp{F} (the first following the starting point, since
 this is a forward search).  Then if you type an @kbd{O}, you will see
 the cursor move just after the first @samp{FO} (the @samp{F} in that
 @samp{FO} may or may not be the first @samp{F}).  After another
@@ -125,7 +125,7 @@ octal code: enter @kbd{C-q} followed by a sequence of octal digits.
 @cindex searching for non-ASCII characters
 @cindex input method, during incremental search
   To search for non-ASCII characters, you must use an input method
-(@pxref{Input Methods}).  If an input method is turned on in the
+(@pxref{Input Methods}).  If an input method is enabled in the
 current buffer when you start the search, you can use it while you
 type the search string also.  Emacs indicates that by including the
 input method mnemonic in its prompt, like this:
@@ -142,8 +142,8 @@ toggle (enable or disable) the input method while you type the search
 string with @kbd{C-\} (@code{isearch-toggle-input-method}).  You can
 turn on a certain (non-default) input method with @kbd{C-^}
 (@code{isearch-toggle-specified-input-method}), which prompts for the
-name of the input method.  Note that the input method you turn on
-during incremental search remains enabled in the current buffer as well.
+name of the input method.  The input method you enable during
+incremental search remains enabled in the current buffer afterwards.
 
   If a search is failing and you ask to repeat it by typing another
 @kbd{C-s}, it starts again from the beginning of the buffer.
