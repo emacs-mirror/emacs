@@ -826,6 +826,7 @@ formatted according to your locale setting (@pxref{Environment}).
 @section Reverting a Buffer
 @findex revert-buffer
 @cindex drastic changes
+@cindex reread a file
 
   If you have made extensive changes to a file and then change your mind
 about them, you can get rid of them by reading in the previous version
