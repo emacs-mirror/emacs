@@ -1507,7 +1507,7 @@ It returns t if it got any new messages."
 	     (if rmail-pop-password-required
 		 (progn (setq got-password (not (rmail-have-password)))
 			(setq password (rmail-get-pop-password))))
-	     (if (eq system-type 'windows-nt)
+	     (if (memq system-type '(windows-nt cygwin))
 		 ;; cannot have "po:" in file name
 		 (setq tofile
 		       (expand-file-name
