@@ -2293,9 +2293,12 @@ int face_at_string_position P_ ((struct window *, Lisp_Object, int, int, int,
 				 int, int *, enum face_id, int));
 int compute_char_face P_ ((struct frame *, int, Lisp_Object));
 void free_all_realized_faces P_ ((Lisp_Object));
+void free_realized_face P_ ((struct frame *, struct face *));
+
 extern Lisp_Object Qforeground_color, Qbackground_color;
 extern char unspecified_fg[], unspecified_bg[];
-void free_realized_multibyte_face P_ ((struct frame *, int));
+extern void check_face_attributes P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+extern int generate_ascii_font P_ ((Lisp_Object, Lisp_Object));
 
 /* Defined in xfns.c  */
 
