@@ -1,5 +1,11 @@
 2001-05-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* editfns.c (char_property_eq): Put in #if 0.
+
+	* indent.c (string_display_width): Put in #if 0.
+
+	* lread.c (Fload): Remove unused label.
+
 	* termcap.c (speeds): Put in #if 0.
 
 2001-05-18  Gerd Moellmann  <gerd@gnu.org>
