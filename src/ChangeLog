@@ -1,3 +1,7 @@
+2003-02-18  Andrew Choi  <akochoi@shaw.ca>
+
+	* unexmacosx.c (copy_data_segment): Also copy __cfstring section.
+
 2003-02-18  Andreas Schwab  <schwab@suse.de>
 
 	* window.c (window_scroll_pixel_based): Move outside a
