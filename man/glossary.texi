@@ -683,7 +683,7 @@ commands are provided for moving over and operating on pages.
 @xref{Pages}.
 
 @item Paragraph
-Paragraphs are the medium-size unit of normal (non-program) text.  There are
+Paragraphs are the medium-size unit of human-language text.  There are
 special Emacs commands for moving over and operating on paragraphs.
 @xref{Paragraphs}.
 
@@ -928,6 +928,12 @@ The contents of an Emacs buffer are always text in this sense.
 Data consisting of written human language, as opposed to programs,
 or following the stylistic conventions of human language.
 @end itemize
+
+@item Tool Bar
+The tool bar is a line (sometimes multiple lines) of icons at the top
+of an Emacs frame.  Clicking on one of these icons executes a command.
+You can think of this as a graphical relative of the menu bar (q.v.).
+@xref{Tool Bar}.
 
 @item Top Level
 Top level is the normal state of Emacs, in which you are editing the
