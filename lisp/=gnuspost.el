@@ -3,6 +3,7 @@
 ;; Copyright (C) 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
+;; Version: $Header: gnuspost.el,v 4.1 93/07/19 15:43:46 umerin Exp $
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -693,7 +694,7 @@ domain is undefined, the domain name is got from it."
 
 (defun gnus-current-time-zone (time)
   "The local time zone in effect at TIME, or nil if not known."
-  (let ((z (and (fboundp 'current-time-zone) (current-time-zone now))))
+  (let ((z (and (fboundp 'current-time-zone) (current-time-zone time))))
     (if (and z (car z)) z gnus-local-timezone)))
 
 (defun gnus-inews-date ()
@@ -758,6 +759,7 @@ containing the organization."
 			   gnus-local-organization
 			   private-file)))
     (and (stringp organization)
+	 (> (length organization) 0)
 	 (string-equal (substring organization 0 1) "/")
 	 ;; Get it from the user and system file.
 	 ;; Suggested by roland@wheaties.ai.mit.edu (Roland McGrath).
