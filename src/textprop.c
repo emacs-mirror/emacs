@@ -610,7 +610,7 @@ Return t if any property value actually changed, nil otherwise.")
      Lisp_Object start, end, properties, object;
 {
   register INTERVAL i, unchanged;
-  register int s, len, modified;
+  register int s, len, modified = 0;
 
   properties = validate_plist (properties);
   if (NILP (properties))
@@ -660,7 +660,7 @@ Return t if any property value actually changed, nil otherwise.")
     }
 
   /* We are at the beginning of an interval, with len to scan */
-  while (len > 0)
+  for (;;)
     {
       if (i == 0)
 	abort ();
@@ -800,7 +800,7 @@ Return t if any property was actually removed, nil otherwise.")
      Lisp_Object start, end, props, object;
 {
   register INTERVAL i, unchanged;
-  register int s, len, modified;
+  register int s, len, modified = 0;
 
   if (NILP (object))
     XSET (object, Lisp_Buffer, current_buffer);
@@ -846,7 +846,7 @@ Return t if any property was actually removed, nil otherwise.")
     }
 
   /* We are at the beginning of an interval, with len to scan */
-  while (len > 0)
+  for (;;)
     {
       if (i == 0)
 	abort ();
