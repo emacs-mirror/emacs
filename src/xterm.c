@@ -4151,6 +4151,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    struct input_event emacs_event;
 	    emacs_event.kind = no_event;
 
+	    bzero (&compose_status, sizeof (compose_status));
+
 	    f = x_window_to_frame (event.xbutton.window);
 	    if (f)
 	      {
