@@ -1,3 +1,8 @@
+2001-03-06  Kenichi Handa  <handa@etl.go.jp>
+
+	* xterm.c (XTflash): Make the timeout of select shorter, and call
+	select repeatedly until the desired time expires.
+
 2001-03-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* w32fns.c (Fx_create_frame): Clear Vwindow_list.
