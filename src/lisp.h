@@ -1235,6 +1235,7 @@ extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qdefun, Qmacro;
 extern Lisp_Object Vinhibit_quit, Qinhibit_quit, Vquit_flag;
 extern Lisp_Object Vmocklisp_arguments, Qmocklisp, Qmocklisp_arguments;
 extern Lisp_Object Vautoload_queue;
+extern Lisp_Object Vdebug_on_error;
 /* To run a normal hook, do
    if (!NILP (Vrun_hooks))
      call1 (Vrun_hooks, Qmy_funny_hook);  */
