@@ -419,7 +419,7 @@ This can take a while for large buffers."
 		  ((eq major-mode 'perl-mode) 	    perl-font-lock-keywords)
 		  ((eq major-mode 'tex-mode)        tex-font-lock-keywords)
 		  ((eq major-mode 'texinfo-mode)    texi-font-lock-keywords)
-		  (t nil))))
+		  (t nil)))))
 
 (defconst lisp-font-lock-keywords-1
  '(;;
