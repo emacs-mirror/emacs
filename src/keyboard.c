@@ -2489,14 +2489,16 @@ make_lispy_event (event)
 
 #ifdef USE_X_TOOLKIT
 	    if (FRAME_EXTERNAL_MENU_BAR (f) && XINT (event->y) == -1)
+#else
+	    if (XINT (event->y) < FRAME_MENU_BAR_LINES (f))
+#endif
 	      {
+#ifdef USE_X_TOOLKIT
 		/* The click happened in the menubar.
 		   Look for the menu item selected.  */
 		Lisp_Object items = map_event_to_object(event, f);
 		XFASTINT (event->y) = 1;
 #else /* not USE_X_TOOLKIT  */
-	    if (XINT (event->y) < FRAME_MENU_BAR_LINES (f))
-	      {
 		int hpos;
 		Lisp_Object items;
 		items = FRAME_MENU_BAR_ITEMS (f);
