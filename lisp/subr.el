@@ -649,12 +649,18 @@ FILE should be the name of a library, with no directory name."
 
 ;;;; Input and display facilities.
 
+(defcustom read-quoted-char-radix 8
+  "*Radix for \\[quoted-insert] and other uses of `read-quoted-char'.
+Legitimate radix values are 8, 10 and 16."
+  :type '(choice (const 8) (const 10) (const 16))
+  :group 'editing-basics)
+
 (defun read-quoted-char (&optional prompt)
   "Like `read-char', but do not allow quitting.
 Also, if the first character read is an octal digit,
 we read any number of octal digits and return the
 soecified character code.  Any nondigit terminates the sequence.
-If the terminator is a space, it is discarded;
+If the terminator is RET, it is discarded;
 any other terminator is used itself as input.
 
 The optional argument PROMPT specifies a string to use to prompt the user."
@@ -666,16 +672,23 @@ The optional argument PROMPT specifies a string to use to prompt the user."
 	    (help-form
 	     "Type the special character you want to use,
 or the octal character code.
-Space terminates the character code and is discarded;
+RET terminates the character code and is discarded;
 any other non-digit terminates the character code and is then used as input."))
 	(and prompt (message "%s-" prompt))
-	(setq char (read-char))
+	(setq char (read-event))
 	(if inhibit-quit (setq quit-flag nil)))
       (cond ((null char))
-	    ((and (<= ?0 char) (<= char ?7))
-	     (setq code (+ (* code 8) (- char ?0)))
+	    ((not (integerp char))
+	     (setq unread-command-events (list char)
+		   done t))
+	    ((and (<= ?0 char) (< char (+ ?0 (min 10 read-quoted-char-radix))))
+	     (setq code (+ (* code read-quoted-char-radix) (- char ?0)))
 	     (and prompt (setq prompt (message "%s %c" prompt char))))
-	    ((and (not first) (eq char ?\ ))
+	    ((and (<= ?a (downcase char))
+		  (< (downcase char) (+ ?a -10 (min 26 read-quoted-char-radix))))
+	     (setq code (+ (* code read-quoted-char-radix) (+ 10 (- char ?a))))
+	     (and prompt (setq prompt (message "%s %c" prompt char))))
+	    ((and (not first) (eq char ?\C-m))
 	     (setq done t))
 	    ((not first)
 	     (setq unread-command-events (list char)
