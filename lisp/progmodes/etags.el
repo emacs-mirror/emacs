@@ -562,6 +562,19 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 	(if (eq local-tags-file-name tags-file-name)
 	    (setq tags-file-name nil))
 	(error "File %s is not a valid tags table" local-tags-file-name)))))
+
+(defun tags-reset-tags-tables ()
+  "Reset tags state to cancel effect of any previous \\[visit-tags-table]
+or \\[find-tag]."
+  (interactive)
+  (setq tags-file-name nil
+	tags-location-stack nil
+	tags-table-list nil
+	tags-table-computed-list nil
+	tags-table-computed-list-for nil
+	tags-table-list-pointer nil
+	tags-table-list-started-at nil
+	tags-table-set-list nil))
 
 (defun file-of-tag ()
   "Return the file name of the file whose tags point is within.
