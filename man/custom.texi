@@ -1706,9 +1706,9 @@ that they have special keys of their own.  Later, users found it
 convenient to distinguish in Emacs between these keys and the ``same''
 control characters typed with the @key{CTRL} key.
 
-  Emacs distinguishes these two kinds of input, when used with the X
-Window System.  It treats the ``special'' keys as function keys named
-@code{tab}, @code{return}, @code{backspace}, @code{linefeed},
+  Emacs distinguishes these two kinds of input, when the keyboard
+reports these keys to Emacs.  It treats the ``special'' keys as function
+keys named @code{tab}, @code{return}, @code{backspace}, @code{linefeed},
 @code{escape}, and @code{delete}.  These function keys translate
 automatically into the corresponding ASCII characters @emph{if} they
 have no bindings of their own.  As a result, neither users nor Lisp
@@ -1961,13 +1961,14 @@ the terminal.  Keyboard translations take place at the lowest level of
 input processing; the keys that are looked up in keymaps contain the
 characters that result from keyboard translation.
 
-  Under X, the keyboard key named @key{DELETE} is a function key and is
-distinct from the ASCII character named @key{DEL}.  @xref{Named ASCII
-Chars}.  Keyboard translations affect only ASCII character input, not
-function keys; thus, the above example used under X does not affect the
-@key{DELETE} key.  However, the translation above isn't necessary under
-X, because Emacs can also distinguish between the @key{BACKSPACE} key
-and @kbd{C-h}; and it normally treats @key{BACKSPACE} as @key{DEL}.
+  On a window system, the keyboard key named @key{DELETE} is a function
+key and is distinct from the ASCII character named @key{DEL}.
+@xref{Named ASCII Chars}.  Keyboard translations affect only ASCII
+character input, not function keys; thus, the above example used on a
+window system does not affect the @key{DELETE} key.  However, the
+translation above isn't necessary on window systems, because Emacs can
+also distinguish between the @key{BACKSPACE} key and @kbd{C-h}; and it
+normally treats @key{BACKSPACE} as @key{DEL}.
 
   For full information about how to use keyboard translations, see
 @ref{Translating Input,,,elisp, The Emacs Lisp Reference Manual}.
