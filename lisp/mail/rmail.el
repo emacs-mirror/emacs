@@ -1788,7 +1788,7 @@ the body of the original message; otherwise copy the current message."
     (if (rmail-summary-exists)
 	(let (window)
 	  (while (setq window (get-buffer-window rmail-summary-buffer))
-	    (set-window-buffer (other-buffer rmail-summary-buffer)))
+	    (set-window-buffer window (other-buffer rmail-summary-buffer)))
 	  (bury-buffer rmail-summary-buffer)))
     (switch-to-buffer (other-buffer (current-buffer)))
     (bury-buffer rmail-buffer)))
