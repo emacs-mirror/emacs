@@ -141,11 +141,6 @@ variable gets by default!  Make sure you know what kind of value the
 variable should have.  If you don't pay attention to what you are
 doing, you'll make a mistake.
 
-Note that, on some systems, the code you place in site-init.el must
-not use expand-file-name or any other function which may look
-something up in the system's password and user information database.
-See `./PROBLEMS' for more details on which systems this affects.
-
 5) Put into `./lisp/site-init.el' or `./lisp/site-load.el' any Emacs
 Lisp code you want Emacs to load before it is dumped out.  Use
 site-load.el for additional libraries if you arrange for their
