@@ -1111,8 +1111,16 @@ defined_color (f, color, color_def, alloc)
 			      * ((color_def->blue >> 8) - (cells[x].blue >> 8))));
 	      if (trial_delta < nearest_delta) 
 		{
-		  nearest = x;
-		  nearest_delta = trial_delta;
+		  XColor temp;
+		  temp.red = cells[x].red;
+		  temp.green = cells[x].green;
+		  temp.blue = cells[x].blue;
+		  status = XAllocColor (display, screen_colormap, &temp);
+		  if (status)
+		    {
+		      nearest = x;
+		      nearest_delta = trial_delta;
+		    }
 		}
 	    }
 	  color_def->red = cells[nearest].red;
