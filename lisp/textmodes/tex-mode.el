@@ -834,9 +834,20 @@ area if a mismatch is found."
       (condition-case ()
 	  (save-restriction
 	    (narrow-to-region start end)
+	    ;; First check that the open and close parens balance in numbers.
 	    (goto-char start)
 	    (while (< 0 (setq max-possible-sexps (1- max-possible-sexps)))
-	      (forward-sexp 1)))
+	      (forward-sexp 1))
+	    ;; Now check that like matches like.
+	    (goto-char start)
+	    (while (progn (skip-syntax-forward "^(")
+			  (not (eobp)))
+	      (let ((match (matching-paren (following-char))))
+		(save-excursion
+		  (forward-sexp 1)
+		  (or (= (preceding-char) match)
+		      (error "Mismatched parentheses"))))
+	      (forward-char 1)))
 	(error
 	  (skip-syntax-forward " .>")
 	  (setq failure-point (point)))))
