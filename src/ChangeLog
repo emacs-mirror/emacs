@@ -1,3 +1,12 @@
+1999-12-12  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* minibuf.c (Fall_completions): Doc fix.
+
+1999-12-12  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* macros.c (Fstart_kbd_macro): Handle case where last-kbd-macro
+	has been changed by the Lisp code.
+
 1999-12-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c: Indentation fixes.
@@ -683,11 +692,6 @@
 1999-10-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (code_convert_region): Update `dst' correctly.
-
-1999-10-28  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
-
-	* regex.c (POP_FAILURE_POINT): Use failure_id.integer
-	as arg to DEBUG_POP and DEBUG_PRINT.
 
 1999-10-28  Gerd Moellmann  <gerd@gnu.org>
 
