@@ -24,16 +24,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *
  */
 
-/* $Source: /u2/third_party/gnuemacs.chow/src/RCS/xmenu.c,v $
- * $Author: rlk $
- * $Locker:  $
- * $Header: xmenu.c,v 1.6 86/08/26 17:23:26 rlk Exp $
- *
- */
-
-#ifndef lint
-static char *rcsid_GXMenu_c = "$Header: xmenu.c,v 1.6 86/08/26 17:23:26 rlk Exp $";
-#endif	lint
 #ifdef XDEBUG
 #include <stdio.h>
 #endif
