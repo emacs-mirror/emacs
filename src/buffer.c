@@ -2388,7 +2388,7 @@ evaporate_overlays (pos)
 	 tail = XCONS (tail)->cdr)
       {
 	int startpos;
-	overlay = XCONS (tail)->cdr;
+	overlay = XCONS (tail)->car;
 	startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
 	if (startpos > pos)
 	  break;
