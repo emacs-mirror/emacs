@@ -1493,20 +1493,21 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	    }
 	}
       if (!require_encoding)
-	str = make_string ((char *) data, size);
+	str = make_unibyte_string ((char *) data, size);
       else
 	{
-	  int bufsize, dummy;
+	  int bufsize;
 	  unsigned char *buf;
 	  struct coding_system coding;
 
 	  setup_coding_system
             (Fcheck_coding_system(Vclipboard_coding_system), &coding);
-          coding.last_block = 1;
+          coding.mode |= CODING_MODE_LAST_BLOCK;
 	  bufsize = decoding_buffer_size (&coding, size);
 	  buf = (unsigned char *) xmalloc (bufsize);
-	  size = decode_coding (&coding, data, buf, size, bufsize, &dummy);
-	  str = make_string ((char *) buf, size);
+	  decode_coding (&coding, data, buf, size, bufsize);
+	  str = make_multibyte_string ((char *) buf,
+				       coding.produced_char, coding.produced);
 	  xfree (buf);
 	}
       return str;
@@ -1630,17 +1631,17 @@ lisp_data_to_selection_data (display, obj,
              The format is compatible with what the target `STRING'
              expects if OBJ contains only ASCII and Latin-1
              characters.  */
-	  int bufsize, dummy;
+	  int bufsize;
 	  unsigned char *buf;
 	  struct coding_system coding;
 
 	  setup_coding_system
             (Fcheck_coding_system (Vclipboard_coding_system), &coding);
-	  coding.last_block = 1;
+	  coding.mode |= CODING_MODE_LAST_BLOCK;
 	  bufsize = encoding_buffer_size (&coding, *size_ret);
 	  buf = (unsigned char *) xmalloc (bufsize);
-	  *size_ret = encode_coding (&coding, *data_ret, buf,
-				     *size_ret, bufsize, &dummy);
+	  encode_coding (&coding, *data_ret, buf, *size_ret, bufsize);
+	  *size_ret = coding.produced;
 	  *data_ret = buf;
           if (charsets[charset_latin_iso8859_1]
 	      && (num == 1 || (num == 2 && charsets[CHARSET_ASCII])))
@@ -2274,8 +2275,8 @@ it merely informs you that they have happened.");
     "Coding system for communicating with other X clients.\n\
 When sending or receiving text via cut_buffer, selection, and clipboard,\n\
 the text is encoded or decoded by this coding system.\n\
-A default value is `iso-latin-1'");
-  Vclipboard_coding_system=intern ("iso-latin-1");
+A default value is `compound-text'");
+  Vclipboard_coding_system=intern ("compound-text");
   staticpro(&Vclipboard_coding_system);
 
   DEFVAR_INT ("x-selection-timeout", &x_selection_timeout,
