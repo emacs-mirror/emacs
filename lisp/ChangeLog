@@ -1,3 +1,8 @@
+2002-10-29  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-wide-find-dirs-or-files): Fixed problem that caused
+	incomplete list of matches to be returned.
+
 2002-10-29  Masayuki Ataka  <ataka@milk.freemail.ne.jp>  (tiny change)
 
 	* textmodes/texinfo.el (texinfo-environments): Add environment; copying,
