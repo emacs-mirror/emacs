@@ -1413,7 +1413,7 @@ frame_highlight (f)
   XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    f->display.x->border_pixel);
   UNBLOCK_INPUT;
-  x_display_cursor (f, 1);
+  x_update_cursor (f, 1);
 }
 
 static void
@@ -1428,7 +1428,7 @@ frame_unhighlight (f)
   XSetWindowBorderPixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			  f->display.x->border_tile);
   UNBLOCK_INPUT;
-  x_display_cursor (f, 1);
+  x_update_cursor (f, 1);
 }
 
 static void XTframe_rehighlight ();
@@ -3612,6 +3612,11 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  /* make_lispy_event turns chars into control chars.
 		     Don't do it here because XLookupString is too eager.  */
 		  event.xkey.state &= ~ControlMask;
+		  event.xkey.state &= ~(dpyinfo->meta_mod_mask
+					| dpyinfo->super_mod_mask
+					| dpyinfo->hyper_mod_mask
+					| dpyinfo->alt_mod_mask);
+
 		  nbytes = XLookupString (&event.xkey, copy_buffer,
 					  80, &keysym, &compose_status);
 
@@ -4127,14 +4132,6 @@ x_display_bar_cursor (f, on)
   if (! on && f->phys_cursor_x < 0)
     return;
 
-  /* If we're not updating, then we want to use the current frame's
-     cursor position, not our local idea of where the cursor ought to be.  */
-  if (f != updating_frame)
-    {
-      curs_x = FRAME_CURSOR_X (f);
-      curs_y = FRAME_CURSOR_Y (f);
-    }
-
   /* If there is anything wrong with the current cursor state, remove it.  */
   if (f->phys_cursor_x >= 0
       && (!on
@@ -4197,14 +4194,6 @@ x_display_box_cursor (f, on)
   /* If cursor is off and we want it off, return quickly.  */
   if (!on && f->phys_cursor_x < 0)
     return;
-
-  /* If we're not updating, then we want to use the current frame's
-     cursor position, not our local idea of where the cursor ought to be.  */
-  if (f != updating_frame)
-    {
-      curs_x = FRAME_CURSOR_X (f);
-      curs_y = FRAME_CURSOR_Y (f);
-    }
 
   /* If cursor is currently being shown and we don't want it to be
      or it is in the wrong place,
@@ -4287,11 +4276,48 @@ x_display_box_cursor (f, on)
     XFlush (FRAME_X_DISPLAY (f));
 }
 
+/* Display the cursor on frame F, or clear it, according to ON.
+   Use the position specified by curs_x and curs_y
+   if we are doing an update of frame F now.
+   Otherwise use the position in the FRAME_CURSOR_X and FRAME_CURSOR_Y fields
+   of F.  */
+
 x_display_cursor (f, on)
      struct frame *f;
      int on;
 {
   BLOCK_INPUT;
+
+  /* If we're not updating, then don't change the physical cursor
+     position.  Just change (if appropriate) the style of display.  */
+  if (f != updating_frame)
+    {
+      curs_x = FRAME_CURSOR_X (f);
+      curs_y = FRAME_CURSOR_Y (f);
+    }
+
+  if (FRAME_DESIRED_CURSOR (f) == filled_box_cursor)
+    x_display_box_cursor (f, on);
+  else if (FRAME_DESIRED_CURSOR (f) == bar_cursor)
+    x_display_bar_cursor (f, on);
+  else
+    /* Those are the only two we have implemented!  */
+    abort ();
+
+  UNBLOCK_INPUT;
+}
+
+/* Display the cursor on frame F, or clear it, according to ON.
+   Don't change the cursor's position.  */
+
+x_update_cursor (f, on)
+     struct frame *f;
+     int on;
+{
+  BLOCK_INPUT;
+
+  curs_x = f->phys_cursor_x;
+  curs_y = f->phys_cursor_y;
 
   if (FRAME_DESIRED_CURSOR (f) == filled_box_cursor)
     x_display_box_cursor (f, on);
