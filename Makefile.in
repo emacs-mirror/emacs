@@ -59,9 +59,6 @@ version=@version@
 ### for, like `mips-dec-ultrix' or `sparc-sun-sunos'.
 configuration=@configuration@
 
-### Libraries which should be edited into lib-src/Makefile.
-libsrc_libs=@libsrc_libs@
-
 # ==================== Where To Install Things ====================
 
 # The default location for installation.  Everything is placed in
