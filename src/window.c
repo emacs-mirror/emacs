@@ -314,6 +314,34 @@ NCOL should be zero or positive.")
   return ncol;
 }
 
+DEFUN ("window-redisplay-end-trigger", Fwindow_redisplay_end_trigger,
+       Swindow_redisplay_end_trigger, 0, 1, 0,
+  "Return WINDOW's redisplay end trigger value.\n\
+See `set-window-redisplay-end-trigger' for more information.")
+  (window)
+     Lisp_Object window;
+{
+  return decode_window (window)->redisplay_end_trigger;
+}
+
+DEFUN ("set-window-redisplay-end-trigger", Fset_window_redisplay_end_trigger,
+       Sset_window_redisplay_end_trigger, 2, 2, 0,
+  "Set WINDOW's redisplay end trigger value to VALUE.\n\
+VALUE should be a buffer position (typically a marker) or nil.\n\
+If it is a buffer position, then if redisplay in WINDOW\n\
+reaches a position beyond VALUE, the normal hook\n\
+`redisplay-end-trigger-hook' is run (and then the end-trigger value\n\
+is reset to nil.")
+  (window, value)
+     register Lisp_Object window, value;
+{
+  register struct window *w;
+
+  w = decode_window (window);
+  w->redisplay_end_trigger = value;
+  return value;
+}
+
 DEFUN ("window-edges", Fwindow_edges, Swindow_edges, 0, 1, 0,
   "Return a list of the edge coordinates of WINDOW.\n\
 \(LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at top left corner of frame.\n\
@@ -3534,6 +3562,8 @@ If there is only one window, it is split regardless of this value.");
   defsubr (&Swindow_width);
   defsubr (&Swindow_hscroll);
   defsubr (&Sset_window_hscroll);
+  defsubr (&Swindow_redisplay_end_trigger);
+  defsubr (&Sset_window_redisplay_end_trigger);
   defsubr (&Swindow_edges);
   defsubr (&Scoordinates_in_window_p);
   defsubr (&Swindow_at);
