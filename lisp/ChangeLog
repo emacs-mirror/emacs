@@ -1,3 +1,11 @@
+2004-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-header-msg): New function.
+	(cvs-update-header): Use it.  Change calling convention.
+	Correctly handle the case of having simultaneous active processes.
+	(cvs-sentinel): Don't call cvs-update-header any more.
+	(cvs-mode-run): Update call and add cvs-update-header to postproc.
+
 2004-12-01  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-ext.el (calc-inverse, calc-hyperbolic):
@@ -31,6 +39,10 @@
 	specially.  Store the encoded text in the X cut buffer.
 	(x-cut-buffer-or-selection-value): Compare the X cut buffer text
 	with x-last-selected-text-cut-encoded.
+
+2004-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-fontify-manpage): Improve handling of ANSI escapes.
 
 2004-11-30  Markus Rost  <rost@ias.edu>
 
@@ -87,7 +99,7 @@
 
 2004-11-30  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc-hooks.el (vc-recompute-state): Moved here from vc.el.
+	* vc-hooks.el (vc-recompute-state): Move here from vc.el.
 
 	* vc-cvs.el (vc-cvs-state): Handle the case where vc-state is
 	still nil.
@@ -187,8 +199,7 @@
 
 	* fringe.el (fringe-indicators): Add fake defvar to avoid compiler
 	warning.  Delay real definition, which uses
-	`set-fringe-indicators-1' till after the definition of that
-	function.
+	`set-fringe-indicators-1' till after the definition of that function.
 
 2004-11-28  Kim F. Storm  <storm@cua.dk>
 
@@ -209,8 +220,7 @@
 
 2004-11-27  Richard M. Stallman  <rms@gnu.org>
 
-	* comint.el (comint-read-noecho): Add trivial compatibility
-	definition.
+	* comint.el (comint-read-noecho): Add trivial compatibility definition.
 
 	* generic.el (define-generic-mode): Doc fix.
 
