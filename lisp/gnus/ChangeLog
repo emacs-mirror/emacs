@@ -1,3 +1,8 @@
+2002-09-18  Rob Browning <rlb@defaultvalue.org>
+
+	* gnus-art.el (gnus-article-x-face-command): Don't use
+	gnus-article-compface-xbm.
+
 2002-09-06  Juanma Barranquero  <lektu@terra.es>
 
 	* gnus-int.el (gnus-status-message): Fix spacing.

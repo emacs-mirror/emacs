@@ -207,7 +207,8 @@ regexp.  If it matches, the text in question is not a signature."
   (if (and (fboundp 'image-type-available-p)
 	   (image-type-available-p 'xbm))
       'gnus-article-display-xface
-    (if gnus-article-compface-xbm
+    (if (eq 0 (string-match "#define"
+                            (shell-command-to-string "uncompface -X")))
 	"{ echo '/* Width=48, Height=48 */'; uncompface; } | display -"
       "{ echo '/* Width=48, Height=48 */'; uncompface; } | icontopbm | \
 display -"))
