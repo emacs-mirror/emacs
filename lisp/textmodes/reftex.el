@@ -1184,7 +1184,7 @@ When nil, follow-mode will be suspended for stuff in unvisited files."
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-;; This file corresponds to RefTeX version 3.18.0.2
+;; This file corresponds to RefTeX version 3.19.0.1
 
 (defvar reftex-mode nil
   "Determines if RefTeX minor mode is active.")
@@ -4651,7 +4651,7 @@ bibliography statement (e.g. if it was changed)."
 ;; When MATCH-EVERYWHERE is t, searches will also match in non-selectable
 ;; places.
 
-  (let* (ev data last-data callback-fwd)
+  (let* (ev data last-data callback-fwd (selection-buffer (current-buffer)))
 
     (setq ev
           (catch 'myexit
@@ -4689,10 +4689,13 @@ bibliography statement (e.g. if it was changed)."
 	    (run-hooks 'post-command-hook)  ;; because XEmacs does not do it
 	    (recursive-edit))
 
-	(use-local-map nil)
-	(remove-hook 'pre-command-hook 'reftex-select-pre-command-hook t)
-	(remove-hook 'post-command-hook 'reftex-select-post-command-hook t)
-	(set-marker reftex-recursive-edit-marker nil)))))
+	(set-marker reftex-recursive-edit-marker nil)
+	(save-excursion
+	  (set-buffer selection-buffer)
+	  (use-local-map nil)
+	  (remove-hook 'pre-command-hook 'reftex-select-pre-command-hook t)
+	  (remove-hook 'post-command-hook 
+		       'reftex-select-post-command-hook t))))))
 
     (set (make-local-variable 'reftex-last-line)
 	 (+ (count-lines (point-min) (point)) (if (bolp) 1 0)))
