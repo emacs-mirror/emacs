@@ -447,7 +447,7 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
 (defun archive-dostime (time)
   "Stringify dos packed TIME record."
   (let ((hour (logand (ash time -11) 31))
-        (minute (logand (ash time -5) 53))
+        (minute (logand (ash time -5) 63))
         (second (* 2 (logand time 31)))) ; 2 seconds resolution
     (format "%02d:%02d:%02d" hour minute second)))
 
