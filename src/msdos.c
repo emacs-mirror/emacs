@@ -3268,6 +3268,8 @@ IT_menu_display (XMenu *menu, int y, int x, int *faces)
   IT_update_begin (sf);
   for (i = 0; i < menu->count; i++)
     {
+      int max_width = width + 2;
+
       IT_cursor_to (y + i, x);
       enabled
 	= (!menu->submenu[i] && menu->panenumber[i]) || (menu->submenu[i]);
@@ -3292,13 +3294,18 @@ IT_menu_display (XMenu *menu, int y, int x, int *faces)
 	      p++;
 	    }
 	}
-	    
-      for (; j < width; j++, p++)
+      /* Don't let the menu text overflow into the next screen row.  */
+      if (x + max_width > screen_size_X)
+	{
+	  max_width = screen_size_X - x;
+	  text[max_width - 1].u.ch = '$'; /* indicate it's truncated */
+	}
+      for (; j < max_width - 2; j++, p++)
 	SET_CHAR_GLYPH (*p, ' ', face, 0);
 
       SET_CHAR_GLYPH (*p, menu->submenu[i] ? 16 : ' ', face, 0);
       p++;
-      IT_write_glyphs (text, width + 2);
+      IT_write_glyphs (text, max_width);
     }
   IT_update_end (sf);
   IT_cursor_to (row, col);
