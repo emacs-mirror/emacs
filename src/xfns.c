@@ -10268,31 +10268,41 @@ show_busy_cursor (timer)
       BLOCK_INPUT;
   
       FOR_EACH_FRAME (rest, frame)
-	if (FRAME_X_P (XFRAME (frame)))
-	  {
-	    struct frame *f = XFRAME (frame);
+	{
+	  struct frame *f = XFRAME (frame);
+	  
+	  if (FRAME_LIVE_P (f) && FRAME_X_P (f) && FRAME_X_DISPLAY (f))
+	    {
+	      Display *dpy = FRAME_X_DISPLAY (f);
+	      
+#ifdef USE_X_TOOLKIT
+	      if (f->output_data.x->widget)
+#else
+	      if (FRAME_OUTER_WINDOW (f))
+#endif
+		{
+		  f->output_data.x->busy_p = 1;
 	
-	    f->output_data.x->busy_p = 1;
-	
-	    if (!f->output_data.x->busy_window)
-	      {
-		unsigned long mask = CWCursor;
-		XSetWindowAttributes attrs;
+		  if (!f->output_data.x->busy_window)
+		    {
+		      unsigned long mask = CWCursor;
+		      XSetWindowAttributes attrs;
 	    
-		attrs.cursor = f->output_data.x->busy_cursor;
+		      attrs.cursor = f->output_data.x->busy_cursor;
 	    
-		f->output_data.x->busy_window
-		  = XCreateWindow (FRAME_X_DISPLAY (f),
-				   FRAME_OUTER_WINDOW (f),
-				   0, 0, 32000, 32000, 0, 0,
-				   InputOnly,
-				   CopyFromParent,
-				   mask, &attrs);
-	      }
+		      f->output_data.x->busy_window
+			= XCreateWindow (dpy, FRAME_OUTER_WINDOW (f),
+					 0, 0, 32000, 32000, 0, 0,
+					 InputOnly,
+					 CopyFromParent,
+					 mask, &attrs);
+		    }
 	
-	    XMapRaised (FRAME_X_DISPLAY (f), f->output_data.x->busy_window);
-	    XFlush (FRAME_X_DISPLAY (f));
-	  }
+		  XMapRaised (dpy, f->output_data.x->busy_window);
+		  XFlush (dpy);
+		}
+	    }
+	}
 
       busy_cursor_shown_p = 1;
       UNBLOCK_INPUT;
