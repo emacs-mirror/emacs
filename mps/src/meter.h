@@ -1,6 +1,6 @@
 /* impl.h.meter: METER INTERFACE
  *
- * $HopeName: MMsrc!meter.h(MMdevel_gavinm_splay.2) $
+ * $HopeName: MMsrc!meter.h(trunk.2) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * Defines an interface for creating "meters" that accumulate the
@@ -18,13 +18,14 @@
 #ifndef meter_h
 #define meter_h
 
-#include "mpm.h"
+#include "mpmtypes.h"
+#include "config.h"
+#include "misc.h"
+#include "mpslib.h"
 
-/* mpmtypes.h */
+
 typedef struct MeterStruct *Meter;
 
-
-/* mpmst.h */
 typedef struct MeterStruct 
 {
   char *name;
@@ -33,41 +34,40 @@ typedef struct MeterStruct
   double meanSquared;
   Size min;
   Size max;
-}MeterStruct;
+} MeterStruct;
 
 
-/* mpm.h */
-extern void MeterInit(Meter meter, char* name);
+extern void MeterInit(Meter meter, char* name, void *owner);
 extern void MeterAccumulate(Meter meter, Size amount);
 extern Res MeterWrite(Meter meter, mps_lib_FILE *stream);
+extern void MeterEmit(Meter meter);
 
-
-#include "config.h"
-#include "misc.h"
-#include "mpslib.h"
 
 #define METER_IGNORE(expr) \
   BEGIN \
     (void)sizeof(expr); \
   END
 
-#if defined(MPS_HOT_WHITE) || defined (MPS_HOT_RED)
+#if defined(MPS_HOT_WHITE)
 
 #define METER_DECL(meter) struct MeterStruct meter
-#define METER_INIT(meter, init) \
-  METER_IGNORE(meter); METER_IGNORE(init)
+#define METER_INIT(meter, init, owner) \
+  METER_IGNORE(meter); METER_IGNORE(init); METER_IGNORE(owner)
 #define METER_ACC(meter, delta) \
   METER_IGNORE(meter); METER_IGNORE(delta)
 #define METER_WRITE(meter, stream) \
-  METER_IGNORE(meter); METER_IGNORE(stream)
+  (UNUSED(meter), UNUSED(stream), ResOK)
+#define METER_EMIT(meter) \
+  METER_IGNORE(meter)
 
 
-#elif defined(MPS_COOL)
+#elif defined (MPS_HOT_RED) || defined(MPS_COOL)
 
 #define METER_DECL(meter) struct MeterStruct meter
-#define METER_INIT(meter, init) (MeterInit(&(meter), (init)))
-#define METER_ACC(meter, delta) (MeterAccumulate(&(meter), (delta)))
-#define METER_WRITE(meter, stream) (MeterWrite(&(meter), (stream)))
+#define METER_INIT(meter, init, owner) MeterInit(&(meter), init, owner)
+#define METER_ACC(meter, delta) MeterAccumulate(&(meter), delta)
+#define METER_WRITE(meter, stream) (MeterWrite(&(meter), stream))
+#define METER_EMIT(meter) MeterEmit(meter)
 
 #else
 
