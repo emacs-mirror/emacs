@@ -1107,7 +1107,7 @@ static void
 validate_x_resource_name ()
 {
   if (! STRINGP (Vx_resource_name))
-    Vx_resource_name = make_string ("emacs");
+    Vx_resource_name = make_string ("emacs", 5);
 }
 
 
