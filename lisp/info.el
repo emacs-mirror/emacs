@@ -52,12 +52,13 @@ in paths.el.")
 
 (defvar Info-directory-list
   (let ((path (getenv "INFOPATH"))
+	(sep (if (eq system-type 'ms-dos) ";" ":"))
 	(sibling (expand-file-name "../info/" (invocation-directory))))
     (if path
 	(let ((list nil)
 	      idx)
 	  (while (> (length path) 0)
-	    (setq idx (or (string-match ":" path) (length path))
+	    (setq idx (or (string-match sep path) (length path))
 		  list (cons (substring path 0 idx) list)
 		  path (substring path (min (1+ idx)
 					    (length path)))))
