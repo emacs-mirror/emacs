@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.9) $
+/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.10) $
 test_lib.h
    various handy things for running tests, reporting errors &c
 */
@@ -6,6 +6,10 @@ test_lib.h
 #ifndef test_lib_h
 #define test_lib_h
 
+#include "mmqasym.h"
+#ifndef MMQA_HEADER_mps
+#error Header file mps.h not found
+#endif
 #include "mps.h"
 #include "versind.h"
 #include "platform.h"
@@ -109,8 +113,7 @@ union log_event {
 
 int read_event(log_event*);
 
-/*
-The MPS doens't provide this useful function
+/* The MPS doesn't provide this useful function
 */
 
 size_t arena_committed_and_used(mps_arena_t);
