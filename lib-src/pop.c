@@ -139,7 +139,7 @@ extern int h_errno;
 #endif /* ! __P */
 
 static int socket_connection _P((char *, int));
-static int getline _P((popserver, char **));
+static int pop_getline _P((popserver, char **));
 static int sendline _P((popserver, char *));
 static int fullwrite _P((int, char *, int));
 static int getok _P((popserver));
@@ -381,7 +381,7 @@ pop_stat (server, count, size)
       return (-1);
     }
      
-  if (sendline (server, "STAT") || (getline (server, &fromserver) < 0))
+  if (sendline (server, "STAT") || (pop_getline (server, &fromserver) < 0))
     return (-1);
 
   if (strncmp (fromserver, "+OK ", 4))
@@ -477,7 +477,7 @@ pop_list (server, message, IDs, sizes)
 	  free ((char *) *sizes);
 	  return (-1);
 	}
-      if (getline (server, &fromserver) < 0)
+      if (pop_getline (server, &fromserver) < 0)
 	{
 	  free ((char *) *IDs);
 	  free ((char *) *sizes);
@@ -737,7 +737,7 @@ pop_multi_first (server, command, response)
       return (-1);
     }
 
-  if (sendline (server, command) || (getline (server, response) < 0))
+  if (sendline (server, command) || (pop_getline (server, response) < 0))
     {
       return (-1);
     }
@@ -784,7 +784,7 @@ pop_multi_next (server, line)
       return (-1);
     }
 
-  if ((ret = getline (server, &fromserver)) < 0)
+  if ((ret = pop_getline (server, &fromserver)) < 0)
     {
       return (-1);
     }
@@ -919,7 +919,7 @@ pop_last (server)
   if (sendline (server, "LAST"))
     return (-1);
 
-  if (getline (server, &fromserver) < 0)
+  if (pop_getline (server, &fromserver) < 0)
     return (-1);
 
   if (! strncmp (fromserver, "-ERR", 4))
@@ -1255,7 +1255,7 @@ socket_connection (host, flags)
 } /* socket_connection */
 
 /*
- * Function: getline
+ * Function: pop_getline
  *
  * Purpose: Get a line of text from the connection and return a
  * 	pointer to it.  The carriage return and linefeed at the end of
@@ -1271,14 +1271,14 @@ socket_connection (host, flags)
  * 	error (in which case the contents of LINE are undefined.  In
  * 	case of error, an error message is copied into pop_error.
  *
- * Notes: The line returned is overwritten with each call to getline.
+ * Notes: The line returned is overwritten with each call to pop_getline.
  *
  * Side effects: Closes the connection on error.
  *
  * THE RETURNED LINE MAY CONTAIN EMBEDDED NULLS!
  */
 static int
-getline (server, line)
+pop_getline (server, line)
      popserver server;
      char **line;
 {
@@ -1341,7 +1341,7 @@ getline (server, line)
 	  server->buffer = (char *)realloc (server->buffer, server->buffer_size);
 	  if (! server->buffer)
 	    {
-	      strcpy (pop_error, "Out of memory in getline");
+	      strcpy (pop_error, "Out of memory in pop_getline");
 	      pop_trash (server);
 	      return (-1);
 	    }
@@ -1358,7 +1358,7 @@ getline (server, line)
 	}
       else if (ret == 0)
 	{
-	  strcpy (pop_error, "Unexpected EOF from server in getline");
+	  strcpy (pop_error, "Unexpected EOF from server in pop_getline");
 	  pop_trash (server);
 	  return (-1);
 	}
@@ -1485,7 +1485,7 @@ getok (server)
 {
   char *fromline;
 
-  if (getline (server, &fromline) < 0)
+  if (pop_getline (server, &fromline) < 0)
     {
       return (-1);
     }
@@ -1524,7 +1524,7 @@ gettermination (server)
 {
   char *fromserver;
 
-  if (getline (server, &fromserver) < 0)
+  if (pop_getline (server, &fromserver) < 0)
     return (-1);
 
   if (strcmp (fromserver, "."))
