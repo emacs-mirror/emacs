@@ -110,15 +110,15 @@ C-c C-r  caesar rotate all letters by 13 places in the article's body (rot13)."
   (run-hooks 'text-mode-hook 'news-reply-mode-hook))
 
 (defvar news-reply-yank-from
-  "Save From: field for news-reply-yank-original."
+  "Save `From:' field for `news-reply-yank-original'."
   "")
 
 (defvar news-reply-yank-message-id
-  "Save Message-Id: field for news-reply-yank-original."
+  "Save `Message-Id:' field for `news-reply-yank-original'."
   "")
 
 (defun news-reply-yank-original (arg)
-  "Insert the message being replied to, if any (in rmail).
+  "Insert the message being replied to, if any (in Mail mode).
 Puts point before the text and mark after.
 Indents each nonblank line ARG spaces (default 3).
 Just \\[universal-argument] as argument means don't indent
@@ -135,22 +135,23 @@ and don't delete any header fields."
   "Hook for inserting a header at the top of a yanked message.")
 
 (defun news-reply-newsgroups ()
-  "Move point to end of Newsgroups: field.
-RFC 850 constrains the Newsgroups: field to be a comma separated list of valid
-newsgroups names at your site:
-Newsgroups: news.misc,comp.misc,rec.misc"
+  "Move point to end of `Newsgroups:' field.
+RFC 850 constrains the `Newsgroups:' field to be a comma-separated list
+of valid newsgroup names at your site.  For example,
+   Newsgroups: news.misc,comp.misc,rec.misc"
   (interactive)
   (expand-abbrev)
   (goto-char (point-min))
   (mail-position-on-field "Newsgroups"))
 
 (defun news-reply-followup-to ()
-  "Move point to end of Followup-To: field.  Create the field if none.
+  "Move point to end of `Followup-To:' field.  Create the field if none.
 One usually requests followups to only one newsgroup.
-RFC 850 constrains the Followup-To: field to be a comma separated list of valid
-newsgroups names at your site, that are also in the Newsgroups: field:
-Newsgroups: news.misc,comp.misc,rec.misc,misc.misc,soc.misc
-Followup-To: news.misc,comp.misc,rec.misc"
+RFC 850 constrains the `Followup-To:' field to be a comma-separated list
+of valid newsgroups names at your site, and it must be a subset of the
+`Newsgroups:' field.  For example:
+   Newsgroups: news.misc,comp.misc,rec.misc,misc.misc,soc.misc
+   Followup-To: news.misc,comp.misc,rec.misc"
   (interactive)
   (expand-abbrev)
   (or (mail-position-on-field "Followup-To" t)
@@ -161,7 +162,7 @@ Followup-To: news.misc,comp.misc,rec.misc"
 )
 
 (defun news-reply-distribution ()
-  "Move point to end of Distribution: optional field.
+  "Move point to end of `Distribution:' optional field.
 Create the field if none.  Without this field the posting goes to all of
 USENET.  The field is used to restrict the posting to parts of USENET."
   (interactive)
@@ -172,7 +173,7 @@ USENET.  The field is used to restrict the posting to parts of USENET."
   )
 
 (defun news-reply-keywords ()
-  "Move point to end of Keywords: optional field.  Create the field if none.
+  "Move point to end of `Keywords:' optional field.  Create the field if none.
 Used as an aid to the news reader, it can contain a few, well selected keywords
 identifying the message."
   (interactive)
@@ -180,7 +181,7 @@ identifying the message."
   (mail-position-on-field "Keywords"))
 
 (defun news-reply-summary ()
-  "Move point to end of Summary: optional field.  Create the field if none.
+  "Move point to end of `Summary:' optional field.  Create the field if none.
 Used as an aid to the news reader, it can contain a succinct
 summary (abstract) of the message."
   (interactive)
@@ -193,8 +194,7 @@ summary (abstract) of the message."
   (message "~/.signature will be appended automatically."))
 
 (defun news-setup (to subject in-reply-to newsgroups replybuffer)
-  "Setup the news reply or posting buffer with the proper headers and in
-news-reply-mode."
+  "Set up the news reply or posting buffer with the proper headers and mode."
   (setq mail-reply-buffer replybuffer)
   (let ((mail-setup-hook nil))
     (if (null to)
@@ -363,6 +363,7 @@ original message into it."
     (message "")))
 
 ;@@ the guts of news-reply and news-post-news should be combined. -tower
+;;;###autoload
 (defun news-post-news ()
   "Begin editing a new USENET news article to be posted.
 Type \\[describe-mode] once editing the article to get a list of commands."
