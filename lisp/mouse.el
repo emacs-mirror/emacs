@@ -1034,20 +1034,25 @@ and selects that window."
 			 (let ((elt (car tail)))
 			   (if (not (string-match "^ "
 						  (buffer-name elt)))
-			       (setq head (cons
-					   (cons
-					    (format
-					     (format "%%%ds  %%s%%s  %%s"
-						     maxbuf)
-					     (buffer-name elt)
-					     (if (buffer-modified-p elt)
-						 "*" " ")
-					     (save-excursion
-					       (set-buffer elt)
-					       (if buffer-read-only "%" " "))
-					     (or (buffer-file-name elt) ""))
-					    elt)
-					   head))))
+			       (setq head
+				(cons
+				 (cons
+				  (format
+				   (format "%%%ds  %%s%%s  %%s" maxbuf)
+				   (buffer-name elt)
+				   (if (buffer-modified-p elt) "*" " ")
+				   (save-excursion
+				     (set-buffer elt)
+				     (if buffer-read-only "%" " "))
+				   (or (buffer-file-name elt) 
+				       (save-excursion
+					 (set-buffer elt)
+					 (if list-buffers-directory
+					     (expand-file-name
+					      list-buffers-directory)))
+				       ""))
+				  elt)
+				 head))))
 			 (setq tail (cdr tail)))
 		       (reverse head))))))
     (let ((buf (x-popup-menu event menu))
