@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.58) $
+ * $HopeName: MMsrc!mpsi.c(trunk.59) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.58) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.59) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -1374,18 +1374,27 @@ void mps_telemetry_label(mps_addr_t addr, mps_word_t intern_id)
 
 /* Allocation Patterns */
 
-/* .alloc-pattern.null: There's only one kind of alloc_pattern now, */
-/* so we represent it by NULL.  Eventually, we'll have a data type */
-/* for allocation patterns. */
 
 mps_alloc_pattern_t mps_alloc_pattern_ramp(void)
 {
-  return NULL;
+  return (mps_alloc_pattern_t)AllocPatternRamp();
+}
+
+mps_alloc_pattern_t mps_alloc_pattern_ramp_collect_all(void)
+{
+  return (mps_alloc_pattern_t)AllocPatternRampCollectAll();
 }
 
 
+/* mps_ap_alloc_pattern_begin -- signal start of an allocation pattern
+ *
+ * .ramp.hack: There are only two allocation patterns, both ramps.
+ * So we cut corners and call BufferRampBegin directly, without
+ * dispatching, and pass the pattern.
+ */
+
 mps_res_t mps_ap_alloc_pattern_begin(mps_ap_t mps_ap,
-                                     mps_alloc_pattern_t mps_alloc_pattern)
+                                     mps_alloc_pattern_t alloc_pattern)
 {
   Buffer buf;
   Arena arena;
@@ -1393,12 +1402,11 @@ mps_res_t mps_ap_alloc_pattern_begin(mps_ap_t mps_ap,
   AVER(mps_ap != NULL);
   buf = BufferOfAP((AP)mps_ap);
   AVER(CHECKT(Buffer, buf));
-  AVER(mps_alloc_pattern == NULL);
 
   arena = BufferArena(buf);
   ArenaEnter(arena);
 
-  BufferRampBegin(buf);
+  BufferRampBegin(buf, (AllocPattern)alloc_pattern);
 
   ArenaLeave(arena);
   return MPS_RES_OK;
