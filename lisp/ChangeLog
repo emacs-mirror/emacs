@@ -32,6 +32,20 @@
 	(diff-apply-hunk): Use the new result from  diff-find-source-location.
 	(diff-goto-source): Use the new diff-find-source-location.
 
+2000-09-20  Dave Love  <fx@gnu.org>
+
+	* iswitchb.el: Some doc fixes.
+	(iswitchb-mode-map): Define completely initially.  Inherit
+	minibuffer-local-map.
+	(iswitchb-completion-help) <!iswitchb-xemacs>: Use
+	fundamental-mode.
+	(iswitchb-global-map): New variable.
+	(iswitchb-summaries-to-end): Amalgamate regexps.
+	(iswitchb-mode): New.
+	(iswitchb-mode-hook): New variable.
+	(iswitchb) <defgroup>: Add URL link.  Use group `completion', not
+	`extensions'.
+
 2000-09-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* ehelp.el (electric-help): New defgroup.

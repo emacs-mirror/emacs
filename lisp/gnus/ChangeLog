@@ -1,3 +1,8 @@
+2000-09-21  Dave Love  <fx@gnu.org>
+
+	* gnus-ems.el (gnus-article-display-xface): Use unibyte for the
+	image processing.  Rationalize logic somewhat.
+
 2000-09-20  Dave Love  <fx@gnu.org>
 
 	* smiley-ems.el, frown.xbm, smile.xbm, wry.xbm: New files.
