@@ -50,14 +50,8 @@ static mps_word_t dylan_make_WV(mps_word_t version, mps_word_t vb,
 	 vf);
 }
 
-
-mps_res_t dylan_init(mps_addr_t addr, size_t size,
-                     mps_addr_t *refs, size_t nr_refs)
+static mps_res_t dylan_make_wrapper_wrapper(void)
 {
-
-  /* Make sure the size is aligned. */
-  assert((size & (ALIGN-1)) == 0);
-
   if(ww == NULL) {
     ww = malloc(sizeof(mps_word_t) * (BASIC_WRAPPER_SIZE + 1));
     if(ww == NULL) return MPS_RES_MEMORY;
@@ -84,10 +78,23 @@ mps_res_t dylan_init(mps_addr_t addr, size_t size,
     tvw[WV] = dylan_make_WV(2, 0, 0, 2); /* traceable variable part */
     tvw[WS] = 1;                 /* no patterns */
   }
+  return MPS_RES_OK;
+}
+
+
+mps_res_t dylan_init(mps_addr_t addr, size_t size,
+                     mps_addr_t *refs, size_t nr_refs)
+{
+  mps_res_t res;
+  /* Make sure the size is aligned. */
+  assert((size & (ALIGN-1)) == 0);
+
+  res = dylan_make_wrapper_wrapper();
+  if (res != MPS_RES_OK)
+    return res;
 
   /* If there is enough room, make a vector, otherwise just */
   /* make a padding object. */
-
   if(size >= sizeof(mps_word_t) * 2) {
     mps_word_t *p = (mps_word_t *)addr;
     mps_word_t i, t = (size / sizeof(mps_word_t)) - 2;
@@ -105,6 +112,38 @@ mps_res_t dylan_init(mps_addr_t addr, size_t size,
   } else
     dylan_pad(addr, size);
 
+  return MPS_RES_OK;
+}
+
+mps_res_t make_dylan_vector(mps_word_t *v, mps_ap_t ap, size_t slots)
+{
+  mps_res_t res;
+  mps_addr_t addr;
+  mps_word_t *p;
+  size_t size;
+  size_t i;
+
+  res = dylan_make_wrapper_wrapper();
+  if (res != MPS_RES_OK)
+    return res;
+
+  size = (slots + 2) * sizeof(mps_word_t);
+
+  do {
+    MPS_RESERVE_BLOCK(res, addr, ap, size);
+    if (res != MPS_RES_OK)
+      return res;
+
+    p = (mps_word_t *)addr;
+    p[0] = (mps_word_t)tvw;     /* install vector wrapper */
+    p[1] = (slots << 2) | 1;    /* tag the vector length */
+    /* fill all slots with zero ints. */
+    for (i=0; i<slots; ++i) {
+      DYLAN_VECTOR_SLOT(p, i) = DYLAN_INT(0);
+    }
+  } while (!mps_commit(ap, addr, size));
+
+  *v = (mps_word_t)p;
   return MPS_RES_OK;
 }
 
@@ -158,18 +197,18 @@ mps_bool_t dylan_check(mps_addr_t addr)
  * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
- * 
+ *
  * 3. Redistributions in any form must be accompanied by information on how
  * to obtain complete source code for this software and any accompanying
  * software that uses this software.  The source code must either be
@@ -180,7 +219,7 @@ mps_bool_t dylan_check(mps_addr_t addr)
  * include source code for modules or files that typically accompany the
  * major components of the operating system on which the executable file
  * runs.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
