@@ -1,3 +1,8 @@
+2005-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* battery.el (display-battery-mode): Rename from display-battery.
+	Handle the case where it gets turned off.
+
 2005-01-04  Richard M. Stallman  <rms@gnu.org>
 
 	* add-log.el (change-log-font-lock-keywords): Don't match just "From".
@@ -5,8 +10,7 @@
 2005-01-04  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (insert-directory): Only look for error lines in
-	inserted text.  Don't move too far after processing --dired
-	markers.
+	inserted text.  Don't move too far after processing --dired markers.
 
 2005-01-04  Richard M. Stallman  <rms@gnu.org>
 
@@ -29,7 +33,7 @@
 	* isearch.el (lazy-highlight): Group renamed from isearch-lazy-...
 	(lazy-highlight-cleanup, lazy-highlight-initial-delay)
 	(lazy-highlight-interval, lazy-highlight-max-at-a-time)
-	(lazy-highlight-face): Renamed from isearch-lazy-...
+	(lazy-highlight-face): Rename from isearch-lazy-...
 	Change all references to them.
 
 2005-01-03  Luc Teirlinck  <teirllm@auburn.edu>

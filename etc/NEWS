@@ -1,5 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.  2003-05-21
-Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005
+          Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -98,6 +99,7 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** display-battery has been replaced by display-battery-mode.
 ** calculator.el now has radix grouping mode, which is available when
 `calculator-output-radix' is non-nil.  In this mode a separator
 character is used every few digits, making it easier to see byte
