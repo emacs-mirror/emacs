@@ -12,7 +12,7 @@ When you add a new item, please add it without either +++ or ---
 so we will look at it
 
 
-* Installation Changes in Emacs 21.3
+* Installation Changes in Emacs 21.4
 
 ** Emacs can now be built without sound support.
 
@@ -35,7 +35,7 @@ Emacs with Leim.
 ** Support for BSD/OS 5.0 was added.
 
 
-* Changes in Emacs 21.3
+* Changes in Emacs 21.4
 
 ** Limited support for charset unification has been added.
 By default, Emacs now knows how to translate latin-N chars between their
@@ -660,7 +660,7 @@ to use standout mode, however they will not be able to display
 mode-lines in inverse-video.
 
 
-* Lisp Changes in Emacs 21.3
+* Lisp Changes in Emacs 21.4
 
 ** The `defmacro' form may contain declarations specifying how to
 indent the macro in Lisp mode and how to debug it with Edebug.  The
@@ -796,6 +796,13 @@ finished.
 The new function `remove-list-of-text-properties' is almost the same
 as `remove-text-properties'.  The only difference is that it takes
 a list of property names as argument rather than a property list.
+
+** New functions insert-for-yank and insert-buffer-substring-as-yank.
+
+These functions work like `insert' and `insert-buffer-substring', but
+removes the text properties in the `yank-excluded-properties' list.
+
+** New function insert-buffer-substring-no-properties.
 
 ** Enhanced networking support.
 

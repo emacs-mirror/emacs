@@ -1,3 +1,8 @@
+2002-04-21  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (insert-buffer-substring-no-properties): New function.
+	(insert-buffer-substring-as-yank): New function.
+
 2002-04-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* files.el (file-name-non-special): Don't mangle the 0'th arg and the
