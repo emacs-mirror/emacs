@@ -800,7 +800,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (when (or (memq system-type '(ms-dos windows-nt))
 	      (and (memq window-system '(x))
 		   (fboundp 'x-backspace-delete-keys-p)
-		   (x-backspace-delete-keys-p)))
+		   (x-backspace-delete-keys-p))
+	      ;; If the terminal Emacs is running on has erase char
+	      ;; set to ^H, use the Backspace key for deleting
+	      ;; backward and, and the Delete key for deleting forward.
+	      (and (null window-system)
+		   (eq tty-erase-char 8)))
       (setq-default normal-erase-is-backspace t)
       (normal-erase-is-backspace-mode 1)))
 
