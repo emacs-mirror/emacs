@@ -53,6 +53,10 @@
 
 ;;; Code:
 
+(defvar shadows-compare-text-p nil
+  "*If non-nil, then shadowing files are reported only if their text differs.
+This is slower, but filters out some innocuous shadowing.")
+
 (defun find-emacs-lisp-shadows (&optional path)
   "Return a list of Emacs Lisp files that create shadows.
 This function does the work for `list-load-path-shadows'.
@@ -78,7 +82,7 @@ See the documentation for `list-load-path-shadows' for further information."
   
     (while path
 
-      (setq dir (file-truename (or (car path) ".")))
+      (setq dir (directory-file-name (file-truename (or (car path) "."))))
       (if (member dir true-names)
 	  ;; We have already considered this PATH redundant directory.
 	  ;; Show the redundancy if we are interactiver, unless the PATH
@@ -89,15 +93,15 @@ See the documentation for `list-load-path-shadows' for further information."
 	      (and (car path)
 		   (not (string= (car path) "."))
 		   (message "Ignoring redundant directory %s" (car path))))
-	
+
 	(setq true-names (append true-names (list dir)))
-	(setq dir (or (car path) "."))
+	(setq dir (directory-file-name (or (car path) ".")))
 	(setq curr-files (if (file-accessible-directory-p dir)
-                               (directory-files dir nil ".\\.elc?$" t)))
+			     (directory-files dir nil ".\\.elc?$" t)))
 	(and curr-files
 	     (not noninteractive)
 	     (message "Checking %d files in %s..." (length curr-files) dir))
-	
+
 	(setq files-seen-this-dir nil)
 
 	(while curr-files
@@ -117,10 +121,17 @@ See the documentation for `list-load-path-shadows' for further information."
 	      
 	    (if (setq orig-dir (assoc file files))
 		;; This file was seen before, we have a shadowing.
+		;; Report it unless the files are identical.
+		(let ((base1 (concat (cdr orig-dir) "/" file))
+		      (base2 (concat dir "/" file)))
+		  (if (not (and shadows-compare-text-p
+				(shadow-same-file-or-nonexistent
+				 (concat base1 ".el") (concat base2 ".el"))
+				;; This is a bit strict, but safe.
+				(shadow-same-file-or-nonexistent
+				 (concat base1 ".elc") (concat base2 ".elc"))))
 		(setq shadows
-		      (append shadows
-			      (list (concat (cdr orig-dir) "/" file)
-				    (concat dir "/" file))))
+		      (append shadows (list base1 base2)))))
 
 	      ;; Not seen before, add it to the list of seen files.
 	      (setq files (cons (cons file dir) files))))
@@ -131,6 +142,19 @@ See the documentation for `list-load-path-shadows' for further information."
     ;; Return the list of shadowings.
     shadows))
 
+;; Return true if neither file exists, or if both exist and have identical
+;; contents.
+(defun shadow-same-file-or-nonexistent (f1 f2)
+  (let ((exists1 (file-exists-p f1))
+	(exists2 (file-exists-p f2)))
+    (or (and (not exists1) (not exists2))
+	(and exists1 exists2
+	     (or (equal (file-truename f1) (file-truename f2))
+		 ;; As a quick test, avoiding spawning a process, compare file
+		 ;; sizes.
+		 (and (= (nth 7 (file-attributes f1))
+			 (nth 7 (file-attributes f2)))
+		      (zerop (call-process "cmp" nil nil nil "-s" f1 f2))))))))
 
 ;;;###autoload
 (defun list-load-path-shadows ()
