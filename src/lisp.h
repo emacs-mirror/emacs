@@ -305,10 +305,12 @@ enum pvec_type
    variable VAR of type TYPE with the added requirement that it be
    TYPEBITS-aligned. */
 #ifndef DECL_ALIGN
+# ifndef MSDOS	/* MS-DOS doesn't currently support USE_LSB_TAG */
 /* What compiler directive should we use for non-gcc compilers?  -stef  */
-# if defined (__GNUC__)
-#  define DECL_ALIGN(type, var) \
-    type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
+#  if defined (__GNUC__)
+#   define DECL_ALIGN(type, var) \
+     type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
+#  endif
 # endif
 #endif
 
