@@ -1,3 +1,13 @@
+2002-07-19  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-cl-warn): Delete `values'
+	and `values-list' from list of CL functions.
+
+2002-07-19  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* emacs-lisp/bytecomp.el (compile-defun): Bind
+	`read-with-symbol-positions' to current buffer.
+
 2002-07-19  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-insert-file): When called with a LIMIT regexp,
