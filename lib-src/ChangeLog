@@ -1,3 +1,13 @@
+2001-11-30  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (FACE_SUPPORT): 
+	(MOUSE_SUPPORT): 
+	(FLOAT_SUPPORT): 
+	(WINNT_SUPPORT): 
+	(lisp): Reference .el files instead of .elc files, to simplify
+	bootstrapping.
+	($(DOC)): Change dependency to just `make-docfile'.
+
 2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Removed.
