@@ -713,14 +713,14 @@ the user from the mailer."
 ;;;###autoload
 (defvar sendmail-coding-system nil
   "*Coding system for encoding the outgoing mail.
-This has higher priority than `defualt-buffer-file-coding-system'
+This has higher priority than `default-buffer-file-coding-system'
 and `default-sendmail-coding-system',
 but lower priority than the local value of `buffer-file-coding-system'.
 See also the function `select-sendmail-coding-system'.")
 
 ;;;###autoload
 (defvar default-sendmail-coding-system 'iso-latin-1
-  "Default coding system for encodihng the outgoing mail.
+  "Default coding system for encoding the outgoing mail.
 This variable is used only when `sendmail-coding-system' is nil.
 
 This variable is set/changed by the command set-language-environment.
