@@ -770,7 +770,7 @@ x_after_update_window_line (desired_row)
 {
   struct window *w = updated_window;
   struct frame *f;
-  int width;
+  int width, height;
   
   xassert (w);
   
@@ -791,9 +791,10 @@ x_after_update_window_line (desired_row)
       && desired_row->full_width_p
       && (f = XFRAME (w->frame),
 	  width = FRAME_INTERNAL_BORDER_WIDTH (f),
-	  width != 0))
+	  width != 0)
+      && (height = desired_row->visible_height,
+	  height > 0))
     {
-      int height = desired_row->visible_height;
       int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 
       /* Internal border is drawn below the tool bar.  */
