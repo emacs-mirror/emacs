@@ -545,3 +545,31 @@ struct scroll_bar {
 #define PIXEL_TO_CHAR_HEIGHT(f, height) \
   (PIXEL_TO_CHAR_ROW (f, ((height) \
 			  - (f)->display.x->internal_border_width)))
+
+/* If a struct input_event has a kind which is selection_request_event
+   or selection_clear_event, then its contents are really described
+   by this structure.  */
+
+/* For an event of kind selection_request_event,
+   this structure really describes the contents.  */
+struct selection_input_event
+{
+  int kind;
+  Display *display;
+  Window requestor;
+  Atom selection, target, property;
+  Time time;
+};
+
+#define SELECTION_EVENT_DISPLAY(eventp)	\
+  (((struct selection_input_event *) (eventp))->display)
+#define SELECTION_EVENT_REQUESTOR(eventp)	\
+  (((struct selection_input_event *) (eventp))->requestor)
+#define SELECTION_EVENT_SELECTION(eventp)	\
+  (((struct selection_input_event *) (eventp))->selection)
+#define SELECTION_EVENT_TARGET(eventp)	\
+  (((struct selection_input_event *) (eventp))->target)
+#define SELECTION_EVENT_PROPERTY(eventp)	\
+  (((struct selection_input_event *) (eventp))->property)
+#define SELECTION_EVENT_TIME(eventp)	\
+  (((struct selection_input_event *) (eventp))->time)
