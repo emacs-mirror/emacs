@@ -1,4 +1,4 @@
-;;; iso-transl.el --- keyboard input definitions for ISO 8859/1
+;;; iso-transl.el --- keyboard input definitions for ISO 8859-1
 
 ;; Copyright (C) 1987, 1993, 1994, 1995 Free Software Foundation, Inc.
 

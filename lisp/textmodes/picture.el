@@ -33,7 +33,7 @@
 ;;; Code:
 
 (defgroup picture nil
-  "Picture mode  --- editing using quarter-plane screen model."
+  "Picture mode --- editing using quarter-plane screen model."
   :prefix "picture-"
   :group 'editing)
 

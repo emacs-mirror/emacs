@@ -1,3 +1,12 @@
+2001-07-17  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* international/iso-transl.el: Fix typo in the header of the file.
+
+	* textmodes/picture.el (picture): Doc fix.
+
+	* international/ja-dic-cnv.el (skkdic-convert): Some fixes to
+	follow coding conventions in generated files.
+
 2001-07-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* toolbar/tool-bar.el (tool-bar-add-item-from-menu) 
