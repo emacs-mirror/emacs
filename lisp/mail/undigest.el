@@ -67,7 +67,7 @@ Leaves original message, deleted, before the undigestified messages."
 			       (mail-fetch-field "To")
 			       (mail-fetch-field "Apparently-To")
 			       (mail-fetch-field "From")))
-			 (error "Message is not a digest")))))
+			 (error "Message is not a digest--bad header")))))
 	      (save-excursion
 		(goto-char (point-max))
 		(skip-chars-backward " \t\n")
@@ -79,7 +79,8 @@ Leaves original message, deleted, before the undigestified messages."
 					    (regexp-quote "*********") "*"
 					    "\\(\n------*\\)*"))
 			(setq found t)))
-		  (if (not found) (error "Message is not a digest"))))
+		  (if (not found)
+		      (error "Message is not a digest--no end line"))))
 	      (re-search-forward (concat "^" (make-string 55 ?-) "-*\n*"))
 	      (replace-match "\^_\^L\n0, unseen,,\n*** EOOH ***\n")
 	      (save-restriction
