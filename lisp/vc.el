@@ -513,7 +513,7 @@ lock steals will raise an error."
     (set (make-local-variable 'vc-parent-buffer) parent)
     (set (make-local-variable 'vc-parent-buffer-name)
 	 (concat " from " (buffer-name vc-parent-buffer)))
-    (vc-mode-line (if file (file-name-nondirectory file) " (no file)"))
+    (vc-mode-line (or file " (no file)"))
     (vc-log-mode)
     (setq vc-log-operation action)
     (setq vc-log-file file)
