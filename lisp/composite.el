@@ -73,7 +73,12 @@ follows (the point `*' corresponds to both reference points):
     |    | new |
     |    |glyph|
     +----+-----+ <--- new descent
-")
+
+A composition rule may have the form \(GLOBAL-REF-POINT
+NEW-REF-POINT XOFF YOFF), where XOFF and YOFF specifies how much
+to shift NEW-REF-POINT from GLOBAL-REF-POINT.  In this case, XOFF
+and YOFF are integers in the range -100..100 representing the
+shifting percentage against the font size.")
 
 ;; Encode composition rule RULE into an integer value.  RULE is a cons
 ;; of global and new reference point symbols.
@@ -84,17 +89,29 @@ follows (the point `*' corresponds to both reference points):
   (if (and (integerp rule) (< rule 144))
       ;; Already encoded.
       rule
-    (or (consp rule)
-	(error "Invalid composition rule: %S" rule))
-    (let ((gref (car rule))
-	  (nref (cdr rule)))
-      (or (integerp gref)
-	  (setq gref (cdr (assq gref reference-point-alist))))
-      (or (integerp nref)
-	  (setq nref (cdr (assq nref reference-point-alist))))
-      (or (and (>= gref 0) (< gref 12) (>= nref 0) (< nref 12))
-	  (error "Invalid composition rule: %S" rule))
-      (+ (* gref 12) nref))))
+    (if (consp rule)
+	(let ((gref (car rule))
+	      (nref (cdr rule))
+	      xoff yoff)
+	  (if (consp nref)		; (GREF NREF XOFF YOFF)
+	      (progn
+		(setq xoff (nth 1 nref)
+		      yoff (nth 2 nref)
+		      nref (car nref))
+		(or (and (>= xoff -100) (<= xoff 100)
+			 (>= yoff -100) (<= yoff 100))
+		    (error "Invalid compostion rule: %s" rule))
+		(setq xoff (+ xoff 128) yoff (+ yoff 128)))
+	    ;; (GREF . NREF)
+	    (setq xoff 0 yoff 0))
+	  (or (integerp gref)
+	      (setq gref (cdr (assq gref reference-point-alist))))
+	  (or (integerp nref)
+	      (setq nref (cdr (assq nref reference-point-alist))))
+	  (or (and (>= gref 0) (< gref 12) (>= nref 0) (< nref 12))
+	      (error "Invalid composition rule: %S" rule))
+	  (logior (lsh xoff 16) (lsh yoff 8) (+ (* gref 12) nref)))
+      (error "Invalid composition rule: %S" rule))))
 
 ;; Decode encoded composition rule RULE-CODE.  The value is a cons of
 ;; global and new reference point symbols.
@@ -102,13 +119,20 @@ follows (the point `*' corresponds to both reference points):
 ;; defined in composite.h.
 
 (defun decode-composition-rule (rule-code)
-  (or (and (natnump rule-code) (< rule-code 144))
+  (or (and (natnump rule-code) (< rule-code #x1000000))
       (error "Invalid encoded composition rule: %S" rule-code))
-  (let ((gref (car (rassq (/ rule-code 12) reference-point-alist)))
-	(nref (car (rassq (% rule-code 12) reference-point-alist))))
+  (let ((xoff (lsh rule-code -16))
+	(yoff (logand (lsh rule-code -8) #xFF))
+	gref nref)
+    (setq rule-code (logand rule-code #xFF)
+	  gref (car (rassq (/ rule-code 12) reference-point-alist))
+	  nref (car (rassq (% rule-code 12) reference-point-alist)))
     (or (and gref (symbolp gref) nref (symbolp nref))
 	(error "Invalid composition rule code: %S" rule-code))
-    (cons gref nref)))
+    (if (and (= xoff 0) (= yoff 0))
+	(cons gref nref)
+      (setq xoff (- xoff 128) yoff (- yoff 128))
+      (list gref xoff yoff nref))))
 
 ;; Encode composition rules in composition components COMPONENTS.  The
 ;; value is a copy of COMPONENTS, where composition rules (cons of
