@@ -248,19 +248,23 @@ report_file_error (string, data)
 	     Fcons (build_string (string), Fcons (errstring, data)));
 }
 
+Lisp_Object
 close_file_unwind (fd)
      Lisp_Object fd;
 {
   close (XFASTINT (fd));
+  return Qnil;
 }
 
 /* Restore point, having saved it as a marker.  */
 
+Lisp_Object
 restore_point_unwind (location)
      Lisp_Object location;
 {
   SET_PT (marker_position (location));
   Fset_marker (location, Qnil, Qnil);
+  return Qnil;
 }
 
 Lisp_Object Qexpand_file_name;
