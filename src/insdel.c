@@ -594,7 +594,9 @@ copy_text (from_addr, to_addr, nbytes,
 
 	  if (c >= 0200 && c < 0400)
 	    {
-	      if (nonascii_insert_offset > 0)
+	      if (! NILP (Vnonascii_translate_table))
+		c = XINT (Faref (Vnonascii_translate_table, make_number (c)));
+	      else if (nonascii_insert_offset > 0)
 		c += nonascii_insert_offset;
 	      else
 		c += DEFAULT_NONASCII_INSERT_OFFSET;
@@ -629,7 +631,9 @@ count_size_as_multibyte (ptr, nbytes)
       unsigned int c = *ptr++;
       if (c >= 0200 && c < 0400)
 	{
-	  if (nonascii_insert_offset > 0)
+	  if (! NILP (Vnonascii_translate_table))
+	    c = XINT (Faref (Vnonascii_translate_table, make_number (c)));
+	  else if (nonascii_insert_offset > 0)
 	    c += nonascii_insert_offset;
 	  else
 	    c += DEFAULT_NONASCII_INSERT_OFFSET;
