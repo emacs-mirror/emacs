@@ -105,19 +105,17 @@ supported.
 @cindex mouse, set number of buttons
 @findex msdos-set-mouse-buttons
   Some versions of mouse drivers don't report the number of mouse
-buttons correctly.  For example, mice with a wheel report that they have
-3 buttons, but only 2 of them are passed to Emacs; the clicks on the
-wheel, which serves as the middle button, are not passed.  In these
-cases, you can use the @kbd{M-x msdos-set-mouse-buttons} command to set
-the notion of number of buttons used by Emacs.  This command prompts for
-the number of buttons, and forces Emacs to behave as if your mouse had
-that number of buttons.  You could make such a setting permanent by
-adding this fragment to your @file{_emacs} init file:
+buttons correctly.  For example, mice with a wheel report that they
+have 3 buttons, but only 2 of them are passed to Emacs; the clicks on
+the wheel, which serves as the middle button, are not passed.  In
+these cases, you can use the @kbd{M-x msdos-set-mouse-buttons} command
+to tell Emacs how many mouse buttons to expect.  You could make such a
+setting permanent by adding this fragment to your @file{_emacs} init
+file:
 
 @example
- ;; Force Emacs to behave as if the mouse had 
- ;; only 2 buttons
- (msdos-set-mouse-buttons 2)
+;; @r{Treat the mouse like a 2-button mouse.}
+(msdos-set-mouse-buttons 2)
 @end example
 
 @cindex Windows clipboard support
@@ -167,15 +165,15 @@ native font built into the DOS display.
 
 @cindex cursor shape on MS-DOS
   When Emacs starts, it changes the cursor shape to a solid box.  This
-is for compatibility with the Unix version, where the box cursor is the
-default.  This default shape can be changed to a bar by specifying the
-@code{cursor-type} parameter in the variable @code{default-frame-alist}
-(@pxref{Creating Frames}).  The MS-DOS terminal doesn't support a
-vertical-bar cursor, so the bar cursor is horizontal, and the
-@code{@var{width}} parameter, if specified by the frame parameters,
-actually determines its height.  As an extension, the bar cursor
-specification can include the starting scan line of the cursor as well
-as its width, like this:
+is for compatibility with other systems, where the box cursor is the
+default in Emacs.  This default shape can be changed to a bar by
+specifying the @code{cursor-type} parameter in the variable
+@code{default-frame-alist} (@pxref{Creating Frames}).  The MS-DOS
+terminal doesn't support a vertical-bar cursor, so the bar cursor is
+horizontal, and the @code{@var{width}} parameter, if specified by the
+frame parameters, actually determines its height.  As an extension,
+the bar cursor specification can include the starting scan line of the
+cursor as well as its width, like this:
 
 @example
  '(cursor-type bar @var{width} . @var{start})
@@ -186,12 +184,12 @@ In addition, if the @var{width} parameter is negative, the cursor bar
 begins at the top of the character cell.
 
 @cindex frames on MS-DOS
-  Multiple frames (@pxref{Frames}) are supported on MS-DOS, but they all
-overlap, so you only see a single frame at any given moment.  That
-single visible frame occupies the entire screen.  When you run Emacs
-from MS-Windows DOS box, you can make the visible frame smaller than
-the full screen, but Emacs still cannot display more than a single
-frame at a time.
+  The MS-DOS terminal can only display a single frame at a time.  The
+Emacs frame facilities work on MS-DOS much as they do on text-only
+terminals (@pxref{Frames}).  When you run Emacs from a DOS window on
+MS-Windows, you can make the visible frame smaller than the full
+screen, but Emacs still cannot display more than a single frame at a
+time.
 
 @cindex frame size under MS-DOS
 @findex mode4350
@@ -287,9 +285,9 @@ environment variable.  That is, if your Emacs binary,
 Emacs acts as if @env{HOME} were set to @samp{c:/utils/emacs}.  In
 particular, that is where Emacs looks for the init file @file{_emacs}.
 With this in mind, you can use @samp{~} in file names as an alias for
-the home directory, as you would in Unix.  You can also set @env{HOME}
-variable in the environment before starting Emacs; its value will then
-override the above default behavior.
+the home directory, as you would on GNU or Unix.  You can also set
+@env{HOME} variable in the environment before starting Emacs; its
+value will then override the above default behavior.
 
   Emacs on MS-DOS handles the directory name @file{/dev} specially,
 because of a feature in the emulator libraries of DJGPP that pretends
@@ -301,8 +299,7 @@ using an actual directory named @file{/dev} on any disk.
 @cindex text and binary files on MS-DOS/MS-Windows
 
   GNU Emacs uses newline characters to separate text lines.  This is the
-convention used on Unix, on which GNU Emacs was developed, and on GNU
-systems since they are modeled on Unix.
+convention used on GNU and Unix.
 
 @cindex end-of-line conversion on MS-DOS/MS-Windows
   MS-DOS and MS-Windows normally use carriage-return linefeed, a
@@ -323,9 +320,10 @@ not agree with the file size information known to the operating system.
 
   In addition, if Emacs recognizes from a file's contents that it uses
 newline rather than carriage-return linefeed as its line separator, it
-does not perform EOL conversion when reading or writing that file.  Thus,
-you can read and edit files from Unix or GNU systems on MS-DOS with no
-special effort, and they will be left with their Unix-style EOLs.
+does not perform EOL conversion when reading or writing that file.
+Thus, you can read and edit files from GNU and Unix systems on MS-DOS
+with no special effort, and they will retain their Unix-style
+end-of-line convention after you edit them.
 
   The mode line indicates whether end-of-line translation was used for
 the current buffer.  If MS-DOS end-of-line translation is in use for the
@@ -336,25 +334,22 @@ instead of the backslash, to alert you that the file's EOL format is not
 the usual carriage-return linefeed.
 
 @cindex DOS-to-Unix conversion of files
-@pindex dos2unix
-  End-of-line conversion is part of the general coding system conversion
-mechanism, so the way to control whether to treat a text file as
-DOS-style or Unix-style is with the commands for specifying a coding
-system (@pxref{Specify Coding}).  For example, @kbd{C-x @key{RET} c unix
-@key{RET} C-x C-f foobar.txt} visits the file @file{foobar.txt} without
-converting the EOLs; if that file has carriage-return linefeed pairs at
-the end of its lines, Emacs will display @samp{^M} at the end of each
-line.  Similarly, you can force Emacs to save a buffer with specific EOL
-format with the @kbd{C-x @key{RET} f} command.  For example, to save a
-buffer with Unix EOL format, type @kbd{C-x @key{RET} f unix @key{RET}
-C-x C-s}.  Thus, visiting a file with DOS EOL conversion, then saving it
-with Unix EOL format effectively converts the file to Unix text style,
-like the popular program @code{dos2unix} does.
+  To visit a file and specify whether it uses DOS-style or Unix-style
+end-of-line, specify a coding system (@pxref{Specify Coding}).  For
+example, @kbd{C-x @key{RET} c unix @key{RET} C-x C-f foobar.txt}
+visits the file @file{foobar.txt} without converting the EOLs; if some
+line ends with a carriage-return linefeed pair, Emacs will display
+@samp{^M} at the end of that line.  Similarly, you can direct Emacs to
+save a buffer in a specified EOL format with the @kbd{C-x @key{RET} f}
+command.  For example, to save a buffer with Unix EOL format, type
+@kbd{C-x @key{RET} f unix @key{RET} C-x C-s}.  If you visit a file
+with DOS EOL conversion, then save it with Unix EOL format, that
+effectively converts the file to Unix EOL style, like @code{dos2unix}.
 
 @cindex untranslated file system
 @findex add-untranslated-filesystem
   When you use NFS or Samba to access file systems that reside on
-computers using Unix or GNU systems, Emacs should not perform
+computers using GNU or Unix systems, Emacs should not perform
 end-of-line translation on any files in these file systems--not even
 when you create a new file.  To request this, designate these file
 systems as @dfn{untranslated} file systems by calling the function
@@ -387,10 +382,10 @@ the function @code{remove-untranslated-filesystem}.  This function takes
 one argument, which should be a string just like the one that was used
 previously with @code{add-untranslated-filesystem}.
 
-  Designating a file system as untranslated does @strong{not} disable
-code conversions as specified by the coding systems set up by your
-language environment, it only affects the EOL conversions, by forcing
-Emacs to create new files with Unix-style newline-only EOLs.
+  Designating a file system as untranslated does not affect character
+set conversion, only end-of-line conversion.  Essentially, it directs
+Emacs to create new files with the Unix-style convention of using
+newline at the end of a line.  @xref{Coding Systems}.
 
 @vindex file-name-buffer-file-type-alist
 @cindex binary files, on MS-DOS/MS-Windows
@@ -415,33 +410,16 @@ always writes those files with DOS-style EOLs.
 the file-name patterns in @code{file-name-buffer-file-type-alist}, the
 EOL conversion is determined by @code{file-name-buffer-file-type-alist}.
 
-@findex find-file-text
-@findex find-file-binary
-  You can visit a file and specify whether to treat it as text or binary
-using the commands @code{find-file-text} and @code{find-file-binary}.
-@code{find-file-text} specifies DOS EOL conversions, but leaves the
-other coding conversions unspecified (Emacs determines the required
-conversions via the usual defaults and coding-detection mechanisms).  On
-the other hand, @code{find-file-binary} turns off @emph{all}
-coding-system conversions.
-
-@findex find-file-literally@r{, and binary files}
-  The @code{find-file-text} and @code{find-file-binary} commands are
-only available when Emacs runs on MS-DOS or MS-Windows.  The command
-@code{find-file-literally}, which is available on all platforms,
-produces the same effect as @code{find-file-binary}.
-
 @node MS-DOS Printing
 @section Printing and MS-DOS
 
   Printing commands, such as @code{lpr-buffer} (@pxref{Hardcopy}) and
 @code{ps-print-buffer} (@pxref{PostScript}) can work in MS-DOS and
 MS-Windows by sending the output to one of the printer ports, if a
-Unix-style @code{lpr} program is unavailable.  This behaviour is
-controlled by the same variables that control printing with @code{lpr}
-on Unix (@pxref{Hardcopy}, @pxref{PostScript Variables}), but the
-defaults for these variables on MS-DOS and MS-Windows are not the same
-as the defaults on Unix.
+Unix-style @code{lpr} program is unavailable.  The same Emacs
+variables control printing on all systems (@pxref{Hardcopy}), but in
+some cases they have different default values on MS-DOS and
+MS-Windows.
 
 @vindex printer-name @r{(MS-DOS)}
   If you want to use your local printer, printing on it in the usual DOS
@@ -703,7 +681,7 @@ when you want to use it (@pxref{Specify Coding}).
 a DOS codepage, using Emacs running on some other operating system.
 
 @cindex MS-Windows codepages
-  MS-Windows features its own codepages, which are different from the
+  MS-Windows provides its own codepages, which are different from the
 DOS codepages for the same locale.  For example, DOS codepage 850
 supports the same character set as Windows codepage 1252; DOS codepage
 855 supports the same character set as Windows codepage 1251, etc.
