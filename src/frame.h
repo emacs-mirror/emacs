@@ -214,6 +214,14 @@ struct frame
      frame becomes visible again, it must be marked as garbaged.  The
      FRAME_SAMPLE_VISIBILITY macro takes care of this.
 
+     On Windows NT/9X, to avoid wasting effort updating visible frames
+     that are actually completely obscured by other windows on the
+     display, we bend the meaning of visible slightly: if greater than
+     1, then the frame is obscured - we still consider it to be
+     "visible" as seen from lisp, but we don't bother updating it.  We
+     must take care to garbage the frame when it ceaces to be obscured
+     though.  Note that these semantics are only used on NT/9X.
+
      iconified is nonzero if the frame is currently iconified.
 
      Asynchronous input handlers should NOT change these directly;
@@ -353,6 +361,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_CURSOR_X(f) (f)->cursor_x
 #define FRAME_CURSOR_Y(f) (f)->cursor_y
 #define FRAME_VISIBLE_P(f) ((f)->visible != 0)
+#define FRAME_OBSCURED_P(f) ((f)->visible > 1)
 #define FRAME_SET_VISIBLE(f,p) \
   ((f)->async_visible = (p), FRAME_SAMPLE_VISIBILITY (f))
 #define SET_FRAME_GARBAGED(f) (frame_garbaged = 1, f->garbaged = 1)
@@ -429,7 +438,8 @@ typedef struct frame *FRAME_PTR;
    it must be marked as garbaged, since redisplay hasn't been keeping
    up its contents.  */
 #define FRAME_SAMPLE_VISIBILITY(f) \
-  (((f)->async_visible && ! (f)->visible) ? SET_FRAME_GARBAGED (f) : 0, \
+  (((f)->async_visible && (f)->visible != (f)->async_visible) ? \
+   SET_FRAME_GARBAGED (f) : 0, \
    (f)->visible = (f)->async_visible, \
    (f)->iconified = (f)->async_iconified)
 
