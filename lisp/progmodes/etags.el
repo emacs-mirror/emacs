@@ -1562,6 +1562,7 @@ see the doc of that variable if you want to add names to the list."
   (or (one-window-p)
       (delete-window)))
 
+;;; Note, there is another definition of this function in bindings.el.
 ;;;###autoload
 (defun complete-tag ()
   "Perform tags completion on the text around point.
