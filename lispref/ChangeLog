@@ -1,9 +1,16 @@
+2003-11-27  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Click Events): Click object may be an images.
+	Describe (dx . dy) element of click positions.
+	(Accessing Events): Remove duplicate posn-timestamp.
+	New functions posn-object and posn-object-x-y.
+
 2003-11-23  Kim F. Storm  <storm@cua.dk>
 
 	* commands.texi (Click Events): Describe enhancements to event
 	position lists, including new text-pos and (col . row) items.
 	Mention left-fringe and right-fringe area events.
-	(Accessing Events): New functions posn-area, posn-object, and
+	(Accessing Events): New functions posn-area and
 	posn-actual-col-row.  Mention posn-timestamp.  Mention that
 	posn-point in non-text area still returns buffer position.
 	Clarify posn-col-row.

@@ -1,3 +1,55 @@
+2003-11-27  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (buffer_posn_from_coords): Calculate and return pixel
+	coordinates relative to glyph at posn.  If glyph is an image,
+	return that as object at posn.  Callers changed.
+	(mode_line_string, marginal_area_string): Calculate and return
+	pixel coordinates relative to glyph.  Callers changed.
+
+	* dispextern.h (buffer_posn_from_coords, mode_line_string)
+	(marginal_area_string): Fix prototypes.
+	(window_box_left_offset, window_box_right_offset): Add prototypes.
+
+	* frame.h (get_specified_cursor_type, get_window_cursor_type):
+	Remove prototypes.
+
+	* keyboard.h (EVENT_CLICK_COUNT, POSN_SCROLLBAR_PART): Fix defines.
+
+	* keyboard.c (make_lispy_position): Add x and y coordinates
+	relative to the current glyph as 7th element of position.
+	If glyph is an image, return it in the object element.
+	(read_key_sequence): Skip checks for keymap property in cases
+	where POSN_STRING is not a string (e.g. an image).
+
+	* xdisp.c (Vdisplay_pixels_per_inch): New variable.
+	(Vshow_text_cursor_in_void): New variable.
+	(glyph_to_pixel_coords): Don't use negative hpos.
+	(x_y_to_hpos_vpos): Fix for partially visible first glyph.
+	(append_stretch_glyph): Change ascent arg to be actual value
+	in pixels rather than ratio to height. Callers changed.
+	(calc_pixel_width_or_height): New aux function, implementing
+	pixel based artihmetic for glyph widths and heights.
+	(produce_stretch_glyph): Use calc_pixel_width_or_height for
+	:width, :height, :align-to, and :ascent, thus allowing these to
+	be specified in pixels as well as multiples of characters.
+	Don't produce stretch glyphs with zero width or height.
+	(get_specified_cursor_type): Declare static.
+	(get_window_cursor_type): Declare static.  Add glyph arg to be
+	able to know when cursor is on an image; always substitute
+	hollow-box cursor for filled-box cursor on images, to avoid
+	negative images and flicker when blinking the cursor.
+	(display_and_set_cursor): Pass glyph to	get_window_cursor_type.
+	(note_mode_line_or_margin_highlight): Use non-text cursor rather
+	than vertical scroll-bar cursor in display margins.
+	(note_mouse_highlight): Use non-text cursor rather than text
+	cursor in fringes and over images in the text area.
+	Use non-text cursor when mouse pointer is outside editable text,
+	i.e. in the void after end-of-line or end-of-buffer; this was
+	already done for W32, but is now standard for all systems --
+	user can toggle show-text-cursor-in-void to get old behaviour.
+	(syms_of_xdisp): DEFVAR_LISP Vshow_text_cursor_in_void and
+	Vdisplay_pixels_per_inch.
+
 2003-11-25  Andreas Schwab  <schwab@suse.de>
 
 	* fns.c (internal_equal) <case Lisp_Vectorlike>: Declare size as

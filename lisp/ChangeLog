@@ -1,3 +1,7 @@
+2003-11-27  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (posn-object-x-y): New defun.
+
 2003-11-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* subr.el (number-sequence): Improve handling of floating point
