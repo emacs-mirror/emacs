@@ -4,7 +4,7 @@
 
 ;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: faces files
-;; Version: 2.08.03
+;; Version: 2.08.04
 
 ;;; This file is part of GNU Emacs.
 
@@ -257,6 +257,7 @@
 ;; 2.08--2.09:
 ;; - Removed `byte-*' variables from `eval-when-compile' (Erik Naggum hint)
 ;; - Made various wrapping `inhibit-point-motion-hooks' (Vinicius Latorre hint)
+;; - Made `lazy-lock-fontify-after-idle' wrap `minibuffer-auto-raise'
 
 ;;; Code:
 
@@ -313,7 +314,7 @@ The value returned is the value of the last form in BODY."
 ;  "Submit via mail a bug report on lazy-lock.el."
 ;  (interactive)
 ;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.08.03"
+;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.08.04"
 ;     '(lazy-lock-minimum-size lazy-lock-defer-on-the-fly
 ;       lazy-lock-defer-on-scrolling lazy-lock-defer-contextually
 ;       lazy-lock-defer-time lazy-lock-stealth-time
@@ -846,7 +847,8 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   ;; Fontify all buffers that need it, stealthily while idle.
   (unless (or executing-kbd-macro (window-minibuffer-p (selected-window)))
     ;; Loop over all buffers, fontify stealthily for each if necessary.
-    (let ((buffers (buffer-list)) (continue t) message message-log-max)
+    (let ((buffers (buffer-list)) (continue t)
+	  message message-log-max minibuffer-auto-raise)
       (save-excursion
 	(do-while (and buffers continue)
 	  (set-buffer (car buffers))
