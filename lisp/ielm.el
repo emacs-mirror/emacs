@@ -1,6 +1,6 @@
 ;;; ielm.el --- interaction mode for Emacs Lisp
 
-;; Copyright (C) 1994, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: David Smith <maa036@lancaster.ac.uk>
 ;; Maintainer: FSF
@@ -462,6 +462,7 @@ Customised bindings may be defined in `ielm-map', which currently contains:
   (setq paragraph-start comint-prompt-regexp)
   (setq comint-input-sender 'ielm-input-sender)
   (setq comint-process-echoes nil)
+  (make-local-variable 'comint-dynamic-complete-functions)
   (setq comint-dynamic-complete-functions
 	'(ielm-tab comint-replace-by-expanded-history ielm-complete-filename ielm-complete-symbol))
   (setq comint-get-old-input 'ielm-get-old-input)
