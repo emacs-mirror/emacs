@@ -74,20 +74,24 @@ to hscroll from your init file and code."
 
 ;;;###autoload
 (defun turn-on-hscroll ()
-  "This function is obsolete.")
+  "This function is obsolete.
+Emacs now does hscrolling automatically, if `truncate-lines' is non-nil.")
 
 ;;;###autoload
 (defun hscroll-mode (&optional arg)
-  "This function is absolete."
+  "This function is obsolete.
+Emacs now does hscrolling automatically, if `truncate-lines' is non-nil."
   (interactive "P"))
 
 ;;;###autoload
 (defun hscroll-global-mode  (&optional arg)
-  "This function is absolete."
+  "This function is obsolete.
+Emacs now does hscrolling automatically, if `truncate-lines' is non-nil."
   (interactive "P"))
 
 (defun hscroll-window-maybe ()
-  "This function is obsolete."
+  "This function is obsolete.
+Emacs now does hscrolling automatically, if `truncate-lines' is non-nil."
   (interactive))
 
 (provide 'hscroll)
