@@ -1,6 +1,6 @@
 ;;; cua-rect.el --- CUA unified rectangle support
 
-;; Copyright (C) 1997-2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2002, 2004 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience CUA
@@ -1057,19 +1057,30 @@ The numbers are formatted according to the FORMAT string."
          (insert (format fmt first))
          (setq first (+ first incr)))))
 
+(defmacro cua--convert-rectangle-as (command)
+  `(cua--rectangle-operation 'clear nil nil nil
+    '(lambda (s e l r)
+       (,command s e))))
+
 (defun cua-upcase-rectangle ()
   "Convert the rectangle to upper case."
   (interactive)
-  (cua--rectangle-operation 'clear nil nil nil
-     '(lambda (s e l r)
-        (upcase-region s e))))
+  (cua--convert-rectangle-as upcase-region))
 
 (defun cua-downcase-rectangle ()
   "Convert the rectangle to lower case."
   (interactive)
-  (cua--rectangle-operation 'clear nil nil nil
-     '(lambda (s e l r)
-        (downcase-region s e))))
+  (cua--convert-rectangle-as downcase-region))
+
+(defun cua-upcase-initials-rectangle ()
+  "Convert the rectangle initials to upper case."
+  (interactive)
+  (cua--convert-rectangle-as upcase-initials-region))
+
+(defun cua-capitalize-rectangle ()
+  "Convert the rectangle to proper case."
+  (interactive)
+  (cua--convert-rectangle-as capitalize-region))
 
 
 ;;; Replace/rearrange text in current rectangle
