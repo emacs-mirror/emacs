@@ -169,7 +169,6 @@ Lisp_Object Qborder_width;
 Lisp_Object Qbox;
 Lisp_Object Qcursor_color;
 Lisp_Object Qcursor_type;
-Lisp_Object Qfont;
 Lisp_Object Qforeground_color;
 Lisp_Object Qgeometry;
 Lisp_Object Qicon_left;
@@ -5037,8 +5036,6 @@ syms_of_xfns ()
   staticpro (&Qcursor_color);
   Qcursor_type = intern ("cursor-type");
   staticpro (&Qcursor_type);
-  Qfont = intern ("font");
-  staticpro (&Qfont);
   Qforeground_color = intern ("foreground-color");
   staticpro (&Qforeground_color);
   Qgeometry = intern ("geometry");
