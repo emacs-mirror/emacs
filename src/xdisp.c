@@ -3123,6 +3123,107 @@ decode_mode_spec (w, c, maxwidth)
   else
     return "";
 }
+
+/* Search for COUNT instances of a line boundary, which means either a
+   newline or (if selective display enabled) a carriage return.
+   Start at START.  If COUNT is negative, search backwards.
+
+   If we find COUNT instances, set *SHORTAGE to zero, and return the
+   position after the COUNTth match.  Note that for reverse motion
+   this is not the same as the usual convention for Emacs motion commands.
+
+   If we don't find COUNT instances before reaching the end of the
+   buffer (or the beginning, if scanning backwards), set *SHORTAGE to
+   the number of line boundaries left unfound, and return the end of the
+   buffer we bumped up against.  */
+
+static int
+display_scan_buffer (start, count, shortage)
+     int *shortage, start;
+     register int count;
+{
+  int limit = ((count > 0) ? ZV - 1 : BEGV);
+  int direction = ((count > 0) ? 1 : -1);
+
+  register unsigned char *cursor;
+  unsigned char *base;
+
+  register int ceiling;
+  register unsigned char *ceiling_addr;
+
+  /* If we are not in selective display mode,
+     check only for newlines.  */
+  if (! (!NILP (current_buffer->selective_display)
+	 && !INTEGERP (current_buffer->selective_display)))
+    return scan_buffer ('\n', start, count, shortage, 0);
+
+  /* The code that follows is like scan_buffer
+     but checks for either newline or carriage return.  */
+
+  if (shortage != 0)
+    *shortage = 0;
+
+  if (count > 0)
+    while (start != limit + 1)
+      {
+	ceiling =  BUFFER_CEILING_OF (start);
+	ceiling = min (limit, ceiling);
+	ceiling_addr = &FETCH_CHAR (ceiling) + 1;
+	base = (cursor = &FETCH_CHAR (start));
+	while (1)
+	  {
+	    while (*cursor != '\n' && *cursor != 015 && ++cursor != ceiling_addr)
+	      ;
+	    if (cursor != ceiling_addr)
+	      {
+		if (--count == 0)
+		  {
+		    immediate_quit = 0;
+		    return (start + cursor - base + 1);
+		  }
+		else
+		  if (++cursor == ceiling_addr)
+		    break;
+	      }
+	    else
+	      break;
+	  }
+	start += cursor - base;
+      }
+  else
+    {
+      start--;			/* first character we scan */
+      while (start > limit - 1)
+	{			/* we WILL scan under start */
+	  ceiling =  BUFFER_FLOOR_OF (start);
+	  ceiling = max (limit, ceiling);
+	  ceiling_addr = &FETCH_CHAR (ceiling) - 1;
+	  base = (cursor = &FETCH_CHAR (start));
+	  cursor++;
+	  while (1)
+	    {
+	      while (--cursor != ceiling_addr
+		     && *cursor != '\n' && *cursor != 015)
+		;
+	      if (cursor != ceiling_addr)
+		{
+		  if (++count == 0)
+		    {
+		      immediate_quit = 0;
+		      return (start + cursor - base + 1);
+		    }
+		}
+	      else
+		break;
+	    }
+	  start += cursor - base;
+	}
+    }
+
+  if (shortage != 0)
+    *shortage = count * direction;
+  return (start + ((direction == 1 ? 0 : 1)));
+}
 
 /* Count up to N lines starting from FROM.
    But don't go beyond LIMIT.
@@ -3143,7 +3244,7 @@ display_count_lines (from, limit, n, pos_ptr)
   else
     ZV = limit;
 
-  *pos_ptr = scan_buffer ('\n', from, n, &shortage, 0);
+  *pos_ptr = display_scan_buffer (from, n, &shortage);
 
   ZV = oldzv;
   BEGV = oldbegv;
