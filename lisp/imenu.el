@@ -729,7 +729,8 @@ Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
 	     (while position
 	       (setq final (assoc (car position) final))
 	       (setq position (cdr position)))
-	     (cdr (cdr (cdr final)))))
+             (or (string= (car final) (car imenu--rescan-item))
+                 (cdr (cdr (cdr final))))))
 	  ;; If x-popup-menu went just one level and found a leaf item,
 	  ;; return the INDEX-ALIST element for that.
 	  ((and (consp position)
