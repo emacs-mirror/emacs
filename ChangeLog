@@ -1,3 +1,10 @@
+2000-09-08  Dave Love  <fx@gnu.org>
+
+	* configure.in: Remove spurious `@'s.
+
+	* aclocal.m4 (AC_FUNC_MMAP): Use fixed version from development
+	autoconf.
+
 2000-09-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in (REL_ALLOC_MMAP): Recognize in system configuration
