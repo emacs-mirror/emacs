@@ -1,4 +1,4 @@
-;;; facemenu.el --- create a face menu for interactively adding fonts to text
+;;; descr-text.el --- describe text mode
 
 ;; Copyright (c) 1994, 1995, 1996, 2001, 2002 Free Software Foundation, Inc.
 

@@ -612,3 +612,5 @@
  ("mga" "興")
  ("m8" "僖凞喜噫囍姬嬉希憙憘戱晞曦熙熹熺犧禧稀羲")
  ("mdw" "詰"))
+
+;;; hanja3.el ends here

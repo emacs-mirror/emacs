@@ -1,4 +1,4 @@
-;;; quail/vntelex.el -- Quail package for Vietnamese by Telex method
+;;; vntelex.el --- Quail package for Vietnamese by Telex method
 
 ;; Copyright (C) 2001 Free Software Foundation.
 
@@ -403,3 +403,5 @@ and postfix: Eee -> Ee, ajj -> aj, etc.
 ;; Local Variables:
 ;; coding: iso-2022-7bit
 ;; End:
+
+;;; vntelex.el ends here
