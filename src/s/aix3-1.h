@@ -220,3 +220,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* AIX doesn't define this.  */
 #define unix 1
+
+/* AIX 3.1 has the HFT features.  */
+#define AIXHFT
