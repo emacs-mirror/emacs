@@ -1,3 +1,7 @@
+2003-02-17  Dave Love  <fx@gnu.org>
+
+	* progmodes/ebrowse.el (ebrowse-output): Don't use gensym.
+
 2003-02-17  Markus Rost  <rost@math.ohio-state.edu>
 
 	* calendar/calendar.el (diary-file-name-prefix-function): Fix
