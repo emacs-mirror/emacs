@@ -4489,8 +4489,8 @@ With argument ARG turn vis-mode on iff ARG is positive.
 
 Enabling vis-mode sets `buffer-invisibility-spec' to nil, after
 saving the old value in the variable
-`saved-buffer-invisibility-spec', making all invisible text in
-the buffer visible.
+`vis-mode-saved-buffer-invisibility-spec', making all invisible
+text in the buffer visible.
 
 Disabling vis-mode restores the saved value of
 `buffer-invisibility-spec'."
