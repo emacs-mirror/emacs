@@ -1547,7 +1547,8 @@ NUM may be an integer or a floating point number.")
 
 DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 1, 0,
   "Convert STRING to a number by parsing it as a decimal number.\n\
-This parses both integers and floating point numbers.")
+This parses both integers and floating point numbers.\n\
+It ignores leading spaces and tabs.")
   (str)
      register Lisp_Object str;
 {
