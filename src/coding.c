@@ -2384,9 +2384,11 @@ setup_coding_system (coding_system, coding)
     case 2:
       coding->type = coding_type_iso2022;
       {
-	Lisp_Object val = XVECTOR (coding_system)->contents[4];
+	Lisp_Object val;
 	Lisp_Object *flags;
 	int i, charset, default_reg_bits = 0;
+
+	val = XVECTOR (coding_system)->contents[4];
 
 	if (!VECTORP (val) || XVECTOR (val)->size != 32)
 	  goto label_invalid_coding_system;
@@ -3114,8 +3116,9 @@ DEFUN ("read-coding-system", Fread_coding_system, Sread_coding_system, 1, 1, 0,
   (prompt)
      Lisp_Object prompt;
 {
-  Lisp_Object val = Fcompleting_read (prompt, Vobarray, Qcoding_system_p,
-				      Qt, Qnil, Qnil, Qnil, Qnil);
+  Lisp_Object val;
+  val = Fcompleting_read (prompt, Vobarray, Qcoding_system_p,
+			  Qt, Qnil, Qnil, Qnil, Qnil);
   return (XSTRING (val)->size == 0 ? Qnil : Fintern (val, Qnil));
 }
 
@@ -3161,7 +3164,8 @@ If only ASCII characters are found, it returns `undecided'\n\
       if (eol_type != CODING_EOL_UNDECIDED
 	  && eol_type != CODING_EOL_INCONSISTENT)
 	{
-	  Lisp_Object val2 = Fget (Qundecided, Qeol_type);
+	  Lisp_Object val2;
+	  val2 = Fget (Qundecided, Qeol_type);
 	  if (VECTORP (val2))
 	    val = XVECTOR (val2)->contents[eol_type];
 	}
@@ -3206,7 +3210,8 @@ If only ASCII characters are found, it returns `undecided'\n\
 	    val = Fcons (XCONS (val2)->car, val);
 	  else
 	    {
-	      Lisp_Object val3 = Fget (XCONS (val2)->car, Qeol_type);
+	      Lisp_Object val3;
+	      val3 = Fget (XCONS (val2)->car, Qeol_type);
 	      if (VECTORP (val3))
 		val = Fcons (XVECTOR (val3)->contents[eol_type], val);
 	      else
@@ -3768,7 +3773,8 @@ which is a list of all the arguments given to this function.")
 
   for (; CONSP (chain); chain = XCONS (chain)->cdr)
     {
-      Lisp_Object elt = XCONS (chain)->car;
+      Lisp_Object elt;
+      elt = XCONS (chain)->car;
 
       if (CONSP (elt)
 	  && ((STRINGP (target)
