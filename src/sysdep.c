@@ -334,11 +334,11 @@ wait_for_termination (pid)
       else
 	sigpause (SIGEMPTYMASK);
 #else /* not BSD, not LINUX, and not HPUX version >= 6 */
-#ifdef UNIPLUS
+#if defined (UNIPLUS) || defined (LINUX)
       if (0 > kill (pid, 0))
 	break;
       wait (0);
-#else /* neither BSD nor UNIPLUS: random sysV */
+#else /* neither BSD nor UNIPLUS nor LINUX: random sysV */
 #ifdef HAVE_SYSV_SIGPAUSE
       sighold (SIGCHLD);
       if (0 > kill (pid, 0))
