@@ -460,6 +460,13 @@ Will change cursor color to specified color if string."
   (require 'cua-gmrk)
   )
 
+
+;;; Low-level Interface
+
+(defvar cua-inhibit-cua-keys nil
+  "Buffer-local variable that may disable the cua keymappings.")
+(make-variable-buffer-local 'cua-inhibit-cua-keys)
+
 ;;; Aux. variables
 
 ;; Current region was started using cua-set-mark.
@@ -1004,6 +1011,7 @@ Extra commands should be added to `cua-user-movement-commands'")
   (setq cua--ena-prefix-override-keymap
 	(and cua--ena-region-keymap
 	     cua-enable-cua-keys
+	     (not cua-inhibit-cua-keys)
 	     (or (eq cua-enable-cua-keys t)
 		 (not cua--explicit-region-start))
 	     (not executing-kbd-macro)
@@ -1013,6 +1021,7 @@ Extra commands should be added to `cua-user-movement-commands'")
 	     (timerp cua--prefix-override-timer)))
   (setq cua--ena-cua-keys-keymap
 	(and cua-enable-cua-keys
+	     (not cua-inhibit-cua-keys)
 	     (or (eq cua-enable-cua-keys t)
 		 cua--last-region-shifted)))
   (setq cua--ena-global-mark-keymap
