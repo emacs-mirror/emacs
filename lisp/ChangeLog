@@ -1,3 +1,8 @@
+1999-10-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/advice.el (ad-activate-on): Make it an alias for
+	ad-activate.
+
 1999-10-30  Rajesh Vaidheeswarran  <rv@dsmit.com>
 
 	* whitespace.el (whitespace-version): Update to 2.6
