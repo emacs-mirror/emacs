@@ -1,3 +1,7 @@
+2002-09-04  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in: All dependencies updated.
+
 2002-09-01  Richard M. Stallman  <rms@gnu.org>
 
 	* unexsol.c: New file.
