@@ -177,7 +177,7 @@ contains at most 10 characters), \"3\" select the third character in
 that group.
 
 This input method supports only Han characters.  The related input
-method which `chinese-py-punct' is the combination of this method and
+method `chinese-py-punct' is the combination of this method and
 `chinese-punct'; it supports both Han characters and punctuation
 characters.
 
@@ -198,10 +198,10 @@ method `chinese-tonepy' with which you must specify tones by digits
     ("chinese-sw" "首尾"
 "Radical base input method for Chinese charset GB2312 (`chinese-gb2312').
 
-In this input method, you enter a Chinese character byte typing two
-keys.  characters.  The first key corresponds to the first (首)
-radical, the second key corresponds to the last (尾) radical.  The
-correspondance of keys and radicals are as below:
+In this input method, you enter a Chinese character by typing two
+keys.  The first key corresponds to the first (首) radical, the second
+key corresponds to the last (尾) radical.  The correspondence of keys
+and radicals is as below:
 
  first radical:
  a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
@@ -216,7 +216,7 @@ correspondance of keys and radicals are as below:
      "Pinyin base input method for Chinese charset GB2312 (`chinese-gb2312').
 
 Pinyin is the standared roman transliteration method for Chinese.
-For the detail of Pinyin system, see the documentation of the input
+For the details of Pinyin system, see the documentation of the input
 method `chinese-py'.
 
 This input method works almost the same way as `chinese-py'.  The
@@ -235,43 +235,44 @@ input method `chinese-qj'.")
     ("chinese-ziranma" "双拼"
 "Pinyin base input method for Chinese GB2312 characters (`chinese-gb2312').
 
-Pinyin is the standared roman transliteration method for Chinese.
-For the detail of Pinyin system, see the documentation of the input
+Pinyin is the standard roman transliteration method for Chinese.
+For the details of Pinyin system, see the documentation of the input
 method `chinese-py'.
 
-In this input method, unlike the standard spelling of Pinyin, all
+unlike the standard spelling of Pinyin, in this input method all
 initials and finals are assigned to single keys (see the above table).
 For instance, the initial \"ch\" is assigned to the key `i', the final
-\"iu\" is assigned to the key `q'.  And tones 1, 2, 3, 4, and 轻声 are
+\"iu\" is assigned to the key `q', and tones 1, 2, 3, 4, and 轻声 are
 assigned to the keys `q', `w', `e', `r', `t' respectively.
 
 \<quail-translation-docstring>
 
-To input one letter Chinese words, you type 4 keys, the first two for
-the Pinyin of the letter, next one for tone, and the last one is
-always quote (').  For instance, \"vsq'1\" input 中.  Exceptions are
-these letters.  You can input them just by typing a single key.
+To input one-letter words, you type 4 keys, the first two for the
+Pinyin of the letter, next one for tone, and the last one is always a
+quote (').  For instance, \"vsq'1\" input 中.  Exceptions are these
+letters.  You can input them just by typing a single key.
 
 	Character: 按 不 次 的 二 发 个 和 出 及 可 了 没
 	Key:	   a  b  c  d  e  f  g  h  i  j  k  l  m
 	Character: 你 欧 片 七 人 三 他 是 着 我 小 一 在
 	Key:	   n  o  p  q  r  s  t  u  v  w  x  y  z
 
-To input two letter words, you have two ways.  One way is to type 4
+To input two-letter words, you have two ways.  One way is to type 4
 keys, two for the first Pinyin, two for the second Pinyin.  For
-instance, \"vsgo\" input 中国.  Another is to type 3 keys\; initials
-of two letters, and quote (').  For instance, \"vg'\" also input 中国.
+instance, \"vsgo\" inputs 中国.  Another way is to type 3 keys: 2
+initials of two letters, and quote (').  For instance, \"vg'\" also
+inputs 中国.
 
-To input three letter words, you type 4 keys\; initials of three
-letters, and the last is quote (').  For instance, \"bjy'2\" input 北
-京鸭 (the last `2' is to select one from candidates).
+To input three-letter words, you type 4 keys: initials of three
+letters, and the last is quote (').  For instance, \"bjy'2\" inputs 北
+京鸭 (the last `2' is to select one of the candidates).
 
 To input words of more than three letters, you type 4 keys, initials
 of the first three letters and the last letter.  For instance,
-\"bjdt\" input 北京电视台.
+\"bjdt\" inputs 北京电视台.
 
 To input symbols and punctuations, type `/' followed by one of `a' to
-`z', then select one from candidates.
+`z', then select one of the candidates.
 
 ")
 
@@ -279,7 +280,7 @@ To input symbols and punctuations, type `/' followed by one of `a' to
 "Zhuyin base input method for Chinese Big5 characters (`chinese-big5-1',
 `chinese-big5-2').
 
-Zhuyin is a kind of phonetic symbol.  One to three Zhuyin symbols
+Zhuyin is a kind of a phonetic symbol.  One to three Zhuyin symbols
 compose a Chinese character.
 
 In this input method, you enter a Chinese character by first typing
