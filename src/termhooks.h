@@ -323,7 +323,11 @@ enum event_kind
 
   /* Queued from XTread_socket on FocusIn events.  Translated into
      `switch-frame' events in kbd_buffer_get_event, if necessary.  */
-  FOCUS_IN_EVENT
+  FOCUS_IN_EVENT,
+
+  /* Queued from XTread_socket when session manager sends
+     save yourself before shutdown. */
+  save_session_event
 };
 
 /* If a struct input_event has a kind which is selection_request_event
