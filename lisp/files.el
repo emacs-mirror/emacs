@@ -1581,42 +1581,8 @@ and we don't even do that unless it would come from the file name."
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
       (and enable-local-variables
-	   ;; Don't look for -*- if this file name matches any
-	   ;; of the regexps in inhibit-first-line-modes-regexps.
-	   (let ((temp inhibit-first-line-modes-regexps)
-		 (name (if buffer-file-name
-			   (file-name-sans-versions buffer-file-name)
-			 (buffer-name))))
-	     (while (let ((sufs inhibit-first-line-modes-suffixes))
-		      (while (and sufs (not (string-match (car sufs) name)))
-			(setq sufs (cdr sufs)))
-		      sufs)
-	       (setq name (substring name 0 (match-beginning 0))))
-	     (while (and temp
-			 (not (string-match (car temp) name)))
-	       (setq temp (cdr temp)))
-	     (not temp))
-	   (search-forward "-*-" (save-excursion
-				   ;; If the file begins with "#!"
-				   ;; (exec interpreter magic), look
-				   ;; for mode frobs in the first two
-				   ;; lines.  You cannot necessarily
-				   ;; put them in the first line of
-				   ;; such a file without screwing up
-				   ;; the interpreter invocation.
-				   (end-of-line (and (looking-at "^#!") 2))
-				   (point)) t)
+	   (setq end (set-auto-mode-1))
 	   (progn
-	     (skip-chars-forward " \t")
-	     (setq beg (point))
-	     (search-forward "-*-"
-			     (save-excursion (end-of-line) (point))
-			     t))
-	   (progn
-	     (forward-char -3)
-	     (skip-chars-backward " \t")
-	     (setq end (point))
-	     (goto-char beg)
 	     (if (save-excursion (search-forward ":" end t))
 		 ;; Find all specifications for the `mode:' variable
 		 ;; and execute them left to right.
@@ -1693,6 +1659,54 @@ and we don't even do that unless it would come from the file name."
 		    (if elt
 			(funcall (cdr elt))))))))))))
 
+
+(defun set-auto-mode-1 ()
+  "Find the -*- spec in the buffer.
+Call with point at the place to start searching from.
+If one is found, set point to the beginning
+and return the position of the end.
+Otherwise, return nil; point may be changed."
+  (let (beg end)
+    (and
+     ;; Don't look for -*- if this file name matches any
+     ;; of the regexps in inhibit-first-line-modes-regexps.
+     (let ((temp inhibit-first-line-modes-regexps)
+	   (name (if buffer-file-name
+		     (file-name-sans-versions buffer-file-name)
+		   (buffer-name))))
+       (while (let ((sufs inhibit-first-line-modes-suffixes))
+		(while (and sufs (not (string-match (car sufs) name)))
+		  (setq sufs (cdr sufs)))
+		sufs)
+	 (setq name (substring name 0 (match-beginning 0))))
+       (while (and temp
+		   (not (string-match (car temp) name)))
+	 (setq temp (cdr temp)))
+       (not temp))
+
+     (search-forward "-*-" (save-excursion
+			     ;; If the file begins with "#!"
+			     ;; (exec interpreter magic), look
+			     ;; for mode frobs in the first two
+			     ;; lines.  You cannot necessarily
+			     ;; put them in the first line of
+			     ;; such a file without screwing up
+			     ;; the interpreter invocation.
+			     (end-of-line (and (looking-at "^#!") 2))
+			     (point)) t)
+     (progn
+       (skip-chars-forward " \t")
+       (setq beg (point))
+       (search-forward "-*-"
+		       (save-excursion (end-of-line) (point))
+		       t))
+     (progn
+       (forward-char -3)
+       (skip-chars-backward " \t")
+       (setq end (point))
+       (goto-char beg)
+       end))))
+
 (defun hack-local-variables-prop-line ()
   "Set local variables specified in the -*- line.
 Ignore any specification for `mode:' and `coding:';
@@ -1701,12 +1715,11 @@ Ignore any specification for `mode:' and `coding:';
   (save-excursion
     (goto-char (point-min))
     (let ((result nil)
-	  (end (save-excursion (end-of-line (and (looking-at "^#!") 2)) (point)))
+	  (end (set-auto-mode-1))
 	  (enable-local-variables
 	   (and local-enable-local-variables enable-local-variables)))
       ;; Parse the -*- line into the `result' alist.
-      (cond ((not (search-forward "-*-" end t))
-	     ;; doesn't have one.
+      (cond ((not end)
 	     nil)
 	    ((looking-at "[ \t]*\\([^ \t\n\r:;]+\\)\\([ \t]*-\\*-\\)")
 	     ;; Simple form: "-*- MODENAME -*-".  Already handled.
@@ -1714,10 +1727,6 @@ Ignore any specification for `mode:' and `coding:';
 	    (t
 	     ;; Hairy form: '-*-' [ <variable> ':' <value> ';' ]* '-*-'
 	     ;; (last ";" is optional).
-	     (save-excursion
-	       (if (search-forward "-*-" end t)
-		   (setq end (- (point) 3))
-		 (error "-*- not terminated before end of line")))
 	     (while (< (point) end)
 	       (or (looking-at "[ \t]*\\([^ \t\n:]+\\)[ \t]*:[ \t]*")
 		   (error "Malformed -*- line"))
