@@ -204,8 +204,8 @@ message.dvi: message.texi
 ../info/sieve: sieve.texi
 	cd $(srcdir); $(MAKEINFO) sieve.texi
 sieve.dvi: sieve.texi
-
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/sieve.texi
+
 ../info/emacs-mime: emacs-mime.texi
 	cd $(srcdir); $(MAKEINFO) emacs-mime.texi
 emacs-mime.dvi: emacs-mime.texi
