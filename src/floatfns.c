@@ -315,13 +315,13 @@ DEFUN ("bessel-j1", Fbessel_j1, Sbessel_j1, 1, 1, 0,
 DEFUN ("bessel-jn", Fbessel_jn, Sbessel_jn, 2, 2, 0,
   "Return the order N bessel function output jn of ARG.\n\
 The first arg (the order) is truncated to an integer.")
-  (arg1, arg2)
-     register Lisp_Object arg1, arg2;
+  (n, arg)
+     register Lisp_Object n, arg;
 {
-  int i1 = extract_float (arg1);
-  double f2 = extract_float (arg2);
+  int i1 = extract_float (n);
+  double f2 = extract_float (arg);
 
-  IN_FLOAT (f2 = jn (i1, f2), "bessel-jn", arg1);
+  IN_FLOAT (f2 = jn (i1, f2), "bessel-jn", n);
   return make_float (f2);
 }
 
@@ -348,13 +348,13 @@ DEFUN ("bessel-y1", Fbessel_y1, Sbessel_y1, 1, 1, 0,
 DEFUN ("bessel-yn", Fbessel_yn, Sbessel_yn, 2, 2, 0,
   "Return the order N bessel function output yn of ARG.\n\
 The first arg (the order) is truncated to an integer.")
-  (arg1, arg2)
-     register Lisp_Object arg1, arg2;
+  (n, arg)
+     register Lisp_Object n, arg;
 {
-  int i1 = extract_float (arg1);
-  double f2 = extract_float (arg2);
+  int i1 = extract_float (n);
+  double f2 = extract_float (arg);
 
-  IN_FLOAT (f2 = yn (i1, f2), "bessel-yn", arg1);
+  IN_FLOAT (f2 = yn (i1, f2), "bessel-yn", n);
   return make_float (f2);
 }
 
