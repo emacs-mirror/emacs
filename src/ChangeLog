@@ -1,5 +1,10 @@
 2001-10-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* emacs.c: Fix typos in comments.
+	Remove unnecessary spaces.
+	Change doc-string comments to `new style' [w/`doc:' keyword].
+	(USAGE2): Fix typos in usage string.
+
 	* xterm.c: Fix typo in a comment.
 
 	* lisp.h: (gdb_lisp_params): Remove code in #if 0 which is now in
