@@ -1,6 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.18) $
+ *  $HopeName: MMsrc!fmtdy.c(trunk.19) $
  *  Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers, Dylan developers
@@ -187,11 +187,6 @@ int dylan_wrapper_check(mps_word_t *w)
 
   /* There should be no shift in word vector formats. */
   assert((vf & 6) == 4 || es == 0);
-
-  /* .assume.byte: Dylan only uses byte vectors, so the shift should be 3. */
-  /* Note that the code supports other sizes -- this check is only */
-  /* for Dylan consistency. */
-  assert((vf & 6) != 4 || es == 3);
 
   /* The fifth word is the number of patterns in the pattern */
   /* vector.  This can be calculated from the fixed part length. */
