@@ -590,6 +590,7 @@ sys_suspend ()
     }
 
   save_signal_handlers (saved_handlers);
+  synch_process_alive = 1;
   wait_for_termination (pid);
   restore_signal_handlers (saved_handlers);
 
