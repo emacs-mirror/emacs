@@ -1,5 +1,19 @@
 2002-09-08  Dave Love  <fx@gnu.org>
 
+	* international/mule-conf.el (emacs-mule, iso-2022-7bit) 
+	(iso-2022-7bit-ss2, iso-2022-7bit-lock, iso-2022-8bit-ss2) 
+	(compound-text, ctext-no-compositions): Remove :charset-list.
+
+	* international/mule-cmds.el (language-info-custom-alist): New.
+	(input-method-activate-hook, input-method-inactivate-hook) 
+	(input-method-after-insert-chunk-hook) 
+	(input-method-use-echo-area, set-language-environment-hook) 
+	(exit-language-environment-hook): Customize.
+	(find-coding-systems-for-charsets): Rewritten.
+	(default-input-method): Add :link.
+
+2002-09-08  Dave Love  <fx@gnu.org>
+
 	* international/mule-conf.el (eight-bit): Add :docstring,
 	:short-name properties.
 	(cp851): Doc fix.
