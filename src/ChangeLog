@@ -1,5 +1,11 @@
 2004-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xmenu.c: Add prototypes for forward function declarations.
+	(popup_get_selection): Remove parameter do_timers, remove call to
+	timer_check.
+	(create_and_show_popup_menu, create_and_show_dialog): Remove 
+	parameter do_timers from call to popup_get_selection.
+
 	* xdisp.c (update_tool_bar): Pass a copy of f->tool_bar_items to
 	tool_bar_items and assign the result to f->tool_bar_items if
 	not equal.  Move BLOCK/UNBLOCK_INPUT from around call to
