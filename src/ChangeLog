@@ -1,3 +1,8 @@
+2001-02-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (Fmove_to_window_line): Don't add 1 if window is
+	vscrolled.
+
 2001-02-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* ccl.c (CCL_WRITE_CHAR): Check if CH is valid or not.  If
