@@ -2123,77 +2123,61 @@ face_numeric_swidth (width)
 }
 
 
-/* Return an ASCII font name generated from fontset name NAME and
-   ASCII font specification ASCII_SPEC.  NAME is a string conforming
-   to XLFD.  ASCII_SPEC is a vector:
-	[FAMILY WEIGHT SLANT SWIDTH ADSTYLE REGISTRY].  */
-
 Lisp_Object
-generate_ascii_font_name (name, ascii_spec)
-     Lisp_Object name, ascii_spec;
-{
-  struct font_name font;
-  char *p;
-
-  font.name = LSTRDUPA (name);
-  if (! split_font_name (NULL, &font, 0))
-    return Qnil;
-
-  if (STRINGP (AREF (ascii_spec, FONT_SPEC_FAMILY_INDEX)))
-    {
-      p = LSTRDUPA (AREF (ascii_spec, FONT_SPEC_FAMILY_INDEX));
-      font.fields[XLFD_FOUNDRY] = p;
-      while (*p != '-') p++;
-      if (*p)
-	{
-	  *p++ = 0;
-	  font.fields[XLFD_FAMILY] = p;
-	}
-      else
-	{
-	  font.fields[XLFD_FAMILY] = font.fields[XLFD_FOUNDRY];
-	  font.fields[XLFD_FOUNDRY] = "*";
-	}
-    }
-  if (STRINGP (AREF (ascii_spec, FONT_SPEC_WEIGHT_INDEX)))
-    font.fields[XLFD_WEIGHT]
-      = XSTRING (AREF (ascii_spec, FONT_SPEC_WEIGHT_INDEX))->data;
-  if (STRINGP (AREF (ascii_spec, FONT_SPEC_SLANT_INDEX)))
-    font.fields[XLFD_SLANT]
-      = XSTRING (AREF (ascii_spec, FONT_SPEC_SLANT_INDEX))->data;
-  if (STRINGP (AREF (ascii_spec, FONT_SPEC_SWIDTH_INDEX)))
-    font.fields[XLFD_SWIDTH]
-      = XSTRING (AREF (ascii_spec, FONT_SPEC_SWIDTH_INDEX))->data;
-  if (STRINGP (AREF (ascii_spec, FONT_SPEC_ADSTYLE_INDEX)))
-    font.fields[XLFD_ADSTYLE]
-      = XSTRING (AREF (ascii_spec, FONT_SPEC_ADSTYLE_INDEX))->data;
-  p = LSTRDUPA (AREF (ascii_spec, FONT_SPEC_REGISTRY_INDEX));
-  font.fields[XLFD_REGISTRY] = p;
-  while (*p != '-') p++;
-  if (*p)
-    *p++ = 0;
-  else
-    p = "*";
-  font.fields[XLFD_ENCODING] = p;
-
-  p = build_font_name (&font);
-  name = build_string (p);
-  xfree (p);
-  return name;
-}
-
-
-Lisp_Object
-font_name_registry (fontname)
+split_font_name_into_vector (fontname)
      Lisp_Object fontname;
 {
   struct font_name font;
+  Lisp_Object vec;
+  int i;
 
   font.name = LSTRDUPA (fontname);
   if (! split_font_name (NULL, &font, 0))
     return Qnil;
-  font.fields[XLFD_ENCODING][-1] = '-';
-  return build_string (font.fields[XLFD_REGISTRY]);
+  vec = Fmake_vector (make_number (XLFD_LAST), Qnil);
+  for (i = 0; i < XLFD_LAST; i++)
+    if (font.fields[i][0] != '*')
+      ASET (vec, i, build_string (font.fields[i]));
+  return vec;
+}
+
+Lisp_Object
+build_font_name_from_vector (vec)
+     Lisp_Object vec;
+{
+  struct font_name font;
+  Lisp_Object fontname;
+  char *p;
+  int i;
+
+  for (i = 0; i < XLFD_LAST; i++)
+    {
+      font.fields[i] = (NILP (AREF (vec, i))
+			? "*" : (char *) XSTRING (AREF (vec, i))->data);
+      if ((i == XLFD_FAMILY || i == XLFD_REGISTRY)
+	  && (p = strchr (font.fields[i], '-')))
+	{
+	  char *p1 = STRDUPA (font.fields[i]);
+
+	  p1[p - font.fields[i]] = '\0';
+	  if (i == XLFD_FAMILY)
+	    {
+	      font.fields[XLFD_FOUNDRY] = p1;
+	      font.fields[XLFD_FAMILY] = p + 1;
+	    }
+	  else
+	    {
+	      font.fields[XLFD_REGISTRY] = p1;
+	      font.fields[XLFD_ENCODING] = p + 1;
+	      break;
+	    }
+	}
+    }
+
+  p = build_font_name (&font);
+  fontname = build_string (p);
+  xfree (p);
+  return fontname;
 }
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2732,8 +2716,9 @@ concat_font_list (fonts1, nfonts1, fonts2, nfonts2)
 
    If PATTERN is non-nil, list fonts matching that pattern.
 
-   If REGISTRY is non-nil, return fonts with that registry and the
-   alternative registries from Vface_alternative_font_registry_alist.
+   If REGISTRY is non-nil, it is a list of registry (and encoding)
+   names.  Return fonts with those registries and the alternative
+   registries from Vface_alternative_font_registry_alist.
    
    If REGISTRY is nil return fonts of any registry.
 
@@ -2747,35 +2732,37 @@ font_list (f, pattern, family, registry, fonts)
      Lisp_Object pattern, family, registry;
      struct font_name **fonts;
 {
-  int nfonts = font_list_1 (f, pattern, family, registry, fonts);
-  
-  if (!NILP (registry)
-      && CONSP (Vface_alternative_font_registry_alist))
+  int nfonts;
+  int reg_prio;
+  int i;
+
+  if (NILP (registry))
+    return font_list_1 (f, pattern, family, registry, fonts);
+
+  for (reg_prio = 0, nfonts = 0; CONSP (registry); registry = XCDR (registry))
     {
-      Lisp_Object alter;
+      Lisp_Object elt, alter;
+      int nfonts2;
+      struct font_name *fonts2;
 
-      alter = Fassoc (registry, Vface_alternative_font_registry_alist);
-      if (CONSP (alter))
+      elt = XCAR (registry);
+      alter = Fassoc (elt, Vface_alternative_font_registry_alist);
+      if (NILP (alter))
+	alter = Fcons (elt, Qnil);
+      for (; CONSP (alter); alter = XCDR (alter), reg_prio++)
 	{
-	  int reg_prio, i;
-
-	  for (alter = XCDR (alter), reg_prio = 1;
-	       CONSP (alter);
-	       alter = XCDR (alter), reg_prio++)
-	    if (STRINGP (XCAR (alter)))
-	      {
-		int nfonts2;
-		struct font_name *fonts2;
-
-		nfonts2 = font_list_1 (f, pattern, family, XCAR (alter),
-				       &fonts2);
+	  nfonts2 = font_list_1 (f, pattern, family, XCAR (alter), &fonts2);
+	  if (nfonts2 > 0)
+	    {
+	      if (reg_prio > 0)
 		for (i = 0; i < nfonts2; i++)
 		  fonts2[i].registry_priority = reg_prio;
-		*fonts = (nfonts > 0
-			  ? concat_font_list (*fonts, nfonts, fonts2, nfonts2)
-			  : fonts2);
-		nfonts += nfonts2;
-	      }
+	      if (nfonts > 0)
+		*fonts = concat_font_list (*fonts, nfonts, fonts2, nfonts2);
+	      else
+		*fonts = fonts2;
+	      nfonts += nfonts2;
+	    }
 	}
     }
 
@@ -6286,23 +6273,23 @@ choose_face_font (f, attrs, font_spec)
 
   /* If we are choosing an ASCII font and a font name is explicitly
      specified in ATTRS, return it.  */
-#if 0
   if (NILP (font_spec) && STRINGP (attrs[LFACE_FONT_INDEX]))
     return xstrdup (XSTRING (attrs[LFACE_FONT_INDEX])->data);
-#endif
 
   if (NILP (attrs[LFACE_FAMILY_INDEX]))
     family = Qnil;
   else
     family = Fcons (attrs[LFACE_FAMILY_INDEX], Qnil);
 
+  /* Decide FAMILY, ADSTYLE, and REGISTRY from FONT_SPEC.  But,
+     ADSTYLE is not used in the font selector for the moment.  */
   if (VECTORP (font_spec))
     {
       pattern = Qnil;
       if (STRINGP (AREF (font_spec, FONT_SPEC_FAMILY_INDEX)))
 	family = Fcons (AREF (font_spec, FONT_SPEC_FAMILY_INDEX), family);
       adstyle = AREF (font_spec, FONT_SPEC_ADSTYLE_INDEX);
-      registry = AREF (font_spec, FONT_SPEC_REGISTRY_INDEX);
+      registry = Fcons (AREF (font_spec, FONT_SPEC_REGISTRY_INDEX), Qnil);
     }
   else if (STRINGP (font_spec))
     {
@@ -6313,9 +6300,34 @@ choose_face_font (f, attrs, font_spec)
     }
   else
     {
+      /* We are choosing an ASCII font.  By default, use the registry
+	 name "iso8859-1".  But, if the registry name of the ASCII
+	 font specified in the fontset of ATTRS is not "iso8859-1"
+	 (e.g "iso10646-1"), use also that name with higher
+	 priority.  */
+      int fontset = face_fontset (attrs);
+      Lisp_Object ascii;
+      int len;
+      struct font_name font;
+
       pattern = Qnil;
       adstyle = Qnil;
-      registry = build_string ("iso8859-1");
+      registry = Fcons (build_string ("iso8859-1"), Qnil);
+
+      ascii = fontset_ascii (fontset);
+      len = STRING_BYTES (XSTRING (ascii));
+      if (len < 9
+	  || strcmp (XSTRING (ascii)->data + len - 9, "iso8859-1"))
+	{
+	  font.name = LSTRDUPA (ascii);
+	  /* Check if the name is in XLFD.  */
+	  if (split_font_name (f, &font, 0))
+	    {
+	      font.fields[XLFD_ENCODING][-1] = '-';
+	      registry = Fcons (build_string (font.fields[XLFD_REGISTRY]),
+				registry);
+	    }
+	}
     }
 
   /* Get a list of fonts matching that pattern and choose the
