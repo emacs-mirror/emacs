@@ -808,4 +808,4 @@ buffer's case table.
 @cindex ISO Latin 1
 @pindex iso-syntax
 You can load the library @file{iso-syntax} to set up the standard syntax
-table and define a case table for the 256-bit ISO Latin 1 character set.
+table and define a case table for the 8-bit ISO Latin 1 character set.
