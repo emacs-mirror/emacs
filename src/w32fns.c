@@ -333,6 +333,11 @@ extern Lisp_Object Vwindow_system_version;
 
 Lisp_Object Qface_set_after_frame_default;
 
+#ifdef GLYPH_DEBUG
+int image_cache_refcount, dpyinfo_refcount;
+#endif
+
+
 /* From w32term.c. */
 extern Lisp_Object Vw32_num_mouse_buttons;
 extern Lisp_Object Vw32_recognize_altgr;
@@ -688,6 +693,9 @@ struct x_frame_parm_table
   void (*setter) P_ ((struct frame *, Lisp_Object, Lisp_Object));
 };
 
+static Lisp_Object unwind_create_frame P_ ((Lisp_Object));
+static Lisp_Object unwind_create_tip_frame P_ ((Lisp_Object));
+static void x_change_window_heights P_ ((Lisp_Object, int));
 /* TODO: Native Input Method support; see x_create_im.  */
 void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 static void x_set_line_spacing P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -5109,6 +5117,37 @@ x_make_gc (f)
 }
 
 
+/* Handler for signals raised during x_create_frame and
+   x_create_top_frame.  FRAME is the frame which is partially
+   constructed.  */
+
+static Lisp_Object
+unwind_create_frame (frame)
+     Lisp_Object frame;
+{
+  struct frame *f = XFRAME (frame);
+
+  /* If frame is ``official'', nothing to do.  */
+  if (!CONSP (Vframe_list) || !EQ (XCAR (Vframe_list), frame))
+    {
+#ifdef GLYPH_DEBUG
+      struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+#endif
+      
+      x_free_frame_resources (f);
+
+      /* Check that reference counts are indeed correct.  */
+      xassert (dpyinfo->reference_count == dpyinfo_refcount);
+      xassert (dpyinfo->image_cache->refcount == image_cache_refcount);
+  
+      tip_window = NULL;
+      tip_frame = Qnil;
+    }
+  
+  return Qnil;
+}
+
+
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
   "Make a new window, which is called a \"frame\" in Emacs terms.\n\
@@ -5198,8 +5237,8 @@ This function is an internal primitive--use `make-frame' instead.")
   f->output_data.w32 =
     (struct w32_output *) xmalloc (sizeof (struct w32_output));
   bzero (f->output_data.w32, sizeof (struct w32_output));
-
   FRAME_FONTSET (f) = -1;
+  record_unwind_protect (unwind_create_frame, frame);
 
   f->icon_name
     = w32_get_arg (parms, Qicon_name, "iconName", "Title", RES_TYPE_STRING);
@@ -12176,7 +12215,7 @@ static Lisp_Object x_create_tip_frame P_ ((struct w32_display_info *,
      
 /* The frame of a currently visible tooltip, or null.  */
 
-struct frame *tip_frame;
+Lisp_Object tip_frame;
 
 /* If non-nil, a timer started that hides the last tooltip when it
    fires.  */
@@ -12184,8 +12223,23 @@ struct frame *tip_frame;
 Lisp_Object tip_timer;
 Window tip_window;
 
+static Lisp_Object
+unwind_create_tip_frame (frame)
+     Lisp_Object frame;
+{
+  tip_window = NULL;
+  tip_frame = Qnil;
+  return unwind_create_frame (frame);
+}
+
+
 /* Create a frame for a tooltip on the display described by DPYINFO.
-   PARMS is a list of frame parameters.  Value is the frame.  */
+   PARMS is a list of frame parameters.  Value is the frame.
+
+   Note that functions called here, esp. x_default_parameter can
+   signal errors, for instance when a specified color name is
+   undefined.  We have to make sure that we're in a consistent state
+   when this happens.  */
 
 static Lisp_Object
 x_create_tip_frame (dpyinfo, parms)
@@ -12224,9 +12278,10 @@ x_create_tip_frame (dpyinfo, parms)
 
   frame = Qnil;
   GCPRO3 (parms, name, frame);
-  tip_frame = f = make_frame (1);
+  f = make_frame (1);
   XSETFRAME (frame, f);
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
+  record_unwind_protect (unwind_create_tip_frame, frame);
 
   f->output_method = output_w32;
   f->output_data.w32 =
@@ -12238,6 +12293,10 @@ x_create_tip_frame (dpyinfo, parms)
   f->output_data.w32->fontset = -1;
   f->icon_name = Qnil;
 
+#ifdef GLYPH_DEBUG
+  image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
 #ifdef MULTI_KBOARD
   FRAME_KBOARD (f) = kb;
 #endif
@@ -12412,6 +12471,7 @@ x_create_tip_frame (dpyinfo, parms)
      below.  And the frame needs to be on Vframe_list or making it
      visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
+  tip_frame = frame;
 
   /* Now that the frame is official, it counts as a reference to
      its display.  */
@@ -12498,7 +12558,7 @@ DY added (default is -5).")
   /* Create a frame for the tooltip, and record it in the global
      variable tip_frame.  */
   frame = x_create_tip_frame (FRAME_W32_DISPLAY_INFO (f), parms);
-  tip_frame = f = XFRAME (frame);
+  f = XFRAME (frame);
 
   /* Set up the frame's root window.  Currently we use a size of 80
      columns x 40 lines.  If someone wants to show a larger tip, he
@@ -12605,28 +12665,34 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
 Value is t is tooltip was open, nil otherwise.")
   ()
 {
-  int count = specpdl_ptr - specpdl;
-  int deleted_p = 0;
+  int count;
+  Lisp_Object deleted, frame, timer;
+  struct gcpro gcpro1, gcpro2;
+
+  /* Return quickly if nothing to do.  */
+  if (NILP (tip_timer) && NILP (tip_frame))
+    return Qnil;
   
+  frame = tip_frame;
+  timer = tip_timer;
+  GCPRO2 (frame, timer);
+  tip_frame = tip_timer = deleted = Qnil;
+  
+  count = BINDING_STACK_SIZE ();
   specbind (Qinhibit_redisplay, Qt);
+  specbind (Qinhibit_quit, Qt);
   
-  if (!NILP (tip_timer))
+  if (!NILP (timer))
+    call1 (intern ("cancel-timer"), timer);
+
+  if (FRAMEP (frame))
     {
-      call1 (intern ("cancel-timer"), tip_timer);
-      tip_timer = Qnil;
+      Fdelete_frame (frame, Qnil);
+      deleted = Qt;
     }
 
-  if (tip_frame)
-    {
-      Lisp_Object frame;
-      
-      XSETFRAME (frame, tip_frame);
-      Fdelete_frame (frame, Qt);
-      tip_frame = NULL;
-      deleted_p = 1;
-    }
-
-  return unbind_to (count, deleted_p ? Qt : Qnil);
+  UNGCPRO;
+  return unbind_to (count, deleted);
 }
 #endif
 
