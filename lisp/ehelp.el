@@ -25,7 +25,7 @@
 
 ;; This package provides a pre-packaged `Electric Help Mode' for
 ;; browsing on-line help screens.  There is one entry point,
-;; `with-electric-help'; All you have to give it is a no-argument
+;; `with-electric-help'; all you have to give it is a no-argument
 ;; function that generates the actual text of the help into the current
 ;; buffer.
 
@@ -69,8 +69,9 @@
   ;(run-hooks 'electric-help-mode-hook)
   )
 
+;;;###autoload
 (defun with-electric-help (thunk &optional buffer noerase)
-  "Arguments are THUNK &optional BUFFER NOERASE.  BUFFER defaults to \"*Help*\"
+  "Arguments are THUNK &optional BUFFER NOERASE.  BUFFER defaults to `*Help*'.
 THUNK is a function of no arguments which is called to initialize
 the contents of BUFFER.  BUFFER will be erased before THUNK is called unless
 NOERASE is non-nil.  THUNK will be called with `standard-output' bound to
@@ -81,7 +82,7 @@ in which BUFFER is displayed and allows the user to scroll through that buffer
 in electric-help-mode.
 When the user exits (with `electric-help-exit', or otherwise) the help
 buffer's window disappears (i.e., we use `save-window-excursion')
-BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit"
+BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
   (setq buffer (get-buffer-create (or buffer "*Help*")))
   (let ((one (one-window-p t))
 	(config (current-window-configuration))
@@ -207,6 +208,7 @@ will select it.)"
   (sit-for 2))
 
 
+;;;###autoload
 (defun electric-helpify (fun)
   (let ((name "*Help*"))
     (if (save-window-excursion
