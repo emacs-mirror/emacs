@@ -662,10 +662,9 @@ with your script for an edit-interpret-debug cycle."
     ;; parse or insert magic number for exec() and set all variables depending
     ;; on the shell thus determined
     (goto-char (point-min))
-    (sh-set-shell
-     (if (looking-at "#![\t ]*\\([^\t\n ]+\\)")
-	 (match-string 1)
-       sh-shell-file)))
+    (and (zerop (buffer-size))
+	 (not buffer-read-only)
+	 (sh-set-shell sh-shell-file)))
   (run-hooks 'sh-mode-hook))
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
