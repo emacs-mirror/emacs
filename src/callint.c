@@ -525,7 +525,7 @@ Its numeric meaning is what you would get from `(interactive \"p\")'.")
 
   if (NILP (raw))
     XFASTINT (val) = 1;
-  else if (XTYPE (raw) == Lisp_Symbol)
+  else if (EQ (val, Qminus))
     XSETINT (val, -1);
   else if (CONSP (raw))
     XSETINT (val, XINT (XCONS (raw)->car));
