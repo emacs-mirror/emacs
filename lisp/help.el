@@ -245,30 +245,34 @@ of the key sequence that ran this command."
     (print-help-return-message)))
 
 (make-help-screen help-for-help
-  "a b c f i k l m n p s t v w C-c C-d C-n C-w.  Type \\[help-for-help] again for more help: "
+  "a b c f C-f i k C-k l m n p s t v w C-c C-d C-n C-w.  Type \\[help-for-help] again for more help: "
   "You have typed \\[help-for-help], the help character.  Type a Help option:
 
-a  command-apropos.   Give a substring, and see a list of commands
-              (functions interactively callable) that contain
-	      that substring.  See also the  apropos  command.
+a  command-apropos.  Give a substring, and see a list of commands
+	(functions interactively callable) that contain
+	that substring.  See also the  apropos  command.
 b  describe-bindings.  Display table of all key bindings.
 c  describe-key-briefly.  Type a command key sequence;
-	      it prints the function name that sequence runs.
+	it prints the function name that sequence runs.
 f  describe-function.  Type a function name and get documentation of it.
+C-f Info-goto-emacs-command-node.  Type a function name;
+	it takes you to the Info node for that command.
 i  info. The  info  documentation reader.
 k  describe-key.  Type a command key sequence;
-	      it displays the full documentation.
+	it displays the full documentation.
+C-k Info-goto-emacs-key-command-node.  Type a command key sequence;
+	it takes you to the Info node for the command bound to that key.
 l  view-lossage.  Shows last 100 characters you typed.
 m  describe-mode.  Print documentation of current major mode,
-	      which describes the commands peculiar to it.
+	which describes the commands peculiar to it.
 n  view-emacs-news.  Shows emacs news file.
 p  finder-by-keyword. Find packages matching a given topic keyword.
 s  describe-syntax.  Display contents of syntax table, plus explanations
 t  help-with-tutorial.  Select the Emacs learn-by-doing tutorial.
 v  describe-variable.  Type name of a variable;
-	      it displays the variable's documentation and value.
+	it displays the variable's documentation and value.
 w  where-is.  Type command name; it prints which keystrokes
-	      invoke that command.
+	invoke that command.
 C-c print Emacs copying permission (General Public License).
 C-d print Emacs ordering information.
 C-n print news of recent Emacs changes.
