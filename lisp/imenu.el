@@ -151,9 +151,9 @@ which case you might as well set this to nil."
 		 (const :tag "None" nil))
   :group 'imenu)
 
-(defcustom imenu-space-replacement "^"
+(defcustom imenu-space-replacement "."
   "*The replacement string for spaces in index names.
-Used when presenting the index in a completion-buffer to make the
+Used when presenting the index in a completion buffer to make the
 names work as tokens."
   :type 'string
   :group 'imenu)
