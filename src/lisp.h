@@ -76,7 +76,7 @@ extern void die P_((const char *, const char *, int));
 #endif
 
 /* Used for making sure that Emacs is compilable in all
-   conigurations.  */
+   configurations.  */
 
 #ifdef USE_LISP_UNION_TYPE
 #undef NO_UNION_TYPE
