@@ -76,6 +76,16 @@ else
   sleep 5
 fi
 
+### Make sure we don't already have a directory  emacs-${version}.
+
+emacsname="emacs-${version}${new_extension}"
+
+if [ -d ${emacsname} ]
+then
+  echo Directory "${emacsname}" already exists >&2
+  exit 1
+fi
+
 ### Make sure the subdirectory is available.
 tempparent="make-dist.tmp.$$"
 if [ -d ${tempparent} ]; then
@@ -108,8 +118,8 @@ fi
 (cd lib-src; make -f Makefile.in getdate.c YACC="bison -y")
 
 echo "Creating staging directory: \`${tempparent}'"
+
 mkdir ${tempparent}
-emacsname="emacs-${version}${new_extension}"
 tempdir="${tempparent}/${emacsname}"
 
 ### This trap ensures that the staging directory will be cleaned up even
@@ -129,9 +139,10 @@ echo "Making links to top-level files."
 ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README move-if-change ${tempdir}
 ln ChangeLog Makefile.in build-ins.in configure configure.in ${tempdir}
 ln make-dist vpath.sed ${tempdir}
-### Copy config.guess and config.sub; they're cross-filesystem symlinks.
+### Copy these files; they're cross-filesystem symlinks.
 cp config.sub ${tempdir}
 cp config.guess ${tempdir}
+cp install.sh ${tempdir}
 
 echo "Updating version number in README."
 (cd ${tempdir}
@@ -337,6 +348,9 @@ fi
 
 if [ "${clean_up}" = yes ]; then
   echo "Cleaning up the staging directory."
+  rm -rf ${tempparent}
+else
+  (cd ${tempparent}; mv ${emacsname} ..)
   rm -rf ${tempparent}
 fi
 
