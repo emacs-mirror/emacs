@@ -603,27 +603,30 @@ and TO is ignored."
 	    (with-output-to-temp-buffer "*Warning*"
 	      (save-excursion
 		(set-buffer standard-output)
-		(insert "These default coding systems were tried")
-		(if (stringp from)
-		    (insert " to encode \""
-			    (if (> (length from) 10)
-				(substring from 0 10)
-			      from)
-			    "...\""))
-		(insert ":\n")
-		(let ((pos (point))
-		      (fill-prefix "  "))
-		  (mapcar (function (lambda (x) (princ "  ") (princ (car x))))
-			  default-coding-system)
-		  (insert "\n")
-		  (fill-region-as-paragraph pos (point)))
-		(insert
-		 (if (consp coding-system)
-		     (concat (format "%s safely encodes the target text,\n"
-				     (car coding-system))
-			     "but it is not recommended for encoding text in this context,\n"
-			     "e.g., for sending an email message.\n")
-		   "However, none of them safely encodes the target text.\n"))
+		(if (not default-coding-system)
+		    (insert "No default coding systems to try.")
+		  (insert "These default coding systems were tried")
+		  (if (stringp from)
+		      (insert " to encode \""
+			      (if (> (length from) 10)
+				  (substring from 0 10)
+				from)
+			      "...\""))
+		  (insert ":\n")
+		  (let ((pos (point))
+			(fill-prefix "  "))
+		    (mapcar (function (lambda (x)
+					(princ "  ") (princ (car x))))
+			    default-coding-system)
+		    (insert "\n")
+		    (fill-region-as-paragraph pos (point)))
+		  (insert
+		   (if (consp coding-system)
+		       (concat (format "%s safely encodes the target text,\n"
+				       (car coding-system))
+			       "but it is not recommended for encoding text in this context,\n"
+			       "e.g., for sending an email message.\n")
+		     "However, none of them safely encodes the target text.\n")))
 		(insert (if (consp coding-system)
 			    "\nSelect the above, or "
 			  "\nSelect ")
