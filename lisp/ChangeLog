@@ -1,3 +1,8 @@
+2005-02-28  Kim F. Storm  <storm@cua.dk>
+
+	* double.el (double-translate-key): Call force-window-update after
+	read-event to avoid crash in redisplay.
+
 2005-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/debug.el (inhibit-debug-on-entry): New var.
