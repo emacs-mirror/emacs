@@ -3384,6 +3384,14 @@ describe_vector (vector, elt_prefix, args, elt_describer,
       (*elt_describer) (definition, args);
     }
 
+  if (CHAR_TABLE_P (vector) && ! NILP (XCHAR_TABLE (vector)->defalt))
+    {
+      if (!NILP (elt_prefix))
+	insert1 (elt_prefix);
+      insert ("default", 7);
+      (*elt_describer) (XCHAR_TABLE (vector)->defalt, args);
+    }
+
   UNGCPRO;
 }
 
