@@ -321,7 +321,7 @@ This is an interface to the function `load'."
   "Copy the file FILE into a temporary file on this machine.
 Returns the name of the local copy, or nil, if FILE is directly
 accessible."
-  (let ((handler (find-file-name-handler file)))
+  (let ((handler (find-file-name-handler file 'file-local-copy)))
     (if handler
 	(funcall handler 'file-local-copy file)
       nil)))
@@ -338,7 +338,7 @@ containing it, until no links are left at any level."
 	(setq filename (expand-file-name filename))
 	(if (string= filename "")
 	    (setq filename "/"))))
-  (let ((handler (find-file-name-handler filename)))
+  (let ((handler (find-file-name-handler filename 'file-truename)))
     ;; For file name that has a special handler, call handler.
     ;; This is so that ange-ftp can save time by doing a no-op.
     (if handler
@@ -1326,7 +1326,7 @@ This is a separate procedure so your site-init or startup file can
 redefine it.
 If the optional argument KEEP-BACKUP-VERSION is non-nil,
 we do not remove backup version numbers, only true file version numbers."
-  (let ((handler (find-file-name-handler name)))
+  (let ((handler (find-file-name-handler name 'file-name-sans-versions)))
     (if handler
 	(funcall handler 'file-name-sans-versions name keep-backup-version)
       (substring name 0
@@ -1735,7 +1735,7 @@ to create parent directories if they don't exist."
    (list (read-file-name "Make directory: " default-directory default-directory
 			 nil nil)
 	 t))
-  (let ((handler (find-file-name-handler dir)))
+  (let ((handler (find-file-name-handler dir 'make-directory)))
     (if handler
 	(funcall handler 'make-directory dir parents)
       (if (not parents)
@@ -2000,7 +2000,7 @@ switches do not contain `d', so that a full listing is expected.
 This works by running a directory listing program
 whose name is in the variable `insert-directory-program'.
 If WILDCARD, it also runs the shell specified by `shell-file-name'."
-  (let ((handler (find-file-name-handler file)))
+  (let ((handler (find-file-name-handler file 'insert-directory)))
     (if handler
 	(funcall handler 'insert-directory file switches
 		 wildcard full-directory-p)

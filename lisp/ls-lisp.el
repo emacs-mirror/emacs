@@ -62,7 +62,7 @@ It does not support ordinary shell wildcards; instead, it allows
 regular expressions to match file names.
 
 The switches that work are: A a c i r S s t u"
-  (let ((handler (find-file-name-handler file)))
+  (let ((handler (find-file-name-handler file 'insert-directory)))
     (if handler
 	(funcall handler 'insert-directory file switches
 		 wildcard full-directory-p)
