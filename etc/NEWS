@@ -4,6 +4,8 @@ See the end for copying conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
 For older news, see the file ONEWS
+You can narrow news to the specific version by calling
+`view-emacs-news' with a prefix argument or by typing C-u C-h C-n.
 
 Temporary note:
  +++ indicates that the appropriate manual has already been updated.
