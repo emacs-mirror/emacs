@@ -94,7 +94,9 @@ AC_ARG_WITH(png,
 [  --with-png              use -lpng for displaying PNG images])
 AC_ARG_WITH(toolkit-scroll-bars,
 [  --without-toolkit-scroll-bars
-                          don't use Motif or Xaw3d scroll bars])
+                           don't use Motif or Xaw3d scroll bars])
+AC_ARG_WITH(xim,
+[  --without-xim	   don't use X11 XIM])
 
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessary, since pwd can
@@ -1740,6 +1742,13 @@ if test "${with_toolkit_scroll_bars}" != "no"; then
       USE_TOOLKIT_SCROLL_BARS=yes
     fi
   fi
+fi
+
+dnl Don't use X11 input methods if user specifies he doesn't want it
+dnl with `--with-xim=no'.
+
+if test "${with_xim}" != "no"; then
+  AC_DEFINE(USE_XIM)
 fi
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
