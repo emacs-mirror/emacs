@@ -230,10 +230,11 @@ before and after, depending on the surrounding characters."
   (newline-and-indent))
 
 (defun lisp-complete-symbol ()
-  "Perform completion on Lisp symbol preceding point.  That symbol is
-compared against the symbols that exist and any additional characters
-determined by what is there are inserted.
-   If the symbol starts just after an open-parenthesis, only symbols
+  "Perform completion on Lisp symbol preceding point.
+Compare that symbol against the known Lisp symbols.
+
+The context determines which symbols are considered.
+If the symbol starts just after an open-parenthesis, only symbols
 with function definitions are considered.  Otherwise, all symbols with
 function definitions, values or properties are considered."
   (interactive)
