@@ -1,3 +1,8 @@
+2001-07-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dired.c (file_name_completion): Pass dp->d_name to
+	Fstring_match, not elt, which is always nil here.
+
 2001-07-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xselect.c (x_decline_selection_request): Handle errors
