@@ -2668,7 +2668,8 @@ consider_token (str, len, c, c_extp, cblev, parlev, is_func_or_var)
 	      fvdef = vignore;
 	      return FALSE;
 	    }
-	  if ((*c_extp & C_PLPL) && strneq (str+len-10, "::operator", 10))
+	  if ((*c_extp & C_PLPL) &&
+	      strneq (len >= 10 && str+len-10, "::operator", 10))
 	    {
 	      fvdef = foperator;
 	      *is_func_or_var = TRUE;
