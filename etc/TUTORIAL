@@ -1049,6 +1049,28 @@ beside the corresponding command names such as find-file.
 		primary documentation.
 
 
+* MORE FEATURES
+---------------
+
+You can learn more about Emacs by reading its manual, either as a book
+or on-line in Info (use the Help menu or type F10 h r).  Two features
+that you may like especially are completion, which saves typing, and
+dired, which simplifies file handling.
+
+Completion is a way to avoid unnecessary typing.  For instance, if you
+want to switch to the *Messages* buffer, you can type C-x b *M<Tab>
+and Emacs will fill in the rest of the buffer name as far as it can
+determine from what you have already typed.  Completion is described
+in Info in the Emacs manual in the node called "Completion".
+
+Dired enables you to list files in a directory (and optionally its
+subdirectories), move around that list, visit, rename, delete and
+otherwise operate on the files.  Dired is described in Info in the
+Emacs manual in the node called "Dired".
+
+The manual also describes many other Emacs features.
+
+
 * CONCLUSION
 ------------
 
