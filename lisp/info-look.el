@@ -747,6 +747,14 @@ Special commands:
 	      "`" "\\({[^}]*}\\)?'")))
 
 (info-lookup-maybe-add-help
+ :mode 'scheme-mode
+ :regexp ;; "\\(\\sw\\|\\s_\\)+"
+ "[^()' \t\n]+"
+ :ignore-case t
+ ;; Aubrey Jaffer's rendition from <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm>
+ :doc-spec '(("(r5rs)Index")))
+
+(info-lookup-maybe-add-help
  :mode 'emacs-lisp-mode
  :regexp "[^()' \t\n]+"
  :doc-spec '(("(emacs)Command Index")
