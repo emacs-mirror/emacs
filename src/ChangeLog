@@ -1,3 +1,7 @@
+2004-04-26  Miles Bader  <miles@gnu.org>
+
+	* lisp.h (CYCLE_CHECK): Macro moved from xfaces.c.
+
 2004-04-26  Juanma Barranquero  <lektu@terra.es>
 
 	* buffer.c (Fpop_to_buffer): Fix docstring.
