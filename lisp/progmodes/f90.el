@@ -3,7 +3,7 @@
 ;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <T.Einarsson@clab.ericsson.se>
-;; Last Change: Oct. 14, 1996
+;; Last Change: May 29 1997
 ;; Keywords: fortran, f90, languages
 
 ;; This file is part of GNU Emacs.
@@ -999,9 +999,9 @@ Name is nil if the statement has no label."
 		(list struct label)))))))
 
 (defsubst f90-looking-at-where-or-forall ()
-  "Return (kind name) if a where or forall statement starts after point.
+  "Return (kind name) if a where or forall block starts after point.
 Name is nil if the statement has no label."
-  (if (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\\(where\\|forall\\)[ \t]*(")
+  (if (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\\(where\\|forall\\)[ \t]*(.*)[ \t]*\\(!\\|$\\)")
       (let (label
 	    (struct (f90-match-piece 3)))
 	(if (looking-at "\\(\\sw+\\)[ \t]*\:")
