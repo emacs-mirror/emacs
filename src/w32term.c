@@ -48,6 +48,7 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "keyboard.h"
 #include "intervals.h"
+#include "coding.h"
 
 #undef min
 #undef max
@@ -147,6 +148,9 @@ Lisp_Object Vw32_grab_focus_on_raise;
 
 /* Control whether Caps Lock affects non-ascii characters.  */
 Lisp_Object Vw32_capslock_is_shiftlock;
+
+/* Control whether right-alt and left-ctrl should be recognized as AltGr.  */
+Lisp_Object Vw32_recognize_altgr;
 
 /* The scroll bar in which the last motion event occurred.
 
@@ -457,13 +461,14 @@ w32_cursor_to (row, col)
    Call this function with input blocked.  */
 
 static void
-dumpglyphs (f, left, top, gp, n, hl, just_foreground)
+dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
      struct frame *f;
      int left, top;
      register GLYPH *gp; /* Points to first GLYPH. */
      register int n;  /* Number of glyphs to display. */
      int hl;
      int just_foreground;
+	 struct cmpchar_info *cmpcharp;
 {
   /* Holds characters to be displayed. */
   char *buf = (char *) alloca (f->width * sizeof (*buf));
@@ -480,35 +485,78 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
     {
       /* Get the face-code of the next GLYPH.  */
       int cf, len;
-      int g = *gp;
+      GLYPH g = *gp;
+      int ch, charset;
 
       GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
-      cf = FAST_GLYPH_FACE (g);
+      cf = (cmpcharp ? cmpcharp->face_work : FAST_GLYPH_FACE (g));
+      ch = FAST_GLYPH_CHAR (g);
+      charset = CHAR_CHARSET (ch);
+      if (charset == CHARSET_COMPOSITION)
+	{
+  	  struct face *face = FRAME_DEFAULT_FACE (f);
+	  XFontStruct *font = FACE_FONT (face);
+	  /* We must draw components of the composite character on the
+	     same column */
+	  cmpcharp = cmpchar_table[COMPOSITE_CHAR_ID (ch)];
 
+	  /* Set the face in the slot for work. */
+	  cmpcharp->face_work = cf;
+
+	  dumpglyphs (f, left, top, cmpcharp->glyph, cmpcharp->glyph_len,
+		      hl, just_foreground, cmpcharp);
+	  left += FONT_WIDTH (font) * cmpcharp->width;
+	  ++gp, --n;
+	  while (gp && (*gp & GLYPH_MASK_PADDING)) ++gp, --n;
+	  cmpcharp = NULL;
+	  continue;
+	}
       /* Find the run of consecutive glyphs with the same face-code.
 	 Extract their character codes into BUF.  */
       cp = buf;
       while (n > 0)
 	{
+	  int this_charset, c[2];
+
 	  g = *gp;
 	  GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
-	  if (FAST_GLYPH_FACE (g) != cf)
+	  ch = FAST_GLYPH_CHAR (g);
+	  SPLIT_CHAR (ch, this_charset, c[0], c[1]);
+	  if (this_charset != charset
+	      || (cmpcharp == NULL && FAST_GLYPH_FACE (g) != cf))
 	    break;
 
-	  *cp++ = FAST_GLYPH_CHAR (g);
-	  --n;
-	  ++gp;
+	  if ( c[1] > 0 )
+	    {
+	      int consumed, produced;
+	      /* Handle multibyte characters (still assuming user
+	         selects correct font themselves for now */
+	      produced = encode_terminal_code(gp, cp, 1,
+			  (f->width*sizeof(*buf))-(cp-buf), &consumed);
+		  /* If we can't display this glyph, skip it */
+		  if (consumed == 0)
+		  	  gp++,n--;
+		  else
+			gp += consumed, n-= consumed;
+		  cp += produced;
+		}
+	  else
+	    {
+	      *cp++ = c[0];
+	      ++gp, --n;
+	    }
+	  while (gp && (*gp & GLYPH_MASK_PADDING))
+	    ++gp, --n;
 	}
 
       /* LEN gets the length of the run.  */
       len = cp - buf;
-
       /* Now output this run of chars, with the font and pixel values
 	 determined by the face code CF.  */
       {
+	int stippled = 0;
 	struct face *face = FRAME_DEFAULT_FACE (f);
 	XFontStruct *font = FACE_FONT (face);
-	int stippled = 0;
 	COLORREF fg;
 	COLORREF bg;
 
@@ -662,7 +710,7 @@ w32_write_glyphs (start, len)
   dumpglyphs (f,
 	      CHAR_TO_PIXEL_COL (f, curs_x),
 	      CHAR_TO_PIXEL_ROW (f, curs_y),
-	      start, len, highlight, 0);
+	      start, len, highlight, 0, NULL);
 
   /* If we drew on top of the cursor, note that it is turned off.  */
   if (curs_y == f->phys_cursor_y
@@ -755,7 +803,7 @@ w32_ring_bell ()
   BLOCK_INPUT;
 
   if (visible_bell)
-      FlashWindow (FRAME_W32_WINDOW (selected_frame), FALSE);
+      FlashWindow (FRAME_W32_WINDOW (selected_frame), TRUE);
   else
       w32_sys_ring_bell ();
 
@@ -1012,7 +1060,7 @@ dumprectangle (f, left, top, cols, rows)
 		  CHAR_TO_PIXEL_COL (f, left),
 		  CHAR_TO_PIXEL_ROW (f, y),
 		  line, min (cols, active_frame->used[y] - left),
-		  active_frame->highlight[y], 0);
+		  active_frame->highlight[y], 0, NULL);
     }
 
   /* Turn the cursor on if we turned it off.  */
@@ -1683,7 +1731,7 @@ show_mouse_face (dpyinfo, hl)
 		  FRAME_CURRENT_GLYPHS (f)->glyphs[i] + column,
 		  endcolumn - column,
 		  /* Highlight with mouse face if hl > 0.  */
-		  hl > 0 ? 3 : 0, 0);
+		  hl > 0 ? 3 : 0, 0, NULL);
     }
 
   /* If we turned the cursor off, turn it back on.  */
@@ -1911,6 +1959,13 @@ my_set_focus (f, hwnd)
 {
   SendMessage (FRAME_W32_WINDOW (f), WM_EMACS_SETFOCUS, 
 	       (WPARAM) hwnd, 0);
+}
+
+BOOL
+my_set_foreground_window (hwnd)
+     HWND hwnd;
+{
+  SendMessage (hwnd, WM_EMACS_SETFOREGROUND, (WPARAM) hwnd, 0);
 }
 
 void
@@ -2201,6 +2256,19 @@ static void
 w32_condemn_scroll_bars (frame)
      FRAME_PTR frame;
 {
+  /* Transfer all the scroll bars to FRAME_CONDEMNED_SCROLL_BARS.  */
+  while (! NILP (FRAME_SCROLL_BARS (frame)))
+    {
+      Lisp_Object bar;
+      bar = FRAME_SCROLL_BARS (frame);
+      FRAME_SCROLL_BARS (frame) = XSCROLL_BAR (bar)->next;
+      XSCROLL_BAR (bar)->next = FRAME_CONDEMNED_SCROLL_BARS (frame);
+      XSCROLL_BAR (bar)->prev = Qnil;
+      if (! NILP (FRAME_CONDEMNED_SCROLL_BARS (frame)))
+	XSCROLL_BAR (FRAME_CONDEMNED_SCROLL_BARS (frame))->prev = bar;
+      FRAME_CONDEMNED_SCROLL_BARS (frame) = bar;
+    }
+#ifdef PIGSFLY
   /* The condemned list should be empty at this point; if it's not,
      then the rest of Emacs isn't using the condemn/redeem/judge
      protocol correctly.  */
@@ -2210,6 +2278,7 @@ w32_condemn_scroll_bars (frame)
   /* Move them all to the "condemned" list.  */
   FRAME_CONDEMNED_SCROLL_BARS (frame) = FRAME_SCROLL_BARS (frame);
   FRAME_SCROLL_BARS (frame) = Qnil;
+#endif
 }
 
 /* Unmark WINDOW's scroll bar for deletion in this judgement cycle.
@@ -2218,6 +2287,46 @@ static void
 w32_redeem_scroll_bar (window)
      struct window *window;
 {
+  struct scroll_bar *bar;
+
+  /* We can't redeem this window's scroll bar if it doesn't have one.  */
+  if (NILP (window->vertical_scroll_bar))
+    abort ();
+
+  bar = XSCROLL_BAR (window->vertical_scroll_bar);
+
+  /* Unlink it from the condemned list.  */
+  {
+    FRAME_PTR f = XFRAME (WINDOW_FRAME (window));
+
+    if (NILP (bar->prev))
+      {
+	/* If the prev pointer is nil, it must be the first in one of
+           the lists.  */
+	if (EQ (FRAME_SCROLL_BARS (f), window->vertical_scroll_bar))
+	  /* It's not condemned.  Everything's fine.  */
+	  return;
+	else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
+		     window->vertical_scroll_bar))
+	  FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
+	else
+	  /* If its prev pointer is nil, it must be at the front of
+             one or the other!  */
+	  abort ();
+      }
+    else
+      XSCROLL_BAR (bar->prev)->next = bar->next;
+
+    if (! NILP (bar->next))
+      XSCROLL_BAR (bar->next)->prev = bar->prev;
+
+    bar->next = FRAME_SCROLL_BARS (f);
+    bar->prev = Qnil;
+    XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+    if (! NILP (bar->next))
+      XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
+  }
+#ifdef PIGSFLY
   struct scroll_bar *bar;
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
@@ -2257,6 +2366,7 @@ w32_redeem_scroll_bar (window)
     if (! NILP (bar->next))
       XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
   }
+#endif
 }
 
 /* Remove all scroll bars on FRAME that haven't been saved since the
@@ -2285,6 +2395,28 @@ w32_judge_scroll_bars (f)
 
   /* Now there should be no references to the condemned scroll bars,
      and they should get garbage-collected.  */
+#ifdef PIGSFLY
+  Lisp_Object bar, next;
+
+  bar = FRAME_CONDEMNED_SCROLL_BARS (f);
+
+  /* Clear out the condemned list now so we won't try to process any
+     more events on the hapless scroll bars.  */
+  FRAME_CONDEMNED_SCROLL_BARS (f) = Qnil;
+
+  for (; ! NILP (bar); bar = next)
+    {
+      struct scroll_bar *b = XSCROLL_BAR (bar);
+
+      x_scroll_bar_remove (b);
+
+      next = b->next;
+      b->next = b->prev = Qnil;
+    }
+
+  /* Now there should be no references to the condemned scroll bars,
+     and they should get garbage-collected.  */
+#endif
 }
 
 /* Handle a mouse click on the scroll bar BAR.  If *EMACS_EVENT's kind
@@ -2879,44 +3011,6 @@ w32_read_socket (sd, bufp, numchars, expected)
 	case WM_SIZE:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 	  
-	  if (f && !f->async_iconified && msg.msg.wParam != SIZE_MINIMIZED)
-	    {
-	      RECT rect;
-	      int rows;
-	      int columns;
-	      int width;
-	      int height;
-	      
-	      GetClientRect(msg.msg.hwnd, &rect);
-	      
-	      height = rect.bottom - rect.top;
-	      width = rect.right - rect.left;
-	      
-	      rows = PIXEL_TO_CHAR_HEIGHT (f, height);
-	      columns = PIXEL_TO_CHAR_WIDTH (f, width);
-	      
-	      /* TODO: Clip size to the screen dimensions.  */
-	      
-	      /* Even if the number of character rows and columns has
-		 not changed, the font size may have changed, so we need
-		 to check the pixel dimensions as well.  */
-	      
-	      if (columns != f->width
-		  || rows != f->height
-		  || width != f->output_data.w32->pixel_width
-		  || height != f->output_data.w32->pixel_height)
-		{
-		  /* I had set this to 0, 0 - I am not sure why?? */
-		  
-		  change_frame_size (f, rows, columns, 0, 1);
-		  SET_FRAME_GARBAGED (f);
-		  
-		  f->output_data.w32->pixel_width = width;
-		  f->output_data.w32->pixel_height = height;
-		  f->output_data.w32->win_gravity = NorthWestGravity;
-		}
-	    }
-
 	  /* Inform lisp of whether frame has been iconified etc. */
 	  if (f)
 	    {
@@ -2956,6 +3050,44 @@ w32_read_socket (sd, bufp, numchars, expected)
 		       in case this is the second frame.  */
 		    record_asynch_buffer_change ();
 		  break;
+		}
+	    }
+
+	  if (f && !f->async_iconified && msg.msg.wParam != SIZE_MINIMIZED)
+	    {
+	      RECT rect;
+	      int rows;
+	      int columns;
+	      int width;
+	      int height;
+	      
+	      GetClientRect(msg.msg.hwnd, &rect);
+	      
+	      height = rect.bottom - rect.top;
+	      width = rect.right - rect.left;
+	      
+	      rows = PIXEL_TO_CHAR_HEIGHT (f, height);
+	      columns = PIXEL_TO_CHAR_WIDTH (f, width);
+	      
+	      /* TODO: Clip size to the screen dimensions.  */
+	      
+	      /* Even if the number of character rows and columns has
+		 not changed, the font size may have changed, so we need
+		 to check the pixel dimensions as well.  */
+	      
+	      if (columns != f->width
+		  || rows != f->height
+		  || width != f->output_data.w32->pixel_width
+		  || height != f->output_data.w32->pixel_height)
+		{
+		  /* I had set this to 0, 0 - I am not sure why?? */
+		  
+		  change_frame_size (f, rows, columns, 0, 1);
+		  SET_FRAME_GARBAGED (f);
+		  
+		  f->output_data.w32->pixel_width = width;
+		  f->output_data.w32->pixel_height = height;
+		  f->output_data.w32->win_gravity = NorthWestGravity;
 		}
 	    }
 
@@ -3200,7 +3332,7 @@ x_draw_single_glyph (f, row, column, glyph, highlight)
   dumpglyphs (f,
 	      CHAR_TO_PIXEL_COL (f, column),
 	      CHAR_TO_PIXEL_ROW (f, row),
-	      &glyph, 1, highlight, 0);
+	      &glyph, 1, highlight, 0, NULL);
 }
 
 static void
@@ -3750,7 +3882,7 @@ x_focus_on_frame (f)
     my_set_focus (f, FRAME_W32_WINDOW (f));
   else
 #endif
-    SetForegroundWindow (FRAME_W32_WINDOW (f));
+    my_set_foreground_window (FRAME_W32_WINDOW (f));
   UNBLOCK_INPUT;
 }
 
@@ -3813,7 +3945,7 @@ x_raise_frame (f)
     }
   else
     {
-      SetForegroundWindow (FRAME_W32_WINDOW (f));
+      my_set_foreground_window (FRAME_W32_WINDOW (f));
     }
 
   UNBLOCK_INPUT;
@@ -4383,4 +4515,12 @@ desirable when using a point-to-focus policy.");
 	       "Apply CapsLock state to non character input keys.\n\
 When nil, CapsLock only affects normal character input keys.");
   Vw32_capslock_is_shiftlock = Qnil;
+
+  DEFVAR_LISP ("w32-recognize-altgr",
+	       &Vw32_recognize_altgr,
+	       "Recognize right-alt and left-ctrl as AltGr.\n\
+When nil, the right-alt and left-ctrl key combination is\n\
+interpreted normally."); 
+  Vw32_recognize_altgr = Qt;
 }
+
