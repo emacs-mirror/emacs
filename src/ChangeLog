@@ -243,6 +243,11 @@
 	(ccl_driver): Initialize extra_bytes to ccl->eight_bit_control.
 	(setup_ccl_program): Initialize ccl->eight_bit_control to zero.
 
+2003-05-29  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* xfaces.c (realize_default_face): Do not abort if lface is
+	non-existent - reverts change from 2003-05-19.
+
 2003-05-29  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_iso2022): Pay attention to the byte
