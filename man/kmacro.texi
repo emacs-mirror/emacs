@@ -165,7 +165,7 @@ to plain @kbd{C-x (} followed by retyping the whole definition so far.  As
 a consequence it re-executes the macro as previously defined.
 
   You can also add to the end of the definition of the last keyboard
-macro without re-execuing it by typing @kbd{C-u C-u C-x (}.
+macro without re-executing it by typing @kbd{C-u C-u C-x (}.
 
   The variable @code{kmacro-execute-before-append} specifies whether
 a single @kbd{C-u} prefix causes the existing macro to be re-executed
@@ -218,7 +218,7 @@ of the macro ring.  The definition of the new head macro is displayed
 in the echo area.  You can continue to rotate the macro ring
 immediately by repeating just @kbd{C-n} and @kbd{C-p} until the
 desired macro is at the head of the ring.  To execute the new macro
-ring head immediately, just type @kbd{C-k}.  
+ring head immediately, just type @kbd{C-k}.
 
 @findex kmacro-view-macro-repeat
 @kindex C-x C-k C-v
@@ -361,7 +361,7 @@ register as a counter, incrementing it on each repetition of the macro.
 @findex name-last-kbd-macro
 @kindex C-x C-k n
   If you wish to save a keyboard macro for later use, you can give it
-a name using @kbd{C-x C-k n} (@code{name-last-kbd-macro}). 
+a name using @kbd{C-x C-k n} (@code{name-last-kbd-macro}).
 This reads a name as an argument using the minibuffer and defines that name
 to execute the macro.  The macro name is a Lisp symbol, and defining it in
 this way makes it a valid command name for calling with @kbd{M-x} or for
@@ -377,7 +377,7 @@ key using @kbd{C-x C-k b} (@code{kmacro-bind-to-key}) followed by the
 key sequence you want the keyboard macro to be bound to.  You can
 bind to any key sequence in the global keymap, but since most key
 sequences already have other bindings, you should select the key
-sequence carefylly.  If you try to bind to a key sequence with an
+sequence carefully.  If you try to bind to a key sequence with an
 existing binding (in any keymap), you will be asked if you really
 want to replace the existing binding of that key.
 
@@ -448,7 +448,7 @@ keyboard input that you would use to invoke the macro---@kbd{C-x e} or
 @findex kmacro-step-edit-macro
 @kindex C-x C-k SPC
   You can interactively and stepwise replay and edit the last keyboard
-macro one command at a time by typing @kbd{C-x C-k SPC} 
+macro one command at a time by typing @kbd{C-x C-k SPC}
 (@code{kmacro-step-edit-macro}).  Unless you quit the macro using
 @kbd{q} or @kbd{C-g}, the edited macro replaces the last macro on the
 macro ring.

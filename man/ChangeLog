@@ -1,3 +1,28 @@
+2004-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (../info/tramp, tramp.dvi): Depend on trampver.texi.
+
+2004-08-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* regs.texi (RegNumbers): Mention `C-x r i' binding for
+	`insert-register', instead of `C-x r g' binding, for consistency.
+
+2004-08-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fixit.texi (Spelling): Fix typo.
+
+2004-08-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help.texi (Help): Fix Texinfo usage.
+
+2004-08-11  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Various updates for CC Mode 5.30.9.
+
+2004-08-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.44.
+
 2004-08-05  Lars Hansen  <larsh@math.ku.dk>
 
 	* widget.texi (User Interface): Update how to separate the

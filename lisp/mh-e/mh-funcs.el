@@ -1,6 +1,6 @@
 ;;; mh-funcs.el --- MH-E functions not everyone will use right away
 
-;; Copyright (C) 1993, 1995, 2001, 02, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001, 02, 03, 2004 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -34,6 +34,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'mh-acros))
+(mh-require-cl)
 (require 'mh-e)
 
 ;;; Customization
@@ -45,11 +47,13 @@ prefix argument.  Normally default arguments to sortm are specified in the
 MH profile.
 For example, '(\"-nolimit\" \"-textfield\" \"subject\") is a useful setting.")
 
+;;; Scan Line Formats
+
 (defvar mh-note-copied "C"
-  "String whose first character is used to notate copied messages.")
+  "Copied messages are marked by this character.")
 
 (defvar mh-note-printed "P"
-  "String whose first character is used to notate printed messages.")
+  "Messages that have been printed are marked by this character.")
 
 ;;; Functions
 
@@ -233,60 +237,6 @@ Otherwise just send the message's body without the headers."
     (mh-recenter 0)))
 
 ;;;###mh-autoload
-(defun mh-print-msg (range)
-  "Print RANGE on printer.
-
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use.
-
-The variable `mh-lpr-command-format' is used to generate the print command.
-The messages are formatted by mhl. See the variable `mhl-formfile'."
-  (interactive (list (mh-interactive-range "Print")))
-  (message "Printing...")
-  (let (msgs)
-    ;; Gather message numbers and add them to "printed" sequence.
-    (mh-iterate-on-range msg range
-      (mh-add-msgs-to-seq msg 'printed t)
-      (mh-notate nil mh-note-printed mh-cmd-note)
-      (push msg msgs))
-    (setq msgs (nreverse msgs))
-    ;; Print scan listing if we have more than one message.
-    (if (> (length msgs) 1)
-        (let* ((msgs-string
-                (mapconcat 'identity (mh-list-to-string
-                                      (mh-coalesce-msg-list msgs)) " "))
-               (lpr-command
-                (format mh-lpr-command-format
-                        (cond ((listp range)
-                               (format "Folder: %s, Messages: %s"
-                                       mh-current-folder msgs-string))
-                              ((symbolp range)
-                               (format "Folder: %s, Sequence: %s"
-                                       mh-current-folder range)))))
-               (scan-command
-                (format "scan %s | %s" msgs-string lpr-command)))
-          (if mh-print-background-flag
-              (mh-exec-cmd-daemon shell-file-name nil "-c" scan-command)
-            (call-process shell-file-name nil nil nil "-c" scan-command))))
-    ;; Print the messages
-    (dolist (msg msgs)
-      (let* ((mhl-command (format "%s %s %s"
-                                  (expand-file-name "mhl" mh-lib-progs)
-                                  (if mhl-formfile
-                                      (format " -form %s" mhl-formfile)
-                                    "")
-                                  (mh-msg-filename msg)))
-             (lpr-command
-              (format mh-lpr-command-format
-                      (format "%s/%s" mh-current-folder msg)))
-             (print-command
-              (format "%s | %s" mhl-command lpr-command)))
-        (if mh-print-background-flag
-            (mh-exec-cmd-daemon shell-file-name nil "-c" print-command)
-          (call-process shell-file-name nil nil nil "-c" print-command)))))
-  (message "Printing...done"))
-
-;;;###mh-autoload
 (defun mh-sort-folder (&optional extra-args)
   "Sort the messages in the current folder by date.
 Calls the MH program sortm to do the work.
@@ -307,9 +257,8 @@ argument EXTRA-ARGS is given."
           (mh-index-data (mh-index-insert-folder-headers)))))
 
 ;;;###mh-autoload
-(defun mh-undo-folder (&rest ignore)
-  "Undo all pending deletes and refiles in current folder.
-Argument IGNORE is deprecated."
+(defun mh-undo-folder ()
+  "Undo all pending deletes and refiles in current folder."
   (interactive)
   (cond ((or mh-do-not-confirm-flag
              (yes-or-no-p "Undo all commands in folder? "))
@@ -320,10 +269,7 @@ Argument IGNORE is deprecated."
          (with-mh-folder-updating (nil)
            (mh-remove-all-notation)))
         (t
-         (message "Commands not undone.")
-         ;; Remove by 2003-06-30 if nothing seems amiss. XXX
-         ;; (sit-for 2)
-         )))
+         (message "Commands not undone"))))
 
 ;;;###mh-autoload
 (defun mh-store-msg (directory)
@@ -413,11 +359,15 @@ Default directory is the last directory used, or initially the value of
 
 ;;;###mh-autoload
 (defun mh-help ()
-  "Display cheat sheet for the MH-Folder commands in minibuffer."
+  "Display cheat sheet for the MH-E commands."
   (interactive)
-  (mh-ephem-message
-   (substitute-command-keys
-    (mapconcat 'identity (cdr (assoc nil mh-help-messages)) ""))))
+  (with-electric-help
+   (function
+    (lambda ()
+      (insert
+       (substitute-command-keys
+        (mapconcat 'identity (cdr (assoc nil mh-help-messages)) ""))))
+    mh-help-buffer)))
 
 ;;;###mh-autoload
 (defun mh-prefix-help ()
@@ -430,9 +380,14 @@ Default directory is the last directory used, or initially the value of
   ;; from the recent keys.
   (let* ((keys (recent-keys))
          (prefix-char (elt keys (- (length keys) 2))))
-    (mh-ephem-message
-     (substitute-command-keys
-      (mapconcat 'identity (cdr (assoc prefix-char mh-help-messages)) "")))))
+    (with-electric-help
+     (function
+      (lambda ()
+        (insert
+         (substitute-command-keys
+          (mapconcat 'identity
+                     (cdr (assoc prefix-char mh-help-messages)) "")))))
+     mh-help-buffer)))
 
 (provide 'mh-funcs)
 

@@ -1,6 +1,6 @@
 ;;; mh-pick.el --- make a search pattern and search for a message in MH-E
 
-;; Copyright (C) 1993, 1995, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -32,6 +32,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'mh-acros))
+(mh-require-cl)
 (require 'mh-e)
 (require 'easymenu)
 (require 'gnus-util)
@@ -43,6 +45,9 @@
 
 (defvar mh-searching-folder nil)        ;Folder this pick is searching.
 (defvar mh-searching-function nil)
+
+(defconst mh-pick-single-dash  '(cc date from subject to)
+  "Search components that are supported by single-dash option in pick.")
 
 ;;;###mh-autoload
 (defun mh-search-folder (folder window-config)
@@ -137,16 +142,6 @@ with no arguments, upon entry to this mode.
   (easy-menu-add mh-pick-menu)
   (setq mh-help-messages mh-pick-mode-help-messages)
   (run-hooks 'mh-pick-mode-hook))
-
-;;;###mh-autoload
-(defun mh-do-pick-search ()
-  "Find messages that match the qualifications in the current pattern buffer.
-Messages are searched for in the folder named in `mh-searching-folder'.
-Add the messages found to the sequence named `search'.
-
-This is a deprecated function and `mh-pick-do-search' should be used instead."
-  (interactive)
-  (mh-pick-do-search))
 
 ;;;###mh-autoload
 (defun mh-pick-do-search ()
@@ -260,6 +255,13 @@ COMPONENT is the component to search."
            "-rbrace"))
         (t (error "Unknown operator '%s' seen" (car expr)))))
 
+;; All implementations of pick have special options -cc, -date, -from and
+;; -subject that allow to search for corresponding components. Any other
+;; component is searched using option --COMPNAME, for example: `pick
+;; --x-mailer mh-e'. Mailutils `pick' supports this option using a certain
+;; kludge, but it prefers the following syntax for this purpose:
+;; `--component=COMPNAME --pattern=PATTERN'.
+;;                                           -- Sergey Poznyakoff, Aug 2003
 (defun mh-pick-regexp-builder (pattern-list)
   "Generate pick search expression from PATTERN-LIST."
   (let ((result ()))
@@ -267,9 +269,18 @@ COMPONENT is the component to search."
       (when (cdr pattern)
         (setq result `(,@result "-and" "-lbrace"
                        ,@(mh-pick-construct-regexp
-                          (cdr pattern) (if (car pattern)
-                                            (format "-%s" (car pattern))
-                                          "-search"))
+                          (if (and (mh-variant-p 'mu-mh) (car pattern))
+                              (format "--pattern=%s" (cdr pattern))
+                            (cdr pattern))
+                          (if (car pattern)
+                              (cond
+                               ((mh-variant-p 'mu-mh)
+                                (format "--component=%s" (car pattern)))
+                               ((member (car pattern) mh-pick-single-dash)
+                                (format "-%s" (car pattern)))
+                               (t
+                                (format "--%s" (car pattern))))
+                            "-search"))
                        "-rbrace"))))
     (cdr result)))
 

@@ -1,6 +1,6 @@
 ;;; mh-inc.el --- MH-E `inc' and separate mail spool handling
 ;;
-;; Copyright (C) 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -34,7 +34,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'mh-acros))
+(mh-require-cl)
 
 (defvar mh-inc-spool-map (make-sparse-keymap)
   "Keymap for MH-E's mh-inc-spool commands.")
@@ -46,7 +47,8 @@
   '(lambda ()
      (interactive)
      (if mh-inc-spool-map-help
-         (mh-ephem-message (substring mh-inc-spool-map-help 0 -1))
+         (let ((mh-help-messages (list (list nil mh-inc-spool-map-help))))
+           (mh-help))
        (mh-ephem-message
         "There are no keys defined yet.  Customize `mh-inc-spool-list'"))))
 

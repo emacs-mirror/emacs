@@ -1,3 +1,22 @@
+2004-08-15  Bill Wohler  <wohler@newt.com>
+
+	* NEWS, MH-E-NEWS: Upgraded to MH-E version 7.4.80.
+
+2004-08-14  Romain Francoise  <romain@orebokech.com>
+
+	* NEWS: Mention the thumbs.el package.
+
+2004-08-14  Eric Hanchrow  <offby1@blarg.net>
+
+	* TUTORIAL.es: Replace actual whitespace with the magic string
+	that causes help-with-tutorial to automatically insert the correct
+	amount.
+
+2004-08-10  Steven Tamm  <steventamm@mac.com>
+
+	* PROBLEMS: Remove description of Mac OS version upgrade
+	problems as it is no longer applicable.
+
 2004-07-27  Werner Lemberg  <wl@gnu.org>
 
 	* NEWS: Document all new tutorials.
