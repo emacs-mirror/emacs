@@ -7704,6 +7704,10 @@ x_scroll_bar_create (w, top, left, width, height)
 
   /* Map the window/widget.  */
 #if USE_TOOLKIT_SCROLL_BARS
+  XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+	      left, top,
+	      FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f),
+	      window_box_height (w), False);
   XtMapWidget (SCROLL_BAR_X_WIDGET (bar));
   XtConfigureWidget (SCROLL_BAR_X_WIDGET (bar),
 		     left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
@@ -9421,7 +9425,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		      || event.xconfigure.width != f->output_data.x->pixel_width
 		      || event.xconfigure.height != f->output_data.x->pixel_height)
 		    {
-		      change_frame_size (f, rows, columns, 0, 1);
+		      change_frame_size (f, rows, columns, 0, 1, 0);
 		      SET_FRAME_GARBAGED (f);
 		      cancel_mouse_face (f);
 		    }
@@ -10836,7 +10840,7 @@ x_set_window_size (f, change_gravity, cols, rows)
 
      We pass 1 for DELAY since we can't run Lisp code inside of
      a BLOCK_INPUT.  */
-  change_frame_size (f, rows, cols, 0, 1);
+  change_frame_size (f, rows, cols, 0, 1, 0);
   PIXEL_WIDTH (f) = pixelwidth;
   PIXEL_HEIGHT (f) = pixelheight;
 
