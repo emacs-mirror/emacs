@@ -989,16 +989,18 @@ function by default."
 		;; in its line.
 		(let* ((prefix (regexp-quote (match-string 1)))
 		       (suffix (regexp-quote (match-string 2)))
-		       (re-coding (concat
-				   "^" prefix
-				   "coding[ \t]*:[ \t]*\\([^ \t]+\\)[ \t]*"
-				   suffix "$"))
-		       (re-unibyte (concat
-				    "^" prefix
-				    "unibyte[ \t]*:[ \t]*\\([^ \t]+\\)[ \t]*"
-				    suffix "$"))
-		       (re-end (concat
-				"^" prefix "end *:[ \t]*" suffix "$"))
+		       (re-coding
+			(concat
+			 "^" prefix
+			 "[ \t]*coding[ \t]*:[ \t]*\\([^ \t]+\\)[ \t]*"
+			 suffix "$"))
+		       (re-unibyte
+			(concat
+			 "^" prefix
+			 "[ \t]*unibyte[ \t]*:[ \t]*\\([^ \t]+\\)[ \t]*"
+			 suffix "$"))
+		       (re-end
+			(concat "^" prefix "[ \t]*end *:[ \t]*" suffix "$"))
 		       (pos (point)))
 		  (re-search-forward re-end tail-end 'move)
 		  (setq tail-end (point))
