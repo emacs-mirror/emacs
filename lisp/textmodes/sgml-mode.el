@@ -331,7 +331,7 @@ varables of same name)."
 	paragraph-separate "[ \t]*$\\|\
 \[ \t]*</?\\([A-Za-z]\\([-.A-Za-z0-9= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>$"
 	paragraph-start "[ \t]*$\\|\
-\[ \t]*</?\\([A-Za-z]\\([-.A-Za-z0-9= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>$"
+\[ \t]*</?\\([A-Za-z]\\([-.A-Za-z0-9= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>"
 	adaptive-fill-regexp "[ \t]*"
 	comment-start "<!-- "
 	comment-end " -->"
