@@ -10,6 +10,7 @@ CC=@CC@
 CFLAGS=@CFLAGS@
 CPP=@CPP@
 LN_S=@LN_S@
+RANLIB=@RANLIB@
 # See below--@X_TOOLKIT_TYPE@ is used below.
 USE_X_TOOLKIT=@X_TOOLKIT_TYPE@
 
@@ -18,7 +19,6 @@ USE_X_TOOLKIT=@X_TOOLKIT_TYPE@
                AR = ar cq
 
                LN = ln -s
-           RANLIB = ranlib
                RM = rm -f
 
      LUCID_OBJS = lwlib-Xlw.o xlwmenu.o lwlib-Xaw.o
