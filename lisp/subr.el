@@ -36,8 +36,12 @@ PROC is called with a window as argument.
 Optional second arg MINIBUF t means count the minibuffer window
 even if not active.  If MINIBUF is neither t nor nil it means
 not to count the minibuffer even if it is active.
-Optional third arg ALL-FRAMES t means include all windows in all frames;
-otherwise cycle within the selected frame."
+
+Optional third arg ALL-FRAMES, if t, means include all frames.
+ALL-FRAMES nil or omitted means cycle within the selected frame,
+but include the minibuffer window (if MINIBUF says so) that that
+frame uses, even if it is on another frame.
+If ALL-FRAMES is neither nil nor t, stick strictly to the selected frame."
   (let* ((walk-windows-start (selected-window))
 	 (walk-windows-current walk-windows-start))
     (while (progn
