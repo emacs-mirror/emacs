@@ -48,8 +48,10 @@
 
 (defgroup hl-line nil
   "Highliight the current line."
+  :version "20.5"
   :group 'editing)
 
+;;;###autoload
 (defcustom hl-line-mode nil
   "Non-nil if Hl-Line mode is enabled."
   :set (lambda (symbol value)
@@ -83,6 +85,7 @@
   (if hl-line-overlay
       (delete-overlay hl-line-overlay)))
 
+;;;###autoload
 (defun hl-line-mode (&optional arg)
   "Global minor mode to highlight the line about point.
 
