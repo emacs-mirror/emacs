@@ -7235,8 +7235,12 @@ static char *frame_title_ptr;
    Re-allocate frame_title_buf if necessary.  */
 
 static void
+#ifdef PROTOTYPES
+store_frame_title_char (char c)
+#else
 store_frame_title_char (c)
     char c;
+#endif
 {
   /* If output position has reached the end of the allocated buffer,
      double the buffer's size.  */
