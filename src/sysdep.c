@@ -2237,6 +2237,7 @@ start_of_text ()
  *
  */
  
+#ifndef start_of_data
 char *
 start_of_data ()
 {
@@ -2259,6 +2260,7 @@ start_of_data ()
 #endif /* ORDINARY_LINK */
 #endif /* DATA_START */
 }
+#endif /* start_of_data */
 #endif /* NEED_STARTS (not CANNOT_DUMP or not SYSTEM_MALLOC) */
 
 /* init_system_name sets up the string for the Lisp function
