@@ -9892,7 +9892,7 @@ try_window_id (w)
     delta = dvpos = dy = run.current_y = run.desired_y = run.height = 0;
   IF_DEBUG (debug_dvpos = dvpos; debug_dy = dy);
 
-k  
+
   /* Find the cursor if not already found.  We have to decide whether
      PT will appear on this window (it sometimes doesn't, but this is
      not a very frequent case.)  This decision has to be made before
