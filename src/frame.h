@@ -311,6 +311,7 @@ typedef struct frame *FRAME_PTR;
 
 #define FRAME_X_P(f) ((f)->output_method == output_x_window)
 #define FRAME_WIN32_P(f) ((f)->output_method == output_win32)
+#define FRAME_MSDOS_P(f) ((f)->output_method == output_msdos_raw)
 
 /* FRAME_WINDOW_P tests whether the frame is a window, and is
    defined to be the predicate for the window system being used.  */
@@ -469,6 +470,7 @@ extern FRAME_PTR selected_frame;
 extern FRAME_PTR last_nonminibuf_frame;
 
 #define FRAME_LIVE_P(f) 1
+#define FRAME_MSDOS_P(f) 0
 #ifdef MSDOS
 /* The following definitions could also be used in the non-MSDOS case,
    but the constants below lead to better code.  */
