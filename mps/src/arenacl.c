@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA IMPLEMENTATION USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.2) $
+ * $HopeName: MMsrc!arenacl.c(trunk.3) $
  * 
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
@@ -41,7 +41,7 @@
 #error "Client arena not configured"
 #endif
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.2) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.3) $");
 
 Bool ArenaCheck(Arena arena)
 {
@@ -57,7 +57,7 @@ typedef struct ChunkStruct *Chunk;      /* chunk type */
 typedef struct PageStruct *Page;        /* page type */
 typedef Word *ABT;                      /* bool table type */
 
-#define ChunkSig        ((Sig)0x519C409c)
+#define ChunkSig        ((Sig)0x519C804c) /* SIGnature CHUNK */
 
 typedef struct ChunkStruct {    /* chunk structure */
   Sig sig;                      /* impl.h.misc.sig */
