@@ -1,3 +1,15 @@
+2005-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/supercite.el (sc-mail-field): Use assoc-string.
+	(sc-get-address): Simplify regexps.
+
+	* files.el (minibuffer-with-setup-hook): New macro.
+	(find-file-read-args): Use it to avoid let-binding
+	minibuffer-with-setup-hook (which breaks turning on/off
+	file-name-shadow-mode while in the prompt).
+
+	* complete.el (PC-read-include-file-name-internal): Use test-completion.
+
 2005-03-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* font-lock.el: Bind `font-lock-fontify-block' to M-o M-o.
