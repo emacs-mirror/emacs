@@ -2203,7 +2203,6 @@ handle_fontified_prop (it)
 
       val = Vfontification_functions;
       specbind (Qfontification_functions, Qnil);
-      specbind (Qafter_change_functions, Qnil);
   
       if (!CONSP (val) || EQ (XCAR (val), Qlambda))
 	safe_call1 (val, pos);
