@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985, 86, 88, 93, 94, 97, 1998, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 88, 93, 94, 97, 98, 2000 Free Software Foundation, Inc.
 
 ;; Keywords: tools
 
@@ -28,9 +28,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'fortran)
-  (require 'timezone)
-  (require 'cl))
+  (require 'timezone))
 
 (defgroup change-log nil
   "Change log maintenance"
@@ -52,10 +50,9 @@
   :group 'change-log)
 
 (defcustom add-log-current-defun-function nil
-  "\
-*If non-nil, function to guess name of current function from surrounding text.
-\\[add-change-log-entry] calls this function (if nil, `add-log-current-defun'
-instead) with no arguments.  It returns a string or nil if it cannot guess."
+  "*If non-nil, function to guess name of surrounding function.
+It is used by `add-log-current-defun' in preference to built-in rules.
+Returns function's name as a string, or nil if outside a function."
   :type 'function
   :group 'change-log)
 
@@ -140,11 +137,9 @@ use the file's name relative to the directory of the change log file."
      ;;  (defconst ad-version "2.15"
      (concat "^(def[^ \t\n]+[ \t]+[^ \t\n][ \t]\"" re)
      ;; Revision: pcl-cvs.el,v 1.72 1999/09/05 20:21:54 monnier Exp
-     (concat "^;+ *Revision: +[^ \t\n]+[ \t]+" re)
-     ;; SCCS @(#)igrep.el 2.83
-     (concat "SCCS[ \t]+@(#).*[ \t]+" re)
-     ))
+     (concat "^;+ *Revision: +[^ \t\n]+[ \t]+" re)))
   "*List of regexps to search for version number.
+The version number must be in group 1.
 Note: The search is conducted only within 10%, at the beginning of the file."
   :version "21.1"
   :type '(repeat regexp)
@@ -185,11 +180,8 @@ Note: The search is conducted only within 10%, at the beginning of the file."
      1 font-lock-comment-face))
   "Additional expressions to highlight in Change Log mode.")
 
-(defvar change-log-mode-map nil
+(defvar change-log-mode-map (make-sparse-keymap)
   "Keymap for Change Log major mode.")
-(if change-log-mode-map
-    nil
-  (setq change-log-mode-map (make-sparse-keymap)))
 
 (defvar change-log-time-zone-rule nil
   "Time zone used for calculating change log time stamps.
@@ -248,50 +240,33 @@ If nil, use local time.")
 			    (file-name-as-directory name))
 	name))))
 
-(defun change-log-version-rcs (rcs-string &optional end)
-  "Search for plain RCS-STRING from whole buffer up till END.
-The surrounding $ characters fro RCS-STRING are added in this function;
-provide argument e.g. as \"Id\"."
-  (let (str)
-    (save-excursion
-      (goto-char (point-min))
-      (when (re-search-forward
-	     (concat "[$]" rcs-string ":[^\n$]+[$]")
-	     end t)
-	(setq str (match-string 0))
-	(when (string-match "[0-9]+\.[0-9.]+" str)
-	  (match-string 0 str))))))
-
 (defun change-log-version-number-search ()
-  "Return version number for the file by searchin version control tags."
+  "Return version number of current buffer's file.
+This is the value returned by `vc-workfile-version' or, if that is
+nil, by matching `change-log-version-number-regexp-list'."
   (let* ((size (buffer-size))
 	 (end
-	  ;;  The version number can be anywhere in the file, but restrict
-	  ;;  search to the file beginning: 10% should be enough to prevent
-	  ;;  some mishits.
+	  ;; The version number can be anywhere in the file, but
+	  ;; restrict search to the file beginning: 10% should be
+	  ;; enough to prevent some mishits.
 	  ;;
-	  ;;  Apply percentage only if buffer size is bigger than approx 100 lines
+	  ;; Apply percentage only if buffer size is bigger than
+	  ;; approx 100 lines.
 	  (if (> size (* 100 80))
-	      (/ (* (buffer-size) 10) 100)
+	      (/ size 10)
 	    size))
 	 version)
-
-    ;; Search RCS, CVS version strings
-
-    (dolist (choice '("Revision" "Id"))
-      (when (setq version (change-log-version-rcs choice end))
-	(return)))
-
-    (unless version
-      (dolist (regexp change-log-version-number-regexp-list)
-	(save-excursion
-	  (goto-char (point-min))
-	  (when (re-search-forward regexp end t)
-	    (setq version (match-string 1))
-	    (return)))))
-
-      version
-      ))
+    (or (and buffer-file-name
+	     (vc-workfile-version buffer-file-name))
+	(save-restriction
+	  (widen)
+	  (let ((regexps change-log-version-number-regexp-list))
+	    (while regexps
+	      (save-excursion
+		(goto-char (point-min))
+		(when (re-search-forward (pop regexps) end t)
+		  (setq version (match-string 1)
+			regexps nil)))))))))
 
 
 ;;;###autoload
@@ -380,12 +355,10 @@ non-nil, otherwise in local time."
 	 ;; s/he can edit the full name field in prompter if s/he wants.
 	(setq add-log-mailing-address
 	      (read-input "Mailing address: " add-log-mailing-address))))
-  (let ((defun (funcall (or add-log-current-defun-function
-			    'add-log-current-defun)))
+  (let ((defun (add-log-current-defun))
 	(version (and change-log-version-info-enabled
 		      (change-log-version-number-search)))
-	bound
-	entry)
+	bound entry)
 
     (setq file-name (expand-file-name (find-change-log file-name)))
 
@@ -450,7 +423,7 @@ non-nil, otherwise in local time."
 	   (goto-char (match-beginning 0))
 	   ;; Delete excess empty lines; make just 2.
 	   (while (and (not (eobp)) (looking-at "^\\s *$"))
-	     (delete-region (point) (save-excursion (forward-line 1) (point))))
+	     (delete-region (point) (line-beginning-position 2)))
 	   (insert "\n\n")
 	   (forward-line -2)
 	   (indent-relative-maybe))
@@ -460,12 +433,11 @@ non-nil, otherwise in local time."
 	   (while (looking-at "\\sW")
 	     (forward-line 1))
 	   (while (and (not (eobp)) (looking-at "^\\s *$"))
-	     (delete-region (point) (save-excursion (forward-line 1) (point))))
+	     (delete-region (point) (line-beginning-position 2)))
 	   (insert "\n\n\n")
 	   (forward-line -2)
 	   (indent-to left-margin)
-	   (insert "* " (or entry ""))
-	   ))
+	   (insert "* " (or entry ""))))
     ;; Now insert the function name, if we have one.
     ;; Point is at the entry for this file,
     ;; either at the end of the line or at the first blank line.
@@ -473,22 +445,19 @@ non-nil, otherwise in local time."
 	(progn
 	  ;; Make it easy to get rid of the function name.
 	  (undo-boundary)
-	  (insert (if (save-excursion
-			(beginning-of-line 1)
-			(looking-at "\\s *$"))
-		      ""
-		    " ")
-		  "(" defun "): "
-		  (if version
-		      (concat version " ")
-		    "")))
+	  (unless (save-excursion
+		    (beginning-of-line 1)
+		    (looking-at "\\s *$"))
+	    (insert ?\ ))
+	  (insert "(" defun "): ")
+	  (if version
+	      (insert version ?\ )))
       ;; No function name, so put in a colon unless we have just a star.
-      (if (not (save-excursion
-		 (beginning-of-line 1)
-		 (looking-at "\\s *\\(\\*\\s *\\)?$")))
-	  (insert ": "
-		  (if version
-		      (concat version " ") ""))))))
+      (unless (save-excursion
+		(beginning-of-line 1)
+		(looking-at "\\s *\\(\\*\\s *\\)?$"))
+	(insert ": ")
+	(if version (insert version ?\ ))))))
 
 ;;;###autoload
 (defun add-change-log-entry-other-window (&optional whoami file-name)
@@ -579,11 +548,11 @@ Prefix arg means justify as well."
   "Return name of function definition point is in, or nil.
 
 Understands C, Lisp, LaTeX (\"functions\" are chapters, sections, ...),
-Texinfo (@node titles), Perl, and Fortran.
+Texinfo (@node titles) and Perl.
 
 Other modes are handled by a heuristic that looks in the 10K before
 point for uppercase headings starting in the first column or
-identifiers followed by `:' or `=', see variables
+identifiers followed by `:' or `='.  See variables
 `add-log-current-defun-header-regexp' and
 `add-log-current-defun-function'
 
@@ -591,15 +560,16 @@ Has a preference of looking backwards."
   (condition-case nil
       (save-excursion
 	(let ((location (point)))
-	  (cond ((and (functionp add-log-current-defun-function)
-		      (funcall add-log-current-defun-function)))
+	  (cond (add-log-current-defun-function
+		 (funcall add-log-current-defun-function))
 		((memq major-mode add-log-lisp-like-modes)
 		 ;; If we are now precisely at the beginning of a defun,
 		 ;; make sure beginning-of-defun finds that one
 		 ;; rather than the previous one.
 		 (or (eobp) (forward-char 1))
 		 (beginning-of-defun)
-		 ;; Make sure we are really inside the defun found, not after it.
+		 ;; Make sure we are really inside the defun found,
+		 ;; not after it.
 		 (when (and (looking-at "\\s(")
 			    (progn (end-of-defun)
 				   (< location (point)))
@@ -613,9 +583,9 @@ Has a preference of looking backwards."
 		   ;; The second element is usually a symbol being defined.
 		   ;; If it is not, use the first symbol in it.
 		   (skip-chars-forward " \t\n'(")
-		   (buffer-substring (point)
-				     (progn (forward-sexp 1)
-					    (point)))))
+		   (buffer-substring-no-properties (point)
+						   (progn (forward-sexp 1)
+							  (point)))))
 		((and (memq major-mode add-log-c-like-modes)
 		      (save-excursion
 			(beginning-of-line)
@@ -631,8 +601,9 @@ Has a preference of looking backwards."
 		   (forward-line -1))
 		 (search-forward "define")
 		 (skip-chars-forward " \t")
-		 (buffer-substring (point)
-				   (progn (forward-sexp 1) (point))))
+		 (buffer-substring-no-properties (point)
+						 (progn (forward-sexp 1)
+							(point))))
 		((memq major-mode add-log-c-like-modes)
 		 (beginning-of-line)
 		 ;; See if we are in the beginning part of a function,
@@ -642,142 +613,123 @@ Has a preference of looking backwards."
 		 (or (eobp)
 		     (forward-char 1))
 		 (beginning-of-defun)
-		 (if (progn (end-of-defun)
-			    (< location (point)))
-		     (progn
-		       (backward-sexp 1)
-		       (let (beg tem)
+		 (when (progn (end-of-defun)
+			      (< location (point)))
+		   (backward-sexp 1)
+		   (let (beg tem)
 
-			 (forward-line -1)
-			 ;; Skip back over typedefs of arglist.
-			 (while (and (not (bobp))
-				     (looking-at "[ \t\n]"))
-			   (forward-line -1))
-			 ;; See if this is using the DEFUN macro used in Emacs,
-			 ;; or the DEFUN macro used by the C library.
-			 (if (condition-case nil
-				 (and (save-excursion
-					(end-of-line)
-					(while (= (preceding-char) ?\\)
-					  (end-of-line 2))
-					(backward-sexp 1)
-					(beginning-of-line)
-					(setq tem (point))
-					(looking-at "DEFUN\\b"))
-				      (>= location tem))
-			       (error nil))
-			     (progn
-			       (goto-char tem)
-			       (down-list 1)
-			       (if (= (char-after (point)) ?\")
-				   (progn
-				     (forward-sexp 1)
-				     (skip-chars-forward " ,")))
-			       (buffer-substring (point)
-						 (progn (forward-sexp 1) (point))))
-                           (if (looking-at "^[+-]")
-                               (change-log-get-method-definition)
-                             ;; Ordinary C function syntax.
-                             (setq beg (point))
-                             (if (and (condition-case nil
-					  ;; Protect against "Unbalanced parens" error.
-					  (progn
-					    (down-list 1) ; into arglist
-					    (backward-up-list 1)
-					    (skip-chars-backward " \t")
-					    t)
-					(error nil))
-				      ;; Verify initial pos was after
-				      ;; real start of function.
-				      (save-excursion
-					(goto-char beg)
-					;; For this purpose, include the line
-					;; that has the decl keywords.  This
-					;; may also include some of the
-					;; comments before the function.
-					(while (and (not (bobp))
-						    (save-excursion
-						      (forward-line -1)
-						      (looking-at "[^\n\f]")))
-					  (forward-line -1))
-					(>= location (point)))
-                                          ;; Consistency check: going down and up
-                                          ;; shouldn't take us back before BEG.
-                                          (> (point) beg))
-				 (let (end middle)
-				   ;; Don't include any final whitespace
-				   ;; in the name we use.
-				   (skip-chars-backward " \t\n")
-				   (setq end (point))
-				   (backward-sexp 1)
-				   ;; Now find the right beginning of the name.
-				   ;; Include certain keywords if they
-				   ;; precede the name.
-				   (setq middle (point))
-				   (forward-word -1)
-				   ;; Ignore these subparts of a class decl
-				   ;; and move back to the class name itself.
-				   (while (looking-at "public \\|private ")
-				     (skip-chars-backward " \t:")
-				     (setq end (point))
-				     (backward-sexp 1)
-				     (setq middle (point))
-				     (forward-word -1))
-				   (and (bolp)
-					(looking-at "enum \\|struct \\|union \\|class ")
-					(setq middle (point)))
-				   (goto-char end)
-				   (when (eq (preceding-char) ?=)
-				     (forward-char -1)
-				     (skip-chars-backward " \t")
-				     (setq end (point)))
-				   (buffer-substring middle end)))))))))
+		     (forward-line -1)
+		     ;; Skip back over typedefs of arglist.
+		     (while (and (not (bobp))
+				 (looking-at "[ \t\n]"))
+		       (forward-line -1))
+		     ;; See if this is using the DEFUN macro used in Emacs,
+		     ;; or the DEFUN macro used by the C library.
+		     (if (condition-case nil
+			     (and (save-excursion
+				    (end-of-line)
+				    (while (= (preceding-char) ?\\)
+				      (end-of-line 2))
+				    (backward-sexp 1)
+				    (beginning-of-line)
+				    (setq tem (point))
+				    (looking-at "DEFUN\\b"))
+				  (>= location tem))
+			   (error nil))
+			 (progn
+			   (goto-char tem)
+			   (down-list 1)
+			   (if (= (char-after (point)) ?\")
+			       (progn
+				 (forward-sexp 1)
+				 (skip-chars-forward " ,")))
+			   (buffer-substring-no-properties
+			    (point)
+			    (progn (forward-sexp 1)
+				   (point))))
+		       (if (looking-at "^[+-]")
+			   (change-log-get-method-definition)
+			 ;; Ordinary C function syntax.
+			 (setq beg (point))
+			 (if (and
+			      ;; Protect against "Unbalanced parens" error.
+			      (condition-case nil
+				  (progn
+				    (down-list 1) ; into arglist
+				    (backward-up-list 1)
+				    (skip-chars-backward " \t")
+				    t)
+				(error nil))
+			      ;; Verify initial pos was after
+			      ;; real start of function.
+			      (save-excursion
+				(goto-char beg)
+				;; For this purpose, include the line
+				;; that has the decl keywords.  This
+				;; may also include some of the
+				;; comments before the function.
+				(while (and (not (bobp))
+					    (save-excursion
+					      (forward-line -1)
+					      (looking-at "[^\n\f]")))
+				  (forward-line -1))
+				(>= location (point)))
+			      ;; Consistency check: going down and up
+			      ;; shouldn't take us back before BEG.
+			      (> (point) beg))
+			     (let (end middle)
+			       ;; Don't include any final whitespace
+			       ;; in the name we use.
+			       (skip-chars-backward " \t\n")
+			       (setq end (point))
+			       (backward-sexp 1)
+			       ;; Now find the right beginning of the name.
+			       ;; Include certain keywords if they
+			       ;; precede the name.
+			       (setq middle (point))
+			       (forward-word -1)
+			       ;; Ignore these subparts of a class decl
+			       ;; and move back to the class name itself.
+			       (while (looking-at "public \\|private ")
+				 (skip-chars-backward " \t:")
+				 (setq end (point))
+				 (backward-sexp 1)
+				 (setq middle (point))
+				 (forward-word -1))
+			       (and (bolp)
+				    (looking-at
+				     "enum \\|struct \\|union \\|class ")
+				    (setq middle (point)))
+			       (goto-char end)
+			       (when (eq (preceding-char) ?=)
+				 (forward-char -1)
+				 (skip-chars-backward " \t")
+				 (setq end (point)))
+			       (buffer-substring-no-properties
+				middle end))))))))
 		((memq major-mode add-log-tex-like-modes)
 		 (if (re-search-backward
-		      "\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)" nil t)
+		      "\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)"
+		      nil t)
 		     (progn
 		       (goto-char (match-beginning 0))
-		       (buffer-substring (1+ (point));; without initial backslash
-					 (progn
-					   (end-of-line)
-					   (point))))))
+		       (buffer-substring-no-properties
+			(1+ (point))	; without initial backslash
+			(line-end-position)))))
 		((eq major-mode 'texinfo-mode)
 		 (if (re-search-backward "^@node[ \t]+\\([^,\n]+\\)" nil t)
-		     (buffer-substring (match-beginning 1)
-				       (match-end 1))))
+		     (match-string-no-properties 1)))
 		((eq major-mode 'perl-mode)
 		 (if (re-search-backward "^sub[ \t]+\\([^ \t\n]+\\)" nil t)
-		     (buffer-substring (match-beginning 1)
-				       (match-end 1))))
+		     (match-string-no-properties 1)))
+		;; Emacs's autoconf-mode installs its own
+		;; `add-log-current-defun-function'.  This applies to
+		;; a different mode apparently for editing .m4
+		;; autoconf source.
                 ((eq major-mode 'autoconf-mode)
-                 (if (re-search-backward "^\\(\\(m4_\\)?define\\|A._DEFUN\\)(\\[?\\([A-Za-z0-9_]+\\)" nil t)
-                     (buffer-substring (match-beginning 3)
-                                       (match-end 3))))
-                ((or (eq major-mode 'fortran-mode)
-		     ;; Needs work for f90, but better than nothing.
-		     (eq major-mode 'f90-mode))
-                 ;; must be inside function body for this to work
-                 (fortran-beginning-of-subprogram)
-                 (let ((case-fold-search t)) ; case-insensitive
-                   ;; search for fortran subprogram start
-                   (if (re-search-forward
-                        "^[ \t]*\\(program\\|subroutine\\|function\
-\\|[ \ta-z0-9*()]*[ \t]+function\\|\\(block[ \t]*data\\)\\)"
-                        (save-excursion (fortran-end-of-subprogram)
-                                        (point))
-                        t)
-                       (or (match-string 2)
-                           (progn
-                             ;; move to EOL or before first left paren
-                             (if (re-search-forward "[(\n]" nil t)
-				 (progn (backward-char)
-                                        (skip-chars-backward " \t"))
-                               (end-of-line))
-                             ;; Use the name preceding that.
-                             (buffer-substring (point)
-					       (progn (backward-sexp)
-						      (point)))))
-		     "main")))
+                 (if (re-search-backward
+		      "^\\(\\(m4_\\)?define\\|A._DEFUN\\)(\\[?\\([A-Za-z0-9_]+\\)" nil t)
+                     (match-string-no-properties 3)))
 		(t
 		 ;; If all else fails, try heuristics
 		 (let (case-fold-search
@@ -787,14 +739,12 @@ Has a preference of looking backwards."
 			  add-log-current-defun-header-regexp
 			  (- (point) 10000)
 			  t)
-		     (setq result (or (buffer-substring (match-beginning 1)
-							(match-end 1))
-				      (buffer-substring (match-beginning 0)
-							(match-end 0))))
+		     (setq result (or (match-string-no-properties 1)
+				      (match-string-no-properties 0)))
 		     ;; Strip whitespace away
 		     (when (string-match "\\([^ \t\n\r\f].*[^ \t\n\r\f]\\)"
 					 result)
-		       (setq result (match-string 1 result)))
+		       (setq result (match-string-no-properties 1 result)))
 		     result))))))
     (error nil)))
 
@@ -806,7 +756,7 @@ Has a preference of looking backwards."
 (defun change-log-get-method-definition-1 (end)
   (setq change-log-get-method-definition-md
 	(concat change-log-get-method-definition-md
-		(buffer-substring (match-beginning 1) (match-end 1))
+		(match-string 1)
 		end))
   (goto-char (match-end 0)))
 
