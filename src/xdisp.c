@@ -5377,7 +5377,7 @@ move_it_vertically_backward (it, dy)
       int y0 = it3.current_y;
       int y1 = line_bottom_y (&it3);
       int line_height = y1 - y0;
-      
+
       /* If we did not reach target_y, try to move further backward if
 	 we can.  If we moved too far backward, try to move forward.  */
       if (target_y < it->current_y
@@ -5388,13 +5388,21 @@ move_it_vertically_backward (it, dy)
 	  && it->current_y - target_y > line_height / 3 * 2
 	  && IT_CHARPOS (*it) > BEGV)
 	{
+	  TRACE_MOVE ((stderr, "  not far enough -> move_vert %d\n",
+		       target_y - it->current_y));
 	  move_it_vertically (it, target_y - it->current_y);
 	  xassert (IT_CHARPOS (*it) >= BEGV);
 	}
       else if (target_y >= it->current_y + line_height
 	       && IT_CHARPOS (*it) < ZV)
 	{
-	  move_it_vertically (it, target_y - (it->current_y + line_height));
+	  /* Should move forward by at least one line, maybe more.  */
+	  do
+	    {
+	      move_it_by_lines (it, 1, 1);
+	    }
+	  while (target_y >= line_bottom_y (it) && IT_CHARPOS (*it) < ZV);
+
 	  xassert (IT_CHARPOS (*it) >= BEGV);
 	}
     }
