@@ -1384,10 +1384,6 @@ the current date to be displayed in another window.  The value of the variable
 `number-of-diary-entries' controls the number of days of diary entries
 displayed upon initial display of the calendar.
 
-An optional prefix argument ARG causes the calendar displayed to be ARG
-months in the future if ARG is positive or in the past if ARG is negative;
-in this case the cursor goes on the first day of the month.
-
 Once in the calendar window, future or past months can be moved into view.
 Arbitrary months can be displayed, or the calendar can be scrolled forward
 or backward.
