@@ -223,25 +223,8 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 (defun calc-info ()
   "Run the Emacs Info system on the Calculator documentation."
   (interactive)
-  (require 'info)
   (select-window (get-largest-window))
-  (or (file-name-absolute-p calc-info-filename)
-       (let ((p load-path)
-	     name)
-	 (if (boundp 'Info-directory)
-	     (setq p (cons Info-directory p)))
-	 (while (and p (not (file-exists-p
-			     (setq name (expand-file-name calc-info-filename
-							  (car p))))))
-	   (setq p (cdr p)))
-	 (if p (setq calc-info-filename name))))
-  (condition-case err
-      (info)
-    (error nil))
-  (or (and (boundp 'Info-current-file)
-	   (stringp Info-current-file)
-	   (string-match "calc" Info-current-file))
-      (Info-find-node calc-info-filename "Top")))
+  (info "Calc"))
 
 (defun calc-tutorial ()
   "Run the Emacs Info system on the Calculator Tutorial."
