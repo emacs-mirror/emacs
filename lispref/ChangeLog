@@ -1,3 +1,50 @@
+2003-07-22  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Truenames): Add LIMIT arg to file-chase-links.
+
+	* display.texi (Width): Use \s syntax in example.
+	(Font Selection): Add face-font-rescale-alist.
+
+	* modes.texi (Imenu): Add xref to Emacs Manual node on Imenu.
+	Remove spurious indent in example.
+
+	* lists.texi (Building Lists): Add number-sequence.
+
+	* internals.texi (Garbage Collection): Add gcs-done, gc-elapsed.
+
+	* functions.texi (Function Documentation): Explain how to
+	show calling convention explicitly in the doc string.
+
+	* windows.texi (Selecting Windows): save-selected-window saves
+	selected window of each frame.
+	(Window Configurations): Minor change.
+
+	* syntax.texi (Syntax Table Functions): Use \s syntax in examples.
+
+	* streams.texi (Output Variables): Add print-continuous-numbering
+	and print-number-table.
+
+	* processes.texi (Decoding Output): New node.
+
+	* os.texi (Time Conversion): decode-time arg is optional.
+
+	* objects.texi (Character Type): Don't use space as example for \.
+	Make list of char names and \-sequences correspond.
+	Explain that \s is not used in strings.  `\ ' needs space after.
+
+	* nonascii.texi (Converting Representations): Add string-to-multibyte.
+	(Translation of Characters): Add translation-table-for-input.
+	(Default Coding Systems): Add auto-coding-functions.
+	(Explicit Encoding): Add decode-coding-inserted-region.
+	(Locales): Add locale-info.
+
+	* minibuf.texi (Basic Completion): Describe test-completion.
+	Collections can be lists of strings.
+	Clean up lazy-completion-table.
+	(Programmed Completion): Mention test-completion.
+	Clarify why lambda expressions are not accepted.
+	(Minibuffer Misc): Describe minibufferp.
+
 2003-07-14  Richard M. Stallman  <rms@gnu.org>
 
 	* buffers.texi (Killing Buffers): kill-buffer-hook is perm local.
