@@ -1,6 +1,6 @@
 ;;; GNUS: an NNTP-based News Reader for GNU Emacs
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
-;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.14 1993/05/16 22:40:14 rms Exp roland $
+;; $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.15 1993/05/17 02:42:16 roland Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -113,7 +113,7 @@
 (require 'nntp)
 (require 'mail-utils)
 
-(defvar gnus-nntp-server (getenv "NNTPSERVER")
+(defvar gnus-nntp-server (or (getenv "NNTPSERVER") gnus-default-nntp-server)
   "*The name of the host running NNTP server.
 If it is a string such as `:DIRECTORY', the user's private DIRECTORY
 is used as a news spool.
