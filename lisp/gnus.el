@@ -710,6 +710,9 @@ beginning of a line.")
     (article ([summary 0.25 point] 
 	      (if gnus-carpal [summary-carpal 4]) 
 	      [article 1.0]))
+    (pipe ([summary 0.25 point] 
+	   (if gnus-carpal [summary-carpal 4]) 
+	   [pipe 1.0]))
     (server ([server 1.0 point]
 	     (if gnus-carpal [server-carpal 2])))
     (browse ([browse 1.0 point]
@@ -757,6 +760,7 @@ buffer configuration.")
     (article . gnus-article-buffer)
     (server . gnus-server-buffer)
     (browse . "*Gnus Browse Server*")
+    (pipe . "*Shell Command Output*")
     (edit-group . gnus-group-edit-buffer)
     (edit-server . gnus-server-edit-buffer)
     (group-carpal . gnus-carpal-group-buffer)
@@ -10418,7 +10422,8 @@ pipe those articles instead."
   (interactive "P")
   (gnus-set-global-variables)
   (let ((gnus-default-article-saver 'gnus-summary-save-in-pipe))
-    (gnus-summary-save-article arg)))
+    (gnus-summary-save-article arg))
+  (gnus-configure-windows 'pipe))
 
 (defun gnus-summary-save-article-mail (&optional arg)
   "Append the current article to an mail file.
