@@ -215,9 +215,10 @@ static Lisp_Object Qvendor_specific_keysyms;
 
 extern XrmDatabase x_load_resources ();
 
+extern Lisp_Object x_icon_type ();
+
 void x_delete_display ();
 
-static void flashback ();
 static void redraw_previous_char ();
 static void redraw_following_char ();
 static unsigned int x_x_to_emacs_modifiers ();
@@ -755,7 +756,7 @@ XTwrite_glyphs (start, len)
    to column FIRST_UNUSED (exclusive).  The idea is that everything
    from FIRST_UNUSED onward is already erased.  */
 
-static int
+static
 XTclear_end_of_line (first_unused)
      register int first_unused;
 {
@@ -1083,7 +1084,7 @@ XTflash (f)
 	      break;
 
 	    /* Try to wait that long--but we might wake up sooner.  */
-	    select (0, 0, 0, 0, &timeout);
+	    select (0, NULL, NULL, NULL, &timeout);
 	  }
       }
 
@@ -1761,7 +1762,6 @@ static void
 note_mouse_movement (frame, event)
      FRAME_PTR frame;
      XMotionEvent *event;
-
 {
   last_mouse_movement_time = event->time;
 
@@ -1832,6 +1832,7 @@ static int disable_mouse_highlight;
 static void
 note_mouse_highlight (f, x, y)
      FRAME_PTR f;
+     int x, y;
 {
   int row, column, portion;
   XRectangle new_glyph;
@@ -3872,7 +3873,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			/* Since the WM decorations come below top_pos now,
 			   we must put them below top_pos in the future.  */
 			f->display.x->win_gravity = NorthWestGravity;
-			x_wm_set_size_hint (f, 0, 0);
+			x_wm_set_size_hint (f, (long) 0, 0);
 		      }
 /* #endif */
 		  }
@@ -4824,7 +4825,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
   x_calc_absolute_position (f);
 
   BLOCK_INPUT;
-  x_wm_set_size_hint (f, 0, 0);
+  x_wm_set_size_hint (f, (long) 0, 0);
 
   /* It is a mystery why we need to add the border_width here
      when the frame is already visible, but experiment says we do.  */
@@ -4889,7 +4890,7 @@ x_set_window_size (f, change_gravity, cols, rows)
   pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
 
   f->display.x->win_gravity = NorthWestGravity;
-  x_wm_set_size_hint (f, 0, 0);
+  x_wm_set_size_hint (f, (long) 0, 0);
 
   XSync (FRAME_X_DISPLAY (f), False);
   XResizeWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -5155,7 +5156,7 @@ x_make_frame_invisible (f)
      program-specified, so that when the window is mapped again, it will be
      placed at the same location, without forcing the user to position it
      by hand again (they have already done that once for this window.)  */
-  x_wm_set_size_hint (f, 0, 1);
+  x_wm_set_size_hint (f, (long) 0, 1);
 
 #ifdef HAVE_X11R4
 
