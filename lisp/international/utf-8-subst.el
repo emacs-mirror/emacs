@@ -1,6 +1,6 @@
 ;;; utf-8-subst.el --- translation of untranslatable utf-8 to CJK -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 2001  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -24,27 +24,22 @@
 
 ;;; Commentary:
 
-;; Defines hash table `utf-8-subst-table' which maps UTF-8
+;; Defines hash table `utf-8-subst-table' which maps UTF-8 otherwise
 ;; `untranslatable' characters to characters in specific Emacs CJK
-;; charsets.  Values in the table can be used as the composition of
-;; such sequences for a more useful result.  The CJK charsets used are
-;; chinese-gb2312, japanese-jisx0208 and korean-ksc5601.  Where their
-;; Unicodes overlap, the priority used is J C K, guessing the
-;; likelihood of fonts being available generally.  This can be altered
-;; by changing the order in which the table is filled.  This should
-;; doubtless be cusomizable somehow.
+;; charsets.  The CJK charsets used are chinese-gb2312,
+;; japanese-jisx0208 and korean-ksc5601.  Where their Unicodes
+;; overlap, the priority used is J C K, guessing the likelihood of
+;; fonts being available generally.  This can be altered by changing
+;; the order in which the table is filled.  This should doubtless be
+;; cusomizable somehow.
 
 ;;; Code:
-
-(eval-when-compile (defvar utf-8-subst-table))
-
-(unless utf-8-subst-table
-  (setq utf-8-subst-table (make-hash-table :test 'eq :size 22000)))
 
 ;; korean-ksc5601
 (mapc
  (lambda (pair)
-   (puthash (car pair) (cadr pair) utf-8-subst-table))
+   (puthash (car pair) (cadr pair) utf-8-subst-table)
+   (puthash (cadr pair) (car pair) utf-8-subst-rev-table))
  '((#x4E00 ?一)
    (#x4E01 ?丁)
    (#x4E03 ?七)
@@ -7019,7 +7014,8 @@
 ;; chinese-gb2312
 (mapc
  (lambda (pair)
-   (puthash (car pair) (cadr pair) utf-8-subst-table))
+   (puthash (car pair) (cadr pair) utf-8-subst-table)
+   (puthash (cadr pair) (car pair) utf-8-subst-rev-table))
  '((#x4E00 ?一)
    (#x4E01 ?丁)
    (#x4E03 ?七)
@@ -13788,7 +13784,8 @@
 ;; japanese-jisx0208
 (mapc
  (lambda (pair)
-   (puthash (car pair) (cadr pair) utf-8-subst-table))
+   (puthash (car pair) (cadr pair) utf-8-subst-table)
+   (puthash (cadr pair) (car pair) utf-8-subst-rev-table))
  '((#x4E00 ?一)
    (#x4E01 ?丁)
    (#x4E03 ?七)
