@@ -391,17 +391,18 @@ it finds in `c-file-offsets'.
 
 Note that the style variables are always made local to the buffer."
   ;; apply file styles and offsets
-  (if (or c-file-style c-file-offsets)
-      (c-make-styles-buffer-local t))
-  (and c-file-style
-       (c-set-style c-file-style))
-  (and c-file-offsets
-       (mapcar
-	(lambda (langentry)
-	  (let ((langelem (car langentry))
-		(offset (cdr langentry)))
-	    (c-set-offset langelem offset)))
-	c-file-offsets)))
+  (when c-buffer-is-cc-mode
+    (if (or c-file-style c-file-offsets)
+	(c-make-styles-buffer-local t))
+    (and c-file-style
+	 (c-set-style c-file-style))
+    (and c-file-offsets
+	 (mapcar
+	  (lambda (langentry)
+	    (let ((langelem (car langentry))
+		  (offset (cdr langentry)))
+	      (c-set-offset langelem offset)))
+	  c-file-offsets))))
 
 (add-hook 'hack-local-variables-hook 'c-postprocess-file-styles)
 
