@@ -838,7 +838,8 @@ double_identity (d)
 }
 
 DEFUN ("ceiling", Fceiling, Sceiling, 1, 2, 0,
-       doc: /* Return the smallest integer no less than ARG.  (Round toward +inf.)
+       doc: /* Return the smallest integer no less than ARG.
+This rounds the value towards +inf.
 With optional DIVISOR, return the smallest integer no less than ARG/DIVISOR.  */)
      (arg, divisor)
      Lisp_Object arg, divisor;
@@ -847,7 +848,8 @@ With optional DIVISOR, return the smallest integer no less than ARG/DIVISOR.  */
 }
 
 DEFUN ("floor", Ffloor, Sfloor, 1, 2, 0,
-       doc: /* Return the largest integer no greater than ARG.  (Round towards -inf.)
+       doc: /* Return the largest integer no greater than ARG.
+This rounds the value towards +inf.
 With optional DIVISOR, return the largest integer no greater than ARG/DIVISOR.  */)
      (arg, divisor)
      Lisp_Object arg, divisor;
