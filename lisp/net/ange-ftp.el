@@ -3371,11 +3371,17 @@ system TYPE.")
   ;; redefines both file-symlink-p and expand-file-name.
   (setq file (ange-ftp-expand-file-name file))
   (if (ange-ftp-ftp-name file)
-      (let ((file-ent
-	     (gethash
-	      (ange-ftp-get-file-part file)
-	      (ange-ftp-get-files (file-name-directory file)))))
-	(and (stringp file-ent) file-ent))
+      (condition-case nil
+	  (let ((file-ent
+		 (gethash
+		  (ange-ftp-get-file-part file)
+		  (ange-ftp-get-files (file-name-directory file)))))
+	    (and (stringp file-ent) file-ent))
+	;; If we can't read the parent directory, just assume
+	;; this file is not a symlink.
+	;; This makes it possible to access a directory that
+	;; whose parent is not readable.
+	(file-error nil))
     (ange-ftp-real-file-symlink-p file)))
 
 (defun ange-ftp-file-exists-p (name)
