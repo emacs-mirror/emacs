@@ -1,0 +1,6 @@
+# $HopeName$
+# This file should be updated automatically whenever the test
+# harness changes. Edit with care!
+
+$HARNESS_VERSION="2.0";
+
