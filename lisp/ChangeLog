@@ -1,5 +1,14 @@
 2004-05-09  Jason Rumney  <jasonr@gnu.org>
 
+	* international/code-pages (cp932, cp936, cp949, c950): Remove.
+	Only define cp125* if windows-125* is already defined.
+
+	* language/korean.el (cp949): Add alias.
+
+	* language/chinese.el (cp936, cp950): Add aliases.
+
+	* language/japanese.el (cp932): Add alias.
+
 	* term/w32-win.el: Require code-pages.
 
 	* international/mule-cmds.el (set-locale-environment): On
