@@ -2093,7 +2093,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 
     /* Find the position of the outside upper-left corner of
        the inner window, with respect to the outer window.  */
-    if (f->display.x->parent_desc != ROOT_WINDOW)
+    if (f->display.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
       {
 	BLOCK_INPUT;
 	XTranslateCoordinates (FRAME_X_DISPLAY (f),
@@ -2222,9 +2222,9 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   /* All set and ready to fly.  */
   XMenuRecompute (FRAME_X_DISPLAY (f), menu);
   dispwidth = DisplayWidth (FRAME_X_DISPLAY (f),
-			    FRAME_X_DISPLAY_INFO (f)->screen);
+			    XScreenNumberOfScreen (FRAME_X_SCREEN (f)));
   dispheight = DisplayHeight (FRAME_X_DISPLAY (f),
-			      FRAME_X_DISPLAY_INFO (f)->screen);
+			      XScreenNumberOfScreen (FRAME_X_SCREEN (f)));
   x = min (x, dispwidth);
   y = min (y, dispheight);
   x = max (x, 1);
