@@ -398,7 +398,7 @@ extern int width_by_char_head[256];
       : ((CHARSET_DEFINED_P (charset)					    \
 	  ? CHARSET_DIMENSION (charset) == 1				    \
 	  : (charset) < MIN_CHARSET_PRIVATE_DIMENSION2)			    \
-	 ? (((charset) - 0x70) << 7) | ((c1) <= 0 ? 0 : (c1))		    \
+	 ? (((charset) - 0x70) << 7) | ((c1) <= 0 ? 0 : ((c1) & 0x7F))	    \
 	 : ((((charset)							    \
 	      - ((charset) < MIN_CHARSET_PRIVATE_DIMENSION2 ? 0x8F : 0xE0)) \
 	     << 14)							    \
