@@ -3,6 +3,12 @@
 @setchapternewpage odd
 @settitle GNU Emacs Manual
 @setfilename ../info/emacs
+@c The Option Index is produced only in the on-line version,
+@c because the index entries related to command-line options
+@c tend to point to the same pages and all begin with a dash.
+@ifnottex
+@defcodeindex op
+@end ifnottex
 @synindex pg cp
 
 @c The edition number appears in several places in this file
@@ -142,6 +148,10 @@ Indexes (nodes containing large menus)
 * Command Index::       An item for each command name.
 * Variable Index::      An item for each documented variable.
 * Concept Index::       An item for each concept.
+@c This is last because @ifnottex leaves an empty line.
+@ifnottex
+* Option Index::        An item for every command-line option.
+@end ifnottex
 
 Important General Concepts
 * Screen::	        How to interpret what you see on the screen.
@@ -1439,13 +1449,40 @@ edit files while running shell commands.
 @include ack.texi
 @end ifinfo
 
+@c The Option Index is produced only in the on-line version,
+@c because the index entries related to command-line options
+@c tend to point to the same pages and all begin with a dash.
+@c This, and the need to keep the node links consistent, are
+@c the reasons for the funky @iftex/@ifnottex dance below.
+@c The Option Index is _not_ before Key Index, because that
+@c would require changes in the glossary.texi's @node line.
+@c It is not after Concept Index for similar reasons.
+
+@iftex
 @node Key Index, Command Index, Glossary, Top
 @unnumbered Key (Character) Index
 @printindex ky
+@end iftex
 
+@ifnottex
+@node Key Index, Option Index, Glossary, Top
+@unnumbered Key (Character) Index
+@printindex ky
+
+@node Option Index, Command Index, Key Index, Top
+@unnumbered Command-Line Options Index
+@printindex op
+
+@node Command Index, Variable Index, Option Index, Top
+@unnumbered Command and Function Index
+@printindex fn
+@end ifnottex
+
+@iftex
 @node Command Index, Variable Index, Key Index, Top
 @unnumbered Command and Function Index
 @printindex fn
+@end iftex
 
 @node Variable Index, Concept Index, Command Index, Top
 @unnumbered Variable Index
