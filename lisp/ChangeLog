@@ -1,3 +1,11 @@
+2002-11-21  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.el (dired-sort-inhibit): New variable.
+	(dired-sort-toggle-or-edit): Err if dired-sort-inhibit non-nil.
+
+	* find-dired.el (find-dired): Set dired-sort-inhibit to t
+	buffer-locally.
+
 2002-11-21  Eugene Exarevsky  <zheka@relex.ru>
 
 	* progmodes/sql.el: Added LINTER support.

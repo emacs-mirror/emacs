@@ -1,3 +1,8 @@
+2002-11-21  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (interactive_p): Skip any number of bytecode
+	and special form frames, in any order.
+
 2002-11-20  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (convert_mono_to_color_image): New function.
