@@ -2787,26 +2787,6 @@
 
 2004-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* url/url-util.el (url-debug): Use with-current-buffer.
-
-	* url/url-nfs.el (url-nfs-file-attributes): Add id-format parameter.
-	(url-nfs-create-wrapper): Use new backquote syntax.
-
-	* url/url-https.el (url-https-file-attributes): Add id-format param.
-
-	* url/url-http.el (url-http-head-file-attributes)
-	(url-http-file-attributes): Add id-format parameter.
-
-	* url/url-handlers.el: Use new find-file-hook.
-	(url-file-attributes): Add id-format parameter.
-
-	* url/url-file.el (url-file-create-wrapper): Use new backquote syntax.
-	(url-file-file-attributes): Add id-format parameter.
-
-	* url/url-dav.el: Use with-current-buffer.
-	(url-dav-process-response): Fix regexps and spurious quote.
-	(url-dav-file-attributes): Add id-format param.
-
 	* diff-mode.el (diff-end-of-hunk): Be more careful with unified hunks.
 
 2004-04-16  Andre Spiegel  <spiegel@gnu.org>
@@ -2979,14 +2959,6 @@
 	* progmodes/compile.el (compile-goto-error): Select the buffer/window
 	corresponding to the event.
 
-	* url/url.el (url-retrieve): Use with-current-buffer.
-
-	* url/url-http.el (url-http-parse-headers, url-http-file-exists-p):
-	Remove unused var `version'.
-
-	* url/url-handlers.el (url-handler-mode): New minor mode.
-	(url-setup-file-name-handlers): Remove.
-
 2004-04-12  Joe Buehler  <jbuehler@hekiman.com>
 
 	* loadup.el: Add cygwin to system-type list, for unexec() support.
@@ -3002,9 +2974,6 @@
 	(ibuffer): Save window configuration before showing Ibuffer buffer.
 
 	* help.el (describe-mode): Doc fix.
-
-	* url/url-cookie.el (url-cookie-handle-set-cookie): Replace calls
-	to obsolete `assoc-ignore-case' with calls to `assoc-string'.
 
 2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -3024,42 +2993,6 @@
 	* info.el (Info-follow-reference): Allow multiline reference name.
 
 2004-04-11  Dave Love  <fx@gnu.org>
-
-	* url/url-mailto.el (url-mailto):
-	* url/url-history.el (url-history-setup-save-timer):
-	* url/url-cookie.el (url-cookie-setup-save-timer): Avoid warnings.
-
-	* url/url-file.el (url-file-build-filename): Don't use
-	directory-sep-char.
-
-	* url/url-auth.el (url-register-auth-scheme): Fix `format' call.
-
-	* url/url-about.el (url-scheme-registry): Defvar.
-	(url-about): Use text/plain.
-
-	* url/url-vars.el (cl): Don't require.
-	(url): Add :version.
-	(url-bug-address): Use bug-gnu-emacs.
-
-	* url/url-util.el (url-hexify-string): Don't give multibyte error
-	for char <16.
-	(mail-header-extract): Autoload.
-
-	* url/url-parse.el: Doc fixes.
-
-	* url/url-ldap.el (ldap): Require.
-	(url-ldap): Fix `format' call.
-	(url-ldap-certificate-formatter): Avoid warning.
-
-	* url/url-https.el (url-https-create-secure-wrapper): Use modern
-	backquotes.
-
-	* url/url-dav.el (url-dav-rename-file): Fix args of `signal'.
-	(url-intersection): New.
-	(url-dav-supported-p): Use it.
-	(url-dav-save-resource): Declare url-http-response-status special.
-
-	* url/url-cache.el (url-util): Require.
 
 	* emacs-lisp/bytecomp.el (byte-compile-cond): Fix last change.
 
@@ -3107,9 +3040,6 @@
 
 	* emacs-lisp/bytecomp.el (byte-compile-version): Variable removed.
 	(byte-compile-insert-header): Don't use `byte-compile-version'.
-	* url/url-vars.el (url-version): Use the constant string "Emacs"
-	instead of calculating something from the RCS `State' keyword
-	[the latter is almost entirely useless anyway].
 	* forms.el (forms-version): Variable removed.
 	(forms-mode): Don't use `forms-version'.
 	* recentf.el (recentf-version): Variable removed.
@@ -3359,10 +3289,7 @@
 
 2004-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* url: Import the URL package from its repository.
-
-	* url/url-methods.el:
-	* url/url-parse.el: Don't require url-auto.
+	* url/: New dir.  Import the URL package from its repository.
 
 2004-04-03  Andreas Schwab  <schwab@suse.de>
 

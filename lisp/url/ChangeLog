@@ -63,8 +63,7 @@
 	(url-ldap): Fix `format' call.
 	(url-ldap-certificate-formatter): Avoid warning.
 
-	* url-https.el (url-https-create-secure-wrapper): Use modern
-	backquotes.
+	* url-https.el (url-https-create-secure-wrapper): Use modern backquotes.
 
 	* url-dav.el (url-dav-rename-file): Fix args of `signal'.
 	(url-intersection): New.
@@ -113,9 +112,8 @@
 
 2002-11-04  Walter C. Pelissero <walter@pelissero.org>
 
-	* lisp/url-methods.el (url-scheme-register-proxy): Make sure to
-	convert port numbers to integers when creating the URL objects for
-	proxies.
+	* lisp/url-methods.el (url-scheme-register-proxy): Make sure to convert
+	port numbers to integers when creating the URL objects for proxies.
 
 2002-10-29  William M. Perry  <wmperry@gnu.org>
 
@@ -137,8 +135,8 @@
 	* lisp/url-http.el (url-http-handle-cookies): New function to deal
 	with cookie headers.
 	(url-http-parse-headers): Call `url-http-handle-cookies' here so
-	that cookie additions and deletions get handled immediately.  This
-	is so that sites that set cookies while doing redirects
+	that cookie additions and deletions get handled immediately.
+	This is so that sites that set cookies while doing redirects
 	(my.yahoo.com, outlook web access, etc) work.  This should also
 	fix sites that delete cookies on invalid access or other error
 	pages the user might not actually see.
@@ -334,9 +332,8 @@
 	* lisp/url-auth.el (url-basic-auth-storage): Change meaning of
 	this variable.  It is now a symbol pointing to where we really
 	want to store the authorization information.  This fixes proxy
-	auth and normal basic auth because of some local bindings that
-	were making it impossible to store the credentials in the global
-	binding.
+	auth and normal basic auth because of some local bindings that were
+	making it impossible to store the credentials in the global binding.
 	(url-basic-auth): Make sure we dereference url-basic-auth-storage
 	everywhere.
 
@@ -1004,10 +1001,10 @@
 	renamed function.
 	(url-default-expander): Use it.
 
-	* lisp/url-file.el (url-file-asynch-callback): Deal with just efs-auto as
-	well as efs.
-	(url-file): Add default content-type of application/octet-stream if none
-	known.
+	* lisp/url-file.el (url-file-asynch-callback): Deal with just efs-auto
+	as well as efs.
+	(url-file): Add default content-type of application/octet-stream if
+	none known.
 	(url-file): Correct bad call to url-host-is-local-p
 
 	* lisp/url-handlers.el (url-insert-file-contents): Emacs doesn't
