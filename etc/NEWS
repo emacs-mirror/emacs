@@ -1792,13 +1792,17 @@ mouse event, e.g. [area4 mouse-1] if the hot-spot's ID is `area4'.
 *** Mouse clicks on fringes now generates left-fringe or right-fringes
 events, rather than a text area click event.
 
+*** Mouse clicks in the left and right marginal areas now includes a
+sensible buffer position corresponding to the first character in the
+corresponding text row.
+
+*** Function `mouse-set-point' now works for events outside text area.
+
 +++
 *** Mouse events now includes buffer position for all event types.
 
 +++
 *** `posn-point' now returns buffer position for non-text area events.
-
-*** Function `mouse-set-point' now works for events outside text area.
 
 +++
 *** New function `posn-area' returns window area clicked on (nil means
@@ -1817,9 +1821,15 @@ text area).
 *** Mouse events include relative x and y pixel coordinates relative to
 the top left corner of the object (image or character) clicked on.
 
-*** New functions 'posn-object' and 'posn-object-x-y' return the image
-or string object of a mouse click, and the x and y pixel coordinates
-relative to the top left corner of that object.
++++
+*** Mouse events include the pixel width and height of the object
+(image or character) clicked on.
+
++++
+*** New functions 'posn-object', 'posn-object-x-y', and
+'posn-object-width-height' return the image or string object of a mouse
+click, the x and y pixel coordinates relative to the top left corner
+of that object, and the total width and height of that object.
 
 ** New function `force-window-update' can initiate a full redisplay of
 one or all windows.  Normally, this is not needed as changes in window
