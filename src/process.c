@@ -132,7 +132,7 @@ Lisp_Object Qlocal, Qdatagram;
 Lisp_Object QCname, QCbuffer, QChost, QCservice, QCtype;
 Lisp_Object QClocal, QCremote, QCcoding;
 Lisp_Object QCserver, QCnowait, QCnoquery, QCstop;
-Lisp_Object QCsentinel, QClog, QCoptions, QCvars;
+Lisp_Object QCsentinel, QClog, QCoptions, QCplist;
 Lisp_Object Qlast_nonmenu_event;
 /* QCfamily is declared and initialized in xfaces.c,
    QCfilter in keyboard.c.  */
@@ -1037,36 +1037,26 @@ See `make-network-process' for a list of keywords.  */)
   return Fplist_get (contact, key);
 }
 
-DEFUN ("process-variable", Fprocess_variable, Sprocess_variable,
-       1, 2, 0,
-       doc: /* Return the value of PROCESS' private variable VAR.
-If VARIABLE is omitted or nil, return plist with all PROCESS variables.  */)
-     (process, var)
-     register Lisp_Object process, var;
+DEFUN ("process-plist", Fprocess_plist, Sprocess_plist,
+       1, 1, 0,
+       doc: /* Return the plist of PROCESS.  */)
+     (process)
+     register Lisp_Object process;
 {
   CHECK_PROCESS (process);
-
-  if (NILP (var))
-    return XPROCESS (process)->private_vars;
-
-  return Fplist_get (XPROCESS (process)->private_vars, var);
+  return XPROCESS (process)->plist;
 }
 
-DEFUN ("set-process-variable", Fset_process_variable, Sset_process_variable,
-       3, 3, 0,
-       doc: /* Change value of PROCESS' private variable VAR to VAL, and return VAL.
-If VAR is nil, set all PROCESS' private variables according to plist VAL.  */)
-     (process, var, val)
-     register Lisp_Object process, var, val;
+DEFUN ("set-process-plist", Fset_process_plist, Sset_process_plist,
+       2, 2, 0,
+       doc: /* Replace the plist of PROCESS with PLIST.  */)
+     (process, plist)
+     register Lisp_Object process, plist;
 {
   CHECK_PROCESS (process);
+  CHECK_LIST (plist);
 
-  XPROCESS (process)->private_vars
-    = (NILP (var)
-       ? val
-       : Fplist_put (XPROCESS (process)->private_vars, var, val));
-
-  return val;
+  XPROCESS (process)->plist = plist;
 }
 
 #if 0 /* Turned off because we don't currently record this info
@@ -1434,7 +1424,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   record_unwind_protect (start_process_unwind, proc);
 
   XPROCESS (proc)->childp = Qt;
-  XPROCESS (proc)->private_vars = Qnil;
+  XPROCESS (proc)->plist = Qnil;
   XPROCESS (proc)->command_channel_p = Qnil;
   XPROCESS (proc)->buffer = buffer;
   XPROCESS (proc)->sentinel = Qnil;
@@ -2599,8 +2589,7 @@ client.  The arguments are SERVER, CLIENT, and MESSAGE, where SERVER
 is the server process, CLIENT is the new process for the connection,
 and MESSAGE is a string.
 
-:vars VARS -- Initialize the process' private variables according to
-a list of variable/value pairs (VAR1 VAL1 VAR2 VAL2...).
+:plist PLIST -- Install PLIST as the new process' initial plist.
  
 :server BOOL -- if BOOL is non-nil, create a server process for the
 specified FAMILY, SERVICE, and connection type (stream or datagram).
@@ -2619,8 +2608,7 @@ NAME concatenated with the client identification string.
 inherited from the server process' TYPE, FILTER and SENTINEL.
 - The client process' contact info is set according to the client's
 addressing information (typically an IP address and a port number).
-- The client process' private variables are initialized from the
-server's private variables.
+- The client process' plist is initialized from the server's plist.
 
 Notice that the FILTER and SENTINEL args are never used directly by
 the server process.  Also, the BUFFER argument is not used directly by
@@ -3183,7 +3171,7 @@ usage: (make-network-process &rest ARGS)  */)
   p = XPROCESS (proc);
 
   p->childp = contact;
-  p->private_vars = Fcopy_sequence (Fplist_get (contact, QCvars));
+  p->plist = Fcopy_sequence (Fplist_get (contact, QCplist));
   
   p->buffer = buffer;
   p->sentinel = sentinel;
@@ -3616,7 +3604,7 @@ server_accept_connection (server, channel)
 #endif
 
   p->childp = contact;
-  p->private_vars = Fcopy_sequence (ps->private_vars);
+  p->plist = Fcopy_sequence (ps->plist);
 
   p->buffer = buffer;
   p->sentinel = ps->sentinel;
@@ -6343,8 +6331,8 @@ syms_of_process ()
   staticpro (&QCstop);
   QCoptions = intern (":options");
   staticpro (&QCoptions);
-  QCvars = intern (":vars");
-  staticpro (&QCvars);
+  QCplist = intern (":plist");
+  staticpro (&QCplist);
     
   Qlast_nonmenu_event = intern ("last-nonmenu-event");
   staticpro (&Qlast_nonmenu_event);
@@ -6388,8 +6376,8 @@ The value takes effect when `start-process' is called.  */);
   defsubr (&Sset_process_query_on_exit_flag);
   defsubr (&Sprocess_query_on_exit_flag);
   defsubr (&Sprocess_contact);
-  defsubr (&Sprocess_variable);
-  defsubr (&Sset_process_variable);
+  defsubr (&Sprocess_plist);
+  defsubr (&Sset_process_plist);
   defsubr (&Slist_processes);
   defsubr (&Sprocess_list);
   defsubr (&Sstart_process);
