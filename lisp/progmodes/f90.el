@@ -340,11 +340,12 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
    ;; Special highlighting of "module procedure".
    '("\\<\\(module[ \t]*procedure\\)\\>" (1 font-lock-keyword-face))
    ;; Highlight declaration of derived type.
-;;;   '("\\<\\(type\\)[ \t]*\\(.*::[ \t]*\\|[ \t]+\\)\\(\\sw+\\)"
-;;;     (1 font-lock-keyword-face) (3 font-lock-function-name-face))
+   '("\\<\\(\\(?:end[ \t]*\\)?type\\)\\>[ \t]*\\([^()\n]*::[ \t]*\\)?\
+\\(\\sw+\\)"
+     (1 font-lock-keyword-face) (3 font-lock-function-name-face))
    ;; Other functions and declarations.
    '("\\<\\(\\(?:end[ \t]*\\)?\\(program\\|module\\|function\\|\
-subroutine\\|type\\)\\|use\\|call\\)\\>[ \t]*\\(\\sw+\\)?"
+subroutine\\)\\|use\\|call\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
    "\\<\\(\\(end[ \t]*\\)?\\(interface\\|block[ \t]*data\\)\\|contains\\)\\>")
   "This does fairly subdued highlighting of comments and function calls.")
@@ -366,7 +367,7 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
       (2 font-lock-constant-face nil t) (3 font-lock-keyword-face))
     ;; Implicit declaration.
     '("\\<\\(implicit\\)[ \t]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\
-\\|logical\\|type[ \t]*(\\sw+)\\|none\\)\\>"
+\\|logical\\|type[ \t]*(\\sw+)\\|none\\)[ \t]*"
       (1 font-lock-keyword-face) (2 font-lock-type-face))
     '("\\<\\(namelist\\|common\\)[ \t]*\/\\(\\sw+\\)?\/"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
@@ -632,7 +633,7 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
   "Regexp matching the end of a TYPE, INTERFACE, BLOCK DATA section.")
 
 (defconst f90-type-def-re
-  "\\<\\(type\\)[ \t]+\\(\\sw+\\)\\>"
+  "\\<\\(type\\)\\>[ \t]*\\(?:[^()\n]*::[ \t]*\\)?\\(\\sw+\\)"
   "Regexp matching the definition of a derived type.")
 
 (defconst f90-no-break-re
