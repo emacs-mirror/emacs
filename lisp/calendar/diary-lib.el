@@ -598,6 +598,7 @@ is created."
   :type 'integer
   :version "20.3")
 
+;;;###autoload
 (defun diary-mail-entries (&optional ndays)
   "Send a mail message showing diary entries for next NDAYS days.
 If no prefix argument is given, NDAYS is set to `diary-mail-days'.
