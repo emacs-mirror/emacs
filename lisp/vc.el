@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 5.3
 
-;;	$Id: vc.el,v 1.29 1993/03/28 06:40:46 eric Exp eric $	
+;;	$Id: vc.el,v 1.30 1993/03/29 15:38:31 eric Exp roland $	
 
 ;; This file is part of GNU Emacs.
 
@@ -42,7 +42,7 @@
 ;; to be installed somewhere on Emacs's path for executables.
 ;;
 ;; If your site uses the ChangeLog convention supported by Emacs, the
-;; function vc-comment-to-changelog should prove a useful checkin hook.
+;; function vc-comment-to-change-log should prove a useful checkin hook.
 ;;
 ;; This code depends on call-process passing back the subprocess exit
 ;; status.  Thus, you need Emacs 18.58 or later to run it.
@@ -480,8 +480,13 @@ popped up to accept a comment."
 
 ;;; Here is a checkin hook that may prove useful to sites using the
 ;;; ChangeLog facility supported by Emacs.
-(defun vc-comment-to-changelog ()
-  (let ((log (find-change-log)))
+(defun vc-comment-to-change-log (&optional file)
+  "\
+Update change log from comments entered into VC for the currently visited file.
+Optional arg specifies the change log file name; see `find-change-log'.
+See `vc-update-change-log'."
+  (interactive)
+  (let ((log (find-change-log file)))
     (if log
 	(let ((default-directory (or (file-name-directory log)
 				     default-directory)))
@@ -904,7 +909,7 @@ From a program, any arguments are passed to the `rcs2log' script."
   (goto-char (point-min))
   (push-mark)
   (message "Computing change log entries...")
-  (message "Computing change log entries... %s"
+  (message "Computing change log entries...%s"
            (if (eq 0 (apply 'call-process "rcs2log" nil t nil args))
 	       "done" "failed")))
 
