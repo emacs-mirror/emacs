@@ -1,3 +1,7 @@
+1999-09-01  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: Add faq.
+
 1999-07-12  Richard Stallman  <rms@gnu.org>
 
 	* Version 20.4 released.
