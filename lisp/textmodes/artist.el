@@ -1532,7 +1532,7 @@ The returned value is suitable for the `x-popup-menu' function."
   "Compute completion table from MENU-TABLE, suitable for `completing-read'."
   (apply
    'nconc
-   (artist-remove-nulls
+   (remq nil
     (mapcar
      (lambda (element)
        (let ((element-tag (artist-mt-get-tag element)))
@@ -1772,45 +1772,12 @@ info-variant-part."
   "Call function FN with ARGS iff FN is not nil."
   (list 'if fn (cons 'funcall (cons fn args))))
 
-(defvar artist-butlast-fn 'artist-butlast
-  "The butlast function.")
-
-(if (fboundp 'butlast)
-    (setq artist-butlast-fn 'butlast)
-  (setq artist-butlast-fn 'artist-butlast))
-
-(defun artist-butlast (l)
-  "Return the list L with all elements but the last."
-  (cond ((null l) nil)
-	((null (cdr l)) nil)
-	(t (cons (car l) (artist-butlast (cdr l))))))
-
-
-(defun artist-last (l &optional n)
-  "Return the last link in the list L.
-With optional argument N, returns Nth-to-last link (default 1)."
-  (nth (- (length l) (or n 1)) l))
-
-(defun artist-remove-nulls (l)
-  "Remove nils in list L."
-  (remq nil l))
-
 (defun artist-uniq (l)
   "Remove consecutive duplicates in list L.  Comparison is done with `equal'."
   (cond ((null l) nil)
 	((null (cdr l)) l)		; only one element in list
 	((equal (car l) (car (cdr l))) (artist-uniq (cdr l))) ; first 2 equal
 	(t (cons (car l) (artist-uniq (cdr l)))))) ; first 2 are different
-
-(defmacro artist-push (x stack)
-  "Push element X to a STACK."
-  (list 'setq stack (list 'cons x stack)))
-
-(defmacro artist-pop (stack)
-  "Pop an element from a STACK."
-  (list 'prog1
-	(list 'car stack)
-	(list 'setq stack (list 'cdr stack))))
 
 (defun artist-string-split (str r)
   "Split string STR at occurrences of regexp R, returning a list of strings."
@@ -3246,14 +3213,14 @@ through X1, Y1. An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
   "Vaporize lines reachable from point X1, Y1."
   (let ((ep-stack nil))
     (mapcar
-     (lambda (ep) (artist-push ep ep-stack))
+     (lambda (ep) (push ep ep-stack))
      (artist-vap-find-endpoints x1 y1))
     (while (not (null ep-stack))
-      (let* ((vaporize-point (artist-pop ep-stack))
+      (let* ((vaporize-point (pop ep-stack))
 	     (new-endpoints (artist-vaporize-line (car vaporize-point)
 						  (cdr vaporize-point))))
 	(mapcar
-	 (lambda (endpoint) (artist-push endpoint ep-stack))
+	 (lambda (endpoint) (push endpoint ep-stack))
 	 new-endpoints)))))
 
 
@@ -3414,7 +3381,7 @@ The POINT-LIST is expected to cover the first quadrant."
     ;; that look like:    \           /  instead we get:   (           )
     ;;                     \         /                      \         /
     ;;                      ---------                        ---------
-    (let ((last-coord  (artist-last point-list)))
+    (let ((last-coord  (last point-list)))
       (if (= (artist-coord-get-new-char last-coord) ?/)
 	  (artist-coord-set-new-char last-coord artist-ellipse-right-char)))
 
@@ -3447,7 +3414,7 @@ The POINT-LIST is expected to cover the first quadrant."
 				       (t c)))))
 	   ;; The cdr and butlast below is so we don't draw the middle top
 	   ;; and middle bottom char twice.
-	   (funcall artist-butlast-fn (cdr (reverse right-half)))))
+	   (butlast (cdr (reverse right-half)))))
     (append right-half left-half)))
 
 
@@ -3763,10 +3730,10 @@ original contents of that area in the buffer."
     ;; area we are about to fill, or, in other words, don't fill if we
     ;; needn't.
     (if (not (= c artist-fill-char))
-	(artist-push (artist-new-coord x1 y1) stack))
+	(push (artist-new-coord x1 y1) stack))
 
     (while (not (null stack))
-      (let* ((coord (artist-pop stack))
+      (let* ((coord (pop stack))
 	     (x (artist-coord-get-x coord))
 	     (y (artist-coord-get-y coord))
 
@@ -3798,7 +3765,7 @@ original contents of that area in the buffer."
 	  (if lines-above
 	      (let ((c-above (artist-get-char-at-xy-conv x (- y 1))))
 		(if (and (= c-above c) (/= c-above last-c-above))
-		    (artist-push (artist-new-coord x (- y 1)) stack))
+		    (push (artist-new-coord x (- y 1)) stack))
 		(setq last-c-above c-above)))
 	  (setq last-x x)
 	  (setq x (- x 1)))
@@ -3812,7 +3779,7 @@ original contents of that area in the buffer."
 	  (if lines-below
 	      (let ((c-below (artist-get-char-at-xy-conv x (1+ y))))
 		(if (and (= c-below c) (/= c-below last-c-below))
-		    (artist-push (artist-new-coord x (1+ y)) stack))
+		    (push (artist-new-coord x (1+ y)) stack))
 		(setq last-c-below c-below)))
 	  (setq x (- x 1)))
 
