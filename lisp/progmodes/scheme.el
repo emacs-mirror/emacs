@@ -264,6 +264,12 @@ See `run-hooks'."
   :type 'hook
   :group 'scheme)
 
+;; This is shared by cmuscheme and xscheme.
+(defcustom scheme-program-name "scheme"
+  "*Program invoked by the `run-scheme' command."
+  :type 'string
+  :group 'scheme)
+
 (defvar dsssl-imenu-generic-expression
   ;; Perhaps this should also look for the style-sheet DTD tags.  I'm
   ;; not sure it's the best way to organize it; perhaps one type
