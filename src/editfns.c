@@ -680,7 +680,7 @@ the data it can't find.")
       s = 0;
 #ifdef HAVE_TM_ZONE
       if (t->tm_zone)
-	s = t->tm_zone;
+	s = (char *)t->tm_zone;
 #else /* not HAVE_TM_ZONE */
 #ifdef HAVE_TZNAME
       if (t->tm_isdst == 0 || t->tm_isdst == 1)
