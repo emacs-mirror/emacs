@@ -1,3 +1,12 @@
+2001-12-12  Dave Love  <fx@gnu.org>
+
+	* international/mule.el (make-translation-table-from-vector):
+	Allow null elements in VEC.
+
+	* international/ucs-tables.el (unify-8859-on-encoding-mode)
+	(unify-8859-on-decoding-mode): Swap the code in their bodies.  Add
+	:version.
+
 2001-12-11  Richard M. Stallman  <rms@gnu.org>
 
 	* derived.el (derived-mode-p): Function moved to subr.el.
