@@ -14,7 +14,7 @@ if ($] =~ /perl for NT/) {
  # it's NT, so find out what the processor is
  #  from a system variable
  $platform_class = "nt_".$ENV{"PROCESSOR_ARCHITECTURE"};
- if ($platform_class = "nt_") {
+ if ($platform_class eq "nt_") {
   $platform_class = "nt_dunno";
  }
 } else {
