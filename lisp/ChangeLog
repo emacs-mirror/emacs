@@ -1,4 +1,20 @@
-2001-11-01  Stefan Monnier  <monnier@cs.yale.edu>
+2001-11-02  Miles Bader  <miles@gnu.org>
+
+	* help-mode.el (help-xref): New button type.
+	(help-function, help-variable, help-face, help-coding-system)
+	(help-input-method, help-character-set, help-type, help-symbol)
+	(help-back, help-info, help-customize-variable, help-customize-face)
+	(help-function-def, help-variable-def): Use it as a supertype.
+	Remove `action' property.
+
+	* international/mule-diag.el (describe-character-set)
+	(describe-coding-system): Pass correct args to `help-xref-button'.
+	(sort-listed-character-sets): New button type.
+	(list-character-sets): Use it.
+	(list-charset-chars): New button type.
+	(list-character-sets-1): Use it.
+
+2001-11-01  Stefan Monnier  <monnier@rum.cs.yale.edu>
 
 	* indent.el (tab-always-indent, indent-for-tab-command):
 	Remove redundant `never' setting.
