@@ -1,3 +1,9 @@
+2000-10-31  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_produce_glyphs): Handle composite characters.
+	(x_draw_glyph_string_foreground)
+	(x_draw_composite_glyph_string_foreground): Restore old font.
+
 2000-10-31  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* minibuf.c (read_minibuf): Reset the undo history just before
