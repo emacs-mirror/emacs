@@ -347,13 +347,12 @@ load_color (f, name)
     return FACE_DEFAULT;
 
   CHECK_STRING (name, 0);
+  /* if the colormap is full, defined_color will return a best match
+     to the values in an an existing cell. */
   result = defined_color(f, (char *) XSTRING (name)->data, &color, 1);
   if (! result)
     Fsignal (Qerror, Fcons (build_string ("undefined color"),
 			    Fcons (name, Qnil)));
-  /* Ignore the return value of XallocColor, so that
-     we use a color close to the one requested
-     if we can't get the exact request.  */
   return (unsigned long) color.pixel;
 }
 
