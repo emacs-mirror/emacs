@@ -902,6 +902,7 @@ The returned value is a Quail map specific to KEY."
 	      unread-command-events (cons key unread-command-events))
 	(while quail-translating
 	  (let* ((echo-keystrokes 0)
+		 (help-char nil)
 		 (keyseq (read-key-sequence nil))
 		 (events (this-single-command-raw-keys))
 		 (cmd (lookup-key translation-keymap keyseq)))
