@@ -466,8 +466,12 @@ main (int argc, char ** argv)
 
   /* Although Emacs always sets argv[0] to an absolute pathname, we
      might get run in other ways as well, so convert argv[0] to an
-     absolute name before comparing to the module name.  */
+     absolute name before comparing to the module name.  Don't get
+     caught out by mixed short and long names.  */
+  GetShortPathName (modname, modname, sizeof (modname));
+  path[0] = '\0';
   if (!SearchPath (NULL, argv[0], ".exe", sizeof (path), path, &progname)
+      || !GetShortPathName (path, path, sizeof (path))
       || stricmp (modname, path) != 0)
     {
       /* We are being used as a helper to run a DOS app; just pass
