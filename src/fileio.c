@@ -3083,16 +3083,6 @@ This does code conversion according to the value of\n\
     setup_coding_system (Fcheck_coding_system (val), &coding);
   }
 
-#ifdef DOS_NT
-  /* Use the conversion type to determine buffer-file-type
-     (find-buffer-file-type is now used to help determine the
-     conversion).  */
-  if (coding.type == coding_type_no_conversion)
-    current_buffer->buffer_file_type = Qt;
-  else
-    current_buffer->buffer_file_type = Qnil;
-#endif
-
   fd = -1;
 
 #ifndef APOLLO
@@ -3617,6 +3607,17 @@ This does code conversion according to the value of\n\
 	*GPT_ADDR = 0;
       inserted += this;
     }
+
+
+#ifdef DOS_NT
+  /* Use the conversion type to determine buffer-file-type
+     (find-buffer-file-type is now used to help determine the
+     conversion).  */
+  if (CODING_REQUIRE_EOL_CONVERSION (&coding))
+    current_buffer->buffer_file_type = Qnil;
+  else
+    current_buffer->buffer_file_type = Qt;
+#endif
 
   /* We don't have to consider file type of MSDOS because all files
      are read as binary and end-of-line format has already been
