@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.115 $")
+(defconst byte-compile-version "$Revision: 2.116 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -2405,9 +2405,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		  ;; don't compile it, because `call-interactively'
 		  ;; looks at the args of `list'.
 		  (let ((form (nth 1 int)))
-		    (while (or (eq (car-safe form) 'let)
-			       (eq (car-safe form) 'let*)
-			       (eq (car-safe form) 'save-excursion))
+		    (while (memq (car-safe form) '(let let* progn save-excursion))
 		      (while (consp (cdr form))
 			(setq form (cdr form)))
 		      (setq form (car form)))
