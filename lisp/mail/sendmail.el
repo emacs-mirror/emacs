@@ -885,7 +885,7 @@ However, if `mail-yank-prefix' is non-nil, insert that prefix on each line."
 
 (defun mail-yank-original (arg)
   "Insert the message being replied to, if any (in rmail).
-Puts point before the text and mark after.
+Puts point after the text and mark before.
 Normally, indents each nonblank line ARG spaces (default 3).
 However, if `mail-yank-prefix' is non-nil, insert that prefix on each line.
 
