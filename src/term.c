@@ -176,9 +176,7 @@ extern char *tgetstr ();
 void
 ring_bell ()
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = XFRAME (selected_frame);
 
   if (!NILP (Vring_bell_function))
     {
@@ -206,10 +204,7 @@ ring_bell ()
 void
 tty_ring_bell ()
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
-
+  struct frame *f = XFRAME (selected_frame);
   struct tty_display_info *tty = FRAME_TTY (f);
 
   OUTPUT (tty, (tty->TS_visible_bell && visible_bell

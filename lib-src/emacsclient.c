@@ -299,8 +299,14 @@ init_signals (void)
 {
   /* Set up signal handlers. */
   signal (SIGWINCH, pass_signal_to_emacs);
+
+  /* Don't pass SIGINT and SIGQUIT to Emacs, because it has no way of
+     deciding which terminal the signal came from.  C-g is now a
+     normal input event on secondary terminals.  */
+#if 0
   signal (SIGINT, pass_signal_to_emacs);
   signal (SIGQUIT, pass_signal_to_emacs);
+#endif
 }
 
 

@@ -1453,11 +1453,34 @@ nil means don't delete them until `list-processes' is run.  */);
 	  tty.main.c_cflag &= ~PARENB;/* Don't check parity */
 	}
 #endif
-      tty.main.c_cc[VINTR] = quit_char;	/* C-g (usually) gives SIGINT */
-      /* Set up C-g for both SIGQUIT and SIGINT.
-	 We don't know which we will get, but we handle both alike
-	 so which one it really gives us does not matter.  */
-      tty.main.c_cc[VQUIT] = quit_char;
+      if (tty_out->input == stdin)
+        {
+          tty.main.c_cc[VINTR] = quit_char;	/* C-g (usually) gives SIGINT */
+          /* Set up C-g for both SIGQUIT and SIGINT.
+             We don't know which we will get, but we handle both alike
+             so which one it really gives us does not matter.  */
+          tty.main.c_cc[VQUIT] = quit_char;
+        }
+      else
+        {
+          /* We normally don't get interrupt or quit signals from tty
+             devices other than our controlling terminal; therefore,
+             we must handle C-g as normal input.  Unfortunately, this
+             means that the interrupt and quit feature must be
+             disabled on secondary ttys, or we would not even see the
+             keypress.
+
+             Note that even though emacsclient could have special code
+             to pass SIGINT to Emacs, we should _not_ enable
+             interrupt/quit keys for emacsclient frames.  This means
+             that we can't break out of loops in C code from a
+             secondary tty frame, but we can always decide what
+             display the C-g came from, which is more important from a
+             usability point of view.  (Consider the case when two
+             people work together using the same Emacs instance.)  */
+          tty.main.c_cc[VINTR] = CDISABLE;
+          tty.main.c_cc[VQUIT] = CDISABLE;
+        }
       tty.main.c_cc[VMIN] = 1;	/* Input should wait for at least 1 char */
       tty.main.c_cc[VTIME] = 0;	/* no matter how long that takes.  */
 #ifdef VSWTCH

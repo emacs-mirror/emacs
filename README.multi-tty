@@ -133,13 +133,11 @@ THINGS TO DO
    the fly in write_glyphs, which might be problematic, as color
    approximation is currently done in lisp (term/tty-colors.el).)
 
-** frame-creation-function should always create a frame that is on the
-   same display as the selected frame.  Maybe frame-creation-function
-   should simply be removed and make-frame changed to do the right
-   thing.
-
 ** Fix interactive use of temacs.  There are face-related SEGVs, most
    likely because of changes in realize_default_face, realize_face.
+
+** Very strange bug: visible-bell does not work on secondary
+   terminals.  This might be something xterm (konsole) specific.
 
 ** Allow opening an X session after -nw.
 
@@ -149,7 +147,7 @@ THINGS TO DO
    extend emacsclient to handle suspend/resume.  A `kill -STOP' almost
    works right now.)
 
-** Exiting Emacs while there are emacsclient frames don't restore the
+** Exiting Emacs while there are emacsclient frames doesn't restore the
    ttys to their default states.
 
 ** Move baud_rate to struct display.
@@ -182,9 +180,6 @@ THINGS TO DO
    why raw terminal support is broken again.  I really do need to
    understand input.)
 
-** Make sure C-g goes to the right frame with ttys.  This is hard, as
-   SIGINT doesn't have a tty parameter. :-(
-
 ** I have seen a case when Emacs with multiple ttys fell into a loop
    eating 100% of CPU time.  Strace showed this loop:
 
@@ -212,7 +207,8 @@ THINGS TO DO
    about face problems.  This can even lock up Emacs (if the recursive
    frame sets single_kboard).  Update: the face problems are caused by
    bugs in term.el, not in multi-tty.  The lockup is caused by
-   single_kboard mode.
+   single_kboard mode, and is not easily solvable.  The best thing to
+   do is to simply refuse to create a tty frame of type `eterm'.
 
 DIARY OF CHANGES
 ----------------
@@ -519,5 +515,27 @@ DIARY OF CHANGES
 -- The command `emacsclient -t -e '(delete-frame)'' fails to exit.
 
    (Fixed.)
+
+-- frame-creation-function should always create a frame that is on the
+   same display as the selected frame.  Maybe frame-creation-function
+   should simply be removed and make-frame changed to do the right
+   thing.
+
+   (Done, with a nice hack.  frame-creation-function is now frame-local.)
+
+-- Fix C-g on raw ttys.
+
+   (Done.  I disabled the interrupt/quit keys on all secondary
+   terminals, so Emacs sees C-g as normal input.  This looks like an
+   overkill, because emacsclient has extra code to pass SIGINT to
+   Emacs, so C-g should remain the interrupt/quit key on emacsclient
+   frames.  See the next entry why implementing this distinction would
+   be a bad idea.)
+
+-- Make sure C-g goes to the right frame with ttys.  This is hard, as
+   SIGINT doesn't have a tty parameter. :-(
+
+   (Done, the previous change fixes this as a pleasant side effect.)
+
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
