@@ -1,3 +1,26 @@
+2000-01-23  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_defined_color): Apply gamma correction before
+	trying to map to the palette.
+	(w32_wnd_proc) [WM_ERASE_BACKGROUND]: Pass device context of frame
+	to w32_clear_rect.
+
+	* w32term.c (w32_fill_rect): Do not try to deal with NULL hdc
+	here. Callers changed to always pass real device context.
+	(w32_draw_bitmap): Likewise.
+	(w32_get_glyph_overhangs): Likewise.
+	(w32_draw_box_rect): Make use of s->hdc rather than getting a new
+	one.
+	(w32_set_vertical_scroll_bar): Pass correct HWND parameters to
+	pfnSetScrollInfo and SetScrollRange.
+	(x_get_char_face_and_encoding): Don't turn iso8859-1 characters
+	back into MULE characters after decoding them.
+	(x_get_glyph_face_and_encoding): Likewise.
+	(w32_per_char_metric): Use GetCharExtentPoint32W as fallback when
+	GetCharABCWidthsW fails, since this is defined on Windows 9x.
+	(x_produce_glyphs): Calculate per char metrics for a character
+	that we know exists in default font when font_not_found_p is true.
+
 2000-01-22  Jason Rumney <jasonr@gnu.org>
 
 	* makefile.nt (intervals.obj, composite.obj): New modules.
