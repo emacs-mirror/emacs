@@ -1,3 +1,9 @@
+2004-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* man.el (Man-getpage-in-background): Add windows-nt to the list
+	of systems where shell-file-name should be used instead of
+	literal "sh".
+
 2004-06-25  Sam Steingold  <sds@gnu.org>
 
 	* add-log.el (change-log-font-lock-keywords): Support Common Lisp
