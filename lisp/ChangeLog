@@ -1159,6 +1159,13 @@
 
 	* sql.el (sql-help): Doc change.
 
+2001-04-19  Karl Fogel  <kfogel@collab.net>
+
+	* saveplace.el (save-place-alist-to-file): Removed no-effect code
+	that inserted file content only to delete it immediately.
+	Probably a cut-and-paste bug.  Thanks to Juanma Barranquero
+	<lektu@uol.com.br> for the patch.
+
 2001-04-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-defsyntax): Unquote `doc'.
