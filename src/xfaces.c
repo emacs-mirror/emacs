@@ -6867,10 +6867,10 @@ face_at_buffer_position (w, pos, region_beg, region_end,
    current_buffer, otherwise BUFPOS is zero to indicate that STRING is
    not an overlay string.  W must display the current buffer.
    REGION_BEG and REGION_END give the start and end positions of the
-   region; both are -1 if no region is visible.  BASE_FACE_ID is the
-   id of the basic face to merge with.  It is usually equal to
-   DEFAULT_FACE_ID but can be MODE_LINE_FACE_ID or HEADER_LINE_FACE_ID
-   for strings displayed in the mode or top line.
+   region; both are -1 if no region is visible.
+
+   BASE_FACE_ID is the id of a face to merge with.  For strings coming
+   from overlays or the `display' property it is the face at BUFPOS.
 
    Set *ENDPTR to the next position where to check for faces in
    STRING; -1 if the face is constant from POS to the end of the
