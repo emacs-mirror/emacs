@@ -188,7 +188,7 @@ Returns nil if nothing was entered."
 	    (* 1.916 (solar-sin-degrees mean-anomaly))
 	    (* 0.020 (solar-sin-degrees (* 2 mean-anomaly)))
 	    282.634)
-	 360)))
+	 360.0)))
 
 (defun solar-right-ascension (longitude)
   "Right ascension of the sun, given its LONGITUDE."
@@ -231,7 +231,7 @@ of hours.  Returns nil if the sun does not rise at that location on that day."
 	      (mod (- (+ local-sunrise solar-right-ascension-at-sunrise)
 		      (+ (* 0.065710 approx-sunrise)
 			 6.622))
-		   24)))
+		   24.0)))
 	(+ (- local-mean-sunrise (solar-degrees-to-hours calendar-longitude))
 	   (/ calendar-time-zone 60.0))))))
 
@@ -262,7 +262,7 @@ of hours.  Returns nil if the sun does not set at that location on that day."
              (local-mean-sunset
 	      (mod (- (+ local-sunset solar-right-ascension-at-sunset)
 		      (+ (* 0.065710 approx-sunset) 6.622))
-		   24)))
+		   24.0)))
 	(+ (- local-mean-sunset (solar-degrees-to-hours calendar-longitude))
 	   (/ calendar-time-zone 60.0))))))
 
@@ -430,7 +430,7 @@ This function is suitable for execution in a .emacs file."
         (time-string (solar-sunrise-sunset date))
         (msg (format "%s: %s" date-string time-string))
         (one-window (one-window-p t)))
-   (if (<= (length msg) (screen-width))
+   (if (<= (length msg) (frame-width))
        (message msg)
      (with-output-to-temp-buffer "*temp*"
        (princ (concat date-string "\n" time-string)))
