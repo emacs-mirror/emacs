@@ -1,3 +1,11 @@
+2004-06-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (before-save-hook): Add `time-stamp' to the options.
+
+	* time-stamp.el (time-stamp): Recommend adding it to
+	`before-save-hook', rather than `write-file-functions'
+	Make a similar change in `Commentary' section.
+
 2004-06-13  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
 	* diff-mode.el (diff-current-defun): If at start of hunk, use
