@@ -27,7 +27,8 @@ the script).
 Note that this problem does not pertain to the MS-Windows port of
 Emacs, since it doesn't use the preprocessor to generate Makefiles.
 
-* Building Emacs with a system compiler fails during link stage.
+* Building Emacs with a system compiler fails to link because of an
+  undefined symbol such as __eprintf which does not appear in Emacs.
 
 This can happen if some of the libraries linked into Emacs were built
 with GCC, but Emacs itself is being linked with a compiler other than
@@ -39,6 +40,9 @@ link stage.
 A solution is to link with GCC, like this:
 
   	make CC=gcc
+
+Since the .o object files already exist, this will not recompile Emacs
+with GCC, but just start by trying again to link temacs.
 
 * Building the MS-Windows port with Cygwin GCC can fail.
 
@@ -1173,9 +1177,9 @@ when shutting down Windows. Ensure that all subprocesses are exited
 cleanly before exiting Emacs. For more details, see the FAQ at
 ftp://ftp.gnu.org/gnu/windows/emacs/doc/index.html
 
-* Windows 95/98/ME crashes when trying to run non-existent subprocesses.
+* Windows 95/98/ME crashes when Emacs invokes non-existent programs.
 
-When a subprocess you are trying to run is not found on the PATH,
+When a program you are trying to run is not found on the PATH,
 Windows might respond by crashing or locking up your system.  In
 particular, this has been reported when trying to compile a Java
 program in JDE when javac.exe is installed, but not on the system
