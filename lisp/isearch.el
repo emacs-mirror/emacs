@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/01/10 22:27:52 $|$Revision: 1.60 $
+;; |$Date: 1994/01/15 16:24:47 $|$Revision: 1.61 $
 
 ;; This file is part of GNU Emacs.
 
@@ -349,7 +349,6 @@ Default value, nil, means edit the string instead.")
 (defvar isearch-opoint 0)
 ;;; The window configuration active at the beginning of the search.
 (defvar isearch-window-configuration nil)
-(defvar isearch-old-local-map nil)
 
 ;; Flag to indicate a yank occurred, so don't move the cursor.
 (defvar isearch-yank-flag nil)
@@ -502,7 +501,6 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-small-window nil
 
 	isearch-opoint (point)
-	isearch-old-local-map (current-local-map)
 	search-ring-yank-pointer nil
 	regexp-search-ring-yank-pointer nil)
   (setq isearch-window-configuration
@@ -521,7 +519,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 
   (isearch-push-state)
 
-  (use-local-map isearch-mode-map)
+  (make-local-variable 'overriding-local-map)
+  (setq overriding-local-map isearch-mode-map)
   (isearch-update)
   (run-hooks 'isearch-mode-hook)
 
@@ -581,7 +580,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 (defun isearch-done (&optional nopush)
   ;; Called by all commands that terminate isearch-mode.
   ;; If NOPUSH is non-nil, we don't push the string on the search ring.
-  (use-local-map isearch-old-local-map)
+  (setq overriding-local-map nil)
   ;; (setq pre-command-hook isearch-old-pre-command-hook) ; for lemacs
   (isearch-dehighlight t)
   (let ((found-start (window-start (selected-window)))
