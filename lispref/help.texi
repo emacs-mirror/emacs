@@ -156,6 +156,7 @@ Here is an example of using the two functions, @code{documentation} and
 @code{documentation-property}, to display the documentation strings for
 several symbols in a @samp{*Help*} buffer.
 
+@anchor{describe-symbols example}
 @smallexample
 @group
 (defun describe-symbols (pattern)
