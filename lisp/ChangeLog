@@ -1,3 +1,7 @@
+2000-12-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* format.el (format-decode): Don't change buffer's undo list.
+
 2000-12-04  Kenichi Handa  <handa@etl.go.jp>
 
 	* faces.el (face-font-registry-alternatives): Add entries for CJK

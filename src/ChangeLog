@@ -1,8 +1,20 @@
 2000-12-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* fileio.c (Finsert_file_contents): When VISIT is t, don't
+	record undo information for format-decode.
+
+	* undo.c (Fprimitive_undo): Bind inhibit-read-only to t if
+	current buffer is read-only, not if it isn't.
+
 	* keyboard.c (record_char): Record `help-echo' input events
 	in recent_keys only if they display some help.  Don't record
 	`help-echo' events as macro char.
+
+2000-12-04  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* editfns.c (save_excursion_restore): Don't move point
+	in another window if it is showing the wrong buffer.
+	Avoid the call to Fwindow_live_p, for speed.
 
 2000-12-04  Kenichi Handa  <handa@etl.go.jp>
 
