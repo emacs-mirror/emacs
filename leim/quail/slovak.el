@@ -1,10 +1,10 @@
 ;;; quail/slovak.el -- Quail package for inputting Slovak
 
-;; Copyright (C) 1998 Free Software Foundation.
+;; Copyright (C) 1998, 2001 Free Software Foundation.
 
 ;; Authors:    Tibor ,B)(Bimko <tibor.simko@fmph.uniba.sk>,
-;;             Milan Zamazal <pdm@fi.muni.cz>
-;; Maintainer: Milan Zamazal <pdm@fi.muni.cz>
+;;             Milan Zamazal <pdm@zamazal.org>
+;; Maintainer: Pavel Jan,Al(Bk <Pavel@Janik.cz>
 ;; Keywords: multilingual, input method, Slovak
 
 ;; This file is part of GNU Emacs.
@@ -36,7 +36,7 @@
 
 
 (quail-define-package
- "slovak" "Slovak" "SK" nil
+ "slovak" "Slovak" "SK" t
  "Standard Slovak keyboard."
  nil t nil nil t nil nil nil nil nil t)
 
@@ -168,7 +168,7 @@
 
 
 (quail-define-package
- "slovak-prog-1" "Slovak" "SK" nil
+ "slovak-prog-1" "Slovak" "SK" t
  "Slovak (non-standard) keyboard for programmers #1.
 
 All digits except of `1' are replaced by Slovak characters as on the standard
@@ -262,7 +262,7 @@ All other keys are the same as on standard US keyboard."
 
 
 (quail-define-package
- "slovak-prog-2" "Slovak" "SK" nil
+ "slovak-prog-2" "Slovak" "SK" t
  "Slovak (non-standard) keyboard for programmers #2.
 
 All digits except of `1' are replaced by Slovak characters as on the standard
@@ -364,7 +364,7 @@ All other keys are the same as on standard US keyboard."
 
 
 (quail-define-package
- "slovak-prog-3" "Slovak" "SK" nil
+ "slovak-prog-3" "Slovak" "SK" t
  "Slovak (non-standard) keyboard for programmers #3.
 
 Dead keys are on `[', `[[', `[[[', and `]'.

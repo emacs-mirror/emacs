@@ -1,9 +1,9 @@
 ;;; quail/czech.el -- Quail package for inputting Czech
 
-;; Copyright (C) 1998 Free Software Foundation.
+;; Copyright (C) 1998, 2001 Free Software Foundation.
 
-;; Author:     Milan Zamazal <pdm@fi.muni.cz>
-;; Maintainer: Milan Zamazal <pdm@fi.muni.cz>
+;; Author: Milan Zamazal <pdm@zamazal.org>
+;; Maintainer: Pavel Jan,Al(Bk <Pavel@Janik.cz>
 ;; Keywords: multilingual, input method, Czech
 
 ;; This file is part of GNU Emacs.
@@ -36,7 +36,7 @@
 
 
 (quail-define-package
- "czech" "Czech" "CZ" nil
+ "czech" "Czech" "CZ" t
  "\"Standard\" Czech keyboard in the Windoze NT 105 keys version."
  nil t t t t nil nil nil nil nil t)
 
@@ -158,7 +158,7 @@
  ([kp-add] ?+))
 
 (quail-define-package
- "czech-qwerty" "Czech" "CZ" nil
+ "czech-qwerty" "Czech" "CZ" t
  "\"Standard\" Czech keyboard in the Windoze NT 105 keys version, QWERTY layout."
  nil t nil nil t nil nil nil nil nil t)
 
@@ -276,7 +276,7 @@
  ([kp-add] ?+))
 
 (quail-define-package
- "czech-prog-1" "Czech" "CZ" nil
+ "czech-prog-1" "Czech" "CZ" t
  "Czech (non-standard) keyboard for programmers #1.
 
 All digits except of `1' are replaced by Czech characters as on the standard
@@ -366,7 +366,7 @@ All other keys are the same as on standard US keyboard."
  ([kp-add] ?+))
 
 (quail-define-package
- "czech-prog-2" "Czech" "CZ" nil
+ "czech-prog-2" "Czech" "CZ" t
  "Czech (non-standard) keyboard for programmers #2.
 
 All digits except of `1' are replaced by Czech characters as on the standard
@@ -456,7 +456,7 @@ All other keys are the same as on standard US keyboard."
  ([kp-add] ?+))
 
 (quail-define-package
- "czech-prog-3" "Czech" "CZ" nil
+ "czech-prog-3" "Czech" "CZ" t
  "Czech (non-standard) keyboard for programmers compatible with the default
 keyboard from the obsolete `emacs-czech' package.
 
