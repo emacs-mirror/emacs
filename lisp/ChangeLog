@@ -1,3 +1,11 @@
+2003-06-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/tex-mode.el (tex-compile-commands):
+	Handle tex-start-commands like tex-start-tex does.
+
+	* cus-edit.el (custom-get-fresh-buffer): Kill overlays before erasing
+	the buffer.
+
 2003-06-13  Ilya N. Golubev  <gin@mo.msk.ru>  (tiny change)
 
 	* shell.el (shell-command-separator-regexp): New variable.
@@ -6,16 +14,16 @@
 
 2003-06-13  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
 
-	* textmodes/texinfmt.el (texinfo-format-scan): Silence
-	`whitespace-cleanup'.
+	* textmodes/texinfmt.el (texinfo-format-scan):
+	Silence `whitespace-cleanup'.
 
 2003-06-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/timeclock.el (display-time-hook)
 	(timeclock-modeline-display): Define for byte-compiler.
 	(timeclock-time-to-date, timeclock-workday-remaining)
-	(timeclock-time-to-seconds, timeclock-seconds-to-time): Move
-	earlier in the file so defined before used.
+	(timeclock-time-to-seconds, timeclock-seconds-to-time):
+	Move earlier in the file so defined before used.
 	(timeclock-status-string): No need for `let*' so use `let'.
 	(timeclock-query-out): Always return a non-nil value.
 
