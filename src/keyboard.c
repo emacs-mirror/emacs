@@ -10503,8 +10503,7 @@ See also `current-input-mode'.  */)
 
 #ifndef DOS_NT
   /* this causes startup screen to be restored and messes with the mouse */
-  if (FRAME_TERMCAP_P (SELECTED_FRAME ()))
-    reset_sys_modes (CURTTY ());
+  reset_all_sys_modes ();
 #endif
 
 #ifdef SIGIO
@@ -10542,13 +10541,12 @@ See also `current-input-mode'.  */)
         tty->meta_key = 2;
     }
   
-  if (FRAME_TERMCAP_P (XFRAME (selected_frame)) && !NILP (quit))
+  if (!NILP (quit))
     /* Don't let this value be out of range.  */
-    quit_char = XINT (quit) & (CURTTY ()->meta_key ? 0377 : 0177);
+    quit_char = XINT (quit) & (NILP (meta) ? 0177 : 0377);
 
 #ifndef DOS_NT
-  if (FRAME_TERMCAP_P (XFRAME (selected_frame)) && CURTTY ()->type)
-    init_sys_modes (CURTTY ());
+  init_all_sys_modes ();
 #endif
 
 #ifdef POLL_FOR_INPUT

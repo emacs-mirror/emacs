@@ -27,12 +27,17 @@
 
 ;;; Code:
 
-(defvar frame-creation-function nil
-  "Window-system dependent function to call to create a new frame.
-The window system startup file should set this to its frame creation
-function, which should take an alist of parameters as its argument.")
-
-(make-variable-frame-local 'frame-creation-function)
+(defvar frame-creation-function-alist
+  (list (cons nil
+	      (if (fboundp 'tty-create-frame-with-faces)
+		  'tty-create-frame-with-faces
+		(function
+		 (lambda (parameters)
+		   (error "Can't create multiple frames without a window system"))))))
+  "Alist of window-system dependent functions to call to create a new frame.
+The window system startup file should add its frame creation
+function to this list, which should take an alist of parameters
+as its argument.")
 
 ;; The initial value given here used to ask for a minibuffer.
 ;; But that's not necessary, because the default is to have one.
@@ -188,7 +193,9 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 (defun frame-initialize ()
   "Create an initial frame if necessary."
   ;; Are we actually running under a window system at all?
-  (if (and window-system (not noninteractive) (not (eq window-system 'pc)))
+  (if (and initial-window-system
+	   (not noninteractive)
+	   (not (eq initial-window-system 'pc)))
       (progn
 	;; Turn on special-display processing only if there's a window system.
 	(setq special-display-function 'special-display-popup-frame)
@@ -205,6 +212,9 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 		  (setq frame-initial-frame-alist
 			(cons '(horizontal-scroll-bars . t)
 			      frame-initial-frame-alist)))
+	      (setq frame-initial-frame-alist
+		    (cons (cons 'window-system initial-window-system)
+			  frame-initial-frame-alist))
 	      (setq default-minibuffer-frame
 		    (setq frame-initial-frame
 			  (make-frame frame-initial-frame-alist)))
@@ -217,18 +227,7 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 	;; At this point, we know that we have a frame open, so we
 	;; can delete the terminal frame.
 	(delete-frame terminal-frame)
-	(setq terminal-frame nil))
-
-    ;; No, we're not running a window system.  Use make-terminal-frame if
-    ;; we support that feature, otherwise arrange to cause errors.
-    (or (eq window-system 'pc)
-	(setq frame-creation-function
-	      (if (fboundp 'tty-create-frame-with-faces)
-		  'tty-create-frame-with-faces
-		(function
-		 (lambda (parameters)
-		   (error
-		    "Can't create multiple frames without a window system"))))))))
+	(setq terminal-frame nil))))
 
 (defvar frame-notice-user-settings t
   "Non-nil means function `frame-notice-user-settings' wasn't run yet.")
@@ -278,7 +277,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 	;; Can't modify the minibuffer parameter, so don't try.
 	(setq parms (delq (assq 'minibuffer parms) parms))
 	(modify-frame-parameters nil
-				 (if (null window-system)
+				 (if (null initial-window-system)
 				     (append initial-frame-alist
 					     default-frame-alist
 					     parms
@@ -287,7 +286,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 				   ;; default-frame-alist were already
 				   ;; applied in pc-win.el.
 				   parms))
-	(if (null window-system) ;; MS-DOS does this differently in pc-win.el
+	(if (null initial-window-system) ;; MS-DOS does this differently in pc-win.el
 	    (let ((newparms (frame-parameters))
 		  (frame (selected-frame)))
 	      (tty-handle-reverse-video frame newparms)
@@ -571,26 +570,18 @@ The optional second argument PARAMETERS specifies additional frame parameters."
   (interactive "sMake frame on display: ")
   (or (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
       (error "Invalid display, not HOST:SERVER or HOST:SERVER.SCREEN"))
-  (make-frame (cons (cons 'display display) parameters)))
+  (load (concat term-file-prefix "x-win"))
+  (make-frame `((window-system . x) (display . ,display) . ,parameters)))
 
-;;;###autoload
 (defun make-frame-on-tty (device type &optional parameters)
   "Make a frame on terminal DEVICE which is of type TYPE (e.g., \"xterm\").
-The optional third argument PARAMETERS specifies additional frame parameters.
-
-DEVICE must be a proxy psudo terminal created by emacsclient,
-otherwise there will be problems with terminal input and window
-resizes. (The kernel notifies processes about pending input or
-terminal resizes only on the controlling terminal, so we need
-emacsclient to sit on the real terminal device, create SIGIO
-signals upon terminal input, and forward SIGWINCH signals to
-us.)"
+The optional third argument PARAMETERS specifies additional frame parameters."
   (interactive "fOpen frame on tty device: \nsTerminal type of %s: ")
   (unless device
     (error "Invalid terminal device"))
   (unless type
     (error "Invalid terminal type"))
-  (tty-create-frame-with-faces (append (list (cons 'tty device) (cons 'tty-type type)) parameters)))
+  (make-frame `((window-system . nil) (tty . ,device) (tty-type . ,type) . ,parameters)))
 
 (defun make-frame-command ()
   "Make a new frame, and select it if the terminal displays only one frame."
@@ -630,12 +621,22 @@ You cannot specify either `width' or `height', you must use neither or both.
  (minibuffer . only)	The frame should contain only a minibuffer.
  (minibuffer . WINDOW)	The frame should use WINDOW as its minibuffer window.
 
-Before the frame is created (via `frame-creation-function'), functions on the
+ (window-system . nil)	The frame should be displayed on a terminal device.
+ (window-system . x)	The frame should be displayed in an X window.
+
+Before the frame is created (via `frame-creation-function-alist'), functions on the
 hook `before-make-frame-hook' are run.  After the frame is created, functions
 on `after-make-frame-functions' are run with one arg, the newly created frame."
   (interactive)
-  (run-hooks 'before-make-frame-hook)
-  (let ((frame (funcall frame-creation-function parameters)))
+  (let* ((w (if (assq 'window-system parameters)
+		(cdr (assq 'window-system parameters))
+	      window-system))
+	 (frame-creation-function (cdr (assq w frame-creation-function-alist)))
+	 frame)
+    (unless frame-creation-function
+      (error "Don't know how to create a frame on window system %s" w))
+    (run-hooks 'before-make-frame-hook)
+    (funcall frame-creation-function parameters)
     (run-hook-with-args 'after-make-frame-functions frame)
     frame))
 
@@ -780,9 +781,9 @@ If there is no frame by that name, signal an error."
     (raise-frame frame)
     (select-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
-    (cond ((eq window-system 'x)
+    (cond ((eq (window-system frame) 'x)
 	   (x-focus-frame frame))
-	  ((eq window-system 'w32)
+	  ((eq (window-system frame) 'w32)
 	   (w32-focus-frame frame)))
     (when focus-follows-mouse
       (set-mouse-position frame (1- (frame-width frame)) 0))))

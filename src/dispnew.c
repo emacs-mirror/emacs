@@ -214,9 +214,9 @@ int inverse_video;
 EMACS_INT baud_rate;
 
 /* Either nil or a symbol naming the window system under which Emacs
-   is running.  */
+   creates the first frame.  */
 
-Lisp_Object Vwindow_system;
+Lisp_Object Vinitial_window_system;
 
 /* Version number of X windows: 10, 11 or nil.  */
 
@@ -6569,7 +6569,7 @@ init_display ()
 
   /* Now is the time to initialize this; it's used by init_sys_modes
      during startup.  */
-  Vwindow_system = Qnil;
+  Vinitial_window_system = Qnil;
 
   /* If the user wants to use a window system, we shouldn't bother
      initializing the terminal.  This is especially important when the
@@ -6598,7 +6598,7 @@ init_display ()
 #endif
      )
     {
-      Vwindow_system = intern ("x");
+      Vinitial_window_system = intern ("x");
 #ifdef HAVE_X11
       Vwindow_system_version = make_number (11);
 #else
@@ -6618,7 +6618,7 @@ init_display ()
 #ifdef HAVE_NTGUI
   if (!inhibit_window_system)
     {
-      Vwindow_system = intern ("w32");
+      Vinitial_window_system = intern ("w32");
       Vwindow_system_version = make_number (1);
       adjust_frame_glyphs_initially ();
       return;
@@ -6628,7 +6628,7 @@ init_display ()
 #ifdef MAC_OS
   if (!inhibit_window_system)
     {
-      Vwindow_system = intern ("mac");
+      Vinitial_window_system = intern ("mac");
       Vwindow_system_version = make_number (1);
       adjust_frame_glyphs_initially ();
       return;
@@ -6730,7 +6730,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 	 and internal_terminal_init.  */
       && (strcmp (terminal_type, "internal") != 0 || inhibit_window_system)
 #endif
-      && NILP (Vwindow_system))
+      && NILP (Vinitial_window_system))
     {
       /* For the initial frame, we don't have any way of knowing what
 	 are the foreground and background colors of the terminal.  */
@@ -6842,8 +6842,8 @@ A non-nil value is useful if the terminal can automatically preserve
 Emacs's frame display when you reenter Emacs.
 It is up to you to set this variable if your terminal can do that.  */);
 
-  DEFVAR_LISP ("window-system", &Vwindow_system,
-	       doc: /* Name of window system that Emacs is displaying through.
+  DEFVAR_LISP ("initial-window-system", &Vinitial_window_system,
+	       doc: /* Name of the window system that Emacs uses for the first frame.
 The value is a symbol--for instance, `x' for X windows.
 The value is nil if Emacs is using a text-only terminal.  */);
 
@@ -6879,7 +6879,7 @@ See `buffer-display-table' for more information.  */);
   if (noninteractive)
 #endif
     {
-      Vwindow_system = Qnil;
+      Vinitial_window_system = Qnil;
       Vwindow_system_version = Qnil;
     }
 }

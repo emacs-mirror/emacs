@@ -66,7 +66,7 @@
 ;; An alist of X options and the function which handles them.  See
 ;; ../startup.el.
 
-(if (not (eq window-system 'x))
+(if (not (fboundp 'x-create-frame))
     (error "%s: Loading x-win.el but not compiled for X" (invocation-name)))
 
 (require 'frame)
@@ -1159,6 +1159,7 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 ;;;; Function keys
 
+;;; XXX This might be wrong with multi-tty support.
 (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
 			   global-map)
 
@@ -2346,10 +2347,11 @@ order until succeed.")
 (x-open-connection (or x-display-name
 		       (setq x-display-name (getenv "DISPLAY")))
 		   x-command-line-resources
-		   ;; Exit Emacs with fatal error if this fails.
-		   t)
+		   ;; Exit Emacs with fatal error if this fails and we
+		   ;; are the initial display.
+		   (eq initial-window-system 'x))
 
-(setq frame-creation-function 'x-create-frame-with-faces)
+(add-to-list 'frame-creation-function-alist '(x . x-create-frame-with-faces))
 
 (setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
 			    x-cut-buffer-max))
@@ -2431,6 +2433,7 @@ order until succeed.")
   (if res-selection-timeout
       (setq x-selection-timeout (string-to-number res-selection-timeout))))
 
+;; XXX This is wrong with multi-tty support.
 (defun x-win-suspend-error ()
   (error "Suspending an Emacs running under X makes no sense"))
 (add-hook 'suspend-hook 'x-win-suspend-error)
@@ -2452,6 +2455,8 @@ order until succeed.")
 
 ;; Turn on support for mouse wheels.
 (mouse-wheel-mode 1)
+
+(provide 'x-win)
 
 ;;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
 ;;; x-win.el ends here

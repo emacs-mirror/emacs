@@ -1394,267 +1394,261 @@ nil means don't delete them until `list-processes' is run.  */);
 #if 0
   /* read_socket_hook is not global anymore.  I think doing this
      unconditionally will not cause any problems. */
-  if (! read_socket_hook && EQ (Vwindow_system, Qnil))
+  if (! read_socket_hook && EQ (Vinitial_window_system, Qnil))
 #endif
     narrow_foreground_group (fileno (TTY_INPUT (tty_out)));
 #endif
 
-#ifdef HAVE_WINDOW_SYSTEM
-  /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
-     needs the initialization code below.  */
-  if (tty_out->input != stdin || EQ (Vwindow_system, Qnil))
-#endif
-    {
-      if (! tty_out->old_tty)
-        tty_out->old_tty = (struct emacs_tty *) xmalloc (sizeof (struct emacs_tty));
+  if (! tty_out->old_tty)
+    tty_out->old_tty = (struct emacs_tty *) xmalloc (sizeof (struct emacs_tty));
       
-      EMACS_GET_TTY (fileno (TTY_INPUT (tty_out)), tty_out->old_tty);
+  EMACS_GET_TTY (fileno (TTY_INPUT (tty_out)), tty_out->old_tty);
 
-      tty = *tty_out->old_tty;
+  tty = *tty_out->old_tty;
 
 #if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
-      XSETINT (Vtty_erase_char, tty.main.c_cc[VERASE]);
+  XSETINT (Vtty_erase_char, tty.main.c_cc[VERASE]);
 
 #ifdef DGUX
-      /* This allows meta to be sent on 8th bit.  */
-      tty.main.c_iflag &= ~INPCK;	/* don't check input for parity */
+  /* This allows meta to be sent on 8th bit.  */
+  tty.main.c_iflag &= ~INPCK;	/* don't check input for parity */
 #endif
-      tty.main.c_iflag |= (IGNBRK);	/* Ignore break condition */
-      tty.main.c_iflag &= ~ICRNL;	/* Disable map of CR to NL on input */
+  tty.main.c_iflag |= (IGNBRK);	/* Ignore break condition */
+  tty.main.c_iflag &= ~ICRNL;	/* Disable map of CR to NL on input */
 #ifdef INLCR  /* I'm just being cautious,
 		 since I can't check how widespread INLCR is--rms.  */
-      tty.main.c_iflag &= ~INLCR;	/* Disable map of NL to CR on input */
+  tty.main.c_iflag &= ~INLCR;	/* Disable map of NL to CR on input */
 #endif
 #ifdef ISTRIP
-      tty.main.c_iflag &= ~ISTRIP;	/* don't strip 8th bit on input */
+  tty.main.c_iflag &= ~ISTRIP;	/* don't strip 8th bit on input */
 #endif
-      tty.main.c_lflag &= ~ECHO;	/* Disable echo */
-      tty.main.c_lflag &= ~ICANON;	/* Disable erase/kill processing */
+  tty.main.c_lflag &= ~ECHO;	/* Disable echo */
+  tty.main.c_lflag &= ~ICANON;	/* Disable erase/kill processing */
 #ifdef IEXTEN
-      tty.main.c_lflag &= ~IEXTEN;	/* Disable other editing characters.  */
+  tty.main.c_lflag &= ~IEXTEN;	/* Disable other editing characters.  */
 #endif
-      tty.main.c_lflag |= ISIG;	/* Enable signals */
-      if (tty_out->flow_control)
-	{
-	  tty.main.c_iflag |= IXON;	/* Enable start/stop output control */
+  tty.main.c_lflag |= ISIG;	/* Enable signals */
+  if (tty_out->flow_control)
+    {
+      tty.main.c_iflag |= IXON;	/* Enable start/stop output control */
 #ifdef IXANY
-	  tty.main.c_iflag &= ~IXANY;
+      tty.main.c_iflag &= ~IXANY;
 #endif /* IXANY */
-	}
-      else
-	tty.main.c_iflag &= ~IXON;	/* Disable start/stop output control */
-      tty.main.c_oflag &= ~ONLCR;	/* Disable map of NL to CR-NL
-					   on output */
-      tty.main.c_oflag &= ~TAB3;	/* Disable tab expansion */
+    }
+  else
+    tty.main.c_iflag &= ~IXON;	/* Disable start/stop output control */
+  tty.main.c_oflag &= ~ONLCR;	/* Disable map of NL to CR-NL
+                                   on output */
+  tty.main.c_oflag &= ~TAB3;	/* Disable tab expansion */
 #ifdef CS8
-      if (tty_out->meta_key)
-	{
-	  tty.main.c_cflag |= CS8;	/* allow 8th bit on input */
-	  tty.main.c_cflag &= ~PARENB;/* Don't check parity */
-	}
+  if (tty_out->meta_key)
+    {
+      tty.main.c_cflag |= CS8;	/* allow 8th bit on input */
+      tty.main.c_cflag &= ~PARENB;/* Don't check parity */
+    }
 #endif
-      if (tty_out->input == stdin)
-        {
-          tty.main.c_cc[VINTR] = quit_char;	/* C-g (usually) gives SIGINT */
-          /* Set up C-g for both SIGQUIT and SIGINT.
-             We don't know which we will get, but we handle both alike
-             so which one it really gives us does not matter.  */
-          tty.main.c_cc[VQUIT] = quit_char;
-        }
-      else
-        {
-          /* We normally don't get interrupt or quit signals from tty
-             devices other than our controlling terminal; therefore,
-             we must handle C-g as normal input.  Unfortunately, this
-             means that the interrupt and quit feature must be
-             disabled on secondary ttys, or we would not even see the
-             keypress.
-
-             Note that even though emacsclient could have special code
-             to pass SIGINT to Emacs, we should _not_ enable
-             interrupt/quit keys for emacsclient frames.  This means
-             that we can't break out of loops in C code from a
-             secondary tty frame, but we can always decide what
-             display the C-g came from, which is more important from a
-             usability point of view.  (Consider the case when two
-             people work together using the same Emacs instance.)  */
-          tty.main.c_cc[VINTR] = CDISABLE;
-          tty.main.c_cc[VQUIT] = CDISABLE;
-        }
-      tty.main.c_cc[VMIN] = 1;	/* Input should wait for at least 1 char */
-      tty.main.c_cc[VTIME] = 0;	/* no matter how long that takes.  */
+  if (tty_out->input == stdin)
+    {
+      tty.main.c_cc[VINTR] = quit_char;	/* C-g (usually) gives SIGINT */
+      /* Set up C-g for both SIGQUIT and SIGINT.
+         We don't know which we will get, but we handle both alike
+         so which one it really gives us does not matter.  */
+      tty.main.c_cc[VQUIT] = quit_char;
+    }
+  else
+    {
+      /* We normally don't get interrupt or quit signals from tty
+         devices other than our controlling terminal; therefore,
+         we must handle C-g as normal input.  Unfortunately, this
+         means that the interrupt and quit feature must be
+         disabled on secondary ttys, or we would not even see the
+         keypress.
+         
+         Note that even though emacsclient could have special code
+         to pass SIGINT to Emacs, we should _not_ enable
+         interrupt/quit keys for emacsclient frames.  This means
+         that we can't break out of loops in C code from a
+         secondary tty frame, but we can always decide what
+         display the C-g came from, which is more important from a
+         usability point of view.  (Consider the case when two
+         people work together using the same Emacs instance.)  */
+      tty.main.c_cc[VINTR] = CDISABLE;
+      tty.main.c_cc[VQUIT] = CDISABLE;
+    }
+  tty.main.c_cc[VMIN] = 1;	/* Input should wait for at least 1 char */
+  tty.main.c_cc[VTIME] = 0;	/* no matter how long that takes.  */
 #ifdef VSWTCH
-      tty.main.c_cc[VSWTCH] = CDISABLE;	/* Turn off shell layering use
+  tty.main.c_cc[VSWTCH] = CDISABLE;	/* Turn off shell layering use
 					   of C-z */
 #endif /* VSWTCH */
-
+  
 #if defined (mips) || defined (HAVE_TCATTR)
 #ifdef VSUSP
-      tty.main.c_cc[VSUSP] = CDISABLE;	/* Turn off mips handling of C-z.  */
+  tty.main.c_cc[VSUSP] = CDISABLE;	/* Turn off mips handling of C-z.  */
 #endif /* VSUSP */
 #ifdef V_DSUSP
-      tty.main.c_cc[V_DSUSP] = CDISABLE; /* Turn off mips handling of C-y.  */
+  tty.main.c_cc[V_DSUSP] = CDISABLE; /* Turn off mips handling of C-y.  */
 #endif /* V_DSUSP */
 #ifdef VDSUSP /* Some systems have VDSUSP, some have V_DSUSP.  */
-      tty.main.c_cc[VDSUSP] = CDISABLE;
+  tty.main.c_cc[VDSUSP] = CDISABLE;
 #endif /* VDSUSP */
 #ifdef VLNEXT
-      tty.main.c_cc[VLNEXT] = CDISABLE;
+  tty.main.c_cc[VLNEXT] = CDISABLE;
 #endif /* VLNEXT */
 #ifdef VREPRINT
-      tty.main.c_cc[VREPRINT] = CDISABLE;
+  tty.main.c_cc[VREPRINT] = CDISABLE;
 #endif /* VREPRINT */
 #ifdef VWERASE
-      tty.main.c_cc[VWERASE] = CDISABLE;
+  tty.main.c_cc[VWERASE] = CDISABLE;
 #endif /* VWERASE */
 #ifdef VDISCARD
-      tty.main.c_cc[VDISCARD] = CDISABLE;
+  tty.main.c_cc[VDISCARD] = CDISABLE;
 #endif /* VDISCARD */
 
-      if (tty_out->flow_control)
-	{
+  if (tty_out->flow_control)
+    {
 #ifdef VSTART
-	  tty.main.c_cc[VSTART] = '\021';
+      tty.main.c_cc[VSTART] = '\021';
 #endif /* VSTART */
 #ifdef VSTOP
-	  tty.main.c_cc[VSTOP] = '\023';
+      tty.main.c_cc[VSTOP] = '\023';
 #endif /* VSTOP */
-	}
-      else
-	{
+    }
+  else
+    {
 #ifdef VSTART
-	  tty.main.c_cc[VSTART] = CDISABLE;
+      tty.main.c_cc[VSTART] = CDISABLE;
 #endif /* VSTART */
 #ifdef VSTOP
-	  tty.main.c_cc[VSTOP] = CDISABLE;
+      tty.main.c_cc[VSTOP] = CDISABLE;
 #endif /* VSTOP */
-	}
+    }
 #endif /* mips or HAVE_TCATTR */
 
 #ifdef SET_LINE_DISCIPLINE
-      /* Need to explicitly request TERMIODISC line discipline or
-         Ultrix's termios does not work correctly.  */
-      tty.main.c_line = SET_LINE_DISCIPLINE;
+  /* Need to explicitly request TERMIODISC line discipline or
+     Ultrix's termios does not work correctly.  */
+  tty.main.c_line = SET_LINE_DISCIPLINE;
 #endif
 #ifdef AIX
 #ifndef IBMR2AIX
-      /* AIX enhanced edit loses NULs, so disable it.  */
-      tty.main.c_line = 0;
-      tty.main.c_iflag &= ~ASCEDIT;
+  /* AIX enhanced edit loses NULs, so disable it.  */
+  tty.main.c_line = 0;
+  tty.main.c_iflag &= ~ASCEDIT;
 #else
-      tty.main.c_cc[VSTRT] = 255;
-      tty.main.c_cc[VSTOP] = 255;
-      tty.main.c_cc[VSUSP] = 255;
-      tty.main.c_cc[VDSUSP] = 255;
+  tty.main.c_cc[VSTRT] = 255;
+  tty.main.c_cc[VSTOP] = 255;
+  tty.main.c_cc[VSUSP] = 255;
+  tty.main.c_cc[VDSUSP] = 255;
 #endif /* IBMR2AIX */
-      if (tty_out->flow_control)
-	{
+  if (tty_out->flow_control)
+    {
 #ifdef VSTART
-	  tty.main.c_cc[VSTART] = '\021';
+      tty.main.c_cc[VSTART] = '\021';
 #endif /* VSTART */
 #ifdef VSTOP
-	  tty.main.c_cc[VSTOP] = '\023';
+      tty.main.c_cc[VSTOP] = '\023';
 #endif /* VSTOP */
-	}
-      /* Also, PTY overloads NUL and BREAK.
-	 don't ignore break, but don't signal either, so it looks like NUL.
-	 This really serves a purpose only if running in an XTERM window
-	 or via TELNET or the like, but does no harm elsewhere.  */
-      tty.main.c_iflag &= ~IGNBRK;
-      tty.main.c_iflag &= ~BRKINT;
+    }
+  /* Also, PTY overloads NUL and BREAK.
+     don't ignore break, but don't signal either, so it looks like NUL.
+     This really serves a purpose only if running in an XTERM window
+     or via TELNET or the like, but does no harm elsewhere.  */
+  tty.main.c_iflag &= ~IGNBRK;
+  tty.main.c_iflag &= ~BRKINT;
 #endif
 #else /* if not HAVE_TERMIO */
 #ifdef VMS
-      tty.main.tt_char |= TT$M_NOECHO;
-      if (meta_key)
-	tty.main.tt_char |= TT$M_EIGHTBIT;
-      if (tty_out->flow_control)
-	tty.main.tt_char |= TT$M_TTSYNC;
-      else
-	tty.main.tt_char &= ~TT$M_TTSYNC;
-      tty.main.tt2_char |= TT2$M_PASTHRU | TT2$M_XON;
+  tty.main.tt_char |= TT$M_NOECHO;
+  if (meta_key)
+    tty.main.tt_char |= TT$M_EIGHTBIT;
+  if (tty_out->flow_control)
+    tty.main.tt_char |= TT$M_TTSYNC;
+  else
+    tty.main.tt_char &= ~TT$M_TTSYNC;
+  tty.main.tt2_char |= TT2$M_PASTHRU | TT2$M_XON;
 #else /* not VMS (BSD, that is) */
 #ifndef DOS_NT
-      XSETINT (Vtty_erase_char, tty.main.sg_erase);
-      tty.main.sg_flags &= ~(ECHO | CRMOD | XTABS);
-      if (meta_key)
-	tty.main.sg_flags |= ANYP;
-      tty.main.sg_flags |= interrupt_input ? RAW : CBREAK;
+  XSETINT (Vtty_erase_char, tty.main.sg_erase);
+  tty.main.sg_flags &= ~(ECHO | CRMOD | XTABS);
+  if (meta_key)
+    tty.main.sg_flags |= ANYP;
+  tty.main.sg_flags |= interrupt_input ? RAW : CBREAK;
 #endif /* not DOS_NT */
 #endif /* not VMS (BSD, that is) */
 #endif /* not HAVE_TERMIO */
 
-      /* If going to use CBREAK mode, we must request C-g to interrupt
-	 and turn off start and stop chars, etc.  If not going to use
-	 CBREAK mode, do this anyway so as to turn off local flow
-	 control for user coming over network on 4.2; in this case,
-	 only t_stopc and t_startc really matter.  */
+  /* If going to use CBREAK mode, we must request C-g to interrupt
+     and turn off start and stop chars, etc.  If not going to use
+     CBREAK mode, do this anyway so as to turn off local flow
+     control for user coming over network on 4.2; in this case,
+     only t_stopc and t_startc really matter.  */
 #ifndef HAVE_TERMIO
 #ifdef HAVE_TCHARS
-      /* Note: if not using CBREAK mode, it makes no difference how we
-	 set this */
-      tty.tchars = new_tchars;
-      tty.tchars.t_intrc = quit_char;
-      if (tty_out->flow_control)
-	{
-	  tty.tchars.t_startc = '\021';
-	  tty.tchars.t_stopc = '\023';
-	}
-
-      tty.lmode = LDECCTQ | LLITOUT | LPASS8 | LNOFLSH | tty_out->old_tty.lmode;
+  /* Note: if not using CBREAK mode, it makes no difference how we
+     set this */
+  tty.tchars = new_tchars;
+  tty.tchars.t_intrc = quit_char;
+  if (tty_out->flow_control)
+    {
+      tty.tchars.t_startc = '\021';
+      tty.tchars.t_stopc = '\023';
+    }
+  
+  tty.lmode = LDECCTQ | LLITOUT | LPASS8 | LNOFLSH | tty_out->old_tty.lmode;
 #ifdef ultrix
-      /* Under Ultrix 4.2a, leaving this out doesn't seem to hurt
-	 anything, and leaving it in breaks the meta key.  Go figure.  */
-      tty.lmode &= ~LLITOUT;
+  /* Under Ultrix 4.2a, leaving this out doesn't seem to hurt
+     anything, and leaving it in breaks the meta key.  Go figure.  */
+  tty.lmode &= ~LLITOUT;
 #endif
-
+  
 #ifdef BSD4_1
-      lmode = tty.lmode;
+  lmode = tty.lmode;
 #endif
 
 #endif /* HAVE_TCHARS */
 #endif /* not HAVE_TERMIO */
 
 #ifdef HAVE_LTCHARS
-      tty.ltchars = new_ltchars;
+  tty.ltchars = new_ltchars;
 #endif /* HAVE_LTCHARS */
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
-      if (!tty_out->term_initted)
-	internal_terminal_init ();
-      dos_ttraw ();
+  if (!tty_out->term_initted)
+    internal_terminal_init ();
+  dos_ttraw ();
 #endif
 
-      EMACS_SET_TTY (fileno (TTY_INPUT (tty_out)), &tty, 0);
+  EMACS_SET_TTY (fileno (TTY_INPUT (tty_out)), &tty, 0);
 
-      /* This code added to insure that, if flow-control is not to be used,
-	 we have an unlocked terminal at the start. */
+  /* This code added to insure that, if flow-control is not to be used,
+     we have an unlocked terminal at the start. */
 
 #ifdef TCXONC
-      if (!tty_out->flow_control) ioctl (fileno (TTY_INPUT (tty_out)), TCXONC, 1);
+  if (!tty_out->flow_control) ioctl (fileno (TTY_INPUT (tty_out)), TCXONC, 1);
 #endif
 #ifndef APOLLO
 #ifdef TIOCSTART
-      if (!tty_out->flow_control) ioctl (fileno (TTY_INPUT (tty_out)), TIOCSTART, 0);
+  if (!tty_out->flow_control) ioctl (fileno (TTY_INPUT (tty_out)), TIOCSTART, 0);
 #endif
 #endif
 
 #if defined (HAVE_TERMIOS) || defined (HPUX9)
 #ifdef TCOON
-      if (!tty_out->flow_control) tcflow (fileno (TTY_INPUT (tty_out)), TCOON);
+  if (!tty_out->flow_control) tcflow (fileno (TTY_INPUT (tty_out)), TCOON);
 #endif
 #endif
 
 #ifdef AIXHFT
-      hft_init (tty_out);
+  hft_init (tty_out);
 #ifdef IBMR2AIX
-      {
-	/* IBM's HFT device usually thinks a ^J should be LF/CR.  We need it
-	   to be only LF.  This is the way that is done. */
-	struct termio tty;
-
-	if (ioctl (1, HFTGETID, &tty) != -1)
-	  write (1, "\033[20l", 5);
-      }
+  {
+    /* IBM's HFT device usually thinks a ^J should be LF/CR.  We need it
+       to be only LF.  This is the way that is done. */
+    struct termio tty;
+    
+    if (ioctl (1, HFTGETID, &tty) != -1)
+      write (1, "\033[20l", 5);
+  }
 #endif
 #endif /* AIXHFT */
 
@@ -1663,15 +1657,13 @@ nil means don't delete them until `list-processes' is run.  */);
       SYS$QIOW (0, fileno (TTY_INPUT (tty_out)), IO$_SETMODE|IO$M_OUTBAND, 0, 0, 0,
 		interrupt_signal, oob_chars, 0, 0, 0, 0);
 */
-      queue_kbd_input (0);
+  queue_kbd_input (0);
 #endif /* VMS */
-    }
 
 #ifdef F_SETFL
 #ifndef F_SETOWN_BUG
 #ifdef F_GETOWN		/* F_SETFL does not imply existence of F_GETOWN */
-  if (interrupt_input
-      && (tty_out->input != stdin || EQ (Vwindow_system, Qnil)))
+  if (interrupt_input)
     {
       old_fcntl_owner[fileno (TTY_INPUT (tty_out))] =
         fcntl (fileno (TTY_INPUT (tty_out)), F_GETOWN, 0);
@@ -1699,20 +1691,7 @@ nil means don't delete them until `list-processes' is run.  */);
   setbuf (TTY_OUTPUT (tty_out), (char *) _sobuf);
 #endif
 
-#if 0                /* We always need this with multi-tty support. */
-#ifdef HAVE_WINDOW_SYSTEM
-  /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
-     needs the initialization code below.  */
-  if (EQ (Vwindow_system, Qnil)
-#ifndef WINDOWSNT
-      /* When running in tty mode on NT/Win95, we have a read_socket
-	 hook, but still need the rest of the initialization code below.  */
-      && (! read_socket_hook)
-#endif
-      )
-#endif
-#endif
-    tty_set_terminal_modes (tty_out->display);
+  tty_set_terminal_modes (tty_out->display);
 
   if (!tty_out->term_initted)
     {
@@ -1875,21 +1854,6 @@ reset_sys_modes (tty_out)
     }
   if (!tty_out->term_initted)
     return;
-#if 0                           /* We always need to do this with multi-tty support. */
-#ifdef HAVE_WINDOW_SYSTEM
-  /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
-     needs the clean-up code below.  */
-  if (tty_out->input != stdin
-      || (!EQ (Vwindow_system, Qnil)
-#ifndef WINDOWSNT
-      /* When running in tty mode on NT/Win95, we have a read_socket
-	 hook, but still need the rest of the clean-up code below.  */
-      || read_socket_hook
-#endif
-          ))
-    return;
-#endif
-#endif
   
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
 #if 0  /* XXX This doesn't work anymore, the signature has changed. */
@@ -2578,7 +2542,9 @@ sys_select (nfds, rfds, wfds, efds, timeout)
      SELECT_TYPE *rfds, *wfds, *efds;
      EMACS_TIME *timeout;
 {
-  int ravail = 0;
+  /* XXX This needs to be updated for multi-tty support.  Is there
+     anybody who needs to emulate select these days?  */ 
+ int ravail = 0;
   SELECT_TYPE orfds;
   int timeoutval;
   int *local_timeout;
@@ -2593,7 +2559,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 #if defined (HAVE_SELECT) && defined (HAVE_X_WINDOWS)
   /* If we're using X, then the native select will work; we only need the
      emulation for non-X usage.  */
-  if (!NILP (Vwindow_system))
+  if (!NILP (Vinitial_window_system))
     return select (nfds, rfds, wfds, efds, timeout);
 #endif
   timeoutval = timeout ? EMACS_SECS (*timeout) : 100000;
@@ -2717,8 +2683,8 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 void
 read_input_waiting ()
 {
-  /* XXX This needs to be updated for multi-tty support.  Does
-     anybody need to emulate select these days?  */
+  /* XXX This needs to be updated for multi-tty support.  Is there
+     anybody who needs to emulate select these days?  */
   int nread, i;
   extern int quit_char;
 

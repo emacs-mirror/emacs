@@ -128,6 +128,13 @@
 (defvar command-line-processed nil
   "Non-nil once command line has been processed.")
 
+(defvar window-system initial-window-system
+  "Name of window system the selected frame is displaying through.
+The value is a symbol--for instance, `x' for X windows.
+The value is nil if the selected frame is on a text-only-terminal.")
+
+(make-variable-frame-local 'window-system)
+
 (defgroup initialization nil
   "Emacs start-up procedure"
   :group 'internal)
@@ -512,9 +519,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	;; for instance due to a dense colormap.
 	(when (or frame-initial-frame
 		  ;; If frame-initial-frame has no meaning, do this anyway.
-		  (not (and window-system
+		  (not (and initial-window-system
 			    (not noninteractive)
-			    (not (eq window-system 'pc)))))
+			    (not (eq initial-window-system 'pc)))))
 	  ;; Modify the initial frame based on what .emacs puts into
 	  ;; ...-frame-alist.
 	  (if (fboundp 'frame-notice-user-settings)
@@ -527,7 +534,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	      (let ((frame-background-mode frame-background-mode)
 		    (frame (selected-frame))
 		    term)
-		(when (and (null window-system)
+		(when (and (null initial-window-system)
 			   ;; Don't override a possibly customized value.
 			   (null frame-background-mode)
 			   ;; Don't override user specifications.
@@ -702,9 +709,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; Read window system's init file if using a window system.
   (condition-case error
-      (if (and window-system (not noninteractive))
+      (if (and initial-window-system (not noninteractive))
 	  (load (concat term-file-prefix
-			(symbol-name window-system)
+			(symbol-name initial-window-system)
 			"-win")
 		;; Every window system should have a startup file;
 		;; barf if we can't find it.
@@ -725,7 +732,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
                              (cdr error) ", "))))
       'external-debugging-output)
      (terpri 'external-debugging-output)
-     (setq window-system nil)
+     (setq initial-window-system nil)
      (kill-emacs)))
 
   ;; Windowed displays do this inside their *-win.el.
@@ -808,7 +815,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; If frame was created with a menu bar, set menu-bar-mode on.
   (unless (or noninteractive
-              (and (memq window-system '(x w32))
+              (and (memq initial-window-system '(x w32))
                    (<= (frame-parameter nil 'menu-bar-lines) 0)))
     (menu-bar-mode 1))
 
@@ -818,10 +825,10 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
               (<= (frame-parameter nil 'tool-bar-lines) 0))
     (tool-bar-mode 1))
 
-  ;; Can't do this init in defcustom because window-system isn't set.
+  ;; Can't do this init in defcustom because initial-window-system isn't set.
   (unless (or noninteractive
               (eq system-type 'ms-dos)
-              (not (memq window-system '(x w32))))
+              (not (memq initial-window-system '(x w32))))
     (setq-default blink-cursor t)
     (blink-cursor-mode 1))
 
@@ -829,13 +836,13 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; DOS/Windows systems have a PC-type keyboard which has both
     ;; <delete> and <backspace> keys.
     (when (or (memq system-type '(ms-dos windows-nt))
-	      (and (memq window-system '(x))
+	      (and (memq initial-window-system '(x))
 		   (fboundp 'x-backspace-delete-keys-p)
 		   (x-backspace-delete-keys-p))
 	      ;; If the terminal Emacs is running on has erase char
 	      ;; set to ^H, use the Backspace key for deleting
 	      ;; backward and, and the Delete key for deleting forward.
-	      (and (null window-system)
+	      (and (null initial-window-system)
 		   (eq tty-erase-char 8)))
       (setq-default normal-erase-is-backspace t)
       (normal-erase-is-backspace-mode 1)))
@@ -848,7 +855,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
-  (unless (memq window-system '(x w32))
+  (unless (memq initial-window-system '(x w32))
     ;; We do this regardles of whether the terminal supports colors
     ;; or not, since they can switch that support on or off in
     ;; mid-session by setting the tty-color-mode frame parameter.
@@ -1046,7 +1053,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
   (unless (or noninteractive
-              window-system
+              initial-window-system
               (null term-file-prefix))
     (let ((term (getenv "TERM"))
           hyphend)

@@ -192,7 +192,7 @@ int display_arg;
 char *stack_bottom;
 
 #ifdef HAVE_WINDOW_SYSTEM
-extern Lisp_Object Vwindow_system;
+extern Lisp_Object Vinitial_window_system;
 #endif /* HAVE_WINDOW_SYSTEM */
 
 extern Lisp_Object Vauto_save_list_file_name;
@@ -2017,9 +2017,9 @@ shut_down_emacs (sig, no_x, stuff)
 #if 0 /* This triggers a bug in XCloseDisplay and is not needed.  */
 #ifdef HAVE_X_WINDOWS
   /* It's not safe to call intern here.  Maybe we are crashing.  */
-  if (!noninteractive && SYMBOLP (Vwindow_system)
-      && SCHARS (SYMBOL_NAME (Vwindow_system)) == 1
-      && SREF (SYMBOL_NAME (Vwindow_system), 0) == 'x'
+  if (!noninteractive && SYMBOLP (Vinitial_window_system)
+      && SCHARS (SYMBOL_NAME (Vinitial_window_system)) == 1
+      && SREF (SYMBOL_NAME (Vinitial_window_system), 0) == 'x'
       && ! no_x)
     Fx_close_current_connection ();
 #endif /* HAVE_X_WINDOWS */

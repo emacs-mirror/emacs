@@ -67,6 +67,8 @@
 (setq load-source-file-function 'load-with-code-conversion)
 (load "files")
 
+(load "startup")
+
 (load "cus-face")
 (load "faces")  ; after here, `defface' may be used.
 
@@ -146,7 +148,6 @@
 (message "%s" (garbage-collect))
 (load "menu-bar")
 (load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
-(load "startup")
 (load "emacs-lisp/lisp")
 (load "textmodes/page")
 (load "register")

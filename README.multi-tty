@@ -2,9 +2,9 @@
 GOAL
 ----
 
-The ultimate goal of this branch is to implement support for opening
-multiple, different tty devices and simultaneous X and tty frames from
-a single Emacs session.
+The goal of this branch is to implement support for opening multiple,
+different tty devices and simultaneous X and tty frames from a single
+Emacs session.
 
 Some use cases:
 
@@ -27,7 +27,7 @@ WHO IS DOING IT
 
 I'm Károly Lőrentey.  My address: lorentey@elte.hu.
 
-Patches or suggestions are welcome!
+Comments, bug reports, suggestions and patches are welcome!
 
 Retrieving the latest version of the branch:
 
@@ -46,9 +46,13 @@ STATUS
 ------
 
 Multi-tty support is stable, I think most of the problems were fixed.
-(It still needs testing on other architectures, though.)  Please let
-me know if you find any bugs in it.  Emacsclient has been extended to
-support opening a new terminal frame.
+(It still needs testing on other architectures, though.)  Simultaneous
+X and tty frame support works fine, although there are some small
+issues.  Emacsclient has been extended to support opening a new
+terminal frame.
+
+
+Please let me know if you find any bugs in this branch.
 
 To try it out, compile and run the multi-tty branch with the following
 commands:
@@ -57,7 +61,7 @@ commands:
 	cd +build
 	../configure
 	make bootstrap
-	src/emacs -nw
+	src/emacs -nw		# You can also try without -nw
 	M-x server-start
 
 and then (from a shell prompt on another terminal) start emacsclient
@@ -77,7 +81,7 @@ all terminals should be restored to their previous states.
 
 This is work in progress, and probably full of bugs.  You should
 always run emacs from gdb, so that you'll have a live instance to
-debug if something goes wrong.  Please send me your reports.
+debug if something goes wrong.  Please send me your bug reports.
 
 Problems:
 
@@ -85,39 +89,48 @@ Problems:
 	  devices.  Also, there is no way to suspend emacsclient. This
 	  will be fixed.
 
-	* X support is (I hope) working, but at the moment there are
-	  problems with simultaneous X and tty devices, so don't do
-	  that - start a separate Emacs with -nw and run the server
-	  there.
-
 	* Mac, Windows and DOS support is broken, probably doesn't
 	  even compile -- this will be solved later.
 
-	* Only tested on my GNU/Linux box.
+	* Only tested on my GNU/Linux box and on Solaris 8.
 
 NEWS
 ----
 
 For the NEWS file:
 
-** Support for multiple terminal devices has been added.  You can
-   specify a terminal device (`tty' parameter) and a terminal type
-   (`tty-type' parameter) to `make-terminal-frame'. `tty' must be a
-   terminal device created by the updated emacsclient, or there will
-   be problems with terminal input and window resizes.
+** Support for multiple terminal devices has been added.
 
-   You can test for the presence of multiple terminal support by
-   testing for the `multi-tty' feature.
+*** You can specify a terminal device (`tty' parameter) and a terminal
+    type (`tty-type' parameter) to `make-terminal-frame'.
 
-** A make-frame-on-tty function has been added to make it easier to
-   create frames on new terminals.
+*** You can test for the presence of multiple terminal support by
+    testing for the `multi-tty' feature.
 
-** New functions: frame-tty-name, frame-tty-type for accessing
-   terminal parameters, and delete-tty for closing the terminal
-   device.
+*** Emacsclient has been extended to support opening a new terminal
+    frame (see -t option).
 
-** Emacsclient has been extended to support opening a new terminal
-   frame.
+*** A make-frame-on-tty function has been added to make it easier to
+    create frames on new terminals.
+
+*** New functions: frame-tty-name, frame-tty-type for accessing
+    terminal parameters, and delete-tty for closing the terminal
+    device.
+
+*** talk.el has been extended for multiple tty support.
+
+
+** Support for simultaneous graphical and terminal frames has been
+   added.
+
+*** The function `make-frame-on-display' now works during a terminal
+    session, and `make-frame-on-tty' works during a graphical session.
+
+*** The `window-system' variable has been made frame-local.
+
+*** The new `initial-window-system' variable contains the
+    `window-system' value for the first frame.
+
 
 CHANGELOG
 ---------
@@ -127,11 +140,13 @@ See arch logs.
 THINGS TO DO
 ------------
 
-** Fix color handling during X+tty combo sessions.  (It seems that tty
+** Fix color handling during tty+X combo sessions.  (It seems that tty
    sessions automatically convert the face colors to terminal colors
    when the face is loaded.  This conversion must happen instead on
    the fly in write_glyphs, which might be problematic, as color
    approximation is currently done in lisp (term/tty-colors.el).)
+   (Update: hm, colors seem to work fine if I start emacs with -nw and
+   then create an X frame.  Maybe it's just a small buglet somewhere.)
 
 ** Fix interactive use of temacs.  There are face-related SEGVs, most
    likely because of changes in realize_default_face, realize_face.
@@ -139,16 +154,11 @@ THINGS TO DO
 ** Very strange bug: visible-bell does not work on secondary
    terminals.  This might be something xterm (konsole) specific.
 
-** Allow opening an X session after -nw.
-
 ** Find out the best way to support suspending Emacs with multiple
    ttys.  My guess: disable it on the controlling tty, but from other
    ttys pass it on to emacsclient somehow.  (It is (I hope) trivial to
    extend emacsclient to handle suspend/resume.  A `kill -STOP' almost
    works right now.)
-
-** Exiting Emacs while there are emacsclient frames doesn't restore the
-   ttys to their default states.
 
 ** Move baud_rate to struct display.
 
@@ -186,6 +196,8 @@ THINGS TO DO
    bugs in term.el, not in multi-tty.  The lockup is caused by
    single_kboard mode, and is not easily solvable.  The best thing to
    do is to simply refuse to create a tty frame of type `eterm'.
+
+** Maybe standard-display-table should be display-local.
 
 DIARY OF CHANGES
 ----------------
@@ -544,5 +556,15 @@ DIARY OF CHANGES
 
    Note that the above strace output seems to be an unrelated but
    similar bug.  I think that is now fixed.)
+
+-- Exiting Emacs while there are emacsclient frames doesn't restore the
+   ttys to their default states.
+
+   (This seems to be fixed by some previous change.)
+
+-- Allow opening an X session after -nw.
+
+   (Done.)
+
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

@@ -3188,8 +3188,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   Lisp_Object parent;
   struct kboard *kb;
 
-  check_x ();
-
   /* Use this general default value to start with
      until we know if this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;
@@ -4124,8 +4122,10 @@ x_display_info_for_name (name)
 
   CHECK_STRING (name);
 
-  if (! EQ (Vwindow_system, intern ("x")))
-    error ("Not using X Windows");
+#if 0
+  if (! EQ (Vinitial_window_system, intern ("x")))
+    error ("Not using X Windows"); /* That doesn't stop us anymore. */
+#endif
 
   for (dpyinfo = x_display_list, names = x_display_name_list;
        dpyinfo;
@@ -4172,8 +4172,10 @@ terminate Emacs if we can't open the connection.  */)
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string);
 
-  if (! EQ (Vwindow_system, intern ("x")))
-    error ("Not using X Windows");
+#if 0
+  if (! EQ (Vinitial_window_system, intern ("x")))
+    error ("Not using X Windows"); /* That doesn't stop us anymore. */
+#endif
 
   if (! NILP (xrm_string))
     xrm_option = (unsigned char *) SDATA (xrm_string);
