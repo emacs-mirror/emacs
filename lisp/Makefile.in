@@ -236,7 +236,8 @@ compile: $(lisp)/subdirs.el doit
 	  if test -f $$el; \
 	  then \
 	    echo Compiling $$el; \
-	    $(emacs) -f batch-byte-compile-if-not-done $$el || exit 1; \
+	    $(emacs) --eval "(setq max-specpdl-size 650)" \
+		     -f batch-byte-compile-if-not-done $$el || exit 1; \
 	  fi \
 	done
 
