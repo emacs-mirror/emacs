@@ -504,6 +504,7 @@ static int face_numeric_slant P_ ((Lisp_Object));
 static int face_numeric_swidth P_ ((Lisp_Object));
 static int face_fontset P_ ((Lisp_Object *));
 static char *choose_face_font P_ ((struct frame *, Lisp_Object *, int, int));
+static void default_face_vector P_ ((Lisp_Object *, Lisp_Object*));
 static void merge_face_vectors P_ ((struct frame *, Lisp_Object *, Lisp_Object*, Lisp_Object));
 static void merge_face_inheritance P_ ((struct frame *f, Lisp_Object,
 					Lisp_Object *, Lisp_Object));
@@ -3127,11 +3128,29 @@ merge_face_heights (from, to, invalid, gcpro)
 }
 
 
+/* Default any unspecified face attributes in LFACE from DEFAULTS.
+   Unlike merge_face_vectors, below, this function simply fills in any
+   unspecified attributes in LFACE from the those in DEFAULTS, and will
+   not do face inheritance or make relative attributes absolute. */
+
+static INLINE void
+default_face_vector (lface, defaults)
+     Lisp_Object *lface, *defaults;
+{
+  int i;
+  for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
+    if (UNSPECIFIEDP (lface[i]))
+      lface[i] = defaults[i];
+}
+
+
 /* Merge two Lisp face attribute vectors on frame F, FROM and TO, and
-   store the resulting attributes in TO.  Every non-nil attribute of
-   FROM overrides the corresponding attribute of TO.  CYCLE_CHECK is
-   used internally to detect loops in face inheritance; it should be
-   Qnil when called from other places.  */
+   store the resulting attributes in TO, which must be already be
+   completely specified and contain only absolute attributes.  Every
+   specified attribute of FROM overrides the corresponding attribute of
+   TO; relative attributes in FROM are merged with the absolute value in
+   TO and replace it.  CYCLE_CHECK is used internally to detect loops in
+   face inheritance; it should be Qnil when called from other places.  */
 
 static INLINE void
 merge_face_vectors (f, from, to, cycle_check)
@@ -4547,10 +4566,8 @@ DEFUN ("internal-merge-in-global-face", Finternal_merge_in_global_face,
   local_lface = lface_from_face_name (XFRAME (frame), face, 0);
   if (NILP (local_lface))
     local_lface = Finternal_make_lisp_face (face, frame);
-  merge_face_vectors (XFRAME (frame),
-		      XVECTOR (global_lface)->contents,
-		      XVECTOR (local_lface)->contents,
-		      Qnil);
+  default_face_vector (XVECTOR (local_lface)->contents,
+		       XVECTOR (global_lface)->contents);
   return face;
 }
 
