@@ -1,3 +1,8 @@
+2000-02-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.c (Fframe_parameters): Add GCPRO because tty_color_name
+	can GC.
+
 2000-02-02  Kenichi Handa  <handa@etl.go.jp>
 
 	* ccl.c (ccl_driver) <CCL_WriteExprRegister>: Set jump_address

@@ -1,3 +1,10 @@
+2000-02-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* ange-ftp.el (ange-ftp-write-region): Handle case that
+	succeeding process operation sets a different coding system.
+
+	* calculator.el: New file.
+
 2000-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.el (frames-on-display-list, framep-on-display): New
