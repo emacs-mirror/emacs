@@ -2371,7 +2371,7 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
-** (while-no-input BODY...) runs BODY, but only so lomg as no input
+** (while-no-input BODY...) runs BODY, but only so long as no input
 arrives.  If the user types or clicks anything, BODY stops as if a
 quit had occurred.  while-no-input returns the value of BODY, if BODY
 finishes.  It returns nil if BODY was aborted.
