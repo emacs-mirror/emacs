@@ -1,3 +1,8 @@
+2000-11-22  Miles Bader  <miles@gnu.org>
+
+	* cus-start.el: Add entry for `minibuffer-prompt-properties'.
+	* simple.el (minibuffer-avoid-prompt): New function.
+
 2000-11-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (.SUFFIXES): Add .SUFFIXES.
