@@ -1,5 +1,10 @@
 2001-06-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (read_char) <non_reread>: Record the previous idle
+	start time before calling timer_stop_idle.
+	(read_char) <reread_first>: After processing a help-echo event,
+	restore the previous idle start time.
+
 	* xdisp.c (handle_invisible_prop): Deal with overlay strings at
 	the start of invisible text.
 	(setup_for_ellipsis): New function.
