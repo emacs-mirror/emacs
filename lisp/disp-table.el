@@ -184,11 +184,13 @@ With prefix argument, enable European character display iff arg is positive."
   (if (or (<= (prefix-numeric-value arg) 0)
 	  (and (null arg)
 	       (char-table-p standard-display-table)
-	       ;; Test 161, because sometimes people need to make
-	       ;; 160 display as a space.
+	       ;; Test 161, because 160 displays as a space.
 	       (equal (aref standard-display-table 161) [161])))
       (standard-display-default 160 255)
-    (standard-display-8bit 160 255)))
+    (standard-display-8bit 160 255)
+    ;; Make non-line-break space display as a plain space.
+    ;; Most X fonts do the wrong thing for code 160.
+    (aset standard-display-table 160 [32])))
 
 (provide 'disp-table)
 
