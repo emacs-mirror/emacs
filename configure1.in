@@ -449,8 +449,13 @@ case "${configuration}" in
     machine=7300 opsys=usg5-2-2
   ;;
 
+  ## Bull dpx2
+  m68*-bull-sysv3* )
+    machine=dpx2 opsys=usg5-3
+  ;;
+
   ## Bull sps7
-  m68*-bull-sysv* )
+  m68*-bull-sysv2* )
     machine=sps7 opsys=usg5-2
   ;;
 
