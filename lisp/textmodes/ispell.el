@@ -2252,7 +2252,12 @@ otherwise, the current line is skipped."
 
 (defun ispell-process-line (string)
   ;;(declare special start end)
-  (let (poss)
+  (let (poss
+	;; line-offset is the change so far in the size of the line.
+	;; The position values we get from ispell reflect the original
+	;; text, and correction of previous words may have shifted the
+	;; current word within the line.
+	(line-offset 0))
     ;; send string to spell process and get input.
     (process-send-string ispell-process string)
     (while (progn
@@ -2270,7 +2275,8 @@ otherwise, the current line is skipped."
 	  ;; Markers can move with highlighting!  This destroys
 	  ;; end of region markers line-end and ispell-region-end
 	  (let ((word-start
-		 (copy-marker (+ start ispell-offset (car (cdr poss)))))
+		 (copy-marker (+ start ispell-offset line-offset
+				 (car (cdr poss)))))
 		(word-len (length (car poss)))
 		(line-end (copy-marker end))
 		(line-start (copy-marker start))
@@ -2323,6 +2329,7 @@ otherwise, the current line is skipped."
 		    recheck-region t)
 	      (delete-region (point) (+ word-len (point)))
 	      (insert (car replace))
+	      (setq line-offset (+ line-offset (- line-end end)))
 	      ;; Only typed-in replacements need to be re-checked.
 	      (if (not (eq 'query-replace (car (cdr replace))))
 		  (backward-char (length (car replace))))
@@ -2355,6 +2362,8 @@ otherwise, the current line is skipped."
 	     (replace			; STRING REPLACEMENT for this word.
 	      (delete-region (point) (+ word-len (point)))
 	      (insert replace)
+	      (setq line-offset (+ line-offset (- line-end end)))
+
 	      (set-marker line-start (+ line-start
 					(- (length replace)
 					   (length (car poss)))))))
