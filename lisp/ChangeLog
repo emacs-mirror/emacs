@@ -1,3 +1,10 @@
+2002-04-30  Kim F. Storm  <storm@cua.dk>
+
+	* menu-bar.el (menu-bar-custom-menu): Change "Recently Changed
+	Options" to "New Options..."; rephrase tooltip.
+	Rephrase tooltip for "Specific Option...".
+	Added "Saved Options" item.  [from Simon Marshall]
+
 2002-04-30  Richard M. Stallman  <rms@gnu.org>
 
 	* time.el (display-time-mail-directory) 
