@@ -3479,10 +3479,9 @@ usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
 #include <langinfo.h>
 #endif
 
-DEFUN ("langinfo", Flanginfo, Slanginfo, 1, 1, 0,
-       doc: /* Access locale data ITEM, if available.
-
-ITEM may be one of the following:
+DEFUN ("locale-info", Flocale_info, Slocale_info, 1, 1, 0,
+       doc: /* Access locale data ITEM for the current C locale, if available.
+ITEM should be one of the following:
 
 `codeset', returning the character set as a string (locale item CODESET);
 
@@ -3490,12 +3489,11 @@ ITEM may be one of the following:
 
 `months', returning a 12-element vector of month names (locale items MON_n);
 
-`paper', returning a list (WIDTH, HEIGHT) for the default paper size,
-  where the width and height are in mm (locale items PAPER_WIDTH,
-  PAPER_HEIGHT).
+`paper', returning a list (WIDTH HEIGHT) for the default paper size,
+  both measured in milimeters (locale items PAPER_WIDTH, PAPER_HEIGHT).
 
 If the system can't provide such information through a call to
-nl_langinfo(3) or if ITEM isn't from the list above, return nil.
+`nl_langinfo', or if ITEM isn't from the list above, return nil.
 
 See also Info node `(libc)Locales'.
 
@@ -5690,7 +5688,7 @@ invoked by mouse clicks and mouse menu items.  */);
   defsubr (&Sbase64_encode_string);
   defsubr (&Sbase64_decode_string);
   defsubr (&Smd5);
-  defsubr (&Slanginfo);
+  defsubr (&Slocale_info);
 }
 
 
