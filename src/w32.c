@@ -97,6 +97,25 @@ extern Lisp_Object Vw32_generate_fake_inodes;
 extern Lisp_Object Vw32_get_true_file_attributes;
 extern Lisp_Object Vw32_num_mouse_buttons;
 
+
+/* Equivalent of strerror for W32 error codes.  */
+char *
+w32_strerror (int error_no)
+{
+  static char buf[500];
+
+  if (error_no == 0)
+    error_no = GetLastError ();
+
+  buf[0] = '\0';
+  if (!FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM, NULL,
+		      error_no,
+		      0, /* choose most suitable language */
+		      buf, sizeof (buf), NULL))
+    sprintf (buf, "w32 error %u", error_no);
+  return buf;
+}
+
 static char startup_dir[MAXPATHLEN];
 
 /* Get the current working directory.  */
