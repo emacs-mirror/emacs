@@ -1,3 +1,7 @@
+2004-04-12  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-follow-reference): Allow multiline reference name.
+
 2004-04-11  Dave Love  <fx@gnu.org>
 
 	* progmodes/python.el: New file.
