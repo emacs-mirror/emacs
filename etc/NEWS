@@ -1173,6 +1173,11 @@ timing measurements of code (including the garbage collection component).
 
 * Lisp Changes in Emacs 21.4
 
+** The escape sequence \s is now interpreted as a SPACE character, 
+unless it is followed by a `-' in a character constant (e.g. ?\s-A),
+in which case it is still interpreted as the super modifier.
+In strings, \s is always interpreted as a space.
+
 ** New function `set-process-filter-multibyte' sets the multibyteness
 of a string given to a process's filter.
 
