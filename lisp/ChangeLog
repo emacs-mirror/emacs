@@ -1,3 +1,8 @@
+2000-02-16  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* wid-edit.el (widget-match-inline): An atom never matches a
+	list.
+
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
         * textmodes/bibtex.el (bibtex-mode): Replaced manual splitting of path
