@@ -99,12 +99,7 @@ extern void _XEditResCheckMessages ();
 #endif
 #endif
 
-#ifdef HAVE_X11
 #define XMapWindow XMapRaised		/* Raise them when mapping. */
-#else /* ! defined (HAVE_X11) */
-#include <X/Xkeyboard.h>
-/*#include <X/Xproto.h>	*/
-#endif /* ! defined (HAVE_X11) */
 
 #ifdef FD_SET
 /* We could get this from param.h, but better not to depend on finding that.
@@ -143,18 +138,6 @@ static int expose_all_windows;
 /* Nonzero means we must reprint all icon windows.  */
 
 static int expose_all_icons;
-
-#ifndef HAVE_X11
-/* ExposeRegion events, when received, are copied into this queue
-   for later processing.  */
-
-static struct event_queue x_expose_queue;
-
-/* ButtonPress and ButtonReleased events, when received,
-   are copied into this queue for later processing.  */
-
-struct event_queue x_mouse_queue;
-#endif /* HAVE_X11 */
 
 #if defined (SIGIO) && defined (FIONREAD)
 int BLOCK_INPUT_mask;
@@ -304,7 +287,6 @@ static int mouse_face_mouse_x, mouse_face_mouse_y;
 /* Nonzero means defer mouse-motion highlighting.  */
 static int mouse_face_defer;
 
-#ifdef HAVE_X11
 /* `t' if a mouse button is depressed. */
 
 extern Lisp_Object Vmouse_depressed;
@@ -323,28 +305,6 @@ extern Window requestor_window;
 extern int _Xdebug;
 
 extern Lisp_Object Qface, Qmouse_face;
-
-#else /* ! defined (HAVE_X11) */
-
-/* Bit patterns for the mouse cursor.  */
-
-short MouseCursor[] = {
-  0x0000, 0x0008, 0x0018, 0x0038,
-  0x0078, 0x00f8, 0x01f8, 0x03f8,
-  0x07f8, 0x00f8, 0x00d8, 0x0188,
-  0x0180, 0x0300, 0x0300, 0x0000};
-
-short MouseMask[] = {
-  0x000c, 0x001c, 0x003c, 0x007c,
-  0x00fc, 0x01fc, 0x03fc, 0x07fc,
-  0x0ffc, 0x0ffc, 0x01fc, 0x03dc,
-  0x03cc, 0x0780, 0x0780, 0x0300};
-
-static short grey_bits[] = {
-  0x0005, 0x000a, 0x0005, 0x000a};
-
-static Pixmap GreyPixmap = 0;
-#endif /* ! defined (HAVE_X11) */
 
 static int x_noop_count;
 
@@ -373,10 +333,6 @@ static int fast_find_position ();
 static void note_mouse_highlight ();
 static void clear_mouse_face ();
 static void show_mouse_face ();
-
-#ifndef HAVE_X11
-static void dumpqueue ();
-#endif /* HAVE_X11 */
 
 void dumpborder ();
 static int XTcursor_to ();
@@ -439,15 +395,9 @@ XTupdate_begin (f)
 	    clear_mouse_face ();
 	}
     }
-#ifndef HAVE_X11
-  dumpqueue ();
-#endif /* HAVE_X11 */
+
   UNBLOCK_INPUT;
 }
-
-#ifndef HAVE_X11
-static void x_do_pending_expose ();
-#endif
 
 static
 XTupdate_end (f)
@@ -456,10 +406,6 @@ XTupdate_end (f)
   int mask;
 
   BLOCK_INPUT;
-#ifndef HAVE_X11
-  dumpqueue ();
-  x_do_pending_expose ();
-#endif /* HAVE_X11 */
 
   x_display_cursor (f, 1);
 
@@ -884,7 +830,6 @@ XTclear_end_of_line (first_unused)
       && f->phys_cursor_x < first_unused)
     f->phys_cursor_x = -1;
 
-#ifdef HAVE_X11
   XClearArea (x_current_display, FRAME_X_WINDOW (f),
 	      CHAR_TO_PIXEL_COL (f, curs_x),
 	      CHAR_TO_PIXEL_ROW (f, curs_y),
@@ -893,14 +838,6 @@ XTclear_end_of_line (first_unused)
 #if 0
   redraw_previous_char (f, curs_x, curs_y, highlight);
 #endif
-#else /* ! defined (HAVE_X11) */
-  XPixSet (FRAME_X_WINDOW (f),
-	   CHAR_TO_PIXEL_COL (f, curs_x),
-	   CHAR_TO_PIXEL_ROW (f, curs_y),
-	   FONT_WIDTH (f->display.x->font) * (first_unused - curs_x),
-	   f->display.x->line_height,
-	   f->display.x->background_pixel);	
-#endif /* ! defined (HAVE_X11) */
 
   UNBLOCK_INPUT;
 }
@@ -925,10 +862,6 @@ XTclear_frame ()
   /* We have to clear the scroll bars, too.  If we have changed
      colors or something like that, then they should be notified.  */
   x_scroll_bar_clear (f);
-
-#ifndef HAVE_X11
-  dumpborder (f, 0);
-#endif /* HAVE_X11 */
 
   XFlushQueue ();
   UNBLOCK_INPUT;
@@ -1216,11 +1149,7 @@ XTflash (f)
 
 /* Make audible bell.  */
 
-#ifdef HAVE_X11
 #define XRINGBELL XBell (x_current_display, 0)
-#else /* ! defined (HAVE_X11) */
-#define XRINGBELL XFeep (0);
-#endif /* ! defined (HAVE_X11) */
 
 XTring_bell ()
 {
@@ -1297,51 +1226,21 @@ stufflines (n)
   newtop = topregion + n;
   length = (bottomregion - topregion) + 1;
 
-#ifndef HAVE_X11
-  dumpqueue ();
-#endif /* HAVE_X11 */
-
   if ((length > 0) && (newtop <= flexlines))
-    {
-#ifdef HAVE_X11
-      XCopyArea (x_current_display, FRAME_X_WINDOW (f),
-		 FRAME_X_WINDOW (f), f->display.x->normal_gc,
-		 intborder, CHAR_TO_PIXEL_ROW (f, topregion),
-		 f->width * FONT_WIDTH (f->display.x->font),
-		 length * f->display.x->line_height, intborder,
-		 CHAR_TO_PIXEL_ROW (f, newtop));
-#else /* ! defined (HAVE_X11) */
-      XMoveArea (FRAME_X_WINDOW (f),
-		 intborder, CHAR_TO_PIXEL_ROW (f, topregion),
-		 intborder, CHAR_TO_PIXEL_ROW (f, newtop),
-		 f->width * FONT_WIDTH (f->display.x->font),
-		 length * f->display.x->line_height);
-      /* Now we must process any ExposeRegion events that occur
-	 if the area being copied from is obscured.
-	 We can't let it wait because further i/d operations
-	 may want to copy this area to another area.  */
-      x_read_exposes ();
-#endif /* ! defined (HAVE_X11) */
-    }
+    XCopyArea (x_current_display, FRAME_X_WINDOW (f),
+	       FRAME_X_WINDOW (f), f->display.x->normal_gc,
+	       intborder, CHAR_TO_PIXEL_ROW (f, topregion),
+	       f->width * FONT_WIDTH (f->display.x->font),
+	       length * f->display.x->line_height, intborder,
+	       CHAR_TO_PIXEL_ROW (f, newtop));
 
   newtop = min (newtop, (flexlines - 1));
   length = newtop - topregion;
   if (length > 0)
-    {
-#ifdef HAVE_X11
-      XClearArea (x_current_display, FRAME_X_WINDOW (f), intborder, 
-		  CHAR_TO_PIXEL_ROW (f, topregion),
-		  f->width * FONT_WIDTH (f->display.x->font),
-		  n * f->display.x->line_height, False);
-#else /* ! defined (HAVE_X11) */
-      XPixSet (FRAME_X_WINDOW (f),
-	       intborder,
-	       CHAR_TO_PIXEL_ROW (f, topregion),
-	       f->width * FONT_WIDTH (f->display.x->font),
-	       n * f->display.x->line_height,
-	       f->display.x->background_pixel);
-#endif /* ! defined (HAVE_X11) */
-    }
+    XClearArea (x_current_display, FRAME_X_WINDOW (f), intborder, 
+		CHAR_TO_PIXEL_ROW (f, topregion),
+		f->width * FONT_WIDTH (f->display.x->font),
+		n * f->display.x->line_height, False);
 }
 
 /* Perform a delete-lines operation, deleting N lines
@@ -1358,31 +1257,16 @@ scraplines (n)
   if (curs_y >= flexlines)
     return;
 
-#ifndef HAVE_X11
-  dumpqueue ();
-#endif /* HAVE_X11 */
-
   if ((curs_y + n) >= flexlines)
     {
       if (flexlines >= (curs_y + 1))
-	{
-#ifdef HAVE_X11
-	  XClearArea (x_current_display, FRAME_X_WINDOW (f), intborder,
-		      CHAR_TO_PIXEL_ROW (f, curs_y),
-		      f->width * FONT_WIDTH (f->display.x->font),
-		      (flexlines - curs_y) * f->display.x->line_height, False);
-#else /* ! defined (HAVE_X11) */
-	  XPixSet (FRAME_X_WINDOW (f),
-		   intborder, CHAR_TO_PIXEL_ROW (f, curs_y),
-		   f->width * FONT_WIDTH (f->display.x->font),
-		   (flexlines - curs_y) * f->display.x->line_height,
-		   f->display.x->background_pixel);
-#endif /* ! defined (HAVE_X11) */
-	}
+	XClearArea (x_current_display, FRAME_X_WINDOW (f), intborder,
+		    CHAR_TO_PIXEL_ROW (f, curs_y),
+		    f->width * FONT_WIDTH (f->display.x->font),
+		    (flexlines - curs_y) * f->display.x->line_height, False);
     }
   else
     {
-#ifdef HAVE_X11
       XCopyArea (x_current_display, FRAME_X_WINDOW (f),
 		 FRAME_X_WINDOW (f), f->display.x->normal_gc,
 		 intborder,
@@ -1395,23 +1279,6 @@ scraplines (n)
 		  CHAR_TO_PIXEL_ROW (f, flexlines - n),
 		  f->width * FONT_WIDTH (f->display.x->font),
 		  n * f->display.x->line_height, False);
-#else /* ! defined (HAVE_X11) */
-      XMoveArea (FRAME_X_WINDOW (f),
-		 intborder,
-		 CHAR_TO_PIXEL_ROW (f, curs_y + n),
-		 intborder, CHAR_TO_PIXEL_ROW (f, curs_y),
-		 f->width * FONT_WIDTH (f->display.x->font),
-		 (flexlines - (curs_y + n)) * f->display.x->line_height);
-      /* Now we must process any ExposeRegion events that occur
-	 if the area being copied from is obscured.
-	 We can't let it wait because further i/d operations
-	 may want to copy this area to another area.  */
-      x_read_exposes ();
-      XPixSet (FRAME_X_WINDOW (f), intborder,
-	       CHAR_TO_PIXEL_ROW (f, flexlines - n),
-	       f->width * FONT_WIDTH (f->display.x->font),
-	       n * f->display.x->line_height, f->display.x->background_pixel);
-#endif /* ! defined (HAVE_X11) */
     }
 }
 
@@ -1463,19 +1330,6 @@ dumprectangle (f, left, top, cols, rows)
   /* Express rectangle as four edges, instead of position-and-size.  */
   bottom = top + rows;
   right = left + cols;
-
-#ifndef HAVE_X11		/* Window manger does this for X11. */
-  {
-    int intborder = f->display.x->internal_border_width;
-
-    /* If the rectangle includes any of the internal border area,
-       redisplay the border emphasis.  */
-    if (top < intborder || left < intborder
-	|| bottom > intborder + f->height * f->display.x->line_height
-	|| right > intborder + f->width * f->display.x->line_height)
-      dumpborder (f, 0);
-  }
-#endif /* not HAVE_X11		Window manger does this for X11. */
   
   /* Convert rectangle edges in pixels to edges in chars.
      Round down for left and top, up for right and bottom.  */
@@ -1534,99 +1388,7 @@ dumprectangle (f, left, top, cols, rows)
   if (cursor_cleared)
     x_display_cursor (f, 1);
 }
-
-#ifndef HAVE_X11
-/* Process all queued ExposeRegion events. */
-
-static void
-dumpqueue ()
-{
-  register int i;
-  XExposeRegionEvent r;
-
-  while (dequeue_event (&r, &x_expose_queue))
-    {
-      struct frame *f = x_window_to_frame (r.window);
-      if (f->display.x->icon_desc == r.window)
-	refreshicon (f);
-      else
-	dumprectangle (f, r.x, r.y, r.width, r.height);
-    }
-  XFlushQueue ();
-}
-#endif /* HAVE_X11 */
 
-/* Process all expose events that are pending, for X10.
-   Redraws the cursor if necessary on any frame that
-   is not in the process of being updated with update_frame.  */
-
-#ifndef HAVE_X11
-static void
-x_do_pending_expose ()
-{
-  int mask;
-  struct frame *f;
-  Lisp_Object tail, frame;
-
-  if (expose_all_windows)
-    {
-      expose_all_windows = 0;
-      for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
-	{
-	  register int temp_width, temp_height;
-	  int intborder;
-
-	  frame = XCONS (tail)->car;
-	  if (XGCTYPE (frame) != Lisp_Frame)
-	    continue;
-	  f = XFRAME (frame);
-	  if (! FRAME_X_P (f))
-	    continue;
-	  if (!f->async_visible)
-	    continue;
-	  if (!f->display.x->needs_exposure)
-	    continue;
-
-	  intborder = f->display.x->internal_border_width;
-
-	  clear_cursor (f);
-	  XGetWindowInfo (FRAME_X_WINDOW (f), &windowinfo);
-	  temp_width = ((windowinfo.width - 2 * intborder
-			 - f->display.x->v_scroll_bar_width)
-			/ FONT_WIDTH (f->display.x->font));
-	  temp_height = ((windowinfo.height- 2 * intborder
-			  - f->display.x->h_scroll_bar_height)
-			 / f->display.x->line_height);
-	  if (temp_width != f->width || temp_height != f->height)
-	    {
-	      change_frame_size (f, max (1, temp_height),
-				  max (1, temp_width), 0, 1);
-	      x_resize_scroll_bars (f);
-	    }
-	  f->display.x->left_pos = windowinfo.x;
-	  f->display.x->top_pos = windowinfo.y;
-	  dumprectangle (f, 0, 0, PIXEL_WIDTH (f), PIXEL_HEIGHT (f));
-#if 0
-	  dumpborder (f, 0);
-#endif /* ! 0 */
-	  f->display.x->needs_exposure = 0;
-	  if (updating_frame != f)
-	    x_display_cursor (f, 1);
-	  XFlushQueue ();
-	}
-    }
-  else
-    /* Handle any individual-rectangle expose events queued
-       for various windows.  */
-#ifdef HAVE_X11
-    ;
-#else /* ! defined (HAVE_X11) */
-    dumpqueue ();
-#endif /* ! defined (HAVE_X11) */
-}
-#endif
-
-#ifdef HAVE_X11
 static void
 frame_highlight (frame)
      struct frame *frame;
@@ -1656,50 +1418,6 @@ frame_unhighlight (frame)
   UNBLOCK_INPUT;
   x_display_cursor (frame, 1);
 }
-#else /* ! defined (HAVE_X11) */
-/* Dump the border-emphasis of frame F.
-   If F is selected, this is a lining of the same color as the border,
-   just within the border, occupying a portion of the internal border.
-   If F is not selected, it is background in the same place.
-   If ALWAYS is 0, don't bother explicitly drawing if it's background.
-
-   ALWAYS = 1 is used when a frame becomes selected or deselected.
-   In that case, we also turn the cursor off and on again
-   so it will appear in the proper shape (solid if selected; else hollow.)  */
-
-static void
-dumpborder (f, always)
-     struct frame *f;
-     int always;
-{
-  int thickness = f->display.x->internal_border_width / 2;
-  int width = PIXEL_WIDTH (f);
-  int height = PIXEL_HEIGHT (f);
-  int pixel;
-
-  if (f != selected_frame)
-    {
-      if (!always)
-	return;
-
-      pixel = f->display.x->background_pixel;
-    }
-  else
-    {
-      pixel = f->display.x->border_pixel;
-    }
-
-  XPixSet (FRAME_X_WINDOW (f), 0, 0, width, thickness, pixel);
-  XPixSet (FRAME_X_WINDOW (f), 0, 0, thickness, height, pixel);
-  XPixSet (FRAME_X_WINDOW (f), 0, height - thickness, width,
-	   thickness, pixel);
-  XPixSet (FRAME_X_WINDOW (f), width - thickness, 0, thickness,
-	   height, pixel);
-
-  if (always)
-    x_display_cursor (f, 1);
-}
-#endif /* ! defined (HAVE_X11) */
 
 static void XTframe_rehighlight ();
 
@@ -1929,7 +1647,6 @@ x_emacs_to_x_modifiers (state)
 }
 
 /* Mouse clicks and mouse movement.  Rah.  */
-#ifdef HAVE_X11
 
 /* Given a pixel position (PIX_X, PIX_Y) on the frame F, return
    glyph co-ordinates in (*X, *Y).  Set *BOUNDS to the rectangle
@@ -2602,10 +2319,6 @@ XTmouse_position (f, bar_window, part, x, y, time)
 
   UNBLOCK_INPUT;
 }
-
-#else /* ! defined (HAVE_X11) */
-#define XEvent XKeyPressedEvent
-#endif /* ! defined (HAVE_X11) */
 
 /* Scroll bar support.  */
 
@@ -3480,7 +3193,6 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
       switch (event.type)
 	{
-#ifdef HAVE_X11
 	case ClientMessage:
 	  {
 	    if (event.xclient.message_type == Xatom_wm_protocols
@@ -3694,55 +3406,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 				  source area was completely
 				  available */
 	  break;
-#else /* ! defined (HAVE_X11) */
-	case ExposeWindow:
-	  if (event.subwindow != 0)
-	    break;		/* duplicate event */
-	  f = x_window_to_frame (event.window);
-	  if (event.window == f->display.x->icon_desc)
-	    {
-	      refreshicon (f);
-	      f->async_iconified = 1;
-	    }
-	  if (event.window == FRAME_X_WINDOW (f))
-	    {
-	      /* Say must check all windows' needs_exposure flags.  */
-	      expose_all_windows = 1;
-	      f->display.x->needs_exposure = 1;
-	      f->async_visible = 1;
-	    }
-	  break;
 
-	case ExposeRegion:
-	  if (event.subwindow != 0)
-	    break;		/* duplicate event */
-	  f = x_window_to_frame (event.window);
-	  if (event.window == f->display.x->icon_desc)
-	    {
-	      refreshicon (f);
-	      break;
-	    }
-	  /* If window already needs full redraw, ignore this rectangle.  */
-	  if (expose_all_windows && f->display.x->needs_exposure)
-	    break;
-	  /* Put the event on the queue of rectangles to redraw.  */
-	  if (enqueue_event (&event, &x_expose_queue))
-	    /* If it is full, we can't record the rectangle,
-	       so redraw this entire window.  */
-	    {
-	      /* Say must check all windows' needs_exposure flags.  */
-	      expose_all_windows = 1;
-	      f->display.x->needs_exposure = 1;
-	    }
-	  break;
-
-	case ExposeCopy:
-	  /* This should happen only when we are expecting it,
-	     in x_read_exposes.  */
-	  abort ();
-#endif /* ! defined (HAVE_X11) */
-
-#ifdef HAVE_X11
 	case UnmapNotify:
 	  f = x_any_window_to_frame (event.xunmap.window);
 	  if (f)		/* F may no longer exist if
@@ -3786,17 +3450,6 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	case VisibilityNotify:
 	  break;
 
-#else /* ! defined (HAVE_X11) */
-	case UnmapWindow:
-	  f = x_window_to_frame (event.window);
-	  if (event.window == f->display.x->icon_desc)
-	    f->async_iconified = 0;
-	  if (event.window == FRAME_X_WINDOW (f))
-	    f->async_visible = 0;
-	  break;
-#endif /* ! defined (HAVE_X11) */
-
-#ifdef HAVE_X11
 	case KeyPress:
 	  f = x_any_window_to_frame (event.xkey.window);
 
@@ -3930,56 +3583,6 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		abort ();
 	    }
 	  break;
-#else /* ! defined (HAVE_X11) */
-	case KeyPressed:
-	  {
-	    register char *where_mapping;
-
-	    f = x_window_to_frame (event.window);
-	    /* Ignore keys typed on icon windows.  */
-	    if (f != 0 && event.window == f->display.x->icon_desc)
-	      break;
-	    where_mapping = XLookupMapping (&event, &nbytes);
-	    /* Nasty fix for arrow keys */
-	    if (!nbytes && IsCursorKey (event.detail & 0xff))
-	      {
-		switch (event.detail & 0xff)
-		  {
-		  case KC_CURSOR_LEFT:
-		    where_mapping = "\002";
-		    break;
-		  case KC_CURSOR_RIGHT:
-		    where_mapping = "\006";
-		    break;
-		  case KC_CURSOR_UP:
-		    where_mapping = "\020";
-		    break;
-		  case KC_CURSOR_DOWN:
-		    where_mapping = "\016";
-		    break;
-		  }
-		nbytes = 1;
-	      }
-	    if (numchars - nbytes > 0)
-	      {
-		register int i;
-
-		for (i = 0; i < nbytes; i++)
-		  {
-		    bufp->kind = ascii_keystroke;
-		    bufp->code = where_mapping[i];
-		    XSET (bufp->time, Lisp_Int, event.xkey.time);
-		    XSET (bufp->frame_or_window, Lisp_Frame, f);
-		    bufp++;
-		  }
-		count += nbytes;
-		numchars -= nbytes;
-	      }
-	  }
-	  break;
-#endif /* ! defined (HAVE_X11) */
-
-#ifdef HAVE_X11
 
 	  /* Here's a possible interpretation of the whole
 	     FocusIn-EnterNotify FocusOut-LeaveNotify mess.  If you get a
@@ -4065,43 +3668,6 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #endif /* USE_X_TOOLKIT */
 	  break;
 
-#else /* ! defined (HAVE_X11) */
-
-	case EnterWindow:
-	  if ((event.detail & 0xFF) == 1)
-	    break;		/* Coming from our own subwindow */
-	  if (event.subwindow != 0)
-	    break;		/* Entering our own subwindow.  */
-
-	  {
-	    f = x_window_to_frame (event.window);
-	    x_mouse_frame = f;
-
-	    x_new_focus_frame (f);
-	  }
-	  break;
-
-	case LeaveWindow:
-	  if ((event.detail & 0xFF) == 1)
-	    break;		/* Entering our own subwindow */
-	  if (event.subwindow != 0)
-	    break;		/* Leaving our own subwindow.  */
-
-	  x_mouse_frame = 0;
-	  if (x_focus_frame == 0
-	      && x_input_frame != 0
-	      && x_input_frame == x_window_to_frame (event.window)
-	      && event.window == FRAME_X_WINDOW (x_input_frame))
-	    {
-	      f = x_input_frame;
-	      x_input_frame = 0;
-	      if (f)
-		frame_unhighlight (f);
-	    }
-	  break;
-#endif /* ! defined (HAVE_X11) */
-
-#ifdef HAVE_X11
 	case MotionNotify:
 	  {
 	    if (x_mouse_grabbed && last_mouse_frame
@@ -4312,55 +3878,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  }
 	  break;
 
-#else /* ! defined (HAVE_X11) */
-	case ButtonPressed:
-	case ButtonReleased:
-	  f = x_window_to_frame (event.window);
-	  if (f)
-	    {
-	      if (event.window == f->display.x->icon_desc)
-		{
-		  x_make_frame_visible (f);
-
-		  if (warp_mouse_on_deiconify)
-		    XWarpMouse (FRAME_X_WINDOW (f), 10, 10);
-		  break;
-		}
-	      if (event.window == FRAME_X_WINDOW (f))
-		{
-		  if (f->auto_raise)
-		    x_raise_frame (f);
-		}
-	    }
-	  enqueue_event (&event, &x_mouse_queue);
-	  if (numchars >= 2)
-	    {
-	      bufp->kind = ascii_keystroke;
-	      bufp->code = 'X' & 037; /* C-x */
-	      XSET (bufp->frame_or_window, Lisp_Frame, f);
-	      XSET (bufp->time, Lisp_Int, event.xkey.time);
-	      bufp++;
-
-	      bufp->kind = ascii_keystroke;
-	      bufp->code = 0; /* C-@ */
-	      XSET (bufp->frame_or_window, Lisp_Frame, f);
-	      XSET (bufp->time, Lisp_Int, event.xkey.time);
-	      bufp++;
-
-	      count += 2;
-	      numchars -= 2;
-	    }
-	  break;
-#endif /* ! defined (HAVE_X11) */
-
-#ifdef HAVE_X11
-
 	case CirculateNotify:
 	  break;
 	case CirculateRequest:
 	  break;
-
-#endif /* ! defined (HAVE_X11) */
 
 	case MappingNotify:
 	  /* Someone has changed the keyboard mapping - update the
@@ -4431,90 +3952,17 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #endif /* HAVE_SELECT */
 #endif /* 0 */
 
-#ifndef HAVE_X11
-  if (updating_frame == 0)
-    x_do_pending_expose ();
-#endif
-
   /* If the focus was just given to an autoraising frame,
      raise it now.  */
-#ifdef HAVE_X11
   if (pending_autoraise_frame)
     {
       x_raise_frame (pending_autoraise_frame);
       pending_autoraise_frame = 0;
     }
-#endif
 
   UNBLOCK_INPUT;
   return count;
 }
-
-#ifndef HAVE_X11
-/* Read and process only Expose events
-   until we get an ExposeCopy event; then return.
-   This is used in insert/delete line.
-   We assume input is already blocked.  */
-
-static void
-x_read_exposes ()
-{
-  struct frame *f;
-  XKeyPressedEvent event;
-
-  while (1)
-    {
-      /* while there are more events*/
-      XMaskEvent (ExposeWindow | ExposeRegion | ExposeCopy, &event);
-      switch (event.type)
-	{
-	case ExposeWindow:
-	  if (event.subwindow != 0)
-	    break;			/* duplicate event */
-	  f = x_window_to_frame (event.window);
-	  if (event.window == f->display.x->icon_desc)
-	    {
-	      refreshicon (f);
-	      break;
-	    }
-	  if (event.window == FRAME_X_WINDOW (f))
-	    {
-	      expose_all_windows = 1;
-	      f->display.x->needs_exposure = 1;
-	      break;
-	    }
-	  break;
-
-	case ExposeRegion:
-	  if (event.subwindow != 0)
-	    break;			/* duplicate event */
-	  f = x_window_to_frame (event.window);
-	  if (event.window == f->display.x->icon_desc)
-	    {
-	      refreshicon (f);
-	      break;
-	    }
-	  /* If window already needs full redraw, ignore this rectangle.  */
-	  if (expose_all_windows && f->display.x->needs_exposure)
-	    break;
-	  /* Put the event on the queue of rectangles to redraw.  */
-	  if (enqueue_event (&event, &x_expose_queue))
-	    /* If it is full, we can't record the rectangle,
-	       so redraw this entire window.  */
-	    {
-	      /* Say must check all windows' needs_exposure flags.  */
-	      expose_all_windows = 1;
-	      f->display.x->needs_exposure = 1;
-	    }
-	  break;
-
-	case ExposeCopy:
-	  return;
-	}
-    }
-}
-#endif /* HAVE_X11 */
-
 
 /* Drawing the cursor.  */
 
@@ -4530,27 +3978,9 @@ x_draw_box (f)
   int width = FONT_WIDTH (f->display.x->font);
   int height = f->display.x->line_height;
 
-#ifdef HAVE_X11
   XDrawRectangle (x_current_display, FRAME_X_WINDOW (f),
 		  f->display.x->cursor_gc,
 		  left, top, width - 1, height - 1);
-#else /* ! defined (HAVE_X11) */
-  XPixSet (FRAME_X_WINDOW (f),
-	   left, top, width, 1,
-	   f->display.x->cursor_pixel);
-
-  XPixSet (FRAME_X_WINDOW (f),
-	   left, top, 1, height,
-	   f->display.x->cursor_pixel);
-
-  XPixSet (FRAME_X_WINDOW (f),
-	   left+width-1, top, 1, height,
-	   f->display.x->cursor_pixel);
-
-  XPixSet (FRAME_X_WINDOW (f),
-	   left, top+height-1, width, 1,
-	   f->display.x->cursor_pixel);
-#endif /* ! defined (HAVE_X11) */
 }
 
 /* Clear the cursor of frame F to background color,
@@ -4568,15 +3998,7 @@ clear_cursor (f)
       || f->phys_cursor_x < 0)
     return;
 
-#ifdef HAVE_X11
   x_display_cursor (f, 0);
-#else /* ! defined (HAVE_X11) */
-  XPixSet (FRAME_X_WINDOW (f),
-	   CHAR_TO_PIXEL_COL (f, f->phys_cursor_x),
-	   CHAR_TO_PIXEL_ROW (f, f->phys_cursor_y),
-	   FONT_WIDTH (f->display.x->font), f->display.x->line_height,
-	   f->display.x->background_pixel);
-#endif /* ! defined (HAVE_X11) */
   f->phys_cursor_x = -1;
 }
 
@@ -4792,38 +4214,7 @@ x_display_cursor (f, on)
 refreshicon (f)
      struct frame *f;
 {
-#ifdef HAVE_X11
   /* Normally, the window manager handles this function. */
-#else /* ! defined (HAVE_X11) */
-  int mask;
-
-  if (f->display.x->icon_bitmap_flag)
-    XBitmapBitsPut (f->display.x->icon_desc, 0,  0, sink_width, sink_height,
-		    sink_bits, BlackPixel, WHITE_PIX_DEFAULT, 
-		    icon_bitmap, GXcopy, AllPlanes);
-  else
-    {
-      extern struct frame *selected_frame;
-      struct Lisp_String *str;
-      unsigned char *string;
-
-      string
-	= XSTRING (XBUFFER (XWINDOW (f->selected_window)->buffer)->name)->data;
-
-      if (f->display.x->icon_label != string)
-	{
-	  f->display.x->icon_label = string;
-	  XChangeWindow (f->display.x->icon_desc,
-			 XQueryWidth (string, icon_font_info->id) + 10,
-			 icon_font_info->height + 10);
-	}
-
-      XText (f->display.x->icon_desc, 5, 5, string,
-	     str->size, icon_font_info->id,
-	     BLACK_PIX_DEFAULT, WHITE_PIX_DEFAULT);
-    }
-  XFlushQueue ();
-#endif /* ! defined (HAVE_X11) */
 }
 
 /* Make the x-window of frame F use the gnu icon bitmap.  */
@@ -4838,37 +4229,12 @@ x_bitmap_icon (f)
   if (FRAME_X_WINDOW (f) == 0)
     return 1;
 
-#ifdef HAVE_X11
   if (! icon_bitmap)
     icon_bitmap =
       XCreateBitmapFromData (x_current_display, FRAME_X_WINDOW (f),
 			     gnu_bits, gnu_width, gnu_height);
   x_wm_set_icon_pixmap (f, icon_bitmap);
   f->display.x->icon_bitmap_flag = 1;
-#else /* ! defined (HAVE_X11) */
-  if (f->display.x->icon_desc)
-    {
-      XClearIconWindow (FRAME_X_WINDOW (f));
-      XDestroyWindow (f->display.x->icon_desc);
-    }
-
-  icon_window = XCreateWindow (f->display.x->parent_desc,
-			       0, 0, sink_width, sink_height,
-			       2, WhitePixmap, (Pixmap) NULL);
-
-  if (icon_window == 0)
-    return 1;
-
-  XSetIconWindow (FRAME_X_WINDOW (f), icon_window);
-  XSelectInput (icon_window, ExposeWindow | UnmapWindow);
-
-  f->display.x->icon_desc = icon_window;
-  f->display.x->icon_bitmap_flag = 1;
-
-  if (icon_bitmap == 0)
-    icon_bitmap
-      = XStoreBitmap (sink_mask_width, sink_mask_height, sink_mask_bits);
-#endif /* ! defined (HAVE_X11) */
 
   return 0;
 }
@@ -4881,26 +4247,9 @@ x_text_icon (f, icon_name)
      struct frame *f;
      char *icon_name;
 {
-#ifndef HAVE_X11
-  int mask;
-  int width;
-  Window icon_window;
-  char *X_DefaultValue;
-  Bitmap b1;
-
-#ifndef WhitePixel
-#define WhitePixel 1
-#endif /* WhitePixel */
-
-#ifndef BlackPixel
-#define BlackPixel 0
-#endif /* BlackPixel */
-#endif /* HAVE_X11 */
-  
   if (FRAME_X_WINDOW (f) == 0)
     return 1;
 
-#ifdef HAVE_X11
   if (icon_name)
     f->display.x->icon_label = icon_name;
   else
@@ -4914,42 +4263,6 @@ x_text_icon (f, icon_name)
   
   f->display.x->icon_bitmap_flag = 0;
   x_wm_set_icon_pixmap (f, 0);
-#else /* ! defined (HAVE_X11) */
-  if (icon_font_info == 0)
-    icon_font_info
-      = XGetFont (XGetDefault (XDISPLAY
-			       (char *) XSTRING (Vinvocation_name)->data,
-			       "BodyFont"));
-
-  if (f->display.x->icon_desc)
-    {
-      XClearIconWindow (XDISPLAY FRAME_X_WINDOW (f));
-      XDestroyWindow (XDISPLAY f->display.x->icon_desc);
-    }
-
-  if (icon_name)
-    f->display.x->icon_label = (unsigned char *) icon_name;
-  else
-    if (! f->display.x->icon_label)
-      f->display.x->icon_label = XSTRING (f->name)->data;
-
-  width = XStringWidth (f->display.x->icon_label, icon_font_info, 0, 0);
-  icon_window = XCreateWindow (f->display.x->parent_desc,
-			       f->display.x->left_pos,
-			       f->display.x->top_pos,
-			       width + 10, icon_font_info->height + 10,
-			       2, BlackPixmap, WhitePixmap);
-
-  if (icon_window == 0)
-    return 1;
-
-  XSetIconWindow (FRAME_X_WINDOW (f), icon_window);
-  XSelectInput (icon_window, ExposeWindow | ExposeRegion | UnmapWindow | ButtonPressed);
-
-  f->display.x->icon_desc = icon_window;
-  f->display.x->icon_bitmap_flag = 0;
-  f->display.x->icon_label = 0;
-#endif /* ! defined (HAVE_X11) */
 
   return 0;
 }
@@ -5115,8 +4428,6 @@ x_trace_wire ()
 /* Set the font of the x-window specified by frame F
    to the font named NEWNAME.  This is safe to use
    even before F has an actual x-window.  */
-
-#ifdef HAVE_X11
 
 struct font_info
 {
@@ -5289,34 +4600,10 @@ x_new_font (f, fontname)
     return lispy_name;
   }
 }
-#else /* ! defined (HAVE_X11) */
-x_new_font (f, newname)
-     struct frame *f;
-     register char *newname;
-{
-  FONT_TYPE *temp;
-  int mask;
-
-  temp = XGetFont (newname);
-  if (temp == (FONT_TYPE *) 0)
-    return 1;
-
-  if (f->display.x->font)
-    XLoseFont (f->display.x->font);
-
-  f->display.x->font = temp;
-
-  if (FRAME_X_WINDOW (f) != 0)
-    x_set_window_size (f, 0, f->width, f->height);
-
-  return 0;
-}
-#endif /* ! defined (HAVE_X11) */
 
 x_calc_absolute_position (f)
      struct frame *f;
 {
-#ifdef HAVE_X11
   Window win, child;
   int win_x = 0, win_y = 0;
   int flags = f->display.x->size_hint_flags;
@@ -5357,19 +4644,6 @@ x_calc_absolute_position (f)
      are now relative to the top and left screen edges,
      so the flags should correspond.  */
   f->display.x->size_hint_flags &= ~ (XNegative | YNegative);
-#else /* ! defined (HAVE_X11) */
-  WINDOWINFO_TYPE parentinfo;
-
-  XGetWindowInfo (FRAME_X_WINDOW (f), &parentinfo);
-
-  if (f->display.x->left_pos < 0)
-    f->display.x->left_pos = parentinfo.width + (f->display.x->left_pos + 1)
-      - PIXEL_WIDTH (f) - 2 * f->display.x->internal_border_width;
-
-  if (f->display.x->top_pos < 0)
-    f->display.x->top_pos = parentinfo.height + (f->display.x->top_pos + 1)
-      - PIXEL_HEIGHT (f) - 2 * f->display.x->internal_border_width;
-#endif /* ! defined (HAVE_X11) */
 }
 
 /* CHANGE_GRAVITY is 1 when calling from Fset_frame_position,
@@ -5448,10 +4722,9 @@ x_set_window_size (f, change_gravity, cols, rows)
   pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
   pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
 
-#ifdef HAVE_X11
   f->display.x->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, 0, 0);
-#endif /* ! defined (HAVE_X11) */
+
   XSync (x_current_display, False);
   XChangeWindowSize (FRAME_X_WINDOW (f), pixelwidth, pixelheight);
 
@@ -5487,18 +4760,6 @@ x_set_window_size (f, change_gravity, cols, rows)
   UNBLOCK_INPUT;
 #endif /* not USE_X_TOOLKIT */
 }
-
-#ifndef HAVE_X11
-x_set_resize_hint (f)
-     struct frame *f;
-{
-  XSetResizeHint (FRAME_X_WINDOW (f),
-		  2 * f->display.x->internal_border_width,
-		  2 * f->display.x->internal_border_width,
-		  FONT_WIDTH (f->display.x->font),
-		  f->display.x->line_height);
-}
-#endif /* HAVE_X11 */
 
 /* Mouse warping, focus shifting, raising and lowering.  */
 
@@ -5537,7 +4798,6 @@ x_set_mouse_pixel_position (f, pix_x, pix_y)
   UNBLOCK_INPUT;
 }
 
-#ifdef HAVE_X11
 x_focus_on_frame (f)
      struct frame *f;
 {
@@ -5563,8 +4823,6 @@ x_unfocus_frame (f)
 		    RevertToPointerRoot, CurrentTime);
 #endif /* ! 0 */
 }
-
-#endif /* ! defined (HAVE_X11) */
 
 /* Raise frame F.  */
 
@@ -5626,7 +4884,6 @@ x_make_frame_visible (f)
 
   if (! FRAME_VISIBLE_P (f))
     {
-#ifdef HAVE_X11
 #ifndef USE_X_TOOLKIT
       if (! FRAME_ICONIFIED_P (f))
 	x_set_offset (f, f->display.x->left_pos, f->display.x->top_pos, 0);
@@ -5646,18 +4903,6 @@ x_make_frame_visible (f)
       if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
 	XMapSubwindows (x_current_display, FRAME_X_WINDOW (f));
 #endif
-#else /* ! defined (HAVE_X11) */
-      XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
-      if (f->display.x->icon_desc != 0)
-	XUnmapWindow (f->display.x->icon_desc);
-
-      /* Handled by the MapNotify event for X11 */
-      f->async_visible = 1;
-      f->async_iconified = 0;
-
-      /* NOTE: this may cause problems for the first frame. */
-      XTcursor_to (0, 0);
-#endif /* ! defined (HAVE_X11) */
     }
 
   XFlushQueue ();
@@ -5732,7 +4977,6 @@ x_make_frame_invisible (f)
       error ("Can't notify window manager of window withdrawal");
     }
 #else /* ! defined (HAVE_X11R4) */
-#ifdef HAVE_X11
 
   /*  Tell the window manager what we're going to do.  */
   if (! EQ (Vx_no_window_manager, Qt))
@@ -5756,13 +5000,6 @@ x_make_frame_invisible (f)
 
   /* Unmap the window ourselves.  Cheeky!  */
   XUnmapWindow (x_current_display, window);
-#else /* ! defined (HAVE_X11) */
-
-  XUnmapWindow (FRAME_X_WINDOW (f));
-  if (f->display.x->icon_desc != 0)
-    XUnmapWindow (f->display.x->icon_desc);
-
-#endif /* ! defined (HAVE_X11) */
 #endif /* ! defined (HAVE_X11R4) */
 
   /* We can't distinguish this from iconification
@@ -5825,7 +5062,6 @@ x_iconify_frame (f)
 
   BLOCK_INPUT;
 
-#ifdef HAVE_X11
   /* Make sure the X server knows where the window should be positioned,
      in case the user deiconifies with the window manager.  */
   if (! FRAME_VISIBLE_P (f) && !FRAME_ICONIFIED_P (f))
@@ -5871,16 +5107,6 @@ x_iconify_frame (f)
     }
 
   f->async_iconified = 1;
-#else /* ! defined (HAVE_X11) */
-  XUnmapWindow (XDISPLAY FRAME_X_WINDOW (f));
-
-  f->async_visible = 0;		/* Handled in the UnMap event for X11. */
-  if (f->display.x->icon_desc != 0)
-    {
-      XMapWindow (XDISPLAY f->display.x->icon_desc);
-      refreshicon (f);
-    }
-#endif /* ! defined (HAVE_X11) */
 
   XFlushQueue ();
   UNBLOCK_INPUT;
@@ -5922,83 +5148,7 @@ x_destroy_window (f)
   UNBLOCK_INPUT;
 }
 
-/* Manage event queues for X10.  */
-
-#ifndef HAVE_X11
-
-/* Manage event queues.
-
-   This code is only used by the X10 support.
-
-   We cannot leave events in the X queue and get them when we are ready
-   because X does not provide a subroutine to get only a certain kind
-   of event but not block if there are no queued events of that kind.
-
-   Therefore, we must examine events as they come in and copy events
-   of certain kinds into our private queues.
-
-   All ExposeRegion events are put in x_expose_queue.
-   All ButtonPress and ButtonRelease events are put in x_mouse_queue.  */
-
-
-/* Write the event *P_XREP into the event queue *QUEUE.
-   If the queue is full, do nothing, but return nonzero.  */
-
-int
-enqueue_event (p_xrep, queue)
-     register XEvent *p_xrep;
-     register struct event_queue *queue;
-{
-  int newindex = queue->windex + 1;
-  if (newindex == EVENT_BUFFER_SIZE)
-    newindex = 0;
-  if (newindex == queue->rindex)
-    return -1;
-  queue->xrep[queue->windex] = *p_xrep;
-  queue->windex = newindex;
-  return 0;
-}
-
-/* Fetch the next event from queue *QUEUE and store it in *P_XREP.
-   If *QUEUE is empty, do nothing and return 0.  */
-
-int
-dequeue_event (p_xrep, queue)
-     register XEvent *p_xrep;
-     register struct event_queue *queue;
-{
-  if (queue->windex == queue->rindex)
-    return 0;
-  *p_xrep = queue->xrep[queue->rindex++];
-  if (queue->rindex == EVENT_BUFFER_SIZE)
-    queue->rindex = 0;
-  return 1;
-}
-
-/* Return the number of events buffered in *QUEUE.  */
-
-int
-queue_event_count (queue)
-     register struct event_queue *queue;
-{
-  int tem = queue->windex - queue->rindex;
-  if (tem >= 0)
-    return tem;
-  return EVENT_BUFFER_SIZE + tem;
-}
-
-/* Return nonzero if mouse input is pending.  */
-
-int
-mouse_event_pending_p ()
-{
-  return queue_event_count (&x_mouse_queue);
-}
-#endif /* HAVE_X11 */
-
 /* Setting window manager hints.  */
-
-#ifdef HAVE_X11
 
 /* Set the normal size hints for the window manager, for frame F.
    FLAGS is the flags word to use--or 0 meaning preserve the flags
@@ -6251,7 +5401,6 @@ x_term_init (display_name, xrm_option, resource_name)
 Check the DISPLAY environment variable or use \"-d\"\n",
 	   display_name);
 
-#ifdef HAVE_X11
   {
 #if 0
     XSetAfterFunction (x_current_display, x_trace_wire);
@@ -6280,8 +5429,6 @@ Check the DISPLAY environment variable or use \"-d\"\n",
     change_keyboard_wait_descriptor (ConnectionNumber (x_current_display));
   change_input_fd (ConnectionNumber (x_current_display));
 
-#endif /* HAVE_X11 */
-  
 #ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
   old_fcntl_owner = fcntl (ConnectionNumber (x_current_display), F_GETOWN, 0);
@@ -6357,5 +5504,4 @@ syms_of_xterm ()
   staticpro (&mouse_face_window);
   mouse_face_window = Qnil;
 }
-#endif /* ! defined (HAVE_X11) */
 #endif /* ! defined (HAVE_X_WINDOWS) */
