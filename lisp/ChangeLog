@@ -4,8 +4,19 @@
 	parameters.  Don't pay attention to `skip' properties.
 	(forward-button): Implement wrapping, iterating, and skipping here
 	instead.
+	(button-activate): USE-MOUSE-ACTION is optional.
+
 	* apropos.el (apropos-next-label-button): Update arguments to
 	`next-button'.
+	(apropos-symbol): Add `skip' property.
+	(apropos-function, apropos-macro, apropos-command) 
+	(apropos-variable, apropos-face, apropos-group, apropos-widget) 
+	(apropos-plist): New button types.
+	(apropos-label-properties): Variable removed.
+	(apropos-print): Pass button-type to apropos-print-doc, rather
+	than help function and label text.
+	(apropos-print-doc): Remove ACTION and STR args, add TYPE arg.
+	Get button label from TYPE.
 
 2001-10-07  Stefan Monnier  <monnier@cs.yale.edu>
 
