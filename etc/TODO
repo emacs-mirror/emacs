@@ -66,8 +66,8 @@
   [?], mlconvert [?], iso-cvt, iso-swed, swedish, feedmail [?], uce,
   bruce, gametree, meese, page-ext, refbib, refer, scribe, sgml-mode,
   spell, texinfo, underline, cmacexp, hideif, mantemp [obsolete?],
-  pcomplete, assoc, xml, cvs-status; other progmodes, probably in
-  separate manual.
+  pcomplete, assoc, xml, cvs-status (should be described in PCL-CVS manual);
+  other progmodes, probably in separate manual.
 
 * Get some major packages installed: W3/url (development version needs
   significant work), PSGML, Mule-UCS, Tramp (?).  Check the
@@ -75,7 +75,9 @@
   missed.
 
 * Make keymaps a first-class Lisp object (this means a rewrite of
-  keymap.c).
+  keymap.c).  What should it do apart from being opaque ?
+  multiple inheritance ?  faster where-is ?  no more fix_submap_inheritance ?
+  what else ?
 
 * Provide real menus on ttys.  The MS-DOS implementation can serve as
   an example how to do part of this.
