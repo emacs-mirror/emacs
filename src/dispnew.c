@@ -1,12 +1,12 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985, 1986, 1987, 1988, 1990,
-   1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1990, 
+   1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -828,9 +828,9 @@ direct_output_for_insert (g)
 #endif /* COMPILER_REGISTER_BUG */
     int vpos = FRAME_CURSOR_Y (frame);
 
-  /* Give up if about to continue line */
-  if (hpos - XFASTINT (w->left) + 1 + 1 >= XFASTINT (w->width)
-
+  /* Give up if about to continue line.  */
+  if (hpos >= XFASTINT (w->left) + window_internal_width (w) - 1
+    
   /* Avoid losing if cursor is in invisible text off left margin */
       || (XINT (w->hscroll) && hpos == XFASTINT (w->left))
     
@@ -881,10 +881,7 @@ direct_output_forward_char (n)
   if ((FRAME_CURSOR_X (frame) == XFASTINT (w->left)
        && (XINT (w->hscroll) || n < 0))
       || (n > 0
-	  && (FRAME_CURSOR_X (frame) + 1
-	      >= (XFASTINT (w->left) + XFASTINT (w->width)
-		  - (XFASTINT (w->width) < FRAME_WIDTH (frame))
-		  - 1)))
+	  && (FRAME_CURSOR_X (frame) + 1 >= window_internal_width (w) - 1))
       || cursor_in_echo_area)
     return 0;
 
@@ -1176,9 +1173,7 @@ buffer_posn_from_coords (window, col, line)
   /* The actual width of the window is window->width less one for the
      DISP_CONTINUE_GLYPH, and less one if it's not the rightmost
      window.  */
-  int window_width = (XFASTINT (window->width) - 1
-		      - (XFASTINT (window->width) + window_left
-			 != FRAME_WIDTH (XFRAME (window->frame))));
+  int window_width = window_internal_width (window) - 1;
 
   int startp = marker_position (window->start);
 

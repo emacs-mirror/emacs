@@ -396,15 +396,23 @@ struct position val_compute_motion;
    When displaying in window w, a typical formula for WIDTH is:
 
 	window_width - 1
-	 - (window_width + window_left != frame_width)
+	 - (has_vertical_scrollbars
+	    ? VERTICAL_SCROLLBAR_WIDTH
+	    : (window_width + window_left != frame_width))
 
 	where
 	  window_width is XFASTINT (w->width),
 	  window_left is XFASTINT (w->left),
-	  and frame_width = FRAME_WIDTH (XFRAME (window->frame))    
+	  has_vertical_scrollbars is
+	    FRAME_HAS_VERTICAL_SCROLLBARS (XFRAME (WINDOW_FRAME (window)))
+	  and frame_width = FRAME_WIDTH (XFRAME (window->frame))
 
-   This accounts for the continuation-line backslashes, and the window
-   borders if the window is split vertically.  */
+	Or,
+	  window_internal_width (w) - 1
+
+   The `-1' accounts for the continuation-line backslashes; the rest
+   accounts for window borders if the window is split vertically, and
+   the scrollbars if the frame supports them.  */
 
 struct position *
 compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, tab_offset)
@@ -560,9 +568,7 @@ pos_tab_offset (w, pos)
 {
   int opoint = point;
   int col;
-  int width = XFASTINT (w->width) - 1
-    - (XFASTINT (w->width) + XFASTINT (w->left)
-       != FRAME_WIDTH (XFRAME (w->frame)));
+  int width = window_internal_width (w) - 1;
 
   if (pos == BEGV || FETCH_CHAR (pos - 1) == '\n')
     return 0;
@@ -677,9 +683,7 @@ Returns number of lines moved; may be closer to zero than LINES\n\
 {
   struct position pos;
   register struct window *w = XWINDOW (selected_window);
-  int width = XFASTINT (w->width) - 1
-    - (XFASTINT (w->width) + XFASTINT (w->left)
-       != FRAME_WIDTH (XFRAME (w->frame)));
+  int width = window_internal_width (w) - 1;
 
   CHECK_NUMBER (lines, 0);
 
