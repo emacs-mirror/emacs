@@ -28,7 +28,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-xemacs-compat.el,v 1.13 2002/11/30 01:21:42 wohler Exp $
+;; $Id: mh-xemacs-compat.el,v 1.3 2003/01/08 23:21:16 wohler Exp $
 
 ;;; Code:
 

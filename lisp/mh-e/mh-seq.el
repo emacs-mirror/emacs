@@ -67,7 +67,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-seq.el,v 1.84 2003/01/07 21:15:33 satyaki Exp $
+;; $Id: mh-seq.el,v 1.10 2003/01/08 23:21:16 wohler Exp $
 
 ;;; Code:
 

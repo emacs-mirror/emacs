@@ -30,7 +30,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-utils.el,v 1.193 2003/01/08 00:27:31 satyaki Exp $
+;; $Id: mh-utils.el,v 1.34 2003/01/08 23:21:16 wohler Exp $
 
 ;;; Code:
 

@@ -32,7 +32,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-mime.el,v 1.98 2002/12/06 03:33:47 satyaki Exp $
+;; $Id: mh-mime.el,v 1.12 2003/01/08 23:21:16 wohler Exp $
 
 ;;; Code:
 

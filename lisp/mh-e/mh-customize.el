@@ -55,7 +55,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-customize.el,v 1.18 2003/01/08 00:45:37 wohler Exp $
+;; $Id: mh-customize.el,v 1.1 2003/01/08 23:21:16 wohler Exp $
 
 ;;; Code:
 

@@ -40,7 +40,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-index.el,v 1.73 2003/01/07 21:15:49 satyaki Exp $
+;; $Id: mh-index.el,v 1.2 2003/01/08 23:21:16 wohler Exp $
 
 ;;; Code:
 

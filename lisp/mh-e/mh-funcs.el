@@ -32,7 +32,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-funcs.el,v 1.36 2002/12/23 05:52:07 satyaki Exp $
+;; $Id: mh-funcs.el,v 1.9 2003/01/08 23:21:16 wohler Exp $
 
 ;;; Code:
 

@@ -1,3 +1,22 @@
+2003-01-25  Bill Wohler  <wohler@newt.com>
+
+	* mh-e: Created directory. ChangeLog will appear in a week when we
+	release version 7.2.
+
+	* lisp/mail/mh-alias.el, lisp/mail/mh-comp.el,
+	lisp/mail/mh-customize.el, lisp/mail/mh-e.el,
+	lisp/mail/mh-funcs.el, lisp/mail/mh-identity.el,
+	lisp/mail/mh-index.el, lisp/mail/mh-loaddefs.el,
+	lisp/mail/mh-mime.el, lisp/mail/mh-pick.el, lisp/mail/mh-seq.el,
+	lisp/mail/mh-speed.el, lisp/mail/mh-utils.el,
+	lisp/mail/mh-xemacs-compat.el: Moved to mh-e. Note that reply2.pbm
+	and reply2.xpm, which were created by the MH-E package, were left
+	in mail since they can probably be used by other mail packages.
+
+	* makefile.w32-in (WINS): Added mh-e.
+
+	* makefile.nt (WINS): Added mh-e.
+
 2003-01-25  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file-form-custom-declare-variable): 

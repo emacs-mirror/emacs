@@ -79,7 +79,7 @@
 ;; Maintenance picked up by Bill Wohler <wohler@newt.com> and the
 ;; SourceForge Crew <http://mh-e.sourceforge.net/>. 2001.
 
-;; $Id: mh-e.el,v 1.240 2003/01/08 00:46:25 wohler Exp $
+;; $Id: mh-e.el,v 1.34 2003/01/08 23:21:16 wohler Exp $
 
 ;;; Code:
 

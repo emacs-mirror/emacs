@@ -31,7 +31,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-speed.el,v 1.34 2003/01/07 21:15:20 satyaki Exp $
+;; $Id: mh-speed.el,v 1.2 2003/01/08 23:21:16 wohler Exp $
 
 ;;; Code:
 

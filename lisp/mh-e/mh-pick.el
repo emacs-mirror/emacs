@@ -30,7 +30,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-pick.el,v 1.25 2002/12/04 18:51:50 wohler Exp $
+;; $Id: mh-pick.el,v 1.10 2003/01/08 23:21:16 wohler Exp $
 
 ;;; Code:
 

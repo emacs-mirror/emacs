@@ -124,6 +124,7 @@ WINS=\
 	international \
 	language \
 	mail \
+	mh-e \
 	net \
 	play \
 	progmodes \

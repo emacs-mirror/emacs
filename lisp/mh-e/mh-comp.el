@@ -30,7 +30,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.164 2003/01/07 21:16:25 satyaki Exp $
+;; $Id: mh-comp.el,v 1.26 2003/01/08 23:21:16 wohler Exp $
 
 ;;; Code:
 
