@@ -500,7 +500,7 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   (make-local-variable 'adaptive-fill-first-line-regexp)
   (setq adaptive-fill-first-line-regexp
 	(concat adaptive-fill-first-line-regexp
-		"\\|[ \t]*[-[:alnum:]]+>+[ \t]*"))
+		"\\|[ \t]*[-[:alnum:]]*>+[ \t]*"))
   ;; `-- ' precedes the signature.  `-----' appears at the start of the
   ;; lines that delimit forwarded messages.
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,

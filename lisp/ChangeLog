@@ -1,5 +1,8 @@
 2002-02-01  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* mail/sendmail.el (mail-mode) <adaptive-fill-first-line-regexp>:
+	Undo half of last change.
+
 	* hi-lock.el (hi-lock-find-patterns): Save restriction.
 
 2002-01-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
@@ -22,8 +25,8 @@
 
 2002-01-25  Jason Rumney  <jasonr@gnu.org>
 
-	* faces.el (face-font-registry-alternatives) [windows-nt]: Add
-	ms-oemlatin as an alternative for iso8859-1.
+	* faces.el (face-font-registry-alternatives) [windows-nt]:
+	Add ms-oemlatin as an alternative for iso8859-1.
 
 2002-01-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
