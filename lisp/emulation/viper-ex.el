@@ -871,7 +871,7 @@ reversed."
 	      (char (buffer-substring (match-beginning 0) (match-end 0))))
 	  (if (viper-looking-back (concat "\\\\" char))
 	      (replace-match char)
-	    (store-match-data data)
+	    (set-match-data data)
 	    (if (string= char "%")
 		(replace-match cf)
 	      (replace-match pf)))))
