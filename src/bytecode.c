@@ -130,7 +130,8 @@ Lisp_Object Qbytecode;
 #define Bmult 0137
 
 #define Bpoint 0140
-#define Bmark 0141 /* no longer generated as of v18 */
+/* Was Bmark in v17.  */
+#define Bsave_current_buffer 0141
 #define Bgoto_char 0142
 #define Binsert 0143
 #define Bpoint_max 0144
@@ -535,6 +536,10 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bsave_excursion:
 	  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+	  break;
+
+	case Bsave_current_buffer:
+	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 	  break;
 
 	case Bsave_window_excursion:
