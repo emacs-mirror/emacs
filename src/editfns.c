@@ -727,7 +727,7 @@ DEFUN ("encode-time", Fencode_time, Sencode_time, 6, MANY, 0,
 This is the reverse operation of `decode-time', which see.\n\
 ZONE defaults to the current time zone rule.  This can\n\
 be a string or t (as from `set-time-zone-rule'), or it can be a list\n\
-(as from `current-time-zone') or an integer (as from `decode-time')\n\
+\(as from `current-time-zone') or an integer (as from `decode-time')\n\
 applied without consideration for daylight savings time.\n\
 \n\
 You can pass more than 7 arguments; then the first six arguments\n\
