@@ -757,7 +757,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
     (delete-region (point) (progn (forward-line 1) (point)))
     (if file
 	(progn
-	  (dired-add-entry file)
+	  (dired-add-entry file nil t)
 	  ;; Replace space by old marker without moving point.
 	  ;; Faster than goto+insdel inside a save-excursion?
 	  (subst-char-in-region opoint (1+ opoint) ?\040 char))))
@@ -790,7 +790,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
    (file-name-directory filename) (file-name-nondirectory filename)
    (function dired-add-entry) filename marker-char))
 
-(defun dired-add-entry (filename &optional marker-char)
+(defun dired-add-entry (filename &optional marker-char relative)
   ;; Add a new entry for FILENAME, optionally marking it
   ;; with MARKER-CHAR (a character, else dired-marker-char is used).
   ;; Note that this adds the entry `out of order' if files sorted by
@@ -800,12 +800,15 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
   ;; Hidden subdirs are exposed if a file is added there.
   (setq filename (directory-file-name filename))
   ;; Entry is always for files, even if they happen to also be directories
-  (let ((opoint (point))
+  (let* ((opoint (point))
 	(cur-dir (dired-current-directory))
 	(orig-file-name filename)
-	(directory (file-name-directory filename))
+	(directory (if relative cur-dir (file-name-directory filename)))
 	reason)
-    (setq filename (file-name-nondirectory filename)
+    (setq filename
+	  (if relative
+	      (file-relative-name filename directory)
+	    (file-name-nondirectory filename))
 	  reason
 	  (catch 'not-found
 	    (if (string= directory cur-dir)
