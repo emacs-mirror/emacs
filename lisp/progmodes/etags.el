@@ -1,6 +1,7 @@
 ;; etags.el --- etags facility for Emacs
 
-;; Copyright (C) 1985, 1986, 1988, 1989, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1988, 1989, 1992, 1993
+;;	Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Keywords: tools
@@ -335,8 +336,13 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 
   ;; Set tags-file-name to the tags table file we want to visit.
   (cond ((eq cont 'same)
-	 ;; Use the ambient value of tags-file-name.  Set CONT to nil so the
-	 ;; code below will make sure tags-file-name is in tags-table-list.
+	 ;; Use the ambient value of tags-file-name.
+	 (or tags-file-name
+	     (error (substitute-command-keys
+		     (concat "No tags table in use!  "
+			     "Use \\[visit-tags-table] to select one."))))
+	 ;; Set CONT to nil so the code below will make sure tags-file-name
+	 ;; is in tags-table-list.
 	 (setq cont nil))
 
 	(cont
