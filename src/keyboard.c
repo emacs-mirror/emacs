@@ -4777,7 +4777,12 @@ make_lispy_event (event)
 		else if (part == 2)
 		  posn = Qvertical_line;
 		else
-		  XSETINT (posn, buffer_posn_from_coords (w, &wx, &wy));
+		  {
+		    Lisp_Object object;
+		    struct display_pos p;
+		    buffer_posn_from_coords (w, &wx, &wy, &object, &p);
+		    posn = make_number (CHARPOS (p.pos));
+		  }
 	      }
 
 	    position
@@ -5071,9 +5076,13 @@ make_lispy_event (event)
 	    else if (part == 3)
 	      posn = Qheader_line;
 	    else
-	      XSETINT (posn,
-		       buffer_posn_from_coords (XWINDOW (window),
-						&column, &row));
+	      {
+		Lisp_Object object;
+		struct display_pos p;
+		buffer_posn_from_coords (XWINDOW (window), &column, &row,
+					 &object, &p);
+		posn = make_number (CHARPOS (p.pos));
+	      }
 	  }
 
 	{
@@ -5150,7 +5159,12 @@ make_lispy_event (event)
 	    else if (part == 3)
 	      posn = Qheader_line;
 	    else
-	      XSETINT (posn, buffer_posn_from_coords (w, &wx, &wy));
+	      {
+		Lisp_Object object;
+		struct display_pos p;
+		buffer_posn_from_coords (w, &wx, &wy, &object, &p);
+		posn = make_number (CHARPOS (p.pos));
+	      }
 	  }
 
 	{
@@ -5262,7 +5276,12 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
 	  else if (area == 3)
 	    posn = Qheader_line;
 	  else
-	    XSETINT (posn, buffer_posn_from_coords (w, &wx, &wy));
+	    {
+	      Lisp_Object object;
+	      struct display_pos p;
+	      buffer_posn_from_coords (w, &wx, &wy, &object, &p);
+	      posn = make_number (CHARPOS (p.pos));
+	    }
 	}
       else if (frame != 0)
 	{
