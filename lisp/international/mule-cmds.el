@@ -209,6 +209,9 @@ This also sets the following values:
   (setq default-keyboard-coding-system coding-system)
   (setq default-process-coding-system (cons coding-system coding-system)))
 
+(defalias 'update-iso-coding-systems 'update-coding-systems-internal)
+(make-obsolete 'update-iso-coding-systems 'update-coding-systems-internal)
+
 (defun prefer-coding-system (coding-system)
   "Add CODING-SYSTEM at the front of the priority list for automatic detection.
 This also sets the following coding systems:
@@ -227,7 +230,7 @@ This also sets the following values:
 	;; CODING-SYSTEM is no-conversion or undecided.
 	(error "Can't prefer the coding system `%s'" coding-system))
     (set coding-category (or base coding-system))
-    (update-iso-coding-systems)
+    (update-coding-systems-internal)
     (if (not (eq coding-category (car coding-category-list)))
 	;; We must change the order.
 	(setq coding-category-list
@@ -502,7 +505,16 @@ Meaningful values for KEY include
   coding-priority    value is a list of coding systems for this language
 			environment, in order of decreasing priority.
 			This is used to set up the coding system priority
-			list when you switch to this language environment.")
+			list when you switch to this language environment.
+
+  nonascii-translation-table
+		     value is a translation table to be set to the
+			variable `nonascii-translation-table' in this
+			language environment.
+
+  charset-origin-alist
+		     value is an alist to be set to the variable
+			`charset-origin-alist' in this language environment.")
 
 (defun get-language-info (lang-env key)
   "Return information listed under KEY for language environment LANG-ENV.
@@ -983,6 +995,10 @@ specifies the character set for the major languages of Western Europe."
     (set-terminal-coding-system (intern (downcase language-name)))
     (standard-display-european-internal))
   (setq current-language-environment language-name)
+  (setq nonascii-translation-table
+	(get-language-info language-name 'nonascii-translation-table))
+  (setq charset-origin-alist
+	(get-language-info language-name 'charset-origin-alist))
   (funcall (get-language-info language-name 'setup-function))
   (run-hooks 'set-language-environment-hook)
   (force-mode-line-update t))
@@ -1009,7 +1025,7 @@ specifies the character set for the major languages of Western Europe."
 	  (while priority
 	    (set (car categories) (car priority))
 	    (setq priority (cdr priority) categories (cdr categories)))
-	  (update-iso-coding-systems)))))
+	  (update-coding-systems-internal)))))
 
 ;; Print all arguments with `princ', then print "\n".
 (defsubst princ-list (&rest args)
