@@ -3240,7 +3240,7 @@ merge_face_heights (from, to, invalid, gcpro)
     {
       if (INTEGERP (to))
 	/* relative X absolute => absolute */
-	result = make_number (XFLOAT_DATA (from) * XINT (to));
+	result = make_number ((EMACS_INT)(XFLOAT_DATA (from) * XINT (to)));
       else if (FLOATP (to))
 	/* relative X relative => relative */
 	result = make_float (XFLOAT_DATA (from) * XFLOAT_DATA (to));
