@@ -1209,15 +1209,15 @@ If you did the search in a string, pass the same string as @var{string}.
 Then @code{replace-match} does the replacement by constructing and
 returning a new string.
 
-If @var{fixedcase} is non-@code{nil}, then the case of the replacement
-text is not changed; otherwise, the replacement text is converted to a
-different case depending upon the capitalization of the text to be
-replaced.  If the original text is all upper case, the replacement text
-is converted to upper case.  If the first word of the original text is
-capitalized, then the first word of the replacement text is capitalized.
-If the original text contains just one word, and that word is a capital
-letter, @code{replace-match} considers this a capitalized first word
-rather than all upper case.
+If @var{fixedcase} is non-@code{nil}, then @code{replace-match} uses
+the replacement text without case conversion; otherwise, it converts
+the replacement text depending upon the capitalization of the text to
+be replaced.  If the original text is all upper case, this converts
+the replacement text to upper case.  If all words of the original text
+are capitalized, this capitalizes all the words of the replacement
+text.  If all the words are one-letter and they are all upper case,
+they are treated as capitalized words rather than all-upper-case
+words.
 
 If @var{literal} is non-@code{nil}, then @var{replacement} is inserted
 exactly as it is, the only alterations being case changes as needed.
@@ -1240,6 +1240,9 @@ Subexpressions are those expressions grouped inside @samp{\(@dots{}\)}.
 @cindex @samp{\} in replacement
 @samp{\\} stands for a single @samp{\} in the replacement text.
 @end table
+
+These substitutions occur after case conversion, if any,
+so the strings they substitute are never case-converted.
 
 If @var{subexp} is non-@code{nil}, that says to replace just
 subexpression number @var{subexp} of the regexp that was matched, not
