@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.25) $
+ * $HopeName: MMsrc!poolams.c(trunk.26) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -23,7 +23,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.25) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.26) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -857,7 +857,9 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
           /* d.m.p.fix.to-black */
           Addr next;
 
+          ShieldExpose(PoolArena(pool), seg);
           next = (*group->ams->format->skip)(ref);
+          ShieldCover(PoolArena(pool), seg);
           /* Part of the object might be grey, because of ambiguous */
           /* fixes, but that's OK, because scan will ignore that. */
           AMSRangeWhiteBlacken(group, i, AMS_ADDR_INDEX(group, next));
@@ -1084,8 +1086,6 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
   if(stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
-               "AMS $P {\n", (WriteFP)ams,
-               "  pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
                "  size $W, lastReclaimed $W\n",
                (WriteFW)ams->size, (WriteFW)ams->lastReclaimed,
@@ -1109,11 +1109,11 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
 
   RING_FOR(node, &ams->groupRing, nextNode) {
     AMSGroup group = RING_ELT(AMSGroup, groupRing, node);
-    AMSGroupDescribe(group, stream);
+    res = AMSGroupDescribe(group, stream);
+    if(res != ResOK)
+      return res;
   }
-
-  res = WriteF(stream, "} AMS $P\n",(WriteFP)ams, NULL);
-  return res;
+  return ResOK;
 }
 
 
@@ -1144,6 +1144,8 @@ static PoolClassStruct PoolClassAMSStruct = {
   AMSReclaim,
   AMSBenefit,
   PoolCollectAct,
+  PoolNoRampBegin,
+  PoolNoRampEnd,
   PoolNoWalk,
   AMSDescribe,
   PoolClassSig               /* impl.h.mpm.class.end-sig */

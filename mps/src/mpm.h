@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.90) $
+ * $HopeName: MMsrc!mpm.h(trunk.91) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -337,6 +337,8 @@ extern Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern void PoolNoReclaim(Pool pool, Trace trace, Seg seg);
 extern double PoolNoBenefit(Pool pool, Action action);
 extern Res PoolNoAct(Pool pool, Action action);
+extern void PoolNoRampBegin(Pool pool, Buffer buf);
+extern void PoolNoRampEnd(Pool pool, Buffer buf);
 extern void PoolNoWalk(Pool pool, Seg seg,
                        FormattedObjectsStepMethod,
 		       void *, unsigned long);
@@ -414,14 +416,22 @@ extern Res TraceFixEmergency(ScanState ss, Ref *refIO);
 extern Size TraceGreyEstimate(Arena arena, RefSet refSet);
 
 /* Collection control parameters */
-/* Defined here, because they are used by more than one module (pool). */
-/* They have the wrong name because they originally came from AMC, and */
-/* binary compatibility is required. */
+/* Defined here, because they are used by more than one module. */
+/* There are two sets of frequencies, for inside and outside ramp */
+/* mode (except for the ramp generation itself). */
+/* They have the wrong names because they originally came from AMC, */
+/* and binary compatibility is required for external clients. */
 
 extern unsigned long AMCGen0Frequency;
 extern unsigned long AMCGen1Frequency;
 extern unsigned long AMCGen2Frequency;
 extern unsigned long AMCGen2plusFrequencyMultiplier;
+extern unsigned long AMCRampGenFrequency;
+extern unsigned long AMCGen0RampmodeFrequency;
+extern unsigned long AMCGen1RampmodeFrequency;
+extern unsigned long AMCGen2RampmodeFrequency;
+extern unsigned long AMCGen2plusRampmodeFrequencyMultiplier;
+extern Serial AMCRampGenFollows;
 extern Serial AMCGenFinal;
 
 extern double TraceGen0IncrementalityMultiple;
@@ -685,6 +695,9 @@ extern Addr (BufferAlloc)(Buffer buffer);
 #define BufferAlloc(buffer)     (BufferAP(buffer)->alloc)
 extern Addr (BufferLimit)(Buffer buffer);
 #define BufferLimit(buffer)     ((buffer)->poolLimit)
+extern void BufferRampBegin(Buffer buffer);
+extern Res BufferRampEnd(Buffer buffer);
+extern void BufferRampReset(Buffer buffer);
 
 
 /* Format Interface -- see impl.c.format */

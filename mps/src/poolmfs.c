@@ -1,7 +1,7 @@
 /* impl.c.poolmfs: MANUAL FIXED SMALL UNIT POOL
  *
- * $HopeName: MMsrc!poolmfs.c(trunk.27) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!poolmfs.c(trunk.28) $
+ * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
  *
  * This is the implementation of the MFS pool class.
  *
@@ -32,24 +32,24 @@
  */
 
 
-#include "mpm.h"
 #include "poolmfs.h"
+#include "mpm.h"
 
-SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.27) $");
+SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.28) $");
 
 
-/*  == Round up ==
+/* ROUND -- Round up
  *
  *  Rounds n up to the nearest multiple of unit.
  */
 
 #define ROUND(unit, n)  ((n)+(unit)-1 - ((n)+(unit)-1)%(unit))
 
+
 #define PoolPoolMFS(pool)       PARENT(MFSStruct, poolStruct, pool)
 
 
-/*  == Free List Structure ==
- */
+/* HeaderStruct -- Freelist structure */
 
 typedef struct MFSHeaderStruct {
   struct MFSHeaderStruct *next;
@@ -279,12 +279,14 @@ static PoolClassStruct PoolClassMFSStruct = {
   PoolNoBlacken,                        /* blacken */
   PoolNoScan,                           /* scan */
   PoolNoFix,                            /* fix */
-  PoolNoFix,                            /* fix */
+  PoolNoFix,                            /* emergency fix */
   PoolNoReclaim,                        /* reclaim */
   PoolNoBenefit,			/* benefit */
   PoolNoAct,                            /* act */
-  PoolNoWalk,                           /* walk */
-  MFSDescribe,                          /* describe */
+  PoolNoRampBegin,
+  PoolNoRampEnd,
+  PoolNoWalk,
+  MFSDescribe,
   PoolClassSig                          /* impl.h.mpmst.class.end-sig */
 };
 

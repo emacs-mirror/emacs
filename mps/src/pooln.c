@@ -1,15 +1,15 @@
 /* impl.c.pooln: NULL POOL CLASS
  *
- * $HopeName: MMsrc!pooln.c(trunk.19) $
- * Copyright(C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!pooln.c(trunk.20) $
+ * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MPS developers
  */
 
-#include "mpm.h"
 #include "pooln.h"
+#include "mpm.h"
 
-SRCID(pooln, "$HopeName: MMsrc!pooln.c(trunk.19) $");
+SRCID(pooln, "$HopeName: MMsrc!pooln.c(trunk.20) $");
 
 
 typedef struct PoolNStruct {
@@ -246,32 +246,34 @@ static void NReclaim(Pool pool, Trace trace, Seg seg)
 
 
 static PoolClassStruct PoolClassNStruct = {
-  PoolClassSig,                         /* sig */
+  PoolClassSig,
   "N",                                  /* name */
   sizeof(PoolNStruct),                  /* size */
   offsetof(PoolNStruct, poolStruct),    /* offset */
   AttrSCAN | AttrALLOC | AttrFREE | AttrBUF | AttrBUF_RESERVE | AttrGC,
-  NInit,                                /* init */
-  NFinish,                              /* finish */
-  NAlloc,                               /* alloc */
-  NFree,                                /* free */
-  NBufferInit,                          /* bufferInit */
-  NBufferFill,                          /* bufferFill */
-  NBufferEmpty,                         /* bufferEmpty */
-  NBufferFinish,                        /* bufferFinish */
-  PoolNoTraceBegin,			/* traceBegin */
-  PoolNoAccess,                         /* access */
-  NWhiten,                              /* whiten */
-  NGrey,                                /* grey */
-  NBlacken,                             /* blacken */
-  NScan,                                /* scan */
+  NInit,
+  NFinish,
+  NAlloc,
+  NFree,
+  NBufferInit,
+  NBufferFill,
+  NBufferEmpty,
+  NBufferFinish,
+  PoolNoTraceBegin,
+  PoolNoAccess,
+  NWhiten,                              /* whiten/condemn */
+  NGrey,
+  NBlacken,
+  NScan,
   NFix,                                 /* fix */
   NFix,                                 /* emergency fix */
-  NReclaim,                             /* reclaim */
-  PoolNoBenefit,			/* benefit */
-  PoolNoAct,                            /* act */
-  PoolNoWalk,                           /* walk */
-  NDescribe,                            /* describe */
+  NReclaim,
+  PoolNoBenefit,
+  PoolNoAct,
+  PoolNoRampBegin,
+  PoolNoRampEnd,
+  PoolNoWalk,
+  NDescribe,
   PoolClassSig                          /* impl.h.mpmst.class.end-sig */
 };
 

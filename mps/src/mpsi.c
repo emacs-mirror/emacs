@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.51) $
+ * $HopeName: MMsrc!mpsi.c(trunk.52) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.51) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.52) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -723,7 +723,7 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
   Res res;
 
   AVER(mps_ap != NULL);  
-  AVER(CHECKT(Buffer, buf));
+  AVERT(Buffer, buf);
   arena = BufferArena(buf);
 
   ArenaEnter(arena);
@@ -1267,35 +1267,76 @@ void mps_telemetry_label(mps_addr_t addr, mps_word_t intern_id)
 
 /* Allocation Patterns */
 
-/* Dummy interface at the moment, ie no useful implementation. */
+/* .alloc-pattern.null: There's only one kind of alloc_pattern now, */
+/* so we represent it by NULL.  Eventually, we'll have a data type */
+/* for allocation patterns. */
 
 mps_alloc_pattern_t mps_alloc_pattern_ramp(void)
 {
   return NULL;
 }
 
+
 mps_res_t mps_ap_alloc_pattern_begin(mps_ap_t mps_ap,
                                      mps_alloc_pattern_t mps_alloc_pattern)
 {
-  UNUSED(mps_ap);
-  UNUSED(mps_alloc_pattern);
- 
+  Buffer buf;
+  Arena arena;
+
+  AVER(mps_ap != NULL);
+  buf = BufferOfAP((AP)mps_ap);
+  AVERT(Buffer, buf);
+  AVER(mps_alloc_pattern == NULL);
+
+  arena = BufferArena(buf);
+  ArenaEnter(arena);
+
+  BufferRampBegin(buf);
+
+  ArenaLeave(arena);
   return MPS_RES_OK;
 }
+
 
 mps_res_t mps_ap_alloc_pattern_end(mps_ap_t mps_ap,
                                    mps_alloc_pattern_t mps_alloc_pattern)
 {
-  UNUSED(mps_ap);
-  UNUSED(mps_alloc_pattern);
- 
-  return MPS_RES_OK;
+  Buffer buf;
+  Arena arena;
+  Res res;
+
+  AVER(mps_ap != NULL);
+  buf = BufferOfAP((AP)mps_ap);
+  AVERT(Buffer, buf);
+  AVER(mps_alloc_pattern == NULL);
+
+  arena = BufferArena(buf);
+  ArenaEnter(arena);
+
+  res = BufferRampEnd(buf);
+  ArenaPoll(arena);                     /* .poll */
+
+  ArenaLeave(arena);
+  return res;
 }
+
 
 mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t mps_ap)
 {
-  UNUSED(mps_ap);
+  Buffer buf;
+  Arena arena;
 
+  AVER(mps_ap != NULL);
+  buf = BufferOfAP((AP)mps_ap);
+  AVERT(Buffer, buf);
+
+  arena = BufferArena(buf);
+  ArenaEnter(arena);
+
+  BufferRampReset(buf);
+  ArenaPoll(arena);                     /* .poll */
+
+  ArenaLeave(arena);
   return MPS_RES_OK;
 }
 

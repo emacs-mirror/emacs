@@ -1,7 +1,7 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.26) $
- * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!amcss.c(trunk.27) $
+ * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  */
 
 #include "fmtdy.h"
@@ -23,9 +23,11 @@
 
 
 #define testArenaSIZE     ((size_t)64<<20)
+#define avLEN             4
 #define exactRootsCOUNT   50
 #define ambigRootsCOUNT   100
-#define collectionsCOUNT  5
+#define collectionsCOUNT  18
+#define rampSIZE          5
 #define initTestFREQ      6000
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
 #define objNULL           ((mps_addr_t)0xDECEA5ED)
@@ -38,7 +40,8 @@ static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
 static mps_addr_t make(void)
 {
-  size_t length = rnd() % 20, size = (length+2)*sizeof(mps_word_t);
+  size_t length = rnd() % (2*avLEN);
+  size_t size = (length+2) * sizeof(mps_word_t);
   mps_addr_t p;
   mps_res_t res;
 
@@ -54,6 +57,7 @@ static mps_addr_t make(void)
   return p;
 }
 
+
 static void test_stepper(mps_addr_t object, void *p, size_t s)
 {
   (*(unsigned long *)p)++;
@@ -67,8 +71,10 @@ static void *test(void *arg, size_t s)
   mps_arena_t arena;
   mps_fmt_t format;
   mps_root_t exactRoot, ambigRoot;
-  unsigned long i;
-  mps_word_t collections;
+  unsigned long objs; size_t i;
+  mps_word_t collections, rampSwitch;
+  mps_alloc_pattern_t ramp = mps_alloc_pattern_ramp();
+  int ramping;
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
 
@@ -102,7 +108,11 @@ static void *test(void *arg, size_t s)
   die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
 
   collections = 0;
-  i = 0;
+  rampSwitch = rampSIZE;
+  mps_ap_alloc_pattern_begin(ap, ramp);
+  mps_ap_alloc_pattern_begin(busy_ap, ramp);
+  ramping = 1;
+  objs = 0;
   while(collections < collectionsCOUNT) {
     unsigned long c;
     size_t r;
@@ -112,7 +122,7 @@ static void *test(void *arg, size_t s)
     if(collections != c) {
       collections = c;
       printf("\nCollection %lu, %lu objects.\n",
-             c, i);
+             c, objs);
       for(r = 0; r < exactRootsCOUNT; ++r)
         assert(exactRoots[r] == objNULL ||
                dylan_check(exactRoots[r]));
@@ -123,30 +133,44 @@ static void *test(void *arg, size_t s)
 	mps_arena_release(arena);
 	printf("mps_amc_apply stepped on %lu objects.\n", object_count);
       }
+      if(collections == rampSwitch) {
+        rampSwitch += rampSIZE;
+        if(ramping) {
+          mps_ap_alloc_pattern_end(ap, ramp);
+          mps_ap_alloc_pattern_end(busy_ap, ramp);
+          /* Every other time, switch back immediately. */
+          if(collections & 1) ramping = 0;
+        }
+        if(!ramping) {
+          mps_ap_alloc_pattern_begin(ap, ramp);
+          mps_ap_alloc_pattern_begin(busy_ap, ramp);
+          ramping = 1;
+        }
+      }
     }
 
-    if(rnd() & 1)
-      exactRoots[rnd() % exactRootsCOUNT] = make();
-    else
-      ambigRoots[rnd() % ambigRootsCOUNT] = make();
+    r = rnd();
+    if(r & 1) {
+      i = (r >> 1) % exactRootsCOUNT;
+      if(exactRoots[i] != objNULL)
+        assert(dylan_check(exactRoots[i]));
+      exactRoots[i] = make();
+    } else {
+      i = (r >> 1) % ambigRootsCOUNT;
+      ambigRoots[(ambigRootsCOUNT-1) - i] = make();
+      /* Create random interior pointers */
+      ambigRoots[i] = (mps_addr_t)((char *)(ambigRoots[i/2]) + 1);
+    }
 
-    /* Create random interior pointers */
-    r = rnd() % ambigRootsCOUNT;
-    ambigRoots[r] = (mps_addr_t)((char *)(ambigRoots[r/2]) + 1);
-
-    r = rnd() % exactRootsCOUNT;
-    if(exactRoots[r] != objNULL)
-      assert(dylan_check(exactRoots[r]));
-
-    if(rnd() % initTestFREQ == 0)
+    if(r % initTestFREQ == 0)
       *(int*)busy_init = -1; /* check that the buffer is still there */
 
-    if(i % 1000 == 0) {
+    if(objs % 1000 == 0) {
       putchar('.');
       fflush(stdout);
     }
 
-    ++i;
+    ++objs;
   }
 
   (void)mps_commit(busy_ap, busy_init, 64);
@@ -169,11 +193,13 @@ int main(void)
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create\n");
+  adjust_collection_freq(0.0);
   die(mps_thread_reg(&thread, arena), "thread_reg");
   mps_tramp(&r, test, arena, 0);
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 
+  fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }

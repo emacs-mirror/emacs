@@ -1,6 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE POOL, II
  *
- * $HopeName: MMsrc!poolmv2.c(MMdevel_gavinm_splay.18) $
+ * $HopeName: MMsrc!poolmv2.c(trunk.2) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: any MPS developer
@@ -17,18 +17,15 @@
 #include "abq.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(MMdevel_gavinm_splay.18) $");
-
+SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.2) $");
 
 
 /* Signatures */
-
 
 #define MV2Sig ((Sig)0x5193F299) /* SIGnature MV2 */
 
 
 /* Private prototypes */
-
 
 typedef struct MV2Struct *MV2;
 static Res MV2Init(Pool pool, va_list arg);
@@ -168,6 +165,8 @@ static PoolClassStruct PoolClassMV2Struct =
   PoolNoReclaim,                /* relcaim */
   PoolNoBenefit,                /* benefit */
   PoolNoAct,                    /* act */
+  PoolNoRampBegin,
+  PoolNoRampEnd,
   PoolNoWalk,                   /* walk */
   MV2Describe,                  /* describe */
   PoolClassSig                  /* impl.h.mpmst.class.end-sig */
@@ -1168,10 +1167,3 @@ static Bool MV2CheckFit(CBSBlock block, Size min, Arena arena)
 
   return FALSE;
 }
-
-
-
-
-
-  
-

@@ -1,15 +1,11 @@
-/*  ==== TEST LIBRARY ====
+/* impl.h.testlib: TEST LIBRARY
  *
- *  $HopeName: MMsrc!testlib.h(trunk.9) $
+ * $HopeName: MMsrc!testlib.h(trunk.9) $
+ * Copyright (C) 1995, 1998 Harlequin Group plc.  All rights reserved.
  *
- *  Copyright (C) 1995, 1998.  Harlequin Group plc.  All rights reserved.
+ * .purpose: A library of functions that may be of use to unit tests.
  *
- *  This is a library of functions that unit test developers might find
- *  useful.  We hope they enhance your programming pleasure.
- *
- *  Notes
- *   1. There is no way to set the seed for rnd.
- *    1995-03-14 drj
+ * .notes: There is no way to set the seed for rnd.  1995-03-14 drj
  */
 
 #ifndef testlib_h
@@ -72,35 +68,40 @@
 #endif /* MPS_BUILD_MV */
 
 
-/*  == MISC ==  */
-
-/*  == UNUSED ==
+/* testlib_unused -- declares that a variable is unused
  *
- *  The testlib_unused macro declares that a variable is unused.
- *  It should be used to prevent compiler warnings about unused
- *  variables.  Care should be exercised; the fact that a variable
- *  is unused may need justification.
+ * It should be used to prevent compiler warnings about unused
+ * variables.  Care should be exercised; the fact that a variable
+ * is unused may need justification.
  */
 
 #define testlib_unused(v) ((void)(v))
 
 
-/*  == SUCCEED OR DIE ==
+/* die -- succeed or die
  *
- *  If the first argument is not ResOK then prints the second
- *  argument on stderr and exits the program.  Otherwise does nothing.
+ * If the first argument is not ResOK then prints the second
+ * argument on stderr and exits the program.  Otherwise does nothing.
  *
- *  Typical use:
+ * Typical use:
  *   die(mps_space_create(&space), "SpaceCreate");
  */
 
 extern void die(mps_res_t res, const char *s);
 
-/*  == RANDOM NUMBER GENERATOR ==
+/* rnd -- random number generator
  *
- *  rnd() generates a sequence of integers in the range [0, 2^31-2]
+ * rnd() generates a sequence of integers in the range [0, 2^31-2].
  */
 
 extern unsigned long rnd(void);
+
+
+/* adjust_collection_freq -- multiply all collection frequencies by
+ *                           a given factor
+ */
+
+extern void adjust_collection_freq(double multiplier);
+
 
 #endif /* testlib_h */
