@@ -1570,7 +1570,9 @@ of buffer-file-coding-system set by this function."
       (setq language-name (symbol-name language-name)))
   (let ((doc (get-language-info language-name 'documentation))
 	pos)
-    (with-output-to-temp-buffer "*Help*"
+    (help-setup-xref (list #'describe-language-environment language-name)
+		     (interactive-p))
+    (with-output-to-temp-buffer (help-buffer)
       (save-excursion
 	(set-buffer standard-output)
 	(insert language-name " language environment\n\n")
@@ -1639,9 +1641,7 @@ of buffer-file-coding-system set by this function."
 		    (insert " " (symbol-name (car aliases)))
 		    (setq aliases (cdr aliases)))
 		  (insert ")\n")))
-	      (setq l (cdr l)))))
-	(help-setup-xref (list #'describe-language-environment language-name)
-			 (interactive-p))))))
+	      (setq l (cdr l)))))))))
 
 ;;; Locales.
 
