@@ -1,3 +1,11 @@
+2002-01-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* net/ldap.el (ldap-host-parameters-alist): Remove duplicated
+	entry.
+	(ldap-ignore-attribute-codings): Change the default value to allow
+	encoding/decoding of attributes.
+	(ldap-coding-system): Use UTF-8 as the coding-system.  Doc fix.
+
 2002-01-03  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (basic-save-buffer): Undo previous change.
