@@ -292,7 +292,9 @@ autoloads go somewhere else.")
       ;; the local variables section if it's there.
       (if existing-buffer
 	  (set-buffer existing-buffer))
-      (set-buffer (find-file-noselect generated-autoload-file))
+      ;; We must read/write the file without any code conversion.
+      (let ((coding-system-for-read 'no-conversion))
+	(set-buffer (find-file-noselect generated-autoload-file)))
       (save-excursion
 	(save-restriction
 	  (widen)
