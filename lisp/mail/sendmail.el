@@ -462,7 +462,7 @@ Like Text Mode but with these additional commands:
 Here are commands that move to a header field (and create it if there isn't):
 	 \\[mail-to]  move to To:	\\[mail-subject]  move to Subject:
 	 \\[mail-cc]  move to CC:	\\[mail-bcc]  move to BCC:
-	 \\[mail-fcc]  move to FCC:
+	 \\[mail-fcc]  move to FCC:	\\[mail-reply-to] move to Reply-To:
 \\[mail-text]  mail-text (move to beginning of message text).
 \\[mail-signature]  mail-signature (insert `mail-signature-file' file).
 \\[mail-yank-original]  mail-yank-original (insert current message, in Rmail).
