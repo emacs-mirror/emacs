@@ -1187,7 +1187,8 @@ Lisp_Object skip_chars ();
 DEFUN ("skip-chars-forward", Fskip_chars_forward, Sskip_chars_forward, 1, 2, 0,
   "Move point forward, stopping before a char not in STRING, or at pos LIM.\n\
 STRING is like the inside of a `[...]' in a regular expression\n\
-except that `]' is never special and `\\' quotes `^', `-' or `\\'.\n\
+except that `]' is never special and `\\' quotes `^', `-' or `\\'\n\
+ (but not as the end of a range; quoting is never needed there).\n\
 Thus, with arg \"a-zA-Z\", this skips letters stopping before first nonletter.\n\
 With arg \"^a-zA-Z\", skips nonletters stopping before first letter.\n\
 Returns the distance traveled, either zero or positive.")
@@ -1311,9 +1312,12 @@ skip_chars (forwardp, syntaxp, string, lim)
 		break;
 
 	      if (string_multibyte)
-		FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
+		{
+		  c_leading_code = XSTRING (string)->data[i];
+		  FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
+		}
 	      else
-		c = XSTRING (string)->data[i++];
+		c = c_leading_code = XSTRING (string)->data[i++];
 	    }
 	  if (i < XSTRING (string)->size && XSTRING (string)->data[i] == '-')
 	    {
