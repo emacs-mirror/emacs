@@ -211,6 +211,9 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 		   (error
 		    "Can't create multiple frames without a window system"))))))))
 
+(defvar frame-notice-user-settings t
+  "Non-nil means function `frame-notice-user-settings' wasn't run yet.")
+
 ;;; startup.el calls this function after loading the user's init
 ;;; file.  Now default-frame-alist and initial-frame-alist contain
 ;;; information to which we must react; do what needs to be done.
@@ -232,6 +235,20 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
   ;; the buffer of the selected window, which fails when the selected
   ;; window is the minibuffer.
   (let ((old-buffer (current-buffer)))
+
+    (when (and frame-notice-user-settings
+	       (null frame-initial-frame))
+      ;; This case happens when we don't have a window system.
+      (let ((parms (frame-parameters frame-initial-frame)))
+	;; Don't change the frame names.
+	(setq parms (delq (assq 'name parms) parms))
+	;; Can't modify the minibuffer parameter, so don't try.
+	(setq parms (delq (assq 'minibuffer parms) parms))
+	(modify-frame-parameters nil
+				 (append initial-frame-alist
+					 default-frame-alist
+					 parms
+					 nil))))
 
     ;; If the initial frame is still around, apply initial-frame-alist
     ;; and default-frame-alist to it.
@@ -387,6 +404,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 
     ;; Make sure the initial frame can be GC'd if it is ever deleted.
     ;; Make sure frame-notice-user-settings does nothing if called twice.
+    (setq frame-notice-user-settings nil)
     (setq frame-initial-frame nil)))
 
 (defun make-initial-minibuffer-frame (display)
