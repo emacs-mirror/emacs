@@ -1,3 +1,8 @@
+2000-10-08  Peter Breton  <pbreton@ne.mediaone.net>
+
+	* generic-x.el (rul-generic-mode): Remove eval-when-compile
+	statements. Suggested by Stefan Monnier  <monnier@cs.yale.edu>.
+
 2000-10-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/titdic-cnv.el (quail-cxterm-package-ext-info): Fix
@@ -36,15 +41,6 @@
 	(browse-url-browser-function): Use it.
 	Suggested by Colin Walters <walters@cis.ohio-state.edu>.
 
-2000-10-07  Peter Breton  <pbreton@ne.mediaone.net>
-
-	* net/net-utils.el (nslookup-font-lock-keywords)
-	(ftp-font-lock-keywords, smbclient-font-lock-keywords): Do not
-	require font-lock.  Doc cleanups throughout (incorporate changes
-	by Dave Love).
-	(network-connection-mode-setup): Comment out network-abbrev-table
-	variable.  Incorporate doc cleanups throughout.
-	
 2000-10-07  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* indent.el (tab-always-indent): New var.
