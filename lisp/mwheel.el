@@ -53,8 +53,9 @@
     (set-default var button)
     (when active (mouse-wheel-mode 1))))
 
-(defvar mouse-wheel-down-button 4
-  "Obsolete.  Use `mouse-wheel-down-event'.")
+(defvar mouse-wheel-down-button 4)
+(make-obsolete-variable 'mouse-wheel-down-button
+                        'mouse-wheel-down-event)
 (defcustom mouse-wheel-down-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
   (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
@@ -64,8 +65,9 @@
   :type 'symbol
   :set 'mouse-wheel-change-button)
 
-(defvar mouse-wheel-up-button 5
-  "Obsolete.  Use `mouse-wheel-up-event'.")
+(defvar mouse-wheel-up-button 5)
+(make-obsolete-variable 'mouse-wheel-up-button
+                        'mouse-wheel-up-event)
 (defcustom mouse-wheel-up-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
   (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
@@ -75,8 +77,9 @@
   :type 'symbol
   :set 'mouse-wheel-change-button)
 
-(defvar mouse-wheel-click-button 2
-  "Obsolete.  Use `mouse-wheel-click-event'.")
+(defvar mouse-wheel-click-button 2)
+(make-obsolete-variable 'mouse-wheel-click-button
+                        'mouse-wheel-click-event)
 (defcustom mouse-wheel-click-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
   (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
