@@ -884,21 +884,21 @@ detect_coding_iso2022 (src, src_end)
 	  *dst++ = 0xFF;						\
 	coding->composing += 2;						\
       }									\
-    if ((charset) >= 0)							\
+    if (charset_alt >= 0)						\
       {									\
-	if (CHARSET_DIMENSION (charset) == 2)				\
+	if (CHARSET_DIMENSION (charset_alt) == 2)			\
 	  {								\
 	    ONE_MORE_BYTE (c2);						\
 	    if (iso_code_class[(c2) & 0x7F] != ISO_0x20_or_0x7F		\
 		&& iso_code_class[(c2) & 0x7F] != ISO_graphic_plane_0)	\
 	      {								\
 		src--;							\
-		c2 = ' ';						\
+		charset_alt = CHARSET_ASCII;				\
 	      }								\
 	  }								\
 	if (!NILP (translation_table)					\
 	    && ((c_alt = translate_char (translation_table,		\
-					 -1, (charset), c1, c2)) >= 0))	\
+					 -1, charset_alt, c1, c2)) >= 0)) \
 	  SPLIT_CHAR (c_alt, charset_alt, c1, c2);			\
       }									\
     if (charset_alt == CHARSET_ASCII || charset_alt < 0)		\
