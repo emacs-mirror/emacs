@@ -287,7 +287,7 @@ extern void r_alloc_free ();
     {							\
       int dummy;					\
       SIGMASKTYPE mask;					\
-      mask = sigblockx (SIGCHLD);			\
+      mask = sigblock (SIGCHLD);			\
       if (-1 == openpty (&fd, &dummy, pty_name, 0, 0))	\
 	fd = -1;					\
       sigsetmask (mask);				\
