@@ -32,7 +32,6 @@
 ;; Keep "C-x C-m ..." for mule specific commands.
 (define-key ctl-x-map "\C-m" mule-keymap)
 
-(define-key mule-keymap "m" 'toggle-enable-multibyte-characters)
 (define-key mule-keymap "f" 'set-buffer-file-coding-system)
 (define-key mule-keymap "t" 'set-terminal-coding-system)
 (define-key mule-keymap "k" 'set-keyboard-coding-system)
@@ -64,9 +63,6 @@
 (defvar set-coding-system-map nil)
 (define-prefix-command 'set-coding-system-map)
 
-(define-key-after mule-menu-keymap [toggle-mule]
-  '("Toggle Multibyte Characters" . toggle-enable-multibyte-characters)
-  t)
 (define-key-after mule-menu-keymap [describe-language-environment]
   '("Describe Language Environment" . describe-language-environment-map)
   t)
