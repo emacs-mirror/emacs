@@ -508,16 +508,16 @@ extern int width_by_char_head[256];
    Do not use this macro for an ASCII character.  */
 
 #define SPLIT_NON_ASCII_CHAR(c, charset, c1, c2)			 \
-  ((c) < MIN_CHAR_OFFICIAL_DIMENSION2					 \
-   ? (charset = CHAR_FIELD2 (c) + 0x70,					 \
-      c1 = CHAR_FIELD3 (c),						 \
-      c2 = -1)								 \
-   : (charset = ((c) < MIN_CHAR_COMPOSITION				 \
+  ((c) & CHAR_FIELD1_MASK						 \
+   ? (charset = ((c) < MIN_CHAR_COMPOSITION				 \
 		 ? (CHAR_FIELD1 (c)					 \
 		    + ((c) < MIN_CHAR_PRIVATE_DIMENSION2 ? 0x8F : 0xE0)) \
 		 : CHARSET_COMPOSITION),				 \
       c1 = CHAR_FIELD2 (c),						 \
-      c2 = CHAR_FIELD3 (c)))
+      c2 = CHAR_FIELD3 (c))						 \
+   : (charset = CHAR_FIELD2 (c) + 0x70,					 \
+      c1 = CHAR_FIELD3 (c),						 \
+      c2 = -1))
 
 /* The charset of character C is stored in CHARSET, and the
    position-codes of C are stored in C1 and C2.
@@ -576,10 +576,9 @@ extern int iso_charset_table[2][2][128];
    is at STR and the length is LEN.  If STR doesn't contain valid
    multi-byte form, only the first byte in STR is returned.  */
 
-#define STRING_CHAR(str, len)				    	\
-  ((BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1	    	\
-    || BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) > (len))	\
-   ? (unsigned char) *(str)				    	\
+#define STRING_CHAR(str, len)				\
+  (BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1	\
+   ? (unsigned char) *(str)				\
    : string_to_non_ascii_char (str, len, 0, 0))
 
 /* This is like STRING_CHAR but the third arg ACTUAL_LEN is set to
