@@ -43,7 +43,9 @@
 
 ;;; Code:
 
-(require 'faces)
+(defgroup quail nil
+  "Quail: multilingual input method."
+  :group 'leim)
 
 ;; Buffer local variables
 
@@ -270,6 +272,15 @@ Only a few especially complex input methods use this map;
 most use `quail-simple-translation-keymap' instead.
 This map is activated while translation region is active.")
 
+;; Hide some verbose commands to make the output of quail-help
+;; concise.
+(let ((l '(quail-other-command
+	   quail-self-insert-command
+	   quail-delete-last-char)))
+  (while l
+    (put (car l) 'quail-help-hide t)
+    (setq l (cdr l))))
+
 (defvar quail-simple-translation-keymap
   (let ((map (make-keymap))
 	(i 0))
@@ -318,6 +329,11 @@ This map is activated while translation region is active.")
   "Keymap used for processing conversion in Quail mode.
 This map is activated while conversion region is active but translation
 region is not active.")
+
+;; Just a dummy definition.
+(defun quail-other-command ()
+  (interactive)
+  )
 
 ;;;###autoload
 (defun quail-define-package (name language title
@@ -562,6 +578,7 @@ The command `quail-set-keyboard-layout' usually sets this variable.")
 
 (defvar quail-keyboard-layout-alist
   (list
+   (cons "standard" quail-keyboard-layout-standard)
    '("sun-type3" . "\
                               \
   1!2@3#4$5%6^7&8*9(0)-_=+\\|`~\
@@ -585,10 +602,61 @@ The command `quail-set-keyboard-layout' usually sets this variable.")
 <>yYxXcCvVbBnNmM,;.:-_        \
                               ")
 
-   (cons "standard" quail-keyboard-layout-standard))
+   '("jp106" . "\
+                              \
+  1!2\"3#4$5%6&7'8(9)0~-=^~\\|  \
+  qQwWeErRtTyYuUiIoOpP@`[{    \
+  aAsSdDfFgGhHjJkKlL;+:*]}    \
+  zZxXcCvVbBnNmM,<.>/?\\_      \
+                              ")
+   )
   "Alist of keyboard names and corresponding layout strings.
 See the documentation of `quail-keyboard-layout' for the format of
- the layout string.")
+the layout string.")
+
+;; A non-standard keyboard layout may miss some key locations of the
+;; standard layout while having additional key locations not in the
+;; standard layout.  This alist maps those additional key locations to
+;; the missing locations.  The value is updated automatically by
+;; quail-set-keyboard-layout.
+(defvar quail-keyboard-layout-substitution nil)
+
+(defun quail-update-keyboard-layout (kbd-type)
+  (let ((layout (assoc kbd-type quail-keyboard-layout-alist)))
+    (if (null layout)
+	;; Here, we had better ask a user to define his own keyboard
+	;; layout interactively.
+	(error "Unknown keyboard type `%s'" kbd-type))
+    (setq quail-keyboard-layout (cdr layout))
+    (let ((i quail-keyboard-layout-len)
+	  subst-list missing-list)
+      ;; Sum up additional key locations not in the standard layout in
+      ;; subst-list, and missing key locations in missing-list.
+      (while (> i 0)
+	(setq i (1- i))
+	(if (= (aref quail-keyboard-layout i) ? )
+	    (if (/= (aref quail-keyboard-layout-standard i) ? )
+		(setq missing-list (cons i missing-list)))
+	  (if (= (aref quail-keyboard-layout-standard i) ? )
+	      (setq subst-list (cons (cons i nil) subst-list)))))
+      (setq quail-keyboard-layout-substitution subst-list)
+      ;; If there are additional key locations, map them to missing
+      ;; key locations.
+      (while missing-list
+	(while (and subst-list (cdr (car subst-list)))
+	  (setq subst-list (cdr subst-list)))
+	(if subst-list
+	    (setcdr (car subst-list) (car missing-list)))
+	(setq missing-list (cdr missing-list))))))
+
+(defcustom quail-keyboard-layout-type "standard"
+  "Type of keyboard layout used in Quail base input method.
+Available types are listed in the variable `quail-keyboard-layout-alist'."
+  :group 'quail
+  :type 'string
+  :set #'(lambda (symbol value)
+	   (quail-update-keyboard-layout value)
+	   (set symbol value)))
 
 ;;;###autoload
 (defun quail-set-keyboard-layout (kbd-type)
@@ -604,36 +672,166 @@ you type is correctly handled."
 	  (type (completing-read "Keyboard type: "
 				 quail-keyboard-layout-alist)))
      (list type)))
-  (let ((layout (assoc kbd-type quail-keyboard-layout-alist)))
-    (if (null layout)
-	;; Here, we had better ask a user to define his own keyboard
-	;; layout interactively.
-	(error "Unknown keyboard type `%s'" kbd-type))
-    (setq quail-keyboard-layout (cdr layout))))
+  (quail-update-keyboard-layout kbd-type)
+  (setq quail-keyboard-layout-type kbd-type))
 
-(defun quail-keyboard-translate (ch)
-  "Translate CHAR according to `quail-keyboard-layout' and return the result."
+(defun quail-keyboard-translate (char)
+  "Translate CHAR to the one in the standard keyboard layout."
   (if (eq quail-keyboard-layout quail-keyboard-layout-standard)
       ;; All Quail packages are designed based on
       ;; `quail-keyboard-layout-standard'.
-      ch
+      char
     (let ((i 0))
+      ;; Find the key location on the current keyboard layout.
       (while (and (< i quail-keyboard-layout-len)
-		  (/= ch (aref quail-keyboard-layout i)))
+		  (/= char (aref quail-keyboard-layout i)))
 	(setq i (1+ i)))
       (if (= i quail-keyboard-layout-len)
-	  ;; CH is not in quail-keyboard-layout, which means that a
+	  ;; CHAR is not in quail-keyboard-layout, which means that a
 	  ;; user typed a key which generated a character code to be
-	  ;; handled out of Quail.  Just return CH and make
+	  ;; handled out of Quail.  Just return CHAR and make
 	  ;; quail-execute-non-quail-command handle it correctly.
-	  ch
-	(let ((char (aref quail-keyboard-layout-standard i)))
-	  (if (= char ?\ )
-	      ;; A user typed a key at the location not converted by
-	      ;; quail-keyboard-layout-standard.  Just return CH as
-	      ;; well as above.
-	      ch
-	    char))))))
+	  char
+	(let ((ch (aref quail-keyboard-layout-standard i)))
+	  (if (= ch ?\ )
+	      ;; This location not available in the standard keyboard
+	      ;; layout.  Check if the location is used to substitute
+	      ;; for the other location of the standard layout.
+	      (if (setq i (cdr (assq i quail-keyboard-layout-substitution)))
+		  (aref quail-keyboard-layout-standard i)
+		;; Just return CHAR as well as above.
+		char)
+	    ch))))))
+
+;; Insert the visual keyboard layout table according to KBD-LAYOUT.
+;; The format of KBD-LAYOUT is the same as `quail-keyboard-layout'.
+(defun quail-insert-kbd-layout (kbd-layout)
+  (let (done-list layout i ch)
+    ;; At first, convert KBD-LAYOUT to the same size vector that
+    ;; contains translated character or string.
+    (setq layout (string-to-vector kbd-layout)
+	  i 0)
+    (while (< i quail-keyboard-layout-len)
+      (setq ch (aref kbd-layout i))
+      (if (quail-kbd-translate)
+	  (setq ch (quail-keyboard-translate ch)))
+      (let* ((map (cdr (assq ch (cdr (quail-map)))))
+	     (translation (and map (quail-get-translation
+				    (car map) (char-to-string ch) 1))))
+	(if translation
+	    (progn
+	      (if (consp translation)
+		  (setq translation (aref (cdr translation) 0)))
+	      (setq done-list (cons translation done-list)))
+	  (setq translation ch))
+	(aset layout i translation))
+      (setq i (1+ i)))
+
+    (let ((pos (point))
+	  (bar "|")
+	  lower upper row)
+      ;; Make table without horizontal lines.  Each column for a key
+      ;; has the form "| LU |" where L is for lower key and and U is
+      ;; for a upper key.  If width of L (U) is greater than 1,
+      ;; preceding (following) space is not inserted.
+      (put-text-property 0 1 'face 'bold bar)
+      (setq i 0)
+      (while (< i quail-keyboard-layout-len)
+	(when (= (% i 30) 0)
+	  (setq row (/ i 30))
+	  (if (> row 1)
+	      (insert-char 32 (+ row (/ (- row 2) 2)))))
+	(setq lower (aref layout i)
+	      upper (aref layout (1+ i)))
+	(if (and (integerp lower) (>= lower 128) (< lower 256))
+	    (setq lower (unibyte-char-to-multibyte lower)))
+	(if (and (integerp upper) (>= upper 128) (< upper 256))
+	    (setq upper (unibyte-char-to-multibyte upper)))
+	(insert bar)
+	(if (= (if (stringp lower) (string-width lower) (char-width lower)) 1)
+	    (insert " "))
+	(insert lower upper)
+	(if (= (if (stringp upper) (string-width upper) (char-width upper)) 1)
+	    (insert " "))
+	(setq i (+ i 2))
+	(if (= (% i 30) 0)
+	    (insert bar "\n")))
+      ;; Insert horizontal lines while deleting blank key columns at the
+      ;; beginning and end of each line.
+      (save-restriction
+	(narrow-to-region pos (point))
+	(goto-char pos)
+	;;(while (looking-at "[| ]*$")
+	;;(forward-line 1)
+	;;(delete-region pos (point)))
+	(let ((from1 100) (to1 0) from2 to2)
+	  (while (not (eobp))
+	    (if (looking-at "[| ]*$")
+		;; The entire row is blank.
+		(delete-region (point) (match-end 0))
+	      ;; Delete blank key columns at the head.
+	      (if (looking-at " *\\(|    \\)+")
+		  (subst-char-in-region (point) (match-end 0) ?| ? ))
+	      ;; Delete blank key columns at the tail.
+	      (if (re-search-forward "\\(    |\\)+$" (line-end-position) t)
+		  (delete-region (match-beginning 0) (point)))
+	      (beginning-of-line))
+	    ;; Calculate the start and end columns of a horizontal line.
+	    (if (eolp)
+		(setq from2 from1 to2 to1)
+	      (skip-chars-forward " ")
+	      (setq from2 (current-column))
+	      (end-of-line)
+	      (setq to2 (current-column))
+	      (if (< from2 from1)
+		  (setq from1 from2))
+	      (if (> to2 to1)
+		  (setq to1 to2))
+	      (beginning-of-line))
+	    ;; If the previous or the current line has at least one key
+	    ;; column, insert a horizontal line.
+	    (when (> to1 0)
+	      (insert-char 32 from1)
+	      (setq pos (point))
+	      (insert "+")
+	      (insert-char ?- (- (- to1 from1) 2))
+	      (insert "+")
+	      (put-text-property pos (point) 'face 'bold)
+	      (insert "\n"))
+	    (setq from1 from2 to1 to2)
+	    (forward-line 1)))
+	;; Insert "space bar" box.
+	(forward-line -1)
+	(setq pos (point))
+	(insert
+"		    +-----------------------------+
+		    |          space bar          |
+		    +-----------------------------+
+")
+	(put-text-property pos (point) 'face 'bold)
+	(insert ?\n)))
+
+    done-list))
+
+;;;###autoload
+(defun quail-show-keyboard-layout (&optional keyboard-type)
+  "Show keyboard layout."
+  (interactive
+   (list (completing-read "Keyboard type (default, current choise): "
+			  quail-keyboard-layout-alist
+			  nil t)))
+  (or (and keyboard-type (> (length keyboard-type) 0))
+      (setq keyboard-type quail-keyboard-layout-type))
+  (let ((layout (assoc keyboard-type quail-keyboard-layout-alist)))
+    (or layout
+	(error "Unknown keyboard type: %s" keyboard-type))
+    (with-output-to-temp-buffer "*Help*"
+      (save-excursion
+	(set-buffer standard-output)
+	(insert "Keyboard layout (keyboard type: "
+		keyboard-type
+		")\n")
+	(quail-insert-kbd-layout (cdr layout))))))
 
 ;; Quail map
 
@@ -921,19 +1119,23 @@ selected translation."
     nil)
 
    ((stringp def)
-    ;; Each character in DEF is a candidate of translation.  Reform
-    ;; it as (INDICES . VECTOR).
-    (setq def (string-to-vector def))
-    ;; But if the length is 1, we don't need vector but a single
-    ;; candidate as the translation.
+    ;; If the length is 1, we don't need vector but a single candidate
+    ;; as the translation.
     (if (= (length def) 1)
 	(aref def 0)
-      (cons (list 0 0 0 0 nil) def)))
+      ;; Each character in DEF is a candidate of translation.  Reform
+      ;; it as (INDICES . VECTOR).
+      (cons (list 0 0 0 0 nil) (string-to-vector def))))
 
    ((vectorp def)
-    ;; Each element (string or character) in DEF is a candidate of
-    ;; translation.  Reform it as (INDICES . VECTOR).
-    (cons (list 0 0 0 0 nil) def))
+    ;; If the length is 1, and the length of element string is 1, we
+    ;; don't need vector but a single candidate as the translation.
+    (if (and (= (length def) 1)
+	     (= (length (aref def 0)) 1))
+	(aref (aref def 0) 0)
+      ;; Each element (string or character) in DEF is a candidate of
+      ;; translation.  Reform it as (INDICES . VECTOR).
+      (cons (list 0 0 0 0 nil) def)))
 
    (t
     (error "Invalid object in Quail map: %s" def))))
@@ -1346,7 +1548,7 @@ The returned value is a Quail map specific to KEY."
 	  (setcar (nthcdr 2 indices) end)))
     (if relative-index
 	(if (>= (+ start relative-index) end)
-	    (setcar indices end)
+	    (setcar indices (1- end))
 	  (setcar indices (+ start relative-index))))
     (setq quail-current-str
 	  (aref (cdr quail-current-translations) (car indices)))
@@ -1992,92 +2194,225 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	       (select-window (active-minibuffer-window))
 	     (exit-minibuffer))))))
 
+(defun quail-build-decode-map (map key decode-map num &optional maxnum ignores)
+  (let ((translation (quail-get-translation (car map) key (length key)))
+	elt)
+    (cond ((integerp translation)
+	   (when (and (> translation 255) (not (memq translation ignores)))
+	     (setcdr decode-map
+		     (cons (cons key translation) (cdr decode-map)))
+	     (setq num (1+ num))))
+	  ((consp translation)
+	   (setq translation (cdr translation))
+	   (let ((multibyte nil))
+	     (mapc (function (lambda (x)
+			       (if (and (if (integerp x) (> x 255)
+					  (> (string-bytes x) (length x)))
+					(not (member x ignores)))
+				   (setq multibyte t))))
+		   translation)
+	     (when multibyte
+	       (setcdr decode-map
+		       (cons (cons key translation) (cdr decode-map)))
+	       (setq num (+ num (length translation)))))))
+    (if (and maxnum (> num maxnum))
+	(- num)
+      (setq map (cdr map))
+      (while (and map (>= num 0))
+	(setq elt (car map) map (cdr map))
+	(when (and (integerp (car elt)) (consp (cdr elt)))
+	  (setq num (quail-build-decode-map (cdr elt)
+					    (format "%s%c" key (car elt))
+					    decode-map num maxnum ignores))))
+      num)))
+
+(defun quail-insert-decode-map (decode-map)
+  (setq decode-map
+	(sort (cdr decode-map)
+	      (function (lambda (x y)
+			  (setq x (car x) y (car y))
+			  (or (> (length x) (length y))
+			      (and (= (length x) (length y))
+				   (not (string< x y))))))))
+  (let ((frame-width (frame-width))
+	(short-key-width 3)
+	(short-trans-width 4)
+	(long-key-width 3)
+	(short-list nil)
+	(long-list nil)
+	elt trans width pos cols rows col row str col-width)
+    ;; Divide the decoding map into shorter one and longer one.
+    (while decode-map
+      (setq elt (car decode-map) decode-map (cdr decode-map)
+	    trans (cdr elt))
+      (if (and (vectorp trans) (= (length trans) 1))
+	  (setq trans (aref trans 0)))
+      (if (vectorp trans)
+	  (setq long-list (cons elt long-list))
+	(setq short-list (cons (cons (car elt) trans) short-list)
+	      width (if (stringp trans) (string-width trans)
+		      (char-width trans)))
+	(if (> width short-trans-width)
+	    (setq short-trans-width width)))
+      (setq width (length (car elt)))
+      (if (> width short-key-width)
+	  (setq short-key-width width))
+      (if (> width long-key-width)
+	  (setq long-key-width width)))
+    (when short-list
+      (setq col-width (+ short-key-width 1 short-trans-width 1)
+	    cols (/ frame-width col-width)
+	    rows (/ (length short-list) cols))
+      (if (> (% (length short-list) cols) 0)
+	  (setq rows (1+ rows)))
+      (insert "key")
+      (indent-to (1+ short-key-width))
+      (insert "char")
+      (indent-to (1+ col-width))
+      (insert "[type a key sequence to insert the corresponding character]\n")
+      (setq pos (point))
+      (insert-char ?\n (+ rows 2))
+      (goto-char pos)
+      (setq col (- col-width) row 0)
+      (while short-list
+	(setq elt (car short-list) short-list (cdr short-list))
+	(when (= (% row rows) 0)
+	  (goto-char pos)
+	  (setq col (+ col col-width))
+	  (move-to-column col t)
+	  (insert-char ?- short-key-width)
+	  (insert ? )
+	  (insert-char ?- short-trans-width)
+	  (forward-line 1))
+	(move-to-column col t)
+	(insert (car elt))
+	(indent-to (+ col short-key-width 1))
+	(insert (cdr elt))
+	(forward-line 1)
+	(setq row (1+ row)))
+      (goto-char (point-max)))
+
+    (when long-list
+      (insert "key")
+      (indent-to (1+ long-key-width))
+      (insert "character(s)  [type a key (sequence) and select one from the list]\n")
+      (insert-char ?- long-key-width)
+      (insert " ------------\n")
+      (while long-list
+	(setq elt (car long-list) long-list (cdr long-list))
+	(insert (car elt))
+	(indent-to long-key-width)
+	(if (vectorp (cdr elt))
+	    (mapc (function
+		   (lambda (x)
+		     (let ((width (if (integerp x) (char-width x)
+				    (string-width x))))
+		       (when (> (+ (current-column) 1 width) frame-width)
+			 (insert "\n")
+			 (indent-to long-key-width))			 
+		       (insert " " x))))
+		  (cdr elt))
+	  (insert " " (cdr elt)))
+	(insert ?\n))
+      (insert ?\n))))
+
 (defun quail-help (&optional package)
   "Show brief description of the current Quail package.
 Optional 2nd arg PACKAGE specifies the alternative Quail package to describe."
   (interactive)
-  (or package
-      (setq package quail-current-package))
+  (if package
+      (setq package (assoc package quail-package-alist))
+    (setq package quail-current-package))
   (let ((help-xref-mule-regexp help-xref-mule-regexp-template))
     (with-output-to-temp-buffer "*Help*"
       (save-excursion
 	(set-buffer standard-output)
 	(setq quail-current-package package)
-	(insert "Quail input method (name:"
-		(quail-name)
-		", mode line indicator:["
+	(insert "Input method: " (quail-name)
+		" (mode line indicator:"
 		(quail-title)
-		"])\n\n---- Documentation ----\n"
+		")\n\n"
 		(quail-docstring))
-	(newline)
-	(if (quail-show-layout) (quail-show-kbd-layout))
+	(or (bolp)
+	    (insert "\n"))
+	(insert "\n")
+
+	(let ((done-list nil))
+	  ;; Show keyboard layout if the current package requests it..
+	  (when (quail-show-layout)
+	    (insert
+"Physical key layout for this input method is as below.
+You can input a character in the table by typing a key
+at the same location on your keyboard.\n")
+	    (setq done-list
+		  (quail-insert-kbd-layout quail-keyboard-layout))
+	    (insert "It is assumed that your keyboard type is `")
+	    (help-insert-xref-button
+	     quail-keyboard-layout-type
+	     #'quail-show-keyboard-layout quail-keyboard-layout-type
+	     "mouse-2, RET: show this layout")
+	    (insert "'.
+If the layout is different from your keyboard, or you see the
+different characters when you type keys according to this layout,
+adjust the variable `quail-keyboard-layout-type' ")
+	    (help-insert-xref-button
+	     "[customize it]"
+	     #'customize-variable 'quail-keyboard-layout-type
+	     "mouse-2, RET: set keyboard layout type")
+	    (insert ".\n"))
+
+	  ;; Show key sequences.
+	  (let ((decode-map (list 'decode-map))
+		elt pos num)
+	    (setq num (quail-build-decode-map (quail-map) "" decode-map
+					      0 512 done-list))
+	    (when (> num 0)
+	      (insert ?\n)
+	      (if (quail-show-layout)
+		  (insert "You can also input more characters")
+		(insert "You can input characters"))
+	      (insert " by the following key sequences:\n")
+	      (quail-insert-decode-map decode-map))))
+
 	(quail-help-insert-keymap-description
 	 (quail-translation-keymap)
-	 (format "--- Key bindings%s ---\n"
-		 (if (quail-conversion-keymap)
-		     " (while translating)"
-		   "")))
+	 "--- key bindings for selecting a character ---\n")
+	(insert ?\n)
 	(if (quail-conversion-keymap)
 	    (quail-help-insert-keymap-description
 	     (quail-conversion-keymap)
-	     "\n--- Key bindings (while converting) ---\n"))
+	     "--- Key bindings for converting a character (sequence) ---\n"))
 	(setq quail-current-package nil)
 	(help-setup-xref (list #'quail-help package)
 			 (interactive-p))))))
 
 (defun quail-help-insert-keymap-description (keymap &optional header)
-  (let (pos)
+  (let (pos1 pos2 eol)
+    (setq pos1 (point))
     (if header
 	(insert header))
-    (setq pos (point))
     (insert (substitute-command-keys "\\{keymap}"))
-    (goto-char pos)
-    (while (search-forward "quail-other-command" nil 'move)
-      (delete-region (line-beginning-position) (1+ (line-end-position))))))
-
-(defun quail-show-kbd-layout ()
-  "Show keyboard layout with key tops of multilingual characters."
-  (insert "--- Keyboard layout ---\n")
-  (let ((blink-matching-paren nil)
-	(i 0)
-	ch)
-    (while (< i quail-keyboard-layout-len)
-      (if (= (% i 30) 0)
-	  (progn
-	    (newline)
-	    (indent-to (/ i 30)))
-	(if (= (% i 2) 0)
-	    (insert "   ")))
-      (setq ch (aref quail-keyboard-layout i))
-      (when (and (quail-kbd-translate)
-		 (/= ch ?\ ))
-	;; This is the case that the current input method simulates
-	;; some keyboard layout (which means it requires keyboard
-	;; translation) and a key at location `i' exists on users
-	;; keyboard.  We must translate that key by
-	;; `quail-keyboard-layout-standard'.  But if if there's no
-	;; corresponding key in that standard layout, we must simulate
-	;; what is inserted if that key is pressed by setting CH a
-	;; minus value.
-	(setq ch (aref quail-keyboard-layout-standard i))
-	(if (= ch ?\ )
-	    (setq ch (- (aref quail-keyboard-layout i)))))
-      (if (< ch 0)
-	  (let ((last-command-event (- ch)))
-	    (self-insert-command 1))
-	(if (= ch ?\ )
-	    (insert ch)
-	  (let* ((map (cdr (assq ch (cdr (quail-map)))))
-		 (translation (and map (quail-get-translation 
-					(car map) (char-to-string ch) 1))))
-	    (if (integerp translation)
-		(insert translation)
-	      (if (consp translation)
-		  (insert (aref (cdr translation) (car (car translation))))
-		(let ((last-command-event ch))
-		  (self-insert-command 1)))))))
-      (setq i (1+ i))))
-  (newline))
+    (goto-char pos1)
+    ;; Skip headers "--- key bindings ---", etc.
+    (forward-line 3)
+    (setq pos2 (point))
+    (with-syntax-table emacs-lisp-mode-syntax-table
+      (while (re-search-forward "\\sw\\(\\sw\\|\\s_\\)+" nil t)
+	(let ((sym (intern-soft (buffer-substring (match-beginning 0)
+						  (point)))))
+	  (if (and sym (fboundp sym)
+		   (get sym 'quail-help-hide))
+	      (delete-region (line-beginning-position)
+			     (1+ (line-end-position)))))))
+    (goto-char pos2)
+    (while (not (eobp))
+      (if (looking-at "[ \t]*$")
+	  (delete-region (point) (1+ (line-end-position)))
+	(forward-line 1)))
+    (goto-char pos2)
+    (if (eobp)
+	(delete-region pos1 (point)))
+    (goto-char (point-max))))
 
 (defun quail-translation-help ()
   "Show help message while translating in Quail input method."
