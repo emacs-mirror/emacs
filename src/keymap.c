@@ -3293,13 +3293,12 @@ Return list of symbols found.  */)
   struct gcpro gcpro1;
   Lisp_Object result;
   CHECK_STRING (regexp);
-  apropos_predicate = predicate;
-  GCPRO1 (apropos_predicate);
+  apropos_predicate = predicate; /* predicate protected by the call */
   apropos_accumulate = Qnil;	/* staticpro'd */
   map_obarray (Vobarray, apropos_accum, regexp);
   result = Fsort (apropos_accumulate, Qstring_lessp);
-  UNGCPRO;
   apropos_accumulate = Qnil;	/* Allow the result to be GCed.  */
+  apropos_predicate = Qnil;
   return result;
 }
 
