@@ -629,32 +629,17 @@ This must be bound to a button-down mouse event."
 					      click-count)))
 		  (move-overlay mouse-secondary-overlay
 				(car range) (nth 1 range))))
-
-	       ;; Are we moving on a different window on the same frame?
-	       ((and (windowp (posn-window end))
-		     (eq (window-frame (posn-window end)) start-frame))
-		(let ((mouse-row
-		       (+ (nth 1 (window-edges (posn-window end)))
-			  (cdr (posn-col-row end)))))
-		  (cond
-		   ((< mouse-row top)
-		    (mouse-scroll-subr
-		     (- mouse-row top) mouse-secondary-overlay start-point))
-		   ((and (not (eobp))
-			 (>= mouse-row bottom))
-		    (mouse-scroll-subr (1+ (- mouse-row bottom))
-				       mouse-drag-overlay start-point)))))
-
-	       (t
-		(let ((mouse-y (cdr (cdr (mouse-position))))
-		      (menu-bar-lines (or (cdr (assq 'menu-bar-lines
-						     (frame-parameters)))
-					  0)))
-
-		  ;; Are we on the menu bar?
-		  (and (integerp mouse-y) (< mouse-y menu-bar-lines)
-		       (mouse-scroll-subr (- mouse-y menu-bar-lines)
-					  mouse-secondary-overlay start-point))))))))
+               (t
+                (let ((mouse-row (cdr (cdr (mouse-position)))))
+                  (cond
+                   ((null mouse-row))
+                   ((< mouse-row top)
+                    (mouse-scroll-subr
+                     (- mouse-row top) mouse-secondary-overlay start-point))
+                   ((and (not (eobp))
+                         (>= mouse-row bottom))
+                    (mouse-scroll-subr (1+ (- mouse-row bottom))
+                                       mouse-secondary-overlay start-point)))))))))
 
 	(if (and (eq (get (event-basic-type event) 'event-kind) 'mouse-click)
 		 (eq (posn-window (event-end event)) start-window)
