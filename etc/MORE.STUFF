@@ -120,9 +120,9 @@ the future.
 You might like to check whether they are packaged for your system.
 Several are for Debian GNU/Linux in particular.
 
- * AUCTeX: fancy (La)TeX support: <URL:http://sunsite.auc.dk/auctex/>
+ * AUCTeX: fancy (La)TeX support: <URL:http://sunsite.dk/auctex/>
    There's an AUCTeX mail list/newsgroup:
-   <URL:news://sunsite.auc.dk/emacs.auctex>.
+   <URL:news://sunsite.dk/emacs.auctex>.
 
  * BBDB: personal Info Rolodex integrated with mail/news:
    <URL:http://bbdb.sourceforge.net/>
