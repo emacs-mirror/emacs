@@ -1,3 +1,18 @@
+2001-10-29  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-window-live-p): Always alias to
+	window-live-p.
+	(edebug-set-conditional-breakpoint): Unconditionally use
+	the former Emacs >=19 definition.
+	(edebug-mark): Define unconditionally.
+	(edebug-eval-expression): Always call read-from-minibuffer
+	and specify history list.
+	(edebug-lemacs-specific): Override emacs-mark, edebug-window-live-p,
+	edebug-set-conditional-breakpoint.
+	(edebug-emacs-version-specific): Function deleted;
+	do the job at top level.
+	(edebug-emacs-19-specific): Function deleted, this is the default.
+
 2001-10-29  Sam Steingold  <sds@gnu.org>
 
 	* w32-fns.el (convert-standard-filename): Handle cygwin-specific
