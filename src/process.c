@@ -162,7 +162,9 @@ static Lisp_Object stream_process;
 
 /* For the CMU PTY driver + */
 #define DCL_PROMPT "$ "
-
+/* This is a hack.  I have no idea what needs to go here, but this */
+/* will get it to compile.  We can fix it later.  rbr */
+#define WAITTYPE int
 #include <ssdef.h>
 #include <iodef.h>
 #include <clidef.h>
@@ -349,7 +351,11 @@ status_message (status)
 
   if (EQ (symbol, Qsignal) || EQ (symbol, Qstop))
     {
+#ifndef VMS
       string = build_string (code < NSIG ? sys_siglist[code] : "unknown");
+#else
+      string = build_string (code < NSIG ? sys_errlist[code] : "unknown");
+#endif
       string2 = build_string (coredump ? " (core dumped)\n" : "\n");
       XSTRING (string)->data[0] = DOWNCASE (XSTRING (string)->data[0]);
       return concat2 (string, string2);
@@ -847,7 +853,7 @@ Proc         Status   Buffer         Command\n\
 	  tem = Fcar (Fcdr (p->status));
 #ifdef VMS
 	  if (XINT (tem) < NSIG)
-	    write_string (sys_siglist [XINT (tem)], -1);
+	    write_string (sys_errlist [XINT (tem)], -1);
 	  else
 #endif
 	    Fprinc (symbol, Qnil);
@@ -930,6 +936,10 @@ DEFUN ("process-list", Fprocess_list, Sprocess_list, 0, 0, 0,
   return Fmapcar (Qcdr, Vprocess_alist);
 }
 
+/* Starting asynchronous inferior processes.  */
+
+static Lisp_Object start_process_unwind ();
+
 DEFUN ("start-process", Fstart_process, Sstart_process, 3, MANY, 0,
   "Start a program in a subprocess.  Return the process object for it.\n\
 Args are NAME BUFFER PROGRAM &rest PROGRAM-ARGS\n\
@@ -953,6 +963,7 @@ Remaining arguments are strings to give program as arguments.")
   register unsigned char **new_argv;
 #endif
   register int i;
+  int count = specpdl_ptr - specpdl;
 
   buffer = args[1];
   if (!NILP (buffer))
@@ -984,6 +995,8 @@ Remaining arguments are strings to give program as arguments.")
       strcat (new_argv, " ");
       strcat (new_argv, XSTRING (tem)->data);
     }
+  /* Need to add code here to check for program existence on VMS */
+  
 #else /* not VMS */
   new_argv = (unsigned char **) alloca ((nargs - 1) * sizeof (char *));
 
@@ -1008,6 +1021,11 @@ Remaining arguments are strings to give program as arguments.")
 #endif /* not VMS */
 
   proc = make_process (name);
+  /* If an error occurs and we can't start the process, we want to
+     remove it from the process list.  This means that each error
+     check in create_process doesn't need to call remove_process
+     itself; it's all taken care of here.  */
+  record_unwind_protect (start_process_unwind, proc);
 
   XPROCESS (proc)->childp = Qt;
   XPROCESS (proc)->command_channel_p = Qnil;
@@ -1018,8 +1036,27 @@ Remaining arguments are strings to give program as arguments.")
 
   create_process (proc, new_argv);
 
-  return proc;
+  return unbind_to (count, proc);
 }
+
+/* This function is the unwind_protect form for Fstart_process.  If
+   PROC doesn't have its pid set, then we know someone has signalled
+   an error and the process wasn't started successfully, so we should
+   remove it from the process list.  */
+static Lisp_Object
+start_process_unwind (proc)
+     Lisp_Object proc;
+{
+  if (XTYPE (proc) != Lisp_Process)
+    abort ();
+
+  /* Was PROC started successfully?  */
+  if (XPROCESS (proc)->pid <= 0)
+    remove_process (proc);
+
+  return Qnil;
+}
+
 
 SIGTYPE
 create_process_1 (signo)
@@ -1282,11 +1319,8 @@ create_process (process, new_argv)
   }
 
   if (pid < 0)
-    {
-      remove_process (process);
-      report_file_error ("Doing vfork", Qnil);
-    }
-
+    report_file_error ("Doing vfork", Qnil);
+  
   XFASTINT (XPROCESS (process)->pid) = pid;
 
   FD_SET (inchannel, &input_wait_mask);
@@ -1741,9 +1775,12 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	{
 	  if (xerrno == EINTR)
 	    FD_ZERO (&Available);
-#ifdef __ultrix__
-	  /* Ultrix select seems to return ENOMEM when it is interrupted.
-	     Treat it just like EINTR.  Bleah.  -JimB  */
+#ifdef ultrix
+	  /* Ultrix select seems to return ENOMEM when it is
+	     interrupted.  Treat it just like EINTR.  Bleah.  Note
+	     that we want to test for the "ultrix" CPP symbol, not
+	     "__ultrix__"; the latter is only defined under GCC, but
+	     not by DEC's bundled CC.  -JimB  */
 	  else if (xerrno == ENOMEM)
 	    FD_ZERO (&Available);
 #endif
@@ -2014,10 +2051,16 @@ read_process_output (proc, channel)
   /* If no filter, write into buffer if it isn't dead.  */
   if (!NILP (p->buffer) && !NILP (XBUFFER (p->buffer)->name))
     {
-      Lisp_Object tem;
+      Lisp_Object old_read_only;
+      Lisp_Object old_begv, old_zv;
 
       Fset_buffer (p->buffer);
       opoint = point;
+      old_read_only = current_buffer->read_only;
+      XFASTINT (old_begv) = BEGV;
+      XFASTINT (old_zv) = ZV;
+
+      current_buffer->read_only = Qnil;
 
       /* Insert new output into buffer
 	 at the current end-of-output marker,
@@ -2026,18 +2069,35 @@ read_process_output (proc, channel)
 	SET_PT (marker_position (p->mark));
       else
 	SET_PT (ZV);
+
+      /* If the output marker is outside of the visible region, save
+	 the restriction and widen.  */
+      if (! (BEGV <= point && point <= ZV))
+	Fwiden ();
+
+      /* Make sure opoint floats ahead of any new text, just as point
+	 would.  */
       if (point <= opoint)
 	opoint += nchars;
 
-      tem = current_buffer->read_only;
-      current_buffer->read_only = Qnil;
+      /* Insert after old_begv, but before old_zv.  */
+      if (point < XFASTINT (old_begv))
+	XFASTINT (old_begv) += nchars;
+      if (point <= XFASTINT (old_zv))
+	XFASTINT (old_zv) += nchars;
+
       /* Insert before markers in case we are inserting where
 	 the buffer's mark is, and the user's next command is Meta-y.  */
       insert_before_markers (chars, nchars);
-      current_buffer->read_only = tem;
       Fset_marker (p->mark, make_number (point), p->buffer);
+
       update_mode_lines++;
 
+      /* If the restriction isn't what it should be, set it.  */
+      if (XFASTINT (old_begv) != BEGV || XFASTINT (old_zv) != ZV)
+	Fnarrow_to_region (old_begv, old_zv);
+
+      current_buffer->read_only = old_read_only;
       SET_PT (opoint);
       set_buffer_internal (old);
     }
@@ -2209,7 +2269,11 @@ Output from processes can arrive in between bunches.")
    the terminal being used to communicate with PROCESS.
    This is used for various commands in shell mode.
    If NOMSG is zero, insert signal-announcements into process's buffers
-   right away.  */
+   right away.
+
+   If we can, we try to signal PROCESS by sending control characters
+   down the pipe.  This allows us to signal inferiors who have changed
+   their uid, for which killpg would return an EPERM error.  */
 
 static void
 process_send_signal (process, signo, current_group, nomsg)
@@ -2239,9 +2303,14 @@ process_send_signal (process, signo, current_group, nomsg)
   /* If we are using pgrps, get a pgrp number and make it negative.  */
   if (!NILP (current_group))
     {
+#ifdef SIGNALS_VIA_CHARACTERS
       /* If possible, send signals to the entire pgrp
 	 by sending an input character to it.  */
+
+      /* On Berkeley descendants, the following IOCTL's retrieve the
+	 current control characters.  */
 #if defined (TIOCGLTC) && defined (TIOCGETC)
+
       struct tchars c;
       struct ltchars lc;
 
@@ -2260,13 +2329,14 @@ process_send_signal (process, signo, current_group, nomsg)
 	  ioctl (XFASTINT (p->infd), TIOCGLTC, &lc);
 	  send_process (proc, &lc.t_suspc, 1);
 	  return;
-#endif /* SIGTSTP */
+#endif /* ! defined (SIGTSTP) */
 	}
-#endif /* ! defined (TIOCGLTC) && defined (TIOCGETC) */
-      /* It is possible that the following code would work
-	 on other kinds of USG systems, not just on the IRIS.
-	 This should be tried in Emacs 19.  */
-#if defined (USG)
+
+#else /* ! defined (TIOCGLTC) && defined (TIOCGETC) */
+
+      /* On SYSV descendants, the TCGETA ioctl retrieves the current control
+	 characters.  */
+#ifdef TCGETA
       struct termio t;
       switch (signo)
 	{
@@ -2283,16 +2353,22 @@ process_send_signal (process, signo, current_group, nomsg)
 	  ioctl (XFASTINT (p->infd), TCGETA, &t);
 	  send_process (proc, &t.c_cc[VSWTCH], 1);
 	  return;
-#endif
+#endif /* ! defined (SIGTSTP) */
 	}
-#endif /* ! defined (USG) */
+#else /* ! defined (TCGETA) */
+      Your configuration files are messed up.
+      /* If your system configuration files define SIGNALS_VIA_CHARACTERS,
+	 you'd better be using one of the alternatives above!  */
+#endif /* ! defined (TCGETA) */
+#endif /* ! defined (TIOCGLTC) && defined (TIOCGETC) */
+#endif /* ! defined (SIGNALS_VIA_CHARACTERS) */
 
 #ifdef TIOCGPGRP 
       /* Get the pgrp using the tty itself, if we have that.
 	 Otherwise, use the pty to get the pgrp.
 	 On pfa systems, saka@pfu.fujitsu.co.JP writes:
-	 "TICGPGRP symbol defined in sys/ioctl.h at E50.
-	  But, TIOCGPGRP does not work on E50 ;-P works fine on E60"
+	 "TIOCGPGRP symbol defined in sys/ioctl.h at E50.
+	 But, TIOCGPGRP does not work on E50 ;-P works fine on E60"
 	 His patch indicates that if TIOCGPGRP returns an error, then
 	 we should just assume that p->pid is also the process group id.  */
       {
@@ -2312,7 +2388,7 @@ process_send_signal (process, signo, current_group, nomsg)
 	no_pgrp = 1;
       else
 	gid = - gid;
-#else /* ! defined (TIOCGPGRP ) */
+#else  /* ! defined (TIOCGPGRP ) */
       /* Can't select pgrps on this system, so we know that
 	 the child itself heads the pgrp.  */
       gid = - XFASTINT (p->pid);
@@ -2630,7 +2706,11 @@ sigchld_handler (signo)
 	  if (WIFEXITED (w))
 	    synch_process_retcode = WRETCODE (w);
 	  else if (WIFSIGNALED (w))
+#ifndef VMS
 	    synch_process_death = sys_siglist[WTERMSIG (w)];
+#else
+	    synch_process_death = sys_errlist[WTERMSIG (w)];
+#endif
 	}
 
       /* On some systems, we must return right away.
