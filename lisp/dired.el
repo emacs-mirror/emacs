@@ -1285,7 +1285,9 @@ Keybindings:
        (or dirname default-directory))
   ;; list-buffers uses this to display the dir being edited in this buffer.
   (set (make-local-variable 'list-buffers-directory)
-       (expand-file-name dired-directory))
+       (expand-file-name (if (listp dired-directory)
+			     (car dired-directory)
+			   dired-directory)))
   (set (make-local-variable 'dired-actual-switches)
        (or switches dired-listing-switches))
   (set (make-local-variable 'font-lock-defaults) '(dired-font-lock-keywords t))
