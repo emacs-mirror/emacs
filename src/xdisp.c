@@ -9745,7 +9745,6 @@ try_window_reusing_current_matrix (w)
   struct glyph_row *last_reused_text_row;
   struct glyph_row *start_row;
   int start_vpos, min_y, max_y;
-
   
   if (/* This function doesn't handle terminal frames.  */
       !FRAME_WINDOW_P (f)
@@ -10017,6 +10016,8 @@ try_window_reusing_current_matrix (w)
       run.current_y = first_reusable_row->y;
       run.desired_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
       run.height = it.last_visible_y - run.current_y;
+      dy = run.current_y - run.desired_y;
+      
       if (run.height)
 	{
 	  struct frame *f = XFRAME (WINDOW_FRAME (w));
@@ -10031,7 +10032,6 @@ try_window_reusing_current_matrix (w)
       /* Adjust Y positions of reused rows.  */
       bottom_row = MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w);
       row = first_reusable_row;
-      dy = first_reusable_row->y;
       min_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
       max_y = it.last_visible_y;
       while (row < first_row_to_display)
