@@ -1,6 +1,6 @@
 ;;; vt-control.el --- Common VTxxx control functions
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -48,12 +48,6 @@
 ;;        killed or suspended.
 
 ;;; Code:
-
-
-;;;  Revision Information
-
-(defconst vt-revision "$Revision: 1.3 $"
-  "Revision number of vt-control.")
 
 
 ;;;  Global variables
