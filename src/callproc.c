@@ -840,8 +840,14 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	val = Qnil;
     }
 
-  specbind (intern ("coding-system-for-write"), val);
-  Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil, Qnil);
+  {
+    int count1 = specpdl_ptr - specpdl;
+
+    specbind (intern ("coding-system-for-write"), val);
+    Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil, Qnil);
+
+    unbind_to (count1, Qnil);
+  }
 
   /* Note that Fcall_process takes care of binding 
      coding-system-for-read.  */
