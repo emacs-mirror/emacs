@@ -1369,12 +1369,7 @@ AC_FUNC_ALLOCA
 
 # fmod, logb, and frexp are found in -lm on most systems.
 # On HPUX 9.01, -lm does not contain logb, so check for sqrt.
-old_CC="$CC"
-# GCC's implicit prototype for its built-in `sqrt' function conflicts
-# with autoconf's call, so disable the built-in function.
-test x$GCC = xyes && CC="$CC -fno-builtin"
 AC_CHECK_LIB(m, sqrt)
-CC="$old_CC"
 
 AC_CHECK_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir \
 random lrand48 bcopy bcmp logb frexp fmod ftime res_init setsid \
