@@ -436,7 +436,7 @@ or the entire name if it contains no slash.")
     return call2 (handler, Qfile_name_nondirectory, filename);
 
   beg = XSTRING (filename)->data;
-  end = p = beg + XSTRING (filename)->size;
+  end = p = beg + XSTRING (filename)->size_byte;
 
   while (p != beg && !IS_DIRECTORY_SEP (p[-1])
 #ifdef VMS
