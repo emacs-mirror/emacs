@@ -18025,7 +18025,7 @@ beginning.
 
 Sometimes when you you write text, you duplicate words---as with ``you
 you'' near the beginning of this sentence.  I find that most
-frequently, I duplicate ``the'; hence, I call the function for
+frequently, I duplicate ``the''; hence, I call the function for
 detecting duplicated words, @code{the-the}.
 
 @need 1250
