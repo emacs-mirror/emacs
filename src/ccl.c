@@ -1253,7 +1253,7 @@ ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
 		  {
 		    Lisp_Object opl;
 		    opl = HASH_VALUE (h, op);
-		    if (! CHARACTERP (XINT (opl)))
+		    if (! CHARACTERP (opl))
 		      CCL_INVALID_CMD;
 		    reg[RRR] = charset_unicode;
 		    reg[rrr] = op;
