@@ -109,7 +109,7 @@ static void
 compile_pattern_1 (cp, pattern, translate, regp, posix)
      struct regexp_cache *cp;
      Lisp_Object pattern;
-     char *translate;
+     Lisp_Object *translate;
      struct re_registers *regp;
      int posix;
 {
@@ -147,7 +147,7 @@ struct re_pattern_buffer *
 compile_pattern (pattern, regp, translate, posix)
      Lisp_Object pattern;
      struct re_registers *regp;
-     char *translate;
+     Lisp_Object *translate;
      int posix;
 {
   struct regexp_cache *cp, **cpp;
@@ -835,9 +835,11 @@ search_command (string, bound, noerror, count, direction, RE, posix)
 
   np = search_buffer (string, point, lim, n, RE,
 		      (!NILP (current_buffer->case_fold_search)
-		       ? XSTRING (current_buffer->case_canon_table)->data : 0),
+		       ? XCHAR_TABLE (current_buffer->case_canon_table)->contents
+		       : 0),
 		      (!NILP (current_buffer->case_fold_search)
-		       ? XSTRING (current_buffer->case_eqv_table)->data : 0),
+		       ? XCHAR_TABLE (current_buffer->case_eqv_table)->contents
+		       : 0),
 		      posix);
   if (np <= 0)
     {
@@ -918,8 +920,8 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
      int lim;
      int n;
      int RE;
-     register unsigned char *trt;
-     register unsigned char *inverse_trt;
+     Lisp_Object *trt;
+     Lisp_Object *inverse_trt;
      int posix;
 {
   int len = XSTRING (string)->size;
@@ -952,7 +954,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
     {
       struct re_pattern_buffer *bufp;
 
-      bufp = compile_pattern (string, &search_regs, (char *) trt, posix);
+      bufp = compile_pattern (string, &search_regs, trt, posix);
 
       immediate_quit = 1;	/* Quit immediately if user types ^G,
 				   because letting this function finish
@@ -1122,7 +1124,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 	      BM_tab[j] = dirlen - i;
 	      /* A translation table is accompanied by its inverse -- see */
 	      /* comment following downcase_table for details */ 
-	      while ((j = inverse_trt[j]) != k)
+	      while ((j = (unsigned char) inverse_trt[j]) != k)
 		BM_tab[j] = dirlen - i;
 	    }
 	  else
