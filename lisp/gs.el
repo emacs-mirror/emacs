@@ -173,7 +173,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
 
 ;(defun gs-put-tiger ()
 ;  (let* ((ps-file "/usr/local/share/ghostscript/5.10/examples/tiger.ps")
-;	  (spec `(image :type ghostscript
+;	  (spec `(image :type postscript
 ;			:pt-width 200 :pt-height 200
 ;			:bounding-box (22 171 567 738)
 ;			:file ,ps-file)))
