@@ -1,3 +1,12 @@
+2004-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el (easy-menu-get-map-look-for-name): Remove.
+	(easy-menu-lookup-name): New fun to replace it.
+	(easy-menu-get-map): Use it to obey menu item names (rather than just
+	keys) when looking up `path'.
+	(easy-menu-always-true-p): Rename from easy-menu-always-true.
+	(easy-menu-convert-item-1): Adjust to new name.
+
 2004-11-06  Peter Heslin  <pj@heslin.eclipse.co.uk>  (tiny change)
 
 	* outline.el (hide-body): Don't hide lines at the top of the file
