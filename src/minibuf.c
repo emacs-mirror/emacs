@@ -1,6 +1,6 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-   2000, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,93,94,95,96,97,98,99,2000,01,03
+             Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -777,27 +777,12 @@ get_minibuffer (depth)
   else
     {
       int count = SPECPDL_INDEX ();
-      Lisp_Object overlay;
-      struct buffer *b = XBUFFER (buf);
-
       /* `reset_buffer' blindly sets the list of overlays to NULL, so we
 	 have to empty the list, otherwise we end up with overlays that
 	 think they belong to this buffer while the buffer doesn't know about
 	 them any more.  */
-      while (b->overlays_before)
-	{
-	  XSETMISC (overlay, b->overlays_before);
-	  Fdelete_overlay (overlay);
-	}
-      while (b->overlays_after)
-	{
-	  XSETMISC (overlay, b->overlays_after);
-	  Fdelete_overlay (overlay);
-	}
-      eassert (b->overlays_before == NULL);
-      eassert (b->overlays_after == NULL);
-
-      reset_buffer (b);
+      delete_all_overlays (XBUFFER (buf));
+      reset_buffer (XBUFFER (buf));
       record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
       Fset_buffer (buf);
       Fkill_all_local_variables ();
