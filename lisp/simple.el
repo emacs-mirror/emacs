@@ -731,7 +731,9 @@ If a history variable is a member of this list, then the
 \(Previous history elements refer to earlier actions.)
 With prefix argument N, search for Nth previous match.
 If N is negative, find the next or Nth next match.
-An uppercase letter in REGEXP makes the search case-sensitive.
+Normally, history elements are matched case-insensitively if
+`case-fold-search' is non-nil, but an uppercase letter in REGEXP
+makes the search case-sensitive.
 See also `minibuffer-history-case-insensitive-variables'."
   (interactive
    (let* ((enable-recursive-minibuffers t)
@@ -799,7 +801,9 @@ See also `minibuffer-history-case-insensitive-variables'."
 \(The next history element refers to a more recent action.)
 With prefix argument N, search for Nth next match.
 If N is negative, find the previous or Nth previous match.
-An uppercase letter in REGEXP makes the search case-sensitive."
+Normally, history elements are matched case-insensitively if
+`case-fold-search' is non-nil, but an uppercase letter in REGEXP
+makes the search case-sensitive."
   (interactive
    (let* ((enable-recursive-minibuffers t)
 	  (regexp (read-from-minibuffer "Next element matching (regexp): "
