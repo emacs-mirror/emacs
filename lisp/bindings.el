@@ -310,39 +310,39 @@ Return a string to display in the mode line for the current mode name."
   "Return the value of symbol VAR if it is bound, else nil."
   `(and (boundp (quote ,var)) ,var))
 
-(define-key mode-line-mode-menu [abbrev-mode]
-  `(menu-item ,(purecopy "Abbrev") abbrev-mode
-	      :button (:toggle . abbrev-mode)))
-(define-key mode-line-mode-menu [auto-revert-mode]
-  `(menu-item ,(purecopy "Auto revert") auto-revert-mode
-	      :button (:toggle . auto-revert-mode)))
-(define-key mode-line-mode-menu [auto-fill-mode]
-  `(menu-item ,(purecopy "Auto-fill") auto-fill-mode
-	      :button (:toggle . auto-fill-function)))
-(define-key mode-line-mode-menu [column-number-mode]
-  `(menu-item ,(purecopy "Column number") column-number-mode
-	      :button (:toggle . column-number-mode)))
-(define-key mode-line-mode-menu [flyspell-mode]
-  `(menu-item ,(purecopy "Flyspell") flyspell-mode
-	      :button (:toggle . (bound-and-true-p flyspell-mode))))
-(define-key mode-line-mode-menu [font-lock-mode]
-  `(menu-item ,(purecopy "Font-lock") font-lock-mode
-	      :button (:toggle . font-lock-mode)))
-(define-key mode-line-mode-menu [hide-ifdef-mode]
-  `(menu-item ,(purecopy "Hide ifdef") hide-ifdef-mode
-	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
-(define-key mode-line-mode-menu [highlight-changes-mode]
-  `(menu-item ,(purecopy "Highlight changes") highlight-changes-mode
-	      :button (:toggle . highlight-changes-mode)))
-(define-key mode-line-mode-menu [line-number-mode]
-  `(menu-item ,(purecopy "Line number") line-number-mode
-	      :button (:toggle . line-number-mode)))
-(define-key mode-line-mode-menu [outline-minor-mode]
-  `(menu-item ,(purecopy "Outline") outline-minor-mode
-	      :button (:toggle . (bound-and-true-p outline-minor-mode))))
 (define-key mode-line-mode-menu [overwrite-mode]
   `(menu-item ,(purecopy "Overwrite") overwrite-mode
 	      :button (:toggle . overwrite-mode)))
+(define-key mode-line-mode-menu [outline-minor-mode]
+  `(menu-item ,(purecopy "Outline") outline-minor-mode
+	      :button (:toggle . (bound-and-true-p outline-minor-mode))))
+(define-key mode-line-mode-menu [line-number-mode]
+  `(menu-item ,(purecopy "Line number") line-number-mode
+	      :button (:toggle . line-number-mode)))
+(define-key mode-line-mode-menu [highlight-changes-mode]
+  `(menu-item ,(purecopy "Highlight changes") highlight-changes-mode
+	      :button (:toggle . highlight-changes-mode)))
+(define-key mode-line-mode-menu [hide-ifdef-mode]
+  `(menu-item ,(purecopy "Hide ifdef") hide-ifdef-mode
+	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
+(define-key mode-line-mode-menu [font-lock-mode]
+  `(menu-item ,(purecopy "Font-lock") font-lock-mode
+	      :button (:toggle . font-lock-mode)))
+(define-key mode-line-mode-menu [flyspell-mode]
+  `(menu-item ,(purecopy "Flyspell") flyspell-mode
+	      :button (:toggle . (bound-and-true-p flyspell-mode))))
+(define-key mode-line-mode-menu [column-number-mode]
+  `(menu-item ,(purecopy "Column number") column-number-mode
+	      :button (:toggle . column-number-mode)))
+(define-key mode-line-mode-menu [auto-fill-mode]
+  `(menu-item ,(purecopy "Auto-fill") auto-fill-mode
+	      :button (:toggle . auto-fill-function)))
+(define-key mode-line-mode-menu [auto-revert-mode]
+  `(menu-item ,(purecopy "Auto revert") auto-revert-mode
+	      :button (:toggle . auto-revert-mode)))
+(define-key mode-line-mode-menu [abbrev-mode]
+  `(menu-item ,(purecopy "Abbrev") abbrev-mode
+	      :button (:toggle . abbrev-mode)))
 
 (defun mode-line-mode-menu (event)
   (interactive "@e")
