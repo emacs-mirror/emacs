@@ -32,6 +32,7 @@ Lisp_Object Vscreen_list;
 Lisp_Object Vterminal_screen;
 Lisp_Object Vdefault_minibuffer_screen;
 Lisp_Object Vdefault_screen_alist;
+Lisp_Object Qminibuffer;
 
 /* A screen which is not just a minibuffer, or 0 if there are no
    such screens.  This is usually the most recent such screen that
@@ -288,7 +289,7 @@ focus on that screen.")
 
 #ifdef HAVE_X_WINDOWS
 #ifdef MULTI_SCREEN
-  if (XSCREEN (screen)->output_method == output_x_window
+  if (SCREEN_IS_X (XSCREEN (screen))
       && NILP (no_enter))
     {
       Ffocus_screen (screen);
@@ -521,7 +522,7 @@ A screen may not be deleted if its minibuffer is used by other screens.")
   s->display.nothing = 0;
 
 #ifdef HAVE_X_WINDOWS
-  if (s->output_method == output_x_window)
+  if (SCREEN_IS_X (s))
     x_destroy_window (s, displ);
 #endif
 
@@ -580,7 +581,7 @@ WARNING:  If you use this under X, you should do unfocus-screen afterwards.")
   CHECK_NUMBER (y, 1);
 
 #ifdef HAVE_X_WINDOWS
-  if (XSCREEN (screen)->output_method == output_x_window)
+  if (SCREEN_IS_X (XSCREEN (screen)))
     /* Warping the mouse will cause  enternotify and focus events. */
     x_set_mouse_position (XSCREEN (screen), x, y);
 #endif
@@ -651,7 +652,7 @@ Also raises the screen so that nothing obscures it.")
 {
   CHECK_LIVE_SCREEN (screen, 0);
 
-  if (XSCREEN (screen)->output_method == output_x_window)
+  if (SCREEN_IS_X (XSCREEN (screen)))
     x_make_screen_visible (XSCREEN (screen));
 
   return screen;
@@ -665,7 +666,7 @@ DEFUN ("make-screen-invisible", Fmake_screen_invisible, Smake_screen_invisible,
 {
   CHECK_LIVE_SCREEN (screen, 0);
 
-  if (XSCREEN (screen)->output_method == output_x_window)
+  if (SCREEN_IS_X (XSCREEN (screen)))
     x_make_screen_invisible (XSCREEN (screen));
 
   return Qnil;
@@ -679,7 +680,7 @@ DEFUN ("iconify-screen", Ficonify_screen, Siconify_screen,
 {
   CHECK_LIVE_SCREEN (screen, 0);
 
-  if (XSCREEN (screen)->output_method == output_x_window)
+  if (SCREEN_IS_X (XSCREEN (screen)))
       x_iconify_screen (XSCREEN (screen));
 
   return Qnil;
@@ -693,7 +694,7 @@ DEFUN ("deiconify-screen", Fdeiconify_screen, Sdeiconify_screen,
 {
   CHECK_LIVE_SCREEN (screen, 0);
 
-  if (XSCREEN (screen)->output_method == output_x_window)
+  if (SCREEN_IS_X (XSCREEN (screen)))
       x_make_screen_visible (XSCREEN (screen));
 
   return screen;
@@ -827,6 +828,19 @@ store_screen_param (s, prop, val)
     s->param_alist = Fcons (Fcons (prop, val), s->param_alist);
   else
     Fsetcdr (tem, val);
+
+  if (EQ (prop, Qminibuffer)
+      && XTYPE (val) == Lisp_Window)
+    {
+      if (! MINI_WINDOW_P (XWINDOW (val)))
+	error ("Surrogate minibuffer windows must be minibuffer windows.");
+
+      if (SCREEN_HAS_MINIBUF (s) || SCREEN_MINIBUF_ONLY_P (s))
+	error ("Can't change surrogate minibuffer on screens with their own minibuffers.");
+
+      /* Install the chosen minibuffer window, with proper buffer.  */
+      s->minibuffer_window = val;
+    }
 }
 
 DEFUN ("screen-parameters", Fscreen_parameters, Sscreen_parameters, 0, 1, 0,
@@ -858,10 +872,10 @@ The meaningful PARMs depend on the kind of screen.")
   store_in_alist (&alist, "minibuffer",
 		  (SCREEN_HAS_MINIBUF (s)
 		   ? (SCREEN_MINIBUF_ONLY_P (s) ? intern ("only") : Qt)
-		   : Qnil));
+		   : SCREEN_MINIBUF_WINDOW (s)));
   store_in_alist (&alist, "unsplittable", (s->no_split ? Qt : Qnil));
 
-  if (s->output_method == output_x_window)
+  if (SCREEN_IS_X (s))
     x_report_screen_params (s, &alist);
   return alist;
 }
@@ -886,7 +900,7 @@ The meaningful PARMs depend on the kind of screen; undefined PARMs are ignored."
       s = XSCREEN (screen);
     }
 
-  if (s->output_method == output_x_window)
+  if (SCREEN_IS_X (s))
     for (tail = alist; !EQ (tail, Qnil); tail = Fcdr (tail))
       {
 	elt = Fcar (tail);
@@ -949,7 +963,7 @@ but that the idea of the actual height of the screen should not be changed.")
       s = XSCREEN (screen);
     }
 
-  if (s->output_method == output_x_window)
+  if (SCREEN_IS_X (s))
     {
       if (XINT (rows) != s->width)
 	x_set_window_size (s, s->width, XINT (rows));
@@ -976,7 +990,7 @@ but that the idea of the actual width of the screen should not be changed.")
       s = XSCREEN (screen);
     }
 
-  if (s->output_method == output_x_window)
+  if (SCREEN_IS_X (s))
     {
       if (XINT (cols) != s->width)
 	x_set_window_size (s, XINT (cols), s->height);
@@ -999,7 +1013,7 @@ DEFUN ("set-screen-size", Fset_screen_size, Sset_screen_size, 3, 3, 0,
   CHECK_NUMBER (rows, 1);
   s = XSCREEN (screen);
 
-  if (s->output_method == output_x_window)
+  if (SCREEN_IS_X (s))
     {
       if (XINT (rows) != s->height || XINT (cols) != s->width)
 	x_set_window_size (s, XINT (cols), XINT (rows));
@@ -1027,7 +1041,7 @@ off the screen.")
   CHECK_NUMBER (yoffset, 2);
   s = XSCREEN (screen);
 
-  if (s->output_method == output_x_window)
+  if (SCREEN_IS_X (s))
     x_set_offset (s, XINT (xoffset), XINT (yoffset));
 
   return Qt;
@@ -1092,9 +1106,11 @@ syms_of_screen ()
 {
   Qscreenp = intern ("screenp");
   Qlive_screen_p = intern ("live_screen_p");
+  Qminibuffer = intern ("minibuffer");
 
   staticpro (&Qscreenp);
   staticpro (&Qlive_screen_p);
+  staticpro (&Qminibuffer);
 
   staticpro (&Vscreen_list);
 

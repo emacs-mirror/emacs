@@ -157,7 +157,14 @@ These supercede the values given in default-screen-alist.")
 				  t)))
 
 (defun new-screen (&optional parameters)
-  "Create a new screen, displaying the current buffer."
+  "Create a new screen, displaying the current buffer.
+
+Optional argument PARAMETERS is an association-list of parameters
+describing the screen to create.  Specifically, PARAMETERS is a list
+of elements of the form (NAME . VALUE), where NAME is a symbol from
+the following list:
+  name		VALUE is the name to give
+"
   (interactive)
   (funcall screen-creation-function parameters))
 
@@ -241,6 +248,5 @@ These supercede the values given in default-screen-alist.")
 (define-prefix-command 'ctl-x-3-map)
 (define-key ctl-x-map "3" 'ctl-x-3-map)
 
-(define-key global-map "\C-z" 'iconify)
 (define-key ctl-x-3-map "2" 'new-screen)
 (define-key ctl-x-3-map "0" 'delete-screen)
