@@ -1,3 +1,10 @@
+2002-03-03  Gary Wong  <gtw@gnu.org>
+
+	* termcap.c [!emacs]: Replace ospeed for building standalone
+	libtermcap, for binary compatibility.
+
+	* tparam.c [!emacs]: Move #define of bcopy to after string.h.
+
 2002-03-03  Richard M. Stallman  <rms@gnu.org>
 
 	* xrdb.c (file_p): Rename arg `path' to `filename'.
