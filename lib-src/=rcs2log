@@ -1,0 +1,208 @@
+#!/bin/sh
+
+# RCS to ChangeLog generator
+
+#	$Id$
+
+# Generate a change log prefix from RCS/* and the existing ChangeLog (if any).
+# Output the new prefix to standard output.
+# You can edit this prefix by hand, and then prepend it to ChangeLog.
+
+
+# Log into $rlogout the revisions checked in since the first ChangeLog entry.
+
+datearg=-d'>1970'
+if test -s ChangeLog
+then
+	date=`sed 1q <ChangeLog` || exit
+	set x $date; shift
+	datearg="-d>$1 $2 $3 $4 $5"
+fi
+
+rlogout=/tmp/chg$$
+trap exit 1 2 13 15
+trap 'rm -f $rlogout; exit 1' 0
+
+rlog "$datearg" RCS/* >$rlogout || exit
+
+
+# Get the full name of each author the logs mention, and set initialize_fullname
+# to awk code that initializes the `fullname' awk associative array.
+# Warning: foreign authors (i.e. not known in the passwd file) are mishandled;
+# you have to fix the resulting output by hand.
+
+authors=`
+	sed -n 's|^date: *[0-9]*/[0-9][0-9]/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]; *author: *\([^; ]*\).*|\1|p' <$rlogout |
+	sort -u
+`
+
+initialize_fullname=
+for author in $authors
+do
+	fullname=`
+		(grep "^$author:" /etc/passwd || ypmatch "$author" passwd) |
+		sed -n 's/^[^:]*:[^:]*:[^:]*:[^:]*:\([^,:]*\).*$/\1/;p;q'
+	`
+	case $fullname in
+	*\&*)
+		User=`
+			expr " $author" : ' \(.\)' |
+			tr abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		``
+			expr " $author" : ' .\(.*\)'
+		`
+		fullname=`echo "$fullname" | sed "s:&:$User:"`
+	esac
+	initialize_fullname="$initialize_fullname
+		fullname[\"$author\"] = \"$fullname\""
+done
+
+
+# Function to print a single log line.
+# We don't use awk functions, to stay compatible with old awk versions.
+# `Log' is the log message (with \n replaced by \r).
+# `files' contains the affected files (each preceded by a space).
+LINE_LENGTH=79 # suggested max width of log line
+LOG_INDENT='\t' # what to indent each log entry with
+LOG_INDENT_LENGTH=8 # print length of "LOG_INDENT"
+printlogline='{
+
+	# Following the GNU coding standards, rewrite
+	#	* file: (function): comment
+	# to
+	#	* file (function): comment
+	if (Log ~ /^\([^)]*\): /) {
+		i = index(Log, ")")
+		files = files " " substr(Log, 1, i)
+		Log = substr(Log, i+3)
+	}
+
+	# If "label: comment" is too long, break the line after the ":".
+	sep = " "
+	if ('"$LINE_LENGTH"' <= '"$LOG_INDENT_LENGTH"' + 1 + length(files) + index(Log, "\r")) sep = "\n'"$LOG_INDENT"'"
+
+	# Print the label.
+	printf "'"$LOG_INDENT"'*%s:", files
+
+	# Print each line of the log, transliterating \r to \n.
+	while ((i = index(Log, "\r")) != 0) {
+		printf "%s%s\n", sep, substr(Log, 1, i-1)
+		sep = "'"$LOG_INDENT"'"
+		Log = substr(Log, i+1)
+	}
+
+	printf "\n"
+}'
+
+hostname=`(
+	hostname || cat /etc/whoami || uuname -l || uname -n
+) 2>/dev/null` || {
+	echo >&2 "$0: cannot deduce hostname"
+	exit 1
+}
+
+
+# Process the rlog output, generating ChangeLog style entries.
+
+# First, reformat the rlog output so that each line contains one log entry.
+# Transliterate \n to \r so that multiline entries fit on a single line.
+# Discard irrelevant rlog output.
+awk <$rlogout '
+	/^Working file:/ { filename = $3 }
+	/^date: /, /^(-----------*|===========*)$/ {
+		if ($0 ~ /^branches: /) { next }
+		if ($0 ~ /^date: [0-9][ /0-9:]*;/) {
+			time = substr($3, 1, length($3)-1)
+			author = substr($5, 1, length($5)-1)
+			printf "%s %s %s %s \r", filename, $2, time, author
+			next
+		}
+		if ($0 ~ /^(-----------*|===========*)/) { print ""; next }
+		{ printf "%s\r", $0 }
+	}
+' |
+
+# Now each line is of the form
+# FILENAME YYYY/MM/DD HH:MM:SS AUTHOR \rLOG
+#	where \r stands for a carriage return,
+#	and each line of the log is terminated by \r instead of \n.
+# Sort the log entries, first by date (in reverse order),
+# then by author, then by log entry, and finally by file name (just in case).
+sort +1 -2r +3 +0 |
+
+# Finally, reformat the sorted log entries.
+awk '
+	BEGIN {
+
+		# Initialize the fullname associative array.
+		'"$initialize_fullname"'
+
+		# Set up date conversion tables.
+		# RCS uses a nice, clean, sortable format,
+		# but ChangeLog wants the traditional, ugly ctime format.
+
+		# January 1, 0 AD (Gregorian) was Saturday = 6
+		EPOCH_WEEKDAY = 6
+		# Of course, there was no 0 AD, but the algorithm works anyway.
+
+		w[0]="Sun"; w[1]="Mon"; w[2]="Tue"; w[3]="Wed"
+		w[4]="Thu"; w[5]="Fri"; w[6]="Sat"
+
+		m[0]="Jan"; m[1]="Feb"; m[2]="Mar"
+		m[3]="Apr"; m[4]="May"; m[5]="Jun"
+		m[6]="Jul"; m[7]="Aug"; m[8]="Sep"
+		m[9]="Oct"; m[10]="Nov"; m[11]="Dec"
+
+		# days in non-leap year thus far, indexed by month (0-12)
+		mo[0]=0; mo[1]=31; mo[2]=59; mo[3]=90
+		mo[4]=120; mo[5]=151; mo[6]=181; mo[7]=212
+		mo[8]=243; mo[9]=273; mo[10]=304; mo[11]=334
+		mo[12]=365
+	}
+	{
+		newlog = substr($0, 1 + index($0, "\r"))
+		if (Log != newlog || date != $2 || author != $4) {
+			# The previous log and this log differ.
+			# Print the old one.
+			if (date != "") '"$printlogline"'
+
+			# Get ready for the next log.
+			Log = newlog
+			files = ""
+		}
+		if (date != $2  ||  author != $4) {
+			# The previous date+author and this date+author differ.
+			# Print the new one.
+			date = $2
+			author = $4
+
+			# Convert nice RCS date like "1992/01/03 00:03:44"
+			# into ugly ctime date like "Fri Jan  3 00:03:44 1992".
+			# Calculate day of week from Gregorian calendar.
+			i = index($2, "/")
+			year = substr($2, 1, i-1)
+			monthday = substr($2, i+1)
+			i = index(monthday, "/")
+			month = substr(monthday, 1, i-1)
+			day = substr(monthday, i+1)
+			leap = 0
+			if (2 <= month && year%4 == 0 && (year%100 != 0 || year%400 == 0)) leap = 1
+			days_since_Sunday_before_epoch = EPOCH_WEEKDAY + year * 365 + int((year + 3) / 4) - int((year + 99) / 100) + int((year + 399) / 400) + mo[month-1] + leap + day - 1
+
+			# Print "date  fullname  (email address)".
+			# Get the fullname from the associative array.
+			# The email address is just author@thishostname.
+			printf "%s %s %2d %s %d  %s  (%s@%s)\n\n", w[days_since_Sunday_before_epoch%7], m[month-1], day, $3, year, fullname[author], author, "'"$hostname"'"
+		}
+		files = files " " $1
+	}
+	END {
+		# Print the last log.
+		if (date != "") '"$printlogline"'
+	}
+' &&
+
+
+# Exit successfully.
+
+exec rm -f $rlogout
