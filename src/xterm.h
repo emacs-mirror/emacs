@@ -102,9 +102,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define FONT_HEIGHT(f)	((f)->ascent + (f)->descent)
 #define FONT_BASE(f)    ((f)->ascent)
 
-/* GC values used for drawing non-standard (other face) text. */
-extern XGCValues face_gc_values;				      
-
 /* The mask of events that text windows always want to receive.  This
    does not include mouse movement events.  It is used when the window
    is created (in x_window) and when we ask/unask for mouse movement
@@ -368,20 +365,8 @@ struct x_display
    fixed width, and to have the same height and width. */
 
 #ifdef HAVE_X11
-/* Table of GC's used for this frame. */
-GC *gc_table;
 
-/* How many GCs are in the table. */
-int gcs_in_use;
-
-struct face
-{
-  GC face_gc;
-  unsigned int foreground;
-  unsigned int background;
-  Pixmap stipple;
-  XFontStruct *font;
-};
+/* Face declared in dispextern.h */
 
 #else	/* X10 */
 
