@@ -59,9 +59,6 @@
 
 ;;; Code:
 
-(defconst pascal-mode-version "2.4"
-  "Version of `pascal.el'.")
-
 (defvar pascal-mode-abbrev-table nil
   "Abbrev table in use in Pascal-mode buffers.")
 (define-abbrev-table 'pascal-mode-abbrev-table ())
@@ -130,7 +127,7 @@
 (if pascal-mode-syntax-table
     ()
   (setq pascal-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\\ "\\"  pascal-mode-syntax-table)
+  (modify-syntax-entry ?\\ "."   pascal-mode-syntax-table)
   (modify-syntax-entry ?( "()1"  pascal-mode-syntax-table)  
   (modify-syntax-entry ?) ")(4"  pascal-mode-syntax-table)
   (modify-syntax-entry ?* ". 23" pascal-mode-syntax-table)
