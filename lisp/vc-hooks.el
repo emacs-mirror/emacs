@@ -154,6 +154,12 @@ visiting FILE."
 	 (require 'vc)
 	 (not (string-equal (user-login-name) (vc-locking-user file)))
 	 (setq buffer-read-only t))
+    (and (null vc-type)
+	 (file-symlink-p buffer-file-name)
+	 (let ((link-type (vc-backend-deduce (file-symlink-p buffer-file-name))))
+	   (if link-type
+	       (message "Warning: symbolic link to %s-controlled source file"
+			link-type))))
     (force-mode-line-update)
     ;;(set-buffer-modified-p (buffer-modified-p))  ;;use this if Emacs 18
     vc-type))
