@@ -1,5 +1,20 @@
 2003-10-12  Jason Rumney  <jasonr@gnu.org>
 
+	* w32term.c (GLYPHSET, WCRANGE): Define if system headers don't.
+	(pfnGetFontUnicodeRanges): New dynamically loaded function.
+	(w32_initialize): Try to load it.
+	(x_get_font_repertory): Use it if available.
+	(w32_encode_char): Add shortcut for unicode output.
+
+	* w32fns.c (w32_load_system_font): Default charset to -1.
+	(x_to_w32_charset): Match all fonts for unicode.
+	(w32_to_x_charset): New parameter matching. Don't return partial
+	or wildcard charsets.
+	(w32_to_all_x_charsets): Don't return partial or wildcard charsets.
+	(w32_codepage_for_font): Return CP_UNICODE for unicode.
+	(w32_to_x_font): Match charset to real charset.
+	(enum_font_cb2): Always list unicode versions.
+
 	* makefile.w32-in (temacs): Increase EMHEAP.
 
 2003-10-11  Jason Rumney  <jasonr@gnu.org>

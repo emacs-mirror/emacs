@@ -1,5 +1,7 @@
 2003-10-12  Jason Rumney  <jasonr@gnu.org>
 
+	* w32-fns.el (w32-charset-info-alist): Accept more charset aliases.
+
 	* makefile.w32-in (DONTCOMPILE): Remove old languages. Add
 	international/latin1-disp.el.
 	(LC_ALL): Define as C.
