@@ -218,23 +218,6 @@ it recognizes the argument, and NIL otherwise")
 
 ;;; Functions
 
-;;; First some useful functions and macros
-
-(defun tempo-mapc (fun lst)
-  (if (null lst) nil
-    (funcall fun (car lst))
-    (tempo-mapc fun (cdr lst))))
-
-(defmacro tempo-dolist (il &rest forms)
-  (let ((i (car il))
-	(l (car (cdr il))))
-    (list 'tempo-mapc
-	  (list 'function (append (list 'lambda
-					(list i))
-				  forms))
-	  l)))
-(put 'tempo-dolist 'lisp-indent-function 1)
-
 ;;
 ;; tempo-define-template
 
@@ -539,7 +522,7 @@ and insert the results."
 	 (setq string
 	       (funcall tempo-insert-string-functions string)))
 	((listp tempo-insert-string-functions)
-	 (tempo-dolist (fn tempo-insert-string-functions)
+	 (dolist (fn tempo-insert-string-functions)
 	   (setq string (funcall fn string))))
 	(t
 	 (error "Bogus value in tempo-insert-string-functions: %s"
