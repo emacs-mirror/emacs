@@ -1,3 +1,8 @@
+2000-12-06  Kenichi Handa  <handa@etl.go.jp>
+
+	* composite.c (update_compositions): Fix typo (use the correct
+	variable).
+
 2000-12-05  Jason Rumney  <jasonr@gnu.org>
 
 	* md5.h: Remove underscores from function declarations.
