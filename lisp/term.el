@@ -523,8 +523,7 @@ Entry to this mode runs the hooks on term-mode-hook"
       '("Character mode" . term-char-mode))
     (define-key newmap [terminal-line-mode]
       '("Line mode" . term-line-mode))
-    (define-key newmap [menu-bar terminal] 
-      (setq term-terminal-menu (cons "Terminal" newmap)))
+    (setq term-terminal-menu (cons "Terminal" newmap))
 
     ;; completion:  (line mode only)
     (defvar term-completion-menu (make-sparse-keymap "Complete"))
