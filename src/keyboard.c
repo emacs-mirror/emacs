@@ -1587,13 +1587,10 @@ kbd_buffer_get_event ()
     {
       if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
 	kbd_fetch_ptr = kbd_buffer;
-      /* Do the redirection specified by the focus_frame
-	 member now, before we return this event.  */
-      kbd_fetch_ptr->frame
-	= XFRAME (FRAME_FOCUS_FRAME (kbd_fetch_ptr->frame));
 
 #ifdef MULTI_FRAME
-      XSET (Vlast_event_frame, Lisp_Frame, kbd_fetch_ptr->frame);
+      XSET (Vlast_event_frame, Lisp_Frame,
+	    XFRAME (FRAME_FOCUS_FRAME (kbd_fetch_ptr->frame)));
 #endif
 
       last_event_timestamp = kbd_fetch_ptr->timestamp;
@@ -2212,6 +2209,7 @@ read_avail_input (expected)
 #ifdef SIGIO   /* for entire page */
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
 
+SIGTYPE
 input_available_signal (signo)
      int signo;
 {
