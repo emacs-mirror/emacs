@@ -461,6 +461,7 @@ is visible (and the real data of the buffer is hidden)."
   (define-key tar-mode-map "\^D" 'tar-flag-deleted)
   (define-key tar-mode-map "e" 'tar-extract)
   (define-key tar-mode-map "f" 'tar-extract)
+  (define-key tar-mode-map "\C-m" 'tar-extract)
   (define-key tar-mode-map [mouse-2] 'tar-mouse-extract)
   (define-key tar-mode-map "g" 'revert-buffer)
   (define-key tar-mode-map "h" 'describe-mode)
