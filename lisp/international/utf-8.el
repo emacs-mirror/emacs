@@ -341,7 +341,6 @@ option is not the default."
 				(write-multibyte-character r3 r2))))
 
 			  ;; Surrogates, U+D800 .. U+DFFF
-			  ;; Fixme: process them properly.
 			  (if (r3 < #xe000)
 			      ((r3 = r6)
 			       (write-multibyte-character r3 r0) ; eight-bit-graphic

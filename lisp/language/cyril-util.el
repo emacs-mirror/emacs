@@ -1,6 +1,6 @@
 ;;; cyril-util.el --- utilities for Cyrillic scripts
 
-;; Copyright (C) 1997, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual, Cyrillic
 
@@ -24,6 +24,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+;; Fixme: are the next two useful?
 
 ;;;###autoload
 (defun cyrillic-encode-koi8-r-char (char)
