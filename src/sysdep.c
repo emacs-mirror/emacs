@@ -2612,8 +2612,15 @@ random ()
 #ifdef HAVE_RAND48
   return rand48 ();
 #else
-  /* Arrange to return a range centered on zero.  */
-  return (rand () << 15) + rand () - (1 << 29);
+/* The BSD rand returns numbers in the range of 0 to 2e31 - 1,
+   with unusable least significant bits.  The USG rand returns
+   numbers in the range of 0 to 2e15 - 1, all usable.  Let us
+   build a usable 30 bit number from either.  */
+#ifdef USG
+  return (rand () << 15) + rand ();
+#else
+  return (rand () & 0x3fff8000) + (rand () >> 16);
+#endif
 #endif
 }
 
