@@ -1,5 +1,8 @@
 2000-10-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (resolve_face_name): Handle case that FACE_NAME
+	is not a symbol or string.
+
 	* xdisp.c (echo_area_display): Don't perform a display update from
 	inside redisplay.  The update will happen anyway at the end of
 	redisplay, and it can confuse redisplay (GC messages while
