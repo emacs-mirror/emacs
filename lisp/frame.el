@@ -288,32 +288,42 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
       ;; When tool-bar has been switched off, correct the frame size
       ;; by the lines added in x-create-frame for the tool-bar and
       ;; switch `tool-bar-mode' off.
-      (when (and (display-graphic-p)
-		 (or (eq 0 (cdr (assq 'tool-bar-lines initial-frame-alist)))
-		     (eq 0 (cdr (assq 'tool-bar-lines default-frame-alist)))))
-	(let* ((char-height (frame-char-height frame-initial-frame))
-	       (image-height 24)
-	       (margin (cond ((and (consp tool-bar-button-margin)
-				   (integerp (cdr tool-bar-button-margin))
-				   (> tool-bar-button-margin 0))
-			      (cdr tool-bar-button-margin))
-			     ((and (integerp tool-bar-button-margin)
-				   (> tool-bar-button-margin 0))
-			      tool-bar-button-margin)
-			     (t 0)))
-	       (relief (if (and (integerp tool-bar-button-relief)
-				(> tool-bar-button-relief 0))
-			   tool-bar-button-relief 3))
-	       (lines (/ (+ image-height 
-			    (* 2 margin)
-			    (* 2 relief)
-			    (1- char-height))
-			 char-height))
-	       (height (frame-parameter frame-initial-frame 'height)))
-	  (modify-frame-parameters frame-initial-frame
-				   (list (cons 'height (- height lines))))
-	  (tool-bar-mode -1)))
-			  
+      (when (display-graphic-p)
+	(let ((tool-bar-lines (or (assq 'tool-bar-lines initial-frame-alist)
+				  (assq 'tool-bar-lines default-frame-alist))))
+	  (when (or (null tool-bar-lines)
+		    (null (cdr tool-bar-lines))
+		    (eq 0 (cdr tool-bar-lines)))
+	    (let* ((char-height (frame-char-height frame-initial-frame))
+		   (image-height 24)
+		   (margin (cond ((and (consp tool-bar-button-margin)
+				       (integerp (cdr tool-bar-button-margin))
+				       (> tool-bar-button-margin 0))
+				  (cdr tool-bar-button-margin))
+				 ((and (integerp tool-bar-button-margin)
+				       (> tool-bar-button-margin 0))
+				  tool-bar-button-margin)
+				 (t 0)))
+		   (relief (if (and (integerp tool-bar-button-relief)
+				    (> tool-bar-button-relief 0))
+			       tool-bar-button-relief 3))
+		   (lines (/ (+ image-height 
+				(* 2 margin)
+				(* 2 relief)
+				(1- char-height))
+			     char-height))
+		   (height (frame-parameter frame-initial-frame 'height))
+		   (newparms (list (cons 'height (- height lines))))
+		   (initial-top (cdr (assq 'top 
+					   frame-initial-geometry-arguments)))
+		   (top (frame-parameter frame-initial-frame 'top)))
+	      (when (and (consp initial-top) (eq '- (car initial-top)))
+		(setq newparms 
+		      (append newparms 
+			      `((top . ,(+ top (* lines char-height))))
+			      nil)))
+	      (modify-frame-parameters frame-initial-frame newparms)
+	      (tool-bar-mode -1)))))
 
       ;; The initial frame we create above always has a minibuffer.
       ;; If the user wants to remove it, or make it a minibuffer-only
