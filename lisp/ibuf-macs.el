@@ -227,7 +227,7 @@ macro for exactly what it does."
 				  'ibuffer-map-deletion-lines)
 				 (t
 				  'ibuffer-map-marked-lines))
-			      #'(lambda (buf mark beg end)
+			      #'(lambda (buf mark)
 				  ,(if (eq modifier-p :maybe)
 				       `(let ((ibuffer-tmp-previous-buffer-modification
 					       (buffer-modified-p buf)))

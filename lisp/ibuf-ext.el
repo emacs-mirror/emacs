@@ -815,7 +815,7 @@ to move by.  The default is `ibuffer-marked-char'."
       (message "No buffers marked; use 'm' to mark a buffer")
     (let ((count
 	   (ibuffer-map-marked-lines
-	    #'(lambda (buf mark beg end)
+	    #'(lambda (buf mark)
 		'kill))))
       (message "Killed %s lines" count))))
 
@@ -899,7 +899,7 @@ You can then feed the file name(s) to other commands with C-y.
 		      (t
 		       'name))))
       (ibuffer-map-marked-lines
-       #'(lambda (buf mark beg end)
+       #'(lambda (buf mark)
 	   (setq ibuffer-copy-filename-as-kill-result
 		 (concat ibuffer-copy-filename-as-kill-result
 			 (let ((name (buffer-file-name buf)))
@@ -916,7 +916,7 @@ You can then feed the file name(s) to other commands with C-y.
 (defun ibuffer-mark-on-buffer (func)
   (let ((count
 	 (ibuffer-map-lines
-	  #'(lambda (buf mark beg end)
+	  #'(lambda (buf mark)
 	      (when (funcall func buf)
 		(ibuffer-set-mark-1 ibuffer-marked-char)
 		t)))))
@@ -1155,7 +1155,7 @@ defaults to one."
   (let ((ibuffer-do-occur-bufs nil))
     ;; Accumulate a list of marked buffers
     (ibuffer-map-marked-lines
-     #'(lambda (buf mark beg end)
+     #'(lambda (buf mark)
 	 (push buf ibuffer-do-occur-bufs)))
     (ibuffer-do-occur-1 regexp ibuffer-do-occur-bufs
 			(get-buffer-create "*Ibuffer-occur*")
