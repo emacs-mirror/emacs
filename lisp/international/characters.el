@@ -888,7 +888,7 @@
 (let ((script-list nil))
   (dolist
       (elt
-       '((#x0000 #x007F ascii)
+       '((#x0000 #x007F latin)
 	 (#x00A0 #x036F latin)
 	 (#x0370 #x03E1 greek)
 	 (#x03E2 #x03EF coptic)
