@@ -2392,44 +2392,47 @@ If nil, use `comment-end' instead."
 				(looking-at "[ \t]*$")))
 	 (starter (or (and empty block-comment-start) comment-start))
 	 (ender (or (and empty block-comment-end) comment-end)))
-    (if (null starter)
-	(error "No comment syntax defined")
-      (let* ((eolpos (save-excursion (end-of-line) (point)))
-	     cpos indent begpos)
-	(beginning-of-line)
-	(if (re-search-forward comment-start-skip eolpos 'move)
-	    (progn (setq cpos (point-marker))
-		   ;; Find the start of the comment delimiter.
-		   ;; If there were paren-pairs in comment-start-skip,
-		   ;; position at the end of the first pair.
-		   (if (match-end 1)
-		       (goto-char (match-end 1))
-		     ;; If comment-start-skip matched a string with
-		     ;; internal whitespace (not final whitespace) then
-		     ;; the delimiter start at the end of that
-		     ;; whitespace.  Otherwise, it starts at the
-		     ;; beginning of what was matched.
-		     (skip-syntax-backward " " (match-beginning 0))
-		     (skip-syntax-backward "^ " (match-beginning 0)))))
-	(setq begpos (point))
-	;; Compute desired indent.
-	(if (= (current-column)
-	       (setq indent (if comment-indent-hook
-				(funcall comment-indent-hook)
-			      (funcall comment-indent-function))))
-	    (goto-char begpos)
-	  ;; If that's different from current, change it.
-	  (skip-chars-backward " \t")
-	  (delete-region (point) begpos)
-	  (indent-to indent))
-	;; An existing comment?
-	(if cpos 
-	    (progn (goto-char cpos)
-		   (set-marker cpos nil))
-	  ;; No, insert one.
-	  (insert starter)
-	  (save-excursion
-	    (insert ender)))))))
+    (cond
+     ((null starter)
+      (error "No comment syntax defined"))
+     ((null comment-start-skip)
+      (error "This mode doesn't define `comment-start-skip'"))
+     (t (let* ((eolpos (save-excursion (end-of-line) (point)))
+               cpos indent begpos)
+          (beginning-of-line)
+          (if (re-search-forward comment-start-skip eolpos 'move)
+              (progn (setq cpos (point-marker))
+                     ;; Find the start of the comment delimiter.
+                     ;; If there were paren-pairs in comment-start-skip,
+                     ;; position at the end of the first pair.
+                     (if (match-end 1)
+                         (goto-char (match-end 1))
+                       ;; If comment-start-skip matched a string with
+                       ;; internal whitespace (not final whitespace) then
+                       ;; the delimiter start at the end of that
+                       ;; whitespace.  Otherwise, it starts at the
+                       ;; beginning of what was matched.
+                       (skip-syntax-backward " " (match-beginning 0))
+                       (skip-syntax-backward "^ " (match-beginning 0)))))
+          (setq begpos (point))
+          ;; Compute desired indent.
+          (if (= (current-column)
+                 (setq indent (if comment-indent-hook
+                                  (funcall comment-indent-hook)
+                                (funcall comment-indent-function))))
+              (goto-char begpos)
+            ;; If that's different from current, change it.
+            (skip-chars-backward " \t")
+            (delete-region (point) begpos)
+            (indent-to indent))
+          ;; An existing comment?
+          (if cpos 
+              (progn (goto-char cpos)
+                     (set-marker cpos nil))
+            ;; No, insert one.
+            (insert starter)
+            (save-excursion
+              (insert ender))))))))
 
 (defun set-comment-column (arg)
   "Set the comment column based on point.
