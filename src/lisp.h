@@ -1560,38 +1560,14 @@ typedef unsigned char UCHAR;
 #if (!defined (__STDC__) && !defined (PROTOTYPES)) \
     || defined (USE_NONANSI_DEFUN)
 
-#ifdef DOC_STRINGS_IN_COMMENTS
-
-#define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc)	\
-  Lisp_Object fnname ();						\
-  struct Lisp_Subr sname =						\
-    { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
-      fnname, minargs, maxargs, lname, prompt, 0};			\
-  Lisp_Object fnname
-
-#else /* not DOC_STRINGS_IN_COMMENTS */
-
 #define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, args)	\
   Lisp_Object fnname ();						\
   struct Lisp_Subr sname =						\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
       fnname, minargs, maxargs, lname, prompt, 0};			\
   Lisp_Object fnname args
-
-#endif /* not DOC_STRINGS_IN_COMMENTS */
 
 #else
-
-#ifdef DOC_STRINGS_IN_COMMENTS
-
-#define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, args)	\
-  Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
-  struct Lisp_Subr sname =						\
-    { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
-      fnname, minargs, maxargs, lname, prompt, 0};			\
-  Lisp_Object fnname args
-
-#else /* not DOC_STRINGS_IN_COMMENTS */
 
 /* This version of DEFUN declares a function prototype with the right
    arguments, so we can catch errors with maxargs at compile-time.  */
@@ -1601,8 +1577,6 @@ typedef unsigned char UCHAR;
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
       fnname, minargs, maxargs, lname, prompt, 0};			\
   Lisp_Object fnname
-
-#endif /* not DOC_STRINGS_IN_COMMENTS */
 
 /* Note that the weird token-substitution semantics of ANSI C makes
    this work for MANY and UNEVALLED.  */
