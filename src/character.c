@@ -73,9 +73,8 @@ Lisp_Object Vchar_width_table;
    property of corresponding character.  */
 Lisp_Object Vchar_direction_table;
 
-/* Variables used locally in the macro FETCH_MULTIBYTE_CHAR.  */
+/* Variable used locally in the macro FETCH_MULTIBYTE_CHAR.  */
 unsigned char *_fetch_multibyte_char_p;
-int _fetch_multibyte_char_len;
 
 /* Char table of scripts.  */
 Lisp_Object Vchar_script_table;
