@@ -2,7 +2,7 @@
  *
  *                 VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmnt.c(trunk.10) $
+ *  $HopeName: MMsrc!vmnt.c(trunk.11) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -55,7 +55,7 @@
 
 #include <windows.h>
 
-SRCID(vmnt, "$HopeName: MMsrc!vmnt.c(trunk.10) $");
+SRCID(vmnt, "$HopeName: MMsrc!vmnt.c(trunk.11) $");
 
 
 #define SpaceVM(space)  (&(space)->arenaStruct.vmStruct)
@@ -142,14 +142,11 @@ Res VMCreate(Space *spaceReturn, Size size)
 void VMDestroy(Space space)
 {
   BOOL b;
-  Align align;
   VM vm;
 
   vm = SpaceVM(space);
   AVERT(VM, vm);
   AVER(vm->mapped == 0);
-
-  align = vm->align;
 
   /* This appears to be pretty pointless, since the vm descriptor page
    * is about to vanish completely.  However, the VirtaulFree might
