@@ -307,7 +307,7 @@ decode_status (l, symbol, code, coredump)
 {
   Lisp_Object tem;
 
-  if (XTYPE (l) == Lisp_Symbol)
+  if (SYMBOLP (l))
     {
       *symbol = l;
       *code = 0;
@@ -513,7 +513,7 @@ DEFUN ("processp", Fprocessp, Sprocessp, 1, 1, 0,
   (obj)
      Lisp_Object obj;
 {
-  return XTYPE (obj) == Lisp_Process ? Qt : Qnil;
+  return PROCESSP (obj) ? Qt : Qnil;
 }
 
 DEFUN ("get-process", Fget_process, Sget_process, 1, 1, 0,
@@ -521,7 +521,7 @@ DEFUN ("get-process", Fget_process, Sget_process, 1, 1, 0,
   (name)
      register Lisp_Object name;
 {
-  if (XTYPE (name) == Lisp_Process)
+  if (PROCESSP (name))
     return name;
   CHECK_STRING (name, 0);
   return Fcdr (Fassoc (name, Vprocess_alist));
@@ -542,7 +542,7 @@ BUFFER may be a buffer or the name of one.")
   for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
     {
       proc = Fcdr (Fcar (tail));
-      if (XTYPE (proc) == Lisp_Process && EQ (XPROCESS (proc)->buffer, buf))
+      if (PROCESSP (proc) && EQ (XPROCESS (proc)->buffer, buf))
 	return proc;
     }
   return Qnil;
@@ -644,7 +644,7 @@ nil, indicating the current buffer's process.")
   if (!NILP (p->raw_status_low))
     update_status (p);
   status = p->status;
-  if (XTYPE (status) == Lisp_Cons)
+  if (CONSP (status))
     status = XCONS (status)->car;
   if (NETCONN_P (proc))
     {
@@ -666,7 +666,7 @@ If PROCESS has not yet exited or died, return 0.")
   CHECK_PROCESS (proc, 0);
   if (!NILP (XPROCESS (proc)->raw_status_low))
     update_status (XPROCESS (proc));
-  if (XTYPE (XPROCESS (proc)->status) == Lisp_Cons)
+  if (CONSP (XPROCESS (proc)->status))
     return XCONS (XCONS (XPROCESS (proc)->status)->cdr)->car;
   return make_number (0);
 }
@@ -888,7 +888,7 @@ Proc         Status   Buffer         Command\n\
       if (!NILP (p->raw_status_low))
 	update_status (p);
       symbol = p->status;
-      if (XTYPE (p->status) == Lisp_Cons)
+      if (CONSP (p->status))
 	symbol = XCONS (p->status)->car;
 
       
@@ -1123,7 +1123,7 @@ static Lisp_Object
 start_process_unwind (proc)
      Lisp_Object proc;
 {
-  if (XTYPE (proc) != Lisp_Process)
+  if (!PROCESSP (proc))
     abort ();
 
   /* Was PROC started successfully?  */
@@ -1522,7 +1522,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   GCPRO4 (name, buffer, host, service);
   CHECK_STRING (name, 0);
   CHECK_STRING (host, 0);
-  if (XTYPE (service) == Lisp_Int)
+  if (INTEGERP (service))
     port = htons ((unsigned short) XINT (service));
   else
     {
@@ -1758,7 +1758,7 @@ Return non-nil iff we received any output before the timeout expired.")
     {
       CHECK_NUMBER (timeout_msecs, 2);
       useconds = XINT (timeout_msecs);
-      if (XTYPE (timeout) != Lisp_Int)
+      if (!INTEGERP (timeout))
 	XSET (timeout, Lisp_Int, 0);
 
       {
@@ -1866,7 +1866,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
   /* If read_kbd is a process to watch, set wait_proc and wait_channel
      accordingly.  */
-  if (XTYPE (read_kbd) == Lisp_Process)
+  if (PROCESSP (read_kbd))
     {
       wait_proc = XPROCESS (read_kbd);
       wait_channel = XINT (wait_proc->infd);
@@ -1874,7 +1874,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
     }
 
   /* If waiting for non-nil in a cell, record where.  */
-  if (XTYPE (read_kbd) == Lisp_Cons)
+  if (CONSP (read_kbd))
     {
       wait_for_cell = &XCONS (read_kbd)->car;
       XFASTINT (read_kbd) = 0;
@@ -3040,7 +3040,7 @@ sigchld_handler (signo)
 	  {
 	    proc = XCONS (XCONS (tail)->car)->cdr;
 	    p = XPROCESS (proc);
-	    if (XTYPE (p->pid) == Lisp_Int && XINT (p->pid) == -1)
+	    if (INTEGERP (p->pid) && XINT (p->pid) == -1)
 	      break;
 	    p = 0;
 	  }
@@ -3215,7 +3215,7 @@ status_notify ()
 
 	  /* If process is terminated, deactivate it or delete it.  */
 	  symbol = p->status;
-	  if (XTYPE (p->status) == Lisp_Cons)
+	  if (CONSP (p->status))
 	    symbol = XCONS (p->status)->car;
 
 	  if (EQ (symbol, Qsignal) || EQ (symbol, Qexit)
