@@ -1311,7 +1311,7 @@ set_text_properties (start, end, properties, object, signal_after_change_p)
       if (! STRING_INTERVALS (object))
 	return Qt;
 
-      STRING_INTERVALS (object) = 0;
+      STRING_SET_INTERVALS (object, NULL_INTERVAL);
       return Qt;
     }
 
