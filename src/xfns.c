@@ -950,16 +950,13 @@ x_set_frame_parameters (f, alist)
 
 	  old_value = get_frame_param (f, prop);
 
-	  //if (NILP (Fequal (val, old_value)))
-	    {
-	      store_frame_param (f, prop, val);
+	  store_frame_param (f, prop, val);
 
-	      param_index = Fget (prop, Qx_frame_parameter);
-	      if (NATNUMP (param_index)
-		  && (XFASTINT (param_index)
-		      < sizeof (x_frame_parms)/sizeof (x_frame_parms[0])))
-		(*x_frame_parms[XINT (param_index)].setter)(f, val, old_value);
-	    }
+	  param_index = Fget (prop, Qx_frame_parameter);
+	  if (NATNUMP (param_index)
+	      && (XFASTINT (param_index)
+		  < sizeof (x_frame_parms)/sizeof (x_frame_parms[0])))
+	    (*x_frame_parms[XINT (param_index)].setter)(f, val, old_value);
 	}
     }
 
