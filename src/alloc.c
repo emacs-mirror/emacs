@@ -4057,7 +4057,7 @@ Garbage collection happens automatically if you cons more than
 
   /* Save what's currently displayed in the echo area.  */
   message_p = push_message ();
-  record_unwind_protect (push_message_unwind, Qnil);
+  record_unwind_protect (pop_message_unwind, Qnil);
 
   /* Save a copy of the contents of the stack, for debugging.  */
 #if MAX_SAVE_STACK > 0
