@@ -108,7 +108,6 @@ extern Lisp_Object Qmenu_bar_update_hook;
 
 #ifdef USE_X_TOOLKIT
 extern void set_frame_menubar ();
-extern void process_expose_from_menu ();
 extern XtAppContext Xt_app_con;
 
 static Lisp_Object xdialog_show ();
@@ -731,21 +730,44 @@ cached information about equivalent key sequences.  */)
 	{
 	  /* Use the mouse's current position.  */
 	  FRAME_PTR new_f = SELECTED_FRAME ();
-	  Lisp_Object bar_window;
-	  enum scroll_bar_part part;
-	  unsigned long time;
+          Window root, dummy_window;
+          int cur_x, cur_y, dummy;
 
-	  if (mouse_position_hook)
-	    (*mouse_position_hook) (&new_f, 1, &bar_window,
-				    &part, &x, &y, &time);
-	  if (new_f != 0)
-	    XSETFRAME (window, new_f);
-	  else
-	    {
-	      window = selected_window;
-	      XSETFASTINT (x, 0);
-	      XSETFASTINT (y, 0);
-	    }
+          BLOCK_INPUT;
+          
+          XQueryPointer (FRAME_X_DISPLAY (new_f),
+                         DefaultRootWindow (FRAME_X_DISPLAY (new_f)),
+
+                         /* The root window which contains the pointer.  */
+                         &root,
+
+                         /* Window pointer is on, not used  */
+                         &dummy_window,
+
+                         /* The position on that root window.  */
+                         &cur_x, &cur_y,
+
+                         /* x/y in dummy_window coordinates, not used.  */
+                         &dummy, &dummy,
+
+                         /* Modifier keys and pointer buttons, about which
+                            we don't care.  */
+                         (unsigned int *) &dummy);
+
+          UNBLOCK_INPUT;
+
+          /* xmenu_show expects window coordinates, not root window
+             coordinates.  Translate.  */
+          cur_x -= new_f->output_data.x->left_pos
+            + FRAME_OUTER_TO_INNER_DIFF_X (new_f);
+          cur_y -= new_f->output_data.x->top_pos
+            + FRAME_OUTER_TO_INNER_DIFF_Y (new_f);
+
+          /* cur_x/y may be negative, so use make_number.  */
+          x = make_number (cur_x);
+          y = make_number (cur_y);
+
+          XSETFRAME (window, new_f);
 	}
       else
 	{
@@ -1017,21 +1039,6 @@ on the left of the dialog box and all following items on the right.
 
 #ifdef USE_X_TOOLKIT
 
-/* Define a queue to save up for later unreading
-   all X events that don't pertain to the menu.  */
-struct event_queue
-  {
-    XEvent event;
-    struct event_queue *next;
-  };
-
-/* It is ok that this queue is a static variable,
-   because init_menu_items won't allow the menu mechanism
-   to be entered recursively.  */
-static struct event_queue *popup_get_selection_queue;
-
-static Lisp_Object popup_get_selection_unwind ();
-
 /* Loop in Xt until the menu pulldown or dialog popup has been
    popped down (deactivated).  This is used for x-popup-menu
    and x-popup-dialog; it is not used for the menu bar.
@@ -1049,107 +1056,51 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers)
      int do_timers;
 {
   XEvent event;
-  struct event_queue *queue_tmp;
-  int count = SPECPDL_INDEX ();
 
-  popup_get_selection_queue = NULL;
-
-  record_unwind_protect (popup_get_selection_unwind, Qnil);
-
-  if (initial_event)
-    event = *initial_event;
-  else
-    XtAppNextEvent (Xt_app_con, &event);
-
-  while (1)
+  while (popup_activated_flag)
     {
-      /* Handle expose events for editor frames right away.  */
-      if (event.type == Expose)
-	process_expose_from_menu (event);
+      /* If we have no events to run, consider timers.  */
+      if (do_timers && !XtAppPending (Xt_app_con))
+        timer_check (1);
+
+      if (initial_event)
+        {
+          event = *initial_event;
+          initial_event = 0;
+        }
+      else
+        XtAppNextEvent (Xt_app_con, &event);
+
       /* Make sure we don't consider buttons grabbed after menu goes.
-	 And make sure to deactivate for any ButtonRelease,
-	 even if XtDispatchEvent doesn't do that.  */
-      else if (event.type == ButtonRelease
-	       && dpyinfo->display == event.xbutton.display)
+         And make sure to deactivate for any ButtonRelease,
+         even if XtDispatchEvent doesn't do that.  */
+      if (event.type == ButtonRelease
+          && dpyinfo->display == event.xbutton.display)
         {
           dpyinfo->grabbed &= ~(1 << event.xbutton.button);
-          popup_activated_flag = 0;
 #ifdef USE_MOTIF /* Pretending that the event came from a 
-		    Btn1Down seems the only way to convince Motif to
-		    activate its callbacks; setting the XmNmenuPost
-		    isn't working. --marcus@sysc.pdx.edu.  */
-	  event.xbutton.button = 1;
+                    Btn1Down seems the only way to convince Motif to
+                    activate its callbacks; setting the XmNmenuPost
+                    isn't working. --marcus@sysc.pdx.edu.  */
+          event.xbutton.button = 1;
+          /*  Motif only pops down menus when no Ctrl, Alt or Mod
+              key is pressed and the button is released.  So reset key state
+              so Motif thinks this is the case.  */
+          event.xbutton.state = 0;
 #endif
         }
       /* If the user presses a key, deactivate the menu.
-	 The user is likely to do that if we get wedged.  */
+         The user is likely to do that if we get wedged.
+         This is mostly for Lucid, Motif pops down the menu on ESC.  */
       else if (event.type == KeyPress
-	       && dpyinfo->display == event.xbutton.display)
-	{
-	  KeySym keysym = XLookupKeysym (&event.xkey, 0);
-	  if (!IsModifierKey (keysym))
-	    {
-	      popup_activated_flag = 0;
-	      break;
-	    }
-	}
-      /* Button presses outside the menu also pop it down.  */
-      else if (event.type == ButtonPress
-	       && event.xany.display == dpyinfo->display
-	       && x_any_window_to_frame (dpyinfo, event.xany.window))
-	{
-	  popup_activated_flag = 0;
-	  break;
-	}
-
-      /* Queue all events not for this popup,
-	 except for Expose, which we've already handled, and ButtonRelease.
-	 Note that the X window is associated with the frame if this
-	 is a menu bar popup, but not if it's a dialog box.  So we use
-	 x_non_menubar_window_to_frame, not x_any_window_to_frame.  */
-      if (event.type != Expose
-          && !(event.type == ButtonRelease
                && dpyinfo->display == event.xbutton.display)
-	  && (event.xany.display != dpyinfo->display
-	      || x_non_menubar_window_to_frame (dpyinfo, event.xany.window)))
-	{
-	  queue_tmp = (struct event_queue *) xmalloc (sizeof *queue_tmp);
-	  queue_tmp->event = event;
-	  queue_tmp->next = popup_get_selection_queue;
-	  popup_get_selection_queue = queue_tmp;
-	}
-      else
-	XtDispatchEvent (&event);
-
-      /* If the event deactivated the menu, we are finished.  */
-      if (!popup_activated_flag)
-	break;
-
-      /* If we have no events to run, consider timers.  */
-      if (do_timers && !XtAppPending (Xt_app_con))
-	timer_check (1);
-
-      XtAppNextEvent (Xt_app_con, &event);
-    }
-
-  unbind_to (count, Qnil);
-}
-
-/* Unread any events that popup_get_selection read but did not handle.  */
-
-static Lisp_Object
-popup_get_selection_unwind (ignore)
-     Lisp_Object ignore;
-{
-  while (popup_get_selection_queue != NULL) 
-    {
-      struct event_queue *queue_tmp;
-      queue_tmp = popup_get_selection_queue;
-      XPutBackEvent (queue_tmp->event.xany.display, &queue_tmp->event);
-      popup_get_selection_queue = queue_tmp->next;
-      xfree ((char *)queue_tmp);
-      /* Cause these events to get read as soon as we UNBLOCK_INPUT.  */
-      interrupt_input_pending = 1;
+        {
+          KeySym keysym = XLookupKeysym (&event.xkey, 0);
+          if (!IsModifierKey (keysym))
+            popup_activated_flag = 0;
+        }
+      
+      x_dispatch_event (&event, event.xany.display);
     }
 }
 
@@ -1630,7 +1581,7 @@ update_frame_menubar (f)
 {
   struct x_output *x = f->output_data.x;
   int columns, rows;
-  
+
   if (!x->menubar_widget || XtIsManaged (x->menubar_widget))
     return 0;
 
@@ -2278,37 +2229,17 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 			   popup_selection_callback,
 			   popup_deactivate_callback,
 			   menu_highlight_callback);
-
-  /* Adjust coordinates to relative to the outer (window manager) window.  */
+  
+  /* See if whe positions are up to date.  Temporary code to be removed
+     when we are sure positions are always up to date.  */
   {
-    Window child;
-    int win_x = 0, win_y = 0;
+    int real_x, real_y;
+    x_real_positions (f, &real_x, &real_y);
 
-    /* Find the position of the outside upper-left corner of
-       the inner window, with respect to the outer window.  */
-    if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
-      {
-	BLOCK_INPUT;
-	XTranslateCoordinates (FRAME_X_DISPLAY (f),
-
-			       /* From-window, to-window.  */
-			       f->output_data.x->window_desc,
-			       f->output_data.x->parent_desc,
-
-			       /* From-position, to-position.  */
-			       0, 0, &win_x, &win_y,
-
-			       /* Child of window.  */
-			       &child);
-	UNBLOCK_INPUT;
-	x += win_x;
-	y += win_y;
-      }
+    if (real_x != f->output_data.x->left_pos ||
+        real_y != f->output_data.x->top_pos)
+      abort ();
   }
-
-  /* Adjust coordinates to be root-window-relative.  */
-  x += f->output_data.x->left_pos;
-  y += f->output_data.x->top_pos;
 
   dummy.type = ButtonPress;
   dummy.serial = 0;
@@ -2318,11 +2249,16 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   dummy.root = FRAME_X_DISPLAY_INFO (f)->root_window;
   dummy.window = dummy.root;
   dummy.subwindow = dummy.root;
-  dummy.x_root = x;
-  dummy.y_root = y;
   dummy.x = x;
   dummy.y = y;
-  dummy.state = (FRAME_X_DISPLAY_INFO (f)->grabbed >> 1) * Button1Mask;
+
+  /* Adjust coordinates to be root-window-relative.  */
+  x += f->output_data.x->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
+  y += f->output_data.x->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+  
+  dummy.x_root = x;
+  dummy.y_root = y;
+  dummy.state = 0;
   dummy.button = 0;
   for (i = 0; i < 5; i++)
     if (FRAME_X_DISPLAY_INFO (f)->grabbed & (1 << i))
