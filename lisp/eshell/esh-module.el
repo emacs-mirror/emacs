@@ -44,7 +44,7 @@ customizing the variable `eshell-modules-list'."
   (with-current-buffer
       (find-file-noselect (expand-file-name "esh-groups.el" directory))
     (erase-buffer)
-    (insert ";;; do not modify this file; it is auto-generated\n\n")
+    (insert ";;; do not modify this file; it is auto-generated -*- no-byte-compile: t -*-\n\n")
     (let ((files (directory-files (or directory
 				      (car command-line-args-left))
 				  nil "\\`em-.*\\.el\\'")))
