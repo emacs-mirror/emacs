@@ -676,7 +676,9 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bcatch:
 	  v1 = POP;
+	  BEFORE_POTENTIAL_GC ();
 	  TOP = internal_catch (TOP, Feval, v1);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bunwind_protect:
