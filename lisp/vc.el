@@ -31,7 +31,7 @@
 ;;   Paul Eggert <eggert@twinsun.com>
 ;;   Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;   Martin Lorentzson <martinl@gnu.org>
-;;   Dave Love <d.love@dl.ac.uk>
+;;   Dave Love <d.love@gnu.org>
 ;;   Stefan Monnier <monnier@cs.yale.edu>
 ;;   Andre Spiegel <spiegel@gnu.org>
 ;;   Richard Stallman <rms@gnu.org>
@@ -130,7 +130,7 @@
 ;;     up-to-date.  Only used by the default version of `create-snapshot'.
 ;; - retrieve-snapshot (dir name update)
 ;;     Retrieve a named snapshot of all registered files at or below DIR.
-;;     If UPDATE is non-nil, then update buffers of any files in the snapshot 
+;;     If UPDATE is non-nil, then update buffers of any files in the snapshot
 ;;     that are currently visited.
 ;; * print-log (file)
 ;;     Insert the revision log of FILE into the current buffer.
@@ -227,7 +227,7 @@ These are passed to the checkin program by \\[vc-register]."
   "*Switches passed to `ls' for vc-dired.  MUST contain the `l' option."
   :type 'string
   :group 'vc
-  :version "21.0")
+  :version "21.1")
 
 (defcustom vc-dired-recurse t
   "*If non-nil, show directory trees recursively in VC Dired."
@@ -356,8 +356,8 @@ is sensitive to blank lines."
   :group 'vc)
 
 ;; Default is to be extra careful for super-user.
-;; TODO: This variable is no longer used; the corresponding checks  
-;;       are always done now.  If that turns out to be fast enough, 
+;; TODO: This variable is no longer used; the corresponding checks
+;;       are always done now.  If that turns out to be fast enough,
 ;;       the variable can be obsoleted.
 (defcustom vc-checkout-carefully (= (user-uid) 0)
   "*Non-nil means be extra-careful in checkout.
@@ -584,7 +584,7 @@ Else, add CODE to the process' sentinel."
 	  `(lambda (p s)
 	     (with-current-buffer ',(current-buffer)
 	       (goto-char (process-mark p))
-	       ,@(append (cdr (cdr (cdr ;strip off `with-current-buffer buf 
+	       ,@(append (cdr (cdr (cdr ;strip off `with-current-buffer buf
                                         ;             (goto-char...)'
 			   (car (cdr (cdr ;strip off `lambda (p s)'
 			    sentinel))))))
@@ -605,7 +605,7 @@ command is considered successful if its exit status does not exceed
 OKSTATUS (if OKSTATUS is nil, that means to ignore errors, if it is 'async,
 that means not to wait for termination of the subprocess).  FILE is
 the name of the working file (may also be nil, to execute commands
-that don't expect a file name).  If an optional list of FLAGS is present, 
+that don't expect a file name).  If an optional list of FLAGS is present,
 that is inserted into the command line before the filename."
   (and file (setq file (expand-file-name file)))
   (if vc-command-messages
@@ -861,7 +861,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
        
        ;; edited
        ((eq state 'edited)
-	(cond 
+	(cond
 	 ;; For files with locking, if the file does not contain
 	 ;; any changes, just let go of the lock, i.e. revert.
 	 ((and (not (eq (vc-checkout-model file) 'implicit))
@@ -891,7 +891,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
        
        ;; needs-patch
        ((eq state 'needs-patch)
-	(if (yes-or-no-p (format 
+	(if (yes-or-no-p (format
 			  "%s is not up-to-date.  Get latest version? "
 			  (file-name-nondirectory file)))
 	    (vc-checkout file (eq (vc-checkout-model file) 'implicit) "")
@@ -902,7 +902,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
        
        ;; needs-merge
        ((eq state 'needs-merge)
-	(if (yes-or-no-p (format 
+	(if (yes-or-no-p (format
 			  "%s is not up-to-date.  Merge in changes now? "
 			  (file-name-nondirectory file)))
 	    (vc-maybe-resolve-conflicts file (vc-call merge-news file))
@@ -1065,7 +1065,7 @@ first backend that could register the file is used."
   "Return the name of the backend system that is responsible for FILE.
 If no backend in variable `vc-handled-backends' declares itself
 responsible, the first backend in that list will be returned (if optional
-arg REGISTER is non-nil, return the first backend that could register the 
+arg REGISTER is non-nil, return the first backend that could register the
 file).
 FILE can also be a directory name (ending with a slash)."
   (if (null vc-handled-backends)
@@ -1089,7 +1089,7 @@ The default is to return nil always."
   nil)
 
 (defun vc-default-could-register (backend file)
-  "Return non-nil if BACKEND could be used to register FILE.  
+  "Return non-nil if BACKEND could be used to register FILE.
 The default implementation returns t for all files."
   t)
 
@@ -1130,10 +1130,10 @@ rather than user editing!"
 
 (defun vc-start-entry (file rev comment msg action &optional after-hook)
   "Accept a comment for an operation on FILE revision REV.
-If COMMENT is nil, pop up a VC-log buffer, emit MSG, and set the action on close
-to ACTION; otherwise, do action immediately.  Remember the file's
-buffer in `vc-parent-buffer' (current one if no file).  AFTER-HOOK
-specifies the local value for vc-log-operation-hook."
+If COMMENT is nil, pop up a VC-log buffer, emit MSG, and set the
+action on close to ACTION; otherwise, do action immediately.  Remember
+the file's buffer in `vc-parent-buffer' (current one if no file).
+AFTER-HOOK specifies the local value for vc-log-operation-hook."
   (let ((parent (if file (find-file-noselect file) (current-buffer))))
     (if vc-before-checkin-hook
         (if file
@@ -1216,7 +1216,7 @@ REV defaults to the latest revision."
   (message "Stealing lock on %s...done" file))
 
 (defun vc-checkin (file &optional rev comment)
-  "Check in FILE.  
+  "Check in FILE.
 The optional argument REV may be a string specifying the new version
 level (if nil increment the current level).  COMMENT is a comment
 string; if omitted, a buffer is popped up to accept a comment.
@@ -1225,9 +1225,9 @@ If `vc-keep-workfiles' is nil, FILE is deleted afterwards, provided
 that the version control system supports this mode of operation.
 
 Runs the normal hook `vc-checkin-hook'."
-  (vc-start-entry 
+  (vc-start-entry
    file rev comment
-   "Enter a change comment." 
+   "Enter a change comment."
    (lambda (file rev comment)
      (message "Checking in %s..." file)
      ;; "This log message intentionally left almost blank".
@@ -1547,7 +1547,7 @@ I.e. reset them to the non-expanded form."
 	 (visited (find-buffer-visiting filename))
 	 (backend (vc-backend filename)))
     (when (vc-find-backend-function backend 'clear-headers)
-	(if visited 
+	(if visited
 	    (let ((context (vc-buffer-context)))
 	      ;; save-excursion may be able to relocate point and mark
 	      ;; properly.  If it fails, vc-restore-buffer-context
@@ -1685,7 +1685,7 @@ The conflicts must be marked with rcsmerge conflict markers."
         (make-local-variable 'vc-ediff-result)
         (setq vc-ediff-result result-buffer)
         (make-local-variable 'ediff-quit-hook)
-        (setq ediff-quit-hook 
+        (setq ediff-quit-hook
               (lambda ()
 		(let ((buffer-A ediff-buffer-A)
 		      (buffer-B ediff-buffer-B)
@@ -1975,7 +1975,7 @@ Otherwise, return nil."
 
 ;;;###autoload
 (defun vc-create-snapshot (dir name branchp)
-  "Descending recursively from DIR, make a snapshot called NAME.  
+  "Descending recursively from DIR, make a snapshot called NAME.
 For each registered file, the version level of its latest version
 becomes part of the named configuration.  If the prefix argument
 BRANCHP is given, the snapshot is made as a new branch and the files
@@ -1991,7 +1991,7 @@ are checked out in that new branch."
   (message "Making %s... done" (if branchp "branch" "snapshot")))
 
 (defun vc-default-create-snapshot (backend dir name branchp)
-  (when branchp 
+  (when branchp
     (error "VC backend %s does not support module branches" backend))
   (let ((result (vc-snapshot-precondition dir)))
     (if (stringp result)
@@ -2069,8 +2069,8 @@ allowed and simply skipped)."
 	(if (fboundp 'log-view-goto-rev)
 	    (log-view-goto-rev ',(vc-workfile-version file))
 	  (if (vc-find-backend-function ',(vc-backend file) 'show-log-entry)
-	      (vc-call-backend ',(vc-backend file) 
-			       'show-log-entry 
+	      (vc-call-backend ',(vc-backend file)
+			       'show-log-entry
 			       ',(vc-workfile-version file))))))))
 
 ;;;###autoload
@@ -2291,9 +2291,9 @@ Uses `rcs2log' which only works for RCS and CVS."
 	     (unwind-protect
 		 (progn
 		   (setq default-directory odefault)
-		   (if (eq 0 (apply 'call-process 
-                                    (expand-file-name "rcs2log" 
-                                                      exec-directory) 
+		   (if (eq 0 (apply 'call-process
+                                    (expand-file-name "rcs2log"
+                                                      exec-directory)
                                     nil (list t tempfile) nil
                                     "-c" changelog
                                     "-u" (concat (vc-user-login-name)
@@ -2342,7 +2342,7 @@ menu items."
   (interactive "e")
   (message "Redisplaying annotation...")
   (vc-annotate-display (current-buffer)
-		       nil 
+		       nil
 		       (vc-annotate-get-backend (current-buffer)))
   (message "Redisplaying annotation...done"))
 
@@ -2406,7 +2406,7 @@ colors. `vc-annotate-background' specifies the background color."
 		       (get-buffer temp-buffer-name)))
     ;; Don't use the temp-buffer-name until the buffer is created
     ;; (only after `with-output-to-temp-buffer'.)
-    (setq vc-annotate-buffers 
+    (setq vc-annotate-buffers
 	  (append vc-annotate-buffers
 		  (list (cons (get-buffer temp-buffer-name) vc-annotate-backend)))))
   (message "Annotating... done"))
@@ -2419,7 +2419,7 @@ colors. `vc-annotate-background' specifies the background color."
     (car (car a-list))))
 
 (defun vc-annotate-time-span (a-list span &optional quantize)
-"Apply factor SPAN to the time-span of association list A-LIST.
+  "Apply factor SPAN  to the time-span of association list A-LIST.
 Return the new alist.
 Optionally quantize to the factor of QUANTIZE."
   ;; Apply span to each car of every cons
