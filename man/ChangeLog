@@ -23,6 +23,8 @@
 	(Calendar/Diary): Menu now only on Mouse-3, not C-Mouse-3.
 	(Diary): Refer to `diary-file' rather than ~/diary.
 	(Diary Commands): Rename node to "Displaying the Diary".
+	* emacs.texi (Top): Rename "Diary Commands" section.
+	* misc.texi (Hardcopy): Rename "Diary Commands" xref.
 
 2005-03-26  Eli Zaretskii  <eliz@gnu.org>
 
