@@ -793,7 +793,7 @@ struct scroll_bar {
 
 /* Trimming off a few pixels from each side prevents
    text from glomming up against the scroll bar */
-#define VERTICAL_SCROLL_BAR_WIDTH_TRIM (2)
+#define VERTICAL_SCROLL_BAR_WIDTH_TRIM (0)
 
 
 /* Manipulating pixel sizes and character sizes.
