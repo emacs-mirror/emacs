@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.36 2000/08/12 18:51:30 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.1 2000/09/04 19:47:43 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -476,9 +476,35 @@ Needs RCS 5.6.2 or later for -M."
   (vc-do-command nil 0 "rcs" (vc-name file) "-M"
 		 (concat "-u" rev) (concat "-l" rev)))
 
-(defun vc-rcs-uncheck (file target)
-  "Undo the checkin of FILE's revision TARGET."
-  (vc-do-command nil 0 "rcs" (vc-name file) (concat "-o" target)))
+(defun vc-rcs-cancel-version (file writable)
+  "Undo the most recent checkin of FILE.
+WRITABLE non-nil means previous version should be locked."
+  (let* ((target (vc-workfile-version file))
+	 (previous (if (vc-trunk-p target) "" (vc-branch-part target)))
+	 (config (current-window-configuration))
+	 (done nil))
+    (vc-do-command nil 0 "rcs" (vc-name file) (concat "-o" target))
+    ;; Check out the most recent remaining version.  If it fails, because
+    ;; the whole branch got deleted, do a double-take and check out the
+    ;; version where the branch started.
+    (while (not done)
+      (condition-case err
+	  (progn
+	    (vc-do-command nil 0 "co" (vc-name file) "-f"
+			   (concat (if writable "-l" "-u") previous))
+	    (setq done t))
+	(error (set-buffer "*vc*")
+	       (goto-char (point-min))
+	       (if (search-forward "no side branches present for" nil t)
+		   (progn (setq previous (vc-branch-part previous))
+			  (vc-do-command nil 0 "rcs" (vc-name file)
+					 (concat "-b" previous))
+			  ;; vc-do-command popped up a window with
+			  ;; the error message.  Get rid of it, by
+			  ;; restoring the old window configuration.
+			  (set-window-configuration config))
+		 ;; No, it was some other error: re-signal it.
+		 (signal (car err) (cdr err))))))))
 
 (defun vc-rcs-revert (file)
   "Revert FILE to the version it was based on."
@@ -526,9 +552,6 @@ CVS releases are handled reasonably, too \(1.3 < 1.4* < 1.5\)."
 
 (defun vc-rcs-checkin (file rev comment)
   "RCS-specific version of `vc-backend-checkin'."
-  ;; Adaptation for RCS branch support: if this is an explicit checkin,
-  ;; or if the checkin creates a new branch, set the master file branch
-  ;; accordingly.
   (let ((switches (if (stringp vc-checkin-switches)
 		      (list vc-checkin-switches)
 		    vc-checkin-switches)))

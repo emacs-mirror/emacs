@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.58 2000/08/12 18:47:41 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.1 2000/09/04 19:48:04 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -203,6 +203,26 @@ essential information."
     (if (equal checkout-time lastmod)
         'up-to-date
       'edited)))
+
+(defun vc-cvs-mode-line-string (file)
+  "Return string for placement into the modeline for FILE.
+Compared to the default implementation, this function handles the
+special case of a CVS file that is added but not yet comitted."
+  (let ((state   (vc-state file))
+	(rev     (vc-workfile-version file)))
+    (cond ((string= rev "0")
+	   ;; A file that is added but not yet comitted.
+	   "CVS @@")
+	  ((or (eq state 'up-to-date)
+	       (eq state 'needs-patch))
+	   (concat "CVS-" rev))
+          ((stringp state)
+	   (concat "CVS:" state ":" rev))
+          (t
+           ;; Not just for the 'edited state, but also a fallback
+           ;; for all other states.  Think about different symbols
+           ;; for 'needs-patch and 'needs-merge.
+           (concat "CVS:" rev)))))
 
 (defun vc-cvs-dir-state (dir)
   "Find the CVS state of all files in DIR."
@@ -513,8 +533,6 @@ its branch."
     ;; tell it from the permissions of the file (see
     ;; vc-cvs-checkout-model).
     (vc-file-setprop file 'vc-checkout-model nil)
-    (vc-file-setprop file 'vc-state 'up-to-date)
-    (vc-file-setprop file 'vc-checkout-time (nth 5 (file-attributes file)))
     ;; if this was an explicit check-in, remove the sticky tag
     (if rev (vc-do-command t 0 "cvs" file "update" "-A"))))
 
@@ -612,10 +630,7 @@ REV is the revision to check out into WORKFILE."
 		     (if (or (not rev) (string= rev "")) 
 			 "-A" 
 		       (concat "-r" rev))
-		     switches))
-	    (when writable (vc-file-setprop file 'vc-state 'edited))
-	    (vc-file-setprop file
-			     'vc-checkout-time (nth 5 (file-attributes file)))))
+		     switches))))
 	(vc-mode-line file)
 	(message "Checking out %s...done" filename)))))
 

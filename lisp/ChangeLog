@@ -1,3 +1,77 @@
+2000-09-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el: (toplevel): Don't require `dired' at run-time.
+	(vc-dired-resynch-file): Remove autoload cookie.
+
+2000-09-05  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el: Made several backend functions optional.
+	(vc-default-responsible-p): New function.
+	(vc-merge): Use RET for first version to trigger merge-news, not
+	prefix arg.
+	(vc-annotate): Handle backends that do not support annotation.
+	(vc-default-merge-news): Removed.  The existence of a merge-news
+	implementation is now checked on caller sites.
+
+	* vc-hooks.el (vc-default-mode-line-string): Removed CVS special 
+	case.
+
+	* vc-cvs.el (vc-cvs-mode-line-string): New function, handles the 
+	special case that has been removed from the default in vc-hooks.el.
+
+2000-09-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-log-edit): Properly handle the case where FILE is nil.
+
+2000-09-05  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el: Require vc during compilation.
+	(vc-file-setprop): Use `vc-touched-properties' if bound by the new
+	macro `with-vc-properties' in vc.el.
+	(vc-file-getprop): Doc fix.
+	(vc-after-save): Call `vc-dired-resynch-file' only if vc is loaded.
+	
+	* vc.el: Require dired-aux during compilation.
+	(vc-name-assoc-file): Moved to vc-sccs.el.
+	(with-vc-properties): New macro.
+	(vc-checkin, vc-checkout, vc-revert, vc-cancel-version, 
+	vc-finish-steal): Use it.
+	(vc-cancel-version): Moved RCS-specific code to vc-rcs.el.  The call
+	to the backend-specific function is now supposed to do the checkout,
+	too.
+	(vc-log-edit): Handle FILE being nil and added a FIXME for log-edit.
+
+	* vc-cvs.el (vc-cvs-checkin, vc-cvs-checkout): Don't bother to 
+	set file properties; that gets done in the generic code now.
+
+	* vc-rcs.el (vc-rcs-uncheck): Renamed to `vc-rcs-cancel-version'.
+	Changed parameter list, added code from vc.el that does the
+	checkout, possibly with a double-take.
+
+	* vc-sccs.el (vc-sccs-name-assoc-file): Moved here from vc.el.
+	(vc-sccs-add-triple, vc-sccs-rename-file, vc-sccs-lookup-triple): Use
+	the above under the new name.
+	(vc-sccs-uncheck): Renamed to `vc-sccs-cancel-version'.  Changed
+	parameter list, added checkout command.
+	(vc-sccs-checkin, vc-sccs-checkout): Don't bother to set file
+	properties; that gets done in the generic code now.
+
+2000-09-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el: Docstring fixes (courtesy of checkdoc).
+
+2000-09-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-checkout-writable-buffer-hook)
+	(vc-checkout-writable-buffer): Remove.
+	(vc-start-entry): Always call vc-log-edit, never vc-log-mode.
+	(vc-log-mode): Make it into a clean derived major mode.
+	(vc-log-edit): Mark buffer unmodified (as vc-log-mode did) and use
+	vc-log-mode if log-edit is not available.
+	(vc-dired-mode-map): Don't set-keymap-parent yet.
+	(vc-dired-mode): Do set-keymap-parent here.
+	(vc-dired-buffers-for-dir): Nop if dired is not loaded.
+
 2000-09-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* faces.el (set-face-attribute, face-spec-reset-face)
@@ -46,14 +120,12 @@
 	latest version instead of `merge-news'.
 	(vc-next-action-dired): Don't mess with default-directory here; it
 	breaks other parts of dired.  It is the job of the
-	backend-specific functions to adjust it temporarily if they need
-	it.
+	backend-specific functions to adjust it temporarily if they need it.
 	(vc-next-action): Remove a special CVS case.
 	(vc-clear-headers): New optional arg FILE.
 	(vc-checkin, vc-checkout): Set properties vc-state and
 	vc-checkout-time properly.
-	(vc-finish-steal): Call steal-lock, not steal, which doesn't
-	exist.
+	(vc-finish-steal): Call steal-lock, not steal, which doesn't exist.
 	(vc-print-log): Use new backend function `show-log-entry'.
 	(vc-cancel-version): Do the checks in a different order.  Added a
 	FIXME concerning RCS-only code.

@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.53 2000/08/13 11:36:46 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.116 2000/09/04 19:47:25 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -33,6 +33,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'vc))
+
 ;; Customization Variables (the rest is in vc.el)
 
 (defvar vc-ignore-vc-files nil "Obsolete -- use `vc-handled-backends'.")
@@ -47,7 +50,7 @@ Removing an entry from the list prevents VC from being activated
 when visiting a file managed by that backend.
 An empty list disables VC altogether."
   :type '(repeat symbol)
-  :version "20.5"
+  :version "21.1"
   :group 'vc)
 
 (defcustom vc-path
@@ -117,24 +120,30 @@ See also variable `vc-consult-headers'."
 (make-variable-buffer-local 'vc-mode)
 (put 'vc-mode 'permanent-local t)
 
+(defmacro vc-error-occurred (&rest body)
+  (list 'condition-case nil (cons 'progn (append body '(nil))) '(error t)))
+
 ;; We need a notion of per-file properties because the version
 ;; control state of a file is expensive to derive --- we compute
 ;; them when the file is initially found, keep them up to date
 ;; during any subsequent VC operations, and forget them when
 ;; the buffer is killed.
 
-(defmacro vc-error-occurred (&rest body)
-  (list 'condition-case nil (cons 'progn (append body '(nil))) '(error t)))
-
 (defvar vc-file-prop-obarray (make-vector 16 0)
   "Obarray for per-file properties.")
 
+(defvar vc-touched-properties nil)
+
 (defun vc-file-setprop (file property value)
   "Set per-file VC PROPERTY for FILE to VALUE."
+  (if (and vc-touched-properties
+	   (not (memq property vc-touched-properties)))
+      (setq vc-touched-properties (append (list property)
+					  vc-touched-properties)))
   (put (intern file vc-file-prop-obarray) property value))
 
 (defun vc-file-getprop (file property)
-  "get per-file VC PROPERTY for FILE."
+  "Get per-file VC PROPERTY for FILE."
   (get (intern file vc-file-prop-obarray) property))
 
 (defun vc-file-clearprops (file)
@@ -462,7 +471,10 @@ to do that, use this command a second time with no argument."
          (eq (vc-checkout-model file) 'implicit)
          (vc-file-setprop file 'vc-state 'edited)
 	 (vc-mode-line file)
-	 (vc-dired-resynch-file file))))
+	 (if (featurep 'vc)
+	     ;; If VC is not loaded, then there can't be
+	     ;; any VC Dired buffer to synchronize.
+	     (vc-dired-resynch-file file)))))
 
 (defun vc-mode-line (file)
   "Set `vc-mode' to display type of version control for FILE.
@@ -470,10 +482,9 @@ The value is set in the current buffer, which should be the buffer
 visiting FILE."
   (interactive (list buffer-file-name nil))
   (unless (not (vc-backend file))
-    (setq vc-mode (concat " "
-                          (if vc-display-status
-                              (vc-call mode-line-string file)
-                            (symbol-name (vc-backend file)))))
+    (setq vc-mode (concat " " (if vc-display-status
+				  (vc-call mode-line-string file)
+				(symbol-name (vc-backend file)))))
     ;; If the file is locked by some other user, make
     ;; the buffer read-only.  Like this, even root
     ;; cannot modify a file that someone else has locked.
@@ -499,16 +510,12 @@ Format:
   \"BACKEND-REV\"        if the file is up-to-date
   \"BACKEND:REV\"        if the file is edited (or locked by the calling user)
   \"BACKEND:LOCKER:REV\" if the file is locked by somebody else
-  \"BACKEND @@\"         for a CVS file that is added, but not yet committed
 
 This function assumes that the file is registered."
   (setq backend (symbol-name backend))
   (let ((state   (vc-state file))
 	(rev     (vc-workfile-version file)))
-    (cond ((string= "0" rev)
-           ;; CVS special case; should go into a CVS-specific implementation
-	   (concat backend " @@"))
-	  ((or (eq state 'up-to-date)
+    (cond ((or (eq state 'up-to-date)
 	       (eq state 'needs-patch))
 	   (concat backend "-" rev))
           ((stringp state)

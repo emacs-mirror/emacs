@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.35 2000/08/13 11:52:19 spiegel Exp $
+;; $Id: vc-sccs.el,v 1.1 2000/09/04 19:48:23 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -56,6 +56,8 @@ For a description of possible values, see `vc-check-master-templates'."
 				 function)))
   :version "20.5"
   :group 'vc)
+
+(defconst vc-sccs-name-assoc-file "VC-names")
 
 ;;;###autoload
 (progn (defun vc-sccs-registered (f) (vc-default-registered 'SCCS f)))
@@ -172,7 +174,7 @@ The result is a list of the form ((VERSION . USER) (VERSION . USER) ...)."
 (defun vc-sccs-add-triple (name file rev)
   (with-current-buffer
       (find-file-noselect
-       (expand-file-name vc-name-assoc-file
+       (expand-file-name vc-sccs-name-assoc-file
 			 (file-name-directory (vc-name file))))
     (goto-char (point-max))
     (insert name "\t:\t" file "\t" rev "\n")
@@ -185,7 +187,7 @@ The result is a list of the form ((VERSION . USER) (VERSION . USER) ...)."
   ;; Update the snapshot file.
   (with-current-buffer
       (find-file-noselect
-       (expand-file-name vc-name-assoc-file
+       (expand-file-name vc-sccs-name-assoc-file
 			 (file-name-directory (vc-name old))))
     (goto-char (point-min))
     ;; (replace-regexp (concat ":" (regexp-quote old) "$") (concat ":" new))
@@ -203,7 +205,7 @@ If NAME is nil or a version number string it's just passed through."
       name
     (with-temp-buffer
       (vc-insert-file
-       (expand-file-name vc-name-assoc-file
+       (expand-file-name vc-sccs-name-assoc-file
 			 (file-name-directory (vc-name file))))
       (vc-parse-buffer (concat name "\t:\t" file "\t\\(.+\\)") 1))))
 
@@ -221,9 +223,15 @@ If NAME is nil or a version number string it's just passed through."
   (vc-do-command nil 0 "unget" (vc-name file) "-n" (if rev (concat "-r" rev)))
   (vc-do-command nil 0 "get" (vc-name file) "-g" (if rev (concat "-r" rev))))
 
-(defun vc-sccs-uncheck (file target)
-  "Undo the checkin of FILE's revision TARGET."
-  (vc-do-command nil 0 "rmdel" (vc-name file) (concat "-r" target)))
+(defun vc-sccs-cancel-version (file writable)
+  "Undo the most recent checkin of FILE.  
+WRITABLE non-nil means previous version should be locked."
+  (vc-do-command nil 0 "rmdel" 
+		 (vc-name file) 
+		 (concat "-r" (vc-workfile-version file)))
+  (vc-do-command nil 0 "get"
+		 (vc-name file)
+		 (if writable "-e")))
 
 (defun vc-sccs-revert (file)
   "Revert FILE to the version it was based on."
@@ -243,8 +251,6 @@ If NAME is nil or a version number string it's just passed through."
 	   (if rev (concat "-r" rev))
 	   (concat "-y" comment)
 	   switches)
-    (vc-file-setprop file 'vc-state 'up-to-date)
-    (vc-file-setprop file 'vc-workfile-version nil)
     (if vc-keep-workfiles
 	(vc-do-command nil 0 "get" (vc-name file)))))
 
@@ -371,14 +377,8 @@ REV is the revision to check out into WORKFILE."
 	    (apply 'vc-do-command nil 0 "get" (vc-name file)
 		   (if writable "-e")
 		   (and rev (concat "-r" (vc-sccs-lookup-triple file rev)))
-		   switches)
-	    (vc-file-setprop file 'vc-workfile-version nil))
-	  (unless workfile
-	    (if writable
-		(vc-file-setprop file 'vc-state 'edited))
-	    (vc-file-setprop file
-			     'vc-checkout-time (nth 5 (file-attributes file))))
-	  (message "Checking out %s...done" filename))))))
+		   switches)))))
+    (message "Checking out %s...done" filename)))
 
 (defun vc-sccs-update-changelog (files)
   (error "Sorry, generating ChangeLog entries is not implemented for SCCS."))

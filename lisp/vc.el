@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.262 2000/09/04 19:46:58 gerd Exp $
+;; $Id: vc.el,v 1.263 2000/09/04 19:59:41 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -87,11 +87,13 @@
 ;; - mode-line-string (file)
 ;; * workfile-version (file)
 ;; * revert (file)
-;; * merge-news (file)
-;; * merge (file rev1 rev2)
-;; * steal-lock (file &optional version)
+;; - merge-news (file)
+;;     Only needed if state `needs-merge' is possible.
+;; - merge (file rev1 rev2)
+;; - steal-lock (file &optional version)
+;;     Only required if files can be locked by somebody else.
 ;; * register (file rev comment)
-;; * responsible-p (file)
+;; - responsible-p (file)
 ;;     Should also work if FILE is a directory (ends with a slash).
 ;; - could-register (file)
 ;; * checkout (file writable &optional rev destfile)
@@ -139,17 +141,18 @@
 ;;     Find changelog entries for FILES, or for all files at or below
 ;;     the default-directory if FILES is nil.
 ;; * latest-on-branch-p (file)
-;;     Only used for sanity check before calling `uncheck'.
-;; * uncheck (file target)
-;; * rename-file (old new)
-;; * annotate-command (file buf)
-;; * annotate-difference (pos)
+;; - cancel-version (file writable)
+;; - rename-file (old new)
+;; - annotate-command (file buf)
+;; - annotate-difference (pos)
+;;     Only required if `annotate-command' is defined for the backend.
 
 (require 'vc-hooks)
 (require 'ring)
-(require 'dired)	; for dired-mode-map
 (eval-when-compile
-  (require 'compile))
+  (require 'compile)
+  (require 'dired)      ; for dired-map-over-marks macro
+  (require 'dired-aux))	; for dired-kill-{line,tree}
 
 (if (not (assoc 'vc-parent-buffer minor-mode-alist))
     (setq minor-mode-alist
@@ -336,7 +339,7 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
      "\n#ifndef lint\nstatic char vcid[] = \"\%s\";\n#endif /* lint */\n"))
   "*Associate static header string templates with file types.
 A \%s in the template is replaced with the first string associated with
-the file's version-control type in `vc-header-alist'."
+the file's version control type in `vc-header-alist'."
   :type '(repeat (cons :format "%v"
 		       (regexp :tag "File Type")
 		       (string :tag "Header String")))
@@ -345,8 +348,8 @@ the file's version-control type in `vc-header-alist'."
 (defcustom vc-comment-alist
   '((nroff-mode ".\\\"" ""))
   "*Special comment delimiters to be used in generating vc headers only.
-Add an entry in this list if you need to override the normal comment-start
-and comment-end variables.  This will only be necessary if the mode language
+Add an entry in this list if you need to override the normal `comment-start'
+and `comment-end' variables.  This will only be necessary if the mode language
 is sensitive to blank lines."
   :type '(repeat (list :format "%v"
 		       (symbol :tag "Mode")
@@ -403,11 +406,9 @@ and that its contents match what the master file says."
 ;; Variables the user doesn't need to know about.
 (defvar vc-log-operation nil)
 (defvar vc-log-after-operation-hook nil)
-(defvar vc-checkout-writable-buffer-hook 'vc-checkout-writable-buffer)
 (defvar vc-annotate-buffers nil
-  "An association list of current \"Annotate\" buffers and their
-corresponding backends.  The keys are \(BUFFER . BACKEND\).  See also
-`vc-annotate-get-backend'.")
+  "Alist of current \"Annotate\" buffers and their corresponding backends.
+The keys are \(BUFFER . BACKEND\).  See also `vc-annotate-get-backend'.")
 ;; In a log entry buffer, this is a local variable
 ;; that points to the buffer for which it was made
 ;; (either a file, or a VC dired buffer).
@@ -418,9 +419,6 @@ corresponding backends.  The keys are \(BUFFER . BACKEND\).  See also
 
 (defvar vc-log-file)
 (defvar vc-log-version)
-
-;; FIXME: only used in vc-sccs.el
-(defconst vc-name-assoc-file "VC-names")
 
 (defvar vc-dired-mode nil)
 (make-variable-buffer-local 'vc-dired-mode)
@@ -433,24 +431,24 @@ corresponding backends.  The keys are \(BUFFER . BACKEND\).  See also
 ;;; also be moved into the backends.  It stays for now, however, since
 ;;; it is used in code below.
 (defun vc-trunk-p (rev)
-  "Return t if REV is a revision on the trunk"
+  "Return t if REV is a revision on the trunk."
   (not (eq nil (string-match "\\`[0-9]+\\.[0-9]+\\'" rev))))
 
 (defun vc-branch-p (rev)
-  "Return t if REV is a branch revision"
+  "Return t if REV is a branch revision."
   (not (eq nil (string-match "\\`[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*\\'" rev))))
 
 (defun vc-branch-part (rev)
-  "return the branch part of a revision number REV"
+  "Return the branch part of a revision number REV."
   (substring rev 0 (string-match "\\.[0-9]+\\'" rev)))
 
 (defun vc-minor-part (rev)
-  "Return the minor version number of a revision number REV"
+  "Return the minor version number of a revision number REV."
   (string-match "[0-9]+\\'" rev)
   (substring rev (match-beginning 0) (match-end 0)))
 
 (defun vc-previous-version (rev)
-  "Guess the previous version number"
+  "Guess the version number immediately preceding REV."
   (let ((branch (vc-branch-part rev))
         (minor-num (string-to-number (vc-minor-part rev))))
     (if (> minor-num 1)
@@ -473,6 +471,21 @@ corresponding backends.  The keys are \(BUFFER . BACKEND\).  See also
   ;; Note: there is potential for minor lossage here if there is an open
   ;; log buffer with a nonzero local value of vc-comment-ring-index.
   (setq vc-comment-ring (make-ring vc-maximum-comment-ring-size)))
+
+(defmacro with-vc-properties (file form settings)
+  "Execute FORM, then set per-file properties for FILE, but only those
+that have not been set during the execution of FORM.  SETTINGS is a list 
+of two-element lists, each of which has the form (PROPERTY VALUE)."
+  `(let ((vc-touched-properties (list t))
+	 (filename ,file))
+     ,form
+     (mapcar (lambda (setting)
+	       (let ((property (nth 0 setting))
+		     (value (nth 1 setting)))
+		 (unless (memq property vc-touched-properties)
+		   (put (intern filename vc-file-prop-obarray) 
+			property value))))
+	     ,settings)))
 
 ;; Random helper functions
 
@@ -513,8 +526,7 @@ However, before executing BODY, find FILE, and after BODY, save buffer."
     (save-buffer)))
 
 (defun vc-ensure-vc-buffer ()
-  "Make sure that the current buffer visits a version-controlled
-file."
+  "Make sure that the current buffer visits a version-controlled file."
   (if vc-dired-mode
       (set-buffer (find-file-noselect (dired-get-filename)))
     (while vc-parent-buffer
@@ -531,7 +543,7 @@ file."
     '("")))
 
 (defun vc-process-filter (p s)
-  "An alternative output filter for async processes.
+  "An alternative output filter for async process P.
 The only difference with the default filter is to insert S after markers."
   (with-current-buffer (process-buffer p)
     (save-excursion
@@ -541,7 +553,7 @@ The only difference with the default filter is to insert S after markers."
 	(set-marker (process-mark p) (point))))))
 
 (defun vc-setup-buffer (&optional buf)
-  "prepare BUF for executing a VC command and make it the current buffer.
+  "Prepare BUF for executing a VC command and make it the current buffer.
 BUF defaults to \"*vc*\", can be a string and will be created if necessary."
   (unless buf (setq buf "*vc*"))
   (let ((camefrom (current-buffer))
@@ -588,7 +600,7 @@ Each function is called inside the buffer in which the command was run
 and is passed 3 argument: the COMMAND, the FILE and the FLAGS.")
 
 (defun vc-do-command (buffer okstatus command file &rest flags)
-  "Execute a version-control command, notifying user and checking for errors.
+  "Execute a version control command, notifying user and checking for errors.
 Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil or the current
 buffer (which is assumed to be properly setup) if BUFFER is t.  The
 command is considered successful if its exit status does not exceed
@@ -641,9 +653,9 @@ that is inserted into the command line before the filename."
       status)))
 
 (defun vc-position-context (posn)
-  "Save a bit of the text around POSN in the current buffer, to help
-us find the corresponding position again later.  This works even if
-all markers are destroyed or corrupted."
+  "Save a bit of the text around POSN in the current buffer.
+Used to help us find the corresponding position again later
+if markers are destroyed or corrupted."
   ;; A lot of this was shamelessly lifted from Sebastian Kremer's
   ;; rcs.el mode.
   (list posn
@@ -652,8 +664,7 @@ all markers are destroyed or corrupted."
 			  (min (point-max) (+ posn 100)))))
 
 (defun vc-find-position-by-context (context)
-  "Return the position of CONTEXT in the current buffer, or nil if we
-couldn't find it."
+  "Return the position of CONTEXT in the current buffer, or nil if not found."
   (let ((context-string (nth 2 context)))
     (if (equal "" context-string)
 	(point-max)
@@ -672,7 +683,7 @@ couldn't find it."
 	      (- (point) (length context-string))))))))
 
 (defun vc-context-matches-p (posn context)
-  "Returns t if POSN matches CONTEXT, nil otherwise."
+  "Return t if POSN matches CONTEXT, nil otherwise."
   (let* ((context-string (nth 2 context))
 	 (len (length context-string))
 	 (end (+ posn len)))
@@ -681,8 +692,8 @@ couldn't find it."
       (string= context-string (buffer-substring posn end)))))
 
 (defun vc-buffer-context ()
-  "Return a list '(point-context mark-context reparse); from which
-vc-restore-buffer-context can later restore the context."
+  "Return a list (POINT-CONTEXT MARK-CONTEXT REPARSE).
+Used by `vc-restore-buffer-context' to later restore the context."
   (let ((point-context (vc-position-context (point)))
 	;; Use mark-marker to avoid confusion in transient-mark-mode.
 	(mark-context  (if (eq (marker-buffer (mark-marker)) (current-buffer))
@@ -716,7 +727,7 @@ vc-restore-buffer-context can later restore the context."
 
 (defun vc-restore-buffer-context (context)
   "Restore point/mark, and reparse any affected compilation buffers.
-CONTEXT is that which vc-buffer-context returns."
+CONTEXT is that which `vc-buffer-context' returns."
   (let ((point-context (nth 0 context))
 	(mark-context (nth 1 context))
 	(reparse (nth 2 context)))
@@ -749,10 +760,10 @@ CONTEXT is that which vc-buffer-context returns."
            (if new-mark (set-mark new-mark))))))
 
 (defun vc-revert-buffer1 (&optional arg no-confirm)
-  "Revert buffer, try to keep point and mark where user expects them
-in spite of changes because of expanded version-control key words.
-This is quite important since otherwise typeahead won't work as
-expected."
+  "Revert buffer, trying to keep point and mark where user expects them.
+Tries to be clever in the face of changes due to expanded version control
+key words.  This is important for typeahead to work as expected.
+ARG and NO-CONFIRM are passed on to `revert-buffer'."
   (interactive "P")
   (widen)
   (let ((context (vc-buffer-context)))
@@ -768,7 +779,7 @@ expected."
 
 
 (defun vc-buffer-sync (&optional not-urgent)
-  "Make sure the current buffer and its working file are in sync
+  "Make sure the current buffer and its working file are in sync.
 NOT-URGENT means it is ok to continue if the user says not to save."
   (if (buffer-modified-p)
       (if (or vc-suppress-confirm
@@ -778,7 +789,7 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 	  (error "Aborted")))))
 
 (defun vc-workfile-unchanged-p (file)
-  "Has the given workfile changed since last checkout?"
+  "Has FILE changed since last checkout?"
   (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
         (lastmod (nth 5 (file-attributes file))))
     (if checkout-time
@@ -788,7 +799,7 @@ NOT-URGENT means it is ok to continue if the user says not to save."
         unchanged))))
       
 (defun vc-default-workfile-unchanged-p (file)
-  "Default check whether workfile is unchanged: diff against master version."
+  "Default check whether FILE is unchanged: diff against master version."
   (zerop (vc-call diff file (vc-workfile-version file))))
 
 (defun vc-recompute-state (file)
@@ -924,8 +935,8 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 (defvar vc-dired-window-configuration)
 
 (defun vc-next-action-dired (file rev comment)
-  "Do a vc-next-action-on-file on all the marked files, possibly
-passing on the log comment we've just entered."
+  "Call `vc-next-action-on-file' on all the marked files.
+Ignores FILE and REV, but passes on COMMENT."
   (let ((dired-buffer (current-buffer))
 	(dired-dir default-directory))
     (dired-map-over-marks
@@ -1006,14 +1017,9 @@ merge in the changes into your working copy."
 
 ;;; These functions help the vc-next-action entry point
 
-(defun vc-checkout-writable-buffer (&optional file rev)
-  "Retrieve a writable copy of the latest version of the current buffer's file."
-  (vc-checkout (or file (buffer-file-name)) t rev)
-  )
-
 ;;;###autoload
 (defun vc-register (&optional set-version comment)
-  "Register the current file into a version-control system.
+  "Register the current file into a version control system.
 With prefix argument SET-VERSION, allow user to specify initial version 
 level.  If COMMENT is present, use that as an initial comment.
 
@@ -1024,8 +1030,7 @@ directory are already registered under that backend) will be used to
 register the file.  If no backend declares itself responsible, the
 first backend that could register the file is used."
   (interactive "P")
-  (or buffer-file-name
-      (error "No visited file"))
+  (unless buffer-file-name (error "No visited file"))
   (when (vc-backend buffer-file-name)
     (if (vc-registered buffer-file-name)
 	(error "This file is already registered")
@@ -1079,15 +1084,20 @@ FILE can also be a directory name (ending with a slash)."
 		    vc-handled-backends)
 	  (car vc-handled-backends)))))
 
+(defun vc-default-responsible-p (backend file)
+  "Indicate whether BACKEND is reponsible for FILE.  
+The default is to return nil always."
+  nil)
+
 (defun vc-default-could-register (backend file)
   "Return non-nil if BACKEND could be used to register FILE.  
 The default implementation returns t for all files."
   t)
 
 (defun vc-resynch-window (file &optional keep noquery)
-  "If the given file is in the current buffer, either revert on it so
-we see expanded keywords, or unvisit it (depending on
-vc-keep-workfiles) NOQUERY if non-nil inhibits confirmation for
+  "If FILE is in the current buffer, either revert or unvisit it.
+The choice between revert (to see expanded keywords) and unvisit depends on
+`vc-keep-workfiles'.  NOQUERY if non-nil inhibits confirmation for
 reverting.  NOQUERY should be t *only* if it is known the only
 difference between the buffer and the file is due to version control
 rather than user editing!"
@@ -1120,10 +1130,10 @@ rather than user editing!"
   (vc-dired-resynch-file file))
 
 (defun vc-start-entry (file rev comment msg action &optional after-hook)
-  "Accept a comment for an operation on FILE revision REV.  If COMMENT
-is nil, pop up a VC-log buffer, emit MSG, and set the action on close
+  "Accept a comment for an operation on FILE revision REV.
+If COMMENT is nil, pop up a VC-log buffer, emit MSG, and set the action on close
 to ACTION; otherwise, do action immediately.  Remember the file's
-buffer in vc-parent-buffer (current one if no file).  AFTER-HOOK
+buffer in `vc-parent-buffer' (current one if no file).  AFTER-HOOK
 specifies the local value for vc-log-operation-hook."
   (let ((parent (if file (find-file-noselect file) (current-buffer))))
     (if vc-before-checkin-hook
@@ -1138,7 +1148,7 @@ specifies the local value for vc-log-operation-hook."
     (set (make-local-variable 'vc-parent-buffer-name)
 	 (concat " from " (buffer-name vc-parent-buffer)))
     (if file (vc-mode-line file))
-    (if (fboundp 'log-edit) (vc-log-edit file) (vc-log-mode file))
+    (vc-log-edit file)
     (make-local-variable 'vc-log-after-operation-hook)
     (if after-hook
 	(setq vc-log-after-operation-hook after-hook))
@@ -1154,27 +1164,30 @@ specifies the local value for vc-log-operation-hook."
       (message "%s  Type C-c C-c when done" msg))))
 
 (defun vc-checkout (file &optional writable rev)
-  "Retrieve a copy of the latest version of the given file."
-  (condition-case err
-      (vc-call checkout file writable rev)
-    (file-error
-     ;; Maybe the backend is not installed ;-(
-     (when writable
-       (let ((buf (get-file-buffer file)))
-	 (when buf (with-current-buffer buf (toggle-read-only -1)))))
-     (signal (car err) (cdr err))))
-  (vc-file-setprop file 'vc-state
-		   (if (or (eq (vc-checkout-model file) 'implicit)
-			   (not writable))
-		       (if (vc-call latest-on-branch-p file)
-			   'up-to-date
-			 'needs-patch)
-		     'edited))
-  (vc-file-setprop file 'vc-checkout-time (nth 5 (file-attributes file)))
+  "Retrieve a copy of the revision REV of FILE.
+If WRITABLE is non-nil, make sure the retrieved file is writable.
+REV defaults to the latest revision."
+  (with-vc-properties
+   file
+   (condition-case err
+       (vc-call checkout file writable rev)
+     (file-error
+      ;; Maybe the backend is not installed ;-(
+      (when writable
+	(let ((buf (get-file-buffer file)))
+	  (when buf (with-current-buffer buf (toggle-read-only -1)))))
+      (signal (car err) (cdr err))))
+   `((vc-state ,(if (or (eq (vc-checkout-model file) 'implicit)
+			(not writable))
+		    (if (vc-call latest-on-branch-p file)
+			'up-to-date
+		      'needs-patch)
+		  'edited))
+     (vc-checkout-time ,(nth 5 (file-attributes file)))))
   (vc-resynch-buffer file t t))
 
 (defun vc-steal-lock (file rev owner)
-  "Steal the lock on the current workfile."
+  "Steal the lock on FILE."
   (let (file-description)
     (if rev
 	(setq file-description (format "%s:%s" file rev))
@@ -1196,8 +1209,10 @@ specifies the local value for vc-log-operation-hook."
 (defun vc-finish-steal (file version)
   ;; This is called when the notification has been sent.
   (message "Stealing lock on %s..." file)
-  (vc-call steal-lock file version)
-  (vc-file-setprop file 'vc-state 'edited)
+  (with-vc-properties 
+   file
+   (vc-call steal-lock file version)
+   `((vc-state edited)))
   (vc-resynch-buffer file t t)
   (message "Stealing lock on %s...done" file))
 
@@ -1220,11 +1235,14 @@ Runs the normal hook `vc-checkin-hook'."
      ;; RCS 5.7 gripes about white-space-only comments too.
      (or (and comment (string-match "[^\t\n ]" comment))
 	 (setq comment "*** empty log message ***"))
-     ;; Change buffers to get local value of vc-checkin-switches.
-     (with-current-buffer (or (get-file-buffer file) (current-buffer))
-       (vc-call checkin file rev comment))
-     (vc-file-setprop file 'vc-state 'up-to-date)
-     (vc-file-setprop file 'vc-checkout-time (nth 5 (file-attributes file)))
+     (with-vc-properties 
+      file
+      ;; Change buffers to get local value of vc-checkin-switches.
+      (with-current-buffer (or (get-file-buffer file) (current-buffer))
+	(vc-call checkin file rev comment))
+      `((vc-state up-to-date)
+	(vc-checkout-time ,(nth 5 (file-attributes file)))
+	(vc-workfile-version nil)))
      (message "Checking in %s...done" file))
    'vc-checkin-hook))
 
@@ -1494,7 +1512,7 @@ If `F.~REV~' already exists, it is used instead of being re-created."
 
 ;;;###autoload
 (defun vc-insert-headers ()
-  "Insert headers in a file for use with your version-control system.
+  "Insert headers in a file for use with your version control system.
 Headers desired are inserted at point, and are pulled from
 the variable `vc-BACKEND-header'."
   (interactive)
@@ -1524,8 +1542,8 @@ the variable `vc-BACKEND-header'."
 	    )))))
 
 (defun vc-clear-headers (&optional file)
-  "Clear all version headers in the current buffer (or FILE), i.e. reset them 
-to the non-expanded form."
+  "Clear all version headers in the current buffer (or FILE).
+I.e. reset them to the non-expanded form."
   (let* ((filename (or file buffer-file-name))
 	 (visited (find-buffer-visiting filename))
 	 (backend (vc-backend filename)))
@@ -1543,22 +1561,22 @@ to the non-expanded form."
 	  (kill-buffer filename)))))
 
 ;;;###autoload
-(defun vc-merge (&optional merge-news)
-  "Merge changes between two revisions into the work file.
-With prefix arg, merge news, i.e. recent changes from the current branch.
+(defun vc-merge ()
+  "Merge changes between two versions into the current buffer's file.
+This asks for two versions to merge from in the minibuffer.  If the
+first version is a branch number, then merge all changes from that
+branch.  If the first version is empty, merge news, i.e. recent changes
+from the current branch.
 
 See Info node `Merging'."
-  (interactive "P")
+  (interactive)
   (vc-ensure-vc-buffer)
   (vc-buffer-sync)
   (let* ((file buffer-file-name)
 	 (backend (vc-backend file))
 	 (state (vc-state file))
-	 first-version second-version)
+	 first-version second-version status)
     (cond
-     ((not (vc-find-backend-function backend 
-                                     (if merge-news 'merge-news 'merge)))
-      (error "Sorry, merging is not implemented for %s" backend))
      ((stringp state)
       (error "File is locked by %s" state))
      ((not (vc-editable-p file))
@@ -1566,23 +1584,26 @@ See Info node `Merging'."
 	   "File must be checked out for merging.  Check out now? ")
 	  (vc-checkout file t)
 	(error "Merge aborted"))))
-    (unless merge-news
-      (setq first-version (read-string "Branch or version to merge from: "))
-      (if (and (>= (elt first-version 0) ?0)
-               (<= (elt first-version 0) ?9))
-          (if (not (vc-branch-p first-version))
-              (setq second-version 
-                    (read-string "Second version: " 
-                                 (concat (vc-branch-part first-version) ".")))
-            ;; We want to merge an entire branch.  Set versions
-            ;; accordingly, so that vc-backend-merge understands us.
-            (setq second-version first-version)
-            ;; first-version must be the starting point of the branch
-            (setq first-version (vc-branch-part first-version)))))
-    (let ((status (if merge-news
-                      (vc-call merge-news file)
-                    (vc-call merge file first-version second-version))))
-      (vc-maybe-resolve-conflicts file status "WORKFILE" "MERGE SOURCE"))))
+    (setq first-version 
+	  (read-string (concat "Branch or version to merge from "
+			       "(default: news on current branch): ")))
+    (if (string= first-version "")
+	(if (not (vc-find-backend-function backend 'merge-news))
+	    (error "Sorry, merging news is not implemented for %s" backend)
+	  (setq status (vc-call merge-news file)))
+      (if (not (vc-find-backend-function backend 'merge))
+	  (error "Sorry, merging is not implemented for %s" backend)
+	(if (not (vc-branch-p first-version))
+	    (setq second-version 
+		  (read-string "Second version: " 
+			       (concat (vc-branch-part first-version) ".")))
+	  ;; We want to merge an entire branch.  Set versions
+	  ;; accordingly, so that vc-BACKEND-merge understands us.
+	  (setq second-version first-version)
+	  ;; first-version must be the starting point of the branch
+	  (setq first-version (vc-branch-part first-version)))
+	(setq status (vc-call merge file first-version second-version))))
+    (vc-maybe-resolve-conflicts file status "WORKFILE" "MERGE SOURCE")))
 
 (defun vc-maybe-resolve-conflicts (file status &optional name-A name-B)
   (vc-resynch-buffer file t (not (buffer-modified-p)))
@@ -1693,10 +1714,12 @@ The conflicts must be marked with rcsmerge conflict markers."
 (defvar vc-dired-mode-map
   (let ((map (make-sparse-keymap))
 	(vmap (make-sparse-keymap)))
-    (set-keymap-parent map dired-mode-map)
     (define-key map "\C-xv" vc-prefix-map)
+    ;; Emacs-20 has a lousy keymap inheritance that won't work here.
+    ;; Emacs-21's is still lousy but just better enough that it'd work.   -sm
+    ;; (set-keymap-parent vmap vc-prefix-map)
+    (setq vmap vc-prefix-map)
     (define-key map "v" vmap)
-    (set-keymap-parent vmap vc-prefix-map)
     (define-key vmap "t" 'vc-dired-toggle-terse-mode)
     map))
 
@@ -1715,6 +1738,10 @@ is redefined as the version control prefix, so that you can type
 the file named in the current Dired buffer line.  `vv' invokes
 `vc-next-action' on this file, or on all files currently marked.
 There is a special command, `*l', to mark all files currently locked."
+  ;; define-derived-mode does it for us in Emacs-21, but not in Emacs-20.
+  ;; We do it here because dired might not be loaded yet
+  ;; when vc-dired-mode-map is initialized.
+  (set-keymap-parent vc-dired-mode-map dired-mode-map)
   (make-local-hook 'dired-after-readin-hook)
   (add-hook 'dired-after-readin-hook 'vc-dired-hook nil t)
   ;; The following is slightly modified from dired.el,
@@ -1885,14 +1912,15 @@ Called by dired after any portion of a vc-dired buffer has been read in."
 (defun vc-dired-buffers-for-dir (dir)
   "Return a list of all vc-dired buffers that currently display DIR."
   (let (result)
-    (mapcar (lambda (buffer)
-	      (with-current-buffer buffer
-		(if vc-dired-mode
-		    (setq result (append result (list buffer))))))
-	    (dired-buffers-for-dir dir))
+    ;; Check whether dired is loaded.
+    (when (fboundp 'dired-buffers-for-dir)
+      (mapcar (lambda (buffer)
+		(with-current-buffer buffer
+		  (if vc-dired-mode
+		      (setq result (append result (list buffer))))))
+	      (dired-buffers-for-dir dir)))
     result))
 
-;;;###autoload
 (defun vc-dired-resynch-file (file)
   "Update the entries for FILE in any VC Dired buffers that list it."
   (let ((buffers (vc-dired-buffers-for-dir (file-name-directory file))))
@@ -1932,11 +1960,11 @@ With prefix arg READ-SWITCHES, specify a value to override
 ;; Named-configuration entry points
 
 (defun vc-snapshot-precondition (dir)
-  "Scan the tree below the current directory.  If any files are
-locked, return the name of the first such file.  \(This means, neither
-snapshot creation nor retrieval is allowed.\) If one or more of the
-files are currently visited, return `visited'.  Otherwise, return
-nil."
+  "Scan the tree below DIR, looking for non-uptodate files.
+If any file is not up-to-date, return the name of the first such file.
+\(This means, neither snapshot creation nor retrieval is allowed.\)
+If one or more of the files are currently visited, return `visited'.
+Otherwise, return nil."
   (let ((status nil))
     (catch 'vc-locked-example
       (vc-file-tree-walk
@@ -1976,10 +2004,11 @@ are checked out in that new branch."
 
 ;;;###autoload
 (defun vc-retrieve-snapshot (dir name)
-  "Descending recursively from DIR, retrieve the snapshot called NAME,
-or latest versions if NAME is empty.  If locking is used for the files
-in DIR, then there must not be any locked files at or below DIR (but
-if NAME is empty, locked files are allowed and simply skipped)."
+  "Descending recursively from DIR, retrieve the snapshot called NAME.
+If NAME is empty, it refers to the latest versions.
+If locking is used for the files in DIR, then there must not be any
+locked files at or below DIR (but if NAME is empty, locked files are
+allowed and simply skipped)."
   (interactive
    (list (read-file-name "Directory: " default-directory default-directory t)
          (read-string "Snapshot name to retrieve (default latest versions): ")))
@@ -2071,76 +2100,60 @@ use \\[universal-argument] \\[vc-next-action] to do so."
     (set-buffer obuf)
     ;; Do the reverting
     (message "Reverting %s..." file)
-    (vc-call revert file)
-    (vc-file-setprop file 'vc-state 'up-to-date)
-    (vc-file-setprop file 'vc-checkout-time (nth 5 (file-attributes file)))
+    (with-vc-properties
+     file
+     (vc-call revert file)
+     `((vc-state up-to-date)
+       (vc-checkout-time (nth 5 (file-attributes file)))))
     (vc-resynch-buffer file t t)
     (message "Reverting %s...done" file)))
 
 ;;;###autoload
 (defun vc-cancel-version (norevert)
   "Get rid of most recently checked in version of this file.
-A prefix argument means do not revert the buffer afterwards."
+A prefix argument NOREVERT means do not revert the buffer afterwards."
   (interactive "P")
   (vc-ensure-vc-buffer)
-  (let* ((backend (vc-backend (buffer-file-name)))
-         (target (vc-workfile-version (buffer-file-name)))
-         (recent (if (vc-trunk-p target) "" (vc-branch-part target)))
+  (let* ((file (buffer-file-name))
+	 (backend (vc-backend file))
+         (target (vc-workfile-version file))
          (config (current-window-configuration)) done)
     (cond
-     ((not (vc-find-backend-function backend 'uncheck))
+     ((not (vc-find-backend-function backend 'cancel-version))
       (error "Sorry, canceling versions is not supported under %s" backend))
-     ((not (vc-call latest-on-branch-p (buffer-file-name)))
+     ((not (vc-call latest-on-branch-p file))
       (error "This is not the latest version; VC cannot cancel it"))
-     ((not (vc-up-to-date-p (buffer-file-name)))
+     ((not (vc-up-to-date-p file))
       (error (substitute-command-keys "File is not up to date; use \\[vc-revert-buffer] to discard changes"))))
     (if (null (yes-or-no-p (format "Remove version %s from master? " target)))
-	nil
+	(error "Aborted")
       (setq norevert (or norevert (not
           (yes-or-no-p "Revert buffer to most recent remaining version? "))))
 
-      (message "Removing last change from %s..." (buffer-file-name))
-      (vc-call uncheck (buffer-file-name) target)
-      (message "Removing last change from %s...done" (buffer-file-name))
+      (message "Removing last change from %s..." file)
+      (with-vc-properties
+       file
+       (vc-call cancel-version file norevert)
+       `((vc-state ,(if norevert 'edited 'up-to-date))
+	 (vc-checkout-time ,(if norevert 
+				0 
+			      (nth 5 (file-attributes file))))
+	 (vc-workfile-version nil)))
+      (message "Removing last change from %s...done" file)
 
-      ;; Check out the most recent remaining version.  If it fails, because
-      ;; the whole branch got deleted, do a double-take and check out the
-      ;; version where the branch started.
-      (while (not done)
-        (condition-case err
-            (progn
-              (if norevert
-                  ;; Check out locked, but only to disk, and keep
-                  ;; modifications in the buffer.
-                  (vc-call checkout (buffer-file-name) t recent)
-                ;; Check out unlocked, and revert buffer.
-                (vc-checkout (buffer-file-name) nil recent))
-              (setq done t))
-          ;; If the checkout fails, vc-do-command signals an error.
-          ;; We catch this error, check the reason, correct the
-          ;; version number, and try a second time.
-	  ;; FIXME: This is still RCS-only code.
-          (error (set-buffer "*vc*")
-                 (goto-char (point-min))
-                 (if (search-forward "no side branches present for" nil t)
-                     (progn (setq recent (vc-branch-part recent))
-                            ;; vc-do-command popped up a window with
-                            ;; the error message.  Get rid of it, by
-                            ;; restoring the old window configuration.
-                            (set-window-configuration config))
-                   ;; No, it was some other error: re-signal it.
-                   (signal (car err) (cdr err))))))
-      ;; If norevert, clear version headers and mark the buffer modified.
-      (if norevert
-          (progn
-            (set-visited-file-name (buffer-file-name))
-            (if (not vc-make-backup-files)
-                ;; inhibit backup for this buffer
-                (progn (make-local-variable 'backup-inhibited)
-                       (setq backup-inhibited t)))
-            (setq buffer-read-only nil)
-            (vc-clear-headers)
-            (vc-mode-line (buffer-file-name))))
+      (cond
+       (norevert ;; clear version headers and mark the buffer modified
+	(set-visited-file-name file)
+	(when (not vc-make-backup-files)
+	  ;; inhibit backup for this buffer
+	  (make-local-variable 'backup-inhibited)
+	  (setq backup-inhibited t))
+	(setq buffer-read-only nil)
+	(vc-clear-headers)
+	(vc-mode-line file)
+	(vc-dired-resynch-file file))
+       (t ;; revert buffer to file on disk
+	(vc-resynch-buffer file t t)))
       (message "Version %s has been removed from the master" target))))
 
 (defun vc-rename-master (oldmaster newfile templates)
@@ -2221,13 +2234,13 @@ A prefix argument means do not revert the buffer afterwards."
 Normally, find log entries for all registered files in the default
 directory.
 
-With prefix arg of C-u, only find log entries for the current buffer's file.
+With prefix arg of \\[universal-argument], only find log entries for the current buffer's file.
 
 With any numeric prefix arg, find log entries for all currently visited
 files that are under version control.  This puts all the entries in the
 log for the default directory, which may not be appropriate.
 
-From a program, any arguments are assumed to be filenames for which
+From a program, any ARGS are assumed to be filenames for which
 log entries should be gathered."
   (interactive
    (cond ((consp current-prefix-arg)	;C-u
@@ -2251,8 +2264,8 @@ log entries should be gathered."
                    'update-changelog args))
 
 (defun vc-default-update-changelog (backend files)
-  "Default implementation of update-changelog; uses `rcs2log' which only
-works for RCS and CVS."
+  "Default implementation of update-changelog.
+Uses `rcs2log' which only works for RCS and CVS."
   ;; FIXME: We (c|sh)ould add support for cvs2cl
   (let ((odefault default-directory)
 	(changelog (find-change-log))
@@ -2308,12 +2321,12 @@ works for RCS and CVS."
 ;; Declare globally instead of additional parameter to
 ;; temp-buffer-show-function (not possible to pass more than one
 ;; parameter).
-(defvar vc-annotate-ratio nil "Global variable")
-(defvar vc-annotate-backend nil "Global variable")
+(defvar vc-annotate-ratio nil "Global variable.")
+(defvar vc-annotate-backend nil "Global variable.")
 
 (defun vc-annotate-get-backend (buffer)
-  "Return the backend matching \"Annotate\" buffer BUFFER.  Return NIL
-if no match made.  Associations are made based on
+  "Return the backend matching \"Annotate\" buffer BUFFER.
+Return NIL if no match made.  Associations are made based on
 `vc-annotate-buffers'."
   (cdr (assoc buffer vc-annotate-buffers)))
 
@@ -2385,6 +2398,9 @@ colors. `vc-annotate-background' specifies the background color."
 	(temp-buffer-show-function 'vc-annotate-display)
 	(vc-annotate-ratio ratio)
 	(vc-annotate-backend (vc-backend (buffer-file-name))))
+    (if (not (vc-find-backend-function vc-annotate-backend 'annotate-command))
+	(error "Sorry, annotating is not implemented for %s"
+	       vc-annotate-backend))
     (with-output-to-temp-buffer temp-buffer-name 
       (vc-call-backend vc-annotate-backend 'annotate-command
 		       (file-name-nondirectory (buffer-file-name))
@@ -2404,7 +2420,7 @@ colors. `vc-annotate-background' specifies the background color."
     (car (car a-list))))
 
 (defun vc-annotate-time-span (a-list span &optional quantize)
-"Apply factor SPAN  to the time-span of association list A-LIST
+"Apply factor SPAN to the time-span of association list A-LIST.
 Return the new alist.
 Optionally quantize to the factor of QUANTIZE."
   ;; Apply span to each car of every cons
@@ -2438,10 +2454,10 @@ nil otherwise"
 ;;;;  the relevant backend.
 
 (defun vc-annotate-display (buffer &optional color-map backend)
-  "Do the VC-Annotate display in BUFFER using COLOR-MAP.  The original
-Annotating file is supposed to be handled by BACKEND.  If BACKEND is
-NIL, variable VC-ANNOTATE-BACKEND is used instead.  This function is
-destructive on VC-ANNOTATE-BACKEND when BACKEND is non-nil."
+  "Do the VC-Annotate display in BUFFER using COLOR-MAP.
+The original annotating file is supposed to be handled by BACKEND.
+If BACKEND is NIL, variable VC-ANNOTATE-BACKEND is used instead.
+This function is destructive on VC-ANNOTATE-BACKEND when BACKEND is non-nil."
 
   ;; Handle the case of the global variable vc-annotate-ratio being
   ;; set. This variable is used to pass information from function
@@ -2495,9 +2511,6 @@ destructive on VC-ANNOTATE-BACKEND when BACKEND is non-nil."
 
 (defalias 'vc-default-logentry-check 'ignore)
 
-(defun vc-default-merge-news (backend file)
-  (error "vc-merge-news not meaningful for %s files" backend))
-
 (defun vc-check-headers ()
   "Check if the current file has any headers in it."
   (interactive)
@@ -2507,7 +2520,7 @@ destructive on VC-ANNOTATE-BACKEND when BACKEND is non-nil."
 
 ;; Set up key bindings for use while editing log messages
 
-(defun vc-log-mode (&optional file)
+(define-derived-mode vc-log-mode text-mode "VC-Log"
   "Major mode for editing VC log entries.
 These bindings are added to the global keymap when you enter this mode:
 \\[vc-next-action]		perform next logical version-control operation on current file
@@ -2564,29 +2577,26 @@ Global user options:
 	`vc-command-messages'	if non-nil, display run messages from the
 				actual version-control utilities (this is
 				intended primarily for people hacking vc
-				itself).
-"
-  (interactive)
-  (set-syntax-table text-mode-syntax-table)
-  (use-local-map vc-log-mode-map)
-  (setq local-abbrev-table text-mode-abbrev-table)
-  (setq major-mode 'vc-log-mode)
-  (setq mode-name "VC-Log")
-  (make-local-variable 'vc-log-file)
-  (setq vc-log-file file)
-  (make-local-variable 'vc-log-version)
-  (make-local-variable 'vc-comment-ring-index)
-  (set-buffer-modified-p nil)
-  (setq buffer-file-name nil)
-  (run-hooks 'text-mode-hook 'vc-log-mode-hook))
+				itself)."
+  (make-local-variable 'vc-comment-ring-index))
 
 (defun vc-log-edit (file)
-  "Interface between VC and `log-edit'."
-  (setq default-directory (file-name-directory file))
-  (log-edit 'vc-finish-logentry nil
-	    `(lambda () ',(list (file-name-nondirectory file))))
+  "Set up `log-edit' for use with VC on FILE.
+If `log-edit' is not available, resort to `vc-log-mode'."
+  (setq default-directory
+	(if file (file-name-directory file)
+	  (with-current-buffer vc-parent-buffer default-directory)))
+  (if (fboundp 'log-edit)
+      (log-edit 'vc-finish-logentry nil
+		(if file `(lambda () ',(list (file-name-nondirectory file)))
+		  ;; If FILE is nil, we were called from vc-dired.
+		  (lambda ()
+		    (with-current-buffer vc-parent-buffer
+		      (dired-get-marked-files t)))))
+    (vc-log-mode))
   (set (make-local-variable 'vc-log-file) file)
   (make-local-variable 'vc-log-version)
+  (set-buffer-modified-p nil)
   (setq buffer-file-name nil))
 
 ;;; These things should probably be generally available
