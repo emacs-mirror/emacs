@@ -1,7 +1,7 @@
 /* impl.c.vmsu: VIRTUAL MEMORY MAPPING FOR SUNOS 4
  *
- * $HopeName: MMsrc!vmsu.c(trunk.17) $
- * Copyright (C) 1995, 1997, 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!vmsu.c(trunk.19) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * Design: design.mps.vm
  *
@@ -54,7 +54,7 @@
 #include <errno.h>
 #include <sys/errno.h>
 
-SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.17) $");
+SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.19) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -82,11 +82,15 @@ typedef struct VMStruct {
 } VMStruct;
 
 
+/* VMAlign -- return the page size */
+
 Align VMAlign(VM vm)
 {
   return vm->align;
 }
 
+
+/* VMCheck -- check a VM structure */
 
 Bool VMCheck(VM vm)
 {
@@ -114,37 +118,34 @@ Res VMCreate(VM *vmReturn, Size size)
   int zero_fd;
   int none_fd;
   VM vm;
+  Res res;
 
   AVER(vmReturn != NULL);
 
   align = (Align)getpagesize();
   AVER(SizeIsP2(align));
   size = SizeAlignUp(size, align);
-  if((size == 0) || (size > (Size)INT_MAX)) /* see .assume.size */
+  if ((size == 0) || (size > (Size)INT_MAX)) /* see .assume.size */
     return ResRESOURCE;
 
   zero_fd = open("/dev/zero", O_RDONLY);
-  if(zero_fd == -1)
+  if (zero_fd == -1)
     return ResFAIL;
   none_fd = open("/etc/passwd", O_RDONLY);
-  if(none_fd == -1) {
-    close(zero_fd);
-    return ResFAIL;
+  if (none_fd == -1) {
+    res = ResFAIL;
+    goto failNoneOpen;
   }
 
   /* Map in a page to store the descriptor on. */
   addr = mmap((caddr_t)0, SizeAlignUp(sizeof(VMStruct), align),
               PROT_READ | PROT_WRITE, MAP_PRIVATE,
               zero_fd, (off_t)0);
-  if(addr == (caddr_t)-1) {
+  if (addr == (caddr_t)-1) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
-    close(none_fd);
-    close(zero_fd);
-    if(e == ENOMEM)
-      return ResMEMORY;
-    else
-      return ResFAIL;
+    res = (e == ENOMEM) ? ResMEMORY : ResFAIL;
+    goto failVMMap;
   }
   vm = (VM)addr;
 
@@ -155,15 +156,11 @@ Res VMCreate(VM *vmReturn, Size size)
   /* .map.reserve: See .assume.not-last. */
   addr = mmap((caddr_t)0, size, PROT_NONE, MAP_SHARED, none_fd,
               (off_t)0);
-  if(addr == (caddr_t)-1) {
+  if (addr == (caddr_t)-1) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
-    close(none_fd);
-    close(zero_fd);
-    if(e == ENOMEM)
-      return ResRESOURCE;
-    else
-      return ResFAIL;
+    res = (e == ENOMEM) ? ResRESOURCE : ResFAIL;
+    goto failReserve;
   }
 
   vm->base = (Addr)addr;
@@ -179,12 +176,23 @@ Res VMCreate(VM *vmReturn, Size size)
 
   *vmReturn = vm;
   return ResOK;
+
+failReserve:
+  (void)munmap((caddr_t)vm, (size_t)SizeAlignUp(sizeof(VMStruct), align));
+failVMMap:
+  (void)close(none_fd); /* see .close.fail */
+failNoneOpen:
+  (void)close(zero_fd);
+  return res;
 }
 
+
+/* VMDestroy -- destroy the VM structure and release the address space */
 
 void VMDestroy(VM vm)
 {
   int r;
+  int zero_fd, none_fd;
 
   AVERT(VM, vm);
   AVER(vm->mapped == (Size)0);
@@ -195,17 +203,22 @@ void VMDestroy(VM vm)
   /* discovered if sigs were being checked. */
   vm->sig = SigInvalid;
 
-  close(vm->zero_fd);
-  close(vm->none_fd);
+  zero_fd = vm->zero_fd; none_fd = vm->none_fd;
   r = munmap((caddr_t)vm->base, (int)AddrOffset(vm->base, vm->limit));
   AVER(r == 0);
   r = munmap((caddr_t)vm,
              (int)SizeAlignUp(sizeof(VMStruct), vm->align));
   AVER(r == 0);
+  /* .close.fail: We ignore failure from close() as there's very */
+  /* little we can do anyway. */
+  (void)close(zero_fd);
+  (void)close(none_fd);
+
+  EVENT_P(VMDestroy, vm);
 }
 
 
-/* VMBase -- return the base address of the memory reserved */
+/* VMBase, VMLimit -- return the base & limit of the memory reserved */
 
 Addr VMBase(VM vm)
 {
@@ -220,11 +233,16 @@ Addr VMLimit(VM vm)
 }
 
 
+/* VMReserved -- return the amount of the memory reserved */
+
 Size VMReserved(VM vm)
 {
   AVERT(VM, vm);
   return vm->reserved;
 }
+
+
+/* VMMapped -- return the amount of the memory committed */
 
 Size VMMapped(VM vm)
 {
@@ -232,6 +250,8 @@ Size VMMapped(VM vm)
   return vm->mapped;
 }
 
+
+/* VMMap -- commit memory between base & limit */
 
 Res VMMap(VM vm, Addr base, Addr limit)
 {
@@ -251,11 +271,11 @@ Res VMMap(VM vm, Addr base, Addr limit)
 
   size = AddrOffset(base, limit);
 
-  if(mmap((caddr_t)base, (int)size,
-	  PROT_READ | PROT_WRITE | PROT_EXEC,
-	  MAP_PRIVATE | MAP_FIXED,
-	  vm->zero_fd, (off_t)0)
-     == (caddr_t)-1) {
+  if (mmap((caddr_t)base, (int)size,
+           PROT_READ | PROT_WRITE | PROT_EXEC,
+           MAP_PRIVATE | MAP_FIXED,
+           vm->zero_fd, (off_t)0)
+      == (caddr_t)-1) {
     AVER(errno == ENOMEM); /* .assume.mmap.err */
     return ResMEMORY;
   }
@@ -266,6 +286,8 @@ Res VMMap(VM vm, Addr base, Addr limit)
   return ResOK;
 }
 
+
+/* VMUnmap -- decommit memory between base & limit */
 
 void VMUnmap(VM vm, Addr base, Addr limit)
 {
