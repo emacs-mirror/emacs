@@ -539,12 +539,11 @@ make_terminal_frame ()
 #ifdef MSDOS
   f->output_data.x = &the_only_x_display;
   f->output_method = output_msdos_raw;
-  if (!noninteractive)
-    init_frame_faces (f);
 #else /* not MSDOS */
   f->output_data.nothing = 1;	/* Nonzero means frame isn't deleted.  */
-  init_frame_faces (f);
 #endif
+  if (!noninteractive)
+    init_frame_faces (f);
   return f;
 }
 
