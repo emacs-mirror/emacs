@@ -317,6 +317,7 @@ shadow\\(Double\\)?Etched\\(In\\|Out\\)\\(Dash\\)?\\)\\)$"
 	    `(lambda () (interactive) ,callback)))
     command))
 
+;;;###autoload
 (defun easy-menu-change (path name items &optional before)
   "Change menu found at PATH as item NAME to contain ITEMS.
 PATH is a list of strings for locating the menu containing NAME in the
