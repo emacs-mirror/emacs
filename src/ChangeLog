@@ -1,6 +1,6 @@
 2004-11-16  Kim F. Storm  <storm@cua.dk>
 
-	* fringe.c (Fdefine_fringe_bitmap): Always initalize 'h'. Simplify.
+	* fringe.c (Fdefine_fringe_bitmap): Always set 'h'. Simplify.
 
 	* indent.c (Fvertical_motion): Fix last change.  Only reseat when
 	moving backwards.
