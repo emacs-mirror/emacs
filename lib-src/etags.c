@@ -27,7 +27,7 @@
  * 1989	Sam Kendall added C++.
  * 1992 Joseph B. Wells improved C and C++ parsing.
  * 1993	Francesco Potortì reorganised C and C++.
- * 1994	Regexp tags by Tom Tromey.
+ * 1994	Line-by-line regexp tags by Tom Tromey.
  * 2001 Nested classes by Francesco Potortì (concept by Mykola Dzyuba).
  * 2002 #line directives by Francesco Potortì.
  *
@@ -35,7 +35,7 @@
  *
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 16.27";
+char pot_etags_version[] = "@(#) pot revision number is 16.29";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -374,7 +374,7 @@ static void find_entries __P((FILE *));
 static void free_tree __P((node *));
 static void free_fdesc __P((fdesc *));
 static void pfnote __P((char *, bool, char *, int, int, long));
-static void new_pfnote __P((char *, int, bool, char *, int, int, long));
+static void make_tag __P((char *, int, bool, char *, int, int, long));
 static void invalidate_nodes __P((fdesc *, node **));
 static void put_entries __P((node *));
 
@@ -426,7 +426,7 @@ static char
   /* white chars */
   *white = " \f\t\n\r\v",
   /* not in a name */
-  *nonam = " \f\t\n\r()=,;",
+  *nonam = " \f\t\n\r()=,;",	/* look at make_tag before modifying! */
   /* token ending chars */
   *endtk = " \t\n\r\"'#()[]{}=-+%*/&|^~!<>;,.:?",
   /* token starting chars */
@@ -1833,25 +1833,29 @@ pfnote (name, is_func, linestart, linelen, lno, cno)
 }
 
 /*
+ * Check whether an implicitly named tag should be created,
+ * then call `pfnote'.
+ * NAME is a string that is internally copied by this function.
+ *
  * TAGS format specification
  * Idea by Sam Kendall <kendall@mv.mv.com> (1997)
  *
- * pfnote should emit the optimized form [unnamed tag] only if:
- *  1. name does not contain any of the characters " \t\r\n(),;";
- *  2. linestart contains name as either a rightmost, or rightmost but
+ * make_tag creates tags with "implicit tag names" (unnamed tags)
+ * if the following are all true, assuming NONAM=" \f\t\n\r()=,;":
+ *  1. NAME does not contain any of the characters in NONAM;
+ *  2. LINESTART contains name as either a rightmost, or rightmost but
  *     one character, substring;
- *  3. the character, if any, immediately before name in linestart must
- *     be one of the characters " \t(),;";
- *  4. the character, if any, immediately after name in linestart must
- *     also be one of the characters " \t(),;".
+ *  3. the character, if any, immediately before NAME in LINESTART must
+ *     be a character in NONAM;
+ *  4. the character, if any, immediately after NAME in LINESTART must
+ *     also be a character in NONAM.
  *
- * The real implementation uses the notinname() macro, which recognises
- * characters slightly different from " \t\r\n(),;".  See the variable
- * `nonam'.
+ * The implementation uses the notinname() macro, which recognises the
+ * characters stored in the string `nonam'.
+ * etags.el needs to use the same characters that are in NONAM.
  */
-#define traditional_tag_style TRUE
 static void
-new_pfnote (name, namelen, is_func, linestart, linelen, lno, cno)
+make_tag (name, namelen, is_func, linestart, linelen, lno, cno)
      char *name;		/* tag name, or NULL if unnamed */
      int namelen;		/* tag length */
      bool is_func;		/* tag is a function */
@@ -1877,7 +1881,7 @@ new_pfnote (name, namelen, is_func, linestart, linelen, lno, cno)
 	      && (cp == linestart
 		  || notinname (cp[-1]))	/* rule #3 */
 	      && strneq (name, cp, namelen))	/* rule #2 */
-	    named = FALSE;	/* use unnamed tag */
+	    named = FALSE;	/* use implicit tag name */
 	}
     }
 
@@ -2981,31 +2985,18 @@ make_C_tag (isfun)
 {
   /* This function should never be called when token.valid is FALSE, but
      we must protect against invalid input or internal errors. */
-  if (DEBUG || token.valid)
-    {
-      if (traditional_tag_style)
-	{
-	  /* This was the original code.  Now we call new_pfnote instead,
-	     which uses the new method for naming tags (see new_pfnote). */
-	  char *name = NULL;
+  if (!DEBUG && !token.valid)
+    return;
 
-	  if (CTAGS || token.named)
-	    name = savestr (token_name.buffer);
-	  if (DEBUG && !token.valid)
-	    {
-	      if (token.named)
-		name = concat (name, "##invalid##", "");
-	      else
-		name = savestr ("##invalid##");
-	    }
-	  pfnote (name, isfun, token.line,
-		  token.offset+token.length+1, token.lineno, token.linepos);
-	}
-      else
-	new_pfnote (token_name.buffer, token_name.len, isfun, token.line,
-		    token.offset+token.length+1, token.lineno, token.linepos);
-      token.valid = FALSE;
-    }
+  if (!token.valid)		/* this case is optimised away if !DEBUG */
+    make_tag (concat (token_name.buffer, "##invalid token##", ""),
+	      token_name.len + 17, isfun, token.line,
+	      token.offset+token.length+1, token.lineno, token.linepos);
+  else
+    make_tag (token_name.buffer, token_name.len, isfun, token.line,
+	      token.offset+token.length+1, token.lineno, token.linepos);
+
+  token.valid = FALSE;
 }
 
 
