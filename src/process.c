@@ -1043,6 +1043,54 @@ a socket connection.  */)
   return XPROCESS (process)->type;
 }
 #endif
+
+#ifdef HAVE_SOCKETS
+DEFUN ("format-network-address", Fformat_network_address, Sformat_network_address,
+       1, 1, 0,
+       doc: /* Convert network ADDRESS from internal format to a string.
+Returns nil if format of ADDRESS is invalid.  */)
+     (address)
+     Lisp_Object address;
+{
+  register struct Lisp_Vector *p;
+  register unsigned char *cp;
+  register int i;
+
+  if (NILP (address))
+    return Qnil;
+
+  if (STRINGP (address))  /* AF_LOCAL */
+    return address;
+
+  if (VECTORP (address))  /* AF_INET */
+    {
+      register struct Lisp_Vector *p = XVECTOR (address);
+      Lisp_Object args[6];
+
+      if (p->size != 5)
+	return Qnil;
+
+      args[0] = build_string ("%d.%d.%d.%d:%d");
+      args[1] = XINT (p->contents[0]);
+      args[2] = XINT (p->contents[1]);
+      args[3] = XINT (p->contents[2]);
+      args[4] = XINT (p->contents[3]);
+      args[5] = XINT (p->contents[4]);
+      return Fformat (6, args);
+    }
+
+  if (CONSP (address))
+    {
+      Lisp_Object args[2];
+      args[0] = build_string ("<Family %d>");
+      args[1] = XINT (Fcar (address));
+      return Fformat (2, args);
+      
+    }
+
+  return Qnil;
+}
+#endif
 
 Lisp_Object
 list_processes_1 (query_only)
@@ -1204,9 +1252,11 @@ list_processes_1 (query_only)
 	  Lisp_Object port = Fplist_get (p->childp, QCservice);
 	  if (INTEGERP (port))
 	    port = Fnumber_to_string (port);
+	  if (NILP (port))
+	    port = Fformat_network_address (Fplist_get (p->childp, QClocal));
 	  sprintf (tembuf, "(network %s server on %s)\n",
 		   (DATAGRAM_CHAN_P (XINT (p->infd)) ? "datagram" : "stream"),
-		   SDATA (port));
+		   (STRINGP (port) ? (char *)SDATA (port) : "?"));
 	  insert_string (tembuf);
 	}
       else if (NETCONN1_P (p))
@@ -1220,9 +1270,11 @@ list_processes_1 (query_only)
 	      if (INTEGERP (host))
 		host = Fnumber_to_string (host);
 	    }
+	  if (NILP (host))
+	    host = Fformat_network_address (Fplist_get (p->childp, QCremote));
 	  sprintf (tembuf, "(network %s connection to %s)\n",
 		   (DATAGRAM_CHAN_P (XINT (p->infd)) ? "datagram" : "stream"),
-		   SDATA (host));
+		   (STRINGP (host) ? (char *)SDATA (host) : "?"));
 	  insert_string (tembuf);
         }
       else 
@@ -2498,7 +2550,7 @@ The stopped state is cleared by `continue-process' and set by
 :sentinel SENTINEL -- Install SENTINEL as the process sentinel.
 
 :log LOG -- Install LOG as the server process log function.  This
-function is called as when the server accepts a network connection from a
+function is called when the server accepts a network connection from a
 client.  The arguments are SERVER, CLIENT, and MESSAGE, where SERVER
 is the server process, CLIENT is the new process for the connection,
 and MESSAGE is a string.
@@ -3134,11 +3186,16 @@ usage: (make-network-process &rest ARGS)  */)
       val = Qnil;
     else
       {
-	args[0] = Qopen_network_stream, args[1] = name,
-	  args[2] = buffer, args[3] = host, args[4] = service;
-	GCPRO1 (proc);
-	coding_systems = Ffind_operation_coding_system (5, args);
-	UNGCPRO;
+	if (NILP (host) || NILP (service))
+	  coding_systems = Qnil;
+	else
+	  {
+	    args[0] = Qopen_network_stream, args[1] = name,
+	      args[2] = buffer, args[3] = host, args[4] = service;
+	    GCPRO1 (proc);
+	    coding_systems = Ffind_operation_coding_system (5, args);
+	    UNGCPRO;
+	  }
 	if (CONSP (coding_systems))
 	  val = XCAR (coding_systems);
 	else if (CONSP (Vdefault_process_coding_system))
@@ -3158,11 +3215,16 @@ usage: (make-network-process &rest ARGS)  */)
       {
 	if (EQ (coding_systems, Qt))
 	  {
-	    args[0] = Qopen_network_stream, args[1] = name,
-	      args[2] = buffer, args[3] = host, args[4] = service;
-	    GCPRO1 (proc);
-	    coding_systems = Ffind_operation_coding_system (5, args);
-	    UNGCPRO;
+	    if (NILP (host) || NILP (service))
+	      coding_systems = Qnil;
+	    else
+	      {
+		args[0] = Qopen_network_stream, args[1] = name,
+		  args[2] = buffer, args[3] = host, args[4] = service;
+		GCPRO1 (proc);
+		coding_systems = Ffind_operation_coding_system (5, args);
+		UNGCPRO;
+	      }
 	  }
 	if (CONSP (coding_systems))
 	  val = XCDR (coding_systems);
@@ -6232,6 +6294,7 @@ The value takes effect when `start-process' is called.  */);
 #ifdef HAVE_SOCKETS
   defsubr (&Sset_network_process_options);
   defsubr (&Smake_network_process);
+  defsubr (&Sformat_network_address);
 #endif /* HAVE_SOCKETS */
 #ifdef DATAGRAM_SOCKETS
   defsubr (&Sprocess_datagram_address);
