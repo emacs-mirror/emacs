@@ -1,7 +1,7 @@
 # impl.gmk.lii3gc: BUILD FOR LINUX/INTEL/GCC PLATFORM
 #
-# $HopeName: MMsrc!lii3gc.gmk(trunk.1) $
-# Copyright (C) 2000.  Harlequin Ltd.  All rights reserved.
+# $HopeName: MMsrc!lii3gc.gmk(trunk.2) $
+# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # This is the GNU makefile for platform.lii3gc.
 
@@ -10,12 +10,12 @@ PFM = lii3gc
 THREADSRC = lockli.c thlii3.c pthrdext.c
 THREADLIB = -lpthread
 
+PFMDEFS = -D_REENTRANT
 
 MPMPF = mpsliban.c mpsioan.c ${THREADSRC} vmli.c \
         protli.c protlii3.c proti3.c prmci3li.c sslii3.c span.c
-SWPF = lockan.c than.c vman.c protsw.c prmcan.c ssan.c
+SWPF = lockan.c than.c vmli.c protsw.c prmcan.c ssan.c
 
 LIBS = -lm ${THREADLIB}
 
 include gc.gmk
-
