@@ -5678,7 +5678,7 @@ x_make_frame_visible (f)
 	   to let the handler know that there's something to be read.
 	   We used to raise a real alarm, but it seems that the handler
 	   isn't always enabled here.  This is probably a bug.  */
-	if (polling_for_input)
+	if (input_polling_used ())
 	  {
 	    /* It could be confusing if a real alarm arrives while processing
 	       the fake one.  Turn it off and let the handler reset it.  */
