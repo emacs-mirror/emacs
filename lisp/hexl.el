@@ -52,7 +52,7 @@
 
 (defvar hexl-program "hexl"
   "The program that will hexlify and de-hexlify its stdin.
-`hexl-program' will always be concated with `hexl-options'
+`hexl-program' will always be concatenated with `hexl-options'
 and \"-de\" when dehexlfying a buffer.")
 
 (defvar hexl-iso ""
@@ -64,13 +64,11 @@ and \"-de\" when dehexlfying a buffer.")
 
 (defvar hexlify-command
   (format "%s%s %s" exec-directory hexl-program hexl-options)
-  "The command to use to hexlify a buffer.  It is the concatination of
-`hexl-program' and `hexl-options'.")
+  "The command to use to hexlify a buffer.")
 
 (defvar dehexlify-command
   (format "%s%s -de %s" exec-directory hexl-program hexl-options)
-  "The command to use to unhexlify a buffer.  It is the concatination of
-`hexl-program', the option \"-de\", and `hexl-options'.")
+  "The command to use to unhexlify a buffer.")
 
 (defvar hexl-max-address 0
   "Maximum offset into hexl buffer.")
