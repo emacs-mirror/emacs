@@ -1,3 +1,8 @@
+2003-10-20  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):  Avoid
+	incf in macro expansion.
+
 2003-10-20  John Paul Wallington  <jpw@gnu.org>
 
 	* emacs-lisp/elint.el (elint-check-defcustom-form): Don't use
