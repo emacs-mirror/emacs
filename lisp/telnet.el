@@ -132,6 +132,12 @@ rejecting one login and prompting for the again for a username and password.")
 		  (set-process-filter proc 'telnet-filter))
 		 (t (setq telnet-count (1+ telnet-count)))))))
 
+;; Identical to comint-simple-send, except that it sends telnet-new-line
+;; instead of "\n".
+(defun telnet-simple-send (proc string)
+  (comint-send-string proc string)
+  (comint-send-string proc telnet-new-line))
+
 (defun telnet-filter (proc string)
   (let ((at-end
 	 (and (eq (process-buffer proc) (current-buffer))
@@ -178,6 +184,7 @@ Normally input is edited in Emacs and sent a line at a time."
     (erase-buffer)
     (send-string  name (concat "open " arg "\n"))
     (telnet-mode)
+    (setq comint-input-sender 'telnet-simple-send)
     (setq telnet-count telnet-initial-count)))
 
 (defun telnet-mode ()
