@@ -1,7 +1,7 @@
 /* Coding system handler (conversion, detection, and etc).
    Copyright (C) 1995, 1997, 1998, 2002 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
-   Copyright (C) 2001 Free Software Foundation, Inc.
+   Copyright (C) 2001,2002  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -942,11 +942,6 @@ decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
 	      ONE_MORE_BYTE (c);
 	      if (c != '\n')
 		{
-		  if (coding->mode & CODING_MODE_INHIBIT_INCONSISTENT_EOL)
-		    {
-		      coding->result = CODING_FINISH_INCONSISTENT_EOL;
-		      goto label_end_of_loop;
-		    }
 		  src--;
 		  c = '\r';
 		}
@@ -1830,11 +1825,6 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	      ONE_MORE_BYTE (c1);
 	      if (c1 != ISO_CODE_LF)
 		{
-		  if (coding->mode & CODING_MODE_INHIBIT_INCONSISTENT_EOL)
-		    {
-		      coding->result = CODING_FINISH_INCONSISTENT_EOL;
-		      goto label_end_of_loop;
-		    }
 		  src--;
 		  c1 = '\r';
 		}
@@ -2928,12 +2918,6 @@ decode_coding_sjis_big5 (coding, source, destination,
 		      ONE_MORE_BYTE (c2);
 		      if (c2 == '\n')
 			c1 = c2;
-		      else if (coding->mode
-			       & CODING_MODE_INHIBIT_INCONSISTENT_EOL)
-			{
-			  coding->result = CODING_FINISH_INCONSISTENT_EOL;
-			  goto label_end_of_loop;
-			}
 		      else
 			/* To process C2 again, SRC is subtracted by 1.  */
 			src--;
@@ -3179,11 +3163,6 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
 	      ONE_MORE_BYTE (c);
 	      if (c != '\n')
 		{
-		  if (coding->mode & CODING_MODE_INHIBIT_INCONSISTENT_EOL)
-		    {
-		      coding->result = CODING_FINISH_INCONSISTENT_EOL;
-		      goto label_end_of_loop;
-		    }
 		  src--;
 		  c = '\r';
 		}
