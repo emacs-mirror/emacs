@@ -171,21 +171,23 @@ Prefix arg means just kill any existing server communications subprocess."
 (defun server-process-filter (proc string)
   (server-log string)
   (setq string (concat server-previous-string string))
-  (if (not (and (eq ?\n (aref string (1- (length string))))
-		(eq 0 (string-match "Client: " string))))
-      ;; If input is not complete, save it for later.
-      (setq server-previous-string string)
-    ;; If it is complete, process it now, and discard what was saved.
-    (setq string (substring string (match-end 0)))
-    (setq server-previous-string "")
-    (let ((client (list (substring string 0 (string-match " " string))))
+  ;; If the input is multiple lines,
+  ;; process each line individually.
+  (while (string-match "\n" string)
+    (let ((request (substring string 0 (match-beginning 0)))
+	  client
 	  (files nil)
 	  (lineno 1))
-      (setq string (substring string (match-end 0)))
-      (while (string-match "[^ ]+ " string)
+      ;; Remove this line from STRING.
+      (setq string (substring string (match-end 0)))	  
+      (if (string-match "^Client: " request)
+	  (setq request (substring request (match-end 0))))
+      (setq client (list (substring request 0 (string-match " " request))))
+      (setq request (substring request (match-end 0)))
+      (while (string-match "[^ ]+ " request)
 	(let ((arg
-	       (substring string (match-beginning 0) (1- (match-end 0)))))
-	  (setq string (substring string (match-end 0)))
+	       (substring request (match-beginning 0) (1- (match-end 0)))))
+	  (setq request (substring request (match-end 0)))
 	  (if (string-match "\\`\\+[0-9]+\\'" arg)
 	      (setq lineno (read (substring arg 1)))
 	    (setq files
@@ -198,7 +200,9 @@ Prefix arg means just kill any existing server communications subprocess."
       (server-switch-buffer (nth 1 client))
       (run-hooks 'server-switch-hook)
       (message (substitute-command-keys
-		"When done with a buffer, type \\[server-edit].")))))
+		"When done with a buffer, type \\[server-edit]."))))
+  ;; Save for later any partial line that remains.
+  (setq server-previous-string string))
 
 (defun server-visit-files (files client)
   "Finds FILES and returns the list CLIENT with the buffers nconc'd.
@@ -246,6 +250,13 @@ as a suggestion for what to select next."
 	(or next-buffer 
 	    (setq next-buffer (nth 1 (memq buffer client))))
 	(delq buffer client)
+	;; Delete all dead buffers from CLIENT.
+	(let ((tail client))
+	  (while tail
+	    (and (bufferp (car tail))
+		 (null (buffer-name (car tail)))
+		 (delq (car tail) client))
+	    (setq tail (cdr tail))))
 	;; If client now has no pending buffers,
 	;; tell it that it is done, and forget it entirely.
 	(if (cdr client) nil
@@ -253,10 +264,13 @@ as a suggestion for what to select next."
 	      (progn
 		(send-string server-process 
 			     (format "Close: %s Done\n" (car client)))
-		(server-log (format "Close: %s Done\n" (car client)))))
+		(server-log (format "Close: %s Done\n" (car client)))
+		;; Don't send emacsserver two commands in close succession.
+		;; It cannot handle that.
+		(sit-for 1)))
 	  (setq server-clients (delq client server-clients))))
       (setq old-clients (cdr old-clients)))
-    (if (buffer-name buffer)
+    (if (and (bufferp buffer) (buffer-name buffer))
 	(progn
 	  (save-excursion
 	    (set-buffer buffer)
