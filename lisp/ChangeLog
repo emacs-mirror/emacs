@@ -1,5 +1,8 @@
 2000-08-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* help.el (describe-mode): Test minor-mode symbol for being
+	bound before testing its value for being nil.
+
 	* pcvs-util.el, cvs-status.el, pcvs.el: Use `nth' instead of
 	`first', `second', and `third'.
 
