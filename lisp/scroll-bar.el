@@ -1,6 +1,7 @@
 ;;; scroll-bar.el --- window system-independent scroll bar support.
 
-;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001
+;;  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware
@@ -330,7 +331,7 @@ EVENT should be a scroll bar click."
 ;;;; Bindings.
 
 ;;; For now, we'll set things up to work like xterm.
-(cond (x-toolkit-scroll-bars
+(cond ((and (boundp 'x-toolkit-scroll-bars) x-toolkit-scroll-bars)
        (global-set-key [vertical-scroll-bar mouse-1]
 		       'scroll-bar-toolkit-scroll))
       (t
