@@ -870,6 +870,10 @@ have been moved from the CL package to the core.
 The Windows specific variable w32-system-coding-system, which was
 formerly used for that purpose is now an alias for locale-coding-system.
 
+** Functions y-or-n-p, read-char, read-keysequence and alike that
+display a prompt but don't use the minibuffer now display the prompt
+using the text properties (esp. the face) of the prompt string.
+
 ** New packages:
 
 *** The new package syntax.el provides an efficient way to find the
