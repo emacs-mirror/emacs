@@ -211,8 +211,11 @@ struct mac_display_info
 /* This is a chain of structures for all the displays currently in use.  */
 extern struct mac_display_info one_mac_display_info;
 
+/* This is a chain of structures for all the X displays currently in use.  */
+extern struct x_display_info *x_display_list;
+
 /* This is a list of cons cells, each of the form (NAME . FONT-LIST-CACHE),
-   one for each element of w32_display_list and in the same order.
+   one for each element of x_display_list and in the same order.
    NAME is the name of the frame.
    FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
 extern Lisp_Object x_display_name_list;

@@ -1,3 +1,7 @@
+2001-07-26  Andrew Choi  <akochoi@i-cable.com>
+
+	* inc/macterm.h (x_display_list): Declare extern.
+
 2001-07-20  Pavel Janík  <Pavel@Janik.cz>
 
 	* src/macterm.c (xim_open_dpy): Fix typo.
