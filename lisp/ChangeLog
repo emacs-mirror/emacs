@@ -1,5 +1,7 @@
 2002-08-30  Juanma Barranquero  <lektu@terra.es>
 
+	* replace.el (occur-mode): Add interactive declaration.
+
 	* bs.el (bs-message-without-log): Fix typo.
 
 	* font-core.el (font-lock-defaults): Likewise.
@@ -12,7 +14,8 @@
 
 	* emulation/viper-ex.el (ex-compile-command): Likewise.
 
-	* progmodes/idlwave.el (idlwave-max-extra-continuation-indent): Likewise.
+	* progmodes/idlwave.el (idlwave-max-extra-continuation-indent):
+	Likewise.
 
 	* progmodes/dcl-mode.el (dcl-calc-cont-indent-relative): Likewise.
 

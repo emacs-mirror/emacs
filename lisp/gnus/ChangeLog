@@ -1,3 +1,8 @@
+2002-08-30  Juanma Barranquero  <lektu@terra.es>
+
+	* imap.el (imap-authenticator-alist, imap-stream-alist)
+	(imap-continuation): Fix typos.
+
 2002-08-23  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* nnfolder.el (nnfolder-request-expire-articles): expiry-target.
@@ -21,7 +26,7 @@
 	* gnus-topic.el (gnus-topic-indent, gnus-topic-unindent): Change
 	cdaar to cdar and car.
 
-	* nnsoup.el (nnsoup-retrieve-headers, nnsoup-request-type) 
+	* nnsoup.el (nnsoup-retrieve-headers, nnsoup-request-type)
 	(nnsoup-read-active-file, nnsoup-article-to-area): Ditto.
 
 2002-07-03  Juanma Barranquero  <lektu@terra.es>
@@ -35,9 +40,9 @@
 
 	* gnus-ems.el (nnheader-file-name-translation-alist): Removed.
 
-	* nndoc.el (nndoc-mime-digest-type-p): Set proper file-end. 
+	* nndoc.el (nndoc-mime-digest-type-p): Set proper file-end.
 	* nndoc.el: Add several new types.
-	
+
 2002-05-16  Juanma Barranquero  <lektu@terra.es>
 
 	* gnus-art.el (gnus-mime-copy-part): Fix typo.
@@ -58,7 +63,7 @@
 
 	* pop3.el (pop3-munge-message-separator): Only use valid date.
 	Trivial patch from Michael Welsh Duggan <md5i@cs.cmu.edu>.
-	
+
 2002-04-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* gnus-sum.el (gnus-update-summary-mark-positions)
@@ -135,7 +140,7 @@
 
 2002-02-07  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
-	* gnus-art.el (article-wash-html): Bind url-gateway-unplugged. 
+	* gnus-art.el (article-wash-html): Bind url-gateway-unplugged.
 	* mm-view.el (mm-w3-prepare-buffer): Ditto.
 	(mm-inline-text): Ditto.
 	Suggested by  Dave Love <fx@gnu.org>.
@@ -143,7 +148,7 @@
 	* mml.el (mml-preview): Disable local map.
 
 	* mml.el (mml-preview): Bind `q'.
-	
+
 2002-02-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* binhex.el (binhex-decoder-switches): Doc fix.
@@ -160,7 +165,7 @@
 	(time-add): New function.
 	(time-subtract): Renamed from subtract-time.
 	(subtract-time): New alias for time-subtract.
-	
+
 2002-01-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-read-init-file): Cleaned up.
@@ -174,7 +179,7 @@
 
 	* gnus-start.el (gnus-read-init-file): Don't force coding system
 	for ~/.gnus.  From Dave Love <fx@gnu.org>.
-	
+
 2002-01-03  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* mm-util.el (mm-charset-to-coding-system): Don't setq charset.
@@ -185,7 +190,7 @@
 
 2002-01-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
-	* message.el, gnus-art.el, gnus.el, gnus-cite.el: 
+	* message.el, gnus-art.el, gnus.el, gnus-cite.el:
 	Adapt face definitions to use :weight and :slant.
 
 2001-12-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
@@ -245,12 +250,12 @@
 
 	* mm-util.el (mm-iso-8859-15-compatible): Fix doc.
 	(mm-hack-charsets): Fix doc.
-	
+
 	* mm-util.el (mm-iso-8859-15-compatible): Add inconvertible chars.
 	(mm-iso-8859-x-to-15-table): Ditto.
 	(mm-iso-8859-x-to-15-region): Ditto.
 	(mm-find-mime-charset-region): Ditto.
-	
+
 	* gnus-sum.el (gnus-summary-limit-to-subject): An exclusion version.
 	(gnus-summary-limit-to-author): Ditto.
 	(gnus-summary-limit-to-extra): Ditto.
