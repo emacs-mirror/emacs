@@ -550,9 +550,10 @@ struct Lisp_String
   };
 
 /* If a struct is made to look like a vector, this macro returns the length
-   of that vector.  */
-#define VECSIZE(type) ((sizeof (type) - (sizeof (struct Lisp_Vector)	\
-					 - sizeof (Lisp_Object)))	\
+   of the shortest vector that would hold that struct.  */
+#define VECSIZE(type) ((sizeof (type) - (sizeof (struct Lisp_Vector)  \
+                                         - sizeof (Lisp_Object))      \
+                        + sizeof(Lisp_Object) - 1) /* round up */     \
 		       / sizeof (Lisp_Object))
 
 struct Lisp_Vector
