@@ -968,7 +968,7 @@ dired."
    '("\\.shar.Z$" "zcat * | unshar")
    '("\\.shar.g?z$" "gunzip -qc * | unshar")
 
-   '("\\.e?ps$" "ghostview" "xv" "lpr")
+   '("\\.e?ps$" "ghostview" "xloadimage" "lpr")
    (list "\\.e?ps.g?z$" "gunzip -qc * | ghostview -"
          ;; Optional decompression.
          '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
@@ -991,11 +991,11 @@ dired."
    '("\\.sh$" "sh")                     ; execute shell scripts
    '("\\.xbm$" "bitmap")                ; view X11 bitmaps
    '("\\.gp$" "gnuplot")
-   '("\\.p[bgpn]m$" "xv")
-   '("\\.gif$" "xv")                    ; view gif pictures
-   '("\\.tif$" "xv")
-   '("\\.png$" "xv")
-   '("\\.jpg$" "xv")
+   '("\\.p[bgpn]m$" "xloadimage")
+   '("\\.gif$" "xloadimage")                    ; view gif pictures
+   '("\\.tif$" "xloadimage")
+   '("\\.png$" "xloadimage")
+   '("\\.jpg$" "xloadimage")
    '("\\.fig$" "xfig")                  ; edit fig pictures
    '("\\.out$" "xgraph")                ; for plotting purposes.
    '("\\.tex$" "latex" "tex")
