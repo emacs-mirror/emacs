@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.20 1993/02/22 14:17:16 jimb Exp rms $	
+;;	$Id: vc.el,v 1.21 1993/03/07 07:44:46 rms Exp eggert $	
 
 ;; This file is part of GNU Emacs.
 
@@ -78,7 +78,7 @@ The value is only computed when needed to avoid an expensive search.")
 
 ;;;###autoload
 (defvar vc-checkin-hook nil
-  "*List of functions called after a vc-checkin is done.  See `runs-hooks'.")
+  "*List of functions called after a vc-checkin is done.  See `run-hooks'.")
 
 ;; Header-insertion hair
 
@@ -102,6 +102,7 @@ is sensitive to blank lines.")
 (defvar vc-log-entry-mode nil)
 (defvar vc-log-operation nil)
 (defvar vc-log-after-operation-hook nil)
+(defvar vc-checkout-writeable-buffer-hook 'vc-checkout-writeable-buffer)
 
 (defvar vc-log-file)
 (defvar vc-log-version)
@@ -149,7 +150,7 @@ Output from COMMAND goes to buffer *vc*.  The last argument of the command is
 the master name of FILE; this is appended to an optional list of FLAGS."
   (setq file (expand-file-name file))
   (if vc-command-messages
-      (message (format "Running %s on %s..." command file)))
+      (message "Running %s on %s..." command file))
   (let ((obuf (current-buffer))
 	(squeezed nil)
 	(vc-file (and file (vc-name file)))
@@ -180,13 +181,13 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 	  (pop-to-buffer "*vc*")
 	  (vc-shrink-to-fit)
 	  (goto-char (point-min))
-	  (error (format "Running %s...FAILED (%s)" command
-			 (if (integerp status)
-			     (format "status %d" status)
-			   status)))
+	  (error "Running %s...FAILED (%s)" command
+		 (if (integerp status)
+		     (format "status %d" status)
+		   status))
 	  )
       (if vc-command-messages
-	  (message (format "Running %s...OK" command)))
+	  (message "Running %s...OK" command))
       )
     (set-buffer obuf)
     status)
@@ -300,11 +301,14 @@ the option to steal the lock."
 	 ;; if there is no master file corresponding, create one
 	 ((not vc-file)
 	  (vc-register verbose)
-	  (vc-next-action verbose))
+	  (if vc-initial-comment
+	      (setq vc-log-after-operation-hook
+		    'vc-checkout-writeable-buffer-hook)
+	    (vc-checkout-writeable-buffer)))
 
 	 ;; if there is no lock on the file, assert one and get it
 	 ((not (setq owner (vc-locking-user file)))
-	  (vc-checkout file t))
+	  (vc-checkout-writeable-buffer))
 
 	 ;; a checked-out version exists, but the user may not own the lock
 	 ((not (string-equal owner (user-login-name)))
@@ -341,12 +345,23 @@ the option to steal the lock."
 
 ;;; These functions help the vc-next-action entry point
 
+(defun vc-checkout-writeable-buffer ()
+  "Retrieve a writeable copy of the latest version of the current buffer's file."
+  (vc-checkout buffer-file-name t)
+  )
+
 ;;;###autoload
 (defun vc-register (&optional override)
   "Register the current file into your version-control system."
   (interactive "P")
   (if (vc-name buffer-file-name)
       (error "This file is already registered."))
+  ;; Watch out for new buffers of size 0: the corresponding file
+  ;; does not exist yet, even though buffer-modified-p is nil.
+  (if (and (not (buffer-modified-p))
+	   (zerop (buffer-size))
+	   (not (file-exists-p buffer-file-name)))
+      (set-buffer-modified-p t))
   (vc-buffer-sync)
   (vc-admin
    buffer-file-name
@@ -526,16 +541,12 @@ popped up to accept a comment."
   (interactive "P")
   (if historic
       (call-interactively 'vc-version-diff)
-    (let ((old
-	   (and
-	    current-prefix-arg
-	    (read-string "Version to compare against: ")))
-	  (file buffer-file-name)
+    (let ((file buffer-file-name)
 	  unchanged)
       (vc-buffer-sync)
       (setq unchanged (vc-workfile-unchanged-p buffer-file-name))
       (if unchanged
-	  (message (format "No changes to %s since latest version." file))
+	  (message "No changes to %s since latest version." file)
 	(pop-to-buffer "*vc*")
 	(vc-backend-diff file nil)
 	(goto-char (point-min))
@@ -561,12 +572,10 @@ files in or below it."
 	(vc-file-tree-walk
 	 (function (lambda (f)
 		     (and
-		      (not (file-directory-p f))
 		      (vc-name f)
-		      (vc-backend-diff f rel1 rel2))
-		     (append-to-buffer "*vc-status*" (point-min) (point-max))
-		     ))
-	 default-directory)
+		      (vc-backend-diff f rel1 rel2)
+		      (append-to-buffer "*vc-status*" (point-min) (point-max)))
+		     )))
 	(pop-to-buffer "*vc-status*")
 	(insert "\nEnd of diffs.\n")
 	(goto-char (point-min))
@@ -576,7 +585,7 @@ files in or below it."
       (vc-backend-diff file rel1 rel2)
       (goto-char (point-min))
       (if (equal (point-min) (point-max))
-	  (message (format "No changes to %s between %s and %s." file rel1 rel2))
+	  (message "No changes to %s between %s and %s." file rel1 rel2)
 	(pop-to-buffer "*vc*")
 	(goto-char (point-min))
 	)
@@ -620,8 +629,7 @@ the variable vc-header-strings"
 (defun vc-directory (verbose)
   "Show version-control status of all files under the current directory."
   (interactive "P")
-  (let ((dir (substring default-directory 0 (1- (length default-directory))))
-	nonempty)
+  (let (nonempty)
     (save-excursion
       (set-buffer (get-buffer-create "*vc-status*"))
       (erase-buffer)
@@ -632,15 +640,15 @@ the variable vc-header-strings"
 			 (if (or user verbose)
 			     (insert (format
 				      "%s	%s\n"
-				      (concat user) f)))))))
-       dir)
+				      (concat user) f))))))))
       (setq nonempty (not (zerop (buffer-size)))))
     (if nonempty
 	(progn
 	  (pop-to-buffer "*vc-status*" t)
 	  (vc-shrink-to-fit)
 	  (goto-char (point-min)))
-      (message "No files are currently registered under %s" dir))
+      (message "No files are currently %s under %s"
+	       (if verbose "registered" "locked") default-directory))
     ))
 
 ;; Named-configuration support for SCCS
@@ -677,14 +685,12 @@ the variable vc-header-strings"
 
 (defun vc-quiescent-p ()
   ;; Is the current directory ready to be snapshot?
-  (let ((dir (substring default-directory 0 (1- (length default-directory)))))
-    (catch 'quiet
-      (vc-file-tree-walk
-       (function (lambda (f)
-		   (if (and (vc-registered f) (vc-locking-user f))
-		       (throw 'quiet nil))))
-       dir)
-      t)))
+  (catch 'quiet
+    (vc-file-tree-walk
+     (function (lambda (f)
+		 (if (and (vc-registered f) (vc-locking-user f))
+		     (throw 'quiet nil)))))
+    t))
 
 ;;;###autoload
 (defun vc-create-snapshot (name)
@@ -697,10 +703,8 @@ version becomes part of the named configuration."
       (error "Can't make a snapshot, locked files are in the way.")
     (vc-file-tree-walk
      (function (lambda (f) (and
-		   (not (file-directory-p f))
 		   (vc-name f)
-		   (vc-backend-assign-name f name))))
-     default-directory)
+		   (vc-backend-assign-name f name)))))
     ))
 
 ;;;###autoload
@@ -714,10 +718,8 @@ levels in the snapshot."
       (error "Can't retrieve a snapshot, locked files are in the way.")
     (vc-file-tree-walk
      (function (lambda (f) (and
-		   (not (file-directory-p f))
 		   (vc-name f)
-		   (vc-error-occurred (vc-backend-checkout f nil name)))))
-     default-directory)
+		   (vc-error-occurred (vc-backend-checkout f nil name))))))
     ))
 
 ;; Miscellaneous other entry points
@@ -825,12 +827,15 @@ From a program, any arguments are passed to the `rcs2log' script."
 	      (setq buffers (cdr buffers)))
 	    files))))
   (find-file-other-window "ChangeLog")
+  (barf-if-buffer-read-only)
   (vc-buffer-sync)
   (undo-boundary)
   (goto-char (point-min))
+  (push-mark)
   (message "Computing change log entries...")
-  (shell-command (mapconcat 'identity (cons "rcs2log" args) " ") t)
-  (message "Computing change log entries... done"))
+  (message "Computing change log entries... %s"
+           (if (eq 0 (apply 'call-process "rcs2log" nil t nil args))
+	       "done" "failed")))
 
 ;; Functions for querying the master and lock files.
 
@@ -1176,7 +1181,7 @@ Return nil if there is no such person."
   ;; Get a difference report between two versions
   (apply 'vc-do-command 1
 	 (or (vc-backend-dispatch file "vcdiff" "rcsdiff")
-	     (error (format "File %s is not under version control." file)))
+	     (error "File %s is not under version control." file))
 	 file
 	 (and oldvers (concat "-r" oldvers))
 	 (and newvers (concat "-r" newvers))
@@ -1290,22 +1295,27 @@ Global user options:
 	(let ((window-min-height 2))
 	  (shrink-window (- (window-height) minsize))))))
 
-(defun vc-file-tree-walk (func dir &rest args)
-  "Apply a given function to dir and all files underneath it, recursively."
-  (apply 'funcall func dir args)
-  (and (file-directory-p dir)
-       (mapcar
-	(function (lambda (f) (or
-		      (string-equal f ".")
-		      (string-equal f "..")
-		      (file-symlink-p f)	;; Avoid possible loops
-		      (apply 'vc-file-tree-walk
-			     func
-			     (if (= (aref dir (1- (length dir))) ?/)
-				 (concat dir f)
-			       (concat dir "/" f))
-			     args))))
-	(directory-files dir))))
+(defun vc-file-tree-walk (func &rest args)
+  "Walk recursively through default directory,
+invoking FUNC f ARGS on all non-directory files f underneath it."
+  (vc-file-tree-walk-internal default-directory func args)
+  (message "Traversing directory %s...done" default-directory))
+
+(defun vc-file-tree-walk-internal (file func args)
+  (if (not (file-directory-p file))
+      (apply func file args)
+    (message "Traversing directory %s..." file)
+    (let ((dir (file-name-as-directory file)))
+      (mapcar
+       (function
+	(lambda (f) (or
+		     (string-equal f ".")
+		     (string-equal f "..")
+		     (let ((dirf (concat dir f)))
+			(or
+			 (file-symlink-p dirf) ;; Avoid possible loops
+			 (vc-file-tree-walk-internal dirf func args))))))
+       (directory-files dir)))))
 
 (provide 'vc)
 
