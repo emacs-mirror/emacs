@@ -26,8 +26,8 @@
 ;;; Commentary:
 
 ;; Makefile in this directory appends the contents of this file (only
-;; such non-empty lines that doesn't begin with ';') to the generated
-;; leim-list.el.
+;; such non-empty lines that don't begin with ';') to the generated
+;; file leim-list.el.
 
 ;;; Code:
 
