@@ -215,6 +215,7 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
   (define-key tex-mode-map "\C-c\C-i" 'tex-bibtex-file)
   (define-key tex-mode-map "\C-c\C-o" 'tex-latex-block)
   (define-key tex-mode-map "\C-c\C-e" 'tex-close-latex-block)
+  (define-key tex-mode-map "\C-c\C-u" 'tex-goto-last-unclosed-latex-block)
   (define-key tex-mode-map [menu-bar tex tex-validate-region]
     '("Validate Region" . tex-validate-region))
   (define-key tex-mode-map [menu-bar tex validate-tex-buffer]
@@ -701,6 +702,19 @@ Puts point on a blank line between them."
   (while (and (re-search-backward "\\(\\\\begin\\s *{\\)\\|\\(\\\\end\\s *{\\)")
               (looking-at "\\\\end{"))
     (tex-last-unended-begin)))
+
+(defun tex-goto-last-unclosed-latex-block ()
+  "Move point to the last unclosed \\begin{...}.
+Mark is left at original location."
+  (interactive)
+  (let ((spot))
+    (save-excursion
+      (condition-case nil
+          (tex-last-unended-begin)
+        (error (error "Couldn't find unended \\begin")))
+      (setq spot (point)))
+    (push-mark)
+    (goto-char spot)))
 
 (defun tex-close-latex-block ()
   "Creates an \\end{...} to match the last unclosed \\begin{...}."
