@@ -1321,8 +1321,10 @@ This finishes the change group by reverting all of its changes."
 (defalias 'redraw-modeline 'force-mode-line-update)
 
 (defun force-mode-line-update (&optional all)
-  "Force the mode line of the current buffer to be redisplayed.
-With optional non-nil ALL, force redisplay of all mode lines."
+  "Force redisplay of the current buffer's mode line and header line.
+With optional non-nil ALL, force redisplay of all mode lines and
+header lines.  This function also forces recomputation of the
+menu bar menus and the frame title."
   (if all (save-excursion (set-buffer (other-buffer))))
   (set-buffer-modified-p (buffer-modified-p)))
 
