@@ -14,9 +14,9 @@ search string.  There are also nonincremental search commands more like
 those of other editors.
 
   Besides the usual @code{replace-string} command that finds all
-occurrences of one string and replaces them with another, Emacs has a fancy
-replacement command called @code{query-replace} which asks interactively
-which occurrences to replace.
+occurrences of one string and replaces them with another, Emacs has a
+more flexible replacement command called @code{query-replace}, which
+asks interactively which occurrences to replace.
 
 @menu
 * Incremental Search::	   Search happens as you type the string.
@@ -50,15 +50,17 @@ Incremental search backward (@code{isearch-backward}).
 
 @kindex C-s
 @findex isearch-forward
-  @kbd{C-s} starts an incremental search.  @kbd{C-s} reads characters from
-the keyboard and positions the cursor at the first occurrence of the
-characters that you have typed.  If you type @kbd{C-s} and then @kbd{F},
-the cursor moves right after the first @samp{F}.  Type an @kbd{O}, and see
-the cursor move to after the first @samp{FO}.  After another @kbd{O}, the
-cursor is after the first @samp{FOO} after the place where you started the
-search.  At each step, the buffer text that matches the search string is
-highlighted, if the terminal can do that; at each step, the current search
-string is updated in the echo area.
+  @kbd{C-s} starts a forward incremental search.  It reads characters
+from the keyboard, and moves point past the next occurrence of those
+characters.  If you type @kbd{C-s} and then @kbd{F}, that puts the
+cursor after the first @samp{F} (following the starting point, since
+this is a forward search).  Then if you type an @kbd{O}, you will see
+the cursor move just after the first @samp{FO} (the @samp{F} in that
+@samp{FO} may or may not be the first @samp{F}).  After another
+@kbd{O}, the cursor moves after the first @samp{FOO} after the place
+where you started the search.  At each step, the buffer text that
+matches the search string is highlighted, if the terminal can do that;
+the current search string is always displayed in the echo area.
 
   If you make a mistake in typing the search string, you can cancel
 characters with @key{DEL}.  Each @key{DEL} cancels the last character of
@@ -78,7 +80,7 @@ special within searches (@kbd{C-q}, @kbd{C-w}, @kbd{C-r}, @kbd{C-s},
 @kbd{C-y}, @kbd{M-y}, @kbd{M-r}, @kbd{M-s}, and some other
 meta-characters).
 
-  Sometimes you search for @samp{FOO} and find it, but not the one you
+  Sometimes you search for @samp{FOO} and find one, but not the one you
 expected to find.  There was a second @samp{FOO} that you forgot
 about, before the one you were aiming for.  In this event, type
 another @kbd{C-s} to move to the next occurrence of the search string.
@@ -102,7 +104,7 @@ string as it could.  Thus, if you search for @samp{FOOT}, and there is no
 At this point there are several things you can do.  If your string was
 mistyped, you can rub some of it out and correct it.  If you like the place
 you have found, you can type @key{RET} or some other Emacs command to
-``accept what the search offered.''  Or you can type @kbd{C-g}, which
+remain there.  Or you can type @kbd{C-g}, which
 removes from the search string the characters that could not be found (the
 @samp{T} in @samp{FOOT}), leaving those that were found (the @samp{FOO} in
 @samp{FOOT}).  A second @kbd{C-g} at that point cancels the search
@@ -141,7 +143,7 @@ string with @kbd{C-\} (@code{isearch-toggle-input-method}).  You can
 turn on a certain (non-default) input method with @kbd{C-^}
 (@code{isearch-toggle-specified-input-method}), which prompts for the
 name of the input method.  Note that the input method you turn on
-during incremental search is turned on in the current buffer as well.
+during incremental search remains enabled in the current buffer as well.
 
   If a search is failing and you ask to repeat it by typing another
 @kbd{C-s}, it starts again from the beginning of the buffer.
@@ -260,19 +262,19 @@ Search backward for @var{string}.
   To do a nonincremental search, first type @kbd{C-s @key{RET}}.  This
 enters the minibuffer to read the search string; terminate the string
 with @key{RET}, and then the search takes place.  If the string is not
-found, the search command gets an error.
+found, the search command signals an error.
 
-  The way @kbd{C-s @key{RET}} works is that the @kbd{C-s} invokes
-incremental search, which is specially programmed to invoke nonincremental
-search if the argument you give it is empty.  (Such an empty argument would
-otherwise be useless.)  @kbd{C-r @key{RET}} also works this way.
-
-  However, nonincremental searches performed using @kbd{C-s @key{RET}} do
-not call @code{search-forward} right away.  The first thing done is to see
-if the next character is @kbd{C-w}, which requests a word search.
+  When you type @kbd{C-s @key{RET}}, the @kbd{C-s} invokes incremental
+search as usual.  That command is specially programmed to invoke
+nonincremental search, @code{search-forward}, if the string you
+specify is empty.  (Such an empty argument would otherwise be
+useless.)  But it does not call @code{search-forward} right away.  First
+it checks the next input character to see if is @kbd{C-w},
+which specifies a word search.
 @ifinfo
 @xref{Word Search}.
 @end ifinfo
+@kbd{C-r @key{RET}} does likewise, for a reverse incremental search.
 
 @findex search-forward
 @findex search-backward
@@ -280,7 +282,7 @@ if the next character is @kbd{C-w}, which requests a word search.
 commands @code{search-forward} and @code{search-backward}.  These
 commands may be bound to keys in the usual manner.  The feature that you
 can get to them via the incremental search commands exists for
-historical reasons, and to avoid the need to find suitable key sequences
+historical reasons, and to avoid the need to find key sequences
 for them.
 
 @node Word Search, Regexp Search, Nonincremental Search, Search
@@ -318,34 +320,33 @@ by constructing a regular expression and searching for that; see
 @findex word-search-backward
   Forward and backward word searches are implemented by the commands
 @code{word-search-forward} and @code{word-search-backward}.  These
-commands may be bound to keys in the usual manner.  The feature that you
-can get to them via the incremental search commands exists for historical
-reasons, and to avoid the need to find suitable key sequences for them.
+commands may be bound to keys in the usual manner.  They are available
+via the incremental search commands both for historical reasons and
+to avoid the need to find suitable key sequences for them.
 
 @node Regexp Search, Regexps, Word Search, Search
 @section Regular Expression Search
 @cindex regular expression
 @cindex regexp
 
-  A @dfn{regular expression} (@dfn{regexp}, for short) is a pattern that
-denotes a class of alternative strings to match, possibly infinitely
-many.  In GNU Emacs, you can search for the next match for a regexp
-either incrementally or not.
+  A @dfn{regular expression} (@dfn{regexp}, for short) is a pattern
+that denotes a class of alternative strings to match, possibly
+infinitely many.  GNU Emacs provides both incremental and
+nonincremental ways to search for a match for a regexp.
 
 @kindex C-M-s
 @findex isearch-forward-regexp
 @kindex C-M-r
 @findex isearch-backward-regexp
   Incremental search for a regexp is done by typing @kbd{C-M-s}
-(@code{isearch-forward-regexp}).  This command reads a search string
-incrementally just like @kbd{C-s}, but it treats the search string as a
-regexp rather than looking for an exact match against the text in the
-buffer.  Each time you add text to the search string, you make the
-regexp longer, and the new regexp is searched for.  Invoking @kbd{C-s}
-with a prefix argument (its value does not matter) is another way to do
-a forward incremental regexp search.  To search backward for a regexp,
-use @kbd{C-M-r} (@code{isearch-backward-regexp}), or @kbd{C-r} with a
-prefix argument.
+(@code{isearch-forward-regexp}), or by invoking @kbd{C-s} with a
+prefix argument (whose value does not matter).  This command reads a
+search string incrementally just like @kbd{C-s}, but it treats the
+search string as a regexp rather than looking for an exact match
+against the text in the buffer.  Each time you add text to the search
+string, you make the regexp longer, and the new regexp is searched
+for.  To search backward for a regexp, use @kbd{C-M-r}
+(@code{isearch-backward-regexp}), or @kbd{C-r} with a prefix argument.
 
   All of the control characters that do special things within an
 ordinary incremental search have the same function in incremental regexp
@@ -780,13 +781,11 @@ history matching commands (@pxref{Minibuffer History}).
 @cindex string substitution
 @cindex global substitution
 
-  Global search-and-replace operations are not needed as often in Emacs
-as they are in other editors@footnote{In some editors,
-search-and-replace operations are the only convenient way to make a
-single change in the text.}, but they are available.  In addition to the
-simple @kbd{M-x replace-string} command which is like that found in most
-editors, there is a @kbd{M-x query-replace} command which asks you, for
-each occurrence of the pattern, whether to replace it.
+  Global search-and-replace operations are not needed often in Emacs,
+but they are available.  In addition to the simple @kbd{M-x
+replace-string} command which is like that found in most editors,
+there is a @kbd{M-x query-replace} command which finds each occurrence
+of the pattern and asks you whether to replace it.
 
   The replace commands normally operate on the text from point to the
 end of the buffer; however, in Transient Mark mode, when the mark is
