@@ -3475,7 +3475,6 @@ Lisp_Object Qhash_table_test;
 static struct Lisp_Hash_Table *check_hash_table P_ ((Lisp_Object));
 static int next_almost_prime P_ ((int));
 static int get_key_arg P_ ((Lisp_Object, int, Lisp_Object *, char *));
-static Lisp_Object larger_vector P_ ((Lisp_Object, int, Lisp_Object));
 static void maybe_resize_hash_table P_ ((struct Lisp_Hash_Table *));
 static int cmpfn_eql P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned,
 			  Lisp_Object, unsigned));
@@ -3564,7 +3563,7 @@ get_key_arg (key, nargs, args, used)
    size NEW_SIZE, NEW_SIZE >= VEC->size.  Entries in the resulting
    vector that are not copied from VEC are set to INIT.  */
 
-static Lisp_Object
+Lisp_Object
 larger_vector (vec, new_size, init)
      Lisp_Object vec;
      int new_size;
