@@ -6278,7 +6278,7 @@ x_list_fonts (f, pattern, size, maxnames)
      int size;
      int maxnames;
 {
-  Lisp_Object list, patterns, newlist = Qnil, key, tem, second_best;
+  Lisp_Object list = Qnil, patterns, newlist = Qnil, key, tem, second_best;
   Display *dpy = f != NULL ? FRAME_X_DISPLAY (f) : x_display_list->display;
 
   patterns = Fassoc (pattern, Valternative_fontname_alist);
