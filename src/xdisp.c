@@ -296,7 +296,7 @@ message_dolog (m, len, nlflag, multibyte)
       int old_windows_or_buffers_changed = windows_or_buffers_changed;
       int point_at_end = 0;
       int zv_at_end = 0;
-      Lisp_Object old_deactivate_mark;
+      Lisp_Object old_deactivate_mark, tem;
 
       old_deactivate_mark = Vdeactivate_mark;
       oldbuf = current_buffer;
@@ -419,8 +419,10 @@ message_dolog (m, len, nlflag, multibyte)
       free_marker (oldbegv);
       free_marker (oldzv);
 
+      tem = Fget_buffer_window (Fcurrent_buffer (), Qt);
       set_buffer_internal (oldbuf);
-      windows_or_buffers_changed = old_windows_or_buffers_changed;
+      if (NILP (tem))
+	windows_or_buffers_changed = old_windows_or_buffers_changed;
       message_log_need_newline = !nlflag;
       Vdeactivate_mark = old_deactivate_mark;
     }
