@@ -62,6 +62,7 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 
 #ifdef HAVE_X_WINDOWS
+#undef HAVE_MULTILINGUAL_MENU
 #ifdef USE_X_TOOLKIT
 #include <X11/Xlib.h>
 #include <X11/IntrinsicP.h>
@@ -1371,6 +1372,10 @@ single_submenu (item_key, item_name, maps)
 	  char *pane_string;
 	  pane_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_NAME];
 	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
+#ifndef HAVE_MULTILINGUAL_MENU
+	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
+	    pane_name = string_make_unibyte (pane_name);
+#endif
 	  pane_string = (NILP (pane_name)
 			 ? "" : (char *) XSTRING (pane_name)->data);
 	  /* If there is just one top-level pane, put all its items directly
@@ -1409,7 +1414,12 @@ single_submenu (item_key, item_name, maps)
 	  descrip
 	    = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
 	  def = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_DEFINITION];
-
+#ifndef HAVE_MULTILINGUAL_MENU
+	  if (STRING_MULTIBYTE (item_name))
+	    item_name = string_make_unibyte (item_name);
+	  if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
+	    descrip = string_make_unibyte (descrip);
+#endif
 	  wv = xmalloc_widget_value ();
 	  if (prev_wv) 
 	    prev_wv->next = wv;
@@ -1905,6 +1915,10 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	  char *pane_string;
 	  pane_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_NAME];
 	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
+#ifndef HAVE_MULTILINGUAL_MENU
+	  if (!NILP (pane_name) && STRING_MULTIBYTE (pane_name))
+	    pane_name = string_make_unibyte (pane_name);
+#endif
 	  pane_string = (NILP (pane_name)
 			 ? "" : (char *) XSTRING (pane_name)->data);
 	  /* If there is just one top-level pane, put all its items directly
@@ -1947,6 +1961,12 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	  descrip
 	    = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
 	  def = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_DEFINITION];
+#ifndef HAVE_MULTILINGUAL_MENU
+	  if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
+	    item_name = string_make_unibyte (item_name);
+	  if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
+	    item_name = string_make_unibyte (descrip);
+#endif
 
 	  wv = xmalloc_widget_value ();
 	  if (prev_wv) 
@@ -1982,6 +2002,10 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
       wv_sep1->name = "--";
       wv_sep1->next = wv_sep2;
 
+#ifndef HAVE_MULTILINGUAL_MENU
+      if (STRING_MULTIBYTE (title))
+	title = string_make_unibyte (title);
+#endif
       wv_title->name = (char *) XSTRING (title)->data;
       wv_title->enabled = True;
       wv_title->next = wv_sep1;
