@@ -81,7 +81,7 @@
 /* Both the Emacs and non-Emacs sections want this.  Some
    configuration files' definitions for the LOAD_AVE_CVT macro (like
    sparc.h's) use macros like FSCALE, defined here.  */
-#ifdef unix
+#if defined (unix) || defined (__unix)
 # include <sys/param.h>
 #endif
 
