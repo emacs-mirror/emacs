@@ -1840,6 +1840,7 @@ Garbage collection happens automatically if you cons more than\n\
 	  mark_object (&tail->var[i]);
 	  XMARK (tail->var[i]);
 	}
+  mark_byte_stack ();
   for (bind = specpdl; bind != specpdl_ptr; bind++)
     {
       mark_object (&bind->symbol);
@@ -1922,6 +1923,7 @@ Garbage collection happens automatically if you cons more than\n\
   for (tail = gcprolist; tail; tail = tail->next)
     for (i = 0; i < tail->nvars; i++)
       XUNMARK (tail->var[i]);
+  relocate_byte_pcs ();
   for (backlist = backtrace_list; backlist; backlist = backlist->next)
     {
       XUNMARK (*backlist->function);
@@ -3324,6 +3326,7 @@ init_alloc_once ()
 
   ignore_warnings = 0;
   gcprolist = 0;
+  byte_stack_list = 0;
   staticidx = 0;
   consing_since_gc = 0;
   gc_cons_threshold = 100000 * sizeof (Lisp_Object);
@@ -3337,6 +3340,7 @@ void
 init_alloc ()
 {
   gcprolist = 0;
+  byte_stack_list = 0;
 }
 
 void
