@@ -64,7 +64,7 @@ extern Lisp_Object make_time P_ ((time_t));
 extern size_t emacs_strftimeu P_ ((char *, size_t, const char *,
 				   const struct tm *, int));
 static int tm_diff P_ ((struct tm *, struct tm *));
-static void find_field P_ ((Lisp_Object, Lisp_Object, int *, int *));
+static void find_field P_ ((Lisp_Object, Lisp_Object, Lisp_Object, int *, Lisp_Object, int *));
 static void update_buffer_properties P_ ((int, int));
 static Lisp_Object region_limit P_ ((int));
 static int lisp_time_argument P_ ((Lisp_Object, time_t *, int *));
@@ -404,6 +404,9 @@ text_property_stickiness (prop, pos)
    the value of point is used instead.  If BEG or END null,
    means don't store the beginning or end of the field.
 
+   BEG_LIMIT and END_LIMIT serve to limit the ranged of the returned
+   results; they do not effect boundary behavior.
+
    If MERGE_AT_BOUNDARY is nonzero, then if POS is at the very first
    position of a field, then the beginning of the previous field is
    returned instead of the beginning of POS's field (since the end of a
@@ -418,9 +421,10 @@ text_property_stickiness (prop, pos)
    is not stored.  */
 
 static void
-find_field (pos, merge_at_boundary, beg, end)
+find_field (pos, merge_at_boundary, beg_limit, beg, end_limit, end)
      Lisp_Object pos;
      Lisp_Object merge_at_boundary;
+     Lisp_Object beg_limit, end_limit;
      int *beg, *end;
 {
   /* Fields right before and after the point.  */
@@ -544,9 +548,11 @@ find_field (pos, merge_at_boundary, beg, end)
 	{
 	  if (!NILP (merge_at_boundary) && EQ (before_field, Qboundary))
 	    /* Skip a `boundary' field.  */
-	    pos = Fprevious_single_char_property_change (pos, Qfield, Qnil,Qnil);
+	    pos = Fprevious_single_char_property_change (pos, Qfield, Qnil,
+							 beg_limit);
 
-	  pos = Fprevious_single_char_property_change (pos, Qfield, Qnil, Qnil);
+	  pos = Fprevious_single_char_property_change (pos, Qfield, Qnil,
+						       beg_limit);
 	  *beg = NILP (pos) ? BEGV : XFASTINT (pos);
 	}
     }
@@ -562,9 +568,11 @@ find_field (pos, merge_at_boundary, beg, end)
 	{
 	  if (!NILP (merge_at_boundary) && EQ (after_field, Qboundary))
 	    /* Skip a `boundary' field.  */
-	    pos = Fnext_single_char_property_change (pos, Qfield, Qnil, Qnil);
+	    pos = Fnext_single_char_property_change (pos, Qfield, Qnil,
+						     end_limit);
 
-	  pos = Fnext_single_char_property_change (pos, Qfield, Qnil, Qnil);
+	  pos = Fnext_single_char_property_change (pos, Qfield, Qnil,
+						   end_limit);
 	  *end = NILP (pos) ? ZV : XFASTINT (pos);
 	}
     }
@@ -579,7 +587,7 @@ If POS is nil, the value of point is used for POS.  */)
      Lisp_Object pos;
 {
   int beg, end;
-  find_field (pos, Qnil, &beg, &end);
+  find_field (pos, Qnil, Qnil, &beg, Qnil, &end);
   if (beg != end)
     del_range (beg, end);
   return Qnil;
@@ -593,7 +601,7 @@ If POS is nil, the value of point is used for POS.  */)
      Lisp_Object pos;
 {
   int beg, end;
-  find_field (pos, Qnil, &beg, &end);
+  find_field (pos, Qnil, Qnil, &beg, Qnil, &end);
   return make_buffer_string (beg, end, 1);
 }
 
@@ -605,35 +613,39 @@ If POS is nil, the value of point is used for POS.  */)
      Lisp_Object pos;
 {
   int beg, end;
-  find_field (pos, Qnil, &beg, &end);
+  find_field (pos, Qnil, Qnil, &beg, Qnil, &end);
   return make_buffer_string (beg, end, 0);
 }
 
-DEFUN ("field-beginning", Ffield_beginning, Sfield_beginning, 0, 2, 0,
+DEFUN ("field-beginning", Ffield_beginning, Sfield_beginning, 0, 3, 0,
        doc: /* Return the beginning of the field surrounding POS.
 A field is a region of text with the same `field' property.
 If POS is nil, the value of point is used for POS.
 If ESCAPE-FROM-EDGE is non-nil and POS is at the beginning of its
-field, then the beginning of the *previous* field is returned.  */)
-     (pos, escape_from_edge)
-     Lisp_Object pos, escape_from_edge;
+field, then the beginning of the *previous* field is returned.
+If LIMIT is non-nil, it is a buffer position; if the beginning of the field
+is before LIMIT, then LIMIT will be returned instead.  */)
+     (pos, escape_from_edge, limit)
+     Lisp_Object pos, escape_from_edge, limit;
 {
   int beg;
-  find_field (pos, escape_from_edge, &beg, 0);
+  find_field (pos, escape_from_edge, limit, &beg, Qnil, 0);
   return make_number (beg);
 }
 
-DEFUN ("field-end", Ffield_end, Sfield_end, 0, 2, 0,
+DEFUN ("field-end", Ffield_end, Sfield_end, 0, 3, 0,
        doc: /* Return the end of the field surrounding POS.
 A field is a region of text with the same `field' property.
 If POS is nil, the value of point is used for POS.
 If ESCAPE-FROM-EDGE is non-nil and POS is at the end of its field,
-then the end of the *following* field is returned.  */)
-     (pos, escape_from_edge)
-     Lisp_Object pos, escape_from_edge;
+then the end of the *following* field is returned.
+If LIMIT is non-nil, it is a buffer position; if the end of the field
+is after LIMIT, then LIMIT will be returned instead.  */)
+     (pos, escape_from_edge, limit)
+     Lisp_Object pos, escape_from_edge, limit;
 {
   int end;
-  find_field (pos, escape_from_edge, 0, &end);
+  find_field (pos, escape_from_edge, Qnil, 0, limit, &end);
   return make_number (end);
 }
 
@@ -696,9 +708,9 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
       fwd = (XFASTINT (new_pos) > XFASTINT (old_pos));
 
       if (fwd)
-	field_bound = Ffield_end (old_pos, escape_from_edge);
+	field_bound = Ffield_end (old_pos, escape_from_edge, new_pos);
       else
-	field_bound = Ffield_beginning (old_pos, escape_from_edge);
+	field_bound = Ffield_beginning (old_pos, escape_from_edge, new_pos);
 
       if (/* See if ESCAPE_FROM_EDGE caused FIELD_BOUND to jump to the
              other side of NEW_POS, which would mean that NEW_POS is
