@@ -1179,6 +1179,10 @@ command_loop_1 ()
       i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
 			     Qnil, 0, 1);
 
+      /* A filter may have run while we were reading the input.  */
+      if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
+	set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
+
       ++num_input_keys;
 
       /* Now we have read a key sequence of length I,
