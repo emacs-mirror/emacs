@@ -1,3 +1,9 @@
+2000-08-30  Andrew Innes  <andrewi@gnu.org>
+
+	* timer.el (run-with-idle-timer): Undo last change, so that timer
+	is not activated immediately if Emacs is already idle.  Some
+	existing code relies on this behaviour.
+
 2000-08-30  Miles Bader  <miles@gnu.org>
 
 	* frame.el (set-frame-font): Do completion of font-name for
@@ -6975,5 +6981,5 @@
 See ChangeLog.8 for earlier changes.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: iso-2022-7bit-unix
 ;; End:
