@@ -2163,6 +2163,8 @@ x_encode_text (string, coding_system, text_bytes, stringp)
   coding.mode |= CODING_MODE_LAST_BLOCK;
   if (coding.type == coding_type_iso2022)
     coding.flags |= CODING_FLAG_ISO_SAFE;
+  /* We suppress producing escape sequences for composition.  */
+  coding.composing = COMPOSITION_DISABLED;
   bufsize = encoding_buffer_size (&coding, bytes);
   buf = (unsigned char *) xmalloc (bufsize);
   encode_coding (&coding, str, buf, bytes, bufsize);
