@@ -311,7 +311,7 @@ make_frame (mini_p)
   f->auto_raise = 0;
   f->auto_lower = 0;
   f->no_split = 0;
-  f->garbaged = 0;
+  f->garbaged = 1;
   f->has_minibuffer = mini_p;
   f->focus_frame = Qnil;
   f->explicit_name = 0;
