@@ -48,14 +48,15 @@ files.
 @findex dired
 @kindex C-x d
 @vindex dired-listing-switches
-  To invoke Dired, do @kbd{C-x d} or @kbd{M-x dired}.  The command reads
-a directory name or wildcard file name pattern as a minibuffer argument
-to specify which files to list.  Where @code{dired} differs from
-@code{list-directory} is in putting the buffer into Dired mode so that
-the special commands of Dired are available.
+  To invoke Dired, do @kbd{C-x d} or @kbd{M-x dired}.  The command
+reads a directory name or wildcard file name pattern as a minibuffer
+argument to specify which files to list.  @kbd{C-x C-f} given a
+directory name also invokes Dired.  Where @code{dired} differs from
+@code{list-directory} is that it puts the buffer into Dired mode, so
+that the special commands of Dired are available.
 
   The variable @code{dired-listing-switches} specifies the options to
-give to @code{ls} for listing directory; this string @emph{must} contain
+give to @code{ls} for listing the directory; this string @emph{must} contain
 @samp{-l}.  If you use a numeric prefix argument with the @code{dired}
 command, you can specify the @code{ls} switches with the minibuffer
 before you enter the directory specification.  No matter how they are
@@ -255,11 +256,13 @@ and supplying that file name (@code{dired-find-file}).  @xref{Visiting}.
 @kindex e @r{(Dired)}
 Equivalent to @kbd{f}.
 
+@ignore  @c This command seems too risky to document at all.
 @item a
 @kindex a @r{(Dired)}
 @findex dired-find-alternate-file
 Like @kbd{f}, but replaces the contents of the Dired buffer with
 that of an alternate file or directory (@code{dired-find-alternate-file}).
+@end ignore
 
 @item o
 @kindex o @r{(Dired)}
@@ -275,7 +278,8 @@ file.  @xref{Windows}.
 Visit the file described on the current line, and display the buffer in
 another window, but do not select that window (@code{dired-display-file}).
 
-@item Mouse-2
+@item Mouse-1
+@itemx Mouse-2
 @findex dired-mouse-find-file-other-window
 Visit the file named by the line you click on
 (@code{dired-mouse-find-file-other-window}).  This uses another window
@@ -697,10 +701,10 @@ For example, @kbd{! uudecode @key{RET}} runs @code{uudecode} on each
 file.
 
 @item
-If the command string contains @samp{?} surrounded by whitespace, the
-current file name is substituted for @samp{?}.  You can use @samp{?}
-this way more than once in the command, and each occurrence is
-replaced.
+However, if the command string contains @samp{?} surrounded by
+whitespace, the current file name is substituted for @samp{?}  (rather
+than added at the end).  You can use @samp{?} this way more than once
+in the command, and the same file name replaces each occurrence.
 @end itemize
 
 To iterate over the file names in a more complicated fashion, use an
