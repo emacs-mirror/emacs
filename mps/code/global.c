@@ -183,6 +183,10 @@ Bool GlobalsCheck(Globals arenaGlobals)
     CHECKL(RingCheck(&arena->greyRing[rank]));
   CHECKL(RingCheck(&arena->chainRing));
 
+  CHECKL(arena->tracedSize >= 0.0);
+  CHECKL(arena->tracedTime >= 0.0);
+  CHECKL(arena->lastWorldCollect >= 0);
+
   /* can't write a check for arena->epoch */
 
   /* check that each history entry is a subset of the next oldest */
@@ -261,6 +265,9 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->finalPool = NULL;
   arena->busyTraces = TraceSetEMPTY;    /* <code/trace.c> */
   arena->flippedTraces = TraceSetEMPTY; /* <code/trace.c> */
+  arena->tracedSize = 0.0;
+  arena->tracedTime = 0.0;
+  arena->lastWorldCollect = mps_clock();
   arena->insideShield = FALSE;          /* <code/shield.c> */
   arena->shCacheI = (Size)0;
   arena->shCacheLimit = (Size)1;
@@ -269,7 +276,7 @@ Res GlobalsInit(Globals arenaGlobals)
   for(i = 0; i < ShieldCacheSIZE; i++)
     arena->shCache[i] = NULL;
 
-  for (i=0; i < TraceLIMIT; i++) {
+ for (i=0; i < TraceLIMIT; i++) {
     /* <design/arena/#trace.invalid> */
     arena->trace[i].sig = SigInvalid;
   }
@@ -547,28 +554,105 @@ void ArenaPoll(Globals globals)
 
   globals->insidePoll = TRUE;
 
-  (void)ArenaStep(globals, 0.0);
+  (void)ArenaStep(globals, 0.0, 0.0);
 
   globals->insidePoll = FALSE;
 }
 #endif
 
-Bool ArenaStep(Globals globals, double interval)
+/* Work out whether we have enough time here to collect the world,
+ * and whether much time has passed since the last time we did that
+ * opportunistically. */
+static Bool arenaShouldCollectWorld(Arena arena,
+                                    double interval,
+                                    double multiplier,
+                                    Word now,
+                                    Word clocks_per_sec)
+{
+  double scanRate;
+  Size arenaSize;
+  double arenaScanTime;
+  double sinceLastWorldCollect;
+
+  /* don't collect the world if we're not given any time */
+  if ((interval > 0.0) && (multiplier > 0.0)) {
+    /* don't collect the world if we're already collecting. */
+    if (arena->busyTraces == TraceSetEMPTY) {
+      /* don't collect the world if it's very small */
+      arenaSize = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
+      if (arenaSize > 1000000) {
+        /* how long would it take to collect the world? */
+        if ((arena->tracedSize > 1000000.0) &&
+            (arena->tracedTime > 1.0))
+          scanRate = arena->tracedSize / arena->tracedTime;
+        else
+          scanRate = 25000000.0; /* a reasonable default. */
+        arenaScanTime = arenaSize / scanRate;
+        arenaScanTime += 0.1;   /* for overheads. */
+
+        /* how long since we last collected the world? */
+        sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
+                                 (double) clocks_per_sec);
+        /* have to be offered enough time, and it has to be a long time
+         * since we last did it. */
+        if ((interval * multiplier > arenaScanTime) &&
+            sinceLastWorldCollect > arenaScanTime * 10.0) {
+          return TRUE;
+        }
+      }
+    }
+  }
+  return FALSE;
+}
+
+Bool ArenaStep(Globals globals, double interval, double multiplier)
 {
   double size;
-  Bool b;
-
-  UNUSED(interval);
+  Size scanned;
+  Bool stepped;
+  Word start, end, now;
+  Word clocks_per_sec;
+  Arena arena;
 
   AVERT(Globals, globals);
+  AVER(interval >= 0.0);
+  AVER(multiplier >= 0.0);
 
-  b = TracePoll(globals);
+  arena = GlobalsArena(globals);
+  clocks_per_sec = mps_clocks_per_sec();
+
+  start = mps_clock();
+  end = start + (Word)(interval * clocks_per_sec);
+  AVER(end >= start);
+
+  stepped = FALSE;
+
+  if (arenaShouldCollectWorld(arena, interval, multiplier,
+                              start, clocks_per_sec)) {
+    ArenaStartCollect(globals);
+    arena->lastWorldCollect = start;
+    stepped = TRUE;
+  }
+
+  /* loop while there is work to do and time on the clock. */
+  do {
+    scanned = TracePoll(globals);
+    now = mps_clock();
+    if (scanned > 0) {
+      stepped = TRUE;
+      arena->tracedSize += scanned;
+    }
+  } while ((scanned > 0) && (now < end));
+
+  if (stepped) {
+    arena->tracedTime += (now - start) / (double) clocks_per_sec;
+  }
 
   size = globals->fillMutatorSize;
   globals->pollThreshold = size + ArenaPollALLOCTIME;
   AVER(globals->pollThreshold > size); /* enough precision? */
 
-  return b;
+  return stepped;
 }
 
 /* ArenaFinalize -- registers an object for finalization

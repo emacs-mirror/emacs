@@ -356,7 +356,7 @@ extern void TraceDestroy(Trace trace);
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
 extern void TraceStart(Trace trace, double mortality, double finishingTime);
-extern Bool TracePoll(Globals globals);
+extern Size TracePoll(Globals globals);
 
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
 extern Res TraceFix(ScanState ss, Ref *refIO);
@@ -471,10 +471,11 @@ extern void (ArenaPoll)(Globals globals);
 /* .nogc.why: ScriptWorks doesn't use MM-provided incremental GC, so */
 /* doesn't need to poll when allocating. */
 
-extern Bool (ArenaStep)(Globals globals, double interval);
+extern Bool (ArenaStep)(Globals globals, double interval, double multiplier);
 extern void ArenaClamp(Globals globals);
 extern void ArenaRelease(Globals globals);
 extern void ArenaPark(Globals globals);
+extern Res ArenaStartCollect(Globals globals);
 extern Res ArenaCollect(Globals globals);
 extern Bool ArenaHasAddr(Arena arena, Addr addr);
 

@@ -273,14 +273,14 @@ static void traceUpdateCounts(Trace trace, ScanState ss,
 {
   switch(phase) {
   case traceAccountingPhaseRootScan:
-    STATISTIC(trace->rootScanSize += ss->scannedSize);
-    STATISTIC(trace->rootCopiedSize += ss->copiedSize);
+    trace->rootScanSize += ss->scannedSize;
+    trace->rootCopiedSize += ss->copiedSize;
     STATISTIC(++trace->rootScanCount);
     break;
 
   case traceAccountingPhaseSegScan:
     trace->segScanSize += ss->scannedSize; /* see .workclock */
-    STATISTIC(trace->segCopiedSize += ss->copiedSize);
+    trace->segCopiedSize += ss->copiedSize;
     STATISTIC(++trace->segScanCount);
     break;
 
@@ -657,11 +657,11 @@ found:
   STATISTIC(trace->greySegCount = (Count)0);
   STATISTIC(trace->greySegMax = (Count)0);
   STATISTIC(trace->rootScanCount = (Count)0);
-  STATISTIC(trace->rootScanSize = (Size)0);
-  STATISTIC(trace->rootCopiedSize = (Size)0);
+  trace->rootScanSize = (Size)0;
+  trace->rootCopiedSize = (Size)0;
   STATISTIC(trace->segScanCount = (Count)0);
   trace->segScanSize = (Size)0; /* see .workclock */
-  STATISTIC(trace->segCopiedSize = (Size)0);
+  trace->segCopiedSize = (Size)0;
   STATISTIC(trace->singleScanCount = (Count)0);
   STATISTIC(trace->singleScanSize = (Size)0);
   STATISTIC(trace->singleCopiedSize = (Size)0);
@@ -1467,9 +1467,9 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
 
 /* traceWorkClock -- a measure of the work done for this trace
  *
- * .workclock: Segment scanning work is the regulator.  */
+ * .workclock: Segment and root scanning work is the regulator.  */
 
-#define traceWorkClock(trace) (trace)->segScanSize
+#define traceWorkClock(trace) ((trace)->segScanSize + (trace)->rootScanSize)
 
 
 /* traceQuantum -- progresses a trace by one quantum */
@@ -1507,19 +1507,51 @@ static void traceQuantum(Trace trace)
            && (trace->emergency || traceWorkClock(trace) < pollEnd));
 }
 
+/* traceStartCollectAll: start a trace which condemns everything in
+ * the arena. */
+
+static Res traceStartCollectAll(Trace *traceReturn, Arena arena)
+{
+  Trace trace;
+  Res res;
+  double finishingTime;
+
+  AVERT(Arena, arena);
+  AVER(arena->busyTraces == TraceSetEMPTY);
+
+  res = TraceCreate(&trace, arena);
+  AVER(res == ResOK); /* succeeds because no other trace is busy */
+  res = traceCondemnAll(trace);
+  if (res != ResOK) /* should try some other trace, really @@@@ */
+    goto failCondemn;
+  finishingTime = ArenaAvail(arena)
+                  - trace->condemned * (1.0 - TraceTopGenMortality);
+  if (finishingTime < 0)
+    /* Run out of time, should really try a smaller collection. @@@@ */
+    finishingTime = 0.0;
+  TraceStart(trace, TraceTopGenMortality, finishingTime);
+  *traceReturn = trace;
+  return ResOK;
+
+failCondemn:
+  TraceDestroy(trace);
+  return res;
+}
+
 
 /* TracePoll -- Check if there's any tracing work to be done */
 
-Bool TracePoll(Globals globals)
+Size TracePoll(Globals globals)
 {
   Trace trace;
   Res res;
   Arena arena;
-  Bool done = FALSE;
+  Size scannedSize;
 
   AVERT(Globals, globals);
   arena = GlobalsArena(globals);
 
+  scannedSize = (Size)0;
   if (arena->busyTraces == TraceSetEMPTY) {
     /* If no traces are going on, see if we need to start one. */
     Size sFoundation, sCondemned, sSurvivors, sConsTrace;
@@ -1537,23 +1569,13 @@ Bool TracePoll(Globals globals)
     AVER(TraceWorkFactor >= 0);
     AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
     sConsTrace = (Size)(sSurvivors + tTracePerScan * TraceWorkFactor);
-    dynamicDeferral = (double)sConsTrace - (double)ArenaAvail(arena);
+    dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
 
-    if (dynamicDeferral > 0.0) { /* start full GC */
-      double finishingTime;
-
-      res = TraceCreate(&trace, arena);
-      AVER(res == ResOK); /* succeeds because no other trace is busy */
-      res = traceCondemnAll(trace);
-      if (res != ResOK) /* should try some other trace, really @@@@ */
-        goto failCondemn;
-      finishingTime = ArenaAvail(arena)
-                      - trace->condemned * (1.0 - TraceTopGenMortality);
-      if (finishingTime < 0)
-        /* Run out of time, should really try a smaller collection. @@@@ */
-        finishingTime = 0.0;
-      TraceStart(trace, TraceTopGenMortality, finishingTime);
-      done = TRUE;
+    if (dynamicDeferral < 0.0) { /* start full GC */
+      res = traceStartCollectAll(&trace, arena);
+      if (res != ResOK)
+        goto failStart;
+      scannedSize = traceWorkClock(trace);
     } else { /* Find the nursery most over its capacity. */
       Ring node, nextNode;
       double firstTime = 0.0;
@@ -1582,29 +1604,32 @@ Bool TracePoll(Globals globals)
         trace->chain = firstChain;
         ChainStartGC(firstChain, trace);
         TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
-        done = TRUE;
+        scannedSize = traceWorkClock(trace);
       }
     } /* (dynamicDeferral > 0.0) */
   } /* (arena->busyTraces == TraceSetEMPTY) */
 
   /* If there is a trace, do one quantum of work. */
   if (arena->busyTraces != TraceSetEMPTY) {
+    Size oldScanned;
     trace = ArenaTrace(arena, (TraceId)0);
     AVER(arena->busyTraces == TraceSetSingle(trace));
+    oldScanned = traceWorkClock(trace);
     traceQuantum(trace);
+    scannedSize = traceWorkClock(trace) - oldScanned;
     if (trace->state == TraceFINISHED)
       TraceDestroy(trace);
-    done = TRUE;
   }
-  return done;
+  return scannedSize;
 
 failCondemn:
   TraceDestroy(trace);
-  return FALSE;
+failStart:
+  return (Size)0;
 }
 
 
-/* ArenaClamp -- clamp the arena (no new collections) */
+/* ArenaClamp -- clamp the arena (no optional collection increments) */
 
 void ArenaClamp(Globals globals)
 {
@@ -1613,7 +1638,8 @@ void ArenaClamp(Globals globals)
 }
 
 
-/* ArenaRelease -- release the arena (allow new collections) */
+/* ArenaRelease -- release the arena (allow optional collection
+ * increments) */
 
 void ArenaRelease(Globals globals)
 {
@@ -1623,7 +1649,7 @@ void ArenaRelease(Globals globals)
 }
 
 
-/* ArenaClamp -- finish all collections and clamp the arena */
+/* ArenaPark -- finish all current collections and clamp the arena */
 
 void ArenaPark(Globals globals)
 {
@@ -1646,33 +1672,44 @@ void ArenaPark(Globals globals)
   }
 }
 
+/* ArenaStartCollect -- start a collection of everything in the
+ * arena; leave unclamped. */
 
-/* ArenaCollect -- collect everything in arena */
-
-Res ArenaCollect(Globals globals)
+Res ArenaStartCollect(Globals globals)
 {
-  Trace trace;
+  Arena arena;
   Res res;
+  Trace trace;
 
   AVERT(Globals, globals);
+  arena = GlobalsArena(globals);
+
   ArenaPark(globals);
-
-  res = TraceCreate(&trace, GlobalsArena(globals));
-  AVER(res == ResOK); /* should be a trace available -- we're parked */
-
-  res = traceCondemnAll(trace);
+  res = traceStartCollectAll(&trace, arena);
   if (res != ResOK)
-    goto failBegin;
-
-  TraceStart(trace, 0.0, 0.0);
-  ArenaPark(globals);
+    goto failStart;
+  ArenaRelease(globals);
   return ResOK;
 
-failBegin:
-  TraceDestroy(trace);
+failStart:
+  ArenaRelease(globals);
   return res;
 }
 
+/* ArenaCollect -- collect everything in arena; leave clamped */
+
+Res ArenaCollect(Globals globals)
+{
+  Res res;
+
+  AVERT(Globals, globals);
+  res = ArenaStartCollect(globals);
+  if (res != ResOK)
+    return res;
+
+  ArenaPark(globals);
+  return ResOK;
+}
 
 /* C. COPYRIGHT AND LICENSE
  *
