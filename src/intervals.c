@@ -159,7 +159,7 @@ intervals_equal (i0, i1)
 
       /* i0 and i1 both have sym, but it has different values in each */
       i0_cdr = Fcdr (i0_cdr);
-      if (! Fequal (i1_val, Fcar (i0_cdr)))
+      if (NILP (Fequal (i1_val, Fcar (i0_cdr))))
 	return 0;
 
       i0_cdr = Fcdr (i0_cdr);
