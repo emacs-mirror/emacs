@@ -302,7 +302,7 @@ DEFUN ("keymap-parent", Fkeymap_parent, Skeymap_parent, 1, 1, 0,
 	return list;
     }
 
-  return get_keymap_1(list, 0, autoload);
+  return get_keymap_1(list, 0, 1);
 }
 
 
