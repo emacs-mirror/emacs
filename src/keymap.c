@@ -269,7 +269,7 @@ access_keymap (map, idx)
    and INDEX is the object to look up in KEYMAP to yield the definition.
 
    Also if OBJECT has a menu string as the first element,
-   remove that.  */
+   remove that.  Also remove a menu help string as second element.  */
 
 Lisp_Object
 get_keyelt (object)
@@ -292,7 +292,14 @@ get_keyelt (object)
 	 will be used by HierarKey menus.  */
       else if (XTYPE (object) == Lisp_Cons
 	       && XTYPE (XCONS (object)->car) == Lisp_String)
-	object = XCONS (object)->cdr;
+	{
+	  object = XCONS (object)->cdr;
+	  /* Also remove a menu help string, if any,
+	     following the menu item name.  */
+	  if (XTYPE (object) == Lisp_Cons
+	      && XTYPE (XCONS (object)->car) == Lisp_String)
+	    object = XCONS (object)->cdr;
+	}
 
       else
 	/* Anything else is really the value.  */
