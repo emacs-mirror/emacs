@@ -179,21 +179,41 @@ string_to_non_ascii_char (str, len, actual_len)
 {
   int charset;
   unsigned char c1, c2;
-  register int c;
+  register int c, bytes;
 
-  if (SPLIT_STRING (str, len, charset, c1, c2) == CHARSET_ASCII)
+  c = *str;
+  bytes = 1;
+
+  if (BASE_LEADING_CODE_P (c))
     {
-      if (actual_len)
-	*actual_len = 1;
-      return (int) *str;
+      while (bytes < len && ! CHAR_HEAD_P (str[bytes])) bytes++;
+
+      if (c == LEADING_CODE_COMPOSITION)
+	{
+	  int cmpchar_id = str_cmpchar_id (str, bytes);
+
+	  if (cmpchar_id >= 0)
+	    c = MAKE_COMPOSITE_CHAR (cmpchar_id);
+	}
+      else
+	{
+	  int charset = c, c1, c2 = 0;
+
+	  str++;
+	  if (c >= LEADING_CODE_PRIVATE_11)
+	    charset = *str++;
+	  if (BYTES_BY_CHAR_HEAD (c) <= bytes && CHARSET_DEFINED_P (charset))
+	    {
+	      c1 = *str++ & 0x7f;
+	      if (CHARSET_DIMENSION (charset) == 2)
+		c2 = *str & 0x7F;
+	      c = MAKE_NON_ASCII_CHAR (charset, c1, c2);
+	    }
+	}
     }
 
-  c = MAKE_NON_ASCII_CHAR (charset, c1, c2);
-
   if (actual_len)
-    *actual_len = (charset == CHARSET_COMPOSITION
-		   ? cmpchar_table[COMPOSITE_CHAR_ID (c)]->len
-		   : BYTES_BY_CHAR_HEAD (*str));
+    *actual_len = bytes;
   return c;
 }
 
@@ -203,16 +223,12 @@ multibyte_form_length (str, len)
      const unsigned char *str;
      int len;
 {
-  int charset;
-  unsigned char c1, c2;
-  register int c;
+  int bytes = 1;
 
-  if (SPLIT_STRING (str, len, charset, c1, c2) == CHARSET_ASCII)
-    return 1;
+  if (BASE_LEADING_CODE_P (*str))
+    while (bytes < len && ! CHAR_HEAD_P (str[bytes])) bytes++;
 
-  return (charset == CHARSET_COMPOSITION
-	  ? cmpchar_table[(c1 << 7) | c2]->len
-	  : BYTES_BY_CHAR_HEAD (*str));
+  return bytes;
 }
 
 /* Check if string STR of length LEN contains valid multi-byte form of
@@ -803,6 +819,30 @@ DEFUN ("char-charset", Fchar_charset, Schar_charset, 1, 1, 0,
   CHECK_NUMBER (ch, 0);
 
   return CHARSET_SYMBOL (CHAR_CHARSET (XINT (ch)));
+}
+
+DEFUN ("charset-after", Fcharset_after, Scharset_after, 0, 1, 0,
+  "Return charset of a character in current buffer at position POS.\n\
+If POS is nil, it defauls to the current point.")
+  (pos)
+     Lisp_Object pos;
+{
+  register int pos_byte, c, charset;
+  register unsigned char *p;
+
+  if (NILP (pos))
+    pos_byte = PT_BYTE;
+  else if (MARKERP (pos))
+    pos_byte = marker_byte_position (pos);
+  else
+    {
+      CHECK_NUMBER (pos, 0);
+      pos_byte = CHAR_TO_BYTE (XINT (pos));
+    }
+  p = BYTE_POS_ADDR (pos_byte);
+  c = STRING_CHAR (p, Z_BYTE - pos_byte);
+  charset = CHAR_CHARSET (c);
+  return CHARSET_SYMBOL (charset);
 }
 
 DEFUN ("iso-charset", Fiso_charset, Siso_charset, 3, 3, 0,
@@ -1682,6 +1722,7 @@ syms_of_charset ()
   defsubr (&Smake_char_internal);
   defsubr (&Ssplit_char);
   defsubr (&Schar_charset);
+  defsubr (&Scharset_after);
   defsubr (&Siso_charset);
   defsubr (&Schar_valid_p);
   defsubr (&Sunibyte_char_to_multibyte);
