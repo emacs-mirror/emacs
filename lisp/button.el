@@ -1,4 +1,4 @@
-;;; button.el --- Clickable buttons
+;;; button.el --- clickable buttons
 ;;
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 ;;
