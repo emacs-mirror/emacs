@@ -1425,6 +1425,35 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0, "T if NUMBER is zero.")
   return Qnil;
 }
 
+/* Convert between 32-bit values and pairs of lispy 24-bit values.  */
+
+Lisp_Object
+long_to_cons (i)
+     unsigned long i;
+{
+  unsigned int top = i >> 16;
+  unsigned int bot = i & 0xFFFF;
+  if (top == 0)
+    return make_number (bot);
+  if (top == 0xFFFF)
+    return Fcons (make_number (-1), make_number (bot));
+  return Fcons (make_number (top), make_number (bot));
+}
+
+unsigned long
+cons_to_long (c)
+     Lisp_Object c;
+{
+  int top, bot;
+  if (INTEGERP (c))
+    return XINT (c);
+  top = XCONS (c)->car;
+  bot = XCONS (c)->cdr;
+  if (CONSP (bot))
+    bot = XCONS (bot)->car;
+  return ((XINT (top) << 16) | XINT (bot));
+}
+
 DEFUN ("number-to-string", Fnumber_to_string, Snumber_to_string, 1, 1, 0,
   "Convert NUM to a string by printing it in decimal.\n\
 Uses a minus sign if negative.\n\

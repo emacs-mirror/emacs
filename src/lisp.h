@@ -985,6 +985,8 @@ extern Lisp_Object Flsh (), Fash ();
 extern Lisp_Object Fadd1 (), Fsub1 ();
 
 extern Lisp_Object make_number ();
+extern Lisp_Object   long_to_cons ();
+extern unsigned long cons_to_long ();
 extern void args_out_of_range ();
 extern void args_out_of_range_3 ();
 extern Lisp_Object wrong_type_argument ();

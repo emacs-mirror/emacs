@@ -234,36 +234,6 @@ x_atom_to_symbol (display, atom)
   return val;
 }
 
-/* Convert between full word time values (last modification times, etc)
-   and their Lisp representation as a cons cell (HIGH . LOW).  */
-
-Lisp_Object
-long_to_cons (i)
-     unsigned long i;
-{
-  unsigned int top = i >> 16;
-  unsigned int bot = i & 0xFFFF;
-  if (top == 0)
-    return make_number (bot);
-  if (top == 0xFFFF)
-    return Fcons (make_number (-1), make_number (bot));
-  return Fcons (make_number (top), make_number (bot));
-}
-
-unsigned long
-cons_to_long (c)
-     Lisp_Object c;
-{
-  int top, bot;
-  if (INTEGERP (c))
-    return XINT (c);
-  top = XCONS (c)->car;
-  bot = XCONS (c)->cdr;
-  if (CONSP (bot))
-    bot = XCONS (bot)->car;
-  return ((XINT (top) << 16) | XINT (bot));
-}
-
 /* Do protocol to assert ourself as a selection owner.
    Update the Vselection_alist so that we can reply to later requests for 
    our selection.  */
