@@ -1,5 +1,11 @@
 2001-12-25  Richard M. Stallman  <rms@gnu.org>
 
+	* window.el (balance-windows): Use new PRESERVE-BEFORE arg
+	to enlarge-window.  Use save-selected-window.  Don't try
+	to resize windows that end at the bottom "level".
+	Retry changing the sizes until the windows get the desired sizes.
+	Discount the minibuffer when computing total height available.
+
 	* emacs-lisp/debug.el (debugger-mode-map): Bind C-m, not `RET'.
 	(debugger-make-xrefs): Only make a button for the first symbol
 	on any line.

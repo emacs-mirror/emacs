@@ -1,5 +1,8 @@
 2001-12-25  Richard M. Stallman  <rms@gnu.org>
 
+	* window.c (enlarge_window): New arg PRESERVE_BEFORE.  Callers changed.
+	(Fenlarge_window): New arg PRESERVE_BEFORE.
+
 	* bytecode.c (Fbyte_code): Use Fstring_make_unibyte
 	instead of Fstring_as_unibyte.
 
