@@ -873,7 +873,6 @@ Operating System Interface
 * System Environment::      Distinguish the name and kind of system.
 * Terminal Input::          Recording terminal input for debugging.
 * Terminal Output::         Recording terminal output for debugging.
-* Flow Control::            How to turn output flow control on or off.
 * Batch Mode::              Running Emacs without terminal interaction.
 
 Starting Up Emacs
