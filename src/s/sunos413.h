@@ -9,3 +9,5 @@
 #ifndef SYSTEM_MALLOC
 #define MEMMOVE_MISSING
 #endif
+
+#define USE_MMAP_FOR_BUFFERS 1
