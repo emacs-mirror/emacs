@@ -62,6 +62,10 @@ DONTCOMPILE = \
 	$(lisp)/international/latin-5.el \
 	$(lisp)/international/latin-8.el \
 	$(lisp)/international/latin-9.el \
+	$(lisp)/international/latin1-disp.el \
+	$(lisp)/international/ucs-tables.el \
+	$(lisp)/international/utf-8.el \
+	$(lisp)/international/utf-8-subst.el \
 	$(lisp)/international/mule-conf.el \
 	$(lisp)/language/czech.el \
 	$(lisp)/language/devanagari.el \
