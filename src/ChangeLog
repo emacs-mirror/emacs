@@ -3,6 +3,11 @@
 	* doc.c (Fdocumentation): Add missing parentheses.
 	(Fdocumentation_property): Likewise.
 
+2002-04-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* doc.c (Fdocumentation, Fdocumentation_property): When the doc
+	data is 0, just return nil.
+
 2002-04-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (syms_of_msdos): Fix last change with
