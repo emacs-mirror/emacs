@@ -1440,7 +1440,8 @@ encode_designation_at_bol (coding, table, src, src_end, dstp)
 	charset = CHARSET_AT (src);
       else
 	{
-	  int c_alt, c1, c2;
+	  int c_alt;
+	  unsigned char c1, c2;
 
 	  SPLIT_STRING(src, bytes, charset, c1, c2);
 	  if ((c_alt = unify_char (table, -1, charset, c1, c2)) >= 0)
