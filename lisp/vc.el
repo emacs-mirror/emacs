@@ -1524,10 +1524,30 @@ Return nil if there is no such person."
   (let ((filename (or workfile file)))
     (message "Checking out %s..." filename)
     (vc-backend-dispatch file
-     (vc-do-command 0 "get" file	;; SCCS
-		    (if writable "-e")
-		    (if workfile  (concat "-G" workfile))
-		    (and rev (concat "-r" (vc-lookup-triple file rev))))
+     (if workfile ;; SCCS
+	 ;; Some SCCS implementations allow checking out directly to a
+	 ;; file using the -G option, but then some don't so use the
+	 ;; least common denominator approach and use the -p option
+	 ;; ala RCS.
+	 (let ((vc-modes (logior (file-modes (vc-name file))
+				 (if writable 128 0)))
+	       (failed t))
+	   (unwind-protect
+	       (progn
+		   (vc-do-command
+		      0 "/bin/sh" file "-c"
+		      (format "umask %o; exec >\"$1\" || exit; shift; umask %o; exec get \"$@\""
+			      (logand 511 (lognot vc-modes))
+			      (logand 511 (lognot (default-file-modes))))
+		      "" ; dummy argument for shell's $0
+		      filename 
+		      (if writable "-e")
+		      "-p" (and rev (concat "-r" (vc-lookup-triple file rev))))
+		   (setq failed nil))
+	     (and failed (file-exists-p filename) (delete-file filename))))
+       (vc-do-command 0 "get" file	;; SCCS
+		      (if writable "-e")
+		      (and rev (concat "-r" (vc-lookup-triple file rev)))))
      (if workfile ;; RCS
 	 ;; RCS doesn't let us check out into arbitrary file names directly.
 	 ;; Use `co -p' and make stdout point to the correct file.
