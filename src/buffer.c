@@ -157,6 +157,7 @@ Lisp_Object Vfirst_change_hook;
 Lisp_Object Qfirst_change_hook;
 Lisp_Object Qbefore_change_functions;
 Lisp_Object Qafter_change_functions;
+Lisp_Object Qucs_set_table_for_input;
 
 /* If nonzero, all modification hooks are suppressed.  */
 int inhibit_modification_hooks;
@@ -178,7 +179,6 @@ Lisp_Object Qpriority, Qwindow, Qevaporate, Qbefore_string, Qafter_string;
 Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
 Lisp_Object Qinsert_behind_hooks;
-Lisp_Object Qset_buffer_major_mode_hook;
 
 static void alloc_buffer_text P_ ((struct buffer *, size_t));
 static void free_buffer_text P_ ((struct buffer *b));
@@ -414,6 +414,12 @@ The value is never nil.  */)
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buf, b);
   Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
+
+  /* Fixme:  Protect against errors, which would trigger infinite
+     regress?  */
+  if (!NILP (Ffboundp (Qucs_set_table_for_input)))
+    /* buff is on buffer-alist, so no gcpro */
+    call1 (Qucs_set_table_for_input, buf);
 
   b->mark = Fmake_marker ();
   BUF_MARKERS (b) = Qnil;
@@ -1543,17 +1549,18 @@ the current buffer's major mode.  */)
 	function = current_buffer->major_mode;
     }
   
+  if (NILP (function) || EQ (function, Qfundamental_mode))
+    return Qnil;
+
   count = SPECPDL_INDEX ();
 
-  /* To select a nonfundamental mode, select the buffer temporarily
-     and then call the mode function.  Run the hook anyhow.  */
+  /* To select a nonfundamental mode,
+     select the buffer temporarily and then call the mode function. */
 
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
 
   Fset_buffer (buffer);
-  if (!(NILP (function) || EQ (function, Qfundamental_mode)))
-    call0 (function);
-  Frun_hooks (1, &Qset_buffer_major_mode_hook);
+  call0 (function);
 
   return unbind_to (count, Qnil);
 }
@@ -5001,6 +5008,8 @@ init_buffer_once ()
 
   Qkill_buffer_hook = intern ("kill-buffer-hook");
 
+  Qucs_set_table_for_input = intern ("ucs-set-table-for-input");
+
   Vprin1_to_string_buffer = Fget_buffer_create (build_string (" prin1"));
 
   /* super-magic invisible buffer */
@@ -5128,8 +5137,7 @@ syms_of_buffer ()
   staticpro (&Qbefore_change_functions);
   Qafter_change_functions = intern ("after-change-functions");
   staticpro (&Qafter_change_functions);
-  Qset_buffer_major_mode_hook = intern ("set-buffer-major-mode-hook");
-  staticpro (&Qset_buffer_major_mode_hook);
+  staticpro (&Qucs_set_table_for_input);
 
   Fput (Qprotected_field, Qerror_conditions,
 	Fcons (Qprotected_field, Fcons (Qerror, Qnil)));
