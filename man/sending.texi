@@ -687,7 +687,7 @@ message into outgoing mail.  To do this, add
 and sending mail---Mail mode.  Emacs has alternative facilities for
 editing and sending mail, including
 MH-E and Message mode, not documented in this manual.
-@xref{Top,,MH-E,mh-e, The Emacs Interface to MH}.  @xref{Top,,,message,
+@xref{Top,,MH-E,mh-e, The Emacs Interface to MH}.  @xref{Top,,Message,message,
 Message Manual}.  You can choose any of them as your preferred method.
 The commands @code{C-x m}, @code{C-x 4 m} and @code{C-x 5 m} use
 whichever agent you have specified, as do various other Emacs commands
