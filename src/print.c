@@ -1018,7 +1018,9 @@ print (obj, printcharfun, escapeflag)
 	  confusing = 0;
 	else
 	  {
-	    while (p != end && *p >= '0' && *p <= '9')
+	    while (p != end && ((*p >= '0' && *p <= '9')
+				/* Needed for \2e10.  */
+				|| *p == 'e'))
 	      p++;
 	    confusing = (end == p);
 	  }
