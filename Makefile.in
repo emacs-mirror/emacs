@@ -325,8 +325,8 @@ install-arch-indep: mkdir
 	 done
 	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
 	then \
-	   echo "Copying etc/DOC* ..." ; \
-	   (cd etc; tar -cf - DOC*)|(cd ${docdir}; umask 0; tar -xvf - ); \
+	   echo "Copying etc/DOC-* ..." ; \
+	   (cd etc; tar -cf - DOC-*)|(cd ${docdir}; umask 0; tar -xvf - ); \
 	else true; fi
 	thisdir=`/bin/pwd`; \
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
