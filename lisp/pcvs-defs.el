@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-defs.el,v 1.17 2001/12/20 18:42:44 pj Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.18 2002/06/22 20:24:42 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -105,7 +105,7 @@ Else, they will never be automatically removed from the *cvs* buffer."
 
 (defcustom cvs-auto-remove-directories 'handled
   "*If ALL, directory entries will never be shown.
-If HANLDED, only non-handled directories will be shown.
+If HANDLED, only non-handled directories will be shown.
 If EMPTY, only non-empty directories will be shown."
   :group 'pcl-cvs
   :type '(choice (const :tag "No" nil) (const all) (const handled) (const empty)))
@@ -325,6 +325,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("z" .	kill-this-buffer)
     ("F" .	cvs-mode-set-flags)
     ("\M-f" .	cvs-mode-force-command)
+    ("!" .	cvs-mode-force-command)
     ("\C-c\C-c" . cvs-mode-kill-process)
     ;; marking
     ("m" .	cvs-mode-mark)
