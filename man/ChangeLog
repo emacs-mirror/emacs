@@ -1,3 +1,9 @@
+2003-04-23  Simon Josefsson  <jas@extundo.com>
+
+	* smtpmail.texi: Fix license (the invariant sections mentioned has
+	never been part of the smtp manual).  Align info dir entry with
+	other emacs packages.
+
 2003-04-16  Richard M. Stallman  <rms@gnu.org>
 
 	* search.texi (Regexps): Ref to Lisp manual for more regexp features.
