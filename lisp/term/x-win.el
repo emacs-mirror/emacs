@@ -2126,14 +2126,20 @@ This is in addition to, but in preference to, the primary selection."
   (cond ((>= (length text) x-cut-buffer-max)
 	 (x-set-cut-buffer "" push)
 	 (setq x-last-selected-text-cut ""))
+	((and (multibyte-string-p text)
+	      (let ((charsets (find-charset-string text)))
+		(or (memq 'eight-bit-control charsets)
+		    (memq 'eight-bit-graphic charsets))))
+	 (x-set-cut-buffer "" push)
+	 (setq x-last-selected-text-cut ""))
 	(t
-      (x-set-cut-buffer text push)
+	 (x-set-cut-buffer text push)
 	 (setq x-last-selected-text-cut text)))
   (x-set-selection 'PRIMARY text)
   (setq x-last-selected-text-primary text)
   (when x-select-enable-clipboard
-      (x-set-selection 'CLIPBOARD text)
-      (setq x-last-selected-text-clipboard text))
+    (x-set-selection 'CLIPBOARD text)
+    (setq x-last-selected-text-clipboard text))
   )
 
 ;;; Return the value of the current X selection.
