@@ -2204,7 +2204,7 @@ init_buffer_once ()
   buffer_defaults.ctl_arrow = Qt;
 
 #ifdef MSDOS
-  buffer_defaults.buffer_file_type = 0; /* TEXT */
+  buffer_defaults.buffer_file_type = Qnil; /* TEXT */
 #endif
   XFASTINT (buffer_defaults.fill_column) = 70;
   XFASTINT (buffer_defaults.left_margin) = 0;
