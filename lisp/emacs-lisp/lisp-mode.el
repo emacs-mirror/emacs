@@ -390,13 +390,17 @@ With argument, print output into current buffer."
 		     (set-syntax-table stab))))))
       (let ((print-length eval-expression-print-length)
 	    (print-level eval-expression-print-level)
-	    (beg (point)))
+	    (beg (point))
+	    end)
 	(prin1 value)
+	(setq end (point))
 	(when (and (bufferp standard-output)
 		   (or (not (null print-length))
-		       (not (null print-level))))
-	  (let ((map (make-sparse-keymap))
-		(end (point)))
+		       (not (null print-level)))
+		   (save-excursion
+		     (goto-char beg)
+		     (search-forward "..." end t)))
+	  (let ((map (make-sparse-keymap)))
 	    (define-key map "\C-m" 'last-sexp-print)
 	    (define-key map [down-mouse-2] 'mouse-set-point)
 	    (define-key map [mouse-2] 'last-sexp-print)
@@ -405,7 +409,10 @@ With argument, print output into current buffer."
 	     `(printed-value ,value 
 			     mouse-face highlight 
 			     keymap ,map
-			     help-echo "RET, mouse-2: print unabbreviated"))))))))
+			     help-echo "RET, mouse-2: print unabbreviated"
+			     read-nonsticky (mouse-face keymap help-echo
+							printed-value)
+			     ))))))))
 
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
