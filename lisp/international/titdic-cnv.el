@@ -1109,6 +1109,7 @@ the generated Quail package is saved."
       (error "%s does not exist" filename))
   (let ((tail quail-misc-package-ext-info)
 	(default-buffer-file-coding-system 'iso-2022-7bit)
+	(coding-system-for-write 'iso-2022-7bit)
 	slot
 	name title dicfile coding quailfile converter copyright
 	dicbuf)
