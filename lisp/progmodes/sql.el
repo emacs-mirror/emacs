@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.6.2
+;; Version: 1.6.3
 ;; Keywords: comm languages processes
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SqlMode
 
@@ -796,10 +796,10 @@ usually named `*SQL*'.  The name of the major mode is SQLi.
 Use the following commands to start a specific SQL interpreter:
 
     PostGres: \\[sql-postgres]
+    MySQL: \\[sql-mysql]
 
 Other non-free SQL implementations are also supported:
 
-    MySQL: \\[sql-mysql]
     Solid: \\[sql-solid]
     Oracle: \\[sql-oracle]
     Informix: \\[sql-informix]
@@ -1447,8 +1447,7 @@ The default comes from `process-coding-system-alist' and
 (defun sql-mysql ()
   "Run mysql by TcX as an inferior process.
 
-Note that the widespread idea that mysql is free software is inaccurate;
-its license is too restrictive.  We urge you to use PostGres instead.
+Mysql versions 3.23 and up are free software.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
 If buffer exists and a process is running, just switch to buffer
