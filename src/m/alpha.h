@@ -32,7 +32,8 @@ NOTE-END
 #define BITS_PER_LONG 64
 #define BITS_PER_EMACS_INT 64
 #ifndef _LP64
-#define _LP64
+#define _LP64			/* This doesn't appear to be necessary
+				   on OSF 4/5  -- fx.  */
 #endif
 
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
@@ -242,19 +243,6 @@ NOTE-END
 #if !defined(__NetBSD__) && !defined(__OpenBSD__)
 #include <alloca.h>
 #endif
-
-/* Hack alert!  For reasons unknown to mankind the string.h file insists
-   on defining bcopy etc. as taking char pointers as arguments.  With
-   Emacs this produces an endless amount of warning which are harmless,
-   but tends to flood the real errors.  This hack works around this problem
-   by not prototyping.  */
-#define bcopy string_h_bcopy
-#define bzero string_h_bzero
-#define bcmp  string_h_bcmp
-#include <string.h>
-#undef bcopy
-#undef bzero
-#undef bcmp
 
 #ifdef REL_ALLOC
 #ifndef _MALLOC_INTERNAL
