@@ -1,3 +1,8 @@
+2000-08-16  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/ccl.el (declare-ccl-program): Docstring modified.
+	(ccl-execute-with-args): Likewise.
+
 2000-08-16  Miles Bader  <miles@gnu.org>
 
 	* progmodes/sql.el: Add compatibility definition onf

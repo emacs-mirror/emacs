@@ -1,5 +1,8 @@
 2000-08-16  Kenichi Handa  <handa@etl.go.jp>
 
+	* coding.c (encode_coding): Fix the bug of not flushing ISO escape
+	sequence at the end of the source block.
+
 	* ccl.c (Fccl_program_p): Docstring modified.
 	(Fccl_execute): Likewise.
 	(Fccl_execute_on_string): Likewise.
