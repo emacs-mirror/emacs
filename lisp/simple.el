@@ -322,12 +322,22 @@ column specified by the function `current-left-margin'."
   (if (eq arg '-) (setq arg -1))
   (kill-region (point) (forward-point (- arg))))
 
+(defcustom backward-delete-char-untabify-method 'untabify
+  "*The method for untabifying when deleting backward.
+Can be `untabify' -- turn a tab to many spaces, then delete one space.
+       `hungry' -- delete all whitespace, both tabs and spaces.
+       nil -- just delete one character."
+  :type '(choice (const untabify) (const hungry) (const nil))
+  :group 'killing)
+
 (defun backward-delete-char-untabify (arg &optional killp)
   "Delete characters backward, changing tabs into spaces.
+The exact behavior depends on `backward-delete-char-untabify-method'.
 Delete ARG chars, and kill (save in kill ring) if KILLP is non-nil.
 Interactively, ARG is the prefix arg (default 1)
 and KILLP is t if a prefix arg was specified."
   (interactive "*p\nP")
+  (when (eq backward-delete-char-untabify-method 'untabify)
   (let ((count arg))
     (save-excursion
       (while (and (> count 0) (not (bobp)))
@@ -338,8 +348,14 @@ and KILLP is t if a prefix arg was specified."
 	      (insert-char ?\ col)
 	      (delete-char 1)))
 	(forward-char -1)
-	(setq count (1- count)))))
-  (delete-backward-char arg killp))
+        (setq count (1- count))))))
+  (delete-backward-char
+   (if (eq backward-delete-char-untabify-method 'hungry)
+       (let ((wh (- (point) (save-excursion (skip-chars-backward " \t")
+					    (point)))))
+	 (+ arg (if (zerop wh) 0 (1- wh))))
+     arg)
+   killp))
 
 (defun zap-to-char (arg char)
   "Kill up to and including ARG'th occurrence of CHAR.
