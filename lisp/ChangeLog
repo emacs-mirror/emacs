@@ -1,3 +1,14 @@
+2004-10-23  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar--weekday-array): New constant.
+	(icalendar-weekdayabbrev-table)
+	(icalendar-monthnumber-table): Delete.
+	(icalendar--get-month-number): Use calendar-month-name-array.
+	(icalendar--get-weekday-number): New function.
+	(icalendar--get-weekday-abbrev) Use calendar-day-name-array.
+	(icalendar-export-region): Handle multi-line entries.
+	(icalendar--convert-ical-to-diary): Use calendar-day-name-array.
+
 2004-10-23  John Paul Wallington  <jpw@gnu.org>
 
 	* ibuf-ext.el (ibuffer-jump-to-buffer): Read buffer name in
