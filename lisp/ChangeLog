@@ -1,3 +1,8 @@
+2002-03-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (compile, compile-always): Don't try to compile
+	non-existent files or files in empty directories.
+
 2002-03-26  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/xml-lite.el (xml-lite-at-indentation-p): Move.
