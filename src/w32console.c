@@ -294,6 +294,8 @@ insert_glyphs (register struct glyph *start, register int len)
     }
 }
 
+extern unsigned char *terminal_encode_buffer;
+
 void
 write_glyphs (register struct glyph *string, register int len)
 {
@@ -301,8 +303,6 @@ write_glyphs (register struct glyph *string, register int len)
   DWORD r;
   struct frame * f = PICK_FRAME ();
   WORD char_attr;
-  unsigned char conversion_buffer[1024];
-  int conversion_buffer_size = sizeof conversion_buffer;
 
   if (len <= 0)
     return;
@@ -326,11 +326,8 @@ write_glyphs (register struct glyph *string, register int len)
 
       while (n > 0)
         {
-	  /* We use a fixed size (1024 bytes) of conversion buffer.
-	     Usually it is sufficient, but if not, we just repeat the
-	     loop.  */
-	  produced = encode_terminal_code (string, conversion_buffer,
-					   n, conversion_buffer_size,
+	  produced = encode_terminal_code (string,
+					   n,
 					   &consumed);
 	  if (produced > 0)
 	    {
@@ -344,7 +341,7 @@ write_glyphs (register struct glyph *string, register int len)
                 }
 
               /* Write the characters.  */
-              if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
+              if (!WriteConsoleOutputCharacter (cur_screen, terminal_encode_buffer,
                                                 produced, cursor_coords, &r))
                 {
                   printf ("Failed writing console characters: %d\n",
@@ -364,9 +361,13 @@ write_glyphs (register struct glyph *string, register int len)
   /* We may have to output some codes to terminate the writing.  */
   if (CODING_REQUIRE_FLUSHING (&terminal_coding))
     {
+      Lisp_Object blank_string = build_string ("");
+      int conversion_buffer_size = 1024;
+
       terminal_coding.mode |= CODING_MODE_LAST_BLOCK;
-      encode_coding (&terminal_coding, "", conversion_buffer,
-		     0, conversion_buffer_size);
+      terminal_coding.destination = (unsigned char *) xmalloc (conversion_buffer_size);
+      encode_coding_object (&terminal_coding, blank_string, 0, 0,
+			    0, conversion_buffer_size, Qnil);
       if (terminal_coding.produced > 0)
         {
           if (!FillConsoleOutputAttribute (cur_screen, char_attr_normal,
@@ -379,7 +380,7 @@ write_glyphs (register struct glyph *string, register int len)
             }
 
           /* Write the characters.  */
-          if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
+          if (!WriteConsoleOutputCharacter (cur_screen, terminal_coding.destination,
                                             produced, cursor_coords, &r))
             {
               printf ("Failed writing console characters: %d\n",
@@ -387,6 +388,7 @@ write_glyphs (register struct glyph *string, register int len)
               fflush (stdout);
             }
         }
+      xfree (terminal_coding.destination);
     }
 }
 
