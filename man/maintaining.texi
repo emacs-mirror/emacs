@@ -13,7 +13,7 @@ particularly useful for this purpose.
 
 @menu
 * Change Log::	        Maintaining a change history for your program.
-* Authors::             Maintaining an @file{AUTHORS} file.
+* Authors::             Maintaining the Emacs @file{AUTHORS} file.
 * Tags::	        Go direct to any function in your program in one
 			  command.  Tags remembers which file it is in.
 * Emerge::	        A convenient way of merging two versions of a program.
