@@ -1,5 +1,7 @@
 2000-10-09  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* battery.el (display-battery): Doc spelling fix.
+
 	* vc.el (with-vc-file, edit-vc-file): Specify `indent-function'
 	property.
 
