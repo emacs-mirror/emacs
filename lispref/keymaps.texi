@@ -582,21 +582,6 @@ keymap, if any, overrides all other maps that would have been active,
 except for the current global map.
 @end defvar
 
-@defvar overriding-local-map-menu-flag
-If this variable is non-@code{nil}, the value of
-@code{overriding-local-map} can affect the display of the menu bar.  The
-default value is @code{nil}, so @code{overriding-local-map} has no
-effect on the menu bar.
-
-Note that @code{overriding-local-map} does affect the execution of key
-sequences entered using the menu bar, even if it does not affect the
-menu bar display.  So if a menu bar key sequence comes in, you should
-clear @code{overriding-local-map} before looking up and executing that
-key sequence.  Modes that use @code{overriding-local-map} would
-typically do this anyway; normally they respond to events that they do
-not handle by ``unreading'' them and exiting.
-@end defvar
-
 @defvar overriding-terminal-local-map
 If non-@code{nil}, this variable holds a keymap to use instead of
 @code{overriding-local-map}, the buffer's local keymap and all the minor
@@ -605,6 +590,21 @@ mode keymaps.
 This variable is always local to the current terminal and cannot be
 buffer-local.  @xref{Multiple Displays}.  It is used to implement
 incremental search mode.
+@end defvar
+
+@defvar overriding-local-map-menu-flag
+If this variable is non-@code{nil}, the value of
+@code{overriding-local-map} or @code{overriding-terminal-local-map} can
+affect the display of the menu bar.  The default value is @code{nil}, so
+those map variables have no effect on the menu bar.
+
+Note that these two map variables do affect the execution of key
+sequences entered using the menu bar, even if they do not affect the
+menu bar display.  So if a menu bar key sequence comes in, you should
+clear the variables before looking up and executing that key sequence.
+Modes that use the variables would typically do this anyway; normally
+they respond to events that they do not handle by ``unreading'' them and
+exiting.
 @end defvar
 
 @node Key Lookup
