@@ -1,3 +1,13 @@
+2002-02-27  Richard M. Stallman  <rms@gnu.org>
+
+	* comint.el (comint-preoutput-filter-functions): Doc fix.
+	(comint-output-filter-functions, comint-input-filter-functions)
+	(comint-redirect-filter-functions): Likewise.
+
+	(comint-redirect-preoutput-filter): Do the local-hook
+	handling of t when running comint-redirect-filter-functions.
+	(comint-output-filter): Likewise for comint-preoutput-filter-functions.
+
 2002-02-26  Richard M. Stallman  <rms@gnu.org>
 
 	* paths.el (remote-shell-program): Add doc string.
