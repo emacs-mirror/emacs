@@ -370,7 +370,7 @@
 (make-coding-system
  'x-ctext 2 ?x
  "Compound text based generic encoding for decoding unknown messages."
- '((ascii t) (latin-iso8859-1 t) t t
+ '((ascii t) (latin-iso8859-1 katakana-jisx0201 t) t t
    nil ascii-eol ascii-cntl nil locking-shift single-shift nil nil nil
    init-bol nil nil)
  '((safe-charsets . t)
