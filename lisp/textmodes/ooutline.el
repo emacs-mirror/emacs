@@ -419,7 +419,7 @@ while if FLAG is `\\^M' (control-M) the text is hidden."
       (outline-next-heading))
     (if (memq (preceding-char) '(?\n ?\^M))
 	(progn
-	  ;; got to end of line before heading
+	  ;; Go to end of line before heading
 	  (forward-char -1)
 	  (if (memq (preceding-char) '(?\n ?\^M))
 	      ;; leave blank line before heading
