@@ -117,7 +117,7 @@ validate_interval_range (object, begin, end, force)
       *end = n;
     }
 
-  if (XTYPE (object) == Lisp_Buffer)
+  if (BUFFERP (object))
     {
       register struct buffer *b = XBUFFER (object);
 
@@ -358,7 +358,7 @@ add_properties (plist, i, object)
 	      break;
 
 	    /* Record this change in the buffer, for undo purposes.  */
-	    if (XTYPE (object) == Lisp_Buffer)
+	    if (BUFFERP (object))
 	      {
 		modify_region (XBUFFER (object),
 			       make_number (i->position),
@@ -376,7 +376,7 @@ add_properties (plist, i, object)
       if (! found)
 	{
 	  /* Record this change in the buffer, for undo purposes.  */
-	  if (XTYPE (object) == Lisp_Buffer)
+	  if (BUFFERP (object))
 	    {
 	      modify_region (XBUFFER (object),
 			     make_number (i->position),
@@ -414,7 +414,7 @@ remove_properties (plist, i, object)
       /* First, remove the symbol if its at the head of the list */
       while (! NILP (current_plist) && EQ (sym, Fcar (current_plist)))
 	{
-	  if (XTYPE (object) == Lisp_Buffer)
+	  if (BUFFERP (object))
 	    {
 	      modify_region (XBUFFER (object),
 			     make_number (i->position),
@@ -436,7 +436,7 @@ remove_properties (plist, i, object)
 	  this = Fcdr (Fcdr (tail2));
 	  if (EQ (sym, Fcar (this)))
 	    {
-	      if (XTYPE (object) == Lisp_Buffer)
+	      if (BUFFERP (object))
 		{
 		  modify_region (XBUFFER (object),
 				 make_number (i->position),
@@ -609,7 +609,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   if (! NILP (limit) && !(next->position < XFASTINT (limit)))
     return limit;
 
-  XFASTINT (pos) = next->position - (XTYPE (object) == Lisp_String);
+  XFASTINT (pos) = next->position - (STRINGP (object));
   return pos;
 }
 
@@ -684,7 +684,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   if (! NILP (limit) && !(next->position < XFASTINT (limit)))
     return limit;
 
-  XFASTINT (pos) = next->position - (XTYPE (object) == Lisp_String);
+  XFASTINT (pos) = next->position - (STRINGP (object));
   return pos;
 }
 
@@ -729,7 +729,7 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
     return limit;
 
   XFASTINT (pos) = (previous->position + LENGTH (previous)
-		    - (XTYPE (object) == Lisp_String));
+		    - (STRINGP (object)));
   return pos;
 }
 
@@ -779,7 +779,7 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
     return limit;
 
   XFASTINT (pos) = (previous->position + LENGTH (previous)
-		    - (XTYPE (object) == Lisp_String));
+		    - (STRINGP (object)));
   return pos;
 }
 
@@ -1084,7 +1084,7 @@ containing the text.")
 	  pos = i->position;
 	  if (pos < XINT (start))
 	    pos = XINT (start);
-	  return make_number (pos - (XTYPE (object) == Lisp_String));
+	  return make_number (pos - (STRINGP (object)));
 	}
       i = next_interval (i);
     }
@@ -1120,7 +1120,7 @@ containing the text.")
 	{
 	  if (i->position > s)
 	    s = i->position;
-	  return make_number (s - (XTYPE (object) == Lisp_String));
+	  return make_number (s - (STRINGP (object)));
 	}
       i = next_interval (i);
     }
