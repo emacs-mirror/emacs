@@ -1,3 +1,7 @@
+2000-09-19  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt (bootstrap-emacs): Don't change directory.
+
 2000-09-19  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.h (UNIBYTE_STR_AS_MULTIBYTE_P): Fix previous change.
