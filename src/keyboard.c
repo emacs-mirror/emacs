@@ -1097,7 +1097,7 @@ command_loop_1 ()
 		    || !EQ (current_buffer->selective_display, Qnil)
 		    || detect_input_pending ()
 		    || !NILP (Vexecuting_macro);
-		  if (internal_self_insert (XINT (c), 0))
+		  if (internal_self_insert (c, 0))
 		    {
 		      lose = 1;
 		      nonundocount = 0;
@@ -1107,7 +1107,7 @@ command_loop_1 ()
 		    {
 		      struct Lisp_Vector *dp
 			= window_display_table (XWINDOW (selected_window));
-		      int lose = XINT (c);
+		      int lose = c;
 
 		      if (dp)
 			{
@@ -1510,7 +1510,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Transfer any other modifier bits directly from
 	 extra_keyboard_modifiers to c.  Ignore the actual character code
 	 in the low 16 bits of extra_keyboard_modifiers.  */
-      c |= (extra_keyboard_modifiers & ~0xff7f & ~CHAR_CTL);
+      XSETINT (c, XINT (c) | (extra_keyboard_modifiers & ~0xff7f & ~CHAR_CTL));
     }
 
  non_reread:
