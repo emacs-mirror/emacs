@@ -885,7 +885,7 @@ in the format of Lisp expression for registering each input method.
 Emacs loads this file at startup time.")
 
 (defvar leim-list-header (format
-";;; %s -- list of LEIM (Library of Emacs Input Method)
+";;; %s -- list of LEIM (Library of Emacs Input Method) -*-coding: iso-2022-7bit;-*-
 ;;
 ;; This file contains a list of LEIM (Library of Emacs Input Method)
 ;; methods in the same directory as this file.  Loading this file
