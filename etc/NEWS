@@ -2144,11 +2144,13 @@ meaning no limit.
 coding-system if buffer-file-coding-system is `undecided' and
 DEFAULT-CODING-SYSTEM is not specified,
 
-** The function `subr-arity' provides information on the argument list
-of a primitive.
++++
+** The function `subr-arity' provides information about the argument
+list of a primitive.
 
 ** `where-is-internal' now also accepts a list of keymaps.
 
++++
 ** The text property `keymap' specifies a key map which overrides the
 buffer's local map and the map specified by the `local-map' property.
 This is probably what most current uses of `local-map' want, rather
@@ -2852,6 +2854,7 @@ An alternative interface is called as
 
 ** `multimedia' is a new Finder keyword and Custom group.
 
++++
 ** keywordp is a new predicate to test efficiently for an object being
 a keyword symbol.
 
@@ -2871,6 +2874,7 @@ Lisp Manual
 ** The user-option `resize-mini-windows' controls how Emacs resizes
 mini-windows.
 
++++
 ** The function `pos-visible-in-window-p' now has a third argument, FULLY.
 If FULLY is non-nil, then locations that are partially obscured aren't
 considered visible.
@@ -2880,6 +2884,7 @@ considered visible.
 +++
 ** Help strings in menu items are now used to provide `help-echo' text.
 
++++
 ** The function `image-size' can be used to determine the size of an
 image.
 
@@ -2893,6 +2898,7 @@ character units (fractions of the width/height of the frame's default
 font).  FRAME is the frame on which the image will be displayed.
 FRAME nil or omitted means use the selected frame.
 
++++
 ** The function `image-mask-p' can be used to determine if an image
 has a mask bitmap.
 

@@ -18,9 +18,11 @@ specified run-time search path in the executable.
 Please refer to the documentation of your dynamic linker for details.
 
 * On Solaris 2.7, building Emacs with WorkShop Compilers 5.0 98/12/15
-C 5.0 is known to fail, most probably due to compiler bugs. Using
-Sun Solaris 2.7 Sun WorkShop 6 update 1 C release was reported
-to work without problems.
+C 5.0 failed, apparently with non-default CFLAGS, most probably due to
+compiler bugs.  Using Sun Solaris 2.7 Sun WorkShop 6 update 1 C
+release was reported to work without problems.  It worked OK on
+another system with Solaris 8 using apparently the same 5.0 compiler
+and the default CFLAGS.
 
 * On Windows 95/98/ME, subprocesses do not terminate properly.
 
