@@ -1268,6 +1268,8 @@ $(BLD)\w32bdf.obj: \
 	$(SRC)\w32bdf.c \
 	$(SRC)\lisp.h \
 	$(SRC)\charset.h \
+	$(SRC)\frame.h \
+	$(SRC)\dispextern.h \
 	$(SRC)\fontset.h \
 	$(SRC)\blockinput.h \
 	$(SRC)\w32gui.h \
@@ -1276,5 +1278,4 @@ $(BLD)\w32bdf.obj: \
 	$(SRC)\lisp.h \
 	$(SRC)\w32term.h \
 	$(SRC)\w32.h \
-	$(SRC)\frame.h \
 	$(SRC)\blockinput.h
