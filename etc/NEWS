@@ -1207,6 +1207,11 @@ buffer's local map and the map specified by the `local-map' property.
 This is probably what most current uses of `local-map' want, rather
 than replacing the local map.
 
+** The function `find-image' can be used to find a usable image
+satisfying one of a list of specifications.
+
+** The obsolete variables before-change-function and
+after-change-function are no longer acted upon and have been removed.
 
 * Lisp changes in Emacs 21.1 (see following page for display-related features)
 
