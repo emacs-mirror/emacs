@@ -650,7 +650,6 @@ whether that feature is also in use for the same buffer name.
 
 @node Frame Parameters
 @section Setting Frame Parameters
-@cindex colors
 @cindex Auto-Raise mode
 @cindex Auto-Lower mode
 
@@ -664,10 +663,16 @@ window management behavior of the selected frame.
 @findex set-border-color
 @findex auto-raise-mode
 @findex auto-lower-mode
+@cindex colors
 @table @kbd
 @item M-x set-foreground-color @key{RET} @var{color} @key{RET}
 Specify color @var{color} for the foreground of the selected frame.
-(This also changes the foreground color of the default face.)
+(This also changes the foreground color of the default face.)  You can
+specify @var{color} either by its symbolic name or by its RGB
+numerical specification@footnote{
+See the X Window System documentation for more details.  On a typical
+GNU or Unix system, the command @kbd{man 7 X} or @kbd{man -s 7 X} will
+display the X manual page that explains how to specify colors.}.
 
 @item M-x set-background-color @key{RET} @var{color} @key{RET}
 Specify color @var{color} for the background of the selected frame.
@@ -685,7 +690,8 @@ Specify color @var{color} for the border of the selected frame.
 
 @item M-x list-colors-display
 Display the defined color names and show what the colors look like.
-This command is somewhat slow.
+This command is somewhat slow.  @xref{Colors, list-colors-display,
+Display available colors}.
 
 @item M-x auto-raise-mode
 Toggle whether or not the selected frame should auto-raise.  Auto-raise
