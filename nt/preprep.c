@@ -741,7 +741,7 @@ copy_executable_and_move_sections (file_data *p_infile,
                    dropped from NT4 anyway.  */
 		abort ();
 		break;
-#ifndef IMAGE_REL_BASED_SECTION
+#ifdef IMAGE_REL_BASED_SECTION
 	      case IMAGE_REL_BASED_SECTION:
 	      case IMAGE_REL_BASED_REL32:
 		/* Docs don't say what these values mean.  */
