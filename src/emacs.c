@@ -45,6 +45,11 @@ Boston, MA 02111-1307, USA.  */
 #include "syssignal.h"
 #include "process.h"
 
+#ifdef HAVE_SETRLIMIT
+#include <sys/time.h>
+#include <sys/resource.h>
+#endif
+
 #ifndef O_RDWR
 #define O_RDWR 2
 #endif
@@ -429,6 +434,9 @@ main (argc, argv, envp)
   int skip_args = 0;
   extern int errno;
   extern sys_nerr;
+#ifdef HAVE_SETRLIMIT
+  struct rlimit rlim;
+#endif
 
 #ifdef LINUX_SBRK_BUG
   __sbrk (1);
@@ -500,6 +508,15 @@ main (argc, argv, envp)
 #endif /* SHARABLE_LIB_BUG */
 #endif /* LINK_CRTL_SHARE */
 #endif /* VMS */
+
+#ifdef HAVE_SETRLIMIT
+  /* Extend the stack space available.  */
+  if (!getrlimit (RLIMIT_STACK, &rlim))
+    {
+      rlim.rlim_cur = rlim.rlim_max;
+      setrlimit (RLIMIT_STACK, &rlim);
+    }
+#endif
 
   /* Record (approximately) where the stack begins.  */
   stack_bottom = &stack_bottom_variable;
