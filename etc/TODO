@@ -25,7 +25,8 @@ Important features:
   font selection for Emacs 22.]
 
 * Program Enriched mode to read and save in RTF.  [Is there actually a
-  decent single definition of RTF?]
+  decent single definition of RTF?  Maybe see info at
+  http://latex2rtf.sourceforge.net/.]
 
 * Implement something better than the current Refill mode.  This
   probably needs some primitive support.
@@ -276,5 +277,8 @@ Other features we would like:
   other variable, without changing the value of `values'.
 
 * Fix skip-chars-{for,back}ward to allow character classes.
+
+* (Controlled by a flag) make open and close syntax match exactly,
+  i.e. `(' doesn't match `]'.
 
 ;;; arch-tag: b0a3e40b-726a-457d-9999-ba848321b036

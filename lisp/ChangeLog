@@ -1,3 +1,11 @@
+2003-10-06  Dave Love  <fx@gnu.org>
+
+	* files.el (find-file-hook): Customize.
+	(auto-mode-alist): Add .stk, .ss, .sch, .orig.
+
+	* bindings.el (completion-ignored-extensions): Remove .log.
+	(global-map): Add again, open, stop keys.
+
 2003-10-05  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/sh-script.el (sh-feature): Handle sh-modify like sh-append.
