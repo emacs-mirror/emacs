@@ -29,10 +29,6 @@
 #define NO_TERMIO
 #endif
 
-/* There's a bug in configure, or perhaps in autoconf, that makes
-   configure fail to find fmod properly on HPUX.  Work around it.  */
-#define HAVE_FMOD
-
 /* According to ngorelic@speclab.cr.usgs.gov,
    references to the X11R4 directoriess in these variables
    (inherited from hpux8.h)
