@@ -29,3 +29,8 @@
 /* Prefer kstat over kvm in getloadavg.c, kstat doesn't require root.
    ghazi@caip.rutgers.edu, 7/21/97. */
 #define HAVE_LIBKSTAT
+
+/* eggert thinks all versions of SunPro C allowed this.  */
+#ifndef __GNUC__
+#define C_DEBUG_SWITCH -g -O
+#endif
