@@ -10578,7 +10578,7 @@ static void dump_glyph_matrix P_ ((struct glyph_matrix *, int));
 /* Dump the contents of glyph matrix MATRIX on stderr.  If
    WITH_GLYPHS_P is non-zero, dump glyph contents as well.  */
 
-void
+static void
 dump_glyph_matrix (matrix, with_glyphs_p)
      struct glyph_matrix *matrix;
      int with_glyphs_p;
