@@ -268,7 +268,7 @@ do-install: mkdir
 	   [ -d $${dir} ] \
 	   && [ `(cd $${dir} && /bin/pwd)` != `(cd $${dest} && /bin/pwd)` ] \
 	   && (echo "Copying $${dir}..." ; \
-	       (cd $${dir}; tar -cf - . )|(cd $${dest};umask 0; tar -xvf - ); \
+	       (cd $${dir}; tar -cf - . )|(cd $${dest};umask 022; tar -xvf - ); \
 	       for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
 		 rm -rf $${subdir}/RCS ; \
 		 rm -rf $${subdir}/CVS ; \
