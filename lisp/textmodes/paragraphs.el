@@ -38,7 +38,7 @@
 ;; because it is always buffer-local.
 (defvar use-hard-newlines nil
     "Non-nil means to distinguish hard and soft newlines.
-See documentation for the `use-hard-newlines' function.")
+See documentation for the function `use-hard-newlines'.")
 (make-variable-buffer-local 'use-hard-newlines)
 
 (defun use-hard-newlines (&optional arg insert)
