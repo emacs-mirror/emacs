@@ -603,7 +603,7 @@ server there that you can connect to.  See also `nntp-open-connection-function'"
 
 (deffoo nntp-request-group (group &optional server dont-check)
   (nntp-possibly-change-group nil server)
-  (when (nntp-send-command "^2.*\n" "GROUP" group)
+  (when (nntp-send-command "^[245].*\n" "GROUP" group)
     (let ((entry (nntp-find-connection-entry nntp-server-buffer)))
       (setcar (cddr entry) group))))
 
