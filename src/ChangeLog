@@ -1,3 +1,7 @@
+2003-07-13  Richard M. Stallman  <rms@gnu.org>
+
+	* s/netbsd.h (START_FILES_1, END_FILES_1): Always define them.
+
 2003-07-13  Terje Rosten  <terjeros@phys.ntnu.no>
 
 	* xterm.c (x_bitmap_icon,x_wm_set_icon_pixmap): Modify to add mask,
