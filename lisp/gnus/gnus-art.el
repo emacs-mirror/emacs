@@ -377,7 +377,8 @@ The function is called from the article buffer."
   "Function to decode ``localized RFC 822 messages''.
 The function is called from the article buffer."
   :group 'gnus-article-mime
-  :type 'function)
+  :type 'function
+  :version "20.3")
 
 (defcustom gnus-page-delimiter "^\^L"
   "*Regexp describing what to use as article page delimiters.

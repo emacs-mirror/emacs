@@ -589,12 +589,14 @@ is created."
   (if (boundp 'user-mail-address) user-mail-address nil)
   "*Email address that `diary-mail-entries' will send email to."
   :group 'diary
-  :type 'string)
+  :type 'string
+  :version "20.3")
 
 (defcustom diary-mail-days 7
   "*Number of days for `diary-mail-entries' to check."
   :group 'diary
-  :type 'integer)
+  :type 'integer
+  :version "20.3")
 
 (defun diary-mail-entries (&optional ndays)
   "Send a mail message showing diary entries for next NDAYS days.
