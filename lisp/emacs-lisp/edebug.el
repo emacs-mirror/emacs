@@ -511,11 +511,11 @@ the minibuffer."
 		(edebug-all-defs (eq edebug-all-defs (not edebug-it))))
 	    (edebug-read-top-level-form))))
     ;; This should be consistent with `eval-defun-1', but not the
-    ;; same, since that gets a macroexpended form.
+    ;; same, since that gets a macroexpanded form.
     (cond ((and (eq (car form) 'defvar)
 		(cdr-safe (cdr-safe form)))
 	   ;; Force variable to be bound.
-	   (setq form (cons 'defconst (cdr form))))
+	   (makunbound (nth 1 form)))
 	  ((and (eq (car form) 'defcustom)
 		(default-boundp (nth 1 form)))
 	   ;; Force variable to be bound.
