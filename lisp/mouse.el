@@ -1202,7 +1202,12 @@ and selects that window."
 	  (setq choice (buffer-substring beg end)))))
     (let ((owindow (selected-window)))
       (select-window (posn-window (event-start event)))
-      (bury-buffer)
+      (if (and (one-window-p t 'selected-frame)
+	       (window-dedicated-p (selected-window)))
+	  ;; This is a special buffer's frame
+	  (iconify-frame (selected-frame))
+	(or (window-dedicated-p (selected-window))
+	    (bury-buffer)))
       (select-window owindow))
     (choose-completion-string choice buffer)))
 
