@@ -1,3 +1,10 @@
+2002-01-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (command-line-x-option-alist): New options "-fs",
+	"-fw", "-fh", "--fullscreen", "--fullwidth", and "--fullheight".
+
+	* term/x-win.el (x-handle-initial-switch): New function.
+
 2002-01-13  Colin Walters  <walters@debian.org>
 	
 	* emacs-lisp/autoload.el (make-autoload): Handle
