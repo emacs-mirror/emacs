@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.18) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.19) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -21,7 +21,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.18) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.19) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -240,7 +240,7 @@ all: mpmss.exe amcss.exe dwstress.exe lockutnt.exe lockcov.exe \
 
 dwstress.exe amcss.exe lockutnt.exe lockcov.exe stdcover.exe \
      mpmss.exe protcv.exe mpsicv.exe poolncv.exe locv.exe qs.exe \
-     std.lib mpm.lib:
+     std.lib mpm.lib mmdw.lib:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 
 mpsicv.cov:
@@ -321,9 +321,15 @@ $(PFM)\$(VARIETY)\std.lib: $(STDOBJ)
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
 $(PFM)\$(VARIETY)\mpm.lib: $(STDOBJ) $(MPMOBJ)
+	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
 $(PFM)\$(VARIETY)\amc.lib: $(STDOBJ) $(MPMOBJ) $(AMCOBJ)
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\$(VARIETY)\mmdw.lib: $(STDOBJ) $(MPMOBJ) $(AMCOBJ) $(DWOBJ)
+	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
 !ENDIF
