@@ -779,6 +779,27 @@ STRING should be given if the last search was by `string-match' on STRING."
 	  (substring string (match-beginning num) (match-end num))
 	(buffer-substring (match-beginning num) (match-end num)))))
 
+(defun split-string (string &optional separators)
+  "Splits STRING into substrings where there are matches for SEPARATORS.
+Each match for SEPARATORS is a splitting point.
+The substrings between the splitting points are made into a list
+which is returned.
+If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
+  (let ((rexp (or separators "[ \f\t\n\r\v]+"))
+	(start 0)
+	(list nil))
+    (while (string-match rexp string start)
+      (or (eq start 0)
+	  (setq list
+		(cons (substring string start (match-beginning 0))
+		      list)))
+      (setq start (match-end 0)))
+    (or (eq start (length string))
+	(setq list
+	      (cons (substring string start)
+		    list)))
+    (nreverse list)))
+
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
   (if (eq system-type 'ms-dos)
