@@ -1662,21 +1662,21 @@ Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
     (let ((case-fold-search t)
 	  (buffer-read-only nil))
       (if (and rmail-displayed-headers (null ignored-headers))
-	(save-restriction
-	  (narrow-to-region (point-min) (point))
-	  (let (lim next)
-	    (goto-char (point-min))
-	    (while (and (not (eobp))
-			(save-excursion
-			  (if (re-search-forward "\n[^ \t]" nil t)
-			    (setq lim (match-beginning 0)
-				  next (1+ lim))
-			    (setq lim nil next (point-max)))))
-	      (if (save-excursion
-		    (re-search-forward rmail-displayed-headers lim t))
-		(goto-char next)
-		(delete-region (point) next))))
-	  (goto-char (point-min)))
+	  (save-restriction
+	    (narrow-to-region (point-min) (point))
+	    (let (lim next)
+	      (goto-char (point-min))
+	      (while (and (not (eobp))
+			  (save-excursion
+			    (if (re-search-forward "\n[^ \t]" nil t)
+				(setq lim (match-beginning 0)
+				      next (1+ lim))
+			      (setq lim nil next (point-max)))))
+		(if (save-excursion
+		      (re-search-forward rmail-displayed-headers lim t))
+		  (goto-char next)
+		  (delete-region (point) next))))
+	    (goto-char (point-min)))
 	(or ignored-headers (setq ignored-headers rmail-ignored-headers))
 	(save-restriction
 	  (narrow-to-region (point-min) (point))
@@ -1685,8 +1685,9 @@ Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
 		   (re-search-forward ignored-headers nil t))
 	    (beginning-of-line)
 	    (delete-region (point)
-			   (progn (re-search-forward "\n[^ \t]")
-				  (1- (point))))))))))
+			   (if (re-search-forward "\n[^ \t]" nil t)
+			       (1- (point))
+			     (point-max)))))))))
 
 (defun rmail-msg-is-pruned ()
   (rmail-maybe-set-message-counters)
