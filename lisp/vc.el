@@ -233,44 +233,58 @@ the master name of FILE; this is appended to an optional list of FLAGS."
   ;; Revert buffer, try to keep point and mark where user expects them in spite
   ;; of changes because of expanded version-control key words.
   ;; This is quite important since otherwise typeahead won't work as expected.
-  ;; The algorithm for reparsing the *compilation* buffer if necessary was
-  ;; contributed by Johnathan Vail and Kevin Rodgers.
   (interactive "P")
   (widen)
   (let ((point-context (vc-position-context (point)))
 	;; Use mark-marker to avoid confusion in transient-mark-mode.
 	(mark-context  (if (eq (marker-buffer (mark-marker)) (current-buffer))
 			   (vc-position-context (mark-marker))))
-	;; We may want to reparse the compilation buffer after revert
-	(reparse (and (boundp 'compilation-error-list)
-		      (listp compilation-error-list)
-		      (let ((buffer (current-buffer))
-			    (errors compilation-error-list)
-			    (buffer-error-marked-p nil))
-			(while (and errors (not buffer-error-marked-p))
-			  (if (eq (marker-buffer
-				   (car (cdr (car errors))))
-				  buffer)
-			      (setq buffer-error-marked-p t))
-			  (setq errors (cdr errors)))
-			buffer-error-marked-p)))
 	;; Make the right thing happen in transient-mark-mode.
-	(mark-active nil))
+	(mark-active nil)
+	;; We may want to reparse the compilation buffer after revert
+	(reparse (and (boundp 'compilation-error-list) ;compile loaded
+		      (let ((curbuf (current-buffer)))
+			;; Construct a list; each elt is nil or a buffer
+			;; iff that buffer is a compilation output buffer
+			;; that contains markers into the current buffer.
+			(save-excursion
+			  (mapcar (lambda (buffer)
+				    (set-buffer buffer)
+				    (let ((errors (or
+						   compilation-old-error-list
+						   compilation-error-list))
+					  (buffer-error-marked-p nil))
+				      (while (and errors
+						  (not buffer-error-marked-p))
+					(if (eq buffer
+						(marker-buffer
+						 (car (cdr (car errors)))))
+					    (setq buffer-error-marked-p t))
+					(setq errors (cdr errors)))
+				      (if buffer-error-marked-p buffer)))
+				  (buffer-list)))))))
 
     ;; the actual revisit
     (revert-buffer arg no-confirm)
 
-    ;; Reparse remaining *compilation* errors, if necessary:
-    (if reparse                               ; see next-error (compile.el)
-      (save-excursion
-        (set-buffer "*compilation*")
-        (set-buffer-modified-p nil)   ; ?
-        (if (consp compilation-error-list) ; not t, nor ()
-            (setq compilation-parsing-end
-                  (marker-position
-                   (car (car compilation-error-list)))))
-        (compilation-forget-errors)
-        (compilation-parse-errors)))
+    ;; Reparse affected compilation buffers.
+    (while reparse
+      (if (car reparse)
+	  (save-excursion
+	    (set-buffer (car reparse))
+	    (let ((compilation-last-buffer (current-buffer)) ;select buffer
+		  ;; Record the position in the compilation buffer of
+		  ;; the last error next-error went to.
+		  (error-pos (marker-position
+			      (car (car-safe compilation-error-list)))))
+	      ;; Reparse the error messages as far as they were parsed before.
+	      (compile-reinitialize-errors '(4) compilation-parsing-end)
+	      ;; Move the pointer up to find the error we were at before
+	      ;; reparsing.  Now next-error should properly go to the next one.
+	      (while (and compilation-error-list
+			  (/= error-pos (car (car errors))))
+		(setq compilation-error-list (cdr compilation-error-list))))))
+      (setq reparse (cdr reparse)))
 
     ;; Restore point and mark
     (let ((new-point (vc-find-position-by-context point-context)))
