@@ -558,6 +558,7 @@ lock_file (fn)
   register Lisp_Object attack, orig_fn, encoded_fn;
   register char *lfname, *locker;
   lock_info_type lock_info;
+  struct gcpro gcpro1;
 
   /* Don't do locking while dumping Emacs.
      Uncompressing wtmp files uses call-process, which does not work
@@ -577,7 +578,6 @@ lock_file (fn)
      visited.  */
   {
     register Lisp_Object subject_buf;
-    struct gcpro gcpro1;
 
     subject_buf = get_truename_buffer (orig_fn);
 
