@@ -382,6 +382,12 @@ Note:    it means the file has no messages in it.\n\^_")))
 (define-key rmail-mode-map [menu-bar classify]
   (cons "Classify" (make-sparse-keymap "Classify")))
 
+(define-key rmail-mode-map [menu-bar classify input-menu]
+  '("Input Rmail file (menu)" . rmail-input-menu))
+
+(define-key rmail-mode-map [menu-bar classify output-menu]
+  '("Output (Rmail menu)" . rmail-output-menu))
+
 (define-key rmail-mode-map [menu-bar classify output-inbox]
   '("Output (inbox)" . rmail-output))
 
@@ -661,13 +667,15 @@ Instead, these commands are available:
 
 ;; Choose a .xmail file in dir rmail-secondary-file-directory.
 (defun rmail-secondary-file-menu (event)
-  (let* ((files (directory-files rmail-secondary-file-directory t
+  (let* ((files (directory-files rmail-secondary-file-directory tnil
 				 rmail-secondary-file-regexp))
 	 (menu (list "Rmail Files"
 		     (cons "Rmail Files"
 			   (mapcar (function (lambda (f) (cons f f)))
-				   files)))))
-    (x-popup-menu event menu)))
+				   files))))
+	 (chosen (x-popup-menu event menu)))
+    (if chosen
+	(expand-file-name chosen rmail-secondary-file-directory))))
 
 (defun rmail-input-menu (event)
   "Choose a new Rmail file to edit, with a menu."
@@ -2202,6 +2210,10 @@ buffer visiting that file."
 
 (autoload 'rmail-output "rmailout"
   "Append this message to Unix mail file named FILE-NAME."
+  t)
+
+(autoload 'rmail-output-menu "rmailout"
+  "Output current message to another Rmail file, chosen with a menu."
   t)
 
 ;;;; *** Rmail undigestification ***
