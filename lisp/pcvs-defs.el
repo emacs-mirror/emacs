@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-defs.el,v 1.6 2000/11/06 06:56:03 monnier Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.7 2000/12/06 19:51:40 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -298,36 +298,6 @@ This variable is buffer local and only used in the *cvs* buffer.")
 (defconst cvs-vendor-branch "1.1.1"
   "The default branch used by CVS for vendor code.")
 
-(defvar cvs-menu
-  '("CVS"
-    ["Open file.."		cvs-mode-find-file	t]
-    [" ..other window"		cvs-mode-find-file-other-window	t]
-    ["Interactive merge"	cvs-mode-imerge		t]
-    ["Interactive diff"		cvs-mode-idiff		t]
-    ["View diff"		cvs-mode-diff		(cvs-enabledp 'diff)]
-    ["Diff with vendor"		cvs-mode-diff-vendor	t]
-    ["Diff with backup"		cvs-mode-diff-backup	t]
-    ["View log"			cvs-mode-log		t]
-    ["View status"		cvs-mode-status		t]
-    ["View tag tree"		cvs-mode-tree		t]
-    "----"
-    ["Insert"			cvs-mode-insert]
-    ["Update"			cvs-mode-update		(cvs-enabledp 'update)]
-    ["Re-examine"		cvs-mode-examine	t]
-    ["Commit"			cvs-mode-commit-setup	(cvs-enabledp 'commit)]
-    ["Undo changes"		cvs-mode-undo		(cvs-enabledp 'undo)]
-    ["Add"			cvs-mode-add		(cvs-enabledp 'add)]
-    ["Remove"			cvs-mode-remove		(cvs-enabledp 'remove)]
-    ["Ignore"			cvs-mode-ignore		(cvs-enabledp 'ignore)]
-    ["Add ChangeLog"		cvs-mode-add-change-log-entry-other-window t]
-    "----"
-    ["Mark all"			cvs-mode-mark-all-files	t]
-    ["Unmark all"		cvs-mode-unmark-all-files t]
-    ["Hide handled"		cvs-mode-remove-handled	t]
-    "----"
-    ["Quit"			cvs-mode-quit		t]
-    ))
-
 (easy-mmode-defmap cvs-mode-diff-map
   '(("=" .	cvs-mode-diff)
     ("b" .	cvs-mode-diff-backup)
@@ -418,12 +388,36 @@ This variable is buffer local and only used in the *cvs* buffer.")
 
 (fset 'cvs-mode-map cvs-mode-map)
 
-;; add the cvs-menu to the map so it's added whenever we are in cvs-mode
-(when (ignore-errors (require 'easymenu))
-  (easy-menu-define cvs-menu-map
-		    cvs-mode-map
-		    "Menu used in cvs-mode."
-		    cvs-menu))
+(easy-menu-define cvs-menu cvs-mode-map "Menu used in `cvs-mode'."
+  '("CVS"
+    ["Open file.."		cvs-mode-find-file	t]
+    [" ..other window"		cvs-mode-find-file-other-window	t]
+    ["Interactive merge"	cvs-mode-imerge		t]
+    ("View diff"
+     ["Interactive diff"	cvs-mode-idiff		t]
+     ["Current diff"		cvs-mode-diff		t]
+     ["Diff with head"		cvs-mode-diff-head	t]
+     ["Diff with vendor"	cvs-mode-diff-vendor	t]
+     ["Diff with backup"	cvs-mode-diff-backup	t])
+    ["View log"			cvs-mode-log		t]
+    ["View status"		cvs-mode-status		t]
+    ["View tag tree"		cvs-mode-tree		t]
+    "----"
+    ["Insert"			cvs-mode-insert]
+    ["Update"			cvs-mode-update		(cvs-enabledp 'update)]
+    ["Re-examine"		cvs-mode-examine	t]
+    ["Commit"			cvs-mode-commit-setup	(cvs-enabledp 'commit)]
+    ["Undo changes"		cvs-mode-undo		(cvs-enabledp 'undo)]
+    ["Add"			cvs-mode-add		(cvs-enabledp 'add)]
+    ["Remove"			cvs-mode-remove		(cvs-enabledp 'remove)]
+    ["Ignore"			cvs-mode-ignore		(cvs-enabledp 'ignore)]
+    ["Add ChangeLog"		cvs-mode-add-change-log-entry-other-window t]
+    "----"
+    ["Mark all"			cvs-mode-mark-all-files	t]
+    ["Unmark all"		cvs-mode-unmark-all-files t]
+    ["Hide handled"		cvs-mode-remove-handled	t]
+    "----"
+    ["Quit"			cvs-mode-quit		t]))
 
 ;;;; 
 ;;;; CVS-Minor mode
