@@ -190,11 +190,7 @@ echo "Making links to \`etc'."
 (cd etc
  ln [0-9a-zA-Z]* ../${tempdir}/etc
  cd ../${tempdir}/etc
- ## Avoid an error when expanding the wildcards later.
- for dummy in DOC-dummy dummy~ \#dummy\# dummy.dvi dummy.log; do
-   ln MACHINES ${dummy}
- done
- rm -f DOC* *~ \#*\# *.dvi *.log core)
+ rm -f DOC* *~ \#*\# *.dvi *.log *,v core)
 
 echo "Making links to \`cpp'."
 (cd cpp
