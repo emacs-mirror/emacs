@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.231 1998/06/12 11:13:37 spiegel Exp rms $
+;; $Id: vc.el,v 1.232 1998/06/16 16:38:47 rms Exp eliz $
 
 ;; This file is part of GNU Emacs.
 
@@ -506,7 +506,10 @@ If nil, VC itself computes this value when it is first needed."
 	  (error "File %s is not under version control" (buffer-file-name))))))
 
 (defvar vc-binary-assoc nil)
-
+(defvar vc-binary-suffixes
+  (if (memq system-type '(ms-dos windows-nt))
+      '(".exe" ".com" ".bat" ".cmd" ".btm" "")
+    '("")))
 (defun vc-find-binary (name)
   "Look for a command anywhere on the subprocess-command search path."
   (or (cdr (assoc name vc-binary-assoc))
@@ -515,13 +518,18 @@ If nil, VC itself computes this value when it is first needed."
 	 (function 
 	  (lambda (s)
 	    (if s
-		(let ((full (concat s "/" name)))
-		  (if (and (file-executable-p full)
-			   (not (file-directory-p full)))
-		      (progn
-			(setq vc-binary-assoc
-			      (cons (cons name full) vc-binary-assoc))
-			(throw 'found full)))))))
+		(let ((full (concat s "/" name))
+		      (suffixes vc-binary-suffixes)
+		      candidate)
+		  (while suffixes
+		    (setq candidate (concat full (car suffixes)))
+		    (if (and (file-executable-p candidate)
+			     (not (file-directory-p candidate)))
+			(progn
+			  (setq vc-binary-assoc
+				(cons (cons name candidate) vc-binary-assoc))
+			  (throw 'found candidate))
+		      (setq suffixes (cdr suffixes))))))))
 	 exec-path)
 	nil)))
 
