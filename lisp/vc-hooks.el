@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.148 2003/05/07 17:20:29 monnier Exp $
+;; $Id: vc-hooks.el,v 1.149 2003/05/07 17:22:28 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -370,6 +370,12 @@ For registered files, the value returned is one of:
                      with locking; it represents an erroneous condition that
                      should be resolved by the user (vc-next-action will
                      prompt the user to do it)."
+  ;; FIXME: New (sub)states needed (?):
+  ;; - `added' (i.e. `edited' but with no base version yet,
+  ;;            typically represented by vc-workfile-version = "0")
+  ;; - `conflict' (i.e. `edited' with conflict markers)
+  ;; - `removed'
+  ;; - `copied' and `moved' (might be handled by `removed' and `added')
   (or (vc-file-getprop file 'vc-state)
       (if (vc-backend file)
           (vc-file-setprop file 'vc-state
@@ -398,7 +404,8 @@ and does not employ any heuristic at all."
 (defun vc-default-workfile-unchanged-p (backend file)
   "Check if FILE is unchanged by diffing against the master version.
 Return non-nil if FILE is unchanged."
-  (zerop (vc-call diff file (vc-workfile-version file))))
+  ;; If rev1 is nil, `diff' uses the current workfile version.
+  (zerop (vc-call diff file)))
 
 (defun vc-workfile-version (file)
   "Return the version level of the current workfile FILE.
@@ -583,9 +590,9 @@ visiting FILE."
       ;; If the user is root, and the file is not owner-writable,
       ;; then pretend that we can't write it
       ;; even though we can (because root can write anything).
-      ;; This way, even root cannot modify a file that isn't locked.
-      (and (equal file buffer-file-name)
-	   (not buffer-read-only)
+    ;; This way, even root cannot modify a file that isn't locked.
+    (and (equal file buffer-file-name)
+	 (not buffer-read-only)
 	   (zerop (user-real-uid))
 	   (zerop (logand (file-modes buffer-file-name) 128))
 	   (setq buffer-read-only t)))
