@@ -104,12 +104,12 @@
       ;; Emacs--only if menu-bar is loaded
       ((featurep 'menu-bar)
        ;; initialize menu bar keymaps
-       (defvar menu-bar-epatch-menu (make-sparse-keymap))
+       (defvar menu-bar-epatch-menu (make-sparse-keymap "Apply Patch"))
        (fset 'menu-bar-epatch-menu (symbol-value 'menu-bar-epatch-menu))
-       (defvar menu-bar-ediff-merge-menu (make-sparse-keymap))
+       (defvar menu-bar-ediff-merge-menu (make-sparse-keymap "Merge"))
        (fset 'menu-bar-ediff-merge-menu 
 	     (symbol-value 'menu-bar-ediff-merge-menu))
-       (defvar menu-bar-ediff-menu (make-sparse-keymap))
+       (defvar menu-bar-ediff-menu (make-sparse-keymap "Compare"))
        (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu))
 
        ;; define ediff-menu
