@@ -618,6 +618,50 @@ If MINIFRAME is non-nil and not a window, include all frames.")
   return prev_frame (frame, miniframe);
 }
 
+/* Return 1 if it is ok to delete frame F;
+   0 if all frames aside from F are invisible.
+   (Exception: if F is the terminal frame, and we are using X, return 1.)  */
+
+static int
+other_visible_frames (f)
+     FRAME_PTR f;
+{
+  /* We know the selected frame is visible,
+     so if F is some other frame, it can't be the sole visible one.  */
+  if (f == selected_frame)
+    {
+      Lisp_Object frames;
+      int count = 0;
+
+      for (frames = Vframe_list;
+	   CONSP (frames);
+	   frames = XCONS (frames)->cdr)
+	{
+	  Lisp_Object this = XCONS (frames)->car;
+
+	  /* Verify that the frame's window still exists
+	     and we can still talk to it.  And note any recent change
+	     in visibility.  */
+#ifdef HAVE_X_WINDOWS
+	  if (FRAME_X_P (XFRAME (this)))
+	    {
+	      x_sync (this);
+	      FRAME_SAMPLE_VISIBILITY (XFRAME (this));
+	    }
+#endif
+
+	  if (FRAME_VISIBLE_P (XFRAME (this))
+	      || FRAME_ICONIFIED_P (XFRAME (this))
+	      /* Allow deleting the terminal frame when at least
+		 one X frame exists!  */
+	      || (FRAME_X_P (XFRAME (this)) && !FRAME_X_P (f)))
+	    count++;
+	}
+      return count > 1;
+    }
+  return 1;
+}
+
 DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 2, "",
   "Delete FRAME, permanently eliminating it from use.\n\
 If omitted, FRAME defaults to the selected frame.\n\
@@ -643,37 +687,8 @@ but if the second optional argument FORCE is non-nil, you may do so.")
   if (! FRAME_LIVE_P (f))
     return Qnil;
 
-  /* If all other frames are invisible, refuse to delete.
-     (Exception: allow deleting the terminal frame when using X.)  */
-  if (f == selected_frame && NILP (force))
-    {
-      Lisp_Object frames;
-      int count = 0;
-
-      for (frames = Vframe_list;
-	   CONSP (frames);
-	   frames = XCONS (frames)->cdr)
-	{
-	  Lisp_Object this = XCONS (frames)->car;
-
-#ifdef HAVE_X_WINDOWS
-	  if (FRAME_X_P (XFRAME (this)))
-	    {
-	      x_sync (this);
-	      FRAME_SAMPLE_VISIBILITY (XFRAME (this));
-	    }
-#endif
-
-	  if (FRAME_VISIBLE_P (XFRAME (this))
-	      || FRAME_ICONIFIED_P (XFRAME (this))
-	      /* Allow deleting the terminal frame when at least
-		 one X frame exists!  */
-	      || (FRAME_X_P (XFRAME (this)) && !FRAME_X_P (f)))
-	    count++;
-	}
-      if (count == 1)
-	error ("Attempt to delete the only frame");
-    }
+  if (NILP (force) && !other_visible_frames (f))
+    error ("Attempt to delete the sole visible or iconified frame");
 
   /* Does this frame have a minibuffer, and is it the surrogate
      minibuffer for any other frame?  */
@@ -871,16 +886,21 @@ If omitted, FRAME defaults to the currently selected frame.")
 }
 
 DEFUN ("make-frame-invisible", Fmake_frame_invisible, Smake_frame_invisible,
-       0, 1, "",
+       0, 2, "",
   "Make the frame FRAME invisible (assuming it is an X-window).\n\
-If omitted, FRAME defaults to the currently selected frame.")
-  (frame)
-     Lisp_Object frame;
+If omitted, FRAME defaults to the currently selected frame.\n\
+Normally you may not make FRAME invisible if all other frames are invisible,\n\
+but if the second optional argument FORCE is non-nil, you may do so.")
+  (frame, force)
+     Lisp_Object frame, force;
 {
   if (NILP (frame))
     XSET (frame, Lisp_Frame, selected_frame);
 
   CHECK_LIVE_FRAME (frame, 0);
+
+  if (NILP (force) && !other_visible_frames (XFRAME (frame)))
+    error ("Attempt to make invisible the sole visible or iconified frame");
 
   /* Don't let the frame remain selected.  */
   if (XFRAME (frame) == selected_frame)
@@ -1345,7 +1365,7 @@ but that the idea of the actual height of the frame should not be changed.")
   if (FRAME_X_P (f))
     {
       if (XINT (rows) != f->width)
-	x_set_window_size (f, f->width, XINT (rows));
+	x_set_window_size (f, 1, f->width, XINT (rows));
     }
   else
 #endif
@@ -1375,7 +1395,7 @@ but that the idea of the actual width of the frame should not be changed.")
   if (FRAME_X_P (f))
     {
       if (XINT (cols) != f->width)
-	x_set_window_size (f, XINT (cols), f->height);
+	x_set_window_size (f, 1, XINT (cols), f->height);
     }
   else
 #endif
@@ -1401,7 +1421,7 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
   if (FRAME_X_P (f))
     {
       if (XINT (rows) != f->height || XINT (cols) != f->width)
-	x_set_window_size (f, XINT (cols), XINT (rows));
+	x_set_window_size (f, 1, XINT (cols), XINT (rows));
     }
   else
 #endif
