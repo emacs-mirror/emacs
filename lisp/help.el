@@ -104,26 +104,6 @@
 ;; Documentation only, since we use minor-mode-overriding-map-alist.
 (define-key help-mode-map "\r" 'help-follow)
 
-;; Font-locking is incompatible with the new xref stuff.
-;(defvar help-font-lock-keywords
-;  (eval-when-compile
-;    (let ((name-char "[-+a-zA-Z0-9_*]") (sym-char "[-+a-zA-Z0-9_:*]"))
-;      (list
-;       ;;
-;       ;; The symbol itself.
-;       (list (concat "\\`\\(" name-char "+\\)\\(\\(:\\)\\|\\('\\)\\)")
-;	     '(1 (if (match-beginning 3)
-;		     font-lock-function-name-face
-;		   font-lock-variable-name-face)))
-;       ;;
-;       ;; Words inside `' which tend to be symbol names.
-;       (list (concat "`\\(" sym-char sym-char "+\\)'")
-;	     1 'font-lock-constant-face t)
-;       ;;
-;       ;; CLisp `:' keywords as references.
-;       (list (concat "\\<:" sym-char "+\\>") 0 'font-lock-builtin-face t))))
-;  "Default expressions to highlight in Help mode.")
-
 (defvar help-xref-stack nil
   "A stack of ways by which to return to help buffers after following xrefs.
 Used by `help-follow' and `help-xref-go-back'.
@@ -966,22 +946,22 @@ Must be previously-defined."
   :version "20.3"
   :type 'face)
 
-(defvar help-back-label "[back]"
+(defvar help-back-label (purecopy "[back]")
   "Label to use by `help-make-xrefs' for the go-back reference.")
 
-(defvar help-xref-symbol-regexp
-  (concat "\\(\\<\\(\\(variable\\|option\\)\\|"
-          "\\(function\\|command\\)\\|"
-          "\\(symbol\\)\\)\\s-+\\)?"
-          ;; Note starting with word-syntax character:
-          "`\\(\\sw\\(\\sw\\|\\s_\\)+\\)'")
+(defconst help-xref-symbol-regexp
+  (purecopy (concat "\\(\\<\\(\\(variable\\|option\\)\\|"
+		    "\\(function\\|command\\)\\|"
+		    "\\(symbol\\)\\)\\s-+\\)?"
+		    ;; Note starting with word-syntax character:
+		    "`\\(\\sw\\(\\sw\\|\\s_\\)+\\)'"))
   "Regexp matching doc string references to symbols.
 
 The words preceding the quoted symbol can be used in doc strings to
 distinguish references to variables, functions and symbols.")
 
-(defvar help-xref-info-regexp
-  "\\<[Ii]nfo[ \t\n]+node[ \t\n]+`\\([^']+\\)'"
+(defconst help-xref-info-regexp
+  (purecopy "\\<[Ii]nfo[ \t\n]+node[ \t\n]+`\\([^']+\\)'")
   "Regexp matching doc string references to an Info node.")
 
 (defun help-setup-xref (item interactive-p)
