@@ -298,10 +298,12 @@ is less convenient."
 
 (defconst iso-8859-n-locale-regexp "8859[-_]?\\([1-49]\\)\\>"
   "Regexp that specifies when to enable an ISO 8859-N character set.
-We do that if this regexp matches the locale name
-specified by the LC_ALL, LC_CTYPE and LANG environment variables.
+We do that if this regexp matches the locale name specified by
+one of the environment variables LC_ALL, LC_CTYPE, or LANG.
 The paren group in the regexp should match the specific character
-set number, N.  Currently only Latin-[12345] is supported.")
+set number, N.  Currently only Latin-[12345] are supported.
+\(Note that Latin-5 is ISO 8859-9, because 8859-[678] are non-Latin
+alphabets.\)")
 
 (defcustom mail-host-address nil
   "*Name of this machine, for purposes of naming users."
