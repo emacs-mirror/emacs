@@ -3603,6 +3603,7 @@ A string is printed verbatim in the mode line except for %-constructs:\n\
 	% means buffer is read-only and * means it is modified.\n\
 	For a modified read-only buffer, %* gives % and %+ gives *.\n\
   %s -- print process status.   %l -- print the current line number.\n\
+  %c -- print the current column number (this makes editing slower).\n\
   %p -- print percent of buffer above top of window, or Top, Bot or All.\n\
   %P -- print percent of buffer above bottom of window, perhaps plus Top,\n\
         or print Bottom or All.\n\
