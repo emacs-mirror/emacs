@@ -1,6 +1,6 @@
 /* impl.c.format: OBJECT FORMATS
  *
- *  $HopeName: MMsrc!format.c(trunk.4) $
+ *  $HopeName: MMsrc!format.c(trunk.5) $
  */
 
 #include "std.h"
@@ -8,7 +8,7 @@
 #include "format.h"
 #include "pool.h"
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 
 static struct SigStruct FormatSigStruct;
@@ -79,4 +79,10 @@ void FormatDestroy(Format format)
 
   PoolFree(SpaceControlPool(format->space),
            (Addr)format, sizeof(FormatStruct));
+}
+
+/* thread safe */
+Space FormatSpace(Format format)
+{
+  return format->space;
 }
