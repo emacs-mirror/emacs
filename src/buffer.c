@@ -3863,6 +3863,9 @@ An entry (nil PROPERTY VALUE BEG . END) indicates that a text property\n\
 was modified between BEG and END.  PROPERTY is the property name,\n\
 and VALUE is the old value.\n\
 \n\
+An entry (MARKER . DISTANCE) indicates that the marker MARKER\n\
+was adjusted in position by the offset DISTANCE (an integer).\n\
+\n\
 An entry of the form POSITION indicates that point was at the buffer\n\
 location given by the integer.  Undoing an entry of this form places\n\
 point at POSITION.\n\
