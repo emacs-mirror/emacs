@@ -501,9 +501,9 @@
 			    (eq signs 5))
 		       math-living-dangerously)))
 	     (math-numberp (car np)))
-	 (let ((n (car np))
-	       d dd
-	       (safe t) (scalar (math-known-scalarp n)))
+	 (let (d
+               (safe t) 
+               (scalar (math-known-scalarp (car np))))
 	   (while (and (eq (car-safe (setq d (car dp))) '*)
 		       safe)
 	     (math-simplify-one-divisor np (cdr d))
