@@ -130,6 +130,7 @@ typedef struct _widget_value
 static HMENU current_popup_menu;
 
 void syms_of_w32menu ();
+void globals_of_w32menu ();
 
 typedef BOOL (WINAPI * GetMenuItemInfoA_Proc) (
     IN HMENU,
@@ -1606,26 +1607,6 @@ void
 initialize_frame_menubar (f)
      FRAME_PTR f;
 {
-  HMODULE user32 = GetModuleHandle ("user32.dll");
-  /*
-    Reinitialize the function pointers set_menu_item_info and
-    get_menu_item_info here.
-    Even though these function pointers are initialized in
-    syms_of_w32menu which is called from main (emacs.c),
-    we need to initialize them again here in order to prevent
-    a crash that occurs in Windows 9x (possibly only when Emacs
-    was built on Windows NT / 2000 / XP?) in add_menu_item.
-    The crash occurs when attempting to call the Win32 API
-    function SetMenuItemInfo through the function pointer.
-    It appears as if the function pointer that is obtained when
-    syms_of_w32menu is called from main is no longer valid
-    (possibly due to DLL relocation?).
-    To resolve this issue, I have placed calls to reinitialize
-    these function pointers here because this function is the
-    entry point for menu creation.
-   */
-  get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
-  set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");
   /* This function is called before the first chance to redisplay
      the frame.  It has to be, so the frame will have the right size.  */
   FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
@@ -2392,11 +2373,7 @@ w32_free_menu_strings (hwnd)
 
 void syms_of_w32menu ()
 {
-  /* See if Get/SetMenuItemInfo functions are available.  */
-  HMODULE user32 = GetModuleHandle ("user32.dll");
-  get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
-  set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");
-
+	globals_of_w32menu ();
   staticpro (&menu_items);
   menu_items = Qnil;
 
@@ -2414,4 +2391,20 @@ The enable predicate for a menu command should check this variable.  */);
 #ifdef HAVE_MENUS
   defsubr (&Sx_popup_dialog);
 #endif
+}
+
+/*
+	globals_of_w32menu is used to initialize those global variables that
+	must always be initialized on startup even when the global variable
+	initialized is non zero (see the function main in emacs.c).
+	globals_of_w32menu is called from syms_of_w32menu when the global
+	variable initialized is 0 and directly from main when initialized
+	is non zero.
+ */
+void globals_of_w32menu ()
+{
+	/* See if Get/SetMenuItemInfo functions are available.  */
+  HMODULE user32 = GetModuleHandle ("user32.dll");
+  get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
+  set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");
 }

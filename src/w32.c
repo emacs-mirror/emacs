@@ -99,12 +99,23 @@ Boston, MA 02111-1307, USA.
 #include "w32heap.h"
 #include "systime.h"
 
+void globals_of_w32 ();
+
 extern Lisp_Object Vw32_downcase_file_names;
 extern Lisp_Object Vw32_generate_fake_inodes;
 extern Lisp_Object Vw32_get_true_file_attributes;
 extern Lisp_Object Vw32_num_mouse_buttons;
 
 
+/*
+	Initialization states
+ */
+static BOOL g_b_init_is_windows_9x;
+static BOOL g_b_init_open_process_token;
+static BOOL g_b_init_get_token_information;
+static BOOL g_b_init_lookup_account_sid;
+static BOOL g_b_init_get_sid_identifier_authority;
+
 /*
   BEGIN: Wrapper functions around OpenProcessToken
   and other functions in advapi32.dll that are only
@@ -140,15 +151,19 @@ typedef PSID_IDENTIFIER_AUTHORITY (WINAPI * GetSidIdentifierAuthority_Proc) (
   /* ** A utility function ** */
 static BOOL is_windows_9x ()
 {
-  BOOL b_ret=0;
+  static BOOL s_b_ret=0;
   OSVERSIONINFO os_ver;
-  ZeroMemory(&os_ver, sizeof(OSVERSIONINFO));
-  os_ver.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-  if (GetVersionEx (&os_ver))
+  if (g_b_init_is_windows_9x == 0)
     {
-      b_ret = (os_ver.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS);
+      g_b_init_is_windows_9x = 1;
+      ZeroMemory(&os_ver, sizeof(OSVERSIONINFO));
+      os_ver.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+      if (GetVersionEx (&os_ver))
+        {
+          s_b_ret = (os_ver.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS);
+        }
     }
-  return b_ret;
+  return s_b_ret;
 }
 
   /* ** The wrapper functions ** */
@@ -158,21 +173,25 @@ BOOL WINAPI open_process_token (
     DWORD DesiredAccess,
     PHANDLE TokenHandle)
 {
-  OpenProcessToken_Proc pfn_Open_Process_Token = NULL;
+  static OpenProcessToken_Proc s_pfn_Open_Process_Token = NULL;
   HMODULE hm_advapi32 = NULL;
   if (is_windows_9x () == TRUE)
     {
       return FALSE;
     }
-  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-  pfn_Open_Process_Token =
-    (OpenProcessToken_Proc) GetProcAddress (hm_advapi32, "OpenProcessToken");
-  if (pfn_Open_Process_Token == NULL)
+  if (g_b_init_open_process_token == 0)
+    {
+      g_b_init_open_process_token = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Open_Process_Token =
+        (OpenProcessToken_Proc) GetProcAddress (hm_advapi32, "OpenProcessToken");
+    }
+  if (s_pfn_Open_Process_Token == NULL)
     {
       return FALSE;
     }
   return (
-      pfn_Open_Process_Token (
+      s_pfn_Open_Process_Token (
           ProcessHandle,
           DesiredAccess,
           TokenHandle)
@@ -186,21 +205,25 @@ BOOL WINAPI get_token_information (
     DWORD TokenInformationLength,
     PDWORD ReturnLength)
 {
-  GetTokenInformation_Proc pfn_Get_Token_Information = NULL;
+  static GetTokenInformation_Proc s_pfn_Get_Token_Information = NULL;
   HMODULE hm_advapi32 = NULL;
   if (is_windows_9x () == TRUE)
     {
       return FALSE;
     }
-  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-  pfn_Get_Token_Information =
-    (GetTokenInformation_Proc) GetProcAddress (hm_advapi32, "GetTokenInformation");
-  if (pfn_Get_Token_Information == NULL)
+  if (g_b_init_get_token_information == 0)
+    {
+      g_b_init_get_token_information = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Get_Token_Information =
+        (GetTokenInformation_Proc) GetProcAddress (hm_advapi32, "GetTokenInformation");
+    }
+  if (s_pfn_Get_Token_Information == NULL)
     {
       return FALSE;
     }
   return (
-      pfn_Get_Token_Information (
+      s_pfn_Get_Token_Information (
           TokenHandle,
           TokenInformationClass,
           TokenInformation,
@@ -218,21 +241,25 @@ BOOL WINAPI lookup_account_sid (
     LPDWORD cbDomainName,
     PSID_NAME_USE peUse)
 {
-  LookupAccountSid_Proc pfn_Lookup_Account_Sid = NULL;
+  static LookupAccountSid_Proc s_pfn_Lookup_Account_Sid = NULL;
   HMODULE hm_advapi32 = NULL;
   if (is_windows_9x () == TRUE)
     {
       return FALSE;
     }
-  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-  pfn_Lookup_Account_Sid =
-    (LookupAccountSid_Proc) GetProcAddress (hm_advapi32, LookupAccountSid_Name);
-  if (pfn_Lookup_Account_Sid == NULL)
+  if (g_b_init_lookup_account_sid == 0)
+    {
+      g_b_init_lookup_account_sid = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Lookup_Account_Sid =
+        (LookupAccountSid_Proc) GetProcAddress (hm_advapi32, LookupAccountSid_Name);
+    }
+  if (s_pfn_Lookup_Account_Sid == NULL)
     {
       return FALSE;
     }
   return (
-      pfn_Lookup_Account_Sid (
+      s_pfn_Lookup_Account_Sid (
           lpSystemName,
           Sid,
           Name,
@@ -246,21 +273,25 @@ BOOL WINAPI lookup_account_sid (
 PSID_IDENTIFIER_AUTHORITY WINAPI get_sid_identifier_authority (
     PSID pSid)
 {
-  GetSidIdentifierAuthority_Proc pfn_Get_Sid_Identifier_Authority = NULL;
+  static GetSidIdentifierAuthority_Proc s_pfn_Get_Sid_Identifier_Authority = NULL;
   HMODULE hm_advapi32 = NULL;
   if (is_windows_9x () == TRUE)
     {
       return NULL;
     }
-  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-  pfn_Get_Sid_Identifier_Authority =
-    (GetSidIdentifierAuthority_Proc) GetProcAddress (
-        hm_advapi32, "GetSidIdentifierAuthority");
-  if (pfn_Get_Sid_Identifier_Authority == NULL)
+  if (g_b_init_get_sid_identifier_authority == 0)
+    {
+      g_b_init_get_sid_identifier_authority = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Get_Sid_Identifier_Authority =
+        (GetSidIdentifierAuthority_Proc) GetProcAddress (
+            hm_advapi32, "GetSidIdentifierAuthority");
+    }
+  if (s_pfn_Get_Sid_Identifier_Authority == NULL)
     {
       return NULL;
     }
-  return (pfn_Get_Sid_Identifier_Authority (pSid));
+  return (s_pfn_Get_Sid_Identifier_Authority (pSid));
 }
 
 /*
@@ -3907,6 +3938,20 @@ init_ntproc ()
   
   /* Check to see if Emacs has been installed correctly.  */
   check_windows_init_file ();
+}
+
+/*
+	globals_of_w32 is used to initialize those global variables that
+	must always be initialized on startup even when the global variable
+	initialized is non zero (see the function main in emacs.c).
+*/
+void globals_of_w32 ()
+{
+  g_b_init_is_windows_9x = 0;
+  g_b_init_open_process_token = 0;
+  g_b_init_get_token_information = 0;
+  g_b_init_lookup_account_sid = 0;
+  g_b_init_get_sid_identifier_authority = 0;
 }
 
 /* end of nt.c */

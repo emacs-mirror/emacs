@@ -603,8 +603,10 @@ x_update_window_begin (w)
   struct w32_display_info *display_info = FRAME_W32_DISPLAY_INFO (f);
 
   /* Hide the system caret during an update.  */
-  if (w32_use_visible_system_caret)
-    SendMessage (w32_system_caret_hwnd, WM_EMACS_HIDE_CARET, 0, 0);
+  if (w32_use_visible_system_caret && w32_system_caret_hwnd)
+    {
+      SendMessage (w32_system_caret_hwnd, WM_EMACS_HIDE_CARET, 0, 0);
+    }
 
   updated_window = w;
   set_output_cursor (&w->cursor);
@@ -730,8 +732,10 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
   /* Unhide the caret.  This won't actually show the cursor, unless it
      was visible before the corresponding call to HideCaret in
      x_update_window_begin.  */
-  if (w32_use_visible_system_caret)
-    SendMessage (w32_system_caret_hwnd, WM_EMACS_SHOW_CARET, 0, 0);
+  if (w32_use_visible_system_caret && w32_system_caret_hwnd)
+    {
+      SendMessage (w32_system_caret_hwnd, WM_EMACS_SHOW_CARET, 0, 0);
+    }
 
   updated_window = NULL;
 }

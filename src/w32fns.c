@@ -55,6 +55,9 @@ Boston, MA 02111-1307, USA.  */
 #include <dlgs.h>
 #define FILE_NAME_TEXT_FIELD edt1
 
+void syms_of_w32fns ();
+void globals_of_w32fns ();
+
 extern void free_frame_menubar ();
 extern void x_compute_fringe_widths P_ ((struct frame *, int));
 extern double atof ();
@@ -4934,30 +4937,6 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       goto dflt;
 
     case WM_SETFOCUS:
-      /*
-        Reinitialize the function pointer track_mouse_event_fn here.
-        This is required even though it is initialized in syms_of_w32fns
-        which is called in main (emacs.c).
-        Reinitialize the function pointer track_mouse_event_fn here.
-        Even though this function pointer is initialized in
-        syms_of_w32fns which is called from main (emacs.c),
-        we need to initialize it again here in order to prevent
-        a crash that occurs in Windows 9x (possibly only when Emacs
-        was built on Windows NT / 2000 / XP?) when handling the
-        WM_MOUSEMOVE message.
-        The crash occurs when attempting to call the Win32 API
-        function TrackMouseEvent through the function pointer.
-        It appears as if the function pointer that is obtained when
-        syms_of_w32fns is called from main is no longer valid
-        (possibly due to DLL relocation?).
-        To resolve this issue, I have placed a call to reinitialize
-        this function pointer here because this message gets received
-        when the Emacs window gains focus.        
-       */
-      track_mouse_event_fn =
-        (TrackMouseEvent_Proc) GetProcAddress (
-            GetModuleHandle ("user32.dll"),
-            "TrackMouseEvent");
       dpyinfo->faked_key = 0;
       reset_modifiers ();
       register_hot_keys (hwnd);
@@ -14906,14 +14885,9 @@ If the underlying system call fails, value is nil.  */)
 void
 syms_of_w32fns ()
 {
-  HMODULE user32_lib = GetModuleHandle ("user32.dll");
-
-  /* This is zero if not using MS-Windows.  */
+	globals_of_w32fns ();
+	/* This is zero if not using MS-Windows.  */
   w32_in_use = 0;
-
-  /* TrackMouseEvent not available in all versions of Windows, so must load
-     it dynamically.  Do it once, here, instead of every time it is used.  */
-  track_mouse_event_fn = (TrackMouseEvent_Proc) GetProcAddress (user32_lib, "TrackMouseEvent");
   track_mouse_window = NULL;
 
   w32_visible_system_caret_hwnd = NULL;
@@ -15496,7 +15470,26 @@ versions of Windows) characters.  */);
   defsubr (&Sx_file_dialog);
 }
 
+	
+/*
+	globals_of_w32fns is used to initialize those global variables that
+	must always be initialized on startup even when the global variable
+	initialized is non zero (see the function main in emacs.c).
+	globals_of_w32fns is called from syms_of_w32fns when the global
+	variable initialized is 0 and directly from main when initialized
+	is non zero.
+ */
+void globals_of_w32fns ()
+{
+  HMODULE user32_lib = GetModuleHandle ("user32.dll");
+	/*
+		TrackMouseEvent not available in all versions of Windows, so must load
+		it dynamically.  Do it once, here, instead of every time it is used.
+  */
+  track_mouse_event_fn = (TrackMouseEvent_Proc) GetProcAddress (user32_lib, "TrackMouseEvent");
+}
 
+	
 void
 init_xfns ()
 {

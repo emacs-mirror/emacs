@@ -1375,6 +1375,7 @@ main (argc, argv
 #endif /* MSDOS */
 
 #ifdef WINDOWSNT
+  globals_of_w32 ();
   /* Initialize environment from registry settings.  */
   init_environment (argv);
   init_ntproc ();	/* must precede init_editfns.  */
@@ -1540,6 +1541,17 @@ main (argc, argv
       keys_of_keymap ();
       keys_of_minibuf ();
       keys_of_window ();
+    }
+	else
+    {
+      /*
+        Initialization that must be done even if the global variable
+        initialized is non zero
+      */
+#ifdef HAVE_NTGUI
+      globals_of_w32fns ();
+      globals_of_w32menu ();
+#endif  /* end #ifdef HAVE_NTGUI */
     }
 
   if (!noninteractive)

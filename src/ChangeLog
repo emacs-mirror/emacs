@@ -1,3 +1,88 @@
+2002-12-17  Ben Key <bkey1@tampabay.rr.com>
+	* Revisited my earlier fix for the following entry in
+	etc/PROBLEMS: 
+	"Emacs built on Windows 9x/ME crashes at startup on Windows XP,
+	or Emacs builtpart of on XP crashes at startup on Windows 9x/ME."
+	
+	These changes were in part based upon suggestions made by Peter
+	'Luna' Runestig [peter@runestig.com].
+
+	* w32.c (g_b_init_is_windows_9x, g_b_init_open_process_token,
+	g_b_init_get_token_information, g_b_init_lookup_account_sid,
+	g_b_init_get_sid_identifier_authority ): Added several static
+	global variables.
+
+	* w32.c (globals_of_w32): New function.  Used to initialize those
+	global variables that must always be initialized on startup even
+	when the global variable initialized is non zero.  Its primary
+	purpose at this time is to set the global variables
+	g_b_init_is_windows_9x, g_b_init_open_process_token,
+	g_b_init_get_token_information, g_b_init_lookup_account_sid, and
+	g_b_init_get_sid_identifier_authority to 0 on startup.  Called
+	from main.
+
+	* w32.c (is_windows_9x): Perform initialization only if
+	g_b_init_is_windows_9x is equal to 0.  On initialization set
+	g_b_init_is_windows_9x equal to 1.
+
+	* w32.c (open_process_token): Perform initialization only if
+	g_b_init_open_process_token is equal to 0.  On initialization set
+	g_b_init_open_process_token equal to 1.
+	
+	* w32.c (get_token_information): Perform initialization only if
+	g_b_init_get_token_information is equal to 0.  On initialization
+	set g_b_init_get_token_information equal to 1.
+	
+	* w32.c (lookup_account_sid): Perform initialization only if
+	g_b_init_lookup_account_sid is equal to 0.  On initialization 
+	set g_b_init_lookup_account_sid equal to 1.
+
+	* w32.c (get_sid_identifier_authority): Perform initialization
+	only if g_b_init_get_sid_identifier_authority is equal to 0.  On
+	initialization  set g_b_init_get_sid_identifier_authority equal to
+	1.
+
+	* w32fns.c (globals_of_w32fns): New function. Used to initialize
+	those global variables that must always be initialized on startup
+	even when the global variable initialized is non zero.  Its
+	primary purpose at this time is to initialize the global variable
+	track_mouse_event_fn.
+
+	* w32fns.c (w32_wnd_proc):  Remove initialization of
+	track_mouse_event_fn from the handler for the WM_SETFOCUS
+	message.
+
+	* w32fns.c (syms_of_w32fns): Call globals_of_w32fns.
+
+	* w32menu.c (globals_of_w32menu):  New function. Used to
+	initialize those global variables that must always be initialized
+	on startup even when the global variable initialized is non zero.
+	Its primary purpose at this time is to initialize the global
+	variables get_menu_item_info and set_menu_item_info.
+
+	* w32menu.c (initialize_frame_menubar): Remove initialization of
+	get_menu_item_info and set_menu_item_info.
+
+	* w32menu.c (syms_of_w32menu): Call globals_of_w32menu.
+
+	* w32.h (globals_of_w32, globals_of_w32fns, globals_of_w32menu):
+	Declare them.
+
+	* emacs.c (main): Call globals_of_w32 prior to calling
+	init_environment if WINDOWSNT is defined.  Call globals_of_w32fns
+	and globals_of_w32menu if initialized is non zero and HAVE_NTGUI
+	is defined.
+
+	* w32term.c (x_update_window_begin): Fix Windows API error
+	detected by BoundsChecker.  Test to determine if
+	w32_system_caret_hwnd is NULL prior to attempting to use
+	SendMessage to send the WM_EMACS_HIDE_CARET message to it.
+
+	* w32term.c (x_update_window_end): Fix Windows API error
+	detected by BoundsChecker.  Test to determine if
+	w32_system_caret_hwnd is NULL prior to attempting to use
+	SendMessage to send the WM_EMACS_SHOW_CARET message to it.
+	
 2002-12-17  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (coding_system_require_warning): New variable.
