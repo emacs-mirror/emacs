@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $Hopename$
+# $HopeName$
 #
 # Settings that depend on the platform, including C compiler and command syntax
 #
@@ -13,7 +13,7 @@
 # Set lots of variables correctly, depending on the platform
 # (which was determined in 'options')
 #
-# Currently, it should work correctly on NT, Solaris, Linux. MacOS X.
+# Currently, it should work correctly on NT, Solaris, Linux, MacOS X.
 #
 
 sub platform_settings {
@@ -68,6 +68,7 @@ sub settings_nt {
  $stdout_red = ">";
  $stdout_dup = "| $script_dir/ntx86bin/tee.exe";
  $stdin_red = "<";
+ $stdboth_red = ">%s 2>&1";
  $quotestring = \&nt_quotestring;
  $platmailfile = \&nt_mailfile;
  $stringscommand = "$script_dir/ntx86bin/strings.exe -20 -c";
@@ -112,6 +113,7 @@ sub settings_unix {
  $stdout_red = ">";
  $stdout_dup = "| tee";
  $stdin_red = "<";
+ $stdboth_red = ">%s 2>&1";
  $quotestring = \&unix_quotestring;
  $platmailfile = \&unix_mailfile;
  $stringscommand = "strings";
@@ -137,6 +139,7 @@ sub settings_macosx {
     # See comments in impl.gmk.xcppgc and impl.h.osxc
     $cc_opts =~ s/-Wstrict-prototypes//;
     $cc_opts .= " -Wno-unused -Wno-long-long -D__inline__=";
+    $stdboth_red = ">&%s";
     $preprocommand = "$cc_command $cc_preonly";
 }
 
