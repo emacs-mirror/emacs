@@ -1,3 +1,8 @@
+2002-05-29  Colin Walters  <walters@verbum.org>
+
+	* lread.c (Fread_from_string): Don't depend on order of evaluation
+	for C function parameters.
+
 2002-05-28  Richard M. Stallman  <rms@gnu.org>
 
 	* xterm.c (x_display_and_set_cursor): Change the cursor in the same
