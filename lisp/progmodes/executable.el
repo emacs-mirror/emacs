@@ -271,7 +271,8 @@ The magic number of such a command displays all lines but itself."
   "Make file executable according to umask if not already executable.
 If file already has any execute bits set at all, do not change existing
 file modes."
-  (and (save-restriction
+  (and (>= (buffer-size) 2)
+       (save-restriction
 	 (widen)
 	 (string= "#!" (buffer-substring 1 3)))
        (let* ((current-mode (file-modes (buffer-file-name)))
