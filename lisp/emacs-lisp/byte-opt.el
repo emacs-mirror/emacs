@@ -1177,7 +1177,8 @@
       (side-effect-and-error-free-fns
        '(arrayp atom
 	 bobp bolp buffer-end buffer-list buffer-size buffer-string bufferp
-	 car-safe case-table-p cdr-safe char-or-string-p commandp cons consp
+	 car-safe case-table-p cdr-safe char-or-string-p characterp
+	 commandp cons consp
 	 current-buffer current-global-map current-indentation
 	 current-local-map current-minor-mode-maps
 	 dot dot-marker eobp eolp eq equal eventp
