@@ -1,3 +1,8 @@
+2000-08-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* play/zone.el (zone): Discard any pending input before running
+	the randomly-chosen pgm.
+
 2000-08-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* emacs-lisp/bytecomp.el (byte-compile-fix-header): Fix the way of

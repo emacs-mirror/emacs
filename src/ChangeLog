@@ -1,3 +1,8 @@
+2000-08-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (Fmsdos_set_mouse_buttons): Add missing backslashes in
+	the doc string.
+
 2000-08-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* syntax.c (skip_chars): Fix previous change.  Make the handling
