@@ -700,6 +700,12 @@ save your changes to disk."
 		(make-local-variable 'tar-superior-descriptor)
 		(setq tar-superior-buffer tar-buffer)
 		(setq tar-superior-descriptor descriptor)
+		;; Set the default-directory to the dir of the
+		;; superior buffer. 
+		(setq default-directory
+		      (save-excursion
+			(set-buffer tar-superior-buffer)
+			default-directory))
 
 		(tar-subfile-mode 1)
 		
