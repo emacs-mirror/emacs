@@ -1096,7 +1096,7 @@ arguments to the key-binding lookup and modification functions.
 
 Emacs supports four kinds of mouse events: click events, drag events,
 button-down events, and motion events.  All mouse events are represented
-as lists.  The @acronym{CAR} of the list is the event type; this says which
+as lists.  The @sc{car} of the list is the event type; this says which
 mouse button was involved, and which modifier keys were used with it.
 The event type can also distinguish double or triple button presses
 (@pxref{Repeat Events}).  The rest of the list elements give position
@@ -1560,7 +1560,7 @@ into another window.  That produces a pair of events like these:
 key binding purposes.  For a keyboard event, the event type equals the
 event value; thus, the event type for a character is the character, and
 the event type for a function key symbol is the symbol itself.  For
-events that are lists, the event type is the symbol in the @acronym{CAR} of
+events that are lists, the event type is the symbol in the @sc{car} of
 the list.  Thus, the event type is always a symbol or a character.
 
   Two events of the same type are equivalent where key bindings are
@@ -2583,7 +2583,7 @@ This function returns the numeric meaning of a valid raw prefix argument
 value, @var{arg}.  The argument may be a symbol, a number, or a list.
 If it is @code{nil}, the value 1 is returned; if it is @code{-}, the
 value @minus{}1 is returned; if it is a number, that number is returned;
-if it is a list, the @acronym{CAR} of that list (which should be a number) is
+if it is a list, the @sc{car} of that list (which should be a number) is
 returned.
 @end defun
 
