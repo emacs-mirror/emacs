@@ -557,6 +557,14 @@
   (modify-category-entry upper ?l)	; latin characters.
   )
 
+(let ((tbl (standard-case-table))
+      (i 32))
+  (while (< i 128)
+    (set-case-syntax-pair (make-char 'vietnamese-viscii-upper i)
+			  (make-char 'vietnamese-viscii-lower i)
+			  tbl)
+    (setq i (1+ i))))
+
 
 ;;; Setting word boundary.
 
