@@ -1,5 +1,10 @@
 2001-03-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* mail/rmailsum.el (rmail-summary-override-mail-send-and-exit):
+	New function.
+	(rmail-summary-mail, rmail-summary-reply, rmail-summary-forward):
+	Use it.
+
 	* emacs-lisp/autoload.el (generate-file-autoloads): Remove
 	warning about line lengths.
 
