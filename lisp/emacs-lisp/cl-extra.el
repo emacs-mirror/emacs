@@ -624,7 +624,13 @@ argument VECP, this copies vectors as well as conses."
 PROPLIST is a list of the sort returned by `symbol-plist'."
   (setplist '--cl-getf-symbol-- plist)
   (or (get '--cl-getf-symbol-- tag)
-      (and def (get* '--cl-getf-symbol-- tag def))))
+      ;; Originally we called get* here,
+      ;; but that fails, because get* has a compiler macro
+      ;; definition that uses getf!
+      (when def
+	(while (and plist (not (eq (car plist) tag)))
+	  (setq plist (cdr (cdr plist))))
+	(if plist (car (cdr plist)) def))))
 
 (defun cl-set-getf (plist tag val)
   (let ((p plist))
