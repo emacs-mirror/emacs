@@ -1378,17 +1378,6 @@ See also the function `substitute-in-file-name'.")
 	{
 	  *o++ = *p++;
 	}
-      else if (IS_DIRECTORY_SEP (p[0]) && IS_DIRECTORY_SEP (p[1])
-#if defined (APOLLO) || defined (WINDOWSNT)
-	       /* // at start of filename is meaningful in Apollo
-		  and WindowsNT systems.  */
-	       && o != target
-#endif /* APOLLO || WINDOWSNT */
-	       )
-	{
-	  o = target;
-	  p++;
-	}
       else if (IS_DIRECTORY_SEP (p[0])
 	       && p[1] == '.'
 	       && (IS_DIRECTORY_SEP (p[2])
