@@ -2468,8 +2468,9 @@ except that a leading `.', if any, doesn't count."
       (if (and (string-match "\\.[^.]*\\'" file)
 	       (not (eq 0 (match-beginning 0))))
 	  (if (setq directory (file-name-directory filename))
-	      (expand-file-name (substring file 0 (match-beginning 0))
-				directory)
+	      ;; Don't use expand-file-name here; if DIRECTORY is relative,
+	      ;; we don't want to expand it.
+	      (concat directory (substring file 0 (match-beginning 0)))
 	    (substring file 0 (match-beginning 0)))
 	filename))))
 
