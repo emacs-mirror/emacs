@@ -1055,7 +1055,8 @@ Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
 	  ;; Fill this paragraph, but don't add a newline at the end.
 	  (let ((had-newline (bolp)))
 	    (fill-region-as-paragraph start (point) justify)
-	    (or had-newline (delete-char -1))))))))
+	    (if (and (bolp) (not had-newline))
+		(delete-char -1))))))))
 
 (defun fill-individual-paragraphs-prefix (citation-regexp)
   (or (let ((adaptive-fill-first-line-regexp "")
