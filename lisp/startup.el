@@ -702,8 +702,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	   (function
 	    (lambda ()
 	      (if init-file-user
-		  (progn
-		    (setq user-init-file 
+		  (let ((user-init-file-1
 			  (cond 
 			   ((eq system-type 'ms-dos)
 			    (concat "~" init-file-user "/_emacs"))
@@ -714,8 +713,11 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			   ((eq system-type 'vax-vms) 
 			    "sys$login:.emacs")
 			   (t 
-			    (concat "~" init-file-user "/.emacs"))))
-		    (load user-init-file t t)
+			    (concat "~" init-file-user "/.emacs")))))
+		    ;; This tells `load' to store the file name found
+		    ;; into user-init-file.
+		    (setq user-init-file t)
+		    (load user-init-file-1 t t)
 		    (or inhibit-default-init
 			(let ((inhibit-startup-message nil))
 			  ;; Users are supposed to be told their rights.
