@@ -7,11 +7,11 @@
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   print, PostScript
-;; Time-stamp: <98/03/06 11:14:08 vinicius>
-;; Version:    3.06
+;; Time-stamp: <98/05/05  12:36:30 vinicius>
+;; Version:    3.06.1
 
-(defconst ps-print-version "3.06"
-  "ps-print.el, v 3.06 <98/03/06 vinicius>
+(defconst ps-print-version "3.06.1"
+  "ps-print.el, v 3.06.1 <98/05/05 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -371,17 +371,26 @@ Please send all bug fixes and enhancements to
 ;;
 ;; The variable `ps-print-control-characters' specifies whether you want to see
 ;; a printable form for control and 8-bit characters, that is, instead of
-;; sending, for example, a ^D (\005) to printer, it is sent the string "^D".
+;; sending, for example, a ^D (\004) to printer, it is sent the string "^D".
 ;;
 ;; Valid values for `ps-print-control-characters' are:
 ;;
-;;  '8-bit          printable form for control and 8-bit characters
-;;                  (characters from \000 to \037 and \177 to \377).
-;;  'control-8-bit  printable form for control and *control* 8-bit characters
-;;		    (characters from \000 to \037 and \177 to \237).
-;;  'control        printable form for control character
-;;		    (characters from \000 to \037 and \177).
-;;  nil             raw character (no printable form).
+;;  '8-bit          This is the value to use when you want an ascii encoding of
+;;                  any control or non-ascii character. Control characters are
+;;                  encoded as "^D", and non-ascii characters have an
+;;                  octal encoding.
+;;
+;;  'control-8-bit  This is the value to use when you want an ascii encoding of
+;;                  any control character, whether it is 7 or 8-bit.
+;;                  European 8-bits accented characters are printed according
+;;                  the current font.
+;;
+;;  'control        Only ascii control characters have an ascii encoding.
+;;                  European 8-bits accented characters are printed according
+;;                  the current font.
+;;
+;;  nil             No ascii encoding. Any character is printed according the
+;;                  current font.
 ;;
 ;; Any other value is treated as nil.
 ;;
@@ -811,14 +820,21 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgements
 ;; ----------------
 ;;
+;; Thanks to Roland Ducournau <ducour@lirmm.fr> for
+;; `ps-print-control-characters' variable documentation.
+;;
 ;; Thanks to Marcus G Daniels <marcus@cathcart.sysc.pdx.edu> for a better
 ;; database font management.
 ;;
 ;; Thanks to Martin Boyer <gamin@videotron.ca> for some ideas on putting one
-;; header per page over the columns.
+;; header per page over the columns and correct line numbers when printing a
+;; region.
 ;;
 ;; Thanks to Steven L Baur <steve@miranova.com> for dynamic evaluation at
 ;; print time of `ps-lpr-switches'.
+;;
+;; Thanks to Kevin Rodgers <kevinr@ihs.com> for handling control characters
+;; (his code was severely modified, but the main idea was kept).
 ;;
 ;; Thanks to some suggestions on:
 ;;  * Face color map: Marco Melgazzi <marco@techie.com>
@@ -855,9 +871,6 @@ Please send all bug fixes and enhancements to
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Code:
-
-(eval-when-compile
-  (require 'cl))
 
 (unless (featurep 'lisp-float-type)
   (error "`ps-print' requires floating point support"))
@@ -981,14 +994,28 @@ example `letter', `legal' or `a4'."
 
 (defcustom ps-print-control-characters 'control-8-bit
   "*Specifies the printable form for control and 8-bit characters.
+That is, instead of sending, for example, a ^D (\004) to printer,
+it is sent the string \"^D\".
+
 Valid values are:
-  '8-bit          printable form for control and 8-bit characters
-                  (characters from \000 to \037 and \177 to \377).
-  'control-8-bit  printable form for control and *control* 8-bit characters
-                  (characters from \000 to \037 and \177 to \237).
-  'control        printable form for control character
-                  (characters from \000 to \037 and \177).
-  nil             raw character (no printable form).
+
+  '8-bit          This is the value to use when you want an ascii encoding of
+                  any control or non-ascii character. Control characters are
+                  encoded as \"^D\", and non-ascii characters have an
+                  octal encoding.
+
+  'control-8-bit  This is the value to use when you want an ascii encoding of
+                  any control character, whether it is 7 or 8-bit.
+                  European 8-bits accented characters are printed according
+                  the current font.
+
+  'control        Only ascii control characters have an ascii encoding.
+                  European 8-bits accented characters are printed according
+                  the current font.
+
+  nil             No ascii encoding. Any character is printed according the
+                  current font.
+
 Any other value is treated as nil."
   :type '(choice (const 8-bit) (const control-8-bit)
 		 (const control) (const nil))
@@ -2488,7 +2515,7 @@ See `ps-extend-face' for documentation."
 (defun ps-extend-face (face-extension &optional merge-p)
   "Extend face in `ps-print-face-extension-alist'.
 
-If optional MERGE-P is non-nil, extensions in FACE-EXTENSION-LIST are merged
+If optional MERGE-P is non-nil, extensions in FACE-EXTENSION list are merged
 with face extensions in `ps-print-face-extension-alist'; otherwise, overrides.
 
 The elements of FACE-EXTENSION list have the form:
@@ -2554,7 +2581,9 @@ If EXTENSION is any other symbol, it is ignored."
        (boundp 'font-lock-face-attributes)
        (let ((face-attributes font-lock-face-attributes))
 	 (while face-attributes
-	   (let* ((face-attribute (pop face-attributes))
+	   (let* ((face-attribute
+		   (car (prog1 face-attributes
+			  (setq face-attributes (cdr face-attributes)))))
 		  (face (car face-attribute)))
 	     ;; Rustle up a `defface' SPEC from a
 	     ;; `font-lock-face-attributes' entry.
@@ -2645,15 +2674,15 @@ and to indicate in the header that the printout is of a partial file.")
   "Font family name for text of `font-type', when generating PostScript."
   (let* ((font-list (ps-font-list font-sym))
 	 (normal-font (cdr (assq 'normal font-list))))
-    (loop for font in font-list do
-	  (when (eq font-type (car font))
-	    (return (or (cdr font) normal-font))))))
+    (while (and font-list (not (eq font-type (car (car font-list)))))
+      (setq font-list (cdr font-list)))
+    (or (cdr (car font-list)) normal-font)))
 
 (defun ps-fonts (font-sym)
-  (loop for font in (ps-font-list font-sym) collect (cdr font)))
+  (mapcar 'cdr (ps-font-list font-sym)))
 
 (defun ps-font-number (font-sym font-type)
-  (or (position font-type (ps-font-list font-sym) :key 'car)
+  (or (ps-position font-type (ps-font-list font-sym))
       0))
 
 (defsubst ps-line-height (font-sym)
@@ -2767,21 +2796,23 @@ using the current ps-print setup."
     (insert "\n")
     (display-buffer buf 'not-this-window)))
 
+;; macros used in `ps-select-font'
+(defmacro ps-lookup (key) `(cdr (assq ,key font-entry)))
+(defmacro ps-size-scale (key) `(/ (* (ps-lookup ,key) font-size) size))
+
 (defun ps-select-font (font-family sym font-size title-font-size)
   (let ((font-entry (cdr (assq font-family ps-font-info-database))))
     (or font-entry
 	(error "Don't have data to scale font %s. Known fonts families are %s"
 	       font-family
 	       (mapcar 'car ps-font-info-database)))
-    (flet ((lookup (key) (cdr (assq key font-entry))))
-      (let ((size (lookup 'size)))
-	(put sym 'fonts (lookup 'fonts))
-	(flet ((size-scale (key) (/ (* (lookup key) font-size) size)))
-	  (put sym 'space-width (size-scale 'space-width))
-	  (put sym 'avg-char-width (size-scale 'avg-char-width))
-	  (put sym 'line-height (size-scale 'line-height))
-	  (put sym 'title-line-height
-	       (/ (* (lookup 'line-height) title-font-size) size)))))))
+    (let ((size (ps-lookup 'size)))
+      (put sym 'fonts (ps-lookup 'fonts))
+      (put sym 'space-width (ps-size-scale 'space-width))
+      (put sym 'avg-char-width (ps-size-scale 'avg-char-width))
+      (put sym 'line-height (ps-size-scale 'line-height))
+      (put sym 'title-line-height
+	   (/ (* (ps-lookup 'line-height) title-font-size) size)))))
 
 (defun ps-get-page-dimensions ()
   (let ((page-dimensions (cdr (assq ps-paper-type ps-page-dimensions-database)))
@@ -3154,6 +3185,19 @@ page-height == bm + print-height + tm - ho - hh
       (setq tail (cdr tail)))
     (nreverse new)))
 
+;; Find the first occurrence of ITEM in LIST.
+;; Return the index of the matching item, or nil if not found.
+;; Elements are compared with `eq'.
+(defun ps-position (item list)
+  (let ((tail list) (index 0) found)
+    (while tail
+      (if (setq found (eq (car tail) item))
+	  (setq tail nil)
+	(setq index (1+ index)
+	      tail (cdr tail))))
+    (and found index)))
+
+
 (defun ps-begin-file ()
   (ps-get-page-dimensions)
   (setq ps-showline-count (if ps-printing-region (car ps-printing-region) 1)
@@ -3247,13 +3291,15 @@ page-height == bm + print-height + tm - ho - hh
   (ps-output ps-print-prologue-2)
 
   ;; Text fonts
-  (loop for font in (ps-font-list 'ps-font-for-text)
-	for i from 0
-	do
-	(ps-output (format "/f%d %s /%s DefFont\n"
-			   i
-			   ps-font-size
-			   (ps-font 'ps-font-for-text (car font)))))
+  (let ((font (ps-font-list 'ps-font-for-text))
+	(i 0))
+    (while font
+      (ps-output (format "/f%d %s /%s DefFont\n"
+			 i
+			 ps-font-size
+			 (ps-font 'ps-font-for-text (car (car font)))))
+      (setq font (cdr font)
+	    i (1+ i))))
 
   (ps-output "\nBeginDoc\n\n"
 	     "%%EndPrologue\n"))
@@ -3307,7 +3353,7 @@ page-height == bm + print-height + tm - ho - hh
 (defun ps-header-page ()
   (if (prog1
 	  (zerop (mod ps-page-count ps-number-of-columns))
-	(incf ps-page-count))
+	(setq ps-page-count (1+ ps-page-count)))
       ;; Print only when a new real page begins.
       (let ((page-number (ps-page-number)))
 	(ps-output (format "\n%%%%Page: %d %d\n" page-number page-number))
