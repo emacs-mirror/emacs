@@ -490,20 +490,26 @@ See also `gap-position'.")
 }
 
 DEFUN ("position-bytes", Fposition_bytes, Sposition_bytes, 1, 1, 0,
-  "Return the byte position for character position POSITION.")
+  "Return the byte position for character position POSITION.\n\
+If POSITION is out of range, the value is nil.")
   (position)
      Lisp_Object position;
 {
   CHECK_NUMBER_COERCE_MARKER (position, 1);
+  if (XINT (position) < BEG || XINT (position) > Z)
+    return Qnil;
   return make_number (CHAR_TO_BYTE (XINT (position)));
 }
 
 DEFUN ("byte-to-position", Fbyte_to_position, Sbyte_to_position, 1, 1, 0,
-  "Return the character position for byte position BYTEPOS.")
+  "Return the character position for byte position BYTEPOS.\n\
+If BYTEPOS is out of range, the value is nil.")
   (bytepos)
      Lisp_Object bytepos;
 {
   CHECK_NUMBER (bytepos, 1);
+  if (XINT (bytepos) < BEG_BYTE || XINT (bytepos) > Z_BYTE)
+    return Qnil;
   return make_number (BYTE_TO_CHAR (XINT (bytepos)));
 }
 
