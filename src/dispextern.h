@@ -1,5 +1,5 @@
 /* Interface definitions for display code.
-   Copyright (C) 1985, 1993, 1994, 1997, 1998, 1999, 2000
+   Copyright (C) 1985, 1993, 1994, 1997, 1998, 1999, 2000, 2001
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2118,12 +2118,20 @@ extern int auto_raise_tool_bar_buttons_p;
 
 /* Margin around tool-bar buttons in pixels.  */
 
-extern int tool_bar_button_margin;
+extern Lisp_Object Vtool_bar_button_margin;
 
 /* Thickness of relief to draw around tool-bar buttons.  */
 
 extern int tool_bar_button_relief;
 
+/* Default values of the above variables.  */
+
+#define DEFAULT_TOOL_BAR_BUTTON_MARGIN 1
+#define DEFAULT_TOOL_BAR_BUTTON_RELIEF 3
+
+/* The height in pixels of the default tool-bar images.  */
+
+#define DEFAULT_TOOL_BAR_IMAGE_HEIGHT 24
 
 
 /***********************************************************************
