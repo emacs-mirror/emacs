@@ -1216,7 +1216,7 @@ AC_SUBST(machfile)
 AC_SUBST(opsysfile)
 
 AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}")
-AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${config_options}")
+AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${ac_configure_args}")
 AC_DEFINE_UNQUOTED(config_machfile,  "${machfile}")
 AC_DEFINE_UNQUOTED(config_opsysfile, "${opsysfile}")
 AC_DEFINE_UNQUOTED(LD_SWITCH_X_SITE, ${LD_SWITCH_X_SITE})
