@@ -918,7 +918,7 @@ calc-do-quick-calc calc-match-user-syntax math-build-parse-table
 math-find-user-tokens math-read-expr-list math-read-exprs math-read-if
 math-read-token math-remove-dashes)
 
- ("calc-misc" calc-Need-calc-misc calc-delete-windows-keep
+ ("calc-misc" calc-Need-calc-misc 
 calc-do-handle-whys calc-do-refresh calc-num-prefix-name
 calc-record-list calc-record-why calc-report-bug calc-roll-down-stack
 calc-roll-up-stack calc-temp-minibuffer-message calcFunc-floor
