@@ -106,6 +106,9 @@
   (or (fboundp 'find-charset-region)
       (defun find-charset-region (beg end &optional table)
 	(list 'ascii)))
+  (or (fboundp 'char-valid-p)
+      (defun char-valid-p (char)
+	(< (following-char) 256)))
   (or (fboundp 'split-char)
       (defun split-char (char)
 	(list (if (char-valid-p char)
@@ -146,7 +149,17 @@
 	str))
   (or (fboundp 'define-ccl-program)
       (defmacro define-ccl-program (name ccl-program &optional doc)
-	`(defconst ,name nil ,doc))))
+	`(defconst ,name nil ,doc)))
+  (or (fboundp 'multibyte-string-p)
+      (defun multibyte-string-p (str)
+	(let ((len (length str))
+	      (i 0)
+	      multibyte)
+	  (while (and (< i len) (not (setq multibyte (> (aref str i) 255))))
+	    (setq i (1+ i)))
+	  multibyte)))
+  (or (fboundp 'string-make-multibyte)
+      (defalias 'string-make-multibyte 'copy-sequence)))
 
 
 ;;;###autoload
@@ -1356,10 +1369,12 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
     (if (eq (car ps-mule-header-charsets) 'latin-iso8859-1)
 	;; Latin1 characters can be printed by the standard PostScript
 	;; font.  Converts the other non-ASCII characters to `?'.
-	(let ((len (length string)))
-	  (dotimes (i len)
+	(let ((len (length string))
+	      (i 0))
+	  (while (< i len)
 	    (or (memq (char-charset (aref string i)) '(ascii latin-iso8859-1))
-		(aset string i ??)))
+		(aset string i ??))
+	    (setq i (1+ i)))
 	  (setq string (encode-coding-string string 'iso-latin-1)))
       ;; We must prepare a font for the first non-ASCII and non-Latin1
       ;; character in STRING.
@@ -1374,46 +1389,57 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
 	    ;; We don't have a proper font, or we can't print them on
 	    ;; header because this kind of charset is not ASCII
 	    ;; compatible.
-	    (let ((len (length string)))
-	      (dotimes (i len)
+	    (let ((len (length string))
+		  (i 0))
+	      (while (< i len)
 		(or (memq (char-charset (aref string i))
 			  '(ascii latin-iso8859-1))
-		    (aset string i ??)))
+		    (aset string i ??))
+		(setq i (1+ i)))
 	      (setq string (encode-coding-string string 'iso-latin-1)))
 	  (let ((charsets (list 'ascii (car ps-mule-header-charsets)))
-		(len (length string)))
-	    (dotimes (i len)
+		(len (length string))
+		(i 0))
+	    (while (< i len)
 	      (or (memq (char-charset (aref string i)) charsets)
-		  (aset string i ??))))
+		  (aset string i ??))
+	      (setq i (1+ i))))
 	  (setq string (ps-mule-string-encoding font-spec string nil t))))))
   string)
 
 ;;;###autoload
 (defun ps-mule-header-string-charsets ()
   "Return a list of character sets that appears in header strings."
-  (let ((str "")
-	len charset charset-list)
+  (let ((str ""))
     (when ps-print-header
-      (dolist (tail (list ps-left-header ps-right-header))
-	;; Simulate what is done by ps-generate-header-line to get a
-	;; string to plot.
-	(let ((count 0))
-	  (dolist (elt tail)
-	    (if (< count ps-header-lines)
-		(setq str (concat str (cond ((stringp elt) elt)
-					    ((and (symbolp elt) (fboundp elt))
-					     (funcall elt))
-					    ((and (symbolp elt) (boundp elt))
-					     (symbol-value elt))
-					    (t "")))
-		      count (1+ count)))))))
-    (setq len (length str))
-    (dotimes (i len)
-      (setq charset (char-charset (aref str i)))
-      (or (eq charset 'ascii)
-	  (memq charset charset-list)
-	  (setq charset-list (cons charset charset-list))))
-    charset-list))
+      (let ((tail (list ps-left-header ps-right-header)))
+	(while tail
+	  ;; Simulate what is done by ps-generate-header-line to get a
+	  ;; string to plot.
+	  (let ((count 0)
+		(tmp (car tail)))
+	    (setq tail (cdr tail))
+	    (while (and tmp (< count ps-header-lines))
+	      (let ((elt (car tmp)))
+		(setq tmp (cdr tmp)
+		      count (1+ count)
+		      str (concat str
+				  (cond ((stringp elt) elt)
+					((and (symbolp elt) (fboundp elt))
+					 (funcall elt))
+					((and (symbolp elt) (boundp elt))
+					 (symbol-value elt))
+					(t ""))))))))))
+    (let ((len (length str))
+	  (i 0)
+	  charset-list)
+      (while (< i len)
+	(let ((charset (char-charset (aref str i))))
+	  (setq i (1+ i))
+	  (or (eq charset 'ascii)
+	      (memq charset charset-list)
+	      (setq charset-list (cons charset charset-list)))))
+      charset-list)))
 
 ;;;###autoload
 (defun ps-mule-begin-job (from to)
