@@ -1175,6 +1175,10 @@ DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
   "Exit all recursive editing levels.")
   ()
 {
+#ifdef HAVE_X_WINDOWS
+  if (display_busy_cursor_p)
+    cancel_busy_cursor ();
+#endif
   Fthrow (Qtop_level, Qnil);
 }
 
