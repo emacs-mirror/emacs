@@ -166,8 +166,6 @@ extern INTERVAL make_interval ();
 
 /* Declared in intervals.c */
 
-extern Lisp_Object interval_balance_threshold;
-
 extern INTERVAL create_root_interval ();
 extern void copy_properties ();
 extern int intervals_equal ();

@@ -52,9 +52,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define TMEM(sym, set) (CONSP (set) ? ! NILP (Fmemq (sym, set)) : ! NILP (set))
 
-/* Factor for weight-balancing interval trees.  */
-Lisp_Object interval_balance_threshold;
-
 Lisp_Object merge_properties_sticky ();
 
 /* Utility functions for intervals.  */
