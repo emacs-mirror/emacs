@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 1998, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1992,93,94,95,96,1998,2000,2002 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1485,11 +1485,12 @@ and source-file directory for your debugger."
 ;; You must not put whitespace between "-classpath" and the path to
 ;; search for java classes even though it is required when invoking jdb
 ;; from the command line.  See gud-jdb-massage-args for details.
+;; The same applies for "-sourcepath".
 ;;
 ;; Note: The following applies only if `gud-jdb-use-classpath' is nil;
 ;; refer to the documentation of `gud-jdb-use-classpath' and
-;; `gud-jdb-classpath' variables for information on using the classpath
-;; for locating java source files.
+;; `gud-jdb-classpath',`gud-jdb-sourcepath' variables for information
+;; on using the classpath for locating java source files.
 ;;
 ;; If any of the source files in the directories listed in
 ;; gud-jdb-directories won't parse you'll have problems.  Make sure
@@ -1551,6 +1552,11 @@ steps):
 Note that method 3 cannot be used with oldjdb (or Java 1 jdb) since
 those debuggers do not support the classpath command. Use 1) or 2).")
 
+(defvar gud-jdb-sourcepath nil
+  "Directory list provided by an (optional) \"-sourcepath\" option to jdb.
+This list is prepended to `gud-jdb-classpath' to form the complete
+list of directories searched for source files.")
+
 (defvar gud-marker-acc-max-length 4000
   "Maximum number of debugger output characters to keep.
 This variable limits the size of `gud-marker-acc' which holds
@@ -1589,7 +1595,7 @@ the source code display in sync with the debugging session.")
 "Holds temporary classpath values.")
 
 (defun gud-jdb-build-source-files-list (path extn)
-"Return a list of java source files.
+"Return a list of java source files (absolute paths).
 PATH gives the directories in which to search for files with
 extension EXTN.  Normally EXTN is given as the regular expression
  \"\\.java$\" ."
@@ -1821,12 +1827,29 @@ extension EXTN.  Normally EXTN is given as the regular expression
   (if args
       (let (massaged-args user-error)
 
-	(while
-	    (and args
-		 (not (string-match "-classpath\\(.+\\)" (car args)))
-		 (not (setq user-error
-			    (string-match "-classpath$" (car args)))))
-	  (setq massaged-args (append massaged-args (list (car args))))
+	(while (and args (not user-error))
+	  (cond
+	   ((setq user-error (string-match "-classpath$" (car args))))
+	   ((setq user-error (string-match "-sourcepath$" (car args))))
+	   ((string-match "-classpath\\(.+\\)" (car args))
+	    (setq massaged-args
+		  (append massaged-args
+			  (list "-classpath")
+			  (list 
+			   (setq gud-jdb-classpath-string
+				 (substring
+				  (car args)
+				  (match-beginning 1) (match-end 1)))))))
+	   ((string-match "-sourcepath\\(.+\\)" (car args))
+	    (setq massaged-args
+		  (append massaged-args
+			  (list "-sourcepath")
+			  (list 
+			   (setq gud-jdb-sourcepath
+				 (substring
+				  (car args)
+				  (match-beginning 1) (match-end 1)))))))
+	   (t (setq massaged-args (append massaged-args (list (car args))))))
 	  (setq args (cdr args)))
 
 	;; By this point the current directory is all screwed up.  Maybe we
@@ -1835,20 +1858,8 @@ extension EXTN.  Normally EXTN is given as the regular expression
 	(if user-error
 	    (progn
 	      (kill-buffer (current-buffer))
-	      (error "Error: Omit whitespace between '-classpath' and its value")))
-
-	(if args
-	    (setq massaged-args
-		  (append
-		   massaged-args
-		   (list "-classpath")
-		   (list
-		    (setq gud-jdb-classpath-string
-			  (substring
-			   (car args)
-			   (match-beginning 1) (match-end 1))))
-		   (cdr args)))
-	  massaged-args))))
+	      (error "Error: Omit whitespace between '-classpath or -sourcepath' and its value")))
+	massaged-args)))
 
 ;; Search for an association with P, a fully qualified class name, in
 ;; gud-jdb-class-source-alist.  The asssociation gives the fully
@@ -1879,7 +1890,7 @@ relative to a classpath directory."
                       p)
                      "\\.") "/")
          ".java"))
-       (cplist gud-jdb-classpath)
+       (cplist (append gud-jdb-sourcepath gud-jdb-classpath))
        found-file)
     (while (and cplist
                 (not (setq found-file
@@ -1897,8 +1908,12 @@ nil)
 
 (defun gud-jdb-parse-classpath-string (string)
 "Parse the classpath list and convert each item to an absolute pathname."
-  (mapcar 'file-truename (split-string string
-        (concat "[ \t\n\r,\"" path-separator "]+"))))
+  (mapcar (lambda (s) (if (string-match "[/\\]$" s)
+                          (replace-match "" nil nil s) s))
+          (mapcar 'file-truename
+                  (split-string
+                   string
+                   (concat "[ \t\n\r,\"" path-separator "]+")))))
 
 ;; See comentary for other debugger's marker filters - there you will find
 ;; important notes about STRING.
@@ -1911,6 +1926,8 @@ nil)
 	  string))
 
   ;; Look for classpath information until gud-jdb-classpath-string is found
+  ;; (interactive, multiple settings of classpath from jdb
+  ;;  not supported/followed)
   (if (and gud-jdb-use-classpath
            (not gud-jdb-classpath-string)
            (or (string-match "classpath:[ \t[]+\\([^]]+\\)" gud-marker-acc)
@@ -2022,6 +2039,8 @@ For general information about commands available to control jdb from
 gud, see `gud-mode'."
   (interactive
    (list (gud-query-cmdline 'jdb)))
+  (setq gud-jdb-classpath nil)
+  (setq gud-jdb-sourcepath nil)
 
   ;; Set gud-jdb-classpath from the CLASSPATH environment variable,
   ;; if CLASSPATH is set.
@@ -2040,6 +2059,10 @@ gud, see `gud-mode'."
       (setq gud-jdb-classpath
 	    (gud-jdb-parse-classpath-string gud-jdb-classpath-string)))
   (setq gud-jdb-classpath-string nil)   ; prepare for next
+  ;; If a -sourcepath option was provided, parse it
+  (if gud-jdb-sourcepath
+      (setq gud-jdb-sourcepath
+            (gud-jdb-parse-classpath-string gud-jdb-sourcepath)))
 
   (gud-def gud-break  "stop at %c:%l" "\C-b" "Set breakpoint at current line.")
   (gud-def gud-remove "clear %c:%l"   "\C-d" "Remove breakpoint at current line")
@@ -2058,9 +2081,7 @@ gud, see `gud-mode'."
   (run-hooks 'jdb-mode-hook)
 
   (if gud-jdb-use-classpath
-      ;; Get the classpath information from the debugger (this is much
-      ;; faster) and does not need the constant updating of
-      ;; gud-jdb-directories
+      ;; Get the classpath information from the debugger
       (progn
         (if (string-match "-attach" command-line)
             (gud-call "classpath"))
@@ -2662,16 +2683,17 @@ Link exprs of the form:
 
 (defun gud-find-class (f)
   "Find fully qualified class corresponding to file F.
-This function uses the `gud-jdb-classpath' list to derive a file
+This function uses the `gud-jdb-classpath' (and optional
+`gud-jdb-sourcepath') list(s) to derive a file
 pathname relative to its classpath directory. The values in
 `gud-jdb-classpath' are assumed to have been converted to absolute
 pathname standards using file-truename."
   ;; Convert f to a standard representation and remove suffix
-  (setq f (file-name-sans-extension (file-truename f)))
-  (if gud-jdb-classpath
+  (if (and gud-jdb-use-classpath (or gud-jdb-classpath gud-jdb-sourcepath))
       (save-match-data
-        (let ((cplist gud-jdb-classpath)
+        (let ((cplist (append gud-jdb-sourcepath gud-jdb-classpath))
               class-found)
+          (setq f (file-name-sans-extension (file-truename f)))
           ;; Search through classpath list for an entry that is
           ;; contained in f
           (while (and cplist (not class-found))
@@ -2685,7 +2707,12 @@ pathname standards using file-truename."
           (if (not class-found)
              (message "gud-find-class: class for file %s not found!" f))
           class-found))
-    (message "gud-find-class: classpath information not available!")))
+    ;; Not using classpath - try class/source association list
+    (let ((class-found (rassoc f gud-jdb-class-source-alist)))
+      (if class-found
+          (car class-found)
+        (message "gud-find-class: class for file %s not found in gud-jdb-class-source-alist!" f)
+        nil))))
 
 (provide 'gud)
 
