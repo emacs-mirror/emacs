@@ -7,7 +7,7 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript, multibyte, mule
-;; Time-stamp:	<2000/04/17 11:28:09 vinicius>
+;; Time-stamp:	<2000/08/01 11:17:35 vinicius>
 
 ;; This file is part of GNU Emacs.
 
@@ -226,20 +226,8 @@ See also the variable `ps-font-info-database'.")
 
 (defcustom ps-mule-font-info-database-default
   ps-mule-font-info-database-latin
-  "*The default setting to use if `ps-multibyte-buffer' is nil."
-  :type '(repeat :tag "Multi-Byte Buffer Database Font Default"
-		 (list (symbol :tag "Charset")
-		       (repeat :inline t
-			       (list (choice :tag "Font Type"
-					     (const normal) (const bold)
-					     (const italic) (const bold-italic))
-				     (choice :tag "Font Source"
-					     (const builtin) (const ps-bdf)
-					     (const vflib)
-					     (other :tag "nil" nil))
-				     (list (string :tag "Font Name"))
-				     (function :tag "Encoding")
-				     (integer :tag "Bytes")))))
+  "*The default setting to use when `ps-multibyte-buffer' is nil."
+  :type '(symbol :tag "Multi-Byte Buffer Database Font Default")
   :group 'ps-print-font)
 
 (defconst ps-mule-font-info-database-ps
