@@ -2304,6 +2304,8 @@ previous sessions that you could recover from.
 To choose one, move point to the proper line and then type C-c C-c.
 Then you'll be asked about a number of files to recover."
   (interactive)
+  (if (null auto-save-list-file-prefix)
+      (error "You set `auto-save-list-file-prefix' to disable making session files"))
   (let ((ls-lisp-support-shell-wildcards t))
     (dired (concat auto-save-list-file-prefix "*")))
   (goto-char (point-min))
