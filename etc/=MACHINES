@@ -1,5 +1,5 @@
 This is a list of the status of GNU Emacs on various machines and systems.
-Last updated 4 March 1991.
+Last updated 10 Feb 1992.
 
 For each system and machine, we give the `-opsystem' and `-machine'
 options you should pass to config.emacs to prepare to build Emacs for
