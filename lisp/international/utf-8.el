@@ -46,12 +46,13 @@
 ;; Fixme: note that reading and writing invalid utf-8 may not be
 ;; idempotent -- to represent the bytes to fix that needs a new charset.
 ;;
-;; Characters from other character sets can be encoded with
-;; mule-utf-8 by populating the table `ucs-mule-to-mule-unicode' and
-;; registering the translation with `register-char-codings'.  Hash
-;; tables `utf-8-subst-table' and `utf-8-subst-rev-table' are used to
-;; support encoding and decoding of about a quarter of the CJK space
-;; between U+3400 and U+DFFF.
+;; Characters from other character sets can be encoded with mule-utf-8
+;; by populating the translation-table
+;; `utf-translation-table-for-encode' and registering the translation
+;; with `register-char-codings'.  Hash tables
+;; `utf-subst-table-for-decode' and `utf-subst-table-for-encode' are
+;; used to support encoding and decoding of about a quarter of the CJK
+;; space between U+3400 and U+DFFF.
 
 ;; UTF-8 is defined in RFC 2279.  A sketch of the encoding is:
 
@@ -64,34 +65,58 @@
 
 ;;; Code:
 
-(defvar ucs-mule-to-mule-unicode (make-translation-table)
-  "Translation table for encoding to `mule-utf-8'.")
-(define-translation-table 'ucs-mule-to-mule-unicode
-  ucs-mule-to-mule-unicode)
+(defvar ucs-mule-to-mule-unicode (make-char-table 'translation-table nil)
+  "Char table mapping characters to latin-iso8859-1 or mule-unicode-*.
 
-(defvar utf-8-subst-table (make-hash-table :test 'eq))
-(defvar utf-8-subst-rev-table (make-hash-table :test 'eq))
-(define-translation-hash-table 'utf-8-subst-table utf-8-subst-table)
-(define-translation-hash-table 'utf-8-subst-rev-table utf-8-subst-rev-table)
+If `unify-8859-on-encoding-mode' is non-nil, this table populates the
+translation-table named `utf-translation-table-for-encode'.")
 
-(defvar utf-8-translation-table-for-decode (make-translation-table)
-  "Translation table applied after decoding utf-8 to mule-unicode.
-This is only actually applied to characters which would normally be
-decoded into mule-unicode-0100-24ff.")
-(define-translation-table 'utf-8-translation-table-for-decode
-  utf-8-translation-table-for-decode)
+(define-translation-table 'utf-translation-table-for-encode)
+
 
 ;; Map Cyrillic and Greek to iso-8859 charsets, which take half the
 ;; space of mule-unicode.  For Latin scripts this isn't very
 ;; important.  Hebrew and Arabic might go here too when there's proper
 ;; support for them.
-(defvar utf-8-fragmentation-table (make-translation-table)
-  "Char table normally mapping non-Latin mule-unicode-... characters to iso8859.
-Used as the value of `utf-8-translation-table-for-decode' in
-`utf-8-fragment-on-decoding' mode.")
+
+(defvar utf-fragmentation-table (make-char-table 'translation-table nil)
+  "Char-table normally mapping non-Latin mule-unicode-* chars to iso-8859-*.
+
+If `utf-fragment-on-decoding' is non-nil, this table populates the
+translation-table named `utf-translation-table-for-decode'")
+
+(defvar utf-defragmentation-table (make-char-table 'translation-table nil)
+  "Char-table for reverse mapping of `utf-fragmentation-table'.
+
+If `utf-fragment-on-decoding' is non-nil and
+`unify-8859-on-encoding-mode' is nil, this table populates the
+translation-table named `utf-translation-table-for-encode'")
+
+(define-translation-table 'utf-translation-table-for-decode)
+
+
+(defvar ucs-mule-cjk-to-unicode (make-hash-table :test 'eq)
+  "Hash table mapping Emacs CJK character sets to Unicode code points.
+
+If `utf-translate-cjk' is non-nil, this table populates the
+translation-hash-table named `utf-subst-table-for-encode'.")
+
+(define-translation-hash-table 'utf-subst-table-for-encode 
+  (make-hash-table :test 'eq))
+
+(defvar ucs-unicode-to-mule-cjk (make-hash-table :test 'eq)
+  "Hash table mapping Unicode code points to Emacs CJK character sets.
+
+If `utf-translate-cjk' is non-nil, this table populates the
+translation-hash-table named `utf-subst-table-for-decode'.")
+
+(define-translation-hash-table 'utf-subst-table-for-decode
+  (make-hash-table :test 'eq))
+
 (mapc
  (lambda (pair)
-   (aset utf-8-fragmentation-table (car pair) (cdr pair)))
+   (aset utf-fragmentation-table (car pair) (cdr pair))
+   (aset utf-defragmentation-table (cdr pair) (car pair)))
  '((?$,1&d(B . ?,F4(B) (?$,1&e(B . ?,F5(B) (?$,1&f(B . ?,F6(B) (?$,1&h(B . ?,F8(B) (?$,1&i(B . ?,F9(B)
    (?$,1&j(B . ?,F:(B) (?$,1&l(B . ?,F<(B) (?$,1&n(B . ?,F>(B) (?$,1&o(B . ?,F?(B) (?$,1&p(B . ?,F@(B)
    (?$,1&q(B . ?,FA(B) (?$,1&r(B . ?,FB(B) (?$,1&s(B . ?,FC(B) (?$,1&t(B . ?,FD(B) (?$,1&u(B . ?,FE(B)
@@ -128,8 +153,9 @@ Used as the value of `utf-8-translation-table-for-decode' in
    (?$,1(w(B . ?,Lw(B) (?$,1(x(B . ?,Lx(B) (?$,1(y(B . ?,Ly(B) (?$,1(z(B . ?,Lz(B) (?$,1({(B . ?,L{(B)
    (?$,1(|(B . ?,L|(B) (?$,1(~(B . ?,L~(B) (?$,1((B . ?,L(B)))
 
-(defcustom utf-8-fragment-on-decoding nil
-  "Whether or not to decode some scripts in UTF-8 text into iso8859 charsets.
+
+(defcustom utf-fragment-on-decoding nil
+  "Whether or not to decode some chars in UTF-8/16 text into iso8859 charsets.
 Setting this means that the relevant Cyrillic and Greek characters are
 decoded into the iso8859 charsets rather than into
 mule-unicode-0100-24ff.  The iso8859 charsets take half as much space
@@ -140,40 +166,81 @@ for mechanisms to make this largely transparent.
 
 Setting this variable outside customize has no effect."
   :set (lambda (s v)
-	 (setq utf-8-translation-table-for-decode
-	       (if v
-		   utf-8-fragmentation-table
-		 (make-translation-table)))
-	 (define-translation-table 'utf-8-translation-table-for-decode
-	   utf-8-translation-table-for-decode)
+	 (if v
+	     (progn
+	       (define-translation-table 'utf-translation-table-for-decode
+		 utf-fragmentation-table)
+	       ;; Even if unify-8859-on-encoding-mode is off, make
+	       ;; mule-utf-* encode characters in
+	       ;; utf-fragmentation-table.
+	       (unless (eq (get 'utf-translation-table-for-encode
+				'translation-table)
+			   ucs-mule-to-mule-unicode)
+		 (define-translation-table 'utf-translation-table-for-encode
+		   utf-defragmentation-table)
+		 (dolist (coding '(mule-utf-8 mule-utf-16-be mule-utf-16-le))
+		   (register-char-codings coding utf-defragmentation-table))))
+	   (define-translation-table 'utf-translation-table-for-decode)
+	   ;; When unify-8859-on-encoding-mode is off, be sure to make
+	   ;; mule-utf-* disabled for characters in
+	   ;; utf-fragmentation-table.
+	   (unless (eq (get 'utf-translation-table-for-encode
+			    'translation-table)
+		       ucs-mule-to-mule-unicode)
+	     (define-translation-table 'utf-translation-table-for-encode)
+	     (map-char-table
+	      (lambda (key val)
+		(if (and (>= key 128) val)
+		    (aset char-coding-system-table key
+			  (delq 'mule-utf-8
+				(delq 'mule-utf-16-le
+				      (delq 'mule-utf-16-be
+					    (aref char-coding-system-table
+						  key)))))))
+	      utf-defragmentation-table)))
 	 (set-default s v))
   :version "21.4"
   :type 'boolean
   :group 'mule)
 
-(defcustom utf-8-translate-cjk nil
-  "Whether the `mule-utf-8' coding system should encode many CJK characters.
+(defcustom utf-translate-cjk nil
+  "Whether the UTF based coding systems should decode/encode CJK characters.
 
-Enabling this loads tables which enable the coding system to encode
-characters in the charsets `korean-ksc5601', `chinese-gb2312' and
+Enabling this loads tables which enable the coding systems:
+    mule-utf-8, mule-utf-16-le, mule-utf-16-be
+to encode characters in the charsets `korean-ksc5601', `chinese-gb2312' and
 `japanese-jisx0208', and to decode the corresponding unicodes into
 such characters.  This works by loading the library `utf-8-subst'; see
 its commentary.  The tables are fairly large (about 33000 entries), so this
 option is not the default."
   :link '(emacs-commentary-link "utf-8-subst")
   :set (lambda (s v)
-	 (when v
-	   (require 'utf-8-subst)
-	   (let ((table (make-char-table 'translation-table)))
-	     (coding-system-put 'mule-utf-8 'safe-charsets
-				(append (coding-system-get 'mule-utf-8
-							   'safe-charsets)
-					'(korean-ksc5601 chinese-gb2312
-							 japanese-jisx0208)))
-	     (maphash (lambda (k v)
-			(aset table k v))
-		      utf-8-subst-rev-table)
-	     (register-char-codings 'mule-utf-8 table)))
+	 (if v
+	     (progn
+	       (require 'utf-8-subst)
+	       (let ((table (make-char-table 'translation-table)))
+		 (maphash (lambda (k v)
+			    (aset table k t))
+			  ucs-mule-cjk-to-unicode)
+		 (register-char-codings 'mule-utf-8 table)
+		 (register-char-codings 'mule-utf-16-le table)
+		 (register-char-codings 'mule-utf-16-be table))
+	       (define-translation-hash-table 'utf-subst-table-for-decode
+		 ucs-unicode-to-mule-cjk)
+	       (define-translation-hash-table 'utf-subst-table-for-encode
+		 ucs-mule-cjk-to-unicode))
+	   (map-char-table
+	    (lambda (k v)
+	      (if (gethash k ucs-mule-cjk-to-unicode)
+		  (aset char-coding-system-table k
+			(delq 'mule-utf-8
+			      (delq 'mule-utf-16-le
+				    (delq 'mule-utf-16-be v))))))
+	    char-coding-system-table)
+	   (define-translation-hash-table 'utf-subst-table-for-decode
+	     (make-hash-table :test 'eq))
+	   (define-translation-hash-table 'utf-subst-table-for-encode
+	     (make-hash-table :test 'eq)))
 	 (set-default s v))
   :version "21.4"
   :type 'boolean
@@ -263,7 +330,7 @@ option is not the default."
 			 (r1 %= 96)
 			 (r1 += (r2 + 32))
 			 (translate-character
-			  utf-8-translation-table-for-decode r0 r1)
+			  utf-translation-table-for-decode r0 r1)
 			 (write-multibyte-character r0 r1))))))))
 
 	    ;; 3byte encoding
@@ -308,14 +375,15 @@ option is not the default."
 			 (r1 = (r7 + 32))
 			 (r1 += ((r3 + 32) << 7))
 			 (translate-character
-			  utf-8-translation-table-for-decode r0 r1)
+			  utf-translation-table-for-decode r0 r1)
 			 (write-multibyte-character r0 r1))
 		    
 		      ;; mule-unicode-2500-33ff
 		      ;; Fixme: Perhaps allow translation via
-		      ;; utf-8-subst-table for #x2e80 up, so that we use
-		      ;; consistent charsets for all of CJK.  Would need
-		      ;; corresponding change to encoding tables.
+		      ;; utf-subst-table-for-decode for #x2e80 up, so
+		      ;; that we use consistent charsets for all of
+		      ;; CJK.  Would need corresponding change to
+		      ;; encoding tables.
 		      (if (r3 < #x3400)
 			  ((r0 = ,(charset-id 'mule-unicode-2500-33ff))
 			   (r3 -= #x2500)
@@ -329,7 +397,7 @@ option is not the default."
 			;; them as eight-bit-{control|graphic}.
 			(if (r3 < #xd800)
 			    ((r4 = r3)	; don't zap r3
-			     (lookup-integer utf-8-subst-table r4 r5)
+			     (lookup-integer utf-subst-table-for-decode r4 r5)
 			     (if r7
 				 ;; got a translation
 				 ((write-multibyte-character r4 r5)
@@ -370,7 +438,7 @@ option is not the default."
 	      (if (r0 < #xfe)
 		  ;; 4byte encoding
 		  ;; keep those bytes as eight-bit-{control|graphic}
-		  ;; Fixme: allow lookup in utf-8-subst-table.
+		  ;; Fixme: allow lookup in utf-subst-table-for-decode.
 		  ((read r1 r2 r3)
 		   ;; r0 > #xf0, thus eight-bit-graphic
 		   (write-multibyte-character r6 r0)
@@ -409,8 +477,8 @@ option is not the default."
 
   "CCL program to decode UTF-8.
 Basic decoding is done into the charsets ascii, latin-iso8859-1 and
-mule-unicode-*, but see also `utf-8-translation-table-for-decode' and
-`utf-8-subst-table'.
+mule-unicode-*, but see also `utf-fragmentation-table' and
+`ucs-mule-cjk-to-unicode'.
 Encodings of un-representable Unicode characters are decoded asis into
 eight-bit-control and eight-bit-graphic characters.")
 
@@ -421,7 +489,7 @@ eight-bit-control and eight-bit-graphic characters.")
       (if (r5 < 0)
 	  ((r1 = -1)
 	   (read-multibyte-character r0 r1)
-	   (translate-character ucs-mule-to-mule-unicode r0 r1))
+	   (translate-character utf-translation-table-for-encode r0 r1))
 	(;; We have already done read-multibyte-character.
 	 (r0 = r5)
 	 (r1 = r6)
@@ -516,7 +584,7 @@ eight-bit-control and eight-bit-graphic characters.")
 				((write #xc2)
 				 (write r1)))))))
 
-		    ((lookup-character utf-8-subst-rev-table r0 r1)
+		    ((lookup-character utf-subst-table-for-encode r0 r1)
 		     (if r7		; lookup succeeded
 			 ((r1 = (((r0 & #xf000) >> 12) | #xe0))
 			  (r2 = ((r0 & #x3f) | #x80))
@@ -538,10 +606,6 @@ eight-bit-control and eight-bit-graphic characters.")
 
   "CCL program to encode into UTF-8.")
 
-;; Dummy definition so that the CCL can be checked correctly; the
-;; actual data are loaded on demand.
-(unless (boundp 'ucs-mule-8859-to-mule-unicode)	; don't zap it
-  (define-translation-table 'ucs-mule-8859-to-mule-unicode))
 
 (define-ccl-program ccl-untranslated-to-ucs
   `(0
@@ -648,7 +712,7 @@ Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
 ;; ucs-tables is preloaded
 ;; (defun utf-8-pre-write-conversion (beg end)
 ;;   "Semi-dummy pre-write function effectively to autoload ucs-tables."
-;;   ;; Ensure translation table is loaded.
+;;   ;; Ensure translation-table is loaded.
 ;;   (require 'ucs-tables)
 ;;   ;; Don't do this again.
 ;;   (coding-system-put 'mule-utf-8 'pre-write-conversion nil)
@@ -657,33 +721,21 @@ Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
 (make-coding-system
  'mule-utf-8 4 ?u
  "UTF-8 encoding for Emacs-supported Unicode characters.
-The supported Emacs character sets are the following, plus any other
-characters included in the tables `ucs-mule-to-mule-unicode' and
-`utf-8-subst-rev-table':
- ascii
- eight-bit-control
- eight-bit-graphic
- latin-iso8859-1
- latin-iso8859-2
- latin-iso8859-3
- latin-iso8859-4
- cyrillic-iso8859-5
- greek-iso8859-7
- hebrew-iso8859-8
- latin-iso8859-9
- latin-iso8859-14
- latin-iso8859-15
- mule-unicode-0100-24ff
- mule-unicode-2500-33ff
- mule-unicode-e000-ffff
+It supports Unicode characters of these ranges:
+    U+0000..U+33FF, U+E000..U+FFFF.
+They correspond to these Emacs character sets:
+    ascii, latin-iso8859-1, mule-unicode-0100-24ff,
+    mule-unicode-2500-33ff, mule-unicode-e000-ffff
 
-Unicode characters out of the ranges U+0000-U+33FF and U+E200-U+FFFF
-may be decoded into korean-ksc5601, chinese-gb2312, japanese-jisx0208
-\(see user option `utf-8-translate-cjk'); otherwise, sequences of
-eight-bit-control and eight-bit-graphic characters are used to
-preserve their byte sequences, and these are composed to display as a
-single character.  Emacs characters that otherwise can't be encoded
-are encoded as U+FFFD."
+On decoding (e.g. reading a file), Unicode characters not in the above
+ranges are decoded into sequences of eight-bit-control and
+eight-bit-graphic characters to preserve their byte sequences.  The
+byte sequence is preserved on i/o for valid utf-8, but not necessarily
+for invalid utf-8.
+
+On encoding (e.g. writing a file), Emacs characters not belonging to
+any of the character sets listed above are encoded into the UTF-8 byte
+sequence representing U+FFFD (REPLACEMENT CHARACTER)."
 
  '(ccl-decode-mule-utf-8 . ccl-encode-mule-utf-8)
  '((safe-charsets
@@ -691,24 +743,6 @@ are encoded as U+FFFD."
     eight-bit-control
     eight-bit-graphic
     latin-iso8859-1
-    latin-iso8859-15
-    latin-iso8859-14
-    latin-iso8859-9
-    hebrew-iso8859-8
-    greek-iso8859-7
-    cyrillic-iso8859-5
-    latin-iso8859-4
-    latin-iso8859-3
-    latin-iso8859-2
-    vietnamese-viscii-lower
-    vietnamese-viscii-upper
-    thai-tis620
-    ipa
-    ethiopic
-    indian-is13194
-    katakana-jisx0201
-    chinese-sisheng
-    lao
     mule-unicode-0100-24ff
     mule-unicode-2500-33ff
     mule-unicode-e000-ffff)
@@ -716,7 +750,11 @@ are encoded as U+FFFD."
    (coding-category . coding-category-utf-8)
    (valid-codes (0 . 255))
 ;;    (pre-write-conversion . utf-8-pre-write-conversion)
-   (post-read-conversion . utf-8-post-read-conversion)))
+   (post-read-conversion . utf-8-post-read-conversion)
+   (dependency unify-8859-on-encoding-mode
+	       unify-8859-on-decoding-mode
+	       utf-fragment-on-decoding
+	       utf-translate-cjk)))
 
 (define-coding-system-alias 'utf-8 'mule-utf-8)
 
