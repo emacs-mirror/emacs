@@ -763,7 +763,7 @@ Move to a date specified in the ISO commercial calendar
 Move to a date specified in the Julian calendar
 (@code{calendar-goto-julian-date}).
 @item g a
-Move to a date specified by astronomical (Julian) day number
+Move to a date specified with an astronomical (Julian) day number
 (@code{calendar-goto-astro-day-number}).
 @item g h
 Move to a date specified in the Hebrew calendar

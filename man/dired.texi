@@ -1062,7 +1062,7 @@ know how to use @code{find}.
 @cindex file database (locate)
 @vindex locate-command
   @kbd{M-x locate} provides a similar interface to the @code{locate}
-command.  @kbd{M-x locate-with-filter} is similar, but keeps only lines
+program.  @kbd{M-x locate-with-filter} is similar, but keeps only lines
 matching a given regular expression.
 
 @vindex find-ls-option
