@@ -192,7 +192,7 @@ JISX0212.map: ${GLIBC_CHARMAPS}/EUC-JP mapconv compact.awk
 JISX2131.map: ${GLIBC_CHARMAPS}/EUC-JISX0213 mapconv
 	# Generating $@...
 	@mapconv $< '/^<.*[ 	]\/x[a-f]/' GLIBC-2-7 \
-	  | sed 's/0x2015/0x2014/' > $@
+	  | sed -e 's/0x2015/0x2014/' -e 's/0x2299/0x29BF/' > $@
 
 JISX2132.map: ${GLIBC_CHARMAPS}/EUC-JISX0213 mapconv
 	# Generating $@...
