@@ -27,8 +27,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 Lisp_Object Qexecute_kbd_macro;
 
-Lisp_Object Vlast_kbd_macro;
-
 Lisp_Object Vexecuting_macro;
 int executing_macro_index;
 
@@ -64,7 +62,8 @@ Non-nil arg (prefix arg) means append to last macro defined;\n\
     {
       message("Appending to kbd macro...");
       current_perdisplay->kbd_macro_ptr = current_perdisplay->kbd_macro_end;
-      Fexecute_kbd_macro (Vlast_kbd_macro, make_number (1));
+      Fexecute_kbd_macro (current_perdisplay->Vlast_kbd_macro,
+			  make_number (1));
     }
   current_perdisplay->defining_kbd_macro = Qt;
   
@@ -96,7 +95,7 @@ An argument of zero means repeat until error.")
     {
       current_perdisplay->defining_kbd_macro = Qnil;
       update_mode_lines++;
-      Vlast_kbd_macro
+      current_perdisplay->Vlast_kbd_macro
 	= make_event_array ((current_perdisplay->kbd_macro_end
 			     - current_perdisplay->kbd_macro_buffer),
 			    current_perdisplay->kbd_macro_buffer);
@@ -104,12 +103,12 @@ An argument of zero means repeat until error.")
     }
 
   if (XFASTINT (arg) == 0)
-    Fexecute_kbd_macro (Vlast_kbd_macro, arg);
+    Fexecute_kbd_macro (current_perdisplay->Vlast_kbd_macro, arg);
   else
     {
       XSETINT (arg, XINT (arg)-1);
       if (XINT (arg) > 0)
-	Fexecute_kbd_macro (Vlast_kbd_macro, arg);
+	Fexecute_kbd_macro (current_perdisplay->Vlast_kbd_macro, arg);
     }
   return Qnil;
 }
@@ -161,10 +160,10 @@ defining others, use \\[name-last-kbd-macro].")
 {
   if (! NILP (current_perdisplay->defining_kbd_macro))
     error ("Can't execute anonymous macro while defining one");
-  else if (NILP (Vlast_kbd_macro))
+  else if (NILP (current_perdisplay->Vlast_kbd_macro))
     error ("No kbd macro has been defined");
   else
-    Fexecute_kbd_macro (Vlast_kbd_macro, prefix);
+    Fexecute_kbd_macro (current_perdisplay->Vlast_kbd_macro, prefix);
   return Qnil;
 }
 
@@ -228,7 +227,6 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
 
 init_macros ()
 {
-  Vlast_kbd_macro = Qnil;
   Vexecuting_macro = Qnil;
 }
 
@@ -246,13 +244,13 @@ syms_of_macros ()
     "Non-nil while a keyboard macro is being defined.  Don't set this!");
 
   DEFVAR_LISP ("executing-macro", &Vexecuting_macro,
-    "Currently executing keyboard macro (a string); nil if none executing.");
+    "Currently executing keyboard macro (string or vector); nil if none executing.");
 
   DEFVAR_LISP_NOPRO ("executing-kbd-macro", &Vexecuting_macro,
-    "Currently executing keyboard macro (a string); nil if none executing.");
+    "Currently executing keyboard macro (string or vector); nil if none executing.");
 
-  DEFVAR_LISP ("last-kbd-macro", &Vlast_kbd_macro,
-    "Last kbd macro defined, as a string; nil if none defined.");
+  DEFVAR_DISPLAY ("last-kbd-macro", Vlast_kbd_macro,
+    "Last kbd macro defined, as a string or vector; nil if none defined.");
 }
 
 keys_of_macros ()
