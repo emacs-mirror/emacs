@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/mman.h>
 #include <stdio.h>
 #include <varargs.h>
+#ifndef __NetBSD__
 #include <filehdr.h>
 #include <aouthdr.h>
 #include <scnhdr.h>
@@ -35,6 +36,42 @@ Boston, MA 02111-1307, USA.  */
 # include <reloc.h>
 # include <elf_abi.h>
 #endif
+#else /* __NetBSD__ */
+/*
+ * NetBSD/Alpha does not have 'normal' user-land ECOFF support because
+ * there's no desire to support ECOFF as the executable format in the
+ * long term.
+ */
+#include <sys/exec_ecoff.h>
+
+/* Structures, constants, etc., that NetBSD defines strangely. */
+#define	filehdr		ecoff_filehdr
+#define	aouthdr		ecoff_aouthdr
+#define	scnhdr		ecoff_scnhdr
+#define	HDRR		struct ecoff_symhdr
+#define	pHDRR		HDRR *
+#define	cbHDRR		sizeof(HDRR)
+#define	ALPHAMAGIC	ECOFF_MAGIC_NETBSD_ALPHA
+#define	ZMAGIC		ECOFF_ZMAGIC
+
+/* Misc. constants that NetBSD doesn't define at all. */
+#define	ALPHAUMAGIC	0617
+#define	_MIPS_NSCNS_MAX	35
+#define	STYP_TEXT	0x00000020
+#define	STYP_DATA	0x00000040
+#define	STYP_BSS	0x00000080
+#define	STYP_RDATA	0x00000100
+#define	STYP_SDATA	0x00000200
+#define	STYP_SBSS	0x00000400
+#define	STYP_INIT	0x80000000
+#define	_TEXT		".text"
+#define	_DATA		".data"
+#define	_BSS		".bss"
+#define	_INIT		".init"
+#define	_RDATA		".rdata"
+#define	_SDATA		".sdata"
+#define	_SBSS		".sbss"
+#endif /* __NetBSD__ */
 
 static void fatal_unexec ();
 static void mark_x ();
