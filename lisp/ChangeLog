@@ -1,5 +1,8 @@
 2002-01-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* language/tibet-util.el (tibetan-decompose-region)
+	(tibetan-decompose-string): Fix typo in docstring.
+
 	* ruler-mode.el (ruler-mode): New keyword.  Fix :version.
 
 2002-01-18  Richard M. Stallman  <rms@gnu.org>
