@@ -1,3 +1,7 @@
+2001-05-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* font-lock.el (lisp-font-lock-keywords-1): Add `defvaralias'.
+
 2001-05-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/ccl.el (define-ccl-program): Fix a typo.  From
