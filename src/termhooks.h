@@ -63,6 +63,13 @@ extern int (*read_socket_hook) ();
    button releases.  */
 extern int (*mouse_tracking_enable_hook) ( /* int ENABLE */ );
 
+/* When reading from a minibuffer in a different screen, Emacs wants
+   to shift the highlight from the selected screen to the minibuffer's
+   screen; under X, this means it lies about where the focus is.
+   This hook tells the window system code to re-decide where to put
+   the highlight.  */
+extern void (*screen_rehighlight_hook) ( /* SCREEN_PTR s */ );
+
 /* If nonzero, send all terminal output characters to this stream also.  */
 
 extern FILE *termscript;
@@ -83,9 +90,13 @@ struct input_event {
   enum {
     no_event,			/* nothing happened.  This should never
 				   actually appear in the event queue.  */
-    ascii_keystroke,		/* The ASCII code is in .code.  Note that
-				   this includes meta-keys, and the modifiers
-				   field of the event is unused.  */
+    ascii_keystroke,		/* The ASCII code is in .code.
+				   .screen is the screen in which the key
+				   was typed.
+				   Note that this includes meta-keys, and
+				   the modifiers field of the event
+				   is unused.  */
+
     non_ascii_keystroke,	/* .code is a number identifying the
 				   function key.  A code N represents
 				   a key whose name is
@@ -93,7 +104,9 @@ struct input_event {
 				   is a table in keyboard.c to which you
 				   should feel free to add missing keys.
 				   .modifiers holds the state of the
-				   modifier keys.  */
+				   modifier keys.
+				   .screen is the screen in which the key
+				   was typed.  */
     mouse_click,		/* The button number is in .code.
 				   .modifiers holds the state of the
 				   modifier keys.
@@ -118,10 +131,12 @@ struct input_event {
 				   should apply to.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
+#if 0
     screen_selected,		/* The user has moved the focus to another
 				   screen.
 				   .screen is the screen that should become
 				   selected at the next convenient time.  */
+#endif
   } kind;
   
   Lisp_Object code;

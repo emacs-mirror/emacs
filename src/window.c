@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#include <stdio.h>
 
 #include "config.h"
 #include "lisp.h"
@@ -27,6 +28,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "commands.h"
 #include "indent.h"
 #include "termchar.h"
+#include "termhooks.h"
 #include "disptab.h"
 
 Lisp_Object Qwindowp;
@@ -350,7 +352,6 @@ window_from_coordinates (screen, x, y, modeline_p)
 
       if (found)
 	{
-	  
 	  *modeline_p = (found == -1);
 	  return tem;
 	}
@@ -458,6 +459,8 @@ from overriding motion of point in order to display at this exact start.")
     w->force_start = Qt;
   w->update_mode_line = Qt;
   XFASTINT (w->last_modified) = 0;
+  if (!EQ (window, selected_window))
+    windows_or_buffers_changed++;
   return pos;
 }
 
@@ -897,7 +900,7 @@ global minibuffer screen is in use and MINIBUF is t, all screens are used.")
   return window;
 }
 
-DEFUN ("other-window", Fother_window, Sother_window, 1, 1, "p",
+DEFUN ("other-window", Fother_window, Sother_window, 1, 2, "p",
   "Select the ARG'th different window on this screen.\n\
 All windows on current screen are arranged in a cyclic order.\n\
 This command selects the window ARG steps away in that order.\n\
@@ -1392,13 +1395,24 @@ before each command.")
 
   selected_window = window;
 #ifdef MULTI_SCREEN
-  if (XSCREEN (WINDOW_SCREEN (w)) != selected_screen)
+  /* If we're selecting the minibuffer window of the selected screen,
+     don't change the selected screen, even if the minibuffer is on
+     a different screen.  */
+  if (XSCREEN (WINDOW_SCREEN (w)) != selected_screen
+      && ! EQ (SCREEN_MINIBUF_WINDOW (selected_screen), window))
     {
       XSCREEN (WINDOW_SCREEN (w))->selected_window = window;
       Fselect_screen (WINDOW_SCREEN (w), Qnil);
     }
   else
     selected_screen->selected_window = window;
+
+  /* When using the global minibuffer screen, we want the highlight to
+   go to the minibuffer's screen, and when we finish, we want the highlight
+   to return to the original screen.  Call the hook to put the highlight
+   where it belongs.  */
+  if (screen_rehighlight_hook)
+    (*screen_rehighlight_hook) ();
 #endif
 
   record_buffer (w->buffer);
