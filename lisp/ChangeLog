@@ -11,7 +11,6 @@
 	(describe-text-at): New command.
 	(facemenu-menu): Replace `list-text-properties-at' with
 	`describe-text-at' in the menu.  
-        (button): Require.
 	
 	* wid-edit.el (widgetp): New function.
 	* wid-edit.el (widget-keymap, widget-insert, widget-setup):
