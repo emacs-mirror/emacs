@@ -1,5 +1,10 @@
 2001-08-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.el (select-frame-set-input-focus): New function
+	extracted from other-frame.
+	(other-frame): Use it.
+	(next-multiframe-window, previous-multiframe-window): Use it.
+
 	* isearch.el (isearch-other-meta-char): Don't switch to the
 	buffer of a window clicked on, when the current buffer is
 	in Isearch mode.
