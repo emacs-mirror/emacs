@@ -1,3 +1,17 @@
+2003-08-16  Richard M. Stallman  <rms@gnu.org>
+
+	* editfns.c (Fencode_time): Doc fix.
+
+2003-08-16  David Ponce  <david@dponce.com>
+
+	* fileio.c (Fwrite_region): Fix conditional expression to issue
+	the right message.
+
+2003-08-16  Juri Linkov  <juri@jurta.org>  (tiny change)
+
+	* syntax.c (Fforward_word): Argument changed to optional.
+        Set default value to 1.
+
 2003-08-15  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (better_font_p): Prefer a real scalable font; i.e. not

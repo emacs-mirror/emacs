@@ -1,3 +1,7 @@
+2003-08-16  Richard M. Stallman  <rms@gnu.org>
+
+	* dired-x.texi (Shell Command Guessing): Explain *.
+
 2003-08-16  Chunyu Wang  <spr@db.cs.hit.edu.cn>  (tiny change)
 
 	* pcl-cvs.texi (Log Edit Mode): Fix key binding for

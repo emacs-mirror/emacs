@@ -1,3 +1,23 @@
+2003-08-16  Richard M. Stallman  <rms@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-error): Add save-excursion.
+
+	* emacs-lisp/lisp-mode.el (eval-last-sexp-print-value):
+	New subroutine, broken out of eval-last-sexp-1.
+	(eval-last-sexp-1): Use eval-last-sexp-print-value.
+
+	* custom.el (custom-load-symbol): Load cus-load and cus-start first.
+
+	* dabbrev.el (dabbrev--safe-replace-match): Use with-no-warnings.
+
+	* simple.el (eval-expression): Use eval-last-sexp-print-value.
+
+2003-08-12  Juri Linkov  <juri@jurta.org>  (tiny change)
+
+	* simple.el (backward-word, forward-to-indentation)
+	(backward-to-indentation):  Argument changed to optional.
+	(next-line, previous-line): Use `or' instead of `unless'.
+
 2003-08-12  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* progmodes/ebnf-iso.el (ebnf-no-meta-identifier): Becomes a var

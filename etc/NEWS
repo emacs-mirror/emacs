@@ -1653,6 +1653,9 @@ a match if part of it has a read-only property.
 
 * Lisp Changes in Emacs 21.4
 
+** The argument to forward-word, backward-word, forward-to-indentation
+and backward-to-indentation is now optional, and defaults to 1.
+
 +++
 ** The new function `window-inside-edges' returns the edges of the
 actual text portion of the window, not including the scroll bar or
@@ -2067,6 +2070,7 @@ declaration specifiers supported are:
 	Set NAME's `edebug-form-spec' property to DEBUG.  (This is
 	equivalent to writing a `def-edebug-spec' for the macro.
 
++++
 ** Interactive commands can be remapped through keymaps.
 
 This is an alternative to using defadvice or substitute-key-definition
@@ -2123,6 +2127,7 @@ The following changes have been made to provide command remapping:
   command before remapping.  It is equal to `this-command' when the
   command was not remapped.
 
++++
 ** New variable emulation-mode-map-alists.
 
 Lisp packages using many minor mode keymaps can now maintain their own
@@ -2194,6 +2199,7 @@ properties.  It works at the same level as `default-text-properties',
 although it applies to overlays as well.  This variable was introduced
 to implement the `font-lock-face' property.
 
++++
 ** New special text property `font-lock-face'.
 
 This property acts like the `face' property, but it is controlled by
@@ -2201,12 +2207,14 @@ M-x font-lock-mode.  It is not, strictly speaking, a builtin text
 property.  Instead, it is implemented inside font-core.el, using the
 new variable `char-property-alias-alist'.
 
++++
 ** New function remove-list-of-text-properties.
 
 The new function `remove-list-of-text-properties' is almost the same
 as `remove-text-properties'.  The only difference is that it takes
 a list of property names as argument rather than a property list.
 
++++
 ** New function insert-for-yank.
 
 This function normally works like `insert' but removes the text
@@ -2215,20 +2223,23 @@ inserted text has a `yank-handler' text property on the first
 character of the string, the insertion of the text may be modified in
 a number of ways.  See the description of `yank-handler' below.
 
++++
 ** New function insert-buffer-substring-as-yank.
 
 This function works like `insert-buffer-substring', but removes the
 text properties in the `yank-excluded-properties' list.
 
++++
 ** New function insert-buffer-substring-no-properties.
 
 This function is like insert-buffer-substring, but removes all
 text properties from the inserted substring.
 
++++
 ** New `yank-handler' text property may be used to control how
 previously killed text on the kill-ring is reinserted.
 
-The value of the yank-handler property must be a list with one to five
+The value of the yank-handler property must be a list with one to four
 elements with the following format:
   (FUNCTION PARAM NOEXCLUDE UNDO).
 
@@ -2252,9 +2263,9 @@ by `yank-pop' to undo the insertion of the current object.  It is
 called with two arguments, the start and end of the current region.
 FUNCTION may set `yank-undo-function' to override the UNDO value.
 
-*** The functions kill-new, kill-append, and kill-region now has an
-optional third argument to specify the yank-handler text property
-to put on the killed text.
+*** The functions kill-new, kill-append, and kill-region now have an
+optional argument to specify the yank-handler text property to put on
+the killed text.
 
 *** The function yank-pop will now use a non-nil value of the variable
 `yank-undo-function' (instead of delete-region) to undo the previous
@@ -2376,6 +2387,7 @@ as the "key" bound by that key binding.
 This is relevant only if Lisp code looks for
 the bindings that were made with easymenu.
 
++++
 ** The function `commandp' takes an additional optional
 argument.  If it is non-nil, then `commandp' checks
 for a function that could be called with `call-interactively',
@@ -2412,16 +2424,19 @@ properties--any specified text properties are discarded.
 This is like window-height but does not count the mode line
 or the header line.
 
++++
 ** New function format-mode-line.
 
 This returns the mode-line or header-line of the selected (or a
 specified) window as a string with or without text properties.
 
++++
 ** New functions `lax-plist-get' and `lax-plist-put'.
 
 These functions are like `plist-get' and `plist-put' except that they
 compare the property name using `equal' rather than `eq'.
 
++++
 ** New function `tool-bar-local-item-from-menu'
 
 The `tool-bar-add-item-from-menu' must not be used (as previously
