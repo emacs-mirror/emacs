@@ -214,7 +214,7 @@ that have not already been dumped will be lost."
       (read (current-buffer)))))
 
 (defun ispell-tex-buffer-p ()
-  (memq major-mode '(plain-TeX-mode LaTeX-mode)))
+  (memq major-mode '(plain-tex-mode latex-mode slitex-mode)))
 
 (defvar ispell-menu-map (make-sparse-keymap "Spell"))
 (defalias 'ispell-menu-map ispell-menu-map)
