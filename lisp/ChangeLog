@@ -1,3 +1,8 @@
+2002-09-16  Markus Rost  <rost@math.ohio-state.edu>
+
+	* ls-lisp.el (ls-lisp-format-time-list): Fix type and provide
+	:tag's.
+
 2002-09-16  Richard M. Stallman  <rms@gnu.org>
 
 	* play/gomoku.el (gomoku-move-up, gomoku-move-down):
@@ -11,7 +16,8 @@
 
 2002-09-16  Juanma Barranquero  <lektu@terra.es>
 
-	* dired-aux.el (dired-add-entry): Add missing argument to `dired-mark'.
+	* dired-aux.el (dired-add-entry): Add missing argument to
+	`dired-mark'.
 
 2002-09-16  John Paul Wallington  <jpw@shootybangbang.com>
 
@@ -242,7 +248,8 @@
 
 	* international/ucs-tables.el: Fix last change.
 
-	* international/utf-8.el (utf-8-fragment-on-decoding): Fix last change.
+	* international/utf-8.el (utf-8-fragment-on-decoding): Fix last
+	change.
 
 2002-09-11  Kim F. Storm  <storm@cua.dk>
 
