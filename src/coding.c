@@ -5402,7 +5402,6 @@ detect_coding (coding)
      struct coding_system *coding;
 {
   const unsigned char *src, *src_end;
-  Lisp_Object attrs, coding_type;
 
   coding->consumed = coding->consumed_char = 0;
   coding->produced = coding->produced_char = 0;
@@ -7214,7 +7213,6 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
     {
       if (detect_coding_utf_16 (&coding, &detect_info))
 	{
-	  enum coding_category category;
 	  struct coding_system *this;
 
 	  if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
@@ -8859,7 +8857,7 @@ DEFUN ("coding-system-put", Fcoding_system_put, Scoding_system_put,
   (coding_system, prop, val)
      Lisp_Object coding_system, prop, val;
 {
-  Lisp_Object spec, attrs, plist;
+  Lisp_Object spec, attrs;
 
   CHECK_CODING_SYSTEM_GET_SPEC (coding_system, spec);
   attrs = AREF (spec, 0);
