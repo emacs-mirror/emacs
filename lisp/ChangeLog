@@ -1,5 +1,28 @@
 2000-10-08  Dave Love  <fx@gnu.org>
 
+	* progmodes/ada-mode.el (ada-mode-menu): Add name to menu map.
+
+	* progmodes/icon.el (icon-mode-map): Add name to menu-bar keymap.
+
+	* play/studly.el (studlify-region, studlify-word): Add autoload
+	cookie.
+
+	* play/morse.el (morse-region, unmorse-region): Add autoload
+	cookie.
+
+	* play/spook.el (spook-phrases-file): Use expand-file-name, not
+	concat.
+
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression): Don't
+	insist on symbols starting with word syntax.
+	(lisp-mode-shared-map): Renamed from shared-lisp-mode-map.
+	(eval-defun-1): Doc fix.
+	(indent-sexp): Use nconc to build up indent-stack.
+
+	* mail/sendmail.el: Byte-compile-dynamic since it gets loaded by
+	Gnus with little use.
+	(mail-setup-hook): Add mail-abbrevs-setup to options.
+
 	* recentf.el: Doc fixes.
 
 	* vcursor.el (vcursor-cs-binding): Remove compatibility code.
