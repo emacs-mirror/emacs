@@ -366,11 +366,15 @@ one of the formats defined in `format-alist', or a list of such symbols."
 		 (funcall to-fn beg end (current-buffer)))))
 	  (setq format (cdr format)))))))
 
-(defun format-write-file (filename format)
+(defun format-write-file (filename format &optional confirm)
   "Write current buffer into file FILENAME using some FORMAT.
-Makes buffer visit that file and sets the format as the default for future
+Make buffer visit that file and set the format as the default for future
 saves.  If the buffer is already visiting a file, you can specify a directory
-name as FILENAME, to write a file of the same old name in that directory."
+name as FILENAME, to write a file of the same old name in that directory.
+
+If optional third arg CONFIRM is non-nil, this function asks for
+confirmation before overwriting an existing file.  Interactively,
+confirmation is required unless you supply a prefix argument."
   (interactive
    ;; Same interactive spec as write-file, plus format question.
    (let* ((file (if buffer-file-name
@@ -382,7 +386,7 @@ name as FILENAME, to write a file of the same old name in that directory."
 				  nil nil (buffer-name))))
 	  (fmt (format-read (format "Write file `%s' in format: "
 				    (file-name-nondirectory file)))))
-     (list file fmt)))
+     (list file fmt (not current-prefix-arg))))
   (let ((old-formats buffer-file-format)
 	preserve-formats)
     (dolist (fmt old-formats)
@@ -393,7 +397,7 @@ name as FILENAME, to write a file of the same old name in that directory."
     (dolist (fmt preserve-formats)
       (unless (memq fmt buffer-file-format)
 	(setq buffer-file-format (append buffer-file-format (list fmt))))))
-  (write-file filename))
+  (write-file filename confirm))
 
 (defun format-find-file (filename format)
   "Find the file FILENAME using data format FORMAT.
