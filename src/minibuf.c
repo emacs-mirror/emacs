@@ -425,12 +425,16 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* Add the value to the appropriate history list unless it is empty.  */
   if (XSTRING (val)->size != 0
-      && SYMBOLP (Vminibuffer_history_variable)
-      && ! EQ (XSYMBOL (Vminibuffer_history_variable)->value, Qunbound))
+      && SYMBOLP (Vminibuffer_history_variable))
     {
       /* If the caller wanted to save the value read on a history list,
 	 then do so if the value is not already the front of the list.  */
       Lisp_Object histval;
+
+      /* If variable is unbound, make it nil.  */
+      if (EQ (XSYMBOL (Vminibuffer_history_variable)->value, Qunbound))
+	Fset (Vminibuffer_history_variable, Qnil);
+
       histval = Fsymbol_value (Vminibuffer_history_variable);
 
       /* The value of the history variable must be a cons or nil.  Other
