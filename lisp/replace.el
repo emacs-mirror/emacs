@@ -376,6 +376,7 @@ The valid answers include `act', `skip', `act-and-show',
 (define-key query-replace-map " " 'act)
 (define-key query-replace-map "\d" 'skip)
 (define-key query-replace-map [delete] 'skip)
+(define-key query-replace-map [backspace] 'skip)
 (define-key query-replace-map "y" 'act)
 (define-key query-replace-map "n" 'skip)
 (define-key query-replace-map "," 'act-and-show)
@@ -474,7 +475,8 @@ which will run faster and do exactly what you probably want."
 	  (while (not done)
 	    (message "Query replacing %s with %s: "
 		     from-string next-replacement)
-	    (setq key (vector (read-event)))
+	    (setq key (read-event))
+	    (setq key (vector key))
 	    (setq def (lookup-key map key))
 	    ;; Restore the match data while we process the command.
 	    (store-match-data real-match-data)
