@@ -1,3 +1,9 @@
+2005-03-22  Miles Bader  <miles@gnu.org>
+
+	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled):
+	Tweak details to look good on both ttys and bitmap displays, light
+	or dark background, etc.
+
 2005-03-21  Kim F. Storm  <storm@cua.dk>
 
 	* tooltip.el (tooltip-show-help-function): Check car and cdr of
