@@ -292,6 +292,7 @@ detailed meanings of these arguments."
 	(if (> dim 2)
 	    (error "Can only list 1- and 2-dimensional charsets"))
 	(insert (format "Characters in the coded character set %s.\n" charset))
+	(narrow-to-region (point) (point))
 	(setq min (aref range 0)
 	      max (aref range 1))
 	(if (= dim 1)
@@ -301,7 +302,9 @@ detailed meanings of these arguments."
 	  (let ((i min2))
 	    (while (<= i max2)
 	      (list-block-of-chars charset i min max)
-	      (setq i (1+ i)))))))))
+	      (setq i (1+ i)))))
+	(put-text-property (point-min) (point-max) 'charset charset)
+	(widen)))))
 
 
 ;;;###autoload
