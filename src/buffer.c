@@ -315,11 +315,12 @@ The value is never nil.")
 
 DEFUN ("make-indirect-buffer",
        Fmake_indirect_buffer, Smake_indirect_buffer, 2, 2,
-       "BMake indirect buffer: \nbIndirect to base buffer: ",
-  "Create and return an indirect buffer named NAME, with base buffer BASE.\n\
-BASE should be an existing buffer (or buffer name).")
-  (name, base_buffer)
-     register Lisp_Object name, base_buffer;
+       "BMake indirect buffer (to buffer): \nbName of indirect buffer: ",
+  "Create and return an indirect buffer for buffer BASE, named NAME.\n\
+BASE should be an existing buffer (or buffer name).\n\
+NAME should be a string which is not the name of an existing buffer.")
+  (base_buffer, name)
+     register Lisp_Object base_buffer, name;
 {
   register Lisp_Object buf;
   register struct buffer *b;
