@@ -217,7 +217,7 @@ variable local to every buffer in which it is subsequently set, which
 would affect buffers that do not use this mode.  It is undesirable for a
 mode to have such global effects.  @xref{Buffer-Local Variables}.
 
-With rare exceptions, the only reasonable way to use use
+With rare exceptions, the only reasonable way to use 
 @code{make-variable-buffer-local} in a Lisp package is for a variable
 which is used only within that package.  Using it on a variable used by
 other packages would interfere with them.
