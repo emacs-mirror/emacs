@@ -112,6 +112,8 @@ xlwMenuResources[] =
      offset(menu.open), XtRCallback, (XtPointer)NULL},
   {XtNselect, XtCCallback, XtRCallback, sizeof(XtPointer), 
      offset(menu.select), XtRCallback, (XtPointer)NULL},
+  {XtNhighlightCallback, XtCCallback, XtRCallback, sizeof(XtPointer), 
+     offset(menu.highlight), XtRCallback, (XtPointer)NULL},
   {XtNmenu, XtCMenu, XtRPointer, sizeof(XtPointer),
      offset(menu.contents), XtRImmediate, (XtPointer)NULL},
   {XtNcursor, XtCCursor, XtRCursor, sizeof(Cursor),
@@ -1245,6 +1247,11 @@ remap_menubar (mw)
   new_selection = last_same + 1 < new_depth ? new_stack [last_same + 1] : NULL;
   if (new_selection && !new_selection->enabled)
     new_selection = NULL;
+
+  /* Call callback when the hightlighted item changes.  */
+  if (old_selection || new_selection)
+    XtCallCallbackList ((Widget)mw, mw->menu.highlight,
+			(XtPointer) new_selection);
 
   /* updates old_state from new_state.  It has to be done now because
      display_menu (called below) uses the old_stack to know what to display. */
