@@ -13,6 +13,14 @@ the --without-pop configure option, should that be necessary.
 
 * Changes in Emacs 21.1
 
+** Reading from the mini-buffer now reads from standard input if Emacs
+is running in batch mode.  For example,
+
+  (message "%s" (read t))
+
+will read a Lisp expression from standard input and print the result
+to standard output.
+
 ** Faces and frame parameters.
 
 There are four new faces `scroll-bar', `border', `cursor' and `mouse'.
