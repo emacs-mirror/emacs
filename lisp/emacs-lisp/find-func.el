@@ -145,7 +145,7 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 	    (goto-char (point-min))
 	    (if (or (re-search-forward regexp nil t)
 		    (re-search-forward
-		     (concat "^([^ ]+ +"
+		     (concat "^([^ ]+\\(\\s-\\|\n\\)+"
 			     (regexp-quote (symbol-name symbol))
 			     "\\>")
 		     nil t))
