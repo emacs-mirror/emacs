@@ -630,9 +630,10 @@ remains buffer-local."
   (defvar makefile-mode-hook)
   (add-hook 'makefile-mode-hook 'viper-mode)
 
+  ;; Help mode is now for viewing only
   (defvar help-mode-hook)
-  (add-hook 'help-mode-hook 'viper-mode)
-  (viper-modify-major-mode 'help-mode 'vi-state viper-help-modifier-map)
+  (add-hook 'help-mode-hook 'viper-change-state-to-emacs)
+  (viper-modify-major-mode 'help-mode 'emacs-state viper-slash-and-colon-map)
 
   (defvar awk-mode-hook)
   (add-hook 'awk-mode-hook 'viper-mode)

@@ -452,10 +452,6 @@ Useful in some modes, such as Gnus, MH, etc.")
 (define-key viper-dired-modifier-map ":" 'viper-ex)
 (define-key viper-dired-modifier-map "/" 'viper-search-forward)
 
-(defvar viper-help-modifier-map (make-sparse-keymap)
-  "This map modifies Help mode behavior.")
-(define-key viper-help-modifier-map "q" (if viper-xemacs-p 'help-mode-quit))
-
 
 
 ;;; Code
