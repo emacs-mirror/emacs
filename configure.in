@@ -259,8 +259,11 @@ case "${canonical}" in
   mips-dec-ultrix[0-3].* | mips-dec-ultrix4.0* | mips-dec-bsd4.2* )
     machine=pmax opsys=bsd4-2
   ;;
-  mips-dec-ultrix* | mips-dec-bsd* )
+  mips-dec-ultrix4.[12]* | mips-dec-bsd* )
     machine=pmax opsys=bsd4-3
+  ;;
+  mips-dec-ultrix* )
+    machine=pmax opsys=ultrix4-3
   ;;
   mips-dec-osf* )
     machine=pmax opsys=osf1
@@ -1170,13 +1173,13 @@ if test "${HAVE_X11}" = "yes"; then
   LIBS="$LD_SWITCH_X_SITE $LIBX $LIBS"
   CFLAGS="$C_SWITCH_X_SITE $CFLAGS"
 
-  if test "${HAVE_XFREE386}" = "yes" && test "${opsys}" = "linux"; then
-    AC_MSG_CHECKING(whether XFree86 needs -b to link)
+  if test "${opsys}" = "linux"; then
+    AC_MSG_CHECKING(whether X on GNU/Linux needs -b to link)
     AC_TRY_LINK([],
      [XOpenDisplay ("foo");],
-     [xfree86_first_failure=no],
-     [xfree86_first_failure=yes])
-    if test "${xfree86_first_failure}" = "yes"; then
+     [xlinux_first_failure=no],
+     [xlinux_first_failure=yes])
+    if test "${xlinux_first_failure}" = "yes"; then
       OLD_LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE"
       OLD_C_SWITCH_X_SITE="$C_SWITCH_X_SITE"
       OLD_CPPFLAGS="$CPPFLAGS"
@@ -1187,9 +1190,9 @@ if test "${HAVE_X11}" = "yes"; then
       LIBS="$LIBS -b i486-linuxaout"
       AC_TRY_LINK([],
        [XOpenDisplay ("foo");],
-       [xfree86_second_failure=no],
-       [xfree86_second_failure=yes])
-      if test "${xfree86_second_failure}" = "yes"; then
+       [xlinux_second_failure=no],
+       [xlinux_second_failure=yes])
+      if test "${xlinux_second_failure}" = "yes"; then
 	# If we get the same failure with -b, there is no use adding -b.
 	# So take it out.  This plays safe.
 	LD_SWITCH_X_SITE="$OLD_LD_SWITCH_X_SITE"
