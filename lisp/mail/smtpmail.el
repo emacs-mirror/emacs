@@ -671,7 +671,7 @@ This is relative to `smtpmail-queue-dir'.")
 			  (>= (car response-code) 400))
 		      (throw 'done nil))))
 
-	    ;; MAIL FROM: <sender>
+	    ;; MAIL FROM:<sender>
 	    (let ((size-part
 		   (if (or (member 'size supported-extensions)
 			   (assoc 'size supported-extensions))
@@ -706,7 +706,7 @@ This is relative to `smtpmail-queue-dir'.")
 			 "")
 		     "")))
 ;	      (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
-	      (smtpmail-send-command process (format "MAIL FROM: <%s>%s%s"
+	      (smtpmail-send-command process (format "MAIL FROM:<%s>%s%s"
                                                      envelope-from
 						     size-part
 						     body-part))
@@ -717,10 +717,10 @@ This is relative to `smtpmail-queue-dir'.")
 		  (throw 'done nil)
 		))
 
-	    ;; RCPT TO: <recipient>
+	    ;; RCPT TO:<recipient>
 	    (let ((n 0))
 	      (while (not (null (nth n recipient)))
-		(smtpmail-send-command process (format "RCPT TO: <%s>" (smtpmail-maybe-append-domain (nth n recipient))))
+		(smtpmail-send-command process (format "RCPT TO:<%s>" (smtpmail-maybe-append-domain (nth n recipient))))
 		(setq n (1+ n))
 
 		(setq response-code (smtpmail-read-response process))
