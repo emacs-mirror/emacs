@@ -1,5 +1,8 @@
 2001-01-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.c (do_switch_frame): If selected frame has a mini-window,
+	resize that to exact size.
+
 	* dispnew.c (adjust_glyph_matrix): Always clear desired matrices.
 
 	* xdisp.c (display_line): Simplify check for glyphs fitting
