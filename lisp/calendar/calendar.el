@@ -2040,34 +2040,38 @@ the inserted text.  Value is always t."
    (propertize (substitute-command-keys
 		"\\<calendar-mode-map>\\[scroll-calendar-left]")
 	       'help-echo "mouse-2: scroll left"
-	       'keymap (make-mode-line-mouse2-map #'scroll-calendar-left))
+	       'keymap (make-mode-line-mouse-map 'mouse-2 
+						 #'scroll-calendar-left))
    "Calendar"
    (concat
     (propertize
      (substitute-command-keys
       "\\<calendar-mode-map>\\[calendar-goto-info-node] info")
      'help-echo "mouse-2: read Info on Calendar"
-     'keymap (make-mode-line-mouse2-map #'calendar-goto-info-node))
+     'keymap (make-mode-line-mouse-map 'mouse-2 #'calendar-goto-info-node))
     "/"
     (propertize
      (substitute-command-keys
      "\\<calendar-mode-map>\\[calendar-other-month] other")
      'help-echo "mouse-2: choose another month"
-     'keymap (make-mode-line-mouse2-map (lambda ()
-					  (interactive)
-					  (call-interactively
-					   'calendar-other-month))))
+     'keymap (make-mode-line-mouse-map 
+	      'mouse-2 
+	      (lambda ()
+		(interactive)
+		(call-interactively
+		 'calendar-other-month))))
     "/"
     (propertize
      (substitute-command-keys
      "\\<calendar-mode-map>\\[calendar-goto-today] today")
      'help-echo "mouse-2: go to today's date"
-     'keymap (make-mode-line-mouse2-map #'calendar-goto-today)))
+     'keymap (make-mode-line-mouse-map 'mouse-2 #'calendar-goto-today)))
    '(calendar-date-string (calendar-current-date) t)
    (propertize (substitute-command-keys
 		"\\<calendar-mode-map>\\[scroll-calendar-right]")
 	       'help-echo "mouse-2: scroll right"
-	       'keymap (make-mode-line-mouse2-map #'scroll-calendar-right)))
+	       'keymap (make-mode-line-mouse-map 
+			'mouse-2 #'scroll-calendar-right)))
   "The mode line of the calendar buffer.")
 
 (defun calendar-goto-info-node ()
