@@ -2752,6 +2752,10 @@ ARGS are passed as extra arguments to the function.")
 #define IS_BASE64(Character) \
   (IS_ASCII (Character) && base64_char_to_value[Character] >= 0)
 
+/* Don't use alloca for regions larger than this, lest we overflow
+   their stack.  */
+#define MAX_ALLOCA 16*1024
+
 /* Table of characters coding the 64 values.  */
 static char base64_value_to_char[64] =
 {
@@ -2831,7 +2835,10 @@ into shorter lines.")
   allength = length + length/3 + 1;
   allength += allength / MIME_LINE_LENGTH + 1 + 6;
 
-  encoded = (char *) alloca (allength);
+  if (allength <= MAX_ALLOCA)
+    encoded = (char *) alloca (allength);
+  else
+    encoded = (char *) xmalloc (allength);
   encoded_length = base64_encode_1 (BYTE_POS_ADDR (ibeg), encoded, length,
 				    NILP (no_line_break));
   if (encoded_length > allength)
@@ -2841,6 +2848,8 @@ into shorter lines.")
      and delete the old.  (Insert first in order to preserve markers.)  */
   SET_PT_BOTH (XFASTINT (beg), ibeg);
   insert (encoded, encoded_length);
+  if (allength > MAX_ALLOCA)
+    free (encoded);
   del_range_byte (ibeg + encoded_length, iend + encoded_length, 1);
 
   /* If point was outside of the region, restore it exactly; else just
@@ -2863,6 +2872,7 @@ DEFUN ("base64-encode-string", Fbase64_encode_string, Sbase64_encode_string,
 {
   int allength, length, encoded_length;
   char *encoded;
+  Lisp_Object encoded_string;
 
   CHECK_STRING (string, 1);
 
@@ -2870,14 +2880,21 @@ DEFUN ("base64-encode-string", Fbase64_encode_string, Sbase64_encode_string,
   allength = length + length/3 + 1 + 6;
 
   /* We need to allocate enough room for decoding the text. */
-  encoded = (char *) alloca (allength);
+  if (allength <= MAX_ALLOCA)
+    encoded = (char *) alloca (allength);
+  else
+    encoded = (char *) xmalloc (allength);
 
   encoded_length = base64_encode_1 (XSTRING (string)->data,
 				    encoded, length, 0);
   if (encoded_length > allength)
     abort ();
 
-  return make_unibyte_string (encoded, encoded_length);
+  encoded_string = make_unibyte_string (encoded, encoded_length);
+  if (allength > MAX_ALLOCA)
+    free (encoded);
+
+  return encoded_string;
 }
 
 static int
@@ -2975,7 +2992,10 @@ If the region can't be decoded, return nil and don't modify the buffer.")
 
   length = iend - ibeg;
   /* We need to allocate enough room for decoding the text. */
-  decoded = (char *) alloca (length);
+  if (length <= MAX_ALLOCA)
+    decoded = (char *) alloca (length);
+  else
+    decoded = (char *) xmalloc (length);
 
   move_gap_both (XFASTINT (beg), ibeg);
   decoded_length = base64_decode_1 (BYTE_POS_ADDR (ibeg), decoded, length);
@@ -2996,6 +3016,8 @@ If the region can't be decoded, return nil and don't modify the buffer.")
   TEMP_SET_PT_BOTH (XFASTINT (beg) + 1, ibeg + 1);  
   insert (decoded, decoded_length);
   inserted_chars = PT - (XFASTINT (beg) + 1);
+  if (length > MAX_ALLOCA)
+    free (decoded);
   /* At first delete the original text.  This never cause byte
      combining.  */
   del_range_both (PT + 1, PT_BYTE + 1, XFASTINT (end) + inserted_chars + 2,
@@ -3025,12 +3047,16 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
 {
   char *decoded;
   int length, decoded_length;
+  Lisp_Object decoded_string;
 
   CHECK_STRING (string, 1);
 
   length = STRING_BYTES (XSTRING (string));
   /* We need to allocate enough room for decoding the text. */
-  decoded = (char *) alloca (length);
+  if (length <= MAX_ALLOCA)
+    decoded = (char *) alloca (length);
+  else
+    decoded = (char *) xmalloc (length);
 
   decoded_length = base64_decode_1 (XSTRING (string)->data, decoded, length);
   if (decoded_length > length)
@@ -3039,7 +3065,11 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   if (decoded_length < 0)
       return Qnil;
 
-  return make_string (decoded, decoded_length);
+  decoded_string = make_string (decoded, decoded_length);
+  if (length > MAX_ALLOCA)
+    free (decoded);
+
+  return decoded_string;
 }
 
 static int
