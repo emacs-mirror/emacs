@@ -2321,7 +2321,7 @@ recenter:
       && PT > BEGV + minibuffer_scroll_overlap
       /* If we scrolled to an actual line boundary,
 	 that's different; don't ignore line boundaries.  */
-      && FETCH_BYTE (pos.bufpos - 1) != '\n')
+      && FETCH_BYTE (pos.bytepos - 1) != '\n')
     {
       pos.bufpos = PT - minibuffer_scroll_overlap;
       pos.bytepos = CHAR_TO_BYTE (pos.bufpos);
@@ -2637,7 +2637,7 @@ try_window_id (window)
      newline before it, so the following line must be redrawn. */
   if (stop_vpos == ep.vpos
       && (ep.bufpos == BEGV
-	  || FETCH_BYTE (ep.bufpos - 1) != '\n'
+	  || FETCH_BYTE (ep.bytepos - 1) != '\n'
 	  || ep.bufpos == Z - end_unchanged))
     stop_vpos = ep.vpos + 1;
 
@@ -2661,13 +2661,13 @@ try_window_id (window)
 
       /* Is everything on frame below the changes whitespace?
 	 If so, no scrolling is really necessary.  */
-      for (i = ep.bufpos; i < xp.bufpos; i++)
+      for (i = ep.bytepos; i < xp.bytepos; i++)
 	{
 	  tem = FETCH_BYTE (i);
 	  if (tem != ' ' && tem != '\n' && tem != '\t')
 	    break;
 	}
-      if (i == xp.bufpos)
+      if (i == xp.bytepos)
 	return -2;
 
       XSETFASTINT (w->window_end_vpos,
@@ -2824,7 +2824,7 @@ try_window_id (window)
       if (pos != val.bufpos)
 	last_text_vpos
 	  /* Next line, unless prev line ended in end of buffer with no cr */
-	    = vpos - (val.vpos && FETCH_BYTE (val.bufpos - 1) != '\n');
+	    = vpos - (val.vpos && FETCH_BYTE (val.bytepos - 1) != '\n');
       pos = val.bufpos;
     }
 
@@ -2877,7 +2877,7 @@ try_window_id (window)
       if (val.hpos < lmargin)
 	tab_offset += width;
 #endif
-      val.bytepos = pos;
+      val.bytepos = pos_byte;
       while (vpos < height)
 	{
 	  val = *display_text_line (w, pos, val.bytepos,
