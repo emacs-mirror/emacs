@@ -1218,7 +1218,9 @@ DEFUN ("set-text-properties", Fset_text_properties,
 The third argument PROPERTIES is the new property list.\n\
 The optional fourth argument, OBJECT,\n\
 is the string or buffer containing the text.\n\
-If OBJECT is omitted or nil, it defaults to the current buffer.")
+If OBJECT is omitted or nil, it defaults to the current buffer.\n\
+If PROPERTIES is nil, the effect is to remove all properties from\n\
+the designated part of OBJECT.")
   (start, end, properties, object)
      Lisp_Object start, end, properties, object;
 {
