@@ -1323,7 +1323,7 @@ Keybindings:
   (set (make-local-variable 'font-lock-defaults)
        '(dired-font-lock-keywords t nil nil beginning-of-line))
   (dired-sort-other dired-actual-switches t)
-  (run-hooks 'dired-mode-hook)
+  (run-mode-hooks 'dired-mode-hook)
   (when (featurep 'x-dnd)
     (make-variable-buffer-local 'x-dnd-test-function)
     (make-variable-buffer-local 'x-dnd-protocol-alist)
@@ -1720,12 +1720,9 @@ regardless of the language.")
 				(string-match
 				 "[xst]" ;; execute bit set anywhere?
 				 (concat
-				  (buffer-substring (match-beginning 2)
-						    (match-end 2))
-				  (buffer-substring (match-beginning 3)
-						    (match-end 3))
-				  (buffer-substring (match-beginning 4)
-						    (match-end 4))))))
+				  (match-string 2)
+				  (match-string 3)
+				  (match-string 4)))))
 	    (or no-error (error "No file on this line"))))
 	;; Move point to end of name:
 	(if symlink
@@ -2897,10 +2894,10 @@ With a prefix argument you can edit the current listing switches instead."
     (concat result (substring string start))))
 
 (defun dired-sort-other (switches &optional no-revert)
-  ;; Specify new ls SWITCHES for current dired buffer.  Values matching
-  ;; `dired-sort-by-date-regexp' or `dired-sort-by-name-regexp' set the
-  ;; minor mode accordingly, others appear literally in the mode line.
-  ;; With optional second arg NO-REVERT, don't refresh the listing afterwards.
+  "Specify new ls SWITCHES for current dired buffer.
+Values matching `dired-sort-by-date-regexp' or `dired-sort-by-name-regexp'
+set the minor mode accordingly, others appear literally in the mode line.
+With optional second arg NO-REVERT, don't refresh the listing afterwards."
   (dired-sort-R-check switches)
   (setq dired-actual-switches switches)
   (if (eq major-mode 'dired-mode) (dired-sort-set-modeline))
