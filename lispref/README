@@ -45,5 +45,5 @@ commands in the shell:
 with `make-permuted-index'.  
 
 ** To make an Info file, you need to install Texinfo, then run
-`./configure' and `make elisp'.  To install the Info files, run
+`./configure' and `make info'.  To install the Info files, run
 `make install'.

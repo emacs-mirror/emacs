@@ -1523,7 +1523,7 @@ first character of the file name's last component.  For example,
 (file-name-sans-extension "big.hack/foo")
      @result{} "big.hack/foo"
 (file-name-sans-extension "/my/home/.emacs")
-     @result{} "/my/home.emacs"
+     @result{} "/my/home/.emacs"
 (file-name-sans-extension "/my/home/.emacs.el")
      @result{} "/my/home/.emacs"
 @end example
@@ -2280,20 +2280,23 @@ Here are the operations that a magic file name handler gets to handle:
 
 @ifnottex
 @noindent
-@code{add-name-to-file}, @code{copy-file}, @code{delete-directory},
+@code{access-file}, @code{add-name-to-file},
+@code{byte-compiler-base-file-name},@*
+@code{copy-file}, @code{delete-directory},
 @code{delete-file},
 @code{diff-latest-backup-file},
 @code{directory-file-name},
 @code{directory-files},
+@code{directory-files-and-attributes},
 @code{dired-call-process},
-@code{dired-compress-file}, @code{dired-uncache},
+@code{dired-compress-file}, @code{dired-uncache},@*
 @code{expand-file-name},
-@code{file-accessible-directory-p},@*
+@code{file-accessible-directory-p},
 @code{file-attributes},
 @code{file-directory-p},
-@code{file-executable-p}, @code{file-exists-p},@*
+@code{file-executable-p}, @code{file-exists-p},
 @code{file-local-copy},
-@code{file-modes}, @code{file-name-all-completions},@*
+@code{file-modes}, @code{file-name-all-completions},
 @code{file-name-as-directory},
 @code{file-name-completion},
 @code{file-name-directory},
@@ -2303,12 +2306,16 @@ Here are the operations that a magic file name handler gets to handle:
 @code{file-readable-p}, @code{file-regular-p}, @code{file-symlink-p},
 @code{file-truename}, @code{file-writable-p},
 @code{find-backup-file-name},
-@code{get-file-buffer},@*
+@code{find-file-noselect},@*
+@code{get-file-buffer},
 @code{insert-directory},
-@code{insert-file-contents},
+@code{insert-file-contents},@*
 @code{load}, @code{make-directory},
-@code{make-symbolic-link}, @code{rename-file}, @code{set-file-modes},
-@code{set-visited-file-modtime}, @code{shell-command},@*
+@code{make-directory-internal},
+@code{make-symbolic-link},@*
+@code{rename-file}, @code{set-file-modes},
+@code{set-visited-file-modtime}, @code{shell-command},
+@code{substitute-in-file-name},@*
 @code{unhandled-file-name-directory},
 @code{vc-registered},
 @code{verify-visited-file-modtime},@*
@@ -2317,11 +2324,14 @@ Here are the operations that a magic file name handler gets to handle:
 @iftex
 @noindent
 @flushleft
-@code{add-name-to-file}, @code{copy-file}, @code{delete-directory},
+@code{access-file}, @code{add-name-to-file},
+@code{byte-com@discretionary{}{}{}piler-base-file-name},
+@code{copy-file}, @code{delete-directory},
 @code{delete-file},
 @code{diff-latest-backup-file},
 @code{directory-file-name},
 @code{directory-files},
+@code{directory-files-and-at@discretionary{}{}{}tributes},
 @code{dired-call-process},
 @code{dired-compress-file}, @code{dired-uncache},
 @code{expand-file-name},
@@ -2340,12 +2350,16 @@ Here are the operations that a magic file name handler gets to handle:
 @code{file-readable-p}, @code{file-regular-p}, @code{file-symlink-p},
 @code{file-truename}, @code{file-writable-p},
 @code{find-backup-file-name},
+@code{find-file-noselect},
 @code{get-file-buffer},
 @code{insert-directory},
 @code{insert-file-contents},
 @code{load}, @code{make-direc@discretionary{}{}{}tory},
-@code{make-symbolic-link}, @code{rename-file}, @code{set-file-modes},
+@code{make-direc@discretionary{}{}{}tory-internal},
+@code{make-symbolic-link},
+@code{rename-file}, @code{set-file-modes},
 @code{set-visited-file-modtime}, @code{shell-command},
+@code{substitute-in-file-name},
 @code{unhandled-file-name-directory},
 @code{vc-regis@discretionary{}{}{}tered},
 @code{verify-visited-file-modtime},
