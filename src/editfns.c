@@ -981,7 +981,7 @@ If you want them to stand for years in this century, you must do that yourself."
       char *tzstring;
       char **oldenv = environ, **newenv;
       
-      if (zone == Qt)
+      if (EQ (zone, Qt))
 	tzstring = "UTC0";
       else if (STRINGP (zone))
 	tzstring = (char *) XSTRING (zone)->data;
@@ -1146,7 +1146,7 @@ If TZ is t, use Universal Time.")
 
   if (NILP (tz))
     tzstring = 0;
-  else if (tz == Qt)
+  else if (EQ (tz, Qt))
     tzstring = "UTC0";
   else
     {

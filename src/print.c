@@ -1063,7 +1063,7 @@ print (obj, printcharfun, escapeflag)
 		else
 		  {
 		    if (CONSP (printed_gensyms))
-		      XSETFASTINT (tem, XCDR (XCAR (printed_gensyms)) + 1);
+		      XSETFASTINT (tem, XFASTINT (XCDR (XCAR (printed_gensyms))) + 1);
 		    else
 		      XSETFASTINT (tem, 1);
 		    printed_gensyms = Fcons (Fcons (obj, tem), printed_gensyms);

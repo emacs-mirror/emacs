@@ -1283,7 +1283,7 @@ init_sys_modes ()
       tty = old_tty;
 
 #if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
-      Vtty_erase_char = old_tty.main.c_cc[VERASE];
+      XSETINT (Vtty_erase_char, old_tty.main.c_cc[VERASE]);
 
 #ifdef DGUX
       /* This allows meta to be sent on 8th bit.  */

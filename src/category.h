@@ -79,9 +79,8 @@ Boston, MA 02111-1307, USA.  */
 /* Return 1 if CATEGORY_SET contains CATEGORY, else return 0.
    The faster version of `!NILP (Faref (category_set, category))'.  */
 #define CATEGORY_MEMBER(category, category_set)		 		\
-  (!NILP (category_set)		 					\
-   && (XCATEGORY_SET (category_set)->data[XFASTINT (category) / 8]	\
-       & (1 << (XFASTINT (category) % 8))))
+  (XCATEGORY_SET (category_set)->data[(category) / 8]			\
+   & (1 << ((category) % 8)))
 
 /* Temporary internal variable used in macro CHAR_HAS_CATEGORY.  */
 extern Lisp_Object _temp_category_set;
@@ -106,14 +105,16 @@ extern Lisp_Object _temp_category_set;
 	 table = XCHAR_TABLE (table)->parent;				     \
      else								     \
        temp = Faref (table,						     \
-		     COMPOSITE_CHAR_P (c) ? cmpchar_component (c, 0) : (c)); \
+		     make_number (COMPOSITE_CHAR_P (c)			     \
+				  ? cmpchar_component (c, 0) : (c)));	     \
      temp; })
 #else
 #define CATEGORY_SET(c)							     \
   ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS					     \
    ? Faref (current_buffer->category_table, make_number ((unsigned char) c)) \
    : Faref (current_buffer->category_table,				     \
-	           COMPOSITE_CHAR_P (c) ? cmpchar_component ((c), 0) : (c)))
+	    make_number (COMPOSITE_CHAR_P (c)				     \
+			 ? cmpchar_component ((c), 0) : (c))))
 #endif   
 
 /* Return the doc string of CATEGORY in category table TABLE.  */

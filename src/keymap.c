@@ -538,8 +538,7 @@ get_keyelt (object, autoload)
 	  key = Fcdr (object);
 	  if (INTEGERP (key) && (XINT (key) & meta_modifier))
 	    {
-	      object = access_keymap (map, make_number (meta_prefix_char),
-				      0, 0);
+	      object = access_keymap (map, meta_prefix_char, 0, 0);
 	      map = get_keymap_1 (object, 0, autoload);
 	      object = access_keymap (map,
 				      make_number (XINT (key) & ~meta_modifier),
@@ -1515,8 +1514,8 @@ then the value includes only maps for prefixes that start with PREFIX.")
 
 			  element = thisseq;
 			  tem = Fvconcat (1, &element);
-			  XVECTOR (tem)->contents[XINT (last)]
-			    = XINT (elt) | meta_modifier;
+			  XSETFASTINT (XVECTOR (tem)->contents[XINT (last)],
+				       XINT (elt) | meta_modifier);
 
 			  /* This new sequence is the same length as
 			     thisseq, so stick it in the list right
@@ -2746,7 +2745,7 @@ describe_vector (vector, elt_prefix, elt_describer,
   int starting_i;
 
   if (indices == 0)
-    indices = (Lisp_Object *) alloca (3 * sizeof (Lisp_Object));
+    indices = (int *) alloca (3 * sizeof (int));
 
   definition = Qnil;
 

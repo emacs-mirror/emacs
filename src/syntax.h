@@ -134,7 +134,7 @@ extern Lisp_Object syntax_parent_lookup ();
   ({ Lisp_Object temp;							\
      temp = SYNTAX_ENTRY (c);						\
      (CONSP (temp)							\
-      ? XINT (XCONS (temp)->cdr)					\
+      ? XCONS (temp)->cdr						\
       : Qnil); })
 #else
 #define SYNTAX(c)							\
@@ -152,7 +152,7 @@ extern Lisp_Object syntax_parent_lookup ();
 #define SYNTAX_MATCH(c)							\
   (syntax_temp = SYNTAX_ENTRY ((c)),					\
    (CONSP (syntax_temp)							\
-    ? XINT (XCONS (syntax_temp)->cdr)					\
+    ? XCONS (syntax_temp)->cdr						\
     : Qnil))
 #endif
 

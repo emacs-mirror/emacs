@@ -2789,6 +2789,8 @@ modify_overlay (buf, start, end)
 }
 
 
+Lisp_Object Fdelete_overlay ();
+
 DEFUN ("move-overlay", Fmove_overlay, Smove_overlay, 3, 4, 0,
   "Set the endpoints of OVERLAY to BEG and END in BUFFER.\n\
 If BUFFER is omitted, leave OVERLAY in the same buffer it inhabits now.\n\
@@ -2839,13 +2841,13 @@ buffer.")
       /* Redisplay where the overlay was.  */
       if (!NILP (obuffer))
 	{
-	  Lisp_Object o_beg;
-	  Lisp_Object o_end;
+	  int o_beg;
+	  int o_end;
 
 	  o_beg = OVERLAY_POSITION (OVERLAY_START (overlay));
 	  o_end = OVERLAY_POSITION (OVERLAY_END (overlay));
 
-	  modify_overlay (ob, XINT (o_beg), XINT (o_end));
+	  modify_overlay (ob, o_beg, o_end);
 	}
 
       /* Redisplay where the overlay is going to be.  */
@@ -2854,22 +2856,21 @@ buffer.")
   else
     /* Redisplay the area the overlay has just left, or just enclosed.  */
     {
-      Lisp_Object o_beg;
-      Lisp_Object o_end;
+      int o_beg, o_end;
       int change_beg, change_end;
 
       o_beg = OVERLAY_POSITION (OVERLAY_START (overlay));
       o_end = OVERLAY_POSITION (OVERLAY_END (overlay));
 
-      if (XINT (o_beg) == XINT (beg))
-	modify_overlay (b, XINT (o_end), XINT (end));
-      else if (XINT (o_end) == XINT (end))
-	modify_overlay (b, XINT (o_beg), XINT (beg));
+      if (o_beg == XINT (beg))
+	modify_overlay (b, o_end, XINT (end));
+      else if (o_end == XINT (end))
+	modify_overlay (b, o_beg, XINT (beg));
       else
 	{
-	  if (XINT (beg) < XINT (o_beg)) o_beg = beg;
-	  if (XINT (end) > XINT (o_end)) o_end = end;
-	  modify_overlay (b, XINT (o_beg), XINT (o_end));
+	  if (XINT (beg) < o_beg) o_beg = XINT (beg);
+	  if (XINT (end) > o_end) o_end = XINT (end);
+	  modify_overlay (b, o_beg, o_end);
 	}
     }
 

@@ -324,6 +324,7 @@ Boston, MA 02111-1307, USA.  */
 #ifdef emacs /* Don't do this for lib-src.  */
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object *
+#define RE_TRANSLATE(TBL, C) XINT ((TBL)[C])
 #endif
 
 /* Avoid link-time collision with system mktime if we will use our own.  */

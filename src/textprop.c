@@ -1739,13 +1739,11 @@ report_interval_modification (start, end)
      Lisp_Object start, end;
 {
   if (! NILP (interval_insert_behind_hooks))
-    call_mod_hooks (interval_insert_behind_hooks,
-		    make_number (start), make_number (end));
+    call_mod_hooks (interval_insert_behind_hooks, start, end);
   if (! NILP (interval_insert_in_front_hooks)
       && ! EQ (interval_insert_in_front_hooks,
 	       interval_insert_behind_hooks))
-    call_mod_hooks (interval_insert_in_front_hooks,
-		    make_number (start), make_number (end));
+    call_mod_hooks (interval_insert_in_front_hooks, start, end);
 }
 
 void

@@ -208,8 +208,9 @@ skip_invisible (pos, next_boundary_p, to, window)
      int to;
      Lisp_Object window;
 {
-  Lisp_Object prop, position, end, overlay_limit, proplimit;
+  Lisp_Object prop, position, overlay_limit, proplimit;
   Lisp_Object buffer;
+  int end;
 
   XSETFASTINT (position, pos);
   XSETBUFFER (buffer, current_buffer);
@@ -239,8 +240,8 @@ skip_invisible (pos, next_boundary_p, to, window)
       /* No matter what. don't go past next overlay change.  */
       if (XFASTINT (overlay_limit) < XFASTINT (proplimit))
 	proplimit = overlay_limit;
-      end = Fnext_single_property_change (position, Qinvisible,
-					  buffer, proplimit);
+      end = XFASTINT (Fnext_single_property_change (position, Qinvisible,
+						    buffer, proplimit));
       /* Don't put the boundary in the middle of multibyte form if
          there is no actual property change.  */
       if (end == pos + 100
@@ -248,7 +249,7 @@ skip_invisible (pos, next_boundary_p, to, window)
 	  && end < ZV)
 	while (pos < end && !CHAR_HEAD_P (POS_ADDR (end)))
 	  end--;
-      *next_boundary_p = XFASTINT (end);
+      *next_boundary_p = end;
     }
   /* if the `invisible' property is set, we can skip to
      the next property change */

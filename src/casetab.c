@@ -31,7 +31,8 @@ Lisp_Object Vascii_canon_table, Vascii_eqv_table;
 
 /* Used as a temporary in DOWNCASE and other macros in lisp.h.  No
    need to mark it, since it is used only very temporarily.  */
-Lisp_Object case_temp1, case_temp2;
+int case_temp1;
+Lisp_Object case_temp2;
 
 static void set_canon ();
 static void set_identity ();
@@ -207,7 +208,7 @@ static void
 shuffle (table, c, elt)
      Lisp_Object table, c, elt;
 {
-  if (NATNUMP (elt) && c != elt)
+  if (NATNUMP (elt) && !EQ (c, elt))
     {
       Lisp_Object tem = Faref (table, elt);
       Faset (table, elt, c);

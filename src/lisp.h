@@ -608,11 +608,11 @@ struct Lisp_Vector
    and 8-bit Europeans characters.  For these characters, do not check
    validity of CT.  Do not follow parent.  */
 #define CHAR_TABLE_REF(CT, IDX)				\
-  (XFASTINT (IDX) < CHAR_TABLE_SINGLE_BYTE_SLOTS	\
-   ? (!NILP (XCHAR_TABLE (CT)->contents[XFASTINT (IDX)])\
-      ? XCHAR_TABLE (CT)->contents[XFASTINT (IDX)]	\
+  ((IDX) < CHAR_TABLE_SINGLE_BYTE_SLOTS			\
+   ? (!NILP (XCHAR_TABLE (CT)->contents[IDX])		\
+      ? XCHAR_TABLE (CT)->contents[IDX]			\
       : XCHAR_TABLE (CT)->defalt)			\
-   : Faref (CT, IDX))
+   : Faref (CT, make_number (IDX)))
 
 /* Equivalent to Faset (CT, IDX, VAL) with optimization for ASCII and
    8-bit Europeans characters.  Do not check validity of CT.  */
@@ -1314,7 +1314,8 @@ extern char *stack_bottom;
 #define QUITP (!NILP (Vquit_flag) && NILP (Vinhibit_quit))
 
 /* Variables used locally in the following case handling macros.  */
-extern Lisp_Object case_temp1, case_temp2;
+extern int case_temp1;
+extern Lisp_Object case_temp2;
 
 /* Current buffer's map from characters to lower-case characters.  */
 
@@ -1484,6 +1485,7 @@ extern Lisp_Object Ffset (), Fsetplist ();
 extern Lisp_Object Fsymbol_value (), find_symbol_value (), Fset ();
 extern Lisp_Object Fdefault_value (), Fset_default (), Fdefault_boundp ();
 extern Lisp_Object Fmake_local_variable ();
+extern Lisp_Object Flocal_variable_if_set_p ();
 
 extern Lisp_Object Faref (), Faset ();
 
@@ -1517,6 +1519,7 @@ extern Lisp_Object Fend_of_line (), Fforward_char (), Fforward_line ();
 /* Defined in coding.c */
 extern Lisp_Object Fcoding_system_p (), Fcheck_coding_system ();
 extern Lisp_Object Fread_coding_system (), Fread_non_nil_coding_system ();
+extern Lisp_Object Ffind_coding_system ();
 
 /* Defined in syntax.c */
 extern Lisp_Object Fforward_word ();
@@ -1539,6 +1542,8 @@ extern Lisp_Object assq_no_quit ();
 extern Lisp_Object Fcopy_alist ();
 extern Lisp_Object Fplist_get ();
 extern Lisp_Object Fset_char_table_parent ();
+extern Lisp_Object Fchar_table_extra_slot ();
+extern Lisp_Object Frassoc ();
 
 /* Defined in insdel.c */
 extern void move_gap ();
@@ -1675,6 +1680,7 @@ extern Lisp_Object save_excursion_save (), save_restriction_save ();
 extern Lisp_Object save_excursion_restore (), save_restriction_restore ();
 extern Lisp_Object Fchar_to_string ();
 extern Lisp_Object Fdelete_region (), Fnarrow_to_region (), Fwiden ();
+extern Lisp_Object Fuser_login_name (), Fsystem_name ();
 
 /* defined in buffer.c */
 extern Lisp_Object Foverlay_start (), Foverlay_end ();
@@ -1695,6 +1701,7 @@ extern Lisp_Object Ferase_buffer ();
 extern Lisp_Object Qoverlayp;
 extern Lisp_Object get_truename_buffer ();
 extern struct buffer *all_buffers;
+extern Lisp_Object Fprevious_overlay_change ();
 
 /* defined in marker.c */
 
@@ -1719,6 +1726,7 @@ extern Lisp_Object Ffile_accessible_directory_p ();
 extern Lisp_Object Funhandled_file_name_directory ();
 extern Lisp_Object Ffile_directory_p ();
 extern Lisp_Object Fwrite_region ();
+extern Lisp_Object Ffile_readable_p (), Ffile_executable_p ();
 
 /* Defined in abbrev.c */
 
@@ -1788,6 +1796,7 @@ extern void describe_map_tree ();
 
 /* defined in indent.c */
 extern Lisp_Object Fvertical_motion (), Findent_to (), Fcurrent_column ();
+extern Lisp_Object Fmove_to_column ();
 
 /* defined in window.c */
 extern Lisp_Object Qwindowp, Qwindow_live_p;
@@ -1838,6 +1847,7 @@ extern Lisp_Object Fset_frame_size ();
 extern Lisp_Object Fset_frame_position ();
 extern Lisp_Object Fraise_frame ();
 extern Lisp_Object Fredirect_frame_focus ();
+extern Lisp_Object frame_buffer_list ();
 
 /* defined in emacs.c */
 extern Lisp_Object decode_env_path ();
@@ -1891,6 +1901,8 @@ extern Lisp_Object Fprevious_single_property_change ();
 extern Lisp_Object Fget_text_property (), Fput_text_property ();
 extern Lisp_Object Fset_text_properties ();
 extern Lisp_Object Ftext_property_not_all ();
+extern Lisp_Object Fprevious_char_property_change ();
+extern Lisp_Object Fnext_char_property_change ();
 
 /* defined in intervals.c */
 extern Lisp_Object get_local_map ();

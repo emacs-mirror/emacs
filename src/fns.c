@@ -584,7 +584,7 @@ This function allows vectors as well as strings.")
     size = XVECTOR (string)->size;
 
   if (NILP (to))
-    to = size;
+    XSETINT (to, size);
   else
     CHECK_NUMBER (to, 2);
 
@@ -1185,6 +1185,8 @@ internal_equal (o1, o2, depth)
   return 0;
 }
 
+extern Lisp_Object Fmake_char_internal ();
+
 DEFUN ("fillarray", Ffillarray, Sfillarray, 2, 2, 0,
   "Store each element of ARRAY with ITEM.\n\
 ARRAY is a vector, string, char-table, or bool-vector.")

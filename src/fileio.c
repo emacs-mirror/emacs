@@ -3726,6 +3726,7 @@ This does code conversion according to the value of\n\
 }
 
 static Lisp_Object build_annotations ();
+extern Lisp_Object Ffile_locked_p ();
 
 /* If build_annotations switched buffers, switch back to BUF.
    Kill the temporary buffer that was selected in the meantime.
@@ -5065,7 +5066,7 @@ The value should be either ?/ or ?\\ (any other value is treated as ?\\).\n\
 This variable affects the built-in functions only on Windows,\n\
 on other platforms, it is initialized so that Lisp code can find out\n\
 what the normal separator is.");
-  Vdirectory_sep_char = '/';
+  XSETFASTINT (Vdirectory_sep_char, '/');
 
   DEFVAR_LISP ("file-name-handler-alist", &Vfile_name_handler_alist,
     "*Alist of elements (REGEXP . HANDLER) for file names handled specially.\n\

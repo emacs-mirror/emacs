@@ -190,7 +190,7 @@ update_syntax_table (pos, count, init, object)
 
   gl_state.current_syntax_table = tmp_table;
   gl_state.old_prop = tmp_table;
-  if (Fsyntax_table_p (tmp_table) == Qt)
+  if (EQ (Fsyntax_table_p (tmp_table), Qt))
     {
       gl_state.use_global = 0;
     } 
@@ -665,7 +665,7 @@ DEFUN ("matching-paren", Fmatching_paren, Smatching_paren, 1, 1, 0,
   char_int = XINT (character);
   code = SYNTAX (char_int);
   if (code == Sopen || code == Sclose)
-    return make_number (SYNTAX_MATCH (char_int));
+    return SYNTAX_MATCH (char_int);
   return Qnil;
 }
 
@@ -735,7 +735,7 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
   p = XSTRING (newentry)->data;
   code = (enum syntaxcode) syntax_spec_code[*p++];
   if (((int) code & 0377) == 0377)
-    error ("invalid syntax description letter: %c", XINT (c));
+    error ("invalid syntax description letter: %c", p[-1]);
 
   if (code == Sinherit)
     {

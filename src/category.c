@@ -574,8 +574,8 @@ word_boundary_p (c1, c2)
       if (CONSP (elt)
 	  && CATEGORYP (XCONS (elt)->car)
 	  && CATEGORYP (XCONS (elt)->cdr)
-	  && CATEGORY_MEMBER (XCONS (elt)->car, category_set1)
-	  && CATEGORY_MEMBER (XCONS (elt)->cdr, category_set2))
+	  && CATEGORY_MEMBER (XFASTINT (XCONS (elt)->car), category_set1)
+	  && CATEGORY_MEMBER (XFASTINT (XCONS (elt)->cdr), category_set2))
 	return !default_result;
     }
   return default_result;

@@ -654,7 +654,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 
 	case CCL_WriteArrayReadJump: /* A--D--D--R--E--S--S-rrrXXXXX */
 	  i = reg[rrr];
-	  j = ccl_prog[ic];
+	  j = XINT (ccl_prog[ic]);
 	  if ((unsigned int) i < j)
 	    {
 	      i = XINT (ccl_prog[ic + 1 + i]);

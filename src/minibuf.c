@@ -956,7 +956,7 @@ scmp (s1, s2, len)
 
   if (completion_ignore_case)
     {
-      while (l && EQ (DOWNCASE (*s1++), DOWNCASE (*s2++)))
+      while (l && DOWNCASE (*s1++) == DOWNCASE (*s2++))
 	l--;
     }
   else

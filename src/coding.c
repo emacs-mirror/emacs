@@ -702,7 +702,9 @@ detect_coding_iso2022 (src, src_end)
 /* Set designation state into CODING.  */
 #define DECODE_DESIGNATION(reg, dimension, chars, final_char)		\
   do {							      		\
-    int charset = ISO_CHARSET_TABLE (dimension, chars, final_char);	\
+    int charset = ISO_CHARSET_TABLE (make_number (dimension),		\
+				     make_number (chars),		\
+				     make_number (final_char));		\
     if (charset >= 0)					      		\
       {					      				\
         if (coding->direction == 1					\
@@ -3515,9 +3517,10 @@ which is a list of all the arguments given to `find-coding-system'.")
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
     error ("Invalid %dth argument", XINT (target_idx) + 1);
 
-  chain = (operation == Qinsert_file_contents || operation == Qwrite_region
+  chain = ((EQ (operation, Qinsert_file_contents)
+	    || EQ (operation, Qwrite_region))
 	   ? Vfile_coding_system_alist
-	   : (operation == Qopen_network_stream
+	   : (EQ (operation, Qopen_network_stream)
 	      ? Vnetwork_coding_system_alist
 	      : Vprocess_coding_system_alist));
   if (NILP (chain))

@@ -85,7 +85,7 @@ create_root_interval (parent)
       XSTRING (parent)->intervals = new;
     }
 
-  new->parent = (INTERVAL) parent;
+  new->parent = (INTERVAL) XFASTINT (parent);
   new->position = 1;
 
   return new;
@@ -411,7 +411,7 @@ balance_possible_root_interval (interval)
   if (interval->parent == NULL_INTERVAL)
     return interval;
 
-  parent = (Lisp_Object) (interval->parent);
+  XSETFASTINT (parent, (EMACS_INT) interval->parent);
   interval = balance_an_interval (interval);
 
   if (BUFFERP (parent))
@@ -1130,10 +1130,10 @@ delete_interval (i)
   if (ROOT_INTERVAL_P (i))
     {
       Lisp_Object owner;
-      owner = (Lisp_Object) i->parent;
+      XSETFASTINT (owner, (EMACS_INT) i->parent);
       parent = delete_node (i);
       if (! NULL_INTERVAL_P (parent))
-	parent->parent = (INTERVAL) owner;
+	parent->parent = (INTERVAL) XFASTINT (owner);
 
       if (BUFFERP (owner))
 	BUF_INTERVALS (XBUFFER (owner)) = parent;
@@ -1868,7 +1868,7 @@ move_if_not_intangible (position)
   if (! NILP (Vinhibit_point_motion_hooks))
     /* If intangible is inhibited, always move point to POSITION.  */
     ;
-  else if (PT < position && pos < ZV)
+  else if (PT < position && XINT (pos) < ZV)
     {
       /* We want to move forward, so check the text before POSITION.  */
 
@@ -1884,7 +1884,7 @@ move_if_not_intangible (position)
 		      intangible_propval))
 	  pos = Fprevious_char_property_change (pos, Qnil);
     }
-  else if (pos > BEGV)
+  else if (XINT (pos) > BEGV)
     {
       /* We want to move backward, so check the text after POSITION.  */
 
@@ -2010,7 +2010,7 @@ copy_intervals_to_string (string, buffer, position, length)
   if (NULL_INTERVAL_P (interval_copy))
     return;
 
-  interval_copy->parent = (INTERVAL) string;
+  interval_copy->parent = (INTERVAL) XFASTINT (string);
   XSTRING (string)->intervals = interval_copy;
 }
 
