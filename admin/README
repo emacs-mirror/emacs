@@ -5,8 +5,9 @@ what you do when using them.
 
 Brief description of scripts found here:
 
+admin.el		utilities for setting version numbers and alike
 alloc-color.c		a utility program that allocates a given number of
-			colors on X.  May be used it to debug Emacs with
+			colors on X.  Can be used to debug Emacs with
 			dense colormaps (PseudoColor).
 build-configs		build Emacs in various configurations
 check-doc-strings	check doc strings against documentation

@@ -1,5 +1,7 @@
 2001-10-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* admin.el: New file.
+
 	* build-configs: Add --help option.  Add support for building
 	in arbitrary source trees.
 
