@@ -2304,4 +2304,5 @@ fi
 # This is how we know whether to re-run configure in certain cases.
 touch src/config.stamp
 
-], [CPP="$CPP" CPPFLAGS="$CPPFLAGS"])
+], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPPFLAGS="$CPPFLAGS"])
+
