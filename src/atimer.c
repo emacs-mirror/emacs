@@ -176,7 +176,7 @@ cancel_atimer (timer)
       struct atimer **list = i ? &stopped_atimers : &atimers;
       
       /* See if TIMER is active or stopped.  */
-      for (t = *list, prev = 0; t && t != timer; t = t->next)
+      for (t = *list, prev = NULL; t && t != timer; prev = t, t = t->next)
 	;
 
       /* If it is, take it off the its list, and put in on the
@@ -191,6 +191,7 @@ cancel_atimer (timer)
 	  
 	  t->next = free_atimers;
 	  free_atimers = t;
+	  break;
 	}
     }
 
