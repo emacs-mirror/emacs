@@ -2859,7 +2859,7 @@ into shorter lines.")
   SET_PT_BOTH (XFASTINT (beg), ibeg);
   insert (encoded, encoded_length);
   if (allength > MAX_ALLOCA)
-    free (encoded);
+    xfree (encoded);
   del_range_byte (ibeg + encoded_length, iend + encoded_length, 1);
 
   /* If point was outside of the region, restore it exactly; else just
@@ -2902,7 +2902,7 @@ DEFUN ("base64-encode-string", Fbase64_encode_string, Sbase64_encode_string,
 
   encoded_string = make_unibyte_string (encoded, encoded_length);
   if (allength > MAX_ALLOCA)
-    free (encoded);
+    xfree (encoded);
 
   return encoded_string;
 }
@@ -3013,8 +3013,12 @@ If the region can't be decoded, return nil and don't modify the buffer.")
     abort ();
 
   if (decoded_length < 0)
-    /* The decoding wasn't possible. */
-    return Qnil;
+    {
+      /* The decoding wasn't possible. */
+      if (length > MAX_ALLOCA)
+	xfree (decoded);
+      return Qnil;
+    }
 
   /* Now we have decoded the region, so we insert the new contents
      and delete the old.  (Insert first in order to preserve markers.)  */
@@ -3027,7 +3031,7 @@ If the region can't be decoded, return nil and don't modify the buffer.")
   insert (decoded, decoded_length);
   inserted_chars = PT - (XFASTINT (beg) + 1);
   if (length > MAX_ALLOCA)
-    free (decoded);
+    xfree (decoded);
   /* At first delete the original text.  This never cause byte
      combining.  */
   del_range_both (PT + 1, PT_BYTE + 1, XFASTINT (end) + inserted_chars + 2,
@@ -3073,11 +3077,13 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
     abort ();
 
   if (decoded_length < 0)
-      return Qnil;
+    /* The decoding wasn't possible. */
+    decoded_string = Qnil;
+  else
+    decoded_string = make_string (decoded, decoded_length);
 
-  decoded_string = make_string (decoded, decoded_length);
   if (length > MAX_ALLOCA)
-    free (decoded);
+    xfree (decoded);
 
   return decoded_string;
 }
@@ -3105,8 +3111,6 @@ base64_decode_1 (from, to, length)
 	  c = from[i++];
 	  if (i == length)
 	    break;
-	  if (counter != MIME_LINE_LENGTH / 4)
-	    return -1;
 	  counter = 1;
 	}
       else
