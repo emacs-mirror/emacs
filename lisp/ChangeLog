@@ -1,4 +1,4 @@
-2002-05-18  Colin Walters  <walters@gnu.org>
+2002-05-21  Colin Walters  <walters@gnu.org>
 	    
 	* international/mule.el (make-coding-system): Doc fixes.
 
@@ -6,6 +6,10 @@
 	(auto-coding-from-file-contents): Use it.
 	(set-auto-coding): Update docs.
 	(sgml-xml-auto-coding-function): New function.
+
+	* international/mule-util.el (store-substring): New optional
+	argument `ellipsis'.  Add commented-out test suite, and change
+	coding to iso-2022-7bit.
 
 2002-05-21  Colin Walters  <walters@verbum.org>	
 
