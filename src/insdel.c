@@ -1050,6 +1050,7 @@ insert_from_gap (nchars, nbytes)
   if (NILP (current_buffer->enable_multibyte_characters))
     nchars = nbytes;
 
+  record_insert (PT, nchars);
   MODIFF++;
 
   GAP_SIZE -= nbytes;
