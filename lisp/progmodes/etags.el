@@ -1150,7 +1150,7 @@ See documentation of variable `tags-file-name'."
 (defun tag-exact-match-p (tag)
   ;; The match is really exact if there is an explicit tag name.
   (or (and (eq (char-after (point)) ?\001)
-	   (eq (char-after (- (point) (length tag)) ?\177)))
+	   (eq (char-after (- (point) (length tag) 1)) ?\177))
       ;; We are not on the explicit tag name, but perhaps it follows.
       (looking-at (concat "[^\177\n]*\177" (regexp-quote tag) "\001"))
       ;; We also call it "exact" if it is surrounded by symbol boundaries.
