@@ -362,6 +362,16 @@ available with older versions of GDB."
 	   (substring string (match-beginning 2) (match-end 2))
 	   (string-to-int 
 	    (substring string (match-beginning 3) (match-end 3))))))
+   ;; System V Release 4.0 quite often clumps two lines together
+   ((string-match "^\\(BREAKPOINT\\|STEPPED\\) process [0-9]+ function [^ ]+ in \\(.+\\)\n\\([0-9]+\\):" 
+		  string)
+    (setq gud-sdb-lastfile
+	  (substring string (match-beginning 2) (match-end 2)))
+    (setq gud-last-frame
+	  (cons
+	   gud-sdb-lastfile
+	   (string-to-int 
+	    (substring string (match-beginning 3) (match-end 3))))))
    ;; System V Release 4.0 
    ((string-match "^\\(BREAKPOINT\\|STEPPED\\) process [0-9]+ function [^ ]+ in \\(.+\\)\n"
 		       string)
@@ -593,8 +603,6 @@ and source-file directory for your debugger."
 				 "dbx ")
 			       nil nil
 			       '(gud-dbx-history . 1))))
-
-  (gud-switch-to-buffer command-line)
 
   (cond
    (gud-mips-p
