@@ -1,3 +1,7 @@
+2000-12-05  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (TAGS, info): Avoid tab-prefixed comments in rules.
+
 2000-12-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info/dir: Change the category to "Emacs".
