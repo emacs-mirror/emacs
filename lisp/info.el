@@ -2343,16 +2343,6 @@ Advanced commands:
   (setq Info-tag-table-marker (make-marker))
   (make-local-variable 'Info-tag-table-buffer)
   (setq Info-tag-table-buffer nil)
-  (set (make-local-variable 'font-lock-category-alist)
-       '((info-menu-header . info-menu-header)
-	 (info-header-node . info-header-node)
-	 (info-header-xref . info-header-xref)
-	 (Info-title-1-face . Info-title-1-face)
-	 (Info-title-2-face . Info-title-2-face)
-	 (Info-title-3-face . Info-title-3-face)
-	 (Info-title-4-face . Info-title-4-face)
-	 (info-menu-5 . info-menu-5)
-	 (info-xref . info-xref)))
   (make-local-variable 'Info-history)
   (make-local-variable 'Info-index-alternatives)
   (set (make-local-variable 'tool-bar-map) info-tool-bar-map)
@@ -2600,10 +2590,10 @@ the variable `Info-file-list-for-emacs'."
     (goto-char (point-min))
     (when (re-search-forward "\\* Menu:" nil t)
       (put-text-property (match-beginning 0) (match-end 0)
-			 'category 'info-menu-header)
+			 'font-lock-face 'info-menu-header)
       (while (re-search-forward "\n\n\\([^*\n ].*\\)\n\n?[*]" nil t)
 	(put-text-property (match-beginning 1) (match-end 1)
-			   'category 'info-menu-header)))))
+			   'font-lock-face 'info-menu-header)))))
 
 (defun Info-fontify-node ()
   ;; Only fontify the node if it hasn't already been done.  [We pass in
@@ -2631,8 +2621,8 @@ the variable `Info-file-list-for-emacs'."
 		   (tbeg (match-beginning 1))
 		   (tag (buffer-substring tbeg (match-end 1))))
 	      (if (string-equal tag "Node")
-		  (put-text-property nbeg nend 'category 'info-header-node)
-		(put-text-property nbeg nend 'category 'info-header-xref)
+		  (put-text-property nbeg nend 'font-lock-face 'info-header-node)
+		(put-text-property nbeg nend 'font-lock-face 'info-header-xref)
 		(put-text-property tbeg nend 'mouse-face 'highlight)
 		(put-text-property tbeg nend
 				   'help-echo
@@ -2660,13 +2650,13 @@ the variable `Info-file-list-for-emacs'."
 	(while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\|\\.+\\)$"
 				  nil t)
 	  (let* ((c (preceding-char))
-		 (category
+		 (face
 		  (cond ((= c ?*) 'Info-title-1-face)
 			((= c ?=) 'Info-title-2-face)
 			((= c ?-) 'Info-title-3-face)
 			(t        'Info-title-4-face))))
 	    (put-text-property (match-beginning 1) (match-end 1)
-			       'category category))
+			       'font-lock-face face))
 	  ;; This is a serious problem for trying to handle multiple
 	  ;; frame types at once.  We want this text to be invisible
 	  ;; on frames that can display the font above.
@@ -2678,7 +2668,7 @@ the variable `Info-file-list-for-emacs'."
 	  (if (= (char-after (1- (match-beginning 0))) ?\") ; hack
 	      nil
 	    (add-text-properties (match-beginning 1) (match-end 1)
-				 '(category info-xref
+				 '(font-lock-face info-xref
 				   mouse-face highlight
 				   help-echo "mouse-2: go to this node"))))
 	(goto-char (point-min))
@@ -2692,9 +2682,9 @@ the variable `Info-file-list-for-emacs'."
 		(if (zerop (% n 3)) ; visual aids to help with 1-9 keys
 		    (put-text-property (match-beginning 0)
 				       (1+ (match-beginning 0))
-				       'category 'info-menu-5))
+				       'font-lock-face 'info-menu-5))
 		(add-text-properties (match-beginning 1) (match-end 1)
-				     '(category info-xref
+				     '(font-lock-face info-xref
 				       mouse-face highlight
 				       help-echo "mouse-2: go to this node")))))
 	(Info-fontify-menu-headers)
