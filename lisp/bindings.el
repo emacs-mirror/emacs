@@ -258,7 +258,7 @@ Normally nil in most modes, since there is no process to display.")
 			     'mouse-2 #'mode-line-widen))
      (propertize ")%]--" 'help-echo help-echo)))
 
-  (setq-default mode-line-position 
+  (setq-default mode-line-position
     `((line-number-mode (,(propertize "L%l" 'help-echo help-echo) ,dashes))
       (column-number-mode (,(propertize "C%c" 'help-echo help-echo) ,dashes))
       (-3 . ,(propertize "%p" 'help-echo help-echo)))))
@@ -272,15 +272,24 @@ Keymap for what is displayed by `mode-line-mode-name'.")
 (defvar mode-line-mode-menu-keymap nil "\
 Keymap for mode operations menu in the mode line.")
 
+(defun last-buffer () "
+Return the last non-hidden buffer in the buffer list."
+  (let ((list (reverse (buffer-list))))
+    (while (eq (aref (buffer-name (car list)) 0) ? )
+      (setq list (cdr list)))
+    (car list)))
+
+(defun unbury-buffer () "
+Switch to the `last-buffer'."
+  (interactive)
+  (switch-to-buffer (last-buffer)))
+
 (defun mode-line-unbury-buffer (event) "\
-Switch to the last buffer in the buffer list that is not hidden."
+Call `unbury-buffer' in this window."
   (interactive "e")
   (save-selected-window
     (select-window (posn-window (event-start event)))
-    (let ((list (reverse (buffer-list))))
-      (while (eq (aref (buffer-name (car list)) 0) ? )
-	(setq list (cdr list)))
-      (switch-to-buffer (car list)))))
+    (unbury-buffer)))
 
 (defun mode-line-bury-buffer (event) "\
 Like bury-buffer, but temporarily select EVENT's window."

@@ -1,3 +1,8 @@
+2001-11-19  Sam Steingold  <sds@gnu.org>
+
+	* bindings.el (last-buffer, unbury-buffer): New function.
+	(mode-line-unbury-buffer): Use `unbury-buffer'.
+
 2001-11-18  Stephen Eglen  <stephen@gnu.org>
 
 	* iswitchb.el (iswitchb-cannot-complete-hook): New variable to
@@ -17,12 +22,12 @@
 	(Math-num-integerp, Math-bignum-test, Math-equal-int)
 	(Math-natnum-lessp, math-format-radix-digit): Change to `defsubst'.
 	(calc-record-compilation-date-macro): Deleted.  Callers updated.
-        (math-format-radix-digit): Move to calc-bin.el.
+	(math-format-radix-digit): Move to calc-bin.el.
 
 	* calc/calc.el (calc-record-compilation-date): Remove.
 	(calc-bug-address): Update.
 	(calc-settings-file): Use `user-init-file'.
-	
+
 	* calc/calc-mode.el (calc-settings-file-name, calc-save-modes):
 	Handle null `calc-settings-file'.
 
@@ -38,7 +43,7 @@
 	(calcFunc-floor): Ditto.
 
 	* calc-units.el (calcFunc-usimplify): Ditto.
-	
+
 	* calc-aent.el, calc-ext.el, calc-incom.el, calc-misc.el
 	* calc-sel.el, calc-vec.el, calc-alg.el, calc-fin.el
 	* calc-keypd.el, calc-mode.el, calc-stat.el, calc-yank.el
@@ -53,7 +58,7 @@
 	and move them before their first use.  Use `when', `unless'.
 	Remove trailing periods from error forms.  Add description and
 	headers suggested by Emacs Lisp coding conventions.
-	
+
 2001-11-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el (comment-indent):
