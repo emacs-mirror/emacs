@@ -242,7 +242,7 @@ The elements in ELEMENTS can be of several types:
  - The symbol 'r. If `tempo-insert' is called with ON-REGION non-nil
    the current region is placed here. Otherwise it works like 'p.
  - (p PROMPT <NAME> <NOINSERT>) If `tempo-interactive' is non-nil, the
-   user is prompted in the minbuffer with PROMPT for a string to be
+   user is prompted in the minibuffer with PROMPT for a string to be
    inserted. If the optional parameter NAME is non-nil, the text is
    saved for later insertion with the `s' tag. If there already is
    something saved under NAME that value is used instead and no
