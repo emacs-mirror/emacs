@@ -44,11 +44,7 @@ all:: liblw.a
 liblw.a: $(OBJS)
 	$(RM) $@
 	$(AR) $@ $(OBJS)
-	@echo Do not be alarmed if the following ranlib command
-	@echo fails due to the absence of a ranlib program on your system.
-	-$(RANLIB) $@ || true
-#If running ranlib fails, probably there is none.
-#That's ok.  So don't stop the build.
+	$(RANLIB) $@
 
 # Depend on Makefile so that we recompile if TOOLKIT_DEFINES changes.
 lwlib.o:  $(srcdir)/lwlib.c  Makefile
