@@ -1,3 +1,7 @@
+2001-10-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* paren.el: Update the Commentary with installation instructions.
+
 2001-10-15  Dave Love  <fx@gnu.org>
 
 	* international/mule.el (set-auto-coding): Fix regexps for local
