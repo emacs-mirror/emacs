@@ -293,7 +293,7 @@ is temporarily case sensitive."
 For example, traditional behavior is not to list buffers whose names begin
 with a space, for which the regexp is `^ '.  See the source file for
 example functions that filter buffernames."
-  :type '(repeat regexp)
+  :type '(repeat (choice regexp function))
   :group 'iswitchb)
 
 (defcustom iswitchb-cannot-complete-hook 'iswitchb-completion-help
