@@ -33,7 +33,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include "lisp.h"
 #include "commands.h"
-#include "charset.h"
+#include "character.h"
 
 #include "buffer.h"
 #include "keyboard.h"
@@ -443,27 +443,6 @@ usage: (vconcat &rest SEQUENCES)   */)
   return concat (nargs, args, Lisp_Vectorlike, 0);
 }
 
-/* Retrun a copy of a sub char table ARG.  The elements except for a
-   nested sub char table are not copied.  */
-static Lisp_Object
-copy_sub_char_table (arg)
-     Lisp_Object arg;
-{
-  Lisp_Object copy = make_sub_char_table (XCHAR_TABLE (arg)->defalt);
-  int i;
-
-  /* Copy all the contents.  */
-  bcopy (XCHAR_TABLE (arg)->contents, XCHAR_TABLE (copy)->contents,
-	 SUB_CHAR_TABLE_ORDINARY_SLOTS * sizeof (Lisp_Object));
-  /* Recursively copy any sub char-tables in the ordinary slots.  */
-  for (i = 32; i < SUB_CHAR_TABLE_ORDINARY_SLOTS; i++)
-    if (SUB_CHAR_TABLE_P (XCHAR_TABLE (arg)->contents[i]))
-      XCHAR_TABLE (copy)->contents[i]
-	= copy_sub_char_table (XCHAR_TABLE (copy)->contents[i]);
-
-  return copy;
-}
-
 
 DEFUN ("copy-sequence", Fcopy_sequence, Scopy_sequence, 1, 1, 0,
        doc: /* Return a copy of a list, vector or string.
@@ -476,26 +455,8 @@ with the original. */)
 
   if (CHAR_TABLE_P (arg))
     {
-      int i;
-      Lisp_Object copy;
-
-      copy = Fmake_char_table (XCHAR_TABLE (arg)->purpose, Qnil);
-      /* Copy all the slots, including the extra ones.  */
-      bcopy (XVECTOR (arg)->contents, XVECTOR (copy)->contents,
-	     ((XCHAR_TABLE (arg)->size & PSEUDOVECTOR_SIZE_MASK)
-	      * sizeof (Lisp_Object)));
-
-      /* Recursively copy any sub char tables in the ordinary slots
-         for multibyte characters.  */
-      for (i = CHAR_TABLE_SINGLE_BYTE_SLOTS;
-	   i < CHAR_TABLE_ORDINARY_SLOTS; i++)
-	if (SUB_CHAR_TABLE_P (XCHAR_TABLE (arg)->contents[i]))
-	  XCHAR_TABLE (copy)->contents[i]
-	    = copy_sub_char_table (XCHAR_TABLE (copy)->contents[i]);
-
-      return copy;
+      return copy_char_table (arg);
     }
-
   if (BOOL_VECTOR_P (arg))
     {
       Lisp_Object val;
@@ -696,25 +657,17 @@ concat (nargs, args, target_type, last_special)
 	  && STRING_MULTIBYTE (this) == some_multibyte)
 	{
 	  int thislen_byte = STRING_BYTES (XSTRING (this));
-	  int combined;
 
 	  bcopy (XSTRING (this)->data, XSTRING (val)->data + toindex_byte,
 		 STRING_BYTES (XSTRING (this)));
-	  combined =  (some_multibyte && toindex_byte > 0
-		       ? count_combining (XSTRING (val)->data,
-					  toindex_byte + thislen_byte,
-					  toindex_byte)
-		       : 0);
 	  if (! NULL_INTERVAL_P (XSTRING (this)->intervals))
 	    {
 	      textprops[num_textprops].argnum = argnum;
-	      /* We ignore text properties on characters being combined.  */
-	      textprops[num_textprops].from = combined;
+	      textprops[num_textprops].from = 0;
 	      textprops[num_textprops++].to = toindex;
 	    }
 	  toindex_byte += thislen_byte;
-	  toindex += thisleni - combined;
-	  XSTRING (val)->size -= combined;
+	  toindex += thisleni;
 	}
       /* Copy a single-byte string to a multibyte string.  */
       else if (STRINGP (this) && STRINGP (val))
@@ -757,9 +710,7 @@ concat (nargs, args, target_type, last_special)
 		  {
 		    XSETFASTINT (elt, XSTRING (this)->data[thisindex++]);
 		    if (some_multibyte
-			&& (XINT (elt) >= 0240
-			    || (XINT (elt) >= 0200
-				&& ! NILP (Vnonascii_translation_table)))
+			&& XINT (elt) >= 0200
 			&& XINT (elt) < 0400)
 		      {
 			c = unibyte_char_to_multibyte (XINT (elt));
@@ -792,34 +743,13 @@ concat (nargs, args, target_type, last_special)
 	    else
 	      {
 		CHECK_NUMBER (elt);
-		if (SINGLE_BYTE_CHAR_P (XINT (elt)))
-		  {
-		    if (some_multibyte)
-		      toindex_byte
-			+= CHAR_STRING (XINT (elt),
-					XSTRING (val)->data + toindex_byte);
-		    else
-		      XSTRING (val)->data[toindex_byte++] = XINT (elt);
-		    if (some_multibyte
-			&& toindex_byte > 0
-			&& count_combining (XSTRING (val)->data,
-					    toindex_byte, toindex_byte - 1))
-		      XSTRING (val)->size--;
-		    else
-		      toindex++;
-		  }
+		if (some_multibyte)
+		  toindex_byte
+		    += CHAR_STRING (XINT (elt),
+				    XSTRING (val)->data + toindex_byte);
 		else
-		  /* If we have any multibyte characters,
-		     we already decided to make a multibyte string.  */
-		  {
-		    int c = XINT (elt);
-		    /* P exists as a variable
-		       to avoid a bug on the Masscomp C compiler.  */
-		    unsigned char *p = & XSTRING (val)->data[toindex_byte];
-
-		    toindex_byte += CHAR_STRING (c, p);
-		    toindex++;
-		  }
+		  XSTRING (val)->data[toindex_byte++] = XINT (elt);
+		toindex++;
 	      }
 	  }
     }
@@ -894,40 +824,30 @@ string_char_to_byte (string, char_index)
 
   if (char_index - best_below < best_above - char_index)
     {
+      unsigned char *p = XSTRING (string)->data + best_below_byte;
+
       while (best_below < char_index)
 	{
-	  int c;
-	  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string,
-					      best_below, best_below_byte);
+	  p += BYTES_BY_CHAR_HEAD (*p);
+	  best_below++;
 	}
-      i = best_below;
-      i_byte = best_below_byte;
+      i_byte = p - XSTRING (string)->data;
     }
   else
     {
+      unsigned char *p = XSTRING (string)->data + best_above_byte;
+
       while (best_above > char_index)
 	{
-	  unsigned char *pend = XSTRING (string)->data + best_above_byte;
-	  unsigned char *pbeg = pend - best_above_byte;
-	  unsigned char *p = pend - 1;
-	  int bytes;
-
-	  while (p > pbeg  && !CHAR_HEAD_P (*p)) p--;
-	  PARSE_MULTIBYTE_SEQ (p, pend - p, bytes);
-	  if (bytes == pend - p)
-	    best_above_byte -= bytes;
-	  else if (bytes > pend - p)
-	    best_above_byte -= (pend - p);
-	  else
-	    best_above_byte--;
+	  p--;
+	  while (!CHAR_HEAD_P (*p)) p--;
 	  best_above--;
 	}
-      i = best_above;
-      i_byte = best_above_byte;
+      i_byte = p - XSTRING (string)->data;
     }
 
   string_char_byte_cache_bytepos = i_byte;
-  string_char_byte_cache_charpos = i;
+  string_char_byte_cache_charpos = char_index;
   string_char_byte_cache_string = string;
 
   return i_byte;
@@ -967,36 +887,30 @@ string_byte_to_char (string, byte_index)
 
   if (byte_index - best_below_byte < best_above_byte - byte_index)
     {
-      while (best_below_byte < byte_index)
+      unsigned char *p = XSTRING (string)->data + best_below_byte;
+      unsigned char *pend = XSTRING (string)->data + byte_index;
+
+      while (p < pend)
 	{
-	  int c;
-	  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string,
-					      best_below, best_below_byte);
+	  p += BYTES_BY_CHAR_HEAD (*p);
+	  best_below++;
 	}
       i = best_below;
-      i_byte = best_below_byte;
+      i_byte = p - XSTRING (string)->data;
     }
   else
     {
-      while (best_above_byte > byte_index)
-	{
-	  unsigned char *pend = XSTRING (string)->data + best_above_byte;
-	  unsigned char *pbeg = pend - best_above_byte;
-	  unsigned char *p = pend - 1;
-	  int bytes;
+      unsigned char *p = XSTRING (string)->data + best_above_byte;
+      unsigned char *pbeg = XSTRING (string)->data + byte_index;
 
-	  while (p > pbeg  && !CHAR_HEAD_P (*p)) p--;
-	  PARSE_MULTIBYTE_SEQ (p, pend - p, bytes);
-	  if (bytes == pend - p)
-	    best_above_byte -= bytes;
-	  else if (bytes > pend - p)
-	    best_above_byte -= (pend - p);
-	  else
-	    best_above_byte--;
+      while (p > pbeg)
+	{
+	  p--;
+	  while (!CHAR_HEAD_P (*p)) p--;
 	  best_above--;
 	}
       i = best_above;
-      i_byte = best_above_byte;
+      i_byte = p - XSTRING (string)->data;
     }
 
   string_char_byte_cache_bytepos = i_byte;
@@ -2034,7 +1948,8 @@ internal_equal (o1, o2, depth)
 	   functions are sensible to compare, so eliminate the others now.  */
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
-	    if (!(size & (PVEC_COMPILED | PVEC_CHAR_TABLE)))
+	    if (!(size & (PVEC_COMPILED | PVEC_CHAR_TABLE
+			  | PVEC_SUB_CHAR_TABLE)))
 	      return 0;
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  }
@@ -2088,11 +2003,11 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
     }
   else if (CHAR_TABLE_P (array))
     {
-      register Lisp_Object *p = XCHAR_TABLE (array)->contents;
-      size = CHAR_TABLE_ORDINARY_SLOTS;
-      for (index = 0; index < size; index++)
-	p[index] = item;
-      XCHAR_TABLE (array)->defalt = Qnil;
+      int i;
+
+      for (i = 0; i < (1 << CHARTAB_SIZE_BITS_0); i++)
+	XCHAR_TABLE (array)->contents[i] = item;
+      XCHAR_TABLE (array)->defalt = item;
     }
   else if (STRINGP (array))
     {
@@ -2139,437 +2054,6 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
       goto retry;
     }
   return array;
-}
-
-DEFUN ("char-table-subtype", Fchar_table_subtype, Schar_table_subtype,
-       1, 1, 0,
-       doc: /* Return the subtype of char-table CHAR-TABLE.  The value is a symbol.  */)
-     (char_table)
-     Lisp_Object char_table;
-{
-  CHECK_CHAR_TABLE (char_table);
-
-  return XCHAR_TABLE (char_table)->purpose;
-}
-
-DEFUN ("char-table-parent", Fchar_table_parent, Schar_table_parent,
-       1, 1, 0,
-       doc: /* Return the parent char-table of CHAR-TABLE.
-The value is either nil or another char-table.
-If CHAR-TABLE holds nil for a given character,
-then the actual applicable value is inherited from the parent char-table
-\(or from its parents, if necessary).  */)
-     (char_table)
-     Lisp_Object char_table;
-{
-  CHECK_CHAR_TABLE (char_table);
-
-  return XCHAR_TABLE (char_table)->parent;
-}
-
-DEFUN ("set-char-table-parent", Fset_char_table_parent, Sset_char_table_parent,
-       2, 2, 0,
-       doc: /* Set the parent char-table of CHAR-TABLE to PARENT.
-PARENT must be either nil or another char-table.  */)
-     (char_table, parent)
-     Lisp_Object char_table, parent;
-{
-  Lisp_Object temp;
-
-  CHECK_CHAR_TABLE (char_table);
-
-  if (!NILP (parent))
-    {
-      CHECK_CHAR_TABLE (parent);
-
-      for (temp = parent; !NILP (temp); temp = XCHAR_TABLE (temp)->parent)
-	if (EQ (temp, char_table))
-	  error ("Attempt to make a chartable be its own parent");
-    }
-
-  XCHAR_TABLE (char_table)->parent = parent;
-
-  return parent;
-}
-
-DEFUN ("char-table-extra-slot", Fchar_table_extra_slot, Schar_table_extra_slot,
-       2, 2, 0,
-       doc: /* Return the value of CHAR-TABLE's extra-slot number N.  */)
-     (char_table, n)
-     Lisp_Object char_table, n;
-{
-  CHECK_CHAR_TABLE (char_table);
-  CHECK_NUMBER (n);
-  if (XINT (n) < 0
-      || XINT (n) >= CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (char_table)))
-    args_out_of_range (char_table, n);
-
-  return XCHAR_TABLE (char_table)->extras[XINT (n)];
-}
-
-DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
-       Sset_char_table_extra_slot,
-       3, 3, 0,
-       doc: /* Set CHAR-TABLE's extra-slot number N to VALUE.  */)
-     (char_table, n, value)
-     Lisp_Object char_table, n, value;
-{
-  CHECK_CHAR_TABLE (char_table);
-  CHECK_NUMBER (n);
-  if (XINT (n) < 0
-      || XINT (n) >= CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (char_table)))
-    args_out_of_range (char_table, n);
-
-  return XCHAR_TABLE (char_table)->extras[XINT (n)] = value;
-}
-
-DEFUN ("char-table-range", Fchar_table_range, Schar_table_range,
-       2, 2, 0,
-       doc: /* Return the value in CHAR-TABLE for a range of characters RANGE.
-RANGE should be nil (for the default value)
-a vector which identifies a character set or a row of a character set,
-a character set name, or a character code.  */)
-     (char_table, range)
-     Lisp_Object char_table, range;
-{
-  CHECK_CHAR_TABLE (char_table);
-
-  if (EQ (range, Qnil))
-    return XCHAR_TABLE (char_table)->defalt;
-  else if (INTEGERP (range))
-    return Faref (char_table, range);
-  else if (SYMBOLP (range))
-    {
-      Lisp_Object charset_info;
-
-      charset_info = Fget (range, Qcharset);
-      CHECK_VECTOR (charset_info);
-
-      return Faref (char_table,
-		    make_number (XINT (XVECTOR (charset_info)->contents[0])
-				 + 128));
-    }
-  else if (VECTORP (range))
-    {
-      if (XVECTOR (range)->size == 1)
-	return Faref (char_table,
-		      make_number (XINT (XVECTOR (range)->contents[0]) + 128));
-      else
-	{
-	  int size = XVECTOR (range)->size;
-	  Lisp_Object *val = XVECTOR (range)->contents;
-	  Lisp_Object ch = Fmake_char_internal (size <= 0 ? Qnil : val[0],
-						size <= 1 ? Qnil : val[1],
-						size <= 2 ? Qnil : val[2]);
-	  return Faref (char_table, ch);
-	}
-    }
-  else
-    error ("Invalid RANGE argument to `char-table-range'");
-  return Qt;
-}
-
-DEFUN ("set-char-table-range", Fset_char_table_range, Sset_char_table_range,
-       3, 3, 0,
-       doc: /* Set the value in CHAR-TABLE for a range of characters RANGE to VALUE.
-RANGE should be t (for all characters), nil (for the default value)
-a vector which identifies a character set or a row of a character set,
-a coding system, or a character code.  */)
-     (char_table, range, value)
-     Lisp_Object char_table, range, value;
-{
-  int i;
-
-  CHECK_CHAR_TABLE (char_table);
-
-  if (EQ (range, Qt))
-    for (i = 0; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
-      XCHAR_TABLE (char_table)->contents[i] = value;
-  else if (EQ (range, Qnil))
-    XCHAR_TABLE (char_table)->defalt = value;
-  else if (SYMBOLP (range))
-    {
-      Lisp_Object charset_info;
-
-      charset_info = Fget (range, Qcharset);
-      CHECK_VECTOR (charset_info);
-
-      return Faset (char_table,
-		    make_number (XINT (XVECTOR (charset_info)->contents[0])
-				 + 128),
-		    value);
-    }
-  else if (INTEGERP (range))
-    Faset (char_table, range, value);
-  else if (VECTORP (range))
-    {
-      if (XVECTOR (range)->size == 1)
-	return Faset (char_table,
-		      make_number (XINT (XVECTOR (range)->contents[0]) + 128),
-		      value);
-      else
-	{
-	  int size = XVECTOR (range)->size;
-	  Lisp_Object *val = XVECTOR (range)->contents;
-	  Lisp_Object ch = Fmake_char_internal (size <= 0 ? Qnil : val[0],
-						size <= 1 ? Qnil : val[1],
-						size <= 2 ? Qnil : val[2]);
-	  return Faset (char_table, ch, value);
-	}
-    }
-  else
-    error ("Invalid RANGE argument to `set-char-table-range'");
-
-  return value;
-}
-
-DEFUN ("set-char-table-default", Fset_char_table_default,
-       Sset_char_table_default, 3, 3, 0,
-       doc: /* Set the default value in CHAR-TABLE for a generic character CHAR to VALUE.
-The generic character specifies the group of characters.
-See also the documentation of make-char.  */)
-     (char_table, ch, value)
-     Lisp_Object char_table, ch, value;
-{
-  int c, charset, code1, code2;
-  Lisp_Object temp;
-
-  CHECK_CHAR_TABLE (char_table);
-  CHECK_NUMBER (ch);
-
-  c = XINT (ch);
-  SPLIT_CHAR (c, charset, code1, code2);
-
-  /* Since we may want to set the default value for a character set
-     not yet defined, we check only if the character set is in the
-     valid range or not, instead of it is already defined or not.  */
-  if (! CHARSET_VALID_P (charset))
-    invalid_character (c);
-
-  if (charset == CHARSET_ASCII)
-    return (XCHAR_TABLE (char_table)->defalt = value);
-
-  /* Even if C is not a generic char, we had better behave as if a
-     generic char is specified.  */
-  if (!CHARSET_DEFINED_P (charset) || CHARSET_DIMENSION (charset) == 1)
-    code1 = 0;
-  temp = XCHAR_TABLE (char_table)->contents[charset + 128];
-  if (!code1)
-    {
-      if (SUB_CHAR_TABLE_P (temp))
-	XCHAR_TABLE (temp)->defalt = value;
-      else
-	XCHAR_TABLE (char_table)->contents[charset + 128] = value;
-      return value;
-    }
-  if (SUB_CHAR_TABLE_P (temp))
-    char_table = temp;
-  else
-    char_table = (XCHAR_TABLE (char_table)->contents[charset + 128]
-		  = make_sub_char_table (temp));
-  temp = XCHAR_TABLE (char_table)->contents[code1];
-  if (SUB_CHAR_TABLE_P (temp))
-    XCHAR_TABLE (temp)->defalt = value;
-  else
-    XCHAR_TABLE (char_table)->contents[code1] = value;
-  return value;
-}
-
-/* Look up the element in TABLE at index CH,
-   and return it as an integer.
-   If the element is nil, return CH itself.
-   (Actually we do that for any non-integer.)  */
-
-int
-char_table_translate (table, ch)
-     Lisp_Object table;
-     int ch;
-{
-  Lisp_Object value;
-  value = Faref (table, make_number (ch));
-  if (! INTEGERP (value))
-    return ch;
-  return XINT (value);
-}
-
-static void
-optimize_sub_char_table (table, chars)
-     Lisp_Object *table;
-     int chars;
-{
-  Lisp_Object elt;
-  int from, to;
-
-  if (chars == 94)
-    from = 33, to = 127;
-  else
-    from = 32, to = 128;
-
-  if (!SUB_CHAR_TABLE_P (*table))
-    return;
-  elt = XCHAR_TABLE (*table)->contents[from++];
-  for (; from < to; from++)
-    if (NILP (Fequal (elt, XCHAR_TABLE (*table)->contents[from])))
-      return;
-  *table = elt;
-}
-
-DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
-       1, 1, 0, doc: /* Optimize char table TABLE.  */)
-     (table)
-     Lisp_Object table;
-{
-  Lisp_Object elt;
-  int dim;
-  int i, j;
-
-  CHECK_CHAR_TABLE (table);
-
-  for (i = CHAR_TABLE_SINGLE_BYTE_SLOTS; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
-    {
-      elt = XCHAR_TABLE (table)->contents[i];
-      if (!SUB_CHAR_TABLE_P (elt))
-	continue;
-      dim = CHARSET_DIMENSION (i - 128);
-      if (dim == 2)
-	for (j = 32; j < SUB_CHAR_TABLE_ORDINARY_SLOTS; j++)
-	  optimize_sub_char_table (XCHAR_TABLE (elt)->contents + j, dim);
-      optimize_sub_char_table (XCHAR_TABLE (table)->contents + i, dim);
-    }
-  return Qnil;
-}
-
-
-/* Map C_FUNCTION or FUNCTION over SUBTABLE, calling it for each
-   character or group of characters that share a value.
-   DEPTH is the current depth in the originally specified
-   chartable, and INDICES contains the vector indices
-   for the levels our callers have descended.
-
-   ARG is passed to C_FUNCTION when that is called.  */
-
-void
-map_char_table (c_function, function, subtable, arg, depth, indices)
-     void (*c_function) P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-     Lisp_Object function, subtable, arg, *indices;
-     int depth;
-{
-  int i, to;
-
-  if (depth == 0)
-    {
-      /* At first, handle ASCII and 8-bit European characters.  */
-      for (i = 0; i < CHAR_TABLE_SINGLE_BYTE_SLOTS; i++)
-	{
-	  Lisp_Object elt = XCHAR_TABLE (subtable)->contents[i];
-	  if (c_function)
-	    (*c_function) (arg, make_number (i), elt);
-	  else
-	    call2 (function, make_number (i), elt);
-	}
-#if 0 /* If the char table has entries for higher characters,
-	 we should report them.  */
-      if (NILP (current_buffer->enable_multibyte_characters))
-	return;
-#endif
-      to = CHAR_TABLE_ORDINARY_SLOTS;
-    }
-  else
-    {
-      int charset = XFASTINT (indices[0]) - 128;
-
-      i = 32;
-      to = SUB_CHAR_TABLE_ORDINARY_SLOTS;
-      if (CHARSET_CHARS (charset) == 94)
-	i++, to--;
-    }
-
-  for (; i < to; i++)
-    {
-      Lisp_Object elt;
-      int charset;
-
-      elt = XCHAR_TABLE (subtable)->contents[i];
-      XSETFASTINT (indices[depth], i);
-      charset = XFASTINT (indices[0]) - 128;
-      if (depth == 0
-	  && (!CHARSET_DEFINED_P (charset)
-	      || charset == CHARSET_8_BIT_CONTROL
-	      || charset == CHARSET_8_BIT_GRAPHIC))
-	continue;
-
-      if (SUB_CHAR_TABLE_P (elt))
-	{
-	  if (depth >= 3)
-	    error ("Too deep char table");
-	  map_char_table (c_function, function, elt, arg, depth + 1, indices);
-	}
-      else
-	{
-	  int c1, c2, c;
-
-	  if (NILP (elt))
-	    elt = XCHAR_TABLE (subtable)->defalt;
-	  c1 = depth >= 1 ? XFASTINT (indices[1]) : 0;
-	  c2 = depth >= 2 ? XFASTINT (indices[2]) : 0;
-	  c = MAKE_CHAR (charset, c1, c2);
-	  if (c_function)
-	    (*c_function) (arg, make_number (c), elt);
-	  else
-	    call2 (function, make_number (c), elt);
-  	}
-    }
-}
-
-DEFUN ("map-char-table", Fmap_char_table, Smap_char_table,
-       2, 2, 0,
-       doc: /* Call FUNCTION for each (normal and generic) characters in CHAR-TABLE.
-FUNCTION is called with two arguments--a key and a value.
-The key is always a possible IDX argument to `aref'.  */)
-     (function, char_table)
-     Lisp_Object function, char_table;
-{
-  /* The depth of char table is at most 3. */
-  Lisp_Object indices[3];
-
-  CHECK_CHAR_TABLE (char_table);
-
-  map_char_table (NULL, function, char_table, char_table, 0, indices);
-  return Qnil;
-}
-
-/* Return a value for character C in char-table TABLE.  Store the
-   actual index for that value in *IDX.  Ignore the default value of
-   TABLE.  */
-
-Lisp_Object
-char_table_ref_and_index (table, c, idx)
-     Lisp_Object table;
-     int c, *idx;
-{
-  int charset, c1, c2;
-  Lisp_Object elt;
-
-  if (SINGLE_BYTE_CHAR_P (c))
-    {
-      *idx = c;
-      return XCHAR_TABLE (table)->contents[c];
-    }
-  SPLIT_CHAR (c, charset, c1, c2);
-  elt = XCHAR_TABLE (table)->contents[charset + 128];
-  *idx = MAKE_CHAR (charset, 0, 0);
-  if (!SUB_CHAR_TABLE_P (elt))
-    return elt;
-  if (c1 < 32 || NILP (XCHAR_TABLE (elt)->contents[c1]))
-    return XCHAR_TABLE (elt)->defalt;
-  elt = XCHAR_TABLE (elt)->contents[c1];
-  *idx = MAKE_CHAR (charset, c1, 0);
-  if (!SUB_CHAR_TABLE_P (elt))
-    return elt;
-  if (c2 < 32 || NILP (XCHAR_TABLE (elt)->contents[c2]))
-    return XCHAR_TABLE (elt)->defalt;
-  *idx = c;
-  return XCHAR_TABLE (elt)->contents[c2];
 }
 
 
@@ -3752,14 +3236,6 @@ base64_decode_1 (from, to, length, multibyte, nchars_return)
    key_and_value vector of the hash table.  This could be done
    if a `:linear-search t' argument is given to make-hash-table.  */
 
-
-/* Value is the key part of entry IDX in hash table H.  */
-
-#define HASH_KEY(H, IDX)   AREF ((H)->key_and_value, 2 * (IDX))
-
-/* Value is the value part of entry IDX in hash table H.  */
-
-#define HASH_VALUE(H, IDX) AREF ((H)->key_and_value, 2 * (IDX) + 1)
 
 /* Value is the index of the next entry following the one at IDX
    in hash table H.  */
@@ -5084,7 +4560,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 
 	  if (STRING_MULTIBYTE (object))
 	    /* use default, we can't guess correct value */
-	    coding_system = SYMBOL_VALUE (XCAR (Vcoding_category_list));
+	    coding_system = preferred_coding_system ();
 	  else 
 	    coding_system = Qraw_text;
 	}
@@ -5101,7 +4577,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	}
 
       if (STRING_MULTIBYTE (object))
-	object = code_convert_string1 (object, coding_system, Qnil, 1);
+	object = code_convert_string (object, coding_system, Qnil, 1, 0, 1);
 
       size = XSTRING (object)->size;
       size_byte = STRING_BYTES (XSTRING (object));
@@ -5233,7 +4709,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
       object = make_buffer_string (b, e, 0);
 
       if (STRING_MULTIBYTE (object))
-	object = code_convert_string1 (object, coding_system, Qnil, 1);
+	object = code_convert_string (object, coding_system, Qnil, 1, 0, 1);
     }
 
   md5_buffer (XSTRING (object)->data + start_byte, 
@@ -5371,16 +4847,6 @@ invoked by mouse clicks and mouse menu items.  */);
   defsubr (&Sput);
   defsubr (&Sequal);
   defsubr (&Sfillarray);
-  defsubr (&Schar_table_subtype);
-  defsubr (&Schar_table_parent);
-  defsubr (&Sset_char_table_parent);
-  defsubr (&Schar_table_extra_slot);
-  defsubr (&Sset_char_table_extra_slot);
-  defsubr (&Schar_table_range);
-  defsubr (&Sset_char_table_range);
-  defsubr (&Sset_char_table_default);
-  defsubr (&Soptimize_char_table);
-  defsubr (&Smap_char_table);
   defsubr (&Snconc);
   defsubr (&Smapcar);
   defsubr (&Smapc);
