@@ -28,7 +28,7 @@ Boston, MA 02111-1307, USA.  */
 #define BLACK_PIX_DEFAULT(f) RGB(0,0,0)
 #define WHITE_PIX_DEFAULT(f) RGB(255,255,255)
 
-#define FONT_WIDTH(f)	((f)->tm.tmMaxCharWidth)
+#define FONT_WIDTH(f)	((f)->tm.tmAveCharWidth)
 #define FONT_HEIGHT(f)	((f)->tm.tmHeight)
 #define FONT_BASE(f)    ((f)->tm.tmAscent)
 
