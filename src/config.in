@@ -241,6 +241,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the <krb.h> header file. */
 #undef HAVE_KRB_H
 
+/* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
+#undef HAVE_LANGINFO_CODESET
+
 /* Define to 1 if you have the `com_err' library (-lcom_err). */
 #undef HAVE_LIBCOM_ERR
 
@@ -791,7 +794,6 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_CARBON
 #define HAVE_WINDOW_SYSTEM
 #define HAVE_MOUSE
-#define HAVE_MENUS
 #endif
 
 /* Define USER_FULL_NAME to return a string

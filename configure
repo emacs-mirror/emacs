@@ -10075,6 +10075,8 @@ _ACEOF
       * ) carbon_appdir=${carbon_appdir_x} ;;
     esac
   fi
+  # We also have mouse menus.
+  HAVE_MENUS=yes
 fi
 
 ### Use session management (-lSM -lICE) if available
