@@ -64,16 +64,6 @@ extern void w32_free_menu_strings P_ ((HWND));
 
 extern int quit_char;
 
-/* A definition of XColor for non-X frames.  */
-#ifndef HAVE_X_WINDOWS
-typedef struct {
-  unsigned long pixel;
-  unsigned short red, green, blue;
-  char flags;
-  char pad;
-} XColor;
-#endif
-
 extern char *lispy_function_keys[];
 
 /* The gray bitmap `bitmaps/gray'.  This is done because w32term.c uses

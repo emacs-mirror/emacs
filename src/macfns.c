@@ -99,16 +99,6 @@ extern double atof ();
 extern int w32_console_toggle_lock_key (int vk_code, Lisp_Object new_state);
 extern int quit_char;*/
 
-/* A definition of XColor for non-X frames.  */
-#ifndef HAVE_X_WINDOWS
-typedef struct {
-  unsigned long pixel;
-  unsigned short red, green, blue;
-  char flags;
-  char pad;
-} XColor;
-#endif
-
 extern char *lispy_function_keys[];
 
 /* The gray bitmap `bitmaps/gray'.  This is done because macterm.c uses

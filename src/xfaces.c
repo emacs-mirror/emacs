@@ -297,21 +297,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define FACE_CACHE_BUCKETS_SIZE 1001
 
-/* A definition of XColor for non-X frames.  */
-
-#ifndef HAVE_X_WINDOWS
-
-typedef struct
-{
-  unsigned long pixel;
-  unsigned short red, green, blue;
-  char flags;
-  char pad;
-}
-XColor;
-
-#endif /* not HAVE_X_WINDOWS */
-
 /* Keyword symbols used for face attribute names.  */
 
 Lisp_Object QCfamily, QCheight, QCweight, QCslant, QCunderline;
