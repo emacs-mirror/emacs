@@ -9683,7 +9683,7 @@ try_cursor_movement (window, startp, scroll_step)
   struct frame *f = XFRAME (w->frame);
   int rc = CURSOR_MOVEMENT_CANNOT_BE_USED;
   
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
   if (inhibit_try_cursor_movement)
     return rc;
 #endif
@@ -10624,7 +10624,7 @@ try_window_reusing_current_matrix (w)
   struct glyph_row *start_row;
   int start_vpos, min_y, max_y;
 
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
   if (inhibit_try_window_reusing)
     return 0;
 #endif
@@ -11281,7 +11281,7 @@ try_window_id (w)
   struct text_pos start;
   int first_changed_charpos, last_changed_charpos;
 
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
   if (inhibit_try_window_id)
     return 0;
 #endif
@@ -14889,7 +14889,7 @@ Can be used to update submenus whose contents should vary.  */);
     doc: /* Non-nil means don't eval Lisp during redisplay.  */);
   inhibit_eval_during_redisplay = 0;
 
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
   DEFVAR_BOOL ("inhibit-try-window-id", &inhibit_try_window_id,
 	       doc: /* Inhibit try_window_id display optimization.  */);
   inhibit_try_window_id = 0;
