@@ -1537,8 +1537,9 @@ selection_data_to_lisp_data (display, data, size, type, format)
   else if (format == 16)
     {
       int i;
-      Lisp_Object v = Fmake_vector (make_number (size / 4), make_number (0));
-      for (i = 0; i < size / 4; i++)
+      Lisp_Object v;
+      v = Fmake_vector (make_number (size / 2), make_number (0));
+      for (i = 0; i < size / 2; i++)
 	{
 	  int j = (int) ((unsigned short *) data) [i];
 	  Faset (v, make_number (i), make_number (j));
