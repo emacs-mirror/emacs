@@ -530,7 +530,7 @@ char-to-string      ; @r{A symbol named @samp{char-to-string}.}
 @end group
 @end example
 
-@cindex @samp{#:} read syntax
+@cindex @samp{#@var{colon}} read syntax
   Normally the Lisp reader interns all symbols (@pxref{Creating
 Symbols}).  To prevent interning, you can write @samp{#:} before the
 name of the symbol.
