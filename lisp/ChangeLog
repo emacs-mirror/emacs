@@ -1,3 +1,7 @@
+2001-11-09  Miles Bader  <miles@gnu.org>
+
+	* subr.el (functionp): Don't consider macros as functions.
+
 2001-11-08  Miles Bader  <miles@gnu.org>
 
 	* subr.el (functionp): Make work correctly for macros and unbound
