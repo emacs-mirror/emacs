@@ -63,7 +63,11 @@ in paths.el.")
 					    (length path)))))
 	  (nreverse list))
       (if (or (member sibling Info-default-directory-list)
-	      (not (file-exists-p sibling)))
+	      (not (file-exists-p sibling))
+	      ;; Use invocation-directory for Info only if we used it for
+	      ;; exec-directory also.
+	      (not (string= exec-directory
+			    (expand-file-name "../lib-src/" (invocation-directory)))))
 	  Info-default-directory-list
 	(reverse (cons sibling (cdr (reverse Info-default-directory-list)))))))
   "List of directories to search for Info documentation files.
