@@ -210,7 +210,7 @@ and radicals is as below:
  a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
  $ASV(B $AI=(B $AMA(B $A56(B $AZb(B $A?Z(B $ARB(B $Aqb(B $A4s(B $A6!(B $A[L(B $Ala(B $AJ.(B $A4u(B $AXg(B $ACE(B $A=q(B $AX-(B $AE.(B $ARR(B $A`m(B $AP!(B $A3'(B $A3f(B $A_.(B $A27(B 
 
-\<quail-translation-docstring>")
+\\<quail-translation-docstring>")
 
     ("chinese-tonepy" "$A5wF4(B"
      "Pinyin base input method for Chinese charset GB2312 (`chinese-gb2312').
@@ -223,7 +223,7 @@ This input method works almost the same way as `chinese-py'.  The
 difference is that you must type 1..5 after each Pinyin spelling to
 specify a tone (1:$ARuF=(B, 2:$AQtF=(B, 3:$AIOIy(B, 4$AOBIy(B, 5:$AGaIy(B).
 
-\<quail-translation-docstring>
+\\<quail-translation-docstring>
 
 For instance, to input $ADc(B, you type \"n i 3 3\", the first \"n i\" is
 a Pinyin, the next \"3\" specifies tone, and the last \"3\" selects
@@ -245,7 +245,7 @@ For instance, the initial \"ch\" is assigned to the key `i', the final
 \"iu\" is assigned to the key `q', and tones 1, 2, 3, 4, and $AGaIy(B are
 assigned to the keys `q', `w', `e', `r', `t' respectively.
 
-\<quail-translation-docstring>
+\\<quail-translation-docstring>
 
 To input one-letter words, you type 4 keys, the first two for the
 Pinyin of the letter, next one for tone, and the last one is always a
@@ -288,7 +288,7 @@ keys corresponding to Zhuyin symbols (see the above table) followed by
 SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy(B, 4:$(0(+Vy(B,
 7:$(0M=Vy(B).
 
-\<quail-translation-docstring>")))
+\\<quail-translation-docstring>")))
 
 ;; Return a value of the key in the current line.
 (defsubst tit-read-key-value ()
