@@ -1861,7 +1861,8 @@ extern Lisp_Object case_temp2;
     NATNUMP (case_temp2))					\
    ? XFASTINT (case_temp2) : case_temp1)
 
-extern Lisp_Object Vascii_downcase_table;
+extern Lisp_Object Vascii_downcase_table, Vascii_upcase_table;
+extern Lisp_Object Vascii_canon_table, Vascii_eqv_table;
 
 /* Number of bytes of structure consed since last GC.  */
 
