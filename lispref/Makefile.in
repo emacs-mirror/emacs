@@ -25,7 +25,7 @@ infodir = ${prefix}/info
 
 # The name of the manual:
 
-VERSION=2.4
+VERSION=2.4.2
 manual = elisp-manual-19-$(VERSION)
 
 # Uncomment this line for permuted index.
