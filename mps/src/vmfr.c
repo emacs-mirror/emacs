@@ -1,4 +1,4 @@
-/* impl.c.vmli: VIRTUAL MEMORY MAPPING FOR FreeBSD
+/* impl.c.vmfr: VIRTUAL MEMORY MAPPING FOR FreeBSD
  *
  * $HopeName: MMsrc!vmli.c(trunk.7) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
