@@ -1890,6 +1890,20 @@ DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   return tem;
 }
 
+DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
+  (window)
+     Lisp_Object window;
+{
+  /* For your possible information, this code is unfolded into the
+     second WINDOW_FRAME in frame.h.  */     
+  Lisp_Object tem;
+  XSETFASTINT (tem, 0);
+  return tem;
+}
+
 DEFUN ("frame-first-window", Fframe_first_window, Sframe_first_window, 0, 1, 0,
   0)
   (frame)
@@ -2201,6 +2215,7 @@ syms_of_frame ()
   XSETFASTINT (Vterminal_frame, 0);
 
   defsubr (&Sselected_frame);
+  defsubr (&Swindow_frame);
   defsubr (&Sframe_first_window);
   defsubr (&Sframep);
   defsubr (&Sframe_char_height);
