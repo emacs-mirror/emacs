@@ -1,5 +1,12 @@
 2001-12-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* w32.c (emacs_root_dir): New function.
+
+	* msdos.c (emacs_root_dir): New function.
+
+	* fileio.c (Fexpand_file_name) [DOS_NT]: Use the root directory
+	of the current drive as the fallback for default_directory.
+
 	* dired.c (file_name_completion): Run the elements of
 	completion-ignored-extensions through ENCODE_FILE.
 
