@@ -528,7 +528,19 @@ argument causes us to read a file name and use that file as the inbox."
 	    ;; Delete the old files, now that babyl file is saved.
 	    (while delete-files
 	      (condition-case ()
-		  (delete-file (car delete-files))
+		  (if (or (string= (file-name-directory (car delete-files))
+				   rmail-spool-directory)
+			  (string-match "^\\.newmail-"
+					(file-name-nondirectory (car delete-files))))
+		      ;; If the file's in the spool directory, try deleting.
+		      ;; Likewise if made with movemail.
+		      (condition-case ()
+			  (delete-file (car delete-files))
+			(file-error
+			 ;; If we can't delete it, truncate it.
+			 (write-region (point) (point) (car delete-files))))
+		    ;; If not in the spool dir, just truncate it.
+		    (write-region (point) (point) (car delete-files)))
 		(file-error nil))
 	      (setq delete-files (cdr delete-files)))))
 	(if (= new-messages 0)
@@ -573,7 +585,10 @@ argument causes us to read a file name and use that file as the inbox."
 	    (if (file-directory-p file)
 		(setq file (expand-file-name (user-original-login-name)
 					     file)))))
-      (if (or (file-exists-p tofile) (file-exists-p file))
+      (if (or (and (file-exists-p tofile)
+		   (/= 0 (nth 7 (file-attributes tofile))))
+	      (and (file-exists-p file)
+		   (/= 0 (nth 7 (file-attributes file)))))
 	  (message "Getting mail from %s..." file))
       ;; Set TOFILE if have not already done so, and
       ;; rename or copy the file FILE to TOFILE if and as appropriate.
