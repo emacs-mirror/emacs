@@ -3494,6 +3494,7 @@ forward_to_next_line_start (it, skipped_p)
   if (it->what == IT_CHARACTER && it->c == '\n')
     {
       set_iterator_to_next (it, 0);
+      it->c = 0;
       return 1;
     }
 
@@ -3553,6 +3554,7 @@ forward_to_next_line_start (it, skipped_p)
     }
 
   it->selective = old_selective;
+  xassert (!newline_found_p || FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
   return newline_found_p;
 }
 
@@ -3642,9 +3644,12 @@ reseat_at_next_visible_line_start (it, on_newline_p)
      more than the value of IT->selective.  */
   if (it->selective > 0)
     while (IT_CHARPOS (*it) < ZV
-           && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
+	   && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
 				 it->selective))
-      newline_found_p = forward_to_next_line_start (it, &skipped_p);
+      {
+	xassert (FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
+	newline_found_p = forward_to_next_line_start (it, &skipped_p);
+      }
 
   /* Position on the newline if that's what's requested.  */
   if (on_newline_p && newline_found_p)
