@@ -422,10 +422,10 @@ Return what remains of the list.")
 
   while (arg > 0)
     {
-      while (1)
+      while (CONSP (list))
 	{
-	  next = Fcar (list);
-	  list = Fcdr (list);
+	  next = XCAR (list);
+	  list = XCDR (list);
 	  /* Exit inner loop at undo boundary.  */
 	  if (NILP (next))
 	    break;
@@ -436,8 +436,8 @@ Return what remains of the list.")
 	    {
 	      Lisp_Object car, cdr;
 
-	      car = Fcar (next);
-	      cdr = Fcdr (next);
+	      car = XCAR (next);
+	      cdr = XCDR (next);
 	      if (EQ (car, Qt))
 		{
 		  /* Element (t high . low) records previous modtime.  */
