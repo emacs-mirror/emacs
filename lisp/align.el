@@ -1413,10 +1413,11 @@ aligner would have dealt with are."
 			;; are, if it's a very large region being
 			;; aligned
 			(if report
-			    (let ((name (symbol-name (car rule))))
-			      (if name
+			    (let ((symbol (car rule)))
+			      (if (and symbol (symbolp symbol))
 				  (message
 				   "Aligning `%s' (rule %d of %d) %d%%..."
+				   (symbol-name symbol)
 				   name rule-index rule-count
 				   (/ (* (- (point) real-beg) 100)
 				      (- end-mark real-beg)))
