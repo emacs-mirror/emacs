@@ -1194,10 +1194,18 @@ bootstrap: bootstrap-emacs
 bootstrap-temacs: 
 	LC_ALL=C $(MAKE) $(MFLAGS) temacs ALL_CFLAGS="$(ALL_CFLAGS) -DPURESIZE=5000000 -I../src"
 
+/* Build a DOC file.  */
+
+bootstrap-doc: ${libsrc}make-docfile
+	-rm -f ${etc}DOC
+	els=`echo ${shortlisp} ${SOME_MACHINE_LISP} \
+		| sed -e "s/\\.elc/.el/g"`; \
+	${libsrc}make-docfile -d ${srcdir} $$els ${obj} > ${etc}DOC
+
 /* Dump an Emacs executable named bootstrap-emacs containing the 
    files from loadup.el in source form.  */
 
-bootstrap-emacs: bootstrap-temacs
+bootstrap-emacs: bootstrap-temacs bootstrap-doc
 #ifdef CANNOT_DUMP
 	ln temacs bootstrap-emacs
 #else
