@@ -6884,7 +6884,7 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
   if (EQ (operation, Qwrite_region)
       && nargs > 5
       && STRINGP (args[5]))
-    target_idx = 4;
+    target_idx = make_number (4);
   target = args[XINT (target_idx) + 1];
   if (!(STRINGP (target)
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
