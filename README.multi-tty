@@ -173,8 +173,6 @@ THINGS TO DO
    >
    >     This also happens when I start a new frame in an xterm.
 
-** emacs -nw --eval '(y-or-n-p "Foobar")' segfaults.
-
 ** Fix interactive use of temacs.  There are face-related SEGVs, most
    likely because of changes in realize_default_face, realize_face.
 
@@ -604,5 +602,10 @@ DIARY OF CHANGES
    (Seems to be fixed.  The problem was in startup.el, it did not
    initialize tty colors when the initial window system was
    graphical.)
+
+-- emacs -nw --eval '(y-or-n-p "Foobar")' segfaults.  (Reported by
+   Romain Francoise)
+
+   (Fixed, there was a keyboard initialization problem.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

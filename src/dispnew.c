@@ -6697,6 +6697,9 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
       abort ();
     f->output_method = d->type;
     f->display = d;
+#ifdef MULTI_KBOARD
+    f->kboard = d->display_info.tty->kboard;
+#endif
 
     d->reference_count++;
     d->display_info.tty->top_frame = selected_frame;
