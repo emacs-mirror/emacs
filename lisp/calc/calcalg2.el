@@ -3160,7 +3160,8 @@
 	      (math-mul val (list 'calcFunc-an var-GenCount))
 	    (setq var-GenCount (math-add var-GenCount 1))
 	    (calc-refresh-evaltos 'var-GenCount))
-	(let* ((var (concat "n" (math-get-from-counter 'solve-int)))
+	(let* ((var (concat "n" (int-to-string
+				 (math-get-from-counter 'solve-int))))
 	       (var2 (list 'var (intern var) (intern (concat "var-" var)))))
 	  (if (and range (eq solve-full 'all))
 	      (setq math-solve-ranges (cons (cons var2
