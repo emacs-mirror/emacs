@@ -34,6 +34,14 @@ Boston, MA 02111-1307, USA.  */
 #include <X11/cursorfont.h>
 #include <X11/bitmaps/gray>
 #include "xlwmenuP.h"
+#ifdef emacs
+/* Defined in xterm.c.  */
+extern int x_alloc_nearest_color_for_widget __P ((Widget, Colormap, XColor*));
+extern int x_catch_errors __P ((Display*));
+extern int x_uncatch_errors __P ((Display*, int));
+extern int x_had_errors_p __P ((Display*));
+extern int x_clear_errors __P ((Display*));
+#endif
 
 static int pointer_grabbed;
 static XEvent menu_post_event;
@@ -1445,7 +1453,7 @@ make_shadow_gcs (mw)
       topc.green = MINL (65535, topc.green * 1.2);
       topc.blue  = MINL (65535, topc.blue  * 1.2);
 #ifdef emacs
-      if (x_alloc_nearest_color_for_widget (mw, cmap, &topc))
+      if (x_alloc_nearest_color_for_widget ((Widget) mw, cmap, &topc))
 #else
       if (XAllocColor (dpy, cmap, &topc))
 #endif
@@ -1463,7 +1471,7 @@ make_shadow_gcs (mw)
       botc.green *= 0.6;
       botc.blue  *= 0.6;
 #ifdef emacs
-      if (x_alloc_nearest_color_for_widget (mw, cmap, &botc))
+      if (x_alloc_nearest_color_for_widget ((Widget) mw, cmap, &botc))
 #else
       if (XAllocColor (dpy, cmap, &botc))
 #endif
@@ -1817,7 +1825,7 @@ Start (w, ev, params, num_params)
   if (!mw->menu.popped_up)
     {
       menu_post_event = *ev;
-      pop_up_menu (mw, ev);
+      pop_up_menu (mw, (XButtonPressedEvent*) ev);
     }
   else
     {
