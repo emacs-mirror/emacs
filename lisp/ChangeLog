@@ -1,3 +1,8 @@
+2001-02-09  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/authors.el (authors): Expand `root' before running
+	find.
+
 2001-02-09  Kenichi Handa  <handa@etl.go.jp>
 
 	* faces.el (set-face-attribute): Describe the case of a negative
