@@ -1628,7 +1628,7 @@ sequence counting from the head."
       ;; giving up, we must check two possibilities.
       (cond ((and
 	      (quail-maximum-shortest)
-	      (>= len 4)
+	      (>= len 3)
 	      (setq def (quail-map-definition
 			 (quail-lookup-key quail-current-key (- len 2))))
 	      (quail-lookup-key (substring quail-current-key -2) 2))
