@@ -56,26 +56,74 @@
 
 ;;; Code:
 
-(defun refill-fill-paragraph (arg)
-  "Like `fill-paragraph' but don't delete whitespace at paragraph end."
-  ;; Should probably use a text property indicating previously-filled
-  ;; stuff to avoid filling before the point of change.
-  (let ((before (point)))
+(defvar refill-ignorable-overlay nil
+  "Portion of the most recently filled paragraph not needing filling.
+This is used to optimize refilling.")
+(make-variable-buffer-local 'refill-ignorable-overlay)
+
+(defun refill-adjust-ignorable-overlay (overlay afterp beg end &optional len)
+  "Adjust OVERLAY to not include the about-to-be-modified region."
+  (when (not afterp)
+    (message "adjust: %s-%s" beg end)
     (save-excursion
+      (goto-char beg)
+      (forward-line -1)
+      (if (<= (point) (overlay-start overlay))
+	  ;; Just get OVERLAY out of the way
+	  (move-overlay overlay 1 1)
+	;; Make overlay contain only the region 
+	(move-overlay overlay (overlay-start overlay) (point))))))
+
+(defun refill-fill-paragraph-at (pos &optional arg)
+  "Like `fill-paragraph' at POS, but don't delete whitespace at paragraph end."
+  (let (fill-pfx)
+    (save-excursion
+      (goto-char pos)
       (forward-paragraph)
       (skip-syntax-backward "-")
       (let ((end (point))
-	    (beg (progn (backward-paragraph) (point))))
-	(goto-char before)
-	(save-restriction
-	  (if use-hard-newlines
-	      (fill-region beg end arg)
-	    (fill-region-as-paragraph beg end arg)))))))
+	    (beg (progn (backward-paragraph) (point)))
+	    (obeg (overlay-start refill-ignorable-overlay))
+	    (oend (overlay-end refill-ignorable-overlay)))
+	(goto-char pos)
+	(if (and (>= beg obeg) (< beg oend))
+	    ;; Limit filling to the modified tail of the paragraph.
+	    (let (;; When adaptive-fill-mode is enabled, the filling
+		  ;; functions will attempt to set the fill prefix from
+		  ;; the fake paragraph bounds we pass in, so set it
+		  ;; ourselves first, using the real paragraph bounds.
+		  (fill-prefix
+		   (if (and adaptive-fill-mode
+			    (or (null fill-prefix) (string= fill-prefix "")))
+		       (fill-context-prefix beg end)
+		     fill-prefix))
+		  ;; Turn off adaptive-fill-mode temporarily
+		  (adaptive-fill-mode nil))
+	      (message "refill-at %s: %s-%s" pos oend end)
+	      (save-restriction
+		(if use-hard-newlines
+		    (fill-region oend end arg)
+		  (fill-region-as-paragraph oend end arg)))
+	      (setq fill-pfx fill-prefix)
+	      (move-overlay refill-ignorable-overlay obeg (point)))
+	  ;; Fill the whole paragraph
+	  (setq fill-pfx
+		(save-restriction
+		  (if use-hard-newlines
+		      (fill-region beg end arg)
+		    (fill-region-as-paragraph beg end arg))))
+	  (move-overlay refill-ignorable-overlay beg (point)))))
+    (skip-line-prefix fill-pfx)))
+
+(defun refill-fill-paragraph (arg)
+  "Like `fill-paragraph' but don't delete whitespace at paragraph end."
+  (refill-fill-paragraph-at (point) arg))
 
 (defvar refill-doit nil
   "Non-nil means that `refill-post-command-function' does its processing.
 Set by `refill-after-change-function' in `after-change-functions' and
-unset by `refill-post-command-function' in `post-command-hook'.  This
+unset by `refill-post-command-function' in `post-command-hook', and
+sometimes `refill-pre-command-function' in `pre-command-hook'.  This
 ensures refilling is only done once per command that causes a change,
 regardless of the number of after-change calls from commands doing
 complex processing.")
@@ -84,39 +132,54 @@ complex processing.")
 (defun refill-after-change-function (beg end len)
   "Function for `after-change-functions' which just sets `refill-doit'."
   (unless undo-in-progress
-    (setq refill-doit t)))
+    (setq refill-doit end)))
 
 (defun refill-post-command-function ()
   "Post-command function to do refilling (conditionally)."
-  (when refill-doit		; there was a change
+  (when refill-doit ; there was a change
     ;; There's probably scope for more special cases here...
-    (cond
-     ((eq this-command 'self-insert-command)
-      ;; Respond to the same characters as auto-fill (other than
-      ;; newline, covered below).
-      (if (aref auto-fill-chars (char-before))
-	  (refill-fill-paragraph nil)))
-     ((or (eq this-command 'quoted-insert)
-	  (eq this-command 'fill-paragraph)
-	  (eq this-command 'fill-region))
-      nil)
-     ((or (eq this-command 'newline)
-	  (eq this-command 'newline-and-indent)
-	  (eq this-command 'open-line))
-      ;; Don't zap what was just inserted.
-      (save-excursion
-	(beginning-of-line)	 ; for newline-and-indent
-	(skip-chars-backward "\n")
-	(save-restriction
-	  (narrow-to-region (point-min) (point))
-	  (refill-fill-paragraph nil)))
-      (widen)
-      (save-excursion
-	(skip-chars-forward "\n")
-	(save-restriction
-	  (narrow-to-region (line-beginning-position) (point-max))
-	  (refill-fill-paragraph nil))))
-     (t (refill-fill-paragraph nil)))
+    (if (eq this-command 'self-insert-command)
+	;; Treat self-insertion commands specially, since they don't
+	;; always reset `refill-doit' -- for self-insertion commands that
+	;; *don't* cause a refill, we want to leave it turned on so that
+	;; any subsequent non-modification command will cause a refill.
+	(when (aref auto-fill-chars (char-before))
+	  ;; Respond to the same characters as auto-fill (other than
+	  ;; newline, covered below).
+	  (refill-fill-paragraph-at refill-doit)
+	  (setq refill-doit nil))
+      (cond
+       ((or (eq this-command 'quoted-insert)
+	    (eq this-command 'fill-paragraph)
+	    (eq this-command 'fill-region))
+	nil)
+       ((or (eq this-command 'newline)
+	    (eq this-command 'newline-and-indent)
+	    (eq this-command 'open-line))
+	;; Don't zap what was just inserted.
+	(save-excursion
+	  (beginning-of-line)		; for newline-and-indent
+	  (skip-chars-backward "\n")
+	  (save-restriction
+	    (narrow-to-region (point-min) (point))
+	    (refill-fill-paragraph-at refill-doit)))
+	(widen)
+	(save-excursion
+	  (skip-chars-forward "\n")
+	  (save-restriction
+	    (narrow-to-region (line-beginning-position) (point-max))
+	    (refill-fill-paragraph-at refill-doit))))
+       (t
+	(refill-fill-paragraph-at refill-doit)))
+      (setq refill-doit nil))))
+
+(defun refill-pre-command-function ()
+  "Pre-command function to do refilling (conditionally)."
+  (when (and refill-doit (not (eq this-command 'self-insert-command)))
+    ;; A previous setting of `refill-doit' didn't result in a refill,
+    ;; because it was a self-insert-command.  Since the next command is
+    ;; something else, do the refill now.
+    (refill-fill-paragraph-at refill-doit)
     (setq refill-doit nil)))
 
 (defvar refill-late-fill-paragraph-function nil)
@@ -136,13 +199,20 @@ refilling if they would cause auto-filling."
       (progn
 	(add-hook 'after-change-functions 'refill-after-change-function nil t)
 	(add-hook 'post-command-hook 'refill-post-command-function nil t)
+	(add-hook 'pre-command-hook 'refill-pre-command-function nil t)
 	(set (make-local-variable 'refill-late-fill-paragraph-function)
 	     fill-paragraph-function)
 	(set (make-local-variable 'fill-paragraph-function)
 	     'refill-fill-paragraph)
+	(setq refill-ignorable-overlay (make-overlay 1 1 nil nil t))
+	(overlay-put refill-ignorable-overlay 'modification-hooks
+		     '(refill-adjust-ignorable-overlay))
+	(overlay-put refill-ignorable-overlay 'insert-behind-hooks
+		     '(refill-adjust-ignorable-overlay))
 	(auto-fill-mode 0))
     (remove-hook 'after-change-functions 'refill-after-change-function t)
     (remove-hook 'post-command-hook 'refill-post-command-function t)
+    (delete-overlay refill-ignorable-overlay)
     (setq fill-paragraph-function refill-late-fill-paragraph-function)))
 
 (provide 'refill)
