@@ -1,9 +1,14 @@
+2001-11-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* imap.el (imap-interactive-login, imap-open, imap-authenticate):
+	Use make-local-variable rather than make-variable-buffer-local.
+
 2001-11-25  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* message.el (message-forward-rmail-make-body):
 	save-window-excursion.
-	(message-encode-message-body): no error.
-	(message-setup-1): compose-mail send-actions are different from
+	(message-encode-message-body): No error.
+	(message-setup-1): Compose-mail send-actions are different from
 	message-send-actions.
 
 	* message.el (message-forward-subject-author-subject): Don't use
@@ -16,7 +21,7 @@
 	* gnus-util.el (gnus-directory-sep-char-regexp): New.
 	* gnus-score.el (gnus-score-find-bnews): Sync with Gnus CVS.
 	* mm-util.el: Sync.
-	
+
 	* gnus-sum.el (gnus-summary-limit-to-subject): An exclusion version.
 	(gnus-summary-limit-to-author): Ditto.
 	(gnus-summary-limit-to-extra): Ditto.
