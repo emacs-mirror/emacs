@@ -171,7 +171,7 @@ pointer looks like an int) but not on all machines.
 
 #ifndef CANNOT_DUMP  /* all rest of file!  */
 
-#ifdef COFF
+#if defined(COFF) && !defined(ISC4_1)
 #include <coff.h>
 #ifdef MSDOS
 #if __DJGPP__ > 1
@@ -197,14 +197,14 @@ struct aouthdr
   unsigned long	 	data_start;/* base of data used for this file */
 };
 #endif /* not MSDOS */
-#else  /* not COFF */
+#else  /* not COFF and ISC4_1 */
 #ifdef COFF_ENCAPSULATE
 int need_coff_header = 1;
 #include <coff-encap/a.out.encap.h> /* The location might be a poor assumption */
 #else  /* not COFF_ENCAPSULATE */
 #include <a.out.h>
 #endif /* not COFF_ENCAPSULATE */
-#endif /* not COFF */
+#endif /* not COFF and ISC4_1 */
 
 /* Define getpagesize if the system does not.
    Note that this may depend on symbols defined in a.out.h.  */
