@@ -1,3 +1,28 @@
+2005-03-28  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Update list of subnodes of Dired.
+	Likewise for building.texi.
+
+	* files.texi (File Conveniences): Delete Auto Image File mode.
+
+2005-03-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* building.texi (Flymake): New node.
+
+	* custom.texi (Function Keys): Document kp- event types and
+	keypad-setup package.
+
+	* dired.texi (Wdired): New node.
+
+	* files.texi (File Conveniences): Reorder entries.
+	Explain how to turn on Auto-image-file mode.
+	Document Thumbs mode.
+
+	* mule.texi (Specify Coding): Document recode-region and
+	recode-file-name.
+
+	* programs.texi (Program Modes): Add Conf mode and DNS mode.
+
 2005-03-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* commands.texi (Keys): M-o is now a prefix key.
