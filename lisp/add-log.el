@@ -35,15 +35,11 @@
 \\[add-change-log-entry] calls this function (if nil, `add-log-current-defun'
 instead) with no arguments.  It returns a string or nil if it cannot guess.")
 
-;; This MUST not be autoloaded, since user-login-name
-;; cannot be known at Emacs dump time.
-(defvar add-log-full-name (user-full-name)
+(defvar add-log-full-name nil
   "*Full name of user, for inclusion in ChangeLog daily headers.
 This defaults to the value returned by the `user-full-name' function.")
 
-;; This MUST not be autoloaded, since user-login-name
-;; cannot be known at Emacs dump time.
-(defvar add-log-mailing-address user-mail-address
+(defvar add-log-mailing-address nil
   "*Electronic mail address of user, for inclusion in ChangeLog daily headers.
 This defaults to the value of `user-mail-address'.")
 
@@ -133,6 +129,10 @@ never append to an existing entry."
 	 ;; s/he can edit the full name field in prompter if s/he wants.
 	(setq add-log-mailing-address
 	      (read-input "Mailing address: " add-log-mailing-address))))
+  (or add-log-full-name
+      (setq add-log-full-name (user-full-name)))
+  (or add-log-mailing-address
+      (setq add-log-mailing-address user-mail-address))
   (let ((defun (funcall (or add-log-current-defun-function
 			    'add-log-current-defun)))
 	paragraph-end entry)
