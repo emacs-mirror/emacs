@@ -41,6 +41,9 @@ menus, turn this variable off, otherwise it is probably better to keep it on."
   :group 'menu
   :version "20.3")
 
+(defsubst easy-menu-intern (s)
+  (if (stringp s) (intern s) s))
+
 ;;;###autoload
 (put 'easy-menu-define 'lisp-indent-function 'defun)
 ;;;###autoload
@@ -167,7 +170,7 @@ A menu item can be a list with the same format as MENU.  This is a submenu."
 				     (symbol-function ,symbol)))
 			       ,symbol))))
     (mapcar (lambda (map)
-	      (define-key map (vector 'menu-bar (intern (car menu)))
+	      (define-key map (vector 'menu-bar (easy-menu-intern (car menu)))
 		(cons 'menu-item
 		      (cons (car menu)
 			    (if (not (symbolp keymap))
@@ -356,7 +359,7 @@ MENU, just change it, otherwise put it last in MENU."
     ;; `intern' the name so as to merge multiple entries with the same name.
     ;; It also makes it easier/possible to lookup/change menu bindings
     ;; via keymap functions.
-    (cons (if (stringp name) (intern name) name)
+    (cons (easy-menu-intern name)
 	  (and (not remove)
 	       (cons 'menu-item
 		     (cons label
@@ -365,8 +368,8 @@ MENU, just change it, otherwise put it last in MENU."
 
 (defun easy-menu-define-key-intern (menu key item &optional before)
   "Like easy-menu-define-key, but interns KEY and BEFORE if they are strings."
-  (easy-menu-define-key menu (if (stringp key) (intern key) key) item
-			(if (stringp before) (intern before) before)))
+  (easy-menu-define-key menu (easy-menu-intern key) item
+			(easy-menu-intern before)))
 
 (defun easy-menu-define-key (menu key item &optional before)
   "Add binding in MENU for KEY => ITEM.  Similar to `define-key-after'.
@@ -514,11 +517,9 @@ NAME should be a string, the name of the element to be removed."
   "In menu MENU try to look for menu item with name NAME.
 If a menu item is found, return (NAME . item), otherwise return nil.
 If item is an old format item, a new format item is returned."
-  (let ((item (lookup-key menu (vector (intern name))))
+  (let ((item (lookup-key menu (vector (easy-menu-intern name))))
 	ret enable cache label)
     (cond
-     ((or (keymapp item) (eq (car-safe item) 'menu-item))
-      (cons name item))			; Keymap or new menu format
      ((stringp (car-safe item))
       ;; This is the old menu format. Convert it to new format.
       (setq label (car item))
@@ -532,7 +533,10 @@ If item is an old format item, a new format item is returned."
       (and (symbolp item) (setq enable (get item 'menu-enable))	; Got enable
 	   (setq ret (cons :enable (cons enable ret))))
       (if cache (setq ret (cons cache ret)))
-      (cons name (cons 'menu-enable (cons label (cons item ret))))))))
+      (cons name (cons 'menu-enable (cons label (cons item ret)))))
+     (item ; (or (symbolp item) (keymapp item) (eq (car-safe item) 'menu-item))
+      (cons name item))			; Keymap or new menu format
+     )))
 
 (defun easy-menu-get-map-look-for-name (name submap)
   (while (and submap (not (or (equal (car-safe (cdr-safe (car submap))) name)
@@ -558,7 +562,8 @@ wants to modify in the map that we return.
 In some cases we use that to select between the local and global maps."
   (setq map
 	(catch 'found
-	  (let* ((key (vconcat (unless map '(menu-bar)) (mapcar 'intern path)))
+	  (let* ((key (vconcat (unless map '(menu-bar))
+			       (mapcar 'easy-menu-intern path)))
 		 (maps (mapcar (lambda (map)
 				 (setq map (lookup-key map key))
 				 (while (and (symbolp map) (keymapp map))
