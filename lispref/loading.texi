@@ -161,7 +161,7 @@ several directories to the front of your default @code{load-path}:
 (setq load-path
       (append (list nil "/user/bil/emacs"
                     "/usr/local/lisplib"
-                    (expand-file-name "~/emacs"))
+                    "~/emacs")
               load-path))
 @end group
 @end smallexample
@@ -169,8 +169,8 @@ several directories to the front of your default @code{load-path}:
 @c Wordy to rid us of an overfull hbox.  --rjc 15mar92
 @noindent
 In this example, the path searches the current working directory first,
-followed then by the @file{/user/bil/emacs} directory and then by
-the @file{/usr/local/lisplib} directory,
+followed then by the @file{/user/bil/emacs} directory, the
+@file{/usr/local/lisplib} directory, and the @file{~/emacs} directory,
 which are then followed by the standard directories for Lisp code.
 
 The command line options @samp{-l} or @samp{-load} specify a Lisp
