@@ -46,7 +46,7 @@
 ;; it into message-mode:
 ;; (add-hook 'message-setup-hook
 ;;           '(lambda ()
-;;              (fortune-to-signature)))      
+;;              (fortune-to-signature)))
 ;; This time no fortune-file is specified, so fortune-to-signature would use
 ;; the default-file as specified by fortune-file.
 
@@ -54,7 +54,7 @@
 ;;(add-hook 'gnus-article-mode-hook
 ;;	  '(lambda ()
 ;;	     (define-key gnus-article-mode-map "i" 'fortune-from-region)))
-;; which allows marking a region and then pressing "i" so that the marked 
+;; which allows marking a region and then pressing "i" so that the marked
 ;; region will be automatically added to my favourite fortune-file.
 
 ;;; Code:
@@ -63,21 +63,22 @@
 ;;; Customizable Settings
 (defgroup fortune nil
   "Settings for fortune."
+  :version "21.1"
   :group 'games)
 (defgroup fortune-signature nil
   "Settings for use of fortune for signatures."
-  :group 'fortune 
+  :group 'fortune
   :group 'mail)
 
 (defcustom fortune-dir "~/docs/ascii/misc/fortunes/"
   "*The directory to look in for local fortune cookies files."
   :group 'fortune)
-(defcustom fortune-file 
+(defcustom fortune-file
   (expand-file-name "usenet" fortune-dir)
   "*The file in which local fortune cookies will be stored."
   :group 'fortune)
 (defcustom fortune-database-extension  ".dat"
-  "The extension of the corresponding fortune database. 
+  "The extension of the corresponding fortune database.
 Normally you won't have a reason to change it."
   :group 'fortune)
 (defcustom fortune-program "fortune"
@@ -123,19 +124,19 @@ No need to add an `in'."
 
 ;; not customizable settings
 (defvar fortune-buffer-name "*fortune*")
-(defconst fortune-end-sep "\n%\n")  
+(defconst fortune-end-sep "\n%\n")
 
 
 ;;; **************
 ;;; Inserting a new fortune
 (defun fortune-append (string &optional interactive file)
-  "Appends STRING to the fortune FILE. 
+  "Appends STRING to the fortune FILE.
 
 If INTERACTIVE is non-nil, don't compile the fortune file afterwards."
-  (setq file (expand-file-name 
+  (setq file (expand-file-name
 	      (substitute-in-file-name (or file fortune-file))))
   (if (file-directory-p file)
-      (error "Cannot append fortune to directory %s." file))
+      (error "Cannot append fortune to directory %s" file))
   (if interactive ; switch to file and return buffer
       (find-file-other-frame file)
     (find-file-noselect file))
@@ -154,7 +155,7 @@ If INTERACTIVE is non-nil, don't compile the fortune file afterwards."
 
 (defun fortune-ask-file ()
   "Asks the user for a file-name."
-  (expand-file-name 
+  (expand-file-name
    (read-file-name
     "Fortune file to use: "
     fortune-dir nil nil "")))
@@ -172,11 +173,11 @@ read the file name to use.  Otherwise use the value of `fortune-file'."
 
 ;;; ###autoload
 (defun fortune-from-region (beg end file)
-  "Appends the current region to a local fortune-like data file.  
+  "Append the current region to a local fortune-like data file.
 
 Interactively, if called with a prefix argument,
 read the file name to use.  Otherwise use the value of `fortune-file'."
-  (interactive 
+  (interactive
    (list (region-beginning) (region-end)
 	 (if current-prefix-arg (fortune-ask-file))))
   (let ((string (buffer-substring beg end))
@@ -184,12 +185,12 @@ read the file name to use.  Otherwise use the value of `fortune-file'."
     ;; try to determine author ...
     (save-excursion
       (goto-char (point-min))
-      (setq help-point 
+      (setq help-point
 	    (search-forward-regexp
 	     "^From: \\(.*\\)$"
 	     (point-max) t))
-      (if help-point 
-	  (setq author (buffer-substring (match-beginning 1) help-point)) 
+      (if help-point
+	  (setq author (buffer-substring (match-beginning 1) help-point))
 	(setq author "An unknown author")))
     ;; ... and newsgroup
     (save-excursion
@@ -198,7 +199,7 @@ read the file name to use.  Otherwise use the value of `fortune-file'."
 	    (search-forward-regexp
 	     "^Newsgroups: \\(.*\\)$"
 	     (point-max) t))
-      (if help-point 
+      (if help-point
 	  (setq newsgroup (buffer-substring (match-beginning 1) help-point))
 	(setq newsgroup (if (or (eql major-mode 'gnus-article-mode)
 				(eql major-mode 'vm-mode)
@@ -222,20 +223,20 @@ read the file name to use.  Otherwise use the value of `fortune-file'."
 
 If called with a prefix asks for the FILE to compile, otherwise uses
 the value of `fortune-file'.  This currently cannot handle directories."
-  (interactive 
+  (interactive
     (list
      (if current-prefix-arg
 	 (fortune-ask-file)
        fortune-file)))
   (let* ((fortune-file (expand-file-name (substitute-in-file-name file)))
-	 (fortune-dat (expand-file-name 
+	 (fortune-dat (expand-file-name
 		       (substitute-in-file-name
 			(concat fortune-file fortune-database-extension)))))
   (cond ((file-exists-p fortune-file)
 	 (if (file-exists-p fortune-dat)
 	     (cond ((file-newer-than-file-p fortune-file fortune-dat)
 		    (message "Compiling new fortune database %s" fortune-dat)
-		    (shell-command 
+		    (shell-command
 		     (concat fortune-strfile fortune-strfile-options
 			     " " fortune-file fortune-quiet-strfile-options))))))
 	(t (error "Can't compile fortune file %s" fortune-file)))))
@@ -251,7 +252,7 @@ If called with a prefix asks for the FILE to choose the fortune from,
 otherwise uses the value of `fortune-file'.  If you want to have fortune
 choose from a set of files in a directory, call interactively with prefix
 and choose the directory as the fortune-file."
-  (interactive 
+  (interactive
     (list
      (if current-prefix-arg
 	 (fortune-ask-file)
@@ -300,7 +301,7 @@ If called with a prefix asks for the FILE to choose the fortune from,
 otherwise uses the value of `fortune-file'.  If you want to have fortune
 choose from a set of files in a directory, call interactively with prefix
 and choose the directory as the fortune-file."
-  (interactive 
+  (interactive
     (list
      (if current-prefix-arg
 	 (fortune-ask-file)
