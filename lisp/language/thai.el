@@ -34,6 +34,7 @@
  '(ascii thai-tis620 nil nil
    nil ascii-eol)
  '((safe-charsets ascii thai-tis620)
+   (mime-charset . tis-620)
    (post-read-conversion . thai-post-read-conversion)))
 
 (define-coding-system-alias 'th-tis620 'thai-tis620)
