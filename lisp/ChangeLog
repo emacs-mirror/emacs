@@ -1,3 +1,8 @@
+2005-02-27  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/diary-lib.el (diary-remind): Discard any mark portion
+	from diary-entry.  Reported by Andrew Kemp <ajwk@pell.uklinux.net>.
+
 2005-02-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el: Comment change.
