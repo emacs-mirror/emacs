@@ -1,6 +1,6 @@
 /* impl.h.tract: PAGE TABLE INTERFACE
  *
- * $HopeName: MMsrc!tract.h(trunk.3) $
+ * $HopeName: MMsrc!tract.h(trunk.4) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -25,7 +25,7 @@ typedef struct TractStruct { /* Tract structure */
   Pool pool;      /* MUST BE FIRST (design.mps.arena.tract.field pool) */
   void *p;                    /* pointer for use of owning pool */
   Addr base;                  /* Base address of the tract */
-  TraceSet white : TRACE_MAX; /* traces for which tract is white */
+  TraceSet white : TraceLIMIT; /* traces for which tract is white */
   unsigned int hasSeg : 1;    /* does tract have a seg in p? See .bool */
 } TractStruct;
 
