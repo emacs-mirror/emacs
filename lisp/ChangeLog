@@ -1,3 +1,9 @@
+2001-01-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* simple.el (next-line): Don't let `newline' expand abbrevs.
+	Simplify slightly.
+	(open-line): Don't let `newline' expand abbrevs.
+
 2001-01-25  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-util.el (eshell-ange-ls-uids): Changed use of `alist'
