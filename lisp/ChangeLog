@@ -1,5 +1,7 @@
 2001-01-25  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* smerge-mode.el (smerge-font-lock-keywords): Relax submatch 1.
+
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Docstring fix.
 
 2001-01-25  Dave Love  <fx@gnu.org>
