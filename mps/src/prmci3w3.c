@@ -1,11 +1,7 @@
 /* impl.c.prmci3w3: PROTECTION MUTATOR CONTEXT INTEL 386 (Win32)
  *
- * $HopeName: $
- * Copyright (C) 1999. Harlequin Group plc. All rights reserved.
- *
- * READERSHIP
- *
- * .readership: Any MPS developer.
+ * $HopeName: MMsrc!prmci3w3.c(trunk.1) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
  *
@@ -15,25 +11,24 @@
  * SOURCES
  *
  * .source.i486: Intel486 Microprocessor Family Programmer's 
- * Reference Manual
+ * Reference Manual (book.intel92).
  *
  * ASSUMPTIONS
  *
  * .assume.regref: The resisters in the context can be modified by
  * storing into an MRef pointer.
- *
  */
 
-#include "mpm.h"
 #include "prmcw3.h"
 #include "prmci3.h"
+#include "mpm.h"
+
+SRCID(prmci3w3, "$HopeName$");
 
 
-/* Return an address for a machine register given a context and a 
- * register number
- */
-MRef Prmci3AddressHoldingReg(MutatorFaultContext context, 
-                                    unsigned int regnum)
+/* Prmci3AddressHoldingReg -- Return an address for a given machine register */
+
+MRef Prmci3AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
 {
   PCONTEXT wincont;
 
@@ -53,18 +48,20 @@ MRef Prmci3AddressHoldingReg(MutatorFaultContext context,
   case 7: return (MRef)&wincont->Edi;
   }
   NOTREACHED;
+  return NULL; /* suppress warning */
 }
 
 
-void Prmci3DecodeFaultContext(MRef *faultmemReturn, 
-                              Byte **insvecReturn, 
+/* Prmci3DecodeFaultContext -- decode fault context */
+
+void Prmci3DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn, 
                               MutatorFaultContext context)
 {
   LPEXCEPTION_RECORD er;
 
   er = context->ep->ExceptionRecord;
 
-  /* Assert that this is an access violation. The computation of */
+  /* Assert that this is an access violation.  The computation of */
   /* faultmem depends on this. */
   AVER(er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION);
 
@@ -72,8 +69,10 @@ void Prmci3DecodeFaultContext(MRef *faultmemReturn,
   *insvecReturn = (Byte*)context->ep->ContextRecord->Eip;
 }
 
+
+/* Prmci3StepOverIns -- skip an instruction by changing the context */
+
 void Prmci3StepOverIns(MutatorFaultContext context, Size inslen)
 {
   context->ep->ContextRecord->Eip += (DWORD)inslen;
 }
-
