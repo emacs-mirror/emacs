@@ -415,6 +415,7 @@ as returned by the `event-start' and `event-end' functions."
 (defalias 'buffer-flush-undo 'buffer-disable-undo)
 (defalias 'eval-current-buffer 'eval-buffer)
 (defalias 'compiled-function-p 'byte-code-function-p)
+(defalias 'define-function 'defalias)
 
 ;; Some programs still use this as a function.
 (defun baud-rate ()
