@@ -2256,26 +2256,29 @@ delete_initial_display (struct display *display)
 void
 dissociate_if_controlling_tty (int fd)
 {
-#if defined (USG) && !defined (BSD_PGRPS)
   int pgid;
-  EMACS_GET_TTY_PGRP (fd, &pgid);
+  EMACS_GET_TTY_PGRP (fd, &pgid); /* If tcgetpgrp succeeds, fd is the ctty. */
   if (pgid != -1)
     {
+#if defined (USG) && !defined (BSD_PGRPS)
       setpgrp ();
       no_controlling_tty = 1;
-    }
 #else
 #ifdef TIOCNOTTY                /* Try BSD ioctls. */
-  sigblock (sigmask (SIGTTOU));
-  if (ioctl (fd, TIOCNOTTY, 0) != -1)
-    {
-      no_controlling_tty = 1;
-    }
-  sigunblock (sigmask (SIGTTOU));
+      sigblock (sigmask (SIGTTOU));
+      fd = emacs_open ("/dev/tty", O_RDWR, 0);
+      if (fd != -1 && ioctl (fd, TIOCNOTTY, 0) != -1)
+        {
+          no_controlling_tty = 1;
+        }
+      if (fd != -1)
+        emacs_close (fd);
+      sigunblock (sigmask (SIGTTOU));
 #else
-  /* Unknown system. */
-  croak ();
+      /* Unknown system. */
+      croak ();
 #endif  /* ! TIOCNOTTY */
+    }
 #endif  /* ! USG */
 }
 
