@@ -578,12 +578,8 @@ remains active.  Otherwise, it remains until the next input event."
 		    (push-mark (overlay-start mouse-drag-overlay) t t)
 		    (goto-char (overlay-end mouse-drag-overlay))
 		    (copy-region-as-kill (point) (mark t))
-		    (let ((inhibit-quit t))
-		      (setq unread-command-events
-			    (cons (read-event) unread-command-events))
-		      (setq quit-flag nil))
-		    (mouse-set-region-1)
-		    (delete-overlay mouse-drag-overlay))
+		    (mouse-show-mark)
+		    (mouse-set-region-1))
 		(goto-char (overlay-end mouse-drag-overlay))
 		(setq this-command 'mouse-set-point)
 		(delete-overlay mouse-drag-overlay))))
@@ -673,9 +669,22 @@ If DIR is positive skip forward; if negative, skip backward."
 ;; Momentarily show where the mark is, if highlighting doesn't show it. 
 (defun mouse-show-mark ()
   (or transient-mark-mode
-      (save-excursion
-	(goto-char (mark t))
-	(sit-for 1))))
+      (if window-system
+	  (let ((inhibit-quit t)
+		(echo-keystrokes 0)
+		event events)
+	    (move-overlay mouse-drag-overlay (point) (mark t))
+	    (while (progn (setq event (read-event))
+			  (setq events (append events (list event)))
+			  (and (memq 'down (event-modifiers event))
+			       (not (key-binding (apply 'vector events))))))
+	    (setq unread-command-events
+		  (nconc events unread-command-events))
+	    (setq quit-flag nil)
+	    (delete-overlay mouse-drag-overlay))
+	(save-excursion
+	 (goto-char (mark t))
+	 (sit-for 1)))))
 
 (defun mouse-set-mark (click)
   "Set mark at the position clicked on with the mouse.
@@ -833,6 +842,8 @@ If you do this twice in the same position, the selection is killed."
 	      (mouse-save-then-kill-delete-region (point) (mark))
 	      ;; After we kill, another click counts as "the first time".
 	      (setq mouse-save-then-kill-posn nil))
+	  ;; This is not a repetition.
+	  ;; We are adjusting an old selection or creating a new one.
 	  (if (or (and (eq last-command 'mouse-save-then-kill)
 		       mouse-save-then-kill-posn)
 		  (and mark-active transient-mark-mode)
@@ -859,7 +870,9 @@ If you do this twice in the same position, the selection is killed."
 	    (if before-scroll
 		(goto-char before-scroll))
 	    (exchange-point-and-mark)
-	    (kill-new (buffer-substring (point) (mark t))))
+	    (kill-new (buffer-substring (point) (mark t)))
+	    (if window-system
+		(mouse-show-mark)))
 	  (mouse-set-region-1)
 	  (setq mouse-save-then-kill-posn
 		(list (car kill-ring) (point) click-posn)))))))
