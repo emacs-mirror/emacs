@@ -2877,7 +2877,7 @@ See also `java-font-lock-extra-types'.")
 ;; Install ourselves:
 
 (unless (assq 'font-lock-mode minor-mode-alist)
-  (push '(font-lock-mode " Font") minor-mode-alist))
+  (push '(font-lock-mode nil) minor-mode-alist))
 
 ;; Provide ourselves:
 
