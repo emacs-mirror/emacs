@@ -283,7 +283,9 @@ executed once when the buffer is created.")
 (defvar term-mode-map nil)
 (defvar term-raw-map nil
   "Keyboard map for sending characters directly to the inferior process.")
-(defvar term-escape-char nil)
+(defvar term-escape-char nil
+  "Escape character for char-sub-mode of term mode.
+Do not change it directly;  use term-set-escape-char instead.")
 (defvar term-raw-escape-map nil)
 
 (defvar term-pager-break-map nil)
@@ -690,6 +692,7 @@ without any interpretation."
 (defun term-send-left  () (interactive) (term-send-raw-string "\e[D"))
 
 (defun term-set-escape-char (c)
+  "Change term-escape-char and keymaps that depend on it."
   (if term-escape-char
       (define-key term-raw-map term-escape-char 'term-send-raw))
   (setq c (make-string 1 c))
@@ -2126,24 +2129,31 @@ See `term-prompt-regexp'."
 				   ;; This iteration, handle only what fits.
 				   (setq count (- count temp))
 				   (setq funny (+ count i)))
-				  ((>  (term-handle-scroll 1) 0)
+				  ((or (not (or term-pager-count
+						term-scroll-with-delete))
+				       (>  (term-handle-scroll 1) 0))
+				   (term-adjust-current-row-cache 1)
 				   (setq count (min count term-width))
 				   (setq funny (+ count i))
-				   (term-adjust-current-row-cache 1)
 				   (setq term-start-line-column
 					 term-current-column))
 				  (t ;; Doing PAGER processing.
 				   (setq count 0 funny i)
 				   (setq term-current-column nil)
 				   (setq term-start-line-column nil)))
-			    (if term-insert-mode
-				;; Inserting spaces, then deleting them, then
-				;; inserting the actual text seems clumsy, but
-				;; it is simple, and the overhead is miniscule.
-				(term-insert-spaces count))
 			    (setq old-point (point))
-			    (term-move-columns count)
-			    (delete-region old-point (point))
+			    ;; In the common case that we're at the end of
+			    ;; the buffer, we can save a little work.
+			    (cond ((/= (point) (point-max))
+				   (if term-insert-mode
+				       ;; Inserting spaces, then deleting them,
+				       ;; then inserting the actual text is
+				       ;; inefficient, but it is simple, and
+				       ;; the actual overhead is miniscule.
+				       (term-insert-spaces count))
+				   (term-move-columns count)
+				   (delete-region old-point (point)))
+	(t (setq term-current-column (+ (term-current-column) count))))
 			    (insert (substring str i funny))
 			    (put-text-property old-point (point)
 					       'face term-current-face)
@@ -2161,17 +2171,29 @@ See `term-prompt-regexp'."
 			    (setq count (+ count 8 (- (mod count 8))))
 			    (if (< (move-to-column count nil) count)
 				(term-insert-char char 1))
-			    (setq term-current-column count)
-			    (setq term-start-line-column nil))
-			   ((eq char ?\b)
-			    (term-move-columns -1))
+			    (setq term-current-column count))
 			   ((eq char ?\r)
-			    (term-vertical-motion 0)
-			    (setq term-current-column nil))
+			    ;; Optimize CRLF at end of buffer:
+			    (cond ((and (< (setq temp (1+ i)) str-length)
+					(eq (aref str temp) ?\n)
+					(= (point) (point-max))
+					(not (or term-pager-count
+						 term-kill-echo-list
+						 term-scroll-with-delete)))
+				   (insert ?\n)
+				   (term-adjust-current-row-cache 1)
+				   (setq term-start-line-column 0)
+				   (setq term-current-column 0)
+				   (setq i temp))
+				  (t ;; Not followed by LF or can't optimize:
+				   (term-vertical-motion 0)
+				   (setq term-current-column 0))))
 			   ((eq char ?\n)
 			    (if (not (and term-kill-echo-list
 					  (term-check-kill-echo-list)))
-				(term-down 1 0 t)))
+				(term-down 1 t)))
+			   ((eq char ?\b)
+			    (term-move-columns -1))
 			   ((eq char ?\033) ; Escape
 			    (setq term-terminal-state 2))
 			   ((eq char 0)) ; NUL: Do nothing
@@ -2201,12 +2223,14 @@ See `term-prompt-regexp'."
 			    (setq term-terminal-previous-parameter 0)
 			    (setq term-terminal-state 3))
 			   ((eq char ?D) ;; scroll forward
-			    (term-down 1 0 t)
+			    (term-handle-deferred-scroll)
+			    (term-down 1 t)
 			    (setq term-terminal-state 0))
 			   ((eq char ?M) ;; scroll reversed
 			    (term-insert-lines 1)
 			    (setq term-terminal-state 0))
 			   ((eq char ?7) ;; Save cursor
+			    (term-handle-deferred-scroll)
 			    (setq term-saved-cursor
 				  (cons (term-current-row)
 					(term-horizontal-column)))
@@ -2249,6 +2273,9 @@ See `term-prompt-regexp'."
 		    (set-process-filter proc term-pager-filter)
 		    (setq i str-length)))
 	      (setq i (1+ i))))
+
+	  (if (>= (term-current-row) term-height)
+	      (term-handle-deferred-scroll))
 
 	  (set-marker (process-mark proc) (point))
 	  (if save-point
@@ -2300,6 +2327,15 @@ See `term-prompt-regexp'."
       (set-buffer previous-buffer)
       (select-window selected))))
 
+(defun term-handle-deferred-scroll ()
+  (let ((count (- (term-current-row) term-height)))
+    (if (> count 0)
+	(save-excursion
+	  (goto-char term-home-marker)
+	  (term-vertical-motion count)
+	  (set-marker term-home-marker (point))
+	  (setq term-current-row (1- term-height))))))
+
 ;;; Handle a character assuming (eq terminal-state 2) -
 ;;; i.e. we have previousely seen Escape followed by ?[.
 
@@ -2319,10 +2355,11 @@ See `term-prompt-regexp'."
      (1- term-terminal-parameter)))
    ;; \E[A - cursor up
    ((eq char ?A)
-    (term-down (- (max 1 term-terminal-parameter)) 0 t))
+    (term-handle-deferred-scroll)
+    (term-down (- (max 1 term-terminal-parameter)) t))
    ;; \E[B - cursor down
    ((eq char ?B)
-    (term-down (max 1 term-terminal-parameter) 0 t))
+    (term-down (max 1 term-terminal-parameter) t))
    ;; \E[C - cursor right
    ((eq char ?C)
     (term-move-columns (max 1 term-terminal-parameter)))
@@ -2370,6 +2407,7 @@ See `term-prompt-regexp'."
 	  (t (setq term-current-face 'default))))
    ;; \E[6n - Report cursor position
    ((eq char ?n)
+    (term-handle-deferred-scroll)
     (process-send-string proc
 			 (format "\e[%s;%sR"
 				 (1+ (term-current-row))
@@ -2403,6 +2441,7 @@ The top-most line is line 0."
   ;; If asked to switch to (from) the alternate sub-buffer, and already (not)
   ;; using it, do nothing.  This test is needed for some programs (including
   ;; emacs) that emit the ti termcap string twice, for unknown reason.
+  (term-handle-deferred-scroll)
   (if (eq set (not (term-using-alternate-sub-buffer)))
       (let ((row (term-current-row))
 	    (col (term-horizontal-column)))
@@ -2477,22 +2516,30 @@ The top-most line is line 0."
 ;;; "down" as needed so that is no more that a window-full above (point-max).
 
 (defun term-goto-home ()
+  (term-handle-deferred-scroll)
   (goto-char term-home-marker)
   (setq term-current-row 0)
   (setq term-current-column (current-column))
   (setq term-start-line-column term-current-column))
 
-;;; FIXME:  This can be optimized some.
 (defun term-goto (row col)
-  (term-goto-home)
-  (term-down row col))
+  (term-handle-deferred-scroll)
+  (cond ((and term-current-row (>= row term-current-row))
+	 ;; I assume this is a worthwhile optimization.
+	 (term-vertical-motion 0)
+	 (setq term-current-column term-start-line-column)
+	 (setq row (- row term-current-row)))
+	(t
+	 (term-goto-home)))
+  (term-down row)
+  (term-move-columns col))
 
 ; The page is full, so enter "pager" mode, and wait for input.
 
 (defun term-process-pager ()
   (if (not term-pager-break-map)
       (let* ((map (make-keymap))
-	    (i 0) tmp)
+	     (i 0) tmp)
 ;	(while (< i 128)
 ;	  (define-key map (make-string 1 i) 'term-send-raw)
 ;	  (setq i (1+ i)))
@@ -2681,6 +2728,8 @@ all pending output has been dealt with."))
 		 (delete-region save-top (point))
 		 (goto-char save-point)
 		 (term-vertical-motion down)
+		 (term-adjust-current-row-cache (- scroll-needed))
+		 (setq term-current-column nil)
 		 (term-insert-char ?\n scroll-needed))
 		((and (numberp term-pager-count)
 		      (< (setq term-pager-count (- term-pager-count down))
@@ -2688,26 +2737,31 @@ all pending output has been dealt with."))
 		 (setq down 0)
 		 (term-process-pager))
 		(t
+		 (term-adjust-current-row-cache (- scroll-needed))
 		 (term-vertical-motion scroll-needed)
 		 (set-marker term-home-marker (point))))
 	  (goto-char save-point)
-	  (set-marker save-point nil)
-	  (setq term-current-column nil)
-	  (setq term-current-row nil))))
+	  (set-marker save-point nil))))
   down)
 
-(defun term-down (down right &optional check-for-scroll)
-  "Move down DOWN screen lines vertically, and RIGHT columns horizontally."
+(defun term-down (down &optional check-for-scroll)
+  "Move down DOWN screen lines vertically."
   (let ((start-column (term-horizontal-column)))
-    (if check-for-scroll
+    (if (and check-for-scroll (or term-scroll-with-delete term-pager-count))
 	(setq down (term-handle-scroll down)))
     (term-adjust-current-row-cache down)
-    (setq down (- down (term-vertical-motion down)))
-    ; Extend buffer with extra blank lines if needed.
-    (if (> down 0) (term-insert-char ?\n down))
-    (setq term-current-column nil)
-    (setq term-start-line-column (current-column))
-    (move-to-column (+ term-start-line-column start-column right) t)))
+    (if (/= (point) (point-max))
+	(setq down (- down (term-vertical-motion down))))
+    ;; Extend buffer with extra blank lines if needed.
+    (cond ((> down 0)
+	   (term-insert-char ?\n down)
+	   (setq term-current-column 0)
+	   (setq term-start-line-column 0))
+	  (t
+	   (setq term-current-column nil)
+	   (setq term-start-line-column (current-column))))
+    (if start-column
+	(term-move-columns start-column))))
 
 ;; Assuming point is at the beginning of a screen line,
 ;; if the line above point wraps around, add a ?\n to undo the wrapping.
@@ -2747,6 +2801,7 @@ all pending output has been dealt with."))
 If KIND is 0, erase from (point) to (point-max);
 if KIND is 1, erase from home to point; else erase from home to point-max.
 Should only be called when point is at the start of a screen line."
+  (term-handle-deferred-scroll)
   (cond ((eq term-terminal-parameter 0)
 	 (delete-region (point) (point-max))
 	 (term-unwrap-line))
@@ -2770,6 +2825,10 @@ Should only be called when point is at the start of a screen line."
     (move-to-column (+ (term-current-column) count) t)
     (delete-region save-point (point))))
 
+;;; Insert COUNT spaces after point, but do not change any of
+;;; following screen lines.  Hence we may have to delete characters
+;;; at teh end of this screen line to make room.
+
 (defun term-insert-spaces (count)
   (let ((save-point (point)) (save-eol))
     (term-vertical-motion 1)
@@ -2788,9 +2847,9 @@ Should only be called when point is at the start of a screen line."
 	(save-current-column term-current-column)
 	(save-start-line-column term-start-line-column)
 	(save-current-row (term-current-row)))
-    (term-down lines 0)
+    (term-down lines)
     (delete-region start (point))
-    (term-down (- term-scroll-end save-current-row lines) 0)
+    (term-down (- term-scroll-end save-current-row lines))
     (term-insert-char ?\n lines)
     (setq term-current-column save-current-column)
     (setq term-start-line-column save-start-line-column)
@@ -2803,9 +2862,9 @@ Should only be called when point is at the start of a screen line."
 	(save-current-column term-current-column)
 	(save-start-line-column term-start-line-column)
 	(save-current-row (term-current-row)))
-    (term-down (- term-scroll-end save-current-row lines) 0)
+    (term-down (- term-scroll-end save-current-row lines))
     (setq start-deleted (point))
-    (term-down lines 0)
+    (term-down lines)
     (delete-region start-deleted (point))
     (goto-char start)
     (setq term-current-column save-current-column)
