@@ -640,8 +640,9 @@ pattern.
 		    (index (caddr pat)))
 		    (if (and (not found) ; Only allow one entry;
 			     (looking-at regexp))
-			(let ((beg (match-beginning index))
+			(let ((beg (make-marker))
 			      (end (match-end index)))
+			  (set-marker beg (match-beginning index))
 			  (setq found t)
 			  (push 
 			   (cons (buffer-substring-no-properties beg end) beg)
