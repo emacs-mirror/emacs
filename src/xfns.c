@@ -2303,7 +2303,7 @@ hack_wm_protocols (f, widget)
 
     if ((XGetWindowProperty (dpy, w,
 			     FRAME_X_DISPLAY_INFO (f)->Xatom_wm_protocols,
-			     0L, 100L, False, XA_ATOM,
+			     (long)0, (long)100, False, XA_ATOM,
 			     &type, &format, &nitems, &bytes_after,
 			     (unsigned char **) &atoms)
 	 == Success)
