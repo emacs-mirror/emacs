@@ -26,11 +26,14 @@
 
 (require 'rmail)
 
+(defvar rmail-old-text)
+
 (defvar rmail-edit-map nil)
 (if rmail-edit-map
     nil
   ;; Make a keymap that inherits text-mode-map.
-  (setq rmail-edit-map (nconc (make-sparse-keymap) text-mode-map))
+  (setq rmail-edit-map (make-sparse-keymap))
+  (set-keymap-parent rmail-edit-map text-mode-map)
   (define-key rmail-edit-map "\C-c\C-c" 'rmail-cease-edit)
   (define-key rmail-edit-map "\C-c\C-]" 'rmail-abort-edit))
 
@@ -45,6 +48,7 @@ to return to regular RMAIL:
      you have made and returns to RMAIL
   *  rmail-cease-edit makes them permanent.
 \\{rmail-edit-map}"
+  (text-mode)
   (use-local-map rmail-edit-map)
   (setq major-mode 'rmail-edit-mode)
   (setq mode-name "RMAIL Edit")
@@ -55,7 +59,7 @@ to return to regular RMAIL:
       (save-excursion
 	(set-buffer rmail-summary-buffer)
 	(rmail-summary-disable)))
-  (run-hooks 'text-mode-hook 'rmail-edit-mode-hook))
+  (run-hooks 'rmail-edit-mode-hook))
 
 ;;;###autoload
 (defun rmail-edit-current-message ()
@@ -89,7 +93,9 @@ to return to regular RMAIL:
 		(point)))
   (let ((old rmail-old-text))
     (force-mode-line-update)
+    (kill-all-local-variables)
     (rmail-mode-1)
+    (rmail-variables)
     (if (and (= (length old) (- (point-max) (point-min)))
 	     (string= old (buffer-substring (point-min) (point-max))))
 	()
