@@ -2823,6 +2823,8 @@ init_lread ()
   Vload_file_name = Qnil;
 
   load_descriptor_list = Qnil;
+
+  Vstandard_input = Qt;
 }
 
 /* Print a warning, using format string FORMAT, that directory DIRNAME
