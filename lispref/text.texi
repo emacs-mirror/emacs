@@ -3508,13 +3508,18 @@ all markers unrelocated.
 @cindex base 64 encoding
 
   Base 64 code is used in email to encode a sequence of 8-bit bytes as a
-longer sequence of @sc{ascii} graphic characters.  This section
-describes the functions for converting to and from this code.
+longer sequence of @sc{ascii} graphic characters.  It is defined in RFC
+2045.  This section describes the functions for converting to and from
+this code.
 
 @defun base64-encode-region beg end &optional no-line-break
 @tindex base64-encode-region
-This function converts the region from @var{beg} to @var{end}
-into base 64 code.  It returns the length of the encoded text.
+This function converts the region from @var{beg} to @var{end} into base
+64 code.  It returns the length of the encoded text.  An error is
+signaled if a character in the region is multibyte, i.e.@: in a
+multibyte buffer the region must contain only characters from the
+charsets @code{ascii}, @code{eight-bit-control} and
+@code{eight-bit-graphic}.
 
 Normally, this function inserts newline characters into the encoded
 text, to avoid overlong lines.  However, if the optional argument
@@ -3525,7 +3530,9 @@ the output is just one long line.
 @defun base64-encode-string string &optional no-line-break
 @tindex base64-encode-string
 This function converts the string @var{string} into base 64 code.  It
-returns a string containing the encoded text.
+returns a string containing the encoded text.  As for
+@code{base64-encode-region}, an error is signaled if a character in the
+string is multibyte.
 
 Normally, this function inserts newline characters into the encoded
 text, to avoid overlong lines.  However, if the optional argument
