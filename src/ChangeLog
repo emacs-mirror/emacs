@@ -1,3 +1,8 @@
+2001-10-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (display_line): Fix computation of continuation lines
+	width for TABs.
+
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 21.1 released.

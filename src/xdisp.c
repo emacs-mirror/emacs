@@ -12953,18 +12953,20 @@ display_line (it)
 		    {
 		      /* Display element draws past the right edge of
 			 the window.  Restore positions to values
-			 before the element.  The next line starts
-			 with current_x before the glyph that could
-			 not be displayed, so that TAB works right.  */
+			 before the element.  */
 		      row->used[TEXT_AREA] = n_glyphs_before + i;
 		  
 		      /* Display continuation glyphs.  */
 		      if (!FRAME_WINDOW_P (it->f))
 			produce_special_glyphs (it, IT_CONTINUATION);
 		      row->continued_p = 1;
+
+		      /* A TAB takes us to the right edge of the window.  */
+		      if (it->c == '\t')
+			it->continuation_lines_width += it->last_visible_x;
+		      else
+			it->continuation_lines_width += x;
 		      
-		      it->current_x = x;
-		      it->continuation_lines_width += x;
 		      if (nglyphs > 1 && i > 0)
 			{
 			  row->ends_in_middle_of_char_p = 1;
