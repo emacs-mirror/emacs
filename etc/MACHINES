@@ -507,7 +507,7 @@ High Level Hardware Orion 1/05 (clipper-highlevel-bsd)
   C compiler has a bug; it loops compiling eval.c.
   Compile it by hand without optimization.
 
-HITACHI SR2001/SR2201 series (hppa1.1-hitachi-hiuxmpp)
+HITACHI SR2001/SR2201 series (hppa1.1-hitachi-hiuxwe2)
 
   These machines are based on PA architecture running HI-UX/MPP
   (based on OSF1. `MPP' stands for `Massively Parallel Processor').
@@ -515,9 +515,12 @@ HITACHI SR2001/SR2201 series (hppa1.1-hitachi-hiuxmpp)
   Emacs 19.34 is believed to work; its pretest was tested
   both on SR2001 (output of `uname -rv' is `00-01-BB 0') and 
   SR2201 (`02-00 0').
+
+  Emacs 20.7 was reported to build on a system whose `uname -rs'
+  output is `HI-UX/MPP 03-04'.
   
   The machine description file is `src/m/sr2k.h' is based on 
-  `src/m/hp800.h'. The system description file is `src/s/hiuxmpp.h'
+  `src/m/hp800.h'. The system description file is `src/s/hiuxwe2.h'
   based on `src/s/osf1.h'. Note that this system doesn't use COFF.   
 
 IBM PS/2 (i386-ibm-aix1.1 or i386-ibm-aix1.2)
