@@ -473,7 +473,7 @@ struct coding_system
     else						\
       (s1 = j1 / 2 + ((j1 < 0x5F) ? 0x70 : 0xB0),	\
        s2 = j2 + 0x7E);					\
-    (code) = (j1 << 8) | j2;				\
+    (code) = (s1 << 8) | s2;				\
   } while (0)
 
 
