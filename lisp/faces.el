@@ -1518,17 +1518,17 @@ Value is the new frame created."
 	(delete-frame frame)))
     frame))
 
-
 (defun face-set-after-frame-default (frame)
   "Set frame-local faces of FRAME from face specs and resources.
 Initialize colors of certain faces from frame parameters."
   (dolist (face (face-list))
-    (face-spec-set face (face-user-default-spec face) frame)
-    (internal-merge-in-global-face face frame)
-    (when (and (memq window-system '(x w32 mac))
-	       (or (not (boundp 'inhibit-default-face-x-resources))
-		   (not (eq face 'default))))
-      (make-face-x-resource-internal face frame)))
+    (when (not (equal face 'default))
+      (face-spec-set face (face-user-default-spec face) frame)
+      (internal-merge-in-global-face face frame)
+      (when (and (memq window-system '(x w32 mac))
+		 (or (not (boundp 'inhibit-default-face-x-resources))
+		     (not (eq face 'default))))
+	(make-face-x-resource-internal face frame))))
 
   ;; Initialize attributes from frame parameters.
   (let ((params '((foreground-color default :foreground)
@@ -1547,7 +1547,6 @@ Initialize colors of certain faces from frame parameters."
 		   ;; specified for new frames.
 		   (eq (face-attribute face attr t) 'unspecified))
 	  (set-face-attribute face frame attr frame-param))))))
-
 
 (defun tty-handle-reverse-video (frame parameters)
   "Handle the reverse-video frame parameter for terminal frames."
