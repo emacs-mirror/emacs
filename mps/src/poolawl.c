@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.2) $
+ * $HopeName: MMsrc!poolawl.c(trunk.3) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.2) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.3) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -129,6 +129,7 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   BTResRange(group->alloc, 0, bits);
   seg->summary = RefSetUNIV;
   seg->rankSet = BufferRankSet(buffer);
+  seg->p = group;
   group->seg = seg;
   group->sig = AWLGroupSig;
   AVERT(AWLGroup, group);
@@ -340,9 +341,12 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
     Count bits;
 
     awl = PoolPoolAWL(pool);
+    AVERT(AWL, awl);
     group = (AWLGroup)seg->p;
+    AVERT(AWLGroup, group);
 
     seg->grey = TraceSetAdd(seg->grey, trace->ti);
+    ShieldRaise(trace->space, seg, AccessREAD);
     bits = SegSize(PoolSpace(pool), seg) >> awl->alignShift;
     BTSetRange(group->mark, 0, bits);
   }
@@ -453,7 +457,7 @@ notFinished:
         return res;
       }
     }
-    p = objectEnd;
+    p = AddrAlignUp(objectEnd, pool->alignment);
   }
   if(!finished)
     goto notFinished;
@@ -605,7 +609,7 @@ static Bool AWLCheck(AWL awl)
 static Bool AWLGroupCheck(AWLGroup group)
 {
   CHECKS(AWLGroup, group);
-  CHECKD(Seg, group->seg);
+  CHECKL(SegCheck(group->seg));
   CHECKL(group->mark != NULL);
   CHECKL(group->scanned != NULL);
   CHECKL(group->alloc != NULL);
