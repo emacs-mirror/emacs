@@ -103,7 +103,7 @@ This is suitable as an entry on `find-file-hooks' or appropriate mode hooks."
 	    (end-of-line)
 	    (if (overlayp elide-head-overlay)
 		(move-overlay elide-head-overlay (point-marker) end)
-	      (setq elide-head-overlay (make-overlay (point) end)))
+	      (setq elide-head-overlay (make-overlay (point-marker) end)))
 	    (overlay-put elide-head-overlay 'invisible t)
 	    (overlay-put elide-head-overlay 'intangible t)
 	    (overlay-put elide-head-overlay 'after-string "...")))))))
