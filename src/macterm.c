@@ -1,5 +1,5 @@
 /* Implementation of GUI terminal on the Mac OS.
-   Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -8633,6 +8633,7 @@ static struct redisplay_interface x_redisplay_interface =
   mac_define_frame_cursor,
   mac_clear_frame_area,
   mac_draw_window_cursor,
+  mac_draw_vertical_window_border,
   mac_shift_glyphs_for_insert
 };
 
