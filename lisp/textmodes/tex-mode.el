@@ -26,8 +26,7 @@
 
 ;;; Code:
 
-;; This was a pain.  Now, make-comint should autoload comint.
-;; (require 'comint)
+(require 'comint)
 (require 'compile)
 
 ;;;###autoload
@@ -217,6 +216,8 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
 
 ;(defalias 'TeX-mode 'tex-mode) 		;in loaddefs.
 
+(defvar compare-windows-whitespace nil)	; Pacify the byte-compiler
+
 ;;; This would be a lot simpler if we just used a regexp search,
 ;;; but then it would be too slow.
 ;;;###autoload
@@ -287,9 +288,10 @@ tex-show-queue-command
 	Command string used by \\[tex-show-print-queue] to show the print
 	queue that \\[tex-print] put your job on.
 
-Entering Plain-tex mode calls the value of text-mode-hook, then the value of
-tex-mode-hook, and then the value of plain-tex-mode-hook.  When the special
-subshell is initiated, the value of tex-shell-hook is called."
+Entering Plain-tex mode calls the value of `text-mode-hook', then the value
+of `tex-mode-hook', and then the value of `plain-tex-mode-hook'.  When the
+special subshell is initiated, the value of `tex-shell-hook' is called."
+
   (interactive)
   (tex-common-initialization)
   (setq mode-name "TeX")
@@ -390,10 +392,10 @@ tex-show-queue-command
 	Command string used by \\[tex-show-print-queue] to show the print
 	queue that \\[tex-print] put your job on.
 
-Entering SliTeX mode calls the value of text-mode-hook, then the value of
-tex-mode-hook, then the value of latex-mode-hook, and then the value of
-slitex-mode-hook.  When the special subshell is initiated, the value of
-tex-shell-hook is called."
+Entering SliTeX mode calls the value of `text-mode-hook', then the value of
+`tex-mode-hook', then the value of `latex-mode-hook', and then the value of
+`slitex-mode-hook'.  When the special subshell is initiated, the value of
+`tex-shell-hook' is called."
   (interactive)
   (tex-common-initialization)
   (setq mode-name "SliTeX")
@@ -504,7 +506,7 @@ inserts \" characters."
 	    tex-close-quote)))))
 
 (defun validate-tex-buffer ()
-  "Check current buffer for paragraphs containing mismatched $'s.
+  "Check current buffer for paragraphs containing mismatched $s.
 As each such paragraph is found, a mark is pushed at its beginning,
 and the location is displayed for a few seconds."
   (interactive)
@@ -614,7 +616,7 @@ Puts point on a blank line between them."
 This makes a list of error descriptors, compilation-error-list.
 For each source-file, line-number pair in the buffer,
 the source file is read in, and the text location is saved in
-compilation-error-list.  The function next-error, assigned to
+compilation-error-list.  The function `next-error', assigned to
 \\[next-error], takes the next error off the list and visits its location.
 
 This function works on TeX compilations only.  It is necessary for
@@ -626,8 +628,6 @@ line numbers for the errors."
   (modify-syntax-entry ?\} "_")
   (modify-syntax-entry ?\[ "_")
   (modify-syntax-entry ?\] "_")
-  (make-variable-buffer-local 'compilation-error-regexp)
-  (setq compilation-error-regexp "^l\.[0-9]+ ")
   (let (text-buffer
 	last-filename last-linenum)
     ;; Don't reparse messages already seen at last parse.
@@ -636,7 +636,7 @@ line numbers for the errors."
     ;; This matters for grep.
     (if (bobp)
 	(forward-line 2))
-    (while (re-search-forward compilation-error-regexp nil t)
+    (while (re-search-forward "^l\.[0-9]+ " nil t)
       (let (linenum filename
 	    error-marker text-marker)
 	;; Extract file name and line number from error message.
@@ -649,7 +649,7 @@ line numbers for the errors."
 	(insert ?\))
 	(backward-sexp)
 	(forward-char)
-	(setq filename (compilation-grab-filename))
+	(setq filename (current-word))
 	;; Locate the erring file and line.
 	(if (and (equal filename last-filename)
 		 (= linenum last-linenum))
@@ -726,10 +726,11 @@ line numbers for the errors."
       (setq default-directory directory))))
 
 (defun tex-send-command (command &optional file background)
-  "Send COMMAND to tex-shell, substituting optional FILE for *; in background
-if optional BACKGROUND is t.   If COMMAND has no *, FILE will be appended,
-preceded by a blank, to COMMAND.  If FILE is nil, no substitution will be made
-in COMMAND.  COMMAND can be any expression that evaluates to a command string."
+  "Send COMMAND to tex-shell, substituting optional FILE for *.
+Do this in background if optional BACKGROUND is t.  If COMMAND has no *,
+FILE will be appended, preceded by a blank, to COMMAND.  If FILE is nil, no
+substitution will be made in COMMAND.  COMMAND can be any expression that
+evaluates to a command string."
   (save-excursion
     (let* ((cmd (eval command))
            (star (string-match "\\*" cmd))
@@ -959,7 +960,7 @@ Runs the shell command defined by `tex-show-queue-command'."
          (tex-append (file-name-nondirectory (buffer-file-name)) ""))
 	(file-dir (file-name-directory (buffer-file-name))))
     (tex-send-command tex-shell-cd-command file-dir)
-    (tex-send-command bibtex-command tex-out-file)))
+    (tex-send-command tex-bibtex-command tex-out-file)))
 
 (run-hooks 'tex-mode-load-hook)
 
