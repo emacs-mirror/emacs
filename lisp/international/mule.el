@@ -1858,6 +1858,39 @@ See also the variable `nonascii-translation-table'."
     (set-char-table-extra-slot table 0 rev-table)
     table))
 
+(defun make-translation-table-from-alist (alist)
+  "Make translation table from N<->M mapping in ALIST.
+ALIST is an alist, each element has the form (FROM . TO).
+FROM and TO are a character or a vector of characters.
+If FROM is a character, that character is translated to TO.
+If FROM is a vector of characters, that sequence is translated to TO.
+The second extra-slot of the value is a translation table for reverse mapping."
+  (let ((table (make-char-table 'translation-table))
+	(rev-table (make-char-table 'translation-table))
+	max-lookup from to)
+    (setq max-lookup 1)
+    (dolist (elt alist)
+      (setq from (car elt) to (cdr elt))
+      (if (characterp from)
+	  (aset table from to)
+	(let* ((ch (aref from 0))
+	       (val (aref table ch)))
+	  (aset table ch (cons (cons from to) val)))
+	(setq max-lookup (max max-lookup (length from)))))
+    (set-char-table-extra-slot table 1 max-lookup)
+    (setq max-lookup 1)
+    (dolist (elt alist)
+      (setq from (cdr elt) to (car elt))
+      (if (characterp from)
+	  (aset rev-table from to)
+	(let* ((ch (aref from 0))
+	       (val (aref rev-table ch)))
+	  (aset rev-table ch (cons (cons from to) val)))
+	(setq max-lookup (max max-lookup (length from)))))
+    (set-char-table-extra-slot rev-table 1 max-lookup)
+    (set-char-table-extra-slot table 0 rev-table)
+    table))
+
 (defun define-translation-table (symbol &rest args)
   "Define SYMBOL as the name of translation table made by ARGS.
 This sets up information so that the table can be used for
