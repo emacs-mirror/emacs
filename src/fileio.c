@@ -5354,52 +5354,66 @@ e_write (desc, string, start, end, coding)
 
   /* We used to have a code for handling selective display here.  But,
      now it is handled within encode_coding.  */
-  if (STRINGP (string))
+
+  while (start < end)
     {
-      coding->src_multibyte = SCHARS (string) < SBYTES (string);
-      if (CODING_REQUIRE_ENCODING (coding))
+      if (STRINGP (string))
 	{
-	  encode_coding_object (coding, string,
-				start, string_char_to_byte (string, start),
-				end, string_char_to_byte (string, end), Qt);
+	  coding->src_multibyte = SCHARS (string) < SBYTES (string);
+	  if (CODING_REQUIRE_ENCODING (coding))
+	    {
+	      encode_coding_object (coding, string,
+				    start, string_char_to_byte (string, start),
+				    end, string_char_to_byte (string, end), Qt);
+	    }
+	  else
+	    {
+	      coding->dst_object = string;
+	      coding->consumed_char = SCHARS (string);
+	      coding->produced = SBYTES (string);
+	    }
 	}
       else
 	{
-	  coding->dst_object = string;
-	  coding->produced = SBYTES (string);
-	}
-    }
-  else
-    {
-      int start_byte = CHAR_TO_BYTE (start);
-      int end_byte = CHAR_TO_BYTE (end);
+	  int start_byte = CHAR_TO_BYTE (start);
+	  int end_byte = CHAR_TO_BYTE (end);
 
-      coding->src_multibyte = (end - start) < (end_byte - start_byte);
-      if (CODING_REQUIRE_ENCODING (coding))
+	  coding->src_multibyte = (end - start) < (end_byte - start_byte);
+	  if (CODING_REQUIRE_ENCODING (coding))
+	    {
+	      encode_coding_object (coding, Fcurrent_buffer (),
+				    start, start_byte, end, end_byte, Qt);
+	    }
+	  else
+	    {
+	      coding->dst_object = Qnil;
+	      coding->dst_pos_byte = start_byte;
+	      if (start >= GPT || end <= GPT)
+		{
+		  coding->consumed_char = end - start;
+		  coding->produced = end_byte - start_byte;
+		}
+	      else
+		{
+		  coding->consumed_char = GPT - start;
+		  coding->produced = GPT_BYTE - start_byte;
+		}
+	    }
+	}
+
+      if (coding->produced > 0)
 	{
-	  encode_coding_object (coding, Fcurrent_buffer (),
-				start, CHAR_TO_BYTE (start),
-				end, CHAR_TO_BYTE (end), Qt);
-	}
-      else
-	{
-	  coding->dst_object = Qnil;
-	  coding->produced = end - start;
-	  coding->dst_pos_byte = start_byte;
-	}
-    }
+	  coding->produced -=
+	    emacs_write (desc,
+			 STRINGP (coding->dst_object)
+			 ? SDATA (coding->dst_object)
+			 : BYTE_POS_ADDR (coding->dst_pos_byte),
+			 coding->produced);
 
-  if (coding->produced > 0)
-    {
-      coding->produced -=
-	emacs_write (desc,
-		     STRINGP (coding->dst_object)
-		     ? SDATA (coding->dst_object)
-		     : BYTE_POS_ADDR (coding->dst_pos_byte),
-		     coding->produced);
-
-      if (coding->produced)
-	return -1;
+	  if (coding->produced)
+	    return -1;
+	}
+      start += coding->consumed_char;
     }
 
   return 0;
