@@ -510,6 +510,8 @@
 
 	  ;; Support compiler macros as in cl.el.
 	  ((and (fboundp 'compiler-macroexpand)
+		(symbolp (car-safe form))
+		(get (car-safe form) 'cl-compiler-macro)
 	        (not (eq form
 		         (setq form (compiler-macroexpand form)))))
 	   (byte-optimize-form form for-effect))
