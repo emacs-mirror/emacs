@@ -409,7 +409,8 @@ With prefix argument, delete and move backward."
       (pop-to-buffer rmail-summary-buffer)
       (rmail-summary-mark-deleted del-msg)
       (while (and (not (if backward (bobp) (eobp)))
-		  (save-excursion (beginning-of-line) (looking-at " [0-9]+D")))
+		  (save-excursion (beginning-of-line)
+				  (looking-at " +[0-9]+D")))
 	(forward-line (if backward -1 1))))))
 
 (defun rmail-summary-delete-backward ()
@@ -1042,7 +1043,7 @@ buffer visiting that file."
     (let ((rmail-delete-after-output nil))
       (call-interactively 'rmail-output-to-rmail-file)))
   (if rmail-delete-after-output
-      (rmail-summary-delete-message nil)))
+      (rmail-summary-delete-forward nil)))
 
 (defun rmail-summary-output ()
   "Append this message to Unix mail file named FILE-NAME."
@@ -1052,7 +1053,7 @@ buffer visiting that file."
     (let ((rmail-delete-after-output nil))
       (call-interactively 'rmail-output)))
   (if rmail-delete-after-output
-      (rmail-summary-delete-message nil)))
+      (rmail-summary-delete-forward nil)))
 
 ;; Sorting messages in Rmail Summary buffer.
 
