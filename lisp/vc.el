@@ -282,10 +282,10 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 					  (buffer-error-marked-p nil))
 				      (while (and errors
 						  (not buffer-error-marked-p))
-					(and (markerp (car (cdr (car errors))))
+					(and (markerp (cdr (car errors)))
 					     (eq buffer
 						 (marker-buffer
-						  (car (cdr (car errors)))))
+						  (cdr (car errors))))
 					     (setq buffer-error-marked-p t))
 					(setq errors (cdr errors)))
 				      (if buffer-error-marked-p buffer)))
