@@ -1,10 +1,14 @@
+2001-09-26  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* info.el (Info-on-current-buffer): Default arg to "Top".
+
 2001-09-25  Eli Barzilay  <eli@barzilay.org>
 
 	* calculator.el (calculator-copy-displayer): New user-option.
-	(calculator-displayer-prev, calculator-displayer-next): Renamed
-	from calculator-displayed-{left,right}.
-	(calculator, calculator-standard-displayer) 
-	(calculator-num-to-string, calculator-update-display) 
+	(calculator-displayer-prev, calculator-displayer-next):
+	Renamed from calculator-displayed-{left,right}.
+	(calculator, calculator-standard-displayer)
+	(calculator-num-to-string, calculator-update-display)
 	(calculator-copy, calculator-put-value): Bug and display fixes.
 
 2001-09-24  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
