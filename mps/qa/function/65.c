@@ -98,6 +98,9 @@ static void test(void)
   mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
   "create ap");
 
+ comment("parking...");
+ mps_arena_park(space);
+ 
  b = allocone(apamc, 1, 1);
 
  for (j=1; j<10; j++) {
@@ -123,8 +126,7 @@ static void test(void)
    setref(c, 4, g);
    b = c;
   }
-  comment("parking...");
-  mps_arena_park(space);
+
   for (i=1; i<1000; i++) {
    c = allocone(apamc, 1000, 1);
    if (ranint(8) == 0) d = c;
@@ -155,13 +157,14 @@ static void test(void)
   junk_size = 0;
   mps_amc_apply(poolamc, &test_apply, NULL, MAGICSIZE);
   comment("finished amc_apply");
-  report("junk size", "%lu", (unsigned long) junk_size);
+  report("junksize", "%lu", (unsigned long) junk_size);
   report("appcount", "%ld", appcount);
   report("apppadcount", "%ld", apppadcount);
-  mps_arena_release(space);
-  comment("released.");
   RC;
  }
+
+ mps_arena_release(space);
+ comment("released.");
 
  mps_ap_destroy(apamc);
  comment("Destroyed aps.");
