@@ -1649,7 +1649,7 @@ Both must be numbers or markers.")
 
       f1 = XTYPE (num1) == Lisp_Float ? XFLOAT (num1)->data : XINT (num1);
       f2 = XTYPE (num2) == Lisp_Float ? XFLOAT (num2)->data : XINT (num2);
-#ifdef USG
+#if defined (USG) || defined (sun) || defined (ultrix) || defined (hpux)
       f1 = fmod (f1, f2);
 #else
       f1 = drem (f1, f2);

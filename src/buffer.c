@@ -931,7 +931,7 @@ If BUFFER is omitted, the current buffer is buried.")
     }
 
   /* Remove it from the screen.  */
-  if (EQ (buf, XWINDOW (selected_frame)->buffer))
+  if (EQ (buf, XWINDOW (selected_window)->buffer))
     Fswitch_to_buffer (Fother_buffer (buf), Qnil);
 
   /* Move it to the end of the buffer list.  */
