@@ -82,7 +82,7 @@ $(BLD)\runemacs.exe: $(BLD)\runemacs.obj $(TRES)
 #
 # Build emacs
 #
-BUILD_CMD	= $(MAKE) -f makefile.nt all
+BUILD_CMD	= $(MAKE) $(MFLAGS) -f makefile.nt all
 all:		$(BLD) $(ALL)
 		cd ..\lib-src
 		$(BUILD_CMD)
@@ -94,34 +94,33 @@ all:		$(BLD) $(ALL)
 		if exist makefile.nt $(BUILD_CMD)
 		cd ..\nt
 
+BOOTSTRAP_CMD	= $(MAKE) $(MFLAGS) -f makefile.nt bootstrap
+bootstrap:	$(BLD) $(ALL)
+		cd ..\src
+		$(BOOTSTRAP_CMD)
+		$(BOOTCLEAN_CMD)
+		cd ..\lisp
+		$(BOOTSTRAP_CMD)
+		cd ..\nt
+
+BOOTCLEAN_CMD	= $(MAKE) $(MFLAGS) -f makefile.nt bootstrap-clean
+bootstrap-clean:
+		cd ..\src
+		$(BOOTCLEAN_CMD)
+		cd ..\lisp
+		$(BOOTCLEAN_CMD)
+
 $(INSTALL_DIR):
 		- mkdir $(INSTALL_DIR)
 
 $(INSTALL_DIR)\bin:
 		- mkdir $(INSTALL_DIR)\bin
 
-$(INSTALL_DIR)\bin\emacs.bat:	emacs.bat.in
-		echo @echo off > $@
-		echo REM !!! Warning: This file automatically generated !!! >> emacs.bat
-		echo set emacs_dir=$(INSTALL_DIR)>> $@
-		type emacs.bat.in >> $@
-
-$(INSTALL_DIR)\bin\debug.bat:	debug.bat.in
-		echo @echo off > $@
-		echo REM !!! Warning: This file automatically generated !!! >> debug.bat
-		echo set emacs_dir=$(INSTALL_DIR)>> $@
-		type debug.bat.in >> $@
-
-batch_files: $(INSTALL_DIR) \
-	     $(INSTALL_DIR)\bin \
-	     $(INSTALL_DIR)\bin\emacs.bat \
-	     $(INSTALL_DIR)\bin\debug.bat
-
 #
 # Build and install emacs in INSTALL_DIR
 #
 INSTALL_CMD	= $(MAKE) -f makefile.nt install
-install:	all $(INSTALL_DIR) batch_files
+install:	all $(INSTALL_DIR)
 		cd ..\lib-src
 		$(INSTALL_CMD)
 		cd ..\src
@@ -150,7 +149,7 @@ install:	all $(INSTALL_DIR) batch_files
 # This installs executables from ..\bin into the installation directory
 # without building anything.
 #
-fast_install:	batch_files
+fast_install:
 		- mkdir $(INSTALL_DIR)\data
 		$(CP) ..\lib-src\DOC $(INSTALL_DIR)\etc
 		- mkdir $(INSTALL_DIR)\bin
@@ -189,17 +188,15 @@ real_install:
 # Maintenance
 # 
 CLEAN_CMD	= $(MAKE) -f makefile.nt clean
-clean:;		- $(DEL) *~ *.pdb
+clean:
+		- $(DEL) *~ *.pdb
 		- $(DEL) *.orig
 		- $(DEL) *.rej
 		- $(DEL) *.crlf
 		- $(DEL_TREE) deleted
 		- $(DEL_TREE) obj
 		- $(DEL_TREE) obj-spd
-		- $(DEL_TREE) ..\bin
 		- $(DEL) ..\etc\DOC ..\etc\DOC-X
-		- $(DEL) emacs.bat
-		- $(DEL) debug.bat
 		cd ..\lib-src
 		$(CLEAN_CMD)
 		cd ..\src
@@ -209,3 +206,6 @@ clean:;		- $(DEL) *~ *.pdb
 		cd ..\leim
 		if exist makefile.nt $(CLEAN_CMD)
 		cd ..\nt
+
+realclean: clean
+		- $(DEL_TREE) ..\bin
