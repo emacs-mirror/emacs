@@ -686,10 +686,14 @@ Any number of arguments, even zero arguments, are allowed.")
      int nargs;
      register Lisp_Object *args;
 {
-  register Lisp_Object val = Qnil;
+  register Lisp_Object val;
+  val = Qnil;
 
-  while (nargs--)
-    val = Fcons (args[nargs], val);
+  while (nargs > 0)
+    {
+      nargs--;
+      val = Fcons (args[nargs], val);
+    }
   return val;
 }
 
