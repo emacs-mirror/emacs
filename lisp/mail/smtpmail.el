@@ -284,14 +284,12 @@ don't define this value.")
 	    (delete-process process))))))
 
 
-;; check completely by T.Kagatani 
 (defun smtpmail-process-filter (process output)
   (save-excursion
     (set-buffer (process-buffer process))
     (goto-char (point-max))
     (insert output)))
 
-;; check completely by T.Kagatani 
 (defun smtpmail-read-response (process)
   (let ((case-fold-search nil)
 	(response-string nil)
@@ -342,7 +340,6 @@ don't define this value.")
     return-value))
 
 
-;; check completely by T.Kagatani 
 (defun smtpmail-send-command (process command)
   (goto-char (point-max))
   (if (= (aref command 0) ?P)
@@ -352,7 +349,6 @@ don't define this value.")
   (process-send-string process command)
   (process-send-string process "\r\n"))
 
-;; check completely by T.Kagatani 
 (defun smtpmail-send-data-1 (process data)
   (goto-char (point-max))
 
