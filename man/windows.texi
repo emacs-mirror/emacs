@@ -282,7 +282,9 @@ window heights.
 (@code{mouse-delete-other-windows}).
 @item Mouse-3
 @kbd{Mouse-3} in a window's mode line deletes that window
-(@code{mouse-delete-window}).
+(@code{mouse-delete-window}), unless the frame has only one window, in
+which case it buries the current buffer instead and switches to another
+buffer.
 @end table
 
 @kindex C-x 0

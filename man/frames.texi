@@ -370,7 +370,9 @@ height of the windows above and below.
 
 @item Mouse-3
 @kindex mode-line mouse-3
-@kbd{Mouse-3} on a mode line deletes the window above.
+@kbd{Mouse-3} on a mode line deletes the window above.  If the frame has
+only one window, it buries the current buffer instead and switches to
+another buffer.
 
 @item C-Mouse-2
 @kindex mode-line C-mouse-2
