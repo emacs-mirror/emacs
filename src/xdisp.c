@@ -335,7 +335,7 @@ message_dolog (m, len, nlflag, multibyte)
 	  while (i < len)
 	    {
 	      c = STRING_CHAR (m + i, len - i);
-	      i += XFASTINT (Fchar_bytes (make_number (c)));
+	      i += CHAR_BYTES (c);
 	      /* Truncate the character to its last byte--we can only hope
 		 the user is happy with the character he gets,
 		 since if it isn't right, there is no way to do it right.  */
