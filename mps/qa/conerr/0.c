@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = create a space and then destroy it, twice!
  language = c
  link = testlib.o

@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = wrong 3rd arg to mps_alloc
  language = c
  link = testlib.o

@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = deregister thread without registering it first
  language = c
  link = myfmt.o testlib.o

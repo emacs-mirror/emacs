@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = UNALIGNED space for ld_add
  language = c
  link = testlib.o

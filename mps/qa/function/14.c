@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = regression test for bug when commit fails
  language = c
  link = testlib.o newfmt.o

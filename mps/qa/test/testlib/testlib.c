@@ -1,4 +1,5 @@
-/* some useful functions for testing the MPS */
+/* $HopeName$
+some useful functions for testing the MPS */
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,4 +1,5 @@
-/* versind.h
+/* $HopeName$
+versind.h
    lead appropriate header files to do version-specific
    interface things
 

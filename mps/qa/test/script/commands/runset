@@ -1,4 +1,5 @@
 #!/usr/local/bin/perl -w
+# $HopeName$
 #
 # run a set of tests specified in a test-set file
 #

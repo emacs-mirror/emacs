@@ -1,4 +1,5 @@
-/* newfmt.h
+/* $HopeName$
+newfmt.h
    A nice format with graph checking and statistics
 */
 

@@ -1,4 +1,5 @@
-/* myfmt.h
+/* $HopeName$
+myfmt.h
    a format for scannable objects
 */
 

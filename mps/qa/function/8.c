@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = create spaces at once until an error results!
  language = c
  link = testlib.o

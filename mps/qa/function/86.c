@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = EPVM error on destroying pools
  language = c
  link = testlib.o epvmfmt.o

@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = mps_park and mps_amc_apply
  language = c
  link = testlib.o exfmt.o

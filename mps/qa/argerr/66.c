@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = highbit set size to mps_commit
  language = c
  link = testlib.o newfmt.o

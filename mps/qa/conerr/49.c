@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = register thread twice
  language = c
  link = myfmt.o testlib.o

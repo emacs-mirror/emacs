@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = UNALIGNED space for mps_root_create
  language = c
  link = testlib.o

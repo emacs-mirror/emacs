@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = NULL space for mps_root_create_fmt
  language = c
  link = testlib.o

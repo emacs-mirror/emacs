@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = regresion test for request.dylan.170461
  language = c
  link = testlib.o awlfmt.o

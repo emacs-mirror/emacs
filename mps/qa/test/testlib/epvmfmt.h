@@ -1,4 +1,5 @@
-/* epvmfmt.h
+/* $HopeName$
+epvmfmt.h
    Format for objects in the EPVM pool.
 */
 

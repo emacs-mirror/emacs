@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = test my format for format_a
  language = c
  link = myfmt.o testlib.o

@@ -1,4 +1,5 @@
 #!/usr/local/bin/perl -w
+# $HopeName$
 #
 # convert to new-style test header format
 #

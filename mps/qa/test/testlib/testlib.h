@@ -1,4 +1,5 @@
-/* test_lib.h
+/* $HopeName$
+test_lib.h
    various handy things for reporting errors &c
 */
 

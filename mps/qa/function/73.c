@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = AWL pool should get collected (request.dylan.170322)
  language = c
  link = testlib.o rankfmt.o

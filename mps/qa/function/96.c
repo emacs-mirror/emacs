@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = low memory tests with AMC (and using MV)
  language = c
  link = testlib.o rankfmt.o

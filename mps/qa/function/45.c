@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = arena_collect when lots of APs are in mid-cycle
  language = c
  link = testlib.o newfmt.o
