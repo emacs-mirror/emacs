@@ -1,3 +1,17 @@
+2002-05-19  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (DONTCOMPILE): Remove ucs-tables, utf-8,
+	utf-8-subst; add vietnamese, cyrillic, czech.
+
+	* language/romanian.el (iso-latin-10): New coding system.
+
+	* international/mule-conf.el (emacs-mule): Set :charset-list,
+	consistent with coding-system-charset-list doc.
+	(iso-8859-16): New charset.
+
+	* international/mule-diag.el (describe-coding-system): Avoid error
+	for iso-2022, emacs-mule.
+
 2002-05-17  Dave Love  <fx@gnu.org>
 
 	* international/codepage.el: Most of code removed or commented
