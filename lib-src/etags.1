@@ -16,28 +16,28 @@ etags, ctags \- generate tag file for Emacs, vi
 .if n .br
 .B [\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
 .br
-[\|\-\-append\|] [\|\-\-c++\|] [\|\-\-no\-defines\|]
-[\|\-\-no\-globals\|] [\|\-\-include=\fIfile\fP\|]
-[\|\-\-ignore\-indentation\|] [\|\-\-language=\fIlanguage\fP\|]
-[\|\-\-members\|] [\|\-\-output=\fItagfile\fP\|]
-[\|\-\-regex=\fIregexp\fP\|] [\|\-\-no\-regex\|]
-[\|\-\-ignore\-case\-regex=\fIregexp\fP\|]
-[\|\-\-help\|] [\|\-\-version\|]
+.B [\|\-\-append\|] [\|\-\-c++\|] [\|\-\-no\-defines\|]
+.B [\|\-\-no\-globals\|] [\|\-\-include=\fIfile\fP\|]
+.B [\|\-\-ignore\-indentation\|] [\|\-\-language=\fIlanguage\fP\|]
+.B [\|\-\-members\|] [\|\-\-output=\fItagfile\fP\|]
+.B [\|\-\-regex=\fIregexp\fP\|] [\|\-\-no\-regex\|]
+.B [\|\-\-ignore\-case\-regex=\fIregexp\fP\|]
+.B [\|\-\-help\|] [\|\-\-version\|]
 \fIfile\fP .\|.\|.
 
 .B ctags [\|\-aCdgImRVh\|] [\|\-BtTuvwx\|] [\|\-l \fIlanguage\fP\|]
 .if n .br
 .B [\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
 .br
-[\|\-\-append\|] [\|\-\-backward\-search\|] [\|\-\-c++\|]
-[\|\-\-cxref\|] [\|\-\-defines\|] [\|\-\-forward\-search\|]
-[\|\-\-globals\|] [\|\-\-ignore\-indentation\|]
-[\|\-\-language=\fIlanguage\fP\|] [\|\-\-members\|]
-[\|\-\-output=\fItagfile\fP\|] [\|\-\-regex=\fIregexp\fP\|]
-[\|\-\-ignore\-case\-regex=\fIregexp\fP\|]
-[\|\-\-typedefs\|] [\|\-\-typedefs\-and\-c++\|]
-[\|\-\-update\|] [\|\-\-no\-warn\|]
-[\|\-\-help\|] [\|\-\-version\|]
+.B [\|\-\-append\|] [\|\-\-backward\-search\|] [\|\-\-c++\|]
+.B [\|\-\-cxref\|] [\|\-\-defines\|] [\|\-\-forward\-search\|]
+.B [\|\-\-globals\|] [\|\-\-ignore\-indentation\|]
+.B [\|\-\-language=\fIlanguage\fP\|] [\|\-\-members\|]
+.B [\|\-\-output=\fItagfile\fP\|] [\|\-\-regex=\fIregexp\fP\|]
+.B [\|\-\-ignore\-case\-regex=\fIregexp\fP\|]
+.B [\|\-\-typedefs\|] [\|\-\-typedefs\-and\-c++\|]
+.B [\|\-\-update\|] [\|\-\-no\-warn\|]
+.B [\|\-\-help\|] [\|\-\-version\|]
 \fIfile\fP .\|.\|.
 .ad b
 .hy 1
@@ -143,8 +143,7 @@ Only tag packages in Ada files.
 Explicit name of file for tag table; overrides default `\|TAGS\|' or
 `\|tags\|'.   (But ignored with \fB\-v\fP or \fB\-x\fP.)
 .TP
-\fB\-r\fP \fIregexp\fP, \fB\-\-regex=\fIregexp\fP
-\fB\-\-ignore\-case\-regex=\fIregexp\fP\
+\fB\-r\fP \fIregexp\fP, \fB\-\-regex=\fIregexp\fP, \fB\-\-ignore\-case\-regex=\fIregexp\fP
 Make tags based on regexp matching for each line of the files following
 this option, in addition to the tags made with the standard parsing based
 on language.  When using \-\-regex, case is significant, while it is not
@@ -187,9 +186,9 @@ Tag TCL files (this last example shows the usage of a \fItagregexp\fP):
 
 .br
 A regexp can be preceded by {lang}, thus restriciting it to match lines of
-files of the specified language.  Use \fBetags --help\bP to obtain a list
+files of the specified language.  Use \fBetags --help\fP to obtain a list
 of the recognised languages.  This feature is particularly useful inside
-\fBregex files\fB.  A regex file contains one regex per line.  Empty lines,
+\fBregex files\fP.  A regex file contains one regex per line.  Empty lines,
 and those lines beginning with space or tab are ignored.  Lines beginning
 with @ are references to regex files whose name follows the @ sign.  Other
 lines are considered regular expressions like those following \-\-regex.
