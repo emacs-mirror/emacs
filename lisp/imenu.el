@@ -392,6 +392,15 @@ This function is called after the function pointed out by
 ;;; Split the alist MENULIST into a nested alist, if it is long enough.
 ;;; In any case, add TITLE to the front of the alist.
 (defun imenu--split-menu (menulist title)
+  (if imenu-sort-function
+      (setq menulist
+	    (sort
+	     (let ((res nil)
+		   (oldlist menulist))
+	       ;; Copy list method from the cl package `copy-list'
+	       (while (consp oldlist) (push (pop oldlist) res))
+	       (prog1 (nreverse res) (setcdr res oldlist)))
+	     imenu-sort-function)))
   (if (> (length menulist) imenu-max-items)
       (let ((count 0))
 	(cons title
@@ -471,7 +480,7 @@ This function is called after the function pointed out by
 	 (t
 	  (let ((end (if commands `(lambda () (interactive)
 				     (imenu--menubar-select ',item))
-		       (cons '(nil) t))))
+		       (cons '(nil) item))))
 	    (cons (car item)
 		  (cons (car item) end))))
 	 )))
@@ -699,49 +708,44 @@ Returns t for rescan and otherwise a position number."
 
 INDEX-ALIST is the buffer index and EVENT is a mouse event.
 
-Returns t for rescan and otherwise a position number."
+Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
   (setq index-alist (imenu--split-submenus index-alist))
-  (let* ((menu 	(imenu--split-menu
-		 (if imenu-sort-function
-		     (sort
-		      (let ((res nil)
-			    (oldlist index-alist))
-			;; Copy list method from the cl package `copy-list'
-			(while (consp oldlist) (push (pop oldlist) res))
-			(prog1 (nreverse res) (setcdr res oldlist)))
-		      imenu-sort-function)
-		   index-alist)
+  (let* ((menu 	(imenu--split-menu index-alist
 		 (or title (buffer-name))))
 	 position)
     (setq menu (imenu--create-keymap-1 (car menu) 
 				       (if (< 1 (length (cdr menu)))
 					   (cdr menu)
-					 (cdr (cadr menu)))))
+					 (cdr (car (cdr menu))))))
     (setq position (x-popup-menu event menu))
-    (cond ((and (listp position)
-		(numberp (car position))
-		(stringp (nth (1- (length position)) position)))
-	   (setq position (nth (1- (length position)) position)))
-	  ((and (stringp (car position))
-		(null (cdr position)))
-	   (setq position (car position))))
     (cond ((eq position nil)
 	   position)
+	  ;; If one call to x-popup-menu handled the nested menus,
+	  ;; find the result by looking down the menus here.
+	  ((and (listp position)
+		(numberp (car position))
+		(stringp (nth (1- (length position)) position)))
+	   (let ((final menu))
+	     (while position
+	       (setq final (assoc (car position) final))
+	       (setq position (cdr position)))
+	     (cdr (cdr (cdr final)))))
+	  ;; If x-popup-menu went just one level and found a leaf item,
+	  ;; return the INDEX-ALIST element for that.
+	  ((and (consp position)
+		(stringp (car position))
+		(null (cdr position)))
+	   (or (string= (car position) (car imenu--rescan-item))
+	       (assq (car position) index-alist)))
+	  ;; If x-popup-menu went just one level
+	  ;; and found a non-leaf item (a submenu),
+	  ;; recurse to handle the rest.
 	  ((listp position)
 	   (imenu--mouse-menu position event
 			      (if title
 				  (concat title imenu-level-separator
 					  (car (rassq position index-alist)))
-				(car (rassq position index-alist)))))
-	  ((stringp position)
-	   (or (string= position (car imenu--rescan-item))
-	       (imenu--in-alist position index-alist)))
-	  ((or (= position (cdr imenu--rescan-item))
-	       (and (stringp position)
-		    (string= position (car imenu--rescan-item))))
-	   t)
-	  (t
-	   (rassq position index-alist)))))
+				(car (rassq position index-alist))))))))
 
 (defun imenu-choose-buffer-index (&optional prompt alist)
   "Let the user select from a buffer index and return the chosen index.
@@ -811,16 +815,7 @@ See the command `imenu' for more information."
 	     (let (menu menu1 old)
 	       (setq imenu--last-menubar-index-alist index-alist)
 	       (setq index-alist (imenu--split-submenus index-alist))
-	       (setq menu (imenu--split-menu
-			   (if imenu-sort-function
-			       (sort
-				(let ((res nil)
-				      (oldlist index-alist))
-				  ;; Copy list method from the cl package `copy-list'
-				  (while (consp oldlist) (push (pop oldlist) res))
-				  (prog1 (nreverse res) (setcdr res oldlist)))
-				imenu-sort-function)
-			     index-alist)
+	       (setq menu (imenu--split-menu index-alist
 			   (buffer-name)))
 	       (setq menu1 (imenu--create-keymap-1 (car menu) 
 						   (if (< 1 (length (cdr menu)))
@@ -855,14 +850,14 @@ See `imenu-choose-buffer-index' for more information."
 	 (push-mark)
 	 (cond
 	  ((markerp (cdr index-item))
-	   (if (or ( > (marker-position (cdr index-item)) (point-min))
-		   ( < (marker-position (cdr index-item)) (point-max)))
+	   (if (or (< (marker-position (cdr index-item)) (point-min))
+		   (> (marker-position (cdr index-item)) (point-max)))
 	       ;; widen if outside narrowing
 	       (widen))
 	   (goto-char (marker-position (cdr index-item))))
 	  (t
-	   (if (or ( > (cdr index-item) (point-min))
-		   ( < (cdr index-item) (point-max)))
+	   (if (or (< (cdr index-item) (point-min))
+		   (> (cdr index-item) (point-max)))
 	       ;; widen if outside narrowing
 	       (widen))
 	   (goto-char (cdr index-item)))))))
