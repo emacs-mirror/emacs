@@ -580,7 +580,24 @@ Instead, these commands are available:
 				   (user-original-login-name)))))))
   (make-local-variable 'rmail-keywords)
   ;; this gets generated as needed
-  (setq rmail-keywords nil))
+  (setq rmail-keywords nil)
+  ;; Make everything permanent, in case the user switches major modes
+  ;; during an edit.
+  (put 'revert-buffer-function 'permanent-local t)
+  (put 'rmail-last-label 'permanent-local t)
+  (put 'rmail-last-regexp 'permanent-local t)
+  (put 'rmail-deleted-vector 'permanent-local t)
+  (put 'rmail-summary-buffer 'permanent-local t)
+  (put 'rmail-summary-vector 'permanent-local t)
+  (put 'rmail-current-message 'permanent-local t)
+  (put 'rmail-total-messages 'permanent-local t)
+  (put 'require-final-newline 'permanent-local t)
+  (put 'version-control 'permanent-local t)
+  (put 'file-precious-flag 'permanent-local t)
+  (put 'rmail-message-vector 'permanent-local t)
+  (put 'rmail-last-file 'permanent-local t)
+  (put 'rmail-inbox-list 'permanent-local t)
+  (put 'rmail-keywords 'permanent-local t))
 
 ;; Handle M-x revert-buffer done in an rmail-mode buffer.
 (defun rmail-revert (arg noconfirm)
