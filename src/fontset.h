@@ -51,6 +51,9 @@ struct font_info
      + font->descent).  */
   int height;
 
+  /* 1 iff we render characters at vartical center positions of lines.  */
+  int vertical_centering;
+
   /* Encodings of the font indexed by CHARSET.  The value an integer
      0, 1, 2, or 3:
 	0: code points 0x20..0x7F or 0x2020..0x7F7F are used
@@ -226,7 +229,7 @@ extern Lisp_Object Vignore_relative_composition;
 extern Lisp_Object Valternate_fontname_alist;
 extern Lisp_Object Vhighlight_wrong_size_font;
 extern Lisp_Object Vclip_large_size_font;
-
+extern Lisp_Object Vvertical_centering_font_regexp;
 extern int font_idx_temp;
 
 /* Load a font named FONTNAME for displaying CHARSET on frame F.
