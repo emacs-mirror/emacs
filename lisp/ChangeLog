@@ -5,7 +5,7 @@
 	custom-set-variables instead.
 
 	* info.el (info-insert-file-contents): Use info-file-exists-p
-	instread of file-exists-p.
+	instead of file-exists-p.
 
 	* play/zone.el (zone-pgm-stress): Use unwind-protect to make sure
 	the mode-line face is restored.  Fix several bugs.
