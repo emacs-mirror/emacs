@@ -1,6 +1,6 @@
 2002-11-18  Kenichi Handa  <handa@m17n.org>
 
-	* progmodes/cc-vars.el (char-table-p): Undo previous change.
+	* progmodes/cc-vars.el: Undo previous change.
 
 2002-11-18  Kenichi Handa  <handa@m17n.org>
 
