@@ -38,11 +38,6 @@
 
 ;;; Commentary:
 ;;
-;; If you want Decipher to use its Font Lock mode, you should use
-;;     (setq decipher-use-font-lock t)
-;; See the variable `decipher-use-font-lock' if you want to customize
-;; the faces used.
-;;
 ;; This package is designed to help you crack simple substitution
 ;; ciphers where one letter stands for another.  It works for ciphers
 ;; with or without word divisions.  (You must set the variable
@@ -75,6 +70,12 @@
 ;;
 ;; The buffer is made read-only so it can't be modified by normal
 ;; Emacs commands.
+;;
+;; Decipher supports Font Lock mode.  To use it, you can also add
+;;     (add-hook 'decipher-mode-hook 'turn-on-font-lock)
+;; See the variable `decipher-font-lock-keywords' if you want to customize
+;; the faces used.  I'd like to thank Simon Marshall for his help in making
+;; Decipher work well with Font Lock.
 
 ;;; Things To Do:
 ;;
@@ -90,28 +91,6 @@
 
 (eval-when-compile
   (require 'cl))
-
-(eval-when-compile
-  (require 'font-lock))
-
-(defvar decipher-use-font-lock (featurep 'font-lock)
-  "Non-nil means Decipher should use its Font Lock mode.
-Do *not* turn on font-lock-mode yourself, it's too slow when used with
-Decipher.  Decipher contains special code to keep the buffer fontified
-without using Font Lock mode directly.
-
-You should set this in your `.emacs' file or before loading Decipher;
-use `\\[decipher-toggle-font-lock]' after Decipher is loaded.
-
-Ciphertext uses `font-lock-keyword-face', plaintext uses
-`font-lock-string-face', comments use `font-lock-comment-face', and
-checkpoints use `font-lock-reference-face'.
-
-For example, to display ciphertext in the `bold' face, use
-  (add-hook 'decipher-mode-hook
-            (lambda () (set (make-local-variable 'font-lock-keyword-face)
-                            'bold)))
-in your `.emacs' file.")
 
 (defvar decipher-force-uppercase t
   "*Non-nil means to convert ciphertext to uppercase.
@@ -134,18 +113,28 @@ the tail of the list.")
 ;;--------------------------------------------------------------------
 
 (defvar decipher-font-lock-keywords
-  '(("^:.*\n"  . font-lock-keyword-face)
-    ("^>.*\n"  . font-lock-string-face)
-    ("^%!.*\n" . font-lock-reference-face)
-    ("^%.*\n"  . font-lock-comment-face)
-    ("\\`(\\([a-z]+\\) +\\([A-Z]+\\).+
-)\\([A-Z ]*\\)\\([a-z ]*\\)"
+  '(("^:.*"  . font-lock-keyword-face)
+    ("^>.*"  . font-lock-string-face)
+    ("^%!.*" . font-lock-reference-face)
+    ("^%.*"  . font-lock-comment-face)
+    ("\\`(\\([a-z]+\\) +\\([A-Z]+\\)"
      (1 font-lock-string-face)
-     (2 font-lock-keyword-face)
-     (3 font-lock-keyword-face)
-     (4 font-lock-string-face)))
+     (2 font-lock-keyword-face))
+    ("^)\\([A-Z ]+\\)\\([a-z ]+\\)"
+     (1 font-lock-keyword-face)
+     (2 font-lock-string-face)))
   "Expressions to fontify in Decipher mode.
-See the variable `decipher-use-font-lock'.")
+! Ciphertext uses `font-lock-keyword-face', plaintext uses
+`font-lock-string-face', comments use `font-lock-comment-face', and
+checkpoints use `font-lock-reference-face'.  You can customize the
+display by changing these variables.  For best results, I recommend
+that all faces use the same background color.
+! For example, to display ciphertext in the `bold' face, use
+  (add-hook 'decipher-mode-hook
+            (lambda () (set (make-local-variable 'font-lock-keyword-face)
+                            'bold)))
+in your `.emacs' file.")
+
 (defvar decipher-mode-map nil
   "Keymap for Decipher mode.")
 (if (not decipher-mode-map)
@@ -307,14 +296,7 @@ The most useful commands are:
             (lambda () (setq buffer-read-only nil
                              buffer-undo-list nil))
             nil t)
-  ;; If someone turns on Font Lock, turn it off and use our code instead:
-  (make-local-hook 'font-lock-mode-hook)
-  (add-hook 'font-lock-mode-hook 'decipher-turn-on-font-lock t t)
   (run-hooks 'decipher-mode-hook)
-  (and decipher-use-font-lock
-       ;; Fontify buffer after calling the mode hooks,
-       ;; in case they change the font-lock variables:
-       (font-lock-fontify-buffer))
   (setq buffer-read-only t))
 (put 'decipher-mode 'mode-class 'special)
 
@@ -475,21 +457,18 @@ The most useful commands are:
                 (decipher-set-map (cdr mapping) ?\  t))
             (setcdr mapping cipher-char)
             (search-forward-regexp (concat "^([a-z]*" plain-string))
-            (and decipher-use-font-lock
-                 (put-text-property 0 1 'face font-lock-keyword-face
-                                    cipher-string))
-            (decipher-insert cipher-string)
+            (decipher-insert cipher-char)
             (beginning-of-line)))
       (search-forward-regexp (concat "^([a-z]+   [A-Z]*" cipher-string))
-      (and decipher-use-font-lock
-           (put-text-property 0 1 'face font-lock-string-face plain-string))
-      (decipher-insert plain-string)
+      (decipher-insert plain-char)
       (setq case-fold-search t          ;Case is not significant
             cipher-string    (downcase cipher-string))
-      (while (search-forward-regexp "^:" nil t)
-        (setq bound (save-excursion (end-of-line) (point)))
-        (while (search-forward cipher-string bound 'end)
-          (decipher-insert plain-char))))))
+      (let ((font-lock-fontify-region-function 'ignore))
+        ;; insert-and-inherit will pick the right face automatically
+        (while (search-forward-regexp "^:" nil t)
+          (setq bound (save-excursion (end-of-line) (point)))
+          (while (search-forward cipher-string bound 'end)
+            (decipher-insert plain-char)))))))
 
 (defun decipher-insert (char)
   ;; Insert CHAR in the row below point.  It replaces any existing
@@ -544,9 +523,7 @@ Type `\\[decipher-restore-checkpoint]' to restore a checkpoint."
       (insert "\n%" (make-string 69 ?\-)
               "\n% Checkpoints:\n% abcdefghijklmnopqrstuvwxyz\n"))
     (beginning-of-line)
-    (insert "%!" alphabet "! " desc ?\n))
-  (and decipher-use-font-lock
-       (font-lock-fontify-buffer)))
+    (insert "%!" alphabet "! " desc ?\n)))
 
 (defun decipher-restore-checkpoint ()
   "Restore the cipher alphabet from a checkpoint.
@@ -621,12 +598,10 @@ You should use this if you edit the ciphertext."
       (decipher-read-alphabet)
       (setq alphabet decipher-alphabet)
       (goto-char (point-min))
-      (and (re-search-forward "^).+$" nil t)
+      (and (re-search-forward "^).+" nil t)
            (replace-match ")" nil nil))
-      (while (re-search-forward "^>.+$" nil t)
+      (while (re-search-forward "^>.+" nil t)
         (replace-match ">" nil nil))
-      (and decipher-use-font-lock
-           (font-lock-fontify-buffer))
       (decipher-read-alphabet)
       (while (setq mapping (pop alphabet))
         (or (equal ?\  (cdr mapping))
@@ -635,19 +610,6 @@ You should use this if you edit the ciphertext."
         decipher-undo-list-size  0)
   (message "Reprocessing buffer...done"))
 
-(defun decipher-toggle-font-lock (&optional arg)
-  "Toggle Decipher's Font Lock mode in the current buffer.
-With arg, turn Font Lock mode on if and only if arg is positive.
-See the variable `decipher-use-font-lock' for more information."
-  (interactive "P")
-  (or (eq major-mode 'decipher-mode)
-      (error "This buffer is not in Decipher mode"))
-  (let ((on-p (if arg (> (prefix-numeric-value arg) 0)
-                (not decipher-use-font-lock))))
-    (if on-p (font-lock-fontify-buffer)
-      (font-lock-unfontify-region (point-min) (point-max)))
-    (make-local-variable 'decipher-use-font-lock)
-    (setq decipher-use-font-lock on-p)))
 ;;--------------------------------------------------------------------
 ;; Miscellaneous functions:
 ;;--------------------------------------------------------------------
@@ -664,10 +626,6 @@ See the variable `decipher-use-font-lock' for more information."
         (backward-char)
         (push (cons plain-char (following-char)) decipher-alphabet)
         (decf plain-char)))))
-(defun decipher-turn-on-font-lock ()
-  "Turn on Decipher's Font Lock code and turn off normal Font Lock mode."
-  (font-lock-mode 0)
-  (decipher-toggle-font-lock 1))
 
 ;;;===================================================================
 ;;; Analyzing ciphertext:
