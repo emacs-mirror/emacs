@@ -1,3 +1,8 @@
+2000-11-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_set_tool_bar_lines): Clear internal border when
+	making tool bar smaller.
+
 2000-11-22  Dave Love  <fx@gnu.org>
 
 	* s/sol2-5.h (_LARGEFILE_SOURCE, _FILE_OFFSET_BITS): Don't define.
@@ -8,7 +13,7 @@
 	(command_loop_1): Use it to determine message timeout.
 	(syms_of_keyboard): Initialize it.
 
-	* xdisp.c (syms_of_xdisp): `mode-line-inverse-video' defualts to nil.
+	* xdisp.c (syms_of_xdisp): `mode-line-inverse-video' defaults to nil.
 
 2000-11-22  Kenichi Handa  <handa@etl.go.jp>
 

@@ -1,3 +1,7 @@
+2000-11-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* gnus-group.el (gnus-group-make-tool-bar): Fix a paren typo.
+
 2000-11-22 ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* message.el (message-send-mail): Use buffer-substring-no-properties.
