@@ -1274,7 +1274,7 @@ Return nil if there is no valid completion, else t.")
   Lisp_Object completion, tem;
   register int i;
   register unsigned char *completion_string;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
 
   /* We keep calling Fbuffer_string rather than arrange for GC to
      hold onto a pointer to one of the strings thus made.  */
@@ -1312,6 +1312,7 @@ Return nil if there is no valid completion, else t.")
     int buffer_length, completion_length;
 
     tem = Fbuffer_string ();
+    GCPRO2 (completion, tem);
     /* If reading a file name,
        expand any $ENVVAR refs in the buffer and in TEM.  */
     if (EQ (Vminibuffer_completion_table, Qread_file_name_internal))
@@ -1343,6 +1344,7 @@ Return nil if there is no valid completion, else t.")
 	del_range (1, i + 1);
 	SET_PT (ZV);
       }
+    UNGCPRO;
   }
 #endif /* Rewritten code */
   i = ZV - BEGV;
