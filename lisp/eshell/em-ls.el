@@ -63,6 +63,12 @@ This is useful for enabling human-readable format (-h), for example."
   :type '(repeat :tag "Arguments" string)
   :group 'eshell-ls)
 
+(defcustom eshell-ls-dired-initial-args nil
+  "*If non-nil, args is included before any call to `ls' in dired.
+This is useful for enabling human-readable format (-h), for example."
+  :type '(repeat :tag "Arguments" string)
+  :group 'eshell-ls)
+
 (defcustom eshell-ls-use-in-dired nil
   "*If non-nil, use `eshell-ls' to read directories in dired."
   :set (lambda (symbol value)
@@ -263,7 +269,7 @@ instead."
 	(let ((insert-func 'insert)
 	      (error-func 'insert)
 	      (flush-func 'ignore)
-	      eshell-ls-initial-args)
+	      eshell-ls-dired-initial-args)
 	  (eshell-do-ls (append switches (list file))))))))
 
 (defsubst eshell/ls (&rest args)
