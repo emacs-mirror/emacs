@@ -1,3 +1,15 @@
+2003-11-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* strings.texi (Text Comparison): Correctly describe when two
+	strings are `equal'.  Combine and clarify descriptions of
+	`assoc-ignore-case' and `assoc-ignore-representation'.
+
+	* objects.texi (Non-ASCII in Strings): Clarify description of
+	when a string is unibyte or multibyte.
+	(Bool-Vector Type): Update examples.
+	(Equality Predicates): Correctly describe when two strings are
+	`equal'.
+
 2003-11-29  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* lists.texi (Building Lists): `append' no longer accepts integer
