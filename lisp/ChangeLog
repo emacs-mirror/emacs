@@ -1,3 +1,9 @@
+2003-06-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* international/mule-cmds.el
+	(set-display-table-and-terminal-coding-system): Remove CVS
+	conflict markers and some code.
+
 2003-06-27  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* international/mule-cmds.el (menu-bar-options-menu): Move
