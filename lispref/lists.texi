@@ -32,17 +32,21 @@ the whole list.
 
   Lists in Lisp are not a primitive data type; they are built up from
 @dfn{cons cells}.  A cons cell is a data object that represents an
-ordered pair.  It holds, or ``refers to,'' two Lisp objects, one labeled
-as the @sc{car}, and the other labeled as the @sc{cdr}.  These names are
-traditional; see @ref{Cons Cell Type}.  @sc{cdr} is pronounced
-``could-er.''
+ordered pair.  That is, it has two slots, and each slot @dfn{holds}, or
+@dfn{refers to}, some Lisp object.  One slot is known as the @sc{car},
+and the other is known as the @sc{cdr}.  (These names are traditional;
+see @ref{Cons Cell Type}.)  @sc{cdr} is pronounced ``could-er.''
 
-  A list is a series of cons cells chained together, one cons cell per
-element of the list.  By convention, the @sc{car}s of the cons cells are
-the elements of the list, and the @sc{cdr}s are used to chain the list:
-the @sc{cdr} of each cons cell is the following cons cell.  The @sc{cdr}
-of the last cons cell is @code{nil}.  This asymmetry between the
-@sc{car} and the @sc{cdr} is entirely a matter of convention; at the
+  We say that ``the @sc{car} of this cons cell is'' whatever object
+its @sc{car} slot currently holds, and likewise for the @sc{cdr}.
+
+  A list is a series of cons cells ``chained together,'' so that each
+cell refers to the next one.  There one cons cell for each element of
+the list.  By convention, the @sc{car}s of the cons cells hold the
+elements of the list, and the @sc{cdr}s are used to chain the list: the
+@sc{cdr} slot of each cons cell refers to the following cons cell.  The
+@sc{cdr} of the last cons cell is @code{nil}.  This asymmetry between
+the @sc{car} and the @sc{cdr} is entirely a matter of convention; at the
 level of cons cells, the @sc{car} and @sc{cdr} slots have the same
 characteristics.
 
