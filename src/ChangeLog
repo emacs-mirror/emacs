@@ -1,3 +1,12 @@
+2003-02-17  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.c (this_command_key_count_reset): New variable.
+	Initiatize to 0 where this_command_key_count is set.
+	(read_char): Save and restore this_command_key_count_reset
+	around input method code.
+	(read_char): If this_command_key_count_reset, echo reread commands.
+	(Freset_this_command_lengths): Set this_command_key_count_reset to 1.
+
 2003-02-17  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (string_to_multibyte): Always return a multibyte string.
