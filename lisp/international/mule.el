@@ -584,15 +584,69 @@ Value is a list of transformed arguments."
     (if (setq tmp (plist-get props 'pre-write-conversion))
 	(setq properties (plist-put properties 'pre-write-conversion tmp)))
     (cond
+     ((eq type 'shift-jis)
+      `(,name 1 ,mnemonic ,doc-string () ,properties ,eol-type))
+     ((eq type 'iso2022) ; This is not perfect.
+      (if (plist-get props 'escape-quoted)
+	  (error "escape-quoted is not supported: %S"
+		 `(,name ,type ,doc-string ,props)))
+      (let ((g0 (plist-get props 'charset-g0))
+      	    (g1 (plist-get props 'charset-g1))
+      	    (g2 (plist-get props 'charset-g2))
+      	    (g3 (plist-get props 'charset-g3))
+      	    (use-roman
+             (and
+	      (eq (cadr (assoc 'latin-jisx0201
+			       (plist-get props 'input-charset-conversion)))
+		  'ascii)
+	      (eq (cadr (assoc 'ascii
+			       (plist-get props 'output-charset-conversion)))
+		  'latin-jisx0201)))
+            (use-oldjis
+             (and
+	      (eq (cadr (assoc 'japanese-jisx0208-1978
+			       (plist-get props 'input-charset-conversion)))
+		  'japanese-jisx0208)
+	      (eq (cadr (assoc 'japanese-jisx0208
+			       (plist-get props 'output-charset-conversion)))
+		  'japanese-jisx0208-1978))))
+	(if (charsetp g0)
+	    (if (plist-get props 'force-g0-on-output)
+		(setq g0 `(nil ,g0))
+	      (setq g0 `(,g0 t))))
+	(if (charsetp g1)
+	    (if (plist-get props 'force-g1-on-output)
+		(setq g1 `(nil ,g1))
+	      (setq g1 `(,g1 t))))
+	(if (charsetp g2)
+	    (if (plist-get props 'force-g2-on-output)
+		(setq g2 `(nil ,g2))
+	      (setq g2 `(,g2 t))))
+	(if (charsetp g3)
+	    (if (plist-get props 'force-g3-on-output)
+		(setq g3 `(nil ,g3))
+	      (setq g3 `(,g3 t))))
+	`(,name 2 ,mnemonic ,doc-string
+	  (,g0 ,g1 ,g2 ,g3
+	   ,(plist-get props 'short)
+	   ,(not (plist-get props 'no-ascii-eol))
+	   ,(not (plist-get props 'no-ascii-cntl))
+	   ,(plist-get props 'seven)
+	   t
+	   ,(not (plist-get props 'lock-shift))
+	   ,use-roman
+	   ,use-oldjis
+	   ,(plist-get props 'no-iso6429)
+	   nil nil nil nil)
+	,properties ,eol-type)))
+     ((eq type 'big5)
+      `(,name 3 ,mnemonic ,doc-string () ,properties ,eol-type))
      ((eq type 'ccl)
-      `(,name 4
-	      ,mnemonic
-	      ,doc-string
+      `(,name 4 ,mnemonic ,doc-string
 	      (,(plist-get props 'decode) . ,(plist-get props 'encode))
-	      ,properties
-	      ,eol-type))
+	      ,properties ,eol-type))
      (t
-      (error "Unsupported XEmacs style arguments for make-coding-style: %S"
+      (error "unsupported XEmacs style make-coding-style arguments: %S"
 	     `(,name ,type ,doc-string ,props))))))
 
 (defun make-coding-system (coding-system type mnemonic doc-string
