@@ -81,6 +81,7 @@ Boston, MA 02111-1307, USA.  */
 #define inet_addr      sys_inet_addr
 #define gethostname    sys_gethostname
 #define gethostbyname  sys_gethostbyname
+#define getpeername    sys_getpeername
 #define getservbyname  sys_getservbyname
 #define shutdown       sys_shutdown
 #define setsockopt     sys_setsockopt
@@ -97,8 +98,9 @@ u_short sys_htons (u_short hostshort);
 u_short sys_ntohs (u_short netshort);
 unsigned long sys_inet_addr (const char * cp);
 int sys_gethostname (char * name, int namelen);
-struct hostent * sys_gethostbyname(const char * name);
-struct servent * sys_getservbyname(const char * name, const char * proto);
+struct hostent * sys_gethostbyname (const char * name);
+struct servent * sys_getservbyname (const char * name, const char * proto);
+int sys_getpeername (int s, struct sockaddr *addr, int * namelen);
 int sys_shutdown (int socket, int how);
 int sys_setsockopt (int s, int level, int oname, const char * oval, int olen);
 int sys_listen (int s, int backlog);
@@ -108,6 +110,12 @@ int sys_recvfrom (int s, char *buf, int len, int flags,
 		  struct sockaddr *from, int * fromlen);
 int sys_sendto (int s, const char * buf, int len, int flags,
 		const struct sockaddr *to, int tolen);
+
+/* In addition to wrappers for the winsock functions, we also provide
+   an fcntl function, for setting sockets to non-blocking mode.  */
+int fcntl (int s, int cmd, int options);
+#define F_SETFL   4
+#define O_NDELAY  04000
 
 /* we are providing a real h_errno variable */
 #undef h_errno
