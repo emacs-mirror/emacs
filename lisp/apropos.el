@@ -432,6 +432,7 @@ found."
 		       "Click \\<apropos-local-map>\\[apropos-mouse-follow] to get full documentation.\n")))
 	  (insert (substitute-command-keys
 		   "In this buffer, type \\<apropos-local-map>\\[apropos-follow] to get full documentation.\n\n"))
+	  (use-local-map apropos-local-map)
 	  (while (consp p)
 	    (or (not spacing) (bobp) (terpri))
 	    (setq apropos-item (car p)
@@ -477,8 +478,7 @@ found."
 	    (apropos-print-doc 'describe-variable 2
 			       "Variable" do-keys)
 	    (apropos-print-doc 'apropos-describe-plist 3
-			       "Plist" nil))
-	  (put-text-property 1 (point) 'local-map apropos-local-map)))))
+			       "Plist" nil))))))
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
 
