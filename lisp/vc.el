@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.330 2002/03/05 13:14:11 spiegel Exp $
+;; $Id: vc.el,v 1.331 2002/03/06 13:51:28 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1107,9 +1107,12 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
       ;; Check relation of buffer and file, and make sure
       ;; user knows what he's doing.  First, finding the file
       ;; will check whether the file on disk is newer.
-      (if vc-dired-mode
-	  (find-file-other-window file)
-	(set-buffer (find-file-noselect file)))
+      (set-buffer visited)
+      ;; ignore buffer-read-only during this test
+      (let ((buffer-read-only (not (file-writable-p file))))
+        (if vc-dired-mode
+            (find-file-other-window file)
+          (find-file-noselect file)))
       (if (not (verify-visited-file-modtime (current-buffer)))
 	  (if (yes-or-no-p "Replace file on disk with buffer contents? ")
 	      (write-file (buffer-file-name))
@@ -1224,9 +1227,11 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	      (yes-or-no-p (concat "File has unlocked changes.  "
 				   "Claim lock retaining changes? ")))
 	    (progn (vc-call steal-lock file)
+                   (clear-visited-file-modtime)
 		   ;; Must clear any headers here because they wouldn't
 		   ;; show that the file is locked now.
 		   (vc-clear-headers file)
+		   (write-file (buffer-file-name))
 		   (vc-mode-line file))
 	  (if (not (yes-or-no-p
 		    "Revert to checked-in version, instead? "))
@@ -3249,7 +3254,6 @@ This function is obsolete, and has been replaced by
 These bindings are added to the global keymap when you enter this mode:
 \\[vc-next-action]		perform next logical version-control operation on current file
 \\[vc-register]		register current file
-\\[vc-toggle-read-only]		like next-action, but won't register files
 \\[vc-insert-headers]		insert version-control headers in current file
 \\[vc-print-log]		display change history of current file
 \\[vc-revert-buffer]		revert buffer to latest version
