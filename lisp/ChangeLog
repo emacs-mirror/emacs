@@ -1,6 +1,362 @@
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* Release of cc-mode 5.26
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-forward-conditional): Handle an arbitrary
+	target depth.  Optionally count #else lines as clause limits,
+	as suggested by don provan <provan@lucent.com>.  #elif
+	handling fixed.
+
+	* cc-cmds.el (c-up-conditional-with-else, c-down-conditional)
+	(c-down-conditional-with-else): New commands that uses the
+	added functionality in `c-forward-conditional'.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-align.el (c-lineup-comment): Preserve the alignment with
+	a comment on the previous line instead of preserving the
+	comment-column.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* Fixes to IDL mode after input from Eric Eide
+	<eeide@cs.utah.edu>:
+	* cc-engine.el (c-beginning-of-statement-1): Allow
+	`c-conditional-key' to be nil, for the benefit of IDL mode.
+	* cc-engine.el (c-guess-basic-syntax): Ditto.
+	cc-langs.el (C-IDL-class-key): Fixed.  Don't match `class'
+	but do match CORBA 2.3 `valuetype'.
+	* cc-langs.el (c-IDL-access-key): New defconst.  Should be nil
+	for IDL.
+	* cc-langs.el (c-IDL-conditional-key): New defconst.  Should
+	be nil for IDL.
+	* cc-langs.el (c-IDL-comment-start-regexp): New defconst.
+	Like C++.
+	* cc-mode.el (idl-mode): Use new `c-IDL-*' defconsts.  Also,
+	set `c-method-key' and `c-baseclass-key' to nil.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-menus.el (cc-imenu-c++-generic-expression): Match classes
+	with nonhanging open braces.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-align.el: Added docstrings to all lineup functions.
+
+	* cc-align.el (c-lineup-java-throws): Handle a hanging throws
+	keyword.
+
+	* cc-align.el (c-lineup-C-comments): Handle free form text
+	comments.  Use c-comment-prefix-regexp and comment-start-skip
+	instead of hardcoded regexps.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-beginning-of-defun, c-end-of-defun): Fixed eob
+	behavior and return value as documented.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* Changes for new style variable init system:
+	* cc-langs.el (c-common-init): Dito.
+	* cc-styles.el: c-offsets-alist moved to cc-vars.el since it's
+	now customizable.
+	* cc-vars.el: Style variables may now take a value
+	'set-from-style to make them take their value from the style
+	system. This value is now the default on all these variables.
+	* cc-vars.el (c-valid-offset): New function to verify a
+	syntactic symbol offset setting.
+	* cc-vars.el (c-offsets-alist): Variable moved from
+	cc-styles.el since it's now customizable in a similar way to
+	the other style variables.
+	* cc-vars.el (c-old-style-variable-behavior): New variable to
+	revert to the old style init behavior.
+
+	* cc-vars.el (c-file-style, c-file-offsets): Made always
+	buffer local.
+
+	* cc-menus.el (cc-imenu-c++-generic-expression): Don't match
+	the throws clause that might follow the function prototype in
+	C++.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-defs.el (c-beginning-of-macro): Fixed bug where point
+	could move forward for macros that doesn't start in column 0.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-align.el (c-indent-multi-line-block,
+	c-lineup-whitesmith-in-block): Two new lineup functions for
+	use in whitesmith style.
+
+	* cc-styles.el (c-style-alist): More fixes to whitesmith
+	style.  It should now handle all different braces uniformly in
+	both hanging and non-hanging cases.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-indent-exp): Use a marker to save point to
+	make it stay in the same position relative to the surrounding
+	text.
+
+	* cc-cmds.el (c-fill-paragraph): Force the line comment prefix
+	when adaptive-fill-mode doesn't manage to get it correct.
+
+	* cc-menus.el (cc-imenu-java-generic-expression): Handle types
+	with dotted notation, e.g. foo.bar.Gnu.
+
+	* cc-mode.el (c-initialize-cc-mode): Wrap all function calls
+	within unwind-protect (previously only some were wrapped so it
+	would be possible to register mode initialization when full
+	initialization did not finish).
+
+	* cc-styles.el (c-style-alist): Corrected the brace placement
+	in the whitesmith style.  Thanks to Sean Luke
+	<seanl@cs.umd.edu>.  Also extended the bsd and whitesmith
+	styles with consistent brace placement for all constructs.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-context-line-break): Continue C++ comments too
+	when point is in the middle of them.
+
+	* cc-cmds.el: Line breaking and paragraph filling code
+	rewritten:
+	(c-guess-fill-prefix): New function that uses various
+	heuristics to guess the comment prefix.
+	(c-fill-paragraph): Rewritten to use `c-guess-fill-prefix'.
+	It now assumes adaptive filling is active to preserve the line
+	prefix inside comments.
+	(c-indent-new-comment-line): Replacement for the now
+	obsolete `c-comment-line-break-function' that uses
+	`c-guess-fill-prefix' when appropriate.  It now observes the
+	setting of `comment-multi-line', which has effect in C-style
+	block comments.
+
+	* cc-cmds.el (c-context-line-break): New function intended to
+	be put on RET.  It's essentially `newline-and-indent', but
+	continues C block comments with the appropriate line prefix.
+
+	* cc-cmds.el (c-do-auto-fill): New function put on
+	`normal-auto-fill-function' to implement the
+	`c-ignore-auto-fill' variable.
+
+	* cc-cmds.el (c-beginning-of-statement): Use
+	`c-comment-prefix-regexp' to avoid ending up inside the
+	comment prefix.  Better handling of comment starters and
+	enders. Catch comments better when traversing code.  Stop at
+	preprocessor directives.
+
+	* cc-defs.el (c-forward-comment): New subst to hide platform
+	dependent quirks in `forward-comment'.
+
+	* cc-engine.el (c-literal-limits): Added NOT-IN-DELIMITER
+	argument.
+	(c-literal-limits-fast): Implemented NEAR and NOT-IN-DELIMITER
+	arguments. Activate this function by default when
+	`parse-partial-sexp' supports it (currently Emacs 20.x).
+
+	* cc-engine.el (c-guess-basic-syntax): Anchor the `c' syntax
+	on the comment opener to make constants usable as lineup
+	arguments.
+
+	* cc-align.el (c-lineup-C-comments): Fixes to handle the
+	changed anchor position in the `c' syntactic symbol.  Handle
+	more than stars in the comment prefix; use the new variable
+	`c-comment-prefix-regexp'.  Don't indent text not preceded by
+	a comment prefix to the right of the comment opener if it's
+	long.
+
+	* cc-langs.el: Fixes to mode initialization for new line
+	breaking and paragraph filling method.  Adaptive fill mode is
+	now activated at startup instead of deactivated.  The
+	variables used for adaptive filling and paragraph movement are
+	also changed to incorporate the value of
+	`c-comment-prefix-regexp'.  `substitute-key-definition' is
+	used to override some functions in the global map instead of
+	overriding their default bindings.
+
+	* cc-mode.el (java-mode): Modify `paragraph-start' for the
+	javadoc markup at mode init.
+
+	* cc-mode.el (c-setup-filladapt): A new convenience function
+	to configure Kyle E. Jones' Filladapt mode for CC Mode.  This
+	function is intended to be used explicitly by the end user
+	only.
+
+	* cc-vars.el (c-comment-prefix-regexp): New variable used to
+	recognize the comment fill prefix inside comments.
+	(c-block-comment-prefix): New name for
+	`c-comment-contiuation-stars', which is now obsolete.  It's
+	generalized to handle any character sequence.
+	(c-ignore-auto-fill): New variable used to selectively disable
+	Auto Fill mode in specific contexts.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-comment-indent): Leave at least one space
+	between the comment and the last nonblank character in the
+	case where we look at the indentation of the comment on the
+	previous line (case 4).
+
+	* cc-engine.el (c-beginning-of-statement-1): Added ``' to the
+	list of characters that may start a statement (it's a sort of
+	prefix operator in Pike, and isn't used at all in any of the
+	other languages).
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-guess-basic-syntax): Report brace list opens
+	inside continued statements as statement-cont instead of
+	brace-list-open.  The reason is that one normally adjusts
+	brace-list-open for brace lists as top-level constructs, and
+	brace lists inside statements is a completely different
+	context.  Case 10B.2 changed.  Also changed (the somewhat
+	esoteric) case 9A to cope with this.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-electric-brace): Added electric handling of
+	the open brace for brace-elseif-brace.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-defs.el (c-with-syntax-table): New macro to easily switch
+	syntax tables temporarily.
+
+	* cc-engine.el (c-guess-basic-syntax): Handle template and
+	member init argument lists split over several lines.  Case 5D
+	changed.
+
+	* cc-langs.el (c-Java-javadoc-paragraph-start): Added new tag
+	@throws introduced in Javadoc 1.2.
+
+	* cc-menus.el (cc-imenu-java-generic-expression): Applied
+	patch from RMS to avoid infinite backtracking.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-align.el (c-lineup-arglist): Handle "arglists" surrounded
+	by [ ].
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-align.el (c-lineup-dont-change): Compensate properly for
+	the column in langelem.
+
+	* cc-engine.el (c-syntactic-information-on-region): New
+	function to help debugging the syntactic analysis.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-align.el (c-lineup-template-args): Handle nested template
+	arglists.
+
+	* cc-langs.el (c++-template-syntax-table): New syntax table
+	that makes `<' and `>' parenthesis characters, which is useful
+	to switch to temporarily when analyzing template arglists.
+
+	* cc-styles.el: Changed default alignment of labels in the
+	java style to conform to the examples in the Java Language
+	Specification.
+
+	* cc-styles.el (c-offsets-alist): Use `c-lineup-template-args'
+	by default.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-guess-basic-syntax): Pike allows a comma
+	immediately before the closing paren in an arglist, so don't
+	check that in Pike mode.  Case 7A changed.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-indent-region): Fixed bug where comment-only
+	lines were ignored under certain conditions.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-align.el (c-lineup-template-args): New function for
+	aligning continued template argument lists.
+
+	* cc-engine.el (c-guess-basic-syntax): Fix for member init
+	lists containing function arglists split over several lines.
+	Case 5D.1 changed.
+
+	* cc-engine.el (c-guess-basic-syntax): Fixed bug where
+	template-args-cont didn't get recognized when the first
+	arglist opener line doesn't contain a template argument.  New
+	case 5K.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-defs.el (c-point): Changed from subst to macro for
+	efficiency.
+	(c-beginning-of-defun-1, c-end-of-defun-1): New
+	beginning-of-defun/end-of-defun wrappers separated from
+	c-point.
+
+	* cc-menus.el (imenu-generic-expression,
+	imenu-case-fold-search, imenu-progress-message): Dummy
+	definitions to avoid compiler warnings if imenu can't be
+	loaded.
+	* cc-menus.el (cc-imenu-init): New function called at mode
+	init.
+	* cc-mode.el (c-mode, c++-mode, objc-mode, java-mode): Moved
+	imenu initializations to cc-imenu-init.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-guess-basic-syntax): Slightly better check
+	for lambda-intro-cont in Pike mode.  Case 6 changed.
+
+	* cc-engine.el (c-looking-at-inexpr-block): Fixed bug where
+	anything following "new Foo()" was considered an anonymous
+	class body in Java mode.
+
+1999-12-12  Barry A. Warsaw  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-comment-line-break-function): When breaking in
+	a string, don't insert a new line.
+
+1999-12-12  Barry A. Warsaw  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-at-toplevel-p): New interface function which
+	returns information useful to add-on authors.  It tells you
+	whether you're at a toplevel statement or not.
+
+1999-12-12  Barry A. Warsaw  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-comment-line-break-function): It is possible
+	that forward-line does not land us at the bol, say if we're on
+	the last line in a file.  In that case, do a
+	back-to-indentation instead of a forward-comment -1.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-beginning-of-statement-1): Don't catch
+	"default:" as normal label in case 4.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-guess-basic-syntax): Use c-bitfield-key to
+	recognize continued bitfield declarations.  Case 5D.1 changed.
+	* cc-langs.el: New variable c-bitfield-key.
+	* cc-mode.el: New variable c-bitfield-key.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-inside-bracelist-p): Tighter test for Java
+	anonymous array expressions (i.e. "new Foo[] {.. bracelist
+	..}").
+
 1999-12-12  Dave Love  <fx@gnu.org>
 
-	* footnote.el: Require cl when compiling.  Don't autoload kemap
+	* footnote.el: Require cl when compiling.  Don't autoload keymap
 	and minor-mode-alist stuff.  Don't set zmacs-region-stays.
 	(footnote-insert-text-marker, Footnote-insert-pointer-marker):
 	Avoid `acons'.
