@@ -71,7 +71,9 @@ relock:
 ### appropriate CPP symbols to use in ymakefile.
 ### If you have a problem with cc -E here, changing
 ### the definition of CPP above may fix it.
-xmakefile: ymakefile config.h
+
+# Remake xmakefile whenever we reconfigure even if config.h didn't change.
+xmakefile: ymakefile config.h ../config.status
 	-rm -f xmakefile xmakefile.new junk.c junk.cpp
 	cp ${srcdir}/ymakefile junk.c
 	${CPP} -I${srcdir} ${CFLAGS} junk.c > junk.cpp \
