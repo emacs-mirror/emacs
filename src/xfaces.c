@@ -68,6 +68,10 @@ Boston, MA 02111-1307, USA.  */
 
    15. A face name or list of face names from which to inherit attributes.
 
+   16. A specified average font width, which is invisible from Lisp,
+   and is used to ensure that a font specified on the command line,
+   for example, can be matched exactly.
+
    Faces are frame-local by nature because Emacs allows to define the
    same named face (face names are symbols) differently for different
    frames.  Each frame has an alist of face definitions for all named
@@ -504,7 +508,7 @@ static Lisp_Object resolve_face_name P_ ((Lisp_Object));
 static int may_use_scalable_font_p P_ ((struct font_name *, char *));
 static void set_font_frame_param P_ ((Lisp_Object, Lisp_Object));
 static int better_font_p P_ ((int *, struct font_name *, struct font_name *,
-			      int));
+			      int, int));
 static int first_font_matching P_ ((struct frame *f, char *,
 				    struct font_name *));
 static int x_face_list_fonts P_ ((struct frame *, char *,
@@ -1859,7 +1863,9 @@ static struct frame *font_frame;
    set via set-face-font-sort-order.  */
 
 #ifdef macintosh
-static int font_sort_order[4] = { XLFD_SWIDTH, XLFD_POINT_SIZE, XLFD_WEIGHT, XLFD_SLANT };
+static int font_sort_order[4] = {
+  XLFD_SWIDTH, XLFD_POINT_SIZE, XLFD_WEIGHT, XLFD_SLANT
+};
 #else
 static int font_sort_order[4];
 #endif
@@ -2193,6 +2199,7 @@ split_font_name (f, font, numeric_p)
       font->numeric[XLFD_SLANT] = xlfd_numeric_slant (font);
       font->numeric[XLFD_WEIGHT] = xlfd_numeric_weight (font);
       font->numeric[XLFD_SWIDTH] = xlfd_numeric_swidth (font);
+      font->numeric[XLFD_AVGWIDTH] = atoi (font->fields[XLFD_AVGWIDTH]);
     }
 
   /* Initialize it to zero.  It will be overridden by font_list while
@@ -2835,38 +2842,24 @@ the WIDTH times as wide as FACE on FRAME.")
 			      Lisp Faces
  ***********************************************************************/
 
-/* Access face attributes of face FACE, a Lisp vector.  */
+/* Access face attributes of face LFACE, a Lisp vector.  */
 
-#define LFACE_FAMILY(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_FAMILY_INDEX]
-#define LFACE_HEIGHT(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_HEIGHT_INDEX]
-#define LFACE_WEIGHT(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_WEIGHT_INDEX]
-#define LFACE_SLANT(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_SLANT_INDEX]
-#define LFACE_UNDERLINE(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_UNDERLINE_INDEX]
-#define LFACE_INVERSE(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_INVERSE_INDEX]
-#define LFACE_FOREGROUND(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_FOREGROUND_INDEX]
-#define LFACE_BACKGROUND(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_BACKGROUND_INDEX]
-#define LFACE_STIPPLE(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_STIPPLE_INDEX]
-#define LFACE_SWIDTH(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_SWIDTH_INDEX]
-#define LFACE_OVERLINE(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_OVERLINE_INDEX]
-#define LFACE_STRIKE_THROUGH(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_STRIKE_THROUGH_INDEX]
-#define LFACE_BOX(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_BOX_INDEX]
-#define LFACE_FONT(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_FONT_INDEX]
-#define LFACE_INHERIT(LFACE) \
-     XVECTOR (LFACE)->contents[LFACE_INHERIT_INDEX]
+#define LFACE_FAMILY(LFACE)	    AREF ((LFACE), LFACE_FAMILY_INDEX)
+#define LFACE_HEIGHT(LFACE)	    AREF ((LFACE), LFACE_HEIGHT_INDEX)
+#define LFACE_WEIGHT(LFACE)	    AREF ((LFACE), LFACE_WEIGHT_INDEX)
+#define LFACE_SLANT(LFACE)	    AREF ((LFACE), LFACE_SLANT_INDEX)
+#define LFACE_UNDERLINE(LFACE)      AREF ((LFACE), LFACE_UNDERLINE_INDEX)
+#define LFACE_INVERSE(LFACE)	    AREF ((LFACE), LFACE_INVERSE_INDEX)
+#define LFACE_FOREGROUND(LFACE)     AREF ((LFACE), LFACE_FOREGROUND_INDEX)
+#define LFACE_BACKGROUND(LFACE)     AREF ((LFACE), LFACE_BACKGROUND_INDEX)
+#define LFACE_STIPPLE(LFACE)	    AREF ((LFACE), LFACE_STIPPLE_INDEX)
+#define LFACE_SWIDTH(LFACE)	    AREF ((LFACE), LFACE_SWIDTH_INDEX)
+#define LFACE_OVERLINE(LFACE)	    AREF ((LFACE), LFACE_OVERLINE_INDEX)
+#define LFACE_STRIKE_THROUGH(LFACE) AREF ((LFACE), LFACE_STRIKE_THROUGH_INDEX)
+#define LFACE_BOX(LFACE)	    AREF ((LFACE), LFACE_BOX_INDEX)
+#define LFACE_FONT(LFACE)	    AREF ((LFACE), LFACE_FONT_INDEX)
+#define LFACE_INHERIT(LFACE)	    AREF ((LFACE), LFACE_INHERIT_INDEX)
+#define LFACE_AVGWIDTH(LFACE)	    AREF ((LFACE), LFACE_AVGWIDTH_INDEX)
 
 /* Non-zero if LFACE is a Lisp face.  A Lisp face is a vector of size
    LFACE_VECTOR_SIZE which has the symbol `face' in slot 0.  */
@@ -2874,7 +2867,7 @@ the WIDTH times as wide as FACE on FRAME.")
 #define LFACEP(LFACE)					\
      (VECTORP (LFACE)					\
       && XVECTOR (LFACE)->size == LFACE_VECTOR_SIZE	\
-      && EQ (XVECTOR (LFACE)->contents[0], Qface))
+      && EQ (AREF (LFACE, 0), Qface))
 
 
 #if GLYPH_DEBUG
@@ -2889,6 +2882,8 @@ check_lface_attrs (attrs)
 	   || STRINGP (attrs[LFACE_FAMILY_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
 	   || SYMBOLP (attrs[LFACE_SWIDTH_INDEX]));
+  xassert (UNSPECIFIEDP (attrs[LFACE_AVGWIDTH_INDEX])
+	   || INTEGERP (attrs[LFACE_AVGWIDTH_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
 	   || INTEGERP (attrs[LFACE_HEIGHT_INDEX])
 	   || FLOATP (attrs[LFACE_HEIGHT_INDEX])
@@ -3053,7 +3048,8 @@ lface_fully_specified_p (attrs)
   int i;
 
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-    if (i != LFACE_FONT_INDEX && i != LFACE_INHERIT_INDEX)
+    if (i != LFACE_FONT_INDEX && i != LFACE_INHERIT_INDEX
+	&& i != LFACE_AVGWIDTH_INDEX)
       if (UNSPECIFIEDP (attrs[i])) 
         break;
 
@@ -3147,6 +3143,12 @@ set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
   if (force_p || UNSPECIFIEDP (LFACE_SWIDTH (lface)))
     LFACE_SWIDTH (lface)
       = have_xlfd_p ? xlfd_symbolic_swidth (&font) : Qnormal;
+
+  if (force_p || UNSPECIFIEDP (LFACE_AVGWIDTH (lface)))
+    LFACE_AVGWIDTH (lface)
+      = (have_xlfd_p
+	 ? make_number (font.numeric[XLFD_AVGWIDTH])
+	 : Qunspecified);
 
   if (force_p || UNSPECIFIEDP (LFACE_WEIGHT (lface)))
     LFACE_WEIGHT (lface)
@@ -3263,7 +3265,8 @@ merge_face_vectors (f, from, to, cycle_check)
 	  || !UNSPECIFIEDP (from[LFACE_HEIGHT_INDEX])
 	  || !UNSPECIFIEDP (from[LFACE_WEIGHT_INDEX])
 	  || !UNSPECIFIEDP (from[LFACE_SLANT_INDEX])
-	  || !UNSPECIFIEDP (from[LFACE_SWIDTH_INDEX])))
+	  || !UNSPECIFIEDP (from[LFACE_SWIDTH_INDEX])
+	  || !UNSPECIFIEDP (from[LFACE_AVGWIDTH_INDEX])))
     to[LFACE_FONT_INDEX] = Qnil;
 
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
@@ -3601,7 +3604,7 @@ Value is a vector of face attributes.")
     {
       global_lface = Fmake_vector (make_number (LFACE_VECTOR_SIZE),
 				   Qunspecified);
-      XVECTOR (global_lface)->contents[0] = Qface;
+      AREF (global_lface, 0) = Qface;
       Vface_new_frame_defaults = Fcons (Fcons (face, global_lface),
 					Vface_new_frame_defaults);
 
@@ -3623,7 +3626,7 @@ Value is a vector of face attributes.")
     }
   else if (f == NULL)
     for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-      XVECTOR (global_lface)->contents[i] = Qunspecified;
+      AREF (global_lface, i) = Qunspecified;
 
   /* Add a frame-local definition.  */
   if (f)
@@ -3632,12 +3635,12 @@ Value is a vector of face attributes.")
 	{
 	  lface = Fmake_vector (make_number (LFACE_VECTOR_SIZE),
 				Qunspecified);
-	  XVECTOR (lface)->contents[0] = Qface;
+	  AREF (lface, 0) = Qface;
 	  f->face_alist = Fcons (Fcons (face, lface), f->face_alist);
 	}
       else
 	for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-	  XVECTOR (lface)->contents[i] = Qunspecified;
+	  AREF (lface, i) = Qunspecified;
     }
   else
     lface = global_lface;
@@ -4420,6 +4423,7 @@ xm_set_menu_resources_from_menu_face (f, widget)
   if (face->font
       && (!UNSPECIFIEDP (LFACE_FAMILY (lface))
 	  || !UNSPECIFIEDP (LFACE_SWIDTH (lface))
+	  || !UNSPECIFIEDP (LFACE_AVGWIDTH (lface))
 	  || !UNSPECIFIEDP (LFACE_WEIGHT (lface))
 	  || !UNSPECIFIEDP (LFACE_SLANT (lface))
 	  || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
@@ -4500,6 +4504,7 @@ xl_set_menu_resources_from_menu_face (f, widget)
   if (face->font
       && (!UNSPECIFIEDP (LFACE_FAMILY (lface))
 	  || !UNSPECIFIEDP (LFACE_SWIDTH (lface))
+	  || !UNSPECIFIEDP (LFACE_AVGWIDTH (lface))
 	  || !UNSPECIFIEDP (LFACE_WEIGHT (lface))
 	  || !UNSPECIFIEDP (LFACE_SLANT (lface))
 	  || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
@@ -4845,7 +4850,7 @@ If FRAME is omitted or nil, use the selected frame.")
     lface = lface_from_face_name (f, face, 1);
 
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-    if (!UNSPECIFIEDP (XVECTOR (lface)->contents[i]))
+    if (!UNSPECIFIEDP (AREF (lface, i)))
       break;
 
   return i == LFACE_VECTOR_SIZE ? Qt : Qnil;
@@ -4911,6 +4916,7 @@ lface_same_font_attributes_p (lface1, lface2)
 		    XSTRING (lface2[LFACE_FAMILY_INDEX])->data) == 0
 	  && EQ (lface1[LFACE_HEIGHT_INDEX], lface2[LFACE_HEIGHT_INDEX])
 	  && EQ (lface1[LFACE_SWIDTH_INDEX], lface2[LFACE_SWIDTH_INDEX])
+	  && EQ (lface1[LFACE_AVGWIDTH_INDEX], lface2[LFACE_AVGWIDTH_INDEX])
 	  && EQ (lface1[LFACE_WEIGHT_INDEX], lface2[LFACE_WEIGHT_INDEX])
 	  && EQ (lface1[LFACE_SLANT_INDEX], lface2[LFACE_SLANT_INDEX])
 	  && (EQ (lface1[LFACE_FONT_INDEX], lface2[LFACE_FONT_INDEX])
@@ -5543,7 +5549,7 @@ Value is ORDER.")
 {
   Lisp_Object list;
   int i;
-  int indices[4];
+  int indices[DIM (font_sort_order)];
 
   CHECK_LIST (order, 0);
   bzero (indices, sizeof indices);
@@ -5572,13 +5578,11 @@ Value is ORDER.")
       indices[i] = xlfd;
     }
 
-  if (!NILP (list)
-      || i != DIM (indices)
-      || indices[0] == 0
-      || indices[1] == 0
-      || indices[2] == 0
-      || indices[3] == 0)
+  if (!NILP (list) || i != DIM (indices))
     signal_error ("Invalid font sort order", order);
+  for (i = 0; i < DIM (font_sort_order); ++i)
+    if (indices[i] == 0)
+      signal_error ("Invalid font sort order", order);
 
   if (bcmp (indices, font_sort_order, sizeof indices) != 0)
     {
@@ -5655,17 +5659,18 @@ font_scalable_p (font)
 /* Value is non-zero if FONT1 is a better match for font attributes
    VALUES than FONT2.  VALUES is an array of face attribute values in
    font sort order.  COMPARE_PT_P zero means don't compare point
-   sizes.  */
+   sizes.  AVGWIDTH, if not zero, is a specified font average width
+   to compare with.  */
 
 static int
-better_font_p (values, font1, font2, compare_pt_p)
+better_font_p (values, font1, font2, compare_pt_p, avgwidth)
      int *values;
      struct font_name *font1, *font2;
-     int compare_pt_p;
+     int compare_pt_p, avgwidth;
 {
   int i;
 
-  for (i = 0; i < 4; ++i)
+  for (i = 0; i < DIM (font_sort_order); ++i)
     {
       int xlfd_idx = font_sort_order[i];
 
@@ -5694,26 +5699,40 @@ better_font_p (values, font1, font2, compare_pt_p)
 	}
     }
 
-  return (font1->registry_priority < font2->registry_priority);
+  if (avgwidth)
+    {
+      int delta1 = abs (avgwidth - font1->numeric[XLFD_AVGWIDTH]);
+      int delta2 = abs (avgwidth - font2->numeric[XLFD_AVGWIDTH]);
+      if (delta1 > delta2)
+	return 0;
+      else if (delta1 < delta2)
+	return 1;
+    }
+
+  return font1->registry_priority < font2->registry_priority;
 }
 
 
 /* Value is non-zero if FONT is an exact match for face attributes in
    SPECIFIED.  SPECIFIED is an array of face attribute values in font
-   sort order.  */
+   sort order.  AVGWIDTH, if non-zero, is an average width to compare
+   with.  */
 
 static int
-exact_face_match_p (specified, font)
+exact_face_match_p (specified, font, avgwidth)
      int *specified;
      struct font_name *font;
+     int avgwidth;
 {
   int i;
 
-  for (i = 0; i < 4; ++i)
+  for (i = 0; i < DIM (font_sort_order); ++i)
     if (specified[i] != font->numeric[font_sort_order[i]])
       break;
 
-  return i == 4;
+  return (i == DIM (font_sort_order)
+	  && (avgwidth <= 0
+	      || avgwidth == font->numeric[XLFD_AVGWIDTH]));
 }
 
 
@@ -5823,8 +5842,8 @@ best_matching_font (f, attrs, fonts, nfonts)
   char *font_name;
   struct font_name *best;
   int i, pt = 0;
-  int specified[4];
-  int exact_p;
+  int specified[5];
+  int exact_p, avgwidth;
 
   if (nfonts == 0)
     return NULL;
@@ -5847,6 +5866,10 @@ best_matching_font (f, attrs, fonts, nfonts)
 	abort ();
     }
 
+  avgwidth = (UNSPECIFIEDP (attrs[LFACE_AVGWIDTH_INDEX])
+	      ? 0
+	      : XFASTINT (attrs[LFACE_AVGWIDTH_INDEX]));
+
   exact_p = 0;
 
   /* Start with the first non-scalable font in the list.  */
@@ -5861,11 +5884,11 @@ best_matching_font (f, attrs, fonts, nfonts)
 
       for (i = 1; i < nfonts; ++i)
 	if (!font_scalable_p (fonts + i)
-	    && better_font_p (specified, fonts + i, best, 1))
+	    && better_font_p (specified, fonts + i, best, 1, avgwidth))
 	  {
 	    best = fonts + i;
 
-	    exact_p = exact_face_match_p (specified, best);
+	    exact_p = exact_face_match_p (specified, best, avgwidth);
 	    if (exact_p)
 	      break;
 	  }
@@ -5897,9 +5920,9 @@ best_matching_font (f, attrs, fonts, nfonts)
 	if (font_scalable_p (fonts + i))
 	  {
 	    if (best == NULL
-		|| better_font_p (specified, fonts + i, best, 0)
+		|| better_font_p (specified, fonts + i, best, 0, 0)
 		|| (!non_scalable_has_exact_height_p
-		    && !better_font_p (specified, best, fonts + i, 0)))
+		    && !better_font_p (specified, best, fonts + i, 0, 0)))
 	      best = fonts + i;
 	  }
     }
@@ -6131,6 +6154,7 @@ realize_default_face (f)
       LFACE_HEIGHT (lface) = make_number (1);
       LFACE_WEIGHT (lface) = Qnormal;
       LFACE_SLANT (lface) = Qnormal;
+      LFACE_AVGWIDTH (lface) = Qunspecified;
     }
 
   if (UNSPECIFIEDP (LFACE_UNDERLINE (lface)))
