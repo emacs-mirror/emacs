@@ -214,14 +214,13 @@ Ukranian."))				; says ISO 8859-1
 	     (nonascii-translation . latin-iso8859-14)
 	     (unibyte-syntax . "latin-8")
 	     (unibyte-display . iso-latin-8)
-	     (input-method . "latin-1-prefix") ; fixme
-;;; Fixme: Welsh/Ga{e}lic greetings
-;;;	     (sample-text
-;;;  	      . "")
+	     (input-method . "latin-8-prefix")
+	     ;; Fixme: Welsh/Ga{e}lic greetings
+	     (sample-text . ",_"(B ,_p(B ,_^(B")
 	     (documentation . "\
 This language environment is a generic one for the Latin-8 (ISO-8859-14)
-character set which supports the Celtic languages which are not covered
-by other ISO-8859 character sets, specifically Welsh, Manx Gaelic and
+character set which supports the Celtic languages, including those not
+covered by other ISO-8859 character sets: Welsh, Manx Gaelic and
 Irish Gaelic (old orthography)."))
  '("European"))
 
@@ -246,9 +245,9 @@ Irish Gaelic (old orthography)."))
 	     (nonascii-translation . latin-iso8859-15)
 	     (unibyte-syntax . "latin-9")
 	     (unibyte-display . iso-latin-9)
-	     (input-method . "latin-1-prefix") ; fixme?
+	     (input-method . "latin-9-prefix")
 	     (sample-text
-	      . "Ave Latinum IX, ,b&(48<=>(B ,b$$$(B")
+	      . "AVE. ,b&(48<=>(B ,b$(B")
 	     (documentation . "\
 This language environment is a generic one for the Latin-9 (ISO-8859-15)
 character set which supports the same languages as Latin-1 with the
@@ -318,5 +317,7 @@ but default input method is set to \"german-postfix\"."))
 	   (sample-text . ",B1!fFjJ3#qQsS6&?/<,(B")
 	   (documentation . t))
  '("European"))
+
+(provide 'european)
 
 ;;; european.el ends here
