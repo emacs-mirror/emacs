@@ -1281,11 +1281,10 @@ If optional arg HELP-ECHO is supplied, it is used as a help string."
 			   'face help-highlight-face))))
 
 (defun help-insert-xref-button (string function data &optional help-echo)
-  "Insert STRING and make a hyperlink fro cross-reference text on it.
+  "Insert STRING and make a hyperlink from cross-reference text on it.
 
 FUNCTION is a function to invoke when the button is activated, applied
-to DATA.  DATA may be a single value or a list.  See
-`help-make-xrefs'.
+to DATA.  DATA may be a single value or a list.  See `help-make-xrefs'.
 If optional arg HELP-ECHO is supplied, it is used as a help string."
   (let ((pos (point)))
     (insert string)
