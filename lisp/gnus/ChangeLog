@@ -1,3 +1,9 @@
+2000-11-12  Dave Love  <fx@gnu.org>
+
+	From Emerick Rogul <emerick@csa.bu.edu>.
+	* message.el (message-setup-fill-variables): New variable.
+	(message-mode): Use it.
+
 2000-11-10 Alexandre Oliva <oliva@lsd.ic.unicamp.br>
 
 	* gnus-mlspl.el: Documentation tweaks.
