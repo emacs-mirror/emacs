@@ -325,7 +325,7 @@ Gregorian date Sunday, December 31, 1 BC."
           (list
            (list chinese-new-year
                  (format "Chinese New Year (%s)"
-                         (calendar-chinese-sexagisimal-name (+ y 57))))))))))
+                         (calendar-chinese-sexagesimal-name (+ y 57))))))))))
 
 (defun calendar-chinese-date-string (&optional date)
   "String of Chinese date of Gregorian DATE.
@@ -347,7 +347,7 @@ Defaults to today's date if DATE is not given."
          (m-cycle (% (+ (* year 5) (floor month)) 60)))
     (format "Cycle %s, year %s (%s), %smonth %s%s, day %s (%s)"
             cycle
-            year (calendar-chinese-sexagisimal-name year)
+            year (calendar-chinese-sexagesimal-name year)
             (if (not (integerp month))
                 "second "
               (if (< 30 (- next-month this-month))
@@ -355,13 +355,13 @@ Defaults to today's date if DATE is not given."
                 ""))
             (floor month)
             (if (integerp month)
-                (format " (%s)" (calendar-chinese-sexagisimal-name
+                (format " (%s)" (calendar-chinese-sexagesimal-name
                                  (+ (* 5 year) month 44)))
               "")
-            day (calendar-chinese-sexagisimal-name (+ a-date 15)))))
+            day (calendar-chinese-sexagesimal-name (+ a-date 15)))))
 
-(defun calendar-chinese-sexagisimal-name (n)
-  "The N-th name of the Chinese sexagisimal cycle.
+(defun calendar-chinese-sexagesimal-name (n)
+  "The N-th name of the Chinese sexagesimal cycle.
 N congruent to 1 gives the first name, N congruent to 2 gives the second name,
 ..., N congruent to 60 gives the sixtieth name."
   (format "%s-%s"
