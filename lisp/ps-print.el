@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multibyte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	print, PostScript
-;; Time-stamp:	<98/08/19  11:10:03 vinicius>
-;; Version:	4.0
+;; Time-stamp:	<98/09/18   9:51:23 vinicius>
+;; Version:	4.1
 
-(defconst ps-print-version "4.0"
-  "ps-print.el, v 4.0 <98/08/19 vinicius>
+(defconst ps-print-version "4.1"
+  "ps-print.el, v 4.1 <98/09/18 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -377,21 +377,21 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Valid values for `ps-print-control-characters' are:
 ;;
-;;  8-bit           This is the value to use when you want an ascii encoding of
-;;                  any control or non-ascii character. Control characters are
-;;                  encoded as "^D", and non-ascii characters have an
+;;  8-bit           This is the value to use when you want an ASCII encoding of
+;;                  any control or non-ASCII character. Control characters are
+;;                  encoded as "^D", and non-ASCII characters have an
 ;;                  octal encoding.
 ;;
-;;  control-8-bit   This is the value to use when you want an ascii encoding of
+;;  control-8-bit   This is the value to use when you want an ASCII encoding of
 ;;                  any control character, whether it is 7 or 8-bit.
 ;;                  European 8-bits accented characters are printed according
 ;;                  the current font.
 ;;
-;;  control         Only ascii control characters have an ascii encoding.
+;;  control         Only ASCII control characters have an ASCII encoding.
 ;;                  European 8-bits accented characters are printed according
 ;;                  the current font.
 ;;
-;;  nil             No ascii encoding. Any character is printed according the
+;;  nil             No ASCII encoding. Any character is printed according the
 ;;                  current font.
 ;;
 ;; Any other value is treated as nil.
@@ -1065,7 +1065,7 @@ Valid values are:
 
   `8-bit'         This is the value to use when you want an ASCII encoding of
                   any control or non-ASCII character.  Control characters are
-                  encoded as \"^D\", and non-ascii characters have an
+                  encoded as \"^D\", and non-ASCII characters have an
                   octal encoding.
 
   `control-8-bit' This is the value to use when you want an ASCII encoding of
@@ -1073,7 +1073,7 @@ Valid values are:
                   European 8-bits accented characters are printed according
                   the current font.
 
-  `control'       Only ascii control characters have an ASCII encoding.
+  `control'       Only ASCII control characters have an ASCII encoding.
                   European 8-bits accented characters are printed according
                   the current font.
 
@@ -2897,8 +2897,6 @@ Currently, data for Japanese and Korean PostScript printers are listed.")
      (bold bdf "etl16b-latin1.bdf" iso-latin-1 1)
      (italic bdf "etl16i-latin1.bdf" iso-latin-1 1)
      (bold-italic bdf "etl16bi-latin1.bdf" iso-latin-1 1))
-    (latin-iso8859-1
-     (normal nil nil iso-latin-1))
     (latin-iso8859-2
      (normal bdf "etl24-latin2.bdf" iso-latin-2 1))
     (latin-iso8859-3
@@ -4040,7 +4038,7 @@ page-height == bm + print-height + tm - ho - hh
   (save-excursion			;insert string
     (insert (string-as-unibyte string)))
   ;; Find and quote special characters as necessary for PS
-  ;; This skips everything except control chars, nonascii chars, (, ) and \.
+  ;; This skips everything except control chars, non-ASCII chars, (, ) and \.
   (while (progn (skip-chars-forward " -'*-[]-~") (not (eobp)))
     (let ((special (following-char)))
       (delete-char 1)
@@ -4275,6 +4273,7 @@ page-height == bm + print-height + tm - ho - hh
 	  (setq new (cons (car tail) new)))
       (setq tail (cdr tail)))
     (nreverse new)))
+
 
 ;; Find the first occurrence of ITEM in LIST.
 ;; Return the index of the matching item, or nil if not found.
@@ -4976,17 +4975,7 @@ If FACE is not a valid face name, it is used default face."
 	(let ((property-change from)
 	      (overlay-change from)
 	      (save-buffer-invisibility-spec buffer-invisibility-spec)
-	      (buffer-invisibility-spec
-	       (and (listp buffer-invisibility-spec)
-		    (let ((seq buffer-invisibility-spec)
-			  elt res)
-		      (while seq
-			(setq elt (car seq)
-			      seq (cdr seq))
-			(or (eq elt 'invisible)
-			    (and (listp elt) (eq (car elt) 'invisible))
-			    (setq res (cons elt res))))
-		      (nreverse seq)))))
+	      (buffer-invisibility-spec nil))
 	  (while (< from to)
 	    (if (< property-change to)	; Don't search for property change
 					; unless previous search succeeded.
@@ -5032,8 +5021,8 @@ If FACE is not a valid face name, it is used default face."
 						save-buffer-invisibility-spec)
 					  (assq overlay-invisible
 						save-buffer-invisibility-spec)))
-				    nil)
-				   ((and face overlay-face)))
+				    'emacs--invisible--face)
+				   (face overlay-face))
 			     face-priority overlay-priority)))
 		(setq overlays (cdr overlays))))
 	    ;; Plot up to this record.
