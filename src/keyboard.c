@@ -707,7 +707,7 @@ echo_prompt (str)
      Lisp_Object str;
 {
   current_kboard->echo_string = str;
-  current_kboard->echo_after_prompt = XSTRING (str)->size;
+  current_kboard->echo_after_prompt = SCHARS (str);
   echo_now ();
 }
 
@@ -726,6 +726,8 @@ echo_char (c)
       char *ptr = buffer;
       Lisp_Object echo_string;
 
+      echo_string = current_kboard->echo_string;
+      
       /* If someone has passed us a composite event, use its head symbol.  */
       c = EVENT_HEAD (c);
 
@@ -736,21 +738,21 @@ echo_char (c)
       else if (SYMBOLP (c))
 	{
 	  struct Lisp_String *name = XSYMBOL (c)->name;
+	  int nbytes = STRING_BYTES (name);
 	  
-	  if (size - (ptr - buffer) < STRING_BYTES (name))
+	  if (size - (ptr - buffer) < nbytes)
 	    {
 	      int offset = ptr - buffer;
-	      size = max (2 * size, size + STRING_BYTES (name));
+	      size = max (2 * size, size + nbytes);
 	      buffer = (char *) alloca (size);
 	      ptr = buffer + offset;
 	    }
 
-	  ptr += copy_text (name->data, ptr, STRING_BYTES (name),
+	  ptr += copy_text (name->data, ptr, nbytes,
 			    name->size_byte >= 0, 1);
 	}
 
-      if ((NILP (current_kboard->echo_string)
-	   || XSTRING (current_kboard->echo_string)->size == 0)
+      if ((NILP (echo_string) || SCHARS (echo_string) == 0)
 	  && help_char_p (c))
 	{
 	  const char *text = " (Type ? for further options)";
@@ -768,14 +770,21 @@ echo_char (c)
 	  ptr += len;
 	}
 
-      echo_string = current_kboard->echo_string;
-      
-      /* Replace a dash from echo_dash with a space.  */
+      /* Replace a dash from echo_dash with a space, otherwise
+	 add a space at the end as a separator between keys.  */
       if (STRINGP (echo_string)
-	  && (size = STRING_BYTES (XSTRING (echo_string)),
-	      (size > 0
-	       && XSTRING (echo_string)->data[size - 1] == '-')))
-	XSTRING (echo_string)->data[size - 1] = ' ';
+	  && SCHARS (echo_string) > 0)
+	{
+	  Lisp_Object last_char, idx;
+
+	  idx = make_number (SCHARS (echo_string) - 1);
+	  last_char = Faref (echo_string, idx);
+
+	  if (XINT (last_char) == '-')
+	    Faset (echo_string, idx, make_number (' '));
+	  else
+	    echo_string = concat2 (echo_string, build_string (" "));
+	}
 
       current_kboard->echo_string
 	= concat2 (echo_string, make_string (buffer, ptr - buffer));
@@ -795,12 +804,12 @@ echo_dash ()
     return;
 
   if (!current_kboard->immediate_echo
-      && XSTRING (current_kboard->echo_string)->size == 0)
+      && SCHARS (current_kboard->echo_string) == 0)
     return;
       
   /* Do nothing if we just printed a prompt.  */
   if (current_kboard->echo_after_prompt
-      == XSTRING (current_kboard->echo_string)->size)
+      == SCHARS (current_kboard->echo_string))
     return;
       
   /* Put a dash at the end of the buffer temporarily,
@@ -834,8 +843,8 @@ echo_now ()
 
   echoing = 1;
   message3_nolog (current_kboard->echo_string,
-		  STRING_BYTES (XSTRING (current_kboard->echo_string)),
-		  STRING_MULTIBYTE (current_kboard->echo_string));
+		  SBYTES (current_kboard->echo_string),
+		  SMBP (current_kboard->echo_string));
   echoing = 0;
 
   /* Record in what buffer we echoed, and from which kboard.  */
@@ -865,7 +874,7 @@ static int
 echo_length ()
 {
   return (STRINGP (current_kboard->echo_string)
-	  ? XSTRING (current_kboard->echo_string)->size
+	  ? SCHARS (current_kboard->echo_string)
 	  : 0);
 }
 
