@@ -3219,6 +3219,7 @@ to the file, instead of any buffer contents, and END is ignored.")
       current_buffer->save_modified = MODIFF;
       XFASTINT (current_buffer->save_length) = Z - BEG;
       current_buffer->filename = visit_file;
+      update_mode_lines++;
     }
   else if (quietly)
     return Qnil;
