@@ -623,23 +623,26 @@ redisplay ()
 	  if (cursor_vpos >= 0 && this_line_bufpos
 	      && this_line_endpos == tlendpos)
 	    {
-	      int left = XFASTINT (w->left);
-	      int *charstart_next_line
-		= FRAME_CURRENT_GLYPHS (XFRAME (WINDOW_FRAME (w)))->charstarts[this_line_vpos + 1];
-	      int i;
-	      int adjust;
+	      if (this_line_vpos < XFASTINT (w->top) + window_internal_height (w))
+		{
+		  int left = XFASTINT (w->left);
+		  int *charstart_next_line
+		    = FRAME_CURRENT_GLYPHS (XFRAME (WINDOW_FRAME (w)))->charstarts[this_line_vpos + 1];
+		  int i;
+		  int adjust;
 
-	      if (Z - tlendpos == ZV)
-		/* This line ends at end of (accessible part of) buffer.
-		   There is no newline to count.  */
-		adjust = Z - tlendpos - charstart_next_line[left];
-	      else
-		/* This line ends in a newline.
-		   Must take account of the newline and the rest of the
-		   text that follows.  */
-		adjust = Z - tlendpos + 1 - charstart_next_line[left];
+		  if (Z - tlendpos == ZV)
+		    /* This line ends at end of (accessible part of) buffer.
+		       There is no newline to count.  */
+		    adjust = Z - tlendpos - charstart_next_line[left];
+		  else
+		    /* This line ends in a newline.
+		       Must take account of the newline and the rest of the
+		       text that follows.  */
+		    adjust = Z - tlendpos + 1 - charstart_next_line[left];
 
-	      adjust_window_charstarts (w, this_line_vpos, adjust);
+		  adjust_window_charstarts (w, this_line_vpos, adjust);
+		}
 
 	      if (XFASTINT (w->width) != FRAME_WIDTH (XFRAME (WINDOW_FRAME (w))))
 		preserve_other_columns (w);
@@ -829,6 +832,7 @@ update:
 	  w->window_end_valid = Qt;
 	  last_arrow_position = Voverlay_arrow_position;
 	  last_arrow_string = Voverlay_arrow_string;
+	  verify_charstarts (w);
 	  if (frame_up_to_date_hook != 0)
 	    (*frame_up_to_date_hook) (selected_frame);
 	}
@@ -2071,11 +2075,14 @@ display_text_line (w, start, vpos, hpos, taboffset)
 #ifdef USE_TEXT_PROPERTIES
   next_invisible = pos;
 #endif
-  while (p1 < endp)
+  while (1)
     {
       /* Record which glyph starts a character,
 	 and the character position of that character.  */
       charstart[p1 - p1start] = pos;
+
+      if (p1 >= endp)
+	break;
 
       p1prev = p1;
       if (pos >= pause)
@@ -2287,7 +2294,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
   /* Store 0 in this charstart line for the positions where
      there is no character.  But do leave what was recorded
      for the character that ended the line.  */
-  for (i = p1 - p1start + 1; i < endp - p1start; i++)
+  /* Add 1 in the endtest to compensate for the fact that ENDP was
+     made from WIDTH, which is 1 less than the window's actual
+     internal width.  */
+  for (i = p1 - p1start + 1; i < endp - p1start + 1; i++)
     charstart[i] = 0;
 
   /* Handle continuation in middle of a character */
