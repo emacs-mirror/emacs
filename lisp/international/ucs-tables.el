@@ -18,8 +18,8 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
@@ -48,13 +48,11 @@
 ;; all that users normally care about unifying although, for instance,
 ;; Greek occurs in as many as nine Emacs charsets.
 
-;; The translation table `ucs-mule-to-mule-unicode' is populated,
-;; which could be used for more general unification on decoding.  This
-;; is used by the `mule-utf-8' coding system to encode extra
-;; characters, and also by the coding systems set up by code-pages.el.
-;; The decoding tables here take account of
-;; `utf-8-fragment-on-decoding' which may specify decoding Greek and
-;; Cyrillic into 8859 charsets.
+;; The translation-table `utf-translation-table-for-encode' is
+;; populated, which could be used for more general unification on
+;; decoding.  This is used by the `mule-utf-8' coding system to encode
+;; extra characters, and also by the coding systems set up by
+;; code-pages.el.
 
 ;; Unification also puts a `translation-table-for-input' property on
 ;; relevant coding coding systems and arranges for the
@@ -89,13 +87,13 @@
 ;;; Define tables, to be populated later.
 
 (defvar ucs-mule-8859-to-ucs-table (make-translation-table)
-  "Translation table from Emacs ISO-8859 characters to Unicode.
+  "Char table from Emacs ISO-8859 characters to Unicode.
 This maps Emacs characters from the non-Latin-1
 ...-iso8859-... charsets to their Unicode code points.  This is a
 many-to-one mapping.")
 
 (defvar ucs-mule-8859-to-mule-unicode (make-translation-table)
-  "Translation table from Emacs ISO-8859 characters to Mule Unicode.
+  "Char table from Emacs ISO-8859 characters to Mule Unicode.
 This maps Emacs characters from the non-Latin-1
 ...-iso8859-... charsets to characters from the
 mule-unicode-... charsets.  This is a many-to-one mapping.  The
@@ -157,15 +155,7 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
   "Used as `translation-table-for-encode' for iso-8859-15.
 Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 
-;; Probably defined by utf-8.el.
-(defvar ucs-mule-to-mule-unicode (make-translation-table))
-(unless (get 'ucs-mule-to-mule-unicode 'translation-table)
-  (define-translation-table 'ucs-mule-to-mule-unicode ucs-mule-to-mule-unicode)) 
-(defvar utf-8-translation-table-for-decode (make-translation-table))
-(unless (get 'utf-8-translation-table-for-decode 'translation-table)
-  (define-translation-table 'utf-8-translation-table-for-decode
-    utf-8-translation-table-for-decode))
-(defvar utf-8-fragment-on-decoding nil)
+(defvar translation-table-for-input (make-translation-table))
 
 ;;; Set up the tables.
 
@@ -742,6 +732,31 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 	 (?\,H<(B . ?\x00BC) ;; VULGAR FRACTION ONE QUARTER
 	 (?\,H=(B . ?\x00BD) ;; VULGAR FRACTION ONE HALF
 	 (?\,H>(B . ?\x00BE) ;; VULGAR FRACTION THREE QUARTERS
+	 ;; These are commented out since the current 8859-8 standard
+	 ;; does not yet define these codepoints, although there are
+	 ;; drafts which do).
+;	 (?\,H@(B . ?\x05B0) ;; HEBREW POINT SHEVA
+;	 (?\,HA(B . ?\x05B1) ;; HEBREW POINT HATAF SEGOL
+;	 (?\,HB(B . ?\x05B2) ;; HEBREW POINT HATAF PATAH
+;	 (?\,HC(B . ?\x05B3) ;; HEBREW POINT HATAF QAMATS
+;	 (?\,HD(B . ?\x05B4) ;; HEBREW POINT HIRIQ
+;	 (?\,HE(B . ?\x05B5) ;; HEBREW POINT TSERE
+;	 (?\,HF(B . ?\x05B6) ;; HEBREW POINT SEGOL
+;	 (?\,HG(B . ?\x05B7) ;; HEBREW POINT PATAH
+;	 (?\,HH(B . ?\x05B8) ;; HEBREW POINT QAMATS
+;	 (?\,HI(B . ?\x05B9) ;; HEBREW POINT HOLAM
+;	 (?\,HK(B . ?\x05BB) ;; HEBREW POINT QUBUTS
+;	 (?\,HL(B . ?\x05BC) ;; HEBREW POINT DAGESH
+;	 (?\,HM(B . ?\x05BD) ;; HEBREW POINT METEG
+;	 (?\,HN(B . ?\x05BE) ;; HEBREW POINT MAQAF
+;	 (?\,HO(B . ?\x05BF) ;; HEBREW POINT RAFE
+;	 (?\,HP(B . ?\x05C0) ;; HEBREW PUNCTUATION PASEQ
+;	 (?\,HQ(B . ?\x05C1) ;; HEBREW POINT SHIN DOT
+;	 (?\,HR(B . ?\x05C2) ;; HEBREW POINT SIN DOT
+;	 (?\,HS(B . ?\x05C3) ;; HEBREW PUNCTUATION SOF PASUQ
+	 (?\,H[(B . ?\x202D) ;; LEFT-TO-RIGHT OVERRIDE
+	 (?\,H\(B . ?\x202E) ;; RIGHT-TO-LEFT OVERRIDE
+	 (?\,H](B . ?\x202C) ;; POP DIRECTIONAL FORMATTING
 	 (?\,H_(B . ?\x2017) ;; DOUBLE LOW LINE
 	 (?\,H`(B . ?\x05D0) ;; HEBREW LETTER ALEF
 	 (?\,Ha(B . ?\x05D1) ;; HEBREW LETTER BET
@@ -770,6 +785,8 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 	 (?\,Hx(B . ?\x05E8) ;; HEBREW LETTER RESH
 	 (?\,Hy(B . ?\x05E9) ;; HEBREW LETTER SHIN
 	 (?\,Hz(B . ?\x05EA) ;; HEBREW LETTER TAV
+	 (?\,H{(B . ?\x202A) ;; LEFT-TO-RIGHT EMBEDDING
+	 (?\,H|(B . ?\x202B) ;; RIGHT-TO-LEFT EMBEDDING
 	 (?\,H}(B . ?\x200E) ;; LEFT-TO-RIGHT MARK
 	 (?\,H~(B . ?\x200F) ;; RIGHT-TO-LEFT MARK
 	 ))
@@ -1092,10 +1109,7 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 	  ;; 	  (aset ucs-mule-unicode-to-mule-8859 mu mule)
 	  (aset ucs-mule-8859-to-mule-unicode mule mu)
 	  (aset ucs-mule-to-mule-unicode mule mu)))))
-  ;; The table optimizing here and elsewhere probably isn't very
-  ;; useful, but seems good practice.
-  (optimize-char-table ucs-mule-to-mule-unicode)
-  (optimize-char-table ucs-mule-8859-to-mule-unicode)
+
   ;; Derive tables that can be used as per-coding-system
   ;; `translation-table-for-encode's.
   (dolist (n (list 15 14 9 8 7 5 4 3 2 1))
@@ -1103,12 +1117,16 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 	   (encode-translator (set (intern (format "ucs-8859-%d-encode-table"
 						   n))
 				   (make-translation-table)))
+	   (coding-system
+	    (coding-system-base (intern (format "iso-8859-%d" n))))
+	   (dependency (coding-system-get coding-system 'dependency))
 	   elt)
-      ;; Start with the mule-unicode component.
-      (dolist (pair alist)
-	(let ((mule (car pair))
-	      (mu (decode-char 'ucs (cdr pair))))
-	  (aset encode-translator mu mule)))
+      ;; Start with the mule-unicode component (except for latin-iso8859-1).
+      (if (/= n 1)
+	  (dolist (pair alist)
+	    (let ((mule (car pair))
+		  (mu (decode-char 'ucs (cdr pair))))
+	      (aset encode-translator mu mule))))
       ;; Find characters from other 8859 sets which map to the same
       ;; unicode as some character in this set.
       (map-char-table (lambda (k v)
@@ -1116,16 +1134,16 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 				 (not (assq k alist)))
 			    (aset encode-translator k (car elt))))
 		      ucs-mule-8859-to-ucs-table)
-      (optimize-char-table encode-translator))))
+      (optimize-char-table encode-translator)
 
-;; Register for use in CCL.
-(define-translation-table 'ucs-mule-8859-to-mule-unicode
-  ucs-mule-8859-to-mule-unicode)
-(define-translation-table 'ucs-mule-to-mule-unicode
-  ucs-mule-to-mule-unicode)
+      (or (memq 'unify-8859-on-encoding-mode dependency)
+	  (setq dependency (cons 'unify-8859-on-encoding-mode dependency)))
+      (or (memq 'unify-8859-on-decoding-mode dependency)
+	  (setq dependency (cons 'unify-8859-on-decoding-mode dependency)))
+      (coding-system-put coding-system 'dependency dependency))))
 
-(defun ucs-unify-8859 (&optional encode-only)
-  "Set up translation tables for unifying characters from ISO 8859.
+(defun ucs-unify-8859 (for-encode for-decode)
+  "Set up translation-tables for unifying characters from ISO 8859.
 
 On decoding, non-ASCII characters are mapped into the `iso-latin-1'
 and `mule-unicode-0100-24ff' charsets.  On encoding, these are mapped
@@ -1133,140 +1151,104 @@ back appropriate for the coding system.
 
 With prefix arg, do unification on encoding only, i.e. don't unify
 everything on input operations."
-  (interactive "P")
-  (unless encode-only
+  (when for-decode
     ;; Unify 8859 on decoding.  (Non-CCL coding systems only.)
-    (if utf-8-fragment-on-decoding
-	(map-char-table
-	 (lambda (k v)
-	   (if v (aset ucs-mule-to-mule-unicode v nil)))
-	 utf-8-translation-table-for-decode)
-      ;; Reset in case it was changed.
-      (map-char-table
-       (lambda (k v)
-	 (if v (aset ucs-mule-to-mule-unicode v k)))
-       utf-8-translation-table-for-decode))
     (set-char-table-parent standard-translation-table-for-decode
 			   ucs-mule-8859-to-mule-unicode)
+
     ;; Translate Quail input globally.
     (setq-default translation-table-for-input ucs-mule-to-mule-unicode)
     ;; In case these are set up, but we should use the global
-    ;; translation table.
+    ;; translation-table.
     (remove-hook 'quail-activate-hook 'ucs-quail-activate)
     (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup))
-  ;; Adjust the 8859 coding systems to fragment the unified characters
-  ;; on encoding.
-  (dolist (n '(1 2 3 4 5 7 8 9 14 15))
-    (let* ((coding-system
-	    (coding-system-base (intern (format "iso-8859-%d" n))))
-	   (table (symbol-value
-		   (intern (format "ucs-8859-%d-encode-table" n))))
-	   (safe (coding-system-get coding-system 'safe-chars)))
-      ;; Actually, the coding system's safe-chars are not normally
-      ;; used after they've been registered, but we might as well
-      ;; record them.  Setting the parent here is a convenience.
-      (set-char-table-parent safe table)
-      ;; Update the table of what encodes to what.
-      (register-char-codings coding-system table)
-      (coding-system-put coding-system 'translation-table-for-encode table)
-      (coding-system-put coding-system 'translation-table-for-input table)))
-  ;; Arrange local translation tables for Quail input.
-  (add-hook 'quail-activate-hook 'ucs-quail-activate)
-  (add-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup))
 
-(defun ucs-fragment-8859 (&optional encode-only)
+  (when for-encode
+    ;; Make mule-utf-* encode all characters in ucs-mule-to-mule-unicode.
+    (let ((coding-list '(mule-utf-8 mule-utf-16-be mule-utf-16-le)))
+      (define-translation-table 'utf-translation-table-for-encode
+	ucs-mule-to-mule-unicode)
+      (dolist (coding coding-list)
+	(set-char-table-parent (coding-system-get coding 'safe-chars)
+			       ucs-mule-to-mule-unicode)
+	(register-char-codings coding ucs-mule-to-mule-unicode)))
+
+    ;; Adjust the 8859 coding systems to fragment the unified characters
+    ;; on encoding.
+    (dolist (n '(1 2 3 4 5 7 8 9 14 15))
+      (let* ((coding-system
+	      (coding-system-base (intern (format "iso-8859-%d" n))))
+	     (table (symbol-value
+		     (intern (format "ucs-8859-%d-encode-table" n))))
+	     (safe (coding-system-get coding-system 'safe-chars)))
+	;; Actually, the coding system's safe-chars are not normally
+	;; used after they've been registered, but we might as well
+	;; record them.  Setting the parent here is a convenience.
+	(set-char-table-parent safe table)
+	;; Update the table of what encodes to what.
+	(register-char-codings coding-system table)
+	(coding-system-put coding-system 'translation-table-for-encode table)
+	(coding-system-put coding-system 'translation-table-for-input table)))
+    ;; Arrange local translation-tables for Quail input.
+    (add-hook 'quail-activate-hook 'ucs-quail-activate)
+    (add-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
+
+(defun ucs-fragment-8859 (for-encode for-decode)
   "Undo the unification done by `ucs-unify-8859'.
 With prefix arg, undo unification on encoding only, i.e. don't undo
 unification on input operations."
-  (interactive "P")
-  ;; Maybe fix decoding.
-  (unless encode-only
-    ;; Unify 8859 on decoding.  (Non-CCL coding systems only.)
+  (when for-decode
+    ;; Don't Unify 8859 on decoding.
+    ;; For non-CCL coding systems (e.g. iso-latin-2).
     (set-char-table-parent standard-translation-table-for-decode nil)
+    ;; For Quail input.
     (setq-default translation-table-for-input nil))
-  ;; Fix encoding.  For each charset, remove the entries in
-  ;; `char-coding-system-table' added to its safe-chars table (as its
-  ;; parent).
-  (dolist (n '(1 2 3 4 5 7 8 9 14 15))
-    (let* ((coding-system
-	    (coding-system-base (intern (format "iso-8859-%d" n))))
-	   (table (symbol-value
-		   (intern (format "ucs-8859-%d-encode-table" n))))
-	   (safe (coding-system-get coding-system 'safe-chars)))
+
+  (when for-encode
+    ;; Make mule-utf-* disabled for all characters in
+    ;; ucs-mule-to-mule-unicode but what originally supported.
+    (let ((coding-list '(mule-utf-8 mule-utf-16-be mule-utf-16-le))
+	  (safe (coding-system-get 'mule-utf-8 'safe-chars)))
+      (dolist (coding coding-list)
+	(set-char-table-parent (coding-system-get coding 'safe-chars) nil))
+      ;; Here we assume that all mule-utf-* have the same character
+      ;; repertory, thus we can use SAFE for all of them.
       (map-char-table
        (lambda (key val)
-	 (if (and (>= key 128) val)
-	     (let ((codings (aref char-coding-system-table key)))
-	       (aset char-coding-system-table key
-		     (delq coding-system codings)))))
-       (char-table-parent safe))
-      (set-char-table-parent safe nil)
-      (coding-system-put coding-system 'translation-table-for-encode nil)
-      (coding-system-put coding-system 'translation-table-for-input nil)))
-  (optimize-char-table char-coding-system-table)
-  (remove-hook 'quail-activate-hook 'ucs-quail-activate)
-  (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup))
+	 (if (and (>= key 128) val
+		  (not (aref safe key)))
+	     (aset char-coding-system-table key
+		   (delq 'mule-utf-8
+			 (delq 'mule-utf-16-le
+			       (delq 'mule-utf-16-be
+				     (aref char-coding-system-table key)))))))
+       ucs-mule-to-mule-unicode)
 
-;;;###autoload
-(define-minor-mode unify-8859-on-encoding-mode
-  "Set up translation tables for unifying ISO 8859 characters on encoding.
+      (define-translation-table 'utf-translation-table-for-encode))
 
-The ISO 8859 characters sets overlap, e.g. 8859-1 (Latin-1) and
-8859-15 (Latin-9) differ only in a few characters.  Emacs normally
-distinguishes equivalent characters from those ISO-8859 character sets
-which are built in to Emacs.  This behaviour is essentially inherited
-from the European-originated international standards.  Treating them
-equivalently, by translating to and from a single representation is
-called `unification'.  (The `utf-8' coding system treats the
-characters of European scripts in a unified manner.)
-
-In this mode, on encoding -- i.e. output operations -- non-ASCII
-characters from the built-in ISO 8859 and `mule-unicode-0100-24ff'
-charsets are handled automatically by the coding system used if it can
-represent them.  Thus, say, an e-acute from the Latin-1 charset (the
-unified representation) in a buffer saved as Latin-9 will be encoded
-directly to a byte value 233.  By default, in contrast, you would be
-prompted for a general coding system to use for saving the file, which
-can cope with separate Latin-1 and Latin-9 representations of e-acute.
-
-Also sets hooks that arrange `translation-table-for-input' to be set
-up locally when Quail input methods are activated.  This will often
-allow input generated by Quail input methods to conform with what the
-buffer's file coding system can encode.  Thus you could use a Latin-2
-input method to search for e-acute in a Latin-1 buffer.
-
-See also command `unify-8859-on-decoding-mode'."
-  :group 'mule
-  :global t
-  :init-value nil
-  (if unify-8859-on-encoding-mode
-      (ucs-unify-8859 t)
-    (ucs-fragment-8859 t)))
-
-(custom-add-version 'unify-8859-on-encoding-mode "21.3") ; who knows?
-
-;;;###autoload
-(define-minor-mode unify-8859-on-decoding-mode
-  "Set up translation tables for unifying ISO 8859 characters on decoding.
-On decoding, i.e. input operations, non-ASCII characters from the
-built-in ISO 8859 charsets are unified by mapping them into the
-`iso-latin-1' and `mule-unicode-0100-24ff' charsets.
-
-Also sets `translation-table-for-input' globally, so that Quail input
-methods produce unified characters.
-
-See also command `unify-8859-on-encoding-mode' and the user option
-`utf-8-fragment-on-decoding'."
-  :group 'mule
-  :global t
-  :init-value nil
-  (if unify-8859-on-decoding-mode
-      (ucs-unify-8859)
-    (ucs-fragment-8859)))
-
-(custom-add-dependencies 'unify-8859-on-decoding-mode
-			 '(utf-8-fragment-on-decoding))
-(custom-add-version 'unify-8859-on-decoding-mode "21.3") ; who knows?
+    ;; For each charset, remove the entries in
+    ;; `char-coding-system-table' added to its safe-chars table (as
+    ;; its parent).
+    (dolist (n '(1 2 3 4 5 7 8 9 14 15))
+      (let* ((coding-system
+	      (coding-system-base (intern (format "iso-8859-%d" n))))
+	     (table (symbol-value
+		     (intern (format "ucs-8859-%d-encode-table" n))))
+	     (safe (coding-system-get coding-system 'safe-chars)))
+	(when (char-table-parent safe)
+	  (map-char-table
+	   (lambda (key val)
+	     (if (and (>= key 128) val)
+		 (let ((codings (aref char-coding-system-table key)))
+		   (aset char-coding-system-table key
+			 (delq coding-system codings)))))
+	   (char-table-parent safe))
+	  (set-char-table-parent safe nil))
+	(coding-system-put coding-system 'translation-table-for-encode nil)
+	(coding-system-put coding-system 'translation-table-for-input nil)))
+    (optimize-char-table char-coding-system-table)
+    (remove-hook 'quail-activate-hook 'ucs-quail-activate)
+    (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
 
 (defun ucs-insert (arg)
   "Insert the Emacs character representation of the given Unicode.
@@ -1284,7 +1266,8 @@ Interactively, prompts for a hex string giving the code."
 ;; We only set up translation on encoding to utf-8.  Also translation
 ;; tables ucs-CS-encode-table are constructed for some coding systems
 ;; CS which could be used as `translation-table-for-encode', currently
-;; for in-is13194, lao, thai, tibetan-iso-8bit and vietnamese-viscii.
+;; for indian-is13194, lao, thai, tibetan-iso-8bit and
+;; vietnamese-viscii.
 
 ;; The alists here cover both coding systems (external charsets), like
 ;; VISCII, and individual Emacs charsets, like `ipa'.
@@ -2119,91 +2102,90 @@ Interactively, prompts for a hex string giving the code."
 	 (?$(3%$(B . ?$,1Q;(B)
 	 (?$(3%%(B . ?$,1Q<(B)))
 
-;; Uses post-21.1 definitions.
-;;       (in-is13194
-;;        '((?(5!(B . ?$,15A(B)
-;; 	 (?(5"(B . ?$,15B(B)
-;; 	 (?(5#(B . ?$,15C(B)
-;; 	 (?(5$(B . ?$,15E(B)
-;; 	 (?(5%(B . ?$,15F(B)
-;; 	 (?(5&(B . ?$,15G(B)
-;; 	 (?(5'(B . ?$,15H(B)
-;; 	 (?(5((B . ?$,15I(B)
-;; 	 (?(5)(B . ?$,15J(B)
-;; 	 (?(5*(B . ?$,15K(B)
-;; 	 (?(5+(B . ?$,15N(B)
-;; 	 (?(5,(B . ?$,15O(B)
-;; 	 (?(5-(B . ?$,15P(B)
-;; 	 (?(5.(B . ?$,15M(B)
-;; 	 (?(5/(B . ?$,15R(B)
-;; 	 (?(50(B . ?$,15S(B)
-;; 	 (?(51(B . ?$,15T(B)
-;; 	 (?(52(B . ?$,15M(B)
-;; 	 (?(53(B . ?$,15U(B)
-;; 	 (?(54(B . ?$,15V(B)
-;; 	 (?(55(B . ?$,15W(B)
-;; 	 (?(56(B . ?$,15X(B)
-;; 	 (?(57(B . ?$,15Y(B)
-;; 	 (?(58(B . ?$,15Z(B)
-;; 	 (?(59(B . ?$,15[(B)
-;; 	 (?(5:(B . ?$,15\(B)
-;; 	 (?(5;(B . ?$,15](B)
-;; 	 (?(5<(B . ?$,15^(B)
-;; 	 (?(5=(B . ?$,15_(B)
-;; 	 (?(5>(B . ?$,15`(B)
-;; 	 (?(5?(B . ?$,15a(B)
-;; 	 (?(5@(B . ?$,15b(B)
-;; 	 (?(5A(B . ?$,15c(B)
-;; 	 (?(5B(B . ?$,15d(B)
-;; 	 (?(5C(B . ?$,15e(B)
-;; 	 (?(5D(B . ?$,15f(B)
-;; 	 (?(5E(B . ?$,15g(B)
-;; 	 (?(5F(B . ?$,15h(B)
-;; 	 (?(5G(B . ?$,15i(B)
-;; 	 (?(5H(B . ?$,15j(B)
-;; 	 (?(5I(B . ?$,15k(B)
-;; 	 (?(5J(B . ?$,15l(B)
-;; 	 (?(5K(B . ?$,15m(B)
-;; 	 (?(5L(B . ?$,15n(B)
-;; 	 (?(5M(B . ?$,15o(B)
-;; 	 (?(5N(B . ?$,16?(B)
-;; 	 (?(5O(B . ?$,15p(B)
-;; 	 (?(5P(B . ?$,15q(B)
-;; 	 (?(5Q(B . ?$,15r(B)
-;; 	 (?(5R(B . ?$,15s(B)
-;; 	 (?(5S(B . ?$,15t(B)
-;; 	 (?(5T(B . ?$,15u(B)
-;; 	 (?(5U(B . ?$,15v(B)
-;; 	 (?(5V(B . ?$,15w(B)
-;; 	 (?(5W(B . ?$,15x(B)
-;; 	 (?(5X(B . ?$,15y(B)
-;; 	 (?(5Z(B . ?$,15~(B)
-;; 	 (?(5[(B . ?$,15(B)
-;; 	 (?(5\(B . ?$,16 (B)
-;; 	 (?(5](B . ?$,16!(B)
-;; 	 (?(5^(B . ?$,16"(B)
-;; 	 (?(5_(B . ?$,16#(B)
-;; 	 (?(5`(B . ?$,16&(B)
-;; 	 (?(5a(B . ?$,16'(B)
-;; 	 (?(5b(B . ?$,16((B)
-;; 	 (?(5c(B . ?$,16%(B)
-;; 	 (?(5d(B . ?$,16*(B)
-;; 	 (?(5e(B . ?$,16+(B)
-;; 	 (?(5f(B . ?$,16,(B)
-;; 	 (?(5g(B . ?$,16)(B)
-;; 	 (?(5h(B . ?$,16-(B)
-;; 	 (?(5i(B . ?$,15|(B)
-;; 	 (?(5j(B . ?$,16D(B)
-;; 	 (?(5q(B . ?$,16F(B)
-;; 	 (?(5r(B . ?$,16G(B)
-;; 	 (?(5s(B . ?$,16H(B)
-;; 	 (?(5t(B . ?$,16I(B)
-;; 	 (?(5u(B . ?$,16J(B)
-;; 	 (?(5v(B . ?$,16K(B)
-;; 	 (?(5w(B . ?$,16L(B)
-;; 	 (?(5x(B . ?$,16M(B)
-;; 	 (?(5y(B . ?$,16N(B)
-;; 	 (?(5z(B . ?$,16O(B)))
+      (indian-is13194
+       '((?(5!(B . ?$,15A(B)
+	 (?(5"(B . ?$,15B(B)
+	 (?(5#(B . ?$,15C(B)
+	 (?(5$(B . ?$,15E(B)
+	 (?(5%(B . ?$,15F(B)
+	 (?(5&(B . ?$,15G(B)
+	 (?(5'(B . ?$,15H(B)
+	 (?(5((B . ?$,15I(B)
+	 (?(5)(B . ?$,15J(B)
+	 (?(5*(B . ?$,15K(B)
+	 (?(5+(B . ?$,15N(B)
+	 (?(5,(B . ?$,15O(B)
+	 (?(5-(B . ?$,15P(B)
+	 (?(5.(B . ?$,15M(B)
+	 (?(5/(B . ?$,15R(B)
+	 (?(50(B . ?$,15S(B)
+	 (?(51(B . ?$,15T(B)
+	 (?(52(B . ?$,15M(B)
+	 (?(53(B . ?$,15U(B)
+	 (?(54(B . ?$,15V(B)
+	 (?(55(B . ?$,15W(B)
+	 (?(56(B . ?$,15X(B)
+	 (?(57(B . ?$,15Y(B)
+	 (?(58(B . ?$,15Z(B)
+	 (?(59(B . ?$,15[(B)
+	 (?(5:(B . ?$,15\(B)
+	 (?(5;(B . ?$,15](B)
+	 (?(5<(B . ?$,15^(B)
+	 (?(5=(B . ?$,15_(B)
+	 (?(5>(B . ?$,15`(B)
+	 (?(5?(B . ?$,15a(B)
+	 (?(5@(B . ?$,15b(B)
+	 (?(5A(B . ?$,15c(B)
+	 (?(5B(B . ?$,15d(B)
+	 (?(5C(B . ?$,15e(B)
+	 (?(5D(B . ?$,15f(B)
+	 (?(5E(B . ?$,15g(B)
+	 (?(5F(B . ?$,15h(B)
+	 (?(5G(B . ?$,15i(B)
+	 (?(5H(B . ?$,15j(B)
+	 (?(5I(B . ?$,15k(B)
+	 (?(5J(B . ?$,15l(B)
+	 (?(5K(B . ?$,15m(B)
+	 (?(5L(B . ?$,15n(B)
+	 (?(5M(B . ?$,15o(B)
+	 (?(5N(B . ?$,16?(B)
+	 (?(5O(B . ?$,15p(B)
+	 (?(5P(B . ?$,15q(B)
+	 (?(5Q(B . ?$,15r(B)
+	 (?(5R(B . ?$,15s(B)
+	 (?(5S(B . ?$,15t(B)
+	 (?(5T(B . ?$,15u(B)
+	 (?(5U(B . ?$,15v(B)
+	 (?(5V(B . ?$,15w(B)
+	 (?(5W(B . ?$,15x(B)
+	 (?(5X(B . ?$,15y(B)
+	 (?(5Z(B . ?$,15~(B)
+	 (?(5[(B . ?$,15(B)
+	 (?(5\(B . ?$,16 (B)
+	 (?(5](B . ?$,16!(B)
+	 (?(5^(B . ?$,16"(B)
+	 (?(5_(B . ?$,16#(B)
+	 (?(5`(B . ?$,16&(B)
+	 (?(5a(B . ?$,16'(B)
+	 (?(5b(B . ?$,16((B)
+	 (?(5c(B . ?$,16%(B)
+	 (?(5d(B . ?$,16*(B)
+	 (?(5e(B . ?$,16+(B)
+	 (?(5f(B . ?$,16,(B)
+	 (?(5g(B . ?$,16)(B)
+	 (?(5h(B . ?$,16-(B)
+	 (?(5i(B . ?$,15|(B)
+	 (?(5j(B . ?$,16D(B)
+	 (?(5q(B . ?$,16F(B)
+	 (?(5r(B . ?$,16G(B)
+	 (?(5s(B . ?$,16H(B)
+	 (?(5t(B . ?$,16I(B)
+	 (?(5u(B . ?$,16J(B)
+	 (?(5v(B . ?$,16K(B)
+	 (?(5w(B . ?$,16L(B)
+	 (?(5x(B . ?$,16M(B)
+	 (?(5y(B . ?$,16N(B)
+	 (?(5z(B . ?$,16O(B)))
 
       (katakana-jisx0201
        '((?(I!(B . ?$,3sa(B)
@@ -2413,8 +2395,7 @@ Interactively, prompts for a hex string giving the code."
 	safe-charsets)
     (dolist (cs '(vietnamese-viscii lao chinese-sisheng ipa
 		  katakana-jisx0201 thai-tis620 tibetan-iso-8bit
-		  ;; in-is13194
-		  ethiopic))
+		  indian-is13194 ethiopic))
       ;; These tables could be used as translation-table-for-encode by
       ;; the relevant coding systems.
       (let ((encode-translator
@@ -2441,21 +2422,80 @@ Interactively, prompts for a hex string giving the code."
 				  encode-translator))
 	      ((memq cs '(lao thai-tis620 tibetan-iso-8bit))
 	       (coding-system-put cs 'translation-table-for-input cs)))))
-    (optimize-char-table ucs-mule-to-mule-unicode)
     (dolist (c safe-charsets)
       (aset table (make-char c) t))))
 
-(defvar translation-table-for-input (make-translation-table))
+(define-minor-mode unify-8859-on-encoding-mode
+  "Set up translation-tables for unifying ISO 8859 characters on encoding.
 
-;; Arrange to set up the translation table for Quail.  This probably
+The ISO 8859 characters sets overlap, e.g. 8859-1 (Latin-1) and
+8859-15 (Latin-9) differ only in a few characters.  Emacs normally
+distinguishes equivalent characters from those ISO-8859 character sets
+which are built in to Emacs.  This behaviour is essentially inherited
+from the European-originated international standards.  Treating them
+equivalently, by translating to and from a single representation is
+called `unification'.  (The `utf-8' coding system treats the
+characters of European scripts in a unified manner.)
+
+In this mode, on encoding -- i.e. output operations -- non-ASCII
+characters from the built-in ISO 8859 and `mule-unicode-0100-24ff'
+charsets are handled automatically by the coding system used if it can
+represent them.  Thus, say, an e-acute from the Latin-1 charset (the
+unified representation) in a buffer saved as Latin-9 will be encoded
+directly to a byte value 233.  By default, in contrast, you would be
+prompted for a general coding system to use for saving the file, which
+can cope with separate Latin-1 and Latin-9 representations of e-acute.
+
+Also sets hooks that arrange `translation-table-for-input' to be set
+up locally when Quail input methods are activated.  This will often
+allow input generated by Quail input methods to conform with what the
+buffer's file coding system can encode.  Thus you could use a Latin-2
+input method to search for e-acute in a Latin-1 buffer.
+
+See also command `unify-8859-on-decoding-mode'."
+  :group 'mule
+  :global t
+  :init-value t
+  (if unify-8859-on-encoding-mode
+      (ucs-unify-8859 t nil)
+    (ucs-fragment-8859 t nil)))
+
+(custom-add-version 'unify-8859-on-encoding-mode "21.3")
+
+(define-minor-mode unify-8859-on-decoding-mode
+  "Set up translation-tables for unifying ISO 8859 characters on decoding.
+On decoding, i.e. input operations, non-ASCII characters from the
+built-in ISO 8859 charsets are unified by mapping them into the
+`iso-latin-1' and `mule-unicode-0100-24ff' charsets.
+
+Also sets `translation-table-for-input' globally, so that Quail input
+methods produce unified characters.
+
+See also command `unify-8859-on-encoding-mode'."
+  :group 'mule
+  :global t
+  :init-value nil
+  (if unify-8859-on-decoding-mode
+      (ucs-unify-8859 nil t)
+    (ucs-fragment-8859 nil t)))
+
+(custom-add-version 'unify-8859-on-decoding-mode "21.3")
+
+;; Synchronize the status with the initial value of
+;; unify-8859-on-encoding-mode and unify-8859-on-decoding-mode.
+(ucs-unify-8859 t nil)
+
+;; Arrange to set up the translation-table for Quail.  This probably
 ;; isn't foolproof.
 (defun ucs-quail-activate ()
   "Set up an appropriate `translation-table-for-input' for current buffer.
 Intended to be added to `quail-activate-hook'."
-  (let ((cs (coding-system-base buffer-file-coding-system)))
+  (let ((cs (and buffer-file-coding-system
+		 (coding-system-base buffer-file-coding-system))))
     (if (eq cs 'undecided)
-	(setq cs (coding-system-base default-buffer-file-coding-system)))
-    (if (coding-system-get cs 'translation-table-for-input)
+	(setq cs (and default-buffer-file-coding-system
+		      (coding-system-base default-buffer-file-coding-system))))
+    (if (and cs (coding-system-get cs 'translation-table-for-input))
 	(set (make-variable-buffer-local 'translation-table-for-input)
 	     (coding-system-get cs 'translation-table-for-input)))))
 
@@ -2463,135 +2503,10 @@ Intended to be added to `quail-activate-hook'."
 ;; the above to work in it.
 (defun ucs-minibuffer-setup ()
   "Set up an appropriate `buffer-file-coding-system' for current buffer.
-Does so by inheriting it from the cadr of the current buffer list.
 Intended to be added to `minibuffer-setup-hook'."
   (set (make-local-variable 'buffer-file-coding-system)
        (with-current-buffer (cadr (buffer-list))
 	 buffer-file-coding-system)))
-
-;; Modified to allow display of arbitrary characters with an
-;; iso-10646-encoded (`Unicode') font.
-(define-ccl-program ccl-encode-unicode-font
-  `(0
-    ((if (r0 == ,(charset-id 'ascii))
-	 ((r2 = r1)
-	  (r1 = 0))
-       (
-	;; Look for a translation for non-ASCII chars.  For a 2D
-	;; charset, produce a single code for the translation.
-	;; Official 2D sets are in the charset id range [#x90,#x99],
-	;; private ones in the range [#xf0,#xfe] (with #xff not used).
-	;; Fixme: Is there a better way to do this?
-	(r3 = (r0 >= #x90))
-	(r3 &= (r0 <= #x99))
-	(r3 |= (r0 >= #xf0))
-	(if r3				; 2D input
-	    (r1 = ((r1 << 7) | r2)))
-	(translate-character ucs-mule-to-mule-unicode r0 r1)
-	(r3 = (r0 >= #x90))
-	(r3 &= (r0 <= #x99))
-	(r3 |= (r0 >= #xf0))
-	(if r3 				; 2D translation
-	    ((r2 = (r1 & 127))
-	     (r1 = (r1 >> 7))))
-	(if (r0 == ,(charset-id 'latin-iso8859-1))
-	    ((r2 = (r1 + 128))
-	     (r1 = 0))
-	  (if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
-	      ((r1 *= 96)
-	       (r1 += r2)
-	       (r1 += ,(- #x100 (* 32 96) 32))
-	       (r1 >8= 0)
-	       (r2 = r7))
-	    (if (r0 == ,(charset-id 'mule-unicode-2500-33ff))
-		((r1 *= 96)
-		 (r1 += r2)
-		 (r1 += ,(- #x2500 (* 32 96) 32))
-		 (r1 >8= 0)
-		 (r2 = r7))
-	      (if (r0 == ,(charset-id 'mule-unicode-e000-ffff))
-		  ((r1 *= 96)
-		   (r1 += r2)
-		   (r1 += ,(- #xe000 (* 32 96) 32))
-		   (r1 >8= 0)
-		   (r2 = r7))))))))))
-  "Encode characters for display with iso10646 font.
-Translate through table `ucs-mule-to-mule-unicode' initially.")
-
-;; Redefinitions of the versions in mule.el to take into account
-;; relevant translation tables.
-
-(defun decode-char (ccs code-point &optional restriction)
-  "Return character specified by coded character set CCS and CODE-POINT in it.
-Return nil if such a character is not supported.
-Currently the only supported coded character set is `ucs' (ISO/IEC
-10646: Universal Multi-Octet Coded Character Set), and the result is
-translated through the char table `utf-8-translation-table-for-decode'.
-
-Optional argument RESTRICTION specifies a way to map the pair of CCS
-and CODE-POINT to a character.  Currently not supported and just ignored."
-  (cond
-   ((eq ccs 'ucs)
-    (let ((c (cond
-	      ((< code-point 160)
-	       code-point)
-	      ((< code-point 256)
-	       (make-char 'latin-iso8859-1 code-point))
-	      ((< code-point #x2500)
-	       (setq code-point (- code-point #x0100))
-	       (make-char 'mule-unicode-0100-24ff
-			  (+ (/ code-point 96) 32) (+ (% code-point 96) 32)))
-	      ((< code-point #x3400)
-	       (setq code-point (- code-point #x2500))
-	       (make-char 'mule-unicode-2500-33ff
-			  (+ (/ code-point 96) 32) (+ (% code-point 96) 32)))
-	      ((and (>= code-point #xe000) (< code-point #x10000))
-	       (setq code-point (- code-point #xe000))
-	       (make-char 'mule-unicode-e000-ffff
-			  (+ (/ code-point 96) 32) (+ (% code-point 96) 32))))))
-      (if (and c (aref utf-8-translation-table-for-decode c))
-	  (aref utf-8-translation-table-for-decode c)
-	c)))))
-
-(defun encode-char (char ccs &optional restriction)
-  "Return code-point in coded character set CCS that corresponds to CHAR.
-Return nil if CHAR is not included in CCS.
-Currently the only supported coded character set is `ucs' (ISO/IEC
-10646: Universal Multi-Octet Coded Character Set), and CHAR is first
-translated through the char-table `ucs-mule-to-mule-unicode'.
-
-CHAR should be in one of these charsets:
-  ascii, latin-iso8859-1, mule-unicode-0100-24ff, mule-unicode-2500-33ff,
-  mule-unicode-e000-ffff, eight-bit-control
-Otherwise, return nil.
-
-Optional argument RESTRICTION specifies a way to map CHAR to a
-code-point in CCS.  Currently not supported and just ignored."
-  (let* ((split (split-char char))
-	 (charset (car split))
-	 trans)
-    (cond ((eq ccs 'ucs)
-	   (setq trans (aref ucs-mule-to-mule-unicode char))
-	   (if trans
-	       (setq split (split-char trans)
-		     charset (car split)))
-	   (cond ((eq charset 'ascii)
-		  char)
-		 ((eq charset 'latin-iso8859-1)
-		  (+ (nth 1 split) 128))
-		 ((eq charset 'mule-unicode-0100-24ff)
-		  (+ #x0100 (+ (* (- (nth 1 split) 32) 96)
-			       (- (nth 2 split) 32))))
-		 ((eq charset 'mule-unicode-2500-33ff)
-		  (+ #x2500 (+ (* (- (nth 1 split) 32) 96)
-			       (- (nth 2 split) 32))))
-		 ((eq charset 'mule-unicode-e000-ffff)
-		  (+ #xe000 (+ (* (- (nth 1 split) 32) 96)
-			       (- (nth 2 split) 32))))
-		 ((eq charset 'eight-bit-control)
-		  char))))))
-
-(defalias 'ucs-tables-unload-hook 'ucs-fragment-8859)
 
 (provide 'ucs-tables)
 
