@@ -216,6 +216,9 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii)
  retry:
   val = read_char (0, 0, 0, Qnil, 0);
 
+  if (XTYPE (val) == Lisp_Buffer)
+    goto retry;
+
   /* switch-frame events are put off until after the next ASCII
      character.  This is better than signalling an error just because
      the last characters were typed to a separate minibuffer frame,
