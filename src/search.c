@@ -38,6 +38,8 @@ struct regexp_cache {
   Lisp_Object regexp;
   struct re_pattern_buffer buf;
   char fastmap[0400];
+  /* Nonzero means regexp was compiled to do full POSIX backtracking.  */
+  char posix;
 };
 
 /* The instances of that struct.  */
@@ -77,6 +79,8 @@ Lisp_Object Qinvalid_regexp;
 
 static void set_search_regs ();
 
+static int search_buffer ();
+
 static void
 matcher_overflow ()
 {
@@ -89,22 +93,37 @@ matcher_overflow ()
 #define CONST
 #endif
 
-/* Compile a regexp and signal a Lisp error if anything goes wrong.  */
+/* Compile a regexp and signal a Lisp error if anything goes wrong.
+   PATTERN is the pattern to compile.
+   CP is the place to put the result.
+   TRANSLATE is a translation table for ignoring case, or NULL for none.
+   REGP is the structure that says where to store the "register"
+   values that will result from matching this pattern.
+   If it is 0, we should compile the pattern not to record any
+   subexpression bounds.
+   POSIX is nonzero if we want full backtracking (POSIX style)
+   for this pattern.  0 means backtrack only enough to get a valid match.  */
 
 static void
-compile_pattern_1 (cp, pattern, translate, regp)
+compile_pattern_1 (cp, pattern, translate, regp, posix)
      struct regexp_cache *cp;
      Lisp_Object pattern;
      char *translate;
      struct re_registers *regp;
+     int posix;
 {
   CONST char *val;
+  reg_syntax_t old;
 
   cp->regexp = Qnil;
   cp->buf.translate = translate;
+  cp->posix = posix;
   BLOCK_INPUT;
+  old = re_set_syntax (RE_SYNTAX_EMACS
+		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
   val = (CONST char *) re_compile_pattern ((char *) XSTRING (pattern)->data,
 					   XSTRING (pattern)->size, &cp->buf);
+  re_set_syntax (old);
   UNBLOCK_INPUT;
   if (val)
     Fsignal (Qinvalid_regexp, Fcons (build_string (val), Qnil));
@@ -120,13 +139,22 @@ compile_pattern_1 (cp, pattern, translate, regp)
 }
 
 /* Compile a regexp if necessary, but first check to see if there's one in
-   the cache.  */
+   the cache.
+   PATTERN is the pattern to compile.
+   TRANSLATE is a translation table for ignoring case, or NULL for none.
+   REGP is the structure that says where to store the "register"
+   values that will result from matching this pattern.
+   If it is 0, we should compile the pattern not to record any
+   subexpression bounds.
+   POSIX is nonzero if we want full backtracking (POSIX style)
+   for this pattern.  0 means backtrack only enough to get a valid match.  */
 
 struct re_pattern_buffer *
-compile_pattern (pattern, regp, translate)
+compile_pattern (pattern, regp, translate, posix)
      Lisp_Object pattern;
      struct re_registers *regp;
      char *translate;
+     int posix;
 {
   struct regexp_cache *cp, **cpp;
 
@@ -134,13 +162,14 @@ compile_pattern (pattern, regp, translate)
     {
       cp = *cpp;
       if (!NILP (Fstring_equal (cp->regexp, pattern))
-	  && cp->buf.translate == translate)
+	  && cp->buf.translate == translate
+	  && cp->posix == posix)
 	break;
 
       /* If we're at the end of the cache, compile into the last cell.  */
       if (cp->next == 0)
 	{
-	  compile_pattern_1 (cp, pattern, translate, regp);
+	  compile_pattern_1 (cp, pattern, translate, regp, posix);
 	  break;
 	}
     }
@@ -166,13 +195,10 @@ signal_failure (arg)
   return Qnil;
 }
 
-DEFUN ("looking-at", Flooking_at, Slooking_at, 1, 1, 0,
-  "Return t if text after point matches regular expression PAT.\n\
-This function modifies the match data that `match-beginning',\n\
-`match-end' and `match-data' access; save and restore the match\n\
-data if you want to preserve them.")
-  (string)
+static Lisp_Object
+looking_at_1 (string, posix)
      Lisp_Object string;
+     int posix;
 {
   Lisp_Object val;
   unsigned char *p1, *p2;
@@ -183,7 +209,8 @@ data if you want to preserve them.")
   CHECK_STRING (string, 0);
   bufp = compile_pattern (string, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
-			   ? DOWNCASE_TABLE : 0));
+			   ? DOWNCASE_TABLE : 0),
+			  posix);
 
   immediate_quit = 1;
   QUIT;			/* Do a pending quit right away, to avoid paradoxical behavior */
@@ -225,14 +252,33 @@ data if you want to preserve them.")
   return val;
 }
 
-DEFUN ("string-match", Fstring_match, Sstring_match, 2, 3, 0,
-  "Return index of start of first match for REGEXP in STRING, or nil.\n\
-If third arg START is non-nil, start search at that index in STRING.\n\
-For index of first char beyond the match, do (match-end 0).\n\
-`match-end' and `match-beginning' also give indices of substrings\n\
-matched by parenthesis constructs in the pattern.")
-  (regexp, string, start)
+DEFUN ("looking-at", Flooking_at, Slooking_at, 1, 1, 0,
+  "Return t if text after point matches regular expression PAT.\n\
+This function modifies the match data that `match-beginning',\n\
+`match-end' and `match-data' access; save and restore the match\n\
+data if you want to preserve them.")
+  (string)
+     Lisp_Object string;
+{
+  return looking_at_1 (string, 0);
+}
+
+DEFUN ("posix-looking-at", Fposix_looking_at, Sposix_looking_at, 1, 1, 0,
+  "Return t if text after point matches regular expression PAT.\n\
+Find the longest match, in accord with Posix regular expression rules.\n\
+This function modifies the match data that `match-beginning',\n\
+`match-end' and `match-data' access; save and restore the match\n\
+data if you want to preserve them.")
+  (string)
+     Lisp_Object string;
+{
+  return looking_at_1 (string, 1);
+}
+
+static Lisp_Object
+string_match_1 (regexp, string, start, posix)
      Lisp_Object regexp, string, start;
+     int posix;
 {
   int val;
   int s;
@@ -257,7 +303,8 @@ matched by parenthesis constructs in the pattern.")
 
   bufp = compile_pattern (regexp, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
-			   ? DOWNCASE_TABLE : 0));
+			   ? DOWNCASE_TABLE : 0),
+			  0);
   immediate_quit = 1;
   val = re_search (bufp, (char *) XSTRING (string)->data,
 		   XSTRING (string)->size, s, XSTRING (string)->size - s,
@@ -268,6 +315,31 @@ matched by parenthesis constructs in the pattern.")
     matcher_overflow ();
   if (val < 0) return Qnil;
   return make_number (val);
+}
+
+DEFUN ("string-match", Fstring_match, Sstring_match, 2, 3, 0,
+  "Return index of start of first match for REGEXP in STRING, or nil.\n\
+If third arg START is non-nil, start search at that index in STRING.\n\
+For index of first char beyond the match, do (match-end 0).\n\
+`match-end' and `match-beginning' also give indices of substrings\n\
+matched by parenthesis constructs in the pattern.")
+  (regexp, string, start)
+     Lisp_Object regexp, string, start;
+{
+  return string_match_1 (regexp, string, start, 0);
+}
+
+DEFUN ("posix-string-match", Fposix_string_match, Sposix_string_match, 2, 3, 0,
+  "Return index of start of first match for REGEXP in STRING, or nil.\n\
+Find the longest match, in accord with Posix regular expression rules.\n\
+If third arg START is non-nil, start search at that index in STRING.\n\
+For index of first char beyond the match, do (match-end 0).\n\
+`match-end' and `match-beginning' also give indices of substrings\n\
+matched by parenthesis constructs in the pattern.")
+  (regexp, string, start)
+     Lisp_Object regexp, string, start;
+{
+  return string_match_1 (regexp, string, start, 1);
 }
 
 /* Match REGEXP against STRING, searching all of STRING,
@@ -281,7 +353,7 @@ fast_string_match (regexp, string)
   int val;
   struct re_pattern_buffer *bufp;
 
-  bufp = compile_pattern (regexp, 0, 0);
+  bufp = compile_pattern (regexp, 0, 0, 0);
   immediate_quit = 1;
   val = re_search (bufp, (char *) XSTRING (string)->data,
 		   XSTRING (string)->size, 0, XSTRING (string)->size,
@@ -725,10 +797,11 @@ skip_chars (forwardp, syntaxp, string, lim)
 /* Subroutines of Lisp buffer search functions. */
 
 static Lisp_Object
-search_command (string, bound, noerror, count, direction, RE)
+search_command (string, bound, noerror, count, direction, RE, posix)
      Lisp_Object string, bound, noerror, count;
      int direction;
      int RE;
+     int posix;
 {
   register int np;
   int lim;
@@ -759,7 +832,8 @@ search_command (string, bound, noerror, count, direction, RE)
 		      (!NILP (current_buffer->case_fold_search)
 		       ? XSTRING (current_buffer->case_canon_table)->data : 0),
 		      (!NILP (current_buffer->case_fold_search)
-		       ? XSTRING (current_buffer->case_eqv_table)->data : 0));
+		       ? XSTRING (current_buffer->case_eqv_table)->data : 0),
+		      posix);
   if (np <= 0)
     {
       if (NILP (noerror))
@@ -818,7 +892,7 @@ trivial_regexp_p (regexp)
 
 /* Search for the n'th occurrence of STRING in the current buffer,
    starting at position POS and stopping at position LIM,
-   treating PAT as a literal string if RE is false or as
+   treating STRING as a literal string if RE is false or as
    a regular expression if RE is true.
 
    If N is positive, searching is forward and LIM must be greater than POS.
@@ -826,9 +900,13 @@ trivial_regexp_p (regexp)
 
    Returns -x if only N-x occurrences found (x > 0),
    or else the position at the beginning of the Nth occurrence
-   (if searching backward) or the end (if searching forward).  */
+   (if searching backward) or the end (if searching forward).
 
-search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
+   POSIX is nonzero if we want full backtracking (POSIX style)
+   for this pattern.  0 means backtrack only enough to get a valid match.  */
+
+static int
+search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
      Lisp_Object string;
      int pos;
      int lim;
@@ -836,6 +914,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
      int RE;
      register unsigned char *trt;
      register unsigned char *inverse_trt;
+     int posix;
 {
   int len = XSTRING (string)->size;
   unsigned char *base_pat = XSTRING (string)->data;
@@ -864,7 +943,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
     {
       struct re_pattern_buffer *bufp;
 
-      bufp = compile_pattern (string, &search_regs, (char *) trt);
+      bufp = compile_pattern (string, &search_regs, (char *) trt, posix);
 
       immediate_quit = 1;	/* Quit immediately if user types ^G,
 				   because letting this function finish
@@ -1296,7 +1375,7 @@ See also the functions `match-beginning', `match-end' and `replace-match'.")
   (string, bound, noerror, count)
      Lisp_Object string, bound, noerror, count;
 {
-  return search_command (string, bound, noerror, count, -1, 0);
+  return search_command (string, bound, noerror, count, -1, 0, 0);
 }
 
 DEFUN ("search-forward", Fsearch_forward, Ssearch_forward, 1, 4, "sSearch: ",
@@ -1312,7 +1391,7 @@ See also the functions `match-beginning', `match-end' and `replace-match'.")
   (string, bound, noerror, count)
      Lisp_Object string, bound, noerror, count;
 {
-  return search_command (string, bound, noerror, count, 1, 0);
+  return search_command (string, bound, noerror, count, 1, 0, 0);
 }
 
 DEFUN ("word-search-backward", Fword_search_backward, Sword_search_backward, 1, 4,
@@ -1327,7 +1406,7 @@ Optional fourth argument is repeat count--search for successive occurrences.")
   (string, bound, noerror, count)
      Lisp_Object string, bound, noerror, count;
 {
-  return search_command (wordify (string), bound, noerror, count, -1, 1);
+  return search_command (wordify (string), bound, noerror, count, -1, 1, 0);
 }
 
 DEFUN ("word-search-forward", Fword_search_forward, Sword_search_forward, 1, 4,
@@ -1342,7 +1421,7 @@ Optional fourth argument is repeat count--search for successive occurrences.")
   (string, bound, noerror, count)
      Lisp_Object string, bound, noerror, count;
 {
-  return search_command (wordify (string), bound, noerror, count, 1, 1);
+  return search_command (wordify (string), bound, noerror, count, 1, 1, 0);
 }
 
 DEFUN ("re-search-backward", Fre_search_backward, Sre_search_backward, 1, 4,
@@ -1360,7 +1439,7 @@ See also the functions `match-beginning', `match-end' and `replace-match'.")
   (regexp, bound, noerror, count)
      Lisp_Object regexp, bound, noerror, count;
 {
-  return search_command (regexp, bound, noerror, count, -1, 1);
+  return search_command (regexp, bound, noerror, count, -1, 1, 0);
 }
 
 DEFUN ("re-search-forward", Fre_search_forward, Sre_search_forward, 1, 4,
@@ -1376,7 +1455,43 @@ See also the functions `match-beginning', `match-end' and `replace-match'.")
   (regexp, bound, noerror, count)
      Lisp_Object regexp, bound, noerror, count;
 {
-  return search_command (regexp, bound, noerror, count, 1, 1);
+  return search_command (regexp, bound, noerror, count, 1, 1, 0);
+}
+
+DEFUN ("posix-search-backward", Fposix_search_backward, Sposix_search_backward, 1, 4,
+  "sPosix search backward: ",
+  "Search backward from point for match for regular expression REGEXP.\n\
+Find the longest match in accord with Posix regular expression rules.\n\
+Set point to the beginning of the match, and return point.\n\
+The match found is the one starting last in the buffer\n\
+and yet ending before the origin of the search.\n\
+An optional second argument bounds the search; it is a buffer position.\n\
+The match found must start at or after that position.\n\
+Optional third argument, if t, means if fail just return nil (no error).\n\
+  If not nil and not t, move to limit of search and return nil.\n\
+Optional fourth argument is repeat count--search for successive occurrences.\n\
+See also the functions `match-beginning', `match-end' and `replace-match'.")
+  (regexp, bound, noerror, count)
+     Lisp_Object regexp, bound, noerror, count;
+{
+  return search_command (regexp, bound, noerror, count, -1, 1, 1);
+}
+
+DEFUN ("posix-search-forward", Fposix_search_forward, Sposix_search_forward, 1, 4,
+  "sPosix search: ",
+  "Search forward from point for regular expression REGEXP.\n\
+Find the longest match in accord with Posix regular expression rules.\n\
+Set point to the end of the occurrence found, and return point.\n\
+An optional second argument bounds the search; it is a buffer position.\n\
+The match found must not extend after that position.\n\
+Optional third argument, if t, means if fail just return nil (no error).\n\
+  If not nil and not t, move to limit of search and return nil.\n\
+Optional fourth argument is repeat count--search for successive occurrences.\n\
+See also the functions `match-beginning', `match-end' and `replace-match'.")
+  (regexp, bound, noerror, count)
+     Lisp_Object regexp, bound, noerror, count;
+{
+  return search_command (regexp, bound, noerror, count, 1, 1, 1);
 }
 
 DEFUN ("replace-match", Freplace_match, Sreplace_match, 1, 4, 0,
@@ -1865,8 +1980,10 @@ syms_of_search ()
   last_thing_searched = Qnil;
   staticpro (&last_thing_searched);
 
-  defsubr (&Sstring_match);
   defsubr (&Slooking_at);
+  defsubr (&Sposix_looking_at);
+  defsubr (&Sstring_match);
+  defsubr (&Sposix_string_match);
   defsubr (&Sskip_chars_forward);
   defsubr (&Sskip_chars_backward);
   defsubr (&Sskip_syntax_forward);
@@ -1877,6 +1994,8 @@ syms_of_search ()
   defsubr (&Sword_search_backward);
   defsubr (&Sre_search_forward);
   defsubr (&Sre_search_backward);
+  defsubr (&Sposix_search_forward);
+  defsubr (&Sposix_search_backward);
   defsubr (&Sreplace_match);
   defsubr (&Smatch_beginning);
   defsubr (&Smatch_end);
