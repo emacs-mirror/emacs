@@ -2615,73 +2615,49 @@ fringe.
 fringe (on a graphic display) to indicate truncated or continued
 lines, buffer boundaries, overlay arrow, etc.  The fringe bitmaps are
 shared by all frames and windows.  You can redefine the built-in
-fringe bitmaps, and you can define new fringe bitmaps.  However, Emacs
-can handle only 255 different fringe bitmaps.
+fringe bitmaps, and you can define new fringe bitmaps.
 
   The way to display a bitmap in the left or right fringes for a given
 line in a window is by specifying the @code{display} property for one
 of the characters that appears in it.  Use a display specification of
 the form @code{(left-fringe @var{bitmap} [@var{face}])} or
 @code{(right-fringe @var{bitmap} [@var{face}])} (@pxref{Display
-Property}).  Here, @var{bitmap} is an integer identifying the bitmap
+Property}).  Here, @var{bitmap} is a symbol identifying the bitmap
 you want, and @var{face} (which is optional) is the name of the face
 whose colors should be used for displaying the bitmap.
-@c ??? Shouldn't the symbol name be used?
 
   These are the symbols identify the standard fringe bitmaps.
-Evaluate @code{(require 'fringe)} to define them.  Each symbol's
-value is an integer that identifies the corresponding bitmap.
+Evaluate @code{(require 'fringe)} to define them.  Fringe bitmap
+symbols have their own name space.
 
 @table @asis
 @item Truncation and continuation line bitmaps:
-@code{left-truncation-fringe-bitmap},
-@code{right-truncation-fringe-bitmap},
-@code{continued-line-fringe-bitmap},
-@code{continuation-line-fringe-bitmap}.
+@code{left-truncation}, @code{right-truncation},
+@code{continued-line}, @code{continuation-line}.
 
 @item Buffer indication bitmaps:
-@code{up-arrow-fringe-bitmap},
-@code{down-arrow-fringe-bitmap},
-@code{top-left-angle-fringe-bitmap},
-@code{top-right-angle-fringe-bitmap},
-@code{bottom-left-angle-fringe-bitmap},
-@code{bottom-right-angle-fringe-bitmap},
-@code{left-bracket-fringe-bitmap},
-@code{right-bracket-fringe-bitmap}.
+@code{up-arrow}, @code{down-arrow},
+@code{top-left-angle}, @code{top-right-angle},
+@code{bottom-left-angle}, @code{bottom-right-angle},
+@code{left-bracket}, @code{right-bracket}.
 
 @item Empty line indication bitmap:
-@code{empty-line-fringe-bitmap}.
+@code{empty-line}.
 
 @item Overlay arrow bitmap:
-@code{overlay-arrow-fringe-bitmap}.
+@code{overlay-arrow}.
 
 @item Bitmaps for displaying the cursor in right fringe:
-@code{filled-box-cursor-fringe-bitmap},
-@code{hollow-box-cursor-fringe-bitmap},
-@code{hollow-square-fringe-bitmap}, @code{bar-cursor-fringe-bitmap},
-@code{hbar-cursor-fringe-bitmap}.
-
-@item Value indicating that no fringe bitmap is present:
-@code{no-fringe-bitmap}.
-@c ??? I don't understand what that means.
-@c ??? Where would you find that value?
-
-@item Value indicating a reference to an undefined bitmap:
-@code{undef-fringe-bitmap}.
-@c ??? I don't understand what that means.
-@c ??? Where would you find that value?
+@code{filled-box-cursor}, @code{hollow-box-cursor}, @code{hollow-square},
+@code{bar-cursor}, @code{hbar-cursor}.
 @end table
 
 @defun fringe-bitmaps-at-pos &optional pos window
 This function returns the fringe bitmaps of the display line
 containing position @var{pos} in window @var{window}.  The return
 value has the form @code{(@var{left} . @var{right})}, where @var{left}
-is a list of fringe bitmap numbers for left fringe, and @var{right} is
-similar for the right fringe.  These bitmap numbers are usually values
-of symbols such as the ones listed above.
-
-@c ??? Why not return a list of symbols that identify the bitmaps?
-@c ??? This is Lisp, not C.
+is the symbol for the fringe bitmap in the left fringe (or @code{nil}
+if no bitmap), and @var{right} is similar for the right fringe.
 
 The value is @code{nil} if @var{pos} is not visible in @var{window}.
 If @var{window} is @code{nil}, that stands for the selected window.
@@ -2692,18 +2668,15 @@ If @var{pos} is @code{nil}, that stands for the value of point in
 @node Customizing Bitmaps
 @section Customizing Fringe Bitmaps
 
-@c ??? Why not pass a symbol as the first argument
-@c ??? and define that symbol.  It would be cleaner.
-
-@defun define-fringe-bitmap bits &optional height width align bitmap
-This function defines a new fringe bitmap, or replaces an existing
-bitmap.
+@defun define-fringe-bitmap bitmap bits &optional height width align
+This function defines the symbol @var{bitmap} as a new fringe bitmap,
+or replaces an existing bitmap with that name.
 
 The argument @var{bits} specifies the image to use.  It should be
 either a string or a vector of integers, where each element (an
 integer) corresponds to one row of the bitmap.  Each bit of an integer
-corresponds to one pixel of the bitmap.
-@c ??? Is the low bit the leftmost or the rightmost bit?
+corresponds to one pixel of the bitmap, where the low bit corresponds
+to the rightmost pixel of the bitmap.
 
 The height is normally the length of @var{bits}.  However, you
 can specify a different height with non-@code{nil} @var{height}.  The width
@@ -2721,14 +2694,11 @@ If @var{periodic} is non-@code{nil}, it specifies that the rows in
 @code{bits} should be repeated enough times to reach the specified
 height.
 
-The argument @var{bitmap} specifies an existing bitmap to redefine.
-You should pass the value of the symbol that identifies the bitmap.
-
 The return value on success is an integer identifying the new bitmap.
 You should save that integer in a variable so it can be used to select
-this bitmap.  The value can also be @code{nil} of there are no more
-free bitmap slots.
-@c ??? Why not signal an error?  That would be cleaner.
+this bitmap.
+
+This function signals an error if there are no more free bitmap slots.
 @end defun
 
 @defun destroy-fringe-bitmap bitmap
@@ -2954,7 +2924,7 @@ as an absolute number of pixels.
 
 @example
 @group
-  @var{expr} ::= @var{num} | (@var{num}) | @var{unit} | @var{elem} | @var{pos} | IMAGE | @var{form}
+  @var{expr} ::= @var{num} | (@var{num}) | @var{unit} | @var{elem} | @var{pos} | @var{image} | @var{form}
   @var{num}  ::= @var{integer} | @var{float} | @var{symbol}
   @var{unit} ::= in | mm | cm | width | height
   @var{elem} ::= left-fringe | right-fringe | left-margin | right-margin
@@ -2973,7 +2943,7 @@ buffer-local variable binding is used.
   The @code{in}, @code{mm}, and @code{cm} units specify the number of
 pixels per inch, millimeter, and centimeter, respectively.  The
 @code{width} and @code{height} units correspond to the default width
-and height of the current face.  An image specification @code{IMAGE}
+and height of the current face.  An image specification @code{image}
 corresponds to the width or height of the image.
 
   The @code{left-fringe}, @code{right-fringe}, @code{left-margin},
@@ -3003,7 +2973,7 @@ header-line aligns with the first text column in the text area.
   A value of the form @code{(@var{num} . @var{expr})} stands
 multiplying the values of @var{num} and @var{expr}.  For example,
 @code{(2 . in)} specifies a width of 2 inches, while @code{(0.5 .
-IMAGE)} specifies half the width (or height) of the specified image.
+@var{image})} specifies half the width (or height) of the specified image.
 
   The form @code{(+ @var{expr} ...)} adds up the value of the
 expressions.  The form @code{(- @var{expr} ...)} negates or subtracts

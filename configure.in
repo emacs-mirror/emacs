@@ -1292,7 +1292,7 @@ AC_CHECK_FILE(/proc/sys/kernel/exec-shield, emacs_cv_execshield=1,
 if test "$emacs_cv_execshield" = 1; then
   AC_PATH_PROG(SETARCH, setarch, no)
   AC_SUBST(SETARCH)
-  if test "$setarch" != no && test "$machine" = "intel386"; then
+  if test "$SETARCH" != no && test "$machine" = "intel386"; then
     AC_DEFINE(HAVE_EXECSHIELD, 1,
     [Define to 1 if this OS has exec shield and we can handle it.])
   else

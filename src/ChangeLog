@@ -1,5 +1,41 @@
 2004-09-29  Kim F. Storm  <storm@cua.dk>
 
+	* fringe.c: Remove limit on number of bitmaps.
+	(fringe_bitmaps, fringe_faces): Change to pointers.
+	(max_fringe_bitmaps): New var.
+	(Fdefine_fringe_bitmap): Expand fringe_bitmaps and fringe_faces.
+	(init_fringe): Allocate fringe_bitmaps and fringe_faces.
+
+	* dispextern.h (FRINGE_ID_BITS): Increase to 16 bits (64K bitmaps).
+	(struct glyph_row): Reorder fringe_bitmap related fields.
+	(struct it): Likewise.
+
+	* w32term.c (fringe_bmp): Change to pointer.
+	(max_fringe_bmp): New var.
+	(w32_define_fringe_bitmap): Expand fringe_bmp.
+	(w32_draw_fringe_bitmap): Check max_fringe_bmp.
+	(w32_destroy_fringe_bitmap): Likewise.
+
+2004-09-29  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c: Simplify last change.
+	(lookup_fringe_bitmap): New function.
+	(valid_fringe_bitmap_p, resolve_fringe_bitmap): Remove.
+	(Fdestroy_fringe_bitmap): Use lookup_fringe_bitmap.
+	Keep standard bitmaps in Vfringe_bitmaps.
+	(Fdefine_fringe_bitmap): Use lookup_fringe_bitmap.
+	(Fset_fringe_bitmap_face): Likewise.
+
+	* dispextern.h (lookup_fringe_bitmap): Add prototype.
+	(valid_fringe_bitmap_p): Remove prototype.
+
+	* xdisp.c (handle_single_display_prop): Use lookup_fringe_bitmap.
+
+2004-09-29  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (destroy_fringe_bitmap, init_fringe_bitmap)
+	(w32_init_fringe, w32_reset_fringes): Fix bootstrap (NULL rif).
+
 	* dispextern.h (valid_fringe_bitmap_p): Fix prototype.
 
 	* fringe.c (Vfringe_bitmaps): New variable.

@@ -1,3 +1,16 @@
+2004-09-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/paragraphs.el (forward-paragraph): Avoid
+	args-out-of-range error when point winds up at the beginning of
+	the buffer and hard newlines are enabled.
+
+	* newcomment.el (comment-multi-line): Doc fix.
+
+2004-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-file-header-re): Tighten up regexp a tiny bit.
+	(diff-fixup-modifs): Catch unified-diff file-headers.
+
 2004-09-28  Stefan  <monnier@iro.umontreal.ca>
 
 	* dired.el (dired-view-command-alist): Use more efficient regexps.
@@ -35,8 +48,8 @@
 	(pr-version): New version number (6.8.1).
 	(pr-ps-file-using-ghostscript): Use make-temp-file instead of
 	make-temp-name.
-	(pr-delete-file): Check if file exists before deleting it.  Reported by
-	Lennart Borgman <lennart.borgman.073@student.lu.se>.
+	(pr-delete-file): Check if file exists before deleting it.
+	Reported by Lennart Borgman <lennart.borgman.073@student.lu.se>.
 
 2004-09-26  Stefan  <monnier@iro.umontreal.ca>
 
@@ -48,21 +61,19 @@
 2004-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (term-ansi-at-eval-string, term-ansi-default-fg)
-	(term-ansi-default-bg, term-ansi-current-temp): Delete unused
-	vars.
+	(term-ansi-default-bg, term-ansi-current-temp): Delete unused vars.
 	(map): Bind S-prior, S-next and S-insert.
 	(term-mode): Set `indent-tabs-mode' to nil.
 	(term-paste): New function to be bound to S-insert.
 	(term-send-del, term-send-backspace): Change the strings sent.
 	(term-termcap-format): Synchronyze with etc/e/eterm.ti.
 	(term-handle-colors-array): Fix handling of underline and reverse.
-	(term-handle-ansi-escape): Do not handle smcup/rmcup. Add
-	comments.
+	(term-handle-ansi-escape): Do not handle smcup/rmcup.  Add comments.
 	(term-erase-in-line): Fix comparison.
-        (term-emulate-terminal): Fix line wrap handling.
-	(term-start-output-log): Renamed from `term-set-output-log'.
-	(term-stop-output-log): Renamed from `term-stop-photo'.
-        (term-switch-to-alternate-sub-buffer): Comment out, unused.
+	(term-emulate-terminal): Fix line wrap handling.
+	(term-start-output-log): Rename from `term-set-output-log'.
+	(term-stop-output-log): Rename from `term-stop-photo'.
+	(term-switch-to-alternate-sub-buffer): Comment out, unused.
 
 2004-09-25  Stefan  <monnier@iro.umontreal.ca>
 

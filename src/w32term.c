@@ -64,7 +64,8 @@ Boston, MA 02111-1307, USA.  */
 
 /* Fringe bitmaps.  */
 
-static HBITMAP fringe_bmp[MAX_FRINGE_BITMAPS];
+static int max_fringe_bmp = 0;
+static HBITMAP *fringe_bmp = 0;
 
 /* Non-nil means Emacs uses toolkit scroll bars.  */
 
@@ -731,7 +732,7 @@ w32_draw_fringe_bitmap (w, row, p)
 		     p->bx, p->by, p->nx, p->ny);
     }
 
-  if (p->which)
+  if (p->which && p->which < max_fringe_bmp)
     {
       HBITMAP pixmap = fringe_bmp[p->which];
       HDC compat_hdc;
@@ -794,6 +795,15 @@ w32_define_fringe_bitmap (which, bits, h, wd)
      unsigned short *bits;
      int h, wd;
 {
+  if (which >= max_fringe_bmp)
+    {
+      int i = max_fringe_bmp;
+      max_fringe_bmp = which + 20;
+      fringe_bmp = (HBITMAP *) xrealloc (fringe_bmp, max_fringe_bmp * sizeof (HBITMAP));
+      while (i < max_fringe_bmp)
+	fringe_bmp[i++] = 0;
+    }
+
   fringe_bmp[which] = CreateBitmap (wd, h, 1, 1, bits);
 }
 
@@ -801,6 +811,9 @@ static void
 w32_destroy_fringe_bitmap (which)
      int which;
 {
+  if (which >= max_fringe_bmp)
+    return;
+
   if (fringe_bmp[which])
     DeleteObject (fringe_bmp[which]);
   fringe_bmp[which] = 0;

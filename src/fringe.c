@@ -445,27 +445,34 @@ struct fringe_bitmap standard_bitmaps[MAX_STANDARD_FRINGE_BITMAPS] =
   { FRBITS (zv_bits),                 8, 3, ALIGN_BITMAP_TOP,    0 },
 };
 
-static struct fringe_bitmap *fringe_bitmaps[MAX_FRINGE_BITMAPS];
-static unsigned fringe_faces[MAX_FRINGE_BITMAPS];
+static struct fringe_bitmap **fringe_bitmaps;
+static unsigned *fringe_faces;
+static int max_fringe_bitmaps;
 
 static int max_used_fringe_bitmap = MAX_STANDARD_FRINGE_BITMAPS;
 
-/* Return 1 if FRINGE_ID is a valid fringe bitmap id.  */
+
+/* Lookup bitmap number for symbol BITMAP.
+   Return 0 if not a bitmap.  */
 
 int
-valid_fringe_bitmap_p (bitmap)
+lookup_fringe_bitmap (bitmap)
      Lisp_Object bitmap;
 {
   int bn;
 
+  bitmap = Fget (bitmap, Qfringe);
   if (!INTEGERP (bitmap))
     return 0;
 
   bn = XINT (bitmap);
-  return (bn >= NO_FRINGE_BITMAP
-	  && bn < max_used_fringe_bitmap
-	  && (bn < MAX_STANDARD_FRINGE_BITMAPS
-	      || fringe_bitmaps[bn] != NULL));
+  if (bn > NO_FRINGE_BITMAP
+      && bn < max_used_fringe_bitmap
+      && (bn < MAX_STANDARD_FRINGE_BITMAPS
+	  || fringe_bitmaps[bn] != NULL))
+    return bn;
+
+  return 0;
 }
 
 /* Get fringe bitmap name for bitmap number BN.
@@ -498,42 +505,6 @@ get_fringe_bitmap_name (bn)
     }
 
   return num;
-}
-
-
-/* Resolve a BITMAP parameter.
-
-   An INTEGER, corresponding to a bitmap number.
-   A STRING which is interned to a symbol.
-   A SYMBOL which has a fringe property which is a bitmap number.
-*/
-
-static int
-resolve_fringe_bitmap (bitmap, namep)
-     Lisp_Object bitmap;
-     Lisp_Object *namep;
-{
-  if (namep)
-    *namep = Qnil;
-
-  if (STRINGP (bitmap))
-    bitmap = intern (SDATA (bitmap));
-
-  if (SYMBOLP (bitmap))
-    {
-      if (namep)
-	*namep = bitmap;
-      bitmap = Fget (bitmap, Qfringe);
-    }
-
-  if (valid_fringe_bitmap_p (bitmap))
-    {
-      if (namep && NILP (*namep))
-	*namep = get_fringe_bitmap_name (XINT (bitmap));
-      return XINT (bitmap);
-    }
-
-  return -1;
 }
 
 
@@ -1068,7 +1039,9 @@ compute_fringe_widths (f, redraw)
 }
 
 
-void
+/* Free resources used by a user-defined bitmap.  */
+
+int
 destroy_fringe_bitmap (n)
      int n;
 {
@@ -1079,7 +1052,7 @@ destroy_fringe_bitmap (n)
   fbp = &fringe_bitmaps[n];
   if (*fbp && (*fbp)->dynamic)
     {
-      if (rif->destroy_fringe_bitmap)
+      if (rif && rif->destroy_fringe_bitmap)
 	rif->destroy_fringe_bitmap (n);
       xfree (*fbp);
       *fbp = NULL;
@@ -1099,20 +1072,21 @@ If BITMAP overrides a standard fringe bitmap, the original bitmap is restored.  
      Lisp_Object bitmap;
 {
   int n;
-  Lisp_Object sym;
 
-  n = resolve_fringe_bitmap (bitmap, &sym);
-  if (n < 0)
+  CHECK_SYMBOL (bitmap);
+  n = lookup_fringe_bitmap (bitmap);
+  if (!n)
     return Qnil;
 
   destroy_fringe_bitmap (n);
 
-  if (SYMBOLP (sym))
+  if (n >= MAX_STANDARD_FRINGE_BITMAPS)
     {
-      Vfringe_bitmaps = Fdelq (sym, Vfringe_bitmaps);
+      Vfringe_bitmaps = Fdelq (bitmap, Vfringe_bitmaps);
       /* It would be better to remove the fringe property.  */
-      Fput (sym, Qfringe, Qnil);
+      Fput (bitmap, Qfringe, Qnil);
     }
+
   return Qnil;
 }
 
@@ -1185,7 +1159,7 @@ init_fringe_bitmap (which, fb, once_p)
     {
       destroy_fringe_bitmap (which);
 
-      if (rif->define_fringe_bitmap)
+      if (rif && rif->define_fringe_bitmap)
 	rif->define_fringe_bitmap (which, fb->bits, fb->height, fb->width);
 
       fringe_bitmaps[which] = fb;
@@ -1216,12 +1190,8 @@ If BITMAP already exists, the existing definition is replaced.  */)
   unsigned short *b;
   struct fringe_bitmap fb, *xfb;
   int fill1 = 0, fill2 = 0;
-  Lisp_Object sym;
 
-  n = resolve_fringe_bitmap (bitmap, &sym);
-
-  if (NILP (sym) || INTEGERP (sym))
-    sym = wrong_type_argument (Qsymbolp, bitmap);
+  CHECK_SYMBOL (bitmap);
 
   if (!STRINGP (bits) && !VECTORP (bits))
     bits = wrong_type_argument (Qstringp, bits);
@@ -1274,23 +1244,42 @@ If BITMAP already exists, the existing definition is replaced.  */)
   else if (!NILP (align) && !EQ (align, Qcenter))
     error ("Bad align argument");
 
-  if (n < 0)
+  n = lookup_fringe_bitmap (bitmap);
+  if (!n)
     {
-      if (max_used_fringe_bitmap < MAX_FRINGE_BITMAPS)
+      if (max_used_fringe_bitmap < max_fringe_bitmaps)
 	n = max_used_fringe_bitmap++;
       else
 	{
 	  for (n = MAX_STANDARD_FRINGE_BITMAPS;
-	       n < MAX_FRINGE_BITMAPS;
+	       n < max_fringe_bitmaps;
 	       n++)
 	    if (fringe_bitmaps[n] == NULL)
 	      break;
-	  if (n == MAX_FRINGE_BITMAPS)
-	    error ("Cannot define more fringe bitmaps");
+
+	  if (n == max_fringe_bitmaps)
+	    {
+	      if ((max_fringe_bitmaps + 20) > MAX_FRINGE_BITMAPS)
+		error ("No free fringe bitmap slots");
+
+	      i = max_fringe_bitmaps;
+	      max_fringe_bitmaps += 20;
+	      fringe_bitmaps
+		= ((struct fringe_bitmap **)
+		   xrealloc (fringe_bitmaps, max_fringe_bitmaps * sizeof (struct fringe_bitmap *)));
+	      fringe_faces
+		= (unsigned *) xrealloc (fringe_faces, max_fringe_bitmaps * sizeof (unsigned));
+
+	      for (; i < max_fringe_bitmaps; i++)
+		{
+		  fringe_bitmaps[i] = NULL;
+		  fringe_faces[i] = FRINGE_FACE_ID;
+		}
+	    }
 	}
 
-      Vfringe_bitmaps = Fcons (sym, Vfringe_bitmaps);
-      Fput (sym, Qfringe, make_number (n));
+      Vfringe_bitmaps = Fcons (bitmap, Vfringe_bitmaps);
+      Fput (bitmap, Qfringe, make_number (n));
     }
 
   fb.dynamic = 1;
@@ -1318,7 +1307,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
 
   init_fringe_bitmap (n, xfb, 0);
 
-  return sym;
+  return bitmap;
 }
 
 DEFUN ("set-fringe-bitmap-face", Fset_fringe_bitmap_face, Sset_fringe_bitmap_face,
@@ -1328,11 +1317,12 @@ If FACE is nil, reset face to default fringe face.  */)
   (bitmap, face)
      Lisp_Object bitmap, face;
 {
-  int bn;
+  int n;
   int face_id;
 
-  bn = resolve_fringe_bitmap (bitmap, 0);
-  if (bn < 0)
+  CHECK_SYMBOL (bitmap);
+  n = lookup_fringe_bitmap (bitmap);
+  if (!n)
     error ("Undefined fringe bitmap");
 
   if (!NILP (face))
@@ -1344,7 +1334,7 @@ If FACE is nil, reset face to default fringe face.  */)
   else
     face_id = FRINGE_FACE_ID;
 
-  fringe_faces [bn] = face_id;
+  fringe_faces[n] = face_id;
 
   return Qnil;
 }
@@ -1433,9 +1423,18 @@ init_fringe ()
 {
   int i;
 
-  bzero (fringe_bitmaps, sizeof fringe_bitmaps);
-  for (i = 0; i < MAX_FRINGE_BITMAPS; i++)
-    fringe_faces[i] = FRINGE_FACE_ID;
+  max_fringe_bitmaps = MAX_STANDARD_FRINGE_BITMAPS + 20;
+
+  fringe_bitmaps
+    = (struct fringe_bitmap **) xmalloc (max_fringe_bitmaps * sizeof (struct fringe_bitmap *));
+  fringe_faces
+    = (unsigned *) xmalloc (max_fringe_bitmaps * sizeof (unsigned));
+
+  for (i = 0; i < max_fringe_bitmaps; i++)
+    {
+      fringe_bitmaps[i] = NULL;
+      fringe_faces[i] = FRINGE_FACE_ID;
+    }
 }
 
 #ifdef HAVE_NTGUI
@@ -1444,6 +1443,9 @@ void
 w32_init_fringe ()
 {
   enum fringe_bitmap_type bt;
+
+  if (!rif)
+    return;
 
   for (bt = NO_FRINGE_BITMAP + 1; bt < MAX_STANDARD_FRINGE_BITMAPS; bt++)
     {
@@ -1457,6 +1459,9 @@ w32_reset_fringes ()
 {
   /* Destroy row bitmaps.  */
   int bt;
+
+  if (!rif)
+    return;
 
   for (bt = NO_FRINGE_BITMAP + 1; bt < max_used_fringe_bitmap; bt++)
     rif->destroy_fringe_bitmap (bt);
