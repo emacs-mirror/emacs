@@ -1,3 +1,8 @@
+2000-05-26  Kenichi Handa  <handa@etl.go.jp>
+
+	* charset.c (init_charset_once): Set the table bytes_by_char_head
+	correctly.
+
 2000-05-25  Ken Raeburn  <raeburn@gnu.org>
 
 	* emacs.c (main): Initialize keyboard syms before initializing
