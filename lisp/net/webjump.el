@@ -300,7 +300,7 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
      ((eq builtin 'mirrors)
       (if (= (length expr) 1)
           (error
-           "WebJump URL builtin \"mirrors\" for \"%s\" needs at least 1 arg."))
+           "WebJump URL builtin \"mirrors\" for \"%s\" needs at least 1 arg"))
       (webjump-choose-mirror name (cdr (append expr nil))))
      ((eq builtin 'name)
       name)
