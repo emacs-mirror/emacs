@@ -1,6 +1,6 @@
 2003-06-07  Jason Rumney  <jasonr@gnu.org>
 
-	* mwheel.el (mouse-wheel-up-event, mouse-wheel-down-event): 
+	* mwheel.el (mouse-wheel-up-event, mouse-wheel-down-event):
 	Use wheel-* events on darwin.
 
 2003-06-06  Era Eriksson  <era@iki.fi>  (tiny change)
@@ -17,8 +17,7 @@
 2003-06-06  Klaus Zeitler  <kzeitler@lucent.com>
 
 	* progmodes/sh-script.el: Fix bug in "Options Loop" skeleton for
-	ksh.  Add newlines to a few skeletons, add "select" keyword for
-	bash.
+	ksh.  Add newlines to a few skeletons, add "select" keyword for bash.
 
 2003-06-06  Andreas Schwab  <schwab@suse.de>
 
@@ -93,6 +92,17 @@
 
 	* desktop.el: Add new maintainer.
 
+2003-06-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/sgml-mode.el (sgml-parse-tag-backward): Try and detect
+	when we're starting from within a tag.
+	(sgml-get-context): When called from inside a tag, do something useful.
+	Rename the arg now that it's never used for `full' context anymore.
+	(sgml-calculate-indent): Make `lcon' an argument.
+	Return nil when we DON'T know what to do.
+	If the initial lcon turns out to be wrong, try again.
+	(sgml-indent-line): If sgml-calculate-indent returns nil, don't indent.
+
 2003-06-04  Jason Rumney  <jasonr@gnu.org>
 
 	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event):
@@ -102,8 +112,7 @@
 
 2003-06-04  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
-	* simple.el (yank-excluded-properties): Expand documentation
-	string.
+	* simple.el (yank-excluded-properties): Expand documentation string.
 
 2003-06-04  Richard M. Stallman  <rms@gnu.org>
 
@@ -140,7 +149,7 @@
 
 2003-06-03  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* info.el (Info-extract-menu-node-name): Remove unused arg `errmessage'.
+	* info.el (Info-extract-menu-node-name): Remove unused arg errmessage.
 	(Info-follow-reference): Update corresponding call.
 	(Info-node-spec-re): New const.
 	(Info-complete-menu-item): Use it to only allow : when necessary.
