@@ -2,17 +2,14 @@
 #define IRIX6_5
 #include "irix5-0.h"
 
-/* Irix 6 tries to do 64 bits, but doesn't do it fully,
-   so inhibit that.  */
-#define IRIX_FORCE_32_BITS
-
-#ifndef __GNUC__
-#ifndef IRIX6_5
-#define LD_SWITCH_SYSTEM -32
-#else
-#define LD_SWITCH_SYSTEM -n32
-#endif
-#endif
+#if _MIPS_SZLONG == 64		/* -mabi=64 (gcc) or -64 (MIPSpro) */
+#error "The 64 bit ABI doesn't work yet.  Please fix it and send the changes!"
+#define _LP64
+#define EMACS_INT long
+#define BITS_PER_LONG 64
+#define BITS_PER_EMACS_INT BITS_PER_LONG
+#define EMACS_UINT unsigned long
+#endif /* _MIPS_SZLONG */
 
 /* This macro definition, which we inherited from irix5-0.h,
    is needed in configure on Irix 5, but gets in the way there
@@ -39,6 +36,7 @@
 
 /* It turns out that the #define in irix5-0.h is needed in Irix 6 as well.  */
 #if 0
-/* Canced the #define that is in irix5-0.h.  */
+/* Cancel the #define that is in irix5-0.h.  */
 #undef ospeed
 #endif
+
