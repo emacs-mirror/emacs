@@ -343,9 +343,10 @@ the face is also set; its value is the face name."
 			       ;; In C mode, it is " */"
 			       ;; and we don't want to fail to notice a */
 			       ;; just because there's no space there.
-			       (if (string-match "^ +" comment-end)
-				   (substring comment-end (match-end 0))
-				 comment-end)))
+			       (save-match-data
+				 (if (string-match "^ +" comment-end)
+				     (substring comment-end (match-end 0))
+				   comment-end))))
 		    "\\s>"))
 	    (startline (point))
 	    state prev prevstate)
