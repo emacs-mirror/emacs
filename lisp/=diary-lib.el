@@ -1331,53 +1331,33 @@ ending of that number (that is, `st', `nd', `rd' or `th', as appropriate."
 
 (defun diary-day-of-year ()
   "Day of year and number of days remaining in the year of date diary entry."
-  (let* ((year (extract-calendar-year date))
-         (day (calendar-day-number date))
-         (days-remaining (- (calendar-day-number (list 12 31 year)) day)))
-    (format "Day %d of %d; %d day%s remaining in the year"
-             day year days-remaining (if (= days-remaining 1) "" "s"))))
+  (calendar-day-of-year-string date))
 
 (defun diary-iso-date ()
   "ISO calendar equivalent of date diary entry."
-  (let ((day (% (calendar-absolute-from-gregorian date) 7))
-        (iso-date (calendar-iso-from-absolute
-                   (calendar-absolute-from-gregorian date))))
-    (format "ISO date: Day %s of week %d of %d."
-            (if (zerop day) 7 day)
-            (extract-calendar-month iso-date)
-            (extract-calendar-year iso-date))))
+  (format "ISO date: %s" (calendar-iso-date-string date)))
 
 (defun diary-islamic-date ()
   "Islamic calendar equivalent of date diary entry."
-  (let* ((i-date (calendar-islamic-from-absolute
-                  (calendar-absolute-from-gregorian date)))
-         (calendar-month-name-array calendar-islamic-month-name-array))
-    (if (>= (extract-calendar-year i-date) 1)
-        (format "Islamic date: %s" (calendar-date-string i-date nil t)))))
+  (let ((i (calendar-islamic-date-string
+            (or (calendar-cursor-to-date)
+                (error "Cursor is not on a date!")))))
+    (if (string-equal i "")
+        "Date is pre-Islamic"
+      (format "Islamic date (until sunset): %s" i))))
 
 (defun diary-hebrew-date ()
   "Hebrew calendar equivalent of date diary entry."
-  (let* ((h-date (calendar-hebrew-from-absolute
-                  (calendar-absolute-from-gregorian date)))
-         (calendar-month-name-array
-          (if (hebrew-calendar-leap-year-p
-               (extract-calendar-year h-date))
-              calendar-hebrew-month-name-array-leap-year
-            calendar-hebrew-month-name-array-common-year)))
-    (format "Hebrew date: %s" (calendar-date-string h-date nil t))))
+  (format "Hebrew date (until sunset): %s" (calendar-hebrew-date-string date)))
 
 (defun diary-julian-date ()
   "Julian calendar equivalent of date diary entry."
-  (format "Julian date: %s"
-          (calendar-date-string
-           (calendar-julian-from-absolute
-            (calendar-absolute-from-gregorian date)))
-          nil t))
+  (format "Julian date: %s" (calendar-julian-date-string date)))
 
 (defun diary-astro-day-number ()
   "Astronomical (Julian) day number diary entry."
-  (format "Astronomical (Julian) day number %d"
-          (+ 1721425 (calendar-absolute-from-gregorian date))))
+  (format "Astronomical (Julian) day number %s"
+          (calendar-astro-date-string date)))
 
 (defun diary-omer ()
   "Omer count diary entry.
