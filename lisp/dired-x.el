@@ -777,7 +777,7 @@ to put saved dired buffers automatically into virtual dired mode.
 
 Also useful for `auto-mode-alist' (which see) like this:
 
-  \(setq auto-mode-alist (cons '(\"[^/]\\.dired$\" . dired-virtual-mode)
+  \(setq auto-mode-alist (cons '(\"[^/]\\.dired\\'\" . dired-virtual-mode)
                               auto-mode-alist)\)"
   (interactive)
   (dired-virtual (dired-virtual-guess-dir)))
