@@ -135,6 +135,11 @@
   :type  'function
   :group 'quickurl)
 
+(defcustom quickurl-completion-ignore-case t
+  "*Should `quickurl-ask' ignore case when doing the input lookup?"
+  :type  'boolean
+  :group 'quickurl)
+
 (defcustom quickurl-prefix ";; -*- lisp -*-\n\n"
   "*Text to write to `quickurl-url-file' before writing the URL list."
   :type  'string
@@ -317,7 +322,8 @@ buffer, this default action can be modifed via
    (list
     (progn
       (quickurl-load-urls)
-      (completing-read "Lookup: " quickurl-urls nil t))))
+      (let ((completion-ignore-case quickurl-completion-ignore-case))
+        (completing-read "Lookup: " quickurl-urls nil t)))))
   (let ((url (quickurl-find-url lookup)))
     (when url
       (quickurl-insert url))))
