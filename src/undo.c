@@ -412,7 +412,7 @@ Return what remains of the list.")
   GCPRO2 (next, list);
 
   /* Don't let read-only properties interfere with undo.  */
-  if (NILP (current_buffer->read_only))
+  if (!NILP (current_buffer->read_only))
     specbind (Qinhibit_read_only, Qt);
 
   while (arg > 0)
