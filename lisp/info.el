@@ -1116,7 +1116,10 @@ N is the digit argument used to invoke this command."
 	(t 					(error "No previous nodes"))))
 
 (defun Info-scroll-up ()
-  "Read the next screen.  If end of buffer is visible, go to next entry."
+  "Scroll one screenful forward in Info, considering all nodes as one sequence.
+Once you scroll far enough in a node that its menu appears on the screen,
+the next scroll moves into its first subnode.  When you scroll past
+the end of a node, that goes back to the parent node."
   (interactive)
   (if (or (< (window-start) (point-min))
 	  (> (window-start) (point-max)))
@@ -1132,7 +1135,11 @@ N is the digit argument used to invoke this command."
       (scroll-up))))
 
 (defun Info-scroll-down ()
-  "Read the previous screen.  If start of buffer is visible, go to last entry."
+  "Scroll one screenful back in Info, considering all nodes as one sequence.
+If you are within the menu of a node, this follows the previous
+menu item, so that you scroll through all the subnodes, ordered
+as if they appeared in place of the menu.  When you scroll past
+the beginning of a node, that goes back to the parent node."
   (interactive)
   (if (or (< (window-start) (point-min))
 	  (> (window-start) (point-max)))
