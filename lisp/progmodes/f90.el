@@ -1417,11 +1417,11 @@ If run in the middle of a line, the line is not broken."
 	  (progn
 	    (message "Indenting %s %s..."
 		     (car program) (car (cdr program)))
-	    (indent-region (point) (mark))
+	    (indent-region (point) (mark) nil)
 	    (message "Indenting %s %s...done"
 		     (car program) (car (cdr program))))
 	(message "Indenting the whole file...")
-	(indent-region (point) (mark))
+	(indent-region (point) (mark) nil)
 	(message "Indenting the whole file...done")))))
 
 ;; autofill and break-line
