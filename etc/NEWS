@@ -1816,6 +1816,12 @@ to view diffs or log entries directly from vc-annotate-mode:
     D:  shows the diff of the revision at line with its previous revision
     L:  shows the log of the revision at line
     W:  annotates the workfile (most up to date) version
+
++++
+** In pcl-cvs mode, there is a new `d y' command to view the diffs
+between the local version of the file and yesterday's head revision
+in the repository.
+
 
 * New modes and packages in Emacs 21.4
 
@@ -1916,6 +1922,7 @@ where the keys work like (shifted) arrow keys, home/end, etc., and
 are left unspecified and can be bound individually through the global
 or local keymaps.
 
++++
 ** The new kmacro package provides a simpler user interface to
 emacs' keyboard macro facilities.
 

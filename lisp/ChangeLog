@@ -1,3 +1,9 @@
+2004-06-10  Kim F. Storm  <storm@cua.dk>
+
+	* pcvs.el (cvs-mode-diff-yesterday): New command.
+
+	* pcvs-defs.el (cvs-mode-diff-map): Bind y to cvs-mode-diff-yesterday.
+
 2004-06-10  Juri Linkov  <juri@jurta.org>
 
 	* emacs-lisp/edebug.el (edebug-eval-defun):
@@ -15,8 +21,8 @@
 
 2004-06-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* toolbar/tool-bar.el (tool-bar-add-item, tool-bar-local-item): Use
-	lc-*.xpm as prefix instead of *-locol.xpm.
+	* toolbar/tool-bar.el (tool-bar-add-item, tool-bar-local-item):
+	Use lc-*.xpm as prefix instead of *-locol.xpm.
 
 	* toolbar/lc-copy.xpm, toolbar/lc-cut.xpm
 	* toolbar/lc-help.xpm, toolbar/lc-home.xpm
@@ -131,7 +137,7 @@
 
 2004-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* toolbar/alias.pbm, toolbar/close.pbm, toolbar/copy.pbm,
+	* toolbar/alias.pbm, toolbar/close.pbm, toolbar/copy.pbm
 	* toolbar/cut.pbm, toolbar/help.pbm, toolbar/home.pbm
 	* toolbar/index.pbm, toolbar/jump_to.pbm, toolbar/left_arrow.pbm
 	* toolbar/new.pbm, toolbar/open.pbm, toolbar/paste.pbm
