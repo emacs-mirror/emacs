@@ -807,7 +807,11 @@ DEFUN ("frame-list", Fframe_list, Sframe_list,
        "Return a list of all frames.")
   ()
 {
-  return Fcopy_sequence (Vframe_list);
+  Lisp_Object frames;
+  frames = Fcopy_sequence (Vframe_list);
+  if (FRAMEP (tip_frame))
+    frames = Fdelq (tip_frame, frames);
+  return frames;
 }
 
 /* Return the next frame in the frame list after FRAME.
