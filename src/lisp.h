@@ -1,5 +1,5 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2000
+   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2000, 2001
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2127,6 +2127,7 @@ extern Lisp_Object echo_area_buffer[2];
 extern void check_message_stack P_ ((void));
 extern void setup_echo_area_for_printing P_ ((int));
 extern int push_message P_ ((void));
+extern Lisp_Object push_message_unwind P_ ((Lisp_Object));
 extern void pop_message P_ ((void));
 extern void restore_message P_ ((void));
 extern Lisp_Object current_message P_ ((void));
