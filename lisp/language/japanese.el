@@ -79,7 +79,7 @@
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment)
 	      (exit-function . exit-japanese-environment)
-	      (tutorial . "TUTORIAL.jp")
+	      (tutorial . "TUTORIAL.ja")
 	      (charset japanese-jisx0208 japanese-jisx0208-1978
 		       japanese-jisx0212 latin-jisx0201 katakana-jisx0201)
 	      (coding-system iso-2022-jp japanese-iso-8bit
