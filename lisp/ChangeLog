@@ -1,3 +1,12 @@
+2002-05-10  Yong Lu <lyongu@asia-infonet.com>
+
+	* language/greek.el (greek-iso-8bit): Fix typo.
+
+2002-05-10  Kenichi Handa  <handa@etl.go.jp>
+
+	* language/chinese.el (chinese-big5): Change :coding-type to
+	`charset'.
+
 2002-05-09  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/characters.el: Change encoding to utf-8-emacs.
