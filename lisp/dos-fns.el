@@ -49,51 +49,50 @@
 This function's standard definition is trivial; it just returns the argument.
 However, on some systems, the function is redefined
 with a definition that really does change some file names."
-  (let* ((dir (file-name-directory filename))
-	 (string (copy-sequence (file-name-nondirectory filename)))
-	 (lastchar (aref string (1- (length string))))
-	 i firstdot)
-    ;; If the argument is empty, just return it.
-    (if (or (not (stringp filename))
-	    (string= filename "")
-	    (string= string ""))
-	filename
-      (progn
-	;; Change a leading period to a leading underscore.
-	(if (= (aref string 0) ?.)
-	    (aset string 0 ?_))
-	;; Get rid of invalid characters.
-	(while (setq i (string-match
-			"[^-a-zA-Z0-9_.%~^$!#&{}@`'()\200-\376]"
-			string))
-	  (aset string i ?_))
-	;; If we don't have a period,
-	;; and we have a dash or underscore that isn't the first char,
-	;; change that to a period.
-	(if (and (not (string-match "\\." string))
-		 (setq i (string-match "[-_]" string 1)))
-	    (aset string i ?\.))
-	;; If we don't have a period in the first 8 chars, insert one.
-	(if (> (or (string-match "\\." string)
-		   (length string))
-	       8)
-	    (setq string
-		  (concat (substring string 0 8)
-			  "."
-			  (substring string 8))))
-	(setq firstdot (or (string-match "\\." string) (1- (length string))))
-	;; Truncate to 3 chars after the first period.
-	(if (> (length string) (+ firstdot 4))
-	    (setq string (substring string 0 (+ firstdot 4))))
-	;; Change all periods except the first one into underscores.
-	(while (string-match "\\." string (1+ firstdot))
-	  (setq i (string-match "\\." string (1+ firstdot)))
-	  (aset string i ?_))
-	;; If the last character of the original filename was `~',
-	;; make sure the munged name ends with it also.
-	(if (equal lastchar ?~)
-	    (aset string (1- (length string)) lastchar))
-	(concat dir string)))))
+  (if (or (msdos-long-file-names)
+	  (not (stringp filename))
+	  (member (file-name-nondirectory filename) '("" "." "..")))
+      filename
+    (let* ((dir (file-name-directory filename))
+	   (string (copy-sequence (file-name-nondirectory filename)))
+	   (lastchar (aref string (1- (length string))))
+	   i firstdot)
+      ;; If the argument is empty, just return it.
+      ;; Change a leading period to a leading underscore.
+      (if (= (aref string 0) ?.)
+	  (aset string 0 ?_))
+      ;; Get rid of invalid characters.
+      (while (setq i (string-match
+		      "[^-a-zA-Z0-9_.%~^$!#&{}@`'()\200-\376]"
+		      string))
+	(aset string i ?_))
+      ;; If we don't have a period,
+      ;; and we have a dash or underscore that isn't the first char,
+      ;; change that to a period.
+      (if (and (not (string-match "\\." string))
+	       (setq i (string-match "[-_]" string 1)))
+	  (aset string i ?\.))
+      ;; If we don't have a period in the first 8 chars, insert one.
+      (if (> (or (string-match "\\." string)
+		 (length string))
+	     8)
+	  (setq string
+		(concat (substring string 0 8)
+			"."
+			(substring string 8))))
+      (setq firstdot (or (string-match "\\." string) (1- (length string))))
+      ;; Truncate to 3 chars after the first period.
+      (if (> (length string) (+ firstdot 4))
+	  (setq string (substring string 0 (+ firstdot 4))))
+      ;; Change all periods except the first one into underscores.
+      (while (string-match "\\." string (1+ firstdot))
+	(setq i (string-match "\\." string (1+ firstdot)))
+	(aset string i ?_))
+      ;; If the last character of the original filename was `~',
+      ;; make sure the munged name ends with it also.
+      (if (equal lastchar ?~)
+	  (aset string (1- (length string)) lastchar))
+      (concat dir string))))
 
 (defvar file-name-buffer-file-type-alist
   '(
