@@ -289,22 +289,35 @@ over it.
   Mouse clicks modified with the @key{CTRL} and @key{SHIFT} keys
 bring up menus.
 
-@kindex C-Mouse-3
 @table @kbd
 @item C-Mouse-1
+@kindex C-Mouse-1
+@findex msb-mode
+@cindex MSB minor mode
+@cindex mode, MSB
 This menu is for selecting a buffer.
 
+The MSB (`mouse select buffer') global minor mode alters this menu to a
+form some people prefer and which is customizable.  See the Custom group
+@code{msb}.
+
 @item C-Mouse-2
+@kindex C-Mouse-2
 This menu is for specifying faces and other text properties
 for editing formatted text.  @xref{Formatted Text}.
 
 @item C-Mouse-3
-This menu is mode-specific.  For most modes, this menu has the same
-items as all the mode-specific menu-bar menus put together.  Some modes
-may specify a different menu for this button.@footnote{Some systems use
-@kbd{Mouse-3} for a mode-specific menu.  We took a survey of users, and
-found they preferred to keep @kbd{Mouse-3} for selecting and killing
-regions.  Hence the decision to use @kbd{C-Mouse-3} for this menu.}
+@kindex C-Mouse-3
+This menu is mode-specific.  For most modes if Menu-bar mode is on, this
+menu has the same items as all the mode-specific menu-bar menus put
+together.  Some modes may specify a different menu for this
+button.@footnote{Some systems use @kbd{Mouse-3} for a mode-specific
+menu.  We took a survey of users, and found they preferred to keep
+@kbd{Mouse-3} for selecting and killing regions.  Hence the decision to
+use @kbd{C-Mouse-3} for this menu.}  If Menu-bar mode is off, this menu
+contains all the items which would be present in the menu bar---not just
+the mode-specific ones---so that you can access them without having to
+display the menu bar.
 
 @item S-mouse-1
 This menu is for specifying the frame's principal font.
@@ -312,27 +325,34 @@ This menu is for specifying the frame's principal font.
 
 @node Mode Line Mouse
 @section Mode Line Mouse Commands
+@cindex mode line, mouse
+@cindex mouse on mode line
 
   You can use mouse clicks on window mode lines to select and manipulate
 windows.
 
 @table @kbd
 @item Mouse-1
+@kindex mode-line mouse-1
 @kbd{Mouse-1} on a mode line selects the window above.  By dragging
 @kbd{Mouse-1} on the mode line, you can move it, thus changing the
 height of the windows above and below.
 
 @item Mouse-2
+@kindex mode-line mouse-2
 @kbd{Mouse-2} on a mode line expands that window to fill its frame.
 
 @item Mouse-3
+@kindex mode-line mouse-3
 @kbd{Mouse-3} on a mode line deletes the window above.
 
 @item C-Mouse-2
+@kindex mode-line C-mouse-2
 @kbd{C-Mouse-2} on a mode line splits the window above
 horizontally, above the place in the mode line where you click.
 @end table
 
+@kindex vertical-scroll-bar mouse-1
   @kbd{C-Mouse-2} on a scroll bar splits the corresponding window
 vertically.  @xref{Split Window}.
 
@@ -671,7 +691,7 @@ click the wheel to act as @kbd{mouse-3}.  You can also use the wheel to
 scroll windows instead of using the scroll bar or keyboard commands.
 Use @kbd{M-x mwheel-install} to set up the wheel for scrolling or put
 @samp{(require 'mwheel)} in your @file{.emacs}.  (Support for the wheel
-depends on the window system generating appropriate events for Emacs.)
+depends on the system generating appropriate events for Emacs.)
 
 @vindex mwheel-follow-mouse
 @vindex mwheel-scroll-amount
