@@ -440,7 +440,10 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
 	{
 	  menu = XmCreatePulldownMenu (widget, cur->name, NULL, 0);
 	  make_menu_in_widget (instance, menu, cur->contents, 0);
-	  XtSetArg (al [ac], XmNsubMenuId, menu); ac++;
+          XtSetArg (al [ac], XmNsubMenuId, menu); ac++;
+          /* non-zero values don't work reliably in
+             conjunction with Emacs' event loop */
+          XtSetArg (al [ac], XmNmappingDelay, 0); ac++;
 	  button = XmCreateCascadeButtonGadget (widget, cur->name, al, ac);
 
 	  xm_update_label (instance, button, cur);
