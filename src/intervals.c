@@ -44,6 +44,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "screen.h"
 
+/* The rest of the file is within this conditional. */
+#ifdef USE_TEXT_PROPERTIES
+
 /* Factor for weight-balancing interval trees. */
 Lisp_Object interval_balance_threshold;
 
@@ -1561,3 +1564,5 @@ copy_intervals_to_string (string, buffer, position, length)
   interval_copy->parent = (INTERVAL) string;
   XSTRING (string)->intervals = interval_copy;
 }
+
+#endif /* USE_TEXT_PROPERTIES */
