@@ -2006,8 +2006,8 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 	       ((not this-patt)
 		(filesets-error 'error "Filesets: malformed :ingroup definition "
 				this-def))
-	       ((<= this-sd 0)
-		(setq rv (nconc rv `(((,master ,this-name))))))
+	       ((< this-sd 0)
+		nil)
 	       (t
 		(with-temp-buffer
 		  (insert-file-contents master)
