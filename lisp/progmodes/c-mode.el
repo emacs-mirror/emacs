@@ -57,6 +57,12 @@
 (define-key c-mode-map [menu-bar c]
   (cons "C" (make-sparse-keymap "C")))
 
+(define-key c-mode-map [menu-bar c comment-region]
+  '("Comment Out Region" . comment-region))
+(define-key c-mode-map [menu-bar c c-macro-expand]
+  '("Macro Expand Region" . c-macro-expand))
+(define-key c-mode-map [menu-bar c c-backslash-region]
+  '("Backslashify" . c-backslash-region))
 (define-key c-mode-map [menu-bar c indent-exp]
   '("Indent Expression" . indent-c-exp))
 (define-key c-mode-map [menu-bar c indent-line]
