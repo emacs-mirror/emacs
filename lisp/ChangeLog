@@ -1,3 +1,8 @@
+2001-09-04  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
+
+	* term/mac-win.el (mac-drag-n-drop): Decode file name by
+	consulting the value of file-name-coding-system.
+
 2001-09-03  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* help.el (describe-function-1): Save precomputed `file-name' rather

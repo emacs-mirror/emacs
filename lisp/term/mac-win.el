@@ -150,7 +150,14 @@ Switch to a buffer editing the last file dropped."
 	   (y (cdr coords)))
       (if (and (> x 0) (> y 0))
 	  (set-frame-selected-window nil window))
-      (mapcar 'find-file (car (cdr (cdr event)))))
+      (mapcar
+       '(lambda (file)
+	  (find-file
+	   (decode-coding-string
+	    file
+	    (or file-name-coding-system
+		default-file-name-coding-system))))
+       (car (cdr (cdr event)))))
   (raise-frame)
   (recenter)))
 
