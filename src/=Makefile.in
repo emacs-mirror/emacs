@@ -9,7 +9,8 @@ MAKE = make
 
 CC=cc
 CFLAGS=-g
-srcdir=.
+srcdir=@srcdir@/src
+VPATH=@srcdir@/src
 LN_S=ln -s
 
 # ============================= Targets ==============================
@@ -72,8 +73,8 @@ relock:
 ### the definition of CPP above may fix it.
 xmakefile: ymakefile config.h
 	-rm -f xmakefile xmakefile.new junk.c junk.cpp
-	cp ymakefile junk.c
-	${CPP} ${CFLAGS} junk.c > junk.cpp \
+	cp ${srcdir}/ymakefile junk.c
+	${CPP} -I${srcdir} ${CFLAGS} junk.c > junk.cpp \
 	-DC_SWITCH_SITE="`echo ${CFLAGS}' ' \
 			  | sed -e 's/-g /C_DEBUG_SWITCH /' \
 				-e 's/-O[0-9]* /C_OPTIMIZE_SWITCH /'`"
@@ -81,6 +82,8 @@ xmakefile: ymakefile config.h
 	sed	-e 's/^#.*//'				\
 		-e 's/^[ \f\t][ \f\t]*$$//'		\
 		-e 's/^ /	/' 			\
+		-e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|'	\
+		-e 's|^\(VPATH *=\).*$$|\1'"${srcdir}"'|'	\
 	| sed -n -e '/^..*$$/p' 			\
 	> xmakefile.new
 	mv -f xmakefile.new xmakefile
