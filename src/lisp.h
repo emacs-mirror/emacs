@@ -78,45 +78,6 @@ enum Lisp_Type
     Lisp_Frame,
 #endif
 
-    /* Used in a symbol value cell when the symbol's value is per-buffer.
-       The actual contents are a cons cell which starts a list like this:
-       (REALVALUE BUFFER CURRENT-ALIST-ELEMENT . DEFAULT-VALUE).
-
-       BUFFER is the last buffer for which this symbol's value was
-       made up to date.
-
-       CURRENT-ALIST-ELEMENT is a pointer to an element of BUFFER's
-       local_var_alist, that being the element whose car is this
-       variable.  Or it can be a pointer to the
-       (CURRENT-ALIST-ELEMENT . DEFAULT-VALUE),
-       if BUFFER does not have an element in its alist for this
-       variable (that is, if BUFFER sees the default value of this
-       variable).
-
-       If we want to examine or set the value and BUFFER is current,
-       we just examine or set REALVALUE. If BUFFER is not current, we
-       store the current REALVALUE value into CURRENT-ALIST-ELEMENT,
-       then find the appropriate alist element for the buffer now
-       current and set up CURRENT-ALIST-ELEMENT.  Then we set
-       REALVALUE out of that element, and store into BUFFER.
-
-       If we are setting the variable and the current buffer does not
-       have an alist entry for this variable, an alist entry is
-       created.
-
-       Note that REALVALUE can be a forwarding pointer.  Each time it
-       is examined or set, forwarding must be done.  Each time we
-       switch buffers, buffer-local variables which forward into C
-       variables are swapped immediately, so the C code can assume
-       that they are always up to date.  */
-    Lisp_Buffer_Local_Value,
-
-    /* Like Lisp_Buffer_Local_Value with one difference:
-       merely setting the variable while some buffer is current
-       does not cause that buffer to have its own local value of this variable.
-       Only make-local-variable does that.  */
-    Lisp_Some_Buffer_Local_Value,
-
     /* Window used for Emacs display.
        Data inside looks like a Lisp_Vector.  */
     Lisp_Window,
@@ -146,7 +107,9 @@ enum Lisp_Misc_Type
     Lisp_Misc_Intfwd,
     Lisp_Misc_Boolfwd,
     Lisp_Misc_Objfwd,
-    Lisp_Misc_Buffer_Objfwd
+    Lisp_Misc_Buffer_Objfwd,
+    Lisp_Misc_Buffer_Local_Value,
+    Lisp_Misc_Some_Buffer_Local_Value
   };
 
 #ifndef NO_UNION_TYPE
@@ -419,6 +382,7 @@ extern int pure_size;
 #define XBOOLFWD(a) (&(XMISC(a)->u_boolfwd))
 #define XOBJFWD(a) (&(XMISC(a)->u_objfwd))
 #define XBUFFER_OBJFWD(a) (&(XMISC(a)->u_buffer_objfwd))
+#define XBUFFER_LOCAL_VALUE(a) (&(XMISC(a)->u_buffer_local_value))
 
 #define XSETINT(a, b) XSET (a, Lisp_Int, b)
 #define XSETCONS(a, b) XSET (a, Lisp_Cons, b)
@@ -609,6 +573,50 @@ struct Lisp_Buffer_Objfwd
     int offset;
   };
 
+/* Used in a symbol value cell when the symbol's value is per-buffer.
+   The actual contents resemble a cons cell which starts a list like this:
+   (REALVALUE BUFFER CURRENT-ALIST-ELEMENT . DEFAULT-VALUE).
+
+   BUFFER is the last buffer for which this symbol's value was
+   made up to date.
+
+   CURRENT-ALIST-ELEMENT is a pointer to an element of BUFFER's
+   local_var_alist, that being the element whose car is this
+   variable.  Or it can be a pointer to the
+   (CURRENT-ALIST-ELEMENT . DEFAULT-VALUE),
+   if BUFFER does not have an element in its alist for this
+   variable (that is, if BUFFER sees the default value of this
+   variable).
+
+   If we want to examine or set the value and BUFFER is current,
+   we just examine or set REALVALUE. If BUFFER is not current, we
+   store the current REALVALUE value into CURRENT-ALIST-ELEMENT,
+   then find the appropriate alist element for the buffer now
+   current and set up CURRENT-ALIST-ELEMENT.  Then we set
+   REALVALUE out of that element, and store into BUFFER.
+
+   If we are setting the variable and the current buffer does not
+   have an alist entry for this variable, an alist entry is
+   created.
+
+   Note that REALVALUE can be a forwarding pointer.  Each time it
+   is examined or set, forwarding must be done.  Each time we
+   switch buffers, buffer-local variables which forward into C
+   variables are swapped immediately, so the C code can assume
+   that they are always up to date.
+
+   Lisp_Misc_Buffer_Local_Value and Lisp_Misc_Some_Buffer_Local_Value
+   use the same substructure.  The difference is that with the latter,
+   merely setting the variable while some buffer is current
+   does not cause that buffer to have its own local value of this variable.
+   Only make-local-variable does that.  */
+struct Lisp_Buffer_Local_Value
+  {
+    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Buffer_Local_Value
+				   or Lisp_Misc_Some_Buffer_Local_Value */
+    Lisp_Object car, cdr;
+  };
+
 union Lisp_Misc
   {
     enum Lisp_Misc_Type type;
@@ -618,6 +626,7 @@ union Lisp_Misc
     struct Lisp_Boolfwd u_boolfwd;
     struct Lisp_Objfwd u_objfwd;
     struct Lisp_Buffer_Objfwd u_buffer_objfwd;
+    struct Lisp_Buffer_Local_Value u_buffer_local_value;
   };
 
 #ifdef LISP_FLOAT_TYPE
@@ -761,13 +770,13 @@ typedef unsigned char UCHAR;
 #define FLOATP(x) (0)
 #endif
 #define OVERLAYP(x) (XTYPE ((x)) == Lisp_Overlay)
-#define BUFFER_LOCAL_VALUEP(x) (XTYPE ((x)) == Lisp_Buffer_Local_Value)
-#define SOME_BUFFER_LOCAL_VALUEP(x) (XTYPE ((x)) == Lisp_Some_Buffer_Local_Value)
 #define MARKERP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Marker)
 #define INTFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Intfwd)
 #define BOOLFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Boolfwd)
 #define OBJFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Objfwd)
 #define BUFFER_OBJFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Buffer_Objfwd)
+#define BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Buffer_Local_Value)
+#define SOME_BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Some_Buffer_Local_Value)
 
 #define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
 #define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))
