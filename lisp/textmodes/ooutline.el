@@ -237,13 +237,14 @@ the number of characters that `outline-regexp' matches."
     (- (match-end 0) (match-beginning 0))))
 
 (defun outline-next-preface ()
-  "Skip forward to just before the next heading line."
+  "Skip forward to just before the next heading line.
+If there's no following heading line, stop before the newline
+at the end of the buffer."
   (if (re-search-forward (concat "[\n\^M]\\(" outline-regexp "\\)")
 			 nil 'move)
-      (progn
-	(goto-char (match-beginning 0))
-	(if (memq (preceding-char) '(?\n ?\^M))
-	    (forward-char -1)))))
+      (goto-char (match-beginning 0)))
+  (if (memq (preceding-char) '(?\n ?\^M))
+      (forward-char -1)))
 
 (defun outline-next-heading ()
   "Move to the next (possibly invisible) heading line."
