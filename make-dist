@@ -309,7 +309,7 @@ for subdir in lisp site-lisp leim real-leim real-leim/CXTERM-DIC \
 done
 
 echo "Initializing \`leim' subdirectory"
-cp leim/Makefile.in ${tempdir}/leim
+cp noleim-Makefile.in ${tempdir}/leim/Makefile.in
 
 echo "Making links to \`lisp' and its subdirectories"
 ### Don't distribute TAGS, =*.el files, site-init.el, site-load.el, or default.el.
@@ -317,7 +317,7 @@ echo "Making links to \`lisp' and its subdirectories"
  ln [a-zA-Z]*.el ../${tempdir}/lisp
  ln [a-zA-Z]*.elc ../${tempdir}/lisp
  ln [a-zA-Z]*.dat ../${tempdir}/lisp
- for img in [a-zA-Z]*.xpm [a-zA-Z]*.xbm; do
+ for img in [a-zA-Z]*.xpm [a-zA-Z]*.xbm [a-zA-Z]*.pbm; do
    # If there are no images, the shell won't expand the pattern.
    if [ -f $img ]; then
      ln $img ../${tempdir}/lisp
@@ -376,8 +376,7 @@ echo "Making links to \`leim' and its subdirectories for the LEIM distribution"
  ln SKK-DIC/README SKK-DIC/SKK-JISYO.L ../${tempdir}/real-leim/SKK-DIC
  ln ja-dic/*.el ja-dic/*.elc ../${tempdir}/real-leim/ja-dic
  ln quail/*.el quail/*.elc ../${tempdir}/real-leim/quail
-
- cp ../leim-Makefile.in ../${tempdir}/real-leim/Makefile.in
+ ln Makefile.in ../${tempdir}/real-leim/Makefile.in
 
  cd ../${tempdir}/real-leim
  rm -f TAGS =* */=*)
