@@ -397,11 +397,15 @@ Used by the @sc{gnus} package.
 @item SHELL
 The name of an interpreter used to parse and execute programs run from
 inside Emacs.
+@cindex background mode, on @code{xterm}
 @item TERM
 The name of the terminal that Emacs is running on.  The variable must be
 set unless Emacs is run in batch mode.  On MS-DOS, it defaults to
 @samp{internal}, which specifies a built-in terminal emulation that
-handles the machine's own display.
+handles the machine's own display.  If the value of @env{TERM} indicates
+that Emacs runs in non-windowed mode from @code{xterm} or a similar
+terminal emulator, the background mode defaults to @samp{light}, and
+Emacs will choose colors that are appropriate for a light background.
 @item TERMCAP
 The name of the termcap library file describing how to program the
 terminal specified by the @env{TERM} variable.  This defaults to
