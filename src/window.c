@@ -4431,7 +4431,6 @@ Default for ARG is window width minus 2.")
 				      - XINT (arg)));
 }
 
-
 /* Value is the number of lines actually displayed in window W,
    as opposed to its height.  */
 
@@ -4480,11 +4479,15 @@ displayed_window_lines (w)
 
 
 DEFUN ("recenter", Frecenter, Srecenter, 0, 1, "P",
-  "Center point in window and redisplay frame.  With ARG, put point on line ARG.\n\
-The desired position of point is always relative to the current window.\n\
-Just C-u as prefix means put point in the center of the window.\n\
-If ARG is omitted or nil, erases the entire frame and then\n\
-redraws with point in the center of the current window.")
+  "Center point in window and redisplay frame.\n\
+With prefix argument ARG, recenter putting point on screen line ARG\n\
+relative to the current window.  If ARG is negative, it counts up from the\n\
+bottom of the window.  (ARG should be less than the height of the window.)\n\
+\n\
+If ARG is omitted or nil, erase the entire frame and then\n\
+redraw with point in the center of the current window.\n\
+Just C-u as prefix means put point in the center of the window\n\
+and redisplay normally--don't erase and redraw the frame.")
   (arg)
      register Lisp_Object arg;
 {
