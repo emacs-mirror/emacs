@@ -1,3 +1,12 @@
+2002-02-23  Jason Rumney  <jasonr@gnu.org>
+
+	* w32select.c (Fw32_set_clipboard_data): Run pre-write-conversion
+	on the string before encoding it.
+	(Fw32_get_clipboard_data): Run post-read-conversion on the string
+	after decoding it.
+
+	* w32fns.c (w32_wnd_proc) <WM_TIMER>: Fix last change.
+
 2002-02-23  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* w32term.c (enter_timestamp): Remove unused static variable to
