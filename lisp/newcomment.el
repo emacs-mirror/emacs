@@ -423,7 +423,7 @@ and raises an error or returns nil if NOERROR is non-nil."
 (defun comment-beginning ()
   "Find the beginning of the enclosing comment.
 Returns nil if not inside a comment, else moves point and returns
-the same as `comment-search-forward'."
+the same as `comment-search-backward'."
   ;; HACK ATTACK!
   ;; We should really test `in-string-p' but that can be expensive.
   (unless (eq (get-text-property (point) 'face) 'font-lock-string-face)
@@ -435,7 +435,7 @@ the same as `comment-search-forward'."
 	      (and
 	       ;; For modes where comment-start and comment-end are the same,
 	       ;; the search above may have found a `ce' rather than a `cs'.
-	       (or (not (looking-at comment-end-skip))
+	       (or (if comment-end-skip (not (looking-at comment-end-skip)))
 		   ;; Maybe font-lock knows that it's a `cs'?
 		   (eq (get-text-property (match-end 0) 'face)
 		       'font-lock-comment-face)
