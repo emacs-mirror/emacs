@@ -1,3 +1,7 @@
+2005-03-26  Jure Cuhalev  <gandalf@owca.info>  (tiny change)
+
+	* textmodes/ispell.el (ispell-dictionary-alist-6): Add slovenian.
+
 2005-03-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* term/bobcat.el: Don't use keyswap.el, since it is now obsolete.
