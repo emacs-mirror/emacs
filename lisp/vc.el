@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.12 1992/10/05 22:03:53 rms Exp rms $	
+;;	$Id: vc.el,v 1.13 1992/10/06 08:59:39 rms Exp rms $	
 
 ;; This file is part of GNU Emacs.
 
@@ -292,8 +292,13 @@ the option to steal the lock."
 	      ;; give luser a chance to save before checking in.
 	      (vc-buffer-sync)
 
-	      ;; revert if file is unchanged
-	      (if (vc-workfile-unchanged-p file)
+	      ;; Revert if file is unchanged and buffer is too.
+	      ;; If buffer is modified, that means the user just said no
+	      ;; to saving it; in that case, don't revert,
+	      ;; because the user might intend to save
+	      ;; after finishing the log entry.
+	      (if (and (vc-workfile-unchanged-p file)
+		       (not (buffer-modified-p)))
 		  (progn
 		    (vc-backend-revert file)
 		    (vc-resynch-window file t))
@@ -320,14 +325,17 @@ the option to steal the lock."
    (and override (read-string "Initial version level: ")))
   )
 
-(defun vc-resynch-window (file &optional keep)
+(defun vc-resynch-window (file &optional keep noquery)
   ;; If the given file is in the current buffer,
   ;; either revert on it so we see expanded keyworks,
   ;; or unvisit it (depending on vc-keep-workfiles)
+  ;; NOQUERY if non-nil inhibits confirmation for reverting.
+  ;; NOQUERY should be t *only* if it is known the only difference
+  ;; between the buffer and the file is due to RCS rather than user editing!
   (and (string= buffer-file-name file)
        (if keep
 	   (progn
-	     (vc-revert-buffer1 nil t)
+	     (vc-revert-buffer1 nil noquery)
 	     (vc-mode-line buffer-file-name))
 	 (progn
 	   (delete-window)
@@ -335,7 +343,7 @@ the option to steal the lock."
 
 
 (defun vc-admin (file rev)
-  "Checks a file into your version-control system.
+  "Check a file into your version-control system.
 FILE is the unmodified name of the file.  REV should be the base version
 level to check it in under."
   (if vc-initial-comment
@@ -377,13 +385,13 @@ level to check it in under."
 ;; This is called when the notification has been sent.
 (defun vc-finish-steal (file version)
   (vc-backend-steal file version)
-  (vc-resynch-window file t))
+  (vc-resynch-window file t t))
 
 (defun vc-checkout (file &optional writeable)
   "Retrieve a copy of the latest version of the given file."
   (vc-backend-checkout file writeable)
   (if (string-equal file buffer-file-name)
-      (vc-resynch-window file t))
+      (vc-resynch-window file t t))
   )
 
 (defun vc-checkin (file &optional rev comment)
@@ -435,7 +443,7 @@ popped up to accept a comment."
   (delete-window (get-buffer-window "*VC-log*"))
   (bury-buffer "*VC-log*")
   ;; Now make sure we see the expanded headers
-  (vc-resynch-window buffer-file-name vc-keep-workfiles)
+  (vc-resynch-window buffer-file-name vc-keep-workfiles t)
   (run-hooks vc-log-after-operation-hook)
   )
 
@@ -716,7 +724,7 @@ to that version."
     (if changed
 	(delete-window))
     (vc-backend-revert file)
-    (vc-resynch-window file t)
+    (vc-resynch-window file t t)
     )
   )
 
