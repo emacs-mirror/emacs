@@ -76,8 +76,6 @@ AC_ARG_WITH(gif,
 [  --with-gif              use -lungif for displaying GIF images])
 AC_ARG_WITH(png,
 [  --with-png              use -lpng for displaying PNG images])
-AC_ARG_WITH(sound,
-[  --with-sound            native sound support for GNU/Linux and free BSDs])
 AC_ARG_WITH(toolkit-scroll-bars,
 [  --with-toolkit-scroll-bars  use Motif or Xaw3d scroll bars])
 
@@ -1109,12 +1107,7 @@ dnl checks for Unix variants
 AC_AIX
 
 # Sound support for GNU/Linux and the free BSDs.
-if test "${with_sound}" = ""; then
-  with_sound=no
-fi
-if test "${with_sound}" != "no"; then
-  AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h)
-fi
+AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h)
 
 dnl checks for header files
 AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h termcap.h)
