@@ -788,8 +788,9 @@ PATTERNS."
       ;; The character(s) to modify may be a single char or a string.
       (if (numberp (car syn))
 	  (modify-syntax-entry (car syn) (cdr syn) table)
-	(dolist (c (car syn))
-	  (modify-syntax-entry c (cdr syn) table))))
+        (mapc (lambda (c)
+                (modify-syntax-entry c (cdr syn) table))
+              (car syn))))
     (goto-char (point-max))
     (imenu-progress-message prev-pos 0 t)
     (unwind-protect			; for syntax table
