@@ -12,9 +12,9 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.17 1994/08/09 20:43:48 rms Exp eggert $
+# $Id: rcs2log,v 1.19 1995/03/21 05:11:06 eggert Exp $
 
-# Copyright 1992, 1993 Free Software Foundation, Inc.
+# Copyright 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,51 +30,69 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+tab='	'
 nl='
 '
 
 # Parse options.
 
 # defaults
+: ${AWK=awk}
 : ${TMPDIR=/tmp}
 hostname= # name of local host (if empty, will deduce it later)
 indent=8 # indent of log line
-initialize_fullname= # awk assignments to set up fullname array
-initialize_mailaddr= # awk assignments to set up mailaddr array
 length=79 # suggested max width of log line
 logins= # login names for people we know fullnames and mailaddresses of
-loginsout= # temporary file holding sorted logins
+loginFullnameMailaddrs= # login<tab>fullname<tab>mailaddr triplets
+recursive= # t if we want recursive rlog
 rlog_options= # options to pass to rlog
 tabwidth=8 # width of horizontal tab
 
 while :
 do
 	case $1 in
-	-i)	indent=${2?};;
-	-h)	hostname=${2?};;
-	-l)	length=${2?};;
-	-n)	logins=$logins$nl${2?}
-		loginsout=$TMPDIR/rcs2log$$l
-		case $2${3?}${4?} in
-		*\"* | *\\* | *"$nl"*)
-			echo >&2 "$0: -n '$2' '$3' '$4': special characters not allowed"
-			exit 1
+	-i)	indent=${2?}; shift;;
+	-h)	hostname=${2?}; shift;;
+	-l)	length=${2?}; shift;;
+	-[nu])	# -n is obsolescent; it is replaced by -u.
+		case $1 in
+		-n)	case ${2?}${3?}${4?} in
+			*"$tab"* | *"$nl"*)
+				echo >&2 "$0: -n '$2' '$3' '$4': tabs, newlines not allowed"
+				exit 1
+			esac
+			loginFullnameMailaddrs=$loginFullnameMailaddrs$nl$2$tab$3$tab$4
+			shift; shift; shift;;
+		-u)
+			case ${2?} in
+			*"$nl"*)
+				echo >&2 "$0: -u '$2': newlines not allowed"
+				exit 1;;
+			*"$tab"*"$tab"*"$tab"*)
+				echo >&2 "$0: -u '$2': too many fields"
+				exit 1;;
+			*"$tab"*"$tab"*)
+				;;
+			*)
+				echo >&2 "$0: -u '$2': not enough fields"
+				exit 1
+			esac
+			loginFullnameMailaddrs=$loginFullnameMailaddrs$nl$2
+			shift
 		esac
-		initialize_fullname="$initialize_fullname
-			fullname[\"$2\"] = \"$3\""
-		initialize_mailaddr="$initialize_mailaddr
-			mailaddr[\"$2\"] = \"$4\""
-		shift; shift;;
-	-r)	rlog_options=$rlog_options$nl${2?};;
-	-t)	tabwidth=${2?};;
+		logins=$logins$nl$login
+		;;
+	-r)	rlog_options=$rlog_options$nl${2?}; shift;;
+	-R)	recursive=t;;
+	-t)	tabwidth=${2?}; shift;;
 	-*)	echo >&2 "$0: usage: $0 [options] [file ...]
 Options:
-	[-h hostname] [-i indent] [-l length] [-n login fullname mailaddr]...
-	[-r rlog_option]... [-t tabwidth]"
+	[-h hostname] [-i indent] [-l length] [-R] [-r rlog_option]
+	[-t tabwidth] [-u 'login<TAB>fullname<TAB>mailaddr']..."
 		exit 1;;
 	*)	break
 	esac
-	shift; shift
+	shift
 done
 
 month_data='
@@ -133,7 +151,7 @@ then
 			exit
 		}
 	'
-	d=`awk "$e" <ChangeLog` || exit
+	d=`$AWK "$e" <ChangeLog` || exit
 	case $d in
 	?*) date=$d
 	esac
@@ -160,28 +178,46 @@ case $# in
 0)
 	case $repository in
 	'')
-		files=
-		for file in RCS/.* RCS/* .*,v *,v
-		do
-			case $file in
-			RCS/. | RCS/..) continue;;
-			RCS/.\* | RCS/\* | .\*,v | \*,v) test -f "$file" || continue
-			esac
-			files=$files$nl$file
-		done
-		case $files in
-		'') exit 0
-		esac
 		oldIFS=$IFS
 		IFS=$nl
-		set $files
+		case $recursive in
+		t)
+			RCSdirs=`find . -name RCS -type d -print`
+			filesFromRCSfiles='s|,v$||; s|/RCS/|/|; s|^\./||'
+			files=`
+				{
+					case $RCSdirs in
+					?*) find $RCSdirs -type f -print
+					esac
+					find . -name '*,v' -print
+				} |
+				sort -u |
+				sed "$filesFromRCSfiles"
+			`;;
+		*)
+			files=
+			for file in RCS/.* RCS/* .*,v *,v
+			do
+				case $file in
+				RCS/. | RCS/..) continue;;
+				RCS/.\* | RCS/\* | .\*,v | \*,v) test -f "$file" || continue
+				esac
+				files=$files$nl$file
+			done
+			case $files in
+			'') exit 0
+			esac
+		esac
+		set x $files
+		shift
 		IFS=$oldIFS
 	esac
 esac
 
+llogout=$TMPDIR/rcs2log$$l
 rlogout=$TMPDIR/rcs2log$$r
 trap exit 1 2 13 15
-trap "rm -f $loginsout $rlogout; exit 1" 0
+trap "rm -f $llogout $rlogout; exit 1" 0
 
 $rlog "$datearg" $rlog_options ${1+"$@"} >$rlogout || exit
 
@@ -191,27 +227,60 @@ $rlog "$datearg" $rlog_options ${1+"$@"} >$rlogout || exit
 # Warning: foreign authors (i.e. not known in the passwd file) are mishandled;
 # you have to fix the resulting output by hand.
 
-case $loginsout in
-?*) sort -u -o $loginsout <<EOF || exit
+initialize_fullname=
+initialize_mailaddr=
+
+case $loginFullnameMailaddrs in
+?*)
+	case $loginFullnameMailaddrs in
+	*\"* | *\\*)
+		sed 's/["\\]/\\&/g' >$llogout <<EOF || exit
+$loginFullnameMailaddrs
+EOF
+		loginFullnameMailaddrs=`cat $llogout`
+	esac
+
+	oldIFS=$IFS
+	IFS=$nl
+	for loginFullnameMailaddr in $loginFullnameMailaddrs
+	do
+		IFS=$tab
+		set x $loginFullnameMailaddr
+		login=$2
+		fullname=$3
+		mailaddr=$4
+		initialize_fullname="$initialize_fullname
+			fullname[\"$login\"] = \"$fullname\""
+		initialize_mailaddr="$initialize_mailaddr
+			mailaddr[\"$login\"] = \"$mailaddr\""
+	done
+	IFS=$oldIFS
+esac
+
+case $llogout in
+?*) sort -u -o $llogout <<EOF || exit
 $logins
 EOF
 esac
+output_authors='/^date: / {
+	if ($2 ~ /^[0-9]*[-/][0-9][0-9][-/][0-9][0-9]$/ && $3 ~ /^[0-9][0-9]:[0-9][0-9]:[0-9][0-9][-+0-9]*;$/ && $4 == "author:" && $5 ~ /^[^;]*;$/) {
+		print substr($5, 1, length($5)-1)
+	}
+}'
 authors=`
-	sed -n 's|^date: *[0-9]*[-/][0-9][0-9][-/][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9][-+0-9]*; *author: *\([^; ]*\).*|\1|p' <$rlogout |
-	case $loginsout in
+	$AWK "$output_authors" <$rlogout |
+	case $llogout in
 	'') sort -u;;
-	?*) sort -u | comm -23 - $loginsout
+	?*) sort -u | comm -23 - $llogout
 	esac
 `
 case $authors in
 ?*)
-	initialize_author=
-	for author in $authors
-	do
-		initialize_author="$initialize_author
-			author[\"$author\"] = 1
-		"
-	done
+	cat >$llogout <<EOF || exit
+$authors
+EOF
+	initialize_author_script='s/["\\]/\\&/g; s/.*/author[\"&\"] = 1/'
+	initialize_author=`sed -e "$initialize_author_script" <$llogout`
 	awkscript='
 		BEGIN {
 			alphabet = "abcdefghijklmnopqrstuvwxyz"
@@ -239,7 +308,25 @@ case $authors in
 					if (i) A = substr(ALPHABET, i, 1)
 					fullname = substr(fullname, 1, abbr-1) A substr($1, 2) substr(fullname, abbr+1)
 				}
-				printf "fullname[\"%s\"] = \"%s\"\n", $1, fullname
+
+				# Quote quotes and backslashes properly in full names.
+				# Do not use gsub; traditional awk lacks it.
+				quoted = ""
+				rest = fullname
+				for (;;) {
+					p = index(rest, "\\")
+					q = index(rest, "\"")
+					if (p) {
+						if (q && q<p) p = q
+					} else {
+						if (!q) break
+						p = q
+					}
+					quoted = quoted substr(rest, 1, p-1) "\\" substr(rest, p, 1)
+					rest = substr(rest, p+1)
+				}
+
+				printf "fullname[\"%s\"] = \"%s%s\"\n", $1, quoted, rest
 				author[$1] = 0
 			}
 		}
@@ -247,7 +334,7 @@ case $authors in
 
 	initialize_fullname=`
 		(cat /etc/passwd; ypmatch $authors passwd) 2>/dev/null |
-		awk -F: "$awkscript"
+		$AWK -F: "$awkscript"
 	`$initialize_fullname
 esac
 
@@ -278,7 +365,7 @@ printlogline='{
 	# Print each line of the log, transliterating \r to \n.
 	while ((i = index(Log, CR)) != 0) {
 		logline = substr(Log, 1, i-1)
-		if (logline ~ /[^	 ]/) {
+		if (logline ~ /[^'"$tab"' ]/) {
 			printf "%s%s\n", sep, logline
 		} else {
 			print ""
@@ -304,8 +391,20 @@ esac
 # First, reformat the rlog output so that each line contains one log entry.
 # Transliterate \n to \r so that multiline entries fit on a single line.
 # Discard irrelevant rlog output.
-awk <$rlogout '
-	/^Working file:/ { filename = $3 }
+$AWK <$rlogout '
+	BEGIN { repository = "'"$repository"'" }
+	/^RCS file:/ {
+		if (repository != "") {
+			filename = $3
+			if (substr(filename, 1, length(repository) + 1) == repository "/") {
+				filename = substr(filename, length(repository) + 2)
+			}
+			if (filename ~ /,v$/) {
+				filename = substr(filename, 1, length(filename) - 2)
+			}
+		}
+	}
+	/^Working file:/ { if (repository == "") filename = $3 }
 	/^date: /, /^(-----------*|===========*)$/ {
 		if ($0 ~ /^branches: /) { next }
 		if ($0 ~ /^date: [0-9][- +\/0-9:]*;/) {
@@ -339,7 +438,7 @@ awk <$rlogout '
 sort +1 -3r +3 +0 |
 
 # Finally, reformat the sorted log entries.
-awk '
+$AWK '
 	BEGIN {
 		# Some awks do not understand "\r" or "\013", so we have to
 		# put a carriage return directly in the file.
@@ -392,10 +491,10 @@ awk '
 			newclumpname = ""
 			sep = "\n"
 			if (date == "") sep = ""
-			if (newlog ~ /^\{[^	 }]*}[	 ]/) {
+			if (newlog ~ /^\{[^'"$tab"' }]*}['"$tab"' ]/) {
 				i = index(newlog, "}")
 				newclumpname = substr(newlog, 1, i)
-				while (substr(newlog, i+1) ~ /^[	 ]/) i++
+				while (substr(newlog, i+1) ~ /^['"$tab"' ]/) i++
 				newlog = substr(newlog, i+1)
 				if (clumpname == newclumpname) sep = ""
 			}
@@ -459,4 +558,4 @@ awk '
 
 # Exit successfully.
 
-exec rm -f $loginsout $rlogout
+exec rm -f $llogout $rlogout
