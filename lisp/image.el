@@ -151,15 +151,22 @@ means display it in the right marginal area."
     (error "Not an image: %s" image))
   (unless (or (null area) (memq area '(left-margin right-margin)))
     (error "Invalid area %s" area))
-  (when area
-    (setq image (list (list 'margin area) image)))
+  (if area
+      (setq image (list (list 'margin area) image))
+    ;; Cons up a new spec equal but not eq to `image' so that
+    ;; inserting it twice in a row (adjacently) displays two copies of
+    ;; the image.  Don't try to avoid this by looking at the display
+    ;; properties on either side so that we DTRT more often with
+    ;; cut-and-paste.  (Yanking killed image text next to another copy
+    ;; of it loses anyway.)
+    (setq image (cons 'image (cdr image))))
   (let ((start (point)))
     (insert string)
-    ;; Copy `image' so that inserting it twice in a row (adjacently)
-    ;; displays two copies of the image.
     (add-text-properties start (point)
-			 (list 'display (copy-sequence image)
-			       'intangible (list t) ; something unique
+			 (list 'display image
+			       ;; `image' has the right properties to
+			       ;; mark an intangible field.
+			       'intangible image
 			       'rear-nonsticky (list 'display)))))
 
 
