@@ -1487,8 +1487,8 @@ non-nil."
   (setq paragraph-start "[ \f\n\t]*$")
   (make-local-variable 'comment-start)
   (setq comment-start "%")
-  (auto-fill-mode 1)
-  (setq auto-fill-function 'bibtex-auto-fill-function)
+  (make-local-variable 'normal-auto-fill-function)
+  (setq normal-auto-fill-function 'bibtex-auto-fill-function)
   (set (make-local-variable 'font-lock-defaults)
        '(bibtex-font-lock-keywords
          nil t ((?$ . "\"")
