@@ -630,13 +630,15 @@ Return the amount the indentation changed by."
 		  (setq indent (save-excursion
 				 (c-backward-to-start-of-if)
 				 (current-indentation))))
-		 ((looking-at "}[ \t]*else")
+		 ((and (looking-at "}[ \t]*else\\b")
+		       (not (looking-at "}[ \t]*else\\s_")))
 		  (setq indent (save-excursion
 				 (forward-char)
 				 (backward-sexp)
 				 (c-backward-to-start-of-if)
 				 (current-indentation))))
 		 ((and (looking-at "while\\b")
+		       (not (looking-at "while\\s_"))
 		       (save-excursion
 			 (c-backward-to-start-of-do)))
 		  ;; This is a `while' that ends a do-while.
@@ -933,9 +935,11 @@ return the indentation of the text that would follow this star."
 	(case-fold-search nil))
     (while (and (not (bobp)) (not (zerop if-level)))
       (backward-sexp 1)
-      (cond ((looking-at "else\\b")
+      (cond ((and (looking-at "else\\b")
+		  (not (looking-at "else\\s_")))
 	     (setq if-level (1+ if-level)))
-	    ((looking-at "if\\b")
+	    ((and (looking-at "if\\b")
+		  (not (looking-at "if\\s_")))
 	     (setq if-level (1- if-level)))
 	    ((< (point) limit)
 	     (setq if-level 0)
@@ -1189,9 +1193,11 @@ If within a string or comment, move by sentences instead of statements."
 		  ;; Find last non-comment character before this line
 		  (save-excursion
 		    (setq this-point (point))
-		    (setq at-else (looking-at "else\\W"))
+		    (setq at-else (and (looking-at "else\\b")
+				       (not (looking-at "else\\s_"))))
 		    (setq at-brace (= (following-char) ?{))
-		    (setq at-while (looking-at "while\\b"))
+		    (setq at-while (and (looking-at "while\\b")
+					(not (looking-at "while\\s_"))))
 		    (if (= (following-char) ?})
 			(setq this-indent (car indent-stack))
 		      (c-backward-to-noncomment opoint)
