@@ -759,7 +759,7 @@ major mode is the name of an extended command, which is how you can
 switch to that mode.  For example, M-x fundamental-mode is a command to
 switch to Fundamental mode.
 
-If you are going to be editing English text, such as this file, you
+If you are going to be editing human-language text, such as this file, you
 should probably use Text Mode.
 >> Type M-x text mode<Return>.
 
@@ -785,10 +785,10 @@ itself, independent of all other minor modes, and independent of your
 major mode.  So you can use no minor modes, or one minor mode, or any
 combination of several minor modes.
 
-One minor mode which is very useful, especially for editing English
-text, is Auto Fill mode.  When this mode is on, Emacs breaks the line
-in between words automatically whenever you insert text and make a
-line that is too wide.
+One minor mode which is very useful, especially for editing
+human-language text, is Auto Fill mode.  When this mode is on, Emacs
+breaks the line in between words automatically whenever you insert
+text and make a line that is too wide.
 
 You can turn Auto Fill mode on by doing M-x auto fill mode<Return>.
 When the mode is on, you can turn it off again by doing M-x
