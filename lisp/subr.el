@@ -748,10 +748,10 @@ Wildcards and redirection are handled as usual in the shell."
 ;; now, but it generates slower code.
 (defmacro save-match-data (&rest body)
   "Execute the BODY forms, restoring the global value of the match data."
-  `(let ((save-match-data-variable '(match-data)))
+  `(let ((save-match-data-internal '(match-data)))
        (unwind-protect
 	   (progn ,@body)
-	 (store-match-data save-match-data-variable)))))
+	 (store-match-data save-match-data-internal))))
 
 (defun match-string (num &optional string)
   "Return string of text matched by last search.
