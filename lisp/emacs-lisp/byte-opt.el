@@ -504,6 +504,13 @@
 		    (setq form (macroexpand form
 					    byte-compile-macro-environment))))
 	   (byte-optimize-form form for-effect))
+
+	  ;; Support compiler macros as in cl.el.
+	  ((and (fboundp 'compiler-macroexpand)
+	        (not (eq form
+		         (setq form (compiler-macroexpand form
+		                     byte-compile-macro-environment)))))
+	   (byte-optimize-form form for-effect))
 	  
 	  ((not (symbolp fn))
 	   (or (eq 'mocklisp (car-safe fn)) ; ha!
