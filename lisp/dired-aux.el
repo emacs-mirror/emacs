@@ -950,11 +950,8 @@ Special value `always' suppresses confirmation.")
   (rename-file from to ok-flag)		; error is caught in -create-files
   ;; Silently rename the visited file of any buffer visiting this file.
   (and (get-file-buffer from)
-       (save-excursion
-	 (set-buffer (get-file-buffer from))
-	 (let ((modflag (buffer-modified-p)))
-	   (set-visited-file-name to)
-	   (set-buffer-modified-p modflag))))
+       (with-current-buffer (get-file-buffer from)
+	 (set-visited-file-name to nil t)))
   (dired-remove-file from)
   ;; See if it's an inserted subdir, and rename that, too.
   (dired-rename-subdir from to))
