@@ -381,7 +381,8 @@ This is necessary if one wants to dump man.el with emacs."
 	    nil))))
 
   (setq Man-filter-list
-	(list
+	;; Avoid trailing nil which confuses customize.
+	(apply 'list
 	 (cons
 	  Man-sed-command
 	  (list
@@ -415,9 +416,10 @@ This is necessary if one wants to dump man.el with emacs."
 	   "'"
 	   ))
 	 (if (not Man-uses-untabify-flag)
-	     (cons
-	      Man-untabify-command
-	      Man-untabify-command-args)
+	     ;; The outer list will be stripped off by apply.
+	     (list (cons
+		    Man-untabify-command
+		    Man-untabify-command-args))
 	   )))
 )
 
