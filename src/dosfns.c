@@ -165,17 +165,6 @@ Report whether a mouse is present.")
     return Qnil;
 }
 
-DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
-  "Move the mouse pointer to the center of character cell (X,Y) in FRAME.\n\
-WARNING:  If you use this under X windows,\n\
-you should call `unfocus-frame' afterwards.")
-  (frame, x, y)
-     Lisp_Object frame, x, y;
-{
-  mouse_moveto (XINT (x), XINT (y));
-  return Qnil;
-}
-
 /* Function to translate colour names to integers.  See lisp/term/pc-win.el
    for its definition.  */
 
@@ -333,8 +322,6 @@ syms_of_dosfns ()
   defsubr (&Smsdos_mouse_disable);
 #ifndef HAVE_X_WINDOWS
   defsubr (&Smsdos_mouse_p);
-  defsubr (&Sset_mouse_position);
-
   Qmsdos_color_translate = intern ("msdos-color-translate");
   staticpro (&Qmsdos_color_translate);
 #endif
