@@ -33,6 +33,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'dired-aux))
+
 ;;; Customizable variables
 
 (defgroup dired nil
@@ -561,6 +563,12 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (set-buffer old-buf)
     buffer))
 
+(defvar dired-buffers nil
+  ;; Enlarged by dired-advertise
+  ;; Queried by function dired-buffers-for-dir. When this detects a
+  ;; killed buffer, it is removed from this list.
+  "Alist of expanded directories and their associated dired buffers.")
+
 (defun dired-find-buffer-nocreate (dirname &optional mode)
   ;; This differs from dired-buffers-for-dir in that it does not consider
   ;; subdirs of default-directory and searches for the first match only.
@@ -917,6 +925,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "*\C-p" 'dired-prev-marked-file)
     (define-key map "*t" 'dired-do-toggle)
     ;; Lower keys for commands not operating on all the marked files
+    (define-key map "a" 'dired-find-alternate-file)
     (define-key map "d" 'dired-flag-file-deletion)
     (define-key map "e" 'dired-find-file)
     (define-key map "f" 'dired-find-file)
@@ -1343,6 +1352,12 @@ Creates a buffer if necessary."
 	  (error "File is a symlink to a nonexistent target")
 	(error "File no longer exists; type `g' to update Dired buffer")))))
 
+(defun dired-find-alternate-file ()
+  "In dired, visit this file or directory instead of the dired buffer."
+  (interactive)
+  (set-buffer-modified-p nil)
+  (find-alternate-file (dired-get-filename)))
+
 (defun dired-mouse-find-file-other-window (event)
   "In dired, visit the file or directory name you click on."
   (interactive "e")
@@ -1584,12 +1599,6 @@ regardless of the language.")
 
 
 ;; Keeping Dired buffers in sync with the filesystem and with each other
-
-(defvar dired-buffers nil
-  ;; Enlarged by dired-advertise
-  ;; Queried by function dired-buffers-for-dir. When this detects a
-  ;; killed buffer, it is removed from this list.
-  "Alist of expanded directories and their associated dired buffers.")
 
 (defun dired-buffers-for-dir (dir &optional file)
 ;; Return a list of buffers that dired DIR (top level or in-situ subdir).
