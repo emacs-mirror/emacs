@@ -235,11 +235,8 @@ Default value, nil, means edit the string instead."
 	(char-table-p (nth 1 map))
 	(error "The initialization of isearch-mode-map must be updated"))
     ;; Make all multibyte characters search for themselves.
-    (let ((l (generic-character-list))
-	  (table (nth 1 map)))
-      (while l
-	(set-char-table-default table (car l) 'isearch-printing-char)
-	(setq l (cdr l))))
+    (set-char-table-range (nth 1 map) (cons #x100 #x2FFFFF)
+			  'isearch-printing-char)
     ;; Make function keys, etc, exit the search.
     (define-key map [t] 'isearch-other-control-char)
     ;; Control chars, by default, end isearch mode transparently.
