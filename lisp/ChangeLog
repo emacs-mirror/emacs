@@ -1,3 +1,8 @@
+2000-11-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (command-line): Fix computation of the source file
+	for user-init-file when user-init-file is a compiled file.
+
 2000-11-24  Miles Bader  <miles@gnu.org>
 
 	* cus-edit.el (custom-filter-face-spec, custom-pre-filter-face-spec) 
@@ -21,24 +26,24 @@
 	
 	* ediff-diff.el: Moved variables around to have it compile under NT.
 	
-	* ediff-help.el (ediff-use-long-help-message): made it customizable.
+	* ediff-help.el (ediff-use-long-help-message): Made it customizable.
 	
-	* ediff-init.el (ediff-abbrev-jobname): use capitalize.
+	* ediff-init.el (ediff-abbrev-jobname): Use capitalize.
 	
-	* ediff-wind.el (ediff-skip-unsuitable-frames): deleted the
+	* ediff-wind.el (ediff-skip-unsuitable-frames): Deleted the
 	redundant skip-small-frames test.
 	
-	* viper-cmd.el (viper-change-state-to-vi): disable overwrite mode.
+	* viper-cmd.el (viper-change-state-to-vi): Disable overwrite mode.
 	(viper-downgrade-to-insert): protect against errors in hooks.
 	
-	* viper-init.el (viper-vi-state-hook,viper-insert-state-hook,
-	viper-replace-state-hook,viper-emacs-state-hook): do cursor handling.
-	(viper-restore-cursor-type,viper-set-insert-cursor-type): new
+	* viper-init.el (viper-vi-state-hook,viper-insert-state-hook)
+	(viper-replace-state-hook,viper-emacs-state-hook): Do cursor handling.
+	(viper-restore-cursor-type,viper-set-insert-cursor-type): New
 	functions.
 	
-	* viper-util.el (viper-memq-char): bug fixes.
+	* viper-util.el (viper-memq-char): Bug fixes.
 	
-	* viper.el (viper-mode): fix cursor handling.
+	* viper.el (viper-mode): Fix cursor handling.
 	
 2000-11-24  Kenichi Handa  <handa@etl.go.jp>
 
