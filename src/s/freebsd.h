@@ -63,7 +63,7 @@
 #else /* not __ELF__ */
 
 #ifndef NO_SHARED_LIBS
-#define LD_SWITCH_SYSTEM -e start -dc -dp
+#define LD_SWITCH_SYSTEM -e start -dc
 #define HAVE_TEXT_START		/* No need to define `start_of_text'. */
 #if __FreeBSD_version >= 300002
 #define START_FILES pre-crt0.o /usr/lib/aout/crt0.o
