@@ -262,7 +262,6 @@ chapter."
   (define-key texinfo-mode-map "\C-c\C-s"     'texinfo-show-structure)
 
   (define-key texinfo-mode-map "\C-c}"    	'up-list)
-  (define-key texinfo-mode-map "\C-c]"    	'up-list)
   (define-key texinfo-mode-map "\C-c{"    	'texinfo-insert-braces)
 
   ;; bindings for inserting strings
