@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.82) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.83) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.type
@@ -289,7 +289,7 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 
 /* Format varieties */
 enum {
- FormatVarietyA,
+ FormatVarietyA = 1,
  FormatVarietyB,
  FormatVarietyAutoHeader,
  FormatVarietyLIMIT
@@ -298,7 +298,7 @@ enum {
 
 /* Segment preferences */
 enum {
-  SegPrefHigh,
+  SegPrefHigh = 1,
   SegPrefLow,  
   SegPrefRefSet,
   SegPrefGen,
@@ -316,7 +316,7 @@ enum {
 
 /* Buffer frame states. See design.mps.alloc-frame.lw-frame.states */
 enum {
-  BufferFrameVALID,
+  BufferFrameVALID = 1,
   BufferFramePOP_PENDING,
   BufferFrameDISABLED,
   BufferFrameMAX
@@ -383,7 +383,7 @@ enum {
 /* TraceStates -- see design.mps.tracer */
 
 enum {
-  TraceINIT,
+  TraceINIT = 1,
   TraceUNFLIPPED,
   TraceFLIPPED,
   TraceRECLAIM,
