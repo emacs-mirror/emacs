@@ -529,7 +529,7 @@ This returns ARGS with the arguments that have been processed removed."
 	;; These are for Sun.
 	(392976 . f35)
     	(392977 . f36)
-	(393056 . req)))
+	(393056 . req)
 	))
 
 ;;;; Selections and cut buffers
