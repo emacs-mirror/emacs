@@ -442,6 +442,9 @@ This can take a while for large buffers."
 		  ((eq major-mode 'texinfo-mode)    texi-font-lock-keywords)
 		  ((eq major-mode 'shell-mode)      shell-font-lock-keywords)
 		  ((eq major-mode 'dired-mode)      dired-font-lock-keywords)
+		  ((eq major-mode 'rmail-mode)      rmail-font-lock-keywords)
+		  ((eq major-mode 'compilation-mode)
+		   compilation-mode-font-lock-keywords)
 		  (t nil)))))
 
 (defconst lisp-font-lock-keywords-1
@@ -686,6 +689,18 @@ This does a lot more highlighting.")
     ;; Put files that are subdirectories in bold.
     ("^..d.* \\([^ ]+\\)$" 1 font-lock-keyword-face))
   "Additional expressions to highlight in Dired mode.")
+
+(defvar rmail-font-lock-keywords
+  '(;; Put From field in bold.
+    ("^From: \\(.*\\)$" 1 font-lock-keyword-face)
+    ;; Put subject in bold italics
+    ("^Subject: \\(.*\\)$" 1 font-lock-function-name-face))
+  "Additional expressions to highlight in Rmail mode.")
+
+(defvar compilation-mode-font-lock-keywords
+  '(("^\\([^\n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 1 font-lock-function-name-face))
+;;;  ("^\\([^\n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 0 font-lock-keyword-face keep)
+  "Additional expressions to highlight in Compilation mode.")
 
 (provide 'font-lock)
 
