@@ -713,7 +713,7 @@ For an external command, it means an exit code of 0."
 				       reversed last-terms-sym)
   "Separate TERMS using SEPARATOR.
 If REVERSED is non-nil, the list of separated term groups will be
-returned in reverse order.  If LAST-TERMS-SYM is a symbol, it's value
+returned in reverse order.  If LAST-TERMS-SYM is a symbol, its value
 will be set to a list of all the separator operators found (or '(list
 nil)' if none)."
   (let ((sub-terms (list t))
