@@ -1463,7 +1463,7 @@ Use %% to put a single % into the output.")
 	if (*format == '%')
 	  format++;
 	else if (++n >= nargs)
-	  error ("format string wants too many arguments");
+	  error ("not enough arguments for format string");
 	else if (*format == 'S')
 	  {
 	    /* For `S', prin1 the argument and then treat like a string.  */
