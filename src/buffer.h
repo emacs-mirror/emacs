@@ -365,6 +365,7 @@ extern struct buffer buffer_local_types;
 #define BUFFER_FLOOR_OF(n) (BEGV <= GPT && GPT <= (n) ? GPT : BEGV)
 
 extern void reset_buffer ();
+extern void evaporate_overlays ();
 
 extern Lisp_Object Fbuffer_name ();
 extern Lisp_Object Fget_file_buffer ();
