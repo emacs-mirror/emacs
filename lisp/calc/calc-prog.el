@@ -474,7 +474,7 @@
    (let ((lang calc-language))
      (calc-edit-mode (list 'calc-finish-user-syntax-edit (list 'quote lang))
 		     t
-		     (format "Editing %s-Mode Syntax Table"
+		     (format "Editing %s-Mode Syntax Table. "
 			     (cond ((null lang) "Normal")
 				   ((eq lang 'tex) "TeX")
 				   (t (capitalize (symbol-name lang))))))
@@ -684,10 +684,12 @@
 		    (eq (car-safe (nth 3 cmd)) 'calc-execute-kbd-macro)))
            (let* ((mac (elt (nth 1 (nth 3 cmd)) 1))
                   (str (edmacro-format-keys mac t))
-                  (macbeg))
+                  (macbeg)
+                  (kys (nth 3 (nth 3 cmd))))
              (calc-edit-mode 
-              (list 'calc-edit-macro-finish-edit cmdname (nth 3 (nth 3 cmd)))
-              t "Calc Macro Edit Mode")
+              (list 'calc-edit-macro-finish-edit cmdname kys)
+              t (format "Editing keyboard macro (%s, bound to %s).\n" 
+                        cmdname kys))
              (goto-char (point-max))
              (insert "Original keys: " (elt (nth 1 (nth 3 cmd)) 0)  "\n" )
              (setq macbeg (point))
@@ -700,16 +702,24 @@
 	  (t (let* ((func (calc-stack-command-p cmd))
 		    (defn (and func
 			       (symbolp func)
-			       (get func 'calc-user-defn))))
+			       (get func 'calc-user-defn)))
+                    (kys (concat "z" (char-to-string (car def))))
+                    (intcmd (symbol-name (cdr def)))
+                    (algcmd (substring (symbol-name func) 9)))
 	       (if (and defn (calc-valid-formula-func func))
 		   (progn
 		     (calc-wrapper
-		      (calc-edit-mode (list 'calc-finish-formula-edit
-					    (list 'quote func)))
+		      (calc-edit-mode 
+                       (list 'calc-finish-formula-edit (list 'quote func))
+                       nil
+                       (format "Editing formula (%s, %s, bound to %s).\n"
+                               intcmd algcmd kys))
 		      (insert (math-showing-full-precision
 			       (math-format-nice-expr defn (frame-width)))
 			      "\n"))
-		     (calc-show-edit-buffer))
+		     (calc-show-edit-buffer)
+                     (goto-char (point-min))
+                     (forward-line 2))
 		 (error "That command's definition cannot be edited")))))))
 
 ;; Formatting the macro buffer
@@ -822,7 +832,7 @@
         match)
     (goto-char (line-beginning-position))
     (kill-line 1)
-    (if (string-equal line "1")
+    (if (member line '("0" "1" "2" "3" "4" "5" "6" "7" "8" "9"))
           (insert line "\t\t\t;; calc quick variable\n")
       (setq curline (calc-edit-macro-command))
       (while (and curline
@@ -936,6 +946,8 @@ Redefine the corresponding command."
                           'arg key)))))))
 
 (defun calc-finish-formula-edit (func)
+  (goto-char (point-min))
+  (forward-line 2)
   (let ((buf (current-buffer))
 	(str (buffer-substring (point) (point-max)))
 	(start (point))
