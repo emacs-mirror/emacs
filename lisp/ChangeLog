@@ -1,3 +1,8 @@
+2005-04-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (xterm-standard-colors): Update color values from
+	xterm-200. 
+
 2005-04-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Add \bfseries.
