@@ -146,6 +146,10 @@ against the file name, and TYPE is nil for text, t for binary.")
 
 ;; Really should provide this capability at the drive letter granularity.
 (defun using-unix-filesystems (flag)
+  "Read and write all files assuming that they are on a drive attached 
+to a remote Unix file system.  No CR/LF translation is done on any files
+in this case.  This behavior is activated when FLAG is t and deactived
+when FLAG is any other value."
   (if flag
       (progn
 	(add-hook 'write-file-hooks 'save-to-unix-hook)
