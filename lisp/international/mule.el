@@ -819,7 +819,7 @@ function by default."
 			  (substring string
 				     (match-beginning 2) (match-end 2))))
 		 (re-coding (concat "^" prefix
-				    "coding[ \t]*:[ \t]*\\([^ \t]+\\)[ \t]*"
+				    "coding[ \t]*:[ \t]*\\([^ \t\n]+\\)[ \t]*"
 				    suffix "$"))
 		 (re-end (concat "^" prefix "end *:[ \t]*" suffix "$"))
 		 (limit (or (string-match re-end string idx) len)))
