@@ -738,7 +738,7 @@ x_free_gc (f, gc)
      GC gc;
 {
   BLOCK_INPUT;
-  xassert (--ngcs >= 0);
+  IF_DEBUG (xassert (--ngcs >= 0));
   XFreeGC (FRAME_X_DISPLAY (f), gc);
   UNBLOCK_INPUT;
 }
@@ -771,7 +771,7 @@ x_free_gc (f, gc)
      GC gc;
 {
   BLOCK_INPUT;
-  xassert (--ngcs >= 0);
+  IF_DEBUG (xassert (--ngcs >= 0));
   xfree (gc);
   UNBLOCK_INPUT;
 }
