@@ -83,9 +83,9 @@ is left in the `*gulp*' buffer at the end."
 	  (buffer-undo-list t)
 	  mail-setup-hook msg node)
       (setq m-p-alist
-	    (sort (function (lambda (a b)
-			      (string< (car (car a)) (car (car b)))))
-		  m-p-alist))
+	    (sort m-p-alist
+		  (function (lambda (a b)
+			      (string< (car a) (car b))))))
       (while (setq node (car m-p-alist))
 	(setq msg (gulp-create-message (cdr node) time))
 	(setq mail-setup-hook
@@ -95,6 +95,7 @@ is left in the `*gulp*' buffer at the end."
 		 (goto-char (point-max))
 		 (insert msg)))
 	(mail nil (car node))
+	(goto-char (point-min))
 	(if (y-or-n-p "Send? ") (mail-send)
 	  (kill-this-buffer)
 	  (set-buffer gulp-tmp-buffer)
