@@ -1,5 +1,8 @@
 2001-08-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* ediff-mult.el (ediff-get-meta-info): Fix the condition 
+	of a while-loop.
+
 	* Makefile.in (DONTCOMPILE): Remove sc.el.
 	
 	* Makefile.in (finder_setwins): Renamed from nonobsolete_setwins.
