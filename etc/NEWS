@@ -475,6 +475,7 @@ LessTif/Motif one.
 *** Arrows that indicate sub-menus are now drawn with shadows, as in
 LessTif and Motif.
 
++++
 ** Hscrolling in C code.
 
 Horizontal scrolling now happens automatically if
