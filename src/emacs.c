@@ -375,7 +375,7 @@ argmatch (argv, sstr, lstr, minlen, valptr, skipptr)
     }
   arglen = (valptr != NULL && (p = index (arg, '=')) != NULL
 	    ? p - arg : strlen (arg));
-  if (arglen < minlen || strncmp (arg, lstr, arglen) != 0)
+  if (lstr == 0 || arglen < minlen || strncmp (arg, lstr, arglen) != 0)
     return 0;
   else if (valptr == NULL)
     {
