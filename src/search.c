@@ -2300,8 +2300,8 @@ since only regular expressions have distinguished subexpressions.")
 	 if desired.  */
       if (NILP (literal))
 	{
-	  int lastpos = -1;
-	  int lastpos_byte = -1;
+	  int lastpos = 0;
+	  int lastpos_byte = 0;
 	  /* We build up the substituted string in ACCUM.  */
 	  Lisp_Object accum;
 	  Lisp_Object middle;
@@ -2340,10 +2340,10 @@ since only regular expressions have distinguished subexpressions.")
 		}
 	      if (substart >= 0)
 		{
-		  if (pos - 1 != lastpos + 1)
-		    middle = substring_both (newtext, lastpos + 1,
-					     lastpos_byte + 1,
-					     pos - 1, pos_byte - 1);
+		  if (pos - 2 != lastpos)
+		    middle = substring_both (newtext, lastpos,
+					     lastpos_byte,
+					     pos - 2, pos_byte - 2);
 		  else
 		    middle = Qnil;
 		  accum = concat3 (accum, middle,
@@ -2355,9 +2355,9 @@ since only regular expressions have distinguished subexpressions.")
 		}
 	      else if (delbackslash)
 		{
-		  middle = substring_both (newtext, lastpos + 1,
-					   lastpos_byte + 1,
-					   pos, pos_byte);
+		  middle = substring_both (newtext, lastpos,
+					   lastpos_byte,
+					   pos - 1, pos_byte - 1);
 
 		  accum = concat2 (accum, middle);
 		  lastpos = pos;
@@ -2365,9 +2365,9 @@ since only regular expressions have distinguished subexpressions.")
 		}
 	    }
 
-	  if (pos != lastpos + 1)
-	    middle = substring_both (newtext, lastpos + 1,
-				     lastpos_byte + 1,
+	  if (pos != lastpos)
+	    middle = substring_both (newtext, lastpos,
+				     lastpos_byte,
 				     pos, pos_byte);
 	  else
 	    middle = Qnil;
