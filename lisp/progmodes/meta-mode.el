@@ -1,19 +1,19 @@
 ;;; meta-mode.el --- major mode for editing Metafont or MetaPost sources.
 
-;; Copyright (C) 1997 by Ulrik Vieth.
+;; Copyright (C) 1997 Free Software Foundation, Inc.
 
 ;; Author: Ulrik Vieth <vieth@thphy.uni-duesseldorf.de>
 ;; Version: 1.0
 ;; Keywords: Metafont, MetaPost, tex, languages
 
-;;; This file is *not* part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
@@ -1042,6 +1042,7 @@ The environment marked is the one that contains point or follows point."
   )
 
 
+;;;###autoload
 (defun metafont-mode ()
   "Major mode for editing Metafont sources.
 Special commands:
@@ -1066,6 +1067,7 @@ Turning on Metafont mode calls the value of the variables
               (list "" 'ispell-complete-word)))
   (run-hooks 'meta-common-mode-hook 'metafont-mode-hook))
 
+;;;###autoload
 (defun metapost-mode ()
   "Major mode for editing MetaPost sources.
 Special commands:
