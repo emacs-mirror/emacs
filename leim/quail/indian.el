@@ -33,20 +33,8 @@
 ;;; Code:
 
 (require 'quail)
-(require 'devan-util)
 (require 'ind-util)
-
-(defun quail-indian-preceding-char-position (position)
-  "Return the position of preceding composite character."
-  (let (prec-composed)
-    (if (characterp (char-before position)) ;; range o.k.
-        (if (setq prec-composed (find-composition (1- position)))
-            (car prec-composed)
-          (1- position))
-      nil)))
-
-(defvar quail-indian-update-preceding-char nil)
-(make-variable-frame-local 'quail-indian-update-preceding-char)
+(require 'devan-util)
 
 ;;; update function
 
@@ -63,66 +51,6 @@
 ;;     quail-current-string :: corresponding string.  Created by database.
 ;;     todo :: (1) put modified translated string to quail-current-string.
 
-(defun quail-indian-update-translation (control-flag)
-  ;;(message "input control-flag=%s, string=%s, key=%s"
-  ;;         control-flag quail-current-str quail-current-key)
-  ;; make quail-current-str string when possible.
-  (if (characterp quail-current-str)
-      (setq quail-current-str (char-to-string quail-current-str)))
-  ;; reset quail-indian-update-preceding-char if it's initial.
-  (if (= (overlay-start quail-overlay) (overlay-end quail-overlay))
-      (setq quail-indian-update-preceding-char nil))
-  ;; set quial-indian-update-preceding-char if appropriate.
-  (let* (prec-char-position composition-regexp
-         prec-char-str candidate-str match-pos match-end)
-    (when (and quail-current-str
-               (null input-method-use-echo-area)
-               (null input-method-exit-on-first-char)
-               (setq prec-char-position
-                     (quail-indian-preceding-char-position
-                      (overlay-start quail-overlay)))
-               (setq composition-regexp
-                     (if prec-char-position
-                         (caar (elt composition-function-table
-                                    (char-after prec-char-position)))))
-               ;; (null quail-indian-update-preceding-char)
-               (setq prec-char-str
-                     (buffer-substring prec-char-position
-                                       (overlay-start quail-overlay))
-                     candidate-str (concat prec-char-str quail-current-str)
-                     match-pos (string-match composition-regexp candidate-str)
-                     match-end (match-end 0))
-               (> match-end (length prec-char-str)))
-      (setq quail-indian-update-preceding-char prec-char-str)
-      (delete-region prec-char-position
-                     (overlay-start quail-overlay))))
-  ;; make quail-current-str string when possible.
-  (if (null quail-current-str)
-      (setq quail-current-str ""))
-  ;; set quail-current-str unless control-flag is number.
-  (if (numberp control-flag)
-      (setq quail-indian-update-preceding-char nil
-            quail-current-str
-            (if (equal quail-current-str "")
-                (substring quail-current-key 0 control-flag)
-              (indian-compose-string quail-current-str))
-            unread-command-events
-            (string-to-list
-             (substring quail-current-key control-flag)))
-    (if quail-indian-update-preceding-char
-        (setq quail-current-str
-              (concat quail-indian-update-preceding-char
-                      quail-current-str)))
-    (setq quail-current-str
-          (indian-compose-string quail-current-str)))
-  (when (eq t control-flag)
-    ;; reset preceding-char if translation is terminated.
-    (setq quail-indian-update-preceding-char nil))
-    ;; compose to previous char if it looks possible.
-  ;;(message "  out control-flag=%s, string=%s, key=%s"
-  ;;         control-flag quail-current-str quail-current-key)
-  control-flag)
-
 ;;;
 ;;; Input by transliteration
 ;;;
@@ -130,8 +58,7 @@
 (defun quail-define-indian-trans-package (hashtbls pkgname
 						   lang title doc)
   (funcall 'quail-define-package pkgname lang title t doc
-	   nil nil nil nil nil nil t nil
-	   'quail-indian-update-translation)
+	   nil nil nil nil nil nil t nil)
   (maphash
    (lambda (key val)
      (quail-defrule key (if (= (length val) 1)
@@ -176,8 +103,7 @@
   (setq char-table (quail-indian-flatten-list char-table))
   (setq key-table (quail-indian-flatten-list key-table))
   (funcall 'quail-define-package pkgname lang title nil docstring
-	   nil nil nil nil nil nil nil nil
-	   'quail-indian-update-translation)
+	   nil nil nil nil nil nil nil nil)
   (dolist (key key-table)
     (let ((val (pop char-table)))
       (if (and key val)
