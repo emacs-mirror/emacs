@@ -73,7 +73,7 @@ the @dfn{default directory}, which ends with a slash.  This is to inform
 you which directory the file will be found in if you do not specify a
 directory.
 
-@c Separate paragraph to clean up ugly pagebreak--rms
+@c Separate paragraph to clean up ugly page break--rms
 @need 1500
   For example, the minibuffer might start out with these contents:
 
@@ -515,7 +515,6 @@ you can repeat the entire command.  In particular, every use of
 the command name.
 
 @findex list-command-history
-@c widecommands
 @table @kbd
 @item C-x @key{ESC} @key{ESC}
 Re-execute a recent minibuffer command (@code{repeat-complex-command}).
