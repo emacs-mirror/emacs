@@ -1,6 +1,6 @@
 ;;; jit-lock.el --- just-in-time fontification
 
-;; Copyright (C) 1998, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Keywords: faces files
@@ -55,6 +55,12 @@ Preserves the `buffer-modified-p' state of the current buffer."
 
 
 ;;; Customization.
+
+(defgroup jit-lock nil
+  "Font Lock support mode to fontify just-in-time."
+  :link '(custom-manual "(emacs)Support Modes")
+  :version "21.1"
+  :group 'font-lock)
 
 (defcustom jit-lock-chunk-size 500
   "*Jit-lock chunks of this many characters, or smaller."
@@ -145,10 +151,10 @@ If nil, fontification is not deferred."
 They are called with two arguments: the START and END of the region to fontify.")
 (make-variable-buffer-local 'jit-lock-functions)
 
-(defvar jit-lock-first-unfontify-pos nil
+(defvar jit-lock-context-unfontify-pos nil
   "Consider text after this position as contextually unfontified.
 If nil, contextual fontification is disabled.")
-(make-variable-buffer-local 'jit-lock-first-unfontify-pos)
+(make-variable-buffer-local 'jit-lock-context-unfontify-pos)
 
 
 (defvar jit-lock-stealth-timer nil
@@ -157,7 +163,7 @@ If nil, contextual fontification is disabled.")
 (defvar jit-lock-defer-timer nil
   "Timer for deferred fontification in Just-in-time Lock mode.")
 
-(defvar jit-lock-buffers nil
+(defvar jit-lock-defer-buffers nil
   "List of buffers with pending deferred fontification.")
 
 ;;; JIT lock mode
@@ -212,10 +218,10 @@ the variable `jit-lock-stealth-nice'."
 		 (run-with-idle-timer jit-lock-defer-time t
 				      'jit-lock-deferred-fontify)))
 
-	 ;; Initialize deferred contextual fontification if requested.
+	 ;; Initialize contextual fontification if requested.
 	 (when (eq jit-lock-defer-contextually t)
-	   (setq jit-lock-first-unfontify-pos
-		 (or jit-lock-first-unfontify-pos (point-max))))
+	   (setq jit-lock-context-unfontify-pos
+		 (or jit-lock-context-unfontify-pos (point-max))))
 
 	 ;; Setup our hooks.
 	 (add-hook 'after-change-functions 'jit-lock-after-change nil t)
@@ -281,8 +287,8 @@ is active."
 	;; No deferral.
 	(jit-lock-fontify-now start (+ start jit-lock-chunk-size))
       ;; Record the buffer for later fontification.
-      (unless (memq (current-buffer) jit-lock-buffers)
-	(push (current-buffer) jit-lock-buffers))
+      (unless (memq (current-buffer) jit-lock-defer-buffers)
+	(push (current-buffer) jit-lock-defer-buffers))
       ;; Mark the area as defer-fontified so that the redisplay engine
       ;; is happy and so that the idle timer can find the places to fontify.
       (with-buffer-prepared-for-jit-lock
@@ -415,26 +421,26 @@ This functions is called after Emacs has been idle for
 					     (buffer-name)))
 
 		;; Perform deferred unfontification, if any.
-		(when jit-lock-first-unfontify-pos
+		(when jit-lock-context-unfontify-pos
 		  (save-restriction
 		    (widen)
-		    (when (and (>= jit-lock-first-unfontify-pos (point-min))
-			       (< jit-lock-first-unfontify-pos (point-max)))
+		    (when (and (>= jit-lock-context-unfontify-pos (point-min))
+			       (< jit-lock-context-unfontify-pos (point-max)))
 		      ;; If we're in text that matches a complex multi-line
 		      ;; font-lock pattern, make sure the whole text will be
 		      ;; redisplayed eventually.
-		      (when (get-text-property jit-lock-first-unfontify-pos
+		      (when (get-text-property jit-lock-context-unfontify-pos
 					       'jit-lock-defer-multiline)
-			(setq jit-lock-first-unfontify-pos
+			(setq jit-lock-context-unfontify-pos
 			      (or (previous-single-property-change
-				   jit-lock-first-unfontify-pos
+				   jit-lock-context-unfontify-pos
 				   'jit-lock-defer-multiline)
 				  (point-min))))
 		      (with-buffer-prepared-for-jit-lock
 			(remove-text-properties
-			 jit-lock-first-unfontify-pos (point-max)
+			 jit-lock-context-unfontify-pos (point-max)
 			 '(fontified nil jit-lock-defer-multiline nil)))
-		      (setq jit-lock-first-unfontify-pos (point-max)))))
+		      (setq jit-lock-context-unfontify-pos (point-max)))))
 
 		;; In the following code, the `sit-for' calls cause a
 		;; redisplay, so it's required that the
@@ -452,8 +458,8 @@ This functions is called after Emacs has been idle for
 		    (jit-lock-fontify-now start (+ start jit-lock-chunk-size))
 		    ;; If stealth jit-locking is done backwards, this leads to
 		    ;; excessive O(n^2) refontification.   -stef
-		    ;; (when (>= jit-lock-first-unfontify-pos start)
-		    ;;   (setq jit-lock-first-unfontify-pos end))
+		    ;; (when (>= jit-lock-context-unfontify-pos start)
+		    ;;   (setq jit-lock-context-unfontify-pos end))
 
 		    ;; Wait a little if load is too high.
 		    (when (and jit-lock-stealth-load
@@ -466,9 +472,9 @@ This functions is called after Emacs has been idle for
 
 (defun jit-lock-deferred-fontify ()
   "Fontify what was deferred."
-  (when jit-lock-buffers
+  (when jit-lock-defer-buffers
     ;; Mark the deferred regions back to `fontified = nil'
-    (dolist (buffer jit-lock-buffers)
+    (dolist (buffer jit-lock-defer-buffers)
       (when (buffer-live-p buffer)
 	(with-current-buffer buffer
 	  ;; (message "Jit-Defer %s" (buffer-name))
@@ -482,7 +488,7 @@ This functions is called after Emacs has been idle for
 				     pos 'fontified nil (point-max)))
 		      'fontified nil))
 		   (setq pos (next-single-property-change pos 'fontified)))))))))
-    (setq jit-lock-buffers nil)
+    (setq jit-lock-defer-buffers nil)
     ;; Force fontification of the visible parts.
     (let ((jit-lock-defer-time nil))
       ;; (message "Jit-Defer Now")
@@ -522,9 +528,9 @@ will take place when text is fontified stealthily."
        ;; Request refontification.
        (put-text-property start end 'fontified nil))
       ;; Mark the change for deferred contextual refontification.
-      (when jit-lock-first-unfontify-pos
-	(setq jit-lock-first-unfontify-pos
-	      (min jit-lock-first-unfontify-pos start))))))
+      (when jit-lock-context-unfontify-pos
+	(setq jit-lock-context-unfontify-pos
+	      (min jit-lock-context-unfontify-pos start))))))
 
 (provide 'jit-lock)
 
