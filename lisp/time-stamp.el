@@ -2,7 +2,7 @@
 
 ;; Copyright 1989, 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
 
-;; Maintainer's Time-stamp: <1997-08-07 14:46:50 gildea>
+;; Maintainer's Time-stamp: <1998-03-04 14:14:19 gildea>
 ;; Maintainer: Stephen Gildea <gildea@alum.mit.edu>
 ;; Keywords: tools
 
@@ -117,10 +117,11 @@ Format is the same as that used by the environment variable TZ on your system."
   :group 'time-stamp)
 
 
-;;; Do not change time-stamp-line-limit, time-stamp-start, or
-;;; time-stamp-end in your .emacs or you will be incompatible
-;;; with other people's files!  If you must change them,
-;;; do so only in the local variables section of the file itself.
+;;; Do not change time-stamp-line-limit, time-stamp-start,
+;;; time-stamp-end, or time-stamp-pattern in your .emacs
+;;; or you will be incompatible with other people's files!
+;;; If you must change them, do so only in the local variables
+;;; section of the file itself.
 
 
 (defvar time-stamp-line-limit 8	    ;Do not change!
@@ -157,6 +158,36 @@ with other people's files!  If you must change them for some application,
 do so in the local variables section of the time-stamped file itself.")
 
 
+(defvar time-stamp-pattern "%%"		;Do not change!
+  "Convenience variable setting all time-stamp location and format variables.
+This string has four parts, each of which is optional.
+These four parts set time-stamp-line-limit, time-stamp-start,
+time-stamp-format, and time-stamp-end.  See the documentation
+for each of these variables for details.
+
+The first part is a number followed by a slash; the number sets the number
+of lines at the beginning (negative counts from end) of the file searched
+for the time-stamp.  The number and the slash may be omitted to use the
+normal value.
+
+The second part is a regexp identifying the pattern preceding the time stamp.
+This part may be omitted to use the normal pattern.
+
+The third part specifies the format of the time-stamp inserted.  See
+the documentation for time-stamp-format for details.  Specify this
+part as \"%%\" to use the normal format.
+
+The fourth part is a regexp identifying the pattern following the time stamp.
+This part may be omitted to use the normal pattern.
+
+As an example, the default behavior can be specified something like this:
+\"8/Time-stamp: [\\\"<]%:y-%02m-%02d %02H:%02M:%02S %u[\\\">]\"
+
+Do not change `time-stamp-pattern' for yourself or you will be incompatible
+with other people's files!  Set it only in the local variables section
+of the time-stamped file itself.")
+
+
 
 ;;;###autoload
 (defun time-stamp ()
@@ -169,7 +200,7 @@ look like one of the following:
       Time-stamp: <>
       Time-stamp: \" \"
 The time stamp is written between the brackets or quotes:
-      Time-stamp: <1996-07-18 10:20:51 gildea>
+      Time-stamp: <1998-02-18 10:20:51 gildea>
 The time stamp is updated only if the variable `time-stamp-active' is non-nil.
 The format of the time stamp is set by the variable `time-stamp-format'.
 The variables `time-stamp-line-limit', `time-stamp-start',
@@ -179,10 +210,26 @@ and `time-stamp-end' control finding the template."
 	(start nil)
 	(end nil)
 	search-limit
-	(line-limit time-stamp-line-limit))
+	(line-limit time-stamp-line-limit)
+	(ts-start time-stamp-start)
+	(ts-format time-stamp-format)
+	(ts-end time-stamp-end))
+    (if (stringp time-stamp-pattern)
+	(progn
+	  (string-match "^\\(\\(-?[0-9]+\\)/\\)?\\([^%]+\\)?\\(.*%[-.,:@+_ #^()0-9]*[A-Za-z%]\\)?\\([^%]+\\)?$" time-stamp-pattern)
+	  (and (match-beginning 2)
+	       (setq line-limit
+		     (string-to-int (match-string 2 time-stamp-pattern))))
+	  (and (match-beginning 3)
+	       (setq ts-start (match-string 3 time-stamp-pattern)))
+	  (and (match-beginning 4)
+	       (not (string-equal (match-string 4 time-stamp-pattern) "%%"))
+	       (setq ts-format (match-string 4 time-stamp-pattern)))
+	  (and (match-beginning 5)
+	       (setq ts-end (match-string 5 time-stamp-pattern)))))
     (cond ((not (integerp line-limit))
 	   (setq line-limit 8)
-	   (message "time-stamp-line-limit is not a number")
+	   (message "time-stamp-line-limit is not an integer")
 	   (sit-for 1)))
     (save-excursion
       (save-restriction
@@ -198,41 +245,41 @@ and `time-stamp-end' control finding the template."
 	(goto-char start)
 	(while (and (< (point) search-limit)
 		    (not end)
-		    (re-search-forward time-stamp-start search-limit 'move))
+		    (re-search-forward ts-start search-limit 'move))
 	  (setq start (point))
 	  (end-of-line)
 	  (let ((line-end (point)))
 	    (goto-char start)
-	    (if (re-search-forward time-stamp-end line-end 'move)
+	    (if (re-search-forward ts-end line-end 'move)
 		(setq end (match-beginning 0)))))))
-	(if end
-	    (progn
-	      ;; do all warnings outside save-excursion
-	      (cond
-	       ((not time-stamp-active)
-		(if time-stamp-warn-inactive
-		    ;; don't signal an error in a write-file-hook
-		    (progn
-		      (message "Warning: time-stamp-active is off; did not time-stamp buffer.")
-		      (sit-for 1))))
-	       ((not (and (stringp time-stamp-start)
-			  (stringp time-stamp-end)))
-		(message "time-stamp-start or time-stamp-end is not a string")
-		(sit-for 1))
-	       (t
-		(let ((new-time-stamp (time-stamp-string)))
-		  (if (stringp new-time-stamp)
-		      (save-excursion
-			(save-restriction
-			  (widen)
-			  (delete-region start end)
-			  (goto-char start)
-			  (insert-and-inherit new-time-stamp)
-			  (setq end (point))
-			  ;; remove any tabs used to format time stamp
-			  (goto-char start)
-			  (if (search-forward "\t" end t)
-			      (untabify start end)))))))))))
+    (if end
+	(progn
+	  ;; do all warnings outside save-excursion
+	  (cond
+	   ((not time-stamp-active)
+	    (if time-stamp-warn-inactive
+		;; don't signal an error in a write-file-hook
+		(progn
+		  (message "Warning: time-stamp-active is off; did not time-stamp buffer.")
+		  (sit-for 1))))
+	   ((not (and (stringp ts-start)
+		      (stringp ts-end)))
+	    (message "time-stamp-start or time-stamp-end is not a string")
+	    (sit-for 1))
+	   (t
+	    (let ((new-time-stamp (time-stamp-string ts-format)))
+	      (if (stringp new-time-stamp)
+		  (save-excursion
+		    (save-restriction
+		      (widen)
+		      (delete-region start end)
+		      (goto-char start)
+		      (insert-and-inherit new-time-stamp)
+		      (setq end (point))
+		      ;; remove any tabs used to format time stamp
+		      (goto-char start)
+		      (if (search-forward "\t" end t)
+			  (untabify start end)))))))))))
   ;; be sure to return nil so can be used on write-file-hooks
   nil)
 
@@ -464,19 +511,22 @@ The new forms being recommended now will continue to work then.")
 
 
 
-(defun time-stamp-string ()
-  "Generate the new string to be inserted by \\[time-stamp]."
-  (if (stringp time-stamp-format)
+(defun time-stamp-string (&optional ts-format)
+  "Generate the new string to be inserted by \\[time-stamp].
+Optionally use FORMAT."
+  (or ts-format
+      (setq ts-format time-stamp-format))
+  (if (stringp ts-format)
       (if (stringp time-stamp-time-zone)
 	  (let ((real-time-zone (getenv "TZ")))
 	    (unwind-protect
 		(progn
 		  (setenv "TZ" time-stamp-time-zone)
 		  (format-time-string
-		   (time-stamp-string-preprocess time-stamp-format)))
+		   (time-stamp-string-preprocess ts-format)))
 	      (setenv "TZ" real-time-zone)))
 	(format-time-string
-	 (time-stamp-string-preprocess time-stamp-format)))
+	 (time-stamp-string-preprocess ts-format)))
     ;; handle version 1 compatibility
     (cond ((or (eq time-stamp-old-format-warn 'error)
 	       (and (eq time-stamp-old-format-warn 'ask)
@@ -488,7 +538,7 @@ The new forms being recommended now will continue to work then.")
 	   (cond ((eq time-stamp-old-format-warn 'warn)
 		  (message "Obsolescent time-stamp-format type; should be string")
 		  (sit-for 1)))
-	   (time-stamp-fconcat time-stamp-format " ")))))
+	   (time-stamp-fconcat ts-format " ")))))
 
 (defconst time-stamp-no-file "(no file)"
   "String to use when the buffer is not associated with a file.")
