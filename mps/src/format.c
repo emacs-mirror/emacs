@@ -2,7 +2,7 @@
  *
  *           OBJECT FORMATS
  *
- *  $HopeName: MMsrc/!format.c(trunk.2)$
+ *  $HopeName: MMsrc!format.c(trunk.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  */
@@ -30,8 +30,6 @@ Bool FormatIsValid(Format format, ValidationType validParam)
   /* **** alignment should be less than maximum allowed */
   AVER(format->scan != NULL);
   AVER(format->skip != NULL);
-  AVER(format->length != NULL);
-  AVER(format->probe != NULL);
   AVER(format->move != NULL);
   AVER(format->isMoved != NULL);
   AVER(format->copy != NULL);
@@ -45,8 +43,6 @@ Error FormatCreate(Format *formatReturn, Space space,
                    Addr alignment,
                    FormatScanMethod scan,
                    FormatSkipMethod skip,
-                   FormatLengthMethod length,
-                   FormatProbeMethod probe,
                    FormatMoveMethod move,
                    FormatIsMovedMethod isMoved,
                    FormatCopyMethod copy)
@@ -65,8 +61,6 @@ Error FormatCreate(Format *formatReturn, Space space,
   format->alignment = alignment;
   format->scan = scan;
   format->skip = skip;
-  format->length = length;
-  format->probe = probe;
   format->move = move;
   format->isMoved = isMoved;
   format->copy = copy;
