@@ -212,7 +212,7 @@ file name elements.  Arguments cause only a subset of buffers to be renamed."
 		     (equal rawname newbuffile-nd))
 		 (setq proposed (uniquify-get-proposed-name
 				 rawname bfn uniquify-min-dir-content)))
-	    (push [rawname bfn buffer proposed] fix-list)
+	    (push (vector rawname bfn buffer proposed) fix-list)
 	  (push bufname uniquify-non-file-buffer-names))))
     ;; selects buffers whose names may need changing, and others that
     ;; may conflict, then bring conflicting names together
