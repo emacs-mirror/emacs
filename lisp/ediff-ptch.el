@@ -287,6 +287,8 @@ program."
 		  ;; hence, something wrong
 		  (progn
 		    (with-output-to-temp-buffer ediff-msg-buffer
+		      (ediff-with-current-buffer standard-output
+			(fundamental-mode))
 		      (princ
 		       (format "
 The patch file contains a context diff for
@@ -342,6 +344,8 @@ other files, enter /dev/null
 		  (setcar triple file1))
 		 ((and f1-exists f2-exists)
 		  (with-output-to-temp-buffer ediff-msg-buffer
+		    (ediff-with-current-buffer standard-output
+		      (fundamental-mode))
 		    (princ (format "
 Ediff has inferred that
 	%s
@@ -361,6 +365,8 @@ Please advice:
 		 (f1-exists (setcar triple file1))
 		 (t
 		  (with-output-to-temp-buffer ediff-msg-buffer
+		    (ediff-with-current-buffer standard-output
+		      (fundamental-mode))
 		    (princ "\nEdiff has inferred that")
 		    (if (string= file1 file2)
 			(princ (format "
@@ -482,7 +488,8 @@ optional argument, then use it."
     (if (< (length ediff-patch-map) 2)
 	(ediff-patch-file-internal
 	 patch-buf
-	 (if (and (not (string-match "^/dev/null" (car (car ediff-patch-map))))
+	 (if (and ediff-patch-map
+		  (not (string-match "^/dev/null" (car (car ediff-patch-map))))
 		  (> (length (car (car ediff-patch-map))) 1))
 	     (car (car ediff-patch-map))
 	   filename)
@@ -628,6 +635,8 @@ optional argument, then use it."
 	      (concat true-source-filename ediff-backup-extension)))
 	(progn
 	  (with-output-to-temp-buffer ediff-msg-buffer
+	    (ediff-with-current-buffer standard-output
+	      (fundamental-mode))
 	    (princ (format 
 		    "Patch program has failed due to a bad patch file,
 it couldn't apply all hunks, OR
@@ -646,12 +655,12 @@ In particular, check the documentation for `ediff-backup-specs'.
 In any of the above cases, Ediff doesn't compare files automatically.
 However, if the patch was applied partially and the backup file was created,
 you can still examine the changes via M-x ediff-files"
-			   ediff-patch-program
-			   ediff-patch-program
-			   ediff-patch-options
-			   ediff-backup-extension
-			   ediff-backup-specs
-			   )))
+		    ediff-patch-program
+		    ediff-patch-program
+		    ediff-patch-options
+		    ediff-backup-extension
+		    ediff-backup-specs
+		    )))
 	  (beep 1)
 	  (if (setq aux-wind (get-buffer-window ediff-msg-buffer))
 	      (progn
