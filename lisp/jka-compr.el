@@ -198,12 +198,16 @@ invoked."
 			 (string :tag "Magic Bytes")))
   :group 'jka-compr)
 
-(defvar jka-compr-mode-alist-additions
+(defcustom jka-compr-mode-alist-additions
   (list (cons "\\.tgz\\'" 'tar-mode))
-  "A list of pairs to add to `auto-mode-alist' when jka-compr is installed.")
+  "A list of pairs to add to `auto-mode-alist' when jka-compr is installed."
+  :type '(repeat (cons string symbol))
+  :group 'jka-compr)
 
-(defvar jka-compr-load-suffixes '(".gz")
-  "List of suffixes to try when loading files.")
+(defcustom jka-compr-load-suffixes '(".gz")
+  "List of suffixes to try when loading files."
+  :type '(repeat string)
+  :group 'jka-compr)
 
 ;; List of all the elements we actually added to file-coding-system-alist.
 (defvar jka-compr-added-to-file-coding-system-alist nil)
@@ -268,8 +272,10 @@ based on the filename itself and `jka-compr-compression-info-list'."
 	  (list "Opening input file" (format "error %s" message) infile)))
 			
    
-(defvar jka-compr-dd-program
-  "/bin/dd")
+(defcustom jka-compr-dd-program "/bin/dd"
+  "How to invoke `dd'."
+  :type 'string
+  :group 'jka-compr)
 
 
 (defvar jka-compr-dd-blocksize 256)
@@ -279,32 +285,38 @@ based on the filename itself and `jka-compr-compression-info-list'."
   "Call program PROG with ARGS args taking input from INFILE.
 Fourth and fifth args, BEG and LEN, specify which part of the output
 to keep: LEN chars starting BEG chars from the beginning."
-  (let* ((skip (/ beg jka-compr-dd-blocksize))
-	 (prefix (- beg (* skip jka-compr-dd-blocksize)))
-	 (count (and len (1+ (/ (+ len prefix) jka-compr-dd-blocksize))))
-	 (start (point))
-	 (err-file (jka-compr-make-temp-name))
-	 (run-string (format "%s %s 2> %s | %s bs=%d skip=%d %s 2> /dev/null"
-			     prog
-			     (mapconcat 'identity args " ")
-			     err-file
-			     jka-compr-dd-program
-			     jka-compr-dd-blocksize
-			     skip
-			     ;; dd seems to be unreliable about
-			     ;; providing the last block.  So, always
-			     ;; read one more than you think you need.
-			     (if count (format "count=%d" (1+ count)) ""))))
-
-    (unwind-protect
-	(or (memq (call-process jka-compr-shell
-				infile t nil "-c"
-				run-string)
-		  jka-compr-acceptable-retval-list)
-	    
-	    (jka-compr-error prog args infile message err-file))
-
-      (jka-compr-delete-temp-file err-file))
+  (let ((start (point))
+	(prefix beg))
+    (if (and jka-compr-use-shell jka-compr-dd-program)
+	;; Put the uncompression output through dd
+	;; to discard the part we don't want.
+	(let ((skip (/ beg jka-compr-dd-blocksize))
+	      (err-file (jka-compr-make-temp-name))
+	      count)
+	  ;; Update PREFIX based on the text that we won't read in.
+	  (setq prefix (- beg (* skip jka-compr-dd-blocksize))
+		count (and len (1+ (/ (+ len prefix) jka-compr-dd-blocksize))))
+	  (unwind-protect
+	      (or (memq (call-process
+			 jka-compr-shell infile t nil "-c"
+			 (format
+			  "%s %s 2> %s | %s bs=%d skip=%d %s 2> /dev/null"
+			  prog
+			  (mapconcat 'identity args " ")
+			  err-file
+			  jka-compr-dd-program
+			  jka-compr-dd-blocksize
+			  skip
+			  ;; dd seems to be unreliable about
+			  ;; providing the last block.  So, always
+			  ;; read one more than you think you need.
+			  (if count (concat "count=" (1+ count)) "")))
+			jka-compr-acceptable-retval-list)
+		  (jka-compr-error prog args infile message err-file))
+	    (jka-compr-delete-temp-file err-file)))
+      ;; Run the uncompression program directly.
+      ;; We get the whole file and must delete what we don't want.
+      (jka-compr-call-process prog message infile t nil args))
 
     ;; Delete the stuff after what we want, if there is any.
     (and
