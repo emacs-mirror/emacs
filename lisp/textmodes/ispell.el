@@ -204,23 +204,13 @@
 (defconst xemacsp (string-match "Lucid\\|XEmacs" emacs-version)
   "Non nil if using XEmacs.")
 
-;;;###autoload
-(defconst version18p (string-match "18\\.[0-9]+\\.[0-9]+" emacs-version)
-  "Non nil if using emacs version 18.")
-
-;;;###autoload
-(defconst version20p (string-match "20\\.[0-9]+\\.[0-9]+" emacs-version)
-  "Non nil if using emacs version 20.")
-
 (defconst ispell-graphic-p
   (if (fboundp 'display-graphic-p)
       (display-graphic-p)
     xemacsp)
   "True if running on a `graphics capable' display.")
 
-(and (not version18p)
-     (not (boundp 'epoch::version))
-     (defalias 'ispell-check-version 'check-ispell-version))
+(defalias 'ispell-check-version 'check-ispell-version)
 
 ;;; **********************************************************************
 ;;; The following variables should be set according to personal preference
@@ -818,7 +808,6 @@ and added as a submenu of the \"Edit\" menu.")
 (defvar ispell-menu-map-needed
   ;; only needed when not version 18 and not XEmacs.
   (and (not ispell-menu-map)
-       (not version18p)
        (not xemacsp)
        'reload))
 
@@ -941,7 +930,6 @@ and added as a submenu of the \"Edit\" menu.")
 
 ;;; XEmacs versions 19 & 20
 (if (and xemacsp
-	 (not version18p)
 	 (featurep 'menubar)
 	 (null ispell-menu-xemacs)
 	 (not (and (boundp 'infodock-version) infodock-version)))
@@ -1888,7 +1876,7 @@ SPC:   Accept word this time.
 	      (kill-buffer "*Ispell Help*"))
 	  (select-window (minibuffer-window))
 	  (erase-buffer)
-	  (if (not version18p) (message nil))
+	  (message nil)
 	  ;;(set-minibuffer-window (selected-window))
 	  (enlarge-window 2)
 	  (insert (concat help-1 "\n" help-2 "\n" help-3))
@@ -2058,8 +2046,7 @@ The variable `ispell-highlight-face' selects the face to use for highlighting."
   (cond
    (xemacsp
     (ispell-highlight-spelling-error-xemacs start end highlight))
-   ((and (not version18p)
-	 (featurep 'faces)
+   ((and (featurep 'faces)
 	 (or (and (fboundp 'display-color-p) (display-color-p))
 	     window-system))
     (ispell-highlight-spelling-error-overlay start end highlight))
@@ -2234,9 +2221,7 @@ Keeps argument list for future ispell invocations for no async support."
 	(set-process-coding-system ispell-process (ispell-get-coding-system)
 				   (ispell-get-coding-system)))
     ;; Get version ID line
-    (if (not version18p)
-	(ispell-accept-output 3)
-      (ispell-accept-output))
+    (ispell-accept-output 3)
     ;; get more output if filter empty?
     (if (null ispell-filter) (ispell-accept-output 3))
     (cond ((null ispell-filter)
@@ -2245,9 +2230,7 @@ Keeps argument list for future ispell invocations for no async support."
 	    (stringp (car ispell-filter))
 	    (if (string-match "warning: " (car ispell-filter))
 		(progn
-		  (if (not version18p)
-		      (ispell-accept-output 3) ; was warn msg.
-		    (ispell-accept-output))
+		  (ispell-accept-output 3) ; was warn msg.
 		  (stringp (car ispell-filter)))
 	      (null (cdr ispell-filter)))
 	    (string-match "^@(#) " (car ispell-filter)))
@@ -2286,8 +2269,7 @@ With NO-ERROR, just return non-nil if there was no Ispell running."
 	      (kill-process ispell-process))
 	  (while (not (or (eq (ispell-process-status) 'exit)
 			  (eq (ispell-process-status) 'signal)))
-	    (if (or xemacsp version20p) (sleep-for 0.25)
-	      (sleep-for 0 250))))
+	    (sleep-for 0.25)))
       ;; synchronous processes
       (ispell-send-string "\n")		; make sure side effects occurred.
       (kill-buffer ispell-output-buffer)
