@@ -1,3 +1,9 @@
+2000-04-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (re_match_2_internal): Don't shorten the strings anymore,
+	instead define end_match(1|2) more carefully.
+	Use GET_CHAR_BEFORE_2 for `begline'.
+
 2000-04-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.h (SELECTED_FRAME): Change definition to compile cleanly
