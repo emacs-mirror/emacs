@@ -196,19 +196,24 @@ will have no effect on it).
 	    ;; it was off
 	    (progn
 	      (setq hscroll-old-truncate-default (default-value truncate-lines))
-	      (setq hscroll-old-truncate-was-global t)
+	      (setq-default hscroll-old-truncate-was-global t)
 	      (setq-default truncate-lines t)
+	      (add-hook 'minibuffer-setup-hook 'hscroll-minibuffer-hook)
               (setq hscroll-timer
                     (run-with-idle-timer 0 t 'hscroll-window-maybe))))
       ;; turn it off
       (if hscroll-mode
 	  ;; it was on
 	  (progn
+	    (remove-hook 'minibuffer-setup-hook 'hscroll-minibuffer-hook)
 	    (setq-default truncate-lines hscroll-old-truncate-default)
             (cancel-timer hscroll-timer))))
 
     (setq-default hscroll-mode newmode)
     (force-mode-line-update t)))
+
+(defun hscroll-minibuffer-hook ()
+  (setq truncate-lines hscroll-old-truncate-default))
 
 (defun hscroll-window-maybe ()
   "Scroll horizontally if point is off or nearly off the edge of the window.
