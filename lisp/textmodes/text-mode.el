@@ -28,6 +28,9 @@
 
 ;;; Code:
 
+(defvar text-mode-hook nil
+  "Normal hook run when entering Text mode and many related modes.")
+
 (defvar text-mode-syntax-table nil
   "Syntax table used while in text mode.")
 
