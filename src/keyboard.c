@@ -2504,6 +2504,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Actually read a character, waiting if necessary.  */
       save_getcjmp (save_jump);
       restore_getcjmp (local_getcjmp);
+      timer_start_idle ();
       c = kbd_buffer_get_event (&kb, used_mouse_menu);
       restore_getcjmp (save_jump);
 
@@ -2550,7 +2551,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
  non_reread:
 
   timer_stop_idle ();
-
   start_polling ();
 
   if (NILP (c))
