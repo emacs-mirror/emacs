@@ -1,3 +1,7 @@
+2001-01-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ccl.c (ccl_driver): Fix last change.
+
 2001-01-25  Kenichi Handa  <handa@etl.go.jp>
 
 	* ccl.h (sturct ccl_program): New member suppress_error.
