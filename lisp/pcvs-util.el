@@ -5,7 +5,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-util.el,v 1.10 2001/03/07 00:19:08 monnier Exp $
+;; Revision: $Id: pcvs-util.el,v 1.11 2001/03/20 20:26:13 johnw Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -167,8 +167,10 @@ Uses columns to keep the listing readable but compact."
 		     ;; At least 2 columns; at least 2 spaces between columns.
 		     (max 2 (/ wwidth (+ 2 length)))
 		     ;; Don't allocate more columns than we can fill.
+		     ;; Windows can't show less than 3 lines anyway.
 		     (max 1 (/ (length strings) 2))))
 	   (colwidth (/ wwidth columns)))
+      ;; Use tab-width rather than indent-to.
       (setq tab-width colwidth)
       ;; The insertion should be "sensible" no matter what choices were made.
       (dolist (str strings)
