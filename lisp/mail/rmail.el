@@ -943,6 +943,7 @@ It returns t if it got any new messages."
 	  ;; Move to the first new message
 	  ;; unless we have other unseen messages before it.
 	  (rmail-show-message (rmail-first-unseen-message))
+	  (run-hooks 'rmail-after-get-new-mail-hook)
 	  t))
     ;; Don't leave the buffer screwed up if we get a disk-full error.
     (rmail-show-message)))
