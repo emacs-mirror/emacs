@@ -1,6 +1,13 @@
-1999-12-11  Samir Barjoud  <samir@mindspring.com>
+1999-12-12  Gerd Moellmann  <gerd@gnu.org>
 
-	* help.el (where-is): use `commandp' as predicate for
+	* mail/rmailsum.el (rmail-summary-mode-map): Bind RET to
+	rmail-summary-goto-msg.
+
+	* files.el (after-find-file): Fix previous change.
+
+1999-12-11  Dave Love  <fx@gnu.org>
+
+	* help.el (where-is): Use `commandp' as predicate for
 	`completing-read'
 
 1999-12-10  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
