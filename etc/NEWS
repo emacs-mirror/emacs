@@ -28,6 +28,15 @@ Emacs with Leim.
 
 * Changes in Emacs 21.3
 
++++
+** Emacs can now be invoked in full-screen mode on a windowed display.
+
+When Emacs is invoked on a window system, the new command-line options
+`--fullwidth', `--fullheight', and `--fullscreen' produce a frame
+whose width, height, or both width and height take up the entire
+screen size.  (For now, this works only on GNU and Unix systems, and
+not with every window manager.)
+
 ** Info-index finally offers completion.
 
 ** Controlling the left and right fringe widths.
