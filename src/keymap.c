@@ -1735,18 +1735,32 @@ nominal         alternate\n\
     /* Print the minor mode maps.  */
     for (i = 0; i < nmaps; i++)
       {
+	/* Tht title for a minor mode keymap
+	   is constructed at run time.
+	   We let describe_map_tree do the actual insertion
+	   because it takes care of other features when doing so.  */
+	char *title = (char *) alloca (40 + XSYMBOL (modes[i])->name->size);
+	char *p = title;
+
 	if (XTYPE (modes[i]) == Lisp_Symbol)
 	  {
-	    insert_char ('`');
-	    insert_string (XSYMBOL (modes[i])->name->data);
-	    insert_char ('\'');
+	    *p++ = '`';
+	    bcopy (XSYMBOL (modes[i])->name->data, p,
+		   XSYMBOL (modes[i])->name->size);
+	    p += XSYMBOL (modes[i])->name->size;
+	    *p++ = '\'';
 	  }
 	else
-	  insert_string ("Strangely Named");
-	insert_string (" Minor Mode Bindings:\n");
-	describe_map_tree (maps[i], 0, shadow, prefix, 0);
+	  {
+	    bcopy ("Strangely Named", p, sizeof ("Strangely Named"));
+	    p += sizeof ("Strangely Named");
+	  }
+	bcopy (" Minor Mode Bindings", p, sizeof (" Minor Mode Bindings"));
+	p += sizeof (" Minor Mode Bindings");
+	*p = 0;
+
+	describe_map_tree (maps[i], 0, shadow, prefix, title);
 	shadow = Fcons (maps[i], shadow);
-	insert_char ('\n');
       }
   }
 
@@ -1755,13 +1769,12 @@ nominal         alternate\n\
   if (!NILP (start1))
     {
       describe_map_tree (start1, 0, shadow, prefix,
-			 "Major Mode Bindings:\n");
+			 "Major Mode Bindings");
       shadow = Fcons (start1, shadow);
-      insert_string ("\n");
     }
 
   describe_map_tree (current_global_map, 0, shadow, prefix,
-		     "Global Bindings:\n");
+		     "Global Bindings");
 
   Fset_buffer (descbuf);
   return Qnil;
@@ -1774,7 +1787,8 @@ nominal         alternate\n\
    If SHADOW is non-nil, it is a list of maps;
     don't mention keys which would be shadowed by any of them.
    PREFIX, if non-nil, says mention only keys that start with PREFIX.
-   TITLE, if not 0, is a string to insert at the beginning.  */
+   TITLE, if not 0, is a string to insert at the beginning.
+   TITLE should not end with a colon or a newline; we supply that.  */
 
 void
 describe_map_tree (startmap, partial, shadow, prefix, title)
@@ -1784,6 +1798,7 @@ describe_map_tree (startmap, partial, shadow, prefix, title)
 {
   Lisp_Object maps;
   struct gcpro gcpro1;
+  int something = 0;
   char *key_heading
     = "\
 key             binding\n\
@@ -1795,8 +1810,17 @@ key             binding\n\
   if (!NILP (maps))
     {
       if (title)
-	insert_string (title);
+	{
+	  insert_string (title);
+	  if (!NILP (prefix))
+	    {
+	      insert_string (" Starting With ");
+	      insert1 (Fkey_description (prefix));
+	    }
+	  insert_string (":\n");
+	}
       insert_string (key_heading);
+      something = 1;
     }
 
   for (; !NILP (maps); maps = Fcdr (maps))
@@ -1845,6 +1869,9 @@ key             binding\n\
 
     skip: ;
     }
+
+  if (something)
+    insert_string ("\n");
 
   UNGCPRO;
 }
