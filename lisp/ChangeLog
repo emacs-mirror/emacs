@@ -1,5 +1,11 @@
 2000-04-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* progmodes/ebrowse.el (ebrowse-tree-mode): Use
+	propertized-buffer-identification.
+	(ebrowse-update-member-buffer-mode-line): Likewise.
+	(ebrowse--mode-strings): Removed.
+	(ebrowse--mode-line-props): Removed.
+
 	* files.el (auto-mode-alist): Add `EBROWSE'.
 
 	* progmodes/ebrowse.el (ebrowse-read): Skip forward over white
