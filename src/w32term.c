@@ -2772,14 +2772,22 @@ w32_read_socket (sd, bufp, numchars, expected)
 
 	    if (f) 
 	      {
-	      if (f->async_visible != 1)
+		if (msg.rect.right == msg.rect.left ||
+		    msg.rect.bottom == msg.rect.top)
 		  {
-		  /* Definitely not obscured, so mark as visible.  */
+		    /* We may get paint messages even though the client
+		       area is clipped - these are not expose events. */
+		    DebPrint (("clipped frame %04x (%s) got WM_PAINT\n", f,
+			       XSTRING (f->name)->data));
+		  }
+		else if (f->async_visible != 1)
+		  {
+		    /* Definitely not obscured, so mark as visible.  */
 		    f->async_visible = 1;
 		    f->async_iconified = 0;
 		    SET_FRAME_GARBAGED (f);
-		  DebPrint (("frame %04x (%s) reexposed\n", f,
-			     XSTRING (f->name)->data));
+		    DebPrint (("frame %04x (%s) reexposed\n", f,
+			       XSTRING (f->name)->data));
 
 		    /* WM_PAINT serves as MapNotify as well, so report
                        visibility changes properly.  */
@@ -3144,45 +3152,12 @@ w32_read_socket (sd, bufp, numchars, expected)
 
 	case WM_COMMAND:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
-	  
-#if 1
+
 	  if (f)
 	    {
-	      if (msg.msg.lParam == 0) 
-		{
-		  /* Came from window menu */
-		  
-		  extern Lisp_Object get_frame_menubar_event ();
-		  Lisp_Object event = get_frame_menubar_event (f, msg.msg.wParam);
-		  struct input_event buf;
-		  Lisp_Object frame;
-		  
-		  XSETFRAME (frame, f);
-		  buf.kind = menu_bar_event;
-		  
-		  /* Store initial menu bar event */
-		  
-		  if (!NILP (event))
-		    {
-		      buf.frame_or_window = Fcons (frame, Fcons (Qmenu_bar, Qnil));
-		      kbd_buffer_store_event (&buf);
-		    }
-		  
-		  /* Enqueue the events */
-		  
-		  while (!NILP (event))
-		    {
-		      buf.frame_or_window = Fcons (frame, XCONS (event)->car);
-		      kbd_buffer_store_event (&buf);
-		      event = XCONS (event)->cdr;
-		    }
-		} 
-	      else 
-		{
-		  /* Came from popup menu */
-		}
+	      extern void menubar_selection_callback (FRAME_PTR f, void * client_data);
+	      menubar_selection_callback (f, (void *)msg.msg.wParam);
 	    }
-#endif
 
 	  check_visibility = 1;
 	  break;
@@ -4523,4 +4498,3 @@ When nil, the right-alt and left-ctrl key combination is\n\
 interpreted normally."); 
   Vw32_recognize_altgr = Qt;
 }
-
