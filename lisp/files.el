@@ -891,9 +891,12 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 			    filename))
 	(error "%s is a directory" filename))
     (if (and find-file-wildcards
+	     (not (string-match "\\`/:" filename))
 	     (string-match "[[*?]" filename))
 	(let ((files (file-expand-wildcards filename t))
 	      (find-file-wildcards nil))
+	  (if (null files)
+	      (error "No files match `%s'" filename))
 	  (car (mapcar #'(lambda (fn) (find-file-noselect fn))
 		       files)))
       (let* ((buf (get-file-buffer filename))
