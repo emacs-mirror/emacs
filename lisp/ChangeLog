@@ -16,9 +16,21 @@
 	type, use the default.  Rewrite to use `add-text-properties' and
 	plist functions.
 
+2005-03-01  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (inhibit-debug-on-entry): Add docstring.
+	(debugger-jumping-flag): New var.
+	(debug-entry-code): Use it.
+	(debugger-jump): Use debugger-jumping-flag and add
+	debugger-reenable to post-command-hook.
+	(debugger-reenable): Use debugger-jumping-flag and remove itself
+	from post-command-hook.
+	(debug, debug-on-entry, cancel-debug-on-entry): Remove call to
+	debugger-reenable.
+
 2005-03-01  Robert J. Chassell  <bob@rattlesnake.com>
 
-	* textmodes/texinfmt.el: (texinfo-no-refill-regexp): Comment out
+	* textmodes/texinfmt.el (texinfo-no-refill-regexp): Comment out
 	inclusion of "itemize\\|", which may be unnecessary, is certainly
 	inelegant, and stops refilling in itemize lists when formatting
 	Japanese Texinfo files to Info.
