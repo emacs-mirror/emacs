@@ -747,6 +747,7 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
   init_dosfns ();
   /* Set defaults for several environment variables.  */
   if (initialized) init_environment (argc, argv, skip_args);
+  else init_gettimeofday ();
 #endif
 
   /* egetenv is a pretty low-level facility, which may get called in
