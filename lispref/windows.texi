@@ -1512,7 +1512,7 @@ The return value is the result of this rounding.
 
   @dfn{Horizontal scrolling} means shifting the image in the window left
 or right by a specified multiple of the normal character width.  Each
-window has a @dfn{vertical scroll position}, which is a number, never
+window has a @dfn{horizontal scroll position}, which is a number, never
 less than zero.  It specifies how far to shift the contents left.
 Shifting the window contents left generally makes all or part of some
 characters disappear off the left, and all or part of some other
