@@ -25,7 +25,7 @@
 /* No need to get the pty name at all.  */
 #define PTY_NAME_SPRINTF
 #ifdef emacs
-char *_get_pty();
+char *_getpty();
 #endif
 /* We need only try once to open a pty.  */
 #define PTY_ITERATION
