@@ -263,11 +263,15 @@ fast_string_match (regexp, string)
    If we don't find COUNT instances before reaching the end of the
    buffer (or the beginning, if scanning backwards), set *SHORTAGE to
    the number of TARGETs left unfound, and return the end of the
-   buffer we bumped up against.  */
+   buffer we bumped up against.
 
-scan_buffer (target, start, count, shortage)
+   If ALLOW_QUIT is non-zero, set immediate_quit.  That's good to do
+   except when inside redisplay.  */
+
+scan_buffer (target, start, count, shortage, allow_quit)
      int *shortage, start;
      register int count, target;
+     int allow_quit;
 {
   int limit = ((count > 0) ? ZV - 1 : BEGV);
   int direction = ((count > 0) ? 1 : -1);
@@ -281,7 +285,7 @@ scan_buffer (target, start, count, shortage)
   if (shortage != 0)
     *shortage = 0;
 
-  immediate_quit = 1;
+  immediate_quit = allow_quit;
 
   if (count > 0)
     while (start != limit + 1)
@@ -348,7 +352,7 @@ int
 find_next_newline (from, cnt)
      register int from, cnt;
 {
-  return (scan_buffer ('\n', from, cnt, (int *) 0));
+  return scan_buffer ('\n', from, cnt, (int *) 0, 1);
 }
 
 Lisp_Object skip_chars ();
