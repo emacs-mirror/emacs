@@ -67,7 +67,7 @@ top_srcdir := $(subst \,/,$(shell cd))
 # Find out which version of Emacs this is.
 version := ${shell sed -n -e '/(defconst emacs-version/s/^[^"]*\("[^"]*"\).*/\1/p' lisp/version.el}
 
-all:	lib-src src man
+all:	lib-src src man lispref
 
 lib-src: FRC
 	cd lib-src
@@ -90,8 +90,8 @@ src: FRC
 	cd ..
 	if exist leim\Makefile redir $(MAKE) -C leim top_srcdir=${top_srcdir}
 
-man:	FRC
-	cd man
+man lispref:	FRC
+	cd $@
 	$(MAKE) top_srcdir=${top_srcdir}
 	cd ..
 
