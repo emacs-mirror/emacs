@@ -1197,14 +1197,14 @@ This function should be in the list `comint-output-filter-functions'."
 	   (if (eq (window-buffer window) current)
 	       (progn
 		 (select-window window)
-		 (if (or (eq scroll t) (eq scroll 'all)
-			 ;; Maybe user wants point to jump to the end.
-			 (and (eq scroll 'this) (eq selected window))
-			 (and (eq scroll 'others) (not (eq selected window)))
-			 ;; If point was at the end, keep it at the end.
-			 (and (>= (point)
-				  (- (process-mark process) (length string)))
-			      (< (point) (process-mark process))))
+		 (if (and (< (point) (process-mark process))
+			  (or (eq scroll t) (eq scroll 'all)
+			      ;; Maybe user wants point to jump to the end.
+			      (and (eq scroll 'this) (eq selected window))
+			      (and (eq scroll 'others) (not (eq selected window)))
+			      ;; If point was at the end, keep it at the end.
+			      (>= (point)
+				  (- (process-mark process) (length string)))))
 		     (goto-char (process-mark process)))
 		 ;; Optionally scroll so that the text
 		 ;; ends at the bottom of the window.
