@@ -131,8 +131,8 @@ KBOARD the_only_kboard;
 #endif
 
 /* Non-nil disable property on a command means
-   do not execute it; call disabled-command-hook's value instead.  */
-Lisp_Object Qdisabled, Qdisabled_command_hook;
+   do not execute it; call disabled-command-function's value instead.  */
+Lisp_Object Qdisabled, Qdisabled_command_function;
 
 #define NUM_RECENT_KEYS (100)
 int recent_keys_index;	/* Index for storing next element into recent_keys */
@@ -9665,9 +9665,9 @@ a special event, so ignore the prefix argument and don't clear it.  */)
       tem = Fget (cmd, Qdisabled);
       if (!NILP (tem) && !NILP (Vrun_hooks))
 	{
-	  tem = Fsymbol_value (Qdisabled_command_hook);
+	  tem = Fsymbol_value (Qdisabled_command_function);
 	  if (!NILP (tem))
-	    return call1 (Vrun_hooks, Qdisabled_command_hook);
+	    return call1 (Vrun_hooks, Qdisabled_command_function);
 	}
     }
 
@@ -10782,8 +10782,8 @@ syms_of_keyboard ()
   Qtimer_event_handler = intern ("timer-event-handler");
   staticpro (&Qtimer_event_handler);
 
-  Qdisabled_command_hook = intern ("disabled-command-hook");
-  staticpro (&Qdisabled_command_hook);
+  Qdisabled_command_function = intern ("disabled-command-function");
+  staticpro (&Qdisabled_command_function);
 
   Qself_insert_command = intern ("self-insert-command");
   staticpro (&Qself_insert_command);
