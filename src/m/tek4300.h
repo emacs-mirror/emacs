@@ -33,7 +33,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* 68000 has lowest-numbered byte as most significant */
 
-#define BIG_ENDIAN
+/* This value matches the value the system gives it.  */
+#define BIG_ENDIAN 4321
 
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
