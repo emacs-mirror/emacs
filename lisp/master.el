@@ -38,7 +38,6 @@
 ;; sql-buffer contains the slave buffer.  It is a local variable in the
 ;; SQL buffer.
 ;;
-;; (autoload 'master-mode "master" "Master mode minor mode." t)
 ;; (add-hook 'sql-mode-hook
 ;;	   (function (lambda ()
 ;;		       (master-mode t)
@@ -50,9 +49,6 @@
 ;;; Thanks to all the people who helped me out:
 ;;
 ;; Rob Riepel <networking.stanford.edu>
-
-
-
 
 ;;; History:
 ;; 
@@ -72,7 +68,8 @@ You can set this variable using `master-set-slave'.")
 
 ;;; Define master mode.
 
-(easy-mmode-define-minor-mode master-mode
+;;;###autoload
+(define-minor-mode master-mode
   "Toggle Master mode.
 With no argument, this command toggles the mode.
 Non-null prefix argument turns on the mode.
