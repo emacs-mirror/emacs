@@ -202,7 +202,7 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, 0,
   windows_or_buffers_changed++;
   /* Mark all windows as INaccurate,
      so that every window will have its redisplay done.  */
-  mark_window_display_accurate (FRAME_ROOT_WINDOW (0));
+  mark_window_display_accurate (FRAME_ROOT_WINDOW (0), 0);
   return Qnil;
 }
 
@@ -469,25 +469,27 @@ safe_bcopy (from, to, size)
      char *from, *to;
      int size;
 {
-  register char *endf;
-  register char *endt;
-
-  if (size == 0)
+  if (size <= 0 || from == to)
     return;
 
-  /* If destination is higher in memory, and overlaps source zone,
-     copy from the end.  */
-  if (from < to && from + size > to)
+  /* If the source and destination don't overlap, then bcopy can
+     handle it.  If they do overlap, but the destination is lower in
+     memory than the source, we'll assume bcopy can handle that.  */
+  if (to < from || from + size <= to)
+    bcopy (from, to, size);
+
+  /* Otherwise, we'll copy from the end.  */
+  else
     {
-      endf = from + size;
-      endt = to + size;
+      register char *endf = from + size;
+      register char *endt = to + size;
 
       /* If TO - FROM is large, then we should break the copy into
 	 nonoverlapping chunks of TO - FROM bytes each.  However, if
 	 TO - FROM is small, then the bcopy function call overhead
 	 makes this not worth it.  The crossover point could be about
-	 anywhere.  Since I don't think the obvious copy loop is ever
-	 too bad, I'm trying to err in its favor.  */
+	 anywhere.  Since I don't think the obvious copy loop is too
+	 bad, I'm trying to err in its favor.  */
       if (to - from < 64)
 	{
 	  do
@@ -496,24 +498,23 @@ safe_bcopy (from, to, size)
 	}
       else
 	{
-	  /* Since TO - FROM >= 64, the overlap is less than SIZE,
-	     so we can always safely do this loop once.  */
-	  while (endt > to)
+	  for (;;)
 	    {
 	      endt -= (to - from);
 	      endf -= (to - from);
 
+	      if (endt < to)
+		break;
+
 	      bcopy (endf, endt, to - from);
 	    }
-	  
-	  /* If TO - FROM wasn't a multiple of SIZE, there will be a
+
+	  /* If SIZE wasn't a multiple of TO - FROM, there will be a
 	     little left over.  The amount left over is
 	     (endt + (to - from)) - to, which is endt - from.  */
 	  bcopy (from, to, endt - from);
 	}
     }
-  else
-    bcopy (from, to, size);
 }     
 
 #if 0
