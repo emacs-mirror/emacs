@@ -34,7 +34,7 @@ static char *magick[] = {
 "q c Gray70",
 "w c Gray72",
 "e c #bcbcbc",
-"r c Gray74",
+"r c None",
 "t c #bebebe",
 "y c #c3c3c3",
 "u c #c6c6c6",
