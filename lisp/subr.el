@@ -621,7 +621,7 @@ function, it is changed to a list of functions."
 	  (and (local-variable-if-set-p hook)
 	       (not (memq t (symbol-value hook)))))
       ;; Alter the local value only.
-      (or (if (or (consp function) (compiled-function-p function))
+      (or (if (or (consp function) (byte-code-function-p function))
 	      (member function (symbol-value hook))
 	    (memq function (symbol-value hook)))
 	  (set hook 
@@ -630,7 +630,7 @@ function, it is changed to a list of functions."
 		 (cons function (symbol-value hook)))))
     ;; Alter the global value (which is also the only value,
     ;; if the hook doesn't have a local value).
-    (or (if (or (consp function) (compiled-function-p function))
+    (or (if (or (consp function) (byte-code-function-p function))
 	    (member function (default-value hook))
 	  (memq function (default-value hook)))
 	(set-default hook 
