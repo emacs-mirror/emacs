@@ -15,6 +15,19 @@
 
 2000-08-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* lisp.h (input_pending): External declaration.
+
+	* dispextern.h (Qredisplay_dont_pause): Declare extern.
+	
+	* xdisp.c (echo_area_display): Display thoroughly if input is
+	pending.  Bind redisplay-dont-pause to t during the redisplay.
+	in case input is pending.
+
+	* dispnew.c (Qredisplay_dont_pause): New variable.
+	(syms_of_display): Initialize and staticpro it.
+	(update_frame_1): Don't interrupt the display for pending input if
+	redisplay_dont_pause is set.
+	
 	* dispnew.c (mode_line_string): Declare parameter MODE_LINE_P.
 
 	* xfaces.c (Ftty_suppress_bold_inverse_default_colors): Doc fix.
