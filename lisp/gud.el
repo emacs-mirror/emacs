@@ -939,7 +939,7 @@ directories if your program contains sources from more than one directory."
   (save-excursion
     (let ((buf (find-file-noselect f)))
       (set-buffer buf)
-      (define-key (current-local-map) [menu-bar debug] (cons "Gud" (copy-keymap gud-menu-map)))
+      (gud-make-debug-menu)
       buf)))
 
 ;;;###autoload
