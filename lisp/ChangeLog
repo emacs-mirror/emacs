@@ -1,3 +1,13 @@
+2002-04-23  Miles Bader  <miles@gnu.org>
+
+	* menu-bar.el (menu-bar-update-buffers): Add `Select Named Buffer'.
+	Add separator line before commands
+	Remove old crufty code that tried to line things up by adding
+	spaces to entries (it doesn't work).
+	Move `Frames' submenu after the normal buffers, and add a
+	separator line before it.
+	(menu-bar-buffers-menu-list-buffers-entry): Variable removed.
+
 2002-04-22  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (after-find-file): Use %s to output MSG.
@@ -18,7 +28,7 @@
 	when finding the end.  Take more care in analyzing the results
 	of intangibility after line-move-to-column.
 
-2002-04-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* international/mule-diag.el (list-input-methods-1): Doc fix
 	(LEIM is now part of the standard distribution).
