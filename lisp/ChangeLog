@@ -1,3 +1,7 @@
+2002-09-08  Markus Rost  <rost@math.ohio-state.edu>
+
+	* diff.el (diff): Doc fix.
+
 2002-09-08  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-delete-errors): Default to nil.
