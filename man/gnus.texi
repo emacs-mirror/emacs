@@ -11173,10 +11173,11 @@ The name of the POP server.  The default is taken from the
 @code{MAILHOST} environment variable.
 
 @item :port
-The port number of the POP server.  This can be a number (eg,
-@samp{:port 1234}) or a string (eg, @samp{:port "pop3"}).  If it is a
+The port number of the POP server.  This can be a number (e.g.@:
+@samp{:port 110}) or a string (e.g.@: @samp{:port "pop3"}).  If it is a
 string, it should be a service name as listed in @file{/etc/services} on
-Unix systems.  The default is @samp{"pop3"}.
+Unix systems.  The default is @samp{"pop3"}.  On some systems you might
+need to specify it as @samp{"pop-3"} instead.
 
 @item :user
 The user name to give to the POP server.  The default is the login
