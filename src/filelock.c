@@ -455,18 +455,20 @@ t if it is locked by you, else a string of the name of the locker.")
 
 init_filelock ()
 {
+  char *new_path
+
   lock_path = egetenv ("EMACSLOCKDIR");
   if (! lock_path)
     lock_path = PATH_LOCK;
 
+  /* Copy the path in case egetenv got it from a Lisp string.  */
+  new_path = (char *) xmalloc (strlen (lock_path) + 2);
+  strcpy (new_path, lock_path);
+  lock_path = new_path;
+
   /* Make sure it ends with a slash.  */
   if (lock_path[strlen (lock_path) - 1] != '/')
-    {
-      char *new_path = (char *) xmalloc (strlen (lock_path) + 2);
-      strcpy (new_path, lock_path);
-      lock_path = new_path;
-      strcat (lock_path, "/");
-    }
+    strcat (lock_path, "/");
 
   superlock_path = (char *) xmalloc ((strlen (lock_path)
 				      + sizeof (SUPERLOCK_NAME)));
