@@ -36,8 +36,8 @@ shows that mergers are bad economics.  Face inheritance has also been
 removed, so no one can accumulate ``too much face.''
 
 @item
-Several face appearance attributes such as 3D appearence,
-strike-through, and overline, have been eliminated.
+Several face appearance attributes, including 3D, strike-through, and
+overline, have been eliminated.
 
 @item
 Emacs now provides its own ``lean and mean'' scroll bars instead of using
@@ -56,7 +56,7 @@ explicit words, their meaning is more self-evident.
 
 @item
 Colors are not available on text-only terminals.  If you @emph{must}
-have colors, but cannot afford running X, you can now use the MS-DOG
+have colors, but cannot afford to run X, you can now use the MS-DOG
 version of Emacs inside a DOS emulator.
 
 @item
@@ -67,7 +67,7 @@ etc.
 
 @item
 The support for ``wheeled'' mice under X has been removed, because
-of their slow scroll rate, and because you will find less and less of
+of their slow scroll rate, and because you will find fewer and fewer of
 these mice as you go back in time.  Instead Emacs 20 provides the
 @kbd{C-v} and @kbd{M-v} keys for scrolling.  (You can also use the
 scroll bar, but be advised that it, too, may be absent in yet earlier
@@ -82,7 +82,7 @@ provides.
 @item
 Some aspects of Emacs appearance, such as the colors of the scroll bar
 and the menus, can only be controlled via X resources.  Since colors
-aren't supported except on X, it doesn't make any sense doing this in
+aren't supported except on X, it doesn't make any sense to do this in
 any way but the X way.  For those users who aren't privy to X arcana,
 we've provided good default colors that should make everybody happy.
 
@@ -170,7 +170,7 @@ you won't have to set the options very often.
 Emacs 20 does not pop up a buffer with error messages when an error is
 signaled during loading of the user's init file.  Instead, it simply
 announces the fact that an error happened.  To know where in the init
-file was that, insert @code{(message "foo")} lines judiciously into the
+file that was, insert @code{(message "foo")} lines judiciously into the
 file and look for those messages in the @samp{*Messages*} buffer.
 
 @item

@@ -60,7 +60,7 @@ be @key{DEL}, and sets it up that way.  But in some cases, especially
 with text-only terminals, you will need to tell Emacs which key to use
 for that purpose.  If the large key not far above the @key{RET} or
 @key{ENTER} key doesn't delete backwards, you need to do this.
-@xref{DEL Gets Help}, for an explanation of how.
+@xref{DEL Doesn't Delete}, for an explanation of how.
 
   Most PC keyboards have both a @key{BACKSPACE} key a short ways above
 @key{RET} or @key{ENTER}, and a @key{DELETE} key elsewhere.  On these
@@ -763,12 +763,12 @@ the command.
 @section Repeating a Command
 @cindex repeating a command
 
-  Many simple commands, such as those invoked with a single key or with
-@kbd{M-x @var{command-name} @key{RET}}, can be repeated by invoking them
-with a numeric argument which serves as a repeat count
-(@pxref{Arguments}).  However, if the command you want to repeat prompts
-for some input, or is itself invoked with a numeric argument, using a
-numeric argument might be inconvenient or even impossible.
+  Many simple commands, such as those invoked with a single key or
+with @kbd{M-x @var{command-name} @key{RET}}, can be repeated by
+invoking them with a numeric argument that serves as a repeat count
+(@pxref{Arguments}).  However, if the command you want to repeat
+prompts for some input, or uses a numeric argument in another way,
+repetition using a numeric argument might be problematical.
 
 @kindex C-x z
 @findex repeat
