@@ -465,7 +465,7 @@ This does fairly subdued highlighting.")
    '(;;
      ;; Highlight control structures
      ("(\\(cond\\|if\\|when\\|unless\\|[ec]?\\(type\\)?case\\)[ \t\n]" . 1)
-     ("(\\(while\\|do\\|let*?\\|flet\\|labels\\|prog[nv12*]?\\)[ \t\n]" . 1)
+     ("(\\(while\\|do\\|let\\*?\\|flet\\|labels\\|prog[nv12*]?\\)[ \t\n]" . 1)
      ("(\\(catch\\|\\throw\\|block\\|return\\|return-from\\)[ \t\n]" . 1)
      ("(\\(save-restriction\\|save-window-restriction\\)[ \t\n]" . 1)
      ("(\\(save-excursion\\|unwind-protect\\|condition-case\\)[ \t\n]" . 1)
