@@ -1,3 +1,8 @@
+2000-10-11  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/cperl-mode.el (cperl-invalid-face): double-quote
+	`underline' - fixes the bug introduced on 2000-09-21.
+
 2000-10-11  Dave Love  <fx@gnu.org>
 
 	* progmodes/scheme.el (scheme-mode-variables, dsssl-mode): Avoid
