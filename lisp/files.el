@@ -3104,10 +3104,13 @@ With prefix arg, silently save all file-visiting buffers, then kill."
     ;; Strip off the /: from the file names that have this handler.
     (save-match-data
       (while (consp file-arg-indices)
-	(and (nth (car file-arg-indices) arguments)
-	     (string-match "\\`/:" (nth (car file-arg-indices) arguments))
-	     (setcar (nthcdr (car file-arg-indices) arguments)
-		     (substring (nth (car file-arg-indices) arguments) 2)))
+	(let ((pair (nthcdr (car file-arg-indices) arguments)))
+	  (and (car pair)
+	       (string-match "\\`/:" (car pair))
+	       (setcar pair
+		       (if (= (length (car pair)) 2)
+			   "/"
+			 (substring (car pair) 2)))))
 	(setq file-arg-indices (cdr file-arg-indices))))
     (if (eq file-arg-indices 'identity)
 	(car arguments)
