@@ -410,7 +410,7 @@
 
 	* frame.el (frame-initialize): Create initial frame visible.
 	(frame-notice-user-settings): When tool-bar has been switched off,
-	correct the frame size and sync too-bar-mode.
+	correct the frame size and sync tool-bar-mode.
 
 	* startup.el (command-line): Remove manipulation of frame
 	height for tool bars.

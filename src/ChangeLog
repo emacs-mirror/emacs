@@ -1,5 +1,7 @@
 2001-02-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (set_window_buffer): Set window's vscroll to 0.
+	
 	* window.c (coordinates_in_window): Increase width of area
 	where the vertical line can be dragged.
 
