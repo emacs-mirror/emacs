@@ -9,18 +9,18 @@ For older news, see the file ONEWS
 * Changes in Emacs 21.2
 
 +++
-** `buffer-menu' and `list-buffers' now return buffesr whose names begin
+** `buffer-menu' and `list-buffers' now list buffers whose names begin
 with a space, if they visit files.
 
 ** tab-always-indent can be set to `never' to make sure indent-for-tab-command
 always tabs rather than indents.
 
-** in fill, you can now customize fill-nobreak-predicate and two
-sample predicates are provided (fill-single-word-nobreak-p and
-fill-french-nobreak-p).
+** You can now customize fill-nobreak-predicate to control where
+filling can break lines.  We provide two sample predicates,
+fill-single-word-nobreak-p and fill-french-nobreak-p.
 
-** In texinfo-mode, if font-lock is used then updating one of the `foo's
-in `@foo ... @end foo' updates the other one on the fly.
+** In Texinfo mode, when Font-Lock is enabled, updating one of the
+`foo's in `@foo ... @end foo' updates the other one on the fly.
 
 ** New user option `add-log-always-start-new-record'.
 When this option is enabled, M-x add-change-log-entry will always
@@ -958,7 +958,7 @@ printed representation and an unabbreviated one.
 The default value of eval-expression-debug-on-error is t, so any error
 during evaluation produces a backtrace.
 
-*** The function `eval-defun' (M-C-x) now loads Edebug and instruments
+*** The function `eval-defun' (C-M-x) now loads Edebug and instruments
 code when called with a prefix argument.
 
 ** CC mode changes.
@@ -1617,7 +1617,7 @@ Fontlock mode is active.
 *** Isearch now puts a call to `isearch-resume' in the command history,
 so that searches can be resumed.
 
-*** In Isearch mode, M-C-s and M-C-r are now bound like C-s and C-r,
+*** In Isearch mode, C-M-s and C-M-r are now bound like C-s and C-r,
 respectively, i.e. you can repeat a regexp isearch with the same keys
 that started the search.
 
@@ -3171,7 +3171,7 @@ returned by function `recent-keys'.
 
 ** Variables `beginning-of-defun-function' and `end-of-defun-function'
 can be used to define handlers for the functions that find defuns.
-Major modes can define these locally instead of rebinding M-C-a
+Major modes can define these locally instead of rebinding C-M-a
 etc. if the normal conventions for defuns are not appropriate for the
 mode.
 
@@ -7462,7 +7462,7 @@ new key		dired.el binding		old key
   * @		dired-mark-symlinks		@  (binding deleted)
   * u		dired-unmark			u
   * DEL		dired-unmark-backward		DEL
-  * ?		dired-unmark-all-files		M-C-?
+  * ?		dired-unmark-all-files		C-M-?
   * !		dired-unmark-all-marks
   * %		dired-mark-files-regexp		% m
   * C-n		dired-next-marked-file		M-}
@@ -7534,7 +7534,7 @@ another have been added.
 generating lines in buffers.
 
 *** Several commands in the group buffer can be undone with
-`M-C-_'.
+`C-M-_'.
 
 *** Scoring can be done on words using the new score type `w'.
 
@@ -7555,7 +7555,7 @@ the native server.
    `M-x gnus-group-clear-data-on-native-groups'
 
 *** A new command for reading collections of documents
-(nndoc with nnvirtual on top) has been added -- `M-C-d'.
+(nndoc with nnvirtual on top) has been added -- `C-M-d'.
 
 *** Process mark sets can be pushed and popped.
 
@@ -8301,7 +8301,7 @@ entries to the BibTeX kill ring, from where they can be yanked back by
 appropriate functions.
 
 *** New interactive functions for repositioning and marking of
-entries. They are bound by default to M-C-l and M-C-h.
+entries. They are bound by default to C-M-l and C-M-h.
 
 *** New hook bibtex-clean-entry-hook. It is called after entry has
 been cleaned.

@@ -1,3 +1,7 @@
+2001-10-30  Richard M. Stallman  <rms@gnu.org>
+
+	* enriched.el (enriched-face-ans): FIx previous change.
+
 2001-10-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* international/iso-acc.el (iso-accents-compose): Remove a

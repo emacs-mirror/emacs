@@ -1,3 +1,7 @@
+2001-10-30  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.c (Finput_pending_p): Doc fix.
+
 2001-10-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_after_update_window_line): Don't run the code
