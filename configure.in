@@ -2209,7 +2209,8 @@ strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd getwd shutdown strftime getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap memmove fsync bzero memset)
+gai_strerror mkstemp getline getdelim mremap memmove fsync bzero \
+memset memcmp memmove)
 
 AC_CHECK_HEADERS(sys/un.h)
 
@@ -2826,14 +2827,16 @@ typedef unsigned size_t;
 #  endif
 #endif
 
-#ifndef HAVE_BCOPY
-#define bcopy(a,b,s) memcpy (b,a,s)
+/* avoid deprecated functions */
+#ifdef HAVE_MEMCPY
+#  define bcopy(a,b,s) memcpy (b,a,s)
 #endif
-#ifndef HAVE_BZERO
-#define bzero(a,s) memset (a,0,s)
+#ifdef HAVE_MEMSET
+#  define bzero(a,s) memset (a,0,s)
 #endif
-#ifndef HAVE_BCMP
-#define BCMP memcmp
+#ifdef HAVE_MEMCMP
+#  define BCMP memcmp
+#  define bcmp memcmp
 #endif
 
 #endif /* EMACS_CONFIG_H */

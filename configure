@@ -2010,6 +2010,9 @@ case "${canonical}" in
   hppa*-hp-hpux9* )
     machine=hp800 opsys=hpux9
   ;;
+  hppa*-hp-hpux10.2* )
+    machine=hp800 opsys=hpux10-20
+  ;;
   hppa*-hp-hpux10* )
     machine=hp800 opsys=hpux10
   ;;
@@ -11207,6 +11210,8 @@ done
 
 
 
+
+
 for ac_func in gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo \
 random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime res_init setsid \
@@ -11214,7 +11219,8 @@ strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd getwd shutdown strftime getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap memmove fsync bzero memset
+gai_strerror mkstemp getline getdelim mremap memmove fsync bzero \
+memset memcmp memmove
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $ac_func" >&5
