@@ -78,34 +78,7 @@ The Lisp code is executed when the node is selected.")
   :type 'integer
   :group 'info)
 
-(defvar Info-directory-list
-  (let ((path (getenv "INFOPATH"))
-	(source (expand-file-name "info/" source-directory))
-	(sibling (if installation-directory
-		     (expand-file-name "info/" installation-directory)))
-	alternative)
-    (if path
-	(split-string path (regexp-quote path-separator))
-      (if (and sibling (file-exists-p sibling))
-	  (setq alternative sibling)	; uninstalled, Emacs builddir != srcdir
-	(setq alternative source))	; uninstalled, builddir != srcdir
-      (if (or (member alternative Info-default-directory-list)
-	      (not (file-exists-p alternative))
-	      ;; On DOS/NT, we use movable executables always,
-	      ;; and we must always find the Info dir at run time.
-	      (if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
-		  nil
-		;; Use invocation-directory for Info only if we used it for
-		;; exec-directory also.
-		(not (string= exec-directory
-			      (expand-file-name "lib-src/"
-						installation-directory)))))
-	  Info-default-directory-list
-	;; `alternative' contains the Info files that came with this
-	;; version, so we should look there first.  `Info-insert-dir'
-	;; currently expects to find `alternative' first on the list.
-	(cons alternative
-	      (reverse (cdr (reverse Info-default-directory-list)))))))
+(defvar Info-directory-list nil
   "List of directories to search for Info documentation files.
 nil means not yet initialized.  In this case, Info uses the environment
 variable INFOPATH to initialize it, or `Info-default-directory-list'
@@ -151,7 +124,7 @@ Marker points nowhere if file has no tag table.")
 
 (defvar Info-standalone nil
   "Non-nil if Emacs was started solely as an Info browser.")
-
+
 (defvar Info-suffix-list
   ;; The MS-DOS list should work both when long file names are
   ;; supported (Windows 9X), and when only 8+3 file names are available.
@@ -265,6 +238,40 @@ Do the right thing if the file has been compressed or zipped."
 				       default-directory)))
 	    (call-process-region (point-min) (point-max) decoder t t)))
       (insert-file-contents fullname visit))))
+
+;; Initialize Info-directory-list, if that hasn't been done yet.
+(defun info-initialize ()
+  (unless Info-directory-list
+    (let ((path (getenv "INFOPATH"))
+	  (source (expand-file-name "info/" source-directory))
+	  (sibling (if installation-directory
+		       (expand-file-name "info/" installation-directory)))
+	  alternative)
+      (setq Info-directory-list
+	    (if path
+		(split-string path (regexp-quote path-separator))
+	      (if (and sibling (file-exists-p sibling))
+		  ;; Uninstalled, Emacs builddir != srcdir.
+		  (setq alternative sibling)
+		;; Uninstalled, builddir == srcdir
+		(setq alternative source))
+	      (if (or (member alternative Info-default-directory-list)
+		      (not (file-exists-p alternative))
+		      ;; On DOS/NT, we use movable executables always,
+		      ;; and we must always find the Info dir at run time.
+		      (if (memq system-type '(ms-dos windows-nt))
+			  nil
+			;; Use invocation-directory for Info
+			;; only if we used it for exec-directory also.
+			(not (string= exec-directory
+				      (expand-file-name "lib-src/"
+							installation-directory)))))
+		  Info-default-directory-list
+		;; `alternative' contains the Info files that came with this
+		;; version, so we should look there first.  `Info-insert-dir'
+		;; currently expects to find `alternative' first on the list.
+		(cons alternative
+		      (reverse (cdr (reverse Info-default-directory-list))))))))))
 
 ;;;###autoload
 (defun info-other-window (&optional file)
@@ -290,6 +297,7 @@ The top-level Info directory is made by combining all the files named `dir'
 in all the directories in that path."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Info file name: " nil nil t))))
+  (info-initialize)
   (if file
       (progn
 	(pop-to-buffer "*info*")
@@ -321,7 +329,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 				   (nth 1 err) err)))
 	       (save-buffers-kill-emacs)))
     (info)))
-
+
 ;; See if the the accessible portion of the buffer begins with a node
 ;; delimiter, and the node header line which follows matches REGEXP.
 ;; Typically, this test will be followed by a loop that examines the
