@@ -858,7 +858,7 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
     (define-key menu [translate-from] '("Translate from..." . iso-cvt-translate-from))
     (fset 'iso-cvt-translate-from translate-from-menu-map)
 
-    (dolist ((file-type (reverse format-alist)))
+    (dolist (file-type (reverse format-alist))
       (let ((name (car file-type))
 	    (str-name (cadr file-type)))
 	(if (stringp str-name)
