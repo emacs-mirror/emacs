@@ -1260,46 +1260,62 @@ where FACE is a valid face specification, as it can be used with
 	(fancy-splash-outer-buffer (current-buffer))
 	splash-buffer
 	(old-minor-mode-map-alist minor-mode-map-alist)
+	(frame (fancy-splash-frame))
 	timer)
-    (switch-to-buffer "GNU Emacs")
-    (setq tab-width 20)
-    (setq splash-buffer (current-buffer))
-    (catch 'stop-splashing
-      (unwind-protect
-	  (let ((map (make-sparse-keymap)))
-	    (use-local-map map)
-	    (define-key map [t] 'fancy-splash-default-action)
-	    (define-key map [mouse-movement] 'ignore)
-	    (define-key map [mode-line t] 'ignore)
-	    (setq cursor-type nil
-		  display-hourglass nil
-		  minor-mode-map-alist nil
-		  buffer-undo-list t
-		  mode-line-format (propertize "---- %b %-" 
-					       'face '(:weight bold))
-		  fancy-splash-stop-time (+ (float-time)
-					    (max 60 fancy-splash-max-time))
-		  timer (run-with-timer 0 fancy-splash-delay
-					#'fancy-splash-screens-1
-					splash-buffer))
-	    (recursive-edit))
+    (save-selected-window
+      (select-frame frame)
+      (switch-to-buffer "GNU Emacs")
+      (setq tab-width 20)
+      (setq splash-buffer (current-buffer))
+      (catch 'stop-splashing
+	(unwind-protect
+	    (let ((map (make-sparse-keymap)))
+	      (use-local-map map)
+	      (define-key map [switch-frame] 'ignore)
+	      (define-key map [t] 'fancy-splash-default-action)
+	      (define-key map [mouse-movement] 'ignore)
+	      (define-key map [mode-line t] 'ignore)
+	      (setq cursor-type nil
+		    display-hourglass nil
+		    minor-mode-map-alist nil
+		    buffer-undo-list t
+		    mode-line-format (propertize "---- %b %-" 
+						 'face '(:weight bold))
+		    fancy-splash-stop-time (+ (float-time)
+					      (max 60 fancy-splash-max-time))
+		    timer (run-with-timer 0 fancy-splash-delay
+					  #'fancy-splash-screens-1
+					  splash-buffer))
+	      (recursive-edit))
 	  (cancel-timer timer)
 	  (setq display-hourglass old-hourglass
 		minor-mode-map-alist old-minor-mode-map-alist)
-	  (kill-buffer splash-buffer)))))
+	  (kill-buffer splash-buffer))))))
 
+(defun fancy-splash-frame ()
+  "Return the frame to use for the fancy splash screen.
+Returning non-nil does not mean we should necessarily
+use the fancy splash screen, but if we do use it,
+we put it on this frame."
+  (let (chosen-frame)
+    (dolist (frame (frame-list))
+      (if (and (frame-visible-p frame)
+	       (not (window-minibuffer-p (frame-selected-window frame))))
+	  (setq chosen-frame frame)))
+    chosen-frame))
 
 (defun use-fancy-splash-screens-p ()
   "Return t if fancy splash screens should be used."
   (when (or (and (display-color-p)
 		 (image-type-available-p 'xpm))
 	    (image-type-available-p 'pbm))
-    (let* ((img (create-image (or fancy-splash-image
+    (let* ((frame (fancy-splash-frame))
+	   (img (create-image (or fancy-splash-image
 				  (if (and (display-color-p)
 					   (image-type-available-p 'xpm))
 				      "splash.xpm" "splash.pbm"))))
 	   (image-height (and img (cdr (image-size img))))
-	   (window-height (1- (window-height (selected-window)))))
+	   (window-height (1- (window-height (frame-selected-window frame)))))
       (> window-height (+ image-height 19)))))
 
 
