@@ -1,6 +1,7 @@
 ;;; regexp-opt.el --- generate efficient regexps to match strings
 
-;; Copyright (C) 1994,95,96,97,98,99,2000 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
@@ -106,44 +107,29 @@ by \\=\\< and \\>."
 	   (completion-regexp-list nil)
 	   (words (eq paren 'words))
 	   (open (cond ((stringp paren) paren) (paren "\\(")))
-	   (sorted-strings (sort (copy-sequence strings) 'string-lessp))
+	   (sorted-strings (delete-dups
+			    (sort (copy-sequence strings) 'string-lessp)))
 	   (re (regexp-opt-group sorted-strings open)))
       (if words (concat "\\<" re "\\>") re))))
-
-(defconst regexp-opt-not-groupie*-re
-  (let* ((harmless-ch "[^\\\\[]")
-         (esc-pair-not-lp "\\\\[^(]")
-         (class-harmless-ch "[^][]")
-         (class-lb-harmless "[^]:]")
-         (class-lb-colon-maybe-charclass ":\\([a-z]+:]\\)?")
-         (class-lb (concat "\\[\\(" class-lb-harmless
-                           "\\|" class-lb-colon-maybe-charclass "\\)"))
-         (class
-          (concat "\\[^?]?"
-                  "\\(" class-harmless-ch
-                  "\\|" class-lb "\\)*"
-                  "\\[?]"))         ; special handling for bare [ at end of re
-         (shy-lp "\\\\(\\?:"))
-    (concat "\\(" harmless-ch "\\|" esc-pair-not-lp
-            "\\|" class "\\|" shy-lp "\\)*"))
-  "Matches any part of a regular expression EXCEPT for non-shy \"\\\\(\"s")
 
 ;;;###autoload
 (defun regexp-opt-depth (regexp)
   "Return the depth of REGEXP.
-This means the number of regexp grouping constructs (parenthesised expressions)
-in REGEXP."
+This means the number of non-shy regexp grouping constructs
+\(parenthesised expressions) in REGEXP."
   (save-match-data
     ;; Hack to signal an error if REGEXP does not have balanced parentheses.
     (string-match regexp "")
     ;; Count the number of open parentheses in REGEXP.
-    (let ((count 0) start)
-      (while
-          (progn
-            (string-match regexp-opt-not-groupie*-re regexp start)
-            (setq start ( + (match-end 0) 2))  ; +2 for "\\(" after match-end.
-            (<= start (length regexp)))
-        (setq count (1+ count)))
+    (let ((count 0) start last)
+      (while (string-match "\\\\(\\(\\?:\\)?" regexp start)
+	(setq start (match-end 0))	      ; Start of next search.
+	(when (and (not (match-beginning 1))
+		   (subregexp-context-p regexp (match-beginning 0) last))
+	  ;; It's not a shy group and it's not inside brackets or after
+	  ;; a backslash: it's really a group-open marker.
+	  (setq last start)	    ; Speed up next regexp-opt-re-context-p.
+	  (setq count (1+ count))))
       count)))
 
 ;;; Workhorse functions.
@@ -307,5 +293,5 @@ in REGEXP."
 
 (provide 'regexp-opt)
 
-;;; arch-tag: 6c5a66f4-29af-4fd6-8c3b-4b554d5b4370
+;; arch-tag: 6c5a66f4-29af-4fd6-8c3b-4b554d5b4370
 ;;; regexp-opt.el ends here

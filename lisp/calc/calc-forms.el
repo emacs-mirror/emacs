@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-forms () nil)
-
 
 (defun calc-time ()
   (interactive)
@@ -510,181 +506,200 @@
 
 
 (defvar math-format-date-cache nil)
-(defun math-format-date (date)
-  (if (eq (car-safe date) 'date)
-      (setq date (nth 1 date)))
-  (let ((entry (list date calc-internal-prec calc-date-format)))
+
+;; The variables math-fd-date, math-fd-dt, math-fd-year, 
+;; math-fd-month, math-fd-day, math-fd-weekday, math-fd-hour,
+;; math-fd-minute, math-fd-second, math-fd-bc-flag are local
+;; to math-format-date, but are used by math-format-date-part,
+;; which is called by math-format-date.
+(defvar math-fd-date)
+(defvar math-fd-dt)
+(defvar math-fd-year)
+(defvar math-fd-month)
+(defvar math-fd-day)
+(defvar math-fd-weekday)
+(defvar math-fd-hour)
+(defvar math-fd-minute)
+(defvar math-fd-second)
+(defvar math-fd-bc-flag)
+
+(defun math-format-date (math-fd-date)
+  (if (eq (car-safe math-fd-date) 'date)
+      (setq math-fd-date (nth 1 math-fd-date)))
+  (let ((entry (list math-fd-date calc-internal-prec calc-date-format)))
     (or (cdr (assoc entry math-format-date-cache))
-	(let* ((dt nil)
+	(let* ((math-fd-dt nil)
 	       (calc-group-digits nil)
 	       (calc-leading-zeros nil)
 	       (calc-number-radix 10)
-	       year month day weekday hour minute second
-	       (bc-flag nil)
+	       math-fd-year math-fd-month math-fd-day math-fd-weekday 
+               math-fd-hour math-fd-minute math-fd-second
+	       (math-fd-bc-flag nil)
 	       (fmt (apply 'concat (mapcar 'math-format-date-part
 					   calc-date-format))))
 	  (setq math-format-date-cache (cons (cons entry fmt)
 					     math-format-date-cache))
-	  (and (setq dt (nthcdr 10 math-format-date-cache))
-	       (setcdr dt nil))
+	  (and (setq math-fd-dt (nthcdr 10 math-format-date-cache))
+	       (setcdr math-fd-dt nil))
 	  fmt))))
 
 (defun math-format-date-part (x)
   (cond ((stringp x)
 	 x)
 	((listp x)
-	 (if (math-integerp date)
+	 (if (math-integerp math-fd-date)
 	     ""
 	   (apply 'concat (mapcar 'math-format-date-part x))))
 	((eq x 'X)
 	 "")
 	((eq x 'N)
-	 (math-format-number date))
+	 (math-format-number math-fd-date))
 	((eq x 'n)
-	 (math-format-number (math-floor date)))
+	 (math-format-number (math-floor math-fd-date)))
 	((eq x 'J)
-	 (math-format-number (math-add date '(float (bigpos 235 214 17) -1))))
+	 (math-format-number (math-add math-fd-date '(float (bigpos 235 214 17) -1))))
 	((eq x 'j)
-	 (math-format-number (math-add (math-floor date) '(bigpos 424 721 1))))
+	 (math-format-number (math-add (math-floor math-fd-date) '(bigpos 424 721 1))))
 	((eq x 'U)
-	 (math-format-number (nth 1 (math-date-parts date 719164))))
+	 (math-format-number (nth 1 (math-date-parts math-fd-date 719164))))
 	((progn
-	   (or dt
+	   (or math-fd-dt
 	       (progn
-		 (setq dt (math-date-to-dt date)
-		       year (car dt)
-		       month (nth 1 dt)
-		       day (nth 2 dt)
-		       weekday (math-mod (math-add (math-floor date) 6) 7)
-		       hour (nth 3 dt)
-		       minute (nth 4 dt)
-		       second (nth 5 dt))
+		 (setq math-fd-dt (math-date-to-dt math-fd-date)
+		       math-fd-year (car math-fd-dt)
+		       math-fd-month (nth 1 math-fd-dt)
+		       math-fd-day (nth 2 math-fd-dt)
+		       math-fd-weekday (math-mod 
+                                        (math-add (math-floor math-fd-date) 6) 7)
+		       math-fd-hour (nth 3 math-fd-dt)
+		       math-fd-minute (nth 4 math-fd-dt)
+		       math-fd-second (nth 5 math-fd-dt))
 		 (and (memq 'b calc-date-format)
-		      (math-negp year)
-		      (setq year (math-neg year)
-			    bc-flag t))))
+		      (math-negp math-fd-year)
+		      (setq math-fd-year (math-neg math-fd-year)
+			    math-fd-bc-flag t))))
 	   (memq x '(Y YY BY)))
-	 (if (and (integerp year) (> year 1940) (< year 2040))
+	 (if (and (integerp math-fd-year) (> math-fd-year 1940) (< math-fd-year 2040))
 	     (format (cond ((eq x 'YY) "%02d")
 			   ((eq x 'BYY) "%2d")
 			   (t "%d"))
-		     (% year 100))
-	   (if (and (natnump year) (< year 100))
-	       (format "+%d" year)
-	     (math-format-number year))))
+		     (% math-fd-year 100))
+	   (if (and (natnump math-fd-year) (< math-fd-year 100))
+	       (format "+%d" math-fd-year)
+	     (math-format-number math-fd-year))))
 	((eq x 'YYY)
-	 (math-format-number year))
+	 (math-format-number math-fd-year))
 	((eq x 'YYYY)
-	 (if (and (natnump year) (< year 100))
-	     (format "+%d" year)
-	   (math-format-number year)))
+	 (if (and (natnump math-fd-year) (< math-fd-year 100))
+	     (format "+%d" math-fd-year)
+	   (math-format-number math-fd-year)))
 	((eq x 'b) "")
 	((eq x 'aa)
-	 (and (not bc-flag) "ad"))
+	 (and (not math-fd-bc-flag) "ad"))
 	((eq x 'AA)
-	 (and (not bc-flag) "AD"))
+	 (and (not math-fd-bc-flag) "AD"))
 	((eq x 'aaa)
-	 (and (not bc-flag) "ad "))
+	 (and (not math-fd-bc-flag) "ad "))
 	((eq x 'AAA)
-	 (and (not bc-flag) "AD "))
+	 (and (not math-fd-bc-flag) "AD "))
 	((eq x 'aaaa)
-	 (and (not bc-flag) "a.d."))
+	 (and (not math-fd-bc-flag) "a.d."))
 	((eq x 'AAAA)
-	 (and (not bc-flag) "A.D."))
+	 (and (not math-fd-bc-flag) "A.D."))
 	((eq x 'bb)
-	 (and bc-flag "bc"))
+	 (and math-fd-bc-flag "bc"))
 	((eq x 'BB)
-	 (and bc-flag "BC"))
+	 (and math-fd-bc-flag "BC"))
 	((eq x 'bbb)
-	 (and bc-flag " bc"))
+	 (and math-fd-bc-flag " bc"))
 	((eq x 'BBB)
-	 (and bc-flag " BC"))
+	 (and math-fd-bc-flag " BC"))
 	((eq x 'bbbb)
-	 (and bc-flag "b.c."))
+	 (and math-fd-bc-flag "b.c."))
 	((eq x 'BBBB)
-	 (and bc-flag "B.C."))
+	 (and math-fd-bc-flag "B.C."))
 	((eq x 'M)
-	 (format "%d" month))
+	 (format "%d" math-fd-month))
 	((eq x 'MM)
-	 (format "%02d" month))
+	 (format "%02d" math-fd-month))
 	((eq x 'BM)
-	 (format "%2d" month))
+	 (format "%2d" math-fd-month))
 	((eq x 'mmm)
-	 (downcase (nth (1- month) math-short-month-names)))
+	 (downcase (nth (1- math-fd-month) math-short-month-names)))
 	((eq x 'Mmm)
-	 (nth (1- month) math-short-month-names))
+	 (nth (1- math-fd-month) math-short-month-names))
 	((eq x 'MMM)
-	 (upcase (nth (1- month) math-short-month-names)))
+	 (upcase (nth (1- math-fd-month) math-short-month-names)))
 	((eq x 'Mmmm)
-	 (nth (1- month) math-long-month-names))
+	 (nth (1- math-fd-month) math-long-month-names))
 	((eq x 'MMMM)
-	 (upcase (nth (1- month) math-long-month-names)))
+	 (upcase (nth (1- math-fd-month) math-long-month-names)))
 	((eq x 'D)
-	 (format "%d" day))
+	 (format "%d" math-fd-day))
 	((eq x 'DD)
-	 (format "%02d" day))
+	 (format "%02d" math-fd-day))
 	((eq x 'BD)
-	 (format "%2d" day))
+	 (format "%2d" math-fd-day))
 	((eq x 'W)
-	 (format "%d" weekday))
+	 (format "%d" math-fd-weekday))
 	((eq x 'www)
-	 (downcase (nth weekday math-short-weekday-names)))
+	 (downcase (nth math-fd-weekday math-short-weekday-names)))
 	((eq x 'Www)
-	 (nth weekday math-short-weekday-names))
+	 (nth math-fd-weekday math-short-weekday-names))
 	((eq x 'WWW)
-	 (upcase (nth weekday math-short-weekday-names)))
+	 (upcase (nth math-fd-weekday math-short-weekday-names)))
 	((eq x 'Wwww)
-	 (nth weekday math-long-weekday-names))
+	 (nth math-fd-weekday math-long-weekday-names))
 	((eq x 'WWWW)
-	 (upcase (nth weekday math-long-weekday-names)))
+	 (upcase (nth math-fd-weekday math-long-weekday-names)))
 	((eq x 'd)
-	 (format "%d" (math-day-number year month day)))
+	 (format "%d" (math-day-number math-fd-year math-fd-month math-fd-day)))
 	((eq x 'ddd)
-	 (format "%03d" (math-day-number year month day)))
+	 (format "%03d" (math-day-number math-fd-year math-fd-month math-fd-day)))
 	((eq x 'bdd)
-	 (format "%3d" (math-day-number year month day)))
+	 (format "%3d" (math-day-number math-fd-year math-fd-month math-fd-day)))
 	((eq x 'h)
-	 (and hour (format "%d" hour)))
+	 (and math-fd-hour (format "%d" math-fd-hour)))
 	((eq x 'hh)
-	 (and hour (format "%02d" hour)))
+	 (and math-fd-hour (format "%02d" math-fd-hour)))
 	((eq x 'bh)
-	 (and hour (format "%2d" hour)))
+	 (and math-fd-hour (format "%2d" math-fd-hour)))
 	((eq x 'H)
-	 (and hour (format "%d" (1+ (% (+ hour 11) 12)))))
+	 (and math-fd-hour (format "%d" (1+ (% (+ math-fd-hour 11) 12)))))
 	((eq x 'HH)
-	 (and hour (format "%02d" (1+ (% (+ hour 11) 12)))))
+	 (and math-fd-hour (format "%02d" (1+ (% (+ math-fd-hour 11) 12)))))
 	((eq x 'BH)
-	 (and hour (format "%2d" (1+ (% (+ hour 11) 12)))))
+	 (and math-fd-hour (format "%2d" (1+ (% (+ math-fd-hour 11) 12)))))
 	((eq x 'p)
-	 (and hour (if (< hour 12) "a" "p")))
+	 (and math-fd-hour (if (< math-fd-hour 12) "a" "p")))
 	((eq x 'P)
-	 (and hour (if (< hour 12) "A" "P")))
+	 (and math-fd-hour (if (< math-fd-hour 12) "A" "P")))
 	((eq x 'pp)
-	 (and hour (if (< hour 12) "am" "pm")))
+	 (and math-fd-hour (if (< math-fd-hour 12) "am" "pm")))
 	((eq x 'PP)
-	 (and hour (if (< hour 12) "AM" "PM")))
+	 (and math-fd-hour (if (< math-fd-hour 12) "AM" "PM")))
 	((eq x 'pppp)
-	 (and hour (if (< hour 12) "a.m." "p.m.")))
+	 (and math-fd-hour (if (< math-fd-hour 12) "a.m." "p.m.")))
 	((eq x 'PPPP)
-	 (and hour (if (< hour 12) "A.M." "P.M.")))
+	 (and math-fd-hour (if (< math-fd-hour 12) "A.M." "P.M.")))
 	((eq x 'm)
-	 (and minute (format "%d" minute)))
+	 (and math-fd-minute (format "%d" math-fd-minute)))
 	((eq x 'mm)
-	 (and minute (format "%02d" minute)))
+	 (and math-fd-minute (format "%02d" math-fd-minute)))
 	((eq x 'bm)
-	 (and minute (format "%2d" minute)))
+	 (and math-fd-minute (format "%2d" math-fd-minute)))
 	((eq x 'C)
-	 (and second (not (math-zerop second))
+	 (and math-fd-second (not (math-zerop math-fd-second))
 	      ":"))
 	((memq x '(s ss bs SS BS))
-	 (and second
-	      (not (and (memq x '(SS BS)) (math-zerop second)))
-	      (if (integerp second)
+	 (and math-fd-second
+	      (not (and (memq x '(SS BS)) (math-zerop math-fd-second)))
+	      (if (integerp math-fd-second)
 		  (format (cond ((memq x '(ss SS)) "%02d")
 				((memq x '(bs BS)) "%2d")
 				(t "%d"))
-			  second)
-		(concat (if (Math-lessp second 10)
+			  math-fd-second)
+		(concat (if (Math-lessp math-fd-second 10)
 			    (cond ((memq x '(ss SS)) "0")
 				  ((memq x '(bs BS)) " ")
 				  (t ""))
@@ -692,29 +707,33 @@
 			(let ((calc-float-format
 			       (list 'fix (min (- 12 calc-internal-prec)
 					       0))))
-			  (math-format-number second))))))))
+			  (math-format-number math-fd-second))))))))
 
+;; The variable math-pd-str is local to math-parse-date and
+;; math-parse-standard-date, but is used by math-parse-date-word,
+;; which is called by math-parse-date and math-parse-standard-date.
+(defvar math-pd-str)
 
-(defun math-parse-date (str)
+(defun math-parse-date (math-pd-str)
   (catch 'syntax
-    (or (math-parse-standard-date str t)
-	(math-parse-standard-date str nil)
-	(and (string-match "\\`[^-+/0-9a-zA-Z]*\\([-+]?[0-9]+\\.?[0-9]*\\([eE][-+]?[0-9]+\\)?\\)[^-+/0-9a-zA-Z]*\\'" str)
-	     (list 'date (math-read-number (math-match-substring str 1))))
+    (or (math-parse-standard-date math-pd-str t)
+	(math-parse-standard-date math-pd-str nil)
+	(and (string-match "\\`[^-+/0-9a-zA-Z]*\\([-+]?[0-9]+\\.?[0-9]*\\([eE][-+]?[0-9]+\\)?\\)[^-+/0-9a-zA-Z]*\\'" math-pd-str)
+	     (list 'date (math-read-number (math-match-substring math-pd-str 1))))
 	(let ((case-fold-search t)
 	      (year nil) (month nil) (day nil) (weekday nil)
 	      (hour nil) (minute nil) (second nil) (bc-flag nil)
 	      (a nil) (b nil) (c nil) (bigyear nil) temp)
 
 	  ;; Extract the time, if any.
-	  (if (or (string-match "\\([0-9][0-9]?\\):\\([0-9][0-9]?\\)\\(:\\([0-9][0-9]?\\(\\.[0-9]+\\)?\\)\\)? *\\([ap]m?\\|[ap]\\. *m\\.\\|noon\\|n\\>\\|midnight\\|mid\\>\\|m\\>\\)?" str)
-		  (string-match "\\([0-9][0-9]?\\)\\(\\)\\(\\(\\(\\)\\)\\) *\\([ap]m?\\|[ap]\\. *m\\.\\|noon\\|n\\>\\|midnight\\|mid\\>\\|m\\>\\)" str))
-	      (let ((ampm (math-match-substring str 6)))
-		(setq hour (string-to-int (math-match-substring str 1))
-		      minute (math-match-substring str 2)
-		      second (math-match-substring str 4)
-		      str (concat (substring str 0 (match-beginning 0))
-				  (substring str (match-end 0))))
+	  (if (or (string-match "\\([0-9][0-9]?\\):\\([0-9][0-9]?\\)\\(:\\([0-9][0-9]?\\(\\.[0-9]+\\)?\\)\\)? *\\([ap]m?\\|[ap]\\. *m\\.\\|noon\\|n\\>\\|midnight\\|mid\\>\\|m\\>\\)?" math-pd-str)
+		  (string-match "\\([0-9][0-9]?\\)\\(\\)\\(\\(\\(\\)\\)\\) *\\([ap]m?\\|[ap]\\. *m\\.\\|noon\\|n\\>\\|midnight\\|mid\\>\\|m\\>\\)" math-pd-str))
+	      (let ((ampm (math-match-substring math-pd-str 6)))
+		(setq hour (string-to-int (math-match-substring math-pd-str 1))
+		      minute (math-match-substring math-pd-str 2)
+		      second (math-match-substring math-pd-str 4)
+		      math-pd-str (concat (substring math-pd-str 0 (match-beginning 0))
+				  (substring math-pd-str (match-end 0))))
 		(if (equal minute "")
 		    (setq minute 0)
 		  (setq minute (string-to-int minute)))
@@ -736,13 +755,13 @@
 			(setq hour (% (+ hour 12) 24)))))))
 
 	  ;; Rewrite xx-yy-zz to xx/yy/zz to avoid seeing "-" as a minus sign.
-	  (while (string-match "[0-9a-zA-Z]\\(-\\)[0-9a-zA-Z]" str)
+	  (while (string-match "[0-9a-zA-Z]\\(-\\)[0-9a-zA-Z]" math-pd-str)
 	    (progn
-	      (setq str (copy-sequence str))
-	      (aset str (match-beginning 1) ?\/)))
+	      (setq math-pd-str (copy-sequence math-pd-str))
+	      (aset math-pd-str (match-beginning 1) ?\/)))
 
 	  ;; Extract obvious month or weekday names.
-	  (if (string-match "[a-zA-Z]" str)
+	  (if (string-match "[a-zA-Z]" math-pd-str)
 	      (progn
 		(setq month (math-parse-date-word math-long-month-names))
 		(setq weekday (math-parse-date-word math-long-weekday-names))
@@ -756,31 +775,32 @@
 		(or (math-parse-date-word '( "ad" "a.d." ))
 		    (if (math-parse-date-word '( "bc" "b.c." ))
 			(setq bc-flag t)))
-		(if (string-match "[a-zA-Z]+" str)
+		(if (string-match "[a-zA-Z]+" math-pd-str)
 		    (throw 'syntax (format "Bad word in date: \"%s\""
-					   (math-match-substring str 0))))))
+					   (math-match-substring math-pd-str 0))))))
 
 	  ;; If there is a huge number other than the year, ignore it.
-	  (while (and (string-match "[-+]?0*[1-9][0-9][0-9][0-9][0-9]+" str)
-		      (setq temp (concat (substring str 0 (match-beginning 0))
-					 (substring str (match-end 0))))
-		      (string-match "[4-9][0-9]\\|[0-9][0-9][0-9]\\|[-+][0-9]+[^-]*\\'" temp))
-	    (setq str temp))
+	  (while (and (string-match "[-+]?0*[1-9][0-9][0-9][0-9][0-9]+" math-pd-str)
+		      (setq temp (concat (substring math-pd-str 0 (match-beginning 0))
+					 (substring math-pd-str (match-end 0))))
+		      (string-match 
+                       "[4-9][0-9]\\|[0-9][0-9][0-9]\\|[-+][0-9]+[^-]*\\'" temp))
+	    (setq math-pd-str temp))
 
 	  ;; If there is a number with a sign or a large number, it is a year.
-	  (if (or (string-match "\\([-+][0-9]+\\)[^-]*\\'" str)
-		  (string-match "\\(0*[1-9][0-9][0-9]+\\)" str))
-	      (setq year (math-match-substring str 1)
-		    str (concat (substring str 0 (match-beginning 1))
-				(substring str (match-end 1)))
+	  (if (or (string-match "\\([-+][0-9]+\\)[^-]*\\'" math-pd-str)
+		  (string-match "\\(0*[1-9][0-9][0-9]+\\)" math-pd-str))
+	      (setq year (math-match-substring math-pd-str 1)
+		    math-pd-str (concat (substring math-pd-str 0 (match-beginning 1))
+				(substring math-pd-str (match-end 1)))
 		    year (math-read-number year)
 		    bigyear t))
 
 	  ;; Collect remaining numbers.
 	  (setq temp 0)
-	  (while (string-match "[0-9]+" str temp)
+	  (while (string-match "[0-9]+" math-pd-str temp)
 	    (and c (throw 'syntax "Too many numbers in date"))
-	    (setq c (string-to-int (math-match-substring str 0)))
+	    (setq c (string-to-int (math-match-substring math-pd-str 0)))
 	    (or b (setq b c c nil))
 	    (or a (setq a b b nil))
 	    (setq temp (match-end 0)))
@@ -867,18 +887,18 @@
     (while (and names (not (string-match (if (equal (car names) "Sep")
 					     "Sept?"
 					   (regexp-quote (car names)))
-					 str)))
+					 math-pd-str)))
       (setq names (cdr names)
 	    n (1+ n)))
     (and names
 	 (or (not front) (= (match-beginning 0) 0))
 	 (progn
-	   (setq str (concat (substring str 0 (match-beginning 0))
+	   (setq math-pd-str (concat (substring math-pd-str 0 (match-beginning 0))
 			     (if front "" " ")
-			     (substring str (match-end 0))))
+			     (substring math-pd-str (match-end 0))))
 	   n))))
 
-(defun math-parse-standard-date (str with-time)
+(defun math-parse-standard-date (math-pd-str with-time)
   (let ((case-fold-search t)
 	(okay t) num
 	(fmt calc-date-format) this next (gnext nil)
@@ -898,16 +918,16 @@
 		     (setq gnext fmt
 			   fmt this)))
 		((stringp this)
-		 (if (and (<= (length this) (length str))
+		 (if (and (<= (length this) (length math-pd-str))
 			  (equal this
-				 (substring str 0 (length this))))
-		     (setq str (substring str (length this)))))
+				 (substring math-pd-str 0 (length this))))
+		     (setq math-pd-str (substring math-pd-str (length this)))))
 		((eq this 'X)
 		 t)
 		((memq this '(n N j J))
-		 (and (string-match "\\`[-+]?[0-9.]+\\([eE][-+]?[0-9]+\\)?" str)
-		      (setq num (math-match-substring str 0)
-			    str (substring str (match-end 0))
+		 (and (string-match "\\`[-+]?[0-9.]+\\([eE][-+]?[0-9]+\\)?" math-pd-str)
+		      (setq num (math-match-substring math-pd-str 0)
+			    math-pd-str (substring math-pd-str (match-end 0))
 			    num (math-date-to-dt (math-read-number num))
 			    num (math-sub num
 					  (if (memq this '(n N))
@@ -924,9 +944,9 @@
 			    month (nth 1 num)
 			    day (nth 2 num))))
 		((eq this 'U)
-		 (and (string-match "\\`[-+]?[0-9]+" str)
-		      (setq num (math-match-substring str 0)
-			    str (substring str (match-end 0))
+		 (and (string-match "\\`[-+]?[0-9]+" math-pd-str)
+		      (setq num (math-match-substring math-pd-str 0)
+			    math-pd-str (substring math-pd-str (match-end 0))
 			    num (math-date-to-dt
 				 (math-add 719164
 					   (math-div (math-read-number num)
@@ -946,63 +966,63 @@
 		((memq this '(Wwww WWWW))
 		 (math-parse-date-word math-long-weekday-names t))
 		((memq this '(p P))
-		 (if (string-match "\\`a" str)
+		 (if (string-match "\\`a" math-pd-str)
 		     (setq hour (if (= hour 12) 0 hour)
-			   str (substring str 1))
-		   (if (string-match "\\`p" str)
+			   math-pd-str (substring math-pd-str 1))
+		   (if (string-match "\\`p" math-pd-str)
 		       (setq hour (if (= hour 12) 12 (% (+ hour 12) 24))
-			     str (substring str 1)))))
+			     math-pd-str (substring math-pd-str 1)))))
 		((memq this '(pp PP pppp PPPP))
-		 (if (string-match "\\`am\\|a\\.m\\." str)
+		 (if (string-match "\\`am\\|a\\.m\\." math-pd-str)
 		     (setq hour (if (= hour 12) 0 hour)
-			   str (substring str (match-end 0)))
-		   (if (string-match "\\`pm\\|p\\.m\\." str)
+			   math-pd-str (substring math-pd-str (match-end 0)))
+		   (if (string-match "\\`pm\\|p\\.m\\." math-pd-str)
 		       (setq hour (if (= hour 12) 12 (% (+ hour 12) 24))
-			     str (substring str (match-end 0))))))
+			     math-pd-str (substring math-pd-str (match-end 0))))))
 		((memq this '(Y YY BY YYY YYYY))
 		 (and (if (memq next '(MM DD ddd hh HH mm ss SS))
 			  (if (memq this '(Y YY BYY))
-			      (string-match "\\` *[0-9][0-9]" str)
-			    (string-match "\\`[0-9][0-9][0-9][0-9]" str))
-			(string-match "\\`[-+]?[0-9]+" str))
-		      (setq year (math-match-substring str 0)
+			      (string-match "\\` *[0-9][0-9]" math-pd-str)
+			    (string-match "\\`[0-9][0-9][0-9][0-9]" math-pd-str))
+			(string-match "\\`[-+]?[0-9]+" math-pd-str))
+		      (setq year (math-match-substring math-pd-str 0)
 			    bigyear (or (eq this 'YYY)
-					(memq (aref str 0) '(?\+ ?\-)))
-			    str (substring str (match-end 0))
+					(memq (aref math-pd-str 0) '(?\+ ?\-)))
+			    math-pd-str (substring math-pd-str (match-end 0))
 			    year (math-read-number year))))
 		((eq this 'b)
 		 t)
 		((memq this '(aa AA aaaa AAAA))
-		 (if (string-match "\\` *\\(ad\\|a\\.d\\.\\)" str)
-		     (setq str (substring str (match-end 0)))))
+		 (if (string-match "\\` *\\(ad\\|a\\.d\\.\\)" math-pd-str)
+		     (setq math-pd-str (substring math-pd-str (match-end 0)))))
 		((memq this '(aaa AAA))
-		 (if (string-match "\\` *ad *" str)
-		     (setq str (substring str (match-end 0)))))
+		 (if (string-match "\\` *ad *" math-pd-str)
+		     (setq math-pd-str (substring math-pd-str (match-end 0)))))
 		((memq this '(bb BB bbb BBB bbbb BBBB))
-		 (if (string-match "\\` *\\(bc\\|b\\.c\\.\\)" str)
-		     (setq str (substring str (match-end 0))
+		 (if (string-match "\\` *\\(bc\\|b\\.c\\.\\)" math-pd-str)
+		     (setq math-pd-str (substring math-pd-str (match-end 0))
 			   bc-flag t)))
 		((memq this '(s ss bs SS BS))
 		 (and (if (memq next '(YY YYYY MM DD hh HH mm))
-			  (string-match "\\` *[0-9][0-9]\\(\\.[0-9]+\\)?" str)
-			(string-match "\\` *[0-9][0-9]?\\(\\.[0-9]+\\)?" str))
-		      (setq second (math-match-substring str 0)
-			    str (substring str (match-end 0))
+			  (string-match "\\` *[0-9][0-9]\\(\\.[0-9]+\\)?" math-pd-str)
+			(string-match "\\` *[0-9][0-9]?\\(\\.[0-9]+\\)?" math-pd-str))
+		      (setq second (math-match-substring math-pd-str 0)
+			    math-pd-str (substring math-pd-str (match-end 0))
 			    second (math-read-number second))))
 		((eq this 'C)
-		 (if (string-match "\\`:[0-9][0-9]" str)
-		     (setq str (substring str 1))
+		 (if (string-match "\\`:[0-9][0-9]" math-pd-str)
+		     (setq math-pd-str (substring math-pd-str 1))
 		   t))
 		((or (not (if (and (memq this '(ddd MM DD hh HH mm))
 				   (memq next '(YY YYYY MM DD ddd
 						   hh HH mm ss SS)))
 			      (if (eq this 'ddd)
-				  (string-match "\\` *[0-9][0-9][0-9]" str)
-				(string-match "\\` *[0-9][0-9]" str))
-			    (string-match "\\` *[0-9]+" str)))
+				  (string-match "\\` *[0-9][0-9][0-9]" math-pd-str)
+				(string-match "\\` *[0-9][0-9]" math-pd-str))
+			    (string-match "\\` *[0-9]+" math-pd-str)))
 		     (and (setq num (string-to-int
-				     (math-match-substring str 0))
-				str (substring str (match-end 0)))
+				     (math-match-substring math-pd-str 0))
+				math-pd-str (substring math-pd-str (match-end 0)))
 			  nil))
 		 nil)
 		((eq this 'W)
@@ -1022,7 +1042,7 @@
 	(if (and month day)
 	    (setq yearday nil)
 	  (setq month 1 day 1)))
-    (if (and okay (equal str ""))
+    (if (and okay (equal math-pd-str ""))
 	(and month day (or (not (or hour minute second))
 			   (and hour minute))
 	     (progn
@@ -1148,6 +1168,30 @@
 		  (calcFunc-tzone zone date))
       (math-reject-arg date 'datep))))
 
+
+;;; Note: Longer names must appear before shorter names which are
+;;;       substrings of them.
+(defvar math-tzone-names
+  '(( "UTC" 0 0) 
+    ( "MEGT" -1 "MET" "METDST" )                          ; Middle Europe
+    ( "METDST" -1 -1 ) ( "MET" -1 0 )
+    ( "MEGZ" -1 "MEZ" "MESZ" ) ( "MEZ" -1 0 ) ( "MESZ" -1 -1 )
+    ( "WEGT" 0 "WET" "WETDST" )                           ; Western Europe
+    ( "WETDST" 0 -1 ) ( "WET" 0 0 )
+    ( "BGT" 0 "GMT" "BST" ) ( "GMT" 0 0 ) ( "BST" 0 -1 )  ; Britain
+    ( "NGT" (float 35 -1) "NST" "NDT" )                   ; Newfoundland
+    ( "NST" (float 35 -1) 0 ) ( "NDT" (float 35 -1) -1 )
+    ( "AGT" 4 "AST" "ADT" ) ( "AST" 4 0 ) ( "ADT" 4 -1 )  ; Atlantic
+    ( "EGT" 5 "EST" "EDT" ) ( "EST" 5 0 ) ( "EDT" 5 -1 )  ; Eastern
+    ( "CGT" 6 "CST" "CDT" ) ( "CST" 6 0 ) ( "CDT" 6 -1 )  ; Central
+    ( "MGT" 7 "MST" "MDT" ) ( "MST" 7 0 ) ( "MDT" 7 -1 )  ; Mountain
+    ( "PGT" 8 "PST" "PDT" ) ( "PST" 8 0 ) ( "PDT" 8 -1 )  ; Pacific
+    ( "YGT" 9 "YST" "YDT" ) ( "YST" 9 0 ) ( "YDT" 9 -1 )  ; Yukon
+    )
+  "No doc yet.  See calc manual for now. ")
+
+(defvar var-TimeZone)
+
 (defun calcFunc-tzone (&optional zone date)
   (if zone
       (cond ((math-realp zone)
@@ -1226,27 +1270,7 @@
 	(calc-refresh-evaltos 'var-TimeZone)
 	(calcFunc-tzone tz date)))))
 
-;;; Note: Longer names must appear before shorter names which are
-;;;       substrings of them.
-(defvar math-tzone-names
-  '(( "UTC" 0 0) 
-    ( "MEGT" -1 "MET" "METDST" )                          ; Middle Europe
-    ( "METDST" -1 -1 ) ( "MET" -1 0 )
-    ( "MEGZ" -1 "MEZ" "MESZ" ) ( "MEZ" -1 0 ) ( "MESZ" -1 -1 )
-    ( "WEGT" 0 "WET" "WETDST" )                           ; Western Europe
-    ( "WETDST" 0 -1 ) ( "WET" 0 0 )
-    ( "BGT" 0 "GMT" "BST" ) ( "GMT" 0 0 ) ( "BST" 0 -1 )  ; Britain
-    ( "NGT" (float 35 -1) "NST" "NDT" )                   ; Newfoundland
-    ( "NST" (float 35 -1) 0 ) ( "NDT" (float 35 -1) -1 )
-    ( "AGT" 4 "AST" "ADT" ) ( "AST" 4 0 ) ( "ADT" 4 -1 )  ; Atlantic
-    ( "EGT" 5 "EST" "EDT" ) ( "EST" 5 0 ) ( "EDT" 5 -1 )  ; Eastern
-    ( "CGT" 6 "CST" "CDT" ) ( "CST" 6 0 ) ( "CDT" 6 -1 )  ; Central
-    ( "MGT" 7 "MST" "MDT" ) ( "MST" 7 0 ) ( "MDT" 7 -1 )  ; Mountain
-    ( "PGT" 8 "PST" "PDT" ) ( "PST" 8 0 ) ( "PDT" 8 -1 )  ; Pacific
-    ( "YGT" 9 "YST" "YDT" ) ( "YST" 9 0 ) ( "YDT" 9 -1 )  ; Yukon
-    )
-  "No doc yet.  See calc manual for now. ")
-
+(defvar math-daylight-savings-hook 'math-std-daylight-savings)
 
 (defun math-daylight-savings-adjust (date zone &optional dt)
   (or date (setq date (nth 1 (calcFunc-now))))
@@ -1285,8 +1309,6 @@
   (if (math-realp date)
       (nth 1 (calcFunc-tzconv (list 'date date) z1 z2))
     (calcFunc-unixtime (calcFunc-unixtime date z1) z2)))
-
-(defvar math-daylight-savings-hook 'math-std-daylight-savings)
 
 (defun math-std-daylight-savings (date dt zone bump)
   "Standard North American daylight savings algorithm.
@@ -1507,6 +1529,10 @@ and ends on the last Sunday of October at 2 a.m."
       (and (not (math-setup-holidays day))
 	   (list 'date (math-add day time))))))
 
+;; The variable math-sh-year is local to math-setup-holidays
+;; and math-setup-year-holiday, but is used by math-setup-add-holidays,
+;; which is called by math-setup-holidays and math-setup-year-holiday.
+(defvar math-sh-year)
 
 (defun math-setup-holidays (&optional date)
   (or (eq (calc-var-value 'var-Holidays) math-holidays-cache-tag)
@@ -1581,7 +1607,7 @@ and ends on the last Sunday of October at 2 a.m."
 	(unwind-protect
 	    (let ((days (nth 6 math-holidays-cache)))
 	      (if days
-		  (let ((year nil))   ; see below
+		  (let ((math-sh-year nil))   ; see below
 		    (setcar (nthcdr 6 math-holidays-cache) nil)
 		    (math-setup-add-holidays (cons 'vec (cdr days)))
 		    (setcar (nthcdr 2 math-holidays-cache) (car days))))
@@ -1613,10 +1639,10 @@ and ends on the last Sunday of October at 2 a.m."
 		     nil)))
 	  (or done (setq math-holidays-cache-tag t))))))
 
-(defun math-setup-year-holidays (year)
+(defun math-setup-year-holidays (math-sh-year)
   (let ((exprs (nth 2 math-holidays-cache)))
     (while exprs
-      (let* ((var-y year)
+      (let* ((var-y math-sh-year)
 	     (var-m nil)
 	     (expr (math-evaluate-expr (car exprs))))
 	(if (math-expr-contains expr '(var m var-m))
@@ -1626,7 +1652,7 @@ and ends on the last Sunday of October at 2 a.m."
 	  (math-setup-add-holidays expr)))
       (setq exprs (cdr exprs)))))
 
-(defun math-setup-add-holidays (days)   ; uses "year"
+(defun math-setup-add-holidays (days)   ; uses "math-sh-year"
   (cond ((eq (car-safe days) 'vec)
 	 (while (setq days (cdr days))
 	   (math-setup-add-holidays (car days))))
@@ -1641,7 +1667,7 @@ and ends on the last Sunday of October at 2 a.m."
 	 (math-setup-add-holidays (nth 1 days)))
 	((eq days 0))
 	((integerp days)
-	 (let ((b (math-to-business-day days year)))
+	 (let ((b (math-to-business-day days math-sh-year)))
 	   (or (cdr b)   ; don't register holidays twice!
 	       (let ((prev (car math-holidays-cache))
 		     (iprev (nth 1 math-holidays-cache)))
@@ -1789,6 +1815,12 @@ and ends on the last Sunday of October at 2 a.m."
 	  (t
 	   (math-make-intv 2 0 b)))))
 
+;; The variables math-exp-str and math-exp-pos are local to
+;; math-read-exprs in math-aent.el, but are used by 
+;; math-read-angle-brackets, which is called (indirectly) by
+;; math-read-exprs.
+(defvar math-exp-str)
+(defvar math-exp-pos)
 
 (defun math-read-angle-brackets ()
   (let* ((last (or (math-check-for-commas t) (length math-exp-str)))
@@ -1821,6 +1853,8 @@ and ends on the last Sunday of October at 2 a.m."
     (setq math-exp-pos (1+ last))
     (math-read-token)
     res))
+
+(provide 'calc-forms)
 
 ;;; arch-tag: a3d8f33b-9508-4043-8060-d02b8c9c750c
 ;;; calc-forms.el ends here

@@ -31,6 +31,10 @@ Boston, MA 02111-1307, USA.  */
 
 #include <signal.h>
 
+#ifdef HAVE_GTK_AND_PTHREAD
+#include <pthread.h>
+#endif
+
 /* This file is part of the core Lisp implementation, and thus must
    deal with the real data structures.  If the Lisp implementation is
    replaced, this file likely will not be used.  */
@@ -84,6 +88,52 @@ extern __malloc_size_t _bytes_used;
 extern __malloc_size_t __malloc_extra_blocks;
 
 #endif /* not DOUG_LEA_MALLOC */
+
+#if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
+
+/* When GTK uses the file chooser dialog, different backends can be loaded
+   dynamically.  One such a backend is the Gnome VFS backend that gets loaded
+   if you run Gnome.  That backend creates several threads and also allocates
+   memory with malloc.
+
+   If Emacs sets malloc hooks (! SYSTEM_MALLOC) and the emacs_blocked_*
+   functions below are called from malloc, there is a chance that one
+   of these threads preempts the Emacs main thread and the hook variables
+   end up in a inconsistent state.  So we have a mutex to prevent that (note
+   that the backend handles concurrent access to malloc within its own threads
+   but Emacs code running in the main thread is not included in that control).
+
+   When UNBLOCK_INPUT is called, revoke_input_signal may be called.  If this
+   happens in one of the backend threads we will have two threads that tries
+   to run Emacs code at once, and the code is not prepared for that.
+   To prevent that, we only call BLOCK/UNBLOCK from the main thread.  */
+
+static pthread_mutex_t alloc_mutex;
+pthread_t main_thread;
+
+#define BLOCK_INPUT_ALLOC                       \
+  do                                            \
+    {                                           \
+      pthread_mutex_lock (&alloc_mutex);        \
+      if (pthread_self () == main_thread)       \
+        BLOCK_INPUT;                            \
+    }                                           \
+  while (0)
+#define UNBLOCK_INPUT_ALLOC                     \
+  do                                            \
+    {                                           \
+      if (pthread_self () == main_thread)       \
+        UNBLOCK_INPUT;                          \
+      pthread_mutex_unlock (&alloc_mutex);      \
+    }                                           \
+  while (0)
+
+#else /* SYSTEM_MALLOC || not HAVE_GTK_AND_PTHREAD */
+
+#define BLOCK_INPUT_ALLOC BLOCK_INPUT
+#define UNBLOCK_INPUT_ALLOC UNBLOCK_INPUT
+
+#endif /* SYSTEM_MALLOC || not HAVE_GTK_AND_PTHREAD */
 
 /* Value of _bytes_used, when spare_memory was freed.  */
 
@@ -516,6 +566,140 @@ buffer_memory_full ()
 }
 
 
+#ifdef XMALLOC_OVERRUN_CHECK
+
+/* Check for overrun in malloc'ed buffers by wrapping a 16 byte header
+   and a 16 byte trailer around each block.
+
+   The header consists of 12 fixed bytes + a 4 byte integer contaning the
+   original block size, while the trailer consists of 16 fixed bytes.
+
+   The header is used to detect whether this block has been allocated
+   through these functions -- as it seems that some low-level libc
+   functions may bypass the malloc hooks.
+*/
+
+
+#define XMALLOC_OVERRUN_CHECK_SIZE 16
+
+static char xmalloc_overrun_check_header[XMALLOC_OVERRUN_CHECK_SIZE-4] =
+  { 0x9a, 0x9b, 0xae, 0xaf,
+    0xbf, 0xbe, 0xce, 0xcf,
+    0xea, 0xeb, 0xec, 0xed };
+
+static char xmalloc_overrun_check_trailer[XMALLOC_OVERRUN_CHECK_SIZE] =
+  { 0xaa, 0xab, 0xac, 0xad,
+    0xba, 0xbb, 0xbc, 0xbd,
+    0xca, 0xcb, 0xcc, 0xcd,
+    0xda, 0xdb, 0xdc, 0xdd };
+
+/* Macros to insert and extract the block size in the header.  */
+
+#define XMALLOC_PUT_SIZE(ptr, size)	\
+  (ptr[-1] = (size & 0xff),		\
+   ptr[-2] = ((size >> 8) & 0xff),	\
+   ptr[-3] = ((size >> 16) & 0xff),	\
+   ptr[-4] = ((size >> 24) & 0xff))
+
+#define XMALLOC_GET_SIZE(ptr)			\
+  (size_t)((unsigned)(ptr[-1])		|	\
+	   ((unsigned)(ptr[-2]) << 8)	|	\
+	   ((unsigned)(ptr[-3]) << 16)	|	\
+	   ((unsigned)(ptr[-4]) << 24))
+
+
+/* Like malloc, but wraps allocated block with header and trailer.  */
+
+POINTER_TYPE *
+overrun_check_malloc (size)
+     size_t size;
+{
+  register unsigned char *val;
+
+  val = (unsigned char *) malloc (size + XMALLOC_OVERRUN_CHECK_SIZE*2);
+  if (val)
+    {
+      bcopy (xmalloc_overrun_check_header, val, XMALLOC_OVERRUN_CHECK_SIZE - 4);
+      val += XMALLOC_OVERRUN_CHECK_SIZE;
+      XMALLOC_PUT_SIZE(val, size);
+      bcopy (xmalloc_overrun_check_trailer, val + size, XMALLOC_OVERRUN_CHECK_SIZE);
+    }
+  return (POINTER_TYPE *)val;
+}
+
+
+/* Like realloc, but checks old block for overrun, and wraps new block
+   with header and trailer.  */
+
+POINTER_TYPE *
+overrun_check_realloc (block, size)
+     POINTER_TYPE *block;
+     size_t size;
+{
+  register unsigned char *val = (unsigned char *)block;
+
+  if (val
+      && bcmp (xmalloc_overrun_check_header,
+	       val - XMALLOC_OVERRUN_CHECK_SIZE,
+	       XMALLOC_OVERRUN_CHECK_SIZE - 4) == 0)
+    {
+      size_t osize = XMALLOC_GET_SIZE (val);
+      if (bcmp (xmalloc_overrun_check_trailer,
+		val + osize,
+		XMALLOC_OVERRUN_CHECK_SIZE))
+	abort ();
+      bzero (val + osize, XMALLOC_OVERRUN_CHECK_SIZE);
+      val -= XMALLOC_OVERRUN_CHECK_SIZE;
+      bzero (val, XMALLOC_OVERRUN_CHECK_SIZE);
+    }
+
+  val = (unsigned char *) realloc ((POINTER_TYPE *)val, size + XMALLOC_OVERRUN_CHECK_SIZE*2);
+
+  if (val)
+    {
+      bcopy (xmalloc_overrun_check_header, val, XMALLOC_OVERRUN_CHECK_SIZE - 4);
+      val += XMALLOC_OVERRUN_CHECK_SIZE;
+      XMALLOC_PUT_SIZE(val, size);
+      bcopy (xmalloc_overrun_check_trailer, val + size, XMALLOC_OVERRUN_CHECK_SIZE);
+    }
+  return (POINTER_TYPE *)val;
+}
+
+/* Like free, but checks block for overrun.  */
+
+void
+overrun_check_free (block)
+     POINTER_TYPE *block;
+{
+  unsigned char *val = (unsigned char *)block;
+
+  if (val
+      && bcmp (xmalloc_overrun_check_header,
+	       val - XMALLOC_OVERRUN_CHECK_SIZE,
+	       XMALLOC_OVERRUN_CHECK_SIZE - 4) == 0)
+    {
+      size_t osize = XMALLOC_GET_SIZE (val);
+      if (bcmp (xmalloc_overrun_check_trailer,
+		val + osize,
+		XMALLOC_OVERRUN_CHECK_SIZE))
+	abort ();
+      bzero (val + osize, XMALLOC_OVERRUN_CHECK_SIZE);
+      val -= XMALLOC_OVERRUN_CHECK_SIZE;
+      bzero (val, XMALLOC_OVERRUN_CHECK_SIZE);
+    }
+
+  free (val);
+}
+
+#undef malloc
+#undef realloc
+#undef free
+#define malloc overrun_check_malloc
+#define realloc overrun_check_realloc
+#define free overrun_check_free
+#endif
+
+
 /* Like malloc but check for no memory and block interrupt input..  */
 
 POINTER_TYPE *
@@ -602,7 +786,9 @@ safe_alloca_unwind (arg)
    number of bytes to allocate, TYPE describes the intended use of the
    allcated memory block (for strings, for conses, ...).  */
 
+#ifndef USE_LSB_TAG
 static void *lisp_malloc_loser;
+#endif
 
 static POINTER_TYPE *
 lisp_malloc (nbytes, type)
@@ -932,7 +1118,7 @@ static void
 emacs_blocked_free (ptr)
      void *ptr;
 {
-  BLOCK_INPUT;
+  BLOCK_INPUT_ALLOC;
 
 #ifdef GC_MALLOC_CHECK
   if (ptr)
@@ -970,7 +1156,7 @@ emacs_blocked_free (ptr)
     spare_memory = (char *) malloc ((size_t) SPARE_MEMORY);
 
   __free_hook = emacs_blocked_free;
-  UNBLOCK_INPUT;
+  UNBLOCK_INPUT_ALLOC;
 }
 
 
@@ -996,7 +1182,7 @@ emacs_blocked_malloc (size)
 {
   void *value;
 
-  BLOCK_INPUT;
+  BLOCK_INPUT_ALLOC;
   __malloc_hook = old_malloc_hook;
 #ifdef DOUG_LEA_MALLOC
     mallopt (M_TOP_PAD, malloc_hysteresis * 4096);
@@ -1028,7 +1214,7 @@ emacs_blocked_malloc (size)
 #endif /* GC_MALLOC_CHECK */
 
   __malloc_hook = emacs_blocked_malloc;
-  UNBLOCK_INPUT;
+  UNBLOCK_INPUT_ALLOC;
 
   /* fprintf (stderr, "%p malloc\n", value); */
   return value;
@@ -1044,7 +1230,7 @@ emacs_blocked_realloc (ptr, size)
 {
   void *value;
 
-  BLOCK_INPUT;
+  BLOCK_INPUT_ALLOC;
   __realloc_hook = old_realloc_hook;
 
 #ifdef GC_MALLOC_CHECK
@@ -1089,10 +1275,26 @@ emacs_blocked_realloc (ptr, size)
 #endif /* GC_MALLOC_CHECK */
 
   __realloc_hook = emacs_blocked_realloc;
-  UNBLOCK_INPUT;
+  UNBLOCK_INPUT_ALLOC;
 
   return value;
 }
+
+
+#ifdef HAVE_GTK_AND_PTHREAD
+/* Called from Fdump_emacs so that when the dumped Emacs starts, it has a
+   normal malloc.  Some thread implementations need this as they call
+   malloc before main.  The pthread_self call in BLOCK_INPUT_ALLOC then
+   calls malloc because it is the first call, and we have an endless loop.  */
+
+void
+reset_malloc_hooks ()
+{
+  __free_hook = 0;
+  __malloc_hook = 0;
+  __realloc_hook = 0;
+}
+#endif /* HAVE_GTK_AND_PTHREAD */
 
 
 /* Called from main to set up malloc to use our hooks.  */
@@ -1100,6 +1302,18 @@ emacs_blocked_realloc (ptr, size)
 void
 uninterrupt_malloc ()
 {
+#ifdef HAVE_GTK_AND_PTHREAD
+  pthread_mutexattr_t attr;
+
+  /*  GLIBC has a faster way to do this, but lets keep it portable.
+      This is according to the Single UNIX Specification.  */
+  pthread_mutexattr_init (&attr);
+  pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
+  pthread_mutex_init (&alloc_mutex, &attr);
+
+  main_thread = pthread_self ();
+#endif /* HAVE_GTK_AND_PTHREAD */
+
   if (__free_hook != emacs_blocked_free)
     old_free_hook = __free_hook;
   __free_hook = emacs_blocked_free;
@@ -1428,6 +1642,21 @@ static int total_string_size;
 
 #endif /* not GC_CHECK_STRING_BYTES */
 
+
+#ifdef GC_CHECK_STRING_OVERRUN
+
+/* We check for overrun in string data blocks by appending a small
+   "cookie" after each allocated string data block, and check for the
+   presense of this cookie during GC.  */
+
+#define GC_STRING_OVERRUN_COOKIE_SIZE	4
+static char string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
+  { 0xde, 0xad, 0xbe, 0xef };
+
+#else
+#define GC_STRING_OVERRUN_COOKIE_SIZE 0
+#endif
+
 /* Value is the size of an sdata structure large enough to hold NBYTES
    bytes of string data.  The value returned includes a terminating
    NUL byte, the size of the sdata structure, and padding.  */
@@ -1450,6 +1679,10 @@ static int total_string_size;
       & ~(sizeof (EMACS_INT) - 1))
 
 #endif /* not GC_CHECK_STRING_BYTES */
+
+/* Extra bytes to allocate for each string.  */
+
+#define GC_STRING_EXTRA (GC_STRING_OVERRUN_COOKIE_SIZE)
 
 /* Initialize string allocation.  Called from init_alloc_once.  */
 
@@ -1515,7 +1748,7 @@ check_sblock (b)
 	nbytes = SDATA_NBYTES (from);
 
       nbytes = SDATA_SIZE (nbytes);
-      from_end = (struct sdata *) ((char *) from + nbytes);
+      from_end = (struct sdata *) ((char *) from + nbytes + GC_STRING_EXTRA);
     }
 }
 
@@ -1548,6 +1781,28 @@ check_string_bytes (all_p)
 
 #endif /* GC_CHECK_STRING_BYTES */
 
+#ifdef GC_CHECK_STRING_FREE_LIST
+
+/* Walk through the string free list looking for bogus next pointers.
+   This may catch buffer overrun from a previous string.  */
+
+static void
+check_string_free_list ()
+{
+  struct Lisp_String *s;
+
+  /* Pop a Lisp_String off the free-list.  */
+  s = string_free_list;
+  while (s != NULL)
+    {
+      if ((unsigned)s < 1024)
+	abort();
+      s = NEXT_FREE_LISP_STRING (s);
+    }
+}
+#else
+#define check_string_free_list()
+#endif
 
 /* Return a new Lisp_String.  */
 
@@ -1578,6 +1833,8 @@ allocate_string ()
 
       total_free_strings += STRING_BLOCK_SIZE;
     }
+
+  check_string_free_list ();
 
   /* Pop a Lisp_String off the free-list.  */
   s = string_free_list;
@@ -1648,7 +1905,7 @@ allocate_string_data (s, nchars, nbytes)
       mallopt (M_MMAP_MAX, 0);
 #endif
 
-      b = (struct sblock *) lisp_malloc (size, MEM_TYPE_NON_LISP);
+      b = (struct sblock *) lisp_malloc (size + GC_STRING_EXTRA, MEM_TYPE_NON_LISP);
 
 #ifdef DOUG_LEA_MALLOC
       /* Back to a reasonable maximum of mmap'ed areas. */
@@ -1663,7 +1920,7 @@ allocate_string_data (s, nchars, nbytes)
   else if (current_sblock == NULL
 	   || (((char *) current_sblock + SBLOCK_SIZE
 		- (char *) current_sblock->next_free)
-	       < needed))
+	       < (needed + GC_STRING_EXTRA)))
     {
       /* Not enough room in the current sblock.  */
       b = (struct sblock *) lisp_malloc (SBLOCK_SIZE, MEM_TYPE_NON_LISP);
@@ -1692,7 +1949,11 @@ allocate_string_data (s, nchars, nbytes)
   s->size = nchars;
   s->size_byte = nbytes;
   s->data[nbytes] = '\0';
-  b->next_free = (struct sdata *) ((char *) data + needed);
+#ifdef GC_CHECK_STRING_OVERRUN
+  bcopy (string_overrun_cookie, (char *) data + needed,
+	 GC_STRING_OVERRUN_COOKIE_SIZE);
+#endif
+  b->next_free = (struct sdata *) ((char *) data + needed + GC_STRING_EXTRA);
 
   /* If S had already data assigned, mark that as free by setting its
      string back-pointer to null, and recording the size of the data
@@ -1797,9 +2058,13 @@ sweep_strings ()
 	}
     }
 
+  check_string_free_list ();
+
   string_blocks = live_blocks;
   free_large_strings ();
   compact_small_strings ();
+
+  check_string_free_list ();
 }
 
 
@@ -1871,28 +2136,38 @@ compact_small_strings ()
 	  else
 	    nbytes = SDATA_NBYTES (from);
 
+	  if (nbytes > LARGE_STRING_BYTES)
+	    abort ();
+
 	  nbytes = SDATA_SIZE (nbytes);
-	  from_end = (struct sdata *) ((char *) from + nbytes);
+	  from_end = (struct sdata *) ((char *) from + nbytes + GC_STRING_EXTRA);
+
+#ifdef GC_CHECK_STRING_OVERRUN
+	  if (bcmp (string_overrun_cookie,
+		    ((char *) from_end) - GC_STRING_OVERRUN_COOKIE_SIZE,
+		    GC_STRING_OVERRUN_COOKIE_SIZE))
+	    abort ();
+#endif
 
 	  /* FROM->string non-null means it's alive.  Copy its data.  */
 	  if (from->string)
 	    {
 	      /* If TB is full, proceed with the next sblock.  */
-	      to_end = (struct sdata *) ((char *) to + nbytes);
+	      to_end = (struct sdata *) ((char *) to + nbytes + GC_STRING_EXTRA);
 	      if (to_end > tb_end)
 		{
 		  tb->next_free = to;
 		  tb = tb->next;
 		  tb_end = (struct sdata *) ((char *) tb + SBLOCK_SIZE);
 		  to = &tb->first_data;
-		  to_end = (struct sdata *) ((char *) to + nbytes);
+		  to_end = (struct sdata *) ((char *) to + nbytes + GC_STRING_EXTRA);
 		}
 
 	      /* Copy, and update the string's `data' pointer.  */
 	      if (from != to)
 		{
 		  xassert (tb != b || to <= from);
-		  safe_bcopy ((char *) from, (char *) to, nbytes);
+		  safe_bcopy ((char *) from, (char *) to, nbytes + GC_STRING_EXTRA);
 		  to->string->data = SDATA_DATA (to);
 		}
 
@@ -2402,9 +2677,9 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 void
 check_cons_list ()
 {
+#ifdef GC_CHECK_CONS_LIST
   struct Lisp_Cons *tail = cons_free_list;
 
-#if 0
   while (tail)
     tail = *(struct Lisp_Cons **)&tail->cdr;
 #endif
@@ -4056,6 +4331,11 @@ mark_stack ()
 #endif
   for (i = 0; i < sizeof (Lisp_Object); i += GC_LISP_OBJECT_ALIGNMENT)
     mark_memory ((char *) stack_base + i, end);
+  /* Allow for marking a secondary stack, like the register stack on the
+     ia64.  */
+#ifdef GC_MARK_SECONDARY_STACK
+  GC_MARK_SECONDARY_STACK ();
+#endif
 
 #if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
   check_gcpros ();

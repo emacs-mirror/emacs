@@ -60,10 +60,20 @@
    ((fboundp 'replace-in-string)
     (defalias 'gnus-replace-in-string 'replace-in-string))
    ((fboundp 'replace-regexp-in-string)
-    (defun gnus-replace-in-string  (string regexp newtext &optional literal)
+    (defun gnus-replace-in-string (string regexp newtext &optional literal)
+      "Replace all matches for REGEXP with NEWTEXT in STRING.
+If LITERAL is non-nil, insert NEWTEXT literally.  Return a new
+string containing the replacements.
+
+This is a compatibility function for different Emacsen."
       (replace-regexp-in-string regexp newtext string nil literal)))
    (t
     (defun gnus-replace-in-string (string regexp newtext &optional literal)
+      "Replace all matches for REGEXP with NEWTEXT in STRING.
+If LITERAL is non-nil, insert NEWTEXT literally.  Return a new
+string containing the replacements.
+
+This is a compatibility function for different Emacsen."
       (let ((start 0) tail)
 	(while (string-match regexp string start)
 	  (setq tail (- (length string) (match-end 0)))

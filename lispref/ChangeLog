@@ -1,3 +1,82 @@
+2004-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (maintainer-clean): Remove the info files
+	in $(infodir) where they are created.
+
+2004-12-03  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Selecting Windows): get-lru-window and
+	get-largest-window don't consider dedicated windows.
+
+	* text.texi (Undo): Document undo-in-progress.
+
+2004-11-26  Richard M. Stallman  <rms@gnu.org>
+
+	* locals.texi (Standard Buffer-Local Variables): Undo prev change.
+	Remove a few vars that are not always buffer-local.
+
+2004-11-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* locals.texi (Standard Buffer-Local Variables): Comment out
+	xref's to non-existent node `Yet to be written'.
+
+2004-11-24  Richard M. Stallman  <rms@gnu.org>
+
+	* processes.texi (Synchronous Processes): Grammar fix.
+
+	* numbers.texi (Comparison of Numbers): Add eql.
+
+	* locals.texi (Standard Buffer-Local Variables): Add many vars.
+
+	* intro.texi (Printing Notation): Fix previous change.
+
+	* display.texi (Customizing Bitmaps): Move indicate-buffer-boundaries
+	and default-indicate-buffer-boundaries from here.
+	(Usual Display): To here.
+	(Scroll Bars): Add scroll-bar-mode and scroll-bar-width.
+	(Usual Display): Move tab-width up.
+
+	* customize.texi (Variable Definitions): Replace
+	show-paren-mode example with tooltip-mode.
+	(Simple Types, Composite Types, Defining New Types):
+	Minor cleanups.
+
+2004-11-21  Jesper Harder  <harder@ifa.au.dk>
+
+	* processes.texi (Synchronous Processes, Output from Processes):
+	Markup fix.
+
+2004-11-20  Richard M. Stallman  <rms@gnu.org>
+
+	* positions.texi (Skipping Characters): skip-chars-forward
+	now handles char classes.
+
+	* intro.texi (Printing Notation): Avoid confusion of `print'
+	when explaining @print.
+
+	* macros.texi (Argument Evaluation): Fix 1st `for' expansion example.
+
+	* display.texi (Display Table Format): Minor fix.
+
+	* streams.texi (Output Functions): Fix print example.
+
+	* Makefile.in (elisp): New target.
+	(dist): Depend on $(infodir)/elisp, not elisp.
+	Copy the info files from $(infodir).
+
+	* minibuf.texi (Text from Minibuffer): Document KEEP-ALL arg in
+	read-from-minibuffer.
+
+	* searching.texi (Regexp Search): Rename that to search-spaces-regexp.
+
+2004-11-19  Richard M. Stallman  <rms@gnu.org>
+
+	* searching.texi (Regexp Search): Add search-whitespace-regexp.
+
+2004-11-19  CHENG Gao  <chenggao@gmail.com>  (tiny change)
+
+	* tips.texi (Coding Conventions): Fix typo.
+
 2004-11-16  Richard M. Stallman  <rms@gnu.org>
 
 	* tips.texi (Coding Conventions): Separate defvar and require

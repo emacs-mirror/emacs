@@ -998,7 +998,7 @@ Key bindings:
 
 ;;; Autoload directives must be on the top level, so we construct an
 ;;; autoload form instead.
-;;;###autoload (autoload 'awk-mode "cc-mode" "Major mode for editing AWK code.")
+;;;###autoload (autoload 'awk-mode "cc-mode" "Major mode for editing AWK code." t)
 
 (if (not (memq 'syntax-properties c-emacs-features))
     (autoload 'awk-mode "awk-mode" "Major mode for editing AWK code."  t)

@@ -377,6 +377,9 @@ lock_file_1 (lfname, force)
   char *host_name;
   char *lock_info_str;
 
+  /* Call this first because it can GC.  */
+  boot_time = get_boot_time ();
+
   if (STRINGP (Fuser_login_name (Qnil)))
     user_name = (char *)SDATA (Fuser_login_name (Qnil));
   else
@@ -386,9 +389,8 @@ lock_file_1 (lfname, force)
   else
     host_name = "";
   lock_info_str = (char *)alloca (strlen (user_name) + strlen (host_name)
-				  + LOCK_PID_MAX + 5);
+				  + LOCK_PID_MAX + 30);
 
-  boot_time = get_boot_time ();
   if (boot_time)
     sprintf (lock_info_str, "%s@%s.%lu:%lu", user_name, host_name,
 	     (unsigned long) getpid (), (unsigned long) boot_time);

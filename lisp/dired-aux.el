@@ -1093,19 +1093,6 @@ See Info node `(emacs-xtra)Subdir switches' for more details."
 
 ;;; Copy, move/rename, making hard and symbolic links
 
-(defcustom dired-recursive-copies nil
-  "*Decide whether recursive copies are allowed.
-nil means no recursive copies.
-`always' means copy recursively without asking.
-`top' means ask for each directory at top level.
-Anything else means ask for each directory."
-  :type '(choice :tag "Copy directories"
-		 (const :tag "No recursive copies" nil)
-		 (const :tag "Ask for each directory" t)
-		 (const :tag "Ask for each top directory only" top)
-		 (const :tag "Copy directories without asking" always))
-  :group 'dired)
-
 (defcustom dired-backup-overwrite nil
   "*Non-nil if Dired should ask about making backups before overwriting files.
 Special value `always' suppresses confirmation."

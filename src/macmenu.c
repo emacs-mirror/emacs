@@ -2264,8 +2264,7 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
       item_name[255] = 0;
 #if TARGET_API_MAC_CARBON
       {
-	CFStringRef string =
-	  CFStringCreateWithCString (NULL, item_name, kCFStringEncodingUTF8);
+	CFStringRef string = cfstring_create_with_utf8_cstring (item_name);
 
 	SetMenuItemTextWithCFString (menu, pos, string);
 	CFRelease (string);

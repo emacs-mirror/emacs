@@ -1016,7 +1016,7 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 		   "GhostWhite"
 		   "ghost white"
 		   "snow")
-  "The list of X colors from the `rgb.txt' file.
+ "The list of X colors from the `rgb.txt' file.
 XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 ;;; arch-tag: 71dfcd14-cde8-4d66-b05c-85ec94fb23a6

@@ -82,6 +82,12 @@ ARTICLE is the article number of the current headline.")
 
 ;;; Interface functions
 
+(eval-when-compile
+  (defmacro nnrss-string-as-multibyte (string)
+    (if (featurep 'xemacs)
+	string
+      `(string-as-multibyte ,string))))
+
 (deffoo nnrss-retrieve-headers (articles &optional group server fetch-old)
   (nnrss-possibly-change-group group server)
   (let (e)
@@ -409,10 +415,6 @@ ARTICLE is the article number of the current headline.")
 	(buffer-string))))
 
 (defalias 'nnrss-insert 'nnrss-insert-w3)
-
-(if (featurep 'xemacs)
-    (defalias 'nnrss-string-as-multibyte 'identity)
-  (defalias 'nnrss-string-as-multibyte 'string-as-multibyte))
 
 ;;; Snarf functions
 

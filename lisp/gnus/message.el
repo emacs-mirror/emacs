@@ -146,7 +146,7 @@ If the string contains the format spec \"%s\", the Newsgroups
 the article has been posted to will be inserted there.
 If this variable is nil, no such courtesy message will be added."
   :group 'message-sending
-  :type '(radio (string :format "%t: %v\n" :size 0) (const nil)))
+  :type '(radio string (const nil)))
 
 (defcustom message-ignored-bounced-headers
   "^\\(Received\\|Return-Path\\|Delivered-To\\):"
@@ -373,8 +373,7 @@ Archives \(such as groups.google.com\) respect this header."
   "Note to insert why you wouldn't want this posting archived.
 If nil, don't insert any text in the body."
   :version "21.4"
-  :type '(radio (string :format "%t: %v\n" :size 0)
-		(const nil))
+  :type '(radio string (const nil))
   :link '(custom-manual "(message)Header Commands")
   :group 'message-various)
 
@@ -698,8 +697,7 @@ non-nil, each line of this file should be a mailing list address."
   :version "21.4"
   :group 'message-interface
   :link '(custom-manual "(message)Mailing Lists")
-  :type '(radio (file :format "%t: %v\n" :size 0)
-		(const nil)))
+  :type '(radio file (const nil)))
 
 (defcustom message-subscribed-addresses nil
   "*Specifies a list of addresses the user is subscribed to.
@@ -1442,7 +1440,7 @@ no, only reply back to the author."
   :group 'message-headers
   :link '(custom-manual "(message)News Headers")
   :type '(radio (const :format "%v  " nil)
-		(string :format "FQDN: %v\n" :size 0)))
+		(string :format "FQDN: %v")))
 
 (defcustom message-use-idna (and (condition-case nil (require 'idna)
 				   (file-error))
@@ -2403,7 +2401,7 @@ message composition doesn't break too bad."
   ;; fontified: is used by font-lock.
   ;; syntax-table, local-map: I dunno.
   ;; We need to add XEmacs names to the list.
-  "Property list of with properties.forbidden in message buffers.
+  "Property list of with properties forbidden in message buffers.
 The values of the properties are ignored, only the property names are used.")
 
 (defun message-tamago-not-in-use-p (pos)
@@ -2426,11 +2424,13 @@ This function is intended to be called from `after-change-functions'.
 See also `message-forbidden-properties'."
   (when (and message-strip-special-text-properties
 	     (message-tamago-not-in-use-p begin))
-    (while (not (= begin end))
-      (when (not (get-text-property begin 'message-hidden))
-	(remove-text-properties begin (1+ begin)
-				message-forbidden-properties))
-      (incf begin))))
+    (let ((buffer-read-only nil)
+	  (inhibit-read-only t))
+      (while (not (= begin end))
+	(when (not (get-text-property begin 'message-hidden))
+	  (remove-text-properties begin (1+ begin)
+				  message-forbidden-properties))
+	(incf begin)))))
 
 ;;;###autoload
 (define-derived-mode message-mode text-mode "Message"
@@ -6193,8 +6193,7 @@ Optional DIGEST will use digest to forward."
     (setq e (point))
     (insert
      "\n-------------------- End of forwarded message --------------------\n")
-    (when (and (not current-prefix-arg)
-	       message-forward-ignored-headers)
+    (when message-forward-ignored-headers
       (save-restriction
 	(narrow-to-region b e)
 	(goto-char b)
@@ -6240,7 +6239,7 @@ Optional DIGEST will use digest to forward."
 	(goto-char (point-max))))
     (setq e (point))
     (insert "<#/mml>\n")
-    (when (and (not current-prefix-arg)
+    (when (and (not message-forward-decoded-p)
 	       message-forward-ignored-headers)
       (save-restriction
 	(narrow-to-region b e)

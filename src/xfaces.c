@@ -3069,7 +3069,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
     {
       /* This is of limited utility since it works with character
 	 widths.  Keep it for compatibility.  --gerd.  */
-      int face_id = lookup_named_face (f, face);
+      int face_id = lookup_named_face (f, face, 0);
       struct face *face = (face_id < 0
 			   ? NULL
 			   : FACE_FROM_ID (f, face_id));
@@ -5015,7 +5015,7 @@ return the font name used for CHARACTER.  */)
   else
     {
       struct frame *f = frame_or_selected_frame (frame, 1);
-      int face_id = lookup_named_face (f, face);
+      int face_id = lookup_named_face (f, face, 1);
       struct face *face = FACE_FROM_ID (f, face_id);
 
       if (! face)
@@ -5753,9 +5753,10 @@ lookup_non_ascii_face (f, font_id, base_face)
    face isn't realized and cannot be realized.  */
 
 int
-lookup_named_face (f, symbol)
+lookup_named_face (f, symbol, signal_p)
      struct frame *f;
      Lisp_Object symbol;
+     int signal_p;
 {
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object symbol_attrs[LFACE_VECTOR_SIZE];
@@ -5768,7 +5769,9 @@ lookup_named_face (f, symbol)
       default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
     }
 
-  get_lface_attributes (f, symbol, symbol_attrs, 1);
+  if (!get_lface_attributes (f, symbol, symbol_attrs, signal_p))
+    return -1;
+
   bcopy (default_face->lface, attrs, sizeof attrs);
   merge_face_vectors (f, symbol_attrs, attrs, 0);
 
@@ -5789,7 +5792,7 @@ ascii_face_of_lisp_face (f, lface_id)
   if (lface_id >= 0 && lface_id < lface_id_to_name_size)
     {
       Lisp_Object face_name = lface_id_to_name[lface_id];
-      face_id = lookup_named_face (f, face_name);
+      face_id = lookup_named_face (f, face_name, 1);
     }
   else
     face_id = -1;

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/syntax
@@ -505,12 +505,6 @@ We use @code{string} to make it easier to see the character returned by
 This function returns a description of the syntax of the character in
 the buffer after position @var{pos}, taking account of syntax
 properties as well as the syntax table.
-
-The value is usually a syntax class character; however, if the buffer
-character has parenthesis syntax, the value is a cons cell of the form
-@code{(@var{class} . @var{match})}, where @var{class} is the syntax
-class character and @var{match} is the buffer character's matching
-parenthesis.
 @end defun
 
 @defun set-syntax-table table

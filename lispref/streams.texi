@@ -574,7 +574,6 @@ characters are used.  @code{print} returns @var{object}.  For example:
      @print{} "the hat"
      @print{}
      @print{} " came back"
-     @print{}
      @result{} " came back"
 @end group
 @end example

@@ -1,6 +1,6 @@
 ;;; python.el --- silly walks for Python
 
-;; Copyright (C) 2003, 04  Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: FSF
@@ -103,7 +103,9 @@
 (defconst python-font-lock-syntactic-keywords
   ;; Make outer chars of matching triple-quote sequences into generic
   ;; string delimiters.  Fixme: Is there a better way?
-  `((,(rx (and (group (optional (any "uUrR"))) ; prefix gets syntax property
+  `((,(rx (and (or line-start buffer-start (not (syntax escape))) ; avoid escaped
+						       ; leading quote
+	       (group (optional (any "uUrR"))) ; prefix gets syntax property
 	       (optional (any "rR"))	; possible second prefix
 	       (group (syntax string-quote))	; maybe gets property
 	       (backref 2)			; per first quote
@@ -130,32 +132,31 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
   ;;  ur"""ar""" x='"' # """
   ;; x = ''' """ ' a
   ;; '''
-  ;; x '"""' x
+  ;; x '"""' x """ \"""" x
   (save-excursion
     (goto-char (match-beginning 0))
-    (unless (eq ?\\ (char-before))
-      (cond
-       ;; Consider property for the last char if in a fenced string.
-       ((= n 3)
-	(let ((syntax (syntax-ppss)))
-	  (when (eq t (nth 3 syntax))	 ; after unclosed fence
-	    (goto-char (nth 8 syntax))	 ; fence position
-	    ;; Skip any prefix.
-	    (if (memq (char-after) '(?u ?U ?R ?r))
-		(skip-chars-forward "uUrR"))
-	    ;; Is it a matching sequence?
-	    (if (eq (char-after) (char-after (match-beginning 2)))
-		(eval-when-compile (string-to-syntax "|"))))))
-       ;; Consider property for initial char, accounting for prefixes.
-       ((or (and (= n 2)				; not prefix
-		 (= (match-beginning 1) (match-end 1)))	; prefix is null
-	    (and (= n 1)				; prefix
-		 (/= (match-beginning 1) (match-end 1)))) ; non-empty
-	(unless (eq 'string (syntax-ppss-context (syntax-ppss)))
-	  (eval-when-compile (string-to-syntax "|")))))
-      ;; Otherwise (we're in a non-matching string) the property is
-      ;; nil, which is OK.
-      )))
+    (cond
+     ;; Consider property for the last char if in a fenced string.
+     ((= n 3)
+      (let ((syntax (syntax-ppss)))
+	(when (eq t (nth 3 syntax))	; after unclosed fence
+	  (goto-char (nth 8 syntax))	; fence position
+	  ;; Skip any prefix.
+	  (if (memq (char-after) '(?u ?U ?R ?r))
+	      (skip-chars-forward "uUrR"))
+	  ;; Is it a matching sequence?
+	  (if (eq (char-after) (char-after (match-beginning 2)))
+	      (eval-when-compile (string-to-syntax "|"))))))
+     ;; Consider property for initial char, accounting for prefixes.
+     ((or (and (= n 2)			; not prefix
+	       (= (match-beginning 1) (match-end 1))) ; prefix is null
+	  (and (= n 1)			; prefix
+	       (/= (match-beginning 1) (match-end 1)))) ; non-empty
+      (unless (eq 'string (syntax-ppss-context (syntax-ppss)))
+	(eval-when-compile (string-to-syntax "|"))))
+     ;; Otherwise (we're in a non-matching string) the property is
+     ;; nil, which is OK.
+     )))
 
 ;; This isn't currently in `font-lock-defaults' as probably not worth
 ;; it -- we basically only mess with a few normally-symbol characters.
@@ -1127,7 +1128,7 @@ CMD is the Python command to run.  NOSHOW non-nil means don't show the
 buffer automatically.
 If there is a process already running in `*Python*', switch to
 that buffer.  Interactively, a prefix arg allows you to edit the initial
-command line (default is `python-command'); `-i' etc. args will be added
+command line (default is `python-command'); `-i' etc.  args will be added
 to this as appropriate.  Runs the hook `inferior-python-mode-hook'
 \(after the `comint-mode-hook' is run).
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
@@ -1143,12 +1144,12 @@ to this as appropriate.  Runs the hook `inferior-python-mode-hook'
     (let* ((cmdlist (append (python-args-to-list cmd) '("-i")))
 	   (path (getenv "PYTHONPATH"))
 	   (process-environment		; to import emacs.py
-	    (push (concat "PYTHONPATH=" data-directory
+	    (cons (concat "PYTHONPATH=" data-directory
 			  (if path (concat ":" path)))
 		  process-environment)))
       (set-buffer (apply 'make-comint "Python" (car cmdlist) nil
 			 (cdr cmdlist)))
-      (setq python-buffer "*Python*"))
+      (setq python-buffer (buffer-name)))
     (inferior-python-mode)
     ;; Load function defintions we need.
     ;; Before the preoutput function was used, this was done via -c in
@@ -1204,13 +1205,12 @@ to this as appropriate.  Runs the hook `inferior-python-mode-hook'
 	(set-marker orig-start (line-beginning-position 0)))
       (write-region "if True:\n" nil f nil 'nomsg))
     (write-region start end f t 'nomsg)
-    (let ((proc (python-proc)))		;Make sure we're running a process.
-      (with-current-buffer python-buffer
-	(python-send-command command)
-	;; Tell compile.el to redirect error locations in file `f' to
-	;; positions past marker `orig-start'.  It has to be done *after*
-	;; python-send-command's call to compilation-forget-errors.
-	(compilation-fake-loc orig-start f)))))
+    (with-current-buffer (process-buffer (python-proc))	;Runs python if needed.
+      (python-send-command command)
+      ;; Tell compile.el to redirect error locations in file `f' to
+      ;; positions past marker `orig-start'.  It has to be done *after*
+      ;; python-send-command's call to compilation-forget-errors.
+      (compilation-fake-loc orig-start f))))
 
 (defun python-send-string (string)
   "Evaluate STRING in inferior Python process."
@@ -1235,14 +1235,10 @@ to this as appropriate.  Runs the hook `inferior-python-mode-hook'
   "Switch to the Python process buffer.
 With prefix arg, position cursor at end of buffer."
   (interactive "P")
-  (if (get-buffer python-buffer)
-      (pop-to-buffer python-buffer)
-    (error "No current process buffer.  See variable `python-buffer'"))
+  (pop-to-buffer (process-buffer (python-proc))) ;Runs python if needed.
   (when eob-p
     (push-mark)
     (goto-char (point-max))))
-
-(add-to-list 'debug-ignored-errors "^No current process buffer.")
 
 (defun python-send-region-and-go (start end)
   "Send the region to the inferior Python process.
@@ -1275,17 +1271,16 @@ module-qualified names."
   (comint-check-source file-name)     ; Check to see if buffer needs saving.
   (setq python-prev-dir/file (cons (file-name-directory file-name)
 				   (file-name-nondirectory file-name)))
-  (let ((proc (python-proc)))		;Make sure we have a process.
-    (with-current-buffer python-buffer
-      ;; Fixme: I'm not convinced by this logic from python-mode.el.
-      (python-send-command
-       (if (string-match "\\.py\\'" file-name)
-	   (let ((module (file-name-sans-extension
-			  (file-name-nondirectory file-name))))
-	     (format "emacs.eimport(%S,%S)"
-		     module (file-name-directory file-name)))
-	 (format "execfile(%S)" file-name)))
-      (message "%s loaded" file-name))))
+  (with-current-buffer (process-buffer (python-proc)) ;Runs python if needed.
+    ;; Fixme: I'm not convinced by this logic from python-mode.el.
+    (python-send-command
+     (if (string-match "\\.py\\'" file-name)
+	 (let ((module (file-name-sans-extension
+			(file-name-nondirectory file-name))))
+	   (format "emacs.eimport(%S,%S)"
+		   module (file-name-directory file-name)))
+       (format "execfile(%S)" file-name)))
+    (message "%s loaded" file-name)))
 
 ;; Fixme: If we need to start the process, wait until we've got the OK
 ;; from the startup.

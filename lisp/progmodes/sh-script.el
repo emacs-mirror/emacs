@@ -1102,7 +1102,7 @@ does not affect then else elif or fi statements themselves."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
-(defcustom sh-indent-for-then '+
+(defcustom sh-indent-for-then 0
   "*How much to indent a then relative to an if."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)

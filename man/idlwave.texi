@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
-@setfilename idlwave
+@setfilename ../info/idlwave
 @settitle IDLWAVE User Manual
 @dircategory Emacs
 @direntry
@@ -896,7 +896,7 @@ Also, since the indentation level can be somewhat dynamic in continued
 statements with special continuation indentation, especially if
 @code{idlwave-max-extra-continuation-indent} is small, the key
 @kbd{C-u @key{TAB}} will re-indent all lines in the current statement.
-Note that @code{idlwave-indent-to-open-paren}, if non-nil, overrides
+Note that @code{idlwave-indent-to-open-paren}, if non-@code{nil}, overrides
 the @code{idlwave-max-extra-continuation-indent} limit, for
 parentheses only, forcing them always to line up.
 

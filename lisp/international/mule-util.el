@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;;   Licensed to the Free Software Foundation.
-;; Copyright (C) 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2002, 2004 Free Software Foundation, Inc.
 ;; Copyright (C) 2003
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
@@ -362,6 +362,9 @@ basis, this may not be accurate."
   (cond ((< char 256)
 	 ;; Single byte characters are always displayable.
 	 t)
+	((not enable-multibyte-characters)
+	 ;; Maybe there's a font for it, but we can't put it in the buffer.
+	 nil)
 	((display-multi-font-p)
 	 ;; On a window system, a character is displayable if we have
 	 ;; a font for that character in the default face of the
@@ -383,5 +386,5 @@ basis, this may not be accurate."
 ;; coding: iso-2022-7bit
 ;; End:
 
-;;; arch-tag: 5bdb52b6-a3a5-4529-b7a0-37d01b0e570b
+;; arch-tag: 5bdb52b6-a3a5-4529-b7a0-37d01b0e570b
 ;;; mule-util.el ends here

@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-stat () nil)
-
 
 ;;; Statistical operations on vectors.
 
@@ -585,6 +581,8 @@
 		   suminvsqrwts
 		 (math-div (math-mul suminvsqrwts (1- len)) len))
 	     (if pop len (1- len)))))))))
+
+(provide 'calc-stat)
 
 ;;; arch-tag: 423858e9-8513-489c-9f35-710cd9d9c307
 ;;; calc-stat.el ends here

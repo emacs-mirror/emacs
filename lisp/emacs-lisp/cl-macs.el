@@ -715,7 +715,10 @@ Valid clauses are:
       (let ((loop-for-bindings nil) (loop-for-sets nil) (loop-for-steps nil)
 	    (ands nil))
 	(while
-	    (let ((var (or (pop args) (make-symbol "--cl-var--"))))
+	    ;; Use `gensym' rather than `make-symbol'.  It's important that
+	    ;; (not (eq (symbol-name var1) (symbol-name var2))) because
+	    ;; these vars get added to the cl-macro-environment.
+	    (let ((var (or (pop args) (gensym "--cl-var--"))))
 	      (setq word (pop args))
 	      (if (eq word 'being) (setq word (pop args)))
 	      (if (memq word '(the each)) (setq word (pop args)))
@@ -1314,7 +1317,10 @@ Unlike `flet', this macro is fully compliant with the Common Lisp standard.
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (let ((vars nil) (sets nil) (cl-macro-environment cl-macro-environment))
     (while bindings
-      (let ((var (make-symbol "--cl-var--")))
+      ;; Use `gensym' rather than `make-symbol'.  It's important that
+      ;; (not (eq (symbol-name var1) (symbol-name var2))) because these
+      ;; vars get added to the cl-macro-environment.
+      (let ((var (gensym "--cl-var--")))
 	(push var vars)
 	(push (list 'function* (cons 'lambda (cdar bindings))) sets)
 	(push var sets)

@@ -287,7 +287,7 @@ static void x_frame_rehighlight P_ ((struct w32_display_info *));
 static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
 static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int,
 				   enum text_cursor_kinds));
-static void w32_clip_to_row P_ ((struct window *, struct glyph_row *, HDC));
+static void w32_clip_to_row P_ ((struct window *, struct glyph_row *, int, HDC));
 
 static Lisp_Object Qvendor_specific_keysyms;
 
@@ -718,12 +718,12 @@ w32_draw_fringe_bitmap (w, row, p)
       int oldVH = row->visible_height;
       row->visible_height = p->h;
       row->y -= rowY - p->y;
-      w32_clip_to_row (w, row, hdc);
+      w32_clip_to_row (w, row, -1, hdc);
       row->y = oldY;
       row->visible_height = oldVH;
     }
   else
-    w32_clip_to_row (w, row, hdc);
+    w32_clip_to_row (w, row, -1, hdc);
 
   if (p->bx >= 0 && !p->overlay_p)
     {
@@ -5063,18 +5063,19 @@ w32_read_socket (sd, expected, hold_quit)
    mode lines must be clipped to the whole window.  */
 
 static void
-w32_clip_to_row (w, row, hdc)
+w32_clip_to_row (w, row, area, hdc)
      struct window *w;
      struct glyph_row *row;
+     int area;
      HDC hdc;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   RECT clip_rect;
-  int window_y, window_width;
+  int window_x, window_y, window_width;
 
-  window_box (w, -1, 0, &window_y, &window_width, 0);
+  window_box (w, area, &window_x, &window_y, &window_width, 0);
 
-  clip_rect.left = WINDOW_TO_FRAME_PIXEL_X (w, 0);
+  clip_rect.left = window_x;
   clip_rect.top = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
   clip_rect.top = max (clip_rect.top, window_y);
   clip_rect.right = clip_rect.left + window_width;
@@ -5134,7 +5135,7 @@ x_draw_hollow_cursor (w, row)
   rect.right = rect.left + wd;
   hdc = get_frame_dc (f);
   /* Set clipping, draw the rectangle, and reset clipping again.  */
-  w32_clip_to_row (w, row, hdc);
+  w32_clip_to_row (w, row, TEXT_AREA, hdc);
   FrameRect (hdc, &rect, hb);
   DeleteObject (hb);
   w32_set_clip_rectangle (hdc, NULL);
@@ -5200,7 +5201,7 @@ x_draw_bar_cursor (w, row, width, kind)
 
 
       hdc = get_frame_dc (f);
-      w32_clip_to_row (w, row, hdc);
+      w32_clip_to_row (w, row, TEXT_AREA, hdc);
 
       if (kind == BAR_CURSOR)
 	{

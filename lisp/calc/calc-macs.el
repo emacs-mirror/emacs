@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -26,10 +25,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(provide 'calc-macs)
-
-(defun calc-need-macros () nil)
 
 (defmacro calc-wrapper (&rest body)
   `(calc-do (function (lambda ()
@@ -200,6 +195,8 @@
 	   (= (math-compare-bignum (cdr a) (cdr b)) -1))
     (or (consp b)
 	(< a b))))
+
+(provide 'calc-macs)
 
 ;;; arch-tag: 08ba8ec2-fcff-4b80-a079-ec661bdb057e
 ;;; calc-macs.el ends here

@@ -949,7 +949,7 @@ Emacs to crash.  Set the variable @code{load-dangerous-libraries} to
 @code{t} if you want to try loading them.
 
 @node Lisp Eval
-@section Evaluating Emacs-Lisp Expressions
+@section Evaluating Emacs Lisp Expressions
 @cindex Emacs-Lisp mode
 @cindex mode, Emacs-Lisp
 

@@ -217,9 +217,12 @@
   :group 'f90)
 
 (defcustom f90-smart-end 'blink
-  "*From an END statement, check and fill the end using matching block start.
-Allowed values are 'blink, 'no-blink, and nil, which determine
-whether to blink the matching beginning."
+  "*Qualification of END statements according to the matching block start.
+For example, the END that closes an IF block is changed to END
+IF.  If the block has a label, this is added as well.  Allowed
+values are 'blink, 'no-blink, and nil.  If nil, nothing is done.
+The other two settings have the same effect, but 'blink
+additionally blinks the cursor to the start of the block."
   :type  '(choice (const blink) (const no-blink) (const nil))
   :group 'f90)
 
@@ -428,6 +431,9 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
     (modify-syntax-entry ?=  "."  table)
     (modify-syntax-entry ?*  "."  table)
     (modify-syntax-entry ?/  "."  table)
+    ;; I think that the f95 standard leaves the behaviour of \
+    ;; unspecified, but that f2k will require it to be non-special.
+    ;; Use `f90-backslash-not-special' to change.
     (modify-syntax-entry ?\\ "\\" table) ; escape chars
     table)
   "Syntax table used in F90 mode.")
@@ -967,6 +973,7 @@ NAME is non-nil only for type."
 
 (defsubst f90-looking-at-program-block-start ()
   "Return (KIND NAME) if a program block with name NAME starts after point."
+;;;NAME is nil for an un-named main PROGRAM block."
   (cond
    ((looking-at "\\(program\\)[ \t]+\\(\\sw+\\)\\>")
     (list (match-string 1) (match-string 2)))
@@ -977,6 +984,13 @@ NAME is non-nil only for type."
 	 (looking-at "[^!'\"\&\n]*\\(function\\|subroutine\\)[ \t]+\
 \\(\\sw+\\)"))
     (list (match-string 1) (match-string 2)))))
+;; Following will match an un-named main program block; however
+;; one needs to check if there is an actual PROGRAM statement after
+;; point (and before any END program). Adding this will require
+;; change to eg f90-calculate-indent.
+;;;   ((save-excursion
+;;;     (not (f90-previous-statement)))
+;;;    '("program" nil))))
 
 (defsubst f90-looking-at-program-block-end ()
   "Return (KIND NAME) if a block with name NAME ends after point."
@@ -1104,7 +1118,13 @@ Does not check type and subprogram indentation."
   (let (icol cont (case-fold-search t) (pnt (point)))
     (save-excursion
       (if (not (f90-previous-statement))
-	  (setq icol 0)
+          ;; First statement in buffer.
+	  (setq icol (if (save-excursion
+                           (f90-next-statement)
+                           (f90-looking-at-program-block-start))
+                         0
+                       ;; No explicit PROGRAM start statement.
+                       f90-program-indent))
 	(setq cont (f90-present-statement-cont))
 	(if (eq cont 'end)
 	    (while (not (eq 'begin (f90-present-statement-cont)))
@@ -1151,8 +1171,10 @@ Does not check type and subprogram indentation."
 
 (defun f90-previous-statement ()
   "Move point to beginning of the previous F90 statement.
-Return nil if no previous statement is found.
-A statement is a line which is neither blank nor a comment."
+If no previous statement is found (i.e. if called from the first
+statement in the buffer), move to the start of the buffer and
+return nil.  A statement is a line which is neither blank nor a
+comment."
   (interactive)
   (let (not-first-statement)
     (beginning-of-line)
@@ -1189,6 +1211,8 @@ Return (TYPE NAME), or nil if not found."
     (beginning-of-line)
     (if (zerop count)
 	matching-beg
+      ;; Note this includes the case of an un-named main program,
+      ;; in which case we go to (point-min).
       (message "No beginning found.")
       nil)))
 
@@ -1221,18 +1245,17 @@ Return (TYPE NAME), or nil if not found."
 (defun f90-end-of-block (&optional num)
   "Move point forward to the end of the current code block.
 With optional argument NUM, go forward that many balanced blocks.
-If NUM is negative, go backward to the start of a block.
-Checks for consistency of block types and labels (if present),
-and completes outermost block if necessary.
-Some of these things (which?) are not done if NUM is nil,
-which only happens in a noninteractive call."
+If NUM is negative, go backward to the start of a block.  Checks
+for consistency of block types and labels (if present), and
+completes outermost block if `f90-smart-end' is non-nil.
+Interactively, pushes mark before moving point."
   (interactive "p")
-  (if (and num (< num 0)) (f90-beginning-of-block (- num)))
-  (let ((f90-smart-end nil)             ; for the final `f90-match-end'
+  (if (interactive-p) (push-mark (point) t)) ; can move some distance
+  (and num (< num 0) (f90-beginning-of-block (- num)))
+  (let ((f90-smart-end (if f90-smart-end 'no-blink)) ; for final match-end
         (case-fold-search t)
         (count (or num 1))
         start-list start-this start-type start-label end-type end-label)
-    (if num (push-mark (point) t))
     (end-of-line)                       ; probably want this
     (while (and (> count 0) (re-search-forward f90-blocks-re nil 'move))
       (beginning-of-line)
@@ -1268,20 +1291,21 @@ which only happens in a noninteractive call."
       (end-of-line))
     (if (> count 0) (error "Missing block end"))
     ;; Check outermost block.
-    (if num
-        (save-excursion
-          (beginning-of-line)
-          (skip-chars-forward " \t0-9")
-          (f90-match-end)))))
+    (when f90-smart-end
+      (save-excursion
+        (beginning-of-line)
+        (skip-chars-forward " \t0-9")
+        (f90-match-end)))))
 
 (defun f90-beginning-of-block (&optional num)
   "Move point backwards to the start of the current code block.
 With optional argument NUM, go backward that many balanced blocks.
 If NUM is negative, go forward to the end of a block.
 Checks for consistency of block types and labels (if present).
-Does not check the outermost block, because it may be incomplete."
+Does not check the outermost block, because it may be incomplete.
+Interactively, pushes mark before moving point."
   (interactive "p")
-  (if (and num (< num 0)) (f90-end-of-block (- num)))
+  (and num (< num 0) (f90-end-of-block (- num)))
   (let ((case-fold-search t)
         (count (or num 1))
         end-list end-this end-type end-label
@@ -1320,7 +1344,8 @@ Does not check the outermost block, because it may be incomplete."
                (or (f90-equal-symbols start-label end-label)
                    (error "Start label `%s' does not match end label `%s'"
                           start-label end-label))))))
-     (if (> count 0) (error "Missing block start"))))
+    ;; Includes an un-named main program block.
+    (if (> count 0) (error "Missing block start"))))
 
 (defun f90-next-block (&optional num)
   "Move point forward to the next end or start of a code block.
@@ -1439,6 +1464,8 @@ If run in the middle of a line, the line is not broken."
   (f90-indent-line 'no-update))         ; nothing to update
 
 
+;; TODO not add spaces to empty lines at the start.
+;; Why is second line getting extra indent over first?
 (defun f90-indent-region (beg-region end-region)
   "Indent every line in region by forward parsing."
   (interactive "*r")
@@ -1663,9 +1690,13 @@ BEG-NAME is the block start name (may be nil).
 END-BLOCK is the type of block as indicated at the end (may be nil).
 END-NAME is the block end name (may be nil).
 Leave point at the end of line."
+  ;; Hack to deal with the case when this is called from
+  ;; f90-indent-region on a program block without an explicit PROGRAM
+  ;; statement at the start. Should really be an error (?).
+  (or beg-block (setq beg-block "program"))
   (search-forward "end" (line-end-position))
   (catch 'no-match
-    (if (f90-equal-symbols beg-block end-block)
+    (if (and end-block (f90-equal-symbols beg-block end-block))
         (search-forward end-block)
       (if end-block
           (progn
@@ -1703,7 +1734,9 @@ Leave point at the end of line."
             end-name  (car (cdr end-struct)))
       (save-excursion
         (beginning-of-line)
-        (while (and (> count 0) (re-search-backward f90-blocks-re nil t))
+        (while (and (> count 0)
+                    (not (= (line-beginning-position) (point-min))))
+          (re-search-backward f90-blocks-re nil 'move)
           (beginning-of-line)
           ;; GM not a line number if continued line.
 ;;;          (skip-chars-forward " \t")
@@ -1717,7 +1750,12 @@ Leave point at the end of line."
                         (f90-looking-at-where-or-forall)
                         (f90-looking-at-select-case)
                         (f90-looking-at-type-like)
-                        (f90-looking-at-program-block-start)))
+                        (f90-looking-at-program-block-start)
+                        ;; Interpret a single END without a block
+                        ;; start to be the END of a program block
+                        ;; without an initial PROGRAM line.
+                        (if (= (line-beginning-position) (point-min))
+                            '("program" nil))))
                  (setq count (1- count)))
                 ((looking-at (concat "end[ \t]*" f90-blocks-re))
                  (setq count (1+ count)))))
@@ -1849,6 +1887,19 @@ CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
   "Function to use for `add-log-current-defun-function' in F90 mode."
   (save-excursion
     (nth 1 (f90-beginning-of-subprogram))))
+
+
+(defun f90-backslash-not-special (&optional all)
+  "Make the backslash character (\\) be non-special in the current buffer.
+With optional argument ALL, change the default for all present
+and future F90 buffers.  F90 mode normally treats backslash as an
+escape character."
+  (or (eq major-mode 'f90-mode)
+      (error "This function should only be used in F90 buffers"))
+  (when (equal (char-syntax ?\\ ) ?\\ )
+    (or all (set-syntax-table (copy-syntax-table (syntax-table))))
+    (modify-syntax-entry ?\\ ".")))
+
 
 (provide 'f90)
 

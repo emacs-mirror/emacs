@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +27,12 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
-(require 'calc-ext)
 
+(require 'calc-ext)
 (require 'calc-macs)
 
-(defun calc-Need-calc-sel-2 () nil)
-
+;; The variable calc-keep-selection is declared and set in calc-sel.el.
+(defvar calc-keep-selection)
 
 (defun calc-commute-left (arg)
   (interactive "p")
@@ -295,6 +294,8 @@
 (defun calc-sel-invert (many)
   (interactive "P")
   (calc-rewrite-selection "InvertRules" many "jinv"))
+
+(provide 'calcsel2)
 
 ;;; arch-tag: 7c5b8d65-b8f0-45d9-820d-9930f8ee114b
 ;;; calcsel2.el ends here

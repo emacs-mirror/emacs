@@ -1,4 +1,5 @@
 /* Header for coding system handler.
+   Copyright (C) 2004  Free Software Foundation, Inc.
    Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
      Licensed to the Free Software Foundation.
    Copyright (C) 2003
@@ -579,10 +580,10 @@ struct coding_system
    for file names, if any.  */
 #define ENCODE_FILE(name)						   \
   (! NILP (Vfile_name_coding_system)					   \
-   && XFASTINT (Vfile_name_coding_system) != 0				   \
+   && !EQ (Vfile_name_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (name, Vfile_name_coding_system, 1)	   \
    : (! NILP (Vdefault_file_name_coding_system)				   \
-      && XFASTINT (Vdefault_file_name_coding_system) != 0		   \
+      && !EQ (Vdefault_file_name_coding_system, make_number (0))	   \
       ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 1) \
       : name))
 
@@ -591,10 +592,10 @@ struct coding_system
    for file names, if any.  */
 #define DECODE_FILE(name)						   \
   (! NILP (Vfile_name_coding_system)					   \
-   && XFASTINT (Vfile_name_coding_system) != 0				   \
+   && !EQ (Vfile_name_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (name, Vfile_name_coding_system, 0)	   \
    : (! NILP (Vdefault_file_name_coding_system)				   \
-      && XFASTINT (Vdefault_file_name_coding_system) != 0		   \
+      && !EQ (Vdefault_file_name_coding_system, make_number (0))	   \
       ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 0) \
       : name))
 
@@ -602,18 +603,18 @@ struct coding_system
 #ifdef WINDOWSNT
 /* Encode the string STR using the specified coding system
    for w32 system functions, if any.  */
-#define ENCODE_SYSTEM(str)						\
-  (! NILP (Vlocale_coding_system)					\
-   && XFASTINT (Vlocale_coding_system) != 0				\
-   ? code_convert_string_norecord (str, Vlocale_coding_system, 1)	\
+#define ENCODE_SYSTEM(str)						   \
+  (! NILP (Vlocale_coding_system)					   \
+   && !EQ (Vlocale_coding_system, make_number (0))			   \
+   ? code_convert_string_norecord (str, Vlocale_coding_system, 1)	   \
    : str)
 
 /* Decode the string STR using the specified coding system
    for w32 system functions, if any.  */
-#define DECODE_SYSTEM(name)						\
-  (! NILP (Vlocale_coding_system)					\
-   && XFASTINT (Vlocale_coding_system) != 0				\
-   ? code_convert_string_norecord (str, Vlocale_coding_system, 0)	\
+#define DECODE_SYSTEM(name)						   \
+  (! NILP (Vlocale_coding_system)					   \
+   && !EQ (Vlocale_coding_system, make_number (0))			   \
+   ? code_convert_string_norecord (str, Vlocale_coding_system, 0)	   \
    : str)
 
 #else /* WINDOWSNT */

@@ -6578,6 +6578,37 @@ code_conversion_restore (arg)
   return Qnil;
 }
 
+/* Name (or base name) of work buffer for code conversion.  */
+static Lisp_Object Vcode_conversion_workbuf_name;
+
+/* Set the current buffer to the working buffer prepared for
+   code-conversion.  MULTIBYTE specifies the multibyteness of the
+   buffer.  */
+
+static struct buffer *
+set_conversion_work_buffer (multibyte)
+     int multibyte;
+{
+  Lisp_Object buffer;
+  struct buffer *buf;
+
+  buffer = Fget_buffer_create (Vcode_conversion_workbuf_name);
+  buf = XBUFFER (buffer);
+  delete_all_overlays (buf);
+  buf->directory = current_buffer->directory;
+  buf->read_only = Qnil;
+  buf->filename = Qnil;
+  buf->undo_list = Qt;
+  eassert (buf->overlays_before == NULL);
+  eassert (buf->overlays_after == NULL);
+  set_buffer_internal (buf);
+  if (BEG != BEGV || Z != ZV)
+    Fwiden ();
+  del_range_2 (BEG, BEG_BYTE, Z, Z_BYTE, 0);
+  buf->enable_multibyte_characters = multibyte ? Qt : Qnil;
+  return buf;
+}
+
 Lisp_Object
 code_conversion_save (with_work_buf, multibyte)
      int with_work_buf, multibyte;
@@ -6992,6 +7023,64 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
     }
 
   unbind_to (count, Qnil);
+}
+
+
+
+/* Run pre-write-conversion function of CODING on NCHARS/NBYTES
+   text in *STR.  *SIZE is the allocated bytes for STR.  As it
+   is intended that this function is called from encode_terminal_code,
+   the pre-write-conversion function is run by safe_call and thus
+   "Error during redisplay: ..." is logged when an error occurs.
+
+   Store the resulting text in *STR and set CODING->produced_char and
+   CODING->produced to the number of characters and bytes
+   respectively.  If the size of *STR is too small, enlarge it by
+   xrealloc and update *STR and *SIZE.  */
+
+void
+run_pre_write_conversin_on_c_str (str, size, nchars, nbytes, coding)
+     unsigned char **str;
+     int *size, nchars, nbytes;
+     struct coding_system *coding;
+{
+  struct gcpro gcpro1, gcpro2;
+  struct buffer *cur = current_buffer;
+  Lisp_Object old_deactivate_mark, old_last_coding_system_used;
+  Lisp_Object args[3];
+
+  /* It is not crucial to specbind this.  */
+  old_deactivate_mark = Vdeactivate_mark;
+  old_last_coding_system_used = Vlast_coding_system_used;
+  GCPRO2 (old_deactivate_mark, old_last_coding_system_used);
+
+  /* We must insert the contents of STR as is without
+     unibyte<->multibyte conversion.  For that, we adjust the
+     multibyteness of the working buffer to that of STR.  */
+  set_conversion_work_buffer (coding->src_multibyte);
+  insert_1_both (*str, nchars, nbytes, 0, 0, 0);
+  UNGCPRO;
+  inhibit_pre_post_conversion = 1;
+  args[0] = coding->pre_write_conversion;
+  args[1] = make_number (BEG);
+  args[2] = make_number (Z);
+  safe_call (3, args);
+  inhibit_pre_post_conversion = 0;
+  Vdeactivate_mark = old_deactivate_mark;
+  Vlast_coding_system_used = old_last_coding_system_used;
+  coding->produced_char = Z - BEG;
+  coding->produced = Z_BYTE - BEG_BYTE;
+  if (coding->produced > *size)
+    {
+      *size = coding->produced;
+      *str = xrealloc (*str, *size);
+    }
+  if (BEG < GPT && GPT < Z)
+    move_gap (BEG);
+  bcopy (BEG_ADDR, *str, coding->produced);
+  coding->src_multibyte
+    = ! NILP (current_buffer->enable_multibyte_characters);
+  set_buffer_internal (cur);
 }
 
 

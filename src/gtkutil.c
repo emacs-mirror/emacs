@@ -23,10 +23,12 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef USE_GTK
 #include <string.h>
+#include <signal.h>
 #include <stdio.h>
 #include "lisp.h"
 #include "xterm.h"
 #include "blockinput.h"
+#include "syssignal.h"
 #include "window.h"
 #include "atimer.h"
 #include "gtkutil.h"
@@ -1122,10 +1124,6 @@ create_dialog (wv, select_cb, deactivate_cb)
 /***********************************************************************
                       File dialog functions
  ***********************************************************************/
-#ifdef HAVE_GTK_FILE_BOTH
-int use_old_gtk_file_dialog;
-#endif
-
 /* Function that is called when the file dialog pops down.
    W is the dialog widget, RESPONSE is the response code.
    USER_DATA is what we passed in to g_signal_connect (pointer to int).  */
@@ -1204,6 +1202,7 @@ xg_get_file_with_chooser (f, prompt, default_filename,
                                           GTK_STOCK_OPEN : GTK_STOCK_OK),
                                          GTK_RESPONSE_OK,
                                          NULL);
+  gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (filewin), TRUE);
 
   if (default_filename)
     {
@@ -1211,16 +1210,20 @@ xg_get_file_with_chooser (f, prompt, default_filename,
       struct gcpro gcpro1;
       GCPRO1 (file);
 
+      file = build_string (default_filename);
+
       /* File chooser does not understand ~/... in the file name.  It must be
          an absolute name starting with /.  */
       if (default_filename[0] != '/')
-        {
-          file = Fexpand_file_name (build_string (default_filename), Qnil);
-          default_filename = SDATA (file);
-        }
+        file = Fexpand_file_name (file, Qnil);
 
-      gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
-                                     default_filename);
+      default_filename = SDATA (file);
+      if (Ffile_directory_p (file))
+        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filewin),
+                                             default_filename);
+      else
+        gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
+                                       default_filename);
 
       UNGCPRO;
     }
@@ -1310,8 +1313,17 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
   int filesel_done = 0;
   xg_get_file_func func;
 
+#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+  /* I really don't know why this is needed, but without this the GLIBC add on
+     library linuxthreads hangs when the Gnome file chooser backend creates
+     threads.  */
+  sigblock (sigmask (__SIGRTMIN));
+#endif /* HAVE_GTK_AND_PTHREAD */
+
 #ifdef HAVE_GTK_FILE_BOTH
-  if (use_old_gtk_file_dialog)
+  extern int x_use_old_gtk_file_dialog;
+
+  if (x_use_old_gtk_file_dialog)
     w = xg_get_file_with_selection (f, prompt, default_filename,
                                     mustmatch_p, only_dir_p, &func);
   else
@@ -1354,6 +1366,10 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
       x_menu_wait_for_event (0);
       gtk_main_iteration ();
     }
+
+#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+  sigunblock (sigmask (__SIGRTMIN));
+#endif
 
   if (filesel_done == GTK_RESPONSE_OK)
     fn = (*func) (w);

@@ -310,7 +310,7 @@ the function `comint-truncate-buffer' is on `comint-output-filter-functions'."
   :type 'integer
   :group 'comint)
 
-(defvar comint-input-ring-size 32
+(defvar comint-input-ring-size 150
   "Size of input history ring.")
 
 (defvar comint-input-ring-separator "\n"
@@ -1898,6 +1898,10 @@ prompt skip is done by skipping text matching the regular expression
       ;; Unlike `beginning-of-line', forward-line ignores field boundaries
       (forward-line 0)
     (goto-char (comint-line-beginning-position))))
+
+;; For compatibility.
+(defun comint-read-noecho (prompt &optional ignore)
+  (read-passwd prompt))
 
 ;; These three functions are for entering text you don't want echoed or
 ;; saved -- typically passwords to ftp, telnet, or somesuch.

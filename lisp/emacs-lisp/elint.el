@@ -730,18 +730,21 @@ If no documentation could be found args will be `unknown'."
 
 (defconst elint-standard-variables
   '(abbrev-mode auto-fill-function buffer-auto-save-file-name
-     buffer-backed-up buffer-display-table buffer-file-format
+     buffer-backed-up buffer-display-count buffer-display-table buffer-display-time buffer-file-coding-system buffer-file-format
      buffer-file-name buffer-file-number buffer-file-truename
      buffer-file-type buffer-invisibility-spec buffer-offer-save
      buffer-read-only buffer-saved-size buffer-undo-list
-     cache-long-line-scans case-fold-search ctl-arrow comment-column
-     default-directory defun-prompt-regexp fill-column goal-column
-     left-margin local-abbrev-table local-write-file-hooks major-mode
-     mark-active mark-ring minor-modes mode-line-buffer-identification
+     cache-long-line-scans case-fold-search ctl-arrow cursor-type comment-column
+     default-directory defun-prompt-regexp desktop-save-buffer enable-multibyte-characters fill-column fringes-outside-margins goal-column
+     header-line-format indicate-buffer-boundaries indicate-empty-lines
+     left-fringe-width
+     left-margin left-margin-width line-spacing local-abbrev-table local-write-file-hooks major-mode
+     mark-active mark-ring mode-line-buffer-identification
      mode-line-format mode-line-modified mode-line-process mode-name
-     overwrite-mode paragraph-separate paragraph-start
-     point-before-scroll require-final-newline selective-display
-     selective-display-ellipses tab-width truncate-lines vc-mode)
+     overwrite-mode 
+     point-before-scroll right-fringe-width right-margin-width
+     scroll-bar-width scroll-down-aggressively scroll-up-aggressively selective-display
+     selective-display-ellipses tab-width truncate-lines vc-mode vertical-scroll-bar)
   "Standard buffer local vars.")
 
 (defconst elint-unknown-builtin-args

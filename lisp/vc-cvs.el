@@ -189,7 +189,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
       (let ((state (vc-file-getprop file 'vc-state)))
         ;; If we should stay local, use the heuristic but only if
         ;; we don't have a more precise state already available.
-	(if (memq state '(up-to-date edited))
+	(if (memq state '(up-to-date edited nil))
 	    (vc-cvs-state-heuristic file)
 	  state))
     (with-temp-buffer

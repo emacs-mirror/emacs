@@ -218,7 +218,7 @@ static Lisp_Object read_minibuf P_ ((Lisp_Object, Lisp_Object,
 				     Lisp_Object, Lisp_Object,
 				     int, Lisp_Object,
 				     Lisp_Object, Lisp_Object,
-				     int, int));
+				     int, int, int));
 static Lisp_Object read_minibuf_noninteractive P_ ((Lisp_Object, Lisp_Object,
 						    Lisp_Object, Lisp_Object,
 						    int, Lisp_Object,
@@ -437,7 +437,8 @@ minibuffer_completion_contents ()
 
 static Lisp_Object
 read_minibuf (map, initial, prompt, backup_n, expflag,
-	      histvar, histpos, defalt, allow_props, inherit_input_method)
+	      histvar, histpos, defalt, allow_props, inherit_input_method,
+	      keep_all)
      Lisp_Object map;
      Lisp_Object initial;
      Lisp_Object prompt;
@@ -448,6 +449,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
      Lisp_Object defalt;
      int allow_props;
      int inherit_input_method;
+     int keep_all;
 {
   Lisp_Object val;
   int count = SPECPDL_INDEX ();
@@ -722,7 +724,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   last_minibuf_string = val;
 
   /* Choose the string to add to the history.  */
-  if (SCHARS (val) != 0)
+  if (SCHARS (val) != 0 || keep_all)
     histstring = val;
   else if (STRINGP (defalt))
     histstring = defalt;
@@ -749,7 +751,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       if (NILP (histval)
 	  || (CONSP (histval)
 	      /* Don't duplicate the most recent entry in the history.  */
-	      && NILP (Fequal (histstring, Fcar (histval)))))
+	      && (keep_all
+		  || NILP (Fequal (histstring, Fcar (histval))))))
 	{
 	  Lisp_Object length;
 
@@ -911,7 +914,7 @@ read_minibuf_unwind (data)
 }
 
 
-DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 7, 0,
+DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 8, 0,
        doc: /* Read a string from the minibuffer, prompting with string PROMPT.
 The optional second arg INITIAL-CONTENTS is an obsolete alternative to
   DEFAULT-VALUE.  It normally should be nil in new code, except when
@@ -935,6 +938,8 @@ Sixth arg DEFAULT-VALUE is the default value.  If non-nil, it is available
   the empty string.
 Seventh arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
  the current input method and the setting of `enable-multibyte-characters'.
+Eight arg KEEP-ALL, if non-nil, says to put all inputs in the history list,
+ even empty or duplicate inputs.
 If the variable `minibuffer-allow-text-properties' is non-nil,
  then the string which is returned includes whatever text properties
  were present in the minibuffer.  Otherwise the value has no text properties.
@@ -950,9 +955,9 @@ POSITION in the minibuffer.  Any integer value less than or equal to
 one puts point at the beginning of the string.  *Note* that this
 behavior differs from the way such arguments are used in `completing-read'
 and some related functions, which use zero-indexing for POSITION.  */)
-     (prompt, initial_contents, keymap, read, hist, default_value, inherit_input_method)
+  (prompt, initial_contents, keymap, read, hist, default_value, inherit_input_method, keep_all)
      Lisp_Object prompt, initial_contents, keymap, read, hist, default_value;
-     Lisp_Object inherit_input_method;
+     Lisp_Object inherit_input_method, keep_all;
 {
   Lisp_Object histvar, histpos, val;
   struct gcpro gcpro1;
@@ -983,7 +988,8 @@ and some related functions, which use zero-indexing for POSITION.  */)
 		      Qnil, !NILP (read),
 		      histvar, histpos, default_value,
 		      minibuffer_allow_text_properties,
-		      !NILP (inherit_input_method));
+		      !NILP (inherit_input_method),
+		      !NILP (keep_all));
   UNGCPRO;
   return val;
 }
@@ -1000,7 +1006,7 @@ arguments are used as in `read-from-minibuffer')  */)
   CHECK_STRING (prompt);
   return read_minibuf (Vminibuffer_local_map, initial_contents,
 		       prompt, Qnil, 1, Qminibuffer_history,
-		       make_number (0), Qnil, 0, 0);
+		       make_number (0), Qnil, 0, 0, 0);
 }
 
 DEFUN ("eval-minibuffer", Feval_minibuffer, Seval_minibuffer, 1, 2, 0,
@@ -1038,7 +1044,7 @@ Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
   Lisp_Object val;
   val = Fread_from_minibuffer (prompt, initial_input, Qnil,
 			       Qnil, history, default_value,
-			       inherit_input_method);
+			       inherit_input_method, Qnil);
   if (STRINGP (val) && SCHARS (val) == 0 && ! NILP (default_value))
     val = default_value;
   return val;
@@ -1060,7 +1066,7 @@ the current input method and the setting of`enable-multibyte-characters'.  */)
   CHECK_STRING (prompt);
   return read_minibuf (Vminibuffer_local_ns_map, initial, prompt, Qnil,
 		       0, Qminibuffer_history, make_number (0), Qnil, 0,
-		       !NILP (inherit_input_method));
+		       !NILP (inherit_input_method), 0);
 }
 
 DEFUN ("read-command", Fread_command, Sread_command, 1, 2, 0,
@@ -1711,7 +1717,7 @@ Completion ignores case if the ambient value of
 		      : Vminibuffer_local_must_match_map,
 		      init, prompt, make_number (pos), 0,
 		      histvar, histpos, def, 0,
-		      !NILP (inherit_input_method));
+		      !NILP (inherit_input_method), 0);
 
   if (STRINGP (val) && SCHARS (val) == 0 && ! NILP (def))
     val = def;
@@ -2076,10 +2082,28 @@ a repetition of this command will exit.  */)
   if (XINT (Fminibuffer_prompt_end ()) == ZV)
     goto exit;
 
-  if (!NILP (Ftest_completion (Fminibuffer_contents (),
+  val = Fminibuffer_contents ();
+  if (!NILP (Ftest_completion (val,
 			       Vminibuffer_completion_table,
 			       Vminibuffer_completion_predicate)))
-    goto exit;
+    {
+      if (completion_ignore_case)
+	{ /* Fixup case of the field, if necessary. */
+	  Lisp_Object compl
+	    = Ftry_completion (val,
+			       Vminibuffer_completion_table,
+			       Vminibuffer_completion_predicate);
+	  if (STRINGP (compl)
+	      /* If it weren't for this piece of paranoia, I'd replace
+		 the whole thing with a call to do_completion. */
+	      && EQ (Flength (val), Flength (compl)))
+	    {
+	      del_range (XINT (Fminibuffer_prompt_end ()), ZV);
+	      Finsert (1, &compl);
+	    }
+	}
+      goto exit;
+    }
 
   /* Call do_completion, but ignore errors.  */
   SET_PT (ZV);

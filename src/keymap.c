@@ -1273,7 +1273,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 	c = Fevent_convert_list (c);
 
       /* Turn the 8th bit of string chars into a meta modifier.  */
-      if (XINT (c) & 0x80 && STRINGP (key))
+      if (INTEGERP (c) && XINT (c) & 0x80 && STRINGP (key))
 	XSETINT (c, (XINT (c) | meta_modifier) & ~0x80);
 
       /* Allow string since binding for `menu-bar-select-buffer'

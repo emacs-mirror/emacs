@@ -207,7 +207,10 @@ no further processing).  URL is either a string or a parsed URL."
 	    (message "Viewing externally")
 	    (kill-buffer (current-buffer)))
 	(display-buffer (current-buffer))
-	(mm-destroy-parts handle)))))
+	(add-hook 'kill-buffer-hook 
+		  `(lambda () (mm-destroy-parts ',handle))
+		  nil
+		  t)))))
 
 (defun url-mm-url (url)
   "Retrieve URL and pass to the appropriate viewing application."

@@ -422,7 +422,8 @@ For most uses, it is simpler and safer to use command remappping like this:
 	    (nconc (nreverse skipped) newdef)))
       ;; Look past a symbol that names a keymap.
       (setq inner-def
-	    (condition-case nil (indirect-function defn) (error defn)))
+	    (and defn
+		 (condition-case nil (indirect-function defn) (error defn))))
       ;; For nested keymaps, we use `inner-def' rather than `defn' so as to
       ;; avoid autoloading a keymap.  This is mostly done to preserve the
       ;; original non-autoloading behavior of pre-map-keymap times.
@@ -2187,6 +2188,46 @@ and replace a sub-expression, e.g.
       ;; Reconstruct a string from the pieces.
       (setq matches (cons (substring string start l) matches)) ; leftover
       (apply #'concat (nreverse matches)))))
+
+(defun subregexp-context-p (regexp pos &optional start)
+  "Return non-nil if POS is in a normal subregexp context in REGEXP.
+A subregexp context is one where a sub-regexp can appear.
+A non-subregexp context is for example within brackets, or within a repetition
+bounds operator \\{..\\}, or right after a \\.
+If START is non-nil, it should be a position in REGEXP, smaller than POS,
+and known to be in a subregexp context."
+  ;; Here's one possible implementation, with the great benefit that it
+  ;; reuses the regexp-matcher's own parser, so it understands all the
+  ;; details of the syntax.  A disadvantage is that it needs to match the
+  ;; error string.
+  (condition-case err
+      (progn
+        (string-match (substring regexp (or start 0) pos) "")
+        t)
+    (invalid-regexp
+     (not (member (cadr err) '("Unmatched [ or [^"
+                               "Unmatched \\{"
+                               "Trailing backslash")))))
+  ;; An alternative implementation:
+  ;; (defconst re-context-re
+  ;;   (let* ((harmless-ch "[^\\[]")
+  ;;          (harmless-esc "\\\\[^{]")
+  ;;          (class-harmless-ch "[^][]")
+  ;;          (class-lb-harmless "[^]:]")
+  ;;          (class-lb-colon-maybe-charclass ":\\([a-z]+:]\\)?")
+  ;;          (class-lb (concat "\\[\\(" class-lb-harmless
+  ;;                            "\\|" class-lb-colon-maybe-charclass "\\)"))
+  ;;          (class
+  ;;           (concat "\\[^?]?"
+  ;;                   "\\(" class-harmless-ch
+  ;;                   "\\|" class-lb "\\)*"
+  ;;                   "\\[?]"))     ; special handling for bare [ at end of re
+  ;;          (braces "\\\\{[0-9,]+\\\\}"))
+  ;;     (concat "\\`\\(" harmless-ch "\\|" harmless-esc
+  ;;             "\\|" class "\\|" braces "\\)*\\'"))
+  ;;   "Matches any prefix that corresponds to a normal subregexp context.")
+  ;; (string-match re-context-re (substring regexp (or start 0) pos))
+  )
 
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
@@ -2227,20 +2268,12 @@ from `standard-syntax-table' otherwise."
     table))
 
 (defun syntax-after (pos)
-  "Return the syntax of the char after POS.
-The value is either a syntax class character (a character that designates
-a syntax in `modify-syntax-entry'), or a cons cell
-of the form (CLASS . MATCH), where CLASS is the syntax class character
-and MATCH is the matching parenthesis."
+  "Return the raw syntax of the char after POS."
   (unless (or (< pos (point-min)) (>= pos (point-max)))
-    (let* ((st (if parse-sexp-lookup-properties
-		   (get-char-property pos 'syntax-table)))
-	   (value
-	    (if (consp st) st
-	      (aref (or st (syntax-table)) (char-after pos))))
-	   (code (if (consp value) (car value) value)))
-      (setq code (aref "-.w_()'\"$\\/<>@!|" code))
-      (if (consp value) (cons code (cdr value)) code))))
+    (let ((st (if parse-sexp-lookup-properties
+		  (get-char-property pos 'syntax-table))))
+      (if (consp st) st
+	(aref (or st (syntax-table)) (char-after pos))))))
 
 (defun add-to-invisibility-spec (arg)
   "Add elements to `buffer-invisibility-spec'.

@@ -2023,6 +2023,31 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'basic-faces)
 
 
+;; Make escape characters stand out in display
+
+(defface escape-glyph
+  '((t :inherit secondary-selection))
+  "Basic face for displaying \\ and ^ in multichar glyphs.
+It is also used for ... in ellipses."
+  :group 'basic-faces)
+
+(put 'display-table 'char-table-extra-slots 6)
+
+(or standard-display-table
+    ;; avoid using autoloaded make-display-table here
+    (setq standard-display-table (make-char-table 'display-table nil)))
+
+(let* ((face (lsh (face-id 'escape-glyph) 19))
+       (backslash (+ face ?\\))
+       (dot (+ face ?.)))
+  (set-char-table-extra-slot standard-display-table 2 backslash)
+  (aset standard-display-table 2208 (vector backslash ?\s))
+  (aset standard-display-table 2221 (vector backslash ?-))
+  (set-char-table-extra-slot standard-display-table 3 (+ face ?^))
+  (set-char-table-extra-slot standard-display-table 4 (vector dot dot dot)))
+
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Manipulating font names.

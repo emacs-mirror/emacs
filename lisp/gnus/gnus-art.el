@@ -399,15 +399,15 @@ is the face used for highlighting."
 		     :value
 		     (gnus-emphasis-custom-value-to-external value))))
 	      (widget-group-value-create widget))
-	    (regexp :format "%t: %v\n" :size 1)
-	    (integer :format "Match group: %v\n" :size 0)
-	    (integer  :format "Emphasize group: %v\n" :size 0)
+	    regexp
+	    (integer :format "Match group: %v")
+	    (integer  :format "Emphasize group: %v")
 	    face)
      (group :tag "Simple"
 	    :value (("_" . "_") nil default)
 	    (cons :format "%v"
-		  (regexp :format "Start regexp: %v\n" :size 0)
-		  (regexp :format "End regexp: %v\n" :size 0))
+		  (regexp :format "Start regexp: %v")
+		  (regexp :format "End regexp: %v"))
 	    (boolean :format "Show start and end patterns: %[%v%]\n"
 		     :on " On " :off " Off ")
 	    face)))

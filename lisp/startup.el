@@ -953,6 +953,19 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   (run-hooks 'after-init-hook)
 
+  ;; Decode all default-directory.
+  (if (and default-enable-multibyte-characters locale-coding-system)
+      (save-excursion
+	(dolist (elt (buffer-list))
+	  (set-buffer elt)
+	  (if default-directory
+	      (setq default-directory
+		    (decode-coding-string default-directory
+					  locale-coding-system t))))
+	(setq command-line-default-directory
+	      (decode-coding-string command-line-default-directory
+				    locale-coding-system t))))
+
   ;; If *scratch* exists and init file didn't change its mode, initialize it.
   (if (get-buffer "*scratch*")
       (with-current-buffer "*scratch*"

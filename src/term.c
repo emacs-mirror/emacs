@@ -954,9 +954,14 @@ write_glyphs (string, len)
 
   cmplus (len);
 
+  /* If terminal_coding does any conversion, use it, otherwise use
+     safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
+     because it always return 1 if the member src_multibyte is 1.  */
+  coding = (terminal_coding.common_flags & CODING_REQUIRE_ENCODING_MASK
+	    ? &terminal_coding : &safe_terminal_coding);
   /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
      the tail.  */
-  terminal_coding.mode &= ~CODING_MODE_LAST_BLOCK;
+  coding->mode &= ~CODING_MODE_LAST_BLOCK;
 
   while (len > 0)
     {
@@ -1006,6 +1011,9 @@ insert_glyphs (start, len)
   char *buf;
   struct glyph *glyph = NULL;
   struct frame *f, *sf;
+  unsigned char *conversion_buffer;
+  unsigned char space[1];
+  struct coding_system *coding;
 
   if (len <= 0)
     return;
@@ -2238,6 +2246,8 @@ term_init (terminal_type)
   register char *p;
   int status;
   struct frame *sf = XFRAME (selected_frame);
+
+  encode_terminal_bufsize = 0;
 
 #ifdef WINDOWSNT
   initialize_w32_display ();

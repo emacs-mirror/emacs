@@ -600,5 +600,9 @@ extern void mac_draw_line_to_pixmap P_ ((Display *, Pixmap, GC, int, int,
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
 
+#if TARGET_API_MAC_CARBON
+extern CFStringRef cfstring_create_with_utf8_cstring P_ ((const char *));
+#endif
+
 /* arch-tag: 6b4ca125-5bef-476d-8ee8-31ed808b7e79
    (do not change this comment) */

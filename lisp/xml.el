@@ -179,7 +179,7 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
       xml)))
 
 
-(let* ((start-chars (concat ":[:alpha:]_"))
+(let* ((start-chars (concat "[:alpha:]:_"))
        (name-chars  (concat "-[:digit:]." start-chars))
 ;;[3]   	S	   ::=   	(#x20 | #x9 | #xD | #xA)+
        (whitespace  "[ \t\n\r]"))
@@ -371,7 +371,9 @@ Returns one of:
       (let ((pos (match-end 0)))
 	(unless (search-forward "]]>" nil t)
 	  (error "XML: (Not Well Formed) CDATA section does not end anywhere in the document"))
-	(buffer-substring pos (match-beginning 0))))
+	(concat
+	 (buffer-substring pos (match-beginning 0))
+	 (xml-parse-string))))
      ;;  DTD for the document
      ((looking-at "<!DOCTYPE")
       (let ((dtd (xml-parse-dtd parse-ns)))
@@ -599,7 +601,7 @@ This follows the rule [28] in the XML specifications."
 	     (t
 	      (if xml-validating-parser 
 		  (error "XML: (Validity) Invalid element type in the DTD"))))
-	    
+
 	    ;;  rule [45]: the element declaration must be unique
 	    (if (and (assoc element dtd)
 		     xml-validating-parser)
@@ -650,8 +652,25 @@ This follows the rule [28] in the XML specifications."
 					       (xml-parse-fragment
 						xml-validating-parser
 						parse-ns))))))))
+	   ;; skip parameter entity declarations
+	   ((or (looking-at (concat "<!ENTITY[ \t\n\r]+%[ \t\n\r]+\\(" xml-name-re
+				    "\\)[ \t\n\r]+SYSTEM[ \t\n\r]+"
+				    "\\(\"[^\"]*\"\\|'[^']*'\\)[ \t\n\r]*>"))
+		(looking-at (concat "<!ENTITY[ \t\n\r]+"
+				    "%[ \t\n\r]+"
+				    "\\(" xml-name-re "\\)[ \t\n\r]+"
+				    "PUBLIC[ \t\n\r]+"
+				    "\\(\"[- \r\na-zA-Z0-9'()+,./:=?;!*#@$_%]*\""
+				    "\\|'[- \r\na-zA-Z0-9()+,./:=?;!*#@$_%]*'\\)[ \t\n\r]+"
+				    "\\(\"[^\"]+\"\\|'[^']+'\\)"
+				    "[ \t\n\r]*>")))
+	    (goto-char (match-end 0)))
+	   ;; skip parameter entities
+	   ((looking-at (concat "%" xml-name-re ";"))
+	    (goto-char (match-end 0)))
 	   (t
-	    (error "XML: (Validity) Invalid DTD item")))))
+	    (when xml-validating-parser
+	      (error "XML: (Validity) Invalid DTD item"))))))
       (if (looking-at "\\s-*]>")
 	  (goto-char (nth 1 (match-data)))))
     (nreverse dtd)))
@@ -703,7 +722,7 @@ This follows the rule [28] in the XML specifications."
 
   (let ((point 0)
 	children end-point)
-    (while (string-match "&\\([^;]+\\);" string point)
+    (while (string-match "&\\([^;]*\\);" string point)
       (setq end-point (match-end 0))
       (let* ((this-part (match-string 1 string))
 	     (prev-part (substring string point (match-beginning 0)))
@@ -721,10 +740,12 @@ This follows the rule [28] in the XML specifications."
 		       (if c (string c))))
 		    (entity
 		     (cdr entity))
+		    ((eq (length this-part) 0)
+		     (error "XML: (Not Well-Formed) No entity given"))
 		    (t
-		     (if xml-validating-parser
+		     (when xml-validating-parser
 			 (error "XML: (Validity) Undefined entity `%s'"
-				(match-string 1 this-part)))))))
+				this-part))))))
 
 	(cond ((null children)
 	       ;; FIXME: If we have an entity that expands into XML, this won't work.

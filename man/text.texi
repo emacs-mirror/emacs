@@ -619,12 +619,13 @@ beginning of a line.@refill
 
   When a fill prefix is in effect, the fill commands remove the fill
 prefix from each line before filling and insert it on each line after
-filling.  Auto Fill mode also inserts the fill prefix automatically when
-it makes a new line.  The @kbd{C-o} command inserts the fill prefix on
-new lines it creates, when you use it at the beginning of a line
-(@pxref{Blank Lines}).  Conversely, the command @kbd{M-^} deletes the
-prefix (if it occurs) after the newline that it deletes
-(@pxref{Indentation}).
+filling.  (The beginning of the first line is left unchanged, since
+often that is intentionally different.)  Auto Fill mode also inserts
+the fill prefix automatically when it makes a new line.  The @kbd{C-o}
+command inserts the fill prefix on new lines it creates, when you use
+it at the beginning of a line (@pxref{Blank Lines}).  Conversely, the
+command @kbd{M-^} deletes the prefix (if it occurs) after the newline
+that it deletes (@pxref{Indentation}).
 
   For example, if @code{fill-column} is 40 and you set the fill prefix
 to @samp{;; }, then @kbd{M-q} in the following text
