@@ -260,17 +260,20 @@ file the tag was in."
   list)
 
 ;; Subroutine of visit-tags-table-buffer.  Frobs its local vars.
-;; Search TABLES for one that has tags for THIS-FILE.  Recurses
-;; on included tables.  Returns the tail of TABLES (or of an
-;; inner included list) whose car is a table listing THIS-FILE.
-(defun tags-table-including (this-file tables &optional recursing)
+;; Search TABLES for one that has tags for THIS-FILE.  Recurses on
+;; included tables.  Returns the tail of TABLES (or of an inner
+;; included list) whose car is a table listing THIS-FILE.  If
+;; CORE-ONLY is non-nil, check only tags tables that are already in
+;; buffers--don't visit any new files.
+(defun tags-table-including (this-file tables core-only &optional recursing)
   (let ((found nil))
     ;; Loop over TABLES, looking for one containing tags for THIS-FILE.
     (while (and (not found)
 		tables)
       (let ((tags-file-name (tags-expand-table-name (car tables))))
 	(if (or (get-file-buffer tags-file-name)
-		(file-exists-p tags-file-name))	;XXX check all in core first.
+		(and (not core-only)
+		     (file-exists-p tags-file-name)))
 	    (progn
 	      ;; Select the tags table buffer and get the file list up to date.
 	      (visit-tags-table-buffer 'same)
@@ -296,6 +299,7 @@ file the tag was in."
 				   ;; Recurse on the list of included tables.
 				   (tags-table-including this-file
 							 tags-included-tables
+							 core-only
 							 t))
 			     (if found
 				 ;; One of them lists THIS-FILE.
@@ -371,8 +375,16 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 		;; tags for the current buffer's file.
 		;; If one is found, the lists will be frobnicated,
 		;; and CONT will be set non-nil so we don't do it below.
-		(car (save-excursion (tags-table-including buffer-file-name
-							   tags-table-list)))
+		(car (or 
+		      ;; First check only tables already in buffers.
+		      (save-excursion (tags-table-including buffer-file-name
+							       tags-table-list
+							       t))
+		      ;; Since that didn't find any, now do the
+		      ;; expensive version: reading new files.
+		      (save-excursion (tags-table-including buffer-file-name
+							    tags-table-list
+							    nil))))
 		;; Fourth, use the user variable tags-file-name, if it is not
 		;; already in tags-table-list.
 		(and tags-file-name
