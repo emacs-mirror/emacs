@@ -469,6 +469,7 @@ allocate_pty ()
     for (i = 0; i < 16; i++)
 #endif
       {
+	struct stat stb;	/* Used in some PTY_OPEN.  */
 #ifdef PTY_NAME_SPRINTF
 	PTY_NAME_SPRINTF
 #else
@@ -479,7 +480,6 @@ allocate_pty ()
 	PTY_OPEN;
 #else /* no PTY_OPEN */
 	{
-	  struct stat stb;
 # ifdef IRIS
 	  /* Unusual IRIS code */
 	  *ptyv = emacs_open ("/dev/ptc", O_RDWR | O_NDELAY, 0);
@@ -3495,12 +3495,7 @@ Return non-nil iff we received any output before the timeout expired.  */)
 	seconds = -1;
     }
   else
-    {
-      if (NILP (process))
-	seconds = -1;
-      else
-	seconds = 0;
-    }
+    seconds = NILP (process) ? -1 : 0;
 
   if (NILP (process))
     XSETFASTINT (process, 0);
