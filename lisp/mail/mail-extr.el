@@ -316,8 +316,7 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 ;; Keep this set as minimal as possible.
 (defconst mail-extr-last-letters (purecopy "[:alpha:]`'."))
 
-(defconst mail-extr-leading-garbage
-  (purecopy (format "[^%s]+" mail-extr-first-letters)))
+(defconst mail-extr-leading-garbage "\\W+")
 
 ;; (defconst mail-extr-non-name-chars 
 ;;   (purecopy (concat "^" mail-extr-all-letters ".")))
@@ -1687,7 +1686,8 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	   (looking-at mail-extr-trailing-comment-start-pattern)
 	   
 	   ;; Stop before telephone numbers
-	   (looking-at mail-extr-telephone-extension-pattern))
+	   (and (>= word-count 1)
+		(looking-at mail-extr-telephone-extension-pattern)))
 	  (setq name-done-flag t))
 	 
 	 ;; Delete ham radio call signs
@@ -1762,6 +1762,13 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 ;;	    (setq upper-case-flag t)
 	    )
 	  
+	  (goto-char name-end)
+	  (setq word-found-flag t))
+
+	 ;; Allow a number as a word, if it doesn't mean anything else.
+	 ((looking-at "[0-9]+\\>")
+	  (setq name-beg (point))
+	  (setq name-end (match-end 0))
 	  (goto-char name-end)
 	  (setq word-found-flag t))
 
