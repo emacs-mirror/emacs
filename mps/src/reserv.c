@@ -1,6 +1,6 @@
 /* impl.c.reserv: ARENA RESERVOIR
  *
- * $HopeName: MMsrc!reserv.c(trunk.3) $
+ * $HopeName: MMsrc!reserv.c(trunk.4) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * IMPROVEMENTS
@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-SRCID(reserv, "$HopeName: MMsrc!reserv.c(trunk.3) $");
+SRCID(reserv, "$HopeName: MMsrc!reserv.c(trunk.4) $");
 
 
 /* The reservoir pool is defined here. See design.mps.reservoir */
@@ -87,9 +87,11 @@ Bool ReservoirCheck(Reservoir reservoir)
   ReservoirPoolClass reservoircl = EnsureReservoirPoolClass();
   Arena arena;
   Tract tract;
+
   CHECKS(Reservoir, reservoir);
   CHECKD(Pool, &reservoir->poolStruct);
   CHECKL(reservoir->poolStruct.class == reservoircl);
+  UNUSED(reservoircl); /* impl.c.mpm.check.unused */
   arena = reservoirArena(reservoir);
   CHECKU(Arena, arena);
   /* could call ReservoirIsConsistent, but it's costly. */
