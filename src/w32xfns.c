@@ -277,9 +277,9 @@ XParseGeometry (string, x, y, width, height)
   return (mask);
 }
 
-/* The semantics of the use of using_x_p is really using_a_window_system.  */
+/* We can use mouse menus when we wish.  */
 int
-using_x_p (void)
+have_menus_p (void)
 {
   return 1;
 }
