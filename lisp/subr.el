@@ -1493,7 +1493,7 @@ or off to say whether the minor mode is active or not.  NAME is the
 string that will appear in the mode line when the minor mode is
 active.  Optional MAP is the keymap for the minor mode."
   (make-local-variable symbol)
-  (setq symbol t)
+  (set symbol t)
   (unless (assq symbol minor-mode-alist)
     (add-to-list 'minor-mode-alist (list symbol name)))
   (when (and map (not (assq symbol minor-mode-map-alist)))
