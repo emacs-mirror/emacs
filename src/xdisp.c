@@ -5857,15 +5857,14 @@ echo_area_display (update_frame_p)
   if (!FRAME_VISIBLE_P (f) || !f->glyphs_initialized_p)
     return 0;
 
-#if 0
 #ifdef HAVE_X_WINDOWS
   /* When Emacs starts, selected_frame may be a visible terminal
      frame, even if we run under a window system.  If we let this
      through, a message would be displayed on the terminal.  */
-  if (EQ (selected_frame, Vterminal_frame))
+  if (EQ (selected_frame, Vterminal_frame) 
+      && !NILP (Vwindow_system))
     return 0;
 #endif /* HAVE_X_WINDOWS */
-#endif /* 0 */
 
   /* Redraw garbaged frames.  */
   if (frame_garbaged)
