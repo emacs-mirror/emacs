@@ -143,6 +143,8 @@ Lisp_Object Qlast_nonmenu_event;
 
 #include "syswait.h"
 
+extern void set_waiting_for_input P_ ((EMACS_TIME *));
+
 extern int errno;
 extern char *strerror ();
 #ifdef VMS
@@ -213,6 +215,8 @@ int process_tick;
 int update_tick;
 
 #include "sysselect.h"
+
+extern int keyboard_bit_set P_ ((SELECT_TYPE *));
 
 /* If we support a window system, turn on the code to poll periodically
    to detect C-g.  It isn't actually used when doing interrupt input.  */
@@ -932,9 +936,7 @@ list_processes_1 ()
 {
   register Lisp_Object tail, tem;
   Lisp_Object proc, minspace, tem1;
-  register struct buffer *old = current_buffer;
   register struct Lisp_Process *p;
-  register int state;
   char tembuf[80];
 
   XSETFASTINT (minspace, 1);
@@ -1333,9 +1335,11 @@ create_process (process, new_argv, current_dir)
   struct sigaction sighup_action;
 #endif
 #else /* !POSIX_SIGNALS */
+#if 0
 #ifdef SIGCHLD
   SIGTYPE (*sigchld)();
 #endif
+#endif /* 0 */
 #endif /* !POSIX_SIGNALS */
   /* Use volatile to protect variables from being clobbered by longjmp.  */
   volatile int forkin, forkout;
@@ -1445,7 +1449,7 @@ create_process (process, new_argv, current_dir)
   setup_coding_system (XPROCESS (process)->encode_coding_system,
 		       proc_encode_coding_system[outchannel]);
 
-  if (!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters)
+  if ((!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters))
       || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
     {
       /* In unibyte mode, character code conversion should not take
@@ -1814,15 +1818,12 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       Lisp_Object name, buffer, host, service;
 {
   Lisp_Object proc;
-  register int i;
-
 #ifndef HAVE_GETADDRINFO
   struct sockaddr_in address;
   struct servent *svc_info;
   struct hostent *host_info_ptr, host_info;
   char *(addr_list[2]);
   IN_ADDR numeric_addr;
-  struct hostent host_info_fixed;
   int port;
 #else /* HAVE_GETADDRINFO */
   struct addrinfo hints, *res, *lres;
@@ -2100,8 +2101,8 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 
     if (!NILP (Vcoding_system_for_read))
       val = Vcoding_system_for_read;
-    else if (!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters)
-	     || NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters))
+    else if ((!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters))
+	     || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
       /* We dare not decode end-of-line format by setting VAL to
 	 Qraw_text, because the existing Emacs Lisp libraries
 	 assume that they receive bare code including a sequene of
@@ -2367,11 +2368,11 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
      Lisp_Object read_kbd;
      int do_display;
 {
-  register int channel, nfds, m;
+  register int channel, nfds;
   static SELECT_TYPE Available;
   int xerrno;
   Lisp_Object proc;
-  EMACS_TIME timeout, end_time, garbage;
+  EMACS_TIME timeout, end_time;
   SELECT_TYPE Atemp;
   int wait_channel = -1;
   struct Lisp_Process *wait_proc = 0;
@@ -3321,7 +3322,7 @@ send_process (proc, buf, len, object)
   if (CODING_REQUIRE_ENCODING (coding))
     {
       int require = encoding_buffer_size (coding, len);
-      int offset, dummy;
+      int offset;
       unsigned char *temp_buf = NULL;
 
       /* Remember the offset of data because a string or a buffer may
@@ -3403,7 +3404,6 @@ send_process (proc, buf, len, object)
       {
 	int this = len;
 	SIGTYPE (*old_sigpipe)();
-	int flush_pty = 0;
 
 	/* Decide how much data we can send in one batch.
 	   Long lines need to be split into multiple batches.  */
