@@ -735,6 +735,8 @@ even if they are holidays.")
 (or in the fancy diary buffer next to the date).  This slows down the diary
 functions somewhat; setting it to nil will make the diary display faster.")
 
+(defvar calendar-mark-ring nil)
+
 ;;;###autoload
 (defvar general-holidays
   '((fixed 1 1 "New Year's Day")
@@ -1673,7 +1675,7 @@ The following commands control the diary:
        \\[print-diary-entries]  print diary entries
 
 Displaying the diary entries causes the diary entries from the diary-file
-(for the date indicated by the cursor in the calendar window) to be
+\(for the date indicated by the cursor in the calendar window) to be
 displayed in another window.  This function takes an integer argument that
 specifies the number of days of calendar entries to be displayed, starting
 with the date indicated by the cursor.
