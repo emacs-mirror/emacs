@@ -1657,31 +1657,32 @@ local bindings, we will provide it in a subsequent Emacs version.
 @node Variable Aliases
 @section Variable Aliases
 
-  During the maintenance of Lisp programs, it is sometimes useful to
-make two variables synonyms for each other, so that both variables
-invariably refer to the same value.  When a program variable slightly
-changes meaning, or when a variable name is chosen badly to begin
-with, it is desirable to rename that variable.  For compatibility with
-older versions of the program it is also desirable to not break code
-using the original variable name.  This can be done with
-@code{defvaralias}.
+  It is sometimes useful to make two variables synonyms, so that both
+variables always have the same value, and changing either one also
+changes the other.  Whenever you change the name of a
+variable---either because you realize its old name was not well
+chosen, or because its meaning has partly changed---it can be useful
+to keep the old name as an @emph{alias} of the new one for
+compatibility.  You can do this with @code{defvaralias}.
 
-@defun defvaralias old-name new-name
-This function defines the symbol @var{old-name} as a variable alias
-for symbol @var{new-name}.  Subsequently, retrieving the value of
-@var{old-name} returns the value of @var{new-name}, and changing the
-value of @var{old-name} changes the value of @var{new-name}.
-@end defun
+@defmacro defvaralias alias-var base-var
+This function defines the symbol @var{alias-var} as a variable alias
+for symbol @var{base-var}.  This means that retrieving the value of
+@var{alias-var} returns the value of @var{base-var}, and changing the
+value of @var{alias-var} changes the value of @var{base-var}.
+@end defmacro
 
-@defun indirect-variable name
-This function returns the variable at the end of the variable chain
-of @var{name}.  If @var{name} is not a symbol or if @var{name}
-is not a variable alias, this function returns @var{name} unchanged.
+@defun indirect-variable variable
+This function returns the variable at the end of the chain of aliases
+of @var{variable}.  If @var{variable} is not a symbol, or if @var{variable} is
+not defined as an alias, the function returns @var{variable}.
 @end defun
 
 @example
 (defvaralias 'foo 'bar)
 (indirect-variable 'foo)
+     @result{} bar
+(indirect-variable 'bar)
      @result{} bar
 (setq bar 2)
 bar
