@@ -1,3 +1,8 @@
+2000-06-26  Andreas Schwab  <schwab@suse.de>
+
+	* coding.c (decode_coding_string): Re-fetch STRING_BYTES after
+	Fstring_as_unibyte.
+
 2000-06-25  Dave Love  <fx@gnu.org>
 
 	* term.c [!HAVE_TERMCAP_H]: Declare tputs, tgetent, tgetflag,
