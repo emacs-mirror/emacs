@@ -1633,7 +1633,7 @@ if test "${HAVE_X11}" = "yes"; then
   fi
 
   AC_CHECK_FUNCS(XrmSetDatabase XScreenResourceString \
-XScreenNumberOfScreen XSetWMProtocols)
+XScreenNumberOfScreen XSetWMProtocols XkbGetKeyboard)
 fi
 
 if test "${window_system}" = "x11"; then
