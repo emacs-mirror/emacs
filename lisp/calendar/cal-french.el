@@ -62,6 +62,11 @@
   ["Vendémiaire" "Brumaire" "Frimaire" "Nivôse" "Pluviôse" "Ventôse"
    "Germinal" "Floréal" "Prairial" "Messidor" "Thermidor" "Fructidor"])
 
+(defun french-calendar-month-name-array ()
+  (if (french-calendar-accents)
+      french-calendar-multibyte-month-name-array
+    french-calendar-month-name-array))
+
 (defconst french-calendar-day-name-array
   ["Primidi" "Duodi" "Tridi" "Quartidi" "Quintidi" "Sextidi" "Septidi"
    "Octidi" "Nonidi" "Decadi"])
@@ -70,17 +75,17 @@
   ["de la Vertu" "du Génie" "du Labour" "de la Raison"
    "de la Récompense" "de la Révolution"])
 
-(defun french-calendar-month-name-array ()
-  (if (french-calendar-accents)
-      french-calendar-multibyte-month-name-array
-    french-calendar-month-name-array))
-
 (defun french-calendar-day-name-array ()
   french-calendar-day-name-array)
 
 (defconst french-calendar-special-days-array
   ["de la Vertu" "du Ge'nie" "du Labour" "de la Raison" "de la Re'compense"
    "de la Re'volution"])
+
+(defun french-calendar-special-days-array ()
+  (if (french-calendar-accents)
+      french-calendar-multibyte-special-days-array
+    french-calendar-special-days-array))
 
 (defun french-calendar-leap-year-p (year)
   "True if YEAR is a leap year on the French Revolutionary calendar.
@@ -169,7 +174,7 @@ Defaults to today's date if DATE is not given."
      ((= m 13) (format (if (french-calendar-accents)
                            "Jour %s de l'Année %d de la Révolution"
                          "Jour %s de l'Anne'e %d de la Re'volution")
-                       (aref french-calendar-special-days-array (1- d))
+                       (aref (french-calendar-special-days-array) (1- d))
                        y))
      (t (format
          (if (french-calendar-accents)
@@ -214,13 +219,13 @@ Echo French Revolutionary date unless NOECHO is t."
                            (if (french-calendar-leap-year-p year)
                                (mapcar
                                 '(lambda (x) (concat "Jour " x))
-                                french-calendar-special-days-array)
+                                (french-calendar-special-days-array))
                              (reverse
                               (cdr;; we don't want rev. day in a non-leap yr.
                                (reverse
                                 (mapcar
                                  '(lambda (x) (concat "Jour " x))
-                                 french-calendar-special-days-array))))))))
+                                 (french-calendar-special-days-array)))))))))
           (completion-ignore-case t)
           (month (cdr (assoc
                        (capitalize
