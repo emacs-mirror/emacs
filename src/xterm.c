@@ -8120,10 +8120,10 @@ xim_initialize (dpyinfo, resource_name)
       XRegisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
 				      resource_name, EMACS_CLASS,
 				      xim_instantiate_callback,
-				      /* Fixme: This is XPointer in
-					 XFree86 but (XPointer *) on
-					 Tru64, at least.  */
-				      (XPointer) xim_inst);
+				      /* This is XPointer in XFree86
+					 but (XPointer *) on Tru64, at
+					 least, hence the configure test.  */
+				      (XRegisterIMInstantiateCallback_arg6) xim_inst);
 #else /* not HAVE_X11R6_XIM */
       dpyinfo->xim = NULL;
       xim_open_dpy (dpyinfo, resource_name);
