@@ -373,7 +373,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
   ;; a dummy one.
   (make-comint-in-buffer
    (substring (buffer-name) 1 (- (length (buffer-name)) 1))
-   (current-buffer) "/bin/cat")
+   (current-buffer) "cat")
   (setq comint-input-sender 'gdb-inferior-io-sender))
 
 (defun gdb-inferior-io-sender (proc string)
@@ -587,7 +587,7 @@ output from a previous command if that happens to be in effect."
 	  (funcall handler))))
      (t
       (gdb-set-output-sink 'user)
-      (error "Output sink phase error 1")))))
+      (error "Phase error in gdb-pre-prompt (got %s)" sink)))))
 
 (defun gdb-prompt (ignored)
   "An annotation handler for `prompt'.
@@ -673,7 +673,7 @@ output from the current command if that happens to be appropriate."
       (gdb-set-output-sink 'emacs))
      (t
       (gdb-set-output-sink 'user)
-      (error "Output sink phase error 3")))))
+      (error "Phase error in gdb-post-prompt (got %s)" sink)))))
 
 ;; If we get an error whilst evaluating one of the expressions
 ;; we won't get the display-end annotation. Set the sink back to
@@ -1778,12 +1778,6 @@ the source buffer."
 
 
 ;;;; Window management
-
-;;; FIXME: This should only return true for buffers in the current gdb-proc
-(defun gdb-protected-buffer-p (buffer)
-  "Is BUFFER a buffer which we want to leave displayed?"
-  (with-current-buffer buffer
-    (or gdb-buffer-type overlay-arrow-position)))
 
 ;;; The way we abuse the dedicated-p flag is pretty gross, but seems
 ;;; to do the right thing.  Seeing as there is no way for Lisp code to
