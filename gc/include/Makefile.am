@@ -29,7 +29,4 @@ dist_noinst_HEADERS = private/gc_hdrs.h \
     private/gc_priv.h private/gcconfig.h \
     private/gc_pmark.h private/gc_locks.h \
     private/solaris_threads.h private/dbg_mlc.h \
-    private/specific.h private/cord_pos.h \
-    private/pthread_support.h private/pthread_stop_world.h \
-    private/darwin_semaphore.h private/darwin_stop_world.h \
-    cord.h ec.h javaxfc.h 
+    private/specific.h
