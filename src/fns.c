@@ -1599,7 +1599,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
       QUIT;
 
       key = Fmake_vector (make_number (1), obj);
-      def = Flookup_key (map, key);
+      def = Flookup_key (map, key, Qt);
       answer_string = Fsingle_key_description (obj);
 
       if (EQ (def, intern ("skip")))
