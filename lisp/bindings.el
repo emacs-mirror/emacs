@@ -340,7 +340,7 @@ Menu of mode operations in the mode line.")
   `(menu-item ,(purecopy "Hide ifdef (Ifdef)") hide-ifdef-mode
 	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
 (define-key mode-line-mode-menu [font-lock-mode]
-  `(menu-item ,(purecopy "Font-lock") font-lock-mode
+  `(menu-item ,(purecopy "Font Lock") font-lock-mode
 	      :button (:toggle . font-lock-mode)))
 (define-key mode-line-mode-menu [flyspell-mode]
   `(menu-item ,(purecopy "Flyspell (Fly)") flyspell-mode
@@ -349,7 +349,7 @@ Menu of mode operations in the mode line.")
   `(menu-item ,(purecopy "Column number") column-number-mode
 	      :button (:toggle . column-number-mode)))
 (define-key mode-line-mode-menu [auto-fill-mode]
-  `(menu-item ,(purecopy "Auto-fill (Fill)") auto-fill-mode
+  `(menu-item ,(purecopy "Auto Fill (Fill)") auto-fill-mode
 	      :button (:toggle . auto-fill-function)))
 (define-key mode-line-mode-menu [auto-revert-mode]
   `(menu-item ,(purecopy "Auto revert (ARev)") auto-revert-mode
