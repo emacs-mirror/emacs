@@ -2910,8 +2910,8 @@ example:
 
 @example
 (defimage test-image
-  '((:type xpm :file "~/test1.xpm")
-    (:type xbm :file "~/test1.xbm")))
+  ((:type xpm :file "~/test1.xpm")
+   (:type xbm :file "~/test1.xbm")))
 @end example
 
 @code{defimage} tests each argument, one by one, to see if it is
