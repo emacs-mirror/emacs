@@ -4345,21 +4345,17 @@ sweep_weak_table (h, remove_entries_p)
 
   for (bucket = 0; bucket < n; ++bucket)
     {
-      Lisp_Object idx, prev;
+      Lisp_Object idx, next, prev;
 
       /* Follow collision chain, removing entries that
 	 don't survive this garbage collection.  */
-      idx = HASH_INDEX (h, bucket);
       prev = Qnil;
-      while (!GC_NILP (idx))
+      for (idx = HASH_INDEX (h, bucket); !GC_NILP (idx); idx = next)
 	{
-	  int remove_p;
 	  int i = XFASTINT (idx);
-	  Lisp_Object next;
-	  int key_known_to_survive_p, value_known_to_survive_p;
-
-	  key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
-	  value_known_to_survive_p = survives_gc_p (HASH_VALUE (h, i));
+	  int key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
+	  int value_known_to_survive_p = survives_gc_p (HASH_VALUE (h, i));
+	  int remove_p;
 
 	  if (EQ (h->weak, Qkey))
 	    remove_p = !key_known_to_survive_p;
@@ -4380,7 +4376,7 @@ sweep_weak_table (h, remove_entries_p)
 		{
 		  /* Take out of collision chain.  */
 		  if (GC_NILP (prev))
-		    HASH_INDEX (h, i) = next;
+		    HASH_INDEX (h, bucket) = next;
 		  else
 		    HASH_NEXT (h, XFASTINT (prev)) = next;
 
@@ -4413,8 +4409,6 @@ sweep_weak_table (h, remove_entries_p)
 		    }
 		}
 	    }
-
-	  idx = next;
 	}
     }
 
