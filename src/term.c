@@ -1070,10 +1070,6 @@ calculate_ins_del_char_costs (frame)
     *p++ = (ins_startup_cost += ins_cost_per_char);
 }
 
-#ifdef HAVE_X_WINDOWS
-extern int x_screen_planes;
-#endif
-
 extern do_line_insertion_deletion_costs ();
 
 calculate_costs (frame)
@@ -1090,7 +1086,8 @@ calculate_costs (frame)
   if (FRAME_X_P (frame))
     {
       do_line_insertion_deletion_costs (frame, 0, ".5*", 0, ".5*",
-					0, 0, x_screen_planes);
+					0, 0,
+					x_screen_planes (frame));
       return;
     }
 #endif
