@@ -122,6 +122,9 @@ get_frame_dc (FRAME_PTR f)
 {
   HDC hdc;
 
+  if (f->output_method != output_w32)
+    abort ();
+
   enter_crit ();
 
   hdc = GetDC (f->output_data.w32->window_desc);
