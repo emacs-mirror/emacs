@@ -33,14 +33,14 @@ what you give them.   Help stamp out software-hoarding!  */
  * Modified heavily since then.
  *
  * Synopsis:
- *	unexec (new_name, a_name, data_start, bss_start, entry_address)
- *	char *new_name, *a_name;
+ *	unexec (new_name, old_name, data_start, bss_start, entry_address)
+ *	char *new_name, *old_name;
  *	unsigned data_start, bss_start, entry_address;
  *
  * Takes a snapshot of the program and makes an a.out format file in the
  * file named by the string argument new_name.
- * If a_name is non-NULL, the symbol table will be taken from the given file.
- * On some machines, an existing a_name file is required.
+ * If old_name is non-NULL, the symbol table will be taken from the given file.
+ * On some machines, an existing old_name file is required.
  *
  * The boundaries within the a.out file may be adjusted with the data_start
  * and bss_start arguments.  Either or both may be given as 0 for defaults.
@@ -600,7 +600,8 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (fstat (old_file, &stat_buf) == -1)
     fatal ("Can't fstat (%s): errno %d\n", old_name, errno);
 
-  old_base = mmap (0, stat_buf.st_size, PROT_READ, MAP_SHARED, old_file, 0);
+  old_base = mmap ((caddr_t) 0, stat_buf.st_size, PROT_READ, MAP_SHARED,
+		   old_file, 0);
 
   if (old_base == (caddr_t) -1)
     fatal ("Can't mmap (%s): errno %d\n", old_name, errno);
@@ -720,11 +721,11 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
     fatal ("Can't ftruncate (%s): errno %d\n", new_name, errno);
 
 #ifdef UNEXEC_USE_MAP_PRIVATE
-  new_base = mmap (0, new_file_size, PROT_READ | PROT_WRITE, MAP_PRIVATE,
-		   new_file, 0);
+  new_base = mmap ((caddr_t) 0, new_file_size, PROT_READ | PROT_WRITE,
+		   MAP_PRIVATE, new_file, 0);
 #else
-  new_base = mmap (0, new_file_size, PROT_READ | PROT_WRITE, MAP_SHARED,
-		   new_file, 0);
+  new_base = mmap ((caddr_t) 0, new_file_size, PROT_READ | PROT_WRITE,
+		   MAP_SHARED, new_file, 0);
 #endif
 
   if (new_base == (caddr_t) -1)
