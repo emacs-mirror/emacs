@@ -91,7 +91,7 @@ if the variable is non-nil."
 (defcustom tex-run-command "tex"
   "*Command used to run TeX subjob.
 If this string contains an asterisk (`*'), that is replaced by the file name;
-otherwise the value of tex-start-options-string and the file name are added
+otherwise the value of `tex-start-options-string' and the file name are added
 at the end, with blanks as separators."
   :type 'string
   :group 'tex-run)
