@@ -10530,10 +10530,17 @@ x_term_init (display_name, xrm_option, resource_name)
 				    build_string ("useXIM"),
 				    build_string ("UseXIM"),
 				    Qnil, Qnil);
+#ifdef USE_XIM
     if (STRINGP (value)
 	&& (!strcmp (XSTRING (value)->data, "false")
 	    || !strcmp (XSTRING (value)->data, "off")))
       use_xim = 0;
+#else
+    if (STRINGP (value)
+	&& (!strcmp (XSTRING (value)->data, "true")
+	    || !strcmp (XSTRING (value)->data, "on")))
+      use_xim = 1;
+#endif
   }
 
   UNBLOCK_INPUT;
