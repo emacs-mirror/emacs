@@ -83,6 +83,13 @@ however, ^M is treated as end of line when `selective-display' is t.")
   return temp;
 }
 
+/* Cancel any recorded value of the horizontal position.  */
+
+invalidate_current_column ()
+{
+  last_known_column_point = 0;
+}
+
 int
 current_column ()
 {
