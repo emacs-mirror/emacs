@@ -1359,6 +1359,13 @@ Note that storing new values into the @sc{cdr}s of cons cells in this
 list does @emph{not} change the buffer-local values of the variables.
 @end defun
 
+@defun buffer-local-value variable buffer
+This function returns the buffer-local binding of @var{variable} (a
+symbol) in buffer @var{buffer}.  If @var{variable} does not have a
+buffer-local binding in buffer @var{buffer}, it returns the default
+value (@pxref{Default Value}) of @var{variable} instead.
+@end defun
+
 @deffn Command kill-local-variable variable
 This function deletes the buffer-local binding (if any) for
 @var{variable} (a symbol) in the current buffer.  As a result, the
