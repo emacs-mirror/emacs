@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcl-cvs-util.el,v 1.26 2000/03/05 21:32:21 monnier Exp $
+;; Revision: $Id: pcvs-util.el,v 1.1 2000/03/11 03:42:30 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -172,7 +172,7 @@ Only some SEPARATOR will work properly."
     (mapconcat
      (lambda (str)
        (if (string-match "[\\\"]" str)
-	   (concat "\"" (replace-regexps-in-string "[\\\"]" "\\\\\\&" str) "\"")
+	   (concat "\"" (replace-regexp-in-string "[\\\"]" "\\\\\\&" str) "\"")
 	 str))
      strings sep)))
 
