@@ -4030,7 +4030,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 	       ? XCONS (coding_systems)->cdr
 	       : current_buffer->buffer_file_coding_system);
 	/* Confirm that VAL can surely encode the current region.  */
-	if (Ffboundp (Vselect_safe_coding_system_function))
+	if (!NILP (Ffboundp (Vselect_safe_coding_system_function)))
 	  val = call3 (Vselect_safe_coding_system_function, start, end, val);
       }
     setup_coding_system (Fcheck_coding_system (val), &coding); 
