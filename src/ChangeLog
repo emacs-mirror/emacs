@@ -1,5 +1,11 @@
 2001-02-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* xmenu.c (set_frame_menubar): Run activate-menu-bar-hook with
+	safe_run_hooks.
+
+	* xdisp.c (update_menu_bar): Run activate-menu-bar-hook with
+	safe_run_hooks.
+
 	* emacs.c (malloc_initialize_hook): Handle case thet `environ'
 	is null.
 
