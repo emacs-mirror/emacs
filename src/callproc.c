@@ -1378,12 +1378,13 @@ Initialized from the SHELL environment variable.");
 Each element is a string (directory name) or nil (try default directory).");
 
   DEFVAR_LISP ("exec-directory", &Vexec_directory,
-    "Directory of architecture-dependent files that come with GNU Emacs,\n\
-especially executable programs intended for Emacs to invoke.");
+    "Directory for executables for Emacs to invoke.\n\
+More generally, this includes any architecture-dependent files\n\
+that are built and installed from the Emacs distribution.");
 
   DEFVAR_LISP ("data-directory", &Vdata_directory,
-    "Directory of architecture-independent files that come with GNU Emacs,\n\
-intended for Emacs to use.");
+    "Directory of machine-independent files that come with GNU Emacs.\n\
+These are files intended for Emacs to use while it runs.");
 
   DEFVAR_LISP ("doc-directory", &Vdoc_directory,
     "Directory containing the DOC file that comes with GNU Emacs.\n\
