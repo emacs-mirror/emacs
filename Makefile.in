@@ -314,7 +314,7 @@ install.sysv: all mkdir
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
 	   if [ `/bin/pwd`/$${dir} != `(cd $${dest}; /bin/pwd)` ] ; then \
-	     (cd $${dir}; find . -print | cpio -pdum ${dest} ) ; \
+	     (cd $${dir}; find . -print | cpio -pdum $${dest} ) ; \
 	     for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
 	       rm -rf $${subdir}/RCS ; \
 	       rm -rf $${subdir}/CVS ; \
