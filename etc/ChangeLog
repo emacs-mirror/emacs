@@ -1,3 +1,8 @@
+2002-12-12  Dave Love  <fx@gnu.org>
+
+	* charsets/jisx0213-1.map, charsets/jisx0213-2.map: Fixed/updated
+	from haible's version.
+
 2002-12-08  Dave Love  <fx@gnu.org>
 
 	* charsets/jisx0201.map: Remove codepoint 0x7f.
