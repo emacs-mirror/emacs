@@ -2491,7 +2491,7 @@ struct glyph_string
 };
 
 
-#if 1
+#if GLYPH_DEBUG
 
 static void
 x_dump_glyph_string (s)
