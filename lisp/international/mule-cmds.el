@@ -67,50 +67,50 @@
 (define-prefix-command 'set-coding-system-map)
 
 (define-key-after mule-menu-keymap [toggle-mule]
-  '("Toggle MULE facility" . toggle-enable-multibyte-characters)
+  '("Toggle Multibyte Characters" . toggle-enable-multibyte-characters)
   t)
 (define-key-after mule-menu-keymap [describe-language-environment]
-  '("Describe language environment" . describe-language-environment-map)
+  '("Describe Language Environment" . describe-language-environment-map)
   t)
 (define-key-after mule-menu-keymap [set-language-environment]
-  '("Set language environment" . setup-language-environment-map)
+  '("Set Language Environment" . setup-language-environment-map)
   t)
 (define-key-after mule-menu-keymap [mouse-set-font]
-  '("Set font/fontset" . mouse-set-font)
+  '("Set Font/Fontset" . mouse-set-font)
   t)
 (define-key-after mule-menu-keymap [separator-mule]
   '("--")
   t)
 (define-key-after mule-menu-keymap [toggle-input-method]
-  '("Toggle input method" . toggle-input-method)
+  '("Toggle Input Method" . toggle-input-method)
   t)
 (define-key-after mule-menu-keymap [select-input-method]
-  '("Select input method" . select-input-method)
+  '("Select Input Method" . select-input-method)
   t)
 (define-key-after mule-menu-keymap [describe-input-method]
-  '("Describe input method" . describe-input-method)
+  '("Describe Input Method" . describe-input-method)
   t)
 (define-key-after mule-menu-keymap [separator-input-method]
   '("--")
   t)
 (define-key-after mule-menu-keymap [describe-coding-system]
-  '("Describe coding systems" . describe-coding-system)
+  '("Describe Coding Systems" . describe-coding-system)
   t)
 (define-key-after mule-menu-keymap [set-various-coding-system]
-  '("Set coding systems" . set-coding-system-map)
+  '("Set Coding System" . set-coding-system-map)
   t)
 (define-key-after mule-menu-keymap [separator-coding-system]
   '("--")
   t)
 (define-key-after mule-menu-keymap [mule-diag]
-  '("Show diagnosis for MULE" . mule-diag)
+  '("Show All of MULE Status" . mule-diag)
   t)
 (define-key-after mule-menu-keymap [view-hello-file]
-  '("Show many languages" . view-hello-file)
+  '("Show Script Examples" . view-hello-file)
   t)
 
 (define-key-after set-coding-system-map [set-buffer-file-coding-system]
-  '("Buffer file" . set-buffer-file-coding-system)
+  '("Buffer File" . set-buffer-file-coding-system)
   t)
 (define-key-after set-coding-system-map [set-terminal-coding-system]
   '("Terminal" . set-terminal-coding-system)
@@ -119,7 +119,7 @@
   '("Keyboard" . set-keyboard-coding-system)
   t)
 (define-key-after set-coding-system-map [set-buffer-process-coding-system]
-  '("Buffer process" . set-buffer-process-coding-system)
+  '("Buffer Process" . set-buffer-process-coding-system)
   t)
 
 (define-key setup-language-environment-map
