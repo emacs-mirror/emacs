@@ -57,10 +57,13 @@
     ("ISO_8859-9" . iso-8859-9)
     ;("ISO-8859-13" . ??)
     ;("ISO_8859-13" . ??)
+    ;("ISO-8859-14" . ??)
+    ;("ISO_8859-14" . ??)
     ("ISO-8859-15" . iso-8859-15) ; requires Emacs 21
     ("ISO_8859-15" . iso-8859-15) ; requires Emacs 21
     ("KOI8-R" . koi8-r)
     ;("KOI8-U" . ??)
+    ;("KOI8-T" . ??)
     ("CP437" . cp437) ; requires Emacs 20
     ("CP775" . cp775) ; requires Emacs 20
     ("CP850" . cp850) ; requires Emacs 20
@@ -104,6 +107,7 @@
     ;("JOHAB" . ??)
     ("TIS-620" . tis-620)    ; requires Emacs 20 or Emacs 21
     ("VISCII" . viscii)      ; requires Emacs 20 or Emacs 21
+    ;("GEORGIAN-PS" . ??)
     ("UTF-8" . utf-8)        ; requires Mule-UCS in Emacs 20, or Emacs 21
     )
   "How to convert a GNU libc/libiconv canonical charset name as seen in
