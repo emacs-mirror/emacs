@@ -1,3 +1,12 @@
+2002-06-27  Dave Love  <fx@gnu.org>
+
+	* international/mule.el (load-with-code-conversion): Fix
+	coding-system-type test.
+
+	* international/mule-cmds.el (sort-coding-systems): Comment out
+	iso-2022 case.
+	(encoded-string-description): Fix coding-system-type test.
+
 2002-06-24  Dave Love  <fx@gnu.org>
 
 	* international/characters.el: Make korean-ksc5601 double-width.
@@ -6,7 +15,7 @@
 	Emacs 20/1 byte-compiled files.
 
 	* international/mule-conf.el (file-coding-system-alist): Change
-	.elc to utf-8-Emacs.
+	.elc to utf-8-emacs.
 
 	* emacs-lisp/bytecomp.el (byte-recompile-directory)
 	(batch-byte-recompile-directory): Update from trunk.
