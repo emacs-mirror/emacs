@@ -1,3 +1,10 @@
+2002-03-20  pmr-sav  <pmr-sav@hamm.pajato.com>
+
+	* mail-utils.el:
+	Eliminate compilation warnings due to `rfc822-addresses'.
+	(rmail-dont-reply-to): Eliminate `pos' as a free variable for a
+	warning free compile.
+
 2002-03-20  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
 	* ediff-diff.el (ediff-install-fine-diff-if-necessary): take
