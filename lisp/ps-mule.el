@@ -1088,7 +1088,7 @@ This checks if all multi-byte characters in the region are printable or not."
 	      ((eq ps-multibyte-buffer 'bdf-font-except-latin)
 	       ps-mule-font-info-database-ps-bdf)
 	      (t
-	       ps-mule-font-info-database-latin)))
+	       ps-mule-font-info-database-default)))
   (and (boundp 'enable-multibyte-characters)
        enable-multibyte-characters
        ;; Initialize `ps-mule-charset-list'.  If some characters aren't
