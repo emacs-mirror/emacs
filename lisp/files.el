@@ -1585,8 +1585,17 @@ or multiple mail buffers, etc."
     (set-buffer-modified-p (buffer-modified-p)))) ; force mode line update
 
 (defun make-directory (dir &optional parents)
-  "Create the directory DIR and any nonexistent parent dirs."
-  (interactive "FMake directory: \nP")
+  "Create the directory DIR and any nonexistent parent dirs.
+Interactively, the default choice of directory to create
+is the current default directory for file names.
+That is useful when you have visited a file in a nonexistint directory.
+
+Noninteractively, the second (optional) argument PARENTS says whether
+to create parent directories if they don't exist."
+  (interactive
+   (list (read-file-name "Make directory: " default-directory default-directory
+			 nil nil)
+	 t))
   (let ((handler (find-file-name-handler dir)))
     (if handler
 	(funcall handler 'make-directory dir parents)
