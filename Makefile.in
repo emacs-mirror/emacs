@@ -294,13 +294,15 @@ lwlib/Makefile: lwlib/Makefile.in config.status
 ## source exists and is distinct from the destination.
 ## We don't depend on `all', but rather on ${SUBDIR}, so that we won't
 ## ever modify src/paths.h.
+### We do install-arch-indep first because
+### the executable needs the Lisp files and DOC file to work properly.
 install: ${SUBDIR} install-arch-indep install-arch-dep blessmail
 	@true
 
 ### Install the executables that were compiled specifically for this machine.
-### This depends on install-arch-indep because
-### the executable needs the Lisp files and DOC file to work properly.
-install-arch-dep: mkdir install-arch-indep
+### It would be nice to do something for a parallel make
+### to ensure that install-arch-indep finishes before this starts.
+install-arch-dep: mkdir
 	(cd lib-src; \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
 	    exec_prefix=${exec_prefix} bindir=${bindir} \
