@@ -1761,7 +1761,7 @@ This is text showing the elements of vector matched against indices.")
      Lisp_Object vector;
 {
   CHECK_VECTOR (vector, 0);
-  describe_vector (vector, Qnil, describe_vector_princ, 0, Qnil, Qnil);
+  describe_vector (vector, Qnil, describe_vector_princ, 0, Qnil);
 }
 
 describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
