@@ -1,3 +1,10 @@
+2001-09-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* textmodes/ispell.el (ispell-dictionary-alist-4): Add "german"
+	and "german8", for the new German orthography dictionaries,
+	(ispell-dictionary-alist-5, ispell-dictionary-alist-6): Rearrange
+	the entries, to keep the line length balanced for loaddefs.el.
+
 2001-09-07  Dr Francis J. Wright  <F.J.Wright@qmw.ac.uk>
 	
 	* comint.el (comint-send-input): Handle comint-process-echoes
