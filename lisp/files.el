@@ -520,7 +520,9 @@ Type \\[describe-variable] directory-abbrev-alist RET for more information."
     (or abbreviated-home-dir
 	(setq abbreviated-home-dir
 	      (let ((abbreviated-home-dir "$foo"))
-		(concat "^" (abbreviate-file-name (expand-file-name "~/"))))))
+		(concat "^" (abbreviate-file-name (expand-file-name "~"))
+			"\\(/\\|$\\)"))))
+						  
     ;; If FILENAME starts with the abbreviated homedir,
     ;; make it start with `~' instead.
     (if (string-match abbreviated-home-dir filename)
@@ -536,6 +538,7 @@ Type \\[describe-variable] directory-abbrev-alist RET for more information."
 				       (1- (length abbreviated-home-dir))))
 			  "/"
 			"")
+		      (substring filename (match-beginning 1) (match-end 1))
 		      (substring filename (match-end 0)))))
     filename))
 
