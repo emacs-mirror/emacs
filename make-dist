@@ -194,7 +194,7 @@ echo "Making links to \`lisp/term'."
 
 echo "Making links to \`src'."
 ### Don't distribute =*.[ch] files, or the configured versions of
-### config.h.in, paths.h.in, or Makefile.in, or TAGS.
+### config.h.in, paths.h.in, or Makefile.in.in, or TAGS.
 (cd src
  echo "  (If we can't link gmalloc.c, that's okay.)"
  ln [a-zA-Z]*.c ../${tempdir}/src
@@ -202,7 +202,7 @@ echo "Making links to \`src'."
  test -f ../${tempdir}/src/gmalloc.c || cp gmalloc.c ../${tempdir}/src
  ln [a-zA-Z]*.h ../${tempdir}/src
  ln [a-zA-Z]*.s ../${tempdir}/src
- ln README Makefile.in ymakefile ChangeLog OChangeLog config.h.in paths.h.in \
+ ln README Makefile.in.in ChangeLog OChangeLog config.h.in paths.h.in \
     ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
  ln *.opt vms-pp.trans ../${tempdir}/src
