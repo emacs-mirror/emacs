@@ -3287,11 +3287,13 @@ x_make_frame_visible (f)
 	 if we get to x_make_frame_visible a second time
 	 before the window gets really visible.  */
       if (! FRAME_ICONIFIED_P (f)
-	  && ! f->output_data.win32->asked_for_visible)
-	x_set_offset (f, f->output_data.win32->left_pos, f->output_data.win32->top_pos, 0);
+	  && ! f->output_data.win32->asked_for_visible) {
+	x_set_offset (f, f->output_data.win32->left_pos, 
+		      f->output_data.win32->top_pos, 0);
+	SetForegroundWindow (FRAME_WIN32_WINDOW (f));
+      }
 
       f->output_data.win32->asked_for_visible = 1;
-
       ShowWindow (FRAME_WIN32_WINDOW (f), SW_SHOW);
     }
 
