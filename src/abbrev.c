@@ -142,26 +142,26 @@ it is called after EXPANSION is inserted.")
 DEFUN ("define-global-abbrev", Fdefine_global_abbrev, Sdefine_global_abbrev, 2, 2,
   "sDefine global abbrev: \nsExpansion for %s: ",
   "Define ABBREV as a global abbreviation for EXPANSION.")
-  (name, expansion)
-     Lisp_Object name, expansion;
+  (abbrev, expansion)
+     Lisp_Object abbrev, expansion;
 {
-  Fdefine_abbrev (Vglobal_abbrev_table, Fdowncase (name),
+  Fdefine_abbrev (Vglobal_abbrev_table, Fdowncase (abbrev),
 		  expansion, Qnil, make_number (0));
-  return name;
+  return abbrev;
 }
 
 DEFUN ("define-mode-abbrev", Fdefine_mode_abbrev, Sdefine_mode_abbrev, 2, 2,
   "sDefine mode abbrev: \nsExpansion for %s: ",
   "Define ABBREV as a mode-specific abbreviation for EXPANSION.")
-  (name, expansion)
-     Lisp_Object name, expansion;
+  (abbrev, expansion)
+     Lisp_Object abbrev, expansion;
 {
   if (NILP (current_buffer->abbrev_table))
     error ("Major mode has no abbrev table");
 
-  Fdefine_abbrev (current_buffer->abbrev_table, Fdowncase (name),
+  Fdefine_abbrev (current_buffer->abbrev_table, Fdowncase (abbrev),
 		  expansion, Qnil, make_number (0));
-  return name;
+  return abbrev;
 }
 
 DEFUN ("abbrev-symbol", Fabbrev_symbol, Sabbrev_symbol, 1, 2, 0,
@@ -421,8 +421,8 @@ DEFUN ("insert-abbrev-table-description",
   1, 2, 0,
   "Insert before point a full description of abbrev table named NAME.\n\
 NAME is a symbol whose value is an abbrev table.\n\
-If optional 2nd arg HUMAN is non-nil, a human-readable description is inserted.\n\
-Otherwise the description is an expression,\n\
+If optional 2nd arg READABLE is non-nil, a human-readable description\n\
+is inserted.  Otherwise the description is an expression,\n\
 a call to `define-abbrev-table', which would\n\
 define the abbrev table NAME exactly as it is currently defined.")
   (name, readable)
@@ -459,29 +459,29 @@ define the abbrev table NAME exactly as it is currently defined.")
 
 DEFUN ("define-abbrev-table", Fdefine_abbrev_table, Sdefine_abbrev_table,
        2, 2, 0,
-  "Define TABNAME (a symbol) as an abbrev table name.\n\
+  "Define TABLENAME (a symbol) as an abbrev table name.\n\
 Define abbrevs in it according to DEFINITIONS, which is a list of elements\n\
 of the form (ABBREVNAME EXPANSION HOOK USECOUNT).")
-  (tabname, defns)
-     Lisp_Object tabname, defns;
+  (tablename, defns)
+     Lisp_Object tablename, defns;
 {
   Lisp_Object name, exp, hook, count;
   Lisp_Object table, elt;
 
-  CHECK_SYMBOL (tabname, 0);
-  table = Fboundp (tabname);
-  if (NILP (table) || (table = Fsymbol_value (tabname), NILP (table)))
+  CHECK_SYMBOL (tablename, 0);
+  table = Fboundp (tablename);
+  if (NILP (table) || (table = Fsymbol_value (tablename), NILP (table)))
     {
       table = Fmake_abbrev_table ();
-      Fset (tabname, table);
+      Fset (tablename, table);
       Vabbrev_table_name_list =
-	Fcons (tabname, Vabbrev_table_name_list);
+	Fcons (tablename, Vabbrev_table_name_list);
     }
   CHECK_VECTOR (table, 0);
 
-  for (;!NILP (defns); defns = Fcdr (defns))
+  for (;!NILP (definitions); definitions = Fcdr (definitions))
     {
-      elt = Fcar (defns);
+      elt = Fcar (definitions);
       name  = Fcar (elt);	elt = Fcdr (elt);
       exp   = Fcar (elt);	elt = Fcdr (elt);
       hook  = Fcar (elt);	elt = Fcdr (elt);
