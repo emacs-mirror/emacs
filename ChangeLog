@@ -1,6 +1,10 @@
+2004-03-21  Dave Love  <fx@gnu.org>
+
+	* configure.in: Fix previous change.
+
 2004-03-18  Dave Love  <fx@gnu.org>
 
-	* configure.in: Add -znocombreloc to LDFLAGS if supported.
+	* configure.in: Add -znocombreloc to LDFLAGS if compiler supports it.
 
 2004-03-15  Luc Teirlinck  <teirllm@auburn.edu>
 
