@@ -46,14 +46,21 @@ still before the @samp{B}.
    To @dfn{delete} text you have just inserted, use the large key
 labeled @key{DEL}, @key{BACKSPACE} or @key{DELETE} which is a short
 distance above the @key{RET} or @key{ENTER} key.  This is the key you
-normally use for erasing the last character that you typed.
-Regardless of the actual name on the key, Emacs always thinks of it as
-@key{DEL}, and that's what we call it in the manual.
+normally use, outside Emacs, for erasing the last character that you
+typed.  Regardless of the label on that key, Emacs always thinks of it
+as @key{DEL}, and that's what we call it in this manual.
 
   The @key{DEL} key deletes the character @emph{before} the cursor.
 As a consequence, the cursor and all the characters after it move
 backwards.  If you type a printing character and then type @key{DEL},
 they cancel out.
+
+  On most computers, Emacs recognizes automatically which key ought to
+be @key{DEL}, and sets it up that way.  But in some cases, especially
+with text-only terminals, you will need to tell Emacs which key to use
+for that purpose.  If the large key not far above the @key{RET} or
+@key{ENTER} key doesn't delete backwards, you need to do this.
+@xref{DEL Gets Help}.
 
   Many keyboards have both a @key{BACKSPACE} key a short ways above
 @key{RET} or @key{ENTER}, and a @key{DELETE} key elsewhere.  In that
@@ -61,12 +68,6 @@ case, the @key{BACKSPACE} key is @key{DEL}, and the @key{DELETE} key
 does something else---it deletes ``forwards,'' deleting the character
 after point, the one underneath the cursor, like @kbd{C-d} (see
 below).
-
-  On a text-only terminal, Emacs cannot automatically tell which keys
-it has and where they are located.  If the convenient key for deletion
-is @key{BACKSPACE}, you must type @kbd{M-x
-delete-key-deletes-forward-mode @key{RET}} to make that key behave as
-@key{DEL}.  @xref{Deletion}, for more explanation of this.
 
 @kindex RET
 @cindex newline

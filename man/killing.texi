@@ -118,7 +118,7 @@ kill instead, since they can erase more than one character this way.
   Every keyboard has a large key, labeled @key{DEL}, @key{BACKSPACE},
 @key{BS} or @key{DELETE}, which is a short distance above the
 @key{RET} or @key{ENTER} key and is normally used for erasing what you
-have typed.  Regardless of the actual name on the key, it is
+have typed.  Regardless of the actual name on the key, in Emacs it is
 equivalent to @key{DEL}---or it should be.
 
   Many keyboards have a @key{BACKSPACE} key a short ways above
@@ -126,34 +126,22 @@ equivalent to @key{DEL}---or it should be.
 case, the @key{BACKSPACE} key is @key{DEL}, and the @key{DELETE} key
 is equivalent to @kbd{C-d}---or it should be.
 
-@findex delete-key-deletes-forward-mode
   Why do we say ``or it should be''?  When Emacs starts up using a
-window system, it determines automatically which key should be
+window system, it determines automatically which key or keys should be
 equivalent to @key{DEL}.  So the @key{BACKSPACE} and/or @key{DELETE}
-keys will almost surely do the right things.  But on text-only
-terminals, Emacs cannot tell which key is where; it has to make an
-assumption, which can be wrong.
+keys normally do the right things.  But in some unusual cases Emacs
+gets the wrong information from the system.  If these keys don't do
+what they ought to do, you should tell Emacs which key to use for
+@key{DEL}.  @xref{DEL Gets Help}.
 
-  If the usual key for text erasure does not behave as @key{DEL},
-probably that means it is really a @key{BACKSPACE} key.  You can use
-the command @kbd{M-x delete-key-deletes-forward-mode} to swap the
-meanings of @key{BACKSPACE} and @key{DEL}, so that the convenient key
-for deletion actually does deletion.  To do this for every Emacs
-session, put the following line into your @file{.emacs} init file
-(@pxref{Init File}):
-
-@lisp
-(delete-key-deletes-forward-mode 1)
-@end lisp
-
-@noindent
-This also makes the @key{DELETE} key, if there is one, delete the
-character after the cursor.
-
-@vindex delete-key-deletes-forward
-The variable @code{delete-key-deletes-forward} is @code{t} in the mode
-where the @key{DELETE} key deletes forwards, @code{nil} if
-@key{DELETE} is equivalent to @key{DEL} and deletes backwards.
+@findex normal-erase-is-backspace-mode
+  On text-only terminals, Emacs cannot tell which key is where, so it
+follows a uniform plan which may or may not fit your keyboard.  The
+uniform plan is that the ASCII @key{DEL} character deletes, and the
+ASCII @key{BS} (backspace) character asks for help (it is the same as
+@kbd{C-h}).  If this is not right for your keyboard, if you find that
+the key which ought to delete backwards enters Help instead, see
+@ref{DEL Gets Help}.
 
 @kindex M-\
 @findex delete-horizontal-space
