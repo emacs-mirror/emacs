@@ -88,6 +88,23 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** recentf changes.
+
+The recent file list is now automatically cleanup when recentf mode is
+enabled.  The new option `recentf-auto-cleanup' controls when to do
+automatic cleanup.
+
+With the more advanced option: `recentf-filename-handler', you can
+specify a function that transforms filenames handled by recentf.  For
+example, if set to `file-truename', the same file will not be in the
+recent list with different symbolic links.
+
+To follow naming convention, `recentf-keep-non-readable-files-flag'
+and `recentf-menu-append-commands-flag' respectively replace the
+misnamed options `recentf-keep-non-readable-files-p' and
+`recentf-menu-append-commands-p'.  The old names remain available as
+aliases, but have been marked obsolete.
+
 ** The default for the paper size (variable ps-paper-type) is taken
 from the locale.
 

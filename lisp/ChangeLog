@@ -1,3 +1,96 @@
+2003-04-27  David Ponce  <david@dponce.com>
+
+	* recentf.el
+
+	Major rewrite.  The code is reordered, cleaner and faster.
+	Introduced new options to automatically cleanup the recent list,
+	and to handle filename transformation (for example to use true
+	filenames).
+
+	(recentf-version): New constant.
+	(recentf-save-file-header): Moved.
+	(recentf-data-cache): New variable.
+	(recentf-update-menu-p, recentf-initialized-p): Removed.
+	(recentf-menu-customization-changed): Moved.  Doc fix.
+	(recentf-max-saved-items): Doc fix.
+	(recentf-save-file): Doc fix.  No more expand filename here.
+	(recentf-exclude, recentf-menu-action)
+	(recentf-menu-filter): Doc fix.
+	(recentf-menu-append-commands-flag): Renamed from...
+	(recentf-menu-append-commands-p): Made obsolete.
+	(recentf-keep-non-readable-files-flag): Renamed from...
+	(recentf-keep-non-readable-files-p): Made obsolete.
+	(recentf-auto-cleanup, recentf-filename-handler): New options.
+	(recentf-string-equal, recentf-string-lessp)
+	(recentf-string-member): New functions.
+	(recentf-trunc-list): Moved.
+	(recentf-dump-variable): Moved.  Better code and output format.
+	(recentf-auto-cleanup-timer): New variable.
+	(recentf-auto-cleanup): New function.
+	(recentf-push, recentf-expand-file-name): New functions.
+	(recentf-add-file): In-lined.  Use above functions.
+	(recentf-remove-if-non-readable): In-lined.  Expand file name.
+	(recentf-find-file): Use `recentf-remove-if-non-readable'.
+	(recentf-directory-compare): Moved.  Use `recentf-string-equal'
+	and `recentf-string-lessp' to do comparisons.
+	(recentf-menu-items-for-commands)
+	(recentf-menu-filter-commands): Moved.
+	(recentf-elements, recentf-make-menu-element)
+	(recentf-menu-element-item, recentf-menu-element-value)
+	(recentf-set-menu-element-item, recentf-set-menu-element-value)
+	(recentf-sub-menu-element-p, recentf-make-default-menu-element)
+	(recentf-menu-elements): In-lined. Some doc fix.
+	(recentf-apply-menu-filter): Better code.
+	(recentf-make-menu-items): Doc fix.  Use
+	`recentf-menu-append-commands-flag'.
+	(recentf-make-menu-item): In-lined.  Better code.
+	(recentf-clear-data): New function.
+	(recentf-sort-ascending, recentf-sort-descending)
+	(recentf-sort-basenames-ascending)
+	(recentf-sort-basenames-descending)
+	(recentf-sort-directories-ascending)
+	(recentf-sort-directories-descending)
+	(recentf-show-basenames-ascending)
+	(recentf-show-basenames-descending: In-lined.  Better code.  Some
+	doc fix.
+	(recentf-show-basenames)
+	(recentf-relative-filter): Better code.  Doc fix.
+	(recentf-arrange-by-rule-subfilter): Doc fix.  Improved :set code.
+	(recentf-match-rule-p): Use filename instead of file-path.
+	(recentf-arrange-by-rule, recentf-build-mode-rules)
+	(recentf-arrange-by-mode, recentf-build-dir-rules)
+	(recentf-file-name-nondir)
+	(recentf-filter-changer-alist): Some doc fix and code cleanup.
+	(recentf-filter-changer-goto-next): Doc fix.  Call
+	`recentf-clear-data'.
+	(recentf-filter-changer-get-current)
+	(recentf-filter-changer-get-next): In-lined.  Doc fix and better
+	code.
+	(recentf-filter-changer): Doc fix and better code.
+	(recentf-cancel-dialog): Doc fix.
+	(recentf-dialog-mode-map): Initialized in defvar.
+	(recentf-dialog-mode): Doc fix.
+	(recentf-track-opened-file): Renamed from...
+	(recentf-add-file-hook): Removed.
+	(recentf-track-closed-file): Renamed from...
+	(recentf-remove-file-hook): Removed.
+	(recentf-update-menu-hook): Removed.  Replaced by...
+	(recentf-update-menu): New.  Better catch unnecessary updates.
+	Display a message on error.
+	(recentf-used-hooks): New constant.
+	(recentf-enabled-p): New function.
+	(recentf-edit-selected-items)
+	(recentf-open-files-action)
+	(recentf-open-files-item-shift): Doc fix.
+	(recentf-edit-list-action)
+	(recentf-open-files-item): Doc fix.  Code cleanup.
+	(recentf-edit-list, recentf-open-files)
+	(recentf-open-more-files): Likewise.  Removed autoload cookie.
+	(recentf-save-list, recentf-cleanup): Likewise.  Moved.
+	(recentf-load-list): New command.
+	(recentf-mode): Better code.  Does nothing if enabling the already
+	enabled mode.
+
 2003-04-27  Alan Mackenzie  <acm@muc.de>
 
 	* emacs-lisp/regexp-opt.el (regexp-opt-depth): Don't count a "//("
@@ -35,7 +128,7 @@
 
 2003-04-24  Lars Hansen  <larsh@math.ku.dk>
 
-	* subr.el (assq-delete-all): Ignore non-cons elememts.
+	* subr.el (assq-delete-all): Ignore non-cons elements.
 
 2003-04-24  John Paul Wallington  <jpw@gnu.org>
 
