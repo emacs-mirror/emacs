@@ -1098,6 +1098,25 @@
     (if constant
 	(eval form)
       form)))
+
+;; Avoid having to write forward-... with a negative arg for speed.
+(put 'backward-char 'byte-optimizer 'byte-optimize-backward-char)
+(defun byte-optimize-backward-char (form)
+  (cond ((and (= 2 (safe-length form))
+	      (numberp (nth 1 form)))
+	 (list 'forward-char (eval (- (nth 1 form)))))
+	((= 1 (safe-length form))
+	 '(forward-char -1))
+	(t form)))
+
+(put 'backward-word 'byte-optimizer 'byte-optimize-backward-word)
+(defun byte-optimize-backward-word (form)
+  (cond ((and (= 2 (safe-length form))
+	      (numberp (nth 1 form)))
+	 (list 'forward-word (eval (- (nth 1 form)))))
+	((= 1 (safe-length form))
+	 '(forward-char -1))
+	(t form)))
 
 ;;; enumerating those functions which need not be called if the returned 
 ;;; value is not used.  That is, something like
@@ -1115,22 +1134,24 @@
 	 boundp buffer-file-name buffer-local-variables buffer-modified-p
 	 buffer-substring
 	 capitalize car-less-than-car car cdr ceiling concat coordinates-in-window-p
-	 copy-marker cos count-lines
+	 char-width copy-marker cos count-lines
 	 default-boundp default-value documentation downcase
 	 elt exp expt fboundp featurep
 	 file-directory-p file-exists-p file-locked-p file-name-absolute-p
 	 file-newer-than-file-p file-readable-p file-symlink-p file-writable-p
-	 float floor format
+	 float floor format frame-visible-p
 	 get get-buffer get-buffer-window getenv get-file-buffer
 	 int-to-string
-	 length log log10 logand logb logior lognot logxor lsh
+	 keymap-parent
+	 length local-variable-if-set-p local-variable-p log log10 logand logb logior lognot logxor lsh
 	 marker-buffer max member memq min mod
 	 next-window nth nthcdr number-to-string
-	 parse-colon-path previous-window
+	 parse-colon-path prefix-numeric-value previous-window
 	 radians-to-degrees rassq regexp-quote reverse round
 	 sin sqrt string< string= string-equal string-lessp string-to-char
-	 string-to-int string-to-number substring symbol-plist
-	 tan upcase user-variable-p vconcat
+	 string-to-int string-to-number substring symbol-function symbol-plist
+	 symbol-value
+	 tan unibyte-char-to-multibyte upcase user-variable-p vconcat
 	 window-buffer window-dedicated-p window-edges window-height
 	 window-hscroll window-minibuffer-p window-width
 	 zerop))
@@ -1138,21 +1159,27 @@
        '(arrayp atom
 	 bobp bolp buffer-end buffer-list buffer-size buffer-string bufferp
 	 car-safe case-table-p cdr-safe char-or-string-p commandp cons consp
-	 current-buffer
+	 current-buffer current-global-map current-indentation
+	 current-local-map current-minor-mode-maps
 	 dot dot-marker eobp eolp eq eql equal eventp floatp framep
 	 get-largest-window get-lru-window
 	 identity ignore integerp integer-or-marker-p interactive-p
 	 invocation-directory invocation-name
-	 keymapp list listp
+	 keymapp
+	 line-beginning-position line-end-position list listp
 	 make-marker mark mark-marker markerp memory-limit minibuffer-window
 	 mouse-movement-p
 	 natnump nlistp not null number-or-marker-p numberp
 	 one-window-p overlayp
 	 point point-marker point-min point-max processp
-	 selected-window sequencep stringp subrp symbolp syntax-table-p
+	 recent-keys recursion-depth
+	 selected-frame selected-window sequencep stringp subrp symbolp
+	 standard-case-table standard-syntax-table syntax-table-p
+	 this-command-keys this-command-keys-vector this-single-command-keys
+	 this-single-command-raw-keys
 	 user-full-name user-login-name user-original-login-name
 	 user-real-login-name user-real-uid user-uid
-	 vector vectorp
+	 vector vectorp visible-frame-list
 	 window-configuration-p window-live-p windowp)))
   (while side-effect-free-fns
     (put (car side-effect-free-fns) 'side-effect-free t)
