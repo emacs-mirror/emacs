@@ -1,5 +1,8 @@
 2001-03-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* comint.el (comint-exec-1): Set columns of the terminal to
+	window-width instead of frame-width.
+
 	* info.el (Info-scroll-down): Add missing WINDOW arg for
 	pos-visible-in-window-p.
 
