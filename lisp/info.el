@@ -2578,8 +2578,8 @@ the variable `Info-file-list-for-emacs'."
 					   ("Up" . Info-up))))))
 		(when fun
 		  (let ((keymap (make-sparse-keymap)))
-		    (define-key keymap [header-line mouse-1] fun)
-		    (define-key keymap [header-line mouse-2] fun)
+		    (define-key keymap [header-line down-mouse-1] fun)
+		    (define-key keymap [header-line down-mouse-2] fun)
 		    (put-text-property tbeg nend 'local-map keymap))))
 	      ))))
       (goto-char (point-min))
