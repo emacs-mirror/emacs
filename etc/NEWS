@@ -208,8 +208,8 @@ it in that buffer.
 `query-replace' and related functions simply ignore
 a match if part of it has a read-only property.
 
-** In `replace-match', the replacement replacement text no longer
-inherits properties from surrounding text.
+** In `replace-match', the replacement text no longerinherits
+properties from surrounding text.
 
 ** New function `buffer-local-value'.
 
@@ -2551,7 +2551,7 @@ will not have any effect when support for this variable is removed.
 
 ** Function assq-delete-all replaces function assoc-delete-all.
 
-** The new function amimate-string, from lisp/play/animate.el
+** The new function animate-string, from lisp/play/animate.el
 allows the animated display of strings.
 
 ** The new function `interactive-form' can be used to obtain the
