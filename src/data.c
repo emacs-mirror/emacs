@@ -1951,7 +1951,7 @@ Both X and Y must be numbers or markers.")
   i1 %= i2;
 
   /* If the "remainder" comes out with the wrong sign, fix it.  */
-  if ((i1 < 0) != (i2 < 0))
+  if (i2 < 0 ? i1 > 0 : i1 < 0)
     i1 += i2;
 
   XSETINT (val, i1);
