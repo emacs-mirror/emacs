@@ -3,7 +3,7 @@
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 10 1996
 ;; Keywords: convenience
-;; Time-stamp: <2000-08-31 19:44:13 pbreton>
+;; Time-stamp: <2001-11-26 12:03:18 pavel>
 ;;
 ;; Copyright (C) 1996, 2000 Free Software Foundation, Inc.
 
@@ -516,7 +516,7 @@ the name is considered already unique; only the second substitution
       (if (string= file-cache-string (minibuffer-contents))
 	  (file-cache-temp-minibuffer-message file-cache-sole-match-message)
 	(delete-minibuffer-contents)
-	(insert-string file-cache-string)
+	(insert file-cache-string)
 	(if file-cache-multiple-directory-message
 	    (file-cache-temp-minibuffer-message
 	     file-cache-multiple-directory-message))
@@ -532,7 +532,7 @@ the name is considered already unique; only the second substitution
 		   (string= file-cache-last-completion completion-string))
 	      (progn
 		(delete-minibuffer-contents)
-		(insert-string (file-cache-file-name completion-string))
+		(insert (file-cache-file-name completion-string))
 		(setq file-cache-last-completion nil)
 		)
 	    (file-cache-temp-minibuffer-message file-cache-non-unique-message)
@@ -544,7 +544,7 @@ the name is considered already unique; only the second substitution
 	(if (> len 1)
 	    (progn
 	      (goto-char (point-max))
-	      (insert-string
+	      (insert
 	       (substring completion-string (length string)))
 	      ;; Add our own setup function to the Completions Buffer
 	      (let ((completion-setup-hook
@@ -561,7 +561,7 @@ the name is considered already unique; only the second substitution
 	      (file-cache-temp-minibuffer-message
 	       file-cache-sole-match-message)
 	    (delete-minibuffer-contents)
-	    (insert-string file-cache-string)
+	    (insert file-cache-string)
 	    (if file-cache-multiple-directory-message
 		(file-cache-temp-minibuffer-message
 		 file-cache-multiple-directory-message)))
