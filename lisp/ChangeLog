@@ -9,8 +9,8 @@
 	(fortran-break-before-delimiters, fortran-mode-hook)
 	(fortran-end-prog-re, fortran-imenu-generic-expression): Minor
 	doc changes.
-	(fortran-tab-mode-minor-mode-string): New variable.
 	(fortran-tab-mode-string): Now customization is meaningful.
+	Change default value.
 	(fortran-column-ruler-fixed, fortran-column-ruler-tab)
 	(fortran-analyze-depth): Use defcustom.
 	(fortran-if-start-re, fortran-end-prog-re1, fortran-fill)
@@ -23,7 +23,7 @@
 	depth of fortran-type-types has changed.  Remove extra and.
 	(fortran-mode-menu): Minor re-organization.  Use lookup-key.
 	(fortran-mode): Doc changes.  Some re-organization.  Use
-	fortran-tab-mode-minor-mode-string.
+	mode-line-process (rather than minor-mode-alist) for tab format.
 	(fortran-comment-indent): Add doc string.  Move save-excursion.
 	Use 1+.
 	(fortran-indent-comment, fortran-fill-statement): Change
@@ -45,7 +45,7 @@
 	(fortran-indent-to-column): Doc change.  Use when, unless.
 	(fortran-find-comment-start-skip): No longer interactive.
 	(fortran-analyze-file-format): Minor doc change.  Remove
-	un-needed setq.
+	un-needed setq.  Return fortran-tab-mode-default if no match.
 	(minor-mode-alist): Use add-to-list.
 	(fortran-fill-paragraph): Change interactive spec, doc string.
 	
