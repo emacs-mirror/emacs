@@ -304,6 +304,7 @@ reset_buffer (b)
   b->last_window_start = 1;
   b->backed_up = Qnil;
   b->auto_save_modified = 0;
+  b->auto_save_failure_time = -1;
   b->auto_save_file_name = Qnil;
   b->read_only = Qnil;
   b->overlays_before = Qnil;
