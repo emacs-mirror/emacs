@@ -138,13 +138,9 @@ no aliases, which is represented by this being a table with no entries.)")
   (if (and (not (vectorp mail-abbrevs))
 	   (file-exists-p mail-personal-alias-file))
       (build-mail-abbrevs))
-  (make-local-variable 'pre-abbrev-expand-hook)
-  (setq pre-abbrev-expand-hook
-    (cond ((and (listp pre-abbrev-expand-hook)
-		(not (eq 'lambda (car pre-abbrev-expand-hook))))
-	   (cons 'sendmail-pre-abbrev-expand-hook pre-abbrev-expand-hook))
-	  (t
-	   (list 'sendmail-pre-abbrev-expand-hook pre-abbrev-expand-hook))))
+  (make-local-hook 'pre-abbrev-expand-hook)
+  (add-hook 'pre-abbrev-expand-hook 'sendmail-pre-abbrev-expand-hook
+	    nil t)
   (abbrev-mode 1))
 
 ;;;###autoload
@@ -230,7 +226,7 @@ also want something like \",\\n    \" to get each address on its own line.")
 ;;
 ;;;###autoload
 (defun define-mail-abbrev (name definition &optional from-mailrc-file)
-  "Define NAME as a mail-abbrev that translates to DEFINITION.
+  "Define NAME as a mail alias abbrev that translates to DEFINITION.
 If DEFINITION contains multiple addresses, separate them with commas."
   ;; When this is called from build-mail-abbrevs, the third argument is
   ;; true, and we do some evil space->comma hacking like /bin/mail does.
@@ -311,10 +307,9 @@ If DEFINITION contains multiple addresses, separate them with commas."
 
 
 (defun mail-abbrev-expand-hook ()
-  "For use as the fourth arg to define-abbrev.
-After expanding a mail-abbrev, if fill-mode is on and we're past the
-fill-column, break the line at the previous comma, and indent the next
-line."
+  "For use as the fourth arg to `define-abbrev'.
+After expanding a mail-abbrev, if Auto Fill mode is on and we're past the
+fill-column, break the line at the previous comma, and indent the next line."
   (save-excursion
     (let ((p (point))
 	  bol comma fp)
@@ -345,7 +340,7 @@ line."
 
 (defvar mail-abbrev-mode-regexp 
   "^\\(Resent-\\)?\\(To\\|From\\|CC\\|BCC\\|Reply-to\\):"
-  "*Regexp to select mail-headers in which mail-abbrevs should be expanded.
+  "*Regexp to select mail-headers in which mail abbrevs should be expanded.
 This string will be handed to `looking-at' with point at the beginning
 of the current line; if it matches, abbrev mode will be turned on, otherwise
 it will be turned off.  (You don't need to worry about continuation lines.)
@@ -371,7 +366,7 @@ turned on.")
     (modify-syntax-entry ?> ")<" tab)
     tab)
   "The syntax table used in send-mail mode when in a mail-address header.
-mail-mode-syntax-table is used when the cursor is in the message body or in
+`mail-mode-syntax-table' is used when the cursor is in the message body or in
 non-address headers.")
 
 (defvar mail-abbrev-syntax-table
@@ -385,7 +380,7 @@ non-address headers.")
     tab)
   "The syntax-table used for abbrev-expansion purposes; this is not actually
 made the current syntax table of the buffer, but simply controls the set of
-characters which may be a part of the name of a mail-alias.")
+characters which may be a part of the name of a mail alias.")
 
 
 (defun mail-abbrev-in-expansion-header-p ()
