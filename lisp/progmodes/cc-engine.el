@@ -1794,10 +1794,11 @@ brace."
 	      search-end (nth 0 paren-state)))
       ;; if search-end is nil, or if the search-end character isn't an
       ;; open brace, we are definitely not in a class
-      (if (or (not search-end)
-	      (< search-end (point-min))
-	      (not (eq (char-after search-end) ?{)))
-	  nil
+      (when (consp search-end)
+        (setq search-end (car search-end)))
+      (unless (or (not search-end)
+                  (< search-end (point-min))
+                  (not (eq (char-after search-end) ?{)))
 	;; now, we need to look more closely at search-start.  if
 	;; search-start is nil, then our start boundary is really
 	;; point-min.

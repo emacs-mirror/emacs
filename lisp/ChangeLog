@@ -1,3 +1,8 @@
+2002-07-25  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/cc-engine.el (c-search-uplist-for-classkey): When
+	`search-end' is a cons, use its car.
+
 2002-07-25  Dave Love  <fx@gnu.org>
 
 	* obsolete/c-mode.el: Deleted.
