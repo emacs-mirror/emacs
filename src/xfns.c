@@ -2650,12 +2650,14 @@ x_window (f, window_prompting, minibuffer_only)
 
     f->output_data.x->menubar_height = menubar_size;
 
+#ifndef USE_LUCID
     /* Motif seems to need this amount added to the sizes
        specified for the shell widget.  The Athena/Lucid widgets don't.
        Both conclusions reached experimentally.  -- rms.  */
-    if (!strcmp (lwlib_toolkit_type, "motif"))
-      XtVaGetValues (f->output_data.x->edit_widget, XtNinternalBorderWidth,
-		     &extra_borders, NULL);
+    XtVaGetValues (f->output_data.x->edit_widget, XtNinternalBorderWidth,
+		   &extra_borders, NULL);
+    extra_borders *= 2;
+#endif
 
     /* Convert our geometry parameters into a geometry string
        and specify it.
