@@ -1,3 +1,8 @@
+2001-06-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* server.el (server-process, server-buffer-clients): Doc fix.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
+
 2001-06-09  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-cmd.el (eshell-exit-success-p): Use a string-match to
