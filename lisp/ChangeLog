@@ -1,11 +1,14 @@
 2000-01-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* image.el (create-image, defimage): Don't assume image data is a
+	string.
+
 	* image.el (defimage): Handle specifications containing :data
 	instead of :file.
 	(image-type-from-data): New function.
 	(image-type-from-file-header): Use it.
 	(create-image): Add parameter DATA-P.
-
+	
 1999-12-31  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* echistory.el (electric-command-history): Call Command-history-setup

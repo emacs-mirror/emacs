@@ -1,5 +1,22 @@
 2000-01-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* syntax.c (Fforward_word): Undo previous change.
+
+	* editfns.c (Fconstrain_to_field): Don't constrain if
+	inhibit-field-text-motion is non-nil.
+	(Fline_beginning_position): Undo previous change.
+	(Fline_end_position): Ditto.
+
+	* syntax.c (Fforward_word): Notice field boundaries only if
+	inhibit-field-text-motion is nil.
+
+	* lisp.h: Add extern declaration for Vinhibit_field_text_motion.
+
+	* editfns.c (Vinhibit_field_text_motion): New variable.
+	(inhibit-field-text-motion): New DEFVAR_LISP.
+	(Fline_beginning_position, Fline_end_position): Notice field
+	boundaries only if inhibit-field-text-motion is nil.
+
 	* xfns.c (x_create_x_image_and_pixmap): Remove parameter FILE.
 	All calls adjusted.
 	(x_build_heuristic_mask): Likewise.
