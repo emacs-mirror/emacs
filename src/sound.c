@@ -220,11 +220,14 @@ static void find_sound_file_type P_ ((struct sound_file *));
 static u_int32_t le2hl P_ ((u_int32_t));
 static u_int16_t le2hs P_ ((u_int16_t));
 static u_int32_t be2hl P_ ((u_int32_t));
-static u_int16_t be2hs P_ ((u_int16_t));
 static int wav_init P_ ((struct sound_file *));
 static void wav_play P_ ((struct sound_file *, struct sound_device *));
 static int au_init P_ ((struct sound_file *));
 static void au_play P_ ((struct sound_file *, struct sound_device *));
+
+#if 0 /* Currently not used.  */
+static u_int16_t be2hs P_ ((u_int16_t));
+#endif
 
 
 
@@ -343,11 +346,9 @@ DEFUN ("play-sound", Fplay_sound, Splay_sound, 1, 1, 0,
      Lisp_Object sound;
 {
   Lisp_Object attrs[SOUND_ATTR_SENTINEL];
-  char *header;
   Lisp_Object file;
   struct gcpro gcpro1, gcpro2;
   int nbytes;
-  char *msg;
   struct sound_device sd;
   struct sound_file sf;
   Lisp_Object args[2];
@@ -464,6 +465,8 @@ be2hl (value)
 }
 
 
+#if 0 /* Currently not used.  */
+
 /* Convert 16-bit value VALUE which is in big-endian byte-order
    to host byte-order.  */
 
@@ -478,6 +481,7 @@ be2hs (value)
   return value;
 }
 
+#endif /* 0 */
 
 
 /***********************************************************************
