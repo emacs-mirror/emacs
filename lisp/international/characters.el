@@ -157,12 +157,10 @@
 
 ;; Chinese character set (BIG5)
 
-(map-charset-chars #'modify-category-entry 'chinese-big5-1 ?c)
-(map-charset-chars #'modify-category-entry 'chinese-big5-2 ?c)
-(map-charset-chars #'modify-category-entry 'chinese-big5-1 ?C)
-(map-charset-chars #'modify-category-entry 'chinese-big5-2 ?C)
-(map-charset-chars #'modify-category-entry 'chinese-big5-1 ?|)
-(map-charset-chars #'modify-category-entry 'chinese-big5-2 ?|)
+(map-charset-chars #'modify-category-entry 'big5 ?c)
+(map-charset-chars #'modify-category-entry 'big5 ?C)
+(map-charset-chars #'modify-category-entry 'big5 ?|)
+
 
 ;; Chinese character set (CNS11643)
 
@@ -774,24 +772,6 @@
   ;; Fixme: syntax for symbols &c
   )
 
-;;; Setting word boundary.
-
-(setq word-combining-categories
-      '((?l . ?l)))
-
-(setq word-separating-categories	;  (2-byte character sets)
-      '((?A . ?K)			; Alpha numeric - Katakana
-	(?A . ?C)			; Alpha numeric - Chinese
-	(?H . ?A)			; Hiragana - Alpha numeric
-	(?H . ?K)			; Hiragana - Katakana
-	(?H . ?C)			; Hiragana - Chinese
-	(?K . ?A)			; Katakana - Alpha numeric
-	(?K . ?C)			; Katakana - Chinese
-	(?C . ?A)			; Chinese - Alpha numeric
-	(?C . ?K)			; Chinese - Katakana
-	))
-
-
 ;; For each character set, put the information of the most proper
 ;; coding system to encode it by `preferred-coding-system' property.
 
@@ -944,7 +924,6 @@
 	 (#x1800 #x18AF mongolian)
 	 (#x1E00 #x1EFF latin)
 	 (#x1F00 #x1FFF greek)
-	 (#x20000 #x2AFFF han)
 	 (#x20A0 #x20AF currency)
 	 (#x2800 #x28FF braille)
 	 (#x2E80 #x2FDF han)
@@ -965,12 +944,85 @@
 	 (#xFF00 #xFF5F cjk-misc)
 	 (#xFF61 #xFF9F kana)
 	 (#xFFE0 #xFFE6 cjk-misc)
+	 (#x20000 #x2AFFF han)
 	 (#x2F800 #x2FFFF han)))
     (set-char-table-range char-script-table
 			  (cons (car elt) (nth 1 elt)) (nth 2 elt))
     (or (memq (nth 2 elt) script-list)
 	(setq script-list (cons (nth 2 elt) script-list))))
   (set-char-table-extra-slot char-script-table 0 (nreverse script-list)))
+
+
+;;; Setting word boundary.
+
+(defun next-word-boundary-han (pos limit)
+  (if (<= pos limit)
+      (save-excursion
+	(goto-char pos)
+	(looking-at "\\cC+")
+	(goto-char (match-end 0))
+	(if (looking-at "\\cK+\\|\\cH+")
+	    (goto-char (match-end 0)))
+	(point))
+    (while (and (> pos limit)
+		(eq (aref char-script-table (char-after (1- pos))) 'han))
+      (setq pos (1- pos)))
+    pos))
+
+(defun next-word-boundary-kana (pos limit)
+  (if (<= pos limit)
+      (save-excursion
+	(goto-char pos)
+	(if (looking-at "\\cK+")
+	    (goto-char (match-end 0)))
+	(if (looking-at "\\cH+")
+	    (goto-char (match-end 0)))
+	(point))
+    (let ((category-set (char-category-set (char-after pos)))
+	  category)
+      (if (aref category-set ?K)
+	  (while (and (> pos limit)
+		      (aref (char-category-set (char-after (1- pos))) ?K))
+	    (setq pos (1- pos)))
+	(while (and (> pos limit)
+		    (aref (setq category-set 
+				(char-category-set (char-after (1- pos)))) ?H))
+	  (setq pos (1- pos)))
+	(setq category (cond ((aref category-set ?C) ?C)
+			     ((aref category-set ?K) ?K)
+			     ((aref category-set ?A) ?A)))
+	(when category
+	  (setq pos (1- pos))
+	  (while (and (> pos limit)
+		      (aref (char-category-set (char-after (1- pos)))
+			    category))
+	    (setq pos (1- pos)))))
+      pos)))
+
+(map-char-table
+ #'(lambda (char script)
+     (cond ((eq script 'han)
+	    (set-char-table-range next-word-boundary-function-table
+				  char #'next-word-boundary-han))
+	   ((eq script 'kana)
+	    (set-char-table-range next-word-boundary-function-table
+				  char #'next-word-boundary-kana))))
+ char-script-table)
+
+(setq word-combining-categories
+      '((?l . ?l)))
+
+(setq word-separating-categories	;  (2-byte character sets)
+      '((?A . ?K)			; Alpha numeric - Katakana
+	(?A . ?C)			; Alpha numeric - Chinese
+	(?H . ?A)			; Hiragana - Alpha numeric
+	(?H . ?K)			; Hiragana - Katakana
+	(?H . ?C)			; Hiragana - Chinese
+	(?K . ?A)			; Katakana - Alpha numeric
+	(?K . ?C)			; Katakana - Chinese
+	(?C . ?A)			; Chinese - Alpha numeric
+	(?C . ?K)			; Chinese - Katakana
+	))
 
 ;;; Local Variables:
 ;;; coding: utf-8-emacs
