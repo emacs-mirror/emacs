@@ -524,7 +524,7 @@ hierarchy the new entry should be added.  CUSTOM is the entry to add."
 		    (default . nil))
 		   ((type . const)
 		    (tag . "Def")
-		    (default . as-is))))
+		    (default . custom-asis))))
     (choice (type . default)
 	    ;; See `custom-match'.
 	    (query . custom-choice-query)
@@ -632,16 +632,16 @@ Select the properties you want this face to have.")
 			(type . string))
 		       "\n"
 		       ((tag . "Bold")
-			(default . as-is)
+			(default . custom-asis)
 			(type . triggle))
 		       "              "
 		       ((tag . "Italic")
-			(default . as-is)
+			(default . custom-asis)
 			(type . triggle))
 		       "             "
 		       ((tag . "Underline")
 			(hidden . t)
-			(default . as-is)
+			(default . custom-asis)
 			(type . triggle)))
 		 (default . (custom-face-lookup "default" "default" "default"
 						nil nil nil))
@@ -732,6 +732,9 @@ Entries in this list take precedence over `custom-type-properties'.")
 
 (defconst custom-invalid '__invalid__
   "Special value representing an invalid field.")
+
+(defconst custom-asis 'custom-asis)
+;; Bad, ugly, and horrible kludge.
 
 (defun custom-property (custom property)
   "Extract from CUSTOM property PROPERTY."
