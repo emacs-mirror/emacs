@@ -49,7 +49,7 @@
 
 (defconst mode-line-mule-info
   (purecopy '(enable-multibyte-characters
-	      ((current-input-method ("" current-input-method-title ">"))
+	      ((current-input-method ("" current-input-method-title))
 	       "%Z")))
   "Mode-line control for displaying information of multilingual environment.
 Normally it displays current input method (if any activated) and
