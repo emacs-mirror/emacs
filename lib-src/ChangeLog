@@ -1,3 +1,7 @@
+2002-07-29  Jonathan Kamens  <jik@kamens.brookline.ma.us>
+
+	* b2m.pl: Fix regexp for finding return address fields.
+
 2002-07-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* make-docfile.c (scan_c_file): Warn about missing `usage' info.
