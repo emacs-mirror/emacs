@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.57) $
+ * $HopeName: MMsrc!mps.h(trunk.58) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -28,7 +28,6 @@ typedef struct mps_class_s  *mps_class_t;  /* pool class */
 typedef struct mps_thr_s    *mps_thr_t;    /* thread registration */
 typedef struct mps_ap_s     *mps_ap_t;     /* allocation point */
 typedef struct mps_ld_s     *mps_ld_t;     /* location dependency */
-typedef struct mps_reg_s    *mps_reg_t;    /* register file */
 typedef struct mps_ss_s     *mps_ss_t;     /* scan state */
 typedef struct mps_message_s
   *mps_message_t;                          /* message */
