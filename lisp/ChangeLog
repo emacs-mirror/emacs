@@ -1,3 +1,7 @@
+2003-12-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ffap.el (ffap-read-file-or-url): Revert previous change.
+
 2003-12-25  Andreas Schwab  <schwab@suse.de>
 
 	* jka-compr.el (jka-compr-insert-file-contents): Avoid error when

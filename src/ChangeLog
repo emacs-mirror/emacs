@@ -1,3 +1,7 @@
+2003-12-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.c (Fcompleting_read): Undo previous change.
+
 2003-12-25  Lars Hansen <larsh@math.ku.dk>
 
 	* dired.c (Fdirectory_files, Fdirectory_files_and_attributes):
