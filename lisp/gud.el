@@ -1069,6 +1069,8 @@ and source-file directory for your debugger."
 (defvar gud-delete-prompt-marker nil)
 
 
+(put 'gud-mode 'mode-class 'special)
+
 (defun gud-mode ()
   "Major mode for interacting with an inferior debugger process.
 
