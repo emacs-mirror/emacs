@@ -989,7 +989,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
       '("Flag..." . dired-flag-files-regexp))
     (define-key map [menu-bar regexp mark]
       '("Mark..." . dired-mark-files-regexp))
-    (define-key map [menu-bar regexp mark]
+    (define-key map [menu-bar regexp mark-cont]
       '("Mark Containing..." . dired-mark-files-containing-regexp))
 
     (define-key map [menu-bar mark]
