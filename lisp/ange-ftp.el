@@ -1683,7 +1683,7 @@ good, skip, fatal, or unknown."
     (set-process-filter proc (function ange-ftp-gwp-filter))
     (save-excursion
       (set-buffer (process-buffer proc))
-      (internal-ange-ftp-mode)
+      (goto-char (point-max))
       (set-marker (process-mark proc) (point)))
     (setq ange-ftp-gwp-running t
 	  ange-ftp-gwp-status nil)
@@ -1827,7 +1827,11 @@ on the gateway machine to do the ftp instead."
     ;; but that doesn't work: ftp never responds.
     ;; Can anyone find a fix for that?
     (let ((process-connection-type t)
-	  (process-environment process-environment))
+	  (process-environment process-environment)
+	  (buffer (get-buffer-create name)))
+      (save-excursion
+	(set-buffer buffer)
+	(internal-ange-ftp-mode))
       ;; This tells GNU ftp not to output any fancy escape sequences.
       (setenv "TERM" "dumb")
       (if use-gateway
@@ -1838,10 +1842,11 @@ on the gateway machine to do the ftp instead."
 					    ange-ftp-gateway-host)
 				      args))))
 	(setq proc (apply 'start-process name name args))))
-    (process-kill-without-query proc)
     (save-excursion
       (set-buffer (process-buffer proc))
-      (internal-ange-ftp-mode))
+      (goto-char (point-max))
+      (set-marker (process-mark proc) (point)))
+    (process-kill-without-query proc)
     (set-process-sentinel proc (function ange-ftp-process-sentinel))
     (set-process-filter proc (function ange-ftp-process-filter))
     (accept-process-output proc)	;wait for ftp startup message
@@ -1858,8 +1863,6 @@ on the gateway machine to do the ftp instead."
   (setq major-mode 'internal-ange-ftp-mode)
   (setq mode-name "Internal Ange-ftp")
   (let ((proc (get-buffer-process (current-buffer))))
-    (goto-char (point-max))
-    (set-marker (process-mark proc) (point))
     (make-local-variable 'ange-ftp-process-string)
     (setq ange-ftp-process-string "")
     (make-local-variable 'ange-ftp-process-busy)
