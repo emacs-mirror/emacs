@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.128 $")
+(defconst byte-compile-version "$Revision: 2.129 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3547,7 +3547,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		(byte-compile-lambda (cons 'lambda (cdr (cdr form)))))))
 	(byte-compile-discard))
     ;; We prefer to generate a defalias form so it will record the function
-    ;; definition just like interpreting a defun/
+    ;; definition just like interpreting a defun.
     (byte-compile-form
      (list 'defalias
 	   (list 'quote (nth 1 form))
