@@ -1,6 +1,6 @@
 /* impl.c.poolmfs: MANUAL FIXED SMALL UNIT POOL
  *
- * $HopeName: MMsrc!poolmfs.c(trunk.12) $
+ * $HopeName: MMsrc!poolmfs.c(trunk.13) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * This is the implementation of the MFS pool class.
@@ -35,7 +35,7 @@
 #include "mpm.h"
 #include "poolmfs.h"
 
-SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.12) $");
+SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.13) $");
 
 
 /*  == Round up ==
@@ -247,12 +247,12 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream)
   AVER(stream != NULL);
 
   res = WriteF(stream,
-               "  unrounded unit size $W\n", (Word)mfs->unroundedUnitSize,
-               "  unit size $W\n",           (Word)mfs->unitSize,
-               "  segment size $W\n",        (Word)mfs->extendBy,
-               "  units per segment $U\n",   (unsigned long)mfs->unitsPerSeg,
-               "  free list begins at $P\n", (void *)mfs->freeList,
-               "  seg list begin at $P\n",   (void *)mfs->segList,
+               "  unrounded unit size $W\n", (WriteFW)mfs->unroundedUnitSize,
+               "  unit size $W\n",           (WriteFW)mfs->unitSize,
+               "  segment size $W\n",        (WriteFW)mfs->extendBy,
+               "  units per segment $U\n",   (WriteFU)mfs->unitsPerSeg,
+               "  free list begins at $P\n", (WriteFP)mfs->freeList,
+               "  seg list begin at $P\n",   (WriteFP)mfs->segList,
                NULL);
   if(res != ResOK) return res;
 

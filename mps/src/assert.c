@@ -1,6 +1,6 @@
 /* impl.c.assert: ASSERTION IMPLEMENTATION
  *
- * $HopeName: MMsrc!assert.c(MMdevel_lib.4) $
+ * $HopeName: MMsrc!assert.c(trunk.6) $
  *
  * This source provides the AssertFail function which is
  * invoked by the assertion macros (see impl.h.assert).
@@ -25,7 +25,7 @@ static void AssertLib(const char *cond, const char *id,
          "\n"
          "Id:        $S\n", id,
          "File:      $S\n", file,
-         "Line:      $U\n", (unsigned long)line,
+         "Line:      $U\n", (WriteFU)line,
          "Condition: $S\n", cond,
          "\n",
          NULL);

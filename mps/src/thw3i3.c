@@ -2,7 +2,7 @@
  *
  *                  WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc!thnti3.c(trunk.14) $
+ *  $HopeName: MMsrc!thnti3.c(trunk.15) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -67,7 +67,7 @@
 
 #include <windows.h>
 
-SRCID(thnti3, "$HopeName: MMsrc!thnti3.c(trunk.14) $");
+SRCID(thnti3, "$HopeName: MMsrc!thnti3.c(trunk.15) $");
 
 Bool ThreadCheck(Thread thread)
 {
@@ -251,11 +251,12 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
   Res res;
   
   res = WriteF(stream,
-               "Thread $P ($U) {\n", (void *)thread, (unsigned long)thread->serial,
-               "  space $P ($U)\n",  (void *)thread->space, (unsigned long)thread->space->serial,
-               "  handle $W\n",      (Word)thread->handle,
-               "  id $U\n",          (unsigned long)thread->id,
-               "} Thread $P ($U)\n", (void *)thread, (unsigned long)thread->serial,
+               "Thread $P ($U) {\n", (WriteFP)thread, (WriteFU)thread->serial,
+               "  space $P ($U)\n",  
+               (WriteFP)thread->space, (WriteFU)thread->space->serial,
+               "  handle $W\n",      (WriteFW)thread->handle,
+               "  id $U\n",          (WriteFU)thread->id,
+               "} Thread $P ($U)\n", (WriteFP)thread, (WriteFU)thread->serial,
                NULL);
   if(res != ResOK) return res;
 

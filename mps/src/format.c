@@ -1,11 +1,11 @@
 /* impl.c.format: OBJECT FORMATS
  *
- *  $HopeName: MMsrc!format.c(trunk.11) $
+ *  $HopeName: MMsrc!format.c(trunk.12) $
  */
 
 #include "mpm.h"
 
-SRCID(format, "$HopeName: MMsrc!format.c(trunk.11) $");
+SRCID(format, "$HopeName: MMsrc!format.c(trunk.12) $");
 
 
 Bool FormatCheck(Format format)
@@ -94,16 +94,17 @@ Res FormatDescribe(Format format, mps_lib_FILE *stream)
   Res res;
   
   res = WriteF(stream,
-               "Format $P ($U) {\n", (void *)format, (unsigned long)format->serial,
-               "  space $P ($U)\n", (void *)format->space, (unsigned long)format->space->serial,
-               "  alignment $W\n", (Word)format->alignment,
-               "  scan $P\n", (void *)format->scan,
-               "  skip $P\n", (void *)format->skip,
-               "  move $P\n", (void *)format->move,
-               "  isMoved $P\n", (void *)format->isMoved,
-               "  copy $P\n", (void *)format->copy,
-               "  pad $P\n", (void *)format->pad,
-               "} Format $P ($U)\n", (void *)format, (unsigned long)format->serial,
+               "Format $P ($U) {\n", (WriteFP)format, (WriteFU)format->serial,
+               "  space $P ($U)\n", 
+               (WriteFP)format->space, (WriteFU)format->space->serial,
+               "  alignment $W\n", (WriteFW)format->alignment,
+               "  scan $F\n", (WriteFF)format->scan,
+               "  skip $F\n", (WriteFF)format->skip,
+               "  move $F\n", (WriteFP)format->move,
+               "  isMoved $F\n", (WriteFF)format->isMoved,
+               "  copy $F\n", (WriteFF)format->copy,
+               "  pad $F\n", (WriteFF)format->pad,
+               "} Format $P ($U)\n", (WriteFP)format, (WriteFU)format->serial,
                NULL);
   if(res != ResOK) return res;
 

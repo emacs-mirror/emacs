@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.7) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.9) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -181,5 +181,18 @@ enum {
   ResIO
 };
 
+
+/* Types for WriteF formats */
+/* These should be used with calls to WriteF. */
+/* These must be unpromotable types. */
+
+typedef Addr WriteFA;
+typedef Pointer WriteFP;
+typedef char *WriteFS;
+typedef Word WriteFW;
+typedef unsigned long WriteFU;
+typedef unsigned long WriteFB;
+typedef void *(*WriteFF)(void);
+typedef int WriteFC; /* Promoted */
 
 #endif /* mpmtypes_h */
