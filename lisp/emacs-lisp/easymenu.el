@@ -343,8 +343,7 @@ MENU, just change it, otherwise put it last in MENU."
 			   (postfix
 			    (if (< (match-end 1) (match-end 0))
 				(substring keys (match-end 1))))
-			   (cmd (intern (substring keys (match-beginning 2)
-						   (match-end 2)))))
+			   (cmd (intern (match-string 2 keys))))
 		       (setq keys (and (or prefix postfix)
 				       (cons prefix postfix)))
 		       (setq keys
@@ -421,10 +420,12 @@ NAME can be either a string, or a symbol."
 	  (eq (car-safe item) name)
 	(if (stringp name)
 	    ;; Match against the text that is displayed to the user.
-	    (or (member-ignore-case name item)
+	    (or (condition-case nil (member-ignore-case name item)
+		  (error nil))		;`item' might not be a proper list.
 		;; Also check the string version of the symbol name,
 		;; for backwards compatibility.
-		(eq (car-safe item) (intern name)))))))
+		(eq (car-safe item) (intern name))
+		(eq (car-safe item) (easy-menu-intern name)))))))
 
 (defun easy-menu-always-true (x)
   "Return true if form X never evaluates to nil."
@@ -515,6 +516,9 @@ submenu is then traversed recursively with the remaining elements of PATH.
 ITEM is either defined as in `easy-menu-define' or a non-nil value returned
 by `easy-menu-item-present-p' or `easy-menu-remove-item' or a menu defined
 earlier by `easy-menu-define' or `easy-menu-create-menu'."
+  (unless map
+    (setq map (current-global-map))
+    (push 'menu-bar path))
   (setq map (easy-menu-get-map map path
 			       (and (null map) (null path)
 				    (stringp (car-safe item))
