@@ -1,13 +1,13 @@
 /*  impl.c.protw3: PROTECTION FOR WIN32
  *
- *  $HopeName: MMsrc!protw3.c(trunk.14) $
+ *  $HopeName: MMsrc!protw3.c(trunk.15) $
  *  Copyright (C) 1995, 1997 Harlequin Group, all rights reserved
  */
 
 #include "mpm.h"
-/* protw3.h needed to share MutatorFaultContextStruct declation */
+/* prmcw3.h needed to share MutatorFaultContextStruct declation */
 /* with impl.c.prmcw3i3 */
-#include "protw3.h"
+#include "prmcw3.h"
 
 #ifndef MPS_OS_W3
 #error "protw3.c is Win32-specific, but MPS_OS_W3 is not set"
@@ -18,7 +18,7 @@
 
 #include "mpswin.h"
 
-SRCID(protw3, "$HopeName: MMsrc!protw3.c(trunk.14) $");
+SRCID(protw3, "$HopeName: MMsrc!protw3.c(trunk.15) $");
 
 
 void ProtSetup(void)
