@@ -1,3 +1,11 @@
+2000-02-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/freebsd.h (BROKEN_PTY_READ_AFTER_EAGAIN): Define.
+
+	* process.c (send_process) [BROKEN_PTY_READ_AFTER_EAGAIN]:
+	Workaround for FreeBSD bug.  Flush output queue after EAGAIN in
+	write(2).
+
 2000-02-15  Richard M. Stallman  <rms@gnu.org>
 
 	* data.c (set_internal): Don't make variable buffer-local
