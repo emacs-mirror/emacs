@@ -28,14 +28,15 @@
 ;; various commonly used sets of commands.
 ;;
 ;; With the following setup, the keypad can be used for numeric data
-;; entry, or to give numeric prefix arguments to emacs commands.
+;; entry when NumLock is off, and to give numeric prefix arguments to
+;; emacs commands, when NumLock on on.
 ;;
-;;  (keypad-setup 'numeric)
-;;  (keypad-setup 'prefix t)
+;;  keypad-setup         => Plain Numeric Keypad
+;;  keypad-numlock-setup => Prefix numeric args
 ;;
 ;;    +--------+--------+--------+
-;;    |  M-7   |  M-8   |  M-9   |
-;;    |   7    |   8    |   9    |
+;;    |  M-7   |  M-8   |  M-9   | <- numlock on
+;;    |   7    |   8    |   9    | <- numlock off
 ;;    +--------+--------+--------+
 ;;    |  M-4   |  M-5   |  M-6   |
 ;;    |   4    |   5    |   6    |
@@ -47,14 +48,16 @@
 ;;    |        0        |   .    |
 ;;    +-----------------+--------+
 
-;; The following keypad setup is used for navigation:
+;; The following keypad setup is used for navigation together with
+;; modes like cua-mode which uses shifted movement keys to extend the
+;; region.
 ;;
-;;  (keypad-setup 'cursor)
-;;  (keypad-setup 'S-cursor t)
+;;  keypad-setup         => Cursor keys
+;;  keypad-shifted-setup => Shifted cursor keys
 ;;
 ;;    +--------+--------+--------+
-;;    | S-home | S-up   | S-PgUp |
-;;    |  Home  |  up    |  PgUp  |
+;;    | S-home | S-up   | S-PgUp | <- shifted, numlock off
+;;    |  Home  |  up    |  PgUp  | <- unshifted, numlock off
 ;;    +--------+--------+--------+
 ;;    | S-left |S-space |S-right |
 ;;    |  left  | space  | right  |
@@ -66,6 +69,28 @@
 ;;    |     insert      | delete |
 ;;    +-----------------+--------+
 
+;; The following setup binds the unshifted keypad keys to plain
+;; numeric keys when NumLock is either on or off, but the decimal key
+;; produces either a . (NumLock off) or a , (NumLock on).  This is
+;; useful for e.g. Danish users where the decimal separator is a
+;; comma.
+;;
+;;  keypad-setup         => Plain Numeric Keypad
+;;  keypad-numlock-setup => Numeric Keypad with Decimal key: ,
+;;
+;;    +--------+--------+--------+
+;;    |   7    |   8    |   9    | <- numlock on
+;;    |   7    |   8    |   9    | <- numlock off
+;;    +--------+--------+--------+
+;;    |   4    |   5    |   6    |
+;;    |   4    |   5    |   6    |
+;;    +--------+--------+--------+
+;;    |   1    |   2    |   3    |
+;;    |   1    |   2    |   3    |
+;;    +--------+--------+--------+
+;;    |        0        |   ,    |
+;;    |        0        |   .    |
+;;    +-----------------+--------+
 
 ;;; Code:
 
@@ -75,102 +100,152 @@
 
 ;;;###autoload
 (defcustom keypad-setup nil
-  "Specifies the keypad setup for unshifted keypad keys.
-The options are:
- 'prefix   Numeric prefix argument, i.e.  M-0 .. M-9 and M--
- 'cursor   Cursor movement keys.
- 'S-cursor Shifted cursor movement keys.
- 'numeric  Plain numeric, i.e. 0 .. 9 and .  (or DECIMAL arg)
- 'none     Removes all bindings for keypad keys in function-key-map.
- nil       Keep existing bindings for the keypad keys."
+  "Specifies the keypad setup for unshifted keypad keys when NumLock is off.
+When selecting the plain numeric keypad setup, the character returned by the
+decimal key must be specified."
   :set (lambda (symbol value)
 	 (if value
-	     (keypad-setup value nil keypad-decimal-key)))
+	     (keypad-setup value nil nil value)))
   :initialize 'custom-initialize-default
-  :set-after '(keypad-decimal-key)
-  :require 'keypad
   :link '(emacs-commentary-link "keypad.el")
   :version "21.4"
-  :type '(choice (const :tag "Numeric prefix arguments" prefix) 
+  :type '(choice (const :tag "Plain numeric keypad" numeric)
+		 (character :tag "Numeric Keypad with Decimal Key"
+			    :match (lambda (widget value) (integerp value))
+			    :value ?.)
+		 (const :tag "Numeric prefix arguments" prefix) 
 		 (const :tag "Cursor keys" cursor)
 		 (const :tag "Shifted cursor keys" S-cursor)
-		 (const :tag "Plain Numeric Keypad" numeric)
 		 (const :tag "Remove bindings" none)
-		 (other :tag "Keep existing bindings" :value nil))
+		 (other :tag "Keep existing bindings" nil))
   :group 'keyboard)
 
-(defcustom keypad-decimal-key ?.
-  "Character produced by the unshifted decimal key on the keypad."
-  :type 'character
+;;;###autoload
+(defcustom keypad-numlock-setup nil
+  "Specifies the keypad setup for unshifted keypad keys when NumLock is on.
+When selecting the plain numeric keypad setup, the character returned by the
+decimal key must be specified."
+  :set (lambda (symbol value)
+	 (if value
+	     (keypad-setup value t nil value)))
+  :initialize 'custom-initialize-default
+  :link '(emacs-commentary-link "keypad.el")
+  :version "21.4"
+  :type '(choice (const :tag "Plain numeric keypad" numeric)
+		 (character :tag "Numeric Keypad with Decimal Key"
+			    :match (lambda (widget value) (integerp value))
+			    :value ?.)
+		 (const :tag "Numeric prefix arguments" prefix) 
+		 (const :tag "Cursor keys" cursor)
+		 (const :tag "Shifted cursor keys" S-cursor)
+		 (const :tag "Remove bindings" none)
+		 (other :tag "Keep existing bindings" nil))
   :group 'keyboard)
 
 ;;;###autoload
 (defcustom keypad-shifted-setup nil
-  "Specifies the keypad setup for shifted keypad keys.
-See `keypad-setup' for available options."
+  "Specifies the keypad setup for shifted keypad keys when NumLock is off.
+When selecting the plain numeric keypad setup, the character returned by the
+decimal key must be specified."
   :set (lambda (symbol value)
 	 (if value
-	     (keypad-setup value t keypad-shifted-decimal-key)))
+	     (keypad-setup value nil t value)))
   :initialize 'custom-initialize-default
-  :set-after '(keypad-shifted-decimal-key)
-  :require 'keypad
   :link '(emacs-commentary-link "keypad.el")
   :version "21.4"
-  :type '(choice (const :tag "Numeric prefix arguments" prefix) 
+  :type '(choice (const :tag "Plain numeric keypad" numeric)
+		 (character :tag "Numeric Keypad with Decimal Key"
+			    :match (lambda (widget value) (integerp value))
+			    :value ?.)
+		 (const :tag "Numeric prefix arguments" prefix) 
 		 (const :tag "Cursor keys" cursor)
 		 (const :tag "Shifted cursor keys" S-cursor)
-		 (const :tag "Plain Numeric Keypad" numeric)
 		 (const :tag "Remove bindings" none)
-		 (other :tag "Keep existing bindings" :value nil))
-  :group 'keyboard)
-
-(defcustom keypad-shifted-decimal-key ?.
-  "Character produced by the unshifted decimal key on the keypad."
-  :type 'character
+		 (other :tag "Keep existing bindings" nil))
   :group 'keyboard)
 
 ;;;###autoload
-(defun keypad-setup (setup &optional numlock decimal)
+(defcustom keypad-numlock-shifted-setup nil
+  "Specifies the keypad setup for shifted keypad keys when NumLock is off.
+When selecting the plain numeric keypad setup, the character returned by the
+decimal key must be specified."
+  :set (lambda (symbol value)
+	 (if value
+	     (keypad-setup value t t value)))
+  :initialize 'custom-initialize-default
+  :link '(emacs-commentary-link "keypad.el")
+  :version "21.4"
+  :type '(choice (const :tag "Plain numeric keypad" numeric)
+		 (character :tag "Numeric Keypad with Decimal Key"
+			    :match (lambda (widget value) (integerp value))
+			    :value ?.)
+		 (const :tag "Numeric prefix arguments" prefix) 
+		 (const :tag "Cursor keys" cursor)
+		 (const :tag "Shifted cursor keys" S-cursor)
+		 (const :tag "Remove bindings" none)
+		 (other :tag "Keep existing bindings" nil))
+  :group 'keyboard)
+
+
+;;;###autoload
+(defun keypad-setup (setup &optional numlock shift decimal)
   "Set keypad bindings in function-key-map according to SETUP.
 If optional second argument NUMLOCK is non-nil, the NumLock On bindings
 are changed. Otherwise, the NumLock Off bindings are changed.
+If optional third argument SHIFT is non-nil, the shifted keypad
+keys are bound.
 
  Setup      Binding
  -------------------------------------------------------------
  'prefix   Command prefix argument, i.e.  M-0 .. M-9 and M--
  'S-cursor Bind shifted keypad keys to the shifted cursor movement keys.
  'cursor   Bind keypad keys to the cursor movement keys.
- 'numeric  Plain numeric, i.e. 0 .. 9 and .  (or DECIMAL arg)
+ 'numeric  Plain numeric keypad, i.e. 0 .. 9 and .  (or DECIMAL arg)
  'none     Removes all bindings for keypad keys in function-key-map.
 
-If SETUP is 'numeric and the optional third argument DECIMAL is non-nil,
+If SETUP is 'numeric and the optional fourth argument DECIMAL is non-nil,
 the decimal key on the keypad is mapped to DECIMAL instead of `.'"
-  (let ((i 0)
-	(kp
-	 (cond
-	  (numlock
-	   [kp-decimal kp-0 kp-1 kp-2 kp-3 kp-4
-		       kp-5 kp-6 kp-7 kp-8 kp-9])
-	  (t
-	   [kp-delete kp-insert kp-end kp-down kp-next kp-left
-		      kp-space kp-right kp-home kp-up kp-prior])))
-	(bind
-	 (cond
-	  ((eq setup 'numeric)
-	   (vector (or decimal ?.) ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
-	  ((eq setup 'prefix)
-	   [?\M-- ?\M-0 ?\M-1 ?\M-2 ?\M-3 ?\M-4
-		  ?\M-5 ?\M-6 ?\M-7 ?\M-8 ?\M-9])
-	  ((eq setup 'cursor)
-	   [delete insert end down next left
-		  space right home up prior])
-	  ((eq setup 'S-cursor)
-	   [S-delete S-insert S-end S-down S-next S-left 
-		     S-space S-right S-home S-up S-prior])
-	  ((eq setup 'none)
-	   nil)
-	  (t
-	   (signal 'error (list "Unknown keypad setup: " setup))))))
+  (let* ((i 0)
+	 (var (cond
+	       ((and (not numlock) (not shift)) 'keypad-setup)
+	       ((and (not numlock) shift) 'keypad-shifted-setup)
+	       ((and numlock (not shift)) 'keypad-numlock-setup)
+	       ((and numlock shift) 'keypad-numlock-shifted-setup)))
+	 (kp (cond
+	      ((eq var 'keypad-setup)
+	       [kp-delete kp-insert kp-end kp-down kp-next kp-left
+			  kp-space kp-right kp-home kp-up kp-prior])
+	      ((eq var 'keypad-shifted-setup)
+	       [S-kp-decimal S-kp-0 S-kp-1 S-kp-2 S-kp-3 S-kp-4
+			     S-kp-5 S-kp-6 S-kp-7 S-kp-8 S-kp-9])
+	      ((eq var 'keypad-numlock-setup)
+	       [kp-decimal kp-0 kp-1 kp-2 kp-3 kp-4
+			   kp-5 kp-6 kp-7 kp-8 kp-9])
+	      ((eq var 'keypad-numlock-shifted-setup)
+	       [S-kp-delete S-kp-insert S-kp-end S-kp-down S-kp-next S-kp-left
+			    S-kp-space S-kp-right S-kp-home S-kp-up S-kp-prior])))
+	 (bind
+	  (cond
+	   ((or (eq setup 'numeric)
+		(char-valid-p setup))
+	    (if (eq decimal 'numeric)
+		(setq decimal nil))
+	    (vector (or decimal ?.) ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
+	   ((eq setup 'prefix)
+	    [?\M-- ?\M-0 ?\M-1 ?\M-2 ?\M-3 ?\M-4
+		   ?\M-5 ?\M-6 ?\M-7 ?\M-8 ?\M-9])
+	   ((eq setup 'cursor)
+	    [delete insert end down next left
+		    space right home up prior])
+	   ((eq setup 'S-cursor)
+	    [S-delete S-insert S-end S-down S-next S-left 
+		      S-space S-right S-home S-up S-prior])
+	   ((eq setup 'none)
+	    nil)
+	   (t
+	    (signal 'error (list "Unknown keypad setup: " setup))))))
+
+    (set var setup)
 
     ;; Bind the keys in KP list to BIND list in function-key-map.
     ;; If BIND is nil, all bindings for the keys are removed.
