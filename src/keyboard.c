@@ -3315,10 +3315,28 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  obj = Fcons (Qhelp_echo, event->frame_or_window);
 	  kbd_fetch_ptr = event + 1;
 	}
-      /* If this event is on a different frame, return a switch-frame this
-	 time, and leave the event in the queue for next time.  */
+      else if (event->kind == FOCUS_IN_EVENT)
+	{
+	  /* Notification of a FocusIn event.  The frame receiving the
+	     focus is in event->frame_or_window.  Generate a
+	     switch-frame event if necessary.  */
+	  Lisp_Object frame, focus;
+
+	  frame = event->frame_or_window;
+	  focus = FRAME_FOCUS_FRAME (XFRAME (frame));
+	  if (FRAMEP (focus))
+	    frame = focus;
+
+	  if (!EQ (frame, internal_last_event_frame)
+	      && !EQ (frame, selected_frame))
+	    obj = make_lispy_switch_frame (frame);
+	  internal_last_event_frame = frame;
+	  kbd_fetch_ptr = event + 1;
+	}
       else
 	{
+	  /* If this event is on a different frame, return a switch-frame this
+	     time, and leave the event in the queue for next time.  */
 	  Lisp_Object frame;
 	  Lisp_Object focus;
 
