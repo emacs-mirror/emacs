@@ -145,7 +145,7 @@ This environment can be passed to `macroexpand'."
   ;; ** top form ** header...
   (let ((elint-top-form-logged t))
     (elint-log-message "\nLinting complete.\n")))
-	
+
 (defun elint-defun ()
   "Lint the function at point."
   (interactive)
@@ -193,7 +193,7 @@ Returns the forms."
 	 (elint-init-env elint-buffer-forms))
     (set (make-local-variable 'elint-last-env-time) (buffer-modified-tick))
     elint-buffer-forms))
-       
+
 (defun elint-get-top-forms ()
   "Collect all the top forms in the current buffer."
   (save-excursion
@@ -271,7 +271,7 @@ Returns nil if there are no more forms, T otherwise."
      (ding)
      (message "Can't get variables from require'd library %s" name)))
   env)
-					
+
 (defun regexp-assoc (regexp alist)
   "Search for a key matching REGEXP in ALIST."
   (let ((res nil))
@@ -312,11 +312,11 @@ Returns nil if there are no more forms, T otherwise."
     (defmacro . elint-check-defun-form)
     (defvar . elint-check-defvar-form)
     (defconst . elint-check-defvar-form)
-    (defcustom . elint-check-defvar-form)
+    (defcustom . elint-check-defcustom-form)
     (macro . elint-check-macro-form)
     (condition-case . elint-check-condition-case-form))
   "Functions to call when some special form should be linted.")
-								
+
 (defun elint-form (form env)
   "Lint FORM in the environment ENV.
 The environment created by the form is returned."
@@ -334,9 +334,9 @@ The environment created by the form is returned."
 	   ((eq args 'undefined)
 	    (setq argsok nil)
 	    (elint-error "Call to undefined function: %s" form))
-       
+
 	   ((eq args 'unknown) nil)
-	 
+
 	   (t (setq argsok (elint-match-args form args))))
 
 	  ;; Is this a macro?
@@ -526,7 +526,7 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
       (if (symbolp sym)
 	  (setq newenv (elint-env-add-var newenv sym))))
     newenv))
-			
+
 (defun elint-check-defvar-form (form env)
   "Lint the defvar/defconst FORM in ENV."
   (if (or (= (length form) 2)
@@ -536,7 +536,16 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
 			     (car (cdr form)))
     (elint-error "Malformed variable declaration: %s" form)
     env))
-   
+
+(defun elint-check-defcustom-form (form env)
+  "Lint the defcustom FORM in ENV."
+  (if (and (> (length form) 3)
+	   (evenp (length form)))	; even no. of keyword/value args
+      (elint-env-add-global-var (elint-form (nth 2 form) env)
+				(car (cdr form)))
+    (elint-error "Malformed variable declaration: %s" form)
+    env))
+
 (defun elint-check-function-form (form env)
   "Lint the function FORM in ENV."
   (let ((func (car (cdr-safe form))))
@@ -591,7 +600,7 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
 	  (setq errforms (cdr errforms))
 	  )))
     resenv))
-	
+
 ;;;
 ;;; Message functions
 ;;;
@@ -605,7 +614,7 @@ STRING and ARGS are thrown on `format' to get the message."
   (let ((errstr (apply 'format string args)))
     (elint-log-message errstr)
     ))
-    
+
 (defun elint-warning (string &rest args)
   "Report an linting warning.
 STRING and ARGS are thrown on `format' to get the message."
@@ -668,11 +677,11 @@ Insert HEADER followed by a blank line if non-nil."
 	  (setq truncate-lines t)
 	  (set-buffer oldbuf)))
       )))
-      
+
 ;;;
 ;;; Initializing code
 ;;;
-   
+
 ;;;###autoload
 (defun elint-initialize ()
   "Initialize elint."
@@ -733,7 +742,7 @@ If no documentation could be found args will be `unknown'."
      point-before-scroll require-final-newline selective-display
      selective-display-ellipses tab-width truncate-lines vc-mode)
   "Standard buffer local vars.")
-  
+
 (defconst elint-unknown-builtin-args
   '((while test &rest forms)
     (insert-before-markers-and-inherit &rest text)
