@@ -135,6 +135,12 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; which is regexp Impressionism - it matches almost anything!
     ("([ \t]*\\([^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\))" 1 2)
 
+    ;; MIPS lint pass<n>; looks good for SunPro lint also
+    ;;  TrimMask (255) in solomon.c may be indistinguishable from TrimMasks (93) in solomon.c due to truncation
+    ("[^ ]+ (\\([0-9]+\\)) in \\([^ ]+\\)" 2 1)
+    ;;  name defined but never used: LinInt in cmap_calc.c(199)
+    ("in \\([^(]+\\)(\\([0-9]+\\))$" 1 2)
+
     ;; Ultrix 3.0 f77:
     ;;  fort: Severe: addstf.f, line 82: Missing operator or delimiter symbol
     ;; Some SGI cc version:
