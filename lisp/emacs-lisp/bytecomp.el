@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.90 $")
+(defconst byte-compile-version "$Revision: 2.91 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1266,6 +1266,8 @@ recompile every `.el' file that already has a `.elc' file."
     (save-some-buffers)
     (force-mode-line-update))
   (let ((directories (list (expand-file-name directory)))
+        (skip-count 0)
+        (fail-count 0)
 	(file-count 0)
 	(dir-count 0)
 	last-dir)
@@ -1275,9 +1277,9 @@ recompile every `.el' file that already has a `.elc' file."
        (message "Checking %s..." directory)
        (let ((files (directory-files directory))
 	     source dest)
-	 (while files
-	   (setq source (expand-file-name (car files) directory))
-	   (if (and (not (member (car files) '("." ".." "RCS" "CVS")))
+	 (dolist (file files)
+	   (setq source (expand-file-name file directory))
+	   (if (and (not (member file '("." ".." "RCS" "CVS")))
 		    (file-directory-p source)
 		    (not (file-symlink-p source)))
 	       ;; This file is a subdirectory.  Handle them differently.
@@ -1300,18 +1302,24 @@ recompile every `.el' file that already has a `.elc' file."
 				 (y-or-n-p (concat "Compile " source "? "))))))
 		 (progn (if (and noninteractive (not byte-compile-verbose))
 			    (message "Compiling %s..." source))
-			(byte-compile-file source)
+                        (let ((res (byte-compile-file source)))
+                          (cond ((eq res 'no-byte-compile)
+                                 (setq skip-count (1+ skip-count)))
+                                ((eq res t)
+                                 (setq file-count (1+ file-count)))
+                                ((eq res nil)
+                                 (setq fail-count (1+ fail-count)))))
 			(or noninteractive
 			    (message "Checking %s..." directory))
-			(setq file-count (1+ file-count))
 			(if (not (eq last-dir directory))
 			    (setq last-dir directory
 				  dir-count (1+ dir-count)))
-			)))
-	   (setq files (cdr files))))
+			)))))
        (setq directories (cdr directories))))
-    (message "Done (Total of %d file%s compiled%s)"
+    (message "Done (Total of %d file%s compiled%s%s%s)"
 	     file-count (if (= file-count 1) "" "s")
+             (if (> fail-count 0) (format ", %d failed" fail-count) "")
+             (if (> skip-count 0) (format ", %d skipped" skip-count) "")
 	     (if (> dir-count 1) (format " in %d directories" dir-count) ""))))
 
 ;;;###autoload
@@ -1319,7 +1327,7 @@ recompile every `.el' file that already has a `.elc' file."
   "Compile a file of Lisp code named FILENAME into a file of byte code.
 The output file's name is made by appending `c' to the end of FILENAME.
 With prefix arg (noninteractively: 2nd arg), LOAD the file after compiling.
-The value is t if there were no errors, nil if errors."
+The value is non-nil if there were no errors, nil if errors."
 ;;  (interactive "fByte compile file: \nP")
   (interactive
    (let ((file buffer-file-name)
@@ -1389,7 +1397,7 @@ The value is t if there were no errors, nil if errors."
 	  (if (file-exists-p target-file)
 	      (condition-case nil (delete-file target-file) (error nil)))
 	  ;; We successfully didn't compile this file.
-	  t)
+	  'no-byte-compile)
       (if byte-compile-verbose
 	  (message "Compiling %s..." filename))
       (setq byte-compiler-error-flag nil)
@@ -3557,17 +3565,16 @@ For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\""
       (if (file-directory-p (expand-file-name (car command-line-args-left)))
 	  (let ((files (directory-files (car command-line-args-left)))
 		source dest)
-	    (while files
-	      (if (and (string-match emacs-lisp-file-regexp (car files))
-		       (not (auto-save-file-name-p (car files)))
-		       (setq source (expand-file-name (car files)
+	    (dolist (file files)
+	      (if (and (string-match emacs-lisp-file-regexp file)
+		       (not (auto-save-file-name-p file))
+		       (setq source (expand-file-name file
 						      (car command-line-args-left)))
 		       (setq dest (byte-compile-dest-file source))
 		       (file-exists-p dest)
 		       (file-newer-than-file-p source dest))
 		  (if (null (batch-byte-compile-file source))
-		      (setq error t)))
-	      (setq files (cdr files))))
+		      (setq error t)))))
 	(if (null (batch-byte-compile-file (car command-line-args-left)))
 	    (setq error t)))
       (setq command-line-args-left (cdr command-line-args-left)))

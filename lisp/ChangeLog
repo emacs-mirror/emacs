@@ -1,3 +1,9 @@
+2001-10-29  Sam Steingold  <sds@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory): Report
+	numbers of files skipped and failed too.
+	(byte-compile-file): Return 'no-byte-compile for skipped files.
+
 2001-10-29  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* log-view.el (log-view-mode-map): Bind `M-n' and `M-p', not `M n'
