@@ -233,7 +233,7 @@ DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
        Sunibyte_char_to_multibyte, 1, 1, 0,
        doc: /* Convert the unibyte character CH to multibyte character.
 The multibyte character is a result of decoding CH by
-the current primary charset (value of `charset-primary').  */)
+the current unibyte charset (see `unibyte-charset').  */)
      (ch)
      Lisp_Object ch;
 {
