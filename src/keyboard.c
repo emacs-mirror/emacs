@@ -260,6 +260,9 @@ Lisp_Object Vkeyboard_translate_table;
 /* Keymap mapping ASCII function key sequences onto their preferred forms.  */
 extern Lisp_Object Vfunction_key_map;
 
+/* Keymap mapping ASCII function key sequences onto their preferred forms.  */
+Lisp_Object Vkey_translation_map;
+
 /* Non-nil means deactivate the mark at end of this command.  */
 Lisp_Object Vdeactivate_mark;
 
@@ -443,6 +446,10 @@ void (*keyboard_init_hook) ();
 static int read_avail_input ();
 static void get_input_pending ();
 static Lisp_Object read_char_menu_prompt ();
+static Lisp_Object make_lispy_event ();
+static Lisp_Object make_lispy_movement ();
+static Lisp_Object modify_event_symbol ();
+static Lisp_Object make_lispy_switch_frame ();
 
 /* > 0 if we are to echo keystrokes.  */
 static int echo_keystrokes;
@@ -887,6 +894,11 @@ command_loop_1 ()
   nonundocount = 0;
   no_redisplay = 0;
   this_command_key_count = 0;
+
+  /* Make sure this hook runs after commands that get errors and
+     throw to top level.  */
+  if (!NILP (Vpost_command_hook))
+    call1 (Vrun_hooks, Qpost_command_hook);
 
   while (1)
     {
@@ -1660,26 +1672,6 @@ restore_getcjmp (temp)
 }
 
 
-/* Low level keyboard/mouse input.
-   kbd_buffer_store_event places events in kbd_buffer, and
-   kbd_buffer_get_event retrieves them.
-   mouse_moved indicates when the mouse has moved again, and
-   *mouse_position_hook provides the mouse position.  */
-
-/* Set this for debugging, to have a way to get out */
-int stop_character;
-
-extern int frame_garbaged;
-
-/* Return true iff there are any events in the queue that read-char
-   would return.  If this returns false, a read-char would block.  */
-static int
-readable_events ()
-{
-  return ! EVENT_QUEUES_EMPTY;
-}
-
-
 /* Restore mouse tracking enablement.  See Ftrack_mouse for the only use
    of this function.  */
 static Lisp_Object
@@ -1722,6 +1714,23 @@ Normally, mouse motion is ignored.")
   val = Fprogn (args);
   return unbind_to (count, val);
 }
+
+/* Low level keyboard/mouse input.
+   kbd_buffer_store_event places events in kbd_buffer, and
+   kbd_buffer_get_event retrieves them.
+   mouse_moved indicates when the mouse has moved again, and
+   *mouse_position_hook provides the mouse position.  */
+
+/* Return true iff there are any events in the queue that read-char
+   would return.  If this returns false, a read-char would block.  */
+static int
+readable_events ()
+{
+  return ! EVENT_QUEUES_EMPTY;
+}
+
+/* Set this for debugging, to have a way to get out */
+int stop_character;
 
 /* Store an event obtained at interrupt level into kbd_buffer, fifo */
 
@@ -1798,11 +1807,12 @@ kbd_buffer_store_event (event)
       kbd_store_ptr++;
     }
 }
-
-static Lisp_Object make_lispy_event ();
-static Lisp_Object make_lispy_movement ();
-static Lisp_Object modify_event_symbol ();
-static Lisp_Object make_lispy_switch_frame ();
+
+/* Read one event from the event buffer, waiting if necessary.
+   The value is a Lisp object representing the event.
+   The value is nil for an event that should be ignored,
+   or that was handled here.
+   We always read and discard one event.  */
 
 static Lisp_Object
 kbd_buffer_get_event ()
@@ -1817,7 +1827,6 @@ kbd_buffer_get_event ()
       return obj;
     }
 
- retry:
   /* Wait until there is input available.  */
   for (;;)
     {
@@ -1870,7 +1879,8 @@ kbd_buffer_get_event ()
       obj = Qnil;
 
       /* These two kinds of events get special handling
-	 and don't actually appear to the command loop.  */
+	 and don't actually appear to the command loop.
+	 We return nil for them.  */
       if (event->kind == selection_request_event)
 	{
 #ifdef HAVE_X11
@@ -1894,6 +1904,11 @@ kbd_buffer_get_event ()
 	  abort ();
 #endif
 	}
+      /* Just discard these, by returning nil.
+	 (They shouldn't be found in the buffer,
+	 but on some machines it appears they do show up.)  */
+      else if (event->kind == no_event)
+	kbd_fetch_ptr = event + 1;
 
       /* If this event is on a different frame, return a switch-frame this
 	 time, and leave the event in the queue for next time.  */
@@ -1932,6 +1947,7 @@ kbd_buffer_get_event ()
 	    }
 	}
     }
+  /* Try generating a mouse motion event.  */
   else if (do_mouse_tracking && mouse_moved)
     {
       FRAME_PTR f = 0;
@@ -1972,13 +1988,6 @@ kbd_buffer_get_event ()
        something for us to read!  */
     abort ();
 
-#if 0
-  /* If something gave back nil as the Lispy event,
-     it means the event was discarded, so try again.  */
-  if (NILP (obj))
-    goto retry;
-#endif
-
   input_pending = readable_events ();
 
 #ifdef MULTI_FRAME
@@ -1987,8 +1996,9 @@ kbd_buffer_get_event ()
 
   return (obj);
 }
-
-/* Process any events that are not user-visible.  */
+
+/* Process any events that are not user-visible,
+   then return, without reading any user-visible events.  */
 
 void
 swallow_events ()
@@ -2034,7 +2044,7 @@ swallow_events ()
 
   get_input_pending (&input_pending);
 }
-
+
 /* Caches for modify_event_symbol.  */
 static Lisp_Object func_key_syms;
 static Lisp_Object mouse_syms;
@@ -3718,6 +3728,10 @@ read_key_sequence (keybuf, bufsize, prompt)
   int fkey_start = 0, fkey_end = 0;
   Lisp_Object fkey_map;
 
+  /* Likewise, for key_translation_map.  */
+  int keytran_start = 0, keytran_end = 0;
+  Lisp_Object keytran_map;
+
   /* If we receive a ``switch-frame'' event in the middle of a key sequence,
      we put it off for later.  While we're reading, we keep the event here.  */
   Lisp_Object delayed_switch_frame;
@@ -3730,10 +3744,15 @@ read_key_sequence (keybuf, bufsize, prompt)
 
   delayed_switch_frame = Qnil;
   fkey_map = Vfunction_key_map;
+  keytran_map = Vkey_translation_map;
 
-  /* If there is no function key map, turn off function key scanning.  */
+  /* If there is no function-key-map, turn off function key scanning.  */
   if (NILP (Fkeymapp (Vfunction_key_map)))
     fkey_start = fkey_end = bufsize + 1;
+
+  /* If there is no key-translation-map, turn off scanning.  */
+  if (NILP (Fkeymapp (Vkey_translation_map)))
+    keytran_start = keytran_end = bufsize + 1;
 
   if (INTERACTIVE)
     {
@@ -3812,7 +3831,11 @@ read_key_sequence (keybuf, bufsize, prompt)
 	 || (first_binding >= nmaps
 	     && fkey_start < t
 	     /* mock input is never part of a function key's sequence.  */
-	     && mock_input <= fkey_start))
+	     && mock_input <= fkey_start)
+	 || (first_binding >= nmaps
+	     && keytran_start < t
+	     /* mock input is never part of a function key's sequence.  */
+	     && mock_input <= keytran_start))
     {
       Lisp_Object key;
       int used_mouse_menu = 0;
@@ -4208,6 +4231,78 @@ read_key_sequence (keybuf, bufsize, prompt)
 		}
 	    }
 	}
+
+      /* Look for this sequence in key-translation-map.  */
+      {
+	Lisp_Object keytran_next;
+
+	/* Scan from keytran_end until we find a bound suffix.  */
+	while (keytran_end < t)
+	  {
+	    Lisp_Object key;
+
+	    key = keybuf[keytran_end++];
+	    /* Look up meta-characters by prefixing them
+	       with meta_prefix_char.  I hate this.  */
+	    if (XTYPE (key) == Lisp_Int && XINT (key) & meta_modifier)
+	      {
+		keytran_next
+		  = get_keymap_1
+		    (get_keyelt
+		     (access_keymap (keytran_map, meta_prefix_char, 1, 0)),
+		     0, 1);
+		XFASTINT (key) = XFASTINT (key) & ~meta_modifier;
+	      }
+	    else
+	      keytran_next = keytran_map;
+
+	    keytran_next
+	      = get_keyelt (access_keymap (keytran_next, key, 1, 0));
+
+	    /* If keybuf[keytran_start..keytran_end] is bound in the
+	       function key map and it's a suffix of the current
+	       sequence (i.e. keytran_end == t), replace it with
+	       the binding and restart with keytran_start at the end. */
+	    if ((VECTORP (keytran_next) || STRINGP (keytran_next))
+		&& keytran_end == t)
+	      {
+		int len = Flength (keytran_next);
+
+		t = keytran_start + len;
+		if (t >= bufsize)
+		  error ("key sequence too long");
+
+		if (VECTORP (keytran_next))
+		  bcopy (XVECTOR (keytran_next)->contents,
+			 keybuf + keytran_start,
+			 (t - keytran_start) * sizeof (keybuf[0]));
+		else if (STRINGP (keytran_next))
+		  {
+		    int i;
+
+		    for (i = 0; i < len; i++)
+		      XFASTINT (keybuf[keytran_start + i])
+			= XSTRING (keytran_next)->data[i];
+		  }
+
+		mock_input = t;
+		keytran_start = keytran_end = t;
+		keytran_map = Vkey_translation_map;
+
+		goto replay_sequence;
+	      }
+
+	    keytran_map = get_keymap_1 (keytran_next, 0, 1);
+
+	    /* If we no longer have a bound suffix, try a new positions for 
+	       keytran_start.  */
+	    if (NILP (keytran_map))
+	      {
+		keytran_end = ++keytran_start;
+		keytran_map = Vkey_translation_map;
+	      }
+	  }
+      }
     }
 
   read_key_sequence_cmd = (first_binding < nmaps
@@ -4236,6 +4331,8 @@ read_key_sequence (keybuf, bufsize, prompt)
   return t;
 }
 
+#if 0 /* This doc string is too long for some compilers.
+	 This commented-out definition serves for DOC.  */
 DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 2, 0,
   "Read a sequence of keystrokes and return as a string or vector.\n\
 The sequence is sufficient to specify a non-prefix command in the\n\
@@ -4269,6 +4366,11 @@ frame-switch event is put off until after the current key sequence.\n\
 `read-key-sequence' checks `function-key-map' for function key\n\
 sequences, where they wouldn't conflict with ordinary bindings.  See\n\
 `function-key-map' for more details.")
+  (prompt, continue_echo)
+#endif
+
+DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 2, 0,
+  0)
   (prompt, continue_echo)
      Lisp_Object prompt, continue_echo;
 {
@@ -5194,6 +5296,12 @@ Each character is looked up in this string and the contents used instead.\n\
 If string is of length N, character codes N and up are untranslated.");
   Vkeyboard_translate_table = Qnil;
 
+  DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
+    "Keymap of key translations that can override keymaps.\n\
+This keymap works like `function-key-map', but comes after that,\n\
+and applies even for keys that have ordinary bindings.");
+  Vkey_translation_map = Qnil;
+
   DEFVAR_BOOL ("menu-prompting", &menu_prompting,
     "Non-nil means prompt with menus when appropriate.\n\
 This is done when reading from a keymap that has a prompt string,\n\
@@ -5243,7 +5351,7 @@ Buffer modification stores t in this variable.");
 
   DEFVAR_LISP ("menu-bar-final-items", &Vmenu_bar_final_items,
     "List of menu bar items to move to the end of the menu bar.\n\
-The elements of the listare event types that may have menu bar bindings.");
+The elements of the list are event types that may have menu bar bindings.");
   Vmenu_bar_final_items = Qnil;
 }
 
