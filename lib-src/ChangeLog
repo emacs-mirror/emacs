@@ -1,5 +1,10 @@
 2004-05-12  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* ebrowse.c [VMS] (parse_qualified_param_ident_or_type):
+	Redefine name to be shorter using pre-processor macro.
+
+2004-05-12  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* cvtmail.c (malloc, realloc): Declarations deleted.
 
 2004-05-12  Thien-Thi Nguyen  <ttn@gnu.org>

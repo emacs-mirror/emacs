@@ -526,6 +526,9 @@ unsigned parm_list P_ ((int *));
 char *operator_name P_ ((int *));
 struct sym *parse_classname P_ ((void));
 struct sym *parse_qualified_ident_or_type P_ ((char **));
+#ifdef VMS
+#define parse_qualified_param_ident_or_type  pq_param_ident_or_type
+#endif
 void parse_qualified_param_ident_or_type P_ ((char **));
 int globals P_ ((int));
 void yyerror P_ ((char *, char *));
@@ -3926,4 +3929,4 @@ main (argc, argv)
   return EXIT_SUCCESS;
 }
 
-/* ebrowse.c ends here.  */
+/* ebrowse.c ends here */
