@@ -119,12 +119,6 @@
   "ZOO-specific options to archive."
   :group 'archive)
 
-
-(defcustom archive-dos-members t
-  "*If non-nil then recognize member files using ^M^J as line terminator."
-  :type 'boolean
-  :group 'archive)
-
 (defcustom archive-tmpdir
   (expand-file-name
    (make-temp-name (if (eq system-type 'ms-dos) "ar" "archive.tmp"))
@@ -222,7 +216,7 @@ Only set to true for msdog systems!"
   :group 'archive-zip)
 
 (defcustom archive-zip-extract
-  (if archive-zip-use-pkzip '("pkunzip" "-e") '("unzip" "-qq" "-c"))
+  (if archive-zip-use-pkzip '("pkunzip" "-e" "-o-") '("unzip" "-qq" "-c"))
   "*Program and its options to run in order to extract a zip file member.
 Extraction should happen to standard output.  Archive and member name will
 be added.  If `archive-zip-use-pkzip' is non-nil then this program is
@@ -333,11 +327,6 @@ Archive and member name will be added."
 (defvar archive-subfile-mode nil "*Non-nil in archive member buffers.")
 (make-variable-buffer-local 'archive-subfile-mode)
 (put 'archive-subfile-mode 'permanent-local t)
-
-(defvar archive-subfile-dos nil
-  "Negation of `buffer-file-type', which see.")
-(make-variable-buffer-local 'archive-subfile-dos)
-(put 'archive-subfile-dos 'permanent-local t)
 
 (defvar archive-files nil
   "Vector of file descriptors.
@@ -528,8 +517,6 @@ archive.
 	(setq require-final-newline nil)
 	(make-local-variable 'enable-local-variables)
 	(setq enable-local-variables nil)
-	(if (boundp 'default-buffer-file-type)
-	    (setq buffer-file-type t))
 
 	(make-local-variable 'archive-read-only)
 	(setq archive-read-only (not (file-writable-p (buffer-file-name))))
@@ -657,10 +644,7 @@ archive.
   ))
 
 (let* ((item1 '(archive-subfile-mode " Archive"))
-       (item2 '(archive-subfile-dos " Dos"))
-       (items (if (memq system-type '(ms-dos windows-nt))
-		  (list item1) ; msdog has its own indicator
-		(list item1 item2))))
+       (items (list item1)))
   (or (member item1 minor-mode-alist)
       (setq minor-mode-alist (append items minor-mode-alist))))
 ;; -------------------------------------------------------------------------
@@ -830,49 +814,73 @@ This function changes the set of information shown for each files."
           (make-local-variable 'local-write-file-hooks)
           (add-hook 'local-write-file-hooks 'archive-write-file-member)
           (setq archive-subfile-mode descr)
-	  (setq archive-subfile-dos nil)
-	  (if (boundp 'default-buffer-file-type)
-	      (setq buffer-file-type t))
-	  (if (fboundp extractor)
-	      (funcall extractor archive ename)
-	    (archive-*-extract archive ename (symbol-value extractor)))
-          (if archive-dos-members (archive-check-dos))
-          (goto-char (point-min))
-          (rename-buffer bufname)
-          (setq buffer-read-only read-only-p)
-	  (setq buffer-undo-list nil)
-          (set-buffer-modified-p nil)
-	  (setq buffer-saved-size (buffer-size))
-          (normal-mode)
-	  ;; Just in case an archive occurs inside another archive.
-	  (if (eq major-mode 'archive-mode)
-	      (setq archive-remote t))
-	  (run-hooks 'archive-extract-hooks))
-	(archive-maybe-update t))
-      (if view-p
-	  (view-buffer buffer (and just-created 'kill-buffer))
-        (if (eq other-window-p 'display)
-            (display-buffer buffer)
-          (if other-window-p
-              (switch-to-buffer-other-window buffer)
-            (switch-to-buffer buffer))))))
+;	  (if (boundp 'default-buffer-file-type)
+;	      (setq buffer-file-type t))
+	  (if (and
+	       (null
+		(if (fboundp extractor)
+		    (funcall extractor archive ename)
+		  (archive-*-extract archive ename (symbol-value extractor))))
+	       just-created)
+	      (progn
+		(set-buffer-modified-p nil)
+		(kill-buffer buffer))
+	    (goto-char (point-min))
+	    (rename-buffer bufname)
+	    (setq buffer-read-only read-only-p)
+	    (setq buffer-undo-list nil)
+	    (set-buffer-modified-p nil)
+	    (setq buffer-saved-size (buffer-size))
+	    (normal-mode)
+	    ;; Just in case an archive occurs inside another archive.
+	    (if (eq major-mode 'archive-mode)
+		(setq archive-remote t))
+	    (run-hooks 'archive-extract-hooks))
+	  (archive-maybe-update t)))
+      (or (not (buffer-name buffer))
+	  (progn
+	    (if view-p
+		(view-buffer buffer (and just-created 'kill-buffer)))
+	    (if (eq other-window-p 'display)
+		(display-buffer buffer)
+	      (if other-window-p
+		  (switch-to-buffer-other-window buffer)
+		(switch-to-buffer buffer)))))))
 
 (defun archive-*-extract (archive name command)
   (let* ((default-directory (file-name-as-directory archive-tmpdir))
 	 (tmpfile (expand-file-name (file-name-nondirectory name)
-				    default-directory)))
+				    default-directory))
+	 exit-status success)
     (make-directory (directory-file-name default-directory) t)
-    (apply 'call-process
-	   (car command)
-	   nil
-	   nil
-	   nil
-	   (append (cdr command) (list archive name)))
-    (insert-file-contents tmpfile)
-    (archive-delete-local tmpfile)))
+    (setq exit-status
+	  (apply 'call-process
+		 (car command)
+		 nil
+		 nil
+		 nil
+		 (append (cdr command) (list archive name))))
+    (cond ((and (numberp exit-status) (= exit-status 0))
+	   (if (not (file-exists-p tmpfile))
+	       (ding (message "`%s': no such file or directory" tmpfile))
+	     (insert-file-contents tmpfile)
+	     (setq success t)))
+	  ((numberp exit-status)
+	   (ding
+	    (message "`%s' exited with status %d" (car command) exit-status)))
+	  ((stringp exit-status)
+	   (ding (message "`%s' aborted: %s" (car command) exit-status)))
+	  (t
+	   (ding (message "`%s' failed" (car command)))))
+    (archive-delete-local tmpfile)
+    success))
 
 (defun archive-extract-by-stdout (archive name command)
-  (let ((binary-process-output t)) ; for Ms-Dos
+  ;; We need the coding system of the output of the extract program,
+  ;; including the EOL encoding, be decoded dynamically, since what
+  ;; the extract program outputs is the contents of some file.
+  (let ((coding-system-for-read (or coding-system-for-read 'undecided))
+	(inherit-process-coding-system t))
     (apply 'call-process
 	   (car command)
 	   nil
@@ -936,65 +944,25 @@ This function changes the set of information shown for each files."
 ;; -------------------------------------------------------------------------
 ;; Section: IO stuff
 
-(defun archive-check-dos (&optional force)
-  "*Possibly handle a buffer with ^M^J terminated lines."
-  (save-restriction
-    (widen)
-    (save-excursion
-      (goto-char (point-min))
-      (setq archive-subfile-dos
-	    (or force (not (search-forward-regexp "[^\r]\n" nil t))))
-      (if (boundp 'default-buffer-file-type)
-	  (setq buffer-file-type (not archive-subfile-dos)))
-      (if archive-subfile-dos
-          (let ((modified (buffer-modified-p)))
-            (buffer-disable-undo (current-buffer))
-            (goto-char (point-min))
-            (while (search-forward "\r\n" nil t)
-              (replace-match "\n"))
-            (buffer-enable-undo)
-            (set-buffer-modified-p modified))))))
-
 (defun archive-write-file-member ()
-  (if archive-subfile-dos
-      (save-restriction
-	(widen)
-        (save-excursion
-          (goto-char (point-min))
-          ;; We don't want our ^M^J <--> ^J changes to show in the undo list
-          (let ((undo-list buffer-undo-list))
-            (unwind-protect
-                (progn
-                  (setq buffer-undo-list t)
-                  (while (search-forward "\n" nil t)
-                    (replace-match "\r\n"))
-                  (setq archive-subfile-dos nil)
-		  (if (boundp 'default-buffer-file-type)
-		      (setq buffer-file-type t))
-                  ;; OK, we're now have explicit ^M^Js -- save and re-unixfy
-                  (archive-write-file-member))
-              (progn
-                (archive-check-dos t)
-                (setq buffer-undo-list undo-list))))
-          t))
-    (save-excursion
-      (save-restriction
-        (message "Updating archive...")
-        (widen)
-	(let ((writer  (save-excursion (set-buffer archive-superior-buffer)
-				       (archive-name "write-file-member")))
-	      (archive (save-excursion (set-buffer archive-superior-buffer)
-				       (buffer-file-name))))
-	  (if (fboundp writer)
-	      (funcall writer archive archive-subfile-mode)
-	    (archive-*-write-file-member archive
-					 archive-subfile-mode
-					 (symbol-value writer))))
-	(set-buffer-modified-p nil)
-        (message "Updating archive...done")
-        (set-buffer archive-superior-buffer)
-        (revert-buffer)
-        t))))
+  (save-excursion
+    (save-restriction
+      (message "Updating archive...")
+      (widen)
+      (let ((writer  (save-excursion (set-buffer archive-superior-buffer)
+				     (archive-name "write-file-member")))
+	    (archive (save-excursion (set-buffer archive-superior-buffer)
+				     (buffer-file-name))))
+	(if (fboundp writer)
+	    (funcall writer archive archive-subfile-mode)
+	  (archive-*-write-file-member archive
+				       archive-subfile-mode
+				       (symbol-value writer))))
+      (set-buffer-modified-p nil)
+      (message "Updating archive...done")
+      (set-buffer archive-superior-buffer)
+      (revert-buffer)
+      t)))
 
 (defun archive-*-write-file-member (archive descr command)
   (let* ((ename (aref descr 0))
