@@ -331,16 +331,19 @@ internal_self_insert (c1, noautofill)
       && !noautofill
       && !NILP (current_buffer->auto_fill_function))
     {
+      Lisp_Object tem;
+
       insert_and_inherit (&c1, 1);
       if (c1 == '\n')
 	/* After inserting a newline, move to previous line and fill */
 	/* that.  Must have the newline in place already so filling and */
 	/* justification, if any, know where the end is going to be. */
 	SET_PT (point - 1);
-      call0 (current_buffer->auto_fill_function);
+      tem = call0 (current_buffer->auto_fill_function);
       if (c1 == '\n')
 	SET_PT (point + 1);
-      hairy = 2;
+      if (!NILP (tem))
+	hairy = 2;
     }
   else
     insert_and_inherit (&c1, 1);
