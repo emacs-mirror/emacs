@@ -1763,9 +1763,10 @@ since they have special meaning in a regexp."
 ;; Portability functions to support various Emacs versions.
 
 (defun isearch-text-char-description (c)
-  (if (and (integerp c) (or (< c ?\ ) (= c ?\^?)))
-      (text-char-description c)
-    (char-to-string c)))
+  (cond
+   ((< c ?\ ) (format "^%c" (+ c 64)))
+   ((= c ?\^?) "^?")
+   (t (char-to-string c))))
 
 ;; General function to unread characters or events.
 ;; Also insert them in a keyboard macro being defined.
