@@ -294,7 +294,7 @@ key is supported."
   :type 'sexp
   :group 'filesets)
 
-(if
+(if filesets-running-xemacs
     (progn
       (defcustom filesets-menu-path nil
 	"*The menu under which the filesets menu should be inserted.
@@ -2510,7 +2510,6 @@ Set up hooks, load the cache file -- if existing -- and build the menu."
 (provide 'filesets)
 
 ;;; Local Variables:
-;;; time-stamp-format:"%:y-%02m-%02d"
 ;;; sentence-end-double-space:t
 ;;; End:
 
