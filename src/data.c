@@ -1547,10 +1547,10 @@ or a byte-code object.  IDX starts at 0.")
 
       if (idxval < 0)
 	args_out_of_range (array, idx);
-      if (idxval < CHAR_TABLE_ORDINARY_SLOTS)
+      if (idxval < CHAR_TABLE_SINGLE_BYTE_SLOTS)
 	{
-	  /* The element is stored in the top table.  We may return a
-             deeper char-table.  */
+	  /* For ASCII or 8-bit European characters, the element is
+             stored in the top table.  */
 	  val = XCHAR_TABLE (array)->contents[idxval];
 	  if (NILP (val))
 	    val = XCHAR_TABLE (array)->defalt;
@@ -1571,16 +1571,11 @@ or a byte-code object.  IDX starts at 0.")
 	  int i, len;
 	  Lisp_Object sub_array;
 
-	  /* There's no reason to treat a composite character
-             specially here.  */
-#if 0
-	  if (COMPOSITE_CHAR_P (idxval))
-	    /* For a composite characters, we use the first element as
-               the index.  */
-	    idxval = cmpchar_component (idxval, 0);
-#endif
 	  SPLIT_NON_ASCII_CHAR (idxval, idx[0], idx[1], idx[2]);
 	  len = (COMPOSITE_CHAR_P (idxval) || idx[2]) ? 3 : (idx[1] ? 2 : 1);
+	  /* The top level char-table should be indexed from 256 for
+             each non-ASCII charsets.  */
+	  idx[0] += 128;
 
 	try_parent_char_table:
 	  sub_array = array;
@@ -1673,7 +1668,7 @@ ARRAY may be a vector or a string.  IDX starts at 0.")
 
       if (idxval < 0)
 	args_out_of_range (array, idx);
-      if (idxval < CHAR_TABLE_ORDINARY_SLOTS)
+      if (idxval < CHAR_TABLE_SINGLE_BYTE_SLOTS)
 	XCHAR_TABLE (array)->contents[idxval] = newelt;
       else
 	{
@@ -1683,6 +1678,9 @@ ARRAY may be a vector or a string.  IDX starts at 0.")
 
 	  SPLIT_NON_ASCII_CHAR (idxval, idx[0], idx[1], idx[2]);
 	  len = (COMPOSITE_CHAR_P (idxval) || idx[2]) ? 2 : (idx[1] ? 1 : 0);
+	  /* The top level char-table should be indexed from 256 for
+             each non-ASCII charsets.  */
+	  idx[0] += 128;
 
 	  for (i = 0; i < len; i++)
 	    {
