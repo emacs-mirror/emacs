@@ -54,7 +54,7 @@ int minibuf_level;
 
 /* Nonzero means display completion help for invalid input.  */
 
-int auto_help;
+Lisp_Object Vcompletion_auto_help;
 
 /* The maximum length of a minibuffer history.  */
 
@@ -1637,7 +1637,7 @@ do_completion ()
       UNGCPRO;
       if (completedp)
 	return 5;
-      else if (auto_help)
+      else if (!NILP (Vcompletion_auto_help))
 	Fminibuffer_completion_help ();
       else
 	temp_echo_area_glyphs (" [Next char not unique]");
@@ -1974,7 +1974,7 @@ Return nil if there is no valid completion, else t.")
 
   if (i == ZV - prompt_end_charpos)
     {
-      if (auto_help)
+      if (!NILP (Vcompletion_auto_help))
 	Fminibuffer_completion_help ();
       return Qnil;
     }
@@ -2358,9 +2358,9 @@ just after a new element is inserted.  Setting the history-length\n\
 property of a history variable overrides this default.");
   XSETFASTINT (Vhistory_length, 30);
 
-  DEFVAR_BOOL ("completion-auto-help", &auto_help,
+  DEFVAR_LISP ("completion-auto-help", &Vcompletion_auto_help,
     "*Non-nil means automatically provide help for invalid completion input.");
-  auto_help = 1;
+  Vcompletion_auto_help = Qt;
 
   DEFVAR_BOOL ("completion-ignore-case", &completion_ignore_case,
     "Non-nil means don't consider case significant in completion.");
