@@ -185,9 +185,10 @@ Lisp_Object Vmemory_full;
 
 #ifndef HAVE_SHM
 
-/* Force it into data space! */
+/* Force it into data space!  Initialize it to a nonzero value;
+   otherwise some compilers put it into BSS.  */
 
-EMACS_INT pure[PURESIZE / sizeof (EMACS_INT)] = {0,};
+EMACS_INT pure[PURESIZE / sizeof (EMACS_INT)] = {1,};
 #define PUREBEG (char *) pure
 
 #else /* HAVE_SHM */
@@ -404,10 +405,11 @@ static void check_gcpros P_ ((void));
 
 struct gcpro *gcprolist;
 
-/* Addresses of staticpro'd variables.  */
+/* Addresses of staticpro'd variables.  Initialize it to a nonzero
+   value; otherwise some compilers put it into BSS.  */
 
 #define NSTATICS 1280
-Lisp_Object *staticvec[NSTATICS] = {0};
+Lisp_Object *staticvec[NSTATICS] = {&Vpurify_flag};
 
 /* Index of next unused slot in staticvec.  */
 
