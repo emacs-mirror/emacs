@@ -20,6 +20,8 @@
    Geoff Voelker (voelker@cs.washington.edu)			     7-29-94
 */
 
+#include "config.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -27,6 +29,7 @@
 
 /* This gives us the page size and the size of the allocation unit on NT.  */
 SYSTEM_INFO sysinfo_cache;
+unsigned long syspage_mask = 0;
 
 /* These are defined to get Emacs to compile, but are not used.  */
 int edata;
@@ -58,6 +61,7 @@ cache_system_info (void)
 
   /* Cache page size, allocation unit, processor type, etc.  */
   GetSystemInfo (&sysinfo_cache);
+  syspage_mask = sysinfo_cache.dwPageSize - 1;
 }
 
 /* Round ADDRESS up to be aligned with ALIGN.  */
@@ -75,6 +79,7 @@ round_to_next (unsigned char *address, unsigned long align)
 /* Info for keeping track of our heap.  */
 unsigned char *data_region_base = NULL;
 unsigned char *data_region_end = NULL;
+unsigned char *real_data_region_end = NULL;
 unsigned long  data_region_size = 0;
 unsigned long  reserved_heap_size = 0;
 
@@ -92,8 +97,7 @@ get_data_end (void)
   return data_region_end;
 }
 
-
-#ifdef WINDOWS95
+#ifndef WINDOWS95
 static char *
 allocate_heap (void)
 {
@@ -112,7 +116,7 @@ static char *
 allocate_heap (void)
 {
   unsigned long start     = 0x400000;
-  unsigned long stop      = 0xF00000;
+  unsigned long stop      = 0xD00000;
   unsigned long increment = 0x100000;
   char *ptr, *begin = NULL, *end = NULL;
   int i;
@@ -165,6 +169,7 @@ sbrk (unsigned long increment)
 	}
 
       data_region_end = data_region_base;
+      real_data_region_end = data_region_end;
       data_region_size = get_reserved_heap_size ();
     }
   
@@ -173,15 +178,28 @@ sbrk (unsigned long increment)
   /* If size is negative, shrink the heap by decommitting pages.  */
   if (size < 0) 
     {
+      int new_size;
+      unsigned char *new_data_region_end;
+
       size = -size;
 
       /* Sanity checks.  */
       if ((data_region_end - size) < data_region_base)
 	return NULL;
 
-      /* Decommit size bytes from the end of the heap.  */
-      if (!VirtualFree (data_region_end - size, size, MEM_DECOMMIT))
-	return NULL;
+      /* We can only decommit full pages, so allow for 
+	 partial deallocation [cga].  */
+      new_data_region_end = (data_region_end - size);
+      new_data_region_end = (unsigned char *)
+	((long) (new_data_region_end + syspage_mask) & ~syspage_mask);
+      new_size = real_data_region_end - new_data_region_end;
+      real_data_region_end = new_data_region_end;
+      if (new_size > 0) 
+	{
+	  /* Decommit size bytes from the end of the heap.  */
+	  if (!VirtualFree (real_data_region_end, new_size, MEM_DECOMMIT))
+	    return NULL;
+ 	}
 
       data_region_end -= size;
     } 
@@ -198,6 +216,11 @@ sbrk (unsigned long increment)
 			PAGE_READWRITE) == NULL)
 	return NULL;
       data_region_end += size;
+
+      /* We really only commit full pages, so record where
+	 the real end of committed memory is [cga].  */
+      real_data_region_end = (unsigned char *)
+	  ((long) (data_region_end + syspage_mask) & ~syspage_mask);
     }
   
   return result;
