@@ -2450,7 +2450,11 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
 	   paragraph-separate
 	   "<#!*/?\\(multipart\\|part\\|external\\|mml\\|secure\\)"))
   ;; Allow using comment commands to add/remove quoting.
-  (set (make-local-variable 'comment-start) message-yank-prefix)
+  ;; (set (make-local-variable 'comment-start) message-yank-prefix)
+  (when message-yank-prefix
+    (set (make-local-variable 'comment-start) message-yank-prefix)
+    (set (make-local-variable 'comment-start-skip)
+	 (concat "^" (regexp-quote message-yank-prefix) "[ \t]*")))
   (if (featurep 'xemacs)
       (message-setup-toolbar)
     (set (make-local-variable 'font-lock-defaults)
