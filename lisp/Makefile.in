@@ -69,7 +69,7 @@ COMPILE_FIRST = \
 
 # The actual Emacs command run in the targets below.
 
-emacs = $(EMACS) $(EMACSOPT)
+emacs = EMACSLOADPATH=$(lisp) $(EMACS) $(EMACSOPT)
 
 # Common command to find subdirectories
 
@@ -124,7 +124,7 @@ updates: update-subdirs autoloads finder-data custom-deps
 # Update the AUTHORS file.
 
 update-authors:
-	EMACSLOADPATH=$(lisp) $(emacs) -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
+	$(emacs) -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
 
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
 	${ETAGS} $(lisptagsfiles1) $(lisptagsfiles2)
@@ -133,7 +133,7 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 	${ETAGS} -o TAGS-LISP $(lisptagsfiles1) $(lisptagsfiles2)
 
 .el.elc: subdirs.el
-	-EMACSLOADPATH=$(lisp) $(emacs) -f batch-byte-compile $<
+	-$(emacs) -f batch-byte-compile $<
 
 $(DONTCOMPILE:.el=.elc):
 	-rm -f $@
@@ -156,7 +156,7 @@ compile-files: subdirs.el doit
 		tr '	 ' '\012\012' | sort | uniq -u`; \
 	for el in $(COMPILE_FIRST) $$els; do \
 	  echo Compiling $$el; \
-	  EMACSLOADPATH=$(lisp) $(emacs) -f batch-byte-compile $$el; \
+	  $(emacs) -f batch-byte-compile $$el || exit 1; \
 	done
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already
