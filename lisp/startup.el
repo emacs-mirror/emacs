@@ -36,12 +36,14 @@
 ;			 code; use the current virtual terminal.
 ;			 This option must be the first in the arglist.
 ;			 Processed by `main' in emacs.c -- never seen by lisp
-; -q			load no init file
+; -q			load no init file; don't load default.el either.
+;			  But this has no effect on site-start.el.
 ; -no-init-file		same
-; -u user		load user's init file
+; -u user		load USER's init file instead of your own.
 ; -user user		same
 ; -debug-init		Don't catch errors in init file; let debugger run.
-; -no-site-file		Don't load site-run-file.
+; -no-site-file		Don't load site-start.el.
+;			  (This is the ONLY way to prevent loading that file.)
 
 ; These are processed in the order encountered.
 ; -f function		execute function
@@ -135,7 +137,10 @@ originally logged in, or it may be a string containing a user's name.
 
 In either of the latter cases, `(concat \"~\" init-file-user \"/\")'
 evaluates to the name of the directory where the `.emacs' file was
-looked for.")
+looked for.
+
+Setting `init-file-user' does not prevent Emacs from loading
+`site-start.el'.  The only way to do that is to use `--no-site-file'.")
 
 (defvar site-run-file "site-start"
   "File containing site-wide run-time initializations.
@@ -143,7 +148,14 @@ This file is loaded at run-time before `~/.emacs'.  It contains inits
 that need to be in place for the entire site, but which, due to their
 higher incidence of change, don't make sense to load into emacs'
 dumped image.  Thus, the run-time load order is: 1. file described in
-this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
+this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.
+
+Don't use the `site-start.el' file for things some users may not like.
+Put them in `default.el' instead, so that users can more easily
+override them.  Users can prevent loading `default.el' with the `-q'
+option or by setting `inhibit-default-init' in their own init files,
+but inhibiting `site-start.el' requires `--no-site-file', which
+is less convenient.")
 
 (defconst iso-8859-1-locale-regexp "8859[-_]?1"
   "Regexp that specifies when to enable the ISO 8859-1 character set.
