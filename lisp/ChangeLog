@@ -4,6 +4,9 @@
 
 2000-10-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* files.el (after-find-file): Don't print a message ``New file''
+	if WARN is nil.
+
 	* wid-edit.el (widget-field-keymap, widget-text-keymap): Define
 	the tool-bar map as nil, as for the menu-bar.  Otherwise, we'll
 	get duplicate tool-bar entries because we'll see the global ones
