@@ -137,8 +137,9 @@ just before \"Other\" at the end."
 
 (defcustom facemenu-unlisted-faces
   '(modeline region secondary-selection highlight scratch-face
-    "^font-lock-" "^gnus-" "^message-" "^ediff-" "^term-" "^vc-"
-    "^widget-" "^custom-" "^vm-")
+    (purecopy "^font-lock-") (purecopy "^gnus-") (purecopy "^message-")
+    (purecopy "^ediff-") (purecopy "^term-") (purecopy "^vc-")
+    (purecopy "^widget-") (purecopy "^custom-") (purecopy "^vm-"))
   "*List of faces not to include in the Face menu.
 Each element may be either a symbol, which is the name of a face, or a string,
 which is a regular expression to be matched against face names.  Matching
@@ -187,10 +188,14 @@ when they are created."
 ;;;###autoload
 (defvar facemenu-special-menu 
   (let ((map (make-sparse-keymap "Special")))
-    (define-key map [?s] (cons "Remove Special" 'facemenu-remove-special))
-    (define-key map [?t] (cons "Intangible" 'facemenu-set-intangible))
-    (define-key map [?v] (cons "Invisible" 'facemenu-set-invisible))
-    (define-key map [?r] (cons "Read-Only" 'facemenu-set-read-only))
+    (define-key map [?s] (cons (purecopy "Remove Special")
+			       'facemenu-remove-special))
+    (define-key map [?t] (cons (purecopy "Intangible")
+			       'facemenu-set-intangible))
+    (define-key map [?v] (cons (purecopy "Invisible")
+			       'facemenu-set-invisible))
+    (define-key map [?r] (cons (purecopy "Read-Only")
+			       'facemenu-set-read-only))
     map)
   "Menu keymap for non-face text-properties.")
 ;;;###autoload
@@ -199,11 +204,11 @@ when they are created."
 ;;;###autoload
 (defvar facemenu-justification-menu
   (let ((map (make-sparse-keymap "Justification")))
-    (define-key map [?c] (cons "Center" 'set-justification-center))
-    (define-key map [?b] (cons "Full" 'set-justification-full))
-    (define-key map [?r] (cons "Right" 'set-justification-right))
-    (define-key map [?l] (cons "Left" 'set-justification-left))
-    (define-key map [?u] (cons "Unfilled" 'set-justification-none))
+    (define-key map [?c] (cons (purecopy "Center") 'set-justification-center))
+    (define-key map [?b] (cons (purecopy "Full") 'set-justification-full))
+    (define-key map [?r] (cons (purecopy "Right") 'set-justification-right))
+    (define-key map [?l] (cons (purecopy "Left") 'set-justification-left))
+    (define-key map [?u] (cons (purecopy "Unfilled") 'set-justification-none))
     map)
   "Submenu for text justification commands.")
 ;;;###autoload
@@ -213,13 +218,13 @@ when they are created."
 (defvar facemenu-indentation-menu
   (let ((map (make-sparse-keymap "Indentation")))
     (define-key map [decrease-right-margin] 
-      (cons "Indent Right Less" 'decrease-right-margin))
+      (cons (purecopy "Indent Right Less") 'decrease-right-margin))
     (define-key map [increase-right-margin]
-      (cons "Indent Right More" 'increase-right-margin))
+      (cons (purecopy "Indent Right More") 'increase-right-margin))
     (define-key map [decrease-left-margin]
-      (cons "Indent Less" 'decrease-left-margin))
+      (cons (purecopy "Indent Less") 'decrease-left-margin))
     (define-key map [increase-left-margin]
-      (cons "Indent More" 'increase-left-margin))
+      (cons (purecopy "Indent More") 'increase-left-margin))
     map)
   "Submenu for indentation commands.")
 ;;;###autoload
@@ -233,27 +238,36 @@ when they are created."
 (setq facemenu-menu (make-sparse-keymap "Text Properties"))
 ;;;###autoload
 (let ((map facemenu-menu))
-  (define-key map [dc] (cons "Display Colors" 'list-colors-display))
-  (define-key map [df] (cons "Display Faces" 'list-faces-display))
-  (define-key map [dp] (cons "List Properties" 'list-text-properties-at))
-  (define-key map [ra] (cons "Remove Text Properties" 'facemenu-remove-all))
-  (define-key map [rm] (cons "Remove Face Properties" 'facemenu-remove-face-props))
-  (define-key map [s1] (list "-----------------")))
+  (define-key map [dc] (cons (purecopy "Display Colors") 'list-colors-display))
+  (define-key map [df] (cons (purecopy "Display Faces") 'list-faces-display))
+  (define-key map [dp] (cons (purecopy "List Properties")
+			     'list-text-properties-at))
+  (define-key map [ra] (cons (purecopy "Remove Text Properties")
+			     'facemenu-remove-all))
+  (define-key map [rm] (cons (purecopy "Remove Face Properties")
+			     'facemenu-remove-face-props))
+  (define-key map [s1] (list (purecopy "--"))))
 ;;;###autoload
 (let ((map facemenu-menu))
-  (define-key map [in] (cons "Indentation" 'facemenu-indentation-menu))
-  (define-key map [ju] (cons "Justification" 'facemenu-justification-menu))
-  (define-key map [s2] (list "-----------------"))
-  (define-key map [sp] (cons "Special Properties" 'facemenu-special-menu))
-  (define-key map [bg] (cons "Background Color" 'facemenu-background-menu))
-  (define-key map [fg] (cons "Foreground Color" 'facemenu-foreground-menu))
-  (define-key map [fc] (cons "Face" 'facemenu-face-menu)))
+  (define-key map [in] (cons (purecopy "Indentation") 
+			     'facemenu-indentation-menu))
+  (define-key map [ju] (cons (purecopy "Justification")
+			     'facemenu-justification-menu))
+  (define-key map [s2] (list (purecopy "--")))
+  (define-key map [sp] (cons (purecopy "Special Properties") 
+			     'facemenu-special-menu))
+  (define-key map [bg] (cons (purecopy "Background Color") 
+			     'facemenu-background-menu))
+  (define-key map [fg] (cons (purecopy "Foreground Color") 
+			     'facemenu-foreground-menu))
+  (define-key map [fc] (cons (purecopy "Face") 
+			     'facemenu-face-menu)))
 ;;;###autoload
 (defalias 'facemenu-menu facemenu-menu)
 
 (defvar facemenu-keymap 
   (let ((map (make-sparse-keymap "Set face")))
-    (define-key map "o" (cons "Other..." 'facemenu-set-face))
+    (define-key map "o" (cons (purecopy "Other...") 'facemenu-set-face))
     map)
   "Keymap for face-changing commands.
 `Facemenu-update' fills in the keymap according to the bindings
