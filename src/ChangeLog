@@ -1,5 +1,10 @@
 2000-11-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Fwindow_list): Change parameter list to be XEmacs
+	compatible.
+	(window_list_1): New function.
+	(window_loop): Use it instead of Fwindow_list.
+
 	* sysdep.c (emacs_ospeed): New variable.
 	(toplevel): Don't declare ospeed extern.
 	(init_baud_rate): Use emacs_ospeed instead of ospeed.

@@ -2056,10 +2056,14 @@ is automatically converted to Emacs' form.
 
 ** The new function `window-list' has been defined
 
-- Function: window-list &optional WINDOW MINIBUF ALL-FRAMES
+- Function: window-list &optional FRAME WINDOW MINIBUF
 
-Return a list of windows in canonical order.  The parameters WINDOW,
-MINIBUF and ALL-FRAMES are defined like for `next-window'.
+Return a list of windows on FRAME, starting with WINDOW.  FRAME nil or
+omitted means use the selected frame.  WINDOW nil or omitted means use
+the selected window.  MINIBUF t means include the minibuffer window,
+even if it isn't active.  MINIBUF nil or omitted means include the
+minibuffer window only if it's active.  MINIBUF neither nil nor t
+means never include the minibuffer window.
 
 ** There's a new function `some-window' defined as follows
 
