@@ -1,5 +1,9 @@
 2000-11-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/authors.el (authors-public-domain-files): New variable.
+	(authors-public-domain-p): New function.
+	(authors-print): Use it.
+
 	* help.el (view-emacs-news): Use ONEWS.* instead of NEWS.* files.
 
 	* mail/mh-e.el, mail/mh-comp.el: Change maintainer.
