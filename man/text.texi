@@ -392,6 +392,7 @@ Text}).
 * Fill Prefix::	        Filling paragraphs that are indented
                           or in a comment, etc.
 * Adaptive Fill::       How Emacs can determine the fill prefix automatically.
+* Refill::              Keeping paragraphs filled.
 @end menu
 
 @node Auto Fill
@@ -697,6 +698,25 @@ function.  This function is called with point after the left margin of a
 line, and it should return the appropriate fill prefix based on that
 line.  If it returns @code{nil}, that means it sees no fill prefix in
 that line.
+
+@node Refill
+@subsection Refill Mode
+@cindex refilling text, word processor style
+@cindex modes, Refill
+@cindex Refill minor mode
+
+Refill minor mode provides support for keeping paragraphs filled as you
+type or modify them in other ways.  It provides an effect similar to
+typical word processor behaviour.  This works by running a
+paragraph-filling command at suitable times.
+
+When you are typing text, only characters which normally trigger auto
+filling, like the space character, will trigger refilling.  This is to
+avoid making it too slow.  Apart from self-inserting characters, other
+commands which modify the text cause refilling.
+
+The current implementation is preliminary and probably not robust.  We
+expect to improve on it.
 
 @node Case
 @section Case Conversion Commands
