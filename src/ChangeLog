@@ -8,6 +8,9 @@
 	* makefile.w32-in (clean): Don't delete config.h and epaths.h.
 	(distclean): Delete them here instead.
 
+	* w32proc.c (compare_env): Convert to uppercase for comparison,
+	not lowercase, to match how the native Windows shell works.
+
 2000-09-03  Jason Rumney  <jasonr@gnu.org>
 
 	* ChangeLog: Remove -unix from coding. Let Emacs autodetect, as
