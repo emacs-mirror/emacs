@@ -1,3 +1,8 @@
+2001-01-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* term/w32-win.el (redisplay-dont-pause): Set to t to alleviate
+	display problems.
+
 2001-01-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (charset-info): Fix docstring.
