@@ -4,7 +4,6 @@
 
 	* w32term.c (x_draw_hollow_cursor): Delay obtaining the frame's DC
 	to avoid returning without releasing it.
-
 	
 2000-12-21  Kenichi Handa  <handa@etl.go.jp>
 
