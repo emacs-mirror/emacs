@@ -760,7 +760,7 @@ Overrides default dictionary file such as \"/usr/dict/words\" or GNU look's
 \"${prefix}/lib/ispell/ispell.words\"")
 
 (defvar ispell-gnu-look-still-broken-p nil
-  "*t if GNU look -r can give different results with and without trialing `.*'.
+  "*t if GNU look -r can give different results with and without trailing `.*'.
 Example: `look -dfr \"^ya\" foo' returns nothing, while `look -dfr \"^ya.*\" foo'
 returns `yacc', where `foo' is a dictionary file containing the three lines
 
@@ -976,7 +976,7 @@ an interior word fragment.  `ispell-have-new-look' should be t."
 				"\\|")
 	      "\\)")
   "*End of text which will be checked in ispell-message.
-If it is a string, limit at first occurence of that regular expression.
+If it is a string, limit at first occurrence of that regular expression.
 Otherwise, it must be a function which is called to get the limit.")
 
 (defvar ispell-message-limit (* 100 80)
