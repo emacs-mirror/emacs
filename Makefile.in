@@ -306,7 +306,7 @@ mkdir: FRC.mkdir
 	./lib-src/make-path ${COPYDESTS} ${lockdir} ${infodir} ${mandir} \
 	  ${bindir} ${datadir} ${libdir} \
 	  `echo ${locallisppath} | sed 's/:/ /'`
-	chmod 777 ${COPYDESTS} ${lockdir}
+	-chmod 777 ${COPYDESTS} ${lockdir}
 
 ### Delete all the installed files that the `install' target would
 ### create (but not the noninstalled files such as `make all' would
