@@ -698,26 +698,26 @@ static int stack_idx_of_map_multiple;
 
 /* Encode one character CH to multibyte form and write to the current
    output buffer.  If CH is less than 256, CH is written as is.  */
-#define CCL_WRITE_CHAR(ch)					\
-  do {								\
-    int bytes = SINGLE_BYTE_CHAR_P (ch) ? 1: CHAR_BYTES (ch);	\
-    if (!dst)							\
-      CCL_INVALID_CMD;						\
-    else if (dst + bytes <= (dst_bytes ? dst_end : src))	\
-      {								\
-	if (bytes == 1)						\
-	  {							\
-	    *dst++ = (ch);					\
-	    if ((ch) >= 0x80 && (ch) < 0xA0)			\
-	      /* We may have to convert this eight-bit char to	\
-		 multibyte form later.  */			\
-	      dst_end--;					\
-	  }							\
-	else							\
-	  dst += CHAR_STRING (ch, dst);				\
-      }								\
-    else							\
-      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);			\
+#define CCL_WRITE_CHAR(ch)						\
+  do {									\
+    int bytes = SINGLE_BYTE_CHAR_P (ch) ? 1: CHAR_BYTES (ch);		\
+    if (!dst)								\
+      CCL_INVALID_CMD;							\
+    else if (dst + bytes + extra_bytes < (dst_bytes ? dst_end : src))	\
+      {									\
+	if (bytes == 1)							\
+	  {								\
+	    *dst++ = (ch);						\
+	    if ((ch) >= 0x80 && (ch) < 0xA0)				\
+	      /* We may have to convert this eight-bit char to		\
+		 multibyte form later.  */				\
+	      extra_bytes++;						\
+	  }								\
+	else								\
+	  dst += CHAR_STRING (ch, dst);					\
+      }									\
+    else								\
+      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);				\
   } while (0)
 
 /* Write a string at ccl_prog[IC] of length LEN to the current output
@@ -840,6 +840,11 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
   int stack_idx = ccl->stack_idx;
   /* Instruction counter of the current CCL code. */
   int this_ic;
+  /* CCL_WRITE_CHAR will produce 8-bit code of range 0x80..0x9F.  But,
+     each of them will be converted to multibyte form of 2-byte
+     sequence.  For that conversion, we remember how many more bytes
+     we must keep in DESTINATION in this variable.  */
+  int extra_bytes = 0;
 
   if (ic >= ccl->eof_ic)
     ic = CCL_HEADER_MAIN;
