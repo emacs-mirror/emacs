@@ -314,6 +314,7 @@ make_terminal_frame ()
   Vframe_list = Qnil;
   f = make_frame (1);
   f->name = build_string ("terminal");
+  f->async_visible = 1;
   f->visible = 1;
   f->display.nothing = 1;   /* Nonzero means frame isn't deleted.  */
   XSET (Vterminal_frame, Lisp_Frame, f);
