@@ -295,28 +295,24 @@ command line.")
   (set (make-local-variable 'eshell-last-command-name) nil)
   (set (make-local-variable 'eshell-last-async-proc) nil)
 
-  (make-local-hook 'eshell-kill-hook)
   (add-hook 'eshell-kill-hook 'eshell-resume-command nil t)
 
   ;; make sure that if a command is over, and no process is being
   ;; waited for, that `eshell-current-command' is set to nil.  This
   ;; situation can occur, for example, if a Lisp function results in
   ;; `debug' being called, and the user then types \\[top-level]
-  (make-local-hook 'eshell-post-command-hook)
   (add-hook 'eshell-post-command-hook
 	    (function
 	     (lambda ()
 	       (setq eshell-current-command nil
 		     eshell-last-async-proc nil))) nil t)
 
-  (make-local-hook 'eshell-parse-argument-hook)
   (add-hook 'eshell-parse-argument-hook
 	    'eshell-parse-subcommand-argument nil t)
   (add-hook 'eshell-parse-argument-hook
 	    'eshell-parse-lisp-argument nil t)
 
   (when (eshell-using-module 'eshell-cmpl)
-    (make-local-hook 'pcomplete-try-first-hook)
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-lisp-symbols nil t)))
 
