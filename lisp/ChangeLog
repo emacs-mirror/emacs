@@ -1,3 +1,30 @@
+2003-08-26  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el (c-electric-brace): Work around for a
+	misfeature in `expand-abbrev' which caused electric keywords like
+	"else" to disappear if an open brace was typed directly
+	afterwards.
+
+2003-08-26  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-vars.el (c-extra-types-widget): The doc string is
+	mandatory in `define-widget'.
+
+	* progmodes/cc-align.el, progmodes/cc-langs.el (c-lineup-math):
+	Don't align the operators "!=", "<=" and ">=" as assignment
+	operators.
+
+	(c-assignment-operators): New language constant that only contains
+	the assignment operators.
+
+	(c-assignment-op-regexp): New language variable used by
+	`c-lineup-math'.
+
+2003-08-26  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-just-after-func-arglist-p): Safeguard
+	against unbalanced sexps.
+
 2003-08-26  Terje Rosten <terjeros@phys.ntnu.no>
 
 	* version.el (emacs-version): Check for gtk.  Include gtk version
