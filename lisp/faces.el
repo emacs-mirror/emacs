@@ -1176,15 +1176,16 @@ selected frame."
 ;; Assuming COLOR is a valid color name,
 ;; return t if it can be displayed on FRAME.
 (defun face-color-supported-p (frame color background-p)
-  (or (x-display-color-p frame)
-      ;; A black-and-white display can implement these.
-      (member color '("black" "white"))
-      ;; A black-and-white display can fake gray for background.
-      (and background-p
-	   (face-color-gray-p color frame))
-      ;; A grayscale display can implement colors that are gray (more or less).
-      (and (x-display-grayscale-p frame)
-	   (face-color-gray-p color frame))))
+  (and window-system
+       (or (x-display-color-p frame)
+	   ;; A black-and-white display can implement these.
+	   (member color '("black" "white"))
+	   ;; A black-and-white display can fake gray for background.
+	   (and background-p
+		(face-color-gray-p color frame))
+	   ;; A grayscale display can implement colors that are gray (more or less).
+	   (and (x-display-grayscale-p frame)
+		(face-color-gray-p color frame)))))
 
 ;; Use FUNCTION to store a color in FACE on FRAME.
 ;; COLORS is either a single color or a list of colors.
