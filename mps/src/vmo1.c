@@ -1,30 +1,11 @@
 /* impl.c.vmo1: VIRTUAL MEMORY MAPPING FOR DIGITAL UNIX
  *
- * $HopeName: MMsrc!vmo1.c(trunk.8) $
+ * $HopeName: MMsrc!vmo1.c(trunk.9) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
- * Design: design.mps.vm, design.mps.vmo1
+ * .design: design.mps.vm, design.mps.vmo1
  *
- * Status: a bit hacky, but probably working.
- *
- * This is the implementation of the virtual memory mapping interface
- * (vm.h) for DEC UNIX / OSF1 (os.o1).
- *
- * mmap(2) is used to reserve address space by creating a mapping to
- * /etc/passwd with page access none.  mmap(2) is used to map pages
- * onto store by creating a copy-on-write (MAP_PRIVATE) mapping with
- * the flag MAP_ANONYMOUS.
- *
- * Experiments have shown that attempting to reserve address space
- * by mapping /dev/zero results in swap being reserved.  This
- * appears to be a bug, so we work round it by using /etc/passwd,
- * the only file we can think of which is pretty much guaranteed
- * to be around.
- *
- * .assume.not-last: The implementation of VMCreate assumes that
- *   mmap() will not choose a region which contains the last page
- *   in the address space, so that the limit of the mapped area
- *   is representable.
+ * .status: A bit hacky, but probably working.
  *
  * .assume.mmap.err: ENOMEM is the only error we really expect to
  *   get from mmap.  The others are either caused by invalid params
@@ -60,7 +41,7 @@
 /* for getpagesize(2),close(2) */
 #include <unistd.h>
 
-SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.8) $");
+SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.9) $");
 
 
 /* Fix unprototyped system calls
@@ -263,7 +244,6 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVER(base < limit);
   AVER(base >= vm->base);
   AVER(limit <= vm->limit);
-  AVER(AddrOffset(base, limit) <= INT_MAX);
   AVER(AddrIsAligned(base, vm->align));
   AVER(AddrIsAligned(limit, vm->align));
 
