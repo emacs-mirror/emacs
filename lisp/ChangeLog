@@ -1,7 +1,12 @@
+2003-06-05  Markus Rost  <rost@math.ohio-state.edu>
+
+	* dired.el (dired-get-filename): Don't err for . and .. for calls
+	from dired-add-entry.
+
 2003-06-05  Takaaki Ota  <Takaaki.Ota@am.sony.com>
 
 	* textmodes/table.el (table-cell-horizontal-chars): Renamed from
-	table-cell-horizontal-char. Now a string value instead of a
+	table-cell-horizontal-char.  Now a string value instead of a
 	character.  ?= is allowed for horizontal boundary as well as ?-.
 	(table-command-remap-alist, table-command-list): Changed defconst to
 	defvar because the value is modified.
