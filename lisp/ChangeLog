@@ -1,3 +1,19 @@
+2000-02-23  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/byte-opt.el: Change old backquote syntax.
+	(byte-compile-trueconstp): Include keywords.
+	(byte-optimize-quote, byte-optimize-lapcode): Use
+	byte-compile-const-symbol-p.
+	(byte-optimize-char-before): New optimization.
+
+	* emacs-lisp/bytecomp.el: Change old backquote syntax.
+	(byte-compile-const-symbol-p): New function.
+	(byte-compile-constp, byte-compile-out-toplevel)
+	(byte-compile-form, byte-compile-form, byte-compile-variable-ref):
+	Use it.
+
+	* subr.el (define-key-after): Default AFTER to t.  Doc fix.
+
 2000-02-23  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/encoded-kb.el: Be sure to update minor-mode-alist
