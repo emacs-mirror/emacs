@@ -205,7 +205,8 @@ Prefix arg means just kill any existing server communications subprocess."
 	      (setq request (substring request (match-end 0)))
 	      (while (string-match "[^ ]+ " request)
 		(let ((arg
-		       (substring request (match-beginning 0) (1- (match-end 0)))))
+		       (substring request (match-beginning 0) (1- (match-end 0))))
+		      (pos 0))
 		  (setq request (substring request (match-end 0)))
 		  (if (string-match "\\`-nowait" arg)
 		      (setq nowait t)
@@ -215,7 +216,6 @@ Prefix arg means just kill any existing server communications subprocess."
 		      ;; ARG is a file name.
 		      ;; Collapse multiple slashes to single slashes.
 		      (setq arg (command-line-normalize-file-name arg))
-		      (setq pos 0)
 		      ;; Undo the quoting that emacsclient does
 		      ;; for certain special characters.
 		      (while (string-match "&." arg pos)
