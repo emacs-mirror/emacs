@@ -100,6 +100,11 @@ extern Lisp_Object meta_prefix_char;
 
 extern Lisp_Object Voverriding_local_map;
 
+/* Hash table used to cache a reverse-map to speed up calls to where-is.  */
+static Lisp_Object where_is_cache;
+/* Which keymaps are reverse-stored in the cache.  */
+static Lisp_Object where_is_cache_keymaps;
+
 static Lisp_Object store_in_keymap P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 static void fix_submap_inheritance P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 
@@ -312,6 +317,15 @@ PARENT should be nil or another keymap.")
   Lisp_Object list, prev;
   struct gcpro gcpro1;
   int i;
+
+  /* Force a keymap flush for the next call to where-is.
+     Since this can be called from within where-is, we don't set where_is_cache
+     directly but only where_is_cache_keymaps, since where_is_cache shouldn't
+     be changed during where-is, while where_is_cache_keymaps is only used at
+     the very beginning of where-is and can thus be changed here without any
+     adverse effect.
+     This is a very minor correctness (rather than safety) issue.  */
+  where_is_cache_keymaps = Qt;
 
   keymap = get_keymap_1 (keymap, 1, 1);
   GCPRO1 (keymap);
@@ -665,6 +679,10 @@ store_in_keymap (keymap, idx, def)
      register Lisp_Object idx;
      register Lisp_Object def;
 {
+  /* Flush any reverse-map cache.  */
+  where_is_cache = Qnil;
+  where_is_cache_keymaps = Qt;
+
   /* If we are preparing to dump, and DEF is a menu element
      with a menu item indicator, copy it to ensure it is not pure.  */
   if (CONSP (def) && PURE_P (def)
@@ -2054,45 +2072,16 @@ shadow_lookup (shadow, key, flag)
 
 /* This function can GC if Flookup_key autoloads any keymaps.  */
 
-DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 4, 0,
-  "Return list of keys that invoke DEFINITION.\n\
-If KEYMAP is non-nil, search only KEYMAP and the global keymap.\n\
-If KEYMAP is nil, search all the currently active keymaps.\n\
-If KEYMAP is a list of keymaps, search only those keymaps.\n\
-\n\
-If optional 3rd arg FIRSTONLY is non-nil, return the first key sequence found,\n\
-rather than a list of all possible key sequences.\n\
-If FIRSTONLY is the symbol `non-ascii', return the first binding found,\n\
-no matter what it is.\n\
-If FIRSTONLY has another non-nil value, prefer sequences of ASCII characters,\n\
-and entirely reject menu bindings.\n\
-\n\
-If optional 4th arg NOINDIRECT is non-nil, don't follow indirections\n\
-to other keymaps or slots.  This makes it possible to search for an\n\
-indirect definition itself.")
-  (definition, xkeymap, firstonly, noindirect)
-     Lisp_Object definition, xkeymap;
+static Lisp_Object
+where_is_internal (definition, keymaps, firstonly, noindirect)
+     Lisp_Object definition, keymaps;
      Lisp_Object firstonly, noindirect;
 {
   Lisp_Object maps = Qnil;
   Lisp_Object found, sequences;
-  Lisp_Object keymaps;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   /* 1 means ignore all menu bindings entirely.  */
   int nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
-
-  /* Find keymaps accessible from `xkeymap' or the current context.  */
-  if (CONSP (xkeymap) && KEYMAPP (XCAR (xkeymap)))
-    keymaps = xkeymap;
-  else if (! NILP (xkeymap))
-    keymaps = Fcons (xkeymap, Fcons (current_global_map, Qnil));
-  else
-    keymaps =
-      Fdelq (Qnil,
-	     nconc2 (Fcurrent_minor_mode_maps (),
-		     Fcons (get_local_map (PT, current_buffer, keymap),
-			    Fcons (get_local_map (PT, current_buffer, local_map),
-				   Fcons (current_global_map, Qnil)))));
 
   found = keymaps;
   while (CONSP (found))
@@ -2213,8 +2202,7 @@ indirect definition itself.")
 
 		 Either nil or number as value from Flookup_key
 		 means undefined.  */
-	      binding = shadow_lookup (keymaps, sequence, Qnil);
-	      if (!EQ (binding, definition))
+	      if (!EQ (shadow_lookup (keymaps, sequence, Qnil), definition))
 		continue;
 
 	      /* It is a true unshadowed match.  Record it, unless it's already
@@ -2245,6 +2233,87 @@ indirect definition itself.")
     return Fcar (found);
     
   return found;
+}
+
+DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 4, 0,
+  "Return list of keys that invoke DEFINITION.\n\
+If KEYMAP is non-nil, search only KEYMAP and the global keymap.\n\
+If KEYMAP is nil, search all the currently active keymaps.\n\
+If KEYMAP is a list of keymaps, search only those keymaps.\n\
+\n\
+If optional 3rd arg FIRSTONLY is non-nil, return the first key sequence found,\n\
+rather than a list of all possible key sequences.\n\
+If FIRSTONLY is the symbol `non-ascii', return the first binding found,\n\
+no matter what it is.\n\
+If FIRSTONLY has another non-nil value, prefer sequences of ASCII characters,\n\
+and entirely reject menu bindings.\n\
+\n\
+If optional 4th arg NOINDIRECT is non-nil, don't follow indirections\n\
+to other keymaps or slots.  This makes it possible to search for an\n\
+indirect definition itself.")
+  (definition, xkeymap, firstonly, noindirect)
+     Lisp_Object definition, xkeymap;
+     Lisp_Object firstonly, noindirect;
+{
+  Lisp_Object sequences, keymaps;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  /* 1 means ignore all menu bindings entirely.  */
+  int nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
+
+  /* Find the relevant keymaps.  */
+  if (CONSP (xkeymap) && KEYMAPP (XCAR (xkeymap)))
+    keymaps = xkeymap;
+  else if (! NILP (xkeymap))
+    keymaps = Fcons (xkeymap, Fcons (current_global_map, Qnil));
+  else
+    keymaps =
+      Fdelq (Qnil,
+	     nconc2 (Fcurrent_minor_mode_maps (),
+		     Fcons (get_local_map (PT, current_buffer, keymap),
+			    Fcons (get_local_map (PT, current_buffer, local_map),
+				   Fcons (current_global_map, Qnil)))));
+
+  /* Only use caching for the menubar (i.e. called with (def nil t nil).
+     We don't really need to check `xkeymap'.  */
+  if (nomenus && NILP (noindirect) && NILP (xkeymap))
+    {
+      /* Check heuristic-consistency of the cache.  */
+      if (NILP (Fequal (keymaps, where_is_cache_keymaps)))
+	where_is_cache = Qnil;
+
+      if (NILP (where_is_cache))
+	{
+	  /* We need to create the cache.  */
+	  Lisp_Object args[2];
+	  where_is_cache = Fmake_hash_table (0, args);
+	  where_is_cache_keymaps = Qt;
+	  
+	  /* Fill in the cache.  */
+	  GCPRO4 (definition, keymaps, firstonly, noindirect);
+	  where_is_internal (definition, keymaps, firstonly, noindirect);
+	  UNGCPRO;
+
+	  where_is_cache_keymaps = keymaps;
+	}
+
+      sequences = Fgethash (definition, where_is_cache, Qnil);
+      /* Verify that the key bindings are not shadowed.  */
+      /* key-binding can GC. */
+      GCPRO3 (definition, sequences, keymaps);
+      for (sequences = Fnreverse (sequences);
+	   CONSP (sequences);
+	   sequences = XCDR (sequences))
+	if (EQ (shadow_lookup (keymaps, XCAR (sequences), Qnil), definition))
+	  RETURN_UNGCPRO (XCAR (sequences));
+      RETURN_UNGCPRO (Qnil);
+    }
+  else
+    {
+      /* Kill the cache so that where_is_internal_1 doesn't think
+	 we're filling it up.  */
+      where_is_cache = Qnil;
+      return where_is_internal (definition, keymaps, firstonly, noindirect);
+    }
 }
 
 /* This is the function that Fwhere_is_internal calls using map_char_table.
@@ -2307,19 +2376,13 @@ where_is_internal_1 (binding, key, definition, noindirect, this, last,
   /* End this iteration if this element does not match
      the target.  */
 
-  if (CONSP (definition))
-    {
-      Lisp_Object tem;
-      tem = Fequal (binding, definition);
-      if (NILP (tem))
-	return Qnil;
-    }
-  else
-    if (!EQ (binding, definition))
-      return Qnil;
+  if (!(!NILP (where_is_cache)	/* everything "matches" during cache-fill.  */
+	|| EQ (binding, definition)
+	|| (CONSP (definition) && !NILP (Fequal (binding, definition)))))
+    /* Doesn't match.  */
+    return Qnil;
 
-  /* We have found a match.
-     Construct the key sequence where we found it.  */
+  /* We have found a match.  Construct the key sequence where we found it.  */
   if (INTEGERP (key) && last_is_meta)
     {
       sequence = Fcopy_sequence (this);
@@ -2328,7 +2391,14 @@ where_is_internal_1 (binding, key, definition, noindirect, this, last,
   else
     sequence = append_key (this, key);
 
-  return sequence;
+  if (!NILP (where_is_cache))
+    {
+      Lisp_Object sequences = Fgethash (binding, where_is_cache, Qnil);
+      Fputhash (binding, Fcons (sequence, sequences), where_is_cache);
+      return Qnil;
+    }
+  else
+    return sequence;
 }
 
 /* describe-bindings - summarizing all the bindings in a set of keymaps.  */
@@ -3320,6 +3390,11 @@ and applies even for keys that have ordinary bindings.");
 
   Qmenu_item = intern ("menu-item");
   staticpro (&Qmenu_item);
+
+  where_is_cache_keymaps = Qt;
+  where_is_cache = Qnil;
+  staticpro (&where_is_cache);
+  staticpro (&where_is_cache_keymaps);
 
   defsubr (&Skeymapp);
   defsubr (&Skeymap_parent);
