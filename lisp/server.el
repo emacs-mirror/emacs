@@ -268,10 +268,12 @@ Then bury it, and return a suggested buffer to select next."
     (if server-buffer-clients
 	(progn
  	  (if (server-temp-file-p buffer)
- 	      (progn (save-buffer)
-		     (write-region (point-min) (point-max)
-				   (concat buffer-file-name "~"))
-		     (kill-buffer buffer))
+	      ;; For a temp file, save, and do make a non-numeric backup
+	      ;; (unless make-backup-files is nil).
+	      (let ((version-control nil)
+		    (buffer-backed-up nil))
+		(save-buffer)
+		(kill-buffer buffer))
 	    (if (and (buffer-modified-p)
 		     (y-or-n-p (concat "Save file " buffer-file-name "? ")))
 		(save-buffer buffer)))
@@ -283,7 +285,9 @@ If a server buffer is current, it is marked \"done\" and optionally saved.
 When all of a client's buffers are marked as \"done\", the client is notified.
 
 Temporary files such as MH <draft> files are always saved and backed up,
-no questions asked.  The variable `server-temp-file-regexp' controls
+no questions asked.  (The variable `make-backup-files', if nil, still
+inhibits a backup; you can set it locally in a particular buffer to
+prevent a backup for it.)  The variable `server-temp-file-regexp' controls
 which filenames are considered temporary.
 
 If invoked with a prefix argument, or if there is no server process running, 
