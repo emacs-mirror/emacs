@@ -419,6 +419,12 @@ These get fixed-format comments fontified.")
     table)
   "Syntax table used in Fortran mode.")
 
+(defvar fortran-gud-syntax-table
+  (let ((st (make-syntax-table fortran-mode-syntax-table)))
+    (modify-syntax-entry ?\n "." st)
+    st)
+  "Syntax table used to parse Fortran expressions for printing in GUD.")
+
 (defvar fortran-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map ";"        'fortran-abbrev-start)
@@ -691,6 +697,7 @@ with no args, if that value is non-nil."
   (set (make-local-variable 'add-log-current-defun-function)
        #'fortran-current-defun)
   (set (make-local-variable 'dabbrev-case-fold-search) 'case-fold-search)
+  (set (make-local-variable 'gud-find-expr) 'gud-find-fortran-expr)
   (run-hooks 'fortran-mode-hook))
 
 
