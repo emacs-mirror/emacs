@@ -1,3 +1,11 @@
+2002-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (menu_bar_items): Mostly undo 2002-02-20 patch, so
+	menu-bar bindings in keymap and local-map properties _are_ used.
+	But try keymap property first in accordance with 2002-01-03 patch.
+	Added comment describing why this is not always reliable.
+	(tool_bar_items): Ditto for tool-bar.
+
 2002-03-21  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (x_clear_image_1): Disable color table code.
