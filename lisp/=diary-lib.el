@@ -1,4 +1,4 @@
-;;; diary.el --- diary functions.
+;;; diary-lib.el --- diary functions.
 
 ;; Copyright (C) 1989, 1990, 1992, 1993, 1994 Free Software Foundation, Inc.
 
@@ -317,6 +317,13 @@ changing the variable `diary-include-string'."
 (defun fancy-diary-display ()
   "Prepare a diary buffer with relevant entries in a fancy, noneditable form.
 This function is provided for optional use as the `diary-display-hook'."
+  (save-excursion;; Turn off selective-display in the diary file's buffer.
+    (set-buffer (get-file-buffer (substitute-in-file-name diary-file)))
+    (let ((diary-modified (buffer-modified-p)))
+      (subst-char-in-region (point-min) (point-max) ?\^M ?\n t)
+      (setq selective-display nil)
+      (kill-local-variable 'mode-line-format)
+      (set-buffer-modified-p diary-modified)))
   (if (or (not diary-entries-list)
           (and (not (cdr diary-entries-list))
                (string-equal (car (cdr (car diary-entries-list))) "")))
@@ -337,13 +344,6 @@ This function is provided for optional use as the `diary-display-hook'."
           (setq buffer-read-only t)
           (display-buffer holiday-buffer)
           (message  "No diary entries for %s" date-string)))
-    (save-excursion;; Turn off selective-display in the diary file's buffer.
-      (set-buffer (get-file-buffer (substitute-in-file-name diary-file)))
-      (let ((diary-modified (buffer-modified-p)))
-        (subst-char-in-region (point-min) (point-max) ?\^M ?\n t)
-        (setq selective-display nil)
-        (kill-local-variable 'mode-line-format)
-        (set-buffer-modified-p diary-modified)))
     (save-excursion;; Prepare the fancy diary buffer.
       (set-buffer (get-buffer-create fancy-diary-buffer))
       (setq buffer-read-only nil)
