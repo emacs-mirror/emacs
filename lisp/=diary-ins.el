@@ -103,20 +103,28 @@ Prefix arg will make the entry nonmarking."
   "Insert an anniversary diary entry for the date given by point.
 Prefix arg will make the entry nonmarking."
   (interactive "P")
-  (make-diary-entry
-   (format "%s(diary-anniversary %s)"
-           sexp-diary-entry-symbol
-           (calendar-date-string
-            (or (calendar-cursor-to-date)
-                (error "Cursor is not on a date!"))
-            nil t))
-   arg))
+  (let* ((calendar-date-display-form
+          (if european-calendar-style
+              '(day " " month " " year)
+            '(month " " day " " year))))
+    (make-diary-entry
+     (format "%s(diary-anniversary %s)"
+             sexp-diary-entry-symbol
+             (calendar-date-string
+              (or (calendar-cursor-to-date)
+                  (error "Cursor is not on a date!"))
+              nil t))
+     arg)))
 
 (defun insert-block-diary-entry (arg)
   "Insert a block diary entry for the days between the point and marked date.
 Prefix arg will make the entry nonmarking."
   (interactive "P")
-  (let* ((cursor (or (calendar-cursor-to-date)
+  (let* ((calendar-date-display-form
+          (if european-calendar-style
+              '(day " " month " " year)
+            '(month " " day " " year)))
+         (cursor (or (calendar-cursor-to-date)
                      (error "Cursor is not on a date!")))
          (mark (or (car calendar-mark-ring)
                    (error "No mark set in this buffer")))
