@@ -34,6 +34,7 @@ interdontcompile = international\latin-1.el international\latin-2.el \
 
 #
 # Assuming INSTALL_DIR is defined, copy the elisp files to it
+# Windows 95 makes this harder than it should be.
 #
 install:;	- mkdir $(INSTALL_DIR)\lisp
 		- $(DEL) .\same-dir.tst
@@ -43,10 +44,16 @@ install:;	- mkdir $(INSTALL_DIR)\lisp
 		if not exist .\same-dir.tst $(CP_DIR) . $(INSTALL_DIR)\lisp
 !else
 		if not exist .\same-dir.tst $(CP_DIR) *.elc $(INSTALL_DIR)\lisp
-		if not exist .\same-dir.tst for %%f in ( $(topdontcompile) ) do $(CP) %%f $(INSTALL_DIR)\lisp
-		if not exist .\same-dir.tst for %%f in ( $(maildontcompile) ) do $(CP) %%f $(INSTALL_DIR)\lisp\mail
-		if not exist .\same-dir.tst for %%f in ( $(playdontcompile) ) do $(CP) %%f $(INSTALL_DIR)\lisp\play
-		if not exist .\same-dir.tst for %%f in ( $(interdontcompile) ) do $(CP) %%f $(INSTALL_DIR)\lisp\international
+		if not exist .\same-dir.tst $(CP) cus-load.el $(INSTALL_DIR)\lisp
+		if not exist .\same-dir.tst $(CP) forms*.el $(INSTALL_DIR)\lisp
+		if not exist .\same-dir.tst $(CP) patcomp.el $(INSTALL_DIR)\lisp
+		if not exist .\same-dir.tst $(CP) subdirs.el $(INSTALL_DIR)\lisp
+		if not exist .\same-dir.tst $(CP) version.el $(INSTALL_DIR)\lisp
+		if not exist .\same-dir.tst $(CP) mail\blessmail.el $(INSTALL_DIR)\lisp\mail
+		if not exist .\same-dir.tst $(CP) mail\sc.el $(INSTALL_DIR)\lisp\mail
+		if not exist .\same-dir.tst $(CP) play\bruce.el $(INSTALL_DIR)\lisp\play
+		if not exist .\same-dir.tst $(CP) international\latin-*.el $(INSTALL_DIR)\lisp\international
+		if not exist .\same-dir.tst $(CP) international\mule-conf.el $(INSTALL_DIR)\lisp\international
 		- $(DEL) $(INSTALL_DIR)\lisp\same-dir.tst
 !endif
 
