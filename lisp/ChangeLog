@@ -1,5 +1,9 @@
 2002-12-12  Dave Love  <fx@gnu.org>
 
+	* international/subst-big5.el, international/subst-gb2312.el:
+	* international/subst-jis.el, international/subst-ksc.el: New.
+	
+
 	* custom.el (defcustom, custom-set-variables): Doc fix.
 
 	* emacs-lisp/bytecomp.el (byte-compile-if): Suppress warnings from
