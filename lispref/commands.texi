@@ -2388,6 +2388,18 @@ The alias @code{last-input-char} exists for compatibility with
 Emacs version 18.
 @end defvar
 
+@defmac while-no-input body...
+This construct runs the @var{body} forms and returns the value
+of the last one---but only if no input arrives.  If any input
+arrives during the execution of the @var{body} forms, it aborts
+them (working much like a quit), and the @code{while-no-input}
+form returns @code{nil}.
+
+If a part of @var{body} binds @code{inhibit-quit} to non-@code{nil},
+arrival of input during those parts won't cause an abort until
+the end of that part.
+@end defmac
+
 @defun discard-input
 @cindex flush input
 @cindex discard input
