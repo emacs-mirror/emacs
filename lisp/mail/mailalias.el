@@ -22,9 +22,9 @@
 ;; only if some mail aliases are defined.
 (defun expand-mail-aliases (beg end &optional exclude)
   "Expand all mail aliases in suitable header fields found between BEG and END.
-Suitable header fields are To, Cc and Bcc and their Resent- variants.
-Optional 2nd arg EXCLUDE may be a regular expression
-defining text to be removed from alias expansions."
+Suitable header fields are `To', `Cc' and `Bcc' and their `Resent-' variants.
+Optional second arg EXCLUDE may be a regular expression defining text to be
+removed from alias expansions."
   (if (eq mail-aliases t)
       (progn (setq mail-aliases nil) (build-mail-aliases)))
   (goto-char beg)
@@ -89,7 +89,7 @@ defining text to be removed from alias expansions."
 
 ;; Called by mail-setup, or similar functions, only if ~/.mailrc exists.
 (defun build-mail-aliases (&optional file)
-  "Read mail aliases from ~/.mailrc and set mail-aliases."
+  "Read mail aliases from ~/.mailrc and set `mail-aliases'."
   (setq file (expand-file-name (or file "~/.mailrc")))
   (let ((buffer nil)
 	(obuf (current-buffer)))
@@ -131,7 +131,7 @@ defining text to be removed from alias expansions."
 ;; Always autoloadable in case the user wants to define aliases
 ;; interactively or in .emacs.
 (defun define-mail-alias (name definition)
-  "Define NAME as a mail-alias that translates to DEFINITION.
+  "Define NAME as a mail alias that translates to DEFINITION.
 This means that sending a message to NAME will actually send to DEFINITION.
 DEFINITION can be one or more mail addresses separated by commas."
   (interactive "sDefine mail alias: \nsDefine %s as mail alias for: ")
