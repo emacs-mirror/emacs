@@ -113,6 +113,31 @@ struct w32_display_info *x_display_list;
    FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
 Lisp_Object w32_display_name_list;
 
+
+#ifndef GLYPHSET
+/* Pre Windows 2000, this was not available, but define it here so
+   that Emacs compiled on such a platform will run on newer versions.  */
+
+typedef struct tagWCRANGE
+{
+  WCHAR wcLow;
+  USHORT cGlyphs;
+} WCRANGE;
+
+typedef struct tagGLYPHSET 
+{
+  DWORD cbThis;
+  DWORD flAccel;
+  DWORD cGlyphsSupported;
+  DWORD cRanges;
+  WCRANGE ranges[1];
+} GLYPHSET;  
+
+#endif
+
+/* Dynamic linking to GetFontUnicodeRanges (not available on 95, 98, ME).  */
+DWORD (PASCAL *pfnGetFontUnicodeRanges) (HDC device, GLYPHSET *ranges);
+
 /* Frame being updated by update_frame.  This is declared in term.c.
    This is set by update_begin and looked at by all the
    w32 functions.  It is zero while not inside an update.
@@ -1019,11 +1044,21 @@ w32_encode_char (c, char2b, font_info, charset, two_byte_p)
   XFontStruct *font = font_info->font;
 
   internal_two_byte_p = w32_font_is_double_byte (font);
+  codepage = font_info->codepage;
+
+  /* If font can output unicode, use the original unicode character.  */
+  if ( font && !font->bdf && w32_use_unicode_for_codepage (codepage)
+       && c >= 0x100)
+    {
+      *char2b = c;
+      unicode_p = 1;
+      internal_two_byte_p = 1;
+    }
 
   /* FONT_INFO may define a scheme by which to encode byte1 and byte2.
      This may be either a program in a special encoder language or a
      fixed encoding.  */
-  if (font_info->font_encoder)
+  else if (font_info->font_encoder)
     {
       /* It's a program.  */
       struct ccl_program *ccl = font_info->font_encoder;
@@ -1060,37 +1095,15 @@ w32_encode_char (c, char2b, font_info, charset, two_byte_p)
 	  && CHARSET_DIMENSION (charset) == 2)
 	STORE_XCHAR2B (char2b, XCHAR2B_BYTE1 (char2b) | 0x80, XCHAR2B_BYTE2 (char2b));
 
-      if (enc == 1 || enc == 3
-          || (enc == 4 && CHARSET_DIMENSION (charset) == 1))
+      if (enc == 1 || enc == 3          || (enc == 4 && CHARSET_DIMENSION (charset) == 1))
 	STORE_XCHAR2B (char2b, XCHAR2B_BYTE1 (char2b), XCHAR2B_BYTE2 (char2b) | 0x80);
       else if (enc == 4)
         {
-          int code = (int) char2b;
+          int code = (int) (*char2b);
 
 	  JIS_TO_SJIS (code);
           STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
         }
-    }
-  codepage = font_info->codepage;
-
-  /* If charset is not ASCII or Latin-1, may need to move it into
-     Unicode space.  */
-  if ( font && !font->bdf && w32_use_unicode_for_codepage (codepage)
-       && c >= 0x100)
-    {
-      char temp[3];
-      temp[0] = XCHAR2B_BYTE1 (char2b);
-      temp[1] = XCHAR2B_BYTE2 (char2b);
-      temp[2] = '\0';
-      if (codepage != CP_UNICODE)
-        {
-          if (temp[0])
-            MultiByteToWideChar (codepage, 0, temp, 2, char2b, 1);
-          else
-            MultiByteToWideChar (codepage, 0, temp+1, 1, char2b, 1);
-        }
-      unicode_p = 1;
-      internal_two_byte_p = 1;
     }
 
   if (two_byte_p)
@@ -1120,13 +1133,56 @@ x_get_font_repertory (f, font_info)
      FRAME_PTR f;
      struct font_info *font_info;
 {
-#if 0 /* TODO: New function, convert to Windows. */
   XFontStruct *font = (XFontStruct *) font_info->font;
   Lisp_Object table;
   int min_byte1, max_byte1, min_byte2, max_byte2;
 
   table = Fmake_char_table (Qnil, Qnil);
 
+  if (!font->bdf && pfnGetFontUnicodeRanges)
+    {
+      GLYPHSET *glyphset;
+      DWORD glyphset_size;
+      HDC display = get_frame_dc (f);
+      HFONT prev_font;
+      int i;
+
+      prev_font = SelectObject (display, font->hfont);
+
+      /* First call GetFontUnicodeRanges to find out how big a structure
+	 we need.  */
+      glyphset_size = pfnGetFontUnicodeRanges (display, NULL);
+      if (glyphset_size)
+	{
+	  glyphset = (GLYPHSET *) alloca (glyphset_size);
+	  glyphset->cbThis = glyphset_size;
+
+	  /* Now call it again to get the ranges.  */
+	  glyphset_size = pfnGetFontUnicodeRanges (display, glyphset);
+
+	  if (glyphset_size)
+	    {
+	      /* Store the ranges in TABLE.  */
+	      for (i = 0; i < glyphset->cRanges; i++)
+		{
+		  int from = glyphset->ranges[i].wcLow;
+		  int to = from + glyphset->ranges[i].cGlyphs - 1;
+		  char_table_set_range (table, from, to, Qt);
+		}
+	    }
+	}
+
+      SelectObject (display, prev_font);
+      release_frame_dc (f, display);
+
+      /* If we got the information we wanted above, then return it.  */
+      if (glyphset_size)
+	return table;
+    }
+
+#if 0 /* TODO: Convert to work on Windows so BDF and older platforms work.  */
+  /* When GetFontUnicodeRanges is not available or does not work,
+     work it out manually.  */
   min_byte1 = font->min_byte1;
   max_byte1 = font->max_byte1;
   min_byte2 = font->min_char_or_byte2;
@@ -1199,11 +1255,8 @@ x_get_font_repertory (f, font_info)
 	    }
 	}
     }
-
-  return table;
-#else
-  return Fmake_char_table (Qnil, Qnil);
 #endif
+  return table;
 }
 
 
@@ -6538,16 +6591,19 @@ w32_initialize ()
   /* Dynamically link to optional system components. */
   {
     HANDLE user_lib = LoadLibrary ("user32.dll");
+    HANDLE gdi_lib = LoadLibrary ("gdi32.dll");
 
-#define LOAD_PROC(fn) pfn##fn = (void *) GetProcAddress (user_lib, #fn)
+#define LOAD_PROC(lib, fn) pfn##fn = (void *) GetProcAddress (lib, #fn)
 
     /* New proportional scroll bar functions. */
-    LOAD_PROC (SetScrollInfo);
-    LOAD_PROC (GetScrollInfo);
-
+    LOAD_PROC (user_lib, SetScrollInfo);
+    LOAD_PROC (user_lib, GetScrollInfo);
+    LOAD_PROC (gdi_lib, GetFontUnicodeRanges);
+    
 #undef LOAD_PROC
 
     FreeLibrary (user_lib);
+    FreeLibrary (gdi_lib);
 
     /* If using proportional scroll bars, ensure handle is at least 5 pixels;
        otherwise use the fixed height.  */
