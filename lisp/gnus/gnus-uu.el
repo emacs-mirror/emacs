@@ -217,7 +217,7 @@ Note that this variable can be used in conjunction with the
 
 ;; Various variables users may set
 
-(defcustom gnus-uu-tmp-dir "/tmp/"
+(defcustom gnus-uu-tmp-dir temporary-file-directory
   "*Variable saying where gnus-uu is to do its work.
 Default is \"/tmp/\"."
   :group 'gnus-extract
