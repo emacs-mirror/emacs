@@ -128,7 +128,45 @@ If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "underline-p" "underlined"))
   (internal-set-face-1 face 'underline underline-p 7 frame))
-
+
+(defun modify-face (face foreground background bold-p italic-p underline-p)
+  "Change the display attributes for face FACE.
+FOREGROUND and BACKGROUND should be color strings.  (Default color if nil.)
+BOLD-P, ITALIC-P, and UNDERLINE-P specify whether the face should be set bold,
+in italic, and underlined, respectively.  (Yes if non-nil.)
+If called interactively, prompts for a face and face attributes."
+  (interactive
+   (let* ((completion-ignore-case t)
+	  (face		(symbol-name (read-face-name "Face: ")))
+	  (foreground	(completing-read
+			 (format "Face %s set foreground (default %s): " face
+				 (downcase (or (face-foreground (intern face))
+					       "foreground")))
+			 (mapcar 'list (x-defined-colors))))
+	  (background	(completing-read
+			 (format "Face %s set background (default %s): " face
+				 (downcase (or (face-background (intern face))
+					       "background")))
+			 (mapcar 'list (x-defined-colors))))
+	  (bold-p	(y-or-n-p (concat "Face " face ": set bold ")))
+	  (italic-p	(y-or-n-p (concat "Face " face ": set italic ")))
+	  (underline-p	(y-or-n-p (concat "Face " face ": set underline "))))
+     (if (string-equal background "") (setq background nil))
+     (if (string-equal foreground "") (setq foreground nil))
+     (message "Face %s: %s" face
+      (mapconcat 'identity
+       (delq nil
+	(list (and foreground (concat (downcase foreground) " foreground"))
+	      (and background (concat (downcase background) " background"))
+	      (and bold-p "bold") (and italic-p "italic")
+	      (and underline-p "underline"))) ", "))
+     (list (intern face) foreground background bold-p italic-p underline-p)))
+  (condition-case nil (set-face-foreground face foreground) (error nil))
+  (condition-case nil (set-face-background face background) (error nil))
+  (funcall (if bold-p 'make-face-bold 'make-face-unbold) face nil t)
+  (funcall (if italic-p 'make-face-italic 'make-face-unitalic) face nil t)
+  (set-face-underline-p face underline-p)
+  (and (interactive-p) (redraw-display)))
 
 ;;;; Associating face names (symbols) with their face vectors.
 
