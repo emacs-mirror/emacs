@@ -1,3 +1,8 @@
+2000-12-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* files.el (revert-buffer, recover-file): Bind
+	coding-system-for-read to emacs-mule-unix, not to no-conversion.
+
 2000-12-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* hi-lock.el (hi-lock-refontify): Call jit-lock-refontify.
