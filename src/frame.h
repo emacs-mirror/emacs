@@ -132,7 +132,13 @@ struct frame
   Lisp_Object scroll_bars;
   Lisp_Object condemned_scroll_bars;
 
+  /* List of elements to display in the menu bar.
+     The elements have the form (KEY STRING . nil) to start;
+     when they are displayed, the hpos of the left edge goes in the cddr.  */
   Lisp_Object menu_bar_items;
+
+  /* Alist of elements (FACE-NAME . FACE-VECTOR-DATA).  */
+  Lisp_Object face_alist;
 
   /* The output method says how the contents of this frame
      are displayed.  It could be using termcap, or using an X window.  */
