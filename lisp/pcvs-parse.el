@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-parse.el,v 1.8 2001/07/16 07:46:48 pj Exp $
+;; Revision: $Id: pcvs-parse.el,v 1.9 2001/09/22 20:22:34 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -486,7 +486,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
       (cvs-match "done$")
       (progn
 	;; Try to remove the temp files used by VC.
-	(vc-delete-automatic-version-backups path)
+	(vc-delete-automatic-version-backups (expand-file-name path))
 	;; it's important here not to rely on the default directory management
 	;; because `cvs commit' might begin by a series of Examining messages
 	;; so the processing of the actual checkin messages might begin with
