@@ -143,7 +143,7 @@ display."
   :type 'face)
 
 (defvar display-time-mail-icon
-  (find-image '((:type xbm :file "letter.xbm" :ascent 100)))
+  (find-image '((:type xbm :file "letter.xbm" :ascent center)))
   "Image specification to offer as the mail indicator on a graphic
 display.  See `display-time-use-mail-icon' and
 `display-time-mail-face'.")
