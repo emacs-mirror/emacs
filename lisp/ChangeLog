@@ -1,3 +1,151 @@
+2001-01-09  Alex Schroeder  <alex@gnu.org>
+
+	* ansi-color.el (ansi-color-process-output): Use markers instead
+	of positions for start and end of region.
+	(ansi-color-apply-on-region): Rewrote code to make it more robust.
+	Previously, occasional mistakes happend when fontifying many
+	chunks of output (eg. ls --color=yes /dev).  This happened
+	whenever an overlay was created up to the end of the region, which
+	coincided with the process-mark.  New text would then be added
+	within that overlay instead of after it.
+	(ansi-color-make-extent): Overlays are created with the property
+	`modification-hooks' set to '(ansi-color-freeze-overlay).
+	(ansi-color-freeze-overlay): New function.  When inserting text at
+	the end of the overlay, the overlay will resize.
+
+2000-01-09  Alex Schroeder  <alex@gnu.org>
+
+	* ansi-color.el (ansi-color-process-output): Doc change.
+	(ansi-color-unfontify-region): Doc change.  No longer installed
+	automatically in font-lock-unfontify-region-function.
+	(ansi-color-apply): Doc change.
+	(ansi-color-apply-on-region): Use extents or overlays instead of
+	text-properties.
+	(ansi-color-make-extent): New function.
+	(ansi-color-set-extent-face): New function.
+
+2000-01-09  Alex Schroeder  <alex@gnu.org>
+
+	* ansi-color.el (ansi-color-process): Removed, Emacs and XEmacs
+	both use ansi-color-process-output, now.
+	(ansi-color-process-output): Doesn't return string anymore.  It is
+	installed in comint-output-filter-functions for both Emacs and
+	XEmacs, now.
+	(ansi-color-unfontify-region): Simplified code removing variables
+	pos and start-ansi.
+	(ansi-color-apply): Put text-property ansi-color before putting
+	text-property face because ansi-color-unfontify-region is called
+	immediately after the call to put-text-property.
+	(ansi-color-context-region): Doc change.
+	(ansi-color-filter-region): Simplified code.
+	(ansi-color-apply-on-region): Changed start to start-marker, using
+	a marker explicitly.  Put text-property ansi-color before putting
+	text-property face because ansi-color-unfontify-region is called
+	immediately after the call to put-text-property.
+
+2000-01-09  Alex Schroeder  <alex@gnu.org>
+
+	* ansi-color.el (ansi-color-faces-vector): Doc change.
+	(ansi-color-for-comint-mode): Changed :type property to choice.
+	(ansi-color-last-context): Removed.
+	(ansi-color-process-output): Don't use ansi-color-last-context, as
+	the main functions will store their context now.
+	(ansi-color-context): Doc change.
+	(ansi-color-filter-apply): Rewrote it based on ansi-color-apply.
+	Uses ansi-color-context such that repeated calls will strip
+	partial escape sequences, too.
+	(ansi-color-apply): Simplified code.  Colorize end of string if
+	face is not null.  Store context in new (FACE STRING) format, such
+	that repeated calls will strip partial escape sequences, too.
+	Append faces to face property using ansi-color-apply-sequence such
+	that cumulative mode actually works.
+	(ansi-color-context-region): New variable.
+	(ansi-color-filter-region): Rewrote it based on
+	ansi-color-apply-on-region.  Uses ansi-color-context-region such
+	that repeated calls will strip partial escape sequences, too.
+	(ansi-color-apply-on-region): Simplified code.  Colorize end of
+	region if face is not null.  Store context in new (FACE POS)
+	format, such that repeated calls will strip partial escape
+	sequences, too.  Append faces to face property using
+	ansi-color-apply-sequence such that cumulative mode actually
+	works.
+	(ansi-color-apply-sequence): New function.
+	(ansi-color-get-face): When the default face is added to the list
+	of faces, all previous settings are discarded and the list of
+	faces is set to '(default).
+
+2000-01-09  Alex Schroeder  <alex@gnu.org>
+
+	* ansi-color.el (ansi-color-faces-vector): Use nil for the default
+	face, such that ansi-color-apply and ansi-color-apply-on-region
+	will do the right thing.
+	(ansi-color-apply): Do the right thing, ie. if ansi-color-get-face
+	returns nil, set the list of faces back to nil instead of
+	appending the result of ansi-color-get-face to the front of the
+	list.
+
+2000-01-09  Alex Schroeder  <alex@gnu.org>
+
+	* ansi-color.el (ansi-color-for-comint-mode): Doc change.
+	(ansi-color-process): Doc change.
+	(ansi-color-last-context): New buffer-local variable.
+	(ansi-color-process-output): New function.  It is automatically
+	added to comint-output-filter-functions if this is XEmacs.
+	(ansi-color-unfontify-region): New optional parameter for XEmacs
+	compatibility.  Check wether font-lock-syntactic-keywords is
+	boundp before removing the syntax table text property, as XEmacs
+	doesn't have it.
+	(ansi-color-filter-region): Doc change.
+	(ansi-color-apply-on-region): Doc change.
+	(ansi-color-make-face): New function.  Compatibility layer for
+	XEmacs.  Return temporary faces instead of cons cells for XEmacs.
+	(ansi-color-make-color-map): Use ansi-color-make-face.
+	(ansi-color-get-face): Avoid face text property '(nil) as results
+	in an errow for XEmacs.
+
+2000-01-09  Alex Schroeder  <alex@gnu.org>
+
+	* ansi-color.el (ansi-color-unfontify-region): New function.  Uses
+	text-property ansi-color in order to preserve fontification by
+	ansi-color.  When the package is loaded, a lambda expression is
+	put onto font-lock-mode-hook.  This lambda expression will check
+	font-lock-unfontify-region-function and replace
+	font-lock-default-unfontify-region with
+	ansi-color-unfontify-region.
+	(ansi-color-apply): Add text-property ansi-color in addition to
+	text-property face.
+	(ansi-color-apply-on-region): Add text-property ansi-color in
+	addition to text-property face.
+	(save-buffer-state): Copy of the macro that is also used by
+	lazy-lock and font-lock.
+
+	(ansi-color-for-comint-mode): New option.
+	(ansi-color-for-comint-mode-on): Set ansi-color-for-comint-mode.
+	(ansi-color-for-comint-mode-off): Ditto.
+	(ansi-color-for-comint-mode-filter): Ditto.
+	(ansi-color-process): New function.  Uses
+	ansi-color-for-comint-mode to decide what to do.  This function is
+	added to comint-preoutput-filter-functions when the package is
+	loaded.
+
+	(ansi-color-for-shell-mode-set): Removed.
+	(ansi-color-for-shell-mode): Removed.
+
+2000-01-09  Alex Schroeder  <alex@gnu.org>
+
+	* ansi-color.el (ansi-color-for-shell-mode-set): New function with
+	the lambda expression from the ansi-color-for-shell-mode :set
+	property.  Additionally, modify shell-mode-hook to enable or
+	disable font-lock-mode for future shell buffers.
+	(ansi-color-for-shell-mode): The :set property calls
+	ansi-color-for-shell-mode-set instead of a lambda expression.
+
+2000-01-09  Alex Schroeder  <alex@gnu.org>
+
+	* ansi-color.el (ansi-color-for-shell-mode): Doc change.
+	(ansi-color-context): New variable.
+	(ansi-color-apply): Save context between calls.
+
 2001-01-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* isearch.el (isearch, isearch-lazy-highlight-face): New

@@ -1502,6 +1502,11 @@ releases have 8859-15.  There are new Latin-8 and Latin-9 prefix
 (only) and Polish slash input methods in Leim.
 
 +++
+** New language environments `Dutch' and `Spanish'.
+These new environments mainly select appropriate translations 
+of the tutorial.
+
++++
 ** Fortran mode has a new command `fortran-strip-sequence-nos' to
 remove text past column 72.  The syntax class of `\' in Fortran is now
 appropriate for C-style escape sequences in strings.
