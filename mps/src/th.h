@@ -1,16 +1,17 @@
 /*  impl.h.th
- *                       THREADS
  *
- *  $HopeName$
+ *                    THREAD MANAGER
+ *
+ *  $HopeName: MMsrc/!th.h(trunk.1)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
  *  Provides stack scanning and thread suspension facilities.
+ *  See design.mps.thread-manager
  * 
  *  This provides facilities for suspending/resuming mutator threads;
  *  scanning of the mutator's stacks.  Each thread has to be individually
- *  registered and deregistered.  It also provides a trampoline
- *  for calling into the memory managed world.
+ *  registered and deregistered with a space.
  */
 
 #ifndef th_h
@@ -18,20 +19,11 @@
 
 #include "std.h"
 
-/*  == Threads ==
- *
- *  Threads is the type of a handle on the mutator's threads.  Threads
- *  are registered with the space which contains a Threads structure.
- *  These registered threads are the ones identified for stack scanning,
- *  resuming and suspending.
- */  
-
-typedef struct ThreadsStruct *Threads;
 
 /*  == Thread Type ==
  *
  *  A Thread is a handle returned by ThreadRegister which must be
- *  used for deregistration and when using the Trampette
+ *  used for deregistration.
  */
 
 typedef struct ThreadStruct *Thread;
@@ -42,72 +34,54 @@ typedef struct ThreadStruct *Thread;
 #include "ref.h"
 
 
-extern Bool ThreadsIsValid(Threads threads, ValidationType validParam);
-
 extern Bool ThreadIsValid(Thread thread, ValidationType validParam);
 
-extern Error ThreadsCreate(Threads *threadsReturn, Space space);
 
-extern void ThreadsDestroy(Threads threads, Space space);
-
-
-/*  == Register/Dergister ==
+/*  == Register/Deregister ==
  * 
- *  Explicitly register/deregister a thread with a space.  The trampette
- *  must be used before accessing automatically managed memory. 
- *  stackBot explicitly records the bottom of stack for this thread.
- *  The thread should not be registered multiple times with a space.
+ *  Explicitly register/deregister a thread on the space threadDeque.
+ *  stackBot explicitly records the bottom of stack for this 
+ *  thread.  Register returns a "Thread" value which needs to be used
+ *  for deregistration.
+ *
+ *  Threads must not be multiply registered in the same space.
  */
 
 extern Error ThreadRegister(Thread *threadReturn,
-                            Addr *stackBot, Space space);
+                            Space space, Addr *stackBot);
 
 extern void ThreadDeregister(Thread thread, Space space);
 
 
-/*  == Trampoline ==
+/*  == ThreadDequeSuspend/Resume ==
  *
- *  ThreadTrampoline calls the function "function" with argument arg.
- *  The result is placed in valueReturn.
- *
- *  thread must be the object returned by registration of the current
- *  thread.
- *
- *  The (inclusive) area between each current stack
- *  pointer and the value of the stack pointer on entry to program
- *  are treated as an array of ambiguous roots.  On certain platforms
- *  registers may also contain roots.
- *
- *  Whether access to managed memory is allowed outside the trampoline
- *  is defined on a per pool basis.  In general, access is disallowed
- *  for automatically managed memory.
+ *  These functions suspend/resume the threads on the deque.
+ *  If the current thread is among them, it is not suspended,
+ *  nor is any attempt to resume it made.
  */
 
-typedef void *(*ThreadContinue)(void *arg);
+extern void ThreadDequeSuspend(Deque threadDeque);
+extern void ThreadDequeResume(Deque threadDeque);
 
-extern void (ThreadTrampoline)(void **valueReturn,
-                               Thread thread,
-                               ThreadContinue function,
-                               void *arg);
 
-/*  == ThreadsSuspend/ThreadsResume ==
+/*  == ThreadDequeScan ==
  *
- *  These functions suspend/resume registered threads.  If the current
- *  thread is among them, it is not suspended, nor is any attempt to
- *  resume it made.
+ *  This function has the type of a root scanning function.
+ *
+ *  It must be called with the closure variable p set to
+ *  (void *)threadDeque, where threadDeque is
+ *  a deque of threads.
+ *
+ *  This ambiguously scans the stacks of the threads on the
+ *  deque between the stack level defined on registration
+ *  and the thread's current stack level.  It also fixes
+ *  their root registers.
+ *
+ *  The scan is inclusive/exclusive of stackBot if the stack
+ *  is by convention empty/full.
  */
 
-extern void ThreadsSuspend(Threads threads);
-extern void ThreadsResume(Threads threads);
+extern Error ThreadDequeScan(void *p, int i, Trace trace);
 
-/*  == ScanStacks ==
- *
- *  This ambiguously scans the stacks of the registered threads
- *  between the stack
- *  level defined on registration
- *  and the thread's current stack level.
- */
-
-extern Error ThreadsScanStacks(void *p, int i, Trace trace);
 
 #endif /* th_h */
