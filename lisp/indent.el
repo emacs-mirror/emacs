@@ -37,23 +37,42 @@
   :group 'indent
   :type 'integer)
 
-(defvar indent-line-function 'indent-to-left-margin
-  "Function to indent current line.")
+(defvar indent-line-function 'indent-relative
+  "Function to indent the current line.
+This function will be called with no arguments.
+If it is called somewhere where auto-indentation cannot be done
+\(f.ex. inside a string), the function should simply return `noindent'.
+Setting this function is all you need to make TAB indent appropriately.
+Don't rebind TAB unless you really need to.")
 
 (defcustom tab-always-indent t
   "*Controls the operation of the TAB key.
 If t, hitting TAB always just indents the current line.
+If `never', hitting TAB just inserts a tab.
 If nil, hitting TAB indents the current line if point is at the left margin
   or in the line's indentation, otherwise it insert a `real' tab character."
   :group 'indent
-  :type 'boolean)
+  :type '(choice (const nil) (const t) (const never) (const always)))
 
 (defun indent-according-to-mode ()
   "Indent line in proper way for current major mode."
   (interactive)
-  (funcall indent-line-function))
+  (if (memq indent-line-function
+	    '(indent-relative indent-relative-maybe))
+      ;; These functions are used for tabbing, but can't be used for
+      ;; indenting.  Replace with something ad-hoc.
+      (let ((column (save-excursion
+		      (beginning-of-line)
+		      (skip-chars-backward "\n \t")
+		      (beginning-of-line)
+		      (current-indentation))))
+	(if (<= (current-column) (current-indentation))
+	    (indent-line-to column)
+	  (save-excursion (indent-line-to column))))
+    ;; The normal case.
+    (funcall indent-line-function)))
 
-(defun indent-for-tab-command (&optional prefix-arg)
+(defun indent-for-tab-command (&optional arg)
   "Indent line in proper way for current major mode or insert a tab.
 Depending on `tab-always-indent', either insert a tab or indent.
 If initial point was within line's indentation, position after
@@ -61,14 +80,25 @@ the indentation.  Else stay at same point in text.
 The function actually called to indent is determined by the value of
 `indent-line-function'."
   (interactive "P")
-  (if (or (eq indent-line-function 'indent-to-left-margin)
-	  (and (not tab-always-indent)
-	       (> (current-column) (current-indentation))))
-      (insert-tab prefix-arg)
-    (funcall indent-line-function)))
+  (cond
+   ((or (eq tab-always-indent 'never)
+	;; indent-to-left-margin is only meant for indenting,
+	;; so we force it to always insert a tab here.
+	(eq indent-line-function 'indent-to-left-margin)
+	(and (not tab-always-indent)
+	     (> (current-column) (current-indentation)))
+	(and (not (eq tab-always-indent 'always))
+	     (eq this-command last-command)))
+    (insert-tab arg))
+   ;; Those functions are meant specifically for tabbing and not for
+   ;; indenting, so we can't pass them to indent-according-to-mode.
+   ((memq indent-line-function '(indent-relative indent-relative-maybe))
+    (funcall indent-line-function))
+   (t ;; The normal case.
+    (indent-according-to-mode))))
 
-(defun insert-tab (&optional prefix-arg)
-  (let ((count (prefix-numeric-value prefix-arg)))
+(defun insert-tab (&optional arg)
+  (let ((count (prefix-numeric-value arg)))
     (if (and abbrev-mode
 	     (eq (char-syntax (preceding-char)) ?w))
 	(expand-abbrev))
@@ -322,10 +352,8 @@ If COLUMN is nil, then indent each line according to the mode."
 	(if indent-region-function
 	    (funcall indent-region-function start end)
 	  (save-excursion
-	    (goto-char end)
-	    (setq end (point-marker))
+	    (setq end (copy-marker end))
 	    (goto-char start)
-	    (or (bolp) (forward-line 1))
 	    (while (< (point) end)
 	      (or (and (bolp) (eolp))
 		  (funcall indent-line-function))
@@ -385,7 +413,6 @@ See also `indent-relative-maybe'."
 	    (or (= (point) end) (setq indent (current-column))))))
     (if indent
 	(let ((opoint (point-marker)))
-	  (delete-region (point) (progn (skip-chars-backward " \t") (point)))
 	  (indent-to indent 0)
 	  (if (> opoint (point))
 	      (goto-char opoint))
@@ -399,12 +426,12 @@ This should be a list of integers, ordered from smallest to largest."
   :group 'indent
   :type '(repeat integer))
 
-(defvar edit-tab-stops-map nil "Keymap used in `edit-tab-stops'.")
-(if edit-tab-stops-map
-    nil
-  (setq edit-tab-stops-map (make-sparse-keymap))
-  (define-key edit-tab-stops-map "\C-x\C-s" 'edit-tab-stops-note-changes)
-  (define-key edit-tab-stops-map "\C-c\C-c" 'edit-tab-stops-note-changes))
+(defvar edit-tab-stops-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-x\C-s" 'edit-tab-stops-note-changes)
+    (define-key map "\C-c\C-c" 'edit-tab-stops-note-changes)
+    map)
+  "Keymap used in `edit-tab-stops'.")
 
 (defvar edit-tab-stops-buffer nil
   "Buffer whose tab stops are being edited--in case
@@ -497,7 +524,7 @@ Use \\[edit-tab-stops] to edit them interactively."
 		  (delete-region (point) before))))))))
 
 (define-key global-map "\t" 'indent-for-tab-command)
-(define-key esc-map "\034" 'indent-region)
+(define-key esc-map "\C-\\" 'indent-region)
 (define-key ctl-x-map "\t" 'indent-rigidly)
 (define-key esc-map "i" 'tab-to-tab-stop)
 
