@@ -96,7 +96,7 @@ at the end, with blanks as separators."
   :type 'string
   :group 'tex-run)
 
-(defcustom tex-start-options-string "\\nonstopmode\\input"
+(defcustom tex-start-options-string "\\\\nonstopmode\\\\input"
   "*TeX options to use when running TeX.
 These precede the input file name."
   :type 'string
