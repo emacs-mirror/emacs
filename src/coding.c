@@ -3959,6 +3959,8 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
   int first = 1;
   int fake_multibyte = 0;
   unsigned char *src, *dst;
+  int combined_before_bytes = 0;
+  int adjusted_inserted;
 
   if (adjust)
     {
@@ -4238,10 +4240,13 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
     }
   if (src - dst > 0) *dst = 0; /* Put an anchor.  */
 
+  adjusted_inserted = inserted;
+
   if (multibyte)
     {
       if (fake_multibyte || !encodep && (to - from) != (to_byte - from_byte))
-	inserted = multibyte_chars_in_text (GPT_ADDR, inserted_byte);
+	adjusted_inserted
+	  = inserted = multibyte_chars_in_text (GPT_ADDR, inserted_byte);
 
       if (! CHAR_HEAD_P (*GPT_ADDR)
 	  && GPT_BYTE > 1
@@ -4252,64 +4257,82 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
 	  while (! CHAR_HEAD_P (*p0) && p0 > pmin) p0--;
 	  if (BASE_LEADING_CODE_P (*p0))
 	    {
-	      /* Codes in the range 0240..0377 were inserted after a
-		 multibyte sequence.  We must treat those codes as
-		 tailing constituents of the multibyte sequence.  For
-		 that, we increase byte positions of position keepers
-		 whose char positions are GPT.  */
-	      int byte_increase;
+	      /* Codes in the range 0240..0377 were inserted just
+		 after a multibyte sequence.  We must treat those
+		 codes as tailing constituents of the multibyte
+		 sequence.  For that, we increase byte positions of
+		 position keepers whose char positions are GPT.  */
 	      Lisp_Object tail;
 
-	      p1 = GPT_ADDR + 2, pmax = p0 + 1 + inserted_byte;
-	      while (! CHAR_HEAD_P (*p1) && p1 < pmax) p1++;
-	      /* Now, codes from P0 to P1 constitute a single
-                 multibyte character.  */
-
-	      byte_increase = p1 - GPT_ADDR;
+	      combined_before_bytes
+		= count_combining_before (GPT_ADDR, inserted_byte,
+					 GPT, GPT_BYTE);
 	      if (PT == GPT)
-		current_buffer->pt_byte += byte_increase;
+		BUF_PT_BYTE (current_buffer) += combined_before_bytes;
+	      if (BEGV == GPT)
+		BUF_BEGV_BYTE (current_buffer) += combined_before_bytes;
+
 	      tail = BUF_MARKERS (current_buffer);
 	      while (XSYMBOL (tail) != XSYMBOL (Qnil))
 		{
 		  if (XMARKER (tail)->charpos == GPT)
-		    XMARKER (tail)->bytepos += byte_increase;
+		    XMARKER (tail)->bytepos += combined_before_bytes;
 		  tail = XMARKER (tail)->chain;
 		}
 
-	      from_byte += byte_increase;
+	      from_byte += combined_before_bytes;
 	      from_byte_orig = from_byte;
-	      inserted -= byte_increase;
+	      adjusted_inserted = inserted - !! combined_before_bytes;
+
+	      if (! EQ (current_buffer->undo_list, Qt))
+		{
+		  /* We record the multibyte sequence preceding the
+		     gap as deleted, and the new multibyte sequence
+		     combined with COMBINED_BYTES as inserted.  We
+		     directly modify the undo list because we have
+		     already done record_delete and can skip various
+		     checking.  */
+		  Lisp_Object str = make_multibyte_string (p0, 1,
+							   GPT_ADDR - p0);
+		  current_buffer->undo_list
+		    = Fcons (Fcons (make_number (GPT - 1), make_number (GPT)),
+			     Fcons (Fcons (str, make_number (GPT - 1)),
+				    current_buffer->undo_list));
+		}
 	    }
 	}
     }
 
   /* Update various buffer positions for the new text.  */
   GAP_SIZE -= inserted_byte;
-  ZV += inserted; Z+= inserted;
+  ZV += adjusted_inserted; Z+= adjusted_inserted;
   ZV_BYTE += inserted_byte; Z_BYTE += inserted_byte;
-  GPT += inserted; GPT_BYTE += inserted_byte;
+  GPT += adjusted_inserted; GPT_BYTE += inserted_byte;
 
   if (adjust)
     {
       adjust_after_replace (from, from_byte, to, to_byte,
-			    inserted, inserted_byte);
+			    inserted, inserted_byte,
+			    combined_before_bytes, 0);
 
       if (! encodep && ! NILP (coding->post_read_conversion))
 	{
 	  Lisp_Object val;
-	  int orig_inserted = inserted, pos = PT;
+	  int orig_inserted = adjusted_inserted, pos = PT;
 
 	  temp_set_point_both (current_buffer, from, from_byte);
-	  val = call1 (coding->post_read_conversion, make_number (inserted));
+	  val = call1 (coding->post_read_conversion,
+		       make_number (adjusted_inserted));
 	  if (! NILP (val))
 	    {
 	      CHECK_NUMBER (val, 0);
-	      inserted = XFASTINT (val);
+	      adjusted_inserted = XFASTINT (val);
 	    }
 	  if (pos >= from + orig_inserted)
-	    temp_set_point (current_buffer, pos + (inserted - orig_inserted));
+	    temp_set_point (current_buffer,
+			    pos + (adjusted_inserted - orig_inserted));
 	}
-      signal_after_change (from, to - from, inserted);
+      signal_after_change (from, to - from, adjusted_inserted);
     }
 
   {
@@ -4318,8 +4341,9 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
     coding->consumed = to_byte_orig - from_byte_orig;
     coding->consumed_char = skip + (to - from);
     coding->produced = skip + inserted_byte;
-    coding->produced_char = skip + inserted;
+    coding->produced_char = skip + adjusted_inserted;
   }
+
   return 0;
 }
 
