@@ -473,10 +473,6 @@ static int clear_font_table_count;
 
 int face_change_count;
 
-/* Incremented for every change in the `menu' face.  */
-
-int menu_face_change_count;
-
 /* Non-zero means don't display bold text if a face's foreground
    and background colors are the inverse of the default colors of the
    display.   This is a kluge to suppress `bold black' foreground text
@@ -497,6 +493,10 @@ static int npixmaps_allocated;
 static int ngcs;
 #endif
 
+/* Non-zero means the definition of the `menu' face for new frames has
+   been changed.  */
+
+int menu_face_changed_default;
 
 
 /* Function prototypes.  */
@@ -3770,7 +3770,7 @@ DEFUN ("internal-set-lisp-face-attribute", Finternal_set_lisp_face_attribute,
        Sinternal_set_lisp_face_attribute, 3, 4, 0,
   "Set attribute ATTR of FACE to VALUE.\n\
 FRAME being a frame means change the face on that frame.\n\
-FRAME nil means change change the face of the selected frame.\n\
+FRAME nil means change the face of the selected frame.\n\
 FRAME t means change the default for new frames.\n\
 FRAME 0 means change the face on all frames, and change the default\n\
   for new frames.")
@@ -4126,7 +4126,8 @@ FRAME 0 means change the face on all frames, and change the default\n\
 #ifdef HAVE_WINDOW_SYSTEM
 	  /* Changed font-related attributes of the `default' face are
 	     reflected in changed `font' frame parameters. */
-	  if ((font_related_attr_p || font_attr_p)
+	  if (FRAMEP (frame)
+	      && (font_related_attr_p || font_attr_p)
 	      && lface_fully_specified_p (XVECTOR (lface)->contents))
 	    set_font_frame_param (frame, lface);
 	  else
@@ -4172,7 +4173,21 @@ FRAME 0 means change the face on all frames, and change the default\n\
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
       else if (EQ (face, Qmenu))
-	++menu_face_change_count;
+	{
+	  /* Indicate that we have to update the menu bar when
+	     realizing faces on FRAME.  FRAME t change the
+	     default for new frames.  We do this by setting
+	     setting the flag in new face caches   */
+	  if (FRAMEP (frame))
+	    {
+	      struct frame *f = XFRAME (frame);
+	      if (FRAME_FACE_CACHE (f) == NULL)
+		FRAME_FACE_CACHE (f) = make_face_cache (f);
+	      FRAME_FACE_CACHE (f)->menu_face_changed_p = 1;
+	    }
+	  else
+	    menu_face_changed_default = 1;
+	}
 
       if (!NILP (param))
 	if (EQ (frame, Qt))
@@ -4970,6 +4985,7 @@ make_face_cache (f)
   c->size = 50;
   c->faces_by_id = (struct face **) xmalloc (c->size * sizeof *c->faces_by_id);
   c->f = f;
+  c->menu_face_changed_p = menu_face_changed_default;
   return c;
 }
 
@@ -6054,9 +6070,9 @@ realize_basic_faces (f)
       realize_named_face (f, Qmenu, MENU_FACE_ID);
 
       /* Reflect changes in the `menu' face in menu bars.  */
-      if (menu_face_change_count)
+      if (FRAME_FACE_CACHE (f)->menu_face_changed_p)
 	{
-	  --menu_face_change_count;
+	  FRAME_FACE_CACHE (f)->menu_face_changed_p = 0;
 #ifdef USE_X_TOOLKIT
 	  x_update_menu_appearance (f);
 #endif
