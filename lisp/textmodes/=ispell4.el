@@ -638,6 +638,7 @@ L lookup; Q quit\n")
 
 (defun ispell-highlight (start end)
   (and ispell-highlight 
+       window-system
        (progn
 	 (or ispell-overlay
 	     (progn
