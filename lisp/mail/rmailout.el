@@ -316,11 +316,26 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 		(setq mail-from
 		      (mail-fetch-field "Mail-From")
 		      mime-version
-		      (mail-fetch-field "MIME-Version")))))
+		      (unless rmail-enable-mime
+			(mail-fetch-field "MIME-Version"))))))
 	(save-excursion
 	  (set-buffer tembuf)
 	  (erase-buffer)
 	  (insert-buffer-substring rmailbuf)
+	  (when rmail-enable-mime
+	    (if original-headers-p
+		(delete-region (goto-char (point-min))
+			       (if (search-forward "\n*** EOOH ***\n")
+				   (match-end 0)))
+	      (goto-char (point-min))
+	      (forward-line 2)
+	      (delete-region (point-min)(point))
+	      (search-forward "\n*** EOOH ***\n")
+	      (delete-region (match-beginning 0)
+			     (if (search-forward "\n\n")
+				 (1- (match-end 0)))))
+	    (setq buffer-file-coding-system (or rmail-file-coding-system
+						'raw-text)))
 	  (rmail-delete-unwanted-fields t)
 	  (or (bolp) (insert "\n"))
 	  (goto-char (point-min))
