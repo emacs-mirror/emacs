@@ -311,6 +311,9 @@ extern Lisp_Object x_display_name_list;
 /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
 extern Lisp_Object Vx_pixel_size_width_font_regexp;
 
+/* A flag to control how to display unibyte 8-bit character.  */
+extern int x_display_unibyte_char_with_fontset;
+
 extern struct x_display_info *x_display_info_for_display ();
 extern struct x_display_info *x_display_info_for_name ();
 
