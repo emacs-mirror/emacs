@@ -685,7 +685,8 @@ If file does not exist, returns nil.")
 #ifdef BSD4_3
 #undef BSD4_2 /* ok, you can look again without throwing up */
 #endif
-  if (s.st_ino & ((-1) << VALBITS))
+  /* Cast -1 to avoid warning if int is not as wide as VALBITS.  */
+  if (s.st_ino & (((EMACS_INT) (-1)) << VALBITS))
     /* To allow inode numbers larger than VALBITS, separate the bottom
        16 bits.  */
     values[10] = Fcons (make_number (s.st_ino >> 16),
