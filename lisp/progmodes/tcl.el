@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.25 $
+;; Version: $Revision: 1.26 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/08/22 15:56:24 $|$Revision: 1.25 $|~/modes/tcl.el.Z|
+;; $Date: 1994/09/01 18:06:24 $|$Revision: 1.26 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.26  1994/09/01  18:06:24  tromey
+;; Added filename completion in inferior tcl mode
+;;
 ;; Revision 1.25  1994/08/22  15:56:24  tromey
 ;; tcl-load-file default to current buffer.
 ;;
@@ -276,7 +279,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.25 $")
+(defconst tcl-version "$Revision: 1.26 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -878,6 +881,7 @@ Commands:
   (setq font-lock-keywords tcl-font-lock-keywords)
 
   ;; The following only really makes sense under GNU Emacs 19.
+  (make-local-variable 'imenu-create-index-function)
   (setq imenu-create-index-function 'tcl-imenu-create-index-function)
   (make-local-variable 'parse-sexp-ignore-comments)
 
