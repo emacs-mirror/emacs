@@ -456,8 +456,9 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   (and view-overlay (delete-overlay view-overlay))
   (force-mode-line-update)
   (setq view-mode nil
-	Helper-return-blurb view-old-Helper-return-blurb
-	buffer-read-only view-old-buffer-read-only))
+	Helper-return-blurb view-old-Helper-return-blurb)
+  (if buffer-read-only
+      (setq buffer-read-only view-old-buffer-read-only)))
 
 ;;;###autoload
 (defun view-mode-enter (&optional return-to exit-action) "\
