@@ -52,7 +52,7 @@ temacs=../src/temacs -batch -l ./loadup.el
 
 # Common command to find subdirectories
 
-setwins=subdirs=`find . -type d -print`; \
+setwins=subdirs=`find $$wd -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
@@ -62,28 +62,28 @@ setwins=subdirs=`find . -type d -print`; \
 doit:
 
 custom-deps: doit
-	$(setwins); \
+	wd=.; $(setwins); \
 	echo Directories: $$wins; \
 	$(emacs) -l cus-dep -f custom-make-dependencies $$wins
 
 finder-data: doit
-	$(setwins); \
+	wd=.; $(setwins); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder -f finder-compile-keywords-make-dist $$wins
 
 autoloads: doit
-	$(setwins); \
+	wd=.; $(setwins); \
 	echo Directories: $$wins; \
 	$(emacs) -f batch-update-autoloads $$wins
 
 update-subdirs: doit
-	$(setwins); \
+	wd=.; $(setwins); \
 	for file in $$wins; do \
 	   ../update-subdirs $$file; \
 	done;
 
 updates: doit
-	$(setwins); \
+	wd=.; $(setwins); \
 	for file in $$wins; do \
 	   ../update-subdirs $$file; \
 	done; \
@@ -112,14 +112,8 @@ TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
 compile: doit
 	wd=`pwd`;						\
 	find $$wd -name "*.elc" -print | xargs chmod +w;	\
-	subdirs=`find $$wd -type d -print`; 			\
-	for dir in $$subdirs; do 				\
-	   case $$dir in 					\
-	     */Old | */RCS | */CVS | */=* ) ;; 			\
-	     *) loadpath="$$loadpath \"$$dir\"" ;; 		\
-	   esac; 						\
-        done; 							\
-	loadpath="(setq load-path '($$loadpath))";		\
+	$(setwins)						\
+	loadpath="(setq load-path '($$wins))";			\
 	dont_compile=`echo $(DONTCOMPILE)`;			\
 	for el in $(EL); do					\
 	  compile_it=y;						\
@@ -142,14 +136,8 @@ compile: doit
 bootstrap-compile: doit
 	wd=`pwd`;						\
 	find $$wd -name "*.elc" -print | xargs rm -f            \
-	subdirs=`find $$wd -type d -print`; 			\
-	for dir in $$subdirs; do 				\
-	   case $$dir in 					\
-	     */Old | */RCS | */CVS | */=* ) ;; 			\
-	     *) loadpath="$$loadpath \"$$dir\"" ;; 		\
-	   esac; 						\
-        done; 							\
-	loadpath="(setq load-path '($$loadpath))";		\
+	$(setwins)						\
+	loadpath="(setq load-path '($$wins))";			\
 	dont_compile=`echo $(DONTCOMPILE)`;			\
 	for el in $(EL); do					\
 	  compile_it=y;						\
@@ -178,14 +166,10 @@ recompile: doit
 # autoload.el reads and writes loaddefs.el in its `source-directory'.
 # If that's different from the current directory tree, we can't build
 # loaddefs.el.
+#   Can't this rule be used in place of `autoload'? -sm
 
 autoloads-with-other-emacs: doit
-	subdirs=`find . -type d -print`;			\
-	for file in $$subdirs; do				\
-	   case $$file in */Old | */RCS | */CVS | */=* ) ;;	\
-		*) wins="$$wins $$file" ;;			\
-	   esac;						\
-        done;							\
+	wd=.; $(setwins);						\
 	echo Directories: $$wins;				\
 	$(emacs) --eval '(setq source-directory ".")'		\
 		-f batch-update-autoloads $$wins
