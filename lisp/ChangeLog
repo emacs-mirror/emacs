@@ -1,3 +1,16 @@
+2004-11-09  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-mode-hook, calc-trail-mode-hook)
+	(calc-start-hook, calc-end-hook, calc-load-hook):  New variables. 
+
+	* calc/calc.el (calc, calc-trail-display, calc-mode):  Removed
+	obsolete sections. 
+
+	* calc/calc.el (calc-x-paste-text):  Removed.
+
+	* calc/calc-ext.el (calc-init-extensions):  Bound calc-yank to
+	mouse-2. 
+	
 2004-11-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-current-stack-level): New variable.
