@@ -345,6 +345,7 @@ struct coding_system
 #define CODING_CATEGORY_MASK_ISO_7_ELSE	(1 << CODING_CATEGORY_IDX_ISO_7_ELSE)
 #define CODING_CATEGORY_MASK_ISO_8_ELSE	(1 << CODING_CATEGORY_IDX_ISO_8_ELSE)
 #define CODING_CATEGORY_MASK_BIG5	(1 << CODING_CATEGORY_IDX_BIG5)
+#define CODING_CATEGORY_MASK_BINARY	(1 << CODING_CATEGORY_IDX_BINARY)
 
 /* This value is returned if detect_coding_mask () find nothing other
    than ASCII characters.  */
