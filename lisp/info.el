@@ -943,6 +943,7 @@ NAME may be an abbreviation of the reference name."
 	     (save-excursion
 	       (set-buffer Info-complete-menu-buffer)
 	       (goto-char (point-min))
+	       (search-forward "\n* Menu:")
 	       (while (re-search-forward pattern nil t)
 		 (setq completions (cons (cons (format "%s"
 						       (buffer-substring
@@ -959,6 +960,7 @@ NAME may be an abbreviation of the reference name."
 	     (save-excursion
 	       (set-buffer Info-complete-menu-buffer)
 	       (goto-char (point-min))
+	       (search-forward "\n* Menu:")
 	       (while (re-search-forward pattern nil t)
 		 (setq completions (cons (cons (format "%s"
 						       (buffer-substring
@@ -971,6 +973,7 @@ NAME may be an abbreviation of the reference name."
 	   (save-excursion
 	     (set-buffer Info-complete-menu-buffer)
 	     (goto-char (point-min))
+	     (search-forward "\n* Menu:")
 	     (re-search-forward (concat "\n\\* "
 					(regexp-quote string)
 					":")
