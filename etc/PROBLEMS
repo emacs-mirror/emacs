@@ -251,6 +251,17 @@ This seems to be fixed in GCC 2.95.
 This problem is fixed in Patch 3175 for Irix 5.3.
 It is also fixed in Irix versions 6.2 and up.
 
+* The S-C-t key combination doesn't get passed to Emacs on X.
+
+This happens because some X configurations assign the Ctrl-Shift-t
+combination the same meaning as the Multi_key.  The offending
+definition is in the file `...lib/X11/locale/iso8859-1/Compose'; there
+might be other similar combinations which are grabbed by X for similar
+purposes.
+
+We think that this can be countermanded with the `xmodmap' utility, if
+you want to be able to bind one of these key sequences within Emacs.
+
 * On Solaris, CTRL-t is ignored by Emacs when you use
 the fr.ISO-8859-15 locale (and maybe other related locales).
 
