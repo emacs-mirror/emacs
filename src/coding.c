@@ -5484,6 +5484,31 @@ decode_eol (coding)
     }
 }
 
+
+/* Return a translation table from coding system attribute vector ATTRS
+   for encoding (ENCODEP is nonzero) or decoding (ENCODEP is zeor). */
+
+static INLINE
+get_translation_table (attrs, encodep)
+{
+  Lisp_Object standard, translation_table;
+
+  if (encodep)
+    translation_table = CODING_ATTR_ENCODE_TBL (attrs),
+      standard = Vstandard_translation_table_for_encode;
+  else
+    translation_table = CODING_ATTR_DECODE_TBL (attrs),
+      standard = Vstandard_translation_table_for_decode;
+  if (! NILP (translation_table) && SYMBOLP (translation_table))
+    translation_table = Fget (translation_table, Qtranslation_table);
+  if (NILP (translation_table))
+    translation_table = standard;
+  if (! CHAR_TABLE_P (translation_table))
+    translation_table = Qnil;
+  return translation_table;
+}
+
+
 static void
 translate_chars (coding, table)
      struct coding_system *coding;
@@ -5500,7 +5525,7 @@ translate_chars (coding, table)
     {
       c = *charbuf;
       if (c < 0)
-	charbuf += c;
+	charbuf += -c;
       else
 	*charbuf++ = translate_char (table, c);
     }
@@ -5840,6 +5865,7 @@ decode_coding (coding)
 {
   Lisp_Object attrs;
   Lisp_Object undo_list;
+  Lisp_Object translation_table;
 
   if (BUFFERP (coding->src_object)
       && coding->src_pos > 0
@@ -5867,16 +5893,15 @@ decode_coding (coding)
   ALLOC_CONVERSION_WORK_AREA (coding);
 
   attrs = CODING_ID_ATTRS (coding->id);
+  translation_table = get_translation_table (attrs, 1);
 
   do
     {
       coding_set_source (coding);
       coding->annotated = 0;
       (*(coding->decoder)) (coding);
-      if (!NILP (CODING_ATTR_DECODE_TBL (attrs)))
-	translate_chars (coding, CODING_ATTR_DECODE_TBL (attrs));
-      else if (!NILP (Vstandard_translation_table_for_decode))
-	translate_chars (coding, Vstandard_translation_table_for_decode);
+      if (!NILP (translation_table))
+	translate_chars (coding, translation_table);
       coding_set_destination (coding);
       produce_chars (coding);
       if (coding->annotated)
@@ -6167,8 +6192,10 @@ encode_coding (coding)
      struct coding_system *coding;
 {
   Lisp_Object attrs;
+  Lisp_Object translation_table;
 
   attrs = CODING_ID_ATTRS (coding->id);
+  translation_table = get_translation_table (attrs, 1);
 
   if (BUFFERP (coding->dst_object))
     {
@@ -6188,10 +6215,8 @@ encode_coding (coding)
     coding_set_source (coding);
     consume_chars (coding);
 
-    if (!NILP (CODING_ATTR_ENCODE_TBL (attrs)))
-      translate_chars (coding, CODING_ATTR_ENCODE_TBL (attrs));
-    else if (!NILP (Vstandard_translation_table_for_encode))
-      translate_chars (coding, Vstandard_translation_table_for_encode);
+    if (!NILP (translation_table))
+      translate_chars (coding, translation_table);
 
     coding_set_destination (coding);
     (*(coding->encoder)) (coding);
@@ -7072,7 +7097,11 @@ char_encodable_p (c, attrs)
 {
   Lisp_Object tail;
   struct charset *charset;
+  Lisp_Object translation_table;
 
+  translation_table = CODING_ATTR_TRANS_TBL (attrs);
+  if (CHAR_TABLE_P (translation_table))
+    c = translate_char (translation_table, c);
   for (tail = CODING_ATTR_CHARSET_LIST (attrs);
        CONSP (tail); tail = XCDR (tail))
     {
@@ -7143,7 +7172,11 @@ DEFUN ("find-coding-systems-region-internal",
 	attrs = AREF (CODING_SYSTEM_SPEC (XCAR (tail)), 0);
 	if (EQ (XCAR (tail), CODING_ATTR_BASE_NAME (attrs))
 	    && ! EQ (CODING_ATTR_TYPE (attrs), Qundecided))
-	  coding_attrs_list = Fcons (attrs, coding_attrs_list);
+	  {
+	    ASET (attrs, coding_attr_trans_tbl,
+		  get_translation_table (attrs, 1));
+	    coding_attrs_list = Fcons (attrs, coding_attrs_list);
+	  }
       }
 
   if (STRINGP (start))
@@ -7224,7 +7257,7 @@ to the string.  */)
 {
   int n;
   struct coding_system coding;
-  Lisp_Object attrs, charset_list;
+  Lisp_Object attrs, charset_list, translation_table;
   Lisp_Object positions;
   int from, to;
   const unsigned char *p, *stop, *pend;
@@ -7236,6 +7269,7 @@ to the string.  */)
     return Qnil;
   ascii_compatible = ! NILP (CODING_ATTR_ASCII_COMPAT (attrs));
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
+  translation_table = get_translation_table (attrs, 1);
 
   if (NILP (string))
     {
@@ -7297,7 +7331,8 @@ to the string.  */)
 
       c = STRING_CHAR_ADVANCE (p);
       if (! (ASCII_CHAR_P (c) && ascii_compatible)
-	  && ! char_charset (c, charset_list, NULL))
+	  && ! char_charset (translate_char (translation_table, c),
+			     charset_list, NULL))
 	{
 	  positions = Fcons (make_number (from), positions);
 	  n--;
@@ -7338,7 +7373,7 @@ buffer positions.  END is ignored.  */)
   int pos;
   const unsigned char *p, *pbeg, *pend;
   int c;
-  Lisp_Object tail, elt;
+  Lisp_Object tail, elt, attrs;
 
   if (STRINGP (start))
     {
@@ -7376,9 +7411,9 @@ buffer positions.  END is ignored.  */)
   for (tail = coding_system_list; CONSP (tail); tail = XCDR (tail))
     {
       elt = XCAR (tail);
-      list = Fcons (Fcons (elt, Fcons (AREF (CODING_SYSTEM_SPEC (elt), 0),
-				       Qnil)),
-		    list);
+      attrs = AREF (CODING_SYSTEM_SPEC (elt), 0);
+      ASET (attrs, coding_attr_trans_tbl, get_translation_table (attrs, 1));
+      list = Fcons (Fcons (elt, Fcons (attrs, Qnil)), list);
     }
 
   if (STRINGP (start))
@@ -8133,13 +8168,13 @@ usage: (define-coding-system-internal ...)  */)
   CODING_ATTR_ASCII_COMPAT (attrs) = args[coding_arg_ascii_compatible_p];
 
   val = args[coding_arg_decode_translation_table];
-  if (! NILP (val))
-    CHECK_CHAR_TABLE (val);
+  if (! CHAR_TABLE_P (val))
+    CHECK_SYMBOL (val);
   CODING_ATTR_DECODE_TBL (attrs) = val;
 
   val = args[coding_arg_encode_translation_table];
-  if (! NILP (val))
-    CHECK_CHAR_TABLE (val);
+  if (! CHAR_TABLE_P (val))
+    CHECK_SYMBOL (val);
   CODING_ATTR_ENCODE_TBL (attrs) = val;
 
   val = args[coding_arg_post_read_conversion];
@@ -8415,8 +8450,9 @@ usage: (define-coding-system-internal ...)  */)
 
       struct charset *charset;
 
-      if (XINT (Flength (charset_list)) != 3)
-	error ("There should be just three charsets");
+      if (XINT (Flength (charset_list)) != 3
+	  || XINT (Flength (charset_list)) != 4)
+	error ("There should be three or four charsets");
 
       charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
       if (CHARSET_DIMENSION (charset) != 1)
@@ -8429,6 +8465,12 @@ usage: (define-coding-system-internal ...)  */)
       charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
       if (CHARSET_DIMENSION (charset) != 1)
 	error ("Dimension of charset %s is not one",
+	       SDATA (SYMBOL_NAME (CHARSET_NAME (charset))));
+
+      charset_list = XCDR (charset_list);
+      charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
+      if (CHARSET_DIMENSION (charset) != 2)
+	error ("Dimension of charset %s is not two",
 	       SDATA (SYMBOL_NAME (CHARSET_NAME (charset))));
 
       charset_list = XCDR (charset_list);
