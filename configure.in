@@ -1327,4 +1327,10 @@ echo creating src/Makefile
   chmod 444 Makefile.new
   mv -f Makefile.new Makefile
 )
+
+if test ! -f src/.gdbinit && test -f $top_srcdir/src/.gdbinit; then
+  echo creating src/.gdbinit
+  echo source $top_srcdir/src/.gdbinit > src/.gdbinit
+fi
+
 ], [CPP="$CPP" CPPFLAGS="$CPPFLAGS"])
