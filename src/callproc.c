@@ -623,9 +623,13 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       *tempfile = '\0';
     }
   dostounix_filename (tempfile);
-  if (tempfile[strlen (tempfile) - 1] != '/')
+  if (!IS_DIRECTORY_SEP (tempfile[strlen (tempfile) - 1]))
     strcat (tempfile, "/");
+#ifdef WINDOWSNT
+  strcat (tempfile, "emXXXXXX");
+#else
   strcat (tempfile, "detmp.XXX");
+#endif
 #else /* not DOS_NT */
 
 #ifdef VMS
