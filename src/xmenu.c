@@ -1196,7 +1196,6 @@ menu_highlight_callback (widget, id, call_data)
   widget_value *wv = (widget_value *) call_data;
   struct frame *f;
   Lisp_Object frame, help;
-  struct input_event buf;
 
   /* Determine the frame for the help event.  */
   f = menubar_id_to_frame (id);
@@ -1221,10 +1220,7 @@ menu_highlight_callback (widget, id, call_data)
 
   /* Store the help event.  */
   help = wv && wv->help ? build_string (wv->help) : Qnil;
-  buf.kind = HELP_EVENT;
-  buf.frame_or_window = frame;
-  buf.arg = help;
-  kbd_buffer_store_event (&buf);
+  kbd_buffer_store_help_event (frame, help);
 }
 
 /* This callback is called from the menu bar pulldown menu
