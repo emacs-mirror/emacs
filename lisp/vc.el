@@ -60,9 +60,6 @@
 
 (require 'vc-hooks)
 (require 'ring)
-(require 'dired)
-(require 'compile)
-(require 'sendmail)
 
 (if (not (assoc 'vc-parent-buffer minor-mode-alist))
     (setq minor-mode-alist
