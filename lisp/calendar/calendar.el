@@ -1660,6 +1660,13 @@ the date indicated by the cursor position in the displayed three-month
 calendar."
   t)
 
+(autoload 'view-other-diary-entries "diary-lib"
+  "Prepare and display buffer of diary entries from an alternative diary file.
+Searches for entries that match ARG days, starting with the date indicated
+by the cursor position in the displayed three-month calendar.
+D-FILE specifies the file to use as the diary file."
+  t)
+
 (autoload 'calendar-sunrise-sunset "solar"
   "Local time of sunrise and sunset for date under cursor."
   t)

@@ -25,11 +25,21 @@
 
 ;;; Code:
 
-(require 'url)
-(require 'url-parse)
-(require 'url-util)
-(require 'mm-decode)
-(require 'mailcap)
+;; (require 'url)
+(eval-when-compile (require 'url-parse))
+;; (require 'url-util)
+(eval-when-compile (require 'mm-decode))
+;; (require 'mailcap)
+;; The following functions in the byte compiler's warnings are known not
+;; to cause any real problem for the following reasons:
+;; - mm-save-part-to-file, mm-destroy-parts: always used
+;;   after mm-dissect-buffer and defined in the same file.
+;; The following are autoloaded instead of `require'd to avoid eagerly
+;; loading all of URL when turning on url-handler-mode in the .emacs.
+(autoload 'url-retrieve-synchronously "url" "Retrieve url synchronously.")
+(autoload 'url-expand-file-name "url-expand" "Convert url to a fully specified url, and canonicalize it.")
+(autoload 'mm-dissect-buffer "mm-decode" "Dissect the current buffer and return a list of MIME handles.")
+(autoload 'url-scheme-get-property "url-methods" "Get property of a URL SCHEME.")
 
 (eval-when-compile
   (require 'cl))

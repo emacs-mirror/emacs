@@ -1,5 +1,5 @@
 /* Tags file maker to go with GNU Emacs           -*- coding: latin-1 -*-
-   Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2001, 2002
+   Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2001, 2002, 2004
    Free Software Foundation, Inc. and Ken Arnold
 
  This file is not considered part of GNU Emacs.
@@ -1183,7 +1183,7 @@ main (argc, argv)
 #ifdef ETAGS_REGEXPS
   optstring = "-r:Rc:";
 #endif /* ETAGS_REGEXPS */
-  if (LONG_OPTIONS)
+  if (!LONG_OPTIONS)
     optstring += 1;
   optstring = concat (optstring,
 		      "Cf:Il:o:SVhH",

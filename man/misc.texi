@@ -2219,7 +2219,7 @@ which has a similar feature of its own.
 @subsection Finding Files and URLs at Point
 @findex find-file-at-point
 @findex ffap
-@findex ffap-dired-at-point
+@findex dired-at-point
 @findex ffap-next
 @findex ffap-menu
 @cindex finding file at point
@@ -2248,18 +2248,36 @@ make the following key bindings and to install hooks for using
 @kindex C-x C-f @r{(FFAP)}
 Find @var{filename}, guessing a default from text around point
 (@code{find-file-at-point}).
-@item C-x 4 f
-@kindex C-x 4 f @r{(FFAP)}
-@code{ffap-other-window}, analogous to @code{find-file-other-window}.
-@item C-x 5 f
-@kindex C-x 5 f @r{(FFAP)}
-@code{ffap-other-frame}, analogous to @code{find-file-other-frame}.
-@item M-x ffap-next
-Search buffer for next file name or URL, then find that file or URL.
+@item C-x C-r
+@kindex C-x C-r @r{(FFAP)}
+@code{ffap-read-only}, analogous to @code{find-file-read-only}.
+@item C-x C-v
+@kindex C-x C-v @r{(FFAP)}
+@code{ffap-alternate-file}, analogous to @code{find-alternate-file}.
 @item C-x d @var{directory} @key{RET}
 @kindex C-x d @r{(FFAP)}
 Start Dired on @var{directory}, defaulting to the directory name at
-point (@code{ffap-dired-at-point}).
+point (@code{dired-at-point}).
+@item C-x C-d
+@code{ffap-list-directory}, analogous to @code{list-directory}.
+@item C-x 4 f
+@kindex C-x 4 f @r{(FFAP)}
+@code{ffap-other-window}, analogous to @code{find-file-other-window}.
+@item C-x 4 r
+@code{ffap-read-only-other-window}, analogous to
+@code{find-file-read-only-other-window}.
+@item C-x 4 d
+@code{ffap-dired-other-window}, analogous to @code{dired-other-window}.
+@item C-x 5 f
+@kindex C-x 5 f @r{(FFAP)}
+@code{ffap-other-frame}, analogous to @code{find-file-other-frame}.
+@item C-x 5 r
+@code{ffap-read-only-other-frame}, analogous to
+@code{find-file-read-only-other-frame}.
+@item C-x 5 d
+@code{ffap-dired-other-frame}, analogous to @code{dired-other-frame}.
+@item M-x ffap-next
+Search buffer for next file name or URL, then find that file or URL.
 @item S-Mouse-3
 @kindex S-Mouse-3 @r{(FFAP)}
 @code{ffap-at-mouse} finds the file guessed from text around the position

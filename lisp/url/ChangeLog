@@ -1,3 +1,7 @@
+2004-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el: Don't `require' everything eagerly.
+
 2004-11-30  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* url-http.el (url-http-handle-cookies): Bind `url-current-object'
@@ -18,8 +22,7 @@
 
 2004-11-12  Masatake YAMATO  <jet@gyve.org>
 
-	* url-mailto.el (url-mailto): Fix a typo in the 
-	comment.
+	* url-mailto.el (url-mailto): Fix a typo in the comment.
 
 2004-11-02  Masatake YAMATO  <jet@gyve.org>
 
@@ -76,12 +79,12 @@
 
 	* url-vars.el (url-passwd-entry-func): Var deleted.
 	(mm-mime-mule-charset-alist): Remove compatibility code for old Gnus.
-	(url-weekday-alist): Renamed from weekday-alist.
-	(url-monthabbrev-alist): Renamed from monthabbrev-alist.
+	(url-weekday-alist): Rename from weekday-alist.
+	(url-monthabbrev-alist): Rename from monthabbrev-alist.
 	(url-vars-unload-hook): Initialize hook var to hold the function.
 
-	* url-util.el (url-get-normalized-date): Use
-	url-weekday-alist and url-monthabbrev-alist.
+	* url-util.el (url-get-normalized-date): Use url-weekday-alist and
+	url-monthabbrev-alist.
 
 	* url-misc.el: Load cl at compile time.
 
@@ -99,8 +102,8 @@
 	* url-news.el (url-snews): Use nntp-open-tls-stream if
 	url-gateway-method is tls.
 
-	* url-ldap.el (url-ldap-certificate-formatter): Use
-	tls-certificate-information if ssl.el is not available.
+	* url-ldap.el (url-ldap-certificate-formatter):
+	Use tls-certificate-information if ssl.el is not available.
 
 	* url-https.el (url-https-create-secure-wrapper): Use tls if ssl
 	is not available.

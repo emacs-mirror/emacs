@@ -1414,7 +1414,7 @@ Answer:
  message. For a follow up to a newsgroup, it's
  @samp{f} and @samp{F}
  (analog to @samp{r} and
- @samp{R}.
+ @samp{R}).
  
 
  Enter new headers above the line saying "--text follows

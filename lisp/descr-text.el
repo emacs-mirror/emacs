@@ -104,24 +104,11 @@ The `category', `face' and `font-lock-face' properties are made
 into widget buttons that call `describe-text-category' or
 `describe-face' when pushed."
   ;; Sort the properties by the size of their value.
-  (dolist (elt (sort (let ((ret nil)
-			   (key nil)
-			   (val nil)
-			   (len nil))
+  (dolist (elt (sort (let (ret)
 		       (while properties
-			 (setq key (pop properties)
-			       val (pop properties)
-			       len 0)
-			 (unless (or (memq key '(category face font-lock-face
-                                                 syntax-table))
-				     (widgetp val))
-			   (setq val (pp-to-string val)
-				 len (length val)))
-			 (push (list key val len) ret))
+			 (push (list (pop properties) (pop properties)) ret))
 		       ret)
-		     (lambda (a b)
-		       (< (nth 2 a)
-			  (nth 2 b)))))
+		     (lambda (a b) (string< (nth 0 a) (nth 0 b)))))
     (let ((key (nth 0 elt))
 	  (value (nth 1 elt)))
       (widget-insert (propertize (format "  %-20s " key)
@@ -131,23 +118,15 @@ into widget buttons that call `describe-text-category' or
 			    :notify `(lambda (&rest ignore)
 				       (describe-text-category ',value))
 			    (format "%S" value)))
-            ((memq key '(face font-lock-face))
+            ((memq key '(face font-lock-face mouse-face))
 	     (widget-create 'link
 			    :notify `(lambda (&rest ignore)
 				       (describe-face ',value))
 			    (format "%S" value)))
-	    ((eq key 'syntax-table)
-	     (widget-create 'push-button
-                            :tag "show"
-                            :action (lambda (widget &optional event)
-                                      (with-output-to-temp-buffer
-                                          "*Pp Eval Output*"
-                                        (pp (widget-get widget :value))))
-                            value))
             ((widgetp value)
 	     (describe-text-widget value))
 	    (t
-	     (widget-insert value))))
+	     (describe-text-sexp value))))
     (widget-insert "\n")))
 
 ;;; Describe-Text Commands.
@@ -552,10 +531,17 @@ as well as widgets, buttons, overlays, and text properties."
 		(dotimes (i (length disp-vector))
 		  (setq char (aref disp-vector i))
 		  (aset disp-vector i
-			(cons char (describe-char-display pos char))))
+			(cons char (describe-char-display
+				    pos (logand char #x7ffff)))))
 		(format "by display table entry [%s] (see below)"
-			(mapconcat #'(lambda (x) (format "?%c" (car x)))
-				   disp-vector " ")))
+			(mapconcat
+			 #'(lambda (x)
+			     (if (> (car x) #x7ffff)
+				 (format "?%c<face-id=%s>"
+					 (logand (car x) #x7ffff)
+					 (lsh (car x) -19))
+			       (format "?%c" (car x))))
+			 disp-vector " ")))
 	       (composition
 		(let ((from (car composition))
 		      (to (nth 1 composition))
@@ -627,7 +613,7 @@ as well as widgets, buttons, overlays, and text properties."
 	      (progn
 		(insert "these fonts (glyph codes):\n")
 		(dotimes (i (length disp-vector))
-		  (insert (car (aref disp-vector i)) ?:
+		  (insert (logand (car (aref disp-vector i)) #x7ffff) ?:
 			  (propertize " " 'display '(space :align-to 5))
 			  (if (cdr (aref disp-vector i))
 			      (format "%s (0x%02X)" (cadr (aref disp-vector i))

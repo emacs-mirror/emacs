@@ -447,10 +447,14 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
       (vc-insert-file (expand-file-name ".svn/entries" dirname)))
     (goto-char (point-min))
     (when (re-search-forward
-	   (concat "name=\"svn:this_dir\"[\n\t ]*"
-		   "\\([-a-z]+=\"[^\"]*\"[\n\t ]*\\)*?"
+	   ;; Old `svn' used name="svn:dir", newer use just name="".
+	   (concat "name=\"\\(?:svn:this_dir\\)?\"[\n\t ]*"
+		   "\\(?:[-a-z]+=\"[^\"]*\"[\n\t ]*\\)*?"
 		   "url=\"\\([^\"]+\\)\"") nil t)
-      (match-string 2))))
+      ;; This is not a hostname but a URL.  This may actually be considered
+      ;; as a feature since it allows vc-svn-stay-local to specify different
+      ;; behavior for different modules on the same server.
+      (match-string 1))))
 
 (defun vc-svn-parse-status (localp)
   "Parse output of \"svn status\" command in the current buffer.
@@ -504,6 +508,30 @@ essential information."
   "Return non-nil if TAG is a valid version number."
   (and (string-match "^[0-9]" tag)
        (not (string-match "[^0-9]" tag))))
+
+;; Support for `svn annotate'
+
+(defun vc-svn-annotate-command (file buf &optional rev)
+  (vc-svn-command buf 0 file "annotate" (if rev (concat "-r" rev))))
+
+(defun vc-svn-annotate-time-of-rev (rev)
+  ;; Arbitrarily assume 10 commmits per day.
+  (/ (string-to-number rev) 10.0))
+
+(defun vc-svn-annotate-current-time ()
+  (vc-svn-annotate-time-of-rev vc-annotate-parent-rev))
+
+(defconst vc-svn-annotate-re "[ \t]*\\([0-9]+\\)[ \t]+[^\t ]+ ")
+
+(defun vc-svn-annotate-time ()
+  (when (looking-at vc-svn-annotate-re)
+    (goto-char (match-end 0))
+    (vc-svn-annotate-time-of-rev (match-string 1))))
+
+(defun vc-svn-annotate-extract-revision-at-line ()
+  (save-excursion
+    (beginning-of-line)
+    (if (looking-at vc-svn-annotate-re) (match-string 1))))
 
 (provide 'vc-svn)
 

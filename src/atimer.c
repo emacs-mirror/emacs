@@ -364,6 +364,8 @@ alarm_signal_handler (signo)
 {
   EMACS_TIME now;
 
+  SIGNAL_THREAD_CHECK (signo);
+
   EMACS_GET_TIME (now);
   pending_atimers = 0;
 

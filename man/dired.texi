@@ -89,7 +89,7 @@ so common in Dired that it deserves to be easy to type.)  @key{DEL}
 (move up and unflag) is often useful simply for moving up.
 
 @findex dired-goto-file
-@kindex M-g
+@kindex M-g @r{(Dired)}
   @kbd{M-g} (@code{dired-goto-file}) moves point to the line that
 describes a specified file or directory.
 
@@ -1113,7 +1113,7 @@ and erases all flags and marks.
 @table @kbd
 @item w
 @cindex Adding to the kill ring in Dired.
-@kindex w
+@kindex w @r{(Dired)}
 @findex dired-copy-filename-as-kill
 The @kbd{w} command (@code{dired-copy-filename-as-kill}) puts the
 names of the marked (or next @var{n}) files into the kill ring, as if

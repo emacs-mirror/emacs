@@ -1,3 +1,8 @@
+2004-12-15  Andreas Schwab  <schwab@suse.de>
+
+	* etags.c (main): Fix typo in conversion of LONG_OPTIONS from
+	preprocessing to compile time constant.
+
 2004-11-17  Kim F. Storm  <storm@cua.dk>
 
 	* etags.c: Undo last change.

@@ -5976,7 +5976,7 @@ mac_to_x_fontname (name, size, style, scriptcode, encoding_base)
 	strcpy(cs, "mac-cyrillic");
 	break;
       case kTextEncodingMacCentralEurRoman:
-	strcpy(cs, "mac-centraleuropean");
+	strcpy(cs, "mac-centraleurroman");
 	break;
       case kTextEncodingMacSymbol:
       case kTextEncodingMacDingbats:
@@ -6034,7 +6034,7 @@ x_font_name_to_mac_font_name (char *xf, char *mf)
     coding_system = Qeuc_kr;
   else if (strcmp (cs, "mac-roman") == 0
 	   || strcmp (cs, "mac-cyrillic") == 0
-	   || strcmp (cs, "mac-centraleuropean") == 0
+	   || strcmp (cs, "mac-centraleurroman") == 0
 	   || strcmp (cs, "adobe-fontspecific") == 0)
     strcpy (mf, family);
   else
@@ -6276,6 +6276,28 @@ static int xlfd_scalable_fields[] =
   };
 
 static Lisp_Object
+mac_c_string_match (regexp, string, nonspecial, exact)
+     Lisp_Object regexp;
+     const char *string, *nonspecial;
+     int exact;
+{
+  if (exact)
+    {
+      if (strcmp (string, nonspecial) == 0)
+	return build_string (string);
+    }
+  else if (strstr (string, nonspecial))
+    {
+      Lisp_Object str = build_string (string);
+
+      if (fast_string_match (regexp, str) >= 0)
+	return str;
+    }
+
+  return Qnil;
+}
+
+static Lisp_Object
 mac_do_list_fonts (pattern, maxnames)
      char *pattern;
      int maxnames;
@@ -6286,6 +6308,8 @@ mac_do_list_fonts (pattern, maxnames)
   char scaled[256];
   char *ptr;
   int scl_val[XLFD_SCL_LAST], *field, *val;
+  char *longest_start, *cur_start, *nonspecial;
+  int longest_len, cur_len, exact;
 
   for (i = 0; i < XLFD_SCL_LAST; i++)
     scl_val[i] = -1;
@@ -6343,34 +6367,66 @@ mac_do_list_fonts (pattern, maxnames)
   ptr = regex;
   *ptr++ = '^';
 
-  /* Turn pattern into a regexp and do a regexp match.  */
+  longest_start = cur_start = ptr;
+  longest_len = cur_len = 0;
+  exact = 1;
+
+  /* Turn pattern into a regexp and do a regexp match.  Also find the
+     longest substring containing no special characters.  */
   for (; *pattern; pattern++)
     {
-      if (*pattern == '?')
-        *ptr++ = '.';
-      else if (*pattern == '*')
-        {
-          *ptr++ = '.';
-          *ptr++ = '*';
-        }
+      if (*pattern == '?' || *pattern == '*')
+	{
+	  if (cur_len > longest_len)
+	    {
+	      longest_start = cur_start;
+	      longest_len = cur_len;
+	    }
+	  cur_len = 0;
+	  exact = 0;
+
+	  if (*pattern == '?')
+	    *ptr++ = '.';
+	  else /* if (*pattern == '*') */
+	    {
+	      *ptr++ = '.';
+	      *ptr++ = '*';
+	    }
+	}
       else
-        *ptr++ = tolower (*pattern);
+	{
+	  if (cur_len == 0)
+	    cur_start = ptr;
+	  cur_len++;
+
+	  *ptr++ = tolower (*pattern);
+	}
     }
+
+  if (cur_len > longest_len)
+    {
+      longest_start = cur_start;
+      longest_len = cur_len;
+    }
+
   *ptr = '$';
   *(ptr + 1) = '\0';
+
+  nonspecial = xmalloc (longest_len + 1);
+  strncpy (nonspecial, longest_start, longest_len);
+  nonspecial[longest_len] = '\0';
 
   pattern_regex = build_string (regex);
 
   for (i = 0; i < font_name_count; i++)
     {
-      fontname = build_string (font_name_table[i]);
-      if (fast_string_match (pattern_regex, fontname) >= 0)
+      fontname = mac_c_string_match (pattern_regex, font_name_table[i],
+				     nonspecial, exact);
+      if (!NILP (fontname))
 	{
 	  font_list = Fcons (fontname, font_list);
-
-          n_fonts++;
-          if (maxnames > 0 && n_fonts >= maxnames)
-            break;
+	  if (exact || maxnames > 0 && ++n_fonts >= maxnames)
+	    break;
 	}
       else if (scl_val[XLFD_SCL_PIXEL_SIZE] > 0
 	       && (ptr = strstr (font_name_table[i], "-0-0-75-75-m-0-")))
@@ -6384,17 +6440,19 @@ mac_do_list_fonts (pattern, maxnames)
 		   scl_val[XLFD_SCL_POINT_SIZE],
 		   scl_val[XLFD_SCL_AVGWIDTH],
 		   ptr + sizeof ("-0-0-75-75-m-0-") - 1);
-	  fontname = build_string (scaled);
-	  if (fast_string_match (pattern_regex, fontname) >= 0)
+	  fontname = mac_c_string_match (pattern_regex, scaled,
+					 nonspecial, exact);
+	  if (!NILP (fontname))
 	    {
 	      font_list = Fcons (fontname, font_list);
-
-	      n_fonts++;
-	      if (maxnames > 0 && n_fonts >= maxnames)
+	      if (exact || maxnames > 0 && ++n_fonts >= maxnames)
 		break;
 	    }
 	}
     }
+
+  xfree (nonspecial);
+
   return font_list;
 }
 

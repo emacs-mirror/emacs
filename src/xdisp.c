@@ -4914,7 +4914,9 @@ get_next_display_element (it)
 		   || (it->multibyte_p
 		       ? ((it->c >= 127
 			   && it->len == 1)
-			  || !CHAR_PRINTABLE_P (it->c))
+			  || !CHAR_PRINTABLE_P (it->c)
+			  || it->c == 0x8ad
+			  || it->c == 0x8a0)
 		       : (it->c >= 127
 			  && (!unibyte_display_via_language_environment
 			      || it->c == unibyte_char_to_multibyte (it->c)))))
@@ -4954,6 +4956,21 @@ get_next_display_element (it)
 		  XSETINT (it->ctl_chars[0], g);
 
 		  g = FAST_MAKE_GLYPH (it->c ^ 0100, face_id);
+		  XSETINT (it->ctl_chars[1], g);
+		  ctl_len = 2;
+		}
+	      else if (it->c == 0x8a0 || it->c == 0x8ad)
+		{
+		  /* Set IT->ctl_chars[0] to the glyph for `\\'.  */
+		  if (it->dp
+		      && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
+		      && GLYPH_CHAR_VALID_P (XINT (DISP_ESCAPE_GLYPH (it->dp))))
+		    g = XINT (DISP_ESCAPE_GLYPH (it->dp));
+		  else
+		    g = FAST_MAKE_GLYPH ('\\', face_id);
+		  XSETINT (it->ctl_chars[0], g);
+
+		  g = FAST_MAKE_GLYPH (it->c == 0x8ad ? '-' : ' ', face_id);
 		  XSETINT (it->ctl_chars[1], g);
 		  ctl_len = 2;
 		}
@@ -5138,6 +5155,9 @@ set_iterator_to_next (it, reseat_p)
 
 	  it->dpvec = NULL;
 	  it->current.dpvec_index = -1;
+
+	  /* Recheck faces after display vector */
+	  it->stop_charpos = 0;
 
 	  /* Skip over characters which were displayed via IT->dpvec.  */
 	  if (it->dpvec_char_len < 0)

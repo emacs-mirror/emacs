@@ -2571,7 +2571,9 @@ If not in a statement just moves to end of line. Returns position."
   (let ((save-point (point)))
     (when (re-search-forward ".*&" lim t)
       (goto-char (match-end 0))
-      (if (idlwave-quoted) (goto-char save-point)))
+      (if (idlwave-quoted) 
+	  (goto-char save-point)
+	(if (eq (char-after (- (point) 2)) ?&) (goto-char save-point))))
     (point)))
 
 (defun idlwave-skip-label-or-case ()

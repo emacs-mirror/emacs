@@ -5374,47 +5374,17 @@ void
 x_calc_absolute_position (f)
      struct frame *f;
 {
-  POINT pt;
   int flags = f->size_hint_flags;
-
-  pt.x = pt.y = 0;
-
-  /* Find the position of the outside upper-left corner of
-     the inner window, with respect to the outer window.
-     But do this only if we will need the results.  */
-  if (f->output_data.w32->parent_desc != FRAME_W32_DISPLAY_INFO (f)->root_window)
-    {
-      BLOCK_INPUT;
-      MapWindowPoints (FRAME_W32_WINDOW (f),
-		       f->output_data.w32->parent_desc,
-		       &pt, 1);
-      UNBLOCK_INPUT;
-    }
-
-  {
-      RECT rt;
-      rt.left = rt.right = rt.top = rt.bottom = 0;
-
-      BLOCK_INPUT;
-      AdjustWindowRect(&rt, f->output_data.w32->dwStyle,
-		       FRAME_EXTERNAL_MENU_BAR (f));
-      UNBLOCK_INPUT;
-
-      pt.x += (rt.right - rt.left);
-      pt.y += (rt.bottom - rt.top);
-  }
 
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
     f->left_pos = (FRAME_W32_DISPLAY_INFO (f)->width
-		   - 2 * f->border_width - pt.x
 		   - FRAME_PIXEL_WIDTH (f)
 		   + f->left_pos);
 
   if (flags & YNegative)
     f->top_pos = (FRAME_W32_DISPLAY_INFO (f)->height
-		  - 2 * f->border_width - pt.y
 		  - FRAME_PIXEL_HEIGHT (f)
 		  + f->top_pos);
   /* The left_pos and top_pos

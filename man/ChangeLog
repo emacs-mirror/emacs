@@ -1,3 +1,57 @@
+2004-12-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Types Tutorial): Emphasized that you can't divide by
+	zero.
+
+2004-12-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cc-mode.texi (Text Filling and Line Breaking): Put period after
+	@xref.
+	(Font Locking): Avoid @strong{Note:}.
+
+2004-12-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.46.
+
+	* tramp.texi (bottom): Add arch-tag.  It was lost, somehow.
+
+2004-12-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* url.texi: Correct typos.
+	(Retrieving URLs): @var{nil}->@code{nil}.
+	(HTTP language/coding, mailto): Replace  "GNU Emacs Manual" with
+	the standard "The GNU Emacs Manual" in fifth argument of @xref's.
+	(Dealing with HTTP documents): @inforef->@xref.
+
+2004-12-15  Juri Linkov  <juri@jurta.org>
+
+	* mark.texi (Transient Mark, Mark Ring): M-< and other
+	movement commands don't set mark in Transient Mark mode
+	if mark is active.
+
+2004-12-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Consistently capitalized all mode names.
+	(Answers to Exercises): Mention that an answer can be a fraction
+	when in Fraction mode.
+
+2004-12-13  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Fix some TeX definitions.
+
+2004-12-12  Juri Linkov  <juri@jurta.org>
+
+	* misc.texi (FFAP): Add C-x C-r, C-x C-v, C-x C-d,
+	C-x 4 r, C-x 4 d, C-x 5 r, C-x 5 d.
+
+	* dired.texi (Dired Navigation): Add @r{(Dired)} to M-g.
+	(Misc Dired Commands): Add @r{(Dired)} to w.
+
+2004-12-12  Juri Linkov  <juri@jurta.org>
+
+	* mark.texi (Marking Objects): Marking commands also extend the
+	region when mark is active in Transient Mark mode.
+
 2004-12-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* reftex.texi (Imprint): Remove erroneous @value's.
@@ -133,17 +187,19 @@
 	to Alex Ott, Karl Fogel, Stefan Monnier, and David Kastrup for
 	suggestions.
 
+2004-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi ([5.1]): Added missing bracket.
+
+	* gnus.texi (Filtering Spam Using The Spam ELisp Package): Index
+	`spam-initialize'.
+
 2004-11-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.texi (Various Message Variables): Mention that all mail
 	file variables are derived from `message-directory'.
 
 	* gnus.texi (Splitting Mail): Clarify bogus group.
-
-2004-11-16  Reiner Steib  <Reiner.Steib@gmx.de>
-
-	* gnus.texi (Filtering Spam Using The Spam ELisp Package): Index
-	`spam-initialize'.
 
 2004-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 

@@ -357,13 +357,15 @@ the number of paragraphs marked equals ARG.
 If ARG is negative, point is put at end of this paragraph, mark is put
 at beginning of this or a previous paragraph.
 
-If this command is repeated, it marks the next ARG paragraphs after (or
-before, if arg is negative) the ones already marked."
+If this command is repeated or mark is active in Transient Mark mode,
+it marks the next ARG paragraphs after (or before, if arg is negative)
+the ones already marked."
   (interactive "p")
   (unless arg (setq arg 1))
   (when (zerop arg)
     (error "Cannot mark zero paragraphs"))
-  (cond ((and (eq last-command this-command) (mark t))
+  (cond ((or (and (eq last-command this-command) (mark t))
+	     (and transient-mark-mode mark-active))
 	 (set-mark
 	  (save-excursion
 	    (goto-char (mark))

@@ -1104,6 +1104,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
   (let ((map (make-keymap)))
     (suppress-keymap map)
     (define-key map [mouse-2] 'dired-mouse-find-file-other-window)
+    (define-key map [follow-link] 'mouse-face)
     ;; Commands to mark or flag certain categories of files
     (define-key map "#" 'dired-flag-auto-save-files)
     (define-key map "." 'dired-clean-directory)

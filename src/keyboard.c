@@ -3038,6 +3038,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Save the echo status.  */
       int saved_immediate_echo = current_kboard->immediate_echo;
       struct kboard *saved_ok_to_echo = ok_to_echo_at_next_pause;
+      Lisp_Object saved_echo_string = current_kboard->echo_string;
       int saved_echo_after_prompt = current_kboard->echo_after_prompt;
 
 #if 0
@@ -3092,6 +3093,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
       cancel_echoing ();
       ok_to_echo_at_next_pause = saved_ok_to_echo;
+      current_kboard->echo_string = saved_echo_string;
       current_kboard->echo_after_prompt = saved_echo_after_prompt;
       if (saved_immediate_echo)
 	echo_now ();
@@ -3574,6 +3576,9 @@ event_to_kboard (event)
 }
 #endif
 
+
+Lisp_Object Vthrow_on_input;
+
 /* Store an event obtained at interrupt level into kbd_buffer, fifo */
 
 void
@@ -3698,6 +3703,24 @@ kbd_buffer_store_event_hold (event, hold_quit)
     {
       *kbd_store_ptr = *event;
       ++kbd_store_ptr;
+    }
+
+  /* If we're inside while-no-input, and this event qualifies
+     as input, set quit-flag to cause an interrupt.  */
+  if (!NILP (Vthrow_on_input)
+      && event->kind != FOCUS_IN_EVENT
+      && event->kind != HELP_EVENT
+      && event->kind != DEICONIFY_EVENT)
+    {
+      Vquit_flag = Vthrow_on_input;
+      /* If we're inside a function that wants immediate quits,
+	 do it now.  */
+      if (immediate_quit && NILP (Vinhibit_quit))
+	{
+	  immediate_quit = 0;
+	  sigfree ();
+	  QUIT;
+	}
     }
 }
 
@@ -6849,24 +6872,6 @@ handle_async_input ()
 #ifdef BSD4_1
   extern int select_alarmed;
 #endif
-#if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
-  extern pthread_t main_thread;
-  if (pthread_self () != main_thread)
-    {
-      /* POSIX says any thread can receive the signal.  On GNU/Linux that is
-         not true, but for other systems (FreeBSD at least) it is.  So direct
-         the signal to the correct thread and block it from this thread.  */
-#ifdef SIGIO
-      sigset_t new_mask;
-
-      sigemptyset (&new_mask);
-      sigaddset (&new_mask, SIGIO);
-      pthread_sigmask (SIG_BLOCK, &new_mask, 0);
-      pthread_kill (main_thread, SIGIO);
-#endif
-      return;
-    }
-#endif
 
   interrupt_input_pending = 0;
 
@@ -6895,22 +6900,6 @@ input_available_signal (signo)
 {
   /* Must preserve main program's value of errno.  */
   int old_errno = errno;
-#if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
-  extern pthread_t main_thread;
-  if (pthread_self () != main_thread)
-    {
-      /* POSIX says any thread can receive the signal.  On GNU/Linux that is
-         not true, but for other systems (FreeBSD at least) it is.  So direct
-         the signal to the correct thread and block it from this thread.  */
-      sigset_t new_mask;
-
-      sigemptyset (&new_mask);
-      sigaddset (&new_mask, SIGIO);
-      pthread_sigmask (SIG_BLOCK, &new_mask, 0);
-      pthread_kill (main_thread, SIGIO);
-      return;
-    }
-#endif /* HAVE_GTK_AND_PTHREAD */
 #if defined (USG) && !defined (POSIX_SIGNALS)
   /* USG systems forget handlers when they are used;
      must reestablish each time */
@@ -6927,6 +6916,8 @@ input_available_signal (signo)
 #ifdef SYNC_INPUT
   interrupt_input_pending = 1;
 #else
+
+  SIGNAL_THREAD_CHECK (signo);
   handle_async_input ();
 #endif
 
@@ -10379,6 +10370,7 @@ handle_interrupt ()
   char c;
   struct frame *sf = SELECTED_FRAME ();
 
+  SIGNAL_THREAD_CHECK (signalnum);
   cancel_echoing ();
 
   /* XXX This code needs to be revised for multi-tty support. */
@@ -11525,6 +11517,12 @@ Used during Emacs' startup.  */);
 	       doc: /* *How long to display an echo-area message when the minibuffer is active.
 If the value is not a number, such messages don't time out.  */);
   Vminibuffer_message_timeout = make_number (2);
+
+  DEFVAR_LISP ("throw-on-input", &Vthrow_on_input,
+	       doc: /* If non-nil, any keyboard input throws to this symbol.
+The value of that variable is passed to `quit-flag' and later causes a
+peculiar kind of quitting.  */);
+  Vthrow_on_input = Qnil;
 }
 
 void

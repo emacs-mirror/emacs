@@ -2178,7 +2178,7 @@ list that represents a doc string reference.
   (let ((old-load-list current-load-list)
 	(args (mapcar 'eval (cdr form))))
     (apply 'require args)
-    ;; Detech (require 'cl) in a way that works even if cl is already loaded.
+    ;; Detect (require 'cl) in a way that works even if cl is already loaded.
     (if (member (car args) '("cl" cl))
 	(setq byte-compile-warnings
 	      (remq 'cl-functions byte-compile-warnings))))

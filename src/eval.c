@@ -1178,6 +1178,7 @@ unwind_to_catch (catch, value)
   set_poll_suppress_count (catch->poll_suppress_count);
   interrupt_input_blocked = catch->interrupt_input_blocked;
   handling_signal = 0;
+  immediate_quit = 0;
 
   do
     {
@@ -3331,7 +3332,11 @@ Emacs could overflow the real C stack, and crash.  */);
 
   DEFVAR_LISP ("quit-flag", &Vquit_flag,
 	       doc: /* Non-nil causes `eval' to abort, unless `inhibit-quit' is non-nil.
-Typing C-g sets `quit-flag' non-nil, regardless of `inhibit-quit'.  */);
+If the value is t, that means do an ordinary quit.
+If the value equals `throw-on-input', that means quit by throwing
+to the tag specified in `throw-on-input'; it's for handling `while-no-input'.
+Typing C-g sets `quit-flag' to t, regardless of `inhibit-quit',
+but `inhibit-quit' non-nil prevents anything from taking notice of that.  */);
   Vquit_flag = Qnil;
 
   DEFVAR_LISP ("inhibit-quit", &Vinhibit_quit,

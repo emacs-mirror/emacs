@@ -1703,6 +1703,7 @@ increase the score of each group you read."
   "Q" gnus-summary-exit-no-update
   "\C-c\C-i" gnus-info-find-node
   gnus-mouse-2 gnus-mouse-pick-article
+  [follow-link] mouse-face
   "m" gnus-summary-mail-other-window
   "a" gnus-summary-post-news
   "i" gnus-summary-news-other-window
@@ -5096,7 +5097,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 
     (when gnus-agent
       (gnus-agent-possibly-alter-active group (gnus-active group) info)
-      
+
       (setq gnus-summary-use-undownloaded-faces
 	    (gnus-agent-find-parameter
 	     group
@@ -7044,7 +7045,7 @@ If optional argument UNREAD is non-nil, only unread article is selected."
       (gnus-summary-goto-subject article t)))
   (gnus-summary-limit (append articles gnus-newsgroup-limit))
   (gnus-summary-position-point))
- 
+
 (defun gnus-summary-goto-subject (article &optional force silent)
   "Go the subject line of ARTICLE.
 If FORCE, also allow jumping to articles not currently shown."
@@ -9140,7 +9141,7 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 
 	;;;!!!Why is this necessary?
 	(set-buffer gnus-summary-buffer)
-	
+
 	(gnus-summary-goto-subject article)
 	(when (eq action 'move)
 	  (gnus-summary-mark-article article gnus-canceled-mark))))

@@ -73,17 +73,18 @@ move forward across N balanced expressions."
   "Set mark ARG sexps from point.
 The place mark goes is the same place \\[forward-sexp] would
 move to with the same argument.
-If this command is repeated, it marks the next ARG sexps after the ones
-already marked."
+If this command is repeated or mark is active in Transient Mark mode,
+it marks the next ARG sexps after the ones already marked."
   (interactive "P")
-  (cond ((and (eq last-command this-command) (mark t))
+  (cond ((or (and (eq last-command this-command) (mark t))
+	     (and transient-mark-mode mark-active))
 	 (setq arg (if arg (prefix-numeric-value arg)
-		     (if (> (mark) (point)) 1 -1)))
+		     (if (< (mark) (point)) -1 1)))
 	 (set-mark
 	  (save-excursion
-	   (goto-char (mark))
-	   (forward-sexp arg)
-	   (point))))
+	    (goto-char (mark))
+	    (forward-sexp arg)
+	    (point))))
 	(t
 	 (push-mark
 	  (save-excursion
@@ -191,9 +192,10 @@ open-parenthesis, and point ends up at the beginning of the line.
 If variable `beginning-of-defun-function' is non-nil, its value
 is called as a function to find the defun's beginning."
   (interactive "p")
-  (and (eq this-command 'beginning-of-defun)
-       (or inhibit-mark-movement (eq last-command 'beginning-of-defun)
-           (push-mark)))
+  (or (not (eq this-command 'beginning-of-defun))
+      (eq last-command 'beginning-of-defun)
+      (and transient-mark-mode mark-active)
+      (push-mark))
   (and (beginning-of-defun-raw arg)
        (progn (beginning-of-line) t)))
 
@@ -242,9 +244,10 @@ matches the open-parenthesis that starts a defun; see function
 If variable `end-of-defun-function' is non-nil, its value
 is called as a function to find the defun's end."
   (interactive "p")
-  (and (eq this-command 'end-of-defun)
-       (or inhibit-mark-movement (eq last-command 'end-of-defun)
-           (push-mark)))
+  (or (not (eq this-command 'end-of-defun))
+      (eq last-command 'end-of-defun)
+      (and transient-mark-mode mark-active)
+      (push-mark))
   (if (or (null arg) (= arg 0)) (setq arg 1))
   (if end-of-defun-function
       (if (> arg 0)
@@ -289,10 +292,11 @@ is called as a function to find the defun's end."
 (defun mark-defun ()
   "Put mark at end of this defun, point at beginning.
 The defun marked is the one that contains point or follows point.
-If this command is repeated, marks more defuns after the ones
-already marked."
+If this command is repeated or mark is active in Transient Mark mode,
+it marks more defuns after the ones already marked."
   (interactive)
-  (cond ((and (eq last-command this-command) (mark t))
+  (cond ((or (and (eq last-command this-command) (mark t))
+	     (and transient-mark-mode mark-active))
 	 (set-mark
 	  (save-excursion
 	    (goto-char (mark))

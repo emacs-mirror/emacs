@@ -919,7 +919,7 @@ is the starting location.  If this is nil, `point-min' is used instead."
 	(progn
 	  (goto-char wrong)
 	  (if (not take-notes)
-	      (error (checkdoc-error-text msg)))))
+	      (error "%s" (checkdoc-error-text msg)))))
     (checkdoc-show-diagnostics)
     (if (interactive-p)
 	(message "No style warnings."))))
@@ -952,7 +952,7 @@ if there is one."
 	 (e (checkdoc-file-comments-engine))
 	(checkdoc-generate-compile-warnings-flag
 	 (or take-notes checkdoc-generate-compile-warnings-flag)))
-    (if e (error (checkdoc-error-text e)))
+    (if e (error "%s" (checkdoc-error-text e)))
     (checkdoc-show-diagnostics)
     e))
 
@@ -990,7 +990,7 @@ Optional argument TAKE-NOTES causes all errors to be logged."
     (if (not (interactive-p))
 	e
       (if e
-	  (error (checkdoc-error-text e))
+	  (error "%s" (checkdoc-error-text e))
 	(checkdoc-show-diagnostics)))
     (goto-char p))
   (if (interactive-p) (message "Checking interactive message text...done.")))
@@ -1033,15 +1033,15 @@ space at the end of each line."
 	     (msg (checkdoc-this-string-valid)))
 	(if msg (if no-error
 		    (message (checkdoc-error-text msg))
-		  (error (checkdoc-error-text msg)))
+		  (error "%s" (checkdoc-error-text msg)))
 	  (setq msg (checkdoc-message-text-search beg end))
 	  (if msg (if no-error
 		      (message (checkdoc-error-text msg))
-		    (error (checkdoc-error-text msg)))
+		    (error "%s" (checkdoc-error-text msg)))
 	    (setq msg (checkdoc-rogue-space-check-engine beg end))
 	    (if msg (if no-error
 			(message (checkdoc-error-text msg))
-		      (error (checkdoc-error-text msg))))))
+		      (error "%s" (checkdoc-error-text msg))))))
 	(if (interactive-p) (message "Checkdoc: done."))))))
 
 ;;; Ispell interface for forcing a spell check

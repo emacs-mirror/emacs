@@ -1,3 +1,26 @@
+2004-12-21  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Event Input Misc): Add while-no-input.
+
+2004-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Line Height): Rewrite text for clarity.
+
+2004-12-11  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Display): Add node "Line Height" to menu.
+	(Line Height): New node.  Move full description of line-spacing
+	and line-height text properties here from text.texi.
+	(Scroll Bars): Add vertical-scroll-bar variable.
+
+	* frames.texi (Window Frame Parameters): Remove line-height defvar.
+
+	* locals.texi (Standard Buffer-Local Variables): Fix xref for
+	line-spacing and vertical-scroll-bar.
+
+	* text.texi (Special Properties): Just mention line-spacing and
+	line-height here, add xref to new "Line Height" node.
+
 2004-12-09  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* frames.texi (Window Frame Parameters): New @defvar for `line-spacing'.

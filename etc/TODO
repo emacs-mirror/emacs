@@ -15,6 +15,9 @@ to the FSF.
   ought to be possible to omit text which is invisible (due to a
   text-property, overlay, or selective display) from the kill-ring.
 
+** Redefine define-generic-mode as a macro, so the compiler
+  sees the definitions it generates.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,

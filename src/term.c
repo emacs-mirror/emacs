@@ -640,11 +640,11 @@ encode_terminal_code (src, src_len, coding)
   required = MAX_MULTIBYTE_LENGTH * src_len;
   if (encode_terminal_bufsize < required)
     {
-      encode_terminal_bufsize = required;
       if (encode_terminal_bufsize == 0)
 	encode_terminal_buf = xmalloc (required);
       else
 	encode_terminal_buf = xrealloc (encode_terminal_buf, required);
+      encode_terminal_bufsize = required;
     }
 
   buf = encode_terminal_buf;

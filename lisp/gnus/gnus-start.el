@@ -952,16 +952,28 @@ If LEVEL is non-nil, the news will be set up at level LEVEL."
     ;; Make sure the archive server is available to all and sundry.
     (when gnus-message-archive-method
       (unless (assoc "archive" gnus-server-alist)
-	(push `("archive"
-		nnfolder
-		"archive"
-		(nnfolder-directory
-		 ,(nnheader-concat message-directory "archive"))
-		(nnfolder-active-file
-		 ,(nnheader-concat message-directory "archive/active"))
-		(nnfolder-get-new-mail nil)
-		(nnfolder-inhibit-expiry t))
-	      gnus-server-alist)))
+	(let ((method (or (and (stringp gnus-message-archive-method)
+			       (gnus-server-to-method
+				gnus-message-archive-method))
+			  gnus-message-archive-method)))
+	  ;; Check whether the archive method is writable.
+	  (unless (or (stringp method)
+		      (memq 'respool (assoc (format "%s" (car method))
+					    gnus-valid-select-methods)))
+	    (setq method "archive")) ;; The default.
+	  (push (if (stringp method)
+		    `("archive"
+		      nnfolder
+		      ,method
+		      (nnfolder-directory
+		       ,(nnheader-concat message-directory method))
+		      (nnfolder-active-file
+		       ,(nnheader-concat message-directory
+					 (concat method "/active")))
+		      (nnfolder-get-new-mail nil)
+		      (nnfolder-inhibit-expiry t))
+		  (cons "archive" method))
+		gnus-server-alist))))
 
     ;; If we don't read the complete active file, we fill in the
     ;; hashtb here.

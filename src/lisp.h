@@ -1768,11 +1768,15 @@ extern char *stack_bottom;
 #ifdef SYNC_INPUT
 extern void handle_async_input P_ ((void));
 extern int interrupt_input_pending;
+
 #define QUIT						\
   do {							\
     if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\
       {							\
+        Lisp_Object flag = Vquit_flag;			\
 	Vquit_flag = Qnil;				\
+	if (EQ (Vthrow_on_input, flag))			\
+	  Fthrow (Vthrow_on_input, Qnil);		\
 	Fsignal (Qquit, Qnil);				\
       }							\
     else if (interrupt_input_pending)			\
@@ -1785,7 +1789,10 @@ extern int interrupt_input_pending;
   do {							\
     if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\
       {							\
+        Lisp_Object flag = Vquit_flag;			\
 	Vquit_flag = Qnil;				\
+	if (EQ (Vthrow_on_input, flag))			\
+	  Fthrow (Vthrow_on_input, Qnil);		\
 	Fsignal (Qquit, Qnil);				\
       }							\
   } while (0)
@@ -2876,6 +2883,7 @@ extern struct kboard *echo_kboard;
 extern void cancel_echoing P_ ((void));
 extern Lisp_Object Qdisabled, QCfilter;
 extern Lisp_Object Vtty_erase_char, Vhelp_form, Vtop_level;
+extern Lisp_Object Vthrow_on_input;
 extern int input_pending;
 EXFUN (Fdiscard_input, 0);
 EXFUN (Frecursive_edit, 0);
@@ -3041,7 +3049,7 @@ extern void syms_of_macros P_ ((void));
 /* defined in undo.c */
 extern Lisp_Object Qinhibit_read_only;
 EXFUN (Fundo_boundary, 0);
-extern Lisp_Object truncate_undo_list P_ ((Lisp_Object, int, int, int));
+extern void truncate_undo_list P_ ((struct buffer *));
 extern void record_marker_adjustment P_ ((Lisp_Object, int));
 extern void record_insert P_ ((int, int));
 extern void record_delete P_ ((int, Lisp_Object));
@@ -3050,6 +3058,7 @@ extern void record_change P_ ((int, int));
 extern void record_property_change P_ ((int, int, Lisp_Object, Lisp_Object,
 					Lisp_Object));
 extern void syms_of_undo P_ ((void));
+extern Lisp_Object Vundo_outer_limit;
 
 /* defined in textprop.c */
 extern Lisp_Object Qfont, Qmouse_face;

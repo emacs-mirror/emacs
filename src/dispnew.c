@@ -6005,6 +6005,9 @@ window_change_signal (signalnum) /* If we don't have an argument, */
 
   struct tty_display_info *tty;
 
+  signal (SIGWINCH, window_change_signal);
+  SIGNAL_THREAD_CHECK (signalnum);
+
   /* The frame size change obviously applies to a single
      termcap-controlled terminal, but we can't decide which.
      Therefore, we resize the frames corresponding to each tty.
@@ -6028,7 +6031,6 @@ window_change_signal (signalnum) /* If we don't have an argument, */
     }
   }
   
-  signal (SIGWINCH, window_change_signal);
   errno = old_errno;
 }
 #endif /* SIGWINCH */

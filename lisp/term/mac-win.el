@@ -199,7 +199,7 @@ Switch to a buffer editing the last file dropped."
 (let
     ((encoding-vector (make-vector 256 nil))
      (i 0)
-     (vec	;; mac-centraleuropean (128..255) -> UCS mapping
+     (vec	;; mac-centraleurroman (128..255) -> UCS mapping
       [	#x00C4	;; 128:LATIN CAPITAL LETTER A WITH DIAERESIS
 	#x0100	;; 129:LATIN CAPITAL LETTER A WITH MACRON
 	#x0101	;; 130:LATIN SMALL LETTER A WITH MACRON
@@ -339,8 +339,8 @@ Switch to a buffer editing the last file dropped."
     (setq i (1+ i)))
   (setq translation-table
 	(make-translation-table-from-vector encoding-vector))
-;;  (define-translation-table 'mac-centraleuropean-decoder translation-table)
-  (define-translation-table 'mac-centraleuropean-encoder
+;;  (define-translation-table 'mac-centraleurroman-decoder translation-table)
+  (define-translation-table 'mac-centraleurroman-encoder
     (char-table-extra-slot translation-table 0)))
 
 (let
@@ -493,8 +493,8 @@ Switch to a buffer editing the last file dropped."
 (defvar mac-font-encoder-list
   '(("mac-roman" mac-roman-encoder
      ccl-encode-mac-roman-font "%s")
-    ("mac-centraleuropean" mac-centraleuropean-encoder
-     ccl-encode-mac-centraleuropean-font "%s ce")
+    ("mac-centraleurroman" mac-centraleurroman-encoder
+     ccl-encode-mac-centraleurroman-font "%s ce")
     ("mac-cyrillic" mac-cyrillic-encoder
      ccl-encode-mac-cyrillic-font "%s cy")))
 
@@ -515,15 +515,15 @@ Switch to a buffer editing the last file dropped."
 	    (if mac-encoded
 		(aset table c mac-encoded))))))))
 
-(define-ccl-program ccl-encode-mac-centraleuropean-font
+(define-ccl-program ccl-encode-mac-centraleurroman-font
   `(0
     (if (r0 != ,(charset-id 'ascii))
 	(if (r0 <= ?\x8f)
-	    (translate-character mac-centraleuropean-encoder r0 r1)
+	    (translate-character mac-centraleurroman-encoder r0 r1)
 	  ((r1 <<= 7)
 	   (r1 |= r2)
-	   (translate-character mac-centraleuropean-encoder r0 r1)))))
-  "CCL program for Mac Central European font")
+	   (translate-character mac-centraleurroman-encoder r0 r1)))))
+  "CCL program for Mac Central European Roman font")
 
 (define-ccl-program ccl-encode-mac-cyrillic-font
   `(0

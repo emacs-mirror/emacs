@@ -2094,8 +2094,9 @@ whether or not it is currently displayed in some window.  */)
 	move_it_by_lines (&it, -1, 0);
 
       it.vpos = 0;
-      if (XINT (lines) != 0)
-	move_it_by_lines (&it, XINT (lines), 0);
+      /* Do this even if LINES is 0, so that we move back
+	 to the beginning of the current line as we ought.  */
+      move_it_by_lines (&it, XINT (lines), 0);
 
       SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
     }

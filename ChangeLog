@@ -1,3 +1,7 @@
+2004-12-11  Kim F. Storm  <storm@cua.dk>
+
+	* Makefile.in (info): Undo 2004-12-05 change.
+
 2004-12-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* info/dir (File): Add URL and Org Mode manuals.

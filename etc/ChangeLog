@@ -1,3 +1,16 @@
+2004-12-21  Richard M. Stallman  <rms@gnu.org>
+
+	* DISTRIB: Don't say "freeware".
+
+2004-12-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* DEBUG: Change printing example to break on a procedure name.
+
+2004-12-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* e/eterm.ti: Add rs1.
+	* e/eterm: Regenerate.
+
 2004-12-08  Alexandre VEYRENC  <veyrenc@wanadoo.fr>  (tiny change)
 
 	* fr-refcard.tex: Fix typos.
