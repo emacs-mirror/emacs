@@ -39,9 +39,6 @@
 (defvar bug-gnu-emacs "bug-gnu-emacs@prep.ai.mit.edu"
   "Address of site maintaining mailing list for GNU Emacs bugs.")
 
-(defvar report-emacs-bug-orig-size nil
-  "Size of automatically-created initial text of bug report.")
-
 (defvar report-emacs-bug-orig-text nil
   "The automatically-created initial text of bug report.")
 
