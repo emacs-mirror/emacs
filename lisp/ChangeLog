@@ -8,6 +8,10 @@
 	* international/mule-cmds.el (read-input-method-name): Locally
 	bind enable-recursive-minibuffers to t.
 
+2001-03-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/lmenu.el (add-menu): Re-added (was erroneously removed).
+
 2001-03-17  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff-util.el: Copyright years.
