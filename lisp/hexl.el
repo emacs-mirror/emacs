@@ -195,7 +195,6 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
 
 (defun hexl-find-file (filename)
   "Edit file FILENAME in hexl-mode.
-
 Switch to a buffer visiting file FILENAME, creating one in none exists."
   (interactive "fFilename: ")
   (find-file filename)
@@ -246,7 +245,7 @@ Signal error if ADDRESS out of range."
   (goto-char (hexl-address-to-marker address)))
 
 (defun hexl-goto-hex-address (hex-address)
-  "Goto hexl-mode address (hex string) HEX-ADDRESS.
+  "Go to hexl-mode address (hex string) HEX-ADDRESS.
 
 Signal error if HEX-ADDRESS is out of range."
   (interactive "sHex Address: ")
@@ -364,20 +363,14 @@ Signal error if HEX-ADDRESS is out of range."
   (hexl-backward-word (- arg)))
 
 (defun hexl-previous-line (arg)
-  "Move vertically up ARG lines [16 bytes] (down if ARG negative) in
-hexl-mode.
-
-If there is byte at the target address move to the last byte in that
-line."
+  "Move vertically up ARG lines [16 bytes] (down if ARG negative) in hexl-mode.
+If there is byte at the target address move to the last byte in that line."
   (interactive "p")
   (hexl-next-line (- arg)))
 
 (defun hexl-next-line (arg)
-  "Move vertically down ARG lines [16 bytes] (up if ARG negative) in
-hexl-mode.
-
-If there is no byte at the target address move to the last byte in that
-line."
+  "Move vertically down ARG lines [16 bytes] (up if ARG negative) in hexl-mode.
+If there is no byte at the target address move to the last byte in that line."
   (interactive "p")
   (hexl-goto-address (let ((address (+ (hexl-current-address) (* arg 16)) t))
 		       (if (and (< arg 0) (< address 0))
@@ -396,16 +389,15 @@ line."
 		       address)))
 
 (defun hexl-beginning-of-buffer (arg)
-  "Move to the beginning of the hexl buffer; leave hexl-mark at previous
-posistion.
-
-With arg N, put point N bytes of the way from the true beginning."
+  "Move to the beginning of the hexl buffer.
+Leaves `hexl-mark' at previous position.
+With prefix arg N, puts point N bytes of the way from the true beginning."
   (interactive "p")
   (push-mark (point))
   (hexl-goto-address (+ 0 (1- arg))))
 
 (defun hexl-end-of-buffer (arg)
-  "Goto hexl-max-address minus ARG."
+  "Go to `hexl-max-address' minus ARG."
   (interactive "p")
   (push-mark (point))
   (hexl-goto-address (- hexl-max-address (1- arg))))
@@ -630,7 +622,6 @@ You may also type up to 3 octal digits, to insert a character with that code"
     (define-key hexl-mode-map "\e\C-w" 'undefined)
     (define-key hexl-mode-map "\e\C-x" 'hexl-insert-hex-char)
     (define-key hexl-mode-map "\e\C-y" 'undefined)
-
 
     (define-key hexl-mode-map "\ea" 'hexl-beginning-of-1k-page)
     (define-key hexl-mode-map "\eb" 'hexl-backward-word)

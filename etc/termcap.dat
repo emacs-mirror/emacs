@@ -47,12 +47,12 @@ ZW|gator|HP 9000 model 237 emulating AAA:\
 ZY|gator-52|HP 9000 model 237 emulating VT52:\
 	:cr=^M:do=^J:nl=^J:bl=^G:\
 	:le=^H:bs:cd=\EJ:ce=\EK:cl=\EH\EJ:cm=\EY%+ %+ :co#128:li#47:nd=\EC:\
-	:ta=^I:pt:sr=\EI:up=\EA:ku=\EA:kd=\EB:kr=\EC:kl=\ED:kb=^H:
+	:ta=^I:pt:sr=\EI:up=\EA:ku=\EA:kd=\EB:kr=\EC:kl=\ED:kb=^H:\
 	:ce=\EK:ho=\EH:
 ZZ|gator-52t|HP 9000 model 237 emulating extra-tall VT52:\
 	:cr=^M:do=^J:nl=^J:bl=^G:\
 	:le=^H:bs:cd=\EJ:ce=\EK:cl=\EH\EJ:cm=\EY%+ %+ :co#128:li#94:nd=\EC:\
-	:ta=^I:pt:sr=\EI:up=\EA:ku=\EA:kd=\EB:kr=\EC:kl=\ED:kb=^H:
+	:ta=^I:pt:sr=\EI:up=\EA:ku=\EA:kd=\EB:kr=\EC:kl=\ED:kb=^H:\
 	:ce=\EK:ho=\EH:
 #
 # N: ANN ARBOR
