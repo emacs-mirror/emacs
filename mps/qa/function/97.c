@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!97.c(trunk.5) $
+ id = $HopeName: MMQA_test_function!97.c(trunk.6) $
  summary = test of mps_arena_formatted_objects_walk
  language = c
  link = testlib.o rankfmt.o
@@ -50,7 +50,8 @@ mps_fmt_t format;
 mps_ap_t apamc, aplo, apawl;
 
 
-static void tracegraph(mycell *obj) {
+static void tracegraph(mycell *obj)
+{
  int i;
 
  if (obj == NULL) {
@@ -75,8 +76,10 @@ static void tracegraph(mycell *obj) {
  }
 }
 
+
 static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool,
-                    void *V, size_t S) {
+                    void *V, size_t S)
+{
  mycell *a;
 
  asserts((mycell *) V == MAGICPOINT, "VII. Void * didn't get passed!");
@@ -97,7 +100,8 @@ static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool,
  }
 }
 
-static void test(void) {
+static void test(void)
+{
 /* a is a table of exact roots
    b    a table of ambiguous roots
    f    a table of non-roots
@@ -178,6 +182,7 @@ static void test(void) {
    b[k]->data.ref[1].addr = b[ranint(4)];
    addr = &a[k];
    die(allocrone(addr, apamc, 5, MPS_RANK_EXACT), "alloc failed");
+   f[k] = a[k]->data.ref[2].addr;
    a[k]->data.ref[2].addr = b[ranint(4)];
   }
 
@@ -189,7 +194,7 @@ static void test(void) {
   oldstamp = newstamp;
   newstamp += 1;
   mps_arena_formatted_objects_walk(space, stepper,
-   (void *) MAGICPOINT, MAGICSIZE);
+                                   (void *) MAGICPOINT, MAGICSIZE);
   mps_arena_release(space);
 
   comment("tracing...");
