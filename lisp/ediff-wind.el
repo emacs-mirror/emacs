@@ -897,7 +897,9 @@ into icons, regardless of the window manager."
       (setq ctl-frame (if (frame-live-p old-ctl-frame)
 			  old-ctl-frame
 			(make-frame ediff-control-frame-parameters))
-	    ediff-control-frame ctl-frame))
+	    ediff-control-frame ctl-frame)
+      (when (and ediff-emacs-p (face-attribute 'mode-line :box))
+	(set-face-attribute 'mode-line ctl-frame :box nil)))
     
     (setq ctl-frame-iconified-p (ediff-frame-iconified-p ctl-frame))
     (select-frame ctl-frame)
