@@ -1,6 +1,6 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985,86,87,93,94,95,96,97,1998 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,93,94,95,96,97,1998,2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -299,7 +299,7 @@ DEFUN ("pos-visible-in-window-p", Fpos_visible_in_window_p,
   "Return t if position POS is currently on the frame in WINDOW.\n\
 Return nil if that position is scrolled vertically out of view.\n\
 If FULLY is non-nil, then only return t when POS is completely visible.\n\
-POS defaults to point; WINDOW defaults to the selected window.")
+POS defaults to point in WINDOW; WINDOW defaults to the selected window.")
   (pos, window, fully)
      Lisp_Object pos, window, fully;
 {
@@ -310,17 +310,19 @@ POS defaults to point; WINDOW defaults to the selected window.")
   Lisp_Object in_window;
   int fully_p;
 
-  if (NILP (pos))
-    posint = PT;
-  else
+  w = decode_window (window);
+  buf = XBUFFER (w->buffer);
+  SET_TEXT_POS_FROM_MARKER (top, w->start);
+
+  if (!NILP (pos))
     {
       CHECK_NUMBER_COERCE_MARKER (pos, 0);
       posint = XINT (pos);
     }
-
-  w = decode_window (window);
-  buf = XBUFFER (w->buffer);
-  SET_TEXT_POS_FROM_MARKER (top, w->start);
+  else if (w == XWINDOW (selected_window))
+    posint = PT;
+  else
+    posint = XMARKER (w->pointm)->charpos;
 
   /* If position is above window start, it's not visible.  */
   if (posint < CHARPOS (top))
