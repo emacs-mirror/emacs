@@ -321,7 +321,9 @@ space does not end a sentence, so don't break a line there."
 		      (forward-char -2)
 		      (skip-chars-backward "^ \n" linebeg)))
 		;; If the left margin and fill prefix by themselves
-		;; pass the fill-column, keep at least one word.
+		;; pass the fill-column. or if they are zero
+		;; but we have no room for even one word,
+		;; keep at least one word anyway.
 		;; This handles ALL BUT the first line of the paragraph.
 		(if (if (zerop prefixcol)
 			(save-excursion
@@ -371,7 +373,7 @@ space does not end a sentence, so don't break a line there."
 			(skip-chars-forward "^ \t\n")
 			(setq first nil))))
 		;; Check again to see if we got to the end of the paragraph.
-		(if (eobp)
+		(if (save-excursion (skip-chars-forward " \t") (eobp))
 		    (or nosqueeze (delete-horizontal-space))
 		  ;; Replace whitespace here with one newline, then indent to left
 		  ;; margin.
