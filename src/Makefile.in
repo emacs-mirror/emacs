@@ -1016,7 +1016,7 @@ cmds.o: cmds.c syntax.h buffer.h charset.h commands.h window.h $(config_h)
 pre-crt0.o: pre-crt0.c
 ecrt0.o: ecrt0.c $(config_h)
 	CRT0_COMPILE ${srcdir}/ecrt0.c
-dired.o: dired.c commands.h buffer.h $(config_h) regex.h
+dired.o: dired.c commands.h buffer.h $(config_h) charset.h coding.h regex.h
 dispnew.o: dispnew.c  commands.h frame.h window.h buffer.h dispextern.h \
    termchar.h termopts.h termhooks.h cm.h disptab.h systty.h systime.h \
    xterm.h blockinput.h charset.h $(config_h)
