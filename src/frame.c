@@ -788,7 +788,7 @@ other_visible_frames (f)
 #ifdef HAVE_X_WINDOWS
 	  if (FRAME_X_P (XFRAME (this)))
 	    {
-	      x_sync (this);
+	      x_sync (XFRAME (this));
 	      FRAME_SAMPLE_VISIBILITY (XFRAME (this));
 	    }
 #endif
