@@ -745,39 +745,22 @@ print (obj, printcharfun, escapeflag)
     }
 #endif /* MAX_PRINT_CHARS */
 
-#ifdef SWITCH_ENUM_BUG
-  switch ((int) XTYPE (obj))
-#else
-  switch (XTYPE (obj))
-#endif
+  if (INTEGERP (obj))
     {
-    default:
-      /* We're in trouble if this happens!
-	 Probably should just abort () */
-      strout ("#<EMACS BUG: INVALID DATATYPE ", -1, printcharfun);
-      sprintf (buf, "(#o%3o)", (int) XTYPE (obj));
-      strout (buf, -1, printcharfun);
-      strout (" Save your buffers immediately and please report this bug>",
-	      -1, printcharfun);
-      break;
-
-#ifdef LISP_FLOAT_TYPE
-    case Lisp_Float:
-      {
-	char pigbuf[350];	/* see comments in float_to_string */
-
-	float_to_string (pigbuf, XFLOAT(obj)->data);
-	strout (pigbuf, -1, printcharfun);
-      }
-      break;
-#endif /* LISP_FLOAT_TYPE */
-
-    case Lisp_Int:
       sprintf (buf, "%d", XINT (obj));
       strout (buf, -1, printcharfun);
-      break;
+    }
+#ifdef LISP_FLOAT_TYPE
+  else if (FLOATP (obj))
+    {
+      char pigbuf[350];	/* see comments in float_to_string */
 
-    case Lisp_String:
+      float_to_string (pigbuf, XFLOAT(obj)->data);
+      strout (pigbuf, -1, printcharfun);
+    }
+#endif
+  else if (STRINGP (obj))
+    {
       if (!escapeflag)
 	print_string (obj, printcharfun);
       else
@@ -831,85 +814,82 @@ print (obj, printcharfun, escapeflag)
 
 	  UNGCPRO;
 	}
-      break;
+    }
+  else if (SYMBOLP (obj))
+    {
+      register int confusing;
+      register unsigned char *p = XSYMBOL (obj)->name->data;
+      register unsigned char *end = p + XSYMBOL (obj)->name->size;
+      register unsigned char c;
 
-    case Lisp_Symbol:
-      {
-	register int confusing;
-	register unsigned char *p = XSYMBOL (obj)->name->data;
-	register unsigned char *end = p + XSYMBOL (obj)->name->size;
-	register unsigned char c;
+      if (p != end && (*p == '-' || *p == '+')) p++;
+      if (p == end)
+	confusing = 0;
+      else
+	{
+	  while (p != end && *p >= '0' && *p <= '9')
+	    p++;
+	  confusing = (end == p);
+	}
 
-	if (p != end && (*p == '-' || *p == '+')) p++;
-        if (p == end)
-	  confusing = 0;
-	else
-	  {
-	    while (p != end && *p >= '0' && *p <= '9')
-	      p++;
-	    confusing = (end == p);
-	  }
-
-	p = XSYMBOL (obj)->name->data;
-	while (p != end)
-	  {
-	    QUIT;
-	    c = *p++;
-	    if (escapeflag)
-	      {
-		if (c == '\"' || c == '\\' || c == '\'' || c == ';' || c == '#' ||
-		    c == '(' || c == ')' || c == ',' || c =='.' || c == '`' ||
-		    c == '[' || c == ']' || c == '?' || c <= 040 || confusing)
-		  PRINTCHAR ('\\'), confusing = 0;
-	      }
-	    PRINTCHAR (c);
-	  }
-      }
-      break;
-
-    case Lisp_Cons:
+      p = XSYMBOL (obj)->name->data;
+      while (p != end)
+	{
+	  QUIT;
+	  c = *p++;
+	  if (escapeflag)
+	    {
+	      if (c == '\"' || c == '\\' || c == '\'' || c == ';' || c == '#' ||
+		  c == '(' || c == ')' || c == ',' || c =='.' || c == '`' ||
+		  c == '[' || c == ']' || c == '?' || c <= 040 || confusing)
+		PRINTCHAR ('\\'), confusing = 0;
+	    }
+	  PRINTCHAR (c);
+	}
+    }
+  else if (CONSP (obj))
+    {
       /* If deeper than spec'd depth, print placeholder.  */
       if (INTEGERP (Vprint_level)
 	  && print_depth > XINT (Vprint_level))
+	strout ("...", -1, printcharfun);
+      else
 	{
-	  strout ("...", -1, printcharfun);
-	  break;
-	}
-
-      PRINTCHAR ('(');
-      {
-	register int i = 0;
-	register int max = 0;
-
-	if (INTEGERP (Vprint_length))
-	  max = XINT (Vprint_length);
-	/* Could recognize circularities in cdrs here,
-	   but that would make printing of long lists quadratic.
-	   It's not worth doing.  */
-	while (CONSP (obj))
+	  PRINTCHAR ('(');
 	  {
-	    if (i++)
-	      PRINTCHAR (' ');
-	    if (max && i > max)
-	      {
-		strout ("...", 3, printcharfun);
-		break;
-	      }
-	    print (Fcar (obj), printcharfun, escapeflag);
-	    obj = Fcdr (obj);
-	  }
-      }
-      if (!NILP (obj) && !CONSP (obj))
-	{
-	  strout (" . ", 3, printcharfun);
-	  print (obj, printcharfun, escapeflag);
-	}
-      PRINTCHAR (')');
-      break;
+	    register int i = 0;
+	    register int max = 0;
 
-    case Lisp_Compiled:
-      strout ("#", -1, printcharfun);
-    case Lisp_Vector:
+	    if (INTEGERP (Vprint_length))
+	      max = XINT (Vprint_length);
+	    /* Could recognize circularities in cdrs here,
+	       but that would make printing of long lists quadratic.
+	       It's not worth doing.  */
+	    while (CONSP (obj))
+	      {
+		if (i++)
+		  PRINTCHAR (' ');
+		if (max && i > max)
+		  {
+		    strout ("...", 3, printcharfun);
+		    break;
+		  }
+		print (Fcar (obj), printcharfun, escapeflag);
+		obj = Fcdr (obj);
+	      }
+	  }
+	  if (!NILP (obj) && !CONSP (obj))
+	    {
+	      strout (" . ", 3, printcharfun);
+	      print (obj, printcharfun, escapeflag);
+	    }
+	  PRINTCHAR (')');
+	}
+    }
+  else if (COMPILEDP (obj) || VECTORP (obj))
+    {
+      if (COMPILEDP (obj))
+	PRINTCHAR ('#');
       PRINTCHAR ('[');
       {
 	register int i;
@@ -922,10 +902,10 @@ print (obj, printcharfun, escapeflag)
 	  }
       }
       PRINTCHAR (']');
-      break;
-
+    }
 #ifndef standalone
-    case Lisp_Buffer:
+  else if (BUFFERP (obj))
+    {
       if (NILP (XBUFFER (obj)->name))
 	strout ("#<killed buffer>", -1, printcharfun);
       else if (escapeflag)
@@ -936,9 +916,9 @@ print (obj, printcharfun, escapeflag)
 	}
       else
 	print_string (XBUFFER (obj)->name, printcharfun);
-      break;
-
-    case Lisp_Process:
+    }
+  else if (PROCESSP (obj))
+    {
       if (escapeflag)
 	{
 	  strout ("#<process ", -1, printcharfun);
@@ -947,9 +927,9 @@ print (obj, printcharfun, escapeflag)
 	}
       else
 	print_string (XPROCESS (obj)->name, printcharfun);
-      break;
-
-    case Lisp_Window:
+    }
+  else if (WINDOWP (obj))
+    {
       strout ("#<window ", -1, printcharfun);
       sprintf (buf, "%d", XFASTINT (XWINDOW (obj)->sequence_number));
       strout (buf, -1, printcharfun);
@@ -959,72 +939,69 @@ print (obj, printcharfun, escapeflag)
 	  print_string (XBUFFER (XWINDOW (obj)->buffer)->name, printcharfun);
 	}
       PRINTCHAR ('>');
-      break;
-
-    case Lisp_Window_Configuration:
+    }
+  else if (WINDOW_CONFIGURATIONP (obj))
+    {
       strout ("#<window-configuration>", -1, printcharfun);
-      break;
-
+    }
 #ifdef MULTI_FRAME
-    case Lisp_Frame:
+  else if (FRAMEP (obj))
+    {
       strout ((FRAME_LIVE_P (XFRAME (obj))
 	       ? "#<frame " : "#<dead frame "),
 	      -1, printcharfun);
       print_string (XFRAME (obj)->name, printcharfun);
-      if (sizeof (EMACS_INT) > 4)
-	sprintf (buf, " 0x%lx", (EMACS_UINT) (XFRAME (obj)));
-      else
-	sprintf (buf, " 0x%x", (EMACS_UINT) (XFRAME (obj)));
+      sprintf (buf, " 0x%lx", (unsigned long) (XFRAME (obj)));
       strout (buf, -1, printcharfun);
-      strout (">", -1, printcharfun);
-      break;
-#endif /* MULTI_FRAME */
-
-    case Lisp_Misc:
-      switch (XMISC (obj)->type)
+      PRINTCHAR ('>');
+    }
+#endif
+  else if (MARKERP (obj))
+    {
+      strout ("#<marker ", -1, printcharfun);
+      if (!(XMARKER (obj)->buffer))
+	strout ("in no buffer", -1, printcharfun);
+      else
 	{
-	case Lisp_Misc_Marker:
-	  strout ("#<marker ", -1, printcharfun);
-	  if (!(XMARKER (obj)->buffer))
-	    strout ("in no buffer", -1, printcharfun);
-	  else
-	    {
-	      sprintf (buf, "at %d", marker_position (obj));
-	      strout (buf, -1, printcharfun);
-	      strout (" in ", -1, printcharfun);
-	      print_string (XMARKER (obj)->buffer->name, printcharfun);
-	    }
-	  PRINTCHAR ('>');
-	  break;
-
-	case Lisp_Misc_Overlay:
-	  strout ("#<overlay ", -1, printcharfun);
-	  if (!(XMARKER (OVERLAY_START (obj))->buffer))
-	    strout ("in no buffer", -1, printcharfun);
-	  else
-	    {
-	      sprintf (buf, "from %d to %d in ",
-		       marker_position (OVERLAY_START (obj)),
-		       marker_position (OVERLAY_END   (obj)));
-	      strout (buf, -1, printcharfun);
-	      print_string (XMARKER (OVERLAY_START (obj))->buffer->name,
-			    printcharfun);
-	    }
-	  PRINTCHAR ('>');
-	  break;
-
-	default:
-	  abort ();
+	  sprintf (buf, "at %d", marker_position (obj));
+	  strout (buf, -1, printcharfun);
+	  strout (" in ", -1, printcharfun);
+	  print_string (XMARKER (obj)->buffer->name, printcharfun);
 	}
-      break;
-
+      PRINTCHAR ('>');
+    }
+  else if (OVERLAYP (obj))
+    {
+      strout ("#<overlay ", -1, printcharfun);
+      if (!(XMARKER (OVERLAY_START (obj))->buffer))
+	strout ("in no buffer", -1, printcharfun);
+      else
+	{
+	  sprintf (buf, "from %d to %d in ",
+		   marker_position (OVERLAY_START (obj)),
+		   marker_position (OVERLAY_END   (obj)));
+	  strout (buf, -1, printcharfun);
+	  print_string (XMARKER (OVERLAY_START (obj))->buffer->name,
+			printcharfun);
+	}
+      PRINTCHAR ('>');
+    }
 #endif /* standalone */
-
-    case Lisp_Subr:
+  else if (SUBRP (obj))
+    {
       strout ("#<subr ", -1, printcharfun);
       strout (XSUBR (obj)->symbol_name, -1, printcharfun);
       PRINTCHAR ('>');
-      break;
+    }
+  else
+    {
+      /* We're in trouble if this happens!
+	 Probably should just abort () */
+      strout ("#<EMACS BUG: INVALID DATATYPE ", -1, printcharfun);
+      sprintf (buf, "(#o%3o)", (int) XTYPE (obj));
+      strout (buf, -1, printcharfun);
+      strout (" Save your buffers immediately and please report this bug>",
+	      -1, printcharfun);
     }
 
   print_depth--;
