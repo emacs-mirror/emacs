@@ -1,3 +1,7 @@
+2001-11-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (matching_regexp): Escape '\\'.
+
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 21.1 released.
