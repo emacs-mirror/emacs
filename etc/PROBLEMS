@@ -1,6 +1,10 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Mule-UCS doesn't work in Emacs 22.
+
+It's completely redundant now, as far as we know.
+
 * Process output truncated on Mac OS X (Carbon) when using pty's.
 
 There appears to be a problem with the implementation of pty's on the

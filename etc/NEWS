@@ -11,6 +11,78 @@ Temporary note:
 When you add a new item, please add it without either +++ or ---
 so we will look at it and add it to the manual.
 
+Fixme: The notes about Emacs 22 are quite incomplete.
+
+
+* Changes in Emacs 22.1
+
+** The Emacs character set is now a superset of Unicode.  
+(It has about four times the code space, which should be plenty).
+
+The internal encoding used for buffers and strings is now
+Unicode-based and called `utf-8-emacs'.  utf-8-emacs is backwards
+compatible with the UTF-8 encoding of Unicode.  The `emacs-mule'
+coding system can still read and write data in the old internal
+encoding.
+
+There are still charsets which contain disjoint sets of characters
+where this is necessary or useful, especially for various Far Eastern
+sets which are problematic with Unicode.
+
+Since the internal encoding is also used by default for byte-compiled
+files -- i.e. the normal coding system for byte-compiled Lisp files is
+now utf-8-Emacs -- Lisp containing non-ASCII characters which is
+compiled by Emacs 22 can't be read by earlier versions of Emacs.
+Files compiled by Emacs 20 or 21 are loaded correctly as emacs-mule
+(whether or not they contain multibyte characters), which makes
+loading them somewhat slower than Emacs 22-compiled files.  Thus it
+may be worth recompiling existing .elc files which don't need to be
+shared with older Emacsen.
+
+** There are assorted new coding systems/aliases -- see
+M-x list-coding-systems.
+
+** New charset implementation with many new charsets.
+See M-x list-character-sets.  New charsets can be defined conveniently
+as tables of unicodes.
+
+The dimension of a charset is now 0, 1, 2, or 3, and the size of each
+dimension is no longer limited to 94 or 96.
+
+Generic characters no longer exist.  
+
+A dynamic charset priority list is used to infer the charset of
+unicodes for display &c.
+
+** The following facilities are obsolete:
+
+Minor modes: unify-8859-on-encoding-mode, unify-8859-on-decoding-mode
+
+
+* Lisp changes in Emacs 22.1
+
+New functions: characterp, max-char, map-charset-chars,
+define-charset-alias, primary-charset, set-primary-charset,
+unify-charset, clear-charset-maps, charset-priority-list,
+set-charset-priority, define-coding-system,
+define-coding-system-alias, coding-system-aliases
+
+Changed functions: copy-sequence, decode-char, encode-char,
+set-fontset-font, new-fontset, modify-syntax-entry, define-charset,
+modify-category-entry
+
+Obsoleted: char-bytes, chars-in-region, set-coding-priority,
+char-valid-p
+
+
+* Incompatible Lisp changes
+
+Deleted functions: make-coding-system, register-char-codings,
+coding-system-spec
+
+** The character codes for characters from the
+eight-bit-control/eight-bit-graphic charsets aren't now in the range
+128-255.
 
 * Installation Changes in Emacs 21.4
 
