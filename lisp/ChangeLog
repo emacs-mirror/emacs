@@ -1,5 +1,8 @@
 2000-05-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* font-lock.el: Update copyright.  Remove Simon Marshall's email
+	address on request from him.
+
 	* subr.el (substitute-key-definition): Add comment describing
 	the meaning of PREFIX.
 
