@@ -776,6 +776,7 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
     (add-text-properties from to
 			 (append (list 'face face)
 				 '(mouse-face highlight)
+				 '(help-echo "mouse-2: change/use this item")
 				 (list 'cpp-callback callback)
 				 (if data (list 'cpp-data data))))))
 
