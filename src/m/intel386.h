@@ -230,4 +230,5 @@ NOTE-END */
 #define DATA_END 	get_data_end ()
 #define DATA_START 	get_data_start ()
 #define HAVE_ALLOCA
+#define NO_ARG_ARRAY
 #endif
