@@ -2370,8 +2370,19 @@ static char *lispy_function_keys[] =
     "kp-f2",
     "kp-f3",
     "kp-f4",
-    0,		/* 0xff95 */
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    "kp-home",			/* 0xff95 */
+    "kp-left",
+    "kp-up",
+    "kp-right",
+    "kp-down",
+    "kp-prior",			/* kp-page-up */
+    "kp-next",			/* kp-page-down */
+    "kp-end",
+    "kp-begin",
+    "kp-insert",
+    "kp-delete",
+    0,				/* 0xffa0 */
+    0, 0, 0, 0, 0, 0, 0, 0, 0,
     "kp-multiply",		/* 0xffaa */
     "kp-add",
     "kp-separator",
