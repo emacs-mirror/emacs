@@ -28,12 +28,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-help () nil)
-
 
 (defun calc-help-prefix (arg)
   "This key is the prefix for Calc help functions.  See calc-help-for-help."
@@ -675,6 +672,8 @@ C-w  Describe how there is no warranty for Calc."
      "<, =, > (justification); , (commas); [, {, ( (brackets)"
      "} (matrix brackets); . (abbreviate); / (multi-lines)")
    "vec/mat" ?v))
+
+(provide 'calc-help)
 
 ;; arch-tag: 2d347593-7591-449e-a64a-93dab5f2f686
 ;;; calc-help.el ends here
