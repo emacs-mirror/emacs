@@ -100,7 +100,7 @@
   (make-local-variable 'comment-start)
   (setq comment-start ";")
   (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "\\(^;\\|[^\\];\\) *")
+  (setq comment-start-skip ";+ *")
   (make-local-variable 'comment-column)
   (setq comment-column 40)
   (make-local-variable 'comment-indent-function)
