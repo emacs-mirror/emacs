@@ -6631,6 +6631,12 @@ echo_area_display (update_frame_p)
 	    }
 	  else
 	    update_frame (f, 1, 1);
+
+	  /* If cursor is in the echo area, make sure that the next
+	     redisplay displays the minibuffer, so that the cursor will
+	     be replaced with what the minibuffer wants.  */
+	  if (cursor_in_echo_area)
+	    ++windows_or_buffers_changed;
 	}
     }
   else if (!EQ (mini_window, selected_window))
