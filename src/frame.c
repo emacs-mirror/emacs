@@ -339,7 +339,7 @@ function is called.")
 
 DEFUN ("handle-switch-frame", Fhandle_switch_frame, Shandle_switch_frame, 1, 2, "e",
   "Handle a switch-frame event EVENT.\n\
-Switch-frame events is usually bound to this function.\n\
+Switch-frame events are usually bound to this function.\n\
 A switch-frame event tells Emacs that the window manager has requested\n\
 that the user's events be directed to the frame mentioned in the event.\n\
 This function selects the selected window of the frame of EVENT.\n\
