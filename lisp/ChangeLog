@@ -11,15 +11,24 @@
 	* which-func.el (which-func-modes): Add f90-mode.
 	(which-function): Handle imenu submenus.
 
-	* progmodes/fortran.el (fortran-abbrev-start): Make XEmacs
-	compatible.
+	* progmodes/fortran.el (fortran-abbrev-start): Make XEmacs compatible.
 
 	* progmodes/f90.el (f90-font-lock-keywords-2): Use override for
-	font-lock-variable-name-face in declarations.  Highlight
-	continuation characters.
+	font-lock-variable-name-face in declarations.
+	Highlight continuation characters.
 	(f90-indent-new-line): Remove direct call to f90-indent-line-no,
 	f90-update-line.
 	(f90-abbrev-start): Fix XEmacs compatibility.
+
+2003-04-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-mcvs.el: New file.
+
+	* vc-cvs.el (vc-cvs-dir-state): Use vc-cvs-command.
+	(vc-cvs-could-register, vc-cvs-make-version-backups-p): Use defalias.
+	(vc-cvs-merge-news): Simplify.
+	(vc-cvs-diff): Remove unused var `options'.
+	(vc-cvs-parse-entry): Use the same algorithm as cvs does.
 
 2003-04-19  Richard M. Stallman  <rms@gnu.org>
 
