@@ -1,3 +1,8 @@
+2000-02-24  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
+
+	* diary-lib.el (include-other-diary-files): Undo the selective
+	display in any included file and don't kill it.
+
 2000-02-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired.el (dired-mode-map): Don't remove "Edit" from the menu

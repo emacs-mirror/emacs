@@ -16,6 +16,10 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
+** The variable `cursor-in-non-selected-windows' controls how to
+display the cursor in non-selected windows.  If nil, no cursor is
+shown, if non-nil a hollow box cursor is shown.
+
 ** The variable `echo-keystrokes' may now have a floating point value.
 
 ** C-x 5 1 runs the new command delete-other-frames which deletes
