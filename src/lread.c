@@ -500,6 +500,40 @@ readevalloop (readcharfun, stream, evalfun, printflag)
 
 #ifndef standalone
 
+DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0, 2, "bBuffer: ",
+  "Execute BUFFER as Lisp code.  If BUFFER is nil, use the current buffer.\n\
+Programs can pass argument PRINTFLAG which controls printing of output:\n\
+nil means discard it; anything else is stream for print.\n\
+\n\
+If there is no error, point does not move.  If there is an error,\n\
+point remains at the end of the last character read from the buffer.")
+  (bufname, printflag)
+     Lisp_Object bufname, printflag;
+{
+  int count = specpdl_ptr - specpdl;
+  Lisp_Object tem, buf;
+
+  if (NIL_P (bufname))
+    buf = Fcurrent_buffer ();
+  else
+    buf = Fget_buffer (bufname);
+  if (NIL_P (buf))
+    error ("No such buffer.");
+
+  if (NIL_P (printflag))
+    tem = Qsymbolp;
+  else
+    tem = printflag;
+  specbind (Qstandard_output, tem);
+  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+  BUF_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
+  readevalloop (buf, 0, Feval, !NIL_P (printflag));
+  unbind_to (count);
+
+  return Qnil;
+}
+
+#if 0
 DEFUN ("eval-current-buffer", Feval_current_buffer, Seval_current_buffer, 0, 1, "",
   "Execute the current buffer as Lisp code.\n\
 Programs can pass argument PRINTFLAG which controls printing of output:\n\
@@ -523,6 +557,7 @@ point remains at the end of the last character read from the buffer.")
   readevalloop (Fcurrent_buffer (), 0, Feval, !NILP (printflag));
   return unbind_to (count, Qnil);
 }
+#endif
 
 DEFUN ("eval-region", Feval_region, Seval_region, 2, 3, "r",
   "Execute the region as Lisp code.\n\
@@ -1499,7 +1534,7 @@ syms_of_lread ()
   defsubr (&Sintern);
   defsubr (&Sintern_soft);
   defsubr (&Sload);
-  defsubr (&Seval_current_buffer);
+  defsubr (&Seval_buffer);
   defsubr (&Seval_region);
   defsubr (&Sread_char);
   defsubr (&Sread_char_exclusive);

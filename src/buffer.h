@@ -71,6 +71,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Now similar macros for a specified buffer.
    Note that many of these evaluate the buffer argument more than once.  */
 
+#define BUF_SET_PT(buffer, position) (buffer->text.pt = (position))
+
 /* Character position of beginning of buffer.  */ 
 #define BUF_BEG(buf) (1)
 
