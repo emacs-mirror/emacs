@@ -730,7 +730,7 @@ skip_chars (forwardp, syntaxp, string, lim)
     {
       c = *p++;
       if (syntaxp)
-	fastmap[c] = 1;
+	fastmap[syntax_spec_code[c]] = 1;
       else
 	{
 	  if (c == '\\')
@@ -754,9 +754,6 @@ skip_chars (forwardp, syntaxp, string, lim)
 	}
     }
 
-  if (syntaxp && fastmap['-'] != 0)
-    fastmap[' '] = 1;
-
   /* If ^ was the first character, complement the fastmap. */
 
   if (negate)
@@ -765,37 +762,38 @@ skip_chars (forwardp, syntaxp, string, lim)
 
   {
     int start_point = PT;
+    int pos = PT;
 
     immediate_quit = 1;
     if (syntaxp)
       {
-
 	if (forwardp)
 	  {
-	    while (PT < XINT (lim)
-		   && fastmap[(unsigned char) syntax_code_spec[(int) SYNTAX (FETCH_CHAR (PT))]])
-	      SET_PT (PT + 1);
+	    while (pos < XINT (lim)
+		   && fastmap[(int) SYNTAX (FETCH_CHAR (pos))])
+	      pos++;
 	  }
 	else
 	  {
-	    while (PT > XINT (lim)
-		   && fastmap[(unsigned char) syntax_code_spec[(int) SYNTAX (FETCH_CHAR (PT - 1))]])
-	      SET_PT (PT - 1);
+	    while (pos > XINT (lim)
+		   && fastmap[(int) SYNTAX (FETCH_CHAR (pos - 1))])
+	      pos--;
 	  }
       }
     else
       {
 	if (forwardp)
 	  {
-	    while (PT < XINT (lim) && fastmap[FETCH_CHAR (PT)])
-	      SET_PT (PT + 1);
+	    while (pos < XINT (lim) && fastmap[FETCH_CHAR (pos)])
+	      pos++;
 	  }
 	else
 	  {
-	    while (PT > XINT (lim) && fastmap[FETCH_CHAR (PT - 1)])
-	      SET_PT (PT - 1);
+	    while (pos > XINT (lim) && fastmap[FETCH_CHAR (pos - 1)])
+	      pos--;
 	  }
       }
+    SET_PT (pos);
     immediate_quit = 0;
 
     return make_number (PT - start_point);
