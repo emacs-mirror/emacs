@@ -48,7 +48,6 @@ ETAGS = ../lib-src/etags
 
 DONTCOMPILE = \
 	$(lisp)/cus-load.el \
-	$(lisp)/cus-start.el \
 	$(lisp)/emacs-lisp/cl-specs.el \
 	$(lisp)/eshell/esh-maint.el \
 	$(lisp)/eshell/esh-groups.el \
