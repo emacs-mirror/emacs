@@ -78,6 +78,9 @@ typedef DWORD Time;
 typedef HWND Window;
 typedef HCURSOR Cursor;
 
+/* Dummy; we don't yet support images in the Windows port */
+typedef int XImage;
+
 #define FACE_DEFAULT (~0)
 
 extern HINSTANCE hinst;
