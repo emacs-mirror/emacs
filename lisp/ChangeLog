@@ -1,3 +1,8 @@
+2000-11-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-insert-file): Rewritten.  Don't bother about
+	auto-save-mode.
+
 2000-11-04 11:48:02  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* calendar/calendar.el (diary-face, holiday-face): Fix typo.
