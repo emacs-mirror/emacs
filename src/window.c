@@ -3319,6 +3319,7 @@ init_window_once ()
 {
 #ifdef MULTI_FRAME
   selected_frame = make_terminal_frame ();
+  XSETFRAME (Vterminal_frame, selected_frame);
   minibuf_window = selected_frame->minibuffer_window;
   selected_window = selected_frame->selected_window;
   last_nonminibuf_frame = selected_frame;
