@@ -855,7 +855,9 @@ do not put this buffer at the front of the list of recently selected ones.
 This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."
   (interactive "BSwitch to buffer in other window: ")
-  (let ((pop-up-windows t))
+  (let ((pop-up-windows t)
+	;; Don't let these interfere.
+	same-window-buffer-names same-window-regexps)
     (pop-to-buffer buffer t norecord)))
 
 (defun switch-to-buffer-other-frame (buffer &optional norecord)
@@ -866,7 +868,8 @@ do not put this buffer at the front of the list of recently selected ones.
 This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."
   (interactive "BSwitch to buffer in other frame: ")
-  (let ((pop-up-frames t))
+  (let ((pop-up-frames t)
+	same-window-buffer-names same-window-regexps)
     (pop-to-buffer buffer t norecord)
     (raise-frame (window-frame (selected-window)))))
 
