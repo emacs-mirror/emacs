@@ -1,3 +1,8 @@
+2000-01-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in (HAVE_GIF): Check for DGifOpen instead of
+	DGifOpenFileName.
+
 2000-01-11  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (install-arch-indep): Update list of info files to

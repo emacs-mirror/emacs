@@ -13,6 +13,10 @@ the --without-pop configure option, should that be necessary.
 
 * Changes in Emacs 21.1
 
+** The help string specified for a menu-item whose definition contains
+the property `:help HELP' is now displayed under X either in the echo
+area or with tooltips.
+
 ** New user option `read-mail-command' specifies a command to use to
 read mail from the menu etc.
 
