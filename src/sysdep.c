@@ -1870,7 +1870,7 @@ sys_signal (int signal_number, signal_handler_t action)
   sigemptyset (&new_action.sa_mask);
   new_action.sa_handler = action;
   new_action.sa_flags = NULL;
-  new_action (signal_number, &new_action, &old_action);
+  sigaction (signal_number, &new_action, &old_action);
   return (old_action.sa_handler);
 #endif /* DGUX */
 }
