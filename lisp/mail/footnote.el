@@ -6,24 +6,22 @@
 ;; Keywords: mail, news
 ;; Version: 0.19
 
-;; This file is part of XEmacs.
+;; This file is part of GNU Emacs.
 
-;; XEmacs is free software; you can redistribute it and/or modify it
+;; GNU Emacs is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
-;; XEmacs is distributed in the hope that it will be useful, but
+;; GNU Emacs is distributed in the hope that it will be useful, but
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
 ;; General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with XEmacs; see the file COPYING.  If not, write to the Free
+;; along with GNU Emacs; see the file COPYING.  If not, write to the Free
 ;; Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 ;; 02111-1307, USA.
-
-;;; Synched up with: Not in FSF
 
 ;;; Commentary:
 
@@ -59,11 +57,14 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl)
+  (defvar filladapt-token-table))
+
 (defgroup footnote nil
   "Support for footnotes in mail and news messages."
   :group 'message)
 
-;;;###autoload
 (defcustom footnote-mode-line-string " FN"
   "*String to display in modes section of the mode-line."
   :group 'footnote)
@@ -112,7 +113,6 @@ like 'hebrew, 'greek-lower, and 'greek-upper."
   :type 'integer
   :group 'footnote)
 
-;;;###autoload
 (defvar footnote-prefix [(control ?c) ?!]
   "*When not using message mode, the prefix to bind in `mode-specific-map'")
 
@@ -456,7 +456,7 @@ styles."
     (unless (assq arg footnote-text-marker-alist)
       (set-marker marker locn)
       (setq footnote-text-marker-alist
-	    (acons arg marker footnote-text-marker-alist))
+	    (cons (cons arg marker) footnote-text-marker-alist))
       (setq footnote-text-marker-alist
 	    (Footnote-sort footnote-text-marker-alist)))))
 
@@ -469,7 +469,7 @@ styles."
 	(setf alist
 	      (cons marker (cdr alist)))
       (setq footnote-pointer-marker-alist
-	    (acons arg (list marker) footnote-pointer-marker-alist))
+	    (cons (cons arg (list marker)) footnote-pointer-marker-alist))
       (setq footnote-pointer-marker-alist
 	    (Footnote-sort footnote-pointer-marker-alist)))))
 
@@ -564,7 +564,6 @@ Nil is returned if the cursor is not over a footnote."
 	(setq i (1+ i)))
       rc)))
 
-;;;###autoload
 (defun Footnote-add-footnote (&optional arg)
   "Add a numbered footnote.
 The number the footnote receives is dependent upon the relative location
@@ -658,7 +657,6 @@ delete the footnote with that number."
 With no parameter, jump to the text of the footnote under (point).  With arg
 specified, jump to the text of that footnote."
   (interactive "P")
-  (setq zmacs-region-stays t)
   (let (footnote)
     (if arg
 	(setq footnote (assq arg footnote-text-marker-alist))
@@ -679,19 +677,16 @@ If the cursor is not over the text of a footnote, point is not changed.
 If the buffer was narrowed due to `footnote-narrow-to-footnotes-when-editing'
 being set it is automatically widened."
   (interactive "P")
-  (setq zmacs-region-stays t)
   (let ((note (Footnote-text-under-cursor)))
     (when note
       (when footnote-narrow-to-footnotes-when-editing
 	(widen))
       (goto-char (cadr (assq note footnote-pointer-marker-alist))))))
 
-;;;###autoload
 (defvar footnote-mode-map nil
   "Keymap used for footnote minor mode.")
 
 ;; Set up our keys
-;;;###autoload
 (unless footnote-mode-map
   (setq footnote-mode-map (make-sparse-keymap))
   (define-key footnote-mode-map "a" 'Footnote-add-footnote)
@@ -702,11 +697,9 @@ being set it is automatically widened."
   (define-key footnote-mode-map "r" 'Footnote-renumber-footnotes)
   (define-key footnote-mode-map "s" 'Footnote-set-style))
 
-;;;###autoload
 (defvar footnote-minor-mode-map nil
   "Keymap used for binding footnote minor mode.")
 
-;;;###autoload
 (unless footnote-minor-mode-map
   (define-key global-map footnote-prefix footnote-mode-map))
 
@@ -726,7 +719,6 @@ key		binding
 "
   (interactive "*P")
   ;; (filladapt-mode t)
-  (setq zmacs-region-stays t)
   (setq footnote-mode
 	(if (null arg) (not footnote-mode)
 	  (> (prefix-numeric-value arg) 0)))
@@ -752,15 +744,6 @@ key		binding
 
     (run-hooks 'footnote-mode-hook)))
 
-;; install on minor-mode-alist
-;;;###autoload
-(when (fboundp 'add-minor-mode)
-    ;; XEmacs
-    (add-minor-mode 'footnote-mode
-		    footnote-mode-line-string
-		    footnote-minor-mode-map))
-
-;; Emacs -- don't autoload
 (unless (assq 'footnote-mode minor-mode-alist)
   (setq minor-mode-alist
 	(cons '(footnote-mode footnote-mode-line-string)
