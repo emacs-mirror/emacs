@@ -8,9 +8,13 @@ For older news, see the file ONEWS
 
 * Changes in Emacs 21.2
 
+** New user option `html-xhtml'.
+When this option is enabled, HTML tags are inserted in XHTML style,
+i.e., there is always a closing tag.
+
 ** When the *scratch* buffer is recreated, its mode is set from
 initial-major-mode, which normally is lisp-interaction-mode,
-instead of using default-major-mode. 
+instead of using default-major-mode.
 
 ** Byte compiler warning and error messages have been brought more
 in line with the output of other GNU tools.
@@ -2380,7 +2384,7 @@ will not have any effect when support for this variable is removed.
 
 ** Function assq-delete-all replaces function assoc-delete-all.
 
-** The new function amimate-string, from lisp/play/animate.el 
+** The new function amimate-string, from lisp/play/animate.el
 allows the animated display of strings.
 
 ** The new function `interactive-form' can be used to obtain the
@@ -2623,7 +2627,7 @@ CHAR
      matches any character in SET.  SET may be a character or string.
      Ranges of characters can be specified as `A-Z' in strings.
 
-'(in SET)' 
+'(in SET)'
      like `any'.
 
 `(not (any SET))'
@@ -2825,7 +2829,7 @@ CHAR
 
 `(one-or-more SEXP)'
      matches one or more occurrences of A.
-  
+
 `(1+ SEXP)'
      like `one-or-more'.
 
@@ -2837,7 +2841,7 @@ CHAR
 
 `(zero-or-one SEXP)'
      matches zero or one occurrences of A.
-     
+
 `(optional SEXP)'
      like `zero-or-one'.
 
