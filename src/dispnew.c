@@ -1077,7 +1077,7 @@ direct_output_for_insert (g)
      At the moment we only lose at end of line or end of buffer
      and only with faces that have some background */
   /* Instead of wasting time, give up if character has any text properties */
-      || ! NILP (Ftext_properties_at (XFASTINT (point - 1), Qnil))
+      || ! NILP (Ftext_properties_at (make_number (point - 1), Qnil))
 #endif
 
   /* Give up if w is minibuffer and a message is being displayed there */
@@ -1123,7 +1123,7 @@ direct_output_forward_char (n)
 {
   register FRAME_PTR frame = selected_frame;
   register struct window *w = XWINDOW (selected_window);
-  int position;
+  Lisp_Object position;
   int hpos = FRAME_CURSOR_X (frame);
 
   /* Give up if in truncated text at end of line.  */
