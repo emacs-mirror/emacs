@@ -118,6 +118,7 @@ and this notice must be preserved on all copies.  */
 #undef TIME_WITH_SYS_TIME
 
 #undef HAVE_LIBDNET
+#undef HAVE_LIBPTHREADS
 #undef HAVE_LIBRESOLV
 
 #undef HAVE_ALLOCA_H
