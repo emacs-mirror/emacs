@@ -119,6 +119,9 @@ static void list_of_items ();
    A single vector slot containing lambda indicates the end of a submenu.
    The submenu follows a menu item which is the way to reach the submenu.
 
+   A single vector slot containing quote indicates that the
+   following items should appear on the right of a dialog box.
+
    Using a Lisp vector to hold this information while we decode it
    takes care of protecting all the data from GC.  */
 
@@ -224,6 +227,17 @@ push_submenu_end ()
 
   XVECTOR (menu_items)->contents[menu_items_used++] = Qlambda;
   menu_items_submenu_depth--;
+}
+
+/* Indicate boundary between left and right.  */
+
+static void
+push_left_right_boundary ()
+{
+  if (menu_items_used + 1 > menu_items_allocated)
+    grow_menu_items ();
+
+  XVECTOR (menu_items)->contents[menu_items_used++] = Qquote;
 }
 
 /* Start a new menu pane in menu_items..
@@ -609,6 +623,8 @@ list_of_items (pane)
       item = Fcar (tail);
       if (STRINGP (item))
 	push_menu_item (item, Qnil, Qnil, Qnil);
+      else if (NILP (item))
+	push_left_right_boundary ();
       else
 	{
 	  CHECK_CONS (item, 0);
@@ -844,7 +860,11 @@ The dialog box appears in the middle of the specified frame.\n\
 CONTENTS specifies the alternatives to display in the dialog box.\n\
 It is a list of the form (TITLE ITEM1 ITEM2...).\n\
 Each ITEM is a cons cell (STRING . VALUE).\n\
-The return value is VALUE from the chosen item.")
+The return value is VALUE from the chosen item.\n\n\
+An ITEM may also be just a string--that makes a nonselectable item.\n\
+An ITEM may also be nil--that means to put all preceding items\n\
+on the left of the dialog box and all following items on the right.\n\
+\(By default, approximately half appear on each side.)")
   (position, contents)
      Lisp_Object position, contents;
 {
@@ -1436,6 +1456,10 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
       else if (EQ (XVECTOR (menu_items)->contents[i], Qt)
 	       && submenu_depth != 0)
 	i += MENU_ITEMS_PANE_LENGTH;
+      /* Ignore a nil in the item list.
+	 It's meaningful only for dialog boxes.  */
+      else if (EQ (XVECTOR (menu_items)->contents[i], Qquote))
+	i += 1;
       else if (EQ (XVECTOR (menu_items)->contents[i], Qt))
 	{
 	  /* Create a new pane.  */
@@ -1740,6 +1764,11 @@ xdialog_show (f, menubarp, keymaps, title, error)
   struct event_queue *queue = NULL;
   struct event_queue *queue_tmp;
 
+  /* Number of elements seen so far, before boundary.  */
+  int left_count = 0;
+  /* 1 means we've seen the boundary between left-hand elts and right-hand.  */
+  int boundary_seen = 0;
+
   *error = NULL;
 
   if (menu_items_n_panes > 1)
@@ -1783,6 +1812,14 @@ xdialog_show (f, menubarp, keymaps, title, error)
 	    *error = "Submenu in dialog items";
 	    return Qnil;
 	  }
+	if (EQ (item_name, Qquote))
+	  {
+	    /* This is the boundary between left-side elts
+	       and right-side elts.  Stop incrementing right_count.  */
+	    boundary_seen = 1;
+	    i++;
+	    continue;
+	  }
 	if (nb_buttons >= 10)
 	  {
 	    free_menubar_widget_value_tree (first_wv);
@@ -1800,9 +1837,17 @@ xdialog_show (f, menubarp, keymaps, title, error)
 	wv->enabled = !NILP (enable);
 	prev_wv = wv;
 
+	if (! boundary_seen)
+	  left_count++;
+
 	nb_buttons++;
 	i += MENU_ITEMS_ITEM_LENGTH;
       }
+
+    /* If the boundary was not specified,
+       by default put half on the left and half on the right.  */
+    if (! boundary_seen)
+      left_count = nb_buttons - nb_buttons / 2;
 
     wv = malloc_widget_value ();
     wv->name = dialog_name;
@@ -1815,11 +1860,11 @@ xdialog_show (f, menubarp, keymaps, title, error)
     dialog_name[1] = '0' + nb_buttons;
     dialog_name[2] = 'B';
     dialog_name[3] = 'R';
-    dialog_name[4] = '0' + nb_buttons / 2;
+    /* Number of buttons to put on the right.  */
+    dialog_name[4] = '0' + nb_buttons - left_count;
     dialog_name[5] = 0;
     wv->contents = first_wv;
     first_wv = wv;
-
   }
 
   /* Actually create the dialog.  */
@@ -2014,6 +2059,10 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	    }
 	  i += MENU_ITEMS_PANE_LENGTH;
 	}
+      /* Ignore a nil in the item list.
+	 It's meaningful only for dialog boxes.  */
+      else if (EQ (XVECTOR (menu_items)->contents[i], Qquote))
+	i += 1;
       else
 	{
 	  /* Create a new item within current pane.  */
