@@ -1733,7 +1733,7 @@ It returns t if it got any new messages."
 		   (if quoted-printable-header-field-end
 		       (save-excursion
 			 (unless
-			     (mail-unquote-printable-region header-end (point) nil t)
+			     (mail-unquote-printable-region header-end (point) nil t t)
 			   (message "Malformed MIME quoted-printable message"))
 			 ;; Change "quoted-printable" to "8bit",
 			 ;; to reflect the decoding we just did.
@@ -1880,7 +1880,7 @@ It returns t if it got any new messages."
 		 (if quoted-printable-header-field-end
 		     (save-excursion
 		       (unless
-			   (mail-unquote-printable-region header-end (point) nil t)
+			   (mail-unquote-printable-region header-end (point) nil t t)
 			 
 			 (message "Malformed MIME quoted-printable message"))
 		       ;; Change "quoted-printable" to "8bit",
@@ -1917,7 +1917,10 @@ It returns t if it got any new messages."
 		   (goto-char (point-min))
 		   (while (search-forward "\n\^_" nil t); single char
 		     (replace-match "\n^_")))); 2 chars: "^" and "_"
-	       (or (bolp) (newline)) ; in case we lost the final newline.
+	       ;; This is for malformed messages that don't end in newline.
+	       ;; There shouldn't be any, but some users say occasionally
+	       ;; there are some.
+ 	       (or (bolp) (newline))
 	       (insert ?\^_)
 	       (setq last-coding-system-used nil)
 	       (or rmail-enable-mime
