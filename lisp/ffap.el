@@ -507,8 +507,6 @@ Looks at `ffap-ftp-default-user', returns \"\" for \"localhost\"."
 
 ;; First, some helpers for functions in `ffap-alist':
 
-(defvar path-separator ":")		; for XEmacs 19.13
-
 (defun ffap-list-env (env &optional empty)
   ;; Replace this with parse-colon-path (lisp/files.el)?
   "Directory list parsed from path envinronment variable ENV.
