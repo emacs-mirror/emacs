@@ -6,8 +6,7 @@
 
 2001-10-18  Gerd Moellmann  <gerd@gnu.org>
 
-	* xdisp.c (display_line): Indicate empty lines in active
-	mini-window.
+	* xdisp.c (display_line): Indicate empty lines in active mini-window.
 
 2001-10-17  Andrew Innes  <andrewi@gnu.org>
 
@@ -31,16 +30,14 @@
 
 	* xdisp.c (try_window_id): Undo last change.  Give up if
 	window ends in strings.
-	
-	* xdisp.c (try_window_id): Don't display lines after the window
-	end if the rest of the window after the window end was already
-	blank.
 
-	* xdisp.c (try_window_id): Remove code that was only there 
+	* xdisp.c (try_window_id): Don't display lines after the window
+	end if the rest of the window after the window end was already blank.
+
+	* xdisp.c (try_window_id): Remove code that was only there
 	for the release of 21.1.
 
-	* xdisp.c (display_line): Don't indicate empty lines in
-	mini-windows.
+	* xdisp.c (display_line): Don't indicate empty lines in mini-windows.
 
 2001-10-17  Miles Bader  <miles@gnu.org>
 
@@ -71,8 +68,7 @@
 	enforcement is left disabled for now.
 
 	* lisp.h (LISP_MAKE_RVALUE): New macro, or function in the case of
-	gcc with a union-based Lisp object rep.  Redefine as no-op for
-	now.
+	gcc with a union-based Lisp object rep.  Redefine as no-op for now.
 	(XCAR_AS_LVALUE, XCDR_AS_LVALUE): Rename from old XCAR, XCDR.
 	(XCAR, XCDR): Apply LISP_MAKE_RVALUE to the _AS_LVALUE versions.
 	(XSETCAR, XSETCDR): New macros.
@@ -82,22 +78,22 @@
 	* alloc.c (Fcons, pure_cons, Fgarbage_collect): Use XSETCAR and
 	XSETCDR.
 	(mark_buffer): Use XCAR_AS_LVALUE, XCDR_AS_LVALUE.
-	* buffer.c (record_buffer, Fbury_buffer,
-	swap_out_buffer_local_variables, recenter_overlay_lists,
-	Foverlay_put): Use XSETCAR and XSETCDR to set the car and cdr
+	* buffer.c (record_buffer, Fbury_buffer)
+	(swap_out_buffer_local_variables, recenter_overlay_lists)
+	(Foverlay_put): Use XSETCAR and XSETCDR to set the car and cdr
 	fields of a cons cell respectively.
 	* callint.c (quotify_args, Fcall_interactively): Likewise.
 	* ccl.c (Fregister_code_conversion_map): Likewise.
 	* coding.c (detect_coding_system): Likewise.
 	* composite.c (get_composition_id, make_composition_value_copy):
 	Likewise.
-	* data.c (Fsetcar, Fsetcdr, swap_in_global_binding,
-	swap_in_symval_forwarding, set_internal, Fset_default,
-	Fmake_variable_buffer_local, Fmake_local_variable,
-	Fmake_variable_frame_local): Likewise.
+	* data.c (Fsetcar, Fsetcdr, swap_in_global_binding)
+	(swap_in_symval_forwarding, set_internal, Fset_default)
+	(Fmake_variable_buffer_local, Fmake_local_variable)
+	(Fmake_variable_frame_local): Likewise.
 	* fns.c (concat, Fcopy_alist, Fwidget_put): Likewise.
-	* keymap.c (Fset_keymap_parent, store_in_keymap,
-	accessible_keymaps_1, where_is_internal_2, Fcopy_keymap):
+	* keymap.c (Fset_keymap_parent, store_in_keymap)
+	(accessible_keymaps_1, where_is_internal_2, Fcopy_keymap):
 	Likewise.
 	* minibuf.c (get_minibuffer): Likewise.
 	* search.c (Fmatch_data): Likewise.
@@ -112,8 +108,7 @@
 	* xterm.c (x_list_fonts, x_load_font, x_delete_display):
 	Likewise.
 	* doc.c (store_function_docstring): Use XSETCARFASTINT.
-	* fileio.c (Fdo_auto_save): Use XSETCARFASTINT and
-	XSETCDRFASTINT.
+	* fileio.c (Fdo_auto_save): Use XSETCARFASTINT and XSETCDRFASTINT.
 	(Fread_file_name): Use XSETCAR.
 	* fontset.c (Fset_fontset_font): Use CHECK_NUMBER_CAR and
 	CHECK_NUMBER_CDR.
@@ -132,19 +127,17 @@
 	(read_list): Use XSETCDR.
 	* process.c (wait_reading_process_input): Change wait_for_cell
 	handling to avoid taking addresses of cons cell slots.
-	* xselect.c (x_own_selection, x_handle_selection_clear,
-	x_clear_frame_selections): Use XSETCDR.
-	(wait_for_property_change): Use XSETCARFASTINT and
-	XSETCDRFASTINT.
-	(x_handle_property_notify, x_get_foreign_selection,
-	x_handle_selection_notify): Use XSETCAR.
+	* xselect.c (x_own_selection, x_handle_selection_clear)
+	(x_clear_frame_selections): Use XSETCDR.
+	(wait_for_property_change): Use XSETCARFASTINT and XSETCDRFASTINT.
+	(x_handle_property_notify, x_get_foreign_selection)
+	(x_handle_selection_notify): Use XSETCAR.
 
 2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* buffer.c: Put doc strings in comments.
 
-	* sound.c: Include <sys/ioctl.h> also on systems without
-        <soundcard.h>.
+	* sound.c: Include <sys/ioctl.h> also on systems without <soundcard.h>.
 
 2001-10-15  Sam Steingold  <sds@gnu.org>
 
@@ -152,20 +145,18 @@
 
 2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* process.c (process-inherit-coding-system-flag,
-	get-buffer-process): Do not confuse make-docfile with doc strings
+	* process.c (process-inherit-coding-system-flag)
+	(get-buffer-process): Do not confuse make-docfile with doc strings
 	in comment.
 
 	* editfns.c (Fchar_to_string): Make doc string consistent with
-	arguments.
-	Put doc strings in comments.
+	arguments.  Put doc strings in comments.
 
 	* abbrev.c, minibuf.c: Put doc strings in comments.
 
 2001-10-15  Gerd Moellmann  <gerd@gnu.org>
 
-	* window.c (window_loop): Don't check for Fother_buffer returning
-	nil.
+	* window.c (window_loop): Don't check for Fother_buffer returning nil.
 
 	* window.c (select_window_1): Unfreeze window start.  Remove a
 	doubled test for WINDOW being live.
@@ -183,8 +174,7 @@
 
 2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* callint.c (prefix-arg, current-prefix-arg): Fix typo in a doc
-	string.
+	* callint.c (prefix-arg, current-prefix-arg): Fix typo in a doc string.
 
 2001-10-14  Stefan Monnier  <monnier@cs.yale.edu>
 
