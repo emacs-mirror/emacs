@@ -181,6 +181,11 @@ See arch logs.
 THINGS TO DO
 ------------
 
+** Emacs assumes that all terminal frames have the same locale
+   settings as Emacs itself.  This may lead to bogus results in a
+   multi-locale setup. (E.g., while logging in from a remote client
+   with a different locale.)
+
 ** Dan Nicolaescu suggests that -nw should be added as an alias for -t
    in emacsclient.  Good idea.  (Alas, implementing this is not
    trivial, getopt_long does not seem to support two-letter ``short''
@@ -195,6 +200,8 @@ THINGS TO DO
 
 	(displayp OBJECT):  Returns t if OBJECT is a display.
 
+	(display-list):  Returns list of currently active displays.
+
 	(selected-display):  Returns the display object of the selected frame.
 
 	(frame-display FRAME):  Returns the display object of FRAME.
@@ -207,6 +214,8 @@ THINGS TO DO
 	(display-device DISPLAY): Returns the name of the device that
 		DISPLAY uses, as a string.  (E.g: "/dev/pts/16", or
 		":0.0")
+
+	etc.
 
    See next issue why this is necessary.
 
