@@ -405,9 +405,7 @@ The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive (list (gud-query-cmdline 'gdb)))
 
-  (gud-common-init command-line
-		   #'(lambda (file args)
-		       `("-cd" ,(expand-file-name default-directory) . ,args))
+  (gud-common-init command-line nil
 		   'gud-gdb-marker-filter 'gud-gdb-find-file)
   (set (make-local-variable 'gud-minor-mode) 'gdb)
 
@@ -2233,6 +2231,7 @@ comint mode, which see."
 (defun gud-common-init (command-line massage-args marker-filter &optional find-file)
   (let* ((words (split-string command-line))
 	 (program (car words))
+	 (dir default-directory)
 	 ;; Extract the file name from WORDS
 	 ;; and put t in its place.
 	 ;; Later on we will put the modified file name arg back there.
@@ -2256,6 +2255,7 @@ comint mode, which see."
 		      file-subst)))
 	 (filepart (and file-word (concat "-" (file-name-nondirectory file)))))
     (pop-to-buffer (concat "*gud" filepart "*"))
+    (setq default-directory dir)
     ;; Set default-directory to the file's directory.
     (and file-word
 	 gud-chdir-before-run
