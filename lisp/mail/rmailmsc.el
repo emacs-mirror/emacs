@@ -24,6 +24,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (defun set-rmail-inbox-list (file-name)
   "Set the inbox list of the current RMAIL file to FILE-NAME.
 You can specify one file name, or several names separated by commas.
