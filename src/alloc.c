@@ -2090,7 +2090,7 @@ make_pure_vector (len)
 DEFUN ("purecopy", Fpurecopy, Spurecopy, 1, 1, 0,
   "Make a copy of OBJECT in pure storage.\n\
 Recursively copies contents of vectors and cons cells.\n\
-Does not copy symbols.")
+Does not copy symbols.  Copies strings without text properties.")
   (obj)
      register Lisp_Object obj;
 {
