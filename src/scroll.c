@@ -339,7 +339,7 @@ do_scrolling (screen, matrix, window_size, unchanged_at_top)
 	 that were discarded during the deletions.
 	 Those are the ones for which temp_screen->enable was not set.  */
       tem = queue[i].pos;
-      for (j = tem + queue[i].count - 1; j > tem; j--)
+      for (j = tem + queue[i].count - 1; j >= tem; j--)
 	{
 	  current_screen->enable[j] = 0;
 	  while (temp_screen->enable[next])
