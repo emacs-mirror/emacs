@@ -1,6 +1,6 @@
 /* impl.c.vmo1: VIRTUAL MEMORY MAPPING FOR DIGITAL UNIX
  *
- * $HopeName: MMsrc!vmo1.c(trunk.1) $
+ * $HopeName: MMsrc!vmo1.c(trunk.2) $
  * Copyright (C) 1995,1997 Harlequin Group, all rights reserved
  *
  * Readership: Any MPS developer
@@ -62,7 +62,7 @@
 /* for getpagesize(2),close(2) */
 #include <unistd.h>
 
-SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.1) $");
+SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.2) $");
 
 
 /* Fix unprototyped system calls
@@ -127,7 +127,7 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
   /* Map in a page to store the descriptor on. */
   addr = mmap(0, (size_t)SizeAlignUp(sizeof(SpaceStruct), align),
               PROT_READ | PROT_WRITE,
-	      MAP_ANONYMOUS | MAP_PRIVATE | MAP_VARIABLE,
+              MAP_ANONYMOUS | MAP_PRIVATE | MAP_VARIABLE,
               -1, 0);
   if(addr == (void *)-1) {
     int e = errno;
@@ -146,8 +146,8 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
 
   /* See .assume.not-last. */
   addr = mmap(0, (size_t)size,
-	      PROT_NONE, MAP_FILE | MAP_SHARED | MAP_VARIABLE,
-	      none_fd, 0);
+              PROT_NONE, MAP_FILE | MAP_SHARED | MAP_VARIABLE,
+              none_fd, 0);
   if(addr == (void *)-1) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
@@ -242,9 +242,9 @@ Res VMMap(Space space, Addr base, Addr limit)
   size = AddrOffset(base, limit);
 
   if(mmap((void *)base, (size_t)size,
-	  PROT_READ | PROT_WRITE | PROT_EXEC,
-	  MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED,
-	  -1, 0) == (void *)-1) {
+          PROT_READ | PROT_WRITE | PROT_EXEC,
+          MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED,
+          -1, 0) == (void *)-1) {
     AVER(errno == ENOMEM); /* .assume.mmap.err */
     return ResMEMORY;
   }
@@ -275,7 +275,7 @@ void VMUnmap(Space space, Addr base, Addr limit)
   /* see design.mps.vmo1.fun.unmap.offset */
   addr = mmap((void *)base, (size_t)size,
               PROT_NONE, MAP_FILE | MAP_SHARED | MAP_FIXED,
-	      vm->none_fd, (off_t)AddrOffset(vm->base, base));
+              vm->none_fd, (off_t)AddrOffset(vm->base, base));
   AVER(addr != (void *)-1);
 
   vm->mapped -= size;
