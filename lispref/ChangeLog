@@ -2,6 +2,7 @@
 
 	* processes.texi (Accepting Output): Add `just-this-one' arg to
 	`accept-process-output'.
+	(Output from Processes): New var `process-adaptive-read-buffering'.
 
 2004-08-10  Luc Teirlinck  <teirllm@auburn.edu>
 

@@ -1,3 +1,11 @@
+2004-08-18  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Faccept_process_output): Add arg JUST-THIS-ONE;
+	forward to wait_reading_process_input via DO_DISPLAY arg.
+	(wait_reading_process_input): If DO_DISPLAY < 0 for a process
+	object, only process output from that process; also inhibit
+	running timers if DO_DISPLAY==-2.
+
 2004-08-17  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (process_send_signal): Fix last change--use
