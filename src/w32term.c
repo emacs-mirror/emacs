@@ -86,7 +86,7 @@ enum fringe_bitmap_type
 #define zv_width 8
 #define zv_height 72
 #define zv_period 3
-static unsigned char zv_bits[] = {
+static unsigned short zv_bits[] = {
   0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
   0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
   0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
@@ -8810,10 +8810,8 @@ w32_read_socket (sd, bufp, numchars, expected)
 		    y = XFASTINT (emacs_event.y);
 
                     /* Set x and y.  */
-                    window = window_from_coordinates (f,
-                                                      emacs_event.x,
-                                                      emacs_event.y,
-                                                      &p, 1);
+                    window = window_from_coordinates (f, x, y, &p, 1);
+
                     if (EQ (window, f->tool_bar_window))
                       {
                         w32_handle_tool_bar_click (f, &emacs_event);
@@ -11416,7 +11414,6 @@ For example, if a block cursor is over a tab, it will be drawn as
 wide as that tab on the display.  */);
   x_stretch_cursor_p = 0;
 
-#if 0 /* TODO: Setting underline position from font properties.  */
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       &x_use_underline_position_properties,
 	       doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
@@ -11424,7 +11421,6 @@ nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
 to 4.1, set this to nil.  */);
   x_use_underline_position_properties = 1;
-#endif
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
