@@ -1745,6 +1745,11 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
++++
+** The new function `display-message-or-buffer' displays a message in
+the echo area or pops up a buffer, depending on the length of the
+message.
+
 ** The new macro `with-auto-compression-mode' allows evaluating an
 expression with auto-compression-mode enabled.
 
