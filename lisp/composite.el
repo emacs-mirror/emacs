@@ -398,9 +398,6 @@ See also the command `toggle-auto-composition'.")
   ;;(def-edebug-spec save-buffer-state let)
   )
 
-(defvar auto-composition-chunk-size 500
-  "*Automatic composition uses chunks of this many characters, or smaller.")
-
 (defun auto-compose-chars (pos string)
   "Compose characters after the buffer position POS.
 If STRING is non-nil, it is a string, and POS is an index into the string.
@@ -411,28 +408,34 @@ This function is the default value of `auto-composition-function' (which see)."
     (save-excursion
       (save-restriction
 	(save-match-data
-	  (let* ((start pos)
-		 (end (if string (length string) (point-max)))
-		 (limit (next-single-property-change pos 'auto-composed string
-						     end))
-		 (lines 0)
-		 ch func newpos)
-	    (if (> (- limit start) auto-composition-chunk-size)
-		(setq limit (+ start auto-composition-chunk-size)))
-	    (while (and (< pos end)
-			(setq ch (if string (aref string pos)
-				   (char-after pos)))
-			(or (< pos limit)
-			    (/= ch ?\n)))
-	      (setq func (aref composition-function-table ch))
-	      (if (functionp func)
-		  (setq newpos (funcall func pos string)
-			pos (if (and (integerp newpos) (> newpos pos))
-				newpos
-			      (1+ pos)))
-		(setq pos (1+ pos))))
-	    (if (< pos limit)
-		(setq pos (1+ pos)))
+	  (let ((start pos)
+		(limit (next-single-property-change pos 'auto-composed string))
+		ch func newpos)
+	    (if limit
+		(setq limit (1+ limit))
+	      (setq limit (if string (length string) (point-max))))
+	    (catch 'tag
+	      (if string
+		  (while (< pos limit)
+		    (setq ch (aref string pos)
+			  pos (1+ pos))
+		    (if (= ch ?\n)
+			(throw 'tag nil))
+		    (setq func (aref composition-function-table ch))
+		    (if (and (functionp func)
+			     (setq newpos (funcall func (1- pos) string))
+			     (> newpos pos))
+			(setq pos newpos)))
+		(while (< pos limit)
+		  (setq ch (char-after pos)
+			pos (1+ pos))
+		  (if (= ch ?\n)
+		      (throw 'tag nil))
+		  (setq func (aref composition-function-table ch))
+		  (if (and (functionp func)
+			   (setq newpos (funcall func (1- pos) string))
+			   (> newpos pos))
+		      (setq pos newpos)))))
 	    (put-text-property start pos 'auto-composed t string)))))))
 
 (setq auto-composition-function 'auto-compose-chars)
