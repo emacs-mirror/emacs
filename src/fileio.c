@@ -2174,6 +2174,64 @@ On Unix, this is a name starting with a `/' or a `~'.")
   else
     return Qnil;
 }
+
+/* Return nonzero if file FILENAME exists and can be executed.  */
+
+static int
+check_executable (filename)
+     char *filename;
+{
+#ifdef __HURD__
+  mach_port_t file;
+  int access_mode;
+
+  file = path_lookup (filename, 0, 0);
+  if (file == MACH_PORT_NULL)
+    /* File can't be opened.  */
+    access_mode = 0;
+  else
+    {
+      file_access (file, &access_mode);
+      mach_port_deallocate (mach_task_self (), file);
+    }
+  return !!(access_mode & O_EXEC);
+#else
+  /* Access isn't quite right because it uses the real uid
+     and we really want to test with the effective uid.
+     But Unix doesn't give us a right way to do it.  */
+  return (access (filename, 1) >= 0);
+#endif
+}
+
+/* Return nonzero if file FILENAME exists and can be written.  */
+
+static int
+check_writable (filename)
+     char *filename;
+{
+#ifdef __HURD__
+  mach_port_t file;
+  int access_mode;
+
+  file = path_lookup (filename, 0, 0);
+  if (file == MACH_PORT_NULL)
+    /* File can't be opened.  */
+    access_mode = 0;
+  else
+    {
+      file_access (file, &access_mode);
+      mach_port_deallocate (mach_task_self (), file);
+    }
+  return !!(access_mode & O_WRITE);
+#else
+  /* Access isn't quite right because it uses the real uid
+     and we really want to test with the effective uid.
+     But Unix doesn't give us a right way to do it.
+     Opening with O_WRONLY could work for an ordinary file,
+     but would lose for directories.  */
+  return (access (filename, 2) >= 0);
+#endif
+}
 
 DEFUN ("file-exists-p", Ffile_exists_p, Sfile_exists_p, 1, 1, 0,
   "Return t if file FILENAME exists.  (This does not mean you can read it.)\n\
@@ -2216,7 +2274,7 @@ For a directory, this means you can access files in that directory.")
   if (!NILP (handler))
     return call2 (handler, Qfile_executable_p, abspath);
 
-  return (access (XSTRING (abspath)->data, 1) >= 0) ? Qt : Qnil;
+  return (check_executable (XSTRING (abspath)->data) ? Qt : Qnil);
 }
 
 DEFUN ("file-readable-p", Ffile_readable_p, Sfile_readable_p, 1, 1, 0,
@@ -2301,6 +2359,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
 {
   Lisp_Object abspath, dir;
   Lisp_Object handler;
+  struct stat statbuf;
 
   CHECK_STRING (filename, 0);
   abspath = Fexpand_file_name (filename, Qnil);
@@ -2311,8 +2370,8 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
   if (!NILP (handler))
     return call2 (handler, Qfile_writable_p, abspath);
 
-  if (access (XSTRING (abspath)->data, 0) >= 0)
-    return (access (XSTRING (abspath)->data, 2) >= 0
+  if (stat (XSTRING (abspath)->data, &statbuf) >= 0)
+    return (check_writable (XSTRING (abspath)->data)
 	    ? Qt : Qnil);
   dir = Ffile_name_directory (abspath);
 #ifdef VMS
@@ -2323,7 +2382,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
   if (!NILP (dir))
     dir = Fdirectory_file_name (dir);
 #endif /* MSDOS */
-  return (access (!NILP (dir) ? (char *) XSTRING (dir)->data : "", 2) >= 0
+  return (check_writable (!NILP (dir) ? (char *) XSTRING (dir)->data : "")
 	  ? Qt : Qnil);
 }
 
@@ -3849,7 +3908,8 @@ DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 5, 0,
   "Read file name, prompting with PROMPT and completing in directory DIR.\n\
 Value is not expanded---you must call `expand-file-name' yourself.\n\
 Default name to DEFAULT if user enters a null string.\n\
- (If DEFAULT is omitted, the visited file name is used.)\n\
+ (If DEFAULT is omitted, the visited file name is used,\n\
+  except that if INITIAL is specified, that combined with DIR is used.)\n\
 Fourth arg MUSTMATCH non-nil means require existing file's name.\n\
  Non-nil and non-t means also require confirmation after completion.\n\
 Fifth arg INITIAL specifies text to start with.\n\
@@ -3865,7 +3925,12 @@ DIR defaults to current buffer's directory default.")
   if (NILP (dir))
     dir = current_buffer->directory;
   if (NILP (defalt))
-    defalt = current_buffer->filename;
+    {
+      if (! NILP (initial))
+	defalt = Fexpand_file_name (initial, dir);
+      else
+	defalt = current_buffer->filename;
+    }
 
   /* If dir starts with user's homedir, change that to ~. */
   homedir = (char *) egetenv ("HOME");
