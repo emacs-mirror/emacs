@@ -44,13 +44,10 @@ static int warnlevel;
    0 means don't issue them.  */
 static void (*warn_function) ();
 
-extern POINTER sbrk ();
-
 /* Get more memory space, complaining if we're near the end. */
 
-static POINTER
-morecore_with_warning (size)
-     register int size;
+static void
+check_memory_limits ()
 {
   POINTER result;
   register POINTER cp;
@@ -62,7 +59,7 @@ morecore_with_warning (size)
   five_percent = lim_data / 20;
 
   /* Find current end of memory and issue warning if getting near max */
-  cp = sbrk (0);
+  cp = (char *) (*__morecore) (0);
   data_size = (char *) cp - (char *) data_space_start;
 
   if (warn_function)
@@ -112,11 +109,6 @@ morecore_with_warning (size)
 
   if (EXCEEDS_LISP_PTR (cp))
     (*warn_function) ("Warning: memory in use exceeds lisp pointer size");
-
-  result = sbrk (size);
-  if (result == (POINTER) -1)
-    return NULL;
-  return result;
 }
 
 /* Cause reinitialization based on job parameters;
@@ -127,7 +119,7 @@ memory_warnings (start, warnfun)
      POINTER start;
      void (*warnfun) ();
 {
-  extern POINTER (* __morecore) ();     /* From gmalloc.c */
+  extern void (* __after_morecore_hook) ();     /* From gmalloc.c */
 
   if (start)
     data_space_start = start;
@@ -135,5 +127,5 @@ memory_warnings (start, warnfun)
     data_space_start = start_of_data ();
 
   warn_function = warnfun;
-  __morecore = &morecore_with_warning;
+  __after_morecore_hook = check_memory_limits;
 }
