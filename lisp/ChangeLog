@@ -1,3 +1,10 @@
+2001-04-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* textmodes/texinfo.el (texinfo-font-lock-keywords): Add
+	fontification for @value, @dfn, @dmn, @acronym, @anchor, and
+	@inforef.  Add an OVERRIDE of `keep' to highlight specs of
+	keywords whose arguments routinely include @@.
+
 2001-04-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/advice.el (ad-make-advised-definition): Construct
