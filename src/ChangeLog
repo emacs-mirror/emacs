@@ -1,5 +1,8 @@
 2001-07-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (update_window): Don't skip the header-line 
+	update when scrolling_window returns 0.
+
 	* xfaces.c (unload_color): Do nothing if PIXEL is -1.
 
 	* xfns.c (Fx_create_frame): Initialize frame colors to -1,
