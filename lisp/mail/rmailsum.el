@@ -786,13 +786,14 @@ Commands for sorting the summary:
   (if (consp n) (setq n (prefix-numeric-value n)))
   (if (eobp) (forward-line -1))
   (beginning-of-line)
-  (let ((obuf (current-buffer))
-	(buf rmail-buffer)
-	(cur (point))
-	message-not-found
-	(curmsg (string-to-int
-		 (buffer-substring (point)
-				   (min (point-max) (+ 5 (point)))))))
+  (let* ((obuf (current-buffer))
+	 (buf rmail-buffer)
+	 (cur (point))
+	 message-not-found
+	 (curmsg (string-to-int
+		  (buffer-substring (point)
+				    (min (point-max) (+ 5 (point))))))
+	 (total (save-excursion (set-buffer buf) rmail-total-messages)))
     ;; If message number N was specified, find that message's line
     ;; or set message-not-found.
     ;; If N wasn't specified or that message can't be found.
@@ -802,7 +803,7 @@ Commands for sorting the summary:
       (if (< n 1)
 	  (progn (message "No preceding message")
 		 (setq n 1)))
-      (if (> n rmail-total-messages)
+      (if (> n total)
 	  (progn (message "No following message")
 		 (goto-char (point-max))
 		 (rmail-summary-goto-msg)))
