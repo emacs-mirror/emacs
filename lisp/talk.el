@@ -43,17 +43,19 @@ Each element has the form (DISPLAY FRAME BUFFER).")
   (talk-update-buffers))
 
 (defun talk-add-display (display)
-  (or (assoc display talk-display-alist)
-      (let* ((name (concat "*talk-" display "*"))
-	     (buffer (get-buffer-create name))
-	     (frame (make-frame-on-display display
-					   (list (cons 'name name)))))
-	(setq talk-display-alist
-	      (cons (list display frame buffer)
-		    talk-display-alist)))))
+  (let* ((elt (assoc display talk-display-alist))
+	 (name (concat "*talk-" display "*"))
+	 buffer frame)
+    (if (not (and elt (frame-live-p (setq frame (nth 1 elt)))))
+	(setq frame (make-frame-on-display display (list (cons 'name name)))))
+    (if (not (and elt (buffer-name (get-buffer (setq buffer (nth 2 elt))))))
+	(setq buffer (get-buffer-create name)))
+    (setq talk-display-alist
+	  (cons (list display frame buffer) (delq elt talk-display-alist)))))
 
 (defun talk-disconnect ()
   "Disconnect this display from the Emacs talk group."
+  (interactive)
   (let* ((mydisp (cdr (assq 'display (frame-parameters (selected-frame)))))
 	 (elt (assoc mydisp talk-display-alist)))
     (delete-frame (nth 1 elt))
