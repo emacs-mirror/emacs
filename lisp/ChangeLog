@@ -1,3 +1,7 @@
+2002-02-26  Richard M. Stallman  <rms@gnu.org>
+
+	* paths.el (remote-shell-program): Add doc string.
+
 2002-02-26  Colin Walters  <walters@debian.org>
 
 	* ibuf-ext.el (sorter mode-name): New.
