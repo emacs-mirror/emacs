@@ -876,6 +876,8 @@ redisplay_internal (preserve_echo_area)
     return;
 #endif
 
+ retry:
+
   if (! FRAME_WINDOW_P (selected_frame)
       && previous_terminal_frame != selected_frame)
     {
@@ -891,14 +893,12 @@ redisplay_internal (preserve_echo_area)
      Do this before checking for resized or garbaged frames; they want
      to know if their frames are visible.
      See the comment in frame.h for FRAME_SAMPLE_VISIBILITY.  */
-  number_of_frames_redisplayed = 0;
   {
     Lisp_Object tail, frame;
 
     FOR_EACH_FRAME (tail, frame)
       {
 	FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
-	number_of_frames_redisplayed++;
 
 	/* Clear out all the display lines in which we will generate the
 	   glyphs to display.  */
@@ -966,6 +966,9 @@ redisplay_internal (preserve_echo_area)
 	  && !EQ (w->region_showing,
 		  Fmarker_position (XBUFFER (w->buffer)->mark))))
     this_line_bufpos = -1;
+
+  /* This is in case we goto update, below.  */
+  number_of_frames_redisplayed = 1;
 
   tlbufpos = this_line_bufpos;
   tlendpos = this_line_endpos;
@@ -1141,6 +1144,7 @@ redisplay_internal (preserve_echo_area)
       /* Recompute # windows showing selected buffer.
 	 This will be incremented each time such a window is displayed.  */
       buffer_shared = 0;
+      number_of_frames_redisplayed = 0;
 
       FOR_EACH_FRAME (tail, frame)
 	{
@@ -1154,7 +1158,10 @@ redisplay_internal (preserve_echo_area)
 		(*condemn_scroll_bars_hook) (f);
 
 	      if (FRAME_VISIBLE_P (f))
-		redisplay_windows (FRAME_ROOT_WINDOW (f), preserve_echo_area);
+		{
+		  redisplay_windows (FRAME_ROOT_WINDOW (f), preserve_echo_area);
+		  number_of_frames_redisplayed++;
+		}
 
 	      /* Any scroll bars which redisplay_windows should have nuked
 		 should now go away.  */
@@ -1168,6 +1175,7 @@ redisplay_internal (preserve_echo_area)
       redisplay_window (selected_window, 1, preserve_echo_area);
       if (!WINDOW_FULL_WIDTH_P (w))
 	preserve_other_columns (w);
+      number_of_frames_redisplayed = 1;
     }
 
 update: 
@@ -1336,10 +1344,10 @@ update:
   /* Change frame size now if a change is pending.  */
   do_pending_window_change ();
 
-  /* If we just did a pending size change, redisplay again
-     for the new size.  */
+  /* If we just did a pending size change, or have additional
+     visible frames, redisplay again.  */
   if (windows_or_buffers_changed && !pause)
-    redisplay ();
+    goto retry;
 }
 
 /* Redisplay, but leave alone any recent echo area message
