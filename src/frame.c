@@ -231,8 +231,6 @@ make_frame (mini_p)
      a newly-created, never-selected window.  */
   XFASTINT (XWINDOW (f->selected_window)->use_time) = ++window_select_count;
 
-  Vframe_list = Fcons (frame, Vframe_list);
-
   return f;
 }
 
@@ -316,9 +314,14 @@ struct frame *
 make_terminal_frame ()
 {
   register struct frame *f;
+  Lisp_Object frame;
 
   Vframe_list = Qnil;
   f = make_frame (1);
+
+  XSET (frame, Lisp_Frame, f);
+  Vframe_list = Fcons (frame, Vframe_list);
+
   f->name = build_string ("terminal");
   FRAME_SET_VISIBLE (f, 1);
   f->display.nothing = 1;   /* Nonzero means frame isn't deleted.  */
