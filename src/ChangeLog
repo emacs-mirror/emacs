@@ -1,3 +1,8 @@
+2001-01-16  Kenichi Handa  <handa@etl.go.jp>
+
+	* ccl.c (Fregister_ccl_program): Handle the return value of
+	resolve_symbol_ccl_program correctly.
+
 2001-01-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_set_mouse_face_gc): If the last used mouse face
