@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.26) $
+ * $HopeName: MMsrc!config.h(trunk.27) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -252,25 +252,22 @@
 #define ASSERT_BUFFER_SIZE      ((Size)512)
 
 
-/* memcpy configuration
+/* memory operator configuration
  *
- * PoolClass AMC requires an efficient memcpy routine.
- * In general we cannot use the ANSI memcpy function as that
- * would not be freestanding.  However, on some platforms
- * memcpy is inlined by the compiler and so does not actually
+ * We need efficient operators similar to memcpy, memset, and memcmp.
+ * In general, we cannot use the C library mem functions directly as
+ * that would not be freestanding.  However, on some platforms we can do
+ * this, because they are inlined by the compiler and so do not actually
  * create a dependence on an external library.
- *
- * Code here selects a memcpy function to use depending on
- * various platform and variety configurations.
  */
 
 #if defined(MPS_PF_W3I3MV) && defined(MPS_HOT)
-/* MSVC on Intel inlines memcpy when optimizing */
-#define MPS_MEMCPY memcpy
-/* prototype ANSI memcpy */
+/* MSVC on Intel inlines mem* when optimizing */
+#define mps_lib_memset memset
+#define mps_lib_memcpy memcpy
+#define mps_lib_memcmp memcmp
+/* get prototypes for ANSI mem* */
 #include <string.h>
-#else
-#define MPS_MEMCPY mps_lib_memcpy
 #endif
 
 

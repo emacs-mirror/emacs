@@ -1,7 +1,7 @@
 /* impl.c.mpsliban: HARLEQUIN MEMORY POOL SYSTEM LIBRARY INTERFACE (ANSI)
  *
- * $HopeName: MMsrc!mpsliban.c(trunk.7) $
- * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
+ * $HopeName$
+ * Copyright (C) 1996, 1998 Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
  *
@@ -68,10 +68,12 @@ int mps_lib_fputs(const char *s, mps_lib_FILE *stream)
   return fputs(s, (FILE *)stream); /* see .trans.file */
 }
 
+
 void mps_lib_abort(void)
 {
   abort();
 }
+
 
 void *mps_lib_memset(void *s, int c, size_t n)
 {
@@ -83,12 +85,19 @@ void *mps_lib_memcpy(void *s1, const void *s2, size_t n)
   return memcpy(s1, s2, n);
 }
 
+int mps_lib_memcmp(const void *s1, const void *s2, size_t n)
+{
+  return memcmp(s1, s2, n);
+}
+
+
 /* @@@@ Platform specific conversion? */
 /* See http://devworld.apple.com/dev/techsupport/insidemac/OSUtilities/OSUtilities-94.html#MARKER-9-32 */
 mps_clock_t mps_clock(void)
 {
   return (unsigned long)clock();
 }
+
 
 unsigned long mps_lib_telemetry_control(void)
 {
