@@ -1,3 +1,9 @@
+1999-12-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* comint.el (comint-redirect-results-list)
+	(comint-redirect-results-list-from-process): Remove interactive
+	spec.
+
 1999-12-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (info-node, info-menu-5, info-xref): Define colors for

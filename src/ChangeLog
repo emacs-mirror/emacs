@@ -1,3 +1,7 @@
+1999-12-04  Hrvoje Niksic  <hniksic@iskon.hr>
+
+	* lread.c (Fintern_soft): Accept a symbol argument.
+	
 1999-12-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Reduce to 40000.
