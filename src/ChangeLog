@@ -1,3 +1,9 @@
+2001-05-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (note_mouse_highlight): If an overlapping overlay
+	exists, but we find that we highlight the same overlay as before,
+	don't do the highlighting again.
+
 2001-05-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* xmenu.c (single_submenu, xmenu_show) [!HAVE_MULTILINGUAL_MENU]:
