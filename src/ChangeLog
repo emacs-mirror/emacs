@@ -1,3 +1,9 @@
+2001-12-21  Richard M. Stallman  <rms@gnu.org>
+
+	* xfns.c (compute_tip_xy): If tooltip won't fit on the screen
+	to the left or to the right of the pointer, put it against
+	the left screen edge.
+
 2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (distclean): Remove .gdbinit if we are building

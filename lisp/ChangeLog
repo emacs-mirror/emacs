@@ -27,6 +27,74 @@
 
 	* emacs-lisp/lisp-mode.el (eval-defun-1): Cope with atoms as args.
 
+2001-12-21  Christoph Wedler  <Christoph.Wedler@sap.com>
+
+	* antlr-mode.el: More sophisticated indentation of cpp directive.
+	(antlr-indent-at-bol-alist): New user option.
+	(antlr-indent-line): Use it.
+	(antlr-indent-style): New user option.
+	(antlr-mode): Use it.
+	(antlr-indent-item-regexp): Customize.
+
+	* antlr-mode.el: Syntax highlighting changes.
+	(antlr-font-lock-literal-regexp): New user option.
+	(antlr-font-lock-syntax-face): New face used for :, |, ....
+	(antlr-font-lock-default-face): New face.
+	(antlr-font-lock-additional-keywords): Use them.
+
+	* antlr-mode.el: New command to insert options -- variables.
+	(antlr-mode-map): New binding [C-c C-o].
+	(antlr-mode-menu): New submenus.
+	(antlr-options-use-submenus): New user option.
+	(antlr-tool-version): New user option.
+	(antlr-options-auto-colon): New user option.
+	(antlr-options-style): New user option.
+	(antlr-options-push-mark): New user option.
+	(antlr-options-assign-string): New user option.
+	(antlr-options-headings): New variable.
+
+	* antlr-mode.el: New command to insert options -- specific.
+	(antlr-options-alists): New variable.
+	(antlr-read-value): New function.
+	(antlr-read-boolean): New function.
+	(antlr-language-option-extra): New function.
+	(antlr-language-limit-n-regexp): Change default to higher LIMIT.
+	(antlr-c++-mode-extra): New function.
+	(antlr-grammar-tokens): New function.
+	(antlr-imenu-create-index-function): New optional argument.
+
+	* antlr-mode.el: New command to insert options -- functions.
+	(antlr-insert-option): New command.
+	(antlr-insert-option-interactive): New function.
+	(antlr-options-menu-filter): New function.
+	(antlr-option-kind): New function.
+	(antlr-scan-lists): New alias.
+	(antlr-scan-lists-internal): New function.
+	(antlr-skip-file-prelude): Hack for special SKIP-COMMENT.
+	(antlr-option-level): New function.
+	(antlr-syntactic-grammar-depth): New function.
+	(antlr-option-location): New function.
+	(antlr-insert-option-do): New function.
+	(antlr-option-spec): New function.
+	(antlr-version-string): New function.
+	(antlr-insert-option-existing): New function.
+	(antlr-insert-option-space): New function.
+	(antlr-insert-option-area): New function.
+
+	* antlr-mode.el: New electric keys ":;|&(){}", TAB works better
+	with narrowing.  Menu change.  Miscellaneous.
+	(antlr-mode-menu): Include "Indent Region" and "Customize Antlr".
+	(antlr-mode-map): New bindings for characters in ":;|&(){}".
+	(antlr-electric-character): New command.
+	(antlr-class-header-regexp): New variable.
+	(antlr-font-lock-additional-keywords): Use it.
+	(antlr-imenu-create-index-function): Use it.
+	(antlr-file-dependencies): Use it.
+	(antlr-indent-line): Also works with restrictions.
+	(antlr-indent-command): Interactive spec - changes the buffer.
+	(antlr-language-for-option): Deletia.
+	(antlr-language-option): New function, defined instead.
+	(antlr-mode): Use it.
 2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* jka-compr.el (jka-compr-partial-uncompress): Use null-device
