@@ -293,7 +293,9 @@ skip_invisible (pos, next_boundary_p, to, window)
 	    if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, ch)))		\
 	      width = XVECTOR (DISP_CHAR_VECTOR (dp, ch))->size;	\
 	    else							\
-	      wide_column = width = cmpchar_table[id]->width;		\
+	      width = cmpchar_table[id]->width;				\
+	    if (width > 1)						\
+	      wide_column = width;					\
 	  }								\
 	else								\
 	  {								\
@@ -312,7 +314,9 @@ skip_invisible (pos, next_boundary_p, to, window)
 		       VECTORP (DISP_CHAR_VECTOR (dp, ch))))		\
 	      width = XVECTOR (DISP_CHAR_VECTOR (dp, ch))->size;	\
 	    else							\
-	      wide_column = width = WIDTH_BY_CHAR_HEAD (c);		\
+	      width = WIDTH_BY_CHAR_HEAD (c);				\
+	    if (width > 1)						\
+	      wide_column = width;					\
 	  }								\
 	else								\
 	  {								\
