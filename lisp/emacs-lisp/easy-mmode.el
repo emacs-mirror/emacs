@@ -363,14 +363,16 @@ ENDFUN should return the end position (with or without moving point)."
   (let* ((base-name (symbol-name base))
 	 (prev-sym (intern (concat base-name "-prev")))
 	 (next-sym (intern (concat base-name "-next"))))
+    (unless name (setq name (symbol-name base-name)))
     `(progn
        (defun ,next-sym (&optional count)
-	 ,(format "Go to the next COUNT'th %s." (or name base-name))
+	 ,(format "Go to the next COUNT'th %s." name)
 	 (interactive)
 	 (unless count (setq count 1))
 	 (if (< count 0) (,prev-sym (- count))
 	   (if (looking-at ,re) (incf count))
-	   (or (re-search-forward ,re nil t count) (ding))
+	   (unless (re-search-forward ,re nil t count)
+	     (if (interactive-p) (ding) (error ,(format "No next %s" name))))
 	   (goto-char (match-beginning 0))
 	   (when (eq (current-buffer) (window-buffer (selected-window)))
 	     (let ((endpt (or (save-excursion
@@ -383,7 +385,9 @@ ENDFUN should return the end position (with or without moving point)."
 	 (interactive)
 	 (unless count (setq count 1))
 	 (if (< count 0) (,next-sym (- count))
-	   (or (re-search-backward ,re nil t count) (ding)))))))
+	   (unless (re-search-backward ,re nil t count)
+	     (if (interactive-p) (ding)
+	       (error ,(format "No previous %s" name)))))))))
 
 (provide 'easy-mmode)
 
