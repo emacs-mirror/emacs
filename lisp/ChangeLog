@@ -1,3 +1,12 @@
+2004-11-13  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/cc-mode.el (c-basic-common-initc-font-lock-init)
+	(c-font-lock-init): Eliminate obsolete make-local-hook.
+	(c-mode, c++-mode, objc-mode, java-mode, idl-mode, pike-mode)
+	(awk-mode): Use run-mode-hooks.
+
+	* progmodes/cperl-mode.el (cperl-mode): Use run-mode-hooks.
+
 2004-11-13  Kim F. Storm  <storm@cua.dk>
 
 	* mouse.el (mouse-drag-copy-region): Add :version.
