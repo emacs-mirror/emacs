@@ -1367,15 +1367,15 @@ the stroke as a character in some language."
 		       (let ((char (or (car rainbow-chars) ?\.)))
 			 (loop for i from 0 to 2 do
 			       (loop for j from 0 to 2 do
-				     (goto-line (+ 16 i y))	
+				     (goto-line (+ 16 i y))
 				     (forward-char (+ 1 j x))
 				     (delete-char 1)
 				     (insert char)))
 			 (setq rainbow-chars (cdr rainbow-chars)
 			       lift-flag nil))
 		     ;; Otherwise, just plot the point...
-		     (goto-line (+ 17 y))	
-		     (forward-char (+ 2 x))	
+		     (goto-line (+ 17 y))
+		     (forward-char (+ 2 x))
 		     (subst-char-in-region (point) (1+ (point)) ?\  ?\*)))
 		  ((strokes-lift-p point)
 		   ;; a lift--tell the loop to X out the next point...
@@ -1596,7 +1596,7 @@ strokes with
 	       (global-unset-key [(meta down-mouse-2)]))
 	   (if (string-match "^strokes-" (symbol-name (key-binding [(control down-mouse-2)])))
 	       (global-unset-key [(control down-mouse-2)]))
-	   ;;	   (if (string-match "^strokes-" (symbol-name (key-binding [(shift button2)])))	
+	   ;;	   (if (string-match "^strokes-" (symbol-name (key-binding [(shift button2)])))
 	   ;;	       (global-unset-key [(shift button2)]))
 	   (ad-deactivate-regexp "^strokes-") ; unadvise strokes-button2 commands
 	   (setq strokes-mode nil))))
@@ -1712,13 +1712,13 @@ strokes with
 ;;  (eq (null a) (not (null b))))
 
 (defsubst strokes-xpm-encode-length-as-string (length)
-  "Given some LENGTH in [0,62) do a fast lookup of it's encoding."
+  "Given some LENGTH in [0,62) do a fast lookup of its encoding."
   (aref strokes-base64-chars length))
-		   
+
 (defsubst strokes-xpm-decode-char (character)
   "Given a CHARACTER, do a fast lookup to find its corresponding integer value."
   (aref strokes-char-table character))
-		   
+
 (defun strokes-xpm-to-compressed-string (&optional xpm-buffer)
   "Convert the xpm in XPM-BUFFER into a compressed string representing the stroke.
 XPM-BUFFER is an optional argument, and defaults to `*strokes-xpm*'."
@@ -1743,7 +1743,7 @@ XPM-BUFFER is an optional argument, and defaults to `*strokes-xpm*'."
 	       ;; check to see if the `char-at-point' is an actual pixmap bit
 	       (when (strokes-xpm-char-bit-p char-at-point)
 		 (setq count 1
-		       current-char-is-on-p (strokes-xpm-char-on-p char-at-point)))	       
+		       current-char-is-on-p (strokes-xpm-char-on-p char-at-point)))
 	       (forward-char 1))
 	      ((= count 61)		; maximum single char's
 					; encoding length
