@@ -70,8 +70,8 @@ Boston, MA 02111-1307, USA.  */
 
 #include "charset.h"
 #include "ccl.h"
-#include "fontset.h"
 #include "frame.h"
+#include "fontset.h"
 #include "dispextern.h"
 #include "termhooks.h"
 #include "termopts.h"

@@ -26,13 +26,13 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #include "lisp.h"
 #include "charset.h"
-#ifdef HAVE_WINDOW_SYSTEM
-#include "fontset.h"
-#endif
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
 #include "frame.h"
+#ifdef HAVE_WINDOW_SYSTEM
+#include "fontset.h"
+#endif
 #include "termhooks.h"
 #include "dispextern.h"
 #include "window.h"
