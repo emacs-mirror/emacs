@@ -637,7 +637,11 @@ the user from the mailer."
 	    (goto-char (point-min))
 	    (if (not (re-search-forward "^From:" delimline t))
 		(let* ((login user-mail-address)
-		       (fullname (user-full-name)))
+		       (fullname (user-full-name))
+		       (quote-fullname nil))
+		  (if (string-match "[\200-\377]" fullname)
+		      (setq fullname (mail-quote-printable fullname t)
+			    quote-fullname t))
 		  (cond ((eq mail-from-style 'angles)
 			 (insert "From: " fullname)
 			 (let ((fullname-start (+ (point-min) 6))
@@ -645,8 +649,9 @@ the user from the mailer."
 			   (goto-char fullname-start)
 			   ;; Look for a character that cannot appear unquoted
 			   ;; according to RFC 822.
-			   (if (re-search-forward "[^- !#-'*+/-9=?A-Z^-~]"
-						  fullname-end 1)
+			   (if (or (re-search-forward "[^- !#-'*+/-9=?A-Z^-~]"
+						      fullname-end 1)
+				   quote-fullname)
 			       (progn
 				 ;; Quote fullname, escaping specials.
 				 (goto-char fullname-start)
@@ -659,7 +664,11 @@ the user from the mailer."
 			((eq mail-from-style 'parens)
 			 (insert "From: " login " (")
 			 (let ((fullname-start (point)))
+			   (if quote-fullname
+			       (insert "\""))
 			   (insert fullname)
+			   (if quote-fullname
+			       (insert "\""))
 			   (let ((fullname-end (point-marker)))
 			     (goto-char fullname-start)
 			     ;; RFC 822 says \ and nonmatching parentheses
@@ -786,6 +795,8 @@ the user from the mailer."
       (while fcc-list
 	(let* ((buffer (find-buffer-visiting (car fcc-list)))
 	       (curbuf (current-buffer))
+	       dont-write-the-file
+	       buffer-matches-file
 	       (beg (point-min)) (end (point-max))
 	       (beg2 (save-excursion (goto-char (point-min))
 				     (forward-line 2) (point))))
@@ -793,6 +804,9 @@ the user from the mailer."
 	      ;; File is present in a buffer => append to that buffer.
 	      (save-excursion
 		(set-buffer buffer)
+		(setq buffer-matches-file
+		      (and (not (buffer-modified-p))
+			   (verify-visited-file-modtime)))
 		;; Keep the end of the accessible portion at the same place
 		;; unless it is the end of the buffer.
 		(let ((max (if (/= (1+ (buffer-size)) (point-max))
@@ -824,25 +838,36 @@ the user from the mailer."
 			  ;; => just insert at the end.
 			  (narrow-to-region (point-min) (1+ (buffer-size)))
 			  (goto-char (point-max))
-			  (insert-buffer-substring curbuf beg end)))
-		    (if max (narrow-to-region (point-min) max)))))
-	    ;; Else append to the file directly.
-	    (if (and (file-exists-p (car fcc-list))
-		     (mail-file-babyl-p (car fcc-list)))
-		;; If the file is a Babyl file,
-		;; convert the message to Babyl format.
-		(save-excursion
-		  (set-buffer (get-buffer-create " mail-temp"))
-		  (setq buffer-read-only nil)
-		  (erase-buffer)
-		  (insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
-			  "Date: " (mail-rfc822-date) "\n")
-		  (insert-buffer-substring curbuf beg2 end)
-		  (insert "\n\C-_")
-		  (write-region (point-min) (point-max) (car fcc-list) t)
-		  (erase-buffer))
-	      (write-region
-	       (1+ (point-min)) (point-max) (car fcc-list) t))))
+			  (insert-buffer-substring curbuf beg end))
+			(or buffer-matches-file
+			    (progn
+			      (if (y-or-n-p (format "Save file %s? "
+						    (car fcc-list)))
+				  (save-buffer))
+			      (setq dont-write-the-file t))))
+		    (if max (narrow-to-region (point-min) max))))))
+	  ;; Append to the file directly,
+	  ;; unless we've already taken care of it.
+	  (if (and (not dont-write-the-file)
+		   (file-exists-p (car fcc-list))
+		   (mail-file-babyl-p (car fcc-list)))
+	      ;; If the file is a Babyl file,
+	      ;; convert the message to Babyl format.
+	      (save-excursion
+		(set-buffer (get-buffer-create " mail-temp"))
+		(setq buffer-read-only nil)
+		(erase-buffer)
+		(insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
+			"Date: " (mail-rfc822-date) "\n")
+		(insert-buffer-substring curbuf beg2 end)
+		(insert "\n\C-_")
+		(write-region (point-min) (point-max) (car fcc-list) t)
+		(erase-buffer))
+	    (write-region
+	     (1+ (point-min)) (point-max) (car fcc-list) t))
+	  (and buffer (not dont-write-the-file)
+	       (with-current-buffer buffer
+		 (set-visited-file-modtime))))
 	(setq fcc-list (cdr fcc-list))))
     (kill-buffer tembuf)))
 
