@@ -2507,15 +2507,18 @@ or forward if N is negative."
 	      (forward-line 2)
 	      ;; If there's a Summary-line in the (otherwise empty)
 	      ;; header, we didn't yet get past the EOOH line.
-	      (if (looking-at "^\\*\\*\\* EOOH \\*\\*\\*\n")
-		  (forward-line 1))
+	      (when (looking-at "^\\*\\*\\* EOOH \\*\\*\\*\n")
+		(forward-line 1))
 	      (setq beg (point))
 	      (narrow-to-region (point) end))
-	    (rfc822-goto-eoh)
+	    (progn 
+	      (rfc822-goto-eoh)
+	      (setq end (point)))
 	  (setq beg (point))
-	  (search-forward "\n*** EOOH ***\n" end t))
+	  (search-forward "\n*** EOOH ***\n" end t)
+	  (setq end (1+ (match-beginning 0)))))
 	(goto-char beg)
-	(re-search-forward regexp end t)))))
+	(re-search-forward regexp end t))))
 
 (defvar rmail-search-last-regexp nil)
 (defun rmail-search (regexp &optional n)
