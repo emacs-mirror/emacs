@@ -1,3 +1,12 @@
+2004-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/grep.el (grep-compute-defaults, grep-command)
+	(grep-program, find-program, grep-find-use-xargs, grep-history)
+	(grep-find-history, grep-tag-default, grep-find-command)
+	(grep-regexp-alist, grep-process-setup, grep-compute-defaults):
+	Add autoload cookies, for unbundled packages that load `compile'
+	and expect all grep-related symbols to become defined.
+
 2004-07-03  KOSEKI Yoshinori  <kose@meadowy.org>
 
 	* iimage.el (turn-on-iimage-mode, iimage-mode): Add autoload
