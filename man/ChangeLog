@@ -1,3 +1,16 @@
+2005-03-29  Richard M. Stallman  <rms@gnu.org>
+
+	* xresources.texi: Minor fixes.
+
+	* misc.texi (Emacs Server): Fix Texinfo usage.
+
+	* emacs.texi (Top): Don't use a real section heading for
+	"Detailed Node Listing".  Fake it instead.
+
+	* basic.texi (Position Info): Minor cleanup.
+
+	* mule.texi (Input Methods): Minor cleanup.
+
 2005-03-29  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* programs.texi (ForIndent Vars): `fortran-if-indent' does other
