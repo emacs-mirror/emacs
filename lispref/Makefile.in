@@ -6,6 +6,7 @@
 # TEX=platex
 
 TEX=tex
+MAKE=make
 
 # Where the TeX macros are kept:
 texmacrodir = /usr/local/lib/tex/macros
@@ -48,6 +49,15 @@ srcs = elisp.texi back.texi \
 
 .PHONY: elisp.dvi clean
 
+# The info file is named `elisp'.
+# We depend on makeinfo.c rather than makeinfo -- there's no need to rebuild
+# everything just because makeinfo isn't part of the distribution.
+
+elisp: $(srcs) index.texi makeinfo.c
+	$(MAKE) makeinfo
+	rm -f elisp-*
+	./makeinfo elisp.texi
+
 elisp.dvi: $(srcs) index.texi texindex
 	# Avoid losing old contents of aux file entirely.
 	-mv elisp.aux elisp.oaux
@@ -70,14 +80,9 @@ index.texi:
 	  ln -s index.unperm index.texi; \
 	fi
 
-# The info file is named `elisp'.
-
-elisp: $(srcs) index.texi makeinfo
-	rm -f elisp-*
-	./makeinfo elisp.texi
-
-install: elisp elisp.dvi
-	mv elisp elisp-* $(infodir)
+install: elisp
+	./mkinstalldirs $(infodir)
+	cp elisp elisp-* $(infodir)
 	@echo also add the line for elisp to $(infodir)/dir.
 
 installall: install
@@ -99,8 +104,8 @@ dist:
 	-ln README Makefile permute-index $(srcs) \
    texinfo.tex getopt.c getopt1.c getopt.h \
    elisp.dvi elisp.aux elisp.??s elisp elisp-[0-9] elisp-[0-9][0-9] temp/$(manual)
-	-rm -f temp/$(manual)/texindex.c temp/$(manual)/makeinfo.c
-	cp texindex.c makeinfo.c temp/$(manual)
+	-(cd temp/$(manual); rm -f texindex.c makeinfo.c mkinstalldirs)
+	cp texindex.c makeinfo.c mkinstalldirs temp/$(manual)
 	(cd temp/$(manual); rm -f *~)
 	(cd temp; tar chf - $(manual)) | gzip > $(manual).tar.gz
 	-rm -rf temp
