@@ -573,7 +573,7 @@ Leaves the region surrounding the rectangle."
 
 ;; Picture Keymap, entry and exit points.
 
-(defconst picture-mode-map nil)
+(defvar picture-mode-map nil)
 
 (defun picture-substitute (oldfun newfun)
   (substitute-key-definition oldfun newfun picture-mode-map global-map))
@@ -724,7 +724,7 @@ they are not defaultly assigned to keys."
 (defalias 'edit-picture 'picture-mode)
 
 (defun picture-mode-exit (&optional nostrip)
-  "Undo picture-mode and return to previous major mode.
+  "Undo `picture-mode' and return to previous major mode.
 With no argument strips whitespace from end of every line in Picture buffer
   otherwise just return to previous mode."
   (interactive "P")
