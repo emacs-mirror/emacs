@@ -167,7 +167,6 @@ set print sevenbit-strings
 
 show environment DISPLAY
 show environment TERM
-show environment TERMCAP
 set args -geometry 80x40+0+0
 
 # Don't let abort actually run, as it will make
