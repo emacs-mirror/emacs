@@ -3944,13 +3944,19 @@ decode_eol_post_ccl (coding, ptr, bytes)
       /* Here, to avoid the call of setup_coding_system, we directly
 	 call detect_eol_type.  */
       coding->eol_type = detect_eol_type (ptr, bytes, &dummy);
-      val = Fget (coding->symbol, Qeol_type);
-      if (VECTORP (val) && XVECTOR (val)->size == 3)
-	coding->symbol = XVECTOR (val)->contents[coding->eol_type];
+      if (coding->eol_type == CODING_EOL_INCONSISTENT)
+	coding->eol_type = CODING_EOL_LF;
+      if (coding->eol_type != CODING_EOL_UNDECIDED)
+	{
+	  val = Fget (coding->symbol, Qeol_type);
+	  if (VECTORP (val) && XVECTOR (val)->size == 3)
+	    coding->symbol = XVECTOR (val)->contents[coding->eol_type];
+	}
       coding->mode |= CODING_MODE_INHIBIT_INCONSISTENT_EOL;
     }
 
-  if (coding->eol_type == CODING_EOL_LF)
+  if (coding->eol_type == CODING_EOL_LF
+      || coding->eol_type == CODING_EOL_UNDECIDED)
     {
       /* We have nothing to do.  */
       ptr = pend;
