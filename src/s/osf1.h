@@ -24,6 +24,12 @@
 /* Declare malloc and realloc in a way that is clean.
    But not in makefiles!  */
 
+#ifndef NOT_C_CODE
 #ifndef THIS_IS_YMAKEFILE
+/* We need these because pointers are larger than the default ints.  */
+#include <alloca.h>
+#include <string.h>
 extern void *malloc (), *realloc ();
+extern long *xmalloc (), *xrealloc ();
+#endif
 #endif
