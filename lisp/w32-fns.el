@@ -359,26 +359,39 @@ CODING-SYSTEM, use \\[list-coding-systems]."
                    ("ms-symbol" . (w32-charset-symbol . nil))
                    ("ms-oem" . (w32-charset-oem . 437))
                    ("ms-oemlatin" . (w32-charset-oem . 850))))
-           (if (boundp 'w32-extra_charsets-defined)
-               (add-to-list
-                'w32-charset-info-alist
-                '(("iso8859-2" . (w32-charset-easteurope . 28592))
-                  ("iso8859-3" . (w32-charset-turkish . 28593))
-                  ("iso8859-4" . (w32-charset-baltic . 28594))
-                  ("iso8859-5" . (w32-charset-russian . 28595))
-                  ("iso8859-6" . (w32-charset-arabic . 28596))
-                  ("iso8859-7" . (w32-charset-greek . 28597))
-                  ("iso8859-8" . (w32-charset-hebrew . 1255))
-                  ("iso8859-9" . (w32-charset-turkish . 1254))
-                  ("iso8859-13" . (w32-charset-baltic . 1257))
-                  ("koi8-r" . (w32-charset-russian . 20866))
-                  ("tis620" . (w32-charset-thai . 874))
-                  ("ksc5601.1992" . (w32-charset-johab . 1361))
-                  ("mac" . (w32-charset-mac . nil)))))
+           (if (boundp 'w32-extra-charsets-defined)
+               (progn
+                 (add-to-list 'w32-charset-info-alist
+                  '("iso8859-2" . (w32-charset-easteurope . 28592)))
+                 (add-to-list 'w32-charset-info-alist
+                  '("iso8859-3" . (w32-charset-turkish . 28593)))
+                 (add-to-list 'w32-charset-info-alist
+                  '("iso8859-4" . (w32-charset-baltic . 28594)))
+                 (add-to-list 'w32-charset-info-alist
+                  '("iso8859-5" . (w32-charset-russian . 28595)))
+                 (add-to-list 'w32-charset-info-alist
+                  '("iso8859-6" . (w32-charset-arabic . 28596)))
+                 (add-to-list 'w32-charset-info-alist
+                  '("iso8859-7" . (w32-charset-greek . 28597)))
+                 (add-to-list 'w32-charset-info-alist
+                  '("iso8859-8" . (w32-charset-hebrew . 1255)))
+                 (add-to-list 'w32-charset-info-alist
+                  '("iso8859-9" . (w32-charset-turkish . 1254)))
+                 (add-to-list 'w32-charset-info-alist
+                  '("iso8859-13" . (w32-charset-baltic . 1257)))
+                 (add-to-list 'w32-charset-info-alist
+                  '("koi8-r" . (w32-charset-russian . 20866)))
+                 (add-to-list 'w32-charset-info-alist
+                  '("tis620" . (w32-charset-thai . 874)))
+                 (add-to-list 'w32-charset-info-alist
+                  '("ksc5601.1992" . (w32-charset-johab . 1361)))
+                 (add-to-list 'w32-charset-info-alist
+                  '("mac" . (w32-charset-mac . nil))))))
            (if (boundp 'w32-unicode-charset-defined)
-               (add-to-list
-                'w32-charset-info-alist
-                '(("iso10646" . (w32-charset-unicode . t))
-                  ("unicode" . (w32-charset-unicode . t)))))))
+               (progn
+                 (add-to-list 'w32-charset-info-alist
+                  '("iso10646" . (w32-charset-unicode . t)))
+                 (add-to-list 'w32-charset-info-alist
+                  '("unicode" . (w32-charset-unicode . t))))))
 
 ;;; w32-fns.el ends here
