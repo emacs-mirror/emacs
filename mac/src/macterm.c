@@ -10393,7 +10393,11 @@ init_font_name_table ()
                       font_name_table = (char **)
 			xmalloc (font_name_table_size * sizeof (char *));
                     }
-                  else if (font_name_count >= font_name_table_size)
+                  else if (font_name_count >= font_name_table_size ||
+                	   /* fonts in Japanese scripts require two
+			      entries.  */
+                	   scriptcode == smJapanese &&
+                	   font_name_count + 1 >= font_name_table_size)
                     {
                       font_name_table_size += 16;
                       font_name_table = (char **)
@@ -10405,6 +10409,17 @@ init_font_name_table ()
 					 assc_entry->fontSize,
 					 assc_entry->fontStyle,
 					 scriptcode);
+		  /* Both jisx0208.1983-sjis and jisx0201.1976-sjis
+		     parts are contained in Apple Japanese (SJIS)
+		     font.  */
+		  if (smJapanese == scriptcode)
+		    {
+		      font_name_table[font_name_count++]
+		        = mac_to_x_fontname (name,
+					     assc_entry->fontSize,
+					     assc_entry->fontStyle,
+					     smRoman);
+		    }
                 }
             }
 
@@ -10660,6 +10675,20 @@ XLoadQueryFont (Display *dpy, char *fontname)
   font->mac_fontface = fontface;
   font->mac_scriptcode = FontToScript (fontnum);
 
+  /* Apple Japanese (SJIS) font is listed as both
+     "*-jisx0208.1983-sjis" (Japanese script) and "*-mac-roman" (Roman
+     script) in init_font_name_table().  The latter should be treated
+     as a one-byte font.  */
+  {
+    char cs[32];
+
+    if (sscanf (name, 
+		"-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%31s",
+		cs) == 1
+	&& 0 == strcmp (cs, "mac-roman"))  
+      font->mac_scriptcode = smRoman;
+  }
+  
   is_two_byte_font = font->mac_scriptcode == smJapanese ||
                      font->mac_scriptcode == smTradChinese ||
                      font->mac_scriptcode == smSimpChinese ||

@@ -1,3 +1,12 @@
+2001-08-24  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
+
+	* src/macterm.c (init_font_name_table): Add an additional entry to
+	the font table with the script code smRoman for each Apple
+	Japanese font.
+	(XLoadQueryFont): Recognize a font as having the smRoman script
+	code even when FontToScript returns smJapanese if it is one of
+	those created above.
+
 2001-08-21  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
 
 	* INSTALL: Add to the note on using -opt speed in MPW the function
