@@ -2260,9 +2260,9 @@ extern Lisp_Object tip_frame;
 extern Window tip_window;
 EXFUN (Fx_show_tip, 6);
 EXFUN (Fx_hide_tip, 0);
-extern void start_busy_cursor P_ ((void));
-extern void cancel_busy_cursor P_ ((void));
-extern int display_busy_cursor_p;
+extern void start_hourglass P_ ((void));
+extern void cancel_hourglass P_ ((void));
+extern int display_hourglass_p;
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
