@@ -890,6 +890,7 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 	    (if (or find-file-existing-other-name find-file-visit-truename)
 		(setq buf other))))
       (if buf
+	  ;; We are using an existing buffer.
 	  (progn
 	    (or nowarn
 		(verify-visited-file-modtime buf)
@@ -948,19 +949,24 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 		      (find-file-noselect-1 buf filename nowarn
 					    rawfile truename number)
 		    (error (if rawfile "File already visited non-literally"
-			     "File already visited literally")))))))
-	(progn
-	  (setq buf (create-file-buffer filename))
-	  (set-buffer-major-mode buf)
-	  (find-file-noselect-1 buf filename nowarn rawfile truename number)))
-      buf)))
+			     "File already visited literally"))))))
+	    ;; Return the buffer we are using.
+	    buf)
+	;; Create a new buffer.
+	(setq buf (create-file-buffer filename))
+	(set-buffer-major-mode buf)
+	;; find-file-noselect-1 may use a different buffer.
+	(find-file-noselect-1 buf filename nowarn
+			      rawfile truename number)))))
 
 (defun find-file-noselect-1 (buf filename nowarn rawfile truename number)
   (let ((inhibit-read-only t)
 	error)
     (with-current-buffer buf
       (kill-local-variable 'find-file-literally)
-      (setq buffer-file-coding-system nil)
+      ;; Needed in case we are re-visiting the file with a different
+      ;; text representation.
+      (setq buffer-file-coding-system default-buffer-file-coding-system)
       (erase-buffer)
       (and (default-value 'enable-multibyte-characters)
 	   (not rawfile)
@@ -1018,8 +1024,8 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 	    (setq buffer-file-coding-system 'no-conversion)
 	    (make-local-variable 'find-file-literally)
 	    (setq find-file-literally t))
-	(after-find-file error (not nowarn))
-	(setq buf (current-buffer))))))
+	(after-find-file error (not nowarn)))
+      (current-buffer))))
 
 (defun insert-file-contents-literally (filename &optional visit beg end replace)
   "Like `insert-file-contents', but only reads in the file literally.
