@@ -1,5 +1,11 @@
 2000-11-15  Dave Love  <fx@gnu.org>
 
+	* net/eudc-bob.el (eudc-bob-can-display-inline-images): Use
+	display-graphic-p.
+	(eudc-bob-display-jpeg) <!eudc-xemacs-p>: Test create-image bound
+	and that JPEG is available.
+	(eudc-bob-toggle-inline-display): Avoid non-existent `imagep'.
+
 	* international/mule-cmds.el (locale-charset-language-names):
 	Match @euro.
 
