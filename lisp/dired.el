@@ -1352,10 +1352,10 @@ DIR must be a directory name, not a file name."
 
 (defvar dired-move-to-filename-regexp
   (let* ((l "[A-Za-z\xa0-\xff]")
-	 ;; Letter or space.
-	 (ls "[ A-Za-z\xa0-\xff]")
-	 (month (concat l l "\\(" ls "\\|" l l "\\)"))
-	 ;; Recognize any non-ASCII character.  
+	 ;; In some locales, month abbreviations are as short as 2 letters,
+	 ;; and they can be padded on the right with spaces.
+	 (month (concat l l "+ *"))
+	 ;; Recognize any non-ISO-8859 character.  
 	 ;; The purpose is to match a Kanji character.
 	 (k "[^\x00-\xff]")
 	 (s " ")
@@ -1365,9 +1365,12 @@ DIR must be a directory name, not a file name."
 	 (HH:MM "[ 0-2][0-9]:[0-5][0-9]")
 	 (western (concat "\\(" month s dd "\\|" dd s month "\\)"
 			  s "\\(" HH:MM "\\|" s yyyy "\\)"))
-	 (japanese (concat mm k " " dd k s "\\(" s HH:MM "\\|" yyyy k "\\)")))
-    (concat s "\\(" western "\\|" japanese "\\)" s))
-  "Regular expression to match a date and time in a directory listing.
+	 (japanese (concat mm k s dd k s "\\(" s HH:MM "\\|" yyyy k "\\)")))
+	 ;; Require the previous column to end in a digit.
+	 ;; This avoids recognizing `1 may 1997' as a date in the line:
+	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README
+    (concat "[0-9]" s "\\(" western "\\|" japanese "\\)" s))
+  "Regular expression to match up to the file name in a directory listing.
 The default value is designed to recognize dates and times
 regardless of the language.")
 
