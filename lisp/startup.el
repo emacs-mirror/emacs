@@ -617,7 +617,7 @@ from being initialized."
 			    "sys$login:.emacs")
 			   (t 
 			    (concat "~" init-file-user "/.emacs"))))
-		    (load user-init-file t t t)
+		    (load user-init-file t t)
 		    (or inhibit-default-init
 			(let ((inhibit-startup-message nil))
 			  ;; Users are supposed to be told their rights.
