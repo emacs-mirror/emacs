@@ -329,6 +329,7 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
   Count bytesReclaimed = (Count)0;
   Seg seg;
   LO lo;
+  Format format;
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
 
@@ -340,6 +341,9 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
   base = SegBase(seg);
   limit = SegLimit(seg);
   marked = FALSE;
+
+  format = LOPool(lo)->format;
+  AVERT(Format, format);
 
   /* i is the index of the current pointer,
    * p is the actual address that is being considered.
@@ -370,7 +374,8 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
       p = AddrAdd(p, LOPool(lo)->alignment);
       continue;
     }
-    q = (*LOPool(lo)->format->skip)(p);
+    q = (*format->skip)(AddrAdd(p, format->headerSize));
+    q = AddrSub(q, format->headerSize);
     if(BTGet(loseg->mark, i)) {
       marked = TRUE;
       ++preservedInPlaceCount;
@@ -409,6 +414,7 @@ static void LOWalk(Pool pool, Seg seg,
   LO lo;
   LOSeg loseg;
   Index i, limit;
+  Format format;
 
   AVERT(Pool, pool);
   AVERT(Seg, seg);
@@ -419,6 +425,9 @@ static void LOWalk(Pool pool, Seg seg,
   AVERT(LO, lo);
   loseg = SegLOSeg(seg);
   AVERT(LOSeg, loseg);
+
+  format = pool->format;
+  AVERT(Format, format);
 
   base = SegBase(seg);
   limit = SegSize(seg) >> lo->alignShift;
@@ -449,7 +458,9 @@ static void LOWalk(Pool pool, Seg seg,
       ++i;
       continue;
     }
-    next = (*pool->format->skip)(object);
+    object = AddrAdd(object, format->headerSize);
+    next = (*format->skip)(object);
+    next = AddrSub(object, format->headerSize);
     j = loIndexOfAddr(base, lo, next);
     AVER(i < j);
     (*f)(object, pool->format, pool, p, s);
@@ -474,9 +485,9 @@ static Res LOInit(Pool pool, va_list arg)
 
   format = va_arg(arg, Format);
   AVERT(Format, format);
- 
+
   lo = PoolPoolLO(pool);
- 
+
   pool->format = format;
   lo->poolStruct.alignment = format->alignment;
   lo->alignShift =
@@ -508,7 +519,7 @@ static void LOFinish(Pool pool)
 {
   LO lo;
   Ring node, nextNode;
- 
+
   AVERT(Pool, pool);
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
@@ -618,7 +629,7 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   seg = BufferSeg(buffer);
   AVERT(Seg, seg);
   AVER(init <= limit);
- 
+
   loseg = SegLOSeg(seg);
   AVERT(LOSeg, loseg);
   AVER(loseg->lo == lo);
@@ -657,7 +668,7 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
 {
   LO lo;
   unsigned long bits;
- 
+
   AVERT(Pool, pool);
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
@@ -689,14 +700,14 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
   LO lo;
   LOSeg loseg;
-  Ref ref;
+  Ref clientRef;
+  Addr base;
 
   AVERT_CRITICAL(Pool, pool);
   AVERT_CRITICAL(ScanState, ss);
   AVERT_CRITICAL(Seg, seg);
   AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
   AVER_CRITICAL(refIO != NULL);
-  ref = *refIO;
   lo = PARENT(LOStruct, poolStruct, pool);
   AVERT_CRITICAL(LO, lo);
   loseg = SegLOSeg(seg);
@@ -704,9 +715,19 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
   ss->wasMarked = TRUE;         /* design.mps.fix.protocol.was-marked */
 
+  clientRef = *refIO;
+  base = AddrSub((Addr)clientRef, pool->format->headerSize);
+  /* can get an ambiguous reference to close to the base of the
+   * segment, so when we subtract the header we are not in the
+   * segment any longer.  This isn't a real reference,
+   * so we can just skip it.  */
+  if (base < SegBase(seg)) {
+    return ResOK;
+  }
+
   switch(ss->rank) {
   case RankAMBIG:
-    if(!AddrIsAligned(ref, PoolAlignment(pool))) {
+    if(!AddrIsAligned(base, PoolAlignment(pool))) {
       return ResOK;
     }
   /* fall through */
@@ -714,7 +735,7 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   case RankEXACT:
   case RankFINAL:
   case RankWEAK: {
-    Size i = AddrOffset(SegBase(seg), (Addr)ref) >> lo->alignShift;
+    Size i = AddrOffset(SegBase(seg), base) >> lo->alignShift;
 
     if(!BTGet(loseg->mark, i)) {
       ss->wasMarked = FALSE;  /* design.mps.fix.protocol.was-marked */
