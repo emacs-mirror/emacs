@@ -1,5 +1,7 @@
 2002-05-20  Richard M. Stallman  <rms@gnu.org>
 
+	* buffer.c (syms_of_buffer) <cursor-type>: Doc fix.
+
 	* keyboard.c (read_char_minibuf_menu_prompt): Don't list
 	equivalent key bindings here.
 
