@@ -1979,6 +1979,72 @@ display_buffer_1 (window)
   return window;
 }
 
+DEFUN ("special-display-p", Fspecial_display_p, Sspecial_display_p, 1, 1, 0,
+  "Returns non-nil if BUFFER-NAME would use a special display function.
+The value is actually t if the frame should be called with default frame
+parameters, and a list of frame parameters if they were specified.
+See `special-display-buffer-names', and `special-display-regexps'.")
+  (buffer_name)
+     Lisp_Object buffer_name;
+{
+  Lisp_Object tem;
+
+  CHECK_STRING (buffer_name, 1);
+
+  tem = Fmember (buffer_name, Vspecial_display_buffer_names);
+  if (!NILP (tem))
+    return Qt;
+
+  tem = Fassoc (buffer_name, Vspecial_display_buffer_names);
+  if (!NILP (tem))
+    return XCDR (tem);
+
+  for (tem = Vspecial_display_regexps; CONSP (tem); tem = XCDR (tem))
+    {
+      Lisp_Object car = XCAR (tem);
+      if (STRINGP (car)
+	  && fast_string_match (car, buffer_name) >= 0)
+	return Qt;
+      else if (CONSP (car)
+	       && STRINGP (XCAR (car))
+	       && fast_string_match (XCAR (car), buffer_name) >= 0)
+	return XCDR (tem);
+    }
+  return Qnil;
+}  
+
+DEFUN ("same-window-p", Fsame_window_p, Ssame_window_p, 1, 1, 0,
+  "Returns non-nil if a new buffer named BUFFER-NAME would use the same window.
+See `same-window-buffer-names' and `same-window-regexps'.")
+  (buffer_name)
+     Lisp_Object buffer_name;
+{
+  Lisp_Object tem;
+
+  CHECK_STRING (buffer_name, 1);
+
+  tem = Fmember (buffer_name, Vsame_window_buffer_names);
+  if (!NILP (tem))
+    return Qt;
+
+  tem = Fassoc (buffer_name, Vsame_window_buffer_names);
+  if (!NILP (tem))
+    return Qt;
+
+  for (tem = Vsame_window_regexps; CONSP (tem); tem = XCDR (tem))
+    {
+      Lisp_Object car = XCAR (tem);
+      if (STRINGP (car)
+	  && fast_string_match (car, buffer_name) >= 0)
+	return Qt;
+      else if (CONSP (car)
+	       && STRINGP (XCAR (car))
+	       && fast_string_match (XCAR (car), buffer_name) >= 0)
+	return Qt;
+    }
+  return Qnil;
+}
+
 DEFUN ("display-buffer", Fdisplay_buffer, Sdisplay_buffer, 1, 2,
        "bDisplay buffer: \nP",
   "Make BUFFER appear in some window but don't select it.\n\
@@ -2011,37 +2077,11 @@ buffer names are handled.")
      in the selected window.  */
   if (NILP (not_this_window))
     {
-      tem = Fmember (XBUFFER (buffer)->name, Vsame_window_buffer_names);
+      tem = Fsame_window_p (XBUFFER (buffer)->name);
       if (!NILP (tem))
 	{
 	  Fswitch_to_buffer (buffer, Qnil);
 	  return display_buffer_1 (selected_window);
-	}
-
-      tem = Fassoc (XBUFFER (buffer)->name, Vsame_window_buffer_names);
-      if (!NILP (tem))
-	{
-	  Fswitch_to_buffer (buffer, Qnil);
-	  return display_buffer_1 (selected_window);
-	}
-
-      for (tem = Vsame_window_regexps; CONSP (tem); tem = XCONS (tem)->cdr)
-	{
-	  Lisp_Object car = XCONS (tem)->car;
-	  if (STRINGP (car)
-	      && fast_string_match (car, XBUFFER (buffer)->name) >= 0)
-	    {
-	      Fswitch_to_buffer (buffer, Qnil);
-	      return display_buffer_1 (selected_window);
-	    }
-	  else if (CONSP (car)
-		   && STRINGP (XCONS (car)->car)
-		   && fast_string_match (XCONS (car)->car,
-					 XBUFFER (buffer)->name) >= 0)
-	    {
-	      Fswitch_to_buffer (buffer, Qnil);
-	      return display_buffer_1 (selected_window);
-	    }
 	}
     }
 
@@ -2060,30 +2100,13 @@ buffer names are handled.")
     }
 
   /* Certain buffer names get special handling.  */
-  if (! NILP (Vspecial_display_function))
+  if (!NILP (Vspecial_display_function))
     {
-      tem = Fmember (XBUFFER (buffer)->name, Vspecial_display_buffer_names);
-      if (!NILP (tem))
+      tem = Fspecial_display_p (XBUFFER (buffer)->name);
+      if (EQ (tem, Qt))
 	return call1 (Vspecial_display_function, buffer);
-
-      tem = Fassoc (XBUFFER (buffer)->name, Vspecial_display_buffer_names);
-      if (!NILP (tem))
-	return call2 (Vspecial_display_function, buffer, XCONS (tem)->cdr);
-
-      for (tem = Vspecial_display_regexps; CONSP (tem); tem = XCONS (tem)->cdr)
-	{
-	  Lisp_Object car = XCONS (tem)->car;
-	  if (STRINGP (car)
-	      && fast_string_match (car, XBUFFER (buffer)->name) >= 0)
-	    return call1 (Vspecial_display_function, buffer);
-	  else if (CONSP (car)
-		   && STRINGP (XCONS (car)->car)
-		   && fast_string_match (XCONS (car)->car,
-					 XBUFFER (buffer)->name) >= 0)
-	    return call2 (Vspecial_display_function,
-			  buffer,
-			  XCONS (car)->cdr);
-	}
+      if (CONSP (tem))
+	return call2 (Vspecial_display_function, buffer, tem);
     }
 
   /* If there are no frames open that have more than a minibuffer,
@@ -3591,6 +3614,8 @@ If there is only one window, it is split regardless of this value.");
   defsubr (&Sdelete_window);
   defsubr (&Sset_window_buffer);
   defsubr (&Sselect_window);
+  defsubr (&Sspecial_display_p);
+  defsubr (&Ssame_window_p);
   defsubr (&Sdisplay_buffer);
   defsubr (&Ssplit_window);
   defsubr (&Senlarge_window);
