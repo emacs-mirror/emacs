@@ -256,34 +256,37 @@ make_frame (mini_p)
    default (the global minibuffer).  */
 
 struct frame *
-make_frame_without_minibuffer (mini_window, kb)
+make_frame_without_minibuffer (mini_window, kb, display)
      register Lisp_Object mini_window;
      KBOARD *kb;
+     Lisp_Object display;
 {
   register struct frame *f;
 
-  /* Choose the minibuffer window to use.  */
-  if (NILP (mini_window))
-    {
-      if (!FRAMEP (kb->Vdefault_minibuffer_frame))
-	error ("default-minibuffer-frame must be set when creating minibufferless frames");
-      if (! FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame)))
-	error ("default-minibuffer-frame must be a live frame");
-      mini_window = XFRAME (kb->Vdefault_minibuffer_frame)->minibuffer_window;
-    }
-  else
-    {
-      CHECK_LIVE_WINDOW (mini_window, 0);
-    }
+  if (!NILP (mini_window))
+    CHECK_LIVE_WINDOW (mini_window, 0);
 
 #ifdef MULTI_KBOARD
-  if (XFRAME (XWINDOW (mini_window)->frame)->kboard != kb)
+  if (!NILP (mini_window)
+      && XFRAME (XWINDOW (mini_window)->frame)->kboard != kb)
     error ("frame and minibuffer must be on the same display");
 #endif
 
   /* Make a frame containing just a root window.  */
   f = make_frame (0);
 
+  if (NILP (mini_window))
+    {
+      /* Use default-minibuffer-frame if possible.  */
+      if (!FRAMEP (kb->Vdefault_minibuffer_frame)
+	  || ! FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame)))
+	{
+	  /* If there's no minibuffer frame to use, create one.  */
+	  kb->Vdefault_minibuffer_frame
+	    = call1 (intern ("make-initial-minibuffer-frame"), display);
+	}
+      mini_window = XFRAME (kb->Vdefault_minibuffer_frame)->minibuffer_window;
+    }
   /* Install the chosen minibuffer window, with proper buffer.  */
   f->minibuffer_window = mini_window;
   Fset_window_buffer (mini_window,
