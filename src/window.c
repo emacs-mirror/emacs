@@ -333,7 +333,7 @@ coordinates_in_window (w, x, y)
 
   /* Is the character is the mode line?  */
   if (*y == top + window_height - 1
-      && window_height > 1)	/* 1 line => minibuffer */
+      && ! MINI_WINDOW_P (w))
     return 2;
   
   /* Is the character in the right border?  */
@@ -1831,14 +1831,16 @@ window_width (window)
   return XFASTINT (p->width);
 }
 
-#define MINSIZE(w) \
-  (widthflag ? window_min_width : window_min_height)
+#define MINSIZE(w)						\
+  (widthflag							\
+   ? window_min_width						\
+   : (MINI_WINDOW_P (XWINDOW (w)) ? 1 : window_min_height))
 
 #define CURBEG(w) \
-  *(widthflag ? (int *) &(w)->left : (int *) &(w)->top)
+  *(widthflag ? (int *) &(XWINDOW (w)->left) : (int *) &(XWINDOW (w)->top))
 
 #define CURSIZE(w) \
-  *(widthflag ? (int *) &(w)->width : (int *) &(w)->height)
+  *(widthflag ? (int *) &(XWINDOW (w)->width) : (int *) &(XWINDOW (w)->height))
 
 /* Unlike set_window_height, this function
    also changes the heights of the siblings so as to
@@ -1876,10 +1878,9 @@ change_window_height (delta, widthflag)
       window = parent;
     }
 
-  sizep = &CURSIZE (p);
+  sizep = &CURSIZE (window);
 
-  if (*sizep + delta < MINSIZE (p)
-      && !NILP (XWINDOW (window)->parent))
+  if (*sizep + delta < MINSIZE (window))
     {
       Fdelete_window (window);
       return;
@@ -1910,7 +1911,7 @@ change_window_height (delta, widthflag)
     {
       (*setsizefun) (p->next, (*sizefun) (p->next) - delta, 0);
       (*setsizefun) (window, *sizep + delta, 0);
-      CURBEG (XWINDOW (p->next)) += delta;
+      CURBEG (p->next) += delta;
       /* This does not change size of p->next,
 	 but it propagates the new top edge to its children */
       (*setsizefun) (p->next, (*sizefun) (p->next), 0);
@@ -1919,7 +1920,7 @@ change_window_height (delta, widthflag)
 	   (*sizefun) (p->prev) - delta >= MINSIZE (p->prev))
     {
       (*setsizefun) (p->prev, (*sizefun) (p->prev) - delta, 0);
-      CURBEG (p) -= delta;
+      CURBEG (window) -= delta;
       (*setsizefun) (window, *sizep + delta, 0);
     }
   else
@@ -1941,7 +1942,7 @@ change_window_height (delta, widthflag)
 
       /* Add delta1 lines or columns to this window, and to the parent,
 	 keeping things consistent while not affecting siblings.  */
-      CURSIZE (XWINDOW (parent)) = opht + delta1;
+      CURSIZE (parent) = opht + delta1;
       (*setsizefun) (window, *sizep + delta1, 0);
 
       /* Squeeze out delta1 lines or columns from our parent,
