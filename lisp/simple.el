@@ -52,9 +52,11 @@ Other major modes are defined by comparison with this one."
 
 (defun newline (&optional arg)
   "Insert a newline, and move to left margin of the new line if it's blank.
-The newline is marked with the text-property `hard'.
+If `use-hard-newlines' is non-nil, the newline is marked with the
+text-property `hard'.
 With ARG, insert that many newlines.
-In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
+Call `auto-fill-function' if the current column number is greater
+than the value of `fill-column' and ARG is `nil'."
   (interactive "*P")
   (barf-if-buffer-read-only)
   ;; Inserting a newline at the end of a line produces better redisplay in
