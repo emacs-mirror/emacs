@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.18 2000/12/02 20:10:49 schwab Exp $
+;; $Id: eldoc.el,v 1.19 2001/11/16 23:58:48 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -70,8 +70,8 @@ If this variable is set to 0, no idle time is required."
 
 ;;;###autoload
 (defcustom eldoc-minor-mode-string " ElDoc"
-  "*String to display in mode line when Eldoc Mode is enabled."
-  :type 'string
+  "*String to display in mode line when Eldoc Mode is enabled; nil for none."
+  :type '(choice string (const :tag "None" nil))
   :group 'eldoc)
 
 (defcustom eldoc-argument-case 'upcase
