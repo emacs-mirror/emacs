@@ -368,7 +368,7 @@ lock_if_free (clasher, lfname)
 
 void
 lock_file (fn)
-    register Lisp_Object fn;
+     Lisp_Object fn;
 {
   register Lisp_Object attack, orig_fn;
   register char *lfname, *locker;
@@ -384,7 +384,7 @@ lock_file (fn)
      visited.  */
   {
     register Lisp_Object subject_buf;
-    struct gcpro1;
+    struct gcpro gcpro1;
 
     subject_buf = get_truename_buffer (orig_fn);
     GCPRO1 (fn);
