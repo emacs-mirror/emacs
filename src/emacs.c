@@ -291,7 +291,7 @@ main (argc, argv, envp)
 
   inhibit_window_system = 0;
 
-/* Handle the -t switch, which specifies filename to use as terminal */
+  /* Handle the -t switch, which specifies filename to use as terminal */
   if (skip_args + 2 < argc && !strcmp (argv[skip_args + 1], "-t"))
     {
       int result;
