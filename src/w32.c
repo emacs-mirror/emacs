@@ -105,6 +105,171 @@ extern Lisp_Object Vw32_get_true_file_attributes;
 extern Lisp_Object Vw32_num_mouse_buttons;
 
 
+/*
+  BEGIN: Wrapper functions around OpenProcessToken
+  and other functions in advapi32.dll that are only
+  supported in Windows NT / 2k / XP
+*/
+  /* ** Function pointer typedefs ** */
+typedef BOOL (WINAPI * OpenProcessToken_Proc) (
+    HANDLE ProcessHandle,
+    DWORD DesiredAccess,
+    PHANDLE TokenHandle);
+typedef BOOL (WINAPI * GetTokenInformation_Proc) (
+    HANDLE TokenHandle,
+    TOKEN_INFORMATION_CLASS TokenInformationClass,
+    LPVOID TokenInformation,
+    DWORD TokenInformationLength,
+    PDWORD ReturnLength);
+#ifdef _UNICODE
+const char * const LookupAccountSid_Name = "LookupAccountSidW";
+#else
+const char * const LookupAccountSid_Name = "LookupAccountSidA";
+#endif
+typedef BOOL (WINAPI * LookupAccountSid_Proc) (
+    LPCTSTR lpSystemName,
+    PSID Sid,
+    LPTSTR Name,
+    LPDWORD cbName,
+    LPTSTR DomainName,
+    LPDWORD cbDomainName,
+    PSID_NAME_USE peUse);
+typedef PSID_IDENTIFIER_AUTHORITY (WINAPI * GetSidIdentifierAuthority_Proc) (
+    PSID pSid);
+
+  /* ** A utility function ** */
+static BOOL is_windows_9x ()
+{
+  BOOL b_ret=0;
+  OSVERSIONINFO os_ver;
+  ZeroMemory(&os_ver, sizeof(OSVERSIONINFO));
+  os_ver.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+  if (GetVersionEx (&os_ver))
+    {
+      b_ret = (os_ver.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS);
+    }
+  return b_ret;
+}
+
+  /* ** The wrapper functions ** */
+
+BOOL WINAPI open_process_token (
+    HANDLE ProcessHandle,
+    DWORD DesiredAccess,
+    PHANDLE TokenHandle)
+{
+  OpenProcessToken_Proc pfn_Open_Process_Token = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  hm_advapi32 = LoadLibrary ("Advapi32.dll");
+  pfn_Open_Process_Token =
+    (OpenProcessToken_Proc) GetProcAddress (hm_advapi32, "OpenProcessToken");
+  if (pfn_Open_Process_Token == NULL)
+    {
+      return FALSE;
+    }
+  return (
+      pfn_Open_Process_Token (
+          ProcessHandle,
+          DesiredAccess,
+          TokenHandle)
+      );
+}
+
+BOOL WINAPI get_token_information (
+    HANDLE TokenHandle,
+    TOKEN_INFORMATION_CLASS TokenInformationClass,
+    LPVOID TokenInformation,
+    DWORD TokenInformationLength,
+    PDWORD ReturnLength)
+{
+  GetTokenInformation_Proc pfn_Get_Token_Information = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  hm_advapi32 = LoadLibrary ("Advapi32.dll");
+  pfn_Get_Token_Information =
+    (GetTokenInformation_Proc) GetProcAddress (hm_advapi32, "GetTokenInformation");
+  if (pfn_Get_Token_Information == NULL)
+    {
+      return FALSE;
+    }
+  return (
+      pfn_Get_Token_Information (
+          TokenHandle,
+          TokenInformationClass,
+          TokenInformation,
+          TokenInformationLength,
+          ReturnLength)
+      );
+}
+
+BOOL WINAPI lookup_account_sid (
+    LPCTSTR lpSystemName,
+    PSID Sid,
+    LPTSTR Name,
+    LPDWORD cbName,
+    LPTSTR DomainName,
+    LPDWORD cbDomainName,
+    PSID_NAME_USE peUse)
+{
+  LookupAccountSid_Proc pfn_Lookup_Account_Sid = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  hm_advapi32 = LoadLibrary ("Advapi32.dll");
+  pfn_Lookup_Account_Sid =
+    (LookupAccountSid_Proc) GetProcAddress (hm_advapi32, LookupAccountSid_Name);
+  if (pfn_Lookup_Account_Sid == NULL)
+    {
+      return FALSE;
+    }
+  return (
+      pfn_Lookup_Account_Sid (
+          lpSystemName,
+          Sid,
+          Name,
+          cbName,
+          DomainName,
+          cbDomainName,
+          peUse)
+      );
+}
+
+PSID_IDENTIFIER_AUTHORITY WINAPI get_sid_identifier_authority (
+    PSID pSid)
+{
+  GetSidIdentifierAuthority_Proc pfn_Get_Sid_Identifier_Authority = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return NULL;
+    }
+  hm_advapi32 = LoadLibrary ("Advapi32.dll");
+  pfn_Get_Sid_Identifier_Authority =
+    (GetSidIdentifierAuthority_Proc) GetProcAddress (
+        hm_advapi32, "GetSidIdentifierAuthority");
+  if (pfn_Get_Sid_Identifier_Authority == NULL)
+    {
+      return NULL;
+    }
+  return (pfn_Get_Sid_Identifier_Authority (pSid));
+}
+
+/*
+  END: Wrapper functions around OpenProcessToken
+  and other functions in advapi32.dll that are only
+  supported in Windows NT / 2k / XP
+*/
+
+
 /* Equivalent of strerror for W32 error codes.  */
 char *
 w32_strerror (int error_no)
@@ -254,11 +419,15 @@ init_user_info ()
   HANDLE          token = NULL;
   SID_NAME_USE    user_type;
 
-  if (OpenProcessToken (GetCurrentProcess (), TOKEN_QUERY, &token)
-      && GetTokenInformation (token, TokenUser,
+  if (
+			open_process_token (GetCurrentProcess (), TOKEN_QUERY, &token)
+      && get_token_information (
+					token, TokenUser,
 			      (PVOID) user_sid, sizeof (user_sid), &trash)
-      && LookupAccountSid (NULL, *((PSID *) user_sid), name, &length,
-			   domain, &dlength, &user_type))
+      && lookup_account_sid (
+					NULL, *((PSID *) user_sid), name, &length,
+			   domain, &dlength, &user_type)
+			)
     {
       strcpy (the_passwd.pw_name, name);
       /* Determine a reasonable uid value. */
@@ -271,7 +440,7 @@ init_user_info ()
 	{
 	  SID_IDENTIFIER_AUTHORITY * pSIA;
 
-	  pSIA = GetSidIdentifierAuthority (*((PSID *) user_sid));
+	  pSIA = get_sid_identifier_authority (*((PSID *) user_sid));
 	  /* I believe the relative portion is the last 4 bytes (of 6)
 	     with msb first. */
 	  the_passwd.pw_uid = ((pSIA->Value[2] << 24) +
@@ -282,12 +451,12 @@ init_user_info ()
 	  the_passwd.pw_uid = the_passwd.pw_uid % 60001;
 
 	  /* Get group id */
-	  if (GetTokenInformation (token, TokenPrimaryGroup,
+	  if (get_token_information (token, TokenPrimaryGroup,
 				   (PVOID) user_sid, sizeof (user_sid), &trash))
 	    {
 	      SID_IDENTIFIER_AUTHORITY * pSIA;
 
-	      pSIA = GetSidIdentifierAuthority (*((PSID *) user_sid));
+	      pSIA = get_sid_identifier_authority (*((PSID *) user_sid));
 	      the_passwd.pw_gid = ((pSIA->Value[2] << 24) +
 				   (pSIA->Value[3] << 16) +
 				   (pSIA->Value[4] << 8)  +

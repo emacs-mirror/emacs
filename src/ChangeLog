@@ -1,3 +1,72 @@
+2002-11-17  Ben Key <BKey1@tampabay.rr.com>
+	* w32.c: Added wrapper functions around the win32 API functions
+	OpenProcessToken, GetTokenInformation, LookupAccountSid, and
+	GetSidIdentifierAuthority.  These wrapper functions serve two
+	purposes:
+	1.  They ensure that the wrapped function can never be called
+	when Emacs is running on an operating system on which they are
+	not supported (Microsoft Windows 95 / 98 / ME).
+	2.  They call the wrapped functions via function pointers rather
+	than calling them directly.  This avoids taking advantage of the
+	undocumented fact that although these functions are not supported
+	in the 9x branch of Microsoft Windows, the functions do exist in
+	the version of advapi32.dll that is found in the 9x branch of
+	Microsoft Windows.
+	This change is part of my fix for the following entry in
+	etc/PROBLEMS: "Emacs built on Windows 9x/ME crashes at startup on
+	Windows XP, or Emacs built on XP crashes at startup on Windows
+	9x/ME."
+
+	* w32.c (init_user_info): Replaced the calls to the win32 API
+	functions OpenProcessToken, GetTokenInformation, LookupAccountSid,
+	and GetSidIdentifierAuthority with calls to the newly added
+	wrapper functions.
+	This change is part of my fix for the following entry in
+	etc/PROBLEMS: "Emacs built on Windows 9x/ME crashes at startup on
+	Windows XP, or Emacs built on XP crashes at startup on Windows
+	9x/ME."
+
+	* w32.h: Added extern declarations for the following functions:
+	syms_of_w32term, syms_of_w32fns, syms_of_w32select,
+	syms_of_w32menu, and void syms_of_fontset.
+	This change is part of my fix for the following entry in
+	etc/PROBLEMS: "Emacs built on Windows 9x/ME crashes at startup on
+	Windows XP, or Emacs built on XP crashes at startup on Windows
+	9x/ME."
+
+	* w32fns.c (w32_wnd_proc): Added code to reinitialize the
+	function pointer track_mouse_event_fn in the handler for the
+	WM_SETFOCUS message.
+	This change is part of my fix for the following entry in
+	etc/PROBLEMS: "Emacs built on Windows 9x/ME crashes at startup on
+	Windows XP, or Emacs built on XP crashes at startup on Windows
+	9x/ME."
+
+	* w32menu.c (initialize_frame_menubar):  Added code to
+	reinitialize the function pointers set_menu_item_info and
+	get_menu_item_info.
+	This change is part of my fix for the following entry in
+	etc/PROBLEMS: "Emacs built on Windows 9x/ME crashes at startup on
+	Windows XP, or Emacs built on XP crashes at startup on Windows
+	9x/ME."
+
+	* sound.c:  Added a partial implementation of play-sound-internal
+	for Microsoft Windows.  Added various #ifdef / #else / #endif
+	code blocks to separate the code that will compile under
+	Microsoft Windows from the code that is specific to Gnu/Linux.
+	Moved several blocks of code around to make this separation of
+	code into Windows compatible and Gnu/Linux compatible code blocks
+	easier.
+
+	* makefile.w32-in: Made modifications so that sound.c would be
+	included in the Windows port of Emacs and that it would link with
+	WinMM.lib.
+
+	* s/ms-w32.h: Defined the symbol HAVE_SOUND so that the newly
+	added support for play-sound-internal under Windows would be
+	included in the build of Emacs.
+
+	
 2002-11-16  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_load_system_font): Don't disable Cleartype.

@@ -217,6 +217,7 @@ Boston, MA 02111-1307, USA.  */
 #define MAXPATHLEN      _MAX_PATH
 #endif
 
+#define HAVE_SOUND  1
 #define LISP_FLOAT_TYPE 1
 
 #undef  HAVE_SYS_SELECT_H

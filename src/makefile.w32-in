@@ -94,6 +94,7 @@ OBJ1 =  $(BLD)/abbrev.$(O)			\
 	$(BLD)/regex.$(O)			\
 	$(BLD)/scroll.$(O)			\
 	$(BLD)/search.$(O)			\
+	$(BLD)/sound.$(O)			\
 	$(BLD)/syntax.$(O)			\
 	$(BLD)/sysdep.$(O)			\
 	$(BLD)/term.$(O)			\
@@ -133,6 +134,7 @@ LIBS =  $(TLIB0)	\
 	$(TLIB1)	\
 	$(TLIBW32)	\
 	$(TLASTLIB)	\
+	$(WINMM)    \
 	$(ADVAPI32)	\
 	$(GDI32)	\
 	$(COMDLG32)	\
@@ -1093,6 +1095,13 @@ $(BLD)/search.$(O) : \
 	$(SRC)/systime.h \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h
+
+$(BLD)/sound.$(O) : \
+	$(SRC)/sound.c \
+	$(SRC)/lisp.h \
+	$(SRC)/dispextern.h \
+	$(SRC)/atimer.h \
+	$(SRC)/syssignal.h
 
 $(BLD)/strftime.$(O) : \
 	$(SRC)/strftime.c \

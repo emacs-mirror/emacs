@@ -1,3 +1,11 @@
+2002-11-17  Ben Key <BKey1@tampabay.rr.com>
+	* nmake.defs: Made changes so that Emacs would link with
+	WinMM.lib.  This change was required for my addition of a Windows
+	compatible implementation of play-sound-internal.
+	* gmake.defs: Made changes so that Emacs would link with
+	WinMM.lib.  This change was required for my addition of a Windows
+	compatible implementation of play-sound-internal.
+
 2002-09-03  Juanma Barranquero  <lektu@terra.es>  (tiny change)
 
 	* emacs.rc: Version updated to 21.3.50. From Peter Runestig

@@ -124,5 +124,10 @@ extern LPBYTE w32_get_resource (char * key, LPDWORD type);
 
 extern void init_ntproc ();
 extern void term_ntproc ();
+extern void syms_of_w32term ();
+extern void syms_of_w32fns ();
+extern void syms_of_w32select ();
+extern void syms_of_w32menu ();
+extern void syms_of_fontset ();
 
 #endif /* EMACS_W32_H */

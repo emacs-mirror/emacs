@@ -283,7 +283,12 @@ static unsigned mouse_move_timer = 0;
 
 /* Window that is tracking the mouse.  */
 static HWND track_mouse_window;
-FARPROC track_mouse_event_fn;
+
+typedef BOOL (WINAPI * TrackMouseEvent_Proc) (
+    IN OUT LPTRACKMOUSEEVENT lpEventTrack
+    );
+
+TrackMouseEvent_Proc track_mouse_event_fn=NULL;
 
 /* W95 mousewheel handler */
 unsigned int msh_mousewheel = 0;
@@ -4929,6 +4934,30 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       goto dflt;
 
     case WM_SETFOCUS:
+      /*
+        Reinitialize the function pointer track_mouse_event_fn here.
+        This is required even though it is initialized in syms_of_w32fns
+        which is called in main (emacs.c).
+        Reinitialize the function pointer track_mouse_event_fn here.
+        Even though this function pointer is initialized in
+        syms_of_w32fns which is called from main (emacs.c),
+        we need to initialize it again here in order to prevent
+        a crash that occurs in Windows 9x (possibly only when Emacs
+        was built on Windows NT / 2000 / XP?) when handling the
+        WM_MOUSEMOVE message.
+        The crash occurs when attempting to call the Win32 API
+        function TrackMouseEvent through the function pointer.
+        It appears as if the function pointer that is obtained when
+        syms_of_w32fns is called from main is no longer valid
+        (possibly due to DLL relocation?).
+        To resolve this issue, I have placed a call to reinitialize
+        this function pointer here because this message gets received
+        when the Emacs window gains focus.        
+       */
+      track_mouse_event_fn =
+        (TrackMouseEvent_Proc) GetProcAddress (
+            GetModuleHandle ("user32.dll"),
+            "TrackMouseEvent");
       dpyinfo->faked_key = 0;
       reset_modifiers ();
       register_hot_keys (hwnd);
@@ -14843,7 +14872,7 @@ syms_of_w32fns ()
 
   /* TrackMouseEvent not available in all versions of Windows, so must load
      it dynamically.  Do it once, here, instead of every time it is used.  */
-  track_mouse_event_fn = GetProcAddress (user32_lib, "TrackMouseEvent");
+  track_mouse_event_fn = (TrackMouseEvent_Proc) GetProcAddress (user32_lib, "TrackMouseEvent");
   track_mouse_window = NULL;
 
   w32_visible_system_caret_hwnd = NULL;
