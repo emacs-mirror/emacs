@@ -4,7 +4,7 @@
 
 ;; Author: Dan LaLiberte <liberte@a.cs.uiuc.edu>
 ;; Maintainer: FSF
-;; Keywords: c
+;; Keywords: c, outlines
 
 ;; This file is part of GNU Emacs.
 
