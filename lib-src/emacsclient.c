@@ -358,6 +358,7 @@ main (argc, argv)
 
   {
     int sock_status = 0;
+    int saved_errno;
 
     if (! socket_name)
       {
@@ -374,6 +375,7 @@ main (argc, argv)
 
     /* See if the socket exists, and if it's owned by us. */
     sock_status = socket_status (server.sun_path);
+    saved_errno = errno;
     if (sock_status)
       {
 	/* Failing that, see if LOGNAME or USER exist and differ from
@@ -394,6 +396,7 @@ main (argc, argv)
 		sprintf (server.sun_path, "/tmp/emacs%d-%s/server",
 			 (int) pw->pw_uid, system_name);
 		sock_status = socket_status (server.sun_path);
+		saved_errno = errno;
 	      }
 	  }
       }
@@ -412,14 +415,14 @@ main (argc, argv)
 
        case 2:
 	 /* `stat' failed */
-	 if (errno == ENOENT)
+	 if (saved_errno == ENOENT)
 	   fprintf (stderr,
 		    "%s: can't find socket; have you started the server?\n\
 To start the server in Emacs, type \"M-x server-start\".\n",
 		    argv[0]);
 	 else
 	   fprintf (stderr, "%s: can't stat %s: %s\n",
-		    argv[0], server.sun_path, strerror (errno));
+		    argv[0], server.sun_path, strerror (saved_errno));
 	 fail (argc, argv);
 	 break;
        }
