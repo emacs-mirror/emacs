@@ -897,6 +897,11 @@ John Wiegley wrote @file{align.el}, a set of commands for aligning
 text according to regular-expression based rules.
 @end itemize
 
+@item
+INOUE Seiichiro improved Emacs' XIM support.  Thanks to HORIKAWA Hisashi
+for suggestions.
+@end itemize
+
 Others too numerous to mention have reported and fixed bugs, and added
 features to many parts of Emacs.  We thank them for their generosity as
 well.

@@ -1,5 +1,7 @@
 2000-02-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs.c (main): Use #if GC_MARK_STACK instead of #ifdef.
+
 	* alloc.c (enum mem_type): Compile unconditionally.
 
 2000-02-17  Eli Zaretskii  <eliz@is.elta.co.il>
