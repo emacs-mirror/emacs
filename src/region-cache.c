@@ -143,8 +143,8 @@ new_region_cache ()
 
   c->beg_unchanged = 0;
   c->end_unchanged = 0;
-  c->buffer_beg = 1;
-  c->buffer_end = 1;
+  c->buffer_beg = BEG;
+  c->buffer_end = BEG;
 
   /* Insert the boundary for the buffer start.  */
   c->cache_len++;
