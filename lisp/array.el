@@ -887,7 +887,7 @@ Entering array mode calls the function `array-mode-hook'."
   (force-mode-line-update)
   (make-variable-buffer-local 'truncate-lines)
   (setq truncate-lines t)
-  (setq overwrite-mode t)
+  (setq overwrite-mode 'overwrite-mode-textual)
   (use-local-map array-mode-map)
   (run-hooks 'array-mode-hook))
 
