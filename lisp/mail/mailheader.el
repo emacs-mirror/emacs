@@ -150,19 +150,30 @@ skip the header altogether if there are no other elements.
 
 (defun mail-header-format (format-rules headers)
   "Use FORMAT-RULES to format HEADERS and insert into current buffer.
-FORMAT-RULES is an alist whose keys are header names (symbols), and whose
-values are functions that format the header, the results of which are
-inserted, unless it is nil.  The function takes two arguments, the header
-symbol, and the value of that header.  If the function itself is nil, the
-default action is to insert the value of the header, unless it is nil.
+HEADERS should be an alist of the form (HEADER . VALUE),
+where HEADER is a header field name (a symbol or a string),
+and VALUE is the contents for that header field.
+
+FORMAT-RULES is an alist of elements (HEADER . FUNCTION) Here HEADER
+is a header field name (a symbol), and FUNCTION is how to format that
+header field, if it appears in HEADERS.  Each FUNCTION should take two
+arguments: the header symbol, and the value of that header.  The value
+returned by FUNCTION is inserted in the buffer unless it is nil.
+
+If the function for a header field is nil, or if no function is
+specified for a particular header field, the default action is to
+insert the value of the header, unless it is nil.
+
 The headers are inserted in the order of the FORMAT-RULES.
-A key of t represents any otherwise unmentioned headers.
+A key of t in FORMAT-RULES. represents any otherwise unmentioned headers.
 A key of nil has as its value a list of defaulted headers to ignore."
   (let ((ignore (append (cdr (assq nil format-rules))
 			(mapcar #'car format-rules))))
     (dolist (rule format-rules)
       (let* ((header (car rule))
 	    (value (mail-header header)))
+	(if (stringp header)
+	    (setq header (intern header)))
 	(cond ((null header) 'ignore)
 	      ((eq header t)
 	       (dolist (defaulted headers)
@@ -171,11 +182,11 @@ A key of nil has as its value a list of defaulted headers to ignore."
 			  (value (cdr defaulted)))
 		     (if (cdr rule)
 			 (funcall (cdr rule) header value)
-			 (funcall mail-header-format-function header value))))))
+		       (funcall mail-header-format-function header value))))))
 	      (value
 	       (if (cdr rule)
 		   (funcall (cdr rule) header value)
-		   (funcall mail-header-format-function header value))))))
+		 (funcall mail-header-format-function header value))))))
     (insert "\n")))
 
 (provide 'mailheader)
