@@ -168,7 +168,7 @@ set to nil, as the value is no longer rogue."
     ;; Do the actual initialization.
     (unless custom-dont-initialize
       (funcall initialize symbol default)))
-  (push (cons 'defvar symbol) current-load-list)
+  (push symbol current-load-list)
   (run-hooks 'custom-define-hook)
   symbol)
 
