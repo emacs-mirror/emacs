@@ -1,3 +1,8 @@
+2001-07-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* fileio.c (Finsert_file_contents): Don't treat a return value
+	of 0 from emacs_read as an IO error.
+
 2001-07-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (abs): New macro.

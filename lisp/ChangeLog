@@ -1,5 +1,8 @@
 2001-07-31  Gerd Moellmann  <gerd@gnu.org>
 
+	* desktop.el (desktop-save): Bind coding-system-for-write to
+	`emacs-mule' for write-region.
+
 	* delsel.el (delete-selection-pre-hook): Don't set this-command
 	to `ignore' if the region is empty.
 
