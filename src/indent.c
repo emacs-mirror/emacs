@@ -2026,7 +2026,7 @@ whether or not it is currently displayed in some window.  */)
      end position is really at some X > 0, the same X that PT had.  */
   move_it_by_lines (&it, 0, 0);
 
-  if (XINT (lines) !+ 0)
+  if (XINT (lines) != 0)
     move_it_by_lines (&it, XINT (lines), 0);
   
   SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
