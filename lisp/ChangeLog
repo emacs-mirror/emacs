@@ -1,3 +1,10 @@
+2004-05-15  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/timer.el (timer-activate): Add optional arg triggered-p.
+	Use it to set triggered-p element of timer.
+	(timer-event-handler): Set triggered-p element non-nil while running
+	the timer function.
+
 2004-05-14  David Ponce  <david@dponce.com>
 
 	* tree-widget.el: New file.
