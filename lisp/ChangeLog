@@ -1,3 +1,11 @@
+2000-11-06  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-conf.el (compound-text): Define this coding
+	system here.  Make x-ctext and ctext aliases of it.
+
+	* language/european.el (compound-text, ctext): Moved to
+	international/mule-conf.el.
+
 2000-11-05  Andrew Innes  <andrewi@gnu.org>
 
 	* w32-fns.el (w32-version): New function.
