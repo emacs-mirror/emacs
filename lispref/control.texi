@@ -9,7 +9,7 @@
 @cindex control structures
 
   A Lisp program consists of expressions or @dfn{forms} (@pxref{Forms}).
-We control the order of execution of the forms by enclosing them in
+We control the order of execution of these forms by enclosing them in
 @dfn{control structures}.  Control structures are special forms which
 control when, whether, or how many times to execute the forms they
 contain.
@@ -59,7 +59,7 @@ control construct of Lisp.
 @end example
 
 @noindent
-and it says to execute the forms @var{a}, @var{b}, @var{c} and so on, in
+and it says to execute the forms @var{a}, @var{b}, @var{c}, and so on, in
 that order.  These forms are called the body of the @code{progn} form.
 The value of the last form in the body becomes the value of the entire
 @code{progn}.
@@ -556,8 +556,8 @@ The return point is distinguished from other such return points by
 @var{tag} is evaluated normally before the return point is established.
 
 With the return point in effect, @code{catch} evaluates the forms of the
-@var{body} in textual order.  If the forms execute normally, without
-error or nonlocal exit, the value of the last body form is returned from
+@var{body} in textual order.  If the forms execute normally (without
+error or nonlocal exit) the value of the last body form is returned from
 the @code{catch}.
 
 If a @code{throw} is done within @var{body} specifying the same value
@@ -702,7 +702,7 @@ instead.  @xref{Catch and Throw}.
   Most errors are signaled ``automatically'' within Lisp primitives
 which you call for other purposes, such as if you try to take the
 @sc{car} of an integer or move forward a character at the end of the
-buffer; you can also signal errors explicitly with the functions
+buffer.  You can also signal errors explicitly with the functions
 @code{error} and @code{signal}.
 
   Quitting, which happens when the user types @kbd{C-g}, is not 

@@ -699,7 +699,7 @@ simple mirror images.  @code{re-search-forward} finds the match whose
 beginning is as close as possible to the starting point.  If
 @code{re-search-backward} were a perfect mirror image, it would find the
 match whose end is as close as possible.  However, in fact it finds the
-match whose beginning is as close as possible.  The reason is that
+match whose beginning is as close as possible.  The reason for this is that
 matching a regular expression at a given spot always works from
 beginning to end, and starts at a specified beginning position.
 
@@ -988,7 +988,7 @@ Display some help, then ask again.
 @section The Match Data
 @cindex match data
 
-  Emacs keeps track of the positions of the start and end of segments of
+  Emacs keeps track of the start and end positions of the segments of
 text found during a regular expression search.  This means, for example,
 that you can search for a complex pattern, such as a date in an Rmail
 message, and then extract parts of the match under control of the
