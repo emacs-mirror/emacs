@@ -10767,6 +10767,7 @@ x_initialize ()
   x_noop_count = 0;
   last_tool_bar_item = -1;
   any_help_event_p = 0;
+  ignore_next_mouse_click_timeout = 0;
 
 #ifdef USE_GTK
   current_count = -1;
