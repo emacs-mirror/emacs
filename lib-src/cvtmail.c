@@ -174,6 +174,6 @@ xrealloc (ptr, size)
 {
   char *result = realloc (ptr, size);
   if (!result)
-    fatal ("virtual memory exhausted");
+    fatal ("virtual memory exhausted", 0);
   return result;
 }
