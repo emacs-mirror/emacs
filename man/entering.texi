@@ -54,6 +54,11 @@ for editing.  Usually you do not kill the Emacs until you are about to
 log out.  @xref{Files}, for more information on visiting more than one
 file.
 
+  If you want to edit a file from another program and already have
+Emacs running, you can use the @command{emacsclient} program to open a
+file in the already running Emacs.  @xref{Emacs Server}, for more
+information on editing files with Emacs from other programs.
+
 @node Exiting, Basic, Entering Emacs, Top
 @section Exiting Emacs
 @cindex exiting
