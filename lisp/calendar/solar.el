@@ -183,10 +183,10 @@ Returns nil if nothing was entered."
   "Eccentricity of orbit of the earth around the sun.")
 
 (defmacro solar-degrees-to-hours (deg)
-  (list '/ deg 15))
+  (list '/ deg 15.0))
 
 (defmacro solar-hours-to-days (hour)
-  (list '/ hour 24))
+  (list '/ hour 24.0))
 
 (defun solar-longitude-of-sun (day)
   "Longitude of the sun at DAY in the year."
@@ -429,10 +429,12 @@ This function is suitable for execution in a .emacs file."
                  ((< calendar-time-zone 0)
                      (format "UTC%dmin" calendar-time-zone))
                  (t  (format "UTC+%dmin" calendar-time-zone)))))
-        (calendar-daylight-savings-starts
-         (if (< arg 16) calendar-daylight-savings-starts))
-        (calendar-daylight-savings-ends
-         (if (< arg 16) calendar-daylight-savings-ends))
+;;   Use outer context values always, unless you're going to prompt for
+;;   the values to use.  PKH
+;;        (calendar-daylight-savings-starts
+;;         (if (< arg 16) calendar-daylight-savings-starts))
+;;        (calendar-daylight-savings-ends
+;;         (if (< arg 16) calendar-daylight-savings-ends))
         (date (if (< arg 4) (calendar-current-date) (calendar-read-date)))
         (date-string (calendar-date-string date t))
         (time-string (solar-sunrise-sunset date))
