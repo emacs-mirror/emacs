@@ -1,3 +1,8 @@
+2002-05-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* coding.c (encode_coding_sjis_big5): Enclose bitwise AND in
+	parens, to ensure correct evaluation order.
+
 2002-05-10  Kim F. Storm  <storm@cua.dk>
 
 	* keymap.c (Vemulation_mode_map_alists): New variable.

@@ -1,3 +1,14 @@
+2002-05-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* menu-bar.el (menu-bar-showhide-scroll-bar-menu) 
+	(menu-bar-showhide-menu): Use display-graphic-p, not
+	widnow-system.
+	(menu-bar-showhide-menu) <showhide-menu-bar, showhide-tool-bar>:
+	Run a named function.
+	(showhide-menu-bar, showhide-toolbar): Invoke customize-mark-as-set.
+	(menu-bar-showhide-menu) <column-number-mode, line-number-mode>:
+	Fix help text.
+
 2002-05-10  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-mode): Misc. changes to use
