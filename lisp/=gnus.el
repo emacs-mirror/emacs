@@ -3532,8 +3532,6 @@ With arg, turn showing conversation threads on iff arg is positive."
 (defun gnus-summary-show-all-threads ()
   "Show all thread subtrees."
   (interactive)
-  (or gnus-show-threads
-      (gnus-summary-show-all-threads 1))
   (if gnus-show-threads
       (save-excursion
 	(let ((buffer-read-only nil))
@@ -3543,8 +3541,6 @@ With arg, turn showing conversation threads on iff arg is positive."
 (defun gnus-summary-show-thread ()
   "Show thread subtrees."
   (interactive)
-  (or gnus-show-threads
-      (gnus-summary-show-all-threads 1))
   (if gnus-show-threads
       (save-excursion
 	(let ((buffer-read-only nil))
@@ -3558,8 +3554,6 @@ With arg, turn showing conversation threads on iff arg is positive."
 (defun gnus-summary-hide-all-threads ()
   "Hide all thread subtrees."
   (interactive)
-  (or gnus-show-threads
-      (gnus-summary-show-all-threads 1))
   (if gnus-show-threads
       (save-excursion
 	;; Adjust cursor point.
@@ -3575,8 +3569,6 @@ With arg, turn showing conversation threads on iff arg is positive."
 (defun gnus-summary-hide-thread ()
   "Hide thread subtrees."
   (interactive)
-  (or gnus-show-threads
-      (gnus-summary-show-all-threads 1))
   (if gnus-show-threads
       (save-excursion
 	;; Adjust cursor point.
