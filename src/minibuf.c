@@ -1967,22 +1967,14 @@ Return nil if there is no valid completion, else t.  */)
 
   /* Now find first word-break in the stuff found by completion.
      i gets index in string of where to stop completing.  */
-  {
-    int len, c;
-    completion_string = XSTRING (completion)->data;
-    for (; i_byte < STRING_BYTES (XSTRING (completion)); i_byte += len, i++)
-      {
-	c = STRING_CHAR_AND_LENGTH (completion_string + i_byte,
-				    bytes - i_byte,
-				    len);
-	if (SYNTAX (c) != Sword)
-	  {
-	    i_byte += len;
-	    i++;
-	    break;
-	  }
-      }
-  }
+  while (i_byte < STRING_BYTES (XSTRING (completion)))
+    {
+      int c;
+
+      FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c, completion, i, i_byte);
+      if (SYNTAX (c) != Sword)
+	break;
+    }
 
   /* If got no characters, print help for user.  */
 
