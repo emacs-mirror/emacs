@@ -428,7 +428,7 @@ from being initialized.")
       (progn 
 	(require 'disp-table)
 	(standard-display-european t)
-	(require 'iso-syntax)))
+	(require 'latin-1)))
 
   ;;! This has been commented out; I currently find the behavior when
   ;;! split-window-keep-point is nil disturbing, but if I can get used
