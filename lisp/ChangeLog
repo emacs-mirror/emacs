@@ -1,3 +1,9 @@
+2001-07-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Use eval-after-load
+	to delay the call to <mode> for global minor modes.
+	(easy-mmode-define-navigation): Only recenter if interactive.
+
 2001-07-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-shared-map): Bind TAB
@@ -15,8 +21,8 @@
 
 2001-07-06  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ps-print.el: Use locale dependant date to print date in header.  Doc
-	fix.
+	* ps-print.el: Use locale dependant date to print date in header.
+	Doc fix.
 	(ps-print-version): New version number (6.5.3).
 	(ps-right-header, ps-right-footer): Initialization and doc fix.
 	(ps-time-stamp-locale-default): New fun.
@@ -55,18 +61,18 @@
 	like `struct X Y', finish with point after Y.
 
 2001-07-04  Simon Josefsson  <jas@extundo.com>
-	
+
 	* mail/sendmail.el (sendmail-send-it): Look at `sendmail-program'
-	in caller buffer.  
+	in caller buffer.
 
 2001-07-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* find-file.el (ff-find-the-other-file): Use file-name-nondirectory
-	instead of string-match to find the basename of the file.  From
-	Pascal Obry <p.obry@wanadoo.fr>.
+	instead of string-match to find the basename of the file.
+	From Pascal Obry <p.obry@wanadoo.fr>.
 
-	* net/browse-url.el (browse-url-default-windows-browser): Support
-	the MS-DOS port when it runs on Windows.
+	* net/browse-url.el (browse-url-default-windows-browser):
+	Support the MS-DOS port when it runs on Windows.
 	(browse-url-browser-function) [ms-dos]: Default to
 	browse-url-default-windows-browser.
 
