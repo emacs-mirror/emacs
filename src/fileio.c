@@ -51,6 +51,14 @@ extern int sys_nerr;
 #include <sys/time.h>
 #endif
 
+#ifndef USG
+#ifndef VMS
+#ifndef BSD4_1
+#define HAVE_FSYNC
+#endif
+#endif
+#endif
+
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -2658,15 +2666,11 @@ to the file, instead of any buffer contents, and END is ignored.")
 
   immediate_quit = 0;
 
-#ifndef USG
-#ifndef VMS
-#ifndef BSD4_1
+#ifdef HAVE_FSYNC
   /* Note fsync appears to change the modtime on BSD4.2 (both vax and sun).
      Disk full in NFS may be reported here.  */
   if (fsync (desc) < 0)
     failure = 1, save_errno = errno;
-#endif
-#endif
 #endif
 
   /* Spurious "file has changed on disk" warnings have been 

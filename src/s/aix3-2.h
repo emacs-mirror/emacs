@@ -10,3 +10,5 @@
 #define HAVE_ALLOCA
 #undef rindex
 #undef index
+
+#define HAVE_FSYNC
