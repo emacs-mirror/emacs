@@ -1,11 +1,13 @@
 EBNF (Extended Backus Normal Form) description of the format of the tags
 file created by etags.c and interpreted by etags.el
+
+Productions created from current behaviour to aid extensions
 Francesco Potorti` <pot@gnu.org> 2002
 ================================================================
 
-FF ::= #x0c				   /* form feed */
+FF ::= #x0c				   /* tag section starter */
 
-LF ::= #x0a				   /* line feed */
+LF ::= #x0a				   /* line terminator */
 
 DEL ::= #x7f				   /* pattern terminator */
 
@@ -29,11 +31,11 @@ regularsec ::= filename "," [ unsint ] [ LF fileprop ] { LF tag }
 
 filename ::= regchar regstring		   /* a file name */
 
-fileprop ::= DEL "(" regstring ")"
+fileprop ::= "(" regstring ")"		   /* an elisp alist */
 
 tag ::= directtag | patterntag
 
-directtag ::= DEL realposition
+directtag ::= DEL realposition		   /* no pattern */
 
 patterntag ::= pattern DEL [ tagname SOH ] position
 
@@ -41,6 +43,6 @@ pattern ::= regstring			   /* a tag pattern */
 
 tagname ::= regchar regstring		   /* a tag name */
 
-position ::= realposition | ","
+position ::= realposition | "," 	   /* charpos,linepos */
 
 realposition ::= "," unsint | unsint "," | unsint "," unsint
