@@ -1442,7 +1442,12 @@ read1 (readcharfun, pch, first_in_list)
 		    if (p1[-1] == '.')
 		      p1[-1] = '\0';
 #endif
-		    XSETINT (val, atoi (read_buffer));
+		    if (sizeof (int) == sizeof (EMACS_INT))
+		      XSETINT (val, atoi (read_buffer));
+		    else if (sizeof (long) == sizeof (EMACS_INT))
+		      XSETINT (val, atol (read_buffer));
+		    else
+		      abort ();
 		    return val;
 		  }
 	      }
