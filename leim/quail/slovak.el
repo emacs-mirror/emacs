@@ -30,12 +30,6 @@
 ;; - standard Slovak keyboard
 ;; - three Slovak keyboards for programmers
 
-;; Current Quail version has some limitations, which create annoying problems
-;; when using Slovak keyboards.  You may want to install the file
-;; `hack-quail.el' from the package
-;; ftp://ftp.fi.muni.cz/pub/localization/emacs/emacs-20/emacs-cs-utils*
-;; which tries to remove some of these limitations.
-
 ;;; Code:
 
 (require 'quail)
