@@ -598,6 +598,7 @@ lisp_malloc (nbytes, type)
 
   val = (void *) malloc (nbytes);
 
+#ifndef USE_LSB_TAG
   /* If the memory just allocated cannot be addressed thru a Lisp
      object's pointer, and it needs to be,
      that's equivalent to running out of memory.  */
@@ -612,6 +613,7 @@ lisp_malloc (nbytes, type)
 	  val = 0;
 	}
     }
+#endif
 
 #if GC_MARK_STACK && !defined GC_MALLOC_CHECK
   if (val && type != MEM_TYPE_NON_LISP)
@@ -772,6 +774,7 @@ lisp_align_malloc (nbytes, type)
       mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
 
+#ifndef USE_LSB_TAG
       /* If the memory just allocated cannot be addressed thru a Lisp
 	 object's pointer, and it needs to be, that's equivalent to
 	 running out of memory.  */
@@ -788,6 +791,7 @@ lisp_align_malloc (nbytes, type)
 	      memory_full ();
 	    }
 	}
+#endif
 
       /* Initialize the blocks and put them on the free list.
 	 Is `base' was not properly aligned, we can't use the last block.  */
@@ -4076,6 +4080,9 @@ pure_alloc (size, type)
      int type;
 {
   POINTER_TYPE *result;
+#ifdef USE_LSB_TAG
+  size_t alignment = (1 << GCTYPEBITS);
+#else
   size_t alignment = sizeof (EMACS_INT);
 
   /* Give Lisp_Floats an extra alignment.  */
@@ -4087,6 +4094,7 @@ pure_alloc (size, type)
       alignment = sizeof (struct Lisp_Float);
 #endif
     }
+#endif
 
  again:
   result = ALIGN (purebeg + pure_bytes_used, alignment);
