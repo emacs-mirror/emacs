@@ -1357,8 +1357,10 @@ x_figure_window_size (f, parms)
      window manager prompting. */
   f->width = DEFAULT_COLS;
   f->height = DEFAULT_ROWS;
-  f->display.x->top_pos = 1;
-  f->display.x->left_pos = 1;
+  /* Window managers expect that if program-specified
+     positions are not (0,0), they're intentional, not defaults.  */
+  f->display.x->top_pos = 0;
+  f->display.x->left_pos = 0;
 
   tem0 = x_get_arg (parms, Qheight, 0, 0, number);
   tem1 = x_get_arg (parms, Qwidth, 0, 0, number);
