@@ -3626,7 +3626,7 @@ KIND is an additional string printed in the buffer."
 
 
 (defun ebrowse-some-member-table ()
-  "Return a hash table containing all member of a tree.
+  "Return a hash table containing all members of a tree.
 If there's only one tree loaded, use that.  Otherwise let the
 use choose a tree."
   (let* ((buffers (ebrowse-known-class-trees-buffer-list))
