@@ -79,7 +79,8 @@
 
 
 (defun math-compose-expr (a prec)
-  (let ((math-compose-level (1+ math-compose-level)))
+  (let ((math-compose-level (1+ math-compose-level))
+        spfn)
     (cond
      ((or (and (eq a math-comp-selected) a)
 	  (and math-comp-tagged
@@ -89,10 +90,13 @@
 	(list 'tag a (math-compose-expr a prec))))
      ((and (not (consp a)) (not (integerp a)))
       (concat "'" (prin1-to-string a)))
+     ((setq spfn (assq (car-safe a) math-expr-special-function-mapping))
+      (setq spfn (cdr spfn))
+      (funcall (car spfn) a spfn))
      ((math-scalarp a)
       (if (or (eq (car-safe a) 'frac)
 	      (and (nth 1 calc-frac-format) (Math-integerp a)))
-	  (if (memq calc-language '(tex eqn math maple c fortran pascal))
+	  (if (memq calc-language '(tex latex eqn math maple c fortran pascal))
 	      (let ((aa (math-adjust-fraction a))
 		    (calc-frac-format nil))
 		(math-compose-expr (list '/
@@ -265,34 +269,44 @@
 		      (append '(horiz "\\matrix{ ")
 			      (math-compose-tex-matrix (cdr a))
 			      '(" }"))
-		    (if (and (eq calc-language 'eqn)
-			     (math-matrixp a))
-			(append '(horiz "matrix { ")
-				(math-compose-eqn-matrix
-				 (cdr (math-transpose a)))
-				'("}"))
-		      (if (and (eq calc-language 'maple)
-			       (math-matrixp a))
-			  (list 'horiz
-				"matrix("
-				math-comp-left-bracket
-				(math-compose-vector (cdr a) 
+                    (if (and (eq calc-language 'latex)
+                             (math-matrixp a))
+                        (if (memq calc-language-option '(-2 0 2))
+                            (append '(vleft 0 "\\begin{pmatrix}")
+                                    (math-compose-tex-matrix (cdr a))
+                                    '("\\end{pmatrix}"))
+                          (append '(horiz "\\begin{pmatrix} ")
+                                  (math-compose-tex-matrix (cdr a))
+                                  '(" \\end{pmatrix}")))
+                      (if (and (eq calc-language 'eqn)
+                               (math-matrixp a))
+                          (append '(horiz "matrix { ")
+                                  (math-compose-eqn-matrix
+                                   (cdr (math-transpose a)))
+                                  '("}"))
+                        (if (and (eq calc-language 'maple)
+                                 (math-matrixp a))
+                            (list 'horiz
+                                  "matrix("
+                                  math-comp-left-bracket
+                                  (math-compose-vector (cdr a) 
+                                                       (concat math-comp-comma " ")
+                                                       math-comp-vector-prec)
+                                  math-comp-right-bracket
+                                  ")")
+                          (list 'horiz
+                                math-comp-left-bracket
+                                (math-compose-vector (cdr a) 
                                                      (concat math-comp-comma " ")
-						     math-comp-vector-prec)
-				math-comp-right-bracket
-				")")
-			(list 'horiz
-			      math-comp-left-bracket
-			      (math-compose-vector (cdr a) 
-                                                   (concat math-comp-comma " ")
-						   math-comp-vector-prec)
-			      math-comp-right-bracket))))
+                                                     math-comp-vector-prec)
+                                math-comp-right-bracket)))))
 		(list 'horiz
 		      math-comp-left-bracket
 		      (math-compose-vector (list (nth 1 a) (nth 2 a) (nth 3 a))
 					   (concat math-comp-comma " ") 
                                            math-comp-vector-prec)
-		      math-comp-comma (if (eq calc-language 'tex) " \\ldots" " ...")
+		      math-comp-comma (if (memq calc-language '(tex latex)) 
+                                          " \\ldots" " ...")
 		      math-comp-comma " "
 		      (list 'break math-compose-level)
 		      (math-compose-expr (nth (1- (length a)) a)
@@ -326,12 +340,14 @@
       (let ((v (rassq (nth 2 a) math-expr-variable-mapping)))
 	(if v
 	    (symbol-name (car v))
-	  (if (and (eq calc-language 'tex)
+	  (if (and (memq calc-language '(tex latex))
 		   calc-language-option
 		   (not (= calc-language-option 0))
 		   (string-match "\\`[a-zA-Z][a-zA-Z0-9]+\\'"
 				 (symbol-name (nth 1 a))))
-	      (format "\\hbox{%s}" (symbol-name (nth 1 a)))
+              (if (eq calc-language 'latex)
+                  (format "\\text{%s}" (symbol-name (nth 1 a)))
+                (format "\\hbox{%s}" (symbol-name (nth 1 a))))
 	    (if (and math-compose-hash-args
 		     (let ((p calc-arg-values))
 		       (setq v 1)
@@ -359,7 +375,7 @@
 	    (if (eq calc-language 'maple) ""
 	      (if (memq (nth 1 a) '(0 1)) "(" "["))
 	    (math-compose-expr (nth 2 a) 0)
-	    (if (eq calc-language 'tex) " \\ldots "
+	    (if (memq calc-language '(tex latex)) " \\ldots "
 	      (if (eq calc-language 'eqn) " ... " " .. "))
 	    (math-compose-expr (nth 3 a) 0)
 	    (if (eq calc-language 'maple) ""
@@ -404,7 +420,7 @@
 	    (math-compose-expr (nth 2 a) 0)
 	    "]]"))
      ((and (eq (car a) 'calcFunc-sqrt)
-	   (eq calc-language 'tex))
+	   (memq calc-language '(tex latex)))
       (list 'horiz
 	    "\\sqrt{"
 	    (math-compose-expr (nth 1 a) 0)
@@ -440,7 +456,7 @@
 	      (math-comp-height a1)
 	      a1 '(rule ?-) a2)))
      ((and (memq (car a) '(calcFunc-sum calcFunc-prod))
-	   (eq calc-language 'tex)
+	   (memq calc-language '(tex latex))
 	   (= (length a) 5))
       (list 'horiz (if (eq (car a) 'calcFunc-sum) "\\sum" "\\prod")
 	    "_{" (math-compose-expr (nth 2 a) 0)
@@ -495,7 +511,7 @@
 	   (integerp (nth 2 a)))
       (let ((c (math-compose-expr (nth 1 a) -1)))
 	(if (> prec (nth 2 a))
-	    (if (eq calc-language 'tex)
+	    (if (memq calc-language '(tex latex))
 		(list 'horiz "\\left( " c " \\right)")
 	      (if (eq calc-language 'eqn)
 		  (list 'horiz "{left ( " c " right )}")
@@ -633,13 +649,13 @@
 		      (make-list (nth 1 a) c))))))
      ((and (eq (car a) 'calcFunc-evalto)
 	   (setq calc-any-evaltos t)
-	   (memq calc-language '(tex eqn))
+	   (memq calc-language '(tex latex eqn))
 	   (= math-compose-level (if math-comp-tagged 2 1))
 	   (= (length a) 3))
       (list 'horiz
-	    (if (eq calc-language 'tex) "\\evalto " "evalto ")
+	    (if (memq calc-language '(tex latex)) "\\evalto " "evalto ")
 	    (math-compose-expr (nth 1 a) 0)
-	    (if (eq calc-language 'tex) " \\to " " -> ")
+	    (if (memq calc-language '(tex latex)) " \\to " " -> ")
 	    (math-compose-expr (nth 2 a) 0)))
      (t
       (let ((op (and (not (eq calc-language 'unform))
@@ -651,7 +667,7 @@
 		    (/= (nth 3 op) -1))
 	       (cond
 		((> prec (or (nth 4 op) (min (nth 2 op) (nth 3 op))))
-		 (if (and (eq calc-language 'tex)
+		 (if (and (memq calc-language '(tex latex))
 			  (not (math-tex-expr-is-flat a)))
 		     (if (eq (car-safe a) '/)
 			 (list 'horiz "{" (math-compose-expr a -1) "}")
@@ -668,7 +684,7 @@
 				 (math-compose-expr a -1)
 				 " right )}")))
 		     (list 'horiz "(" (math-compose-expr a 0) ")"))))
-		((and (eq calc-language 'tex)
+		((and (memq calc-language '(tex latex))
 		      (memq (car a) '(/ calcFunc-choose calcFunc-evalto))
 		      (>= prec 0))
 		 (list 'horiz "{" (math-compose-expr a -1) "}"))
@@ -694,7 +710,7 @@
 		   (and (equal (car op) "^")
 			(eq (math-comp-first-char lhs) ?-)
 			(setq lhs (list 'horiz "(" lhs ")")))
-		   (and (eq calc-language 'tex)
+		   (and (memq calc-language '(tex latex))
 			(or (equal (car op) "^") (equal (car op) "_"))
 			(not (and (stringp rhs) (= (length rhs) 1)))
 			(setq rhs (list 'horiz "{" rhs "}")))
@@ -761,7 +777,7 @@
 		((or (> prec (or (nth 4 op) (nth 2 op)))
 		     (and (not (eq (assoc (car op) math-expr-opers) op))
 			  (> prec 0)))   ; don't write x% + y
-		 (if (and (eq calc-language 'tex)
+		 (if (and (memq calc-language '(tex latex))
 			  (not (math-tex-expr-is-flat a)))
 		     (list 'horiz "\\left( "
 			   (math-compose-expr a -1)
@@ -786,7 +802,7 @@
 	      ((and op (= (length a) 2) (= (nth 2 op) -1))
 	       (cond
 		((eq (nth 3 op) 0)
-		 (let ((lr (and (eq calc-language 'tex)
+		 (let ((lr (and (memq calc-language '(tex latex))
 				(not (math-tex-expr-is-flat (nth 1 a))))))
 		   (list 'horiz
 			 (if lr "\\left" "")
@@ -799,7 +815,7 @@
 			 (if lr "\\right" "")
 			 (car (nth 1 (memq op math-expr-opers))))))
 		((> prec (or (nth 4 op) (nth 3 op)))
-		 (if (and (eq calc-language 'tex)
+		 (if (and (memq calc-language '(tex latex))
 			  (not (math-tex-expr-is-flat a)))
 		     (list 'horiz "\\left( "
 			   (math-compose-expr a -1)
@@ -836,6 +852,7 @@
 				      ( pascal . math-compose-pascal )
 				      ( fortran . math-compose-fortran )
 				      ( tex . math-compose-tex )
+				      ( latex . math-compose-latex )
 				      ( eqn . math-compose-eqn )
 				      ( math . math-compose-math )
 				      ( maple . math-compose-maple ))))
@@ -866,20 +883,22 @@
 			       (symbol-name func))))
 		 (if (memq calc-language '(c fortran pascal maple))
 		     (setq func (math-to-underscores func)))
-		 (if (and (eq calc-language 'tex)
+		 (if (and (memq calc-language '(tex latex))
 			  calc-language-option
 			  (not (= calc-language-option 0))
 			  (string-match "\\`[a-zA-Z][a-zA-Z0-9]+\\'" func))
 		     (if (< (prefix-numeric-value calc-language-option) 0)
 			 (setq func (format "\\%s" func))
-		       (setq func (format "\\hbox{%s}" func))))
+		       (setq func (if (eq calc-language 'latex)
+                                      (format "\\text{%s}" func)
+                                    (format "\\hbox{%s}" func)))))
 		 (if (and (eq calc-language 'eqn)
 			  (string-match "[^']'+\\'" func))
 		     (let ((n (- (length func) (match-beginning 0) 1)))
 		       (setq func (substring func 0 (- n)))
 		       (while (>= (setq n (1- n)) 0)
 			 (setq func (concat func " prime")))))
-		 (cond ((and (eq calc-language 'tex)
+		 (cond ((and (eq calc-language '(tex latex))
 			     (or (> (length a) 2)
 				 (not (math-tex-expr-is-flat (nth 1 a)))))
 			(setq left "\\left( "
@@ -889,11 +908,13 @@
 				 (not (math-tex-expr-is-flat (nth 1 a)))))
 			(setq left "{left ( "
 			      right " right )}"))
-		       ((and (or (and (eq calc-language 'tex)
+		       ((and (or (and (memq calc-language '(tex latex))
 				      (eq (aref func 0) ?\\))
 				 (and (eq calc-language 'eqn)
 				      (memq (car a) math-eqn-special-funcs)))
-			     (not (string-match "\\hbox{" func))
+			     (not (or
+                                   (string-match "\\hbox{" func)
+                                   (string-match "\\text{" func)))
 			     (= (length a) 2)
 			     (or (Math-realp (nth 1 a))
 				 (memq (car (nth 1 a)) '(var *))))
@@ -968,7 +989,7 @@
       (if (<= count 0)
 	  (if (< count 0)
 	      (math-compose-rows (cdr a) -1 nil)
-	    (cons (concat (if (eq calc-language 'tex) "  \\ldots" "  ...")
+	    (cons (concat (if (memq calc-language '(tex latex)) "  \\ldots" "  ...")
 			  math-comp-comma)
 		  (math-compose-rows (cdr a) -1 nil)))
 	(cons (list 'horiz
@@ -983,9 +1004,8 @@
 
 (defun math-compose-tex-matrix (a)
   (if (cdr a)
-      (cons (math-compose-vector (cdr (car a)) " & " 0)
-	    (cons " \\\\ "
-		  (math-compose-tex-matrix (cdr a))))
+      (cons (append (math-compose-vector (cdr (car a)) " & " 0) '(" \\\\ "))
+            (math-compose-tex-matrix (cdr a)))
     (list (math-compose-vector (cdr (car a)) " & " 0))))
 
 (defun math-compose-eqn-matrix (a)
