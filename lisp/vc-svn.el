@@ -350,29 +350,27 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
     (goto-char (point-min))
     ;; get new workfile version
     (if (re-search-forward
-	 "^Merging differences between [0-9.]* and \\([0-9.]*\\) into" nil t)
-	(vc-file-setprop file 'vc-workfile-version (match-string 1))
+	 "^\\(Updated to\\|At\\) revision \\([0-9]+\\)" nil t)
+	(vc-file-setprop file 'vc-workfile-version (match-string 2))
       (vc-file-setprop file 'vc-workfile-version nil))
     ;; get file status
+    (goto-char (point-min))
     (prog1
-        (if (eq (buffer-size) 0)
+        (if (looking-at "At revision")
             0 ;; there were no news; indicate success
           (if (re-search-forward
-               (concat "^\\([CMUP] \\)?"
-                       (regexp-quote (file-name-nondirectory file))
-                       "\\( already contains the differences between \\)?")
+               (concat "^\\([CGDU]  \\)?"
+                       (regexp-quote (file-name-nondirectory file)))
                nil t)
               (cond
                ;; Merge successful, we are in sync with repository now
-               ((or (match-string 2)
-                    (string= (match-string 1) "U ")
-                    (string= (match-string 1) "P "))
+               ((string= (match-string 1) "U  ")
                 (vc-file-setprop file 'vc-state 'up-to-date)
                 (vc-file-setprop file 'vc-checkout-time
                                  (nth 5 (file-attributes file)))
                 0);; indicate success to the caller
                ;; Merge successful, but our own changes are still in the file
-               ((string= (match-string 1) "M ")
+               ((string= (match-string 1) "G  ")
                 (vc-file-setprop file 'vc-state 'edited)
                 0);; indicate success to the caller
                ;; Conflicts detected!
