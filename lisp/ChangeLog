@@ -1,3 +1,8 @@
+2003-01-05  Andreas Schwab  <schwab@suse.de>
+
+	* buff-menu.el (Buffer-menu-buffer+size): Don't clobber buffer
+	name.
+
 2003-01-05  Dave Love  <fx@gnu.org>
 
 	* language/european.el ("Latin-6", "Croatian"): New.
