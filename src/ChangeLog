@@ -1,3 +1,8 @@
+2004-07-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* macterm.c (mac_initialize_display_info): Use CGGetActiveDisplayList
+	instead of CGMainDisplayID (only in OSX 10.2 and later).
+
 2004-07-04  John Paul Wallington  <jpw@gnu.org>
 
 	* fileio.c (read_file_name_completion_ignore_case): New variable.
