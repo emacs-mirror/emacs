@@ -1,5 +1,8 @@
 2001-03-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* frame.c (Fframe_list): Don't reference tip_frame if
+	HAVE_WINDOW_SYSTEM is not defined.
+
 	* emacs.c (main): Update the copyright year.  From Werner LEMBERG
 	<wl@gnu.org>.
 
