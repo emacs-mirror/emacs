@@ -3050,10 +3050,12 @@ read_process_output (proc, channel)
 	    }
 	}
 
-      carryover = nbytes - coding->consumed;
-      bcopy (chars + coding->consumed, XSTRING (p->decoding_buf)->data,
-	     carryover);
-      XSETINT (p->decoding_carryover, carryover);
+      if (coding->carryover_bytes > 0)
+	{
+	  bcopy (coding->carryover, XSTRING (p->decoding_buf)->data,
+		 coding->carryover_bytes);
+	  XSETINT (p->decoding_carryover, coding->carryover_bytes);
+	}
       nbytes = STRING_BYTES (XSTRING (text));
       nchars = XSTRING (text)->size;
       if (nbytes > 0)
@@ -3151,10 +3153,12 @@ read_process_output (proc, channel)
 				   proc_encode_coding_system[XINT (p->outfd)]);
 	    }
 	}
-      carryover = nbytes - coding->consumed;
-      bcopy (chars + coding->consumed, XSTRING (p->decoding_buf)->data,
-	     carryover);
-      XSETINT (p->decoding_carryover, carryover);
+      if (coding->carryover_bytes > 0)
+	{
+	  bcopy (coding->carryover, XSTRING (p->decoding_buf)->data,
+		 coding->carryover_bytes);
+	  XSETINT (p->decoding_carryover, coding->carryover_bytes);
+	}
       /* Adjust the multibyteness of TEXT to that of the buffer.  */
       if (NILP (current_buffer->enable_multibyte_characters)
 	  != ! STRING_MULTIBYTE (text))
