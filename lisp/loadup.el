@@ -153,7 +153,7 @@
     (let* ((base (concat "emacs-" emacs-version "."))
 	   (files (file-name-all-completions base default-directory))
 	   (versions (mapcar (function (lambda (name)
-					 (string-to-int (substring name (1+ (length base))))))
+					 (string-to-int (substring name (length base)))))
 			     files)))
       (setq emacs-version (format "%s.%d"
 				  emacs-version
