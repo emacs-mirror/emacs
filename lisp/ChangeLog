@@ -3,8 +3,10 @@
 	* textmodes/sgml-mode.el (xml-mode): New alias for `sgml-mode'.
 
 	* emacs-lisp/bytecomp.el (byte-compile-last-line): Deleted.
+	(byte-compile-delete-first): New function.
 	(byte-compile-read-position): New variable.
 	(byte-compile-last-position): New variable.
+	(byte-compile-current-buffer): New variable.
 	(byte-compile-log-1): Use it.
 	(byte-compile-set-symbol-position): New function.
 	(byte-compile-obsolete, byte-compile-callargs-warn)
@@ -18,6 +20,8 @@
 	(byte-compile-lambda-form): Use it.
 	(byte-compile-from-buffer): Set it, and bind
 	`read-with-symbol-positions' and `read-symbol-positions-list'.
+
+	* emacs-lisp/bytecomp.el (byte-compile-debug): New variable.
 
 2002-05-28  Kim F. Storm  <storm@cua.dk>
 
