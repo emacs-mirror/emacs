@@ -1,5 +1,9 @@
 2001-05-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (file_dialog_unmap_cb): New function.
+	(Fx_file_dialog): Use it as XmNunmapCallback to capture the case
+	where a dialog is closed via the window manager.
+
 	* xdisp.c (try_window_id): Cases of changes all in front of 
 	the window start or all below the window end mostly rewritten.
 	(redisplay_window): Move the tests if try_window_id is
