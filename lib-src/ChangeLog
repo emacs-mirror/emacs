@@ -1,3 +1,10 @@
+2004-05-13  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* make-docfile.c (scan_c_file): Save extension position;
+	use it to get, and later reset, the extension.
+	[VMS] Modify `filename' in place: trim leading/trailing commas,
+	and trim trailing "bj" so that extension `obj' is treated like `o'.
+
 2004-05-12  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* ebrowse.c [VMS] (parse_qualified_param_ident_or_type):
