@@ -104,9 +104,7 @@ main (argc, argv)
   mmdf_init (argv[0]);
 #endif
 
-  /* Check access to input and output file.  */
-  if (access (inname, R_OK | W_OK) != 0)
-    pfatal_with_name (inname);
+  /* Check access to output file.  */
   if (access (outname, F_OK) == 0 && access (outname, W_OK) != 0)
     pfatal_with_name (outname);
 
@@ -137,6 +135,10 @@ main (argc, argv)
 
   setuid (getuid());
 #endif /* MAIL_USE_POP */
+
+  /* Check access to input file.  */
+  if (access (inname, R_OK | W_OK) != 0)
+    pfatal_with_name (inname);
 
 #ifndef MAIL_USE_MMDF
 #ifndef MAIL_USE_FLOCK
@@ -276,11 +278,11 @@ fatal (s1, s2)
 
 /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
 
-error (s1, s2)
-     char *s1, *s2;
+error (s1, s2, s3)
+     char *s1, *s2, *s3;
 {
   printf ("movemail: ");
-  printf (s1, s2);
+  printf (s1, s2, s3);
   printf ("\n");
 }
 
@@ -356,313 +358,345 @@ char Errmsg[80];
 
 static int debug = 0;
 
-popmail(user, outfile)
-char *user;
-char *outfile;
+char *get_errmsg ();
+char *getenv ();
+int mbx_write ();
+
+popmail (user, outfile)
+     char *user;
+     char *outfile;
 {
-    char *host;
-    int nmsgs, nbytes;
-    char response[128];
-    register int i;
-    int mbfi;
-    FILE *mbf;
-    char *getenv();
-    int mbx_write();
-    char *get_errmsg();
+  char *host;
+  int nmsgs, nbytes;
+  char response[128];
+  register int i;
+  int mbfi;
+  FILE *mbf;
 
-    host = getenv("MAILHOST");
-    if (host == NULL) {
-	fatal("no MAILHOST defined");
+  host = getenv ("MAILHOST");
+  if (host == NULL)
+    {
+      fatal ("no MAILHOST defined");
     }
 
-    if (pop_init(host) == NOTOK) {
-	error(Errmsg);
-	return(1);
+  if (pop_init (host) == NOTOK)
+    {
+      error (Errmsg);
+      return 1;
     }
 
-    if (getline(response, sizeof response, sfi) != OK) {
-	error(response);
-	return(1);
+  if (getline (response, sizeof response, sfi) != OK)
+    {
+      error (response);
+      return 1;
     }
 
-    if (pop_command("USER %s", user) == NOTOK || 
-	pop_command("RPOP %s", user) == NOTOK) {
-	error(Errmsg);
-	pop_command("QUIT");
-	return(1);
+  if (pop_command ("USER %s", user) == NOTOK 
+      || pop_command ("RPOP %s", user) == NOTOK)
+    {
+      error (Errmsg);
+      pop_command ("QUIT");
+      return 1;
     }
 
-    if (pop_stat(&nmsgs, &nbytes) == NOTOK) {
-	error(Errmsg);
-	pop_command("QUIT");
-	return(1);
+  if (pop_stat (&nmsgs, &nbytes) == NOTOK)
+    {
+      error (Errmsg);
+      pop_command ("QUIT");
+      return 1;
     }
 
-    if (!nmsgs)
-      {
-	pop_command("QUIT");
-	return(0);
-      }
+  if (!nmsgs)
+    {
+      pop_command ("QUIT");
+      return 0;
+    }
 
-    mbfi = open (outfile, O_WRONLY | O_CREAT | O_EXCL, 0666);
-    if (mbfi < 0)
-      {
-	pop_command("QUIT");
-	error("Error in open: %s, %s", get_errmsg(), outfile);
-	return(1);
-      }
-    fchown(mbfi, getuid(), -1);
+  mbfi = open (outfile, O_WRONLY | O_CREAT | O_EXCL, 0666);
+  if (mbfi < 0)
+    {
+      pop_command ("QUIT");
+      error ("Error in open: %s, %s", get_errmsg (), outfile);
+      return 1;
+    }
+  fchown (mbfi, getuid (), -1);
 
-    if ((mbf = fdopen(mbfi, "w")) == NULL)
-      {
-	pop_command("QUIT");
-	error("Error in fdopen: %s", get_errmsg());
-	close(mbfi);
-	unlink(outfile);
-	return(1);
-      }
+  if ((mbf = fdopen (mbfi, "w")) == NULL)
+    {
+      pop_command ("QUIT");
+      error ("Error in fdopen: %s", get_errmsg ());
+      close (mbfi);
+      unlink (outfile);
+      return 1;
+    }
 
-    for (i = 1; i <= nmsgs; i++) {
-	mbx_delimit_begin(mbf);
-	if (pop_retr(i, mbx_write, mbf) != OK) {
-	    error(Errmsg);
-	    pop_command("QUIT");
-	    close(mbfi);
-	    return(1);
+  for (i = 1; i <= nmsgs; i++)
+    {
+      mbx_delimit_begin (mbf);
+      if (pop_retr (i, mbx_write, mbf) != OK)
+	{
+	  error (Errmsg);
+	  pop_command ("QUIT");
+	  close (mbfi);
+	  return 1;
 	}
-	mbx_delimit_end(mbf);
-	fflush(mbf);
+      mbx_delimit_end (mbf);
+      fflush (mbf);
     }
 
-    for (i = 1; i <= nmsgs; i++) {
-	if (pop_command("DELE %d", i) == NOTOK) {
-	    error(Errmsg);
-	    pop_command("QUIT");
-	    close(mbfi);
-	    return(1);
+  for (i = 1; i <= nmsgs; i++)
+    {
+      if (pop_command ("DELE %d", i) == NOTOK)
+	{
+	  error (Errmsg);
+	  pop_command ("QUIT");
+	  close (mbfi);
+	  return 1;
 	}
     }
 
-    pop_command("QUIT");
-    close(mbfi);
-    return(0);
+  pop_command ("QUIT");
+  close (mbfi);
+  return 0;
 }
 
-pop_init(host)
-char *host;
+pop_init (host)
+     char *host;
 {
-    register struct hostent *hp;
-    register struct servent *sp;
-    int lport = IPPORT_RESERVED - 1;
-    struct sockaddr_in sin;
-    register int s;
-    char *get_errmsg();
+  register struct hostent *hp;
+  register struct servent *sp;
+  int lport = IPPORT_RESERVED - 1;
+  struct sockaddr_in sin;
+  register int s;
 
-    hp = gethostbyname(host);
-    if (hp == NULL) {
-	sprintf(Errmsg, "MAILHOST unknown: %s", host);
-	return(NOTOK);
+  hp = gethostbyname (host);
+  if (hp == NULL)
+    {
+      sprintf (Errmsg, "MAILHOST unknown: %s", host);
+      return NOTOK;
     }
 
-    sp = getservbyname("pop", "tcp");
-    if (sp == 0) {
-	strcpy(Errmsg, "tcp/pop: unknown service");
-	return(NOTOK);
+  sp = getservbyname ("pop", "tcp");
+  if (sp == 0)
+    {
+      strcpy (Errmsg, "tcp/pop: unknown service");
+      return NOTOK;
     }
 
-    sin.sin_family = hp->h_addrtype;
-    bcopy(hp->h_addr, (char *)&sin.sin_addr, hp->h_length);
-    sin.sin_port = sp->s_port;
-    s = rresvport(&lport);
-    if (s < 0) {
-	sprintf(Errmsg, "error creating socket: %s", get_errmsg());
-	return(NOTOK);
+  sin.sin_family = hp->h_addrtype;
+  bcopy (hp->h_addr, (char *)&sin.sin_addr, hp->h_length);
+  sin.sin_port = sp->s_port;
+  s = rresvport (&lport);
+  if (s < 0)
+    {
+      sprintf (Errmsg, "error creating socket: %s", get_errmsg ());
+      return NOTOK;
     }
 
-    if (connect(s, (char *)&sin, sizeof sin) < 0) {
-	sprintf(Errmsg, "error during connect: %s", get_errmsg());
-	close(s);
-	return(NOTOK);
+  if (connect (s, (char *)&sin, sizeof sin) < 0)
+    {
+      sprintf (Errmsg, "error during connect: %s", get_errmsg ());
+      close (s);
+      return NOTOK;
     }
 
-    sfi = fdopen(s, "r");
-    sfo = fdopen(s, "w");
-    if (sfi == NULL || sfo == NULL) {
-	sprintf(Errmsg, "error in fdopen: %s", get_errmsg());
-	close(s);
-	return(NOTOK);
+  sfi = fdopen (s, "r");
+  sfo = fdopen (s, "w");
+  if (sfi == NULL || sfo == NULL)
+    {
+      sprintf (Errmsg, "error in fdopen: %s", get_errmsg ());
+      close (s);
+      return NOTOK;
     }
 
-    return(OK);
+  return OK;
 }
 
-pop_command(fmt, a, b, c, d)
-char *fmt;
+pop_command (fmt, a, b, c, d)
+     char *fmt;
 {
-    char buf[128];
-    char errmsg[64];
+  char buf[128];
+  char errmsg[64];
 
-    sprintf(buf, fmt, a, b, c, d);
+  sprintf (buf, fmt, a, b, c, d);
 
-    if (debug) fprintf(stderr, "---> %s\n", buf);
-    if (putline(buf, Errmsg, sfo) == NOTOK) return(NOTOK);
+  if (debug) fprintf (stderr, "---> %s\n", buf);
+  if (putline (buf, Errmsg, sfo) == NOTOK) return NOTOK;
 
-    if (getline(buf, sizeof buf, sfi) != OK) {
-	strcpy(Errmsg, buf);
-	return(NOTOK);
+  if (getline (buf, sizeof buf, sfi) != OK)
+    {
+      strcpy (Errmsg, buf);
+      return NOTOK;
     }
 
-    if (debug) fprintf(stderr, "<--- %s\n", buf);
-    if (*buf != '+') {
-	strcpy(Errmsg, buf);
-	return(NOTOK);
-    } else {
-	return(OK);
+  if (debug) fprintf (stderr, "<--- %s\n", buf);
+  if (*buf != '+')
+    {
+      strcpy (Errmsg, buf);
+      return NOTOK;
+    }
+  else
+    {
+      return OK;
     }
 }
 
     
-pop_stat(nmsgs, nbytes)
-int *nmsgs, *nbytes;
+pop_stat (nmsgs, nbytes)
+     int *nmsgs, *nbytes;
 {
-    char buf[128];
+  char buf[128];
 
-    if (debug) fprintf(stderr, "---> STAT\n");
-    if (putline("STAT", Errmsg, sfo) == NOTOK) return(NOTOK);
+  if (debug) fprintf (stderr, "---> STAT\n");
+  if (putline ("STAT", Errmsg, sfo) == NOTOK) return NOTOK;
 
-    if (getline(buf, sizeof buf, sfi) != OK) {
-	strcpy(Errmsg, buf);
-	return(NOTOK);
+  if (getline (buf, sizeof buf, sfi) != OK)
+    {
+      strcpy (Errmsg, buf);
+      return NOTOK;
     }
 
-    if (debug) fprintf(stderr, "<--- %s\n", buf);
-    if (*buf != '+') {
-	strcpy(Errmsg, buf);
-	return(NOTOK);
-    } else {
-	sscanf(buf, "+OK %d %d", nmsgs, nbytes);
-	return(OK);
+  if (debug) fprintf (stderr, "<--- %s\n", buf);
+  if (*buf != '+')
+    {
+      strcpy (Errmsg, buf);
+      return NOTOK;
+    }
+  else
+    {
+      sscanf (buf, "+OK %d %d", nmsgs, nbytes);
+      return OK;
     }
 }
 
-pop_retr(msgno, action, arg)
-int (*action)();
+pop_retr (msgno, action, arg)
+     int (*action)();
 {
-    char buf[128];
+  char buf[128];
 
-    sprintf(buf, "RETR %d", msgno);
-    if (debug) fprintf(stderr, "%s\n", buf);
-    if (putline(buf, Errmsg, sfo) == NOTOK) return(NOTOK);
+  sprintf (buf, "RETR %d", msgno);
+  if (debug) fprintf (stderr, "%s\n", buf);
+  if (putline (buf, Errmsg, sfo) == NOTOK) return NOTOK;
 
-    if (getline(buf, sizeof buf, sfi) != OK) {
-	strcpy(Errmsg, buf);
-	return(NOTOK);
+  if (getline (buf, sizeof buf, sfi) != OK)
+    {
+      strcpy (Errmsg, buf);
+      return NOTOK;
     }
 
-    while (1) {
-	switch (multiline(buf, sizeof buf, sfi)) {
+  while (1)
+    {
+      switch (multiline (buf, sizeof buf, sfi))
+	{
 	case OK:
-	    (*action)(buf, arg);
-	    break;
+	  (*action)(buf, arg);
+	  break;
 	case DONE:
-	    return (OK);
+	  return OK;
 	case NOTOK:
-	    strcpy(Errmsg, buf);
-	    return (NOTOK);
+	  strcpy (Errmsg, buf);
+	  return NOTOK;
 	}
     }
 }
 
-getline(buf, n, f)
-char *buf;
-register int n;
-FILE *f;
+getline (buf, n, f)
+     char *buf;
+     register int n;
+     FILE *f;
 {
-    register char *p;
-    int c;
+  register char *p;
+  int c;
 
-    p = buf;
-    while (--n > 0 && (c = fgetc(f)) != EOF)
-      if ((*p++ = c) == '\n') break;
+  p = buf;
+  while (--n > 0 && (c = fgetc (f)) != EOF)
+    if ((*p++ = c) == '\n') break;
 
-    if (ferror(f)) {
-	strcpy(buf, "error on connection");
-	return (NOTOK);
+  if (ferror (f))
+    {
+      strcpy (buf, "error on connection");
+      return NOTOK;
     }
 
-    if (c == EOF && p == buf) {
-	strcpy(buf, "connection closed by foreign host");
-	return (DONE);
+  if (c == EOF && p == buf)
+    {
+      strcpy (buf, "connection closed by foreign host");
+      return DONE;
     }
 
-    *p = NULL;
-    if (*--p == '\n') *p = NULL;
-    if (*--p == '\r') *p = NULL;
-    return(OK);
+  *p = NULL;
+  if (*--p == '\n') *p = NULL;
+  if (*--p == '\r') *p = NULL;
+  return OK;
 }
 
-multiline(buf, n, f)
-char *buf;
-register int n;
-FILE *f;
+multiline (buf, n, f)
+     char *buf;
+     register int n;
+     FILE *f;
 {
-    if (getline(buf, n, f) != OK) return (NOTOK);
-    if (*buf == '.') {
-	if (*(buf+1) == NULL) {
-	    return (DONE);
-	} else {
-	    strcpy(buf, buf+1);
+  if (getline (buf, n, f) != OK) return NOTOK;
+  if (*buf == '.')
+    {
+      if (*(buf+1) == NULL)
+	{
+	  return DONE;
+	}
+      else
+	{
+	  strcpy (buf, buf+1);
 	}
     }
-    return(OK);
+  return OK;
 }
 
 char *
-get_errmsg()
+get_errmsg ()
 {
-    extern int errno, sys_nerr;
-    extern char *sys_errlist[];
-    char *s;
+  extern int errno, sys_nerr;
+  extern char *sys_errlist[];
+  char *s;
 
-    if (errno < sys_nerr)
-      s = sys_errlist[errno];
-    else
-      s = "unknown error";
-    return(s);
+  if (errno < sys_nerr)
+    s = sys_errlist[errno];
+  else
+    s = "unknown error";
+  return (s);
 }
 
-putline(buf, err, f)
-char *buf;
-char *err;
-FILE *f;
+putline (buf, err, f)
+     char *buf;
+     char *err;
+     FILE *f;
 {
-    fprintf(f, "%s\r\n", buf);
-    fflush(f);
-    if (ferror(f)) {
-	strcpy(err, "lost connection");
-	return(NOTOK);
+  fprintf (f, "%s\r\n", buf);
+  fflush (f);
+  if (ferror (f))
+    {
+      strcpy (err, "lost connection");
+      return NOTOK;
     }
-    return(OK);
+  return OK;
 }
 
-mbx_write(line, mbf)
-char *line;
-FILE *mbf;
+mbx_write (line, mbf)
+     char *line;
+     FILE *mbf;
 {
-    fputs(line, mbf);
-    fputc(0x0a, mbf);
+  fputs (line, mbf);
+  fputc (0x0a, mbf);
 }
 
-mbx_delimit_begin(mbf)
-FILE *mbf;
+mbx_delimit_begin (mbf)
+     FILE *mbf;
 {
-    fputs("\f\n0,unseen,,\n", mbf);
+  fputs ("\f\n0,unseen,,\n", mbf);
 }
 
-mbx_delimit_end(mbf)
-FILE *mbf;
+mbx_delimit_end (mbf)
+     FILE *mbf;
 {
-    putc('\037', mbf);
+  putc ('\037', mbf);
 }
 
 #endif /* MAIL_USE_POP */
