@@ -5297,7 +5297,8 @@ Restore which buffer appears in which window, where display starts,
 and the value of point and mark for each window.
 Also restore the choice of selected window.
 Also restore which buffer is current.
-Does not restore the value of point in current buffer.  */)
+Does not restore the value of point in current buffer.
+usage: (save-window-excursion BODY ...)  */)
      (args)
      Lisp_Object args;
 {
