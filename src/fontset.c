@@ -370,8 +370,8 @@ font_family_registry (fontname, force)
      int force;
 {
   Lisp_Object family, registry;
-  char *p = SDATA (fontname);
-  char *sep[15];
+  const char *p = SDATA (fontname);
+  const char *sep[15];
   int i = 0;
 
   while (*p && i < 15)
@@ -782,7 +782,7 @@ fs_query_fontset (name, regexpp)
   for (i = 0; i < ASIZE (Vfontset_table); i++)
     {
       Lisp_Object fontset;
-      unsigned char *this_name;
+      const unsigned char *this_name;
 
       fontset = FONTSET_FROM_ID (i);
       if (NILP (fontset)
@@ -847,7 +847,7 @@ list_fontsets (f, pattern, size)
   for (id = 0; id < ASIZE (Vfontset_table); id++)
     {
       Lisp_Object fontset;
-      unsigned char *name;
+      const unsigned char *name;
 
       fontset = FONTSET_FROM_ID (id);
       if (NILP (fontset)
