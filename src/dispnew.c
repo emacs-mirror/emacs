@@ -2466,7 +2466,7 @@ syms_of_display ()
   staticpro (&frame_and_buffer_state);
 
   DEFVAR_INT ("baud-rate", &baud_rate,
-    "The output baud rate of the terminal.\n\
+    "*The output baud rate of the terminal.\n\
 On most systems, changing this value will affect the amount of padding\n\
 and the other strategic decisions made during redisplay.");
   DEFVAR_BOOL ("inverse-video", &inverse_video,
