@@ -356,8 +356,13 @@ internal_self_insert (c, noautofill)
       len = CHAR_STRING (c, workbuf, str);
     }
   else
-    workbuf[0] = c, str = workbuf, len = 1;
-
+    {
+      workbuf[0] = (SINGLE_BYTE_CHAR_P (c)
+		    ? c
+		    : multibyte_char_to_unibyte (c, Qnil));
+      str = workbuf;
+      len = 1;
+    }
   if (!NILP (overwrite)
       && PT < ZV)
     {
