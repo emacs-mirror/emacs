@@ -566,6 +566,7 @@ lock_file (fn)
     return;
 
   orig_fn = fn;
+  GCPRO1 (fn);
   fn = Fexpand_file_name (fn, Qnil);
   encoded_fn = ENCODE_FILE (fn);
 
@@ -579,15 +580,14 @@ lock_file (fn)
     struct gcpro gcpro1;
 
     subject_buf = get_truename_buffer (orig_fn);
-    GCPRO1 (fn);
 
     if (!NILP (subject_buf)
 	&& NILP (Fverify_visited_file_modtime (subject_buf))
 	&& !NILP (Ffile_exists_p (fn)))
       call1 (intern ("ask-user-about-supersession-threat"), fn);
 
-    UNGCPRO;
   }
+  UNGCPRO;
 
   /* Try to lock the lock. */
   if (lock_if_free (&lock_info, lfname) <= 0)
