@@ -226,6 +226,9 @@ Lisp_Object Qgrow_only;
 Lisp_Object Qinhibit_eval_during_redisplay;
 Lisp_Object Qbuffer_position, Qposition, Qobject;
 
+/* Holds the list (error).  */
+Lisp_Object list_of_error;
+
 /* Functions called to fontify regions of text.  */
 
 Lisp_Object Vfontification_functions;
@@ -1323,7 +1326,9 @@ safe_eval (sexpr)
 
       GCPRO1 (sexpr);
       specbind (Qinhibit_redisplay, Qt);
-      val = internal_condition_case_1 (Feval, sexpr, Qerror,
+      /* Use Qt to ensure debugger does not run,
+	 so there is no possibility of wanting to redisplay.  */
+      val = internal_condition_case_1 (Feval, sexpr, Qt,
 				       safe_eval_handler);
       UNGCPRO;
       val = unbind_to (count, val);
@@ -1354,7 +1359,9 @@ safe_call (nargs, args)
       GCPRO1 (args[0]);
       gcpro1.nvars = nargs;
       specbind (Qinhibit_redisplay, Qt);
-      val = internal_condition_case_2 (Ffuncall, nargs, args, Qerror,
+      /* Use Qt to ensure debugger does not run,
+	 so there is no possibility of wanting to redisplay.  */
+      val = internal_condition_case_2 (Ffuncall, nargs, args, Qt,
 				       safe_eval_handler);
       UNGCPRO;
       val = unbind_to (count, val);
@@ -8960,7 +8967,10 @@ redisplay_internal (preserve_echo_area)
       struct frame *mini_frame;
 
       displayed_buffer = XBUFFER (XWINDOW (selected_window)->buffer);
-      internal_condition_case_1 (redisplay_window_1, selected_window, Qerror,
+      /* Use list_of_error, not Qerror, so that
+	 we catch only errors and don't run the debugger.  */
+      internal_condition_case_1 (redisplay_window_1, selected_window,
+				 list_of_error,
 				 redisplay_window_error);
   
       /* Compare desired and current matrices, perform output.  */
@@ -9299,7 +9309,10 @@ redisplay_windows (window)
       else
 	{
 	  displayed_buffer = XBUFFER (w->buffer);
-	  internal_condition_case_1 (redisplay_window_0, window, Qerror,
+	  /* Use list_of_error, not Qerror, so that
+	     we catch only errors and don't run the debugger.  */
+	  internal_condition_case_1 (redisplay_window_0, window, 
+				     list_of_error,
 				     redisplay_window_error);
 	}
 
@@ -14886,6 +14899,9 @@ syms_of_xdisp ()
   staticpro (&Qbuffer_position);
   Qobject = intern ("object");
   staticpro (&Qobject);
+
+  list_of_error = Fcons (intern ("error"), Qnil);
+  staticpro (&list_of_error);
 
   last_arrow_position = Qnil;
   last_arrow_string = Qnil;
