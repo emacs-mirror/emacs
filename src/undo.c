@@ -556,16 +556,32 @@ Return what remains of the list.  */)
 		}
 	      else if (EQ (car, Qapply))
 		{
-		  /* Element (apply FUNNAME . ARGS) means call FUNNAME to undo.  */
+		  /* Element (apply FUN . ARGS) means call FUN to undo.  */
 		  car = Fcar (cdr);
+		  cdr = Fcdr (cdr);
 		  if (INTEGERP (car))
 		    {
-		      /* Long format: (apply DELTA START END FUNNAME . ARGS).  */
-		      cdr = Fcdr (Fcdr (Fcdr (cdr)));
-		      car = Fcar (cdr);
+		      /* Long format: (apply DELTA START END FUN . ARGS).  */
+		      Lisp_Object delta = car;
+		      Lisp_Object start = Fcar (cdr);
+		      Lisp_Object end   = Fcar (Fcdr (cdr));
+		      Lisp_Object start_mark = Fcopy_marker (start, Qnil);
+		      Lisp_Object end_mark   = Fcopy_marker (end, Qt);
+
+		      cdr = Fcdr (Fcdr (cdr));
+		      apply1 (Fcar (cdr), Fcdr (cdr));
+
+		      /* Check that the function did what the entry said it
+			 would do.  */
+		      if (!EQ (start, Fmarker_position (start_mark))
+			  || (XINT (delta) + XINT (end)
+			      != marker_position (end_mark)))
+			error ("Changes to be undone by function different than announced");
+		      Fset_marker (start_mark, Qnil, Qnil);
+		      Fset_marker (end_mark, Qnil, Qnil);
 		    }
-		  cdr = Fcdr (cdr);
-		  apply1 (car, cdr);
+		  else
+		    apply1 (car, cdr);
 		  did_apply = 1;
 		}
 	      else if (STRINGP (car) && INTEGERP (cdr))
