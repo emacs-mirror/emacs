@@ -33,8 +33,10 @@ EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS}
 # These things are edited by ../configure; don't change anything before
 # or including the '='; everything after that gets blown away.
 CC=gcc
-CFLAGS= -g -O
+CONFIG_CFLAGS= -g -O
 LOADLIBES=
+
+CFLAGS=${CONFIG_CFLAGS} -Demacs -I../src
 
 all: ../arch-lib
 
@@ -168,6 +170,10 @@ emacsclient: emacsclient.c ../src/config.h
 hexl: hexl.c
 	$(CC) ${CFLAGS} hexl.c $(LOADLIBES) -o hexl
 
+getdate.o: getdate.y ../src/config.h
+	${YACC} ${YFLAGS} getdate.y
+	$(CC) $(CFLAGS) -c y.tab.c
+	mv y.tab.o getdate.o
 timer: getdate.o timer.o
 	$(CC) $(CFLAGS) getdate.o timer.o -o timer
 
