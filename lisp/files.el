@@ -633,7 +633,7 @@ run `normal-mode' explicitly."
 				  ("\\.pl\\'" . prolog-mode)
 				  ("\\.cc\\'" . c++-mode)
 				  ("\\.C\\'" . c++-mode)
-				  ("\\.mk" . . makefile-mode)
+				  ("\\.mk\\'" . makefile-mode)
 				  ("[Mm]akefile" . makefile-mode)
 ;;; Less common extensions come here
 ;;; so more common ones above are found faster.
