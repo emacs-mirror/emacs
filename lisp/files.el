@@ -331,6 +331,11 @@ specifications and ignores this variable."
 		 (sexp :tag "Query" :format "%t\n" other))
   :group 'find-file)
 
+(defvar local-enable-local-variables t
+  "Like `enable-local-variables' but meant for buffer-local bindings.
+If a major mode sets this to nil, buffer-locally, then any local
+variables list in the file will be ignored.")
+
 (defcustom enable-local-eval 'maybe
   "*Control processing of the \"variable\" `eval' in a file's local variables.
 The value can be t, nil or something else.
@@ -1327,9 +1332,8 @@ If it matches, mode MODE is selected.")
 When checking `inhibit-first-line-modes-regexps', we first discard
 from the end of the file name anything that matches one of these regexps.")
 
-(defvar user-init-file
-  "" ; set by command-line
-  "File name including directory of user's initialization file.")
+(defvar user-init-file nil
+  "File name, including directory, of user's initialization file.")
 
 (defun set-auto-mode (&optional just-from-file-name)
   "Select major mode appropriate for current buffer.
@@ -1353,6 +1357,7 @@ and we don't even do that unless it would come from the file name."
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
       (and enable-local-variables
+	   local-enable-local-variables
 	   ;; Don't look for -*- if this file name matches any
 	   ;; of the regexps in inhibit-first-line-modes-regexps.
 	   (let ((temp inhibit-first-line-modes-regexps)
