@@ -3788,10 +3788,12 @@ background color.
   The functions @code{create-image}, @code{defimage} and
 @code{find-image} provide convenient ways to create image descriptors.
 
-@defun create-image file &optional type &rest props
+@defun create-image file-or-data &optional type data-p &rest props
 @tindex create-image
 This function creates and returns an image descriptor which uses the
-data in @var{file}.
+data in @var{file-or-data}.  @var{file-or-data} can be a file name or
+a string containing the image data; @var{data-p} should be @code{nil}
+for the former case, non-@code{nil} for the latter case.
 
 The optional argument @var{type} is a symbol specifying the image type.
 If @var{type} is omitted or @code{nil}, @code{create-image} tries to
@@ -3802,7 +3804,7 @@ The remaining arguments, @var{props}, specify additional image
 properties---for example,
 
 @example
-(create-image "foo.xpm" 'xpm :heuristic-mask t)
+(create-image "foo.xpm" 'xpm nil :heuristic-mask t)
 @end example
 
 The function returns @code{nil} if images of this type are not
