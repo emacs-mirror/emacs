@@ -399,6 +399,7 @@ that uses or sets the mark."
   (push-mark (point))
   (push-mark (point-max) nil t)
   (goto-char (point-min)))
+
 
 ;; Counting lines, one way or another.
 
@@ -4155,6 +4156,31 @@ after it has been set up properly in other respects."
       (run-hooks 'clone-buffer-hook))
     (if display-flag (pop-to-buffer new))
     new))
+
+
+(defun clone-indirect-buffer (newname display-flag)
+  "Create an indirect buffer that is a twin copy of the current buffer.
+
+Give the indirect buffer name NEWNAME.  Interactively, read NEW-NAME
+from the minibuffer when invoked with a prefix arg.  If NEWNAME is nil
+or if not called with a prefix arg, NEWNAME defaults to the current
+buffer's name.  The name is modified by adding a `<N>' suffix to it
+or by incrementing the N in an existing suffix.
+
+DISPLAY-FLAG non-nil means show the new buffer with `pop-to-buffer'.
+This is always done when called interactively."
+  (interactive (list (if current-prefix-arg
+			 (read-string "BName of indirect buffer: "))
+		     t))
+  (setq newname (or newname (buffer-name)))
+  (if (string-match "<[0-9]+>\\'" newname)
+      (setq newname (substring newname 0 (match-beginning 0))))
+  (let* ((name (generate-new-buffer-name newname))
+	 (buffer (make-indirect-buffer (current-buffer) name t)))
+    (when display-flag
+      (pop-to-buffer buffer))
+    buffer))
+
 
 
 ;;; Syntax stuff.
