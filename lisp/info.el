@@ -1009,16 +1009,17 @@ If FORK is a string, it is the name to use for the new buffer."
 	  (setq hl nil))		;terminate the while at next iter
       (setq hl (cdr hl)))))
 
-(defvar Info-last-search nil
-  "Default regexp for \\<Info-mode-map>\\[Info-search] command to search for.")
+(defvar Info-search-history nil
+  "The history list for `Info-search'.")
 
 (defun Info-search (regexp)
   "Search for REGEXP, starting from point, and select node it's found in."
-  (interactive "sSearch (regexp): ")
-  (if transient-mark-mode (deactivate-mark))
-  (if (equal regexp "")
-      (setq regexp Info-last-search)
-    (setq Info-last-search regexp))
+  (interactive (list (read-string "Regexp search: "
+ 				  nil 'Info-search-history)))
+  (when transient-mark-mode
+    (deactivate-mark))
+  (when (equal regexp "")
+    (setq regexp (car Info-search-history)))
   (when regexp
     (let ((found ()) current
 	  (onode Info-current-node)
