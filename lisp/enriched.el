@@ -172,7 +172,7 @@ etc/enriched.doc in the Emacs distribution directory.
 
 Commands:
 
-\\<enriched-mode-map>\\{enriched-mode-map}"
+\\{enriched-mode-map}"
   nil " Enriched" nil
   (cond ((null enriched-mode)
 	 ;; Turn mode off
@@ -462,8 +462,7 @@ is a list `(CLOSE OPEN)', where CLOSE is a list of annotations to
 close and OPEN a list of annotations to open.  Each of these lists
 has the form `(ANNOTATION PARAM ...)'."
   (let ((annotation "x-display")
-	(param (prin1-to-string (or old new)))
-	close open)
+	(param (prin1-to-string (or old new))))
     (if (null old)
 	(list nil (list annotation param))
       (list (list annotation param)))))
