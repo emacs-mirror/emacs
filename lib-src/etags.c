@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (F.Potorti@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.80";
+char pot_etags_version[] = "@(#) pot revision number is 11.82";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -86,7 +86,7 @@ extern int errno;
 #endif /* ETAGS_REGEXPS */
 
 /* Define CTAGS to make the program "ctags" compatible with the usual one.
- Let it undefined to make the program "etags", which makes emacs-style
+ Leave it undefined to make the program "etags", which makes emacs-style
  tag tables and tags typedefs, #defines and struct/union/enum by default. */
 #ifdef CTAGS
 # undef  CTAGS
@@ -3973,7 +3973,7 @@ add_regex (regexp_pattern)
 {
   char *name;
   const char *err;
-  struct re_pattern_buffer *patbuf;
+  struct re_pattern_buffer *patbuf, patbuf_init = { 0 };
 
   if (regexp_pattern == NULL)
     {
@@ -4002,10 +4002,7 @@ add_regex (regexp_pattern)
   (void) scan_separators (name);
 
   patbuf = xnew (1, struct re_pattern_buffer);
-  patbuf->translate = NULL;
-  patbuf->fastmap = NULL;
-  patbuf->buffer = NULL;
-  patbuf->allocated = 0;
+  *patbuf = patbuf_init;
 
   err = re_compile_pattern (regexp_pattern, strlen (regexp_pattern), patbuf);
   if (err != NULL)
