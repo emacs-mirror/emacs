@@ -1378,21 +1378,26 @@ vmotion (from, vtarget, w)
 }
 
 DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 2, 0,
-  "Move to start of screen line LINES lines down.\n\
-If LINES is negative, this is moving up.\n\
+  "Move point to start of the screen line LINES lines down.\n\
+If LINES is negative, this means moving up.\n\
+\n\
+This function is an ordinary cursor motion function\n\
+which calculates the new position based on how text would be displayed.\n\
+The new position may be the start of a line,\n\
+or just the start of a continuation line.\n\
+The function returns number of screen lines moved over;\n\
+that usually equals LINES, but may be closer to zero\n\
+if beginning or end of buffer was reached.\n\
 \n\
 The optional second argument WINDOW specifies the window to use for\n\
 parameters such as width, horizontal scrolling, and so on.\n\
-the default is the selected window.\n\
-It does not matter what buffer is displayed in WINDOW.\n\
-`vertical-motion' always uses the current buffer.\n\
-This makes it possible to use `vertical-motion' in any buffer,\n\
-whether or not it is currently displayed in some window.\n\
+The default is to use the selected window's parameters.\n\
 \n\
-This function sets point to position found; this may be start of line\n\
-or just the start of a continuation line.\n\
-It returns number of lines moved; that may be closer to zero than LINES\n\
-if beginning or end of buffer was reached.")
+`vertical-motion' always uses the current buffer,\n\
+regardless of which buffer is displayed in WINDOW.\n\
+This is consistent with other cursor motion functions\n\
+and makes it possible to use `vertical-motion' in any buffer,\n\
+whether or not it is currently displayed in some window.")
   (lines, window)
      Lisp_Object lines, window;
 {
