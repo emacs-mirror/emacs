@@ -136,8 +136,14 @@ just before \"Other\" at the end."
   :group 'facemenu)
 
 (defcustom facemenu-unlisted-faces
-  '(modeline region secondary-selection highlight scratch-face)
+  '(modeline region secondary-selection highlight scratch-face
+    "^font-lock-" "^gnus-" "^message-" "^ediff-" "^term-" "^vc-"
+    "^widget-" "^custom-" "^vm-")
   "*List of faces not to include in the Face menu.
+Each element may be either a symbol, which is the name of a face, or a string,
+which is a regular expression to be matched against face names.  Matching
+faces will not be added to the menu.
+
 You can set this list before loading facemenu.el, or add a face to it before
 creating that face if you do not want it to be listed.  If you change the
 variable so as to eliminate faces that have already been added to the menu,
@@ -148,7 +154,7 @@ temporarily turning off the feature that automatically adds faces to the menu
 when they are created."
   :type '(choice (const :tag "Don't add" t)
 		 (const :tag "None" nil)
-		 (repeat face))
+		 (repeat (choice symbol regexp)))
   :group 'facemenu)
 
 ;;;###autoload
@@ -488,20 +494,17 @@ of colors that the current display can handle."
   (with-output-to-temp-buffer "*Colors*"
     (save-excursion
       (set-buffer standard-output)
-      (let ((facemenu-unlisted-faces t)
-	    s)
+      (let (s)
 	(while list
 	  (setq s (point))
 	  (insert (car list))
 	  (indent-to 20)
 	  (put-text-property s (point) 'face 
-			     (facemenu-get-face 
-			      (intern (concat "bg:" (car list)))))
+			     (cons 'background-color (car list)))
 	  (setq s (point))
 	  (insert "  " (car list) "\n")
 	  (put-text-property s (point) 'face 
-			     (facemenu-get-face 
-			      (intern (concat "fg:" (car list)))))
+			     (cons 'foreground-color (car list)))
 	  (setq list (cdr list)))))))
 
 (defun facemenu-color-equal (a b)
@@ -639,6 +642,15 @@ Automatically called when a new face is created."
 	   (setq menu 'facemenu-face-menu)))
     (cond ((eq t facemenu-unlisted-faces))
 	  ((memq face facemenu-unlisted-faces))
+	  ;; test against regexps in facemenu-unlisted-faces
+	  ((let ((unlisted facemenu-unlisted-faces)
+		 (matched nil))
+	     (while (and unlisted (not matched))
+	       (if (and (stringp (car unlisted))
+			(string-match (car unlisted) name))
+		   (setq matched t)
+		 (setq unlisted (cdr unlisted))))
+	     matched))
 	  (key ; has a keyboard equivalent.  These go at the front.
 	   (setq function (intern (concat "facemenu-set-" name)))
 	   (fset function
