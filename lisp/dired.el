@@ -1399,7 +1399,8 @@ otherwise, display it in another buffer."
   "In dired, return name of file mentioned on this line.
 Value returned normally includes the directory name.
 Optional arg LOCALP with value `no-dir' means don't include directory
-  name in result.  A value of t means construct name relative to
+  name in result.  A value of `verbatim' means to return the name exactly as
+  it occurs in the buffer, and a value of t means construct name relative to
   `default-directory', which still may contain slashes if in a subdirectory.
 Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
   this line, otherwise an error occurs."
@@ -1431,6 +1432,8 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 	 (not default-file-name-coding-system)
 	 (setq file (encode-coding-string file buffer-file-coding-system)))
     (cond
+     ((eq localp 'verbatim)
+      file)
      ((and (eq localp 'no-dir) already-absolute)
       (file-name-nondirectory file))
      ((or already-absolute (eq localp 'no-dir))
