@@ -797,6 +797,7 @@ which has no existing file.")
   (prefix)
      Lisp_Object prefix;
 {
+  char *temp;
   Lisp_Object val;
 #ifdef MSDOS
   /* Don't use too many characters of the restricted 8+3 DOS
@@ -805,7 +806,10 @@ which has no existing file.")
 #else
   val = concat2 (prefix, build_string ("XXXXXX"));
 #endif
-  mktemp (XSTRING (val)->data);
+  temp = mktemp (XSTRING (val)->data);
+  if (! temp)
+    error ("No temporary file names based on %s are available",
+	   XSTRING (prefix)->data);
 #ifdef DOS_NT
   CORRECT_DIR_SEPS (XSTRING (val)->data);
 #endif
