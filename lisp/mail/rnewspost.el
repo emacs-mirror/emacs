@@ -270,18 +270,18 @@ original message into it."
       (setq from (mail-fetch-field "from")
 	    subject (mail-fetch-field "subject")
 	    reply-to (mail-fetch-field "reply-to")
-	    date (mail-fetch-field "date"))
-      (setq to from)
-      (pop-to-buffer "*mail*")
-      (mail nil
-	    (if reply-to reply-to to)
-	    subject
-	    (let ((stop-pos (string-match "  *at \\|  *@ \\| *(\\| *<" from)))
-	      (concat (if stop-pos (substring from 0 stop-pos) from)
-		      "'s message of "
-		      date))
-	    nil
-	   buffer))))
+	    date (mail-fetch-field "date")))
+    (setq to from)
+    (pop-to-buffer "*mail*")
+    (mail nil
+	  (if reply-to reply-to to)
+	  subject
+	  (let ((stop-pos (string-match "  *at \\|  *@ \\| *(\\| *<" from)))
+	    (concat (if stop-pos (substring from 0 stop-pos) from)
+		    "'s message of "
+		    date))
+	  nil
+	 buffer)))
 
 ;@@ the guts of news-reply and news-post-news should be combined. -tower
 (defun news-reply ()
