@@ -5162,7 +5162,13 @@ init_buffer ()
     }
 #endif /* not VMS */
 
-  current_buffer->directory = build_string (buf);
+  current_buffer->directory = make_unibyte_string (buf, strlen (buf));
+  if (! NILP (buffer_defaults.enable_multibyte_characters))
+    /* At this momemnt, we still don't know how to decode the
+       direcotry name.  So, we keep the bytes in multibyte form so
+       that ENCODE_FILE correctly gets the original bytes.  */
+    current_buffer->directory
+      = string_to_multibyte (current_buffer->directory);
 
   /* Add /: to the front of the name
      if it would otherwise be treated as magic.  */
