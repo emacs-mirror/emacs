@@ -3044,6 +3044,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Save the echo status.  */
       int saved_immediate_echo = current_kboard->immediate_echo;
       struct kboard *saved_ok_to_echo = ok_to_echo_at_next_pause;
+      Lisp_Object saved_echo_string = current_kboard->echo_string;
       int saved_echo_after_prompt = current_kboard->echo_after_prompt;
 
 #if 0
@@ -3098,6 +3099,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
       cancel_echoing ();
       ok_to_echo_at_next_pause = saved_ok_to_echo;
+      current_kboard->echo_string = saved_echo_string;
       current_kboard->echo_after_prompt = saved_echo_after_prompt;
       if (saved_immediate_echo)
 	echo_now ();
