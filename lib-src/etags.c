@@ -28,12 +28,13 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  * 1992 Joseph B. Wells improved C and C++ parsing.
  * 1993	Francesco Potortì reorganised C and C++.
  * 1994	Regexp tags by Tom Tromey.
- * 2001 Nested classes by Francesco Potortì (ideas by Mykola Dzyuba).
+ * 2001 Nested classes by Francesco Potortì (concept by Mykola Dzyuba).
+ * 2002 #line directives by Francesco Potortì.
  *
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is $Revision: 15.18 $";
+char pot_etags_version[] = "@(#) pot revision number is 15.26";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -3351,6 +3352,7 @@ C_entries (c_ext, inf)
 		  break;
 		case dsharpseen:
 		  savetoken = token;
+		  break;
 		}
 	      if (!yacc_rules || lp == newlb.buffer + 1)
 		{
@@ -3615,6 +3617,7 @@ C_entries (c_ext, inf)
 		      && typdef == tnone)
 		    cblev = -1;
 		}
+	      break;
 	    }
 	  switch (structdef)
 	    {
@@ -4695,26 +4698,24 @@ Scheme_functions (inf)
 /* Find tags in TeX and LaTeX input files.  */
 
 /* TEX_toktab is a table of TeX control sequences that define tags.
-   Each TEX_tabent records one such control sequence.
-   CONVERT THIS TO USE THE Stab TYPE!! */
-struct TEX_tabent
-{
-  char *name;
-  int len;
-};
+ * Each entry records one such control sequence.
+ *
+ * Original code from who knows whom.
+ * Ideas by:
+ *   Stefan Monnier (2002)
+ */
 
-static struct TEX_tabent *TEX_toktab = NULL; /* Table with tag tokens */
+static linebuffer *TEX_toktab = NULL; /* Table with tag tokens */
 
 /* Default set of control sequences to put into TEX_toktab.
    The value of environment var TEXTAGS is prepended to this.  */
-
 static char *TEX_defenv = "\
 :chapter:section:subsection:subsubsection:eqno:label:ref:cite:bibitem\
-:part:appendix:entry:index";
+:part:appendix:entry:index:def\
+:newcommand:renewcommand:newenvironment:renewenvironment";
 
 static void TEX_mode __P((FILE *));
-static struct TEX_tabent *TEX_decode_env __P((char *, char *));
-static int TEX_Token __P((char *));
+static void TEX_decode_env __P((char *, char *));
 
 static char TEX_esc = '\\';
 static char TEX_opgrp = '{';
@@ -4727,49 +4728,64 @@ static void
 TeX_commands (inf)
      FILE *inf;
 {
-  char *cp, *lasthit;
-  register int i;
+  char *cp;
+  linebuffer *key;
 
   /* Select either \ or ! as escape character.  */
   TEX_mode (inf);
 
   /* Initialize token table once from environment. */
-  if (!TEX_toktab)
-    TEX_toktab = TEX_decode_env ("TEXTAGS", TEX_defenv);
+  if (TEX_toktab == NULL)
+    TEX_decode_env ("TEXTAGS", TEX_defenv);
 
   LOOP_ON_INPUT_LINES (inf, lb, cp)
     {
-      lasthit = cp;
-      /* Look at each esc in line. */
-      while ((cp = etags_strchr (cp, TEX_esc)) != NULL)
+      /* Look at each TEX keyword in line. */
+      for (;;)
 	{
-	  if (*++cp == '\0')
-	    break;
-	  linecharno += cp - lasthit;
-	  lasthit = cp;
-	  i = TEX_Token (lasthit);
-	  if (i >= 0)
-	    {
-	      register char *p;
-	      for (lasthit += TEX_toktab[i].len;
-		   *lasthit == TEX_esc || *lasthit == TEX_opgrp;
-		   lasthit++)
-		continue;
-	      for (p = lasthit;
-		   !iswhite (*p) && *p != TEX_opgrp && *p != TEX_clgrp;
-		   p++)
-		continue;
-	      pfnote (savenstr (lasthit, p-lasthit), TRUE,
-		      lb.buffer, lb.len, lineno, linecharno);
-	      break;		/* We only tag a line once */
-	    }
+	  /* Look for a TEX escape. */
+	  while (*cp++ != TEX_esc)
+	    if (cp[-1] == '\0' || cp[-1] == '%')
+	      goto tex_next_line;
+
+	  for (key = TEX_toktab; key->buffer != NULL; key++)
+	    if (strneq (cp, key->buffer, key->len))
+	      {
+		register char *p;
+		char *name;
+		int linelen;
+		bool opgrp = FALSE;
+
+		cp = skip_spaces (cp + key->len);
+		if (*cp == TEX_opgrp)
+		  {
+		    opgrp = TRUE;
+		    cp++;
+		  }
+		for (p = cp;
+		     (!iswhite (*p) && *p != '#' &&
+		      *p != TEX_opgrp && *p != TEX_clgrp);
+		     p++)
+		  continue;
+		name = savenstr (cp, p-cp);
+		linelen = lb.len;
+		if (!opgrp || *p == TEX_clgrp)
+		  {
+		    while (*p != '\0' && *p != TEX_opgrp && *p != TEX_clgrp)
+		      *p++;
+		    linelen = p - lb.buffer + 1;
+		  }
+		pfnote (name, TRUE, lb.buffer, linelen, lineno, linecharno);
+		goto tex_next_line; /* We only tag a line once */
+	      }
 	}
+    tex_next_line:
+      ;
     }
 }
 
 #define TEX_LESC '\\'
 #define TEX_SESC '!'
-#define TEX_cmt  '%'
 
 /* Figure out whether TeX's escapechar is '\\' or '!' and set grouping
    chars accordingly. */
@@ -4782,7 +4798,7 @@ TEX_mode (inf)
   while ((c = getc (inf)) != EOF)
     {
       /* Skip to next line if we hit the TeX comment char. */
-      if (c == TEX_cmt)
+      if (c == '%')
 	while (c != '\n')
 	  c = getc (inf);
       else if (c == TEX_LESC || c == TEX_SESC )
@@ -4808,15 +4824,13 @@ TEX_mode (inf)
 
 /* Read environment and prepend it to the default string.
    Build token table. */
-static struct TEX_tabent *
+static void
 TEX_decode_env (evarname, defenv)
      char *evarname;
      char *defenv;
 {
   register char *env, *p;
-
-  struct TEX_tabent *tab;
-  int size, i;
+  int i, len;
 
   /* Append default string to environment. */
   env = getenv (evarname);
@@ -4829,52 +4843,33 @@ TEX_decode_env (evarname, defenv)
     }
 
   /* Allocate a token table */
-  for (size = 1, p = env; p;)
+  for (len = 1, p = env; p;)
     if ((p = etags_strchr (p, ':')) && *++p != '\0')
-      size++;
-  /* Add 1 to leave room for null terminator.  */
-  tab = xnew (size + 1, struct TEX_tabent);
+      len++;
+  TEX_toktab = xnew (len, linebuffer);
 
   /* Unpack environment string into token table. Be careful about */
   /* zero-length strings (leading ':', "::" and trailing ':') */
-  for (i = 0; *env;)
+  for (i = 0; *env != '\0';)
     {
       p = etags_strchr (env, ':');
       if (!p)			/* End of environment string. */
 	p = env + strlen (env);
       if (p - env > 0)
 	{			/* Only non-zero strings. */
-	  tab[i].name = savenstr (env, p - env);
-	  tab[i].len = strlen (tab[i].name);
+	  TEX_toktab[i].buffer = savenstr (env, p - env);
+	  TEX_toktab[i].len = p - env;
 	  i++;
 	}
       if (*p)
 	env = p + 1;
       else
 	{
-	  tab[i].name = NULL;	/* Mark end of table. */
-	  tab[i].len = 0;
+	  TEX_toktab[i].buffer = NULL; /* Mark end of table. */
+	  TEX_toktab[i].len = 0;
 	  break;
 	}
     }
-  return tab;
-}
-
-/* If the text at CP matches one of the tag-defining TeX command names,
-   return the pointer to the first occurrence of that command in TEX_toktab.
-   Otherwise return -1.
-   Keep the capital `T' in `token' for dumb truncating compilers
-   (this distinguishes it from `TEX_toktab' */
-static int
-TEX_Token (cp)
-     char *cp;
-{
-  int i;
-
-  for (i = 0; TEX_toktab[i].len > 0; i++)
-    if (strneq (TEX_toktab[i].name, cp, TEX_toktab[i].len))
-      return i;
-  return -1;
 }
 
 
