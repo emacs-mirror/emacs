@@ -182,9 +182,14 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
     (make-local-variable 'change-major-mode-hook)
     (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer)
 
+    (make-local-variable 'require-final-newline)
+    (setq require-final-newline nil)
+
     (let ((modified (buffer-modified-p))
 	  (inhibit-read-only t)
 	  (original-point (1- (point))))
+      (and (eobp) (not (bobp))
+	   (setq original-point (1- original-point)))
       (if (not (or (eq arg 1) (not arg)))
 	  ;; if no argument then we guess at hexl-max-address
           (setq hexl-max-address (+ (* (/ (1- (buffer-size)) 68) 16) 15))
@@ -292,7 +297,6 @@ Ask the user for confirmation."
 
 (defun hexl-goto-address (address)
   "Goto hexl-mode (decimal) address ADDRESS.
-
 Signal error if ADDRESS out of range."
   (interactive "nAddress: ")
   (if (or (< address 0) (> address hexl-max-address))
@@ -301,7 +305,6 @@ Signal error if ADDRESS out of range."
 
 (defun hexl-goto-hex-address (hex-address)
   "Go to hexl-mode address (hex string) HEX-ADDRESS.
-
 Signal error if HEX-ADDRESS is out of range."
   (interactive "sHex Address: ")
   (hexl-goto-address (hexl-hex-string-to-integer hex-address)))
