@@ -1,3 +1,8 @@
+2002-04-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* bindings.el (mode-line-mode-menu): Update names to reflect
+	latest changes.
+
 2002-04-16  Mike Williams  <mdub@bigfoot.com>
 
 	* textmodes/sgml-mode.el (sgml-at-indentation-p): Move to fix
@@ -5,7 +10,7 @@
 
 2002-04-16  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
-        * viper-ex.el: Patch by Samuel Padgett. Copyright papers received.
+	* viper-ex.el: Patch by Samuel Padgett. Copyright papers received.
 	(viper-ex-print-buf-name): New variable.
 	(viper-ex-print-buf): New variable.
 	(ex-token-alist): Invoke ex-print on ":print" Ex commands.
