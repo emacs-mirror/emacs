@@ -1506,8 +1506,10 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	  bufsize = decoding_buffer_size (&coding, size);
 	  buf = (unsigned char *) xmalloc (bufsize);
 	  decode_coding (&coding, data, buf, size, bufsize);
-	  str = make_string_from_bytes ((char *) buf,
-					coding.produced_char, coding.produced);
+	  size = (coding.fake_multibyte
+		  ? multibyte_chars_in_text (buf, coding.produced)
+		  : coding.produced_char);
+	  str = make_string_from_bytes ((char *) buf, size, coding.produced);
 	  xfree (buf);
 	}
       return str;
