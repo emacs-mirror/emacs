@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!122.c(trunk.3) $
+ id = $HopeName: MMQA_test_function!122.c(trunk.4) $
  summary = test of mps_arena_roots_walk
  language = c
  link = testlib.o rankfmt.o
@@ -18,7 +18,13 @@ END_HEADER
 #include "rankfmt.h"
 
 
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 #define MAGICSIZE (342)
+
 
 void *stackpointer;
 long int rootcount;
@@ -34,11 +40,13 @@ mps_root_t root, root1;
 mps_fmt_t format;
 mps_ap_t apamc, aplo, apawl;
 
+/* root is the stack root */
+/* root1, root2, table roots */
 mps_root_t root, root1, root2;
 
 
-static void root_step(mps_addr_t* ref, mps_root_t r,
-                    void *V, size_t S) {
+static void root_step(mps_addr_t* ref, mps_root_t r, void *V, size_t S)
+{
  mycell *a;
  mycell *spec;
 
@@ -54,36 +62,34 @@ static void root_step(mps_addr_t* ref, mps_root_t r,
  }
  if (r != root) {
   asserts(((a->tag) & 0x3) == MCdata,
-         "spurious ref claimed in root at %p->%p", ref, a);
+          "spurious ref claimed in root at %p->%p", ref, a);
   a->data.checkedflag = newstamp;
  }
 }
 
 
-static void walkroots (mycell *a) {
+static void walkroots (mycell *a)
+{
  mps_arena_park(arena);
  mps_arena_roots_walk(arena, root_step, (mps_addr_t) a, MAGICSIZE);
  mps_arena_release(arena);
 }
 
 
+/* a is a table of exact roots */
+/* b    a table of ambig roots */
 mycell *a[4], *b[4];
 
 
-static void test(void) {
-/* a is a table of exact roots
-   b    a table of ambig roots
-
-  root is the stack root
-  root1, root2, table roots
-*/
-
+static void test(void)
+{
+ mps_chain_t chain;
  mycell *w, *x, *y;
 
- cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) 1024*1024*30), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) 1024*1024*30),
+      "create space");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
-
  cdie(
   mps_root_create_table_masked(&root1, arena, MPS_RANK_EXACT, 0,
                                (mps_addr_t*)&a[0], 4, 0x4),
@@ -97,9 +103,10 @@ static void test(void) {
   mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
 
- cdie(
-  mps_pool_create(&poolamc, arena, mps_class_amc(), format),
-  "create pool");
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
+ die(mmqa_pool_create_chain(&poolamc, arena, mps_class_amc(), format, chain),
+     "create pool");
 
  cdie(
   mps_pool_create(&poollo, arena, mps_class_amcz(), format),
@@ -160,6 +167,8 @@ static void test(void) {
  mps_pool_destroy(poolawl);
  comment("Destroyed pools.");
 
+ mps_chain_destroy(chain);
+
  mps_fmt_destroy(format);
  comment("Destroyed format.");
 
@@ -172,7 +181,7 @@ static void test(void) {
  comment("Deregistered thread.");
 
  mps_arena_destroy(arena);
- comment("Destroyed space.");
+ comment("Destroyed arena.");
 }
 
 
