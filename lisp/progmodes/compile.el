@@ -30,11 +30,6 @@
 ;; This package provides the compile facilities documented in the Emacs user's
 ;; manual.
 
-;;; Code:
-
-;; This is the parsing engine for compile:
-(require 'font-lock) ; needed to get font-lock-value-in-major-mode
-
 ;;; This mode uses some complex data-structures:
 
 ;;; LOC (or location) is a list of (COLUMN LINE FILE-STRUCTURE)
@@ -71,6 +66,11 @@
 ;; These are the value of the `message' text-properties in the compilation
 ;; buffer.
 
+
+;;; Code:
+
+;; This is the parsing engine for compile:
+(require 'font-lock) ; needed to get font-lock-value-in-major-mode
 
 (defgroup compilation nil
   "Run compiler as inferior of Emacs, parse error messages."
@@ -1284,7 +1284,8 @@ Does NOT find the source line like \\[previous-error]."
 
 (defun next-error-no-select (n)
   "Move point to the next error in the compilation buffer and highlight match.
-Prefix arg N says how many error messages to move forwards.
+Prefix arg N says how many error messages to move forwards (or
+backwards, if negative).
 Finds and highlights the source line like \\[next-error], but does not
 select the source buffer."
   (interactive "p")
@@ -1293,19 +1294,22 @@ select the source buffer."
 
 (defun previous-error-no-select (n)
   "Move point to the previous error in the compilation buffer and highlight match.
-Prefix arg N says how many error messages to move forwards.
+Prefix arg N says how many error messages to move backwards (or
+forwards, if negative).
 Finds and highlights the source line like \\[previous-error], but does not
 select the source buffer."
   (interactive "p")
   (next-error-no-select (- n)))
 
 (defun compilation-next-file (n)
-  "Move point to the next error for a different file than the current one."
+  "Move point to the next error for a different file than the current one.
+Prefix arg N says how many files to move forwards (or backwards, if negative)."
   (interactive "p")
   (compilation-next-error n t))
 
 (defun compilation-previous-file (n)
-  "Move point to the previous error for a different file than the current one."
+  "Move point to the previous error for a different file than the current one.
+Prefix arg N says how many files to move backwards (or forwards, if negative)."
   (interactive "p")
   (compilation-next-file (- n)))
 
@@ -1368,11 +1372,10 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
 	      (error "No compilation started!")))))))
 
 ;;;###autoload
-(defun next-error (n)
+(defun next-error (&optional n)
   "Visit next compilation error message and corresponding source code.
-
-A prefix ARGP specifies how many error messages to move;
-negative means move back to previous error messages.
+Prefix arg N says how many error messages to move forwards (or
+backwards, if negative).
 
 \\[next-error] normally uses the most recently started compilation or
 grep buffer.  However, it can operate on any buffer with output from
@@ -1390,7 +1393,7 @@ See variable `compilation-error-regexp-alist' for customization ideas."
   (set-buffer (setq compilation-last-buffer (compilation-find-buffer)))
   (let* ((columns compilation-error-screen-columns) ; buffer's local value
 	 (last 1)
-	 (loc (compilation-next-error n))
+	 (loc (compilation-next-error (or n 1)))
 	 (end-loc (nth 2 loc))
 	 (marker (point-marker)))
     (setq loc (car loc))
@@ -1429,25 +1432,24 @@ See variable `compilation-error-regexp-alist' for customization ideas."
 
 ;;;###autoload (define-key ctl-x-map "`" 'next-error)
 
-(defun previous-error (argp)
+(defun previous-error (n)
   "Visit previous compilation error message and corresponding source code.
-
-A prefix ARGP specifies how many error messages to move;
-negative means move forward to next error messages.
+Prefix arg N says how many error messages to move backwards (or
+forwards, if negative).
 
 This operates on the output from the \\[compile] and \\[grep] commands."
-  (interactive "P")
-  (next-error (- (prefix-numeric-value argp))))
+  (interactive "p")
+  (next-error (- n)))
 
-(defun first-error (arg)
+(defun first-error (n)
   "Restart at the first error.
 Visit corresponding source code.
-With prefix ARG, visit the source code of the ARGth error.
+With prefix arg N, visit the source code of the Nth error.
 This operates on the output from the \\[compile] command."
   (interactive "p")
   (set-buffer (setq compilation-last-buffer (compilation-find-buffer)))
   (goto-char (point-min))
-  (next-error arg))
+  (next-error n))
 
 (defvar compilation-skip-to-next-location nil
   "*If non-nil, skip multiple error messages for the same source location.")

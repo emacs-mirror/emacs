@@ -1,3 +1,25 @@
+2004-03-28  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-ann3, gdb-send-item)
+	(gud-gdba-marker-filter): Log the process input and output, if
+	required. (from Stefan Monnier)
+	(gdb-debug-log, gdb-enable-debug-log): New variables.
+	(gdb-post-prompt): Don't do gdb-var-update on Mac OS X.
+
+2004-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-file-not-found-hook): Fix typo.
+	From lorentey@elte.hu (L,Bu(Brentey K,Ba(Broly).
+
+2004-03-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-handler): Handle auto-revert-mode.
+	Call vc-find-file-hook here instead of in auto-revert-buffers.
+	(auto-revert-buffers): Delete call to vc-find-file-hook.
+	(auto-revert-verbose, global-auto-revert-non-file-buffers)
+	(global-auto-revert-mode, auto-revert-set-timer)
+	(auto-revert-handler, auto-revert-buffers): Doc fixes.
+
 2004-03-27  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
 
 	* woman.el (woman-change-fonts): Rename local variable
@@ -9,8 +31,8 @@
 	Fix copyright years.
 
 	* strokes.el (strokes-global-set-stroke-string): New function.
-	(strokes-list-strokes): Cope with strings, not just commands.  Set
-	foreground colour of image.
+	(strokes-list-strokes): Cope with strings, not just commands.
+	Set foreground colour of image.
 	(strokes-global-set-stroke): Doc fix.
 
 2004-03-26  Luc Teirlinck  <teirllm@auburn.edu>
@@ -31,7 +53,7 @@
 	before, rather than after, reverting.
 	(buffer-stale-function): Move to files.el.
 
-	* files.el (buffer-stale-function): Moved here from autorevert.el.
+	* files.el (buffer-stale-function): Move here from autorevert.el.
 
 2004-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
