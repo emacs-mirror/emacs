@@ -119,7 +119,7 @@ we're in the GUD buffer)."
 ;; Used by gud-refresh, which should cause gud-display-frame to redisplay
 ;; the last frame, even if it's been called before and gud-last-frame has
 ;; been set to nil.
-(defvar gud-last-last-frame)
+(defvar gud-last-last-frame nil)
 
 ;; All debugger-specific information is collected here.
 ;; Here's how it works, in case you ever need to add a debugger to the mode.
