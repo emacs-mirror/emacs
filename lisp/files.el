@@ -1063,7 +1063,7 @@ The car of each element is compared with
 the name of the interpreter specified in the first line.
 If it matches, mode MODE is selected.")
 
-(defconst inhibit-first-line-modes-regexps '("\\.tar\\'")
+(defconst inhibit-first-line-modes-regexps '("\\.tar\\'" "\\.tgz\\'")
   "List of regexps; if one matches a file name, don't look for `-*-'.")
 
 (defconst inhibit-first-line-modes-suffixes nil
