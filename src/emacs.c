@@ -927,16 +927,6 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
   tzset ();
 #endif /* defined (sun) || defined (LOCALTIME_CACHE) */
 
-  /* Handle the GNU standard option --version.  */
-  if (argmatch (argv, argc, "-version", "--version", 3, NULL, &skip_args))
-    {
-      Lisp_Object ver;
-      ver = call0 (intern ("emacs-version"));
-      if (STRINGP (ver))
-	printf ("%s\n", XSTRING (ver)->data);
-      exit (0);
-    }
-
   /* Enter editor command loop.  This never returns.  */
   Frecursive_edit ();
   /* NOTREACHED */
@@ -957,6 +947,8 @@ struct standard_args
 
 struct standard_args standard_args[] =
 {
+  { "-version", "--version", 110, 0 },
+  { "-help", "--help", 110, 0 },
   { "-nl", "--no-shared-memory", 100, 0 },
 #ifdef VMS
   { "-map", "--map-data", 100, 0 },
