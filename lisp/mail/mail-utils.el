@@ -152,6 +152,7 @@ Usenet paths ending in an element that matches are removed also."
 	(substring userids (match-end 0))
       userids)))
 
+;;;###autoload
 (defun mail-fetch-field (field-name &optional last all)
   "Return the value of the header field FIELD-NAME.
 The buffer is expected to be narrowed to just the headers of the message.
