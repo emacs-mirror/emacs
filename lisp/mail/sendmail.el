@@ -357,7 +357,9 @@ If within the headers, this makes the new lines into continuation lines."
   (if (< (point)
 	 (save-excursion
 	   (goto-char (point-min))
-	   (if (search-forward (concat "^" mail-header-separator "$") nil t)
+	   (if (re-search-forward
+		(concat "^" (regexp-quote mail-header-separator) "$")
+		nil t)
 	       (point)
 	     0)))
       (let ((old-line-start (save-excursion (beginning-of-line) (point))))
@@ -375,7 +377,9 @@ If within the headers, this makes the new lines into continuation lines."
   (if (< (point)
 	 (save-excursion
 	   (goto-char (point-min))
-	   (if (search-forward (concat "^" mail-header-separator "$") nil t)
+	   (if (re-search-forward
+		(concat "^" (regexp-quote mail-header-separator) "$")
+		nil t)
 	       (point)
 	     0)))
       (let (beg end fieldname) 
