@@ -4,7 +4,7 @@
 
 ;; Author: Oscar Figueiredo <oscar@xemacs.org>
 ;; Maintainer: Oscar Figueiredo <oscar@xemacs.org>
-;; Keywords: help
+;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
 
