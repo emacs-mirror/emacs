@@ -412,7 +412,7 @@ as returned by the `event-start' and `event-end' functions."
   (nth 2 position))
 
 (defsubst posn-col-row (position)
-  "Return the row and column in POSITION, measured in characters.
+  "Return the column and row in POSITION, measured in characters.
 POSITION should be a list of the form
    (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
 as returned by the `event-start' and `event-end' functions."
