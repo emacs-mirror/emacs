@@ -160,16 +160,18 @@ extern void copy_properties ();
 extern int intervals_equal ();
 extern void traverse_intervals ();
 extern INTERVAL split_interval_right (), split_interval_left ();
-extern INTERVAL find_interval (), next_interval (), previous_interval ();
+extern INLINE INTERVAL find_interval ();
+extern INTERVAL next_interval (), previous_interval ();
 extern INTERVAL merge_interval_left (), merge_interval_right ();
 extern void delete_interval ();
 extern INLINE void offset_intervals ();
 extern void graft_intervals_into_buffer ();
 extern void set_point ();
-extern INLINE void temp_set_point (position, buffer)
+extern INLINE void temp_set_point ();
 extern void verify_interval_modification ();
 extern INTERVAL balance_intervals ();
-extern void copy_intervals_to_string ();
+extern INLINE void copy_intervals_to_string ();
+extern INTERVAL copy_intervals ();
 
 /* Declared in textprop.c */
 
@@ -202,6 +204,7 @@ extern void syms_of_textprop ();
 #define insert_interval_copy(source,position,end,sink,at)
 #define graft_intervals_into_buffer(tree,position,bufferptr)
 #define offset_intervals(buffer,position,length)
+#define copy_intervals(tree,start,length)
 
 #define syms_of_textprop()
 
