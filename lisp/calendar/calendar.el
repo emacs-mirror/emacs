@@ -2093,7 +2093,7 @@ the STRINGS are just concatenated and the result truncated."
 	     (not
 	      (yes-or-no-p
 	       "Diary modified; do you really want to exit the calendar? ")))
-	(error)
+	(beep)
       ;; Need to do this multiple times because one time can replace some
       ;; calendar-related buffers with other calendar-related buffers
       (mapcar (lambda (x)
