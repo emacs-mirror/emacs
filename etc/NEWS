@@ -162,6 +162,8 @@ not with every window manager.)
 
 ** Info-index finally offers completion.
 
+** shell-mode now supports programmable completion using `pcomplete'.
+
 ** Controlling the left and right fringe widths.
 
 The left and right fringe widths can now be controlled by setting the

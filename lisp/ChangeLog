@@ -1,3 +1,22 @@
+2002-02-23  Colin Walters  <walters@debian.org>
+
+	* calc/calcalg3.el (calc-invent-variables): Convert integer to
+	string.
+
+	* ibuffer.el (ibuffer-compile-format): Don't uselessly bind `pt'
+	in generated function.
+
+	* ibuf-ext.el (ibuffer-old-time): Change to hours.
+	(ibuffer-mark-old-buffers): Handle it.
+
+	* shell.el (shell-pcomplete, shell-pcomplete-reverse): New
+	functions.
+	(toplevel): Bind them.
+	(shell-mode): Don't set `comint-dynamic-complete-functions'; it is
+	not necessary now that we use pcomplete.
+
+	* comint.el: Document how use new pcomplete completion facility.
+
 2002-02-23  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmailsum.el (rmail-summary-output): Properly advance
