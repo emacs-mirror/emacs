@@ -1249,7 +1249,7 @@ t means to return a list of all possible completions of STRING.
       "repeat " str "; do"\n
       > _ \n
       < "done"))
-(put 'sh-repeat 'menu-enable '(sh-feature sh-repeat))
+;;;(put 'sh-repeat 'menu-enable '(sh-feature sh-repeat))
 
 
 
@@ -1259,7 +1259,7 @@ t means to return a list of all possible completions of STRING.
 	 "select " str " in " _ "; do" \n
 	 > ?$ str \n
 	 < "done"))
-(put 'sh-select 'menu-enable '(sh-feature sh-select))
+;;;(put 'sh-select 'menu-enable '(sh-feature sh-select))
 
 
 
@@ -1301,7 +1301,7 @@ t means to return a list of all possible completions of STRING.
       "until " str "; do" \n
       > _ \n
       < "done"))
-(put 'sh-until 'menu-enable '(sh-feature sh-until))
+;;;(put 'sh-until 'menu-enable '(sh-feature sh-until))
 
 
 
