@@ -84,6 +84,16 @@ This must be bound to a mouse click."
   (interactive "e")
   (delete-window (posn-window (event-start click))))
 
+(defun mouse-tear-off-window (click)
+  "Delete the window clicked on, and create a new frame displaying its buffer."
+  (interactive "e")
+  (let* ((window (posn-window (event-start click)))
+	 (buf (window-buffer window))
+	 (frame (new-frame)))
+    (select-frame frame)
+    (switch-to-buffer buf)
+    (delete-window window)))
+
 (defun mouse-delete-other-windows ()
   "Delete all window except the one you click on."
   (interactive "@")
