@@ -37,6 +37,7 @@ Lisp_Object Valternate_fontname_alist;
 Lisp_Object Vfontset_alias_alist;
 Lisp_Object Vhighlight_wrong_size_font;
 Lisp_Object Vclip_large_size_font;
+Lisp_Object Vvertical_centering_font_regexp;
 
 /* Used as a temporary in macro FS_LOAD_FONT.  */
 int font_idx_temp;
@@ -194,9 +195,14 @@ fs_load_font (f, font_table, charset, fontname, fontset)
       return 0;
     }
 
-  /* Fill in fields (CHARSET, ENCODING, and FONT_ENCODER) which are
-     not set by (*load_font_func).  */
+  /* Fill in fields (charset, vertical_centering, encoding, and
+     font_encoder) which are not set by (*load_font_func).  */
   fontp->charset = charset;
+
+  fontp->vertical_centering
+    = (STRINGP (Vvertical_centering_font_regexp)
+       && (fast_c_string_match_ignore_case 
+	   (Vvertical_centering_font_regexp, fontp->full_name) >= 0));
 
   if (fontp->encoding[1] != FONT_ENCODING_NOT_DECIDED)
     {
@@ -842,11 +848,11 @@ such a character is displayed on screen.");
 
   DEFVAR_LISP ("ignore-relative-composition", &Vignore_relative_composition,
      "Char table of characters which is not composed relatively.\n\
-If an entry for a character is non-nil, a composite character\n\
+If an entry for a character is non-nil, a composition sequence\n\
 which contains that character is displayed so that\n\
 the glyph of that character is put without considering\n\
 an ascent and descent value of a previous character.");
-  Vuse_default_ascent = Qnil;
+  Vignore_relative_composition = Qnil;
 
   DEFVAR_LISP ("alternate-fontname-alist", &Valternate_fontname_alist,
      "Alist of fontname vs list of the alternate fontnames.\n\
@@ -875,6 +881,13 @@ and clipping these characters makes them hard to read,\n\
 you can set this variable to nil to display the characters without clipping.\n\
 The drawback is that you will get some garbage left on your screen.");
   Vclip_large_size_font = Qt;
+
+  DEFVAR_LISP ("vertical-centering-font-regexp",
+	       &Vvertical_centering_font_regexp,
+    "*Regexp matching font names that require vertical centering on display.\n\
+When a character is displayed with such fonts, the character is displayed\n\
+at the vertival center of lines.");
+  Vvertical_centering_font_regexp = Qnil;
 
   defsubr (&Squery_fontset);
   defsubr (&Snew_fontset);
