@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.5) $
+# $HopeName: MMQA_harness!script:runtest(trunk.6) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -23,7 +23,9 @@ sub setstdin {
  local ($stdin);
  $stdin = $STDIN;
  if (!defined $stdin || $stdin eq "") {
-  $stdin = $DATA_DIR."/".$test_header{"stdin"};
+  if ($test_header{"stdin"}) {
+   $stdin = $DATA_DIR."/".$test_header{"stdin"};
+  }
  }
  if (!defined $stdin || $stdin eq "") {
   $stdin = "STDIN";
