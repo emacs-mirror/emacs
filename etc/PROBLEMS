@@ -246,6 +246,22 @@ All modern systems support terminfo, so even if ncurses is not the
 problem, you should look for a way to configure Emacs so that it uses
 terminfo when built.
 
+* Error messages about undefined colors on X.
+
+The messages might say something like this:
+
+   Unable to load color "grey95"
+
+(typically, in the `*Messages*' buffer), or something like this:
+
+  Error while displaying tooltip: (error Undefined color lightyellow)
+
+These problems could happen if some other X program has used up too
+many colors of the X palette, leaving Emacs with insufficient system
+resources to load all the colors it needs.
+
+A solution is to exit the offending X programs before starting Emacs.
+
 * Colors are not available on a tty or in xterm.
 
 Emacs 21 supports colors on character terminals and terminal
