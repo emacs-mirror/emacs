@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.18) $
+ * $HopeName: MMsrc!mpmst.h(trunk.19) $
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -128,7 +128,6 @@ typedef struct PoolStruct {     /* generic structure */
   Align alignment;              /* alignment for units */
 } PoolStruct;
 
-
 /* MFSStruct -- MFS (Manual Fixed Small) pool outer structure
  *
  * .mfs: See impl.c.poolmfs, design.mps.poolmfs.
@@ -225,7 +224,7 @@ typedef struct VMStruct {       /* DEC UNIX VM structure; impl.c.vmo1 */
   int none_fd;                  /* fildes for reserved memory */
 } VMStruct;
 
-#elif defined(MPS_OS_S7) || defined(MPS_OS_IR)
+#elif defined(MPS_OS_S7) || defined(MPS_OS_I4) || defined (MPS_OS_I5)
 
 /* These platforms use vman, since no platform specific VM */
 
@@ -287,6 +286,18 @@ typedef struct SegStruct {      /* segment structure */
   RingStruct poolRing;          /* link in list of segs in pool */
 } SegStruct;
 
+/* SegPrefStruct -- segment preference structure
+ * 
+ * .seg-pref: segment users (pool class code) need a way of expressing
+ * preferences about the segments they allocate.
+ */
+
+#define SegPrefSig      ((Sig)0x5195e997)
+
+typedef struct SegPrefStruct {  /* segment placement preferences */
+  Sig sig;                      /* impl.h.misc.sig */
+  Bool high;                    /* high or low */
+} SegPrefStruct;
 
 /* ArenaStruct -- arena structure
  *
@@ -307,7 +318,17 @@ typedef struct ArenaStruct {    /* ANSI arena structure */
   Size committed;               /* total committed (alloced by pools) memory */
 } ArenaStruct;
 
-#else /* ARENA_ANSI not */
+#elif defined(ARENA_CLIENT)
+
+typedef struct ArenaStruct {    /* arena structure */
+  Sig sig;                      /* impl.h.misc.sig */
+  RingStruct chunkRing;         /* all the chunks */
+  Serial chunkSerial;           /* next chunk number */
+  Shift pageShift;              /* log2(pageSize), for shifts */
+  Size pageSize;                /* size of block managed by PageStruct */
+} ArenaStruct;
+
+#else  /* neither ARENA_ANSI nor ARENA_CLIENT */
 
 /* This is the arena structure used by the virtual memory based */
 /* arena implementation, impl.c.arenavm. */
@@ -330,8 +351,7 @@ typedef struct ArenaStruct {    /* VM arena structure */
   Index tablePages;             /* number of pages occupied by tables */
 } ArenaStruct;
 
-#endif /* ARENA_ANSI */
-
+#endif /* ARENA_CLIENT, ARENA_ANSI */
 
 /* APStruct -- allocation point structure
  *
@@ -455,7 +475,7 @@ typedef struct ThreadStruct {   /* Win32 thread structure */
 } ThreadStruct;
 
 #elif defined(MPS_OS_SU) || defined(MPS_OS_O1) || \
- defined(MPS_OS_S7) || defined(MPS_OS_IR) || defined(MPS_OS_SO)
+ defined(MPS_OS_S7) || defined(MPS_OS_I4) || defined(MPS_OS_I5) || defined(MPS_OS_SO)
 
 /* All these platforms use the trivial ANSI locks, since nothing better */
 

@@ -2,7 +2,7 @@
  *
  *                  RECURSIVE LOCKS IN WIN32
  *
- *  $HopeName: MMsrc!locknt.c(MMdevel_restr.2) $
+ *  $HopeName: MMsrc!locknt.c(trunk.7) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -32,7 +32,7 @@
 
 #include <windows.h>
 
-SRCID(locknt, "$HopeName: MMsrc!locknt.c(MMdevel_restr.2) $");
+SRCID(locknt, "$HopeName: MMsrc!locknt.c(trunk.7) $");
 
 Bool LockCheck(Lock lock)
 {
@@ -68,7 +68,7 @@ void LockClaim(Lock lock)
   lock->claims = 1;
 }
 
-void LockRelease(Lock lock)
+void LockReleaseMPM(Lock lock)
 {
   AVERT(Lock, lock);
   AVER(lock->claims == 1);  /* The lock should only be held once */

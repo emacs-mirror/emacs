@@ -2,7 +2,7 @@
  *
  *                  PROTECTION FOR Solaris
  *
- *  $HopeName: MMsrc!protso.c(MMdevel_protoposm_1.2) $
+ *  $HopeName: MMsrc!protso.c(trunk.2) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -20,7 +20,7 @@
 #error "protso.c is Solaris specific, but MPS_OS_SO is not set"
 #endif
 
-SRCID(protso, "$HopeName$");
+SRCID(protso, "$HopeName: MMsrc!protso.c(trunk.2) $");
 
 /* Fix up unprototyped system calls.  */
 /* Note that these are not fixed up by std.h because that only fixes */
@@ -33,14 +33,14 @@ extern int kill(pid_t, int);
 /* Crap that can't be included via "open sesame" */
 /* definitions for the sa_flags field */
 /* Where is the source for this?  (which header files / man pages) @@ */
-#define	SA_SIGINFO	0x00000008
+#define SA_SIGINFO      0x00000008
 /*
  * SIGSEGV signal codes
  */
 
-#define	SEGV_MAPERR	1	/* address not mapped to object */
-#define	SEGV_ACCERR	2	/* invalid permissions */
-#define	NSIGSEGV	2
+#define SEGV_MAPERR     1       /* address not mapped to object */
+#define SEGV_ACCERR     2       /* invalid permissions */
+#define NSIGSEGV        2
 
 
 
@@ -143,7 +143,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
   AVER(sizeof(int) == sizeof(Addr));
   AVER(base < limit);
   AVER(base != 0);
-  AVER(AddrOffset(base, limit) <= INT_MAX);	/* should be redundant */
+  AVER(AddrOffset(base, limit) <= INT_MAX);     /* should be redundant */
 
   flags = PROT_READ | PROT_WRITE | PROT_EXEC;
   if((mode & AccessREAD) != 0)

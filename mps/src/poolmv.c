@@ -1,6 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.16) $
+ * $HopeName: MMsrc!poolmv.c(trunk.17) $
  * Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -37,13 +37,12 @@
 #include "poolmfs.h"
 #include "mpscmv.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.16) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.17) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
 #define SPANPOOL(mv)    (MFSPool(&(mv)->spanPoolStruct))
-#define PoolPoolMV(pool)        PARENT(MVStruct, poolStruct, pool)
-
+#define PoolPoolMV(pool) PARENT(MVStruct, poolStruct, pool)
 
 /*  == Class Structure ==  */
 
@@ -95,7 +94,7 @@ static Bool MVBlockCheck(MVBlock block)
 
 typedef struct MVSpanStruct *MVSpan;
 typedef struct MVSpanStruct {
-  RingStruct spans;		/* all the spans */ 
+  RingStruct spans;             /* all the spans */ 
   MV mv;                        /* owning MV pool */
   Seg seg;                      /* segment underlying the span */
   MVBlockStruct base;           /* sentinel at base of span */
@@ -142,7 +141,6 @@ static Bool MVSpanCheck(MVSpan span)
   return TRUE;
 }
 
-
 static Res MVInit(Pool pool, va_list arg)
 {
   Size extendBy, avgSize, maxSize, blockExtendBy, spanExtendBy;
@@ -170,14 +168,16 @@ static Res MVInit(Pool pool, va_list arg)
     blockExtendBy = sizeof(MVBlockStruct);
   }
 
-  res = PoolInit(&mv->blockPoolStruct.poolStruct, space, PoolClassMFS(),
+  res = PoolInit(&mv->blockPoolStruct.poolStruct, 
+                 space, PoolClassMFS(), 
                  blockExtendBy, sizeof(MVBlockStruct));
   if(res != ResOK)
     return res;
 
   spanExtendBy = sizeof(MVSpanStruct) * (maxSize/extendBy);
 
-  res = PoolInit(&mv->spanPoolStruct.poolStruct, space, PoolClassMFS(),
+  res = PoolInit(&mv->spanPoolStruct.poolStruct, 
+                 space, PoolClassMFS(),
                  spanExtendBy, sizeof(MVSpanStruct));
   if(res != ResOK)
     return res;
@@ -186,8 +186,10 @@ static Res MVInit(Pool pool, va_list arg)
   mv->avgSize  = avgSize;
   mv->maxSize  = maxSize;
   RingInit(&mv->spans);
+    
   mv->space = 0;
   mv->lost = 0;
+
   mv->sig = MVSig;
 
   AVERT(MV, mv);
@@ -415,10 +417,14 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
   space = PoolSpace(pool);
   segSize = SizeAlignUp(segSize, ArenaAlign(space));
 
-  res = PoolSegAlloc(&span->seg, pool, segSize);
-  if(res != ResOK) {
-    PoolFree(SPANPOOL(mv), (Addr)span, sizeof(MVSpanStruct));
-    return res;
+  res = PoolSegAlloc(&span->seg, SegPrefDefault(), pool, segSize);
+  if(res != ResOK) { /* try again with a segment big enough for this object */
+    segSize = SizeAlignUp(size, ArenaAlign(space));
+    res = PoolSegAlloc(&span->seg, SegPrefDefault(), pool, segSize);
+    if (res != ResOK) {
+      PoolFree(SPANPOOL(mv), (Addr)span, sizeof(MVSpanStruct));
+      return res;
+    }
   }
 
   span->mv = mv;
@@ -438,7 +444,8 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
   AVERT(MVSpan, span);
 
   mv->space += span->space;
-  RingAppend(&mv->spans, &span->spans);
+  RingInsert(&mv->spans, &span->spans);
+  /* use RingInsert so that we examine this new span first when allocating */
 
   *pReturn = span->base.base;
   return ResOK;

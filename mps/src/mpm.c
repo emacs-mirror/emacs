@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.10) $
+ * $HopeName: MMsrc!mpm.c(trunk.11) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.10) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.11) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -313,14 +313,14 @@ Res WriteF(mps_lib_FILE *stream, ...)
         AVER(*format != '\0');
 
         switch(*format) {
-          case 'A': {			/* address */
+          case 'A': {                   /* address */
             WriteFA addr = va_arg(args, WriteFA);
             res = WriteWord(stream, (Word)addr, 16, 
                             (sizeof(WriteFA) * CHAR_BIT + 3) / 4);
             if(res != ResOK) return res;
           } break;
 
-          case 'P': {			/* pointer, see .writef.p */
+          case 'P': {                   /* pointer, see .writef.p */
             WriteFP p = va_arg(args, WriteFP);
             res = WriteWord(stream, (Word)p, 16, 
                             (sizeof(WriteFP) * CHAR_BIT + 3)/ 4);
@@ -337,40 +337,40 @@ Res WriteF(mps_lib_FILE *stream, ...)
             }
           } break;
             
-          case 'S': {			/* string */
+          case 'S': {                   /* string */
             WriteFS s = va_arg(args, WriteFS);
             r = mps_lib_fputs((char *)s, stream);
             if(r == mps_lib_EOF)
               return ResIO;
           } break;
         
-          case 'C': {			/* character */
+          case 'C': {                   /* character */
             WriteFC c = va_arg(args, WriteFC); /* promoted */
             r = mps_lib_fputc((int)c, stream);
             if(r == mps_lib_EOF)
               return ResIO;
           } break;
         
-          case 'W': {			/* word */
+          case 'W': {                   /* word */
             WriteFW w = va_arg(args, WriteFW);
             res = WriteWord(stream, (Word)w, 16,
                             (sizeof(WriteFW) * CHAR_BIT + 3) / 4);
             if(res != ResOK) return res;
           } break;
 
-          case 'U': {			/* decimal, see .writef.p */
+          case 'U': {                   /* decimal, see .writef.p */
             WriteFU u = va_arg(args, WriteFU);
             res = WriteWord(stream, (Word)u, 10, 0);
             if(res != ResOK) return res;
           } break;
 
-          case 'B': {			/* binary, see .writef.p */
+          case 'B': {                   /* binary, see .writef.p */
             WriteFB b = va_arg(args, WriteFB);
             res = WriteWord(stream, (Word)b, 2, sizeof(WriteFB) * CHAR_BIT);
             if(res != ResOK) return res;
           } break;
         
-          case '$': {			/* dollar char */
+          case '$': {                   /* dollar char */
             r = mps_lib_fputc('$', stream);
             if(r == mps_lib_EOF)
               return ResIO;

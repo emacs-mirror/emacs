@@ -1,6 +1,6 @@
 /*  ==== MPM STRESS TEST ====
  *
- *  $HopeName: MMsrc!mpmss.c(trunk.6) $
+ *  $HopeName: MMsrc!mpmss.c(trunk.7) $
  */
 
 
@@ -102,12 +102,12 @@ int main(void)
 
   die(mps_space_create(&space), "SpaceInit");
   die(stress((mps_class_t)PoolClassMV(),
-      space, randomSize, (size_t)65536,
-      (size_t)32, (size_t)65536), "stress MV");
+             space, randomSize, (size_t)65536,
+             (size_t)32, (size_t)65536), "stress MV");
   fixedSizeSize = 13;
   die(stress((mps_class_t)PoolClassMFS(),
-      space, fixedSize, (size_t)100000, fixedSizeSize),
-    "stress MFS");
+             space, fixedSize, (size_t)100000, fixedSizeSize),
+      "stress MFS");
 
   mps_space_destroy(space);
 
