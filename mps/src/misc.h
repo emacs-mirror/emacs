@@ -1,6 +1,6 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName: MMsrc!misc.h(trunk.21) $
+ * $HopeName: MMsrc!misc.h(trunk.22) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * Small general things which are useful for C but aren't part of the
@@ -90,6 +90,41 @@ typedef const struct SrcIdStruct {
  */
 
 #define NOOP            do {} while(0)
+
+
+/* STR -- expands into a string of the expansion of the argument
+ *
+ * E.g., if we have:
+ *   #define a b
+ * STR(a) will expand into "b".
+ */
+
+#define STR_(x) #x
+#define STR(x) STR_(x)
+
+
+/* DISCARD -- discards an expression, but checks syntax
+ *
+ * The argument is an expression; the expansion followed by a semicolon
+ * is syntactically a statement (to avoid it being used in computation).
+ */
+
+#define DISCARD(expr) \
+  BEGIN \
+    (void)sizeof(expr); \
+  END
+
+
+/* DISCARD_STAT -- discards a statement, but checks syntax
+ *
+ * The argument is a statement; the expansion followed by a semicolon
+ * is syntactically a statement.
+ */
+
+#define DISCARD_STAT(stat) \
+  BEGIN \
+    if (FALSE) stat; \
+  END
 
 
 /* UNUSED -- declare parameter unused
