@@ -1781,18 +1781,21 @@ w32_defined_color (f, color, color_def, alloc)
 
   if (!NILP (tem)) 
     {
-      /* Apply gamma correction.  */
-      w32_color_ref = XUINT (tem);
-      gamma_correct (f, &w32_color_ref);
-      XSETINT (tem, w32_color_ref);
+      if (f)
+        {
+          /* Apply gamma correction.  */
+          w32_color_ref = XUINT (tem);
+          gamma_correct (f, &w32_color_ref);
+          XSETINT (tem, w32_color_ref);
+        }
 
       /* Map this color to the palette if it is enabled. */
       if (!NILP (Vw32_enable_palette))
 	{
 	  struct w32_palette_entry * entry =
-	    FRAME_W32_DISPLAY_INFO (f)->color_list;
+	    one_w32_display_info.color_list;
 	  struct w32_palette_entry ** prev =
-	    &FRAME_W32_DISPLAY_INFO (f)->color_list;
+	    &one_w32_display_info.color_list;
       
 	  /* check if color is already mapped */
 	  while (entry)
@@ -1811,10 +1814,10 @@ w32_defined_color (f, color, color_def, alloc)
 	      SET_W32_COLOR (entry->entry, XUINT (tem));
 	      entry->next = NULL;
 	      *prev = entry;
-	      FRAME_W32_DISPLAY_INFO (f)->num_colors++;
+	      one_w32_display_info.num_colors++;
 
 	      /* set flag that palette must be regenerated */
-	      FRAME_W32_DISPLAY_INFO (f)->regen_palette = TRUE;
+	      one_w32_display_info.regen_palette = TRUE;
 	    }
 	}
       /* Ensure COLORREF value is snapped to nearest color in (default)
@@ -5343,7 +5346,7 @@ w32_load_system_font (f,fontname,size)
         lf.lfItalic = font->tm.tmItalic;
         lf.lfCharSet = font->tm.tmCharSet;
         lf.lfPitchAndFamily = ((font->tm.tmPitchAndFamily & TMPF_FIXED_PITCH)
-                               ? FIXED_PITCH : VARIABLE_PITCH);
+                               ? VARIABLE_PITCH : FIXED_PITCH);
         lf.lfOutPrecision = ((font->tm.tmPitchAndFamily & TMPF_VECTOR)
                              ? OUT_STROKE_PRECIS : OUT_STRING_PRECIS);
       }
@@ -5709,8 +5712,8 @@ w32_to_x_font (lplogfont, lpxstr, len)
   char height_dpi[8];
   char width_pixels[8];
   char *fontname_dash;
-  int display_resy = one_w32_display_info.height_in;
-  int display_resx = one_w32_display_info.width_in;
+  int display_resy = one_w32_display_info.resy;
+  int display_resx = one_w32_display_info.resx;
   int bufsz;
   struct coding_system coding;
 
@@ -5894,7 +5897,7 @@ x_to_w32_font (lpxstr, lplogfont)
       fields--;
 
       /* Strip the trailing '-' if present. (it shouldn't be, as it
-         fails the test against xlfn-tight-regexp in fontset.el).  */
+         fails the test against xlfd-tight-regexp in fontset.el).  */
       {
 	int len = strlen (remainder);
 	if (len > 0 && remainder[len-1] == '-')
@@ -5947,6 +5950,125 @@ x_to_w32_font (lpxstr, lplogfont)
   return (TRUE);
 }
 
+/* Strip the pixel height and point height from the given xlfd, and
+   return the pixel height. If no pixel height is specified, calculate
+   one from the point height, or if that isn't defined either, return
+   0 (which usually signifies a scalable font).
+*/
+int xlfd_strip_height (char *fontname)
+{
+  int pixel_height, point_height, dpi, field_number;
+  char *read_from, *write_to;
+
+  xassert (fontname);
+
+  pixel_height = field_number = 0;
+  write_to = NULL;
+
+  /* Look for height fields.  */
+  for (read_from = fontname; *read_from; read_from++)
+    {
+      if (*read_from == '-')
+        {
+          field_number++;
+          if (field_number == 7) /* Pixel height.  */
+            {
+              read_from++;
+              write_to = read_from;
+
+              /* Find end of field.  */
+              for (;*read_from && *read_from != '-'; read_from++)
+                ;
+
+              /* Split the fontname at end of field.  */
+              if (*read_from)
+                {
+                  *read_from = '\0';
+                  read_from++;
+                }
+              pixel_height = atoi (write_to);
+              /* Blank out field. */
+              if (read_from > write_to)
+                {
+                  *write_to = '-';
+                  write_to++;
+                }
+              /* If the pixel height field is at the end (partial xfld),
+                 return now.  */
+              else
+                return pixel_height;
+
+              /* If we got a pixel height, the point height can be
+                 ignored. Just blank it out and break now.  */
+              if (pixel_height)
+                {
+                  /* Find end of point size field.  */
+                  for (; *read_from && *read_from != '-'; read_from++)
+                    ;
+
+                  if (*read_from)
+                    read_from++;
+
+                  /* Blank out the point size field.  */
+                  if (read_from > write_to)
+                    {
+                      *write_to = '-';
+                      write_to++;
+                    }
+                  else
+                    return pixel_height;
+
+                  break;
+                }
+              /* If the point height is already blank, break now.  */
+              if (*read_from == '-')
+                {
+                  read_from++;
+                  break;
+                }
+            }
+          else if (field_number == 8)
+            {
+              /* If we didn't get a pixel height, try to get the point
+                 height and convert that.  */
+              int point_size;
+              char *point_size_start = read_from++;
+
+              /* Find end of field.  */
+              for (; *read_from && *read_from != '-'; read_from++)
+                ;
+
+              if (*read_from)
+                {
+                  *read_from = '\0';
+                  read_from++;
+                }
+
+              point_size = atoi (point_size_start);
+
+              /* Convert to pixel height. */
+              pixel_height = point_size
+                           * one_w32_display_info.height_in / 720;
+
+              /* Blank out this field and break.  */
+              *write_to = '-';
+              write_to++;
+              break;
+            }
+        }
+    }
+
+  /* Shift the rest of the font spec into place.  */
+  if (write_to && read_from > write_to)
+    {
+      for (; *read_from; read_from++, write_to++)
+        *write_to = *read_from;
+      *write_to = '\0';
+    }
+
+  return pixel_height;
+}
+
 /* Assume parameter 1 is fully qualified, no wildcards. */
 BOOL 
 w32_font_match (fontname, pattern)
@@ -5954,7 +6076,11 @@ w32_font_match (fontname, pattern)
     char * pattern;
 {
   char *regex = alloca (strlen (pattern) * 2);
+  char *font_name_copy = alloca (strlen (fontname) + 1);
   char *ptr;
+
+  /* Copy fontname so we can modify it during comparison.  */
+  strcpy (font_name_copy, fontname);
 
   ptr = regex;
   *ptr++ = '^';
@@ -5975,8 +6101,25 @@ w32_font_match (fontname, pattern)
   *ptr = '$';
   *(ptr + 1) = '\0';
 
+  /* Strip out font heights and compare them seperately, since
+     rounding error can cause mismatches. This also allows a
+     comparison between a font that declares only a pixel height and a
+     pattern that declares the point height.
+  */
+  {
+    int font_height, pattern_height;
+
+    font_height = xlfd_strip_height (font_name_copy);
+    pattern_height = xlfd_strip_height (regex);
+
+    /* Compare now, and don't bother doing expensive regexp matching
+       if the heights differ.  */
+    if (font_height && pattern_height && (font_height != pattern_height))
+      return FALSE;
+  }
+
   return (fast_c_string_match_ignore_case (build_string (regex),
-                                           fontname) >= 0);
+                                           font_name_copy) >= 0);
 }
 
 /* Callback functions, and a structure holding info they need, for
@@ -11622,7 +11765,7 @@ x_create_tip_frame (dpyinfo, parms)
   XSETFRAME (frame, f);
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
 
-  f->output_method = output_x_window;
+  f->output_method = output_w32;
   f->output_data.w32 =
     (struct w32_output *) xmalloc (sizeof (struct w32_output));
   bzero (f->output_data.w32, sizeof (struct w32_output));
