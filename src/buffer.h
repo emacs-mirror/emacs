@@ -485,9 +485,15 @@ struct buffer
 
     /* Everything from here down must be a Lisp_Object */
 
-
     /* The name of this buffer.  */
     Lisp_Object name;
+
+#if !NO_PROMPT_IN_BUFFER
+    /* Amount at the start of the buffer used by a minibuffer prompt,
+       or nil if this buffer is not a mini-buffer.  */
+    Lisp_Object minibuffer_prompt_length;
+#endif
+
     /* The name of the file visited in this buffer, or nil.  */
     Lisp_Object filename;
     /* Dir for expanding relative file names.  */
@@ -522,6 +528,10 @@ struct buffer
     Lisp_Object mode_name;
     /* Mode line element that controls format of mode line.  */
     Lisp_Object mode_line_format;
+    
+    /* Analogous to mode_line_format for the line displayed at the top
+       of windows.  Nil means don't display that line.  */
+    Lisp_Object top_line_format;
 
     /* Keys that are bound local to this buffer.  */
     Lisp_Object keymap;
@@ -652,8 +662,28 @@ struct buffer
     /* Incremented each time the buffer is displayed in a window.  */
     Lisp_Object display_count;
  
+    /* Widths of left and right marginal areas for windows displaying
+       this buffer.  */
+    Lisp_Object left_margin_width, right_margin_width;
+
+    /* Non-nil means indicate lines not displaying text (in a style
+       like vi).  */
+    Lisp_Object indicate_empty_lines;
+
     /* Time stamp updated each time this buffer is displayed in a window.  */
     Lisp_Object display_time;
+
+    /* If scrolling the display because point is below the bottom of a
+       window showing this buffer, try to choose a window start so
+       that point ends up this number of lines from the top of the
+       window.  Nil means that scrolling method isn't used.  */
+    Lisp_Object scroll_up_aggressively;
+    
+    /* If scrolling the display because point is above the top of a
+       window showing this buffer, try to choose a window start so
+       that point ends up this number of lines from the bottom of the
+       window.  Nil means that scrolling method isn't used.  */
+    Lisp_Object scroll_down_aggressively;
 
     /* These are so we don't have to recompile everything
        the next few times we add a new slot.  */
@@ -772,3 +802,4 @@ extern Lisp_Object Vtransient_mark_mode;
 #define BUFFER_FREE(data) (free ((data)))
 #define R_ALLOC_DECLARE(var,data)
 #endif
+
