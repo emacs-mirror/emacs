@@ -28,13 +28,27 @@
 ;; #! line at the beginning of the file, if the file does not already
 ;; have one.
 
-;; This is support code for the likes of sh-, awk-, perl-, tcl- or
-;; makefile-mode.  Those mode-setting commands can call the like of
-;; `(executable-set-magic "sh")' or `(executable-set-magic "perl" "-f")'.
-;; Unless the file name matches `executable-magicless-file-regexp' this will
-;; search $PATH if the given interpreter isn't absolute, and then insert a
-;; first line like `#! /bin/sh' or `#! /usr/local/bin/perl -f'.
-;; Also it makes the file executable as soon as it's saved, if it wasn't.
+;; Unless it has a magic number, a Unix file with executable mode is passed to
+;; a new instance of the running shell (or to a Bourne shell if a csh is
+;; running and the file starts with `:').  Only a shell can start such a file,
+;; exec() cannot, which is why it is important to have a magic number in every
+;; executable script.  Such a magic number is made up by the characters `#!'
+;; the filename of an interpreter (in COFF, ELF or somesuch format) and one
+;; optional argument.
+
+;; This library is for certain major modes like sh-, awk-, perl-, tcl- or
+;; makefile-mode to insert or update a suitable #! line at the beginning of
+;; the file, if the file does not already have one and the file is not a
+;; default file of that interpreter (like .profile or makefile).  It also
+;; makes the file executable if it wasn't, as soon as it's saved.
+
+;; It also allows debugging scripts, with an adaptation of compile, as far
+;; as interpreters give out meaningful error messages.
+
+;; Modes that use this should nconc `executable-map' to the end of their own
+;; keymap and `executable-font-lock-keywords' to the end of their own font
+;; lock keywords.  Their mode-setting commands should call
+;; `executable-set-magic'.
 
 ;;; Code:
 
