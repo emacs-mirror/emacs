@@ -45,7 +45,8 @@ Return t if file exists."
     (let* ((buffer
 	    ;; To avoid any autoloading, set default-major-mode to
 	    ;; fundamental-mode.
-	    (let ((default-major-mode 'fundamental-mode))
+	    (let ((default-major-mode 'fundamental-mode)
+		  (default-enable-multibyte-characters t))
 	      ;; We can't use `generate-new-buffer' because files.el
 	      ;; is not yet loaded.
 	      (get-buffer-create (generate-new-buffer-name " *load*"))))
@@ -62,8 +63,6 @@ Return t if file exists."
 		(inhibit-file-name-operation nil))
 	    (save-excursion
 	      (set-buffer buffer)
-	      ;; This is buffer-local.
-	      (setq enable-multibyte-characters t)
 	      (insert-file-contents fullname)
 	      ;; Make `kill-buffer' quiet.
 	      (set-buffer-modified-p nil))
@@ -827,15 +826,13 @@ function by default."
 	  (if (or (eq coding-system 'no-conversion)
 		  (eq (coding-system-type coding-system) 5))
 	      ;; It seems that random 8-bit codes are read.  We had
-	      ;; better edit this buffer without multibyte character
-	      ;; facility.
+	      ;; better edit this buffer without multibyte characters.
 	      (set-buffer-multibyte nil))
 	  (set-buffer-modified-p modified-p))))
   nil)
 
-(setq after-insert-file-functions
-      (cons 'after-insert-file-set-buffer-file-coding-system
-	    after-insert-file-functions))
+(add-hook 'after-insert-file-functions
+	  'after-insert-file-set-buffer-file-coding-system)
 
 ;; The coding-spec and eol-type of coding-system returned is decided
 ;; independently in the following order.
