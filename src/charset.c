@@ -860,7 +860,7 @@ strwidth (str, len)
 {
   unsigned char *endp = str + len;
   int width = 0;
-  struct Lisp_Char_Table *dp = buffer_display_table (current_buffer);
+  struct Lisp_Char_Table *dp = buffer_display_table ();
 
   while (str < endp)
     {
