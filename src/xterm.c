@@ -11141,7 +11141,10 @@ xim_initialize (dpyinfo, resource_name)
   XRegisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
 				  resource_name, EMACS_CLASS,
 				  xim_instantiate_callback,
-				  (XPointer)xim_inst);
+				  /* Fixme: This is XPointer in
+				     XFree86 but (XPointer *) on
+				     Tru64, at least.  */
+				  (XPointer) xim_inst);
 #else /* not HAVE_X11R6_XIM */
   dpyinfo->xim = NULL;
   xim_open_dpy (dpyinfo, resource_name);
@@ -11219,7 +11222,7 @@ x_calc_absolute_position (f)
 	    {
 	      Window newroot, newparent = 0xdeadbeef;
 	      Window *newchildren;
-	      int nchildren;
+	      unsigned int nchildren;
 
 	      if (! XQueryTree (FRAME_X_DISPLAY (f), this_window, &newroot,
 				&newparent, &newchildren, &nchildren))
