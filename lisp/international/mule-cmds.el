@@ -1860,8 +1860,8 @@ Setting this variable directly does not take effect.  See
 		      ?3))
 	  ;; We suppress these setting for the moment because the
 	  ;; above assumption is wrong.
-	  ;; (aset standard-display-table ?' [?’])
-	  ;; (aset standard-display-table ?` [?‘])
+	  ;; (aset standard-display-table ?' [?,F"])
+	  ;; (aset standard-display-table ?` [?,F!])
 	  ;; The fonts don't have the relevant bug.
 	  (aset standard-display-table 160 nil)
 	  (aset standard-display-table (make-char 'latin-iso8859-1 160)
@@ -2174,8 +2174,8 @@ of `buffer-file-coding-system' set by this function."
     ; zh_HK/BIG5-HKSCS \
 
     ("zh.*[._]big5" . "Chinese-BIG5")
-    ("zh.*[._].gb18030" . "Chinese-GB18030") ; zh_CN.GB18030/GB18030 in glibc
-    ("zh.*[._].gbk" . "Chinese-GBK")
+    ("zh.*[._]gb18030" . "Chinese-GB18030") ; zh_CN.GB18030/GB18030 in glibc
+    ("zh.*[._]gbk" . "Chinese-GBK")
     ;; glibc has zh_TW.EUC-TW, with zh_TW defaulting to Big5
     ("zh_tw" . "Chinese-CNS") ; glibc uses big5
     ("zh_tw[._]euc-tw" . "Chinese-EUC-TW")
