@@ -41,15 +41,6 @@
 (define-coding-system-alias 'iso-8859-1 'iso-latin-1)
 (define-coding-system-alias 'latin-1 'iso-latin-1)
 
-(make-coding-system
- 'compound-text 2 ?1
- "ISO 2022 based encoding used in inter client communication of X"
- '((ascii t) (latin-iso8859-1 katakana-jisx0201 t) nil nil
-   nil ascii-eol ascii-cntl nil nil nil nil nil nil nil nil nil t)
- '((safe-charsets . t)))
-
-(define-coding-system-alias 'ctext 'compound-text)
-
 (set-language-info-alist
  "Latin-1" '((charset ascii latin-iso8859-1)
 	     (coding-system iso-latin-1)
