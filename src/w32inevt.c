@@ -92,7 +92,7 @@ get_frame (void)
 
 /* Translate console modifiers to emacs modifiers.  
    German keyboard support (Kai Morgan Zeise 2/18/95).  */
-int 
+int
 win32_kbd_mods_to_emacs (DWORD mods)
 {
   int retval = 0;
@@ -128,7 +128,7 @@ win32_kbd_patch_key (KEY_EVENT_RECORD *event)
   unsigned int mods = event->dwControlKeyState;
   BYTE keystate[256];
   static BYTE ansi_code[4];
-  static int isdead;
+  static int isdead = 0;
 
   if (isdead == 2)
     {
@@ -159,7 +159,7 @@ win32_kbd_patch_key (KEY_EVENT_RECORD *event)
   event->uChar.AsciiChar = ansi_code[0];
   return isdead;
 }
-  
+
 /* Map virtual key codes into:
    -1 - Ignore this key
    -2 - ASCII char
@@ -292,7 +292,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
   static BOOL map_virt_key_init_done;
   
   /* Skip key-up events.  */
-  if (event->bKeyDown == FALSE)
+  if (!event->bKeyDown)
     return 0;
   
   if (event->wVirtualKeyCode > 0xff)
@@ -318,7 +318,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
      the queue.  If they're backing up then we don't generally want
      to honor them later since that leads to significant slop in
      cursor motion when the system is under heavy load.  */
-  
+
   map = map_virt_key[event->wVirtualKeyCode];
   if (map == -1)
     {
@@ -354,14 +354,17 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
     {
       /* non-ASCII */
       emacs_ev->kind = non_ascii_keystroke;
+#ifdef HAVE_NTGUI
+      /* use Windows keysym map */
+      XSETINT (emacs_ev->code, event->wVirtualKeyCode);
+#else
       /*
        * make_lispy_event () now requires non-ascii codes to have
        * the full X keysym values (2nd byte is 0xff).  add it on.
        */
-#ifndef HAVE_NTGUI
       map |= 0xff00;
-#endif
       XSETINT (emacs_ev->code, map);
+#endif /* HAVE_NTGUI */
     }
 /* for Mule 2.2 (Based on Emacs 19.28) */
 #ifdef MULE
@@ -388,8 +391,8 @@ win32_mouse_position (FRAME_PTR *f,
 		      unsigned long *time)
 {
   BLOCK_INPUT;
-  
-#ifndef MULE
+
+#ifndef MULE  
   insist = insist;
 #endif
 
