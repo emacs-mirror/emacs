@@ -79,10 +79,14 @@ struct Lisp_Process
     Lisp_Object decode_coding_system;
     /* Working buffer for decoding.  */
     Lisp_Object decoding_buf;
+    /* Size of carryover in decoding.  */
+    Lisp_Object decoding_carryover;
     /* Coding-system for encoding the output to this process.  */
     Lisp_Object encode_coding_system;
     /* Working buffer for encoding.  */
     Lisp_Object encoding_buf;
+    /* Size of carryover in encoding.  */
+    Lisp_Object encoding_carryover;
 };
 
 #define ChannelMask(n) (1<<(n))
