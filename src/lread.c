@@ -21,6 +21,7 @@ Boston, MA 02111-1307, USA.  */
 
 
 #include <config.h>
+#define _XOPEN_SOURCE 500	/* for Unix 98 ftello on GNU */
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -608,8 +609,8 @@ Return t if file exists.")
 
       fd = openp (Vload_path, file,
 		  (!NILP (nosuffix) ? ""
-		   : ! NILP (must_suffix) ? ".elc:.el"
-		   : ".elc:.el:"),
+		   : ! NILP (must_suffix) ? ".elc.gz:.elc:.el.gz:.el"
+		   : ".elc:.elc.gz:.el.gz:.el:"),
 		  &found, 0);
       UNGCPRO;
     }
