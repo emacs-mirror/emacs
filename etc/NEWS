@@ -2587,8 +2587,10 @@ It must be one of the symbols `ultra-condensed', `extra-condensed',
 
 `:height'
 
-VALUE must be an integer specifying the height of the font to use in
-1/10 pt.
+VALUE must be either an integer specifying the height of the font to use
+in 1/10 pt, a floating point number specifying the amount by which to
+scale any underlying face, or a function, which is called with the old
+height (from the underlying face), and should return the new height.
 
 `:weight'
 
@@ -2677,6 +2679,12 @@ must be t or nil in that case.  A value of `unspecified' is not allowed."
 
 Please see also the documentation of `set-face-attribute' and
 `defface'.
+
+`:inherit'
+
+VALUE is the name of a face from which to inherit attributes, or a list
+of face names.  Attributes from inherited faces are merged into the face
+like an underlying face would be, with higher priority than underlying faces.
 
 *** Face attributes and X resources
 
