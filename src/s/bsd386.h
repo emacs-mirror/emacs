@@ -25,3 +25,17 @@
 #define TAB3 OXTABS
 
 #define SYSV_SYSTEM_DIR
+
+/* this silences a few compilation warnings */
+#undef BSD
+#define BSD 199103
+
+#define WAITTYPE int
+/* get this since it won't be included if WAITTYPE is defined */
+#ifdef emacs
+#include <sys/wait.h>
+#endif
+#define WRETCODE(w) WEXITSTATUS(w)
+#ifndef WCOREDUMP
+#define WCOREDUMP(w) ((w) & 0200)
+#endif
