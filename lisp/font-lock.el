@@ -1,6 +1,6 @@
 ;;; font-lock.el --- Electric font lock mode
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 1999, 2000
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 1999, 2000, 2001
 ;;  Free Software Foundation, Inc.
 
 ;; Author: jwz, then rms, then sm
@@ -649,7 +649,7 @@ This is normally set via `font-lock-defaults'.")
 Currently, valid mode names are `fast-lock-mode', `jit-lock-mode' and
 `lazy-lock-mode'.  This is normally set via `font-lock-defaults'.")
 
-(defvar font-lock-multiline 'undecided
+(defvar font-lock-multiline nil
   "Whether font-lock should cater to multiline keywords.
 If nil, don't try to handle multiline patterns.
 If t, always handle multiline patterns.
@@ -1203,7 +1203,8 @@ The value of this variable is used when Font Lock mode is turned on."
 	    (set-syntax-table font-lock-syntax-table))
 	  ;; check to see if we should expand the beg/end area for
 	  ;; proper multiline matches
-	  (when (and (> beg (point-min))
+	  (when (and font-lock-multiline
+		     (> beg (point-min))
 		     (get-text-property (1- beg) 'font-lock-multiline))
 	    ;; We are just after or in a multiline match.
 	    (setq beg (or (previous-single-property-change
@@ -1211,8 +1212,9 @@ The value of this variable is used when Font Lock mode is turned on."
 			  (point-min)))
 	    (goto-char beg)
 	    (setq beg (line-beginning-position)))
-	  (setq end (or (text-property-any end (point-max)
-					   'font-lock-multiline nil)
+	  (setq end (or (and font-lock-multiline
+			     (text-property-any end (point-max)
+						'font-lock-multiline nil))
 			(point-max)))
 	  (goto-char end)
 	  (setq end (line-beginning-position 2))
