@@ -137,7 +137,7 @@ glyph_to_str_cpy (glyphs, str)
 
 #define PRINTPREPARE \
    original = printcharfun; \
-   if (NULL (printcharfun)) printcharfun = Qt; \
+   if (NILP (printcharfun)) printcharfun = Qt; \
    if (XTYPE (printcharfun) == Lisp_Buffer) \
      { if (XBUFFER (printcharfun) != current_buffer) Fset_buffer (printcharfun); \
        printcharfun = Qnil;}\
@@ -301,7 +301,7 @@ STREAM defaults to the value of `standard-output' (which see).")
   int start_point;
   Lisp_Object original;
 
-  if (NULL (printcharfun))
+  if (NILP (printcharfun))
     printcharfun = Vstandard_output;
   CHECK_NUMBER (ch, 0);
   PRINTPREPARE;
@@ -438,7 +438,7 @@ If STREAM is omitted or nil, the value of `standard-output' is used.")
   int start_point;
   Lisp_Object original;
 
-  if (NULL (printcharfun))
+  if (NILP (printcharfun))
     printcharfun = Vstandard_output;
   PRINTPREPARE;
   PRINTCHAR ('\n');
@@ -462,7 +462,7 @@ Output stream is STREAM, or value of `standard-output' (which see).")
 #ifdef MAX_PRINT_CHARS
   max_print = 0;
 #endif /* MAX_PRINT_CHARS */
-  if (NULL (printcharfun))
+  if (NILP (printcharfun))
     printcharfun = Vstandard_output;
   PRINTPREPARE;
   print_depth = 0;
@@ -491,7 +491,7 @@ second argument NOESCAPE is non-nil.")
   printcharfun = Vprin1_to_string_buffer;
   PRINTPREPARE;
   print_depth = 0;
-  print (obj, printcharfun, NULL (noescape));
+  print (obj, printcharfun, NILP (noescape));
   /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINSH */
   PRINTFINISH;
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
@@ -518,7 +518,7 @@ Output stream is STREAM, or value of standard-output (which see).")
   int start_point;
   Lisp_Object original;
 
-  if (NULL (printcharfun))
+  if (NILP (printcharfun))
     printcharfun = Vstandard_output;
   PRINTPREPARE;
   print_depth = 0;
@@ -545,7 +545,7 @@ Output stream is STREAM, or value of `standard-output' (which see).")
   print_chars = 0;
   max_print = MAX_PRINT_CHARS;
 #endif /* MAX_PRINT_CHARS */
-  if (NULL (printcharfun))
+  if (NILP (printcharfun))
     printcharfun = Vstandard_output;
   GCPRO1 (obj);
   PRINTPREPARE;
@@ -602,7 +602,7 @@ float_to_string (buf, data)
   register unsigned char *cp, c;
   register int width;
       
-  if (NULL (Vfloat_output_format)
+  if (NILP (Vfloat_output_format)
       || XTYPE (Vfloat_output_format) != Lisp_String)
   lose:
     sprintf (buf, "%.20g", data);
@@ -821,7 +821,7 @@ print (obj, printcharfun, escapeflag)
 	    obj = Fcdr (obj);
 	  }
       }
-      if (!NULL (obj) && !CONSP (obj))
+      if (!NILP (obj) && !CONSP (obj))
 	{
 	  strout (" . ", 3, printcharfun);
 	  print (obj, printcharfun, escapeflag);
@@ -848,7 +848,7 @@ print (obj, printcharfun, escapeflag)
 
 #ifndef standalone
     case Lisp_Buffer:
-      if (NULL (XBUFFER (obj)->name))
+      if (NILP (XBUFFER (obj)->name))
 	strout ("#<killed buffer>", -1, printcharfun);
       else if (escapeflag)
 	{
@@ -875,7 +875,7 @@ print (obj, printcharfun, escapeflag)
       strout ("#<window ", -1, printcharfun);
       sprintf (buf, "%d", XFASTINT (XWINDOW (obj)->sequence_number));
       strout (buf, -1, printcharfun);
-      if (!NULL (XWINDOW (obj)->buffer))
+      if (!NILP (XWINDOW (obj)->buffer))
 	{
 	  strout (" on ", -1, printcharfun);
 	  print_string (XBUFFER (XWINDOW (obj)->buffer)->name, printcharfun);
