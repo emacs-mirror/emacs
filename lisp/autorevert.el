@@ -341,7 +341,7 @@ Use `auto-revert-mode' to revert a particular buffer."
        ((or (and (buffer-file-name)
 		 (file-readable-p (buffer-file-name))
 		 (not (verify-visited-file-modtime (current-buffer))))
-	    (and global-auto-revert-non-file-buffers
+	    (and (or auto-revert-mode global-auto-revert-non-file-buffers)
 		 revert-buffer-function
 		 (boundp 'buffer-stale-function)
 		 (functionp buffer-stale-function)
@@ -351,6 +351,9 @@ Use `auto-revert-mode' to revert a particular buffer."
 	(when auto-revert-verbose
 	  (message "Reverting buffer `%s'." (buffer-name)))
 	(revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)
+	;; `preserve-modes' avoids changing the (minor) modes.  But we
+	;; do want to reset the mode for VC, so we do it explicitly.
+	(vc-find-file-hook)
  	(if (eq revert 'vc)
  	    (vc-mode-line buffer-file-name))))))
 
@@ -404,11 +407,7 @@ the timer when no buffers need to be checked."
 		       (memq buf auto-revert-buffer-list))
 		  (setq auto-revert-buffer-list
 			(delq buf auto-revert-buffer-list)))
-	      (when (auto-revert-active-p)
-		(auto-revert-handler)
-		;; `preserve-modes' avoids changing the (minor) modes.  But we
-		;; do want to reset the mode for VC, so we do it explicitly.
-		(vc-find-file-hook)))
+	      (when (auto-revert-active-p) (auto-revert-handler)))
 	  ;; Remove dead buffer from `auto-revert-buffer-list'.
 	  (setq auto-revert-buffer-list
 		(delq buf auto-revert-buffer-list))))
