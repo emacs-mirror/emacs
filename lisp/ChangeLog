@@ -3,6 +3,7 @@
 	* Makefile.in (emacs): Set EMACSLOADPATH always.
 	(update-authors, .el.elc, compile-files): Don't do it explicitly
 	here.
+	(compile-files): Bomb out if compilation of a file fails.
 
 2000-11-02  Dave Love  <fx@gnu.org>
 
