@@ -191,14 +191,18 @@
 (define-charset nil 'tibetan-1-column
   [2 94 1 0 ?8 0 "Tibetan 1-col" "Tibetan 1 column" "Tibetan 1 column glyph"])
 
-
-;; This is a table of alternate charsets.
-(setq alternate-charset-table
-      '((japanese-jisx0208-1978 . japanese-jisx0208)
-	(latin-jisx0201 . ascii)))
-
 ;; Tell C code charset ID's of several charsets.
 (setup-special-charsets)
+
+
+;; This is a table of alternate charsets.
+(setq standard-character-unification-table-for-read
+      (make-unification-table
+       (list (cons (make-char 'japanese-jisx0208-1978)
+		   (make-char 'japanese-jisx0208))
+	     (cons (make-char 'latin-jisx0201) (make-char 'ascii)))))
+
+(setq standard-character-unification-table-for-write nil)
 
 
 ;;; Make fundamental coding systems.
@@ -298,8 +302,8 @@
       coding-category-sjis	'sjis
       coding-category-iso-7	'iso-2022-7
       coding-category-iso-8-1	'iso-8859-1
-      coding-category-iso-8-2	'euc-japan
-      coding-category-iso-else	'iso-2022-cjk
+      coding-category-iso-8-2	'iso-8859-1
+      coding-category-iso-else	'iso-8859-1
       coding-category-big5	'big5
       coding-category-binary	'no-conversion)
 
