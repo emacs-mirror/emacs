@@ -3,6 +3,7 @@
 ;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
+;; Maintainer: eggert@twinsun.com
 ;; Version: 5.5
 
 ;; This file is part of GNU Emacs.
