@@ -4192,7 +4192,7 @@ Fortran_functions (inf)
 /*
  * Ada parsing
  * Original code by
- * Philippe Waroquiers <philippe.waroquiers@eurocontrol.int> (1998)
+ * Philippe Waroquiers (1998)
  */
 
 static void Ada_getit __P((FILE *, char *));
