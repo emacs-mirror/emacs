@@ -435,23 +435,25 @@ it is displayed along with the global value."
 		  (forward-line -1)
 		  (insert "Automatically becomes buffer-local when set in any fashion.\n"))))
  	    ;; Mention if it's an alias
-            (let ((alias (condition-case nil
+            (let* ((alias (condition-case nil
                              (indirect-variable variable)
-                           (error variable))))
+                           (error variable)))
+                   (obsolete (get variable 'byte-obsolete-variable))
+                   (doc (or (documentation-property variable 'variable-documentation)
+                            (documentation-property alias 'variable-documentation))))
               (unless (eq alias variable)
                 (princ (format "This variable is an alias for `%s'." alias))
                 (terpri)
-                (terpri)))
-	    (let ((obsolete (get variable 'byte-obsolete-variable)))
-	      (when obsolete
-		(princ "This variable is obsolete")
-		(if (cdr obsolete) (princ (format " since %s" (cdr obsolete))))
-		(princ "; ") (terpri)
-		(princ (if (stringp (car obsolete)) (car obsolete)
-			 (format "use `%s' instead." (car obsolete))))
-		(terpri)))
-	    (let ((doc (documentation-property variable 'variable-documentation)))
-	      (princ (or doc "Not documented as a variable.")))
+                (terpri))
+              (when obsolete
+                (princ "This variable is obsolete")
+                (if (cdr obsolete) (princ (format " since %s" (cdr obsolete))))
+                (princ "; ") (terpri)
+                (princ (if (stringp (car obsolete)) (car obsolete)
+                         (format "use `%s' instead." (car obsolete))))
+                (terpri)
+                (terpri))
+              (princ (or doc "Not documented as a variable.")))
 	    ;; Make a link to customize if this variable can be customized.
 	    ;; Note, it is not reliable to test only for a custom-type property
 	    ;; because those are only present after the var's definition
