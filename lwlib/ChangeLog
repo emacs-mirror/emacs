@@ -1,3 +1,13 @@
+2001-02-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* lwlib-Xaw.c (xaw_update_one_widget): Use XtSetSensitive instead
+	of setting the value of XtNsensitive.
+
+	* lwlib-Xm.c (xm_update_radiobox, update_one_menu_entry)
+	(xm_update_one_widget): Use XtSetSensitive instead of setting the
+	value of XmNsensitive.  From Rick Scott
+	<rwscott@alumni.uwaterloo.ca>.
+
 2000-12-14  Dave Love  <fx@gnu.org>
 
 	* xlwmenu.c (gray_bitmap_bits): Remove `unsigned' from
