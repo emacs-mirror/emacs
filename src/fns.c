@@ -3269,7 +3269,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
 	    nesting++;
 	  tem = XCDR (tem);
 	}
-      if (nesting > 2)
+      if (nesting > 3)
 	error ("Recursive `require' for feature `%s'",
 	       SDATA (SYMBOL_NAME (feature)));
 
