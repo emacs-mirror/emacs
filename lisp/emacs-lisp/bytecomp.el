@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.126 $")
+(defconst byte-compile-version "$Revision: 2.127 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3538,11 +3538,20 @@ If FORM is a lambda or a macro, byte-compile it as a function."
       (byte-compile-set-symbol-position (car form))
     (byte-compile-set-symbol-position 'defun)
     (error "defun name must be a symbol, not %s" (car form)))
-  (byte-compile-two-args ; Use this to avoid byte-compile-fset's warning.
-   (list 'fset (list 'quote (nth 1 form))
-	 (byte-compile-byte-code-maker
-	  (byte-compile-lambda (cons 'lambda (cdr (cdr form)))))))
-  (byte-compile-discard)
+  (if (byte-compile-version-cond byte-compile-compatibility)
+      (progn
+	(byte-compile-two-args ; Use this to avoid byte-compile-fset's warning.
+	 (list 'fset
+	       (list 'quote (nth 1 form))
+	       (byte-compile-byte-code-maker
+		(byte-compile-lambda (cons 'lambda (cdr (cdr form)))))))
+	(byte-compile-discard))
+    (byte-compile-form
+     (list 'defalias
+	   (list 'quote (nth 1 form))
+	   (byte-compile-byte-code-maker
+	    (byte-compile-lambda (cons 'lambda (cdr (cdr form))))))
+     t))
   (byte-compile-constant (nth 1 form)))
 
 (defun byte-compile-defmacro (form)
