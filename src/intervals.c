@@ -62,7 +62,8 @@ create_root_interval (parent)
 
   if (XTYPE (parent) == Lisp_Buffer)
     {
-      new->total_length = BUF_Z (XBUFFER (parent)) - 1;
+      new->total_length = (BUF_Z (XBUFFER (parent))
+			   - BUF_BEG (XBUFFER (parent)));
       XBUFFER (parent)->intervals = new;
     }
   else if (XTYPE (parent) == Lisp_String)
@@ -347,9 +348,10 @@ rotate_left (interval)
   return B;
 }
 
-/* Split INTERVAL into two pieces, starting the second piece at character
-   position OFFSET (counting from 1), relative to INTERVAL.  The right-hand
-   piece (second, lexicographically) is returned.
+/* Split INTERVAL into two pieces, starting the second piece at
+   character position OFFSET (counting from 0), relative to INTERVAL.
+   INTERVAL becomes the left-hand piece, and the right-hand piece
+   (second, lexicographically) is returned.
 
    The size and position fields of the two intervals are set based upon
    those of the original interval.  The property list of the new interval
@@ -366,9 +368,9 @@ split_interval_right (interval, offset)
 {
   INTERVAL new = make_interval ();
   int position = interval->position;
-  int new_length = LENGTH (interval) - offset + 1;
+  int new_length = LENGTH (interval) - offset;
 
-  new->position = position + offset - 1;
+  new->position = position + offset;
   new->parent = interval;
 
   if (LEAF_INTERVAL_P (interval) || NULL_RIGHT_CHILD (interval))
@@ -389,9 +391,10 @@ split_interval_right (interval, offset)
   return new;
 }
 
-/* Split INTERVAL into two pieces, starting the second piece at character
-   position OFFSET (counting from 1), relative to INTERVAL.  The left-hand
-   piece (first, lexicographically) is returned.
+/* Split INTERVAL into two pieces, starting the second piece at
+   character position OFFSET (counting from 0), relative to INTERVAL.
+   INTERVAL becomes the right-hand piece, and the left-hand piece
+   (first, lexicographically) is returned.
 
    The size and position fields of the two intervals are set based upon
    those of the original interval.  The property list of the new interval
@@ -408,10 +411,10 @@ split_interval_left (interval, offset)
 {
   INTERVAL new = make_interval ();
   int position = interval->position;
-  int new_length = offset - 1;
+  int new_length = offset;
 
   new->position = interval->position;
-  interval->position = interval->position + offset - 1;
+  interval->position = interval->position + offset;
   new->parent = interval;
 
   if (NULL_LEFT_CHILD (interval))
@@ -1040,30 +1043,31 @@ make_new_interval (intervals, start, length)
   if (slot->position == start)
     {
       /* New right node. */
-      split_interval_right (slot, length + 1);
+      split_interval_right (slot, length);
       return slot;
     }
 
   if (slot->position + LENGTH (slot) == start + length)
     {
       /* New left node. */
-      split_interval_left (slot, LENGTH (slot) - length + 1);
+      split_interval_left (slot, LENGTH (slot) - length);
       return slot;
     }
 
   /* Convert interval SLOT into three intervals. */
-  split_interval_left (slot, start - slot->position + 1);
-  split_interval_right (slot, length + 1);
+  split_interval_left (slot, start - slot->position);
+  split_interval_right (slot, length);
   return slot;
 }
 #endif
 
 /* Insert the intervals of SOURCE into BUFFER at POSITION.
 
-   This is used in insdel.c when inserting Lisp_Strings into
-   the buffer.  The text corresponding to SOURCE is already in
-   the buffer when this is called.  The intervals of new tree are
-   those belonging to the string being inserted;  a copy is not made.
+   This is used in insdel.c when inserting Lisp_Strings into the
+   buffer.  The text corresponding to SOURCE is already in the buffer
+   when this is called.  The intervals of new tree are a copy of those
+   belonging to the string being inserted; intervals are never
+   shared.
 
    If the inserted text had no intervals associated, this function
    simply returns -- offset_intervals should handle placing the
@@ -1108,7 +1112,7 @@ graft_intervals_into_buffer (source, position, buffer)
     {
       /* The inserted text constitutes the whole buffer, so
 	 simply copy over the interval structure. */
-      if (BUF_Z (buffer) == TOTAL_LENGTH (source))
+      if ((BUF_Z (buffer) - BUF_BEG (buffer)) == TOTAL_LENGTH (source))
 	{
 	  buffer->intervals = reproduce_tree (source, tree->parent);
 	  /* Explicitly free the old tree here. */
@@ -1154,7 +1158,7 @@ graft_intervals_into_buffer (source, position, buffer)
   if (position > under->position)
     {
       INTERVAL end_unchanged
-	= split_interval_left (this, position - under->position + 1);
+	= split_interval_left (this, position - under->position);
       copy_properties (under, end_unchanged);
       under->position = position;
       prev = 0;
@@ -1173,9 +1177,8 @@ graft_intervals_into_buffer (source, position, buffer)
      which means it gets those properties. */
   while (! NULL_INTERVAL_P (over))
     {
-      position = LENGTH (over) + 1;
-      if (position < LENGTH (under))
-	this = split_interval_left (under, position);
+      if (LENGTH (over) + 1 < LENGTH (under))
+	this = split_interval_left (under, LENGTH (over));
       else
 	this = under;
       copy_properties (over, this);
@@ -1619,7 +1622,7 @@ copy_intervals (tree, start, length)
   while (got < length)
     {
       i = next_interval (i);
-      t = split_interval_right (t, prevlen + 1);
+      t = split_interval_right (t, prevlen);
       copy_properties (i, t);
       prevlen = LENGTH (i);
       got += prevlen;
