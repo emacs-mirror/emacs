@@ -271,7 +271,7 @@ Possible values are:
   "Number of buffers to restore immediately.
 Remaining buffers are restored lazily (when Emacs is idle).
 If value is t, all buffers are restored immediately."
-  :type '(choise (const t) integer)
+  :type '(choice (const t) integer)
   :group 'desktop
   :version "21.4")
 

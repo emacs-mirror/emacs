@@ -1,3 +1,7 @@
+2005-01-09  David Kastrup  <dak@gnu.org>
+
+	* desktop.el (desktop-restore-eager): Fix typo in type.
+
 2005-01-08  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-edit.el (customize): Delete :link.
