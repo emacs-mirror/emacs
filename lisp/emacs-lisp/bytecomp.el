@@ -1200,8 +1200,8 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
 	  (save-excursion
 	    (display-call-tree filename)))
       (if load
-	  (load target-file))))
-  t)
+	  (load target-file))
+      t)))
 
 ;;(defun byte-compile-and-load-file (&optional filename)
 ;;  "Compile a file of Lisp code named FILENAME into a file of byte code,
