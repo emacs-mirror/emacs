@@ -1756,7 +1756,7 @@ way suits you best.
 Set this to @code{nil}, if you want @kbd{l,h} to cross
 lines, etc.  @xref{Movement and Markers}, for more info.
 @item viper-ex-style-editing t
-Set this to to @code{nil}, if you want
+Set this to @code{nil}, if you want
 @kbd{C-h} and @key{DEL} to not stop
 at the beginning of a line in Insert state, @key{X} and @key{x} to delete
 characters across lines in Vi command state, etc.
@@ -4382,7 +4382,7 @@ you need.
 @node Mouse-bound Commands,,,Commands
 @section Mouse-bound Commands
 
-The following two mouse actions are normally bound to to special search and
+The following two mouse actions are normally bound to special search and
 insert commands in of Viper:
 
 @table @kbd
