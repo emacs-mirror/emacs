@@ -556,7 +556,7 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
 			     Vautoload_queue);
   XSYMBOL (sym)->function = newdef;
   /* Handle automatic advice activation */
-  if (!NILP (Fget (sym, Qadvice_info)))
+  if (CONSP (XSYMBOL (sym)->plist) && !NILP (Fget (sym, Qadvice_info)))
     {
       call2 (Qactivate_advice, sym, Fbyte_code_function_p (newdef));
       newdef = XSYMBOL (sym)->function;
