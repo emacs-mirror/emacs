@@ -1501,6 +1501,7 @@ M-RET    message-newline-and-reformat (break the line and reformat)."
   (set (make-local-variable 'message-checksum) nil)
   (set (make-local-variable 'message-mime-part) 0)
   (message-setup-fill-variables)
+  ;; Allow using comment commands to add/remove quoting.
   (set (make-local-variable 'comment-start) message-yank-prefix)
   ;;(when (fboundp 'mail-hist-define-keys)
   ;;  (mail-hist-define-keys))
