@@ -1,5 +1,11 @@
 2000-06-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* keymap.c (get_keyelt): For menu-items containing a `:filter
+	FILTER', apply FILTER to the menu-item's definition to get the
+	real definition to use.
+
+	* lisp.h (QCfilter): External declaration.
+
 	* xfns.c (Fimage_size): New function.
 	(syms_of_xfns): Defsubr it.
 
@@ -54,7 +60,7 @@
 	include time.h, done by systime.h.
 	[__FreeBSD__]: Remove redundant includes.
 
-	* callproc.c: (setpgrp): Undefine before defining.
+	* callproc.c (setpgrp): Undefine before defining.
 	(delete_temp_file): Return Qnil to avoid warning.
 
 	* config.in (HAVE_TERM_H, HAVE_STRUCT_TIMEZONE): Add.
