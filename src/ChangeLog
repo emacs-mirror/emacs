@@ -1,3 +1,7 @@
+2004-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (make_temp_name): Handle multibyte prefixes.
+
 2004-08-06  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* keyboard.c (syms_of_keyboard) <overriding-terminal-local-map>:
