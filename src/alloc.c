@@ -463,7 +463,7 @@ make_float (float_value)
       XSET (val, Lisp_Float, &float_block->floats[float_block_index++]);
     }
   XFLOAT (val)->data = float_value;
-  XFLOAT (val)->type = 0;	/* bug chasing -wsr */
+  XFASTINT (XFLOAT (val)->type) = 0;	/* bug chasing -wsr */
   consing_since_gc += sizeof (struct Lisp_Float);
   return val;
 }
@@ -1078,7 +1078,7 @@ make_pure_float (num)
   XSET (new, Lisp_Float, PUREBEG + pureptr);
   pureptr += sizeof (struct Lisp_Float);
   XFLOAT (new)->data = num;
-  XFLOAT (new)->type = 0;	/* bug chasing -wsr */
+  XFASTINT (XFLOAT (new)->type) = 0;	/* bug chasing -wsr */
   return new;
 }
 
