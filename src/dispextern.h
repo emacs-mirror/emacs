@@ -131,3 +131,4 @@ struct frame_glyphs
   };
 
 extern void get_display_line ();
+extern Lisp_Object sit_for ();
