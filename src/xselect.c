@@ -1577,6 +1577,7 @@ anything that the functions on `selection-converter-alist' know about.")
   (selection_name, selection_value)
      Lisp_Object selection_name, selection_value;
 {
+  check_x ();
   CHECK_SYMBOL (selection_name, 0);
   if (NILP (selection_value)) error ("selection-value may not be nil.");
   x_own_selection (selection_name, selection_value);
@@ -1600,6 +1601,7 @@ TYPE is the type of data desired, typically `STRING'.")
   Lisp_Object val = Qnil;
   struct gcpro gcpro1, gcpro2;
   GCPRO2 (target_type, val); /* we store newly consed data into these */
+  check_x ();
   CHECK_SYMBOL (selection_symbol, 0);
 
 #if 0 /* #### MULTIPLE doesn't work yet */
@@ -1648,6 +1650,7 @@ Disowning it means there is no such selection.")
   Atom selection_atom;
   XSelectionClearEvent event;
 
+  check_x ();
   CHECK_SYMBOL (selection, 0);
   if (NILP (time))
     timestamp = last_event_timestamp;
@@ -1708,6 +1711,7 @@ and t is the same as `SECONDARY'.)")
   (selection)
      Lisp_Object selection;
 {
+  check_x ();
   CHECK_SYMBOL (selection, 0);
   if (EQ (selection, Qnil)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
@@ -1731,6 +1735,7 @@ and t is the same as `SECONDARY'.)")
   Window owner;
   Atom atom;
   Display *dpy = x_current_display;
+  check_x ();
   CHECK_SYMBOL (selection, 0);
   if (!NILP (Fx_selection_owner_p (selection)))
     return Qt;
@@ -1801,6 +1806,7 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
   unsigned long size;
   Lisp_Object ret;
 
+  check_x ();
   CHECK_CUT_BUFFER (buffer, 0);
   buffer_atom = symbol_to_x_atom (display, buffer);
 
@@ -1835,6 +1841,7 @@ DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
   int max_bytes = SELECTION_QUANTUM (display);
   if (max_bytes > MAX_SELECTION_QUANTUM) max_bytes = MAX_SELECTION_QUANTUM;
 
+  check_x ();
   CHECK_CUT_BUFFER (buffer, 0);
   CHECK_STRING (string, 0);
   buffer_atom = symbol_to_x_atom (display, buffer);
@@ -1879,6 +1886,7 @@ positive means move values forward, negative means backward.")
   Window window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
   Atom props [8];
 
+  check_x ();
   CHECK_NUMBER (n, 0);
   if (XINT (n) == 0) return n;
   if (! cut_buffers_initialized) initialize_cut_buffers (display, window);
