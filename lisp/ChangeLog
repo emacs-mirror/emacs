@@ -1,3 +1,8 @@
+2004-03-17  Masatake YAMATO  <jet@gyve.org>
+
+	* smerge-mode.el (smerge-popup-context-menu): Put 
+	`unwind-protect' arround `overlay-put' and `popup-menu'. 
+
 2004-03-16  Masatake YAMATO  <jet@gyve.org>
 
 	* register.el (register): Provide `register' feature.
