@@ -3416,6 +3416,7 @@ If omitted or nil, that stands for the selected frame's display.")
 DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
   0, 1, 0,
   "Return t if the X display supports shades of gray.\n\
+Note that color displays do support shades of gray.\n\
 The optional argument DISPLAY specifies which display to ask about.\n\
 DISPLAY should be either a frame or a display name (a string).\n\
 If omitted or nil, that stands for the selected frame's display.")
@@ -3424,12 +3425,22 @@ If omitted or nil, that stands for the selected frame's display.")
 {
   struct x_display_info *dpyinfo = check_x_display_info (display);
 
-  if (dpyinfo->n_planes <= 2)
+  if (dpyinfo->n_planes <= 1)
     return Qnil;
 
-  return (dpyinfo->n_planes > 1
-	  && (dpyinfo->visual->class == StaticGray
-	      || dpyinfo->visual->class == GrayScale));
+  switch (dpyinfo->visual->class)
+    {
+    case StaticColor:
+    case PseudoColor:
+    case TrueColor:
+    case DirectColor:
+    case StaticGray:
+    case GrayScale:
+      return Qt;
+
+    default:
+      return Qnil;
+    }
 }
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
