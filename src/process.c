@@ -2994,7 +2994,14 @@ read_process_output (proc, channel)
 	 save the match data in a special nonrecursive fashion.  */
       running_asynch_code = 1;
 
-      text = make_string_from_bytes (chars, nchars, nbytes);
+      /* The multibyteness of a string given to the filter is decided
+         by which coding system we used for decoding.  */
+      if (coding->type == coding_type_no_conversion
+	  || coding->type == coding_type_raw_text)
+	text = make_unibyte_string (chars, nbytes);
+      else
+	text = make_multibyte_string (chars, nchars, nbytes);
+
       internal_condition_case_1 (read_process_output_call,
 				 Fcons (outstream,
 					Fcons (proc, Fcons (text, Qnil))),
