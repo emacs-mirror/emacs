@@ -242,16 +242,16 @@ This function is added to `fontification-functions' when `jit-lock-mode'
 is active."
   (when jit-lock-mode
     (with-buffer-prepared-for-font-lock
-     (let ((end (min (point-max) (+ start jit-lock-chunk-size)))
-	   (parse-sexp-lookup-properties font-lock-syntactic-keywords)
-	   (old-syntax-table (syntax-table))
-	   (font-lock-beginning-of-syntax-function nil)
-	   next font-lock-start font-lock-end)
-       (when font-lock-syntax-table
-	 (set-syntax-table font-lock-syntax-table))
-       (save-excursion
-	 (save-restriction
-	   (widen)
+     (save-excursion
+       (save-restriction
+	 (widen)
+	 (let ((end (min (point-max) (+ start jit-lock-chunk-size)))
+	       (parse-sexp-lookup-properties font-lock-syntactic-keywords)
+	       (font-lock-beginning-of-syntax-function nil)
+	       (old-syntax-table (syntax-table))
+	       next font-lock-start font-lock-end)
+	   (when font-lock-syntax-table
+	     (set-syntax-table font-lock-syntax-table))
 	   (save-match-data
 	     (condition-case error
 		 ;; Fontify chunks beginning at START.  The end of a
@@ -281,10 +281,10 @@ is active."
 		   (setq start (text-property-any next end 'fontified nil)))
 	       
 	       ((error quit)
-		(message "Fontifying region...%s" error))))))
+		(message "Fontifying region...%s" error))))
        
-       ;; Restore previous buffer settings.
-       (set-syntax-table old-syntax-table)))))
+	   ;; Restore previous buffer settings.
+	   (set-syntax-table old-syntax-table)))))))
 
 
 (defun jit-lock-after-fontify-buffer ()
@@ -307,39 +307,44 @@ Called from `font-lock-after-fontify-buffer."
 (defsubst jit-lock-stealth-chunk-start (around)
   "Return the start of the next chunk to fontify around position AROUND..
 Value is nil if there is nothing more to fontify."
-  (save-restriction
-    (widen)
-    (let ((prev (previous-single-property-change around 'fontified))
-	  (next (text-property-any around (point-max) 'fontified nil))
-	  (prop (get-text-property around 'fontified)))
-      (cond ((and (null prop)
-		  (< around (point-max)))
-	     ;; Text at position AROUND is not fontified.  The value of
-	     ;; prev, if non-nil, is the start of the region of
-	     ;; unfontified text.  As a special case, prop will always
-	     ;; be nil at point-max.  So don't handle that case here.
-	     (max (or prev (point-min))
-		  (- around jit-lock-chunk-size)))
-	    
-	    ((null prev)
-	     ;; Text at AROUND is fontified, and everything up to
-	     ;; point-min is.  Return the value of next.  If that is
-	     ;; nil, there is nothing left to fontify.
-	     next)
-	    
-	    ((or (null next)
-		 (< (- around prev) (- next around)))
-	     ;; We either have no unfontified text following AROUND, or
-	     ;; the unfontified text in front of AROUND is nearer.  The
-	     ;; value of prev is the end of the region of unfontified
-	     ;; text in front of AROUND.
-	     (let ((start (previous-single-property-change prev 'fontified)))
-	       (max (or start (point-min))
-		    (- prev jit-lock-chunk-size))))
-	    
-	    (t
-	     next)))))
-
+  (if (zerop (buffer-size))
+      nil
+    (save-restriction
+      (widen)
+      (let* ((next (text-property-any around (point-max) 'fontified nil))
+	     (prev (previous-single-property-change around 'fontified))
+	     (prop (get-text-property (max (point-min) (1- around))
+				      'fontified))
+	     (start (cond
+		     ((null prev)
+		      ;; There is no property change between AROUND
+		      ;; and the start of the buffer.  If PROP is
+		      ;; non-nil, everything in front of AROUND is
+		      ;; fontified, otherwise nothing is fontified.
+		      (if prop
+			  nil
+			(max (point-min)
+			     (- around (/ jit-lock-chunk-size 2)))))
+		     (prop
+		      ;; PREV is the start of a region of fontified
+		      ;; text containing AROUND.  Start fontfifying a
+		      ;; chunk size before the end of the unfontified
+		      ;; region in front of that.
+		      (max (or (previous-single-property-change prev 'fontified)
+			       (point-min))
+			   (- prev jit-lock-chunk-size)))
+		     (t
+		      ;; PREV is the start of a region of unfontified
+		      ;; text containing AROUND.  Start at PREV or
+		      ;; chunk size in front of AROUND, whichever is
+		      ;; nearer.
+		      (max prev (- around jit-lock-chunk-size)))))
+	     (result (cond ((null start) next)
+			   ((null next) start)
+			   ((< (- around start) (- next around)) start)
+			   (t next))))
+	result))))
+	
 
 (defun jit-lock-stealth-fontify ()
   "Fontify buffers stealthily.
@@ -350,10 +355,10 @@ This functions is called after Emacs has been idle for
     (let ((buffers (buffer-list))
 	  minibuffer-auto-raise
 	  message-log-max)
-      (while (and buffers
-		  (not (input-pending-p)))
+      (while (and buffers (not (input-pending-p)))
 	(let ((buffer (car buffers)))
 	  (setq buffers (cdr buffers))
+	  
 	  (with-current-buffer buffer
 	    (when jit-lock-mode
 	      ;; This is funny.  Calling sit-for with 3rd arg non-nil
@@ -373,7 +378,7 @@ This functions is called after Emacs has been idle for
 	      (with-temp-message (if jit-lock-stealth-verbose
 				     (concat "JIT stealth lock "
 					     (buffer-name)))
-	      
+
 		;; Perform deferred unfontification, if any.
 		(when jit-lock-first-unfontify-pos
 		  (save-restriction
@@ -388,8 +393,7 @@ This functions is called after Emacs has been idle for
 		(let (start
 		      (nice (or jit-lock-stealth-nice 0))
 		      (point (point)))
-		  (while (and (setq start
-				    (jit-lock-stealth-chunk-start point))
+		  (while (and (setq start (jit-lock-stealth-chunk-start point))
 			      (sit-for nice))
 		    
 		    ;; Wait a little if load is too high.
