@@ -1,3 +1,14 @@
+2003-01-07  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: Fix some dependencies.
+
+	* keymap.c (Fapropos_internal): Don't gcpro apropos_predicate but
+	set it to nil before returning.
+
+	* composite.c (update_compositions): Fix type error.
+
+	* syntax.c (skip_chars, skip_syntaxes): Fix type errors.
+
 2003-01-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* xterm.c (x_new_font): Optimize for the case that the font is

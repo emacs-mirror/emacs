@@ -1,3 +1,16 @@
+2003-01-07  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/byte-opt.el (side-effect-free-fns): Add langinfo,
+	multibyte-char-to-unibyte.
+
+	* emacs-lisp/cl-macs.el (cl-make-type-test): Use characterp.
+
+	* international/mule-cmds.el (find-coding-systems-for-charsets):
+	Use coding-system-type, coding-system-charset-list.
+	(standard-keyboard-coding-systems): Deleted.
+	(set-locale-environment): Maybe set keyboard coding system.  Avoid
+	typical warning about codeset in C locale.
+
 2003-01-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/fontset.el (x-complement-fontset-spec): If a
