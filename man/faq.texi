@@ -3592,19 +3592,22 @@ FAQ, we use the name ``Emacs'' only for the official version.
 
 Emacs and XEmacs each come with Lisp packages that are lacking in the
 other.  The two versions have some significant differences at the Lisp
-programming level.
+programming level.  Many XEmacs features have found their way into
+recent versions of Emacs, and more features can be expected in the
+future, but there are still many differences between the two.
 
-Many XEmacs features have found their way into recent versions of Emacs,
-and more features can be expected in the future, but there are still many
-differences between the two.
+We have used some of the code in XEmacs, and would like to use other
+parts, but the earlier XEmacs maintainers did not always keep track of
+the authors of contributed code, which makes it impossible for the FSF
+to get copyright papers signed for that code.  (The FSF requires these
+papers for all the code included in the Emacs release, aside from
+generic C support packages that retain their separate identity and are
+not integrated into the code of Emacs proper.)
 
-The FSF has used some of the code in XEmacs, and would like to use
-other parts, but the earlier XEmacs maintainers did not always keep
-track of the authors of contributed code, which makes it impossible
-for the FSF to get copyright papers signed for that code.  (The FSF
-requires these papers for all the code included in Emacs, aside from
-generic C support packages that are not integrated into the code of
-Emacs proper.)
+If you want to talk about these two versions and distinguish them,
+please call them ``Emacs'' and ``XEmacs.''  To contrast ``XEmacs''
+with ``GNU Emacs'' would be misleading, since XEmacs too has its
+origin in the GNU Project.
 
 @node Emacs for MS-DOS, Emacs for Windows, Difference between Emacs and XEmacs, Finding Emacs and related packages
 @section Where can I get Emacs for my PC running MS-DOS?
