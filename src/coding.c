@@ -2897,7 +2897,7 @@ detect_coding_utf_16 (src, src_end, multibytep)
      int multibytep;
 {
   unsigned char c1, c2;
-  /* Dummy for TWO_MORE_BYTES.  */
+  /* Dummy for ONE_MORE_BYTE_CHECK_MULTIBYTE.  */
   struct coding_system dummy_coding;
   struct coding_system *coding = &dummy_coding;
 
@@ -5200,10 +5200,11 @@ static int shrink_conversion_region_threshhold = 1024;
   } while (0)
 
 static Lisp_Object
-code_convert_region_unwind (dummy)
-     Lisp_Object dummy;
+code_convert_region_unwind (arg)
+     Lisp_Object arg;
 {
   inhibit_pre_post_conversion = 0;
+  Vlast_coding_system_used = arg;
   return Qnil;
 }
 
@@ -5447,7 +5448,8 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       struct buffer *prev = current_buffer;
       Lisp_Object new;
 
-      record_unwind_protect (code_convert_region_unwind, Qnil);
+      record_unwind_protect (code_convert_region_unwind,
+			     Vlatin_extra_code_table);
       /* We should not call any more pre-write/post-read-conversion
          functions while this pre-write-conversion is running.  */
       inhibit_pre_post_conversion = 1;
@@ -5805,16 +5807,22 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       && ! encodep && ! NILP (coding->post_read_conversion))
     {
       Lisp_Object val;
+      Lisp_Object saved_coding_system;
 
       if (from != PT)
 	TEMP_SET_PT_BOTH (from, from_byte);
       prev_Z = Z;
-      record_unwind_protect (code_convert_region_unwind, Qnil);
+      record_unwind_protect (code_convert_region_unwind,
+			     Vlast_coding_system_used);
+      saved_coding_system = Vlast_coding_system_used;
+      Vlast_coding_system_used = coding->symbol;
       /* We should not call any more pre-write/post-read-conversion
          functions while this post-read-conversion is running.  */
       inhibit_pre_post_conversion = 1;
       val = call1 (coding->post_read_conversion, make_number (inserted));
       inhibit_pre_post_conversion = 0;
+      coding->symbol = Vlast_coding_system_used;
+      Vlast_coding_system_used = saved_coding_system;
       /* Discard the unwind protect.  */
       specpdl_ptr--;
       CHECK_NUMBER (val);
@@ -5860,7 +5868,8 @@ run_pre_post_conversion_on_str (str, coding, encodep)
   Lisp_Object old_deactivate_mark;
 
   record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
-  record_unwind_protect (code_convert_region_unwind, Qnil);
+  record_unwind_protect (code_convert_region_unwind,
+			 Vlast_coding_system_used);
   /* It is not crucial to specbind this.  */
   old_deactivate_mark = Vdeactivate_mark;
   GCPRO2 (str, old_deactivate_mark);
@@ -5890,8 +5899,10 @@ run_pre_post_conversion_on_str (str, coding, encodep)
     call2 (coding->pre_write_conversion, make_number (BEG), make_number (Z));
   else
     {
+      Vlast_coding_system_used = coding->symbol;
       TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
       call1 (coding->post_read_conversion, make_number (Z - BEG));
+      coding->symbol = Vlast_coding_system_used;
     }
   inhibit_pre_post_conversion = 0;
   Vdeactivate_mark = old_deactivate_mark;
