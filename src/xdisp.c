@@ -1838,21 +1838,23 @@ redisplay_window (window, just_this_one, preserve_echo_area)
       && !EQ (window, minibuf_window))
     {
       int this_scroll_margin = scroll_margin;
+      int last_point_y = w->last_point_y - XINT (w->top);
+      int last_point_x = (w->last_point_x
+			  + (hscroll ? 1 - hscroll : 0)
+			  - WINDOW_LEFT_MARGIN (w));
 
       /* Find where PT is located now on the frame.  */
-      if (PT == w->last_point)
+      /* Check just_this_one as a way of verifying that the 
+	 window edges have not changed.  */
+      if (PT == w->last_point && just_this_one)
 	{
-	  pos.hpos = (w->last_point_x
-		      + (hscroll ? 1 - hscroll : 0)
-		      - WINDOW_LEFT_MARGIN (w));
-	  pos.vpos = w->last_point_y;
+	  pos.hpos = last_point_x;
+	  pos.vpos = last_point_y;
 	  pos.bufpos = PT;
 	}
-      else if (PT > w->last_point)
+      else if (PT > w->last_point && w->last_point > startp && just_this_one)
 	{
-	  pos = *compute_motion (w->last_point, w->last_point_y,
-				 w->last_point_x + (hscroll ? 1 - hscroll : 0),
-				 0,
+	  pos = *compute_motion (w->last_point, last_point_y, last_point_x, 0,
 				 PT, height,
 				 /* BUG FIX: See the comment of
 				    Fpos_visible_in_window_p (window.c).  */
@@ -4105,12 +4107,14 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
      int eol_flag;
 {
   Lisp_Object val;
+  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   val = coding_system;
 
   if (NILP (val))		/* Not yet decided.  */
     {
-      *buf++ = '-';
+      if (multibyte)
+	*buf++ = '-';
       if (eol_flag)
 	*buf++ = eol_mnemonic_undecided;
       /* Don't mention EOL conversion if it isn't decided.  */
@@ -4128,7 +4132,9 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 	    eolvalue = Fget (val, Qeol_type);
 	}
 
-      *buf++ = XFASTINT (XVECTOR (val)->contents[1]);
+      if (multibyte)
+	*buf++ = XFASTINT (XVECTOR (val)->contents[1]);
+
       if (eol_flag)
 	{
 	  /* The EOL conversion we are using.  */
