@@ -514,7 +514,7 @@ interval_of (position, object)
     }
 
   if (!(beg <= position && position <= end))
-    args_out_of_range (position, position);
+    args_out_of_range (make_number (position), make_number (position));
   if (beg == end || NULL_INTERVAL_P (i))
     return NULL_INTERVAL;
     
