@@ -253,10 +253,10 @@ There are several ways to improve this performance, any subset of which can
 be carried out at the same time:
 
 1) If you don't need X Input Methods (XIM) for entering text in some
-   language you use, you can improve performance on WAN links by
-   configuring Emacs with option `--without-xim'.  Configuring Emacs
-   without XIM does not affect the use of Emacs' own input methods, which
-   are part of the Leim package.
+   language you use, you can improve performance on WAN links by using
+   the X resource useXIM to turn off use of XIM.  This does not affect
+   the use of Emacs' own input methods, which are part of the Leim
+   package.
 
 2) If the connection is very slow, you might also want to consider
    switching off scroll bars, menu bar, and tool bar.
@@ -274,7 +274,7 @@ be carried out at the same time:
     -noatomsfile  -nowinattr  -cheaterrors -cheatevents
    Note that the -nograbcmap option is known to cause problems.
    For more about lbxproxy, see:
-   http://www.xfree86.org/4.2.0/lbxproxy.1.html
+   http://www.xfree86.org/4.3.0/lbxproxy.1.html
 
 * Getting a Meta key on the FreeBSD console
 
@@ -510,10 +510,7 @@ yet.)
 Windows uses UTF-16 encoding to deal with multilingual text (text not
 encodable in the `system codepage') in the clipboard.  To deal with
 this, load the library `utf-16' and use `set-selection-coding-system'
-to set the clipboard coding system to `utf-16-le-dos'.  This won't
-cope with Far Eastern (`CJK') text; if necessary, install the Mule-UCS
-package (see etc/MORE.STUFF), whose `utf-16-le-dos' coding system does
-encode a lot of CJK characters.
+to set the clipboard coding system to `utf-16-le-with-signature-dos'.
 
 The %b specifier for format-time-string does not produce abbreviated
 month names with consistent widths for some locales on some versions
@@ -752,10 +749,10 @@ argument "-x" from the variable `ldap-ldapsearch-args'.
 * The `oc-unicode' package doesn't work with Emacs 21.
 
 This package tries to define more private charsets than there are free
-slots now.  If the built-in Unicode/UTF-8 support is insufficient,
-e.g. if you need more CJK coverage, use the current Mule-UCS package.
-Any files encoded as emacs-mule using oc-unicode won't be read
-correctly by Emacs 21.
+slots now.  The current built-in Unicode support is actually more
+flexible.  (Use option `utf-translate-cjk-mode' if you need CJK
+support.)  Files encoded as emacs-mule using oc-unicode aren't
+generally read correctly by Emacs 21.
 
 * Using epop3.el package causes Emacs to signal an error.
 
