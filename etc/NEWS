@@ -1322,6 +1322,9 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** The meaning of the `:weakness WEAK' argument of make-hash-table
+has been changed.
+
 ** Function `aset' stores any multibyte character in any string
 without signaling "Attempt to change char length of a string".  It may
 convert a unibyte string to multibyte if necessary.
@@ -1836,10 +1839,11 @@ hash table.  It is resized when the ratio of (number of entries) /
 
 :weakness WEAK
 
-WEAK must be either nil, one of the symbols `key, `value', or t.
-Entries are removed from weak tables during garbage collection if
-their key and/or value are not referenced elsewhere outside of the
-hash table.  Default are non-weak hash tables.
+WEAK must be either nil, one of the symbols `key, `value',
+`key-or-value', `key-and-value', or t, meaning the same as
+`key-and-value'.  Entries are removed from weak tables during garbage
+collection if their key and/or value are not referenced elsewhere
+outside of the hash table.  Default are non-weak hash tables.
 
 - Function: makehash &optional TEST
 

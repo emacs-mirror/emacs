@@ -1,3 +1,12 @@
+2000-07-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* fns.c (Qkey_or_value, Qkey_and_value): New variables.
+	(syms_of_fns): Initialize new variables.
+	(sweep_weak_table): Handle weakness `key-or-value' and
+	`key-and-value'.
+	(Fmake_hash_table): Recognize `key-and-value' and `key-or-value'
+	weakness, with t meaning the same as `key-and-value'.
+
 2000-07-27  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.h (struct coding_system): Member safe_charset deleted.

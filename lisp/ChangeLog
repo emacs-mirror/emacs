@@ -1,3 +1,7 @@
+2000-07-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* play/meese.el: Add Commentary section.
+
 2000-07-27  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (register-char-codings): New function.
@@ -55,6 +59,7 @@
 	interpretation of the return value of compare-strings.
 
 2000-07-26  Gerd Moellmann  <gerd@gnu.org>
+>>>>>>> 1.883
 
 	* isearch.el (isearch-resume): New function.
 	(isearch-done): Add something to command-history to resume

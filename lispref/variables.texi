@@ -659,7 +659,7 @@ variable.  Here's a safe way to avoid that:
   @var{docstring})
 (unless my-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key my-mode-map "\C-c\C-a" 'my-command)
+    (define-key map "\C-c\C-a" 'my-command)
     @dots{}
     (setq my-mode-map map)))
 @end example
