@@ -62,6 +62,22 @@ BODY should be a list of lisp expressions."
   (cons 'if (cons cond (cons nil body))))
 (put 'unless 'lisp-indent-function 1)
 (put 'unless 'edebug-form-spec '(&rest form))
+
+(defsubst caar (x)
+  "Return the car of the car of X."
+  (car (car x)))
+
+(defsubst cadr (x)
+  "Return the car of the cdr of X."
+  (car (cdr x)))
+
+(defsubst cdar (x)
+  "Return the cdr of the car of X."
+  (cdr (car x)))
+
+(defsubst cddr (x)
+  "Return the cdr of the cdr of X."
+  (cdr (cdr x)))
 
 ;;;; Keymap support.
 
