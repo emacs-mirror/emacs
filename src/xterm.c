@@ -14286,6 +14286,7 @@ x_load_font (f, fontname, size)
     BLOCK_INPUT;
     fontp->font = font;
     fontp->font_idx = i;
+    fontp->charset = -1;	/* fs_load_font sets it.  */
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
