@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.47) $
+ * $HopeName: MMsrc!pool.c(trunk.48) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.47) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.48) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -732,6 +732,7 @@ Res PoolNoAccess(Pool pool, Seg seg, Addr addr, AccessSet mode)
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
   /* can't check AccessSet as there is no Check method */
+  UNUSED(mode);
 
   NOTREACHED;
   return ResUNIMPL;
@@ -745,10 +746,6 @@ Res PoolNoAccess(Pool pool, Seg seg, Addr addr, AccessSet mode)
  */
 Res PoolSegAccess(Pool pool, Seg seg, Addr addr, AccessSet mode)
 {
-  Arena arena;
-  Res res;
-  TraceId ti;
-
   AVERT(Pool, pool);
   AVERT(Seg, seg);
   AVER(SegBase(seg) <= addr);
