@@ -1,3 +1,21 @@
+2002-07-16  Andre Spiegel  <spiegel@gnu.org>
+
+	* files.el: Bind toggle-read-only to C-x C-q.
+	(toggle-read-only): Display a warning message if the file is under
+	version control.
+
+	* vc-hooks.el: Don't bind vc-toggle-read-only to C-x C-q.
+	(vc-toggle-read-only): Explain in the doc string that users can bind
+	this to C-x C-q.
+	(vc-checkout-model): Change doc string to refer to vc-next-action,
+	not vc-toggle-read-only.
+
+	* vc.el (vc-next-action-on-file): Ignore buffer-read-only while 
+	comparing to file on disk.  Fix the case when claiming the lock 
+	on a file that has unlocked changes.
+	(vc-log-mode): Don't mention vc-toggle-read-only in the doc
+	string.
+
 2002-07-16  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (choose-completion-string): Doc fix.
