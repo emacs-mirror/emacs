@@ -4,6 +4,12 @@
 
 2000-10-15  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-syntax):
+	Use plist-get and allow :inherit.
+
+	* emacs-lisp/cl-macs.el (cl-do-arglist):
+	Use plist-get and plist-member instead of memq.
+
 	* emacs-lisp/ewoc.el (ewoc-location): New function.
 	(ewoc-enter-after, ewoc-enter-before): Document return value.
 	* pcvs.el (cvs-make-cvs-buffer, cvs-run-process):
