@@ -1,3 +1,9 @@
+2003-05-28  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* custom.texi (Init Rebinding): Xref Non-ASCII Rebinding, for
+	non-English letters.  Explain how to set coding systems correctly
+	and how to include the right coding cookie in the file.
+
 2003-05-24  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* trampver.texi: Version 2.0.34 released.
