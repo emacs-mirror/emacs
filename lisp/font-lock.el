@@ -473,13 +473,6 @@ Other variables include those for buffer-specialised fontification functions,
 	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
 	   ;(font-lock-comment-start-regexp . ";")
 	   (font-lock-mark-block-function . mark-defun)))
-	(scheme-mode-defaults
-	 '((scheme-font-lock-keywords
-	    scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
-	   nil t (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
-	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
-	   ;(font-lock-comment-start-regexp . ";")
-	   (font-lock-mark-block-function . mark-defun)))
 	;; For TeX modes we could use `backward-paragraph' for the same reason.
 	;; But we don't, because paragraph breaks are arguably likely enough to
 	;; occur within a genuine syntactic block to make it too risky.
@@ -499,13 +492,10 @@ Other variables include those for buffer-specialised fontification functions,
      (cons 'objc-mode			objc-mode-defaults)
      (cons 'java-mode			java-mode-defaults)
      (cons 'emacs-lisp-mode		lisp-mode-defaults)
-     (cons 'inferior-scheme-mode	scheme-mode-defaults)
      (cons 'latex-mode			tex-mode-defaults)
      (cons 'lisp-mode			lisp-mode-defaults)
      (cons 'lisp-interaction-mode	lisp-mode-defaults)
      (cons 'plain-tex-mode		tex-mode-defaults)
-     (cons 'scheme-mode			scheme-mode-defaults)
-     (cons 'scheme-interaction-mode	scheme-mode-defaults)
      (cons 'slitex-mode			tex-mode-defaults)
      (cons 'tex-mode			tex-mode-defaults)))
   "Alist of fall-back Font Lock defaults for major modes.
@@ -1993,64 +1983,6 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 
 (defvar lisp-font-lock-keywords lisp-font-lock-keywords-1
   "Default expressions to highlight in Lisp modes.")
-
-;; Scheme.
-
-(defconst scheme-font-lock-keywords-1
-  (eval-when-compile
-    (list
-     ;;
-     ;; Declarations.  Hannes Haug <hannes.haug@student.uni-tuebingen.de> says
-     ;; this works for SOS, STklos, SCOOPS, Meroon and Tiny CLOS.
-     (list (concat "(\\(define\\("
-		   ;; Function names.
-		   "\\(\\|-method\\|-generic\\(-procedure\\)?\\)\\|"
-		   ;; Macro names, as variable names.  A bit dubious, this.
-		   "\\(-syntax\\)\\|"
-		   ;; Class names.
-		   "-class"
-		   "\\)\\)\\>"
-		   ;; Any whitespace and declared object.
-		   "[ \t]*(?"
-		   "\\(\\sw+\\)?")
-	   '(1 font-lock-keyword-face)
-	   '(6 (cond ((match-beginning 3) font-lock-function-name-face)
-		     ((match-beginning 5) font-lock-variable-name-face)
-		     (t font-lock-type-face))
-	       nil t))
-     ))
-  "Subdued expressions to highlight in Scheme modes.")
-
-(defconst scheme-font-lock-keywords-2
-  (append scheme-font-lock-keywords-1
-   (eval-when-compile
-     (list
-      ;;
-      ;; Control structures.
-      (cons
-       (concat
-	"(" (regexp-opt
-	     '("begin" "call-with-current-continuation" "call/cc"
-	       "call-with-input-file" "call-with-output-file" "case" "cond"
-	       "do" "else" "for-each" "if" "lambda"
-	       "let" "let*" "let-syntax" "letrec" "letrec-syntax"
-	       ;; Hannes Haug <hannes.haug@student.uni-tuebingen.de> wants:
-	       "and" "or" "delay"
-	       ;; Stefan Monnier <stefan.monnier@epfl.ch> says don't bother:
-	       ;;"quasiquote" "quote" "unquote" "unquote-splicing"
-	       "map" "syntax" "syntax-rules") t)
-	"\\>") 1)
-      ;;
-      ;; David Fox <fox@graphics.cs.nyu.edu> for SOS/STklos class specifiers.
-      '("\\<<\\sw+>\\>" . font-lock-type-face)
-      ;;
-      ;; Scheme `:' keywords as builtins.
-      '("\\<:\\sw+\\>" . font-lock-builtin-face)
-      )))
-  "Gaudy expressions to highlight in Scheme modes.")
-
-(defvar scheme-font-lock-keywords scheme-font-lock-keywords-1
-  "Default expressions to highlight in Scheme modes.")
 
 ;; TeX.
 
