@@ -1,3 +1,12 @@
+1999-10-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* custom.el (defface): Extend documentation for new values of
+	`type'.
+
+	* faces.el (face-spec-set-match-display): Recognize `type' of
+	`motif', `lucid', `x-toolkit'.
+	(menu): New face.
+
 1999-10-05  Dave Love  <fx@gnu.org>
 
 	* files.el: Recognize temporary crontab files.

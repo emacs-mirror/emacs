@@ -1,3 +1,8 @@
+1999-10-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* lwlib-Xm.c (make_menu_in_widget, update_one_menu_entry): Use
+	widgets instead of gadgets to be able to set colors.
+
 1999-09-17  Richard Stallman  <rms@gnu.org>
 
 	* lwlib-Xaw.c (wm_delete_window): Check all the shell's children,

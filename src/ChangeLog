@@ -1,3 +1,29 @@
+1999-10-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (display_menu_bar): Use MENU_FACE_ID instead of
+	MODE_LINE_FACE_ID.
+
+	* xfaces.c (toplevel) [USE_MOTIF]: Include some Motif headers.
+	(struct x_resources) [USE_X_TOOLKIT]: New.
+	(xm_apply_resources, xm_set_menu_resources_from_menu_face)
+	[USE_MOTIF]: New.
+	(xl_apply_resources, xl_set_menu_resources_from_menu_face)
+	[USE_LUCID]: New.
+	(x_set_menu_resources_from_menu_face) [USE_X_TOOLKIT]: New.
+	(Qmenu): New.
+	(syms_of_xfaces): Initialize Qmenu.
+	(realize_basic_faces): Realize face `menu'.
+	(resolve_face_name): New.
+	(lface_from_face_name): Use it.
+	(Finternal_set_lisp_face_attribute): Ditto.
+	(Fpixmap_spec_p): Rewritten.  Extend doc string.
+
+	* xmenu.c (set_frame_menubar, xmenu_show): Call
+	x_set_menu_resources_from_menu_face.
+
+	* dispextern.h (enum face_id): Add MENU_FACE_ID.
+	(toplevel): Include X11/Intrinsic.h.
+
 1999-10-03  Ken'ichi Handa  <handa@gnu.org>
 
 	* coding.c (DECODE_CHARACTER_ASCII): Decode ASCII invocated to GR
