@@ -215,6 +215,12 @@ Returns list of symbols and documentation found."
 				     symbol 'face-documentation t))
 			  (substring doc 0
 				     (string-match "\n" doc))
+			"(not documented)"))
+		    (when (get symbol 'custom-group)
+		      (if (setq doc (documentation-property
+				     symbol 'group-documentation t))
+			  (substring doc 0
+				     (string-match "\n" doc))
 			"(not documented)"))))
 	 (setq p (cdr p)))))
    nil))
@@ -535,6 +541,7 @@ found."
 				 "User Option" do-keys)
 	    (apropos-print-doc 'describe-variable 2
 			       "Variable" do-keys))
+	  (apropos-print-doc 'customize-other-window 6 "Group" do-keys)
 	  (apropos-print-doc 'customize-face-other-window 5 "Face" do-keys)
 	  (apropos-print-doc 'widget-browse-other-window 4 "Widget" do-keys)
 	  (apropos-print-doc 'apropos-describe-plist 3
