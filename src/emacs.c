@@ -620,7 +620,7 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
     /* Change --display to -d, when its arg is separate.  */
     else if (displayname != 0 && skip_args > count_before
 	     && argv[count_before + 1][1] == '-')
-      argv[count_before] = "-d";
+      argv[count_before + 1] = "-d";
 
     /* Don't actually discard this arg.  */
     skip_args = count_before;
