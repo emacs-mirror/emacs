@@ -105,6 +105,15 @@ Bookmarks are akin to registers (q.v.@:) in that they record positions
 in buffers to which you can return later.  Unlike registers, bookmarks
 persist between Emacs sessions.
 
+@item Border
+A border is a thin space along the edge of the frame, used just for
+spacing, not for displaying anything.  An Emacs frame has an ordinary
+external border, outside of everything including the menu bar, plus an
+internal border that surrounds the text windows and their scroll bars
+and separates them from the menu bar and tool bar.  You can customize
+both borders with options and resources (@pxref{Borders X}).  Borders
+are not the same as fringes (q.v.@:).
+
 @item Buffer
 The buffer is the basic editing unit; one buffer corresponds to one text
 being edited.  You can have several buffers, but at any time you are
