@@ -1,3 +1,23 @@
+2002-09-10  Dave Love  <fx@gnu.org>
+
+	* international/utf-8.el (ucs-mule-to-mule-unicode): Define
+	unconditionally.
+	(utf-8-fragmentation-table): New.  Use it in top-level mapc.
+	(utf-8-fragment-on-decoding): Use it to keep
+	utf-8-translation-table-for-decode variable and translation table
+	in sync.
+
+	* international/ucs-tables.el: Bind
+	utf-8-translation-table-for-decode when setting up tables and
+	remove useless optimize-char-table.
+	(ucs-mule-to-mule-unicode): Deleted.
+	(ucs-unify-8859): Maybe optimize ucs-mule-to-mule-unicode.
+
+	* international/utf-16.el (utf-16-le-pre-write-conversion)
+	(utf-16-be-pre-write-conversion): Deleted.
+	(mule-utf-16-le, mule-utf-16-be): Register encoding translation
+	table.
+
 2002-09-10  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (diff-buffer-with-file): Simplify.
