@@ -106,6 +106,8 @@
   (setq comment-column 40)
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'scheme-comment-indent)
+  (make-local-variable 'parse-sexp-ignore-comments)
+  (setq parse-sexp-ignore-comments t)
   (setq mode-line-process '("" scheme-mode-line-process)))
 
 (defvar scheme-mode-line-process "")
