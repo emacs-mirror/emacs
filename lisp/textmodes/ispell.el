@@ -409,7 +409,7 @@ started ispell process.")
      "[-']" nil ("-C" "-d" "svenska") "~list") ; Add `"-T" "list"' instead?
     ("francais"
      "[A-Za-z]" "[^A-Za-z]" "[-`'\^]" nil nil nil)
-    ("dansk"				; dansk.aff
+    ("danish"				; danish.aff
      "[A-Z\306\330\305a-z\346\370\345]" "[^A-Z\306\330\305a-z\346\370\345]"
      "[-]" nil ("-C") nil)
     )
