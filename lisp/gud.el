@@ -1225,15 +1225,16 @@ It is saved for when this flag is not set.")
 	    ;; save it for later.
 	    (setq gud-filter-pending-text
 		  (concat (or gud-filter-pending-text "") string))
-	  (save-excursion
-	    ;; If we have to ask a question during the processing,
-	    ;; defer any additional text that comes from the debugger
-	    ;; during that time.
-	    (let ((gud-filter-defer-flag t))
-	      ;; Process now any text we previously saved up.
-	      (if gud-filter-pending-text
-		  (setq string (concat gud-filter-pending-text string)
-			gud-filter-pending-text nil))
+
+	  ;; If we have to ask a question during the processing,
+	  ;; defer any additional text that comes from the debugger
+	  ;; during that time.
+	  (let ((gud-filter-defer-flag t))
+	    ;; Process now any text we previously saved up.
+	    (if gud-filter-pending-text
+		(setq string (concat gud-filter-pending-text string)
+		      gud-filter-pending-text nil))
+	    (save-excursion
 	      (set-buffer (process-buffer proc))
 	      ;; If we have been so requested, delete the debugger prompt.
 	      (if (marker-buffer gud-delete-prompt-marker)
@@ -1249,20 +1250,24 @@ It is saved for when this flag is not set.")
 	      (setq process-window
 		    (and gud-last-frame
 			 (>= (point) (process-mark proc))
-			 (get-buffer-window (current-buffer)))))
-	    (if process-window
-		(save-selected-window
-		  (select-window process-window)
-		  (gud-display-frame)))
+			 (get-buffer-window (current-buffer))))
 
-	    ;; Let the comint filter do the actual insertion.
-	    ;; That lets us inherit various comint features.
-	    (comint-output-filter proc output)
+	      ;; Let the comint filter do the actual insertion.
+	      ;; That lets us inherit various comint features.
+	      (comint-output-filter proc output)))
 
-	    ;; If we deferred text that arrived during this processing,
-	    ;; handle it now.
-	    (if gud-filter-pending-text
-		(gud-filter proc "")))))))
+	  ;; Put the arrow on the source line.
+	  :; This must be outside of the save-excursion
+	  ;; in case the source file is our current buffer.
+	  (if process-window
+	      (save-selected-window
+		(select-window process-window)
+		(gud-display-frame)))
+
+	  ;; If we deferred text that arrived during this processing,
+	  ;; handle it now.
+	  (if gud-filter-pending-text
+	      (gud-filter proc ""))))))
 
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
@@ -1325,11 +1330,7 @@ Obeying it means displaying in another window the specified file and line."
 	    (gud-find-file true-file)))
 	 (window (display-buffer buffer))
 	 (pos))
-;;;    (if (equal buffer (current-buffer))
-;;;	nil
-;;;      (setq buffer-read-only nil))
     (save-excursion
-;;;      (setq buffer-read-only t)
       (set-buffer buffer)
       (save-restriction
 	(widen)
