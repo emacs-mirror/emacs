@@ -28,7 +28,17 @@ With arg N, insert N newlines."
   (interactive "*p")
   (let* ((do-fill-prefix (and fill-prefix (bolp)))
 	 (flag (and (null do-fill-prefix) (bolp) (not (bobp)))))
-    (if flag (forward-char -1))
+    ;; If this is a simple case, and we are at the beginning of a line,
+    ;; actually insert the newline *before* the preceding newline
+    ;; instead of after.  That makes better display behavior.
+    (if flag
+	(progn
+	  ;; If undo is enabled, don't let this hack be visible:
+	  ;; record the real value of point as the place to move back to
+	  ;; if we undo this insert.
+	  (if (and buffer-undo-list (not (eq buffer-undo-list t)))
+	      (setq buffer-undo-list (cons (point) buffer-undo-list)))
+	  (forward-char -1)))
     (while (> arg 0)
       (save-excursion
         (insert ?\n))
