@@ -41,8 +41,9 @@
 ;; developing the mode itself, then see the Annotations section in the GDB
 ;; info manual.
 ;;
-;;  Known Bugs: Does not auto-display arrays of structures or structures
-;;  containing arrays.
+;;  Known Bugs: 
+;;  Does not auto-display arrays of structures or structures containing arrays. 
+;;  On MS Windows, GDB from MINGW does not flush the output from the inferior.
 
 ;;; Code:
 
@@ -62,6 +63,8 @@
 (defvar gdb-previous-address nil)
 (defvar gdb-display-in-progress nil)
 (defvar gdb-dive nil)
+(defvar gdb-view-source t "Non-nil means that source code can be viewed")
+(defvar gdb-selected-view 'source "Code type that user wishes to view")
 (defvar gdb-buffer-type nil)
 (defvar gdb-variables '()
   "A list of variables that are local to the GUD buffer.")
@@ -158,12 +161,16 @@ The following interactive lisp functions help control operation :
   (setq gdb-previous-address nil)
   (setq gdb-display-in-progress nil)
   (setq gdb-dive nil)
+  (setq gdb-view-source t)
+  (setq gdb-selected-view 'source)
   ;;
   (mapc 'make-local-variable gdb-variables)
   (setq gdb-buffer-type 'gdba)
   ;;
   (gdb-clear-inferior-io)
   ;;
+  (if (eq window-system 'w32)
+      (gdb-enqueue-input (list "set set new-console off\n" 'ignore)))
   (gdb-enqueue-input (list "set height 0\n" 'ignore))
   ;; find source file and compilation directory here
   (gdb-enqueue-input (list "server list\n" 'ignore))
@@ -381,7 +388,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
   ;; a dummy one.
   (make-comint-in-buffer
    (substring (buffer-name) 1 (- (length (buffer-name)) 1))
-   (current-buffer) "cat")
+   (current-buffer) "hexl")
   (setq comint-input-sender 'gdb-inferior-io-sender))
 
 (defun gdb-inferior-io-sender (proc string)
@@ -561,6 +568,7 @@ This filter may simply queue output for a later time."
 	 (match-string 1 args)
 	 (string-to-int (match-string 2 args))))
   (setq gdb-current-address (match-string 3 args))
+  (setq gdb-view-source t)
   ;;update with new frame for machine code if necessary
   (gdb-invalidate-assembler))
 
@@ -1328,7 +1336,7 @@ static char *magick[] = {
       (with-current-buffer buffer
 	(if (and (eq gud-minor-mode 'gdba)
 		 (not (string-match "^\*" (buffer-name))))
-	    (if (display-graphic-p)
+	    (if (eq window-system 'x)
 		(remove-images (point-min) (point-max))
 	      (gdb-remove-strings (point-min) (point-max))))))
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
@@ -1369,7 +1377,7 @@ static char *magick[] = {
 			    (let ((start (progn (beginning-of-line)
 						(- (point) 1)))
 				  (end (progn (end-of-line) (+ (point) 1))))
-			      (if (display-graphic-p)
+			      (if (eq window-system 'x)
 				  (progn
 				    (remove-images start end)
 				    (if (eq ?y flag)
@@ -1382,8 +1390,8 @@ static char *magick[] = {
 						 'left-margin)))
 				(gdb-remove-strings start end)
 				(if (eq ?y flag)
-				    (put-string "B" (point))
-				  (put-string "b" (point))))))))))))
+				    (gdb-put-string "B" (point))
+				  (gdb-put-string "b" (point))))))))))))
 	  (end-of-line))))))
 
 (defun gdb-breakpoints-buffer-name ()
@@ -1973,7 +1981,8 @@ the source buffer."
   (switch-to-buffer-other-frame
    (gdb-get-create-buffer 'gdba)))
 
-(let ((menu (make-sparse-keymap "GDB-Frames")))
+(let ((menu (make-sparse-keymap "GDB-Frames"))
+      (submenu (make-sparse-keymap "View")))
   (define-key gud-menu-map [frames]
     `(menu-item "GDB-Frames" ,menu :visible (eq gud-minor-mode 'gdba)))
   (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
@@ -1983,7 +1992,39 @@ the source buffer."
   (define-key menu [breakpoints] '("Breakpoints" . gdb-frame-breakpoints-buffer))
   (define-key menu [display] '("Display" . gdb-frame-display-buffer))
   (define-key menu [threads] '("Threads" . gdb-frame-threads-buffer))
-  (define-key menu [assembler] '("Assembler" . gdb-frame-assembler-buffer)))
+  (define-key menu [view] `(menu-item "View" ,submenu))
+  (define-key submenu [source] 
+    '(menu-item "Source" gdb-view-source
+		:help "Display source only"
+		:button (:radio . (eq gdb-selected-view 'source))))
+  (define-key submenu [assembler] 
+    '(menu-item "Assembler" gdb-view-assembler
+		:help "Display assembler only"
+		:button (:radio . (eq gdb-selected-view 'assembler))))
+;  (define-key submenu [both] 
+;    '(menu-item "Both" gdb-view-both
+;		:help "Display both source and assembler"
+;		:button (:radio . (eq gdb-selected-view 'both))))
+)
+
+(defun gdb-view-source()
+(interactive)
+(if gdb-view-source
+  (if gud-last-last-frame
+      (set-window-buffer gdb-source-window
+			 (gud-find-file (car gud-last-last-frame)))
+    (set-window-buffer gdb-source-window (gud-find-file gdb-main-file))))
+(setq gdb-selected-view 'source))
+
+(defun gdb-view-assembler()
+(interactive)
+(set-window-buffer gdb-source-window
+		   (gdb-get-create-buffer 'gdb-assembler-buffer))
+(setq gdb-selected-view 'assembler))
+
+;(defun gdb-view-both()
+;(interactive)
+;(setq gdb-selected-view 'both))
 
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 
@@ -2001,10 +2042,12 @@ the source buffer."
   (other-window 1)
   (switch-to-buffer (gdb-locals-buffer-name))
   (other-window 1)
-  (switch-to-buffer
-   (if gud-last-last-frame
-       (gud-find-file (car gud-last-last-frame))
-     (gud-find-file gdb-main-file)))
+  (if gdb-view-source
+      (switch-to-buffer
+       (if gud-last-last-frame
+	   (gud-find-file (car gud-last-last-frame))
+	 (gud-find-file gdb-main-file)))
+    (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer)))
   (setq gdb-source-window (get-buffer-window (current-buffer)))
   (split-window-horizontally)
   (other-window 1)
@@ -2035,10 +2078,12 @@ This arrangement depends on the value of `gdb-many-windows'."
     (delete-other-windows)
     (split-window)
     (other-window 1)
-    (switch-to-buffer
-     (if gud-last-last-frame
-	 (gud-find-file (car gud-last-last-frame))
-       (gud-find-file gdb-main-file)))
+    (if gdb-view-source
+	(switch-to-buffer
+	 (if gud-last-last-frame
+	     (gud-find-file (car gud-last-last-frame))
+	   (gud-find-file gdb-main-file)))
+      (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer)))
     (other-window 1)))
 
 (defun gdb-reset ()
@@ -2051,7 +2096,7 @@ This arrangement depends on the value of `gdb-many-windows'."
 	  (if (eq gud-minor-mode 'gdba)
 	      (if (string-match "^\*.+*$" (buffer-name))
 		  (kill-buffer nil)
-		(if (display-graphic-p)
+		(if (eq window-system 'x)
 		    (remove-images (point-min) (point-max))
 		  (gdb-remove-strings (point-min) (point-max)))
 		(setq left-margin-width 0)
@@ -2201,17 +2246,14 @@ BUFFER nil or omitted means use the current buffer."
       (if (not (equal gdb-current-address "main"))
 	  (progn
 	    (gdb-remove-arrow)
-	    (save-selected-window
-	      (select-window gdb-source-window)
-	      (goto-char (point-min))
-	      (if (re-search-forward gdb-current-address nil t)
-		  (gdb-put-arrow "=>" (point))))))
+	    (goto-char (point-min))
+	    (if (re-search-forward gdb-current-address nil t)
+		(gdb-put-arrow "=>" (point)))))
       ;; remove all breakpoint-icons in assembler buffer before updating.
-      (save-excursion
-	(if (display-graphic-p)
-	    (remove-images (point-min) (point-max))
-	  (gdb-remove-strings (point-min) (point-max))))
-      (set-buffer (gdb-get-buffer 'gdb-breakpoints-buffer))
+      (if (eq window-system 'x)
+	  (remove-images (point-min) (point-max))
+	(gdb-remove-strings (point-min) (point-max))))
+    (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
       (goto-char (point-min))
       (while (< (point) (- (point-max) 1))
 	(forward-line 1)
@@ -2220,18 +2262,16 @@ BUFFER nil or omitted means use the current buffer."
 	      (looking-at
 	       "[0-9]*\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)\\s-*0x\\(\\S-*\\)")
 	      (setq flag (char-after (match-beginning 1)))
-	      (let ((number (match-string 2)))
-		;; remove leading 0s from output of info break.
-		(if (string-match "0x0+\\(.*\\)" number)
-		    (setq address (concat "0x" (match-string 1 address)))
-		  (setq address number)))
+	      (setq address (match-string 2))
+	      ;; remove leading 0s from output of info break.
+	      (if (string-match "0+\\(.*\\)" address)
+		  (setq address (match-string 1 address)))
 	      (with-current-buffer buffer
-		(save-excursion
 		  (goto-char (point-min))
 		  (if (re-search-forward address nil t)
 		      (let ((start (progn (beginning-of-line) (- (point) 1)))
 			    (end (progn (end-of-line) (+ (point) 1))))
-			(if (display-graphic-p)
+			(if (eq window-system 'x)
 			    (progn
 			      (remove-images start end)
 			      (if (eq ?y flag)
@@ -2243,8 +2283,8 @@ BUFFER nil or omitted means use the current buffer."
 					   'left-margin)))
 			  (gdb-remove-strings start end)
 			  (if (eq ?y flag)
-			      (put-string "B" (point))
-			    (put-string "b" (point))))))))))))))
+			      (gdb-put-string "B" (point))
+			    (gdb-put-string "b" (point)))))))))))))
 
 (defvar gdb-assembler-mode-map
   (let ((map (make-sparse-keymap)))
@@ -2320,14 +2360,18 @@ BUFFER nil or omitted means use the current buffer."
 	  (let ((address (match-string 1)))
 	    ;; remove leading 0s from output of frame command.
 	    (if (string-match "0x0+\\(.*\\)" address)
-		(setq gdb-current-address (concat "0x" (match-string 1 address)))
+		(setq gdb-current-address 
+		      (concat "0x" (match-string 1 address)))
 	      (setq gdb-current-address address)))
-	  (if (not (looking-at ".*) at "))
+	  (if (or (if (not (looking-at ".*) at "))
+		      (progn (setq gdb-view-source nil) t))
+		  (eq gdb-selected-view 'assembler))
 	      (progn
-		(set-window-buffer gdb-source-window
-				   (gdb-get-create-buffer 'gdb-assembler-buffer))
+		(set-window-buffer 
+		 gdb-source-window
+		 (gdb-get-create-buffer 'gdb-assembler-buffer))
 		(gdb-invalidate-assembler))))
-      (if (looking-at "^#[0-9]*\\s-*\\(\\S-*\\)")
+      (if (looking-at "^#0\\s-*\\(\\S-*\\)")
 	  (setq gdb-current-frame (match-string 1))))))
 
 (provide 'gdb-ui)
