@@ -1241,7 +1241,7 @@ call this function explicitly to create a fontset.
 @node Undisplayable Characters
 @section Undisplayable Characters
 
-  Your terminal may be unable to display some non-@sc{ascii}
+  Your terminal may be unable to display some non-ASCII
 characters.  Most non-windowing terminals can only use a single
 character set (use the variable @code{default-terminal-coding-system}
 (@pxref{Specify Coding}) to tell Emacs which one); characters which
@@ -1253,7 +1253,7 @@ you may not have fonts installed for all of them; characters that have
 no font appear as a hollow box.
 
   If you use Latin-1 characters but your terminal can't display
-Latin-1, you can arrange to display mnemonic @sc{ascii} sequences
+Latin-1, you can arrange to display mnemonic ASCII sequences
 instead, e.g.@: @samp{"o} for o-umlaut.  Load the library
 @file{iso-ascii} to do this.
 
