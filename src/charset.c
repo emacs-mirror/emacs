@@ -534,7 +534,7 @@ DEFUN ("charsetp", Fcharsetp, Scharsetp, 1, 1, 0,
 
 void
 map_charset_chars (c_function, function, charset_symbol, arg)
-     void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object);
+     void (*c_function) P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
      Lisp_Object function, charset_symbol, arg;
 {
   int id;
@@ -1031,12 +1031,12 @@ DEFUN ("unify-charset", Funify_charset, Sunify_charset, 1, 2, 0,
 DEFUN ("get-unused-iso-final-char", Fget_unused_iso_final_char,
        Sget_unused_iso_final_char, 2, 2, 0,
        doc: /*
-Return an unsed ISO's final char for a charset of DIMENISION and CHARS.
+Return an unsed ISO final char for a charset of DIMENISION and CHARS.
 DIMENSION is the number of bytes to represent a character: 1 or 2.
 CHARS is the number of characters in a dimension: 94 or 96.
 
 This final char is for private use, thus the range is `0' (48) .. `?' (63).
-If there's no unused final char for the attrified kind of charset,
+If there's no unused final char for the specified kind of charset,
 return nil.  */)
      (dimension, chars)
      Lisp_Object dimension, chars;
