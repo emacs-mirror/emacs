@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!44.c(trunk.4) $
- summary = clamp and space_collect tests
+ id = $HopeName: MMQA_test_function!44.c(trunk.5) $
+ summary = clamp and arena_collect tests
  language = c
  harness = 2.1
  link = testlib.o exfmt.o
@@ -16,17 +16,27 @@ END_HEADER
 #include "mpscawl.h"
 #include "mpscamc.h"
 #include "exfmt.h"
+#include "mpsavm.h"
+
+
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 
 void *stackpointer;
 
+
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_pool_t poolamc, poolawl;
  mps_thr_t thread;
  mps_root_t root, root1;
 
  mps_fmt_t format;
+ mps_chain_t chain;
  mps_ap_t apamc, apawl;
 
  size_t size0, size1;
@@ -39,29 +49,26 @@ static void test(void)
 
  deathcomments = 0;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE),
+      "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ die(mps_thread_reg(&thread, arena), "register thread");
+ die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+                         mps_stack_scan_ambig, stackpointer, 0),
+     "create root");
 
  cdie(
-  mps_root_create_reg(&root, space, MPS_RANK_AMBIG, 0, thread,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
-
- cdie(
-  mps_root_create_table(&root1, space, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
+  mps_root_create_table(&root1, arena, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
   "create exfmt root");
 
- cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
-  "create format");
+ die(mps_fmt_create_A(&format, arena, &fmtA), "create format");
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
+ die(mmqa_pool_create_chain(&poolamc, arena, mps_class_amc(), format, chain),
+     "create pool");
 
  cdie(
-  mps_pool_create(&poolamc, space, mps_class_amc(), format),
-  "create pool");
-
- cdie(
-  mps_pool_create(&poolawl, space, mps_class_awl(), format),
+  mps_pool_create(&poolawl, arena, mps_class_awl(), format),
   "create pool");
 
  cdie(
@@ -108,19 +115,19 @@ static void test(void)
    DC;
    comment("...collecting:");
    RC;
-   size0 = arena_committed_and_used(space);
-   mps_arena_collect(space);
-   size1 = arena_committed_and_used(space);
+   size0 = arena_committed_and_used(arena);
+   mps_arena_collect(arena);
+   size1 = arena_committed_and_used(arena);
    report("sizebefore0", "%lu", (unsigned long) size0);
    report("sizeafter0", "%lu", (unsigned long) size1);
    report("diff0", "%lu", (unsigned long) size0-size1);
    DC;
-   mps_arena_release(space);
+   mps_arena_release(arena);
    comment("...released");
   }
   DC;
   comment("clamping...");
-  mps_arena_park(space);
+  mps_arena_park(arena);
   RC;
   for (i=1; i<1000; i++) {
    if (i%100 == 0) {
@@ -146,40 +153,32 @@ static void test(void)
   DC;
   if (j==9) {
    comment("collecting...");
-   size0 = arena_committed_and_used(space);
-   mps_arena_collect(space);
-   size1 = arena_committed_and_used(space);
+   size0 = arena_committed_and_used(arena);
+   mps_arena_collect(arena);
+   size1 = arena_committed_and_used(arena);
    report("sizebefore1", "%lu", (unsigned long) size0);
    report("sizeafter1", "%lu", (unsigned long) size1);
    report("diff1", "%lu", (unsigned long) size0-size1);
    DC;
   }
-  mps_arena_release(space);
+  mps_arena_release(arena);
   comment("released.");
   RC;
  }
 
  mps_ap_destroy(apawl);
  mps_ap_destroy(apamc);
- comment("Destroyed aps.");
-
  mps_pool_destroy(poolamc);
  mps_pool_destroy(poolawl);
- comment("Destroyed pools.");
-
+ mps_chain_destroy(chain);
  mps_fmt_destroy(format);
- comment("Destroyed format.");
-
  mps_root_destroy(root);
  mps_root_destroy(root1);
- comment("Destroyed roots.");
-
  mps_thread_dereg(thread);
- comment("Deregistered thread.");
-
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
+
 
 int main(void)
 {
