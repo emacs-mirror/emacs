@@ -195,10 +195,27 @@ shell scripts, makefiles, and so on.  Normally the @samp{-l} option
 or @samp{-f} option will be used as well, to invoke a Lisp program
 to do the batch processing.
 
-@samp{-batch} implies @samp{-q} (do not load an init file).  It also
+@samp{--batch} implies @samp{-q} (do not load an init file).  It also
 causes Emacs to exit after processing all the command options.  In
 addition, it disables auto-saving except in buffers for which it has
 been explicitly requested.
+
+@item --script @var{file}
+@opindex --script
+Run Emacs in batch mode, like @samp{--batch}, and then read and
+execute the Lisp code in @var{file}.
+
+The normal use of this option is in executable script files that run
+Emacs.  They can start with this text on the first line
+
+@example
+#!/usr/bin/emacs --script
+@end example
+
+@noindent
+which will invoke Emacs with @samp{--script} and supply the name of
+the script file as @var{file}.  Emacs Lisp then treats @samp{#!}  as a
+comment delimiter.
 
 @item -q
 @opindex -q
