@@ -3788,7 +3788,12 @@ actually used.  */)
     }
 
   if (EQ (Vcoding_system_for_read, Qauto_save_coding))
-    coding_system = Qutf_8_emacs;
+    {
+      coding_system = Qutf_8_emacs;
+      setup_coding_system (coding_system, &coding);
+      /* Ensure we set Vlast_coding_system_used.  */
+      set_coding_system = 1;
+    }
   else if (BEG < Z)
     {
       /* Decide the coding system to use for reading the file now
