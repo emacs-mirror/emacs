@@ -977,11 +977,12 @@ on the line for the invalidity you want to see."
       (save-excursion
 	(set-buffer standard-output)
 	(occur-mode)
-	(setq occur-buffer buffer)
-	(setq occur-nlines 0))
+	;; This won't actually work...Really, this whole thing should
+	;; be rewritten instead of being a hack on top of occur.
+	(setq occur-revert-arguments (list nil 0 (list buffer))))
       (save-excursion
 	(goto-char (point-max))
-	(while (and (not (input-pending-p)) (not (bobp)))
+	(while (and (not (bobp)))
 	  (let ((end (point))
 		prev-end)
 	    ;; Scan the previous paragraph for invalidities.
@@ -1022,7 +1023,7 @@ on the line for the invalidity you want to see."
 		       '(mouse-face highlight
 			 help-echo "mouse-2: go to this invalidity"))
 		      (put-text-property text-beg (- text-end 1)
-					 'occur tem)))))
+					 'occur-target tem)))))
 	    (goto-char prev-end))))
       (with-current-buffer standard-output
 	(if (eq num-matches 0)
