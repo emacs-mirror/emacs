@@ -1,6 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.6) $
+ * $HopeName: MMsrc!poolmvff.c(trunk.7) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -17,7 +17,7 @@
 #include "mpscmvff.h"
 #include "dbgpool.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.6) $");
+SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.7) $");
 
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
@@ -312,11 +312,19 @@ static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size,
     if(res != ResOK) 
       return res;
     foundBlock = MVFFFindFirstFree(&base, &limit, mvff, size);
+
     /* We know that the found range must intersect the new segment. */
     /* In particular, it doesn't necessarily lie entirely within it. */
+    /* The next three AVERs test for intersection of two intervals. */
     AVER(base >= SegBase(seg) || limit <= SegLimit(seg));
+    AVER(base < SegLimit(seg));
+    AVER(SegBase(seg) < limit);
+
+    /* We also know that the found range is no larger than the segment. */
+    AVER(SegSize(seg) >= AddrOffset(base, limit));
   }
   AVER(foundBlock);
+  AVER(AddrOffset(base, limit) == size);
 
   MVFFRemoveFromFreeList(mvff, base, limit);
   *aReturn = base;
