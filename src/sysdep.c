@@ -601,7 +601,8 @@ save_signal_handlers (saved_handlers)
 {
   while (saved_handlers->code)
     {
-      saved_handlers->handler = signal (saved_handlers->code, SIG_IGN);
+      saved_handlers->handler
+	= (SIGTYPE (*) ()) signal (saved_handlers->code, SIG_IGN);
       saved_handlers++;
     }
 }

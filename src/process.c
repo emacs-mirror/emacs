@@ -2108,7 +2108,7 @@ send_process (proc, buf, len)
 	/* Don't send more than 500 bytes at a time.  */
 	if (this > 500)
 	  this = 500;
-	old_sigpipe = signal (SIGPIPE, send_process_trap);
+	old_sigpipe = (SIGTYPE (*) ()) signal (SIGPIPE, send_process_trap);
 	rv = write (XFASTINT (XPROCESS (proc)->outfd), buf, this);
 	signal (SIGPIPE, old_sigpipe);
 	if (rv < 0)
