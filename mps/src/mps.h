@@ -2,7 +2,7 @@
  *
  *           HARLEQUIN MEMORY POOL SYSTEM INTERFACE
  *
- *  $HopeName: MMsrc!mps.h(trunk.4) $
+ *  $HopeName: MMsrc!mps.h(trunk.5) $
  *
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  */
@@ -139,12 +139,13 @@ typedef struct mps_ap_s         /* allocation point descriptor */
  * The fields of the ld structure should not be accessed by the client.
  * The structure definition is provided so that the client code can
  * in-line it into other structures, such as pointer hash-tables.
+ *
+ * .ld: Keep in sync with impl.h.ld.struct.
  */
 
 typedef struct mps_ld_s         /* location dependency descriptor */
 {
-  mps_word_t ld1;
-  mps_word_t ld2;
+  mps_word_t w0, w1;
 } mps_ld_s;
 
 
@@ -395,14 +396,13 @@ extern void mps_thread_dereg(mps_thr_t mps_thr);
  * on its value (e.g. before hashing it) in order to avoid a race.
  */
 
-extern void mps_ld_init(mps_ld_t mps_ld, mps_space_t space);
-extern void mps_ld_finish(mps_ld_t mps_ld);
+extern void mps_ld_reset(mps_ld_t mps_ld, mps_space_t space);
 extern void mps_ld_add(mps_ld_t mps_ld,
                        mps_space_t mps_space,
                        mps_addr_t addr);
-extern mps_bool_t mps_ld_isinvalid(mps_ld_t mps_ld,
-                                   mps_space_t mps_space,
-                                   mps_addr_t addr);
+extern mps_bool_t mps_ld_isstale(mps_ld_t mps_ld,
+                                 mps_space_t mps_space,
+                                 mps_addr_t addr);
 
 /* Messages (Notification of Asynchronous Events) */
 
