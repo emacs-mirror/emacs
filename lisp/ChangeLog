@@ -1,3 +1,8 @@
+2004-10-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el: Redo sync with Tramp 2.0.45.  Last commit did not
+	work correctly.
+
 2004-10-17  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* buff-menu.el (Buffer-menu-revert-function): Emulate save-excursion.
