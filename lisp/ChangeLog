@@ -1,3 +1,7 @@
+2004-09-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/grep.el (grep-mode): Remove unnecessary autoload.
+
 2004-09-09  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.el (kmacro-bind-to-key): Associate dedicated macro
@@ -11,8 +15,8 @@
 
 2004-09-09  Lars Hansen  <larsh@math.ku.dk>
 
-	* desktop.el (desktop-clear-preserve-buffers): Remove
-	make-obsolete-variable.
+	* desktop.el (desktop-clear-preserve-buffers):
+	Remove make-obsolete-variable.
 
 2004-09-08  Stefan  <monnier@iro.umontreal.ca>
 
