@@ -832,7 +832,8 @@ This function always sets `desktop-enable' to t."
 	'ignored)))
 
 ;; ----------------------------------------------------------------------------
-(defun desktop-buffer-file () "Load a file."
+(defun desktop-buffer-file ()
+  "Load a file."
   (if desktop-buffer-file-name
       (if (or (file-exists-p desktop-buffer-file-name)
 	      (and desktop-missing-file-warning
@@ -843,6 +844,9 @@ This function always sets `desktop-enable' to t."
 	    (condition-case nil
 		(switch-to-buffer buf)
 	      (error (pop-to-buffer buf)))
+	    (and (not (eq major-mode desktop-buffer-major-mode))
+		 (functionp desktop-buffer-major-mode)
+		 (funcall desktop-buffer-major-mode))
 	    buf)
 	'ignored)))
 
@@ -940,7 +944,7 @@ This function always sets `desktop-enable' to t."
 			       (cons 'case-fold-search cfs)
 			       (cons 'case-replace cr)
 			       (cons 'overwrite-mode (car mim)))))
-                               
+
 ;; ----------------------------------------------------------------------------
 ;; When `desktop-enable' is non-nil and "--no-desktop" is not specified on the
 ;; command line, we do the rest of what it takes to use desktop, but do it
