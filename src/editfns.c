@@ -429,7 +429,7 @@ find_field (pos, merge_at_boundary, beg, end)
     }
 }
 
-DEFUN ("delete-field", Fdelete_field, Sdelete_field, 0, 1, "d",
+DEFUN ("delete-field", Fdelete_field, Sdelete_field, 0, 1, 0,
   "Delete the field surrounding POS.\n\
 A field is a region of text with the same `field' property.\n\
 If POS is nil, the value of point is used for POS.")
@@ -440,6 +440,7 @@ If POS is nil, the value of point is used for POS.")
   find_field (pos, Qnil, &beg, &end);
   if (beg != end)
     del_range (beg, end);
+  return Qnil;
 }
 
 DEFUN ("field-string", Ffield_string, Sfield_string, 0, 1, 0,
