@@ -2733,7 +2733,7 @@ but if WHOLE-MESSAGE is non-nil (prefix arg given),
 SUBJECT is a string of regexps separated by commas."
   t)
 
-(autoload 'rmail-summary-by-sender "rmailsum"
+(autoload 'rmail-summary-by-senders "rmailsum"
   "Display a summary of all messages with the given SENDERS.
 SENDERS is a string of names separated by commas."
   t)
