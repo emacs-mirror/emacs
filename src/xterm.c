@@ -3847,10 +3847,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #ifdef USE_X_TOOLKIT
 		else
 		  {
- 		    f = x_any_window_to_frame (event.xbutton.window);
-		    if (f && event.type == ButtonPress)
-		      construct_menu_click (&emacs_event,
-					    &event, f);
+		    /* Assume we have a menubar button press. A bad
+                       assumption should behave benignly. */
+		    popup_get_selection (&event);
+		    break;
 		  }
 #endif /* USE_X_TOOLKIT */
 	      }
