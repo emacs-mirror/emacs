@@ -1,5 +1,9 @@
 2002-06-22  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* lread.c (Fread): Remove redundant and imprecise declaration.
+
+	* xfns.c (check_x_display_info): Use check_x_frame.
+
 	* .gdbinit (xprintsym): Use the new `xname' field.
 	(xsymbol): Use it.
 
