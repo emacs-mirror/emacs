@@ -1451,6 +1451,43 @@ Do not start with `~/' or `~user-name/'.")
 (defvar ediff-mode-map nil
   "Local keymap used in Ediff mode.")
   
+;;; This is split in three parts to avoid
+;;; making a line in loaddefs.el that is too long for patch.
+;;; Note that autoload.el currently looks for cookies
+;;; only at top level in the file.
+;;;###autoload
+(if (not (ediff-if-lucid))
+    (progn
+      (defvar menu-bar-epatch-menu (make-sparse-keymap "menu-bar-epatch-map"))
+      (fset 'menu-bar-epatch-menu (symbol-value 'menu-bar-epatch-menu))
+      (defvar menu-bar-ediff-menu (make-sparse-keymap "menu-bar-ediff-map"))
+      (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu))))
+
+;;;###autoload
+(if (not (ediff-if-lucid))
+    (progn
+      (define-key menu-bar-ediff-menu [rcs-ediff]
+	'("With a Revision via RCS ..." . rcs-ediff))
+      (define-key menu-bar-ediff-menu [vc-ediff]
+	'("With a Revision via VC ..." . vc-ediff))
+      (define-key menu-bar-ediff-menu [ediff-buffers]
+	'("Between Buffers ..." . ediff-buffers))
+      (define-key menu-bar-ediff-menu [ediff-files]
+	'("Between Files ..." . ediff-files))))
+
+;;;###autoload
+(if (not (ediff-if-lucid))
+    (progn
+      (define-key menu-bar-epatch-menu [ediff-patch-buffer]
+	'("To a Buffer ..." . ediff-patch-buffer))
+      (define-key menu-bar-epatch-menu [ediff-patch-file]
+	'("To a File ..." . ediff-patch-file))
+  
+      (define-key menu-bar-file-menu [epatch]
+	'("Apply Patch" . menu-bar-epatch-menu))
+      (define-key menu-bar-file-menu [ediff]
+	'("Find Differences" . menu-bar-ediff-menu))))
+
 (if (and window-system ediff-want-default-menus (ediff-frame-has-menubar))
     (if (ediff-if-lucid)
 	(progn  ;; Lucid menu bars
@@ -1472,42 +1509,7 @@ Do not start with `~/' or `~user-name/'.")
 		    "Delete Screen")
 	  ;; Displays as a solid horizontal line 
 	  (add-menu-item '("File") "---" nil nil "Delete Screen")
-	  )
-      ;; FSF menu bars
-;;;###autoload
-      (defvar menu-bar-epatch-menu (make-sparse-keymap "menu-bar-epatch-map"))
-;;;###autoload
-      (fset 'menu-bar-epatch-menu (symbol-value 'menu-bar-epatch-menu))
-;;;###autoload
-      (defvar menu-bar-ediff-menu (make-sparse-keymap "menu-bar-ediff-map"))
-;;;###autoload
-      (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu))
-
-;;;###autoload
-      (define-key menu-bar-ediff-menu [rcs-ediff]
-	'("With a Revision via RCS ..." . rcs-ediff))
-;;;###autoload
-      (define-key menu-bar-ediff-menu [vc-ediff]
-	'("With a Revision via VC ..." . vc-ediff))
-;;;###autoload
-      (define-key menu-bar-ediff-menu [ediff-buffers]
-	'("Between Buffers ..." . ediff-buffers))
-;;;###autoload
-      (define-key menu-bar-ediff-menu [ediff-files]
-	'("Between Files ..." . ediff-files))
-
-;;;###autoload
-      (define-key menu-bar-epatch-menu [ediff-patch-buffer]
-	'("To a Buffer ..." . ediff-patch-buffer))
-;;;###autoload
-      (define-key menu-bar-epatch-menu [ediff-patch-file]
-	'("To a File ..." . ediff-patch-file))
-  
-      (define-key menu-bar-file-menu [epatch]
-	'("Apply Patch" . menu-bar-epatch-menu))
-      (define-key menu-bar-file-menu [ediff]
-	'("Find Differences" . menu-bar-ediff-menu))
-      ))
+	  )))
 
 
 (defun ediff-setup-keymap ()
