@@ -1331,7 +1331,7 @@ commands to format the Lisp expression so it is easy to read.  For
 example, pressing the @key{TAB} key automatically indents the line the
 cursor is on by the right amount.  A command to properly indent the
 code in a region is customarily bound to @kbd{M-C-\}.  Indentation is
-designed so that you can see which elements of a list belongs to which
+designed so that you can see which elements of a list belong to which
 list---elements of a sub-list are indented more than the elements of
 the enclosing list.
 
@@ -3690,7 +3690,7 @@ variables have no effect outside the @code{let} expression.
 Another way to think about @code{let} is that it is like a @code{setq}
 that is temporary and local.  The values set by @code{let} are
 automatically undone when the @code{let} is finished.  The setting
-only effects expressions that are inside the bounds of the @code{let}
+only affects expressions that are inside the bounds of the @code{let}
 expression.  In computer science jargon, we would say ``the binding of
 a symbol is visible only in functions called in the @code{let} form;
 in Emacs Lisp, scoping is dynamic, not lexical.''
@@ -4737,7 +4737,7 @@ In another section, we will describe the entire function.
 Before looking at the code, let's consider what the function
 definition has to contain: it must include an expression that makes
 the function interactive so it can be called by typing @kbd{M-x
-beginning-of-buffer} or by typing a keychord such as @kbd{C-<}; it
+beginning-of-buffer} or by typing a keychord such as @kbd{M-<}; it
 must include code to leave a mark at the original position in the
 buffer; and it must include code to move the cursor to the beginning
 of the buffer.
@@ -5571,13 +5571,13 @@ buffer:@: }.
 @cindex Asterisk for read-only buffer
 @findex * @r{for read-only buffer}
 
-The asterisk is for the situation when the buffer is a read-only
-buffer---a buffer that cannot be modified.  If @code{insert-buffer} is
-called on a buffer that is read-only, a message to this effect is
-printed in the echo area and the terminal may beep or blink at you;
-you will not be permitted to insert anything into current buffer.  The
-asterisk does not need to be followed by a newline to separate it from
-the next argument.
+The asterisk is for the situation when the current buffer is a
+read-only buffer---a buffer that cannot be modified.  If
+@code{insert-buffer} is called when the current buffer is read-only, a
+message to this effect is printed in the echo area and the terminal
+may beep or blink at you; you will not be permitted to insert anything
+into current buffer.  The asterisk does not need to be followed by a
+newline to separate it from the next argument.
 
 @node b for interactive,  , Read-only buffer, insert-buffer interactive
 @comment  node-name,  next,  previous,  up
@@ -7142,6 +7142,7 @@ Construct a list of four birds by evaluating several expressions with
 @code{cons}.  Find out what happens when you @code{cons} a list onto
 itself.  Replace the first element of the list of four birds with a
 fish.  Replace the rest of that list with a list of other fish.
+
 @node Cutting & Storing Text, List Implementation, car cdr & cons, Top
 @comment  node-name,  next,  previous,  up
 @chapter Cutting and Storing Text
@@ -10369,7 +10370,7 @@ list':  @code{dolist} automatically shortens the list each time it
 loops---takes the @sc{cdr} of the list---and binds the @sc{car} of
 each shorter version of the list to the first of its arguments.
 
-@code{dotimes} loops a specific number of time: you specify the number.
+@code{dotimes} loops a specific number of times: you specify the number.
 
 @menu
 * dolist::
@@ -16080,7 +16081,7 @@ initialization file.
 @findex defcustom
 
 You can specify variables using @code{defcustom} so that you and
-others can then can use Emacs' @code{customize} feature to set their
+others can then use Emacs' @code{customize} feature to set their
 values.  (You cannot use @code{customize} to write function
 definitions; but you can write @code{defuns} in your @file{.emacs}
 file.  Indeed, you can write any Lisp expression in your @file{.emacs}
@@ -18636,7 +18637,7 @@ argument, as they quite well may?
 The answers can be found by a quick test.  When @code{(% -1 5)} is
 evaluated, a negative number is returned; and if @code{nthcdr} is
 called with a negative number, it returns the same value as if it were
-called with a first argument of zero.  This can be seen be evaluating
+called with a first argument of zero.  This can be seen by evaluating
 the following code.
 
 Here the @samp{@result{}} points to the result of evaluating the code
