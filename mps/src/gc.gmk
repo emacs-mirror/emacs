@@ -1,7 +1,7 @@
 #
 #              GENERIC BUILD.GC MAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!gc.gmk(MMdevel_restr.3) $
+# $HopeName: MMsrc!gc.gmk(trunk.17) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -81,6 +81,7 @@ endif
 
 # These flags are included in all compilations.
 CFLAGSCOMMON = \
+	$(PFMDEFS) \
 	-ansi -pedantic -Wall -Werror -Wpointer-arith \
 	-Wstrict-prototypes -Wmissing-prototypes \
 	-Winline -Waggregate-return -Wnested-externs \
@@ -140,14 +141,14 @@ endif
 # "all" builds all varieties of all targets
 # %%TARGET: Add the target to the all dependencies.
 
-all: mpmss amcss dwstress mpsicv lockcov std.a poolncv lo.a locv qs
+all: mpmss amcss dwstress mpsicv lockcov std.a poolncv lo.a locv qs weakcv
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-mpmss amcss dwstress mpsicv lockcov std.a poolncv lo.a locv qs: phony
+mpmss amcss dwstress mpsicv lockcov std.a poolncv lo.a locv qs weakcv: phony
 	$(MAKE) -f $(PFM).gmk TARGET=$@ target
 
 # "clean" removes the directory containing the build results for the
@@ -189,6 +190,10 @@ endif
 # %%TARGET: Add the dependencies for the new target here.
 
 ifdef VARIETY
+
+$(PFM)/$(VARIETY)/weakcv: $(PFM)/$(VARIETY)/weakcv.o \
+	$(PFM)/$(VARIETY)/fmtdy.o \
+	$(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/locv: $(PFM)/$(VARIETY)/locv.o \
 	$(MPMOBJ) $(LOOBJ) $(TESTLIBOBJ)

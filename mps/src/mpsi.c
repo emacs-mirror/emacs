@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(MMdevel_restr.4) $
+ * $HopeName: MMsrc!mpsi.c(trunk.13) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .thread-safety: Most calls through this interface lock the space
@@ -17,7 +17,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(MMdevel_restr.4) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.13) $");
 
 
 /* Check consistency of interface mappings. */
@@ -272,13 +272,17 @@ void mps_free(mps_pool_t mps_pool, mps_addr_t p, size_t size)
   SpaceLeave(space);
 }
 
-mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool, ...)
+
+mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool,
+                        mps_rank_t mps_rank, ...)
 {
   AP *apReturn = (AP *)mps_ap_o;
   Pool pool = (Pool)mps_pool;
+  Rank rank = (Rank)mps_rank;
   Space space = PoolSpace(pool);
   Buffer buf;
   Res res;
+  va_list args;
 
   SpaceEnter(space);
 
@@ -287,7 +291,9 @@ mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool, ...)
 
   /* Varargs are ignored at the moment -- none of the pool */
   /* implementations use them, and they're not passed through. */
-  res = BufferCreate(&buf, pool);
+  va_start(args, mps_rank);
+  res = BufferCreate(&buf, pool, rank);
+  va_end(args);
   if(res != ResOK)
     return res;
 
@@ -296,12 +302,12 @@ mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool, ...)
   return MPS_RES_OK;
 }
 
-mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o,
-                          mps_pool_t mps_pool,
-                          va_list args)
+mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t mps_pool,
+                          mps_rank_t mps_rank, va_list args)
 {
   AP *apReturn = (AP *)mps_ap_o;
   Pool pool = (Pool)mps_pool;
+  Rank rank = (Rank)mps_rank;
   Space space = PoolSpace(pool);
   Buffer buf;
   Res res;
@@ -314,7 +320,7 @@ mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o,
 
   /* Varargs are ignored at the moment -- none of the pool */
   /* implementations use them, and they're not passed through. */
-  res = BufferCreate(&buf, pool);
+  res = BufferCreate(&buf, pool, rank);
   if(res != ResOK)
     return res;
 

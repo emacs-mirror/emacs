@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(MMdevel_restr2.5) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.3) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .rationale: Types and type constants are almost all defined
@@ -104,15 +104,20 @@ typedef Res  (*PoolAllocMethod)        (Addr *pReturn, Pool pool, Size size);
 typedef void (*PoolFreeMethod)         (Pool pool, Addr old, Size size);
 typedef Res  (*PoolBufferInitMethod)   (Pool pool, Buffer buf);
 typedef void (*PoolBufferFinishMethod) (Pool pool, Buffer buf);
-typedef Res  (*PoolBufferFillMethod)   (Addr *baseReturn, Pool pool, Buffer buffer, Size size);
-typedef Bool (*PoolBufferTripMethod)   (Pool pool, Buffer buffer, Addr base, Size size);
+typedef Res  (*PoolBufferFillMethod)   (Addr *baseReturn, Pool pool,
+                                        Buffer buffer, Size size);
+typedef Bool (*PoolBufferTripMethod)   (Pool pool, Buffer buffer,
+                                        Addr base, Size size);
 typedef void (*PoolBufferExposeMethod) (Pool pool, Buffer buffer);
 typedef void (*PoolBufferCoverMethod)  (Pool pool, Buffer buffer);
 typedef Res  (*PoolDescribeMethod)     (Pool pool, Lib_FILE *stream);
-typedef Res  (*PoolCondemnMethod)      (RefSet *condemnedReturn, Pool pool, Space space, TraceId ti);
+typedef Res  (*PoolCondemnMethod)      (RefSet *condemnedReturn, Pool pool,
+                                        Space space, TraceId ti);
 typedef void (*PoolGreyMethod)         (Pool pool, Space space, TraceId ti);
-typedef Res  (*PoolScanMethod)         (ScanState ss, Pool pool, Bool *finishedReturn);
-typedef Res  (*PoolFixMethod)          (Pool pool, ScanState ss, Seg seg, Ref *refIO);
+typedef Res  (*PoolScanMethod)         (ScanState ss, Pool pool, 
+                                        Bool *finishedReturn);
+typedef Res  (*PoolFixMethod)          (Pool pool, ScanState ss, Seg seg,
+                                        Ref *refIO);
 typedef void (*PoolReclaimMethod)      (Pool pool, Space space, TraceId ti);
 typedef void (*PoolAccessMethod)       (Pool pool, Seg seg, AccessSet mode);
 

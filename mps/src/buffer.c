@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(MMdevel_restr2.4) $
+ * $HopeName: MMsrc!buffer.c(trunk.10) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * This is the interface to allocation buffers.
@@ -115,7 +115,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(MMdevel_restr2.4) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.10) $");
 
 
 Ring BufferPoolRing(Buffer buffer)
@@ -144,7 +144,7 @@ Pool (BufferPool)(Buffer buffer)
  * buffer descriptor, and ResOK is returned.
  */
 
-Res BufferCreate(Buffer *bufferReturn, Pool pool)
+Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
 {
   Res res;
   Buffer buffer;
@@ -170,6 +170,7 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool)
   buffer->alignment = pool->alignment;
   buffer->exposed = FALSE;
   buffer->seg = NULL;
+  buffer->rank = rank;
   buffer->shieldMode = AccessSetEMPTY;
   buffer->grey = TraceSetEMPTY;
   buffer->p = NULL;
@@ -261,8 +262,10 @@ Bool BufferCheck(Buffer buffer)
   CHECKL(AddrIsAligned(buffer->ap.init, buffer->alignment));
   CHECKL(AddrIsAligned(buffer->ap.alloc, buffer->alignment));
   CHECKL(AddrIsAligned(buffer->ap.limit, buffer->alignment));
-  if(buffer->seg != NULL)
+  if(buffer->seg != NULL) {
     CHECKL(SegCheck(buffer->seg));
+    CHECKL(buffer->rank == buffer->seg->rank);
+  }
   return TRUE;
 }
 

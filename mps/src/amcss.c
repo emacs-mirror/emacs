@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(MMdevel_restr.3) $
+ * $HopeName: MMsrc!amcss.c(trunk.10) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -58,7 +58,7 @@ static void *test(void *arg, size_t s)
   die(mps_pool_create(&pool, space, mps_class_amc(), format),
       "pool_create(amc)");
 
-  die(mps_ap_create(&ap, pool), "BufferCreate");
+  die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate");
 
   die(mps_root_create_table(&exact_root, space,
                             MPS_RANK_EXACT, (mps_rm_t)0,

@@ -1,6 +1,6 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName: MMsrc!mpsicv.c(MMdevel_restr.2) $
+ * $HopeName: MMsrc!mpsicv.c(trunk.3) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -81,13 +81,13 @@ static void pool_create_v_test(mps_space_t space, ...)
   va_end(args);
 }
 
-static void ap_create_v_test(mps_pool_t pool, ...)
+static void ap_create_v_test(mps_pool_t pool, mps_rank_t rank, ...)
 {
   mps_ap_t apt;
   va_list args;
 
   va_start(args, pool);
-  die(mps_ap_create_v(&apt, pool, args), "ap_create_v");
+  die(mps_ap_create_v(&apt, pool, rank, args), "ap_create_v");
   va_end(args);
   mps_ap_destroy(apt);
 }
@@ -122,9 +122,9 @@ static void *test(void *arg, size_t s)
 
   pool_create_v_test(space, format); /* creates amc pool */
 
-  ap_create_v_test(amcpool);
+  ap_create_v_test(amcpool, MPS_RANK_WEAK);
 
-  die(mps_ap_create(&ap, amcpool), "ap_create");
+  die(mps_ap_create(&ap, amcpool, MPS_RANK_EXACT), "ap_create");
 
   for(i=0; i<NR_EXACT_ROOTS; ++i)
     exact_roots[i] = OBJNULL;

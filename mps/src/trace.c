@@ -1,11 +1,11 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(MMdevel_restr2.2) $
+ * $HopeName: MMsrc!trace.c(trunk.16) $
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(MMdevel_restr2.2) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.16) $");
 
 Bool ScanStateCheck(ScanState ss)
 {
@@ -114,6 +114,7 @@ Res TraceFlip(Space space, TraceId ti, RefSet condemned)
   ss.summary = RefSetEmpty;
   ss.space = space;
   ss.traceId = ti;
+  ss.weakSplat = (Addr)0xadd4badd;
   ss.sig = ScanStateSig;
 
   /* At the moment we must scan all roots, because we don't have */
@@ -127,6 +128,7 @@ Res TraceFlip(Space space, TraceId ti, RefSet condemned)
   for(ss.rank = RankAMBIG; ss.rank <= RankEXACT; ++ss.rank) {
     ring = SpaceRootRing(space);
     node = RingNext(ring);
+
     while(node != ring) {
       Ring next = RingNext(node);
       Root root = RING_ELT(Root, spaceRing, node);
@@ -295,6 +297,12 @@ Res TraceRun(Space space, TraceId ti, Bool *finishedReturn)
   for(ss.rank = 0; ss.rank < RankMAX; ++ss.rank) {
     Ring ring;
     Ring node;
+
+    if(ss.rank == RankWEAK) {
+      ss.weakSplat = (Addr)0;
+    } else {
+      ss.weakSplat = (Addr)0xadd4badd;
+    }
 
     ring = SpacePoolRing(space);
     node = RingNext(ring);
