@@ -1,3 +1,6 @@
+2002-07-25  Dave Love  <fx@gnu.org>
+
+	* obsolete/c-mode.el: Deleted.
 
 2002-07-25  Carsten Dominik  <dominik@astro.uva.nl>
 

@@ -972,6 +972,9 @@ Emacs will still work on terminals that require magic cookies in order
 to use standout mode, however they will not be able to display
 mode-lines in inverse-video.
 
+** The obsolete C mode (c-mode.el) has been removed to avoid problems
+with Custom.
+
 
 * Lisp Changes in Emacs 21.4
 
