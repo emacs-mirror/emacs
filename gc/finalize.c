@@ -46,6 +46,8 @@ struct hash_chain_entry {
 unsigned GC_finalization_failures = 0;
 	/* Number of finalization requests that failed for lack of memory. */
 
+void (*GC_custom_finalize)(void);
+
 static struct disappearing_link {
     struct hash_chain_entry prolog;
 #   define dl_hidden_link prolog.hidden_key
@@ -665,6 +667,8 @@ void GC_finalize()
         }
       }
     }
+    if (GC_custom_finalize)
+      GC_custom_finalize();
 }
 
 #ifndef JAVA_FINALIZATION_NOT_NEEDED
