@@ -168,6 +168,9 @@ Do the right thing if the file has been compressed or zipped."
 	  (shell-command-on-region (point-min) (point-max) decoder t)))))
 
 ;;;###autoload
+(add-hook 'same-window-buffer-names "*info*")
+
+;;;###autoload
 (defun info (&optional file)
   "Enter Info, the documentation browser.
 Optional argument FILE specifies the file to examine;
@@ -180,7 +183,7 @@ to read a file name from the minibuffer."
   (if file
       (Info-goto-node (concat "(" file ")"))
     (if (get-buffer "*info*")
-	(switch-to-buffer "*info*")
+	(pop-to-buffer "*info*")
       (Info-directory))))
 
 ;;;###autoload
@@ -921,6 +924,7 @@ Completion is allowed, and the menu item point is on is the default."
 	 ;; If point is within a menu item, use that item as the default
 	 (default nil)
 	 (p (point))
+	 beg
 	 (last nil))
      (save-excursion
        (goto-char (point-min))
