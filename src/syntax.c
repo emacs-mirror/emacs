@@ -933,7 +933,12 @@ scan_lists (from, count, depth, sexpflag)
 	      if (!parse_sexp_ignore_comments) break;
 	      while (1)
 		{
-		  if (from == stop) goto done;
+		  if (from == stop)
+		    {
+		      if (depth == 0)
+			goto done;
+		      goto lose;
+		    }
 		  c = FETCH_CHAR (from);
 		  if (SYNTAX (c) == Sendcomment
 		      && SYNTAX_COMMENT_STYLE (c) == comstyle)
@@ -1099,7 +1104,12 @@ scan_lists (from, count, depth, sexpflag)
 		      if (SYNTAX (c = FETCH_CHAR (from)) == Scomment
 			  && SYNTAX_COMMENT_STYLE (c) == comstyle)
 			break;
-		      if (from == stop) goto done;
+		      if (from == stop)
+			{
+			  if (depth == 0)
+			    goto done2;
+			  goto lose;
+			}
 		      from--;
 		      if (SYNTAX_COMSTART_SECOND (c)
 			  && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from))
