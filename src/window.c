@@ -486,7 +486,10 @@ DEFUN ("window-start", Fwindow_start, Swindow_start, 0, 1, 0,
 }
 
 DEFUN ("window-end", Fwindow_end, Swindow_end, 0, 1, 0,
-  "Return position at which display currently ends in WINDOW.")
+  "Return position at which display currently ends in WINDOW.\n\
+This is updated by redisplay, when it runs to completion.\n\
+Simply changing the buffer text or setting `window-start'\n\
+does not update this value.")
   (window)
      Lisp_Object window;
 {
