@@ -331,7 +331,7 @@ off the specialized speedbar mode."
 
 (defun gud-gdb-find-file (f)
   (save-excursion
-    (let ((buf (find-file-noselect f)))
+    (let ((buf (find-file-noselect f 'nowarn)))
       (set-buffer buf)
       (gud-make-debug-menu)
       (local-set-key [menu-bar debug tbreak]
