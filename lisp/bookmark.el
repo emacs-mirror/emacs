@@ -55,7 +55,7 @@
 ;; Thanks to Roland McGrath for encouragement and help with defining
 ;; autoloads on the menu-bar.
 
-;; Jonathan Stigelman <stig@key.amdahl.com> gave patches for default
+;; Jonathan Stigelman <stig@hackvan.com> gave patches for default
 ;; values in bookmark-jump and bookmark-set.  Everybody please keep
 ;; all the keystrokes they save thereby and send them to him at the
 ;; end of each year :-)  (No, seriously, thanks Jonathan!)

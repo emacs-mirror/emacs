@@ -605,7 +605,7 @@
 
 ;; Wed February 1, 1995
 
-;;     Added ediff-undo-selective-display (thanks to Stig <stig@inse.com>).
+;;     Added ediff-undo-selective-display (thanks to Stig <stig@hackvan.com>).
 ;;     Rearranged autoloads. Renamed ediff-entry.el into ediff.el and
 ;;     ediff.el into ediff-util.el.
 
