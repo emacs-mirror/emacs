@@ -737,12 +737,12 @@ ZONE is an integer indicating the number of seconds east of Greenwich.\n\
 
 DEFUN ("encode-time", Fencode_time, Sencode_time, 6, 7, 0,
   "Convert SEC, MIN, HOUR, DAY, MONTH, YEAR and ZONE to internal time.\n\
-This is the reverse operation of `decode-time', which see.  ZONE defaults
-to the current time zone and daylight savings time if not specified; if
-specified, it can be either a list (as from `current-time-zone') or an
-integer (as from `decode-time'), and is applied without consideration for
-daylight savings time.  If YEAR is less than 100, values in the range 0 to
-37 are interpreted as in the 21st century, all other values arein the 20th
+This is the reverse operation of `decode-time', which see.  ZONE defaults\n\
+to the current time zone and daylight savings time if not specified; if\n\
+specified, it can be either a list (as from `current-time-zone') or an\n\
+integer (as from `decode-time'), and is applied without consideration for\n\
+daylight savings time.  If YEAR is less than 100, values in the range 0 to\n\
+37 are interpreted as in the 21st century, all other values are in the 20th\n\
 century.")
   (sec, min, hour, day, month, year, zone)
      Lisp_Object sec, min, hour, day, month, year, zone;
