@@ -509,11 +509,41 @@ update_one_menu_entry (instance, widget, val, deep_p)
     {
       if (contents)
 	{
-	  menu = XmCreatePulldownMenu (XtParent (widget), XtName (widget), NULL, 0);
+	  unsigned int old_num_children, i;
+	  Widget button, parent;
+	  Widget *widget_list;
+	  int buttonchange;
+
+	  parent = XtParent (widget);
+	  widget_list = XtCompositeChildren (parent, &old_num_children);
+
+	  /* Find the widget position within the parent's widget list.  */
+	  for (i = 0; i < old_num_children; i++)
+	    if (strcmp (XtName (widget_list[i]), XtName (widget)) == 0)
+	      break;
+	  if (i == old_num_children)
+	    abort ();
+	  /* `buttonchange' indicates the parent button is being
+	     exchanged with a CascadeButton.  */
+	  buttonchange = !XmIsCascadeButton (widget_list[i]);
+	  if (buttonchange)
+	    XtDestroyWidget (widget_list[i]);
+	  menu = XmCreatePulldownMenu (parent, val->name, NULL, 0);
 	  make_menu_in_widget (instance, menu, contents, 0);
 	  ac = 0;
 	  XtSetArg (al [ac], XmNsubMenuId, menu); ac++;
-	  XtSetValues (widget, al, ac);
+          /* Non-zero values don't work reliably in
+             conjunction with Emacs' event loop */
+          XtSetArg (al [ac], XmNmappingDelay, 0); ac++;
+	  /* Tell Motif to put it in the right place.  */
+	  XtSetArg (al [ac], XmNpositionIndex, i); ac++;
+	  button = XmCreateCascadeButtonGadget (parent, val->name, al, ac);
+	  xm_update_label (instance, button, val);
+	  
+	  XtAddCallback (button, XmNcascadingCallback, xm_pull_down_callback,
+			 (XtPointer)instance);
+	  if (buttonchange)
+	    XtManageChild (button);
 	}
     }
   else if (!contents)
@@ -575,7 +605,10 @@ xm_update_menu (instance, widget, val, deep_p)
       for (i = 0, cur = val->contents; i < num_children_to_keep; i++)
 	{
 	  if (!cur)
-	    abort ();
+	    {
+	      num_children_to_keep = i;
+	      break;
+	    }
 	  if (children [i]->core.being_destroyed
 	      || strcmp (XtName (children [i]), cur->name))
 	    continue;
