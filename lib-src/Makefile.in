@@ -368,10 +368,12 @@ hexl: ${srcdir}/hexl.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
 TIMEROBJS=getdate.o timer.o $(ALLOCA)
-getdate.o: ${srcdir}/getdate.y ../src/config.h
-	${YACC} ${YFLAGS} ${srcdir}/getdate.y
-	$(CC) $(CPP_CFLAGS) -c y.tab.c
-	mv y.tab.o getdate.o
+$(srcdir)/getdate.c: ${srcdir}/getdate.y
+	cd $(srcdir); ${YACC} ${YFLAGS} getdate.y
+	cd $(srcdir); mv y.tab.c getdate.c
+getdate.o: ${srcdir}/getdate.c ../src/config.h
+	$(CC) $(CPP_CFLAGS) -c ${srcdir}/getdate.c
+
 timer.o: ${srcdir}/timer.c ../src/config.h
 	$(CC) -c $(CPP_CFLAGS) ${srcdir}/timer.c
 timer: ${TIMEROBJS}
