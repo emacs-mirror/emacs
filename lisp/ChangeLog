@@ -1,5 +1,39 @@
 2000-03-21  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* pcvs.el: Add a minimal leading commentary.
+	(cvs-make-cvs-buffer): Change the header part by removing the startup
+	message and adding a `Module' entry.  Also replace the FOOTER and
+	HEADER special fileinfos with the new support in ewoc for updating
+	its own footer and header.
+	(cvs-update-header): Update to use the header/footer of the ewoc.
+	(cvs-mode): Use define-derived-mode and set truncate-lines to t.
+	(cvs-is-within-p): New function.
+	(cvs-mode-run): Take advantage of `save-some-buffers's new ability
+	to only examine some subset of the buffers.
+
+	* pcvs-info.el (cvs-fileinfo-pp): Use the new property-preserving
+	`format' instead of our own ad-hoc functions.
+	Remove HEADER and FOOTER cases, now handled in the EWOC.
+	(cvs-fileinfo<): Remove HEADER and FOOTER cases.
+
+	* pcvs-parse.el (cvs-parse-run-table): Change message for unknown
+	output to avoid scaring the user.
+	(cvs-parse-table): Catch message for non-up-to-date commits.
+
+	* pcvs-defs.el (cvs-startup-message): Remove.
+	(cvs-global-menu): New autoloaded menu.
+
+	* pcvs-util.el (cvs-string-fill): Remove.
+
+	* emacs-lisp/ewoc.el (ewoc--create-special-node): Remove.
+	(ewoc--refresh-node): Don't take the whole EWOC but only the relevant
+	PP part of it and also make it work for footers and headers.
+	(ewoc-create): Drop POS and BUFFER arguments.
+	Use the DLL's dummy node to store the end-of-footer position.
+	(ewoc-map, ewoc-invalidate): Update call to ewoc--refresh-node.
+	(ewoc-refresh): Remove unused `header' variable.
+	(ewoc-(get|set)-hf): New functions.
+
 	* log-view.el (log-view-(msg|file)-(prev|next)): Rename from
 	log-view-*-(message|file) and use easy-mmode-define-navigation.
 	(log-view-message-re): Match SCCS format as well.
