@@ -476,8 +476,7 @@ CLONE nil means the indirect buffer's state is reset to default values.")
 
   base_buffer = Fget_buffer (base_buffer);
   if (NILP (base_buffer))
-    error ("No such buffer: `%s'",
-	   XSTRING (XBUFFER (base_buffer)->name)->data);
+    error ("No such buffer: `%s'", XSTRING (name)->data);
 
   if (XSTRING (name)->size == 0)
     error ("Empty string for buffer name is not allowed");
