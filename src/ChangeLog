@@ -1,3 +1,70 @@
+2001-10-20  Miles Bader  <miles@gnu.org>
+
+	The following changes remove the glyph_row `inverse_p' field,
+	which is never set anymore, due to other changes:
+
+	* dispextern.h (struct glyph_row): Remove `inverse_p' field.
+	(reassert_line_highlight, change_line_highlight): Declarations removed.
+	* dispnew.c (update_frame_line): Don't call reassert_line_highlight.
+	(line_hash_code, row_equal_p, fake_current_matrices) 
+	(build_frame_matrix_from_leaf_window, update_frame_line) 
+	(update_frame_line, update_frame_line, update_frame_line):
+	Don't use `inverse_p' field.
+	* xterm.c (x_initialize): Don't set reassert_line_highlight_hook or
+	change_line_highlight_hook.
+	(XTreassert_line_highlight, x_change_line_highlight):
+	Functions removed.
+	(x_fix_overlapping_area, x_write_glyphs, expose_area) 
+	(expose_line, x_erase_phys_cursor): Don't use `inverse_p' field.
+	* xdisp.c (dump_glyph_row, display_mode_line): Don't use
+	`inverse_p' field.
+	* w32term.c (x_fix_overlapping_area, x_write_glyphs, expose_area) 
+	(expose_line, x_erase_phys_cursor): Don't use `inverse_p' field.
+	(w32_reassert_line_highlight, x_change_line_highlight):
+	Functions removed.
+	* w32console.c (reassert_line_highlight, change_line_highlight):
+	Functions removed.
+	(initialize_w32_display): Don't set reassert_line_highlight_hook
+	or change_line_highlight_hook.
+	(hl_mode): Function removed.
+	(reset_terminal_modes, set_terminal_modes, update_begin) 
+	(update_end, w32_face_attributes, initialize_w32_display): 
+	(clear_frame, ins_del_lines): Don't call it.
+	* termhooks.h (reassert_line_highlight_hook)
+	(change_line_highlight_hook): Declarations removed.
+	* term.c (reassert_line_highlight_hook)
+	(change_line_highlight_hook): Variables removed.
+	(reassert_line_highlight, change_line_highlight): Functions removed.
+	* msdos.c (IT_reassert_line_highlight)
+	(IT_change_line_highlight): Functions removed.
+	(internal_terminal_init): Don't set reassert_line_highlight_hook
+	or change_line_highlight_hook.
+	(highlight): Variable removed.
+	(IT_set_face, IT_update_begin, IT_update_end) 
+	(IT_set_terminal_modes): Don't set or use it.
+
+	The following changes remove inverse-video support for terminals
+	that use a `magic cookie' standout mode.  Due to changes in the
+	way mode-lines are displayed, such support no longer works
+	anyway, and it's probable that almost no one uses such terminals
+	anymore:
+
+	* term.c (standout_requested): Variable removed.
+	(update_end, highlight_if_desired): Don't use it.
+	(chars_wasted, copybuf): Variables removed.
+	(write_standout_marker): Function removed.
+	(cursor_to, clear_to_end, clear_frame, clear_end_of_line_raw) 
+	(clear_end_of_line_raw, write_glyphs, ins_del_lines):
+	Don't use `chars_wasted' or `copybuf'.
+	(calculate_costs): Don't allocate `chars_wasted' or `copybuf'.
+	Set `costs_set' to true.
+	(cursor_to, clear_end_of_line): Test `costs_set' instead of
+	`chars_wasted'.
+	(clear_end_of_line): Function removed.
+	(clear_end_of_line_raw): Renamed to `clear_end_of_line'.
+	(clear_to_end): Call `clear_end_of_line' instead of
+	`clear_end_of_line_raw'.
+
 2001-10-19  Richard M. Stallman  <rms@gnu.org>
 
 	* eval.c (syms_of_eval): Doc fixes.
