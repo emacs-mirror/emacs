@@ -36,8 +36,13 @@
 (load "paths.el")
 (load "site-init" t)
 
-(let ((attr (file-attributes (file-truename rmail-spool-directory)))
-      modes)
+(let ((dirname rmail-spool-directory) linkname attr modes)
+  ;; Check for symbolic link
+  (while (setq linkname (file-symlink-p dirname))
+    (setq dirname (if (file-name-absolute-p linkname)
+		      linkname
+		    (concat (file-name-directory dirname) linkname))))
+  (setq attr (file-attributes dirname))
   (or (eq t (car attr))
       (signal 'error
 	      (list (format "%s is not a directory" rmail-spool-directory))))
