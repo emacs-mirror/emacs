@@ -1169,7 +1169,8 @@
 	 radians-to-degrees rassq regexp-quote reverse round
 	 sin sqrt string string< string= string-equal string-lessp string-to-char
 	 string-to-int string-to-number substring symbol-function symbol-plist
-	 symbol-value
+	 symbol-value string-make-unibyte string-make-multibyte
+	 string-to-multibyte string-as-multibyte string-as-unibyte
 	 tan unibyte-char-to-multibyte upcase user-variable-p vconcat
 	 window-buffer window-dedicated-p window-edges window-height
 	 window-hscroll window-minibuffer-p window-width
