@@ -406,6 +406,7 @@ Filesz      Memsz       Flags       Align
 
 #ifndef emacs
 #define fatal(a, b, c) fprintf (stderr, a, b, c), exit (1)
+#include <string.h>
 #else
 #include <config.h>
 extern void fatal (char *, ...);
@@ -415,7 +416,6 @@ extern void fatal (char *, ...);
 #include <stdio.h>
 #include <sys/stat.h>
 #include <memory.h>
-#include <string.h>
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -499,12 +499,12 @@ typedef struct {
 #  define HDRR		struct ecoff_symhdr
 #  define pHDRR		HDRR *
 # endif /* __alpha__ */
-#endif /* __NetBSD__ */
 
-#ifdef __mips__					/* was in pkgsrc patches for 20.7 */
+#ifdef __mips__			/* was in pkgsrc patches for 20.7 */
 # define SHT_MIPS_DEBUG	DT_MIPS_FLAGS
 # define HDRR		struct Elf_Shdr
 #endif /* __mips__ */
+#endif /* __NetBSD__ */
 
 #ifdef __OpenBSD__
 # include <sys/exec_elf.h>
