@@ -1,3 +1,9 @@
+2004-05-25  Sam Steingold  <sds@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-find-tag-default): New function:
+	strip the package prefix from the symbol name, if any.
+	Make it the `find-tag-default-function' for `lisp-mode'.
+
 2004-05-25  John Paul Wallington  <jpw@gnu.org>
 
 	* gs.el (gs-load-image): Use `set-process-query-on-exit-flag'
@@ -2515,7 +2521,7 @@
 2004-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-file-not-found-hook): Fix typo.
-	From lorentey@elte.hu (L,Bu(Brentey K,Ba(Broly).
+	From lorentey@elte.hu (L$,1 q(Brentey K,Aa(Broly).
 
 2004-03-27  Luc Teirlinck  <teirllm@auburn.edu>
 

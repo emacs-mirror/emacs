@@ -355,6 +355,14 @@ if that value is non-nil."
   (setq imenu-case-fold-search t)
   (set-syntax-table lisp-mode-syntax-table)
   (run-mode-hooks 'lisp-mode-hook))
+(put 'lisp-mode 'find-tag-default-function 'lisp-find-tag-default)
+
+(defun lisp-find-tag-default ()
+  (let ((default (find-tag-default)))
+    (when (stringp default)
+      (if (string-match ":+" default)
+          (substring default (match-end 0))
+          default))))
 
 ;; Used in old LispM code.
 (defalias 'common-lisp-mode 'lisp-mode)
