@@ -1,3 +1,10 @@
+2000-08-18  Miles Bader  <miles@gnu.org>
+
+	* editfns.c (save_restriction_save): Rewrite to use markers.
+	(save_restriction_restore): Rewrite to understand new form of data
+	saved by save_restriction_save.
+	(Fsave_restriction): Remove cautionary note in doc-string.
+
 2000-08-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* fileio.c (build_annotations): Add a comment explaining the
