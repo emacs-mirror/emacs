@@ -84,3 +84,6 @@
 
 (add-hook 'post-command-hook 'show-paren-command-hook)
 
+(provide 'paren)
+
+;;; paren.el ends here
