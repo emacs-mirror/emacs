@@ -1,12 +1,24 @@
+2004-01-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock): Add jit-lock as explicit group member.
+	(jit-lock): Group declaration moved to jit-lock.el.
+	(toplevel): Don't explicitly require jit-lock, since it's autoloaded
+	when necessary.
+
+	* jit-lock.el (jit-lock): Move group declaration from font-lock.el.
+	(jit-lock-context-unfontify-pos): Rename from
+	jit-lock-first-unfontify-pos.
+	(jit-lock-defer-buffers): Rename from jit-lock-buffers.
+
 2004-01-25  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
-	* progmodes/fortran.el (fortran-break-before-delimiters): Doc fix. 
-	(fortran-break-delimiters-re, fortran-no-break-re): New defconsts.
+	* progmodes/fortran.el (fortran-break-before-delimiters): Doc fix.
+	(fortran-break-delimiters-re, fortran-no-break-re): New consts.
 	(fortran-fill): When filling a string, adjust re-search-backward
 	argument for special case of string just on fill-column.
 	When filling non-string, allow one extra char if
-	fortran-break-before-delimiters is non-nil.  Suggested by
-	Michael Hagemann <michael.hagemann@unibas.ch>. 
+	fortran-break-before-delimiters is non-nil.
+	Suggested by Michael Hagemann <michael.hagemann@unibas.ch>.
 	Use fortran-break-delimiters-re and fortran-no-break-re to
 	correctly handle cases such as "**".
 
@@ -41,16 +53,16 @@
 
 2004-01-22  Kenichi Handa  <handa@m17n.org>
 
-	* language/cyrillic.el (ccl-encode-windows-1251-font): Rearrange
-	code point (register r1) only for charset mule-unicode-0100-24ff.
+	* language/cyrillic.el (ccl-encode-windows-1251-font): Rearrange code
+	point (register r1) only for charset mule-unicode-0100-24ff.
 
 2004-01-21  Markus Rost  <rost@mathematik.uni-bielefeld.de>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Avoid deleting
 	trailing white space and ensure a final newline.
 
-	* mail/rmail-spam-filter.el (rmail-use-spam-filter): Add autoload
-	cookie.
+	* mail/rmail-spam-filter.el (rmail-use-spam-filter):
+	Add autoload cookie.
 
 2004-01-21  Benjamin Rutt  <brutt@bloomington.in.us>
 
