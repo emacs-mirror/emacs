@@ -47,7 +47,7 @@ to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."
   (interactive "P")
   ;; See where we are.
   (let* ((macro (car (reftex-what-macro-safe 1)))
-         (key (reftex-this-word "^{}%\n\r,"))
+         (key (reftex-this-word "^{}%\n\r, \t"))
 	 dw)
 
     (if (or (null macro) (reftex-in-comment))
