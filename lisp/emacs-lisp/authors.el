@@ -428,10 +428,10 @@ ROOT is the root directory under which to find the files.  If called
 interactively, ROOT is read from the minibuffer.  Result is a
 buffer *Authors* containing authorship information."
   (interactive "DEmacs source directory: ")
+  (setq root (expand-file-name root))
   (let ((logs (authors-process-lines "find" root "-name" "ChangeLog*"))
 	(table (make-hash-table :test 'equal))
 	(buffer-name "*Authors*"))
-    (setq root (expand-file-name root))
     (authors-add-fixed-entries table)
     (unless (file-exists-p (expand-file-name "src/emacs.c" root))
       (error "Not the root directory of Emacs: %s" root))
