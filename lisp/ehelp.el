@@ -215,7 +215,7 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
 	              ;beginning-of-buffer - otherwise pos-visible-in-window-p
 	              ;will yield a wrong result.
 	  (let ((min (pos-visible-in-window-p (point-min)))
-		(max (pos-visible-in-window-p (point-max))))
+		(max (pos-visible-in-window-p (1- (point-max)))))
 	    (cond (isearch-mode 'noprompt)
 		  ((and min max)
 		   (cond (standard "Press q to exit, r to retain ")
