@@ -694,9 +694,12 @@ extern struct buffer buffer_local_symbols;
    buffer-local slots.  If a slot contains Qnil, then the
    corresponding buffer slot may contain a value of any type.  If a
    slot contains an integer, then prospective values' tags must be
-   equal to that integer.  When a tag does not match, the function
-   buffer_slot_type_mismatch will signal an error.  The value Qnil may
-   always be safely stored in any slot.  */
+   equal to that integer (except nil is always allowed).
+   When a tag does not match, the function
+   buffer_slot_type_mismatch will signal an error.
+
+   If a slot here contains -1, the corresponding variable is read-only.  */
+
 extern struct buffer buffer_local_types;
 
 extern void reset_buffer P_ ((struct buffer *));
