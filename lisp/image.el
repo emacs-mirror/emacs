@@ -39,25 +39,33 @@ be of image type IMAGE-TYPE.")
 
 
 ;;;###autoload
+(defun image-type-from-data (data)
+  "Determine the image type from image data DATA.
+Value is a symbol specifying the image type or nil if type cannot
+be determined."
+  (let ((types image-type-regexps)
+	type)
+    (while (and types (null type))
+      (let ((regexp (car (car types)))
+	    (image-type (cdr (car types))))
+	(when (string-match regexp data)
+	  (setq type image-type))
+	(setq types (cdr types))))
+    type))
+
+
+;;;###autoload
 (defun image-type-from-file-header (file)
   "Determine the type of image file FILE from its first few bytes.
 Value is a symbol specifying the image type, or nil if type cannot
 be determined."
   (unless (file-name-directory file)
-    (setq file (concat data-directory file)))
+    (setq file (expand-file-name file data-directory)))
   (setq file (expand-file-name file))
   (let ((header (with-temp-buffer
 		  (insert-file-contents-literally file nil 0 256)
-		  (buffer-string)))
-	(types image-type-regexps)
-	type)
-    (while (and types (null type))
-      (let ((regexp (car (car types)))
-	    (image-type (cdr (car types))))
-	(when (string-match regexp header)
-	  (setq type image-type))
-	(setq types (cdr types))))
-    type))
+		  (buffer-string))))
+    (image-type-from-data header)))
 
 
 ;;;###autoload
@@ -68,26 +76,38 @@ Image types are symbols like `xbm' or `jpeg'."
 
 
 ;;;###autoload
-(defun create-image (file &optional type &rest props)
-  "Create an image which will be loaded from FILE.
+(defun create-image (file-or-data &optional type data-p &rest props)
+  "Create an image.
+FILE-OR-DATA is an image file name or image data.
 Optional TYPE is a symbol describing the image type.  If TYPE is omitted
-or nil, try to determine the image file type from its first few bytes.
-If that doesn't work, use FILE's extension as image type.
+or nil, try to determine the image type from its first few bytes
+of image data.  If that doesn't work, and FILE-OR-DATA is a file name,
+use its file extension.as image type.
+Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data.
 Optional PROPS are additional image attributes to assign to the image,
 like, e.g. `:heuristic-mask t'.
 Value is the image created, or nil if images of type TYPE are not supported."
-  (unless (stringp file)
-    (error "Invalid image file name %s" file))
-  (unless (or type
-	      (setq type (image-type-from-file-header file)))
-    (let ((extension (file-name-extension file)))
-      (unless extension
-	(error "Cannot determine image type"))
-      (setq type (intern extension))))
+  (unless (stringp file-or-data)
+    (error "Invalid image file name or data `%s'" file-or-data))
+  (cond ((null data-p)
+	 ;; FILE-OR-DATA is a file name.
+	 (unless (or type
+		     (setq type (image-type-from-file-header file-or-data)))
+	   (let ((extension (file-name-extension file-or-data)))
+	     (unless extension
+	       (error "Cannot determine image type"))
+	     (setq type (intern extension)))))
+	(t
+	 ;; FILE-OR-DATA contains image data.
+	 (unless type
+	   (setq type (image-type-from-data file-or-data)))))
+  (unless type
+    (error "Cannot determine image type"))
   (unless (symbolp type)
-    (error "Invalid image type %s" type))
+    (error "Invalid image type `%s'" type))
   (when (image-type-available-p type)
-    (append (list 'image :type type :file file) props)))
+    (append (list 'image :type type (if data-p :data :file) file-or-data)
+	    props)))
 
 
 ;;;###autoload
@@ -178,17 +198,17 @@ Example:
   (let (image)
     (while (and specs (null image))
       (let* ((spec (car specs))
-	     (data (plist-get spec :data))
 	     (type (plist-get spec :type))
+	     (data (plist-get spec :data))
 	     (file (plist-get spec :file)))
-	(when (and (image-type-available-p type) ; Image type is supported
-		   (or data (stringp file))) ; Data or file was specified
-	  (if data
-	      (setq image (cons 'image spec))
-	    (setq file (expand-file-name file data-directory))
-	    (when (file-readable-p file)
-	      (setq image (cons 'image (plist-put spec :file file)))))
-	  (setq specs (cdr specs)))))
+	(when (image-type-available-p type)
+	  (cond ((stringp file)
+		 (setq file (expand-file-name file data-directory))
+		 (when (file-readable-p file)
+		   (setq image (cons 'image (plist-put spec :file file)))))
+		((stringp data)
+		 (setq image (cons 'image spec)))))
+	(setq specs (cdr specs))))
     `(defvar ,symbol ',image ,doc)))
 
 
