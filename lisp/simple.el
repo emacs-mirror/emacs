@@ -1,7 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;               2000, 2001, 2002, 2003, 2004
+;;               2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -4001,7 +4001,7 @@ when it is off screen)."
 		(setq matching-paren
 		      (let ((syntax (syntax-after blinkpos)))
 			(and (consp syntax)
-			     (eq (car syntax) 4)
+			     (eq (logand (car syntax) 255) 4)
 			     (cdr syntax)))
 		      mismatch
 		      (or (null matching-paren)
