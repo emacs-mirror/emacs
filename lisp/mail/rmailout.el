@@ -1,6 +1,6 @@
 ;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file.
 
-;; Copyright (C) 1985, 1987, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1993, 1994, 2001 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -50,8 +50,7 @@ Set `rmail-default-rmail-file' to this name as well as returning it."
 	    ;; Suggest a file based on a pattern match.
 	    (while (and tail (not answer))
 	      (save-excursion
-		(if (eq major-mode 'rmail-summary-mode)
-		    (set-buffer rmail-buffer)) 
+		(set-buffer rmail-buffer)
 		(goto-char (point-min))
 		(if (re-search-forward (car (car tail)) nil t)
 		    (setq answer (eval (cdr (car tail)))))
@@ -156,6 +155,7 @@ mesasge up instead of moving forward to the next non-deleted message."
       (let (redelete)
 	(unwind-protect
 	    (progn
+	      (set-buffer rmail-buffer)
 	      ;; Temporarily turn off Deleted attribute.
 	      ;; Do this outside the save-restriction, since it would
 	      ;; shift the place in the buffer where the visible text starts.
@@ -287,6 +287,7 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 			       (file-name-directory rmail-default-file))))
   (if (and (file-readable-p file-name) (mail-file-babyl-p file-name))
       (rmail-output-to-rmail-file file-name count)
+    (set-buffer rmail-buffer)
     (let ((orig-count count)
 	  (rmailbuf (current-buffer))
 	  (case-fold-search t)
