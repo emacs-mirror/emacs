@@ -350,13 +350,13 @@ expansion as well.  Here's how to do that:
 
 @smallexample
 (add-hook 'mail-setup-hook
-          '(lambda ()
-             (substitute-key-definition
-               'next-line 'mail-abbrev-next-line
-               mail-mode-map global-map)
-             (substitute-key-definition
-               'end-of-buffer 'mail-abbrev-end-of-buffer
-               mail-mode-map global-map)))
+          (lambda ()
+            (substitute-key-definition
+              'next-line 'mail-abbrev-next-line
+              mail-mode-map global-map)
+            (substitute-key-definition
+              'end-of-buffer 'mail-abbrev-end-of-buffer
+              mail-mode-map global-map)))
 @end smallexample
 
 @node Mail Mode

@@ -4610,9 +4610,9 @@ best fix I've been able to come up with:
   (rmail-reply t))
 
 (add-hook 'rmail-mode-hook
-  '(lambda ()
-     (define-key rmail-mode-map "r" 'rmail-reply-t)
-     (define-key rmail-mode-map "R" 'rmail-reply)))
+  (lambda ()
+    (define-key rmail-mode-map "r" 'rmail-reply-t)
+    (define-key rmail-mode-map "R" 'rmail-reply)))
 @end lisp
 
 @node MIME with Emacs mail packages, Automatically starting a mail or news reader, Replying to the sender of a message, Mail and news
@@ -4737,7 +4737,7 @@ automatically via
 
 @lisp
 (add-hook 'gnus-article-prepare-hook
-  '(lambda () (ununderline-region (point-min) (point-max))))
+  (lambda () (ununderline-region (point-min) (point-max))))
 @end lisp
 
 @node Saving a multi-part Gnus posting, Starting Gnus faster, Viewing articles with embedded underlining, Mail and news

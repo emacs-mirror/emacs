@@ -611,7 +611,7 @@ to your @file{.emacs} file:
 @example
 
 (add-hook 'c-mode-common-hook
-	  '(lambda () (c-toggle-auto-hungry-state 1)))
+	  (lambda () (c-toggle-auto-hungry-state 1)))
 
 @end example
 

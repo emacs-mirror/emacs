@@ -1417,14 +1417,9 @@ to add local bindings (not very useful, we admit) for @kbd{C-c n} and
 
 @example
 (add-hook 'texinfo-mode-hook
-          '(lambda ()
-             (define-key texinfo-mode-map
-                         "\C-cp"
-                         'backward-paragraph)
-             (define-key texinfo-mode-map
-                         "\C-cn"
-                         'forward-paragraph)
-             ))
+          (lambda ()
+            (define-key texinfo-mode-map "\C-cp" 'backward-paragraph)
+            (define-key texinfo-mode-map "\C-cn" 'forward-paragraph)))
 @end example
 
   @xref{Hooks}.
@@ -2167,7 +2162,7 @@ Turn on Auto Fill mode automatically in Text mode and related modes.
 
 @example
 (add-hook 'text-mode-hook
-  '(lambda () (auto-fill-mode 1)))
+  (lambda () (auto-fill-mode 1)))
 @end example
 
 This shows how to add a hook function to a normal hook variable

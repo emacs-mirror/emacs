@@ -21015,7 +21015,7 @@ Mac, MS (etc) characters into ISO 8859-1.
 @item
 @example
  (add-hook 'gnus-exit-query-functions
-'(lambda ()
+ (lambda ()
    (if (and (file-exists-p nnmail-spool-file)
             (> (nnheader-file-size nnmail-spool-file) 0))
        (yes-or-no-p "New mail has arrived.  Quit Gnus anyways? ")
