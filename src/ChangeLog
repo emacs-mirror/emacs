@@ -1,3 +1,10 @@
+2002-05-26  Miles Bader  <miles@gnu.org>
+
+	* term.c (tty_capable_p): New function.
+	* dispextern.h (tty_capable_p): New function declaration.
+	(TTY_CAP_INVERSE, TTY_CAP_UNDERLINE, TTY_CAP_BOLD, TTY_CAP_DIM)
+	(TTY_CAP_BLINK, TTY_CAP_ALT_CHARSET): New macros.
+
 2002-05-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* fileio.c (read_non_regular, Finsert_file_contents): Use BEG_BYTE.
