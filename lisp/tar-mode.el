@@ -528,7 +528,7 @@ is visible (and the real data of the buffer is hidden)."
 (put 'tar-subfile-mode 'mode-class 'special)
 
 ;;;###autoload
-(defun tar-mode ()
+(define-derived-mode tar-mode nil "Tar"
   "Major mode for viewing a tar file as a dired-like listing of its contents.
 You can move around using the usual cursor motion commands. 
 Letters no longer insert themselves.
@@ -547,33 +547,21 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   ;; mode on and off.  You can corrupt things that way.
   ;; rms: with permanent locals, it should now be possible to make this work
   ;; interactively in some reasonable fashion.
-  (kill-all-local-variables)
   (make-local-variable 'tar-header-offset)
   (make-local-variable 'tar-parse-info)
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline nil) ; binary data, dude...
-  (make-local-variable 'revert-buffer-function)
-  (setq revert-buffer-function 'tar-mode-revert)
-  (make-local-variable 'local-enable-local-variables)
-  (setq local-enable-local-variables nil)
-  (make-local-variable 'next-line-add-newlines)
-  (setq next-line-add-newlines nil)
+  (set (make-local-variable 'require-final-newline) nil) ; binary data, dude...
+  (set (make-local-variable 'revert-buffer-function) 'tar-mode-revert)
+  (set (make-local-variable 'local-enable-local-variables) nil)
+  (set (make-local-variable 'next-line-add-newlines) nil)
   ;; Prevent loss of data when saving the file.
-  (make-local-variable 'file-precious-flag)
-  (setq file-precious-flag t)
-  (setq major-mode 'tar-mode)
-  (setq mode-name "Tar")
-  (use-local-map tar-mode-map)
+  (set (make-local-variable 'file-precious-flag) t)
   (auto-save-mode 0)
-  (make-local-variable 'write-contents-hooks)
-  (setq write-contents-hooks '(tar-mode-write-file))
+  (set (make-local-variable 'write-contents-hooks) '(tar-mode-write-file))
   (widen)
   (if (and (boundp 'tar-header-offset) tar-header-offset)
       (narrow-to-region 1 (byte-to-position tar-header-offset))
-      (tar-summarize-buffer)
-      (tar-next-line 0))
-  (run-hooks 'tar-mode-hook)
-  )
+    (tar-summarize-buffer)
+    (tar-next-line 0)))
 
 
 (defun tar-subfile-mode (p)
