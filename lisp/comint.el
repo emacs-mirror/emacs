@@ -2334,7 +2334,11 @@ This mirrors the optional behavior of tcsh."
 If a cons pair, it should be of the form (DIRSUFFIX . FILESUFFIX) where
 DIRSUFFIX and FILESUFFIX are strings added on unambiguous or exact completion.
 This mirrors the optional behavior of tcsh."
-  :type 'boolean
+  :type '(choice (const :tag "None" nil)
+		 (const :tag "add /" t)
+		 (cons :tag "Suffix pair"
+		       (string :tag "Directory suffix")
+		       (string :tag "File suffix")))
   :group 'comint-completion)
 
 (defcustom comint-completion-recexact nil
