@@ -63,8 +63,8 @@ Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
 	    (setq select
 		  (catch 'electric-buffer-menu-select
 		    (message "<<< Press Space to bury the buffer list >>>")
-		    (if (= (setq unread-command-char (read-char)) ?\ )
-			(progn (setq unread-command-char -1)
+		    (if (= (setq unread-command-event (read-char)) ?\ )
+			(progn (setq unread-command-event nil)
 			       (throw 'electric-buffer-menu-select nil)))
 		    (let ((first (progn (goto-char (point-min))
 					(forward-line 2)
@@ -196,7 +196,7 @@ electric-buffer-menu-mode-hook if it is non-nil."
  
 (defun Electric-buffer-menu-exit ()
   (interactive)
-  (setq unread-command-char last-input-char)
+  (setq unread-command-event last-input-char)
   ;; for robustness
   (condition-case ()
       (throw 'electric-buffer-menu-select nil)
