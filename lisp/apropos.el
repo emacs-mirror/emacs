@@ -81,18 +81,18 @@ text-property list for efficiency.")
   "*Face for property name in apropos output or `nil'.  
 This looks good, but slows down the commands several times.")
 
-(defvar apropos-match-face (if window-system 'highlight)
+(defvar apropos-match-face (if window-system 'secondary-selection)
   "*Face for matching part in apropos-documentation/value output or `nil'.  
 This looks good, but slows down the commands several times.")
 
 
-(defvar apropos-local-map
+(defvar apropos-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-m" 'apropos-follow)
     (define-key map [mouse-2] 'apropos-mouse-follow)
     (define-key map [down-mouse-2] nil)
     map)
-  "Local map active when displaying apropos output.")
+  "Keymap used in Apropos mode.")
 
 
 (defvar apropos-regexp nil
@@ -107,6 +107,17 @@ This looks good, but slows down the commands several times.")
 (defvar apropos-item ()
   "Current item in or for apropos-accumulator.")
 
+(defun apropos-mode ()
+  "Major mode for following hyperlinks in output of apropos commands.
+
+\\{apropos-mode-map}"
+  (interactive)
+  (kill-all-local-variables)
+  (use-local-map apropos-mode-map)
+  (setq major-mode 'apropos-mode
+	mode-name "Apropos"))
+
+
 ;; For auld lang syne:
 ;;;###autoload
 (fset 'command-apropos 'apropos-command)
@@ -122,7 +133,7 @@ variables."
 					  "(regexp): "))
 		     current-prefix-arg))
   (let ((message
-	 (let ((standard-output (get-buffer-create "*Help*")))
+	 (let ((standard-output (get-buffer-create "*Apropos*")))
 	   (print-help-return-message 'identity))))
     (or do-all (setq do-all apropos-do-all))
     (setq apropos-accumulator
@@ -186,9 +197,9 @@ Returns list of symbols and documentation found."
 				       (string-match "\n" doc))
 			  "(not documented)"))
 		    (if (setq doc (symbol-plist symbol))
-			(if (eq (setq doc (/ (length doc) 2)) 1)
-			    "1 property"
-			  (concat doc " properties")))))
+			(if (eq (/ (length doc) 2) 1)
+			    (format "1 property (%s)" (car doc))
+			  (concat (/ (length doc) 2) " properties")))))
 	 (setq p (cdr p)))))
    nil))
 
@@ -220,7 +231,7 @@ Returns list of symbols and values found."
 
 ;;;###autoload
 (defun apropos-documentation (apropos-regexp &optional do-all)
-  "Show symbols whose names or documentation contain matches for REGEXP.
+  "Show symbols whose documentation contain matches for REGEXP.
 With optional prefix ARG or if `apropos-do-all' is non-nil, also use
 documentation that is not stored in the documentation file and show key
 bindings.
@@ -238,11 +249,10 @@ Returns list of symbols and documentation found."
 	      (mapatoms
 	       (lambda (symbol)
 		 (setq f (apropos-safe-documentation symbol)
-		       v (get symbol 'variable-documentation)
-		       v (if (integerp v) nil v))
-		 (or (string-match apropos-regexp (symbol-name symbol))
-		     (setq f (apropos-documentation-internal f)
-			   v (apropos-documentation-internal v)))
+		       v (get symbol 'variable-documentation))
+		 (if (integerp v) (setq v))
+		 (setq f (apropos-documentation-internal f)
+		       v (apropos-documentation-internal v))
 		 (if (or f v)
 		     (if (setq apropos-item
 			       (cdr (assq symbol apropos-accumulator)))
@@ -254,7 +264,7 @@ Returns list of symbols and documentation found."
 		       (setq apropos-accumulator
 			     (cons (list symbol f v)
 				   apropos-accumulator)))))))
-	  (apropos-print do-all nil t))
+	  (apropos-print nil nil t))
       (kill-buffer standard-input))))
 
 
@@ -307,57 +317,64 @@ Returns list of symbols and documentation found."
 ;; Finds all documentation related to APROPOS-REGEXP in internal-doc-file-name.
 
 (defun apropos-documentation-check-doc-file ()
-  (let (type symbol beg end)
+  (let (type symbol (sepa 2) sepb beg end)
+    (insert ?\^_)
+    (backward-char)
     (insert-file-contents (concat doc-directory internal-doc-file-name))
-    (while (re-search-forward apropos-regexp nil t)
-      (setq beg (match-beginning 0)
-	    end (point))
-      (search-backward "\C-_")
-      (if (> (point) beg)
-	  ()
-	(or (setq type (if (eq ?F (char-after (1+ (point))))
-			   1		;function documentation
-			 2)		;variable documentation
-		  symbol (prog2
-			     (forward-char 2)
-			     (read))
-		  beg (- beg (point) 1)
-		  end (- end (point) 1)
-		  doc (buffer-substring
-		       (1+ (point))
-		       (if (search-forward "\C-_" nil 'move)
-			   (1- (point))
-			 (point)))
-		  apropos-item (assq symbol apropos-accumulator))
-	    (setq apropos-item (list symbol nil nil)
-		  apropos-accumulator (cons apropos-item apropos-accumulator)))
-	(and apropos-match-face
-	     (>= beg 0)
-	     (put-text-property beg end 'face apropos-match-face doc))
-	(setcar (nthcdr type apropos-item) doc)))))
+    (forward-char)
+    (while (save-excursion
+	     (setq sepb (search-forward "\^_"))
+	     (not (eobp)))
+      (beginning-of-line 2)
+      (if (save-restriction
+	    (narrow-to-region (point) (1- sepb))
+	    (re-search-forward apropos-regexp nil t))
+	  (progn
+	    (setq beg (match-beginning 0)
+		  end (point))
+	    (goto-char (1+ sepa))
+	    (or (setq type (if (eq ?F (preceding-char))
+			       1	; function documentation
+			     2)		; variable documentation
+		      symbol (read)
+		      beg (- beg (point) 1)
+		      end (- end (point) 1)
+		      doc (buffer-substring (1+ (point)) (1- sepb))
+		      apropos-item (assq symbol apropos-accumulator))
+		(setq apropos-item (list symbol nil nil)
+		      apropos-accumulator (cons apropos-item
+						apropos-accumulator)))
+	    (if apropos-match-face
+		(put-text-property beg end 'face apropos-match-face doc))
+	    (setcar (nthcdr type apropos-item) doc)))
+      (setq sepa (goto-char sepb)))))
 
 (defun apropos-documentation-check-elc-file (file)
   (if (member file apropos-files-scanned)
       nil
-    (let (symbol doc beg end end1 this-is-a-variable)
+    (let (symbol doc beg end this-is-a-variable)
       (setq apropos-files-scanned (cons file apropos-files-scanned))
       (erase-buffer)
       (insert-file-contents file)
       (while (search-forward "\n#@" nil t)
 	;; Read the comment length, and advance over it.
 	(setq end (read)
-	      beg (point)
-	      end (+ (point) end 1))
-	(if (re-search-forward apropos-regexp end t)
+	      beg (1+ (point))
+	      end (+ (point) end -1))
+	(forward-char)
+	(if (save-restriction
+	      ;; match ^ and $ relative to doc string
+	      (narrow-to-region beg end)
+	      (re-search-forward apropos-regexp nil t))
 	    (progn
-	      (goto-char end)
-	      (setq doc (buffer-substring (1+ beg) (- end 2))
-		    end1 (- (match-end 0) beg 1)
-		    beg (- (match-beginning 0) beg 1)
-		    this-is-a-variable (looking-at "(defvar\\|(defconst")
+	      (goto-char (+ end 2))
+	      (setq doc (buffer-substring beg end)
+		    end (- (match-end 0) beg)
+		    beg (- (match-beginning 0) beg)
+		    this-is-a-variable (looking-at "(def\\(var\\|const\\) ")
 		    symbol (progn
 			     (skip-chars-forward "(a-z")
-			     (forward-char 1)
+			     (forward-char)
 			     (read))
 		    symbol (if (consp symbol)
 			       (nth 1 symbol)
@@ -371,12 +388,11 @@ Returns list of symbols and documentation found."
 			      apropos-accumulator (cons apropos-item
 							apropos-accumulator)))
 		    (if apropos-match-face
-			(put-text-property beg end1 'face apropos-match-face
+			(put-text-property beg end 'face apropos-match-face
 					   doc))
 		    (setcar (nthcdr (if this-is-a-variable 2 1)
 				    apropos-item)
-			    doc)))))
-	(goto-char end)))))
+			    doc)))))))))
 
 
 
@@ -416,7 +432,7 @@ found."
 	(funcall doc-fn apropos-accumulator))
     (setq apropos-accumulator
 	  (sort apropos-accumulator (lambda (a b)
-				 (string-lessp (car a) (car b)))))
+				      (string-lessp (car a) (car b)))))
     (and apropos-label-face
 	 (symbolp apropos-label-face)
 	 (setq apropos-label-face `(face ,apropos-label-face
@@ -425,60 +441,59 @@ found."
       (let ((p apropos-accumulator)
 	    (old-buffer (current-buffer))
 	    symbol item point1 point2)
-	(save-excursion
-	  (set-buffer standard-output)
-	  (if window-system
-	      (insert (substitute-command-keys
-		       "Click \\<apropos-local-map>\\[apropos-mouse-follow] to get full documentation.\n")))
-	  (insert (substitute-command-keys
-		   "In this buffer, type \\<apropos-local-map>\\[apropos-follow] to get full documentation.\n\n"))
-	  (use-local-map apropos-local-map)
-	  (while (consp p)
-	    (or (not spacing) (bobp) (terpri))
-	    (setq apropos-item (car p)
-		  symbol (car apropos-item)
-		  p (cdr p)
-		  point1 (point))
-	    (princ symbol)		        ;print symbol name
-	    (setq point2 (point))
-	    ;; don't calculate key-bindings unless needed
-	    (and do-keys
-		 (commandp symbol)
-		 (indent-to 30 1)
-		 (insert
-		  (if (setq item (save-excursion
-				   (set-buffer old-buffer)
-				   (where-is-internal symbol)))
-		      (mapconcat
-		       (if apropos-keybinding-face
-			   (lambda (key)
-			     (setq key (key-description key))
-			     (put-text-property 0 (length key)
-						'face apropos-keybinding-face
-						key)
-			     key)
-			 'key-description)
-		       item ", ")
-		    "(not bound to any keys)")))
-	    (terpri)
-	    ;; only now so we don't propagate text attributes all over
-	    (put-text-property point1 point2 'item
-			       (if (eval `(or ,@(cdr apropos-item)))
-				   (car apropos-item)
-				 apropos-item))
-	    (if apropos-symbol-face
-		(put-text-property point1 point2 'face apropos-symbol-face))
-	    (apropos-print-doc 'describe-function 1
-			       (if (commandp symbol)
-				   "Command"
-				 (if (apropos-macrop symbol)
-				     "Macro"
-				   "Function"))
-			       do-keys)
-	    (apropos-print-doc 'describe-variable 2
-			       "Variable" do-keys)
-	    (apropos-print-doc 'apropos-describe-plist 3
-			       "Plist" nil))))))
+	(set-buffer standard-output)
+	(apropos-mode)
+	(if window-system
+	    (insert (substitute-command-keys
+		     "Click \\[apropos-mouse-follow] to get full documentation.\n")))
+	(insert (substitute-command-keys
+		 "In this buffer, type \\[apropos-follow] to get full documentation.\n\n"))
+	(while (consp p)
+	  (or (not spacing) (bobp) (terpri))
+	  (setq apropos-item (car p)
+		symbol (car apropos-item)
+		p (cdr p)
+		point1 (point))
+	  (princ symbol)		        ; print symbol name
+	  (setq point2 (point))
+	  ;; don't calculate key-bindings unless needed
+	  (and do-keys
+	       (commandp symbol)
+	       (indent-to 30 1)
+	       (insert
+		(if (setq item (save-excursion
+				 (set-buffer old-buffer)
+				 (where-is-internal symbol)))
+		    (mapconcat
+		     (if apropos-keybinding-face
+			 (lambda (key)
+			   (setq key (key-description key))
+			   (put-text-property 0 (length key)
+					      'face apropos-keybinding-face
+					      key)
+			   key)
+		       'key-description)
+		     item ", ")
+		  "(not bound to any keys)")))
+	  (terpri)
+	  ;; only now so we don't propagate text attributes all over
+	  (put-text-property point1 point2 'item
+			     (if (eval `(or ,@(cdr apropos-item)))
+				 (car apropos-item)
+			       apropos-item))
+	  (if apropos-symbol-face
+	      (put-text-property point1 point2 'face apropos-symbol-face))
+	  (apropos-print-doc 'describe-function 1
+			     (if (commandp symbol)
+				 "Command"
+			       (if (apropos-macrop symbol)
+				   "Macro"
+				 "Function"))
+			     do-keys)
+	  (apropos-print-doc 'describe-variable 2
+			     "Variable" do-keys)
+	  (apropos-print-doc 'apropos-describe-plist 3
+			     "Plist" nil)))))
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
 
@@ -511,7 +526,7 @@ found."
 
 (defun apropos-mouse-follow (event)
   (interactive "e")
-  (let ((other (if (eq (current-buffer) (get-buffer "*Help*"))
+  (let ((other (if (eq (current-buffer) (get-buffer "*Apropos*"))
 		   ()
 		 (current-buffer))))
     (save-excursion
@@ -520,8 +535,6 @@ found."
       (or (and (not (eobp)) (get-text-property (point) 'mouse-face))
 	  (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
 	  (error "There is nothing to follow here"))
-      ;; somehow when clicking with the point in another window, undoes badly
-      (undo-boundary)
       (apropos-follow other))))
 
 
@@ -557,6 +570,7 @@ found."
     (if apropos-symbol-face
 	(put-text-property 8 (- (point) 14) 'face apropos-symbol-face))
     (insert (apropos-format-plist symbol "\n  "))
-    (princ ")")))
+    (princ ")")
+    (print-help-return-message)))
 
 ;;; apropos.el ends here
