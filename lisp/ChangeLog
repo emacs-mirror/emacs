@@ -1,10 +1,47 @@
+2002-07-02  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (hack-one-local-variable-constantp): New function.
+	(hack-one-local-variable-eval-safep): New function.
+	Check for `eval:' calling fn with `safe-local-eval-function' property.
+	(hack-one-local-variable): Use hack-one-local-variable-eval-safep.
+	(c-add-style, c-set-style): Add safe-local-eval-function property.
+	
+	* files.el (insert-directory): Handle --dired option to ls.
+
+	* files.el (file-remote-p): New function.
+
+	* emacs-lisp/easymenu.el (easy-menu-popup-menu): New function.
+
+	* startup.el (fancy-splash-screens): Switch to a chosen frame.
+	(fancy-splash-frame): Choose the right frame to use.
+	(use-fancy-splash-screens-p): Check dimensions of the right frame
+	in order to decide.
+
+	* emacs-lisp/bytecomp.el (byte-compile-warning-types):
+	Rename cl-func to cl-functions.  Enable it by default.
+	(byte-compile-file-form-eval-boundary): Turn off cl-functions warnings
+	if the file loads cl.
+	(byte-compile-initial-macro-environment): For eval-and-compile,
+	use byte-compile-eval-before-compile to eval.
+	(byte-compile-eval-before-compile): New function to turn off
+	cl-functions when appropriate, for eval-and-compile.
+	(byte-compile-warnings): Doc fix.
+
+2002-07-02  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warnings):  Add cl-func option.
+	(byte-compile-cl-warn): New function.
+	(byte-compile-form): Use it, to warn about calling cl functions.
+	(byte-compile-warning-types): Doc fix.
+
 2002-07-02  Juanma Barranquero  <lektu@terra.es>
 
 	* mail/rmailsum.el (rmail-user-mail-address-regexp): Fix typo.
 
 	* textmodes/reftex-cite.el (reftex-citation): Fix typo.
 
-	* progmodes/cperl-mode.el (cperl-break-one-line-blocks-when-indent): Fix typo.
+	* progmodes/cperl-mode.el (cperl-break-one-line-blocks-when-indent):
+	Fix typo.
 
 2002-07-02  Kim F. Storm  <storm@cua.dk>
 
