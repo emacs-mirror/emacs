@@ -1668,6 +1668,10 @@ a match if part of it has a read-only property.
 
 * Lisp Changes in Emacs 21.4
 
+** Major modes can define `eldoc-print-current-symbol-info-function'
+locally to provide Eldoc functionality by some method appropriate to
+the language.
+
 ** `latin1-char-displayable-p' is obsoleted by `char-displayable-p'.
 
 ** New coding system property `mime-text-unsuitable' indicates that
