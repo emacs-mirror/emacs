@@ -1546,7 +1546,7 @@ the rightmost or bottommost possible position (that stays within the screen).")
   /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
-    x_set_offset (f, XINT (xoffset), XINT (yoffset));
+    x_set_offset (f, XINT (xoffset), XINT (yoffset), 1);
 #endif
 
   return Qt;
