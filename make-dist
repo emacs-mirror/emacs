@@ -95,11 +95,14 @@ mkdir ${tempdir}
 # README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files." 
 ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README move-if-change ${tempdir}
-ln ChangeLog Makefile.in build-install.in configure make-dist ${tempdir}
+ln ChangeLog Makefile.in build-install.in configure config.sub ${tempdir}
+ln make-dist ${tempdir}
 # Copy these files; on the GNU machines, at least, they are symbolic
 # links to files on another file system, so we can't make a hard link
 # to it.  Eech.
-cp config.sub ${tempdir}
+if [ ! -f ${tempdir}/config.sub ]; then
+  cp config.sub ${tempdir}
+fi
 
 echo "Creating subdirectories."
 for subdir in lisp lisp/term local-lisp external-lisp \
@@ -146,6 +149,11 @@ echo "Making links to \`src'."
     ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
  ln *.com *.opt vms-pp.trans vmsbuild ../${tempdir}/src
+ # gmalloc.c is a symbolic link to another file system, so we can't 
+ # link it into ${tempdir}.  We copy it.  Eech.
+ if [ ! -f ../${tempdir}/src/gmalloc.c ]; then
+   cp gmalloc.c ../${tempdir}/src
+ fi
  cd ../${tempdir}/src
  rm -f config.h paths.h Makefile
  if [ -z "${newer}" ]; then
@@ -154,11 +162,11 @@ echo "Making links to \`src'."
 
 echo "Making links to \`src/m'."
 (cd src/m
- ln README [a-zA-Z].h ../../${tempdir}/src/m)
+ ln README [a-zA-Z0-9]*.h ../../${tempdir}/src/m)
 
 echo "Making links to \`src/s'."
 (cd src/s
- ln README [a-zA-Z].h ../../${tempdir}/src/s)
+ ln README [a-zA-Z0-9]*.h ../../${tempdir}/src/s)
 
 echo "Making links to \`lib-src'."
 (cd lib-src
@@ -214,6 +222,21 @@ echo "Making links to \`vms'."
  ln [0-9a-zA-Z]* ../${tempdir}/vms
  cd ../${tempdir}/vms
  rm -f *~)
+
+### On the GNU machines, these files are symbolic links to files on
+### another device, meaning that we can't make hard links to them in
+### the staging directory.  I can't think of a better solution, so I
+### just have a special kludge here which knows exactly which files
+### this might happen to and copies them if they don't seem to have
+### been linked.
+echo "Making sure we got all the files that may be cross-device"
+echo "symbolic links."
+for file in ./config.sub ./src/gmalloc.c ; do
+  if [ ! -f ${tempdir}/${file} ] ; then
+    echo "  \`${file}' was missed; copying it."
+    cp ${file} ${tempdir}/${file}
+  fi
+done
 
 echo "Making sure copying notices are all symlinks to \`etc/COPYING'."
 rm -f ${tempdir}/etc/COPYING
