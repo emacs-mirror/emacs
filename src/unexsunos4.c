@@ -214,7 +214,8 @@ unexec (new_name, a_name, bndry, bss_start, entry)
      Doing them twice gives incorrect results.  */
   {
     extern struct link_dynamic _DYNAMIC;
-    unsigned long taddr = N_TXTADDR (ohdr);
+    unsigned long taddr = N_TXTADDR (ohdr) - N_TXTOFF (ohdr);
+    unsigned long daddr = N_DATADDR (ohdr) - N_DATOFF (ohdr);
     unsigned long rel, erel;
     unsigned rel_size;
 
@@ -245,10 +246,14 @@ unexec (new_name, a_name, bndry, bss_start, entry)
 
     for (; rel < erel; rel += rel_size)
       {
-	unsigned long rpos = *(unsigned long *)(taddr + rel) - taddr;
-
-	if (rpos < (unsigned long)&data_start - taddr)
-	    continue;
+	/*  This is the unadjusted address from the reloc.  */
+	unsigned long pos = *(unsigned long *)(taddr + rel);
+	/*  This is the amount by which to adjust it.  It
+	    depends on which segment the address belongs to.  */
+	unsigned long offset = (pos < (unsigned long)&data_start
+				? taddr : daddr);
+	/*  This is the adjusted address from the reloc.  */
+	unsigned long rpos = pos - offset;
 
         lseek (new, N_TXTOFF (nhdr) + rpos, L_SET);
         write (new, old + N_TXTOFF (ohdr) + rpos, sizeof (unsigned long));
