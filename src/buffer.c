@@ -1012,7 +1012,7 @@ selected window if it is displayed there.")
 
 DEFUN ("erase-buffer", Ferase_buffer, Serase_buffer, 0, 0, "*",
   "Delete the entire contents of the current buffer.\n\
-Any clipping restriction in effect (see `narrow-to-region') is removed,\n\
+Any narrowing restriction in effect (see `narrow-to-region') is removed,\n\
 so the buffer is truly empty after this.")
   ()
 {
