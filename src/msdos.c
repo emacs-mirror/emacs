@@ -53,6 +53,8 @@ Boston, MA 02111-1307, USA.  */
 
 #if __DJGPP__ > 1
 
+#include <signal.h>
+
 #ifndef SYSTEM_MALLOC
 
 #ifdef GNU_MALLOC
@@ -2125,6 +2127,81 @@ crlf_to_lf (n, buf)
     *np++ = *buf++;
   return np - startp;
 }
+
+#if defined(__DJGPP__) && __DJGPP__ == 2 && __DJGPP_MINOR__ == 0
+
+/* In DJGPP v2.0, library `write' can call `malloc', which might
+   cause relocation of the buffer whose address we get in ADDR.
+   Here is a version of `write' that avoids calling `malloc',
+   to serve us until such time as the library is fixed.
+   Actually, what we define here is called `__write', because
+   `write' is a stub that just jmp's to `__write' (to be
+   POSIXLY-correct with respect to the global name-space).  */
+
+#include <io.h>		      /* for _write */
+#include <libc/dosio.h>       /* for __file_handle_modes[] */
+
+static char xbuf[64 * 1024];  /* DOS cannot write more in one chunk */
+
+#define XBUF_END (xbuf + sizeof (xbuf) - 1)
+
+int
+__write (int handle, const void *buffer, size_t count)
+{
+  if (count == 0)
+    return 0;
+
+  if(__file_handle_modes[handle] & O_BINARY)
+    return _write (handle, buffer, count);
+  else
+    {
+      char *xbp = xbuf;
+      const char *bp = buffer;
+      int total_written = 0;
+      int nmoved = 0, ncr = 0;
+
+      while (count)
+	{
+	  /* The next test makes sure there's space for at least 2 more
+	     characters in xbuf[], so both CR and LF can be put there.  */
+	  if (xbp < XBUF_END)
+	    {
+	      if (*bp == '\n')
+		{
+		  ncr++;
+		  *xbp++ = '\r';
+		}
+	      *xbp++ = *bp++;
+	      nmoved++;
+	      count--;
+	    }
+	  if (xbp >= XBUF_END || !count)
+	    {
+	      size_t to_write = nmoved + ncr;
+	      int written = _write (handle, xbuf, to_write);
+
+	      if (written == -1)
+		return -1;
+	      else
+		total_written += nmoved;  /* CRs aren't counted in ret value */
+
+	      /* If some, but not all were written (disk full?), return
+		 an estimate of the total written bytes not counting CRs.  */
+	      if (written < to_write)
+		return total_written - (to_write - written) * nmoved/to_write;
+
+	      nmoved = 0;
+	      ncr = 0;
+	      xbp = xbuf;
+	    }
+	}
+      return total_written;
+    }
+}
+
+#endif /* __DJGPP__ == 2 && __DJGPP_MINOR__ == 0 */
+
+
 
 /* The Emacs root directory as determined by init_environment.  */
 
@@ -2651,6 +2728,8 @@ check_timer (t)
 
 
 /* Only event queue is checked.  */
+/* We don't have to call timer_check here
+   because wait_reading_process_input takes care of that.  */
 int
 sys_select (nfds, rfds, wfds, efds, timeout)
      int nfds;
@@ -2797,6 +2876,11 @@ abort ()
   dos_ttcooked ();
   ScreenSetCursor (10, 0);
   cputs ("\r\n\nEmacs aborted!\r\n");
+#if __DJGPP__ > 1
+  /* Generate traceback, so we could tell whodunit.  */
+  signal (SIGINT, SIG_DFL);
+  __asm__ __volatile__ ("movb $0x1b,%al;call ___djgpp_hw_exception");
+#endif
   exit (2);
 }
 #endif
