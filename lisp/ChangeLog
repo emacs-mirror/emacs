@@ -1,3 +1,11 @@
+2000-09-22  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-switch-backend): Signal an error if the file is not 
+	registered under the new backend.
+
+	* vc-rcs.el (vc-rcs-checkin): Fix bug that prevented check-in 
+	without explicit revision number.
+
 2000-09-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* diff-mode.el (diff-file-header-face): Reset to its previous value.
