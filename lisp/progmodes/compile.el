@@ -163,7 +163,11 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; This used to be less selective and allow characters other than
     ;; parens around the line number, but that caused confusion for
     ;; GNU-style error messages.
-    ("\\(\\([a-zA-Z]:\\)?[^:( \t\n-]+\\)(\\([0-9]+\\))" 1 3)
+    ;; This used to reject spaces and dashes in file names,
+    ;; but they are valudnow; so I made it more strict about the error
+    ;; message that follows.
+    ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \
+: \\(error\\|warning\\) C[0-9]+:" 1 3)
 
     ;; Borland C++:
     ;;  Error ping.c 15: Unable to open include file 'sys/types.h'
