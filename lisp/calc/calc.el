@@ -249,9 +249,6 @@ if nil, only DEL itself is mapped to calc-pop.")
   "Calculator stack.
 Entries are 3-lists:  Formula, Height (in lines), Selection (or nil).")
 
-(defvar calc-show-banner t
-  "*If non-nil, show a friendly greeting above the stack.")
-
 (defvar calc-stack-top 1
   "Index into `calc-stack' of \"top\" of stack.
 This is 1 unless `calc-truncate-stack' has been used.")
@@ -589,7 +586,8 @@ If nil, selections displayed but ignored.")
   
   (calc-invocation-macro nil)
 
-  (calc-show-banner t))
+  (calc-show-banner t
+   "*If non-nil, show a friendly greeting above the stack."))
   "List of variables (and default values) used in customizing GNU Calc.")
 
 (mapcar (function (lambda (v)
