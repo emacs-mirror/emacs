@@ -1,3 +1,8 @@
+2005-01-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* fringe.c (Fdefine_fringe_bitmap, init_fringe): When assigning
+	fringe_faces, cast result from xmalloc/xrealloc to Lisp_Object *.
+
 2005-01-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* keyboard.c (READABLE_EVENTS_DO_TIMERS_NOW)
