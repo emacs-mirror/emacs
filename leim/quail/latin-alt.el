@@ -197,7 +197,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
   breve      |    ~    | a~ -> ,Bc(B
   cedilla    |    `    | c` -> ,Bg(B
   caron      |    ~    | c~ -> ,Bh(B
-  dbl. acute |    :    | o\" -> ,Bu(B
+  dbl. acute |    :    | o: -> ,Bu(B
   ring       |    `    | u` -> ,By(B
   dot        |    `    | z` -> ,B?(B
   stroke     |    /    | d/ -> ,Bp(B
