@@ -486,15 +486,16 @@ GDB versions 4.13 and later.
 Run the program until the selected stack frame returns (or until it
 stops for some other reason).
 
-@item C-c C-j
-@kindex C-c C-j @r{(GUD)}
-@itemx C-x C-a C-j
+@item C-x C-a C-j
+@kindex C-x C-a C-j @r{(GUD)}
 @findex gud-jump
-Only useful in a source buffer, (@code{gud-jump}) relocates the next
-instruction to the current line at point in a source buffer.  If the
-new execution line is in a different function from the previously one,
-you will be prompted for confirmation since the results may be
-bizarre.  See the GDB manual entry regarding @code{jump} for details.
+Only useful in a source buffer, (@code{gud-jump}) transfers the
+program's execution point to the current line.  In other words, the
+next line that the program executes will be the one where you gave the
+command.  If the new execution line is in a different function from
+the previously one, GDB prompts for confirmation since the results may
+be bizarre.  See the GDB manual entry regarding @code{jump} for
+details.
 @end table
 
   These commands interpret a numeric argument as a repeat count, when
