@@ -1556,6 +1556,16 @@ DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   XFASTINT (tem) = 0;
   return tem;
 }
+DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
+  "Return non-nil if OBJECT is a frame.\n\
+Value is t for a termcap frame (a character-only terminal),\n\
+`x' for an Emacs frame that is really an X window.\n\
+Also see `live-frame-p'.")
+  (object)
+     Lisp_Object object;
+{
+  return Qnil;
+}
 
 DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 3, 0,
   "Specify that the frame FRAME has LINES lines.\n\
@@ -1692,6 +1702,7 @@ but that the idea of the actual width of the screen should not be changed.")
 syms_of_frame ()
 {
   defsubr (&Sselected_frame);
+  defsubr (&Sframep);
   defsubr (&Sframe_char_height);
   defsubr (&Sframe_char_width);
   defsubr (&Sframe_pixel_height);
