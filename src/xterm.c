@@ -5733,7 +5733,8 @@ x_wm_set_size_hint (f, prompting, change_gravity)
   Window window = FRAME_X_WINDOW (f);
 #endif /* not USE_X_TOOLKIT */
 
-  size_hints.flags = PResizeInc | PMinSize | PMaxSize;
+  /* Setting PMaxSize caused various problems.  */
+  size_hints.flags = PResizeInc | PMinSize /* | PMaxSize */;
 
   flexlines = f->height;
 
@@ -5805,9 +5806,9 @@ x_wm_set_size_hint (f, prompting, change_gravity)
 	size_hints.flags |= USSize;
     }
 
+#if defined (PWinGravity)
   size_hints.win_gravity = f->display.x->win_gravity;
 
-#if defined (PWinGravity)
   if (change_gravity)
     {
       if (! (size_hints.flags & USPosition))
