@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.25) $
+ * $HopeName: MMsrc!buffer.c(trunk.26) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -29,7 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.25) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.26) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -242,8 +242,6 @@ static void BufferDetach(Buffer buffer, Pool pool)
     (*pool->class->bufferEmpty)(pool, buffer);
 
     /* Reset the buffer. */
-    /* .detach.overkill: @@@@ It's unnecessary to set all of */
-    /* these fields.  See .is-reset.overkill. */
     buffer->seg->buffer = NULL;
     buffer->seg = NULL;
     buffer->base = (Addr)0;
@@ -302,22 +300,15 @@ void BufferFinish(Buffer buffer)
 /* BufferIsReset -- test whether a buffer is in the "reset" state
  *
  * A buffer is "reset" when it is not attached to a segment.  In this
- * state all of the pointers into the segment are zero.
+ * state all of the pointers into the segment are zero.  This condition
+ * is checked by BufferCheck.
  */
 
 Bool BufferIsReset(Buffer buffer)
 {
   AVERT(Buffer, buffer);
 
-  /* is-reset.overkill: @@@@ It's unnecessary to check all of these */
-  /* fields.  See .detach.overkill. */
-  if(buffer->seg == NULL &&
-     buffer->base == (Addr)0 &&
-     buffer->initAtFlip == (Addr)0 &&
-     buffer->apStruct.init == (Addr)0 &&
-     buffer->apStruct.alloc == (Addr)0 &&
-     buffer->apStruct.limit == (Addr)0 &&
-     buffer->poolLimit == (Addr)0)
+  if(buffer->seg == NULL)
     return TRUE;
 
   return FALSE;
