@@ -896,7 +896,7 @@ See also `ispell-look-dictionary' and `ispell-gnu-look-still-broken-p'."
       (message "Making completion list...")
       (if (string-equal completion "") (delete-region bow (point)))
       (let ((list (all-completions prefix ispell-lookup-completions-alist)))
-        (with-output-to-temp-buffer " *Completions*"
+        (with-output-to-temp-buffer "*Completions*"
           (display-completion-list list)))
       (message "Making completion list...done")))))
 
