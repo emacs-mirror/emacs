@@ -1,3 +1,11 @@
+2000-08-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* pcvs-util.el, cvs-status.el, pcvs.el: Use `nth' instead of
+	`first', `second', and `third'.
+
+	* emacs-lisp/cl.el (third...tenth): Undo change of 2000-08-05.
+	(second): Make it an alias for `cadr'.
+
 2000-08-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* bs.el (bs-apply-sort-faces): Don't use window-system, since all
