@@ -1,3 +1,31 @@
+2002-07-24  Dave Love  <fx@gnu.org>
+
+	* international/mule.el (set-auto-coding): Doc fix.
+
+	* international/utf-16.el: New file.
+
+	* language/european.el ("German", "French", "Spanish", "Turkish"):
+	Add alternative coding systems.
+	("Dutch"): Likewise.  Add input method.
+	("Welsh", "Latin-7"): Add nonascii-translation.
+
+	* language/georgian.el ("Georgian"): Add nonascii-translation.
+
+	* international/titdic-cnv.el: Doc fixes.
+	(tit-process-header): Add coding cookie.
+	(titdic-convert): Force writing as iso-2022-7bit.
+
+	* international/ja-dic-cnv.el (skkdic-convert): Add coding cookie.
+
+	* international/mule-cmds.el: Doc fixes.
+	(unencodable-char-position): New.
+	(select-safe-coding-system): Use it to indicate problematic
+	characters and add extra explanation.  Avoid checking auto-coding
+	for compressed files.
+	(leim-list-header): Add coding cookie.
+	(input-method-verbose-flag): Modify :type.
+	(locale-language-names): Add bs, wa.  Modify cy.
+
 2002-07-24  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-log-warning):

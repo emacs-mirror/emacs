@@ -110,13 +110,48 @@ now look at the character after point.  If a face or faces are
 specified for that character, the commands by default customize those
 faces.
 
+** New language environments: French, Cyrillic-KOI8-U, Windows-1251,
+Cyrillic-KOI8-T, Bulgarian, Belarusian, Ukrainian, UTF-8,
+Windows-1255, Welsh, Latin-7, Lithuanian, Latvian.
+
+** New input methods: latin-alt-postfix, latin-postfix, latin-prefix,
+ukrainian-computer, belarusian, bulgarian-bds, russian-computer,
+vietnamese-telex, lithuanian-numeric, lithuanian-keyboard,
+latvian-keyboard, welsh, georgian, rfc1345, ucs, sgml,
+bulgarian-phonetic, dutch.
+
+** Many new coding systems are available by loading the `code-pages'
+library.  These include complete versions of most of those in
+codepage.el, based Unicode mappings.
+
+** The utf-8 coding system has been enhanced.  Untranslatable utf-8
+sequences (mostly representing CJK characters) are composed into
+single quasi-characters.  By loading the library utf-8-subst, you can
+arrange to translate many utf-8 CJK character sequences into real
+Emacs characters in a similar way to the Mule-UCS system.  The utf-8
+coding system will now encode characters from most of Emacs's
+one-dimensional internal charsets, specifically the ISO-8859 ones.
+
+** New command `ucs-insert' inserts a character specified by its
+Unicode.
+
 +++
-** Limited support for charset unification has been added.
-By default, Emacs now knows how to translate latin-N chars between their
-charset and some other latin-N charset or unicode.  You can force a
-more complete unification by calling (unify-8859-on-decoding-mode 1).
-That maps all the Latin-N character sets into either Latin-1
-or Unicode characters.
+** Limited support for character unification has been added.
+Emacs now knows how to translate Latin-N chars between their charset
+and some other Latin-N charset or Unicode.  By default this
+translation will happen automatically on encoding.  Quail input
+methods use the translations to make the input conformant with the
+encoding of the buffer in which it's being used where possible.
+
+You can force a more complete unification with the user option
+unify-8859-on-decoding-mode.  That maps all the Latin-N character sets
+into Unicode characters (from the latin-iso8859-1 and
+mule-unicode-0100-24ff charsets) on decoding.
+
+** There is support for decoding Greek and Cyrillic characters into
+either Unicode (the mule-unicode charsets) or the iso-8859 charsets,
+when possible.  The latter are more space-efficient.  This is
+controlled by user option utf-8-fragment-on-decoding.
 
 ---
 ** The scrollbar under LessTif or Motif has a smoother drag-scrolling.
@@ -939,6 +974,9 @@ mode-lines in inverse-video.
 
 
 * Lisp Changes in Emacs 21.4
+
+** New CCL functions `lookup-character' and `lookup-integer' access
+hash tables defined by the Lisp function `define-translation-hash-table'.
 
 ** There is a new Warnings facility; see the functions `warn'
 and `display-warning'.
@@ -10825,7 +10863,7 @@ select one of those items.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
