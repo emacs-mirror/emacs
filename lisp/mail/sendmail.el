@@ -893,19 +893,20 @@ and don't delete any header fields."
 	(if (not (eolp)) (insert ?\n)))))
 
 (defun mail-yank-clear-headers (start end)
-  (save-excursion
-    (goto-char start)
-    (if (search-forward "\n\n" end t)
-	(save-restriction
-	  (narrow-to-region start (point))
-	  (goto-char start)
-	  (while (let ((case-fold-search t))
-		   (re-search-forward mail-yank-ignored-headers nil t))
-	    (beginning-of-line)
-	    (delete-region (point)
-			   (progn (re-search-forward "\n[^ \t]")
-				  (forward-char -1)
-				  (point))))))))
+  (if mail-yank-ignored-headers
+      (save-excursion
+	(goto-char start)
+	(if (search-forward "\n\n" end t)
+	    (save-restriction
+	      (narrow-to-region start (point))
+	      (goto-char start)
+	      (while (let ((case-fold-search t))
+		       (re-search-forward mail-yank-ignored-headers nil t))
+		(beginning-of-line)
+		(delete-region (point)
+			       (progn (re-search-forward "\n[^ \t]")
+				      (forward-char -1)
+				      (point)))))))))
 
 ;; Put these last, to reduce chance of lossage from quitting in middle of loading the file.
 
