@@ -226,8 +226,8 @@ but instead winds up to the right of the rectangle."
     ;; Open the desired width, plus same amount of whitespace we just deleted.
     (indent-to (+ endcol whitewidth))))
 
+;;;###autoload (defalias 'close-rectangle 'delete-whitespace-rectangle) ;; Old name
 ;;;###autoload
-(defalias 'close-rectangle 'delete-whitespace-rectangle) ;; Old name
 (defun delete-whitespace-rectangle (start end)
   "Delete all whitespace following a specified column in each line.
 The left edge of the rectangle specifies the position in each line
