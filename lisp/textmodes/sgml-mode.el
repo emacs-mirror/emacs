@@ -942,20 +942,51 @@ See `sgml-tag-alist' for info about attribute rules."
       (insert ?\"))))
 
 (defun sgml-quote (start end &optional unquotep)
-  "Quote SGML text in region.
-With prefix argument, unquote the region."
-  (interactive "r\np")
-  (if (< start end)
-      (goto-char start)
-    (goto-char end)
-    (setq end start))
-  (if unquotep
-      (while (re-search-forward "&\\(amp\\|\\(l\\|\\(g\\)\\)t\\)[;\n]" end t)
-	(replace-match (if (match-end 3) ">" (if (match-end 2) "<" "&"))))
-    (while (re-search-forward "[&<>]" end t)
-      (replace-match (cdr (assq (char-before) '((?& . "&amp;")
-						(?< . "&lt;")
-						(?> . "&gt;"))))))))
+  "Quote SGML text in region START ... END.
+Only &, < and > are quoted, the rest is left untouched.
+With prefix argument UNQUOTEP, unquote the region."
+  (interactive "r\nP")
+  (save-restriction
+    (narrow-to-region start end)
+    (goto-char (point-min))
+    (if unquotep
+	;; FIXME: We should unquote other named character references as well.
+	(while (re-search-forward
+		"\\(&\\(amp\\|\\(l\\|\\(g\\)\\)t\\)\\)[][<>&;\n\t \"%!'(),/=?]"
+		nil t)
+	  (replace-match (if (match-end 4) ">" (if (match-end 3) "<" "&")) t t
+			 nil (if (eq (char-before (match-end 0)) ?\;) 0 1)))
+      (while (re-search-forward "[&<>]" nil t)
+	(replace-match (cdr (assq (char-before) '((?& . "&amp;")
+						  (?< . "&lt;")
+						  (?> . "&gt;"))))
+		       t t)))))
+
+(defun sgml-pretty-print (beg end)
+  "Simple-minded pretty printer for SGML.
+Re-indents the code and inserts newlines between BEG and END.
+You might want to turn on `auto-fill-mode' to get better results."
+  ;; TODO:
+  ;; - insert newline between some start-tag and text.
+  ;; - don't insert newline in front of some end-tags.
+  (interactive "r")
+  (save-excursion
+    (if (< beg end)
+	(goto-char beg)
+      (goto-char end)
+      (setq end beg)
+      (setq beg (point)))
+    ;; Don't use narrowing because it screws up auto-indent.
+    (setq end (copy-marker end t))
+    (with-syntax-table sgml-tag-syntax-table
+      (while (re-search-forward "<" end t)
+	(goto-char (match-beginning 0))
+	(unless (or ;;(looking-at "</")
+		    (progn (skip-chars-backward " \t") (bolp)))
+	  (reindent-then-newline-and-indent))
+	(forward-sexp 1)))
+    ;; (indent-region beg end)
+    ))
 
 
 ;; Parsing
@@ -1050,7 +1081,7 @@ immediately enclosing the current position."
                   (> (sgml-tag-end tag-info)
                      (sgml-tag-end (car context))))
         (setq context (cdr context)))
-           
+      
       (cond
 
        ;; start-tag
@@ -1071,9 +1102,18 @@ immediately enclosing the current position."
 	 (t
 	  ;; The open and close tags don't match.
 	  (if (not sgml-xml-mode)
-	      ;; Assume the open tag is simply not closed.
 	      (unless (sgml-unclosed-tag-p (sgml-tag-name tag-info))
-		(message "Unclosed tag <%s>" (sgml-tag-name tag-info)))
+		(message "Unclosed tag <%s>" (sgml-tag-name tag-info))
+		(let ((tmp ignore))
+		  ;; We could just assume that the tag is simply not closed
+		  ;; but it's a bad assumption when tags *are* closed but
+		  ;; not properly nested.
+		  (while (and (cdr tmp)
+			      (not (eq t (compare-strings
+					  (sgml-tag-name tag-info) nil nil
+					  (cadr tmp) nil nil t))))
+		    (setq tmp (cdr tmp)))
+		  (if (cdr tmp) (setcdr tmp (cddr tmp)))))
 	    (message "Unmatched tags <%s> and </%s>"
 		     (sgml-tag-name tag-info) (pop ignore))))))
 
@@ -1092,7 +1132,13 @@ immediately enclosing the current position."
 If FULL is non-nil, parse back to the beginning of the buffer."
   (interactive "P")
   (with-output-to-temp-buffer "*XML Context*"
-    (pp (save-excursion (sgml-get-context full)))))
+    (save-excursion
+      (let ((context (sgml-get-context)))
+	(when full
+	  (let ((more nil))
+	    (while (setq more (sgml-get-context))
+	      (setq context (nconc more context)))))
+	(pp context)))))
 
 
 ;; Editing shortcuts
