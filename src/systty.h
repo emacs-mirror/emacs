@@ -53,6 +53,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef NO_TERMIO
 #include <termio.h>
 #endif /* not NO_TERMIO */
+#define INCLUDED_FCNTL
 #include <fcntl.h>
 #else
 #ifdef HAVE_TERMIOS
@@ -65,6 +66,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 #include <termios.h>
 #endif /* _AIX && _I386 */
+#define INCLUDED_FCNTL
 #include <fcntl.h>
 #else /* neither HAVE_TERMIO nor HAVE_TERMIOS */
 #ifndef VMS
