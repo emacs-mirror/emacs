@@ -1561,7 +1561,7 @@ A prefix arg makes KEEP-TIME non-nil.")
 }
 
 DEFUN ("make-directory-internal", Fmake_directory_internal,
-       Smake_directory_internal, 1, 1, 0)
+       Smake_directory_internal, 1, 1, 0,
   "Create a directory.  One argument, a file name string.")
   (dirname)
      Lisp_Object dirname;
