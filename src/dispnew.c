@@ -37,6 +37,7 @@ Boston, MA 02111-1307, USA.  */
 #include "cm.h"
 #include "buffer.h"
 #include "charset.h"
+#include "keyboard.h"
 #include "frame.h"
 #include "window.h"
 #include "commands.h"
@@ -45,7 +46,6 @@ Boston, MA 02111-1307, USA.  */
 #include "intervals.h"
 #include "blockinput.h"
 #include "process.h"
-#include "keyboard.h"
 
 /* I don't know why DEC Alpha OSF1 fail to compile this file if we
    include the following file.  */
@@ -5427,7 +5427,9 @@ window_change_signal (signalnum) /* If we don't have an argument, */
      int signalnum;		/* some compilers complain in signal calls.  */
 {
   int width, height;
+#ifndef USE_CRT_DLL
   extern int errno;
+#endif
   int old_errno = errno;
 
   get_frame_size (&width, &height);
