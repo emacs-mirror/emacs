@@ -189,14 +189,6 @@ Boston, MA 02111-1307, USA.  */
    So give it a try.  */
 #define HAVE_SOCKETS
 
-#ifndef HAVE_BCOPY
-#define bcopy(src,dst,n)	memmove (dst,src,n)
-#define bzero(s,n)		memset (s,0,n)
-#endif
-#ifndef HAVE_BCMP
-#define bcmp(src,dst,n)		memcmp (src,dst,n)
-#endif
-
 /* Markus Weiand <weiand@khof.com> says this is needed for Motif on
    SINIX.  */
 #undef LIBS_SYSTEM
