@@ -1,3 +1,13 @@
+2003-11-30  Richard M. Stallman  <rms@gnu.org>
+
+	* dired-aux.el (dired-do-query-replace-regexp):
+	Report files visited read-only.
+
+2003-11-30  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-compare-directories): New command.
+	(dired-file-set-difference, dired-files-attributes): New functions.
+
 2003-11-30  Kai Grossjohann  <kai.grossjohann@gmx.net>
 	Version 2.0.38 of Tramp released.
 
@@ -10,7 +20,7 @@
 	parameter.  This allows for omission of method parameters.
 	Callers adjusted.
 
-2003-11-25  Michael Albinus  <Michael.Albinus@alcatel.de>
+2003-11-30  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el: Add new optional parameter ID-FORMAT to
 	`file-attributes'.  Calls of `file-attributes' won't use this
