@@ -230,6 +230,7 @@ Lisp_Object Qfile_name_history;
 
 Lisp_Object Qcar_less_than_car;
 
+void
 report_file_error (string, data)
      char *string;
      Lisp_Object data;
