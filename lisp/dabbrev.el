@@ -340,7 +340,8 @@ if there is a suitable one already."
 	(setq dabbrev--last-abbreviation abbrev)
 	;; Find all expansion
 	(let ((completion-list
-	       (dabbrev--find-all-expansions abbrev ignore-case-p)))
+	       (dabbrev--find-all-expansions abbrev ignore-case-p))
+	      (completion-ignore-case ignore-case-p))
 	  ;; Make an obarray with all expansions
 	  (setq my-obarray (make-vector (length completion-list) 0))
 	  (or (> (length my-obarray) 0)
@@ -749,6 +750,19 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
     (and nil use-case-replace
 	 (setq old (concat abbrev (or old "")))
 	 (setq expansion (concat abbrev expansion)))
+    ;; If the given abbrev is mixed case and its case pattern
+    ;; matches the start of the expansion,
+    ;; copy the expansion's case
+    ;; instead of downcasing all the rest.
+    (if (and (string= (or old abbrev)
+		      (substring expansion 0 (length (or old abbrev))))
+	     (not (string= (or old abbrev)
+			   (downcase (or old abbrev))))
+	     (not (string= (or old abbrev)
+			   (upcase (or old abbrev)))))
+	(setq use-case-replace nil)
+      (if use-case-replace
+	  (setq expansion (downcase expansion))))
     (if old
 	(save-excursion
 	  (search-backward old))
@@ -830,7 +844,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	      (setq dabbrev--last-table
 		    (cons found-string dabbrev--last-table))
 	      (if (and ignore-case (eval dabbrev-case-replace))
-		  (downcase result)
+		  result
 		result)))))))
 
 (provide 'dabbrev)
