@@ -1,3 +1,9 @@
+2001-02-15  Kenichi Handa  <handa@etl.go.jp>
+
+	* ccl.c (ccl_driver) [CCL_ReadMultibyteChar2]: If SRC points an
+	invalid multibyte sequence, treat *SRC as a character of
+	eight-bit-graphic.
+
 2001-02-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textprop.c (Fset_text_properties): Doc fix.
