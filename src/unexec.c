@@ -679,7 +679,7 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
        */
       ERROR0 ("can't build a COFF file from scratch yet");
 #else
-      bzero (hdr, sizeof hdr);
+      bzero (&hdr, sizeof hdr);
 #endif
     }
 
