@@ -1,3 +1,8 @@
+2001-10-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_build_heuristic_mask): Fix a bug not incrementing
+	a loop counter.
+
 2001-10-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emacs.c: Use argv[0] instead of emacs when -t was specified.
