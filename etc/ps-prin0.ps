@@ -104,12 +104,15 @@ gs_languagelevel 2 ne{ % operators for language level 2 only
  /<<{mark}bind def
  />>{counttomark 2 idiv dup dict begin{def}repeat pop currentdict end}bind def
  /setpagedevice{pop}bind def
+ /packedarray{array astore readonly}bind def
 }if
 
+% device dependent operators
+
 /setduplexmode where{pop}
-{/setduplexmode /duplexmode where{pop{duplexmode}}{{pop}}ifelse bind def}ifelse
+{/setduplexmode /duplexmode where{pop/duplexmode}{/pop}ifelse load def}ifelse
 
 /settumble where{pop}
-{/settumble /tumble where{pop{tumble}}{{pop}}ifelse bind def}ifelse
+{/settumble /tumble where{pop/tumble}{/pop}ifelse load def}ifelse
 
 % === END ps-print prologue 0
