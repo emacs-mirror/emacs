@@ -57,34 +57,52 @@
 
 ;;; Code:
 
+(defgroup apropos nil
+  "Apropos commands for users and programmers"
+  :group 'Help
+  :prefix "apropos")
+
 ;; I see a degradation of maybe 10-20% only.
-(defvar apropos-do-all nil
+(defcustom apropos-do-all nil
   "*Whether the apropos commands should do more.
-Slows them down more or less.  Set this non-nil if you have a fast machine.")
+
+Slows them down more or less.  Set this non-nil if you have a fast machine."
+  :group 'apropos
+  :type 'boolean)
 
 
-(defvar apropos-symbol-face (if window-system 'bold)
-  "*Face for symbol name in apropos output or `nil'.  
-This looks good, but slows down the commands several times.")
+(defcustom apropos-symbol-face (if window-system 'bold)
+  "*Face for symbol name in apropos output or `nil'.
+This looks good, but slows down the commands several times."
+  :group 'apropos
+  :type 'face)
 
-(defvar apropos-keybinding-face (if window-system 'underline)
+(defcustom apropos-keybinding-face (if window-system 'underline)
   "*Face for keybinding display in apropos output or `nil'.  
-This looks good, but slows down the commands several times.")
+This looks good, but slows down the commands several times."
+  :group 'apropos
+  :type 'face)
 
-(defvar apropos-label-face (if window-system 'italic)
+(defcustom apropos-label-face (if window-system 'italic)
   "*Face for label (Command, Variable ...) in apropos output or `nil'.
 If this is `nil' no mouse highlighting occurs.
 This looks good, but slows down the commands several times.
 When this is a face name, as it is initially, it gets transformed to a
-text-property list for efficiency.")
+text-property list for efficiency."
+  :group 'apropos
+  :type 'face)
 
-(defvar apropos-property-face (if window-system 'bold-italic)
+(defcustom apropos-property-face (if window-system 'bold-italic)
   "*Face for property name in apropos output or `nil'.  
-This looks good, but slows down the commands several times.")
+This looks good, but slows down the commands several times."
+  :group 'apropos
+  :type 'face)
 
-(defvar apropos-match-face (if window-system 'secondary-selection)
+(defcustom apropos-match-face (if window-system 'secondary-selection)
   "*Face for matching part in apropos-documentation/value output or `nil'.  
-This looks good, but slows down the commands several times.")
+This looks good, but slows down the commands several times."
+  :group 'apropos
+  :type 'face)
 
 
 (defvar apropos-mode-map
