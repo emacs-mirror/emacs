@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.18) $
+ * $HopeName: MMsrc!amcss.c(trunk.19) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -15,6 +15,7 @@
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
+
 
 #define NR_EXACT_ROOTS  50
 #define NR_AMBIG_ROOTS  50
@@ -54,6 +55,7 @@ static void *test(void *arg, size_t s)
   mps_word_t collections;
 
   space = (mps_space_t)arg;
+  (void)s; /* unused */
 
   die(mps_fmt_create_A(&format, space, dylan_fmt_A()), "fmt_create");
 

@@ -1,6 +1,6 @@
 /* impl.c.message: MPS / CLIENT MESSAGES
  *
- * $HopeName: MMsrc!message.c(MMdevel_drj_message.8) $
+ * $HopeName: MMsrc!message.c(trunk.2) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All Rights Reserved.
  *
  * READERSHIP
@@ -18,12 +18,9 @@
  * "real work" goes on in the modules that provide the actual messages.
  */
 
-
-
 #include "mpm.h"
 
-
-SRCID(message, "$HopeName: MMsrc!message.c(MMdevel_drj_message.8) $");
+SRCID(message, "$HopeName: MMsrc!message.c(trunk.2) $");
 
 
 /* Maps from a Ring pointer to the message */
@@ -64,6 +61,7 @@ static Bool MessageOnQueue(Message message)
 Bool MessageTypeCheck(MessageType type)
 {
   CHECKL(type < MessageTypeMAX);
+  UNUSED(type); /* impl.c.mpm.check.unused */
 
   return TRUE;
 }
