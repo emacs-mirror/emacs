@@ -5370,8 +5370,9 @@ terminate Emacs if we can't open the connection.  */)
       if (!NILP (must_succeed))
 	fatal ("Cannot connect to X server %s.\n\
 Check the DISPLAY environment variable or use `-d'.\n\
-Also use the `xhost' program to verify that it is set to permit\n\
-connections from your machine.\n",
+Also use the `xauth' program to verify that you have the proper
+authoritization information needed to connect the X server.\n\
+An insecure way to solve the problem may be to use `xhost'.\n",
 	       SDATA (display));
       else
 	error ("Cannot connect to X server %s", SDATA (display));
