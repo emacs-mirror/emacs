@@ -2484,7 +2484,7 @@ With prefix arg, `transient-mark-mode' is enabled temporarily."
       (goto-char omark)
       nil)))
 
-(defun transient-mark-mode (arg)
+(define-minor-mode transient-mark-mode
   "Toggle Transient Mark mode.
 With arg, turn Transient Mark mode on if arg is positive, off otherwise.
 
@@ -2505,15 +2505,7 @@ default part of the buffer's text.  Examples of such commands include
 \\[apropos-documentation] and type \"transient\" or \"mark.*active\" at
 the prompt, to see the documentation of commands which are sensitive to
 the Transient Mark mode."
-  (interactive "P")
-  (setq transient-mark-mode
-	(if (null arg)
-	    (not transient-mark-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (if (interactive-p)
-      (if transient-mark-mode
-	  (message "Transient Mark mode enabled")
-	(message "Transient Mark mode disabled"))))
+  :global t :group 'editing-basics)
 
 (defun pop-global-mark ()
   "Pop off global mark ring and jump to the top location."
@@ -3284,12 +3276,7 @@ specialization of overwrite-mode, entered by setting the
 	    'overwrite-mode-binary))
   (force-mode-line-update))
 
-(defcustom line-number-mode t
-  "*Non-nil means display line number in mode line."
-  :type 'boolean
-  :group 'editing-basics)
-
-(defun line-number-mode (arg)
+(define-minor-mode line-number-mode
   "Toggle Line Number mode.
 With arg, turn Line Number mode on iff arg is positive.
 When Line Number mode is enabled, the line number appears
@@ -3298,27 +3285,14 @@ in the mode line.
 Line numbers do not appear for very large buffers and buffers
 with very long lines; see variables `line-number-display-limit'
 and `line-number-display-limit-width'."
-  (interactive "P")
-  (setq line-number-mode
-	(if (null arg) (not line-number-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (force-mode-line-update))
+  :init-value t :global t :group 'editing-basics)
 
-(defcustom column-number-mode nil
-  "*Non-nil means display column number in mode line."
-  :type 'boolean
-  :group 'editing-basics)
-
-(defun column-number-mode (arg)
+(define-minor-mode column-number-mode
   "Toggle Column Number mode.
 With arg, turn Column Number mode on iff arg is positive.
 When Column Number mode is enabled, the column number appears
 in the mode line."
-  (interactive "P")
-  (setq column-number-mode
-	(if (null arg) (not column-number-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (force-mode-line-update))
+  :global t :group 'editing-basics)
 
 (defgroup paren-blinking nil
   "Blinking matching of parens and expressions."
@@ -3542,41 +3516,6 @@ See also `read-mail-command' concerning reading mail."
 			       gnus-user-agent)
 		(function :tag "Other"))
   :group 'mail)
-
-(defun define-mail-user-agent (symbol composefunc sendfunc
-				      &optional abortfunc hookvar)
-  "Define a symbol to identify a mail-sending package for `mail-user-agent'.
-
-SYMBOL can be any Lisp symbol.  Its function definition and/or
-value as a variable do not matter for this usage; we use only certain
-properties on its property list, to encode the rest of the arguments.
-
-COMPOSEFUNC is program callable function that composes an outgoing
-mail message buffer.  This function should set up the basics of the
-buffer without requiring user interaction.  It should populate the
-standard mail headers, leaving the `to:' and `subject:' headers blank
-by default.
-
-COMPOSEFUNC should accept several optional arguments--the same
-arguments that `compose-mail' takes.  See that function's documentation.
-
-SENDFUNC is the command a user would run to send the message.
-
-Optional ABORTFUNC is the command a user would run to abort the
-message.  For mail packages that don't have a separate abort function,
-this can be `kill-buffer' (the equivalent of omitting this argument).
-
-Optional HOOKVAR is a hook variable that gets run before the message
-is actually sent.  Callers that use the `mail-user-agent' may
-install a hook function temporarily on this hook variable.
-If HOOKVAR is nil, `mail-send-hook' is used.
-
-The properties used on SYMBOL are `composefunc', `sendfunc',
-`abortfunc', and `hookvar'."
-  (put symbol 'composefunc composefunc)
-  (put symbol 'sendfunc sendfunc)
-  (put symbol 'abortfunc (or abortfunc 'kill-buffer))
-  (put symbol 'hookvar (or hookvar 'mail-send-hook)))
 
 (define-mail-user-agent 'sendmail-user-agent
   'sendmail-user-agent-compose
