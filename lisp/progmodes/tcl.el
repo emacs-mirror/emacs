@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.10 $
+;; Version: $Revision: 1.11 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/05/22 20:02:03 $|$Revision: 1.10 $|~/modes/tcl.el.Z|
+;; $Date: 1994/05/22 20:12:44 $|$Revision: 1.11 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,10 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+; Revision 1.11  1994/05/22  20:12:44  tromey
+; Fixed mark-defun for 19.23.
+; More menu fixes.
+;
 ; Revision 1.10  1994/05/22  20:02:03  tromey
 ; Fixed bug with M-;.
 ; Wrote bug-reporting code.
@@ -204,7 +208,16 @@
 
 (require 'comint)
 
-(defconst tcl-version "$Revision: 1.10 $")
+;; When compiling under GNU Emacs, load imenu during compilation.  If
+;; you have 19.22 or earlier, comment this out, or get imenu.
+(and (fboundp 'eval-when-compile)
+     (eval-when-compile
+       (if (and tcl-using-emacs-19
+		(not tcl-using-lemacs-19))
+	   (require 'imenu))
+       ()))
+
+(defconst tcl-version "$Revision: 1.11 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -1219,15 +1232,6 @@ Returns nil if line starts inside a string, t if in a comment."
 ;;
 ;; Interfaces to other packages.
 ;;
-
-;; When compiling under GNU Emacs, load imenu during compilation.  If
-;; you have 19.22 or earlier, comment this out, or get imenu.
-(and (fboundp 'eval-when-compile)
-     (eval-when-compile
-       (if (and tcl-using-emacs-19
-		(not tcl-using-lemacs-19))
-	   (require 'imenu))
-       ()))
 
 (defun tcl-imenu-create-index-function ()
   "Generate alist of indices for imenu."
