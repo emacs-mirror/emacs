@@ -1,3 +1,8 @@
+2002-10-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* tramp.texi: Move @copying to standard place.  Use
+	@insertcopying.
+
 2002-10-02  Karl Berry  <karl@gnu.org>
 
 	* (ada-mode.texi autotype.texi calc.texi cc-mode.texi cl.texi

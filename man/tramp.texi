@@ -12,7 +12,7 @@
 @c Makefile, so you should edit the top-level Makefile to change
 @c the version number.
 @macro trampver{}
-2.0.22
+2.0.25
 @end macro
 
 @c Entries for @command{install-info} to use
@@ -63,6 +63,30 @@
 @value{tramp-prefix}@value{method}@value{user}@@@value{host}@value{tramp-postfix}@value{path}
 @end macro
 
+@copying
+Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software
+Foundation, Inc.
+
+@quotation     
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
+@end quotation
+@end copying
+
 @tex
 
 @titlepage
@@ -70,7 +94,9 @@
 
 @author by Daniel Pittman
 @author based on documentation by Kai Gro@ss{}johann
+
 @page
+@insertcopying
 
 @end titlepage
 @page
@@ -114,11 +140,12 @@ There is a mailing list for @tramp{}, available at
 @uref{http://www.mail-archive.com/emacs-rcp@@ls6.cs.uni-dortmund.de/} as
 well as the usual Savannah archives.
 
+@insertcopying
+
 @end ifnottex
 
 @menu
 * Overview::                    What @tramp{} can and cannot do.
-* Copying::                     The license for this documentation.
 
 For the end user:
 * Obtaining @tramp{}::          How to obtain @tramp{}.
@@ -334,36 +361,6 @@ the file.
 
 I hope this has provided you with a basic overview of what happens
 behind the scenes when you open a file with @tramp{}.
-
-
-@c Copying permissions, et al
-@node Copying
-@chapter Copying.
-@cindex copying
-
-@copying
-Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software
-Foundation, Inc.
-
-@quotation     
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
-@end quotation
-@end copying
 
 
 @c For the end user
@@ -661,57 +658,46 @@ features of Emacs to decode and encode the files or it may require
 access to external commands to perform that task.
 
 @cindex uuencode
-@tramp{} supports the use of @command{uuencode} to transfer files.
-This is @emph{not} recommended.  The @command{uuencode} and
-@command{uudecode} commands are not well standardized and may not
-function correctly or at all on some machines, notably AIX and IRIX.
-These systems do not work with @command{uuencode} at all.  (But do see
-the note about AIX in the documentation for @var{tramp-methods}.)
-
 @cindex mimencode
 @cindex base-64 encoding
-In summary, if possible use the @command{mimencode} methods to transfer
-the data base64 encoded. This has the advantage of using a built-in
-command in every modern Emacs, improving performance.
+@tramp{} checks the availability and usability of commands like
+@command{mimencode} (part of the @command{metamail} package) or
+@command{uuencode} on the remote host.  The first reliable command
+will be used.  The search path can be customized, see @ref{Remote
+Programs}.
+
+If both commands are'nt available on the remote host, @tramp{}
+transfers a small piece of Perl code to the remote host, and tries to
+apply it for encoding and decoding.
+
 
 @table @asis
-@item @option{rm}  ---  @command{rsh} with @command{mimencode}
-@cindex method rm
-@cindex rm method
-@cindex method using rsh (rm)
+@item @option{rsh}
+@cindex method rsh
+@cindex rsh method
 
-Connect to the remote host with @command{rsh} and use base64 encoding to
-transfer files between the machines.
-
-This requires the @command{mimencode} command that is part of the
-@command{metamail} packages. This may not be installed on all remote
-machines.
+Connect to the remote host with @command{rsh}.  Due to the unsecure
+connection it is recommended for very local host topology only.
 
 
-@item @option{sm}  ---  @command{ssh} with @command{mimencode}
-@cindex method sm
-@cindex sm method
-@cindex method using ssh (sm)
-@cindex ssh (with sm method)
-@cindex mimencode (with sm method)
-@cindex base-64 encoding (with sm method)
+@item @option{ssh}
+@cindex method ssh
+@cindex ssh method
 
-Connect to the remote host with @command{ssh} and use base64 encoding to
-transfer files between the machines.
+Connect to the remote host with @command{ssh}.  This is identical to
+the previous option except that the @command{ssh} package is used,
+making the connection more secure.
 
-This is identical to the previous option except that the @command{ssh}
-package is used, making the connection more secure.
-
-There are also two variants, @option{sm1} and @option{sm2}, that call
-@samp{ssh -1} and @samp{ssh -2}, respectively.  This way, you can
+There are also two variants, @option{ssh1} and @option{ssh2}, that
+call @samp{ssh -1} and @samp{ssh -2}, respectively.  This way, you can
 explicitly select whether you want to use the SSH protocol version 1
 or 2 to connect to the remote host.  (You can also specify in
 @file{~/.ssh/config}, the SSH configuration file, which protocol
-should be used, and use the regular @option{sm} method.)
+should be used, and use the regular @option{ssh} method.)
 
-There are also two variants, @option{sm-ssh1} and @option{sm-ssh2}
-that use the @command{ssh1} and @command{ssh2} commands explicitly. If
-you don't know what these are, you do not need these options.
+Two other variants, @option{ssh1_old} and @option{ssh2_old}, use the
+@command{ssh1} and @command{ssh2} commands explicitly.  If you don't
+know what these are, you do not need these options.
 
 All the methods based on @command{ssh} have an additional kludgy
 feature: you can specify a host name which looks like @file{host#42}
@@ -720,131 +706,42 @@ means to connect to the given host but to also pass @code{-p 42} as
 arguments to the @command{ssh} command.
 
 
-@item @option{tm}  ---  @command{telnet} with @command{mimencode}
-@cindex method tm
-@cindex tm method
-@cindex method using telnet (tm)
-@cindex telnet (with tm method)
-@cindex mimencode (with tm method)
-@cindex base-64 encoding (with tm method)
+@item @option{telnet}
+@cindex method telnet
+@cindex telnet method
 
-Connect to the remote host with @command{telnet} and use base64 encoding
-to transfer files between the machines.
-
-This requires the @command{mimencode} command that is part of the
-@command{metamail} packages.
+Connect to the remote host with @command{telnet}.  This is as unsecure
+as the @option{rsh} method.
 
 
-@item @option{ru}  ---  @command{rsh} with @command{uuencode}
-@cindex method ru
-@cindex ru method
-@cindex method using rsh
-@cindex rsh (with ru method)
-@cindex uuencode (with ru method)
-
-Connect to the remote host with @command{rsh} and use the
-@command{uuencode} and @command{uudecode} commands to transfer files
-between the machines.
-
-
-@item @option{su}  ---  @command{ssh} with @command{uuencode}
+@item @option{su}
 @cindex method su
 @cindex su method
-@cindex method using ssh (su)
-@cindex ssh (with su method)
-@cindex uuencode (with su method)
 
-Connect to the remote host with @command{ssh} and use the
-@command{uuencode} and @command{uudecode} commands to transfer files
-between the machines.
-
-As with the @command{ssh} and base64 option (@option{sm}) above, this
-provides the @option{su1} and @option{su2} methods to explicitly
-select an SSH protocol version, and the @option{su-ssh1} and
-@option{su-ssh2} variants to call specific SSH binaries.
-
-Note that this method does not invoke the @command{su} program, see
-below for methods which use that.
-
-This supports the @samp{-p} kludge.
+This method does not connect to a remote host at all, rather it uses
+the @command{su} program to allow you to edit files as another user.
 
 
-@item @option{tu}  ---  @command{telnet} with @command{uuencode}
-@cindex tu method
-@cindex method tu
-@cindex method using telnet (tu)
-@cindex telnet (with tu method)
-@cindex uuencode (with tu method)
+@item @option{sudo}
+@cindex method sudo
+@cindex sudo method
 
-Connect to the remote host with @command{telnet} and use the
-@command{uuencode} and @command{uudecode} commands to transfer files
-between the machines.
-
-
-@item @option{sum} --- @command{su} with @command{mimencode}
-@cindex method sum
-@cindex sum method
-@cindex method using su (sum)
-@cindex su (with sum method)
-@cindex mimencode (with sum method)
-@cindex base-64 encoding (with sum method)
-
-This method does not connect to a remote host at all, rather it uses the
-@command{su} program to allow you to edit files as another user.  Uses
-base64 encoding to transfer the file contents.
-
-
-@item @option{suu} --- @command{su} with @command{uuencode}
-@cindex method suu
-@cindex suu method
-@cindex method using su (suu)
-@cindex su (with suu method)
-@cindex uuencode (with suu method)
-
-Like @option{sum}, this uses the @command{su} program to allow you to
-edit files on the local host as another user.  Uses @command{uuencode}
-and @command{uudecode} to transfer the file contents.
-
-
-@item @option{sudm} --- @command{sudo} with @command{mimencode}
-@cindex method sudm
-@cindex sudm method
-@cindex method using sudo (sudm)
-@cindex sudo (with sudm method)
-@cindex mimencode (with sudm method)
-@cindex base-64 encoding (with sudm method)
-
-This is similar to the @option{sum} method, but it uses @command{sudo}
+This is similar to the @option{su} method, but it uses @command{sudo}
 rather than @command{su} to become a different user.
 
 Note that @command{sudo} must be configured to allow you to start a
 shell as the user.  It would be nice if it was sufficient if
-@command{ls} and @command{mimencode} were allowed, but that is not easy
-to implement, so I haven't got around to it, yet.
+@command{ls} and @command{mimencode} were allowed, but that is not
+easy to implement, so I haven't got around to it, yet.
 
 
-@item @option{sudu} --- @command{sudo} with @command{uuencode}
-@cindex method sudu
-@cindex sudu method
-@cindex method using sudo (sudu)
-@cindex sudo (with sudu method)
-@cindex uuencode (with sudu method)
+@item @option{sshx}
+@cindex method sshx
+@cindex sshx method
+@cindex Cygwin (with sshx method)
 
-This is similar to the @option{suu} method, but it uses @command{sudo}
-rather than @command{su} to become a different user.
-
-
-@item @option{smx} --- @command{ssh} with @command{mimencode}
-@cindex method smx
-@cindex smx method
-@cindex method using ssh (smx)
-@cindex ssh (with smx method)
-@cindex mimencode (with smx method)
-@cindex base-64 encoding (with smx method)
-@cindex Cygwin (with smx method)
-
-As you expect, this is similar to @option{sm}, only a little
-different.  Whereas @option{sm} opens a normal interactive shell on
+As you expect, this is similar to @option{ssh}, only a little
+different.  Whereas @option{ssh} opens a normal interactive shell on
 the remote host, this option uses @samp{ssh -t -t @var{host} -l
 @var{user} /bin/sh} to open a connection.  This is useful for users
 where the normal login shell is set up to ask them a number of
@@ -869,24 +766,18 @@ require the doubled @samp{-t} option.
 This supports the @samp{-p} kludge.
 
 
-@item @option{km} --- @command{krlogin} with @command{mimencode}
-@cindex method km
-@cindex km method
-@cindex krlogin (with km method)
-@cindex Kerberos (with km method)
-@cindex mimencode (with km method)
-@cindex base-64 encoding (with km method)
+@item @option{krlogin}
+@cindex method krlogin
+@cindex km krlogin
+@cindex Kerberos (with krlogin method)
 
-This method is also similar to @option{sm}.  It only uses the
+This method is also similar to @option{ssh}.  It only uses the
 @command{krlogin -x} command to log in to the remote host.
 
 
-@item @option{plinku} --- @command{plink} with @command{uuencode}
-@cindex method plinku
-@cindex plinku method
-@cindex method using plink (plinku)
-@cindex plink (with plinku method)
-@cindex uuencode (with plinku method)
+@item @option{plink}
+@cindex method plink
+@cindex plink method
 
 This method is mostly interesting for Windows users using the PuTTY
 implementation of SSH.  It uses @samp{plink -ssh} to log in to the
@@ -897,16 +788,6 @@ line to accept the SSH key?  Maybe this can be made automatic?
 
 CCC: Does @command{plink} support the @samp{-p} option?  Tramp
 will support that, anyway.
-
-@item @option{plinkm} --- @command{plink} with @command{mimencode}
-@cindex method plinkm
-@cindex plinkm method
-@cindex method using plink (plinkm)
-@cindex plink (with plinkm method)
-@cindex mimencode (with plinkm method)
-@cindex base-64 encoding (with plinkm method)
-
-Like @option{plinku}, but uses base64 encoding instead of uu encoding.
 
 @end table
 
@@ -970,6 +851,17 @@ the inline methods when you often open and close small files however.
 The cost of the cryptographic handshake at the start of an @command{scp}
 session can begin to absorb the advantage that the lack of encoding and
 decoding presents.
+
+There are also two variants, @option{scp1} and @option{scp2}, that
+call @samp{ssh -1} and @samp{ssh -2}, respectively.  This way, you can
+explicitly select whether you want to use the SSH protocol version 1
+or 2 to connect to the remote host.  (You can also specify in
+@file{~/.ssh/config}, the SSH configuration file, which protocol
+should be used, and use the regular @option{ssh} method.)
+
+Two other variants, @option{scp1_old} and @option{scp2_old}, use the
+@command{ssh1} and @command{ssh2} commands explicitly.  If you don't
+know what these are, you do not need these options.
 
 All the @command{ssh} based methods support the kludgy @samp{-p}
 feature where you can specify a port number to connect to in the host
@@ -1064,6 +956,16 @@ provided by the program is not very useful in our context.  @tramp{}
 opens just one connection to the remote host and then keeps it open,
 anyway.
 
+
+@ifset emacs
+@item @option{ftp}
+@cindex method ftp
+@cindex ftp method
+
+This is not a natural @tramp{} method. Instead of, it forwards all
+requests to @value{ftp-package-name}.
+@end ifset
+
 @end table
 
 @node Multi-hop Methods
@@ -1079,36 +981,15 @@ Of course, the target host may also require a bastion host.  The format
 of multi-hop filenames is slightly different than the format of normal
 @tramp{} methods.
 
-A multi-hop file name specifies a method, a number of hops, and a path
-name on the remote system.  The method specifies how the file is
-transferred through the inline connection.  The following two multi-hop
-methods are available:
-
-@table @asis
-@item @option{multi} --- base64 encoding with @command{mimencode}
 @cindex method multi
 @cindex multi method
-@cindex mimencode (with multi method)
-@cindex base-64 encoding (with multi method)
+A multi-hop file name specifies a method, a number of hops, and a path
+name on the remote system.  The method name is always
+@option{multi}.
 
-The file is transferred through the connection in base64 encoding.  Uses
-the @command{mimencode} program for doing encoding and decoding, but
-uses an Emacs internal implementation on the local host if available.
-
-@item @option{multiu} --- use commands @command{uuencode} and @command{uudecode}
-@cindex method multiu
-@cindex multiu method
-@cindex uuencode (with multiu method)
-
-The file is transferred through the connection in `uu' encoding.  Uses
-the @command{uuencode} and @command{uudecode} programs for encoding and
-decoding, but uses a Lisp implementation for decoding on the local host
-if available.
-
-@end table
-
-Each hop consists of a @dfn{hop method} specification, a user name and a
-host name.  The following hop methods are (currently) available:
+Each hop consists of a @dfn{hop method} specification, a user name and
+a host name.  The hop method can be an inline method only.  The
+following hop methods are (currently) available:
 
 @table @option
 @item telnet
@@ -1146,7 +1027,7 @@ remote host as a non-root user, then use an @option{su} hop to become
 root.  But @option{su} need not be the last hop in a sequence, you could
 also use it somewhere in the middle, if the need arises.
 
-Even though you @emph{must} specify both user and host with a
+Even though you @emph{must} specify both user and host with an
 @option{su} hop, the host name is ignored and only the user name is
 used.
 
@@ -1163,8 +1044,8 @@ Some people might wish to use port forwarding with @command{ssh} or
 maybe they have to use a nonstandard port.  This can be accomplished
 by putting a stanza in @file{~/.ssh/config} for the account which
 specifies a different port number for a certain host name.  But it can
-also be accomplished within Tramp, by adding a multi-hop method.  For
-example:
+also be accomplished within @tramp{}, by adding a multi-hop method.
+For example:
 
 @lisp
 (add-to-list
@@ -1193,17 +1074,17 @@ is not specified in the @tramp{} file path.  For example:
 @vindex tramp-default-method-alist
 You can also specify different methods for certain user/host
 combinations, via the variable @var{tramp-default-method-alist}.  For
-example, the following two lines specify to use the @option{sm}
+example, the following two lines specify to use the @option{ssh}
 method for all user names matching @samp{john} and the @option{rsync}
 method for all host names matching @samp{lily}.  The third line
-specifies to use the @option{sum} method for the user @samp{root} on
+specifies to use the @option{su} method for the user @samp{root} on
 the machine @samp{localhost}.
 
 @lisp
-(add-to-list 'tramp-default-method-alist '("" "john" "sm"))
+(add-to-list 'tramp-default-method-alist '("" "john" "ssh"))
 (add-to-list 'tramp-default-method-alist '("lily" "" "rsync"))
 (add-to-list 'tramp-default-method-alist
-             '("\\`root\\'" "\\`localhost\\'" "sum"))
+             '("\\`localhost\\'" "\\`root\\'" "su"))
 @end lisp
 
 @noindent
