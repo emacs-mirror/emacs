@@ -288,7 +288,7 @@ creates a new one, adds it to the obarray, and returns it.  If
 
 (setq sym1 (intern "foo" other-obarray))
      @result{} foo
-(eq sym 'foo)
+(eq sym1 'foo)
      @result{} nil
 @end example
 @end defun
