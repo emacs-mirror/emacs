@@ -4,6 +4,7 @@
 ;; Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@purple.UL.BaWue.DE>
+;; Maintainers: FSF (unless Schleicher can be found)
 ;; Keywords: help languages
 
 ;; This file is part of GNU Emacs.
