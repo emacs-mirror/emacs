@@ -1,3 +1,7 @@
+2001-10-21  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_erase_phys_cursor): Remove inverse_p again.
+
 2001-10-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mocklisp.c (Fml_if, Fml_provide_prefix_argument)
