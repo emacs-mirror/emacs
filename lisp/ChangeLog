@@ -6,6 +6,8 @@
 	(ps-spool-without-faces, ps-spool-with-faces)
 	(ps-count-lines-preprint): Code fix.
 
+	* printing.el: New tips in Tips section.
+
 2004-03-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* delim-col.el: Doc fix.
