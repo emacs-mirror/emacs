@@ -1,3 +1,17 @@
+2004-08-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (Encoding Customization): Add a note to the
+	mm-content-transfer-encoding-defaults entry.
+	(rfc2047): Update.
+
+	* gnus.texi (Article Highlighting): Add
+	gnus-cite-ignore-quoted-from.
+	(POP before SMTP): New node.
+	(Posting Styles): Addition.
+	(Splitting Mail): Add nnmail-split-lowercase-expanded.
+	(Fancy Mail Splitting): Ditto.
+	(X-Face): Add gnus-x-face.
+
 2004-08-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* emacs-mime.texi, gnus-faq.texi, gnus.texi, message.texi,

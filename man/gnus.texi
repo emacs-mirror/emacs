@@ -607,6 +607,7 @@ Composing Messages
 
 * Mail::                        Mailing and replying.
 * Posting Server::              What server should you post and mail via?
+* POP before SMTP::             You cannot send a mail unless you read a mail.
 * Mail and Post::               Mailing and posting at the same time.
 * Archived Messages::           Where Gnus stores the messages you've sent.
 * Posting Styles::              An easier way to specify who you are.
@@ -8080,6 +8081,13 @@ Regexp matching the end of an attribution line.
 Face used for attribution lines.  It is merged with the face for the
 cited text belonging to the attribution.
 
+@item gnus-cite-ignore-quoted-from
+@vindex gnus-cite-ignore-quoted-from
+If non-@code{nil}, no citation highlighting will be performed on lines
+beginning with @samp{>From }.  Those lines may have been quoted by MTAs
+in order not to mix up with the envelope From line.  The default value
+is @code{t}.
+
 @end table
 
 
@@ -11350,6 +11358,7 @@ on your setup (@pxref{Posting Server}).
 @menu
 * Mail::                        Mailing and replying.
 * Posting Server::              What server should you post and mail via?
+* POP before SMTP::             You cannot send a mail unless you read a mail.
 * Mail and Post::               Mailing and posting at the same time.
 * Archived Messages::           Where Gnus stores the messages you've sent.
 * Posting Styles::              An easier way to specify who you are.
@@ -11453,13 +11462,66 @@ package correctly.  An example:
 @end lisp
 
 To the thing similar to this, there is
-@code{message-smtpmail-send-it}.  It is useful if your ISP requires
-the @acronym{POP}-before-@acronym{SMTP} authentication.  See the
-documentation for the function @code{mail-source-touch-pop}.
+@code{message-smtpmail-send-it}.  It is useful if your @acronym{ISP}
+requires the @acronym{POP}-before-@acronym{SMTP} authentication.
+@xref{POP before SMTP}.
 
 Other possible choices for @code{message-send-mail-function} includes
 @code{message-send-mail-with-mh}, @code{message-send-mail-with-qmail},
 and @code{feedmail-send-it}.
+
+@node POP before SMTP
+@section POP before SMTP
+@cindex pop before smtp
+@findex message-smtpmail-send-it
+@findex mail-source-touch-pop
+
+Does your @acronym{ISP} require the @acronym{POP}-before-@acronym{SMTP}
+authentication?  It is whether you need to connect to the @acronym{POP}
+mail server within a certain time before sending mails.  If so, there is
+a convenient way.  To do that, put the following lines in your
+@file{~/.gnus.el} file:
+
+@lisp
+(setq message-send-mail-function 'message-smtpmail-send-it)
+(add-hook 'message-send-mail-hook 'mail-source-touch-pop)
+@end lisp
+
+@noindent
+It means to let Gnus connect to the @acronym{POP} mail server in advance
+whenever you send a mail.  The @code{mail-source-touch-pop} function
+does only a @acronym{POP} authentication according to the value of
+@code{mail-sources} without fetching mails, just before sending a mail.
+Note that you have to use @code{message-smtpmail-send-it} which runs
+@code{message-send-mail-hook} rather than @code{smtpmail-send-it} and
+set the value of @code{mail-sources} for a @acronym{POP} connection
+correctly.  @xref{Mail Sources}.
+
+If you have two or more @acronym{POP} mail servers set in
+@code{mail-sources}, you may want to specify one of them to
+@code{mail-source-primary-source} as the @acronym{POP} mail server to be
+used for the @acronym{POP}-before-@acronym{SMTP} authentication.  If it
+is your primary @acronym{POP} mail server (i.e., you are fetching mails
+mainly from that server), you can set it permanently as follows:
+
+@lisp
+(setq mail-source-primary-source
+      '(pop :server "pop3.mail.server"
+            :password "secret"))
+@end lisp
+
+@noindent
+Otherwise, bind it dynamically only when performing the
+@acronym{POP}-before-@acronym{SMTP} authentication as follows:
+
+@lisp
+(add-hook 'message-send-mail-hook
+          (lambda ()
+            (let ((mail-source-primary-source
+                   '(pop :server "pop3.mail.server"
+                         :password "secret")))
+              (mail-source-touch-pop))))
+@end lisp
 
 @node Mail and Post
 @section Mail and Post
@@ -11736,8 +11798,13 @@ any case, if this returns a non-@code{nil} value, then the style is
 said to @dfn{match}.
 
 Each style may contain an arbitrary amount of @dfn{attributes}.  Each
-attribute consists of a @code{(@var{name} @var{value})} pair.  The
-attribute name can be one of:
+attribute consists of a @code{(@var{name} @var{value})} pair.  In
+addition, you can also use the @code{(@var{name} :file @var{value})}
+form or the @code{(@var{name} :value @var{value})} form.  Where
+@code{:file} signifies @var{value} represents a file name and its
+contents should be used as the attribute value, @code{:value} signifies
+@var{value} does not represent a file name explicitly.  The attribute
+name can be one of:
 
 @itemize @bullet
 @item @code{signature}
@@ -13122,6 +13189,10 @@ insert sub-expressions from the matched text.  For instance:
 ("list.\\1" "From:.* \\(.*\\)-list@@majordomo.com")
 @end lisp
 
+@noindent
+In that case, @code{nnmail-split-lowercase-expanded} controls whether
+the inserted text should be made lowercase.  @xref{Fancy Mail Splitting}.
+
 The second element can also be a function.  In that case, it will be
 called narrowed to the headers with the first element of the rule as the
 argument.  It should return a non-@code{nil} value if it thinks that the
@@ -13997,6 +14068,14 @@ If the string contains the element @samp{\&}, then the previously
 matched string will be substituted.  Similarly, the elements @samp{\\1}
 up to @samp{\\9} will be substituted with the text matched by the
 groupings 1 through 9.
+
+@vindex nnmail-split-lowercase-expanded
+Where @code{nnmail-split-lowercase-expanded} controls whether the
+lowercase of the matched string should be used for the substitution.
+Setting it as non-@code{nil} is useful to avoid the creation of multiple
+groups when users send to an address using different case
+(i.e. mailing-list@@domain vs Mailing-List@@Domain).  The default value
+is @code{t}.
 
 @vindex nnmail-split-fancy-match-partial-words
 @code{nnmail-split-fancy-match-partial-words} controls whether partial
@@ -21798,6 +21877,17 @@ like @code{netpbm}, @code{libgr-progs} and @code{compface}.})
 
 (Note: @code{x-face} is used in the variable/function names, not
 @code{xface}).
+
+@noindent
+Face and variable:
+
+@table @code
+@item gnus-x-face
+@vindex gnus-x-face
+Face to show X-Face.  The colors from this face are used as the
+foreground and background colors of the displayed X-Faces.  The
+default colors are black and white.
+@end table
 
 Gnus provides a few convenience functions and variables to allow
 easier insertion of X-Face headers in outgoing messages.
