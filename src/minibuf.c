@@ -553,6 +553,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       && !NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qminibuffer_setup_hook);
 
+  /* Don't allow the user to undo past this point.  */
+  current_buffer->undo_list = Qnil;
+
   recursive_edit_1 ();
 
   /* If cursor is on the minibuffer line,
