@@ -5680,9 +5680,19 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 		REQUIRE + LEN_BYTE = LEN_BYTE * (NEW / ORIG)
 		REQUIRE = LEN_BYTE * (NEW - ORIG) / ORIG
 	     Here, we are sure that NEW >= ORIG.  */
-	  float ratio = coding->produced - coding->consumed;
-	  ratio /= coding->consumed;
-	  require = len_byte * ratio;
+	  float ratio;
+
+	  if (coding->produced <= coding->consumed)
+	    {
+	      /* This happens because of CCL-based coding system with
+		 eol-type CRLF.  */
+	      require = 0;
+	    }
+	  else
+	    {
+	      ratio = (coding->produced - coding->consumed) / coding->consumed;
+	      require = len_byte * ratio;
+	    }
 	  first = 0;
 	}
       if ((src - dst) < (require + 2000))
