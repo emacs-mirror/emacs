@@ -93,6 +93,7 @@
 ;;; m-c-b   shell-backward-command          Backward a shell command
 ;;; 	    dirs    			    Resync the buffer's dir stack
 ;;; 	    dirtrack-toggle                 Turn dir tracking on/off
+;;; 	    shell-strip-ctrl-m              Remove trailing ^Ms from output
 ;;;
 ;;; The shell mode hook is shell-mode-hook
 ;;; comint-prompt-regexp is initialised to shell-prompt-pattern, for backwards
@@ -286,7 +287,8 @@ Return after the end of the process' output sends the text from the
 Return before end of process output copies the current line (except
     for the prompt) to the end of the buffer and sends it.
 M-x send-invisible reads a line of text without echoing it, and sends it to
-    the shell.  This is useful for entering passwords.
+    the shell.  This is useful for entering passwords.  Or, add the function
+    `comint-watch-for-password-prompt' to `comint-output-filter-functions'.
 
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it.
@@ -681,9 +683,7 @@ Returns t if successful."
 (defun shell-dynamic-complete-as-command ()
   "Dynamically complete at point as a command.
 See `shell-dynamic-complete-filename'.  Returns t if successful."
-  (let* ((completion-ignore-case nil)
-	 (success t)
-	 (filename (or (comint-match-partial-filename) ""))
+  (let* ((filename (or (comint-match-partial-filename) ""))
 	 (pathnondir (file-name-nondirectory filename))
 	 (paths (cdr (reverse exec-path)))
 	 (cwd (file-name-as-directory (expand-file-name default-directory)))
@@ -711,39 +711,12 @@ See `shell-dynamic-complete-filename'.  Returns t if successful."
 	(setq comps-in-path (cdr comps-in-path)))
       (setq paths (cdr paths)))
     ;; OK, we've got a list of completions.
-    (cond ((null completions)
-	   (message "No completions of %s" filename)
-	   (setq success nil))
-	  ((= 1 (length completions))	; Gotcha!
-	   (let ((completion (car completions)))
-	     (if (string-equal completion pathnondir)
-		 (message "Sole completion")
-	       (insert (substring (directory-file-name completion)
-				  (length pathnondir)))
-	       (message "Completed"))
-	     (if comint-completion-addsuffix
-		 (insert (if (file-directory-p completion) "/" " ")))))
-	  (t				; There's no unique completion.
-	   (let ((completion
-		  (try-completion pathnondir (mapcar (function (lambda (x)
-								 (list x)))
-						     completions))))
-	     ;; Insert the longest substring.
-	     (insert (substring (directory-file-name completion)
-				(length pathnondir)))
-	     (cond ((and comint-completion-recexact comint-completion-addsuffix
-			 (string-equal pathnondir completion)
-			 (member completion completions))
-		    ;; It's not unique, but user wants shortest match.
-		    (insert (if (file-directory-p completion) "/" " "))
-		    (message "Completed shortest"))
-		   ((or comint-completion-autolist
-			(string-equal pathnondir completion))
-		    ;; It's not unique, list possible completions.
-		    (comint-dynamic-list-completions completions))
-		   (t
-		    (message "Partially completed"))))))
-    success))
+    (let ((success (let ((comint-completion-addsuffix nil))
+		     (comint-dynamic-simple-complete pathnondir completions))))
+      (if (and (memq success '(sole shortest)) comint-completion-addsuffix
+	       (not (file-directory-p (comint-match-partial-filename))))
+	  (insert " "))
+      success)))
 
 
 (defun shell-match-partial-variable ()
@@ -832,6 +805,20 @@ Returns t if successful."
 		 (replace-match (file-name-as-directory (nth index stack)) t t)
 		 (message "Directory item: %d" index)
 		 t))))))
+
+(defun shell-strip-ctrl-m (&optional string)
+  "Strip trailing `^M' characters from the current output group.
+
+This function could be in the list `comint-output-filter-functions' or bound to
+a key."
+  (interactive)
+  (let ((pmark (process-mark (get-buffer-process (current-buffer))))
+	(ctrl-m (concat (char-to-string 13) "$")))
+    (save-excursion
+      (goto-char
+       (if (interactive-p) comint-last-input-end comint-last-output-start))
+      (while (re-search-forward ctrl-m pmark t)
+	(replace-match "" t t)))))
 
 (provide 'shell)
 
