@@ -652,8 +652,7 @@ Switch to a buffer visiting file FILENAME,
 creating one if none already exists.
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.  Wildcard expansion
-can be suppressed by setting `find-file-wildcards'.  Such expansion is
-not implemented for remote files."
+can be suppressed by setting `find-file-wildcards'."
   (interactive "FFind file: \np")
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
