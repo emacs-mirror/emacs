@@ -2391,8 +2391,12 @@ If summary buffer is currently displayed, update current message there also."
 	      (goto-char (point-min))
 	      (if (re-search-forward "^X-Coding-System: *\\(.*\\)$" nil t)
 		  (let ((coding-system (intern (match-string 1))))
-		    (check-coding-system coding-system)
-		    (setq buffer-file-coding-system coding-system))
+		    (condition-case nil
+			(progn
+			  (check-coding-system coding-system)
+			  (setq buffer-file-coding-system coding-system))
+		      (error 
+		       (setq buffer-file-coding-system nil))))
 		(setq buffer-file-coding-system nil)))))
 	;; Clear the "unseen" attribute when we show a message.
 	(rmail-set-attribute "unseen" nil)
