@@ -75,7 +75,7 @@ It is useful to set this variable in the site customisation file.")
 *Non-nil means automatically delete a message that is copied to a file.")
 
 ;;;###autoload
-(defconst rmail-primary-inbox-list nil "\
+(defvar rmail-primary-inbox-list nil "\
 *List of files which are inboxes for user's primary mail file `~/RMAIL'.
 `nil' means the default, which is (\"/usr/spool/mail/$USER\")
 \(the name varies depending on the operating system,
