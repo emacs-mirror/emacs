@@ -1,3 +1,10 @@
+2004-02-21  Eli Zaretskii  <eliz@elta.co.il>
+
+	* emacs.c (USAGE1): Split into two halves.
+	(USAGE2): Second half of the old USAGE1.
+	(USAGE3): Renamed from USAGE2.
+	(USAGE4): Renamed from USAGE3.
+
 2004-02-21  Juri Linkov  <juri@jurta.org>
 
 	* emacs.c (USAGE1): Add --no-desktop.  Move --display from USAGE2.
