@@ -1,3 +1,7 @@
+2000-10-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* log-edit.el (log-edit-confirm): Fix the default.
+
 2000-10-30  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* delim-col.el: Little fix: replace delimit-columns-align-columns by
@@ -29,8 +33,8 @@
 	(ccl-encode-unicode-font): New CCL program.  Record it in
 	font-ccl-encoder-alist to be used for fonts "ISO10646-1".
 
-	* language/european.el (mac-roman-decoder, mac-roman-encoder): New
-	translation tables.
+	* language/european.el (mac-roman-decoder, mac-roman-encoder):
+	New translation tables.
 	(decode-mac-roman, encode-mac-roman): Definition of these CCL
 	programs are modified and moved from mac-win.el.
 	(mac-roman): Definition of this coding system is modified and
@@ -174,11 +178,11 @@
 2000-10-29  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* viper-cmd.el (viper-preserve-cursor-color): New test that avoids
-	rewrawing the screen when changing cursor color.
+	redrawing the screen when changing cursor color.
 	(viper-insert-state-pre-command-sentinel)
 	(viper-replace-state-pre-command-sentinel)
-	(viper-replace-state-post-command-sentinel): Use
-	viper-preserve-cursor-color.
+	(viper-replace-state-post-command-sentinel):
+	Use viper-preserve-cursor-color.
 	Many functions changed to use viper= instead of = when comparing
 	characters.
 	* viper-util.el (viper-memq-char,viper=): New functions for
@@ -258,9 +262,12 @@
 
 2000-10-27  Dave Love  <fx@gnu.org>
 
-	* textmodes/refill.el (refill-late-fill-paragraph-function): New
-	variable.
+	* textmodes/refill.el (refill-late-fill-paragraph-function): New var.
 	(refill-mode): Use it.
+
+2000-10-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* international/quail.el (quail-activate): Don't make-local-hook.
 
 2000-10-27  Andre Spiegel  <spiegel@gnu.org>
 
