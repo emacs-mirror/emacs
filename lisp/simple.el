@@ -1062,9 +1062,10 @@ system cut and paste."
       (save-excursion
 	(let ((other-end (if (= (point) beg) end beg)))
 	  (if (pos-visible-in-window-p other-end (selected-window))
-	      (progn
+	      (let ((omark (mark t))) 
+		(set-marker (mark-marker) (point) (current-buffer))
 		(goto-char other-end)
-		(sit-for 1))
+		(sit-for 1))		  
 	    (let* ((killed-text (current-kill 0))
 		   (message-len (min (length killed-text) 40)))
 	      (if (= (point) beg)
@@ -1100,8 +1101,8 @@ comes the newest one."
   (if (not (eq last-command 'yank))
       (error "Previous command was not a yank"))
   (setq this-command 'yank)
-  (let ((before (< (point) (mark))))
-    (delete-region (point) (mark))
+  (let ((before (< (point) (mark t))))
+    (delete-region (point) (mark t))
     (set-mark (point))
     (insert (current-kill arg))
     (if before (exchange-point-and-mark)))
@@ -1242,10 +1243,12 @@ Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."
   (interactive "P")
   (if (null arg)
-      (push-mark)
+      (progn
+	(push-mark)
+	(set-mark (mark t)))
     (if (null (mark t))
 	(error "No mark set in this buffer")
-      (goto-char (mark))
+      (goto-char (mark t))
       (pop-mark))))
 
 (defun push-mark (&optional location nomsg)
@@ -1253,7 +1256,9 @@ purposes.  See the documentation of `set-mark' for more information."
 Displays \"Mark set\" unless the optional second arg NOMSG is non-nil.
 
 Novice Emacs Lisp programmers often try to use the mark for the wrong
-purposes.  See the documentation of `set-mark' for more information."
+purposes.  See the documentation of `set-mark' for more information.
+
+In Transient Mark mode, this does not activate the mark."
   (if (null (mark t))
       nil
     (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
@@ -1261,7 +1266,7 @@ purposes.  See the documentation of `set-mark' for more information."
 	(progn
 	  (move-marker (car (nthcdr mark-ring-max mark-ring)) nil)
 	  (setcdr (nthcdr (1- mark-ring-max) mark-ring) nil))))
-  (set-mark (or location (point)))
+  (set-marker (mark-marker) (or location (point)) (current-buffer))
   (or nomsg executing-macro (> (minibuffer-depth) 0)
       (message "Mark set"))
   nil)
@@ -1272,9 +1277,11 @@ Does not set point.  Does nothing if mark ring is empty."
   (if mark-ring
       (progn
 	(setq mark-ring (nconc mark-ring (list (copy-marker (mark-marker)))))
-	(set-mark (+ 0 (car mark-ring)))
+	(set-marker (mark-marker) (+ 0 (car mark-ring)) (current-buffer))
+	(if transient-mark-mode
+	    (setq mark-active nil))
 	(move-marker (car mark-ring) nil)
-	(if (null (mark)) (ding))
+	(if (null (mark t)) (ding))
 	(setq mark-ring (cdr mark-ring)))))
 
 (define-function 'exchange-dot-and-mark 'exchange-point-and-mark)
@@ -2065,13 +2072,16 @@ in the mode line."
 ;Turned off because it makes dbx bomb out.
 (setq blink-paren-function 'blink-matching-open)
 
-; this is just something for the luser to see in a keymap -- this is not
-;  how quitting works normally!
+;; This executes C-g typed while Emacs is waiting for a command.
+;; Quitting out of a program does not go through here;
+;; that happens in the QUIT macro at the C code level.
 (defun keyboard-quit ()
   "Signal a  quit  condition.
 During execution of Lisp code, this character causes a quit directly.
 At top-level, as an editor command, this simply beeps."
   (interactive)
+  (if transient-mark-mode
+      (setq mark-active nil))
   (signal 'quit nil))
 
 (define-key global-map "\C-g" 'keyboard-quit)
