@@ -1097,6 +1097,7 @@ Recover Session\tRecover files you were editing before a crash
 
 
 
+
 "
 	   ))
   "A list of texts to show in the middle part of splash screens.
