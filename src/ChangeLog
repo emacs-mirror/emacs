@@ -1,3 +1,8 @@
+2000-09-28  Dave Love  <fx@gnu.org>
+
+	* m/alpha.h (XUINT) [REL_ALLOC && _MALLOC_INTERNAL]: Don't declare
+	r_alloc, r_alloc_free.
+
 2000-09-28  Kenichi Handa  <handa@etl.go.jp>
 
 	* syntax.c (skip_chars): Handle negation correctly.
@@ -18,7 +23,7 @@
 
 2000-09-27  Dave Love  <fx@gnu.org>
 
-	* s/irix6-5.h (IRIX6): Now works 64-bit.  Tidied.
+	* s/irix6-5.h: Now works 64-bit.  Tidied.
 
 2000-09-26  Gerd Moellmann  <gerd@gnu.org>
 
