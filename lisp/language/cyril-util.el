@@ -192,5 +192,5 @@ If the argument is nil, we return the display table to its standard state."
 ;;; cyril-util.el ends here
 
 ;; Local Variables:
-;; buffer-file-coding-system: iso-2022-7bit
+;; coding: iso-2022-7bit
 ;; End:
