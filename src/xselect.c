@@ -463,6 +463,7 @@ queue_selection_requests_unwind (frame)
 
   if (! NILP (frame))
     x_stop_queuing_selection_requests (FRAME_X_DISPLAY (f));
+  return Qnil;
 }
 
 /* Return some frame whose display info is DPYINFO.
@@ -931,6 +932,7 @@ wait_for_property_change_unwind (identifierval)
   unexpect_property_change ((struct prop_location *)
 			    (XFASTINT (XCONS (identifierval)->car) << 16
 			     | XFASTINT (XCONS (identifierval)->cdr)));
+  return Qnil;
 }
 
 /* Actually wait for a property change.
