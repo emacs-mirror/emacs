@@ -1,7 +1,7 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
    Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 99,
-                 2000, 2001   Free Software Foundation Inc.
+                 2000, 2001, 2002   Free Software Foundation Inc.
 
    This file is part of GNU Emacs.
 
@@ -2423,6 +2423,30 @@ skip_matching ()
     }
 }
 
+int
+skip_initializer ()
+{
+  for (;;)
+    {
+      switch (LA1)
+	{
+	case ';':
+	case ',':
+	case YYEOF:
+	  return;
+
+	case '{':
+	case '[':
+	case '(':
+	  skip_matching ();
+	  break;
+
+	default:
+	  MATCH ();
+	  break;
+	}
+    }
+}
 
 /* Build qualified namespace alias (A::B::c) and return it. */
 
@@ -3205,6 +3229,54 @@ class_definition (containing, tag, flags, nested)
     }
 }
 
+/* Add to class *CLS information for the declaration of variable or
+   type *ID.  If *CLS is null, this means a global declaration.  SC is
+   the storage class of *ID.  FLAGS is a bit set giving additional
+   information about the member (see the F_* defines).  */
+
+void
+add_declarator (cls, id, flags, sc)
+     struct sym **cls;
+     char **id;
+     int flags, sc;
+{
+  if (LOOKING_AT2 (';', ','))
+    {
+      /* The end of a member variable or of an access declaration
+         `X::f'.  To distinguish between them we have to know whether
+         type information has been seen.  */
+      if (*id)
+        {
+          char *regexp = matching_regexp ();
+          int pos = BUFFER_POS ();
+
+          if (cls)
+	    add_member_defn (cls, *id, regexp, pos, 0, 1, SC_UNKNOWN, flags);
+          else
+            add_global_defn (*id, regexp, pos, 0, 1, sc, flags);
+        }
+
+      MATCH ();
+      print_info ();
+    }
+  else if (LOOKING_AT ('{'))
+    {
+      if (sc == SC_TYPE && *id)
+        {
+          /* A named enumeration.  */
+          char *regexp = matching_regexp ();
+          int pos = BUFFER_POS ();
+          add_global_defn (*id, regexp, pos, 0, 1, sc, flags);
+        }
+
+      skip_matching ();
+      print_info ();
+    }
+
+  xfree (*id);
+  *id = NULL;
+  *cls = NULL;
+}
 
 /* Parse a declaration.  */
 
@@ -3259,10 +3331,14 @@ declaration (flags)
 	    }
 
         case '=':
-          /* Assumed to be the start of an initialization in this context.
-             Skip over everything up to ';'.  */
-          skip_to (';');
+          /* Assumed to be the start of an initialization in this
+	     context.  */
+	  skip_initializer ();
           break;
+
+	case ',':
+	  add_declarator (&cls, &id, flags, sc);
+	  break;
 
         case OPERATOR:
 	  {
@@ -3350,40 +3426,7 @@ declaration (flags)
         }
     }
 
-  if (LOOKING_AT (';'))
-    {
-      /* The end of a member variable or of an access declaration
-         `X::f'.  To distinguish between them we have to know whether
-         type information has been seen.  */
-      if (id)
-        {
-          char *regexp = matching_regexp ();
-          int pos = BUFFER_POS ();
-
-          if (cls)
-	    add_member_defn (cls, id, regexp, pos, 0, 1, SC_UNKNOWN, flags);
-          else
-            add_global_defn (id, regexp, pos, 0, 1, sc, flags);
-        }
-
-      MATCH ();
-      print_info ();
-    }
-  else if (LOOKING_AT ('{'))
-    {
-      if (sc == SC_TYPE && id)
-        {
-          /* A named enumeration.  */
-          regexp = matching_regexp ();
-          pos = BUFFER_POS ();
-          add_global_defn (id, regexp, pos, 0, 1, sc, flags);
-        }
-
-      skip_matching ();
-      print_info ();
-    }
-
-  xfree (id);
+  add_declarator (&cls, &id, flags, sc);
 }
 
 
