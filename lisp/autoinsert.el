@@ -200,7 +200,8 @@ described above, e.g. [\"header.insert\" date-and-author-update]."
 ;; Establish a default value for auto-insert-directory
 (defcustom auto-insert-directory "~/insert/"
   "*Directory from which auto-inserted files are taken.
-Must end in a slash."
+Must be a fully-qualified directory name, e.g., on a Unix-like system,
+must end in a slash."
   :type 'directory
   :group 'auto-insert)
 
