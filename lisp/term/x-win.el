@@ -213,7 +213,8 @@ are left in ARGS."
 	    (foreground-color "foreground" "black")
 	    (mouse-color "mouse" "black")
 	    (cursor-color "cursor" "black")
-	    (border-color "border" "black"))))
+	    (border-color "border" "black")))
+  (setq x-screen-defaults screen-default-alist))
 
 
 ;; This is the function which creates the first X window.  It is called

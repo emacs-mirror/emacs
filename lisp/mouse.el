@@ -304,30 +304,30 @@ The text before the mouse position, on the same line, is used as the prefix."
   (define-key map mouse-button-middle 'mouse-scroll-right-full))
 
 
+;;;;
+;;;; Here are experimental things being tested.  Mouse events
+;;;; are of the form:
+;;;;	((x y) window screen-part key-sequence timestamp)
 ;;
-;; Here are experimental things being tested.  Mouse events
-;; are of the form:
-;;	((x y) window screen-part key-sequence timestamp)
-
+;;;;
+;;;; Dynamically track mouse coordinates
+;;;;
 ;;
-;; Dynamically track mouse coordinates
-;;
-
-(defun track-mouse (event)
-  "Track the coordinates, absolute and relative, of the mouse."
-  (interactive "@e")
-  (while mouse-grabbed
-    (let* ((pos (read-mouse-position (selected-screen)))
-	   (abs-x (car pos))
-	   (abs-y (cdr pos))
-	   (relative-coordinate (coordinates-in-window-p
-				 (list (car pos) (cdr pos))
-				 (selected-window))))
-      (if (consp relative-coordinate)
-	  (message "mouse: [%d %d], (%d %d)" abs-x abs-y
-		   (car relative-coordinate)
-		   (car (cdr relative-coordinate)))
-	(message "mouse: [%d %d]" abs-x abs-y)))))
+;;(defun track-mouse (event)
+;;  "Track the coordinates, absolute and relative, of the mouse."
+;;  (interactive "@e")
+;;  (while mouse-grabbed
+;;    (let* ((pos (read-mouse-position (selected-screen)))
+;;	   (abs-x (car pos))
+;;	   (abs-y (cdr pos))
+;;	   (relative-coordinate (coordinates-in-window-p
+;;				 (list (car pos) (cdr pos))
+;;				 (selected-window))))
+;;      (if (consp relative-coordinate)
+;;	  (message "mouse: [%d %d], (%d %d)" abs-x abs-y
+;;		   (car relative-coordinate)
+;;		   (car (cdr relative-coordinate)))
+;;	(message "mouse: [%d %d]" abs-x abs-y)))))
 
 ;;
 ;; Dynamically put a box around the line indicated by point
