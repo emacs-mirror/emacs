@@ -1,5 +1,8 @@
 2003-01-06  David Kastrup  <dak@gnu.org>
 
+	* Makefile.in (INSTALL_INFO): Get install-info command from
+	configure.
+
 	* configure.in: Add tests for install-info
 
 2002-12-09  Markus Rost  <rost@math.ohio-state.edu>
