@@ -1,7 +1,7 @@
-/*  impl.c.vmnt: VIRTUAL MEMORY MAPPING FOR WIN32
+/*  impl.c.vmw3: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmw3.c(trunk.20) $
- *  Copyright (C) 1997 Harlequin Group, all rights reserved
+ *  $HopeName: MMsrc!vmw3.c(trunk.21) $
+ *  Copyright (C) 1997, 1998 Harlequin Group, all rights reserved
  *
  *  Design: design.mps.vm
  *
@@ -28,10 +28,10 @@
  *    the MM type Addr are the same size.
  *
  *  .assume.dword-align:  We assume that the windows type DWORD and
- *    the MM type Align are the same size.
+ *    the MM type Align are assignment-compatible.
  *
  *  .assume.lpvoid-addr:  We assume that the windows type LPVOID and
- *    the MM type Addr are the same size.
+ *    the MM type Addr are assignment-compatible.
  *
  *  .assume.sysalign:  The assume that the page size on the system
  *    is a power of two.
@@ -55,7 +55,7 @@
 
 #include "mpswin.h"
 
-SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.20) $");
+SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.21) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -71,19 +71,9 @@ typedef struct VMStruct {
 } VMStruct;
 
 
-Align VMAlign(void)
+Align VMAlign(VM vm)
 {
-  Align align;
-  SYSTEM_INFO si;
-
-  /* See .assume.dword-align */
-  AVER(sizeof(DWORD) == sizeof(Align));
-
-  GetSystemInfo(&si);
-  align = (Align)si.dwPageSize;
-  AVER(SizeIsP2(align));    /* see .assume.sysalign */
-
-  return align;
+  return vm->align;
 }
 
 
@@ -105,18 +95,22 @@ Bool VMCheck(VM vm)
 Res VMCreate(VM *vmReturn, Size size)
 {
   LPVOID vbase;
+  SYSTEM_INFO si;
   Align align;
   VM vm;
 
   AVER(vmReturn != NULL);
-  AVER(sizeof(LPVOID) == sizeof(Addr));  /* .assume.lpvoid-addr */
-  /* See .assume.dword-addr */
-  AVER(sizeof(DWORD) == sizeof(Addr));
 
-  align = VMAlign();
+  AVER(CHECKTYPE(LPVOID, Addr));  /* .assume.lpvoid-addr */
+  AVER(sizeof(DWORD) == sizeof(Addr));  /* See .assume.dword-addr */
+  AVER(CHECKTYPE(DWORD, Align));  /* See .assume.dword-align */
+
+  GetSystemInfo(&si);
+  align = (Align)si.dwPageSize;
   AVER(SizeIsP2(align));    /* see .assume.sysalign */
 
-  AVER(SizeIsAligned(size, align));
+  size = SizeAlignUp(size, align);
+  AVER(size != 0);
 
   /* Allocate some store for the space descriptor.
    * This is likely to be wasteful see issue.vmnt.waste */
