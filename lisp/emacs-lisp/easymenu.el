@@ -187,11 +187,15 @@ In Emacs a menu filter must return a menu (a keymap), in XEmacs a filter must
 return a menu items list (without menu name and keywords).
 This function returns the right thing in the two cases.
 If NAME is provided, it is used for the keymap."
- (when (and (not (keymapp menu)) (consp menu))
+ (cond
+  ((and (not (keymapp menu)) (consp menu))
    ;; If it's a cons but not a keymap, then it can't be right
    ;; unless it's an XEmacs menu.
    (setq menu (easy-menu-create-menu (or name "") menu)))
- (easy-menu-get-map menu nil))		; Get past indirections.
+  ((vectorp menu)
+   ;; It's just a menu entry.
+   (setq menu (cdr (easy-menu-convert-item menu)))))
+ menu)
 
 ;;;###autoload
 (defun easy-menu-create-menu (menu-name menu-items)
@@ -462,7 +466,11 @@ to implement dynamic menus."
 (defalias 'easy-menu-remove 'ignore)
 
 (defun easy-menu-add (menu &optional map)
-  "Maybe precalculate equivalent key bindings.
+  "Add the menu to the menubar.
+This is a nop on Emacs since menus are automatically activated when the
+corresponding keymap is activated.  On XEmacs this is needed to actually
+add the menu to the current menubar.
+Maybe precalculate equivalent key bindings.
 Do it only if `easy-menu-precalculate-equivalent-keybindings' is on."
   (when easy-menu-precalculate-equivalent-keybindings
     (if (and (symbolp menu) (not (keymapp menu)) (boundp menu))
@@ -565,15 +573,6 @@ If item is an old format item, a new format item is returned."
     (setq submap (cdr submap)))
   submap)
 
-;; This should really be in keymap.c
-(defun easy-menu-current-active-maps ()
-  (let ((maps (list (current-local-map) global-map)))
-    (dolist (minor minor-mode-map-alist)
-      (when (and (boundp (car minor))
-		 (symbol-value (car minor)))
-	(push (cdr minor) maps)))
-    (delq nil maps)))
-
 (defun easy-menu-get-map (map path &optional to-modify)
   "Return a sparse keymap in which to add or remove an item.
 MAP and PATH are as defined in `easy-menu-add-item'.
@@ -594,7 +593,7 @@ In some cases we use that to select between the local and global maps."
 				   (list (if (and (symbolp map)
 						  (not (keymapp map)))
 					     (symbol-value map) map))
-				 (easy-menu-current-active-maps)))))
+				 (current-active-maps)))))
 	    ;; Prefer a map that already contains the to-be-modified entry.
 	    (when to-modify
 	      (dolist (map maps)
