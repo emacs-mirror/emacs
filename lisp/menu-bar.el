@@ -566,7 +566,7 @@ Do the same for the keys of the same name."
     (dolist (elt '(line-number-mode column-number-mode scroll-bar-mode
 		   debug-on-quit debug-on-error menu-bar-mode tool-bar-mode
 		   save-place uniquify-buffer-name-style
-		   case-fold-search truncate-lines show-paren-mode
+		   case-fold-search show-paren-mode
 		   transient-mark-mode global-font-lock-mode
 		   display-time-mode auto-compression-mode
 		   current-language-environment default-input-method
@@ -775,15 +775,16 @@ Do the same for the keys of the same name."
 	      :help "Automatically fill text between left and right margins"
               :button (:toggle . (member 'turn-on-auto-fill text-mode-hook))))
 (define-key menu-bar-options-menu [truncate-lines]
-  (menu-bar-make-toggle
-   toggle-truncate-lines truncate-lines
-   "Truncate Long Lines in this Buffer" "Long Line Truncation %s"
-   "Truncate long lines on the screen"
-   ;; FIXME: We should define a :set method for `truncate-lines' to do
-   ;; the `buffer-modified-p' stuff.
-   ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
-   (prog1 (setq-default truncate-lines (not truncate-lines))
-     (set-buffer-modified-p (buffer-modified-p)))))
+  '(menu-item "Truncate Long Lines in this Buffer"
+	      (lambda ()
+		(interactive)
+		(setq truncate-lines (not truncate-lines))
+		(set-buffer-modified-p (buffer-modified-p))
+		(message "Truncate long lines %s" 
+			 (if truncate-lines "enabled" "disabled")))
+	      :help "Truncate long lines on the screen"
+	      :button (:toggle . truncate-lines)))
+
 (define-key menu-bar-options-menu [highlight-separator]
   '("--"))
 (define-key menu-bar-options-menu [highlight-paren-mode]

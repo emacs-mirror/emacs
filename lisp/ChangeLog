@@ -1,5 +1,11 @@
 2002-02-12  Per Abrahamsen  <abraham@dina.kvl.dk>
 
+	* menu-bar.el (menu-bar-options-save): Removed `truncate-lines'.
+	(menu-bar-options-menu): Don't set default value for
+	`truncate-lines'. 
+
+2002-02-12  Per Abrahamsen  <abraham@dina.kvl.dk>
+
 	* menu-bar.el (menu-bar-options-save): Only save
 	`current-language-environment' and `default-input-method' when
 	marked as customized.
