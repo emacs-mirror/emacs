@@ -1,3 +1,11 @@
+2000-11-21  Dave Love  <fx@gnu.org>
+
+	* gnus-art.el (gnus-mime-button-map): Don't inherit from
+	gnus-article-mode-map.
+	(gnus-mime-button-menu): Use mouse-set-point.
+	(gnus-insert-mime-button, gnus-mime-display-alternative) 
+	(gnus-mime-display-alternative): Don't use local-map property.
+
 2000-11-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nntp.el (nntp-open-telnet): Wait for the telnet prompt before
