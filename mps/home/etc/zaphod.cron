@@ -1,12 +1,13 @@
-# $HopeName: HOMEmm!etc:zaphod.cron(trunk.5) $
+# $HopeName: HOMEmm!etc:zaphod.cron(trunk.6) $
 # minutes hours day-of-month month day-of-week command
 00 23  *  *  *  sh -c ". etc/shenv && overnight checkout"
 30 23  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_src_trunk sos8gc"
 30 00  *  *  3  sh -c ". etc/shenv && overnight ./bin/build/MMdevel_sw_eq sospgc"
 40 00  *  *  3  sh -c ". etc/shenv && overnight ./bin/build/MM_epcore_anchovy sos8gc"
 30 01  *  *  2-6  sh -c ". etc/shenv && overnight ./bin/build/MM_epcore_brisling sos8gc"
-20 02  *  *  2-6  sh -c ". etc/shenv && overnight ./bin/build/MM_dylan_jackdaw sos8gc"
+20 02  *  *  1  sh -c ". etc/shenv && overnight ./bin/build/MM_dylan_jackdaw sos8gc"
+20 02  *  *  2-6  sh -c ". etc/shenv && overnight ./bin/build/MM_dylan_kinglet sos8gc"
 10 03  *  *  2-5  sh -c ". etc/shenv && overnight ./bin/mmqa/MMQA_src_trunk sos8gc hi we"
 10 03  *  *  6  sh -c ". etc/shenv && overnight ./bin/mmqa/MMQA_src_trunk sos8gc ci"
-00 04  *  *  6  sh -c ". etc/shenv && overnight ./bin/mmqa/MMQA_dylan_jackdaw sos8gc hi we ci"
+00 04  *  *  6  sh -c ". etc/shenv && overnight ./bin/mmqa/MMQA_dylan_kinglet sos8gc hi he ci"
 00 02  *  *  0  sh -c ". etc/shenv && overnight ./bin/mmqa/MMQA_epcore_brisling sos8gc hi we ci"
