@@ -28,7 +28,7 @@ Options:
 
 Report bugs to <bug-gnu-emacs@gnu.org>.'
 
-Id='$Id: rcs2log,v 1.44 1998/08/12 14:22:14 eggert Exp eggert $'
+Id='$Id: rcs2log,v 1.46 2001/01/02 18:50:14 eggert Exp $'
 
 # Copyright 1992, 93, 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
 
@@ -300,10 +300,12 @@ case $# in
 	esac
 esac
 
-llogout=$TMPDIR/rcs2log$$l
-rlogout=$TMPDIR/rcs2log$$r
+logdir=$TMPDIR/rcs2log$$
+llogout=$logdir/l
+rlogout=$logdir/r
 trap exit 1 2 13 15
-trap "rm -f $llogout $rlogout; exit 1" 0
+trap "rm -fr $logdir 2>/dev/null" 0
+(umask 077 && exec mkdir $logdir) || exit
 
 case $datearg in
 ?*) $rlog $rlog_options "$datearg" ${1+"$@"} >$rlogout;;
@@ -670,7 +672,7 @@ $AWK '
 
 # Exit successfully.
 
-exec rm -f $llogout $rlogout
+exec rm -fr $logdir
 
 # Local Variables:
 # tab-width:4
