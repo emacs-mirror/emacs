@@ -1947,6 +1947,7 @@ extern void init_syntax_once P_ ((void));
 extern void syms_of_syntax P_ ((void));
 
 /* Defined in fns.c */
+extern int use_dialog_box;
 extern int next_almost_prime P_ ((int));
 extern Lisp_Object larger_vector P_ ((Lisp_Object, int, Lisp_Object));
 extern void sweep_weak_hash_tables P_ ((void));
@@ -2377,6 +2378,7 @@ EXFUN (Ffield_string, 1);
 EXFUN (Fdelete_field, 1);
 EXFUN (Ffield_beginning, 2);
 EXFUN (Ffield_string_no_properties, 1);
+extern void set_time_zone_rule P_ ((char *));
 
 /* defined in buffer.c */
 extern void nsberror P_ ((Lisp_Object));
