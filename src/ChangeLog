@@ -2,7 +2,7 @@
 
 	* dispnew.c (marginal_area_string): Check that glyph row is enabled.
 
-2002-04-05  Dave Love  <fx@gnu.org>
+2002-04-12  Dave Love  <fx@gnu.org>
 
 	* dispnew.c (marginal_area_string): New.
 
