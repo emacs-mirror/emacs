@@ -902,7 +902,7 @@ subshell is initiated, `tex-shell-hook' is run."
   (set (make-local-variable 'tex-start-of-header)
        "\\\\document\\(style\\|class\\)")
   (set (make-local-variable 'tex-end-of-header) "\\\\begin\\s-*{document}")
-  (set (make-local-variable 'tex-trailer) "\\end\\s-*{document}\n")
+  (set (make-local-variable 'tex-trailer) "\\end{document}\n")
   ;; A line containing just $$ is treated as a paragraph separator.
   ;; A line starting with $$ starts a paragraph,
   ;; but does not separate paragraphs if it has more stuff on it.
