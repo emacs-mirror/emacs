@@ -1,6 +1,6 @@
 /* impl.c.finalcv: FINALIZATION COVERAGE TEST
  *
- * $HopeName: MMsrc!finalcv.c(trunk.5) $
+ * $HopeName: MMsrc!finalcv.c(trunk.6) $
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -117,7 +117,7 @@ test(void *arg, size_t s)
       dylan_init(p, ONE_SLOT_SIZE, root, 1);
     } while(!mps_commit(ap, p, ONE_SLOT_SIZE));
     ((mps_word_t *)p)[2] = dylan_int(i);
-    die(mps_finalize(space, p), "finalize\n");
+    die(mps_finalize(space, &p), "finalize\n");
     root[i] = p;
   }
   p = NULL;
