@@ -2882,9 +2882,9 @@ describe_vector (vector, elt_prefix, elt_describer,
 	    {
 	      /* We need an octal representation for this block of
                  characters.  */
-	      char work[5];
-	      sprintf (work, "\\%03o", i & 255);
-	      insert (work, 4);
+	      char work[16];
+	      sprintf (work, "(row %d)", i);
+	      insert (work, strlen (work));
 	    }
 	}
       else if (CHAR_TABLE_P (vector))
@@ -2922,7 +2922,7 @@ describe_vector (vector, elt_prefix, elt_describer,
 
       starting_i = i;
 
-      /* Find all consecutive characters that have the same
+      /* Find all consecutive characters or rows that have the same
          definition.  But, for elements of a top level char table, if
          they are for charsets, we had better describe one by one even
          if they have the same definition.  */
@@ -2972,9 +2972,11 @@ describe_vector (vector, elt_prefix, elt_describer,
 		}
 	      else
 		{
-		  char work[5];
-		  sprintf (work, "\\%03o", i & 255);
-		  insert (work, 4);
+		  /* We need an octal representation for this block of
+		     characters.  */
+		  char work[16];
+		  sprintf (work, "(row %d)", i);
+		  insert (work, strlen (work));
 		}
 	    }
 	  else
