@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc-hooks.el,v 1.110 1998/05/17 15:33:39 spiegel Exp rms $
+;; $Id: vc-hooks.el,v 1.111 1998/08/08 07:11:40 rms Exp fx $
 
 ;; This file is part of GNU Emacs.
 
@@ -1174,7 +1174,7 @@ Returns t if checkout was successful, nil otherwise."
     '("Retrieve Snapshot" . vc-retrieve-snapshot))
   (define-key vc-menu-map [vc-create-snapshot]
     '("Create Snapshot" . vc-create-snapshot))
-  (define-key vc-menu-map [vc-directory] '("Show Locked Files" . vc-directory))
+  (define-key vc-menu-map [vc-directory] '("VC Directory Listing" . vc-directory))
   (define-key vc-menu-map [separator1] '("----"))
   (define-key vc-menu-map [vc-annotate] '("Annotate" . vc-annotate))
   (define-key vc-menu-map [vc-rename-file] '("Rename File" . vc-rename-file))
@@ -1193,18 +1193,22 @@ Returns t if checkout was successful, nil otherwise."
   (define-key vc-menu-map [vc-next-action] '("Check In/Out" . vc-next-action))
   (define-key vc-menu-map [vc-register] '("Register" . vc-register)))
 
-(put 'vc-rename-file 'menu-enable 'vc-mode)
-(put 'vc-annotate 'menu-enable '(eq (vc-buffer-backend) 'CVS))
-(put 'vc-version-other-window 'menu-enable 'vc-mode)
-(put 'vc-diff 'menu-enable 'vc-mode)
-(put 'vc-update-change-log 'menu-enable
-     '(eq (vc-buffer-backend) 'RCS))
-(put 'vc-print-log 'menu-enable 'vc-mode)
-(put 'vc-cancel-version 'menu-enable 'vc-mode)
-(put 'vc-revert-buffer 'menu-enable 'vc-mode)
-(put 'vc-insert-headers 'menu-enable 'vc-mode)
-(put 'vc-next-action 'menu-enable 'vc-mode)
-(put 'vc-register 'menu-enable '(and buffer-file-name (not vc-mode)))
+;;; These are not correct and it's not currently clear how doing it
+;;; better (with more complicated expressions) might slow things down
+;;; on older systems.
+
+;;;(put 'vc-rename-file 'menu-enable 'vc-mode)
+;;;(put 'vc-annotate 'menu-enable '(eq (vc-buffer-backend) 'CVS))
+;;;(put 'vc-version-other-window 'menu-enable 'vc-mode)
+;;;(put 'vc-diff 'menu-enable 'vc-mode)
+;;;(put 'vc-update-change-log 'menu-enable
+;;;     '(eq (vc-buffer-backend) 'RCS))
+;;;(put 'vc-print-log 'menu-enable 'vc-mode)
+;;;(put 'vc-cancel-version 'menu-enable 'vc-mode)
+;;;(put 'vc-revert-buffer 'menu-enable 'vc-mode)
+;;;(put 'vc-insert-headers 'menu-enable 'vc-mode)
+;;;(put 'vc-next-action 'menu-enable 'vc-mode)
+;;;(put 'vc-register 'menu-enable '(and buffer-file-name (not vc-mode)))
 
 (provide 'vc-hooks)
 
