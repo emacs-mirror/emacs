@@ -66,14 +66,39 @@ package is used.")
 (defvar ls-lisp-dired-ignore-case nil
   "Non-nil causes dired buffers to sort alphabetically regardless of case.")
 
-(defun insert-directory (file &optional switches wildcard full-directory-p)
+(defvar ls-lisp-use-insert-directory-program nil
+  "Non-nil causes ls-lisp to revert back to using `insert-directory-program'.
+This is useful on platforms where ls-lisp is dumped into Emacs, such as
+Microsoft Windows, but you would still like to use a program to list
+the contents of a directory.")
+
+;; Remember the original insert-directory function.
+(fset 'original-insert-directory (symbol-function 'insert-directory))
+
+(defun insert-directory (file switches &optional wildcard full-directory-p)
+  "Insert directory listing for FILE, formatted according to SWITCHES.
+Leaves point after the inserted text.
+SWITCHES may be a string of options, or a list of strings.
+Optional third arg WILDCARD means treat FILE as shell wildcard.
+Optional fourth arg FULL-DIRECTORY-P means file is a directory and
+switches do not contain `d', so that a full listing is expected.
+
+This version of the function comes from `ls-lisp.el'.  Depending upon
+the value of `ls-lisp-use-insert-directory-program', it will use an
+external program if non-nil or the lisp function `ls-lisp-insert-directory'
+otherwise."
+  (if ls-lisp-use-insert-directory-program
+      (original-insert-directory file switches wildcard full-directory-p)
+    (ls-lisp-insert-directory file switches wildcard full-directory-p)))
+
+(defun ls-lisp-insert-directory (file switches &optional wildcard full-directory-p)
   "Insert directory listing for FILE, formatted according to SWITCHES.
 Leaves point after the inserted text.
 Optional third arg WILDCARD means treat FILE as shell wildcard.
 Optional fourth arg FULL-DIRECTORY-P means file is a directory and
 switches do not contain `d', so that a full listing is expected.
 
-This version of the function comes from `ls-lisp.el'.  It doesn not
+This version of the function comes from `ls-lisp.el'.  It does not
 run any external programs or shells.  It supports ordinary shell
 wildcards if `ls-lisp-support-shell-wildcards' variable is non-nil;
 otherwise, it interprets wildcards as regular expressions to match
