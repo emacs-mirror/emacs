@@ -3,7 +3,7 @@
 
 ;; Author: David K}gedal <davidk@lysator.liu.se >
 ;; Created: 16 Feb 1994
-;; K}gedal's last version number: 1.2.3
+;; K}gedal's last version number: 1.2.4
 ;; Keywords: extensions, languages, tools
 
 ;; This file is part of GNU Emacs.
@@ -304,10 +304,10 @@ TEMPLATE is the template to be inserted.  If ON-REGION is non-nil the
 mode, ON-REGION is ignored and assumed true if the region is active."
   (unwind-protect
       (progn
-	(if (or (and (boundp 'transient-mark-mode) ; For XEmacs
+	(if (or (and (boundp 'transient-mark-mode) ; For Emacs
 		     transient-mark-mode
 		     mark-active)
-		(and (boundp 'zmacs-regions) ; For Emacs
+		(and (boundp 'zmacs-regions) ; For XEmacs
 		     zmacs-regions (mark)))
 	    (setq on-region t))
 	(and on-region
