@@ -4470,7 +4470,7 @@ This does code conversion according to the value of\n\
       {
 	/* If the variable `buffer-file-coding-system' is set locally,
 	   it means that the file was read with some kind of code
-	   conversion or the varialbe is explicitely set by users.  We
+	   conversion or the variable is explicitly set by users.  We
 	   had better write it out with the same coding system even if
 	   `enable-multibyte-characters' is nil.
 
