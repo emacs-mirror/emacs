@@ -1,5 +1,10 @@
 2003-01-15  Dave Love  <fx@gnu.org>
 
+	* thingatpt.el (thing-at-point-file-name-chars): Include non-ASCII
+	and use documented treatment of -.
+
+	* dired-x.el (dired-filename-at-point): Fix filename-chars.
+
 	* international/ucs-tables.el: Set up tables for 8859-6.
 
 	* server.el (server-window): Customize.
