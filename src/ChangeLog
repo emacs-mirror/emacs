@@ -1,5 +1,11 @@
 2000-07-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (show_help_echo, gen_help_event): Extend comments.
+
+	* xterm.c (note_mouse_highlight): If help-echo was found in an
+	overlay, use that overlay as the object in which the help was
+	found.
+
 	* window.c (foreach_window_1): Fix typo reversing an if-condition.
 	
 	* window.c (foreach_window): Instead of a fake variable argument
