@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA IMPLEMENTATION USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.13) $
+ * $HopeName: MMsrc!arenacl.c(MMdevel_drj_arena_hysteresis.2) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .readership: MM developers
@@ -17,7 +17,7 @@
 #include "mpsacl.h"
 
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.13) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(MMdevel_drj_arena_hysteresis.2) $");
 
 
 typedef struct ClientArenaStruct *ClientArena;
@@ -858,6 +858,7 @@ static ArenaClassStruct ArenaClassCLStruct = {
   ClientArenaFinish,                        /* finish */
   ClientArenaReserved,                      /* reserved */
   ClientArenaCommitted,                     /* committed */
+  ArenaNoSpareCommitExceeded,
   ClientArenaExtend,                        /* extend */
   ClientArenaRetract,                       /* retract */
   ClientIsReserved,                         /* isReserved */

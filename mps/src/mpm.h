@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.116) $
+ * $HopeName: MMsrc!mpm.h(MMdevel_drj_arena_hysteresis.2) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -670,6 +670,9 @@ extern Size ArenaCommitted(Arena arena);
 
 extern Size ArenaCommitLimit(Arena arena);
 extern Res ArenaSetCommitLimit(Arena arena, Size limit);
+extern Size ArenaSpareCommitLimit(Arena arena);
+extern void ArenaSetSpareCommitLimit(Arena arena, Size limit);
+extern void ArenaNoSpareCommitExceeded(Arena arena);
 
 extern double ArenaMutatorAllocSize(Arena arena);
 

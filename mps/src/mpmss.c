@@ -1,6 +1,6 @@
 /*  impl.c.mpmss: MPM STRESS TEST
  *
- * $HopeName: MMsrc!mpmss.c(trunk.19) $
+ * $HopeName: MMsrc!mpmss.c(MMdevel_drj_arena_hysteresis.2) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
@@ -32,6 +32,8 @@ extern mps_class_t PoolClassMFS(void);
 #define smallArenaSIZE  ((((size_t)1)<<20) - 4)
 #define testSetSIZE 200
 #define testLOOPS 10
+
+static int mpmss_random;
 
 
 static mps_res_t stress(mps_class_t class, mps_arena_t arena,
@@ -70,7 +72,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
   for (k=0; k<testLOOPS; ++k) {
     /* shuffle all the objects */
     for (i=0; i<testSetSIZE; ++i) {
-      int j = rand()%(testSetSIZE-i);
+      int j = rnd()%(testSetSIZE-i);
       void *tp;
       size_t ts;
       
@@ -147,13 +149,24 @@ static int testInArena(mps_arena_t arena)
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
   mps_arena_t arena;
   int i;
 
-  /* Randomize the random number generator a bit. */
-  for (i = time(NULL) % 67; i > 0; --i) rnd();
+  testlib_unused(argv);
+
+  if(argc > 1) {
+    mpmss_random = 0;
+  } else {
+    mpmss_random = 1;
+  }
+
+  if(mpmss_random) {
+    /* Randomize the random number generator a bit. */
+    for (i = time(NULL) % 67; i > 0; --i)
+      rnd();
+  }
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
