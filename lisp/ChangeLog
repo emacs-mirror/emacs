@@ -1,3 +1,10 @@
+2000-10-18  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-delete-output): Renamed from `comint-kill-output'.
+	(comint-kill-output): Changed into an alias for `comint-delete-output',
+	and made obsolete.
+	(comint-mode-map): Rename references to comint-kill-output.
+
 2000-10-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* diff-mode.el (diff-header-face, diff-file-header-face)
