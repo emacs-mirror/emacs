@@ -39,11 +39,11 @@ The variable `tab-width' controls the spacing of tab stops."
       (narrow-to-region (point-min) end)
       (goto-char start)
       (while (search-forward "\t" nil t)	; faster than re-search
-	(let ((start (point))
+	(let ((tab-beg (point))
 	      (column (current-column))
 	      (indent-tabs-mode nil))
-	  (skip-chars-backward "\t")
-	  (delete-region start (point))
+	  (skip-chars-backward "\t" start)
+	  (delete-region tab-beg (point))
 	  (indent-to column))))))
 
 ;;;###autoload
