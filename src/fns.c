@@ -2032,7 +2032,7 @@ See also the documentation of make-char.")
   CHECK_NUMBER (ch, 1);
 
   c = XINT (ch);
-  SPLIT_NON_ASCII_CHAR (c, charset, code1, code2);
+  SPLIT_CHAR (c, charset, code1, code2);
 
   /* Since we may want to set the default value for a character set
      not yet defined, we check only if the character set is in the
