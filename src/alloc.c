@@ -215,7 +215,7 @@ EMACS_INT pure_size;
 
 /* Index in pure at which next pure object will be allocated.. */
 
-int pureptr;
+int pure_bytes_used;
 
 /* If nonzero, this is a warning delivered by malloc and not yet
    displayed.  */
@@ -317,6 +317,28 @@ static void check_gcpros P_ ((void));
 #endif
 
 #endif /* GC_MARK_STACK != 0 */
+
+/* Recording what needs to be marked for gc.  */
+
+struct gcpro *gcprolist;
+
+/* Addresses of staticpro'd variables.  */
+
+#define NSTATICS 1024
+Lisp_Object *staticvec[NSTATICS] = {0};
+
+/* Index of next unused slot in staticvec.  */
+
+int staticidx = 0;
+
+static POINTER_TYPE *pure_alloc P_ ((size_t, int));
+
+
+/* Value is SZ rounded up to the next multiple of ALIGNMENT.
+   ALIGNMENT must be a power of 2.  */
+
+#define ALIGN(SZ, ALIGNMENT) \
+  (((SZ) + (ALIGNMENT) - 1) & ~((ALIGNMENT) - 1))
 
 
 /************************************************************************
@@ -3320,6 +3342,44 @@ mark_stack ()
 		       Pure Storage Management
  ***********************************************************************/
 
+/* Allocate room for SIZE bytes from pure Lisp storage and return a
+   pointer to it.  TYPE is the Lisp type for which the memory is
+   allocated.  TYPE < 0 means it's not used for a Lisp object.
+
+   If store_pure_type_info is set and TYPE is >= 0, the type of
+   the allocated object is recorded in pure_types.  */
+
+static POINTER_TYPE *
+pure_alloc (size, type)
+     size_t size;
+     int type;
+{
+  size_t nbytes;
+  POINTER_TYPE *result;
+  char *beg = PUREBEG;
+
+  /* Give Lisp_Floats an extra alignment.  */
+  if (type == Lisp_Float)
+    {
+      size_t alignment;
+#if defined __GNUC__ && __GNUC__ >= 2
+      alignment = __alignof (struct Lisp_Float);
+#else
+      alignment = sizeof (struct Lisp_Float);
+#endif
+      pure_bytes_used = ALIGN (pure_bytes_used, alignment);
+    }
+    
+  nbytes = ALIGN (size, sizeof (EMACS_INT));
+  if (pure_bytes_used + nbytes > PURESIZE)
+    error ("Pure Lisp storage exhausted");
+
+  result = (POINTER_TYPE *) (beg + pure_bytes_used);
+  pure_bytes_used += nbytes;
+  return result;
+}
+
+
 /* Return a string allocated in pure space.  DATA is a buffer holding
    NCHARS characters, and NBYTES bytes of string data.  MULTIBYTE
    non-zero means make the result string multibyte.
@@ -3336,29 +3396,14 @@ make_pure_string (data, nchars, nbytes, multibyte)
 {
   Lisp_Object string;
   struct Lisp_String *s;
-  int string_size, data_size;
 
-#define PAD(SZ) (((SZ) + sizeof (EMACS_INT) - 1) & ~(sizeof (EMACS_INT) - 1))
-
-  string_size = PAD (sizeof (struct Lisp_String));
-  data_size = PAD (nbytes + 1);
-
-#undef PAD
-  
-  if (pureptr + string_size + data_size > PURESIZE)
-    error ("Pure Lisp storage exhausted");
-
-  s = (struct Lisp_String *) (PUREBEG + pureptr);
-  pureptr += string_size;
-  s->data = (unsigned char *) (PUREBEG + pureptr);
-  pureptr += data_size;
-  
+  s = (struct Lisp_String *) pure_alloc (sizeof *s, Lisp_String);
+  s->data = (unsigned char *) pure_alloc (nbytes + 1, -1);
   s->size = nchars;
   s->size_byte = multibyte ? nbytes : -1;
   bcopy (data, s->data, nbytes);
   s->data[nbytes] = '\0';
   s->intervals = NULL_INTERVAL;
-  
   XSETSTRING (string, s);
   return string;
 }
@@ -3372,11 +3417,10 @@ pure_cons (car, cdr)
      Lisp_Object car, cdr;
 {
   register Lisp_Object new;
+  struct Lisp_Cons *p;
 
-  if (pureptr + sizeof (struct Lisp_Cons) > PURESIZE)
-    error ("Pure Lisp storage exhausted");
-  XSETCONS (new, PUREBEG + pureptr);
-  pureptr += sizeof (struct Lisp_Cons);
+  p = (struct Lisp_Cons *) pure_alloc (sizeof *p, Lisp_Cons);
+  XSETCONS (new, p);
   XCAR (new) = Fpurecopy (car);
   XCDR (new) = Fpurecopy (cdr);
   return new;
@@ -3390,34 +3434,11 @@ make_pure_float (num)
      double num;
 {
   register Lisp_Object new;
+  struct Lisp_Float *p;
 
-  /* Make sure that PUREBEG + pureptr is aligned on at least a sizeof
-     (double) boundary.  Some architectures (like the sparc) require
-     this, and I suspect that floats are rare enough that it's no
-     tragedy for those that do.  */
-  {
-    size_t alignment;
-    char *p = PUREBEG + pureptr;
-
-#ifdef __GNUC__
-#if __GNUC__ >= 2
-    alignment = __alignof (struct Lisp_Float);
-#else
-    alignment = sizeof (struct Lisp_Float);
-#endif
-#else
-    alignment = sizeof (struct Lisp_Float);
-#endif  
-    p = (char *) (((unsigned long) p + alignment - 1) & - alignment);
-    pureptr = p - PUREBEG;
-  }
-
-  if (pureptr + sizeof (struct Lisp_Float) > PURESIZE)
-    error ("Pure Lisp storage exhausted");
-  XSETFLOAT (new, PUREBEG + pureptr);
-  pureptr += sizeof (struct Lisp_Float);
+  p = (struct Lisp_Float *) pure_alloc (sizeof *p, Lisp_Float);
+  XSETFLOAT (new, p);
   XFLOAT_DATA (new) = num;
-  XSETFASTINT (XFLOAT (new)->type, 0);	/* bug chasing -wsr */
   return new;
 }
 
@@ -3429,15 +3450,12 @@ Lisp_Object
 make_pure_vector (len)
      EMACS_INT len;
 {
-  register Lisp_Object new;
-  register EMACS_INT size = (sizeof (struct Lisp_Vector)
-			     + (len - 1) * sizeof (Lisp_Object));
+  Lisp_Object new;
+  struct Lisp_Vector *p;
+  size_t size = sizeof *p + (len - 1) * sizeof (Lisp_Object);
 
-  if (pureptr + size > PURESIZE)
-    error ("Pure Lisp storage exhausted");
-
-  XSETVECTOR (new, PUREBEG + pureptr);
-  pureptr += size;
+  p = (struct Lisp_Vector *) pure_alloc (size, Lisp_Vectorlike);
+  XSETVECTOR (new, p);
   XVECTOR (new)->size = len;
   return new;
 }
@@ -3453,8 +3471,7 @@ Does not copy symbols.  Copies strings without text properties.")
   if (NILP (Vpurify_flag))
     return obj;
 
-  if ((PNTR_COMPARISON_TYPE) XPNTR (obj) < (PNTR_COMPARISON_TYPE) ((char *) pure + PURESIZE)
-      && (PNTR_COMPARISON_TYPE) XPNTR (obj) >= (PNTR_COMPARISON_TYPE) pure)
+  if (PURE_POINTER_P (XPNTR (obj)))
     return obj;
 
   if (CONSP (obj))
@@ -3493,20 +3510,6 @@ Does not copy symbols.  Copies strings without text properties.")
 /***********************************************************************
 			  Protection from GC
  ***********************************************************************/
-
-/* Recording what needs to be marked for gc.  */
-
-struct gcpro *gcprolist;
-
-/* Addresses of staticpro'd variables.  */
-
-#define NSTATICS 1024
-Lisp_Object *staticvec[NSTATICS] = {0};
-
-/* Index of next unused slot in staticvec.  */
-
-int staticidx = 0;
-
 
 /* Put an entry in staticvec, pointing at the variable with address
    VARADDRESS.  */
@@ -3933,7 +3936,7 @@ mark_object (argptr)
  loop2:
   XUNMARK (obj);
 
-  if (PURE_POINTER_P ((PNTR_COMPARISON_TYPE) XPNTR (obj)))
+  if (PURE_POINTER_P (XPNTR (obj)))
     return;
 
   last_marked[last_marked_index++] = objptr;
@@ -4903,7 +4906,7 @@ void
 init_alloc_once ()
 {
   /* Used to do Vpurify_flag = Qt here, but Qt isn't set up yet!  */
-  pureptr = 0;
+  pure_bytes_used = 0;
 #if GC_MARK_STACK
   mem_init ();
   Vdead = make_pure_string ("DEAD", 4, 4, 0);
@@ -4968,7 +4971,7 @@ Garbage collection happens automatically only when `eval' is called.\n\n\
 By binding this temporarily to a large number, you can effectively\n\
 prevent garbage collection during a part of the program.");
 
-  DEFVAR_INT ("pure-bytes-used", &pureptr,
+  DEFVAR_INT ("pure-bytes-used", &pure_bytes_used,
     "Number of bytes of sharable Lisp data allocated so far.");
 
   DEFVAR_INT ("cons-cells-consed", &cons_cells_consed,
