@@ -1,3 +1,12 @@
+2003-09-08  David Ponce  <david@dponce.com>
+
+	Ensure that recentf correctly update the menu bar.
+	* recentf.el (recentf-menu-path,recentf-menu-before): Doc fix.
+	(recentf-menu-bar): New function.
+	(recentf-clear-data): Use it
+	(recentf-update-menu): Likewise.  Use easy-menu-add-item instead
+	of easy-menu-change.
+
 2003-09-08  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* simple.el (size-indication-mode): New.
