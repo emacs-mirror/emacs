@@ -1,5 +1,7 @@
 2001-12-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* COPYING: Moved back.
+
 	* charset.c (char_to_string_1, translate_char, Fdefine_charset):
 	Add parentheses around && within ||.
 

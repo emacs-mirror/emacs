@@ -1,3 +1,7 @@
+2001-12-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* COPYING: Moved back.
+
 2001-12-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/internal.el (IT-character-translations): Add entries for
