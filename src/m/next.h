@@ -130,3 +130,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Where to find the kernel, for load average.  */
 #define KERNEL_FILE "/mach"
 #endif
+
+/* This should be true for recent NeXT systems.  At least since 3.2.  */
+#define HAVE_MACH_MACH_H
