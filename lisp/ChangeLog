@@ -1,3 +1,9 @@
+2002-10-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* finder-inf.el, subdirs.el, cus-load.el: Remove.
+
+	* finder.el ("finder-inf"): Don't fail if the file is absent.
+
 2002-10-10  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-cvs.el (vc-cvs-parse-entry): Parse the time stamp found in
