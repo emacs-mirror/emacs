@@ -1953,7 +1953,7 @@ key             binding\n\
 	     what we should use.  */
 	  else
 	    {
-	      shmap = Flookup_key (shadow, Fcar (elt), Qt);
+	      shmap = Flookup_key (shmap, Fcar (elt), Qt);
 	      if (XTYPE (shmap) == Lisp_Int)
 		shmap = Qnil;
 	    }
