@@ -4802,31 +4802,32 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
     }
 
   /* Try to skip the heading and tailing ASCIIs.  */
-  {
-    int from_byte_orig = from_byte, to_byte_orig = to_byte;
+  if (coding->type != coding_type_ccl)
+    {
+      int from_byte_orig = from_byte, to_byte_orig = to_byte;
 
-    if (from < GPT && GPT < to)
-      move_gap_both (from, from_byte);
-    SHRINK_CONVERSION_REGION (&from_byte, &to_byte, coding, NULL, encodep);
-    if (from_byte == to_byte
-	&& (encodep || NILP (coding->post_read_conversion))
-	&& ! CODING_REQUIRE_FLUSHING (coding))
-      {
-	coding->produced = len_byte;
-	coding->produced_char = len;
-	if (!replace)
-	  /* We must record and adjust for this new text now.  */
-	  adjust_after_insert (from, from_byte_orig, to, to_byte_orig, len);
-	return 0;
-      }
+      if (from < GPT && GPT < to)
+	move_gap_both (from, from_byte);
+      SHRINK_CONVERSION_REGION (&from_byte, &to_byte, coding, NULL, encodep);
+      if (from_byte == to_byte
+	  && (encodep || NILP (coding->post_read_conversion))
+	  && ! CODING_REQUIRE_FLUSHING (coding))
+	{
+	  coding->produced = len_byte;
+	  coding->produced_char = len;
+	  if (!replace)
+	    /* We must record and adjust for this new text now.  */
+	    adjust_after_insert (from, from_byte_orig, to, to_byte_orig, len);
+	  return 0;
+	}
 
-    head_skip = from_byte - from_byte_orig;
-    tail_skip = to_byte_orig - to_byte;
-    total_skip = head_skip + tail_skip;
-    from += head_skip;
-    to -= tail_skip;
-    len -= total_skip; len_byte -= total_skip;
-  }
+      head_skip = from_byte - from_byte_orig;
+      tail_skip = to_byte_orig - to_byte;
+      total_skip = head_skip + tail_skip;
+      from += head_skip;
+      to -= tail_skip;
+      len -= total_skip; len_byte -= total_skip;
+    }
 
   /* The code conversion routine can not preserve text properties for
      now.  So, we must remove all text properties in the region.
@@ -5227,14 +5228,15 @@ decode_coding_string (str, coding, nocopy)
     coding_allocate_composition_data (coding, from);
 
   /* Try to skip the heading and tailing ASCIIs.  */
-  {
-    int from_orig = from;
+  if (coding->type != coding_type_ccl)
+    {
+      int from_orig = from;
 
-    SHRINK_CONVERSION_REGION (&from, &to_byte, coding, XSTRING (str)->data,
-			      0);
-    if (from == to_byte)
-      return (nocopy ? str : Fcopy_sequence (str));
-  }
+      SHRINK_CONVERSION_REGION (&from, &to_byte, coding, XSTRING (str)->data,
+				0);
+      if (from == to_byte)
+	return (nocopy ? str : Fcopy_sequence (str));
+    }
 
   len = decoding_buffer_size (coding, to_byte - from);
   len += from + STRING_BYTES (XSTRING (str)) - to_byte;
@@ -5315,14 +5317,15 @@ encode_coding_string (str, coding, nocopy)
     coding_save_composition (coding, from, to, str);
 
   /* Try to skip the heading and tailing ASCIIs.  */
-  {
-    int from_orig = from;
+  if (coding->type != coding_type_ccl)
+    {
+      int from_orig = from;
 
-    SHRINK_CONVERSION_REGION (&from, &to_byte, coding, XSTRING (str)->data,
-			      1);
-    if (from == to_byte)
-      return (nocopy ? str : Fcopy_sequence (str));
-  }
+      SHRINK_CONVERSION_REGION (&from, &to_byte, coding, XSTRING (str)->data,
+				1);
+      if (from == to_byte)
+	return (nocopy ? str : Fcopy_sequence (str));
+    }
 
   len = encoding_buffer_size (coding, to_byte - from);
   len += from + STRING_BYTES (XSTRING (str)) - to_byte;
