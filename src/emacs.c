@@ -602,7 +602,7 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
      because we don't even know which window system dependent code
      to run until we've recognized this argument.  */
   {
-    char *displayname;
+    char *displayname = 0;
     int i;
     int count_before = skip_args;
 
