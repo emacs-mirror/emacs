@@ -22,6 +22,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 #include <stdio.h>
+#define DOC_STRINGS_IN_COMMENTS
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
@@ -83,15 +84,15 @@ int last_abbrev_point;
 Lisp_Object Vpre_abbrev_expand_hook, Qpre_abbrev_expand_hook;
 
 DEFUN ("make-abbrev-table", Fmake_abbrev_table, Smake_abbrev_table, 0, 0, 0,
-  "Create a new, empty abbrev table object.")
-  ()
+       /* Create a new, empty abbrev table object.  */
+       ())
 {
   return Fmake_vector (make_number (59), make_number (0));
 }
 
 DEFUN ("clear-abbrev-table", Fclear_abbrev_table, Sclear_abbrev_table, 1, 1, 0,
-  "Undefine all abbrevs in abbrev table TABLE, leaving it empty.")
-  (table)
+       /* Undefine all abbrevs in abbrev table TABLE, leaving it empty.  */
+       (table))
      Lisp_Object table;
 {
   int i, size;
@@ -105,17 +106,17 @@ DEFUN ("clear-abbrev-table", Fclear_abbrev_table, Sclear_abbrev_table, 1, 1, 0,
 }
 
 DEFUN ("define-abbrev", Fdefine_abbrev, Sdefine_abbrev, 3, 5, 0,
-  "Define an abbrev in TABLE named NAME, to expand to EXPANSION and call HOOK.\n\
-NAME must be a string.\n\
-EXPANSION should usually be a string.\n\
-To undefine an abbrev, define it with EXPANSION = nil.\n\
-If HOOK is non-nil, it should be a function of no arguments;\n\
-it is called after EXPANSION is inserted.\n\
-If EXPANSION is not a string, the abbrev is a special one,\n\
- which does not expand in the usual way but only runs HOOK.\n\
-COUNT, if specified, initializes the abbrev's usage-count\n\
-which is incremented each time the abbrev is used.")
-  (table, name, expansion, hook, count)
+       /* Define an abbrev in TABLE named NAME, to expand to EXPANSION and call HOOK.
+NAME must be a string.
+EXPANSION should usually be a string.
+To undefine an abbrev, define it with EXPANSION = nil.
+If HOOK is non-nil, it should be a function of no arguments;
+it is called after EXPANSION is inserted.
+If EXPANSION is not a string, the abbrev is a special one,
+ which does not expand in the usual way but only runs HOOK.
+COUNT, if specified, initializes the abbrev's usage-count
+which is incremented each time the abbrev is used.  */
+       (table, name, expansion, hook, count))
      Lisp_Object table, name, expansion, hook, count;
 {
   Lisp_Object sym, oexp, ohook, tem;
@@ -147,9 +148,9 @@ which is incremented each time the abbrev is used.")
 }
 
 DEFUN ("define-global-abbrev", Fdefine_global_abbrev, Sdefine_global_abbrev, 2, 2,
-  "sDefine global abbrev: \nsExpansion for %s: ",
-  "Define ABBREV as a global abbreviation for EXPANSION.")
-  (abbrev, expansion)
+       "sDefine global abbrev: \nsExpansion for %s: ",
+       /* Define ABBREV as a global abbreviation for EXPANSION.  */
+       (abbrev, expansion))
      Lisp_Object abbrev, expansion;
 {
   Fdefine_abbrev (Vglobal_abbrev_table, Fdowncase (abbrev),
@@ -158,9 +159,9 @@ DEFUN ("define-global-abbrev", Fdefine_global_abbrev, Sdefine_global_abbrev, 2, 
 }
 
 DEFUN ("define-mode-abbrev", Fdefine_mode_abbrev, Sdefine_mode_abbrev, 2, 2,
-  "sDefine mode abbrev: \nsExpansion for %s: ",
-  "Define ABBREV as a mode-specific abbreviation for EXPANSION.")
-  (abbrev, expansion)
+       "sDefine mode abbrev: \nsExpansion for %s: ",
+       /* Define ABBREV as a mode-specific abbreviation for EXPANSION.  */
+       (abbrev, expansion))
      Lisp_Object abbrev, expansion;
 {
   if (NILP (current_buffer->abbrev_table))
@@ -172,13 +173,13 @@ DEFUN ("define-mode-abbrev", Fdefine_mode_abbrev, Sdefine_mode_abbrev, 2, 2,
 }
 
 DEFUN ("abbrev-symbol", Fabbrev_symbol, Sabbrev_symbol, 1, 2, 0,
-  "Return the symbol representing abbrev named ABBREV.\n\
-This symbol's name is ABBREV, but it is not the canonical symbol of that name;\n\
-it is interned in an abbrev-table rather than the normal obarray.\n\
-The value is nil if that abbrev is not defined.\n\
-Optional second arg TABLE is abbrev table to look it up in.\n\
-The default is to try buffer's mode-specific abbrev table, then global table.")
-  (abbrev, table)
+       /* Return the symbol representing abbrev named ABBREV.
+This symbol's name is ABBREV, but it is not the canonical symbol of that name;
+it is interned in an abbrev-table rather than the normal obarray.
+The value is nil if that abbrev is not defined.
+Optional second arg TABLE is abbrev table to look it up in.
+The default is to try buffer's mode-specific abbrev table, then global table.  */
+       (abbrev, table))
      Lisp_Object abbrev, table;
 {
   Lisp_Object sym;
@@ -201,10 +202,10 @@ The default is to try buffer's mode-specific abbrev table, then global table.")
 }
 
 DEFUN ("abbrev-expansion", Fabbrev_expansion, Sabbrev_expansion, 1, 2, 0,
-  "Return the string that ABBREV expands into in the current buffer.\n\
-Optionally specify an abbrev table as second arg;\n\
-then ABBREV is looked up in that table only.")
-  (abbrev, table)
+       /* Return the string that ABBREV expands into in the current buffer.
+Optionally specify an abbrev table as second arg;
+then ABBREV is looked up in that table only.  */
+       (abbrev, table))
      Lisp_Object abbrev, table;
 {
   Lisp_Object sym;
@@ -217,10 +218,10 @@ then ABBREV is looked up in that table only.")
   Returns 1 if an expansion is done. */
 
 DEFUN ("expand-abbrev", Fexpand_abbrev, Sexpand_abbrev, 0, 0, "",
-  "Expand the abbrev before point, if there is an abbrev there.\n\
-Effective when explicitly called even when `abbrev-mode' is nil.\n\
-Returns the abbrev symbol, if expansion took place.")
-  ()
+       /* Expand the abbrev before point, if there is an abbrev there.
+Effective when explicitly called even when `abbrev-mode' is nil.
+Returns the abbrev symbol, if expansion took place.  */
+       ())
 {
   register char *buffer, *p;
   int wordstart, wordend;
@@ -388,10 +389,10 @@ Returns the abbrev symbol, if expansion took place.")
 }
 
 DEFUN ("unexpand-abbrev", Funexpand_abbrev, Sunexpand_abbrev, 0, 0, "",
-  "Undo the expansion of the last abbrev that expanded.\n\
-This differs from ordinary undo in that other editing done since then\n\
-is not undone.")
-  ()
+       /* Undo the expansion of the last abbrev that expanded.
+This differs from ordinary undo in that other editing done since then
+is not undone.  */
+       ())
 {
   int opoint = PT;
   int adjust = 0;
@@ -466,13 +467,13 @@ describe_abbrev (sym, stream)
 
 DEFUN ("insert-abbrev-table-description", Finsert_abbrev_table_description,
   Sinsert_abbrev_table_description, 1, 2, 0,
-  "Insert before point a full description of abbrev table named NAME.\n\
-NAME is a symbol whose value is an abbrev table.\n\
-If optional 2nd arg READABLE is non-nil, a human-readable description\n\
-is inserted.  Otherwise the description is an expression,\n\
-a call to `define-abbrev-table', which would\n\
-define the abbrev table NAME exactly as it is currently defined.")
-  (name, readable)
+       /* Insert before point a full description of abbrev table named NAME.
+NAME is a symbol whose value is an abbrev table.
+If optional 2nd arg READABLE is non-nil, a human-readable description
+is inserted.  Otherwise the description is an expression,
+a call to `define-abbrev-table', which would
+define the abbrev table NAME exactly as it is currently defined.  */
+       (name, readable))
      Lisp_Object name, readable;
 {
   Lisp_Object table;
@@ -506,10 +507,10 @@ define the abbrev table NAME exactly as it is currently defined.")
 
 DEFUN ("define-abbrev-table", Fdefine_abbrev_table, Sdefine_abbrev_table,
        2, 2, 0,
-  "Define TABLENAME (a symbol) as an abbrev table name.\n\
-Define abbrevs in it according to DEFINITIONS, which is a list of elements\n\
-of the form (ABBREVNAME EXPANSION HOOK USECOUNT).")
-  (tablename, definitions)
+       /* Define TABLENAME (a symbol) as an abbrev table name.
+Define abbrevs in it according to DEFINITIONS, which is a list of elements
+of the form (ABBREVNAME EXPANSION HOOK USECOUNT).  */
+       (tablename, definitions))
      Lisp_Object tablename, definitions;
 {
   Lisp_Object name, exp, hook, count;
@@ -540,66 +541,66 @@ of the form (ABBREVNAME EXPANSION HOOK USECOUNT).")
 void
 syms_of_abbrev ()
 {
-  DEFVAR_LISP ("abbrev-table-name-list", &Vabbrev_table_name_list,
-    "List of symbols whose values are abbrev tables.");
+  DEFVAR_LISP ("abbrev-table-name-list", &Vabbrev_table_name_list
+	       /* List of symbols whose values are abbrev tables.  */);
   Vabbrev_table_name_list = Fcons (intern ("fundamental-mode-abbrev-table"),
 				   Fcons (intern ("global-abbrev-table"),
 					  Qnil));
 
-  DEFVAR_LISP ("global-abbrev-table", &Vglobal_abbrev_table,
-    "The abbrev table whose abbrevs affect all buffers.\n\
-Each buffer may also have a local abbrev table.\n\
-If it does, the local table overrides the global one\n\
-for any particular abbrev defined in both.");
+  DEFVAR_LISP ("global-abbrev-table", &Vglobal_abbrev_table
+	       /* The abbrev table whose abbrevs affect all buffers.
+Each buffer may also have a local abbrev table.
+If it does, the local table overrides the global one
+for any particular abbrev defined in both.  */);
   Vglobal_abbrev_table = Fmake_abbrev_table ();
 
-  DEFVAR_LISP ("fundamental-mode-abbrev-table", &Vfundamental_mode_abbrev_table,
-    "The abbrev table of mode-specific abbrevs for Fundamental Mode.");
+  DEFVAR_LISP ("fundamental-mode-abbrev-table", &Vfundamental_mode_abbrev_table
+	       /* The abbrev table of mode-specific abbrevs for Fundamental Mode.  */);
   Vfundamental_mode_abbrev_table = Fmake_abbrev_table ();
   current_buffer->abbrev_table = Vfundamental_mode_abbrev_table;
   buffer_defaults.abbrev_table = Vfundamental_mode_abbrev_table;
 
-  DEFVAR_LISP ("last-abbrev", &Vlast_abbrev,
-    "The abbrev-symbol of the last abbrev expanded.  See `abbrev-symbol'.");
+  DEFVAR_LISP ("last-abbrev", &Vlast_abbrev
+	       /* The abbrev-symbol of the last abbrev expanded.  See `abbrev-symbol'.  */);
 
-  DEFVAR_LISP ("last-abbrev-text", &Vlast_abbrev_text,
-    "The exact text of the last abbrev expanded.\n\
-nil if the abbrev has already been unexpanded.");
+  DEFVAR_LISP ("last-abbrev-text", &Vlast_abbrev_text
+	       /* The exact text of the last abbrev expanded.
+nil if the abbrev has already been unexpanded.  */);
 
-  DEFVAR_INT ("last-abbrev-location", &last_abbrev_point,
-    "The location of the start of the last abbrev expanded.");
+  DEFVAR_INT ("last-abbrev-location", &last_abbrev_point
+	      /* The location of the start of the last abbrev expanded.  */);
 
   Vlast_abbrev = Qnil;
   Vlast_abbrev_text = Qnil;
   last_abbrev_point = 0;
 
-  DEFVAR_LISP ("abbrev-start-location", &Vabbrev_start_location,
-    "Buffer position for `expand-abbrev' to use as the start of the abbrev.\n\
-nil means use the word before point as the abbrev.\n\
-Calling `expand-abbrev' sets this to nil.");
+  DEFVAR_LISP ("abbrev-start-location", &Vabbrev_start_location
+	       /* Buffer position for `expand-abbrev' to use as the start of the abbrev.
+nil means use the word before point as the abbrev.
+Calling `expand-abbrev' sets this to nil.  */);
   Vabbrev_start_location = Qnil;
 
-  DEFVAR_LISP ("abbrev-start-location-buffer", &Vabbrev_start_location_buffer,
-    "Buffer that `abbrev-start-location' has been set for.\n\
-Trying to expand an abbrev in any other buffer clears `abbrev-start-location'.");
+  DEFVAR_LISP ("abbrev-start-location-buffer", &Vabbrev_start_location_buffer
+	       /* Buffer that `abbrev-start-location' has been set for.
+Trying to expand an abbrev in any other buffer clears `abbrev-start-location'.  */);
   Vabbrev_start_location_buffer = Qnil;
 
-  DEFVAR_PER_BUFFER ("local-abbrev-table", &current_buffer->abbrev_table, Qnil,
-    "Local (mode-specific) abbrev table of current buffer.");
+  DEFVAR_PER_BUFFER ("local-abbrev-table", &current_buffer->abbrev_table, Qnil
+		     /* Local (mode-specific) abbrev table of current buffer.  */);
 
-  DEFVAR_BOOL ("abbrevs-changed", &abbrevs_changed,
-    "Set non-nil by defining or altering any word abbrevs.\n\
-This causes `save-some-buffers' to offer to save the abbrevs.");
+  DEFVAR_BOOL ("abbrevs-changed", &abbrevs_changed
+	       /* Set non-nil by defining or altering any word abbrevs.
+This causes `save-some-buffers' to offer to save the abbrevs.  */);
   abbrevs_changed = 0;
 
-  DEFVAR_BOOL ("abbrev-all-caps", &abbrev_all_caps,
-    "*Set non-nil means expand multi-word abbrevs all caps if abbrev was so.");
+  DEFVAR_BOOL ("abbrev-all-caps", &abbrev_all_caps
+	       /* *Set non-nil means expand multi-word abbrevs all caps if abbrev was so.  */);
   abbrev_all_caps = 0;
 
-  DEFVAR_LISP ("pre-abbrev-expand-hook", &Vpre_abbrev_expand_hook,
-    "Function or functions to be called before abbrev expansion is done.\n\
-This is the first thing that `expand-abbrev' does, and so this may change\n\
-the current abbrev table before abbrev lookup happens.");
+  DEFVAR_LISP ("pre-abbrev-expand-hook", &Vpre_abbrev_expand_hook
+	       /* Function or functions to be called before abbrev expansion is done.
+This is the first thing that `expand-abbrev' does, and so this may change
+the current abbrev table before abbrev lookup happens.  */);
   Vpre_abbrev_expand_hook = Qnil;
   Qpre_abbrev_expand_hook = intern ("pre-abbrev-expand-hook");
   staticpro (&Qpre_abbrev_expand_hook);
