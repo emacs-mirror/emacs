@@ -326,15 +326,16 @@ DEFUN ("modify-category-entry", Fmodify_category_entry,
        Smodify_category_entry, 2, 4, 0,
        doc: /* Modify the category set of CHARACTER by adding CATEGORY to it.
 The category is changed only for table TABLE, which defaults to
- the current buffer's category table.
+the current buffer's category table.
+CHARACTER can be either a single character or a cons representing the
+lower and upper ends of an inclusive character range to modify.
 If optional fourth argument RESET is non-nil,
 then delete CATEGORY from the category set instead of adding it.  */)
      (character, category, table, reset)
      Lisp_Object character, category, table, reset;
 {
-  int c, charset, c1, c2;
   Lisp_Object set_value;	/* Actual value to be set in category sets.  */
-  Lisp_Object val, category_set;
+  Lisp_Object category_set;
   int start, end;
   int from, to;
 
