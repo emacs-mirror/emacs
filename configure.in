@@ -486,6 +486,9 @@ case "${canonical}" in
   hppa1.1-hitachi-hiuxmpp* )
     machine=sr2k opsys=hiuxmpp
   ;;
+  hppa1.1-hitachi-hiuxwe2* )
+    machine=sr2k opsys=hiuxwe2
+  ;;
   ## Honeywell XPS100
   xps*-honeywell-sysv* )
     machine=xps100 opsys=usg5-2
