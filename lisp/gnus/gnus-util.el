@@ -755,10 +755,12 @@ with potentially long computations."
 	    (when msg
 	      (goto-char (point-min))
 	      (widen)
-	      (search-backward "\^_")
+	      (search-backward "\n\^_")
 	      (narrow-to-region (point) (point-max))
-	      (goto-char (1+ (point-min)))
 	      (rmail-count-new-messages t)
+	      (if (rmail-summary-exists)
+		  (rmail-select-summary
+		   (rmail-update-summary)))
 	      (rmail-show-message msg))))))
     (kill-buffer tmpbuf)))
 
