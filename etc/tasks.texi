@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate May 21, 1999
+@set lastupdate June 23, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -404,9 +404,13 @@ A teleconferencing program which does the job of CU-SeeMe (which is,
 alas, not free software).
 @end ignore
 
+@ignore
+@c Bishop Bettini <bishop@synxcti.com> is working on this.
 @item
 A free ICQ-compatible server program.  (The ICQ server itself is not
 free software.)
+@end ignore
+
 @end itemize
 
 @node Encryption Projects, Other Projects, Network Projects, Top
