@@ -1,6 +1,5 @@
 ;;; viper-util.el --- Utilities used by viper.el
-
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -20,10 +19,18 @@
 
 (require 'ring)
 
-(defconst vip-xemacs-p (string-match "\\(Lucid\\|Xemacs\\)" emacs-version)
-  "Whether it is XEmacs or not.")
-(defconst vip-emacs-p (not vip-xemacs-p)
-  "Whether it is Emacs or not.")
+;; Whether it is XEmacs or not
+(defconst vip-xemacs-p (string-match "\\(Lucid\\|Xemacs\\)" emacs-version))
+;; Whether it is Emacs or not
+(defconst vip-emacs-p (not vip-xemacs-p))
+;; Tell whether we are running as a window application or on a TTY
+(defsubst vip-device-type ()
+  (if vip-emacs-p
+      window-system
+    (device-type (selected-device))))
+;; in XEmacs: device-type is tty on tty and stream in batch.
+(defsubst vip-window-display-p ()
+  (and (vip-device-type) (not (memq (vip-device-type) '(tty stream)))))
 
 
 ;;; Macros
@@ -92,8 +99,9 @@
 	  (and (<= ?A reg) (<= reg ?Z)))
       ))
       
+;; checks if object is a marker, has a buffer, and points to within that buffer
 (defun vip-valid-marker (marker)
-  (if (markerp marker)
+  (if (and (markerp marker) (marker-buffer marker))
       (let ((buf (marker-buffer marker))
 	    (pos (marker-position marker)))
 	(save-excursion
@@ -118,23 +126,13 @@
       (fset 'vip-overlay-p (symbol-function 'extentp))
       (fset 'vip-overlay-get (symbol-function 'extent-property))
       (fset 'vip-move-overlay (symbol-function 'set-extent-endpoints))
-      (if window-system
-	  (fset 'vip-iconify (symbol-function 'iconify-screen)))
-      (fset 'vip-raise-frame (symbol-function 'raise-screen))
-      (fset 'vip-window-frame (symbol-function 'window-screen))
-      (fset 'vip-select-frame (symbol-function 'select-screen))
-      (fset 'vip-selected-frame (symbol-function 'selected-screen))
-      (fset 'vip-frame-selected-window
-	    (symbol-function 'screen-selected-window))
-      (fset 'vip-frame-parameters (symbol-function 'screen-parameters))
-      (fset 'vip-modify-frame-parameters
-            (symbol-function 'modify-screen-parameters))
-      (cond (window-system
+      (if (vip-window-display-p)
+	  (fset 'vip-iconify (symbol-function 'iconify-frame)))
+      (cond ((vip-window-display-p)
 	     (fset 'vip-get-face (symbol-function 'get-face))
 	     (fset 'vip-color-defined-p
-		   (symbol-function 'x-valid-color-name-p))
-	     (fset 'vip-display-color-p
-		   (symbol-function 'x-color-display-p)))))
+		   (symbol-function 'valid-color-name-p))
+	     )))
   (fset 'vip-read-event (symbol-function 'read-event))
   (fset 'vip-make-overlay (symbol-function 'make-overlay))
   (fset 'vip-overlay-start (symbol-function 'overlay-start))
@@ -143,23 +141,20 @@
   (fset 'vip-overlay-p (symbol-function 'overlayp))
   (fset 'vip-overlay-get (symbol-function 'overlay-get))
   (fset 'vip-move-overlay (symbol-function 'move-overlay))
-  (if window-system
+  (if (vip-window-display-p)
       (fset 'vip-iconify (symbol-function 'iconify-or-deiconify-frame)))
-  (fset 'vip-raise-frame (symbol-function 'raise-frame))
-  (fset 'vip-window-frame (symbol-function 'window-frame))
-  (fset 'vip-select-frame (symbol-function 'select-frame))
-  (fset 'vip-selected-frame (symbol-function 'selected-frame))
-  (fset 'vip-frame-selected-window (symbol-function 'frame-selected-window))
-  (fset 'vip-frame-parameters (symbol-function 'frame-parameters))
-  (fset 'vip-modify-frame-parameters
-	(symbol-function 'modify-frame-parameters))
-  (cond (window-system
+  (cond ((vip-window-display-p)
 	 (fset 'vip-get-face (symbol-function 'internal-get-face))
 	 (fset 'vip-color-defined-p (symbol-function 'x-color-defined-p))
-	 (fset 'vip-display-color-p (symbol-function 'x-display-color-p)))))
+	 )))
+
+(defsubst vip-color-display-p ()
+  (if vip-emacs-p
+      (x-display-color-p)
+    (eq (device-class (selected-device)) 'color)))
   
 ;; OS/2
-(cond ((eq window-system 'pm)
+(cond ((eq (vip-device-type) 'pm)
        (fset 'vip-color-defined-p
 	     (function (lambda (color) (assoc color pm-color-alist))))))
     
@@ -171,20 +166,21 @@
     
 ;; test if display is color and the colors are defined
 (defsubst vip-can-use-colors (&rest colors)
-  (if (vip-display-color-p)
+  (if (vip-color-display-p)
       (not (memq nil (mapcar 'vip-color-defined-p colors)))
     ))
 
 ;; currently doesn't work for XEmacs
 (defun vip-change-cursor-color (new-color)
-  (if (and window-system  (vip-display-color-p)
-	   (stringp new-color) (vip-color-defined-p new-color))
-      (vip-modify-frame-parameters
-       (vip-selected-frame) (list (cons 'cursor-color new-color)))))
+  (if (and (vip-window-display-p)  (vip-color-display-p)
+	   (stringp new-color) (vip-color-defined-p new-color)
+	   (not (string= new-color (vip-get-cursor-color))))
+      (modify-frame-parameters
+       (selected-frame) (list (cons 'cursor-color new-color)))))
 	 
 (defsubst vip-save-cursor-color ()
-  (if (and window-system (vip-display-color-p))
-      (let ((color (cdr (assoc 'cursor-color (vip-frame-parameters)))))
+  (if (and (vip-window-display-p) (vip-color-display-p))
+      (let ((color (vip-get-cursor-color)))
 	(if (and (stringp color) (vip-color-defined-p color)
 		 (not (string= color vip-replace-overlay-cursor-color)))
 	    (vip-overlay-put vip-replace-overlay 'vip-cursor-color color)))))
@@ -192,6 +188,9 @@
 (defsubst vip-restore-cursor-color ()
   (vip-change-cursor-color
    (vip-overlay-get vip-replace-overlay 'vip-cursor-color)))
+   
+(defsubst vip-get-cursor-color ()
+  (cdr (assoc 'cursor-color (frame-parameters))))
 	 
 
 ;; Check the current version against the major and minor version numbers
@@ -220,20 +219,31 @@
 		  (error "%S: Invalid op in vip-check-version" op))))
     (cond ((memq op '(= > >=)) nil)
 	  ((memq op '(< <=)) t))))
-  
-    
-;; Early versions of XEmacs didn't have window-live-p (or it didn't work right)
-(if (vip-check-version '< 19 11 'xemacs)
-    (defun window-live-p (win)
-      (let ((visible nil))
-	(walk-windows
-	 '(lambda (walk-win)
-	    (if(equal walk-win win)
-		(setq visible t)))
-	 nil 'all-screens)
-	visible))
-  )
+	  
+;; warn if it is a wrong emacs
+(if (or (vip-check-version '< 19 29 'emacs)
+	(vip-check-version '< 19 12 'xemacs))
+    (progn
+      (with-output-to-temp-buffer " *vip-info*"
+	(switch-to-buffer " *vip-info*")
+	(insert
+	 (format "
 
+This version of Viper requires 
+
+\t Emacs 19.29 and higher
+\t OR
+\t XEmacs 19.12 and higher
+
+It is unlikely to work under Emacs version %s
+that you are using...
+
+Type any key to continue..." emacs-version))
+	(beep 1)
+	(beep 1)
+	(vip-read-event))
+      (kill-buffer " *vip-info*")))
+  
 
 (defun vip-get-visible-buffer-window (wind)
   (if vip-xemacs-p
@@ -241,12 +251,12 @@
     (get-buffer-window wind 'visible)))
     
     
+;; Return line position.
+;; If pos is 'start then returns position of line start.
+;; If pos is 'end, returns line end. If pos is 'mid, returns line center.
+;; Pos = 'indent returns beginning of indentation.
+;; Otherwise, returns point. Current point is not moved in any case."
 (defun vip-line-pos (pos)
-  "Return line position.
-If pos is 'start then returns position of line start.
-If pos is 'end, returns line end. If pos is 'mid, returns line center.
-Pos = 'indent returns beginning of indentation.
-Otherwise, returns point. Current point is not moved in any case."
   (let ((cur-pos (point))
         (result))
     (cond
@@ -264,50 +274,51 @@ Otherwise, returns point. Current point is not moved in any case."
     result))
 
 
+;; Like move-marker but creates a virgin marker if arg isn't already a marker.
+;; The first argument must eval to a variable name.
+;; Arguments: (var-name position &optional buffer).
+;; 
+;; This is useful for moving markers that are supposed to be local.
+;; For this, VAR-NAME should be made buffer-local with nil as a default.
+;; Then, each time this var is used in `vip-move-marker-locally' in a new
+;; buffer, a new marker will be created.
 (defun vip-move-marker-locally (var pos &optional buffer)
-  "Like move-marker but creates a virgin marker if arg isn't already a marker.
-The first argument must eval to a variable name.
-Arguments: (var-name position &optional buffer).
-
-This is useful for moving markers that are supposed to be local.
-For this, VAR-NAME should be made buffer-local with nil as a default.
-Then, each time this var is used in `vip-move-marker-locally' in a new
-buffer, a new marker will be created."
   (if (markerp (eval var))
       ()
     (set var (make-marker)))
   (move-marker (eval var) pos buffer))
 
 
+;; Print CONDITIONS as a message.
 (defun vip-message-conditions (conditions)
-  "Print CONDITIONS as a message."
   (let ((case (car conditions)) (msg (cdr conditions)))
     (if (null msg)
 	(message "%s" case)
       (message "%s: %s" case (mapconcat 'prin1-to-string msg " ")))
     (beep 1)))
 
+
 
 ;;; List/alist utilities
 	
+;; Convert LIST to an alist
 (defun vip-list-to-alist (lst)
-  "Convert LIST to an alist."
   (let ((alist))
     (while lst
       (setq alist (cons (list (car lst)) alist))
       (setq lst (cdr lst)))
     alist))	
 
+;; Convert ALIST to a list.
 (defun vip-alist-to-list (alst)
-  "Convert ALIST to a list."
   (let ((lst))
     (while alst
       (setq lst (cons (car (car alst)) lst))
       (setq alst (cdr alst)))
     lst))
 
+;; Filter ALIST using REGEXP. Return alist whose elements match the regexp.
 (defun vip-filter-alist (regexp alst)
-  "Filter ALIST using REGEXP. Return alist whose elements match the regexp."
   (interactive "s x")
   (let ((outalst) (inalst alst))
     (while (car inalst)
@@ -316,8 +327,8 @@ buffer, a new marker will be created."
       (setq inalst (cdr inalst)))
     outalst))    
        
+;; Filter LIST using REGEXP. Return list whose elements match the regexp.
 (defun vip-filter-list (regexp lst)
-  "Filter LIST using REGEXP. Return list whose elements match the regexp."
   (interactive "s x")
   (let ((outlst) (inlst lst))
     (while (car inlst)
@@ -472,11 +483,11 @@ buffer, a new marker will be created."
 
 ;;; Saving settings in custom file
 
+;; Save the current setting of VAR in CUSTOM-FILE.
+;; If given, MESSAGE is a message to be displayed after that.
+;; This message is erased after 2 secs, if erase-msg is non-nil.
+;; Arguments: var message custom-file &optional erase-message
 (defun vip-save-setting (var message custom-file &optional erase-msg)
-  "Save the current setting of VAR in CUSTOM-FILE.
-If given, MESSAGE is a message to be displayed after that.
-This message is erased after 2 secs, if erase-msg is non-nil.
-Arguments: (vip-save-setting var message custom-file &optional erase-message)"
   (let* ((var-name (symbol-name var))
 	 (var-val (if (boundp var) (eval var)))
 	 (regexp (format "^[^;]*%s[ \t\n]*[a-zA-Z---_']*[ \t\n)]" var-name))
@@ -530,7 +541,7 @@ Arguments: (vip-save-setting var message custom-file &optional erase-message)"
 	   (match-beginning 0) (match-end 0) (current-buffer))))
   
   (vip-overlay-put vip-search-overlay 'priority vip-search-overlay-priority)
-  (if window-system
+  (if (vip-window-display-p)
       (progn
 	(vip-overlay-put vip-search-overlay 'face vip-search-face)
 	(sit-for 2)
@@ -552,7 +563,7 @@ Arguments: (vip-save-setting var message custom-file &optional erase-message)"
 				  (vip-overlay-end vip-replace-overlay)))
     (vip-overlay-put 
      vip-replace-overlay 'priority vip-replace-overlay-priority)) 
-  (if window-system
+  (if (vip-window-display-p)
       (vip-overlay-put vip-replace-overlay 'face vip-replace-overlay-face))
   (vip-save-cursor-color)
   (vip-change-cursor-color vip-replace-overlay-cursor-color)
@@ -560,10 +571,18 @@ Arguments: (vip-save-setting var message custom-file &optional erase-message)"
   
   
 (defsubst vip-hide-replace-overlay ()
+  (vip-set-replace-overlay-glyphs nil nil)
   (vip-restore-cursor-color)
-  (if window-system
+  (if (vip-window-display-p)
       (vip-overlay-put vip-replace-overlay 'face nil)))
-
+      
+(defsubst vip-set-replace-overlay-glyphs (before-glyph after-glyph)
+  (if (or (not (vip-window-display-p))
+	   vip-use-replace-region-delimiters)
+      (let ((before-name (if vip-xemacs-p 'begin-glyph 'before-string))
+	    (after-name (if vip-xemacs-p 'end-glyph 'after-string)))
+	(vip-overlay-put vip-replace-overlay before-name before-glyph)
+	(vip-overlay-put vip-replace-overlay after-name after-glyph))))
 
     
 (defsubst vip-replace-start ()
@@ -583,10 +602,10 @@ Arguments: (vip-save-setting var message custom-file &optional erase-message)"
   (vip-check-minibuffer-overlay)
   ;; We always move the minibuffer overlay, since in XEmacs
   ;; this overlay may get detached. Moving will reattach it.
-  ;; This overlay is also moved via the post-command-hook,
-  ;; to insure taht it covers the whole minibuffer.
+  ;; This overlay is also moved via the vip-post-command-hook,
+  ;; to insure that it covers the whole minibuffer.
   (vip-move-minibuffer-overlay)
-  (if window-system
+  (if (vip-window-display-p)
       (progn
 	(vip-overlay-put
 	 vip-minibuffer-overlay 'face vip-minibuffer-current-face)
@@ -616,8 +635,8 @@ Arguments: (vip-save-setting var message custom-file &optional erase-message)"
 
 ;;; XEmacs compatibility
     
-;; Sit for VAL miliseconds. XEmacs doesn't support the milisecond arg to
-;; sit-for, so this is for compatibility.
+;; Sit for VAL miliseconds. XEmacs doesn't support the millisecond arg 
+;; in sit-for, so this function smoothes out the differences.
 (defsubst vip-sit-for-short (val &optional nodisp)
   (if vip-xemacs-p
       (sit-for (/ val 1000.0) nodisp)
@@ -677,7 +696,7 @@ Arguments: (vip-save-setting var message custom-file &optional erase-message)"
     ))
 
 
-;; Enacs has a bug in eventp, which causes (eventp nil) to return (nil)
+;; Emacs has a bug in eventp, which causes (eventp nil) to return (nil)
 ;; instead of nil, if '(nil) was previously inadvertantly assigned to
 ;; unread-command-events
 (defun vip-event-key (event)
@@ -691,17 +710,24 @@ Arguments: (vip-save-setting var message custom-file &optional erase-message)"
 	    (cond ((key-press-event-p event)
 		   (event-key event))
 		  ((button-event-p event)
-		   (concat "mouse-" (event-button event)))
+		   (concat "mouse-" (prin1-to-string (event-button event))))
 		  (t 
 		   (error "vip-event-key: Unknown event, %S" event))))
 	   (t 
 	    ;; Emacs doesn't handle capital letters correctly, since
 	    ;; \S-a isn't considered the same as A (it behaves as
 	    ;; plain `a' instead). So we take care of this here
-	    (if (and (numberp event) (<= ?A event) (<= event ?Z))
-		(setq mod nil
-		      event event)
-	      (event-basic-type event)))))
+	    (cond ((and (numberp event) (<= ?A event) (<= event ?Z))
+		   (setq mod nil
+			 event event))
+		  ;; Emacs has the oddity whereby characters 128+char
+		  ;; represent M-char *if* this appears inside a string.
+		  ;; So, we convert them manually into (mata char).
+		  ((and (numberp event) (< ?\C-? event) (<= event 255))
+		   (setq mod '(meta)
+			 event (- event ?\C-? 1)))
+		  (t (event-basic-type event)))
+	    )))
     
     (if (numberp basis)
 	(setq basis
