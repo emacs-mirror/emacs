@@ -1,3 +1,7 @@
+2004-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* print.c (Fwith_output_to_temp_buffer): Doc fix.
+
 2004-06-20  Richard M. Stallman  <rms@gnu.org>
 
 	* xfaces.c (Finternal_copy_lisp_face): Small cleanup; doc fix.
