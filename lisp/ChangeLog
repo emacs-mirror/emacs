@@ -1,3 +1,9 @@
+2001-04-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* rect.el (string-rectangle): Revert to 20.x behaviour.
+	(replace-rectangle): Make it an alias for string-rectangle.
+	(string-insert-rectangle): New function.
+
 2001-04-23  John Wiegley  <johnw@gnu.org>
 
 	* eshell/em-unix.el (eshell/diff): Fixed problems that were
