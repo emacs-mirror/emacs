@@ -2248,6 +2248,13 @@ This is in fact an image descriptor (@pxref{Images}).  When used as a
 display specification, it means to display the image instead of the text
 that has the display specification.
 
+@item ((margin nil) @var{string})
+@itemx @var{string}
+A display specification of this form means to display @var{string}
+instead of the text that has the display specification, at the same
+position as that text.  This is a special case of marginal display
+(@pxref{Display Margins}).
+
 @item (space-width @var{factor})
 This display specification affects all the space characters within the
 text that has the specification.  It displays all of these spaces
