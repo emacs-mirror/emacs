@@ -403,7 +403,9 @@ If NAME is already a face, it is simply returned."
 	    (if (eq name 'inverse-video)
 		(or (eq value (aref internal-face index))
 		    (invert-face face frame))
-	      (set-face-attribute-internal (face-id face) name value frame)))
+	      (if (fboundp 'set-face-attribute-internal)
+		  (set-face-attribute-internal (face-id face)
+					       name value frame))))
 	(aset internal-face index value)))))
 
 
@@ -474,7 +476,8 @@ If the face already exists, it is unmodified."
 	(let* ((frames (frame-list))
 	       (inhibit-quit t)
 	       (id (internal-next-face-id)))
-	  (make-face-internal id)
+	  (if (fboundp 'make-face-internal)
+	      (make-face-internal id))
 	  (aset face 2 id)
 	  (while frames
 	    (set-frame-face-alist (car frames)
