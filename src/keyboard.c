@@ -10142,8 +10142,8 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   reset_all_sys_modes ();
   /* sys_suspend can get an error if it tries to fork a subshell
      and the system resources aren't available for that.  */
-  record_unwind_protect ((Lisp_Object (*) P_ ((Lisp_Object))) init_sys_modes,
-			 (Lisp_Object)CURTTY()); /* XXX */
+  record_unwind_protect ((Lisp_Object (*) P_ ((Lisp_Object))) init_all_sys_modes,
+			 Qnil);
   stuff_buffered_input (stuffstring);
   if (cannot_suspend)
     sys_subshell ();
