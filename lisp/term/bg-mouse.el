@@ -77,7 +77,7 @@ To reinitialize the mouse if the terminal is reset, type ESC : RET"
        (bg-mouse-window (bg-window-from-x-y screen-mouse-x screen-mouse-y))
        (bg-cursor-window (selected-window))
        (edges (window-edges bg-mouse-window))
-       (minibuf-p (= screen-mouse-y (1- (screen-height))))
+       (minibuf-p (= screen-mouse-y (1- (frame-height))))
        (in-modeline-p (and (not minibuf-p)
 			   (= screen-mouse-y (1- (nth 3 edges)))))
        (in-scrollbar-p (and (not minibuf-p) (not in-modeline-p)
