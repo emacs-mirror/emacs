@@ -1,5 +1,18 @@
 2003-05-10  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* newcomment.el (comment-indent): Try to align to adjacent comments.
+	(comment-with-narrowing): Actually use the arguments.
+	(comment-valid-prefix-p): Rename from comment-valid-prefix
+	and fix to actually use its argument.
+
+	* tex-mode (tex-mode-syntax-table): ~ is not whitespace.
+	(tex-guess-mode): Add `renewcommand'.
+	(tex-mode): Move the autoload to get the correct docstring and usage.
+
+	* uniquify.el (uniquify-rationalize-file-buffer-names):
+	Refresh the dirname in the case that rename-buffer was skipped.
+	(uniquify-buffer-file-name): Return a dirname with no trailing slash.
+
 	* mail/smtpmail.el (smtpmail-send-queued-mail): Use point-at-bol
 	instead of forward-line.
 
@@ -12,6 +25,43 @@
 	* pcvs.el (cvs-mode-find-file): Fixed the last patch's logic.
 
 2003-05-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (comment-indent): Be more careful when inserting
+	the space, and insert it before setting `begpos'.
+
+	* vc.el: New backend functions `delete-file' and `repository-hostname'.
+	(vc-stay-local): New var.  Mostly taken from vc-cvs-stay-local.
+	(vc-stay-local-p): New fun.  Adapted from vc-cvs-stay-local-p.
+	(vc-diff-switches-list): Revert to the Emacs-21.[123] semantics.
+	Mark as obsolete.
+	(vc-delete-file): New command.
+	(vc-default-rename-file): New function.
+	(vc-rename-file): Use it.
+	Be careful to disallow renaming if the file is locked or out-of-date.
+	(vc-ensure-vc-buffer, vc-next-action-on-file, vc-insert-headers)
+	(vc-cancel-version, vc-annotate): Use buffer-file-name variable.
+
+	* vc-mcvs.el (vc-mcvs-stay-local): Remove unused var.
+	(vc-mcvs-state, vc-mcvs-dir-state, vc-mcvs-print-log, vc-mcvs-diff)
+	(vc-mcvs-diff-tree, vc-mcvs-annotate-command)
+	(vc-mcvs-make-version-backups-p): Use vc-stay-local-p.
+	(vc-mcvs-checkin): Disallow commits to a numbered rev.
+	(vc-mcvs-repository-hostname): New function.
+	(vc-mcvs-stay-local-p): Remove.
+
+	* vc-cvs.el (vc-cvs-mode-line-string): Use vc-default-mode-line-string.
+	(vc-cvs-delete-file, vc-cvs-rename-file): New functions.
+
+	* vc-svn.el (vc-svn-rename-file): New fun.
+	(vc-svn-diff): Correctly check svn's return status.
+	(vc-svn-state, vc-svn-dir-state, vc-svn-print-log, vc-svn-diff)
+	(vc-svn-diff-tree): Use vc-stay-local-p.
+	(vc-svn-register-switches, vc-svn-diff-switches, vc-svn-header)
+	(vc-svn-use-edit): Fix the :version property.
+	(vc-svn-stay-local): Remove unused var.
+	(vc-svn-mode-line-string): Remove, use the default instead.
+	(vc-svn-repository-hostname): New fun taken from vc-svn-stay-local-p.
+	(vc-svn-stay-local-p): Remove.
 
 	* uniquify.el: Use the original buffer-name as `base' in place of the
 	nondirectory part of the file name.
