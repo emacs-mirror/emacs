@@ -1,3 +1,11 @@
+2000-10-20  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* info.el (Info-fontify-node): Add support for @subsubsection
+	titles, which use `Info-title-4-face'.
+	(Info-title-4-face): New face.
+	(Info-title-3-face): Inherit from Info-title-4-face instead of
+	variable-pitch.
+
 2000-10-19  Jason Rumney  <jasonr@gnu.org>
 
 	* dired.el (dired-insert-directory): Do not let errors signalled by
