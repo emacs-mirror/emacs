@@ -1,3 +1,12 @@
+2003-06-04  Richard M. Stallman  <rms@gnu.org>
+
+	* misc.texi (Shell Options): Clarify comint-scroll-show-maximum-output.
+	comint-move-point-for-output renamed from 
+	comint-scroll-to-bottom-on-output.
+
+	* custom.texi (Init Rebinding): Replace previous change with xref.
+	(Non-ASCII Rebinding): Explain that issue more briefly here.
+
 2003-05-28  Richard M. Stallman  <rms@gnu.org>
 
 	* indent.texi (Indentation): Condense, simplify, clarify prev change.
