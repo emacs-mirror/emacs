@@ -47,10 +47,6 @@
 	* textmodes/sgml-mode.el (sgml-guess-indent): Look further into
 	the buffer.
 
-2002-05-21  Markus Rost  <rost@math.ohio-state.edu>
-
-	* lpr.el: Fix typo in Commentary section.
-
 2002-05-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* net/ange-ftp.el (ange-ftp-allow-child-lookup): Re-enable since
