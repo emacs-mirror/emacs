@@ -1,3 +1,11 @@
+2004-09-29  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Fringe Bitmaps): Use symbols rather than numbers
+	to identify bitmaps.  Remove -fringe-bitmap suffix for standard
+	fringe bitmap symbols, as they now have their own namespace.
+	(Customizing Bitmaps): Signal error if no free bitmap slots.
+	(Pixel Specification): Change IMAGE to @var{image}.
+
 2004-09-28  Richard M. Stallman  <rms@gnu.org>
 
 	* text.texi (Special Properties): Clarify line-spacing and line-height.
