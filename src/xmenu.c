@@ -708,7 +708,7 @@ cached information about equivalent key sequences.")
 	  || (CONSP (position) && EQ (XCAR (position), Qmenu_bar)))
 	{
 	  /* Use the mouse's current position.  */
-	  FRAME_PTR new_f = selected_frame;
+	  FRAME_PTR new_f = SELECTED_FRAME ();
 	  Lisp_Object bar_window;
 	  enum scroll_bar_part part;
 	  unsigned long time;
@@ -907,7 +907,7 @@ on the left of the dialog box and all following items on the right.\n\
     {
 #if 0 /* Using the frame the mouse is on may not be right.  */
       /* Use the mouse's current position.  */
-      FRAME_PTR new_f = selected_frame;
+      FRAME_PTR new_f = SELECTED_FRAME ();
       Lisp_Object bar_window;
       int part;
       unsigned long time;
