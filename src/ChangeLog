@@ -1,3 +1,10 @@
+2004-05-01  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* alloc.c (PURE_BEF_ATTRS, PURE_AFT_ATTRS): New macros, by default empty.
+	(pure): Use new macros in decl.
+	(PURE_AFT_ATTRS) [VMS, __GNUC__]: Define.
+	(PURE_BEF_ATTRS) [VMS, not __GNUC__]: Define.
+
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Version 21.2 released.
@@ -454,7 +461,7 @@
 
 2001-11-10  Gerd Moellmann  <gerd@gnu.org>
 
-	* unexelf.c (unexec): Use mmap/munmap to allocate buffers 
+	* unexelf.c (unexec): Use mmap/munmap to allocate buffers
 	instead of malloc/free.
 
 2001-11-05  Richard M. Stallman  <rms@gnu.org>
@@ -547,7 +554,7 @@
 
 	* lread.c (to_multibyte): Ensure read_buffer is at least twice
 	as large as the number of bytes to convert.
-	
+
 	* lread.c (to_multibyte): New function.
 	(read1): Use it.
 
@@ -572,7 +579,7 @@
 
 	* xfaces.c (Fface_font): Use UNSPECIFIEDP instead of NILP for
 	the slant attribute if FRAME is t.
-	
+
 2001-10-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* emacs.c (Finvocation_directory): Doc fix.
@@ -585,7 +592,7 @@
 
 	* xterm.c (x_after_update_window_line): Clear internal border
 	in different circumstances.
-	
+
 	* xterm.c (XTread_socket) <KeyPress>: Don't use
 	STRING_CHAR_AND_LENGTH if nchars == nbytes.  From Kenichi Handa
 	<handa@etl.go.jp>.
@@ -593,14 +600,14 @@
 2001-10-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_build_heuristic_mask): Use x_alloc_image_color.
-	
+
 	* xfns.c (x_build_heuristic_mask): Fix a bug not incrementing
 	a loop counter.
 
 2001-10-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (move_it_vertically_backward): Use 2/3 line_height
-	instead of 1/2 line_height in the heuristic for skipping 
+	instead of 1/2 line_height in the heuristic for skipping
 	farther backward when target_y was not reached.
 
 	* sound.c (sound_perror): Unblock SIGIO, turn on atimers.
@@ -620,7 +627,7 @@
 
 	* xterm.c (XTset_vertical_scroll_bar) [!USE_TOOLKIT_SCROLL_BARS]:
 	Fix clearing in the case of scroll bars on the right.
-	
+
 	* xfns.c (XScreenNumberOfScreen): Fix struct to pointer
 	comparison.
 
@@ -747,11 +754,11 @@
 
 	* xdisp.c (try_window_id): Undo last change.  Give up if
 	window ends in strings.
-	
+
 	* xdisp.c (try_window_id): Don't display lines after the window
 	end if the rest of the window after the window end was already
 	blank.
-	
+
 	* xdisp.c (display_line): Don't indicate empty lines in
 	mini-windows.
 
@@ -787,7 +794,7 @@
 
 2001-10-08  Gerd Moellmann  <gerd@gnu.org>
 
-	* sysdep.c (child_setup_tty) [HAVE_TERMIO || HAVE_TERMIOS]: 
+	* sysdep.c (child_setup_tty) [HAVE_TERMIO || HAVE_TERMIOS]:
 	Clear ICRNL and INLCR.  From Daiki Ueno <ueno@unixuser.org>.
 
 2001-10-04  Andrew Innes  <andrewi@gnu.org>
@@ -1028,7 +1035,7 @@
 2001-09-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* minibuf.c (read_minibuf_unwind): Bind inhibit-modification-hooks.
-	
+
 	* minibuf.c (read_minibuf): Bind inhibit-modification-hooks to t,
 	in addition to read-only.
 
@@ -1086,7 +1093,7 @@
 
 	* xdisp.c (string_buffer_position): Use *single_char_property*
 	functions instead of the *single_property* functions.
-	
+
 2001-09-04  Andrew Innes  <andrewi@gnu.org>
 
 	* w32term.c (w32_read_socket): Add more information to debugging
