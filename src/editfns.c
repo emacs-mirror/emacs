@@ -154,7 +154,12 @@ A multibyte character is handled correctly.")
   CHECK_STRING (string, 0);
   p = XSTRING (string);
   if (p->size)
-    XSETFASTINT (val, STRING_CHAR (p->data, STRING_BYTES (p)));
+    {
+      if (STRING_MULTIBYTE (string))
+	XSETFASTINT (val, STRING_CHAR (p->data, STRING_BYTES (p)));
+      else
+	XSETFASTINT (val, p->data[0]);
+    }
   else
     XSETFASTINT (val, 0);
   return val;
