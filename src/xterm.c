@@ -2485,7 +2485,7 @@ XTmouse_position (f, bar_window, part, x, y, time)
 
 	win = root;
 
-	if (x_mouse_grabbed)
+	if (x_mouse_grabbed && FRAME_LIVE_P (last_mouse_frame))
 	  {
 	    /* If mouse was grabbed on a frame, give coords for that frame
 	       even if the mouse is now outside it.  */
@@ -3993,7 +3993,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #ifdef HAVE_X11
 	case MotionNotify:
 	  {
-	    if (x_mouse_grabbed)
+	    if (x_mouse_grabbed && FRAME_LIVE_P (last_mouse_frame))
 	      f = last_mouse_frame;
 	    else
 	      f = x_window_to_frame (event.xmotion.window);
