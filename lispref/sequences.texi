@@ -694,7 +694,7 @@ from that, you manipulate them with same functions used for other kinds
 of arrays.
 
 @defun make-bool-vector length initial
-Return a new book-vector of @var{length} elements,
+Return a new bool-vector of @var{length} elements,
 each one initialized to @var{initial}.
 @end defun
 
