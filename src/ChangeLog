@@ -1,3 +1,11 @@
+1999-11-24  Dave Love  <fx@gnu.org>
+
+	* xfns.c: Don't duplicate Qdisplay definition done elsewhere.
+
+	* xfaces.c: Don't duplicate Qmode_line definition done elsewhere.
+
+	* xfns.c: Don't duplicate Qdisplay definition done elsewhere.
+
 1999-11-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* lisp.h (enum pvec_type): Put PVEC_FLAG in #if 0.
