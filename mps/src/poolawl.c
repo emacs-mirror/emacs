@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.59) $
+ * $HopeName: MMsrc!poolawl.c(trunk.60) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -45,7 +45,7 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.59) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.60) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -236,6 +236,7 @@ failControlAllocAlloc:
 failControlAllocScanned:
   ControlFree(arena, awlseg->mark, tableSize);
 failControlAllocMark:
+  super->finish(seg);
   return res;
 }
 
@@ -283,6 +284,7 @@ static void awlSegFinish(Seg seg)
 DEFINE_SEG_CLASS(AWLSegClass, class)
 {
   INHERIT_CLASS(class, GCSegClass);
+  SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
   class->name = "AWLSEG";
   class->size = sizeof(AWLSegStruct);
   class->init = awlSegInit;
