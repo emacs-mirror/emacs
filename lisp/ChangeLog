@@ -1,3 +1,8 @@
+2004-01-23  Benjamin Rutt  <brutt@bloomington.in.us>
+
+	* vc.el (vc-annotate): Fix improper use of `make-local-variable'
+	at the top level of vc.el.
+
 2004-01-23  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-current-line): Function removed.  This is now done by
