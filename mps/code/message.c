@@ -35,7 +35,7 @@ static void MessageDelete(Message message);
  * Message is on queue if and only if its ring is not a singleton.
  */
 
-static Bool MessageOnQueue(Message message)
+Bool MessageOnQueue(Message message)
 {
   AVERT(Message, message);
 

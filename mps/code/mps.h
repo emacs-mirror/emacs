@@ -532,6 +532,10 @@ extern size_t mps_message_gc_condemned_size(mps_arena_t, mps_message_t);
 extern size_t mps_message_gc_not_condemned_size(mps_arena_t,
                                                 mps_message_t);
 
+/* MPS_MESSAGE_TYPE_GC_START */
+
+extern const char *mps_message_gc_start_why(mps_arena_t, mps_message_t);
+
 
 /* Finalization */
 

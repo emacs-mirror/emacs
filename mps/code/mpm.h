@@ -290,6 +290,7 @@ extern Arena MessageArena(Message message);
 extern void MessageInit(Arena arena, Message message,
                         MessageClass class, MessageType type);
 extern void MessageFinish(Message message);
+extern Bool MessageOnQueue(Message message);
 extern void MessagePost(Arena arena, Message message);
 extern Bool MessagePoll(Arena arena);
 extern MessageType MessageGetType(Message message);
