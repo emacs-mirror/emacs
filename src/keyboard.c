@@ -3170,9 +3170,9 @@ read_avail_input (expected)
 	}
 
 #ifndef FIONREAD
-#ifdef USG
+#if defined (USG) || defined (DGUX)
       fcntl (fileno (stdin), F_SETFL, 0);
-#endif /* USG */
+#endif /* USG or DGUX */
 #endif /* no FIONREAD */
       for (i = 0; i < nread; i++)
 	{
