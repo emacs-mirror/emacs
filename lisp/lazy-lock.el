@@ -883,30 +883,32 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 ;; should use this function.  For an example, see ps-print.el.
 (defun lazy-lock-fontify-region (beg end)
   ;; Fontify between BEG and END, where necessary, in the current buffer.
-  (when (setq beg (text-property-any beg end 'lazy-lock nil))
-    (save-excursion
-      (save-match-data
-	(save-buffer-state
-	    ;; Ensure syntactic fontification is always correct.
-	    (font-lock-beginning-of-syntax-function next)
-	  ;; Find successive unfontified regions between BEG and END.
-	  (condition-case data
-	      (do-while beg
-		(setq next (or (text-property-any beg end 'lazy-lock t) end))
-		;; Make sure the region end points are at beginning of line.
-		(goto-char beg)
-		(unless (bolp)
-		  (beginning-of-line)
-		  (setq beg (point)))
-		(goto-char next)
-		(unless (bolp)
-		  (forward-line)
-		  (setq next (point)))
-		;; Fontify the region, then flag it as fontified.
-		(font-lock-fontify-region beg next)
-		(add-text-properties beg next '(lazy-lock t))
-		(setq beg (text-property-any next end 'lazy-lock nil)))
-	    ((error quit) (message "Fontifying region...%s" data))))))))
+  (save-restriction
+    (widen)
+    (when (setq beg (text-property-any beg end 'lazy-lock nil))
+      (save-excursion
+	(save-match-data
+	  (save-buffer-state
+	   ;; Ensure syntactic fontification is always correct.
+	   (font-lock-beginning-of-syntax-function next)
+	   ;; Find successive unfontified regions between BEG and END.
+	   (condition-case data
+	       (do-while beg
+			 (setq next (or (text-property-any beg end 'lazy-lock t) end))
+	  ;; Make sure the region end points are at beginning of line.
+			 (goto-char beg)
+			 (unless (bolp)
+			   (beginning-of-line)
+			   (setq beg (point)))
+			 (goto-char next)
+			 (unless (bolp)
+			   (forward-line)
+			   (setq next (point)))
+		     ;; Fontify the region, then flag it as fontified.
+			 (font-lock-fontify-region beg next)
+			 (add-text-properties beg next '(lazy-lock t))
+			 (setq beg (text-property-any next end 'lazy-lock nil)))
+	     ((error quit) (message "Fontifying region...%s" data)))))))))
 
 (defun lazy-lock-fontify-chunk ()
   ;; Fontify the nearest chunk, for stealth, in the current buffer.
