@@ -1,5 +1,5 @@
 /* Lisp object printing and output streams.
-   Copyright (C) 1985, 86, 88, 93, 94, 95 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 88, 93, 94, 95, 97 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -72,6 +72,14 @@ Lisp_Object Vfloat_output_format, Qfloat_output_format;
 #endif
 #ifndef DBL_DIG
 #define DBL_DIG 15
+#endif
+#ifndef DBL_MIN
+#define DBL_MIN 2.2250738585072014e-308
+#endif
+
+#ifdef DBL_MIN_REPLACEMENT
+#undef DBL_MIN
+#define DBL_MIN DBL_MIN_REPLACEMENT
 #endif
 
 /* Define DOUBLE_DIGITS_BOUND, an upper bound on the number of decimal digits
