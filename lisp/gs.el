@@ -1,6 +1,6 @@
 ;;; gs.el --- interface to Ghostscript
 
-;; Copyright (C) 1998, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -197,7 +197,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
 	(setenv "GHOSTVIEW" window-and-pixmap-id)
 	(setq gs (apply 'start-process "gs" "*GS*" gs-program
 			(gs-options gs-device file)))
-	(process-kill-without-query gs)
+	(set-process-query-on-exit-flag gs nil)
 	gs)
     nil))
 
