@@ -1127,6 +1127,12 @@ used.  The @var{keyword-args} consist of keywords followed by
 corresponding values.  A few keywords have special meanings:
 
 @table @code
+@item :group @var{group}
+Custom group name to use in all generated @code{defcustom} forms.
+Defaults to @var{mode} without the possible trailing @samp{-mode}.  Be
+aware that this default may not be a valid customization group defined
+with @code{defgroup}.  Please make sure it is.
+
 @item :global @var{global}
 If non-@code{nil} specifies that the minor mode should be global.
 By default, minor modes are buffer-local.
