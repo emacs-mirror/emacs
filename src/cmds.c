@@ -139,7 +139,7 @@ If scan reaches end of buffer, stop there without error.")
   else
     CHECK_NUMBER (n, 0);
 
-  Fforward_line (make_number (XINT (n) - 1));
+  SET_PT (XINT (Fline_beginning_position (n)));
   return Qnil;
 }
 
@@ -159,7 +159,7 @@ If scan reaches end of buffer, stop there without error.")
   else
     CHECK_NUMBER (n, 0);
 
-  SET_PT (find_before_next_newline (PT, 0, XINT (n) - (XINT (n) <= 0)));
+  SET_PT (XINT (Fline_end_position (n)));
 
   return Qnil;
 }
