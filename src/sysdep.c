@@ -524,8 +524,8 @@ child_setup_tty (out)
 
   s.main.c_lflag |= ICANON;	/* Enable erase/kill and eof processing */
   s.main.c_cc[VEOF] = 04;	/* insure that EOF is Control-D */
-  s.main.c_cc[VERASE] = 0377;	/* disable erase processing */
-  s.main.c_cc[VKILL] = 0377;	/* disable kill processing */
+  s.main.c_cc[VERASE] = CDISABLE;	/* disable erase processing */
+  s.main.c_cc[VKILL] = CDISABLE;	/* disable kill processing */
 
 #ifdef HPUX
   s.main.c_cflag = (s.main.c_cflag & ~CBAUD) | B9600; /* baud rate sanity */
@@ -1290,9 +1290,14 @@ init_sys_modes ()
       tty.main.c_cc[VSTOP] = CDISABLE;
 #endif /* VSTOP */
 #endif /* mips or HAVE_TCATTR */
+#ifdef SET_LINE_DISCIPLINE
+      /* Need to explicitely request TERMIODISC line discipline or
+         Ultrix's termios does not work correctly.  */
+      tty.main.c_line = SET_LINE_DISCIPLINE;
+#endif
 #ifdef AIX
 #ifndef IBMR2AIX
-      /* AIX enhanced edit loses NULs, so disable it */
+      /* AIX enhanced edit loses NULs, so disable it.  */
       tty.main.c_line = 0;
       tty.main.c_iflag &= ~ASCEDIT;
 #else
@@ -1641,6 +1646,13 @@ reset_sys_modes ()
 
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
   dos_ttcooked ();
+#endif
+
+#ifdef SET_LINE_DISCIPLINE
+  /* Ultrix's termios *ignores* any line discipline except TERMIODISC.
+     A different old line discipline is therefore not restored, yet.
+     Restore the old line discipline by hand.  */
+  ioctl (0, TIOCSETD, &old_tty.main.c_line);
 #endif
 
 #ifdef AIXHFT
