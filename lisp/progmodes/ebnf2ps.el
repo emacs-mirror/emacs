@@ -4996,12 +4996,25 @@ Otherwise, it is treated as an empty string."
      (point))))
 
 
+;; to avoid a bug of `skip-chars-forward' on version 20.4.1, that is, it
+;; doesn't accept the range "\240-\377", but it accepts the character sequence
+;; from \240 to \377.  It seems that version 20.7 has the same problem.
+(defconst ebnf-8-bit-chars
+  (let ((char ?\240)
+	str)
+    (while (<= char ?\377)
+      (setq str (concat str (char-to-string char))
+	    char (1+ char)))
+    str))
+
+
 (defun ebnf-string (chars eos-char kind)
   (forward-char)
   (buffer-substring-no-properties
    (point)
    (progn
-     (skip-chars-forward (concat chars "\240-\377") ebnf-limit)
+     ;;(skip-chars-forward (concat chars "\240-\377") ebnf-limit)
+     (skip-chars-forward (concat chars ebnf-8-bit-chars) ebnf-limit)
      (if (or (eobp) (/= (following-char) eos-char))
 	 (error "Illegal %s: missing `%c'." kind eos-char)
        (forward-char)
