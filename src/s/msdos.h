@@ -220,7 +220,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 /* Define this to a function (Fdowncase, Fupcase) if your file system
    likes that */
-#define FILE_SYSTEM_CASE Fdowncase
+#define FILE_SYSTEM_CASE Fmsdos_downcase_filename
 
 /* Define this to be the separator between devices and paths */
 #define DEVICE_SEP ':'
