@@ -564,6 +564,8 @@ Compiling and Testing Programs
 * Compilation Mode::    The mode for visiting compiler errors.
 * Compilation Shell::   Customizing your shell properly
                           for use in the compilation buffer.
+* Grep Searching::      Searching with grep.
+* Flymake::             Finding syntax errors on the fly.
 * Debuggers::		Running symbolic debuggers for non-Lisp programs.
 * Executing Lisp::	Various modes for editing Lisp programs,
 			  with different facilities for running
