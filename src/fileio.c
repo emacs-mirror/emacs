@@ -69,7 +69,9 @@ extern char *strerror ();
 #ifndef USG
 #ifndef VMS
 #ifndef BSD4_1
+#ifndef WINDOWSNT
 #define HAVE_FSYNC
+#endif
 #endif
 #endif
 #endif
@@ -78,6 +80,13 @@ extern char *strerror ();
 #include "intervals.h"
 #include "buffer.h"
 #include "window.h"
+
+#ifdef WINDOWSNT
+#define NOMINMAX 1
+#include <windows.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#endif /* not WINDOWSNT */
 
 #ifdef VMS
 #include <file.h>
@@ -292,7 +301,7 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
   beg = XSTRING (file)->data;
   p = beg + XSTRING (file)->size;
 
-  while (p != beg && p[-1] != '/'
+  while (p != beg && !IS_ANY_SEP (p[-1])
 #ifdef VMS
 	 && p[-1] != ':' && p[-1] != ']' && p[-1] != '>'
 #endif /* VMS */
@@ -303,24 +312,35 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
 
   if (p == beg)
     return Qnil;
-#ifdef MSDOS
+#ifdef DOS_NT
   /* Expansion of "c:" to drive and default directory.  */
+  /* (NT does the right thing.)  */
   if (p == beg + 2 && beg[1] == ':')
     {
       int drive = (*beg) - 'a';
       /* MAXPATHLEN+1 is guaranteed to be enough space for getdefdir.  */
       unsigned char *res = alloca (MAXPATHLEN + 5);
-      if (getdefdir (drive + 1, res + 2)) 
+      unsigned char *res1;
+#ifdef WINDOWSNT
+      res1 = res;
+      /* The NT version places the drive letter at the beginning already.  */
+#else /* not WINDOWSNT */
+      /* On MSDOG we must put the drive letter in by hand.  */
+      res1 = res + 2;
+#endif /* not WINDOWSNT */
+      if (getdefdir (drive + 1, res)) 
 	{
+#ifdef MSDOS
 	  res[0] = drive + 'a';
 	  res[1] = ':';
-	  if (res[strlen (res) - 1] != '/')
+#endif /* MSDOS */
+	  if (IS_DIRECTORY_SEP (res[strlen (res) - 1]))
 	    strcat (res, "/");
 	  beg = res;
 	  p = beg + strlen (beg);
 	}
     }
-#endif
+#endif /* DOS_NT */
   return make_string (beg, p - beg);
 }
 
@@ -347,12 +367,12 @@ or the entire name if it contains no slash.")
   beg = XSTRING (file)->data;
   end = p = beg + XSTRING (file)->size;
 
-  while (p != beg && p[-1] != '/'
+  while (p != beg && !IS_ANY_SEP (p[-1])
 #ifdef VMS
 	 && p[-1] != ':' && p[-1] != ']' && p[-1] != '>'
 #endif /* VMS */
 #ifdef MSDOS
-	 && p[-1] != ':' && p[-1] != '\\'
+	 && p[-1] != ':'
 #endif
 	 ) p--;
 
@@ -451,10 +471,13 @@ file_name_as_directory (out, in)
   /* For Unix syntax, Append a slash if necessary */
 #ifdef MSDOS
   if (out[size] != ':' && out[size] != '/' && out[size] != '\\')
-#else
-  if (out[size] != '/')
-#endif
-    strcat (out, "/");
+#else /* not MSDOS */
+  if (!IS_ANY_SEP (out[size]))
+    {
+      out[size + 1] = DIRECTORY_SEP;
+      out[size + 2] = '\0';
+    }
+#endif /* not MSDOS */
 #endif /* not VMS */
   return out;
 }
@@ -541,7 +564,7 @@ directory_file_name (src, dst)
 	{
 	  /* what about when we have logical_name:???? */
 	  if (src[slen - 1] == ':')
-	    {			/* Xlate logical name and see what we get */
+	    {                   /* Xlate logical name and see what we get */
 	      ptr = strcpy (dst, src); /* upper case for getenv */
 	      while (*ptr)
 		{
@@ -549,7 +572,7 @@ directory_file_name (src, dst)
 		    *ptr -= 040;
 		  ptr++;
 		}
-	      dst[slen - 1] = 0;	/* remove colon */
+	      dst[slen - 1] = 0;        /* remove colon */
 	      if (!(src = egetenv (dst)))
 		return 0;
 	      /* should we jump to the beginning of this procedure?
@@ -567,7 +590,7 @@ directory_file_name (src, dst)
 		}
 	    }
 	  else
-	    {		/* not a directory spec */
+	    {           /* not a directory spec */
 	      strcpy (dst, src);
 	      return 0;
 	    }
@@ -597,7 +620,7 @@ directory_file_name (src, dst)
 	  /* If we have the top-level of a rooted directory (i.e. xx:[000000]),
 	     then translate the device and recurse. */
 	  if (dst[slen - 1] == ':'
-	      && dst[slen - 2] != ':'	/* skip decnet nodes */
+	      && dst[slen - 2] != ':'   /* skip decnet nodes */
 	      && strcmp(src + slen, "[000000]") == 0)
 	    {
 	      dst[slen - 1] = '\0';
@@ -630,13 +653,8 @@ directory_file_name (src, dst)
      But leave "/" unchanged; do not change it to "".  */
   strcpy (dst, src);
   if (slen > 1 
-#ifdef MSDOS
-      && (dst[slen - 1] == '/' || dst[slen - 1] == '/')
-      && dst[slen - 2] != ':'
-#else
-      && dst[slen - 1] == '/'
-#endif
-      )
+      && IS_DIRECTORY_SEP (dst[slen - 1])
+      && !IS_DEVICE_SEP (dst[slen - 2]))
     dst[slen - 1] = 0;
   return 1;
 }
@@ -721,11 +739,12 @@ See also the function `substitute-in-file-name'.")
   int lbrack = 0, rbrack = 0;
   int dots = 0;
 #endif /* VMS */
-#ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
+#ifdef DOS_NT
+  /* Demacs 1.1.2 91/10/20 Manabu Higashida */
   int drive = -1;
   int relpath = 0;
   unsigned char *tmp, *defdir;
-#endif
+#endif /* DOS_NT */
   Lisp_Object handler;
   
   CHECK_STRING (name, 0);
@@ -741,6 +760,8 @@ See also the function `substitute-in-file-name'.")
     defalt = current_buffer->directory;
   CHECK_STRING (defalt, 1);
 
+  o = XSTRING (defalt)->data;
+
   /* Make sure DEFALT is properly expanded.
      It would be better to do this down below where we actually use
      defalt.  Unfortunately, calling Fexpand_file_name recursively
@@ -753,13 +774,9 @@ See also the function `substitute-in-file-name'.")
      The EQ test avoids infinite recursion.  */
   if (! NILP (defalt) && !EQ (defalt, name)
       /* This saves time in a common case.  */
-#ifdef MSDOS
-      && (XSTRING (defalt)->size < 3
-	  || XSTRING (defalt)->data[1] != ':'
-	  || XSTRING (defalt)->data[2] != '/'))
-#else
-      && XSTRING (defalt)->data[0] != '/')
-#endif
+      && ! (XSTRING (defalt)->size >= 3
+	    && IS_DIRECTORY_SEP (XSTRING (defalt)->data[0])
+	    && IS_DEVICE_SEP (XSTRING (defalt)->data[1])))
     {
       struct gcpro gcpro1;
 
@@ -781,7 +798,9 @@ See also the function `substitute-in-file-name'.")
 #ifdef MSDOS
   /* First map all backslashes to slashes.  */
   dostounix_filename (nm = strcpy (alloca (strlen (nm) + 1), nm));
+#endif
 
+#ifdef DOS_NT
   /* Now strip drive name. */
   {
     unsigned char *colon = rindex (nm, ':');
@@ -792,19 +811,19 @@ See also the function `substitute-in-file-name'.")
 	{
 	  drive = tolower (colon[-1]) - 'a';
 	  nm = colon + 1;
-	  if (*nm != '/')
+	  if (!IS_DIRECTORY_SEP (*nm))
 	    {
 	      defdir = alloca (MAXPATHLEN + 1);
 	      relpath = getdefdir (drive + 1, defdir);
 	    }
-	}	
+	}       
   }
-#endif
+#endif /* DOS_NT */
 
   /* If nm is absolute, flush ...// and detect /./ and /../.
      If no /./ or /../ we can return right away. */
   if (
-      nm[0] == '/'
+      IS_DIRECTORY_SEP (nm[0])
 #ifdef VMS
       || index (nm, ':')
 #endif /* VMS */
@@ -826,24 +845,28 @@ See also the function `substitute-in-file-name'.")
 
 	  /* "//" anywhere isn't necessarily hairy; we just start afresh
 	     with the second slash.  */
-	  if (p[0] == '/' && p[1] == '/'
+	  if (IS_DIRECTORY_SEP (p[0]) && IS_DIRECTORY_SEP (p[1])
 #ifdef APOLLO
 	      /* // at start of filename is meaningful on Apollo system */
 	      && nm != p
 #endif /* APOLLO */
+#ifdef WINDOWSNT
+	      /* \\ or // at the start of a pathname is meaningful on NT.  */
+	      && nm != p
+#endif /* WINDOWSNT */
 	      )
 	    nm = p + 1;
 
 	  /* "~" is hairy as the start of any path element.  */
-	  if (p[0] == '/' && p[1] == '~')
+	  if (IS_DIRECTORY_SEP (p[0]) && p[1] == '~')
 	    nm = p + 1, lose = 1;
 
 	  /* "." and ".." are hairy.  */
-	  if (p[0] == '/'
+	  if (IS_DIRECTORY_SEP (p[0])
 	      && p[1] == '.'
-	      && (p[2] == '/'
+	      && (IS_DIRECTORY_SEP (p[2])
 		  || p[2] == 0
-		  || (p[2] == '.' && (p[3] == '/'
+		  || (p[2] == '.' && (IS_DIRECTORY_SEP (p[3])
 				      || p[3] == 0))))
 	    lose = 1;
 #ifdef VMS
@@ -864,7 +887,7 @@ See also the function `substitute-in-file-name'.")
 	    /* VMS pre V4.4,convert '-'s in filenames. */
 	    if (lbrack == rbrack)
 	      {
-		if (dots < 2)	/* this is to allow negative version numbers */
+		if (dots < 2)   /* this is to allow negative version numbers */
 		  p[0] = '_';
 	      }
 	    else
@@ -927,11 +950,11 @@ See also the function `substitute-in-file-name'.")
 	  if (index (nm, '/'))
 	    return build_string (sys_translate_unix (nm));
 #endif /* VMS */
-#ifndef MSDOS
+#ifndef DOS_NT
 	  if (nm == XSTRING (name)->data)
 	    return name;
 	  return build_string (nm);
-#endif
+#endif /* not DOS_NT */
 	}
     }
 
@@ -941,33 +964,37 @@ See also the function `substitute-in-file-name'.")
 
   if (nm[0] == '~')		/* prefix ~ */
     {
-      if (nm[1] == '/'
+      if (IS_DIRECTORY_SEP (nm[1])
 #ifdef VMS
 	  || nm[1] == ':'
-#endif				/* VMS */
+#endif /* VMS */
 	  || nm[1] == 0)	/* ~ by itself */
 	{
 	  if (!(newdir = (unsigned char *) egetenv ("HOME")))
 	    newdir = (unsigned char *) "";
-#ifdef MSDOS
+#ifdef DOS_NT
 	  dostounix_filename (newdir);
 #endif
 	  nm++;
 #ifdef VMS
 	  nm++;			/* Don't leave the slash in nm.  */
-#endif				/* VMS */
+#endif /* VMS */
 	}
       else			/* ~user/filename */
 	{
-	  for (p = nm; *p && (*p != '/'
+	  for (p = nm; *p && (!IS_DIRECTORY_SEP (*p)
 #ifdef VMS
 			      && *p != ':'
-#endif				/* VMS */
+#endif /* VMS */
 			      ); p++);
 	  o = (unsigned char *) alloca (p - nm + 1);
 	  bcopy ((char *) nm, o, p - nm);
 	  o [p - nm] = 0;
 
+#ifdef  WINDOWSNT
+	  newdir = (unsigned char *) egetenv ("HOME");
+	  dostounix_filename (newdir);
+#else  /* not WINDOWSNT */
 	  pw = (struct passwd *) getpwnam (o + 1);
 	  if (pw)
 	    {
@@ -976,30 +1003,31 @@ See also the function `substitute-in-file-name'.")
 	      nm = p + 1;	/* skip the terminator */
 #else
 	      nm = p;
-#endif				/* VMS */
+#endif /* VMS */
 	    }
+#endif /* not WINDOWSNT */
 
 	  /* If we don't find a user of that name, leave the name
 	     unchanged; don't move nm forward to p.  */
 	}
     }
 
-  if (nm[0] != '/'
+  if (!IS_ANY_SEP (nm[0])
 #ifdef VMS
       && !index (nm, ':')
 #endif /* not VMS */
-#ifdef MSDOS
+#ifdef DOS_NT
       && drive == -1
-#endif
+#endif /* DOS_NT */
       && !newdir)
     {
       newdir = XSTRING (defalt)->data;
     }
 
-#ifdef MSDOS
+#ifdef DOS_NT
   if (newdir == 0 && relpath)
     newdir = defdir; 
-#endif
+#endif /* DOS_NT */
   if (newdir != 0)
     {
       /* Get rid of any slash at the end of newdir.  */
@@ -1010,7 +1038,7 @@ See also the function `substitute-in-file-name'.")
 #ifdef MSDOS
       if (newdir[1] != ':' && length > 1)
 #endif
-      if (newdir[length - 1] == '/')
+      if (IS_DIRECTORY_SEP (newdir[length - 1]))
 	{
 	  unsigned char *temp = (unsigned char *) alloca (length);
 	  bcopy (newdir, temp, length - 1);
@@ -1024,18 +1052,20 @@ See also the function `substitute-in-file-name'.")
 
   /* Now concatenate the directory and name to new space in the stack frame */
   tlen += strlen (nm) + 1;
-#ifdef MSDOS
-  /* Add reserved space for drive name.  */
-  target = (unsigned char *) alloca (tlen + 2) + 2;
-#else
+#ifdef DOS_NT
+  /* Add reserved space for drive name.  (The Microsoft x86 compiler 
+     produces incorrect code if the following two lines are combined.)  */
+  target = (unsigned char *) alloca (tlen + 2);
+  target += 2;
+#else  /* not DOS_NT */
   target = (unsigned char *) alloca (tlen);
-#endif
+#endif /* not DOS_NT */
   *target = 0;
 
   if (newdir)
     {
 #ifndef VMS
-      if (nm[0] == 0 || nm[0] == '/')
+      if (nm[0] == 0 || IS_DIRECTORY_SEP (nm[0]))
 	strcpy (target, newdir);
       else
 #endif
@@ -1080,7 +1110,7 @@ See also the function `substitute-in-file-name'.")
 	  do
 	    o--;
 	  while (o[-1] != '.' && o[-1] != '[' && o[-1] != '<');
-	  if (p[1] == '.')	/* foo.-.bar ==> bar*/
+	  if (p[1] == '.')      /* foo.-.bar ==> bar.  */
 	    p += 2;
 	  else if (o[-1] == '.') /* '.foo.-]' ==> ']' */
 	    p++, o--;
@@ -1097,23 +1127,31 @@ See also the function `substitute-in-file-name'.")
 	  *o++ = *p++;
 	}
 #else /* not VMS */
-      if (*p != '/')
- 	{
+      if (!IS_DIRECTORY_SEP (*p))
+	{
 	  *o++ = *p++;
 	}
+#ifdef WINDOWSNT
+      else if (!strncmp (p, "\\\\", 2) || !strncmp (p, "//", 2))
+#else  /* not WINDOWSNT */
       else if (!strncmp (p, "//", 2)
+#endif /* not WINDOWSNT */
 #ifdef APOLLO
 	       /* // at start of filename is meaningful in Apollo system */
 	       && o != target
 #endif /* APOLLO */
+#ifdef WINDOWSNT
+	       /* \\ at start of filename is meaningful in Windows-NT */
+	       && o != target
+#endif /* WINDOWSNT */
 	       )
 	{
 	  o = target;
 	  p++;
 	}
-      else if (p[0] == '/'
+      else if (IS_DIRECTORY_SEP (p[0])
 	       && p[1] == '.'
-	       && (p[2] == '/'
+	       && (IS_DIRECTORY_SEP (p[2])
 		   || p[2] == 0))
 	{
 	  /* If "/." is the entire filename, keep the "/".  Otherwise,
@@ -1122,43 +1160,59 @@ See also the function `substitute-in-file-name'.")
 	    *o++ = *p;
 	  p += 2;
 	}
+#ifdef WINDOWSNT
+      else if (!strncmp (p, "\\..", 3) || !strncmp (p, "/..", 3))
+#else  /* not WINDOWSNT */
       else if (!strncmp (p, "/..", 3)
+#endif /* not WINDOWSNT */
 	       /* `/../' is the "superroot" on certain file systems.  */
 	       && o != target
-	       && (p[3] == '/' || p[3] == 0))
+	       && (IS_DIRECTORY_SEP (p[3]) || p[3] == 0))
 	{
-	  while (o != target && *--o != '/')
+	  while (o != target && (--o) && !IS_DIRECTORY_SEP (*o))
 	    ;
 #ifdef APOLLO
 	  if (o == target + 1 && o[-1] == '/' && o[0] == '/')
 	    ++o;
 	  else
 #endif /* APOLLO */
-	  if (o == target && *o == '/')
+#ifdef WINDOWSNT
+	  if (o == target + 1 && (o[-1] == '/' && o[0] == '/')
+	      || (o[-1] == '\\' && o[0] == '\\'))
+	    ++o;
+	  else
+#endif /* WINDOWSNT */
+	  if (o == target && IS_ANY_SEP (*o))
 	    ++o;
 	  p += 3;
 	}
       else
- 	{
+	{
 	  *o++ = *p++;
 	}
 #endif /* not VMS */
     }
 
-#ifdef MSDOS
+#ifdef DOS_NT
   /* at last, set drive name. */
-  if (target[1] != ':')
+  if (target[1] != ':'
+#ifdef WINDOWSNT
+      /* Allow network paths that look like "\\foo" */
+      && !(IS_DIRECTORY_SEP (target[0]) && IS_DIRECTORY_SEP (target[1]))
+#endif /* WINDOWSNT */
+      )
     {
       target -= 2;
       target[0] = (drive < 0 ? getdisk () : drive) + 'a';
       target[1] = ':';
     }
-#endif
+#endif /* DOS_NT */
 
   return make_string (target, o - target);
 }
+
 #if 0
-/* Changed this DEFUN to a DEAFUN, so as not to confuse `make-docfile'.
+/* Changed this DEFUN to a DEAFUN, so as not to confuse `make-docfile'.  */
 DEAFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
   "Convert FILENAME to absolute, and canonicalize it.\n\
 Second arg DEFAULT is directory to start with if FILENAME is relative\n\
@@ -1239,7 +1293,7 @@ See also the function `substitute-in-file-name'.")
 	    /* VMS pre V4.4,convert '-'s in filenames. */
 	    if (lbrack == rbrack)
 	      {
-		if (dots < 2)	/* this is to allow negative version numbers */
+		if (dots < 2)   /* this is to allow negative version numbers */
 		  p[0] = '_';
 	      }
 	    else
@@ -1312,7 +1366,7 @@ See also the function `substitute-in-file-name'.")
 
   newdir = 0;
 
-  if (nm[0] == '~')		/* prefix ~ */
+  if (nm[0] == '~')             /* prefix ~ */
     if (nm[1] == '/'
 #ifdef VMS
 	|| nm[1] == ':'
@@ -1323,7 +1377,7 @@ See also the function `substitute-in-file-name'.")
 	  newdir = (unsigned char *) "";
 	nm++;
 #ifdef VMS
-	nm++;			/* Don't leave the slash in nm.  */
+	nm++;                   /* Don't leave the slash in nm.  */
 #endif /* VMS */
       }
     else  /* ~user/filename */
@@ -1337,7 +1391,7 @@ See also the function `substitute-in-file-name'.")
 	unsigned char *ptr1 = index (user, ':');
 	if (ptr1 != 0 && ptr1 - user < len)
 	  len = ptr1 - user;
-#endif				/* VMS */
+#endif /* VMS */
 	/* Copy the user name into temp storage. */
 	o = (unsigned char *) alloca (len + 1);
 	bcopy ((char *) user, o, len);
@@ -1420,7 +1474,7 @@ See also the function `substitute-in-file-name'.")
 	  do
 	    o--;
 	  while (o[-1] != '.' && o[-1] != '[' && o[-1] != '<');
-	  if (p[1] == '.')	/* foo.-.bar ==> bar*/
+	  if (p[1] == '.')      /* foo.-.bar ==> bar.  */
 	    p += 2;
 	  else if (o[-1] == '.') /* '.foo.-]' ==> ']' */
 	    p++, o--;
@@ -1438,7 +1492,7 @@ See also the function `substitute-in-file-name'.")
 	}
 #else /* not VMS */
       if (*p != '/')
- 	{
+	{
 	  *o++ = *p++;
 	}
       else if (!strncmp (p, "//", 2)
@@ -1471,7 +1525,7 @@ See also the function `substitute-in-file-name'.")
 	  p += 3;
 	}
       else
- 	{
+	{
 	  *o++ = *p++;
 	}
 #endif /* not VMS */
@@ -1520,28 +1574,30 @@ duplicates what `expand-file-name' does.")
 	   /* // at start of file name is meaningful in Apollo system */
 	   (p[0] == '/' && p - 1 != nm)
 #else /* not APOLLO */
+#ifdef WINDOWSNT
+	   (IS_DIRECTORY_SEP (p[0]) && p - 1 != nm)
+#else /* not WINDOWSNT */
 	   p[0] == '/'
+#endif /* not WINDOWSNT */
 #endif /* not APOLLO */
 	   )
-	  && p != nm &&
+	  && p != nm
+	  && (0
 #ifdef VMS
-	  (p[-1] == ':' || p[-1] == ']' || p[-1] == '>' ||
+	      || p[-1] == ':' || p[-1] == ']' || p[-1] == '>'
 #endif /* VMS */
-	  p[-1] == '/')
-#ifdef VMS
-	  )
-#endif /* VMS */
+	      || IS_DIRECTORY_SEP (p[-1])))
 	{
 	  nm = p;
 	  substituted = 1;
 	}
-#ifdef MSDOS
+#ifdef DOS_NT
       if (p[0] && p[1] == ':')
 	{
 	  nm = p;
 	  substituted = 1;
 	}
-#endif /* MSDOS */
+#endif /* DOS_NT */
     }
 
 #ifdef VMS
@@ -1585,9 +1641,9 @@ duplicates what `expand-file-name' does.")
 	target = (unsigned char *) alloca (s - o + 1);
 	strncpy (target, o, s - o);
 	target[s - o] = 0;
-#ifdef MSDOS
+#ifdef DOS_NT
 	strupr (target); /* $home == $HOME etc.  */
-#endif
+#endif /* DOS_NT */
 
 	/* Get variable value */
 	o = (unsigned char *) egetenv (target);
@@ -1636,9 +1692,9 @@ duplicates what `expand-file-name' does.")
 	target = (unsigned char *) alloca (s - o + 1);
 	strncpy (target, o, s - o);
 	target[s - o] = 0;
-#ifdef MSDOS
+#ifdef DOS_NT
 	strupr (target); /* $home == $HOME etc.  */
-#endif
+#endif /* DOS_NT */
 
 	/* Get variable value */
 	o = (unsigned char *) egetenv (target);
@@ -1654,17 +1710,20 @@ duplicates what `expand-file-name' does.")
   /* If /~ or // appears, discard everything through first slash. */
 
   for (p = xnm; p != x; p++)
-    if ((p[0] == '~' ||
+    if ((p[0] == '~'
 #ifdef APOLLO
 	 /* // at start of file name is meaningful in Apollo system */
-	 (p[0] == '/' && p - 1 != xnm)
+	 || (p[0] == '/' && p - 1 != xnm)
 #else /* not APOLLO */
-	 p[0] == '/'
-#endif /* not APOLLO */
+#ifdef WINDOWSNT
+	 || (IS_DIRECTORY_SEP (p[0]) && p - 1 != xnm)
+#else /* not WINDOWSNT */
+	 || p[0] == '/'
+#endif /* not WINDOWSNT */
 	 )
-	&& p != nm && p[-1] == '/')
+	&& p != nm && IS_DIRECTORY_SEP (p[-1]))
       xnm = p;
-#ifdef MSDOS
+#ifdef DOS_NT
     else if (p[0] && p[1] == ':')
 	xnm = p;
 #endif
@@ -1702,7 +1761,8 @@ expand_and_dir_to_file (filename, defdir)
   /* Remove final slash, if any (unless path is root).
      stat behaves differently depending!  */
   if (XSTRING (abspath)->size > 1
-      && XSTRING (abspath)->data[XSTRING (abspath)->size - 1] == '/')
+      && IS_DIRECTORY_SEP (XSTRING (abspath)->data[XSTRING (abspath)->size - 1])
+      && !IS_DEVICE_SEP (XSTRING (abspath)->data[XSTRING (abspath)->size-2]))
     /* We cannot take shortcuts; they might be wrong for magic file names.  */
     abspath = Fdirectory_file_name (abspath);
 #endif
@@ -1875,7 +1935,11 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
 
   dir = XSTRING (dirname)->data;
 
+#ifdef WINDOWSNT
+  if (mkdir (dir) != 0)
+#else
   if (mkdir (dir, 0777) != 0)
+#endif
     report_file_error ("Creating directory", Flist (1, &dirname));
 
   return Qnil;
@@ -1961,11 +2025,21 @@ This is what happens in interactive use with M-x.")
 #ifndef BSD4_1
   if (0 > rename (XSTRING (filename)->data, XSTRING (newname)->data))
 #else
+#ifdef WINDOWSNT
+  if (!MoveFile (XSTRING (filename)->data, XSTRING (newname)->data))
+#else  /* not WINDOWSNT */
   if (0 > link (XSTRING (filename)->data, XSTRING (newname)->data)
       || 0 > unlink (XSTRING (filename)->data))
+#endif /* not WINDOWSNT */
 #endif
     {
+#ifdef  WINDOWSNT
+      /* Why two?  And why doesn't MS document what MoveFile will return?  */
+      if (GetLastError () == ERROR_FILE_EXISTS
+	  || GetLastError () == ERROR_ALREADY_EXISTS)
+#else  /* not WINDOWSNT */
       if (errno == EXDEV)
+#endif /* not WINDOWSNT */
 	{
 	  Fcopy_file (filename, newname,
 		      /* We have already prompted if it was an integer,
@@ -2021,6 +2095,11 @@ This is what happens in interactive use with M-x.")
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, "make it a new name",
 				  INTEGERP (ok_if_already_exists));
+#ifdef WINDOWSNT
+  /* Windows does not support this operation.  */
+  report_file_error ("Adding new name", Flist (2, &filename));
+#else /* not WINDOWSNT */
+
   unlink (XSTRING (newname)->data);
   if (0 > link (XSTRING (filename)->data, XSTRING (newname)->data))
     {
@@ -2032,6 +2111,7 @@ This is what happens in interactive use with M-x.")
       report_file_error ("Adding new name", Flist (2, &filename));
 #endif
     }
+#endif /* not WINDOWSNT */
 
   UNGCPRO;
   return Qnil;
@@ -2119,9 +2199,9 @@ If STRING is nil or a null string, the logical name NAME is deleted.")
       CHECK_STRING (string, 1);
 
       if (XSTRING (string)->size == 0)
-        delete_logical_name (XSTRING (varname)->data);
+	delete_logical_name (XSTRING (varname)->data);
       else
-        define_logical_name (XSTRING (varname)->data, XSTRING (string)->data);
+	define_logical_name (XSTRING (varname)->data, XSTRING (string)->data);
     }
 
   return string;
@@ -2160,14 +2240,14 @@ On Unix, this is a name starting with a `/' or a `~'.")
 
   CHECK_STRING (filename, 0);
   ptr = XSTRING (filename)->data;
-  if (*ptr == '/' || *ptr == '~'
+  if (IS_DIRECTORY_SEP (*ptr) || *ptr == '~'
 #ifdef VMS
 /* ??? This criterion is probably wrong for '<'.  */
       || index (ptr, ':') || index (ptr, '<')
       || (*ptr == '[' && (ptr[1] != '-' || (ptr[2] != '.' && ptr[2] != ']'))
 	  && ptr[1] != '.')
 #endif /* VMS */
-#ifdef MSDOS
+#ifdef DOS_NT
       || (*ptr != 0 && ptr[1] == ':' && (ptr[2] == '/' || ptr[2] == '\\'))
 #endif
       )
@@ -2462,7 +2542,7 @@ DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
 
   if (stat (XSTRING (abspath)->data, &st) < 0)
     return Qnil;
-#ifdef MSDOS
+#ifdef DOS_NT
   {
     int len;
     char *suffix;
@@ -2473,7 +2553,7 @@ DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
 	    || stricmp (suffix, ".bat") == 0))
       st.st_mode |= S_IEXEC;
   }
-#endif /* MSDOS */
+#endif /* DOS_NT */
 
   return make_number (st.st_mode & 07777);
 }
@@ -2514,7 +2594,7 @@ Only the 12 low bits of MODE are used.")
 	}
  
       if (chmod (XSTRING (abspath)->data, XINT (mode)) < 0)
- 	report_file_error ("Doing chmod", Fcons (abspath, Qnil));
+	report_file_error ("Doing chmod", Fcons (abspath, Qnil));
  
       /* reset the old accessed and modified times.  */
       tvp[0].tv_sec = st.st_atime + 1; /* +1 due to an Apollo roundoff bug */
@@ -2523,7 +2603,7 @@ Only the 12 low bits of MODE are used.")
       tvp[1].tv_usec = 0;
  
       if (utimes (XSTRING (abspath)->data, tvp) < 0)
- 	report_file_error ("Doing utimes", Fcons (abspath, Qnil));
+	report_file_error ("Doing utimes", Fcons (abspath, Qnil));
     }
 #endif /* APOLLO */
 
@@ -2612,9 +2692,9 @@ otherwise, if FILE2 does not exist, the answer is t.")
   return (mtime1 > st.st_mtime) ? Qt : Qnil;
 }
 
-#ifdef MSDOS
+#ifdef DOS_NT
 Lisp_Object Qfind_buffer_file_type;
-#endif
+#endif /* DOS_NT */
 
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
   1, 5, 0,
@@ -2729,7 +2809,7 @@ and (2) it puts less data in the undo list.")
      with the file contents.  Avoid replacing text at the
      beginning or end of the buffer that matches the file contents;
      that preserves markers pointing to the unchanged parts.  */
-#ifdef MSDOS
+#ifdef DOS_NT
   /* On MSDOS, replace mode doesn't really work, except for binary files,
      and it's not worth supporting just for them.  */
   if (!NILP (replace))
@@ -2739,7 +2819,7 @@ and (2) it puts less data in the undo list.")
       XSETFASTINT (end, st.st_size);
       del_range_1 (BEGV, ZV, 0);
     }
-#else /* MSDOS */
+#else /* not DOS_NT */
   if (!NILP (replace))
     {
       unsigned char buffer[1 << 14];
@@ -2837,7 +2917,7 @@ and (2) it puts less data in the undo list.")
       /* Insert from the file at the proper position.  */
       SET_PT (same_at_start);
     }
-#endif /* MSDOS */
+#endif /* not DOS_NT */
 
   total = XINT (end) - XINT (beg);
 
@@ -2866,13 +2946,14 @@ and (2) it puts less data in the undo list.")
   how_much = 0;
   while (inserted < total)
     {
-      int try = min (total - inserted, 64 << 10);
+	/* try is reserved in some compilers (Microsoft C) */
+      int trytry = min (total - inserted, 64 << 10);
       int this;
 
       /* Allow quitting out of the actual I/O.  */
       immediate_quit = 1;
       QUIT;
-      this = read (fd, &FETCH_CHAR (point + inserted - 1) + 1, try);
+      this = read (fd, &FETCH_CHAR (point + inserted - 1) + 1, trytry);
       immediate_quit = 0;
 
       if (this <= 0)
@@ -2888,7 +2969,7 @@ and (2) it puts less data in the undo list.")
       inserted += this;
     }
 
-#ifdef MSDOS
+#ifdef DOS_NT
   /* Demacs 1.1.1 91/10/16 HIRANO Satoshi, MW July 1993 */
   /* Determine file type from name and remove LFs from CR-LFs if the file
      is deemed to be a text file.  */
@@ -2906,7 +2987,7 @@ and (2) it puts less data in the undo list.")
 	inserted -= reduced_size;
       }
   }
-#endif
+#endif /* DOS_NT */
 
   if (inserted > 0)
     {
@@ -3034,7 +3115,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   int count = specpdl_ptr - specpdl;
   int count1;
 #ifdef VMS
-  unsigned char *fname = 0;	/* If non-0, original filename (must rename) */
+  unsigned char *fname = 0;     /* If non-0, original filename (must rename) */
 #endif /* VMS */
   Lisp_Object handler;
   Lisp_Object visit_file;
@@ -3042,10 +3123,10 @@ to the file, instead of any buffer contents, and END is ignored.")
   int visiting, quietly;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   struct buffer *given_buffer;
-#ifdef MSDOS
+#ifdef DOS_NT
   int buffer_file_type
     = NILP (current_buffer->buffer_file_type) ? O_TEXT : O_BINARY;
-#endif
+#endif /* DOS_NT */
 
   if (!NILP (start) && !STRINGP (start))
     validate_region (&start, &end);
@@ -3114,24 +3195,24 @@ to the file, instead of any buffer contents, and END is ignored.")
   fn = XSTRING (filename)->data;
   desc = -1;
   if (!NILP (append))
-#ifdef MSDOS
+#ifdef DOS_NT
     desc = open (fn, O_WRONLY | buffer_file_type);
-#else
+#else  /* not DOS_NT */
     desc = open (fn, O_WRONLY);
-#endif
+#endif /* not DOS_NT */
 
   if (desc < 0)
 #ifdef VMS
-    if (auto_saving)	/* Overwrite any previous version of autosave file */
+    if (auto_saving)    /* Overwrite any previous version of autosave file */
       {
-	vms_truncate (fn);	/* if fn exists, truncate to zero length */
+	vms_truncate (fn);      /* if fn exists, truncate to zero length */
 	desc = open (fn, O_RDWR);
 	if (desc < 0)
 	  desc = creat_copy_attrs (STRINGP (current_buffer->filename)
 				   ? XSTRING (current_buffer->filename)->data : 0,
 				   fn);
       }
-    else		/* Write to temporary name and rename if no errors */
+    else                /* Write to temporary name and rename if no errors */
       {
 	Lisp_Object temp_name;
 	temp_name = Ffile_name_directory (filename);
@@ -3167,13 +3248,13 @@ to the file, instead of any buffer contents, and END is ignored.")
 	  desc = creat (fn, 0666);
       }
 #else /* not VMS */
-#ifdef MSDOS
+#ifdef DOS_NT
   desc = open (fn, 
 	       O_WRONLY | O_TRUNC | O_CREAT | buffer_file_type, 
 	       S_IREAD | S_IWRITE);
-#else /* not MSDOS */
+#else  /* not DOS_NT */
   desc = creat (fn, auto_saving ? auto_save_mode_bits : 0666);
-#endif /* not MSDOS */
+#endif /* not DOS_NT */
 #endif /* not VMS */
 
   UNGCPRO;
@@ -3651,13 +3732,13 @@ Non-nil second argument means save only current buffer.")
 
   if (STRINGP (Vauto_save_list_file_name))
     {
-#ifdef MSDOS
+#ifdef DOS_NT
       listdesc = open (XSTRING (Vauto_save_list_file_name)->data, 
 		       O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
 		       S_IREAD | S_IWRITE);
-#else /* not MSDOS */
+#else  /* not DOS_NT */
       listdesc = creat (XSTRING (Vauto_save_list_file_name)->data, 0666);
-#endif /* not MSDOS */
+#endif /* not DOS_NT */
     }
   else
     listdesc = -1;
@@ -3937,7 +4018,7 @@ DIR defaults to current buffer's directory default.")
   if (homedir != 0
       && STRINGP (dir)
       && !strncmp (homedir, XSTRING (dir)->data, strlen (homedir))
-      && XSTRING (dir)->data[strlen (homedir)] == '/')
+      && IS_DIRECTORY_SEP (XSTRING (dir)->data[strlen (homedir)]))
     {
       dir = make_string (XSTRING (dir)->data + strlen (homedir) - 1,
 			 XSTRING (dir)->size - strlen (homedir) + 1);
@@ -3998,7 +4079,7 @@ DIR defaults to current buffer's directory default.")
   return Fsubstitute_in_file_name (val);
 }
 
-#if 0				/* Old version */
+#if 0                           /* Old version */
 DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 5, 0,
   /* Don't confuse make-docfile by having two doc strings for this function.
      make-docfile does not pay attention to #if, for good reason!  */
@@ -4126,10 +4207,10 @@ syms_of_fileio ()
   Qfile_already_exists = intern("file-already-exists");
   staticpro (&Qfile_already_exists);
 
-#ifdef MSDOS
+#ifdef DOS_NT
   Qfind_buffer_file_type = intern ("find-buffer-file-type");
   staticpro (&Qfind_buffer_file_type);
-#endif
+#endif /* DOS_NT */
 
   Qcar_less_than_car = intern ("car-less-than-car");
   staticpro (&Qcar_less_than_car);
