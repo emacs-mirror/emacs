@@ -99,4 +99,8 @@ The default status is as follows.
 Nothing special is needed to handle English.")
 	     ))
 
+;; Make "ASCII" an alias of "English" language environment.
+(set-language-info-alist
+ "ASCII" (cdr (assoc "English" language-info-alist)))
+
 ;;; english.el ends here
