@@ -1,4 +1,4 @@
-/* impl.c.mpsliban: HARLEQUIN MEMORY POOL SYSTEM LIBRARY INTERFACE (ANSI)
+/* impl.c.mpsliban: RAVENBROOK MEMORY POOL SYSTEM LIBRARY INTERFACE (ANSI)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
