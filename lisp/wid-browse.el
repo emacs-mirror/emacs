@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.71
+;; Version: 1.84
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;;; Commentary:
@@ -29,7 +29,13 @@
   
 (unless widget-browse-mode-map
   (setq widget-browse-mode-map (make-sparse-keymap))
-  (set-keymap-parent widget-browse-mode-map widget-keymap))
+  (set-keymap-parent widget-browse-mode-map widget-keymap)
+  (define-key widget-browse-mode-map "q" 'bury-buffer))
+
+(easy-menu-define widget-browse-mode-customize-menu 
+    widget-browse-mode-map
+  "Menu used in widget browser buffers."
+  (customize-menu-create 'widgets))
 
 (easy-menu-define widget-browse-mode-menu 
     widget-browse-mode-map
@@ -59,6 +65,7 @@ if that value is non-nil."
   (setq major-mode 'widget-browse-mode
 	mode-name "Widget")
   (use-local-map widget-browse-mode-map)
+  (easy-menu-add widget-browse-mode-customize-menu)
   (easy-menu-add widget-browse-mode-menu)
   (run-hooks 'widget-browse-mode-hook))
 
@@ -82,6 +89,7 @@ if that value is non-nil."
 
 (defvar widget-browse-history nil)
 
+;;;###autoload
 (defun widget-browse (widget)
   "Create a widget browser for WIDGET."
   (interactive (list (completing-read "Widget: " 
@@ -106,11 +114,11 @@ if that value is non-nil."
   (widget-browse-mode)
   
   ;; Quick way to get out.
-  (widget-create 'push-button
-		 :action (lambda (widget &optional event)
-			   (bury-buffer))
-		 "Quit")
-  (widget-insert "\n")
+;;  (widget-create 'push-button
+;;		 :action (lambda (widget &optional event)
+;;			   (bury-buffer))
+;;		 "Quit")
+;;  (widget-insert "\n")
 
   ;; Top text indicating whether it is a class or object browser.
   (if (listp widget)
@@ -144,6 +152,18 @@ if that value is non-nil."
       (widget-insert "\n")))
   (widget-setup)
   (goto-char (point-min)))
+
+;;;###autoload
+(defun widget-browse-other-window (&optional widget)
+  "Show widget browser for WIDGET in other window."
+  (interactive)
+  (let ((window (selected-window)))
+    (switch-to-buffer-other-window "*Browse Widget*")
+    (if widget
+	(widget-browse widget)
+      (call-interactively 'widget-browse))
+    (select-window window)))
+
 
 ;;; The `widget-browse' Widget.
 

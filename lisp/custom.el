@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
-;; Version: 1.71
+;; Version: 1.84
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;;; Commentary:
@@ -23,16 +23,26 @@
 
 (define-widget-keywords :prefix :tag :load :link :options :type :group)
 
+(defvar custom-define-hook nil
+  ;; Customize information for this option is in `cus-edit.el'.
+  "Hook called after defining each customize option.")
+
 ;;; The `defcustom' Macro.
 
 (defun custom-declare-variable (symbol value doc &rest args)
   "Like `defcustom', but SYMBOL and VALUE are evaluated as normal arguments."
-  (unless (and (default-boundp symbol)
-	       (not (get symbol 'saved-value)))
+  ;; Bind this variable unless it already is bound.
+  (unless (default-boundp symbol)
+    ;; Use the saved value if it exists, otherwise the factory setting.
     (set-default symbol (if (get symbol 'saved-value)
 			    (eval (car (get symbol 'saved-value)))
 			  (eval value))))
+  ;; Remember the factory setting.
   (put symbol 'factory-value (list value))
+  ;; Maybe this option was rogue in an earlier version.  It no longer is.
+  (when (get symbol 'force-value)
+    ;; It no longer is.    
+    (put symbol 'force-value nil))
   (when doc
     (put symbol 'variable-documentation doc))
   (while args 
@@ -262,22 +272,22 @@ the default value for the SYMBOL."
 		(value (nth 1 entry))
 		(now (nth 2 entry)))
 	    (put symbol 'saved-value (list value))
-	    (when now 
-	      (put symbol 'force-value t)
-	      (set-default symbol (eval value)))
+	    (cond (now 
+		   ;; Rogue variable, set it now.
+		   (put symbol 'force-value t)
+		   (set-default symbol (eval value)))
+		  ((default-boundp symbol)
+		   ;; Something already set this, overwrite it.
+		   (set-default symbol (eval value))))
 	    (setq args (cdr args)))
 	;; Old format, a plist of SYMBOL VALUE pairs.
+	(message "Warning: old format `custom-set-variables'")
+	(ding)
+	(sit-for 2)
 	(let ((symbol (nth 0 args))
 	      (value (nth 1 args)))
 	  (put symbol 'saved-value (list value)))
 	(setq args (cdr (cdr args)))))))
-
-;;; Meta Customization
-
-(defcustom custom-define-hook nil
-  "Hook called after defining each customize option."
-  :group 'customize
-  :type 'hook)
 
 ;;; The End.
 

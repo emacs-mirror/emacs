@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.71
+;; Version: 1.84
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;;; Commentary:
@@ -1238,13 +1238,14 @@ With optional ARG, move across that many fields."
 (define-widget 'push-button 'item
   "A pushable button."
   :value-create 'widget-push-button-value-create
+  :text-format "[%s]"
   :format "%[%v%]")
 
 (defun widget-push-button-value-create (widget)
   ;; Insert text representing the `on' and `off' states.
   (let* ((tag (or (widget-get widget :tag)
 		  (widget-get widget :value)))
-	 (text (concat "[" tag "]"))
+	 (text (format (widget-get widget :text-format) tag))
 	 (gui (cdr (assoc tag widget-push-button-cache))))
     (if (and (fboundp 'make-gui-button)
 	     (fboundp 'make-glyph)
@@ -2374,7 +2375,7 @@ It will read a directory name from the minibuffer when activated."
 (defun widget-vector-match (widget value) 
   (and (vectorp value)
        (widget-group-match widget
-			   (widget-apply :value-to-internal widget value))))
+			   (widget-apply widget :value-to-internal value))))
 
 (define-widget 'cons 'group
   "A cons-cell."

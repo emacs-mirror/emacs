@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, extensions, faces, hypermedia
-;; Version: 1.71
+;; Version: 1.84
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;;; Commentary:
@@ -27,8 +27,8 @@
 	     (set (car keywords) (car keywords)))
 	 (setq keywords (cdr keywords)))))))
 
-(define-widget-keywords :deactivate :active :inactive :activate
-  :sibling-args :delete-button-args
+(define-widget-keywords :text-format :deactivate :active :inactive 
+  :activate :sibling-args :delete-button-args
   :insert-button-args :append-button-args :button-args 
   :tag-glyph :off-glyph :on-glyph :valid-regexp
   :secret :sample-face :sample-face-get :case-fold :widget-doc 
@@ -50,6 +50,7 @@
   (autoload 'widget-create "wid-edit")
   (autoload 'widget-insert "wid-edit")
   (autoload 'widget-browse "wid-browse" nil t)
+  (autoload 'widget-browse-other-window "wid-browse" nil t)
   (autoload 'widget-browse-at "wid-browse" nil t))
 
 (defun define-widget (name class doc &rest args)
