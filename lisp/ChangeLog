@@ -1,3 +1,10 @@
+2002-04-01  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/idlw-rinfo.el (idlwave-system-routines): 
+	WOLRDTITLE => WORLDTITLE.  SUPRESS_VALUE => SUPPRESS_VALUE.
+
+	* subr.el (redraw-modeline): Define alias.
+
 2002-03-31  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (file-expand-wildcards): Use save-match-data.
