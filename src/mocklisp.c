@@ -50,6 +50,7 @@ DEFUN ("ml-if", Fml_if, Sml_if, 0, UNEVALLED, 0, "Mocklisp version of `if'.")
   register Lisp_Object val;
   struct gcpro gcpro1;
 
+  val = Qnil;
   GCPRO1 (args);
   while (!NILP (args))
     {
