@@ -1,5 +1,8 @@
 2000-12-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (record_char): Don't record identical help-echo
+	events in recent_keys.
+
 	* xterm.c [USE_X_TOOLKIT]: Close the display.
 	(xim_close_dpy): Handle case that the display has been closed.
 
