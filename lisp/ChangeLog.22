@@ -1,3 +1,8 @@
+2004-12-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-util.el (char-displayable-p): Check
+	:charset-list property of CODING.
+
 2004-12-06  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (select-safe-coding-system-interactively):
