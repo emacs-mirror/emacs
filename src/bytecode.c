@@ -401,12 +401,12 @@ If the third argument is incorrect, Emacs may crash.")
 #endif
   int op;
   /* Lisp_Object v1, v2; */
-  Lisp_Object *vectorp = XVECTOR (vector)->contents;
+  Lisp_Object *vectorp;
 #ifdef BYTE_CODE_SAFE
   int const_length = XVECTOR (vector)->size;
   Lisp_Object *stacke;
 #endif
-  int bytestr_length = STRING_BYTES (XSTRING (bytestr));
+  int bytestr_length;
   struct byte_stack stack;
   Lisp_Object *top;
   Lisp_Object result;
@@ -415,6 +415,17 @@ If the third argument is incorrect, Emacs may crash.")
   if (!VECTORP (vector))
     vector = wrong_type_argument (Qvectorp, vector);
   CHECK_NUMBER (maxdepth, 2);
+
+  if (STRING_MULTIBYTE (bytestr))
+    /* BYTESTR must have been produced by Emacs 20.2 or the earlier
+       because they produced a raw 8-bit string for byte-code and now
+       such a byte-code string is loaded as multibyte while raw 8-bit
+       characters converted to multibyte form.  Thus, now we must
+       convert them back to the original unibyte form.  */
+    bytestr = Fstring_as_unibyte (bytestr);
+
+  bytestr_length = STRING_BYTES (XSTRING (bytestr));
+  vectorp = XVECTOR (vector)->contents;
 
   stack.byte_string = bytestr;
   stack.pc = stack.byte_string_start = XSTRING (bytestr)->data;
