@@ -157,6 +157,17 @@ static struct sensemode {
 #undef SIGIO
 #endif
 
+/* On TERMIOS systems, the tcmumbleattr calls take care of these
+   parameters, and it's a bad idea to use them (on AIX, it makes the
+   tty hang for a long time).
+#if defined (TIOCGLTC) && !defined (HAVE_TERMIOS)
+#define HAVE_LTCHARS
+#endif
+
+#if defined (TIOCGETC) && !defined (HAVE_TERMIOS)
+#define HAVE_TCHARS
+#endif
+
 
 /* Try to establish the correct character to disable terminal functions
    in a system-independent manner.  Note that USG (at least) define
@@ -286,12 +297,18 @@ struct emacs_tty {
 #endif
 #endif
 #endif
-#ifdef TIOCGLTC
+
+/* If we have TERMIOS, we don't need to do this - they're taken care of
+   by the tc*attr calls.  */
+#ifndef HAVE_TERMIOS
+#ifdef HAVE_LTCHARS
   struct ltchars ltchars;
 #endif
-#ifdef TIOCGETC
+
+#ifdef HAVE_TCHARS
   struct tchars tchars;
   int lmode;
+#endif
 #endif
 };
 

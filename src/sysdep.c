@@ -765,13 +765,13 @@ emacs_get_tty (fd, settings)
 #endif
 
   /* Suivant - Do we have to get struct ltchars data?  */
-#ifdef TIOCGLTC
+#ifdef HAVE_LTCHARS
   if (ioctl (fd, TIOCGLTC, &settings->ltchars) < 0)
     return -1;
 #endif
 
   /* How about a struct tchars and a wordful of lmode bits?  */
-#ifdef TIOCGETC
+#ifdef HAVE_TCHARS
   if (ioctl (fd, TIOCGETC, &settings->tchars) < 0
       || ioctl (fd, TIOCLGET, &settings->lmode) < 0)
     return -1;
@@ -846,13 +846,13 @@ emacs_set_tty (fd, settings, waitp)
 #endif
 
   /* Suivant - Do we have to get struct ltchars data?  */
-#ifdef TIOCGLTC
+#ifdef HAVE_LTCHARS
   if (ioctl (fd, TIOCSLTC, &settings->ltchars) < 0)
     return -1;
 #endif
 
   /* How about a struct tchars and a wordful of lmode bits?  */
-#ifdef TIOCGETC
+#ifdef HAVE_TCHARS
   if (ioctl (fd, TIOCSETC, &settings->tchars) < 0
       || ioctl (fd, TIOCLSET, &settings->lmode) < 0)
     return -1;
@@ -888,10 +888,10 @@ unsigned char _sobuf[BUFSIZ+8];
 char _sobuf[BUFSIZ];
 #endif
  
-#ifdef TIOCGLTC
+#ifdef HAVE_LTCHARS
 static struct ltchars new_ltchars = {-1,-1,-1,-1,-1,-1};
 #endif
-#ifdef TIOCGETC
+#ifdef HAVE_TCHARS
   static struct tchars new_tchars = {-1,-1,-1,-1,-1,-1};
 #endif 
 
@@ -1042,7 +1042,7 @@ init_sys_modes ()
 	 control for user coming over network on 4.2; in this case,
 	 only t_stopc and t_startc really matter.  */
 #ifndef HAVE_TERMIO
-#ifdef TIOCGETC
+#ifdef HAVE_TCHARS
       /* Note: if not using CBREAK mode, it makes no difference how we
 	 set this */
       tty.tchars = new_tchars;
@@ -1068,12 +1068,12 @@ init_sys_modes ()
       lmode = tty.lmode;
 #endif
 
-#endif /* TIOCGETC */
+#endif /* HAVE_TCHARS */
 #endif /* not HAVE_TERMIO */
 
-#ifdef TIOCGLTC
+#ifdef HAVE_LTCHARS
       tty.ltchars = new_ltchars;
-#endif /* TIOCGLTC */
+#endif /* HAVE_LTCHARS */
 
       EMACS_SET_TTY (input_fd, &tty, 0);
 
