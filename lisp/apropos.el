@@ -495,7 +495,6 @@ found."
 					      key))
 		       key)
 		     item ", "))
-		 (insert "Type ")
 		 (insert "M-x")
 		 (put-text-property (- (point) 3) (point)
 				    'face apropos-keybinding-face)
