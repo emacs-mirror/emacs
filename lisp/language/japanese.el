@@ -68,13 +68,14 @@
 			latin-iso8859-1 greek-iso8859-7)
   :mime-charset 'iso-2022-jp-2)
 
-(let ((map			; SJIS		vs	CP932
+(let ((map			; JIS		vs	CP932
        '((#x301C . #xFF5E)	; WAVE DASH		FULLWIDTH TILDE
 	 (#x2016 . #x2225)	; DOUBLE VERTICAL LINE	PARALLEL TO
 	 (#x2212 . #xFF0D)	; MINUS SIGN		FULLWIDTH HYPHEN-MINUS
 	 (#x00A2 . #xFFE0)	; CENT SIGN		FULLWIDTH CENT SIGN
 	 (#x00A3 . #xFFE1)	; POUND SIGN		FULLWIDTH POUND SIGN
 	 (#x00AC . #xFFE2)	; NOT SIGN		FULLWIDTH NOT SIGN
+	 (#x00A6 . #xFFE4)	; BROKEN LINE		FULLWIDTH BROKEN LINE
 	 )))
   (define-translation-table 'japanese-ucs-cp932-map map)
   (mapc #'(lambda (x) (let ((tmp (car x)))
