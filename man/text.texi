@@ -1981,34 +1981,34 @@ chosen face to the region.  @xref{Faces}.  You can also specify a face
 with these keyboard commands:
 
 @table @kbd
-@kindex M-g d @r{(Enriched mode)}
+@kindex M-o d @r{(Enriched mode)}
 @findex facemenu-set-default
-@item M-g d
+@item M-o d
 Set the region, or the next inserted character, to the @code{default} face
 (@code{facemenu-set-default}).
-@kindex M-g b @r{(Enriched mode)}
+@kindex M-o b @r{(Enriched mode)}
 @findex facemenu-set-bold
-@item M-g b
+@item M-o b
 Set the region, or the next inserted character, to the @code{bold} face
 (@code{facemenu-set-bold}).
-@kindex M-g i @r{(Enriched mode)}
+@kindex M-o i @r{(Enriched mode)}
 @findex facemenu-set-italic
-@item M-g i
+@item M-o i
 Set the region, or the next inserted character, to the @code{italic} face
 (@code{facemenu-set-italic}).
-@kindex M-g l @r{(Enriched mode)}
+@kindex M-o l @r{(Enriched mode)}
 @findex facemenu-set-bold-italic
-@item M-g l
+@item M-o l
 Set the region, or the next inserted character, to the @code{bold-italic} face
 (@code{facemenu-set-bold-italic}).
-@kindex M-g u @r{(Enriched mode)}
+@kindex M-o u @r{(Enriched mode)}
 @findex facemenu-set-underline
-@item M-g u
+@item M-o u
 Set the region, or the next inserted character, to the @code{underline} face
 (@code{facemenu-set-underline}).
-@kindex M-g o @r{(Enriched mode)}
+@kindex M-o o @r{(Enriched mode)}
 @findex facemenu-set-face
-@item M-g o @var{face} @key{RET}
+@item M-o o @var{face} @key{RET}
 Set the region, or the next inserted character, to the face @var{face}
 (@code{facemenu-set-face}).
 @end table
