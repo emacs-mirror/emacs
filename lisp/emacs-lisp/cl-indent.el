@@ -358,10 +358,13 @@ by `lisp-body-indent'."
 (defun lisp-indent-defmethod (path state indent-point sexp-column
 				   normal-indent)
   "Indentation function defmethod."
-  (lisp-indent-259 (if (save-excursion (goto-char (elt state 1))
-				       (forward-char 1)
-				       (forward-sexp 2)
-				       (looking-at "\\s-+:"))
+  (lisp-indent-259 (if (and (>= (first path) 3)
+                            (null (rest path))
+			    (save-excursion (goto-char (elt state 1))
+					    (forward-char 1)
+                                            (forward-sexp 3)
+                                            (backward-sexp)
+					    (looking-at ":")))
 		       '(4 4 (&whole 4 &rest 4) &body)
 		     (get 'defun 'common-lisp-indent-function))
 		   path state indent-point sexp-column normal-indent))
