@@ -8,6 +8,13 @@
 	* progmodes/ebnf-ebx.el: New file, implement a parser for EBNF used to
 	specify XML (EBNFX).
 
+	* progmodes/ebnf2ps.el: Doc fix.
+	(ebnf-version): New version number (4.1).
+	(ebnf-syntax): Adjust customization.
+	(ebnf-style-database): Add ebnfx entry.
+	(ebnf-syntax-alist): Add ebnfx initialization.
+	(ebnf-ebx-parser, ebnf-ebx-initialize): Autoloaded funs from ebnf-ebx.
+
 2004-03-28  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gdb-ui.el (gdb-ann3, gdb-send-item)
