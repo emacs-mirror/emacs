@@ -5282,11 +5282,6 @@ abort ()
 
 /* The following variables are required so that cus-start.el won't
    complain about unbound variables.  */
-#ifndef HAVE_X_WINDOWS
-/* Search path for bitmap files (xfns.c).  */
-Lisp_Object Vx_bitmap_file_path;
-int x_stretch_cursor_p;
-#endif
 #ifndef subprocesses
 /* Nonzero means delete a process right away if it exits (process.c).  */
 static int delete_exited_processes;
@@ -5306,16 +5301,6 @@ syms_of_msdos ()
   previous_help_echo = Qnil;
   staticpro (&previous_help_echo);
   help_echo_pos = -1;
-
-  DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
-	       doc: /* List of directories to search for bitmap files for X.  */);
-  Vx_bitmap_file_path = decode_env_path ((char *) 0, ".");
-
-  DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
-	       doc: /* *Non-nil means draw block cursor as wide as the glyph under it.
-For example, if a block cursor is over a tab, it will be drawn as
-wide as that tab on the display.  (No effect on MS-DOS.)  */);
-  x_stretch_cursor_p = 0;
 
   /* The following two are from xfns.c:  */
   Qbar = intern ("bar");
