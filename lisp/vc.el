@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.339 2002/10/05 16:35:28 monnier Exp $
+;; $Id: vc.el,v 1.340 2002/10/07 16:24:42 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2040,7 +2040,7 @@ See Info node `Merging'."
       (message "File contains conflict markers"))))
 
 ;;;###autoload
-(defalias 'vc-resolve-conflicts smerge-ediff)
+(defalias 'vc-resolve-conflicts 'smerge-ediff)
 
 ;; The VC directory major mode.  Coopt Dired for this.
 ;; All VC commands get mapped into logical equivalents.
