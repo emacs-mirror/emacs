@@ -1,4 +1,4 @@
-;;; time.el --- display time and load in mode line of Emacs.
+;;; time.el --- display time, load and mail indicator in mode line of Emacs.
 
 ;; Copyright (C) 1985, 86, 87, 93, 94, 96, 2000 Free Software Foundation, Inc.
 
@@ -144,12 +144,12 @@ display."
 
 (defvar display-time-mail-icon
   (find-image '((:type xbm :file "letter.xbm" :ascent 100)))
-  "Image specification to offer as the mail indictor on a grephic
+  "Image specification to offer as the mail indicator on a graphic
 display.  See `display-time-use-mail-icon' and
 `display-time-mail-face'.")
 
 (defcustom display-time-use-mail-icon nil
-  "Non-nil means use an icon as the mail indictor on a grephic display.
+  "Non-nil means use an icon as the mail indicator on a graphic display.
 Otherwise use the string \"Mail\".  The icon may consume less of the
 mode line.  It is specified by `display-time-mail-icon'."
   :group 'display-time
@@ -240,7 +240,7 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 	 (time (current-time-string now))
          (load (condition-case ()
                    (if (zerop (car (load-average))) ""
-		     ;; The load average number is myterious, so
+		     ;; The load average number is mysterious, so
 		     ;; propvide some help.
                      (let ((str (format " %03d" (car (load-average)))))
 		       (propertize
