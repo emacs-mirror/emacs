@@ -83,7 +83,7 @@ configuration (all frames), restore that frame or all frames accordingly.
 First argument is a character, naming the register.
 Optional second arg non-nil (interactively, prefix argument) says to
 delete any existing frames that the frame configuration doesn't mention.
-\(Otherwise, these frames are made invisible.)"
+\(Otherwise, these frames are iconified.)"
   (interactive "cJump to register: \nP")
   (let ((val (get-register char)))
     (cond
