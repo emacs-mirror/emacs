@@ -13982,23 +13982,18 @@ only be necessary if the default setting causes problems.");
                "Alist linking Emacs character sets to Windows fonts\n\
 and codepages. Each entry should be of the form:\n\
 \n\
-   (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE))\n\
+   (CHARSET-NAME . (WINDOWS-CHARSET . CODEPAGE))\n\
 \n\
-where CHARSET_NAME is a string used in font names to identify the charset,\n\
-WINDOWS_CHARSET is a symbol that can be one of:\n\
+where CHARSET-NAME is a string used in font names to identify the charset,\n\
+WINDOWS-CHARSET is a symbol that can be one of:\n\
 w32-charset-ansi, w32-charset-default, w32-charset-symbol,\n\
 w32-charset-shiftjis, w32-charset-hangeul, w32-charset-gb2312,\n\
-w32-charset-chinesebig5, "
-#ifdef JOHAB_CHARSET
-"w32-charset-johab, w32-charset-hebrew,\n\
+w32-charset-chinesebig5, w32-charset-johab, w32-charset-hebrew,\n\
 w32-charset-arabic, w32-charset-greek, w32-charset-turkish,\n\
 w32-charset-vietnamese, w32-charset-thai, w32-charset-easteurope,\n\
-w32-charset-russian, w32-charset-mac, w32-charset-baltic,\n"
-#endif
-#ifdef UNICODE_CHARSET
-"w32-charset-unicode, "
-#endif
-"or w32-charset-oem.\n\
+w32-charset-russian, w32-charset-mac, w32-charset-baltic,\n\
+w32-charset-unicode, or w32-charset-oem.\n\
+(Some of these symbols are only meaningful on certain versions of Windows.)\n\
 CODEPAGE should be an integer specifying the codepage that should be used\n\
 to display the character set, t to do no translation and output as Unicode,\n\
 or nil to do no translation and output as 8 bit (or multibyte on far-east\n\
