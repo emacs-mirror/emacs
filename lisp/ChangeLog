@@ -1,3 +1,8 @@
+2004-07-16  Stephan Stahl  <stahl@eos.franken.de>  (tiny change)
+
+	* buff-menu.el (list-buffers-noselect): Append the buffer's
+	process status to its mode name.
+
 2004-07-16  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (inhibit-mark-movement): New defvar.
