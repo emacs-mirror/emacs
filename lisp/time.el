@@ -1,6 +1,6 @@
 ;;; time.el --- display time and load in mode line of Emacs.
 
-;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -128,8 +128,6 @@ After each update, `display-time-hook' is run with `run-hooks'."
   (sit-for 0))
 
 (defun display-time-file-nonempty-p (file)
-  (while (file-symlink-p file)
-    (setq file (file-symlink-p file)))
-  (> (nth 7 (file-attributes file)) 0))
+  (< 0 (nth 7 (file-attributes (file-chase-links file)))))
 
 ;;; time.el ends here
