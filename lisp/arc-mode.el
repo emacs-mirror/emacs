@@ -746,9 +746,11 @@ when parsing the archive."
 	(let ((text (concat (aref fil 0) "\n")))
 	  (if archive-lemacs
 	      ()			; out of luck
-	    (put-text-property (aref fil 1) (aref fil 2)
-			       'mouse-face 'highlight
-			       text))
+	    (add-text-properties
+	     (aref fil 1) (aref fil 2)
+	     '(mouse-face highlight
+	       help-echo "mouse-2: extract this file into a buffer")
+	     text))
 	  text)))
      files)))
   (setq archive-file-list-end (point-marker)))
