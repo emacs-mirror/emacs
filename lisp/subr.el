@@ -205,9 +205,8 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 			       (if (or (eq defn olddef)
 				       (and (or (stringp defn) (vectorp defn))
 					    (equal defn olddef)))
-				   (set-char-table-range (car scan)
-							 char
-							 (nconc (nreverse skipped) newdef))
+				   (define-key keymap prefix1
+				     (nconc (nreverse skipped) newdef))
 				 (if (and (keymapp defn)
 					  (let ((elt (lookup-key keymap prefix1)))
 					    (or (null elt)
