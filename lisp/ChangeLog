@@ -1,3 +1,7 @@
+2002-08-23  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-kill-buffer-hook): Add it to kill-buffer-hook again.
+
 2002-08-22  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.14 released.
