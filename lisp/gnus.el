@@ -3282,6 +3282,11 @@ As opposed to `gnus', this command will not connect to the local server."
     (setq gnus-tmp-prev-perm perm)))
 
 ;;;###autoload
+(defun read-news (&optional arg dont-connect)
+  "Read network news.  This is an alias for the `gnus' command."
+  (gnus arg dont-connect))
+
+;;;###autoload
 (defun gnus (&optional arg dont-connect)
   "Read network news.
 If ARG is non-nil and a positive number, Gnus will use that as the
