@@ -273,12 +273,27 @@ Prefix arg (non-nil third arg, if called from program) means justify as well."
 	    (setq ncols (1- ncols)))))))
   nil)
 
-(defun fill-individual-paragraphs (min max &optional justifyp mailp)
-  "Fill each paragraph in region according to its individual fill prefix.
+(defun fill-nonuniform-paragraphs (min max &optional justifyp mailp)
+  "Fill paragraphs within the region, allowing varying indentation within each.
+This command divides the region into \"paragraphs\",
+only at paragraph-separator lines, then fills each paragraph
+using as the fill prefix the smallest indentation of any line
+in the paragraph.
 
-If `fill-individual-varying-indent' is non-nil,
-then a mere change in indentation does not end a paragraph.  In this mode,
-the indentation for a paragraph is the minimum indentation of any line in it.
+When calling from a program, pass range to fill as first two arguments.
+
+Optional third and fourth arguments JUSTIFY-FLAG and MAIL-FLAG:
+JUSTIFY-FLAG to justify paragraphs (prefix arg),
+MAIL-FLAG for a mail message, i. e. don't fill header lines."
+  (interactive "r\nP")
+  (let ((fill-individual-varying-indent t))
+    (fill-individual-paragraphs min max justifyp mailp)))
+
+(defun fill-individual-paragraphs (min max &optional justifyp mailp)
+  "Fill paragraphs of uniform indentation within the region.
+This command divides the region into \"paragraphs\", 
+treating every change in indentation level as a paragraph boundary,
+then fills each paragraph using its indentation level as the fill prefix.
 
 When calling from a program, pass range to fill as first two arguments.
 
