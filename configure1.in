@@ -1135,6 +1135,7 @@ esac
 [ -z "${window_system}" ] && window_system=none
 
 [ -n "${x_libraries}" ] && LD_SWITCH_X_SITE="-L${x_libraries}"
+[ -n "${x_libraries}" ] && LD_SWITCH_X_SITE_AUX="-R${x_libraries}"
 [ -n "${x_includes}" ] && C_SWITCH_X_SITE="-I${x_includes}"
 
 # Avoid forcing the search of /usr/include before fixed include files.
@@ -1342,12 +1343,14 @@ AC_SUBST(archlibdir)
 AC_SUBST(c_switch_system)
 AC_SUBST(libsrc_libs)
 AC_SUBST(LD_SWITCH_X_SITE)
+AC_SUBST(LD_SWITCH_X_SITE_AUX)
 AC_SUBST(C_SWITCH_X_SITE)
 AC_SUBST(CFLAGS)
 
 AC_DEFINE_UNQUOTED(config_machfile,  "\"${machfile}\"")
 AC_DEFINE_UNQUOTED(config_opsysfile, "\"${opsysfile}\"")
 AC_DEFINE_UNQUOTED(LD_SWITCH_X_SITE, ${LD_SWITCH_X_SITE})
+AC_DEFINE_UNQUOTED(LD_SWITCH_X_SITE, ${LD_SWITCH_X_SITE_AUX})
 AC_DEFINE_UNQUOTED(C_SWITCH_X_SITE,  ${C_SWITCH_X_SITE})
 AC_DEFINE_UNQUOTED(UNEXEC_SRC,       ${UNEXEC_SRC})
 
