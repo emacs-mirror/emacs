@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.61) $
+ * $HopeName: MMsrc!buffer.c(trunk.62) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
@@ -26,7 +26,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.61) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.62) $");
 
 
 /* forward declarations */
@@ -334,12 +334,12 @@ void BufferDetach(Buffer buffer, Pool pool)
     buffer->emptySize += spare;
     if (buffer->isMutator) {
       buffer->pool->emptyMutatorSize += spare;
-      buffer->arena->emptyMutatorSize += spare;
-      buffer->arena->allocMutatorSize +=
+      ArenaGlobals(buffer->arena)->emptyMutatorSize += spare;
+      ArenaGlobals(buffer->arena)->allocMutatorSize +=
         AddrOffset(buffer->base, init);
     } else {
       buffer->pool->emptyInternalSize += spare;
-      buffer->arena->emptyInternalSize += spare;
+      ArenaGlobals(buffer->arena)->emptyInternalSize += spare;
     }
 
     /* Reset the buffer. */
@@ -661,13 +661,13 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
   if (buffer->isMutator) {
     if (base != init) { /* see design.mps.buffer.count.alloc.how */
       Size prealloc = AddrOffset(base, init);
-      buffer->arena->allocMutatorSize -= prealloc;
+      ArenaGlobals(buffer->arena)->allocMutatorSize -= prealloc;
     }
     buffer->pool->fillMutatorSize += filled;
-    buffer->arena->fillMutatorSize += filled;
+    ArenaGlobals(buffer->arena)->fillMutatorSize += filled;
   } else {
     buffer->pool->fillInternalSize += filled;
-    buffer->arena->fillInternalSize += filled;
+    ArenaGlobals(buffer->arena)->fillInternalSize += filled;
   }
 
   /* run any class-specific attachment method */
