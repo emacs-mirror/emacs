@@ -187,7 +187,8 @@ Local to each dired buffer.")
 (defvar dired-subdir-alist nil
   "Association list of subdirectories and their buffer positions.
 Each subdirectory has an element: (DIRNAME . STARTMARKER).
-The order of elements is the reverse of the order in the buffer.")
+The order of elements is the reverse of the order in the buffer.
+In simple cases, this list contains one element.")
 
 (defvar dired-subdir-regexp "^. \\([^ \n\r]+\\)\\(:\\)[\n\r]"
   "Regexp matching a maybe hidden subdirectory line in `ls -lR' output.
@@ -851,7 +852,8 @@ Creates a buffer if necessary."
   (let* ((dir (dired-current-directory))
 	 (up (file-name-directory (directory-file-name dir))))
     (or (dired-goto-file (directory-file-name dir))
-	(and dired-subdir-alist
+	;; Only try dired-goto-subdir if buffer has more than one dir.
+	(and (cdr dired-subdir-alist)
 	     (dired-goto-subdir up))
 	(progn
 	  (dired up)
@@ -868,7 +870,8 @@ When file is a directory, show it in this buffer if it is inserted;
 otherwise, display it in another buffer."
   (interactive)
   (if (file-directory-p (dired-get-filename))
-      (or (and dired-subdir-alist (dired-goto-subdir (dired-get-filename)))
+      (or (and (cdr dired-subdir-alist)
+	       (dired-goto-subdir (dired-get-filename)))
 	  (dired (dired-get-filename)))
     (view-file (dired-get-filename))))
 
@@ -1225,7 +1228,7 @@ Returns the new value of the alist."
       ;; without really calling it if we don't have any subdirs.
       (if (if (string= dir default-directory)
 	      (goto-char (point-min))
-	    (and dired-subdir-alist 
+	    (and (cdr dired-subdir-alist)
 		 (dired-goto-subdir dir)))
 	  (let ((base (file-name-nondirectory file))
 		(boundary (dired-subdir-max)))
@@ -1286,7 +1289,7 @@ Optional argument means return a file name relative to `default-directory'."
 
 (defun dired-subdir-max ()
   (save-excursion
-    (if (or (null dired-subdir-alist) (not (dired-next-subdir 1 t t)))
+    (if (or (null (cdr dired-subdir-alist)) (not (dired-next-subdir 1 t t)))
 	(point-max)
       (point))))
 
@@ -1373,7 +1376,8 @@ Optional argument means return a file name relative to `default-directory'."
 ;; This is a separate function for the sake of dired-x.el.
 (defun dired-clean-up-after-deletion (fn)
   ;; Clean up after a deleted file or directory FN.
-  (save-excursion (and (dired-goto-subdir fn)
+  (save-excursion (and (cdr dired-subdir-alist)
+		       (dired-goto-subdir fn)
 		       (dired-kill-subdir))))
 
 ;; Confirmation
@@ -1576,7 +1580,7 @@ Use \\[dired-unmark-all-files] to remove all marks
 and \\[dired-unmark] on a subdir to remove the marks in
 this subdir."
   (interactive "P")
-  (if (and dired-subdir-alist (dired-get-subdir))
+  (if (and (cdr dired-subdir-alist) (dired-get-subdir))
       (save-excursion (dired-mark-subdir-files))
     (let (buffer-read-only)
       (dired-repeat-over-lines
