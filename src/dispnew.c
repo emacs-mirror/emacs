@@ -5702,8 +5702,6 @@ buffer_posn_from_coords (w, x, y, dx, dy, object, pos)
   struct it it;
   struct buffer *old_current_buffer = current_buffer;
   struct text_pos startp;
-  struct glyph_row *row;
-  struct image *img;
   int x0, x1;
 
   current_buffer = XBUFFER (w->buffer);
@@ -5716,25 +5714,44 @@ buffer_posn_from_coords (w, x, y, dx, dy, object, pos)
   move_it_to (&it, -1, x0 + it.first_visible_x, *y, -1,
 	      MOVE_TO_X | MOVE_TO_Y);
 
-  /* Add extra (default width) columns if clicked after EOL. */
-  x1 = max(0, it.current_x + it.pixel_width - it.first_visible_x);
-  if (x0 > x1)
-    it.hpos += (x0 - x1) / WINDOW_FRAME_COLUMN_WIDTH (w);
-
   current_buffer = old_current_buffer;
 
   *dx = x0 + it.first_visible_x - it.current_x;
   *dy = *y - it.current_y;
 
+  *object =  w->buffer;
+
 #ifdef HAVE_WINDOW_SYSTEM
-  if (it.what == IT_IMAGE
-      && (img = IMAGE_FROM_ID (it.f, it.image_id)) != NULL
-      && !NILP (img->spec))
-    *object = img->spec;
+  if (it.what == IT_IMAGE)
+    {
+      struct image *img;
+      if ((img = IMAGE_FROM_ID (it.f, it.image_id)) != NULL
+	  && !NILP (img->spec))
+	{
+	  struct glyph_row *row = MATRIX_ROW (w->current_matrix, it.vpos);
+	  struct glyph *glyph;
+
+	  if (it.hpos < row->used[TEXT_AREA]
+	      && (glyph = row->glyphs[TEXT_AREA] + it.hpos,
+		  glyph->type == IMAGE_GLYPH))
+	    {
+	      *dy -= row->ascent - glyph->ascent;
+	      *object = img->spec;
+	    }
+	}
+    }
   else
 #endif
-    *object = STRINGP (it.string) ? it.string : w->buffer;
+    if (STRINGP (it.string))
+      *object = it.string;
+
   *pos = it.current;
+
+  /* Add extra (default width) columns if clicked after EOL. */
+  x1 = max(0, it.current_x + it.pixel_width - it.first_visible_x);
+  if (x0 > x1)
+    it.hpos += (x0 - x1) / WINDOW_FRAME_COLUMN_WIDTH (w);
+
   *x = it.hpos;
   *y = it.vpos;
 }
@@ -5854,6 +5871,16 @@ marginal_area_string (w, x, y, dx, dy, part, charpos)
 	{
 	  string = glyph->object;
 	  *charpos = glyph->charpos;
+#ifdef HAVE_WINDOW_SYSTEM
+	  if (glyph->type == IMAGE_GLYPH)
+	    {
+	      struct image *img;
+	      img = IMAGE_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
+	      if (img != NULL)
+		string = img->spec;
+	      y0 -= row->ascent - glyph->ascent;
+	    }
+#endif
 	}
       else
 	/* Add extra (default width) columns if clicked after EOL. */
