@@ -634,7 +634,7 @@ from the corresponding `Makefile.in' files.  This isn't so hard,
 just a matter of substitution.
 
 The `configure' script is built from `configure.in' by the `autoconf'
-program.  You need version 2.8 or newer of `autoconf' to rebuild
+program.  You need version 2.51 or newer of `autoconf' to rebuild
 `configure'.
 
 BUILDING GNU EMACS BY HAND
