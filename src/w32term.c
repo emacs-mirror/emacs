@@ -558,7 +558,7 @@ BOOL
 w32_use_unicode_for_codepage (codepage)
 {
   /* If the current codepage is supported, use Unicode for output. */
-  return (w32_no_unicode_output
+  return (!w32_no_unicode_output
           && codepage != CP_DEFAULT && IsValidCodePage (codepage));
 }
 
@@ -5165,7 +5165,7 @@ When nil, the right-alt and left-ctrl key combination is\n\
 interpreted normally."); 
   Vw32_recognize_altgr = Qt;
   DEFVAR_BOOL ("w32-no-unicode-output",
-               w32_no_unicode_output,
+               &w32_no_unicode_output,
                "Disable the use of Unicode for text output if non-nil.\n\
 Unicode output may prevent some third party applications for displaying\n\
 Far-East Languages on Windows 95/98 from working properly.\n\
