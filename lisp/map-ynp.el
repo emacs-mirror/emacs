@@ -118,6 +118,11 @@ Returns the number of actions taken."
 		       prompt user-keys
 		       (key-description (char-to-string help-char)))
 	      (setq char (read-event)))
+	    ;; Show the answer to the question.
+	    (message "%s(y, n, !, ., q, %sor %s) %s"
+		     prompt user-keys
+		     (key-description (char-to-string help-char))
+		     (single-key-description char))
 	    (setq def (lookup-key map (vector char)))
 	    (cond ((eq def 'exit)
 		   (setq next (function (lambda () nil))))
