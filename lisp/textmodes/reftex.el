@@ -143,7 +143,7 @@
 ;; documentation string. Look it up for more information!
 ;;
 ;;   ;; Configuration Variables and User Options for RefTeX ------------------
-;;   ;; Support for \label and \ref ------------------------------------------
+;;   ;; Support for \label and \ref --------------------------------------
 ;;        (setq reftex-label-alist nil)
 ;;        (setq reftex-default-label-alist-entries '(Sideways LaTeX))
 ;;        (setq reftex-use-text-after-label-as-context nil)
@@ -327,21 +327,26 @@
 ;;
 ;; AUCTeX can support RefTeX via style files. A style file may contain
 ;; calls to reftex-add-to-label-alist which defines additions to
-;; reftex-label-alist. The argument taken by this function must have exactly
-;; the same format as reftex-label-alist. E.g. a good entry in a style file
-;; for the amsmath package would be
+;; reftex-label-alist. The argument taken by this function must have
+;; the same format as reftex-label-alist. E.g. the amsmath.el style file
+;; of AUCTeX contains the following:
 ;;
-;;    (and (fboundp 'reftex-add-to-label-alist)
-;;         (reftex-add-to-label-alist '(AMSTeX)))
+;;    (TeX-add-style-hook "amsmath"
+;;     (function
+;;      (lambda ()
+;;        (if (featurep 'reftex)
+;;              (reftex-add-to-label-alist '(AMSTeX))))))
 ;;
-;; while a package defining a proposition environment with \newtheorem
-;; might use
+;; while a package `myprop' defining a proposition environment with
+;; \newtheorem might use
 ;;
-;;    (and 
-;;     (fboundp 'reftex-add-to-label-alist)
-;;     (reftex-add-to-label-alist
-;;      '(("proposition" ?p "prop:"  "~\\ref{%s}" t 
-;;                            ("Proposition" "Prop.")))))
+;;    (TeX-add-style-hook "myprop"
+;;     (function
+;;      (lambda ()
+;;        (if (featurep 'reftex)
+;;            (reftex-add-to-label-alist
+;;             '(("proposition" ?p "prop:"  "~\\ref{%s}" t 
+;;                              ("Proposition" "Prop."))))))))
 ;;
 ;; Bib-cite.el
 ;; -----------
@@ -474,6 +479,7 @@
 ;; Finally thanks to Uwe Bolick <bolick@physik.tu-berlin.de> who first
 ;; got me (some years ago) into supporting LaTeX labels and references
 ;; with an Editor (which was MicroEmacs at the time).
+;;
 
 ;;; Code:
 
@@ -639,12 +645,16 @@ This list describes the default label environments RefTeX should always use in
 addition to the specifications in reftex-label-alist. It is probably a
 mistake to remove the LaTeX symbol from this list.
 
-Here are the current options:
-
+The options include:
 LaTeX     The standard LaTeX environments
 Sideways  The sidewaysfigure and sidewaystable environments
 AMSTeX    The math environments in the AMS_LaTeX amsmath package
-AAS       The deluxetable environment from the American Astronomical Society"
+AAS       The deluxetable environment from the American Astronomical Society
+
+For the full list of options, see the constant reftex-label-alist-builtin.
+Better still, try
+
+M-x customize-variable RET reftex-default-label-alist-entries RET."
   :group 'reftex-defining-label-environments
   :set   'reftex-set-dirty
   :type  '(list :indent 4
@@ -1085,12 +1095,14 @@ mode reset is done on the next occasion."
 ;;; of each master file with the symbols holding the information on that
 ;;; document. Each buffer has local variables which point to these symbols.
 
-
 ;; List of variables which handle the multifile stuff.
 ;; This list is used to tie, untie, and reset these symbols.
 (defconst reftex-multifile-symbols
   '(reftex-label-numbers-symbol reftex-list-of-labels-symbol
                                reftex-bibfile-list-symbol))
+
+;; Silence warnings about TeX-master, which is defined in AUCTeX
+(defvar TeX-master)
 
 ;; Alist connecting master file names with the corresponding lisp symbols
 (defvar reftex-master-index-list nil)
@@ -1168,8 +1180,8 @@ mode reset is done on the next occasion."
 (defun reftex-TeX-master-file ()
   ;; Return the name of the master file associated with the current buffer.
   ;; When AUCTeX is loaded, we will use it's more sophisticated method.
-  ;; We also support the default TeX and LaTeX modes
-  ;; by checking for a variable tex-main-file.
+  ;; We also support the default TeX and LaTeX modes by checking for a
+  ;; variable tex-main-file.
 
   (let
       ((master
@@ -2354,7 +2366,7 @@ Changing this is only fully operational after the next buffer scan.")
           (reftex-uniquify (symbol-value reftex-list-of-labels-symbol)))))
     (setq dlist (reftex-uniquify dlist))
     (if (null dlist) (error "No duplicate labels in document"))
-    (switch-to-buffer-other-window "*Help*")
+    (switch-to-buffer-other-window "*Duplicate Labels*")
     (make-local-variable 'TeX-master)
     (setq TeX-master master)
     (erase-buffer)
@@ -2687,6 +2699,9 @@ MENU:  SPC=view  RET=goto  [q]uit  [Q]uit+kill  [r]escan  [f]ollow-mode on/off
 ;;; BibTeX citations.
 
 ;; Variables and constants
+
+;; Define variable to silence compiler warnings
+(defvar reftex-found-list)
 
 ;; Internal variable, but used from different functions
 (defvar reftex-cite-format1 nil)
@@ -3173,15 +3188,15 @@ bibliography statement (e.g. if it was changed)."
   (let* (key entry cnt rtn ins-string re-list re
              ;; scan bibtex files
              (lazy-lock-minimum-size 1)
-             (found-list (reftex-extract-bib-entries
-                          (reftex-get-bibfile-list)))
+             (reftex-found-list (reftex-extract-bib-entries
+				(reftex-get-bibfile-list)))
              (found-list-r nil)
              (accept-keys
               (if (and (listp reftex-cite-format1)
                        (listp (car reftex-cite-format1)))
                   (mapcar 'car reftex-cite-format1)
                 '(?\C-m))))
-    (if (not found-list)
+    (if (not reftex-found-list)
         (error "Sorry, no matches found"))
 
     ;; remember where we came from
@@ -3192,7 +3207,7 @@ bibliography statement (e.g. if it was changed)."
       (switch-to-buffer-other-window "*RefTeX Select*")
       (erase-buffer)
       (mapcar '(lambda (x) (insert (cdr (assoc "&formatted" x))))
-              found-list)
+              reftex-found-list)
       (if (= 0 (buffer-size))
           (error "Sorry, no matches found"))
       (setq truncate-lines t)
@@ -3236,18 +3251,18 @@ bibliography statement (e.g. if it was changed)."
                                                       (cdr (assoc "&entry" x)))
                                         x
                                       ""))
-                                 found-list))))
+                                 reftex-found-list))))
                 (if found-list-r
-                    (setq found-list found-list-r)
+                    (setq reftex-found-list found-list-r)
                   (ding))
                 (erase-buffer)
                 (mapcar '(lambda (x) (insert (cdr (assoc "&formatted" x))))
-                        found-list)
+                        reftex-found-list)
                 (goto-char 1))
                ((or (member key accept-keys)
                     (equal key ?\C-m)
                     (equal key 'return))
-                (setq entry (nth cnt found-list))
+                (setq entry (nth cnt reftex-found-list))
                 (throw 'exit t))
                (t
                 (ding)))))
@@ -3322,10 +3337,8 @@ bibliography statement (e.g. if it was changed)."
   ;; Callback function to be called from the BibTeX selection, in
   ;; order to display context. This function is relatively slow and not
   ;; recommended for follow mode, just for individual lookups.
-  ;; When compiled, this gives a warning about found-list. However,
-  ;; the calling function binds found-list with let.
   (let ((win (selected-window))
-        (key (reftex-get-bib-field "&key" (nth cnt found-list)))
+        (key (reftex-get-bib-field "&key" (nth cnt reftex-found-list)))
         (bibfile-list (save-excursion
                         (set-buffer reftex-call-back-to-this-buffer)
                         (reftex-get-bibfile-list))))
@@ -3872,6 +3885,11 @@ With argument, actually select the window showing the cross reference."
      ("sidewaysfigure" ?f nil nil "\\\\caption\\(\\[[^]]*\\]\\)?{")
      ("sidewaystable"  ?t nil nil "\\\\caption\\(\\[[^]]*\\]\\)?{"))
     
+    (Subfigure
+     "Subfigure environment and macro"
+     ("subfigure"   ?f nil nil "\\\\caption\\(\\[[^]]*\\]\\)?{")
+     ("\\subfigure" ?f nil nil "\\\\subfigure[[{]"))
+
     (AMSTeX
      "AMS-LaTeX: amsmath package environents"
      ("align"    ?e "eq:" "~\\eqref{%s}" "\\\\begin{align}\\|\\\\\\\\")
@@ -3896,8 +3914,17 @@ variables. It is called when RefTeX is first used, and after changes to
 these variables via reftex-add-to-label-alist."
   (interactive)
 
-  ; record that we have done this
+  ;; Record that we have done this
   (setq reftex-tables-dirty nil)
+
+  ;; Kill temporary buffers associated with RefTeX - just in case they
+  ;; were not cleaned up properly
+  (let ((buffer-list '("*reftex-master.tex*" "*RefTeX Help*" "*RefTeX Select*"
+		      "*Duplicate Labels*" "*toc*" "*RefTeX-scratch*")))
+    (while buffer-list
+      (if (get-buffer (car buffer-list))
+	  (kill-buffer (car buffer-list)))
+      (setq buffer-list (cdr buffer-list))))
 
   ;; To update buffer-local variables
   (hack-local-variables)
@@ -4052,9 +4079,9 @@ This enforces rescanning the buffer on next use."
  '("Ref"
    ["Table of Contents"      reftex-toc t]
    "----"
-   ["\\label"              reftex-label t]
-   ["\\ref"                reftex-reference t]
-   ["\\cite"               reftex-citation t]
+   ["\\label"                reftex-label t]
+   ["\\ref"                  reftex-reference t]
+   ["\\cite"                 reftex-citation t]
    ["View crossref"          reftex-view-crossref t]
    "----"
    ("Search and Replace"
