@@ -39,7 +39,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
 
-#define SYSTEM_TYPE "dgc-unix"
+#define SYSTEM_TYPE "dgux"
 
 /* NOMULTIPLEJOBS should be defined if your system's shell
  does not have "job control" (the ability to stop a program,
@@ -239,6 +239,13 @@ is to define BROKEN_FIONREAD and not use INTERRUPT_INPUT.
 #define	TERMINFO
 
 /*
+ *      Send signals to subprocesses using characters.
+ *
+ */
+
+#define SIGNALS_VIA_CHARACTERS
+
+/*
  *	Define HAVE_TERMIOS since this is POSIX,
  *	for terminal control.  Prevent redundant inclusion of termio.h.
  */
@@ -277,7 +284,6 @@ is to define BROKEN_FIONREAD and not use INTERRUPT_INPUT.
 #define POSIX_SIGNALS
 
 /* Define this if you use System 5 Release 4 Streams */
-#define SYSV4_PTYS
 #define open  sys_open
 #define close sys_close
 #define read  sys_read
