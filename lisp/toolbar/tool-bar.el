@@ -43,7 +43,7 @@
 ;;;###autoload
 (define-minor-mode tool-bar-mode
   "Toggle use of the tool bar.
-With ARG, display the tool bar if and only if ARG is positive.
+With numeric ARG, display the tool bar if and only if ARG is positive.
 
 See `tool-bar-add-item' and `tool-bar-add-item-from-menu' for
 conveniently adding tool bar items."
