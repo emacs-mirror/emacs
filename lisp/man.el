@@ -450,9 +450,9 @@ Man-reuse-okay-p is non-nil."
 	(setenv "TERM" "dumb")
 	(set-process-sentinel
 	 (start-process "man" buffer "sh" "-c"
-			(format (Man-build-man-command) man-args)))
-       'Man-bgproc-sentinel))
-    ))
+			(format (Man-build-man-command) man-args))
+	 'Man-bgproc-sentinel))
+    )))
 
 (defun Man-notify-when-ready (man-buffer)
   "Notify the user when MAN-BUFFER is ready.
