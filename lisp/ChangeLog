@@ -1,3 +1,8 @@
+2004-10-25  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-incom.el (calc-digit-dots):  Inhibit read-only before
+	erasing minibuffer.
+
 2004-10-25  Simon Josefsson  <jas@extundo.com>
 
 	* subr.el (read-passwd): Move to net/password.el.
