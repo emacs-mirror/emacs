@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!52.c(trunk.4) $
+ id = $HopeName: MMQA_test_function!52.c(trunk.5) $
  summary = provoke mad behaviour by constant allocation
  language = c
  link = rankfmt.o testlib.o
@@ -13,6 +13,7 @@ END_HEADER
 #include <time.h>
 #include "testlib.h"
 #include "mpscamc.h"
+#include "mpsavm.h"
 #include "rankfmt.h"
 
 void *stackpointer;
@@ -20,7 +21,7 @@ void *stackpointer;
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_pool_t pool;
  mps_thr_t thread;
  mps_root_t root, root1;
@@ -35,29 +36,27 @@ static void test(void)
 
  formatcomments = 1;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)1024*1024*30),
+      "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(
-  mps_root_create_table(&root, space, MPS_RANK_AMBIG, 0, (mps_addr_t*)&a[0], 3),
-  "create table root");
+ cdie(mps_root_create_table(&root, arena, MPS_RANK_AMBIG, 0,
+                            (mps_addr_t*)&a[0], 3),
+      "create table root");
  
- cdie(
-  mps_root_create_table(&root1, space, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
-  "exfmt root");
+ cdie(mps_root_create_table(&root1, arena, MPS_RANK_AMBIG, 0,
+                            (mps_addr_t *)&exfmt_root, 1),
+      "exfmt root");
 
- cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
-  "create format");
+ cdie(mps_fmt_create_A(&format, arena, &fmtA),
+      "create format");
 
- cdie(
-  mps_pool_create(&pool, space, mps_class_amc(), format),
-  "create pool");
+ cdie(mps_pool_create(&pool, arena, mps_class_amc(), format),
+      "create pool");
 
- cdie(
-  mps_ap_create(&ap, pool, MPS_RANK_EXACT),
-  "create ap");
+ cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+      "create ap");
 
  time0 = clock();
  asserts(time0 != -1, "processor time not available");
@@ -99,8 +98,8 @@ static void test(void)
  mps_thread_dereg(thread);
  comment("Deregistered thread.");
 
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
 
 
