@@ -675,18 +675,17 @@ Do not specify them in other calls."
     ;; it is stored on disk (expanding short name aliases with the full
     ;; name in the process).
     (if (eq system-type 'windows-nt)
-      (let ((handler (find-file-name-handler filename 'file-truename))
-	    newname)
+      (let ((handler (find-file-name-handler filename 'file-truename)))
 	;; For file name that has a special handler, call handler.
 	;; This is so that ange-ftp can save time by doing a no-op.
 	(if handler
 	    (setq filename (funcall handler 'file-truename filename))
 	  ;; If filename contains a wildcard, newname will be the old name.
-	  (if (string-match "[[*?]" filename)
-	      (setq newname filename)
-	    ;; If filename doesn't exist, newname will be nil.
-	    (setq newname (w32-long-file-name filename)))
-	  (setq filename (or newname filename)))
+	  (unless (string-match "[[*?]" filename)
+	    ;; If filename exists, use the long name, otherwise
+	    ;; canonicalize the name, to handle case differences.
+	    (setq filename (or (w32-long-file-name filename)
+			       (untranslated-canonical-name filename)))))
 	(setq done t)))
 
     ;; If this file directly leads to a link, process that iteratively
