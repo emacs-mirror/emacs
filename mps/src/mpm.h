@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName$
+ * $HopeName: MMsrc!mpm.h(trunk.88) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -556,6 +556,9 @@ Ref ArenaRead(Arena arena, Addr addr);
 
 extern Size ArenaReserved(Arena arena);
 extern Size ArenaCommitted(Arena arena);
+
+extern Size ArenaCommitLimit(Arena arena);
+extern Res ArenaSetCommitLimit(Arena arena, Size limit);
 
 extern double ArenaMutatorAllocSize(Arena arena);
 

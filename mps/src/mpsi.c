@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.47) $
+ * $HopeName: MMsrc!mpsi.c(trunk.48) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.47) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.48) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -70,7 +70,7 @@ SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.47) $");
 
 static Bool mpsi_check(void)
 {
-  /* Check that external and internal result codes match. */
+  /* .check.rc: Check that external and internal result codes match. */
   /* See impl.h.mps.result-codes and impl.h.mpmtypes.result-codes. */
   /* Also see .check.enum.cast. */
   CHECKL(CHECKTYPE(mps_res_t, Res));
@@ -81,6 +81,7 @@ static Bool mpsi_check(void)
   CHECKL((int)MPS_RES_LIMIT == (int)ResLIMIT);
   CHECKL((int)MPS_RES_UNIMPL == (int)ResUNIMPL);
   CHECKL((int)MPS_RES_IO == (int)ResIO);
+  CHECKL((int)MPS_RES_COMMIT_LIMIT == (int)ResCOMMIT_LIMIT);
 
   /* Check that external and internal rank numbers match. */
   /* See impl.h.mps.ranks and impl.h.mpmtypes.ranks. */
@@ -214,6 +215,29 @@ size_t mps_space_committed(mps_space_t mps_space)
   return mps_arena_committed(mps_space);
 }
 
+size_t mps_arena_commit_limit(mps_arena_t mps_arena)
+{
+  Arena arena = (Arena)mps_arena;
+  Size size;
+
+  ArenaEnter(arena);
+  size = ArenaCommitLimit(arena);
+  ArenaLeave(arena);
+
+  return size;
+}
+  
+mps_res_t mps_arena_commit_limit_set(mps_arena_t mps_arena, size_t limit)
+{
+  Res res;
+  Arena arena = (Arena)mps_arena;
+
+  ArenaEnter(arena);
+  res = ArenaSetCommitLimit(arena, limit);
+  ArenaLeave(arena);
+
+  return res;
+}
 
 void mps_arena_clamp(mps_arena_t mps_arena)
 {

@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA IMPLEMENTATION USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.11) $
+ * $HopeName: MMsrc!arenacl.c(trunk.12) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .readership: MM developers
@@ -17,7 +17,7 @@
 #include "mpsacl.h"
 
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.11) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.12) $");
 
 
 typedef struct ClientArenaStruct *ClientArena;
@@ -487,6 +487,14 @@ static Res ChunkSegAlloc(Seg *segReturn, SegPref pref, Size pages,
   
   if (!b)
     return ResRESOURCE;
+  
+  /* check commit limit, note that if there are multiple reasons */
+  /* for failing the allocation we attempt to return other result codes */
+  /* in preference to ResCOMMIT_LIMIT.  See design.mps.arena.commit-limit */
+  if(ClientArenaCommitted(PoolArena(pool)) + pages*clientArena->pageSize >
+     PoolArena(pool)->commitLimit) {
+    return ResCOMMIT_LIMIT;
+  }
 
   /* Initialize the generic segment structure. */
   seg = PageSeg(&chunk->pageTable[baseIndex]);
@@ -548,8 +556,9 @@ static Res ClientSegAlloc(Seg *segReturn, SegPref pref,
   RING_FOR(node, &clientArena->chunkRing, nextNode) { 
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     res = ChunkSegAlloc(segReturn, pref, pages, pool, chunk);
-    if (res == ResOK)
+    if(res == ResOK || res == ResCOMMIT_LIMIT) {
       return res;
+    }
   }
   return ResRESOURCE;
 }
