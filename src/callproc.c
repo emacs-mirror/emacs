@@ -71,6 +71,7 @@ extern char *strerror ();
 #include "commands.h"
 #include "buffer.h"
 #include "charset.h"
+#include "ccl.h"
 #include "coding.h"
 #include <paths.h>
 #include "process.h"
@@ -176,6 +177,7 @@ call_process_cleanup (fdpid)
 
 DEFUN ("call-process", Fcall_process, Scall_process, 1, MANY, 0,
   "Call PROGRAM synchronously in separate process.\n\
+The remaining arguments are optional.\n\
 The program's input comes from file INFILE (nil means `/dev/null').\n\
 Insert output in BUFFER before point; t means current buffer;\n\
  nil for BUFFER means discard it; 0 means discard and don't wait.\n\
@@ -424,12 +426,16 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
 	      /* The Irix 4.0 compiler barfs if we eliminate dummy.  */
 	      new_argv[i - 3] = dummy1;
+	      argument_coding.mode |= CODING_MODE_LAST_BLOCK;
 	      encode_coding (&argument_coding,
 			     XSTRING (args[i])->data,
 			     new_argv[i - 3],
 			     STRING_BYTES (XSTRING (args[i])),
 			     size);
 	      new_argv[i - 3][argument_coding.produced] = 0;
+	      /* We have to initialize CCL program status again.  */
+	      if (argument_coding.type == coding_type_ccl)
+		setup_ccl_program (&(argument_coding.spec.ccl.encoder), Qnil);
 	    }
 	  UNGCPRO;
 	}
@@ -778,6 +784,7 @@ delete_temp_file (name)
 DEFUN ("call-process-region", Fcall_process_region, Scall_process_region,
   3, MANY, 0,
   "Send text from START to END to a synchronous process running PROGRAM.\n\
+The remaining arguments are optional.\n\
 Delete the text if fourth arg DELETE is non-nil.\n\
 \n\
 Insert output in BUFFER before point; t means current buffer;\n\
@@ -876,12 +883,22 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
   record_unwind_protect (delete_temp_file, filename_string);
 
-  if (!NILP (args[3]))
+  if (nargs > 3 && !NILP (args[3]))
     Fdelete_region (start, end);
 
-  args[3] = filename_string;
+  if (nargs > 3)
+    {
+      args += 2;
+      nargs -= 2;
+    }
+  else
+    {
+      args[0] = args[2];
+      nargs = 2;
+    }
+  args[1] = filename_string;
 
-  RETURN_UNGCPRO (unbind_to (count, Fcall_process (nargs - 2, args + 2)));
+  RETURN_UNGCPRO (unbind_to (count, Fcall_process (nargs, args)));
 }
 
 #ifndef VMS /* VMS version is in vmsproc.c.  */
