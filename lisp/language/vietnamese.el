@@ -206,7 +206,7 @@ Both tables are indexed by the position code of Vietnamese characters.")
  '(ccl-decode-viscii . ccl-encode-viscii)
  '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)
    (mime-charset . viscii)
-   (valid-codes (0 255))))
+   (valid-codes (0 . 255))))
 
 (define-coding-system-alias 'viscii 'vietnamese-viscii)
 
@@ -215,7 +215,7 @@ Both tables are indexed by the position code of Vietnamese characters.")
  "8-bit encoding for Vietnamese VSCII-1"
  '(ccl-decode-vscii . ccl-encode-vscii)
  '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)
-   (valid-codes (0 255))))
+   (valid-codes (0 . 255))))
 
 (define-coding-system-alias 'vscii 'vietnamese-vscii)
 
