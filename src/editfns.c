@@ -51,6 +51,8 @@ Lisp_Object Vbuffer_access_fontify_functions;
 Lisp_Object Qbuffer_access_fontify_functions;
 Lisp_Object Vbuffer_access_fontified_property;
 
+Lisp_Object Fuser_full_name ();
+
 /* Some static data, and a function to initialize it for each run */
 
 Lisp_Object Vsystem_name;
