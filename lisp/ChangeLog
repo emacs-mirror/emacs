@@ -16,6 +16,47 @@
 
 	* mouse.el (popup-menu): Balance parens.
 
+2000-10-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mouse.el (popup-menu): Move the command call outside the loop
+	so that popup-menu returns whatever the command returns.
+
+	* progmodes/etags.el: Docstring fixes.  Maintainer line updated.
+	(initialize-new-tags-table): Use run-hook-with-args-until-success.
+	(find-tag): Use pop-to-buffer if switch-to-buffer failed.
+	(tags-table-format-functions): Renamed from tags-table-format-hooks.
+
+	* vc.el (vc-version-diff): diff-switches can be a list.
+	Use relative filenames for prettier output.
+
+	* pcvs.el (cvs-append-to-ignore, cvs-vc-command-advice) 
+	(vc-post-command-functions): Remove old-VC compatibility code.
+
+	* newcomment.el (comment-indent-default): Autoload.
+
+	* font-lock.el (font-lock-defaults): Make buffer-local.
+	(font-lock-turn-on-thing-lock): Use jit-lock-refontify.
+	(font-lock-choose-keywords):
+	Ignore LEVEL unless KEYWORDS is a list of syms.
+	(c-keywords, c++-keywords, objc-keywords, java-keywords):
+	Don't wrap regexp-opt things in \(...\) unnecessarily.
+
+	* jit-lock.el: Don't require font-lock any more.
+	(jit-lock-functions): Make buffer-local.
+	(jit-lock-saved-fontify-buffer-function): Remove.
+	(jit-lock-mode): Remove autoload cookie.
+	Remove font-lock specific code.
+	(jit-lock-unregister): Don't bother handling complex hooks any more.
+	(jit-lock-refontify): New function.
+	(jit-lock-fontify-buffer): Use it.
+	(jit-lock-function-1): Replaced by jit-lock-fontify-now.
+	(jit-lock-fontify-now): Renamed from jit-lock-function-1.
+	Add optional args START and END.
+	Never call font-lock-fontify-region directly.
+	(jit-lock-function, jit-lock-stealth-fontify): Use it.
+
+	* emacs-lisp/regexp-opt.el (regexp-opt): Add \<...\> if PAREN=`words'.
+
 2000-10-08  Dave Love  <fx@gnu.org>
 
 	* progmodes/ada-mode.el (ada-mode-menu): Add name to menu map.
