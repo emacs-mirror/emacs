@@ -37,6 +37,17 @@
 \\[add-change-log-entry] calls this function (if nil, `add-log-current-defun'
 instead) with no arguments.  It returns a string or nil if it cannot guess.")
 
+;;;###autoload
+(defvar add-log-full-name (user-full-name)
+  "*Full name of user, for inclusion in ChangeLog daily headers.
+This defaults to the value returned by the `user-full-name' function.")
+
+;;;###autoload
+(defvar add-log-mailing-address (concat (user-login-name) "@" (system-name))
+  "*Electronic mail address of user, for inclusion in ChangeLog daily headers.
+This defaults to the value returned by `user-login-name', followed by
+an `@' character, followed by the value returned by `system-name'.")
+
 (defun change-log-name ()
   (or change-log-default-name
       (if (eq system-type 'vax-vms) "$CHANGE_LOG$.TXT" "ChangeLog")))
@@ -110,22 +121,18 @@ Fourth arg NEW-ENTRY non-nil means always create a new entry at the front;
 never append to an existing entry."
   (interactive (list current-prefix-arg
 		     (prompt-for-change-log-name)))
-  (let* ((full-name (if whoami
-			(read-input "Full name: " (user-full-name))
-		      (user-full-name)))
+  (if whoami
+      (progn
+	(setq add-log-full-name (read-input "Full name: " add-log-full-name))
 	 ;; Note that some sites have room and phone number fields in
 	 ;; full name which look silly when inserted.  Rather than do
 	 ;; anything about that here, let user give prefix argument so that
 	 ;; s/he can edit the full name field in prompter if s/he wants.
-	 (login-name (if whoami
-			 (read-input "Login name: " (user-login-name))
-		       (user-login-name)))
-	 (site-name (if whoami
-			(read-input "Site name: " (system-name))
-		      (system-name)))
-	 (defun (funcall (or add-log-current-defun-function
-			     'add-log-current-defun)))
-	 paragraph-end entry)
+	(setq add-log-mailing-address
+	      (read-input "Mailing address: " add-log-mailing-address))))
+  (let ((defun (funcall (or add-log-current-defun-function
+			    'add-log-current-defun)))
+	paragraph-end entry)
 
     (setq file-name (find-change-log file-name))
 
@@ -147,12 +154,12 @@ never append to an existing entry."
     (goto-char (point-min))
     (if (looking-at (concat (regexp-quote (substring (current-time-string)
 						     0 10))
-			    ".* " (regexp-quote full-name)
-			    "  (" (regexp-quote login-name) "@"))
+			    ".* " (regexp-quote add-log-full-name)
+			    "  (" (regexp-quote add-log-mailing-address)))
 	(forward-line 1)
       (insert (current-time-string)
-	      "  " full-name
-	      "  (" login-name "@" site-name ")\n\n"))
+	      "  " add-log-full-name
+	      "  (" add-log-mailing-address ")\n\n"))
 
     ;; Search only within the first paragraph.
     (if (looking-at "\n*[^\n* \t]")
