@@ -529,9 +529,9 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	(list (concat slash citations opt arg) 3 'font-lock-constant-face)
 	;;
 	;; Text between `` quotes ''.
-	(cons (concat (regexp-opt `("``" "\"<" "\"`" "<<" "Å´") t)
-		      "[^'\">Åª]+"	;a bit pessimistic
-		      (regexp-opt `("''" "\">" "\"'" ">>" "Åª") t))
+	(cons (concat (regexp-opt `("``" "\"<" "\"`" "<<" "k") t)
+		      "[^'\">{]+"	;a bit pessimistic
+		      (regexp-opt `("''" "\">" "\"'" ">>" "{") t))
 	      'font-lock-string-face)
 	;;
 	;; Command names, special and general.
@@ -1678,10 +1678,10 @@ See \\[tex-file] for an alternative."
 This function is more useful than \\[tex-buffer] when you need the
 `.aux' file of LaTeX to have the correct name."
   (interactive)
+  (when tex-offer-save
+    (save-some-buffers))
   (let* ((source-file (tex-main-file))
 	 (file-dir (file-name-directory (expand-file-name source-file))))
-    (if tex-offer-save
-        (save-some-buffers))
     (if (tex-shell-running)
         (tex-kill-job)
       (tex-start-shell))

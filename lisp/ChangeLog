@@ -1,3 +1,10 @@
+2002-07-01  Sam Steingold  <sds@gnu.org>
+
+	* textmodes/tex-mode.el (tex-file): Call `save-some-buffers'
+	before `tex-main-file' because if the current buffer is new, its
+	file might not exist yet, and then `tex-main-file' will
+	incorrectly return "foo.tex.tex".
+
 2002-07-01  Juanma Barranquero  <lektu@terra.es>
 
 	* ido.el (ido-minibuffer-setup-hook): Doc fix.
@@ -27,7 +34,7 @@
 
 	* info.el (Info-index): Get immediate error if used in `dir'.
 
-	* textmodes/picture.el (picture-forward-column) 
+	* textmodes/picture.el (picture-forward-column)
 	(picture-move-down): Never deactivate the mark.
 
 2002-06-30  Simon Josefsson  <jas@extundo.com>
