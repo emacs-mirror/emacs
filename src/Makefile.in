@@ -860,8 +860,14 @@ unlock:
 relock:
 	chmod -w $(SOURCES)
 	chmod +w paths.h
-tagsfiles = [a-zA-Z]*.h [a-zA-Z]*.c ../lisp/[a-zA-Z]*.el ../lisp/term/[a-zA-Z]*.el
-TAGS: $(tagsfiles)
-	etags $(tagsfiles)
-tags: TAGS
+
+# Arrange to make a tags table in ../lisp, and another in this dir
+# which includes ../lisp/TAGS by reference.
+ctagsfiles = [a-zA-Z]*.h [a-zA-Z]*.c
+lisptagsfiles = ../lisp/[a-zA-Z]*.el ../lisp/term/[a-zA-Z]*.el
+TAGS: $(ctagsfiles)
+	../lib-src/etags --include=../lisp/TAGS $(ctagsfiles)
+../lisp/TAGS: $(lisptagsfiles)
+	cd ../lisp; $(MAKE) TAGS
+tags: TAGS ../lisp/TAGS
 .PHONY: tags
