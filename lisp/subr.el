@@ -678,7 +678,7 @@ The value is a printing character (not upper case) or a symbol."
 
 (defsubst event-start (event)
   "Return the starting position of EVENT.
-If EVENT is a mouse press or a mouse click, this returns the location
+If EVENT is a mouse or key press or a mouse click, this returns the location
 of the event.
 If EVENT is a drag, this returns the drag's starting position.
 The return value is of the form
@@ -689,7 +689,8 @@ The `posn-' functions access elements of such lists."
     (list (selected-window) (point) '(0 . 0) 0)))
 
 (defsubst event-end (event)
-  "Return the ending location of EVENT.  EVENT should be a click or drag event.
+  "Return the ending location of EVENT.
+EVENT should be a click, drag, or key press event.
 If EVENT is a click event, this function is the same as `event-start'.
 The return value is of the form
    (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
@@ -726,6 +727,15 @@ and `event-end' functions."
       (if (consp (nth 1 position))
 	  (car (nth 1 position))
 	(nth 1 position))))
+
+(defun posn-set-point (position)
+  "Move point to POSITION.
+Select the corresponding window as well."
+    (if (not (windowp (posn-window position)))
+	(error "Position not in text area of window"))
+    (select-window (posn-window position))
+    (if (numberp (posn-point position))
+	(goto-char (posn-point position))))
 
 (defsubst posn-x-y (position)
   "Return the x and y coordinates in POSITION.

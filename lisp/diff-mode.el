@@ -110,7 +110,7 @@ when editing big diffs)."
     ("}" . diff-file-next)
     ("{" . diff-file-prev)
     ("\C-m" . diff-goto-source)
-    ([mouse-2] . diff-mouse-goto-source)
+    ([mouse-2] . diff-goto-source)
     ;; From XEmacs' diff-mode.
     ("W" . widen)
     ;;("." . diff-goto-source)		;display-buffer
@@ -545,14 +545,6 @@ Non-nil OLD means that we want the old file."
 	 (set (make-local-variable 'diff-remembered-files-alist)
 	      (cons (cons fs file) diff-remembered-files-alist))
 	 file)))))
-
-
-(defun diff-mouse-goto-source (event)
-  "Run `diff-goto-source' for the diff at a mouse click."
-  (interactive "e")
-  (save-excursion
-    (mouse-set-point event)
-    (diff-goto-source)))
 
 
 (defun diff-ediff-patch ()
@@ -1223,16 +1215,19 @@ With a prefix argument, try to REVERSE the hunk."
     (diff-hunk-status-msg line-offset (diff-xor reverse switched) t)))
 
 
-(defun diff-goto-source (&optional other-file)
+(defalias 'diff-mouse-goto-source 'diff-goto-source)
+
+(defun diff-goto-source (&optional other-file event)
   "Jump to the corresponding source line.
 `diff-jump-to-old-file' (or its opposite if the OTHER-FILE prefix arg
 is given) determines whether to jump to the old or the new file.
 If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[universal-argument])
   then `diff-jump-to-old-file' is also set, for the next invocations."
-  (interactive "P")
+  (interactive (list current-prefix-arg last-input-event))
   ;; When pointing at a removal line, we probably want to jump to
   ;; the old location, and else to the new (i.e. as if reverting).
   ;; This is a convenient detail when using smerge-diff.
+  (if event (posn-set-point (event-end event)))
   (let ((rev (not (save-excursion (beginning-of-line) (looking-at "[-<]")))))
     (destructuring-bind (buf line-offset pos src dst &optional switched)
 	(diff-find-source-location other-file rev)

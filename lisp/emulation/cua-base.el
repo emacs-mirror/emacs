@@ -419,19 +419,22 @@ Default is to load cursor color from initial or default frame parameters."
   :group 'cua)
 
 (defcustom cua-read-only-cursor-color "darkgreen"
-  "*Cursor color used in read-only buffers, if non-nil."
+  "*Cursor color used in read-only buffers, if non-nil.
+Only used when `cua-enable-cursor-indications' is non-nil."
   :type 'color
   :group 'cua)
 
 (defcustom cua-overwrite-cursor-color "yellow"
   "*Cursor color used when overwrite mode is set, if non-nil.
-Also used to indicate that rectangle padding is in effect."
+Also used to indicate that rectangle padding is in effect.
+Only used when `cua-enable-cursor-indications' is non-nil."
   :type 'color
   :group 'cua)
 
 (defcustom cua-global-mark-cursor-color "cyan"
   "*Indication for active global mark.
-Will change cursor color to specified color if string."
+Will change cursor color to specified color if string.
+Only used when `cua-enable-cursor-indications' is non-nil."
   :type 'color
   :group 'cua)
 
@@ -850,7 +853,7 @@ of text."
 
 With no prefix argument, clear mark if already set.  Otherwise, set
 mark, and push old mark position on local mark ring; also push mark on
-global mark ring if last mark was set in another buffer.  
+global mark ring if last mark was set in another buffer.
 
 With argument, jump to mark, and pop a new position for mark off
 the local mark ring \(this does not affect the global mark ring\).

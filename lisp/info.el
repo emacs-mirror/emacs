@@ -470,18 +470,16 @@ The top-level Info directory is made by combining all the files named `dir'
 in all the directories in that path."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Info file name: " nil nil t))))
+  (pop-to-buffer "*info*")
   (if file
-      (progn
-	(pop-to-buffer "*info*")
-	;; If argument already contains parentheses, don't add another set
-	;; since the argument will then be parsed improperly.  This also
-	;; has the added benefit of allowing node names to be included
-	;; following the parenthesized filename.
-	(if (and (stringp file) (string-match "(.*)" file))
-	    (Info-goto-node file)
-	  (Info-goto-node (concat "(" file ")"))))
-    (if (get-buffer "*info*")
-	(pop-to-buffer "*info*")
+      ;; If argument already contains parentheses, don't add another set
+      ;; since the argument will then be parsed improperly.  This also
+      ;; has the added benefit of allowing node names to be included
+      ;; following the parenthesized filename.
+      (if (and (stringp file) (string-match "(.*)" file))
+	  (Info-goto-node file)
+	(Info-goto-node (concat "(" file ")")))
+    (if (zerop (buffer-size))
       (Info-directory))))
 
 ;;;###autoload
@@ -2432,6 +2430,7 @@ Build a menu of the possible matches."
     (let ((pattern (format "\n\\* +\\([^\n]*%s[^\n]*\\):[ \t]+\\([^.]+\\)."
 			   (regexp-quote string)))
 	  (ohist Info-history)
+	  (ohist-list Info-history-list)
 	  (current-node Info-current-node)
 	  (current-file Info-current-file)
 	  manuals matches temp-file node)
@@ -2465,7 +2464,8 @@ Build a menu of the possible matches."
 		    (Info-goto-node node))))
 	    (error nil))))
       (Info-goto-node (concat "(" current-file ")" current-node))
-      (setq Info-history ohist)
+      (setq Info-history ohist
+	    Info-history-list ohist-list)
       (message "Searching indices...done")
       (if (null matches)
 	  (message "No matches found")

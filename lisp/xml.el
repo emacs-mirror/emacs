@@ -52,21 +52,26 @@
 
 ;;; LIST FORMAT
 
-;; The functions `xml-parse-file' and `xml-parse-tag' return a list with
-;; the following format:
+;; The functions `xml-parse-file', `xml-parse-region' and
+;; `xml-parse-tag' return a list with the following format:
 ;;
 ;;    xml-list   ::= (node node ...)
-;;    node       ::= (tag_name attribute-list . child_node_list)
+;;    node       ::= (qname attribute-list . child_node_list)
 ;;    child_node_list ::= child_node child_node ...
 ;;    child_node ::= node | string
-;;    tag_name   ::= string
-;;    attribute_list ::= (("attribute" . "value") ("attribute" . "value") ...)
+;;    qname      ::= (:namespace-uri . "name") | "name"
+;;    attribute_list ::= ((qname . "value") (qname . "value") ...)
 ;;                       | nil
 ;;    string     ::= "..."
 ;;
 ;; Some macros are provided to ease the parsing of this list.
 ;; Whitespace is preserved.  Fixme: There should be a tree-walker that
 ;; can remove it.
+
+;; TODO:
+;;  * xml:base, xml:space support
+;;  * more complete DOCTYPE parsing
+;;  * pi support
 
 ;;; Code:
 
@@ -230,72 +235,27 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
 	      (cons dtd (nreverse xml))
 	    (nreverse xml)))))))
 
-(defun xml-ns-parse-ns-attrs (attr-list &optional xml-ns)
-  "Parse the namespace attributes and return a list of cons in the form:
-\(namespace . prefix)"
+(defun xml-maybe-do-ns (name default xml-ns)
+  "Perform any namespace expansion.  NAME is the name to perform the expansion on.
+DEFAULT is the default namespace.  XML-NS is a cons of namespace
+names to uris.  When namespace-aware parsing is off, then XML-NS
+is nil.
 
-  (mapcar
-   (lambda (attr)
-     (let* ((splitup (split-string (car attr) ":"))
-	    (prefix (nth 0 splitup))
-	    (lname (nth 1 splitup)))
-       (when (string= "xmlns" prefix)
-	 (push (cons (if lname
-			 lname
-		       "")
-		     (cdr attr))
-	       xml-ns)))) attr-list)
-  xml-ns)
-
-;; expand element names
-(defun xml-ns-expand-el (el xml-ns)
-  "Expand the XML elements from \"prefix:local-name\" to a cons in the form
-\"(namespace . local-name)\"."
-
-  (let* ((splitup (split-string el ":"))
-	 (lname (or (nth 1 splitup)
-		    (nth 0 splitup)))
-	 (prefix (if (nth 1 splitup)
-		     (nth 0 splitup)
-		   (if (string= lname "xmlns")
-		       "xmlns"
-		     "")))
-	 (ns (cdr (assoc-string prefix xml-ns))))
-    (if (string= "" ns)
-	lname
-      (cons (intern (concat ":" ns))
-	    lname))))
-
-;; expand attribute names
-(defun xml-ns-expand-attr (attr-list xml-ns)
-  "Expand the attribute list for a particular element from the form
-\"prefix:local-name\" to the form \"{namespace}:local-name\"."
-
-  (mapcar
-   (lambda (attr)
-     (let* ((splitup (split-string (car attr) ":"))
-	    (lname (or (nth 1 splitup)
-		       (nth 0 splitup)))
-	    (prefix (if (nth 1 splitup)
-			(nth 0 splitup)
-		      (if (string= (car attr) "xmlns")
-			  "xmlns"
-			"")))
-	    (ns (cdr (assoc-string prefix xml-ns))))
-       (setcar attr
-	       (if (string= "" ns)
-		   lname
-		 (cons (intern (concat ":" ns))
-		       lname)))))
-   attr-list)
-  attr-list)
-
-(defun xml-intern-attrlist (attr-list)
-  "Convert attribute names to symbols for backward compatibility."
-  (mapcar (lambda (attr)
-	    (setcar attr (intern (car attr))))
-	  attr-list)
-  attr-list)
+During namespace-aware parsing, any name without a namespace is
+put into the namespace identified by DEFAULT.  nil is used to
+specify that the name shouldn't be given a namespace."
+  (if (consp xml-ns)
+      (let* ((nsp (string-match ":" name))
+	     (lname (if nsp (substring name (match-end 0)) name))
+	     (prefix (if nsp (substring name 0 (match-beginning 0)) default))
+	     (special (and (string-equal lname "xmlns") (not prefix)))
+             ;; Setting default to nil will insure that there is not
+             ;; matching cons in xml-ns.  In which case we
+	     (ns (or (cdr (assoc (if special "xmlns" prefix)
+                                 xml-ns))
+                     :)))
+        (cons ns (if special "" lname)))
+    (intern name)))
 
 (defun xml-parse-tag (&optional parse-dtd parse-ns)
   "Parse the tag at point.
@@ -310,10 +270,12 @@ Returns one of:
 		    parse-ns
 		  (if parse-ns
 		      (list
-		       ;; Default no namespace
-		       (cons "" "")
+                       ;; Default for empty prefix is no namespace
+                       (cons ""      :)
+		       ;; "xml" namespace
+		       (cons "xml"   :http://www.w3.org/XML/1998/namespace)
 		       ;; We need to seed the xmlns namespace
-		       (cons "xmlns" "http://www.w3.org/2000/xmlns/"))))))
+		       (cons "xmlns" :http://www.w3.org/2000/xmlns/))))))
     (cond
      ;; Processing instructions (like the <?xml version="1.0"?> tag at the
      ;; beginning of a document).
@@ -350,19 +312,23 @@ Returns one of:
 
       ;; Parse this node
       (let* ((node-name (match-string 1))
-	     (attr-list (xml-parse-attlist))
-	     (children (if  (consp xml-ns) ;; take care of namespace parsing
-			    (progn
-			      (setq xml-ns (xml-ns-parse-ns-attrs
-					    attr-list xml-ns))
-			      (list (xml-ns-expand-attr
-				     attr-list xml-ns)
-				    (xml-ns-expand-el
-				     node-name xml-ns)))
-			    (list (xml-intern-attrlist attr-list)
-				  (intern node-name))))
-	     pos)
+             ;; Parse the attribute list.
+             (attrs (xml-parse-attlist xml-ns))
+             children pos)
 
+        ;; add the xmlns:* attrs to our cache
+        (when (consp xml-ns)
+	  (dolist (attr attrs)
+	    (when (and (consp (car attr))
+		       (eq :http://www.w3.org/2000/xmlns/
+			   (caar attr)))
+	      (push (cons (cdar attr) (intern (concat ":" (cdr attr))))
+		    xml-ns))))
+
+        ;; expand element names
+        (setq node-name (list (xml-maybe-do-ns node-name "" xml-ns)))
+
+        (setq children (list attrs node-name))
 	;; is this an empty element ?
 	(if (looking-at "/>")
 	(progn
@@ -416,7 +382,7 @@ Returns one of:
      (t	;; This is not a tag.
       (error "XML: Invalid character")))))
 
-(defun xml-parse-attlist ()
+(defun xml-parse-attlist (&optional xml-ns)
   "Return the attribute-list after point.  Leave point at the
 first non-blank character after the tag."
   (let ((attlist ())
@@ -424,8 +390,9 @@ first non-blank character after the tag."
     (skip-syntax-forward " ")
     (while (looking-at (eval-when-compile
 			 (concat "\\(" xml-name-regexp "\\)\\s-*=\\s-*")))
-      (setq name (match-string 1))
-      (goto-char (match-end 0))
+      (setq end-pos (match-end 0))
+      (setq name (xml-maybe-do-ns (match-string 1) nil xml-ns))
+      (goto-char end-pos)
 
       ;; See also: http://www.w3.org/TR/2000/REC-xml-20001006#AVNormalize
 

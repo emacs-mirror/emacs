@@ -274,6 +274,8 @@ from being initialized."
 		 string)
   :group 'auto-save)
 
+(defvar emacs-quick-startup nil)
+
 (defvar init-file-debug nil)
 
 (defvar init-file-had-error nil)
@@ -690,6 +692,11 @@ opening the first frame (e.g. open a connection to the server).")
 		(setq argval nil
                       argi orig-argi)))))
 	(cond
+	 ((equal argi "-Q")
+	  (setq init-file-user nil
+		site-run-file nil
+		emacs-quick-startup t)
+	  (push '(vertical-scroll-bars . nil) initial-frame-alist))
 	 ((member argi '("-q" "-no-init-file"))
 	  (setq init-file-user nil))
 	 ((member argi '("-u" "-user"))
@@ -721,18 +728,21 @@ opening the first frame (e.g. open a connection to the server).")
 
   ;; If frame was created with a menu bar, set menu-bar-mode on.
   (unless (or noninteractive
+	      emacs-quick-startup
               (and (memq initial-window-system '(x w32))
                    (<= (frame-parameter nil 'menu-bar-lines) 0)))
     (menu-bar-mode 1))
 
   ;; If frame was created with a tool bar, switch tool-bar-mode on.
   (unless (or noninteractive
+	      emacs-quick-startup
               (not (display-graphic-p))
               (<= (frame-parameter nil 'tool-bar-lines) 0))
     (tool-bar-mode 1))
 
   ;; Can't do this init in defcustom because initial-window-system isn't set.
   (unless (or noninteractive
+	      emacs-quick-startup
               (eq system-type 'ms-dos)
               (not (memq initial-window-system '(x w32))))
     (setq-default blink-cursor t)
@@ -754,6 +764,7 @@ opening the first frame (e.g. open a connection to the server).")
       (normal-erase-is-backspace-mode 1)))
 
   (unless (or noninteractive
+	      emacs-quick-startup
               (not (display-graphic-p))
               (not (fboundp 'x-show-tip)))
     (setq-default tooltip-mode t)
@@ -1106,8 +1117,8 @@ where FACE is a valid face specification, as it can be used with
     (when img
       (when (> window-width image-width)
 	;; Center the image in the window.
-	(let ((pos (/ (- window-width image-width) 2)))
-	  (insert (propertize " " 'display `(space :align-to ,pos))))
+	(insert (propertize " " 'display
+			    `(space :align-to (+ center (-0.5 . ,img)))))
 
 	;; Change the color of the XPM version of the splash image
 	;; so that it is visible with a dark frame background.
@@ -1656,11 +1667,13 @@ normal otherwise."
                (list-buffers)))))
 
   ;; Maybe display a startup screen.
-  (when (and (not inhibit-startup-message) (not noninteractive)
+  (unless (or inhibit-startup-message
+	      noninteractive
+	      emacs-quick-startup
 	     ;; Don't display startup screen if init file
 	     ;; has started some sort of server.
-	     (not (and (fboundp 'process-list)
-		       (process-list))))
+	     (and (fboundp 'process-list)
+		  (process-list)))
     ;; Display a startup screen, after some preparations.
 
     ;; If there are no switches to process, we might as well

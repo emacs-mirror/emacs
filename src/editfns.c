@@ -3220,7 +3220,7 @@ usage: (format STRING &rest OBJECTS)  */)
      string itself, will not be used.  Element NARGS, corresponding to
      no argument, *will* be assigned to in the case that a `%' and `.'
      occur after the final format specifier.  */
-  int *precision = (int *) (alloca(nargs * sizeof (int)));
+  int *precision = (int *) (alloca((nargs + 1) * sizeof (int)));
   int longest_format;
   Lisp_Object val;
   int arg_intervals = 0;
@@ -3274,7 +3274,7 @@ usage: (format STRING &rest OBJECTS)  */)
   /* Make room in result for all the non-%-codes in the control string.  */
   total = 5 + CONVERTED_BYTE_SIZE (multibyte, args[0]);
 
-  /* Allocate the info and discarded tables.  */ 
+  /* Allocate the info and discarded tables.  */
   {
     int nbytes = nargs * sizeof *info;
     int i;

@@ -1,6 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support
 
-;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001
+;; Copyright (C) 1993, 94, 95, 1999, 2000, 01, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -577,12 +577,7 @@ This should be bound to a mouse click event type."
   (mouse-minibuffer-check event)
   ;; Use event-end in case called from mouse-drag-region.
   ;; If EVENT is a click, event-end and event-start give same value.
-  (let ((posn (event-end event)))
-    (if (not (windowp (posn-window posn)))
-	(error "Cursor not in text area of window"))
-    (select-window (posn-window posn))
-    (if (numberp (posn-point posn))
-	(goto-char (posn-point posn)))))
+  (posn-set-point (event-end event)))
 
 (defvar mouse-last-region-beg nil)
 (defvar mouse-last-region-end nil)
