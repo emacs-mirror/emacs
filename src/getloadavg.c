@@ -309,67 +309,6 @@ extern int errno;
 #  define	LDAV_CVT(n) (((double) (n)) / FSCALE)
 # endif
 
-/* VAX C can't handle multi-line #ifs, or lines longer that 256 characters.  */
-# ifndef NLIST_STRUCT
-
-#  ifdef MORE_BSD
-#   define NLIST_STRUCT
-#  endif
-
-#  ifdef sun
-#   define NLIST_STRUCT
-#  endif
-
-#  ifdef decstation
-#   define NLIST_STRUCT
-#  endif
-
-#  ifdef hpux
-#   define NLIST_STRUCT
-#  endif
-
-#  if defined (_SEQUENT_) || defined (sequent)
-#   define NLIST_STRUCT
-#  endif
-
-#  ifdef sgi
-#   define NLIST_STRUCT
-#  endif
-
-#  ifdef SVR4
-#   define NLIST_STRUCT
-#  endif
-
-#  ifdef sony_news
-#   define NLIST_STRUCT
-#  endif
-
-#  ifdef OSF_ALPHA
-#   define NLIST_STRUCT
-#  endif
-
-#  if defined (ardent) && defined (titan)
-#   define NLIST_STRUCT
-#  endif
-
-#  ifdef tek4300
-#   define NLIST_STRUCT
-#  endif
-
-#  ifdef butterfly
-#   define NLIST_STRUCT
-#  endif
-
-#  if defined(alliant) && defined(i860) /* Alliant FX/2800 */
-#   define NLIST_STRUCT
-#  endif
-
-#  ifdef _AIX
-#   define NLIST_STRUCT
-#  endif
-
-# endif /* defined (NLIST_STRUCT) */
-
 
 # if defined(sgi) || (defined(mips) && !defined(BSD))
 #  define FIXUP_KERNEL_SYMBOL_ADDR(nl) ((nl)[0].n_value &= ~(1 << 31))
