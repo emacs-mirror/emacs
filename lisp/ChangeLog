@@ -1,3 +1,9 @@
+2002-05-10  Miles Bader  <miles@gnu.org>
+
+	* facemenu.el (list-colors-display): Don't use
+	`display-color-cells' unless the display class is one for which
+	that info is relevant.
+
 2002-05-07  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-send-it): Use user-mail-address from
