@@ -3575,7 +3575,7 @@ handle_single_display_prop (it, prop, object, position,
 	      || EQ (XCAR (prop), Qright_fringe))
 	  && CONSP (XCDR (prop)))
 	{
-	  unsigned face_id = DEFAULT_FACE_ID;
+	  int face_id = DEFAULT_FACE_ID;
 	  int fringe_bitmap;
 
 	  /* Save current settings of IT so that we can restore them
@@ -3594,10 +3594,9 @@ handle_single_display_prop (it, prop, object, position,
 	  if (CONSP (XCDR (XCDR (prop))))
 	    {
 	      Lisp_Object face_name = XCAR (XCDR (XCDR (prop)));
-
-	      face_id = lookup_named_face (it->f, face_name, 'A');
-	      if (face_id < 0)
-		return 0;
+	      int face_id2 = lookup_named_face (it->f, face_name, 'A', 0);
+	      if (face_id2 >= 0)
+		face_id = face_id2;
 	    }
 
 	  push_it (it);
@@ -14534,7 +14533,9 @@ highlight_trailing_whitespace (f, row)
 		  && glyph->u.ch == ' '))
 	  && trailing_whitespace_p (glyph->charpos))
 	{
-	  int face_id = lookup_named_face (f, Qtrailing_whitespace, 0);
+	  int face_id = lookup_named_face (f, Qtrailing_whitespace, 0, 0);
+	  if (face_id < 0)
+	    return;
 
 	  while (glyph >= start
 		 && BUFFERP (glyph->object)
@@ -18808,7 +18809,7 @@ calc_line_height_property (it, prop, font, boff, total)
       struct face *face;
       struct font_info *font_info;
 
-      face_id = lookup_named_face (it->f, face_name, ' ');
+      face_id = lookup_named_face (it->f, face_name, ' ', 0);
       if (face_id < 0)
 	return make_number (-1);
 
