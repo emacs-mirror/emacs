@@ -1797,7 +1797,7 @@ visual feedback indicating the extent of the region being copied."
 	    ;; look like a C-g typed as a command.
 	    (inhibit-quit t))
 	(if (pos-visible-in-window-p other-end (selected-window))
-	    (progn
+	    (unless transient-mark-mode
 	      ;; Swap point and mark.
 	      (set-marker (mark-marker) (point) (current-buffer))
 	      (goto-char other-end)
