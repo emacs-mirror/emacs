@@ -1,6 +1,6 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001
+;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.94 $")
+(defconst byte-compile-version "$Revision: 2.95 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1980,6 +1980,22 @@ list that represents a doc string reference.
 	       (stringp (car-safe (cdr-safe (cdr-safe body)))))
 	  (byte-compile-warn "probable `\"' without `\\' in doc string of %s"
 			     (nth 1 form))))
+
+    ;; Generate code for declarations in macro definitions.
+    ;; Remove declarations from the body of the macro definition.
+    (when macrop
+      (let ((tail (nthcdr 2 form)))
+	(when (stringp (car (cdr tail)))
+	  (setq tail (cdr tail)))
+	(while (and (consp (car (cdr tail)))
+		    (eq (car (car (cdr tail))) 'declare))
+	  (let ((declaration (car (cdr tail))))
+	    (setcdr tail (cdr (cdr tail)))
+	    (princ `(if macro-declaration-function
+			(funcall macro-declaration-function
+				 ',name ',declaration))
+		   outbuffer)))))
+      
     (let* ((new-one (byte-compile-lambda (cons 'lambda (nthcdr 2 form))))
 	   (code (byte-compile-byte-code-maker new-one)))
       (if this-one
