@@ -486,10 +486,10 @@ other kinds of prefix arguments are ignored."
   (compile-reinitialize-errors argp (point))
 
   ;; Move compilation-error-list to the elt of compilation-old-error-list
-  ;; whose cadr is the error we want.
+  ;; we want.
   (setq compilation-error-list compilation-old-error-list)
-  (while (and (cdr compilation-error-list)
-	      (> (point) (car (car (cdr compilation-error-list)))))
+  (while (and compilation-error-list
+	      (> (point) (car (car compilation-error-list))))
     (setq compilation-error-list (cdr compilation-error-list)))
 
   ;; Move to another window, so that next-error's window changes
@@ -501,7 +501,7 @@ other kinds of prefix arguments are ignored."
 	;; but we didn't want to do that.
 	(set-buffer compilation-last-buffer)))
 
-  (next-error 0))
+  (next-error 1))
 
 (defun compilation-buffer-p (buffer)
   (assq 'compilation-error-list (buffer-local-variables buffer)))
@@ -569,9 +569,8 @@ See variables `compilation-parse-errors-function' and
   (let (next-errors next-error)
     (save-excursion
       (set-buffer compilation-last-buffer)
-      ;; This code used to do something bizarre and incomprehensible.
-      ;; Was there a reason I wrote it like that?  --roland
-      (setq next-errors (nthcdr (prefix-numeric-value argp)
+      ;; compilation-error-list points to the "current" error.
+      (setq next-errors (nthcdr (1- (prefix-numeric-value argp))
 				compilation-error-list)
 	    next-error (car next-errors))
       (while
