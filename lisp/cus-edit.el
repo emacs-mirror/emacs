@@ -209,6 +209,10 @@
   "Support editing files of data."
   :group 'emacs)
 
+(defgroup files nil
+  "Support editing files."
+  :group 'emacs)
+
 (defgroup wp nil
   "Word processing."
   :group 'emacs)
@@ -323,7 +327,7 @@
 
 (defgroup auto-save nil
   "Preventing accidential loss of data."
-  :group 'data)
+  :group 'files)
 
 (defgroup processes-basics nil
   "Basic stuff dealing with processes."
