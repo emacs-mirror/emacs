@@ -800,6 +800,7 @@ void
 push_frame_kboard (f)
      FRAME_PTR f;
 {
+#ifdef MULTI_KBOARD
   struct kboard_stack *p
     = (struct kboard_stack *) xmalloc (sizeof (struct kboard_stack));
 
@@ -808,15 +809,18 @@ push_frame_kboard (f)
   kboard_stack = p;
 
   current_kboard = FRAME_KBOARD (f);
+#endif
 }
 
 void
 pop_frame_kboard ()
 {
+#ifdef MULTI_KBOARD
   struct kboard_stack *p = kboard_stack;
   current_kboard = p->kboard;
   kboard_stack = p->next;
   xfree (p);
+#endif
 }
 
 /* Handle errors that are not handled at inner levels
