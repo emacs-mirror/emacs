@@ -396,7 +396,7 @@ it defaults to `insert'."
 	(if (and (listp current)
 		 (not (member where current)))
 	    (setq current (append current (list where)))
-	  (setq current where))
+	  (setq current (list where)))
 	(if (not (aref eshell-current-handles index))
 	    (aset eshell-current-handles index (cons nil 1)))
 	(setcar (aref eshell-current-handles index) current)))))
