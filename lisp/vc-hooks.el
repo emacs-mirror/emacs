@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.138 2002/02/21 20:56:58 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.139 2002/02/28 13:09:36 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -311,11 +311,11 @@ For registered files, the possible values are:
               when the user saves the first changes to the file.
 
   'locking    FILE is read-only if up-to-date; user must type
-              \\[vc-toggle-read-only] before editing.  Strict locking
+              \\[vc-next-action] before editing.  Strict locking
               is assumed.
 
   'announce   FILE is read-only if up-to-date; user must type
-              \\[vc-toggle-read-only] before editing.  But other users
+              \\[vc-next-action] before editing.  But other users
               may be editing at the same time."
   (or (vc-file-getprop file 'vc-checkout-model)
       (if (vc-backend file)
@@ -453,19 +453,22 @@ this function."
 
 (defun vc-toggle-read-only (&optional verbose)
   "Change read-only status of current buffer, perhaps via version control.
+
 If the buffer is visiting a file registered with version control,
 then check the file in or out.  Otherwise, just change the read-only flag
 of the buffer.
 With prefix argument, ask for version number to check in or check out.
 Check-out of a specified version number does not lock the file;
-to do that, use this command a second time with no argument."
+to do that, use this command a second time with no argument.
+
+If you bind this function to \\[toggle-read-only], then Emacs checks files
+in or out whenever you toggle the read-only flag."
   (interactive "P")
   (if (or (and (boundp 'vc-dired-mode) vc-dired-mode)
 	  ;; use boundp because vc.el might not be loaded
 	  (vc-backend (buffer-file-name)))
       (vc-next-action verbose)
     (toggle-read-only)))
-(define-key global-map "\C-x\C-q" 'vc-toggle-read-only)
 
 (defun vc-default-make-version-backups-p (backend file)
   "Return non-nil if unmodified versions should be backed up locally.
