@@ -392,21 +392,22 @@ which font is being used for displaying the character."
 						     (nth 1 composition))))
 	 (multibyte-p enable-multibyte-characters)
 	 item-list max-width)
-    (if (eq charset 'unknown)
+    (if (not (characterp char))
 	(setq item-list
 	      `(("character"
 		 ,(format "%s (0%o, %d, 0x%x) -- invalid character code"
-			  (if (< char 256)
-			      (single-key-description char)
-			    (char-to-string char))
-			  char char char))))
+			  (char-to-string char) char char char))))
       (setq item-list
 	    `(("character"
-	       ,(format "%s (0%o, %d, 0x%x)" (if (< char 256)
-						 (single-key-description char)
-					       (char-to-string char))
-			char char char))
-	      ("charset"
+	       ,(format "%s (0%o, %d, 0x%x%s)"
+			(if (< char 256)
+			    (single-key-description char)
+			  (char-to-string char))
+			char char char
+			(if (encode-char char 'ucs)
+			    (format ", U+%04X" (encode-char char 'ucs))
+			  "")))
+	      ("preferred charset"
 	       ,(symbol-name charset)
 	       ,(format "(%s)" (charset-description charset)))
 	      ("code point"
@@ -447,18 +448,8 @@ which font is being used for displaying the character."
 		   (if encoded
 		       (list (encoded-string-description encoded coding)
 			     (format "(encoded by coding system %S)" coding))
-		     ;; Fixme: this is wrong e.g. for chars in HELLO
 		     (list "not encodable by coding system"
 			   (symbol-name coding)))))
-	      ,@(if (or (memq 'mule-utf-8
-			  (find-coding-systems-region (point) (1+ (point))))
-			(get-char-property (point) 'untranslated-utf-8))
-		    (let ((uc (or (get-char-property (point)
-						     'untranslated-utf-8)
-				  (encode-char (char-after) 'ucs))))
-		      (if uc
-			  (list (list "Unicode"
-				      (format "%04X" uc))))))
 	      ,(if (display-graphic-p (selected-frame))
 		   (list "font" (or (internal-char-font (point))
 				    "-- none --"))
@@ -512,28 +503,20 @@ which font is being used for displaying the character."
 
 ;;; CODING-SYSTEM
 
-;; Fixme
-(defun print-designation (charset-list initial request)
-;; Print information of designation of each graphic register in FLAGS
-;; in human readable format.  See the documentation of
-;; `make-coding-system' for the meaning of FLAGS.
-  (let ((gr (make-vector 4 nil))
-	charset)
-    (dotimes (i 4)
-      (let ((val (aref initial i)))
-	(cond ((symbolp val)
-	       (aset gr i (list val)))
-	      ((eq val -1)
-	       (aset gr i (list t))))))
-    (dolist (elt request)
-      (let ((reg (cdr elt)))
-	(nconc (aref gr reg) (list (car elt)))))
-    (dotimes (i 4)
-      ;; Fixme:
-      (setq charset (aref flags graphic-register))
+(eval-when-compile			; dynamic bondage
+  (defvar graphic-register))
+
+;; Print information about designation of each graphic register in
+;; DESIGNATIONS in human readable format.  See the documentation of
+;; `define-coding-system' for the meaning of DESIGNATIONS
+;; (`:designation' property).
+(defun print-designation (designations)
+  (let (charset)
+    (dotimes (graphic-register 4)
+      (setq charset (aref designations graphic-register))
       (princ (format
 	      "  G%d -- %s\n"
-	      i
+	      graphic-register
 	      (cond ((null charset)
 		     "never used")
 		    ((eq charset t)
@@ -543,7 +526,7 @@ which font is being used for displaying the character."
 			     charset (charset-description charset)))
 		    ((listp charset)
 		     (if (charsetp (car charset))
-			 (format "%s:%s, and also used by the followings:"
+			 (format "%s:%s, and also used by the following:"
 				 (car charset)
 				 (charset-description (car charset)))
 		       "no initial designation, and used by the followings:"))
@@ -560,18 +543,7 @@ which font is being used for displaying the character."
 				(charset-description (car charset)))))
 		(t
 		 "invalid designation information"))
-	  (setq charset (cdr charset))))
-      (setq graphic-register (1+ graphic-register)))))
-
-(defun print-iso-2022-flags (flags)
-  (princ "Other specifications: \n  ")
-  (let ((i 0)
-	(l nil))
-    (dolist (elt coding-system-iso-2022-flags)
-      (if (/= (logand flags (lsh 1 i)) 0)
-	  (setq l (cons elt l))))
-    (princ l))
-  (terpri))
+	  (setq charset (cdr charset)))))))
 
 ;;;###autoload
 (defun describe-coding-system (coding-system)
@@ -592,17 +564,18 @@ which font is being used for displaying the character."
 	       (princ " (do automatic conversion)"))
 	      ((eq type 'utf-8)
 	       (princ " (UTF-8: Emacs internal multibyte form)"))
-	      ((eq type 'sjis)
+	      ((eq type 'shift-jis)
 	       (princ " (Shift-JIS, MS-KANJI)"))
 	      ((eq type 'iso-2022)
 	       (princ " (variant of ISO-2022)\n")
-;; Fixme:
-;; 	       (princ "Initial designations:\n")
-;; 	       (print-designation (coding-system-charset-list coding-system)
-;; 				  (aref extra-spec 0) (aref extra-spec 1))
-;; 	       (print-iso-2022-flags (aref extra-spec 2))
-;; 	       (princ ".")
-	       )
+	       (princ "Initial designations:\n")
+	       (print-designation (coding-system-get coding-system
+						     :designation))
+
+	       (when (coding-system-get coding-system :flags)
+		 (princ "Other specifications: \n  ")
+		 (apply #'print-list
+			(coding-system-get coding-system :flags))))
 	      ((eq type 'charset)
 	       (princ " (charset)"))
 	      ((eq type 'ccl)
@@ -758,8 +731,7 @@ Priority order for recognizing coding systems when reading files:\n")
 	  (let ((aliases (coding-system-aliases elt)))
 	    (if (eq elt (car aliases))
 		(if (cdr aliases)
-		    ;; Fixme:
-		    (princ (cons 'alias: (cdr base-aliases))))
+		    (princ (cons 'alias: (cdr aliases))))
 	      (princ (list 'alias 'of (car aliases))))
 	    (terpri)
 	    (setq i (1+ i)))))
