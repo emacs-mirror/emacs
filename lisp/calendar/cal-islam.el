@@ -150,13 +150,12 @@ Driven by the variable `calendar-date-display-form'."
                     (calendar-absolute-from-gregorian today))))))
           (month-array calendar-islamic-month-name-array)
           (completion-ignore-case t)
-          (month (cdr (assoc
-                       (capitalize
+          (month (cdr (assoc-ignore-case
                         (completing-read
                          "Islamic calendar month name: "
                          (mapcar 'list (append month-array nil))
-                         nil t))
-                       (calendar-make-alist month-array 1 'capitalize))))
+                         nil t)
+                       (calendar-make-alist month-array 1))))
           (last (islamic-calendar-last-day-of-month month year))
           (day (calendar-read
                 (format "Islamic calendar day (1-%d): " last)
@@ -368,17 +367,17 @@ provided for use as part of the nongregorian-diary-marking-hook."
                          (string-to-int y-str)))))
             (if dd-name
                 (mark-calendar-days-named
-                 (cdr (assoc (capitalize (substring dd-name 0 3))
-                             (calendar-make-alist
-                               calendar-day-name-array
-                               0
-                               '(lambda (x) (substring x 0 3))))))
+                 (cdr (assoc-ignore-case (substring dd-name 0 3)
+                                         (calendar-make-alist
+                                          calendar-day-name-array
+                                          0
+                                          '(lambda (x) (substring x 0 3))))))
               (if mm-name
                   (if (string-equal mm-name "*")
                       (setq mm 0)
                     (setq mm
-                          (cdr (assoc
-                                (capitalize mm-name)
+                          (cdr (assoc-ignore-case
+                                mm-name
                                 (calendar-make-alist
                                   calendar-islamic-month-name-array))))))
               (mark-islamic-calendar-date-pattern mm dd yy)))))
