@@ -1,3 +1,13 @@
+2004-05-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/appt.el (appt-disp-window): Use
+	`calendar-set-mode-line' for a centered mode-line.
+
+2004-05-13  Takaaki Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+
+	* calendar/appt.el (appt-disp-window): Do not split window
+	excessively when `split-height-threshold' is low.
+
 2004-05-12  Nick Roberts  <nickrob@gnu.org>
 
 	* progmodes/gud.el (gud-mode): Add gud-kill-buffer-hook to

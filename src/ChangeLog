@@ -1,3 +1,8 @@
+2004-05-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* window.c (Fdisplay_buffer, Fsplit_window)
+	(split-height-threshold): Doc fix.
+
 2004-05-13  Juanma Barranquero  <lektu@terra.es>
 
 	* xfaces.c (Ftty_supports_face_attributes_p)
