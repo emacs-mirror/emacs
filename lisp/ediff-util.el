@@ -1097,12 +1097,15 @@ of the current buffer."
 (defsubst ediff-file-checked-out-p (file)
   (or (not (featurep 'vc-hooks))
       (and (vc-backend file)
-	   (vc-locking-user file))))
+           (or (memq (vc-state file) '(edited needs-merge))
+               (stringp (vc-state file))))))
+  
 (defsubst ediff-file-checked-in-p (file)
   (and (featurep 'vc-hooks)
        ;; CVS files are considered not checked in
        (not (memq (vc-backend file) '(nil CVS)))
-       (not (vc-locking-user file))))
+       (not (memq (vc-state file) '(edited needs-merge)))
+       (not (stringp (vc-state file)))))
 
 (defun ediff-file-compressed-p (file)
   (condition-case nil
