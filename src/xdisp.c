@@ -15818,7 +15818,7 @@ store_mode_line_string (string, lisp_string, copy_string, field_width, precision
 	props = mode_line_string_face_prop;
       else if (!NILP (mode_line_string_face))
 	{
-	  Lisp_Object face = Fplist_get (props, Qface);
+	  Lisp_Object face = Fsafe_plist_get (props, Qface);
 	  props = Fcopy_sequence (props);
 	  if (NILP (face))
 	    face = mode_line_string_face;
@@ -15843,7 +15843,7 @@ store_mode_line_string (string, lisp_string, copy_string, field_width, precision
 	  Lisp_Object face;
 	  if (NILP (props))
 	    props = Ftext_properties_at (make_number (0), lisp_string);
-	  face = Fplist_get (props, Qface);
+	  face = Fsafe_plist_get (props, Qface);
 	  if (NILP (face))
 	    face = mode_line_string_face;
 	  else
@@ -18624,14 +18624,14 @@ produce_stretch_glyph (it)
   plist = XCDR (it->object);
 
   /* Compute the width of the stretch.  */
-  if ((prop = Fplist_get (plist, QCwidth), !NILP (prop))
+  if ((prop = Fsafe_plist_get (plist, QCwidth), !NILP (prop))
       && calc_pixel_width_or_height (&tem, it, prop, font, 1, 0))
     {
       /* Absolute width `:width WIDTH' specified and valid.  */
       zero_width_ok_p = 1;
       width = (int)tem;
     }
-  else if (prop = Fplist_get (plist, QCrelative_width),
+  else if (prop = Fsafe_plist_get (plist, QCrelative_width),
 	   NUMVAL (prop) > 0)
     {
       /* Relative width `:relative-width FACTOR' specified and valid.
@@ -18655,7 +18655,7 @@ produce_stretch_glyph (it)
       x_produce_glyphs (&it2);
       width = NUMVAL (prop) * it2.pixel_width;
     }
-  else if ((prop = Fplist_get (plist, QCalign_to), !NILP (prop))
+  else if ((prop = Fsafe_plist_get (plist, QCalign_to), !NILP (prop))
 	   && calc_pixel_width_or_height (&tem, it, prop, font, 1, &align_to))
     {
       if (it->glyph_row == NULL || !it->glyph_row->mode_line_p)
@@ -18675,13 +18675,13 @@ produce_stretch_glyph (it)
     width = 1;
 
   /* Compute height.  */
-  if ((prop = Fplist_get (plist, QCheight), !NILP (prop))
+  if ((prop = Fsafe_plist_get (plist, QCheight), !NILP (prop))
       && calc_pixel_width_or_height (&tem, it, prop, font, 0, 0))
     {
       height = (int)tem;
       zero_height_ok_p = 1;
     }
-  else if (prop = Fplist_get (plist, QCrelative_height),
+  else if (prop = Fsafe_plist_get (plist, QCrelative_height),
 	   NUMVAL (prop) > 0)
     height = FONT_HEIGHT (font) * NUMVAL (prop);
   else
@@ -18693,7 +18693,7 @@ produce_stretch_glyph (it)
   /* Compute percentage of height used for ascent.  If
      `:ascent ASCENT' is present and valid, use that.  Otherwise,
      derive the ascent from the font in use.  */
-  if (prop = Fplist_get (plist, QCascent),
+  if (prop = Fsafe_plist_get (plist, QCascent),
       NUMVAL (prop) > 0 && NUMVAL (prop) <= 100)
     ascent = height * NUMVAL (prop) / 100.0;
   else if (!NILP (prop)
@@ -20897,7 +20897,7 @@ note_mode_line_or_margin_highlight (w, x, y, area)
   if (IMAGEP (object))
     {
       Lisp_Object image_map, hotspot;
-      if ((image_map = Fplist_get (XCDR (object), QCmap),
+      if ((image_map = Fsafe_plist_get (XCDR (object), QCmap),
 	   !NILP (image_map))
 	  && (hotspot = find_hot_spot (image_map, dx, dy),
 	      CONSP (hotspot))
@@ -20909,12 +20909,14 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 	  /* Could check AREA_ID to see if we enter/leave this hot-spot.
 	     If so, we could look for mouse-enter, mouse-leave
 	     properties in PLIST (and do something...).  */
-	  if ((plist = XCDR (hotspot), CONSP (plist)))
+	  hotspot = XCDR (hotspot);
+	  if (CONSP (hotspot)
+	      && (plist = XCAR (hotspot), CONSP (plist)))
 	    {
-	      pointer = Fplist_get (plist, Qpointer);
+	      pointer = Fsafe_plist_get (plist, Qpointer);
 	      if (NILP (pointer))
 		pointer = Qhand;
-	      help = Fplist_get (plist, Qhelp_echo);
+	      help = Fsafe_plist_get (plist, Qhelp_echo);
 	      if (!NILP (help))
 		{
 		  help_echo_string = help;
@@ -20925,7 +20927,7 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 		}
 	    }
 	  if (NILP (pointer))
-	    pointer = Fplist_get (XCDR (object), QCpointer);
+	    pointer = Fsafe_plist_get (XCDR (object), QCpointer);
 	}
     }
 
@@ -21076,7 +21078,7 @@ note_mouse_highlight (f, x, y)
 	  if (img != NULL && IMAGEP (img->spec))
 	    {
 	      Lisp_Object image_map, hotspot;
-	      if ((image_map = Fplist_get (XCDR (img->spec), QCmap),
+	      if ((image_map = Fsafe_plist_get (XCDR (img->spec), QCmap),
 		   !NILP (image_map))
 		  && (hotspot = find_hot_spot (image_map,
 					       glyph->slice.x + dx,
@@ -21090,12 +21092,14 @@ note_mouse_highlight (f, x, y)
 		  /* Could check AREA_ID to see if we enter/leave this hot-spot.
 		     If so, we could look for mouse-enter, mouse-leave
 		     properties in PLIST (and do something...).  */
-		  if ((plist = XCDR (hotspot), CONSP (plist)))
+		  hotspot = XCDR (hotspot);
+		  if (CONSP (hotspot)
+		      && (plist = XCAR (hotspot), CONSP (plist)))
 		    {
-		      pointer = Fplist_get (plist, Qpointer);
+		      pointer = Fsafe_plist_get (plist, Qpointer);
 		      if (NILP (pointer))
 			pointer = Qhand;
-		      help_echo_string = Fplist_get (plist, Qhelp_echo);
+		      help_echo_string = Fsafe_plist_get (plist, Qhelp_echo);
 		      if (!NILP (help_echo_string))
 			{
 			  help_echo_window = window;
@@ -21105,7 +21109,7 @@ note_mouse_highlight (f, x, y)
 		    }
 		}
 	      if (NILP (pointer))
-		pointer = Fplist_get (XCDR (img->spec), QCpointer);
+		pointer = Fsafe_plist_get (XCDR (img->spec), QCpointer);
 	    }
 	}
 
