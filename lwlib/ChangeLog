@@ -1,3 +1,8 @@
+2000-09-28  Sam Steingold  <sds@gnu.org>
+
+	* xlwmenu.c: Before including <X11/Xos.h> on SUN, define SUNOS41
+	to avoid redefining struct timeval and struct timezone.
+
 2000-09-04  Miles Bader  <miles@gnu.org>
 
 	* xlwmenu.c (XlwMenuSetValues): Only frob the display if the menu
@@ -160,7 +165,7 @@
 	* xlwmenuP.h (_XlwMenu_part): Add `highlight' callback list.
 
 1999-10-19  Paul Eggert  <eggert@twinsun.com>
-	
+
 	Add support for large files, plus some locale improvements.
 
 	* dispatch.c, lwlib-Xaw.c, lwlib-Xlw.c, lwlib-Xm.c, lwlib.c, xlwmenu.c,
@@ -169,7 +174,7 @@
 
 	* lwlib-Xm.c, lwlib.c:
 	Do not include <stdlib.h> or <string.h>, as <config.h> does this.
-	
+
 1999-10-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* lwlib-Xm.c (make_menu_in_widget, update_one_menu_entry): Use
@@ -187,7 +192,7 @@
 
 1999-09-10  Gerd Moellmann  <gerd@gnu.org>
 
-	* lwlib.c (lw_separator_p): Add `--:space' with the same 
+	* lwlib.c (lw_separator_p): Add `--:space' with the same
 	meaning as `--:noLine'.
 
 1999-09-06  Gerd Moellmann  <gerd@gnu.org>
@@ -283,7 +288,7 @@
 
 1999-07-12  Gerd Moellmann  <gerd@gnu.org>
 
-	* xlwmenu.c (xlwMenuResources): Change previously unused 
+	* xlwmenu.c (xlwMenuResources): Change previously unused
 	XtNmargin to 4.
 	(size_menu): Take margin into account.
 	(display_menu_item): Ditto.
@@ -299,15 +304,15 @@ line.  Change logs above this notice are those for the 21.x code line.
 2000-06-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 20.7 released.
-	
+
 2000-02-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 20.6 released.
-	
+
 1999-12-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 20.5 released.
-	
+
 1999-07-12  Richard Stallman  <rms@gnu.org>
 
 	* Version 20.4 released.
@@ -319,7 +324,7 @@ line.  Change logs above this notice are those for the 21.x code line.
 1998-07-30  Paul Eggert  <eggert@twinsun.com>
 
 	* lwlib/Makefile.in (lwlib-utils.o, lwlib.o, lwlib-Xlw.o)
-	(lwlib-Xaw.o, lwlib-Xm.o, lwlib-Xol.o, lwlib-Xolmb.o): 
+	(lwlib-Xaw.o, lwlib-Xm.o, lwlib-Xol.o, lwlib-Xolmb.o):
 	Add dependencies to corresponding .c files. for Solaris 2.x VPATH make.
 
 1998-04-06  Andreas Schwab  <schwab@gnu.org>
@@ -370,11 +375,11 @@ line.  Change logs above this notice are those for the 21.x code line.
 	* lwlib-Xm.c (update_one_menu_entry): Fix previous change:
 	When XmIsCascadeButton, don't call XmCreateCascadeButtonGadget,
 	just modify the existing one.
-	
+
 1996-08-09  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* lwlib.c (merge_widget_value): Undo previous change.
-	
+
 	* lwlib-Xm.c (update_one_menu_entry): When creating a pulldown
 	in an existing but empty menu item, in order to get a new functional
 	pulldown, the menu item must be switched from an XmPushButtonGadget
@@ -568,7 +573,7 @@ line.  Change logs above this notice are those for the 21.x code line.
 
 	* Makefile.in (ALL_CFLAGS): Define HAVE_CONFIG_H.
 	Add -I${srcdir}/../src.
-	
+
 1995-04-08  Paul Reilly  <pmr@geech.gnu.ai.mit.edu>
 
 	* lwlib-Xm.c: Remove function prototypes.
@@ -786,12 +791,12 @@ line.  Change logs above this notice are those for the 21.x code line.
 
 1994-04-01  Frederic Pierresteguy  (fp@hal.gnu.ai.mit.edu)
 
-	* lwlib-Xaw.c (make_dialog): Don't allow any geometry request from the 
+	* lwlib-Xaw.c (make_dialog): Don't allow any geometry request from the
 	user.
 
 1994-03-22  Frederic Pierresteguy  (fp@mole.gnu.ai.mit.edu)
 
-	* xlwmenu.c (XlwMenuResize): Don't allow the popup menu to resize 
+	* xlwmenu.c (XlwMenuResize): Don't allow the popup menu to resize
 	itself. Therefore reset the size to its initial value.
 
 1994-03-19  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -874,7 +879,7 @@ line.  Change logs above this notice are those for the 21.x code line.
 
 1994-02-17  Frederic Pierresteguy  (fp@mole.gnu.ai.mit.edu)
 
-	* lwlib-Xlw.c (xlw_create_popup_menu): Pass tem to 
+	* lwlib-Xlw.c (xlw_create_popup_menu): Pass tem to
 	XtVaCreateManagedWidget, not instance->info->val.
 	(xlw_create_menubar): Likewise.
 
@@ -902,7 +907,7 @@ line.  Change logs above this notice are those for the 21.x code line.
 1994-02-04  Frederic Pierresteguy  (fp@mole.gnu.ai.mit.edu)
 
 	* xlwmenu.c (display_menu_item): When dealing with the menubar,
-	always call XDrawRectangle to clear the selection after popping down 
+	always call XDrawRectangle to clear the selection after popping down
 	the pulldown menu.
 
 1994-02-01  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -948,7 +953,7 @@ line.  Change logs above this notice are those for the 21.x code line.
 
 	* lwlib-int.h: Renamed from lwlib-internal.h.
 
-	
+
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit-unix
