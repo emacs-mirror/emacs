@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.
 #include <stdio.h>
 
 #include "ntheap.h"
+#include "lisp.h"  /* for VALMASK */
 
 /* This gives us the page size and the size of the allocation unit on NT.  */
 SYSTEM_INFO sysinfo_cache;
@@ -98,12 +99,45 @@ get_data_end (void)
   return data_region_end;
 }
 
-#ifndef WINDOWS95
 static char *
 allocate_heap (void)
 {
-  unsigned long base = 0x00030000;
-  unsigned long end  = 0x00D00000;
+  /* The base address for our GNU malloc heap is chosen in conjuction
+     with the link settings for temacs.exe which control the stack size,
+     the initial default process heap size and the executable image base
+     address.  The link settings and the malloc heap base below must all
+     correspond; the relationship between these values depends on how NT
+     and Win95 arrange the virtual address space for a process (and on
+     the size of the code and data segments in temacs.exe).
+
+     The most important thing is to make base address for the executable
+     image high enough to leave enough room between it and the 4MB floor
+     of the process address space on Win95 for the primary thread stack,
+     the process default heap, and other assorted odds and ends
+     (eg. environment strings, private system dll memory etc) that are
+     allocated before temacs has a chance to grab its malloc arena.  The
+     malloc heap base can then be set several MB higher than the
+     executable image base, leaving enough room for the code and data
+     segments.
+
+     Because some parts of Emacs can use rather a lot of stack space
+     (for instance, the regular expression routines can potentially
+     allocate several MB of stack space) we allow 8MB for the stack.
+
+     Allowing 1MB for the default process heap, and 1MB for odds and
+     ends, we can base the executable at 16MB and still have a generous
+     safety margin.  At the moment, the executable has about 810KB of
+     code (for x86) and about 550KB of data - on RISC platforms the code
+     size could be roughly double, so if we allow 4MB for the executable
+     we will have plenty of room for expansion.
+
+     Thus we set the malloc heap base to 20MB.  Since Emacs now leaves
+     28 bits available for pointers, this lets us use the remainder of
+     the region below the 256MB line for our malloc arena - 236MB is
+     still a pretty decent arena to play in! */
+
+  unsigned long base = 0x01400000; /* 20MB */
+  unsigned long end  = 1 << VALBITS; /* 256MB */
 
   reserved_heap_size = end - base;
 
@@ -112,39 +146,6 @@ allocate_heap (void)
 		       MEM_RESERVE,
 		       PAGE_NOACCESS);
 }
-#else  
-static char *
-allocate_heap (void)
-{
-  unsigned long start     = 0x400000;
-  unsigned long stop      = 0xD00000;
-  unsigned long increment = 0x100000;
-  char *ptr, *begin = NULL, *end = NULL;
-  int i;
-
-  for (i = start; i < stop; i += increment) 
-    {
-      ptr = VirtualAlloc ((void *) i, increment, MEM_RESERVE, PAGE_NOACCESS);
-      if (ptr) 
-	begin = begin ? begin : ptr;
-      else if (begin)
-	{
-	  end = ptr;
-	  break;
-	}
-    }
-
-  if (begin && !end)
-    end = (char *) i;
-  
-  if (!begin)
-    /* We couldn't allocate any memory for the heap.  Exit.  */
-    exit (-2);
-
-  reserved_heap_size = end - begin;
-  return begin;
-}
-#endif
 
 
 /* Emulate Unix sbrk.  */
@@ -161,9 +162,9 @@ sbrk (unsigned long increment)
       if (!data_region_base)
 	return NULL;
 
-      /* Ensure that the addresses don't use the upper 8 bits since
-	 the Lisp type goes there (yucko).  */
-      if (((unsigned long) data_region_base & 0xFF000000) != 0) 
+      /* Ensure that the addresses don't use the upper tag bits since
+	 the Lisp type goes there.  */
+      if (((unsigned long) data_region_base & ~VALMASK) != 0) 
 	{
 	  printf ("Error: The heap was allocated in upper memory.\n");
 	  exit (1);
