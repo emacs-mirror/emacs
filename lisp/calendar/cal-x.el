@@ -43,22 +43,23 @@
 
 (defvar diary-frame nil "Frame in which to display the diary.")
   
+;; This should not specify the font.  That's up to the user.
+;; Certainly it should not specify auto-lower and auto-raise
+;; since most users won't like that.
 (defvar diary-frame-parameters
   '((name . "Diary") (height . 10) (width . 80) (unsplittable . t)
-    (font . "6x13") (auto-lower . t) (auto-raise . t) (minibuffer . nil))
+    (minibuffer . nil))
   "Parameters of the diary frame, if the diary is in its own frame.
 Location and color should be set in .Xdefaults.")
                                  
 (defvar calendar-frame-parameters
   '((name . "Calendar") (minibuffer . nil) (height . 10) (width . 80)
-    (auto-raise . t) (auto-lower . t) (font . "6x13") (unsplittable . t)
-    (vertical-scroll-bars . nil))
+    (unsplittable . t) (vertical-scroll-bars . nil))
   "Parameters of the calendar frame, if the calendar is in a separate frame.
 Location and color should be set in .Xdefaults.")
 
 (defvar calendar-and-diary-frame-parameters
-  '((name . "Calendar") (height . 28) (width . 80) (minibuffer . nil)
-    (font . "6x13") (auto-raise . t) (auto-lower . t))
+  '((name . "Calendar") (height . 28) (width . 80) (minibuffer . nil))
   "Parameters of the frame that displays both the calendar and the diary.
 Location and color should be set in .Xdefaults.")
   
