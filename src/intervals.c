@@ -1558,7 +1558,11 @@ textget (plist, prop)
       if (EQ (prop, tem))
 	return Fcar (Fcdr (tail));
       if (EQ (tem, Qcategory))
-	fallback = Fget (Fcar (Fcdr (tail)), prop);
+	{
+	  tem = Fcar (Fcdr (tail));
+	  if (SYMBOLP (tem))
+	    fallback = Fget (tem, prop);
+	}
     }
 
   return fallback;
