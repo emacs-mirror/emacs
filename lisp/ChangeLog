@@ -1,3 +1,9 @@
+2004-02-27  Markus Rost  <rost@mathematik.uni-bielefeld.de>
+
+	* progmodes/sh-script.el (sh-shell-arg)
+	(sh-require-final-newline, sh-assignment-regexp, sh-builtins)
+	(sh-leading-keywords, sh-other-keywords): Fix custom type.
+
 2004-02-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* faces.el (face-spec-set-match-display): Add a new  attribute,
