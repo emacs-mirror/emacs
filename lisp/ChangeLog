@@ -1,3 +1,8 @@
+2001-08-28  Miles Bader  <miles@gnu.org>
+
+	* replace.el (query-replace-regexp-eval): Return args from
+	`interactive' form in correct order.
+
 2001-08-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mouse.el (mouse-buffer-menu): If the buffer menu is split by
