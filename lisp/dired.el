@@ -540,7 +540,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   ;; list).
   ;; We expand the file names here because the may have been abbreviated
   ;; in dired-noselect.
-  (let ((opoint (point)))
+  (let ((opoint (point))
+	end)
     (if (consp dir-or-list)
 	(progn
 	  (mapcar
@@ -548,9 +549,20 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 						   switches wildcard full-p)))
 	   (cdr dir-or-list)))
       (insert-directory (expand-file-name dir-or-list) switches wildcard full-p))
+    ;; Quote certain characters, unless ls quoted them for us.
+    (cond ((not (string-match "b" dired-actual-switches))
+	   (setq end (point-marker))
+	   (goto-char opoint)
+	   (while (search-forward "\\" end t)
+	     (replace-match "\\\\" nil t))
+	   (goto-char opoint)
+	   (while (search-forward "\^m" end t)
+	     (replace-match "\\015" nil t))
+	   (set-marker end nil)))
     (dired-insert-set-properties opoint (point)))
   (setq dired-directory dir-or-list))
 
+;; Make the file names highlight when the mouse is on them.
 (defun dired-insert-set-properties (beg end)
   (save-excursion
     (goto-char beg)
@@ -1129,25 +1141,22 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
       (if (setq p1 (dired-move-to-filename (not no-error-if-not-filep)))
 	  (setq p2 (dired-move-to-end-of-filename no-error-if-not-filep))))
     ;; nil if no file on this line, but no-error-if-not-filep is t:
-    (if (setq file (and p1 p2 (format "%s" (buffer-substring p1 p2))))
-	;; Check if ls quoted the names, and unquote them.
-	;; Using read to unquote is much faster than substituting
-	;; \007 (4 chars) -> ^G  (1 char) etc. in a lisp loop.
-	(cond ((string-match "b" dired-actual-switches) ; System V ls
-	       ;; This case is about 20% slower than without -b.
-	       (setq file
-		     (read
-		      (concat "\""
-			      ;; some ls -b don't escape quotes, argh!
-			      ;; This is not needed for GNU ls, though.
-			      (or (dired-string-replace-match
-				   "\\([^\\]\\)\"" file "\\1\\\\\"")
-				  file)
-			      "\""))))
-	      ;; If you do this, update dired-insert-subdir-validate too
-	      ;; ((string-match "Q" dired-actual-switches) ; GNU ls
-	      ;;  (setq file (read file)))
-	      ))
+    (if (setq file (and p1 p2 (buffer-substring p1 p2)))
+	(progn
+	  ;; Get rid of the mouse-face property that file names have.
+	  (set-text-properties 0 (length file) nil file)
+	  ;; Unquote names quoted by ls or by dired-insert-directory.
+	  ;; Using read to unquote is much faster than substituting
+	  ;; \007 (4 chars) -> ^G  (1 char) etc. in a lisp loop.
+	  (setq file
+		(read
+		 (concat "\""
+			 ;; some ls -b don't escape quotes, argh!
+			 ;; This is not needed for GNU ls, though.
+			 (or (dired-string-replace-match
+			      "\\([^\\]\\)\"" file "\\1\\\\\"")
+			     file)
+			 "\"")))))
     (if (eq localp 'no-dir)
 	file
       (and file (concat (dired-current-directory localp) file)))))
