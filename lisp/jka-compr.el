@@ -166,7 +166,7 @@ APPEND-FLAG EXTENSION], where:
    auto-mode flag        non-nil means strip the regexp from file names
                          before attempting to set the mode.
 
-Because of the way call-process is defined, discarding the stderr output of
+Because of the way `call-process' is defined, discarding the stderr output of
 a program adds the overhead of starting a shell each time the program is
 invoked.")
 
@@ -174,10 +174,6 @@ invoked.")
 (defvar jka-compr-file-name-handler-entry
   nil
   "The entry in `file-name-handler-alist' used by the jka-compr I/O functions.")
-  
-(defvar jka-compr-op-table
-  (make-vector 127 0)
-  "Hash table of operations supported by jka-compr.")
 
 ;;; Functions for accessing the return value of jka-get-compression-info
 (defun jka-compr-info-regexp               (info)  (aref info 0))
@@ -374,9 +370,6 @@ There should be no more than seven characters after the final `/'")
 
 
 (defun jka-compr-write-region (start end file &optional append visit)
-  "Documented as original."
-  (interactive "r\nFWrite region to file: ")
-
   (let* ((filename (expand-file-name file))
 	 (visit-file (if (stringp visit) (expand-file-name visit) filename))
 	 (info (jka-compr-get-compression-info visit-file)))
@@ -434,7 +427,8 @@ There should be no more than seven characters after the final `/'")
 	     compress-message
 	     (message "%s %s..." compress-message base-name))
 
-	    (write-region start end temp-file t 'dont)
+	    (jka-compr-run-real-handler 'write-region
+					(list start end temp-file t 'dont))
 
 	    (jka-compr-call-process compress-program
 				    (concat compress-message
@@ -445,8 +439,10 @@ There should be no more than seven characters after the final `/'")
 				    compress-args)
 
 	    (set-buffer temp-buffer)
-	    (write-region (point-min) (point-max)
-			  filename (and append can-append) 'dont)
+	    (jka-compr-run-real-handler 'write-region
+					(list (point-min) (point-max)
+					      filename
+					      (and append can-append) 'dont))
 	    (erase-buffer)
 	    (set-buffer cbuf)
 
@@ -472,12 +468,11 @@ There should be no more than seven characters after the final `/'")
 
 	    nil)
 	      
-	(write-region start end filename append visit))))
+	(jka-compr-run-real-handler 'write-region
+				    (list start end filename append visit)))))
 
 
 (defun jka-compr-insert-file-contents (file &optional visit beg end replace)
-  "Documented as original."
-
   (barf-if-buffer-read-only)
 
   (and (or beg end)
@@ -494,7 +489,8 @@ There should be no more than seven characters after the final `/'")
 	      (uncompress-args (jka-compr-info-uncompress-args info))
 	      (base-name (file-name-nondirectory filename))
 	      (notfound nil)
-	      (local-copy (file-local-copy filename))
+	      (local-copy
+	       (jka-compr-run-real-handler 'file-local-copy (list filename)))
 	      local-file
 	      size start)
 
@@ -555,6 +551,7 @@ There should be no more than seven characters after the final `/'")
 	  (and
 	   visit
 	   (progn
+	     (unlock-buffer)
 	     (setq buffer-file-name filename)
 	     (set-visited-file-modtime)))
 	    
@@ -570,12 +567,11 @@ There should be no more than seven characters after the final `/'")
 
 	  (list filename size))
 
-      (insert-file-contents file visit beg end replace))))
+      (jka-compr-run-real-handler 'insert-file-contents
+				  (list file visit beg end replace)))))
 
 
 (defun jka-compr-file-local-copy (file)
-  "Documented as original."
-
   (let* ((filename (expand-file-name file))
 	 (info (jka-compr-get-compression-info filename)))
 
@@ -585,7 +581,8 @@ There should be no more than seven characters after the final `/'")
 	      (uncompress-program (jka-compr-info-uncompress-program info))
 	      (uncompress-args (jka-compr-info-uncompress-args info))
 	      (base-name (file-name-nondirectory filename))
-	      (local-copy (file-local-copy filename))
+	      (local-copy
+	       (jka-compr-run-real-handler 'file-local-copy (list filename)))
 	      (temp-file (jka-compr-make-temp-name t))
 	      (temp-buffer (get-buffer-create " *jka-compr-temp*"))
 	      (notfound nil)
@@ -629,7 +626,7 @@ There should be no more than seven characters after the final `/'")
 
 	  temp-file)
 	    
-      (file-local-copy filename))))
+      (jka-compr-run-real-handler 'file-local-copy (list filename)))))
 
 
 ;;; Support for loading compressed files.
@@ -641,12 +638,8 @@ There should be no more than seven characters after the final `/'")
 
     (unwind-protect
 
-	(progn
-
-	  (setq file-name-handler-alist
-		(cons jka-compr-file-name-handler-entry
-		      file-name-handler-alist))
-
+	(let (inhibit-file-name-operation
+	      inhibit-file-name-handlers)
 	  (or nomessage
 	      (message "Loading %s..." file))
 
@@ -655,33 +648,21 @@ There should be no more than seven characters after the final `/'")
 	  (or nomessage
 	      (message "Loading %s...done." file)))
 
-      (setq file-name-handler-alist
-	    (delq jka-compr-file-name-handler-entry
-		  file-name-handler-alist))
-
       (jka-compr-delete-temp-file local-copy))
 
     t))
-
+
+(put 'write-region 'jka-compr 'jka-compr-write-region)
+(put 'insert-file-contents 'jka-compr 'jka-compr-insert-file-contents)
+(put 'file-local-copy 'jka-compr 'jka-compr-file-local-copy)
+(put 'load 'jka-compr 'jka-compr-load)
 
 (defun jka-compr-handler (operation &rest args)
-
-  (let ((jka-op (intern-soft (symbol-name operation) jka-compr-op-table))
-	(match-data (match-data)))
-
-    (unwind-protect
-	(progn
-	  (setq file-name-handler-alist
-		(delq jka-compr-file-name-handler-entry
-		      file-name-handler-alist))
-	  (if jka-op
-	      (apply jka-op args)
-	    (jka-compr-run-real-handler operation args)))
-
-      (setq file-name-handler-alist
-	    (cons jka-compr-file-name-handler-entry
-		  file-name-handler-alist))
-      (store-match-data match-data))))
+  (save-match-data
+    (let ((jka-op (get operation 'jka-compr)))
+      (if jka-op
+	  (apply jka-op args)
+	(jka-compr-run-real-handler operation args)))))
 
 ;; If we are given an operation that we don't handle,
 ;; call the Emacs primitive for that operation,
@@ -694,30 +675,6 @@ There should be no more than seven characters after the final `/'")
 		    inhibit-file-name-handlers)))
 	(inhibit-file-name-operation operation))
     (apply operation args)))
-
-
-(defun jka-compr-intern-operation (op)
-  (let ((opsym (intern (symbol-name op) jka-compr-op-table))
-	(jka-fn (intern (concat "jka-compr-" (symbol-name op)))))
-    (fset opsym jka-fn)))
-
-
-(defvar jka-compr-operation-list
-  '(
-    write-region
-    insert-file-contents
-    file-local-copy
-    load
-    )
-  "List of file operations implemented by jka-compr.")
-
-
-(mapcar
- (function
-  (lambda (fn)
-    (jka-compr-intern-operation fn)))
- jka-compr-operation-list)
-
 
 (defun toggle-auto-compression (arg)
   "Toggle automatic file compression and decompression.
@@ -769,6 +726,8 @@ This adds entries to `file-name-handler-alist' and `auto-mode-alist'."
   (setq file-name-handler-alist (cons jka-compr-file-name-handler-entry
 				      file-name-handler-alist))
 
+  ;; Make entries in auto-mode-alist so that modes are chosen right
+  ;; according to the file names sans `.gz'.
   (mapcar
    (function (lambda (x)
 	       (and
