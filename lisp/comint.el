@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Adapted-by: Simon Marshall <simon@gnu.ai.mit.edu>
@@ -293,18 +293,6 @@ This function is called when return is typed while the point is in old text.
 It returns the text to be submitted as process input.  The default is
 `comint-get-old-input-default', which grabs the current line, and strips off
 leading text matching `comint-prompt-regexp'.")
-
-;; XEmacs - fsf doesn't have this, and I think it ought to default to 't'
-;; because it's good idiot-proof interface.  --stig
-(defcustom comint-append-old-input t
-  "*If nil, old text selected by \\[comint-send-input] is re-sent immediately.
-If non-nil, the old text is appended to the end of the buffer,
-and a prompting message is printed.
-
-This flag does not affect the behavior of \\[comint-send-input]
-after the process output mark."
-  :type 'boolean
-  :group 'comint)
 
 (defvar comint-dynamic-complete-functions
   '(comint-replace-by-expanded-history comint-dynamic-complete-filename)
