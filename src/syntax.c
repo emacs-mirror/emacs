@@ -292,7 +292,7 @@ char_quoted (charpos, bytepos)
 
   DEC_BOTH (charpos, bytepos);
 
-  while (bytepos >= beg)
+  while (charpos >= beg)
     {
       int c;
 
