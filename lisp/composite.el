@@ -364,12 +364,12 @@ after a sequence character events."
 
 
 ;;; The following codes are only for backward compatibility with Emacs
-;;; 20.4 and the earlier.
+;;; 20.4 and earlier.
 
 ;;;###autoload
 (defun decompose-composite-char (char &optional type with-composition-rule)
   "Convert CHAR to string.
-This is only for backward compatibility with Emacs 20.4 and the earlier.
+This is only for backward compatibility with Emacs 20.4 and earlier.
 
 If optional 2nd arg TYPE is non-nil, it is `string', `list', or
 `vector'.  In this case, CHAR is converted string, list of CHAR, or
