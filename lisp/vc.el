@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.236 1998/08/04 13:14:41 spiegel Exp fx $
+;; $Id: vc.el,v 1.237 1998/09/10 21:50:05 fx Exp fx $
 
 ;; This file is part of GNU Emacs.
 
@@ -2940,6 +2940,7 @@ THRESHOLD, nil otherwise"
              (cond 
               ;; Merge successful, we are in sync with repository now
               ((or (string= (match-string 2) "U")
+		   (string= (match-string 2) "P")
 		   ;; Special case: file contents in sync with
 		   ;; repository anyhow:
 		   (match-string 3))
