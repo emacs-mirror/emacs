@@ -1150,7 +1150,8 @@ and enable that one.  The default is the most recent input method specified
 	  "Describe input method (default, current choice): ")))
   (if (and input-method (symbolp input-method))
       (setq input-method (symbol-name input-method)))
-  (help-setup-xref (list #'describe-input-method (or input-method current-input-method))
+  (help-setup-xref (list #'describe-input-method
+			 (or input-method current-input-method))
 		   (interactive-p))
 
   (if (null input-method)
