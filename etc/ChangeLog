@@ -1,3 +1,7 @@
+2000-11-19  Jason Rumney  <jasonr@gnu.org>
+
+	* PROBLEMS: Added note about subprocesses on Windows 9x.
+
 2000-11-16  Andre Spiegel  <spiegel@gnu.org>
 
 	* NEWS: Updated VC news.
@@ -1199,5 +1203,5 @@ line.  Change logs above this notice are those for the 21.x code line.
 	* loadst.c (main) [XENIX]: use /usr/spool/mail, not /usr/mail.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
