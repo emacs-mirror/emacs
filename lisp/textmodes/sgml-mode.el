@@ -333,18 +333,21 @@ varables of same name)."
 			      sgml-font-lock-keywords-1)
 			     nil
 			     t)
-	facemenu-add-face-function
-	  (lambda (face end)
-	    (if (setq face (cdr (assq face sgml-face-tag-alist)))
-		(progn
-		  (setq facemenu-end-add-face (concat "</" face ">"))
-		  (concat "<" face ">"))
-	      (error "Face not configured for %s mode." mode-name))))
+	facemenu-add-face-function 'sgml-mode-facemenu-add-face-function)
   (while sgml-display-text
     (put (car (car sgml-display-text)) 'before-string
 	 (cdr (car sgml-display-text)))
     (setq sgml-display-text (cdr sgml-display-text)))
   (run-hooks 'text-mode-hook 'sgml-mode-hook))
+
+
+(defun sgml-mode-facemenu-add-face-function (face end)
+  (if (setq face (cdr (assq face sgml-face-tag-alist)))
+      (progn
+	(setq face (funcall skeleton-transformation face))
+	(setq facemenu-end-add-face (concat "</" face ">"))
+	(concat "<" face ">"))
+    (error "Face not configured for %s mode." mode-name)))
 
 
 ;;;###autoload
