@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: rcs sccs cvs log version-control
-;; Revision: $Id: log-view.el,v 1.9 2001/11/12 23:01:17 sds Exp $
+;; Revision: $Id: log-view.el,v 1.10 2001/11/16 13:53:05 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -47,6 +47,7 @@
     ("z" . kill-this-buffer)
     ("m" . set-mark-command)
     ("d" . log-view-diff)
+    ("f" . log-view-find-version)
     ("n" . log-view-msg-next)
     ("p" . log-view-msg-prev)
     ("N" . log-view-file-next)
@@ -172,6 +173,14 @@
 	  ;; FIXME:  I need to force because the fileinfos are UNKNOWN
 	  (cvs-force-command "/F"))
       (funcall f))))
+
+(defun log-view-find-version (pos)
+  "Visit the version at point."
+  (interactive "d")
+  (save-excursion
+    (goto-char pos)
+    (switch-to-buffer (vc-find-version (log-view-current-file) 
+                                       (log-view-current-tag)))))
 
 ;;;
 ;;; diff
