@@ -731,3 +731,5 @@ int image_ascent P_ ((struct image *, struct face *));
    ? UNICODE_FONT					\
    : ((CHARSET_DIMENSION (CHAR_CHARSET ((ch))) == 1)	\
       ? BDF_1D_FONT : BDF_2D_FONT))
+
+typedef DWORD (WINAPI * ClipboardSequence_Proc) ();
