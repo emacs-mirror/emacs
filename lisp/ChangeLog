@@ -1,5 +1,7 @@
 2004-10-30  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* autorevert.el (auto-revert-tail-mode-text): Add :version keyword.
+
 	* help-at-pt.el (help-at-pt-timer): Move defvar up to avoid
 	compiler warning.
 	(help-at-pt-timer-delay): Add :initialize and :version keywords.
