@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.60) $
+ * $HopeName: MMsrc!mps.h(trunk.61) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -196,7 +196,7 @@ typedef struct mps_fmt_B_s {
   mps_fmt_fwd_t   fwd;
   mps_fmt_isfwd_t isfwd;
   mps_fmt_pad_t   pad;
-  mps_fmt_class_t class;
+  mps_fmt_class_t mps_class;
 } mps_fmt_B_s;
 
 
@@ -260,9 +260,9 @@ extern mps_res_t mps_arena_retract(mps_arena_t, mps_addr_t, size_t);
 /* Object Formats */
 
 extern mps_res_t mps_fmt_create_A(mps_fmt_t *, mps_arena_t,
-                                  mps_fmt_A_t);
+                                  mps_fmt_A_s *);
 extern mps_res_t mps_fmt_create_B(mps_fmt_t *, mps_arena_t,
-                                  mps_fmt_B_t);
+                                  mps_fmt_B_s *);
 extern void mps_fmt_destroy(mps_fmt_t);
 
 
