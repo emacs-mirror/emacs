@@ -347,9 +347,6 @@ it will be turned off.  (You don't need to worry about continuation lines.)
 This should be set to match those mail fields in which you want abbreviations
 turned on.")
 
-(defvar mail-mode-syntax-table (copy-syntax-table text-mode-syntax-table)
-  "The syntax table which is used in send-mail mode message bodies.")
-
 (defvar mail-mode-header-syntax-table
   (let ((tab (copy-syntax-table text-mode-syntax-table)))
     ;; This makes the characters "@%!._-" be considered symbol-constituents
