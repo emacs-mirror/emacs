@@ -1,6 +1,6 @@
 ;;; spook.el --- spook phrase utility for overloading the NSA line eater
 
-;; Copyright (C) 1988 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: games
@@ -49,13 +49,20 @@
 (defun spook ()
   "Adds that special touch of class to your outgoing mail."
   (interactive)
-  (cookie-insert
-   spook-phrases-file
-   spook-phrase-default-count
-   "Checking authorization"
-   "Checking authorization...Approved"))
+  (cookie-insert spook-phrases-file
+		 spook-phrase-default-count
+		 "Checking authorization..."
+		 "Checking authorization...Approved"))
 
-;; Note: the implementation that used to take up most of this file has
-;; been cleaned up and generalized and now resides in cookie1.el.
+;;;###autoload
+(defun snarf-spooks ()
+  "Return a vector containing the lines from `spook-phrases-file'."
+  (cookie-snarf spook-phrases-file
+		"Checking authorization..."
+		"Checking authorization...Approved"))
+
+;; Note: the implementation that used to take up most of this file has been
+;; cleaned up, generalized, gratuitously broken by esr, and now resides in
+;; cookie1.el.
 
 ;;; spook.el ends here
