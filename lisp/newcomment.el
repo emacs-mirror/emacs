@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: diff-mode.el,v 1.11 1999/10/09 23:38:29 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.1 1999/11/28 18:51:06 monnier Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -29,6 +29,10 @@
 
 ;; - most of the code is not written (just copied from simple.el)
 ;; - too many other bugs to mention
+;; - if the region does not start at the beginning of a line,
+;;   comment-region will not align the comment markers properly
+;; - comment-multi-line already exists with a different meaning
+;;   and is not orthogonal to comment-extra-lines
 
 ;;; Todo:
 
@@ -245,6 +249,7 @@ If 'multiline, only add them for truly multiline comments.")
     `(let (,retsym)
        (while (not (setq ,retsym (progn ,@body))))
        ,retsym)))
+(def-edebug-spec until t)
 
 (defun string-reverse (s) (concat (reverse (string-to-list s))))
 
@@ -324,6 +329,64 @@ The strings used as comment starts are build from
 				  (delete-char (length ce)))))))))
 		(forward-line 1)))))))))
 
+(defun comment-make-extra-lines (cs ce ccs cce min-indent max-indent &optional block)
+  (if block
+      (let* ((s (concat cs "a=m" cce "\n"
+			(make-string min-indent ? ) ccs))
+	     (e (concat cce "\n" (make-string min-indent ? )
+			ccs "a=m" ce))
+	     (_ (assert (string-match "\\s-*\\(a=m\\)\\s-*" s)))
+	     (fill (make-string (+ (- max-indent
+				      min-indent
+				      (match-beginning 0))
+				   (- (match-end 0)
+				      (match-end 1)))
+				(aref s (match-end 0)))))
+	(setq cs (replace-match fill t t s))
+	(assert (string-match "\\s-*\\(a=m\\)\\s-*" e))
+	(setq ce (replace-match fill t t e)))
+    (when (and ce (string-match "\\`\\s-*\\(.*\\S-\\)\\s-*\\'" ce))
+      (setq ce (match-string 1 ce)))
+    (let* ((c (concat ce "a=m" cs))
+	   (indent (if (string-match "\\(.+\\).*a=m\\(.*\\)\\1" c)
+		       (max (+ min-indent
+			       (- (match-end 2) (match-beginning 2))
+			       (- (match-beginning 0)))
+			    0)
+		     min-indent)))
+      (setq ce (concat cce "\n" (make-string indent ? ) (or ce cs)))
+      (setq cs (concat cs "\n" (make-string min-indent ? ) ccs))))
+  (values cs ce))
+
+(def-edebug-spec comment-with-narrowing t)
+(put 'comment-with-narrowing 'lisp-indent-function 2)
+(defmacro comment-with-narrowing (beg end &rest body)
+  "Execute BODY with BEG..END narrowing.
+Space is added (and then removed) at the beginning for the text's
+indentation to be kept as it was before narrowing."
+  `(let ((-bindent (save-excursion (goto-char beg) (current-column))))
+     (save-restriction
+       (narrow-to-region beg end)
+       (goto-char (point-min))
+       (insert (make-string -bindent ? ))
+       (prog1
+	   (progn ,@body)
+	 ;; remove the -bindent
+	 (save-excursion
+	   (goto-char (point-min))
+	   (when (looking-at " *")
+	     (let ((n (min (- (match-end 0) (match-beginning 0)) -bindent)))
+	       (delete-char n)
+	       (decf -bindent n)))
+	   (end-of-line)
+	   (let ((e (point)))
+	     (beginning-of-line)
+	     (while (and (> -bindent 0) (re-search-forward "  +" e t))
+	       (let ((n (min -bindent (- (match-end 0) (match-beginning 0) 1))))
+		 (goto-char (match-beginning 0))
+		 (delete-char n)
+		 (decf -bindent n)))))))))
+
 (defun comment-region-internal (beg end cs ce &optional ccs cce block lines)
   (assert (< beg end))
   (let ((no-empty t))
@@ -341,8 +404,9 @@ The strings used as comment starts are build from
       (if (null cce) (setq cce (string-reverse ccs))))
 
     (save-excursion
-      (save-restriction
-	(narrow-to-region beg end)
+      (goto-char end)
+      (unless (or ce (eolp)) (insert "\n") (indent-according-to-mode))
+      (comment-with-narrowing beg end
 	(let ((ce-quote-re
 	       (when (and (not comment-nested) (> (length comment-end) 1))
 		 (concat (regexp-quote (substring comment-end 0 1))
@@ -367,33 +431,11 @@ The strings used as comment starts are build from
 	  ;; inserting ccs can change max-indent by (1- tab-width)
 	  (incf max-indent (+ (max (length cs) (length ccs)) -1 tab-width))
 
+	  ;; make the leading and trailing lines if requested
 	  (when lines
-	    (if block
-		(let* ((s (concat cs "a=m" cce "\n"
-				  (make-string min-indent ? ) ccs))
-		       (e (concat cce "\n" (make-string min-indent ? )
-				  ccs "a=m" ce))
-		       (_ (assert (string-match "\\s-*\\(a=m\\)\\s-*" s)))
-		       (fill (make-string (+ (- max-indent
-						min-indent
-						(match-beginning 0))
-					     (- (match-end 0)
-						(match-end 1)))
-					  (aref s (match-end 0)))))
-		  (setq cs (replace-match fill t t s))
-		  (assert (string-match "\\s-*\\(a=m\\)\\s-*" e))
-		  (setq ce (replace-match fill t t e)))
-	      (when (and ce (string-match "\\`\\s-*\\(.*\\S-\\)\\s-*\\'" ce))
-		(setq ce (match-string 1 ce)))
-	      (let* ((c (concat ce "a=m" cs))
-		     (indent (if (string-match "\\(.+\\).*a=m\\(.*\\)\\1" c)
-				 (max (+ min-indent
-					 (- (match-end 2) (match-beginning 2))
-					 (- (match-beginning 0)))
-				      0)
-			       min-indent)))
-		(setq ce (concat cce "\n" (make-string indent ? ) (or ce cs)))
-		(setq cs (concat cs "\n" (make-string min-indent ? ) ccs)))))
+	    (multiple-value-setq (cs ce)
+	      (comment-make-extra-lines
+	       cs ce ccs cce min-indent max-indent block)))
 	  
 	  (goto-char (point-min))
 	  ;; Loop over all lines from BEG to END.
@@ -489,6 +531,18 @@ The strings used as comment starts are built from
 (provide 'newcomment)
 
 ;;; Change Log:
-;; $Log$
+;; $Log: newcomment.el,v $
+;; Revision 1.1  1999/11/28 18:51:06  monnier
+;; First "working" version:
+;; - uncomment-region doesn't work for some unknown reason
+;; - comment-multi-line allows the use of multi line comments
+;; - comment-extra-lines allows yet another style choice
+;; - comment-add allows to default to `;;'
+;; - comment-region on a comment calls uncomment-region
+;; - C-u C-u comment-region aligns comment end markers
+;; - C-u C-u C-u comment-region puts the comment inside a rectangle
+;; - comment-region will try to quote coment-end markers inside the region
+;; - comment-start markers are placed at the indentation level
+;;
 
 ;;; newcomment.el ends here
