@@ -799,16 +799,17 @@ loaded and the keystroke automatically re-typed."
 
 ;;; Bug reporting
 
-(defun report-calc-bug (topic)
+(defun report-calc-bug ()
   "Report a bug in Calc, the GNU Emacs calculator.
 Prompts for bug subject.  Leaves you in a mail buffer."
-  (interactive "sBug Subject: ")
-  (reporter-submit-bug-report calc-bug-address "Calc" '(calc-version)
-			      nil nil
-"Please describe exactly what actions triggered the bug and the
+  (interactive)
+  (let ((reporter-prompt-for-summary-p t))
+    (reporter-submit-bug-report calc-bug-address "Calc" '(calc-version)
+				nil nil
+				"Please describe exactly what actions triggered the bug and the
 precise symptoms of the bug.  If possible, include a backtrace by
 doing 'M-x toggle-debug-on-error', then reproducing the bug.
-" ))
+" )))
 (defalias 'calc-report-bug 'report-calc-bug)
 
 ;;; calc-misc.el ends here
