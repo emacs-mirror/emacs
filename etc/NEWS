@@ -247,6 +247,12 @@ The new file etc/compilation.txt gives examples of each type of message.
 Hits are fontified in green, and hits in binary files in orange.  Grep buffers
 can be saved and automatically revisited with the new Grep mode.
 
+** A new minor mode `next-error-follow-mode' can be used in
+compilation-mode, grep-mode, occur-mode, and diff-mode (i.e. all the modes
+that can use `next-error') to associate cursor movements in
+compilation, grep, occur or diff buffers with cursor movements in the
+target buffers. This minor mode can be toggled  with C-c C-f.
+
 ** M-x diff uses diff-mode instead of compilation-mode.
 
 ** M-x compare-windows now can automatically skip non-matching text to
