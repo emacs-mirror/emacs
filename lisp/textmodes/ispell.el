@@ -2046,7 +2046,8 @@ warns you if the previous word is incorrectly spelled."
 	       ;; Matches context difference listing
 	       "\\(diff -c .*\\)?\n\\*\\*\\* .*\n--- .*\n\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*"
 	       ;; Matches "----------------- cut here"
-	       "^[-=_]+\\s ?cut here")
+	       ;; and "------- Start of forwarded message"
+	       "^[-=_]+\\s ?\\(cut here\\|Start of forwarded message\\)")
 	     "\\|")
   "*End of text which will be checked in ispell-message.
 If it is a string, limit at first occurrence of that regular expression.
