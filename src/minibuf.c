@@ -314,6 +314,11 @@ read_minibuf_unwind (data)
 #endif
 }
 
+
+/* This comment supplies the doc string for read-from-minibuffer, 
+   for make-docfile to see.  We cannot put this in the real DEFUN
+   due to limits in the Unix cpp.
+
 DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 5, 0,
   "Read a string from the minibuffer, prompting with string PROMPT.\n\
 If optional second arg INITIAL-CONTENTS is non-nil, it is a string\n\
@@ -332,7 +337,11 @@ Fifth arg HIST, if non-nil, specifies a history list\n\
   In that case, HISTVAR is the history list variable to use,\n\
   and HISTPOS is the initial position (the position in the list\n\
   which INITIAL-CONTENTS corresponds to).\n\
-  Positions are counted starting from 1 at the beginning of the list.")
+  Positions are counted starting from 1 at the beginning of the list."
+*/
+
+DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 5, 0,
+  0 /* See immediately above */)
   (prompt, initial_input, keymap, read, hist)
      Lisp_Object prompt, initial_input, keymap, read, hist;
 {
@@ -799,6 +808,10 @@ Lisp_Object Vminibuffer_completion_table, Qminibuffer_completion_table;
 Lisp_Object Vminibuffer_completion_predicate, Qminibuffer_completion_predicate;
 Lisp_Object Vminibuffer_completion_confirm, Qminibuffer_completion_confirm;
 
+/* This comment supplies the doc string for completing-read,
+   for make-docfile to see.  We cannot put this in the real DEFUN
+   due to limits in the Unix cpp.
+
 DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 6, 0,
   "Read a string in the minibuffer, with completion.\n\
 Args: PROMPT, TABLE, PREDICATE, REQUIRE-MATCH, INITIAL-INPUT, HIST.\n\
@@ -821,7 +834,10 @@ HIST, if non-nil, specifies a history list\n\
   which INITIAL-CONTENTS corresponds to).\n\
   Positions are counted starting from 1 at the beginning of the list.\n\
 Completion ignores case if the ambient value of\n\
-  `completion-ignore-case' is non-nil.")
+  `completion-ignore-case' is non-nil."
+*/
+DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 6, 0,
+  0 /* See immediately above */)
   (prompt, table, pred, require_match, init, hist)
      Lisp_Object prompt, table, pred, require_match, init, hist;
 {
