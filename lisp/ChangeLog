@@ -1,3 +1,8 @@
+2004-05-31  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-save): Don't save minor modes without a
+	known mode initialization function.
+
 2004-05-30  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* replace.el (query-replace-interactive): Convert defvar into
