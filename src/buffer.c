@@ -4959,6 +4959,7 @@ init_buffer_once ()
   buffer_defaults.scroll_bar_width = Qnil;
   buffer_defaults.vertical_scroll_bar_type = Qt;
   buffer_defaults.indicate_empty_lines = Qnil;
+  buffer_defaults.indicate_buffer_boundaries = Qnil;
   buffer_defaults.scroll_up_aggressively = Qnil;
   buffer_defaults.scroll_down_aggressively = Qnil;
   buffer_defaults.display_time = Qnil;
@@ -5028,6 +5029,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.scroll_bar_width, idx); ++idx;
   XSETFASTINT (buffer_local_flags.vertical_scroll_bar_type, idx); ++idx;
   XSETFASTINT (buffer_local_flags.indicate_empty_lines, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.indicate_buffer_boundaries, idx); ++idx;
   XSETFASTINT (buffer_local_flags.scroll_up_aggressively, idx); ++idx;
   XSETFASTINT (buffer_local_flags.scroll_down_aggressively, idx); ++idx;
   XSETFASTINT (buffer_local_flags.header_line_format, idx); ++idx;
@@ -5315,6 +5317,11 @@ This is the same as (default-value 'vertical-scroll-bar).  */);
 		     &buffer_defaults.indicate_empty_lines,
 		     doc: /* Default value of `indicate-empty-lines' for buffers that don't override it.
 This is the same as (default-value 'indicate-empty-lines).  */);
+
+  DEFVAR_LISP_NOPRO ("default-indicate-buffer-boundaries",
+		     &buffer_defaults.indicate_buffer_boundaries,
+		     doc: /* Default value of `indicate-buffer-boundaries' for buffers that don't override it.
+This is the same as (default-value 'indicate-buffer-boundaries).  */);
 
   DEFVAR_LISP_NOPRO ("default-scroll-up-aggressively",
 		     &buffer_defaults.scroll_up_aggressively,
@@ -5625,6 +5632,14 @@ A value of t means to use the vertical scroll bar type from the window's frame. 
 		     doc: /* *Visually indicate empty lines after the buffer end.
 If non-nil, a bitmap is displayed in the left fringe of a window on
 window-systems.  */);
+
+  DEFVAR_PER_BUFFER ("indicate-buffer-boundaries",
+		     &current_buffer->indicate_buffer_boundaries, Qnil,
+		     doc: /* *Visually indicate buffer boundaries and scrolling.
+If non-nil, the first and last line of the buffer are marked in the left and
+right fringe of a window on window-systems.
+In addition, if value is t, the top and bottom line of the window are marked
+with up and down arrow bitmaps in the right fringe if window can be scrolled.  */);
 
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
 		     &current_buffer->scroll_up_aggressively, Qnil,
