@@ -1502,7 +1502,7 @@ mark_interval_tree (tree)
 #ifndef make_number
 Lisp_Object
 make_number (n)
-     int n;
+     EMACS_INT n;
 {
   Lisp_Object obj;
   obj.s.val = n;
