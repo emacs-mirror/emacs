@@ -942,7 +942,6 @@ Lines containing only comments are considered empty."
 				      (eq (following-char) ?#)))))
 		    (current-column)))
 	current)
-    (debug)
     (save-excursion
       (indent-to (if (eq this-command 'newline-and-indent)
 		     previous
