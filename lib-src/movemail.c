@@ -18,6 +18,18 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+/* Important notice: defining MAIL_USE_FLOCK *will cause loss of mail*
+   if you do it on a system that does not normally use flock as its way of
+   interlocking access to inbox files.  The setting of MAIL_USE_FLOCK
+   *must agree* with the system's own conventions.
+   It is not a choice that is up to you.
+
+   So, if your system uses lock files rather than flock, then the only way
+   you can get proper operation is to enable movemail to write lockfiles there.
+   This means you must either give that directory access modes
+   that permit everyone to write lockfiles in it, or you must make movemail
+   a setuid or setgid program.  */
+
 /*
  * Modified January, 1986 by Michael R. Gretzinger (Project Athena)
  *
