@@ -623,7 +623,8 @@ the user from the mailer."
 			  (insert-buffer-substring curbuf beg end)))
 		    (if max (narrow-to-region (point-min) max)))))
 	    ;; Else append to the file directly.
-	    (if (mail-file-babyl-p (car fcc-list))
+	    (if (and (file-exists-p (car fcc-list))
+		     (mail-file-babyl-p (car fcc-list)))
 		;; If the file is a Babyl file,
 		;; convert the message to Babyl format.
 		(save-excursion
