@@ -150,8 +150,6 @@
     (define-key map [f2] '2C-two-columns)
     (define-key map "b" '2C-associate-buffer)
     (define-key map "s" '2C-split)
-    (define-key map "{" 'shrink-window-horizontally)
-    (define-key map "}" 'enlarge-window-horizontally)
     map)
   "Keymap for commands for setting up two-column mode.")
 
@@ -178,6 +176,8 @@
     (define-key map "o" '2C-associated-buffer)
     (define-key map "\^m" '2C-newline)
     (define-key map "|" '2C-toggle-autoscroll)
+    (define-key map "{" '2C-shrink-window-horizontally)
+    (define-key map "}" '2C-enlarge-window-horizontally)
     map)
   "Keymap for commands for use in two-column mode.")
 
@@ -186,6 +186,12 @@
       (cons (cons '2C-mode
 		  (let ((map (make-sparse-keymap)))
 		    (substitute-key-definition '2C-command 2C-minor-mode-map
+					       map (current-global-map))
+		    (substitute-key-definition 'enlarge-window-horizontally
+					       '2C-enlarge-window-horizontally
+					       map (current-global-map))
+		    (substitute-key-definition 'shrink-window-horizontally
+					       '2C-shrink-window-horizontally
 					       map (current-global-map))
 		    map))
 	    minor-mode-map-alist))
@@ -597,7 +603,7 @@ When autoscrolling is turned on, this also realigns the two buffers."
 
 
 
-(defun enlarge-window-horizontally (arg)
+(defun 2C-enlarge-window-horizontally (arg)
   "Make current window ARG columns wider."
   (interactive "p")
   (enlarge-window arg t)
@@ -606,10 +612,10 @@ When autoscrolling is turned on, this also realigns the two buffers."
        (set-buffer (2C-other))
        (setq 2C-window-width (- 2C-window-width arg))))
 
-(defun shrink-window-horizontally (arg)
+(defun 2C-shrink-window-horizontally (arg)
   "Make current window ARG columns narrower."
   (interactive "p")
-  (enlarge-window-horizontally (- arg)))
+  (2C-enlarge-window-horizontally (- arg)))
 
 
 
