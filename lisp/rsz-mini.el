@@ -7,7 +7,7 @@
 ;;; Maintainer: friedman@prep.ai.mit.edu
 ;;; Keywords: minibuffer, window, frame, display
 ;;; Status: Known to work in FSF GNU Emacs 19.26 and later.
-;;; $Id: rsz-mini.el,v 1.4 1994/06/22 22:14:28 friedman Exp friedman $
+;;; $Id: rsz-mini.el,v 1.5 1994/06/30 06:46:44 friedman Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -153,6 +153,8 @@ counterparts."
              (make-local-variable 'minibuffer-exit-hook)
              (add-hook 'minibuffer-exit-hook 'resize-minibuffer-frame-restore)
              (make-local-variable 'post-command-hook)
+	     ;; Copy this because add-hook modifies the list structure.
+	     (setq post-command-hook (copy-sequence post-command-hook))
              (add-hook 'post-command-hook 'resize-minibuffer-frame 'append))))
      (t
       (make-local-variable 'post-command-hook)
