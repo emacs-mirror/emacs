@@ -1,6 +1,6 @@
 ;;; cal-french.el --- calendar functions for the French Revolutionary calendar.
 
-;; Copyright (C) 1988, 1989, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1989, 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -151,9 +151,7 @@ Defaults to today's date if DATE is not given."
 (defun calendar-print-french-date ()
   "Show the French Revolutionary calendar equivalent of the selected date."
   (interactive)
-  (let ((f (calendar-french-date-string
-            (or (calendar-cursor-to-date)
-                (error "Cursor is not on a date!")))))
+  (let ((f (calendar-french-date-string (calendar-cursor-to-date t))))
     (if (string-equal f "")
         (message "Date is pre-French Revolution")
       (message f))))
@@ -213,9 +211,7 @@ Echo French Revolutionary date unless NOECHO is t."
 
 (defun diary-french-date ()
   "French calendar equivalent of date diary entry."
-  (let ((f (calendar-french-date-string
-            (or (calendar-cursor-to-date)
-                (error "Cursor is not on a date!")))))
+  (let ((f (calendar-french-date-string (calendar-cursor-to-date t))))
     (if (string-equal f "")
         "Date is pre-French Revolution"
       f)))
