@@ -634,12 +634,17 @@ by \"Save Options\" in Custom buffers.")
   "Save current values of Options menu items using Custom."
   (interactive)
   (let ((need-save nil))
+    ;; These are set with menu-bar-make-mm-toggle, which does not
+    ;; put on a customized-value property.
+    (dolist (elt '(line-number-mode column-number-mode cua-mode show-paren-mode
+		   transient-mark-mode global-font-lock-mode))
+      (and (customize-mark-to-save elt)
+	   (setq need-save t)))
     ;; These are set with `customize-set-variable'.
-    (dolist (elt '(line-number-mode column-number-mode scroll-bar-mode
+    (dolist (elt '(scroll-bar-mode
 		   debug-on-quit debug-on-error menu-bar-mode tool-bar-mode
 		   save-place uniquify-buffer-name-style fringe-mode
-		   case-fold-search cua-mode show-paren-mode
-		   transient-mark-mode global-font-lock-mode
+		   case-fold-search 
 		   display-time-mode auto-compression-mode
 		   current-language-environment default-input-method
 		   ;; Saving `text-mode-hook' is somewhat questionable,
