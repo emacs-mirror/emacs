@@ -3,6 +3,7 @@
 ;; Copyright (C) 1986, 1989, 1993, 1997 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
+;; Keywords: convenience files
 
 ;; This file is part of GNU Emacs.
 

@@ -4,6 +4,7 @@
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
+;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
 

@@ -1,5 +1,6 @@
 ;;; select.el --- lisp portion of standard selection support
 
+;; Maintainer: FSF
 ;; Keywords: internal
 
 ;; Copyright (c) 1993, 1994 Free Software Foundation, Inc.

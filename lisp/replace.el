@@ -3,6 +3,8 @@
 ;; Copyright (C) 1985, 86, 87, 92, 94, 96, 1997, 2000, 2001, 2002
 ;;  Free Software Foundation, Inc.
 
+;; Maintainer: FSF
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

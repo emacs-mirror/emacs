@@ -1,6 +1,9 @@
-;;; syntax.el --- Helper functions to find syntactic context
+;;; syntax.el --- helper functions to find syntactic context
 
 ;; Copyright (C) 2000 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
 

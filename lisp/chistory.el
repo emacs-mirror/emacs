@@ -4,6 +4,7 @@
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
+;; Keywords: convenience
 
 ;; This file is part of GNU Emacs.
 

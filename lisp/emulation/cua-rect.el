@@ -28,6 +28,10 @@
 ;; GNU emacs rect.el package and the the rect-mark.el package by Rick
 ;; Sladkey <jrs@world.std.com>.
 
+;;; Commentary:
+
+;;; Code:
+
 (provide 'cua-rect)
 
 (eval-when-compile
