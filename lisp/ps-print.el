@@ -3657,12 +3657,21 @@ If `ps-prefix-quote' is nil, it's set to t after generating string."
 	      (if (> col len)
 		  (make-string (- col len) ?\ )
 		" ")
-	      (cond ((null val) "nil")
-		    ((eq val t) "t")
-		    ((or (symbolp val) (listp val)) (format "'%S" val))
-		    (t          (format "%S" val))))))
+	      (ps-value-string val))))
    (t "")
    ))
+
+
+(defun ps-value-string (val)
+  "Return a string representation of VAL.  Used by `ps-print-quote'."
+  (cond ((null val)
+	 "nil")
+	((eq val t)
+	 "t")
+	((or (symbolp val) (listp val))
+	 (format "'%S" val))
+	(t
+	 (format "%S" val))))
 
 
 (defun ps-value (alist-sym key)
