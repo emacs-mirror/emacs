@@ -1,3 +1,8 @@
+2002-12-07  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (find-file-read-args): Reenable wildcard processing
+	unconditionally.
+
 2002-12-06  Robert J. Chassell <bob@rattlesnake.com>
 
 	* textmodes/texinfmt.el (texinfo-format-scan)
