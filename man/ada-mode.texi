@@ -604,7 +604,7 @@ declaration.  This function is  accessible through  the 'Ada'  menu when
 editing a Ada file, or simply through the following key binding :
 
 @table @kbd
-@item C-S-mouse-3
+@item C-S-Mouse-3
 display index menu
 @end table
 

@@ -513,7 +513,7 @@ Go to the location and hide the @file{*toc*} buffer.  This will restore
 the window configuration before @code{reftex-toc} (@kbd{C-c =}) was
 called.@refill
 
-@item mouse-2
+@item Mouse-2
 @vindex reftex-highlight-selection
 Clicking with mouse button 2 on a line has the same effect as @key{RET}.
 See also variable @code{reftex-highlight-selection}, @ref{Options
@@ -827,7 +827,7 @@ Insert a reference to the label at point into the buffer from which the
 selection process was started.  When entries have been marked, @key{RET}
 references all marked labels.@refill
 
-@item mouse-2
+@item Mouse-2
 @vindex reftex-highlight-selection
 Clicking with mouse button 2 on a label will accept it like @key{RET}
 would. See also variable @code{reftex-highlight-selection}, @ref{Options
@@ -1498,7 +1498,7 @@ the entries described above:
 @cindex Displaying cross-references
 @cindex Viewing cross-references
 @kindex C-c &
-@kindex S-mouse-2
+@kindex S-Mouse-2
 
 When point is idle on the argument of a @code{\ref} macro, the echo area
 will display some information about the label referenced there.  Note
@@ -1677,7 +1677,7 @@ entries, follow mode can be rather slow.@refill
 Insert a citation referencing the article at point into the buffer from
 which the selection process was started.@refill
 
-@item mouse-2
+@item Mouse-2
 @vindex reftex-highlight-selection
 Clicking with mouse button 2 on a citation will accept it like @key{RET}
 would.  See also variable @code{reftex-highlight-selection}, @ref{Options
@@ -1793,7 +1793,7 @@ files correctly.@refill
 @cindex Citation info
 @cindex Viewing citations
 @kindex C-c &
-@kindex S-mouse-2
+@kindex S-Mouse-2
 @findex reftex-view-crossref
 @findex reftex-mouse-view-crossref
 
@@ -2474,7 +2474,7 @@ The index tag is "idx".@refill
 @findex reftex-view-crossref
 @findex reftex-mouse-view-crossref
 @kindex C-c &
-@kindex S-mouse-2
+@kindex S-Mouse-2
 
 @b{Ref@TeX{}} can display cross--referencing information.  This means,
 if two document locations are linked, @b{Ref@TeX{}} can display the
@@ -2486,7 +2486,7 @@ database entry.@refill
 The feature is invoked by pressing @kbd{C-c &}
 (@code{reftex-view-crossref}) while point is on the @var{key} argument
 of a macro involved in cross--referencing.  You can also click with
-@kbd{S-mouse-2} on the macro argument.  Here is what will happen for
+@kbd{S-Mouse-2} on the macro argument.  Here is what will happen for
 individual classes of macros:@refill
 
 @table @asis
@@ -2571,7 +2571,7 @@ Here is a summary of the available keybindings.
 @kindex C-c )
 @kindex C-c [
 @kindex C-c &
-@kindex S-mouse-2
+@kindex S-Mouse-2
 @kindex C-c /
 @kindex C-c \
 @kindex C-c |
@@ -2583,7 +2583,7 @@ Here is a summary of the available keybindings.
 @kbd{C-c )}      @code{reftex-reference}
 @kbd{C-c [}      @code{reftex-citation}
 @kbd{C-c &}      @code{reftex-view-crossref}
-@kbd{S-mouse-2}  @code{reftex-mouse-view-crossref}
+@kbd{S-Mouse-2}  @code{reftex-mouse-view-crossref}
 @kbd{C-c /}      @code{reftex-index-selection-or-word}
 @kbd{C-c \}      @code{reftex-index-phrase-selection-or-word}
 @kbd{C-c |}      @code{reftex-index-visit-phrases-buffer}
@@ -2591,9 +2591,9 @@ Here is a summary of the available keybindings.
 @kbd{C-c >}      @code{reftex-display-index}
 @end example
 
-Note that the @kbd{S-mouse-2} binding is only provided if this key is
+Note that the @kbd{S-Mouse-2} binding is only provided if this key is
 not already used by some other package.  @b{Ref@TeX{}} will not override an
-existing binding to @kbd{S-mouse-2}.@refill
+existing binding to @kbd{S-Mouse-2}.@refill
 
 Personally, I also bind some functions in the users @kbd{C-c} map for
 easier access.@refill
@@ -3168,7 +3168,7 @@ is a style file @file{foils.el} that will inform @b{Ref@TeX{}} about these:
 Once you have written a document with labels, references and citations,
 it can be nice to read it like a hypertext document.  @b{Ref@TeX{}} has
 support for that: @code{reftex-view-crossref} (bound to @kbd{C-c
-&}), @code{reftex-mouse-view-crossref} (bound to @kbd{S-mouse-2}), and
+&}), @code{reftex-mouse-view-crossref} (bound to @kbd{S-Mouse-2}), and
 @code{reftex-search-document}.  A somewhat fancier interface with mouse
 highlighting is provided (among other things) by Peter S. Galbraith's
 @file{bib-cite.el}.  There is some overlap in the functionalities of
@@ -5123,7 +5123,7 @@ switch buffers at will, use the mouse etc.@refill
 @item
 New option @code{reftex-highlight-selection}.
 @item
-@kbd{mouse-2} can be used to select in selection and @file{*toc*}
+@kbd{Mouse-2} can be used to select in selection and @file{*toc*}
 buffers.@refill
 @item
 Fixed some problems regarding the interaction with VIPER mode.
@@ -5152,7 +5152,7 @@ customization group @code{reftex-fontification-configurations}.@refill
 Fixed bug with empty context strings.
 @item
 @code{reftex-mouse-view-crossref} is now bound by default at
-@kbd{S-mouse-2}.@refill
+@kbd{S-Mouse-2}.@refill
 @end itemize
 
 @noindent @b{Version 3.23}
