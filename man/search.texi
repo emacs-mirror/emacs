@@ -219,7 +219,8 @@ activating it, and does so only if the mark is not already active.
 
   @kbd{M-%} typed in incremental search invokes @code{query-replace}
 or @code{query-replace-regexp} (depending on search mode) with the
-current search string used as the string to replace.
+current search string used as the string to replace.  @xref{Query
+Replace}.
 
 @cindex lazy search highlighting
 @vindex isearch-lazy-highlight
@@ -231,11 +232,11 @@ other matches helps indicate which match is the current one.
 If you don't like this feature, you can turn it off by setting
 @code{isearch-lazy-highlight} to @code{nil}.
 
-@vindex isearch-lazy-highlight-face
 @cindex faces for highlighting search matches
   You can control how this highlighting looks by customizing the faces
-@code{isearch} (used for the current match) and
-@code{isearch-lazy-highlight-face} (for all the other matches).
+@code{isearch} (used for the current match) and @code{lazy-highlight}
+(for all the other matches).  The latter is also used for other matches
+inside @code{query-replace}.
 
 @vindex isearch-mode-map
   To customize the special characters that incremental search understands,
@@ -1153,6 +1154,14 @@ word-delimiter characters.
 @kindex C-M-%
 @findex query-replace-regexp
   @kbd{C-M-%} performs regexp search and replace (@code{query-replace-regexp}).
+It works like @code{replace-regexp} except that it queries
+like @code{query-replace}.
+
+@cindex faces for highlighting query replace
+  These commands highlight the current match using the face
+@code{query-replace}.  They highlight other matches using
+@code{lazy-highlight} just like incremental search (@pxref{Incremental
+Search}).
 
   The characters you can type when you are shown a match for the string
 or regexp are:
