@@ -76,7 +76,7 @@ create_root_interval (parent)
     {
       new->total_length = (BUF_Z (XBUFFER (parent))
 			   - BUF_BEG (XBUFFER (parent)));
-      XBUFFER (parent)->intervals = new;
+      BUF_INTERVALS (XBUFFER (parent)) = new;
     }
   else if (STRINGP (parent))
     {
@@ -414,7 +414,7 @@ balance_possible_root_interval (interval)
   interval = balance_an_interval (interval);
 
   if (BUFFERP (parent))
-    XBUFFER (parent)->intervals = interval;
+    BUF_INTERVALS (XBUFFER (parent)) = interval;
   else if (STRINGP (parent))
     XSTRING (parent)->intervals = interval;
 
@@ -1052,7 +1052,7 @@ delete_interval (i)
 	parent->parent = (INTERVAL) owner;
 
       if (BUFFERP (owner))
-	XBUFFER (owner)->intervals = parent;
+	BUF_INTERVALS (XBUFFER (owner)) = parent;
       else if (STRINGP (owner))
 	XSTRING (owner)->intervals = parent;
       else
@@ -1153,7 +1153,7 @@ adjust_intervals_for_deletion (buffer, start, length)
      int start, length;
 {
   register int left_to_delete = length;
-  register INTERVAL tree = buffer->intervals;
+  register INTERVAL tree = BUF_INTERVALS (buffer);
   register int deleted;
 
   if (NULL_INTERVAL_P (tree))
@@ -1165,7 +1165,7 @@ adjust_intervals_for_deletion (buffer, start, length)
 
   if (length == TOTAL_LENGTH (tree))
     {
-      buffer->intervals = NULL_INTERVAL;
+      BUF_INTERVALS (buffer) = NULL_INTERVAL;
       return;
     }
 
@@ -1181,10 +1181,10 @@ adjust_intervals_for_deletion (buffer, start, length)
     {
       left_to_delete -= interval_deletion_adjustment (tree, start - 1,
 						      left_to_delete);
-      tree = buffer->intervals;
+      tree = BUF_INTERVALS (buffer);
       if (left_to_delete == tree->total_length)
 	{
-	  buffer->intervals = NULL_INTERVAL;
+	  BUF_INTERVALS (buffer) = NULL_INTERVAL;
 	  return;
 	}
     }
@@ -1200,11 +1200,11 @@ offset_intervals (buffer, start, length)
      struct buffer *buffer;
      int start, length;
 {
-  if (NULL_INTERVAL_P (buffer->intervals) || length == 0)
+  if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)) || length == 0)
     return;
 
   if (length > 0)
-    adjust_intervals_for_insertion (buffer->intervals, start, length);
+    adjust_intervals_for_insertion (BUF_INTERVALS (buffer), start, length);
   else
     adjust_intervals_for_deletion (buffer, start, -length);
 }
@@ -1426,8 +1426,10 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
      int inherit;
 {
   register INTERVAL under, over, this, prev;
-  register INTERVAL tree = buffer->intervals;
+  register INTERVAL tree;
   int middle;
+
+  tree = BUF_INTERVALS (buffer);
 
   /* If the new text has no properties, it becomes part of whatever
      interval it was inserted into.  */
@@ -1441,8 +1443,8 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 				make_number (position + length),
 				Qnil, buf);
 	}
-      if (! NULL_INTERVAL_P (buffer->intervals))
-	buffer->intervals = balance_an_interval (buffer->intervals);
+      if (! NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
+	BUF_INTERVALS (buffer) = balance_an_interval (BUF_INTERVALS (buffer));
       return;
     }
 
@@ -1454,7 +1456,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 	{
 	  Lisp_Object buf;
 	  XSETBUFFER (buf, buffer);
-	  buffer->intervals = reproduce_tree (source, buf);
+	  BUF_INTERVALS (buffer) = reproduce_tree (source, buf);
 	  /* Explicitly free the old tree here.  */
 
 	  return;
@@ -1474,7 +1476,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
        some zero length intervals.  Eventually, do something clever
        about inserting properly.  For now, just waste the old intervals.  */
     {
-      buffer->intervals = reproduce_tree (source, tree->parent);
+      BUF_INTERVALS (buffer) = reproduce_tree (source, tree->parent);
       /* Explicitly free the old tree here.  */
 
       return;
@@ -1534,8 +1536,8 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
       over = next_interval (over);
     }
 
-  if (! NULL_INTERVAL_P (buffer->intervals))
-    buffer->intervals = balance_an_interval (buffer->intervals);
+  if (! NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
+    BUF_INTERVALS (buffer) = balance_an_interval (BUF_INTERVALS (buffer));
   return;
 }
 
@@ -1600,9 +1602,9 @@ set_point (position, buffer)
   int buffer_point;
   register Lisp_Object obj;
   int backwards = (position < BUF_PT (buffer)) ? 1 : 0;
-  int old_position = buffer->text.pt;
+  int old_position = BUF_PT (buffer);
 
-  if (position == buffer->text.pt)
+  if (position == BUF_PT (buffer))
     return;
 
   /* Check this now, before checking if the buffer has any intervals.
@@ -1611,16 +1613,17 @@ set_point (position, buffer)
   if (position > BUF_Z (buffer) || position < BUF_BEG (buffer))
     abort ();
 
-  if (NULL_INTERVAL_P (buffer->intervals))
+  if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
     {
-      buffer->text.pt = position;
+      
+      BUF_PT (buffer) = position;
       return;
     }
 
   /* Set TO to the interval containing the char after POSITION,
      and TOPREV to the interval containing the char before POSITION.
      Either one may be null.  They may be equal.  */
-  to = find_interval (buffer->intervals, position);
+  to = find_interval (BUF_INTERVALS (buffer), position);
   if (position == BUF_BEGV (buffer))
     toprev = 0;
   else if (to->position == position)
@@ -1636,7 +1639,7 @@ set_point (position, buffer)
      and FROMPREV to the interval containing the char before PT.
      Either one may be null.  They may be equal.  */
   /* We could cache this and save time.  */
-  from = find_interval (buffer->intervals, buffer_point);
+  from = find_interval (BUF_INTERVALS (buffer), buffer_point);
   if (buffer_point == BUF_BEGV (buffer))
     fromprev = 0;
   else if (from->position == BUF_PT (buffer))
@@ -1649,7 +1652,7 @@ set_point (position, buffer)
   /* Moving within an interval.  */
   if (to == from && toprev == fromprev && INTERVAL_VISIBLE_P (to))
     {
-      buffer->text.pt = position;
+      BUF_PT (buffer) = position;
       return;
     }
 
@@ -1703,7 +1706,7 @@ set_point (position, buffer)
 	 One or the other may be null.  */
     }
 
-  buffer->text.pt = position;
+  BUF_PT (buffer) = position;
 
   /* We run point-left and point-entered hooks here, iff the
      two intervals are not equivalent.  These hooks take
@@ -1751,7 +1754,7 @@ temp_set_point (position, buffer)
      int position;
      struct buffer *buffer;
 {
-  buffer->text.pt = position;
+  BUF_PT (buffer) = position;
 }
 
 /* Return the proper local map for position POSITION in BUFFER.
@@ -1766,24 +1769,24 @@ get_local_map (position, buffer)
   register INTERVAL interval;
   Lisp_Object prop, tem;
 
-  if (NULL_INTERVAL_P (buffer->intervals))
-    return current_buffer->keymap;
+  if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
+    return buffer->keymap;
 
   /* Perhaps we should just change `position' to the limit.  */
   if (position > BUF_Z (buffer) || position < BUF_BEG (buffer))
     abort ();
 
-  interval = find_interval (buffer->intervals, position);
+  interval = find_interval (BUF_INTERVALS (buffer), position);
   prop = textget (interval->plist, Qlocal_map);
   if (NILP (prop))
-    return current_buffer->keymap;
+    return buffer->keymap;
 
   /* Use the local map only if it is valid.  */
   tem = Fkeymapp (prop);
   if (!NILP (tem))
     return prop;
 
-  return current_buffer->keymap;
+  return buffer->keymap;
 }
 
 /* Call the modification hook functions in LIST, each with START and END.  */
@@ -1814,7 +1817,7 @@ verify_interval_modification (buf, start, end)
      struct buffer *buf;
      int start, end;
 {
-  register INTERVAL intervals = buf->intervals;
+  register INTERVAL intervals = BUF_INTERVALS (buf);
   register INTERVAL i, prev;
   Lisp_Object hooks;
   register Lisp_Object prev_mod_hooks;
@@ -2030,7 +2033,7 @@ copy_intervals_to_string (string, buffer, position, length)
      Lisp_Object string, buffer;
      int position, length;
 {
-  INTERVAL interval_copy = copy_intervals (XBUFFER (buffer)->intervals,
+  INTERVAL interval_copy = copy_intervals (BUF_INTERVALS (XBUFFER (buffer)),
 					   position, length);
   if (NULL_INTERVAL_P (interval_copy))
     return;
