@@ -1,6 +1,6 @@
 /* impl.c.testlib: Test library
  *
- * $HopeName$
+ * $HopeName: MMsrc!testlib.c(trunk.16) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -94,35 +94,36 @@ void die_expect(mps_res_t res, mps_res_t expected, const char *s)
  */
 
 #define multFREQ(freq, mult) ((freq) = (unsigned long)((freq) * (mult)))
+#define freqLIMIT 63uL
 
 void adjust_collection_freq(double multiplier)
 {
   multFREQ(AMCGen0Frequency, multiplier);
-  if(AMCGen0Frequency == 0)
-    AMCGen0Frequency = 1;
+  if(AMCGen0Frequency < freqLIMIT)
+    AMCGen0Frequency = freqLIMIT;
   multFREQ(AMCGen1Frequency, multiplier);
   if(AMCGen1Frequency <= AMCGen0Frequency)
-    AMCGen1Frequency = AMCGen0Frequency + 1;
+    AMCGen1Frequency = 2 * AMCGen0Frequency;
   multFREQ(AMCGen2Frequency, multiplier);
   if(AMCGen2Frequency <= AMCGen1Frequency)
-    AMCGen2Frequency = AMCGen1Frequency + 1;
+    AMCGen2Frequency = 2 * AMCGen1Frequency;
   multFREQ(AMCGen2plusFrequencyMultiplier, multiplier);
-  if(AMCGen2plusFrequencyMultiplier == 0)
-    AMCGen2plusFrequencyMultiplier = 1;
+  if(AMCGen2plusFrequencyMultiplier <= 1)
+    AMCGen2plusFrequencyMultiplier = 2;
   multFREQ(AMCGen0RampmodeFrequency, multiplier);
-  if(AMCGen0RampmodeFrequency == 0)
-    AMCGen0RampmodeFrequency = 1;
+  if(AMCGen0RampmodeFrequency < freqLIMIT)
+    AMCGen0RampmodeFrequency = freqLIMIT;
   multFREQ(AMCGen1RampmodeFrequency, multiplier);
   if(AMCGen1RampmodeFrequency <= AMCGen0RampmodeFrequency)
-    AMCGen1RampmodeFrequency = AMCGen0RampmodeFrequency + 1;
+    AMCGen1RampmodeFrequency = 2 * AMCGen0RampmodeFrequency;
   multFREQ(AMCRampGenFrequency, multiplier);
   assert(AMCRampGenFollows == 1);
   if(AMCRampGenFrequency <= AMCGen1RampmodeFrequency)
-    AMCRampGenFrequency = AMCGen1RampmodeFrequency + 1;
+    AMCRampGenFrequency = 2 * AMCGen1RampmodeFrequency;
   multFREQ(AMCGen2RampmodeFrequency, multiplier);
   if(AMCGen2RampmodeFrequency <= AMCRampGenFrequency)
     AMCGen2RampmodeFrequency = AMCRampGenFrequency * 2;
   multFREQ(AMCGen2plusRampmodeFrequencyMultiplier, multiplier);
-  if(AMCGen2plusRampmodeFrequencyMultiplier == 0)
-    AMCGen2plusRampmodeFrequencyMultiplier = 1;
+  if(AMCGen2plusRampmodeFrequencyMultiplier <= 1)
+    AMCGen2plusRampmodeFrequencyMultiplier = 2;
 }
