@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.213 1998/03/31 17:19:32 spiegel Exp spiegel $
+;; $Id: vc.el,v 1.214 1998/03/31 18:08:36 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -1940,23 +1940,17 @@ use C-u \\[vc-next-action] RET to do so."
 	;; This operation should always ask for confirmation.
 	(vc-suppress-confirm nil)
 	(obuf (current-buffer)) (changed (vc-diff nil t)))
-    (if (and changed (not (yes-or-no-p "Discard changes? ")))
-	(progn
+    (if changed
+        (unwind-protect
+            (if (not (yes-or-no-p "Discard changes? "))
+                (error "Revert cancelled"))
 	  (if (and (window-dedicated-p (selected-window))
 		   (one-window-p t 'selected-frame))
 	      (make-frame-invisible (selected-frame))
-	    (delete-window))
-	  (error "Revert cancelled"))
-      (set-buffer obuf))
-    (if changed
-	(if (and (window-dedicated-p (selected-window))
-		 (one-window-p t 'selected-frame))
-	    (make-frame-invisible (selected-frame))
-	  (delete-window)))
+	    (delete-window))))
+    (set-buffer obuf)
     (vc-backend-revert file)
-    (vc-resynch-window file t t)
-    )
-  )
+    (vc-resynch-window file t t)))
 
 ;;;###autoload
 (defun vc-cancel-version (norevert)
