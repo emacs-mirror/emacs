@@ -1661,7 +1661,7 @@ system cut and paste."
       (kill-append (buffer-substring beg end) (< end beg))
     (kill-new (buffer-substring beg end)))
   (if transient-mark-mode 
-      (setq mark-active nil))
+      (setq deactivate-mark t))
   nil)
 
 (defun kill-ring-save (beg end)
