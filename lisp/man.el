@@ -596,6 +596,23 @@ all sections related to a subject, put something appropriate into the
 	    (default-directory "/"))
 	;; Prevent any attempt to use display terminal fanciness.
 	(setenv "TERM" "dumb")
+	;; In Debian Woody, at least, we get overlong lines under X
+	;; unless COLUMNS or MANWIDTH is set.  This isn't a problem on
+	;; a tty.  man(1) says:
+	;;        MANWIDTH
+	;;               If $MANWIDTH is set, its value is used as the  line
+	;;               length  for which manual pages should be formatted.
+	;;               If it is not set, manual pages  will  be  formatted
+	;;               with  a line length appropriate to the current ter-
+	;;               minal (using an ioctl(2) if available, the value of
+	;;               $COLUMNS,  or falling back to 80 characters if nei-
+	;;               ther is available).
+	(if window-system
+	    (unless (or (getenv "MANWIDTH") (getenv "COLUMNS"))
+	      ;; This isn't strictly correct, since we don't know how
+	      ;; the page will actually be displayed, but it seems
+	      ;; reasonable.
+	      (setenv "COLUMNS" (number-to-string (frame-width)))))
 	(if (fboundp 'start-process)
 	    (set-process-sentinel
 	     (start-process manual-program buffer "sh" "-c"
@@ -659,7 +676,7 @@ See the variable `Man-notify-method' for the different notification behaviors."
      )))
 
 (defun Man-softhyphen-to-minus ()
-  ;; \255 is some kind of dash in Latin-N.  Versions of Debian man, at
+  ;; \255 is SOFT HYPHEN in Latin-N.  Versions of Debian man, at
   ;; least, emit it even when not in a Latin-N locale.
   (unless (eq t (compare-strings "latin-" 0 nil
 				 current-language-environment 0 6 t))
