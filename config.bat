@@ -219,7 +219,7 @@ rem   ----------------------------------------------------------------------
 Echo Configuring the main directory...
 If "%DJGPP_VER%" == "1" goto mainv1
 Echo Looking for the GDB init file...
-If not Exist src\_gdbinit If Exist src\.gdbinit update src/.gdbinit src/_gdbinit
+If Exist src\.gdbinit update src/.gdbinit src/_gdbinit
 If Exist src\_gdbinit goto gdbinitOk
 Echo ERROR:
 Echo I cannot find the GDB init file.  It was called ".gdbinit" in
