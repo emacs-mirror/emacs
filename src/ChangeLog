@@ -1,5 +1,14 @@
 2001-03-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (mark_window_display_accurate_1): New function, 
+	extracted from mark_window_display_accurate.  Compute
+	BUF_UNCHANGED_MODIFIED, BUF_OVERLAY_UNCHANGED_MODIFIED,
+	BUF_BEG_UNCHANGED, BUF_END_UNCHANGED.
+	(mark_window_display_accurate): Use it.
+	(redisplay_internal): Use it for the selected window.
+	(redisplay_internal): Avoid duplicate mark_window_display_accurate
+	for the selected frame.
+
 	* xdisp.c  Use make_number, for readability.
 	(try_window_id): Disable rows below the window end.
 	(try_window_reusing_current_matrix): Use cursor_row_p.
@@ -7,7 +16,7 @@
 	of rows.
 	(init_from_display_pos): If POS specifies a position in a display
 	vector, maybe get the iterator set up for that ellipsis.
-	
+
 	* xdisp.c (dump_glyph_row): Fix output for NGLYPHS == 2.
 
 2001-03-23  Eli Zaretskii  <eliz@is.elta.co.il>
