@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.93 $")
+(defconst byte-compile-version "$Revision: 2.94 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3554,6 +3554,7 @@ invoked interactively."
     ))
 
 
+;;;###autoload
 (defun batch-byte-compile-if-not-done ()
   "Like `byte-compile-file' but doesn't recompile if already up to date.
 Use this from the command line, with `-batch';
