@@ -1,5 +1,5 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001, 2002
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2659,7 +2659,7 @@ The key is always a possible IDX argument to `aref'.  */)
 
   CHECK_CHAR_TABLE (char_table);
 
-  map_char_table (call2, Qnil, char_table, function, 0, indices);
+  map_char_table ((void *) call2, Qnil, char_table, function, 0, indices);
   return Qnil;
 }
 
