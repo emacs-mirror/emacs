@@ -175,7 +175,7 @@ The remaining arguments should have the form
 
 The following keywords are meaningful:
 
-:type	VALUE should be a widget type for editing the symbols value.
+:type	VALUE should be a widget type for editing the symbol's value.
 :options VALUE should be a list of valid members of the widget type.
 :group  VALUE should be a customization group.
         Add SYMBOL to that group.
