@@ -1,6 +1,6 @@
 /* impl.c.ld: LOCATION DEPENDENCY IMPLEMENTATION
  *
- * $HopeName: MMsrc!ld.c(trunk.4) $
+ * $HopeName: MMsrc!ld.c(trunk.5) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .def: A location dependency records the fact that the bit-patterns
@@ -48,7 +48,7 @@
 
 #include "mpm.h"
 
-SRCID(ld, "$HopeName: MMsrc!ld.c(trunk.4) $");
+SRCID(ld, "$HopeName: MMsrc!ld.c(trunk.5) $");
 
 
 /* LDReset -- reset a dependency to empty
@@ -100,8 +100,7 @@ void LDReset(LD ld, Space space)
 void LDAdd(LD ld, Space space, Addr addr)
 {
   AVER(ld->epoch <= space->epoch);
-  /* .add.lock-free
-   * AVERT(Space, space) */
+  /* AVERT(Space, space) -- see .add.lock-free */
 
   ld->rs = RefSetAdd(space, ld->rs, addr);
 }
@@ -135,8 +134,7 @@ Bool LDIsStale(LD ld, Space space, Addr addr)
   UNUSED(addr);
 
   AVER(ld->epoch <= space->epoch);
-  /* .stale.thread-safe
-   * AVERT(Space, space) */
+  /* AVERT(Space, space) -- .stale.thread-safe */
 
   if(space->epoch == ld->epoch) /* .stale.current */
     return FALSE;
@@ -185,4 +183,30 @@ void LDAge(Space space, RefSet rs)
   /* Advance the epoch by one. */
   ++space->epoch;
   AVER(space->epoch != 0);      /* .epoch-size */
+}
+
+
+/* LDMerge -- merge two location dependencies
+ *
+ * .merge.lock-free:  This function is thread safe with respect to the
+ * (rest of the) mps.  It is unnecessary to claim locks before calling
+ * this function.
+ */
+
+void LDMerge(LD ld, Space space, LD from)
+{
+  /* AVERT(Space, space); -- .merge.lock-free */
+  AVER(ld != NULL);
+  AVER(ld->epoch <= space->epoch);
+  AVER(from != NULL);
+  AVER(from->epoch <= space->epoch);
+
+  /* If a reference has been added since epoch e1 then I've */
+  /* certainly added since epoch e0 where e0 < e1.  Therefore */
+  /* the epoch of the merged ld is the minimum. */
+  if(from->epoch < ld->epoch)
+    ld->epoch = from->epoch;
+
+  /* The set of references added is the union of the two. */
+  ld->rs = RefSetUnion(ld->rs, from->rs);
 }
