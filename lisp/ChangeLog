@@ -11,13 +11,12 @@
 2001-04-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* obsolete/profile.el: Moved from emacs-lisp/.
-	
+
 	* Makefile.in (nonobsolete_setwins): New macro.
-	(finder-data): Use it instead of `setwins'.  
+	(finder-data): Use it instead of `setwins'.
 	From: Dave Love <fx@gnu.org>.
 
-	* server.el (server-visit-files): Set server-existing-buffer
-	correctly.
+	* server.el (server-visit-files): Set server-existing-buffer correctly.
 	(server-visit-files): Run server-visit-hook after going to
 	line 1 so that the hook can set point as it sees fit.
 
@@ -42,6 +41,12 @@
 	<schmidt@mathematik.uni-kl.de>.
 
 	* simple.el (normal-erase-is-backspace-mode): Doc fix.
+
+2001-04-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/sgml-mode.el: Add unknown maintainer.
+	(sgml-tag): Pass `str' explicitly through skeleton-transformation.
+	(html-mode-map): Use set-keymap-parent.
 
 2001-04-06  Dave Love  <fx@gnu.org>
 
