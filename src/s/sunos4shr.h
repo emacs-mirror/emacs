@@ -43,3 +43,9 @@
 #define memmove(to, from, size) bcopy (from, to, size)
 
 #undef USE_DL_STUBS
+
+#ifdef __GNUC__
+#define LIBXMU -Xlinker -Bstatic -lXmu -Xlinker -Bdynamic
+#else
+#define LIBXMU -Bstatic -lXmu -Bdynamic
+#endif
