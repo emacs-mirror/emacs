@@ -51,6 +51,8 @@ case "$3" in
 	SOURCE="http://kanji.zinbun.kyoto-u.ac.jp/~yasuoka/.../${BASE}";;
     MICROSOFT)
 	SOURCE="http://www.microsoft.com/globaldev/reference/oem/${BASE}";;
+    KANJI-DATABASE)
+	SOURCE="data at http://sourceforge.net/cvs/?group_id=26261";;
     *)
 	echo "Unknown file type: $3";
 	exit 1;;
@@ -126,6 +128,12 @@ elif [ "$3" == "MICROSOFT" ] ; then
     # XX = U+YYYY
     sed -n -e "$2 p" < $1 \
 	| sed -e 's/\([0-9A-F]*\).*U+\([0-9A-F]*\).*/0x\1 0x\2/' \
+	| sort | ${AWKPROG}
+elif [ "$3" == "KANJI-DATABASE" ] ; then
+    # Source format is:
+    # C?-XXXX U+YYYYY .....
+    sed -n -e "$2 p" < $1 \
+	| sed -e 's/...\(....\) U+\([0-9A-F]*\).*/0x\1 0x\2/' \
 	| sort | ${AWKPROG}
 else
     echo "Invalid arguments"
