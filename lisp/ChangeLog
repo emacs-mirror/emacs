@@ -1,3 +1,11 @@
+2003-12-29  David Herring <sdh6@ra.msstate.edu>  (tiny change)
+
+	* comint.el (comint-watch-for-password-prompt): Pass `string' as
+	arg to send-invisible
+	(send-invisible): Doc fix.  The argument is now a prompt, not the
+	string to send.
+	(comint-read-noecho): Doc fix.
+
 2003-12-29  Michael R. Wolf  <MichaelRWolf@att.net>  (tiny change)
 
 	* net/ange-ftp.el (ange-ftp-name-format): Allow USER to contain
