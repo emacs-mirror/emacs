@@ -217,6 +217,7 @@ extern Lisp_Object Qdisplay;
 Lisp_Object Qscroll_bar_foreground, Qscroll_bar_background;
 Lisp_Object Qscreen_gamma, Qline_spacing, Qcenter;
 Lisp_Object Qcompound_text, Qcancel_timer;
+Lisp_Object Qwait_for_wm;
 
 /* The below are defined in frame.c.  */
 
@@ -731,6 +732,7 @@ static void x_disable_image P_ ((struct frame *, struct image *));
 static void x_create_im P_ ((struct frame *));
 void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 static void x_set_line_spacing P_ ((struct frame *, Lisp_Object, Lisp_Object));
+static void x_set_wait_for_wm P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_background_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_mouse_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_cursor_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -799,7 +801,8 @@ static struct x_frame_parm_table x_frame_parms[] =
   "scroll-bar-foreground",	x_set_scroll_bar_foreground,
   "scroll-bar-background",	x_set_scroll_bar_background,
   "screen-gamma",		x_set_screen_gamma,
-  "line-spacing",		x_set_line_spacing
+  "line-spacing",		x_set_line_spacing,
+  "wait-for-wm",		x_set_wait_for_wm
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -1312,8 +1315,22 @@ x_set_line_spacing (f, new_value, old_value)
 }
 
 
+/* Change the `wait-for-wm' frame parameter of frame F.  OLD_VALUE is
+   the previous value of that parameter, NEW_VALUE is the new value.
+   See also the comment of wait_for_wm in struct x_output.  */
+
+static void
+x_set_wait_for_wm (f, new_value, old_value)
+     struct frame *f;
+     Lisp_Object new_value, old_value;
+{
+  f->output_data.x->wait_for_wm = !NILP (new_value);
+}
+
+
 /* Change the `screen-gamma' frame parameter of frame F.  OLD_VALUE is
-   the previous value of that parameter, NEW_VALUE is the new value.  */
+   the previous value of that parameter, NEW_VALUE is the new
+   value.  */
 
 static void
 x_set_screen_gamma (f, new_value, old_value)
@@ -4320,6 +4337,8 @@ This function is an internal primitive--use `make-frame' instead.")
 		       RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qtitle, Qnil,
 		       "title", "Title", RES_TYPE_STRING);
+  x_default_parameter (f, parms, Qwait_for_wm, Qt,
+		       "waitForWM", "WaitForWM", RES_TYPE_BOOLEAN);
 
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
 
@@ -11426,6 +11445,8 @@ syms_of_xfns ()
   staticpro (&Qcompound_text);
   Qcancel_timer = intern ("cancel-timer");
   staticpro (&Qcancel_timer);
+  Qwait_for_wm = intern ("wait-for-wm");
+  staticpro (&Qwait_for_wm);
   /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
