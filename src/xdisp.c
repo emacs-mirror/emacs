@@ -1079,7 +1079,7 @@ done:
 	  start = startp - BEGV;
 	  /* I don't think this is guaranteed to be right.  For the
 	     moment, we'll pretend it is.  */
-	  end = (Z - XINT (w->window_end_pos)) - BEGV;
+	  end = (Z - XINT (w->window_end_pos));
 
 	  if (end < start) end = start;
 	  if (whole < (end - start)) whole = end - start;
