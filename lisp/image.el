@@ -1,6 +1,6 @@
 ;;; image.el --- image API
 
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 ;; Keywords: multimedia
 
 ;; This file is part of GNU Emacs.
@@ -38,7 +38,7 @@
     ("^\211PNG\r\n" . png)
     ("^#define" . xbm)
     ("^\\(MM\0\\*\\)\\|\\(II\\*\0\\)" . tiff)
-    ("^%!PS" . ghostscript))
+    ("^%!PS" . postscript))
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to auto-detect image types.
 When the first bytes of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE.")
