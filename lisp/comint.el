@@ -1260,7 +1260,7 @@ Similarly for Soar, Scheme, etc."
 	  (run-hook-with-args 'comint-output-filter-functions "")))))
 
 (defvar comint-preoutput-filter-functions nil 
-  "Functions to call after output is inserted into the buffer.
+  "Functions to call before output is inserted into the buffer.
 These functions get one argument, a string containing the text to be
 inserted.  They return the string as it should be inserted.
 
