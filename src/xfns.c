@@ -419,6 +419,8 @@ x_set_frame_parameters (f, alist)
   {
     Lisp_Object frame;
 
+    check_frame_size (f, &height, &width);
+
     XSET (frame, Lisp_Frame, f);
 
     if ((NUMBERP (width) && XINT (width) != FRAME_WIDTH (f))
