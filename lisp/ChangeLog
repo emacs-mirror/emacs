@@ -1,3 +1,9 @@
+2002-12-30  Steven Tamm  <steventamm@mac.com>
+
+	* scroll-bar.el (toggle-scroll-bar, scroll-bar-mode): Have
+	scroll bars correctly default to being on the right for Mac
+	Carbon port 
+	
 2002-12-29  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-delete-display): Rename (gdb-delete-expression).
