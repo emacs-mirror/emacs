@@ -1,4 +1,4 @@
-/* GNU Emacs site configuration template file.  -*- C -*-
+/* GNU Emacs site configuration template file.
    Copyright (C) 1988 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -93,21 +93,31 @@ and this notice must be preserved on all copies.  */
 #define GLYPH unsigned char
 #endif
 
-/* The configuration script replaces the string @opsystem@ with the
-   name of the s/*.h file that describes the system type you are
-   using; an option of the form "-opsystem=OPSYS" says to use
-   "s/OPSYS.h".  See the file ../etc/MACHINES for a list of systems
-   and the -opsystem flags to use for them.
-   See s/template.h for documentation on writing s/*.h files.  */
+/* The configuration script links system.h to a s- file that describes
+   the system type you are using.
+   See the file ../etc/MACHINES for a list of systems and
+   the names of the s- files to use for them.
+   See s-template.h for documentation on writing s- files.  */
 #include "@opsystem@"
 
-/* The configuration script replaces the string @machine@ with the
-   name of the m/*.h file that describes the machine you are
-   using; an option of the form "-machine=MACH" says to use
-   "m/MACH.h".  See the file ../etc/MACHINES for a list of machines
-   and the -machine flags to use for them.
-   See m/template.h for documentation on writing m/*.h files.  */
+/* The configuration script links machine.h to a m- file that
+   describes the machine and system you use.
+   See the file ../etc/MACHINES for a list of machines and
+   the names of the m- files to use for them.
+   See m-template.h for info on what m- files should define.  */
 #include "@machine@"
+
+/* Some s- files may define SYSTEM_MALLOC, in which case make sure
+   we don't use REL_ALLOC. */
+
+#ifdef SYSTEM_MALLOC
+#ifdef GNU_MALLOC
+#undef GNU_MALLOC
+#ifdef REL_ALLOC
+#undef REL_ALLOC
+#endif
+#endif
+#endif
 
 /* Load in the conversion definitions if this system
    needs them and the source file being compiled has not
@@ -124,7 +134,7 @@ and this notice must be preserved on all copies.  */
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
    These do not work for some USG systems yet;
-   for the ones where they work, the s/*.h file defines this flag.  */
+   for the ones where they work, the s-*.h file defines this flag.  */
 
 #ifndef VMS
 #ifndef USG
