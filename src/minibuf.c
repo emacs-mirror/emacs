@@ -279,7 +279,13 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   Fselect_window (minibuf_window);
   XSETFASTINT (XWINDOW (minibuf_window)->hscroll, 0);
 
-  Ferase_buffer ();
+  {
+    int count1 = specpdl_ptr - specpdl;
+    specbind (Qinhibit_read_only, Qt);
+    Ferase_buffer ();
+    unbind_to (count1, Qnil);
+  }
+
   minibuf_level++;
 
   if (!NILP (initial))
@@ -416,6 +422,7 @@ read_minibuf_unwind (data)
      Lisp_Object data;
 {
   Lisp_Object old_deactivate_mark;
+  Lisp_Object window;
 
   /* We are exiting the minibuffer one way or the other,
      so run the hook.  */
@@ -423,24 +430,16 @@ read_minibuf_unwind (data)
       && !NILP (Vrun_hooks))
     safe_run_hooks (Qminibuffer_exit_hook);
 
-  /* Erase the minibuffer we were using at this level.  */
-  Fset_buffer (XWINDOW (minibuf_window)->buffer);
-
-  /* Prevent error in erase-buffer.  */
-  current_buffer->read_only = Qnil;
-
-  old_deactivate_mark = Vdeactivate_mark;
-  Ferase_buffer ();
-  Vdeactivate_mark = old_deactivate_mark;
-
   /* If this was a recursive minibuffer,
-     tie the minibuffer window back to the outer level minibuffer buffer */
+     tie the minibuffer window back to the outer level minibuffer buffer.  */
   minibuf_level--;
-  /* Make sure minibuffer window is erased, not ignored */
-  windows_or_buffers_changed++;
-  XSETFASTINT (XWINDOW (minibuf_window)->last_modified, 0);
 
-  /* Restore prompt, etc from outer minibuffer */
+  window = minibuf_window;
+  /* To keep things predictable, in case it matters, let's be in the minibuffer
+     when we reset the relevant variables.  */
+  Fset_buffer (XWINDOW (window)->buffer);
+
+  /* Restore prompt, etc, from outer minibuffer level.  */
   minibuf_prompt = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
   minibuf_prompt_width = XFASTINT (Fcar (minibuf_save_list));
@@ -457,6 +456,21 @@ read_minibuf_unwind (data)
   minibuf_save_list = Fcdr (minibuf_save_list);
   minibuf_window = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
+
+  /* Erase the minibuffer we were using at this level.  */
+  {
+    int count = specpdl_ptr - specpdl;
+    /* Prevent error in erase-buffer.  */
+    specbind (Qinhibit_read_only, Qt);
+    old_deactivate_mark = Vdeactivate_mark;
+    Ferase_buffer ();
+    Vdeactivate_mark = old_deactivate_mark;
+    unbind_to (count, Qnil);
+  }
+
+  /* Make sure minibuffer window is erased, not ignored.  */
+  windows_or_buffers_changed++;
+  XSETFASTINT (XWINDOW (window)->last_modified, 0);
 }
 
 
