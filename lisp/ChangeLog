@@ -1,3 +1,8 @@
+2002-04-23  Andreas Schwab  <schwab@suse.de>
+
+	* menu-bar.el (menu-bar-goto-menu): Fix bindings for next-tag and
+	next-tag-otherw.
+
 2002-04-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* mouse-drag.el (mouse-drag-throw, mouse-drag-drag): Push reconstructed

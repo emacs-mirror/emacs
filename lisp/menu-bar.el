@@ -1,6 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar
 
-;; Copyright (C) 1993, 1994, 1995, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
@@ -340,13 +340,13 @@ A large number or nil slows down menu responsiveness."
 	      :help "Find function/variables whose names match regexp"))
 (define-key menu-bar-goto-menu [next-tag-otherw]
   '(menu-item "Next Tag in Other Window"
-	      (function (lambda () (find-tag-other-window nil t)))
+	      (lambda () (interactive) (find-tag-other-window nil t))
 	      :enable (and (boundp 'tags-location-ring)
 			   (not (ring-empty-p tags-location-ring)))
 	      :help "Find next function/variable matching last tag name in another window"))
 (define-key menu-bar-goto-menu [next-tag]
   '(menu-item "Find Next Tag"
-	      (function (lambda () (find-tag nil t)))
+	      (lambda () (interactive) (find-tag nil t))
 	      :enable (and (boundp 'tags-location-ring)
 			   (not (ring-empty-p tags-location-ring)))
 	      :help "Find next function/variable matching last tag name"))
