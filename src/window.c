@@ -2128,8 +2128,28 @@ temp_output_buffer_show (buf)
       set_marker_restricted (w->pointm, make_number (1), buf);
     }
 
+  /* Run temp-buffer-show-hook, with the chosen window selected.  */ 
   if (!NILP (Vrun_hooks))
-    call1 (Vrun_hooks, Qtemp_buffer_show_hook);
+    {
+      Lisp_Object tem;
+      tem = Fboundp (Qtemp_buffer_show_hook);
+      if (!NILP (tem))
+	{
+	  tem = Fsymbol_value (Qtemp_buffer_show_hook);
+	  if (!NILP (tem))
+	    {
+	      int count = specpdl_ptr - specpdl;
+
+	      /* Select the window that was chosen, for running the hook.  */
+	      record_unwind_protect (Fset_window_configuration,
+				     Fcurrent_window_configuration (Qnil));
+
+	      Fselect_window (window);
+	      call1 (Vrun_hooks, Qtemp_buffer_show_hook);
+	      unbind_to (count, Qnil);
+	    }
+	}
+    }
 }
 
 static
@@ -3347,7 +3367,7 @@ syms_of_window ()
   Qwindow_live_p = intern ("window-live-p");
   staticpro (&Qwindow_live_p);
 
-  Qtemp_buffer_show_hook = intern ("Qtemp-buffer-show-hook");
+  Qtemp_buffer_show_hook = intern ("temp-buffer-show-hook");
   staticpro (&Qtemp_buffer_show_hook);
 
 #ifndef MULTI_FRAME
