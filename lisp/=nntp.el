@@ -6,8 +6,6 @@
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news
 
-;; $Header: nntp.el,v 3.10 90/03/23 13:25:27 umerin Locked $
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,

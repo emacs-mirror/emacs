@@ -2697,8 +2697,20 @@ read_key_sequence (keybuf, bufsize, prompt)
 	  /* Scan from fkey_end until we find a bound suffix.  */
 	  while (fkey_end < t)
 	    {
+	      /* Look up meta-characters by prefixing them
+		 with meta_prefix_char.  I hate this.  */
+	      if (keybuf[fkey_end++] & 0x80)
+		fkey_next =
+		  get_keymap_1 (get_keyelt
+				(access_keymap (fkey_map, meta_prefix_char)),
+				0);
+	      else
+		fkey_next = fkey_map;
+
 	      fkey_next =
-		get_keyelt (access_keymap (fkey_map, keybuf[fkey_end++]));
+		get_keyelt (access_keymap
+			    (fkey_next, keybuf[(fkey_end++) & 0x7f]));
+
 	      /* If keybuf[fkey_start..fkey_next] is bound in the
 		 function key map and it's a suffix of the current
 		 sequence (i.e. fkey_next == t), replace it with

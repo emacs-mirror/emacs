@@ -5,8 +5,6 @@
 ;; Author: Dan LaLiberte <liberte@a.cs.uiuc.edu>
 ;; Keywords: c
 
-;;; $Header: hide-ifdef-mode.el,v 1.7 88/02/16 03:12:58 liberte Exp $
-
 ;;; Commentary:
 
 ;;; Written by Brian Marick, at Gould, Computer Systems Division, Urbana IL.
@@ -94,7 +92,6 @@
 
 ;;; Change Log:
 ;;;
-;;; $Log:	hide-ifdef-mode.el,v $
 ;;; Revision 1.7  88/02/16  03:12:58  liberte
 ;;; Fixed comments and doc strings.
 ;;; Added optional prefix arg for ifdef motion commands.

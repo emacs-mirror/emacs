@@ -61,8 +61,6 @@
 
 ;;;====================================================================
 
-;;; $Header: /import/kaplan/kaplan/liberte/Isearch/RCS/isearch-mode.el,v 1.2 92/05/27 11:33:57 liberte Exp Locker: liberte $
-;;; $Log:	isearch-mode.el,v $
 ;;; Revision 1.2  92/05/27  11:33:57  liberte
 ;;; Several new commands and features have been added.  Emacs version
 ;;; 19 has a search ring, which is supported here.  Other fixes found

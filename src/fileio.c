@@ -1364,6 +1364,13 @@ duplicates what `expand-file-name' does.")
 #endif /* not VMS */
 }
 
+/* A slightly faster and more convenient way to get
+   (directory-file-name (expand-file-name FOO)).  The return value may
+   have had its last character zapped with a '\0' character, meaning
+   that it is acceptable to system calls, but not to other lisp
+   functions.  Callers should make sure that the return value doesn't
+   escape.  */
+
 Lisp_Object
 expand_and_dir_to_file (filename, defdir)
      Lisp_Object filename, defdir;

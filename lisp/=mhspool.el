@@ -7,8 +7,6 @@
 ;; Maintainer: FSF
 ;; Keywords: mail, news
 
-;; $Header: mhspool.el,v 1.5 90/03/23 13:25:23 umerin Locked $
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
