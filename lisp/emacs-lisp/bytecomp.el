@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.80 $")
+(defconst byte-compile-version "$Revision: 2.81 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -842,17 +842,23 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 		      (and byte-compile-last-warned-form
 			   (not (eq byte-compile-current-form
 				    byte-compile-last-warned-form))))
-		  (if byte-compile-current-file
-		      (insert "\n\^L\n" (current-time-string) "\n"))
-		  (insert "While compiling "
+;;; This is redundant, since it is given at the start of the file,
+;;; and the extra clutter gets in the way -- rms.
+;;; 		  (if (and byte-compile-current-file
+;;; 			   (not (equal byte-compile-current-file
+;;; 				       byte-compile-last-logged-file)))
+;;; 		      (insert "\n\^L\n" (current-time-string) "\n"))
+		  (insert "\nWhile compiling "
 			  (if byte-compile-current-form
 			      (format "%s" byte-compile-current-form)
 			    "toplevel forms"))
-		  (if byte-compile-current-file
-		      (if (stringp byte-compile-current-file)
-			  (insert " in file " byte-compile-current-file)
-			(insert " in buffer "
-				(buffer-name byte-compile-current-file))))
+;;; This is redundant, since it is given at the start of the file,
+;;; and the extra clutter gets in the way -- rms.
+;;; 		  (if byte-compile-current-file
+;;; 		      (if (stringp byte-compile-current-file)
+;;; 			  (insert " in file " byte-compile-current-file)
+;;; 			(insert " in buffer "
+;;; 				(buffer-name byte-compile-current-file))))
 		  (insert ":\n")))
 	   (insert "  " string "\n")
 	   (if (and fill (not (string-match "\n" string)))
