@@ -48,8 +48,8 @@ Lisp_Object Vx_bitmap_file_path;
 #define min(x,y) ((x) > (y) ? (y) : (x))
 
 #ifdef WINDOWSNT
-#define read _read
-#define write _write
+#define read sys_read
+#define write sys_write
 #include <windows.h>
 extern int errno;
 #endif /* not WINDOWSNT */
