@@ -1,6 +1,6 @@
 /* impl.c.poolsnc: STACK NO CHECKING POOL CLASS
  *
- * $HopeName: MMsrc!poolsnc.c(trunk.5) $
+ * $HopeName: MMsrc!poolsnc.c(trunk.6) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 
 
-SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.5) $");
+SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.6) $");
 
 
 #define SNCSig  ((Sig)0x519b754c)       /* SIGPooLSNC */
@@ -76,7 +76,7 @@ typedef struct SNCBufStruct *SNCBuf;
 
 typedef struct SNCBufStruct {
   SegBufStruct segBufStruct;      /* superclass fields must come first */
-  Seg topseg;                     /* The segment chain head */
+  Seg topseg;                     /* The segment chain head -- may be NULL */
   Sig sig;                        /* design.mps.sig */
 } SNCBufStruct;
 
@@ -120,7 +120,8 @@ static void sncBufferSetTopSeg(Buffer buffer, Seg seg)
 {
   SNCBuf sncbuf;
   AVERT(Buffer, buffer);
-  AVERT(Seg, seg);
+  if (NULL != seg)
+    AVERT(Seg, seg);
   sncbuf = BufferSNCBuf(buffer);
   AVERT(SNCBuf, sncbuf);
   sncbuf->topseg = seg;
