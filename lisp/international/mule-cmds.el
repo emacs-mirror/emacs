@@ -142,8 +142,10 @@
 ;; but it won't be used that frequently.
 (define-key global-map "\C-\\" 'toggle-input-method)
 
-;; Here's an alternative key binding for X users (Shift-SPACE).
-(define-key global-map [?\S- ] 'toggle-input-method)
+;;; This is no good because people often type Shift-SPC
+;;; meaning to type SPC.  -- rms.
+;;; ;; Here's an alternative key binding for X users (Shift-SPACE).
+;;; (define-key global-map [?\S- ] 'toggle-input-method)
 
 (defun toggle-enable-multibyte-characters (&optional arg)
   "Change whether this buffer enables multibyte characters.
