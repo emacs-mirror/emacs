@@ -135,11 +135,10 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 ;; and show it until input arrives.
 (defun show-paren-function ()
   (if show-paren-mode
-      (let (pos dir mismatch face (oldpos (point)))
-	(cond ((eq (char-syntax (preceding-char)) ?\))
-	       (setq dir -1))
-	      ((eq (char-syntax (following-char)) ?\()
-	       (setq dir 1)))
+      (let ((oldpos (point))
+	    (dir (cond ((eq (car (syntax-after (1- (point)))) 5) -1)
+		       ((eq (car (syntax-after (point))) 4) 1)))
+	    pos mismatch face)
 	;;
 	;; Find the other end of the sexp.
 	(when dir
