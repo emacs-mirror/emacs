@@ -4,7 +4,7 @@
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
-;; Version: 4.0
+;; Version: 4.2
 ;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
@@ -25,13 +25,251 @@
 
 ;; TPU-edt is based on tpu.el by Jeff Kowalski and Bob Covey.
 
+;;; Commentary:
+
+;; %% TPU-edt -- Emacs emulating TPU emulating EDT
+
+;; %% Contents
+
+;;  % Introduction
+;;  % Differences Between TPU-edt and DEC TPU/edt
+;;  % Starting TPU-edt
+;;  % Customizing TPU-edt using the Emacs Initialization File
+;;  % Regular Expressions in TPU-edt
+
+
+;; %% Introduction
+
+;;    TPU-edt emulates the popular DEC VMS editor EDT (actually, it emulates
+;;    DEC TPU's EDT emulation, hence the name TPU-edt).  TPU-edt features the
+;;    following TPU/edt functionality:
+
+;;     .  EDT keypad
+;;     .  On-line help
+;;     .  Repeat counts
+;;     .  Scroll margins
+;;     .  Learn sequences
+;;     .  Free cursor mode
+;;     .  Rectangular cut and paste
+;;     .  Multiple windows and buffers
+;;     .  TPU line-mode REPLACE command
+;;     .  Wild card search and substitution
+;;     .  Configurable through an initialization file
+;;     .  History recall of search strings, file names, and commands
+
+;;    Please note that TPU-edt does NOT emulate TPU.  It emulates TPU's EDT
+;;    emulation.  Very few TPU line-mode commands are supported.
+
+;;    TPU-edt, like it's VMS cousin, works on VT-series terminals with DEC
+;;    style keyboards.  VT terminal emulators, including xterm with the
+;;    appropriate key translations, work just fine too.
+
+;;    TPU-edt works with X-windows.  This is accomplished through a TPU-edt X
+;;    key map.  The TPU-edt module tpu-mapper creates this map and stores it
+;;    in a file.  Tpu-mapper will be run automatically the first time you
+;;    invoke the X-windows version of emacs, or you can run it by hand.  See
+;;    the commentary in tpu-mapper.el for details.
+
+
+;; %% Differences Between TPU-edt and DEC TPU/edt
+
+;;    In some cases, Emacs doesn't support text highlighting, so selected
+;;    regions are not shown in inverse video.  Emacs uses the concept of "the
+;;    mark".  The mark is set at one end of a selected region; the cursor is
+;;    at the other.  The letter "M" appears in the mode line when the mark is
+;;    set.  The native emacs command ^X^X (Control-X twice) exchanges the
+;;    cursor with the mark; this provides a handy way to find the location of
+;;    the mark.
+
+;;    In TPU the cursor can be either bound or free.  Bound means the cursor
+;;    cannot wander outside the text of the file being edited.  Free means
+;;    the arrow keys can move the cursor past the ends of lines.  Free is the
+;;    default mode in TPU; bound is the only mode in EDT.  Bound is the only
+;;    mode in the base version of TPU-edt; optional extensions add an
+;;    approximation of free mode, see the commentary in tpu-extras.el for
+;;    details.
+
+;;    Like TPU, emacs uses multiple buffers.  Some buffers are used to hold
+;;    files you are editing; other "internal" buffers are used for emacs' own
+;;    purposes (like showing you help).  Here are some commands for dealing
+;;    with buffers.
+
+;;       Gold-B   moves to next buffer, including internal buffers
+;;       Gold-N   moves to next buffer containing a file
+;;       Gold-M   brings up a buffer menu (like TPU "show buffers")
+
+;;    Emacs is very fond of throwing up new windows.  Dealing with all these
+;;    windows can be a little confusing at first, so here are a few commands
+;;    to that may help:
+
+;;       Gold-Next_Scr  moves to the next window on the screen
+;;       Gold-Prev_Scr  moves to the previous window on the screen
+;;       Gold-TAB       also moves to the next window on the screen
+
+;;       Control-x 1    deletes all but the current window
+;;       Control-x 0    deletes the current window
+
+;;    Note that the buffers associated with deleted windows still exist!
+
+;;    Like TPU, TPU-edt has a "command" function, invoked with Gold-KP7 or
+;;    Do.  Most of the commands available are emacs commands.  Some TPU
+;;    commands are available, they are: replace, exit, quit, include, and
+;;    Get (unfortunately, "get" is an internal emacs function, so we are
+;;    stuck with "Get" - to make life easier, Get is available as Gold-g).
+
+;;    TPU-edt supports the recall of commands, file names, and search
+;;    strings.  The history of strings recalled differs slightly from
+;;    TPU/edt, but it is still very convenient.
+
+;;    Help is available!  The traditional help keys (Help and PF2) display
+;;    a small help file showing the default keypad layout, control key
+;;    functions, and Gold key functions.  Pressing any key inside of help
+;;    splits the screen and prints a description of the function of the
+;;    pressed key.  Gold-PF2 invokes the native emacs help, with it's
+;;    zillions of options.
+
+;;    Thanks to emacs, TPU-edt has some extensions that may make your life
+;;    easier, or at least more interesting.  For example, Gold-r toggles
+;;    TPU-edt rectangular mode.  In rectangular mode, Remove and Insert work
+;;    on rectangles.  Likewise, Gold-* toggles TPU-edt regular expression
+;;    mode.  In regular expression mode Find, Find Next, and the line-mode
+;;    replace command work with regular expressions.  [A regular expression
+;;    is a pattern that denotes a set of strings; like VMS wildcards.]
+
+;;    Emacs also gives TPU-edt the undo and occur functions.  Undo does
+;;    what it says; it undoes the last change.  Multiple undos in a row
+;;    undo multiple changes.  For your convenience, undo is available on
+;;    Gold-u.  Occur shows all the lines containing a specific string in
+;;    another window.  Moving to that window, and typing ^C^C (Control-C
+;;    twice) on a particular line moves you back to the original window
+;;    at that line.  Occur is on Gold-o.
+
+;;    Finally, as you edit, remember that all the power of emacs is at
+;;    your disposal.  It really is a fantastic tool.  You may even want to
+;;    take some time and read the emacs tutorial; perhaps not to learn the
+;;    native emacs key bindings, but to get a feel for all the things
+;;    emacs can do for you.  The emacs tutorial is available from the
+;;    emacs help function: "Gold-PF2 t"
+
+
+;; %% Starting TPU-edt
+
+;;    All you have to do to start TPU-edt, is turn it on.  This can be
+;;    done from the command line when running emacs.
+
+;;        prompt> emacs -f tpu-edt
+
+;;    If you've already started emacs, turn on TPU-edt using the tpu-edt
+;;    command.  First press `M-x' (that's usually `ESC' followed by `x')
+;;    and type `tpu-edt' followed by a carriage return.
+
+;;    If you like TPU-edt and want to use it all the time, you can start
+;;    TPU-edt using the emacs initialization file, .emacs.  Simply create
+;;    a .emacs file in your home directory containing the line:
+
+;;        (tpu-edt)
+
+;;    That's all you need to do to start TPU-edt.
+
+
+;; %% Customizing TPU-edt using the Emacs Initialization File
+
+;;    The following is a sample emacs initialization file.  It shows how to
+;;    invoke TPU-edt, and how to customize it.
+
+;;    ; .emacs - a sample emacs initialization file
+
+;;    ; Turn on TPU-edt
+;;    (tpu-edt)
+
+;;    ; Set scroll margins 10% (top) and 15% (bottom).
+;;    (tpu-set-scroll-margins "10%" "15%")       
+
+;;    ; Load the vtxxx terminal control functions.
+;;    (load "vt-control" t)
+
+;;    ; TPU-edt treats words like EDT; here's how to add word separators.
+;;    ; Note that backslash (\) and double quote (") are quoted with '\'.
+;;    (tpu-add-word-separators "]\\[-_,.\"=+()'/*#:!&;$")
+
+;;    ; Emacs is happy to save files without a final newline; other Unix
+;;    ; programs hate that!  Here we make sure that files end with newlines.
+;;    (setq require-final-newline t)
+
+;;    ; Emacs uses Control-s and Control-q.  Problems can occur when using
+;;    ; emacs on terminals that use these codes for flow control (Xon/Xoff
+;;    ; flow control).  These lines disable emacs' use of these characters.
+;;    (global-unset-key "\C-s")
+;;    (global-unset-key "\C-q")
+
+;;    ; The emacs universal-argument function is very useful.
+;;    ; This line maps universal-argument to Gold-PF1.
+;;    (define-key GOLD-SS3-map "P" 'universal-argument)          ; Gold-PF1
+
+;;    ; Make KP7 move by paragraphs, instead of pages.
+;;    (define-key SS3-map "w" 'tpu-paragraph)                    ; KP7
+
+;;    ; Repeat the preceding mappings for X-windows.
+;;    (cond
+;;     (window-system
+;;      (global-set-key [kp_7] 'tpu-paragraph)                   ; KP7
+;;      (define-key GOLD-map [kp_f1] 'universal-argument)))      ; GOLD-PF1
+
+;;    ; Display the TPU-edt version.
+;;    (tpu-version)
+
+
+;; %% Regular Expressions in TPU-edt
+
+;;    Gold-* toggles TPU-edt regular expression mode.  In regular expression
+;;    mode, find, find next, replace, and substitute accept emacs regular
+;;    expressions.  A complete list of emacs regular expressions can be found
+;;    using the emacs "info" command (it's somewhat like the VMS help
+;;    command).  Try the following sequence of commands:
+
+;;        DO info             <enter info mode>
+;;        m emacs             <select the "emacs" topic>
+;;        m regexs            <select the "regular expression" topic>
+
+;;    Type "q" to quit out of info mode.
+
+;;    There is a problem in regular expression mode when searching for empty
+;;    strings, like beginning-of-line (^) and end-of-line ($).  When searching
+;;    for these strings, find-next may find the current string, instead of the
+;;    next one.  This can cause global replace and substitute commands to loop
+;;    forever in the same location.  For this reason, commands like
+
+;;        replace "^" "> "       <add "> " to beginning of line>
+;;        replace "$" "00711"    <add "00711" to end of line>
+
+;;    may not work properly.
+
+;;    Commands like those above are very useful for adding text to the
+;;    beginning or end of lines.  They might work on a line-by-line basis, but
+;;    go into an infinite loop if the "all" response is specified.  If the
+;;    goal is to add a string to the beginning or end of a particular set of
+;;    lines TPU-edt provides functions to do this.
+
+;;        Gold-^  Add a string at BOL in region or buffer
+;;        Gold-$  Add a string at EOL in region or buffer
+
+;;    There is also a TPU-edt interface to the native emacs string replacement
+;;    commands.  Gold-/ invokes this command.  It accepts regular expressions
+;;    if TPU-edt is in regular expression mode.  Given a repeat count, it will
+;;    perform the replacement without prompting for confirmation.
+
+;;    This command replaces empty strings correctly, however, it has its
+;;    drawbacks.  As a native emacs command, it has a different interface
+;;    than the emulated TPU commands.  Also, it works only in the forward
+;;    direction, regardless of the current TPU-edt direction.
+
 ;;; Code:
 
 
 ;;;
 ;;;  Version Information
 ;;;
-(defconst tpu-version "4.0" "TPU-edt version number.")
+(defconst tpu-version "4.2" "TPU-edt version number.")
 
 
 ;;;
@@ -639,22 +877,42 @@ This is useful for inserting control characters."
        B     Next Buffer - display the next buffer (all buffers)
        C     Recall - edit and possibly repeat previous commands
        E     Exit - save current buffer and ask about others
-
        G     Get - load a file into a new edit buffer
+
        I     Include - include a file in this buffer
        K     Kill Buffer - abandon edits and delete buffer
-
        M     Buffer Menu - display a list of all buffers
        N     Next File Buffer - display next buffer containing a file
-       O     Occur - show following lines containing REGEXP
 
+       O     Occur - show following lines containing REGEXP
        Q     Quit - exit without saving anything
        R     Toggle rectangular mode for remove and insert
        S     Search and substitute - line mode REPLACE command
 
+      ^T     Toggle control key bindings between TPU and emacs
        U     Undo - undo the last edit
        W     Write - save current buffer
        X     Exit - save all modified buffers and exit
+
+\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\f
+
+  More extensive documentation on TPU-edt can be found in the `Commentary'
+  section of tpu-edt.el.  This section can be accessed through the standard
+  Emacs help facility using the `p' option.  Once you exit TPU-edt Help, one
+  of the following key sequences is sure to get you there.
+
+    ^h p        if you're not yet using TPU-edt
+    Gold-PF2 p  if you're using TPU-edt
+
+  Alternatively, fire up Emacs help from the command prompt, with
+
+    M-x help-for-help <CR> p <CR>
+
+  Where `M-x' might be any of `Gold-KP7', 'Do', or 'ESC-x'.
+
+  When you successfully invoke this part of the Emacs help facility, you
+  will see a buffer named `*Finder*' listing a number of topics.  Look for
+  tpu-edt under `emulations'.
 
 \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\f
 
@@ -1556,6 +1814,7 @@ Prefix argument serves as a repeat count."
   "Move to beginning of previous line.
 Prefix argument serves as repeat count."
   (interactive "p")
+  (or (bolp) (>= 0 num) (setq num (- num 1)))
   (forward-line (- num)))
 
 
