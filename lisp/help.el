@@ -304,8 +304,8 @@ C-w print information on absence of warranty for GNU Emacs."
 		   ((eq (car-safe def) 'mocklisp)
 		    "a mocklisp function.")
 		   ((eq (car-safe def) 'autoload)
-		    (format "%sautoloaded Lisp %s."
-			    beg
+		    (format "%s autoloaded Lisp %s."
+			    (if (commandp def) "an interactive" "an")
 			    (if (nth 4 def) "macro" "function")
 ;;; Including the file name made this line too long.
 ;;;			    (nth 1 def)
