@@ -1165,13 +1165,9 @@ case "${window_system}" in
     HAVE_X11=yes
     echo "  Using X11."
     case "${with_x_toolkit}" in
-      athena )
-	USE_X_TOOLKIT=ATHENA
-	echo "  Using Xt toolkit."
-	;;	
-      lucid )
+      athena | lucid )
 	USE_X_TOOLKIT=LUCID
-	echo "  Using Lucid toolkit."
+	echo "  Using Xt toolkit."
 	;;	
       motif )
 	USE_X_TOOLKIT=MOTIF
