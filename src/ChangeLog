@@ -1,3 +1,15 @@
+2004-10-18  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fs_load_font): Use fast_string_match_ignore_case for
+	comparing font names.
+	(fs_query_fontset): Use fast_string_match for comparing fontset
+	names.
+	(list_fontsets): Likewise.
+
+	* search.c (fast_string_match_ignore_case): New function.
+
+	* lisp.h (fast_string_match_ignore_case): Extern it.
+
 2004-10-17  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (overlay_arrow_at_row): Return overlay string rather
