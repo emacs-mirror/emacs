@@ -1,3 +1,16 @@
+2003-06-05  Dave Love  <fx@gnu.org>
+
+	* mktime.c (__mktime_internal): Merge changes from gnulib
+	involving year 69 and dst2.
+
+	Changes to merge with gnulib version and be consistent with the
+	autoconf test:
+
+	* getloadavg.c: Set NLIST_STRUCT from HAVE_NLIST_H.  Use
+	HAVE_STRUCT_NLIST_N_UN_N_NAME, not NLIST_NAME_UNION.
+	[HAVE_LOCALE_H]: Include locale.h.
+	(getloadavg) [HAVE_SETLOCALE]: Run sscanf in C locale.
+
 2003-06-05  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (coordinates_in_window): Convert X and Y to window

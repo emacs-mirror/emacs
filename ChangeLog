@@ -1,3 +1,9 @@
+2003-06-05  Dave Love  <fx@gnu.org>
+
+	* configure.in: Check for memcpy, mempcpy, mblen, mbrlen.  Use
+	AC_FUNC_STRFTIME, AC_STRUCT_TIMEZONE, AC_TYPE_MBSTATE_T.
+	(NLIST_STRUCT): Don't define.
+
 2003-06-02  Richard M. Stallman  <rms@gnu.org>
 
 	* configure.in: Revert changes of 2003-03-03 and 2003-05-24.
