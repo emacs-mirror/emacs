@@ -2,7 +2,7 @@
 #
 # Build and test MM at tip of main trunk (the MM_src compound)
 # 
-# $HopeName: HOMEmm!bin:build:MM_src_trunk(trunk.13) $
+# $HopeName: HOMEmm!bin:build:MM_src_trunk(trunk.14) $
 #
 
 script="`basename $0`"
@@ -17,7 +17,7 @@ die () {
 }
 
 test -d $HOME/Builds || mkdir $HOME/Builds ||
-  die "Unable to create Builds directory."
+  die "Unable to create Builds directory"
 
 cd $HOME/Builds &&
 rm -rf MM_src_trunk &&
@@ -25,20 +25,20 @@ mkdir MM_src_trunk &&
 cd MM_src_trunk ||
   die "Unable to get to Builds/MM_src_trunk directory"
 
-hope co -compound MM -branch . -recursive \
+hope co -compound MMsrc -branch . -recursive \
   -writable-files quit -missing-dir create -extra-files skip ||
-  die "Unable to check out MM_src_trunk from Hope"
+  die "Unable to check out MMsrc(trunk) from Hope"
 
-cd mm/src &&
+cd src &&
 
-for lib in mps.a
+for lib in mps.a mmsw.a
 do
   gnumake -r -f sus8gc.gmk $lib ||
     die "Unable to build library $lib of trunk"
 done &&
 
 for test in amcss dwstress lockcov locv mpmss mpsicv poolncv \
-            qs mpmconft finalcv
+            qs mpmconft finalcv arenacv amsss awlut weakcv
 do
   gnumake -r -f sus8gc.gmk $test ||
     die "Unable to build test $test of trunk"
