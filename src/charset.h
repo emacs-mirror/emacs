@@ -811,7 +811,7 @@ extern int non_ascii_char_to_string P_ ((int, unsigned char *, unsigned char **)
 extern int multibyte_form_length P_ ((const unsigned char *, int));
 extern int str_cmpchar_id P_ ((const unsigned char *, int));
 extern int get_charset_id P_ ((Lisp_Object));
-extern int cmpchar_component P_ ((unsigned int, unsigned int));
+extern int cmpchar_component P_ ((int, int, int));
 extern int find_charset_in_str P_ ((unsigned char *, int, int *,
 				    Lisp_Object, int));
 extern int strwidth P_ ((unsigned char *, int));
