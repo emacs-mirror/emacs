@@ -2382,7 +2382,7 @@ be shared by the new frame.")
   x_default_parameter (f, parms, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", string);
 
-  x_default_parameter (f, parms, Qmenu_bar_lines, make_number (0),
+  x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
 		       "menuBarLines", "MenuBarLines", number);
 
   f->display.x->parent_desc = ROOT_WINDOW;
