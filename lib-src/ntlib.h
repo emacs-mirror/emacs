@@ -51,7 +51,7 @@ int fchown (int fd, int uid, int gid);
 #define bcmp(a, b, l) memcmp(a, b, l)
 #endif
 
-/* redirect or undo interceptions by config.h */
+/* redirect or undo interceptions created by config.h */
 #undef access
 #define access  _access
 #undef chdir
@@ -110,5 +110,8 @@ int fchown (int fd, int uid, int gid);
 #define utime	  _utime
 #define index     strchr
 #define rindex    strrchr
+
+/* Make standard winsock definitions available if needed.  */
+#undef _WINSOCKAPI_
 
 /* end of ntlib.h */
