@@ -1302,6 +1302,7 @@ Give a blank topic name to go to the Index node itself."
     (switch-to-buffer "*Help*")
     (erase-buffer)
     (insert (documentation 'Info-mode))
+    (help-mode)
     (goto-char (point-min))
     (let (ch flag)
       (while (progn (setq flag (not (pos-visible-in-window-p (point-max))))
