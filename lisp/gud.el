@@ -3,7 +3,6 @@
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
-;; Version: 1.3
 ;; Keywords: unix, tools
 
 ;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
@@ -239,7 +238,7 @@ and source-file directory for your debugger."
 		   'gud-gdb-marker-filter 'gud-gdb-find-file)
 
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
-  (gud-def gud-tbreak "tbreak %f:%l" "\C-t" "Set breakpoint at current line.")
+  (gud-def gud-tbreak "tbreak %f:%l" "\C-t" "Set temporary breakpoint at current line.")
   (gud-def gud-remove "clear %l"     "\C-d" "Remove breakpoint at current line")
   (gud-def gud-step   "step %p"      "\C-s" "Step one source line with display.")
   (gud-def gud-stepi  "stepi %p"     "\C-i" "Step one instruction with display.")
@@ -541,9 +540,20 @@ and source-file directory for your debugger."
 
 (defvar gud-irix-p (string-match "^mips-[^-]*-irix" system-configuration)
   "Non-nil to assume the interface appropriate for IRIX dbx.
-This works in IRIX 4 and probably IRIX 5.")
-;; (It's been tested in IRIX 4 and the output from dbx on IRIX 5 looks
-;; the same.)
+This works in IRIX 4, 5 and 6.")
+;; [Irix dbx seems to be a moving target.  The dbx output changed
+;; subtly sometime between OS v4.0.5 and v5.2 so that, for instance,
+;; the output from `up' is no longer spotted by gud (and it's probably
+;; not distinctive enough to try to match it -- use C-<, C->
+;; exclusively) .  For 5.3 and 6.0, the $curline variable changed to
+;; `long long'(why?!), so the printf stuff needed changing.  The line
+;; number is cast to `long' as a compromise between the new `long
+;; long' and the original `int'.  The process filter is also somewhat
+;; unreliable, sometimes not spotting the markers; I don't know
+;; whether there's anything that can be done about that.  It would be
+;; much better if SGI could be persuaded to (re?)instate the MIPS
+;; -emacs flag for gdb-like output (which ought to be possible as most
+;; of the communication I've had over it has been from sgi.com).]
 
 ;; this filter is influenced by the xdb one rather than the gdb one
 (defun gud-irixdbx-marker-filter (string)
@@ -625,6 +635,8 @@ and source-file directory for your debugger."
 
   (cond
    (gud-mips-p
+    (gud-def gud-up     "up %p"         "<" "Up (numeric arg) stack frames.")
+    (gud-def gud-down   "down %p" ">" "Down (numeric arg) stack frames.")
     (gud-def gud-break "stop at \"%f\":%l"
 				  "\C-b" "Set breakpoint at current line.")
     (gud-def gud-finish "return"  "\C-f" "Finish executing current function."))
@@ -632,10 +644,16 @@ and source-file directory for your debugger."
     (gud-def gud-break "stop at \"%d%f\":%l"
 				  "\C-b" "Set breakpoint at current line.")
     (gud-def gud-finish "return"  "\C-f" "Finish executing current function.")
+    (gud-def gud-up     "up %p; printf \"\032\032%1ld:\",(long)$curline;file\n"
+	     "<" "Up (numeric arg) stack frames.")
+    (gud-def gud-down "down %p; printf \"\032\032%1ld:\",(long)$curline;file\n"
+	     ">" "Down (numeric arg) stack frames.")
     ;; Make dbx give out the source location info that we need.
     (process-send-string (get-buffer-process gud-comint-buffer)
 			 "printf \"\032\032%1d:\",$curline;file\n"))
    (t
+    (gud-def gud-up     "up %p"         "<" "Up (numeric arg) stack frames.")
+    (gud-def gud-down   "down %p" ">" "Down (numeric arg) stack frames.")
     (gud-def gud-break "file \"%d%f\"\nstop at %l"
 				  "\C-b" "Set breakpoint at current line.")))
 
@@ -644,8 +662,6 @@ and source-file directory for your debugger."
   (gud-def gud-stepi  "stepi %p"  "\C-i" "Step one instruction with display.")
   (gud-def gud-next   "next %p"	  "\C-n" "Step one line (skip functions).")
   (gud-def gud-cont   "cont"	  "\C-r" "Continue with display.")
-  (gud-def gud-up     "up %p"	  "<" "Up (numeric arg) stack frames.")
-  (gud-def gud-down   "down %p"	  ">" "Down (numeric arg) stack frames.")
   (gud-def gud-print  "print %e"  "\C-p" "Evaluate C expression at point.")
 
   (setq comint-prompt-regexp  "^[^)\n]*dbx) *")
