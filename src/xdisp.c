@@ -124,6 +124,8 @@ static void echo_area_display ();
 void mark_window_display_accurate ();
 static void redisplay_windows ();
 static void redisplay_window ();
+static void update_menu_bars ();
+static void update_menu_bar ();
 static void try_window ();
 static int try_window_id ();
 static struct position *display_text_line ();
@@ -146,6 +148,9 @@ int minibuf_prompt_width;
    and command echoing uses it as well.
    It overrides the minibuf_prompt as well as the buffer.  */
 char *echo_area_glyphs;
+
+/* This is the length of the message in echo_area_glyphs.  */
+int echo_area_glyphs_length;
 
 /* true iff we should redraw the mode lines on the next redisplay */
 int update_mode_lines;
@@ -182,6 +187,7 @@ int line_number_display_limit;
 
 /* Specify m, a string, as a message in the minibuf.  If m is 0, clear out
    any existing message, and let the minibuffer text show through.  */
+
 void
 message1 (m)
      char *m;
@@ -214,7 +220,59 @@ message1 (m)
 #endif
 
       if (m)
-	echo_area_glyphs = m;
+	{
+	  echo_area_glyphs = m;
+	  echo_area_glyphs_length = strlen (m);
+	}
+      else
+	echo_area_glyphs = previous_echo_glyphs = 0;
+
+      do_pending_window_change ();
+      echo_area_display ();
+      update_frame (XFRAME (XWINDOW (minibuf_window)->frame), 1, 1);
+      do_pending_window_change ();
+    }
+}
+
+/* Display an echo area message M with a specified length of LEN chars.
+   This way, null characters can be included.  */
+
+void
+message2 (m, len)
+     char *m;
+     int len;
+{
+  if (noninteractive)
+    {
+      if (noninteractive_need_newline)
+	putc ('\n', stderr);
+      noninteractive_need_newline = 0;
+      fwrite (m, len, 1, stderr);
+      if (cursor_in_echo_area == 0)
+	fprintf (stderr, "\n");
+      fflush (stderr);
+    }
+  /* A null message buffer means that the frame hasn't really been
+     initialized yet.  Error messages get reported properly by
+     cmd_error, so this must be just an informative message; toss it.  */
+  else if (INTERACTIVE && FRAME_MESSAGE_BUF (selected_frame))
+    {
+#ifdef MULTI_FRAME
+      Lisp_Object minibuf_frame;
+
+      choose_minibuf_frame ();
+      minibuf_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
+      FRAME_SAMPLE_VISIBILITY (XFRAME (minibuf_frame));
+      if (FRAME_VISIBLE_P (selected_frame)
+	  && ! FRAME_VISIBLE_P (XFRAME (minibuf_frame)))
+	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (minibuf_window)));
+#endif
+
+      if (m)
+	{
+	  echo_area_glyphs = m;
+	  echo_area_glyphs_length = len;
+	}
       else
 	echo_area_glyphs = previous_echo_glyphs = 0;
 
@@ -269,22 +327,21 @@ message (m, a1, a2, a3)
 	{
 	  if (m)
 	    {
-	      {
+	      int len;
 #ifdef NO_ARG_ARRAY
-		int a[3];
-		a[0] = a1;
-		a[1] = a2;
-		a[2] = a3;
+	      int a[3];
+	      a[0] = a1;
+	      a[1] = a2;
+	      a[2] = a3;
 
-		doprnt (FRAME_MESSAGE_BUF (echo_frame),
-			FRAME_WIDTH (echo_frame), m, 0, 3, a);
+	      len = doprnt (FRAME_MESSAGE_BUF (echo_frame),
+			    FRAME_WIDTH (echo_frame), m, 0, 3, a);
 #else
-		doprnt (FRAME_MESSAGE_BUF (echo_frame),
-			FRAME_WIDTH (echo_frame), m, 0, 3, &a1);
+	      len = doprnt (FRAME_MESSAGE_BUF (echo_frame),
+			    FRAME_WIDTH (echo_frame), m, 0, 3, &a1);
 #endif /* NO_ARG_ARRAY */
-	      }
 
-	      message1 (FRAME_MESSAGE_BUF (echo_frame));
+	      message2 (FRAME_MESSAGE_BUF (echo_frame), len);
 	    }
 	  else
 	    message1 (0);
@@ -323,6 +380,7 @@ echo_area_display ()
       get_display_line (f, vpos, 0);
       display_string (XWINDOW (minibuf_window), vpos,
 		      echo_area_glyphs ? echo_area_glyphs : "",
+		      echo_area_glyphs ? echo_area_glyphs_length : -1,
 		      0, 0, 0, FRAME_WIDTH (f));
 
       /* If desired cursor location is on this line, put it at end of text */
@@ -338,7 +396,7 @@ echo_area_display ()
 	  {
 	    get_display_line (f, i, 0);
 	    display_string (XWINDOW (minibuf_window), vpos,
-			    "", 0, 0, 0, FRAME_WIDTH (f));
+			    "", 0, 0, 0, 0, FRAME_WIDTH (f));
 	  }
       }
     }
@@ -351,6 +409,77 @@ echo_area_display ()
   previous_echo_glyphs = echo_area_glyphs;
 }
 
+/* Prepare for redisplay by updating menu-bar item lists when appropriate.
+   This can't be done in `redisplay' itself because it can call eval.  */
+
+void
+prepare_menu_bars ()
+{
+  register struct window *w = XWINDOW (selected_window);
+  int all_windows;
+
+  if (noninteractive)
+    return;
+
+  /* Set the visible flags for all frames.
+     Do this before checking for resized or garbaged frames; they want
+     to know if their frames are visible.
+     See the comment in frame.h for FRAME_SAMPLE_VISIBILITY.  */
+  {
+    Lisp_Object tail, frame;
+
+    FOR_EACH_FRAME (tail, frame)
+      FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
+  }
+
+  /* Notice any pending interrupt request to change frame size.  */
+  do_pending_window_change ();
+
+  if (frame_garbaged)
+    {
+      redraw_garbaged_frames ();
+      frame_garbaged = 0;
+    }
+
+  if (clip_changed || windows_or_buffers_changed)
+    update_mode_lines++;
+
+  /* Detect case that we need to write a star in the mode line.  */
+  if (XFASTINT (w->last_modified) < MODIFF
+      && XFASTINT (w->last_modified) <= current_buffer->save_modified)
+    {
+      w->update_mode_line = Qt;
+      if (buffer_shared > 1)
+	update_mode_lines++;
+    }
+
+  all_windows = update_mode_lines || buffer_shared > 1;
+
+  /* If specs for an arrow have changed, do thorough redisplay
+     to ensure we remove any arrow that should no longer exist.  */
+  if (! EQ (Voverlay_arrow_position, last_arrow_position)
+      || ! EQ (Voverlay_arrow_string, last_arrow_string))
+    all_windows = 1, clip_changed = 1;
+
+  /* Update the menu bar item lists, if appropriate.
+     This has to be done before any actual redisplay
+     or generation of display lines.  */
+  if (all_windows)
+    {
+      Lisp_Object tail, frame;
+
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  FRAME_PTR f = XFRAME (frame);
+
+	  if (FRAME_VISIBLE_P (f))
+	    update_menu_bars (FRAME_ROOT_WINDOW (f));
+	}
+    }
+  else if (FRAME_VISIBLE_P (selected_frame))
+    update_menu_bar (selected_window);
+}
+
 /* Do a frame update, taking possible shortcuts into account.
    This is the main external entry point for redisplay.
 
@@ -358,11 +487,14 @@ echo_area_display ()
    message is no longer requested, we clear the echo area
    or bring back the minibuffer if that is in use.
 
-   Everyone would like to have a hook here to call eval,
-   but that cannot be done safely without a lot of changes elsewhere.
-   This can be called from signal handlers; with alarms set up;
+   Do not call eval from within this function.
+   Calls to eval after the call to echo_area_display would confuse
+   the display_line mechanism and would cause a crash.
+   Calls to eval before that point will work most of the time,
+   but can still lose, because  this function
+   can be called from signal handlers; with alarms set up;
    or with synchronous processes running.
-   See the function `echo' in keyboard.c.
+
    See Fcall_process; if you called it from here, it could be
    entered recursively.  */
 
@@ -400,16 +532,6 @@ redisplay ()
       frame_garbaged = 0;
     }
 
-  /* Normally the message* functions will have already displayed and
-     updated the echo area, but the frame may have been trashed, or
-     the update may have been preempted, so display the echo area
-     again here.  */
-  if (echo_area_glyphs || previous_echo_glyphs)
-    {
-      echo_area_display ();
-      must_finish = 1;
-    }
-
   if (clip_changed || windows_or_buffers_changed)
     update_mode_lines++;
 
@@ -431,6 +553,16 @@ redisplay ()
   if (! EQ (Voverlay_arrow_position, last_arrow_position)
       || ! EQ (Voverlay_arrow_string, last_arrow_string))
     all_windows = 1, clip_changed = 1;
+
+  /* Normally the message* functions will have already displayed and
+     updated the echo area, but the frame may have been trashed, or
+     the update may have been preempted, so display the echo area
+     again here.  */
+  if (echo_area_glyphs || previous_echo_glyphs)
+    {
+      echo_area_display ();
+      must_finish = 1;
+    }
 
   /* If showing region, and mark has changed, must redisplay whole window.  */
   if (((!NILP (Vtransient_mark_mode)
@@ -752,7 +884,77 @@ mark_window_display_accurate (window, flag)
     }
 }
 
+/* Update the menu bar item lists for WINDOW
+   and its subwindows and siblings.
+   This has to be done before we start to fill in any display lines,
+   because it can call eval.  */
+
+static void
+update_menu_bars (window)
+     Lisp_Object window;
+{
+  for (; !NILP (window); window = XWINDOW (window)->next)
+    update_menu_bar (window, 0);
+}
+
+/* Update the menu bar item list for window WINDOW and its subwindows.  */
+
+static void
+update_menu_bar (window, just_this_one)
+     Lisp_Object window;
+     int just_this_one;
+{
+  register struct window *w = XWINDOW (window);
+  struct buffer *old = current_buffer;
+  FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
+
+  /* If this is a combination window, do its children; that's all.  */
+
+  if (!NILP (w->vchild))
+    {
+      update_menu_bars (w->vchild);
+      return;
+    }
+  if (!NILP (w->hchild))
+    {
+      update_menu_bars (w->hchild);
+      return;
+    }
+  if (NILP (w->buffer))
+    abort ();
+  
+  if (update_mode_lines)
+    w->update_mode_line = Qt;
+
+  /* When we reach a frame's selected window, redo the frame's menu bar.  */
+  if (!NILP (w->update_mode_line)
+      && FRAME_MENU_BAR_LINES (f) > 0
+      && EQ (FRAME_SELECTED_WINDOW (f), window))
+    {
+      /* If the user has switched buffers or windows, we need to
+	 recompute to reflect the new bindings.  But we'll
+	 recompute when update_mode_lines is set too; that means
+	 that people can use force-mode-line-update to request
+	 that the menu bar be recomputed.  The adverse effect on
+	 the rest of the redisplay algorithm is about the same as
+	 windows_or_buffers_changed anyway.  */
+      if (windows_or_buffers_changed
+	  || update_mode_lines
+	  || (XFASTINT (w->last_modified) < MODIFF
+	      && (XFASTINT (w->last_modified)
+		  <= XBUFFER (w->buffer)->save_modified)))
+	{
+	  struct buffer *prev = current_buffer;
+	  current_buffer = XBUFFER (w->buffer);
+	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items ();
+	  current_buffer = prev;
+	}
+    }
+}
+
 int do_id = 1;
+
+/* Redisplay WINDOW and its subwindows and siblings.  */
 
 static void
 redisplay_windows (window)
@@ -761,6 +963,8 @@ redisplay_windows (window)
   for (; !NILP (window); window = XWINDOW (window)->next)
     redisplay_window (window, 0);
 }
+
+/* Redisplay window WINDOW and its subwindows.  */
 
 static void
 redisplay_window (window, just_this_one)
@@ -817,7 +1021,7 @@ redisplay_window (window, just_this_one)
 	  for (i = 0; i < height; i++)
 	    {
 	      get_display_line (f, vpos + i, 0);
-	      display_string (w, vpos + i, "", 0, 0, 0, width);
+	      display_string (w, vpos + i, "", 0, 0, 0, 0, width);
 	    }
 	  
 	  goto finish_scroll_bars;
@@ -887,7 +1091,7 @@ redisplay_window (window, just_this_one)
 				- (1 << (SHORTBITS - 1)),
 				width, hscroll, pos_tab_offset (w, startp));
 	  SET_PT (pos.bufpos);
-	  if (w != XWINDOW (FRAME_SELECTED_WINDOW (f)))
+	  if (w != XWINDOW (selected_window))
 	    Fset_marker (w->pointm, make_number (point), Qnil);
 	  else
 	    {
@@ -1765,7 +1969,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
       && vpos == XFASTINT (w->top))
     {
       if (minibuf_prompt)
-	hpos = display_string (w, vpos, minibuf_prompt, hpos,
+	hpos = display_string (w, vpos, minibuf_prompt, -1, hpos,
 			       (!truncate ? continuer : truncator),
 			       -1, -1);
       minibuf_prompt_width = hpos;
@@ -2149,25 +2353,6 @@ display_menu_bar (w)
 
   get_display_line (f, vpos, 0);
 
-  /* If the user has switched buffers or windows, we need to
-     recompute to reflect the new bindings.  But we'll
-     recompute when update_mode_lines is set too; that means
-     that people can use force-mode-line-update to request
-     that the menu bar be recomputed.  The adverse effect on
-     the rest of the redisplay algorithm is about the same as
-     windows_or_buffers_changed anyway.  */
-  if (windows_or_buffers_changed
-      || update_mode_lines
-      || (XFASTINT (w->last_modified) < MODIFF
-	  && (XFASTINT (w->last_modified)
-	      <= XBUFFER (w->buffer)->save_modified)))
-    {
-      struct buffer *prev = current_buffer;
-      current_buffer = XBUFFER (w->buffer);
-      FRAME_MENU_BAR_ITEMS (f) = menu_bar_items ();
-      current_buffer = prev;
-    }
-
   for (tail = FRAME_MENU_BAR_ITEMS (f); CONSP (tail); tail = XCONS (tail)->cdr)
     {
       Lisp_Object string;
@@ -2180,12 +2365,13 @@ display_menu_bar (w)
       if (hpos < maxendcol)
 	hpos = display_string (XWINDOW (FRAME_ROOT_WINDOW (f)), vpos,
 			       XSTRING (string)->data,
+			       XSTRING (string)->size,
 			       hpos, 0, hpos, maxendcol);
       /* Put a gap of 3 spaces between items.  */
       if (hpos < maxendcol)
 	{
 	  int hpos1 = hpos + 3;
-	  hpos = display_string (w, vpos, "", hpos, 0,
+	  hpos = display_string (w, vpos, "", 0, hpos, 0,
 				 min (hpos1, maxendcol), maxendcol);
 	}
     }
@@ -2195,7 +2381,7 @@ display_menu_bar (w)
 
   /* Fill out the line with spaces.  */
   if (maxendcol > hpos)
-    hpos = display_string (w, vpos, "", hpos, 0, maxendcol, -1);
+    hpos = display_string (w, vpos, "", 0, hpos, 0, maxendcol, -1);
 
   /* Clear the rest of the lines allocated to the menu bar.  */
   vpos++;
@@ -2311,7 +2497,7 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 	    if (this - 1 != last)
 	      {
 		register int lim = --this - last + hpos;
-		hpos = display_string (w, vpos, last, hpos, 0, hpos,
+		hpos = display_string (w, vpos, last, -1, hpos, 0, hpos,
 				       min (lim, maxendcol));
 	      }
 	    else /* c == '%' */
@@ -2340,6 +2526,7 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 		  hpos = display_string (w, vpos,
 					 decode_mode_spec (w, c,
 							   maxendcol - hpos),
+					 -1,
 					 hpos, 0, spec_width, maxendcol);
 	      }
 	  }
@@ -2361,6 +2548,7 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 	       don't check for % within it.  */
 	    if (XTYPE (tem) == Lisp_String)
 	      hpos = display_string (w, vpos, XSTRING (tem)->data,
+				     XSTRING (tem)->size,
 				     hpos, 0, minendcol, maxendcol);
 	    /* Give up right away for nil or t.  */
 	    else if (!EQ (tem, elt))
@@ -2450,13 +2638,13 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 
     default:
     invalid:
-      return (display_string (w, vpos, "*invalid*", hpos, 0,
+      return (display_string (w, vpos, "*invalid*", -1, hpos, 0,
 			      minendcol, maxendcol));
     }
 
  end:
   if (minendcol > hpos)
-    hpos = display_string (w, vpos, "", hpos, 0, minendcol, -1);
+    hpos = display_string (w, vpos, "", 0, hpos, 0, minendcol, -1);
   return hpos;
 }
 
@@ -2733,6 +2921,7 @@ display_count_lines (from, limit, n, pos_ptr)
 /* Display STRING on one line of window W, starting at HPOS.
    Display at position VPOS.  Caller should have done get_display_line.
    If VPOS == -1, display it as the current frame's title.
+   LENGTH is the length of STRING, or -1 meaning STRING is null-terminated.
 
   TRUNCATE is GLYPH to display at end if truncated.  Zero for none.
 
@@ -2746,9 +2935,10 @@ display_count_lines (from, limit, n, pos_ptr)
   Returns ending hpos */
 
 static int
-display_string (w, vpos, string, hpos, truncate, mincol, maxcol)
+display_string (w, vpos, string, length, hpos, truncate, mincol, maxcol)
      struct window *w;
      unsigned char *string;
+     int length;
      int vpos, hpos;
      GLYPH truncate;
      int mincol, maxcol;
@@ -2798,8 +2988,16 @@ display_string (w, vpos, string, hpos, truncate, mincol, maxcol)
 
   while (p1 < end)
     {
+      if (length == 0)
+	break;
       c = *string++;
-      if (!c) break;
+      /* Specified length.  */
+      if (length >= 0)
+	length--;
+      /* Unspecified length (null-terminated string).  */
+      else if (c == 0)
+	break;
+
       if (c >= 040 && c < 0177
 	  && (dp == 0 || XTYPE (DISP_CHAR_VECTOR (dp, c)) != Lisp_Vector))
 	{
@@ -2847,7 +3045,7 @@ display_string (w, vpos, string, hpos, truncate, mincol, maxcol)
 	}
     }
 
-  if (c)
+  if (c && length > 0)
     {
       p1 = end;
       if (truncate) *p1++ = truncate;
