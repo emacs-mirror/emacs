@@ -398,8 +398,7 @@ composed.")
   ;; prohibit sending mail if empty bug report
   (let ((after-sep-pos
 	 (save-excursion
-	   (beginning-of-buffer)
-	   (re-search-forward (reporter-calculate-separator) (point-max) 'move)
+	   (rfc822-goto-eoh)
 	   (forward-line 1)
 	   (point))))
     (save-excursion
