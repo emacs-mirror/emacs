@@ -62,7 +62,7 @@ dos_ttraw ()
   break_stat = getcbrk ();
   setcbrk (0);
   install_ctrl_break_check ();
-  have_mouse = Mouse_init1 ();
+  have_mouse = mouse_init1 ();
 
   inregs.x.ax = 0x4400;	/* Get IOCTL status. */
   inregs.x.bx = 0x00;	/* 0 = stdin. */
@@ -82,7 +82,7 @@ dos_ttcooked ()
   union REGS inregs, outregs;
 
   setcbrk (break_stat);
-  if (have_mouse) Mouse_off ();
+  if (have_mouse) mouse_off ();
 
   inregs.x.ax = 0x4401;	/* Set IOCTL status.	*/
   inregs.x.bx = 0x00;	/* 0 = stdin.		*/
@@ -314,7 +314,7 @@ dos_rawgetc ()
 	    if (code >= 0x100)
 	      {
 		event.kind = non_ascii_keystroke;
-		event.code = code & 0xff;
+		event.code = (code & 0xff) + 0xff00;
 	      }
 	    else
 	      {
@@ -330,9 +330,9 @@ dos_rawgetc ()
 		event.code = c;
 	      }
 	    event.modifiers
-	      = (shift_p ? shift_modifier : 0)
-		+ (ctrl_p ? ctrl_modifier : 0)
-		  + (alt_p ? meta_modifier : 0);
+	      = (shift_p ? shift_modifier : 0
+		 + (ctrl_p ? ctrl_modifier : 0
+		    + (alt_p ? meta_modifier : 0)));
 	    /* EMACS == Enter Meta Alt Control Shift */
 	    event.frame_or_window = selected_frame;
 	    gettimeofday (&tv, NULL);
@@ -348,24 +348,24 @@ dos_rawgetc ()
       int but, press, x, y, ok;
 
       /* Check for mouse movement *before* buttons.  */
-      Mouse_check_moved ();
+      mouse_check_moved ();
 
       for (but = 0; but < NUM_MOUSE_BUTTONS; but++)
 	for (press = 0; press < 2; press++)
 	  {
 	    if (press)
-	      ok = Mouse_pressed (but, &x, &y);
+	      ok = mouse_pressed (but, &x, &y);
 	    else
-	      ok = Mouse_released (but, &x, &y);
+	      ok = mouse_released (but, &x, &y);
 	    if (ok)
 	      {
 		event.kind = mouse_click;
 		event.code = but;
 		event.modifiers
-		  = (shift_p ? shift_modifier : 0)
-		    + (ctrl_p ? ctrl_modifier : 0)
-		      + (alt_p ? meta_modifier : 0)
-			+ (press ? down_modifier : up_modifier);
+		  = (shift_p ? shift_modifier : 0
+		     + (ctrl_p ? ctrl_modifier : 0
+			+ (alt_p ? meta_modifier : 0
+			   + (press ? down_modifier : up_modifier))));
 		event.x = x;
 		event.y = y;
 		event.frame_or_window = selected_frame;
@@ -743,46 +743,50 @@ init_environment (argc, argv, skip_args)
 
 static unsigned char _xorattr;
 
-void
+static void
 visible_bell (xorattr)
      unsigned char xorattr;
 {
   _xorattr = xorattr;
-  asm ("  pushl  %eax
-	  pushl  %ebx
-	  pushl  %ecx
-	  pushl  %edx
-	  movl   $1,%edx
+  asm volatile
+    ("  pushl  %eax
+	pushl  %ebx
+	pushl  %ecx
+	pushl  %edx
+	movl   $1,%edx
 visible_bell_0:
-	  movl   _ScreenPrimary,%eax
-	  call   dosmemsetup
-	  movl   %eax,%ebx
-	  call   _ScreenRows
-	  movl   %eax,%ecx
-	  call   _ScreenCols
-	  imull  %eax,%ecx
-	  movb   (__xorattr),%al
-	  incl   %ebx
+	call   _ScreenRows
+	pushl  %eax
+	call   _ScreenCols
+	pushl  %eax
+	movl   _ScreenPrimary,%eax
+	call   dosmemsetup
+	movl   %eax,%ebx
+	popl   %ecx
+	popl   %eax
+	imull  %eax,%ecx
+	movb   (__xorattr),%al
+	incl   %ebx
 visible_bell_1:
-	  xorb   %al,%gs:(%ebx)
-	  addl   $2,%ebx
-	  decl   %ecx
-	  jne    visible_bell_1
-	  decl   %edx
-	  jne    visible_bell_3
+	xorb   %al,%gs:(%ebx)
+	addl   $2,%ebx
+	decl   %ecx
+	jne    visible_bell_1
+	decl   %edx
+	jne    visible_bell_3
 visible_bell_2:
-	  movzwl %ax,%eax
-          movzwl %ax,%eax
-	  movzwl %ax,%eax
-	  movzwl %ax,%eax
-	  decw   %cx
-	  jne    visible_bell_2
-	  jmp    visible_bell_0
+	movzwl %ax,%eax
+        movzwl %ax,%eax
+	movzwl %ax,%eax
+	movzwl %ax,%eax
+	decw   %cx
+	jne    visible_bell_2
+	jmp    visible_bell_0
 visible_bell_3:
-	  popl  %edx
-	  popl  %ecx
-	  popl  %ebx
-	  popl  %eax");
+	popl  %edx
+	popl  %ecx
+	popl  %ebx
+	popl  %eax");
 }
 
 static int internal_terminal = 0;
@@ -799,7 +803,7 @@ internal_flush (f)
 
   if (internal_terminal && f == stdout)
     {
-      if (have_mouse) Mouse_off ();
+      if (have_mouse) mouse_off ();
       cp = stdout->_base;
       count = stdout->_ptr - stdout->_base;
       while (count > 0)
@@ -867,7 +871,7 @@ internal_flush (f)
 	}
       fpurge (stdout);
       ScreenSetCursor (y, x);
-      if (have_mouse) Mouse_on ();
+      if (have_mouse) mouse_on ();
     }
   else
     /* This is a call to the original fflush.  */
@@ -1065,6 +1069,33 @@ mouse_init1 ()
       mouse_init ();
    }
   return present;
+}
+
+/* See xterm.c for more info.  */
+void
+pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
+     FRAME_PTR f;
+     register int pix_x, pix_y;
+     register int *x, *y;
+     void /* XRectangle */ *bounds;
+     int noclip;
+{
+  if (bounds) abort ();
+
+  /* Ignore clipping.  */
+
+  *x = pix_x;
+  *y = pix_y;
+}
+
+void
+glyph_to_pixel_coords (f, x, y, pix_x, pix_y)
+     FRAME_PTR f;
+     register int x, y;
+     register int *pix_x, *pix_y;
+{
+  *pix_x = x;
+  *pix_y = y;
 }
 
 #endif /* MSDOS */
