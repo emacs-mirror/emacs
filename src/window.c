@@ -69,6 +69,7 @@ Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
 Lisp_Object Qwindow_size_fixed, Qleft_fringe, Qright_fringe;
 extern Lisp_Object Qheight, Qwidth;
 
+static int displayed_window_lines P_ ((struct window *));
 static struct window *decode_window P_ ((Lisp_Object));
 static Lisp_Object select_window_1 P_ ((Lisp_Object, int));
 static int count_windows P_ ((struct window *));
@@ -4495,7 +4496,16 @@ displayed_window_lines (w)
   else
     old_buffer = NULL;
 
-  SET_TEXT_POS_FROM_MARKER (start, w->start);
+  /* In case W->start is out of the accessible range, do something
+     reasonable.  This happens in Info mode when Info-scroll-down
+     calls (recenter -1) while W->start is 1.  */
+  if (XMARKER (w->start)->charpos < BEGV)
+    SET_TEXT_POS (start, BEGV, BEGV_BYTE);
+  else if (XMARKER (w->start)->charpos > ZV)
+    SET_TEXT_POS (start, ZV, ZV_BYTE);
+  else
+    SET_TEXT_POS_FROM_MARKER (start, w->start);
+
   start_display (&it, w, start);
   move_it_vertically (&it, height);
   bottom_y = line_bottom_y (&it);
@@ -4555,34 +4565,62 @@ and redisplay normally--don't erase and redraw the frame.")
 
   set_buffer_internal (buf);
 
-  /* Handle centering on a gfaphical frame specially.  Such frames can
+  /* Handle centering on a graphical frame specially.  Such frames can
      have variable-height lines and centering point on the basis of
      line counts would lead to strange effects.  */
-  if (center_p && FRAME_WINDOW_P (XFRAME (w->frame)))
+  if (FRAME_WINDOW_P (XFRAME (w->frame)))
     {
-      struct it it;
-      struct text_pos pt;
-      
-      SET_TEXT_POS (pt, PT, PT_BYTE);
-      start_display (&it, w, pt);
-      move_it_vertically (&it, - it.last_visible_y / 2);
-      charpos = IT_CHARPOS (it);
-      bytepos = IT_BYTEPOS (it);
+      if (center_p)
+	{
+	  struct it it;
+	  struct text_pos pt;
+	  
+	  SET_TEXT_POS (pt, PT, PT_BYTE);
+	  start_display (&it, w, pt);
+	  move_it_vertically (&it, - it.last_visible_y / 2);
+	  charpos = IT_CHARPOS (it);
+	  bytepos = IT_BYTEPOS (it);
+	}
+      else if (XINT (arg) < 0)
+	{
+	  struct it it;
+	  struct text_pos pt;
+	  int y0, y1, h;
+	  
+	  SET_TEXT_POS (pt, PT, PT_BYTE);
+	  start_display (&it, w, pt);
+	  y0 = it.current_y;
+
+	  /* The amount of pixels we have to move hack is the window
+	     height minus what's displayed in the line containing PT,
+	     and the lines below.  */
+	  move_it_by_lines (&it, - XINT (arg) - 1, 1);
+	  y1 = it.current_y - y0;
+	  h = line_bottom_y (&it) - y1;
+	  y0 = it.last_visible_y - y1 - h;
+	  
+	  start_display (&it, w, pt);
+	  move_it_vertically (&it, - y0);
+	  charpos = IT_CHARPOS (it);
+	  bytepos = IT_BYTEPOS (it);
+	}
+      else
+	{
+	  struct position pos;
+	  pos = *vmotion (PT, - XINT (arg), w);
+	  charpos = pos.bufpos;
+	  bytepos = pos.bytepos;
+	}
     }
   else
     {
       struct position pos;
-      
+      int ht = window_internal_height (w);
+
       if (center_p)
-	{
-	  int ht = displayed_window_lines (w);
-	  arg = make_number (ht / 2);
-	}
+	arg = make_number (ht / 2);
       else if (XINT (arg) < 0)
-	{
-	  int ht = displayed_window_lines (w);
-	  XSETINT (arg, XINT (arg) + ht);
-	}
+	arg = make_number (XINT (arg) + ht);
       
       pos = *vmotion (PT, - XINT (arg), w);
       charpos = pos.bufpos;
