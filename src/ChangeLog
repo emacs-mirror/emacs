@@ -4,6 +4,7 @@
 	connection's local address in :local property of contact info.
 	(Fmake_network_process): Record local network address for new
 	client processes in :local property of contact info.
+	(format-network-address): Added arg OMIT-PORT.  Callers changed.
 
 2003-01-07  Markus Rost  <rost@math.ohio-state.edu>
 
