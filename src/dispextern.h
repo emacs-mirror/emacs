@@ -2582,6 +2582,7 @@ void clear_face_cache P_ ((int));
 unsigned long load_color P_ ((struct frame *, struct face *, Lisp_Object,
 			      enum lface_attribute_index));
 void unload_color P_ ((struct frame *, unsigned long));
+int face_font_available_p P_ ((struct frame *, Lisp_Object));
 int ascii_face_of_lisp_face P_ ((struct frame *, int));
 void prepare_face_for_display P_ ((struct frame *, struct face *));
 int xstricmp P_ ((const unsigned char *, const unsigned char *));
