@@ -1,7 +1,19 @@
+2000-05-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (comment-styles): New `box-multi'.
+	(comment-normalize-vars): Better default for comment-continue to
+	avoid whitespace-only continuations.
+	(comment-search-forward): Always move even in the no-syntax case.
+	(comment-padright): Only obey N if it's only obeyed for padleft.
+	(comment-make-extra-lines): Better handling of empty continuations.
+	Use `=' for the filler if comment-start has only one character.
+	(uncomment-region): Try handling the special `=' filler.
+	(comment-region): Allow LINES even if MULTI is nil.
+	(comment-box): Choose box style based on comment-style.
+
 2000-05-20  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/ccl.el (ccl-compile-write-string): Make STR
-	unibyte.
+	* international/ccl.el (ccl-compile-write-string): Make STR unibyte.
 	(ccl-compile-write-repeat): If ARG is string, make it unibyte.
 
 2000-05-20  Kenichi HANDA  <handa@etl.go.jp>
