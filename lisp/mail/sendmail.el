@@ -334,7 +334,8 @@ Prefix arg means don't delete this window."
 	       (set-buffer (window-buffer (next-window (selected-window) 'not)))
 	       (setq rmail-flag (eq major-mode 'rmail-mode))
 	       (setq summary-buffer
-		     (and rmail-summary-buffer
+		     (and (boundp 'rmail-summary-buffer)
+			  rmail-summary-buffer
 			  (buffer-name rmail-summary-buffer)
 			  (not (get-buffer-window rmail-summary-buffer))
 			  rmail-summary-buffer))))
