@@ -181,15 +181,9 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (epc
      "^Error [0-9]+ at (\\([0-9]+\\):\\([^)\n]+\\))" 2 1)
 
-    (ftnchek-file
-     "^File \\(.+\\.f\\):$"
-     1 nil nil 0)
-    (ftnchek-line-file
-     "\\(^Warning .* \\)?line \\([0-9]+\\)\\(?: col \\([0-9]+\\)\\)? file \\(.+\\.f\\)"
-     4 2 3 (1) nil (1 'default nil t))
-    (ftnchek-line
-     "\\(?:^\\(Warning\\) .* \\)?line \\([0-9]+\\)\\(?: col \\([0-9]+\\)\\)?"
-     nil 2 3 (1) nil (1 (compilation-face '(1)) nil t))
+    (ftnchek
+     "\\(^Warning .*\\)? line[ \n]\\([0-9]+\\)[ \n]\\(?:col \\([0-9]+\\)[ \n]\\)?file \\([^ :;\n]+\\)"
+     4 2 3 (1))
 
     (iar
      "^\"\\(.*\\)\",\\([0-9]+\\)\\s-+\\(?:Error\\|Warnin\\(g\\)\\)\\[[0-9]+\\]:"
@@ -916,7 +910,7 @@ Returns the compilation buffer created."
 	;; would do it again through the shell: (cd "..") AND sh -c "cd ..; make"
 	(cd (if (string-match "^\\s *cd\\(?:\\s +\\(\\S +?\\)\\)?\\s *[;&\n]" command)
 		(if (match-end 1)
-		    (match-string 1 command)
+		    (substitute-env-vars (match-string 1 command))
 		  "~")
 	      default-directory))
 	(erase-buffer)
