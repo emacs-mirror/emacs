@@ -384,7 +384,7 @@ If nil, the user will be asked for a duration."
 (defcustom gnus-score-after-write-file-function nil
   "Function called with the name of the score file just written to disk."
   :group 'gnus-score-files
-  :type 'function)
+  :type '(choice (const nil) function))
 
 (defcustom gnus-score-thread-simplify nil
   "If non-nil, subjects will simplified as in threading."
