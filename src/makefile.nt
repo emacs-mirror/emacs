@@ -209,7 +209,7 @@ temacs:         $(BLD) $(TEMACS)
 $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIB2) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES)
 		$(LINK) -out:$(TEMACS_TMP) $(LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
 		..\nt\$(BLD)\addsection $(TEMACS_TMP) $(TEMACS) EMHEAP 16
-		rm $(TEMACS_TMP)
+		del $(TEMACS_TMP)
 
 #
 # The resource file.  NT 3.10 requires the use of cvtres; even though
