@@ -1,9 +1,9 @@
 ;;; paren.el --- highlight matching paren.
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
-;;; Author: rms@gnu.ai.mit.edu
-;;; Maintainer: FSF
-;;; Keywords: languages, faces
+;; Author: rms@gnu.ai.mit.edu
+;; Maintainer: FSF
+;; Keywords: languages, faces
 
 ;; This file is part of GNU Emacs.
 
