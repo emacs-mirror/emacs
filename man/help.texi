@@ -36,6 +36,42 @@ scroll conveniently with @key{SPC} and @key{DEL}.  It also offers
 hyperlinks to more help on cross-referenced names, Info nodes,
 customization buffers and the like.  @xref{Help Mode}.
 
+@cindex searching documentation efficiently
+@cindex looking for a subject in documentation
+  If you are looking for a certain feature, but don't know where exactly
+it is documented, and aren't even sure what is the name of the related
+command or option, we recommend the following procedure:
+
+@table @kbd
+@item C-h a @var{topic} @key{RET}
+This searches the built-in short documentation of each command for
+strings which match @var{topic}.  @var{topic} can be a regular
+expression (@pxref{Regexps}).  Browse the buffer popped up by Emacs, to
+find what you are looking for.
+
+@item M-x apropos @var{topic} @key{RET}
+This works like @kbd{C-h a}, but it also searches the documentation of
+user options and other variables, in case the feature you are looking
+for is controlled by an option, not a command.
+
+@item C-h i emacs @key{RET} i @var{topic} @key{RET}
+This looks up @var{topic} in the indices of the Emacs on-line manual.
+Press @key{,} repetitively until you find what you are looking for.
+
+@item C-h i emacs @key{RET} s @var{topic} @key{RET}
+This works like the previous command, but it searches for @var{topic}
+(which can be a regular expression) in the @emph{text} of the manual
+rather than in its indices.
+
+@item C-h F
+This brings up the Emacs FAQ, where you can use the usual search
+commands (@pxref{Search}) to find the information.
+
+@item M-x finder-by-keyword
+Finally, you can try looking up a suitable package using keywords
+pertinent to the feature you need.
+@end table
+
 @menu
 * Help Summary::	Brief list of all Help commands.
 * Key Help::		Asking what a key does in Emacs.
