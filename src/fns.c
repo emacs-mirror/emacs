@@ -222,8 +222,8 @@ The last argument is not copied, just used as the tail of the new list.")
 DEFUN ("concat", Fconcat, Sconcat, 0, MANY, 0,
   "Concatenate all the arguments and make the result a string.\n\
 The result is a string whose elements are the elements of all the arguments.\n\
-Each argument may be a string, a list of characters (integers),\n\
-or a vector of characters (integers).")
+Each argument may be a string, a character (integer), or a list or vector\n\
+of characters (integers).")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -288,7 +288,7 @@ concat (nargs, args, target_type, last_special)
 	    || COMPILEDP (this)))
 	{
 	  if (INTEGERP (this))
-            args[argnum] = Fnumber_to_string (this);
+	    args[argnum] = Fcons (this, Qnil);
 	  else
 	    args[argnum] = wrong_type_argument (Qsequencep, this);
 	}
