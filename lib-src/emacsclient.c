@@ -135,7 +135,7 @@ struct option longopts[] =
   { "eval",	no_argument,	   NULL, 'e' },
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
-  { "frame",	no_argument,       NULL, 'f' },
+  { "tty",	no_argument,       NULL, 't' },
   { "alternate-editor", required_argument, NULL, 'a' },
   { "socket-name",	required_argument, NULL, 's' },
   { "display",	required_argument, NULL, 'd' },
