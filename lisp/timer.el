@@ -44,15 +44,28 @@
 
 (defun timer-set-time (timer time &optional delta)
   "Set the trigger time of TIMER to TIME.
-TIME must be in the internal format returned by, e.g., `current-time'
-If optional third argument DELTA is a non-zero integer make the timer
-fire repeatedly that meny seconds apart."
+TIME must be in the internal format returned by, e.g., `current-time'.
+If optional third argument DELTA is a non-zero integer, make the timer
+fire repeatedly that many seconds apart."
   (or (timerp timer)
       (error "Invalid timer"))
   (aset timer 1 (car time))
   (aset timer 2 (if (consp (cdr time)) (car (cdr time)) (cdr time)))
   (aset timer 3 (if (consp (cdr time)) (nth 2 time) 0))
   (aset timer 4 (and (numberp delta) (> delta 0) delta))
+  timer)
+
+(defun timer-set-idle-time (timer secs &optional repeat)
+  "Set the trigger idle time of TIMER to SECS.
+If optional third argument REPEAT is non-nil, make the timer
+fire each time Emacs is idle for that many seconds."
+  (or (timerp timer)
+      (error "Invalid timer"))
+  (aset timer 1 0)
+  (aset timer 2 0)
+  (aset timer 3 0)
+  (timer-inc-time timer secs)
+  (aset timer 4 repeat)
   timer)
 
 (defun timer-relative-time (time secs &optional usecs)
@@ -90,9 +103,9 @@ SECS may be a fraction."
 
 (defun timer-set-time-with-usecs (timer time usecs &optional delta)
   "Set the trigger time of TIMER to TIME.
-TIME must be in the internal format returned by, e.g., `current-time'
-If optional third argument DELTA is a non-zero integer make the timer
-fire repeatedly that menu seconds apart."
+TIME must be in the internal format returned by, e.g., `current-time'.
+If optional third argument DELTA is a non-zero integer, make the timer
+fire repeatedly that many seconds apart."
   (or (timerp timer)
       (error "Invalid timer"))
   (aset timer 1 (car time))
@@ -193,6 +206,7 @@ fire repeatedly that menu seconds apart."
 ;; special-event-map ensures that event timer events that arrive in the
 ;; middle of a key sequence being entered are still handled correctly.
 (define-key special-event-map [timer-event] 'timer-event-handler)
+
 (defun timer-event-handler (event)
   "Call the handler for the timer in the event EVENT."
   (interactive "e")
@@ -210,15 +224,20 @@ fire repeatedly that menu seconds apart."
 		(timer-inc-time timer (aref timer 4) 0)
 		(timer-activate timer))))
       (error "Bogus timer event"))))
+
+;; This function is incompatible with the one in levents.el.
+(defun timeout-event-p (event)
+  "Non-nil if EVENT is a timeout event."
+  (and (listp event) (eq (car event) 'timer-event)))
 
 ;;;###autoload
 (defun run-at-time (time repeat function &rest args)
-  "Run a function at a time, and optionally on a regular interval.
-Arguments are TIME, REPEAT, FUNCTION &rest ARGS.
-TIME is a string like \"11:23pm\" or a value from `encode-time',
-or a number of seconds from now.
-REPEAT, an integer number of seconds, is the interval on which to repeat
-the call to the function.  If REPEAT is nil or 0, call it just once.
+  "Perform an action after a delay of SECS seconds.
+Repeat the action every REPEAT seconds, if REPEAT is non-nil.
+TIME should be a string like \"11:23pm\", nil meaning now, a number of seconds
+from now, or a value from `encode-time'.
+REPEAT may be an integer or floating point number.
+The action is to call FUNCTION with arguments ARGS.
 
 This function returns a timer object which you can use in `cancel-timer'."
   (interactive "sRun at time: \nNRepeat interval: \naFunction: ")
@@ -239,7 +258,7 @@ This function returns a timer object which you can use in `cancel-timer'."
 
   ;; Handle "11:23pm" and the like.  Interpret it as meaning today
   ;; which admittedly is rather stupid if we have passed that time
-  ;; already.
+  ;; already.  (Though only Emacs hackers hack Emacs at that time.)
   (if (stringp time)
       (progn
 	(require 'diary-lib)
@@ -272,39 +291,8 @@ The action is to call FUNCTION with arguments ARGS.
 
 This function returns a timer object which you can use in `cancel-timer'."
   (interactive "sRun after delay (seconds): \nNRepeat interval: \naFunction: ")
+  (apply 'run-at-time secs repeat function args))
 
-  (or (null repeat)
-      (and (numberp repeat) (>= repeat 0))
-      (error "Invalid repetition interval"))
-
-  (let ((timer (timer-create)))
-    (timer-set-time timer (current-time) repeat)
-    (timer-inc-time timer secs)
-    (timer-set-function timer function args)
-    (timer-activate timer)
-    timer))
-
-;;;###autoload
-(defun run-with-idle-timer (secs repeat function &rest args)
-  "Perform an action the next time Emacs is idle for SECS seconds.
-The action is to call FUNCTION with arguments ARGS.
-If REPEAT is non-nil, do this each time Emacs is idle for SECS seconds.
-SECS may be an integer or a floating point number.
-
-This function returns a timer object which you can use in `cancel-timer'."
-  (interactive "sRun after delay (seconds): \nNRepeat interval: \naFunction: ")
-
-  (let ((timer (timer-create)))
-    (timer-set-function timer function args)
-    ;; Store 0 into the time fields, then add in SECS.
-    (aset timer 1 0)
-    (aset timer 2 0)
-    (aset timer 3 0)
-    (timer-inc-time timer secs)
-    (aset timer 4 repeat)
-    (timer-activate-when-idle timer)
-    timer))
-
 ;;;###autoload
 (defun add-timeout (secs function object &optional repeat)
   "Add a timer to run SECS seconds from now, to call FUNCTION on OBJECT.
@@ -312,11 +300,24 @@ If REPEAT is non-nil, repeat the timer every REPEAT seconds.
 This function is for compatibility; see also `run-with-timer'."
   (run-with-timer secs repeat function object))
 
-(defun timeout-event-p (event)
-  "Non-nil if EVENT is a timeout event."
-  (and (listp event)
-       (eq (car event) 'timer-event)))
+;;;###autoload
+(defun run-with-idle-timer (secs repeat function &rest args)
+  "Perform an action the next time Emacs is idle for SECS seconds.
+If REPEAT is non-nil, do this each time Emacs is idle for SECS seconds.
+SECS may be an integer or a floating point number.
+The action is to call FUNCTION with arguments ARGS.
 
+This function returns a timer object which you can use in `cancel-timer'."
+  (interactive
+   (list (read-from-minibuffer "Run after idle (seconds): " nil nil t)
+	 (y-or-n-p "Repeat each time Emacs is idle? ")
+	 (intern (completing-read "Function: " obarray 'fboundp t))))
+  (let ((timer (timer-create)))
+    (timer-set-function timer function args)
+    (timer-set-idle-time timer secs repeat)
+    (timer-activate-when-idle timer)
+    timer))
+
 (defun with-timeout-handler (tag)
   (throw tag 'timeout))
 
@@ -326,8 +327,8 @@ This function is for compatibility; see also `run-with-timer'."
 (defmacro with-timeout (list &rest body)
   "Run BODY, but if it doesn't finish in SECONDS seconds, give up.
 If we give up, we run the TIMEOUT-FORMS and return the value of the last one.
-The call looks like
-  (with-timeout (SECONDS TIMEOUT-FORMS...) BODY...)
+The call should look like:
+ (with-timeout (SECONDS TIMEOUT-FORMS...) BODY...)
 The timeout is checked whenever Emacs waits for some kind of external
 event \(such as keyboard input, input from subprocesses, or a certain time);
 if the program loops without waiting in any way, the timeout will not
