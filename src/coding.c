@@ -4528,7 +4528,7 @@ detect_coding_system (src, src_bytes, highest)
 	  if (VECTORP (val2))
 	    val = XVECTOR (val2)->contents[eol_type];
 	}
-      return val;
+      return (highest ? val : Fcons (val, Qnil));
     }
 
   /* At first, gather possible coding systems in VAL.  */
@@ -4567,8 +4567,9 @@ DEFUN ("detect-coding-region", Fdetect_coding_region, Sdetect_coding_region,
   "Detect coding system of the text in the region between START and END.\n\
 Return a list of possible coding systems ordered by priority.\n\
 \n\
-If only ASCII characters are found, it returns `undecided'\n\
-or its subsidiary coding system according to a detected end-of-line format.\n\
+If only ASCII characters are found, it returns a list of single element\n\
+`undecided' or its subsidiary coding system according to a detected\n\
+end-of-line format.\n\
 \n\
 If optional argument HIGHEST is non-nil, return the coding system of\n\
 highest priority.")
@@ -4599,8 +4600,9 @@ DEFUN ("detect-coding-string", Fdetect_coding_string, Sdetect_coding_string,
   "Detect coding system of the text in STRING.\n\
 Return a list of possible coding systems ordered by priority.\n\
 \n\
-If only ASCII characters are found, it returns `undecided'\n\
-or its subsidiary coding system according to a detected end-of-line format.\n\
+If only ASCII characters are found, it returns a list of single element\n\
+`undecided' or its subsidiary coding system according to a detected\n\
+end-of-line format.\n\
 \n\
 If optional argument HIGHEST is non-nil, return the coding system of\n\
 highest priority.")
