@@ -125,7 +125,6 @@ static void xm_generic_callback P_ ((Widget, XtPointer, XtPointer));
 static void xm_nosel_callback P_ ((Widget, XtPointer, XtPointer));
 static void xm_pull_down_callback P_ ((Widget, XtPointer, XtPointer));
 static void xm_pop_down_callback P_ ((Widget, XtPointer, XtPointer));
-static void xm_unmap_callback P_ ((Widget, XtPointer, XtPointer));
 void xm_set_keyboard_focus P_ ((Widget, Widget));
 void xm_set_main_areas P_ ((Widget, Widget, Widget));
 static void xm_internal_update_other_instances P_ ((Widget, XtPointer,
@@ -509,18 +508,11 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
     abort ();
   menubar_p = type == XmMENU_BAR;
 
-#if 0 /* This can't be used in LessTif as of 2000-01-24 because it's
-	 impossible to decide from this plus the cascading callback if a
-	 popup is still posted or not.  When selecting cascade button A,
-	 then B, then clicking on the frame, the sequence of callbacks is
-	 `cascading A', cascading B', `popdown for all cascade buttons in
-	 the menu bar.  */
   /* Add a callback to popups and pulldowns that is called when
      it is made invisible again.  */
   if (!menubar_p)
     XtAddCallback (XtParent (widget), XmNpopdownCallback,
 		   xm_pop_down_callback, (XtPointer)instance);
-#endif
 
   /* Preserve the first KEEP_FIRST_CHILDREN old children.  */
   for (child_index = 0, cur = val; child_index < keep_first_children;
@@ -597,12 +589,6 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
 	{
 	  menu = XmCreatePulldownMenu (widget, cur->name, NULL, 0);
 
-	  /* XmNpopdownCallback is working strangely under LessTif.
-	     Using XmNunmapCallback is the only way to go there.  */
-	  if (menubar_p)
-	    XtAddCallback (menu, XmNunmapCallback, xm_unmap_callback,
-			   (XtPointer) instance);
-	  
 	  make_menu_in_widget (instance, menu, cur->contents, 0);
           XtSetArg (al[ac], XmNsubMenuId, menu); ac++;
 	  button = XmCreateCascadeButton (widget, cur->name, al, ac);
@@ -1813,24 +1799,29 @@ do_call (widget, closure, type)
   user_data = NULL;
   XtSetArg (al [ac], XmNuserData, &user_data); ac++;
   XtGetValues (widget, al, ac);
+  
   switch (type)
     {
     case pre_activate:
       if (instance->info->pre_activate_cb)
 	instance->info->pre_activate_cb (widget, id, user_data);
       break;
+      
     case selection:
       if (instance->info->selection_cb)
 	instance->info->selection_cb (widget, id, user_data);
       break;
+      
     case no_selection:
       if (instance->info->selection_cb)
 	instance->info->selection_cb (widget, id, (XtPointer) -1);
       break;
+      
     case post_activate:
       if (instance->info->post_activate_cb)
 	instance->info->post_activate_cb (widget, id, user_data);
       break;
+      
     default:
       abort ();
     }
@@ -1872,14 +1863,14 @@ xm_nosel_callback (widget, closure, call_data)
      XtPointer closure;
      XtPointer call_data;
 {
-  /* This callback is only called when a dialog box is dismissed with the wm's
-     destroy button (WM_DELETE_WINDOW.)  We want the dialog box to be destroyed
-     in that case, not just unmapped, so that it releases its keyboard grabs.
-     But there are problems with running our callbacks while the widget is in
-     the process of being destroyed, so we set XmNdeleteResponse to XmUNMAP
-     instead of XmDESTROY and then destroy it ourself after having run the
-     callback.
-   */
+  /* This callback is only called when a dialog box is dismissed with
+     the wm's destroy button (WM_DELETE_WINDOW.)  We want the dialog
+     box to be destroyed in that case, not just unmapped, so that it
+     releases its keyboard grabs.  But there are problems with running
+     our callbacks while the widget is in the process of being
+     destroyed, so we set XmNdeleteResponse to XmUNMAP instead of
+     XmDESTROY and then destroy it ourself after having run the
+     callback.  */
   do_call (widget, closure, no_selection);
   XtDestroyWidget (widget);
 }
@@ -1903,11 +1894,10 @@ xm_pull_down_callback (widget, closure, call_data)
 
 
 /* XmNpopdownCallback for MenuShell widgets.  WIDGET is the MenuShell,
-   CLOSURE is a pointer to the widget_instance of the shell, CALL_DATA
-   is always null under LessTif.
+   CLOSURE is a pointer to the widget_instance of the shell, 
 
-   2000-01-23: This callback is called for each cascade button in 
-   a menu, whether or not its submenu is visible.  */
+   Note that this callback is called for each cascade button in a
+   menu, whether or not its submenu is visible.  */
 
 static void
 xm_pop_down_callback (widget, closure, call_data)
@@ -1916,20 +1906,10 @@ xm_pop_down_callback (widget, closure, call_data)
      XtPointer call_data;
 {
   widget_instance *instance = (widget_instance *) closure;
+  fprintf (stderr, "%p\n", call_data);
 
-  if ((!instance->pop_up_p && (XtParent (widget) == instance->widget))
-      || (XtParent (widget) == instance->parent))
-    do_call (widget, closure, post_activate);
-}
-
-static void
-xm_unmap_callback (widget, closure, call_data)
-     Widget widget;
-     XtPointer closure;
-     XtPointer call_data;
-{
-  widget_instance *instance = (widget_instance *) closure;
-  if (!instance->pop_up_p)
+  if ((!instance->pop_up_p && XtParent (widget) == instance->widget)
+      || XtParent (widget) == instance->parent)
     do_call (widget, closure, post_activate);
 }
 
