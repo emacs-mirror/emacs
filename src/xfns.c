@@ -1405,7 +1405,7 @@ x_set_foreground_color (f, arg, oldval)
       XSetBackground (FRAME_X_DISPLAY (f), f->output_data.x->reverse_gc,
 		      f->output_data.x->foreground_pixel);
       UNBLOCK_INPUT;
-      recompute_basic_faces (f);
+      update_face_from_frame_parameter (f, Qforeground_color, arg);
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
     }
@@ -1447,7 +1447,7 @@ x_set_background_color (f, arg, oldval)
       }
       UNBLOCK_INPUT;
 
-      recompute_basic_faces (f);
+      update_face_from_frame_parameter (f, Qbackground_color, arg);
 
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
@@ -1586,6 +1586,8 @@ x_set_mouse_color (f, arg, oldval)
 
   XFlush (FRAME_X_DISPLAY (f));
   UNBLOCK_INPUT;
+
+  update_face_from_frame_parameter (f, Qmouse_color, arg);
 }
 
 void
@@ -1631,6 +1633,8 @@ x_set_cursor_color (f, arg, oldval)
 	  x_update_cursor (f, 1);
 	}
     }
+
+  update_face_from_frame_parameter (f, Qcursor_color, arg);
 }
 
 /* Set the border-color of frame F to value described by ARG.
@@ -1649,15 +1653,12 @@ x_set_border_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  unsigned char *str;
   int pix;
 
   CHECK_STRING (arg, 0);
-  str = XSTRING (arg)->data;
-
   pix = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
-
   x_set_border_pixel (f, pix);
+  update_face_from_frame_parameter (f, Qborder_color, arg);
 }
 
 /* Set the border-color of frame F to pixel value PIX.
@@ -2034,7 +2035,8 @@ x_set_scroll_bar_foreground (f, value, oldval)
 	(*condemn_scroll_bars_hook) (f);
       if (judge_scroll_bars_hook)
 	(*judge_scroll_bars_hook) (f);
-      
+
+      update_face_from_frame_parameter (f, Qscroll_bar_foreground, value);
       redraw_frame (f);
     }
 }
@@ -2069,6 +2071,7 @@ x_set_scroll_bar_background (f, value, oldval)
       if (judge_scroll_bars_hook)
 	(*judge_scroll_bars_hook) (f);
       
+      update_face_from_frame_parameter (f, Qscroll_bar_background, value);
       redraw_frame (f);
     }
 }
@@ -3851,7 +3854,7 @@ This function is an internal primitive--use `make-frame' instead.")
 
   /* Set up faces after all frame parameters are known.  */
   call1 (Qface_set_after_frame_default, frame);
-  
+
 #ifdef USE_X_TOOLKIT
   /* Create the menu bar.  */
   if (!minibuffer_only && FRAME_EXTERNAL_MENU_BAR (f))
