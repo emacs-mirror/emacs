@@ -1,5 +1,7 @@
 2002-03-03  Richard M. Stallman  <rms@gnu.org>
 
+	* play/tetris.el (tetris-score-file): Put in home dir, not in /tmp.
+
 	* play/snake.el (snake-score-file): Put in home dir, not in /tmp.
 
 	* play/gamegrid.el (gamegrid-set-font, gamegrid-setup-face) 
