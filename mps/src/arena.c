@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.41) $
+ * $HopeName: MMsrc!arena.c(trunk.42) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.41) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.42) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -1649,7 +1649,6 @@ static Res ArenaRootsWalk(Arena arena,
       Root root = RING_ELT(Root, arenaRing, node);
 
       if(RootRank(root) == ss->rank) {
-        Res res;
         /* set the root for the benefit of the fix method */
         rsc->root = root;
         /* Scan it */
