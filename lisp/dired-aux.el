@@ -492,6 +492,7 @@ and use this command with a prefix argument (the value does not matter)."
       (dired-log (concat "Failed to compress" from-file))
       from-file)))
 
+;;;###autoload
 (defun dired-compress-file (file)
   ;; Compress or uncompress FILE.
   ;; Return the name of the compressed or uncompressed file.
@@ -723,6 +724,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	(set-buffer obuf)))
     success-list))
 
+;;;###autoload
 (defun dired-add-file (filename &optional marker-char)
   (dired-fun-in-all-buffers
    (file-name-directory filename)
@@ -816,6 +818,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	(forward-line 1))
     (point)))
 
+;;;###autoload
 (defun dired-remove-file (file)
   (dired-fun-in-all-buffers
    (file-name-directory file) (function dired-remove-entry) file))
@@ -827,6 +830,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	   (delete-region (progn (beginning-of-line) (point))
 			  (save-excursion (forward-line 1) (point)))))))
 
+;;;###autoload
 (defun dired-relist-file (file)
   (dired-fun-in-all-buffers (file-name-directory file)
 			    (function dired-relist-entry) file))
@@ -868,10 +872,12 @@ Special value `always' suppresses confirmation.")
 	(rename-file to backup 0)	; confirm overwrite of old backup
 	(dired-relist-entry backup))))
 
+;;;###autoload
 (defun dired-copy-file (from to ok-flag)
   (dired-handle-overwrite to)
   (copy-file from to ok-flag dired-copy-preserve-time))
 
+;;;###autoload
 (defun dired-rename-file (from to ok-flag)
   (dired-handle-overwrite to)
   (rename-file from to ok-flag)		; error is caught in -create-files
@@ -1500,7 +1506,7 @@ This function takes some pains to conform to `ls -lR' output."
 (defun dired-insert-subdir-validate (dirname &optional switches)
   ;; Check that it is valid to insert DIRNAME with SWITCHES.
   ;; Signal an error if invalid (e.g. user typed `i' on `..').
-  (or (dired-in-this-tree dirname default-directory)
+  (or (dired-in-this-tree dirname (expand-file-name default-directory))
       (error  "%s: not in this directory tree" dirname))
   (if switches
       (let (case-fold-search)
