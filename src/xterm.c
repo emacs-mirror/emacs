@@ -137,10 +137,6 @@ int BLOCK_INPUT_mask;
 
 int x_pending_input;
 
-/* Nonzero if in redisplay ();  prevents us from calling it recursively */
-
-int in_display;
-
 /* The id of a bitmap used for icon windows.
    One such map is shared by all Emacs icon windows.
    This is zero if we have not yet had a need to create the bitmap.  */
@@ -156,6 +152,19 @@ static FONT_TYPE *icon_font_info;
 extern Lisp_Object Vcommand_line_args;
 char *hostname, *x_id_name;
 Lisp_Object invocation_name;
+
+/* These are the current window manager hints.  It seems that
+   XSetWMHints, when presented with an unset bit in the `flags' member
+   of the hints structure, does not leave the corresponding attribute
+   unchanged; rather, it resets that attribute to its default value.
+   For example, unless you set the `icon_pixmap' field and the
+   `IconPixmapHint' bit, XSetWMHints will forget what your icon pixmap
+   was.  This is rather troublesome, since some of the members (for
+   example, `input' and `icon_pixmap') want to stay the same
+   throughout the execution of Emacs.  So, we keep this structure
+   around, just leaving values in it and adding new bits to the mask
+   as we go.  */
+XWMHints x_wm_hints;
 
 /* This is the X connection that we are using.  */
 
@@ -1096,7 +1105,7 @@ x_do_pending_expose ()
 	  if (XTYPE (frame) != Lisp_Frame)
 	    continue;
 	  f = XFRAME (frame);
-	  if (! FRAME_IS_X (f))
+	  if (! FRAME_X_P (f))
 	    continue;
 	  if (!f->visible)
 	    continue;
@@ -1116,7 +1125,7 @@ x_do_pending_expose ()
 	  if (temp_width != f->width || temp_height != f->height)
 	    {
 	      change_frame_size (f, max (1, temp_height),
-				  max (1, temp_width), 0);
+				  max (1, temp_width), 0, 1);
 	      x_resize_scrollbars (f);
 	    }
 	  f->display.x->left_pos = windowinfo.x;
@@ -2157,6 +2166,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      && event.xcrossing.mode == NotifyNormal)
 	    {
 	      f = x_window_to_frame (event.xcrossing.window);
+
 	      if (event.xcrossing.focus)
 		x_new_focus_frame (f);
 	      else if (f == x_focus_frame)
@@ -2246,7 +2256,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		|| event.xconfigure.width != f->display.x->pixel_width
 		|| event.xconfigure.height != f->display.x->pixel_height)
 	      {
-		change_frame_size (f, rows, columns, 0);
+		change_frame_size (f, rows, columns, 0, 1);
 		x_resize_scrollbars (f);
 		SET_FRAME_GARBAGED (f);
 	      }
@@ -2814,6 +2824,7 @@ x_text_icon (f, icon_name)
 		(char *) f->display.x->icon_label);
   
   f->display.x->icon_bitmap_flag = 0;
+  x_wm_set_icon_pixmap (f, 0);
 #else
   if (f->display.x->icon_desc)
     {
@@ -3236,7 +3247,7 @@ x_set_offset (f, xoff, yoff)
 
 x_set_window_size (f, cols, rows)
      struct frame *f;
-     register int cols, rows;
+     int cols, rows;
 {
   int pixelwidth, pixelheight;
   int mask;
@@ -3244,7 +3255,7 @@ x_set_window_size (f, cols, rows)
 
   BLOCK_INPUT;
 
-  /* ??? Who DOES worry about minimum reasonable sizes?  */
+  check_frame_size (f, &rows, &cols);
   pixelwidth =  (cols * FONT_WIDTH (f->display.x->font) + 2 * ibw
 		 + f->display.x->v_scrollbar_width);
   pixelheight = (rows * FONT_HEIGHT (f->display.x->font) + 2 * ibw
@@ -3254,6 +3265,16 @@ x_set_window_size (f, cols, rows)
   x_wm_set_size_hint (f, 0);
 #endif /* HAVE_X11 */
   XChangeWindowSize (f->display.x->window_desc, pixelwidth, pixelheight);
+
+  /* Now, strictly speaking, we can't be sure that this is accurate,
+     but the window manager will get around to dealing with the size
+     change request eventually, and we'll hear how it went when the
+     ConfigureNotify event gets here.  */
+  FRAME_WIDTH (f) = cols;
+  FRAME_WIDTH (f) = rows;
+  PIXEL_WIDTH (f) = pixelwidth;
+  PIXEL_HEIGHT (f) = pixelheight;
+
   XFlushQueue ();
   UNBLOCK_INPUT;
 }
@@ -3617,9 +3638,6 @@ x_wm_set_size_hint (f, prompting)
   Window window = f->display.x->window_desc;
 
   size_hints.flags = PResizeInc | PMinSize | PMaxSize;
-#ifdef PBaseSize
-  size_hints.flags |= PBaseSize;
-#endif
 
   flexlines = f->height;
 
@@ -3629,18 +3647,31 @@ x_wm_set_size_hint (f, prompting)
   size_hints.width = PIXEL_WIDTH (f);
   size_hints.width_inc = FONT_WIDTH (f->display.x->font);
   size_hints.height_inc = FONT_HEIGHT (f->display.x->font);
-  size_hints.base_width = (2 * f->display.x->internal_border_width)
-    + f->display.x->v_scrollbar_width;
-  size_hints.base_height = (2 * f->display.x->internal_border_width)
-    + f->display.x->h_scrollbar_height;
-  size_hints.min_width = size_hints.base_width + size_hints.width_inc;
-  size_hints.min_height = size_hints.base_height + size_hints.height_inc;
-  size_hints.max_width = x_screen_width
-    - ((2 * f->display.x->internal_border_width)
-       + f->display.x->v_scrollbar_width);
-  size_hints.max_height = x_screen_height
-    - ((2 * f->display.x->internal_border_width)
-       + f->display.x->h_scrollbar_height);
+  size_hints.max_width =
+    (x_screen_width - ((2 * f->display.x->internal_border_width)
+		       + f->display.x->v_scrollbar_width));
+  size_hints.max_height =
+    (x_screen_height - ((2 * f->display.x->internal_border_width)
+			+ f->display.x->h_scrollbar_height));
+  {
+    int base_width = ((2 * f->display.x->internal_border_width)
+		      + f->display.x->v_scrollbar_width);
+    int base_height = ((2 * f->display.x->internal_border_width)
+		       + f->display.x->h_scrollbar_height);
+
+#ifdef PBaseSize
+    size_hints.flags |= PBaseSize;
+    size_hints.base_width = base_width;
+    size_hints.base_height = base_height;
+#endif
+
+    {
+      int min_rows = 0, min_cols = 0;
+      check_frame_size (f, &min_rows, &min_cols);
+      size_hints.min_width  = base_width  + min_cols * size_hints.width_inc;
+      size_hints.min_height = base_height + min_rows * size_hints.height_inc;
+    }
+  }
 
   if (prompting)
     size_hints.flags |= prompting;
@@ -3670,37 +3701,42 @@ x_wm_set_window_state (f, state)
      struct frame *f;
      int state;
 {
-  XWMHints wm_hints;
   Window window = f->display.x->window_desc;
 
-  wm_hints.flags = StateHint;
-  wm_hints.initial_state = state;
-  XSetWMHints (x_current_display, window, &wm_hints);
+  x_wm_hints.flags |= StateHint;
+  x_wm_hints.initial_state = state;
+
+  XSetWMHints (x_current_display, window, &x_wm_hints);
 }
 
 x_wm_set_icon_pixmap (f, icon_pixmap)
      struct frame *f;
      Pixmap icon_pixmap;
 {
-  XWMHints wm_hints;
   Window window = f->display.x->window_desc;
 
-  wm_hints.flags = IconPixmapHint;
-  wm_hints.icon_pixmap = icon_pixmap;
-  XSetWMHints (x_current_display, window, &wm_hints);
+  if (icon_pixmap)
+    {
+      x_wm_hints.flags |= IconPixmapHint;
+      x_wm_hints.icon_pixmap = icon_pixmap;
+    }
+  else
+    x_wm_hints.flags &= ~IconPixmapHint;
+
+  XSetWMHints (x_current_display, window, &x_wm_hints);
 }
 
 x_wm_set_icon_position (f, icon_x, icon_y)
      struct frame *f;
      int icon_x, icon_y;
 {
-  XWMHints wm_hints;
   Window window = f->display.x->window_desc;
 
-  wm_hints.flags = IconPositionHint;
-  wm_hints.icon_x = icon_x;
-  wm_hints.icon_y = icon_y;
-  XSetWMHints (x_current_display, window, &wm_hints);
+  x_wm_hints.flags |= IconPositionHint;
+  x_wm_hints.icon_x = icon_x;
+  x_wm_hints.icon_y = icon_y;
+
+  XSetWMHints (x_current_display, window, &x_wm_hints);
 }
 
 
@@ -3825,6 +3861,22 @@ x_term_init (display_name)
 #endif /* SIGWINCH */
 
   signal (SIGPIPE, x_death_handler);
+
+  /* When XSetWMHints eventually gets called, this will indicate that
+     we use the "Passive Input" input model.  Unless we do this, we
+     don't get the Focus{In,Out} events that we need to draw the
+     cursor correctly.  Accursed bureaucrats.
+
+     We set this here and leave it, because we know, being decidedly
+     non-humble programmers (nay, weigh'd low by our hubris!), that
+     Fx_create_frame calls x_icon which begat x_wm_set_window_state
+     which begat XSetWMHints, which will get this information to the
+     right parties.
+
+  XWhipsAndChains (x_current_display, IronMaiden, &TheRack);  */
+
+  x_wm_hints.input = True;
+  x_wm_hints.flags |= InputHint;
 }
 
 void
