@@ -164,7 +164,7 @@ Returns the number of actions taken."
 			 (funcall actor elt)
 			 (setq actions (1+ actions)
 			       next (function (lambda () nil))))
-			((eq def 'quit)
+			((or (eq def 'quit) (eq def 'exit-prefix))
 			 (setq quit-flag t)
 			 (setq next (` (lambda ()
 					 (setq next '(, next))
