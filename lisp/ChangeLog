@@ -1,3 +1,11 @@
+2001-10-31  Richard M. Stallman  <rms@gnu.org>
+
+	* bindings.el (mode-line-frame-identification): Add doc string.
+	(mode-line-position, mode-line-modes): New variables.
+	(mode-line-format): Use mode-line-position for the part
+	that displays the position-in-buffer info.  Use
+	mode-line-modes for the part that displays major and minor modes.
+
 2001-10-31  Sam Steingold  <sds@gnu.org>
 
 	* emacs-lisp/debug.el (debugger-make-xrefs): New function.
