@@ -1,3 +1,25 @@
+2002-06-06  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (windows-936): New alias.
+
+	* cus-start.el: Add scalable-fonts-allowed.
+
+	* international/characters.el: Reinstate various CJK syntax and
+	category setup.  Remove obsolete syntax setting in Greek section.
+	Optimize the char tables.
+
+	* language/thai.el ("Thai"): Add cp874, iso-8859-11 coding
+	systems.
+
+	* language/vietnamese.el ("Vietnamese"): Add windows-1258 coding
+	system.
+
+	* language/greek.el ("Greek"): Add windows-1253, cp851, cp869
+	coding systems.
+
+	* language/romanian.el ("Romanian"): Add iso-latin-10 coding
+	system.
+
 2002-06-03  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/characters.el (printable-chars): Setup correctly.
