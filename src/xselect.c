@@ -1815,7 +1815,7 @@ and t is the same as `SECONDARY'.)")
   Display *dpy;
 
   /* It should be safe to call this before we have an X frame.  */
-  if (FRAME_X_P (selected_frame))
+  if (! FRAME_X_P (selected_frame))
     return Qnil;
 
   dpy = FRAME_X_DISPLAY (selected_frame);
