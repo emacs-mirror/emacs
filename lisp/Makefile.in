@@ -6,6 +6,7 @@ SHELL = /bin/sh
 
 lisp=@srcdir@
 VPATH=@srcdir@
+srcdir=@srcdir@/..
 
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
