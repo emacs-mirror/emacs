@@ -1,5 +1,5 @@
 ;;; gnus-score.el --- scoring code for Gnus
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <amanda@iesd.auc.dk>
@@ -808,11 +808,11 @@ If optional argument `EXTRA' is non-nil, it's a non-standard overview header."
 		       (int-to-string match)
 		     match))))
 
-    (set-text-properties 0 (length match) nil match)
-
     ;; If this is an integer comparison, we transform from string to int.
-    (when (eq (nth 2 (assoc header gnus-header-index)) 'gnus-score-integer)
-      (setq match (string-to-int match)))
+    (if (eq (nth 2 (assoc header gnus-header-index)) 'gnus-score-integer)
+	(if (stringp match)
+	    (setq match (string-to-int match)))
+      (set-text-properties 0 (length match) nil match))
 
     (unless (eq date 'now)
       ;; Add the score entry to the score file.
@@ -1492,7 +1492,7 @@ EXTRA is the possible non-standard header."
 	  (gnus-message 5 "Scoring...done"))))))
 
 (defun gnus-score-lower-thread (thread score-adjust)
-  "Lower the socre on THREAD with SCORE-ADJUST.
+  "Lower the score on THREAD with SCORE-ADJUST.
 THREAD is expected to contain a list of the form `(PARENT [CHILD1
 CHILD2 ...])' where PARENT is a header array and each CHILD is a list
 of the same form as THREAD.  The empty list `nil' is valid.  For each
@@ -1750,7 +1750,7 @@ score in GNUS-NEWSGROUP-SCORED by SCORE."
 	  ;; gnus-score-index is used as a free variable.
 	  alike last this art entries alist articles
 	  new news)
-      
+
       ;; Change score file to the adaptive score file.  All entries that
       ;; this function makes will be put into this file.
       (save-excursion
@@ -1760,7 +1760,7 @@ score in GNUS-NEWSGROUP-SCORED by SCORE."
 	     (gnus-score-file-name
 	      gnus-newsgroup-name gnus-adaptive-file-suffix))))
 
-      (setq gnus-scores-articles (sort gnus-scores-articles 
+      (setq gnus-scores-articles (sort gnus-scores-articles
 				       'gnus-score-string<)
 	    articles gnus-scores-articles)
 
@@ -1829,7 +1829,7 @@ score in GNUS-NEWSGROUP-SCORED by SCORE."
 		    (push new news)))))
 	    ;; Update expire date
 	    (cond ((null date))		;Permanent entry.
-		  ((and found gnus-update-score-entry-dates) 
+		  ((and found gnus-update-score-entry-dates)
 					;Match, update date.
 		   (gnus-score-set 'touched '(t) alist)
 		   (setcar (nthcdr 2 kill) now))

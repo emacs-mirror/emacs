@@ -2493,7 +2493,8 @@ The directory to save in defaults to `gnus-article-save-directory'."
 	(cond ((and (eq command 'default)
 		    gnus-last-shell-command)
 	       gnus-last-shell-command)
-	      (command command)
+	      ((stringp command)
+	       command)
 	      (t (read-string
 		  (format
 		   "Shell command on %s: "
@@ -2504,7 +2505,9 @@ The directory to save in defaults to `gnus-article-save-directory'."
 		     "this article"))
 		  gnus-last-shell-command))))
   (when (string-equal command "")
-    (setq command gnus-last-shell-command))
+    (if gnus-last-shell-command
+	(setq command gnus-last-shell-command)
+      (error "A command is required.")))
   (gnus-eval-in-buffer-window gnus-article-buffer
     (save-restriction
       (widen)

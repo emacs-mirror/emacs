@@ -1,5 +1,5 @@
 ;;; gnus-sum.el --- summary mode commands for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -7301,8 +7301,7 @@ If the optional first argument FILENAME is nil, send the image to the
 printer.  If FILENAME is a string, save the PostScript image in a file with
 that name.  If FILENAME is a number, prompt the user for the name of the file
 to save in."
-  (interactive (list (ps-print-preprint current-prefix-arg)
-		     current-prefix-arg))
+  (interactive (list (ps-print-preprint current-prefix-arg)))
   (dolist (article (gnus-summary-work-articles n))
     (gnus-summary-select-article nil nil 'pseudo article)
     (gnus-eval-in-buffer-window gnus-article-buffer
@@ -7325,8 +7324,10 @@ to save in."
 			      (mail-header-date gnus-current-headers) ")"))))
 		(gnus-run-hooks 'gnus-ps-print-hook)
 		(save-excursion
-		  (ps-print-buffer-with-faces filename))))
-	  (kill-buffer buffer))))))
+		  (ps-spool-buffer-with-faces))))
+	  (kill-buffer buffer))))
+    (gnus-summary-remove-process-mark article))
+  (ps-despool filename))
 
 (defun gnus-summary-show-article (&optional arg)
   "Force re-fetching of the current article.

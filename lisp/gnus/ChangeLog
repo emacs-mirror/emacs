@@ -1,3 +1,25 @@
+2001-02-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-score.el (gnus-summary-score-entry): match may be an integer.
+
+	* gnus-art.el (gnus-summary-save-in-pipe): Prompt for saving
+	command if there is not last-saver.
+
+	* rfc2047.el (rfc2047-encode): MIME charset is not coding system.
+	(rfc2047-charset-encoding-alist): Add big5.
+
+	* mm-util.el (mm-mime-mule-charset-alist): Preferred MIME names
+	GB2312 and Big5.
+
+	* gnus-score.el (gnus-score-lower-thread): Fix a doc typo.
+
+	* gnus-sum.el (gnus-summary-print-article): Remove process mark.
+
+	* gnus-sum.el (gnus-summary-print-article): Take one prefix
+	argument. Allow to print several articles in one file.
+
+	* webmail.el (webmail-type-definition): netaddress changes.
+	
 2001-01-31  Dave Love  <fx@gnu.org>
 
 	* mm-util.el (mm-mime-mule-charset-alist)

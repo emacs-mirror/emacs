@@ -70,6 +70,8 @@ The values can be:
     (iso-2022-jp . B)
     (iso-2022-kr . B)
     (gb2312 . B)
+    (big5 . B)
+    (cn-big5 . B)
     (cn-gb . B)
     (cn-gb-2312 . B)
     (euc-kr . B)
@@ -258,6 +260,7 @@ The buffer may be narrowed."
 (defun rfc2047-encode (b e charset)
   "Encode the word in the region B to E with CHARSET."
   (let* ((mime-charset (mm-mime-charset charset))
+	 (cs (mm-charset-to-coding-system mime-charset))
 	 (encoding (or (cdr (assq mime-charset
 				  rfc2047-charset-encoding-alist))
 		       'B))
@@ -275,8 +278,8 @@ The buffer may be narrowed."
 	  (unless (eobp)
 	    (insert "\n"))))
       (if (and (mm-multibyte-p)
-	       (mm-coding-system-p mime-charset))
-	  (mm-encode-coding-region (point-min) (point-max) mime-charset))
+	       (mm-coding-system-p cs))
+	  (mm-encode-coding-region (point-min) (point-max) cs))
       (funcall (cdr (assq encoding rfc2047-encoding-function-alist))
 	       (point-min) (point-max))
       (goto-char (point-min))
