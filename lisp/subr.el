@@ -993,7 +993,7 @@ With optional non-nil ALL, force redisplay of all mode-lines."
   (if all (save-excursion (set-buffer (other-buffer))))
   (set-buffer-modified-p (buffer-modified-p)))
 
-(defun momentary-string-display (string pos &optional exit-char message) 
+(defun momentary-string-display (string pos &optional exit-char message)
   "Momentarily display STRING in the buffer at POS.
 Display remains until next character is typed.
 If the char is EXIT-CHAR (optional third arg, default is SPC) it is swallowed;
@@ -1037,6 +1037,41 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
       (set-buffer-modified-p modified))))
 
 
+;;;; Overlay operations
+
+(defun copy-overlay (o)
+  "Return a copy of overlay O."
+  (let ((o1 (make-overlay (overlay-start o) (overlay-end o)
+			  ;; FIXME: there's no easy way to find the
+			  ;; insertion-type of the two markers.
+			  (overlay-buffer o)))
+	(props (overlay-properties o)))
+    (while props
+      (overlay-put o1 (pop props) (pop props)))
+    o1))
+
+(defun remove-overlays (beg end name val)
+  "Clear BEG and END of overlays whose property NAME has value VAL.
+Overlays might be moved and or split."
+  (if (< end beg)
+      (setq beg (prog1 end (setq end beg))))
+  (save-excursion
+    (dolist (o (overlays-in beg end))
+      (when (eq (overlay-get o name) val)
+	;; Either push this overlay outside beg...end
+	;; or split it to exclude beg...end
+	;; or delete it entirely (if it is contained in beg...end).
+	(if (< (overlay-start o) beg)
+	    (if (> (overlay-end o) end)
+		(progn
+		  (move-overlay (copy-overlay o)
+				(overlay-start o) beg)
+		  (move-overlay o end (overlay-end o)))
+	      (move-overlay o (overlay-start o) beg))
+	  (if (> (overlay-end o) end)
+	      (move-overlay o end (overlay-end o))
+	    (delete-overlay o)))))))
+
 ;;;; Miscellanea.
 
 ;; A number of major modes set this locally.
