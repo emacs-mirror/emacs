@@ -1,3 +1,77 @@
+1999-10-20  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-bdf.el: Doc fix.
+
+	* ps-print-def.el: New file: common definitions for all parts of
+	ps-print.
+	(ps-multibyte-buffer): Moved from ps-mule.
+
+	* ps-mule.el: File dependence fix.
+	(ps-multibyte-buffer): Moved to ps-print-def.
+
+	* ps-print.el: Doc fix, better customization.
+	(ps-print-region-function, ps-number-of-columns, ps-spool-tumble)
+	(ps-print-color-p, ps-printing-region-p, ps-n-up-database)
+	(ps-end-file): Doc fix.
+	(ps-setup, ps-begin-file): Fun fix.
+	(postscript): New group.
+	(ps-zebra-gray, ps-banner-page-when-duplexing): New vars.
+	(ps-print-prologue-1): Adjust PostScript programming.
+	(ps-print): Adjust group hierarchy.
+	(ps-print-n-up, ps-print-zebra, ps-print-background,
+	ps-print-printer)
+	(ps-print-page): New subgroups.
+	(ps-print-prologue-header, ps-printer-name, ps-lpr-command)
+	(ps-lpr-switches, ps-page-dimensions-database, ps-paper-type)
+	(ps-landscape-mode, ps-print-control-characters, ps-n-up-printing)
+	(ps-n-up-margin, ps-n-up-border-p, ps-n-up-filling, ps-zebra-stripes)
+	(ps-zebra-stripe-height, ps-print-background-image)
+	(ps-print-background-text, ps-spool-config): Adjust customization.
+	(dos-ps-printer): Definition eliminated.
+
+1999-10-20  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-mule.el: Doc fix, define functions properly if mule package is
+	loaded or not.
+	(ccl-encode-ethio-unicode, ps-mule-encode-ethiopic): Define properly if
+	mule package is loaded or not.
+
+	* ps-print.el: Doc fix, n-up printing.
+	(ps-print-version): New version number (5.0).
+	(ps-page-dimensions-database): Added document media.
+	(ps-n-up-printing, ps-n-up-margin, ps-n-up-border-p, ps-n-up-filling)
+	(ps-page-order, ps-printing-region-p): New vars.
+	(ps-n-up-printing, ps-n-up-filling, ps-header-sheet, ps-end-job): New
+	funs.
+	(ps-page-dimensions-get-media, ps-n-up-landscape, ps-n-up-lines)
+	(ps-n-up-columns, ps-n-up-missing, ps-n-up-xcolumn, ps-n-up-ycolumn)
+	(ps-n-up-xline, ps-n-up-yline, ps-n-up-repeat, ps-n-up-end)
+	(ps-n-up-xstart, ps-n-up-ystart): New macros.
+	(ps-print-begin-sheet-hook): New hook.
+	(ps-boundingbox-re, ps-n-up-database, ps-n-up-filling-database): New
+	const.
+	(ps-setup, ps-begin-file, ps-get-buffer-name, ps-begin-job)
+	(ps-end-file, ps-dummy-page, ps-generate): Fix funs.
+	(ps-print-prologue-1): Adjust PostScript programming for n-up printing.
+	(ps-count-lines): Changed to defun.
+	(ps-header-page): Changed to defsubst, fix fun.
+	(ps-printing-region): Doc fix, adjust programming code.
+	(ps-output-boolean, ps-background-pages, ps-background-text)
+	(ps-background-image, ps-background, ps-get-boundingbox): Adjust
+	programming code.
+
+1999-10-20  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Doc fix, duplex and setpagedevice configuration.
+	(ps-print-version): New version number (4.2).
+	(ps-spool-config, ps-spool-tumble): New vars.
+	(ps-print-prologue-1): Changed to defconst, adjust PostScript
+	programming, new PostScript procedure to handle errors.
+	(ps-print-prologue-2): Changed to defconst.
+	(ps-print-duplex-feature): New const: duplex and tumble setting.
+	(ps-setup, ps-begin-file): Fix funs.
+	(ps-boolean-capitalized): New fun.
+
 1999-10-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* Makefile (dontcompilefiles): Obsoleted.
