@@ -889,8 +889,8 @@ with no args, if that value is non-nil."
   (set (make-local-variable 'add-log-current-defun-function)
        #'f90-current-defun)
   (run-hooks 'f90-mode-hook)
-  (if f90-startup-message
-      (message "Emacs F90 mode; please report bugs to %s" bug-f90-mode))
+;;   (if f90-startup-message
+;;       (message "Emacs F90 mode; please report bugs to %s" bug-f90-mode))
   (setq f90-startup-message nil))
 
 ;; inline-functions
