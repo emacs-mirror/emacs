@@ -1,3 +1,8 @@
+2003-01-29  Kim F. Storm  <storm@cua.dk>
+
+	* AUTHORS: Regenerated using new format (after fixing numerous
+	formatting errors in the ChangeLog files).
+
 2003-01-22  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Set HAVE_MENUS=yes when HAVE_CARBON=yes instead of

@@ -1,3 +1,33 @@
+2003-01-29  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/authors.el: New format of AUTHORS file; list each
+	author name once followed by contributed and changed files.
+	Improve selection of entries to include in list, and generate list
+	of unrecognized entries indicating syntax errors in ChangeLog files.
+	(authors-coding-system): New variable.
+	(authors-many-files): Update doc string.
+	(authors-aliases): Change format. Now one entry with multiple
+	aliases per author.
+	(authors-valid-file-names, authors-renamed-files-alist)
+	(authors-renamed-files-regexps): New variables.
+	(authors-canonical-file-name): New function.  Validates that file
+	exists or occurs in one of the above lists.  Record unrecognized
+	file names in global authors-invalid-file-names list. 
+	(authors-add): Change to record per-change counts.
+	(authors-canonical-author-name): Handle new format of
+	authors-aliases list.
+	(authors-scan-change-log): Rename FILE arg to LOG-FILE.
+	Change doc string to describe new entry format.
+	Only add author entries for valid file names.
+	(authors-print): Replace by authors-add-to-author-list.
+	(authors-add-to-author-list): New function which reorders
+	per-file entries and adds them to global authors-author-list.
+	(authors): Instead of authors-print to insert in *Authors* buffer,
+	use authors-add-to-author-list to reorder the list and then
+	insert result in *Authors* buffer with new format.
+	Generate *Authors Errors* compilation-mode buffer listing
+	unrecognized ChangeLog entries.
+
 2003-01-28  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>
 
 	* term/mac-win.el: Add entries in function-key-map for
