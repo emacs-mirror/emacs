@@ -98,55 +98,44 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
-** You can now follow links by clicking mouse-1 on the link.
+** You can now follow links by clicking Mouse-1 on the link.
 
-Traditionally, Emacs uses a mouse-1 click to set point and a mouse-2
-click to follow a link, whereas most other applications use a mouse-1
+Traditionally, Emacs uses a Mouse-1 click to set point and a Mouse-2
+click to follow a link, whereas most other applications use a Mouse-1
 click for both purposes, depending on whether you click outside or
-inside a link.  With release 21.4, the behaviour of a mouse-1 click
+inside a link.  With release 21.4, the behaviour of a Mouse-1 click
 has been changed to match this context-sentitive dual behaviour.
 
-Depending on the current mode, a mouse-2 click in Emacs may do much
-more than just follow a link, so the new mouse-1 behaviour is only
+Depending on the current mode, a Mouse-2 click in Emacs may do much
+more than just follow a link, so the new Mouse-1 behaviour is only
 activated for modes which explicitly mark a clickable text as a "link"
 (see the new function `mouse-on-link-p' for details).  The lisp
 packages that are included in release 21.4 have been adapted to do
 this, but external packages may not yet support this.  However, there
 is no risk in using such packages, as the worst thing that could
-happen is that you get the original mouse-1 behaviour when you click
+happen is that you get the original Mouse-1 behaviour when you click
 on a link, which typically means that you set point where you click.
 
-If you want to get the original mouse-1 action also inside a link, you
-just need to press the mouse-1 button a little longer than a normal
-click (i.e. press and hold the mouse-1 button for half a second before
+If you want to get the original Mouse-1 action also inside a link, you
+just need to press the Mouse-1 button a little longer than a normal
+click (i.e. press and hold the Mouse-1 button for half a second before
 you release it).
 
-Dragging the mouse-1 inside a link still performs the original
+Dragging the Mouse-1 inside a link still performs the original
 drag-mouse-1 action, typically copy the text.
 
-You can customize the new mouse-1 behaviour via the new user option
+You can customize the new Mouse-1 behaviour via the new user option
 `mouse-1-click-follows-link'.
+
++++
+** When the undo information of the current command gets really large
+(beyond the value of `undo-outer-limit'), Emacs asks you whether to
+discard it or keep it.
 
 ** line-move-ignore-invisible now defaults to t.
 
 ** In Outline mode, hide-body no longer hides lines at the top
 of the file that precede the first header line.
-
-+++
-** `set-auto-mode' now gives the interpreter magic line (if present)
-precedence over the file name.  Likewise an <?xml or <!DOCTYPE declaration
-will give the buffer XML or SGML mode, based on the new var
-`magic-mode-alist'.
-
-+++
-** New function `looking-back' checks whether a regular expression matches
-the text before point.  Specifying the LIMIT argument bounds how far
-back the match can start; this is a way to keep it from taking too long.
-
-+++
-** New functions `make-progress-reporter', `progress-reporter-update',
-`progress-reporter-force-update' and `progress-reporter-done' provide
-a simple and efficient way of printing progress messages to the user.
 
 +++
 ** In Enriched mode, `set-left-margin' and `set-right-margin' are now
@@ -2405,10 +2394,27 @@ configuration files.
 clickable link with the new function `mouse-on-link-p'.  This is the
 function used by the new `mouse-1-click-follows-link' functionality.
 
++++
 ** (while-no-input BODY...) runs BODY, but only so long as no input
 arrives.  If the user types or clicks anything, BODY stops as if a
 quit had occurred.  while-no-input returns the value of BODY, if BODY
 finishes.  It returns nil if BODY was aborted.
+
++++
+** `set-auto-mode' now gives the interpreter magic line (if present)
+precedence over the file name.  Likewise an <?xml or <!DOCTYPE declaration
+will give the buffer XML or SGML mode, based on the new var
+`magic-mode-alist'.
+
++++
+** New function `looking-back' checks whether a regular expression matches
+the text before point.  Specifying the LIMIT argument bounds how far
+back the match can start; this is a way to keep it from taking too long.
+
++++
+** New functions `make-progress-reporter', `progress-reporter-update',
+`progress-reporter-force-update' and `progress-reporter-done' provide
+a simple and efficient way of printing progress messages to the user.
 
 ---
 ** To manipulate the File menu using easy-menu, you must specify the
