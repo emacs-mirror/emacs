@@ -334,17 +334,20 @@ When called from a program the rectangle's corners are START and END.
 The left edge of the rectangle specifies the column for insertion.
 This command does not delete or overwrite any existing text."
   (interactive "*r\nsString rectangle: ")
-  (apply-on-rectangle 'string-rectangle-line start end string))
+  (apply-on-rectangle 'string-rectangle-line start end string
+		      (bound-and-true-p 'delete-selection-mode)))
 
-(defun string-rectangle-line (startcol endcol string)
+(defun string-rectangle-line (startcol endcol string delete)
   (move-to-column-force startcol)
+  (if delete
+      (delete-rectangle-line startcol endcol nil))
   (insert string))
 
 ;;;###autoload
 (defun replace-rectangle (start end string)
   "Like `string-rectangle', but replace the original region."
   (interactive "*r\nsString rectangle: ")
-  (apply-on-rectangle 'string-rectangle-line start end string))
+  (apply-on-rectangle 'string-rectangle-line start end string t))
 
 ;;;###autoload
 (defun clear-rectangle (start end &optional fill)
