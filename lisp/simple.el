@@ -3696,7 +3696,10 @@ With prefix argument N, move N items (negative N means move backward)."
 	   ;; is a directory, don't exit the minibuffer.
 	   (if (and (eq minibuffer-completion-table 'read-file-name-internal)
 		    (file-directory-p (field-string (point-max))))
-	       (select-window (active-minibuffer-window))
+	       (let ((mini (active-minibuffer-window)))
+		 (select-window mini)
+		 (when minibuffer-auto-raise
+		   (raise-frame (window-frame mini))))
 	     (exit-minibuffer))))))
 
 (defun completion-list-mode ()
