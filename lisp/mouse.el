@@ -754,7 +754,8 @@ remains active.  Otherwise, it remains until the next input event.
 
 If the click is in the echo area, display the `*Messages*' buffer."
   (interactive "e")
-  (let ((w (posn-window (event-start start-event))))
+  (let ((w (posn-window (event-start start-event)))
+	(mouse-autoselect-window nil))
     (if (not (or (not (window-minibuffer-p w))
 		 (minibuffer-window-active-p w)))
 	(save-excursion
