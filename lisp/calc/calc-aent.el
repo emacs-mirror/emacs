@@ -464,7 +464,7 @@
   (let ((exp-pos 0)
 	(exp-old-pos 0)
 	(exp-keep-spaces nil)
-	exp-token exp-data)
+	exp-token math-expr-data)
     (if calc-language-input-filter
 	(setq exp-str (funcall calc-language-input-filter exp-str)))
     (while (setq exp-token (string-match "\\.\\.\\([^.]\\|.[^.]\\)" exp-str))
@@ -483,7 +483,7 @@
   (let* ((exp-keep-spaces nil)
 	 (val (list (math-read-expr-level 0)))
 	 (last val))
-    (while (equal exp-data ",")
+    (while (equal math-expr-data ",")
       (math-read-token)
       (let ((rest (list (math-read-expr-level 0))))
 	(setcdr last rest)
@@ -545,21 +545,21 @@
   (if (>= exp-pos (length exp-str))
       (setq exp-old-pos exp-pos
 	    exp-token 'end
-	    exp-data "\000")
+	    math-expr-data "\000")
     (let ((ch (aref exp-str exp-pos)))
       (setq exp-old-pos exp-pos)
       (cond ((memq ch '(32 10 9))
 	     (setq exp-pos (1+ exp-pos))
 	     (if exp-keep-spaces
 		 (setq exp-token 'space
-		       exp-data " ")
+		       math-expr-data " ")
 	       (math-read-token)))
 	    ((and (memq ch calc-user-token-chars)
 		  (let ((case-fold-search nil))
 		    (eq (string-match calc-user-tokens exp-str exp-pos)
 			exp-pos)))
 	     (setq exp-token 'punc
-		   exp-data (math-match-substring exp-str 0)
+		   math-expr-data (math-match-substring exp-str 0)
 		   exp-pos (match-end 0)))
 	    ((or (and (>= ch ?a) (<= ch ?z))
 		 (and (>= ch ?A) (<= ch ?Z)))
@@ -569,21 +569,21 @@
 			   exp-str exp-pos)
 	     (setq exp-token 'symbol
 		   exp-pos (match-end 0)
-		   exp-data (math-restore-dashes
+		   math-expr-data (math-restore-dashes
 			     (math-match-substring exp-str 0)))
 	     (if (eq calc-language 'eqn)
-		 (let ((code (assoc exp-data math-eqn-ignore-words)))
+		 (let ((code (assoc math-expr-data math-eqn-ignore-words)))
 		   (cond ((null code))
 			 ((null (cdr code))
 			  (math-read-token))
 			 ((consp (nth 1 code))
 			  (math-read-token)
-			  (if (assoc exp-data (cdr code))
-			      (setq exp-data (format "%s %s"
-						     (car code) exp-data))))
+			  (if (assoc math-expr-data (cdr code))
+			      (setq math-expr-data (format "%s %s"
+						     (car code) math-expr-data))))
 			 ((eq (nth 1 code) 'punc)
 			  (setq exp-token 'punc
-				exp-data (nth 2 code)))
+				math-expr-data (nth 2 code)))
 			 (t
 			  (math-read-token)
 			  (math-read-token))))))
@@ -602,7 +602,7 @@
 		      (string-match "0[xX][0-9a-fA-F]+" exp-str exp-pos))
 		 (string-match "_?\\([0-9]+.?0*@ *\\)?\\([0-9]+.?0*' *\\)?\\(0*\\([2-9]\\|1[0-4]\\)\\(#\\|\\^\\^\\)[0-9a-dA-D.]+[eE][-+_]?[0-9]+\\|0*\\([2-9]\\|[0-2][0-9]\\|3[0-6]\\)\\(#\\|\\^\\^\\)[0-9a-zA-Z:.]+\\|[0-9]+:[0-9:]+\\|[0-9.]+\\([eE][-+_]?[0-9]+\\)?\"?\\)?" exp-str exp-pos))
 	     (setq exp-token 'number
-		   exp-data (math-match-substring exp-str 0)
+		   math-expr-data (math-match-substring exp-str 0)
 		   exp-pos (match-end 0)))
 	    ((eq ch ?\$)
 	     (if (and (eq calc-language 'pascal)
@@ -611,30 +611,30 @@
 			   exp-str exp-pos)
 			  exp-pos))
 		 (setq exp-token 'number
-		       exp-data (math-match-substring exp-str 1)
+		       math-expr-data (math-match-substring exp-str 1)
 		       exp-pos (match-end 1))
 	       (if (eq (string-match "\\$\\([1-9][0-9]*\\)" exp-str exp-pos)
 		       exp-pos)
-		   (setq exp-data (- (string-to-int (math-match-substring
+		   (setq math-expr-data (- (string-to-int (math-match-substring
 						     exp-str 1))))
 		 (string-match "\\$+" exp-str exp-pos)
-		 (setq exp-data (- (match-end 0) (match-beginning 0))))
+		 (setq math-expr-data (- (match-end 0) (match-beginning 0))))
 	       (setq exp-token 'dollar
 		     exp-pos (match-end 0))))
 	    ((eq ch ?\#)
 	     (if (eq (string-match "#\\([1-9][0-9]*\\)" exp-str exp-pos)
 		     exp-pos)
-		 (setq exp-data (string-to-int
+		 (setq math-expr-data (string-to-int
 				 (math-match-substring exp-str 1))
 		       exp-pos (match-end 0))
-	       (setq exp-data 1
+	       (setq math-expr-data 1
 		     exp-pos (1+ exp-pos)))
 	     (setq exp-token 'hash))
 	    ((eq (string-match "~=\\|<=\\|>=\\|<>\\|/=\\|\\+/-\\|\\\\dots\\|\\\\ldots\\|\\*\\*\\|<<\\|>>\\|==\\|!=\\|&&&\\||||\\|!!!\\|&&\\|||\\|!!\\|:=\\|::\\|=>"
 			       exp-str exp-pos)
 		 exp-pos)
 	     (setq exp-token 'punc
-		   exp-data (math-match-substring exp-str 0)
+		   math-expr-data (math-match-substring exp-str 0)
 		   exp-pos (match-end 0)))
 	    ((and (eq ch ?\")
 		  (string-match "\\(\"\\([^\"\\]\\|\\\\.\\)*\\)\\(\"\\|\\'\\)" exp-str exp-pos))
@@ -646,7 +646,7 @@
 		       (aset exp-str (match-end 1) ?\}))
 		   (math-read-token))
 	       (setq exp-token 'string
-		     exp-data (math-match-substring exp-str 1)
+		     math-expr-data (math-match-substring exp-str 1)
 		     exp-pos (match-end 0))))
 	    ((and (= ch ?\\) (eq calc-language 'tex)
 		  (< exp-pos (1- (length exp-str))))
@@ -654,20 +654,20 @@
 		 (string-match "\\(\\\\\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\)" exp-str exp-pos))
 	     (setq exp-token 'symbol
 		   exp-pos (match-end 0)
-		   exp-data (math-restore-dashes
+		   math-expr-data (math-restore-dashes
 			     (math-match-substring exp-str 1)))
-	     (let ((code (assoc exp-data math-tex-ignore-words)))
+	     (let ((code (assoc math-expr-data math-tex-ignore-words)))
 	       (cond ((null code))
 		     ((null (cdr code))
 		      (math-read-token))
 		     ((eq (nth 1 code) 'punc)
 		      (setq exp-token 'punc
-			    exp-data (nth 2 code)))
+			    math-expr-data (nth 2 code)))
 		     ((and (eq (nth 1 code) 'mat)
 			   (string-match " *{" exp-str exp-pos))
 		      (setq exp-pos (match-end 0)
 			    exp-token 'punc
-			    exp-data "[")
+			    math-expr-data "[")
 		      (let ((right (string-match "}" exp-str exp-pos)))
 			(and right
 			     (setq exp-str (copy-sequence exp-str))
@@ -676,24 +676,24 @@
 		  (eq (string-match "\\.[a-zA-Z][a-zA-Z][a-zA-Z]?\\."
 				    exp-str exp-pos) exp-pos))
 	     (setq exp-token 'punc
-		   exp-data (upcase (math-match-substring exp-str 0))
+		   math-expr-data (upcase (math-match-substring exp-str 0))
 		   exp-pos (match-end 0)))
 	    ((and (eq calc-language 'math)
 		  (eq (string-match "\\[\\[\\|->\\|:>" exp-str exp-pos)
 		      exp-pos))
 	     (setq exp-token 'punc
-		   exp-data (math-match-substring exp-str 0)
+		   math-expr-data (math-match-substring exp-str 0)
 		   exp-pos (match-end 0)))
 	    ((and (eq calc-language 'eqn)
 		  (eq (string-match "->\\|<-\\|+-\\|\\\\dots\\|~\\|\\^"
 				    exp-str exp-pos)
 		      exp-pos))
 	     (setq exp-token 'punc
-		   exp-data (math-match-substring exp-str 0)
+		   math-expr-data (math-match-substring exp-str 0)
 		   exp-pos (match-end 0))
 	     (and (eq (string-match "\\\\dots\\." exp-str exp-pos) exp-pos)
 		  (setq exp-pos (match-end 0)))
-	     (if (memq (aref exp-data 0) '(?~ ?^))
+	     (if (memq (aref math-expr-data 0) '(?~ ?^))
 		 (math-read-token)))
 	    ((eq (string-match "%%.*$" exp-str exp-pos) exp-pos)
 	     (setq exp-pos (match-end 0))
@@ -706,7 +706,7 @@
 	     (if (and (eq ch ?\&) (eq calc-language 'tex))
 		 (setq ch ?\,))
 	     (setq exp-token 'punc
-		   exp-data (char-to-string ch)
+		   math-expr-data (char-to-string ch)
 		   exp-pos (1+ exp-pos)))))))
 
 
@@ -716,10 +716,10 @@
 			 (setq op (calc-check-user-syntax x exp-prec))
 			 (setq x op
 			       op '("2x" ident 999999 -1)))
-		    (and (setq op (assoc exp-data math-expr-opers))
+		    (and (setq op (assoc math-expr-data math-expr-opers))
 			 (/= (nth 2 op) -1)
 			 (or (and (setq op2 (assoc
-					     exp-data
+					     math-expr-data
 					     (cdr (memq op math-expr-opers))))
 				  (eq (= (nth 3 op) -1)
 				      (/= (nth 3 op2) -1))
@@ -729,12 +729,12 @@
 			     t))
 		    (and (or (eq (nth 2 op) -1)
 			     (memq exp-token '(symbol number dollar hash))
-			     (equal exp-data "(")
-			     (and (equal exp-data "[")
+			     (equal math-expr-data "(")
+			     (and (equal math-expr-data "[")
 				  (not (eq calc-language 'math))
 				  (not (and exp-keep-spaces
 					    (eq (car-safe x) 'vec)))))
-			 (or (not (setq op (assoc exp-data math-expr-opers)))
+			 (or (not (setq op (assoc math-expr-data math-expr-opers)))
 			     (/= (nth 2 op) -1))
 			 (or (not calc-user-parse-table)
 			     (not (eq exp-token 'symbol))
@@ -744,11 +744,11 @@
 						     (car (car (car p)))))
 					       (not (equal
 						     (nth 1 (car (car p)))
-						     exp-data))))
+						     math-expr-data))))
 				 (setq p (cdr p)))
 			       (not p)))
 			 (setq op (assoc "2x" math-expr-opers))))
-		(not (and exp-term (equal exp-data exp-term)))
+		(not (and exp-term (equal math-expr-data exp-term)))
 		(>= (nth 2 op) exp-prec))
       (if (not (equal (car op) "2x"))
 	  (math-read-token))
@@ -787,13 +787,13 @@
 			   (if x
 			       (and (integerp (car rule))
 				    (>= (car rule) prec)
-				    (equal exp-data
+				    (equal math-expr-data
 					   (car (setq rule (cdr rule)))))
-			     (equal exp-data (car rule)))))
+			     (equal math-expr-data (car rule)))))
 		    (let ((save-exp-pos exp-pos)
 			  (save-exp-old-pos exp-old-pos)
 			  (save-exp-token exp-token)
-			  (save-exp-data exp-data))
+			  (save-exp-data math-expr-data))
 		      (or (not (listp
 				(setq matches (calc-match-user-syntax rule))))
 			  (let ((args (progn
@@ -858,7 +858,7 @@
 						  match args matches)))
 			      (setq exp-old-pos save-exp-old-pos
 				    exp-token save-exp-token
-				    exp-data save-exp-data
+				    math-expr-data save-exp-data
 				    exp-pos save-exp-pos)))))))
       (setq p (cdr p)))
     (and p match)))
@@ -868,10 +868,10 @@
 	(save-exp-pos exp-pos)
 	(save-exp-old-pos exp-old-pos)
 	(save-exp-token exp-token)
-	(save-exp-data exp-data))
+	(save-exp-data math-expr-data))
     (while (and p
 		(cond ((stringp (car p))
-		       (and (equal exp-data (car p))
+		       (and (equal math-expr-data (car p))
 			    (progn
 			      (math-read-token)
 			      t)))
@@ -918,7 +918,7 @@
 	(setq exp-pos save-exp-pos
 	      exp-old-pos save-exp-old-pos
 	      exp-token save-exp-token
-	      exp-data save-exp-data
+	      math-expr-data save-exp-data
 	      matches "Failed"))
     matches))
 
@@ -940,25 +940,25 @@
 
 (defun math-read-if (cond op)
   (let ((then (math-read-expr-level 0)))
-    (or (equal exp-data ":")
+    (or (equal math-expr-data ":")
 	(throw 'syntax "Expected ':'"))
     (math-read-token)
     (list 'calcFunc-if cond then (math-read-expr-level (nth 3 op)))))
 
 (defun math-factor-after ()
   (let ((exp-pos exp-pos)
-	exp-old-pos exp-token exp-data)
+	exp-old-pos exp-token math-expr-data)
     (math-read-token)
     (or (memq exp-token '(number symbol dollar hash string))
-	(and (assoc exp-data '(("-") ("+") ("!") ("|") ("/")))
-	     (assoc (concat "u" exp-data) math-expr-opers))
-	(eq (nth 2 (assoc exp-data math-expr-opers)) -1)
-	(assoc exp-data '(("(") ("[") ("{"))))))
+	(and (assoc math-expr-data '(("-") ("+") ("!") ("|") ("/")))
+	     (assoc (concat "u" math-expr-data) math-expr-opers))
+	(eq (nth 2 (assoc math-expr-data math-expr-opers)) -1)
+	(assoc math-expr-data '(("(") ("[") ("{"))))))
 
 (defun math-read-factor ()
   (let (op)
     (cond ((eq exp-token 'number)
-	   (let ((num (math-read-number exp-data)))
+	   (let ((num (math-read-number math-expr-data)))
 	     (if (not num)
 		 (progn
 		   (setq exp-old-pos exp-pos)
@@ -971,14 +971,14 @@
 	  ((and calc-user-parse-table
 		(setq op (calc-check-user-syntax)))
 	   op)
-	  ((or (equal exp-data "-")
-	       (equal exp-data "+")
-	       (equal exp-data "!")
-	       (equal exp-data "|")
-	       (equal exp-data "/"))
-	   (setq exp-data (concat "u" exp-data))
+	  ((or (equal math-expr-data "-")
+	       (equal math-expr-data "+")
+	       (equal math-expr-data "!")
+	       (equal math-expr-data "|")
+	       (equal math-expr-data "/"))
+	   (setq math-expr-data (concat "u" math-expr-data))
 	   (math-read-factor))
-	  ((and (setq op (assoc exp-data math-expr-opers))
+	  ((and (setq op (assoc math-expr-data math-expr-opers))
 		(eq (nth 2 op) -1))
 	   (if (consp (nth 1 op))
 	       (funcall (car (nth 1 op)) op)
@@ -991,18 +991,18 @@
 		      (math-neg val))
 		     (t (list (nth 1 op) val))))))
 	  ((eq exp-token 'symbol)
-	   (let ((sym (intern exp-data)))
+	   (let ((sym (intern math-expr-data)))
 	     (math-read-token)
-	     (if (equal exp-data calc-function-open)
+	     (if (equal math-expr-data calc-function-open)
 		 (let ((f (assq sym math-expr-function-mapping)))
 		   (math-read-token)
 		   (if (consp (cdr f))
 		       (funcall (car (cdr f)) f sym)
-		     (let ((args (if (or (equal exp-data calc-function-close)
+		     (let ((args (if (or (equal math-expr-data calc-function-close)
 					 (eq exp-token 'end))
 				     nil
 				   (math-read-expr-list))))
-		       (if (not (or (equal exp-data calc-function-close)
+		       (if (not (or (equal math-expr-data calc-function-close)
 				    (eq exp-token 'end)))
 			   (throw 'syntax "Expected `)'"))
 		       (math-read-token)
@@ -1045,18 +1045,18 @@
 							  4))
 					      (cdr v))))))
 		   (while (and (memq calc-language '(c pascal maple))
-			       (equal exp-data "["))
+			       (equal math-expr-data "["))
 		     (math-read-token)
 		     (setq val (append (list 'calcFunc-subscr val)
 				       (math-read-expr-list)))
-		     (if (equal exp-data "]")
+		     (if (equal math-expr-data "]")
 			 (math-read-token)
 		       (throw 'syntax "Expected ']'")))
 		   val)))))
 	  ((eq exp-token 'dollar)
-	   (let ((abs (if (> exp-data 0) exp-data (- exp-data))))
+	   (let ((abs (if (> math-expr-data 0) math-expr-data (- math-expr-data))))
 	     (if (>= (length calc-dollar-values) abs)
-		 (let ((num exp-data))
+		 (let ((num math-expr-data))
 		   (math-read-token)
 		   (setq calc-dollar-used (max calc-dollar-used num))
 		   (math-check-complete (nth (1- abs) calc-dollar-values)))
@@ -1067,22 +1067,22 @@
 	   (or calc-hashes-used
 	       (throw 'syntax "#'s not allowed in this context"))
 	   (calc-extensions)
-	   (if (<= exp-data (length calc-arg-values))
-	       (let ((num exp-data))
+	   (if (<= math-expr-data (length calc-arg-values))
+	       (let ((num math-expr-data))
 		 (math-read-token)
 		 (setq calc-hashes-used (max calc-hashes-used num))
 		 (nth (1- num) calc-arg-values))
 	     (throw 'syntax "Too many # arguments")))
-	  ((equal exp-data "(")
+	  ((equal math-expr-data "(")
 	   (let* ((exp (let ((exp-keep-spaces nil))
 			 (math-read-token)
-			 (if (or (equal exp-data "\\dots")
-				 (equal exp-data "\\ldots"))
+			 (if (or (equal math-expr-data "\\dots")
+				 (equal math-expr-data "\\ldots"))
 			     '(neg (var inf var-inf))
 			   (math-read-expr-level 0)))))
 	     (let ((exp-keep-spaces nil))
 	       (cond
-		((equal exp-data ",")
+		((equal math-expr-data ",")
 		 (progn
 		   (math-read-token)
 		   (let ((exp2 (math-read-expr-level 0)))
@@ -1090,7 +1090,7 @@
 			   (if (and exp2 (Math-realp exp) (Math-realp exp2))
 			       (math-normalize (list 'cplx exp exp2))
 			     (list '+ exp (list '* exp2 '(var i var-i))))))))
-		((equal exp-data ";")
+		((equal math-expr-data ";")
 		 (progn
 		   (math-read-token)
 		   (let ((exp2 (math-read-expr-level 0)))
@@ -1103,22 +1103,22 @@
 					     (list '*
 						   (math-to-radians-2 exp2)
 						   '(var i var-i)))))))))
-		((or (equal exp-data "\\dots")
-		     (equal exp-data "\\ldots"))
+		((or (equal math-expr-data "\\dots")
+		     (equal math-expr-data "\\ldots"))
 		 (progn
 		   (math-read-token)
-		   (let ((exp2 (if (or (equal exp-data ")")
-				       (equal exp-data "]")
+		   (let ((exp2 (if (or (equal math-expr-data ")")
+				       (equal math-expr-data "]")
 				       (eq exp-token 'end))
 				   '(var inf var-inf)
 				 (math-read-expr-level 0))))
 		     (setq exp
 			   (list 'intv
-				 (if (equal exp-data ")") 0 1)
+				 (if (equal math-expr-data ")") 0 1)
 				 exp
 				 exp2)))))))
-	     (if (not (or (equal exp-data ")")
-			  (and (equal exp-data "]") (eq (car-safe exp) 'intv))
+	     (if (not (or (equal math-expr-data ")")
+			  (and (equal math-expr-data "]") (eq (car-safe exp) 'intv))
 			  (eq exp-token 'end)))
 		 (throw 'syntax "Expected `)'"))
 	     (math-read-token)
@@ -1126,13 +1126,13 @@
 	  ((eq exp-token 'string)
 	   (calc-extensions)
 	   (math-read-string))
-	  ((equal exp-data "[")
+	  ((equal math-expr-data "[")
 	   (calc-extensions)
 	   (math-read-brackets t "]"))
-	  ((equal exp-data "{")
+	  ((equal math-expr-data "{")
 	   (calc-extensions)
 	   (math-read-brackets nil "}"))
-	  ((equal exp-data "<")
+	  ((equal math-expr-data "<")
 	   (calc-extensions)
 	   (math-read-angle-brackets))
 	  (t (throw 'syntax "Expected a number")))))
