@@ -264,6 +264,8 @@ char *alloca ();
 typedef char boolean;
 #define false 0
 #define true 1
+
+static int re_match_2_internal ();
 
 /* These are the command codes that appear in compiled regular
    expressions.  Some opcodes are followed by argument bytes.  A
@@ -3153,8 +3155,10 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
           && !bufp->can_be_null)
 	return -1;
 
-      val = re_match_2 (bufp, string1, size1, string2, size2,
-	                startpos, regs, stop);
+      val = re_match_2_internal (bufp, string1, size1, string2, size2,
+				 startpos, regs, stop);
+      alloca (0);
+
       if (val >= 0)
 	return startpos;
         
@@ -3250,8 +3254,8 @@ static boolean alt_match_null_string_p (),
     FREE_VAR (reg_info_dummy);						\
   } while (0)
 #else /* not REGEX_MALLOC */
-/* Some MIPS systems (at least) want this to free alloca'd storage.  */
-#define FREE_VARIABLES() alloca (0)
+/* This used to do alloca (0), but now we do that in the caller.  */
+#define FREE_VARIABLES() /* Nothing */
 #endif /* not REGEX_MALLOC */
 #else
 #define FREE_VARIABLES() /* Do nothing!  */
@@ -3278,8 +3282,11 @@ re_match (bufp, string, size, pos, regs)
      const char *string;
      int size, pos;
      struct re_registers *regs;
- {
-  return re_match_2 (bufp, NULL, 0, string, size, pos, regs, size); 
+{
+  int result = re_match_2_internal (bufp, NULL, 0, string, size,
+				    pos, regs, size);
+  alloca (0);
+  return result;
 }
 #endif /* not emacs */
 
@@ -3299,6 +3306,23 @@ re_match (bufp, string, size, pos, regs)
 
 int
 re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
+     struct re_pattern_buffer *bufp;
+     const char *string1, *string2;
+     int size1, size2;
+     int pos;
+     struct re_registers *regs;
+     int stop;
+{
+  int result = re_match_2_internal (bufp, string1, size1, string2, size2,
+				    pos, regs, stop);
+  alloca (0);
+  return result;
+}
+
+/* This is a separate function so that we can force an alloca cleanup
+   afterwards.  */
+static int
+re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
      struct re_pattern_buffer *bufp;
      const char *string1, *string2;
      int size1, size2;
