@@ -1,3 +1,7 @@
+2001-04-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (.NOTPARALLEL, .NO_PARALLEL): Add ${MISC-DIC}.
+
 2001-03-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* Makefile.in (TIT-GB): Delete quail/PY.elc and quail/ZIRANMA.elc
