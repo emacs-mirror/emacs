@@ -1,5 +1,10 @@
 2001-10-19  Miles Bader  <miles@gnu.org>
 
+	* editfns.c (text_property_stickiness): Non-rear-non-stickiness
+	doesn't take precedence if the affected property's value is nil.
+
+	* editfns.c (Fencode_time): Escape a BOL paren in the doc-string.
+
 	* cmds.c (Fbeginning_of_line, Fend_of_line): Clarify interaction
 	with fields and suggest using `forward-line' to avoid them.
 	* editfns.c (Fline_beginning_position, Fline_end_position):
