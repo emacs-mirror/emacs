@@ -28,6 +28,10 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #endif
 
+#ifdef BOEHM_GC
+#include <gc.h>
+#endif
+
 /* This makes the fields of a Display accessible, in Xlib header files.  */
 
 #define XLIB_ILLEGAL_ACCESS
@@ -4523,10 +4527,9 @@ make_image (spec, hash)
      Lisp_Object spec;
      unsigned hash;
 {
-  struct image *img = (struct image *) xmalloc (sizeof *img);
+  struct image *img = (struct image *) XGC_CALLOC (1, sizeof *img);
 
   xassert (valid_image_p (spec));
-  bzero (img, sizeof *img);
   img->type = lookup_image_type (image_spec_value (spec, QCtype, NULL));
   xassert (img->type != NULL);
   img->spec = spec;
@@ -4561,7 +4564,7 @@ free_image (f, img)
 
       /* Free resources, then free IMG.  */
       img->type->free (f, img);
-      xfree (img);
+      XGC_FREE (img);
     }
 }
 
@@ -4821,25 +4824,24 @@ static void postprocess_image P_ ((struct frame *, struct image *));
 
 
 /* Return a new, initialized image cache that is allocated from the
-   heap.  Call free_image_cache to free an image cache.  */
+   heap.  Call free_image_cache to free an image in the cache.  */
 
 struct image_cache *
 make_image_cache ()
 {
-  struct image_cache *c = (struct image_cache *) xmalloc (sizeof *c);
+  struct image_cache *c = (struct image_cache *) XGC_CALLOC (1, sizeof *c);
   int size;
 
-  bzero (c, sizeof *c);
   c->size = 50;
-  c->images = (struct image **) xmalloc (c->size * sizeof *c->images);
+  c->images = (struct image **) XGC_MALLOC (c->size * sizeof *c->images);
   size = IMAGE_CACHE_BUCKETS_SIZE * sizeof *c->buckets;
-  c->buckets = (struct image **) xmalloc (size);
+  c->buckets = (struct image **) XGC_MALLOC_ATOMIC (size);
   bzero (c->buckets, size);
   return c;
 }
 
 
-/* Free image cache of frame F.  Be aware that X frames share images
+/* Free image cache of frame F.  Be aware that X frames share image
    caches.  */
 
 void
@@ -4856,9 +4858,9 @@ free_image_cache (f)
 
       for (i = 0; i < c->used; ++i)
 	free_image (f, c->images[i]);
-      xfree (c->images);
-      xfree (c->buckets);
-      xfree (c);
+      XGC_FREE (c->images);
+      XGC_FREE (c->buckets);
+      XGC_FREE (c);
       FRAME_X_IMAGE_CACHE (f) = NULL;
     }
 }
@@ -5163,8 +5165,8 @@ cache_image (f, img)
   if (i == c->used && c->used == c->size)
     {
       c->size *= 2;
-      c->images = (struct image **) xrealloc (c->images,
-					      c->size * sizeof *c->images);
+      c->images = (struct image **) XGC_REALLOC (c->images,
+						 c->size * sizeof *c->images);
     }
 
   /* Add IMG to c->images, and assign IMG an id.  */
