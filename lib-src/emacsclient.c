@@ -64,7 +64,7 @@ struct option longopts[] =
   { "no-wait",	no_argument,	   NULL, 'n' },
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
-  { "alternate-editor",required_argument, NULL, 'a' },
+  { "alternate-editor", required_argument, NULL, 'a' },
   { 0 }
 };
 
@@ -131,7 +131,7 @@ print_help_and_exit ()
 }
 
 /* Return a copy of NAME, inserting a &
-   before each &, each space, and any initial -.
+   before each &, each space, each newline, and any initial -.
    Change spaces to underscores, too, so that the
    return value never contains a space.  */
 
@@ -150,6 +150,12 @@ quote_file_name (name)
 	{
 	  *q++ = '&';
 	  *q++ = '_';
+	  p++;
+	}
+      else if (*p == '\n')
+	{
+	  *q++ = '&';
+	  *q++ = 'n';
 	  p++;
 	}
       else
@@ -190,7 +196,7 @@ fail (argc, argv)
 {
   if (alternate_editor)
     {
-      int i = optind -1 ;
+      int i = optind - 1;
       execvp (alternate_editor, argv + i);
       return;
     }
@@ -257,7 +263,7 @@ main (argc, argv)
 {
   char *system_name;
   int system_name_length;
-  int s, i;
+  int s, i, needlf = 0;
   FILE *out, *in;
   struct sockaddr_un server;
 #ifdef SERVER_HOME_DIR
@@ -444,15 +450,21 @@ main (argc, argv)
     return 0;
 
   printf ("Waiting for Emacs...");
+  needlf = 2;
   fflush (stdout);
 
-  /* Now, wait for an answer and print any messages.  On some systems,
-     the first line we read will actually be the output we just sent.
-     We can't predict whether that will happen, so if it does, we
-     detect it by recognizing `Client: ' at the beginning.  */
-
+  /* Now, wait for an answer and print any messages.  */
   while ((str = fgets (string, BUFSIZ, in)))
-    printf ("%s", str);
+    {
+      if (needlf == 2)
+	printf ("\n");
+      printf ("%s", str);
+      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+    }
+
+  if (needlf)
+    printf ("\n");
+  fflush (stdout);
 
   return 0;
 }
