@@ -126,18 +126,21 @@ directory name of the directory where the `.emacs' file was looked for.")
   (if command-line-processed
       (message "Back to top level.")
     (setq command-line-processed t)
-    ;; In presence of symlinks, switch to cleaner form of default directory.
     (if (not (eq system-type 'vax-vms))
-	(mapcar (function
-		 (lambda (var)
-		   (let ((value (getenv var)))
-		     (if (and value
-			      (< (length value) (length default-directory))
-			      (equal (file-attributes default-directory)
-				     (file-attributes value)))
-			 (setq default-directory
-			       (file-name-as-directory value))))))
-		'("PWD" "HOME")))
+	(progn
+	  ;; If the PWD environment variable isn't accurate, delete it.
+	  (let ((pwd (getenv "PWD")))
+	    (and (stringp pwd)
+		 ;; Use FOO/., so that if FOO is a symlink, file-attributes
+		 ;; describes the directory linked to, not FOO itself.
+		 (or (equal (file-attributes
+			     (concat (file-name-as-directory pwd) "."))
+			    (file-attributes
+			     (concat (file-name-as-directory default-directory)
+				     ".")))
+		     (setq process-environment
+			   (delete (concat "PWD=" pwd)
+				   process-environment)))))))
     (setq default-directory (abbreviate-file-name default-directory))
     (unwind-protect
 	(command-line)
