@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97, 98, 99, 2000
+;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu> then
@@ -296,6 +296,9 @@ the function `comint-truncate-buffer' is on `comint-output-filter-functions'."
 
 (defvar comint-input-ring-separator "\n"
   "Separator between commands in the history file.")
+
+(defvar comint-input-history-ignore "^#"
+  "Regexp for history entries that should be ignored when comint initializes.")
 
 (defcustom comint-process-echoes nil
   "*If non-nil, assume that the subprocess echoes any input.
@@ -832,7 +835,9 @@ failure to read the history file.
 This function is useful for major mode commands and mode hooks.
 
 The commands stored in the history file are separated by the
-`comint-input-ring-separator'.  The most recent command comes last.
+`comint-input-ring-separator', and entries that match
+`comint-input-history-ignore' are ignored.  The most recent command
+comes last.
 
 See also `comint-input-ignoredups' and `comint-write-input-ring'."
   (cond ((or (null comint-input-ring-file-name)
@@ -866,9 +871,10 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 		       (setq start (point-min)))
 		     (setq history (buffer-substring start end))
 		     (goto-char start)
-		     (if (or (null comint-input-ignoredups)
-			     (ring-empty-p ring)
-			     (not (string-equal (ring-ref ring 0) history)))
+		     (if (and (not (string-match comint-input-history-ignore history))
+			      (or (null comint-input-ignoredups)
+				  (ring-empty-p ring)
+				  (not (string-equal (ring-ref ring 0) history))))
 			 (progn
 			   (ring-insert-at-beginning ring history)
 			   (setq count (1+ count)))))))
