@@ -26,7 +26,7 @@
 ;;; Code:
 
 (defun newline (&optional arg)
-  "Insert a newline and move to left margin of the new line.
+  "Insert a newline, and move to left margin of the new line if it's blank.
 The newline is marked with the text-property `hard'.
 With arg, insert that many newlines.
 In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
@@ -38,7 +38,10 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
   (let ((flag (and (not (bobp)) 
 		   (bolp)
 		   (< (or (previous-property-change (point)) -2) 
-		      (- (point) 2)))))
+		      (- (point) 2))))
+	(was-page-start (and (bolp)
+			     (looking-at page-delimiter)))
+	(beforepos (point)))
     (if flag (backward-char 1))
     ;; Call self-insert so that auto-fill, abbrev expansion etc. happens.
     ;; Set last-command-char to tell self-insert what to insert.
@@ -55,26 +58,42 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
 	  (if (and (listp sticky) (not (memq 'hard sticky)))
 	      (put-text-property from (point) 'rear-nonsticky
 				 (cons 'hard sticky)))))
-    (if flag (forward-char 1)))
-  (move-to-left-margin nil t)
+    ;; If the newline leaves the previous line blank,
+    ;; and we have a left margin, delete that from the blank line.
+    (or flag
+	(save-excursion
+	  (goto-char beforepos)
+	  (beginning-of-line)
+	  (and (looking-at "[ \t]$")
+	       (> (current-left-margin) 0)
+	       (delete-region (point) (progn (end-of-line) (point))))))
+    (if flag (forward-char 1))
+    ;; Indent the line after the newline, except in one case:
+    ;; when we added the newline at the beginning of a line
+    ;; which starts a page.
+    (or was-page-start
+	(move-to-left-margin nil t)))
   nil)
 
 (defun open-line (arg)
   "Insert a newline and leave point before it.
 If there is a fill prefix and/or a left-margin, insert them on the new line
-if the line would have been empty.
+if the line would have been blank.
 With arg N, insert N newlines."
   (interactive "*p")
   (let* ((do-fill-prefix (and fill-prefix (bolp)))
 	 (do-left-margin (and (bolp) (> (current-left-margin) 0)))
 	 (loc (point)))
+    (newline arg)
+    (goto-char loc)
     (while (> arg 0)
-      (if do-left-margin (indent-to (current-left-margin)))
-      (if do-fill-prefix (insert-and-inherit fill-prefix))
-      (newline 1)
+      (cond ((bolp)
+	     (if do-left-margin (indent-to (current-left-margin)))
+	     (if do-fill-prefix (insert-and-inherit fill-prefix))))
+      (forward-line 1)
       (setq arg (1- arg)))
-    (goto-char loc))
-  (end-of-line))
+    (goto-char loc)
+    (end-of-line)))
 
 (defun split-line ()
   "Split current line, moving portion beyond point vertically down."
