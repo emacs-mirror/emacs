@@ -5,7 +5,7 @@
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 17 1996
 ;; Keywords: processes
-;; Time-stamp: <1999-02-16 20:48:21 pbreton>
+;; Time-stamp: <1999-02-21 01:27:24 pbreton>
 
 ;; This file is part of GNU Emacs.
 
@@ -66,9 +66,9 @@
 ;;
 ;; (add-hook 'shell-mode-hook
 ;;   (function (lambda ()
-;; 	      (setq comint-output-filter-functions
+;; 	      (setq comint-preoutput-filter-functions
 ;; 		    (append (list 'dirtrack)
-;; 			    comint-output-filter-functions)))))
+;; 			    comint-preoutput-filter-functions)))))
 ;;
 ;; You may wish to turn ordinary shell tracking off by calling
 ;; `shell-dirtrack-toggle' or setting `shell-dirtrackp'.
@@ -103,16 +103,18 @@
 ;;
 ;; A final note:
 ;; 
-;;   I run LOTS of shell buffers through Emacs, sometimes as different users (eg, when
-;;   logged in as myself, I'll run a root shell in the same Emacs). If you do this, and
-;;   the shell prompt contains a ~, Emacs will interpret this relative to the user which
-;;   owns the Emacs process, not the user who owns the shell buffer. This may cause
-;;   dirtrack to behave strangely (typically it reports that it is unable to cd to a directory
+;;   I run LOTS of shell buffers through Emacs, sometimes as different users
+;;   (eg, when logged in as myself, I'll run a root shell in the same Emacs).
+;;   If you do this, and the shell prompt contains a ~, Emacs will interpret
+;;   this relative to the user which owns the Emacs process, not the user
+;;   who owns the shell buffer. This may cause dirtrack to behave strangely
+;;   (typically it reports that it is unable to cd to a directory
 ;;   with a ~ in it).
 ;;
-;;   The same behavior can occur if you use dirtrack with remote filesystems (using telnet,
-;;   rlogin, etc) as Emacs will be checking the local filesystem, not the remote one.
-;;   This problem is not specific to dirtrack, but also affects file completion, etc.
+;;   The same behavior can occur if you use dirtrack with remote filesystems
+;;   (using telnet, rlogin, etc) as Emacs will be checking the local
+;;   filesystem, not the remote one. This problem is not specific to dirtrack,
+;;   but also affects file completion, etc.
 
 ;;; Code:
 
@@ -256,6 +258,17 @@ forward ones."
 
 ;;;###autoload
 (defun dirtrack (input)
+  "Determine the current directory by scanning the process output for a prompt.
+The prompt to look for is the first item in `dirtrack-list'.
+
+You can toggle directory tracking by using the function `dirtrack-toggle'.
+
+If directory tracking does not seem to be working, you can use the
+function `dirtrack-debug-toggle' to turn on debugging output.
+
+You can enable directory tracking by adding this function to 
+`comint-output-filter-functions'.
+"
   (if (null dirtrackp)
       nil
     (let (prompt-path
@@ -311,7 +324,8 @@ forward ones."
 			 (dirtrack-debug-message 
 			  (format "Changing directory to %s" prompt-path)))
 		  (error "Directory %s does not exist" prompt-path)))
-	      ))))))
+	      )))))
+  input)
 
 (provide 'dirtrack)
 
