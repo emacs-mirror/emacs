@@ -1537,7 +1537,7 @@ then the value includes only maps for prefixes that start with PREFIX.")
 	      Lisp_Object indices[3];
 
 	      map_char_table (accessible_keymaps_char_table, Qnil,
-			      elt, Fcons (Fcons (maps, is_metized),
+			      elt, Fcons (Fcons (maps, make_number (is_metized)),
 					  Fcons (tail, thisseq)),
 			      0, indices);
 	    }
@@ -1669,14 +1669,15 @@ accessible_keymaps_char_table (args, index, cmd)
      Lisp_Object args, index, cmd;
 {
   Lisp_Object tem;
-  Lisp_Object maps, tail, thisseq, is_metized;
+  Lisp_Object maps, tail, thisseq;
+  int is_metized;
 
   cmd = get_keyelt (cmd, 0);
   if (NILP (cmd))
     return;
 
   maps = XCAR (XCAR (args));
-  is_metized = XCDR (XCAR (args));
+  is_metized = XINT (XCDR (XCAR (args)));
   tail = XCAR (XCDR (args));
   thisseq = XCDR (XCDR (args));
 
