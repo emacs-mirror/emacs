@@ -52,8 +52,6 @@
 #define BROKEN_SELECT
 
 #define HAVE_DUP2
-#define HAVE_GETWD
-#define HAVE_GETTIMEOFDAY
 
 #define HAVE_PTYS
 #define HAVE_SOCKETS
