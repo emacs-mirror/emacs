@@ -334,10 +334,14 @@ Consults `/etc/passwd' and a directory service if one is set up via
 	(insert-file-contents "/etc/passwd" nil nil nil t)
 	(setq mail-local-names)
 	(while (not (eobp))
-	  (setq mail-local-names
-		`((,(buffer-substring (point)
-				      (1- (search-forward ":"))))
-		  ,@mail-local-names))
+	  ;;Recognize lines like
+	  ;;  nobody:*:65534:65534::/:
+	  ;;  +demo::::::/bin/csh
+	  ;;  +ethanb
+	  ;;while skipping
+	  ;;  +@SOFTWARE
+	  (if (looking-at "\\+?\\([^:@\n+]+\\)")
+	      (add-to-list 'mail-local-names (list (match-string 1))))
 	  (beginning-of-line 2))
 	(kill-buffer (current-buffer))))
   (if (or (eq mail-names t)
