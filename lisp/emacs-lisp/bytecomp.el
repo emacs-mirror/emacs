@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.47 $")
+(defconst byte-compile-version "$Revision: 2.48 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1406,6 +1406,7 @@ With argument, insert value in current buffer after the form."
      (save-excursion
        (setq outbuffer
 	     (set-buffer (get-buffer-create " *Compiler Output*")))
+       (set-buffer-multibyte t)
        (erase-buffer)
        ;;	 (emacs-lisp-mode)
        (setq case-fold-search nil)
