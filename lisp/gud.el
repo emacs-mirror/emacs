@@ -171,6 +171,74 @@ we're in the GUD buffer)."
 ;; something else.  It would be good if it also copied the Gud menubar entry.
 
 ;; ======================================================================
+;; speedbar support functions and variables.
+(defvar gud-last-speedbar-buffer nil
+  "The last GUD buffer used.")
+
+(defvar gud-last-speedbar-stackframe nil
+  "Description of the currently displayed GUD stack.
+t means that there is no stack, and we are in display-file mode.")
+
+(defvar gud-speedbar-menu-items
+  ;; Note to self.  Add expand, and turn off items when not available.
+  '(["Jump to stack frame" speedbar-edit-line t])
+  "Additional menu items to add the the speedbar frame.")
+
+(defun gud-speedbar-buttons (buffer)
+  "Create a speedbar display based on the current state of GUD.
+If the GUD BUFFER is not running a supported debugger, then turn
+off the specialized speedbar mode."
+  (if (and (save-excursion (goto-char (point-min))
+			   (looking-at "Current Stack"))
+	   (equal gud-last-last-frame gud-last-speedbar-stackframe))
+      nil
+    (setq gud-last-speedbar-buffer buffer)
+    (let* ((ff (save-excursion (set-buffer buffer) gud-find-file))
+	   ;;(lf (save-excursion (set-buffer buffer) gud-last-last-frame))
+	   (frames
+	    (cond ((eq ff 'gud-gdb-find-file)
+		   (gud-gdb-get-stackframe buffer)
+		   )
+		  ;; Add more debuggers here!
+		  (t
+		   (speedbar-remove-localized-speedbar-support buffer)
+		   nil))))
+      (erase-buffer)
+      (if (not frames)
+	  (insert "No Stack frames\n")
+	(insert "Current Stack:\n"))
+      (while frames
+	(insert (nth 1 (car frames)) ":\n")
+	(if (= (length (car frames)) 2)
+	    (progn
+;	      (speedbar-insert-button "[?]"
+;				      'speedbar-button-face
+;				      nil nil nil t)
+	      (speedbar-insert-button (car (car frames))
+				      'speedbar-directory-face
+				      nil nil nil t))
+;	  (speedbar-insert-button "[+]"
+;				  'speedbar-button-face
+;				  'speedbar-highlight-face
+;				  'gud-gdb-get-scope-data
+;				  (car frames) t)
+	  (speedbar-insert-button (car (car frames))
+				  'speedbar-file-face
+				  'speedbar-highlight-face
+				  (cond ((eq ff 'gud-gdb-find-file)
+					 'gud-gdb-goto-stackframe)
+					(t (error "Should never be here.")))
+				  (car frames) t))
+	(setq frames (cdr frames)))
+;      (let ((selected-frame
+;	     (cond ((eq ff 'gud-gdb-find-file)
+;		    (gud-gdb-selected-frame-info buffer))
+;		   (t (error "Should never be here."))))))
+      )
+    (setq gud-last-speedbar-stackframe gud-last-last-frame)))
+
+
+;; ======================================================================
 ;; gdb functions
 
 ;;; History of argument lists passed to gdb.
@@ -378,6 +446,113 @@ available with older versions of GDB."
     (setq gud-gdb-complete-list
 	  (cons (substring string gud-gdb-complete-break (match-beginning 0))
 		gud-gdb-complete-list))
+    (setq string (substring string (match-end 0))))
+  (if (string-match comint-prompt-regexp string)
+      (progn
+	(setq gud-gdb-complete-in-progress nil)
+	string)
+    (progn
+      (setq gud-gdb-complete-string string)
+      "")))
+
+;; gdb speedbar functions
+
+(defun gud-gdb-goto-stackframe (text token indent)
+  "Goto the stackframe described by TEXT, TOKEN, and INDENT."
+  (speedbar-with-attached-buffer
+   (gud-basic-call (concat "frame " (nth 1 token)))
+   (sit-for 1)))
+
+(defvar gud-gdb-fetched-stack-frame nil
+  "Stack frames we are fetching from GDB.")
+
+(defvar gud-gdb-fetched-stack-frame-list nil
+  "List of stack frames we are fetching from GDB.")
+
+;(defun gud-gdb-get-scope-data (text token indent)
+;  ;; checkdoc-params: (indent)
+;  "Fetch data associated with a stack frame, and expand/contract it.
+;Data to do this is retrieved from TEXT and TOKEN."
+;  (let ((args nil) (scope nil))
+;    (gud-gdb-run-command-fetch-lines "info args")
+;
+;    (gud-gdb-run-command-fetch-lines "info local")
+;
+;    ))
+
+(defun gud-gdb-get-stackframe (buffer)
+  "Extract the current stack frame out of the GUD GDB BUFFER."
+  (let ((newlst nil)
+	(gud-gdb-fetched-stack-frame-list nil))
+    (gud-gdb-run-command-fetch-lines "backtrace" buffer)
+    (if (string-match "No stack" (car gud-gdb-fetched-stack-frame-list))
+	;; Go into some other mode???
+	nil
+      (while gud-gdb-fetched-stack-frame-list
+	(let ((e (car gud-gdb-fetched-stack-frame-list))
+	      (name nil) (num nil))
+	  (if (not (or
+		    (string-match "^#\\([0-9]+\\) +[0-9a-fx]+ in \\([0-9a-zA-Z_]+\\) (" e)
+		    (string-match "^#\\([0-9]+\\) +\\([0-9a-zA-Z_]+\\) (" e)))
+	      (if (not (string-match
+			"at \\([-0-9a-zA-Z_.]+\\):\\([0-9]+\\)$" e))
+		  nil
+		(setcar newlst
+			(list (nth 0 (car newlst))
+			      (nth 1 (car newlst))
+			      (match-string 1 e)
+			      (match-string 2 e))))
+	    (setq num (match-string 1 e)
+		  name (match-string 2 e))
+	    (setq newlst
+		  (cons
+		   (if (string-match
+			"at \\([-0-9a-zA-Z_.]+\\):\\([0-9]+\\)$" e)
+		       (list name num (match-string 1 e)
+			     (match-string 2 e))
+		     (list name num))
+		   newlst))))
+	(setq gud-gdb-fetched-stack-frame-list
+	      (cdr gud-gdb-fetched-stack-frame-list)))
+      (nreverse newlst))))
+
+;(defun gud-gdb-selected-frame-info (buffer)
+;  "Learn GDB information for the currently selected stack frame in BUFFER."
+;  )
+
+(defun gud-gdb-run-command-fetch-lines (command buffer)
+  "Run COMMAND, and return when `gud-gdb-fetched-stack-frame-list' is full.
+BUFFER is the GUD buffer in which to run the command."
+  (save-excursion
+    (set-buffer buffer)
+    (if (save-excursion
+	  (goto-char (point-max))
+	  (beginning-of-line)
+	  (not (looking-at comint-prompt-regexp)))
+	nil
+      ;; Much of this copied from GDB complete, but I'm grabbing the stack
+      ;; frame instead.
+      (let ((gud-marker-filter 'gud-gdb-speedbar-stack-filter))
+	;; Issue the command to GDB.
+	(gud-basic-call command)
+	(setq gud-gdb-complete-in-progress t ;; use this flag for our purposes.
+	      gud-gdb-complete-string nil
+	      gud-gdb-complete-list nil)
+	;; Slurp the output.
+	(while gud-gdb-complete-in-progress
+	  (accept-process-output (get-buffer-process gud-comint-buffer)))
+	(setq gud-gdb-fetched-stack-frame nil
+	      gud-gdb-fetched-stack-frame-list
+	      (nreverse gud-gdb-fetched-stack-frame-list))))))
+  
+(defun gud-gdb-speedbar-stack-filter (string)
+  ;; checkdoc-params: (string)
+  "Filter used to read in the current GDB stack."
+  (setq string (concat gud-gdb-fetched-stack-frame string))
+  (while (string-match "\n" string)
+    (setq gud-gdb-fetched-stack-frame-list
+	  (cons (substring string 0 (match-beginning 0))
+		gud-gdb-fetched-stack-frame-list))
     (setq string (substring string (match-end 0))))
   (if (string-match comint-prompt-regexp string)
       (progn
