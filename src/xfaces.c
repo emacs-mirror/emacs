@@ -392,18 +392,18 @@ DEFUN ("pixmap-spec-p", Fpixmap_spec_p, Spixmap_spec_p, 1, 1, 0,
 
   return ((STRINGP (arg)
 	   || (CONSP (arg)
-	       && CONSP (Fcdr (arg))
-	       && CONSP (Fcdr (Fcdr (arg)))
-	       && NILP (Fcdr (Fcdr (Fcdr (arg))))
-	       && INTEGERP (width = Fcar (arg))
-	       && INTEGERP (height = Fcar (Fcdr (arg)))
-	       && STRINGP (Fcar (Fcdr (Fcdr (arg))))
+	       && CONSP (XCONS (arg)->cdr)
+	       && CONSP (XCONS (XCONS (arg)->cdr)->cdr)
+	       && NILP (XCONS (XCONS (XCONS (arg)->cdr)->cdr)->cdr)
+	       && (width = XCONS (arg)->car, INTEGERP (width))
+	       && (height = XCONS (XCONS (arg)->cdr)->car, INTEGERP (height))
+	       && STRINGP (XCONS (XCONS (XCONS (arg)->cdr)->cdr)->car)
 	       && XINT (width) > 0
 	       && XINT (height) > 0
 	       /* The string must have enough bits for width * height.  */
-	       && (XINT (width) * XINT (height)
-		   <= (XSTRING (Fcar (Fcdr (Fcdr (arg))))->size
-		       * (INTBITS / sizeof (int))))))
+	       && ((XSTRING (XCONS (XCONS (XCONS (arg)->cdr)->cdr)->car)->size
+		    * (INTBITS / sizeof (int)))
+		   >= XFASTINT (width) * XFASTINT (height))))
 	  ? Qt : Qnil);
 }
 
