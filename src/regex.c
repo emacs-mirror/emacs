@@ -1251,7 +1251,8 @@ typedef union
 
 
 /* Registers are set to a sentinel when they haven't yet matched.  */
-#define REG_UNSET_VALUE ((char *) -1)
+static char reg_unset_dummy;
+#define REG_UNSET_VALUE (&reg_unset_dummy)
 #define REG_UNSET(e) ((e) == REG_UNSET_VALUE)
 
 
