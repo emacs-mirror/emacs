@@ -280,7 +280,7 @@ or if the window is the only window of its frame."
                 (window-height (window-height)))
 	    ;; Don't try to redisplay with the cursor at the end
 	    ;; on its own line--that would force a scroll and spoil things.
-	    (when (and (eobp) (bolp))
+	    (when (and (eobp) (bolp) (not (bobp)))
 	      (forward-char -1))
             (when (> window-height (1+ text-height))
               (shrink-window
