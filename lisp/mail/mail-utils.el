@@ -174,7 +174,8 @@ If third arg ALL is non-nil, concatenate all such fields with commas between."
 		  (forward-char -1))
 		(setq value (concat value
 				    (if (string= value "") "" ", ")
-				    (buffer-substring opoint (point))))))
+				    (buffer-substring-no-properties
+				     opoint (point))))))
 	    (and (not (string= value "")) value))
 	(if (re-search-forward name nil t)
 	    (progn
@@ -186,7 +187,7 @@ If third arg ALL is non-nil, concatenate all such fields with commas between."
 		(forward-char -1)
 		(while (member (preceding-char) '(?  ?\t))
 		  (forward-char -1))
-		(buffer-substring opoint (point)))))))))
+		(buffer-substring-no-properties opoint (point)))))))))
 
 ;; Parse a list of tokens separated by commas.
 ;; It runs from point to the end of the visible part of the buffer.
