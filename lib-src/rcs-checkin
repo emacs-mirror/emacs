@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /bin/sh
 
 # This script accepts any number of file arguments and checks them into RCS.
 #
