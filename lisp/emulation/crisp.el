@@ -270,19 +270,13 @@ If ARG, insert results at point."
       (message foo))))
 
 (defun crisp-mark-line (arg)
-  "Put mark at the end of line.  Arg works as in `end-of-line'."
+  "Set mark at the end of the line.  Arg works as in `end-of-line'."
   (interactive "p")
-  (save-excursion
-    (if (and (eq last-command 'crisp-mark-line) (mark))
-	;; Extend the previous state in the same direction:
-	(progn
-	  (if (< (mark) (point)) (setq arg (- arg)))
-	  (goto-char (mark))
-	  (end-of-line arg)
-	  ;; Do not mess with the mark stack, but merely adjust the previous state:
-	  (set-mark (point)))
+  (let (newmark)
+    (save-excursion
       (end-of-line arg)
-      (push-mark (point) nil t))))
+      (setq newmark (point)))
+    (push-mark newmark nil t)))
 
 (defun crisp-kill-line (arg)
   "Mark and kill line(s).
