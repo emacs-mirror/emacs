@@ -20,9 +20,12 @@ Boston, MA 02111-1307, USA.  */
 
 /* Added by Kevin Gallo */
 
-#include <signal.h>
 #include <config.h>
+
+#include <signal.h>
 #include <stdio.h>
+#include <limits.h>
+#include <errno.h>
 
 #include "lisp.h"
 #include "w32term.h"
@@ -86,6 +89,9 @@ Lisp_Object Vx_sensitive_text_pointer_shape;
 
 /* Color of chars displayed in cursor box.  */
 Lisp_Object Vx_cursor_fore_pixel;
+
+/* Nonzero if using Windows.  */
+static int w32_in_use;
 
 /* Search path for bitmap files.  */
 Lisp_Object Vx_bitmap_file_path;
@@ -175,7 +181,7 @@ static unsigned mouse_move_timer;
 
 /* The below are defined in frame.c.  */
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
-extern Lisp_Object Qunsplittable, Qmenu_bar_lines;
+extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
 
 extern Lisp_Object Vwindow_system_version;
 
@@ -185,9 +191,24 @@ extern int last_mouse_scroll_bar_pos;
 /* From w32term.c. */
 extern Lisp_Object Vw32_num_mouse_buttons;
 
-Time last_mouse_movement_time;
-
 
+/* Error if we are not connected to MS-Windows.  */
+void
+check_w32 ()
+{
+  if (! w32_in_use)
+    error ("MS-Windows not in use or not initialized");
+}
+
+/* Nonzero if we can use mouse menus.
+   You should not call this unless HAVE_MENUS is defined.  */
+  
+int
+have_menus_p ()
+{
+  return w32_in_use;
+}
+
 /* Extract a frame as a FRAME_PTR, defaulting to the selected frame
    and checking validity for W32.  */
 
@@ -537,29 +558,31 @@ void x_set_vertical_scroll_bars ();
 void x_set_visibility ();
 void x_set_menu_bar_lines ();
 void x_set_scroll_bar_width ();
+void x_set_title ();
 void x_set_unsplittable ();
 
 static struct x_frame_parm_table x_frame_parms[] =
 {
-  "foreground-color", x_set_foreground_color,
-  "background-color", x_set_background_color,
-  "mouse-color", x_set_mouse_color,
-  "cursor-color", x_set_cursor_color,
-  "border-color", x_set_border_color,
-  "cursor-type", x_set_cursor_type,
-  "icon-type", x_set_icon_type,
-  "icon-name", x_set_icon_name,
-  "font", x_set_font,
-  "border-width", x_set_border_width,
-  "internal-border-width", x_set_internal_border_width,
-  "name", x_explicitly_set_name,
   "auto-raise", x_set_autoraise,
   "auto-lower", x_set_autolower,
+  "background-color", x_set_background_color,
+  "border-color", x_set_border_color,
+  "border-width", x_set_border_width,
+  "cursor-color", x_set_cursor_color,
+  "cursor-type", x_set_cursor_type,
+  "font", x_set_font,
+  "foreground-color", x_set_foreground_color,
+  "icon-name", x_set_icon_name,
+  "icon-type", x_set_icon_type,
+  "internal-border-width", x_set_internal_border_width,
+  "menu-bar-lines", x_set_menu_bar_lines,
+  "mouse-color", x_set_mouse_color,
+  "name", x_explicitly_set_name,
+  "scroll-bar-width", x_set_scroll_bar_width,
+  "title", x_set_title,
+  "unsplittable", x_set_unsplittable,
   "vertical-scroll-bars", x_set_vertical_scroll_bars,
   "visibility", x_set_visibility,
-  "menu-bar-lines", x_set_menu_bar_lines,
-  "scroll-bar-width", x_set_scroll_bar_width,
-  "unsplittable", x_set_unsplittable,
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -1244,6 +1267,163 @@ x_to_w32_color (colorname)
   register Lisp_Object tail, ret = Qnil;
   
   BLOCK_INPUT;
+
+  if (colorname[0] == '#')
+    {
+      /* Could be an old-style RGB Device specification.  */
+      char *color;
+      int size;
+      color = colorname + 1;
+      
+      size = strlen(color);
+      if (size == 3 || size == 6 || size == 9 || size == 12)
+	{
+	  UINT colorval;
+	  int i, pos;
+	  pos = 0;
+	  size /= 3;
+	  colorval = 0;
+	  
+	  for (i = 0; i < 3; i++)
+	    {
+	      char *end;
+	      char t;
+	      unsigned long value;
+
+	      /* The check for 'x' in the following conditional takes into
+		 account the fact that strtol allows a "0x" in front of
+		 our numbers, and we don't.  */
+	      if (!isxdigit(color[0]) || color[1] == 'x')
+		break;
+	      t = color[size];
+	      color[size] = '\0';
+	      value = strtoul(color, &end, 16);
+	      color[size] = t;
+	      if (errno == ERANGE || end - color != size)
+		break;
+	      switch (size)
+		{
+		case 1:
+		  value = value * 0x10;
+		  break;
+		case 2:
+		  break;
+		case 3:
+		  value /= 0x10;
+		  break;
+		case 4:
+		  value /= 0x100;
+		  break;
+		}
+	      colorval |= (value << pos);
+	      pos += 0x8;
+	      if (i == 2)
+		{
+		  UNBLOCK_INPUT;
+		  return (colorval);
+		}
+	      color = end;
+	    }
+	}
+    }
+  else if (strnicmp(colorname, "rgb:", 4) == 0)
+    {
+      char *color;
+      UINT colorval;
+      int i, pos;
+      pos = 0;
+
+      colorval = 0;
+      color = colorname + 4;
+      for (i = 0; i < 3; i++)
+	{
+	  char *end;
+	  unsigned long value;
+	  
+	  /* The check for 'x' in the following conditional takes into
+	     account the fact that strtol allows a "0x" in front of
+	     our numbers, and we don't.  */
+	  if (!isxdigit(color[0]) || color[1] == 'x')
+	    break;
+	  value = strtoul(color, &end, 16);
+	  if (errno == ERANGE)
+	    break;
+	  switch (end - color)
+	    {
+	    case 1:
+	      value = value * 0x10 + value;
+	      break;
+	    case 2:
+	      break;
+	    case 3:
+	      value /= 0x10;
+	      break;
+	    case 4:
+	      value /= 0x100;
+	      break;
+	    default:
+	      value = ULONG_MAX;
+	    }
+	  if (value == ULONG_MAX)
+	    break;
+	  colorval |= (value << pos);
+	  pos += 0x8;
+	  if (i == 2)
+	    {
+	      if (*end != '\0')
+		break;
+	      UNBLOCK_INPUT;
+	      return (colorval);
+	    }
+	  if (*end != '/')
+	    break;
+	  color = end + 1;
+	}
+    }
+  else if (strnicmp(colorname, "rgbi:", 5) == 0)
+    {
+      /* This is an RGB Intensity specification.  */
+      char *color;
+      UINT colorval;
+      int i, pos;
+      pos = 0;
+
+      colorval = 0;
+      color = colorname + 5;
+      for (i = 0; i < 3; i++)
+	{
+	  char *end;
+	  double value;
+	  UINT val;
+
+	  value = strtod(color, &end);
+	  if (errno == ERANGE)
+	    break;
+	  if (value < 0.0 || value > 1.0)
+	    break;
+	  val = (UINT)(0x100 * value);
+	  /* We used 0x100 instead of 0xFF to give an continuous
+             range between 0.0 and 1.0 inclusive.  The next statement
+             fixes the 1.0 case.  */
+	  if (val == 0x100)
+	    val = 0xFF;
+	  colorval |= (val << pos);
+	  pos += 0x8;
+	  if (i == 2)
+	    {
+	      if (*end != '\0')
+		break;
+	      UNBLOCK_INPUT;
+	      return (colorval);
+	    }
+	  if (*end != '/')
+	    break;
+	  color = end + 1;
+	}
+    }
+  /* I am not going to attempt to handle any of the CIE color schemes
+     or TekHVC, since I don't know the algorithms for conversion to
+     RGB.  */
   
   for (tail = Vw32_color_map; !NILP (tail); tail = Fcdr (tail))
     {
@@ -1827,8 +2007,10 @@ x_set_icon_name (f, arg, oldval)
   BLOCK_INPUT;
 
   result = x_text_icon (f,
-			 (char *) XSTRING ((!NILP (f->icon_name)
+			(char *) XSTRING ((!NILP (f->icon_name)
 					   ? f->icon_name
+					   : !NILP (f->title)
+					   ? f->title
 					   : f->name))->data);
 
   if (result)
@@ -1965,6 +2147,11 @@ x_set_menu_bar_lines (f, value, oldval)
       if (FRAME_EXTERNAL_MENU_BAR (f) == 1)
 	free_frame_menubar (f);
       FRAME_EXTERNAL_MENU_BAR (f) = 0;
+
+      /* Adjust the frame size so that the client (text) dimensions
+	 remain the same.  This depends on FRAME_EXTERNAL_MENU_BAR being
+	 set correctly.  */
+      x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
     }
 }
 
@@ -2016,14 +2203,19 @@ x_set_name (f, name, explicit)
   if (! NILP (Fstring_equal (name, f->name)))
     return;
 
+  f->name = name;
+
+  /* For setting the frame title, the title parameter should override
+     the name parameter.  */
+  if (! NILP (f->title))
+    name = f->title;
+
   if (FRAME_W32_WINDOW (f))
     {
       BLOCK_INPUT;
       SetWindowText(FRAME_W32_WINDOW (f), XSTRING (name)->data);
       UNBLOCK_INPUT;
     }
-
-  f->name = name;
 }
 
 /* This function should be called when the user's lisp code has
@@ -2047,7 +2239,42 @@ x_implicitly_set_name (f, arg, oldval)
 {
   x_set_name (f, arg, 0);
 }
+
+/* Change the title of frame F to NAME.
+   If NAME is nil, use the frame name as the title.
 
+   If EXPLICIT is non-zero, that indicates that lisp code is setting the
+       name; if NAME is a string, set F's name to NAME and set
+       F->explicit_name; if NAME is Qnil, then clear F->explicit_name.
+
+   If EXPLICIT is zero, that indicates that Emacs redisplay code is
+       suggesting a new name, which lisp code should override; if
+       F->explicit_name is set, ignore the new name; otherwise, set it.  */
+
+void
+x_set_title (f, name)
+     struct frame *f;
+     Lisp_Object name;
+{
+  /* Don't change the title if it's already NAME.  */
+  if (EQ (name, f->title))
+    return;
+
+  update_mode_lines = 1;
+
+  f->title = name;
+
+  if (NILP (name))
+    name = f->name;
+
+  if (FRAME_W32_WINDOW (f))
+    {
+      BLOCK_INPUT;
+      SetWindowText(FRAME_W32_WINDOW (f), XSTRING (name)->data);
+      UNBLOCK_INPUT;
+    }
+}
+
 void
 x_set_autoraise (f, arg, oldval)
      struct frame *f;
@@ -2622,6 +2849,14 @@ w32_createwindow (f)
      struct frame *f;
 {
   HWND hwnd;
+  RECT rect;
+
+  rect.left = rect.top = 0;
+  rect.right = PIXEL_WIDTH (f);
+  rect.bottom = PIXEL_HEIGHT (f);
+      
+  AdjustWindowRect (&rect, f->output_data.w32->dwStyle,
+		    FRAME_EXTERNAL_MENU_BAR (f));
   
   /* Do first time app init */
   
@@ -2630,22 +2865,25 @@ w32_createwindow (f)
       w32_init_class (hinst);
     }
   
-  FRAME_W32_WINDOW (f) = hwnd = CreateWindow (EMACS_CLASS,
-						f->namebuf,
-						f->output_data.w32->dwStyle | WS_CLIPCHILDREN,
-						f->output_data.w32->left_pos,
-						f->output_data.w32->top_pos,
-						PIXEL_WIDTH (f),
-						PIXEL_HEIGHT (f),
-						NULL,
-						NULL,
-						hinst,
-						NULL);
-  
+  FRAME_W32_WINDOW (f) = hwnd
+    = CreateWindow (EMACS_CLASS,
+		    f->namebuf,
+		    f->output_data.w32->dwStyle | WS_CLIPCHILDREN,
+		    f->output_data.w32->left_pos,
+		    f->output_data.w32->top_pos,
+		    rect.right - rect.left,
+		    rect.bottom - rect.top,
+		    NULL,
+		    NULL,
+		    hinst,
+		    NULL);
+
   if (hwnd)
     {
-      SetWindowLong (hwnd, WND_X_UNITS_INDEX, FONT_WIDTH (f->output_data.w32->font));
-      SetWindowLong (hwnd, WND_Y_UNITS_INDEX, f->output_data.w32->line_height);
+      SetWindowLong (hwnd, WND_FONTWIDTH_INDEX, FONT_WIDTH (f->output_data.w32->font));
+      SetWindowLong (hwnd, WND_LINEHEIGHT_INDEX, f->output_data.w32->line_height);
+      SetWindowLong (hwnd, WND_BORDER_INDEX, f->output_data.w32->internal_border_width);
+      SetWindowLong (hwnd, WND_SCROLLBAR_INDEX, f->output_data.w32->vertical_scroll_bar_extra);
       SetWindowLong (hwnd, WND_BACKGROUND_INDEX, f->output_data.w32->background_pixel);
 
       /* Do this to discard the default setting specified by our parent. */
@@ -2879,17 +3117,10 @@ map_keypad_keys (unsigned int wparam, unsigned int lparam)
 
 /* Main message dispatch loop. */
 
-DWORD 
-windows_msg_worker (dw)
-     DWORD dw;
+static void
+w32_msg_pump (deferred_msg * msg_buf)
 {
   MSG msg;
-  
-  /* Ensure our message queue is created */
-  
-  PeekMessage (&msg, NULL, 0, 0, PM_NOREMOVE);
-  
-  PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0);
   
   while (GetMessage (&msg, NULL, 0, 0))
     {
@@ -2899,26 +3130,124 @@ windows_msg_worker (dw)
 	    {
 	    case WM_EMACS_CREATEWINDOW:
 	      w32_createwindow ((struct frame *) msg.wParam);
-	      PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0);
+	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
+		abort ();
 	      break;
-	    case WM_EMACS_CREATESCROLLBAR:
-	      {
-		HWND hwnd = w32_createscrollbar ((struct frame *) msg.wParam,
-						   (struct scroll_bar *) msg.lParam);
-		PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, (WPARAM)hwnd, 0);
-	      }
-	      break;
-	    case WM_EMACS_KILL:
-	      return (0);
+	    default:
+	      /* No need to be so draconian!  */
+	      /* abort (); */
+	      DebPrint (("msg %x not expected by w32_msg_pump\n", msg.message));
 	    }
 	}
       else
 	{
 	  DispatchMessage (&msg);
 	}
+
+      /* Exit nested loop when our deferred message has completed.  */
+      if (msg_buf->completed)
+	break;
     }
+}
+
+deferred_msg * deferred_msg_head;
+
+static deferred_msg *
+find_deferred_msg (HWND hwnd, UINT msg)
+{
+  deferred_msg * item;
+
+  /* Don't actually need synchronization for read access, since
+     modification of single pointer is always atomic.  */
+  /* enter_crit (); */
+
+  for (item = deferred_msg_head; item != NULL; item = item->next)
+    if (item->w32msg.msg.hwnd == hwnd
+	&& item->w32msg.msg.message == msg)
+      break;
+
+  /* leave_crit (); */
+
+  return item;
+}
+
+static LRESULT
+send_deferred_msg (deferred_msg * msg_buf,
+		   HWND hwnd,
+		   UINT msg,
+		   WPARAM wParam,
+		   LPARAM lParam)
+{
+  /* Only input thread can send deferred messages.  */
+  if (GetCurrentThreadId () != dwWindowsThreadId)
+    abort ();
+
+  /* It is an error to send a message that is already deferred.  */
+  if (find_deferred_msg (hwnd, msg) != NULL)
+    abort ();
+
+  /* Enforced synchronization is not needed because this is the only
+     function that alters deferred_msg_head, and the following critical
+     section is guaranteed to only be serially reentered (since only the
+     input thread can call us).  */
+
+  /* enter_crit (); */
+
+  msg_buf->completed = 0;
+  msg_buf->next = deferred_msg_head;
+  deferred_msg_head = msg_buf;
+  my_post_msg (&msg_buf->w32msg, hwnd, msg, wParam, lParam);
+
+  /* leave_crit (); */
+
+  /* Start a new nested message loop to process other messages until
+     this one is completed.  */
+  w32_msg_pump (msg_buf);
+
+  deferred_msg_head = msg_buf->next;
+
+  return msg_buf->result;
+}
+
+void
+complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result)
+{
+  deferred_msg * msg_buf = find_deferred_msg (hwnd, msg);
+
+  if (msg_buf == NULL)
+    abort ();
+
+  msg_buf->result = result;
+  msg_buf->completed = 1;
+
+  /* Ensure input thread is woken so it notices the completion.  */
+  PostThreadMessage (dwWindowsThreadId, WM_NULL, 0, 0);
+}
+
+
+DWORD 
+w32_msg_worker (dw)
+     DWORD dw;
+{
+  MSG msg;
+  deferred_msg dummy_buf;
+
+  /* Ensure our message queue is created */
   
-  return (0);
+  PeekMessage (&msg, NULL, 0, 0, PM_NOREMOVE);
+  
+  if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
+    abort ();
+
+  memset (&dummy_buf, 0, sizeof (dummy_buf));
+  dummy_buf.w32msg.msg.hwnd = NULL;
+  dummy_buf.w32msg.msg.message = WM_NULL;
+
+  /* This is the inital message loop which should only exit when the
+     application quits.  */
+  w32_msg_pump (&dummy_buf);
+
+  return 0;
 }
 
 /* Main window procedure */
@@ -2933,7 +3262,6 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
      LPARAM lParam;
 {
   struct frame *f;
-  LRESULT ret = 1;
   struct w32_display_info *dpyinfo = &one_w32_display_info;
   W32Msg wmsg;
   int windows_translate;
@@ -3191,11 +3519,18 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
     handle_plain_button:
       {
 	BOOL up;
+	int button;
 
-	if (parse_button (msg, NULL, &up))
+	if (parse_button (msg, &button, &up))
 	  {
 	    if (up) ReleaseCapture ();
 	    else SetCapture (hwnd);
+	    button = (button == 0) ? LMOUSE : 
+	      ((button == 1) ? MMOUSE  : RMOUSE);
+	    if (up)
+	      button_state &= ~button;
+	    else
+	      button_state |= button;
 	  }
       }
       
@@ -3232,6 +3567,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
   
       return 0;
 
+    case WM_MOUSEWHEEL:
+      wmsg.dwModifiers = w32_get_modifiers ();
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      return 0;
+
     case WM_TIMER:
       /* Flush out saved messages if necessary. */
       if (wParam == mouse_button_timer)
@@ -3265,12 +3605,81 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       reset_modifiers ();
       goto dflt;
 
+    case WM_INITMENU:
+      /* We must ensure menu bar is fully constructed and up to date
+	 before allowing user interaction with it.  To achieve this
+	 we send this message to the lisp thread and wait for a
+	 reply (whose value is not actually needed) to indicate that
+	 the menu bar is now ready for use, so we can now return.
+
+	 To remain responsive in the meantime, we enter a nested message
+	 loop that can process all other messages.
+
+	 However, we skip all this if the message results from calling
+	 TrackPopupMenu - in fact, we must NOT attempt to send the lisp
+	 thread a message because it is blocked on us at this point.  We
+	 set menubar_active before calling TrackPopupMenu to indicate
+	 this (there is no possibility of confusion with real menubar
+	 being active).  */
+
+      f = x_window_to_frame (dpyinfo, hwnd);
+      if (f
+	  && (f->output_data.w32->menubar_active
+	      /* We can receive this message even in the absence of a
+		 menubar (ie. when the system menu is activated) - in this
+		 case we do NOT want to forward the message, otherwise it
+		 will cause the menubar to suddenly appear when the user
+		 had requested it to be turned off!  */
+	      || f->output_data.w32->menubar_widget == NULL))
+	return 0;
+
+      {
+	deferred_msg msg_buf;
+
+	/* Detect if message has already been deferred; in this case
+	   we cannot return any sensible value to ignore this.  */
+	if (find_deferred_msg (hwnd, msg) != NULL)
+	  abort ();
+
+	return send_deferred_msg (&msg_buf, hwnd, msg, wParam, lParam);
+      }
+
+    case WM_EXITMENULOOP:
+      f = x_window_to_frame (dpyinfo, hwnd);
+
+      /* Indicate that menubar can be modified again.  */
+      if (f)
+	f->output_data.w32->menubar_active = 0;
+      goto dflt;
+
+#if 0
+      /* Still not right - can't distinguish between clicks in the
+	 client area of the frame from clicks forwarded from the scroll
+	 bars - may have to hook WM_NCHITTEST to remember the mouse
+	 position and then check if it is in the client area ourselves.  */
+    case WM_MOUSEACTIVATE:
+      /* Discard the mouse click that activates a frame, allowing the
+	 user to click anywhere without changing point (or worse!).
+	 Don't eat mouse clicks on scrollbars though!!  */
+      if (LOWORD (lParam) == HTCLIENT )
+	return MA_ACTIVATEANDEAT;
+      goto dflt;
+#endif
+
+    case WM_ACTIVATE:
+    case WM_ACTIVATEAPP:
+    case WM_WINDOWPOSCHANGED:
+    case WM_SHOWWINDOW:
+      /* Inform lisp thread that a frame might have just been obscured
+	 or exposed, so should recheck visibility of all frames.  */
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      goto dflt;
+
     case WM_SETFOCUS:
       reset_modifiers ();
     case WM_KILLFOCUS:
     case WM_MOVE:
     case WM_SIZE:
-    case WM_SYSCOMMAND:
     case WM_COMMAND:
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
@@ -3285,16 +3694,19 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       {
 	WINDOWPLACEMENT wp;
 	LPWINDOWPOS lppos = (WINDOWPOS *) lParam;
-	
+
+	wp.length = sizeof (WINDOWPLACEMENT);
 	GetWindowPlacement (hwnd, &wp);
 	
-	if (wp.showCmd != SW_SHOWMINIMIZED && ! (lppos->flags & SWP_NOSIZE))
+	if (wp.showCmd != SW_SHOWMINIMIZED && (lppos->flags & SWP_NOSIZE) == 0)
 	  {
 	    RECT rect;
 	    int wdiff;
 	    int hdiff;
-	    DWORD dwXUnits;
-	    DWORD dwYUnits;
+	    DWORD font_width;
+	    DWORD line_height;
+	    DWORD internal_border;
+	    DWORD scrollbar_extra;
 	    RECT wr;
 	    
 	    wp.length = sizeof(wp);
@@ -3302,8 +3714,10 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	    
 	    enter_crit ();
 	    
-	    dwXUnits = GetWindowLong (hwnd, WND_X_UNITS_INDEX);
-	    dwYUnits = GetWindowLong (hwnd, WND_Y_UNITS_INDEX);
+	    font_width = GetWindowLong (hwnd, WND_FONTWIDTH_INDEX);
+	    line_height = GetWindowLong (hwnd, WND_LINEHEIGHT_INDEX);
+	    internal_border = GetWindowLong (hwnd, WND_BORDER_INDEX);
+	    scrollbar_extra = GetWindowLong (hwnd, WND_SCROLLBAR_INDEX);
 	    
 	    leave_crit ();
 	    
@@ -3311,10 +3725,14 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	    AdjustWindowRect (&rect, GetWindowLong (hwnd, GWL_STYLE), 
 			      GetMenu (hwnd) != NULL);
 
-	    /* All windows have an extra pixel so subtract 1 */
-	    
-	    wdiff = (lppos->cx - (rect.right - rect.left) - 0) % dwXUnits;
-	    hdiff = (lppos->cy - (rect.bottom - rect.top) - 0) % dwYUnits;
+	    /* Force width and height of client area to be exact
+	       multiples of the character cell dimensions.  */
+	    wdiff = (lppos->cx - (rect.right - rect.left)
+		     - 2 * internal_border - scrollbar_extra)
+	      % font_width;
+	    hdiff = (lppos->cy - (rect.bottom - rect.top)
+		     - 2 * internal_border)
+	      % line_height;
 	    
 	    if (wdiff || hdiff)
 	      {
@@ -3326,7 +3744,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 		lppos->cy -= hdiff;
 		
 		if (wp.showCmd != SW_SHOWMAXIMIZED 
-		    && ! (lppos->flags & SWP_NOMOVE))
+		    && (lppos->flags & SWP_NOMOVE) == 0)
 		  {
 		    if (lppos->x != wr.left || lppos->y != wr.top)
 		      {
@@ -3339,31 +3757,88 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 		      }
 		  }
 		
-		ret = 0;
+		return 0;
 	      }
 	  }
       }
-    
-      if (ret == 0) return (0);
       
       goto dflt;
+
+    case WM_EMACS_CREATESCROLLBAR:
+      return (LRESULT) w32_createscrollbar ((struct frame *) wParam,
+					    (struct scroll_bar *) lParam);
+
     case WM_EMACS_SHOWWINDOW:
-      return ShowWindow (hwnd, wParam);
+      return ShowWindow ((HWND) wParam, (WPARAM) lParam);
+
     case WM_EMACS_SETWINDOWPOS:
       {
-	W32WindowPos * pos = (W32WindowPos *) wParam;
-	return SetWindowPos (hwnd, pos->hwndAfter,
+	WINDOWPOS * pos = (WINDOWPOS *) wParam;
+	return SetWindowPos (hwnd, pos->hwndInsertAfter,
 			     pos->x, pos->y, pos->cx, pos->cy, pos->flags);
       }
+
     case WM_EMACS_DESTROYWINDOW:
-      DestroyWindow ((HWND) wParam);
-      break;
+      return DestroyWindow ((HWND) wParam);
+
+    case WM_EMACS_TRACKPOPUPMENU:
+      {
+	UINT flags;
+	POINT *pos;
+	int retval;
+	pos = (POINT *)lParam;
+	flags = TPM_CENTERALIGN;
+	if (button_state & LMOUSE)
+	  flags |= TPM_LEFTBUTTON;
+	else if (button_state & RMOUSE)
+	  flags |= TPM_RIGHTBUTTON;
+	
+	/* Use menubar_active to indicate that WM_INITMENU is from
+           TrackPopupMenu below, and should be ignored.  */
+	f = x_window_to_frame (dpyinfo, hwnd);
+	if (f)
+	  f->output_data.w32->menubar_active = 1;
+	
+	if (TrackPopupMenu ((HMENU)wParam, flags, pos->x, pos->y, 
+			    0, hwnd, NULL))
+	  {
+	    MSG amsg;
+	    /* Eat any mouse messages during popupmenu */
+	    while (PeekMessage (&amsg, hwnd, WM_MOUSEFIRST, WM_MOUSELAST,
+				PM_REMOVE));
+	    /* Get the menu selection, if any */
+	    if (PeekMessage (&amsg, hwnd, WM_COMMAND, WM_COMMAND, PM_REMOVE))
+	      {
+		retval =  LOWORD (amsg.wParam);
+	      }
+	    else
+	      {
+		retval = 0;
+	      }
+	    button_state = 0;
+
+	    /* Remember we did a SetCapture on the initial mouse down
+	       event, but window focus will usually have changed to the
+	       popup menu before we released the mouse button.  For
+	       safety, we make sure the capture is cancelled now.  */
+	    ReleaseCapture ();
+	  }
+	else
+	  {
+	    retval = -1;
+	  }
+
+	return retval;
+      }
+
     default:
     dflt:
       return DefWindowProc (hwnd, msg, wParam, lParam);
     }
   
-  return (1);
+
+  /* The most common default return code for handled messages is 0.  */
+  return 0;
 }
 
 void 
@@ -3372,7 +3847,8 @@ my_create_window (f)
 {
   MSG msg;
 
-  PostThreadMessage (dwWindowsThreadId, WM_EMACS_CREATEWINDOW, (WPARAM)f, 0);
+  if (!PostThreadMessage (dwWindowsThreadId, WM_EMACS_CREATEWINDOW, (WPARAM)f, 0))
+    abort ();
   GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
 }
 
@@ -3453,6 +3929,18 @@ x_icon (f, parms)
   if (! EQ (icon_x, Qunbound))
     x_wm_set_icon_position (f, XINT (icon_x), XINT (icon_y));
 
+#if 0 /* TODO */
+  /* Start up iconic or window? */
+  x_wm_set_window_state
+    (f, (EQ (x_get_arg (parms, Qvisibility, 0, 0, symbol), Qicon)
+	 ? IconicState
+	 : NormalState));
+
+  x_text_icon (f, (char *) XSTRING ((!NILP (f->icon_name)
+				     ? f->icon_name
+				     : f->name))->data);
+#endif
+
   UNBLOCK_INPUT;
 }
 
@@ -3477,7 +3965,7 @@ This function is an internal primitive--use `make-frame' instead.")
   long window_prompting = 0;
   int width, height;
   int count = specpdl_ptr - specpdl;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
   struct w32_display_info *dpyinfo;
   Lisp_Object parent;
@@ -3497,7 +3985,7 @@ This function is an internal primitive--use `make-frame' instead.")
   kb = &the_only_kboard;
 #endif
 
-  name = x_get_arg (parms, Qname, "title", "Title", string);
+  name = x_get_arg (parms, Qname, "name", "Name", string);
   if (!STRINGP (name)
       && ! EQ (name, Qunbound)
       && ! NILP (name))
@@ -3513,6 +4001,11 @@ This function is an internal primitive--use `make-frame' instead.")
   if (! NILP (parent))
     CHECK_NUMBER (parent, 0);
 
+  /* make_frame_without_minibuffer can run Lisp code and garbage collect.  */
+  /* No need to protect DISPLAY because that's not used after passing
+     it to make_frame_without_minibuffer.  */
+  frame = Qnil;
+  GCPRO4 (parms, parent, name, frame);
   tem = x_get_arg (parms, Qminibuffer, 0, 0, symbol);
   if (EQ (tem, Qnone) || NILP (tem))
     f = make_frame_without_minibuffer (Qnil, kb, display);
@@ -3526,17 +4019,21 @@ This function is an internal primitive--use `make-frame' instead.")
   else
     f = make_frame (1);
 
+  XSETFRAME (frame, f);
+
   /* Note that Windows does support scroll bars.  */
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
   /* By default, make scrollbars the system standard width. */
   f->scroll_bar_pixel_width = GetSystemMetrics (SM_CXVSCROLL);
 
-  XSETFRAME (frame, f);
-  GCPRO1 (frame);
-
   f->output_method = output_w32;
   f->output_data.w32 = (struct w32_output *) xmalloc (sizeof (struct w32_output));
   bzero (f->output_data.w32, sizeof (struct w32_output));
+
+  f->icon_name
+    = x_get_arg (parms, Qicon_name, "iconName", "Title", string);
+  if (! STRINGP (f->icon_name))
+    f->icon_name = Qnil;
 
 /*  FRAME_W32_DISPLAY_INFO (f) = dpyinfo; */
 #ifdef MULTI_KBOARD
@@ -3584,27 +4081,17 @@ This function is an internal primitive--use `make-frame' instead.")
     /* First, try whatever font the caller has specified.  */
     if (STRINGP (font))
       font = x_new_font (f, XSTRING (font)->data);
-#if 0
     /* Try out a font which we hope has bold and italic variations.  */
     if (!STRINGP (font))
-      font = x_new_font (f, "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
+      font = x_new_font (f, "-*-Courier New-normal-r-*-*-13-97-*-*-c-*-*-ansi-");
     if (! STRINGP (font))
-      font = x_new_font (f, "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
-    if (! STRINGP (font))
-      /* This was formerly the first thing tried, but it finds too many fonts
-	 and takes too long.  */
-      font = x_new_font (f, "-*-*-medium-r-*-*-*-*-*-*-c-*-iso8859-1");
+      font = x_new_font (f, "-*-Courier-normal-r-*-*-13-97-*-*-c-*-*-ansi-");
     /* If those didn't work, look for something which will at least work.  */
     if (! STRINGP (font))
-      font = x_new_font (f, "-*-fixed-*-*-*-*-*-140-*-*-c-*-iso8859-1");
-    if (! STRINGP (font))
-      font = x_new_font (f, "-*-system-medium-r-normal-*-*-200-*-*-c-120-*-*");
-#endif
-    if (! STRINGP (font))
-      font = x_new_font (f, "-*-Fixedsys-*-r-*-*-12-90-*-*-c-*-*-*");
+      font = x_new_font (f, "-*-Fixedsys-normal-r-*-*-13-97-*-*-c-*-*-ansi-");
     UNBLOCK_INPUT;
     if (! STRINGP (font))
-      font = build_string ("-*-system");
+      font = build_string ("Fixedsys");
 
     x_default_parameter (f, parms, Qfont, font, 
 			 "font", "Font", string);
@@ -3625,6 +4112,7 @@ This function is an internal primitive--use `make-frame' instead.")
 	parms = Fcons (Fcons (Qinternal_border_width, value),
 		       parms);
     }
+  /* Default internalBorderWidth to 0 on Windows to match other programs.  */
   x_default_parameter (f, parms, Qinternal_border_width, make_number (0),
 		       "internalBorderWidth", "BorderWidth", number);
   x_default_parameter (f, parms, Qvertical_scroll_bars, Qt,
@@ -3646,6 +4134,10 @@ This function is an internal primitive--use `make-frame' instead.")
 		       "menuBar", "MenuBar", number);
   x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
 		       "scrollBarWidth", "ScrollBarWidth", number);
+  x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
+		       "bufferPredicate", "BufferPredicate", symbol);
+  x_default_parameter (f, parms, Qtitle, Qnil,
+		       "title", "Title", string);
 
   f->output_data.w32->dwStyle = WS_OVERLAPPEDWINDOW;
   f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
@@ -3752,6 +4244,16 @@ x_get_focus_frame (frame)
   XSETFRAME (xfocus, dpyinfo->w32_focus_frame);
   return xfocus;
 }
+
+DEFUN ("w32-focus-frame", Fw32_focus_frame, Sw32_focus_frame, 1, 1, 0,
+  "Give FRAME input focus, raising to foreground if necessary.")
+  (frame)
+     Lisp_Object frame;
+{
+  x_focus_on_frame (check_x_frame (frame));
+  return Qnil;
+}
+
 
 XFontStruct *
 w32_load_font (dpyinfo,name)
@@ -3896,6 +4398,7 @@ x_to_w32_weight (lpw)
   else if (stricmp (lpw,"extrabold") == 0)    return FW_EXTRABOLD;
   else if (stricmp (lpw,"bold") == 0)         return FW_BOLD;
   else if (stricmp (lpw,"demibold") == 0)     return FW_SEMIBOLD;
+  else if (stricmp (lpw,"semibold") == 0)     return FW_SEMIBOLD;
   else if (stricmp (lpw,"medium") == 0)       return FW_MEDIUM;
   else if (stricmp (lpw,"normal") == 0)       return FW_NORMAL;
   else if (stricmp (lpw,"light") == 0)        return FW_LIGHT;
@@ -3937,14 +4440,17 @@ x_to_w32_charset (lpcs)
   else if (stricmp (lpcs,"unicode") == 0)       return UNICODE_CHARSET;
   else if (stricmp (lpcs,"iso10646") == 0)      return UNICODE_CHARSET;
 #endif
+  else if (lpcs[0] == '#')			return atoi (lpcs + 1);
   else
-    return 0;
+    return DEFAULT_CHARSET;
 }
 
 char *
 w32_to_x_charset (fncharset)
     int fncharset;
 {
+  static char buf[16];
+
   switch (fncharset)
     {
     case ANSI_CHARSET:     return "ansi";
@@ -3954,7 +4460,9 @@ w32_to_x_charset (fncharset)
     case UNICODE_CHARSET:  return "unicode";
 #endif
     }
-  return "*";
+  /* Encode numerical value of unknown charset.  */
+  sprintf (buf, "#%u", fncharset);
+  return buf;
 }
 
 BOOL 
@@ -4194,8 +4702,7 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
     int FontType;
     enumfont_t * lpef;
 {
-  if (lplf->elfLogFont.lfStrikeOut || lplf->elfLogFont.lfUnderline
-      || (lplf->elfLogFont.lfCharSet != ANSI_CHARSET && lplf->elfLogFont.lfCharSet != OEM_CHARSET))
+  if (lplf->elfLogFont.lfStrikeOut || lplf->elfLogFont.lfUnderline)
     return (1);
   
   /*    if (!lpef->size_ref || lptm->tmMaxCharWidth == FONT_WIDTH (lpef->size_ref)) */
@@ -4427,9 +4934,9 @@ If FRAME is omitted or nil, use the selected frame.")
     {
       Lisp_Object rgb[3];
 
-      rgb[0] = make_number (GetRValue (foo));
-      rgb[1] = make_number (GetGValue (foo));
-      rgb[2] = make_number (GetBValue (foo));
+      rgb[0] = make_number ((GetRValue (foo) << 8) | GetRValue (foo));
+      rgb[1] = make_number ((GetGValue (foo) << 8) | GetGValue (foo));
+      rgb[2] = make_number ((GetBValue (foo) << 8) | GetBValue (foo));
       return Flist (3, rgb);
     }
   else
@@ -4765,6 +5272,7 @@ x_display_info_for_name (name)
   if (dpyinfo == 0)
     error ("Cannot connect to server %s", XSTRING (name)->data);
 
+  w32_in_use = 1;
   XSETFASTINT (Vwindow_system_version, 3);
 
   return dpyinfo;
@@ -4786,6 +5294,9 @@ terminate Emacs if we can't open the connection.")
   CHECK_STRING (display, 0);
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string, 1);
+
+  if (! EQ (Vwindow_system, intern ("w32")))
+    error ("Not using Microsoft Windows");
 
   /* Allow color mapping to be defined externally; first look in user's
      HOME directory, then in Emacs etc dir for a file called rgb.txt. */
@@ -4841,6 +5352,8 @@ terminate Emacs if we can't open the connection.")
       else
 	error ("Cannot connect to server %s", XSTRING (display)->data);
     }
+
+  w32_in_use = 1;
 
   XSETFASTINT (Vwindow_system_version, 3);
   return Qnil;
@@ -4933,9 +5446,33 @@ DEFUN ("w32-select-font", Fw32_select_font, Sw32_select_font, 0, 1, 0,
   return build_string (buf);
 }
 
+DEFUN ("w32-send-sys-command", Fw32_send_sys_command, Sw32_send_sys_command, 1, 2, 0,
+   "Send frame a Windows WM_SYSCOMMAND message of type COMMAND.\n\
+Some useful values for command are 0xf030 to maximise frame (0xf020\n\
+to minimize), 0xf120 to restore frame to original size, and 0xf100\n\
+to activate the menubar for keyboard access.  0xf140 activates the\n\
+screen saver if defined.\n\
+\n\
+If optional parameter FRAME is not specified, use selected frame.")
+  (command, frame)
+     Lisp_Object command, frame;
+{
+  WPARAM code;
+  FRAME_PTR f = check_x_frame (frame);
+
+  CHECK_NUMBER (command, 0);
+
+  PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, XINT (command), 0);
+
+  return Qnil;
+}
+
 
 syms_of_w32fns ()
 {
+  /* This is zero if not using MS-Windows.  */
+  w32_in_use = 0;
+
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
   /*&&& init symbols here &&&*/
@@ -5130,10 +5667,12 @@ unless you set it to something else.");
 
   /* W32 specific functions */
 
+  defsubr (&Sw32_focus_frame);
   defsubr (&Sw32_select_font);
   defsubr (&Sw32_define_rgb_color);
   defsubr (&Sw32_default_color_map);
   defsubr (&Sw32_load_color_file);
+  defsubr (&Sw32_send_sys_command);
 }
 
 #undef abort
