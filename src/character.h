@@ -51,15 +51,18 @@ Boston, MA 02111-1307, USA.  */
 #define MAX_4_BYTE_CHAR 0x1FFFFF
 #define MAX_5_BYTE_CHAR 0x3FFF7F
 
+/* Nonzero iff C is a character that corresponds to a raw 8-bit
+   byte.  */
+#define CHAR_BYTE8_P(c) ((c) > MAX_5_BYTE_CHAR)
+
 /* Return the character code for raw 8-bit byte BYTE.  */
 #define BYTE8_TO_CHAR(byte) ((byte) + 0x3FFF00)
 
 /* Return the raw 8-bit byte for character C.  */
-#define CHAR_TO_BYTE8(c) ((c) - 0x3FFF00)
-
-/* Nonzero iff C is a character that corresponds to a raw 8-bit
-   byte.  */
-#define CHAR_BYTE8_P(c) ((c) > MAX_5_BYTE_CHAR)
+#define CHAR_TO_BYTE8(c)	\
+  (CHAR_BYTE8_P (c)		\
+   ? (c) - 0x3FFF00		\
+   : multibyte_char_to_unibyte (c, Qnil))
 
 /* Nonzero iff BYTE is the 1st byte of a multibyte form of a character
    that corresponds to a raw 8-bit byte.  */
