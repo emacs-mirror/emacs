@@ -1,5 +1,16 @@
 1999-11-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* textprop.c (set_text_properties): New function.  Like
+	Fset_text_properties, but with additional parameter
+	SIGNAL_AFTER_CHANGE_P.  If that is nil, don't signal after
+	changes.
+	(Fset_text_properties): Use it.
+
+	* insdel.c (insert_1_both): Call set_text_properties with last
+	parameter nil so that no after changes will be signaled.
+
+	* lisp.h: Add prototype for set_text_properties.
+
 	* xfaces.c (set_lface_from_font_name): Fix previous change.
 	(recompute_basic_faces): Change assert to abort.
 

@@ -305,6 +305,19 @@ specifies a number of lines.  If nil, don't resize.
 
 Default is 0.25.
 
+** Comint (subshell) changes
+
+Comint now includes new features to send commands to running processes
+and redirect the output to a designated buffer or buffers.
+
+The command M-x comint-redirect-send-command reads a command and
+buffer name from the mini-buffer.  The command is sent to the current
+buffer's process, and its output is inserted into the specified buffer.
+
+The command M-x comint-redirect-send-command-to-process acts like
+M-x comint-redirect-send-command but additionally reads the name of
+the buffer whose process should be used from the mini-buffer.
+
 ** Changes to TeX mode
 
 The default mode has been changed from `plain-tex-mode' to
