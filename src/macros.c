@@ -204,12 +204,22 @@ defining others, use \\[name-last-kbd-macro].")
   (prefix)
      Lisp_Object prefix;
 {
+  /* Don't interfere with recognition of the previous command
+     from before this macro started.  */
+  this_command = current_kboard->Vlast_command;
+
   if (! NILP (current_kboard->defining_kbd_macro))
     error ("Can't execute anonymous macro while defining one");
   else if (NILP (current_kboard->Vlast_kbd_macro))
     error ("No kbd macro has been defined");
   else
     Fexecute_kbd_macro (current_kboard->Vlast_kbd_macro, prefix);
+
+  /* command_loop_1 sets this to nil before it returns;
+     get back the last command within the macro
+     so that it can be last, again, after we return.  */
+  this_command = current_kboard->Vlast_command;
+
   return Qnil;
 }
 
