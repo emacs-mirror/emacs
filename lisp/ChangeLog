@@ -1,3 +1,8 @@
+2000-08-30  Miles Bader  <miles@gnu.org>
+
+	* frame.el (set-frame-font): Do completion of font-name for
+	interactive use.
+
 2000-08-30  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-start-translation): Bind locally
