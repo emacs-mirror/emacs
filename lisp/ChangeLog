@@ -1,3 +1,7 @@
+2003-03-11  Jason Rumney  <jasonr@gnu.org>
+
+	* files.el (auto-mode-alist): Add .xsl for sgml-mode.
+
 2003-03-11  Mark A. Hershberger  <mah@everybody.org>
 
 	* xml.el (xml-skip-dtd): Fix parsing of DOCTYPE.
