@@ -1,3 +1,10 @@
+2001-10-24  Ken Raeburn  <raeburn@gnu.org>
+
+	* Makefile.in (HESIODLIB) [HAVE_LIBHESIOD]: Set to include
+	-lhesiod and maybe -lresolv.
+	(CRYPTOLIB) [HAVE_LIBK5CRYPTO]: Use -lk5crypto for Kerberos
+	support if it's available.
+
 2001-10-21  Miles Bader  <miles@gnu.org>
 
 	* make-docfile.c (struct rcsoc_state): New type.

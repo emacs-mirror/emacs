@@ -1,3 +1,10 @@
+2001-10-24  Ken Raeburn  <raeburn@gnu.org>
+
+	* configure.in: If --with-hesiod is given, look for
+	hes_getmailhost and res_send or __res_send; check hesiod and
+	resolv libraries respectively if system libraries don't supply
+	them.
+
 2001-10-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Use $MAKE for `make' if set.

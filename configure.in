@@ -1962,6 +1962,23 @@ AC_CHECK_FUNCS(getpt)
 # than to expect to find it in ncurses.
 AC_CHECK_LIB(ncurses, tparm)
 
+# Do we need the Hesiod library to provide the support routines?
+if test "$with_hesiod" = yes ; then
+  # Don't set $LIBS here -- see comments above.
+  resolv=no
+  AC_CHECK_FUNC(res_send, , [AC_CHECK_FUNC(__res_send, ,
+     [AC_CHECK_LIB(resolv, res_send, resolv=yes,
+		  [AC_CHECK_LIB(resolv, __res_send, resolv=yes)])])])
+  if test "$resolv" = yes ; then
+    RESOLVLIB=-lresolv
+    AC_DEFINE(HAVE_LIBRESOLV)
+  else
+    RESOLVLIB=
+  fi
+  AC_CHECK_FUNC(hes_getmailhost, , [AC_CHECK_LIB(hesiod, hes_getmailhost,
+	AC_DEFINE(HAVE_LIBHESIOD), :, $RESOLVLIB)])
+fi
+
 # These tell us which Kerberos-related libraries to use.
 if test "${with_kerberos+set}" = set; then
   AC_CHECK_LIB(com_err, com_err)
