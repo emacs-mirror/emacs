@@ -2035,15 +2035,6 @@ ascii_sequence_p (seq)
 static Lisp_Object where_is_internal_1 ();
 static void where_is_internal_2 ();
 
-static INLINE int
-menu_item_p (item)
-     Lisp_Object item;
-{
-  return (CONSP (item)
-	  && (EQ (XCAR (item),Qmenu_item)
-	      || STRINGP (XCAR (item))));
-}
-
 /* Like Flookup_key, but uses a list of keymaps SHADOW instead of a single map.
    Returns the first non-nil binding found in any of those maps.  */
 
@@ -2105,14 +2096,12 @@ where_is_internal (definition, keymaps, firstonly, noindirect)
       last_is_meta = (XINT (last) >= 0
 		      && EQ (Faref (this, last), meta_prefix_char));
 
-      if (nomenus && XINT (last) >= 0)
-	{ /* If no menu entries should be returned, skip over the
-	     keymaps bound to `menu-bar' and `tool-bar'.  */
-	  Lisp_Object tem = Faref (this, make_number (0));
-	  if (EQ (tem, Qmenu_bar) || EQ (tem, Qtool_bar))
-	    continue;
-	}
-
+      if (nomenus && !ascii_sequence_p (this))
+	/* If no menu entries should be returned, skip over the
+	   keymaps bound to `menu-bar' and `tool-bar' and other
+	   non-ascii prefixes.  */
+	continue;
+      
       QUIT;
 
       while (CONSP (map))
@@ -2296,7 +2285,8 @@ indirect definition itself.")
       for (sequences = Fnreverse (sequences);
 	   CONSP (sequences);
 	   sequences = XCDR (sequences))
-	if (EQ (shadow_lookup (keymaps, XCAR (sequences), Qnil), definition))
+	if (EQ (shadow_lookup (keymaps, XCAR (sequences), Qnil), definition)
+	    && ascii_sequence_p (XCAR (sequences)))
 	  RETURN_UNGCPRO (XCAR (sequences));
       RETURN_UNGCPRO (Qnil);
     }
@@ -2358,10 +2348,6 @@ where_is_internal_1 (binding, key, definition, noindirect, this, last,
 {
   Lisp_Object sequence;
 
-  /* Skip left-over menu-items.
-     These can appear in a keymap bound to a mouse click, for example.  */
-  if (nomenus && menu_item_p (binding))
-    return Qnil;
   /* Search through indirections unless that's not wanted.  */
   if (NILP (noindirect))
     binding = get_keyelt (binding, 0);
