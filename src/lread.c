@@ -1269,14 +1269,15 @@ read1 (readcharfun, pch, first_in_list)
 	      tmp = read1 (readcharfun, pch, first_in_list);
 	      if (size_in_chars != XSTRING (tmp)->size)
 		Fsignal (Qinvalid_read_syntax,
-			 Fcons (make_string ("#&", 2), Qnil));
+			 Fcons (make_string ("#&...", 2), Qnil));
 		
 	      val = Fmake_bool_vector (length, Qnil);
 	      bcopy (XSTRING (tmp)->data, XBOOL_VECTOR (val)->data,
 		     size_in_chars);
 	      return val;
 	    }
-	  Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#&", 2), Qnil));
+	  Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#&...", 2),
+						Qnil));
 	}
       if (c == '[')
 	{
