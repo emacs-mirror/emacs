@@ -1,5 +1,4 @@
-/* $HopeName$
-epvmfmt.c
+/* $HopeName: MMQA_harness!testlib:epvmfmt.c(trunk.3) $
 */
 
 #include "mps.h"
@@ -11,6 +10,13 @@ int alloccomments = 0;
 
 /* the scanning function doesn't try to fix null refs
 */
+
+static mps_res_t epvmscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit);
+static mps_addr_t epvmskip(mps_addr_t object);
+static void epvmfwd(mps_addr_t object, mps_addr_t to);
+static mps_addr_t epvmisfwd(mps_addr_t object);
+static void epvmcopy(mps_addr_t object, mps_addr_t to);
+static void epvmpad(mps_addr_t base, size_t size);
 
 static mps_res_t epvmscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit);
 
