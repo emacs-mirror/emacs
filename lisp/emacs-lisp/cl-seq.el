@@ -1,4 +1,4 @@
-;;; cl-seq.el --- Common Lisp extensions for GNU Emacs Lisp (part three)
+;;; cl-seq.el --- Common Lisp features, part 3  -*-byte-compile-dynamic: t;-*-
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
