@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual, fontset
 
@@ -303,6 +304,27 @@ Optional argument REDUCE is always ignored.  It exists just for
 backward compatibility."
   (concat "-" (mapconcat (lambda (x) (or x "*")) fields "-")))
 
+
+(defun x-must-resolve-font-name (xlfd-fields)
+  "Like `x-resolve-font-name', but always return a font name.
+XLFD-FIELDS is a vector of XLFD (X Logical Font Description) fields.
+If no font matching XLFD-FIELDS is available, successively replace
+parts of the font name pattern with \"*\" until some font is found.
+Value is name of that font."
+  (let ((ascii-font nil) (index 0))
+    (while (and (null ascii-font) (<= index xlfd-regexp-encoding-subnum))
+      (let ((pattern (x-compose-font-name xlfd-fields)))
+	(condition-case nil
+	    (setq ascii-font (x-resolve-font-name pattern))
+	  (error
+	   (message "Warning: no fonts matching `%s' available" pattern)
+	   (aset xlfd-fields index "*")
+	   (setq index (1+ index))))))
+    (unless ascii-font
+      (error "No fonts founds"))
+    ascii-font))
+
+
 (defun x-complement-fontset-spec (xlfd-fields fontlist)
   "Complement FONTLIST for charsets based on XLFD-FIELDS and return it.
 XLFD-FIELDS is a vector of XLFD (X Logical Font Description) fields.
@@ -324,7 +346,7 @@ variable `x-font-name-charset-alist'), add that information to FONTLIST."
       ;; If font for ASCII is not specified, add it.
       (aset xlfd-fields xlfd-regexp-registry-subnum "iso8859")
       (aset xlfd-fields xlfd-regexp-encoding-subnum "1")
-      (setq ascii-font (x-resolve-font-name (x-compose-font-name xlfd-fields)))
+      (setq ascii-font (x-must-resolve-font-name xlfd-fields))
       (setq fontlist (cons (cons 'ascii ascii-font) fontlist)))
 
     ;; If the font for ASCII also supports the other charsets, and
