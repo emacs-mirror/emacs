@@ -220,7 +220,8 @@ With prefix arg, prompt for diff switches."
      (list oldf newf (diff-switches))))
   (setq new (expand-file-name new)
 	old (expand-file-name old))
-  (let ((old-alt (file-local-copy old))
+  (or switches (setq switches diff-switches)) ; If not specified, use default.
+  (let* ((old-alt (file-local-copy old))
 	(new-alt (file-local-copy new))
 	buf)
     (save-excursion
@@ -229,13 +230,7 @@ With prefix arg, prompt for diff switches."
 	       (mapconcat 'identity
 			  `(,diff-command
 			    ;; Use explicitly specified switches
-			    ,@(if switches
-				  (if (listp switches)
-				      switches (list switches))
-				;; If not specified, use default.
-				(if (listp diff-switches)
-				    diff-switches
-				  (list diff-switches)))
+			    ,@(if (listp switches) switches (list switches))
 			    ,@(if (or old-alt new-alt)
 				  (list "-L" old "-L" new))
 			    ,(shell-quote-argument (or old-alt old))
