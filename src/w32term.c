@@ -9455,10 +9455,11 @@ x_draw_hollow_cursor (w, row)
    --gerd.  */
 
 static void
-x_draw_bar_cursor (w, row, width)
+x_draw_bar_cursor (w, row, width, kind)
      struct window *w;
      struct glyph_row *row;
      int width;
+     enum text_cursor_kinds kind;
 {
   struct frame *f = XFRAME (w->frame);
   struct glyph *cursor_glyph;
@@ -9488,6 +9489,7 @@ x_draw_bar_cursor (w, row, width)
 
       if (width < 0)
         width = f->output_data.w32->cursor_width;
+      width = min (cursor_glyph->pixel_width, width);
 
       /* If the glyph's background equals the color we normally draw
 	 the bar cursor in, the bar cursor in its normal color is
@@ -9500,10 +9502,20 @@ x_draw_bar_cursor (w, row, width)
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
       hdc = get_frame_dc (f);
       w32_clip_to_row (w, row, hdc, 0);
-      w32_fill_area (f, hdc, cursor_color, x,
-                     WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
-                     min (cursor_glyph->pixel_width, width),
-                     row->height);
+
+      if (kind == BAR_CURSOR)
+	{
+	  w32_fill_area (f, hdc, cursor_color, x,
+			 WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
+			 width, row->height);
+	}
+      else
+	{
+	  w32_fill_area (f, hdc, cursor_color, x,
+			 WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
+						  row->height - width),
+			 cursor_glyph->pixel_width, width);
+	}
       release_frame_dc (f, hdc);
     }
 }
@@ -9872,7 +9884,11 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	  break;
 
 	case BAR_CURSOR:
-	  x_draw_bar_cursor (w, glyph_row, new_cursor_width);
+	  x_draw_bar_cursor (w, glyph_row, new_cursor_width, BAR_CURSOR);
+	  break;
+
+	case HBAR_CURSOR:
+	  x_draw_bar_cursor (w, glyph_row, new_cursor_width, HBAR_CURSOR);
 	  break;
 
 	case NO_CURSOR:
