@@ -374,10 +374,10 @@ and the greater of them is not at the start of a line."
 	  (message "point=%d of %d(%d%%)  column %d %s"
 		   pos total percent col hscroll))
       (if (or (/= beg 1) (/= end (1+ total)))
-	  (message "Char: %s (0%o)  point=%d of %d(%d%%) <%d - %d>  column %d %s"
-		   (single-key-description char) char pos total percent beg end col hscroll)
-	(message "Char: %s (0%o)  point=%d of %d(%d%%)  column %d %s"
-		 (single-key-description char) char pos total percent col hscroll)))))
+	  (message "Char: %s (0%o, %d, 0x%x)  point=%d of %d(%d%%) <%d - %d>  column %d %s"
+		   (single-key-description char) char char char pos total percent beg end col hscroll)
+	(message "Char: %s (0%o, %d, 0x%x)  point=%d of %d(%d%%)  column %d %s"
+		 (single-key-description char) char char char pos total percent col hscroll)))))
 
 (defun fundamental-mode ()
   "Major mode not specialized for anything in particular.
