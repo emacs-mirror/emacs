@@ -2130,7 +2130,7 @@ A prefix arg makes KEEP-TIME non-nil.")
 	  EMACS_SET_SECS_USECS (mtime, st.st_mtime, 0);
 	  if (set_file_times (XSTRING (newname)->data, atime, mtime))
 	    Fsignal (Qfile_date_error,
-		     Fcons (build_string ("File already exists"),
+		     Fcons (build_string ("Cannot set file date"),
 			    Fcons (newname, Qnil)));
 	}
 #ifndef MSDOS
