@@ -103,7 +103,7 @@ for file A.
 (defvar change-log-font-lock-keywords
   '(;;
     ;; Date lines, new and old styles.
-    ("^\\sw.........[0-9: ]*"
+    ("^\\sw.........[0-9:+ ]*"
      (0 font-lock-string-face)
      ("\\([^<]+\\)<\\([A-Za-z0-9_.-]+@[A-Za-z0-9_.-]+\\)>" nil nil
       (1 font-lock-constant-face)
