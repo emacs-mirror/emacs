@@ -3164,7 +3164,7 @@ static struct frame *x_frame_of_widget P_ ((Widget));
 /* Return the frame on which widget WIDGET is used.. Abort if frame
    cannot be determined.  */
 
-struct frame *
+static struct frame *
 x_frame_of_widget (widget)
      Widget widget;
 {
