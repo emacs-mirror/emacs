@@ -4212,11 +4212,6 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
     make_gap (require - GAP_SIZE);
   move_gap_both (from, from_byte);
 
-  if (GPT - BEG < beg_unchanged)
-    beg_unchanged = GPT - BEG;
-  if (Z - GPT < end_unchanged)
-    end_unchanged = Z - GPT;
-
   inserted = inserted_byte = 0;
   src = GAP_END_ADDR, dst = GPT_ADDR;
 
@@ -4225,6 +4220,11 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   Z -= len;
   ZV_BYTE -= len_byte;
   Z_BYTE -= len_byte;
+
+  if (GPT - BEG < beg_unchanged)
+    beg_unchanged = GPT - BEG;
+  if (Z - GPT < end_unchanged)
+    end_unchanged = Z - GPT;
 
   for (;;)
     {
