@@ -639,7 +639,7 @@ DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
   "Pop up a deck-of-cards menu and return user's selection.\n\
 POSITION is a position specification.  This is either a mouse button event\n\
 or a list ((XOFFSET YOFFSET) WINDOW)\n\
-where XOFFSET and YOFFSET are positions in characters from the top left\n\
+where XOFFSET and YOFFSET are positions in pixels from the top left\n\
 corner of WINDOW's frame.  (WINDOW may be a frame object instead of a window.)\n\
 This controls the position of the center of the first line\n\
 in the first pane of the menu, not the top left of the menu as a whole.\n\
