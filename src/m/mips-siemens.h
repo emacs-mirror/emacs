@@ -16,8 +16,9 @@
 #undef C_DEBUG_SWITCH
 #define C_DEBUG_SWITCH -g
 
-/* we use all of GNU's memory allocation routines */
-#define C_ALLOCA
+/* w.prediger@m30x.nbg.scn.de seems to say this is needed.
+   But let's try without it.  */
+/* #define C_ALLOCA */
 
 /* This system uses a slightly nonstandard variant of elf format.  */
 #undef UNEXEC
@@ -25,3 +26,5 @@
 #define ELF_BSS_SECTION_NAME ".sbss"
 
 #define BSTRING
+
+#define LIB_STANDARD /usr/ccs/lib/libc.a
