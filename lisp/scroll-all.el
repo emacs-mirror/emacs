@@ -38,8 +38,19 @@
 ;;    Anders Lindgren <andersl@csd.uu.se>
 
 (defvar running-xemacs (string-match "XEmacs\\|Lucid" emacs-version))
-(defvar scroll-all-mode nil
-  "Track status of scroll locking.")
+
+;;;###autoload
+(defcustom scroll-all-mode nil
+  "Control/track scroll locking.
+
+Setting this variable directly does not take effect;
+use either M-x customize or the function `scroll-all-mode'."
+  :set (lambda (symbol value) (scroll-all-mode (if value 1 0)))
+  :initialize 'custom-initialize-default
+  :require 'scroll-all
+  :type 'boolean
+  :group 'windows)
+
 (if running-xemacs
     (add-minor-mode 'scroll-all-mode " *SL*")
   (or (assq 'scroll-all-mode-mode minor-mode-alist)
@@ -108,7 +119,7 @@
   (if (eq this-command 'fkey-scroll-down)
       (call-interactively 'scroll-all-page-up-all)))
 
-
+;;;###autoload
 (defun scroll-all-mode (arg)
   "Toggle Scroll-All minor mode."
   (interactive "P")
