@@ -879,6 +879,7 @@ init_sigio (fd)
   interrupts_deferred = 0;
 }
 
+void
 reset_sigio ()
 {
   unrequest_sigio ();
