@@ -1,5 +1,8 @@
 2005-01-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xmenu.c (create_and_show_popup_menu): Pass zero as button to
+	gtk_menu_popup if not for_click, so callbacks for the menu are called.
+
 	* gtkutil.c (xg_gtk_scroll_destroy, xg_create_scroll_bar)
 	(xg_tool_bar_callback, xg_tool_bar_help_callback)
 	(update_frame_tool_bar): Cast to EMACS_INT to avoid compiler
