@@ -1,5 +1,7 @@
 2000-12-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (syms_of_window): Doc fix.
+
 	* sound.c (vox_configure): Set volume for left and right channel.
 	(sound_cleanup): Return nil.
 

@@ -1,3 +1,7 @@
+2000-12-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* cus-start.el: Add entry for even-window-heights.
+
 2000-12-06  Miles Bader  <miles@gnu.org>
 
 	* faces.el (frame-set-background-mode): Avoid stomping on
