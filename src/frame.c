@@ -616,6 +616,11 @@ A frame may not be deleted if its minibuffer is used by other frames.")
       minibuf_window = selected_frame->minibuffer_window;
     }
 
+  /* Mark all the windows that used to be on FRAME as deleted, and then
+     remove the reference to them.  */
+  delete_all_subwindows (XWINDOW (f->root_window));
+  f->root_window = Qnil;
+
   Vframe_list = Fdelq (frame, Vframe_list);
   f->visible = 0;
   displ = f->display;
