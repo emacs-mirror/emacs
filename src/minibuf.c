@@ -1447,14 +1447,17 @@ See `try-completion' and `all-completions' for more details
 
 If REQUIRE-MATCH is non-nil, the user is not allowed to exit unless
  the input is (or completes to) an element of TABLE or is null.
- If it is also not t, Return does not exit if it does non-null completion.
+ If it is also not t, typing RET does not exit if it does non-null completion.
 If the input is null, `completing-read' returns an empty string,
  regardless of the value of REQUIRE-MATCH.
 
 If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.
   If it is (STRING . POSITION), the initial input
   is STRING, but point is placed POSITION characters into the string.
-  This feature is deprecated--it is best to pass nil for INITIAL.
+  This feature is deprecated--it is best to pass nil for INITIAL-INPUT
+  and supply the default value DEF instead.  The user can yank the
+  default value into the minibuffer easily using \\[next-history-element].
+  
 HIST, if non-nil, specifies a history list
   and optionally the initial position in the list.
   It can be a symbol, which is the history list variable to use,
