@@ -65,8 +65,10 @@ with the contents of the startup message.")
 (defconst inhibit-startup-echo-area-message nil
   "*Non-nil inhibits the initial startup echo area message.
 Inhibition takes effect only if your `.emacs' file contains
-a line of the form
+a line of this form:
  (setq inhibit-startup-echo-area-message \"YOUR-USER-NAME\")
+If your `.emacs' file is byte-compiled, use the following form instead:
+ (eval '(setq inhibit-startup-echo-area-message \"YOUR-USER-NAME\"))
 Thus, someone else using a copy of your `.emacs' file will see
 the startup message unless he personally acts to inhibit it.")
 
