@@ -1761,7 +1761,13 @@ From a program, any arguments are passed to the `rcs2log' script."
 				(substring f 0 (match-end 1))
 			      f)))
 			 (directory-files RCS nil "...\\|^[^.]\\|^.[^.]")))))))
-  (let ((odefault default-directory))
+  (let ((odefault default-directory)
+	(full-name (if (boundp 'add-log-full-name)
+		       add-log-full-name
+		     (user-full-name)))
+	(mailing-address (if (boundp 'add-log-mailing-address)
+			     add-log-mailing-address
+			   user-mail-address)))
     (find-file-other-window (find-change-log))
     (barf-if-buffer-read-only)
     (vc-buffer-sync)
@@ -1775,9 +1781,9 @@ From a program, any arguments are passed to the `rcs2log' script."
 				  "-u"
 				  (concat (user-login-name)
 					  "\t"
-					  (user-full-name)
+					  full-name
 					  "\t"
-					  user-mail-address)
+					  mailing-address)
 				  (mapcar (function
 					   (lambda (f)
 					     (file-relative-name
