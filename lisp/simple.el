@@ -477,7 +477,7 @@ the minibuffer, then read and evaluate the result."
 				       read-expression-map t
 				       '(command-history . 1))))
     ;; If command was added to command-history as a string,
-    ;; get rid of that.  We want only evallable expressions there.
+    ;; get rid of that.  We want only evaluable expressions there.
     (if (stringp (car command-history))
 	(setq command-history (cdr command-history)))
 
@@ -510,7 +510,7 @@ to get different commands to edit and resubmit."
 		   (cons 'command-history arg))))
 
 	  ;; If command was added to command-history as a string,
-	  ;; get rid of that.  We want only evallable expressions there.
+	  ;; get rid of that.  We want only evaluable expressions there.
 	  (if (stringp (car command-history))
 	      (setq command-history (cdr command-history)))
 
@@ -794,7 +794,7 @@ In either case, the output is inserted after point (leaving mark after it)."
       (if (string-match "[ \t]*&[ \t]*$" command)
 	  ;; Command ending with ampersand means asynchronous.
 	  (let ((buffer (get-buffer-create
-			 (or output-buffer "*Asynch Shell Command*")))
+			 (or output-buffer "*Async Shell Command*")))
 		(directory default-directory)
 		proc)
 	    ;; Remove the ampersand.
@@ -2831,7 +2831,7 @@ Go to the window from which completion was requested."
 
 (defun next-completion (n)
   "Move to the next item in the completion list.
-WIth prefix argument N, move N items (negative N means move backward)."
+With prefix argument N, move N items (negative N means move backward)."
   (interactive "p")
   (while (and (> n 0) (not (eobp)))
     (let ((prop (get-text-property (point) 'mouse-face))
