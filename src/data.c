@@ -30,6 +30,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "syssignal.h"
 
+#if 0 /* That is untrue--XINT is used below, and it uses INTBITS.
+	 What in the world is values.h, anyway?  */
+#ifdef MSDOS
+/* These are redefined in values.h and not used here */
+#undef INTBITS
+#undef LONGBITS
+#undef SHORTBITS
+#endif
+#endif
+
 #ifdef LISP_FLOAT_TYPE
 
 #ifdef STDC_HEADERS
@@ -1791,7 +1801,7 @@ Both X and Y must be numbers or markers.")
       if (f2 == 0)
 	Fsignal (Qarith_error, Qnil);
 
-#if defined (USG) || defined (sun) || defined (ultrix) || defined (hpux)
+#if defined (USG) || defined (sun) || defined (ultrix) || defined (hpux) || defined (MSDOS)
       f1 = fmod (f1, f2);
 #else
       f1 = drem (f1, f2);
