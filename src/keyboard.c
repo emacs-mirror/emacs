@@ -1354,8 +1354,12 @@ command_loop_1 ()
 	 cancel_echoing, and
 	 3) we want to leave this_command_key_count non-zero, so that
 	 read_char will realize that it is re-reading a character, and
-	 not echo it a second time.  */
-      if (NILP (current_kboard->Vprefix_arg))
+	 not echo it a second time.
+
+	 If the command didn't actually create a prefix arg,
+	 but is merely a frame event that is transparent to prefix args,
+	 then the above doesn't apply.  */
+      if (NILP (current_kboard->Vprefix_arg) || CONSP (last_command_char))
 	{
 	  current_kboard->Vlast_command = this_command;
 	  cancel_echoing ();
@@ -4356,36 +4360,30 @@ menu_bar_items (old)
   {
     Lisp_Object *tmaps;
 
-    /* Should overriding-local-map apply, here?  */
+    /* Should overriding-terminal-local-map and overriding-local-map apply?  */
     if (!NILP (Voverriding_local_map_menu_flag))
       {
-	if (NILP (Voverriding_local_map))
-	  {
-	    /* Yes, and it is nil.  Use just global map.  */
-	    nmaps = 1;
-	    maps = (Lisp_Object *) alloca (nmaps * sizeof (maps[0]));
-	  }
-	else
-	  {
-	    /* Yes, and it is non-nil.  Use it and the global map.  */
-	    nmaps = 2;
-	    maps = (Lisp_Object *) alloca (nmaps * sizeof (maps[0]));
-	    maps[0] = Voverriding_local_map;
-	  }
+	/* Yes, use them (if non-nil) as well as the global map.  */
+	maps = (Lisp_Object *) alloca (3 * sizeof (maps[0]));
+	nmaps = 0;
+	if (!NILP (current_kboard->Voverriding_terminal_local_map))
+	  maps[nmaps++] = current_kboard->Voverriding_terminal_local_map;
+	if (!NILP (Voverriding_local_map))
+	  maps[nmaps++] = Voverriding_local_map;
       }
     else
       {
 	/* No, so use major and minor mode keymaps.  */
-	nmaps = current_minor_maps (NULL, &tmaps) + 2;
-	maps = (Lisp_Object *) alloca (nmaps * sizeof (maps[0]));
-	bcopy (tmaps, maps, (nmaps - 2) * sizeof (maps[0]));
+	nmaps = current_minor_maps (NULL, &tmaps);
+	maps = (Lisp_Object *) alloca ((nmaps + 2) * sizeof (maps[0]));
+	bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
 #ifdef USE_TEXT_PROPERTIES
-	maps[nmaps-2] = get_local_map (PT, current_buffer);
+	maps[nmaps++] = get_local_map (PT, current_buffer);
 #else
-	maps[nmaps-2] = current_buffer->keymap;
+	maps[nmaps++] = current_buffer->keymap;
 #endif
       }
-    maps[nmaps-1] = current_global_map;
+    maps[nmaps++] = current_global_map;
   }
 
   /* Look up in each map the dummy prefix key `menu-bar'.  */
@@ -5155,34 +5153,38 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   {
     Lisp_Object *maps;
 
-    if (!NILP (Voverriding_local_map))
+    if (!NILP (current_kboard->Voverriding_terminal_local_map)
+	|| !NILP (Voverriding_local_map))
       {
-	nmaps = 2;
-	if (nmaps > nmaps_allocated)
+	if (3 > nmaps_allocated)
 	  {
-	    submaps = (Lisp_Object *) alloca (nmaps * sizeof (submaps[0]));
-	    defs    = (Lisp_Object *) alloca (nmaps * sizeof (defs[0]));
-	    nmaps_allocated = nmaps;
+	    submaps = (Lisp_Object *) alloca (3 * sizeof (submaps[0]));
+	    defs    = (Lisp_Object *) alloca (3 * sizeof (defs[0]));
+	    nmaps_allocated = 3;
 	  }
-	submaps[0] = Voverriding_local_map;
+	nmaps = 0;
+	if (!NILP (current_kboard->Voverriding_terminal_local_map))
+	  submaps[nmaps++] = current_kboard->Voverriding_terminal_local_map;
+	if (!NILP (Voverriding_local_map))
+	  submaps[nmaps++] = Voverriding_local_map;
       }
     else
       {
-	nmaps = current_minor_maps (0, &maps) + 2;
-	if (nmaps > nmaps_allocated)
+	nmaps = current_minor_maps (0, &maps);
+	if (nmaps + 2 > nmaps_allocated)
 	  {
-	    submaps = (Lisp_Object *) alloca (nmaps * sizeof (submaps[0]));
-	    defs    = (Lisp_Object *) alloca (nmaps * sizeof (defs[0]));
-	    nmaps_allocated = nmaps;
+	    submaps = (Lisp_Object *) alloca ((nmaps+2) * sizeof (submaps[0]));
+	    defs    = (Lisp_Object *) alloca ((nmaps+2) * sizeof (defs[0]));
+	    nmaps_allocated = nmaps + 2;
 	  }
-	bcopy (maps, submaps, (nmaps - 2) * sizeof (submaps[0]));
+	bcopy (maps, submaps, nmaps * sizeof (submaps[0]));
 #ifdef USE_TEXT_PROPERTIES
-	submaps[nmaps-2] = orig_local_map;
+	submaps[nmaps++] = orig_local_map;
 #else
-	submaps[nmaps-2] = current_buffer->keymap;
+	submaps[nmaps++] = current_buffer->keymap;
 #endif
       }
-    submaps[nmaps-1] = current_global_map;
+    submaps[nmaps++] = current_global_map;
   }
 
   /* Find an accurate initial value for first_binding.  */
@@ -6650,6 +6652,7 @@ void
 init_kboard (kb)
      KBOARD *kb;
 {
+  kb->Voverriding_terminal_local_map = Qnil;
   kb->Vlast_command = Qnil;
   kb->Vprefix_arg = Qnil;
   kb->kbd_queue = Qnil;
@@ -7139,6 +7142,12 @@ implementing hook functions that alter the set of hook functions.");
     "List of menu bar items to move to the end of the menu bar.\n\
 The elements of the list are event types that may have menu bar bindings.");
   Vmenu_bar_final_items = Qnil;
+
+  DEFVAR_KBOARD ("overriding-terminal-local-map",
+		 Voverriding_terminal_local_map,
+    "Keymap that overrides all other local keymaps.\n\
+If this variable is non-nil, it is used as a keymap instead of the\n\
+buffer's local map, and the minor mode keymaps and text property keymaps.");
 
   DEFVAR_LISP ("overriding-local-map", &Voverriding_local_map,
     "Keymap that overrides all other local keymaps.\n\
