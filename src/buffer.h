@@ -389,6 +389,12 @@ struct buffer
 
     /* Truename of the visited file, or nil.  */
     Lisp_Object file_truename;
+
+    /* Invisibility spec of this buffer.
+       t => any non-nil `invisible' property means invisible.
+       A list => `invisible' property means invisible
+                 if it is memq in that list.  */
+    Lisp_Object invisibility_spec;
   };
 
 /* This points to the current buffer.  */
