@@ -577,12 +577,14 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   (save-excursion
     (goto-char beg)
     (while (< (point) end)
-      (if (dired-move-to-filename)
-	  (put-text-property (point)
-			     (save-excursion
-			       (dired-move-to-end-of-filename)
-			       (point))
-			     'mouse-face 'highlight))
+      (condition-case nil
+	  (if (dired-move-to-filename)
+	      (put-text-property (point)
+				 (save-excursion
+				   (dired-move-to-end-of-filename)
+				   (point))
+				 'mouse-face 'highlight))
+	(error nil))
       (forward-line 1))))
 
 (defun dired-insert-headerline (dir);; also used by dired-insert-subdir
@@ -1588,8 +1590,10 @@ Optional argument means return a file name relative to `default-directory'."
 
 ;; Deleting files
 
-(defun dired-do-flagged-delete ()
-  "In dired, delete the files flagged for deletion."
+(defun dired-do-flagged-delete (&optional nomessage)
+  "In dired, delete the files flagged for deletion.
+If NOMESSAGE is non-nil, we don't display any message
+if there are no flagged files."
   (interactive)
   (let* ((dired-marker-char dired-del-marker)
 	 (regexp (dired-marker-regexp))
@@ -1601,7 +1605,8 @@ Optional argument means return a file name relative to `default-directory'."
 	 (dired-map-over-marks (cons (dired-get-filename) (point))
 			       nil)
 	 nil)
-      (message "(No deletions requested)"))))
+      (or nomessage
+	  (message "(No deletions requested)")))))
 
 (defun dired-do-delete (&optional arg)
   "Delete all marked (or next ARG) files."
