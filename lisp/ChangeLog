@@ -4,7 +4,7 @@
 
 2002-12-05  Edward M. Reingold  <reingold@emr.cs.iit.edu>
 
-	* solar.el (solar-atn2): Give correct quadrant for arctan.
+	* calendar/solar.el (solar-atn2): Give correct quadrant for arctan.
 
 2002-12-05  Kenichi Handa  <handa@m17n.org>
 
@@ -171,7 +171,7 @@
 	toolbar/reply-to.pbm, toolbar/reply-to.xpm: New toolbar images for
 	MH-E version 7.0.
 
-2002-11-29   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-29  Markus Rost  <rost@math.ohio-state.edu>
 
 	* mwheel.el (mouse-wheel-inhibit-click-time): Fix custom type.
 
@@ -271,7 +271,7 @@
 	* gdb-ui.el: Major re-organisation. Simplify legacy gdba
 	code to allow only one gdb process.
 
-2002-11-23   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-23  Markus Rost  <rost@math.ohio-state.edu>
 
 	* scroll-all.el (scroll-all-mode): Move arg LIGHTER to the right
 	place.  Add groups.
