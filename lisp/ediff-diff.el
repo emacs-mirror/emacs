@@ -117,7 +117,7 @@ It must return code 0, if its arguments are identical files."
   :group 'ediff-diff)
 
 (defcustom ediff-cmp-options nil
-  "*Options to pass to `ediff-cmp-program'.  If GNUS diff is used as
+  "*Options to pass to `ediff-cmp-program'.  If GNU diff is used as
 `ediff-cmp-program', then the most useful options are `-I' RE, to
 ignore changes whose lines all match RE."
   :type '(repeat string)
