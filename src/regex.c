@@ -46,6 +46,19 @@
 # include <sys/types.h>
 #endif
 
+/* Whether to use ISO C Amendment 1 wide char functions.
+   Those should not be used for Emacs since it uses its own.  */
+#define WIDE_CHAR_SUPPORT \
+  (HAVE_WCTYPE_H && HAVE_WCHAR_H && HAVE_BTOWC && !emacs)
+
+/* For platform which support the ISO C amendement 1 functionality we
+   support user defined character classes.  */
+#if defined _LIBC || WIDE_CHAR_SUPPORT
+/* Solaris 2.5 has a bug: <wchar.h> must be included before <wctype.h>.  */
+# include <wchar.h>
+# include <wctype.h>
+#endif
+
 #ifdef _LIBC
 /* We have to keep the namespace clean.  */
 # define regfree(preg) __regfree (preg)
@@ -67,6 +80,11 @@
 # define re_search_2(bufp, st1, s1, st2, s2, startpos, range, regs, stop) \
 	__re_search_2 (bufp, st1, s1, st2, s2, startpos, range, regs, stop)
 # define re_compile_fastmap(bufp) __re_compile_fastmap (bufp)
+
+/* Make sure we call libc's function even if the user overrides them.  */
+# define btowc __btowc
+# define iswctype __iswctype
+# define wctype __wctype
 
 # define WEAK_ALIAS(a,b) weak_alias (a, b)
 
@@ -253,7 +271,7 @@ enum syntaxcode { Swhitespace = 0, Sword = 1 };
 		    ? (c) > ' ' && !((c) >= 0177 && (c) <= 0237)	\
 		    : 1)
 
-# define ISPRINT(c) (SINGLE_BYTE_CHAR_P (c)		\
+# define ISPRINT(c) (SINGLE_BYTE_CHAR_P (c)				\
 		    ? (c) >= ' ' && !((c) >= 0177 && (c) <= 0237)	\
 		    : 1)
 
@@ -1858,21 +1876,14 @@ struct range_table_work_area
 #define SET_RANGE_TABLE_WORK_AREA_BIT(work_area, bit)		\
   (work_area).bits |= (bit)
 
-/* These bits represent the various character classes such as [:alnum:]
-   in a charset's range table.  */
-#define BIT_ALNUM 0x1
-#define BIT_ALPHA 0x2
-#define BIT_WORD  0x4
-#define BIT_ASCII 0x8
-#define BIT_NONASCII 0x10
-#define BIT_GRAPH 0x20
-#define BIT_LOWER 0x40
-#define BIT_PRINT 0x80
-#define BIT_PUNCT 0x100
-#define BIT_SPACE 0x200
-#define BIT_UPPER 0x400
-#define BIT_UNIBYTE 0x800
-#define BIT_MULTIBYTE 0x1000
+/* Bits used to implement the multibyte-part of the various character classes
+   such as [:alnum:] in a charset's range table.  */
+#define BIT_WORD	0x1
+#define BIT_LOWER	0x2
+#define BIT_PUNCT	0x4
+#define BIT_SPACE	0x8
+#define BIT_UPPER	0x10
+#define BIT_MULTIBYTE	0x20
 
 /* Set a range (RANGE_START, RANGE_END) to WORK_AREA.  */
 #define SET_RANGE_TABLE_WORK_AREA(work_area, range_start, range_end)	\
@@ -1918,18 +1929,110 @@ struct range_table_work_area
        }								\
     } while (0)
 
-#define CHAR_CLASS_MAX_LENGTH  6 /* Namely, `xdigit'.  */
+#if defined _LIBC || WIDE_CHAR_SUPPORT
+/* The GNU C library provides support for user-defined character classes
+   and the functions from ISO C amendement 1.  */
+# ifdef CHARCLASS_NAME_MAX
+#  define CHAR_CLASS_MAX_LENGTH CHARCLASS_NAME_MAX
+# else
+/* This shouldn't happen but some implementation might still have this
+   problem.  Use a reasonable default value.  */
+#  define CHAR_CLASS_MAX_LENGTH 256
+# endif
+typedef wctype_t re_wctype_t;
+# define re_wctype wctype
+# define re_iswctype iswctype
+# define re_wctype_to_bit(cc) 0
+#else
+# define CHAR_CLASS_MAX_LENGTH  9 /* Namely, `multibyte'.  */
+# define btowc(c) c
 
-#define IS_CHAR_CLASS(string)						\
-   (STREQ (string, "alpha") || STREQ (string, "upper")			\
-    || STREQ (string, "lower") || STREQ (string, "digit")		\
-    || STREQ (string, "alnum") || STREQ (string, "xdigit")		\
-    || STREQ (string, "space") || STREQ (string, "print")		\
-    || STREQ (string, "punct") || STREQ (string, "graph")		\
-    || STREQ (string, "cntrl") || STREQ (string, "blank")		\
-    || STREQ (string, "word")						\
-    || STREQ (string, "ascii") || STREQ (string, "nonascii")		\
-    || STREQ (string, "unibyte") || STREQ (string, "multibyte"))
+/* Character classes' indices.  */
+typedef enum { RECC_ERROR = 0,
+	       RECC_ALNUM, RECC_ALPHA, RECC_WORD,
+	       RECC_GRAPH, RECC_PRINT,
+	       RECC_LOWER, RECC_UPPER,
+	       RECC_PUNCT, RECC_CNTRL,
+	       RECC_DIGIT, RECC_XDIGIT,
+	       RECC_BLANK, RECC_SPACE,
+	       RECC_MULTIBYTE, RECC_NONASCII,
+	       RECC_ASCII, RECC_UNIBYTE
+} re_wctype_t;
+
+/* Map a string to the char class it names (if any).  */
+static re_wctype_t
+re_wctype (string)
+     unsigned char *string;
+{
+  if      (STREQ (string, "alnum"))	return RECC_ALNUM;
+  else if (STREQ (string, "alpha"))	return RECC_ALPHA;
+  else if (STREQ (string, "word"))	return RECC_WORD;
+  else if (STREQ (string, "ascii"))	return RECC_ASCII;
+  else if (STREQ (string, "nonascii"))	return RECC_NONASCII;
+  else if (STREQ (string, "graph"))	return RECC_GRAPH;
+  else if (STREQ (string, "lower"))	return RECC_LOWER;
+  else if (STREQ (string, "print"))	return RECC_PRINT;
+  else if (STREQ (string, "punct"))	return RECC_PUNCT;
+  else if (STREQ (string, "space"))	return RECC_SPACE;
+  else if (STREQ (string, "upper"))	return RECC_UPPER;
+  else if (STREQ (string, "unibyte"))	return RECC_UNIBYTE;
+  else if (STREQ (string, "multibyte"))	return RECC_MULTIBYTE;
+  else if (STREQ (string, "digit"))	return RECC_DIGIT;
+  else if (STREQ (string, "xdigit"))	return RECC_XDIGIT;
+  else if (STREQ (string, "cntrl"))	return RECC_CNTRL;
+  else if (STREQ (string, "blank"))	return RECC_BLANK;
+  else return 0;
+}
+
+/* True iff CH is in the char class CC.  */
+static boolean
+re_iswctype (ch, cc)
+     int ch;
+     re_wctype_t cc;
+{
+  switch (cc)
+    {
+    case RECC_ALNUM: return ISALNUM (ch);
+    case RECC_ALPHA: return ISALPHA (ch);
+    case RECC_BLANK: return ISBLANK (ch);
+    case RECC_CNTRL: return ISCNTRL (ch);
+    case RECC_DIGIT: return ISDIGIT (ch);
+    case RECC_GRAPH: return ISGRAPH (ch);
+    case RECC_LOWER: return ISLOWER (ch);
+    case RECC_PRINT: return ISPRINT (ch);
+    case RECC_PUNCT: return ISPUNCT (ch);
+    case RECC_SPACE: return ISSPACE (ch);
+    case RECC_UPPER: return ISUPPER (ch);
+    case RECC_XDIGIT: return ISXDIGIT (ch);
+    case RECC_ASCII: return IS_REAL_ASCII (ch);
+    case RECC_NONASCII: return !IS_REAL_ASCII (ch);
+    case RECC_UNIBYTE: return ISUNIBYTE (ch);
+    case RECC_MULTIBYTE: return !ISUNIBYTE (ch);
+    case RECC_WORD: return ISWORD (ch);
+    case RECC_ERROR: return false;
+    }
+}
+
+/* Return a bit-pattern to use in the range-table bits to match multibyte
+   chars of class CC.  */
+static int
+re_wctype_to_bit (cc)
+     re_wctype_t cc;
+{
+  switch (cc)
+    {
+    case RECC_NONASCII: case RECC_PRINT: case RECC_GRAPH:
+    case RECC_MULTIBYTE: return BIT_MULTIBYTE;
+    case RECC_ALPHA: case RECC_ALNUM: case RECC_WORD: return BIT_WORD;
+    case RECC_LOWER: return BIT_LOWER;
+    case RECC_UPPER: return BIT_UPPER;
+    case RECC_PUNCT: return BIT_PUNCT;
+    case RECC_SPACE: return BIT_SPACE;
+    case RECC_ASCII: case RECC_DIGIT: case RECC_XDIGIT: case RECC_CNTRL:
+    case RECC_BLANK: case RECC_UNIBYTE: case RECC_ERROR: return 0;
+    }
+}
+#endif
 
 /* QUIT is only used on NTemacs.  */
 #if !defined WINDOWSNT || !defined emacs || !defined QUIT
@@ -2405,7 +2508,7 @@ regex_compile (pattern, size, syntax, bufp)
 		    syntax & RE_CHAR_CLASSES && c == '[' && *p == ':')
 		  {
 		    /* Leave room for the null.	 */
-		    char str[CHAR_CLASS_MAX_LENGTH + 1];
+		    unsigned char str[CHAR_CLASS_MAX_LENGTH + 1];
 		    const unsigned char *class_beg;
 
 		    PATFETCH (c);
@@ -2417,11 +2520,14 @@ regex_compile (pattern, size, syntax, bufp)
 
 		    for (;;)
 		      {
-			PATFETCH (c);
-			if (c == ':' || c == ']' || p == pend
-			    || c1 == CHAR_CLASS_MAX_LENGTH)
-			  break;
-			str[c1++] = c;
+		        PATFETCH (c);
+		        if ((c == ':' && *p == ']') || p == pend)
+		          break;
+			if (c1 < CHAR_CLASS_MAX_LENGTH)
+			  str[c1++] = c;
+			else
+			  /* This is in any case an invalid class name.  */
+			  str[0] = '\0';
 		      }
 		    str[c1] = '\0';
 
@@ -2432,89 +2538,34 @@ regex_compile (pattern, size, syntax, bufp)
 		    if (c == ':' && *p == ']')
 		      {
 			int ch;
-			boolean is_alnum = STREQ (str, "alnum");
-			boolean is_alpha = STREQ (str, "alpha");
-			boolean is_ascii = STREQ (str, "ascii");
-			boolean is_blank = STREQ (str, "blank");
-			boolean is_cntrl = STREQ (str, "cntrl");
-			boolean is_digit = STREQ (str, "digit");
-			boolean is_graph = STREQ (str, "graph");
-			boolean is_lower = STREQ (str, "lower");
-			boolean is_multibyte = STREQ (str, "multibyte");
-			boolean is_nonascii = STREQ (str, "nonascii");
-			boolean is_print = STREQ (str, "print");
-			boolean is_punct = STREQ (str, "punct");
-			boolean is_space = STREQ (str, "space");
-			boolean is_unibyte = STREQ (str, "unibyte");
-			boolean is_upper = STREQ (str, "upper");
-			boolean is_word = STREQ (str, "word");
-			boolean is_xdigit = STREQ (str, "xdigit");
+			re_wctype_t cc;
 
-			if (!IS_CHAR_CLASS (str))
+			cc = re_wctype (str);
+
+			if (cc == 0)
 			  FREE_STACK_RETURN (REG_ECTYPE);
 
-			/* Throw away the ] at the end of the character
-			   class.  */
-			PATFETCH (c);
+                        /* Throw away the ] at the end of the character
+                           class.  */
+                        PATFETCH (c);
 
-			if (p == pend) FREE_STACK_RETURN (REG_EBRACK);
+                        if (p == pend) FREE_STACK_RETURN (REG_EBRACK);
 
 			/* Most character classes in a multibyte match
 			   just set a flag.  Exceptions are is_blank,
 			   is_digit, is_cntrl, and is_xdigit, since
 			   they can only match ASCII characters.  We
-			   don't need to handle them for multibyte.  */
+			   don't need to handle them for multibyte.
+			   They are distinguished by a negative wctype.  */
 
 			if (multibyte)
-			  {
-			    int bit = 0;
+			  SET_RANGE_TABLE_WORK_AREA_BIT (range_table_work,
+							 re_wctype_to_bit (cc));
 
-			    if (is_alnum) bit = BIT_ALNUM;
-			    if (is_alpha) bit = BIT_ALPHA;
-			    if (is_ascii) bit = BIT_ASCII;
-			    if (is_graph) bit = BIT_GRAPH;
-			    if (is_lower) bit = BIT_LOWER;
-			    if (is_multibyte) bit = BIT_MULTIBYTE;
-			    if (is_nonascii) bit = BIT_NONASCII;
-			    if (is_print) bit = BIT_PRINT;
-			    if (is_punct) bit = BIT_PUNCT;
-			    if (is_space) bit = BIT_SPACE;
-			    if (is_unibyte) bit = BIT_UNIBYTE;
-			    if (is_upper) bit = BIT_UPPER;
-			    if (is_word) bit = BIT_WORD;
-			    if (bit)
-			      SET_RANGE_TABLE_WORK_AREA_BIT (range_table_work,
-							     bit);
-			  }
-
-			/* Handle character classes for ASCII characters.  */
-			for (ch = 0; ch < 1 << BYTEWIDTH; ch++)
+                        for (ch = 0; ch < 1 << BYTEWIDTH; ++ch)
 			  {
 			    int translated = TRANSLATE (ch);
-			    /* This was split into 3 if's to
-			       avoid an arbitrary limit in some compiler.  */
-			    if (   (is_alnum  && ISALNUM (ch))
-				|| (is_alpha  && ISALPHA (ch))
-				|| (is_blank  && ISBLANK (ch))
-				|| (is_cntrl  && ISCNTRL (ch)))
-			      SET_LIST_BIT (translated);
-			    if (   (is_digit  && ISDIGIT (ch))
-				|| (is_graph  && ISGRAPH (ch))
-				|| (is_lower  && ISLOWER (ch))
-				|| (is_print  && ISPRINT (ch)))
-			      SET_LIST_BIT (translated);
-			    if (   (is_punct  && ISPUNCT (ch))
-				|| (is_space  && ISSPACE (ch))
-				|| (is_upper  && ISUPPER (ch))
-				|| (is_xdigit && ISXDIGIT (ch)))
-			      SET_LIST_BIT (translated);
-			    if (   (is_ascii  && IS_REAL_ASCII (ch))
-				|| (is_nonascii && !IS_REAL_ASCII (ch))
-				|| (is_unibyte && ISUNIBYTE (ch))
-				|| (is_multibyte && !ISUNIBYTE (ch)))
-			      SET_LIST_BIT (translated);
-
-			    if (   (is_word   && ISWORD (ch)))
+			    if (re_iswctype (btowc (ch), cc))
 			      SET_LIST_BIT (translated);
 			  }
 
@@ -4972,17 +5023,10 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      {
 		int class_bits = CHARSET_RANGE_TABLE_BITS (&p[-1]);
 
-		if (  (class_bits & BIT_ALNUM && ISALNUM (c))
-		    | (class_bits & BIT_ALPHA && ISALPHA (c))
-		    | (class_bits & BIT_ASCII && IS_REAL_ASCII (c))
-		    | (class_bits & BIT_GRAPH && ISGRAPH (c))
-		    | (class_bits & BIT_LOWER && ISLOWER (c))
-		    | (class_bits & BIT_MULTIBYTE && !ISUNIBYTE (c))
-		    | (class_bits & BIT_NONASCII && !IS_REAL_ASCII (c))
-		    | (class_bits & BIT_PRINT && ISPRINT (c))
+		if (  (class_bits & BIT_LOWER && ISLOWER (c))
+		    | (class_bits & BIT_MULTIBYTE)
 		    | (class_bits & BIT_PUNCT && ISPUNCT (c))
 		    | (class_bits & BIT_SPACE && ISSPACE (c))
-		    | (class_bits & BIT_UNIBYTE && ISUNIBYTE (c))
 		    | (class_bits & BIT_UPPER && ISUPPER (c))
 		    | (class_bits & BIT_WORD  && ISWORD (c)))
 		  not = !not;

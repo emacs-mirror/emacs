@@ -1,3 +1,16 @@
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (WIDE_CHAR_SUPPORT): New macro.
+	(btowc, iswctype, wctype) [_LIBC]: Redefine to __<fun>.
+	(BIT_ALPHA, BIT_ALNUM, BIT_ASCII, BIT_NONASCII, BIT_GRAPH, BIT_PRINT)
+	(BIT_UNIBYTE): Remove.
+	(re_match_2_internal): Delete corresponding code and streamline the
+	BIT_MULTIBYTE case to not bother checking ISUNIBYTE.
+	(CHAR_CLASS_MAX_LENGTH) [!WIDE_CHAR_SUPPORT]: Set to 9 rather than 6.
+	(re_wctype_t): New type.
+	(re_wctype, re_iswctype, re_wctype_to_bit): New functions.
+	(regex_compile): Use them and fix handling of overly long char classes.
+
 2000-09-03  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in: Change to DOS line endings.
