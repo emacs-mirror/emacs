@@ -35,8 +35,8 @@ EXFUN (Fwhere_is_internal, 4);
 extern Lisp_Object access_keymap P_ ((Lisp_Object, Lisp_Object, int, int, int));
 extern Lisp_Object get_keyelt P_ ((Lisp_Object, int));
 extern Lisp_Object get_keymap P_ ((Lisp_Object, int, int));
-extern void describe_vector P_ ((Lisp_Object, Lisp_Object,
-				 void (*) (Lisp_Object), int,
+extern void describe_vector P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+				 void (*) (Lisp_Object, Lisp_Object), int,
 				 Lisp_Object, Lisp_Object, int *, int));
 extern void describe_map_tree P_ ((Lisp_Object, int, Lisp_Object, Lisp_Object,
 				   char *, int, int, int));
