@@ -647,17 +647,10 @@ the user has asked to read the auto-save file.
 This normal hook is run by @code{revert-buffer} before actually
 inserting the modified contents---but only if
 @code{revert-buffer-function} is @code{nil}.
-
-Font Lock mode uses this hook to record that the buffer contents are no
-longer fontified.
 @end defvar
 
 @defvar after-revert-hook
 This normal hook is run by @code{revert-buffer} after actually inserting
 the modified contents---but only if @code{revert-buffer-function} is
 @code{nil}.
-
-Font Lock mode uses this hook to recompute the fonts for the updated
-buffer contents.
 @end defvar
-
