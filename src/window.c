@@ -307,8 +307,6 @@ NCOL should be zero or positive.")
 
   CHECK_NUMBER (ncol, 1);
   if (XINT (ncol) < 0) XSETFASTINT (ncol, 0);
-  if (XFASTINT (ncol) >= (1 << (SHORTBITS - 1)))
-    args_out_of_range (ncol, Qnil);
   w = decode_window (window);
   if (XINT (w->hscroll) != XINT (ncol))
     XBUFFER (w->buffer)->clip_changed = 1; /* Prevent redisplay shortcuts */
