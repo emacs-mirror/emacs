@@ -1,5 +1,5 @@
 /* Block-relocating memory allocator. 
-   Copyright (C) 1993, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1995, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -28,43 +28,25 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 #include "lisp.h"		/* Needed for VALBITS.  */
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#undef NULL
 
-/* The important properties of this type are that 1) it's a pointer, and
-   2) arithmetic on it should work as if the size of the object pointed
-   to has a size of 1.  */
-#if 0 /* Arithmetic on void* is a GCC extension.  */
-#ifdef __STDC__
-typedef void *POINTER;
-#else
-
-#ifdef	HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-typedef char *POINTER;
-
-#endif
-#endif /* 0 */
-
-/* Unconditionally use char * for this.  */
-typedef char *POINTER;
-
-typedef unsigned long SIZE;
+typedef POINTER_TYPE *POINTER;
+typedef size_t SIZE;
 
 /* Declared in dispnew.c, this version doesn't screw up if regions
    overlap.  */
+
 extern void safe_bcopy ();
 
 #ifdef DOUG_LEA_MALLOC
 #define M_TOP_PAD           -2 
 extern int mallopt ();
-#else
+#else /* not DOUG_LEA_MALLOC */
 extern int __malloc_extra_blocks;
-#endif
+#endif /* not DOUG_LEA_MALLOC */
 
 #else /* not emacs */
 
@@ -82,6 +64,7 @@ typedef void *POINTER;
 
 #endif	/* not emacs */
 
+
 #include "getpagesize.h"
 
 #define NIL ((POINTER) 0)
@@ -91,10 +74,13 @@ typedef void *POINTER;
    machines, the dumping procedure makes all static variables
    read-only.  On these machines, the word static is #defined to be
    the empty string, meaning that r_alloc_initialized becomes an
-   automatic variable, and loses its value each time Emacs is started up.  */
+   automatic variable, and loses its value each time Emacs is started
+   up.  */
+
 static int r_alloc_initialized = 0;
 
 static void r_alloc_init ();
+
 
 /* Declarations for working with the malloc, ralloc, and system breaks.  */
 
@@ -126,7 +112,12 @@ static int extra_bytes;
 #define MEM_ALIGN sizeof(double)
 #define MEM_ROUNDUP(addr) (((unsigned long int)(addr) + MEM_ALIGN - 1) \
 				   & ~(MEM_ALIGN - 1))
+
 
+/***********************************************************************
+		      Implementation using sbrk
+ ***********************************************************************/
+
 /* Data structures of heaps and blocs.  */
 
 /* The relocatable objects, or blocs, and the malloc data
@@ -934,6 +925,8 @@ r_alloc_sbrk (size)
   return address;
 }
 
+#ifndef REL_ALLOC_MMAP
+
 /* Allocate a relocatable bloc of storage of size SIZE.  A pointer to
    the data is returned in *PTR.  PTR is thus the address of some variable
    which will use the data area.
@@ -1110,59 +1103,6 @@ r_alloc_thaw ()
     }
 }
 
-
-/* The hook `malloc' uses for the function which gets more space
-   from the system.  */
-extern POINTER (*__morecore) ();
-
-/* Initialize various things for memory allocation.  */
-
-static void
-r_alloc_init ()
-{
-  if (r_alloc_initialized)
-    return;
-
-  r_alloc_initialized = 1;
-  real_morecore = __morecore;
-  __morecore = r_alloc_sbrk;
-
-  first_heap = last_heap = &heap_base;
-  first_heap->next = first_heap->prev = NIL_HEAP;
-  first_heap->start = first_heap->bloc_start
-    = virtual_break_value = break_value = (*real_morecore) (0);
-  if (break_value == NIL)
-    abort ();
-
-  page_size = PAGE;
-  extra_bytes = ROUNDUP (50000);
-
-#ifdef DOUG_LEA_MALLOC
-    mallopt (M_TOP_PAD, 64 * 4096);
-#else
-  /* Give GNU malloc's morecore some hysteresis
-     so that we move all the relocatable blocks much less often.  */
-  __malloc_extra_blocks = 64;
-#endif
-
-  first_heap->end = (POINTER) ROUNDUP (first_heap->start);
-
-  /* The extra call to real_morecore guarantees that the end of the
-     address space is a multiple of page_size, even if page_size is
-     not really the page size of the system running the binary in
-     which page_size is stored.  This allows a binary to be built on a
-     system with one page size and run on a system with a smaller page
-     size.  */
-  (*real_morecore) (first_heap->end - first_heap->start);
-
-  /* Clear the rest of the last page; this memory is in our address space
-     even though it is after the sbrk value.  */
-  /* Doubly true, with the additional call that explicitly adds the
-     rest of that page to the address space.  */
-  bzero (first_heap->start, first_heap->end - first_heap->start);
-  virtual_break_value = break_value = first_heap->bloc_start = first_heap->end;
-  use_relocatable_buffers = 1;
-}
 
 #if defined (emacs) && defined (DOUG_LEA_MALLOC)
 
@@ -1179,9 +1119,11 @@ r_alloc_reinit ()
       __morecore = r_alloc_sbrk;
     }
 }
-#endif
+
+#endif /* emacs && DOUG_LEA_MALLOC */
 
 #ifdef DEBUG
+
 #include <assert.h>
 
 void
@@ -1271,4 +1213,454 @@ r_alloc_check ()
   else
     assert (first_heap->bloc_start == break_value);
 }
+
 #endif /* DEBUG */
+
+#endif /* not REL_ALLOC_MMAP */
+
+
+/***********************************************************************
+		     Implementation based on mmap
+ ***********************************************************************/
+
+#ifdef REL_ALLOC_MMAP
+
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <stdio.h>
+#include <errno.h>
+
+/* Memory is allocated in regions which are mapped using mmap(2).
+   The current implementation let's the system select mapped
+   addresses;  we're not using MAP_FIXED in general, except when
+   trying to enlarge regions.
+
+   Each mapped region starts with a mmap_region structure, the user
+   area starts after that structure, aligned to MEM_ALIGN.
+
+	+-----------------------+
+	| struct mmap_info +	|
+	| padding		|
+	+-----------------------+
+	| user data		|
+	|			|
+	|			|
+	+-----------------------+  */
+
+struct mmap_region
+{
+  /* User-specified size.  */
+  size_t nbytes_specified;
+  
+  /* Number of bytes mapped */
+  size_t nbytes_mapped;
+
+  /* Pointer to the location holding the address of the memory
+     allocated with the mmap'd block.  The variable actually points
+     after this structure.  */
+  POINTER_TYPE **var;
+
+  /* Next and previous in list of all mmap'd regions.  */
+  struct mmap_region *next, *prev;
+};
+
+/* Doubly-linked list of mmap'd regions.  */
+
+static struct mmap_region *mmap_regions;
+
+/* Temporary storage for mmap_set_vars, see there.  */
+
+static struct mmap_region *mmap_regions_1;
+
+/* Value is X rounded up to the next multiple of N.  */
+
+#define ROUND(X, N)	(((X) + (N) - 1) / (N) * (N))
+
+/* Size of mmap_region structure plus padding.  */
+
+#define MMAP_REGION_STRUCT_SIZE	\
+     ROUND (sizeof (struct mmap_region), MEM_ALIGN)
+
+/* Given a pointer P to the start of the user-visible part of a mapped
+   region, return a pointer to the start of the region.  */
+
+#define MMAP_REGION(P) \
+     ((struct mmap_region *) ((char *) (P) - MMAP_REGION_STRUCT_SIZE))
+
+/* Given a pointer P to the start of a mapped region, return a pointer
+   to the start of the user-visible part of the region.  */
+
+#define MMAP_USER_AREA(P) \
+     ((POINTER_TYPE *) ((char *) (P) + MMAP_REGION_STRUCT_SIZE))
+
+/* Function prototypes.  */
+
+static int mmap_free P_ ((struct mmap_region *));
+static int mmap_enlarge P_ ((struct mmap_region *, int));
+static struct mmap_region *mmap_find P_ ((POINTER_TYPE *, POINTER_TYPE *));
+POINTER_TYPE *r_alloc P_ ((POINTER_TYPE **, size_t));
+POINTER_TYPE *r_re_alloc P_ ((POINTER_TYPE **, size_t));
+void r_alloc_free P_ ((POINTER_TYPE **ptr));
+
+
+/* Return a region overlapping with the address range START...END, or
+   null if none.  */
+
+static struct mmap_region *
+mmap_find (start, end)
+     POINTER_TYPE *start, *end;
+{
+  struct mmap_region *r;
+  char *s = (char *) start, *e = (char *) end;
+  
+  for (r = mmap_regions; r; r = r->next)
+    {
+      char *rstart = (char *) r;
+      char *rend   = rstart + r->nbytes_mapped;
+
+      if ((s >= rstart && s < rend)
+	  || (e >= rstart && e < rend)
+	  || (rstart >= s && rstart < e)
+	  || (rend >= s && rend < e))
+	break;
+    }
+
+  return r;
+}
+
+
+/* Unmap a region.  P is a pointer to the start of the user-araa of
+   the region.  Value is non-zero if successful.  */
+
+static int
+mmap_free (r)
+     struct mmap_region *r;
+{
+  if (r->next)
+    r->next->prev = r->prev;
+  if (r->prev)
+    r->prev->next = r->next;
+  else
+    mmap_regions = r->next;
+  
+  if (munmap (r, r->nbytes_mapped) == -1)
+    {
+      fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
+      return 0;
+    }
+  
+  return 1;
+}
+
+
+/* Enlarge region R by NPAGES pages.  NPAGES < 0 means shrink R.
+   Value is non-zero if successful.  */
+
+static int
+mmap_enlarge (r, npages)
+     struct mmap_region *r;
+     int npages;
+{
+  char *region_end = (char *) r + r->nbytes_mapped;
+  size_t nbytes;
+  int success = 1;
+
+  if (npages < 0)
+    {
+      /* Unmap pages at the end of the region.  */
+      nbytes = - npages * page_size;
+      if (munmap (region_end - nbytes, nbytes) == -1)
+	{
+	  fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
+	  success = 0;
+	}
+      else
+	r->nbytes_mapped -= nbytes;
+    }
+  else if (npages > 0)
+    {
+      /* Try to map additional pages at the end of the region.  We
+	 cannot do this if the address range is already occupied by
+	 something else because mmap deletes any previous mapping.
+	 I'm not sure this is worth doing, let's see.  */
+      if (mmap_find (region_end, region_end + nbytes))
+	success = 0;
+      else
+	{
+	  POINTER_TYPE *p;
+      
+	  nbytes = npages * page_size;
+	  p = mmap (region_end, nbytes, PROT_READ | PROT_WRITE,
+		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
+	  if (p == MAP_FAILED)
+	    {
+	      fprintf (stderr, "mmap: %s\n", emacs_strerror (errno));
+	      success = 0;
+	    }
+	  else if (p != (POINTER_TYPE *) region_end)
+	    {
+	      /* Kernels are free to choose a different address.  In
+		 that case, unmap what we've mapped above; we have
+		 no use for it.  */
+	      if (munmap (p, nbytes) == -1)
+		fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
+	      success = 0;
+	    }
+	  else
+	    r->nbytes_mapped += nbytes;
+	}
+      
+      success = 0;
+    }
+
+  return success;
+}
+
+
+/* Set or reset variables holding references to mapped regions.  If
+   RESTORE_P is zero, set all variables to null.  If RESTORE_P is
+   non-zero, set all variables to the start of the user-areas
+   of mapped regions.
+
+   This function is called from Fdump_emacs to ensure that the dumped
+   Emacs doesn't contain references to memory that won't be mapped
+   when Emacs starts.  */
+
+void
+mmap_set_vars (restore_p)
+     int restore_p;
+{
+  struct mmap_region *r;
+
+  if (restore_p)
+    {
+      mmap_regions = mmap_regions_1;
+      for (r = mmap_regions; r; r = r->next)
+	*r->var = MMAP_USER_AREA (r);
+    }
+  else
+    {
+      for (r = mmap_regions; r; r = r->next)
+	*r->var = NULL;
+      mmap_regions_1 = mmap_regions;
+      mmap_regions = NULL;
+    }
+}
+
+
+/* Return total number of bytes mapped.  */
+
+size_t
+mmap_mapped_bytes ()
+{
+  struct mmap_region *r;
+  size_t n = 0;
+  
+  for (r = mmap_regions; r; r = r->next)
+    n += r->nbytes_mapped;
+
+  return n;
+}
+
+
+/* Allocate a block of storage large enough to hold NBYTES bytes of
+   data.  A pointer to the data is returned in *VAR.  VAR is thus the
+   address of some variable which will use the data area.
+
+   The allocation of 0 bytes is valid.
+
+   If we can't allocate the necessary memory, set *VAR to null, and
+   return null.  */
+
+POINTER_TYPE *
+r_alloc (var, nbytes)
+     POINTER_TYPE **var;
+     size_t nbytes;
+{
+  void *p;
+  size_t map;
+
+  if (!r_alloc_initialized)
+    r_alloc_init ();
+
+  map = ROUND (nbytes + MMAP_REGION_STRUCT_SIZE, page_size);
+  p = mmap (NULL, map, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+  
+  if (p == MAP_FAILED)
+    {
+      if (errno != ENOMEM)
+	fprintf (stderr, "mmap: %s\n", emacs_strerror (errno));
+      p = NULL;
+    }
+  else
+    {
+      struct mmap_region *r = (struct mmap_region *) p;
+      
+      r->nbytes_specified = nbytes;
+      r->nbytes_mapped = map;
+      r->var = var;
+      r->prev = NULL;
+      r->next = mmap_regions;
+      if (r->next)
+	r->next->prev = r;
+      mmap_regions = r;
+      
+      p = MMAP_USER_AREA (p);
+    }
+  
+  return *var = p;
+}
+
+
+/* Given a pointer at address VAR to data allocated with r_alloc,
+   resize it to size NBYTES.  Change *VAR to reflect the new block,
+   and return this value.  If more memory cannot be allocated, then
+   leave *VAR unchanged, and return null.  */
+
+POINTER_TYPE *
+r_re_alloc (var, nbytes)
+     POINTER_TYPE **var;
+     size_t nbytes;
+{
+  POINTER_TYPE *result;
+  
+  if (!r_alloc_initialized)
+    r_alloc_init ();
+
+  if (*var == NULL)
+    result = r_alloc (var, nbytes);
+  else if (nbytes == 0) 
+    {
+      r_alloc_free (var);
+      result = r_alloc (var, nbytes);
+    }
+  else
+    {
+      struct mmap_region *r = MMAP_REGION (*var);
+      size_t room = r->nbytes_mapped - MMAP_REGION_STRUCT_SIZE;
+      
+      if (room < nbytes)
+	{
+	  /* Must enlarge.  */
+	  POINTER_TYPE *old_ptr = *var;
+
+	  /* Try to map additional pages at the end of the region.
+	     If that fails, allocate a new region,  copy data
+	     from the old region, then free it.  */
+	  if (mmap_enlarge (r, ROUND (nbytes - room, page_size)))
+	    {
+	      r->nbytes_specified = nbytes;
+	      *var = result = old_ptr;
+	    }
+	  else if (r_alloc (var, nbytes))
+	    {
+	      bcopy (old_ptr, *var, r->nbytes_specified);
+	      mmap_free (MMAP_REGION (old_ptr));
+	      result = *var;
+	      r = MMAP_REGION (result);
+	      r->nbytes_specified = nbytes;
+	    }
+	  else
+	    {
+	      *var = old_ptr;
+	      result = NULL;
+	    }
+	}
+      else if (room - nbytes >= page_size)
+	{
+	  /* Shrinking by at least a page.  Let's give some
+	     memory back to the system.  */
+	  mmap_enlarge (r, - (room - nbytes) / page_size);
+	  result = *var;
+	  r->nbytes_specified = nbytes;
+	}
+      else
+	{
+	  /* Leave it alone.  */
+	  result = *var;
+	  r->nbytes_specified = nbytes;
+	}
+    }
+
+  return result;
+}
+
+
+/* Free a block of relocatable storage whose data is pointed to by
+   PTR.  Store 0 in *PTR to show there's no block allocated.  */
+
+void
+r_alloc_free (var)
+     POINTER_TYPE **var;
+{
+  if (!r_alloc_initialized)
+    r_alloc_init ();
+
+  if (*var)
+    {
+      mmap_free (MMAP_REGION (*var));
+      *var = NULL;
+    }
+}
+
+#endif /* REL_ALLOC_MMAP */
+
+
+
+/***********************************************************************
+			    Initialization
+ ***********************************************************************/
+
+/* The hook `malloc' uses for the function which gets more space
+   from the system.  */
+
+extern POINTER (*__morecore) ();
+
+/* Initialize various things for memory allocation.  */
+
+static void
+r_alloc_init ()
+{
+  if (r_alloc_initialized)
+    return;
+
+  r_alloc_initialized = 1;
+  real_morecore = __morecore;
+  __morecore = r_alloc_sbrk;
+
+  first_heap = last_heap = &heap_base;
+  first_heap->next = first_heap->prev = NIL_HEAP;
+  first_heap->start = first_heap->bloc_start
+    = virtual_break_value = break_value = (*real_morecore) (0);
+  if (break_value == NIL)
+    abort ();
+
+  page_size = PAGE;
+  extra_bytes = ROUNDUP (50000);
+
+#ifdef DOUG_LEA_MALLOC
+    mallopt (M_TOP_PAD, 64 * 4096);
+#else
+  /* Give GNU malloc's morecore some hysteresis
+     so that we move all the relocatable blocks much less often.  */
+  __malloc_extra_blocks = 64;
+#endif
+
+  first_heap->end = (POINTER) ROUNDUP (first_heap->start);
+
+  /* The extra call to real_morecore guarantees that the end of the
+     address space is a multiple of page_size, even if page_size is
+     not really the page size of the system running the binary in
+     which page_size is stored.  This allows a binary to be built on a
+     system with one page size and run on a system with a smaller page
+     size.  */
+  (*real_morecore) (first_heap->end - first_heap->start);
+
+  /* Clear the rest of the last page; this memory is in our address space
+     even though it is after the sbrk value.  */
+  /* Doubly true, with the additional call that explicitly adds the
+     rest of that page to the address space.  */
+  bzero (first_heap->start, first_heap->end - first_heap->start);
+  virtual_break_value = break_value = first_heap->bloc_start = first_heap->end;
+  use_relocatable_buffers = 1;
+}
