@@ -895,9 +895,12 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit, mouse)
   if (CONSP (prop))
     {
       /* We have a list of faces, merge them in reverse order */
-      Lisp_Object length = Flength (prop);
-      int len = XINT (length);
+      Lisp_Object length;
+      int len;
       Lisp_Object *faces;
+
+      length = Fsafe_length (prop);
+      len = XFASTINT (length);
 
       /* Put them into an array */
       faces = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
@@ -932,10 +935,12 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit, mouse)
       if (CONSP (prop))
 	{
 	  /* We have a list of faces, merge them in reverse order */
-	  Lisp_Object length = Flength (prop);
-	  int len = XINT (length);
+	  Lisp_Object length;
+	  int len;
 	  Lisp_Object *faces;
-	  int i;
+
+	  length = Fsafe_length (prop);
+	  len = XFASTINT (length);
 
 	  /* Put them into an array */
 	  faces = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
