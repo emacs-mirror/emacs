@@ -78,7 +78,7 @@ The difference from the ordinal Thai keyboard:
     ',T_(B' and ',To(B' are assigned to '\\' and '|' respectively,
     ',T#(B' and ',T%(B' are assigned to '`' and '~' respectively,
     Don't know where to assign characters ',Tz(B' and ',T{(B'."
- nil t t nil t nil nil nil 'quail-thai-update-translation nil t)
+ nil t t t t nil nil nil 'quail-thai-update-translation nil t)
 
 (quail-install-map 
  (thai-generate-quail-map
@@ -106,7 +106,7 @@ The difference from the ordinal Thai keyboard:
 (quail-define-package
  "thai-pattachote" "Thai" ",T!;(B>" t
  "Thai Pattachote input method with TIS620 keyboard layout"
- nil t t nil t nil nil nil 'quail-thai-update-translation nil t)
+ nil t t t t nil nil nil 'quail-thai-update-translation nil t)
 
 (quail-install-map 
  (thai-generate-quail-map
