@@ -182,7 +182,7 @@
 
 ;; Using iswitchb for other completion tasks.
 
-;; Kin Cho (kin@neoscale.com sent the following suggestion to use
+;; Kin Cho (kin@neoscale.com) sent the following suggestion to use
 ;; iswitchb for other completion tasks.  
 ;;
 ;; (defun my-icompleting-read (prompt choices)
@@ -197,6 +197,21 @@
 ;; example:
 ;; (my-icompleting-read "Which fruit? " '
 ;; 		     ("apple" "pineapple" "pear" "bananas" "oranges") )
+
+;; Kin Cho also suggested the following defun.  Once you have a subset of
+;; matching buffers matching your current prompt, you can then press
+;; e.g. C-o to restrict matching to those buffers and clearing the prompt:
+;; (defun iswitchb-exclude-nonmatching()
+;;    "Make iswitchb work on only the currently matching names."
+;;    (interactive)
+;;    (setq iswitchb-buflist iswitchb-matches)
+;;    (setq iswitchb-rescan t)
+;;    (delete-minibuffer-contents))
+;;
+;; (add-hook 'iswitchb-define-mode-map-hook
+;; 	  '(lambda () (define-key 
+;; 			iswitchb-mode-map "\C-o" 
+;; 			'iswitchb-exclude-nonmatching)))
 
 ;; Other lisp packages extend iswitchb behaviour to other tasks.  See
 ;; ido.el (by Kim Storm) and mcomplete.el (Yuji Minejima).
