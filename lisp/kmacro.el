@@ -592,11 +592,11 @@ others, use M-x name-last-kbd-macro."
 		       kmacro-call-repeat-key)))
       (setq repeat-key-str (format-kbd-macro (vector repeat-key) nil))
       (while repeat-key
-	(message "Repeat macro %swith `%s'..." 
+	(message "(Type %s to repeat macro%s)" 
+		 repeat-key-str
 		 (if (and kmacro-call-repeat-with-arg
 			  arg (> arg 1))
-		     (format "%d times " arg) "")
-		 repeat-key-str)
+		     (format " %d times" arg) ""))
 	(if (equal repeat-key (read-event))
 	    (progn
 	      (clear-this-command-keys t)
@@ -752,9 +752,8 @@ If kbd macro currently being defined end it before activating it."
 (defvar kmacro-step-edit-map (make-sparse-keymap)
   "Keymap that defines the responses to questions in `kmacro-step-edit-macro'.
 This keymap is an extension to the `query-replace-map', allowing the
-following additional answers: `insert-1', `insert', `append-1', 
-`append', `replace-1', `replace', `act-repeat', `skip-rest',
-`skip-keep'.")
+following additional answers: `insert', `insert-1', `replace', `replace-1',
+`append', `append-end', `act-repeat', `skip-end', `skip-keep'.")
 
 ;; query-replace-map answers include: `act', `skip', `act-and-show',
 ;; `exit', `act-and-exit', `edit', `delete-and-edit', `recenter',
@@ -775,7 +774,7 @@ following additional answers: `insert-1', `insert', `append-1',
 (define-key kmacro-step-edit-map "r" 'replace)
 (define-key kmacro-step-edit-map "R" 'replace-1)
 (define-key kmacro-step-edit-map "a" 'append)
-(define-key kmacro-step-edit-map "A" 'append-1)
+(define-key kmacro-step-edit-map "A" 'append-end)
 
 (defvar kmacro-step-edit-prefix-commands
   '(universal-argument universal-argument-more universal-argument-minus
@@ -828,7 +827,7 @@ following additional answers: `insert-1', `insert', `append-1',
 		(propertize 
 		 (format "Type key sequence%s to insert and execute%s: "
 			 (if (numberp kmacro-step-edit-inserting) ""  "s")
-			 (if (numberp kmacro-step-edit-inserting) ""  "[end with C-j]"))
+			 (if (numberp kmacro-step-edit-inserting) ""  " (end with C-j)"))
 		 'face 'bold))))))
 
 (defun kmacro-step-edit-query ()
@@ -932,11 +931,19 @@ following additional answers: `insert-1', `insert', `append-1',
 	    (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
 		  kmacro-step-edit-appending t))
 	nil)
-       ((member act '(append-1 append))
-	(setq kmacro-step-edit-inserting (if (eq act 'append-1) 1 t))
+       ((eq act 'append)
+	(setq kmacro-step-edit-inserting t)
 	(if (= executing-macro-index (length executing-kbd-macro))
 	    (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
 		  kmacro-step-edit-appending t))
+	t)
+       ((eq act 'append-end)
+	(if (= executing-macro-index (length executing-kbd-macro))
+	    (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
+		  kmacro-step-edit-inserting t
+		  kmacro-step-edit-appending t)
+	  (setq kmacro-step-edit-active 'append-end))
+	(setq act t)
 	t)
        ((eq act 'help)
 	(setq executing-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
@@ -1031,6 +1038,12 @@ following additional answers: `insert-1', `insert', `append-1',
     (cond
      ((eq kmacro-step-edit-active 'ignore)
       (setq this-command 'ignore))
+     ((eq kmacro-step-edit-active 'append-end)
+      (if (= executing-macro-index (length executing-kbd-macro))
+	  (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
+		kmacro-step-edit-inserting t
+		kmacro-step-edit-appending t
+		kmacro-step-edit-active t)))
      ((/= kmacro-step-edit-num-input-keys num-input-keys)
       (if kmacro-step-edit-inserting
 	  (kmacro-step-edit-insert)
