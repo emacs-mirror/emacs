@@ -1630,14 +1630,19 @@ extern int gc_cons_threshold;
 extern struct gcpro *gcprolist;
 
 struct gcpro
-  {
-    struct gcpro *next;
-    Lisp_Object *var;		/* Address of first protected variable */
-    int nvars;			/* Number of consecutive protected variables */
+{
+  struct gcpro *next;
+  
+  /* Address of first protected variable.  */
+  volatile Lisp_Object *var;
+  
+  /* Number of consecutive protected variables.  */
+  int nvars;
+  
 #ifdef DEBUG_GCPRO
-    int level;
+  int level;
 #endif
-  };
+};
 
 /* Values of GC_MARK_STACK during compilation:
 
@@ -1898,7 +1903,7 @@ extern Lisp_Object long_to_cons P_ ((unsigned long));
 extern unsigned long cons_to_long P_ ((Lisp_Object));
 extern void args_out_of_range P_ ((Lisp_Object, Lisp_Object));
 extern void args_out_of_range_3 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-extern Lisp_Object wrong_type_argument P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;
+extern Lisp_Object wrong_type_argument P_ ((Lisp_Object, Lisp_Object));
 extern void store_symval_forwarding P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object do_symval_forwarding P_ ((Lisp_Object));
 extern Lisp_Object set_internal P_ ((Lisp_Object, Lisp_Object, struct buffer *, int));
@@ -2300,7 +2305,7 @@ EXFUN (Fcatch, UNEVALLED);
 EXFUN (Fthrow, 2) NO_RETURN;
 EXFUN (Funwind_protect, UNEVALLED);
 EXFUN (Fcondition_case, UNEVALLED);
-EXFUN (Fsignal, 2) NO_RETURN;
+EXFUN (Fsignal, 2);
 EXFUN (Fautoload, 5);
 EXFUN (Fcommandp, 1);
 EXFUN (Feval, 1);
