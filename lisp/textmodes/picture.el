@@ -130,10 +130,10 @@ With argument, move that many lines."
     (if (> current-column picture-desired-column)
 	(forward-char -1))))
 
-(defconst picture-vertical-step 0
+(defvar picture-vertical-step 0
   "Amount to move vertically after text character in Picture mode.")
 
-(defconst picture-horizontal-step 1
+(defvar picture-horizontal-step 1
   "Amount to move horizontally after text character in Picture mode.")
 
 (defun picture-move-up (arg)
