@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 1998,1999,2000,01,02,03,2004  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: convenience patch diff
@@ -28,7 +28,7 @@
 ;; commands, editing and various conversions as well as jumping
 ;; to the corresponding source file.
 
-;; Inspired by Pavel Machek's patch-mode.el (<pavel@atrey.karlin.mff.cuni.cz>)
+;; Inspired by Pavel Machek's patch-mode.el (<pavel@@atrey.karlin.mff.cuni.cz>)
 ;; Some efforts were spent to have it somewhat compatible with XEmacs'
 ;; diff-mode as well as with compilation-minor-mode
 
@@ -270,18 +270,6 @@ when editing big diffs)."
   ;; catches Debian source diff files (which lack the trailing date).
   '((nil "\\+\\+\\+\\ \\([^\t\n]+\\)[\t\n]" 1) ; unidiffs
     (nil "^--- \\([^\t\n]+\\)\t.*\n\\*" 1))) ; context diffs
-
-;;;;
-;;;; Compile support
-;;;;
-
-(defvar diff-file-regexp-alist
-  '(("Index: \\(.+\\)" 1)))
-
-(defvar diff-error-regexp-alist
-  '(("@@ -\\([0-9]+\\),[0-9]+ \\+\\([0-9]+\\),[0-9]+ @@" nil 2)
-    ("--- \\([0-9]+\\),[0-9]+ ----" nil 1)
-    ("\\([0-9]+\\)\\(,[0-9]+\\)?[adc]\\([0-9]+\\)" nil 3)))
 
 ;;;;
 ;;;; Movement
@@ -879,31 +867,11 @@ a diff with \\[diff-reverse-direction]."
   ;;   (set (make-local-variable 'page-delimiter) "--- [^\t]+\t")
   ;; compile support
 
-  ;;;; compile support is not good enough yet.  It should be merged
-  ;;;; with diff.el's support.
-  (set (make-local-variable 'compilation-file-regexp-alist)
-       diff-file-regexp-alist)
-  (set (make-local-variable 'compilation-error-regexp-alist)
-       diff-error-regexp-alist)
-  (when (string-match "\\.rej\\'" (or buffer-file-name ""))
-    (set (make-local-variable 'compilation-current-file)
-  	 (substring buffer-file-name 0 (match-beginning 0))))
-  ;; Be careful not to change compilation-last-buffer when we're just
-  ;; doing a C-x v = (for example).
-  (if (boundp 'compilation-last-buffer)
-      (let ((compilation-last-buffer compilation-last-buffer))
-	(compilation-minor-mode 1))
-    (compilation-minor-mode 1))
-  ;; M-RET and RET should be done by diff-mode because the `compile'
-  ;; support is significantly less good.
-  (add-to-list 'minor-mode-overriding-map-alist
-  	       (cons 'compilation-minor-mode (make-sparse-keymap)))
-
   (when (and (> (point-max) (point-min)) diff-default-read-only)
     (toggle-read-only t))
   ;; setup change hooks
   (if (not diff-update-on-the-fly)
-      (add-hook 'write-contents-hooks 'diff-write-contents-hooks)
+      (add-hook 'write-contents-functions 'diff-write-contents-hooks nil t)
     (make-local-variable 'diff-unhandled-changes)
     (add-hook 'after-change-functions 'diff-after-change-function nil t)
     (add-hook 'post-command-hook 'diff-post-command-hook nil t))
@@ -924,7 +892,7 @@ a diff with \\[diff-reverse-direction]."
   ;; FIXME: setup font-lock
   ;; setup change hooks
   (if (not diff-update-on-the-fly)
-      (add-hook 'write-contents-hooks 'diff-write-contents-hooks)
+      (add-hook 'write-contents-functions 'diff-write-contents-hooks nil t)
     (make-local-variable 'diff-unhandled-changes)
     (add-hook 'after-change-functions 'diff-after-change-function nil t)
     (add-hook 'post-command-hook 'diff-post-command-hook nil t)))
