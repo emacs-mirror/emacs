@@ -1,5 +1,9 @@
 2002-04-24  Colin Walters  <walters@verbum.org>
 
+	* replace.el (occur-accumulate-lines): Add optional argument
+	`no-props'.  Handle it.
+	(occur-engine): Use it.
+
 	* ibuf-ext.el (toplevel): Remove byte-compile-dynamic.  Try to set
 	up autoloads manually.
 	(ibuffer-split-list): New function.
