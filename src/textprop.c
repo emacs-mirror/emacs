@@ -584,7 +584,57 @@ overlays are considered only if they are associated with OBJECT.")
      simpler case.  */
   return (Fget_text_property (position, prop, object));
 }
+
+DEFUN ("next-char-property-change", Fnext_char_property_change,
+       Snext_char_property_change, 1, 2, 0,
+  "Return the position of next text property or overlay change.\n\
+This scans characters forward from POSITION in OBJECT till it finds\n\
+a change in some text property, or the beginning or end of an overlay,\n\
+and returns the position of that.\n\
+If none is found, the function returns (point-max).\n\
+\n\
+If the optional third argument LIMIT is non-nil, don't search\n\
+past position LIMIT; return LIMIT if nothing is found before LIMIT.")
+  (position, limit)
+     Lisp_Object position, limit;
+{
+  Lisp_Object temp;
 
+  temp = Fnext_overlay_change (position);
+  if (! NILP (limit))
+    {
+      CHECK_NUMBER (limit, 2);
+      if (XINT (limit) < XINT (temp))
+	temp = limit;
+    }
+  return Fnext_property_change (position, Qnil, temp);
+}
+
+DEFUN ("previous-char-property-change", Fprevious_char_property_change,
+       Sprevious_char_property_change, 1, 2, 0,
+  "Return the position of previous text property or overlay change.\n\
+Scans characters backward from POSITION in OBJECT till it finds\n\
+a change in some text property, or the beginning or end of an overlay,\n\
+and returns the position of that.\n\
+If none is found, the function returns (point-max).\n\
+\n\
+If the optional third argument LIMIT is non-nil, don't search\n\
+past position LIMIT; return LIMIT if nothing is found before LIMIT.")
+  (position, limit)
+     Lisp_Object position, limit;
+{
+  Lisp_Object temp;
+
+  temp = Fprevious_overlay_change (position);
+  if (! NILP (limit))
+    {
+      CHECK_NUMBER (limit, 2);
+      if (XINT (limit) > XINT (temp))
+	temp = limit;
+    }
+  return Fprevious_property_change (position, Qnil, temp);
+}
+
 DEFUN ("next-property-change", Fnext_property_change,
        Snext_property_change, 1, 3, 0,
   "Return the position of next property change.\n\
@@ -813,7 +863,7 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
 		     - (STRINGP (object))));
   return position;
 }
-
+
 /* Callers note, this can GC when OBJECT is a buffer (or nil).  */
 
 DEFUN ("add-text-properties", Fadd_text_properties,
@@ -1163,7 +1213,7 @@ Return t if any property was actually removed, nil otherwise.")
       i = next_interval (i);
     }
 }
-
+
 DEFUN ("text-property-any", Ftext_property_any,
        Stext_property_any, 4, 5, 0,
   "Check text from START to END for property PROPERTY equalling VALUE.\n\
@@ -1235,7 +1285,7 @@ containing the text.")
     }
   return Qnil;
 }
-
+
 #if 0 /* You can use set-text-properties for this.  */
 
 DEFUN ("erase-text-properties", Ferase_text_properties,
@@ -1359,7 +1409,7 @@ is the string or buffer containing the text.")
    Return t if any property value actually changed, nil otherwise.  */
 
 /* Note this can GC when DEST is a buffer.  */
-
+
 Lisp_Object
 copy_text_properties (start, end, src, pos, dest, prop)
        Lisp_Object start, end, src, pos, dest, prop;
@@ -1717,6 +1767,8 @@ This also inhibits the use of the `intangible' text property.");
   defsubr (&Stext_properties_at);
   defsubr (&Sget_text_property);
   defsubr (&Sget_char_property);
+  defsubr (&Snext_char_property_change);
+  defsubr (&Sprevious_char_property_change);
   defsubr (&Snext_property_change);
   defsubr (&Snext_single_property_change);
   defsubr (&Sprevious_property_change);
