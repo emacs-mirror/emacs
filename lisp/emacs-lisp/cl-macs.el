@@ -44,8 +44,6 @@
 
 ;;; Code:
 
-(require 'help-fns)			;For help-add-fundoc-usage.
-
 (or (memq 'cl-19 features)
     (error "Tried to load `cl-macs' before `cl'!"))
 
@@ -79,6 +77,89 @@
 (defun cl-compile-time-init ()
   (run-hooks 'cl-hack-bytecomp-hook))
 
+
+;;; Some predicates for analyzing Lisp forms.  These are used by various
+;;; macro expanders to optimize the results in certain common cases.
+
+(defconst cl-simple-funcs '(car cdr nth aref elt if and or + - 1+ 1- min max
+			    car-safe cdr-safe progn prog1 prog2))
+(defconst cl-safe-funcs '(* / % length memq list vector vectorp
+			  < > <= >= = error))
+
+;;; Check if no side effects, and executes quickly.
+(defun cl-simple-expr-p (x &optional size)
+  (or size (setq size 10))
+  (if (and (consp x) (not (memq (car x) '(quote function function*))))
+      (and (symbolp (car x))
+	   (or (memq (car x) cl-simple-funcs)
+	       (get (car x) 'side-effect-free))
+	   (progn
+	     (setq size (1- size))
+	     (while (and (setq x (cdr x))
+			 (setq size (cl-simple-expr-p (car x) size))))
+	     (and (null x) (>= size 0) size)))
+    (and (> size 0) (1- size))))
+
+(defun cl-simple-exprs-p (xs)
+  (while (and xs (cl-simple-expr-p (car xs)))
+    (setq xs (cdr xs)))
+  (not xs))
+
+;;; Check if no side effects.
+(defun cl-safe-expr-p (x)
+  (or (not (and (consp x) (not (memq (car x) '(quote function function*)))))
+      (and (symbolp (car x))
+	   (or (memq (car x) cl-simple-funcs)
+	       (memq (car x) cl-safe-funcs)
+	       (get (car x) 'side-effect-free))
+	   (progn
+	     (while (and (setq x (cdr x)) (cl-safe-expr-p (car x))))
+	     (null x)))))
+
+;;; Check if constant (i.e., no side effects or dependencies).
+(defun cl-const-expr-p (x)
+  (cond ((consp x)
+	 (or (eq (car x) 'quote)
+	     (and (memq (car x) '(function function*))
+		  (or (symbolp (nth 1 x))
+		      (and (eq (car-safe (nth 1 x)) 'lambda) 'func)))))
+	((symbolp x) (and (memq x '(nil t)) t))
+	(t t)))
+
+(defun cl-const-exprs-p (xs)
+  (while (and xs (cl-const-expr-p (car xs)))
+    (setq xs (cdr xs)))
+  (not xs))
+
+(defun cl-const-expr-val (x)
+  (and (eq (cl-const-expr-p x) t) (if (consp x) (nth 1 x) x)))
+
+(defun cl-expr-access-order (x v)
+  (if (cl-const-expr-p x) v
+    (if (consp x)
+	(progn
+	  (while (setq x (cdr x)) (setq v (cl-expr-access-order (car x) v)))
+	  v)
+      (if (eq x (car v)) (cdr v) '(t)))))
+
+;;; Count number of times X refers to Y.  Return nil for 0 times.
+(defun cl-expr-contains (x y)
+  (cond ((equal y x) 1)
+	((and (consp x) (not (memq (car-safe x) '(quote function function*))))
+	 (let ((sum 0))
+	   (while x
+	     (setq sum (+ sum (or (cl-expr-contains (pop x) y) 0))))
+	   (and (> sum 0) sum)))
+	(t nil)))
+
+(defun cl-expr-contains-any (x y)
+  (while (and y (not (cl-expr-contains x (car y)))) (pop y))
+  y)
+
+;;; Check whether X may depend on any of the symbols in Y.
+(defun cl-expr-depends-p (x y)
+  (and (not (cl-const-expr-p x))
+       (or (not (cl-safe-expr-p x)) (cl-expr-contains-any x y))))
 
 ;;; Symbols.
 
@@ -183,6 +264,7 @@ ARGLIST allows full Common Lisp conventions."
 	     (nconc (nreverse simple-args)
 		    (list '&rest (car (pop bind-lets))))
 	     (nconc (let ((hdr (nreverse header)))
+		      (require 'help-fns)
 		      (cons (help-add-fundoc-usage
 			     (if (stringp (car hdr)) (pop hdr)) orig-args)
 			    hdr))
@@ -2355,90 +2437,6 @@ omitted, a default message listing FORM itself is used."
   "Execute FORMS; if an error occurs, return nil.
 Otherwise, return result of last FORM."
   `(condition-case nil (progn ,@body) (error nil)))
-
-
-;;; Some predicates for analyzing Lisp forms.  These are used by various
-;;; macro expanders to optimize the results in certain common cases.
-
-(defconst cl-simple-funcs '(car cdr nth aref elt if and or + - 1+ 1- min max
-			    car-safe cdr-safe progn prog1 prog2))
-(defconst cl-safe-funcs '(* / % length memq list vector vectorp
-			  < > <= >= = error))
-
-;;; Check if no side effects, and executes quickly.
-(defun cl-simple-expr-p (x &optional size)
-  (or size (setq size 10))
-  (if (and (consp x) (not (memq (car x) '(quote function function*))))
-      (and (symbolp (car x))
-	   (or (memq (car x) cl-simple-funcs)
-	       (get (car x) 'side-effect-free))
-	   (progn
-	     (setq size (1- size))
-	     (while (and (setq x (cdr x))
-			 (setq size (cl-simple-expr-p (car x) size))))
-	     (and (null x) (>= size 0) size)))
-    (and (> size 0) (1- size))))
-
-(defun cl-simple-exprs-p (xs)
-  (while (and xs (cl-simple-expr-p (car xs)))
-    (setq xs (cdr xs)))
-  (not xs))
-
-;;; Check if no side effects.
-(defun cl-safe-expr-p (x)
-  (or (not (and (consp x) (not (memq (car x) '(quote function function*)))))
-      (and (symbolp (car x))
-	   (or (memq (car x) cl-simple-funcs)
-	       (memq (car x) cl-safe-funcs)
-	       (get (car x) 'side-effect-free))
-	   (progn
-	     (while (and (setq x (cdr x)) (cl-safe-expr-p (car x))))
-	     (null x)))))
-
-;;; Check if constant (i.e., no side effects or dependencies).
-(defun cl-const-expr-p (x)
-  (cond ((consp x)
-	 (or (eq (car x) 'quote)
-	     (and (memq (car x) '(function function*))
-		  (or (symbolp (nth 1 x))
-		      (and (eq (car-safe (nth 1 x)) 'lambda) 'func)))))
-	((symbolp x) (and (memq x '(nil t)) t))
-	(t t)))
-
-(defun cl-const-exprs-p (xs)
-  (while (and xs (cl-const-expr-p (car xs)))
-    (setq xs (cdr xs)))
-  (not xs))
-
-(defun cl-const-expr-val (x)
-  (and (eq (cl-const-expr-p x) t) (if (consp x) (nth 1 x) x)))
-
-(defun cl-expr-access-order (x v)
-  (if (cl-const-expr-p x) v
-    (if (consp x)
-	(progn
-	  (while (setq x (cdr x)) (setq v (cl-expr-access-order (car x) v)))
-	  v)
-      (if (eq x (car v)) (cdr v) '(t)))))
-
-;;; Count number of times X refers to Y.  Return nil for 0 times.
-(defun cl-expr-contains (x y)
-  (cond ((equal y x) 1)
-	((and (consp x) (not (memq (car-safe x) '(quote function function*))))
-	 (let ((sum 0))
-	   (while x
-	     (setq sum (+ sum (or (cl-expr-contains (pop x) y) 0))))
-	   (and (> sum 0) sum)))
-	(t nil)))
-
-(defun cl-expr-contains-any (x y)
-  (while (and y (not (cl-expr-contains x (car y)))) (pop y))
-  y)
-
-;;; Check whether X may depend on any of the symbols in Y.
-(defun cl-expr-depends-p (x y)
-  (and (not (cl-const-expr-p x))
-       (or (not (cl-safe-expr-p x)) (cl-expr-contains-any x y))))
 
 
 ;;; Compiler macros.
