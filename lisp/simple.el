@@ -41,7 +41,7 @@ With arg N, insert N newlines."
 	  ;; If undo is enabled, don't let this hack be visible:
 	  ;; record the real value of point as the place to move back to
 	  ;; if we undo this insert.
-	  (if (and buffer-undo-list (not (eq buffer-undo-list t)))
+	  (if (not (eq buffer-undo-list t))
 	      (setq buffer-undo-list (cons (point) buffer-undo-list)))
 	  (forward-char -1)))
     (save-excursion
