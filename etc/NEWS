@@ -1803,7 +1803,7 @@ depend on external libraries.  All of these libraries have been ported
 to Windows, and can be found in both source and binary form at
 http://gnuwin32.sourceforge.net/.  Note that libpng also depends on
 zlib, and tiff depends on the version of jpeg that it was compiled
-against.
+against.  For additional information, see nt/INSTALL.
 
 ---
 ** Sound is now supported on MS Windows.
