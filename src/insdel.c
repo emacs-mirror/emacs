@@ -695,6 +695,122 @@ insert_from_string_before_markers (string, pos, length, inherit)
     }
 }
 
+/* Replace the text from FROM to TO with NEW,
+   If PREPARE is nonzero, call prepare_to_modify_buffer.
+   If INHERIT, the newly inserted text should inherit text properties
+   from the surrounding non-deleted text.  */
+
+/* Note that this does not yet handle markers quite right.
+   Also it needs to record a single undo-entry that does a replacement
+   rather than a separate delete and insert.
+   That way, undo will also handle markers properly.  */
+
+void
+replace_range (from, to, new, prepare, inherit)
+     Lisp_Object new;
+     int from, to, prepare, inherit;
+{
+  int numdel;
+  int inslen = XSTRING (new)->size;
+  register Lisp_Object temp;
+  struct gcpro gcpro1;
+
+  GCPRO1 (new);
+
+  if (prepare)
+    {
+      int range_length = to - from;
+      prepare_to_modify_buffer (from, to, &from);
+      to = from + range_length;
+    }
+
+  /* Make args be valid */
+  if (from < BEGV)
+    from = BEGV;
+  if (to > ZV)
+    to = ZV;
+
+  UNGCPRO;
+
+  numdel = to - from;
+
+  /* Make sure point-max won't overflow after this insertion.  */
+  XSETINT (temp, Z - numdel + inslen);
+  if (Z - numdel + inslen != XINT (temp))
+    error ("maximum buffer size exceeded");
+
+  if (numdel <= 0 && inslen == 0)
+    return;
+
+  GCPRO1 (new);
+
+  /* Make sure the gap is somewhere in or next to what we are deleting.  */
+  if (from > GPT)
+    gap_right (from);
+  if (to < GPT)
+    gap_left (to, 0);
+
+  /* Relocate all markers pointing into the new, larger gap
+     to point at the end of the text before the gap.
+     This has to be done before recording the deletion,
+     so undo handles this after reinserting the text.  */
+  adjust_markers (to + GAP_SIZE, to + GAP_SIZE, - numdel - GAP_SIZE);
+
+  record_delete (from, numdel);
+
+  GAP_SIZE += numdel;
+  ZV -= numdel;
+  Z -= numdel;
+  GPT = from;
+  *(GPT_ADDR) = 0;		/* Put an anchor.  */
+
+  if (GPT - BEG < beg_unchanged)
+    beg_unchanged = GPT - BEG;
+  if (Z - GPT < end_unchanged)
+    end_unchanged = Z - GPT;
+
+  if (GAP_SIZE < inslen)
+    make_gap (inslen - GAP_SIZE);
+
+  record_insert (from, inslen);
+
+  bcopy (XSTRING (new)->data, GPT_ADDR, inslen);
+
+  /* Relocate point as if it were a marker.  */
+  if (from < PT)
+    adjust_point (from + inslen - (PT < to ? PT : to));
+
+#ifdef USE_TEXT_PROPERTIES
+  offset_intervals (current_buffer, PT, inslen - numdel);
+#endif
+
+  GAP_SIZE -= inslen;
+  GPT += inslen;
+  ZV += inslen;
+  Z += inslen;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
+
+  /* Adjust the overlay center as needed.  This must be done after
+     adjusting the markers that bound the overlays.  */
+  adjust_overlays_for_delete (from, numdel);
+  adjust_overlays_for_insert (from, inslen);
+  adjust_markers_for_insert (from, inslen);
+
+#ifdef USE_TEXT_PROPERTIES
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  graft_intervals_into_buffer (XSTRING (new)->intervals, from, inslen,
+			       current_buffer, inherit);
+#endif
+
+  if (inslen == 0)
+    evaporate_overlays (from);
+
+  MODIFF++;
+  UNGCPRO;
+
+  signal_after_change (from, numdel, inslen);
+}
+
 /* Delete characters in current buffer
    from FROM up to (but not including) TO.  */
 
