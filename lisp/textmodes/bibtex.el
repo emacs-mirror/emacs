@@ -969,7 +969,7 @@ The generation algorithm works as follows:
      `bibtex-autokey-titleword-change-strings' to the corresponding
      new one (see documentation of this variable for further detail).
   8. Abbreviate the result to the string up to (but not including) the
-     first occurence of a regexp matched by the items of
+     first occurrence of a regexp matched by the items of
      `bibtex-autokey-title-terminators' and delete the first
      word if it appears in `bibtex-autokey-titleword-first-ignore'. 
      Build the title part of the key by using at least the first
@@ -1630,11 +1630,11 @@ ignored."
 Performs a binary search (therefore, buffer is assumed to be in sorted
 order, without duplicates (see \\[bibtex-validate-buffer]), if it is
 not, bibtex-find-entry-location will fail). If entry-name is already
-used as a reference key, an error is signalled. However, if optional
+used as a reference key, an error is signaled. However, if optional
 variable IGNORE-DUPS is non-nil, no error messages about duplicate
-entries are signalled, but the error handling is assumed to be made in
+entries are signaled, but the error handling is assumed to be made in
 the calling function. Nil is returned, if an duplicate entry error
-occured, and t in all other cases."
+occurred, and t in all other cases."
   (let* ((left
           (progn
             (beginning-of-first-bibtex-entry)
