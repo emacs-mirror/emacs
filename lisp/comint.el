@@ -281,8 +281,10 @@ This variable is buffer-local."
 ;; kinit prints a prompt like `Password for devnull@GNU.ORG: '.
 ;; ksu prints a prompt like `Kerberos password for devnull/root@GNU.ORG: '.
 ;; ssh-add prints a prompt like `Enter passphrase: '.
+;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
 (defcustom comint-password-prompt-regexp
-  "\\(\\([Oo]ld \\|[Nn]ew \\|Kerberos \\|'s \\|login \\|^\\)[Pp]assword\\|pass phrase\\|Enter passphrase\\)\
+  "\\(\\([Oo]ld \\|[Nn]ew \\|Kerberos \\|'s \\|login \\|^\\)\
+[Pp]assword\\( (again)\\)?\\|pass phrase\\|Enter passphrase\\)\
 \\( for [^@ \t\n]+@[^@ \t\n]+\\)?:\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
