@@ -518,7 +518,7 @@ optional fourth argument FORCE is non-nil."
   (setq reb-mode-string
 	(concat
 	 (if reb-subexp-mode
-	     (concat " (subexp " (or reb-subexp-displayed "-") ")")
+             (format " (subexp %s)" (or reb-subexp-displayed "-"))
 	   "")
 	 (if (not (reb-target-binding case-fold-search))
 	     " Case"
