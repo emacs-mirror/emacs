@@ -458,9 +458,6 @@ the Emacs configure script, which should now find the jpeg library.
 Alternatively, modify the generated src/Makefile to link the .a file
 explicitly.
 
-(If you need the static version of the jpeg library as well, configure
-libjpeg with both `--enable-static' and `--enable-shared' options.)
-
 * Building Emacs over NFS fails with ``Text file busy''.
 
 This was reported to happen when building Emacs on a GNU/Linux system
