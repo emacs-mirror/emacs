@@ -1706,8 +1706,26 @@ inside of a word."
 ;;; **********************************************************************
 ;;; 			Ispell Message
 ;;; **********************************************************************
-;;; Original from Daniel Quinlan, Ethan Bradford, and Alon Albert
+;;; Original from D. Quinlan, E. Bradford, A. Albert, and M. Ernst
 
+
+(defvar ispell-message-text-end
+  (mapconcat (function identity)
+	     '(
+	       ;; Matches postscript files.
+	       "^%!PS-Adobe-2.0"
+	       ;; Matches uuencoded text
+	       "^begin [0-9][0-9][0-9] .*\nM.*\nM.*\nM"
+	       ;; Matches shell files (esp. auto-decoding)
+	       "^#! /bin/sh"
+	       ;; Matches difference listing
+	       "diff -c .*\n\\*\\*\\* .*\n--- "
+	       ;; Matches "----------------- cut here"
+	       "^[-=]+\\s cut here")
+	     "\\|")
+  "*End of text which will be checked in ispell-message.
+If it is a string, limit at first occurence of that regular expression.
+Otherwise, it must be a function which is called to get the limit.")
 
 ;;;###autoload
 (defun ispell-message ()
@@ -1729,33 +1747,43 @@ Or you can bind the function C-c i in gnus or mail by setting
 news-reply-mode-hook or mail-mode-hook to the following lambda expression:
    (function (lambda () (local-set-key \"\\C-ci\" 'ispell-message)))"
   (interactive)
-  (let* ((internal-messagep (save-excursion
-			      (search-forward mail-header-separator nil t)))
-	 (cite-regexp			;Prefix of inserted text
-	  (cond
-	   ((featurep 'supercite)	; sc 3.0
-	    (concat "\\(" (sc-cite-regexp) "\\)" "\\|"
-		    (ispell-non-empty-string sc-reference-tag-string)))
-	   ((featurep 'sc)		; sc 2.3
-	    (concat "\\(" sc-cite-regexp "\\)" "\\|"
-		    (ispell-non-empty-string sc-reference-tag-string)))
-	   ((equal major-mode 'news-reply-mode) ;Gnus
-	    (concat "In article <" "\\|"
-		    (if mail-yank-prefix
-			(ispell-non-empty-string mail-yank-prefix)
-		      "^   \\|^\t")))
-	   ((equal major-mode 'mh-letter-mode) ; mh mail message
-	    (ispell-non-empty-string mh-ins-buf-prefix))
-	   ((not internal-messagep)	; Assume n sent us this message.
-	    (concat "In [a-zA-Z.]+ you write:" "\\|"
-		    "In <[^,;&+=]+> [^,;&+=]+ writes:" "\\|"
-		    " *> *"))
-	   ((boundp 'vm-included-text-prefix) ; VM mail message
-	    (concat "[^,;&+=]+ writes:" "\\|"
-		    (ispell-non-empty-string vm-included-text-prefix)))
-	   (mail-yank-prefix			; vanilla mail message.
-	    (ispell-non-empty-string mail-yank-prefix))
-	   (t "^   \\|^\t")))
+  (save-excursion
+    (beginning-of-buffer)
+    (let* ((internal-messagep 
+	    (search-forward mail-header-separator nil t))
+	   (limit
+	    (cond
+	     ((not ispell-message-text-end) (point-max))
+	     ((char-or-string-p ispell-message-text-end)
+	      (if (re-search-forward ispell-message-text-end nil t)
+		  (match-beginning 0)
+		(point-max)))
+	     (t (min (point-max) (funcall ispell-message-text-end)))))
+	   (cite-regexp			;Prefix of inserted text
+	    (cond
+	     ((featurep 'supercite)	; sc 3.0
+	      (concat "\\(" (sc-cite-regexp) "\\)" "\\|"
+		      (ispell-non-empty-string sc-reference-tag-string)))
+	     ((featurep 'sc)		; sc 2.3
+	      (concat "\\(" sc-cite-regexp "\\)" "\\|"
+		      (ispell-non-empty-string sc-reference-tag-string)))
+	     ((equal major-mode 'news-reply-mode) ;Gnus
+	      (concat "In article <" "\\|"
+		      (if mail-yank-prefix
+			  (ispell-non-empty-string mail-yank-prefix)
+			"^   \\|^\t")))
+	     ((equal major-mode 'mh-letter-mode) ; mh mail message
+	      (ispell-non-empty-string mh-ins-buf-prefix))
+	     ((not internal-messagep)	; Assume nn sent us this message.
+	      (concat "In [a-zA-Z.]+ you write:" "\\|"
+		      "In <[^,;&+=]+> [^,;&+=]+ writes:" "\\|"
+		      " *> *"))
+	     ((boundp 'vm-included-text-prefix) ; VM mail message
+	      (concat "[^,;&+=]+ writes:" "\\|"
+		      (ispell-non-empty-string vm-included-text-prefix)))
+	     (mail-yank-prefix		; vanilla mail message.
+	      (ispell-non-empty-string mail-yank-prefix))
+	     (t "^   \\|^\t")))
 	 (cite-regexp-start (concat "^[ \t]*$\\|" cite-regexp))
 	 (cite-regexp-end   (concat "^\\(" cite-regexp "\\)"))
 	 (old-case-fold-search case-fold-search)
@@ -1769,31 +1797,38 @@ news-reply-mode-hook or mail-mode-hook to the following lambda expression:
 		 (< (point) internal-messagep)
 	       (and (looking-at "[a-zA-Z---]+:\\|\t\\| ")
 		    (not (eobp))))
-	(if (and (not (looking-at "Subject: .*Re:"))
-		 (not (looking-at "Subject: +\\["))
-		 (looking-at "Subject:")) ; last so (match-end 0) works right.
-	    ;; spell check Subject: field without Re:'s.
-	    (let ((case-fold-search old-case-fold-search))
-	      (end-of-line)
-	      (ispell-region (match-end 0) (point))))
+
+	;; spell check Subject: field without Re:'s.
+	(if (looking-at "Subject: *")
+	    (progn
+	      (goto-char (match-end 0))
+	      (if (and (not (looking-at ".*Re\\>"))
+		       (not (looking-at "\\[")))
+		  (let ((case-fold-search old-case-fold-search))
+		    (ispell-region (point)
+				   (progn
+				     (end-of-line)
+				     (while (looking-at "\n[ \t]")
+				       (end-of-line 2))
+				     (point)))))))
 	(forward-line 1))
       (setq case-fold-search nil)
       ;; Skip mail header, particularly for non-english languages.
       (if (looking-at mail-header-separator)
 	  (forward-line 1))
-      (while (not (eobp))
+      (while (< (point) limit)
 	;; Skip across text cited from other messages.
 	(while (and (looking-at cite-regexp-start)
-		    (not (eobp)))
+		    (< (point) limit))
 	  (forward-line 1))
-	(if (not (eobp))
+	(if (< (point) limit)
 	    ;; Check the next batch of lines that *aren't* cited.
 	    (let ((end (save-excursion
-			 (if (re-search-forward cite-regexp-end nil 'end)
-			     (beginning-of-line))
-			 (point))))
+			 (if (re-search-forward cite-regexp-end limit 'end)
+			     (match-beginning 0)
+			   limit))))
 	      (ispell-region (point) end)
-	      (goto-char end)))))))
+	      (goto-char end))))))))
 
 (defun ispell-non-empty-string (string)
   (if (or (not string) (string-equal string ""))
