@@ -1052,11 +1052,13 @@ a socket connection.  */)
 
 #ifdef HAVE_SOCKETS
 DEFUN ("format-network-address", Fformat_network_address, Sformat_network_address,
-       1, 1, 0,
+       1, 2, 0,
        doc: /* Convert network ADDRESS from internal format to a string.
-Returns nil if format of ADDRESS is invalid.  */)
-     (address)
-     Lisp_Object address;
+If optional second argument OMIT-PORT is non-nil, don't include a port
+number in the string; in this case, interpret a 4 element vector as an
+IP address.  Returns nil if format of ADDRESS is invalid.  */)
+     (address, omit_port)
+     Lisp_Object address, omit_port;
 {
   if (NILP (address))
     return Qnil;
@@ -1068,17 +1070,24 @@ Returns nil if format of ADDRESS is invalid.  */)
     {
       register struct Lisp_Vector *p = XVECTOR (address);
       Lisp_Object args[6];
+      int nargs, i;
 
-      if (p->size != 5)
+      if (!NILP (omit_port) && (p->size == 4 || p->size == 5))
+	{
+	  args[0] = build_string ("%d.%d.%d.%d");
+	  nargs = 4;
+	}
+      else if (p->size == 5)
+	{
+	  args[0] = build_string ("%d.%d.%d.%d:%d");
+	  nargs = 5;
+	}
+      else
 	return Qnil;
 
-      args[0] = build_string ("%d.%d.%d.%d:%d");
-      args[1] = p->contents[0];
-      args[2] = p->contents[1];
-      args[3] = p->contents[2];
-      args[4] = p->contents[3];
-      args[5] = p->contents[4];
-      return Fformat (6, args);
+      for (i = 0; i < nargs; i++)
+	args[i+1] = p->contents[i];
+      return Fformat (nargs+1, args);
     }
 
   if (CONSP (address))
@@ -1255,7 +1264,7 @@ list_processes_1 (query_only)
 	  if (INTEGERP (port))
 	    port = Fnumber_to_string (port);
 	  if (NILP (port))
-	    port = Fformat_network_address (Fplist_get (p->childp, QClocal));
+	    port = Fformat_network_address (Fplist_get (p->childp, QClocal), Qnil);
 	  sprintf (tembuf, "(network %s server on %s)\n",
 		   (DATAGRAM_CHAN_P (XINT (p->infd)) ? "datagram" : "stream"),
 		   (STRINGP (port) ? (char *)SDATA (port) : "?"));
@@ -1273,7 +1282,7 @@ list_processes_1 (query_only)
 		host = Fnumber_to_string (host);
 	    }
 	  if (NILP (host))
-	    host = Fformat_network_address (Fplist_get (p->childp, QCremote));
+	    host = Fformat_network_address (Fplist_get (p->childp, QCremote), Qnil);
 	  sprintf (tembuf, "(network %s connection to %s)\n",
 		   (DATAGRAM_CHAN_P (XINT (p->infd)) ? "datagram" : "stream"),
 		   (STRINGP (host) ? (char *)SDATA (host) : "?"));
