@@ -3659,7 +3659,7 @@ The format is suitable for use with `easy-menu-define'."
   "Keymap for `custom-mode'.")
 
 (unless custom-mode-map
-  (setq custom-mode-map (make-sparse-keymap))
+  (setq custom-mode-map (make-keymap))
   (set-keymap-parent custom-mode-map widget-keymap)
   (suppress-keymap custom-mode-map)
   (define-key custom-mode-map " " 'scroll-up)
@@ -3753,7 +3753,6 @@ if that value is non-nil."
     (set (make-local-variable 'widget-push-button-suffix) "")
     (set (make-local-variable 'widget-link-prefix) "")
     (set (make-local-variable 'widget-link-suffix) ""))
-  (make-local-hook 'widget-edit-functions)
   (add-hook 'widget-edit-functions 'custom-state-buffer-message nil t)
   (run-hooks 'custom-mode-hook))
 
