@@ -715,6 +715,8 @@ $(BLD)/frame.$(O) : \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
+	$(SRC)/atimer.h \
+	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/charset.h \
 	$(SRC)/commands.h \
@@ -722,6 +724,7 @@ $(BLD)/frame.$(O) : \
 	$(SRC)/fontset.h \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
+	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
