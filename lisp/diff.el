@@ -74,7 +74,7 @@ is nil, REGEXP matches only half a section.")
   (message "Parsing differences...")
 
   ;; Don't reparse diffs already seen at last parse.
-  (goto-char compilation-parsing-end)
+  (if compilation-parsing-end (goto-char compilation-parsing-end))
 
   ;; Construct in REGEXP a regexp composed of all those in dired-regexp-alist.
   (let ((regexp (mapconcat (lambda (elt)
@@ -266,5 +266,7 @@ The backup file is the first file given to `diff'."
 		    (lambda (fn1 fn2)
 		      (> (backup-extract-version fn1)
 			 (backup-extract-version fn2))))))))))
+
+(provide 'diff)
 
 ;;; diff.el ends here
