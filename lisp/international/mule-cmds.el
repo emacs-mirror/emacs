@@ -1505,8 +1505,14 @@ to using the function `set-language-environment'."
 			  current-language-environment)
 			language-info-alist))
 	     "English"))
-  ;; a better custom type will be set with `set-language-info'.
-  :type 'string
+  ;; custom type will be updated with `set-language-info'.
+  :type (if language-info-alist
+	    (cons 'choice (mapcar
+			   (lambda (lang)
+			     (list 'const (car lang)))
+			   (sort (copy-sequence language-info-alist)
+				 (lambda (x y) (string< (car x) (car y))))))
+	  'string)
   :initialize 'custom-initialize-default
   :group 'mule)
 
