@@ -323,14 +323,15 @@ commands reverses the effect of this variable.  Requires Netscape version
   :group 'browse-url)
 
 (defcustom browse-url-filename-alist
-  `(("^/\\(ftp@\\|anonymous@\\)?\\([^:]+\\):/*" . "ftp://\\2/")
+  (\`					; Backquote syntax won't work.
+   (("^/\\(ftp@\\|anonymous@\\)?\\([^:]+\\):/*" . "ftp://\\2/")
     ;; The above loses the username to avoid the browser prompting for
     ;; it in anonymous cases.  If it's not anonymous the next regexp
     ;; applies.
     ("^/\\([^:@]+@\\)?\\([^:]+\\):/*" . "ftp://\\1\\2/")
-    ,(if (memq system-type '(windows-nt ms-dos))
-	  '("^\\([a-zA-Z]:\\)[\\/]" . "file:\\1/"))
-    ("^/+" . "file:/"))
+    (,@ (if (memq system-type '(windows-nt ms-dos))
+	    '(("^\\([a-zA-Z]:\\)[\\/]" . "file:\\1/"))))
+    ("^/+" . "file:/")))
   "An alist of (REGEXP . STRING) pairs used by `browse-url-of-file'.
 Any substring of a filename matching one of the REGEXPs is replaced by
 the corresponding STRING using `replace-match', not treating STRING
