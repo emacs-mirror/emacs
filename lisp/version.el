@@ -1,6 +1,7 @@
 ;;; version.el --- record version number of Emacs.
 
-;;; Copyright (C) 1985, 1992, 1994, 1995, 1999 Free Software Foundation, Inc.
+;;; Copyright (C) 1985, 1992, 1994, 1995, 1999, 2000
+;;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -24,7 +25,7 @@
 
 ;;; Code:
 
-(defconst emacs-version "21.0.93" "\
+(defconst emacs-version "21.0.94" "\
 Version numbers of this version of Emacs.")
 
 (defconst emacs-major-version

@@ -8,7 +8,7 @@
 @ifnottex
 @c The edition number appears in several places in this file
 This is the fourteenth edition of the @cite{GNU Emacs Manual},
-updated for Emacs version 21.0.93.
+updated for Emacs version 21.0.94.
 @c Please REMEMBER to update edition number in *three* places in this file.
 
 @dircategory Emacs
@@ -52,7 +52,7 @@ Software Foundation raise funds for GNU development.''
 @sp 6
 @center @titlefont{GNU Emacs Manual}
 @sp 4
-@center Fourteenth Edition, Updated for Emacs Version 21.0.93.
+@center Fourteenth Edition, Updated for Emacs Version 21.0.94.
 @sp 5
 @center Richard Stallman
 @page
@@ -61,7 +61,7 @@ Copyright @copyright{} 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 199
    Free Software Foundation, Inc.
 @sp 2
 Fourteenth Edition @*
-Updated for Emacs Version 21.0.93, @*
+Updated for Emacs Version 21.0.94, @*
 August 2000
 
 ISBN 1-882114-06-X
