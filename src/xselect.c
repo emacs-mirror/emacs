@@ -40,7 +40,7 @@ static Lisp_Object x_atom_to_symbol P_ ((Display *dpy, Atom atom));
 static Atom symbol_to_x_atom P_ ((struct x_display_info *, Display *,
 				  Lisp_Object));
 static void x_own_selection P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object x_get_local_selection P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object x_get_local_selection P_ ((Lisp_Object, Lisp_Object, int));
 static void x_decline_selection_request P_ ((struct input_event *));
 static Lisp_Object x_selection_request_lisp_error P_ ((Lisp_Object));
 static Lisp_Object queue_selection_requests_unwind P_ ((Lisp_Object));
@@ -96,6 +96,7 @@ Lisp_Object QPRIMARY, QSECONDARY, QSTRING, QINTEGER, QCLIPBOARD, QTIMESTAMP,
   QATOM_PAIR;
 
 Lisp_Object QCOMPOUND_TEXT;	/* This is a type of selection.  */
+Lisp_Object QUTF8_STRING;	/* This is a type of selection.  */
 
 Lisp_Object Qcompound_text_with_extensions;
 
@@ -182,6 +183,7 @@ symbol_to_x_atom (dpyinfo, display, sym)
   if (EQ (sym, QTIMESTAMP)) return dpyinfo->Xatom_TIMESTAMP;
   if (EQ (sym, QTEXT))	    return dpyinfo->Xatom_TEXT;
   if (EQ (sym, QCOMPOUND_TEXT)) return dpyinfo->Xatom_COMPOUND_TEXT;
+  if (EQ (sym, QUTF8_STRING)) return dpyinfo->Xatom_UTF8_STRING;
   if (EQ (sym, QDELETE))    return dpyinfo->Xatom_DELETE;
   if (EQ (sym, QMULTIPLE))  return dpyinfo->Xatom_MULTIPLE;
   if (EQ (sym, QINCR))	    return dpyinfo->Xatom_INCR;
@@ -264,6 +266,8 @@ x_atom_to_symbol (dpy, atom)
     return QTEXT;
   if (atom == dpyinfo->Xatom_COMPOUND_TEXT)
     return QCOMPOUND_TEXT;
+  if (atom == dpyinfo->Xatom_UTF8_STRING)
+    return QUTF8_STRING;
   if (atom == dpyinfo->Xatom_DELETE)
     return QDELETE;
   if (atom == dpyinfo->Xatom_MULTIPLE)
@@ -350,14 +354,15 @@ x_own_selection (selection_name, selection_value)
 /* Given a selection-name and desired type, look up our local copy of
    the selection value and convert it to the type.
    The value is nil or a string.
-   This function is used both for remote requests
-   and for local x-get-selection-internal.
+   This function is used both for remote requests (LOCAL_REQUEST is zero)
+   and for local x-get-selection-internal (LOCAL_REQUEST is nonzero).
 
    This calls random Lisp code, and may signal or gc.  */
 
 static Lisp_Object
-x_get_local_selection (selection_symbol, target_type)
+x_get_local_selection (selection_symbol, target_type, local_request)
      Lisp_Object selection_symbol, target_type;
+     int local_request;
 {
   Lisp_Object local_value;
   Lisp_Object handler_fn, value, type, check;
@@ -404,7 +409,8 @@ x_get_local_selection (selection_symbol, target_type)
 	  pair = XVECTOR (pairs)->contents [i];
 	  XVECTOR (pair)->contents [1]
 	    = x_get_local_selection (XVECTOR (pair)->contents [0],
-				     XVECTOR (pair)->contents [1]);
+				     XVECTOR (pair)->contents [1],
+				     local_request);
 	}
       return pairs;
     }
@@ -421,7 +427,7 @@ x_get_local_selection (selection_symbol, target_type)
       handler_fn = Fcdr (Fassq (target_type, Vselection_converter_alist));
       if (!NILP (handler_fn))
 	value = call3 (handler_fn,
-		       selection_symbol, target_type,
+		       selection_symbol, (local_request ? Qnil : target_type),
 		       XCAR (XCDR (local_value)));
       else
 	value = Qnil;
@@ -801,7 +807,7 @@ x_handle_selection_request (event)
   /* Convert lisp objects back into binary data */
 
   converted_selection
-    = x_get_local_selection (selection_symbol, target_symbol);
+    = x_get_local_selection (selection_symbol, target_symbol, 0);
 
   if (! NILP (converted_selection))
     {
@@ -1758,42 +1764,13 @@ lisp_data_to_selection_data (display, obj,
     }
   else if (STRINGP (obj))
     {
-      /* Since we are now handling multilingual text, we must consider
-	 sending back compound text.  */
-      int stringp;
-      extern Lisp_Object Qcompound_text;
-
-      if (NILP (Vnext_selection_coding_system))
-	Vnext_selection_coding_system = Vselection_coding_system;
-
-      *format_ret = 8;
-      /* If the requested type is STRING, we must encode the selected
-	 text as a string, even if the coding system set by the user
-	 is ctext or its derivatives.  */
-      if (EQ (type, QSTRING)
-	  && (EQ (Vnext_selection_coding_system, Qcompound_text)
-	      || EQ (Vnext_selection_coding_system,
-		     Qcompound_text_with_extensions)))
-	{
-	  Lisp_Object unibyte_string;
-
-	  unibyte_string = string_make_unibyte (obj);
-	  *data_ret = SDATA (unibyte_string);
-	  *nofree_ret = 1;
-	  *size_ret = SBYTES (unibyte_string);
-	}
-      else
-	{
-	  *data_ret = x_encode_text (obj, Vnext_selection_coding_system, 1,
-				     (int *) size_ret, &stringp);
-	  *nofree_ret = (*data_ret == SDATA (obj));
-	}
+      xassert (! STRING_MULTIBYTE (obj));
       if (NILP (type))
-	type = (stringp ? QSTRING : QCOMPOUND_TEXT);
-      Vlast_coding_system_used = (*nofree_ret
-				  ? Qraw_text
-				  : Vnext_selection_coding_system);
-      Vnext_selection_coding_system = Qnil;
+	type = QSTRING;
+      *format_ret = 8;
+      *size_ret = SBYTES (obj);
+      *data_ret = SDATA (obj);
+      *nofree_ret = 1;
     }
   else if (SYMBOLP (obj))
     {
@@ -2025,7 +2002,7 @@ TYPE is the type of data desired, typically `STRING'.  */)
 #endif
     CHECK_SYMBOL (target_type);
 
-  val = x_get_local_selection (selection_symbol, target_type);
+  val = x_get_local_selection (selection_symbol, target_type, 1);
 
   if (NILP (val))
     {
@@ -2446,6 +2423,7 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   QTIMESTAMP = intern ("TIMESTAMP");	staticpro (&QTIMESTAMP);
   QTEXT      = intern ("TEXT"); 	staticpro (&QTEXT);
   QCOMPOUND_TEXT = intern ("COMPOUND_TEXT"); staticpro (&QCOMPOUND_TEXT);
+  QUTF8_STRING = intern ("UTF8_STRING"); staticpro (&QUTF8_STRING);
   QTIMESTAMP = intern ("TIMESTAMP");	staticpro (&QTIMESTAMP);
   QDELETE    = intern ("DELETE");	staticpro (&QDELETE);
   QMULTIPLE  = intern ("MULTIPLE");	staticpro (&QMULTIPLE);
