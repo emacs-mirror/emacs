@@ -1532,7 +1532,11 @@ of buffer-file-coding-system set by this function."
 	      (help-xref-button 0 #'describe-input-method (car (car l))
 				"mouse-2, RET: describe this input method")
 	      (goto-char (point-max))
-	      (insert " (\"" (nth 3 (car l)) "\" in mode line)\n"))
+	      (insert " (\""
+		      (if (stringp (nth 3 (car l)))
+			  (nth 3 (car l))
+			(car (nth 3 (car l))))
+		      "\" in mode line)\n"))
 	    (setq l (cdr l)))
 	  (insert "\n"))
 	(insert "Character sets:\n")
