@@ -1,3 +1,15 @@
+2004-12-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el: Add math-read-preprocess-string to autoloads.
+
+	* calc/calc-ext.el (math-read-replacement-list)
+	(math-read-superscripts, math-read-preprocess-string): Move to
+	calc-aent.el.
+
+	* calc/calc-aent.el (math-read-replacement-list)
+	(math-read-superscripts, math-read-preprocess-string): Move from
+	calc-ext.el.
+
 2004-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* isearch.el (isearch-quote-char): Fix up typo in last change.
