@@ -1770,12 +1770,10 @@ From a program, any arguments are passed to the `rcs2log' script."
 			      f)))
 			 (directory-files RCS nil "...\\|^[^.]\\|^.[^.]")))))))
   (let ((odefault default-directory)
-	(full-name (if (boundp 'add-log-full-name)
-		       add-log-full-name
-		     (user-full-name)))
-	(mailing-address (if (boundp 'add-log-mailing-address)
-			     add-log-mailing-address
-			   user-mail-address)))
+	(full-name (or add-log-full-name
+		       (user-full-name)))
+	(mailing-address (or add-log-mailing-address
+			     user-mail-address)))
     (find-file-other-window (find-change-log))
     (barf-if-buffer-read-only)
     (vc-buffer-sync)
