@@ -57,7 +57,8 @@ static Lisp_Object Vx_sent_selection_hooks;
 #endif
 
 /* The timestamp of the last input event Emacs received from the X server.  */
-unsigned long last_event_timestamp;
+/* Defined in keyboard.c.  */
+extern unsigned long last_event_timestamp;
 
 /* This is an association list whose elements are of the form
      ( SELECTION-NAME SELECTION-VALUE SELECTION-TIMESTAMP FRAME)
