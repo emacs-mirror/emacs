@@ -131,11 +131,11 @@
 (define-key setup-language-environment-map
   [Default] '("Default" . setup-specified-language-environment))
 
-;; These are meaningless when running under X.
+;; These are meaningless when running under X and W32.
 (put 'set-terminal-coding-system 'menu-enable
-     '(not window-system))
+     '(or (not window-system) (eq window-system 'pc)))
 (put 'set-keyboard-coding-system 'menu-enable
-     '(not window-system))
+     '(or (not window-system) (eq window-system 'pc)))
 ;; This is meaningless when the current buffer has no process.
 (put 'set-buffer-process-coding-system 'menu-enable
      '(get-buffer-process (current-buffer)))
@@ -212,13 +212,16 @@ This sets the following coding systems:
   o default coding system for subprocess I/O
 This also sets the following values:
   o default value used as file-name-coding-system for converting file names.
-  o default value for the command `set-terminal-coding-system'
-  o default value for the command `set-keyboard-coding-system'"
+  o default value for the command `set-terminal-coding-system' (not on MSDOS)
+  o default value for the command `set-keyboard-coding-system'."
   (check-coding-system coding-system)
   (setq-default buffer-file-coding-system coding-system)
   (if default-enable-multibyte-characters
       (setq default-file-name-coding-system coding-system))
-  (setq default-terminal-coding-system coding-system)
+  ;; If coding-system is nil, honor that on MS-DOS as well, so
+  ;; that they could reset the terminal coding system.
+  (unless (and (eq window-system 'pc) coding-system)
+    (setq default-terminal-coding-system coding-system))
   (setq default-keyboard-coding-system coding-system)
   (setq default-process-coding-system (cons coding-system coding-system)))
 
@@ -232,8 +235,13 @@ This also sets the following coding systems:
   o default coding system for subprocess I/O
 This also sets the following values:
   o default value used as file-name-coding-system for converting file names.
-  o default value for the command `set-terminal-coding-system'
-  o default value for the command `set-keyboard-coding-system'"
+  o default value for the command `set-terminal-coding-system' (not on MSDOS)
+  o default value for the command `set-keyboard-coding-system'
+
+This command does not change the default value of terminal coding system
+for MS-DOS terminal, because DOS terminals only support a single coding
+system, and Emacs automatically sets the default to that coding system at
+startup."
   (interactive "zPrefer coding system: ")
   (if (not (and coding-system (coding-system-p coding-system)))
       (error "Invalid coding system `%s'" coding-system))
@@ -528,7 +536,7 @@ it asks the user to select a proper coding system."
 		 (point-min) (point-max) coding)
       coding)))
 
-;;; Language support staffs.
+;;; Language support stuff.
 
 (defvar language-info-alist nil
   "Alist of language environment definitions.
@@ -1162,10 +1170,12 @@ specifies the character set for the major languages of Western Europe."
 				     'exit-function)))
 	(run-hooks 'exit-language-environment-hook)
 	(if (fboundp func) (funcall func))))
-  (reset-language-environment)
+  (let ((default-eol-type (coding-system-eol-type
+			   default-buffer-file-coding-system)))
+    (reset-language-environment)
 
-  (setq current-language-environment language-name)
-  (set-language-environment-coding-systems language-name)
+    (setq current-language-environment language-name)
+    (set-language-environment-coding-systems language-name default-eol-type))
   (let ((input-method (get-language-info language-name 'input-method)))
     (when input-method
       (setq default-input-method input-method)
@@ -1174,10 +1184,20 @@ specifies the character set for the major languages of Western Europe."
 		(cons input-method
 		      (delete input-method input-method-history))))))
   (let ((nonascii (get-language-info language-name 'nonascii-translation)))
-    (if (char-table-p nonascii)
-	(setq nonascii-translation-table nonascii)	
-      (if (charsetp nonascii)
-	  (setq nonascii-insert-offset (- (make-char nonascii) 128)))))
+    (cond
+     ((char-table-p nonascii)
+      (setq nonascii-translation-table nonascii))
+     ((eq window-system 'pc)
+      ;; DOS terminals' default is to use a special non-ASCII translation
+      ;; table as appropriate for the installed codepage.
+      (setq
+       nonascii-translation-table (symbol-value
+				   (intern
+				    (concat "cp"
+					    dos-codepage
+					    "-nonascii-translation-table")))))
+     ((charsetp nonascii)
+      (setq nonascii-insert-offset (- (make-char nonascii) 128)))))
 
   (setq charset-origin-alist
 	(get-language-info language-name 'charset-origin-alist))
@@ -1192,7 +1212,7 @@ specifies the character set for the major languages of Western Europe."
 	;; No information for syntax and case.  Reset to the defaults.
 	(let ((syntax-table (standard-syntax-table))
 	      (case-table (standard-case-table))
-	      (ch 160))
+	      (ch (if (eq window-system 'pc) 128 160)))
 	  (while (< ch 256)
 	    (modify-syntax-entry ch " " syntax-table)
 	    (aset case-table ch ch)
@@ -1209,12 +1229,11 @@ specifies the character set for the major languages of Western Europe."
     ;; Display table and coding system for terminal.
     (let ((coding (get-language-info language-name 'unibyte-display)))
       (if coding
-	  (progn
-	    (standard-display-european-internal)
-	    (set-terminal-coding-system coding))
-	(standard-display-default 160 255)
-	(aset standard-display-table 146 nil)
-	(set-terminal-coding-system nil))))
+	  (standard-display-european-internal)
+	(standard-display-default (if (eq window-system 'pc) 128 160) 255)
+	(aset standard-display-table 146 nil))
+      (or (eq window-system 'pc)
+	  (set-terminal-coding-system coding))))
 
   (let ((required-features (get-language-info language-name 'features)))
     (while required-features
@@ -1228,22 +1247,34 @@ specifies the character set for the major languages of Western Europe."
 
 (defun standard-display-european-internal ()
   ;; Actually set up direct output of non-ASCII characters.
-  (standard-display-8bit 160 255)
-  ;; Make non-line-break space display as a plain space.
-  ;; Most X fonts do the wrong thing for code 160.
-  (aset standard-display-table 160 [32])
-  ;; Most Windows programs send out apostrophe's as \222.  Most X fonts
-  ;; don't contain a character at that position.  Map it to the ASCII
-  ;; apostrophe.
-  (aset standard-display-table 146 [39]))
+  (standard-display-8bit (if (eq window-system 'pc) 128 160) 255)
+  ;; Unibyte Emacs on MS-DOS wants to display all 8-bit characters with
+  ;; the native font, and codes 160 and 146 stand for something very
+  ;; different there.
+  (or (and (eq window-system 'pc) (not default-enable-multibyte-characters))
+      (progn
+	;; Make non-line-break space display as a plain space.
+	;; Most X fonts do the wrong thing for code 160.
+	(aset standard-display-table 160 [32])
+	;; Most Windows programs send out apostrophe's as \222.  Most X fonts
+	;; don't contain a character at that position.  Map it to the ASCII
+	;; apostrophe.
+	(aset standard-display-table 146 [39]))))
 
-(defun set-language-environment-coding-systems (language-name)
-  "Do various coding system setups for language environment LANGUAGE-NAME."
+(defun set-language-environment-coding-systems (language-name
+						&optional eol-type)
+  "Do various coding system setups for language environment LANGUAGE-NAME.
+
+The optional arg EOL-TYPE specifies the eol-type of the default value
+of buffer-file-coding-system set by this function."
   (let* ((priority (get-language-info language-name 'coding-priority))
 	 (default-coding (car priority)))
     (if priority
 	(let ((categories (mapcar 'coding-system-category priority)))
-	  (set-default-coding-systems default-coding)
+	  (set-default-coding-systems
+	   (if (memq eol-type '(0 1 2 unix dos mac))
+	       (coding-system-change-eol-conversion default-coding eol-type)
+	     default-coding))
 	  (setq default-sendmail-coding-system default-coding)
 	  (set-coding-priority categories)
 	  (while priority
