@@ -1,3 +1,9 @@
+1999-11-21  Ken Manheimer  <klm@python.org>
+
+	* icomplete.el (icomplete-completions): Use an explicit variable
+	`icomplete-prospects-length', obviating the need to use an
+	apparently faulty throw/catch arrangement.
+	
 1999-11-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/internal.el (IT-display-table-setup): Don't overstep
@@ -10,13 +16,13 @@
 
 1999-11-19  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* scroll-bar.el (scroll-bar-toolkit-scroll): add handling of the `ratio'
-	event for Xaw and Xaw3d(without arrows) scrollbars.
+	* scroll-bar.el (scroll-bar-toolkit-scroll): Add handling of the 
+	`ratio' event for Xaw and Xaw3d(without arrows) scrollbars.
 
-	* files.el (auto-mode-alist): add patterns for diff-mode.
+	* files.el (auto-mode-alist): Add patterns for diff-mode.
 
-	* complete.el (PC-do-complete-and-exit): use minibuffer-prompt-end to
-	detect an empty prompt.
+	* complete.el (PC-do-complete-and-exit): Use minibuffer-prompt-end
+	to detect an empty prompt.
 
 1999-11-18  Dave Love  <fx@gnu.org>
 
