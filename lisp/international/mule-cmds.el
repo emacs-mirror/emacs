@@ -72,6 +72,9 @@
 (define-key-after mule-menu-keymap [set-language-environment]
   '("Set language environment" . setup-language-environment-map)
   t)
+(define-key-after mule-menu-keymap [mouse-set-font]
+  '("Set font/fontset" . mouse-set-font)
+  t)
 (define-key-after mule-menu-keymap [separator-mule]
   '("--")
   t)
