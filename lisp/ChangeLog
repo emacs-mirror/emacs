@@ -1,3 +1,9 @@
+2002-10-15  Kenichi Handa  <handa@m17n.org>
+
+	* mail/sendmail.el (sendmail-send-it): Call
+	select-message-coding-system before changing the current bufer to
+	" sendmail temp".
+
 2002-10-14  Andre Spiegel  <spiegel@gnu.org>
 
 	* files.el (insert-directory): Handle //SUBDIRED// lines in
