@@ -1,6 +1,6 @@
 /* impl.h.abq: ABQ INTERFACE
  *
- * $HopeName: MMsrc!abq.h(trunk.2) $
+ * $HopeName: MMsrc!abq.h(trunk.3) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: A FIFO queue substrate for impl.c.poolmv2
@@ -12,6 +12,7 @@
 #define abq_h
 
 #include "meter.h"
+#include "cbs.h"
 #include "mpm.h"
 
 

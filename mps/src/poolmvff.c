@@ -1,7 +1,7 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.12) $
- * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName$
+ * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
  * variable size where address-ordered first fit is an appropriate
@@ -11,6 +11,12 @@
  * .readership: MM developers
  * 
  * .design: design.mps.poolmvff
+ *
+ *
+ * TRANSGRESSIONS
+ *
+ * .trans.stat: mps_mvff_stat is a temporary hack for measurement purposes,
+ * see .stat below.
  */
 
 #include "mpscmvff.h"
@@ -18,7 +24,7 @@
 #include "cbs.h"
 #include "mpm.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.12) $");
+SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.13) $");
 
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
@@ -38,12 +44,14 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
   PoolStruct poolStruct;        /* generic structure */
   SegPref segPref;              /* the preferences for segments */
   Size extendBy;                /* segment size to extend pool by */
+  Size minSegSize;              /* minimum size of segment */
   Size avgSize;                 /* client estimate of allocation size */
   Size total;                   /* total bytes in pool */
   Size free;                    /* total free bytes in pool */
   CBSStruct cbsStruct;          /* free list */
   Bool firstFit;                /* as opposed to last fit */
   Bool slotHigh;                /* prefers high part of large block */
+  Bool TSBA;                    /* Trans-Segment-Boundary Allocation */
   Sig sig;                      /* design.mps.sig */
 } MVFFStruct;
 
@@ -121,38 +129,50 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
   /* Could profitably AVER that the given range is free, */
   /* but the CBS doesn't provide that facility. */
 
+  if(AddrOffset(base, limit) < mvff->minSegSize)
+    return; /* not large enough for entire segments */
+
   arena = PoolArena(MVFFPool(mvff));
-
-  if(AddrOffset(base, limit) < ArenaAlign(arena))
-    return; /* no whole pages -> no entire segments */
-
   b = SegOfAddr(&seg, arena, base);
   AVER(b);
 
   segBase = SegBase(seg);
   segLimit = SegLimit(seg);
 
-  while(segLimit <= limit) { /* segment ends in range */
-    if(segBase >= base) { /* segment starts in range */
-      /* Must remove from free list first, in case free list */
-      /* is using inline datastructures. */
-      res = CBSDelete(CBSOfMVFF(mvff), segBase, segLimit);
-      AVER(res == ResOK);
-      mvff->free -= AddrOffset(segBase, segLimit);
-      mvff->total -= AddrOffset(segBase, segLimit);
-      SegFree(seg);
+  if(mvff->TSBA) {
+    while(segLimit <= limit) { /* segment ends in range */
+      if(segBase >= base) { /* segment starts in range */
+        /* Must remove from free list first, in case free list */
+        /* is using inline data structures. */
+        res = CBSDelete(CBSOfMVFF(mvff), segBase, segLimit);
+        AVER(res == ResOK);
+        mvff->free -= AddrOffset(segBase, segLimit);
+        mvff->total -= AddrOffset(segBase, segLimit);
+        SegFree(seg);
+      }
+
+      /* Avoid calling SegNext if the next segment would fail */
+      /* the loop test, mainly because there might not be a */
+      /* next segment. */
+      if(segLimit == limit) /* segment ends at end of range */
+        break;
+
+      b = SegNext(&seg, arena, segBase);
+      AVER(b);
+      segBase = SegBase(seg);
+      segLimit = SegLimit(seg);
     }
-
-    /* Avoid calling SegNext if the next segment would fail */
-    /* the loop test, mainly because there might not be a */
-    /* next segment. */
-    if(segLimit == limit) /* segment ends at end of range */
-      break;
-
-    b = SegNext(&seg, arena, segBase);
-    AVER(b);
-    segBase = SegBase(seg);
-    segLimit = SegLimit(seg);
+  } else {
+    if(base == segBase
+       && AddrAdd(limit, PoolAlignment(MVFFPool(mvff))) == segLimit) {
+        /* Must remove from free list first, in case free list */
+        /* is using inline data structures. */
+        res = CBSDelete(CBSOfMVFF(mvff), base, limit);
+        AVER(res == ResOK);
+        mvff->free -= AddrOffset(base, limit);
+        mvff->total -= AddrOffset(segBase, segLimit);
+        SegFree(seg);
+    }
   }
 
   return;
@@ -161,10 +181,9 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
 
 /* MVFFAddSeg -- Allocates a new segment from the arena
  *
- * Allocates a new segment from the arena (with the given 
- * withReservoirPermit flag) of at least the specified size.
- * The specified size should be pool aligned.  Adds it to
- * the free list.
+ * Allocates a new segment from the arena (with the given
+ * withReservoirPermit flag) of at least the specified size.  The
+ * specified size should be pool-aligned.  Adds it to the free list.
  */
 
 static Res MVFFAddSeg(Seg *segReturn, 
@@ -188,8 +207,12 @@ static Res MVFFAddSeg(Seg *segReturn,
 
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
 
-  /* use extendBy unless it's too small.
-   * see design.mps.poolmvff.design.seg-size */
+  if(!mvff->TSBA)
+    /* Make sure we have an extra grain to spare, see */
+    /* design.mps.poolmvff.impl.trans-seg-buffers. */
+    size += PoolAlignment(pool);
+  /* Use extendBy unless it's too small (see */
+  /* design.mps.poolmvff.design.seg-size). */
   if(size <= mvff->extendBy)
     segSize = mvff->extendBy;
   else
@@ -209,22 +232,21 @@ static Res MVFFAddSeg(Seg *segReturn,
       return res;
     }
   }
-  mvff->total += segSize;
 
   SegSetP(seg, (void*)0);
 
-  base = SegBase(seg);
-  limit = SegLimit(seg);
+  mvff->total += segSize;
+  if(!mvff->TSBA) /* see design.mps.poolmvff.impl.trans-seg-buffers */
+    segSize -= PoolAlignment(pool);
+  base = SegBase(seg); limit = AddrAdd(base, segSize);
   MVFFAddToFreeList(&base, &limit, mvff);
   AVER(base <= SegBase(seg));
-  AVER(limit >= SegLimit(seg));
+  if(mvff->minSegSize > segSize) mvff->minSegSize = segSize;
 
   /* Don't call MVFFFreeSegs; that would be silly. */
 
-  if(res == ResOK)
-    *segReturn = seg;
-
-  return res;
+  *segReturn = seg;
+  return ResOK;
 }
 
 
@@ -338,6 +360,89 @@ static void MVFFFree(Pool pool, Addr old, Size size)
 }
 
 
+/* MVFFBufferFill -- Fill the buffer
+ *
+ * Fill it with the largest block we can find.
+ */
+
+static Res MVFFBufferFill(Seg *segReturn,
+                          Addr *baseReturn, Addr *limitReturn,
+                          Pool pool, Buffer buffer, Size size,
+                          Bool withReservoirPermit)
+{
+  Res res;
+  MVFF mvff;
+  Addr base, limit;
+  Bool foundBlock;
+  Seg seg = NULL;
+
+  AVER(segReturn != NULL);
+  AVER(baseReturn != NULL);
+  AVER(limitReturn != NULL);
+  AVERT(Pool, pool);
+  mvff = PoolPoolMVFF(pool);
+  AVERT(MVFF, mvff);
+  AVERT(Buffer, buffer);
+  AVER(size > 0);
+  AVER(SizeIsAligned(size, PoolAlignment(pool)));
+  AVERT(Bool, withReservoirPermit);
+
+  /* Hoping the largest is big enough, delete it and return if small. */
+  foundBlock = CBSFindLargest(&base, &limit, CBSOfMVFF(mvff),
+                              CBSFindDeleteENTIRE);
+  if(foundBlock && AddrOffset(base, limit) < size) {
+    foundBlock = FALSE;
+    res = CBSInsert(CBSOfMVFF(mvff), base, limit);
+    AVER(res == ResOK);
+  }
+  if(!foundBlock) {
+    res = MVFFAddSeg(&seg, mvff, size, withReservoirPermit);
+    if(res != ResOK) 
+      return res;
+    foundBlock = CBSFindLargest(&base, &limit, CBSOfMVFF(mvff),
+                                CBSFindDeleteENTIRE);
+    AVER(foundBlock); /* We will find the new segment. */
+  }
+
+  AVER(AddrOffset(base, limit) >= size);
+  mvff->free -= AddrOffset(base, limit);
+  if(seg == NULL)
+    (void)SegOfAddr(&seg, PoolArena(pool), base);
+  /* Check that the range lies within the segment. */
+  AVER(base >= SegBase(seg) && limit <= SegLimit(seg));
+
+  *segReturn = seg; *baseReturn = base; *limitReturn = limit;
+  return ResOK;
+}
+
+
+/* MVFFBufferEmpty -- return unused portion of this buffer */
+
+static void MVFFBufferEmpty(Pool pool, Buffer buffer)
+{
+  MVFF mvff;
+  Addr base, limit;
+
+  AVERT(Pool, pool);
+  mvff = PoolPoolMVFF(pool);
+  AVERT(MVFF, mvff);
+  AVERT(Buffer, buffer);
+  AVER(!BufferIsReset(buffer));
+  AVER(BufferIsReady(buffer));
+
+  base = BufferGetInit(buffer);
+  limit = BufferLimit(buffer);
+
+  if (base == limit)
+    return;
+
+  MVFFAddToFreeList(&base, &limit, mvff);
+  MVFFFreeSegs(mvff, base, limit);
+
+  return;
+}
+
+
 /* == Initialize == */
 
 static Res MVFFInit(Pool pool, va_list arg)
@@ -373,10 +478,15 @@ static Res MVFFInit(Pool pool, va_list arg)
   arena = PoolArena(pool);
 
   mvff->extendBy = extendBy;
+  if(extendBy < ArenaAlign(arena))
+    mvff->minSegSize = ArenaAlign(arena);
+  else
+    mvff->minSegSize = extendBy;
   mvff->avgSize = avgSize;
   pool->alignment = align;
   mvff->slotHigh = slotHigh;
   mvff->firstFit = firstFit;
+  mvff->TSBA = TRUE;
 
   res = ArenaAlloc(&p, arena, sizeof(SegPrefStruct));
   if (res != ResOK) {
@@ -433,6 +543,24 @@ static void MVFFFinish(Pool pool)
 }
 
 
+static Res MVFFBufferInit(Pool pool, Buffer buf, va_list args)
+{
+  MVFF mvff;
+
+  AVERT(Pool, pool);
+  mvff = PoolPoolMVFF(pool);
+  AVERT(MVFF, mvff);
+  /* Can't check buffer yet */
+  UNUSED(buf); UNUSED(args);
+
+  /* If something's allocated, it's too late to turn TSBA off. */
+  if(mvff->TSBA && mvff->total != 0)
+    return ResFAIL;
+  mvff->TSBA = FALSE;
+  return ResOK;
+}
+
+
 /* MVFFDebugMixin - find debug mixin in class MVFFDebug */
 
 static PoolDebugMixin MVFFDebugMixin(Pool pool)
@@ -482,6 +610,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
 DEFINE_POOL_CLASS(MVFFPoolClass, this)
 {
   INHERIT_CLASS(this, AbstractAllocFreePoolClass);
+  PoolClassMixInBuffer(this);
   this->name = "MVFF";
   this->size = sizeof(MVFFStruct);
   this->offset = offsetof(MVFFStruct, poolStruct);
@@ -489,6 +618,9 @@ DEFINE_POOL_CLASS(MVFFPoolClass, this)
   this->finish = MVFFFinish;
   this->alloc = MVFFAlloc;
   this->free = MVFFFree;
+  this->bufferInit = MVFFBufferInit;
+  this->bufferFill = MVFFBufferFill;
+  this->bufferEmpty = MVFFBufferEmpty;
   this->describe = MVFFDescribe;
 }
 
@@ -566,15 +698,44 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKL(IsSubclass(MVFFPool(mvff)->class, EnsureMVFFPoolClass()));
   CHECKD(SegPref, mvff->segPref);
   CHECKL(mvff->extendBy > 0);                   /* see .arg.check */
+  CHECKL(mvff->TSBA
+         ? mvff->minSegSize >= ArenaAlign(PoolArena(MVFFPool(mvff)))
+         : mvff->minSegSize
+            >= ArenaAlign(PoolArena(MVFFPool(mvff)))
+               - PoolAlignment(MVFFPool(mvff)));
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */
   CHECKL(mvff->avgSize <= mvff->extendBy);      /* see .arg.check */
-  /* the free and lost bytes are disjoint subsets of the total */
-  CHECKL(BoolCheck(mvff->slotHigh));
-  CHECKL(BoolCheck(mvff->firstFit));
-
   CHECKL(mvff->total >= mvff->free);
   CHECKL(SizeIsAligned(mvff->free, PoolAlignment(MVFFPool(mvff)))); 
   CHECKL(SizeIsAligned(mvff->total, ArenaAlign(PoolArena(MVFFPool(mvff)))));
   CHECKD(CBS, CBSOfMVFF(mvff));
+  CHECKL(BoolCheck(mvff->slotHigh));
+  CHECKL(BoolCheck(mvff->firstFit));
+  CHECKL(BoolCheck(mvff->TSBA));
   return TRUE;
+}
+
+
+/* mps_mvff_stat -- a hack to get statistics emitted
+ *
+ * .stat: The SW temp pool cannot be destroyed, so we're providing this
+ * to get the statistics.  It breaks modularity to access CBS internals.
+ */
+
+#include "meter.h"
+extern void mps_mvff_stat(mps_pool_t pool);
+
+void mps_mvff_stat(mps_pool_t mps_pool)
+{
+  Pool pool;
+  MVFF mvff;
+
+  pool = (Pool)mps_pool;
+  AVERT(Pool, pool);
+  mvff = PoolPoolMVFF(pool);
+  AVERT(MVFF, mvff);
+
+  METER_EMIT(&CBSOfMVFF(mvff)->splaySearch);
+  METER_EMIT(&CBSOfMVFF(mvff)->eblSearch);
+  METER_EMIT(&CBSOfMVFF(mvff)->eglSearch);
 }
