@@ -64,7 +64,7 @@ struct linebuffer
 
 extern char *strtok();
 
-char *xmalloc (), *xrealloc ();
+long *xmalloc (), *xrealloc ();
 char *concat ();
 long readline ();
 void fatal ();
@@ -229,22 +229,22 @@ readline (linebuffer, stream)
 /*
  * Like malloc but get fatal error if memory is exhausted.
  */
-char *
+long *
 xmalloc (size)
      unsigned int size;
 {
-  char *result = (char *) malloc (size);
+  long *result = (long *) malloc (size);
   if (result == NULL)
     fatal ("virtual memory exhausted");
   return result;
 }
 
-char *
+long *
 xrealloc (ptr, size)
      char *ptr;
      unsigned int size;
 {
-  char *result = (char *) realloc (ptr, size);
+  long *result = (long *) realloc (ptr, size);
   if (result == NULL)
     fatal ("virtual memory exhausted");
   return result;
