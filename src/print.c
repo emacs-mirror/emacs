@@ -758,33 +758,42 @@ A printed representation of an object is text which describes that object.  */)
      (object, noescape)
      Lisp_Object object, noescape;
 {
-  PRINTDECLARE;
   Lisp_Object printcharfun;
   /* struct gcpro gcpro1, gcpro2; */
   Lisp_Object save_deactivate_mark;
   int count = specpdl_ptr - specpdl;
+  struct buffer *previous;
 
   specbind (Qinhibit_modification_hooks, Qt);
 
-  /* Save and restore this--we are altering a buffer
-     but we don't want to deactivate the mark just for that.
-     No need for specbind, since errors deactivate the mark.  */
-  save_deactivate_mark = Vdeactivate_mark;
-  /* GCPRO2 (object, save_deactivate_mark); */
-  abort_on_gc++;
+  {
+    PRINTDECLARE;
 
-  printcharfun = Vprin1_to_string_buffer;
-  PRINTPREPARE;
-  print (object, printcharfun, NILP (noescape));
-  /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINSH */
-  PRINTFINISH;
+    /* Save and restore this--we are altering a buffer
+       but we don't want to deactivate the mark just for that.
+       No need for specbind, since errors deactivate the mark.  */
+    save_deactivate_mark = Vdeactivate_mark;
+    /* GCPRO2 (object, save_deactivate_mark); */
+    abort_on_gc++;
+
+    printcharfun = Vprin1_to_string_buffer;
+    PRINTPREPARE;
+    print (object, printcharfun, NILP (noescape));
+    /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINSH */
+    PRINTFINISH;
+  }
+
+  previous = current_buffer;
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
   object = Fbuffer_string ();
   if (SBYTES (object) == SCHARS (object))
     STRING_SET_UNIBYTE (object);
 
+  /* Note that this won't make prepare_to_modify_buffer call 
+     ask-user-about-supersession-threat because this buffer
+     does not visit a file.  */
   Ferase_buffer ();
-  set_buffer_internal (old);
+  set_buffer_internal (previous);
 
   Vdeactivate_mark = save_deactivate_mark;
   /* UNGCPRO; */
