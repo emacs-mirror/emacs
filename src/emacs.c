@@ -557,6 +557,7 @@ main (argc, argv, envp)
 #ifdef HAVE_SETRLIMIT
   struct rlimit rlim;
 #endif
+  int no_loadup = 0;
 
 #ifdef LINUX_SBRK_BUG
   __sbrk (1);
@@ -578,6 +579,8 @@ main (argc, argv, envp)
 #endif
 
   sort_args (argc, argv);
+  argc = 0;
+  while (argv[argc]) argc++;
 
   if (argmatch (argv, argc, "-version", "--version", 3, NULL, &skip_args)
       /* We don't know the version number unless this is a dumped Emacs.
@@ -748,32 +751,36 @@ main (argc, argv, envp)
   inhibit_window_system = 0;
 
   /* Handle the -t switch, which specifies filename to use as terminal */
-  {
-    char *term;
-    if (argmatch (argv, argc, "-t", "--terminal", 4, &term, &skip_args))
-      {
-	int result;
-	close (0);
-	close (1);
-	result = open (term, O_RDWR, 2 );
-	if (result < 0)
-	  {
-	    char *errstring = strerror (errno);
-	    fprintf (stderr, "emacs: %s: %s\n", term, errstring);
-	    exit (1);
-	  }
-	dup (0);
-	if (! isatty (0))
-	  {
-	    fprintf (stderr, "emacs: %s: not a tty\n", term);
-	    exit (1);
-	  }
-	fprintf (stderr, "Using %s\n", term);
+  while (1)
+    {
+      char *term;
+      if (argmatch (argv, argc, "-t", "--terminal", 4, &term, &skip_args))
+	{
+	  int result;
+	  close (0);
+	  close (1);
+	  result = open (term, O_RDWR, 2 );
+	  if (result < 0)
+	    {
+	      char *errstring = strerror (errno);
+	      fprintf (stderr, "emacs: %s: %s\n", term, errstring);
+	      exit (1);
+	    }
+	  dup (0);
+	  if (! isatty (0))
+	    {
+	      fprintf (stderr, "emacs: %s: not a tty\n", term);
+	      exit (1);
+	    }
+	  fprintf (stderr, "Using %s\n", term);
 #ifdef HAVE_WINDOW_SYSTEM
-	inhibit_window_system = 1; /* -t => -nw */
+	  inhibit_window_system = 1; /* -t => -nw */
 #endif
-      }
-  }
+	}
+      else
+	break;
+    }
+
   if (argmatch (argv, argc, "-nw", "--no-windows", 6, NULL, &skip_args))
     inhibit_window_system = 1;
 
@@ -795,48 +802,6 @@ Report bugs to bug-gnu-emacs@gnu.org.  First, please see\n\
 the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
       exit (0);
     }
-
-#ifdef HAVE_X_WINDOWS
-  /* Stupid kludge to catch command-line display spec.  We can't
-     handle this argument entirely in window system dependent code
-     because we don't even know which window system dependent code
-     to run until we've recognized this argument.  */
-  {
-    char *displayname = 0;
-    int i;
-    int count_before = skip_args;
-
-    if (argmatch (argv, argc, "-d", "--display", 3, &displayname, &skip_args))
-      display_arg = 1;
-    else if (argmatch (argv, argc, "-display", 0, 3, &displayname, &skip_args))
-      display_arg = 1;
-
-    /* If we have the form --display=NAME,
-       convert it into  -d name.
-       This requires inserting a new element into argv.  */
-    if (displayname != 0 && skip_args - count_before == 1)
-      {
-	char **new = (char **) xmalloc (sizeof (char *) * (argc + 2));
-	int j;
-
-	for (j = 0; j < count_before + 1; j++)
-	  new[j] = argv[j];
-	new[count_before + 1] = "-d";
-	new[count_before + 2] = displayname;
-	for (j = count_before + 2; j <argc; j++)
-	  new[j + 1] = argv[j];
-	argv = new;
-	argc++;
-      }
-    /* Change --display to -d, when its arg is separate.  */
-    else if (displayname != 0 && skip_args > count_before
-	     && argv[count_before + 1][1] == '-')
-      argv[count_before + 1] = "-d";
-
-    /* Don't actually discard this arg.  */
-    skip_args = count_before;
-  }
-#endif
 
   if (! noninteractive)
     {
@@ -1037,6 +1002,66 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
 	}
     }
 
+  no_loadup
+    = !argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
+
+
+#ifdef HAVE_X_WINDOWS
+  /* Stupid kludge to catch command-line display spec.  We can't
+     handle this argument entirely in window system dependent code
+     because we don't even know which window system dependent code
+     to run until we've recognized this argument.  */
+  {
+    char *displayname = 0;
+    int i;
+    int count_before = skip_args;
+
+    /* Skip any number of -d options, but only use the last one.  */
+    while (1)
+      {
+	int count_before_this = skip_args;
+
+	if (argmatch (argv, argc, "-d", "--display", 3, &displayname, &skip_args))
+	  display_arg = 1;
+	else if (argmatch (argv, argc, "-display", 0, 3, &displayname, &skip_args))
+	  display_arg = 1;
+	else
+	  break;
+
+	count_before = count_before_this;
+      }
+
+    /* If we have the form --display=NAME,
+       convert it into  -d name.
+       This requires inserting a new element into argv.  */
+    if (displayname != 0 && skip_args - count_before == 1)
+      {
+	char **new = (char **) xmalloc (sizeof (char *) * (argc + 2));
+	int j;
+
+	for (j = 0; j < count_before + 1; j++)
+	  new[j] = argv[j];
+	new[count_before + 1] = "-d";
+	new[count_before + 2] = displayname;
+	for (j = count_before + 2; j <argc; j++)
+	  new[j + 1] = argv[j];
+	argv = new;
+	argc++;
+      }
+    /* Change --display to -d, when its arg is separate.  */
+    else if (displayname != 0 && skip_args > count_before
+	     && argv[count_before + 1][1] == '-')
+      argv[count_before + 1] = "-d";
+
+    /* Don't actually discard this arg.  */
+    skip_args = count_before;
+  }
+#endif
+
+  /* argmatch must not be used after here,
+     except when bulding temacs
+     because the -d argument has not been skipped in skip_args.  */
+
 #ifdef MSDOS
   /* Call early 'cause init_environment needs it.  */
   init_dosfns ();
@@ -1219,7 +1244,7 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
 			    Fcons (build_string (file), Qnil));
 #ifdef CANNOT_DUMP
       /* Unless next switch is -nl, load "loadup.el" first thing.  */
-      if (!argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args))
+      if (! no_loadup)
 	Vtop_level = Fcons (intern ("load"),
 			    Fcons (build_string ("loadup.el"), Qnil));
 #endif /* CANNOT_DUMP */
@@ -1310,15 +1335,16 @@ struct standard_args standard_args[] =
   { "-nw", "--no-windows", 110, 0 },
   { "-batch", "--batch", 100, 0 },
   { "-help", "--help", 90, 0 },
-  { "-d", "--display", 80, 1 },
-  { "-display", 0, 80, 1 },
-  { "-no-unibyte", "--no-unibyte", 71, 0 },
-  { "-multibyte", "--multibyte", 71, 0 },
-  { "-unibyte", "--unibyte", 70, 0 },
-  { "-no-multibyte", "--no-multibyte", 70, 0 },
+  { "-no-unibyte", "--no-unibyte", 83, 0 },
+  { "-multibyte", "--multibyte", 82, 0 },
+  { "-unibyte", "--unibyte", 81, 0 },
+  { "-no-multibyte", "--no-multibyte", 80, 0 },
 #ifdef CANNOT_DUMP
-  { "-nl", "--no-loadup", 60, 0 },
+  { "-nl", "--no-loadup", 70, 0 },
 #endif
+  /* -d must come last before the options handled in startup.el.  */
+  { "-d", "--display", 60, 1 },
+  { "-display", 0, 60, 1 },
   /* Now for the options handled in startup.el.  */
   { "-q", "--no-init-file", 50, 0 },
   { "-no-init-file", 0, 50, 0 },
@@ -1370,7 +1396,10 @@ struct standard_args standard_args[] =
 /* Reorder the elements of ARGV (assumed to have ARGC elements)
    so that the highest priority ones come first.
    Do not change the order of elements of equal priority.
-   If an option takes an argument, keep it and its argument together.  */
+   If an option takes an argument, keep it and its argument together.
+
+   If an option that takes no argument appears more
+   than once, eliminate all but one copy of it.  */
 
 static void
 sort_args (argc, argv)
@@ -1386,6 +1415,7 @@ sort_args (argc, argv)
   int *options = (int *) xmalloc (sizeof (int) * argc);
   int *priority = (int *) xmalloc (sizeof (int) * argc);
   int to = 1;
+  int incoming_used = 1;
   int from;
   int i;
   int end_of_options = argc;
@@ -1469,7 +1499,7 @@ sort_args (argc, argv)
 
   /* Copy the arguments, in order of decreasing priority, to NEW.  */
   new[0] = argv[0];
-  while (to < argc)
+  while (incoming_used < argc)
     {
       int best = -1;
       int best_priority = -9999;
@@ -1491,10 +1521,17 @@ sort_args (argc, argv)
       if (best < 0)
 	abort ();
 
-      /* Copy the highest priority remaining option, with its args, to NEW.  */
-      new[to++] = argv[best];
-      for (i = 0; i < options[best]; i++)
-	new[to++] = argv[best + i + 1];
+      /* Copy the highest priority remaining option, with its args, to NEW.
+         Unless it is a duplicate of the previous one.  */
+      if (! (options[best] == 0
+	     && ! strcmp (new[to - 1], argv[best])))
+	{
+	  new[to++] = argv[best];
+	  for (i = 0; i < options[best]; i++)
+	    new[to++] = argv[best + i + 1];
+	}
+
+      incoming_used += 1 + (options[best] > 0 ? options[best] : 0);
 
       /* Clear out this option in ARGV.  */
       argv[best] = 0;
