@@ -259,17 +259,18 @@ The defun marked is the one that contains point or follows point.
 If this command is repeated, marks more defuns after the ones
 already marked."
   (interactive)
-  (let (here)
-    (when (and (eq last-command this-command) (mark t))
-      (setq here (point))
-      (goto-char (mark)))
-    (push-mark (point))
-    (end-of-defun)
-    (push-mark (point) nil t)
-    (if here
-	(goto-char here)
-      (beginning-of-defun)
-      (re-search-backward "^\n" (- (point) 1) t))))
+  (cond ((and (eq last-command this-command) (mark t))
+	 (set-mark
+	  (save-excursion
+	    (goto-char (mark))
+	    (end-of-defun)
+	    (point))))
+	(t
+	 (push-mark (point))
+	 (end-of-defun)
+	 (push-mark (point) nil t)
+	 (beginning-of-defun)
+	 (re-search-backward "^\n" (- (point) 1) t))))
 
 (defun narrow-to-defun (&optional arg)
   "Make text outside current defun invisible.

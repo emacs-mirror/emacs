@@ -330,18 +330,19 @@ at beginning of this or a previous paragraph.
 If this command is repeated, it marks the next ARG paragraphs after (or
 before, if arg is negative) the ones already marked."
   (interactive "p")
-  (let (here)
-    (unless arg (setq arg 1))
-    (when (zerop arg)
-      (error "Cannot mark zero paragraphs"))
-    (when (and (eq last-command this-command) (mark t))
-      (setq here (point))
-      (goto-char (mark)))
-    (forward-paragraph arg)
-    (push-mark nil t t)
-    (if here
-	(goto-char here)
-      (backward-paragraph arg))))
+  (unless arg (setq arg 1))
+  (when (zerop arg)
+    (error "Cannot mark zero paragraphs"))
+  (cond ((and (eq last-command this-command) (mark t))
+	 (set-mark
+	  (save-excursion
+	    (goto-char (mark))
+	    (forward-paragraph arg)
+	    (point))))
+	(t
+	 (forward-paragraph arg)
+	 (push-mark nil t t)
+	 (backward-paragraph arg))))
 
 (defun kill-paragraph (arg)
   "Kill forward to end of paragraph.
