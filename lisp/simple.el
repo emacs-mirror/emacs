@@ -658,17 +658,22 @@ then call `undo-more' one or more times to undo them."
 (defvar shell-command-history nil
   "History list for some commands that read shell commands.")
 
-(defun shell-command (command &optional flag)
+(defun shell-command (command &optional output-buffer)
   "Execute string COMMAND in inferior shell; display output, if any.
 If COMMAND ends in ampersand, execute it asynchronously.
- 
-Optional second arg non-nil (prefix arg, if interactive)
-means insert output in current buffer after point (leave mark after it).
-This cannot be done asynchronously."
+The output appears in the buffer `*Shell Command*'.
+
+The optional second argument OUTPUT-BUFFER, if non-nil,
+says to put the output in some other buffer.
+If OUTPUT-BUFFER is a buffer or buffer name, put the output there.
+If OUTPUT-BUFFER is not a buffer and not nil,
+insert output in current buffer.  (This cannot be done asynchronously.)
+In either case, the output is inserted after point (leaving mark after it)."
   (interactive (list (read-from-minibuffer "Shell command: "
 					   nil nil nil 'shell-command-history)
 		     current-prefix-arg))
-  (if flag
+  (if (and output-buffer
+	   (not (or (bufferp output-buffer)  (stringp output-buffer))))
       (progn (barf-if-buffer-read-only)
 	     (push-mark)
 	     ;; We do not use -f for csh; we will not support broken use of
@@ -689,7 +694,8 @@ This cannot be done asynchronously."
       (unwind-protect
 	  (if (string-match "[ \t]*&[ \t]*$" command)
 	      ;; Command ending with ampersand means asynchronous.
-	      (let ((buffer (get-buffer-create "*Shell-Command*")) 
+	      (let ((buffer (get-buffer-create
+			     (or output-buffer "*Shell-Command*")))
 		    (directory default-directory)
 		    proc)
 		;; Remove the ampersand.
@@ -751,7 +757,8 @@ This cannot be done asynchronously."
 	  (goto-char opoint))
       (set-buffer obuf))))
 
-(defun shell-command-on-region (start end command &optional flag interactive)
+(defun shell-command-on-region (start end command
+				      &optional output-buffer interactive)
   "Execute string COMMAND in inferior shell with region as input.
 Normally display output (if any) in temp buffer `*Shell Command Output*';
 Prefix arg means replace the region with it.
@@ -763,13 +770,21 @@ If the output is one line, it is displayed in the echo area,
 but it is nonetheless available in buffer `*Shell Command Output*'
 even though that buffer is not automatically displayed.  If there is no output
 or output is inserted in the current buffer then `*Shell Command Output*' is
-deleted." 
+deleted.
+
+The optional second argument OUTPUT-BUFFER, if non-nil,
+says to put the output in some other buffer.
+If OUTPUT-BUFFER is a buffer or buffer name, put the output there.
+If OUTPUT-BUFFER is not a buffer and not nil,
+insert output in the current buffer.
+In either case, the output is inserted after point (leaving mark after it)."
   (interactive (list (region-beginning) (region-end)
 		     (read-from-minibuffer "Shell command on region: "
 					   nil nil nil 'shell-command-history)
 		     current-prefix-arg
 		     (prefix-numeric-value current-prefix-arg)))
-  (if flag
+  (if (and output-buffer
+	   (not (or (bufferp output-buffer) (stringp output-buffer))))
       ;; Replace specified region with output from command.
       (let ((swap (and interactive (< (point) (mark)))))
 	;; Don't muck with mark
@@ -783,7 +798,8 @@ deleted."
 	(and interactive swap (exchange-point-and-mark)))
     ;; No prefix argument: put the output in a temp buffer,
     ;; replacing its entire contents.
-    (let ((buffer (get-buffer-create "*Shell Command Output*"))
+    (let ((buffer (get-buffer-create
+		   (or output-buffer "*Shell Command Output*")))
 	  (success nil))
       (unwind-protect
 	  (if (eq buffer (current-buffer))
