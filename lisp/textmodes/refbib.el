@@ -102,7 +102,7 @@ The entry must match the given data exactly.
   Because titles are capitalized before matching, the items in this list 
 should begin with a capital letter.
   For example, suppose the title \"Ijcai81\" is used for the proceedings of
-a conference, and it's expansion is the BibTeX macro \"ijcai7\".  Then
+a conference, and its expansion is the BibTeX macro \"ijcai7\".  Then
 `r2b-proceedings-list' should be '((\"Ijcai81\") ...).  If instead its
 expansion were \"Proceedings of the Seventh International Conference
 on Artificial Intelligence\", then you would NOT need to include Ijcai81
@@ -680,7 +680,7 @@ users of TeX and LaTex.  Instructions:
 1.  Visit the file containing the refer-style database.
 2.  The command
 	M-x r2b-convert-buffer
-    converts the entire buffer, appending it's output by default in a
+    converts the entire buffer, appending its output by default in a
     buffer named *Out*, and logging progress and errors in a buffer
     named *Log*.  The original file is never modified.
 	Note that results are appended to *Out*, so if that buffer
