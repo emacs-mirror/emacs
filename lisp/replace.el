@@ -26,8 +26,10 @@
 
 ;;; Code:
 
-(defvar case-replace t "\
-*Non-nil means query-replace should preserve case in replacements.")
+(defcustom case-replace t
+  "*Non-nil means query-replace should preserve case in replacements."
+  :type 'boolean
+  :group 'matching)
 
 (defvar query-replace-history nil)
 
@@ -327,10 +329,12 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
     (pop-to-buffer occur-buffer)
     (goto-char (marker-position pos))))
 
-(defvar list-matching-lines-default-context-lines 0
+(defcustom list-matching-lines-default-context-lines 0
   "*Default number of context lines to include around a `list-matching-lines'
 match.  A negative number means to include that many lines before the match.
-A positive number means to include that many lines both before and after.")
+A positive number means to include that many lines both before and after."
+  :type 'integer
+  :group 'matching)
 
 (defalias 'list-matching-lines 'occur)
 
@@ -740,8 +744,10 @@ which will run faster and probably do exactly what you want."
 		 (if (= replace-count 1) "" "s")))
     (and keep-going stack)))
 
-(defvar query-replace-highlight nil
-  "*Non-nil means to highlight words during query replacement.")
+(defcustom query-replace-highlight nil
+  "*Non-nil means to highlight words during query replacement."
+  :type 'boolean
+  :group 'matching)
 
 (defvar replace-overlay nil)
 

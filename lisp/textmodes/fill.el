@@ -28,18 +28,24 @@
 
 ;;; Code:
 
-(defvar fill-individual-varying-indent nil
+(defcustom fill-individual-varying-indent nil
   "*Controls criterion for a new paragraph in `fill-individual-paragraphs'.
 Non-nil means changing indent doesn't end a paragraph.
 That mode can handle paragraphs with extra indentation on the first line,
 but it requires separator lines between paragraphs.
-A value of nil means that any change in indentation starts a new paragraph.")
+A value of nil means that any change in indentation starts a new paragraph."
+  :type 'boolean
+  :group 'fill)
 
-(defvar sentence-end-double-space t
-  "*Non-nil means a single space does not end a sentence.")
+(defcustom sentence-end-double-space t
+  "*Non-nil means a single space does not end a sentence."
+  :type 'boolean
+  :group 'fill)
 
-(defvar colon-double-space nil
-  "*Non-nil means put two spaces after a colon when filling.")
+(defcustom colon-double-space nil
+  "*Non-nil means put two spaces after a colon when filling."
+  :type 'boolean
+  :group 'fill)
 
 (defvar fill-paragraph-function nil
   "Mode-specific function to fill a paragraph, or nil if there is none.
@@ -63,19 +69,25 @@ reinserts the fill prefix in each resulting line."
       (message "fill-prefix: \"%s\"" fill-prefix)
     (message "fill-prefix cancelled")))
 
-(defvar adaptive-fill-mode t
-  "*Non-nil means determine a paragraph's fill prefix from its text.")
+(defcustom adaptive-fill-mode t
+  "*Non-nil means determine a paragraph's fill prefix from its text."
+  :type 'boolean
+  :group 'fill)
 
-(defvar adaptive-fill-regexp "[ \t]*\\([#;>*]+ +\\)?"
+(defcustom adaptive-fill-regexp "[ \t]*\\([#;>*]+ +\\)?"
   "*Regexp to match text at start of line that constitutes indentation.
 If Adaptive Fill mode is enabled, whatever text matches this pattern
 on the second line of a paragraph is used as the standard indentation
 for the paragraph.  If the paragraph has just one line, the indentation
-is taken from that line.")
+is taken from that line."
+  :type 'regexp
+  :group 'fill)
 
-(defvar adaptive-fill-function nil
+(defcustom adaptive-fill-function nil
   "*Function to call to choose a fill prefix for a paragraph.
-This function is used when `adaptive-fill-regexp' does not match.")
+This function is used when `adaptive-fill-regexp' does not match."
+  :type 'function
+  :group 'fill)
 
 (defun current-fill-column ()
   "Return the fill-column to use for this line.
@@ -518,12 +530,18 @@ space does not end a sentence, so don't break a line there."
 	    (goto-char end)))))))
 
 
-(defvar default-justification 'left
+(defcustom default-justification 'left
   "*Method of justifying text not otherwise specified.
 Possible values are `left', `right', `full', `center', or `none'.
 The requested kind of justification is done whenever lines are filled.
 The `justification' text-property  can locally override this variable.
-This variable automatically becomes buffer-local when set in any fashion.")
+This variable automatically becomes buffer-local when set in any fashion."
+  :type '(choice (const left)
+		 (const right)
+		 (const full)
+		 (const center)
+		 (const none))
+  :group 'fill)
 (make-variable-buffer-local 'default-justification)
 
 (defun current-justification ()
