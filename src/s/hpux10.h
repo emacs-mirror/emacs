@@ -1,5 +1,7 @@
 #include "hpux9shr.h"
 
+#define HPUX10
+
 /* We have to go this route, rather than hpux9's approach of renaming the
    functions via macros.  The system's stdlib.h has fully prototyped
    declarations, which yields a conflicting definition of srand48; it
