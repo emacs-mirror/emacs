@@ -913,6 +913,15 @@ they are displayed using their graphics (assuming your terminal supports
 them), otherwise as escape sequences.  @xref{Single-Byte Character
 Support}.
 
+@vindex show-nonbreak-escape
+  Some character sets define ``non-breaking'' versions of the space
+and hyphen characters, which are used where a line should not be
+broken.  Emacs displays these with an escape character in order to
+distinguish them from ordinary spaces and hyphens.  For example, a
+non-breaking space is displayed as @samp{\ }.  You can turn off this
+behavior by setting the variable @code{show-nonbreak-escape} to
+@code{nil}.
+
 @node Cursor Display
 @section Displaying the Cursor
 
