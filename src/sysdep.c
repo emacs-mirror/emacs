@@ -1,6 +1,6 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985, 86,87,88,93,94,95,1999,2000,01,2003
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001,
+     2003, 2004  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2768,12 +2768,16 @@ sys_signal (int signal_number, signal_handler_t action)
   struct sigaction new_action, old_action;
   sigemptyset (&new_action.sa_mask);
   new_action.sa_handler = action;
-#if defined (SA_RESTART) && ! defined (BROKEN_SA_RESTART)
+#if defined (SA_RESTART) && ! defined (BROKEN_SA_RESTART) && !defined(SYNC_INPUT)
   /* Emacs mostly works better with restartable system services. If this
      flag exists, we probably want to turn it on here.
      However, on some systems this resets the timeout of `select'
      which means that `select' never finishes if it keeps getting signals.
      BROKEN_SA_RESTART is defined on those systems.  */
+  /* It's not clear why the comment above says "mostly works better".  --Stef
+     When SYNC_INPUT is set, we don't want SA_RESTART because we need to poll
+     for pending input so we need long-running syscalls to be interrupted
+     after a signal that sets the interrupt_input_pending flag.  */
   new_action.sa_flags = SA_RESTART;
 #else
   new_action.sa_flags = 0;
@@ -3225,7 +3229,8 @@ emacs_open (path, oflag, mode)
 #endif
 
   while ((rtnval = open (path, oflag, mode)) == -1
-	 && (errno == EINTR));
+	 && (errno == EINTR))
+    QUIT;
   return (rtnval);
 }
 
@@ -3258,7 +3263,8 @@ emacs_read (fildes, buf, nbyte)
   register int rtnval;
 
   while ((rtnval = read (fildes, buf, nbyte)) == -1
-	 && (errno == EINTR));
+	 && (errno == EINTR))
+    QUIT;
   return (rtnval);
 }
 
@@ -3279,7 +3285,7 @@ emacs_write (fildes, buf, nbyte)
       if (rtnval == -1)
 	{
 	  if (errno == EINTR)
-	    continue;
+	    { QUIT; continue; }
 	  else
 	    return (bytes_written ? bytes_written : -1);
 	}

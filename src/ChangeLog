@@ -1,3 +1,10 @@
+2004-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sysdep.c (sys_signal): Don't use SA_RESTART if SYNC_INPUT is set.
+	(emacs_open, emacs_read, emacs_write): Check QUIT when interrupted.
+
+	* lread.c (readchar): Check QUIT when `getc' is interrupted.
+
 2004-11-24  Richard M. Stallman  <rms@gnu.org>
 
 	* coding.c (run_pre_post_conversion_on_str): Bind Qinhibit_read_only.
