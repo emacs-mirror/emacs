@@ -2138,7 +2138,7 @@ read_process_output (proc, channel)
 	 at the current end-of-output marker,
 	 thus preserving logical ordering of input and output.  */
       if (XMARKER (p->mark)->buffer)
-	SET_PT (marker_position (p->mark));
+	SET_PT (clip_to_bounds (BEGV, marker_position (p->mark), ZV));
       else
 	SET_PT (ZV);
 
