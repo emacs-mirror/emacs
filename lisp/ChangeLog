@@ -1,5 +1,8 @@
 2005-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* help.el (describe-mode): Properly handle non-trivial lighters.
+	Don't ignore minor modes that are not listed in minor-mode-list.
+
 	* tooltip.el (tooltip-mode): Don't complain that you can't turn the
 	feature ON when the user requests to turn it OFF.
 
@@ -323,8 +326,7 @@
 	that debug-entry-code can be safely removed from a function while
 	this code is being evaluated.  Revert the 2005-02-27 change as the
 	new implementation no longer requires it.  Make sure that a
-	function body containing just a string is not mistaken for a
-	docstring.
+	function body containing just a string is not mistaken for a docstring.
 	(debug): Skip one more frame in case of debug on entry.
 	(debugger-setup-buffer): Delete one more frame line in case of
 	debug on entry.

@@ -1,7 +1,7 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2004
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2004,
+;;   2005  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -685,34 +685,35 @@ For this to work correctly for a minor mode, the mode's indicator
 variable \(listed in `minor-mode-alist') must also be a function
 whose documentation describes the minor mode."
   (interactive)
-  (help-setup-xref (list #'describe-mode (or buffer (current-buffer)))
+  (unless buffer (setq buffer (current-buffer)))
+  (help-setup-xref (list #'describe-mode buffer)
 		   (interactive-p))
   ;; For the sake of help-do-xref and help-xref-go-back,
   ;; don't switch buffers before calling `help-buffer'.
   (with-output-to-temp-buffer (help-buffer)
-    (save-excursion
-      (when buffer (set-buffer buffer))
+    (with-current-buffer buffer
       (let (minor-modes)
+	;; Older packages do not register in minor-mode-list but only in
+	;; minor-mode-alist.
+	(dolist (x minor-mode-alist)
+	  (setq x (car x))
+	  (unless (memq x minor-mode-list)
+	    (push x minor-mode-list)))
 	;; Find enabled minor mode we will want to mention.
 	(dolist (mode minor-mode-list)
 	  ;; Document a minor mode if it is listed in minor-mode-alist,
 	  ;; non-nil, and has a function definition.
 	  (and (boundp mode) (symbol-value mode)
 	       (fboundp mode)
-	       (let ((pretty-minor-mode mode)
-		     indicator)
+	       (let ((pretty-minor-mode mode))
 		 (if (string-match "\\(-minor\\)?-mode\\'"
 				   (symbol-name mode))
 		     (setq pretty-minor-mode
 			   (capitalize
 			    (substring (symbol-name mode)
 				       0 (match-beginning 0)))))
-		 (setq indicator (cadr (assq mode minor-mode-alist)))
-		 (while (and indicator (symbolp indicator)
-			     (boundp indicator)
-			     (not (eq indicator (symbol-value indicator))))
-		   (setq indicator (symbol-value indicator)))
-		 (push (list pretty-minor-mode mode indicator)
+		 (push (list pretty-minor-mode mode
+			     (format-mode-line (assq mode minor-mode-alist)))
 		       minor-modes))))
 	(if auto-fill-function
 	    ;; copy pure string so we can add face property to it below.
@@ -729,6 +730,9 @@ whose documentation describes the minor mode."
 	      (let ((pretty-minor-mode (nth 0 mode))
 		    (mode-function (nth 1 mode))
 		    (indicator (nth 2 mode)))
+		(setq indicator (if (zerop (length indicator))
+				    "no indicator"
+				  (format "indicator%s" indicator)))
 		(add-text-properties 0 (length pretty-minor-mode)
 				     '(face bold) pretty-minor-mode)
 		(save-excursion
@@ -737,20 +741,14 @@ whose documentation describes the minor mode."
 		  (push (point-marker) help-button-cache)
 		  ;; Document the minor modes fully.
 		  (insert pretty-minor-mode)
-		  (princ (format " minor mode (%s):\n"
-				 (if indicator
-				     (format "indicator%s" indicator)
-				   "no indicator")))
+		  (princ (format " minor mode (%s):\n" indicator))
 		  (princ (documentation mode-function)))
 		(princ "  ")
 		(insert-button pretty-minor-mode
 			       'action (car help-button-cache)
 			       'follow-link t
 			       'help-echo "mouse-2, RET: show full information")
-		(princ (format " minor mode (%s):\n"
-			       (if indicator
-				   (format "indicator%s" indicator)
-				 "no indicator"))))))
+		(princ (format " minor mode (%s):\n" indicator)))))
 	  (princ "\n(Full information about these minor modes
 follows the description of the major mode.)\n\n"))
 	;; Document the major mode.
@@ -896,5 +894,5 @@ out of view."
 ;; defcustoms which require 'help'.
 (provide 'help)
 
-;;; arch-tag: cf427352-27e9-49b7-9a6f-741ebab02423
+;; arch-tag: cf427352-27e9-49b7-9a6f-741ebab02423
 ;;; help.el ends here
