@@ -1033,7 +1033,7 @@ BUFFER is the buffer or (buffer-name) to associate with the process.\n\
  an output stream or filter function to handle the output.\n\
  BUFFER may be also nil, meaning that this process is not associated\n\
  with any buffer.\n\
-Third arg is program file name.  It is searched for as in the shell.\n\
+Third arg is program file name.  It is searched for in PATH.\n\
 Remaining arguments are strings to give program as arguments.")
   (nargs, args)
      int nargs;
@@ -2892,8 +2892,8 @@ read_process_output (proc, channel)
 	  /* Don't clobber the CURRENT match data, either!  */
 	  tem = Fmatch_data (Qnil, Qnil);
 	  restore_match_data ();
-	  record_unwind_protect (Fstore_match_data, Fmatch_data (Qnil, Qnil));
-	  Fstore_match_data (tem);
+	  record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+	  Fset_match_data (tem);
 	}
 
       /* For speed, if a search happens within this code,
@@ -4028,8 +4028,8 @@ exec_sentinel (proc, reason)
       Lisp_Object tem;
       tem = Fmatch_data (Qnil, Qnil);
       restore_match_data ();
-      record_unwind_protect (Fstore_match_data, Fmatch_data (Qnil, Qnil));
-      Fstore_match_data (tem);
+      record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+      Fset_match_data (tem);
     }
 
   /* For speed, if a search happens within this code,
