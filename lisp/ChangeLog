@@ -1,3 +1,17 @@
+2003-02-12  Dave Love  <fx@gnu.org>
+
+	* language/georgian.el (georgian-ps, georgian-academy): New coding
+	system.
+
+	* language/chinese.el (chinese-big5-hkscs): New coding system.
+	(big5-hkscs, cn-big5-hkscs): New aliases.
+
+	* international/mule-conf.el (big5-hkscs, georgian-academy): New
+	charset.
+	(ibm1047): Doc fix.
+	(pt154): Add mime-charset.
+	(ptcp154, cp154): New aliases.
+
 2003-02-04  Dave Love  <fx@gnu.org>
 
 	* international/mule.el (charset-iso-final-char) 
