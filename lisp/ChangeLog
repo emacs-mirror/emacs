@@ -1,3 +1,11 @@
+2000-12-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* generic.el (generic-read-type): Undo last change, inline into
+	`generic-mode' and then remove.
+	(generic-mode): Inline generic-read-type.
+	(define-generic-mode): Push the symbol name rather than the symbol
+	onto generic-mode-list.
+
 2000-12-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* generic.el (generic-read-type): Build an alist for
