@@ -2124,6 +2124,12 @@ expressions; a `progn' form will be returned enclosing these forms."
 (def-edebug-spec with-temp-buffer t)
 (def-edebug-spec with-temp-message t)
 (def-edebug-spec with-syntax-table t)
+(def-edebug-spec dolist '((symbolp form &rest form) &rest form))
+(def-edebug-spec dotimes '((symbolp form &rest form) &rest form))
+(def-edebug-spec push '(&rest form))
+(def-edebug-spec pop '(&rest form))
+(def-edebug-spec unless '(&rest form))
+(def-edebug-spec when '(&rest form))
 
 ;; Anything else?
 
