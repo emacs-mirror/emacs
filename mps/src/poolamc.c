@@ -1,16 +1,16 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.3) $
- * Copyright (C) 1995,1997,1998 Harlequin Group plc, all rights reserved
+ * $HopeName: MMsrc!poolamc.c(trunk.4) $
+ * Copyright (C) 1998 Harlequin Group plc. All rights reserved.
  *
  * .sources: design.mps.poolamc.
  */
 
-#include "mpm.h"
 #include "amc.h"
 #include "mpscamc.h"
+#include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.3) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.4) $");
 
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
@@ -259,10 +259,161 @@ static void AMCGenDestroy(AMCGen gen)
 }
 
 
+/* AMCSegCreateNailBoard -- create nail board for segment */
+
+static Res AMCSegCreateNailBoard(Seg seg, Pool pool)
+{
+  AMCNailBoard board;
+  Arena arena;
+  Count bits;
+  Res res;
+  void *p;
+
+  AVER(!AMCSegHasNailBoard(seg));
+
+  arena = PoolArena(pool);
+
+  res = ArenaAlloc(&p, arena, sizeof(AMCNailBoardStruct));
+  if(res != ResOK)
+    goto failAllocNailBoard;
+  board = p;
+  board->type = AMCPTypeNailBoard;
+  board->gen = AMCSegGen(seg);
+  board->nails = (Count)0;
+  board->distinctNails = (Count)0;
+  board->newMarks = FALSE;
+  board->markShift = SizeLog2((Size)pool->alignment);
+  bits = SegSize(seg) >> board->markShift;
+  res = ArenaAlloc(&p, arena, BTSize(bits));
+  if(res != ResOK)
+    goto failMarkTable;
+  board->mark = p;
+  BTResRange(board->mark, 0, bits);
+  board->sig = AMCNailBoardSig;
+  AVERT(AMCNailBoard, board);
+  SegSetP(seg, &board->type); /* design.mps.poolamc.fix.nail.distinguish */
+
+  return ResOK;
+
+failMarkTable:
+  ArenaFree(arena, board, sizeof(AMCNailBoardStruct));
+failAllocNailBoard:
+  return res;
+}
+
+
+/* AMCSegDestroyNailBoard -- destroy the nail board of a segment */
+
+static void AMCSegDestroyNailBoard(Seg seg, Pool pool)
+{
+  AMCNailBoard board;
+  AMCGen gen;
+  Arena arena;
+  Count bits;
+
+  gen = AMCSegGen(seg);
+  board = AMCSegNailBoard(seg);
+  AVERT(AMCNailBoard, board);
+
+  arena = PoolArena(pool);
+  AVERT(Arena, arena);
+
+  bits = SegSize(seg) >> board->markShift;
+  ArenaFree(arena, board->mark, BTSize(bits));
+  board->sig = SigInvalid;
+  ArenaFree(arena, board, sizeof(AMCNailBoardStruct));
+  SegSetP(seg, &gen->type); /* design.mps.poolamc.fix.nail.distinguish */
+}
+
+
+/* AMCNailGetMark -- get the mark bit for ref from the nail board */
+
+static Bool AMCNailGetMark(Seg seg, Ref ref)
+{
+  AMCNailBoard board;
+  Index i;
+
+  board = AMCSegNailBoard(seg);
+  AVERT(AMCNailBoard, board);
+
+  i = AddrOffset(SegBase(seg), ref) >> board->markShift;
+  return BTGet(board->mark, i);
+}
+
+
+/* AMCNailGetAndSetMark
+ *
+ * Set the mark bit for ref in the nail board.
+ * Returns the old value. */
+
+static Bool AMCNailGetAndSetMark(Seg seg, Ref ref)
+{
+  AMCNailBoard board;
+  Index i;
+
+  board = AMCSegNailBoard(seg);
+  AVERT(AMCNailBoard, board);
+
+  ++board->nails;
+  i = AddrOffset(SegBase(seg), ref) >> board->markShift;
+  if(!BTGet(board->mark, i)) {
+    BTSet(board->mark, i);
+    board->newMarks = TRUE;
+    ++board->distinctNails;
+    return FALSE;
+  }
+  return TRUE;
+}
+
+
+/* AMCNailMarkRange -- nail a range in the board
+ *
+ * We may assume that the range is unmarked.
+ */
+
+static void AMCNailMarkRange(Seg seg, Addr base, Addr limit)
+{
+  AMCNailBoard board;
+  Index ibase, ilimit;
+
+  AVER(SegBase(seg) <= base && base < SegLimit(seg));
+  AVER(SegBase(seg) <= limit && limit <= SegLimit(seg));
+  AVER(base < limit);
+
+  board = AMCSegNailBoard(seg);
+  AVERT(AMCNailBoard, board);
+  ibase = AddrOffset(SegBase(seg), base) >> board->markShift;
+  ilimit = AddrOffset(SegBase(seg), limit) >> board->markShift;
+  AVER(BTIsResRange(board->mark, ibase, ilimit));
+
+  BTSetRange(board->mark, ibase, ilimit);
+  board->nails += ilimit - ibase;
+  board->distinctNails += ilimit - ibase;
+}
+
+
+/* AMCNailRangeIsMarked -- check that a range in the board is marked */
+
+static Bool AMCNailRangeIsMarked(Seg seg, Addr base, Addr limit)
+{
+  AMCNailBoard board;
+  Index ibase, ilimit;
+
+  AVER(SegBase(seg) <= base && base < SegLimit(seg));
+  AVER(SegBase(seg) <= limit && limit <= SegLimit(seg));
+  AVER(base < limit);
+
+  board = AMCSegNailBoard(seg);
+  AVERT(AMCNailBoard, board);
+  ibase = AddrOffset(SegBase(seg), base) >> board->markShift;
+  ilimit = AddrOffset(SegBase(seg), limit) >> board->markShift;
+  return BTIsSetRange(board->mark, ibase, ilimit);
+}
+
+
 /* AMCInitComm -- initialize AMC/Z pool
  *
  * See design.mps.poolamc.init.
- *
  * Shared by AMCInit and AMCZinit.
  */
 
@@ -529,21 +680,21 @@ static double AMCBenefit(Pool pool, Action action)
 
 /* AMCWhiten -- turn the segment white for the traces
  *
- * This does not whiten segments that have mutator buffers on
- * them, because we can't reclaim uncommitted buffers.
+ * If the segment has a mutator buffer on it, we nail the buffer,
+ * because we can't scan or reclaim uncommitted buffers.
  */
 
 static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 {
   AMCGen gen, forwardingGen;
   Buffer buffer;
+  Res res;
 
   AVERT(Pool, pool);
   AVERT(Trace, trace);
   AVERT(Seg, seg);
 
   buffer = SegBuffer(seg);
-
   if(buffer != NULL) {
     AVERT(Buffer, buffer);
 
@@ -551,13 +702,35 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
       AVER(BufferIsReady(buffer));
       BufferDetach(buffer, pool);
     } else {                        /* mutator buffer */
-      return ResOK;
+      if(BufferScanLimit(buffer) == SegBase(seg)) {
+        /* There's nothing but the buffer, don't condemn. */
+        return ResOK;
+      } else if(!AMCSegHasNailBoard(seg)) {
+        if(SegNailed(seg) == TraceSetEMPTY) {
+          res = AMCSegCreateNailBoard(seg, pool);
+          if(res != ResOK)
+            return ResOK; /* can't create nail board, don't condemn */
+          AMCNailMarkRange(seg, BufferScanLimit(buffer),
+                           BufferLimit(buffer));
+          ++trace->nailCount;
+          SegSetNailed(seg, TraceSetSingle(trace->ti));
+        } else {
+          /* Segment is nailed already, cannot create a nail board */
+          /* (see .nail.new), just give up condemning. */
+          return ResOK;
+        }
+      } else {
+        /* We have a nail board, the buffer must be nailed already. */
+        AVER(AMCNailRangeIsMarked(seg, BufferScanLimit(buffer),
+                                  BufferLimit(buffer)));
+        /* Nail it for this trace as well. */
+        SegSetNailed(seg, TraceSetAdd(SegNailed(seg), trace->ti));
+      }
     }
   }
 
-  AVER(SegBuffer(seg) == NULL);
-
   SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
+
   gen = AMCSegGen(seg);
   AVERT(AMCGen, gen);
   /* see .forward.gen */
@@ -569,7 +742,6 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
     } else {
       AMC amc;
       AMCGen newGen;
-      Res res;
 
       amc = PoolPoolAMC(pool);
       AVERT(AMC, amc);
@@ -648,46 +820,6 @@ failBegin:
   TraceDestroy(trace);
 failCreate:
   return res;
-}
-
-
-/* AMCNailGetMark -- get the mark bit for ref from the nail board */
-
-static Bool AMCNailGetMark(Seg seg, Ref ref)
-{
-  AMCNailBoard board;
-  Index i;
-
-  board = AMCSegNailBoard(seg);
-  AVERT(AMCNailBoard, board);
-
-  i = AddrOffset(SegBase(seg), ref) >> board->markShift;
-  return BTGet(board->mark, i);
-}
-
-
-/* AMCNailGetAndSetMark
- *
- * Set the mark bit for ref in the nail board.
- * Returns the old value. */
-
-static Bool AMCNailGetAndSetMark(Seg seg, Ref ref)
-{
-  AMCNailBoard board;
-  Index i;
-
-  board = AMCSegNailBoard(seg);
-  AVERT(AMCNailBoard, board);
-
-  ++board->nails;
-  i = AddrOffset(SegBase(seg), ref) >> board->markShift;
-  if(!BTGet(board->mark, i)) {
-    BTSet(board->mark, i);
-    board->newMarks = TRUE;
-    ++board->distinctNails;
-    return FALSE;
-  }
-  return TRUE;
 }
 
 
@@ -869,74 +1001,6 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 }
 
 
-/* AMCSegCreateNailBoard -- create nail board for segment */
-
-static Res AMCSegCreateNailBoard(Seg seg, TraceSet ts, Pool pool)
-{
-  AMCNailBoard board;
-  Arena arena;
-  Count bits;
-  Res res;
-  void *p;
-
-  AVER(!AMCSegHasNailBoard(seg));
-
-  arena = PoolArena(pool);
-
-  res = ArenaAlloc(&p, arena, sizeof(AMCNailBoardStruct));
-  if(res != ResOK)
-    goto failAllocNailBoard;
-  board = p;
-  board->type = AMCPTypeNailBoard;
-  board->gen = AMCSegGen(seg);
-  board->nails = (Count)0;
-  board->distinctNails = (Count)0;
-  board->newMarks = FALSE;
-  board->markShift = SizeLog2((Size)pool->alignment);
-  bits = SegSize(seg) >> board->markShift;
-  res = ArenaAlloc(&p, arena, BTSize(bits));
-  if(res != ResOK)
-    goto failMarkTable;
-  board->mark = p;
-  BTResRange(board->mark, 0, bits);
-  board->sig = AMCNailBoardSig;
-  AVERT(AMCNailBoard, board);
-  SegSetP(seg, &board->type); /* design.mps.poolamc.fix.nail.distinguish */
-
-  SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ts));
-  return ResOK;
-
-failMarkTable:
-  ArenaFree(arena, board, sizeof(AMCNailBoardStruct));
-failAllocNailBoard:
-  return res;
-}
-
-
-/* AMCSegDestroyNailBoard -- destroy the nail board of a segment */
-
-static void AMCSegDestroyNailBoard(Seg seg, Pool pool)
-{
-  AMCNailBoard board;
-  AMCGen gen;
-  Arena arena;
-  Count bits;
-
-  gen = AMCSegGen(seg);
-  board = AMCSegNailBoard(seg);
-  AVERT(AMCNailBoard, board);
-
-  arena = PoolArena(pool);
-  AVERT(Arena, arena);
-
-  bits = SegSize(seg) >> board->markShift;
-  ArenaFree(arena, board->mark, BTSize(bits));
-  board->sig = SigInvalid;
-  ArenaFree(arena, board, sizeof(AMCNailBoardStruct));
-  SegSetP(seg, &gen->type); /* design.mps.poolamc.fix.nail.distinguish */
-}
-
-
 /* AMCFixInPlace -- fix an reference without moving the object
  *
  * Usually this function is used for ambiguous references,
@@ -1057,8 +1121,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   /* as nailed, and setting up a per-word mark table */
   if(ss->rank == RankAMBIG) {
     /* .nail.new: Check to see whether we need a NailBoard for */
-    /* this seg. */
-    /* We use "SegNailed(seg) == TraceSetEMPTY" */
+    /* this seg.  We use "SegNailed(seg) == TraceSetEMPTY" */
     /* rather than "!AMCSegHasNailBoard(seg)" because this avoids */
     /* setting up a new nail board when the segment was nailed, but had */
     /* no nail board.  This must be avoided because otherwise */
@@ -1066,11 +1129,12 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* we will lose some pointer fixes because we introduced a */
     /* nail board). */
     if(SegNailed(seg) == TraceSetEMPTY) {
-      res = AMCSegCreateNailBoard(seg, ss->traces, pool);
+      res = AMCSegCreateNailBoard(seg, pool);
       if(res != ResOK) {
         return res;
       }
-      ++ss->nailCount;  /* is this the right place to count? @@@@ */
+      ++ss->nailCount;
+      SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
     }
     AMCFixInPlace(pool, seg, ss, refIO);
     return ResOK;
@@ -1212,7 +1276,10 @@ static void AMCReclaimNailed(Pool pool, Trace trace, Seg seg)
   /* see design.mps.poolamc.nailboard.limitations for improvements */
   ShieldExpose(arena, seg);
   p = SegBase(seg);
-  limit = SegLimit(seg);
+  if(SegBuffer(seg) != NULL)
+    limit = BufferScanLimit(SegBuffer(seg));
+  else
+    limit = SegLimit(seg);
   while(p < limit) {
     Addr q;
     q = (*format->skip)(p);
@@ -1251,10 +1318,6 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   AVERT_CRITICAL(Pool, pool);
   AVERT_CRITICAL(Trace, trace);
   AVERT_CRITICAL(Seg, seg);
-
-  /* No segment with a buffer should reach here because they */
-  /* are not condemned and cannot become attached to a buffer. */
-  AVER_CRITICAL(SegBuffer(seg) == NULL);
 
   gen = AMCSegGen(seg);
 
@@ -1379,7 +1442,7 @@ static void AMCWalk(Pool pool, Seg seg,
     AVERT(AMC, amc);
     format = amc->format;
 
-    /* If the segment it buffered, only walk as far as the end */
+    /* If the segment is buffered, only walk as far as the end */
     /* of the initialized objects.  cf. AMCScan */
     if(SegBuffer(seg) != NULL)
       limit = BufferScanLimit(SegBuffer(seg));
