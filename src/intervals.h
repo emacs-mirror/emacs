@@ -199,7 +199,7 @@ Boston, MA 02111-1307, USA.  */
 
 #define TEXT_PROP_MEANS_INVISIBLE(prop)				\
   (EQ (current_buffer->invisibility_spec, Qt)			\
-   ? ! NILP (prop)						\
+   ? !NILP (prop)						\
    : invisible_p (prop, current_buffer->invisibility_spec))
 
 /* If PROP is the `invisible' property of a character,
@@ -211,6 +211,13 @@ Boston, MA 02111-1307, USA.  */
    ? 0								\
    : invisible_ellipsis_p (prop, current_buffer->invisibility_spec))
 
+/* As above but for "completely" invisible (no ellipsis).  */
+
+#define TEXT_PROP_MEANS_INVISIBLE_NOELLIPSIS(prop)		\
+  (EQ (current_buffer->invisibility_spec, Qt)			\
+   ? !NILP (prop)						\
+   : invisible_noellipsis_p (prop, current_buffer->invisibility_spec))
+
 /* Declared in alloc.c */
 
 extern INTERVAL make_interval P_ ((void));
@@ -220,7 +227,10 @@ extern INTERVAL make_interval P_ ((void));
 extern INTERVAL create_root_interval P_ ((Lisp_Object));
 extern void copy_properties P_ ((INTERVAL, INTERVAL));
 extern int intervals_equal P_ ((INTERVAL, INTERVAL));
-extern void traverse_intervals P_ ((INTERVAL, int, int,
+extern void traverse_intervals P_ ((INTERVAL, int,
+				    void (*) (INTERVAL, Lisp_Object),
+				    Lisp_Object));
+extern void traverse_intervals_noorder P_ ((INTERVAL,
 				    void (*) (INTERVAL, Lisp_Object),
 				    Lisp_Object));
 extern INTERVAL split_interval_right P_ ((INTERVAL, int));
@@ -255,6 +265,8 @@ extern INTERVAL validate_interval_range P_ ((Lisp_Object, Lisp_Object *,
 
 /* Defined in xdisp.c */
 extern int invisible_ellipsis_p P_ ((Lisp_Object, Lisp_Object));
+extern int invisible_p P_ ((Lisp_Object, Lisp_Object));
+extern int invisible_noellipsis_p P_ ((Lisp_Object, Lisp_Object));
 
 /* Declared in textprop.c */
 
