@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# $HopeName: MMQA_harness!script:commands:runset(trunk.2) $
+# $HopeName: MMQA_harness!script:commands:runset(trunk.3) $
 #
 # run a set of tests specified in a test-set file
 #
@@ -7,7 +7,7 @@
 &requiredoptions(
  "MPS_INCLUDE_DIR",
  "MPS_LINK_OBJ",
- "MPS_INTERFACE_VERSION",
+# "MPS_INTERFACE_VERSION",
  "MPS_PRODUCT",
  "PLATFORM",
  "LOG_DIR"
