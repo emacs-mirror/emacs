@@ -2073,9 +2073,12 @@ describe_map (map, keys, elt_describer, partial, shadow, seen)
       else if (CONSP (XCONS (tail)->car))
 	{
 	  event = XCONS (XCONS (tail)->car)->car;
-	  /* Don't show individual items in the Buffers menu.  */
-	  if (STRINGP (event))
+
+	  /* Ignore bindings whose "keys" are not really valid events.
+	     (We get these in the frames and buffers menu.)  */
+	  if (! (SYMBOLP (event) || INTEGERP (event)))
 	    continue;
+
 	  definition = get_keyelt (XCONS (XCONS (tail)->car)->cdr, 0);
 
 	  /* Don't show undefined commands or suppressed commands.  */
