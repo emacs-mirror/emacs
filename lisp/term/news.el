@@ -18,68 +18,38 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-;; This file effects a mapping from the raw escape sequences of various
-;; keypad and function keys to the symbols used by emacs to represent
-;; those keys.  The mapping from key symbol to the function performed
-;; when that key is pressed is handled keyboard-independently by the file
-;; ../keypad.el.
+;; This file places entries in function-key-map for the raw escape
+;; sequences of various keypad and function keys, binding them to
+;; their symbolic forms.
 
-;; Note that his file is also used under X11.  For this to work, the variable
-;; names must not change from keyboard file to keyboard file, nor can the
-;; structure of keypad-maps change.
+(define-prefix-command 'news-fkey-prefix 'news-fkey-map)
+(define-key function-key-map "\eO" 'news-fkey-prefix)
 
-(require 'keypad)
-
-(defvar keypads nil
-  "Keypad and function keys keymap for Sony News machine.")
-
-(defvar keypad-maps nil
-  "A list of strings sent by the keypad and function keys on the Sony News.
-There is an element for each unique prefix.  Each element is of the form
-(PREFIX map map ...), each map being (string . symbol).")
-
-(setq keypad-maps '(("\eO"
-			("P" . function-1)
-			("Q" . function-2)
-			("R" . function-3)
-			("S" . function-4)
-			("T" . function-5)
-			("U" . function-6)
-			("V" . function-7)
-			("W" . function-8)
-			("X" . function-9)
-			("Y" . function-10)
-
-			("m" . keypad-subtract)
-			("k" . keypad-add)
-			("l" . keypad-comma)
-			("n" . keypad-period)
-			("M" . keypad-enter)
-
-			("p" . keypad-0)
-			("q" . keypad-1)
-			("r" . keypad-2)
-			("s" . keypad-3)
-			("t" . keypad-4)
-			("u" . keypad-5)
-			("v" . keypad-6)
-			("w" . keypad-7)
-			("x" . keypad-8)
-			("y" . keypad-9)
-	
-			     ; These three strings are just made up.
-			("a"	. execute)       ; enter
-			("b"	. select)        ; nfer
-			("c"	. cancel))))     ; xfer
-
-(let ((pads keypad-maps))
-  (while pads
-    (unwind-protect
-	(let* ((prefix (car (car pads)))
-	       (stringmap (cdr (car pads)))
-	       (padmap (if (lookup-key global-map prefix)
-			   (error "Keymap entry for keypad prefix already exisists")
-			 (make-sparse-keymap))))
-	  (define-key global-map prefix padmap)
-	  (setup-terminal-keymap padmap stringmap))
-      (setq pads (cdr pads)))))
+(define-key news-fkey-map "P" [f1])
+(define-key news-fkey-map "Q" [f2])
+(define-key news-fkey-map "R" [f3])
+(define-key news-fkey-map "S" [f4])
+(define-key news-fkey-map "T" [f5])
+(define-key news-fkey-map "U" [f6])
+(define-key news-fkey-map "V" [f7])
+(define-key news-fkey-map "W" [f8])
+(define-key news-fkey-map "X" [f9])
+(define-key news-fkey-map "Y" [f10])
+(define-key news-fkey-map "m" [kp-subtract])
+(define-key news-fkey-map "k" [kp-add])
+(define-key news-fkey-map "l" [kp-separator])
+(define-key news-fkey-map "n" [kp-period])
+(define-key news-fkey-map "M" [kp-enter])
+(define-key news-fkey-map "p" [kp-0])
+(define-key news-fkey-map "q" [kp-1])
+(define-key news-fkey-map "r" [kp-2])
+(define-key news-fkey-map "s" [kp-3])
+(define-key news-fkey-map "t" [kp-4])
+(define-key news-fkey-map "u" [kp-5])
+(define-key news-fkey-map "v" [kp-6])
+(define-key news-fkey-map "w" [kp-7])
+(define-key news-fkey-map "x" [kp-8])
+(define-key news-fkey-map "y" [kp-9])
+(define-key news-fkey-map "a" [execute])
+(define-key news-fkey-map "b" [select])
+(define-key news-fkey-map "c" [cancel])
