@@ -61,6 +61,8 @@ sub settings_nt {
  $stdout_dup = "| $script_dir/ntx86bin/tee.exe";
  $stdin_red = "<";
  $platmailfile = \&nt_mailfile;
+ $stringscommand = "$script_dir/ntx86bin/strings.exe -20 -c";
+ $exesuff = ".exe";
 }
 
 sub settings_nt_cap {
@@ -99,6 +101,8 @@ sub settings_unix {
  $stdout_dup = "| tee";
  $stdin_red = "<";
  $platmailfile = \&unix_mailfile;
+ $stringscommand = "strings";
+ $exesuff = "";
 }
 
 sub settings_gprof {
