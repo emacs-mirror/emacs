@@ -155,14 +155,21 @@ and then select the region of un-tablified names and use
     (let ((end-marker (progn
 			(goto-char bottom)
 			(beginning-of-line)
-			(point-marker))))
+			(point-marker)))
+	  next-line-marker)
       (goto-char top)
       (if (not (bolp))
 	  (forward-line 1))
-      (while (< (point) end-marker)
+      (setq next-line-marker (point-marker))
+      (while (< next-line-marker end-marker)
+	(goto-char next-line-marker)
 	(save-excursion
-	  (execute-kbd-macro macro))
-	(forward-line 1)))))
+	  (forward-line 1)
+	  (set-marker next-line-marker (point)))
+	(save-excursion
+	  (execute-kbd-macro (or macro last-kbd-macro))))
+      (set-marker end-marker nil)
+      (set-marker next-line-marker nil))))
 
 ;;;###autoload
 (define-key ctl-x-map "q" 'kbd-macro-query)
