@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (c) 1986, 93, 94, 95, 97, 98, 99, 2000, 2001
+;; Copyright (c) 1986, 93, 94, 95, 97, 98, 99, 2000, 01, 2003
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
@@ -697,10 +697,15 @@ with no args, if that value is non-nil."
   (set (make-local-variable 'add-log-current-defun-function)
        #'fortran-current-defun)
   (set (make-local-variable 'dabbrev-case-fold-search) 'case-fold-search)
-  (set (make-local-variable 'gud-find-expr) 'gud-find-fortran-expr)
+  (set (make-local-variable 'gud-find-expr-function) 'fortran-gud-find-expr)
   (run-hooks 'fortran-mode-hook))
 
 
+(defun fortran-gud-find-expr ()
+  ;; Consider \n as punctuation (end of expression).
+  (with-syntax-table fortran-gud-syntax-table
+    (gud-find-c-expr)))
+
 (defsubst fortran-comment-indent ()
   "Return the indentation appropriate for the current comment line.
 This is 0 for a line matching `fortran-comment-line-start-skip', else
