@@ -1,11 +1,11 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992, 1993, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@python.org>
 ;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.35 2002/12/16 00:20:42 rost Exp $||
+;; Version: $Id: allout.el,v 1.36 2002/12/16 00:26:22 rost Exp $||
 ;; Keywords: outlines mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -46,7 +46,7 @@
 ;; and many other features.
 ;; 
 ;; The outline menubar additions provide quick reference to many of
-;; the features, and see the docstring of the variable `allout-init'
+;; the features, and see the docstring of the function `allout-init'
 ;; for instructions on priming your emacs session for automatic
 ;; activation of `allout-mode'.
 ;; 
@@ -63,14 +63,13 @@
 ;;; Code:
 
 ;;;_* Provide
-(provide 'outline)
 (provide 'allout)
 
 ;;;_* USER CUSTOMIZATION VARIABLES:
 (defgroup allout nil
   "Extensive outline mode for use alone and with other modes."
   :prefix "allout-"
-  :group 'outlines)
+  :group 'editing)
 
 ;;;_ + Layout, Mode, and Topic Header Configuration
 
@@ -84,7 +83,7 @@ variable `allout-layout' is non-nil, and whether or not the layout
 dictated by `allout-layout' should be imposed on mode activation.
 
 With value `t', auto-mode-activation and auto-layout are enabled.
-\(This also depends on `allout-find-file-hooks' being installed in
+\(This also depends on `allout-find-file-hook' being installed in
 `find-file-hooks', which is also done by `allout-init'.)
 
 With value `ask', auto-mode-activation is enabled, and endorsement for
@@ -110,8 +109,8 @@ this variable."
 Buffer-specific.
 
 A list value specifies a default layout for the current buffer, to be
-applied upon activation of allout `allout-mode'.  Any non-nil value will
-automatically trigger allout `allout-mode', provided `allout-init'
+applied upon activation of `allout-mode'.  Any non-nil value will
+automatically trigger `allout-mode', provided `allout-init'
 has been called to enable it.
 
 See the docstring for `allout-init' for details on setting up for
@@ -261,7 +260,7 @@ from regular comments that start at bol.")
 
 ;;;_  = allout-old-style-prefixes
 (defcustom allout-old-style-prefixes nil
-  "*When non-nil, use only old-and-crusty allout-mode `*' topic prefixes.
+  "*When non-nil, use only old-and-crusty `outline-mode' `*' topic prefixes.
 
 Non-nil restricts the topic creation and modification
 functions to asterix-padded prefixes, so they look exactly
@@ -509,7 +508,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version
-  (let ((rcs-rev "$Revision: 1.35 $"))
+  (let ((rcs-rev "$Revision: 1.36 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -547,7 +546,7 @@ and `allout-distinctive-bullets-string'.")
 (make-variable-buffer-local 'allout-bullets-string-len)
 ;;;_   = allout-line-boundary-regexp
 (defvar allout-line-boundary-regexp ()
-  "Allout-regexp with allout-style beginning-of-line anchor.
+  "`allout-regexp' with outline style beginning-of-line anchor.
 
 \(Ie, C-j, *or* C-m, for prefixes of hidden topics).  This is properly
 set when `allout-regexp' is produced by `set-allout-regexp', so
@@ -799,7 +798,7 @@ activation.  Being deprecated.")
 ;;;_  : Mode-Specific Variable Maintenance Utilities
 ;;;_   = allout-mode-prior-settings
 (defvar allout-mode-prior-settings nil
-  "Internal outline mode use; settings to be resumed on mode deactivation.")
+  "Internal `allout-mode' use; settings to be resumed on mode deactivation.")
 (make-variable-buffer-local 'allout-mode-prior-settings)
 ;;;_   > allout-resumptions (name &optional value)
 (defun allout-resumptions (name &optional value)
@@ -911,9 +910,9 @@ mode from prop-line file-var activation.  Used by `allout-mode' function
 to track repeats.")
 ;;;_   > allout-write-file-hook ()
 (defun allout-write-file-hook ()
-  "In outline mode, run as a `local-write-file-hooks' activity.
+  "In `allout-mode', run as a `local-write-file-hooks' activity.
 
-Currently just sets `allout-during-write-cue', so allout-change-protection
+Currently just sets `allout-during-write-cue', so outline change-protection
 knows to keep inactive during file write."
   (setq allout-during-write-cue t)
   nil)
@@ -928,10 +927,11 @@ knows to keep inactive during file write."
   'allout-mode)
 ;;;_  = allout-explicitly-deactivated
 (defvar allout-explicitly-deactivated nil
-  "Allout-mode was last deliberately deactivated.
+  "Non-nil if `allout-mode' was last deliberately deactivated.
 So `allout-post-command-business' should not reactivate it...")
 (make-variable-buffer-local 'allout-explicitly-deactivated)
 ;;;_  > allout-init (&optional mode)
+;;;###autoload
 (defun allout-init (&optional mode)
   "Prime `allout-mode' to enable/disable auto-activation, wrt `allout-layout'.
 
@@ -950,9 +950,9 @@ of allout outline mode, contingent to the buffer-specific setting of
 the `allout-layout' variable.  (See `allout-layout' and
 `allout-expose-topic' docstrings for more details on auto layout).
 
-`allout-init' works by setting up (or removing) the allout-mode
-find-file-hook, and giving `allout-auto-activation' a suitable
-setting.
+`allout-init' works by setting up (or removing)
+`allout-find-file-hook' in `find-file-hooks', and giving
+`allout-auto-activation' a suitable setting.
 
 To prime your emacs session for full auto-outline operation, include
 the following two lines in your emacs init file:
@@ -1008,7 +1008,7 @@ the following two lines in your emacs init file:
 		   
 ;;;_  > allout-setup-menubar ()
 (defun allout-setup-menubar ()
-  "Populate the current buffer's menubar with allout allout-mode stuff."
+  "Populate the current buffer's menubar with `allout-mode' stuff."
   (let ((menus (list allout-mode-exposure-menu
 		     allout-mode-editing-menu
 		     allout-mode-navigation-menu
@@ -1027,7 +1027,7 @@ the following two lines in your emacs init file:
 Optional arg forces mode to re-initialize iff arg is positive num or
 symbol.  Allout outline mode always runs as a minor mode.
 
-Allout outline mode provides extensive allout-oriented formatting and
+Allout outline mode provides extensive outline oriented formatting and
 manipulation.  It enables structural editing of outlines, as well as
 navigation and exposure.  It also is specifically aimed at
 accommodating syntax-sensitive text like programming languages.  \(For
@@ -1176,7 +1176,7 @@ PREFIX-LEAD:
 	`allout-header-prefix' and then reinitializing `allout-mode'.
 
 	By setting the prefix-lead to the comment-string of a
-	programming language, you can embed allout-structuring in
+	programming language, you can embed outline structuring in
 	program code without interfering with the language processing
 	of that code.  See `allout-use-mode-specific-leader'
 	docstring for more detail.
@@ -1237,7 +1237,7 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
      ;; off on second invocation, so we detect it as best we can, and
      ;; skip everything.
      ((and same-complex-command		; Still in same complex command
-				       ; as last time `allout-mode' invoked.
+					; as last time `allout-mode' invoked.
 	  active			; Already activated.
 	  (not explicit-activation)	; Prop-line file-vars don't have args.
 	  (string-match "^19.1[89]"	; Bug only known to be in v19.18 and
@@ -1364,7 +1364,7 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
 
       (or (assq 'allout-mode minor-mode-alist)
 	  (setq minor-mode-alist
-	       (cons '(allout-mode " Outl") minor-mode-alist)))
+	       (cons '(allout-mode " Allout") minor-mode-alist)))
 
       (allout-setup-menubar)
 
@@ -1650,7 +1650,7 @@ Optional argument LEVELS specifies the depth \(relative to start
 depth) for the chart.  Subsequent optional args are not for public
 use.
 
-Charts are used to capture outline structure, so that allout-altering
+Charts are used to capture outline structure, so that outline altering
 routines need assess the structure only once, and then use the chart
 for their elaborate manipulations.
 
@@ -2019,7 +2019,7 @@ Return depth if successful, nil otherwise."
         nil))))
 ;;;_   > allout-previous-sibling (&optional depth backward)
 (defun allout-previous-sibling (&optional depth backward)
-  "Like `allout-forward-current-level',but backwards & respect invisible topics.
+  "Like `allout-forward-current-level', but backwards & respect invisible topics.
 
 Optional DEPTH specifies depth to traverse, default current depth.
 
@@ -2333,7 +2333,7 @@ are mapped to the command of the corresponding control-key on the
 Implements special behavior when cursor is on bullet char.
 
 Self-insert characters are reinterpreted control-character references
-into the `allout-mode-map'.  The `allout-mode' post-command hook will
+into the `allout-mode-map'.  The `allout-mode' `post-command-hook' will
 position a cursor that has moved as a result of such reinterpretation,
 on the destination topic's bullet, when the cursor wound up in the
 
@@ -2494,7 +2494,7 @@ actual quits."
 ;;; Prevent unnecessary font-lock while isearching!
 (defvar isearch-was-font-locking nil)
 (defun isearch-inhibit-font-lock ()
-  "Inhibit font-lock while isearching - for use on `isearch-mode-hook'."
+  "Inhibit `font-lock-mode' while isearching - for use on `isearch-mode-hook'."
   (if (and (allout-mode-p) (boundp 'font-lock-mode) font-lock-mode)
       (setq isearch-was-font-locking t
 	    font-lock-mode nil)))
@@ -2907,7 +2907,7 @@ topic prior to the current one."
   "Name of modal fill function being wrapped by `allout-auto-fill'.")
 ;;;_    > allout-auto-fill ()
 (defun allout-auto-fill ()
-  "Allout-mode autofill function.
+  "`allout-mode' autofill function.
 
 Maintains outline hanging topic indentation if
 `allout-use-hanging-indents' is set."
@@ -3322,7 +3322,7 @@ Leaves primary topic's trailing vertical whitespace, if any."
 ;;;_    > allout-yank-processing ()
 (defun allout-yank-processing (&optional arg)
 
-  "Incidental allout-specific business to be done just after text yanks.
+  "Incidental outline specific business to be done just after text yanks.
 
 Does depth adjustment of yanked topics, when:
 
@@ -3338,7 +3338,7 @@ header into which it's being yanked.
 
 The point is left in front of yanked, adjusted topics, rather than
 at the end (and vice-versa with the mark).  Non-adjusted yanks,
-however, are left exactly like normal, non-allout-specific yanks."
+however, are left exactly like normal, not outline specific yanks."
 
   (interactive "*P")
 					; Get to beginning, leaving
@@ -3448,7 +3448,7 @@ however, are left exactly like normal, non-allout-specific yanks."
       (exchange-point-and-mark))))
 ;;;_    > allout-yank (&optional arg)
 (defun allout-yank (&optional arg)
-  "Allout-mode yank, with depth and numbering adjustment of yanked topics.
+  "`allout-mode' yank, with depth and numbering adjustment of yanked topics.
 
 Non-topic yanks work no differently than normal yanks.
 
@@ -3472,7 +3472,7 @@ exactly like normal yanks.
 Numbering of yanked topics, and the successive siblings at the depth
 into which they're being yanked, is adjusted.
 
-`Allout-yank-pop' works with `allout-yank' just like normal yank-pop
+`allout-yank-pop' works with `allout-yank' just like normal yank-pop
 works with normal yank in non-outline buffers."
 
   (interactive "*P")
@@ -3561,7 +3561,7 @@ See `allout-flag-region' for more details."
 
 This is a way to give restricted peek at a concealed locality without the
 expense of exposing its context, but can leave the outline with aberrant
-exposure.  `allout-hide-current-entry-completely' or `allout-show-offshoot'
+exposure.  `allout-hide-current-entry-completely' or `allout-show-to-offshoot'
 should be used after the peek to rectify the exposure."
 
   (interactive)
