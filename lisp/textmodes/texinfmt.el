@@ -42,6 +42,7 @@
 (defvar texinfo-last-node)
 (defvar texinfo-node-names)
 (defvar texinfo-enclosure-list)
+(defvar texinfo-alias-list)
 
 (defvar texinfo-command-start)
 (defvar texinfo-command-end)
@@ -236,6 +237,7 @@ converted to Info is stored in a temporary buffer."
         (insert "\n"))
     ;; Don't use a previous value of texinfo-enclosure-list.
     (setq texinfo-enclosure-list nil)
+    (setq texinfo-alias-list nil)
 
     (goto-char (point-min))
     (if (looking-at "\\\\input[ \t]+texinfo")
@@ -305,6 +307,7 @@ converted to Info is stored in a temporary buffer."
         (input-buffer (current-buffer))
         (input-directory default-directory))
     (setq texinfo-enclosure-list nil)
+    (setq texinfo-alias-list nil)
     (save-excursion
       (goto-char (point-min))
       (or (search-forward "@setfilename" nil t)
@@ -660,10 +663,16 @@ lower types.")
           (forward-word 1)
         (forward-char 1))
       (setq texinfo-command-end (point))
-      ;; Call the handler for this command.
+      ;; Handle let aliasing
       (setq texinfo-command-name
-            (intern (buffer-substring
-             (1+ texinfo-command-start) texinfo-command-end)))
+	    (let (trial
+		  (cmdname 
+		   (buffer-substring
+		    (1+ texinfo-command-start) texinfo-command-end)))
+	      (while (setq trial (assoc cmdname texinfo-alias-list))
+		(setq cmdname (cdr trial)))
+            (intern cmdname)))
+      ;; Call the handler for this command.
       (let ((enclosure-type
              (assoc
               (symbol-name texinfo-command-name)
