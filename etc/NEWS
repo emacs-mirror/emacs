@@ -98,6 +98,15 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
++++
+** The new variable search-whitespace-regexp controls how to search
+for spaces in a regular expression.  If it is non-nil, it should be a
+regular expression, and any series of spaces stands for that regular
+expression.  If it is nil, spaces stand for themselves.
+
+Spaces inside of constructs such as [..] and *, +, ? are never
+replaced with search-whitespace-regexp.
+
 ** line-move-ignore-invisible now defaults to t.
 
 ** In Outline mode, hide-body no longer hides lines at the top

@@ -5,6 +5,10 @@
 	(compile_pattern_1): Call re_set_whitespace_regexp with it.
 	(search_buffer): No regexp is trivial if Vsearch_whitespace_regexp
 	is non-nil.
+	(struct regexp_cache): New element whitespace_regexp.
+	(syms_of_search): Initialize whitespace_regexp elements.
+	(compile_pattern): Compare whitespace_regexp elements.
+	(compile_pattern_1): Set whitespace_regexp elements.
 
 	* regex.c (regex_compile): Substitute whitespace_regexp
 	for spaces, if it is nonzero.

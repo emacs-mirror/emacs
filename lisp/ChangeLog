@@ -1,3 +1,7 @@
+2004-11-19  Richard M. Stallman  <rms@gnu.org>
+
+	* info.el (Info-search): Use search-whitespace-regexp.
+
 2004-11-19  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* vc-rcs.el (vc-rcs-parse): New function.
