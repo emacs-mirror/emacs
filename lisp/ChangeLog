@@ -1,3 +1,7 @@
+1999-12-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/cwarn.el: New file.
+
 1999-12-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* bindings.el (completion-ignored-extensions): Add .pdf.

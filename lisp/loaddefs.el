@@ -983,7 +983,7 @@ a reflection." t nil)
 ;;;;;;  bookmark-load bookmark-save bookmark-write bookmark-delete
 ;;;;;;  bookmark-insert bookmark-rename bookmark-insert-location
 ;;;;;;  bookmark-relocate bookmark-jump bookmark-set) "bookmark"
-;;;;;;  "bookmark.el" (14415 13511))
+;;;;;;  "bookmark.el" (14419 37278))
 ;;; Generated autoloads from bookmark.el
  (define-key ctl-x-map "rb" 'bookmark-jump)
  (define-key ctl-x-map "rm" 'bookmark-set)
@@ -1446,7 +1446,7 @@ Return a vector containing the lines from `bruce-phrases-file'." nil nil)
 ;;;### (autoloads (batch-byte-recompile-directory batch-byte-compile
 ;;;;;;  display-call-tree byte-compile compile-defun byte-compile-file
 ;;;;;;  byte-recompile-directory byte-force-recompile) "bytecomp"
-;;;;;;  "emacs-lisp/bytecomp.el" (14297 56999))
+;;;;;;  "emacs-lisp/bytecomp.el" (14425 19316))
 ;;; Generated autoloads from emacs-lisp/bytecomp.el
 
 (autoload (quote byte-force-recompile) "bytecomp" "\
@@ -2238,7 +2238,7 @@ The return value is a vector of resulting CCL registers." nil nil)
 ;;;;;;  checkdoc-continue checkdoc-start checkdoc-current-buffer
 ;;;;;;  checkdoc-eval-current-buffer checkdoc-message-interactive
 ;;;;;;  checkdoc-interactive checkdoc) "checkdoc" "emacs-lisp/checkdoc.el"
-;;;;;;  (14398 50288))
+;;;;;;  (14412 8749))
 ;;; Generated autoloads from emacs-lisp/checkdoc.el
 
 (autoload (quote checkdoc) "checkdoc" "\
@@ -2774,7 +2774,7 @@ Enable dynamic word-completion." t nil)
 ;;;### (autoloads (decompose-composite-char compose-last-chars compose-chars-after
 ;;;;;;  find-composition compose-chars decompose-string compose-string
 ;;;;;;  decompose-region compose-region) "composite" "composite.el"
-;;;;;;  (14422 54140))
+;;;;;;  (14422 57499))
 ;;; Generated autoloads from composite.el
 
 (defconst reference-point-alist (quote ((tl . 0) (tc . 1) (tr . 2) (Bl . 3) (Bc . 4) (Br . 5) (bl . 6) (bc . 7) (br . 8) (cl . 9) (cc . 10) (cr . 11) (top-left . 0) (top-center . 1) (top-right . 2) (base-left . 3) (base-center . 4) (base-right . 5) (bottom-left . 6) (bottom-center . 7) (bottom-right . 8) (center-left . 9) (center-center . 10) (center-right . 11) (ml . 3) (mc . 10) (mr . 5) (mid-left . 3) (mid-center . 10) (mid-right . 5))) "\
@@ -3222,7 +3222,7 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise." t nil)
 ;;;;;;  customize-option-other-window customize-changed-options customize-option
 ;;;;;;  customize-group-other-window customize-group customize customize-save-variable
 ;;;;;;  customize-set-variable customize-set-value) "cus-edit" "cus-edit.el"
-;;;;;;  (14417 23470))
+;;;;;;  (14419 37278))
 ;;; Generated autoloads from cus-edit.el
  (add-hook 'same-window-regexps "\\`\\*Customiz.*\\*\\'")
 
@@ -3398,6 +3398,32 @@ If NOW is present and non-nil, FACE is created now, according to SPEC.
 COMMENT is a string comment about FACE.
 
 See `defface' for the format of SPEC." nil nil)
+
+;;;***
+
+;;;### (autoloads (global-cwarn-mode turn-on-cwarn-mode cwarn-mode)
+;;;;;;  "cwarn" "progmodes/cwarn.el" (14431 15379))
+;;; Generated autoloads from progmodes/cwarn.el
+
+(autoload (quote cwarn-mode) "cwarn" "\
+Minor mode that hightlight suspicious C and C++ constructions.
+
+Note, in addition to enabling this minor mode, the major mode must
+be included in the variable `cwarn-configuration'.  By default C and
+C++ modes are included.
+
+With ARG, turn CWarn mode on if and only if arg is positive." t nil)
+
+(autoload (quote turn-on-cwarn-mode) "cwarn" "\
+Turn on CWarn mode.
+
+This function is designed to be added to hooks, for example:
+  (add-hook 'c-mode-hook 'turn-on-cwarn-mode)" nil nil)
+
+(autoload (quote global-cwarn-mode) "cwarn" "\
+Hightlight suspicious C and C++ constructions in all buffers.
+
+With ARG, turn CWarn mode on globally if and only if arg is positive." t nil)
 
 ;;;***
 
@@ -3604,7 +3630,7 @@ $
 ;;;***
 
 ;;;### (autoloads (cancel-debug-on-entry debug-on-entry debug) "debug"
-;;;;;;  "emacs-lisp/debug.el" (14385 24854))
+;;;;;;  "emacs-lisp/debug.el" (14428 55109))
 ;;; Generated autoloads from emacs-lisp/debug.el
 
 (setq debugger (quote debug))
@@ -3815,7 +3841,7 @@ to provide correct modes for autoloaded files." nil nil)
 ;;;;;;  devanagari-decompose-string char-to-glyph-devanagari indian-to-devanagari-string
 ;;;;;;  devanagari-to-indian-region indian-to-devanagari-region devanagari-to-indian
 ;;;;;;  indian-to-devanagari setup-devanagari-environment) "devan-util"
-;;;;;;  "language/devan-util.el" (14422 54140))
+;;;;;;  "language/devan-util.el" (14423 51006))
 ;;; Generated autoloads from language/devan-util.el
 
 (autoload (quote setup-devanagari-environment) "devan-util" "\
@@ -3931,7 +3957,7 @@ The backup file is the first file given to `diff'." t nil)
 ;;;***
 
 ;;;### (autoloads (diff-minor-mode diff-mode) "diff-mode" "diff-mode.el"
-;;;;;;  (14412 45411))
+;;;;;;  (14419 37278))
 ;;; Generated autoloads from diff-mode.el
 
 (autoload (quote diff-mode) "diff-mode" "\
@@ -3951,7 +3977,7 @@ Minor mode for viewing/editing context diffs.
 ;;;;;;  dired dired-copy-preserve-time dired-dwim-target dired-keep-marker-symlink
 ;;;;;;  dired-keep-marker-hardlink dired-keep-marker-copy dired-keep-marker-rename
 ;;;;;;  dired-trivial-filenames dired-ls-F-marks-symlinks dired-listing-switches)
-;;;;;;  "dired" "dired.el" (14349 51336))
+;;;;;;  "dired" "dired.el" (14425 19313))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches "-al" "\
@@ -4055,7 +4081,7 @@ Like `dired' but returns the dired buffer as value, does not select it." nil nil
 ;;;;;;  dired-do-compress dired-compress-file dired-do-kill-lines
 ;;;;;;  dired-do-shell-command dired-do-print dired-do-chown dired-do-chgrp
 ;;;;;;  dired-do-chmod dired-backup-diff dired-diff) "dired-aux"
-;;;;;;  "dired-aux.el" (14415 3380))
+;;;;;;  "dired-aux.el" (14419 37278))
 ;;; Generated autoloads from dired-aux.el
 
 (autoload (quote dired-diff) "dired-aux" "\
@@ -4992,8 +5018,8 @@ Unequivocally turn on eldoc-mode (see variable documentation)." t nil)
 
 ;;;***
 
-;;;### (autoloads (elide-head) "elide-head" "elide-head.el" (14409
-;;;;;;  5684))
+;;;### (autoloads (elide-head) "elide-head" "elide-head.el" (14425
+;;;;;;  19313))
 ;;; Generated autoloads from elide-head.el
 
 (autoload (quote elide-head) "elide-head" "\
@@ -5579,7 +5605,7 @@ The magic number of such a command displays all lines but itself." t nil)
 ;;;***
 
 ;;;### (autoloads (expand-jump-to-next-slot expand-jump-to-previous-slot
-;;;;;;  expand-add-abbrevs) "expand" "expand.el" (14001 49633))
+;;;;;;  expand-add-abbrevs) "expand" "expand.el" (14428 51143))
 ;;; Generated autoloads from expand.el
 
 (autoload (quote expand-add-abbrevs) "expand" "\
@@ -5684,7 +5710,7 @@ with no args, if that value is non-nil." t nil)
 ;;;;;;  facemenu-remove-special facemenu-remove-all facemenu-remove-face-props
 ;;;;;;  facemenu-set-read-only facemenu-set-intangible facemenu-set-invisible
 ;;;;;;  facemenu-set-face-from-menu facemenu-set-background facemenu-set-foreground
-;;;;;;  facemenu-set-face) "facemenu" "facemenu.el" (14411 63600))
+;;;;;;  facemenu-set-face) "facemenu" "facemenu.el" (14412 8701))
 ;;; Generated autoloads from facemenu.el
  (define-key global-map "\M-g" 'facemenu-keymap)
  (autoload 'facemenu-keymap "facemenu" "Keymap for face-changing commands." t 'keymap)
@@ -5890,7 +5916,7 @@ you can set feedmail-queue-reminder-alist to nil." t nil)
 ;;;***
 
 ;;;### (autoloads (dired-at-point ffap-at-mouse ffap-menu find-file-at-point
-;;;;;;  ffap-next) "ffap" "ffap.el" (14411 58300))
+;;;;;;  ffap-next) "ffap" "ffap.el" (14412 8705))
 ;;; Generated autoloads from ffap.el
 
 (autoload (quote ffap-next) "ffap" "\
@@ -6278,7 +6304,7 @@ in your `~/.emacs' file, replacing [f7] by your favourite key:
 ;;;### (autoloads (font-lock-fontify-buffer global-font-lock-mode
 ;;;;;;  global-font-lock-mode font-lock-remove-keywords font-lock-add-keywords
 ;;;;;;  turn-on-font-lock font-lock-mode) "font-lock" "font-lock.el"
-;;;;;;  (14415 42514))
+;;;;;;  (14424 65029))
 ;;; Generated autoloads from font-lock.el
 
 (defvar font-lock-mode-hook nil "\
@@ -6362,8 +6388,10 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 `objc-font-lock-extra-types' and `java-font-lock-extra-types'." nil nil)
 
 (autoload (quote font-lock-remove-keywords) "font-lock" "\
-Remove highlighting KEYWORDS from the current buffer.
-A non-nil MODE is currently unsupported." nil nil)
+Remove highlighting KEYWORDS for MAJOR-MODE.
+
+MAJOR-MODE should be a symbol, the major mode command name, such as `c-mode'
+or nil.  If nil, highlighting keywords are removed for the current buffer." nil nil)
 
 (autoload (quote global-font-lock-mode) "font-lock" "\
 Toggle Global Font Lock mode.
@@ -6391,7 +6419,7 @@ Fontify the current buffer the way the function `font-lock-mode' would." t nil)
 ;;;***
 
 ;;;### (autoloads (create-fontset-from-fontset-spec) "fontset" "international/fontset.el"
-;;;;;;  (14422 54140))
+;;;;;;  (14423 50991))
 ;;; Generated autoloads from international/fontset.el
 
 (autoload (quote create-fontset-from-fontset-spec) "fontset" "\
@@ -6411,6 +6439,26 @@ If this function attempts to create already existing fontset, error is
 signaled unless the optional 3rd argument NOERROR is non-nil.
 
 It returns a name of the created fontset." nil nil)
+
+;;;***
+
+;;;### (autoloads (footnote-mode) "footnote" "mail/footnote.el" (14423
+;;;;;;  51009))
+;;; Generated autoloads from mail/footnote.el
+
+(autoload (quote footnote-mode) "footnote" "\
+Toggle footnote minor mode.
+\\<message-mode-map>
+key		binding
+---		-------
+
+\\[Footnote-renumber-footnotes]		Footnote-renumber-footnotes
+\\[Footnote-goto-footnote]		Footnote-goto-footnote
+\\[Footnote-delete-footnote]		Footnote-delete-footnote
+\\[Footnote-cycle-style]		Footnote-cycle-style
+\\[Footnote-back-to-message]		Footnote-back-to-message
+\\[Footnote-add-footnote]		Footnote-add-footnote
+" t nil)
 
 ;;;***
 
@@ -7690,7 +7738,7 @@ of `inferior-lisp-program').  Runs the hooks from
 
 ;;;### (autoloads (Info-speedbar-browser Info-goto-emacs-key-command-node
 ;;;;;;  Info-goto-emacs-command-node info-standalone info info-other-window)
-;;;;;;  "info" "info.el" (14411 63935))
+;;;;;;  "info" "info.el" (14412 8715))
 ;;; Generated autoloads from info.el
 
 (autoload (quote info-other-window) "info" "\
@@ -8395,7 +8443,7 @@ Use \\[describe-mode] for more info." t nil)
 ;;;### (autoloads (lao-composition-function lao-transcribe-roman-to-lao-string
 ;;;;;;  lao-transcribe-single-roman-syllable-to-lao lao-compose-string
 ;;;;;;  setup-lao-environment) "lao-util" "language/lao-util.el"
-;;;;;;  (14422 54141))
+;;;;;;  (14423 51007))
 ;;; Generated autoloads from language/lao-util.el
 
 (autoload (quote setup-lao-environment) "lao-util" "\
@@ -8614,7 +8662,7 @@ Print region contents as with Unix command `lpr -p'.
 
 ;;;***
 
-;;;### (autoloads nil "ls-lisp" "ls-lisp.el" (14251 18531))
+;;;### (autoloads nil "ls-lisp" "ls-lisp.el" (14425 19316))
 ;;; Generated autoloads from ls-lisp.el
 
 (defvar ls-lisp-support-shell-wildcards t "\
@@ -9530,7 +9578,7 @@ The file is saved in the directory `data-directory'." nil nil)
 ;;;;;;  coding-system-post-read-conversion coding-system-eol-type-mnemonic
 ;;;;;;  lookup-nested-alist set-nested-alist truncate-string-to-width
 ;;;;;;  store-substring string-to-sequence) "mule-util" "international/mule-util.el"
-;;;;;;  (14422 54140))
+;;;;;;  (14423 50997))
 ;;; Generated autoloads from international/mule-util.el
 
 (autoload (quote string-to-sequence) "mule-util" "\
@@ -10376,8 +10424,8 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
 
 ;;;### (autoloads (ps-mule-begin-page ps-mule-begin-job ps-mule-initialize
 ;;;;;;  ps-mule-plot-composition ps-mule-plot-string ps-mule-set-ascii-font
-;;;;;;  ps-mule-prepare-ascii-font) "ps-mule" "ps-mule.el" (14422
-;;;;;;  54141))
+;;;;;;  ps-mule-prepare-ascii-font) "ps-mule" "ps-mule.el" (14423
+;;;;;;  50875))
 ;;; Generated autoloads from ps-mule.el
 
 (autoload (quote ps-mule-prepare-ascii-font) "ps-mule" "\
@@ -10430,8 +10478,8 @@ This checks if all multi-byte characters in the region are printable or not." ni
 ;;;;;;  ps-nb-pages-buffer ps-line-lengths ps-despool ps-spool-region-with-faces
 ;;;;;;  ps-spool-region ps-spool-buffer-with-faces ps-spool-buffer
 ;;;;;;  ps-print-region-with-faces ps-print-region ps-print-buffer-with-faces
-;;;;;;  ps-print-buffer ps-paper-type) "ps-print" "ps-print.el" (14422
-;;;;;;  54141))
+;;;;;;  ps-print-buffer ps-paper-type) "ps-print" "ps-print.el" (14423
+;;;;;;  50877))
 ;;; Generated autoloads from ps-print.el
 
 (defvar ps-paper-type (quote letter) "\
@@ -10565,7 +10613,7 @@ If EXTENSION is any other symbol, it is ignored." nil nil)
 ;;;### (autoloads (quail-update-leim-list-file quail-defrule-internal
 ;;;;;;  quail-defrule quail-install-map quail-define-rules quail-set-keyboard-layout
 ;;;;;;  quail-define-package quail-use-package) "quail" "international/quail.el"
-;;;;;;  (14422 54140))
+;;;;;;  (14423 51000))
 ;;; Generated autoloads from international/quail.el
 
 (autoload (quote quail-use-package) "quail" "\
@@ -10891,7 +10939,7 @@ rectangle which were empty." t nil)
 ;;;***
 
 ;;;### (autoloads (reftex-mode turn-on-reftex) "reftex" "textmodes/reftex.el"
-;;;;;;  (14315 19661))
+;;;;;;  (14425 19353))
 ;;; Generated autoloads from textmodes/reftex.el
 
 (autoload (quote turn-on-reftex) "reftex" "\
@@ -10931,7 +10979,7 @@ on the menu bar.
 ;;;***
 
 ;;;### (autoloads (reftex-citation) "reftex-cite" "textmodes/reftex-cite.el"
-;;;;;;  (14315 19188))
+;;;;;;  (14425 19348))
 ;;; Generated autoloads from textmodes/reftex-cite.el
 
 (autoload (quote reftex-citation) "reftex-cite" "\
@@ -10943,6 +10991,8 @@ to `reftex-cite-format' and inserted into the buffer.
 
 If NO-INSERT is non-nil, nothing is inserted, only the selected key returned.
 
+FORAT-KEY can be used to pre-select a citation format.
+
 When called with one or two `C-u' prefixes, first rescans the document.
 When called with a numeric prefix, make that many citations.  When
 called with point inside the braces of a `cite' command, it will
@@ -10952,6 +11002,37 @@ The regular expression uses an expanded syntax: && is interpreted as `and'.
 Thus, `aaaa&&bbb' matches entries which contain both `aaaa' and `bbb'.
 While entering the regexp, completion on knows citation keys is possible.
 `=' is a good regular expression to match all entries in all files." t nil)
+
+;;;***
+
+;;;### (autoloads (reftex-index-phrases-mode) "reftex-index" "textmodes/reftex-index.el"
+;;;;;;  (14425 19352))
+;;; Generated autoloads from textmodes/reftex-index.el
+
+(autoload (quote reftex-index-phrases-mode) "reftex-index" "\
+Major mode for managing the Index phrases of a LaTeX document.
+This buffer was created with RefTeX.
+
+To insert new phrases, use
+ - `C-c \\' in the LaTeX document to copy selection or word
+ - `\\[reftex-index-new-phrase]' in the phrases buffer.
+
+To index phrases use one of:
+
+\\[reftex-index-this-phrase]     index current phrase
+\\[reftex-index-next-phrase]     index next phrase (or N with prefix arg)
+\\[reftex-index-all-phrases]     index all phrases
+\\[reftex-index-remaining-phrases]     index current and following phrases
+\\[reftex-index-region-phrases]     index the phrases in the region
+
+You can sort the phrases in this buffer with \\[reftex-index-sort-phrases].
+To display information about the phrase at point, use \\[reftex-index-phrases-info].
+
+For more information see the RefTeX User Manual.
+
+Here are all local bindings.
+
+\\{reftex-index-phrases-map}" t nil)
 
 ;;;***
 
@@ -11850,7 +11931,7 @@ To work around that, do:
 ;;;***
 
 ;;;### (autoloads (sh-mode) "sh-script" "progmodes/sh-script.el"
-;;;;;;  (14419 41150))
+;;;;;;  (14424 59273))
 ;;; Generated autoloads from progmodes/sh-script.el
 
 (put (quote sh-mode) (quote mode-class) (quote special))
@@ -13359,7 +13440,7 @@ Info `g*' command is inadequate." t nil)
 ;;;### (autoloads (thai-composition-function thai-post-read-conversion
 ;;;;;;  thai-compose-buffer thai-compose-string thai-compose-region
 ;;;;;;  setup-thai-environment) "thai-util" "language/thai-util.el"
-;;;;;;  (14422 54141))
+;;;;;;  (14423 51008))
 ;;; Generated autoloads from language/thai-util.el
 
 (autoload (quote setup-thai-environment) "thai-util" "\
@@ -13422,7 +13503,7 @@ a symbol as a valid THING." nil nil)
 ;;;;;;  tibetan-compose-buffer tibetan-decompose-buffer tibetan-composition-function
 ;;;;;;  tibetan-compose-region tibetan-compose-string tibetan-transcription-to-tibetan
 ;;;;;;  tibetan-tibetan-to-transcription tibetan-char-p setup-tibetan-environment)
-;;;;;;  "tibet-util" "language/tibet-util.el" (14422 54141))
+;;;;;;  "tibet-util" "language/tibet-util.el" (14423 51008))
 ;;; Generated autoloads from language/tibet-util.el
 
 (autoload (quote setup-tibetan-environment) "tibet-util" nil t nil)
