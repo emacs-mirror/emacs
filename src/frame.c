@@ -323,23 +323,54 @@ make_minibuffer_frame ()
 
 /* Construct a frame that refers to the terminal (stdin and stdout).  */
 
+static int terminal_frame_count;
+
 struct frame *
 make_terminal_frame ()
 {
   register struct frame *f;
   Lisp_Object frame;
+  char name[20];
 
-  Vframe_list = Qnil;
+  /* The first call must initialize Vframe_list.  */
+  if (! (NILP (Vframe_list) || CONSP (Vframe_list)))
+    Vframe_list = Qnil;
+
   f = make_frame (1);
 
   XSETFRAME (frame, f);
   Vframe_list = Fcons (frame, Vframe_list);
 
-  f->name = build_string ("terminal");
-  FRAME_SET_VISIBLE (f, 1);
-  f->display.nothing = 1;   /* Nonzero means frame isn't deleted.  */
+  terminal_frame_count++;
+  sprintf (name, "terminal-%d", terminal_frame_count);
+
+  f->name = build_string (name);
+  f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
+  f->async_visible = 1;		/* Don't let visible be cleared later. */
+  f->display.nothing = 1;	/* Nonzero means frame isn't deleted.  */
   XSETFRAME (Vterminal_frame, f);
   return f;
+}
+
+DEFUN ("make-terminal-frame", Fmake_terminal_frame, Smake_terminal_frame,
+       1, 1, 0, "")
+  (parms)
+     Lisp_Object parms;
+{
+  struct frame *f;
+  Lisp_Object frame;
+
+  if (selected_frame->output_method != output_termcap)
+    error ("Not using an ASCII terminal now; cannot make a new ASCII frame");
+
+  f = make_terminal_frame ();
+  change_frame_size (f, FRAME_HEIGHT (selected_frame),
+		     FRAME_WIDTH (selected_frame), 0, 0);
+  remake_frame_glyphs (f);
+  calculate_costs (f);
+  XSETFRAME (frame, f);
+  Fmodify_frame_parameters (frame, parms);
+  return frame;
 }
 
 static Lisp_Object
@@ -408,6 +439,14 @@ do_switch_frame (frame, no_enter, track)
     }
 #endif /* HAVE_X_WINDOWS */
 #endif /* ! 0 */
+
+  if (FRAME_TERMCAP_P (XFRAME (frame)))
+    {
+      /* Since frames on an ASCII terminal share the same display area,
+	 switching means we must redisplay the whole thing.  */
+      windows_or_buffers_changed++;
+      SET_FRAME_GARBAGED (XFRAME (frame));
+    }
 
   selected_frame = XFRAME (frame);
   if (! FRAME_MINIBUF_ONLY_P (selected_frame))
@@ -1810,6 +1849,7 @@ The `menu-bar-lines' element of the list controls whether new frames\n\
 
   defsubr (&Sframep);
   defsubr (&Sframe_live_p);
+  defsubr (&Smake_terminal_frame);
   defsubr (&Shandle_switch_frame);
   defsubr (&Sselect_frame);
   defsubr (&Sselected_frame);
