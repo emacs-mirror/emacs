@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!138.c(trunk.2) $
  summary = test running out of memory while scanning roots
  language = c
  link = testlib.o rankfmt.o
@@ -16,6 +16,7 @@ END_HEADER
 #define MEG (1024uL*1024uL)
 #define THIRTY_MEG (30uL*MEG)
 
+
 static void test(void)
 {
  int j;
@@ -26,32 +27,29 @@ static void test(void)
  mps_root_t root1;
  mps_thr_t thread;
 
-/* create an arena that can't grow beyond 30 M */
+ /* create an arena that can't grow beyond 30 MB */
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)THIRTY_MEG),
-  "create arena");
+      "create arena");
  cdie(mps_arena_commit_limit_set(arena, (size_t)THIRTY_MEG),
-  "commit limit set");
+      "commit limit set");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(
-  mps_root_create_table(&root1,arena,MPS_RANK_EXACT,0,&exfmt_root,1),
-  "create table root");
+ cdie(mps_root_create_table(&root1, arena, MPS_RANK_EXACT, 0,
+                            (mps_addr_t*)&exfmt_root, 1),
+      "create table root");
 
- cdie(
-  mps_fmt_create_A(&format, arena, &fmtA),
-  "create format");
+ cdie(mps_fmt_create_A(&format, arena, &fmtA),
+      "create format");
 
- cdie(
-  mps_pool_create(&pool, arena, mps_class_amc(), format),
-  "create pool");
+ cdie(mps_pool_create(&pool, arena, mps_class_amc(), format),
+      "create pool");
 
- cdie(
-  mps_ap_create(&ap, pool, MPS_RANK_EXACT),
-  "create ap");
+ cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+      "create ap");
 
-/* allocate a 16 M live object */
+ /* allocate a 16 MB live object */
 
  allocdumb(ap, 16*MEG, MPS_RANK_EXACT);
 
@@ -78,8 +76,8 @@ static void test(void)
 
  mps_arena_destroy(arena);
  comment("Destroyed arena.");
-
 }
+
 
 int main(void)
 {
