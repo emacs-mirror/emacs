@@ -3104,14 +3104,14 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
             ancestor))))))
 
 (defun save-buffer (&optional args)
-  "Save current buffer in visited file if modified.  Versions described below.
+  "Save current buffer in visited file if modified.  Variations are described below.
 By default, makes the previous version into a backup file
  if previously requested or if this is the first save.
-With 1 \\[universal-argument], marks this version
+Combined with one \\[universal-argument], marks this version
  to become a backup when the next save is done.
-With 2 \\[universal-argument]'s,
+Combined with two \\[universal-argument]'s,
  unconditionally makes the previous version into a backup file.
-With 3 \\[universal-argument]'s, marks this version
+Combined with three \\[universal-argument]'s, marks this version
  to become a backup when the next save is done,
  and unconditionally makes the previous version into a backup file.
 
