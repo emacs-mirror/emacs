@@ -1,3 +1,7 @@
+2002-07-22  Gerd Moellmann  <gerd.moellmann@t-online.de>
+
+	* xdisp.c (display_line): Replace an abort with xassert.
+
 2002-07-21  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (redisplay_window): Don't test BEG_UNCHANGED
