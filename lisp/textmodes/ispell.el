@@ -406,7 +406,7 @@ for language-specific arguments."
      "[']" t ("-C" "-d" "deutsch") "~latin1" iso-latin-1)
     ("english"				; make English explicitly selectable
      "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil nil))
-  "First half of dictionary, shorteded for loaddefs.el")
+  "First half of dictionary, shortened for loaddefs.el")
 
 ;;;###autoload
 (defvar ispell-dictionary-alist-2
@@ -450,7 +450,7 @@ for language-specific arguments."
      "[A-Za-z\345\344\366\305\304\366]"  "[^A-Za-z\345\344\366\305\304\366]"
      "[']" nil ("-C" "-d" "svenska") "~list" ; Add `"-T" "list"' instead?
      iso-latin-1))
-  "Second half of dictionary, shorteded for loaddefs.el")
+  "Second half of dictionary, shortened for loaddefs.el")
 
 ;;; The preparation of the menu bar menu must be autoloaded
 ;;; because otherwise this file gets autoloaded every time Emacs starts
