@@ -22,7 +22,3 @@
 
 /* X internationalization stuff is still not working in AIX 4.1.  */
 /* #undef X11R5_INHIBIT_I18N */
-
-/* Perry Smith <pedz@ddivt1.austin.ibm.com> says this is necessary
-   because of noncontiguous allocation.  */
-#undef REL_ALLOC
