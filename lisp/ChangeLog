@@ -1,3 +1,21 @@
+2004-11-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-display-line): Use display-buffer
+	for GDB-UI as for GUD.
+
+	* progmodes/gdb-ui.el (gdb-view-source, gdb-selected-view):
+	Delete variables.
+	(gdb-ann3): Don't make GUD buffer dedicated.
+	(gdb-goto-breakpoint, gdb-display-buffer): Don't always
+	dedicate.
+	(gdb-display-source-buffer): Delete function.
+	(gdb-view-source-function, gdb-view-assembler): Delete functions.
+	(menu): Delete menu bindings for viewing source/assembler.
+	(gdb-setup-windows, gdb-restore-windows):
+	Don't dedicate GUD. No assembler now.
+	(gdb-reset): No need to undedicate source buffers now.
+	(gdb-source-info): No assembler now.
+
 2004-11-26  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-frame-parameters): Match height and
