@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.18) $
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.19) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -7,6 +7,10 @@ some useful functions for testing the MPS */
 #include <math.h>
 #include <time.h>
 #include "testlib.h"
+
+#include "mpsacl.h"
+#include "mpsavm.h"
+#include "mpsavm.h"
 
 /* err_text
    mps_res_t -> textual description
@@ -241,13 +245,13 @@ static void *call_f(void *p, size_t s) {
 
 #if defined(MMQA_PROD_epcore)
 
-void easy_tramp2(void (*f)(void)) {
+static void easy_tramp2(void (*f)(void)) {
  call_f(&f, (size_t) 0);
 }
 
 #else
 
-void easy_tramp2(void (*f)(void)) {
+static void easy_tramp2(void (*f)(void)) {
  void *result;
 
  mps_tramp(&result, call_f, &f, (size_t)0);
@@ -371,6 +375,43 @@ int read_event(log_event* event) {
 size_t arena_committed_and_used(mps_arena_t arena) {
  return mps_arena_committed(arena)-mps_arena_spare_committed(arena);
 }
+
+/* A function to make it easy to parameterise tests by arena
+   class 
+*/
+
+mps_res_t mmqa_arena_create(mps_arena_t *arena_p,
+ mps_arena_class_t arena_class, size_t chunk_size, size_t limit_size) {
+ mps_res_t res;
+ mps_arena_t arena;
+ if (arena_class == mps_arena_class_cl()) {
+  void *block;
+  block = malloc(limit_size);
+  if(block == NULL) {
+   return MPS_RES_MEMORY;
+  }
+  res = mps_arena_create(&arena, arena_class, limit_size, block);
+ } else if (  arena_class == mps_arena_class_vmnz()
+           || arena_class == mps_arena_class_vm() ) {
+  res = mps_arena_create(&arena, arena_class, chunk_size);
+  if (res != MPS_RES_OK) {
+   return res;
+  }
+  res = mps_arena_commit_limit_set(arena, limit_size);
+  if (res != MPS_RES_OK) {
+   mps_arena_destroy(arena);
+  }
+ } else {
+  error("Unknown arena class.");
+  res = MPS_RES_OK;
+ }
+ if (res == MPS_RES_OK) {
+  *arena_p = arena;
+ }
+ return res;
+}
+ 
+
 
 /* TimeQueue
    s are implemented as heaps, stored in arrays. First array element
