@@ -650,7 +650,7 @@ adjust_intervals_for_insertion (tree, position, length)
   if (position == i->position
       && position != 1)
     {
-      register prev = previous_interval (i);
+      register INTERVAL prev = previous_interval (i);
 
       /* If both intervals are sticky here, then default to the
          left-most one.  But perhaps we should create a new
@@ -662,7 +662,7 @@ adjust_intervals_for_insertion (tree, position, length)
   while (! NULL_INTERVAL_P (i))
     {
       i->total_length += length;
-      i = i->parent
+      i = i->parent;
     }
 
   return tree;
@@ -1126,7 +1126,7 @@ graft_intervals_into_buffer (source, position, buffer)
     {
       /* The inserted text constitutes the whole buffer, so
 	 simply copy over the interval structure. */
-      if (BUF_Z (b) == TOTAL_LENGTH (source))
+      if (BUF_Z (buffer) == TOTAL_LENGTH (source))
 	{
 	  buffer->intervals = reproduce_tree (source, tree->parent);
 	  /* Explicitly free the old tree here. */
@@ -1137,8 +1137,8 @@ graft_intervals_into_buffer (source, position, buffer)
       /* Create an interval tree in which to place a copy
          of the intervals of the inserted string. */
       {
-	Lisp_Object buffer;
-	XSET (buffer, Lisp_Buffer, b);
+	Lisp_Object buf;
+	XSET (buf, Lisp_Buffer, buffer);
 	create_root_interval (buffer);
       }
     }
@@ -1393,7 +1393,7 @@ verify_interval_modification (buf, start, end)
 {
   register INTERVAL intervals = buf->intervals;
   register INTERVAL i;
-  register Lisp_Object hooks = Qnil;
+  Lisp_Object hooks = Qnil;
   register prev_mod_hook = Qnil;
   register Lisp_Object mod_hook;
   struct gcpro gcpro1;
