@@ -4,7 +4,7 @@
 ;; LCD Archive Entry:
 ;; isearch-mode|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A minor mode replacement for isearch.el.
-;; |$Date: 1992/10/11 05:25:11 $|$Revision: 1.11 $|~/modes/isearch-mode.el
+;; |$Date: 1992/10/20 21:21:47 $|$Revision: 1.12 $|~/modes/isearch-mode.el
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -88,8 +88,12 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.11 1992/10/11 05:25:11 rms Exp rms $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.12 1992/10/20 21:21:47 rms Exp rms $
 ;;; $Log: isearch-mode.el,v $
+; Revision 1.12  1992/10/20  21:21:47  rms
+; (isearch-mode-map): Make the top-level keymap dense.
+; Explicitly bind control characters at that level.
+;
 ; Revision 1.11  1992/10/11  05:25:11  rms
 ; (isearch-ring-advance-edit): Delete spurious `)'.
 ;
@@ -704,8 +708,9 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 	(unwind-protect
 	    (let* (;; Why does following read-char echo?  
 		   ;;(echo-keystrokes 0) ;; not needed with above message
-		   (cursor-in-echo-area t)
-		   (e (if isearch-event-data-type (allocate-event) (read-char)))
+		   (e (let ((cursor-in-echo-area t))
+			(if isearch-event-data-type
+			    (allocate-event) (read-char))))
 		   ;; Binding minibuffer-history-symbol to nil is a work-around
 		   ;; for some incompatibility with gmhist.
 		   (minibuffer-history-symbol))
