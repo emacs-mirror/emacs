@@ -60,25 +60,27 @@ my_strcasecmp (s0, s1)
    the comments in src/fontset.h for more detail.  */
 
 /* Return a pointer to struct font_info of font FONT_IDX of frame F.  */
-struct font_info *(*get_font_info_func) (/* FRAME_PTR f; int font_idx */);
+struct font_info *(*get_font_info_func) P_ ((FRAME_PTR f, int font_idx));
 
 /* Return a list of font names which matches PATTERN.  See the document of
    `x-list-fonts' for more detail.  */
-Lisp_Object (*list_fonts_func) (/* Lisp_Object pattern, face, frame, width */);
+Lisp_Object (*list_fonts_func) P_ ((Lisp_Object pattern, Lisp_Object face,
+				    Lisp_Object frame, Lisp_Object width));
 
 /* Load a font named NAME for frame F and return a pointer to the
    information of the loaded font.  If loading is failed, return 0.  */
-struct font_info *(*load_font_func) (/* FRAME_PTR f; char *name */);
+struct font_info *(*load_font_func) P_ ((FRAME_PTR f, char *name, int));
 
 /* Return a pointer to struct font_info of a font named NAME for frame F.  */
-struct font_info *(*query_font_func) (/* FRAME_PTR f; char *name */);
+struct font_info *(*query_font_func) P_ ((FRAME_PTR f, char *name));
 
 /* Additional function for setting fontset or changing fontset
    contents of frame F.  */
-void (*set_frame_fontset_func) (/* FRAME_PTR f; Lisp_Object arg, oldval */);
+void (*set_frame_fontset_func) P_ ((FRAME_PTR f, Lisp_Object arg,
+				    Lisp_Object oldval));
 
 /* Check if any window system is used now.  */
-void (*check_window_system_func) ();
+void (*check_window_system_func) P_ ((void));
 
 struct fontset_data *
 alloc_fontset_data ()
