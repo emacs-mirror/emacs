@@ -67,7 +67,7 @@ The frame is displayed on an MS-DOS terminal.
 * Color Names::	                Getting the definitions of color names.
 * Text Terminal Colors::        Defining colors for text-only terminals.
 * Resources::		        Getting resource values from the server.
-* Server Data::		        Getting info about the X server.
+* Display Feature Testing::     Determining the features of a terminal.
 @end menu
 
   @xref{Display}, for information about the related topic of 
@@ -1587,16 +1587,50 @@ variable to some other string, around a call to @code{x-get-resource}.
 
   @xref{Resources X,, X Resources, emacs, The GNU Emacs Manual}.
 
-@node Server Data
-@section Data about the X Server
+@node Display Feature Testing
+@section Display Feature Testing
+@cindex display feature testing
 
-  This section describes functions you can use to get information about
-the capabilities and origin of an X display that Emacs is using.  Each
-of these functions lets you specify the display you are interested in:
-the @var{display} argument can be either a display name, or a frame
-(meaning use the display that frame is on).  If you omit the
-@var{display} argument, or specify @code{nil}, that means to use the
-selected frame's display.
+  The functions in this section describe the basic capabilities of a
+particular display.  Lisp programs can use them to adapt their behavior
+to what the display can do.  For example, a program that ordinarly uses
+a popup menu could use the minibuffer if popup menus are not supported.
+
+  The optional argument @var{display} in these functions specifies which
+display to ask the question about.  It can be a display name, a frame
+(which designates the display that frame is on), or @code{nil} (which
+refers to the selected frame's display).
+
+  @xref{Color Names}, @ref{Text Terminal Colors}, for other functions to
+obtain information about displays.
+
+@defun display-popup-menus-p &optional display
+@tindex display-popup-menus-p
+This function returns @code{t} if popup menus are supported on
+@var{display}, @code{nil} if not.  Support for popup menus requires that
+the mouse be available, since the user cannot choose menu items without
+a mouse.
+@end defun
+
+@defun display-graphic-p &optional display
+@tindex display-graphic-p
+@cindex frames, more than one on display
+@cindex fonts, more than one on display
+This function returns @code{t} if @var{display} is a graphic display
+capable of displaying several frames and several different fonts at
+once.  This is true for displays that use a window system such as X, and
+false for text-only terminals.
+@end defun
+
+@defun display-selections-p &optional display
+@tindex display-selections-p
+This function returns @code{t} if @var{display} supports selections.
+Windowed displays normally support selections, but they may also be
+supported in some other cases.
+@end defun
+
+  These functions obtain additional information specifically
+about X displays.
 
 @defun x-display-screens &optional display
 This function returns the number of screens associated with the display.

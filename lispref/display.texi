@@ -2717,6 +2717,7 @@ This function clears the image cache.  If @var{frame} is non-@code{nil},
 only the cache for that frame is cleared.  Otherwise all frames' caches
 are cleared.
 @end defun
+
 @node Blinking
 @section Blinking Parentheses
 @cindex parenthesis matching
