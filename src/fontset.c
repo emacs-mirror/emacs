@@ -1150,7 +1150,7 @@ FONT-SPEC may be:
  * A vector [ FAMILY WEIGHT SLANT WIDTH ADSTYLE REGISTRY ].
    See the documentation of `set-face-attribute' for the detail of
    these vector elements;
-* A cons (FAMILY . REGISTRY), where FAMILY is a font family name and
+ * A cons (FAMILY . REGISTRY), where FAMILY is a font family name and
    REGISTRY is a font registry name;
  * A font name string.
 
