@@ -157,6 +157,10 @@
 
 ;;; Code:
 
+(defgroup hippie-expand nil
+  "Expand text trying various ways to find its expansion."
+  :group 'abbrev)
+
 (defvar he-num -1)
 
 (defvar he-string-beg (make-marker))
@@ -197,19 +201,26 @@ To change the behavior of `hippie-expand', remove, change the order of,
 or insert functions in this list.")
 
 ;;;###autoload
-(defvar hippie-expand-verbose t
-  "*Non-nil makes `hippie-expand' output which function it is trying.")
+(defcustom hippie-expand-verbose t
+  "*Non-nil makes `hippie-expand' output which function it is trying."
+  :type 'boolean
+  :group 'hippie-expand)
 
 ;;;###autoload
-(defvar hippie-expand-max-buffers ()
+(defcustom hippie-expand-max-buffers ()
   "*The maximum number of buffers (apart from the current) searched.
-If nil, all buffers are searched.")
+If nil, all buffers are searched."
+  :type '(choice (const :tag "All" nil)
+		 integer)
+  :group 'hippie-expand)
 
 ;;;###autoload
-(defvar hippie-expand-ignore-buffers '("^ \\*.*\\*$" dired-mode)
+(defcustom hippie-expand-ignore-buffers '("^ \\*.*\\*$" dired-mode)
   "*A list specifying which buffers not to search (if not current).
 Can contain both regexps matching buffer names (as strings) and major modes
-\(as atoms)")
+\(as atoms)"
+  :type '(repeat (choice regexp (symbol :tag "Major Mode")))
+  :group 'hippie-expand)
 
 ;;;###autoload
 (defun hippie-expand (arg)

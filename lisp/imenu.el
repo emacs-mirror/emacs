@@ -65,31 +65,49 @@
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar imenu-use-markers t
+(defgroup imenu nil
+  "Mode-specific buffer indexes."
+  :group 'matching
+  :group 'frames)
+
+(defcustom imenu-use-markers t
   "*Non-nil means use markers instead of integers for Imenu buffer positions.
 Setting this to nil makes Imenu work faster.
 
-This might not yet be honored by all index-building functions.")
+This might not yet be honored by all index-building functions."
+  :type 'boolean
+  :group 'imenu)
 
-(defvar imenu-max-item-length 60
-  "*If a number, truncate Imenu entries to that length.")
 
-(defvar imenu-auto-rescan nil
-  "*Non-nil means Imenu should always rescan the buffers.")
+(defcustom imenu-max-item-length 60
+  "*If a number, truncate Imenu entries to that length."
+  :type 'integer
+  :group 'imenu)
 
-(defvar imenu-auto-rescan-maxout 60000 
+(decustom imenu-auto-rescan nil
+  "*Non-nil means Imenu should always rescan the buffers."
+  :type 'boolean
+  :group 'imenu)
+
+(defcustom imenu-auto-rescan-maxout 60000 
   "*Imenu auto-rescan is disabled in buffers larger than this size.
-This variable is buffer-local.")
+This variable is buffer-local."
+  :type 'integer
+  :group 'imenu)
 
-(defvar imenu-always-use-completion-buffer-p nil
+(defcustom imenu-always-use-completion-buffer-p nil
   "*Set this to non-nil for displaying the index in a completion buffer.
 
 `never' means never automatically display a listing of any kind.
 A value of nil (the default) means display the index as a mouse menu
 if the mouse was used to invoke `imenu'.
-Another non-nil value means always display the index in a completion buffer.")
+Another non-nil value means always display the index in a completion buffer."
+  :type '(choice (const :tag "On Mouse" nil)
+		 (const :tag "Never" never)
+		 (sexp :tag "Always" :format "%t\n" t))
+  :group 'imenu)
 
-(defvar imenu-sort-function nil
+(defcustom imenu-sort-function nil
   "*The function to use for sorting the index mouse-menu.
 
 Affects only the mouse index menu.
@@ -102,27 +120,37 @@ Set it to `imenu--sort-by-name' if you want alphabetic sorting.
 
 The function should take two arguments and return T if the first
 element should come before the second.  The arguments are cons cells;
-\(NAME . POSITION).  Look at `imenu--sort-by-name' for an example.")
+\(NAME . POSITION).  Look at `imenu--sort-by-name' for an example."
+  :type 'function
+  :group 'imenu)
 
-(defvar imenu-max-items 25
-  "*Maximum number of elements in a mouse menu for Imenu.")
+(defcustom imenu-max-items 25
+  "*Maximum number of elements in a mouse menu for Imenu."
+  :type 'integer
+  :group 'imenu)
 
-(defvar imenu-scanning-message "Scanning buffer for index (%3d%%)"
+(defcustom imenu-scanning-message "Scanning buffer for index (%3d%%)"
   "*Progress message during the index scanning of the buffer.
 If non-nil, user gets a message during the scanning of the buffer.
 
 Relevant only if the mode-specific function that creates the buffer
-index use `imenu-progress-message'.")
+index use `imenu-progress-message'."
+  :type 'string
+  :group 'imenu)
 
-(defvar imenu-space-replacement "^"
+(defcustom imenu-space-replacement "^"
   "*The replacement string for spaces in index names.
 Used when presenting the index in a completion-buffer to make the
-names work as tokens.")
+names work as tokens."
+  :type 'string
+  :group 'imenu)
 
-(defvar imenu-level-separator ":"
+(defcustom imenu-level-separator ":"
   "*The separator between index names of different levels.
 Used for making mouse-menu titles and for flattening nested indexes
-with name concatenation.")
+with name concatenation."
+  :type 'string
+  :group 'imenu)
 
 ;;;###autoload
 (defvar imenu-generic-expression nil

@@ -72,16 +72,28 @@
 
 (require 'browse-url)
 
+(defgroup goto-address nil
+  "Click to browse URL or to send to e-mail address."
+  :group 'mouse
+  :group 'hypermedia)
+
+
 ;;; I don't expect users to want fontify'ing without highlighting.
-(defvar goto-address-fontify-p t
+(defcustom goto-address-fontify-p t
   "*If t, URL's and e-mail addresses in buffer are fontified.
-But only if `goto-address-highlight-p' is also non-nil.")
+But only if `goto-address-highlight-p' is also non-nil."
+  :type 'boolean
+  :group 'goto-address)
 
-(defvar goto-address-highlight-p t
-  "*If t, URL's and e-mail addresses in buffer are highlighted.")
+(defcustom goto-address-highlight-p t
+  "*If t, URL's and e-mail addresses in buffer are highlighted."
+  :type 'boolean
+  :group 'goto-address)
 
-(defvar goto-address-fontify-maximum-size 30000
-  "*Maximum size of file in which to fontify and/or highlight URL's.")
+(defcustom goto-address-fontify-maximum-size 30000
+  "*Maximum size of file in which to fontify and/or highlight URL's."
+  :type 'integer
+  :group 'goto-address)
 
 (defvar goto-address-mail-regexp
   "[-a-zA-Z0-9._]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
@@ -94,11 +106,13 @@ But only if `goto-address-highlight-p' is also non-nil.")
 	  "[-a-zA-Z0-9_=#$@~`%&*+|\\/]")
   "A regular expression probably matching a URL.")
 
-(defvar goto-address-mail-method
+(defcustom goto-address-mail-method
   'goto-address-send-using-mail
   "*Function to compose mail.
 Two pre-made functions are `goto-address-send-using-mail' (sendmail);
-and `goto-address-send-using-mh-e' (MH-E).")
+and `goto-address-send-using-mh-e' (MH-E)."
+  :type 'function
+  :group 'goto-address)
 
 (defvar goto-address-highlight-keymap
   (let ((m (make-sparse-keymap)))
@@ -106,17 +120,25 @@ and `goto-address-send-using-mh-e' (MH-E).")
     m)
   "keymap to hold goto-addr's mouse key defs under highlighted URLs.")
 
-(defvar goto-address-url-face 'bold
-  "*Face to use for URLs.")
+(defcustom goto-address-url-face 'bold
+  "*Face to use for URLs."
+  :type 'face
+  :group 'goto-address)
 
-(defvar goto-address-url-mouse-face 'highlight
-  "*Face to use for URLs when the mouse is on them.")
+(defcustom goto-address-url-mouse-face 'highlight
+  "*Face to use for URLs when the mouse is on them."
+  :type 'face
+  :group 'goto-address)
 
-(defvar goto-address-mail-face 'italic
-  "*Face to use for e-mail addresses.")
+(defcustom goto-address-mail-face 'italic
+  "*Face to use for e-mail addresses."
+  :type 'face
+  :group 'goto-address)
 
-(defvar goto-address-mail-mouse-face 'secondary-selection
-  "*Face to use for e-mail addresses when the mouse is on them.")
+(defcustom goto-address-mail-mouse-face 'secondary-selection
+  "*Face to use for e-mail addresses when the mouse is on them."
+  :type 'face
+  :group 'goto-address)
 
 (defun goto-address-fontify ()
   "Fontify the URL's and e-mail addresses in the current buffer.

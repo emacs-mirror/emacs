@@ -59,26 +59,39 @@
 
 ;;; User variables
 
-(defvar ielm-noisy t
-  "*If non-nil, IELM will beep on error.")
+(defgroup ielm nil
+  "Interaction mode for Emacs Lisp."
+  :group 'lisp)
+
+
+(defcustom ielm-noisy t
+  "*If non-nil, IELM will beep on error."
+  :type 'boolean
+  :group 'ielm)
 
 (defvar ielm-prompt "ELISP> "
   "Prompt used in IELM.")
 
-(defvar ielm-dynamic-return t
+(defcustom ielm-dynamic-return t
   "*Controls whether \\<ielm-map>\\[ielm-return] has intelligent behaviour in IELM.
 If non-nil, \\[ielm-return] evaluates input for complete sexps, or inserts a newline
-and indents for incomplete sexps.  If nil, always inserts newlines.")
+and indents for incomplete sexps.  If nil, always inserts newlines."
+  :type 'boolean
+  :group 'ielm)
 
-(defvar ielm-dynamic-multiline-inputs t
+(defcustom ielm-dynamic-multiline-inputs t
   "*Force multiline inputs to start from column zero?
 If non-nil, after entering the first line of an incomplete sexp, a newline
 will be inserted after the prompt, moving the input to the next line.
 This gives more frame width for large indented sexps, and allows functions
-such as `edebug-defun' to work with such inputs.")
+such as `edebug-defun' to work with such inputs."
+  :type 'boolean
+  :group 'ielm)
 
-(defvar ielm-mode-hook nil
-  "*Hooks to be run when IELM (`inferior-emacs-lisp-mode') is started.")
+(defcustom ielm-mode-hook nil
+  "*Hooks to be run when IELM (`inferior-emacs-lisp-mode') is started."
+  :type 'hook
+  :group 'ielm)
 
 ;;; System variables
 
@@ -89,7 +102,7 @@ This variable is buffer-local.")
 (defvar ielm-header 
   (concat
    "*** Welcome to IELM version "
-   (substring "$Revision: 1.8 $" 11 -2)
+   (substring "$Revision: 1.9 $" 11 -2)
    " ***  Type (describe-mode) for help.\n"
    "IELM has ABSOLUTELY NO WARRANTY; type (describe-no-warranty) for details.\n")
   "Message to display when IELM is started.")
