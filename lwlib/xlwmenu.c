@@ -374,7 +374,8 @@ string_width (mw, s)
 #ifdef HAVE_X_I18N
 #define MENU_FONT_HEIGHT(mw) \
   ((mw)->menu.font_extents->max_logical_extent.height)
-#define MENU_FONT_ASCENT(mw) (MENU_FONT_HEIGHT(mw) * 9 / 10)
+#define MENU_FONT_ASCENT(mw) \
+  (- (mw)->menu.font_extents->max_logical_extent.y)
 #else
 #define MENU_FONT_HEIGHT(mw) \
   ((mw)->menu.font->ascent + (mw)->menu.font->descent)
