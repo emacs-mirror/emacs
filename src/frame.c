@@ -1864,9 +1864,13 @@ frames_bury_buffer (buffer)
 
   FOR_EACH_FRAME (tail, frame)
     {
-      XFRAME (frame)->buffer_list
-	= nconc2 (Fdelq (buffer, XFRAME (frame)->buffer_list),
-		  Fcons (buffer, Qnil));
+      struct frame *f = XFRAME (frame);
+      Lisp_Object found;
+      
+      found = Fmemq (buffer, f->buffer_list);
+      if (!NILP (found))
+	f->buffer_list = nconc2 (Fdelq (buffer, f->buffer_list),
+				 Fcons (buffer, Qnil));
     }
 }
 
