@@ -39,6 +39,7 @@ Boston, MA 02111-1307, USA.  */
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
 extern void set_frame_menubar ();
+extern int pending_menu_activation;
 #endif
 
 extern int interrupt_input;
@@ -777,6 +778,12 @@ prepare_menu_bars ()
     }
   else
     update_menu_bar (selected_frame, 1);
+
+  /* Motif needs this.  See comment in xmenu.c.
+     Turn it off when pending_menu_activation is not defined.  */
+#ifdef USE_X_TOOLKIT
+  pending_menu_activation = 0;
+#endif
 }
 
 /* Do a frame update, taking possible shortcuts into account.
