@@ -479,6 +479,31 @@ struct coding_system
     (code) = (j1 << 8) | j2;				\
   } while (0)
 
+#define SJIS_TO_JIS2(code)				\
+  do {							\
+    int s1, s2, j1, j2;					\
+							\
+    s1 = (code) >> 8, s2 = (code) & 0xFF;		\
+							\
+    if (s2 >= 0x9F)					\
+      {							\
+	j1 = (s1 == 0xF0 ? 0x28				\
+	      : s1 == 0xF1 ? 0x24			\
+	      : s1 == 0xF2 ? 0x2C			\
+	      : s1 == 0xF3 ? 0x2E			\
+	      : 0x6E + (s1 - 0xF4) * 2);		\
+	j2 = s2 - 0x7E;					\
+      }							\
+    else						\
+      {							\
+	j1 = (s1 <= 0xF2 ? 0x21 + (s1 - 0xF0) * 2	\
+	      : s1 <= 0xF4 ? 0x2D + (s1 - 0xF3) * 2	\
+	      : 0x6F + (s1 - 0xF5) * 2);		\
+	j2 = s2 - ((s2 >= 0x7F ? 0x20 : 0x1F));		\
+      }							\
+    (code) = (j1 << 8) | j2;				\
+  } while (0)
+
 
 #define JIS_TO_SJIS(code)				\
   do {							\
@@ -494,6 +519,29 @@ struct coding_system
     (code) = (s1 << 8) | s2;				\
   } while (0)
 
+#define JIS_TO_SJIS2(code)				\
+  do {							\
+    int s1, s2, j1, j2;					\
+							\
+    j1 = (code) >> 8, j2 = (code) & 0xFF;		\
+    if (j1 & 1)						\
+      {							\
+	s1 = (j1 <= 0x25 ? 0xF0 + (j1 - 0x21) / 2	\
+	      : j1 <= 0x27 ? 0xF3 + (j1 - 0x2D) / 2	\
+	      : 0xF5 + (j1 - 0x6F) / 2);		\
+	s2 = j2 + ((j2 >= 0x60) ? 0x20 : 0x1F);		\
+      }							\
+    else						\
+      {							\
+	s1 = (j1 == 0x28 ? 0xF0				\
+	      : j1 == 0x24 ? 0xF1			\
+	      : j1 == 0x2C ? 0xF2			\
+	      : j1 == 0x2E ? 0xF3			\
+	      : 0xF4 + (j1 - 0x6E) / 2);		\
+	s2 = j2 + 0x7E;					\
+      }							\
+    (code) = (s1 << 8) | s2;				\
+  } while (0)
 
 /* Encode the file name NAME using the specified coding system
    for file names, if any.  */
