@@ -1,4 +1,10 @@
-2004-10-11  Kim F. Storm  <storm@cua.dk>
+2004-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.el (kmacro-insert-counter, kmacro-add-counter): Use and
+	reset kmacro-initial-counter-value if set.
+	(kmacro-set-counter): Only set kmacro-counter if defining or executing
+	macro.  Set kmacro-initial-counter-value otherwise. Never set both.
+	(kmacro-display): Show macro counter if non-zero.
 
 	* subr.el (substitute-key-definition): Mention command remapping
 	in doc string.

@@ -1,3 +1,8 @@
+2004-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* doc.c (Fsubstitute_command_keys): Ignore remappings unless there
+	are no ordinary bindings.
+
 2004-10-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (syms_of_xfns): defsubr x-file-dialog for GTK also.
@@ -15,7 +20,7 @@
 	* mac.c (mktime): Use emacs_mktime
 	(Fdo_applescript): Add BLOCK_INPUT around do_applescript
 	(Fmac_paste_function): Add better error handling for carbon
-	cut/paste 
+	cut/paste
 
 2004-10-10  Kim F. Storm  <storm@cua.dk>
 
