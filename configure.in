@@ -2275,7 +2275,7 @@ AC_EGREP_CPP(yes..yes,
 
 AC_OUTPUT(Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile \
 	man/Makefile lwlib/Makefile src/Makefile.c:src/Makefile.in \
-	lisp/Makefile leim/Makefile, [
+	lisp/Makefile lispref/Makefile leim/Makefile, [
 
 ### Make the necessary directories, if they don't exist.
 for dir in etc lisp ; do
