@@ -32,7 +32,7 @@
 
 (require 'widget)
 
-(eval-and-compile
+(eval-when-compile
   (require 'cl))
 
 ;;; Compatibility.
