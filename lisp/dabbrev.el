@@ -831,7 +831,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
     (if old
 	(save-excursion
 	  (search-backward old))
-      ;;(store-match-data (list (point-marker) (point-marker)))
+      ;;(set-match-data (list (point-marker) (point-marker)))
       (search-backward abbrev))
     ;; Make case of replacement conform to case of abbreviation
     ;; provided (1) that kind of thing is enabled in this buffer
