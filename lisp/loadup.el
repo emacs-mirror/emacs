@@ -130,7 +130,7 @@
 ;you may load them with a "site-load.el" file.
 ;But you must also cause them to be scanned when the DOC file
 ;is generated.  For VMS, you must edit ../vms/makedoc.com.
-;For other systems, you must edit ../src/ymakefile.
+;For other systems, you must edit ../src/Makefile.in.in.
 (if (load "site-load" t)
     (garbage-collect))
 
