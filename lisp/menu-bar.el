@@ -152,6 +152,7 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-files-menu [save-buffer]
   '(menu-item "Save (current buffer)" save-buffer
 	      :enable (and (buffer-modified-p)
+			   (buffer-file-name)
 			   (not (window-minibuffer-p
 				 (frame-selected-window menu-updating-frame))))
 	      :help "Save current buffer to its file"))
