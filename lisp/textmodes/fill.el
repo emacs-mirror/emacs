@@ -226,40 +226,37 @@ act as a paragraph-separator."
       (forward-line 1)
       (if (< (point) to)
 	(progn
-	(move-to-left-margin)
-	(setq start (point))
-	(setq second-line-prefix
-	      (cond ((looking-at paragraph-start) nil) ; can it happen ??  -sm
-		    ((and adaptive-fill-regexp
-			  (looking-at adaptive-fill-regexp))
-		     (buffer-substring-no-properties start (match-end 0)))
-		    (adaptive-fill-function
-		     (funcall adaptive-fill-function))))
+	  (move-to-left-margin)
+	  (setq start (point))
+	  (setq second-line-prefix
+		(cond ((looking-at paragraph-start) nil) ;Can it happen ? -stef
+		      ((and adaptive-fill-regexp
+			    (looking-at adaptive-fill-regexp))
+		       (buffer-substring-no-properties start (match-end 0)))
+		      (adaptive-fill-function
+		       (funcall adaptive-fill-function))))
 	  ;; If we get a fill prefix from the second line,
 	  ;; make sure it or something compatible is on the first line too.
 	  (when second-line-prefix
 	    (unless first-line-prefix (setq first-line-prefix ""))
+	    ;; If the non-whitespace chars match the first line,
+	    ;; just use it (this subsumes the 2 checks used previously).
+	    ;; Used when first line is `/* ...' and second-line is
+	    ;; ` * ...'.
+	    (let ((tmp second-line-prefix)
+		  (re "\\`"))
+	      (while (string-match "\\`[ \t]*\\([^ \t]+\\)" tmp)
+		(setq re (concat re ".*" (regexp-quote (match-string 1 tmp))))
+		(setq tmp (substring tmp (match-end 0))))
+	      ;; (assert (string-match "\\`[ \t]*\\'" tmp))
 
-	    (if ;; If the non-whitespace chars match the first line,
-		;; just use it (this subsumes the 2 checks used previously).
-		;; Used when first line is `/* ...' and second-line is
-		;; ` * ...'.
-		(let ((flp (replace-regexp-in-string
-			    "[ \t]+" "" first-line-prefix)))
-		  (if (equal flp "")
-		      (string-match "\\`[ \t]*\\'" second-line-prefix)
-		    (string-match
-		     (concat "\\`"
-			     (mapconcat
-			      (lambda (c) (regexp-quote (string c))) flp "?")
-			     "?\\'")
-		     (replace-regexp-in-string "[ \t]+" "" second-line-prefix))))
-		second-line-prefix
+	      (if (string-match re first-line-prefix)
+		  second-line-prefix
 
-	      ;; Use the longest common substring of both prefixes,
-	      ;; if there is one.
-	      (fill-common-string-prefix first-line-prefix
-					 second-line-prefix))))
+		;; Use the longest common substring of both prefixes,
+		;; if there is one.
+		(fill-common-string-prefix first-line-prefix
+					   second-line-prefix)))))
 	;; If we get a fill prefix from a one-line paragraph,
 	;; maybe change it to whitespace,
 	;; and check that it isn't a paragraph starter.
