@@ -1,30 +1,37 @@
+1999-10-13  Dave Love  <fx@gnu.org>
+
+	* image.el (insert-image): Copy the image spec and add an
+	intangible property.
+
 1999-10-13  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* help.el (help-xref-interned): make it also work on variable-only and
-	  function-only symbols.
-	(help-make-xrefs): take advantage of the new `help-xref-interned'.
-	(help-follow): if the point under mouse is not highlighted, try
-	  `help-xref-interned' on the pointed-to symbol anyway.
+	* help.el (help-xref-interned): Make it also work on variable-only
+	and function-only symbols.
+	(help-make-xrefs): Take advantage of the new `help-xref-interned'.
+	(help-follow): If the point under mouse is not highlighted, try
+	`help-xref-interned' on the pointed-to symbol anyway.
 
-	* info.el (Info-on-current-buffer): new entry point.
-	(Info-find-node): split into two for Info-on-current-buffer to
-	  hook into it.
+	* info.el (Info-on-current-buffer): New entry point.
+	(Info-find-node): Split into two for Info-on-current-buffer to
+	hook into it.
 	(Info-current-file, Info-set-mode-line, Info-up):
-	  Info-current-file can now be t.
-	(Info-clone-buffer-hook): new function for `clone-buffer'.
-	(Info-goto-node, Info-menu, Info-mode-map, Info-mode): make
-	  `clone-buffer' available in various ways to the user.
+	Info-current-file can now be t.
+	(Info-clone-buffer-hook): function for `clone-buffer'.
+	(Info-goto-node, Info-menu, Info-mode-map, Info-mode):
+	`clone-buffer' available in various ways to the user.
 
 1999-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* simple.el (shell-command, shell-command-on-region): use make-temp-file.
-	(clone-buffer, clone-process, clone-buffer-hook): new functions.
+	* simple.el (shell-command, shell-command-on-region): Use
+	make-temp-file.
+	(clone-buffer, clone-process, clone-buffer-hook): New functions.
 
-	* subr.el (with-current-buffer): don't use backquotes to avoid
-	  bootstrapping problems.
-	loadup.el (load-path): add subdirs for bootstrapping.
-	(docstrings): ignore errors during bootstrapping.
-	(args): new `bootstrap' argument (for use in place of `dump').
+	* subr.el (with-current-buffer): Don't use backquotes to avoid
+	bootstrapping problems.
+	
+	* loadup.el (load-path): Add subdirs for bootstrapping.
+	(docstrings): Ignore errors during bootstrapping.
+	(args): New `bootstrap' argument (for use in place of `dump').
 
 1999-10-12  Emmanuel Briot  <briot@gnat.com>
 

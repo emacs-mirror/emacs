@@ -1,3 +1,7 @@
+1999-10-13  Dave Love  <fx@gnu.org>
+
+	* filelock.c (lock_file): Move gcpro of `fn'.
+
 1999-10-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (auto-save-interval): Fix documentation.
