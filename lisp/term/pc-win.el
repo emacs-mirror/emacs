@@ -36,7 +36,19 @@
     ("darkgoldenrod"  . "brown")
     ("goldenrod"      . "yellow")
     ("grey40"         . "darkgray")
-    ("rosybrown"      . "brown"))
+    ("rosybrown"      . "brown")
+    ("blue"	      .	"lightblue")  ;; from here: for Enriched Text
+    ("darkslategray"  .	"darkgray")
+    ("orange"	      .	"brown")
+    ("light blue"     .	"lightblue")  ;; from here: for cpp-highlight
+    ("light cyan"     .	"lightcyan")
+    ("light yellow"   .	"yellow")
+    ("light pink"     .	"lightred")
+    ("pale green"     .	"lightgreen")
+    ("beige"	      .	"brown")
+    ("medium purple"  .	"magenta")
+    ("turquoise"      . "lightgreen")
+    ("violet"	      .	"magenta"))
   "List of alternate names for colors.")
 
 (defun msdos-color-translate (name)
@@ -84,10 +96,10 @@
 (defun msdos-face-setup ()
   (modify-frame-parameters (selected-frame) default-frame-alist)
 
-  (set-face-foreground 'bold "white")
+  (set-face-foreground 'bold "yellow")
   (set-face-foreground 'italic "red")
-  (set-face-foreground 'bold-italic "yellow")
-  (set-face-foreground 'underline "blue")
+  (set-face-foreground 'bold-italic "lightred")
+  (set-face-foreground 'underline "white")
   (set-face-background 'region "green")
 
   (make-face 'msdos-menu-active-face)
@@ -135,6 +147,11 @@
 ;; From lisp/select.el
 (defun x-get-selection (&rest rest) "")
 (fset 'x-set-selection 'ignore)
+
+;; From lisp/faces.el: we only have one font, so always return
+;; it, no matter which variety they've asked for.
+(defun x-frob-font-slant (font which)
+  font)
 
 ;; From lisp/frame.el
 (fset 'set-default-font 'ignore)
