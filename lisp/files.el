@@ -1454,7 +1454,8 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.[eE]?[pP][sS]$" . ps-mode)
      ("configure\\.in\\'" . autoconf-mode)
      ("BROWSE\\'" . ebrowse-tree-mode)
-     ("\\.ebrowse\\'" . ebrowse-tree-mode)))
+     ("\\.ebrowse\\'" . ebrowse-tree-mode)
+     ("#\\*mail\\*" . mail-mode)))
   "Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
 \(NON-NIL stands for anything that is not nil; the value does not matter.)
