@@ -30,11 +30,11 @@ Boston, MA 02111-1307, USA.  */
 
 #include "lisp.h"
 #include "charset.h"
+#include "dispextern.h"
 #include "w32term.h"
 #include "frame.h"
 #include "window.h"
 #include "buffer.h"
-#include "dispextern.h"
 #include "fontset.h"
 #include "intervals.h"
 #include "keyboard.h"
@@ -51,6 +51,8 @@ Boston, MA 02111-1307, USA.  */
 #include <commdlg.h>
 #include <shellapi.h>
 #include <ctype.h>
+
+#define max(a, b) ((a) > (b) ? (a) : (b))
 
 extern void free_frame_menubar ();
 extern double atof ();
@@ -279,6 +281,9 @@ Lisp_Object Qw32_charset_gb2312;
 Lisp_Object Qw32_charset_chinesebig5;
 Lisp_Object Qw32_charset_oem;
 
+#ifndef JOHAB_CHARSET
+#define JOHAB_CHARSET 130
+#endif
 #ifdef JOHAB_CHARSET
 Lisp_Object Qw32_charset_easteurope;
 Lisp_Object Qw32_charset_turkish;
@@ -12149,22 +12154,32 @@ x_create_tip_frame (dpyinfo, parms)
 }
 
 
-DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 4, 0,
+DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   "Show STRING in a \"tooltip\" window on frame FRAME.\n\
-A tooltip window is a small X window displaying STRING at\n\
-the current mouse position.\n\
+A tooltip window is a small X window displaying a string.\n\
+\n\
 FRAME nil or omitted means use the selected frame.\n\
+\n\
 PARMS is an optional list of frame parameters which can be\n\
 used to change the tooltip's appearance.\n\
+\n\
 Automatically hide the tooltip after TIMEOUT seconds.\n\
-TIMEOUT nil means use the default timeout of 5 seconds.")
-  (string, frame, parms, timeout)
-     Lisp_Object string, frame, parms, timeout;
+TIMEOUT nil means use the default timeout of 5 seconds.\n\
+\n\
+If the list of frame parameters PARAMS contains a `left' parameters,\n\
+the tooltip is displayed at that x-position.  Otherwise it is\n\
+displayed at the mouse position, with offset DX added (default is 5 if\n\
+DX isn't specified).  Likewise for the y-position; if a `top' frame\n\
+parameter is specified, it determines the y-position of the tooltip\n\
+window, otherwise it is displayed at the mouse position, with offset\n\
+DY added (default is -5).")
+  (string, frame, parms, timeout, dx, dy)
+     Lisp_Object string, frame, parms, timeout, dx, dy;
 {
   struct frame *f;
   struct window *w;
   Window root, child;
-  Lisp_Object buffer;
+  Lisp_Object buffer, top, left;
   struct buffer *old_buffer;
   struct text_pos pos;
   int i, width, height;
@@ -12184,6 +12199,16 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
     timeout = make_number (5);
   else
     CHECK_NATNUM (timeout, 2);
+
+  if (NILP (dx))
+    dx = make_number (5);
+  else
+    CHECK_NUMBER (dx, 5);
+  
+  if (NILP (dy))
+    dy = make_number (-5);
+  else
+    CHECK_NUMBER (dy, 6);
 
   /* Hide a previous tip, if any.  */
   Fx_hide_tip ();
@@ -12262,15 +12287,30 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
   height += 2 * FRAME_INTERNAL_BORDER_WIDTH (f);
   width += 2 * FRAME_INTERNAL_BORDER_WIDTH (f);
 
+  /* User-specified position?  */
+  left = Fcdr (Fassq (Qleft, parms));
+  top  = Fcdr (Fassq (Qtop, parms));
+  
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
 #if 0 /* NTEMACS_TODO : W32 specifics */
   BLOCK_INPUT;
-  XQueryPointer (FRAME_W32_DISPLAY (f), FRAME_W32_DISPLAY_INFO (f)->root_window,
+  XQueryPointer (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
 		 &root, &child, &root_x, &root_y, &win_x, &win_y, &pmask);
-  XMoveResizeWindow (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f),
-		     root_x + 5, root_y - height - 5, width, height);
-  XMapRaised (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f));
+  UNBLOCK_INPUT;
+
+  root_x += XINT (dx);
+  root_y += XINT (dy);
+  
+  if (INTEGERP (left))
+    root_x = XINT (left);
+  if (INTEGERP (top))
+    root_y = XINT (top);
+  
+  BLOCK_INPUT;
+  XMoveResizeWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		     root_x, root_y - height, width, height);
+  XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
   UNBLOCK_INPUT;
 #endif /* NTEMACS_TODO */
 
@@ -12648,6 +12688,14 @@ w32_parse_hot_key (key)
   if ((lisp_modifiers & meta_modifier) != 0
       && !NILP (Vw32_alt_is_meta))
     lisp_modifiers |= alt_modifier;
+
+  /* Supply defs missing from mingw32.  */
+#ifndef MOD_ALT
+#define MOD_ALT         0x0001
+#define MOD_CONTROL     0x0002
+#define MOD_SHIFT       0x0004
+#define MOD_WIN         0x0008
+#endif
 
   /* Convert lisp modifiers to Windows hot-key form.  */
   w32_modifiers  = (lisp_modifiers & hyper_modifier)    ? MOD_WIN : 0;
