@@ -321,7 +321,7 @@ just once with the entire file list substituted there.
 
 If there is no `*', but a `?' in the command then it is still run
 on each file individually but with the filename substituted there
-instead of att the end of the command.
+instead of at the end of the command.
 
 No automatic redisplay of dired buffers is attempted, as there's no
 telling what files the command may have changed.  Type
