@@ -2,6 +2,26 @@
 
 	* mail/rmail.el (rmail-ignored-headers): Ignore Face: header.
 
+2003-05-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/tex-mode.el (tex-compile-history, tex-input-files-re)
+	(tex-use-reftex, tex-compile-commands): New vars.
+	(tex-summarize-command, tex-uptodate-p, tex-executable-exists-p)
+	(tex-command-executable, tex-command-active-p, tex-compile-default)
+	New functions.
+	(tex-compile): New command.
+	(tex-mode-map): Bind it to C-c C-c.
+
+	* vc-svn.el (completion-ignored-extensions): Add .svn.
+	(vc-svn-delete-file): New function.
+
+	* pcvs.el (cvs-append-to-ignore): New arg `old-dir'.
+	(cvs-mode-ignore): Use it.
+
+	* pcvs-parse.el (cvs-parse-table): Remove unused var `type'.
+	Look up `.cvsignore' to see what to do with `new-dir' messages.
+	(cvs-parse-merge): Remove unused var `handled'.
+
 2003-05-14  Christoph Wedler  <christoph.wedler@sap.com>
 
 	* format.el (format-annotate-function): Copy coding system into the
