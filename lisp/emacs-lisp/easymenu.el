@@ -351,11 +351,15 @@ MENU, just change it, otherwise put it last in MENU."
 		 (or (null cache) (stringp cache) (vectorp cache)))
 	    (setq prop (cons :key-sequence (cons cache prop))))))
      (t (error "Invalid menu item in easymenu")))
-    (cons name (and (not remove)
-		    (cons 'menu-item
-			  (cons label
-				(and name
-				     (cons command prop))))))))
+    ;; `intern' the name so as to merge multiple entries with the same name.
+    ;; It also makes it easier/possible to lookup/change menu bindings
+    ;; via keymap functions.
+    (cons (intern name)
+	  (and (not remove)
+	       (cons 'menu-item
+		     (cons label
+			   (and name
+				(cons command prop))))))))
 
 (defun easy-menu-define-key-intern (menu key item &optional before)
   "Like easy-menu-define-key, but interns KEY and BEFORE if they are strings."
