@@ -250,7 +250,7 @@ Example:
   -- Created     : <date>
   -- Description : <cursor>
   -----------------------------------------"
-  :type 'string
+  :type '(choice (const nil) string)
   :group 'vhdl-electric)
 
 (defcustom vhdl-modify-date-prefix-string "-- Last modified : "
