@@ -147,3 +147,22 @@ extern long timezone;
   (EMACS_SET_SECS (time, secs), EMACS_SET_USECS (time, usecs))
 
 extern int set_file_times ();
+
+/* Compare times T1 and T2.  Value is 0 if T1 and T2 are the same.
+   Value is < 0 if T1 is less than T2.  Value is > 0 otherwise.  */
+
+#define EMACS_TIME_CMP(T1, T2)			\
+  (EMACS_SECS (T1) - EMACS_SECS (T2)		\
+   + (EMACS_SECS (T1) == EMACS_SECS (T2)	\
+      ? EMACS_USECS (T1) - EMACS_USECS (T2)	\
+      : 0))
+
+/* Compare times T1 and T2 for equality, inequality etc.  */
+
+#define EMACS_TIME_EQ(T1,T2) (EMACS_TIME_CMP (T1, T2) == 0)
+#define EMACS_TIME_NE(T1,T2) (EMACS_TIME_CMP (T1, T2) != 0)
+#define EMACS_TIME_GT(T1,T2) (EMACS_TIME_CMP (T1, T2) > 0)
+#define EMACS_TIME_GE(T1,T2) (EMACS_TIME_CMP (T1, T2) >= 0)
+#define EMACS_TIME_LT(T1,T2) (EMACS_TIME_CMP (T1, T2) < 0)
+#define EMACS_TIME_LE(T1,T2) (EMACS_TIME_CMP (T1, T2) <= 0)
+
