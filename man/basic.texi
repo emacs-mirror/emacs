@@ -691,16 +691,19 @@ act in the opposite direction.
   If your terminal keyboard has a @key{META} key, the easiest way to
 specify a numeric argument is to type digits and/or a minus sign while
 holding down the @key{META} key.  For example,
+
 @example
 M-5 C-n
 @end example
+
 @noindent
 would move down five lines.  The characters @kbd{Meta-1}, @kbd{Meta-2},
 and so on, as well as @kbd{Meta--}, do this because they are keys bound
 to commands (@code{digit-argument} and @code{negative-argument}) that
-are defined to contribute to an argument for the next command.  Digits
-and @kbd{-} modified with Control, or Control and Meta, also specify
-numeric arguments.
+are defined to contribute to an argument for the next command.
+@kbd{Meta--} without digits normally means @minus{}1.  Digits and
+@kbd{-} modified with Control, or Control and Meta, also specify numeric
+arguments.
 
 @kindex C-u
 @findex universal-argument
