@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.19) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.20) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.19) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.20) $");
 
 
 /* Types */
@@ -85,6 +85,13 @@ static Ref MRGRefPartRef(Arena arena, RefPart refPart)
   ref = (Ref)ArenaPeek(arena, (Addr)&refPart->ref);
 
   return ref;
+}
+
+static Addr MRGRefPartRefAddr(RefPart refPart)
+{
+  AVER(refPart != NULL);
+
+  return (Addr)&refPart->ref;
 }
 
 static void MRGRefPartSetRef(Arena arena, RefPart refPart, Ref ref)
@@ -275,9 +282,10 @@ static void MRGMessageDelete(Message message)
 static void MRGMessageFinalizationRef(Ref *refReturn,
                                       Arena arena, Message message)
 {
+  Addr refAddr;
   Link link;
-  RefPart refPart;
   Ref ref;
+  RefPart refPart;
 
   AVER(refReturn != NULL);
   AVERT(Arena, arena);
@@ -289,7 +297,10 @@ static void MRGMessageFinalizationRef(Ref *refReturn,
   AVER(link->state == MRGGuardianFINAL);
   refPart = MRGRefPartOfLink(link, arena);
 
-  ref = MRGRefPartRef(arena, refPart);
+  refAddr = MRGRefPartRefAddr(refPart);
+
+  /* ensure that the reference is not (white and flipped) */
+  ref = (Ref)ArenaRead(arena, refAddr);
 
   AVER(ref != 0);
   *refReturn = ref;
