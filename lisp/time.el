@@ -215,7 +215,7 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
                      (let ((str (format " %03d" (car (load-average)))))
 		       (propertize
 			(concat (substring str 0 -2) "." (substring str -2))
-			'help-echo "Load average")))
+			'help-echo "System load average")))
                  (error "")))
          (mail-spool-file (or display-time-mail-file
                               (getenv "MAIL")
