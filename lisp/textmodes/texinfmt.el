@@ -477,6 +477,12 @@ if large.  You can use Info-split to do this manually."
   (concat
    "^@"
    "\\("
+   ;; add "itemize\\|"   (from experiment of 2001 Nov 28)
+   ;;     because of a problem with @end itemize@refill   
+   ;;     I don't know if this causes other problems.
+   ;;     I suspect itemized lists don't get filled properly and a
+   ;;     more precise fix is required.  Bob
+   "itemize\\|"
    "direntry\\|"
    "lisp\\|"
    "smalllisp\\|"
