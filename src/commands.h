@@ -52,14 +52,9 @@ extern Lisp_Object Vunread_command_events;
    Setting this is obsolete, but some things should still check it.  */
 extern int unread_command_char;
 
-/* Last command executed by the editor command loop, not counting
-   commands that set the prefix argument.  */
-
-extern Lisp_Object last_command;
-
 /* The command being executed by the command loop.
-   Commands may set this, and the value set will be copied into last_command
-   instead of the actual command.  */
+   Commands may set this, and the value set will be copied into
+   current_kboard->Vlast_command instead of the actual command.  */
 extern Lisp_Object this_command;
 
 /* If not Qnil, this is a switch-frame event which we decided to put
@@ -70,9 +65,6 @@ extern Lisp_Object this_command;
    end of the key sequence; Fread_char uses it to put off switch-frame
    events until a non-ASCII event is acceptable as input.  */
 extern Lisp_Object unread_switch_frame;
-
-/* Previous command symbol found here for comparison */
-extern Lisp_Object last_command;
 
 /* The value of point when the last command was executed.  */
 extern int last_point_position;
