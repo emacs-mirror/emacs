@@ -1077,6 +1077,22 @@ of the old one in the permanent bookmark record."
              (bookmark-show-annotation bookmark)))))
 
 
+(defun bookmark-file-or-variation-thereof (file)
+  "Return FILE (a string) if it exists in any reasonable variation, else nil.
+Reasonable variations are FILE.gz, FILE.Z, FILE.info, FILE.info.gz, etc."
+  (cond 
+   ((file-exists-p file)                       file)
+   ((file-exists-p (concat file ".Z"))         (concat file ".Z"))
+   ((file-exists-p (concat file ".gz"))        (concat file ".gz"))
+   ((file-exists-p (concat file ".z"))         (concat file ".z"))
+   ((file-exists-p (concat file ".info"))      (concat file ".info"))
+   ((file-exists-p (concat file ".info.gz"))   (concat file ".info.gz"))
+   ((file-exists-p (concat file ".info.Z"))    (concat file ".info.Z"))
+   ((file-exists-p (concat file ".info.z"))    (concat file ".info.z"))
+   ((vc-backend file)                          file) ; maybe VC has it?
+   (t                                          nil)))
+
+
 (defun bookmark-jump-noselect (str)
   ;; a leetle helper for bookmark-jump :-)
   ;; returns (BUFFER . POINT)
@@ -1088,23 +1104,7 @@ of the old one in the permanent bookmark record."
          (info-node              (bookmark-get-info-node str))
          (orig-file              file)
          )
-    (if (or
-         (file-exists-p file)
-         ;; Else try some common compression extensions, which Emacs
-         ;; usually handles right.  I hope.
-         (setq file
-               (or
-                (let ((altname (concat file ".Z")))
-                  (and (file-exists-p altname)
-                       altname))
-                (let ((altname (concat file ".gz")))
-                  (and (file-exists-p altname)
-                       altname))
-                (let ((altname (concat file ".z")))
-                  (and (file-exists-p altname)
-                       altname))
-                ;; Check VC incarnations, preparatory to checkout
-                (if (vc-backend file) file nil))))
+    (if (setq file (bookmark-file-or-variation-thereof file))
         (save-excursion
           (save-window-excursion
             (if info-node
