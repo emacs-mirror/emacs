@@ -448,6 +448,10 @@ The underscore cursor is set by putting `(cursor-type . hbar)' in
 default-frame-alist.  It supports variable heights, like the `bar'
 cursor does.
 
++++
+** On X, MS Windows, and Mac OS, the blinking cursor's "off" state is
+now controlled by the variable `blink-cursor-alist'.
+
 ** Filesets are collections of files.  You can define a fileset in
 various ways, such as based on a directory tree or based on
 program files that include other program files.
@@ -466,11 +470,6 @@ when Emacs visits them.
 `mpuz' now allows the 2nd factor not to have two identical digits.  By
 default, all trivial operations involving whole lines are performed
 automatically.  The game uses faces for better visual feedback.
-
-+++
-** On X, MS Windows, and Mac OS, the blinking cursor's "off" state is
-now shown as a hollow box or a thin bar.  However, you can control how
-it blinks off by setting the variable `blink-cursor-alist'.
 
 ** The new variable `x-select-request-type' controls how Emacs
 requests X selection.  The default value is nil, which means that
