@@ -1,3 +1,7 @@
+2002-02-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* sysdep.c (init_system_name): Put unused variable `p' in #if 0.
+
 2002-02-07  Kim F. Storm  <storm@cua.dk>
 
 	* keymap.c (where_is_internal): Only check whether definition is
