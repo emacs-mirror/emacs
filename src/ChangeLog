@@ -1,5 +1,7 @@
 2000-04-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* lread.c (read_filtered_event): Cancel and start busy cursor.
+
 	* xterm.c (x_produce_glyphs) <ASCII chars>: Take into account 
 	that the per-character metrics may be null.
 

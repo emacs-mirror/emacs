@@ -1,3 +1,13 @@
+2000-04-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/sendmail.el (mail-do-fcc): Prevent inserting a newline
+	at the start of an existing but empty folder.
+
+2000-04-18  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-mule.el: Customization fix, doc fix.
+	(ps-multibyte-buffer): Customization fix.
+
 2000-04-17  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* subr.el (read-passwd): Use read-char-exclusive.

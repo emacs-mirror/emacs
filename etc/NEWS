@@ -1666,6 +1666,23 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
+** The function tty-suppress-bold-inverse-default-colors can be used
+to make Emacs avoid displaying text with bold black foreground on TTYs.
+
+Some terminals, notably PC consoles, emulate bold text by displaying
+text in brighter colors.  On such a console, a bold black foreground
+is displayed in a gray color.  If this turns out to be hard to read on
+your monitor---the problem occurred with the mode line on
+laptops---you can instruct Emacs to ignore the text's boldness, and to
+just display it black instead.
+
+This situation can't be detected automatically.  You will have to put
+a line like
+
+  (tty-suppress-bold-inverse-default-colors t)
+
+in your `.emacs'.
+
 ** New face implementation.
 
 Emacs faces have been reimplemented from scratch.  They don't use XLFD
