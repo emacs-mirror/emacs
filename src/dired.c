@@ -67,6 +67,8 @@ extern struct direct *readdir ();
 #define lstat stat
 #endif
 
+extern Lisp_Object find_file_handler ();
+
 Lisp_Object Vcompletion_ignored_extensions;
 
 Lisp_Object Qcompletion_ignore_case;
@@ -472,7 +474,7 @@ Otherwise, list elements are:\n\
 10. inode number.\n\
 11. Device number.\n\
 \n\
-If file does not exists, returns nil.")
+If file does not exist, returns nil.")
   (filename)
      Lisp_Object filename;
 {
@@ -520,7 +522,7 @@ If file does not exists, returns nil.")
 #endif
 #ifdef BSD4_2			/* file gid will be dir gid */
   dirname = Ffile_name_directory (filename);
-  if (dirname != Qnil && stat (XSTRING (dirname)->data, &sdir) == 0)
+  if (! NILP (dirname) && stat (XSTRING (dirname)->data, &sdir) == 0)
     values[9] = (sdir.st_gid != s.st_gid) ? Qt : Qnil;
   else					/* if we can't tell, assume worst */
     values[9] = Qt;
