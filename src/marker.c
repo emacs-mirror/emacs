@@ -877,7 +877,7 @@ DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
     charno = Z;
 
   for (tail = BUF_MARKERS (current_buffer);
-       XSYMBOL (tail) != XSYMBOL (Qnil);
+       !NILP (tail);
        tail = XMARKER (tail)->chain)
     if (XMARKER (tail)->charpos == charno)
       return Qt;
