@@ -366,6 +366,8 @@ Default value, nil, means edit the string instead."
 ;   case in the search string is ignored.
 (defvar isearch-case-fold-search nil)
 
+(defvar isearch-last-case-fold-search nil)
+
 ;; Used to save default value while isearch is active
 (defvar isearch-original-minibuffer-message-timeout nil)
 
@@ -530,6 +532,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-regexp regexp
 	isearch-word word-p
 	isearch-op-fun op-fun
+	isearch-last-case-fold-search isearch-case-fold-search
 	isearch-case-fold-search case-fold-search
 	isearch-string ""
 	isearch-message ""
@@ -645,7 +648,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (let ((command `(isearch-resume ,isearch-string ,isearch-regexp
 				  ,isearch-word ,isearch-forward
 				  ,isearch-message
-				  ,isearch-case-fold-search)))
+				  ',isearch-case-fold-search)))
     (unless (equal (car command-history) command)
       (setq command-history (cons command command-history))))
 
@@ -940,16 +943,17 @@ Use `isearch-exit' to quit without signaling."
   ;; Utility for isearch-repeat-forward and -backward.
   (if (eq isearch-forward (eq direction 'forward))
       ;; C-s in forward or C-r in reverse.
-      (if (equal isearch-string "")
+      (when (equal isearch-string "")
 	  ;; If search string is empty, use last one.
-	  (setq isearch-string
-		(or (if isearch-regexp
-			(car regexp-search-ring)
-		      (car search-ring))
-		    "")
-		isearch-message
-		(mapconcat 'isearch-text-char-description
-			   isearch-string ""))
+	(setq isearch-string
+	      (or (if isearch-regexp
+		      (car regexp-search-ring)
+		    (car search-ring))
+		  "")
+	      isearch-message
+	      (mapconcat 'isearch-text-char-description
+			 isearch-string "")
+	      isearch-case-fold-search isearch-last-case-fold-search)
 	;; If already have what to search for, repeat it.
 	(or isearch-success
 	    (progn
