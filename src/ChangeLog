@@ -1,5 +1,7 @@
 2000-06-23  Dave Love  <fx@gnu.org>
 
+	* ralloc.c: Maybe include unistd.h
+
 	* emacs.c (setgrp): Undefine before defining.
 	(malloc_warning, set_time_zone_rule, index): Prototype.
 
