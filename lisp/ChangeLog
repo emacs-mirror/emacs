@@ -1,3 +1,9 @@
+2000-06-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/sendmail.el (mail-specify-envelope-from): Initialize to
+	nil.  Contemporary sendmails issue an X-Authentication-Warning if
+	the sender is set with `-f.
+
 2000-06-13  Dave Love  <fx@gnu.org>
 
 	* help.el (describe-function-1): Kluge around cases of functions

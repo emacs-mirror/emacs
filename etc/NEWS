@@ -1222,6 +1222,9 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** The variable line-number-display-limit can now be set to nil,
+meaning no limit.
+
 ** select-safe-coding-system now also checks the most preferred
 coding-system if buffer-file-coding-system is `undecided' and
 DEFAULT-CODING-SYSTEM is not specified,
