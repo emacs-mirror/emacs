@@ -299,7 +299,12 @@ developers.
 Emacs 21.1 built for MS-Windows doesn't support images and the tool bar.
 Support for these will be added in future versions.
 
-Help text for pop-up menu items is not displayed at all.
+Frames are not refreshed while the File or Font dialog or a pop-up menu
+is displayed. This also means help text for pop-up menu items is not
+displayed at all.  This is because message handling under Windows is
+synchronous, so we cannot handle repaint (or any other) messages while
+waiting for a system function to return the result of the dialog or
+pop-up menu interaction.
 
 There are problems with display if mouse-tracking is enabled and the
 mouse is moved off a frame, over another frame then back over the first
