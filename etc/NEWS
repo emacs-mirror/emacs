@@ -90,6 +90,14 @@ The underscore cursor is set by putting `(cursor-type . hbar)' in
 default-frame-alist.  It supports variable heights, like the `bar'
 cursor does.
 
+** Filesets are collections of files.  You can define a fileset in
+various ways, such as based on a directory tree or based on
+program files that include other program files.
+
+Once you have defined a fileset, you can perform various operations on
+all the files in it, such as visiting them or searching and replacing
+in them.
+
 ---
 ** PO translation files are decoded according to their MIME headers
 when Emacs visits them.
