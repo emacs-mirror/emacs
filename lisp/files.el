@@ -1794,7 +1794,8 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 	    (unwind-protect
 		(progn (clear-visited-file-modtime)
 		       (write-region (point-min) (point-max)
-				     tempname nil realname)
+				     tempname nil realname
+				     buffer-file-truename)
 		       (setq succeed t))
 	      ;; If writing the temp file fails,
 	      ;; delete the temp file.
@@ -1818,7 +1819,7 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 	       (setq setmodes (file-modes buffer-file-name))
 	       (set-file-modes buffer-file-name 511)))
 	(write-region (point-min) (point-max)
-		      buffer-file-name nil t)))
+		      buffer-file-name nil t buffer-file-truename)))
     setmodes))
 
 (defun save-some-buffers (&optional arg exiting)
