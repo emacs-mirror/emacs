@@ -4593,12 +4593,27 @@ x_draw_box (f, x, y)
   int c = FAST_GLYPH_CHAR (f->phys_cursor_glyph);
   int charset = CHAR_CHARSET (c);
 
+  XGCValues xgcv;
+  unsigned long mask = GCForeground;
+
+  xgcv.foreground = f->output_data.x->cursor_pixel;
+
+  /* cursor_gc's foreground color is typically the same as the normal
+     background color, which can cause the cursor box to be invisible.  */
+  if (FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc)
+    XChangeGC (FRAME_X_DISPLAY (f),
+               FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc,
+               mask, &xgcv);
+  else
+    FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc
+      = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), mask, &xgcv);
+
   /* If cursor is on a multi-column character, multiply WIDTH by columns.  */
   width *= (charset == CHARSET_COMPOSITION
 	    ? cmpchar_table[COMPOSITE_CHAR_ID (c)]->width
 	    : CHARSET_WIDTH (charset));
   XDrawRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  f->output_data.x->cursor_gc,
+                  FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc,
 		  left, top, width - 1, height - 1);
 }
 
