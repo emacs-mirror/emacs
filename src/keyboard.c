@@ -5570,7 +5570,7 @@ parse_menu_item (item, notreal, inmenubar)
   if (!CONSP (item))
     return 0;
 
-  GCPRO3 (item, notreal, inmenubar);
+  GCPRO1 (item);
 
   /* Create item_properties vector if necessary.  */
   if (NILP (item_properties))
@@ -7899,7 +7899,7 @@ On such systems, Emacs starts a subshell instead of suspending.")
   /* sys_suspend can get an error if it tries to fork a subshell
      and the system resources aren't available for that.  */
   record_unwind_protect ((Lisp_Object (*) P_ ((Lisp_Object))) init_sys_modes,
-			 0);
+			 Qnil);
   stuff_buffered_input (stuffstring);
   if (cannot_suspend)
     sys_subshell ();
