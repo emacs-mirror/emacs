@@ -940,6 +940,7 @@ IT_write_glyphs (struct glyph *str, int str_len)
       encode_coding (coding, "", conversion_buffer, 0, conversion_buffer_size);
       if (coding->produced > 0)
 	{
+	  screen_buf = alloca (coding->produced * 2);
 	  for (screen_bp = screen_buf, bp = conversion_buffer;
 	       coding->produced--; bp++)
 	    {
