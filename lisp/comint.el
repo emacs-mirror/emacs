@@ -1443,7 +1443,7 @@ Then send it to the process running in the current buffer.
 The string is sent using `comint-input-sender'.
 Security bug: your string can still be temporarily recovered with
 \\[view-lossage]."
-  (interactive "P") ; Defeat snooping via C-x esc
+  (interactive "P") ; Defeat snooping via C-x ESC ESC
   (let ((proc (get-buffer-process (current-buffer))))
     (if (not proc)
 	(error "Current buffer has no process")
