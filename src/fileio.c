@@ -235,9 +235,10 @@ Lisp_Object Qfile_name_history;
 
 Lisp_Object Qcar_less_than_car;
 
-static int a_write P_ ((int, char *, int, int,
+static int a_write P_ ((int, Lisp_Object, int, int,
 			Lisp_Object *, struct coding_system *));
-static int e_write P_ ((int, char *, int, struct coding_system *));
+static int e_write P_ ((int, Lisp_Object, int, int, struct coding_system *));
+
 
 void
 report_file_error (string, data)
@@ -2090,21 +2091,10 @@ duplicates what `expand-file-name' does.")
 	  {
 	    /* If the original string is multibyte,
 	       convert what we substitute into multibyte.  */
-	    unsigned char workbuf[4], *str;
-	    int len;
-
 	    while (*o)
 	      {
-		int c = *o++;
-		c = unibyte_char_to_multibyte (c);
-		if (! SINGLE_BYTE_CHAR_P (c))
-		  {
-		    len = CHAR_STRING (c, workbuf, str);
-		    bcopy (str, x, len);
-		    x += len;
-		  }
-		else
-		  *x++ = c;
+		int c = unibyte_char_to_multibyte (*o++);
+		x += CHAR_STRING (c, x);
 	      }
 	  }
 	else
@@ -4228,15 +4218,18 @@ actually used.")
       inserted = XFASTINT (insval);
     }
 
+  if (set_coding_system)
+    Vlast_coding_system_used = coding.symbol;
+
   /* Call after-change hooks for the inserted text, aside from the case
      of normal visiting (not with REPLACE), which is done in a new buffer
      "before" the buffer is changed.  */
   if (inserted > 0 && total > 0
       && (NILP (visit) || !NILP (replace)))
-    signal_after_change (PT, 0, inserted);
-
-  if (set_coding_system)
-    Vlast_coding_system_used = coding.symbol;
+    {
+      signal_after_change (PT, 0, inserted);
+      update_compositions (PT, PT, CHECK_BORDER);
+    }
 
   if (inserted > 0)
     {
@@ -4652,9 +4645,8 @@ This does code conversion according to the value of\n\
 
   if (STRINGP (start))
     {
-      failure = 0 > a_write (desc, XSTRING (start)->data,
-			     STRING_BYTES (XSTRING (start)), 0, &annotations,
-			     &coding);
+      failure = 0 > a_write (desc, start, 0, XSTRING (start)->size,
+			     &annotations, &coding);
       save_errno = errno;
     }
   else if (XINT (start) != XINT (end))
@@ -4665,17 +4657,17 @@ This does code conversion according to the value of\n\
 
       if (XINT (start) < GPT)
 	{
-	  failure = 0 > a_write (desc, BYTE_POS_ADDR (tem),
-				 min (GPT_BYTE, end1) - tem, tem, &annotations,
-				 &coding);
+	  failure = 0 > a_write (desc, Qnil, XINT (start),
+				 min (GPT, XINT (end)) - XINT (start),
+				 &annotations, &coding);
 	  save_errno = errno;
 	}
 
       if (XINT (end) > GPT && !failure)
 	{
-	  tem = max (tem, GPT_BYTE);
-	  failure = 0 > a_write (desc, BYTE_POS_ADDR (tem), end1 - tem,
-				 tem, &annotations, &coding);
+	  tem = max (XINT (start), GPT);
+	  failure = 0 > a_write (desc, Qnil, tem , XINT (end) - tem,
+				 &annotations, &coding);
 	  save_errno = errno;
 	}
     }
@@ -4683,7 +4675,7 @@ This does code conversion according to the value of\n\
     {
       /* If file was empty, still need to write the annotations */
       coding.mode |= CODING_MODE_LAST_BLOCK;
-      failure = 0 > a_write (desc, "", 0, XINT (start), &annotations, &coding);
+      failure = 0 > a_write (desc, Qnil, XINT (end), 0, &annotations, &coding);
       save_errno = errno;
     }
 
@@ -4693,7 +4685,7 @@ This does code conversion according to the value of\n\
     {
       /* We have to flush out a data. */
       coding.mode |= CODING_MODE_LAST_BLOCK;
-      failure = 0 > e_write (desc, "", 0, &coding);
+      failure = 0 > e_write (desc, Qnil, 0, 0, &coding);
       save_errno = errno;
     }
 
@@ -4876,10 +4868,10 @@ build_annotations (start, end, pre_write_conversion)
   return annotations;
 }
 
-/* Write to descriptor DESC the NBYTES bytes starting at ADDR,
-   assuming they start at byte position BYTEPOS in the buffer.
+/* Write to descriptor DESC the NCHARS chars starting at POS of STRING.
+   If STRING is nil, POS is the character position in the current buffer.
    Intersperse with them the annotations from *ANNOT
-   which fall within the range of byte positions BYTEPOS to BYTEPOS + NBYTES,
+   which fall within the range of POS to POS + NCHARS,
    each at its appropriate position.
 
    We modify *ANNOT by discarding elements as we use them up.
@@ -4887,44 +4879,42 @@ build_annotations (start, end, pre_write_conversion)
    The return value is negative in case of system call failure.  */
 
 static int
-a_write (desc, addr, nbytes, bytepos, annot, coding)
+a_write (desc, string, pos, nchars, annot, coding)
      int desc;
-     register char *addr;
-     register int nbytes;
-     int bytepos;
+     Lisp_Object string;
+     register int nchars;
+     int pos;
      Lisp_Object *annot;
      struct coding_system *coding;
 {
   Lisp_Object tem;
   int nextpos;
-  int lastpos = bytepos + nbytes;
+  int lastpos = pos + nchars;
 
   while (NILP (*annot) || CONSP (*annot))
     {
       tem = Fcar_safe (Fcar (*annot));
-      nextpos = bytepos - 1;
+      nextpos = pos - 1;
       if (INTEGERP (tem))
-	nextpos = CHAR_TO_BYTE (XFASTINT (tem));
+	nextpos = XFASTINT (tem);
 
       /* If there are no more annotations in this range,
 	 output the rest of the range all at once.  */
-      if (! (nextpos >= bytepos && nextpos <= lastpos))
-	return e_write (desc, addr, lastpos - bytepos, coding);
+      if (! (nextpos >= pos && nextpos <= lastpos))
+	return e_write (desc, string, pos, lastpos, coding);
 
       /* Output buffer text up to the next annotation's position.  */
-      if (nextpos > bytepos)
+      if (nextpos > pos)
 	{
-	  if (0 > e_write (desc, addr, nextpos - bytepos, coding))
+	  if (0 > e_write (desc, string, pos, nextpos, coding));
 	    return -1;
-	  addr += nextpos - bytepos;
-	  bytepos = nextpos;
+	  pos = nextpos;
 	}
       /* Output the annotation.  */
       tem = Fcdr (Fcar (*annot));
       if (STRINGP (tem))
 	{
-	  if (0 > e_write (desc, XSTRING (tem)->data, STRING_BYTES (XSTRING (tem)),
-			   coding))
+	  if (0 > e_write (desc, tem, 0, XSTRING (tem)->size, coding));
 	    return -1;
 	}
       *annot = Fcdr (*annot);
@@ -4936,17 +4926,45 @@ a_write (desc, addr, nbytes, bytepos, annot, coding)
 #define WRITE_BUF_SIZE (16 * 1024)
 #endif
 
-/* Write NBYTES bytes starting at ADDR into descriptor DESC,
-   encoding them with coding system CODING.  */
+/* Write text in the range START and END into descriptor DESC,
+   encoding them with coding system CODING.  If STRING is nil, START
+   and END are character positions of the current buffer, else they
+   are indexes to the string STRING.  */
 
 static int
-e_write (desc, addr, nbytes, coding)
+e_write (desc, string, start, end, coding)
      int desc;
-     register char *addr;
-     register int nbytes;
+     Lisp_Object string;
+     int start, end;
      struct coding_system *coding;
 {
+  register char *addr;
+  register int nbytes;
   char buf[WRITE_BUF_SIZE];
+  int composing = coding->composing;
+  int return_val = 0;
+
+  if (start >= end)
+    coding->composing = COMPOSITION_DISABLED;
+  if (coding->composing != COMPOSITION_DISABLED)
+    coding_save_composition (coding, start, end, string);
+
+  if (STRINGP (string))
+    {
+      addr = XSTRING (string)->data;
+      nbytes = STRING_BYTES (XSTRING (string));
+    }
+  else if (start < end)
+    {
+      /* It is assured that the gap is not in the range START and END-1.  */
+      addr = CHAR_POS_ADDR (start);
+      nbytes = CHAR_TO_BYTE (end) - CHAR_TO_BYTE (start);
+    }
+  else
+    {
+      addr = "";
+      nbytes = 0;
+    }
 
   /* We used to have a code for handling selective display here.  But,
      now it is handled within encode_coding.  */
@@ -4955,21 +4973,33 @@ e_write (desc, addr, nbytes, coding)
       int result;
 
       result = encode_coding (coding, addr, buf, nbytes, WRITE_BUF_SIZE);
-      nbytes -= coding->consumed, addr += coding->consumed;
       if (coding->produced > 0)
 	{
 	  coding->produced -= emacs_write (desc, buf, coding->produced);
-	  if (coding->produced) return -1;
+	  if (coding->produced)
+	    {
+	      return_val = -1;
+	      break;
+	    }
 	}
       if (result == CODING_FINISH_INSUFFICIENT_SRC)
 	{
 	  /* The source text ends by an incomplete multibyte form.
              There's no way other than write it out as is.  */
 	  nbytes -= emacs_write (desc, addr, nbytes);
-	  if (nbytes) return -1;
+	  if (nbytes)
+	    {
+	      return_val = -1;
+	      break;
+	    }
 	}
       if (nbytes <= 0)
 	break;
+      nbytes -= coding->consumed;
+      addr += coding->consumed;
+      start += coding->consumed_char;
+      if (coding->cmp_data)
+	coding_adjust_composition_offset (coding, start);
     }
   return 0;
 }
