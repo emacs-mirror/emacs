@@ -240,10 +240,10 @@ until a successful connection is made."
     (starttls  imap-starttls-p         imap-starttls-open))
   "Definition of network streams.
 
-(NAME CHECK OPEN)
+\(NAME CHECK OPEN)
 
 NAME names the stream, CHECK is a function returning non-nil if the
-server support the stream and OPEN is a function for opening the
+server supports the stream and OPEN is a function for opening the
 stream.")
 
 (defvar imap-authenticators '(gssapi
@@ -263,11 +263,11 @@ stream.")
     (digest-md5 imap-digest-md5-p     imap-digest-md5-auth))
   "Definition of authenticators.
 
-(NAME CHECK AUTHENTICATE)
+\(NAME CHECK AUTHENTICATE)
 
 NAME names the authenticator.  CHECK is a function returning non-nil if
-the server support the authenticator and AUTHENTICATE is a function
-for doing the actuall authentification.")
+the server supports the authenticator and AUTHENTICATE is a function
+for doing the actual authentication.")
 
 (defvar imap-use-utf7 t
   "If non-nil, do utf7 encoding/decoding of mailbox names.
