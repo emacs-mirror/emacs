@@ -619,8 +619,8 @@ C-w Display information on absence of warranty for GNU Emacs."
 	      (help-xref-button 1 #'(lambda (arg)
 				      (let ((location
 					     (find-function-noselect arg)))
-					(display-buffer (nth 0 location))
-					(goto-char (nth 1 location))))
+					(pop-to-buffer (car location))
+					(goto-char (cdr location))))
 				function)))))
     (if need-close (princ ")"))
     (princ ".")
