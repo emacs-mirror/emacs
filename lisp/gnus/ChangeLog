@@ -1,7 +1,11 @@
 2001-02-08  Dave Love  <fx@gnu.org>
 
-	* gnus-sum.el (gnus-alter-articles-to-read-function): Fix :type.
-	* gnus-score.el (gnus-score-after-write-file-function): 
+	* rfc2047.el (rfc2047-fold-region): Don't forward-char at EOB.
+	(message-posting-charset): Defvar when compiling again.
+	(rfc2047-encodable-p): Require message.
+
+	* gnus-sum.el (gnus-alter-articles-to-read-function):
+	* gnus-score.el (gnus-score-after-write-file-function): Fix :type.
 
 2001-02-07  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
