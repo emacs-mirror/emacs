@@ -2012,7 +2012,8 @@ syms_of_keymap ()
    Each one is the value of a Lisp variable, and is also
    pointed to by a C variable */
 
-  global_map = Fmake_keymap (Qnil);
+  global_map = Fcons (Qkeymap,
+		      Fcons (Fmake_vector (make_number (0400), Qnil)));
   Fset (intern ("global-map"), global_map);
 
   meta_map = Fmake_keymap (Qnil);
