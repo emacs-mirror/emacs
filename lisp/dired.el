@@ -597,7 +597,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	;; We need this to make the root dir have a header line as all
 	;; other subdirs have:
 	(goto-char (point-min))
-	(dired-insert-headerline default-directory)
+        (if (not (looking-at "^  /.*:$"))
+            (dired-insert-headerline default-directory))
 	;; can't run dired-after-readin-hook here, it may depend on the subdir
 	;; alist to be OK.
 	)
