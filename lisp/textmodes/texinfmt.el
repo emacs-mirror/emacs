@@ -868,7 +868,7 @@ lower types.")
          ;; Otherwise: the other characters are simply quoted.  Delete the @.
          (t
          (delete-char -1)
-	 ;; Be compatible with makeinfo: if @' and its ild are
+	 ;; Be compatible with makeinfo: if @' and its ilk are
 	 ;; followed by a @ without a brace, barf.
 	 (if (looking-at "[\"'^`~=]")
 	     (progn
