@@ -80,6 +80,8 @@
     (message "Working ...")
     (setq filename (expand-file-name filename))
     (with-output-to-temp-buffer buff
+      (ediff-with-current-buffer standard-output
+	(fundamental-mode))
       (let ((output-buffer (ediff-rcs-get-output-buffer filename buff)))
 	(delete-windows-on output-buffer)
 	(save-excursion
