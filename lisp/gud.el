@@ -32,7 +32,8 @@
 ;; who also hacked the mode to use comint.el.  Shane Hartman <shane@spr.com>
 ;; added support for xdb (HPUX debugger).  Rick Sladkey <jrs@world.std.com>
 ;; wrote the GDB command completion code.  Dave Love <d.love@dl.ac.uk>
-;; added the IRIX kluge and re-implemented the Mips-ish variant.
+;; added the IRIX kluge, re-implemented the Mips-ish variant and added
+;; a menu.
 
 ;;; Code:
 
@@ -146,7 +147,7 @@ we're in the GUD buffer)."
 ;;
 ;; The job of the find-file method is to visit and return the buffer indicated
 ;; by the car of gud-tag-frame.  This may be a file name, a tag name, or
-;; something else.
+;; something else.  It would be good if it also copied the Gud menubar entry.
 
 ;; ======================================================================
 ;; gdb functions
@@ -250,6 +251,10 @@ and source-file directory for your debugger."
   (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
 
   (local-set-key "\C-i" 'gud-gdb-complete-command)
+  (local-set-key [menu-bar debug tbreak] '("Temporary breakpoint" . gud-tbreak))
+  (local-set-key [menu-bar debug finish] '("Finish function" . gud-finish))
+  (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
+  (local-set-key [menu-bar debug down] '("Down stack" . gud-down))
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'gdb-mode-hook)
@@ -433,6 +438,8 @@ and source-file directory for your debugger."
 
   (setq comint-prompt-regexp  "\\(^\\|\n\\)\\*")
   (setq paragraph-start comint-prompt-regexp)
+  (local-set-key [menu-bar debug tbreak]
+    '("Temporary breakpoint" . gud-tbreak))
   (run-hooks 'sdb-mode-hook)
   )
 
@@ -666,6 +673,8 @@ and source-file directory for your debugger."
 
   (setq comint-prompt-regexp  "^[^)\n]*dbx) *")
   (setq paragraph-start comint-prompt-regexp)
+  (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
+  (local-set-key [menu-bar debug down] '("Down stack" . gud-down))
   (run-hooks 'dbx-mode-hook)
   )
 
@@ -763,6 +772,10 @@ directories if your program contains sources from more than one directory."
 
   (setq comint-prompt-regexp  "^>")
   (setq paragraph-start comint-prompt-regexp)
+  (local-set-key [menu-bar debug tbreak] '("Temporary breakpoint" . gud-tbreak))
+  (local-set-key [menu-bar debug finish] '("Finish function" . gud-finish))
+  (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
+  (local-set-key [menu-bar debug down] '("Down stack" . gud-down))
   (run-hooks 'xdb-mode-hook))
 
 ;; ======================================================================
@@ -968,6 +981,36 @@ comint mode, which see."
   (setq mode-line-process '(":%s"))
   (use-local-map (copy-keymap comint-mode-map))
   (define-key (current-local-map) "\C-c\C-l" 'gud-refresh)
+  ;; Keymap definitions for menu bar entries common to all debuggers
+  ;; and slots for debugger-dependent ones.  The menu should be made
+  ;; to propagate to buffers found by gud-find-file.
+  (define-key (current-local-map) [menu-bar debug]
+    (cons "Gud" (make-sparse-keymap "Gud")))
+  (define-key (current-local-map) [menu-bar debug refresh]
+    '("Refresh" . gud-refresh))
+  (define-key (current-local-map) [menu-bar debug remove]
+    '("Remove breakpoint" . gud-remove))
+  (define-key (current-local-map) [menu-bar debug tbreak] ; gdb, sdb and xdb
+    nil)
+  (define-key (current-local-map) [menu-bar debug break]
+    '("Set breakpoint" . gud-break))
+  (define-key (current-local-map) [menu-bar debug up] ; gdb, dbx, and xdb
+    nil)
+  (define-key (current-local-map) [menu-bar debug down]	; gdb, dbx, and xdb
+    nil)
+  (define-key (current-local-map) [menu-bar debug print]
+    '("Print expression" . gud-print))  ; though not in the source
+                                        ; buffer until it gets a menu...
+  (define-key (current-local-map) [menu-bar debug finish] ; gdb or xdb
+    nil)
+  (define-key (current-local-map) [menu-bar debug stepi]
+    '("Step instruction" . gud-stepi))
+  (define-key (current-local-map) [menu-bar debug step]
+    '("Step line" . gud-step))
+  (define-key (current-local-map) [menu-bar debug next]
+    '("Next line" . gud-next))
+  (define-key (current-local-map) [menu-bar debug cont]
+    '("Continue" . gud-cont))
   (make-local-variable 'gud-last-frame)
   (setq gud-last-frame nil)
   (make-local-variable 'comint-prompt-regexp)
