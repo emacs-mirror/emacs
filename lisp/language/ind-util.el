@@ -1017,7 +1017,7 @@ See also the function `indian-char-glyph'."
 
 ;;;###autoload
 (defun indian-char-glyph (char)
-  "Return information about the glphy code for CHAR of `indian-glyph' charset.
+  "Return information about the glyph code for CHAR of `indian-glyph' charset.
 The value is (INDEX . SCRIPT), where INDEX is the glyph index
 in the font that Indian script name SCRIPT specifies.
 See also the function `indian-glyph-char'."
