@@ -1,7 +1,11 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.14) $
+ *  $HopeName: MMsrc!fmtdy.c(trunk.15) $
  *  Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
+ *
+ * .readership: MPS developers, Dylan developers
+ *
+ *  .layouts:
  *
  *  All objects, B:
  *
@@ -54,13 +58,13 @@
 
 #ifdef MPS_PF_SUS8LC
 /* .hack.stderr: builder.lc (LCC) uses Sun's header files.  Sun's
-   assert.h is broken, as it assumes it can use stderr.  We have to
-   fix it by supplying stderr.
+ * assert.h is broken, as it assumes it can use stderr.  We have to
+ * fix it by supplying stderr.
  */
 #include <stdio.h>
 /* .hack.malloc: builder.lc (LCC) uses Sun's header files.  Sun's
-   stdlib.h is broken, as it has an incorrect declaration of malloc.
-   We fix that here in a very hacky way.
+ * stdlib.h is broken, as it has an incorrect declaration of malloc.
+ * We fix that here in a very hacky way.
  */
 #define malloc(x) (void *)malloc(x)
 #endif
@@ -69,16 +73,26 @@
 #define notreached()    assert(0)
 #define unused(param)   ((void)param)
 
-/* MSVC 2.0 generates a warning when using unused */
 #ifdef MPS_BUILD_MV
+
+/* MSVC 2.0 generates a warning for unused(). */
 #ifdef _MSC_VER
 #if _MSC_VER < 1000
 #pragma warning(disable: 4705)
-#endif /* _MSC_VER < 1000 */
+#endif
 #else /* _MSC_VER */
 #error "Expected _MSC_VER to be defined for builder.mv"
 #endif /* _MSC_VER */
+
+/* MPS_END causes "constant conditional" warnings. */
+#pragma warning(disable: 4127)
+
+/* windows.h causes warnings about "unreferenced inline function */
+/* has been removed". */
+#pragma warning(disable: 4514)
+
 #endif /* MPS_BUILD_MV */
+
 
 #define ALIGN           sizeof(mps_word_t)
 
@@ -747,6 +761,7 @@ mps_fmt_A_s *dylan_fmt_A_weak(void)
   return &dylan_fmt_A_weak_s;
 }
 
+
 mps_bool_t dylan_check(mps_addr_t addr)
 {
   assert(addr != 0);
@@ -757,4 +772,3 @@ mps_bool_t dylan_check(mps_addr_t addr)
   unused(addr);
   return 1;
 }
-
