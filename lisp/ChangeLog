@@ -1,3 +1,8 @@
+2004-12-08  Richard M. Stallman  <rms@gnu.org>
+
+	* faces.el: Delete code to set display table.
+	(escape-glyph): Redefine to be less loud.  (Copy minibuffer-prompt.)
+
 2004-12-08  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el: Add math-read-preprocess-string to autoloads.
