@@ -697,6 +697,7 @@ all sections related to a subject, put something appropriate into the
       (setq buffer (generate-new-buffer bufname))
       (save-excursion
 	(set-buffer buffer)
+	(setq buffer-undo-list t)
 	(setq Man-original-frame (selected-frame))
 	(setq Man-arguments man-args))
       (let ((process-environment (copy-sequence process-environment))
