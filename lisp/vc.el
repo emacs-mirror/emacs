@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.298 2001/03/10 10:44:35 spiegel Exp $
+;; $Id: vc.el,v 1.299 2001/05/03 00:36:07 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -462,7 +462,7 @@ These are passed to the checkin program by \\[vc-register]."
 (defconst vc-maximum-comment-ring-size 32
   "Maximum number of saved comments in the comment ring.")
 
-;;; This is duplicated in diff.el.
+;; This is duplicated in diff.el.
 (defvar diff-switches "-c"
   "*A string or list of strings specifying switches to be passed to diff.")
 
@@ -592,27 +592,7 @@ and that its contents match what the master file says."
   :group 'vc)
 
 
-;;; The main keymap
-
-(defvar vc-prefix-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "a" 'vc-update-change-log)
-    (define-key map "b" 'vc-switch-backend)
-    (define-key map "c" 'vc-cancel-version)
-    (define-key map "d" 'vc-directory)
-    (define-key map "g" 'vc-annotate)
-    (define-key map "h" 'vc-insert-headers)
-    (define-key map "i" 'vc-register)
-    (define-key map "l" 'vc-print-log)
-    (define-key map "m" 'vc-merge)
-    (define-key map "r" 'vc-retrieve-snapshot)
-    (define-key map "s" 'vc-create-snapshot)
-    (define-key map "u" 'vc-revert-buffer)
-    (define-key map "v" 'vc-next-action)
-    (define-key map "=" 'vc-diff)
-    (define-key map "~" 'vc-version-other-window)
-    map))
-(fset 'vc-prefix-map vc-prefix-map)
+;; The main keymap
 
 ;; Initialization code, to be done just once at load-time
 (defvar vc-log-mode-map
@@ -651,9 +631,9 @@ The keys are \(BUFFER . BACKEND\).  See also `vc-annotate-get-backend'.")
 (defvar vc-comment-ring-index nil)
 (defvar vc-last-comment-match "")
 
-;;; functions that operate on RCS revision numbers.  This code should
-;;; also be moved into the backends.  It stays for now, however, since
-;;; it is used in code below.
+;; functions that operate on RCS revision numbers.  This code should
+;; also be moved into the backends.  It stays for now, however, since
+;; it is used in code below.
 (defun vc-trunk-p (rev)
   "Return t if REV is a revision on the trunk."
   (not (eq nil (string-match "\\`[0-9]+\\.[0-9]+\\'" rev))))
@@ -717,7 +697,7 @@ SETTINGS is a list of two-element lists, each of which has the
   (or (eq (vc-checkout-model file) 'implicit)
       (memq (vc-state file) '(edited needs-merge))))
 
-;;; Two macros for elisp programming
+;; Two macros for elisp programming
 ;;;###autoload
 (defmacro with-vc-file (file comment &rest body)
   "Check out a writable copy of FILE if necessary and execute the body.
@@ -1265,7 +1245,7 @@ merge in the changes into your working copy."
         (vc-next-action-on-file buffer-file-name verbose)
       (error "Buffer %s is not associated with a file" (buffer-name)))))
 
-;;; These functions help the vc-next-action entry point
+;; These functions help the vc-next-action entry point
 
 ;;;###autoload
 (defun vc-register (&optional set-version comment)
@@ -2033,12 +2013,9 @@ The conflicts must be marked with rcsmerge conflict markers."
 (defvar vc-dired-mode-map
   (let ((map (make-sparse-keymap))
 	(vmap (make-sparse-keymap)))
-    (define-key map "\C-xv" vc-prefix-map)
-    ;; Emacs-20 has a lousy keymap inheritance that won't work here.
-    ;; Emacs-21's is still lousy but just better enough that it'd work.   -sm
-    ;; (set-keymap-parent vmap vc-prefix-map)
-    (setq vmap vc-prefix-map)
+    (define-key map "\C-xv" vmap)
     (define-key map "v" vmap)
+    (set-keymap-parent vmap vc-prefix-map)
     (define-key vmap "t" 'vc-dired-toggle-terse-mode)
     map))
 
@@ -2790,7 +2767,7 @@ Uses `rcs2log' which only works for RCS and CVS."
 	       (setq default-directory (file-name-directory changelog))
 	       (delete-file tempfile)))))
 
-;;; Annotate functionality
+;; Annotate functionality
 
 ;; Declare globally instead of additional parameter to
 ;; temp-buffer-show-function (not possible to pass more than one
@@ -3076,7 +3053,7 @@ If `log-edit' is not available, resort to `vc-log-mode'."
   (set-buffer-modified-p nil)
   (setq buffer-file-name nil))
 
-;;; These things should probably be generally available
+;; These things should probably be generally available
 
 (defun vc-file-tree-walk (dirname func &rest args)
   "Walk recursively through DIRNAME.
@@ -3102,350 +3079,353 @@ Invoke FUNC f ARGS on each VC-managed file f underneath it."
 
 (provide 'vc)
 
-;;; DEVELOPER'S NOTES ON CONCURRENCY PROBLEMS IN THIS CODE
-;;;
-;;; These may be useful to anyone who has to debug or extend the package.
-;;; (Note that this information corresponds to versions 5.x. Some of it
-;;; might have been invalidated by the additions to support branching
-;;; and RCS keyword lookup. AS, 1995/03/24)
-;;;
-;;; A fundamental problem in VC is that there are time windows between
-;;; vc-next-action's computations of the file's version-control state and
-;;; the actions that change it.  This is a window open to lossage in a
-;;; multi-user environment; someone else could nip in and change the state
-;;; of the master during it.
-;;;
-;;; The performance problem is that rlog/prs calls are very expensive; we want
-;;; to avoid them as much as possible.
-;;;
-;;; ANALYSIS:
-;;;
-;;; The performance problem, it turns out, simplifies in practice to the
-;;; problem of making vc-state fast.  The two other functions that call
-;;; prs/rlog will not be so commonly used that the slowdown is a problem; one
-;;; makes snapshots, the other deletes the calling user's last change in the
-;;; master.
-;;;
-;;; The race condition implies that we have to either (a) lock the master
-;;; during the entire execution of vc-next-action, or (b) detect and
-;;; recover from errors resulting from dispatch on an out-of-date state.
-;;;
-;;; Alternative (a) appears to be infeasible.  The problem is that we can't
-;;; guarantee that the lock will ever be removed.  Suppose a user starts a
-;;; checkin, the change message buffer pops up, and the user, having wandered
-;;; off to do something else, simply forgets about it?
-;;;
-;;; Alternative (b), on the other hand, works well with a cheap way to speed up
-;;; vc-state.  Usually, if a file is registered, we can read its locked/
-;;; unlocked state and its current owner from its permissions.
-;;;
-;;; This shortcut will fail if someone has manually changed the workfile's
-;;; permissions; also if developers are munging the workfile in several
-;;; directories, with symlinks to a master (in this latter case, the
-;;; permissions shortcut will fail to detect a lock asserted from another
-;;; directory).
-;;;
-;;; Note that these cases correspond exactly to the errors which could happen
-;;; because of a competing checkin/checkout race in between two instances of
-;;; vc-next-action.
-;;;
-;;; For VC's purposes, a workfile/master pair may have the following states:
-;;;
-;;; A. Unregistered.  There is a workfile, there is no master.
-;;;
-;;; B. Registered and not locked by anyone.
-;;;
-;;; C. Locked by calling user and unchanged.
-;;;
-;;; D. Locked by the calling user and changed.
-;;;
-;;; E. Locked by someone other than the calling user.
-;;;
-;;; This makes for 25 states and 20 error conditions.  Here's the matrix:
-;;;
-;;; VC's idea of state
-;;;  |
-;;;  V  Actual state   RCS action              SCCS action          Effect
-;;;    A  B  C  D  E
-;;;  A .  1  2  3  4   ci -u -t-          admin -fb -i<file>      initial admin
-;;;  B 5  .  6  7  8   co -l              get -e                  checkout
-;;;  C 9  10 .  11 12  co -u              unget; get              revert
-;;;  D 13 14 15 .  16  ci -u -m<comment>  delta -y<comment>; get  checkin
-;;;  E 17 18 19 20 .   rcs -u -M -l       unget -n ; get -g       steal lock
-;;;
-;;; All commands take the master file name as a last argument (not shown).
-;;;
-;;; In the discussion below, a "self-race" is a pathological situation in
-;;; which VC operations are being attempted simultaneously by two or more
-;;; Emacsen running under the same username.
-;;;
-;;; The vc-next-action code has the following windows:
-;;;
-;;; Window P:
-;;;    Between the check for existence of a master file and the call to
-;;; admin/checkin in vc-buffer-admin (apparent state A).  This window may
-;;; never close if the initial-comment feature is on.
-;;;
-;;; Window Q:
-;;;    Between the call to vc-workfile-unchanged-p in and the immediately
-;;; following revert (apparent state C).
-;;;
-;;; Window R:
-;;;    Between the call to vc-workfile-unchanged-p in and the following
-;;; checkin (apparent state D).  This window may never close.
-;;;
-;;; Window S:
-;;;    Between the unlock and the immediately following checkout during a
-;;; revert operation (apparent state C).  Included in window Q.
-;;;
-;;; Window T:
-;;;    Between vc-state and the following checkout (apparent state B).
-;;;
-;;; Window U:
-;;;    Between vc-state and the following revert (apparent state C).
-;;; Includes windows Q and S.
-;;;
-;;; Window V:
-;;;    Between vc-state and the following checkin (apparent state
-;;; D).  This window may never be closed if the user fails to complete the
-;;; checkin message.  Includes window R.
-;;;
-;;; Window W:
-;;;    Between vc-state and the following steal-lock (apparent
-;;; state E).  This window may never close if the user fails to complete
-;;; the steal-lock message.  Includes window X.
-;;;
-;;; Window X:
-;;;    Between the unlock and the immediately following re-lock during a
-;;; steal-lock operation (apparent state E).  This window may never close
-;;; if the user fails to complete the steal-lock message.
-;;;
-;;; Errors:
-;;;
-;;; Apparent state A ---
-;;;
-;;; 1. File looked unregistered but is actually registered and not locked.
-;;;
-;;;    Potential cause: someone else's admin during window P, with
-;;; caller's admin happening before their checkout.
-;;;
-;;;    RCS: Prior to version 5.6.4, ci fails with message
-;;;         "no lock set by <user>".  From 5.6.4 onwards, VC uses the new
-;;;         ci -i option and the message is "<file>,v: already exists".
-;;;    SCCS: admin will fail with error (ad19).
-;;;
-;;;    We can let these errors be passed up to the user.
-;;;
-;;; 2. File looked unregistered but is actually locked by caller, unchanged.
-;;;
-;;;    Potential cause: self-race during window P.
-;;;
-;;;    RCS: Prior to version 5.6.4, reverts the file to the last saved
-;;;         version and unlocks it.  From 5.6.4 onwards, VC uses the new
-;;;         ci -i option, failing with message "<file>,v: already exists".
-;;;    SCCS: will fail with error (ad19).
-;;;
-;;;    Either of these consequences is acceptable.
-;;;
-;;; 3. File looked unregistered but is actually locked by caller, changed.
-;;;
-;;;    Potential cause: self-race during window P.
-;;;
-;;;    RCS: Prior to version 5.6.4, VC registers the caller's workfile as
-;;;         a delta with a null change comment (the -t- switch will be
-;;;         ignored). From 5.6.4 onwards, VC uses the new ci -i option,
-;;;         failing with message "<file>,v: already exists".
-;;;    SCCS: will fail with error (ad19).
-;;;
-;;; 4. File looked unregistered but is locked by someone else.
-;;;
-;;;    Potential cause: someone else's admin during window P, with
-;;; caller's admin happening *after* their checkout.
-;;;
-;;;    RCS: Prior to version 5.6.4, ci fails with a
-;;;         "no lock set by <user>" message.  From 5.6.4 onwards,
-;;;         VC uses the new ci -i option, failing with message
-;;;         "<file>,v: already exists".
-;;;    SCCS: will fail with error (ad19).
-;;;
-;;;    We can let these errors be passed up to the user.
-;;;
-;;; Apparent state B ---
-;;;
-;;; 5. File looked registered and not locked, but is actually unregistered.
-;;;
-;;;    Potential cause: master file got nuked during window P.
-;;;
-;;;    RCS: will fail with "RCS/<file>: No such file or directory"
-;;;    SCCS: will fail with error ut4.
-;;;
-;;;    We can let these errors be passed up to the user.
-;;;
-;;; 6. File looked registered and not locked, but is actually locked by the
-;;; calling user and unchanged.
-;;;
-;;;    Potential cause: self-race during window T.
-;;;
-;;;    RCS: in the same directory as the previous workfile, co -l will fail
-;;; with "co error: writable foo exists; checkout aborted".  In any other
-;;; directory, checkout will succeed.
-;;;    SCCS: will fail with ge17.
-;;;
-;;;    Either of these consequences is acceptable.
-;;;
-;;; 7. File looked registered and not locked, but is actually locked by the
-;;; calling user and changed.
-;;;
-;;;    As case 6.
-;;;
-;;; 8. File looked registered and not locked, but is actually locked by another
-;;; user.
-;;;
-;;;    Potential cause: someone else checks it out during window T.
-;;;
-;;;    RCS: co error: revision 1.3 already locked by <user>
-;;;    SCCS: fails with ge4 (in directory) or ut7 (outside it).
-;;;
-;;;    We can let these errors be passed up to the user.
-;;;
-;;; Apparent state C ---
-;;;
-;;; 9. File looks locked by calling user and unchanged, but is unregistered.
-;;;
-;;;    As case 5.
-;;;
-;;; 10. File looks locked by calling user and unchanged, but is actually not
-;;; locked.
-;;;
-;;;    Potential cause: a self-race in window U, or by the revert's
-;;; landing during window X of some other user's steal-lock or window S
-;;; of another user's revert.
-;;;
-;;;    RCS: succeeds, refreshing the file from the identical version in
-;;; the master.
-;;;    SCCS: fails with error ut4 (p file nonexistent).
-;;;
-;;;    Either of these consequences is acceptable.
-;;;
-;;; 11. File is locked by calling user.  It looks unchanged, but is actually
-;;; changed.
-;;;
-;;;    Potential cause: the file would have to be touched by a self-race
-;;; during window Q.
-;;;
-;;;    The revert will succeed, removing whatever changes came with
-;;; the touch.  It is theoretically possible that work could be lost.
-;;;
-;;; 12. File looks like it's locked by the calling user and unchanged, but
-;;; it's actually locked by someone else.
-;;;
-;;;    Potential cause: a steal-lock in window V.
-;;;
-;;;    RCS: co error: revision <rev> locked by <user>; use co -r or rcs -u
-;;;    SCCS: fails with error un2
-;;;
-;;;    We can pass these errors up to the user.
-;;;
-;;; Apparent state D ---
-;;;
-;;; 13. File looks like it's locked by the calling user and changed, but it's
-;;; actually unregistered.
-;;;
-;;;    Potential cause: master file got nuked during window P.
-;;;
-;;;    RCS: Prior to version 5.6.4, checks in the user's version as an
-;;;         initial delta.  From 5.6.4 onwards, VC uses the new ci -j
-;;;         option, failing with message "no such file or directory".
-;;;    SCCS: will fail with error ut4.
-;;;
-;;;    This case is kind of nasty.  Under RCS prior to version 5.6.4,
-;;; VC may fail to detect the loss of previous version information.
-;;;
-;;; 14. File looks like it's locked by the calling user and changed, but it's
-;;; actually unlocked.
-;;;
-;;;    Potential cause: self-race in window V, or the checkin happening
-;;; during the window X of someone else's steal-lock or window S of
-;;; someone else's revert.
-;;;
-;;;    RCS: ci will fail with "no lock set by <user>".
-;;;    SCCS: delta will fail with error ut4.
-;;;
-;;; 15. File looks like it's locked by the calling user and changed, but it's
-;;; actually locked by the calling user and unchanged.
-;;;
-;;;    Potential cause: another self-race --- a whole checkin/checkout
-;;; sequence by the calling user would have to land in window R.
-;;;
-;;;    SCCS: checks in a redundant delta and leaves the file unlocked as usual.
-;;;    RCS: reverts to the file state as of the second user's checkin, leaving
-;;; the file unlocked.
-;;;
-;;;    It is theoretically possible that work could be lost under RCS.
-;;;
-;;; 16. File looks like it's locked by the calling user and changed, but it's
-;;; actually locked by a different user.
-;;;
-;;;    RCS: ci error: no lock set by <user>
-;;;    SCCS: unget will fail with error un2
-;;;
-;;;    We can pass these errors up to the user.
-;;;
-;;; Apparent state E ---
-;;;
-;;; 17. File looks like it's locked by some other user, but it's actually
-;;; unregistered.
-;;;
-;;;    As case 13.
-;;;
-;;; 18. File looks like it's locked by some other user, but it's actually
-;;; unlocked.
-;;;
-;;;    Potential cause: someone released a lock during window W.
-;;;
-;;;    RCS: The calling user will get the lock on the file.
-;;;    SCCS: unget -n will fail with cm4.
-;;;
-;;;    Either of these consequences will be OK.
-;;;
-;;; 19. File looks like it's locked by some other user, but it's actually
-;;; locked by the calling user and unchanged.
-;;;
-;;;    Potential cause: the other user relinquishing a lock followed by
-;;; a self-race, both in window W.
-;;;
-;;;     Under both RCS and SCCS, both unlock and lock will succeed, making
-;;; the sequence a no-op.
-;;;
-;;; 20. File looks like it's locked by some other user, but it's actually
-;;; locked by the calling user and changed.
-;;;
-;;;     As case 19.
-;;;
-;;; PROBLEM CASES:
-;;;
-;;;    In order of decreasing severity:
-;;;
-;;;    Cases 11 and 15 are the only ones that potentially lose work.
-;;; They would require a self-race for this to happen.
-;;;
-;;;    Case 13 in RCS loses information about previous deltas, retaining
-;;; only the information in the current workfile.  This can only happen
-;;; if the master file gets nuked in window P.
-;;;
-;;;    Case 3 in RCS and case 15 under SCCS insert a redundant delta with
-;;; no change comment in the master.  This would require a self-race in
-;;; window P or R respectively.
-;;;
-;;;    Cases 2, 10, 19 and 20 do extra work, but make no changes.
-;;;
-;;;    Unfortunately, it appears to me that no recovery is possible in these
-;;; cases.  They don't yield error messages, so there's no way to tell that
-;;; a race condition has occurred.
-;;;
-;;;    All other cases don't change either the workfile or the master, and
-;;; trigger command errors which the user will see.
-;;;
-;;;    Thus, there is no explicit recovery code.
+;; DEVELOPER'S NOTES ON CONCURRENCY PROBLEMS IN THIS CODE
+;;
+;; This is actually seriously out-of-date because the code has changed
+;; a fair bit since then.  -stef
+;;
+;; These may be useful to anyone who has to debug or extend the package.
+;; (Note that this information corresponds to versions 5.x. Some of it
+;; might have been invalidated by the additions to support branching
+;; and RCS keyword lookup. AS, 1995/03/24)
+;;
+;; A fundamental problem in VC is that there are time windows between
+;; vc-next-action's computations of the file's version-control state and
+;; the actions that change it.  This is a window open to lossage in a
+;; multi-user environment; someone else could nip in and change the state
+;; of the master during it.
+;;
+;; The performance problem is that rlog/prs calls are very expensive; we want
+;; to avoid them as much as possible.
+;;
+;; ANALYSIS:
+;;
+;; The performance problem, it turns out, simplifies in practice to the
+;; problem of making vc-state fast.  The two other functions that call
+;; prs/rlog will not be so commonly used that the slowdown is a problem; one
+;; makes snapshots, the other deletes the calling user's last change in the
+;; master.
+;;
+;; The race condition implies that we have to either (a) lock the master
+;; during the entire execution of vc-next-action, or (b) detect and
+;; recover from errors resulting from dispatch on an out-of-date state.
+;;
+;; Alternative (a) appears to be infeasible.  The problem is that we can't
+;; guarantee that the lock will ever be removed.  Suppose a user starts a
+;; checkin, the change message buffer pops up, and the user, having wandered
+;; off to do something else, simply forgets about it?
+;;
+;; Alternative (b), on the other hand, works well with a cheap way to speed up
+;; vc-state.  Usually, if a file is registered, we can read its locked/
+;; unlocked state and its current owner from its permissions.
+;;
+;; This shortcut will fail if someone has manually changed the workfile's
+;; permissions; also if developers are munging the workfile in several
+;; directories, with symlinks to a master (in this latter case, the
+;; permissions shortcut will fail to detect a lock asserted from another
+;; directory).
+;;
+;; Note that these cases correspond exactly to the errors which could happen
+;; because of a competing checkin/checkout race in between two instances of
+;; vc-next-action.
+;;
+;; For VC's purposes, a workfile/master pair may have the following states:
+;;
+;; A. Unregistered.  There is a workfile, there is no master.
+;;
+;; B. Registered and not locked by anyone.
+;;
+;; C. Locked by calling user and unchanged.
+;;
+;; D. Locked by the calling user and changed.
+;;
+;; E. Locked by someone other than the calling user.
+;;
+;; This makes for 25 states and 20 error conditions.  Here's the matrix:
+;;
+;; VC's idea of state
+;;  |
+;;  V  Actual state   RCS action              SCCS action          Effect
+;;    A  B  C  D  E
+;;  A .  1  2  3  4   ci -u -t-          admin -fb -i<file>      initial admin
+;;  B 5  .  6  7  8   co -l              get -e                  checkout
+;;  C 9  10 .  11 12  co -u              unget; get              revert
+;;  D 13 14 15 .  16  ci -u -m<comment>  delta -y<comment>; get  checkin
+;;  E 17 18 19 20 .   rcs -u -M -l       unget -n ; get -g       steal lock
+;;
+;; All commands take the master file name as a last argument (not shown).
+;;
+;; In the discussion below, a "self-race" is a pathological situation in
+;; which VC operations are being attempted simultaneously by two or more
+;; Emacsen running under the same username.
+;;
+;; The vc-next-action code has the following windows:
+;;
+;; Window P:
+;;    Between the check for existence of a master file and the call to
+;; admin/checkin in vc-buffer-admin (apparent state A).  This window may
+;; never close if the initial-comment feature is on.
+;;
+;; Window Q:
+;;    Between the call to vc-workfile-unchanged-p in and the immediately
+;; following revert (apparent state C).
+;;
+;; Window R:
+;;    Between the call to vc-workfile-unchanged-p in and the following
+;; checkin (apparent state D).  This window may never close.
+;;
+;; Window S:
+;;    Between the unlock and the immediately following checkout during a
+;; revert operation (apparent state C).  Included in window Q.
+;;
+;; Window T:
+;;    Between vc-state and the following checkout (apparent state B).
+;;
+;; Window U:
+;;    Between vc-state and the following revert (apparent state C).
+;; Includes windows Q and S.
+;;
+;; Window V:
+;;    Between vc-state and the following checkin (apparent state
+;; D).  This window may never be closed if the user fails to complete the
+;; checkin message.  Includes window R.
+;;
+;; Window W:
+;;    Between vc-state and the following steal-lock (apparent
+;; state E).  This window may never close if the user fails to complete
+;; the steal-lock message.  Includes window X.
+;;
+;; Window X:
+;;    Between the unlock and the immediately following re-lock during a
+;; steal-lock operation (apparent state E).  This window may never close
+;; if the user fails to complete the steal-lock message.
+;;
+;; Errors:
+;;
+;; Apparent state A ---
+;;
+;; 1. File looked unregistered but is actually registered and not locked.
+;;
+;;    Potential cause: someone else's admin during window P, with
+;; caller's admin happening before their checkout.
+;;
+;;    RCS: Prior to version 5.6.4, ci fails with message
+;;         "no lock set by <user>".  From 5.6.4 onwards, VC uses the new
+;;         ci -i option and the message is "<file>,v: already exists".
+;;    SCCS: admin will fail with error (ad19).
+;;
+;;    We can let these errors be passed up to the user.
+;;
+;; 2. File looked unregistered but is actually locked by caller, unchanged.
+;;
+;;    Potential cause: self-race during window P.
+;;
+;;    RCS: Prior to version 5.6.4, reverts the file to the last saved
+;;         version and unlocks it.  From 5.6.4 onwards, VC uses the new
+;;         ci -i option, failing with message "<file>,v: already exists".
+;;    SCCS: will fail with error (ad19).
+;;
+;;    Either of these consequences is acceptable.
+;;
+;; 3. File looked unregistered but is actually locked by caller, changed.
+;;
+;;    Potential cause: self-race during window P.
+;;
+;;    RCS: Prior to version 5.6.4, VC registers the caller's workfile as
+;;         a delta with a null change comment (the -t- switch will be
+;;         ignored). From 5.6.4 onwards, VC uses the new ci -i option,
+;;         failing with message "<file>,v: already exists".
+;;    SCCS: will fail with error (ad19).
+;;
+;; 4. File looked unregistered but is locked by someone else.
+;;;
+;;    Potential cause: someone else's admin during window P, with
+;; caller's admin happening *after* their checkout.
+;;
+;;    RCS: Prior to version 5.6.4, ci fails with a
+;;         "no lock set by <user>" message.  From 5.6.4 onwards,
+;;         VC uses the new ci -i option, failing with message
+;;         "<file>,v: already exists".
+;;    SCCS: will fail with error (ad19).
+;;
+;;    We can let these errors be passed up to the user.
+;;
+;; Apparent state B ---
+;;
+;; 5. File looked registered and not locked, but is actually unregistered.
+;;
+;;    Potential cause: master file got nuked during window P.
+;;
+;;    RCS: will fail with "RCS/<file>: No such file or directory"
+;;    SCCS: will fail with error ut4.
+;;
+;;    We can let these errors be passed up to the user.
+;;
+;; 6. File looked registered and not locked, but is actually locked by the
+;; calling user and unchanged.
+;;
+;;    Potential cause: self-race during window T.
+;;
+;;    RCS: in the same directory as the previous workfile, co -l will fail
+;; with "co error: writable foo exists; checkout aborted".  In any other
+;; directory, checkout will succeed.
+;;    SCCS: will fail with ge17.
+;;
+;;    Either of these consequences is acceptable.
+;;
+;; 7. File looked registered and not locked, but is actually locked by the
+;; calling user and changed.
+;;
+;;    As case 6.
+;;
+;; 8. File looked registered and not locked, but is actually locked by another
+;; user.
+;;
+;;    Potential cause: someone else checks it out during window T.
+;;
+;;    RCS: co error: revision 1.3 already locked by <user>
+;;    SCCS: fails with ge4 (in directory) or ut7 (outside it).
+;;
+;;    We can let these errors be passed up to the user.
+;;
+;; Apparent state C ---
+;;
+;; 9. File looks locked by calling user and unchanged, but is unregistered.
+;;
+;;    As case 5.
+;;
+;; 10. File looks locked by calling user and unchanged, but is actually not
+;; locked.
+;;
+;;    Potential cause: a self-race in window U, or by the revert's
+;; landing during window X of some other user's steal-lock or window S
+;; of another user's revert.
+;;
+;;    RCS: succeeds, refreshing the file from the identical version in
+;; the master.
+;;    SCCS: fails with error ut4 (p file nonexistent).
+;;
+;;    Either of these consequences is acceptable.
+;;
+;; 11. File is locked by calling user.  It looks unchanged, but is actually
+;; changed.
+;;
+;;    Potential cause: the file would have to be touched by a self-race
+;; during window Q.
+;;
+;;    The revert will succeed, removing whatever changes came with
+;; the touch.  It is theoretically possible that work could be lost.
+;;
+;; 12. File looks like it's locked by the calling user and unchanged, but
+;; it's actually locked by someone else.
+;;
+;;    Potential cause: a steal-lock in window V.
+;;
+;;    RCS: co error: revision <rev> locked by <user>; use co -r or rcs -u
+;;    SCCS: fails with error un2
+;;
+;;    We can pass these errors up to the user.
+;;
+;; Apparent state D ---
+;;
+;; 13. File looks like it's locked by the calling user and changed, but it's
+;; actually unregistered.
+;;
+;;    Potential cause: master file got nuked during window P.
+;;
+;;    RCS: Prior to version 5.6.4, checks in the user's version as an
+;;         initial delta.  From 5.6.4 onwards, VC uses the new ci -j
+;;         option, failing with message "no such file or directory".
+;;    SCCS: will fail with error ut4.
+;;
+;;    This case is kind of nasty.  Under RCS prior to version 5.6.4,
+;; VC may fail to detect the loss of previous version information.
+;;
+;; 14. File looks like it's locked by the calling user and changed, but it's
+;; actually unlocked.
+;;
+;;    Potential cause: self-race in window V, or the checkin happening
+;; during the window X of someone else's steal-lock or window S of
+;; someone else's revert.
+;;
+;;    RCS: ci will fail with "no lock set by <user>".
+;;    SCCS: delta will fail with error ut4.
+;;
+;; 15. File looks like it's locked by the calling user and changed, but it's
+;; actually locked by the calling user and unchanged.
+;;
+;;    Potential cause: another self-race --- a whole checkin/checkout
+;; sequence by the calling user would have to land in window R.
+;;
+;;    SCCS: checks in a redundant delta and leaves the file unlocked as usual.
+;;    RCS: reverts to the file state as of the second user's checkin, leaving
+;; the file unlocked.
+;;
+;;    It is theoretically possible that work could be lost under RCS.
+;;
+;; 16. File looks like it's locked by the calling user and changed, but it's
+;; actually locked by a different user.
+;;
+;;    RCS: ci error: no lock set by <user>
+;;    SCCS: unget will fail with error un2
+;;
+;;    We can pass these errors up to the user.
+;;
+;; Apparent state E ---
+;;
+;; 17. File looks like it's locked by some other user, but it's actually
+;; unregistered.
+;;
+;;    As case 13.
+;;
+;; 18. File looks like it's locked by some other user, but it's actually
+;; unlocked.
+;;
+;;    Potential cause: someone released a lock during window W.
+;;
+;;    RCS: The calling user will get the lock on the file.
+;;    SCCS: unget -n will fail with cm4.
+;;
+;;    Either of these consequences will be OK.
+;;
+;; 19. File looks like it's locked by some other user, but it's actually
+;; locked by the calling user and unchanged.
+;;
+;;    Potential cause: the other user relinquishing a lock followed by
+;; a self-race, both in window W.
+;;
+;;     Under both RCS and SCCS, both unlock and lock will succeed, making
+;; the sequence a no-op.
+;;
+;; 20. File looks like it's locked by some other user, but it's actually
+;; locked by the calling user and changed.
+;;
+;;     As case 19.
+;;
+;; PROBLEM CASES:
+;;
+;;    In order of decreasing severity:
+;;
+;;    Cases 11 and 15 are the only ones that potentially lose work.
+;; They would require a self-race for this to happen.
+;;
+;;    Case 13 in RCS loses information about previous deltas, retaining
+;; only the information in the current workfile.  This can only happen
+;; if the master file gets nuked in window P.
+;;
+;;    Case 3 in RCS and case 15 under SCCS insert a redundant delta with
+;; no change comment in the master.  This would require a self-race in
+;; window P or R respectively.
+;;
+;;    Cases 2, 10, 19 and 20 do extra work, but make no changes.
+;;
+;;    Unfortunately, it appears to me that no recovery is possible in these
+;; cases.  They don't yield error messages, so there's no way to tell that
+;; a race condition has occurred.
+;;
+;;    All other cases don't change either the workfile or the master, and
+;; trigger command errors which the user will see.
+;;
+;;    Thus, there is no explicit recovery code.
 
 ;;; vc.el ends here
