@@ -32,3 +32,6 @@
    says where to find X windows at run time.  We convert it to a -rpath option
    which is what OSF1 uses.  */
 #define LD_SWITCH_SYSTEM `echo LD_SWITCH_X_SITE_AUX | sed -e 's/-R/-Wl,-rpath,/'`
+
+#define HAVE_TERMIOS
+
