@@ -1,5 +1,5 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1989, 93, 94, 95, 96, 1997, 1998, 1999, 2000, 2001
+   Copyright (C) 1989, 93, 94, 95, 96, 1997, 1998, 1999, 2000, 2001, 2002
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1135,7 +1135,8 @@ static struct face *x_get_glyph_face_and_encoding P_ ((struct frame *,
 						       XChar2b *,
 						       int *));
 static struct face *x_get_char_face_and_encoding P_ ((struct frame *, int,
-						      int, XChar2b *, int));
+						      int, XChar2b *, int,
+						      int));
 static XCharStruct *x_per_char_metric P_ ((XFontStruct *, XChar2b *));
 static void x_encode_char P_ ((int, XChar2b *, struct font_info *));
 static void x_append_glyph P_ ((struct it *));
@@ -1276,15 +1277,17 @@ x_encode_char (c, char2b, font_info)
 
 /* Get face and two-byte form of character C in face FACE_ID on frame
    F.  The encoding of C is returned in *CHAR2B.  MULTIBYTE_P non-zero
-   means we want to display multibyte text.  Value is a pointer to a
-   realized face that is ready for display.  */
+   means we want to display multibyte text.  DISPLAY_P non-zero means
+   make sure that X resources for the face returned are allocated.
+   Value is a pointer to a realized face that is ready for display if
+   DISPLAY_P is non-zero.  */
 
 static INLINE struct face *
-x_get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p)
+x_get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
      struct frame *f;
      int c, face_id;
      XChar2b *char2b;
-     int multibyte_p;
+     int multibyte_p, display_p;
 {
   struct face *face = FACE_FROM_ID (f, face_id);
 
@@ -1326,8 +1329,11 @@ x_get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p)
     }
 
   /* Make sure X resources of the face are allocated.  */
-  xassert (face != NULL);
-  PREPARE_FACE_FOR_DISPLAY (f, face);
+  if (display_p)
+    {
+      xassert (face != NULL);
+      PREPARE_FACE_FOR_DISPLAY (f, face);
+    }
   
   return face;
 }
@@ -1838,7 +1844,7 @@ x_produce_glyphs (it)
       /* Get font to use.  Encode IT->char_to_display.  */
       x_get_char_face_and_encoding (it->f, it->char_to_display,
 				    it->face_id, &char2b,
-				    it->multibyte_p);
+				    it->multibyte_p, 0);
       font = face->font;
 
       /* When no suitable font found, use the default font.  */
@@ -2070,7 +2076,7 @@ x_produce_glyphs (it)
       it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
       face = FACE_FROM_ID (it->f, it->face_id);
       x_get_char_face_and_encoding (it->f, it->char_to_display,
-				    it->face_id, &char2b, it->multibyte_p);
+				    it->face_id, &char2b, it->multibyte_p, 0);
       font = face->font;
 
       /* When no suitable font found, use the default font.  */
@@ -2158,7 +2164,7 @@ x_produce_glyphs (it)
 	      
 	      face = FACE_FROM_ID (it->f, face_id);
 	      x_get_char_face_and_encoding (it->f, ch, face->id, &char2b,
-					    it->multibyte_p);
+					    it->multibyte_p, 0);
 	      font = face->font;
 	      if (font == NULL)
 		{
@@ -4958,7 +4964,7 @@ x_set_glyph_string_background_width (s, start, last_x)
 	int this_face_id = FACE_FOR_CHAR (XFRAME (w->frame), base_face, c); \
 	faces[n] = FACE_FROM_ID (XFRAME (w->frame), this_face_id);	  \
 	x_get_char_face_and_encoding (XFRAME (w->frame), c,		  \
-				      this_face_id, char2b + n, 1);	  \
+				      this_face_id, char2b + n, 1, 1);	  \
       }									  \
     									  \
     /* Make glyph_strings for each glyph sequence that is drawable by	  \
