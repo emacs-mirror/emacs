@@ -741,11 +741,6 @@ Else `t'."
 
 (provide 'sgml-mode)
 
-;;;###autoload
-(or (rassq 'html-mode auto-mode-alist)
-    (setq auto-mode-alist `(("\\.s?html?\\'" . html-mode)
-			    ,@auto-mode-alist)))
-
 (defvar html-quick-keys t
   "Use C-c <x> combinations for quick insertion of frequent tags when non-nil.
 This takes effect when first loading the library.")
