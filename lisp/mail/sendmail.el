@@ -167,7 +167,7 @@ actually occur.")
 (defvar mail-send-hook nil
   "Normal hook run before sending mail, in Mail mode.")
 
-(defun synch-mail-aliases ()
+(defun sendmail-synch-aliases ()
   (let ((modtime (nth 5 (file-attributes "~/.mailrc"))))
     (or (equal mail-alias-modtime modtime)
 	(setq mail-alias-modtime modtime
@@ -176,7 +176,7 @@ actually occur.")
 (defun mail-setup (to subject in-reply-to cc replybuffer actions)
   (if (eq mail-default-reply-to t)
       (setq mail-default-reply-to (getenv "REPLYTO")))
-  (synch-mail-aliases)
+  (sendmail-synch-aliases)
   (if (eq mail-aliases t)
       (progn
 	(setq mail-aliases nil)
@@ -421,7 +421,7 @@ the user from the mailer."
 	  (replace-match "\n")
 	  (backward-char 1)
 	  (setq delimline (point-marker))
-	  (synch-mail-aliases)
+	  (sendmail-synch-aliases)
 	  (if mail-aliases
 	      (expand-mail-aliases (point-min) delimline))
 	  (goto-char (point-min))
