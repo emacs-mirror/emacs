@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.92 $")
+(defconst byte-compile-version "$Revision: 2.93 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3554,15 +3554,23 @@ invoked interactively."
     ))
 
 
+(defun batch-byte-compile-if-not-done ()
+  "Like `byte-compile-file' but doesn't recompile if already up to date.
+Use this from the command line, with `-batch';
+it won't work in an interactive Emacs."
+  (batch-byte-compile t))
+
 ;;; by crl@newton.purdue.edu
 ;;;  Only works noninteractively.
 ;;;###autoload
-(defun batch-byte-compile ()
+(defun batch-byte-compile (&optional noforce)
   "Run `byte-compile-file' on the files remaining on the command line.
 Use this from the command line, with `-batch';
 it won't work in an interactive Emacs.
 Each file is processed even if an error occurred previously.
-For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\""
+For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\".
+If NOFORCE is non-nil, don't recompile a file that seems to be
+already up-to-date."
   ;; command-line-args-left is what is left of the command line (from startup.el)
   (defvar command-line-args-left)	;Avoid 'free variable' warning
   (if (not noninteractive)
@@ -3570,6 +3578,7 @@ For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\""
   (let ((error nil))
     (while command-line-args-left
       (if (file-directory-p (expand-file-name (car command-line-args-left)))
+	  ;; Directory as argument.
 	  (let ((files (directory-files (car command-line-args-left)))
 		source dest)
 	    (dolist (file files)
@@ -3582,8 +3591,14 @@ For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\""
 		       (file-newer-than-file-p source dest))
 		  (if (null (batch-byte-compile-file source))
 		      (setq error t)))))
-	(if (null (batch-byte-compile-file (car command-line-args-left)))
-	    (setq error t)))
+	;; Specific file argument
+	(if (or (not noforce)
+		(let* ((source (car command-line-args-left))
+		       (dest (byte-compile-dest-file source)))
+		  (or (not (file-exists-p dest))
+		      (file-newer-than-file-p source dest))))
+	    (if (null (batch-byte-compile-file (car command-line-args-left)))
+		(setq error t))))
       (setq command-line-args-left (cdr command-line-args-left)))
     (kill-emacs (if error 1 0))))
 
