@@ -1,3 +1,7 @@
+2001-08-28  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt (DONTCOMPILE): Sync list from makefile.w32-in.
+
 2001-08-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* makefile.nt (install): Copy more *.el files.
