@@ -8876,21 +8876,6 @@ XTread_socket (sd, bufp, numchars, expected)
 	{
 	  XNextEvent (dpyinfo->display, &event);
 
-	  if (display_busy_cursor_p)
-	    {
-	      /* Setting inhibit_busy_cursor to 2 inhibits busy-cursor
-		 display until the next X event is read and we come
-		 here again.  Setting it to 1 inhibits busy-cursor
-		 display for direct commands.  */
-	      if (event.type == MotionNotify
-		  || event.type == EnterNotify
-		  || (dpyinfo->grabbed
-		      && event.type != ButtonRelease))
-		inhibit_busy_cursor = 2;
-	      else
-		inhibit_busy_cursor = 1;
-	    }
-
 #ifdef HAVE_X_I18N
 	  {
 	    /* Filter events for the current X input method.
@@ -9058,8 +9043,6 @@ XTread_socket (sd, bufp, numchars, expected)
 		else if (event.xclient.message_type
 			 == dpyinfo->Xatom_Scrollbar)
 		  {
-		    if (display_busy_cursor_p)
-		      inhibit_busy_cursor = 2;
 		    x_scroll_bar_to_input_event (&event, bufp);
 		    ++bufp, ++count, --numchars;
 		    goto out;
@@ -9454,10 +9437,6 @@ XTread_socket (sd, bufp, numchars, expected)
 			  bufp++;
 			  count++;
 			  numchars--;
-			  
-			  if (display_busy_cursor_p)
-			    if (keysym != XK_Return || minibuf_level == 0)
-			      inhibit_busy_cursor = 2;
 			}
 		      else if (numchars > nbytes)
 			{
@@ -9831,8 +9810,6 @@ XTread_socket (sd, bufp, numchars, expected)
 		    
 		    if (!tool_bar_p)
 		      last_tool_bar_item = -1;
-		    if (display_busy_cursor_p)
-		      inhibit_busy_cursor = 2;
 		  }
 		else
 		  {
