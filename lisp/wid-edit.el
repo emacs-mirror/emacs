@@ -111,7 +111,7 @@ This exists as a variable so it can be set locally in certain buffers.")
   "Face used for buttons in widgets.
 This exists as a variable so it can be set locally in certain buffers.")
 
-(defface widget-button-face '((t (:bold t)))
+(defface widget-button-face '((t (:weight bold)))
   "Face used for widget buttons."
   :group 'widget-faces)
 
@@ -132,7 +132,7 @@ This exists as a variable so it can be set locally in certain buffers.")
 			       (background dark))
 			      (:background "dim gray"))
 			     (t
-			      (:italic t)))
+			      (:slant italic)))
   "Face used for editable fields."
   :group 'widget-faces)
 
@@ -145,7 +145,7 @@ This exists as a variable so it can be set locally in certain buffers.")
 					   (background dark))
 					  (:background "dim gray"))
 					 (t
-					  (:italic t)))
+					  (:slant italic)))
   "Face used for editable fields spanning only a single line."
   :group 'widget-faces)
 
@@ -433,7 +433,7 @@ new value.")
 				  (background light))
 				 (:foreground "dim gray"))
 				(t
-				 (:italic t)))
+				 (:slant italic)))
   "Face used for inactive widgets."
   :group 'widget-faces)
 
@@ -850,7 +850,7 @@ Recommended as a parent keymap for modes using widgets.")
   '((((class color))
      (:foreground "red"))
     (t
-     (:bold t :underline t)))
+     (:weight bold :underline t)))
   "Face used for pressed buttons."
   :group 'widget-faces)
 

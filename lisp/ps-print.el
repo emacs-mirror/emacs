@@ -4011,9 +4011,9 @@ If EXTENSION is any other symbol, it is ignored."
 		   (setq face-spec (cons ':background
 					 (cons background face-spec))))
 		 (when bold-p
-		   (setq face-spec (append '(:bold t) face-spec)))
+		   (setq face-spec (append '(:weight bold) face-spec)))
 		 (when italic-p
-		   (setq face-spec (append '(:italic t) face-spec)))
+		   (setq face-spec (append '(:slant italic) face-spec)))
 		 (when underline-p
 		   (setq face-spec (append '(:underline t) face-spec)))
 		 (custom-declare-face face (list (list t face-spec)) nil)

@@ -840,14 +840,14 @@ or different fonts."
 ;; You should probably select either italic or underline as you prefer, but
 ;; not both, although italic and underline work together perfectly well!
 (defface woman-italic-face
-  `((((background light)) (:italic t :underline t :foreground "red"))
-    (((background dark)) (:italic t :underline t)))
+  `((((background light)) (:slant italic :underline t :foreground "red"))
+    (((background dark)) (:slant italic :underline t)))
   "Face for italic font in man pages."
   :group 'woman-faces)
 
 (defface woman-bold-face
-  '((((background light)) (:bold t :foreground "blue"))
-    (((background dark)) (:bold t :foreground "green2")))
+  '((((background light)) (:weight bold :foreground "blue"))
+    (((background dark)) (:weight bold :foreground "green2")))
   "Face for bold font in man pages."
   :group 'woman-faces)
 

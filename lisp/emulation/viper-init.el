@@ -850,7 +850,7 @@ this variable represents.")
 
 (defface viper-minibuffer-emacs-face
   '((((class color)) (:foreground "Black" :background "darkseagreen2"))
-    (t (:bold t)))
+    (t (:weight bold)))
   "Face used in the Minibuffer when it is in Emacs state."
   :group 'viper-highlighting)
 ;; An internal variable.  Viper takes the face from here.
@@ -864,7 +864,7 @@ this variable represents.")
 
 (defface viper-minibuffer-insert-face
   '((((class color)) (:foreground "Black" :background "pink"))
-    (t (:italic t)))
+    (t (:slant italic)))
   "Face used in the Minibuffer when it is in Insert state."
   :group 'viper-highlighting)
 ;; An internal variable.  Viper takes the face from here.
