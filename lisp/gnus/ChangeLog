@@ -1,3 +1,55 @@
+2000-11-06  Dave Love  <fx@gnu.org>
+
+	* gnus-salt.el (gnus-binary-mode): Fix call to gnus-add-minor-mode.
+
+	* uudecode.el: Use (featurep 'xemacs).  Require cl when compiling.
+	(uudecode-char-int): New alias, replacing char-int.
+	(uudecode-decode-region): Don't call buffer-disable-undo.
+
+	* mm-uu.el (mm-uu-configure): Unquote lambda.
+	(mm-uu-configure-list): Doc fix.
+
+	* earcon.el (running-xemacs): Don't define.
+
+2000-11-06  John Wiegley  <johnw@gnu.org>
+
+	* gnus-mlspl.el (gnus-group-split-update): Check the value of
+	`nnmail-crosspost', and use it to set the `no-crosspost'
+	argument when calling `gnus-group-split-fancy'.  Otherwise, it
+	assumes that cross-posting is always OK, no matter what
+	`nmail-crosspost' is set to.
+	(gnus-group-split-fancy): The argument order in the
+	second-to-last `push' call was wrong, but since `no-crosspost'
+	was always nil, it was never being triggered.
+
+2000-11-06  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	Don't postpone GCC if none of GCC methods is agent-covered.  This
+	fix presumes that the post-method must be agent-covered if any Gcc
+	method is agent-covered.
+
+	* gnus-msg.el (gnus-inews-group-method): New function.
+	(gnus-inews-do-gcc): Use it.
+	* gnus-agent.el (gnus-agent-any-covered-gcc): New function.
+	(gnus-agent-possibly-save-gcc): Use it.
+	(gnus-agent-possibly-do-gcc): Ditto.
+
+	*gnus-msg.el: (gnus-inews-add-send-actions): Use
+	`gnus-agent-possibly-do-gcc' if Agentized.
+	(gnus-inews-add-send-actions): Add `gnus-agent-possibly-save-gcc'
+	to `message-header-hook'.
+
+	* gnus-mlspl.el: Require cl when compiling.
+
+	* gnus-ml.el: Usage.
+	(gnus-mailing-list-archive, gnus-mailing-list-owner,
+	gnus-mailing-list-post, gnus-mailing-list-unsubscribe,
+	gnus-mailing-list-subscribe, gnus-mailing-list-help): Bind list-*.
+	(gnus-mailing-list-menu): Define it.
+	(turn-on-gnus-mailing-list-mode, gnus-mailing-list-mode): Autoload.
+
+	* gnus-logic.el (gnus-advanced-string): Use "" if nil.
+	
 2000-11-03  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* message.el (message-font-lock-keywords): Match a final newline
