@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1998, 1999 Free Software Foundation, Inc. 
+@c Copyright (C) 1998, 1999, 2002 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/characters
 @node Non-ASCII Characters, Searching and Matching, Text, Top
@@ -87,7 +87,9 @@ This variable's value is entirely equivalent to @code{(default-value
 default value.  Setting the local binding of
 @code{enable-multibyte-characters} in a specific buffer is not allowed,
 but changing the default value is supported, and it is a reasonable
-thing to do, because it has no effect on existing buffers.
+thing to do, because it has no effect on existing buffers.  It can be
+useful to bind it around a block of code to ensure it uses unibyte
+consistently.
 
 The @samp{--unibyte} command line option does its job by setting the
 default value to @code{nil} early in startup.
@@ -317,9 +319,7 @@ belongs to.
 This function returns the charset property list of the character set
 @var{charset}.  Although @var{charset} is a symbol, this is not the same
 as the property list of that symbol.  Charset properties are used for
-special purposes within Emacs; for example,
-@code{preferred-coding-system} helps determine which coding system to
-use to encode characters in a charset.
+special purposes within Emacs.
 @end defun
 
 @node Chars and Bytes
@@ -570,7 +570,7 @@ data, and has the usual three variants which specify the end-of-line
 conversion.  @code{no-conversion} is equivalent to @code{raw-text-unix}:
 it specifies no conversion of either character codes or end-of-line.
 
-  The coding system @code{emacs-mule} specifies that the data is
+  The coding system @code{utf-8-emacs} specifies that the data is
 represented in the internal Emacs encoding.  This is like
 @code{raw-text} in that no code conversion happens, but different in
 that the result is multibyte data.
@@ -578,21 +578,22 @@ that the result is multibyte data.
 @defun coding-system-get coding-system property
 This function returns the specified property of the coding system
 @var{coding-system}.  Most coding system properties exist for internal
-purposes, but one that you might find useful is @code{mime-charset}.
+purposes, but one that you might find useful is @code{:mime-charset}.
 That property's value is the name used in MIME for the character coding
 which this coding system can read and write.  Examples:
 
 @example
-(coding-system-get 'iso-latin-1 'mime-charset)
+(coding-system-get 'iso-latin-1 :mime-charset)
      @result{} iso-8859-1
-(coding-system-get 'iso-2022-cn 'mime-charset)
+(coding-system-get 'iso-2022-cn :mime-charset)
      @result{} iso-2022-cn
-(coding-system-get 'cyrillic-koi8 'mime-charset)
+(coding-system-get 'cyrillic-koi8 :mime-charset)
      @result{} koi8-r
 @end example
 
-The value of the @code{mime-charset} property is also defined
-as an alias for the coding system.
+The value of the @code{:mime-charset} property is also defined as an
+alias for the coding system, but normally coding system base names
+should be the same as the MIME charset (lowercased).
 @end defun
 
 @node Encoding and I/O
@@ -939,7 +940,7 @@ of the right way to use the variable:
 @example
 ;; @r{Read the file with no character code conversion.}
 ;; @r{Assume @sc{crlf} represents end-of-line.}
-(let ((coding-system-for-write 'emacs-mule-dos))
+(let ((coding-system-for-write 'utf-8-emacs-dos))
   (insert-file-contents filename))
 @end example
 
