@@ -1,3 +1,7 @@
+2001-03-14  Kenichi Handa  <handa@mule.m17n.org>
+
+	* quail/slovak.el ("slovak"): Give t to the arg SHOW-LAYOUT.
+
 2001-03-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* CXTERM-DIC/4Corner.tit: Add copyright notice.
