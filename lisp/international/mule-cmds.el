@@ -619,7 +619,8 @@ and TO is ignored."
 	    mime-charset)
 	(while l
 	  (setq mime-charset (coding-system-get (car l) :mime-charset))
-	  (if (and mime-charset (coding-system-p mime-charset))
+	  (if (and mime-charset (coding-system-p mime-charset)
+		   (coding-system-equal (car l) mime-charset))
 	      (setcar l mime-charset))
 	  (setq l (cdr l))))
 
