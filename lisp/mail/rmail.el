@@ -3035,7 +3035,7 @@ typically for purposes of moderating a list."
 	  "^ *--+ +begin message +--+ *$\\|"
 	  "^ *---+ +Original message follows +---+ *$\\|"
 	  "^ *---+ +Your message follows +---+ *$\\|"
-	  "^|? *---+ +Message text follows: +---+ *|?$"
+	  "^|? *---+ +Message text follows: +---+ *|?$\\|"
 	  "^ *---+ +This is a copy of the message, including all the headers.*---+ *$")
   "A regexp that matches the separator before the text of a failed message.")
 
