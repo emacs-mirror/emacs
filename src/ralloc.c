@@ -1680,9 +1680,7 @@ r_alloc_init ()
 #ifndef SYSTEM_MALLOC
   real_morecore = __morecore;
   __morecore = r_alloc_sbrk;
-#endif
 
-#ifndef REL_ALLOC_MMAP
   first_heap = last_heap = &heap_base;
   first_heap->next = first_heap->prev = NIL_HEAP;
   first_heap->start = first_heap->bloc_start
@@ -1703,7 +1701,7 @@ r_alloc_init ()
 #endif
 #endif
 
-#ifndef REL_ALLOC_MMAP
+#ifndef SYSTEM_MALLOC
   first_heap->end = (POINTER) ROUNDUP (first_heap->start);
 
   /* The extra call to real_morecore guarantees that the end of the
