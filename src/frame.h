@@ -337,7 +337,7 @@ typedef struct frame *FRAME_PTR;
        list_var = XCONS (list_var)->cdr)
 
 
-extern Lisp_Object Qframep, Qframe_live_p;
+extern Lisp_Object Qframep, Qframe_live_p, Qicon;
 
 extern struct frame *selected_frame;
 extern struct frame *last_nonminibuf_frame;
