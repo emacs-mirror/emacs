@@ -1,7 +1,7 @@
 /* impl.c.arenacv: ARENA COVERAGE TEST
  *
- * $HopeName: MMsrc!arenacv.c(trunk.11) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!arenacv.c(trunk.12) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .readership: MPS developers
  * .coverage: At the moment, we're only trying to cover the new code
@@ -13,18 +13,13 @@
  * being allocated; this requires using two adjacent zones.
  */
 
-#include <stdio.h>
 #include <stdlib.h>
-#include "mpstd.h"
 
 #include "mpm.h"
+#include "poolmv.h"
 #include "testlib.h"
 #include "mpsavm.h"
 #include "mpsacl.h"
-#include "mpsaan.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 
 
 #define tractsSIZE 500
@@ -99,7 +94,7 @@ static Res allocAsTract(AllocInfoStruct *aiReturn, SegPref pref,
   Res res;
   Addr base;
   res = ArenaAlloc(&base, pref, size, pool, FALSE);
-  if (ResOK == res) {
+  if (res == ResOK) {
     aiReturn->the.tractData.base = base;
     aiReturn->the.tractData.size = size;
     aiReturn->the.tractData.pool = pool;
@@ -155,9 +150,9 @@ static void testAsTract(AllocInfo ai, Arena arena)
   Bool found;
 
   found = TractOfAddr(&tract, arena, ai->the.tractData.base);
-  die(found ? ResOK : ResFAIL, "TractOfAddr");
+  cdie(found, "TractOfAddr");
   base = TractBase(tract);
-  die(base == ai->the.tractData.base ? ResOK : ResFAIL, "base");
+  cdie(base == ai->the.tractData.base, "base");
   
 }
 
@@ -187,7 +182,7 @@ static Res allocAsSeg(AllocInfoStruct *aiReturn, SegPref pref,
   Res res;
   Seg seg;
   res = SegAlloc(&seg, EnsureSegClass(), pref, size, pool, FALSE);
-  if (ResOK == res) {
+  if (res == ResOK) {
     aiReturn->the.segData.seg = seg;
   }
   return res;
@@ -240,7 +235,7 @@ static void testAsSeg(AllocInfo ai, Arena arena)
   base = SegBase(seg);
   limit = SegLimit(seg);
   size = SegSize(seg);
-  die(size == AddrOffset(base, limit) ? ResOK : ResFAIL, "size");
+  cdie(size == AddrOffset(base, limit), "size");
 }
 
 static void copyAsSeg(AllocInfoStruct *toReturn, AllocInfo from)
@@ -302,7 +297,7 @@ static void testAllocAndIterate(Arena arena, Pool pool,
               "newRegion");
 
           /* Test iterators */
-          die(allocator->first(&thisRegion, arena) ? ResOK : ResFAIL, "first");
+          cdie(allocator->first(&thisRegion, arena), "first");
           regionNum = 1;
           while (allocator->next(&nextRegion, &thisRegion, arena)) {
             regionNum++;
@@ -415,10 +410,8 @@ int main(void)
   testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE);
   testPageTable((ArenaClass)mps_arena_class_vmnz(), TEST_ARENA_SIZE);
 
-  testPageTable((ArenaClass)mps_arena_class_an(), TEST_ARENA_SIZE);
-
   block = malloc(TEST_ARENA_SIZE);
-  die(block == NULL ? ResFAIL : ResOK, "malloc");
+  cdie(block != NULL, "malloc");
   testPageTable((ArenaClass)mps_arena_class_cl(), TEST_ARENA_SIZE,
                 (Addr)block);
 
