@@ -265,10 +265,6 @@ are installed in the following directories:
 		architecture-independent files Emacs might need while
 		running.  VERSION is as specified for `.../lisp'.
 
-`/usr/local/com/emacs/lock' contains files indicating who is editing
-		what, so Emacs can detect editing clashes between
-		users.
-
 `/usr/local/libexec/emacs/VERSION/CONFIGURATION-NAME' contains executable
 		programs used by Emacs that users are not expected to
 		run themselves.
@@ -344,14 +340,6 @@ Here is a complete list of the variables you may want to set.
 	allows you to have several versions of Emacs installed at the
 	same time; this means that you don't have to make Emacs
 	unavailable while installing a new version.
-
-`sharedstatedir' indicates where to put architecture-independent data files
-	that Emacs modifies while it runs; it defaults to
-	/usr/local/com.  We create the following
-	subdirectories under `sharedstatedir':
-	- `emacs/lock', containing files indicating who is editing
-		what, so Emacs can detect editing clashes between
-		users.
 
 `libexecdir' indicates where to put architecture-specific data files that
 	Emacs refers to as it runs; it defaults to `/usr/local/libexec'.
@@ -518,10 +506,7 @@ probably don't want to replace it with the `dir' file in the Emacs
 distribution.  Instead, you should make sure that the existing `dir'
 file contains an appropriate menu entry for the Emacs info.
 
-3) Create a directory for Emacs to use for clash detection, named as
-indicated by the PATH_LOCK macro in `./src/paths.h'.
-
-4) Copy `./src/emacs' to `/usr/local/bin', or to some other directory
+3) Copy `./src/emacs' to `/usr/local/bin', or to some other directory
 in users' search paths.  `./src/emacs' has an alternate name
 `./src/emacs-EMACSVERSION'; you may wish to make a symbolic link named
 `/usr/local/bin/emacs' pointing to that alternate name, as an easy way
@@ -529,14 +514,14 @@ of installing different versions.
 
 You can delete `./src/temacs'.
 
-5) Copy the programs `b2m', `emacsclient', `ctags', `etags', and
+4) Copy the programs `b2m', `emacsclient', `ctags', `etags', and
 `rcs-checkin' from `./lib-src' to `/usr/local/bin'.  These programs are
 intended for users to run.
 
-6) Copy the man pages in `./etc' for emacs, ctags, and etags into the
+5) Copy the man pages in `./etc' for emacs, ctags, and etags into the
 appropriate man directories.
 
-7) The files in the `./src' subdirectory, except for `emacs', are not
+6) The files in the `./src' subdirectory, except for `emacs', are not
 used by Emacs once it is built.  However, it is very desirable to keep
 the source on line for debugging.
 
