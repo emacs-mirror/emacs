@@ -66,6 +66,11 @@ SHELL=/bin/sh
 #undef alloca
 #endif
 
+/* Don't let the file name mktime.c get messed up.  */
+#ifdef mktime
+#undef mktime
+#endif
+
 /* Use HAVE_X11 as an alias for X11 in this file
    to avoid problems with X11 as a subdirectory name
    in -I and other such options which pass through this file. */
