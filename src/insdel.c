@@ -271,11 +271,16 @@ make_gap (increment)
 
   BLOCK_INPUT;
   result = BUFFER_REALLOC (BEG_ADDR, (Z - BEG + GAP_SIZE + increment));
-  UNBLOCK_INPUT;
 
   if (result == 0)
-    memory_full ();
+    {
+      UNBLOCK_INPUT;
+      memory_full ();
+    }
+
+  /* We can't unblock until the new address is properly stored.  */
   BEG_ADDR = result;
+  UNBLOCK_INPUT;
 
   /* Prevent quitting in move_gap.  */
   tem = Vinhibit_quit;
