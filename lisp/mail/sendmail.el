@@ -733,7 +733,7 @@ See also the function `select-sendmail-coding-system'.")
   (require 'mail-utils)
   (let ((errbuf (if mail-interactive
 		    (generate-new-buffer " sendmail errors")
-		  0))
+		  nil))
 	(tembuf (generate-new-buffer " sendmail temp"))
 	(case-fold-search nil)
 	resend-to-addresses
@@ -881,38 +881,41 @@ See also the function `select-sendmail-coding-system'.")
 		(re-search-forward "^To:\\|^cc:\\|^bcc:\\|^resent-to:\
 \\|^resent-cc:\\|^resent-bcc:"
 				   delimline t))
-	      (let ((default-directory "/")
-		    (coding-system-for-write (select-message-coding-system)))
-		(apply 'call-process-region
-		       (append (list (point-min) (point-max)
-				     (if (boundp 'sendmail-program)
-					 sendmail-program
-				       "/usr/lib/sendmail")
-				     nil errbuf nil "-oi")
-			       ;; Always specify who from,
-			       ;; since some systems have broken sendmails.
-			       ;; unless user has said no.
-			       (if (memq mail-from-style '(angles parens nil))
-				   (list "-f" user-mail-address))
-;;; 			       ;; Don't say "from root" if running under su.
-;;; 			       (and (equal (user-real-login-name) "root")
-;;; 				    (list "-f" (user-login-name)))
-			       (and mail-alias-file
-				    (list (concat "-oA" mail-alias-file)))
-			       (if mail-interactive
-				   ;; These mean "report errors to terminal"
-				   ;; and "deliver interactively"
-				   '("-oep" "-odi")
-				 ;; These mean "report errors by mail"
-				 ;; and "deliver in background".
-				 '("-oem" "-odb"))
-			       ;; Get the addresses from the message
-			       ;; unless this is a resend.
-			       ;; We must not do that for a resend
-			       ;; because we would find the original addresses.
-			       ;; For a resend, include the specific addresses.
-			       (or resend-to-addresses
-				   '("-t")))))
+	      (let* ((default-directory "/")
+		     (coding-system-for-write (select-message-coding-system))
+		     (args 
+		      (append (list (point-min) (point-max)
+				    (if (boundp 'sendmail-program)
+					sendmail-program
+				      "/usr/lib/sendmail")
+				    nil errbuf nil "-oi")
+			      ;; Always specify who from,
+			      ;; since some systems have broken sendmails.
+			      ;; unless user has said no.
+			      (if (memq mail-from-style '(angles parens nil))
+				  (list "-f" user-mail-address))
+;;; 			      ;; Don't say "from root" if running under su.
+;;; 			      (and (equal (user-real-login-name) "root")
+;;; 				   (list "-f" (user-login-name)))
+			      (and mail-alias-file
+				   (list (concat "-oA" mail-alias-file)))
+			      (if mail-interactive
+				  ;; These mean "report errors to terminal"
+				  ;; and "deliver interactively"
+				  '("-oep" "-odi")
+				;; These mean "report errors by mail"
+				;; and "deliver in background".
+				'("-oem" "-odb"))
+			      ;; Get the addresses from the message
+			      ;; unless this is a resend.
+			      ;; We must not do that for a resend
+			      ;; because we would find the original addresses.
+			      ;; For a resend, include the specific addresses.
+			      (or resend-to-addresses
+				  '("-t"))))
+		     (exit-value (apply 'call-process-region args)))
+		(or (zerop exit-value)
+		    (error "Sending...failed with exit value %d" exit-value)))
 	    (or fcc-was-found
 		(error "No recipients")))
 	  (if mail-interactive
