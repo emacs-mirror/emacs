@@ -1,3 +1,10 @@
+2004-11-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* play/life.el: Maintainer is now FSF.
+	(life-patterns, life-neighbor-deltas, life-window-start)
+	(life-current-generation, life-generation-string): Use defvar
+	instead of defconst.
+
 2004-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-move-to-column): New fun.

@@ -1,3 +1,7 @@
+2004-11-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dispextern.h: Extern reseat_at_previous_visible_line_start.
+
 2004-11-16  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (display_mode_element): Fix previous change (calculate
