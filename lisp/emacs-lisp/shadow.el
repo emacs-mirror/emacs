@@ -193,9 +193,9 @@ buffer called `*Shadows*'.  Shadowings are located by calling the
 	      (insert msg "\n")))
 	  ;; We are non-interactive, print shadows via message.
 	  (while shadows
-	    (message (format "%s shadows %s" (car shadows) (car (cdr shadows))))
+	    (message "%s shadows %s" (car shadows) (car (cdr shadows)))
 	    (setq shadows (cdr (cdr shadows))))
-	  (message msg))))
+	  (message "%s" msg))))
 
 (provide 'shadow)
 
