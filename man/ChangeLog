@@ -1,3 +1,10 @@
+2004-10-05  Karl Berry  <karl@gnu.org>
+
+	* info.texi: consistently use --- throughout, periods at end of
+	menu descriptions, and a couple typos.
+	From: Benno Schulenberg <benno@nietvergeten.nl>,
+	in bug-texinfo mail.
+
 2004-10-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* text.texi: Various small changes in addition to the following.

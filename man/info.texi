@@ -130,15 +130,15 @@ the screen.
 @end ifnotinfo
 
 @menu
-* Help-Small-Screen::   Starting Info on a Small Screen
-* Help::                How to use Info
-* Help-P::              Returning to the Previous node
+* Help-Small-Screen::   Starting Info on a Small Screen.
+* Help::                How to use Info.
+* Help-P::              Returning to the Previous node.
 * Help-^L::             The Space, DEL, B and ^L commands.
 * Help-Inv::            Invisible text in Emacs Info.
-* Help-M::              Menus
-* Help-Xref::           Following cross-references
-* Help-Int::            Some intermediate Info commands
-* Help-Q::              Quitting Info
+* Help-M::              Menus.
+* Help-Xref::           Following cross-references.
+* Help-Int::            Some intermediate Info commands.
+* Help-Q::              Quitting Info.
 @end menu
 
 @node Help-Small-Screen
@@ -212,8 +212,8 @@ This is line 59
 If you have managed to get here, go back to the beginning with
 @kbd{DEL} (or @key{BACKSPACE}), and come back here again, then you
 understand the about the @samp{Space} and @samp{Backspace} keys.  So
-now type an @kbd{n} ---just one character; don't type the quotes and
-don't type the Return key afterward--- to get to the normal start of
+now type an @kbd{n}---just one character; don't type the quotes and
+don't type the Return key afterward---to get to the normal start of
 the course.
 @end ifinfo
 
@@ -243,8 +243,8 @@ well.  In Emacs, the header line is duplicated in a special typeface,
 and the duplicate remains at the top of the window all the time even
 if you scroll through the node.
 
-  Besides a @samp{Next}, a node can have a @samp{Previous} or an
-@samp{Up} links, or both.  As you can see, this node has all of these
+  Besides a @samp{Next}, a node can have a @samp{Previous} link, or an
+@samp{Up} link, or both.  As you can see, this node has all of these
 links.
 
 @kindex n @r{(Info mode)}
@@ -375,7 +375,7 @@ scroll beyond the beginning or the end of the current node.
 
 @kindex C-l @r{(Info mode)}
   If your screen is ever garbaged, you can tell Info to display it
-again by typing @kbd{C-l} (@kbd{Control-L}, that is---hold down
+again by typing @kbd{C-l} (@kbd{Control-L}---that is, hold down
 @key{CTRL} and type @kbd{L} or @kbd{l}).
 
 @format
@@ -414,8 +414,8 @@ the list, make it go away by typing a @key{SPC} repeatedly.
 
   (If you are using the stand-alone Info reader, type @kbd{C-x 0} to
 return here, that is---press and hold @key{CTRL}, type an @kbd{x},
-then release @key{CTRL} and @kbd{x}, and press @kbd{0}---a zero, not
-the letter ``o''.)
+then release @key{CTRL} and @kbd{x}, and press @kbd{0}; that's a zero,
+not the letter ``o''.)
 
   From now on, you will encounter large nodes without warning, and
 will be expected to know how to use @key{SPC} and @key{BACKSPACE} to
@@ -1061,7 +1061,7 @@ you typed @emph{as a substring}.  For each match, Info shows in the
 echo area the full index entry it found.  Often, the text of the full
 index entry already gives you enough information to decide whether it
 is relevant to what you are looking for, so we recommend that you read
-what Emacs shows in the echo area before looking at the node it
+what Info shows in the echo area before looking at the node it
 displays.
 
   Since @kbd{i} looks for a substring, you can search for subjects even
@@ -1205,7 +1205,7 @@ reads from the terminal.
   A menu begins with a line starting with @w{@samp{* Menu:}}.  The
 rest of the line is a comment.  After the starting line, every line
 that begins with a @samp{* } lists a single topic.  The name of the
-topic--what the user must type at the @kbd{m}'s command prompt to
+topic---what the user must type at the @kbd{m}'s command prompt to
 select this topic---comes right after the star and space, and is
 followed by a colon, spaces and tabs, and the name of the node which
 discusses that topic.  The node name, like node names following
