@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.134 2001/09/24 16:36:14 monnier Exp $
+;; $Id: vc-hooks.el,v 1.135 2001/11/09 14:58:21 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -463,8 +463,8 @@ to do that, use this command a second time with no argument."
 (define-key global-map "\C-x\C-q" 'vc-toggle-read-only)
 
 (defun vc-default-make-version-backups-p (backend file)
-  "Return non-nil if unmodified repository versions should 
-be backed up locally.  The default is to switch off this feature."
+  "Return non-nil if unmodified repository versions should be backed up locally.
+The default is to switch off this feature."
   nil)
 
 (defun vc-version-backup-file-name (file &optional rev manual regexp)
