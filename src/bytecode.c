@@ -308,7 +308,7 @@ If the third argument is incorrect, Emacs may crash.")
 	       pc - XSTRING (string_saved)->data);
 #endif
 
-      if (string_saved != bytestr)
+      if (! EQ (string_saved, bytestr))
 	{
 	  pc = pc - XSTRING (string_saved)->data + XSTRING (bytestr)->data;
 	  string_saved = bytestr;
