@@ -22,9 +22,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* SCO is sort of like SVR3.  */
 #include "usg5-3.h"
 
-/* Only needed for systime.h and getdate.y; remove when that is fixed.  */
-#define SCO
-
 /* SYSTEM_TYPE should indicate the kind of system you are using.  */
 #undef SYSTEM_TYPE
 #define SYSTEM_TYPE "SCO 3.2v4"
@@ -49,6 +46,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* SCO has bcopy, et. al.  */
 #define BSTRING
 
+/* Use both <time.h> and <sys/time.h>.  */
+#define TIME_WITH_SYS_TIME
+
 /* Sockets are an option on SCO.  If we have X, we have them.  */
 #ifdef HAVE_X_WINDOWS
 #define HAVE_SOCKETS
@@ -72,6 +72,3 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* We need to link with crt1.o and crtn.o.  */
 #define START_FILES pre-crt0.o /lib/crt1.o
 #define LIB_STANDARD -lc /lib/crtn.o
-
-/* Various places should include sys/time.h.  */
-#define HAVE_SYS_TIME_H
