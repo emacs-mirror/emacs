@@ -25,7 +25,15 @@
 
 ;; compiler pacifier
 (defvar mark-even-if-inactive)
+(defvar viper-version)
 ;; end pacifier
+
+
+;; Viper version
+(defun viper-version ()
+  (interactive)
+  (message "Viper version is %s" viper-version)) 
+(defalias 'vip-version 'viper-version)
 
 ;; Is it XEmacs?
 (defconst vip-xemacs-p (string-match "\\(Lucid\\|XEmacs\\)" emacs-version))
@@ -121,15 +129,6 @@ that Viper doesn't know about.")
   
 
 ;;; Viper minor modes
-
-;; This is not local in Emacs, so we make it local.
-;; This must be local because although the stack of minor modes can be the same
-;; for all buffers, the associated *keymaps* can be different. In Viper,
-;; vip-vi-local-user-map, vip-insert-local-user-map, and others can have
-;; different keymaps for different buffers.
-;; Also, the keymaps associated with vip-vi/insert-state-modifier-minor-mode
-;; can be different.
-(make-variable-buffer-local 'minor-mode-map-alist)
 
 ;; Mode for vital things like \e, C-z.
 (vip-deflocalvar vip-vi-intercept-minor-mode nil)
@@ -597,9 +596,6 @@ These buffers can be cycled through via :R and :P commands.")
 
 ;;; Miscellaneous
 
-;; don't bark when mark is inactive
-(setq mark-even-if-inactive t)
-
 (defvar vip-inhibit-startup-message nil
   "Whether Viper startup message should be inhibited.")
 
@@ -634,12 +630,6 @@ Should be set in `~/.vip' file.")
 ;; Beginning with Emacs 19.26, the standard `minibuffer-exit-hook' is run
 ;; *after* exiting the minibuffer
 (defvar vip-minibuffer-exit-hook nil)
-
-;; setup emacs-supported vi-style feel
-(setq next-line-add-newlines nil
-      require-final-newline t)
-
-(make-variable-buffer-local 'require-final-newline)
        
 
 ;; Mode line

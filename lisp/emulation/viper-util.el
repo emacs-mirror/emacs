@@ -39,12 +39,12 @@
 (require 'cl)
 (require 'ring)
 
-(and noninteractive
-     (eval-when-compile
-       (let ((load-path (cons (expand-file-name ".") load-path)))
-	 (or (featurep 'viper-init)
-	     (load "viper-init.el" nil nil 'nosuffix))
-	 )))
+(if noninteractive
+    (eval-when-compile
+      (let ((load-path (cons (expand-file-name ".") load-path)))
+	(or (featurep 'viper-init)
+	    (load "viper-init.el" nil nil 'nosuffix))
+	)))
 ;; end pacifier
 
 (require 'viper-init)

@@ -1,30 +1,11 @@
 ;;; viper-cmd.el --- Vi command support for Viper
-
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
-;; Keywords: emulations
-;; Author: Michael Kifer <kifer@cs.sunysb.edu>
-
-;; This file is part of GNU Emacs.
-
-;; GNU Emacs is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
 
 ;; Code
 
 (provide 'viper-cmd)
+(require 'advice)
 
 ;; Compiler pacifier
 (defvar vip-minibuffer-current-face)
@@ -36,19 +17,22 @@
 (defvar zmacs-region-stays)
 (defvar mark-even-if-inactive)
 
-(eval-when-compile
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (or (featurep 'viper-util)
-	(load "viper-util.el" nil nil 'nosuffix))
-    (or (featurep 'viper-keym)
-	(load "viper-keym.el" nil nil 'nosuffix))
-    (or (featurep 'viper-mous)
-	(load "viper-mous.el" nil nil 'nosuffix))
-    (or (featurep 'viper-macs)
-	(load "viper-macs.el" nil nil 'nosuffix))
-    (or (featurep 'viper-ex)
-	(load "viper-ex.el" nil nil 'nosuffix))
-    ))
+;; loading happens only in non-interactive compilation
+;; in order to spare non-viperized emacs from being viperized
+(if noninteractive
+    (eval-when-compile
+      (let ((load-path (cons (expand-file-name ".") load-path)))
+	(or (featurep 'viper-util)
+	    (load "viper-util.el" nil nil 'nosuffix))
+	(or (featurep 'viper-keym)
+	    (load "viper-keym.el" nil nil 'nosuffix))
+	(or (featurep 'viper-mous)
+	    (load "viper-mous.el" nil nil 'nosuffix))
+	(or (featurep 'viper-macs)
+	    (load "viper-macs.el" nil nil 'nosuffix))
+	(or (featurep 'viper-ex)
+	    (load "viper-ex.el" nil nil 'nosuffix))
+	)))
 ;; end pacifier
 
 
@@ -937,36 +921,6 @@ as a Meta key and any number of multiple escapes is allowed."
     keyseq))
 
     
-    
-(defadvice read-key-sequence (around vip-read-keyseq-ad activate)
-  "Harness to work for Viper. This advice is harmless---don't worry!"
-  (let (inhibit-quit event keyseq)
-    (setq keyseq ad-do-it)
-    (setq event (if vip-xemacs-p
-		    (elt keyseq 0) ; XEmacs returns vector of events
-		  (elt (listify-key-sequence keyseq) 0)))
-    (if (vip-ESC-event-p event)
-	(let (unread-command-events)
-	  (vip-set-unread-command-events keyseq)
-	  (if (vip-fast-keysequence-p)
-	      (let ((vip-vi-global-user-minor-mode  nil)
-		    (vip-vi-local-user-minor-mode  nil)
-		    (vip-replace-minor-mode nil) ; actually unnecessary
-		    (vip-insert-global-user-minor-mode  nil)
-		    (vip-insert-local-user-minor-mode  nil))
-		(setq keyseq ad-do-it)) 
-	    (setq keyseq ad-do-it))))
-    keyseq))
-    
-(defadvice describe-key (before vip-read-keyseq-ad protect activate)
-  "Force to read key via `read-key-sequence'."
-  (interactive (list (vip-events-to-keys
-		      (read-key-sequence "Describe key: ")))))
-
-(defadvice describe-key-briefly (before vip-read-keyseq-ad protect activate)
-  "Force to read key via `read-key-sequence'."
-  (interactive (list (vip-events-to-keys
-		      (read-key-sequence "Describe key briefly: ")))))
 
 ;; Listen to ESC key.
 ;; If a sequence of keys starting with ESC is issued with very short delays,
@@ -3188,8 +3142,6 @@ controlled by the sign of prefix numeric value."
 
 ;; scrolling
 
-(setq scroll-step 1)
-
 (defun vip-scroll-screen (arg)
   "Scroll to next screen."
   (interactive "p")
@@ -3627,51 +3579,6 @@ To turn this feature off, set this variable to nil.")
 	      ))
     ))
 
-
-;; Advice for use in find-file and read-file-name commands.
-(defadvice exit-minibuffer (before vip-exit-minibuffer-advice activate)
-  "Run `vip-minibuffer-exit-hook' just before exiting the minibuffer."
-  (run-hooks 'vip-minibuffer-exit-hook))
-
-(defadvice find-file (before vip-add-suffix-advice activate)
-  "Use `read-file-name' for reading arguments."
-  (interactive (cons (read-file-name "Find file: " nil default-directory)
-		     ;; if Mule and prefix argument, ask for coding system
-		     (if (or (boundp 'MULE)    ; mule integrated Emacs 19
-			     (featurep 'mule)) ; mule integrated XEmacs 20
-			 (list
-			  (and current-prefix-arg
-			       (read-coding-system "Coding-system: "))))
-		     )))
-    
-(defadvice find-file-other-window (before vip-add-suffix-advice activate)
-  "Use `read-file-name' for reading arguments."
-  (interactive (cons (read-file-name "Find file in other window: "
-				     nil default-directory)
-		     ;; if Mule and prefix argument, ask for coding system
-		     (if (or (boundp 'MULE)    ; mule integrated Emacs 19
-			     (featurep 'mule)) ; mule integrated XEmacs 20
-			 (list
-			  (and current-prefix-arg
-			       (read-coding-system "Coding-system: "))))
-		     )))
-    
-(defadvice find-file-other-frame (before vip-add-suffix-advice activate)
-  "Use `read-file-name' for reading arguments."
-  (interactive (cons (read-file-name "Find file in other frame: "
-				     nil default-directory)
-		     ;; if Mule and prefix argument, ask for coding system
-		     (if (or (boundp 'MULE)    ; mule integrated Emacs 19
-			     (featurep 'mule)) ; mule integrated XEmacs 20
-			 (list
-			  (and current-prefix-arg
-			       (read-coding-system "Coding-system: "))))
-		     )))
-
-(defadvice read-file-name (around vip-suffix-advice activate)
-  "Tell `exit-minibuffer' to run `vip-file-add-suffix' as a hook."
-  (let ((vip-minibuffer-exit-hook 'vip-file-add-suffix))
-    ad-do-it))
 
      
 

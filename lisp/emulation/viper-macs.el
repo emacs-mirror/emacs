@@ -28,17 +28,20 @@
 (defvar vip-custom-file-name)
 (defvar vip-current-state)
 
-(eval-when-compile
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (or (featurep 'viper-util)
-	(load "viper-util.el" nil nil 'nosuffix))
-    (or (featurep 'viper-keym)
-	(load "viper-keym.el" nil nil 'nosuffix))
-    (or (featurep 'viper-mous)
-	(load "viper-mous.el" nil nil 'nosuffix))
-    (or (featurep 'viper-cmd)
-	(load "viper-cmd.el" nil nil 'nosuffix))
-    ))
+;; loading happens only in non-interactive compilation
+;; in order to spare non-viperized emacs from being viperized
+(if noninteractive
+    (eval-when-compile
+      (let ((load-path (cons (expand-file-name ".") load-path)))
+	(or (featurep 'viper-util)
+	    (load "viper-util.el" nil nil 'nosuffix))
+	(or (featurep 'viper-keym)
+	    (load "viper-keym.el" nil nil 'nosuffix))
+	(or (featurep 'viper-mous)
+	    (load "viper-mous.el" nil nil 'nosuffix))
+	(or (featurep 'viper-cmd)
+	    (load "viper-cmd.el" nil nil 'nosuffix))
+	)))
 ;; end pacifier
 
 (require 'viper-util)
@@ -315,14 +318,6 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 			      (vip-display-macro macro-body)))
     ))
 
-
-
-(defadvice start-kbd-macro (after vip-kbd-advice activate)
-  "Remove Viper's intercepting bindings for C-x ).
-This may be needed if the previous `:map' command terminated abnormally."
-  (define-key vip-vi-intercept-map "\C-x)" nil)
-  (define-key vip-insert-intercept-map "\C-x)" nil)
-  (define-key vip-emacs-intercept-map "\C-x)" nil))
 
 
 

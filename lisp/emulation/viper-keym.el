@@ -31,11 +31,14 @@
 (defvar vip-ex-style-editing-in-insert)
 (defvar vip-ex-style-motion)
 
-(eval-when-compile
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (or (featurep 'viper-util)
-	(load "viper-util.el" nil nil 'nosuffix))
-    ))
+;; loading happens only in non-interactive compilation
+;; in order to spare non-viperized emacs from being viperized
+(if noninteractive
+    (eval-when-compile
+      (let ((load-path (cons (expand-file-name ".") load-path)))
+	(or (featurep 'viper-util)
+	    (load "viper-util.el" nil nil 'nosuffix))
+	)))
 ;; end pacifier
 
 (require 'viper-util)

@@ -35,15 +35,18 @@
 (defvar vip-custom-file-name)
 (defvar vip-case-fold-search)
 
-(eval-when-compile
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (or (featurep 'viper-util)
-	(load "viper-util.el" nil nil 'nosuffix))
-    (or (featurep 'viper-keym)
-	(load "viper-keym.el" nil nil 'nosuffix))
-    (or (featurep 'viper-cmd)
-	(load "viper-cmd.el" nil nil 'nosuffix))
-    ))
+;; loading happens only in non-interactive compilation
+;; in order to spare non-viperized emacs from being viperized
+(if noninteractive
+    (eval-when-compile
+      (let ((load-path (cons (expand-file-name ".") load-path)))
+	(or (featurep 'viper-util)
+	    (load "viper-util.el" nil nil 'nosuffix))
+	(or (featurep 'viper-keym)
+	    (load "viper-keym.el" nil nil 'nosuffix))
+	(or (featurep 'viper-cmd)
+	    (load "viper-cmd.el" nil nil 'nosuffix))
+	)))
 ;; end pacifier
 
 (require 'viper-util)

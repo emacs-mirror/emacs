@@ -32,13 +32,16 @@
 (defvar vip-s-string)
 (defvar vip-re-search)
 
-(eval-when-compile
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (or (featurep 'viper-util)
-	(load "viper-util.el" nil nil 'nosuffix))
-    (or (featurep 'viper-cmd)
-	(load "viper-cmd.el" nil nil 'nosuffix))
-    ))
+;; loading happens only in non-interactive compilation
+;; in order to spare non-viperized emacs from being viperized
+(if noninteractive
+    (eval-when-compile
+      (let ((load-path (cons (expand-file-name ".") load-path)))
+	(or (featurep 'viper-util)
+	    (load "viper-util.el" nil nil 'nosuffix))
+	(or (featurep 'viper-cmd)
+	    (load "viper-cmd.el" nil nil 'nosuffix))
+	)))
 ;; end pacifier
 
 (require 'viper-util)
@@ -426,47 +429,6 @@ bindings in the Viper manual."
   (setq last-command 'handle-switch-frame
 	vip-current-frame-saved (selected-frame)))
 
-
-(cond ((vip-window-display-p)
-       (let* ((search-key (if vip-xemacs-p
-			      [(meta shift button1up)] [M-S-mouse-1]))
-	      (search-key-catch (if vip-xemacs-p
-				    [(meta shift button1)] [M-S-down-mouse-1]))
-	      (insert-key (if vip-xemacs-p
-			      [(meta shift button2up)] [M-S-mouse-2]))
-	      (insert-key-catch (if vip-xemacs-p
-				    [(meta shift button2)] [M-S-down-mouse-2]))
-	      (search-key-unbound (and (not (key-binding search-key))
-				       (not (key-binding search-key-catch))))
-	      (insert-key-unbound (and (not (key-binding insert-key))
-				       (not (key-binding insert-key-catch))))
-	      )
-	     
-	 (if search-key-unbound
-	     (global-set-key search-key 'vip-mouse-click-search-word))
-	 (if insert-key-unbound
-	     (global-set-key insert-key 'vip-mouse-click-insert-word))
-    
-	 ;; The following would be needed if you want to use the above two
-	 ;; while clicking in another frame. If you only want to use them
-	 ;; by clicking in another window, not frame, the bindings below
-	 ;; aren't necessary.
-	 
-	 ;; These must be bound to mouse-down event for the same mouse
-	 ;; buttons as 'vip-mouse-click-search-word and
-	 ;; 'vip-mouse-click-insert-word
-	 (if search-key-unbound
-	     (global-set-key search-key-catch   'vip-mouse-catch-frame-switch))
-	 (if insert-key-unbound
-	     (global-set-key insert-key-catch   'vip-mouse-catch-frame-switch))
-	 
-	 (if vip-xemacs-p
-	     (add-hook 'mouse-leave-frame-hook
-		       'vip-remember-current-frame)
-	   (defadvice handle-switch-frame (before vip-frame-advice activate)
-	     "Remember the selected frame before the switch-frame event." 
-	     (vip-remember-current-frame (selected-frame))))
-       )))
 
 
 ;;;  viper-mous.el ends here
