@@ -1,3 +1,18 @@
+2004-05-22  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (struct backtrace): Add debug_on_exit member.
+	(Fgarbage_collect): Clear out buffer undo_list markers after gc_sweep.
+	Identify those markers as Lisp_Misc_Free objects.  Clear car and cdr of
+	the removed cons cells.
+	(mark_object): Undo previous change - disallow Lisp_Misc_Free objects.
+	(gc_sweep): Clear cons_blocks before sweeping strings, so we don't have
+	any cons cells pointing to unallocated stings.
+	Do not lisp_free any marker blocks, as there may still be pointers
+	to them from buffer undo lists at this stage of GC.
+
+	* keyboard.c (struct backtrace): Add debug_on_exit member.
+	(Fcommand_execute): Clear it.
+
 2004-05-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* intervals.c (lookup_char_property): Do not prematurely return nil.
@@ -6,6 +21,7 @@
 
 	Add support for new '\_<' and '\_>' regexp operators, matching the
 	beginning and ends of symbols.
+
 	* regex.c (enum syntaxcode): Add Ssymbol.
 	(init_syntax_once): Set the syntax for '_' to Ssymbol, not Sword.
 	(re_opcode_t): New opcodes `symbeg' and `symend'.
