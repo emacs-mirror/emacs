@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.23) $
+ * $HopeName: MMsrc!poolams.c(trunk.24) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.23) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.24) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -455,8 +455,8 @@ Res AMSBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
 found:
   AVER(b);
   *segReturn = group->seg;
-  *baseReturn = AMSIndexAddr(group, base);
-  *limitReturn = AMSIndexAddr(group, limit);
+  *baseReturn = AMS_INDEX_ADDR(group, base);
+  *limitReturn = AMS_INDEX_ADDR(group, limit);
   return ResOK;
 }
 
@@ -496,8 +496,8 @@ void AMSBufferEmpty(Pool pool, Buffer buffer)
   if(init == limit)
     return;
 
-  initIndex = AMSAddrIndex(group, init);
-  limitIndex = AMSAddrIndex(group, limit);
+  initIndex = AMS_ADDR_INDEX(group, init);
+  limitIndex = AMS_ADDR_INDEX(group, limit);
 
   if(group->allocTableInUse) {
     /* check that it's allocated */
@@ -548,9 +548,9 @@ static void AMSRangeCondemn(AMSGroup group, Index base, Index limit)
 }
 
 
-/* AMSCondemn -- the pool class segment condemning method */
+/* AMSWhiten -- the pool class segment condemning method */
 
-Res AMSCondemn(Pool pool, Trace trace, Seg seg)
+Res AMSWhiten(Pool pool, Trace trace, Seg seg)
 {
   AMS ams;
   AMSGroup group;
@@ -575,17 +575,21 @@ Res AMSCondemn(Pool pool, Trace trace, Seg seg)
   buffer = SegBuffer(seg);
   if(buffer != NULL) { /* design.mps.poolams.colour.buffer */
     Index scanLimitIndex, limitIndex;
-    scanLimitIndex = AMSAddrIndex(group, BufferScanLimit(buffer));
-    limitIndex = AMSAddrIndex(group, BufferLimit(buffer));
+    scanLimitIndex = AMS_ADDR_INDEX(group, BufferScanLimit(buffer));
+    limitIndex = AMS_ADDR_INDEX(group, BufferLimit(buffer));
 
     AMSRangeCondemn(group, 0, scanLimitIndex);
     if(scanLimitIndex < limitIndex)
       AMSRangeBlacken(group, scanLimitIndex, limitIndex);
     AMSRangeCondemn(group, limitIndex, group->grains);
+    /* We didn't condemn the buffer, subtract it from the count. */
+    trace->condemned -= AddrOffset(BufferScanLimit(buffer),
+                                   BufferLimit(buffer));
   } else { /* condemn whole seg */
     AMSRangeCondemn(group, 0, group->grains);
   }
 
+  trace->condemned += SegSize(seg);
   group->marksChanged = FALSE; /* design.mps.poolams.marked.condemn */
   group->ambiguousFixes = FALSE;
 
@@ -643,8 +647,8 @@ static Res AMSIterate(AMSGroup group,
 	   || (p < BufferScanLimit(buffer))
 	   || (p >= BufferLimit(buffer)));  /* not in the buffer */
 
-      i = AMSAddrIndex(group, p);
-      if(!AMSAlloced(group, i)) { /* no object here */
+      i = AMS_ADDR_INDEX(group, p);
+      if(!AMS_ALLOCED(group, i)) { /* no object here */
         next = AddrAdd(p, alignment); /* @@@@ this could be improved */
       } else { /* there is an object here */
         next = (*format->skip)(p);
@@ -700,7 +704,7 @@ static Res AMSScanObject(AMSGroup group,
       return res;
     closure->ss->scannedSize += AddrOffset(p, next);
     if(!closure->scanAllObjects) {
-      Index j = AMSAddrIndex(group, next);
+      Index j = AMS_ADDR_INDEX(group, next);
       AVER(!AMSIsInvalidColor(group, i));
       AMSGreyBlacken(group, i);
       if(i+1 < j)
@@ -778,10 +782,10 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
         while(j < group->grains
               && AMSFindGrey(&i, &j, group, j, group->grains)) {
           AVER(!AMSIsInvalidColor(group, i));
-          p = AMSIndexAddr(group, i);
+          p = AMS_INDEX_ADDR(group, i);
           next = (*format->skip)(p);
           AVER(AddrIsAligned(next, alignment));
-          j = AMSAddrIndex(group, next);
+          j = AMS_ADDR_INDEX(group, next);
           res = (*format->scan)(ss, p, next);
           if(res != ResOK) {
             /* design.mps.poolams.marked.scan.fail */
@@ -827,7 +831,7 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   /* doing that here (this can be called from RootScan, during flip). */
 
   ref = *refIO;
-  i = AMSAddrIndex(group, ref);
+  i = AMS_ADDR_INDEX(group, ref);
   AVER_CRITICAL(!AMSIsInvalidColor(group, i));
 
   ss->wasMarked = TRUE;
@@ -836,7 +840,7 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   case RankAMBIG:
     /* not a real pointer if not aligned or not allocated */
     if(!AddrIsAligned((Addr)ref, PoolAlignment(pool))
-       || !AMSAlloced(group, i)) {
+       || !AMS_ALLOCED(group, i)) {
       break;
     }
     group->ambiguousFixes = TRUE;
@@ -845,7 +849,7 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   case RankFINAL:
   case RankWEAK:
     AVER_CRITICAL(AddrIsAligned((Addr)ref, PoolAlignment(pool)));
-    AVER_CRITICAL(AMSAlloced(group, i));
+    AVER_CRITICAL(AMS_ALLOCED(group, i));
     if(AMSIsWhite(group, i)) {
       ++ss->forwardCount; /* slightly inaccurate terminology */
       ss->wasMarked = FALSE;
@@ -859,7 +863,7 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
           next = (*group->ams->format->skip)(ref);
           /* Part of the object might be grey, because of ambiguous */
           /* fixes, but that's OK, because scan will ignore that. */
-          AMSRangeWhiteBlacken(group, i, AMSAddrIndex(group, next));
+          AMSRangeWhiteBlacken(group, i, AMS_ADDR_INDEX(group, next));
         } else { /* turn it grey */
           AMSWhiteGreyen(group, i);
           SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
@@ -915,10 +919,10 @@ void AMSReclaim(Pool pool, Trace trace, Seg seg)
   while(j < group->grains
         && AMSFindWhite(&i, &j, group, j, group->grains)) {
     AVER(!AMSIsInvalidColor(group, i));
-    p = AMSIndexAddr(group, i);
+    p = AMS_INDEX_ADDR(group, i);
     next = (*format->skip)(p);
     AVER(AddrIsAligned(next, alignment));
-    j = AMSAddrIndex(group, next);
+    j = AMS_ADDR_INDEX(group, next);
     BTResRange(group->allocTable, i, j);
     reclaimed += j - i;
   }
@@ -975,10 +979,10 @@ static double AMSBenefit(Pool pool, Action action)
 
 /* AMSGroupDescribe -- describe an AMS group */
 
-#define WriteBufferLimit(stream, group, i, buffer, accessor, char) \
+#define WRITE_BUFFER_LIMIT(stream, group, i, buffer, accessor, char) \
   BEGIN \
     if((buffer) != NULL \
-       && (i) == AMSAddrIndex(group, accessor(buffer))) { \
+       && (i) == AMS_ADDR_INDEX(group, accessor(buffer))) { \
       Res _res = WriteF(stream, char, NULL); \
       if(_res != ResOK) return _res; \
     } \
@@ -1035,11 +1039,11 @@ Res AMSGroupDescribe(AMSGroup group, mps_lib_FILE *stream)
         return res;
     }
 
-    WriteBufferLimit(stream, group, i, buffer, BufferBase, "[");
-    WriteBufferLimit(stream, group, i, buffer, BufferGetInit, "|");
-    WriteBufferLimit(stream, group, i, buffer, BufferAlloc, ">");
+    WRITE_BUFFER_LIMIT(stream, group, i, buffer, BufferBase, "[");
+    WRITE_BUFFER_LIMIT(stream, group, i, buffer, BufferGetInit, "|");
+    WRITE_BUFFER_LIMIT(stream, group, i, buffer, BufferAlloc, ">");
 
-    if(AMSAlloced(group, i)) {
+    if(AMS_ALLOCED(group, i)) {
       if(group->colourTablesInUse) {
         if(AMSIsInvalidColor(group, i))
           c = '!';
@@ -1057,8 +1061,8 @@ Res AMSGroupDescribe(AMSGroup group, mps_lib_FILE *stream)
     if(res != ResOK)
       return res;
 
-    WriteBufferLimit(stream, group, i+1, buffer, BufferScanLimit, "<");
-    WriteBufferLimit(stream, group, i+1, buffer, BufferLimit, "]");
+    WRITE_BUFFER_LIMIT(stream, group, i+1, buffer, BufferScanLimit, "<");
+    WRITE_BUFFER_LIMIT(stream, group, i+1, buffer, BufferLimit, "]");
   }
 
   res = WriteF(stream, "\n} AMS Group $P\n", (WriteFP)group);
@@ -1134,7 +1138,7 @@ static PoolClassStruct PoolClassAMSStruct = {
   PoolTrivBufferFinish,
   PoolTrivTraceBegin,
   PoolSegAccess,
-  AMSCondemn,                /* condemn (whiten) */
+  AMSWhiten,                 /* condemn (whiten) */
   PoolTrivGrey,              /* design.mps.poolams.colour.determine */
   PoolTrivBlacken,
   AMSScan,
