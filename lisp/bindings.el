@@ -316,28 +316,19 @@ Menu of mode operations in the mode line.")
       (if binding
 	  (call-interactively binding)))))
 
+(defvar mode-line-copied-mode-name nil
+  "A copy of `mode-name', with `help-echo' and `local-map' properties added.")
+
 (defun mode-line-mode-name () "\
 Return a string to display in the mode line for the current mode name."
   (when (stringp mode-name)
-    (let ((local-map (get-text-property 0 'local-map mode-name))
-	  (help-echo (get-text-property 0 'help-echo mode-name)))
-      ;; For correctness, we shouldn't modify mode-name.  But adding some
-      ;; text-properties to those mode-name strings can't hurt, really, and
-      ;; furthermore, by doing it in-place, we make sure that we don't need to
-      ;; do the work over and over and over and ....  -stef
-      (unless (and local-map help-echo)
-	(setq mode-name (copy-sequence mode-name)))
-      ;; Add `local-map' property if there isn't already one.
-      (unless (or local-map
-		  (next-single-property-change 0 'local-map mode-name))
-	(put-text-property 0 (length mode-name)
-			   'local-map mode-line-minor-mode-keymap mode-name)
-	;; Add `help-echo' property if there isn't already one.
-	(unless (or help-echo
-		    (next-single-property-change 0 'help-echo mode-name))
-	  (put-text-property 0 (length mode-name) 'help-echo
-			     "mouse-3: minor mode menu" mode-name)))))
-  mode-name)
+    (if (equal mode-name mode-line-copied-mode-name)
+	mode-line-copied-mode-name
+      (setq mode-line-copied-mode-name
+	    (propertize mode-name
+			'local-map mode-line-minor-mode-keymap 
+			'help-echo "mouse-3: minor mode menu"))))
+  mode-line-copied-mode-name)
 
 (defmacro bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil."
