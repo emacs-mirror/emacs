@@ -1,6 +1,6 @@
 ;;; tpu-extras.el --- Scroll margins and free cursor mode for TPU-edt
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -131,11 +131,7 @@ the previous line when starting from a line beginning.")
 ;;;  Hooks  --  Set cursor free in picture mode.
 ;;;             Clean up when writing a file from cursor free mode.
 
-(if tpu-gnu-emacs18-p
-    (or (memq 'tpu-set-cursor-free edit-picture-hook)
-	(setq edit-picture-hook
-	      (cons 'tpu-set-cursor-free edit-picture-hook)))
-  (add-hook 'picture-mode-hook 'tpu-set-cursor-free))
+(add-hook 'picture-mode-hook 'tpu-set-cursor-free)
 
 (defun tpu-write-file-hook nil
   "Eliminate whitespace at ends of lines, if the cursor is free."
