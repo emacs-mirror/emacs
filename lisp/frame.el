@@ -319,7 +319,11 @@ of the following forms:
 The documentation for the function `x-create-frame' describes
 additional frame parameters that Emacs recognizes for X window frames."
   (interactive)
-  (funcall frame-creation-function parameters))
+  (let ((nframe))
+    (run-hooks 'before-make-frame-hook)
+    (setq nframe (funcall frame-creation-function parameters))
+    (run-hooks 'after-make-frame-hook)
+    nframe))
 
 (defun filtered-frame-list (predicate)
   "Return a list of all live frames which satisfy PREDICATE."
