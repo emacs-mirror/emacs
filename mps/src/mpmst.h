@@ -1,7 +1,7 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.89) $
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!mpmst.h(trunk.90) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: This header file crosses module boundaries.  The relevant
  * design a module's structures should be found in that module's design
@@ -27,6 +27,7 @@
 
 #include "protocol.h"
 #include "ring.h"
+#include "chain.h"
 
 
 /* PoolClassStruct -- pool class structure
@@ -582,6 +583,7 @@ typedef struct TraceStruct {
   RefSet mayMove;               /* superset of refs in moving set */
   TraceState state;             /* current state of trace */
   Bool emergency;               /* ran out of memory during trace */
+  Chain chain;                  /* chain being incrementally collected */
   Size condemned;               /* condemned bytes */
   Size notCondemned;            /* collectable but not condemned */
   Size foundation;              /* initial grey set size */
@@ -689,7 +691,6 @@ typedef struct ArenaStruct {
 
   double pollThreshold;         /* design.mps.arena.poll */
   Bool insidePoll;
-  Bool clamped;                 /* prevent background activity */
 
   Bool bufferLogging;           /* design.mps.buffer.logging.control */
 
@@ -721,6 +722,9 @@ typedef struct ArenaStruct {
   RingStruct chunkRing;         /* all the chunks */
   Serial chunkSerial;           /* next chunk number */
   ChunkCacheEntryStruct chunkCache; /* just one entry */
+
+  /* locus fields (impl.c.locus) */
+  GenDescStruct topGen;         /* generation descriptor for dynamic gen */
 
   /* pool fields (impl.c.pool) */
   RingStruct poolRing;          /* ring of pools in arena */
@@ -761,6 +765,8 @@ typedef struct ArenaStruct {
                                    design.mps.trace.intance.limit */
   RingStruct greyRing[RankMAX]; /* ring of grey segments at each rank */
   STATISTIC_DECL(Count writeBarrierHitCount); /* write barrier hits */
+  Bool clamped;                 /* prevent background activity */
+  RingStruct chainRing;         /* ring of chains */
 
   /* location dependency fields (impl.c.ld) */
   Epoch epoch;                     /* design.mps.arena.ld.epoch */
