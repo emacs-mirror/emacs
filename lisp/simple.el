@@ -1,7 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
 ;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 99,
-;;               2000, 2001, 2002, 2003
+;;               2000, 01, 02, 03, 04
 ;;        Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -74,11 +74,14 @@ similar mode is started, or when it is used with \\[next-error]
 or \\[compile-goto-error].")
 
 (defvar next-error-function nil
-  "The next-error vehicle for other modes.
-This variable can be bound to a function by a mode.  It is
-buffer-local by default.  Together with
-`next-error-last-buffer', this variable lets modes hook into
-\\[next-error].")
+  "Function to use to find the next error in the current buffer.
+The function is called with 2 parameters:
+ARG is an integer specifying by how many errors to move.
+RESET is a boolean which, if non-nil, says to go back to the beginning
+of the errors before moving.
+Major modes providing compile-like functionality should set this variable
+to indicate to `next-error' that this is a candidate buffer and how
+to navigate in it.")
 
 (make-variable-buffer-local 'next-error-function)
 
@@ -119,13 +122,13 @@ buffer-local by default.  Together with
 		     (current-buffer)))
 	      (error "No next-error capable buffer found!")))))))
 
-(defun next-error (argp &optional reset)
+(defun next-error (arg &optional reset)
   "Visit next next-error message and corresponding source code.
 
 If all the error messages parsed so far have been processed already,
 the message buffer is checked for new ones.
 
-A prefix ARGP specifies how many error messages to move;
+A prefix ARG specifies how many error messages to move;
 negative means move back to previous error messages.
 Just \\[universal-argument] as a prefix means reparse the error message buffer
 and start at the first error.
@@ -148,10 +151,11 @@ uses Compilation mode or Compilation Minor mode.
 See variables `compilation-parse-errors-function' and
 \`compilation-error-regexp-alist' for customization ideas."
   (interactive "P")
+  (if (consp arg) (setq reset t arg nil))
   (when (setq next-error-last-buffer (next-error-find-buffer))
     ;; we know here that next-error-function is a valid symbol we can funcall
     (with-current-buffer next-error-last-buffer
-      (funcall next-error-function argp reset))))
+      (funcall next-error-function (prefix-numeric-value arg) reset))))
 
 (defalias 'goto-next-locus 'next-error)
 (defalias 'next-match 'next-error)
