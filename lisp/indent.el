@@ -238,7 +238,10 @@ Use \\[edit-tab-stops] to edit them interactively."
     (while (and tabs (>= (current-column) (car tabs)))
       (setq tabs (cdr tabs)))
     (if tabs
-	(indent-to (car tabs))
+	(let ((opoint (point)))
+	  (skip-chars-backward " \t")
+	  (delete-region (point) opoint)
+	  (indent-to (car tabs)))
       (insert ?\ ))))
 
 (defun move-to-tab-stop ()
