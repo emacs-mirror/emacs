@@ -64,7 +64,7 @@ Boston, MA 02111-1307, USA.  */
 #define O_RDONLY 0
 #endif
 
-#ifdef HAVE_FTELLO
+#ifdef HAVE_FSEEKO
 #define file_offset off_t
 #define file_tell ftello
 #else
