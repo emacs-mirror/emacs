@@ -671,9 +671,9 @@ overlays are considered only if they are associated with OBJECT.")
 DEFUN ("next-char-property-change", Fnext_char_property_change,
        Snext_char_property_change, 1, 2, 0,
   "Return the position of next text property or overlay change.\n\
-This scans characters forward from POSITION in OBJECT till it finds\n\
-a change in some text property, or the beginning or end of an overlay,\n\
-and returns the position of that.\n\
+This scans characters forward from POSITION till it finds a change in\n\
+some text property, or the beginning or end of an overlay, and returns\n\
+the position of that.\n\
 If none is found, the function returns (point-max).\n\
 \n\
 If the optional third argument LIMIT is non-nil, don't search\n\
@@ -696,9 +696,9 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
 DEFUN ("previous-char-property-change", Fprevious_char_property_change,
        Sprevious_char_property_change, 1, 2, 0,
   "Return the position of previous text property or overlay change.\n\
-Scans characters backward from POSITION in OBJECT till it finds\n\
-a change in some text property, or the beginning or end of an overlay,\n\
-and returns the position of that.\n\
+Scans characters backward from POSITION till it finds a change in some\n\
+text property, or the beginning or end of an overlay, and returns the\n\
+position of that.\n\
 If none is found, the function returns (point-max).\n\
 \n\
 If the optional third argument LIMIT is non-nil, don't search\n\
