@@ -8088,9 +8088,36 @@
 
 	* net/goto-addr.el: Change maintainer to FSF.
 
-	* recentf.el: Update from author.
-
 	* info.el (Info-title-face-alist): Removed.
+
+2000-07-18  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-open-files): New command that works like
+	`recentf-open-more-files', but shows the whole list of files (not just
+	those omitted from the menu). Useful if you don't use a menu-bar!
+	(recentf-open-more-files) Modified to use `recentf-open-files'.
+
+	(recentf-open-files, recentf-open-more-files)
+	(recentf-edit-list): Dialogs use `recentf-dialog-mode'
+	
+	(recentf-dialog-mode): New mode for dialogs. You can now just type
+	"q" to cancel the dialogs.
+
+2000-07-18  David Ponce  <david@dponce.com>
+
+	* recentf.el: This is a major update of recentf.el. It adds new
+	features to better organize the recentf menu and "More..." buffer.
+
+	Using new provided menu filtering functions you can now organize the
+	recent files list:
+
+	- by major modes
+	- by directories
+	- by user defined rules
+
+	Finally, with the new `recentf-filter-changer' customizable filter you
+	can define a ring of filters and dynamically (via the menu) cycle on
+	each menu organization in the ring (a la msb).
 
 2000-07-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
