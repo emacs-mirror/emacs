@@ -1125,6 +1125,7 @@ otherwise pop it")
 (defun byte-force-recompile (directory)
   "Recompile every `.el' file in DIRECTORY that already has a `.elc' file.
 Files in subdirectories of DIRECTORY are processed also."
+  (interactive "DByte recompile directory: ")
   (byte-recompile-directory directory nil t))
 
 ;;;###autoload
