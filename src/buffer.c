@@ -803,7 +803,7 @@ with `delete-process'.")
       Lisp_Object tem;
       tem = Fsymbol_value (intern ("delete-auto-save-files"));
       if (! NILP (tem))
-	unlink (XSTRING (b->auto_save_file_name)->data);
+	internal_delete_file (b->auto_save_file_name);
     }
 
   /* Unchain all markers of this buffer
