@@ -59,7 +59,7 @@ Lisp_Object Qlocal_map;
 
 /* Visual properties text (including strings) may have.  */
 Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
-Lisp_Object Qinvisible, Qread_only, Qintangible;
+Lisp_Object Qinvisible, Qread_only, Qintangible, Qmouse_face;
 
 /* Sticky properties */
 Lisp_Object Qfront_sticky, Qrear_nonsticky;
@@ -1679,6 +1679,8 @@ This also inhibits the use of the `intangible' text property.");
   Qfront_sticky = intern ("front-sticky");
   staticpro (&Qrear_nonsticky);
   Qrear_nonsticky = intern ("rear-nonsticky");
+  staticpro (&Qmouse_face);
+  Qmouse_face = intern ("mouse-face");
 
   /* Properties that text might use to specify certain actions */
 
