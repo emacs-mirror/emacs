@@ -91,6 +91,12 @@ Boston, MA 02111-1307, USA.  */
 #define DISABLE_DIRECT_ACCESS
 #endif /* WINDOWSNT */
 
+/* Cancel substitutions made by config.h for Emacs.  */
+#undef open
+#undef read
+#undef write
+#undef close
+
 #ifdef USG
 #include <fcntl.h>
 #include <unistd.h>
@@ -104,6 +110,10 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+
+#ifdef STDC_HEADERS
+#include <stdlib.h>
 #endif
 
 #if defined (XENIX) || defined (WINDOWSNT)
@@ -132,12 +142,6 @@ extern int lk_open (), lk_close ();
 static char *mail_spool_name ();
 #endif
 #endif
-
-/* Cancel substitutions made by config.h for Emacs.  */
-#undef open
-#undef read
-#undef write
-#undef close
 
 #ifndef errno
 extern int errno;
