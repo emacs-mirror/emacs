@@ -1,10 +1,10 @@
 2005-03-31  Kim F. Storm  <storm@cua.dk>
 
 	* mouse.el (mouse-1-click-follows-link): Increase to 450 ms.
-	(mouse-fixup-help-message): New defun called by show_help_echo.
+	(mouse-fixup-help-message): New defun called by show_help_echo
+	to fixup mouse-2 prefix in help messages when applicable.
 
-	* tooltip.el (tooltip-show-help-function): Don't rewrite mouse-2
-	prefix in tooltip message.
+	* tooltip.el (tooltip-show-help-function): Don't fixup message here.
 
 2005-03-31  Kenichi Handa  <handa@etlken2>
 

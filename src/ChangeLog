@@ -1,3 +1,9 @@
+2005-03-31  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (Qmouse_fixup_help_message): New var.
+	(syms_of_keyboard): Intern and staticpro it.
+	(show_help_echo): Apply mouse-fixup-help-message to help string.
+
 2005-03-30  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (display_line): Allow multiple overlay arrows in window.
