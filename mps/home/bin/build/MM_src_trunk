@@ -1,8 +1,8 @@
 #!/usr/local/bin/bash
 #
-# Build and test MM at tip of main trunk (the MM_src compound)
+# Build and test MM (the MM_src compound) at tip of the trunk
 # 
-# $HopeName: HOMEmm!bin:build:MM_src_trunk(trunk.19) $
+# $HopeName: HOMEmm!bin:build:MM_src_trunk(trunk.20) $
 #
 
 script="`basename $0`"
@@ -28,32 +28,52 @@ cd MM_src_trunk ||
 
 hope co -compound MMsrc -branch . -recursive \
   -writable-files quit -missing-dir create -extra-files skip ||
-  die "Unable to check out MMsrc(trunk) from Hope"
+  die "Unable to check out MMsrc(trunk) from HOPE"
 
-cd src &&
 
-for lib in mps.a mmsw.a
-do
+## Build a library
+function build-lib {
   for variety in hi ci ti wi he ce
   do
-    gnumake -r -f ${platform}.gmk VARIETY=$variety $lib ||
-      die "Unable to build library $lib of trunk"
+    gnumake -r -f ${platform}.gmk VARIETY=$variety $1 ||
+      die "Unable to build library $1 of trunk"
   done
-done
+}
 
-for test in amcss lockcov locv mpmss mpsicv poolncv \
-            qs mpmconft finalcv arenacv awlut
-            ## Don't run amsss, because it doesn't work
-            ## Don't run dwstress, because it's not a good test
-do
+## Build and run a test
+function do-test {
   for variety in hi ci ti wi he ce
   do
-    gnumake -r -f ${platform}.gmk VARIETY=$variety $test ||
-      die "Unable to build test $variety/$test of trunk"
-    ./$platform/$variety/$test ||
-      die "Failed test $variety/$test of trunk"
+    gnumake -r -f ${platform}.gmk VARIETY=$variety $1 ||
+      die "Unable to build test $variety/$1 of trunk"
+    ./$platform/$variety/$1 ||
+      die "Failed test $variety/$1 of trunk"
     rm mpsio.log
   done
+}
+
+
+cd src
+
+### SW builds have different compilation options, so they ought to be
+### done separately.  Do them first.
+
+build-lib mmsw.a
+
+## do-test epvmss # Don't run epvmss, because it takes too long
+
+### Then clean up and do the others.
+
+gnumake -r -f $platform.gmk clean ||
+  die "Unable to clean up trunk"
+
+build-lib mps.a 
+
+for test in amcss lockcov locv mpmss mpsicv poolncv \
+            qs mpmconft finalcv arenacv awlut amsss
+            ## Don't run dwstress, because it's not a good test
+do
+  do-test $test
 done
 
 gnumake -r -f $platform.gmk clean ||
