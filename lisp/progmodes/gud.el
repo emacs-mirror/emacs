@@ -326,7 +326,7 @@ off the specialized speedbar mode."
 		       (goto-char (point-min))
 		       (let ((case-fold-search t))
 			 (looking-at "Watch Expressions:")))))
- 	(erase-buffer)
+	(erase-buffer)
 	(insert "Watch Expressions:\n")
 	(let ((var-list gdb-var-list))
 	  (while var-list
@@ -337,17 +337,21 @@ off the specialized speedbar mode."
 		      start (1+ (match-beginning 0))))
 	      (if (equal (nth 2 var) "0")
 		  (speedbar-make-tag-line 'bracket ?? nil nil
-					  (concat (car var) "    " (nth 4 var))
-					  'gdb-var-delete
-					  nil 'speedbar-directory-face depth)
+					  (concat (car var) "\t" (nth 4 var))
+					  'gdb-edit-value
+					  nil 
+					  (if (and (nth 5 var) 
+						   gdb-show-changed-values)
+					      'font-lock-warning-face
+					    nil) depth)
 		(if (and (cadr var-list)
 			 (string-match varnum (cadr (cadr var-list))))
 		    (setq char ?-))
 		(speedbar-make-tag-line 'bracket char
 					'gdb-speedbar-expand-node varnum
-					(concat (car var) "    " (nth 3 var))
+					(concat (car var) "\t" (nth 3 var))
 					'gdb-var-delete
-					nil 'speedbar-directory-face depth)))
+					nil nil depth)))
 	    (setq var-list (cdr var-list))))
 	(setq gdb-var-changed nil)))
      (t (if (and (save-excursion 
