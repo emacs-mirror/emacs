@@ -613,12 +613,11 @@ For instance, `(meta shift 1)' means that holding the meta and shift
 keys down and clicking on a word with mouse button 1
 will search for that word in the buffer that was current before the click.
 This buffer may be different from the one where the click occurred."
-  ;; This does not work
-  ;; :type '(list (set :inline meta shift control)
-  ;;	       integer)
-  ;; This doesn't work either.
-  ;; :type '(set meta shift control 1 2 3)
-  :type 'sexp
+  :type '(list (set :inline t :tag "Modifiers" :format "%t: %v"
+		     (const :format "%v " meta)
+		     (const :format "%v " shift)
+		     (const control))
+	       (integer :tag "Button"))
   :set 'viper-reset-mouse-search-key
   :group 'viper-mouse)
 
@@ -630,12 +629,11 @@ For instance, `(meta shift 2)' means that holding the meta and shift keys
 down, and clicking on a word with mouse button 2, will insert that word
 at the cursor in the buffer that was current just before the click.
 This buffer may be different from the one where the click occurred."
-  ;; This does not work.
-  ;; :type '(list (set :inline meta shift control)
-  ;;	       integer)
-  ;; This doesn't work either.
-  ;; :type '(set meta shift control 1 2 3)
-  :type 'sexp
+  :type '(list (set :inline t :tag "Modifiers" :format "%t: %v"
+		     (const :format "%v " meta)
+		     (const :format "%v " shift)
+		     (const control))
+	       (integer :tag "Button"))
   :set 'viper-reset-mouse-insert-key
   :group 'viper-mouse)
 	   
