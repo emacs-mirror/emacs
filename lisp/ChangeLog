@@ -1,3 +1,7 @@
+2000-07-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mouse.el (mouse-major-mode-menu-1): get the submenu with lookup-key.
+
 2000-07-16  Dave Love  <fx@gnu.org>
 
 	* cus-edit.el (custom-buffer-create-internal): Use a help-echo
