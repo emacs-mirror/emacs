@@ -1024,7 +1024,7 @@ so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
 	      register int i;
 
 	      /* Vector keymap.  Scan all the elements.  */
-	      for (i = 0; i < DENSE_TABLE_SIZE; i++)
+	      for (i = 0; i < XVECTOR (elt)->size; i++)
 		{
 		  register Lisp_Object tem;
 		  register Lisp_Object cmd;
@@ -1417,7 +1417,7 @@ indirect definition itself.")
 	      /* If we've just finished scanning a vector, advance map
 		 to the next element, and reset i in anticipation of the
 		 next vector we may find.  */
-	      if (i >= DENSE_TABLE_SIZE)
+	      if (i >= XVECTOR (elt)->size)
 		{
 		  map = XCONS (map)->cdr;
 		  i = 0;
@@ -1896,7 +1896,7 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
   if (partial)
     suppress = intern ("suppress-keymap");
 
-  for (i = 0; i < DENSE_TABLE_SIZE; i++)
+  for (i = 0; i < XVECTOR (vector)->size; i++)
     {
       QUIT;
       tem1 = get_keyelt (XVECTOR (vector)->contents[i]);
@@ -1941,7 +1941,7 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
       insert1 (this);
 
       /* Find all consecutive characters that have the same definition.  */
-      while (i + 1 < DENSE_TABLE_SIZE
+      while (i + 1 < XVECTOR (vector)->size
 	     && (tem2 = get_keyelt (XVECTOR (vector)->contents[i+1]),
 		 EQ (tem2, tem1)))
 	i++;
