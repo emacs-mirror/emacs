@@ -14287,7 +14287,7 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
       if (GetOpenFileName (&file_details))
         {
           dostounix_filename (filename);
-          file = build_string (filename);
+          file = DECODE_FILE(build_string (filename));
         }
       else
         file = Qnil;
