@@ -888,7 +888,7 @@ The super modifier.
 @end table
 
 Thus, the symbol for the key @key{F3} with @key{META} held down is
-@kbd{M-@key{f3}}.  When you use more than one prefix, we recommend you
+@code{M-f3}.  When you use more than one prefix, we recommend you
 write them in alphabetical order; but the order does not matter in
 arguments to the key-binding lookup and modification functions.
 
