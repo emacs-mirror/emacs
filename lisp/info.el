@@ -728,7 +728,7 @@ NAME may be an abbreviation of the reference name."
 		    (1- (point))))
 	 ;; See if this one should be the default.
 	 (and (null default)
-	      (< (match-beginning 0) start-point)
+	      (<= (match-beginning 0) start-point)
 	      (<= start-point (point))
 	      (setq default t))
 	 (setq i 0)
