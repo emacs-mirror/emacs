@@ -2108,8 +2108,8 @@ x_produce_glyphs (it)
 	  cmp->font = (void *) font;
 
 	  /* Initialize the bounding box.  */
-	  pcm = x_per_char_metric (font, &char2b);
-	  if (pcm)
+	  if (font_info
+	      && (pcm = x_per_char_metric (font, &char2b)))
 	    {
 	      width = pcm->width;
 	      ascent = pcm->ascent;
@@ -2166,8 +2166,8 @@ x_produce_glyphs (it)
 		    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
 		}
 
-	      pcm = x_per_char_metric (font, &char2b);
-	      if (pcm)
+	      if (font_info
+		  && (pcm = x_per_char_metric (font, &char2b)))
 		{
 		  width = pcm->width;
 		  ascent = pcm->ascent;
@@ -2176,8 +2176,8 @@ x_produce_glyphs (it)
 	      else
 		{
 		  width = FONT_WIDTH (font);
-		  ascent = font->ascent;
-		  descent = font->descent;
+		  ascent = 1;
+		  descent = 0;
 		}
 
 	      if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
