@@ -266,6 +266,8 @@ struct x_display_info
   Atom Xatom_wm_window_moved;     /* When the WM moves us.  */
   /* EditRes protocol */
   Atom Xatom_editres;
+  /* Atom `FONT' */
+  Atom Xatom_FONT;
 
   /* More atoms, which are selection types.  */
   Atom Xatom_CLIPBOARD, Xatom_TIMESTAMP, Xatom_TEXT, Xatom_DELETE,
