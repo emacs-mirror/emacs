@@ -39,6 +39,8 @@ Boston, MA 02111-1307, USA.  */
 #define FONT_MAX_WIDTH(f)   \
   ((f)->bdf ? (f)->bdf->width : (f)->tm.tmMaxCharWidth)
 
+#define CP_DEFAULT 1004
+
 #define CHECK_W32_FRAME(f, frame)		\
   if (NILP (frame))				\
     f = SELECTED_FRAME ();			\
@@ -824,3 +826,6 @@ extern BOOL parse_button ();
 
 XGCValues *XCreateGC (void *, Window, unsigned long, XGCValues *);
 struct frame * check_x_frame (Lisp_Object);
+EXFUN (Fx_display_color_p, 1);
+EXFUN (Fx_display_grayscale_p, 1);
+int image_ascent P_ ((struct image *, struct face *));
