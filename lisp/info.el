@@ -1840,7 +1840,8 @@ new buffer."
           (if (and (save-excursion
                      (goto-char (+ (point) 5)) ; skip a possible *note
                      (re-search-backward "\\*note[ \n\t]+" nil t)
-                     (looking-at (concat "\\*note[ \n\t]+" (Info-following-node-name-re))))
+                     (looking-at (concat "\\*note[ \n\t]+"
+                                         (Info-following-node-name-re "^.,\t"))))
                    (<= (point) (match-end 0)))
               (goto-char (match-beginning 0))))
       ;; Go to the reference closest to point
