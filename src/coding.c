@@ -4546,10 +4546,11 @@ detect_coding_system (src, src_bytes, highest)
   if (!highest)
     val = Fnreverse (val);
 
-  /* Then, substitute the elements by subsidiary coding systems.  */
+  /* Then, replace the elements with subsidiary coding systems.  */
   for (tmp = val; !NILP (tmp); tmp = XCONS (tmp)->cdr)
     {
-      if (eol_type != CODING_EOL_UNDECIDED)
+      if (eol_type != CODING_EOL_UNDECIDED
+	  && eol_type != CODING_EOL_INCONSISTENT)
 	{
 	  Lisp_Object eol;
 	  eol = Fget (XCONS (tmp)->car, Qeol_type);
