@@ -1,3 +1,8 @@
+2001-09-24  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-hooks.el (vc-delete-automatic-version-backups): Handle the
+	case where the file is relative.
+
 2001-09-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* xml.el (xml-parse-attlist): Quotes around attributes must be the
