@@ -436,6 +436,7 @@ end of the buffer."
     (define-key map [mouse-2] 'occur-mode-mouse-goto)
     (define-key map "\C-c\C-c" 'occur-mode-goto-occurrence)
     (define-key map "\C-m" 'occur-mode-goto-occurrence)
+    (define-key map "\C-o" 'occur-mode-display-occurrence)
     (define-key map "\M-n" 'occur-next)
     (define-key map "\M-p" 'occur-prev)
     (define-key map "g" 'revert-buffer)
@@ -511,6 +512,19 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (let ((pos (occur-mode-find-occurrence)))
     (pop-to-buffer occur-buffer)
     (goto-char (marker-position pos))))
+
+(defun occur-mode-display-occurrence ()
+  "Display in another window the occurrence the current line describes."
+  (interactive)
+  (let ((pos (occur-mode-find-occurrence))
+	same-window-buffer-names
+	same-window-regexps
+	window)
+    (setq window (display-buffer occur-buffer))
+    ;; This is the way to set point in the proper window.
+    (save-selected-window
+      (select-window window)
+      (goto-char (marker-position pos)))))
 
 (defun occur-next (&optional n)
   "Move to the Nth (default 1) next match in the *Occur* buffer."
