@@ -13640,7 +13640,8 @@ display_mode_element (it, depth, field_width, precision, elt, props)
 		else
 		  {
 		    elt = Fcopy_sequence (elt);
-		    Fset_text_properties (0, Flength (elt), props, elt);
+		    Fset_text_properties (make_number (0), Flength (elt),
+					  props, elt);
 		    mode_line_proptrans_alist
 		      = Fcons (Fcons (elt, props),
 			       mode_line_proptrans_alist);
