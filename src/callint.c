@@ -33,6 +33,7 @@ Lisp_Object Qcall_interactively;
 Lisp_Object Vcommand_history;
 
 Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
+Lisp_Object Qenable_recursive_minibuffers;
 
 /* This comment supplies the doc string for interactive,
    for make-docfile to see.  We cannot put this in the real DEFUN
@@ -156,6 +157,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
   Lisp_Object funcar;
   Lisp_Object specs;
   Lisp_Object teml;
+  Lisp_Object enable;
+  int speccount = specpdl_ptr - specpdl;
 
   Lisp_Object prefix_arg;
   unsigned char *string;
@@ -178,6 +181,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
   prefix_arg = Vcurrent_prefix_arg;
 
  retry:
+
+  enable = Fget (function, Qenable_recursive_minibuffers);
 
   fun = indirect_function (function);
 
@@ -298,6 +303,9 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
   GCPRO4 (prefix_arg, function, *args, *visargs);
   gcpro3.nvars = (count + 1);
   gcpro4.nvars = (count + 1);
+
+  if (!NILP (enable))
+    specbind (Qenable_recursive_minibuffers, Qt);
 
   tem = string;
   for (i = 1; *tem; i++)
@@ -474,6 +482,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
       if (tem) tem++;
       else tem = (unsigned char *) "";
     }
+  unbind_to (speccount, Qnil);
 
   QUIT;
 
@@ -493,7 +502,6 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
   {
     Lisp_Object val;
-    int speccount = specpdl_ptr - specpdl;
     specbind (Qcommand_debug_status, Qnil);
 
     val = Ffuncall (count + 1, args);
@@ -540,6 +548,9 @@ syms_of_callint ()
 
   Qcommand_debug_status = intern ("command-debug-status");
   staticpro (&Qcommand_debug_status);
+
+  Qenable_recursive_minibuffers = intern ("enable-recursive-minibuffers");
+  staticpro (&Qenable_recursive_minibuffers);
 
   DEFVAR_LISP ("prefix-arg", &Vprefix_arg,
     "The value of the prefix argument for the next editing command.\n\
