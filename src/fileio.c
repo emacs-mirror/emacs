@@ -2485,7 +2485,7 @@ Lisp_Object Qfind_buffer_file_type;
 #endif
 
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
-  1, 4, 0,
+  1, 5, 0,
   "Insert contents of file FILENAME after point.\n\
 Returns list of absolute file name and length of data inserted.\n\
 If second argument VISIT is non-nil, the buffer's visited filename\n\
@@ -2494,9 +2494,14 @@ If visiting and the file does not exist, visiting is completed\n\
 before the error is signaled.\n\n\
 The optional third and fourth arguments BEG and END\n\
 specify what portion of the file to insert.\n\
-If VISIT is non-nil, BEG and END must be nil.")
-  (filename, visit, beg, end)
-     Lisp_Object filename, visit, beg, end;
+If VISIT is non-nil, BEG and END must be nil.\n\
+If optional fifth argument REPLACE is non-nil,\n\
+it means replace the current buffer contents (in the accessible portion)\n\
+with the file contents.  This is better than simply deleting and inserting\n\
+the whole thing because (1) it preserves some marker positions\n\
+and (2) it puts less data in the undo list.")
+  (filename, visit, beg, end, replace)
+     Lisp_Object filename, visit, beg, end, replace;
 {
   struct stat st;
   register int fd;
@@ -2523,7 +2528,8 @@ If VISIT is non-nil, BEG and END must be nil.")
   handler = Ffind_file_name_handler (filename);
   if (!NILP (handler))
     {
-      val = call5 (handler, Qinsert_file_contents, filename, visit, beg, end);
+      val = call6 (handler, Qinsert_file_contents, filename,
+		   visit, beg, end, replace);
       goto handled;
     }
 
@@ -2577,6 +2583,92 @@ If VISIT is non-nil, BEG and END must be nil.")
       XSETINT (end, st.st_size);
       if (XINT (end) != st.st_size)
 	error ("maximum buffer size exceeded");
+    }
+
+  /* If requested, replace the accessible part of the buffer
+     with the file contents.  Avoid replacing text at the
+     beginning or end of the buffer that matches the file contents;
+     that preserves markers pointing to the unchanged parts.  */
+  if (!NILP (replace))
+    {
+      char buffer[1 << 14];
+      int same_at_start = BEGV;
+      int same_at_end = ZV;
+      immediate_quit = 1;
+      QUIT;
+      /* Count how many chars at the start of the file
+	 match the text at the beginning of the buffer.  */
+      while (1)
+	{
+	  int nread, bufpos;
+
+	  nread = read (fd, buffer, sizeof buffer);
+	  if (nread < 0)
+	    error ("IO error reading %s: %s",
+		   XSTRING (filename)->data, strerror (errno));
+	  else if (nread == 0)
+	    break;
+	  bufpos = 0;
+	  while (bufpos < nread && same_at_start < ZV
+		 && FETCH_CHAR (same_at_start) == buffer[bufpos])
+	    same_at_start++, bufpos++;
+	  /* If we found a discrepancy, stop the scan.
+	     Otherwise loop around and scan the next bufferfull.  */
+	  if (bufpos != nread)
+	    break;
+	}
+      immediate_quit = 0;
+      /* If the file matches the buffer completely,
+	 there's no need to replace anything.  */
+      if (same_at_start == ZV)
+	{
+	  close (fd);
+	  goto handled;
+	}
+      immediate_quit = 1;
+      QUIT;
+      /* Count how many chars at the end of the file
+	 match the text at the end of the buffer.  */
+      while (1)
+	{
+	  int total_read, nread, bufpos, curpos, trial;
+
+	  /* At what file position are we now scanning?  */
+	  curpos = st.st_size - (ZV - same_at_end);
+	  /* How much can we scan in the next step?  */
+	  trial = min (curpos, sizeof buffer);
+	  if (lseek (fd, curpos - trial, 0) < 0)
+	    report_file_error ("Setting file position",
+			       Fcons (filename, Qnil));
+
+	  total_read = 0;
+	  while (total_read < trial)
+	    {
+	      nread = read (fd, buffer + total_read, trial - total_read);
+	      if (nread <= 0)
+		error ("IO error reading %s: %s",
+		       XSTRING (filename)->data, strerror (errno));
+	      total_read += nread;
+	    }
+	  /* Scan this bufferfull from the end, comparing with
+	     the Emacs buffer.  */
+	  bufpos = total_read;
+	  /* Compare with same_at_start to avoid counting some buffer text
+	     as matching both at the file's beginning and at the end.  */
+	  while (bufpos > 0 && same_at_end > same_at_start
+		 && FETCH_CHAR (same_at_end - 1) == buffer[bufpos - 1])
+	    same_at_end--, bufpos--;
+	  /* If we found a discrepancy, stop the scan.
+	     Otherwise loop around and scan the preceding bufferfull.  */
+	  if (bufpos != 0)
+	    break;
+	}
+      immediate_quit = 0;
+      /* Arrange to read only the nonmatching middle part of the file.  */
+      XFASTINT (beg) = same_at_start - BEGV;
+      XFASTINT (end) = st.st_size - (ZV - same_at_end);
+      /* Delete the nonmatching middle part of the buffer.  */
+      Fdelete_region (make_number (same_at_start), make_number (same_at_end));
     }
 
   total = XINT (end) - XINT (beg);
