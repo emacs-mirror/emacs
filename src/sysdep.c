@@ -2117,7 +2117,7 @@ init_system_name ()
   uname (&uts);
   Vsystem_name = build_string (uts.nodename);
 #else /* HAVE_GETHOSTNAME */
-  int hostname_size = 256;
+  unsigned int hostname_size = 256;
   char *hostname = (char *) alloca (hostname_size);
 
   /* Try to get the host name; if the buffer is too short, try
