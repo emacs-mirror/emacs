@@ -1,3 +1,8 @@
+2003-05-19  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_string): Handle post-read-conversion
+	even if the coding doesn't require decoding.
+
 2003-05-18  Richard M. Stallman  <rms@gnu.org>
 
 	* callproc.c (Fcall_process_region): Doc fix.
