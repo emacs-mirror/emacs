@@ -94,7 +94,7 @@ CODING SYSTEM
   o BIG5
 
   A coding system to encode character sets: ASCII and Big5.  Widely
-  used by Chinese (mainly in Taiwan and Hong Kong).  Details are
+  used for Chinese (mainly in Taiwan and Hong Kong).  Details are
   described in section 8.  In this file, when we write "big5" (all
   lowercase), we mean the coding system, and when we write "Big5"
   (capitalized), we mean the character set.
@@ -108,7 +108,7 @@ CODING SYSTEM
 
   o Raw-text
 
-  A coding system for a text containing raw eight-bit data.  Emacs
+  A coding system for text containing raw eight-bit data.  Emacs
   treats each byte of source text as a character (except for
   end-of-line conversion).
 
@@ -587,7 +587,7 @@ enum iso_code_class_type
   (XSTRING (AREF (CODING_ID_ATTRS ((coding)->id), coding_attr_ccl_valids)) \
    ->data)
 
-/* Index for each coding category in `coding_category_table' */
+/* Index for each coding category in `coding_categories' */
 
 enum coding_category
   {
@@ -2049,21 +2049,23 @@ encode_coding_emacs_mule (coding)
 
 /* The following note describes the coding system ISO2022 briefly.
    Since the intention of this note is to help understand the
-   functions in this file, some parts are NOT ACCURATE or OVERLY
+   functions in this file, some parts are NOT ACCURATE or are OVERLY
    SIMPLIFIED.  For thorough understanding, please refer to the
-   original document of ISO2022.
+   original document of ISO2022.  This is equivalent to the standard
+   ECMA-35, obtainable from <URL:http://www.ecma.ch/> (*).
 
    ISO2022 provides many mechanisms to encode several character sets
-   in 7-bit and 8-bit environments.  For 7-bite environments, all text
+   in 7-bit and 8-bit environments.  For 7-bit environments, all text
    is encoded using bytes less than 128.  This may make the encoded
    text a little bit longer, but the text passes more easily through
-   several gateways, some of which strip off MSB (Most Signigant Bit).
+   several types of gateway, some of which strip off the MSB (Most
+   Significant Bit).
 
-   There are two kinds of character sets: control character set and
-   graphic character set.  The former contains control characters such
+   There are two kinds of character sets: control character sets and
+   graphic character sets.  The former contain control characters such
    as `newline' and `escape' to provide control functions (control
    functions are also provided by escape sequences).  The latter
-   contains graphic characters such as 'A' and '-'.  Emacs recognizes
+   contain graphic characters such as 'A' and '-'.  Emacs recognizes
    two control character sets and many graphic character sets.
 
    Graphic character sets are classified into one of the following
@@ -2075,14 +2077,14 @@ encode_coding_emacs_mule (coding)
    - DIMENSION2_CHARS96
 
    In addition, each character set is assigned an identification tag,
-   unique for each set, called "final character" (denoted as <F>
+   unique for each set, called the "final character" (denoted as <F>
    hereafter).  The <F> of each character set is decided by ECMA(*)
    when it is registered in ISO.  The code range of <F> is 0x30..0x7F
    (0x30..0x3F are for private use only).
 
    Note (*): ECMA = European Computer Manufacturers Association
 
-   Here are examples of graphic character set [NAME(<F>)]:
+   Here are examples of graphic character sets [NAME(<F>)]:
 	o DIMENSION1_CHARS94 -- ASCII('B'), right-half-of-JISX0201('I'), ...
 	o DIMENSION1_CHARS96 -- right-half-of-ISO8859-1('A'), ...
 	o DIMENSION2_CHARS94 -- GB2312('A'), JISX0208('B'), ...
@@ -2175,11 +2177,11 @@ encode_coding_emacs_mule (coding)
    Note (**): If <F> is '@', 'A', or 'B', the intermediate character
    '(' must be omitted.  We refer to this as "short-form" hereafter.
 
-   Now you may notice that there are a lot of ways for encoding the
+   Now you may notice that there are a lot of ways of encoding the
    same multilingual text in ISO2022.  Actually, there exist many
    coding systems such as Compound Text (used in X11's inter client
-   communication, ISO-2022-JP (used in Japanese internet), ISO-2022-KR
-   (used in Korean internet), EUC (Extended UNIX Code, used in Asian
+   communication, ISO-2022-JP (used in Japanese Internet), ISO-2022-KR
+   (used in Korean Internet), EUC (Extended UNIX Code, used in Asian
    localized platforms), and all of these are variants of ISO2022.
 
    In addition to the above, Emacs handles two more kinds of escape
@@ -2201,19 +2203,19 @@ encode_coding_emacs_mule (coding)
 	o ESC '3' -- start relative composition with alternate chars  (**)
 	o ESC '4' -- start rule-base composition with alternate chars  (**)
   Since these are not standard escape sequences of any ISO standard,
-  the use of them for these meaning is restricted to Emacs only.
+  the use of them with these meanings is restricted to Emacs only.
 
-  (*) This form is used only in Emacs 20.5 and the older versions,
-  but the newer versions can safely decode it.
-  (**) This form is used only in Emacs 21.1 and the newer versions,
-  and the older versions can't decode it.
+  (*) This form is used only in Emacs 20.7 and older versions,
+  but newer versions can safely decode it.
+  (**) This form is used only in Emacs 21.1 and newer versions,
+  and older versions can't decode it.
 
-  Here's a list of examples usages of these composition escape
+  Here's a list of example usages of these composition escape
   sequences (categorized by `enum composition_method').
 
   COMPOSITION_RELATIVE:
 	ESC 0 CHAR [ CHAR ] ESC 1
-  COMPOSITOIN_WITH_RULE:
+  COMPOSITION_WITH_RULE:
 	ESC 2 CHAR [ RULE CHAR ] ESC 1
   COMPOSITION_WITH_ALTCHARS:
 	ESC 3 ALTCHAR [ ALTCHAR ] ESC 0 CHAR [ CHAR ] ESC 1
@@ -4534,66 +4536,6 @@ encode_coding_charset (coding)
 
 
 /*** 7. C library functions ***/
-
-/* In Emacs Lisp, coding system is represented by a Lisp symbol which
-   has a property `coding-system'.  The value of this property is a
-   vector of length 5 (called as coding-vector).  Among elements of
-   this vector, the first (element[0]) and the fifth (element[4])
-   carry important information for decoding/encoding.  Before
-   decoding/encoding, this information should be set in fields of a
-   structure of type `coding_system'.
-
-   A value of property `coding-system' can be a symbol of another
-   subsidiary coding-system.  In that case, Emacs gets coding-vector
-   from that symbol.
-
-   `element[0]' contains information to be set in `coding->type'.  The
-   value and its meaning is as follows:
-
-   0 -- coding_type_emacs_mule
-   1 -- coding_type_sjis
-   2 -- coding_type_iso_2022
-   3 -- coding_type_big5
-   4 -- coding_type_ccl encoder/decoder written in CCL
-   nil -- coding_type_no_conversion
-   t -- coding_type_undecided (automatic conversion on decoding,
-   			       no-conversion on encoding)
-
-   `element[4]' contains information to be set in `coding->flags' and
-   `coding->spec'.  The meaning varies by `coding->type'.
-
-   If `coding->type' is `coding_type_iso_2022', element[4] is a vector
-   of length 32 (of which the first 13 sub-elements are used now).
-   Meanings of these sub-elements are:
-
-   sub-element[N] where N is 0 through 3: to be set in `coding->spec.iso_2022'
-   	If the value is an integer of valid charset, the charset is
-	assumed to be designated to graphic register N initially.
-
-	If the value is minus, it is a minus value of charset which
-	reserves graphic register N, which means that the charset is
-	not designated initially but should be designated to graphic
-	register N just before encoding a character in that charset.
-
-	If the value is nil, graphic register N is never used on
-	encoding.
-   
-   sub-element[N] where N is 4 through 11: to be set in `coding->flags'
-   	Each value takes t or nil.  See the section ISO2022 of
-	`coding.h' for more information.
-
-   If `coding->type' is `coding_type_big5', element[4] is t to denote
-   BIG5-ETen or nil to denote BIG5-HKU.
-
-   If `coding->type' takes the other value, element[4] is ignored.
-
-   Emacs Lisp's coding system also carries information about format of
-   end-of-line in a value of property `eol-type'.  If the value is
-   integer, 0 means eol_lf, 1 means eol_crlf, and 2 means eol_cr.  If
-   it is not integer, it should be a vector of subsidiary coding
-   systems of which property `eol-type' has one of above values.
-
-*/
 
 /* Setup coding context CODING from information about CODING_SYSTEM.
    If CODING_SYSTEM is nil, `no-conversion' is assumed.  If
