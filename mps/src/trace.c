@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.51) $
+ * $HopeName: MMsrc!trace.c(trunk.52) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .sources: design.mps.tracer.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.51) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.52) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -288,7 +288,21 @@ found:
   trace->condemned = (Size)0;   /* nothing condemned yet */
   trace->foundation = (Size)0;  /* nothing grey yet */
   trace->rate = (Size)0;        /* no scanning to be done yet */
-
+  trace->rootScanCount = (Count)0;
+  trace->rootScanSize = (Size)0;
+  trace->rootCopiedSize = (Size)0;
+  trace->segScanCount = (Count)0;
+  trace->segScanSize = (Size)0;
+  trace->segCopiedSize = (Size)0;
+  trace->fixRefCount = (Count)0;
+  trace->segRefCount = (Count)0;
+  trace->whiteSegRefCount = (Count)0;
+  trace->nailCount = (Count)0;
+  trace->snapCount = (Count)0;
+  trace->forwardCount = (Count)0;
+  trace->faultCount = (Count)0;
+  trace->reclaimCount = (Count)0;
+  trace->reclaimSize = (Size)0;
   trace->sig = TraceSig;
   AVERT(Trace, trace);
 
@@ -453,6 +467,14 @@ Res TraceFlip(Trace trace)
   ss.arena = arena;
   ss.traces = TraceSetSingle(trace->ti);
   ss.wasMarked = TRUE;
+  ss.fixRefCount = (Count)0;
+  ss.segRefCount = (Count)0;
+  ss.whiteSegRefCount = (Count)0;
+  ss.nailCount = (Count)0;
+  ss.snapCount = (Count)0;
+  ss.forwardCount = (Count)0;
+  ss.copiedSize = (Size)0;
+  ss.scannedSize = (Size)0;
   ss.sig = ScanStateSig;
 
   for(ss.rank = RankAMBIG; ss.rank <= RankEXACT; ++ss.rank) {
@@ -470,6 +492,7 @@ Res TraceFlip(Trace trace)
       if(RootRank(root) == ss.rank) {
         ScanStateSetSummary(&ss, RefSetEMPTY);
         res = RootScan(&ss, root);
+        ++trace->rootScanCount;
         if(res != ResOK) {
           return res;
         }
@@ -478,6 +501,14 @@ Res TraceFlip(Trace trace)
       node = next;
     }
   }
+  trace->rootScanSize += ss.scannedSize;
+  trace->rootCopiedSize += ss.copiedSize;
+  trace->fixRefCount += ss.fixRefCount;
+  trace->segRefCount += ss.segRefCount;
+  trace->whiteSegRefCount += ss.whiteSegRefCount;
+  trace->nailCount += ss.nailCount;
+  trace->snapCount += ss.snapCount;
+  trace->forwardCount += ss.forwardCount;
 
   ss.sig = SigInvalid;  /* just in case */
 
@@ -681,6 +712,14 @@ static Res TraceScan(TraceSet ts, Rank rank,
     ss.arena = arena;
     ss.wasMarked = TRUE;
     ss.white = white;
+    ss.fixRefCount = (Count)0;
+    ss.segRefCount = (Count)0;
+    ss.whiteSegRefCount = (Count)0;
+    ss.nailCount = (Count)0;
+    ss.snapCount = (Count)0;
+    ss.forwardCount = (Count)0;
+    ss.copiedSize = (Size)0;
+    ss.scannedSize = (Size)0;
     ss.sig = ScanStateSig;
     AVERT(ScanState, &ss);
     
@@ -703,6 +742,21 @@ static Res TraceScan(TraceSet ts, Rank rank,
     /* All objects on the segment have been scanned, so the scanned */
     /* summary should replace the segment summary. */
     SegSetSummary(seg, ScanStateSummary(&ss));
+
+    for(ti = 0; ti < TRACE_MAX; ++ti)
+      if(TraceSetIsMember(ts, ti)) {
+        Trace trace = ArenaTrace(arena, ti);
+
+        ++trace->segScanCount;
+        trace->segScanSize += ss.scannedSize;
+        trace->segCopiedSize += ss.copiedSize;
+        trace->fixRefCount += ss.fixRefCount;
+        trace->segRefCount += ss.segRefCount;
+        trace->whiteSegRefCount += ss.whiteSegRefCount;
+        trace->nailCount += ss.nailCount;
+        trace->snapCount += ss.snapCount;
+        trace->forwardCount += ss.forwardCount;
+      }
     
     ss.sig = SigInvalid;                  /* just in case */
   }
@@ -718,6 +772,7 @@ static Res TraceScan(TraceSet ts, Rank rank,
 void TraceAccess(Arena arena, Seg seg, AccessSet mode)
 {
   Res res;
+  TraceId ti;
 
   AVERT(Arena, arena);
   AVERT(Seg, seg);
@@ -751,6 +806,10 @@ void TraceAccess(Arena arena, Seg seg, AccessSet mode)
     /* was causing the segment to be protected, so that the mutator */
     /* can go ahead and access it. */
     AVER(TraceSetInter(SegGrey(seg), arena->flippedTraces) == TraceSetEMPTY);
+
+    for(ti = 0; ti < TRACE_MAX; ++ti)
+      if(TraceSetIsMember(arena->busyTraces, ti))
+        ++ArenaTrace(arena, ti)->faultCount;
   }
 
   /* The write barrier handling must come after the read barrier, */
@@ -862,19 +921,24 @@ Res TraceFix(ScanState ss, Ref *refIO)
 
   ref = *refIO;
 
+  ++ss->fixRefCount;
   EVENT_PPAU(TraceFix, ss, refIO, ref, ss->rank);
   if(SegOfAddr(&seg, ss->arena, ref)) {
+    ++ss->segRefCount;
     EVENT_P(TraceFixSeg, seg);
     if(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY) {
       Res res;
+
+      ++ss->whiteSegRefCount;
       EVENT_0(TraceFixWhite);
       pool = SegPool(seg);
-      /* Could move the rank switch here from the class-specific
-       * fix methods. */
+      /* Could move the rank switch here from the class-specific */
+      /* fix methods. */
       res = PoolFix(pool, ss, seg, refIO);
-      if (res != ResOK)
+      if(res != ResOK)
         return res;
-    }
+    } else
+      ++seg->nailCount;
   }
 
   /* .fix.fixed.all: */
