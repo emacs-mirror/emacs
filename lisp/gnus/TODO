@@ -25,6 +25,8 @@
 	 works; and the Tramp manual already uses @copying, although in an
 	 unusual way.  All others were changed.)
 
+==> Done.  Not yet in Gnus repository.
+	
 
 
 2004-06-29  Kim F. Storm  <storm@cua.dk>
