@@ -1182,88 +1182,86 @@ decode_coding_iso2022 (coding, source, destination,
    sequences are also produced in advance if necessary.  */
 
 
-#define ENCODE_ISO_CHARACTER_DIMENSION1(charset, c1)			 \
-  do {									 \
-    if (CODING_SPEC_ISO_SINGLE_SHIFTING (coding))			 \
-      {									 \
-	if (coding->flags & CODING_FLAG_ISO_SEVEN_BITS)			 \
-	  *dst++ = c1 & 0x7F;						 \
-	else								 \
-	  *dst++ = c1 | 0x80;						 \
-	CODING_SPEC_ISO_SINGLE_SHIFTING (coding) = 0;			 \
-	break;								 \
-      }									 \
-    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 0))	 \
-      {									 \
-	*dst++ = c1 & 0x7F;						 \
-	break;								 \
-      }									 \
-    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 1))	 \
-      {									 \
-	*dst++ = c1 | 0x80;						 \
-	break;								 \
-      }									 \
-    else if (coding->flags & CODING_FLAG_ISO_SAFE			 \
-	     && (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) \
-		 == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))		 \
-      {									 \
-	/* We should not encode this character, instead produce one or	 \
-	   two `?'s.  */						 \
-	*dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;			 \
-	if (CHARSET_WIDTH (charset) == 2)				 \
-	  *dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;		 \
-	break;								 \
-      }									 \
-    else								 \
-      /* Since CHARSET is not yet invoked to any graphic planes, we	 \
-	 must invoke it, or, at first, designate it to some graphic	 \
-	 register.  Then repeat the loop to actually produce the	 \
-	 character.  */							 \
-      dst = encode_invocation_designation (charset, coding, dst);	 \
+#define ENCODE_ISO_CHARACTER_DIMENSION1(charset, c1)			\
+  do {									\
+    if (CODING_SPEC_ISO_SINGLE_SHIFTING (coding))			\
+      {									\
+	if (coding->flags & CODING_FLAG_ISO_SEVEN_BITS)			\
+	  *dst++ = c1 & 0x7F;						\
+	else								\
+	  *dst++ = c1 | 0x80;						\
+	CODING_SPEC_ISO_SINGLE_SHIFTING (coding) = 0;			\
+	break;								\
+      }									\
+    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 0))	\
+      {									\
+	*dst++ = c1 & 0x7F;						\
+	break;								\
+      }									\
+    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 1))	\
+      {									\
+	*dst++ = c1 | 0x80;						\
+	break;								\
+      }									\
+    else if (coding->flags & CODING_FLAG_ISO_SAFE			\
+	     && !CODING_SPEC_ISO_EXPECTED_CHARSETS (coding)[charset])	\
+      {									\
+	/* We should not encode this character, instead produce one or	\
+	   two `?'s.  */						\
+	*dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;			\
+	if (CHARSET_WIDTH (charset) == 2)				\
+	  *dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;		\
+	break;								\
+      }									\
+    else								\
+      /* Since CHARSET is not yet invoked to any graphic planes, we	\
+	 must invoke it, or, at first, designate it to some graphic	\
+	 register.  Then repeat the loop to actually produce the	\
+	 character.  */							\
+      dst = encode_invocation_designation (charset, coding, dst);	\
   } while (1)
 
 /* Produce codes for a DIMENSION2 character whose character set is
    CHARSET and whose position-codes are C1 and C2.  Designation and
    invocation codes are also produced in advance if necessary.  */
 
-#define ENCODE_ISO_CHARACTER_DIMENSION2(charset, c1, c2)		 \
-  do {									 \
-    if (CODING_SPEC_ISO_SINGLE_SHIFTING (coding))			 \
-      {									 \
-	if (coding->flags & CODING_FLAG_ISO_SEVEN_BITS)			 \
-	  *dst++ = c1 & 0x7F, *dst++ = c2 & 0x7F;			 \
-	else								 \
-	  *dst++ = c1 | 0x80, *dst++ = c2 | 0x80;			 \
-	CODING_SPEC_ISO_SINGLE_SHIFTING (coding) = 0;			 \
-	break;								 \
-      }									 \
-    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 0))	 \
-      {									 \
-	*dst++ = c1 & 0x7F, *dst++= c2 & 0x7F;				 \
-	break;								 \
-      }									 \
-    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 1))	 \
-      {									 \
-	*dst++ = c1 | 0x80, *dst++= c2 | 0x80;				 \
-	break;								 \
-      }									 \
-    else if (coding->flags & CODING_FLAG_ISO_SAFE			 \
-	     && (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) \
-		 == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))		 \
-      {									 \
-	/* We should not encode this character, instead produce one or	 \
-	   two `?'s.  */						 \
-	*dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;			 \
-	if (CHARSET_WIDTH (charset) == 2)				 \
-	  *dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;		 \
-	break;								 \
-      }									 \
-    else								 \
-      /* Since CHARSET is not yet invoked to any graphic planes, we	 \
-	 must invoke it, or, at first, designate it to some graphic	 \
-	 register.  Then repeat the loop to actually produce the	 \
-	 character.  */							 \
-      dst = encode_invocation_designation (charset, coding, dst);	 \
+#define ENCODE_ISO_CHARACTER_DIMENSION2(charset, c1, c2)		\
+  do {									\
+    if (CODING_SPEC_ISO_SINGLE_SHIFTING (coding))			\
+      {									\
+	if (coding->flags & CODING_FLAG_ISO_SEVEN_BITS)			\
+	  *dst++ = c1 & 0x7F, *dst++ = c2 & 0x7F;			\
+	else								\
+	  *dst++ = c1 | 0x80, *dst++ = c2 | 0x80;			\
+	CODING_SPEC_ISO_SINGLE_SHIFTING (coding) = 0;			\
+	break;								\
+      }									\
+    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 0))	\
+      {									\
+	*dst++ = c1 & 0x7F, *dst++= c2 & 0x7F;				\
+	break;								\
+      }									\
+    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 1))	\
+      {									\
+	*dst++ = c1 | 0x80, *dst++= c2 | 0x80;				\
+	break;								\
+      }									\
+    else if (coding->flags & CODING_FLAG_ISO_SAFE			\
+	     && !CODING_SPEC_ISO_EXPECTED_CHARSETS (coding)[charset])	\
+      {									\
+	/* We should not encode this character, instead produce one or	\
+	   two `?'s.  */						\
+	*dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;			\
+	if (CHARSET_WIDTH (charset) == 2)				\
+	  *dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;		\
+	break;								\
+      }									\
+    else								\
+      /* Since CHARSET is not yet invoked to any graphic planes, we	\
+	 must invoke it, or, at first, designate it to some graphic	\
+	 register.  Then repeat the loop to actually produce the	\
+	 character.  */							\
+      dst = encode_invocation_designation (charset, coding, dst);	\
   } while (1)
 
 #define ENCODE_ISO_CHARACTER(charset, c1, c2)				  \
@@ -2380,9 +2378,9 @@ setup_coding_system (coding_system, coding)
 	CODING_SPEC_ISO_INVOCATION (coding, 1)
 	  = (coding->flags & CODING_FLAG_ISO_SEVEN_BITS ? -1 : 1);
 	/* Not single shifting at first.  */
-	CODING_SPEC_ISO_SINGLE_SHIFTING(coding) = 0;
+	CODING_SPEC_ISO_SINGLE_SHIFTING (coding) = 0;
 	/* Beginning of buffer should also be regarded as bol. */
-	CODING_SPEC_ISO_BOL(coding) = 1;
+	CODING_SPEC_ISO_BOL (coding) = 1;
 
 	/* Checks FLAGS[REG] (REG = 0, 1, 2 3) and decide designations.
 	   FLAGS[REG] can be one of below:
@@ -2397,6 +2395,7 @@ setup_coding_system (coding_system, coding)
 	for (charset = 0; charset <= MAX_CHARSET; charset++)
 	  CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
 	    = CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION;
+	bzero (CODING_SPEC_ISO_EXPECTED_CHARSETS (coding), MAX_CHARSET + 1);
 	for (i = 0; i < 4; i++)
 	  {
 	    if (INTEGERP (flags[i])
@@ -2405,6 +2404,7 @@ setup_coding_system (coding_system, coding)
 	      {
 		CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, i) = charset;
 		CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) = i;
+		CODING_SPEC_ISO_EXPECTED_CHARSETS (coding)[charset] = 1;
 	      }
 	    else if (EQ (flags[i], Qt))
 	      {
@@ -2422,6 +2422,7 @@ setup_coding_system (coding_system, coding)
 		  {
 		    CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, i) = charset;
 		    CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) =i;
+		    CODING_SPEC_ISO_EXPECTED_CHARSETS (coding)[charset] = 1;
 		  }
 		else
 		  CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, i) = -1;
@@ -2432,8 +2433,12 @@ setup_coding_system (coding_system, coding)
 			&& (charset = XINT (XCONS (tail)->car),
 			    CHARSET_VALID_P (charset))
 			|| (charset = get_charset_id (XCONS (tail)->car)) >= 0)
-		      CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
-			= i;
+		      {
+			CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
+			  = i;
+			CODING_SPEC_ISO_EXPECTED_CHARSETS (coding)[charset]
+			  = 1;
+		      }
 		    else if (EQ (XCONS (tail)->car, Qt))
 		      default_reg_bits |= 1 << i;
 		    tail = XCONS (tail)->cdr;
@@ -2456,35 +2461,34 @@ setup_coding_system (coding_system, coding)
 	      default_reg_bits &= 3;
 	  }
 
-	if (! (coding->flags & CODING_FLAG_ISO_SAFE))
-	  for (charset = 0; charset <= MAX_CHARSET; charset++)
-	    if (CHARSET_VALID_P (charset)
-		&& (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
-		    == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))
-	      {
-		/* We have not yet decided where to designate CHARSET.  */
-		int reg_bits = default_reg_bits;
+	for (charset = 0; charset <= MAX_CHARSET; charset++)
+	  if (CHARSET_VALID_P (charset)
+	      && (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
+		  == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))
+	    {
+	      /* We have not yet decided where to designate CHARSET.  */
+	      int reg_bits = default_reg_bits;
 
-		if (CHARSET_CHARS (charset) == 96)
-		  /* A charset of CHARS96 can't be designated to REG 0.  */
-		  reg_bits &= ~1;
+	      if (CHARSET_CHARS (charset) == 96)
+		/* A charset of CHARS96 can't be designated to REG 0.  */
+		reg_bits &= ~1;
 
-		if (reg_bits)
-		  /* There exist some default graphic register.  */
-		  CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
-		    = (reg_bits & 1
-		       ? 0 : (reg_bits & 2 ? 1 : (reg_bits & 4 ? 2 : 3)));
-		else
-		  /* We anyway have to designate CHARSET to somewhere.  */
-		  CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
-		    = (CHARSET_CHARS (charset) == 94
-		       ? 0
-		       : ((coding->flags & CODING_FLAG_ISO_LOCKING_SHIFT
-			   || ! coding->flags & CODING_FLAG_ISO_SEVEN_BITS)
-			  ? 1
-			  : (coding->flags & CODING_FLAG_ISO_SINGLE_SHIFT
-			     ? 2 : 0)));
-	      }
+	      if (reg_bits)
+		/* There exist some default graphic register.  */
+		CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
+		  = (reg_bits & 1
+		     ? 0 : (reg_bits & 2 ? 1 : (reg_bits & 4 ? 2 : 3)));
+	      else
+		/* We anyway have to designate CHARSET to somewhere.  */
+		CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
+		  = (CHARSET_CHARS (charset) == 94
+		     ? 0
+		     : ((coding->flags & CODING_FLAG_ISO_LOCKING_SHIFT
+			 || ! coding->flags & CODING_FLAG_ISO_SEVEN_BITS)
+			? 1
+			: (coding->flags & CODING_FLAG_ISO_SINGLE_SHIFT
+			   ? 2 : 0)));
+	    }
       }
       coding->require_flushing = 1;
       break;
@@ -3585,6 +3589,9 @@ DEFUN ("set-terminal-coding-system-internal",
 {
   CHECK_SYMBOL (coding_system, 0);
   setup_coding_system (Fcheck_coding_system (coding_system), &terminal_coding);
+  /* We had better not send unexpected characters to terminal.  */
+  terminal_coding.flags |= CODING_FLAG_ISO_SAFE;
+
   return Qnil;
 }
 
