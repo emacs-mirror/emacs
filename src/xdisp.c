@@ -1893,16 +1893,18 @@ copy_part_of_rope (f, to, s, from, len, face)
    with a displayable computed face code.  */
 
 static GLYPH
-fix_glyph (f, glyph, current_face)
+fix_glyph (f, glyph, cface)
      FRAME_PTR f;
      GLYPH glyph;
-     int current_face;
+     int cface;
 {
 #ifdef HAVE_X_WINDOWS
-  if (! FRAME_TERMCAP_P (f) && FAST_GLYPH_FACE (glyph) != 0)
-    return FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (glyph),
-			    compute_glyph_face (f, FAST_GLYPH_FACE (glyph),
-						current_face));
+  if (! FRAME_TERMCAP_P (f))
+    {
+      if (FAST_GLYPH_FACE (glyph) != 0)
+	cface = compute_glyph_face (f, FAST_GLYPH_FACE (glyph), cface);
+      glyph = FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (glyph), cface);
+    }
 #endif
   return glyph;
 }
