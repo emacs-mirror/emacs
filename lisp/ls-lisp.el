@@ -65,7 +65,6 @@
 
 ;;; Code:
 
-;;;###autoload
 (defgroup ls-lisp nil
   "Emulate the ls program completely in Emacs Lisp."
   :version "21.1"
