@@ -4064,24 +4064,35 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;; and colon).
 ;;; Don't allow the host name to end in a period--some systems use /.:
 ;;;###autoload
-(let ((pattern (if (memq system-type '(ms-dos windows-nt))
-		   "^[a-zA-Z]:/[^/:]*[^/:.]:"
-		 "^/[^/:]*[^/:.]:")))
-  (or (assoc pattern file-name-handler-alist)
-      (setq file-name-handler-alist
-	    (cons (cons pattern 'ange-ftp-hook-function)
-		  file-name-handler-alist))))
+(or (assoc "^/[^/:]*[^/:.]:" file-name-handler-alist)
+    (setq file-name-handler-alist
+	  (cons '("^/[^/:]*[^/:.]:" . ange-ftp-hook-function)
+		file-name-handler-alist)))
+
+;;; Real ange-ftp file names prefixed with a drive letter.
+;;;###autoload
+(and (memq system-type '(ms-dos windows-nt))
+     (or (assoc "^[a-zA-Z]:/[^/:]*[^/:.]:" file-name-handler-alist)
+	 (setq file-name-handler-alist
+	       (cons '("^[a-zA-Z]:/[^/:]*[^/:.]:" . ange-ftp-hook-function)
+		     file-name-handler-alist))))
 
 ;;; This regexp recognizes and absolute filenames with only one component,
 ;;; for the sake of hostname completion.
 ;;;###autoload
-(let ((pattern (if (memq system-type '(ms-dos windows-nt))
-		   "^[a-zA-Z]:/[^/:]*\\'"
-		 "^/[^/:]*\\'")))
-  (or (assoc pattern file-name-handler-alist)
-      (setq file-name-handler-alist
-	    (cons (cons pattern 'ange-ftp-completion-hook-function)
-		  file-name-handler-alist))))
+(or (assoc "^/[^/:]*\\'" file-name-handler-alist)
+    (setq file-name-handler-alist
+	  (cons '("^/[^/:]*\\'" . ange-ftp-completion-hook-function)
+		file-name-handler-alist)))
+
+;;; Absolute file names prefixed with a drive letter.
+;;;###autoload
+(and (memq system-type '(ms-dos windows-nt))
+     (or (assoc "^[a-zA-Z]:/[^/:]*\\'" file-name-handler-alist)
+	 (setq file-name-handler-alist
+	       (cons '("^[a-zA-Z]:/[^/:]*\\'" . 
+		       ange-ftp-completion-hook-function)
+		     file-name-handler-alist))))
 
 ;;; The above two forms are sufficient to cause this file to be loaded
 ;;; if the user ever uses a file name with a colon in it.
