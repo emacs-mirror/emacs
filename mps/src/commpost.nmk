@@ -1,6 +1,6 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.24) $
+# $HopeName: MMsrc!commpost.nmk(trunk.25) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -16,7 +16,7 @@
 all: mpmss.exe amcss.exe amsss.exe awlut.exe mpsicv.exe \
      lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe mpm.lib \
-     abqtest.exe cbstest.exe mv2eptst.exe mv2test.exe epvmss.exe
+     abqtest.exe cbstest.exe mv2eptst.exe mv2test.exe
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
