@@ -1875,44 +1875,179 @@ hexl-@key{RET}} for details.
 @cindex reload files
 @cindex desktop
 
-  You can use the Desktop library to save the state of Emacs from one
+  You can use the desktop library to save the state of Emacs from one
 session to another.  Saving the state means that Emacs starts up with
 the same set of buffers, major modes, buffer positions, and so on that
-the previous Emacs session had.
+the previous Emacs session had. Such a state is referred to as a ``desktop''.
 
-@vindex desktop-enable
-  To use Desktop, you should use the Customization buffer (@pxref{Easy
-Customization}) to set @code{desktop-enable} to a non-@code{nil} value,
-or add these lines at the end of your @file{.emacs} file:
+  The saveplace library provides a simpler feature that records your
+position in each file when you kill its buffer (or kill Emacs), and
+jumps to the same position when you visit the file again (even in
+another Emacs session).
+
+@menu
+The desktop library
+* Desktop Save Mode::          How to enable desktop saving.
+* Desktop file and directory:: About desktop files and desktop directory.
+* Saving manually::            How to saving the desktop manually and why.
+* Information saved::          Controlling which information to save.
+* Desktop clear::              Clearing the desktop.
+* File name format::           Different formats to save file names in.
+
+The saveplace library
+* Saveplace::                  Recording the position in each file.
+@end menu
+
+@node Desktop Save Mode
+@subsection Desktop Save Mode
+@findex desktop-save-mode
+@vindex desktop-save-mode
+  Desktop Save Mode is a global minor mode. @pxref{Minor Modes}.
+To enable desktop saving, you should use the Customization buffer
+(@pxref{Easy Customization}) to set @code{desktop-save-mode} to a
+non-@code{nil} value for future sessions, or add this line somewhere
+in your @file{.emacs} file:
 
 @example
-(require 'desktop)
-(setq desktop-enable t)
+(desktop-save-mode 1)
 @end example
 
-@noindent
-@findex desktop-save
-The first time you exit Emacs, you will be asked whether you want to
-save your session.  Once you have done that, exiting Emacs will save
-the state again in subsequent sessions.  You can also save the state
-at any time, without exiting Emacs, by typing @kbd{M-x desktop-save}.
-
-  In order for Emacs to recover the state from a previous session, you
+@findex desktop-change-dir
+@findex desktop-revert
+@findex desktop-read
+@vindex desktop-after-read-hook
+  In order for Emacs to recover the desktop from a previous session, you
 must start it with the same current directory as you used when you
 started the previous session.  This is because @code{desktop-read} looks
-in the current directory for the file to read.  This means that you can
-have separate saved sessions in different directories; the directory in
-which you start Emacs will control which saved session to use.
+in the current directory for the desktop file to read.  This means that you can
+have separate saved desktops in different directories; the directory in
+which you start Emacs will control which saved desktop to use.
+You can also save the current desktop and recover one saved in another directory
+by typing @kbd{M-x desktop-change-dir}.
+Typing @kbd{M-x desktop-revert} reverts to the last recovered desktop.
 
+You may want Emacs to display a buffer list when a desktop is
+loaded.  This is possible by adding e.g.@: the function @code{buffer-menu} to
+@code{desktop-after-read-hook}. @pxref{Buffers}.
+
+Specify the option @samp{--no-desktop} on the command line when you don't want
+any desktop to be loaded (even when desktop saving is enabled).
+
+@node Desktop file and directory
+@subsection Desktop file and desktop directory
+@cindex desktop file
+@cindex desktop directory
+@vindex desktop-dirname
+@vindex desktop-base-file-name
+@vindex desktop-path
+  Emacs sessions are stored in desktop files.  When Emacs starts, it
+looks for a desktop file in the current directory and in your home
+directory, in that order.  Thus, if you save a desktop file in your
+home directory, it will act as a default desktop when you start Emacs
+from a directory that doesn't have its own.  Once a desktop file is
+found, the session described in it will be restored, and the directory
+where the desktop file was found will become the desktop directory.
+The desktop directory is the directory in which the desktop file is
+saved when Emacs is exited; it is saved in the variable
+@code{desktop-dirname}.
+
+  You can change the base name of the desktop file and the list of
+directories where Emacs should look for a desktop file at startup by
+customizing the variables @code{desktop-base-file-name} and
+@code{desktop-path}.
+
+@node Saving manually
+@subsection Saving the desktop manually
+@vindex desktop-save
+@findex desktop-save
+@findex desktop-save-in-desktop-dir
+  If you prefer to save desktops manually rather than having Emacs
+save them automatically at exit, set the customizable variable
+@code{desktop-save} to the value @code{nil}.  Then desktops are never
+saved automatically, instead you can save then by typing @kbd{M-x
+desktop-save} or @kbd{M-x desktop-save-in-desktop-dir}.  The first of
+these commands prompts for a directory to save the desktop in, the
+second saves it in the desktop directory.  Customization of the
+variable @code{desktop-save} also lets you control when the desktop
+should be saved, based upon whether a desktop file already exists in
+the desktop directory -- see the documentation of the variable.
+
+@node Information saved
+@subsection Controlling which information to save
 @vindex desktop-files-not-to-save
-  The variable @code{desktop-files-not-to-save} controls which files are
-excluded from state saving.  Its value is a regular expression that
-matches the files to exclude.  By default, remote (ftp-accessed) files
-are excluded; this is because visiting them again in the subsequent
-session would be slow.  If you want to include these files in state
-saving, set @code{desktop-files-not-to-save} to @code{"^$"}.
-@xref{Remote Files}.
+@vindex desktop-modes-not-to-save
+@vindex desktop-buffer-modes-to-save
+@vindex desktop-globals-to-save
+@vindex desktop-locals-to-save
+  The customizable variable @code{desktop-files-not-to-save} controls
+which files are excluded from state saving.  Its value is a regular
+expression that matches the files to exclude.  By default, remote
+(ssh- or ftp-accessed) files are excluded; this is because visiting
+them again in a subsequent session would be slow.  If you want to
+include these files in state saving, set
+@code{desktop-files-not-to-save} to @code{"^$"}.  @xref{Remote Files}.
+You can also exclude buffers from state saving based on their mode by
+customizing @code{desktop-modes-not-to-save}.
 
+  It is possible to save the state of buffers not visiting files,
+based on their mode.  To do that, mention their mode it the
+customizable variable @code{desktop-buffer-modes-to-save}.  However,
+only certain non-visiting modes will have their buffers recreated when
+the desktop is loaded.  These are @code{dired-mode}, @code{Info-mode},
+@code{rmail-mode} and @code{mh-folder-mode}.
+
+@vindex desktop-save-hook
+@findex desktop-truncate
+  To control which variables will be saved in the desktop file,
+customize the variables @code{desktop-globals-to-save} and
+@code{desktop-locals-to-save}.  List variables, such as
+@code{search-ring} and @code{regexp-search-ring}, may contain
+excessive amounts of data.  If you want to save only the first
+e.g.@: three elements, add to @code{desktop-save-hook} the function
+
+@example
+'(lambda ()
+  (desktop-truncate search-ring 3)
+  (desktop-truncate regexp-search-ring 3))
+@end example
+
+@node Desktop clear
+@subsection Clearing the desktop
+@findex desktop-clear
+@findex desktop-change-dir
+@findex desktop-revert
+@findex desktop-read
+@vindex desktop-globals-to-clear
+@vindex desktop-clear-preserve-buffers-regexp
+@vindex desktop-no-desktop-file-hook
+  Type @kbd{M-x desktop-clear} to empty the desktop.  This will kill
+all buffers except for internal ones and it will clear the global
+variables listed in @code{desktop-globals-to-clear}.  If you want to
+preserve certain buffers, customize the variable
+@code{desktop-clear-preserve-buffers-regexp}.  Its value is a regular
+expression matching the names of buffers not to kill.  The commands
+@code{desktop-change-dir} and @code{desktop-revert} both calls
+@code{desktop-clear} before loading the desktop.  Furthermore,
+@code{desktop-read} calls @code{desktop-clear} if no desktop file is
+found to load.  If you want a dired buffer showing the desktop
+directory in when no desktop file is found, customize
+@code{desktop-no-desktop-file-hook} to have the value
+@code{((lambda () (dired desktop-dirname)))}. @pxref{Dired}.
+
+@node File name format
+@subsection File name format
+@vindex desktop-file-name-format
+  The customizable variable @code{desktop-file-name-format} controls
+the format in which file names are saved in the desktop buffer.  The
+default value is @code{absolute}, which means that file names are
+absolute.  If you change this to @code{tilde}, file names are relative
+to your home directory.  This means that desktop files might be copied
+from one machine to another, altough the absolute name of the home
+directories differ.  If you change @code{desktop-file-name-format} to
+@code{local}, file names are relative to the desktop directory.
+
+@node Saveplace
+@subsection Saveplace 
 @vindex save-place
 @cindex Saveplace
 @findex toggle-save-place
