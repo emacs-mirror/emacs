@@ -1,3 +1,7 @@
+2005-01-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (Face Attributes): Correct xref to renamed node.
+
 2005-01-01  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Face Attributes): Describe hex color specs.
