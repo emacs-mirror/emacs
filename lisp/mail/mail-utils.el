@@ -34,10 +34,12 @@
 (require 'lisp-mode)
 		     
 ;;;###autoload
-(defvar mail-use-rfc822 nil "\
+(defcustom mail-use-rfc822 nil "\
 *If non-nil, use a full, hairy RFC822 parser on mail addresses.
 Otherwise, (the default) use a smaller, somewhat faster, and
-often correct parser.")
+often correct parser."
+  :type 'boolean
+  :group 'mail)
 
 ;; Returns t if file FILE is an Rmail file.
 ;;;###autoload
