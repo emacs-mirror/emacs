@@ -103,9 +103,9 @@ enum charset_attr_index
       get the corresponding code point of this charset.  */
     charset_superset,
 
-    /* The value is a mapping vector or a file name that contains
-       mapping vector.  This provide how characters in the charset
-       should be unified with Unicode.  The value of the member
+    /* The value is a mapping vector or a file name that contains the
+       mapping.  This defines how characters in the charset should be
+       unified with Unicode.  The value of the member
        `charset_deunifier' is created from this information.  */
     charset_unify_map,
 
@@ -114,7 +114,7 @@ enum charset_attr_index
        the corresponding Unicode character.  */
     charset_deunifier,
 
-    /* The length of charset attribute vector.  */
+    /* The length of the charset attribute vector.  */
     charset_attr_max
   };
 
@@ -137,10 +137,10 @@ enum charset_method
        CHARSET_METHOD_MAP.  */
     CHARSET_METHOD_MAP_DEFERRED,
 
-    /* A charset of this method is a subset of the other charset.  */
+    /* A charset of this method is a subset of another charset.  */
     CHARSET_METHOD_SUBSET,
 
-    /* A charset of this method is a superset of the other charsets.  */
+    /* A charset of this method is a superset of other charsets.  */
     CHARSET_METHOD_SUPERSET
   };
 
@@ -226,7 +226,7 @@ struct charset
      (0x10000..0x3FFFFF).  Each bit corresponds to 4096-character
      block.
 
-     If a bit is 1, at least one character in the corresponds block is
+     If a bit is 1, at least one character in the corresponding block is
      in this charset.  */
   unsigned char fast_map[190];
 
