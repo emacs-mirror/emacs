@@ -692,7 +692,7 @@ archive.
 		(string-match "\\.[aA][rR][cC]$"
 			      (or buffer-file-name (buffer-name))))
 	   'arc)
-	  (t (error "Buffer format not recognized.")))))
+	  (t (error "Buffer format not recognized")))))
 ;; -------------------------------------------------------------------------
 (defun archive-summarize (&optional shut-up)
   "Parse the contents of the archive file in the current buffer.
@@ -1744,4 +1744,4 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 
 (provide 'arc-mode)
 
-;; arc-mode.el ends here.
+;;; arc-mode.el ends here

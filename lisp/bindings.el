@@ -1,4 +1,4 @@
-;;; bindings.el --- define standard key bindings and some variables.
+;;; bindings.el --- define standard key bindings and some variables
 
 ;; Copyright (C) 1985,86,87,92,93,94,95,96,99,2000, 2001
 ;;   Free Software Foundation, Inc.
@@ -617,7 +617,7 @@ language you are using."
 
 ;;(defun function-key-error ()
 ;;  (interactive)
-;;  (error "That function key is not bound to anything."))
+;;  (error "That function key is not bound to anything"))
 
 (define-key global-map [menu] 'execute-extended-command)
 (define-key global-map [find] 'search-forward)

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001
 ;;	Free Software Foundation, Inc.
 
-;; Author: Olin Shivers <shivers@cs.cmu.edu> then
+;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: processes
@@ -3213,4 +3213,4 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 
 (provide 'comint)
 
-;; comint.el ends here
+;;; comint.el ends here

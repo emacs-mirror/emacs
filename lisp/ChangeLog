@@ -1,3 +1,19 @@
+2001-07-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* arc-mode.el: A fix to follow coding conventions.
+
+	* bindings.el: Ditto.
+
+	* cdl.el: Ditto.
+
+	* comint.el: Ditto.
+
+	* cus-start.el: Ditto.
+
+	* shell.el: Ditto.
+
+	* skeleton.el: Ditto.
+
 2001-07-13  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* info.el (Info-build-node-completions):

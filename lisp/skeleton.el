@@ -480,7 +480,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 ;;		   t)
 ;;  '(save-excursion
 ;;     (if (re-search-forward page-delimiter nil t)
-;;	 (error "Not on last page.")))
+;;	 (error "Not on last page")))
 ;;  comment-start "Local Variables:" comment-end \n
 ;;  comment-start "mode: " str
 ;;  & -5 | '(kill-line 0) & -1 | comment-end \n
@@ -607,4 +607,4 @@ symmetrical ones, and the same character twice for the others."
 
 (provide 'skeleton)
 
-;; skeleton.el ends here
+;;; skeleton.el ends here

@@ -127,7 +127,7 @@ and you want to simplify them for the mode line
 
 (defvar which-func-mode nil
   "Non-nil means display current function name in mode line.
-This makes a difference only if `which-function-mode' is non-nil")
+This makes a difference only if `which-function-mode' is non-nil.")
 (make-variable-buffer-local 'which-func-mode)
 ;;(put 'which-func-mode 'permanent-local t)
 

@@ -1,4 +1,4 @@
-;; @(#) xml.el --- XML parser
+;;; xml.el --- XML parser
 
 ;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
@@ -164,7 +164,7 @@ and returned as the first element of the list"
 		      (add-to-list 'xml result))))
 
 		;;  translation of rule [1] of XML specifications
-		(error "XML files can have only one toplevel tag.")))
+		(error "XML files can have only one toplevel tag")))
 	  (goto-char end)))
       (if parse-dtd
 	  (cons dtd (reverse xml))
@@ -264,7 +264,7 @@ Returns one of:
 	      (goto-char (match-end 0))
 	      (skip-chars-forward " \t\n")
 	      (if (> (point) end)
-		  (error "XML: End tag for %s not found before end of region."
+		  (error "XML: End tag for %s not found before end of region"
 			 node-name))
 	      children
 	      )
@@ -273,7 +273,7 @@ Returns one of:
 	  (error "XML: Invalid attribute list")
 	  ))))
    (t ;; This is not a tag.
-    (error "XML: Invalid character."))
+    (error "XML: Invalid character"))
    ))
 
 (defun xml-parse-attlist (end)
@@ -291,18 +291,18 @@ Leaves the point on the first non-blank character after the tag."
       ;;  or a simple word ?
       (unless (looking-at "\"\\([^\"]+\\)\"")
 	(unless (looking-at "'\\([^\"]+\\)'")
-	  (error "XML: Attribute values must be given between quotes.")))
+	  (error "XML: Attribute values must be given between quotes")))
 
       ;; Each attribute must be unique within a given element
       (if (assoc name attlist)
-	  (error "XML: each attribute must be unique within an element."))
+	  (error "XML: each attribute must be unique within an element"))
       
       (set 'attlist (append attlist
 			    (list (cons name (match-string-no-properties 1)))))
       (goto-char (match-end 0))
       (skip-chars-forward " \t\n")
       (if (> (point) end)
-	  (error "XML: end of attribute list not found before end of region."))
+	  (error "XML: end of attribute list not found before end of region"))
       )
     attlist
     ))
@@ -350,10 +350,10 @@ The DTD must end before the position END in the current buffer."
 
     ;;  External DTDs => don't know how to handle them yet
     (if (looking-at "SYSTEM")
-	(error "XML: Don't know how to handle external DTDs."))
+	(error "XML: Don't know how to handle external DTDs"))
     
     (if (not (= (char-after) ?\[))
-	(error "XML: Unknown declaration in the DTD."))
+	(error "XML: Unknown declaration in the DTD"))
 
     ;;  Parse the rest of the DTD
     (forward-char 1)
@@ -384,7 +384,7 @@ The DTD must end before the position END in the current buffer."
 
 	;;  rule [45]: the element declaration must be unique
 	(if (assoc element dtd)
-	    (error "XML: elements declaration must be unique in a DTD (<%s>)."
+	    (error "XML: elements declaration must be unique in a DTD (<%s>)"
 		   (symbol-name element)))
 	
 	;;  Store the element in the DTD

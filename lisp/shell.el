@@ -1,8 +1,8 @@
-;;; shell.el --- specialized comint.el for running the shell.
+;;; shell.el --- specialized comint.el for running the shell
 
 ;; Copyright (C) 1988, 93, 94, 95, 96, 1997, 2000 Free Software Foundation, Inc.
 
-;; Author: Olin Shivers <shivers@cs.cmu.edu> then
+;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: processes
@@ -678,7 +678,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 	   (cond ((> num (length shell-dirstack))
 		  (message "Directory stack not that deep."))
 		 ((= num 0)
-		  (error (message "Couldn't cd.")))
+		  (error (message "Couldn't cd")))
 		 (shell-pushd-dextract
 		  (let ((dir (nth (1- num) shell-dirstack)))
 		    (shell-process-popd arg)
@@ -774,7 +774,7 @@ command again."
 		   (setq shell-dirstack (cdr ds)
 			 shell-last-dir (car shell-dirstack))
 		   (shell-dirstack-message))
-	  (error (message "Couldn't cd.")))))))
+	  (error (message "Couldn't cd")))))))
 
 ;;; For your typing convenience:
 (defalias 'dirs 'shell-resync-dirs)
@@ -1003,7 +1003,7 @@ Returns t if successful."
 	  (cond ((null index)
 		 nil)
 		((>= index (length stack))
-		 (error "Directory stack not that deep."))
+		 (error "Directory stack not that deep"))
 		(t
 		 (replace-match (file-name-as-directory (nth index stack)) t t)
 		 (message "Directory item: %d" index)

@@ -1,4 +1,4 @@
-;;; cus-start.el --- define customization properties of builtins.
+;;; cus-start.el --- define customization properties of builtins
 ;;
 ;; Copyright (C) 1997, 1999, 2000 Free Software Foundation, Inc.
 ;;
@@ -308,4 +308,4 @@
 (unless purify-flag
   (provide 'cus-start))
 
-;;; cus-start.el ends here.
+;;; cus-start.el ends here

@@ -1,4 +1,4 @@
-;;; cdl.el --- Common Data Language (CDL) utility functions for Gnu Emacs
+;;; cdl.el --- Common Data Language (CDL) utility functions for GNU Emacs
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
@@ -44,4 +44,4 @@
 
 (provide 'cdl)
 
-;;; cdl.el ends here.
+;;; cdl.el ends here
