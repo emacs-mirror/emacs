@@ -1265,7 +1265,8 @@ DEFUN ("string-width", Fstring_width, Sstring_width, 1, 1, 0,
 Width is measured by how many columns it occupies on the screen.\n\
 When calculating width of a multibyte character in STRING,\n\
 only the base leading-code is considered; the validity of\n\
-the following bytes is not checked.")
+the following bytes is not checked.  Tabs in STRING are always\n\
+taken to occupy `tab-width' columns.")
   (str)
      Lisp_Object str;
 {
