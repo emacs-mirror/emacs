@@ -1,11 +1,11 @@
 ;;This is the GNU EMACS interface to GNU ISPELL version 3.
-;;   Copyright (C) 1990 Free Software Foundation, Inc.
+;;   Copyright (C) 1990, 1991 Free Software Foundation, Inc.
 ;;
 ;;This file is part of GNU ISPELL.
 ;;
 ;;GNU ISPELL is free software; you can redistribute it and/or modify
 ;;it under the terms of the GNU General Public License as published by
-;;the Free Software Foundation; either version 1, or (at your option)
+;;the Free Software Foundation; either version 2, or (at your option)
 ;;any later version.
 ;;
 ;;GNU ISPELL is distributed in the hope that it will be useful,
