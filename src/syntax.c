@@ -32,6 +32,11 @@ static int char_quoted ();
 
 int words_include_escapes;
 
+/* Used as a temporary in SYNTAX_ENTRY and other macros in syntax.h,
+   if not compiled with GCC.  No need to mark it, since it is used
+   only very temporarily.  */
+Lisp_Object syntax_temp;
+
 /* This is the internal form of the parse state used in parse-partial-sexp.  */
 
 struct lisp_parse_state
@@ -107,24 +112,20 @@ find_defun_start (pos)
 
 DEFUN ("syntax-table-p", Fsyntax_table_p, Ssyntax_table_p, 1, 1, 0,
   "Return t if ARG is a syntax table.\n\
-Any vector of 256 elements will do.")
+Currently, any char-table counts as a syntax table.")
   (obj)
      Lisp_Object obj;
 {
-  if (VECTORP (obj) && XVECTOR (obj)->size == 0400)
+  if (CHAR_TABLE_P (obj))
     return Qt;
   return Qnil;
 }
 
-Lisp_Object
+static void
 check_syntax_table (obj)
      Lisp_Object obj;
 {
-  register Lisp_Object tem;
-  while (tem = Fsyntax_table_p (obj),
-	 NILP (tem))
-    obj = wrong_type_argument (Qsyntax_table_p, obj);
-  return obj;
+  CHECK_CHAR_TABLE (obj, 0);
 }   
 
 
@@ -151,20 +152,16 @@ It is a copy of the TABLE, which defaults to the standard syntax table.")
   (table)
      Lisp_Object table;
 {
-  Lisp_Object size, val;
-  XSETFASTINT (size, 0400);
-  XSETFASTINT (val, 0);
-  val = Fmake_vector (size, val);
-  if (!NILP (table))
-    table = check_syntax_table (table);
-  else if (NILP (Vstandard_syntax_table))
-    /* Can only be null during initialization */
-    return val;
-  else table = Vstandard_syntax_table;
+  Lisp_Object copy;
 
-  bcopy (XVECTOR (table)->contents,
-	 XVECTOR (val)->contents, 0400 * sizeof (Lisp_Object));
-  return val;
+  if (!NILP (table))
+    check_syntax_table (table);
+  else
+    table = Vstandard_syntax_table;
+
+  copy = Fcopy_sequence (table);
+  Fset_char_table_parent (copy, Vstandard_syntax_table);
+  return copy;
 }
 
 DEFUN ("set-syntax-table", Fset_syntax_table, Sset_syntax_table, 1, 1, 0,
@@ -173,7 +170,7 @@ One argument, a syntax table.")
   (table)
      Lisp_Object table;
 {
-  table = check_syntax_table (table);
+  check_syntax_table (table);
   current_buffer->syntax_table = table;
   /* Indicate that this buffer now has a specified syntax table.  */
   current_buffer->local_var_flags
@@ -214,6 +211,29 @@ char syntax_code_spec[14] =
     ' ', '.', 'w', '_', '(', ')', '\'', '\"', '$', '\\', '/', '<', '>', '@'
   };
 
+/* Look up the value for CHARACTER in syntax table TABLE's parent
+   and its parents.  SYNTAX_ENTRY calls this, when TABLE itself has nil
+   for CHARACTER.  It's actually used only when not compiled with GCC.  */
+
+Lisp_Object
+syntax_parent_lookup (table, character)
+     Lisp_Object table;
+     int character;
+{
+  Lisp_Object value;
+
+  while (1)
+    {
+      table = XCHAR_TABLE (table)->parent;
+      if (NILP (table))
+	return Qnil;
+
+      value = XCHAR_TABLE (table)->contents[character];
+      if (!NILP (value))
+	return value;
+    }
+}
+
 DEFUN ("char-syntax", Fchar_syntax, Schar_syntax, 1, 1, 0,
   "Return the syntax code of CHAR, described by a character.\n\
 For example, if CHAR is a word constituent, the character `?w' is returned.\n\
@@ -222,8 +242,10 @@ are listed in the documentation of `modify-syntax-entry'.")
   (ch)
      Lisp_Object ch;
 {
+  int char_int;
   CHECK_NUMBER (ch, 0);
-  return make_number (syntax_code_spec[(int) SYNTAX (XINT (ch))]);
+  char_int = XINT (ch);
+  return make_number (syntax_code_spec[(int) SYNTAX (char_int)]);
 }
 
 DEFUN ("matching-paren", Fmatching_paren, Smatching_paren, 1, 1, 0,
@@ -231,11 +253,12 @@ DEFUN ("matching-paren", Fmatching_paren, Smatching_paren, 1, 1, 0,
   (ch)
      Lisp_Object ch;
 {
-  int code;
+  int char_int, code;
   CHECK_NUMBER (ch, 0);
-  code = SYNTAX (XINT (ch));
+  char_int = XINT (ch);
+  code = SYNTAX (char_int);
   if (code == Sopen || code == Sclose)
-    return make_number (SYNTAX_MATCH (XINT (ch)));
+    return make_number (SYNTAX_MATCH (char_int));
   return Qnil;
 }
 
@@ -289,27 +312,36 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
   (c, newentry, syntax_table)
      Lisp_Object c, newentry, syntax_table;
 {
-  register unsigned char *p, match;
+  register unsigned char *p;
   register enum syntaxcode code;
   int val;
+  Lisp_Object match;
 
   CHECK_NUMBER (c, 0);
   CHECK_STRING (newentry, 1);
+
   if (NILP (syntax_table))
     syntax_table = current_buffer->syntax_table;
   else
-    syntax_table = check_syntax_table (syntax_table);
+    check_syntax_table (syntax_table);
 
   p = XSTRING (newentry)->data;
   code = (enum syntaxcode) syntax_spec_code[*p++];
   if (((int) code & 0377) == 0377)
     error ("invalid syntax description letter: %c", c);
 
-  match = *p;
-  if (match) p++;
-  if (match == ' ') match = 0;
+  if (code == Sinherit)
+    {
+      SET_RAW_SYNTAX_ENTRY (syntax_table, c, Qnil);
+      return Qnil;
+    }
 
-  val = (match << 8) + (int) code;
+  if (*p)
+    XSETINT (match, *p++);
+  if (XFASTINT (match) == ' ')
+    match = Qnil;
+
+  val = (int) code;
   while (*p)
     switch (*p++)
       {
@@ -338,7 +370,8 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
 	break;
       }
 	
-  XSETFASTINT (XVECTOR (syntax_table)->contents[0xFF & XINT (c)], val);
+  SET_RAW_SYNTAX_ENTRY (syntax_table, c,
+			Fcons (make_number (val), match));
 
   return Qnil;
 }
@@ -352,23 +385,38 @@ describe_syntax (value)
   register enum syntaxcode code;
   char desc, match, start1, start2, end1, end2, prefix, comstyle;
   char str[2];
+  Lisp_Object first, match_lisp;
 
   Findent_to (make_number (16), make_number (1));
 
-  if (!INTEGERP (value))
+  if (NILP (value))
+    {
+      insert_string ("inherit");
+      return;
+    }
+
+  if (!CONSP (value))
     {
       insert_string ("invalid");
       return;
     }
 
-  code = (enum syntaxcode) (XINT (value) & 0377);
-  match = (XINT (value) >> 8) & 0377;
-  start1 = (XINT (value) >> 16) & 1;
-  start2 = (XINT (value) >> 17) & 1;
-  end1 = (XINT (value) >> 18) & 1;
-  end2 = (XINT (value) >> 19) & 1;
-  prefix = (XINT (value) >> 20) & 1;
-  comstyle = (XINT (value) >> 21) & 1;
+  first = XCONS (value)->car;
+  match_lisp = XCONS (value)->cdr;
+
+  if (!INTEGERP (first) || !(NILP (match_lisp) || INTEGERP (match_lisp)))
+    {
+      insert_string ("invalid");
+      return;
+    }
+
+  code = (enum syntaxcode) (first & 0377);
+  start1 = (XINT (first) >> 16) & 1;
+  start2 = (XINT (first) >> 17) & 1;
+  end1 = (XINT (first) >> 18) & 1;
+  end2 = (XINT (first) >> 19) & 1;
+  prefix = (XINT (first) >> 20) & 1;
+  comstyle = (XINT (first) >> 21) & 1;
 
   if ((int) code < 0 || (int) code >= (int) Smax)
     {
@@ -380,9 +428,8 @@ describe_syntax (value)
   str[0] = desc, str[1] = 0;
   insert (str, 1);
 
-  str[0] = match ? match : ' ';
+  str[0] = !NILP (match_lisp) ? XINT (match_lisp) : ' ';
   insert (str, 1);
-
 
   if (start1)
     insert ("1", 1);
@@ -429,17 +476,15 @@ describe_syntax (value)
       insert_string ("comment"); break;
     case Sendcomment:
       insert_string ("endcomment"); break;
-    case Sinherit:
-      insert_string ("inherit"); break;
     default:
       insert_string ("invalid");
       return;
     }
 
-  if (match)
+  if (!NILP (match_lisp))
     {
       insert_string (", matches ");
-      insert_char (match);
+      insert_char (XINT (match_lisp));
     }
 
   if (start1)
@@ -493,6 +538,7 @@ scan_words (from, count)
   register int beg = BEGV;
   register int end = ZV;
   register int code;
+  int charcode;
 
   immediate_quit = 1;
   QUIT;
@@ -506,7 +552,8 @@ scan_words (from, count)
 	      immediate_quit = 0;
 	      return 0;
 	    }
-	  code = SYNTAX (FETCH_CHAR (from));
+	  charcode = FETCH_CHAR (from);
+	  code = SYNTAX (charcode);
 	  if (words_include_escapes
 	      && (code == Sescape || code == Scharquote))
 	    break;
@@ -517,7 +564,8 @@ scan_words (from, count)
       while (1)
 	{
 	  if (from == end) break;
-	  code = SYNTAX (FETCH_CHAR (from));
+	  charcode = FETCH_CHAR (from);
+	  code = SYNTAX (charcode);
 	  if (!(words_include_escapes
 		&& (code == Sescape || code == Scharquote)))
 	    if (code != Sword)
@@ -535,7 +583,8 @@ scan_words (from, count)
 	      immediate_quit = 0;
 	      return 0;
 	    }
-	  code = SYNTAX (FETCH_CHAR (from - 1));
+	  charcode = FETCH_CHAR (from - 1);
+	  code = SYNTAX (charcode);
 	  if (words_include_escapes
 	      && (code == Sescape || code == Scharquote))
 	    break;
@@ -546,7 +595,8 @@ scan_words (from, count)
       while (1)
 	{
 	  if (from == beg) break;
-	  code = SYNTAX (FETCH_CHAR (from - 1));
+	  charcode = FETCH_CHAR (from - 1);
+	  code = SYNTAX (charcode);
 	  if (!(words_include_escapes
 		&& (code == Sescape || code == Scharquote)))
 	    if (code != Sword)
@@ -592,7 +642,7 @@ between them, return t; otherwise return nil.")
 {
   register int from;
   register int stop;
-  register int c;
+  register int c, c1;
   register enum syntaxcode code;
   int comstyle = 0;	    /* style of comment encountered */
   int found;
@@ -622,7 +672,8 @@ between them, return t; otherwise return nil.")
 	  from++;
 	  comstyle = 0;
 	  if (from < stop && SYNTAX_COMSTART_FIRST (c)
-	      && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from)))
+	      && (c1 = FETCH_CHAR (from),
+		  SYNTAX_COMSTART_SECOND (c1)))
 	    {
 	      /* We have encountered a comment start sequence and we 
 		 are ignoring all text inside comments.  We must record
@@ -630,7 +681,7 @@ between them, return t; otherwise return nil.")
 		 only a comment end of the same style actually ends
 		 the comment section.  */
 	      code = Scomment;
-	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from));
+	      comstyle = SYNTAX_COMMENT_STYLE (c1);
 	      from++;
 	    }
 	}
@@ -659,7 +710,8 @@ between them, return t; otherwise return nil.")
 	       section */
 	    break;
 	  if (from < stop && SYNTAX_COMEND_FIRST (c)
-	      && SYNTAX_COMEND_SECOND (FETCH_CHAR (from))
+	      && (c1 = FETCH_CHAR (from),
+		  SYNTAX_COMEND_SECOND (c1))
 	      && SYNTAX_COMMENT_STYLE (c) == comstyle)
 	    /* we have encountered a comment end of the same style
 	       as the comment sequence which began this comment
@@ -687,14 +739,15 @@ between them, return t; otherwise return nil.")
 	  if (code == Sendcomment)
 	    comstyle = SYNTAX_COMMENT_STYLE (c);
 	  if (from > stop && SYNTAX_COMEND_SECOND (c)
-	      && SYNTAX_COMEND_FIRST (FETCH_CHAR (from - 1))
+	      && (c1 = FETCH_CHAR (from - 1),
+		  SYNTAX_COMEND_FIRST (c1))
 	      && !char_quoted (from - 1))
 	    {
 	      /* We must record the comment style encountered so that
 		 later, we can match only the proper comment begin
 		 sequence of the same style.  */
 	      code = Sendcomment;
-	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from - 1));
+	      comstyle = SYNTAX_COMMENT_STYLE (c1);
 	      from--;
 	    }
 
@@ -708,7 +761,8 @@ between them, return t; otherwise return nil.")
 		  if (from != stop) from--;
 		  while (1)
 		    {
-		      if (SYNTAX (c = FETCH_CHAR (from)) == Scomment
+		      if ((c = FETCH_CHAR (from),
+			   SYNTAX (c) == Scomment)
 			  && SYNTAX_COMMENT_STYLE (c) == comstyle)
 			break;
 		      if (from == stop)
@@ -719,7 +773,8 @@ between them, return t; otherwise return nil.")
 			}
 		      from--;
 		      if (SYNTAX_COMSTART_SECOND (c)
-			  && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from))
+			  && (c1 = FETCH_CHAR (from),
+			      SYNTAX_COMSTART_FIRST (c1))
 			  && SYNTAX_COMMENT_STYLE (c) == comstyle
 			  && !char_quoted (from))
 			break;
@@ -1663,39 +1718,47 @@ DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 6, 0,
 init_syntax_once ()
 {
   register int i;
-  register struct Lisp_Vector *v;
+  Lisp_Object temp;
 
-  /* Set this now, so first buffer creation can refer to it. */
-  /* Make it nil before calling copy-syntax-table
-    so that copy-syntax-table will know not to try to copy from garbage */
-  Vstandard_syntax_table = Qnil;
-  Vstandard_syntax_table = Fcopy_syntax_table (Qnil);
+  temp = Fcons (make_number ((int) Swhitespace), Qnil);
 
-  v = XVECTOR (Vstandard_syntax_table);
+  Vstandard_syntax_table = Fmake_char_table (make_number (0), temp);
 
+  temp = Fcons (make_number ((int) Sword), Qnil);
   for (i = 'a'; i <= 'z'; i++)
-    XSETFASTINT (v->contents[i], (int) Sword);
+    SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, i, temp);
   for (i = 'A'; i <= 'Z'; i++)
-    XSETFASTINT (v->contents[i], (int) Sword);
+    SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, i, temp);
   for (i = '0'; i <= '9'; i++)
-    XSETFASTINT (v->contents[i], (int) Sword);
-  XSETFASTINT (v->contents['$'], (int) Sword);
-  XSETFASTINT (v->contents['%'], (int) Sword);
+    SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, i, temp);
 
-  XSETFASTINT (v->contents['('], (int) Sopen + (')' << 8));
-  XSETFASTINT (v->contents[')'], (int) Sclose + ('(' << 8));
-  XSETFASTINT (v->contents['['], (int) Sopen + (']' << 8));
-  XSETFASTINT (v->contents[']'], (int) Sclose + ('[' << 8));
-  XSETFASTINT (v->contents['{'], (int) Sopen + ('}' << 8));
-  XSETFASTINT (v->contents['}'], (int) Sclose + ('{' << 8));
-  XSETFASTINT (v->contents['"'], (int) Sstring);
-  XSETFASTINT (v->contents['\\'], (int) Sescape);
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '$', temp);
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '%', temp);
 
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '(',
+			Fcons (make_number (Sopen), make_number (')')));
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, ')',
+			Fcons (make_number (Sclose), make_number ('(')));
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '[',
+			Fcons (make_number (Sopen), make_number (']')));
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, ']',
+			Fcons (make_number (Sclose), make_number ('[')));
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '{',
+			Fcons (make_number (Sopen), make_number ('}')));
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '}',
+			Fcons (make_number (Sclose), make_number ('{')));
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '"',
+			Fcons (make_number ((int) Sstring), Qnil));
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '\\',
+			Fcons (make_number ((int) Sescape), Qnil));
+
+  temp = Fcons (make_number ((int) Ssymbol), Qnil);
   for (i = 0; i < 10; i++)
-    XSETFASTINT (v->contents["_-+*/&|<>="[i]], (int) Ssymbol);
+    SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, "_-+*/&|<>="[i], temp);
 
+  temp = Fcons (make_number ((int) Spunct), Qnil);
   for (i = 0; i < 12; i++)
-    XSETFASTINT (v->contents[".,;:?!#@~^'`"[i]], (int) Spunct);
+    SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, ".,;:?!#@~^'`"[i], temp);
 }
 
 syms_of_syntax ()
