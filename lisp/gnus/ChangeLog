@@ -1,3 +1,8 @@
+2001-07-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* gnus-start.el (gnus-startup-file-coding-system): Change to
+	`emacs-mule'.
+
 2001-07-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nntp.el (nntp-request-newgroups): Use UTC date for NEWGROUPS
