@@ -1013,7 +1013,7 @@ name of a font, REGISTRY is a registry name of a font.  */)
     {
       elt = Fget (character, Qcharset);
       if (!VECTORP (elt) || ASIZE (elt) < 1 || !NATNUMP (AREF (elt, 0)))
-	error ("Invalid charset: %s", (XSYMBOL (character)->name)->data);
+	error ("Invalid charset: %s", (XSTRING (SYMBOL_NAME (character)))->data);
       from = MAKE_CHAR (XINT (AREF (elt, 0)), 0, 0);
       to = from;
     }
