@@ -1,3 +1,8 @@
+1999-11-01  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* window.el (walk-windows): If ALL-FRAMES is a frame,
+	start on that frame.  Use save-selected-window.
+
 1999-11-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (end-of-buffer): Use window-end to find the window end
