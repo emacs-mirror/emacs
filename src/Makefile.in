@@ -750,6 +750,7 @@ alloca.o : alloca.c
 alloca.o : alloca.s $(config_h)
 /* $(CPP) is cc -E, which may get confused by filenames
    that do not end in .c.  So copy file to a safe name.  */
+	-rm -f allocatem.c
 	cp ${srcdir}/alloca.s allocatem.c
 /* Remove any ^L, blank lines, and preprocessor comments,
    since some assemblers barf on them.  Use a different basename for the
