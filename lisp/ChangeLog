@@ -1,6 +1,25 @@
+2002-08-09  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (set-variable): Give locality status in prompt.
+
+2002-08-09  Benjamin Rutt  <rutt@cis.ohio-state.edu>
+
+	* simple.el (set-variable): If given a prefix argument, set
+	variable buffer-locally.
+
 2002-08-09  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* font-core.el (font-lock-function): Make it buffer-local.
+
+2002-08-08  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/checkdoc.el (checkdoc, checkdoc-interactive) 
+	(checkdoc-message-interactive, checkdoc-interactive-loop) 
+	(checkdoc-current-buffer, checkdoc-continue, checkdoc-comments) 
+	(checkdoc-defun):
+	Update checkdoc-spellcheck-documentation-flag correctly.
+	(checkdoc-ispell-docstring-engine): Don't test for
+	checkdoc-autofix-flag = nil.
 
 2002-08-07  John Paul Wallington  <jpw@shootybangbang.com>
 
