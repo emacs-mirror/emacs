@@ -942,9 +942,10 @@ window_box_edges (w, area, top_left_x, top_left_y,
 			      Utilities
  ***********************************************************************/
 
-/* Return 1 if position CHARPOS is visible in window W.
-   Set *FULLY to 1 if POS is visible and the line containing
-   POS is fully visible.  */
+/* Return 1 if position CHARPOS is visible in window W.  Set *FULLY to
+   1 if POS is visible and the line containing POS is fully visible.
+   EXACT_MODE_LINE_HEIGHTS_P non-zero means compute exact mode-line
+   and header-lines heights.  */
 
 int
 pos_visible_p (w, charpos, fully, exact_mode_line_heights_p)
