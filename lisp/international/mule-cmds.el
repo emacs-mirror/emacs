@@ -264,9 +264,37 @@ wrong, use this command again to toggle back to the right mode."
 			 default))
 	 (keyseq (read-key-sequence
 		  (format "Command to execute with %s:" coding-system)))
-	 (cmd (key-binding keyseq)))
+	 (cmd (key-binding keyseq))
+	 prefix)
+
+    (when (eq cmd 'universal-argument)
+      (call-interactively cmd)
+      
+      ;; Process keys bound in `universal-argument-map'.
+      (while (progn
+	       (setq keyseq (read-key-sequence nil t)
+		     cmd (key-binding keyseq t))
+	       (not (eq cmd 'universal-argument-other-key)))
+	(let ((current-prefix-arg prefix-arg)
+	      ;; Have to bind `last-command-char' here so that 
+	      ;; `digit-argument', for isntance, can compute the
+	      ;; prefix arg.
+	      (last-command-char (aref keyseq 0)))
+	  (call-interactively cmd)))
+
+      ;; This is the final call to `univeral-argument-other-key', which
+      ;; set's the final `prefix-arg.
+      (let ((current-prefix-arg prefix-arg))
+	(call-interactively cmd))
+	
+      ;; Read the command to execute with the given prefix arg.
+      (setq prefix prefix-arg
+	    keyseq (read-key-sequence nil t)
+	    cmd (key-binding keyseq)))
+
     (let ((coding-system-for-read coding-system)
-	  (coding-system-for-write coding-system))
+	  (coding-system-for-write coding-system)
+	  (current-prefix-arg prefix))
       (message "")
       (call-interactively cmd))))
 
