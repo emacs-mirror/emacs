@@ -2045,7 +2045,7 @@ You must run Emacs in batch mode in order to dump it.  */)
   /* Bind `command-line-processed' to nil before dumping,
      so that the dumped Emacs will process its command line
      and set up to work with X windows if appropriate.  */
-  symbol = intern ("command-line-process");
+  symbol = intern ("command-line-processed");
   specbind (symbol, Qnil);
 
   CHECK_STRING (filename);
