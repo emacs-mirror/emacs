@@ -93,9 +93,22 @@ See definition of `print-region-1' for calling conventions.")
   ;; and it seems to annoying to do for that MIPS system.
   (let ((name (concat (buffer-name) " Emacs buffer"))
 	(title (concat (buffer-name) " Emacs buffer"))
-	(width tab-width))
+	(width tab-width)
+	switch-string)
     (save-excursion
-      (message "Spooling...")
+      (if page-headers
+	  (if lpr-headers-switches
+	      ;; It is possible to use an lpr option
+	      ;; to get page headers.
+	      (setq switches (append (if (stringp lpr-headers-switches)
+					 (list lpr-headers-switches)
+				        lpr-headers-switches)
+				     switches))))
+      (setq switch-string
+	    (if switches (concat " with options "
+				 (mapconcat 'identity switches " "))
+	      ""))
+      (message "Spooling%s..." switch-string)
       (if (/= tab-width 8)
 	  (let ((new-coords (print-region-new-buffer start end)))
 	    (setq start (car new-coords) end (cdr new-coords))
@@ -106,12 +119,8 @@ See definition of `print-region-1' for calling conventions.")
 	    (untabify (point-min) (point-max))))
       (if page-headers
 	  (if lpr-headers-switches
-	      ;; It is possible to use an lpr option
-	      ;; to get page headers.
-	      (setq switches (append (if (stringp lpr-headers-switches)
-					 (list lpr-headers-switches)
-				        lpr-headers-switches)
-				     switches))
+	      ;; We handled this above by modifying SWITCHES.
+	      nil
 	    ;; Run a separate program to get page headers.
 	    (let ((new-coords (print-region-new-buffer start end)))
 	      (setq start (car new-coords) end (cdr new-coords)))
@@ -132,7 +141,7 @@ See definition of `print-region-1' for calling conventions.")
 			   switches)))
       (if (markerp end)
 	  (set-marker end nil))
-      (message "Spooling...done"))))
+      (message "Spooling%s...done" switch-string))))
 
 ;; This function copies the text between start and end
 ;; into a new buffer, makes that buffer current.
