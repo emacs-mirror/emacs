@@ -5090,10 +5090,6 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
   struct buffer *old = current_buffer, *b;
   Lisp_Object tail, buf;
   int auto_saved = 0;
-  char *omessage = echo_area_glyphs;
-  Lisp_Object omessage_string = echo_area_message;
-  int omessage_length = echo_area_glyphs_length;
-  int oldmultibyte = message_enable_multibyte;
   int do_handled_files;
   Lisp_Object oquit;
   FILE *stream;
@@ -5101,9 +5097,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
   int count = specpdl_ptr - specpdl;
   int *ptr;
   int orig_minibuffer_auto_raise = minibuffer_auto_raise;
-  struct gcpro gcpro1;
-
-  GCPRO1 (omessage_string);
+  int message_p = push_message ();
   
   /* Ordinarily don't quit within this function,
      but don't make it impossible to quit (in case we get hung in I/O).  */
@@ -5248,15 +5242,10 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
 
   if (auto_saved && NILP (no_message))
     {
-      if (STRINGP (omessage_string))
+      if (message_p)
 	{
 	  sit_for (1, 0, 0, 0, 0);
-	  message3 (omessage_string, omessage_length, oldmultibyte);
-	}
-      else if (omessage)
-	{
-	  sit_for (1, 0, 0, 0, 0);
-	  message2 (omessage, omessage_length, oldmultibyte);
+	  restore_message ();
 	}
       else
 	message1 ("Auto-saving...done");
@@ -5264,7 +5253,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
 
   Vquit_flag = oquit;
 
-  UNGCPRO;
+  pop_message ();
   unbind_to (count, Qnil);
   return Qnil;
 }
