@@ -32,3 +32,16 @@
 /* Cancel the #define that is in irix5-0.h.  */
 #undef ospeed
 
+/* If we keep the #defines from usg5-4.h, we lose when using the X
+   headers because (at least) the bzero definition breaks their use of
+   strings.h.  Including strings.h here gets us prototypes for them.
+   (They're in libc though also they seem to be intrinsics in the SGI
+   (Cray) compiler at least at version 7.3).  -- fx  */
+#undef bcopy
+#undef bcmp
+#undef bzero
+#ifndef NOT_C_CODE
+#include <strings.h>
+#endif
+
+#undef TIOCSIGSEND		/* defined in usg5-4.h */
