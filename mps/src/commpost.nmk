@@ -27,7 +27,7 @@ mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awlu
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe protcv.exe \
      thw3susp.exe abqtest.exe cbstest.exe btcv.exe \
-     mv2test.exe epvmss.exe messtest.exe eventcnv.exe replay.exe replaysw.exe \
+     mv2test.exe epvmss.exe messtest.exe eventcnv.exe replay.exe replaysw.exe steptest.exe \
      mmdw.lib mmsw.lib mps_conf.lib mpsplan.lib:
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
@@ -208,6 +208,10 @@ $(PFM)\$(VARIETY)\epvmss.exe: $(PFM)\$(VARIETY)\epvmss.obj \
 
 $(PFM)\$(VARIETY)\messtest.exe: $(PFM)\$(VARIETY)\messtest.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\steptest.exe: $(PFM)\$(VARIETY)\steptest.obj \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mmsw.lib: $(SWOBJ)
 	$(ECHO) $@

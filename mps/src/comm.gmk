@@ -289,7 +289,7 @@ swall: mmsw.a epvmss replaysw epdss
 #   mv2test cannot be run because MV2 is broken
 testrun: mpmss apss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
          mpsicv lockcov poolncv locv qs finalcv arenacv \
-         abqtest cbstest btcv messtest
+         abqtest cbstest btcv messtest steptest
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
 # Runs the automatic tests that are built with CONFIG_PROD_EPCORE
@@ -303,7 +303,7 @@ testrunep: epvmss epdss
 # %%TARGET: Add a pseudo-target for the new target here.
 
 mpmss apss sacss amcss amcssth amcsshe amsss amssshe segsmss awlut awluthe awlutth mpsicv \
-  lockcov poolncv locv qs finalcv arenacv bttest teletest epvmss \
+  lockcov poolncv locv qs finalcv arenacv bttest teletest epvmss steptest \
   abqtest cbstest btcv mv2test messtest eventcnv replay replaysw \
   mps.a lo.a awl.a mmsw.a mpsplan.a mmdw.a: phony
 ifdef VARIETY
@@ -437,6 +437,9 @@ $(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
 
 $(PFM)/$(VARIETY)/messtest: $(PFM)/$(VARIETY)/messtest.o \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/steptest: $(PFM)/$(VARIETY)/steptest.o \
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
   $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o

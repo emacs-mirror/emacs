@@ -63,14 +63,14 @@ void ActionFinish(Action action)
  * and takes those which are worthwhile.
  */
 
-void ActionPoll(Arena arena)
+Bool ActionPoll(Arena arena)
 {
   Ring poolNode, nextPoolNode;
   double bestBenefit;
   Action bestAction;
- 
+
   AVERT(Arena, arena);
- 
+
   bestBenefit = -DBL_MAX;
   bestAction = NULL;
 
@@ -82,7 +82,7 @@ void ActionPoll(Arena arena)
       Action action = RING_ELT(Action, poolRing, actionNode);
       double benefit;
       AVERT(Action, action);
-     
+
       benefit = PoolBenefit(action->pool, action);
       if(benefit >= bestBenefit) {
         bestBenefit = benefit;
@@ -95,5 +95,7 @@ void ActionPoll(Arena arena)
   if(bestBenefit > 0) {
     AVER(bestAction != NULL);
     (void)PoolAct(bestAction->pool, bestAction);
+    return TRUE;
   }
+  return FALSE;
 }
