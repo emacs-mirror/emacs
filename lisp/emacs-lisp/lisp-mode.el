@@ -221,11 +221,11 @@ if that value is non-nil."
     (eval-last-sexp t)
     (terpri)))
 
-(defun eval-last-sexp (arg)
+(defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
 With argument, print output into current buffer."
   (interactive "P")
-  (let ((standard-output (if arg (current-buffer) t))
+  (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t))
 	(opoint (point)))
     (prin1 (let ((stab (syntax-table)))
 	     (eval (unwind-protect
@@ -237,12 +237,12 @@ With argument, print output into current buffer."
 			   (read (current-buffer))))
 		     (set-syntax-table stab)))))))
 
-(defun eval-defun (arg)
+(defun eval-defun (eval-defun-arg-internal)
   "Evaluate defun that point is in or before.
 Print value in minibuffer.
 With argument, insert value in current buffer after the defun."
   (interactive "P")
-  (let ((standard-output (if arg (current-buffer) t)))
+  (let ((standard-output (if eval-defun-arg-internal (current-buffer) t)))
     (prin1 (eval (save-excursion
 		   (end-of-defun)
 		   (beginning-of-defun)
