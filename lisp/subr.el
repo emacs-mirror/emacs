@@ -511,6 +511,12 @@ as returned by the `event-start' and `event-end' functions."
 (defalias 'compiled-function-p 'byte-code-function-p)
 (defalias 'define-function 'defalias)
 
+(defun sref (string byte-index)
+  (let ((byte 0) (char 0))
+    (while (< byte byte-index)
+      (setq byte (+ byte (char-bytes (aref string byte)))))
+    (aref string char)))
+
 ;; Some programs still use this as a function.
 (defun baud-rate ()
   "Obsolete function returning the value of the `baud-rate' variable.
