@@ -274,6 +274,58 @@ list.  You can (and should) also run it whenever the value of
 							  "-unix"))))
     (IT-display-table-setup cp)
     (prefer-coding-system (intern (concat cp "-dos")))
+    (if default-enable-multibyte-characters
+	;; We want this in multibyte version only, since unibyte version
+	;; should not convert non-ASCII characters at all.
+	(setq unibyte-display-via-language-environment t)
+      ;; Let the unibyte version behave as Emacs 19 did.  In particular,
+      ;; let it use and display native codepage-specific glyphs for
+      ;; non-ASCII characters.  For this to work correctly, we need to
+      ;; establish the correspondence between lower-case letters and their
+      ;; upper-case brethren, as appropriate for the codepage in use.  The
+      ;; code below makes this happen.
+      ;; (In the multibyte mode, the appropriate tables are prepared
+      ;; elsewhere, since multibyte Emacs uses normal MULE character sets,
+      ;; which are supported on all platforms.)
+      (let* ((i 128)
+	     (modify (function
+		      (lambda (ch sy) 
+			(modify-syntax-entry ch sy text-mode-syntax-table)
+			(if (boundp 'tex-mode-syntax-table)
+			    (modify-syntax-entry ch sy tex-mode-syntax-table))
+			(modify-syntax-entry ch sy (standard-syntax-table))
+			)))
+	     (table (standard-case-table))
+	     ;; The following are strings of letters, first lower then
+	     ;; upper case.  This will look funny on terminals which
+	     ;; display other code pages.  In particular, what is
+	     ;; displayed as blanks or triangles are not what they
+	     ;; look lile at all!  (Use `C-x =' to see what they
+	     ;; really are.)
+	     (chars
+	      (cond
+	       ((= dos-codepage 850)
+		"‡€š‚ƒ¶„…·†ÆÇ µˆÒ‰ÓŠÔ‹ØŒ×Ş¡Ö‘’“â”™•ã¢à›–ê£é—ë˜Yìí¡I£é¤¥ĞÑçè")
+	       ((= dos-codepage 865)
+		"‡€š‚ƒA„…A†ˆE‰EŠE‹IŒII‘’“O”™•O–U£U˜Y› A¡I¢O£U¤¥")
+	       ;; default is 437
+	       (t "‡€š‚ƒA„…A†ˆE‰EŠE‹IŒII‘’“O”™•O–U£U˜Y A¡I¢O£U¤¥"))))
+
+	(while (< i 256)
+	  (funcall modify i "_")
+	  (setq i (1+ i)))
+
+	(setq i 0)
+	(while (< i (length chars))
+	  (let ((ch1 (aref chars i))
+		(ch2 (aref chars (1+ i))))
+	    (if (> ch2 127)
+		(set-case-syntax-pair ch2 ch1 table))
+	    (setq i (+ i 2))))
+	(save-excursion
+	  (mapcar (lambda (b) (set-buffer b) (set-case-table table))
+		  (buffer-list)))
+	(set-standard-case-table table)))
     ;; Some codepages have sporadic support for Latin-1, Greek, and
     ;; symbol glyphs, which don't belong to their native character
     ;; set.  It's a nuisance to have all those glyphs here, for all
@@ -294,57 +346,6 @@ list.  You can (and should) also run it whenever the value of
 ;; verbatim.  In both cases, we want the entire range of 8-bit
 ;; characters to arrive at our display code verbatim.
 (standard-display-8bit 127 255)
-
-(if default-enable-multibyte-characters
-    ;; We want this in multibyte version only, since unibyte version
-    ;; should not convert non-ASCII characters at all.
-    (setq unibyte-display-via-language-environment t)
-  ;; Let the unibyte version behave as Emacs 19 did.  In particular,
-  ;; let it use and display native codepage-specific glyphs for
-  ;; non-ASCII characters.  For this to work correctly, we need to
-  ;; establish the correspondence between lower-case letters and their
-  ;; upper-case brethren, as appropriate for the codepage in use.  The
-  ;; code below makes this happen.
-  ;; (In the multibyte mode, the appropriate tables are prepared
-  ;; elsewhere, since multibyte Emacs uses normal MULE character sets,
-  ;; which are supported on all platforms.)
-  (let* ((i 128)
-	 (modify (function
-		  (lambda (ch sy) 
-		    (modify-syntax-entry ch sy text-mode-syntax-table)
-		    (if (boundp 'tex-mode-syntax-table)
-			(modify-syntax-entry ch sy tex-mode-syntax-table))
-		    (modify-syntax-entry ch sy (standard-syntax-table))
-		    )))
-	 (table (standard-case-table))
-	 ;; The following are strings of letters, first lower then upper case.
-	 ;; This will look funny on terminals which display other code pages.
-	 ;; In particular, what is displayed as blanks are not blanks
-	 ;; at all!  (Use `C-x =' to see what they really are.)
-	 (chars
-	  (cond
-	   ((= dos-codepage 850)
-	    "‡€š‚ƒ¶„…·†ÆÇ µˆÒ‰ÓŠÔ‹ØŒ×Ş¡Ö‘’“â”™•ã¢à›–ê£é—ë˜Yìí¡I£é¤¥ĞÑçè")
-	   ((= dos-codepage 865)
-	    "‡€š‚ƒA„…A†ˆE‰EŠE‹IŒII‘’“O”™•O–U£U˜Y› A¡I¢O£U¤¥")
-	   ;; default is 437
-	   (t "‡€š‚ƒA„…A†ˆE‰EŠE‹IŒII‘’“O”™•O–U£U˜Y A¡I¢O£U¤¥"))))
-
-    (while (< i 256)
-      (funcall modify i "_")
-      (setq i (1+ i)))
-
-    (setq i 0)
-    (while (< i (length chars))
-      (let ((ch1 (aref chars i))
-	    (ch2 (aref chars (1+ i))))
-	(if (> ch2 127)
-	    (set-case-syntax-pair ch2 ch1 table))
-	(setq i (+ i 2))))
-    (save-excursion
-      (mapcar (lambda (b) (set-buffer b) (set-case-table table))
-	      (buffer-list)))
-    (set-standard-case-table table)))
 
 ;;; internal.el ends here
 
