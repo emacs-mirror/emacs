@@ -49,7 +49,6 @@ If it is also not t, RET does not exit if it does non-null completion."
 ;; History list for VALUE argument to setenv.
 (defvar setenv-history nil)
 
-;;;###autoload
 (defun setenv (variable &optional value unset)
   "Set the value of the environment variable named VARIABLE to VALUE.
 VARIABLE should be a string.  VALUE is optional; if not provided or is
@@ -90,6 +89,19 @@ This function works by modifying `process-environment'."
 	      (setq process-environment
 		    (cons (concat variable "=" value)
 			  process-environment)))))))
+
+(defun getenv (variable)
+  "Get the value of environment variable VARIABLE.
+VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
+the environment.  Otherwise, value is a string.
+
+This function consults the variable `process-environment'
+for its value."
+  (interactive (list (read-envvar-name "Get environment variable: " t)))
+  (let ((value (getenv-internal variable)))
+    (when (interactive-p)
+      (message "%s" (if value value "Not set")))
+    value))
 
 (provide 'env)
 
