@@ -1,3 +1,32 @@
+2004-10-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* text.texi: Various small changes in addition to the following.
+	(Text): Replace xref for autotype with inforef.
+	(Sentences): Explain nil value for `sentence-end'.
+	(Paragraphs): Update default values for `paragraph-start' and
+	`paragraph-separate'.
+	(Text Mode): Correct description of Text mode's effect on the
+	syntax table.
+	(Outline Visibility): `hide-other' does not hide top level headings.
+	`selective-display-ellipses' no longer has an effect on Outline mode.
+	(TeX Misc): Add missing @cindex.
+	Replace xref for RefTeX with inforef.
+	(Requesting Formatted Text): the variable
+	`enriched-fill-after-visiting' no longer exists.
+	(Editing Format Info): Update names of menu items and commands.
+	(Format Faces): Mention special effect of specifying the default face.
+	Describe inheritance of text properties.
+	Correct description of `fixed' face.
+	(Format Indentation): Correct description of effect of setting
+	margins.  Mention `set-left-margin' and `set-right-margin'.
+	(Format Justification): Update names of menu items.
+	`set-justification-full' is now bound to `M-j b'.
+	Mention that `default-justification' is a per buffer variable.
+	(Format Properties): Update name of menu item.
+	(Forcing Enriched Mode): `format-decode-buffer' automatically
+	turns on Enriched mode if the buffer is in text/enriched format.
+
+
 2004-10-05  Emilio C. Lopes  <eclig@gmx.net>
 
 	* calendar.texi (From Other Calendar): Add calendar-goto-iso-week.
