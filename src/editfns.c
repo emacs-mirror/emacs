@@ -1895,9 +1895,10 @@ DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
 This allows the buffer's full text to be seen and edited.")
   ()
 {
+  if (BEG != BEGV || Z != ZV)
+    current_buffer->clip_changed = 1;
   BEGV = BEG;
   SET_BUF_ZV (current_buffer, Z);
-  current_buffer->clip_changed = 1;
   /* Changing the buffer bounds invalidates any recorded current column.  */
   invalidate_current_column ();
   return Qnil;
@@ -1927,13 +1928,15 @@ or markers) bounding the text that should remain visible.")
   if (!(BEG <= XINT (start) && XINT (start) <= XINT (end) && XINT (end) <= Z))
     args_out_of_range (start, end);
 
+  if (BEGV != XFASTINT (start) || ZV != XFASTINT (end))
+    current_buffer->clip_changed = 1;
+
   BEGV = XFASTINT (start);
   SET_BUF_ZV (current_buffer, XFASTINT (end));
   if (PT < XFASTINT (start))
     SET_PT (XFASTINT (start));
   if (PT > XFASTINT (end))
     SET_PT (XFASTINT (end));
-  current_buffer->clip_changed = 1;
   /* Changing the buffer bounds invalidates any recorded current column.  */
   invalidate_current_column ();
   return Qnil;
@@ -1959,6 +1962,7 @@ save_restriction_restore (data)
   register struct buffer *buf;
   register int newhead, newtail;
   register Lisp_Object tem;
+  int obegv, ozv;
 
   buf = XBUFFER (XCONS (data)->car);
 
@@ -1973,9 +1977,15 @@ save_restriction_restore (data)
       newhead = 0;
       newtail = 0;
     }
+
+  obegv = BUF_BEGV (buf);
+  ozv = BUF_ZV (buf);
+
   BUF_BEGV (buf) = BUF_BEG (buf) + newhead;
   SET_BUF_ZV (buf, BUF_Z (buf) - newtail);
-  current_buffer->clip_changed = 1;
+
+  if (obegv != BUF_BEGV (buf) || ozv != BUF_ZV (buf))
+    current_buffer->clip_changed = 1;
 
   /* If point is outside the new visible range, move it inside. */
   SET_BUF_PT (buf,
