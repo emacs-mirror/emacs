@@ -34,6 +34,8 @@
 ;; >> otherwise you can't use this file.  It will only work on the
 ;; >> internet with this address.
 
+(require 'sendmail)
+
 (defvar bug-gnu-emacs "bug-gnu-emacs@prep.ai.mit.edu"
   "Address of site maintaining mailing list for GNU Emacs bugs.")
 
@@ -43,8 +45,9 @@
 Prompts for bug subject.  Leaves you in a mail buffer."
   (interactive "sBug Subject: ")
   (mail nil bug-gnu-emacs topic)
-  (goto-char (point-max))
-  (insert "\nIn " (emacs-version) "\n\n")
+  (goto-char (point-min))
+  (re-search-forward (concat "^" (regexp-quote mail-header-separator) "\n"))
+  (insert "In " (emacs-version) "\n\n")
   (message (substitute-command-keys "Type \\[mail-send] to send bug report.")))
 
 (provide 'emacsbug)
