@@ -7237,40 +7237,6 @@ is_emacs_window (WindowPtr win)
 }
 
 static void
-do_window_activate (WindowPtr win)
-{
-  struct frame *f;
-
-  if (is_emacs_window (win))
-    {
-      f = mac_window_to_frame (win);
-
-      if (f)
-	{
-	  x_new_focus_frame (FRAME_MAC_DISPLAY_INFO (f), f);
-	  activate_scroll_bars (f);
-	}
-    }
-}
-
-static void
-do_window_deactivate (WindowPtr win)
-{
-  struct frame *f;
-
-  if (is_emacs_window (win))
-    {
-      f = mac_window_to_frame (win);
-
-      if (f == FRAME_MAC_DISPLAY_INFO (f)->x_focus_frame)
-	{
-	  x_new_focus_frame (FRAME_MAC_DISPLAY_INFO (f), 0);
-	  deactivate_scroll_bars (f);
-	}
-    }
-}
-
-static void
 do_app_resume ()
 {
   WindowPtr wp;
@@ -8154,6 +8120,14 @@ XTread_socket (sd, expected, hold_quit)
 	    SInt16 part_code;
 	    int tool_bar_p = 0;
 
+#if USE_CARBON_EVENTS
+	    /* This is needed to send mouse events like aqua window
+	       buttons to the correct handler.  */
+	    if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
+		!= eventNotHandledErr)
+	      break;
+#endif
+
 	    if (dpyinfo->grabbed && last_mouse_frame
 		&& FRAME_LIVE_P (last_mouse_frame))
 	      {
@@ -8169,16 +8143,9 @@ XTread_socket (sd, expected, hold_quit)
 		    window_ptr = FrontWindow ();
 		  }
 
-#if USE_CARBON_EVENTS
-		/* This is needed to send mouse events like aqua
-		   window buttons to the correct handler.  */
-		if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
-		    != eventNotHandledErr)
-		  break;
-
 		if (!is_emacs_window (window_ptr))
 		  break;
-#endif
+
 		part_code = FindWindow (er.where, &window_ptr);
 	      }
 
@@ -8424,24 +8391,38 @@ XTread_socket (sd, expected, hold_quit)
 		break;
 	      }
 
+	    if (!is_emacs_window (window_ptr))
+	      break;
+	    
+	    f = mac_window_to_frame (window_ptr);
+
 	    if ((er.modifiers & activeFlag) != 0)
 	      {
+		/* A window has been activated */
 		Point mouse_loc = er.where;
 
-		do_window_activate (window_ptr);
+		x_new_focus_frame (dpyinfo, f);
+		activate_scroll_bars (f);
 
 		SetPortWindowPort (window_ptr);
 		GlobalToLocal (&mouse_loc);
-		/* activateEvt counts as mouse movement,
+		/* Window-activated event counts as mouse movement,
 		   so update things that depend on mouse position.  */
 		note_mouse_movement (mac_window_to_frame (window_ptr),
 				     &mouse_loc);
 	      }
 	    else
 	      {
-		do_window_deactivate (window_ptr);
+		/* A window has been deactivated */
+		dpyinfo->grabbed = 0;
 
-		f = mac_window_to_frame (window_ptr);
+		if (f == dpyinfo->x_focus_frame)
+		  {
+		    x_new_focus_frame (dpyinfo, 0);
+		    deactivate_scroll_bars (f);
+		  }
+
+
 		if (f == dpyinfo->mouse_face_mouse_frame)
 		  {
 		    /* If we move outside the frame, then we're
