@@ -529,7 +529,7 @@ flyspell-buffer checks the whole buffer."
 	 (set-keymap-parent map (current-local-map))
 	 map))
   ;; the welcome message
-  (if flyspell-issue-welcome-flag
+  (if (and flyspell-issue-welcome-flag (interactive-p))
       (let ((binding (where-is-internal 'flyspell-auto-correct-word
 					nil 'non-ascii)))
 	(message
