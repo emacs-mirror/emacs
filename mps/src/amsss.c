@@ -1,7 +1,7 @@
 /* impl.c.amsss: POOL CLASS AMS STRESS TEST
  *
- * $HopeName: MMsrc!amsss.c(trunk.4) $
- * Copyright (C) 1996, 1997 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!amsss.c(trunk.5) $
+ * Copyright (C) 1996, 1997, 1998 Harlequin Group, all rights reserved
  *
  * .design: Adapted from amcss.c, but not counting collections, just
  * total size of objects allocated.
@@ -13,14 +13,18 @@
 #include <math.h>
 #include <string.h>
 #include <assert.h>
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 #include "testlib.h"
 #include "mps.h"
 #include "mpscams.h"
 #include "mpsavm.h"
 #include "fmtdy.h"
+#include "mpstd.h"
+#ifdef MPS_OS_W3
+#include "mpsw3.h"
+#endif
+#ifdef MPS_OS_SU
+#include "ossu.h"
+#endif
 
 
 #define exactRootsCOUNT 50
