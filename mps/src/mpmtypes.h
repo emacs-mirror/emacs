@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.75) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.76) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -143,7 +143,8 @@ typedef void (*FormattedObjectsStepMethod)(Addr, Format, Pool,
 
 /* Seg*Method -- see design.mps.seg */
 
-typedef void (*SegInitMethod)(Seg seg, Pool pool, Addr base, Size size);
+typedef Res (*SegInitMethod)(Seg seg, Pool pool, Addr base, Size size,
+                             Bool withReservoirPermit, va_list args);
 typedef void (*SegFinishMethod)(Seg seg);
 typedef void (*SegSetGreyMethod)(Seg seg, TraceSet grey);
 typedef void (*SegSetWhiteMethod)(Seg seg, TraceSet white);
@@ -154,8 +155,6 @@ typedef RefSet (*SegSummaryMethod)(Seg seg);
 typedef void (*SegSetSummaryMethod)(Seg seg, RefSet summary);
 typedef Buffer (*SegBufferMethod)(Seg seg);
 typedef void (*SegSetBufferMethod)(Seg seg, Buffer buffer);
-typedef void* (*SegPMethod)(Seg seg);
-typedef void (*SegSetPMethod)(Seg seg, void *p);
 typedef Res (*SegDescribeMethod)(Seg seg, mps_lib_FILE *stream);
 
 
