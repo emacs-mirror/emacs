@@ -1,17 +1,17 @@
 		      Precompiled Distributions of
-	      Emacs for Windows NT and Windows 95/98/2000
+			   Emacs for Windows
 
-			      Version 20.7
+			      Version 21.3
 
-			     June 13, 2000
-
+			     April 22, 2003
+		
   This directory contains source and precompiled distributions for GNU
-  Emacs on Windows NT and Windows 95/98/2000.  This port is a part of
-  the standard GNU Emacs distribution from the Free Software Foundation;
-  the precompiled distributions are provided here for convenience since,
-  unlike Unix, the majority of Windows users do not have access to a
-  compiler (and, besides, do you really want to compile Emacs when you
-  don't have to?).
+  Emacs on Windows NT/2000/XP and Windows 95/98/Me.  This port is a part
+  of the standard GNU Emacs distribution from the Free Software
+  Foundation; the precompiled distributions are provided here for
+  convenience since, unlike Unix, the majority of Windows users do not
+  have access to a compiler (and, besides, do you really want to compile
+  Emacs when you don't have to?).
 
   If you have access to the World Wide Web, I would recommend pointing
   your favorite web browser to the following document (if you haven't
@@ -27,9 +27,9 @@
 
   If you want to redistribute any of the precompiled distributions of
   Emacs, be careful to check the implications of the GPL.  For instance,
-  if you put the emacs-20.7-bin-i386.tar.gz file from this directory on
+  if you put the emacs-21.3-bin-i386.tar.gz file from this directory on
   an Internet site, you must arrange to distribute the source files of
-  the SAME version (i.e. emacs-20.7-src.tar.gz).
+  the SAME version (i.e. emacs-21.3-src.tar.gz).
 
   Making a link to our copy of the source is NOT sufficient, since we
   might upgrade to a new version while you are still distributing the
@@ -49,13 +49,13 @@
 
   + Primary precompiled distribution, including lisp source:
 
-      emacs-20.7-fullbin-i386.tar.gz
+      emacs-21.3-fullbin-i386.tar.gz
 
   + Minimal precompiled distribution, which excludes lisp source:
 
-      emacs-20.7-bin-i386.tar.gz
+      emacs-21.3-bin-i386.tar.gz
 
-    You can download emacs-20.7-lisp.tar.gz to get the lisp source, if
+    You can download emacs-21.3-lisp.tar.gz to get the lisp source, if
     you later decide you want it - it is useful for understanding how
     packages work, and how they can best be setup or customized.
 
@@ -66,26 +66,26 @@
   + Bare executables, only useful if you want to get the complete source
     release below, but can't compile Emacs yourself:
 
-      emacs-20.7-barebin-i386.tar.gz  (requires emacs-20.7-src.tar.gz)
+      emacs-21.3-barebin-i386.tar.gz  (requires emacs-21.3-src.tar.gz)
 
   + Undumped executable, only needed for rebuilding Emacs after changing
     certain core lisp files:
 
-      emacs-20.7-undumped-i386.tar.gz
+      emacs-21.3-undumped-i386.tar.gz
 
   + Optional package providing the Library of Emacs Input Methods for
     typing non-ascii characters, notably Chinese, Japanese and Korean,
     but also including European and other character sets:
 
-      emacs-20.7-leim.tar.gz
+      emacs-21.3-leim.tar.gz
 
   + The complete official source for Emacs:
 
-      emacs-20.7-src.tar.gz
+      emacs-21.3-src.tar.gz
 
   + The complete official source for LEIM:
 
-      leim-20.7-src.tar.gz
+      leim-21.3-src.tar.gz
 
 
 * Distributions in multi-file .zip format
@@ -94,10 +94,10 @@
   provided, for the benefit of people who have unreliable internet
   connections, or who need to copy the distribution onto floppy disks:
 
-      em207-b*.zip
+      em213b*.zip
 
-  This is equivalent to getting emacs-20.7-bin-i386.tar.gz above.
-  The lisp source is available as em207-l*.zip.
+  This is equivalent to getting emacs-21.3-bin-i386.tar.gz above.
+  The lisp source is available as em213l*.zip.
 
 
 * Distributions for non-x86 platforms
@@ -116,7 +116,7 @@
 * Unpacking distributions
 
   Programs for handling the distribution file formats can be found in
-  the utilities directory:
+  the utilities directory: 
 
     ftp://ftp.gnu.org/gnu/windows/emacs/utilities
 
@@ -164,6 +164,13 @@
   If your utility failed to create the lock directory, then you can
   simply create it by hand (it is initially empty).
 
+  One final step is needed only when installing from the multi-file .zip
+  distribution, in order to recreate emacs.exe from its fragments (it is
+  too big to fit on a floppy even when zipped):
+
+    % cd emacs-21.3\bin
+    % stitch
+
 
 * Unpacking with other tools
 
@@ -198,24 +205,34 @@
   If you would like to compile Emacs from source, download the source
   distribution, unpack it in the same manner as a precompiled
   distribution, and look in the file nt/INSTALL for detailed directions.
-  Note, though, that you must have a Microsoft compiler to compile the
-  source.  (Support for compiling with gcc 2.95 or later will be
-  available in a future release.)
+  You can either use the Microsoft compiler included with Visual C++, or
+  GCC 2.95 or later with MinGW support, to compile the source.  The port
+  of GCC included in Cygwin is supported, but check the nt/INSTALL file
+  if you have trouble since some builds of GNU make aren't supported.
 
 
 * Further information
 
-  There is a web page that serves as a FAQ at:
+  If you have access to the World Wide Web, I would recommend pointing
+  your favorite web browser to following the document (if you haven't
+  already):
 
 	http://www.gnu.org/software/emacs/windows/ntemacs.html
 
-  There is also a mailing list for discussing issues related to this
-  port of Emacs.  For information about the list, send a message to
-  ntemacs-users-request@cs.washington.edu with the word "info" in the
-  *body* of the message.  To subscribe to the list, send a message to
-  the same address with the word "subscribe" in the body of the message;
-  similarly, to unsubscribe from the list, send a message with the word
-  "unsubscribe" in the message body.
+  This document serves as an FAQ and a source for further information
+  about the Windows port and related software packages.
+
+  In addition to the FAQ, there is a mailing list for discussing issues
+  related to the Windows port of Emacs.  For information about the
+  list, see this Web page:
+
+	http://mail.gnu.org/mailman/listinfo/help-emacs-windows
+
+  To ask questions on the mailing list, send email to
+  help-emacs-windows@gnu.org.  (You don't need to subscribe for that.)
+  To subscribe to the list or unsubscribe from it, fill the form you
+  find at http://mail.gnu.org/mailman/listinfo/help-emacs-windows as
+  explained there.
 
   Another valuable source of information and help which should not be
   overlooked is the various Usenet news groups dedicated to Emacs.
@@ -230,10 +247,6 @@
   updated Emacs packages on this group:
 
 	gnu.emacs.sources
-
-  You are also always welcome to send me mail directly.  If you don't
-  hear from me immediately, however, don't worry; it sometimes takes me
-  a few days (or longer) to get to all of my mail regarding Emacs.
 
   Enjoy!
 
