@@ -651,20 +651,20 @@ visible section of the buffer, and pass LINE and COL as TOPOS.")
   struct position *pos;
   int hscroll, tab_offset;
 
-  CHECK_INT (from, 0);
+  CHECK_NUMBER_COERCE_MARKER (from, 0);
   CHECK_CONS (frompos, 0);
-  CHECK_INT (XCONS (frompos)->car, 0);
-  CHECK_INT (XCONS (frompos)->cdr, 0);
-  CHECK_INT (to, 0);
+  CHECK_NUMBER (XCONS (frompos)->car, 0);
+  CHECK_NUMBER (XCONS (frompos)->cdr, 0);
+  CHECK_NUMBER_COERCE_MARKER (to, 0);
   CHECK_CONS (topos, 0);
-  CHECK_INT (XCONS (topos)->car, 0);
-  CHECK_INT (XCONS (topos)->cdr, 0);
-  CHECK_INT (width);
+  CHECK_NUMBER (XCONS (topos)->car, 0);
+  CHECK_NUMBER (XCONS (topos)->cdr, 0);
+  CHECK_NUMBER (width, 0);
   if (!NILP (offsets))
     {
       CHECK_CONS (offsets, 0);
-      CHECK_INT (XCONS (offsets)->car);
-      CHECK_INT (XCONS (offsets)->cdr);
+      CHECK_NUMBER (XCONS (offsets)->car, 0);
+      CHECK_NUMBER (XCONS (offsets)->cdr, 0);
       hscroll = XINT (XCONS (offsets)->car);
       tab_offset = XINT (XCONS (offsets)->cdr);
     }
