@@ -133,27 +133,27 @@ init_editfns ()
 }
 
 DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
-  "Convert arg CHAR to a one-character string containing that character.")
-  (n)
-     Lisp_Object n;
+  "Convert arg CHARACTER to a one-character string containing that character.")
+  (character)
+     Lisp_Object character;
 {
   char c;
-  CHECK_NUMBER (n, 0);
+  CHECK_NUMBER (character, 0);
 
-  c = XINT (n);
+  c = XINT (character);
   return make_string (&c, 1);
 }
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
   "Convert arg STRING to a character, the first character of that string.")
-  (str)
-     register Lisp_Object str;
+  (string)
+     register Lisp_Object string;
 {
   register Lisp_Object val;
   register struct Lisp_String *p;
-  CHECK_STRING (str, 0);
+  CHECK_STRING (string, 0);
 
-  p = XSTRING (str);
+  p = XSTRING (string);
   if (p->size)
     XSETFASTINT (val, ((unsigned char *) p->data)[0]);
   else
@@ -203,13 +203,13 @@ clip_to_bounds (lower, num, upper)
 DEFUN ("goto-char", Fgoto_char, Sgoto_char, 1, 1, "NGoto char: ",
   "Set point to POSITION, a number or marker.\n\
 Beginning of buffer is position (point-min), end is (point-max).")
-  (n)
-     register Lisp_Object n;
+  (position)
+     register Lisp_Object position;
 {
-  CHECK_NUMBER_COERCE_MARKER (n, 0);
+  CHECK_NUMBER_COERCE_MARKER (position, 0);
 
-  SET_PT (clip_to_bounds (BEGV, XINT (n), ZV));
-  return n;
+  SET_PT (clip_to_bounds (BEGV, XINT (position), ZV));
+  return position;
 }
 
 static Lisp_Object
@@ -591,7 +591,7 @@ lisp_time_argument (specified_time, result)
     }
 }
 
-DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 2, 2, 0,
+DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 2, 0,
   "Use FORMAT-STRING to format the time TIME.\n\
 TIME is specified as (HIGH LOW . IGNORED) or (HIGH . LOW), as from\n\
 `current-time' and `file-attributes'.\n\
@@ -700,7 +700,7 @@ ZONE is an integer indicating the number of seconds east of Greenwich.\n\
 }
 
 DEFUN ("encode-time", Fencode_time, Sencode_time, 6, 7, 0,
-  "Convert SEC, MINUTE, HOUR, DAY, MONTH, YEAR and ZONE to internal time.\n\
+  "Convert SECOND, MINUTE, HOUR, DAY, MONTH, YEAR and ZONE to internal time.\n\
 This is the reverse operation of `decode-time', which see.  ZONE defaults\n\
 to the current time zone rule if not specified; if specified, it can\n\
 be a string (as from `set-time-zone-rule'), or it can be a list\n\
@@ -710,20 +710,20 @@ Out-of-range values for SEC, MINUTE, HOUR, DAY, or MONTH are allowed;\n\
 for example, a DAY of 0 means the day preceding the given month.\n\
 Year numbers less than 100 are treated just like other year numbers.\n\
 If you want them to stand for years in this century, you must do that yourself.")
-  (sec, minute, hour, day, month, year, zone)
-     Lisp_Object sec, minute, hour, day, month, year, zone;
+  (second, minute, hour, day, month, year, zone)
+     Lisp_Object second, minute, hour, day, month, year, zone;
 {
   time_t time;
   struct tm tm;
 
-  CHECK_NUMBER (sec, 0);
+  CHECK_NUMBER (second, 0);
   CHECK_NUMBER (minute, 1);
   CHECK_NUMBER (hour, 2);
   CHECK_NUMBER (day, 3);
   CHECK_NUMBER (month, 4);
   CHECK_NUMBER (year, 5);
 
-  tm.tm_sec = XINT (sec);
+  tm.tm_sec = XINT (second);
   tm.tm_min = XINT (minute);
   tm.tm_hour = XINT (hour);
   tm.tm_mday = XINT (day);
@@ -1105,19 +1105,19 @@ Any other markers at the point of insertion also end up after the text.")
 }
 
 DEFUN ("insert-char", Finsert_char, Sinsert_char, 2, 3, 0,
-  "Insert COUNT (second arg) copies of CHAR (first arg).\n\
+  "Insert COUNT (second arg) copies of CHARACTER (first arg).\n\
 Point and all markers are affected as in the function `insert'.\n\
 Both arguments are required.\n\
 The optional third arg INHERIT, if non-nil, says to inherit text properties\n\
 from adjoining text, if those properties are sticky.")
-  (chr, count, inherit)
-       Lisp_Object chr, count, inherit;
+  (character, count, inherit)
+       Lisp_Object character, count, inherit;
 {
   register unsigned char *string;
   register int strlen;
   register int i, n;
 
-  CHECK_NUMBER (chr, 0);
+  CHECK_NUMBER (character, 0);
   CHECK_NUMBER (count, 1);
 
   n = XINT (count);
@@ -1126,7 +1126,7 @@ from adjoining text, if those properties are sticky.")
   strlen = min (n, 256);
   string = (unsigned char *) alloca (strlen);
   for (i = 0; i < strlen; i++)
-    string[i] = XFASTINT (chr);
+    string[i] = XFASTINT (character);
   while (n >= strlen)
     {
       if (!NILP (inherit))
@@ -1230,16 +1230,16 @@ DEFUN ("buffer-substring", Fbuffer_substring, Sbuffer_substring, 2, 2, 0,
   "Return the contents of part of the current buffer as a string.\n\
 The two arguments START and END are character positions;\n\
 they can be in either order.")
-  (b, e)
-     Lisp_Object b, e;
+  (start, end)
+     Lisp_Object start, end;
 {
-  register int beg, end;
+  register int b, e;
 
-  validate_region (&b, &e);
-  beg = XINT (b);
-  end = XINT (e);
+  validate_region (&start, &end);
+  b = XINT (start);
+  e = XINT (end);
 
-  return make_buffer_string (beg, end, 1);
+  return make_buffer_string (b, e, 1);
 }
 
 DEFUN ("buffer-substring-no-properties", Fbuffer_substring_no_properties,
@@ -1247,16 +1247,16 @@ DEFUN ("buffer-substring-no-properties", Fbuffer_substring_no_properties,
   "Return the characters of part of the buffer, without the text properties.\n\
 The two arguments START and END are character positions;\n\
 they can be in either order.")
-  (b, e)
-     Lisp_Object b, e;
+  (start, end)
+     Lisp_Object start, end;
 {
-  register int beg, end;
+  register int b, e;
 
-  validate_region (&b, &e);
-  beg = XINT (b);
-  end = XINT (e);
+  validate_region (&start, &end);
+  b = XINT (start);
+  e = XINT (end);
 
-  return make_buffer_string (beg, end, 0);
+  return make_buffer_string (b, e, 0);
 }
 
 DEFUN ("buffer-string", Fbuffer_string, Sbuffer_string, 0, 0, 0,
@@ -1274,10 +1274,10 @@ DEFUN ("insert-buffer-substring", Finsert_buffer_substring, Sinsert_buffer_subst
 BUFFER may be a buffer or a buffer name.\n\
 Arguments START and END are character numbers specifying the substring.\n\
 They default to the beginning and the end of BUFFER.")
-  (buf, b, e)
-     Lisp_Object buf, b, e;
+  (buf, start, end)
+     Lisp_Object buf, start, end;
 {
-  register int beg, end, temp;
+  register int b, e, temp;
   register struct buffer *bp, *obuf;
   Lisp_Object buffer;
 
@@ -1286,33 +1286,33 @@ They default to the beginning and the end of BUFFER.")
     nsberror (buf);
   bp = XBUFFER (buffer);
 
-  if (NILP (b))
-    beg = BUF_BEGV (bp);
+  if (NILP (start))
+    b = BUF_BEGV (bp);
   else
     {
-      CHECK_NUMBER_COERCE_MARKER (b, 0);
-      beg = XINT (b);
+      CHECK_NUMBER_COERCE_MARKER (start, 0);
+      b = XINT (start);
     }
-  if (NILP (e))
-    end = BUF_ZV (bp);
+  if (NILP (end))
+    e = BUF_ZV (bp);
   else
     {
-      CHECK_NUMBER_COERCE_MARKER (e, 1);
-      end = XINT (e);
+      CHECK_NUMBER_COERCE_MARKER (end, 1);
+      e = XINT (end);
     }
 
-  if (beg > end)
-    temp = beg, beg = end, end = temp;
+  if (b > e)
+    temp = b, b = e, e = temp;
 
-  if (!(BUF_BEGV (bp) <= beg && end <= BUF_ZV (bp)))
-    args_out_of_range (b, e);
+  if (!(BUF_BEGV (bp) <= b && e <= BUF_ZV (bp)))
+    args_out_of_range (start, end);
 
   obuf = current_buffer;
   set_buffer_internal_1 (bp);
-  update_buffer_properties (beg, end);
+  update_buffer_properties (b, e);
   set_buffer_internal_1 (obuf);
 
-  insert_from_buffer (bp, beg, end - beg, 0);
+  insert_from_buffer (bp, b, e - b, 0);
   return Qnil;
 }
 
@@ -1573,11 +1573,11 @@ DEFUN ("delete-region", Fdelete_region, Sdelete_region, 2, 2, "r",
   "Delete the text between point and mark.\n\
 When called from a program, expects two arguments,\n\
 positions (integers or markers) specifying the stretch to be deleted.")
-  (b, e)
-     Lisp_Object b, e;
+  (start, end)
+     Lisp_Object start, end;
 {
-  validate_region (&b, &e);
-  del_range (XINT (b), XINT (e));
+  validate_region (&start, &end);
+  del_range (XINT (start), XINT (end));
   return Qnil;
 }
 
@@ -1603,27 +1603,27 @@ See also `save-restriction'.\n\
 \n\
 When calling from a program, pass two arguments; positions (integers\n\
 or markers) bounding the text that should remain visible.")
-  (b, e)
-     register Lisp_Object b, e;
+  (start, end)
+     register Lisp_Object start, end;
 {
-  CHECK_NUMBER_COERCE_MARKER (b, 0);
-  CHECK_NUMBER_COERCE_MARKER (e, 1);
+  CHECK_NUMBER_COERCE_MARKER (start, 0);
+  CHECK_NUMBER_COERCE_MARKER (end, 1);
 
-  if (XINT (b) > XINT (e))
+  if (XINT (start) > XINT (end))
     {
       Lisp_Object tem;
-      tem = b;  b = e;  e = tem;
+      tem = start; start = end; end = tem;
     }
 
-  if (!(BEG <= XINT (b) && XINT (b) <= XINT (e) && XINT (e) <= Z))
-    args_out_of_range (b, e);
+  if (!(BEG <= XINT (start) && XINT (start) <= XINT (end) && XINT (end) <= Z))
+    args_out_of_range (start, end);
 
-  BEGV = XFASTINT (b);
-  SET_BUF_ZV (current_buffer, XFASTINT (e));
-  if (point < XFASTINT (b))
-    SET_PT (XFASTINT (b));
-  if (point > XFASTINT (e))
-    SET_PT (XFASTINT (e));
+  BEGV = XFASTINT (start);
+  SET_BUF_ZV (current_buffer, XFASTINT (end));
+  if (point < XFASTINT (start))
+    SET_PT (XFASTINT (start));
+  if (point > XFASTINT (end))
+    SET_PT (XFASTINT (end));
   current_buffer->clip_changed = 1;
   /* Changing the buffer bounds invalidates any recorded current column.  */
   invalidate_current_column ();
