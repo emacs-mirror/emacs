@@ -32,6 +32,10 @@ extern int display_completed;
 #include "msdos.h"
 #endif
 
+#ifdef HAVE_NTGUI
+#include "win32.h"
+#endif
+
 #ifdef HAVE_FACES
 struct face
   {
@@ -127,7 +131,7 @@ struct frame_glyphs
        and should be deleted.  */
     int   *bufp;
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
     /* Pixel position of top left corner of line.  */
     short *top_left_x;
     short *top_left_y;
@@ -140,7 +144,7 @@ struct frame_glyphs
 
     /* Largest font ascent on this line.  */
     short *max_ascent;
-#endif	/* HAVE_X_WINDOWS */
+#endif	/* HAVE_WINDOW_SYSTEM */
 
     /* Mapping of coordinate pairs to buffer positions.
        This field holds a vector indexed by row number.
