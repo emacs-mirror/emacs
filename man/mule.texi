@@ -239,17 +239,18 @@ of the newly installed fonts with the following commands:
 @vindex locale-language-names
 @vindex locale-charset-language-names
 @cindex locales
-  Some operating systems let you specify the language you are using by
-setting the locale environment variables @env{LC_ALL}, @env{LC_CTYPE},
-or @env{LANG}.@footnote{If more than one of these is set, the first
-one that is nonempty specifies your locale for this purpose.}  Emacs
-handles this during startup by matching your locale against entries in
-the value of the variables @code{locale-charset-language-names} and
-@code{locale-language-names} and selects the corresponding language
-environment if a match is found.  (The former variable overrides the
-latter.)  It also adjusts the display table and terminal coding
-system, the locale coding system, and the preferred coding system as
-needed for the locale.
+  Some operating systems let you specify the character-set locale you
+are using by setting the locale environment variables @env{LC_ALL},
+@env{LC_CTYPE}, or @env{LANG}.@footnote{If more than one of these is
+set, the first one that is nonempty specifies your locale for this
+purpose.}  During startup, Emacs looks up your character-set locale's
+name in the system locale alias table, matches its canonical name
+against entries in the value of the variables
+@code{locale-charset-language-names} and @code{locale-language-names},
+and selects the corresponding language environment if a match is found.
+(The former variable overrides the latter.)  It also adjusts the display
+table and terminal coding system, the locale coding system, and the
+preferred coding system as needed for the locale.
 
   If you modify the @env{LC_ALL}, @env{LC_CTYPE}, or @env{LANG}
 environment variables while running Emacs, you may want to invoke the
