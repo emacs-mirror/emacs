@@ -1226,7 +1226,7 @@ init_sys_modes ()
     narrow_foreground_group ();
 #endif
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
      needs the initialization code below.  */
   if (!read_socket_hook && EQ (Vwindow_system, Qnil))
@@ -1469,7 +1469,7 @@ init_sys_modes ()
 #else
   setbuf (stdout, _sobuf);
 #endif
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
      needs the initialization code below.  */
   if (! read_socket_hook && EQ (Vwindow_system, Qnil))
@@ -1612,7 +1612,7 @@ reset_sys_modes ()
     }
   if (!term_initted)
     return;
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
      needs the clean-up code below.  */
   if (read_socket_hook || !EQ (Vwindow_system, Qnil))
@@ -2403,8 +2403,8 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 /* Read keyboard input into the standard buffer,
    waiting for at least one character.  */
 
-/* Make all keyboard buffers much bigger when using X windows.  */
-#ifdef HAVE_X_WINDOWS
+/* Make all keyboard buffers much bigger when using a window system.  */
+#ifdef HAVE_WINDOW_SYSTEM
 #define BUFFER_SIZE_FACTOR 16
 #else
 #define BUFFER_SIZE_FACTOR 1
