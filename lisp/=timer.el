@@ -34,14 +34,15 @@
 (defun run-at-time (time repeat function &rest args)
   "Run a function at a time, and optionally on a regular interval.
 Arguments are TIME, REPEAT, FUNCTION &rest ARGS.
-TIME, a string,  can be specified absolutely or relative to now.
+TIME, a string, can be specified absolutely or relative to now.
+TIME can also be an integer, a number of seconds.
 REPEAT, an integer number of seconds, is the interval on which to repeat
 the call to the function.  If REPEAT is nil, call it just once.
 
 Absolute times may be specified in a wide variety of formats;
 Something of the form `HOUR:MIN:SEC TIMEZONE MONTH/DAY/YEAR', where
-all fields are numbers, will work; the format used by the Unix `date'
-command will work too.
+all fields are numbers, works; the format used by the Unix `date'
+command works too.
 
 Relative times may be specified as a series of numbers followed by units:
   1 min         	denotes one minute from now.
@@ -50,6 +51,9 @@ Relative times may be specified as a series of numbers followed by units:
   1 min 2 sec 3 hour 4 day 5 week 6 fortnight 7 month 8 year
 			denotes the sum of all the given durations from now."
   (interactive "sRun at time: \nNRepeat interval: \naFunction: ")
+  ;; Make TIME a string.
+  (if (integerp time)
+      (setq time (format "%d sec" time)))
   (cond ((or (not timer-process) 
              (memq (process-status timer-process) '(exit signal nil)))
          (if timer-process (delete-process timer-process))
@@ -62,9 +66,19 @@ Relative times may be specified as a series of numbers followed by units:
         ((eq (process-status timer-process) 'stop)
          (continue-process timer-process)))
   ;; There should be a living, breathing timer process now
-  (let ((token (concat (current-time-string) "-" (length timer-alist))))
+  (let* ((token (concat (current-time-string) "-" (length timer-alist)))
+	 (elt (list token repeat function args)))
     (process-send-string timer-process (concat time "@" token "\n"))
-    (setq timer-alist (cons (list token repeat function args) timer-alist))))
+    (setq timer-alist (cons elt timer-alist))
+    elt))
+
+(defun cancel-timer (elt)
+  "Cancel a timer previously made with `run-at-time'.
+The argument should be a value previously returned by `run-at-time'.
+Cancelling the timer means that nothing special 
+will happen at the specified time."
+  (setcar (cdr elt) nil)
+  (setcar (cdr (cdr elt)) 'ignore))
 
 (defun timer-process-filter (proc str)
   (setq timer-out (concat timer-out str))
@@ -74,10 +88,11 @@ Relative times may be specified as a series of numbers followed by units:
             do (assoc token timer-alist)
             timer-out (substring timer-out (match-end 0)))
       (cond
-       (do (apply (nth 2 do) (nth 3 do))   ; do it
-           (if (natnump (nth 1 do))        ; reschedule it
-               (send-string proc (concat (nth 1 do) " sec@" (car do) "\n"))
-             (setq timer-alist (delq do timer-alist))))
+       (do
+	(apply (nth 2 do) (nth 3 do))   ; do it
+	(if (natnump (nth 1 do))        ; reschedule it
+	    (send-string proc (concat (nth 1 do) " sec@" (car do) "\n"))
+	  (setq timer-alist (delq do timer-alist))))
        ((string-match "timer: \\([^:]+\\): \\([^@]*\\)@\\(.*\\)$" token)
         (setq error (substring token (match-beginning 1) (match-end 1))
               do    (substring token (match-beginning 2) (match-end 2))
