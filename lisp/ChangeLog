@@ -1,3 +1,12 @@
+2003-01-09  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* language/ethio-util.el (ethio-gemination)
+	(exit-ethiopic-environment): Doc fixes.
+
+	* language/viet-util.el (viet-encode-viqr-region)
+	(viet-decode-viqr-region, viet-encode-viqr-buffer)
+	(viet-decode-viqr-buffer): Doc fixes.
+
 2003-01-09  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* paths.el: Remove gnus-startup-file.

@@ -222,7 +222,7 @@
 
 ;;;###autoload
 (defun viet-decode-viqr-region (from to)
-  "Convert `VIQR' mnemonics of the current region to Vietnamese characaters.
+  "Convert `VIQR' mnemonics of the current region to Vietnamese characters.
 When called from a program, expects two arguments,
 positions (integers or markers) specifying the stretch of the region."
   (interactive "r")
@@ -239,13 +239,13 @@ positions (integers or markers) specifying the stretch of the region."
 
 ;;;###autoload
 (defun viet-decode-viqr-buffer ()
-  "Convert `VIQR' mnemonics of the current buffer to Vietnamese characaters."
+  "Convert `VIQR' mnemonics of the current buffer to Vietnamese characters."
   (interactive)
   (viet-decode-viqr-region (point-min) (point-max)))
 
 ;;;###autoload
 (defun viet-encode-viqr-region (from to)
-  "Convert Vietnamese characaters of the current region to `VIQR' mnemonics.
+  "Convert Vietnamese characters of the current region to `VIQR' mnemonics.
 When called from a program, expects two arguments,
 positions (integers or markers) specifying the stretch of the region."
   (interactive "r")
@@ -262,7 +262,7 @@ positions (integers or markers) specifying the stretch of the region."
 
 ;;;###autoload
 (defun viet-encode-viqr-buffer ()
-  "Convert Vietnamese characaters of the current buffer to `VIQR' mnemonics."
+  "Convert Vietnamese characters of the current buffer to `VIQR' mnemonics."
   (interactive)
   (viet-encode-viqr-region (point-min) (point-max)))
 

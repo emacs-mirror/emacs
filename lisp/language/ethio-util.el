@@ -83,7 +83,7 @@
   (add-hook 'after-save-hook 'ethio-find-file))
 
 (defun exit-ethiopic-environment ()
-  "Exit Ethiopic language environment"
+  "Exit Ethiopic language environment."
   (while exit-ethiopic-environment-data
     (global-set-key (car (car exit-ethiopic-environment-data))
 		    (cdr (car exit-ethiopic-environment-data)))
@@ -1984,7 +1984,7 @@ With ARG, insert that many delimiters."
 
 (defun ethio-gemination nil
   "Compose the character before the point with the Ethiopic gemination mark.
-If the characater is already composed, decompose it and remove the gemination
+If the character is already composed, decompose it and remove the gemination
 mark."
   (interactive "*")
   (cond
