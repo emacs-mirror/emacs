@@ -1,6 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.1) $
+ *  $HopeName: MMsrc!fmtdy.c(trunk.2) $
  *  Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  *  All objects, B:
@@ -158,6 +158,8 @@ static mps_res_t dylan_scan_contig(mps_ss_t mps_ss,
           p = base;
     loop: if(p >= limit) goto out;
           r = *p++;
+	  if(((mps_word_t)r&3) != 0) /* pointers tagged with 0 */
+	    goto loop;             /* not a pointer */
           if(!MPS_FIX1(mps_ss, r)) goto loop;
           res = MPS_FIX2(mps_ss, p-1);
           if(res == MPS_RES_OK) goto loop;
@@ -200,6 +202,8 @@ static mps_res_t dylan_scan_pat(mps_ss_t mps_ss,
           pat >>= 1;
           if(b == 0) goto loop;
           r = *(pp-1);
+	  if(((mps_word_t)r&3) != 0) /* pointers tagged with 0 */
+	    goto loop;             /* not a pointer */
           if(!MPS_FIX1(mps_ss, r)) goto loop;
           res = MPS_FIX2(mps_ss, pp-1);
           if(res == MPS_RES_OK) goto loop;
