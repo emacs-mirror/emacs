@@ -1,5 +1,14 @@
 2000-05-20  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* log-edit.el (log-edit-done): Cleanup trailing empty lines.
+	(log-edit-insert-changelog): Drop `:' as well.
+
+	* log-view.el: Fix file description.
+	(log-view-mode-map): Unsatisfying fix for when cvs-mode-map is not
+	available.
+	(log-view-font-lock-keywords): Only use cvs-filename-face if present.
+	(log-view-current-file): Only use cvs-pcl-cvs-dirchange-re if present.
+
 	* emacs-lisp/easy-mmode.el: Update copyright and commentary.
 	(easy-mmode-define-toggle): Deprecate the use of *-(on|off)-hook.
 	Print a status message if the toggle is called interactively.
