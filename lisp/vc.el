@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.313 2001/10/21 23:31:45 spiegel Exp $
+;; $Id: vc.el,v 1.314 2001/10/22 07:54:03 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -486,8 +486,11 @@ These are passed to the checkin program by \\[vc-register]."
 
 (defcustom vc-diff-switches nil
   "*A string or list of strings specifying switches for diff under VC.
-There is also an option vc-BACKEND-diff-switches for each BACKEND that
-VC can handle."
+When running diff under a given BACKEND, VC concatenates the values of
+`diff-switches', `vc-diff-switches', and `vc-BACKEND-diff-switches' to
+get the switches for that command.  Thus, `vc-diff-switches' should
+contain switches that are specific to version control, but not
+specific to any particular backend."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
