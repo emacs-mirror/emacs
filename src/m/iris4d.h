@@ -1,4 +1,4 @@
-/* machine description file for Iris-4D machines.  Use with s/irix[45]-*.h.
+/* machine description file for Iris-4D machines.  Use with s/irix*.h.
    Copyright (C) 1987 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -171,6 +171,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Define STACK_DIRECTION for alloca.c */
 
+#undef STACK_DIRECTION
 #define STACK_DIRECTION -1
 
 /* The standard definitions of these macros would work ok,
@@ -188,5 +189,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef __GNUC__
 /* Turn off some "helpful" error checks for type mismatches
    that we can't fix without breaking other machines.  */
-#define C_SWITCH_MACHINE -cckr
+#ifdef IRIX_FORCE_32_BITS
+#define C_SWITCH_MACHINE -32
 #endif
+
+#endif /* not __GNUC__ */
