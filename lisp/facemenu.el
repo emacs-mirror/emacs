@@ -611,7 +611,7 @@ If the optional argument FRAME is given, use the faces in that frame; otherwise
 use the selected frame.  If t, then the global, non-frame faces are used."
   (let* ((mask-atts (copy-sequence
 		     (if (consp (car face-list))
-			 (face-attribute-vector (car face-list))
+			 (face-attributes-as-vector (car face-list))
 		       (or (internal-lisp-face-p (car face-list) frame)
 			   (check-face (car face-list))))))
 	 (active-list (list (car face-list)))
@@ -620,7 +620,7 @@ use the selected frame.  If t, then the global, non-frame faces are used."
     (while face-list
       (if (let ((face-atts
 		 (if (consp (car face-list))
-		     (face-attribute-vector (car face-list))
+		     (face-attributes-as-vector (car face-list))
 		   (or (internal-lisp-face-p (car face-list) frame)
 		       (check-face (car face-list)))))
 		(i mask-len)
