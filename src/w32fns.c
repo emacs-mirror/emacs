@@ -14263,15 +14263,11 @@ WINDOWS_CHARSET is a symbol that can be one of:
 w32-charset-ansi, w32-charset-default, w32-charset-symbol,
 w32-charset-shiftjis, w32-charset-hangeul, w32-charset-gb2312,
 w32-charset-chinesebig5,
-#ifdef JOHAB_CHARSET
 w32-charset-johab, w32-charset-hebrew,
 w32-charset-arabic, w32-charset-greek, w32-charset-turkish,
 w32-charset-vietnamese, w32-charset-thai, w32-charset-easteurope,
 w32-charset-russian, w32-charset-mac, w32-charset-baltic,
-#endif
-#ifdef UNICODE_CHARSET
 w32-charset-unicode,
-#endif
 or w32-charset-oem.
 CODEPAGE should be an integer specifying the codepage that should be used
 to display the character set, t to do no translation and output as Unicode,
