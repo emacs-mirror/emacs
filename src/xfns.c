@@ -3723,7 +3723,6 @@ Emacs initially sets `x-resource-name' to the name under which Emacs\n\
 was invoked, or to the value specified with the `-name' or `-rn'\n\
 switches, if present.");
   Vx_resource_name = Qnil;
-  staticpro (&Vx_resource_name);
 
 #if 0
   DEFVAR_INT ("x-nontext-pointer-shape", &Vx_nontext_pointer_shape,
