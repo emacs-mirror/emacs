@@ -1367,6 +1367,8 @@ charsets or coding systems.")
       (set-buffer-modified-p modified-p)
       (- (point-max) (point-min)))))
 
+;; If you add charsets here, be sure to modify the regexp used by
+;; ctext-pre-write-conversion to look up non-standard charsets.
 (defvar non-standard-designations-alist
   '(("$(0" . (big5 "big5-0" 2))
     ("$(1" . (big5 "big5-0" 2))
@@ -1408,7 +1410,8 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
 	   (buffer-disable-undo)
 	   (if (stringp from)
 	       (insert from)
-	     (insert-buffer-substring buf from to)))))
+	     (insert-buffer-substring buf from to))
+	   (setq from (point-min) to (point-max)))))
   (encode-coding-region from to 'ctext-no-compositions)
   ;; Replace ISO-2022 charset designations with extended segments, for
   ;; those charsets that are not part of the official X registry.
