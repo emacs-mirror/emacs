@@ -212,7 +212,7 @@ main (argc, argv)
   strcat (buf, "/.emacs_server");
   creat (buf, 0600);
   key = ftok (buf, 1);	/* unlikely to be anyone else using it */
-  s = msgget (key, 0600);
+  s = msgget (key, 0600 | IPC_CREAT);
   if (s == -1)
     {
       fprintf (stderr, "%s: ", argv[0]);
