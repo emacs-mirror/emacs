@@ -2,7 +2,7 @@
  *
  *                  PROTECTION FOR SUNOS
  *
- *  $HopeName$
+ *  $HopeName: MMsrc/!protsu.c(trunk.1)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -110,7 +110,7 @@ static void sigHandle(int sig, int code,
     /* Offer each protection structure the opportunity to handle the */
     /* exception.  If it succeeds, then allow the mutator to continue. */
 
-    if(FaultDispatch(mode, base, limit))
+    if(FaultDispatch(base, limit, mode))
       return;
   }
 
