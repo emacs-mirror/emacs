@@ -1,3 +1,9 @@
+2001-05-18  Miles Bader  <miles@gnu.org>
+
+	* simple.el (delete-horizontal-space, just-one-space): Use
+	`constrain-to-field' instead of `field-end'/`field-beginning',
+	because it's more efficient for large files.
+
 2001-05-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/rmail.el (rmail-require-mime-maybe): New function.
