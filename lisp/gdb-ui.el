@@ -26,17 +26,18 @@
 ;;; Commentary:
 
 ;;  This file is based on gdba.el from GDB 5.0 written by Jim Kingdon and uses
-;;  GDB's annotation interface. You don't need to know about annotations but
-;;  If you are interested developing this mode see the Annotations section in
-;;  the GDB info manual).
-;;
-;;  It has been extended to use features of Emacs 21 such as the display
-;;  margin for breakpoints and the toolbar. It also has new buffers and lots
-;;  of other new features such as formatted auto-display of arrays and
-;;  structures (see the GDB-UI section in the Emacs info manual).
+;;  GDB's annotation interface. It has been extended to use features of Emacs
+;;  21 such as the display margin for breakpoints and the toolbar. It also has
+;;  new buffers and lots of other new features such as formatted auto-display
+;;  of arrays and structures (see the GDB-UI section in the Emacs info
+;;  manual).
+
+;;  You don't need to know about annotations to use this mode as a graphical
+;;  user interface to GDB. However, if you are interested developing the mode
+;;  itself see the Annotations section in the GDB info manual.
 ;;
 ;;  Known Bugs: Does not auto-display arrays of structures or structures 
-;;  containing arrays properly.
+;;  containing arrays.
 
 ;;; Code:
 
@@ -98,15 +99,15 @@ The following interactive lisp functions help control operation :
 `gdb-restore-windows' - To restore the window layout.
 `gdb-quit'            - To delete (most) of the buffers used by GDB-UI and 
                         reset variables."
-
+  ;;
   (interactive (list (gud-query-cmdline 'gdba)))
-
+  ;;
   ;; Let's start with a basic gud-gdb buffer and then modify it a bit.
   (gdb command-line)
-
+  ;;
   (set (make-local-variable 'gud-minor-mode) 'gdba)
   (set (make-local-variable 'gud-marker-filter) 'gud-gdba-marker-filter)
-
+  ;;
   (gud-def gud-break (if (not (string-equal mode-name "Assembler"))
 			 (gud-call "break %f:%l" arg)
 		       (save-excursion
@@ -114,7 +115,7 @@ The following interactive lisp functions help control operation :
 			 (forward-char 2)
 			 (gud-call "break *%a" arg)))
 	   "\C-b" "Set breakpoint at current line or address.")
-
+  ;;
   (gud-def gud-remove (if (not (string-equal mode-name "Assembler"))
 			  (gud-call "clear %f:%l" arg)
 			(save-excursion
@@ -122,25 +123,25 @@ The following interactive lisp functions help control operation :
 			  (forward-char 2)
 			  (gud-call "clear *%a" arg)))
 	   "\C-d" "Remove breakpoint at current line or address.")
-
+  ;;
   (setq comint-input-sender 'gdb-send)
-
+  ;;
   ;; (re-)initialise
   (setq gdb-main-or-pc "main")
   (setq gdb-current-address nil)
   (setq gdb-display-in-progress nil)
   (setq gdb-dive nil)
-
+  ;;
   (mapc 'make-local-variable gdb-variables)
   (setq gdb-buffer-type 'gdba)
-
+  ;;
   (gdb-clear-inferior-io)
-
+  ;;
   ;; find source file and compilation directory here
   (gdb-enqueue-input (list "server list\n" 'ignore))
   (gdb-enqueue-input (list "server info source\n"
 			   'gdb-source-info))
-
+  ;;
   (run-hooks 'gdba-mode-hook))
 
 (defun gud-display ()
@@ -725,7 +726,7 @@ output from the current command if that happens to be appropriate."
 	;;else put * back on if necessary
 	(setq gdb-expression (concat char gdb-expression)))
       (setq header-line-format (concat "-- " gdb-expression " %-"))))
-
+  ;;
   ;;-if scalar/string
   (if (not (re-search-forward "##" nil t))
       (progn
@@ -1048,11 +1049,11 @@ output from the current command if that happens to be appropriate."
 	  (burst (concat (gdb-get-burst) string))
 	  ;; Start accumulating output for the GUD buffer
 	  (output ""))
-
+      ;;
       ;; Process all the complete markers in this chunk.
       (while (string-match "\n\032\032\\(.*\\)\n" burst)
 	(let ((annotation (match-string 1 burst)))
-
+          ;;
 	  ;; Stuff prior to the match is just ordinary output.
 	  ;; It is either concatenated to OUTPUT or directed
 	  ;; elsewhere.
@@ -1078,7 +1079,7 @@ output from the current command if that happens to be appropriate."
 	      ;; so that GDB can add new annotations without causing
 	      ;; us to blow up.
 	      ))))
-
+      ;;
       ;; Does the remaining text end in a partial line?
       ;; If it does, then keep part of the burst until we get more.
       (if (string-match "\n\\'\\|\n\032\\'\\|\n\032\032.*\\'"
@@ -1088,15 +1089,15 @@ output from the current command if that happens to be appropriate."
 	    (setq output
 		  (gdb-concat-output output
 				     (substring burst 0 (match-beginning 0))))
-
+            ;;
 	    ;; Everything after, we save, to combine with later input.
 	    (setq burst (substring burst (match-beginning 0))))
-
+        ;;
 	;; In case we know the burst contains no partial annotations:
 	(progn
 	  (setq output (gdb-concat-output output burst))
 	  (setq burst "")))
-
+      ;;
       ;; Save the remaining burst for the next call to this function.
       (gdb-set-burst burst)
       output)))
@@ -1225,10 +1226,10 @@ output from the current command if that happens to be appropriate."
   ;; It defines a function to serve as the annotation handler that
   ;; handles the `foo-invalidated' message.  That function is called:
   gdb-invalidate-breakpoints
-
+  ;;
   ;; To update the buffer, this command is sent to gdb.
   "server info breakpoints\n"
-
+  ;;
   ;; This also defines a function to be the handler for the output
   ;; from the command above.  That function will copy the output into
   ;; the appropriately typed buffer.  That function will be called:
@@ -1243,7 +1244,7 @@ output from the current command if that happens to be appropriate."
 ;;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
 (defun gdb-info-breakpoints-custom ()
   (let ((flag)(address))
-
+    ;;
     ;; remove all breakpoint-icons in source buffers but not assembler buffer
     (dolist (buffer (buffer-list))
       (save-excursion
@@ -1358,10 +1359,9 @@ output from the current command if that happens to be appropriate."
        (list
 	(concat
 	 (if (eq ?y (char-after (match-beginning 2)))
-	     "server disable "
+	     "server disable " 
 	   "server enable ")
-	 (match-string 1)
-	 "\n")
+	 (match-string 1) "\n")
 	'ignore)))))
 
 (defun gdb-delete-bp-this-line ()
@@ -1422,8 +1422,7 @@ output from the current command if that happens to be appropriate."
 
 (defun gdb-stack-buffer-name ()
   (with-current-buffer gud-comint-buffer
-    (concat "*stack frames of "
-	    (gdb-get-target-string) "*")))
+    (concat "*stack frames of " (gdb-get-target-string) "*")))
 
 (defun gdb-display-stack-buffer ()
   (interactive)
@@ -1471,8 +1470,7 @@ display the source in the source buffer."
     (save-excursion
       (set-buffer gud-comint-buffer)
       (gdb-enqueue-input
-       (list (gud-format-command "server frame %p\n" selection)
-	     'ignore))
+       (list (gud-format-command "server frame %p\n" selection) 'ignore))
       (gud-display-frame))))
 
 
@@ -1533,8 +1531,8 @@ display the source in the source buffer."
   gdb-info-locals-handler
   gdb-info-locals-custom)
 
-
-;;Abbreviate for arrays and structures. These can be expanded using gud-display
+;; Abbreviate for arrays and structures. 
+;; These can be expanded using gud-display.
 (defun gdb-info-locals-handler nil
   (gdb-set-pending-triggers (delq 'gdb-invalidate-locals
 				  (gdb-get-pending-triggers)))
@@ -1608,10 +1606,35 @@ display the source in the source buffer."
   gdb-info-display-custom)
 
 (defun gdb-info-display-custom ()
-  ;; TODO: ensure frames of expressions that have been deleted are also deleted
-  ;;       these can be missed currently eg through GUD buffer, restarting a
-  ;;       recompiled program.
-  )
+  (let ((display-list nil))
+    (save-excursion
+      (set-buffer (gdb-get-buffer 'gdb-display-buffer))
+      (goto-char (point-min))
+      (while (< (point) (- (point-max) 1))
+	(forward-line 1)
+	(if (looking-at "\\([0-9]+\\):   \\([ny]\\)")
+	    (setq display-list 
+		  (cons (string-to-int (match-string 1)) display-list)))
+	(end-of-line)))
+    (if (not (display-graphic-p))
+	(progn
+	  (dolist (buffer (buffer-list))
+	    (if (string-match "\\*display \\([0-9]+\\)\\*" (buffer-name buffer))
+		(progn
+		  (let ((number 
+			 (match-string 1 (buffer-name buffer))))
+		    (if (not (memq (string-to-int number) display-list))
+			(kill-buffer 
+			 (get-buffer (concat "*display " number "*")))))))))
+      (dolist (frame (frame-list))
+	(let ((frame-name (frame-parameter frame 'name)))
+	  (if (string-match "\\*display \\([0-9]+\\)\\*" frame-name)
+	      (progn
+		(let ((number (match-string 1 frame-name)))
+		  (if (not (memq (string-to-int number) display-list))
+		      (progn (kill-buffer
+			      (get-buffer (concat "*display " number "*")))
+			     (delete-frame frame)))))))))))
 
 (defvar gdb-display-mode-map
   (let ((map (make-sparse-keymap))
@@ -1662,8 +1685,7 @@ display the source in the source buffer."
 	 (if (eq ?y (char-after (match-beginning 2)))
 	     "server disable display "
 	   "server enable display ")
-	 (match-string 1)
-	 "\n")
+	 (match-string 1) "\n")
 	'ignore)))))
 
 (defun gdb-delete-disp-this-line ()
@@ -1677,20 +1699,7 @@ display the source in the source buffer."
 	(error "No expression on this line")
       (let ((number (match-string 1)))
 	(gdb-enqueue-input
-	 (list (concat "server delete display " number "\n")
-	       'ignore))
-	(if (not (display-graphic-p))
-	    (kill-buffer (get-buffer (concat "*display " number "*")))
-	  (catch 'frame-found
-	    (let ((frames (frame-list)))
-	      (while frames
-		(if (string-equal (frame-parameter (car frames) 'name)
-				  (concat "*display " number "*"))
-		    (progn (kill-buffer
-			    (get-buffer (concat "*display " number "*")))
-			   (delete-frame (car frames))
-			   (throw 'frame-found nil)))
-		(setq frames (cdr frames))))))))))
+	 (list (concat "server delete display " number "\n") 'ignore))))))
 
 (defvar gdb-expressions-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1946,6 +1955,7 @@ buffers."
 	(gdb-setup-windows)
       (gdb-display-breakpoints-buffer)
       (gdb-display-stack-buffer)
+      (gdb-display-display-buffer)
       (delete-other-windows)
       (split-window)
       (other-window 1)
@@ -2054,9 +2064,7 @@ BUFFER nil or omitted means use the current buffer."
   (interactive)
   (gdb-enqueue-input
    (list (concat "server delete display " gdb-display-number "\n")
-	 'ignore))
-  (kill-buffer nil)
-  (delete-frame))
+	 'ignore)))
 
 ;;
 ;; Assembler buffer.
@@ -2083,7 +2091,6 @@ BUFFER nil or omitted means use the current buffer."
 	    (re-search-forward gdb-current-address)
 	    (setq gdb-arrow-position (point))
 	    (put-arrow "=>" gdb-arrow-position nil 'left-margin))))
-
     ;; remove all breakpoint-icons in assembler buffer  before updating.
     (save-excursion
       (set-buffer buffer)
@@ -2175,7 +2182,6 @@ BUFFER nil or omitted means use the current buffer."
 			    (gdb-get-pending-triggers)))
 	       (not (string-equal gdb-main-or-pc gdb-prev-main-or-pc))))
       (progn
-
 	;; take previous disassemble command off the queue
 	(save-excursion
 	  (set-buffer gud-comint-buffer)
@@ -2185,7 +2191,6 @@ BUFFER nil or omitted means use the current buffer."
 	      (if (equal (cdr item) '(gdb-assembler-handler))
 		  (delete item gdb-idle-input-queue))
 	      (setq queue (cdr queue)))))
-
 	(gdb-enqueue-idle-input
 	 (list (concat "server disassemble " gdb-main-or-pc "\n")
 	       'gdb-assembler-handler))
