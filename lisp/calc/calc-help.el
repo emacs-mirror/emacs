@@ -411,7 +411,7 @@ C-w  Describe how there is no warranty for Calc."
   (with-output-to-temp-buffer "*Help*"
     (princ (format "GNU Emacs Calculator version %s.\n"
 		   calc-version))
-    (princ "  By Dave Gillespie, daveg@synaptics.com.\n")
+    (princ "  By Dave Gillespie.\n")
     (princ "  Copyright (C) 2005 Free Software Foundation, Inc.\n\n")
     (princ "Type `h s' for a more detailed summary.\n")
     (princ "Or type `h i' to read the full Calc manual on-line.\n\n")
