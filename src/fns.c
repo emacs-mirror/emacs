@@ -111,12 +111,12 @@ A byte-code function object is also allowed.")
 	  tail = Fcdr (tail);
 	}
 
-      XFASTINT (val) = i;
+      XSETFASTINT (val, i);
       return val;
     }
   else if (NILP(obj))
     {
-      XFASTINT (val) = 0;
+      XSETFASTINT (val, 0);
       return val;
     }
   else
@@ -305,7 +305,7 @@ concat (nargs, args, target_type, last_special)
       leni += XFASTINT (len);
     }
 
-  XFASTINT (len) = leni;
+  XSETFASTINT (len, leni);
 
   if (target_type == Lisp_Cons)
     val = Fmake_list (len, Qnil);
@@ -355,7 +355,7 @@ concat (nargs, args, target_type, last_special)
 	    {
 	      if (thisindex >= thisleni) break;
 	      if (STRINGP (this))
-		XFASTINT (elt) = XSTRING (this)->data[thisindex++];
+		XSETFASTINT (elt, XSTRING (this)->data[thisindex++]);
 	      else
 		elt = XVECTOR (this)->contents[thisindex++];
 	    }
@@ -1053,7 +1053,7 @@ mapcar1 (leni, vals, fn, seq)
     {
       for (i = 0; i < leni; i++)
 	{
-	  XFASTINT (dummy) = XSTRING (seq)->data[i];
+	  XSETFASTINT (dummy, XSTRING (seq)->data[i]);
 	  vals[i] = call1 (fn, dummy);
 	}
     }
