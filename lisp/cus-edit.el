@@ -907,15 +907,15 @@ option."
 			     (cons (list symbol 'custom-variable) found))))))
     (if (not found)
 	(error "No user options have changed defaults in recent Emacs versions")
-      (put 'custom-versions-load-alist 'custom-loads 
-	   ;; Get all the files that correspond to element from the
-	   ;; VERSIONS list. This could use some simplification.
-	   (let ((flist nil))
-	     (while versions
-	       (push (copy-sequence 
-		      (cdr (assoc (car versions)  custom-versions-load-alist)))
-		     flist)
-	       (setq versions (cdr versions)))
+      (let ((flist nil))
+	(while versions
+	  (push (copy-sequence 
+		 (cdr (assoc (car versions)  custom-versions-load-alist)))
+		flist)
+	  (setq versions (cdr versions)))
+	(put 'custom-versions-load-alist 'custom-loads 
+	     ;; Get all the files that correspond to element from the
+	     ;; VERSIONS list. This could use some simplification.
 	     (apply 'nconc flist)))
       ;; Because we set all the files needed to be loaded as a
       ;; `custom-loads' property to `custom-versions-load-alist' this
