@@ -37,14 +37,12 @@ int touchy_mkdir (path)
 {
   struct stat buf;
 
-  fprintf (stderr, "mkdir (\"%s\")\n", path);
-
-  /* If the path already exists and is a directory, return success.  */
+  /* If PATH already exists and is a directory, return success.  */
   if (stat (path, &buf) >= 0
       && (buf.st_mode & S_IFMT) == S_IFDIR)
     return 0;
 
-  /* Otherwise, try to make it.  If path exists but isn't a directory,
+  /* Otherwise, try to make it.  If PATH exists but isn't a directory,
      this will signal an error.  */
   if (mkdir (path, 0777) < 0)
     {
