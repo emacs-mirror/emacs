@@ -1,3 +1,10 @@
+2000-05-31  Dave Love  <fx@gnu.org>
+
+	* add-log.el (change-log-font-lock-keywords) <function>: Add
+	pattern for function of change.
+	(change-log-font-lock-keywords) <acknowledgements>: Amalgamate
+	acknowledgements patterns.
+
 2000-05-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* isearch.el (isearch-printing-char): If keyboard coding system is
