@@ -326,6 +326,7 @@ If DESCRIPTION is provided, it is used as the docstring."
   "Go into the generic-mode MODE."
   (let* ((type (or mode generic-mode-name))
 	 (generic-mode-list  (assoc type generic-mode-alist))
+	 (generic-mode-hooks (intern (concat (symbol-name type) "-hooks")))
 	 )
 
     (and (not generic-mode-list)
@@ -359,6 +360,8 @@ If DESCRIPTION is provided, it is used as the docstring."
     ;; Call a list of functions
     (and generic-mode-function-list
 	 (mapcar 'funcall generic-mode-function-list))
+
+    (run-hooks generic-mode-hooks)
     )
   )
 
