@@ -553,14 +553,19 @@ struct Lisp_Subr
 /* A miscellaneous object, when it's on the free list.  */
 struct Lisp_Free
   {
-    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Free */
+    int type : 16;	/* = Lisp_Misc_Free */
+    int spacer : 16;
     union Lisp_Misc *chain;
   };
 
 /* In a marker, the markbit of the chain field is used as the gc mark bit */
 struct Lisp_Marker
   {
-    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Marker */
+    int type : 16;	/* = Lisp_Misc_Marker */
+    int spacer : 15;
+    /* 1 means normal insertion at the marker's position
+       leaves the marker after the inserted text.  */
+    int insertion_type : 1;
     struct buffer *buffer;
     Lisp_Object chain;
     int bufpos;
@@ -572,7 +577,8 @@ struct Lisp_Marker
    specified int variable.  */
 struct Lisp_Intfwd
   {
-    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Intfwd */
+    int type : 16;	/* = Lisp_Misc_Intfwd */
+    int spacer : 16;
     int *intvar;
   };
 
@@ -582,7 +588,8 @@ struct Lisp_Intfwd
    nil if it is zero.  */
 struct Lisp_Boolfwd
   {
-    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Boolfwd */
+    int type : 16;	/* = Lisp_Misc_Boolfwd */
+    int spacer : 16;
     int *boolvar;
   };
 
@@ -592,7 +599,8 @@ struct Lisp_Boolfwd
    specified variable.  */
 struct Lisp_Objfwd
   {
-    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Objfwd */
+    int type : 16;	/* = Lisp_Misc_Objfwd */
+    int spacer : 16;
     Lisp_Object *objvar;
   };
 
@@ -600,7 +608,8 @@ struct Lisp_Objfwd
    current buffer.  Value is byte index of slot within buffer.  */
 struct Lisp_Buffer_Objfwd
   {
-    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Buffer_Objfwd */
+    int type : 16;	/* = Lisp_Misc_Buffer_Objfwd */
+    int spacer : 16;
     int offset;
   };
 
@@ -646,8 +655,9 @@ struct Lisp_Buffer_Objfwd
    Only make-local-variable does that.  */
 struct Lisp_Buffer_Local_Value
   {
-    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Buffer_Local_Value
-				   or Lisp_Misc_Some_Buffer_Local_Value */
+    int type : 16; /* = Lisp_Misc_Buffer_Local_Value
+				      or Lisp_Misc_Some_Buffer_Local_Value */
+    int spacer : 16;
     Lisp_Object car, cdr;
   };
 
@@ -656,9 +666,12 @@ struct Lisp_Buffer_Local_Value
    PLIST is the overlay's property list.  */
 struct Lisp_Overlay
   {
-    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Overlay */
+    int type : 16;	/* = Lisp_Misc_Overlay */
+    int spacer : 16;
     Lisp_Object start, end, plist;
   };
+
+
 union Lisp_Misc
   {
     enum Lisp_Misc_Type type;
