@@ -1,3 +1,11 @@
+2002-05-23  Kim F. Storm  <no-spam@cua.dk>
+
+	* xterm.c (x_write_glyphs): Clear phys_cursor_on_p if current
+	phys_cursor's hpos is overwritten.  This is still not completely
+	correct, as it doesn't really make sense to use hpos at all to
+	get the cursor glyph (as that is relative to the width of the
+	characters on the line, which may have changed during the update).
+
 2002-05-22  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (enumfont_t): Remove tail, make pattern a normal
