@@ -1486,7 +1486,7 @@ FOOTNOTENAME may be an abbreviation of the reference name."
   (skip-chars-forward " \t\n")
   (let ((beg (point))
 	str i)
-    (while (not (looking-at ":*[,.;) \t\n]"))
+    (while (not (looking-at ":*[,.;() \t\n]"))
       (skip-chars-forward "^:")
       (forward-char 1))
     (setq str
