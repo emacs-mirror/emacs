@@ -937,6 +937,11 @@ An error is signaled if @var{key} is not a string or a vector.
 @end example
 @end defun
 
+@defun current-active-maps
+This returns the list of keymaps that would be used by the command
+loop in the current circumstances to look up a key sequence.
+@end defun
+
 @defun local-key-binding key &optional accept-defaults
 This function returns the binding for @var{key} in the current
 local keymap, or @code{nil} if it is undefined there.
@@ -1473,6 +1478,16 @@ of a window.
 These are not all the keymaps you would see in actuality.
 @end defun
 
+@defun map-keymap function keymap
+The function @code{map-keymap} calls @var{function} once
+for each binding in @var{keymap}.  It passes two arguments,
+the event type and the value of the binding.  If @var{keymap}
+has a parent, the parent's bindings are included as well.
+
+This function is the cleanest way to examine all the bindings
+in a keymap.
+@end defun
+
 @defun where-is-internal command &optional keymap firstonly noindirect
 This function is a subroutine used by the @code{where-is} command
 (@pxref{Help, , Help, emacs,The GNU Emacs Manual}).  It returns a list
@@ -1572,6 +1587,11 @@ The easiest way to construct a keymap with a prompt string is to specify
 the string as an argument when you call @code{make-keymap},
 @code{make-sparse-keymap} or @code{define-prefix-command}
 (@pxref{Creating Keymaps}).
+
+@defun keymap-prompt keymap
+This function returns the overall prompt string of @var{keymap},
+or @code{nil} if it has none.
+@end defun
 
 The order of items in the menu is the same as the order of bindings in
 the keymap.  Since @code{define-key} puts new bindings at the front, you
