@@ -2114,31 +2114,6 @@ The argument @var{format} is a list of format names.  If @var{format} is
 @key{RET} for @var{format} specifies @code{nil}.
 @end defun
 
-@defun format-find-file file format
-This command finds the file @var{file}, converting it according to
-format @var{format}.  It also makes @var{format} the default if the
-buffer is saved later.
-
-The argument @var{format} is a list of format names.  If @var{format} is
-@code{nil}, no conversion takes place.  Interactively, typing just
-@key{RET} for @var{format} specifies @code{nil}.
-@end defun
-
-@defun format-insert-file file format %optional beg end
-This command inserts the contents of file @var{file}, converting it
-according to format @var{format}.  If @var{beg} and @var{end} are
-non-@code{nil}, they specify which part of the file to read,
-as in @code{insert-file-contents} (@pxref{Reading from Files}).
-
-The return value is like what @code{insert-file-contents} returns: a
-list of the absolute file name and the length of the data inserted
-(after conversion).
-
-The argument @var{format} is a list of format names.  If @var{format} is
-@code{nil}, no conversion takes place.  Interactively, typing just
-@key{RET} for @var{format} specifies @code{nil}.
-@end defun
-
 @defvar auto-save-file-format
 This variable specifies the format to use for auto-saving.  Its value is
 a list of format names, just like the value of
