@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1995/04/14 17:59:59 $|$Revision: 1.88 $
+;; |$Date: 1995/04/24 15:27:35 $|$Revision: 1.89 $
 
 ;; This file is part of GNU Emacs.
 
@@ -495,7 +495,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	(if isearch-slow-terminal-mode (current-window-configuration) nil))
 
   (setq	isearch-mode " Isearch")  ;; forward? regexp?
-  (set-buffer-modified-p (buffer-modified-p)) ; update modeline
+  (force-mode-line-update)
 
   (isearch-push-state)
 
@@ -581,7 +581,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 		  (message "Mark saved where search started"))))))
 
   (setq isearch-mode nil)
-  (set-buffer-modified-p (buffer-modified-p))  ;; update modeline
+  (force-mode-line-update)
 
   (if (and (> (length isearch-string) 0) (not nopush))
       ;; Update the ring data.
