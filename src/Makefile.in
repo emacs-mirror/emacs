@@ -569,7 +569,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 #endif
 
 #ifdef VMS
-#define VMS_SUPPORT ${lispdir}vmsproc.elc ${lispdir}vms-patch
+#define VMS_SUPPORT ${lispdir}vmsproc.elc ${lispdir}vms-patch.elc
 #else
 #define VMS_SUPPORT
 #endif
@@ -629,6 +629,16 @@ lisp= \
 	${lispdir}window.elc \
 	${lispdir}version.el
 
+/* Lisp files that may or may not be used.
+   We must unconditionally put them in the DOC file.  */
+SOME_MACHINE_LISP =  ${lispdir}faces.elc ${lispdir}facemenu.elc \
+  ${lispdir}float-sup.elc ${lispdir}frame.elc \
+  ${lispdir}menu-bar.elc ${lispdir}mouse.elc \
+  ${lispdir}select.elc ${lispdir}scroll-bar.elc \
+  ${lispdir}vmsproc.elc ${lispdir}vms-patch.elc \
+  ${lispdir}ls-lisp.elc ${lispdir}dos-fns.elc \
+  ${lispdir}winnt.elc
+
 /* Construct full set of libraries to be linked.
    Note that SunOS needs -lm to come before -lc; otherwise, you get
    duplicated symbols.  If the standard libraries were compiled
@@ -671,11 +681,12 @@ emacs: temacs ${etc}DOC ${lisp}
    or may not be included in ${obj}, but they are always included in
    ${SOME_MACHINE_OBJECTS}.  Since a file is processed when it is mentioned
    for the first time, this prevents any variation between configurations
-   in the contents of the DOC file.  */
+   in the contents of the DOC file.
+   Likewise for ${SOME_MACHINE_LISP}.  */
 ${etc}DOC: ${libsrc}make-docfile ${obj} ${lisp}
 	-rm -f ${etc}DOC
 	${libsrc}make-docfile -d ${srcdir} ${SOME_MACHINE_OBJECTS} ${obj} > ${etc}DOC
-	${libsrc}make-docfile -a ${etc}DOC -d ${srcdir}  ${lisp}
+	${libsrc}make-docfile -a ${etc}DOC -d ${srcdir} ${SOME_MACHINE_LISP} ${lisp}
 
 ${libsrc}make-docfile:
 	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile
