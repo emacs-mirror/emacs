@@ -211,7 +211,10 @@ AUTO also specifies, in this case, the coding system for terminal output."
       ;; Send those codes literally to a non-X terminal.
       ;; If AUTO is nil, we are using single-byte characters,
       ;; so it doesn't matter which one we use.
-      (set-terminal-coding-system (if auto (intern auto) 'latin-1)))
+      (set-terminal-coding-system
+       (cond ((eq auto t) 'latin-1)
+	     ((symbolp auto) (or auto 'latin-1))
+	     ((stringp auto) (intern auto)))))
     ;; Make non-line-break space display as a plain space.
     ;; Most X fonts do the wrong thing for code 160.
     (aset standard-display-table 160 [32])
