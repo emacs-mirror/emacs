@@ -973,7 +973,7 @@ attempt to construct a unique auto-save name (e.g. for remote files).
 +++
 ** Diary sexp entries can have custom marking in the calendar.
 Diary sexp functions which only apply to certain days (such as
-`diary-block' or `diary-cyclic' now take an optional parameter MARK,
+`diary-block' or `diary-cyclic') now take an optional parameter MARK,
 which is the name of a face or a single-character string indicating
 how to highlight the day in the calendar display.  Specifying a
 single-character string as @var{mark} places the character next to the
