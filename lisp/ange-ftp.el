@@ -3821,7 +3821,8 @@ system TYPE.")
 	   file
 	   (nconc (ange-ftp-generate-root-prefixes)
 		  (mapcar 'list
-			  (ange-ftp-real-file-name-all-completions file "/"))))
+			  (ange-ftp-real-file-name-all-completions
+			   file ange-ftp-this-dir))))
 	(ange-ftp-real-file-name-completion file ange-ftp-this-dir)))))
 
 
