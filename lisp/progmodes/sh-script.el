@@ -1662,7 +1662,7 @@ region, clear header."
 ;; Indentation stuff.
 (defun sh-must-be-shell-mode ()
   "Signal an error if not in Shell-script mode."
-  (unless (eq major-mode 'sh-mode)
+  (unless (derived-mode-p 'sh-mode)
     (error "This buffer is not in Shell-script mode")))
 
 (defun sh-must-support-indent ()
@@ -1670,7 +1670,7 @@ region, clear header."
 Also, the buffer must be in Shell-script mode."
   (sh-must-be-shell-mode)
   (unless sh-indent-supported-here
-    (error "This buffer's shell type is not supported for this command")))
+    (error "This buffer's shell does not support indentation through Emacs")))
 
 (defun sh-make-vars-local ()
   "Make the indentation variables local to this buffer.
