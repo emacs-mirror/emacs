@@ -28,9 +28,14 @@ NOTE-END  */
 #define DATA_START 0x10000000
 #define DATA_SEG_BITS 0x10000000
 
+#if 0
+/* I don't see any such conflict in Ultrix 4.2, 4.2a, or 4.3.  And
+   the relocating allocator is a real win.  -JimB  */
+
 /* In Ultrix 4.1, XvmsAlloc.o in libX11.a seems to insist
    on defining malloc itself.  This should avoid conflicting with it.  */
 #define SYSTEM_MALLOC
+#endif
 
 /* Override what m-mips.h says about this.  */
 #undef LINKER
