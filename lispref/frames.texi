@@ -1614,6 +1614,13 @@ once.  This is true for displays that use a window system such as X, and
 false for text-only terminals.
 @end defun
 
+@defun display-mouse-p &optional display
+@tindex display-mouse-p
+@cindex mouse, availability
+This function returns @code{t} if @var{display} has a mouse available,
+@code{nil} if not.
+@end defun
+
 @defun display-color-p &optional display
 @tindex display-color-p
 @findex x-display-color-p
@@ -1625,6 +1632,7 @@ is still supported as an alias.
 @defun display-grayscale-p &optional display
 @tindex display-grayscale-p
 This function returns @code{t} if the screen can display shades of gray.
+(All color displays can do this.)
 @end defun
 
 @defun display-selections-p &optional display
@@ -1663,7 +1671,11 @@ or @code{nil} if Emacs cannot get that information.
 
 @defun display-backing-store &optional display
 @tindex display-backing-store
-This function returns the backing store capability of the screen.
+This function returns the backing store capability of the display.
+Backing store means recording the pixels of windows (and parts of
+windows) that are not exposed, so that when exposed they can be
+displayed very quickly.
+
 Values can be the symbols @code{always}, @code{when-mapped}, or
 @code{not-useful}.  The function can also return @code{nil}
 when the question is inapplicable to a certain kind of display.
@@ -1672,12 +1684,15 @@ when the question is inapplicable to a certain kind of display.
 @defun display-save-under &optional display
 @tindex display-save-under
 This function returns non-@code{nil} if the display supports the
-SaveUnder feature.
+SaveUnder feature.  That feature is used by pop-up windows
+to save the pixels they obscure, so that they can pop down
+quickly.
 @end defun
 
 @defun display-planes &optional display
 @tindex display-planes
 This function returns the number of planes the display supports.
+This is typically the number of bits per pixel.
 @end defun
 
 @defun display-visual-class &optional display

@@ -496,11 +496,22 @@ be compared with that of the former text.
 @end deffn
 
 @deffn Command delete-region start end
-This command deletes the text in the current buffer in the region
-defined by @var{start} and @var{end}.  The value is @code{nil}.  If
-point was inside the deleted region, its value afterward is @var{start}.
+This command deletes the text between positions @var{start} and
+@var{end} in the current buffer, and returns @code{nil}.  If point was
+inside the deleted region, its value afterward is @var{start}.
 Otherwise, point relocates with the surrounding text, as markers do.
 @end deffn
+
+@defun delete-and-extract-region start end
+@tindex delete-and-extract-region
+This function deletes the text between positions @var{start} and
+@var{end} in the current buffer, and returns a string containing the
+text just deleted.
+
+If point was inside the deleted region, its value afterward is
+@var{start}.  Otherwise, point relocates with the surrounding text, as
+markers do.
+@end defun
 
 @deffn Command delete-char count &optional killp
 This command deletes @var{count} characters directly after point, or

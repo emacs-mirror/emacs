@@ -16,6 +16,7 @@ the following section, we carry this information back to Emacs
 @itemize @bullet
 @item
 The @code{push} and @code{pop} macros are not defined.
+Neither are @code{dolist} and @code{dotimes}.
 
 @item
 You can't display images in buffers.  (Emacs is meant for editing text.)
@@ -57,8 +58,24 @@ text cursor, and the mouse cursor.  To specify menu colors, use X
 resources.
 
 @item
+Colors and other face attributes are no longer supported on character
+terminals, so you no longer have to worry about terminals making faces
+at you.
+
+@item
 Emacs will respect your peace and quiet, aside from occasional beeps,
 because there are no facilities for playing sounds.
+
+@item
+Emacs 20 provides a complex and badly designed method for handling
+character composition for languages such as Thai that display several
+letters as a single combined image.  We are too ashamed of it to tell
+you any more than that.
+
+@item
+@code{delete-and-extract-region} has been deleted; instead, use
+@code{buffer-substring} to extract the text, then use
+@code{delete-region} to delete it.
 
 @item
 Regular expressions do not support the POSIX character classes
@@ -85,6 +102,14 @@ For simplicity, all @sc{ascii} characters now have the same height and width.
 the standard width.)  All characters are created equal.
 
 @item
+You can now resize any Emacs window, and size changes in one window can
+propagate to all others.  Windows can no longer use
+@code{window-size-fixed} to get special privileges.
+
+@item
+The function @code{intern-soft} no longer accepts a symbol as argument.
+
+@item
 The function @code{bitmap-spec-p} has been renamed to
 @code{pixmap-spec-p} to encourage users to practice Emacs' help system
 while trying to find it.
@@ -109,6 +134,10 @@ Vertical fractional scrolling does not exist.
 @item
 The functions @code{format} and @code{message} ignore and discard text
 properties.
+
+@item
+The function @code{propertize} does not exist;
+you can get the job done using @code{set-text-properties}.
 
 @item
 Colors are supported only on window systems, not on text-only terminals.

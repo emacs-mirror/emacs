@@ -1785,8 +1785,10 @@ family, a font pattern is constructed.
 and character's registry and encoding.  If there is a font that matches
 exactly, it is used, of course.  The hard case is when no available font
 exactly fits the specification.  Then Emacs looks for one that is
-``close''---one attribute at a time.  You can specify the order
-to consider the attributes.
+``close''---one attribute at a time.  You can specify the order to
+consider the attributes.  In the case where a specified font family is
+not available, you can specify a set of mappings for alternatives to
+try.
 
 @defvar face-font-selection-order
 @tindex face-font-selection-order
