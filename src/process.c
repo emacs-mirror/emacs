@@ -1482,6 +1482,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   int port;
   struct hostent host_info_fixed;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  int retry = 0;
 
   GCPRO4 (name, buffer, host, service);
   CHECK_STRING (name, 0);
@@ -1541,11 +1542,19 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
     unrequest_sigio ();
 
  loop:
-  if (connect (s, (struct sockaddr *) &address, sizeof address) == -1)
+  if (connect (s, (struct sockaddr *) &address, sizeof address) == -1
+      && errno != EISCONN)
     {
       int xerrno = errno;
+
       if (errno == EINTR)
 	goto loop;
+      if (errno == EADDRINUSE && retry < 20)
+	{
+	  retry++;
+	  goto loop;
+	}
+
       close (s);
 
       if (interrupt_input)
@@ -2462,7 +2471,7 @@ Output from processes can arrive in between bunches.")
    right away.
 
    If we can, we try to signal PROCESS by sending control characters
-   down the pipe.  This allows us to signal inferiors who have changed
+   down the pty.  This allows us to signal inferiors who have changed
    their uid, for which killpg would return an EPERM error.  */
 
 static void
@@ -2674,7 +2683,7 @@ process_send_signal (process, signo, current_group, nomsg)
 DEFUN ("interrupt-process", Finterrupt_process, Sinterrupt_process, 0, 2, 0,
   "Interrupt process PROCESS.  May be process or name of one.\n\
 PROCESS may be a process, a buffer, or the name of a process or buffer.\n\
-Nil or no arg means current buffer's process.\n\
+nil or no arg means current buffer's process.\n\
 Second arg CURRENT-GROUP non-nil means send signal to\n\
 the current process-group of the process's controlling terminal\n\
 rather than to the process's own process group.\n\
@@ -3188,9 +3197,10 @@ nil means don't delete them until `list-processes' is run.");
 
   DEFVAR_LISP ("process-connection-type", &Vprocess_connection_type,
     "Control type of device used to communicate with subprocesses.\n\
-Values are nil to use a pipe, and t or 'pty for a pty.  Note that if\n\
-pty's are not available, this variable will be ignored. The value takes\n\
-effect when `start-process' is called.");
+Values are nil to use a pipe, or t or `pty' to use a pty.\n\
+The value has no effect if the system has no ptys or if all ptys are busy:\n\
+then a pipe is used in any case.\n\
+The value takes effect when `start-process' is called.");
   Vprocess_connection_type = Qt;
 
   defsubr (&Sprocessp);
