@@ -5025,7 +5025,17 @@ the front of the list of recently selected ones."
 
 ;;; Handling of Backspace and Delete keys.
 
-(defcustom normal-erase-is-backspace nil
+(defcustom normal-erase-is-backspace
+  (and (not noninteractive)
+       (or (memq system-type '(ms-dos windows-nt))
+	   (and (memq window-system '(x))
+		(fboundp 'x-backspace-delete-keys-p)
+		(x-backspace-delete-keys-p))
+	   ;; If the terminal Emacs is running on has erase char
+	   ;; set to ^H, use the Backspace key for deleting
+	   ;; backward and, and the Delete key for deleting forward.
+	   (and (null window-system)
+		(eq tty-erase-char ?\^H))))
   "If non-nil, Delete key deletes forward and Backspace key deletes backward.
 
 On window systems, the default value of this option is chosen
