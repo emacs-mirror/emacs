@@ -3,6 +3,7 @@
 	* editfns.c (find_field): Set the field stickiness correctly from
 	overlay fields.  Use renamed `text_property_stickiness'.
 	(text_property_stickiness): Renamed from `char_property_stickiness'.
+	Only check text properties, not overlays.
 	* textprop.c (get_char_property_and_overlay): New function.
 	(Fget_char_property): Use it.
 	* intervals.h (get_char_property_and_overlay): Add declaration.

@@ -1,3 +1,12 @@
+2000-10-25  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* comint.el (comint-output-filter, comint-send-input): Don't
+	bother adding stickiness fields to overlays to fool the field
+	code, since it should notice the overlay insertion-types now.
+	* wid-edit.el (widget-beginning-of-line, widget-end-of-line):
+	Replace with aliases of the normal emacs b-o-l/e-o-l functions.
+	(widget-field-keymap, widget-text-keymap): Don't bind C-a/C-e.
+
 2000-10-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/authors.el (authors-aliases): Add some more aliases.
