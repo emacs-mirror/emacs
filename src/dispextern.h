@@ -1917,9 +1917,12 @@ struct image
 #define DEFAULT_IMAGE_WIDTH 30
 #define DEFAULT_IMAGE_HEIGHT 30
 
-  /* Percent of image height used as ascent.  */
+  /* Percent of image height used as ascent.  A value of
+     CENTERED_IMAGE_ASCENT means draw center the image centered on the
+     line.  */
   int ascent;
 #define DEFAULT_IMAGE_ASCENT 50
+#define CENTERED_IMAGE_ASCENT -1
 
   /* Lisp specification of this image.  */
   Lisp_Object spec;
@@ -1979,11 +1982,6 @@ struct image_cache
   int refcount;
 };
 
-
-/* Value is the ascent of image IMG.  */
-
-#define IMAGE_ASCENT(IMG) \
-     (((IMG)->height + (IMG)->margin) * (IMG)->ascent / 100.0)
 
 /* Value is a pointer to the image with id ID on frame F, or null if
    no image with that id exists.  */
