@@ -146,6 +146,8 @@ A large number or nil slows down menu responsiveness."
   '("Kill Current Buffer" . kill-this-buffer))
 (define-key menu-bar-files-menu [insert-file]
   '("Insert File..." . insert-file))
+(define-key menu-bar-files-menu [recover-session]
+  '("Recover Session..." . recover-session))
 (define-key menu-bar-files-menu [revert-buffer]
   '("Revert Buffer" . revert-buffer))
 (define-key menu-bar-files-menu [write-file]
@@ -154,6 +156,15 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-files-menu [dired] '("Open Directory..." . dired))
 (define-key menu-bar-files-menu [open-file] '("Open File..." . find-file))
 
+(put 'recover-session 'menu-enable
+     '(and auto-save-list-file-prefix
+	   (directory-files
+	    (file-name-directory auto-save-list-file-prefix)
+	    nil
+	    (concat "\\`"
+		    (regexp-quote (file-name-nondirectory
+				   auto-save-list-file-prefix)))
+	    t)))
 
 (defun nonincremental-search-forward (string)
   "Read a string and search for it nonincrementally."
@@ -457,6 +468,12 @@ Do the same for the keys of the same name."
 (define-key menu-bar-manuals-menu [emacs-news]
   '("Emacs News" . view-emacs-news))
 
+(define-key menu-bar-help-menu [describe-no-warranty]
+  '("(Non)Warranty" . describe-no-warranty))
+(define-key menu-bar-help-menu [describe-copying]
+  '("Copying Conditions" . describe-copying))
+(define-key menu-bar-help-menu [describe-distribution]
+  '("Getting New Versions" . describe-distribution))
 (define-key menu-bar-help-menu [emacs-version]
   '("Show Version" . emacs-version))
 (define-key menu-bar-help-menu [report-emacs-bug]
