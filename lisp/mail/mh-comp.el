@@ -26,7 +26,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.10 1997/04/29 01:36:06 rms Exp rms $
+;; $Id: mh-comp.el,v 1.11 1997/09/15 19:45:16 rms Exp rms $
 
 ;;; Code:
 
@@ -868,7 +868,11 @@ Run `mh-before-send-letter-hook' before actually doing anything."
 	(file-name buffer-file-name)
 	(config mh-previous-window-config)
 	(coding-system-for-write
-	 (if (local-variable-p 'buffer-file-coding-system)
+	 (if (and (local-variable-p 'buffer-file-coding-system)
+		  ;; We're not sure why, but buffer-file-coding-system
+		  ;; tends to get set to undecided-unix.
+		  (not (memq buffer-file-coding-system
+			     '(undecided undecided-unix undecided-dos))))
 	     buffer-file-coding-system
 	   (or sendmail-coding-system
 	       default-buffer-file-coding-system
