@@ -1934,15 +1934,13 @@ It can find the completion buffer in `standard-output'.")
 
 	  if (BUFFERP (Vstandard_output))
 	    {
-	      int startpos = BUF_PT (XBUFFER (Vstandard_output));
-	      int endpos;
+	      XSETINT (startpos, BUF_PT (XBUFFER (Vstandard_output)));
 
 	      Fprinc (string, Qnil);
 
-	      endpos = BUF_PT (XBUFFER (Vstandard_output));
+	      XSETINT (endpos, BUF_PT (XBUFFER (Vstandard_output)));
 
-	      Fput_text_property (make_number (startpos),
-				  make_number (endpos),
+	      Fput_text_property (startpos, endpos,
 				  Qmouse_face, intern ("highlight"),
 				  Vstandard_output);
 	    }
@@ -1953,7 +1951,24 @@ It can find the completion buffer in `standard-output'.")
 
 	  /* Output the annotation for this element.  */
 	  if (CONSP (elt))
-	    Fprinc (Fcar (Fcdr (elt)), Qnil);
+	    {
+	      if (BUFFERP (Vstandard_output))
+		{
+		  XSETINT (startpos, BUF_PT (XBUFFER (Vstandard_output)));
+
+		  Fprinc (Fcar (Fcdr (elt)), Qnil);
+
+		  XSETINT (endpos, BUF_PT (XBUFFER (Vstandard_output)));
+
+		  Fset_text_properties (startpos, endpos, Qnil,
+					Vstandard_output);
+		}
+	      else
+		{
+		  Fprinc (Fcar (Fcdr (elt)), Qnil);
+		}
+	    }
+
 
 	  /* Update COLUMN for what we have output.  */
 	  column += length;
