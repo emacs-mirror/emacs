@@ -1,7 +1,7 @@
 ;;; url-irc.el --- IRC URL interface
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/24 12:13:33 $
-;; Version: $Revision: 1.2 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -76,3 +76,5 @@ PASSWORD - What password to use"
     nil))
     
 (provide 'url-irc)
+
+;;; arch-tag: 2e5eecf8-9eb3-436b-9fbd-c26f2fb2bf3e

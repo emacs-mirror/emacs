@@ -1,7 +1,7 @@
 ;;; url-mail.el --- Mail Uniform Resource Locator retrieval code
-;; Author: $Author: fx $
-;; Created: $Date: 2001/10/05 17:04:06 $
-;; Version: $Revision: 1.4 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -127,3 +127,5 @@
     nil))
 
 (provide 'url-mailto)
+
+;;; arch-tag: 7b7ad52e-8760-497b-9444-75fae14e34c5

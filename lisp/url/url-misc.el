@@ -1,7 +1,7 @@
 ;;; url-misc.el --- Misc Uniform Resource Locator retrieval code
-;; Author: $Author: fx $
-;; Created: $Date: 2002/04/22 22:23:59 $
-;; Version: $Revision: 1.5 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -117,3 +117,5 @@
       (current-buffer))))
 
 (provide 'url-misc)
+
+;;; arch-tag: 8c544e1b-d8bc-40a6-b319-f1f37fef65a0

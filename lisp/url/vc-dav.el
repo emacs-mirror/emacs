@@ -4,7 +4,7 @@
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: Bill Perry <wmperry@gnu.org>
-;; Version: $Revision: 1.3 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: url, vc
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -175,3 +175,5 @@ It should return a status of either 0 (no differences found), or
 ;;    deleting the resource.
 
 (provide 'vc-dav)
+
+;;; arch-tag: 0a0fb9fe-8190-4c0a-a179-5c291d3a467e

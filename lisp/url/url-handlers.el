@@ -1,7 +1,7 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading
-;; Author: $Author: sds $
-;; Created: $Date: 2003/06/26 18:45:45 $
-;; Version: $Revision: 1.10 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -250,3 +250,5 @@ accessible."
        (auto-save-mode 0)))
 
 (provide 'url-handlers)
+
+;;; arch-tag: 7300b99c-cc83-42ff-9147-79b2723c62ac

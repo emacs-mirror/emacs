@@ -1,7 +1,7 @@
 ;;; url-file.el --- File retrieval code
-;; Author: $Author: fx $
-;; Created: $Date: 2002/04/22 09:14:24 $
-;; Version: $Revision: 1.11 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -237,3 +237,5 @@ to them."
   (url-file-create-wrapper file-truename (url &optional counter prev-dirs)))
 
 (provide 'url-file)
+
+;;; arch-tag: 010e914a-7313-494b-8a8c-6495a862157d

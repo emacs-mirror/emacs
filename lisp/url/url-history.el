@@ -1,7 +1,7 @@
 ;;; url-history.el --- Global history tracking for URL package
-;; Author: $Author: fx $
-;; Created: $Date: 2001/05/05 16:49:52 $
-;; Version: $Revision: 1.6 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -197,3 +197,5 @@ user for what type to save as."
     (error "url-completion-function very confused."))))
 
 (provide 'url-history)
+
+;;; arch-tag: fbbbaf63-db36-4e88-bc9f-2939aa93afb2

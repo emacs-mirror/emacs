@@ -1,7 +1,7 @@
 ;;; url-expand.el --- expand-file-name for URLs
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:09:15 $
-;; Version: $Revision: 1.3 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -141,3 +141,5 @@ path components followed by `..' are removed, along with the `..' itself."
 	(url-set-filename urlobj (if query (concat file sepchar query) file))))))
 
 (provide 'url-expand)
+
+;;; arch-tag: 7b5f744b-b721-49da-be47-484631680a5a

@@ -1,7 +1,7 @@
 ;;; url-ns.el --- Various netscape-ish functions for proxy definitions
-;; Author: $Author: fx $
-;; Created: $Date: 2000/12/20 21:08:02 $
-;; Version: $Revision: 1.2 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -104,3 +104,5 @@
   (gethash key url-ns-user-prefs default))
 
 (provide 'url-ns)
+
+;;; arch-tag: 69520992-cf97-40b4-9ad1-c866d3cae5bf

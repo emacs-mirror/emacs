@@ -1,7 +1,7 @@
 ;;; url-ftp.el --- FTP wrapper
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/30 12:47:21 $
-;; Version: $Revision: 1.1 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -42,3 +42,5 @@
 (defalias 'url-ftp 'url-file)
 
 (provide 'url-ftp)
+
+;;; arch-tag: 9c3e70c4-350f-4d4a-bb51-a1e9b459e7dc

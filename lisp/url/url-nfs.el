@@ -1,7 +1,7 @@
 ;;; url-nfs.el --- NFS URL interface
-;; Author: $Author: fx $
-;; Created: $Date: 2001/05/22 16:10:50 $
-;; Version: $Revision: 1.3 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -95,3 +95,5 @@ Each can be used any number of times.")
   (url-nfs-create-wrapper file-truename (url &optional counter prev-dirs)))
 
 (provide 'url-nfs)
+
+;;; arch-tag: cdf9c9ba-b7d2-4c29-8b48-7ae9bbc0d437

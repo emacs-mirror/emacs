@@ -1,7 +1,7 @@
 ;;; url-auth.el --- Uniform Resource Locator authorization modules
-;; Author: $Author: wmperry $
-;; Created: $Date: 2001/12/05 19:05:51 $
-;; Version: $Revision: 1.4 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -316,3 +316,5 @@ RATING   a rating between 1 and 10 of the strength of the authentication.
   (assoc scheme url-registered-auth-schemes))
 
 (provide 'url-auth)
+
+;;; arch-tag: 04058625-616d-44e4-9dbf-4b46b00b2a91

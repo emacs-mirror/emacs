@@ -1,7 +1,7 @@
 ;;; url-privacy.el --- Global history tracking for URL package
-;; Author: $Author: fx $
-;; Created: $Date: 2001/10/05 17:10:26 $
-;; Version: $Revision: 1.4 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -81,3 +81,5 @@
 	 (t nil))))
 
 (provide 'url-privacy)
+
+;;; arch-tag: fdaf95e4-98f0-4680-94c3-f3eadafabe1d

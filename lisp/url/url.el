@@ -1,6 +1,6 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Version: $Revision: 1.15 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -266,4 +266,5 @@ no further processing).  URL is either a string or a parsed URL."
 
 (provide 'url)
 
+;;; arch-tag: bc182f1f-d187-4f10-b961-47af2066579a
 ;;; url.el ends here

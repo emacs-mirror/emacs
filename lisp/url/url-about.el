@@ -1,7 +1,7 @@
 ;;; url-about.el --- Show internal URLs
-;; Author: $Author: wmperry $
-;; Created: $Date: 2001/11/24 22:30:21 $
-;; Version: $Revision: 1.1 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -98,3 +98,5 @@
       (error "URL does not know about `%s'" item))))
 
 (provide 'url-about)
+
+;;; arch-tag: 65dd7fca-db3f-4cb1-8026-7dd37d4a460e

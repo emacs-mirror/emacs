@@ -1,7 +1,7 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Created: $Date: 2002/04/22 09:16:11 $
-;; Version: $Revision: 1.14 $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -485,3 +485,5 @@ Has a preference for looking backward when not directly on a symbol."
 	   (mail-header-extract)))))
 
 (provide 'url-util)
+
+;;; arch-tag: 24352abc-5a5a-412e-90cd-313b26bed5c9

@@ -1,7 +1,7 @@
 ;;; url-parse.el --- Uniform Resource Locator parser
 ;; Author: $Author: monnier $
-;; Created: $Date: 2004/04/04 01:21:46 $
-;; Version: $Revision: 1.1.1.1 $
+;; Created: $Date: 2004/04/04 03:10:58 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -204,3 +204,5 @@ Format is:
 	(vector prot user pass host port file refs attr full))))))
 
 (provide 'url-parse)
+
+;;; arch-tag: f338325f-71ab-4bee-93cc-78fb9a03d403

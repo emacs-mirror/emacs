@@ -1,7 +1,7 @@
 ;;; url-cookie.el --- Netscape Cookie support
-;; Author: $Author: wmperry $
-;; Created: $Date: 2002/10/29 14:44:59 $
-;; Version: $Revision: 1.7 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -466,3 +466,4 @@ to run the `url-cookie-setup-save-timer' function manually."
 
 (provide 'url-cookie)
 
+;;; arch-tag: 2568751b-6452-4398-aa2d-303edadb54d7

@@ -1,7 +1,7 @@
 ;;; url-cid.el --- Content-ID URL loader
-;; Author: $Author: fx $
-;; Created: $Date: 2001/05/05 16:35:58 $
-;; Version: $Revision: 1.3 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -63,3 +63,5 @@
       (url-cid-gnus (url-filename url))))
    (t
     (message "Unable to handle CID URL: %s" url))))
+
+;;; arch-tag: 23d9ab74-fad4-4dba-b1e7-292871e8bda5

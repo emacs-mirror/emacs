@@ -4,7 +4,7 @@
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: Bill Perry <wmperry@gnu.org>
-;; Version: $Revision: 1.6 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: url, vc
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -971,3 +971,5 @@ Returns nil if DIR contains no name starting with FILE.
 ;;; Miscellaneous stuff.
 
 (provide 'url-dav)
+
+;;; arch-tag: 2b14b7b3-888a-49b8-a490-17276a40e78e

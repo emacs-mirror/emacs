@@ -1,7 +1,7 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
-;; Author: $Author: fx $
-;; Created: $Date: 2002/04/22 09:25:02 $
-;; Version: $Revision: 1.14 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -432,4 +432,5 @@ This should be set, e.g. by mail user agents rendering HTML to avoid
 
 (provide 'url-vars)
 
+;;; arch-tag: 29205e5f-c5ce-433c-8d5d-38cbaed64b49
 ;;; url-vars.el ends here

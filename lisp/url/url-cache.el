@@ -1,7 +1,7 @@
 ;;; url-cache.el --- Uniform Resource Locator retrieval tool
-;; Author: $Author: fx $
-;; Created: $Date: 2002/01/22 17:53:45 $
-;; Version: $Revision: 1.4 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -201,3 +201,5 @@ FILE can be created or overwritten."
      (t nil))))
 
 (provide 'url-cache)
+
+;;; arch-tag: 95b050a6-8e81-4f23-8e63-191b9d1d657c

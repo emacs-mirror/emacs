@@ -1,7 +1,7 @@
 ;;; url-imap.el --- IMAP retrieval routines
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
-;; Created: $Date: 2002/01/22 17:52:16 $
-;; Version: $Revision: 1.4 $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -79,3 +79,5 @@
 	     ;; xxx list messages in mailbox (start gnus?)
 	     )))
     (current-buffer)))
+
+;;; arch-tag: 034991ff-5425-48ea-b911-c96c90e6f47d

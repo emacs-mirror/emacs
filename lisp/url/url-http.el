@@ -1,6 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Version: $Revision: 1.39 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1220,4 +1220,5 @@ p3p
 
 (provide 'url-http)
 
+;;; arch-tag: ba7c59ae-c0f4-4a31-9617-d85f221732ee
 ;;; url-http.el ends here

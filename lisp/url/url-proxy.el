@@ -1,7 +1,7 @@
 ;;; url-proxy.el --- Proxy server support
-;; Author: $Author: fx $
-;; Created: $Date: 2001/10/11 21:09:35 $
-;; Version: $Revision: 1.5 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -76,3 +76,5 @@
     (url-http url-using-proxy callback cbargs)))
 
 (provide 'url-proxy)
+
+;;; arch-tag: 4ff8882e-e498-42b7-abc5-acb449cdbc62

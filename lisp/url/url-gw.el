@@ -1,7 +1,7 @@
 ;;; url-gw.el --- Gateway munging for URL loading
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Created: $Date: 2002/04/22 09:26:46 $
-;; $Revision: 1.8 $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -262,3 +262,5 @@ Will not make a connexion if `url-gateway-unplugged' is non-nil."
       conn)))
 
 (provide 'url-gw)
+
+;;; arch-tag: 1c4c0317-6d03-45b8-b3f3-838bd8f9d838

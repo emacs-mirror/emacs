@@ -1,7 +1,7 @@
 ;;; url-methods.el --- Load URL schemes as needed
 ;; Author: $Author: monnier $
-;; Created: $Date: 2004/04/04 01:21:46 $
-;; Version: $Revision: 1.1.1.1 $
+;; Created: $Date: 2004/04/04 03:10:58 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -146,3 +146,5 @@ it has not already been loaded."
 	(plist-get url-scheme-default-properties property))))
 
 (provide 'url-methods)
+
+;;; arch-tag: 336863f8-5a07-4906-9be5-b3c6bcebbe67

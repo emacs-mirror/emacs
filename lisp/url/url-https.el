@@ -1,7 +1,7 @@
 ;;; url-https.el --- HTTP over SSL routines
-;; Author: $Author: wmperry $
-;; Created: $Date: 2001/11/22 14:32:13 $
-;; Version: $Revision: 1.3 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -51,3 +51,5 @@
 (url-https-create-secure-wrapper file-attributes (url))
 
 (provide 'url-https)
+
+;;; arch-tag: c3645ac5-c248-4d12-ad41-7c4b6f7b6d19
