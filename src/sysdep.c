@@ -247,7 +247,7 @@ init_baud_rate ()
 #ifdef HAVE_TCATTR
       tcgetattr (0, &sg);
 #else
-      ioctl (fd, TCGETA, &sg);
+      ioctl (input_fd, TCGETA, &sg);
 #endif
       ospeed = sg.c_cflag & CBAUD;
 #else /* neither VMS nor TERMIOS nor TERMIO */
@@ -1460,9 +1460,21 @@ start_of_data ()
 #ifdef DATA_START
   return ((char *) DATA_START);
 #else
+#ifdef ORDINARY_LINK
+  /*
+   * This is a hack.  Since we're not linking crt0.c or pre_crt0.c,
+   * data_start isn't defined.  We take the address of environ, which
+   * is known to live at or near the start of the system crt0.c, and
+   * we don't sweat the handful of bytes that might lose.
+   */
+  extern char **environ;
+
+  return((char *) &environ);
+#else
   extern int data_start;
   return ((char *) &data_start);
-#endif
+#endif /* ORDINARY_LINK */
+#endif /* DATA_START */
 }
 #endif /* NEED_STARTS (not CANNOT_DUMP or not SYSTEM_MALLOC) */
 
@@ -1746,7 +1758,7 @@ read_input_waiting ()
 
   /* Scan the chars for C-g and store them in kbd_buffer.  */
   e.kind = ascii_keystroke;
-  e.frame = selected_frame;
+  e.frame_or_window = selected_frame;
   for (i = 0; i < nread; i++)
     {
       XSET (e.code, Lisp_Int, buf[i]);
