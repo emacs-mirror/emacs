@@ -628,6 +628,7 @@ HSCROLL is the number of columns not being displayed at the left\n\
 margin; this is usually taken from a window's hscroll member.\n\
 TAB-OFFSET is the number of columns of the first tab that aren't\n\
 being displayed, perhaps because the line was continued within it.\n\
+If OFFSETS is nil, HSCROLL and TAB-OFFSET are assumed to be zero.\n\
 \n\
 The value is a list of five elements:\n\
   (POS VPOS HPOS PREVHPOS CONTIN)\n\
