@@ -1,3 +1,14 @@
+2002-08-30  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (consider_token, C_entries): Switch to C++ parsing when
+	auto-detection is enabled and the `::' qualifier is met.
+	(consider_token, C_entries): Several bugs corrected that tagged
+	some declarations even though --declarations was not used.
+	(plainc): New macro.
+	(C_entries): Use it.
+	(C_entries): Several cosmetic changes.
+	(C_entries): Invalidate the token is some cases.
+
 2002-08-29  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (C_entries): Corrected a problem with const C++ funcs.
