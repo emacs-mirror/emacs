@@ -1094,10 +1094,10 @@ Returns the compilation buffer created."
         (set (make-local-variable 'lazy-lock-defer-on-scrolling) t)
 	(setq default-directory thisdir
 	      compilation-directory-stack (list default-directory))
+	(compilation-set-window-height outwin)
 	(set-window-start outwin (point-min))
 	(or (eq outwin (selected-window))
 	    (set-window-point outwin (point-min)))
-	(compilation-set-window-height outwin)
 	(if compilation-process-setup-function
 	    (funcall compilation-process-setup-function))
 	;; Start the compilation.
