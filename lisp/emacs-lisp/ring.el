@@ -24,15 +24,15 @@
 ;;; Commentary:
 
 ;;; This code defines a ring data structure. A ring is a 
-;;;     (hd-index tl-index . vector) 
+;;;     (hd-index length . vector) 
 ;;; list. You can insert to, remove from, and rotate a ring. When the ring
 ;;; fills up, insertions cause the oldest elts to be quietly dropped.
 ;;;
 ;;; In ring-ref, 0 is the index of the newest element.  Higher indexes
 ;;; correspond to older elements until they wrap.
 ;;;
-;;; HEAD = index of the newest item on the ring.
-;;; TAIL = index of the oldest item on the ring.
+;;; hd-index = index of the newest item on the ring.
+;;; length = number of ring items.
 ;;;
 ;;; These functions are used by the input history mechanism, but they can
 ;;; be used for other purposes as well.
@@ -49,7 +49,7 @@
 ;;;###autoload
 (defun make-ring (size)
   "Make a ring that can contain SIZE elements."
-  (cons 1 (cons 0 (make-vector (+ size 1) nil))))
+  (cons 0 (cons 0 (make-vector size nil))))
 
 (defun ring-plus1 (index veclen)
   "INDEX+1, with wraparound"
@@ -62,29 +62,50 @@
 
 (defun ring-length (ring)
   "Number of elements in the ring."
-  (let ((hd (car ring)) (tl (car (cdr ring)))  (siz (length (cdr (cdr ring)))))
-    (let ((len (if (<= hd tl) (+ 1 (- tl hd)) (+ 1 tl (- siz hd)))))
-      (if (= len siz) 0 len))))
+  (car (cdr ring)))
 
 (defun ring-empty-p (ring)
-  (= 0 (ring-length ring)))
+  (= 0 (car (cdr ring))))
+
+(defun ring-index (index head ringlen veclen)
+  (setq index (ring-mod index ringlen))
+  (ring-mod (1- (+ head (- ringlen index))) veclen))
 
 (defun ring-insert (ring item)
   "Insert a new item onto the ring. If the ring is full, dump the oldest
 item to make room."       
-  (let* ((vec (cdr (cdr ring)))  (len (length vec))
-	 (new-hd (ring-minus1 (car ring) len)))
-      (setcar ring new-hd)
-      (aset vec new-hd item)
-      (if (ring-empty-p ring) ;overflow -- dump one off the tail.
-	  (setcar (cdr ring) (ring-minus1 (car (cdr ring)) len)))))
+  (let* ((vec (cdr (cdr ring))) 
+	 (veclen (length vec))
+	 (hd (car ring))
+	 (ln (car (cdr ring))))
+    (prog1
+	(aset vec (ring-mod (+ hd ln) veclen) item)
+      (if (= ln veclen)
+	  (setcar ring (ring-plus1 hd veclen))
+	(setcar (cdr ring) (1+ ln))))))
 
-(defun ring-remove (ring)
-  "Remove the oldest item retained on the ring."
-  (if (ring-empty-p ring) (error "Ring empty")
-      (let ((tl (car (cdr ring)))  (vec (cdr (cdr ring))))
-	(setcar (cdr ring) (ring-minus1 tl (length vec)))
-	(aref vec tl))))
+(defun ring-remove (ring &optional index)
+  "Remove an item from the RING.  Return the removed item.
+If optional INDEX is nil, remove the oldest item.  If it's
+numeric, remove the element indexed."
+  (if (ring-empty-p ring)
+      (error "Ring empty")
+    (let* ((hd (car ring))
+	  (ln (car (cdr ring)))
+	  (vec (cdr (cdr ring)))
+	  (veclen (length vec))
+	  (tl (ring-mod (1- (+ hd ln)) veclen))
+	  oldelt)
+      (if (null index)
+	  (setq index (1- ln)))
+      (setq index (ring-index index hd ln veclen))
+      (setq oldelt (aref vec index))
+      (while (/= index tl)
+	(aset vec index (aref vec (ring-plus1 index veclen)))
+	(setq index (ring-plus1 index veclen)))
+      (aset vec tl nil)
+      (setcar (cdr ring) (1- ln))
+      oldelt)))
 
 (defun ring-mod (n m)
   "Returns N mod M.  M is positive.
@@ -99,12 +120,10 @@ Answer is guaranteed to be non-negative, and less than m."
 INDEX need not be <= the ring length, the appropriate modulo operation
 will be performed.  Element 0 is the most recently inserted; higher indices
 correspond to older elements until they wrap."
-  (let ((numelts (ring-length ring)))
-    (if (= numelts 0) (error "indexed empty ring")
-	(let* ((hd (car ring))  (tl (car (cdr ring)))  (vec (cdr (cdr ring)))
-	       (index (ring-mod index numelts))
-	       (vec-index (ring-mod (+ index hd) (length vec))))
-	  (aref vec vec-index)))))
+  (if (ring-empty-p ring)
+      (error "indexed empty ring")
+    (let* ((hd (car ring))  (ln (car (cdr ring)))  (vec (cdr (cdr ring))))
+      (aref vec (ring-index index hd ln (length vec))))))
 
 (provide 'ring)
 
