@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
 @c %**start of header
-@setfilename faq.info
+@setfilename ../info/emacs-faq.info
 @settitle GNU Emacs FAQ
 @c %**end of header
 
