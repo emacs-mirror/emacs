@@ -39,6 +39,17 @@ The window system startup file should add its frame creation
 function to this list, which should take an alist of parameters
 as its argument.")
 
+(defvar window-system-default-frame-alist nil
+  "Alist of window-system dependent default frame parameters.
+These may be set in your init file, like this:
+
+    ;; Disable menubar and toolbar on the console, but enable them under X.
+    (setq window-system-default-frame-alist
+          '((x (menu-bar-lines . 1) (tool-bar-lines . 1))
+            (nil (menu-bar-lines . 0) (tool-bar-lines . 0))))
+
+Also see `default-frame-alist'.")
+
 ;; The initial value given here used to ask for a minibuffer.
 ;; But that's not necessary, because the default is to have one.
 ;; By not specifying it here, we let an X resource specify it.
@@ -639,6 +650,7 @@ on `after-make-frame-functions' are run with one arg, the newly created frame."
       (error "Don't know how to create a frame on window system %s" w))
     (run-hooks 'before-make-frame-hook)
     (setq frame (funcall frame-creation-function parameters))
+    (modify-frame-parameters frame (assq w window-system-default-frame-alist))
     (run-hook-with-args 'after-make-frame-functions frame)
     frame))
 
