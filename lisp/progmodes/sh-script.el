@@ -135,7 +135,8 @@ shell it really is."
 	  ;; so use the default instead.
 	  (if (or (null shell)
 		  (member (downcase shell-base)
-			  '("command.com" "cmd.exe" "4dos.com" "ndos.com")))
+			  '("command.com" "cmd.exe" "4dos.com" "ndos.com"
+			    "cmdproxy.exe")))
 	      "/bin/sh"
 	    (file-name-sans-extension (downcase shell)))))
    (getenv "SHELL")
