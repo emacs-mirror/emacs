@@ -937,8 +937,7 @@ find_symbol_value (symbol)
 
   if (BUFFER_LOCAL_VALUEP (valcontents)
       || SOME_BUFFER_LOCAL_VALUEP (valcontents))
-    valcontents = swap_in_symval_forwarding (symbol, valcontents,
-					     current_buffer);
+    valcontents = swap_in_symval_forwarding (symbol, valcontents);
 
   if (MISCP (valcontents))
     {
