@@ -1591,7 +1591,7 @@ experts alike. The customization code in the form of Lisp commands will be
 placed in @file{~/.emacs} or some other customization file depending on the
 version of Emacs that you use. Still, it is recommended to separate
 Viper-related customization produced by the Emacs customization widget
-and keep in in the @file{.viper} file.
+and keep it in the @file{.viper} file.
 
 Some advanced customization cannot be accomplished this way, however, and
 has to be done in Emacs Lisp in the @file{.viper} file.  For the common
