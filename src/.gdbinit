@@ -260,7 +260,7 @@ end
 
 define xbuffer
 print (struct buffer *) (($ & $valmask) | gdb_data_seg_bits)
-output &((struct Lisp_String *) ((($->name) & $valmask) | gdb_data_seg_bits))->data
+output ((struct Lisp_String *) ((($->name) & $valmask) | gdb_data_seg_bits))->data
 echo \n
 end
 document xbuffer
