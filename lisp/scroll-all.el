@@ -66,11 +66,11 @@ use either M-x customize or the function `scroll-all-mode'."
 	(count 1))
     (if (> num-windows 1)
 	(progn (other-window 1)
-		(while (< count num-windows)
-		  (if (not (eq (point) (point-max)))
-		      (progn (call-interactively 'next-line)))
-		  (other-window 1)
-		  (setq count (1+ count)))))))
+               (while (< count num-windows)
+                 (if (not (eq (point) (point-max)))
+                     (progn (call-interactively 'next-line)))
+                 (other-window 1)
+                 (setq count (1+ count)))))))
 
 (defun scroll-all-scroll-up-all (arg)
   "Scroll up all visible windows."
@@ -79,11 +79,11 @@ use either M-x customize or the function `scroll-all-mode'."
 	(count 1))
     (if (> num-windows 1)
 	(progn (other-window 1)
-		(while (< count num-windows)
-		  (if (not (eq (point) (point-min)))
-		      (progn (call-interactively 'previous-line)))
-		  (other-window 1)
-		  (setq count (1+ count)))))))
+               (while (< count num-windows)
+                 (if (not (eq (point) (point-min)))
+                     (progn (call-interactively 'previous-line)))
+                 (other-window 1)
+                 (setq count (1+ count)))))))
 
 (defun scroll-all-page-down-all (arg)
   "Page down in all visible windows."
@@ -114,13 +114,13 @@ use either M-x customize or the function `scroll-all-mode'."
   "Check `this-command' to see if a scroll is to be done."
   (cond
    ((eq this-command 'next-line)
-	(call-interactively 'scroll-all-scroll-down-all))
+    (call-interactively 'scroll-all-scroll-down-all))
    ((eq this-command 'previous-line)
-	(call-interactively 'scroll-all-scroll-up-all))
+    (call-interactively 'scroll-all-scroll-up-all))
    ((eq this-command 'scroll-up)
-	(call-interactively 'scroll-all-page-down-all))
+    (call-interactively 'scroll-all-page-down-all))
    ((eq this-command 'scroll-down)
-	(call-interactively 'scroll-all-page-up-all))))
+    (call-interactively 'scroll-all-page-up-all))))
 
 
 ;;;###autoload
