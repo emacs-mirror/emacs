@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.277 2000/10/04 09:48:37 spiegel Exp $
+;; $Id: vc.el,v 1.278 2000/10/05 22:55:17 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1531,11 +1531,16 @@ files in or below it."
     (if (string-equal rel2 "")
 	(setq rel2 nil))
     (let ((file-rel1 (vc-version-backup-file file rel1))
-	  (file-rel2 (if (not rel2) 
-			 file 
+	  (file-rel2 (if (not rel2)
+			 file
 		       (vc-version-backup-file file rel2))))
       (if (and file-rel1 file-rel2)
-	  (vc-do-command t 1 "diff" nil diff-switches file-rel1 file-rel2)
+	  (apply 'vc-do-command t 1 "diff" nil
+		 (append (if (listp diff-switches)
+			     diff-switches
+			   (list diff-switches))
+			 (list (file-relative-name file-rel1)
+			       (file-relative-name file-rel2))))
 	(cd (file-name-directory file))
 	(vc-call diff file rel1 rel2))))
   (if (and (zerop (buffer-size))
