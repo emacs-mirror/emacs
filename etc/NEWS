@@ -1950,6 +1950,8 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** The function `eql' is now available without requiring the CL package.
+
 ** The display space :width and :align-to text properties are now
 supported on text terminals.
 
