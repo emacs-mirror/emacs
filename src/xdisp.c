@@ -11655,6 +11655,7 @@ try_window_id (w)
       w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
       w->window_end_vpos
 	= make_number (MATRIX_ROW_VPOS (row, w->current_matrix));
+      xassert (w->window_end_bytepos >= 0);
     }
   else if (last_text_row_at_end)
     {
@@ -11664,6 +11665,7 @@ try_window_id (w)
 	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row_at_end);
       w->window_end_vpos
 	= make_number (MATRIX_ROW_VPOS (last_text_row_at_end, desired_matrix));
+      xassert (w->window_end_bytepos >= 0);
     }
   else if (last_text_row)
     {
@@ -11676,6 +11678,7 @@ try_window_id (w)
 	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
       w->window_end_vpos
 	= make_number (MATRIX_ROW_VPOS (last_text_row, desired_matrix));
+      xassert (w->window_end_bytepos >= 0);
     }
   else if (first_unchanged_at_end_row == NULL
 	   && last_text_row == NULL
@@ -11697,6 +11700,7 @@ try_window_id (w)
       row = MATRIX_ROW (w->desired_matrix, vpos);
       w->window_end_pos = make_number (Z - MATRIX_ROW_END_CHARPOS (row));
       w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
+      xassert (w->window_end_bytepos >= 0);
     }
   else
     abort ();
