@@ -1,7 +1,7 @@
 /* Declarations having to do with Emacs category tables.
-   Ver.1.0
    Copyright (C) 1995 Free Software Foundation, Inc.
    Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+     Licensed to the Free Software Foundation.
 
 This file is part of GNU Emacs.
 
