@@ -187,7 +187,7 @@ CC = C_COMPILER
 #ifndef ORDINARY_LINK
 
 #ifndef CRT0_COMPILE
-#define CRT0_COMPILE $(CC) -c $(ALL_CFLAGS) C_SWITCH_ASM 
+#define CRT0_COMPILE $(CC) -c $(ALL_CFLAGS) C_SWITCH_ASM
 #endif
 
 #ifndef START_FILES
@@ -345,7 +345,7 @@ LIBXTR6 = -lSM -lICE
 /* We assume the config files have defined STATIC_OPTION
    since that might depend on the operating system.
    (Don't forget you need different definitions with and without __GNUC__.)  */
-LIBXT= STATIC_OPTION $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext DYNAMIC_OPTION 
+LIBXT= STATIC_OPTION $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext DYNAMIC_OPTION
 #else /* not LIBXT_STATIC */
 LIBXT= $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext
 #endif /* not LIBXT_STATIC */
@@ -413,7 +413,7 @@ GNULIB_VAR = LIB_GCC
 GNULIB_VAR = `if [ -f LIB_GCC ] ; then echo LIB_GCC; else echo; fi`
 #endif /* __GNUC__ < 2 */
 #else /* not __GNUC__ */
-GNULIB_VAR = 
+GNULIB_VAR =
 
 #endif /* not __GNUC__ */
 #endif /* not ORDINARY_LINK */
@@ -689,7 +689,7 @@ shortlisp= \
 	../lisp/version.el
 
 /* Lisp files that may or may not be used.
-   We must unconditionally put them in the DOC file. 
+   We must unconditionally put them in the DOC file.
    We use ../lisp/ to start the file names
    to reduce the size of the argument list for make-docfile
    for the sake of systems which can't handle large ones.  */
@@ -748,7 +748,6 @@ emacs: temacs ${etc}DOC ${lisp}
 ${etc}DOC: ${libsrc}make-docfile ${obj} ${lisp}
 	-rm -f ${etc}DOC
 	${libsrc}make-docfile -d ${srcdir} ${SOME_MACHINE_OBJECTS} ${obj} > ${etc}DOC
-	cd 
 	${libsrc}make-docfile -a ${etc}DOC -d ${srcdir} ${SOME_MACHINE_LISP} ${shortlisp}
 
 ${libsrc}make-docfile:
@@ -907,17 +906,17 @@ alloca.o : alloca.s $(config_h)
    it is so often changed in ways that do not require any recompilation
    and so rarely changed in ways that do require any.  */
 
-abbrev.o: abbrev.c buffer.h commands.h $(config_h) 
+abbrev.o: abbrev.c buffer.h commands.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
-   INTERVAL_SRC blockinput.h $(config_h) 
+   INTERVAL_SRC blockinput.h $(config_h)
 callint.o: callint.c window.h commands.h buffer.h mocklisp.h \
    keyboard.h $(config_h)
 callproc.o: callproc.c paths.h buffer.h commands.h $(config_h) \
 	process.h systty.h syssignal.h
-casefiddle.o: casefiddle.c syntax.h commands.h buffer.h $(config_h) 
+casefiddle.o: casefiddle.c syntax.h commands.h buffer.h $(config_h)
 casetab.o: casetab.c buffer.h $(config_h)
 cm.o: cm.c cm.h termhooks.h $(config_h)
-cmds.o: cmds.c syntax.h buffer.h commands.h window.h $(config_h) 
+cmds.o: cmds.c syntax.h buffer.h commands.h window.h $(config_h)
 pre-crt0.o: pre-crt0.c
 ecrt0.o: ecrt0.c $(config_h)
 	CRT0_COMPILE ${srcdir}/ecrt0.c
@@ -928,9 +927,9 @@ dispnew.o: dispnew.c commands.h frame.h window.h buffer.h dispextern.h \
 doc.o: doc.c $(config_h) paths.h buffer.h keyboard.h
 doprnt.o: doprnt.c $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
-editfns.o: editfns.c window.h buffer.h systime.h INTERVAL_SRC $(config_h) 
-emacs.o: emacs.c commands.h systty.h syssignal.h process.h INTERVAL_SRC $(config_h) 
-fileio.o: fileio.c window.h buffer.h systime.h INTERVAL_SRC $(config_h) 
+editfns.o: editfns.c window.h buffer.h systime.h INTERVAL_SRC $(config_h)
+emacs.o: emacs.c commands.h systty.h syssignal.h process.h INTERVAL_SRC $(config_h)
+fileio.o: fileio.c window.h buffer.h systime.h INTERVAL_SRC $(config_h)
 filelock.o: filelock.c buffer.h paths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
@@ -941,7 +940,7 @@ keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
    systty.h systime.h dispextern.h intervals.h blockinput.h xterm.h $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
-   puresize.h $(config_h) 
+   puresize.h $(config_h)
 lastfile.o: lastfile.c  $(config_h)
 macros.o: macros.c window.h buffer.h commands.h macros.h keyboard.h $(config_h)
 malloc.o: malloc.c $(config_h)
@@ -950,23 +949,23 @@ msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h \
 mktime.o: mktime.c $(config_h)
 gmalloc.o: gmalloc.c $(config_h)
 ralloc.o: ralloc.c $(config_h)
-vm-limit.o: vm-limit.c mem-limits.h $(config_h) 
-marker.o: marker.c buffer.h $(config_h) 
+vm-limit.o: vm-limit.c mem-limits.h $(config_h)
+marker.o: marker.c buffer.h $(config_h)
 minibuf.o: minibuf.c syntax.h dispextern.h frame.h window.h \
-   buffer.h commands.h $(config_h) 
+   buffer.h commands.h $(config_h)
 mocklisp.o: mocklisp.c buffer.h $(config_h)
 process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
-   commands.h syssignal.h systime.h systty.h syswait.h frame.h $(config_h) 
-regex.o: regex.c syntax.h buffer.h $(config_h) regex.h 
+   commands.h syssignal.h systime.h systty.h syswait.h frame.h $(config_h)
+regex.o: regex.c syntax.h buffer.h $(config_h) regex.h
 region-cache.o: region-cache.c buffer.h region-cache.h
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    buffer.h $(config_h)
 scroll.o: scroll.c termchar.h dispextern.h frame.h $(config_h)
 search.o: search.c regex.h commands.h buffer.h region-cache.h syntax.h \
-   blockinput.h $(config_h) 
+   blockinput.h $(config_h)
 strftime.o: strftime.c $(config_h)
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) -Dstrftime=emacs_strftime $<
-syntax.o: syntax.c syntax.h buffer.h commands.h $(config_h) 
+syntax.o: syntax.c syntax.h buffer.h commands.h $(config_h)
 sysdep.o: sysdep.c $(config_h) dispextern.h termhooks.h termchar.h termopts.h \
    frame.h syssignal.h systty.h systime.h syswait.h blockinput.h window.h
 term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
@@ -974,7 +973,7 @@ term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
 termcap.o: termcap.c $(config_h)
 terminfo.o: terminfo.c $(config_h)
 tparam.o: tparam.c $(config_h)
-undo.o: undo.c buffer.h commands.h $(config_h) 
+undo.o: undo.c buffer.h commands.h $(config_h)
 /* This hack is to discard any space that cpp might put at the beginning
    of UNEXEC when substituting it in.  */
 UNEXEC_ALIAS=UNEXEC
@@ -983,9 +982,9 @@ widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h $(config_h)
 window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    termhooks.h disptab.h keyboard.h $(config_h)
 xdisp.o: xdisp.c macros.h commands.h indent.h buffer.h dispextern.h \
-   termchar.h frame.h window.h disptab.h termhooks.h $(config_h) 
+   termchar.h frame.h window.h disptab.h termhooks.h $(config_h)
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
-   window.h $(config_h) 
+   window.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h \
    blockinput.h paths.h $(config_h)
 xmenu.o: xmenu.c xterm.h window.h dispextern.h frame.h keyboard.h \
@@ -993,7 +992,7 @@ xmenu.o: xmenu.c xterm.h window.h dispextern.h frame.h keyboard.h \
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h \
   dispextern.h frame.h disptab.h blockinput.h systime.h syssignal.h \
   keyboard.h gnu.h sink.h sinkmask.h $(config_h)
-xselect.o: xselect.c dispextern.h frame.h xterm.h blockinput.h $(config_h) 
+xselect.o: xselect.c dispextern.h frame.h xterm.h blockinput.h $(config_h)
 xrdb.o: xrdb.c $(config_h)
 hftctl.o: hftctl.c $(config_h)
 
