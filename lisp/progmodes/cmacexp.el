@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1994, 1996 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.22 1996/01/29 05:26:21 rms Exp rms $
+;; Version: $Id: cmacexp.el,v 1.23 1996/03/02 06:11:56 rms Exp kwzh $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -246,8 +246,10 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 	(startstat ())
 	(startmarker "")
 	(exit-status 0)
-	(tempname (make-temp-name (or (getenv "TMPDIR") (getenv "TEMP")
-				      (getenv "TMP") "/tmp/"))))
+	(tempname (make-temp-name (concat
+				   (or (getenv "TMPDIR") (getenv "TEMP")
+				       (getenv "TMP") "/tmp")
+				   "/"))))
     (unwind-protect
 	(save-excursion
 	  (save-restriction
