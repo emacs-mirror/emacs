@@ -144,6 +144,27 @@ main (argc, argv)
 #ifndef MAIL_USE_FLOCK
   /* Use a lock file named /usr/spool/mail/$USER.lock:
      If it exists, the mail file is locked.  */
+  /* Note: this locking mechanism is *required* by the mailer
+     (on systems which use it) to prevent loss of mail.
+
+     On systems that use a lock file, extracting the mail without locking
+     WILL occasionally cause loss of mail due to timing errors!
+
+     So, if creation of the lock file fails
+     due to access permission on /usr/spool/mail,
+     you simply MUST change the permission
+     and/or make movemail a setgid program
+     so it can create lock files properly.
+
+     You might also wish to verify that your system is one
+     which uses lock files for this purpose.  Some systems use other methods.
+
+     If your system uses the `flock' system call for mail locking,
+     define MAIL_USE_FLOCK in config.h or the s-*.h file
+     and recompile movemail.  If the s- file for your system
+     should define MAIL_USE_FLOCK but does not, send a bug report
+     to bug-gnu-emacs@prep.ai.mit.edu so we can fix it.  */
+
   lockname = concat (inname, ".lock", "");
   strcpy (tempname, inname);
   p = tempname + strlen (tempname);
@@ -160,7 +181,7 @@ main (argc, argv)
       /* Give up if cannot do that.  */
       desc = open (tempname, O_WRONLY | O_CREAT, 0666);
       if (desc < 0)
-        pfatal_with_name (concat ("temporary file \"", tempname, "\""));
+        pfatal_with_name ("lock file--see source file etc/movemail.c");
       close (desc);
 
       tem = link (tempname, lockname);
