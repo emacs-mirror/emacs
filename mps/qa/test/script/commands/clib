@@ -12,24 +12,5 @@
 
 require "require";
 
-print "Compiling test libraries from $testlib_dir.\n";
-
-open(MANIFEST, "$testlib_dir/manifest");
-
-while ($tlfile = <MANIFEST>) {
- chop($tlfile);
- $tlfile = $testlib_dir."/".$tlfile;
- $tlobj = $tlfile;
- $tlobj =~ s/\.c/\.o/;
- $tlobj =~ s/$testlib_dir/$obj_dir/;
- print"$tlfile -> $tlobj";
-
- if (&compile($tlfile, $tlobj)) {
-  print " ok\n";
- } else {
-  print " failed\n";
- }
-}
-
-close(MANIFEST);
+&clib;
 
