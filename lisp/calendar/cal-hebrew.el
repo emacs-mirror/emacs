@@ -236,17 +236,17 @@ Driven by the variable `calendar-date-display-form'."
                            calendar-hebrew-month-name-array-leap-year
                          calendar-hebrew-month-name-array-common-year))
           (completion-ignore-case t)
-          (month (cdr (assoc-ignore-case
+          (month (cdr (assoc-string
                        (completing-read
                         "Hebrew calendar month name: "
                         (mapcar 'list (append month-array nil))
                         (if (= year 3761)
                             '(lambda (x)
                                (let ((m (cdr
-                                         (assoc-ignore-case
+                                         (assoc-string
                                           (car x)
-                                          (calendar-make-alist
-                                           month-array)))))
+                                          (calendar-make-alist month-array)
+                                          t))))
                                  (< 0
                                     (calendar-absolute-from-hebrew
                                      (list m
@@ -254,7 +254,7 @@ Driven by the variable `calendar-date-display-form'."
                                             m year)
                                            year))))))
                         t)
-                       (calendar-make-alist month-array 1))))
+                       (calendar-make-alist month-array 1) t)))
           (last (hebrew-calendar-last-day-of-month month year))
           (first (if (and (= year 3761) (= month 10))
                      18 1))
@@ -753,18 +753,18 @@ is provided for use as part of the nongregorian-diary-marking-hook."
                          (string-to-int y-str)))))
             (if dd-name
                 (mark-calendar-days-named
-                 (cdr (assoc-ignore-case dd-name
+                 (cdr (assoc-string dd-name
                                          (calendar-make-alist
                                           calendar-day-name-array
-                                          0 nil calendar-day-abbrev-array))))
+                                          0 nil calendar-day-abbrev-array) t)))
               (if mm-name
                   (setq mm
                         (if (string-equal mm-name "*") 0
                           (cdr
-                           (assoc-ignore-case
+                           (assoc-string
                             mm-name
                             (calendar-make-alist
-                             calendar-hebrew-month-name-array-leap-year))))))
+                             calendar-hebrew-month-name-array-leap-year) t)))))
               (mark-hebrew-calendar-date-pattern mm dd yy)))))
       (setq d (cdr d)))))
 
@@ -839,12 +839,12 @@ from the cursor position."
                            (int-to-string (extract-calendar-year today))))
                     (month-array calendar-month-name-array)
                     (completion-ignore-case t)
-                    (month (cdr (assoc-ignore-case
+                    (month (cdr (assoc-string
                                  (completing-read
                                   "Month of death (name): "
                                   (mapcar 'list (append month-array nil))
                                   nil t)
-                                 (calendar-make-alist month-array 1))))
+                                 (calendar-make-alist month-array 1) t)))
                     (last (calendar-last-day-of-month month year))
                     (day (calendar-read
                           (format "Day of death (1-%d): " last)
