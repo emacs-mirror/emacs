@@ -7,6 +7,23 @@
 ;; Version: 1.84
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
 ;;; Commentary:
 ;;
 ;; See `custom.el'.
@@ -16,6 +33,12 @@
 (require 'cus-face)
 (require 'wid-edit)
 (require 'easymenu)
+
+(defun custom-face-display-set (face spec &optional frame)
+  (face-spec-set face spec frame))
+
+(defun custom-display-match-frame (display frame)
+  (face-spec-set-match-display display frame))
 
 (define-widget-keywords :custom-prefixes :custom-menu :custom-show
   :custom-magic :custom-state :custom-level :custom-form
@@ -1639,8 +1662,6 @@ Optional EVENT is the location for the menu."
 	 (child (car (widget-get widget :children)))
 	 (value (widget-value child)))
     (put symbol 'customized-face value)
-    (when (fboundp 'copy-face)
-      (copy-face 'custom-face-empty symbol))
     (custom-face-display-set symbol value)
     (custom-face-state-set widget)
     (custom-redraw-magic widget)))
@@ -1650,8 +1671,6 @@ Optional EVENT is the location for the menu."
   (let* ((symbol (widget-value widget))
 	 (child (car (widget-get widget :children)))
 	 (value (widget-value child)))
-    (when (fboundp 'copy-face)
-      (copy-face 'custom-face-empty symbol))
     (custom-face-display-set symbol value)
     (put symbol 'saved-face value)
     (put symbol 'customized-face nil)
@@ -1666,8 +1685,6 @@ Optional EVENT is the location for the menu."
     (unless value
       (error "No saved value for this face"))
     (put symbol 'customized-face nil)
-    (when (fboundp 'copy-face)
-      (copy-face 'custom-face-empty symbol))
     (custom-face-display-set symbol value)
     (widget-value-set child value)
     (custom-face-state-set widget)
@@ -1684,8 +1701,6 @@ Optional EVENT is the location for the menu."
     (when (get symbol 'saved-face)
       (put symbol 'saved-face nil)
       (custom-save-all))
-    (when (fboundp 'copy-face)
-      (copy-face 'custom-face-empty symbol))
     (custom-face-display-set symbol value)
     (widget-value-set child value)
     (custom-face-state-set widget)
