@@ -347,29 +347,36 @@ from being initialized."
 
 (defvar init-file-had-error nil)
 
+(defvar normal-top-level-add-subdirs-inode-list nil)
+
 (defun normal-top-level-add-subdirs-to-load-path ()
   "Add all subdirectories of current directory to `load-path'.
 More precisely, this uses only the subdirectories whose names
 start with letters or digits; it excludes any subdirectory named `RCS'
 or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (let (dirs 
+	attrs
 	(pending (list default-directory)))
     ;; This loop does a breadth-first tree walk on DIR's subtree,
     ;; putting each subdir into DIRS as its contents are examined.
     (while pending
       (setq dirs (cons (car pending) dirs))
       (setq pending (cdr pending))
+      (setq attrs (nthcdr 10 (file-attributes (car dirs))))
       (let ((contents (directory-files (car dirs)))
 	    (default-directory (car dirs)))
-	(while contents
-	  (unless (member (car contents) '("." ".." "RCS" "CVS"))
-	    (when (and (string-match "\\`[a-zA-Z0-9]" (car contents))
-		       (file-directory-p (car contents)))
-	      (let ((expanded (expand-file-name (car contents))))
-		(unless (file-exists-p (expand-file-name ".nosearch"
-							 expanded))
-		  (setq pending (nconc pending (list expanded)))))))
-	  (setq contents (cdr contents)))))
+	(unless (member attrs normal-top-level-add-subdirs-inode-list)
+	  (setq normal-top-level-add-subdirs-inode-list
+		(cons attrs normal-top-level-add-subdirs-inode-list))
+	  (while contents
+	    (unless (member (car contents) '("." ".." "RCS" "CVS"))
+	      (when (and (string-match "\\`[a-zA-Z0-9]" (car contents))
+			 (file-directory-p (car contents)))
+		(let ((expanded (expand-file-name (car contents))))
+		  (unless (file-exists-p (expand-file-name ".nosearch"
+							   expanded))
+		    (setq pending (nconc pending (list expanded)))))))
+	    (setq contents (cdr contents))))))
     (normal-top-level-add-to-load-path (cdr (nreverse dirs)))))
 
 ;; This function is called from a subdirs.el file.
@@ -871,7 +878,7 @@ Getting New Versions	How to obtain the latest version of Emacs.
 ")
 			     (insert "\n\n" (emacs-version)
 				     "
-Copyright (C) 1998 Free Software Foundation, Inc."))
+Copyright (C) 1999 Free Software Foundation, Inc."))
 			 ;; If keys have their default meanings,
 			 ;; use precomputed string to save lots of time.
 			 (if (and (eq (key-binding "\C-h") 'help-command)
@@ -928,7 +935,7 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 
 			 (insert "\n\n" (emacs-version)
 				 "
-Copyright (C) 1998 Free Software Foundation, Inc.")
+Copyright (C) 1999 Free Software Foundation, Inc.")
 			 (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
 				  (eq (key-binding "\C-h\C-d") 'describe-distribution)
 				  (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
