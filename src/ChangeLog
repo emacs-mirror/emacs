@@ -1,3 +1,19 @@
+2002-05-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (enumfont_t): Remove tail, make pattern a normal
+	Lisp_Object.
+	(enum_font_cb2, enum_font_maybe_add_to_list, w32_list_fonts):
+	Use modified enumfont_t struct.
+
+	* w32term.h (text_cursor_kinds): New enumeration member HBAR_CURSOR.
+ 
+	* w32term.c (x_draw_bar_cursor): New argument KIND; callers changed.
+	Handle the `hbar' cursor type.
+	(x_display_and_set_cursor): Handle the HBAR_CURSOR case.
+
+	* w32fns.c (Qhbar): New variable.
+	(x_specified_cursor_type): Use it.
+
 2002-05-21  Ken Raeburn  <raeburn@gnu.org>
 
 	* w32fns.c (enum_font_maybe_add_to_list): Use XCDR_AS_LVALUE for
