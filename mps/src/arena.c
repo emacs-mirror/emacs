@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.55) $
+ * $HopeName: MMsrc!arena.c(trunk.56) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.55) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.56) $");
 
 
 /* Forward declarations */
@@ -158,7 +158,9 @@ static Bool ArenaReservoirIsConsistent(Arena arena)
   /* Check the the size of the segments matches reservoirSize */
   RING_FOR(node, PoolSegRing(pool), nextNode) {
     Seg seg = SegOfPoolRing(node);
-    size += SegSize(seg);
+    Size segSize = SegSize(seg);
+    AVER(segSize == ArenaAlign(arena));
+    size += segSize;
   }
   if (size != arena->reservoirSize)
     return FALSE;
@@ -263,12 +265,18 @@ static Res ArenaAllocSegFromReservoir(Seg *segReturn, Arena arena,
   reservoir = &arena->reservoirStruct.poolStruct;
   AVERT(Pool, reservoir);
 
+  /* @@@ As a short-term measure, we only permit the reservoir to */
+  /* hold or allocate single-page segments. */
+  /* See change.dylan.jackdaw.160125 */
+  if(size != ArenaAlign(arena))
+    return ResMEMORY;
+
   /* Return the first segment which is big enough */
   ring = PoolSegRing(reservoir);
   RING_FOR(node, ring, nextNode) {
     Seg seg = SegOfPoolRing(node);
     Size segSize = SegSize(seg);
-    if (segSize >= size) {
+    if (segSize == size) {
       arena->reservoirSize -= segSize;
       SegFinish(seg);
       SegInit(seg, pool);
@@ -294,10 +302,12 @@ static void ArenaReturnSegToReservoir(Arena arena, Seg seg)
   limit = arena->reservoirLimit;
   new = SegSize(seg);
   AVER(have < limit); /* The reservoir mustn't be full */
-  if (new > (limit - have)) {
-    /* The new segment is too big for the reservoir, so free it. */
-    /* design.mps.reservoir.lose */
+
+  /* @@@ Short-term fix that multi-page segments aren't put */
+  /* directly into the reservoir.  See change.dylan.jackdaw.160125 */
+  if(new != ArenaAlign(arena)) {
     (*arena->class->segFree)(seg);
+    (void)ArenaEnsureReservoir(arena);
   } else {
     /* Reassign the segment to the reservoir pool */
     SegFinish(seg);
