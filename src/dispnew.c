@@ -2404,32 +2404,6 @@ sit_for (sec, usec, reading, display)
   XSETINT (read_kbd, reading ? -1 : 1);
   wait_reading_process_input (sec, usec, read_kbd, display);
 
-
-  /* wait_reading_process_input should always be available now; it is
-     simulated in a simple way on systems that don't support
-     subprocesses.  */
-#if 0
-  /* No wait_reading_process_input available.  */
-  immediate_quit = 1;
-  QUIT;
-
-  waitchannels = 1;
-#ifdef VMS
-  input_wait_timeout (XINT (arg));
-#else				/* not VMS */
-#ifndef HAVE_TIMEVAL
-  timeout_sec = sec;
-  select (1, &waitchannels, 0, 0, &timeout_sec);
-#else /* HAVE_TIMEVAL */
-  timeout.tv_sec = sec;  
-  timeout.tv_usec = usec;
-  select (1, &waitchannels, 0, 0, &timeout);
-#endif /* HAVE_TIMEVAL */
-#endif /* not VMS */
-
-  immediate_quit = 0;
-#endif 
-
   return detect_input_pending () ? Qnil : Qt;
 }
 
