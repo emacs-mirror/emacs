@@ -82,7 +82,6 @@ extern Lisp_Object meta_prefix_char;
 
 extern Lisp_Object Voverriding_local_map;
 
-void describe_map_tree ();
 static Lisp_Object define_as_prefix ();
 static Lisp_Object describe_buffer_bindings ();
 static void describe_command ();
