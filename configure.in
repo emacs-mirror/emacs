@@ -1157,7 +1157,10 @@ dnl checks for Unix variants
 AC_AIX
 
 # Sound support for GNU/Linux and the free BSDs.
-AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h)
+AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h)
+# Emulation library used on NetBSD.
+AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
+AC_SUBST(LIBSOUND)
 
 dnl checks for header files
 AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \

@@ -1,3 +1,8 @@
+2000-07-05  Ken Raeburn  <raeburn@gnu.org>
+
+	* configure.in: Check for <soundcard.h>.  Look for ossaudio
+	library, and set LIBSOUND accordingly.
+
 2000-07-05  Dave Love  <fx@gnu.org>
 
 	* configure.in: Use AC_HEADER_SYS_WAIT.
