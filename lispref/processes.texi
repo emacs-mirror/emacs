@@ -1297,6 +1297,11 @@ programs was running when the sentinel was started.  However, if
 off.  This makes it possible to use the Lisp debugger to debug the
 sentinel.  @xref{Debugger}.
 
+  While a sentinel is running, the process sentinel is temporarily
+set to @code{nil} so that the sentinel won't run recursively.
+For this reason it is not possible for a sentinel to specify
+a new sentinel.
+
   In earlier Emacs versions, every sentinel that did regular expression
 searching or matching had to explicitly save and restore the match data.
 Now Emacs does this automatically for sentinels; they never need to do
