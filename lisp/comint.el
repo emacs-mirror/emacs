@@ -123,7 +123,7 @@
 ;;;     comint-input-filter-functions - hook     process-in-a-buffer
 ;;;     comint-output-filter-functions - hook    function modes.
 ;;;     comint-input-filter     - function         ...
-;;;     comint-input-send	- function         ...
+;;;     comint-input-sender	- function         ...
 ;;;     comint-eol-on-send	- boolean          ...
 ;;;     comint-process-echoes   - boolean          ...
 ;;;     comint-scroll-to-bottom-on-input - symbol For scroll behavior
@@ -376,10 +376,10 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-input-autoexpand)
   (make-local-variable 'comint-input-ignoredups)
   (make-local-variable 'comint-delimiter-argument-list)
-  (make-local-variable 'comint-dynamic-complete-functions)
+  (make-local-hook 'comint-dynamic-complete-functions)
   (make-local-variable 'comint-completion-fignore)
   (make-local-variable 'comint-get-old-input)
-  (make-local-variable 'comint-input-filter-functions)
+  (make-local-hook 'comint-input-filter-functions)
   (make-local-variable 'comint-input-filter)
   (make-local-variable 'comint-input-sender)
   (make-local-variable 'comint-eol-on-send)
@@ -388,7 +388,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-scroll-show-maximum-output)
   (make-local-variable 'pre-command-hook)
   (add-hook 'pre-command-hook 'comint-preinput-scroll-to-bottom)
-  (make-local-variable 'comint-output-filter-functions)
+  (make-local-hook 'comint-output-filter-functions)
   (make-local-variable 'comint-ptyp)
   (make-local-variable 'comint-exec-hook)
   (make-local-variable 'comint-process-echoes)
@@ -1176,10 +1176,8 @@ Similarly for Soar, Scheme, etc."
 		       (not (string-equal (ring-ref comint-input-ring 0)
 					  history))))
 	      (ring-insert comint-input-ring history))
-	  (let ((functions comint-input-filter-functions))
-	    (while functions
-	      (funcall (car functions) (concat input "\n"))
-	      (setq functions (cdr functions))))
+	  (run-hook-with-args 'comint-input-filter-functions
+			      (concat input "\n"))
 	  (setq comint-input-ring-index nil)
 	  ;; Update the markers before we send the input
 	  ;; in case we get output amidst sending the input.
@@ -1229,10 +1227,7 @@ Similarly for Soar, Scheme, etc."
 
 	  (narrow-to-region obeg oend)
 	  (goto-char opoint)
-	  (let ((functions comint-output-filter-functions))
-	    (while functions
-	      (funcall (car functions) string)
-	      (setq functions (cdr functions))))
+	  (run-hook-with-args 'comint-output-filter-functions string)
 	  (set-buffer obuf)))))
 
 (defun comint-preinput-scroll-to-bottom ()
@@ -1895,9 +1890,7 @@ Calls the functions in `comint-dynamic-complete-functions' to perform
 completion until a function returns non-nil, at which point completion is
 assumed to have occurred."
   (interactive)
-  (let ((functions comint-dynamic-complete-functions))
-    (while (and functions (null (funcall (car functions))))
-      (setq functions (cdr functions)))))
+  (run-hook-with-args-until-success 'comint-dynamic-complete-functions))
 
 
 (defun comint-dynamic-complete-filename ()
