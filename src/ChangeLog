@@ -1,3 +1,15 @@
+2002-01-13  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.h (WM_XBUTTONDOWN, WM_XBUTTONUP): New window messages
+	for mice with more than 3 buttons.
+
+	* w32term.c (parse_button): New parameter xbutton.  Callers changed.
+	(w32_read_socket): Handle new "XBUTTON" messages.
+
+	* w32fns.c (w32_pass_extra_mouse_buttons_to_system): New user option.
+	(syms_of_w32fns): DEFVAR_BOOL it.
+	(w32_wnd_proc): Handle new "XBUTTON" messages.
+
 2002-01-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* keyboard.c (read_key_sequence): Remove unused variable
