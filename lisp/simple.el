@@ -2590,8 +2590,8 @@ Outline mode sets this."
       ;; with intangibility and point-motion hooks enabled this time.
       (goto-char opoint)
       (setq inhibit-point-motion-hooks nil)
-      (goto-char (constrain-to-field new opoint nil t
-				     'inhibit-line-move-field-capture))
+      (goto-char
+       (constrain-to-field new opoint t t 'inhibit-line-move-field-capture))
       ;; If intangibility processing moved us to a different line,
       ;; readjust the horizontal position within the line we ended up at.
       (when (or (< (point) line-beg) (> (point) line-end))
@@ -2606,8 +2606,8 @@ Outline mode sets this."
 	    (setq new (point)))
 	(goto-char (point-min))
 	(setq inhibit-point-motion-hooks nil)
-	(goto-char (constrain-to-field new opoint nil t
-				       'inhibit-line-move-field-capture))
+	(goto-char
+	 (constrain-to-field new opoint t t 'inhibit-line-move-field-capture))
 	)))
   nil)
 
