@@ -572,6 +572,7 @@ typedef unsigned char UCHAR;
 /* Data type checking */
 
 #define NILP(x)  (XFASTINT (x) == XFASTINT (Qnil))
+#define GC_NILP(x) GC_EQ (x, Qnil)
 
 #ifdef LISP_FLOAT_TYPE
 #define NUMBERP(x) (XTYPE (x) == Lisp_Int || XTYPE (x) == Lisp_Float)
@@ -582,7 +583,7 @@ typedef unsigned char UCHAR;
 /* #define LISTP(x) (XTYPE ((x)) == Lisp_Cons)*/
 #define CONSP(x) (XTYPE ((x)) == Lisp_Cons)
 #define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
-
+#define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))
 
 #define CHECK_LIST(x, i) \
   { if ((XTYPE ((x)) != Lisp_Cons) && !NILP (x)) x = wrong_type_argument (Qlistp, (x)); }
@@ -894,16 +895,17 @@ void staticpro();
   
 #define UNGCPRO (gcprolist = gcpro1.next)
 
-/* Evaluate expr, UNGCPRO, and then return the value of expr.  */
+/* Evaluate expr, UNGCPRO, and then return the value of expr.  I used
+   to have a `do ... while' clause around this to make it interact
+   with semicolons correctly, but this makes some compilers complain
+   that the while is never reached.  */
 #define RETURN_UNGCPRO(expr)		\
-  do					\
     {					\
       Lisp_Object ret_ungc_val;		\
       ret_ungc_val = (expr);		\
       UNGCPRO;				\
       return ret_ungc_val;		\
     }					\
-  while (0)
 
 /* Defined in data.c */
 extern Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound;
@@ -1121,7 +1123,7 @@ extern Lisp_Object Qdisabled;
 extern Lisp_Object Vhelp_form, Vtop_level;
 extern Lisp_Object Fdiscard_input (), Frecursive_edit ();
 extern Lisp_Object Fcommand_execute (), Finput_pending_p ();
-extern Lisp_Object Qvertical_scrollbar;
+extern Lisp_Object Qvertical_scroll_bar;
 
 /* defined in keymap.c */
 
