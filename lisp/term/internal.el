@@ -51,43 +51,6 @@
 (put 'return 'ascii-character 13)
 (put 'escape 'ascii-character ?\e)
 ;; ---------------------------------------------------------------------------
-;; We want to do this when Emacs is started because it depends on the
-;; country code.
-(let* ((i 128)
-      (modify (function
-	       (lambda (ch sy) 
-		 (modify-syntax-entry ch sy text-mode-syntax-table)
-		 (if (boundp 'tex-mode-syntax-table)
-		     (modify-syntax-entry ch sy tex-mode-syntax-table))
-		 (modify-syntax-entry ch sy (standard-syntax-table))
-		 )))
-      (table (standard-case-table))
-      ;; The following are strings of letters, first lower then upper case.
-      ;; This will look funny on terminals which display other code pages.
-      (chars
-       (cond
-	((= dos-codepage 850)
-	 "‡€š‚ƒ¶„…·†ÆÇ µˆÒ‰ÓŠÔ‹ØŒ×Ş¡Ö‘’“â”™•ã¢à›–ê£é—ë˜Yìí¡I£é¤¥ĞÑçè")
-	((= dos-codepage 865)
-	 "‡€š‚ƒA„…A†ˆE‰EŠE‹IŒII‘’“O”™•O–U£U˜Y› A¡I¢O£U¤¥")
-	;; default is 437
-	(t "‡€š‚ƒA„…A†ˆE‰EŠE‹IŒII‘’“O”™•O–U£U˜Y A¡I¢O£U¤¥"))))
-
-  (while (< i 256)
-    (funcall modify i "_")
-    (setq i (1+ i)))
-
-  (setq i 0)
-  (while (< i (length chars))
-    (let ((ch1 (aref chars i))
-	  (ch2 (aref chars (1+ i))))
-      (if (> ch2 127)
-	  (set-case-syntax-pair ch2 ch1 table))
-      (setq i (+ i 2))))
-  (save-excursion
-    (mapcar (lambda (b) (set-buffer b) (set-case-table table))
-	    (buffer-list)))
-  (set-standard-case-table table))
 
 ;;; internal.el ends here
 
