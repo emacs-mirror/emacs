@@ -3141,9 +3141,7 @@ extern void xfree P_ ((POINTER_TYPE *));
 
 extern char *xstrdup P_ ((const char *));
 
-#ifndef USE_CRT_DLL
 extern char *egetenv P_ ((char *));
-#endif
 
 /* Set up the name of the machine we're running on.  */
 extern void init_system_name P_ ((void));
