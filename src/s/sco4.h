@@ -72,3 +72,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* We need to link with crt1.o and crtn.o.  */
 #define START_FILES pre-crt0.o /lib/crt1.o
 #define LIB_STANDARD -lc /lib/crtn.o
+
+/* Various places should include sys/time.h.  */
+#define HAVE_SYS_TIME_H
