@@ -1,3 +1,8 @@
+2003-01-02  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (syms_of_macterm): Provide the feature "mac-carbon" to
+	distinguish Carbon GUI builds from X11 builds on darwin.
+
 2002-12-30  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (syms_of_macterm): Set mac-wheel-button-is-mouse-2 

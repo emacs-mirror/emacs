@@ -13693,6 +13693,8 @@ syms_of_macterm ()
   x_error_message_string = Qnil;
 #endif
 
+  Fprovide (intern ("mac-carbon"), Qnil);
+
   staticpro (&x_display_name_list);
   x_display_name_list = Qnil;
 
