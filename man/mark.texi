@@ -119,8 +119,8 @@ character, but its binding is still @code{set-mark-command}.
 @cindex highlighting region
 @cindex region highlighting
 
-  Emacs can highlight the current region, using X Windows.  But normally
-it does not.  Why not?
+  Emacs can highlight the current region on a terminal which supports
+colors.  But normally it does not.  Why not?
 
   Highlighting the region doesn't work well ordinarily in Emacs, because
 once you have set a mark, there is @emph{always} a region (in that
