@@ -2115,8 +2115,6 @@ extern void init_character_once P_ ((void));
 extern void syms_of_character P_ ((void));
 
 /* Defined in charset.c */
-extern int nonascii_insert_offset;
-extern Lisp_Object Vnonascii_translation_table;
 EXFUN (Fchar_bytes, 1);
 EXFUN (Fchar_width, 1);
 EXFUN (Fstring, MANY);
