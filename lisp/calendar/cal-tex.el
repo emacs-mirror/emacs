@@ -25,8 +25,8 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements the features of calendar.el that
-;; deal with printing the calendar.
+;; This collection of functions implements the creation of LaTeX calendars
+;; based on the user's holiday choices and diary file.
 
 ;;; TO DO
 ;;;
@@ -888,13 +888,13 @@ Optional prefix argument specifies number of weeks."
        (if (/= i n)
            (progn
              (run-hooks 'cal-tex-week-hook)
-	     (setq date date7)
+	     (setq date (cal-tex-incr-date date 7))
              (cal-tex-newpage))))
     (cal-tex-end-document)
     (run-hooks 'cal-tex-hook)))
 
 (defun cal-tex-weekly4-box (date weekend)
-  "make one box for DATE, different if WEEKEND"
+  "Make one box for DATE, different if WEEKEND."
   (let* (
 	(day (extract-calendar-day date))
 	(month (extract-calendar-month date))
@@ -908,8 +908,7 @@ Optional prefix argument specifies number of weeks."
 	)
     (cal-tex-b-framebox "8cm" "l")
     (cal-tex-b-parbox "b" "7.5cm")
-    (insert (format "{\\Large\\bf %s,} %s/%s/%s\\\\\n" 
-		    dayname month day year))
+    (insert (format "{\\Large\\bf %s,} %s/%s/%s\\\\\n" dayname month day year))
     (cal-tex-rule "0pt" "7.5cm" ".5mm")
     (cal-tex-nl)
     (if (not weekend)
