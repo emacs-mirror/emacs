@@ -1,3 +1,11 @@
+2000-01-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* eudc.texi: New file based on EUDC 1.30b.
+
+	* Makefile.in (INFO_TARGETS): Add eudc.
+	(DVI_TARGETS): Add eudc.dvi
+	(../info/eudc, eudc.dvi): New targets.
+
 2000-01-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (INFO_TARGETS): Rename emacs-faq to efaq (for

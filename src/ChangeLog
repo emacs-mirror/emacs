@@ -1,3 +1,50 @@
+2000-01-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (xic_set_preeditarea): Take window parameter and
+	window-relative pixel-positions.
+
+	* xterm.c (x_display_cursor): Set XIC pre-edit area only if window
+	is its frame's selected window.
+	(xim_instantiate_callback): Likewise.
+
+	* xfns.c (x_create_im): Removed.
+	(DEFAULT_STYLE, DEFAULT_FONT): Removed.
+	(supported_xim_styles): Renamed from supported_styles.
+	(best_xim_style): Renamed from best_style.
+	(create_frame_xic): Renamed from xic_create_frame.
+	(free_frame_xic): Renamed from xic_destroy_frame.
+	
+2000-01-29  INOUE Seiichiro <inoue@ainet.or.jp>
+
+	* xterm.c (XTread_socket) [HAVE_X_I18N]: If event is for none of
+	our frames, call XFilterEvent with 2nd parameter `None'.
+	(XTread_socket) <KeyPress> [HAVE_X_I18N]: Handle XmbLookupString
+	returning XBufferOverflow.
+	(XTread_socket) <ConfigureNotify> [HAVE_X_I18N]: Set XIC status
+	area.
+	(x_display_cursor) [HAVE_X_I18N]: Set XIC pre-edit area.
+	(x_new_fontset) [HAVE_X_I18N]: Create XIC status area fontset.
+	(xim_destroy_callback, xim_open_dpy, xim_instantiate_callback)
+	(xim_initialize, xim_close)
+	[HAVE_X_I18N && HAVE_X11R6]: New functions.
+	(x_destroy_window) [HAVE_X_I18N]:  Call xic_destroy_frame.
+	(x_term_init) [HAVE_X_I18N]: Call xim_initialize.
+	(x_delete_display) [HAVE_X_I18N]: Call xim_close.
+
+	* xterm.h (struct x_display_info) [HAVE_X_I18N]: Add members `xim'
+	and `xim_styles'.
+	(struct x_output) [HAVE_X_I18N]: Remove member `xim', add
+	`xic_style' and `xic_xfs'.
+	(FRAME_MENUBAR_HEIGHT, FRAME_X_XIM, FRAME_X_XIM_STYLES)
+	(FRAME_XIC_STYLE, FRAME_XIC_FONTSET): New macros.
+	(FRAME_XIM): Removed.
+
+	* xfns.c (supported_styles): New variable.
+	(DEFAULT_STYLE, DEFAULT_FONT): New macros
+	(xic_create_xfontset, best_style, xic_create_frame)
+	(xic_destroy_frame, xic_set_preeditarea, xic_set_statusarea)
+	(xic_set_xfontset): New functions.
+
 2000-01-28  Dave Love  <fx@gnu.org>
 
 	* s/irix6-5.h: Revert last change after change to irix5-0.h.

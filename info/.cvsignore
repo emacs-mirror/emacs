@@ -31,10 +31,12 @@ emacs-29
 emacs-30
 emacs-31
 emacs-32
+emacs-33
 ccmode
 ccmode-1
 ccmode-2
 ccmode-3
+ccmode-4
 cl
 cl-1
 cl-2
@@ -77,6 +79,7 @@ reftex-1
 reftex-2
 reftex-3
 reftex-4
+reftex-5
 sc
 sc-1
 sc-2
@@ -92,4 +95,14 @@ viper-4
 viper-5
 widget
 ada-mode
-
+eudc
+autotype
+efaq
+efaq-1
+efaq-2
+efaq-3
+efaq-4
+efaq-5
+idlwave
+idlwave-1
+idlwave-2
