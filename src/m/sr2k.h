@@ -67,12 +67,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define XSET(var, type, ptr) \
    ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS))
-
-#define XMARKBIT(a) ((a) < 0)
-
-#if 0  /* Loses when sign bit of type field is set.  */
-#define XUNMARK(a) ((a) = (((a) << BITS_PER_INT-GCTYPEBITS-VALBITS) >> BITS_PER_INT-GCTYPEBITS-VALBITS))
-#endif
 
 /* #ifdef __hpux */
 /* Now define a symbol for the cpu type, if your compiler

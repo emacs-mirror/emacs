@@ -1,5 +1,5 @@
 /* machine description file for Iris-4D machines.  Use with s/irix*.h.
-   Copyright (C) 1987, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1987, 2002, 2003  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -170,8 +170,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define XSET(var, type, ptr) \
    ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS))
-
-#define XUNMARK(a) ((a) = (((unsigned)(a) << BITS_PER_INT-GCTYPEBITS-VALBITS) >> BITS_PER_INT-GCTYPEBITS-VALBITS))
 #endif /* _LP64 */
 
 #ifndef __GNUC__
