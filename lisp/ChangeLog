@@ -1,5 +1,10 @@
 2002-10-30  Kenichi Handa  <handa@m17n.org>
 
+	* international/mule-conf.el (indian-is13194): Delete :unify-map
+	property.  Don't unify this charset.
+	(indian-2-column): Delete :superset property, add :code-offset
+	property.
+
 	* language/devan-util.el: Delete the superfluous autoload cookie
 	near the head of the file.
 	(devanagari-compose-region): Add autoload cookie.
@@ -270,7 +275,7 @@
 
 2002-09-05  Dave Love  <fx@gnu.org>
 
-	* international/characters.el: Make (ÿ/(B and (ÿ(B a case pair.
+	* international/characters.el: Make ,_/(B and ,A(B a case pair.
 
 2002-09-03  Kenichi Handa  <handa@etl.go.jp>
 
