@@ -1869,7 +1869,17 @@ typedef struct
 /* The next available element.  */
 #define COMPILE_STACK_TOP (compile_stack.stack[compile_stack.avail])
 
-
+/* Explicit quit checking is only used on NTemacs.  */
+#if defined WINDOWSNT && defined emacs && defined QUIT
+extern int immediate_quit;
+# define IMMEDIATE_QUIT_CHECK			\
+    do {					\
+      if (immediate_quit) QUIT;			\
+    } while (0)
+#else
+# define IMMEDIATE_QUIT_CHECK    ((void)0)
+#endif
+
 /* Structure to manage work area for range table.  */
 struct range_table_work_area
 {
@@ -1879,21 +1889,19 @@ struct range_table_work_area
   int bits;			/* flag to record character classes */
 };
 
-/* Make sure that WORK_AREA can hold more N multibyte characters.  */
-#define EXTEND_RANGE_TABLE_WORK_AREA(work_area, n)			  \
-  do {									  \
-    if (((work_area).used + (n)) * sizeof (int) > (work_area).allocated)  \
-      {									  \
-	(work_area).allocated += 16 * sizeof (int);			  \
-	if ((work_area).table)						  \
-	  (work_area).table						  \
-	    = (int *) realloc ((work_area).table, (work_area).allocated); \
-	else								  \
-	  (work_area).table						  \
-	    = (int *) malloc ((work_area).allocated);			  \
-	if ((work_area).table == 0)					  \
-	  FREE_STACK_RETURN (REG_ESPACE);				  \
-      }									  \
+/* Make sure that WORK_AREA can hold more N multibyte characters.
+   This is used only in set_image_of_range and set_image_of_range_1.
+   It expects WORK_AREA to be a pointer.
+   If it can't get the space, it returns from the surrounding function.  */
+
+#define EXTEND_RANGE_TABLE(work_area, n)				\
+  do {									\
+    if (((work_area)->used + (n)) * sizeof (int) > (work_area)->allocated) \
+      {									\
+        extend_range_table_work_area (work_area);			\
+        if ((work_area)->table == 0)					\
+          return (REG_ESPACE);						\
+      }									\
   } while (0)
 
 #define SET_RANGE_TABLE_WORK_AREA_BIT(work_area, bit)		\
@@ -1911,10 +1919,12 @@ struct range_table_work_area
 /* Set a range START..END to WORK_AREA.
    The range is passed through TRANSLATE, so START and END
    should be untranslated.  */
-#define SET_RANGE_TABLE_WORK_AREA(work_area, start, end)	\
-  do {								\
-    EXTEND_RANGE_TABLE_WORK_AREA ((work_area), 2);		\
-    set_image_of_range (&work_area, start, end, translate);	\
+#define SET_RANGE_TABLE_WORK_AREA(work_area, start, end)		\
+  do {									\
+    int tem;								\
+    tem = set_image_of_range (&work_area, start, end, translate);	\
+    if (tem > 0)							\
+      FREE_STACK_RETURN (tem);						\
   } while (0)
 
 /* Free allocated memory for WORK_AREA.	 */
@@ -1928,7 +1938,7 @@ struct range_table_work_area
 #define RANGE_TABLE_WORK_USED(work_area) ((work_area).used)
 #define RANGE_TABLE_WORK_BITS(work_area) ((work_area).bits)
 #define RANGE_TABLE_WORK_ELT(work_area, i) ((work_area).table[i])
-
+
 
 /* Set the bit for character C in a list.  */
 #define SET_LIST_BIT(c) (b[((c)) / BYTEWIDTH] |= 1 << ((c) % BYTEWIDTH))
@@ -1958,7 +1968,7 @@ struct range_table_work_area
 	 FREE_STACK_RETURN (REG_BADBR);					\
        }								\
     } while (0)
-
+
 #if WIDE_CHAR_SUPPORT
 /* The GNU C library provides support for user-defined character classes
    and the functions from ISO C amendement 1.  */
@@ -2071,21 +2081,215 @@ re_wctype_to_bit (cc)
     }
 }
 #endif
+
+/* Filling in the work area of a range.  */
 
+/* Actually extend the space in WORK_AREA.  */
 
+static void
+extend_range_table_work_area (work_area)
+     struct range_table_work_area *work_area;
+{									
+  work_area->allocated += 16 * sizeof (int);
+  if (work_area->table)
+    work_area->table
+      = (int *) realloc (work_area->table, work_area->allocated);
+  else
+    work_area->table
+      = (int *) malloc (work_area->allocated);
+}
+
+#ifdef emacs
+
+/* Carefully find the ranges of codes that are equivalent
+   under case conversion to the range start..end when passed through
+   TRANSLATE.  Handle the case where non-letters can come in between
+   two upper-case letters (which happens in Latin-1).
+   Also handle the case of groups of more than 2 case-equivalent chars.
+
+   The basic method is to look at consecutive characters and see
+   if they can form a run that can be handled as one.
+
+   Returns -1 if successful, REG_ESPACE if ran out of space.  */
+
+static int
+set_image_of_range_1 (work_area, start, end, translate)
+     RE_TRANSLATE_TYPE translate;
+     struct range_table_work_area *work_area;
+     re_wchar_t start, end;
+{
+  /* `one_case' indicates a character, or a run of characters,
+     each of which is an isolate (no case-equivalents).
+     This includes all ASCII non-letters.
+
+     `two_case' indicates a character, or a run of characters,
+     each of which has two case-equivalent forms.
+     This includes all ASCII letters.
+
+     `strange' indicates a character that has more than one
+     case-equivalent.  */
+     
+  enum case_type {one_case, two_case, strange};
+
+  /* Describe the run that is in progress,
+     which the next character can try to extend.
+     If run_type is strange, that means there really is no run.
+     If run_type is one_case, then run_start...run_end is the run.
+     If run_type is two_case, then the run is run_start...run_end,
+     and the case-equivalents end at run_eqv_end.  */
+
+  enum case_type run_type = strange;
+  int run_start, run_end, run_eqv_end;
+
+  Lisp_Object eqv_table;
+
+  if (!RE_TRANSLATE_P (translate))
+    {
+      work_area->table[work_area->used++] = (start);
+      work_area->table[work_area->used++] = (end);
+      return;
+    }
+
+  eqv_table = XCHAR_TABLE (translate)->extras[2];
+
+  for (; start <= end; start++)
+    {
+      enum case_type this_type;
+      int eqv = RE_TRANSLATE (eqv_table, start);
+      int minchar, maxchar;
+
+      /* Classify this character */
+      if (eqv == start)
+	this_type = one_case;
+      else if (RE_TRANSLATE (eqv_table, eqv) == start)
+	this_type = two_case;
+      else
+	this_type = strange;
+
+      if (start < eqv)
+	minchar = start, maxchar = eqv;
+      else
+	minchar = eqv, maxchar = start;
+
+      /* Can this character extend the run in progress?  */
+      if (this_type == strange || this_type != run_type
+	  || !(minchar == run_end + 1
+	       && (run_type == two_case
+		   ? maxchar == run_eqv_end + 1 : 1)))
+	{
+	  /* No, end the run.
+	     Record each of its equivalent ranges.  */
+	  if (run_type == one_case)
+	    {
+	      EXTEND_RANGE_TABLE (work_area, 2);
+	      work_area->table[work_area->used++] = run_start;
+	      work_area->table[work_area->used++] = run_end;
+	    }
+	  else if (run_type == two_case)
+	    {
+	      EXTEND_RANGE_TABLE (work_area, 4);
+	      work_area->table[work_area->used++] = run_start;
+	      work_area->table[work_area->used++] = run_end;
+	      work_area->table[work_area->used++]
+		= RE_TRANSLATE (eqv_table, run_start);
+	      work_area->table[work_area->used++]
+		= RE_TRANSLATE (eqv_table, run_end);
+	    }
+	  run_type = strange;
+	}
+	      
+      if (this_type == strange)
+	{
+	  /* For a strange character, add each of its equivalents, one
+	     by one.  Don't start a range.  */
+	  do
+	    {
+	      EXTEND_RANGE_TABLE (work_area, 2);
+	      work_area->table[work_area->used++] = eqv;
+	      work_area->table[work_area->used++] = eqv;
+	      eqv = RE_TRANSLATE (eqv_table, eqv);
+	    }
+	  while (eqv != start);
+	}
+
+      /* Add this char to the run, or start a new run.  */
+      else if (run_type == strange)
+	{
+	  /* Initialize a new range.  */
+	  run_type = this_type;
+	  run_start = start;
+	  run_end = start;
+	  run_eqv_end = RE_TRANSLATE (eqv_table, run_end);
+	}
+      else
+	{
+	  /* Extend a running range.  */
+	  run_end = minchar;
+	  run_eqv_end = RE_TRANSLATE (eqv_table, run_end);
+	}
+    }
+
+  /* If a run is still in progress at the end, finish it now
+     by recording its equivalent ranges.  */
+  if (run_type == one_case)
+    {
+      EXTEND_RANGE_TABLE (work_area, 2);
+      work_area->table[work_area->used++] = run_start;
+      work_area->table[work_area->used++] = run_end;
+    }
+  else if (run_type == two_case)
+    {
+      EXTEND_RANGE_TABLE (work_area, 4);
+      work_area->table[work_area->used++] = run_start;
+      work_area->table[work_area->used++] = run_end;
+      work_area->table[work_area->used++]
+	= RE_TRANSLATE (eqv_table, run_start);
+      work_area->table[work_area->used++]
+	= RE_TRANSLATE (eqv_table, run_end);
+    }
+
+  return -1;
+}
+
+#endif /* emacs */
 
 /* We need to find the image of the range start..end when passed through
    TRANSLATE.  This is not necessarily TRANSLATE(start)..TRANSLATE(end)
    and is not even necessarily contiguous.
    We approximate it with the smallest contiguous range that contains
-   all the chars we need.  */
-static void
+   all the chars we need.  However, that is not good enough for Latin-1,
+   so we do a better job in that case.
+
+   Returns -1 if successful, REG_ESPACE if ran out of space.  */
+
+static int
 set_image_of_range (work_area, start, end, translate)
      RE_TRANSLATE_TYPE translate;
      struct range_table_work_area *work_area;
      re_wchar_t start, end;
 {
-  re_wchar_t cmin = TRANSLATE (start), cmax = TRANSLATE (end);
+  re_wchar_t cmin, cmax;
+
+#ifdef emacs
+  /* For Latin-1 ranges, use set_image_of_range_1
+     to get proper handling of ranges that include letters and nonletters.
+     For ASCII, this is not necessary.
+     For other character sets, we don't bother to get this right.  */
+  if (start < 04400 && end > 0200)
+    {
+      int tem;
+      tem = set_image_of_range_1 (work_area, start, end, translate);
+      if (tem > 0)
+	return tem;
+
+      start = 04400;
+      if (end < 04400)
+	return -1;
+    }
+#endif
+
+  cmin = TRANSLATE (start), cmax = TRANSLATE (end);
+
   if (RE_TRANSLATE_P (translate))
     for (; start <= end; start++)
       {
@@ -2093,20 +2297,13 @@ set_image_of_range (work_area, start, end, translate)
 	cmin = MIN (cmin, c);
 	cmax = MAX (cmax, c);
       }
+
+  EXTEND_RANGE_TABLE (work_area, 2);
   work_area->table[work_area->used++] = (cmin);
   work_area->table[work_area->used++] = (cmax);
-}
 
-/* Explicit quit checking is only used on NTemacs.  */
-#if defined WINDOWSNT && defined emacs && defined QUIT
-extern int immediate_quit;
-# define IMMEDIATE_QUIT_CHECK			\
-    do {					\
-      if (immediate_quit) QUIT;			\
-    } while (0)
-#else
-# define IMMEDIATE_QUIT_CHECK    ((void)0)
-#endif
+  return -1;
+}
 
 #ifndef MATCH_MAY_ALLOCATE
 
