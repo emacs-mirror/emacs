@@ -1,0 +1,92 @@
+#!/usr/local/bin/perl
+#
+# subroutines to assist in
+#  1. reading test headers
+#  2. reading test output
+#  3. making pass/fail decision
+#
+# [returns 1 to make perl happy]
+1;
+
+# Example header:
+#
+# ... TEST_HEADER
+# summary=try lots of allocation to provoke errors
+# language=c; link=testlib.o
+# OUTPUT_SPEC
+# alloc=OK
+# size1>20
+# END_HEADER ...
+#
+# header information is stored in associative arrays:
+# %test_header
+# %spec_output
+# %spec_rel
+#
+# $test_header{key} = value;
+# $spec_output{key} = value;
+# $spec_rel{key} = relation;
+#
+
+sub readheader {
+ local($infile) = @_;
+ 
+ unless (open(IN, $infile)) {
+  die "File ".$infile." not found.";
+ }
+
+ $_ = "";
+ while (! /TEST_HEADER/) {
+  ($_ = <IN>) || die "Couldn't find start of test header.\n";
+ }
+ s/.*TEST_HEADER//;
+ $line = $_;
+ while (! /END_HEADER/) {
+  ($_ = <IN> || die "Couldn't find end of test header.\n");
+  chop;
+  $line = $line."; ".$_;
+ }
+ $line =~ s/END_HEADER.*//;
+
+ if ($line =~ /OUTPUT_SPEC/) {
+  $line =~ /(.*)OUTPUT_SPEC(.*)/;
+  $header = $1;
+  $outspec = $2;
+ } else {
+  print "No output specification -- assuming result=pass required.\n";
+  $header = $line;
+  $outspec = "result=pass";
+ }
+
+ &readvals($header, "=");
+ %test_header = %keyvalues;
+
+ &readvals($outspec, "=|<|>|<=|>=");
+ %spec_output = %keyvalues;
+ %spec_rel    = %keyrelations;
+
+ close(IN);
+}
+
+sub readvals {
+ local ($_, $relations) = @_;
+
+ %keyvalues = ();
+ %keyrelations = ();
+
+ s/([^\/]);/\1;;/g;
+
+ foreach (split(/\s*;;\s*/)) {
+  s/\\(\\|;)/\1/g;
+
+  if (m/^\W*(\w+)\s*($relations)\s*(.+)\s*/) {
+   $keyvalues{$1} = $3;
+   $keyrelations{$1} = $2;
+  } else {
+   unless (m/^\W*/) {
+    print "Bad header item: ".$_."\n";
+   }
+  }
+ }
+}
+
