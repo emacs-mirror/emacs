@@ -43,7 +43,9 @@
 (garbage-collect)
 (load "map-ynp")
 (garbage-collect)
-(load "loaddefs.el")  ;Don't get confused if someone compiled loaddefs by mistake.
+(load "bindings.el")  ;Don't get confused if someone compiled this by mistake.
+(garbage-collect)
+(load "loaddefs.el")  ;Don't get confused if someone compiled this by mistake.
 (garbage-collect)
 (load "simple")
 (garbage-collect)
