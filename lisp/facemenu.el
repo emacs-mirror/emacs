@@ -360,7 +360,7 @@ typing a character to insert cancels the specification."
 This sets the `invisible' text property; it can be undone with
 `facemenu-remove-special'."
   (interactive "r")
-  (put-text-property start end 'invisible t))
+  (add-text-properties start end '(invisible t)))
 
 ;;;###autoload
 (defun facemenu-set-intangible (start end)
@@ -368,7 +368,7 @@ This sets the `invisible' text property; it can be undone with
 This sets the `intangible' text property; it can be undone with
 `facemenu-remove-special'."
   (interactive "r")
-  (put-text-property start end 'intangible t))
+  (add-text-properties start end '(intangible t)))
 
 ;;;###autoload
 (defun facemenu-set-read-only (start end)
@@ -376,7 +376,7 @@ This sets the `intangible' text property; it can be undone with
 This sets the `read-only' text property; it can be undone with
 `facemenu-remove-special'."
   (interactive "r")
-  (put-text-property start end 'read-only t))
+  (add-text-properties start end '(read-only t)))
 
 ;;;###autoload
 (defun facemenu-remove-props (start end)
