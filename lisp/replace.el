@@ -43,10 +43,10 @@ That becomes the \"string to replace\".")
 	(setq from (car (if regexp-flag regexp-search-ring search-ring)))
       (setq from (read-from-minibuffer (format "%s: " string)
 				       nil nil nil
-				       'query-replace-history)))
+				       'query-replace-history nil t)))
     (setq to (read-from-minibuffer (format "%s %s with: " string from)
 				   nil nil nil
-				   'query-replace-history))
+				   'query-replace-history nil t))
     (list from to current-prefix-arg)))
 
 (defun query-replace (from-string to-string &optional arg)
@@ -110,12 +110,12 @@ before rotating to the next."
 		    (car regexp-search-ring)
 		  (read-from-minibuffer "Map query replace (regexp): "
 					nil nil nil
-					'query-replace-history)))
+					'query-replace-history nil t)))
      (setq to (read-from-minibuffer
 	       (format "Query replace %s with (space-separated strings): "
 		       from)
 	       nil nil nil
-	       'query-replace-history))
+	       'query-replace-history nil t))
      (list from to current-prefix-arg)))
   (let (replacements)
     (if (listp to-strings)
@@ -187,7 +187,7 @@ A match split across lines preserves all the lines it lies in.
 Applies to all lines after point."
   (interactive (list (read-from-minibuffer
 		      "Keep lines (containing match for regexp): "
-		      nil nil nil 'regexp-history)))
+		      nil nil nil 'regexp-history nil t)))
   (save-excursion
     (or (bolp) (forward-line 1))
     (let ((start (point)))
@@ -214,7 +214,7 @@ If a match is split across lines, all the lines it lies in are deleted.
 Applies to lines after point."
   (interactive (list (read-from-minibuffer
 		      "Flush lines (containing match for regexp): "
-		      nil nil nil 'regexp-history)))
+		      nil nil nil 'regexp-history nil t)))
   (save-excursion
     (while (and (not (eobp))
 		(re-search-forward regexp nil t))
@@ -226,9 +226,9 @@ Applies to lines after point."
 (defalias 'count-matches 'how-many)
 (defun how-many (regexp)
   "Print number of matches for REGEXP following point."
-  (interactive (list (read-from-minibuffer
-		      "How many matches for (regexp): "
-		      nil nil nil 'regexp-history)))
+  (interactive (list(read-from-minibuffer
+		     "How many matches for (regexp): "
+		     nil nil nil 'regexp-history nil t)))
   (let ((count 0) opoint)
     (save-excursion
      (while (and (not (eobp))
@@ -389,7 +389,7 @@ the matching is case-sensitive."
 		      (format "List lines matching regexp (default `%s'): "
 			      default)
 		    "List lines matching regexp: ")
-		  nil nil nil 'regexp-history)))
+		  nil nil nil 'regexp-history nil t)))
 	   (if (string-equal input "")
 	       default
 	     (set-text-properties 0 (length input) nil input)
