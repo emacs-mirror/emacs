@@ -2941,34 +2941,27 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 ;; 2. The syntax of FILE and DIR make it impossible that FILE could be a valid
 ;;     subdirectory. This is of course an OS dependent judgement.
 
-;;; Nowadays, the judgement for #2 is always "no".
-;;; With today's ftp servers on Unix and GNU systems,
-;;; it appears to be impossible to tell from the result
-;;; of the directory listing whether the argument is a directory.
-;;; This appears to be true even in Emacs 20.7
-
 (defmacro ange-ftp-allow-child-lookup (dir file)
-  nil)
-;;;   `(not
-;;;     (let* ((efile ,file) ; expand once.
-;;;            (edir ,dir)
-;;;            (parsed (ange-ftp-ftp-name edir))
-;;;            (host-type (ange-ftp-host-type
-;;;                        (car parsed))))
-;;;       (or
-;;;        ;; Deal with dired
-;;;        (and (boundp 'dired-local-variables-file) ; in the dired-x package
-;;;		(stringp dired-local-variables-file)
-;;;		(string-equal dired-local-variables-file efile))
-;;;        ;; No dots in dir names in vms.
-;;;        (and (eq host-type 'vms)
-;;;		(string-match "\\." efile))
-;;;        ;; No subdirs in mts of cms.
-;;;	   (and (memq host-type '(mts cms))
-;;;		(not (string-equal "/" (nth 2 parsed))))
-;;;	   ;; No dots in pseudo-dir names in bs2000.
-;;;	   (and (eq host-type 'bs2000)
-;;;	        (string-match "\\." efile)))))))
+  `(not
+    (let* ((efile ,file)		; expand once.
+           (edir ,dir)
+           (parsed (ange-ftp-ftp-name edir))
+           (host-type (ange-ftp-host-type
+                       (car parsed))))
+      (or
+       ;; Deal with dired
+       (and (boundp 'dired-local-variables-file) ; in the dired-x package
+	    (stringp dired-local-variables-file)
+	    (string-equal dired-local-variables-file efile))
+       ;; No dots in dir names in vms.
+       (and (eq host-type 'vms)
+	    (string-match "\\." efile))
+       ;; No subdirs in mts of cms.
+       (and (memq host-type '(mts cms))
+	    (not (string-equal "/" (nth 2 parsed))))
+       ;; No dots in pseudo-dir names in bs2000.
+       (and (eq host-type 'bs2000)
+	    (string-match "\\." efile))))))
 
 (defun ange-ftp-file-entry-p (name)
   "Given NAME, return whether there is a file entry for it."
