@@ -1262,7 +1262,8 @@ int polling_for_input;
    so as to handle a C-g if it comces in.  */
 
 SIGTYPE
-input_poll_signal ()
+input_poll_signal (signalnum)	/* If we don't have an argument, */
+     int signalnum;		/* some compilers complain in signal calls. */
 {
   if (interrupt_input_blocked == 0
       && !waiting_for_input)
@@ -5806,7 +5807,8 @@ clear_waiting_for_input ()
  If  quit-flag  is already non-nil, it stops the job right away.  */
 
 SIGTYPE
-interrupt_signal ()
+interrupt_signal (signalnum)	/* If we don't have an argument, */
+     int signalnum;		/* some compilers complain in signal calls. */
 {
   char c;
   /* Must preserve main program's value of errno.  */
