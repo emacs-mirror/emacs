@@ -1,4 +1,4 @@
-;;; scrollbar.el -- window system-independent scrollbar support.
+;;; scroll-bar.el -- window system-independent scroll bar support.
 
 ;;; Copyright (C) 1993 Free Software Foundation, Inc.
 
@@ -26,16 +26,16 @@
 
 ;;;; Utilities.
 
-(defun scrollbar-scale (num-denom whole)
+(defun scroll-bar-scale (num-denom whole)
   "Given a pair (NUM . DENOM) and WHOLE, return (/ (* NUM WHOLE) DENOM).
-This is handy for scaling a position on a scrollbar into real units,
-like buffer positions.  If SCROLLBAR-POS is the (PORTION . WHOLE) pair
-from a scrollbar event, then (scrollbar-scale SCROLLBAR-POS
+This is handy for scaling a position on a scroll bar into real units,
+like buffer positions.  If SCROLL-BAR-POS is the (PORTION . WHOLE) pair
+from a scroll bar event, then (scroll-bar-scale SCROLL-BAR-POS
 \(buffer-size)) is the position in the current buffer corresponding to
-that scrollbar position."
+that scroll bar position."
   ;; We multiply before we divide to maintain precision.
   ;; We use floating point because the product of a large buffer size
-  ;; with a large scrollbar portion can easily overflow a lisp int.
+  ;; with a large scroll bar portion can easily overflow a lisp int.
   (truncate (/ (* (float (car num-denom)) whole) (cdr num-denom))))
 
 
@@ -60,20 +60,20 @@ turn off scroll bars; otherwise, turn on scroll bars."
 	  (setq default-frame-alist
 		(cons (cons param-name scroll-bar-mode)
 		      default-frame-alist))))))
-   '(vertical-scrollbars horizontal-scrollbars))
+   '(vertical-scroll-bars horizontal-scroll-bars))
   (let ((frames (frame-list)))
     (while frames
       (modify-frame-parameters
        (car frames)
-       (list (cons 'vertical-scrollbars scroll-bar-mode)
-	     (cons 'horizontal-scrollbars scroll-bar-mode)))
+       (list (cons 'vertical-scroll-bars scroll-bar-mode)
+	     (cons 'horizontal-scroll-bars scroll-bar-mode)))
       (setq frames (cdr frames)))))
 
-;;;; Buffer navigation using the scrollbar.
+;;;; Buffer navigation using the scroll bar.
 
-(defun scrollbar-set-window-start (event)
-  "Set the window start according to where the scrollbar is dragged.
-EVENT should be a scrollbar click or drag event."
+(defun scroll-bar-set-window-start (event)
+  "Set the window start according to where the scroll bar is dragged.
+EVENT should be a scroll bar click or drag event."
   (interactive "e")
   (let* ((end-position (event-end event))
 	 (window (nth 0 end-position))
@@ -81,13 +81,13 @@ EVENT should be a scrollbar click or drag event."
     (save-excursion
       (set-buffer (window-buffer window))
       (save-excursion
-	(goto-char (scrollbar-scale portion-whole (buffer-size)))
+	(goto-char (scroll-bar-scale portion-whole (buffer-size)))
 	(beginning-of-line)
 	(set-window-start window (point))))))
 
-(defun scrollbar-scroll-down (event)
-  "Scroll the window's top line down to the location of the scrollbar click.
-EVENT should be a scrollbar click."
+(defun scroll-bar-scroll-down (event)
+  "Scroll the window's top line down to the location of the scroll bar click.
+EVENT should be a scroll bar click."
   (interactive "e")
   (let ((old-selected-window (selected-window)))
     (unwind-protect
@@ -97,12 +97,12 @@ EVENT should be a scrollbar click."
 		 (portion-whole (nth 2 end-position)))
 	    (select-window window)
 	    (scroll-down
-	     (scrollbar-scale portion-whole (1- (window-height))))))
+	     (scroll-bar-scale portion-whole (1- (window-height))))))
       (select-window old-selected-window))))
 
-(defun scrollbar-scroll-up (event)
-  "Scroll the line next to the scrollbar click to the top of the window.
-EVENT should be a scrollbar click."
+(defun scroll-bar-scroll-up (event)
+  "Scroll the line next to the scroll bar click to the top of the window.
+EVENT should be a scroll bar click."
   (interactive "e")
   (let ((old-selected-window (selected-window)))
     (unwind-protect
@@ -112,23 +112,23 @@ EVENT should be a scrollbar click."
 		 (portion-whole (nth 2 end-position)))
 	    (select-window window)
 	    (scroll-up
-	     (scrollbar-scale portion-whole (1- (window-height))))))
+	     (scroll-bar-scale portion-whole (1- (window-height))))))
       (select-window old-selected-window))))
 
 
 ;;;; Bindings.
 
 ;;; For now, we'll set things up to work like xterm.
-(global-set-key [vertical-scrollbar mouse-1] 'scrollbar-scroll-up)
-(global-set-key [vertical-scrollbar drag-mouse-1] 'scrollbar-scroll-up)
+(global-set-key [vertical-scroll-bar mouse-1] 'scroll-bar-scroll-up)
+(global-set-key [vertical-scroll-bar drag-mouse-1] 'scroll-bar-scroll-up)
 
-(global-set-key [vertical-scrollbar mouse-2] 'scrollbar-set-window-start)
-(global-set-key [vertical-scrollbar drag-mouse-2] 'scrollbar-set-window-start)
+(global-set-key [vertical-scroll-bar mouse-2] 'scroll-bar-set-window-start)
+(global-set-key [vertical-scroll-bar drag-mouse-2] 'scroll-bar-set-window-start)
       
-(global-set-key [vertical-scrollbar mouse-3] 'scrollbar-scroll-down)
-(global-set-key [vertical-scrollbar drag-mouse-3] 'scrollbar-scroll-down)
+(global-set-key [vertical-scroll-bar mouse-3] 'scroll-bar-scroll-down)
+(global-set-key [vertical-scroll-bar drag-mouse-3] 'scroll-bar-scroll-down)
 
 
 (provide 'scroll-bar)
 
-;;; scrollbar.el ends here
+;;; scroll-bar.el ends here
