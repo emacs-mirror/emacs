@@ -1,6 +1,6 @@
 ;;; outline.el --- outline mode commands for Emacs
 
-;; Copyright (C) 1986, 93, 94, 95, 97, 2000, 2001
+;; Copyright (C) 1986, 93, 94, 95, 97, 2000, 01, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -410,7 +410,8 @@ If INVISIBLE-OK is non-nil, an invisible heading line is ok too."
 		    (or (caar outline-heading-alist) "")
 		  (match-string 0)))))
     (unless (or (string-match "[ \t]\\'" head)
-		(not (string-match outline-regexp (concat head " "))))
+		(not (string-match (concat "\\`\\(?:" outline-regexp "\\)")
+				   (concat head " "))))
       (setq head (concat head " ")))
     (unless (bolp) (end-of-line) (newline))
     (insert head)
@@ -486,7 +487,8 @@ in the region."
 		  ;; Bummer!! There is no lower heading in the buffer.
 		  ;; Let's try to invent one by repeating the first char.
 		  (let ((new-head (concat (substring head 0 1) head)))
-		    (if (string-match (concat "\\`" outline-regexp) new-head)
+		    (if (string-match (concat "\\`\\(?:" outline-regexp "\\)")
+				      new-head)
 			;; Why bother checking that it is indeed lower level ?
 			new-head
 		      ;; Didn't work: keep it as is so it's still a heading.
@@ -557,7 +559,7 @@ the match data is set appropriately."
 (defun outline-move-subtree-down (&optional arg)
   "Move the currrent subtree down past ARG headlines of the same level."
   (interactive "p")
-  (let ((re (concat "^" outline-regexp))
+  (let ((re (concat "^\\(?:" outline-regexp "\\)"))
 	(movfunc (if (> arg 0) 'outline-get-next-sibling
 		   'outline-get-last-sibling))
 	(ins-point (make-marker))
