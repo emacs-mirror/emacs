@@ -75,6 +75,7 @@ extern int errno;
 #include "charset.h"
 #include "ccl.h"
 #include "coding.h"
+#include "composite.h"
 #include <epaths.h>
 #include "process.h"
 #include "syssignal.h"
@@ -727,6 +728,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     struct coding_system saved_coding;
 
     saved_coding = process_coding;
+    if (process_coding.composing != COMPOSITION_DISABLED)
+      coding_allocate_composition_data (&process_coding, PT);
 
     while (1)
       {
@@ -764,9 +767,12 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	      insert_1_both (bufptr, nread, nread, 0, 1, 0);
 	    else
 	      {			/* We have to decode the input.  */
-		int size = decoding_buffer_size (&process_coding, nread);
-		char *decoding_buf = (char *) xmalloc (size);
+		int size;
+		char *decoding_buf;
 
+	      repeat_decoding:
+		size = decoding_buffer_size (&process_coding, nread);
+		decoding_buf = (char *) xmalloc (size);
 		decode_coding (&process_coding, bufptr, decoding_buf,
 			       nread, size);
 		if (display_on_the_fly
@@ -784,15 +790,30 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 		    continue;
 		  }
 		if (process_coding.produced > 0)
-		  insert_1_both (decoding_buf, process_coding.produced_char,
-				 process_coding.produced, 0, 1, 0);
+		  {
+		    insert_1_both (decoding_buf, process_coding.produced_char,
+				   process_coding.produced, 0, 1, 0);
+		    if (process_coding.cmp_data)
+		      coding_restore_composition (&process_coding,
+						  Fcurrent_buffer ());
+		  }
 		xfree (decoding_buf);
-		carryover = nread - process_coding.consumed;
+		nread -= process_coding.consumed;
+		carryover = nread;
 		if (carryover > 0)
 		  /* As CARRYOVER should not be that large, we had
 		     better avoid overhead of bcopy.  */
 		  BCOPY_SHORT (bufptr + process_coding.consumed, bufptr,
 			       carryover);
+		if (process_coding.result == CODING_FINISH_INSUFFICIENT_CMP)
+		  {
+		    /* The decoding ended because of insufficient data
+		       area to record information about composition.
+		       We must try decoding with additional data area
+		       before reading process output.  */
+		    coding_allocate_composition_data (&process_coding, PT);
+		    goto repeat_decoding;
+		  }
 	      }
 	  }
 
@@ -818,6 +839,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	QUIT;
       }
   give_up: ;
+
+    if (process_coding.cmp_data)
+      coding_free_composition_data (&process_coding);
 
     Vlast_coding_system_used = process_coding.symbol;
 
