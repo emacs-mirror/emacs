@@ -221,7 +221,12 @@ For most purposes, consider using `format-encode-region' instead."
 	(if modify
 	    ;; To-function wants to modify region.  Copy to safe place.
 	    (let ((copy-buf (get-buffer-create (format " *Format Temp %d*"
-						       format-count))))
+						       format-count)))
+		  (sel-disp selective-display)
+		  (multibyte enable-multibyte-characters))
+	      (with-current-buffer copy-buf
+		(setq selective-display sel-disp)
+		(set-buffer-multibyte multibyte))
 	      (copy-to-buffer copy-buf from to)
 	      (set-buffer copy-buf)
 	      (format-insert-annotations write-region-annotations-so-far from)
