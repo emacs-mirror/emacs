@@ -1615,7 +1615,9 @@ You can then feed the file name(s) to other commands with \\[yank]."
                                    (dired-get-marked-files t)))
                           (dired-get-marked-files 'no-dir))
                         " "))))
-    (kill-new string)
+    (if (eq last-command 'kill-region)
+	(kill-append string nil)
+      (kill-new string))
     (message "%s" string)))
 
 
