@@ -249,11 +249,42 @@ extern Lisp_Object Qscroll_bar_movement;
 /* Symbols to use for non-text mouse positions.  */
 extern Lisp_Object Qmode_line, Qvertical_line;
 
-extern Lisp_Object get_keymap_1 ();
-extern Lisp_Object Fkeymapp ();
-extern Lisp_Object reorder_modifiers ();
-extern Lisp_Object read_char ();
+/* Forward declaration for prototypes.  */
+struct input_event;
+
+extern Lisp_Object get_keymap_1 P_ ((Lisp_Object, int, int));
+EXFUN (Fkeymapp, 1);
+extern Lisp_Object reorder_modifiers P_ ((Lisp_Object));
+extern Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object, int *));
 /* User-supplied string to translate input characters through.  */
 extern Lisp_Object Vkeyboard_translate_table;
 
-extern Lisp_Object map_prompt ();
+extern Lisp_Object map_prompt P_ ((Lisp_Object));
+
+extern void echo_now P_ ((void));
+extern void init_kboard P_ ((KBOARD *));
+extern void delete_kboard P_ ((KBOARD *));
+extern void single_kboard_state P_ ((void));
+extern void push_frame_kboard P_ ((struct frame *));
+extern void pop_frame_kboard P_ ((void));
+extern void record_asynch_buffer_change P_ ((void));
+extern void clear_waiting_for_input P_ ((void));
+extern SIGTYPE input_poll_signal P_ ((int));
+extern void start_polling P_ ((void));
+extern void stop_polling P_ ((void));
+extern void set_poll_suppress_count P_ ((int));
+extern void gobble_input P_ ((int));
+extern int input_polling_used P_ ((void));
+extern void clear_input_pending P_ ((void));
+extern int requeued_events_pending_p P_ ((void));
+extern void bind_polling_period P_ ((int));
+extern void stuff_buffered_input P_ ((Lisp_Object));
+extern void clear_waiting_for_input P_ ((void));
+extern void swallow_events P_ ((int));
+extern int help_char_p P_ ((Lisp_Object));
+extern void quit_throw_to_read_char P_ ((void));
+extern void cmd_error_internal P_ ((Lisp_Object, char *));
+extern void timer_start_idle P_ ((void));
+extern void timer_stop_idle P_ ((void));
+extern int lucid_event_type_list_p P_ ((Lisp_Object));
+extern void kbd_buffer_store_event P_ ((struct input_event *));

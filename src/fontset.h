@@ -170,40 +170,51 @@ struct fontset_data
   int n_fontsets;
 };
 
+/* Forward declaration for prototypes.  */
+struct frame;
+
 /* The following six are window system dependent functions.
    Initialization routine of each window system should set appropriate
    functions to these variables.  For instance, in case of X window,
    x_term_init does this.  */
 
 /* Return a pointer to struct font_info of font FONT_IDX of frame F.  */
-extern struct font_info *(*get_font_info_func) (/* FRAME_PTR f;
-						    int font_idx */);
+extern struct font_info *(*get_font_info_func) P_ ((struct frame *f,
+						    int font_idx));
 
 /* Return a list of font names which matches PATTERN.  See the document of
    `x-list-fonts' for more detail.  */
-extern Lisp_Object (*list_fonts_func) (/* Lisp_Object pattern, face, frame,
-					  width */);
+extern Lisp_Object (*list_fonts_func) P_ ((Lisp_Object pattern,
+					   Lisp_Object face,
+					   Lisp_Object frame,
+					   Lisp_Object width));
 
 /* Load a font named NAME for frame F and return a pointer to the
    information of the loaded font.  If loading is failed, return -1.  */
-extern struct font_info *(*load_font_func) (/* FRAME_PTR f; char *name */);
+extern struct font_info *(*load_font_func) P_ ((struct frame *f,
+						char *name, int));
 
 /* Return a pointer to struct font_info of a font named NAME for frame F.
    If no such font is loaded, return NULL.  */
-extern struct font_info *(*query_font_func) (/* FRAME_PTR f; char *name */);
+extern struct font_info *(*query_font_func) P_ ((struct frame *f, char *name));
 
 /* Additional function for setting fontset or changing fontset
    contents of frame F.  This function may change the coordinate of
    the frame.  */
-extern void (*set_frame_fontset_func) (/* FRAME_PTR f; Lisp_Object arg, oldval */);
+extern void (*set_frame_fontset_func) P_ ((struct frame *f, Lisp_Object arg,
+					   Lisp_Object oldval));
 
 /* Check if any window system is used now.  */
-extern void (*check_window_system_func) ();
+extern void (*check_window_system_func) P_ ((void));
 
-extern struct fontset_data *alloc_fontset_data ();
-extern void free_fontset_data ();
-extern struct font_info *fs_load_font ();
-extern Lisp_Object list_fontsets ();
+extern struct fontset_data *alloc_fontset_data P_ ((void));
+extern void free_fontset_data P_ ((struct fontset_data *));
+extern struct font_info *fs_load_font P_ ((struct frame *, struct font_info *,
+					   int, char *, int));
+extern int fs_query_fontset P_ ((struct frame *, char *));
+extern int fs_register_fontset P_ ((struct frame *, Lisp_Object));
+EXFUN (Fquery_fontset, 1);
+extern Lisp_Object list_fontsets P_ ((struct frame *, Lisp_Object, int));
 extern Lisp_Object Vglobal_fontset_alist;
 
 extern Lisp_Object Qfontset;
