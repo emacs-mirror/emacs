@@ -42,6 +42,7 @@
 (define-key menu-bar-file-menu [write-file]
   '("Save Buffer As..." . write-file))
 (define-key menu-bar-file-menu [save-buffer] '("Save Buffer" . save-buffer))
+(define-key menu-bar-file-menu [dired] '("Open Directory..." . dired))
 (define-key menu-bar-file-menu [open-file] '("Open File..." . find-file))
 (define-key menu-bar-file-menu [new-frame] '("New Frame" . new-frame))
 
