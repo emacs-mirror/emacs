@@ -122,13 +122,13 @@ are used."
     ;; subdirectory of the current buffer's directory, we'll make it
     ;; relative to the current buffer's directory.
     (setq file (expand-file-name file))
-    (let ((source-truename (file-truename file))
-	  (dir-truename (file-name-as-directory
-			 (file-truename default-directory))))
-      (if (and (< (length dir-truename) (length source-truename))
-	       (string= dir-truename
-			(substring source-truename 0 (length dir-truename))))
-	  (setq file (substring file (length dir-truename)))))
+    (let* ((source-truename (file-truename file))
+	   (dir-truename (file-name-as-directory
+			  (file-truename default-directory)))
+	   (len (length dir-truename)))
+      (if (and (< len (length source-truename))
+	       (string= dir-truename (substring source-truename 0 len)))
+	  (setq file (substring source-truename len))))
 
     (message "Generating autoloads for %s..." file)
     (save-excursion
