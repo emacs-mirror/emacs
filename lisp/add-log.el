@@ -418,7 +418,7 @@ Runs `change-log-mode-hook'."
   ;; lines that begin at column 0 (despite the left-margin of 8) that
   ;; we are looking for.  Adding `* ' allows eliding the blank line
   ;; between entries for different files.
-  (set (make-local-variable 'paragraph-start) "\\s *$\\|\f\\|^\\<\\|\\* ")
+  (set (make-local-variable 'paragraph-start) "\\s *$\\|\f\\|^\\<")
   (set (make-local-variable 'paragraph-separate) paragraph-start)
   ;; Match null string on the date-line so that the date-line
   ;; is grouped with what follows.
