@@ -514,7 +514,9 @@ coordinates_in_window (w, x, y)
 	   && *y < top_y + CURRENT_HEADER_LINE_HEIGHT (w))
     /* On the top line.  */
     return 4;
-  else if (*x < left_x || *x >= right_x)
+  /* Need to say "*x > right_x" rather than >=, since on character
+     terminals, the vertical line's x coordinate is right_x.  */
+  else if (*x < left_x || *x > right_x)
     {
       /* Other lines than the mode line don't include flags areas and
 	 scroll bars on the left.  */
@@ -524,9 +526,10 @@ coordinates_in_window (w, x, y)
       *y -= top_y;
       return *x < left_x ? 5 : 6;
     }
+  /* Here, too, "*x > right_x" is because of character terminals.  */
   else if (!w->pseudo_window_p
 	   && !WINDOW_RIGHTMOST_P (w)
-	   && *x >= right_x - CANON_X_UNIT (f))
+	   && *x > right_x - CANON_X_UNIT (f))
     /* On the border on the right side of the window?  Assume that
        this area begins at RIGHT_X minus a canonical char width.  */
     return 3;
