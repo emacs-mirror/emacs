@@ -3651,6 +3651,13 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 					  80, &keysym, &compose_status);
 #endif
 
+#ifdef USE_X_TOOLKIT
+                  if (lw_toolkit_related_event_p (&event))
+                    {
+                      XtDispatchEvent (&event);
+                      break;
+                    }
+#endif
 		  orig_keysym = keysym;
 
 		  if (numchars > 1)
