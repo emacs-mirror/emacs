@@ -3480,6 +3480,12 @@ even if they match PATTERN and FACE.")
 	      UNBLOCK_INPUT;
 
 	      keeper = thisinfo && same_size_fonts (thisinfo, size_ref);
+	      BLOCK_INPUT;
+	      if (thisinfo && ! keeper)
+		XFreeFont (FRAME_X_DISPLAY (f), thisinfo);
+	      else if (thisinfo)
+		XFreeFontInfo (NULL, thisinfo, 1);
+	      UNBLOCK_INPUT;
 #else
 	      keeper = same_size_fonts (&info[i], size_ref);
 #endif
