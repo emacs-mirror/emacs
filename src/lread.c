@@ -61,6 +61,9 @@ Boston, MA 02111-1307, USA.  */
 #include <locale.h>
 #endif /* HAVE_SETLOCALE */
 
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 #ifndef O_RDONLY
 #define O_RDONLY 0
 #endif
