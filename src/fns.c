@@ -709,7 +709,9 @@ concat (nargs, args, target_type, last_special)
 		else
 		  {
 		    XSETFASTINT (elt, XSTRING (this)->data[thisindex++]);
-		    if (some_multibyte && XINT (elt) >= 0200
+		    if (some_multibyte
+			&& (XINT (elt) >= 0240
+			    || ! NILP (Vnonascii_translation_table))
 			&& XINT (elt) < 0400)
 		      {
 			c = unibyte_char_to_multibyte (XINT (elt));
