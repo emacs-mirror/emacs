@@ -1,3 +1,8 @@
+2000-01-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xfaces.c (syms_of_xfaces): defsubr Scolor_gray_p and
+	Scolor_supported_p even if HAVE_X_WINDOWS is not defined.
+
 2000-01-04  Kenichi Handa  <handa@etl.go.jp>
 
 	* fileio.c (Finsert_file_contents): Signal error if visiting file
