@@ -1,3 +1,9 @@
+2002-01-20  Colin Walters  <walters@verbum.org>
+
+	* ibuffer.el: (toplevel) Require `ibuf-ext', which is now compiled
+	with `byte-compile-dynamic'.
+	(ibuffer-default-directory, toplevel): Doc files.
+
 2002-01-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* tempo.el (tempo-define-template): Doc fix.
