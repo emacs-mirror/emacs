@@ -1,3 +1,9 @@
+2000-08-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* progmodes/ebrowse.el (ebrowse-tree-mode-map): Use
+	display-mouse-p instead of window-system.
+	(ebrowse-member-mode-map): Ditto.
+
 2000-08-01  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ebnf2ps.el: Update ps-print functions call.  Indentation fix.  Doc
