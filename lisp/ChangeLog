@@ -1,3 +1,21 @@
+2002-06-14  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/bytecomp.el: Provide `bytecomp-preload', at the
+	beginning of the file.  Require `byte-lexbind' at compile time.
+	Add a few doc string.
+	(byte-compile-push-bytecodes)
+	(byte-compile-push-bytecode-const2): New macros.
+	(byte-compile-lapcode): Use them.  Do general code cleanup.
+	(byte-compile-initial-macro-environment): Expand macros in
+	byte-compile-eval before passing to byte-compile-top-level.
+	(byte-compile): Use the `byte-compile-initial-macro-environment'.
+
+	* emacs-lisp/byte-lexbind.el: Require `bytecomp-preload' instead of
+	`bytecomp'.
+	(byte-compile-bind): Use `byte-compile-dynamic-variable-bind' to bind
+	dynamic variables.
+	(byte-compile-maybe-push-heap-environment): Fix function name typo.
+
 2002-06-13  Miles Bader  <miles@gnu.org>
 
 	Byte compiler lexical binding support (not finished yet):

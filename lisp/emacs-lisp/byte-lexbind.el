@@ -27,7 +27,7 @@
 
 ;;; Code:
 
-(require 'bytecomp)
+(require 'bytecomp-preload "bytecomp")
 
 ;; Downward closures aren't implemented yet, so this should always be nil
 (defconst byte-compile-use-downward-closures nil
@@ -559,7 +559,7 @@ proper scope)."
       ;; added), so we use `byte-compile-push-unknown-constant' to push the
       ;; vector size.
       (setq byte-compile-current-num-closures nclosures)
-      (list (byte-compile-push-heap-environment)))))
+      (list (byte-compile-push-heapenv)))))
 
 (defun byte-compile-bind (var init-lexenv &optional lforminfo)
   "Emit byte-codes to bind VAR.
@@ -576,14 +576,14 @@ Return non-nil if the TOS value was popped."
       (cond ((and (null vinfo) (eq var (caar init-lexenv)))
 	     ;; VAR is dynamic and is on the top of the
 	     ;; stack, so we can just bind it like usual
-	     (byte-compile-variable-ref 'byte-varbind var)
+	     (byte-compile-dynamic-variable-bind var)
 	     t)
 	    ((null vinfo)
 	     ;; VAR is dynamic, but we have to get its
 	     ;; value out of the middle of the stack
 	     (let ((stack-pos (cdr (assq var init-lexenv))))
 	       (byte-compile-out 'byte-stack-ref stack-pos)
-	       (byte-compile-variable-ref 'byte-varbind var)
+	       (byte-compile-dynamic-variable-bind var)
 	       ;; Now we have to store nil into its temporary
 	       ;; stack position to avoid problems with GC
 	       (byte-compile-push-constant nil)
