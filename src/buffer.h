@@ -200,6 +200,24 @@ struct buffer
        buffer */
     Lisp_Object markers;
 
+    /* If the long line scan cache is enabled (i.e. the buffer-local
+       variable cache-long-line-scans is non-nil), newline_cache
+       points to the newline cache, and width_run_cache points to the
+       width run cache.
+
+       The newline cache records which stretches of the buffer are
+       known *not* to contain newlines, so that they can be skipped
+       quickly when we search for newlines.
+
+       The width run cache records which stretches of the buffer are
+       known to contain characters whose widths are all the same.  If
+       the width run cache maps a character to a value > 0, that value is
+       the character's width; if it maps a character to zero, we don't
+       know what its width is.  This allows compute_motion to process
+       such regions very quickly, using algebra instead of inspecting
+       each character.   See also width_table, below.  */
+    struct region_cache *newline_cache;
+    struct region_cache *width_run_cache;
 
     /* Everything from here down must be a Lisp_Object */
 
@@ -304,6 +322,18 @@ struct buffer
 
     /* Position where the overlay lists are centered.  */
     Lisp_Object overlay_center;
+
+    /* True if the newline position cache and width run cache are
+       enabled.  See search.c and indent.c.  */
+    Lisp_Object cache_long_line_scans;
+
+    /* If the width run cache is enabled, this table contains the
+       character widths width_run_cache (see above) assumes.  When we
+       do a thorough redisplay, we compare this against the buffer's
+       current display table to see whether the display table has
+       affected the widths of any characters.  If it has, we
+       invalidate the width run cache, and re-initialize width_table. */
+    Lisp_Object width_table;
 };
 
 /* This points to the current buffer.  */
