@@ -17,16 +17,24 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#include <stdio.h>
+
 #include "config.h"
 #include "lisp.h"
 #include "screen.h"
 #include "window.h"
+#include "termhooks.h"
 
 Lisp_Object Vemacs_iconified;
 Lisp_Object Qscreenp;
 Lisp_Object Vscreen_list;
 Lisp_Object Vterminal_screen;
 Lisp_Object Vglobal_minibuffer_screen;
+
+/* A screen which is not just a minibuffer, or 0 if there are no
+   such screens.  This is usually the most recent such screen that
+   was selected.  */
+struct screen *last_nonminibuf_screen;
 
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object get_minibuffer ();
@@ -60,7 +68,9 @@ make_screen (mini_p)
   register Lisp_Object root_window;
   register Lisp_Object mini_window;
 
-  screen = Fmake_vector (sizeof (struct screen) - sizeof (Lisp_Vector) + 1,
+  screen = Fmake_vector (((sizeof (struct screen) - (sizeof (Lisp_Vector)
+						     - sizeof (Lisp_Object)))
+			  / sizeof (Lisp_Object)),
 			 make_number (0));
   XSETTYPE (screen, Lisp_Screen);
   s = XSCREEN (screen);
@@ -78,6 +88,7 @@ make_screen (mini_p)
   s->no_split = 0;
   s->garbaged = 0;
   s->has_minibuffer = mini_p;
+  s->focus_screen = screen;
 
   s->param_alist = Qnil;
 
@@ -128,8 +139,11 @@ make_screen (mini_p)
 			   : Fcar (Vminibuffer_list)));
     }
 
-  s->selected_window = root_window;
   s->root_window = root_window;
+  s->selected_window = root_window;
+  /* Make sure this window seems more recently used than
+     a newly-created, never-selected window.  */
+  XFASTINT (XWINDOW (s->selected_window)->use_time) = ++window_select_count;
 
   Vscreen_list = Fcons (screen, Vscreen_list);
 
@@ -149,7 +163,8 @@ make_screen_without_minibuffer (mini_window)
   /* Choose the minibuffer window to use.  */
   if (NULL (mini_window))
     {
-      CHECK_SCREEN (Vglobal_minibuffer_screen, 0);
+      if (XTYPE (Vglobal_minibuffer_screen) != Lisp_Screen)
+	error ("global-minibuffer-screen must be set to create minibufferless screens.");
       mini_window = XSCREEN (Vglobal_minibuffer_screen)->minibuffer_window;
     }
   else
@@ -226,7 +241,7 @@ make_terminal_screen ()
 
 DEFUN ("select-screen", Fselect_screen, Sselect_screen, 1, 2, 0,
   "Select the screen S.  S's selected window becomes \"the\"\n\
-selected window.  If the optional parameter NO-ENTER is non-nil, don't
+selected window.  If the optional parameter NO-ENTER is non-nil, don't\n\
 focus on that screen.")
   (screen, no_enter)
      Lisp_Object screen, no_enter;
@@ -237,6 +252,10 @@ focus on that screen.")
     return screen;
 
   selected_screen = XSCREEN (screen);
+  if (!EQ (SCREEN_ROOT_WINDOW (selected_screen),
+	   SCREEN_MINIBUF_WINDOW (selected_screen)))
+    last_nonminibuf_screen = selected_screen;
+
   Fselect_window (XSCREEN (screen)->selected_window);
 
 #ifdef HAVE_X_WINDOWS
@@ -317,16 +336,23 @@ next_screen (screen, mini_screen)
     for (tail = Vscreen_list; CONSP (tail); tail = XCONS (tail)->cdr)
       {
 	if (passed)
-	  if (!mini_screen)
-	    {
-	      SCREEN_PTR s = XSCREEN (XCONS (tail)->car);
+	  {
+	    SCREEN_PTR s = XSCREEN (XCONS (tail)->car);
 
-	      if (EQ (XCONS (tail)->car, Vglobal_minibuffer_screen)
-		  && EQ (s->root_window, s->minibuffer_window))
-		continue;
-	    }
-	  else
-	    return XCONS (tail)->car;
+	    if (!mini_screen
+		
+		/* Is this screen only a minibuffer?  */
+		&& EQ (SCREEN_ROOT_WINDOW (s),
+		       SCREEN_MINIBUF_WINDOW (s))
+
+		/* If we have wrapped all the way around the list (i.e.
+		   the only screen is an all-minibuffer screen), return
+		   it anyway.  */
+		&& s != XSCREEN (screen))
+	      continue;
+	    else
+	      return XCONS (tail)->car;
+	  }
 
 	if (EQ (screen, XCONS (tail)->car))
 	  passed++;
@@ -395,20 +421,27 @@ Default is current screen.")
       s = XSCREEN (screen);
     }
 
-  /* Don't allow deleted screen to remain selected.  */
-  if (s == selected_screen)
-    {
-      Lisp_Object next;
+  /* Are there any other screens besides this one?  */
+  if (s == selected_screen && EQ (next_screen (screen, 1), screen))
+    error ("Attempt to delete the only screen");
 
-      next = next_screen (screen, 0);
-      if (EQ (next, screen))
-	error ("Attempt to delete the only screen");
-      Fselect_screen (next, Qnil);
+  /* Does this screen have a minibuffer, and is it the surrogate
+     minibuffer for any other screen?  */
+  if (EQ (screen,
+	  WINDOW_SCREEN (XWINDOW (SCREEN_MINIBUF_WINDOW (XSCREEN (screen))))))
+    {
+      Lisp_Object screen2;
+
+      for (screen2 = Vscreen_list; CONSP (2); screen2 = XCONS (screen2)->cdr)
+	if (! EQ (screen2, screen)
+	    && EQ (screen,
+		   WINDOW_SCREEN (XWINDOW (SCREEN_MINIBUF_WINDOW (XSCREEN (screen2))))))
+	  error ("Attempt to delete a surrogate minibuffer screen");
     }
 
-  /* Don't allow the global minibuffer screen to be deleted */
-  if (s == XSCREEN (Vglobal_minibuffer_screen))
-    error ("Attempt to delete the global minibuffer screen");
+  /* Don't let the screen remain selected.  */
+  if (s == selected_screen)
+    Fselect_screen (next_screen (screen, 1));
 
   /* Don't allow minibuf_window to remain on a deleted screen.  */
   if (EQ (s->minibuffer_window, minibuf_window))
@@ -423,8 +456,27 @@ Default is current screen.")
   displ = s->display;
   s->display.nothing = 0;
 
+#ifdef HAVE_X_WINDOWS
   if (s->output_method == output_x_window)
     x_destroy_window (s, displ);
+#endif
+
+  /* If we've deleted the last_nonminibuf_screen, then try to find
+     another one.  */
+  if (s == last_nonminibuf_screen)
+    {
+      last_nonminibuf_screen = 0;
+
+      for (screen = Vscreen_list; CONSP (screen); screen = XCONS (screen)->cdr)
+	{
+	  s = XSCREEN (XCONS (screen)->cdr);
+	  if (!EQ (SCREEN_ROOT_WINDOW (s), SCREEN_MINIBUF_WINDOW (s)))
+	    {
+	      last_nonminibuf_screen = s;
+	      break;
+	    }
+	}
+    }
 
   return Qnil;
 }
@@ -640,6 +692,52 @@ DEFUN ("visible-screen-list", Fvisible_screen_list, Svisible_screen_list,
     }
   return value;
 }
+
+
+
+DEFUN ("redirect-screen-focus", Fredirect_screen_focus, Sredirect_screen_focus,
+       1, 2, 0,
+  "Arrange for keystrokes typed at SCREEN to be sent to FOCUS-SCREEN.\n\
+This means that, after reading a keystroke typed at SCREEN,\n\
+last-event-screen will be FOCUS-SCREEN.\n\
+\n\
+If FOCUS-SCREEN is omitted or eq to SCREEN, any existing redirection is\n\
+cancelled, and the screen again receives its own keystrokes.\n\
+\n\
+The redirection lasts until the next call to redirect-screen-focus\n\
+or select-screen.\n\
+\n\
+This is useful for temporarily redirecting keystrokes to the minibuffer\n\
+window when a screen doesn't have its own minibuffer.")
+  (screen, focus_screen)
+    Lisp_Object screen, focus_screen;
+{
+  CHECK_SCREEN (screen, 0);
+  if (NULL (focus_screen))
+    focus_screen = screen;
+  else
+    CHECK_SCREEN (focus_screen, 1);
+
+  XSCREEN (screen)->focus_screen = focus_screen;
+
+  if (screen_rehighlight_hook)
+    (*screen_rehighlight_hook) ();
+  
+  return Qnil;
+}
+
+
+DEFUN ("screen-focus", Fscreen_focus, Sscreen_focus, 1, 1, 0,
+  "Return the screen to which SCREEN's keystrokes are currently being sent.\n\
+See redirect-screen-focus.")
+  (screen)
+    Lisp_Object screen;
+{
+  CHECK_SCREEN (screen, 0);
+  return SCREEN_FOCUS_SCREEN (XSCREEN (screen));
+}
+
+
 
 Lisp_Object
 get_screen_param (screen, prop)
@@ -1044,6 +1142,8 @@ and store it in this variable.");
   defsubr (&Sdeiconify_screen);
   defsubr (&Sscreen_visible_p);
   defsubr (&Svisible_screen_list);
+  defsubr (&Sredirect_screen_focus);
+  defsubr (&Sscreen_focus);
   defsubr (&Sscreen_parameters);
   defsubr (&Smodify_screen_parameters);
   defsubr (&Sscreen_pixel_size);

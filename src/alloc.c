@@ -781,7 +781,7 @@ make_sequence (nargs, args)
    depends on endianness.  */
 
 DEFUN ("make-rope", Fmake_rope, Smake_rope, 0, MANY, 0,
-  "Return a newly created rope containing the arguments of this function.
+  "Return a newly created rope containing the arguments of this function.\n\
 A rope is a string, except that its contents will be treated as an\n\
 array of glyphs, where a glyph is an integer type that may be larger\n\
 than a character.  Emacs is normally configured to use 8-bit glyphs,\n\
