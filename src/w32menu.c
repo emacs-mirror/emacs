@@ -1341,7 +1341,7 @@ set_frame_menubar (f, first_time, deep_p)
       set_buffer_internal_1 (XBUFFER (buffer));
 
       /* Run the Lucid hook.  */
-      call1 (Vrun_hooks, Qactivate_menubar_hook);
+      safe_run_hooks (Qactivate_menubar_hook);
       /* If it has changed current-menubar from previous value,
 	 really recompute the menubar from the value.  */
       if (! NILP (Vlucid_menu_bar_dirty_flag))
