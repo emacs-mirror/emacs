@@ -30,11 +30,13 @@ Boston, MA 02111-1307, USA.  */
 
 #define SIGEMPTYMASK (empty_mask)
 #define SIGFULLMASK (full_mask)
-extern sigset_t empty_mask, full_mask, temp_mask;
+extern sigset_t empty_mask, full_mask;
 
 /* POSIX pretty much destroys any possibility of writing sigmask as a
-   macro in standard C.  */
-#ifndef sigmask
+   macro in standard C.  We always define our own version because the
+   predefined macro in Glibc 2.1 is only provided for compatility for old
+   programs that use int as signal mask type.  */
+#undef sigmask
 #ifdef __GNUC__
 #define sigmask(SIG) 				\
   ({						\
@@ -49,15 +51,8 @@ extern sigset_t sys_sigmask ();
 #endif /* ! defined (__GNUC__) */
 #endif
 
-#ifndef sigpause
-#define sigpause(SIG)    sys_sigpause (SIG)
-#else
-/* If sigpause is predefined, with POSIX_SIGNALS,
-   let's assume it needs this kind of argument.
-   This is true for Glibc 2.1.  */
-#undef SIGEMPTYMASK
-#define SIGEMPTYMASK sigmask (0)
-#endif
+#undef sigpause
+#define sigpause(MASK)    sigsuspend (&(MASK))
 
 #define sigblock(SIG)    sys_sigblock (SIG)
 #define sigunblock(SIG)  sys_sigunblock (SIG)
@@ -74,7 +69,6 @@ extern sigset_t sys_sigmask ();
 typedef RETSIGTYPE (*signal_handler_t) (/*int*/);
 
 signal_handler_t sys_signal (/*int signal_number, signal_handler_t action*/);
-int      sys_sigpause   (/*sigset_t new_mask*/);
 sigset_t sys_sigblock   (/*sigset_t new_mask*/);
 sigset_t sys_sigunblock (/*sigset_t new_mask*/);
 sigset_t sys_sigsetmask (/*sigset_t new_mask*/);
