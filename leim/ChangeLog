@@ -1,3 +1,8 @@
+1999-12-13  Kenichi Handa  <handa@etl.go.jp>
+
+	* quail/latin-pre.el ("esperanto-prefix"): Make it produce Latin-3
+	characters, not Latin-1.
+
 1999-11-22  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.nt: No need to generate subdirs.el.
