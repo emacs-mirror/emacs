@@ -1012,8 +1012,9 @@ pos_visible_p (w, charpos, fully, exact_mode_line_heights_p)
   start_display (&it, w, top);
   move_it_to (&it, charpos, 0, it.last_visible_y, -1,
 	      MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
-  
-  if (IT_CHARPOS (it) == charpos)
+
+  /* Note that we may overshoot because of invisible text.  */
+  if (IT_CHARPOS (it) >= charpos)
     {
       int line_height, line_bottom_y;
       int line_top_y = it.current_y;
