@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.90
+;; Version: 1.97
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -65,6 +65,16 @@ and `end-open' if it should sticky to the front."
       "Make text between FROM and TO intangible."
       (put-text-property from to 'intangible 'front)))
 	  
+  (if (string-match "XEmacs" emacs-version)
+      (defun widget-event-point (event)
+	"Character position of the end of event if that exists, or nil."
+	(if (mouse-event-p event)
+	    (event-point event)
+	  nil))
+    (defun widget-event-point (event)
+      "Character position of the end of event if that exists, or nil."
+      (posn-point (event-end event))))
+
 ;; The following should go away when bundled with Emacs.
   (condition-case ()
       (require 'custom)
@@ -82,14 +92,14 @@ and `end-open' if it should sticky to the front."
       (copy-face 'bold 'widget-button-face)
       (copy-face 'italic 'widget-field-face)))
 
-  (unless (fboundp 'event-point)
-    ;; XEmacs function missing in Emacs.
-    (defun event-point (event)
-      "Return the character position of the given mouse-motion, button-press,
-or button-release event.  If the event did not occur over a window, or did
-not occur over text, then this returns nil.  Otherwise, it returns an index
-into the buffer visible in the event's window."
-      (posn-point (event-start event))))
+  (unless (fboundp 'button-release-event-p)
+    ;; XEmacs function missing from Emacs.
+    (defun button-release-event-p (event)
+      "Non-nil if EVENT is a mouse-button-release event object."
+      (and (eventp event)
+	   (memq (event-basic-type event) '(mouse-1 mouse-2 mouse-3))
+	   (or (memq 'click (event-modifiers event))
+	       (memq  'drag (event-modifiers event))))))
 
   (unless (fboundp 'error-message-string)
     ;; Emacs function missing in XEmacs.
@@ -142,12 +152,6 @@ into the buffer visible in the event's window."
   "Face used for editable fields."
   :group 'widgets)
 
-(defcustom widget-menu-max-size 40
-  "Largest number of items allowed in a popup-menu.
-Larger menus are read through the minibuffer."
-  :group 'widgets
-  :type 'integer)
-
 ;;; Utility functions.
 ;;
 ;; These are not really widget specific.
@@ -178,6 +182,12 @@ Larger menus are read through the minibuffer."
   "Clear all undo information."
   (buffer-disable-undo (current-buffer))
   (buffer-enable-undo))
+
+(defcustom widget-menu-max-size 40
+  "Largest number of items allowed in a popup-menu.
+Larger menus are read through the minibuffer."
+  :group 'widgets
+  :type 'integer)
 
 (defun widget-choose (title items &optional event)
   "Choose an item from a list.
@@ -224,36 +234,6 @@ minibuffer."
 		   (setq val try))
 		 (cdr (assoc val items)))
 	     nil)))))
-
-(defun widget-get-sibling (widget)
-  "Get the item WIDGET is assumed to toggle.
-This is only meaningful for radio buttons or checkboxes in a list."
-  (let* ((parent (widget-get widget :parent))
-	 (children (widget-get parent :children))
-	 child)
-    (catch 'child
-      (while children
-	(setq child (car children)
-	      children (cdr children))
-	(when (eq (widget-get child :button) widget)
-	  (throw 'child child)))
-      nil)))
-
-;;; Helper functions.
-;;
-;; These are widget specific.
-
-;;;###autoload
-(defun widget-prompt-value (widget prompt &optional value unbound)
-  "Prompt for a value matching WIDGET, using PROMPT.
-The current value is assumed to be VALUE, unless UNBOUND is non-nil."
-  (unless (listp widget)
-    (setq widget (list widget)))
-  (setq widget (widget-convert widget))
-  (let ((answer (widget-apply widget :prompt-value prompt value unbound)))
-    (unless (widget-apply widget :match answer)
-      (error "Value does not match %S type." (car widget)))
-    answer))
 
 ;;; Widget text specifications.
 ;; 
@@ -526,6 +506,37 @@ ARGS are passed as extra arguments to the function."
       (widget-apply widget :action event)
     (error "Attempt to perform action on inactive widget")))
 
+;;; Helper functions.
+;;
+;; These are widget specific.
+
+;;;###autoload
+(defun widget-prompt-value (widget prompt &optional value unbound)
+  "Prompt for a value matching WIDGET, using PROMPT.
+The current value is assumed to be VALUE, unless UNBOUND is non-nil."
+  (unless (listp widget)
+    (setq widget (list widget)))
+  (setq prompt (format "[%s] %s" (widget-type widget) prompt))
+  (setq widget (widget-convert widget))
+  (let ((answer (widget-apply widget :prompt-value prompt value unbound)))
+    (unless (widget-apply widget :match answer)
+      (error "Value does not match %S type." (car widget)))
+    answer))
+
+(defun widget-get-sibling (widget)
+  "Get the item WIDGET is assumed to toggle.
+This is only meaningful for radio buttons or checkboxes in a list."
+  (let* ((parent (widget-get widget :parent))
+	 (children (widget-get parent :children))
+	 child)
+    (catch 'child
+      (while children
+	(setq child (car children)
+	      children (cdr children))
+	(when (eq (widget-get child :button) widget)
+	  (throw 'child child)))
+      nil)))
+
 ;;; Glyphs.
 
 (defcustom widget-glyph-directory (concat data-directory "custom/")
@@ -572,14 +583,23 @@ cause the last created widget to be activated."
 	     ;; File not readable, give up.
 	     (insert tag))))))
 
-(defun widget-glyph-insert-glyph (widget tag glyph)
+(defun widget-glyph-insert-glyph (widget tag glyph &optional down inactive)
   "In WIDGET, with alternative text TAG, insert GLYPH."
   (set-glyph-image glyph (cons 'tty tag))
   (set-glyph-property glyph 'widget widget)
+  (when down
+    (set-glyph-image down (cons 'tty tag))
+    (set-glyph-property down 'widget widget))
+  (when inactive
+    (set-glyph-image inactive (cons 'tty tag))
+    (set-glyph-property inactive 'widget widget))
   (insert "*")
   (add-text-properties (1- (point)) (point) 
 		       (list 'invisible t
 			     'end-glyph glyph))
+  (widget-put widget :glyph-up glyph)
+  (when down (widget-put widget :glyph-down down))
+  (when inactive (widget-put widget :glyph-inactive inactive))
   (let ((help-echo (widget-get widget :help-echo)))
     (when help-echo
       (let ((extent (extent-at (1- (point)) nil 'end-glyph))
@@ -706,11 +726,11 @@ Recommended as a parent keymap for modes using widgets.")
   (define-key widget-keymap "\M-\t" 'widget-backward)
   (define-key widget-keymap [(shift tab)] 'widget-backward)
   (define-key widget-keymap [backtab] 'widget-backward)
-  (if (string-match "XEmacs" (emacs-version))
+  (if (string-match "XEmacs" emacs-version)
       (progn 
-	(define-key widget-keymap [button2] 'widget-button-click)
-	(define-key widget-keymap [button1] 'widget-button1-click))
-    (define-key widget-keymap [mouse-2] 'ignore)
+	;;Glyph support.
+	(define-key widget-keymap [button1] 'widget-button1-click) 
+	(define-key widget-keymap [button2] 'widget-button-click))
     (define-key widget-keymap [down-mouse-2] 'widget-button-click))
   (define-key widget-keymap "\C-m" 'widget-button-press))
 
@@ -750,19 +770,56 @@ Recommended as a parent keymap for modes using widgets.")
       (call-interactively
        (lookup-key widget-global-map (this-command-keys))))))
 
+(defface widget-button-pressed-face 
+  '((((class color))
+     (:foreground "red"))
+    (t
+     (:bold t :underline t)))
+  "Face used for pressed buttons."
+  :group 'widgets)
+
 (defun widget-button-click (event)
   "Activate button below mouse pointer."
   (interactive "@e")
   (cond ((and (fboundp 'event-glyph)
 	      (event-glyph event))
-	 (let ((widget (glyph-property (event-glyph event) 'widget)))
-	   (if widget
-	       (widget-apply-action widget event)
-	     (message "You clicked on a glyph."))))
-	((event-point event)
-	 (let ((button (get-text-property (event-point event) 'button)))
+	 (widget-glyph-click event))
+	((widget-event-point event)
+	 (let* ((pos (widget-event-point event))
+		(button (get-text-property pos 'button)))
 	   (if button
-	       (widget-apply-action button event)
+	       (let ((begin (previous-single-property-change (1+ pos) 'button))
+		     (end (next-single-property-change pos 'button))
+		     overlay)
+		 (unwind-protect
+		     (let ((track-mouse t))
+		       (setq overlay (make-overlay begin end))
+		       (overlay-put overlay 'face 'widget-button-pressed-face)
+		       (overlay-put overlay 
+				    'mouse-face 'widget-button-pressed-face)
+		       (unless (widget-apply button :mouse-down-action event)
+			 (while (not (button-release-event-p event))
+			   (setq event (if (fboundp 'read-event)
+					   (read-event)
+					 (next-event))
+				 pos (widget-event-point event))
+			   (if (and pos
+				    (eq (get-text-property pos 'button)
+					button))
+			       (progn 
+				 (overlay-put overlay 
+					      'face
+					      'widget-button-pressed-face)
+				 (overlay-put overlay 
+					      'mouse-face 
+					      'widget-button-pressed-face))
+			     (overlay-put overlay 'face nil)
+			     (overlay-put overlay 'mouse-face nil))))
+		       
+		       (when (and pos 
+				  (eq (get-text-property pos 'button) button))
+			 (widget-apply-action button event)))
+		   (delete-overlay overlay)))
 	     (call-interactively 
 	      (or (lookup-key widget-global-map [ button2 ])
 		  (lookup-key widget-global-map [ down-mouse-2 ])
@@ -775,11 +832,35 @@ Recommended as a parent keymap for modes using widgets.")
   (interactive "@e")
   (if (and (fboundp 'event-glyph)
 	   (event-glyph event))
-      (let ((widget (glyph-property (event-glyph event) 'widget)))
-	(if widget
-	    (widget-apply-action widget event)
-	  (message "You clicked on a glyph.")))
+      (widget-glyph-click event)
     (call-interactively (lookup-key widget-global-map (this-command-keys)))))
+
+(defun widget-glyph-click (event)
+  "Handle click on a glyph."
+  (let* ((glyph (event-glyph event))
+	 (widget (glyph-property glyph 'widget))
+	 (extent (event-glyph-extent event))
+	 (down-glyph (or (and widget (widget-get widget :glyph-down)) glyph))
+	 (up-glyph (or (and widget (widget-get widget :glyph-up)) glyph))
+	 (last event))
+    ;; Wait for the release.
+    (while (not (button-release-event-p last))
+      (if (eq extent (event-glyph-extent last))
+	  (set-extent-property extent 'end-glyph down-glyph)
+	(set-extent-property extent 'end-glyph up-glyph))
+      (setq last (next-event event)))
+    ;; Release glyph.
+    (when down-glyph
+      (set-extent-property extent 'end-glyph up-glyph))
+    ;; Apply widget action.
+    (when (eq extent (event-glyph-extent last))
+      (let ((widget (glyph-property (event-glyph event) 'widget)))
+	(cond ((null widget)
+	       (message "You clicked on a glyph."))
+	      ((not (widget-apply widget :active))
+	       (message "This glyph is inactive."))
+	      (t
+	       (widget-apply-action widget event)))))))
 
 (defun widget-button-press (pos &optional event)
   "Activate button at POS."
@@ -1007,6 +1088,11 @@ With optional ARG, move across that many fields."
 ;;
 ;; These functions are used in the definition of multiple widgets. 
 
+(defun widget-parent-action (widget &optional event)
+  "Tell :parent of WIDGET to handle the :action.
+Optional EVENT is the event that triggered the action."
+  (widget-apply (widget-get widget :parent) :action event))
+
 (defun widget-children-value-delete (widget)
   "Delete all :children and :buttons in WIDGET."
   (mapcar 'widget-delete (widget-get widget :children))
@@ -1014,10 +1100,35 @@ With optional ARG, move across that many fields."
   (mapcar 'widget-delete (widget-get widget :buttons))
   (widget-put widget :buttons nil))
 
+(defun widget-children-validate (widget)
+  "All the :children must be valid."
+  (let ((children (widget-get widget :children))
+	child found)
+    (while (and children (not found))
+      (setq child (car children)
+	    children (cdr children)
+	    found (widget-apply child :validate)))
+    found))
+
 (defun widget-types-convert-widget (widget)
   "Convert :args as widget types in WIDGET."
   (widget-put widget :args (mapcar 'widget-convert (widget-get widget :args)))
   widget)
+
+(defun widget-value-convert-widget (widget)
+  "Initialize :value from :args in WIDGET."
+  (let ((args (widget-get widget :args)))
+    (when args 
+      (widget-put widget :value (car args))
+      ;; Don't convert :value here, as this is done in `widget-convert'.
+      ;; (widget-put widget :value (widget-apply widget
+      ;;  				      :value-to-internal (car args)))
+      (widget-put widget :args nil)))
+  widget)
+
+(defun widget-value-value-get (widget)
+  "Return the :value property of WIDGET."
+  (widget-get widget :value))
 
 ;;; The `default' Widget.
 
@@ -1039,6 +1150,7 @@ With optional ARG, move across that many fields."
   :active 'widget-default-active
   :activate 'widget-specify-active
   :deactivate 'widget-default-deactivate
+  :mouse-down-action (lambda (widget event) nil)
   :action 'widget-default-action
   :notify 'widget-default-notify
   :prompt-value 'widget-default-prompt-value)
@@ -1233,23 +1345,14 @@ With optional ARG, move across that many fields."
 
 (define-widget 'item 'default
   "Constant items for inclusion in other widgets."
-  :convert-widget 'widget-item-convert-widget
+  :convert-widget 'widget-value-convert-widget
   :value-create 'widget-item-value-create
   :value-delete 'ignore
-  :value-get 'widget-item-value-get
+  :value-get 'widget-value-value-get
   :match 'widget-item-match
   :match-inline 'widget-item-match-inline
   :action 'widget-item-action
   :format "%t\n")
-
-(defun widget-item-convert-widget (widget)
-  ;; Initialize :value from :args in WIDGET.
-  (let ((args (widget-get widget :args)))
-    (when args 
-      (widget-put widget :value (widget-apply widget
-					      :value-to-internal (car args)))
-      (widget-put widget :args nil)))
-  widget)
 
 (defun widget-item-value-create (widget)
   ;; Insert the printed representation of the value.
@@ -1272,10 +1375,6 @@ With optional ARG, move across that many fields."
 (defun widget-item-action (widget &optional event)
   ;; Just notify itself.
   (widget-apply widget :notify widget event))
-
-(defun widget-item-value-get (widget)
-  ;; Items are simple.
-  (widget-get widget :value))
 
 ;;; The `push-button' Widget.
 
@@ -1310,7 +1409,9 @@ With optional ARG, move across that many fields."
 	    (setq gui (make-gui-button tag 'widget-gui-action widget))
 	    (push (cons tag gui) widget-push-button-cache))
 	  (widget-glyph-insert-glyph widget text
-				     (make-glyph (car (aref gui 1)))))
+				     (make-glyph (nth 0 (aref gui 1)))
+				     (make-glyph (nth 1 (aref gui 1)))
+				     (make-glyph (nth 2 (aref gui 1)))))
       (insert text))))
 
 (defun widget-gui-action (widget)
@@ -1332,17 +1433,7 @@ With optional ARG, move across that many fields."
 
 (defun widget-info-link-action (widget &optional event)
   "Open the info node specified by WIDGET."
-  (Info-goto-node (widget-value widget))
-  ;; Steal button release event.
-  (if (and (fboundp 'button-press-event-p)
-	   (fboundp 'next-command-event))
-      ;; XEmacs
-      (and event
-	   (button-press-event-p event)
-	   (next-command-event))
-    ;; Emacs
-    (when (memq 'down (event-modifiers event))
-      (read-event))))
+  (Info-goto-node (widget-value widget)))
 
 ;;; The `url-link' Widget.
 
@@ -1359,10 +1450,13 @@ With optional ARG, move across that many fields."
 
 (define-widget 'editable-field 'default
   "An editable text field."
-  :convert-widget 'widget-item-convert-widget
+  :convert-widget 'widget-value-convert-widget
   :keymap widget-field-keymap
   :format "%v"
   :value ""
+  :prompt-internal 'widget-field-prompt-internal
+  :prompt-history 'widget-field-history
+  :prompt-value 'widget-field-prompt-value
   :action 'widget-field-action
   :validate 'widget-field-validate
   :valid-regexp ""
@@ -1372,24 +1466,34 @@ With optional ARG, move across that many fields."
   :value-get 'widget-field-value-get
   :match 'widget-field-match)
 
-;; History of field minibuffer edits.
-(defvar widget-field-history nil)
+(defvar widget-field-history nil
+  "History of field minibuffer edits.")
+
+(defun widget-field-prompt-internal (widget prompt initial history)
+  ;; Read string for WIDGET promptinhg with PROMPT.
+  ;; INITIAL is the initial input and HISTORY is a symbol containing
+  ;; the earlier input.
+  (read-string prompt initial history))
+
+(defun widget-field-prompt-value (widget prompt value unbound)
+  ;; Prompt for a string.
+  (let ((initial (if unbound
+		     nil
+		   (cons (widget-apply widget :value-to-internal
+				       value) 0)))
+	(history (widget-get widget :prompt-history)))
+    (let ((answer (widget-apply widget
+				:prompt-internal prompt initial history)))
+      (widget-apply widget :value-to-external answer))))
 
 (defun widget-field-action (widget &optional event)
   ;; Edit the value in the minibuffer.
-  (let ((tag (widget-apply widget :menu-tag-get))
-	(invalid (widget-apply widget :validate)))
-    (when invalid
-      (error (widget-get invalid :error)))
-    (widget-value-set widget 
-		      (widget-apply widget 
-				    :value-to-external
-				    (read-string (concat tag ": ") 
-						 (widget-apply 
-						  widget
-						  :value-to-internal
-						  (widget-value widget))
-						 'widget-field-history)))
+  (let ((invalid (widget-apply widget :validate)))
+    (let ((prompt (concat (widget-apply widget :menu-tag-get) ": "))
+	  (value (unless invalid 
+		   (widget-value widget))))
+      (let ((answer (widget-apply widget :prompt-value prompt value invalid) ))
+	(widget-value-set widget answer)))
     (widget-apply widget :notify widget event)
     (widget-setup)))
 
@@ -1449,6 +1553,9 @@ With optional ARG, move across that many fields."
 		      (eq (char-after (1- to)) ?\ ))
 	    (setq to (1- to)))
 	  (let ((result (buffer-substring-no-properties from to)))
+	    (when (string-match "XEmacs" emacs-version)
+	      ;; XEmacs 20.1 bug: b-s-n-p doesn't clear all properties. 
+	      (setq result (format "%s" result)))
 	    (when secret
 	      (let ((index 0))
 		(while (< (+ from index) to)
@@ -1482,6 +1589,7 @@ With optional ARG, move across that many fields."
   :value-delete 'widget-children-value-delete
   :value-get 'widget-choice-value-get
   :value-inline 'widget-choice-value-inline
+  :mouse-down-action 'widget-choice-mouse-down-action
   :action 'widget-choice-action
   :error "Make a choice"
   :validate 'widget-choice-validate
@@ -1516,6 +1624,39 @@ With optional ARG, move across that many fields."
   ;; Get value of the child widget.
   (widget-apply (car (widget-get widget :children)) :value-inline))
 
+(defcustom widget-choice-toggle nil
+  "If non-nil, a binary choice will just toggle between the values.
+Otherwise, the user will explicitly have to choose between the values
+when he activate the menu."
+  :type 'boolean
+  :group 'widgets)
+
+(defun widget-choice-mouse-down-action (widget &optional event)
+  ;; Return non-nil if we need a menu.
+  (let ((args (widget-get widget :args))
+	(old (widget-get widget :choice)))
+    (cond ((not window-system)
+	   ;; No place to pop up a menu.
+	   nil)
+	  ((not (or (fboundp 'x-popup-menu) (fboundp 'popup-menu)))
+	   ;; No way to pop up a menu.
+	   nil)
+	  ((< (length args) 2)
+	   ;; Empty or singleton list, just return the value.
+	   nil)
+	  ((> (length args) widget-menu-max-size)
+	   ;; Too long, prompt.
+	   nil)
+	  ((> (length args) 2)
+	   ;; Reasonable sized list, use menu.
+	   t)
+	  ((and widget-choice-toggle (memq old args))
+	   ;; We toggle.
+	   nil)
+	  (t
+	   ;; Ask which of the two.
+	   t))))
+
 (defun widget-choice-action (widget &optional event)
   ;; Make a choice.
   (let ((args (widget-get widget :args))
@@ -1534,7 +1675,8 @@ With optional ARG, move across that many fields."
 		 nil)
 		((= (length args) 1)
 		 (nth 0 args))
-		((and (= (length args) 2)
+		((and widget-choice-toggle
+		      (= (length args) 2)
 		      (memq old args))
 		 (if (eq old (nth 0 args))
 		     (nth 1 args)
@@ -1789,12 +1931,8 @@ With optional ARG, move across that many fields."
 
 (define-widget 'choice-item 'item
   "Button items that delegate action events to their parents."
-  :action 'widget-choice-item-action
+  :action 'widget-parent-action
   :format "%[%t%] \n")
-
-(defun widget-choice-item-action (widget &optional event)
-  ;; Tell parent what happened.
-  (widget-apply (widget-get widget :parent) :action event))
 
 ;;; The `radio-button' Widget.
 
@@ -2017,7 +2155,7 @@ With optional ARG, move across that many fields."
   :value-create 'widget-editable-list-value-create
   :value-delete 'widget-children-value-delete
   :value-get 'widget-editable-list-value-get
-  :validate 'widget-editable-list-validate
+  :validate 'widget-children-validate
   :match 'widget-editable-list-match
   :match-inline 'widget-editable-list-match-inline
   :insert-before 'widget-editable-list-insert-before
@@ -2061,16 +2199,6 @@ With optional ARG, move across that many fields."
   ;; Get value of the child widget.
   (apply 'append (mapcar (lambda (child) (widget-apply child :value-inline))
 			 (widget-get widget :children))))
-
-(defun widget-editable-list-validate (widget)
-  ;; All the chilren must be valid.
-  (let ((children (widget-get widget :children))
-	child found)
-    (while (and children (not found))
-      (setq child (car children)
-	    children (cdr children)
-	    found (widget-apply child :validate)))
-    found))
 
 (defun widget-editable-list-match (widget value)
   ;; Value must be a list and all the members must match the type.
@@ -2195,7 +2323,7 @@ With optional ARG, move across that many fields."
   :value-create 'widget-group-value-create
   :value-delete 'widget-children-value-delete
   :value-get 'widget-editable-list-value-get
-  :validate 'widget-editable-list-validate
+  :validate 'widget-children-validate
   :match 'widget-group-match
   :match-inline 'widget-group-match-inline)
 
@@ -2284,19 +2412,14 @@ With optional ARG, move across that many fields."
   :format "%v\n%h"
   :documentation-property 'variable-documentation)
 
-(define-widget 'string 'editable-field
-  "A string"
-  :prompt-value 'widget-string-prompt-value
-  :tag "String"
-  :format "%[%t%]: %v")
-
 (defvar widget-string-prompt-value-history nil
   "History of input to `widget-string-prompt-value'.")
 
-(defun widget-string-prompt-value (widget prompt value unbound)
-  ;; Read a string.
-  (read-string prompt (if unbound nil (cons value 1))
-	       'widget-string-prompt-value-history))
+(define-widget 'string 'editable-field
+  "A string"
+  :tag "String"
+  :format "%{%t%}: %v"
+  :prompt-history 'widget-string-prompt-value-history)
 
 (define-widget 'regexp 'string
   "A regular expression."
@@ -2307,7 +2430,7 @@ With optional ARG, move across that many fields."
 (defun widget-regexp-match (widget value)
   ;; Match valid regexps.
   (and (stringp value)
-       (condition-case data
+       (condition-case nil
 	   (prog1 t
 	     (string-match value ""))
 	 (error nil))))
@@ -2325,7 +2448,7 @@ With optional ARG, move across that many fields."
   "A file widget.  
 It will read a file name from the minibuffer when activated."
   :prompt-value 'widget-file-prompt-value
-  :format "%[%t%]: %v"
+  :format "%{%t%}: %v"
   :tag "File"
   :action 'widget-file-action)
 
@@ -2334,7 +2457,7 @@ It will read a file name from the minibuffer when activated."
   (abbreviate-file-name
    (if unbound
        (read-file-name prompt)
-     (let ((prompt2 (concat prompt "(default `" value "') "))
+     (let ((prompt2 (format "%s (default %s) " prompt value))
 	   (dir (file-name-directory value))
 	   (file (file-name-nondirectory value))
 	   (must-match (widget-get widget :must-match)))
@@ -2358,11 +2481,18 @@ It will read a file name from the minibuffer when activated."
 It will read a directory name from the minibuffer when activated."
   :tag "Directory")
 
-(define-widget 'symbol 'string
+(defvar widget-symbol-prompt-value-history nil
+  "History of input to `widget-symbol-prompt-value'.")
+
+(define-widget 'symbol 'editable-field
   "A lisp symbol."
   :value nil
   :tag "Symbol"
+  :format "%{%t%}: %v"
   :match (lambda (widget value) (symbolp value))
+  :prompt-internal 'widget-symbol-prompt-internal
+  :prompt-match 'symbolp
+  :prompt-history 'widget-symbol-prompt-value-history
   :value-to-internal (lambda (widget value)
 		       (if (symbolp value)
 			   (symbol-name value)
@@ -2372,24 +2502,48 @@ It will read a directory name from the minibuffer when activated."
 			   (intern value)
 			 value)))
 
+(defun widget-symbol-prompt-internal (widget prompt initial history)
+  ;; Read file from minibuffer.
+  (let ((answer (completing-read prompt obarray 
+				 (widget-get widget :prompt-match)
+				 nil initial history)))
+    (if (and (stringp answer)
+	     (not (zerop (length answer))))
+	answer
+      (error "No value"))))
+
+(defvar widget-function-prompt-value-history nil
+  "History of input to `widget-function-prompt-value'.")
+
 (define-widget 'function 'sexp
-  ;; Should complete on functions.
   "A lisp function."
+  :prompt-value 'widget-field-prompt-value
+  :prompt-internal 'widget-symbol-prompt-internal
+  :prompt-match 'fboundp
+  :prompt-history 'widget-function-prompt-value-history
+  :action 'widget-field-action
   :tag "Function")
+
+(defvar widget-variable-prompt-value-history nil
+  "History of input to `widget-variable-prompt-value'.")
 
 (define-widget 'variable 'symbol
   ;; Should complete on variables.
   "A lisp variable."
+  :prompt-match 'boundp
+  :prompt-history 'widget-variable-prompt-value-history
   :tag "Variable")
 
-(define-widget 'sexp 'string
+(define-widget 'sexp 'editable-field
   "An arbitrary lisp expression."
   :tag "Lisp expression"
+  :format "%{%t%}: %v"
   :value nil
   :validate 'widget-sexp-validate
   :match (lambda (widget value) t)
   :value-to-internal 'widget-sexp-value-to-internal
   :value-to-external (lambda (widget value) (read value))
+  :prompt-history 'widget-sexp-prompt-value-history
   :prompt-value 'widget-sexp-prompt-value)
 
 (defun widget-sexp-value-to-internal (widget value)
@@ -2430,18 +2584,19 @@ It will read a directory name from the minibuffer when activated."
 (defun widget-sexp-prompt-value (widget prompt value unbound)
   ;; Read an arbitrary sexp.
   (let ((found (read-string prompt
-			    (if unbound nil (cons (prin1-to-string value) 1))
-			    'widget-sexp-prompt-value)))
-    (let ((buffer (set-buffer (get-buffer-create " *Widget Scratch*"))))
-      (erase-buffer)
-      (insert found)
-      (goto-char (point-min))
-      (let ((answer (read buffer)))
-	(unless (eobp)
-	  (error "Junk at end of expression: %s"
-		 (buffer-substring (point) (point-max))))
-	answer))))
-  
+			    (if unbound nil (cons (prin1-to-string value) 0))
+			    (widget-get widget :prompt-history))))
+    (save-excursion
+      (let ((buffer (set-buffer (get-buffer-create " *Widget Scratch*"))))
+	(erase-buffer)
+	(insert found)
+	(goto-char (point-min))
+	(let ((answer (read buffer)))
+	  (unless (eobp)
+	    (error "Junk at end of expression: %s"
+		   (buffer-substring (point) (point-max))))
+	  answer)))))
+
 (define-widget 'integer 'sexp
   "An integer."
   :tag "Integer"
@@ -2453,7 +2608,7 @@ It will read a directory name from the minibuffer when activated."
 			 value))
   :match (lambda (widget value) (integerp value)))
 
-(define-widget 'character 'string
+(define-widget 'character 'editable-field
   "An character."
   :tag "Character"
   :value 0
@@ -2462,14 +2617,17 @@ It will read a directory name from the minibuffer when activated."
   :valid-regexp "\\`.\\'"
   :error "This field should contain a single character"
   :value-to-internal (lambda (widget value)
-		       (if (integerp value) 
-			   (char-to-string value)
-			 value))
+		       (if (stringp value) 
+			   value
+			 (char-to-string value)))
   :value-to-external (lambda (widget value)
 		       (if (stringp value)
 			   (aref value 0)
 			 value))
-  :match (lambda (widget value) (integerp value)))
+  :match (lambda (widget value)
+	   (if (fboundp 'characterp)
+	       (characterp value)
+	     (integerp value))))
 
 (define-widget 'number 'sexp
   "A floating point number."
@@ -2518,12 +2676,56 @@ It will read a directory name from the minibuffer when activated."
 (define-widget 'choice 'menu-choice
   "A union of several sexp types."
   :tag "Choice"
-  :format "%[%t%]: %v")
+  :format "%[%t%]: %v"
+  :prompt-value 'widget-choice-prompt-value)
+
+(defun widget-choice-prompt-value (widget prompt value unbound)
+  "Make a choice." 
+  (let ((args (widget-get widget :args))
+	(completion-ignore-case (widget-get widget :case-fold))
+	current choices old)
+    ;; Find the first arg that match VALUE.
+    (let ((look args))
+      (while look
+	(if (widget-apply (car look) :match value)
+	    (setq old (car look)
+		  look nil)
+	  (setq look (cdr look)))))
+    ;; Find new choice.
+    (setq current
+	  (cond ((= (length args) 0)
+		 nil)
+		((= (length args) 1)
+		 (nth 0 args))
+		((and (= (length args) 2)
+		      (memq old args))
+		 (if (eq old (nth 0 args))
+		     (nth 1 args)
+		   (nth 0 args)))
+		(t
+		 (while args
+		   (setq current (car args)
+			 args (cdr args))
+		   (setq choices
+			 (cons (cons (widget-apply current :menu-tag-get)
+				     current)
+			       choices)))
+		 (let ((val (completing-read prompt choices nil t)))
+		   (if (stringp val)
+		       (let ((try (try-completion val choices)))
+			 (when (stringp try)
+			   (setq val try))
+			 (cdr (assoc val choices)))
+		     nil)))))
+    (if current
+	(widget-prompt-value current prompt nil t)
+      value)))
 
 (define-widget 'radio 'radio-button-choice
   "A union of several sexp types."
   :tag "Choice"
-  :format "%{%t%}:\n%v")
+  :format "%{%t%}:\n%v"
+  :prompt-value 'widget-choice-prompt-value)
 
 (define-widget 'repeat 'editable-list
   "A variable length homogeneous list."
@@ -2539,18 +2741,11 @@ It will read a directory name from the minibuffer when activated."
   "To be nil or non-nil, that is the question."
   :tag "Boolean"
   :prompt-value 'widget-boolean-prompt-value
-  :format "%{%t%}: %[%v%]\n")
+  :format "%[%t%]: %v\n")
 
 (defun widget-boolean-prompt-value (widget prompt value unbound)
   ;; Toggle a boolean.
-  (cond (unbound
-	 (y-or-n-p prompt))
-	(value
-	 (message "Off")
-	 nil)
-	(t
-	 (message "On")
-	 t)))
+  (y-or-n-p prompt))
 
 ;;; The `color' Widget.
 
