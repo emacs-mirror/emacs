@@ -239,8 +239,8 @@ enum text_cursor_kinds {
   filled_box_cursor, hollow_box_cursor, bar_cursor
 };
 
-#define PIXEL_WIDTH(s) ((s)->display.x->pixel_width)
-#define PIXEL_HEIGHT(s) ((s)->display.x->pixel_height)
+#define PIXEL_WIDTH(f) ((f)->display.x->pixel_width)
+#define PIXEL_HEIGHT(f) ((f)->display.x->pixel_height)
 
 /* Each X frame object points to its own struct x_display object
    in the display.x field.  The x_display structure contains all
@@ -299,22 +299,6 @@ struct x_display
   PIX_TYPE border_pixel;
   PIX_TYPE mouse_pixel;
 
-  /* Windows for scrollbars */
-  Window v_scrollbar;
-  Window v_thumbup;
-  Window v_thumbdown;
-  Window v_slider;
-
-  Window h_scrollbar;
-  Window h_thumbleft;
-  Window h_thumbright;
-  Window h_slider;
-
-  /* Scrollbar info */
-
-  int v_scrollbar_width;
-  int h_scrollbar_height;
-
   /* Descriptor for the cursor in use for this window.  */
 #ifdef HAVE_X11
   Cursor text_cursor;
@@ -348,6 +332,17 @@ struct x_display
      structure around, just leaving values in it and adding new bits
      to the mask as we go.  */
   XWMHints wm_hints;
+
+  /* The list of vertical scrollbars currently being displayed in this
+     frame.  */
+  struct scrollbar *vertical_scrollbars;
+
+  /* The timestamp used to implement the condemn/redeem/judge functions.  */
+  int judge_timestamp;
+
+  /* The size of the extra width currently allotted for vertical
+     scrollbars, in pixels.  */
+  int vertical_scrollbar_extra;
 };
 
 /* Return the window associated with the frame F.  */
@@ -380,3 +375,84 @@ struct face
 
 #define MAX_FACES_AND_GLYPHS 256
 extern struct face *x_face_table[];
+
+
+/* X-specific scrollbar stuff.  */
+
+struct scrollbar {
+
+  /* The frame we're displayed on.  */
+  struct frame *frame;
+
+  /* The next in the chain of scrollbars in this frame.  */
+  struct scrollbar *next;
+
+  /* The window representing this scrollbar.  */
+  Window window;
+
+  /* The position and size of the scrollbar in pixels, relative to the
+     frame.  */
+  int top, left;
+  int width, height;
+
+  /* The starting and ending positions of the handle, relative to
+     the handle area.  If they're equal, that means the handle
+     hasn't been drawn yet.  */
+  int start, end;
+
+  /* The timestamp for judgement.  If this is less than
+     judge_timestamp in the x_display structure, this scrollbar is
+     damned.  */
+  int judge_timestamp;
+
+  /* If the scrollbar handle is currently being dragged by the user,
+     this is the number of pixels from the top of the handle to the
+     place where the user grabbed it.  If the handle isn't currently
+     being dragged, this is -1.  */
+  int dragging;
+};
+
+/* Return the outside pixel width for a vertical scrollbar on frame F.  */
+#define VERTICAL_SCROLLBAR_PIXEL_WIDTH(f) (2*FONT_WIDTH ((f)->display.x->font))
+
+/* Return the outside pixel height for a vertical scrollbar HEIGHT
+   rows high on frame F.  */
+#define VERTICAL_SCROLLBAR_PIXEL_HEIGHT(f, height) \
+  ((height) * FONT_HEIGHT ((f)->display.x->font))
+
+
+/* Border widths for scrollbars.  */
+#define VERTICAL_SCROLLBAR_LEFT_BORDER (1)
+#define VERTICAL_SCROLLBAR_RIGHT_BORDER (2)
+#define VERTICAL_SCROLLBAR_TOP_BORDER (1)
+#define VERTICAL_SCROLLBAR_BOTTOM_BORDER (1)
+
+
+/* Manipulating pixel sizes and character sizes.
+   Knowledge of which factors affect the overall size of the window should
+   be hidden in these macros, if that's possible.
+
+/* Return the pixel width of frame F if it has WIDTH columns.  */
+#define CHAR_TO_PIXEL_WIDTH(f, width) \
+  ((width) * FONT_WIDTH ((f)->display.x->font) \
+   + 2 * (f)->display.x->internal_border_width \
+   + (f)->display.x->vertical_scrollbar_extra)
+
+/* Return the pixel height of frame F if it has HEIGHT rows.  */
+#define CHAR_TO_PIXEL_HEIGHT(f, height) \
+  ((height) * FONT_HEIGHT ((f)->display.x->font) \
+   + 2 * (f)->display.x->internal_border_width)
+
+/* How many columns of text can we fit in WIDTH pixels on frame F?  */
+#define PIXEL_TO_CHAR_WIDTH(f, width) \
+  (((width) \
+    - (f)->display.x->vertical_scrollbar_extra \
+    - 2 * (f)->display.x->internal_border_width) \
+   / FONT_WIDTH ((f)->display.x->font))
+
+/* How many rows of text can we fit in HEIGHT pixels on frame F?  */
+#define PIXEL_TO_CHAR_HEIGHT(f, height) \
+  (((height) \
+    - 2 * (f)->display.x->internal_border_width) \
+   / FONT_HEIGHT ((f)->display.x->font))
+
