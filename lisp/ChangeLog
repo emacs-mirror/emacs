@@ -1,3 +1,14 @@
+2001-10-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/latin-1.el: 
+	* international/latin-2.el: 
+	* international/latin-3.el: 
+	* international/latin-4.el: 
+	* international/latin-5.el: 
+	* international/latin-8.el: 
+	* international/latin-9.el: Add no-byte-compile: t, since
+	Makefile.in instructs make-docfile to look at .el files.
+
 2001-10-14  Miles Bader  <miles@gnu.org>
 
 	* button.el (define-button-type): Allow supertype property to be
