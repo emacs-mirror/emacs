@@ -1,3 +1,8 @@
+2002-01-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* process.c (send_process): Set src_multibyte to 1 after the call
+	top setup_coding_system, not before the call.
+
 2002-01-07  Jason Rumney  <jasonr@gnu.org>
 
 	* xmenu.c (set_frame_menubar, xmenu_show):
