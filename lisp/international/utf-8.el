@@ -47,7 +47,7 @@
 ;; idempotent -- to represent the bytes to fix that needs a new charset.
 ;;
 ;; Characters from other character sets can be encoded with mule-utf-8
-;; by populating the translation-table
+;; by populating the translation table
 ;; `utf-translation-table-for-encode' and registering the translation
 ;; with `register-char-codings'.  Hash tables
 ;; `utf-subst-table-for-decode' and `utf-subst-table-for-encode' are
@@ -95,23 +95,25 @@ translation-table named `utf-translation-table-for-encode'")
 (define-translation-table 'utf-translation-table-for-decode)
 
 
-(defvar ucs-mule-cjk-to-unicode (make-hash-table :test 'eq)
+(defvar ucs-mule-cjk-to-unicode (make-hash-table :test 'eq :size 43000
+						 :rehash-size 1000)
   "Hash table mapping Emacs CJK character sets to Unicode code points.
 
 If `utf-translate-cjk' is non-nil, this table populates the
 translation-hash-table named `utf-subst-table-for-encode'.")
 
 (define-translation-hash-table 'utf-subst-table-for-encode 
-  (make-hash-table :test 'eq))
+  (make-hash-table :test 'eq :size 43000 :rehash-size 1000))
 
-(defvar ucs-unicode-to-mule-cjk (make-hash-table :test 'eq)
+(defvar ucs-unicode-to-mule-cjk (make-hash-table :test 'eq :size 43000
+						 :rehash-size 1000)
   "Hash table mapping Unicode code points to Emacs CJK character sets.
 
 If `utf-translate-cjk' is non-nil, this table populates the
 translation-hash-table named `utf-subst-table-for-decode'.")
 
 (define-translation-hash-table 'utf-subst-table-for-decode
-  (make-hash-table :test 'eq))
+  (make-hash-table :test 'eq :size 21500 :rehash-size 200))
 
 (mapc
  (lambda (pair)
@@ -205,19 +207,46 @@ Setting this variable outside customize has no effect."
 
 (defcustom utf-translate-cjk nil
   "Whether the UTF based coding systems should decode/encode CJK characters.
+Enabling this loads tables which allow the coding systems mule-utf-8,
+mule-utf-16-le and mule-utf-16-be to encode characters in the charsets
+`korean-ksc5601', `chinese-gb2312', `chinese-big5-1',
+`chinese-big5-2', `japanese-jisx0208' and `japanese-jisx0212', and to
+decode the corresponding unicodes into such characters.
 
-Enabling this loads tables which enable the coding systems:
-    mule-utf-8, mule-utf-16-le, mule-utf-16-be
-to encode characters in the charsets `korean-ksc5601', `chinese-gb2312' and
-`japanese-jisx0208', and to decode the corresponding unicodes into
-such characters.  This works by loading the library `utf-8-subst'; see
-its commentary.  The tables are fairly large (about 33000 entries), so this
-option is not the default."
-  :link '(emacs-commentary-link "utf-8-subst")
+Where the charsets overlap, the one preferred for decoding is chosen
+according to the language environment in effect when this option is
+turned on: ksc5601 for Korean, gb2312 for Chinese-GB, big5 for
+Chinese-Big5 and jisx for other environments.
+
+The tables are large (over 40000 entries), so this option is not the
+default.  Also, installing them may be rather slow."
   :set (lambda (s v)
 	 (if v
 	     (progn
-	       (require 'utf-8-subst)
+	       ;; Load the files explicitly, to avoid having to keep
+	       ;; around the large tables they contain (as well as the
+	       ;; ones which get built).
+	       (cond
+		((string= "Korean" current-language-environment)
+		 (load "subst-jis")
+		 (load "subst-big5")
+		 (load "subst-gb2312")
+		 (load "subst-ksc"))
+		((string= "Chinese-BIG5" current-language-environment)
+		 (load "subst-jis")
+		 (load "subst-ksc")
+		 (load "subst-gb2312")
+		 (load "subst-big5"))
+		((string= "Chinese-GB" current-language-environment)
+		 (load "subst-jis")
+		 (load "subst-ksc")
+		 (load "subst-big5")
+		 (load "subst-gb2312"))
+		(t
+		 (load "subst-ksc")
+		 (load "subst-gb2312")
+		 (load "subst-big5")
+		 (load "subst-jis")))   ; jis covers as much as big5, gb2312
 	       (let ((table (make-char-table 'translation-table)))
 		 (maphash (lambda (k v)
 			    (aset table k t))
@@ -244,6 +273,7 @@ option is not the default."
 	 (set-default s v))
   :version "21.4"
   :type 'boolean
+  :set-after '(current-language-environment)
   :group 'mule)
 
 (define-ccl-program ccl-decode-mule-utf-8
@@ -378,18 +408,20 @@ option is not the default."
 			 (write-multibyte-character r0 r1))
 		    
 		      ;; mule-unicode-2500-33ff
-		      ;; Fixme: Perhaps allow translation via
-		      ;; utf-subst-table-for-decode for #x2e80 up, so
-		      ;; that we use consistent charsets for all of
-		      ;; CJK.  Would need corresponding change to
-		      ;; encoding tables.
 		      (if (r3 < #x3400)
-			  ((r0 = ,(charset-id 'mule-unicode-2500-33ff))
-			   (r3 -= #x2500)
-			   (r3 //= 96)
-			   (r1 = (r7 + 32))
-			   (r1 += ((r3 + 32) << 7))
-			   (write-multibyte-character r0 r1))
+			  ((r4 = r3)	; don't zap r3
+			   (lookup-integer utf-subst-table-for-decode r4 r5)
+			   (if r7
+			       ;; got a translation
+			       ((write-multibyte-character r4 r5)
+				;; Zapped through register starvation.
+				(r5 = ,(charset-id 'eight-bit-control)))
+			     ((r0 = ,(charset-id 'mule-unicode-2500-33ff))
+			      (r3 -= #x2500)
+			      (r3 //= 96)
+			      (r1 = (r7 + 32))
+			      (r1 += ((r3 + 32) << 7))
+			      (write-multibyte-character r0 r1))))
 
 			;; U+3400 .. U+D7FF
 			;; Try to convert to CJK chars, else keep
