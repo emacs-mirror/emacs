@@ -359,7 +359,8 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
   (setq adaptive-fill-regexp
 	(concat "[ \t]*[a-z0-9A-Z]*>+[ \t]*\\|" adaptive-fill-regexp))
   (make-local-variable 'adaptive-fill-first-line-regexp)
-  (setq adaptive-fill-first-line-regexp adaptive-fill-regexp)
+  (setq adaptive-fill-first-line-regexp
+	(concat "[ \t]*[a-z0-9A-Z]*>+[ \t]*\\|" adaptive-fill-first-line-regexp))
   ;; `-- ' precedes the signature.  `-----' appears at the start of the
   ;; lines that delimit forwarded messages.
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
