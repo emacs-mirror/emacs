@@ -1,6 +1,6 @@
 ;;; recentf.el --- setup a menu of recently opened files
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: July 19 1999
@@ -846,18 +846,14 @@ These are the special commands of `recentf-dialog-mode' mode:
 Optional argument LIMIT specifies a maximum length when VARIABLE value
 is a list (default to the full list)."
   (let ((value (symbol-value variable)))
-    (insert (format "(setq %S\n      '(\n" variable))
-    (cond ((consp value)
-           (if (and (integerp limit) (> limit 0))
-               (setq value (recentf-trunc-list value limit)))
-           (mapc (function
-                  (lambda (e)
-                    (insert (format "        %S\n" e))))
-                 value))
-          (t
-           (insert (format "        %S\n" value))))
-    (insert "        ))\n")
-    ))
+    (if (listp value)
+	(progn
+	  (when (and (integerp limit) (> limit 0))
+	    (setq value (recentf-trunc-list value limit)))
+	  (insert (format "(setq %S '(" variable))
+	  (mapc (lambda (e) (insert (format "\n%S" e))) value)
+	  (insert "))\n"))
+      (insert (format "(setq %S %S)\n" variable value)))))
 
 ;;;###autoload
 (defun recentf-save-list ()
