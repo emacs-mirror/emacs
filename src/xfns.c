@@ -1935,11 +1935,11 @@ x_set_name (f, name, explicit)
 	   managers which don't support that encoding.  So, if NAME
 	   contains only ASCII and 8859-1 characters, encode it by
 	   iso-latin-1, and use "STRING" in text.encoding hoping that
-	   such window manager at least analize this format correctly,
+	   such window managers at least analyze this format correctly,
 	   i.e. treat 8-bit bytes as 8859-1 characters.
 
 	   We may also be able to use "UTF8_STRING" in text.encoding
-	   in the feature which can encode all Unicode characters.
+	   in the future which can encode all Unicode characters.
 	   But, for the moment, there's no way to know that the
 	   current window manager supports it or not.  */
 	coding_system = Qcompound_text;
@@ -7565,7 +7565,13 @@ pbm_load (f, img)
 
 #if HAVE_PNG
 
-#include <libpng/png.h>
+#ifdef HAVE_PNG_H
+# include <png.h>
+#else
+# ifdef HAVE_LIBPNG_PNG_H
+#  include <libpng/png.h>
+# endif
+#endif
 
 /* Function prototypes.  */
 
