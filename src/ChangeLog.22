@@ -1,3 +1,7 @@
+2003-11-18  Kenichi Handa  <handa@m17n.org>
+
+	* print.c (print_object): Always print ASCII chars as is.
+
 2003-11-17  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (Fdefine_key): Fix handling of Lucid style event type
