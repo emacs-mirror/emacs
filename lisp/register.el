@@ -51,20 +51,38 @@ Argument is a character, naming the register."
   (interactive "cPoint to register: \nP")
   (set-register char (if arg (current-frame-configuration) (point-marker))))
 
+(defun window-configuration-to-register (char arg)
+  "Store the window configuration of the selected frame in register REGISTER.
+Use \\[jump-to-register] to restore the configuration.
+Argument is a character, naming the register."
+  (interactive "cPoint to register: \nP")
+  (set-register char (current-window-configuration)))
+
+(defun frame-configuration-to-register (char arg)
+  "Store the window configuration of all frames in register REGISTER.
+Use \\[jump-to-register] to restore the configuration.
+Argument is a character, naming the register."
+  (interactive "cPoint to register: \nP")
+  (set-register char (current-frame-configuration)))
+
 (fset 'register-to-point 'jump-to-register)
 (defun jump-to-register (char)
   "Move point to location stored in a register.
+If the register contains a window configuration (one frame) or a frame
+configuration (all frames), restore that frame or all frames accordingly.
 Argument is a character, naming the register."
   (interactive "cJump to register: ")
   (let ((val (get-register char)))
     (condition-case ()
 	(set-frame-configuration val)
       (error
-       (if (markerp val)
-	   (progn
-	     (switch-to-buffer (marker-buffer val))
-	     (goto-char val))
-	 (error "Register doesn't contain a buffer position or frame configuration"))))))
+       (if (window-configuration-p val)
+	   (set-window-configuration val)
+	 (if (markerp val)
+	     (progn
+	       (switch-to-buffer (marker-buffer val))
+	       (goto-char val))
+	   (error "Register doesn't contain a buffer position or configuration")))))))
 
 ;(defun number-to-register (arg char)
 ;  "Store a number in a register.

@@ -110,22 +110,8 @@ ARG columns.  No arg means split equally."
   (interactive "p")
   (shrink-window arg t))
 
-(defun window-config-to-register (name)
-  "Save the current window configuration in register REG (a letter).
-It can be later retrieved using \\[M-x register-to-window-config]."
-  (interactive "cSave window configuration in register: ")
-  (set-register name (current-window-configuration)))
-
-(defun register-to-window-config (name)
-  "Restore (make current) the window configuration in register REG (a letter).
-Use with a register previously set with \\[window-config-to-register]."
-  (interactive "cRestore window configuration from register: ")
-  (set-window-configuration (get-register name)))
-
 (define-key ctl-x-map "2" 'split-window-vertically)
 (define-key ctl-x-map "3" 'split-window-horizontally)
-(define-key ctl-x-map "6" 'window-config-to-register)
-(define-key ctl-x-map "7" 'register-to-window-config)
 (define-key ctl-x-map "}" 'enlarge-window-horizontally)
 (define-key ctl-x-map "{" 'shrink-window-horizontally)
 
