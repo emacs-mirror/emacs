@@ -1,3 +1,9 @@
+2002-09-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-conf.el (emacs-mule, iso-2022-7bit) 
+	(iso-2022-7bit-ss2, iso-2022-7bit-lock, iso-2022-8bit-ss2) 
+	(compound-text, ctext-no-compositions): Cancel provious change.
+
 2002-09-09  Dave Love  <d.love@dl.ac.uk>
 
 	* wid-edit.el (widget-string-complete): New.

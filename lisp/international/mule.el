@@ -467,12 +467,16 @@ and `mac' means MAC-like EOL \(i.e. single CR).  If omitted, on
 decoding by the coding system, Emacs automatically detects the EOL
 format of the source text.
 
-`:charset-list' (required for `charset' coding systems)
+`:charset-list'
 
 VALUE must be a list of charsets supported by the coding system.  On
 encoding by the coding system, if a character belongs to multiple
 charsets in the list, a charset that comes earlier in the list is
-selected.
+selected.  If `:coding-type' is `iso-2022', VALUE may be `iso-2022',
+which indicates that the coding system supports all ISO-2022 based
+charsets.  If `:coding-type' is `emacs-mule', VALUE may be
+`emacs-mule', which indicates that the coding system supports all
+charsets that have `:emacs-mule-id' property.
 
 `:ascii-compatible-p'
 
