@@ -44,35 +44,6 @@ int nonascii_insert_offset;
 
 extern Lisp_Object Qface;
 
-/* Return buffer position which is N characters after `point'.  */
-int
-forward_point (n)
-     int n;
-{
-  int pos = PT, c;
-
-  if (!NILP (current_buffer->enable_multibyte_characters))
-    {
-      /* Simply adding N to `point' doesn't work because of multi-byte
-	 form.  We had better not use INC_POS and DEC_POS because they
-	 check the gap position every time.  But, for the moment, we
-	 need working code.  */
-      if (n > 0)
-	{
-	  while (pos < ZV && n--) INC_POS (pos);
-	  if (pos < ZV) n++;
-	}
-      else
-	{
-	  while (pos > BEGV && n++) DEC_POS (pos);
-	  if (pos > BEGV) n--;
-	}
-    }
-  pos += n;
-
-  return pos;
-}
-
 DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
   "Return buffer position N characters after (before if N negative) point.")
   (n)
@@ -80,7 +51,7 @@ DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
 {
   CHECK_NUMBER (n, 0);
 
-  return make_number (forward_point (XINT (n)));
+  return make_number (PT + XINT (n));
 }
 
 DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "p",
@@ -100,7 +71,7 @@ On reaching end of buffer, stop and signal error.")
      hooks, etcetera), that's not a good approach.  So we validate the
      proposed position, then set point.  */
   {
-    int new_point = forward_point (XINT (n));
+    int new_point = PT + XINT (n);
 
     if (new_point < BEGV)
       {
@@ -145,9 +116,10 @@ With positive N, a non-empty line at the end counts as one line\n\
   (n)
      Lisp_Object n;
 {
-  int pos2 = PT;
-  int pos;
-  int count, shortage, negp;
+  int opoint = PT, opoint_byte = PT_BYTE;
+  int pos, pos_byte;
+  int count, shortage;
+  int temp;
 
   if (NILP (n))
     count = 1;
@@ -157,16 +129,27 @@ With positive N, a non-empty line at the end counts as one line\n\
       count = XINT (n);
     }
 
-  negp = count <= 0;
-  pos = scan_buffer ('\n', pos2, 0, count - negp, &shortage, 1);
+  if (count <= 0)
+    shortage = scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, count - 1, 1);
+  else
+    shortage = scan_newline (PT, PT_BYTE, ZV, ZV_BYTE, count, 1);
+
+  /* Since scan_newline does TEMP_SET_PT_BOTH,
+     and we want to set PT "for real",
+     go back to the old point and then come back here.  */
+  pos = PT;
+  pos_byte = PT_BYTE;
+  TEMP_SET_PT_BOTH (opoint, opoint_byte);
+  SET_PT_BOTH (pos, pos_byte);
+
   if (shortage > 0
-      && (negp
+      && (count <= 0
 	  || (ZV > BEGV
-	      && pos != pos2
-	      && FETCH_BYTE (pos - 1) != '\n')))
+	      && PT != opoint
+	      && (FETCH_BYTE (PT_BYTE - 1) != '\n'))))
     shortage--;
-  SET_PT (pos);
-  return make_number (negp ? - shortage : shortage);
+
+  return make_number (count <= 0 ? - shortage : shortage);
 }
 
 DEFUN ("beginning-of-line", Fbeginning_of_line, Sbeginning_of_line,
@@ -219,7 +202,7 @@ N was explicitly specified.")
 
   CHECK_NUMBER (n, 0);
 
-  pos = forward_point (XINT (n));
+  pos = PT + XINT (n);
   if (NILP (killflag))
     {
       if (XINT (n) < 0)
@@ -260,8 +243,8 @@ N was explicitly specified.")
   CHECK_NUMBER (n, 0);
 
   /* See if we are about to delete a tab or newline backwards.  */
-  pos = PT;
-  for (i = 0; i < XINT (n) && pos > BEGV; i++)
+  pos = PT_BYTE;
+  for (i = 0; i < XINT (n) && pos > BEGV_BYTE; i++)
     {
       int c;
 
@@ -279,14 +262,15 @@ N was explicitly specified.")
   if (XINT (n) > 0
       && ! NILP (current_buffer->overwrite_mode)
       && ! deleted_special
-      && ! (PT == ZV || FETCH_BYTE (PT) == '\n'))
+      && ! (PT == ZV || FETCH_BYTE (PT_BYTE) == '\n'))
     {
       int column = current_column ();
 
       value = Fdelete_char (make_number (-XINT (n)), killflag);
       i = column - current_column ();
       Finsert_char (make_number (' '), make_number (i), Qnil);
-      SET_PT (PT - i);
+      /* Whitespace chars are ASCII chars, so we can simply subtract.  */
+      SET_PT_BOTH (PT - i, PT_BYTE - i);
     }
   else
     value = Fdelete_char (make_number (-XINT (n)), killflag);
@@ -358,7 +342,7 @@ internal_self_insert (c, noautofill)
   int len;
   /* Working buffer and pointer for multi-byte form of C.  */
   unsigned char workbuf[4], *str;
-  int number_to_delete = 0;
+  int chars_to_delete = 0;
   int spaces_to_insert = 0;
 
   if (c >= 0200 && c <= 0377
@@ -391,7 +375,7 @@ internal_self_insert (c, noautofill)
       /* A code at `point'.  Since this is checked only against
          NEWLINE and TAB, we don't need a character code but only the
          first byte of multi-byte form.  */
-      unsigned char c2 = FETCH_BYTE (PT);
+      unsigned char c2 = FETCH_BYTE (PT_BYTE);
       /* A column the cursor should be placed at after this insertion.
          The correct value should be calculated only when necessary.  */
       int target_clm = 0;
@@ -413,9 +397,10 @@ internal_self_insert (c, noautofill)
 			target_clm % XFASTINT (current_buffer->tab_width)))))
 	{
 	  int pos = PT;
+	  int pos_byte = PT_BYTE;
 
 	  if (target_clm == 0)
-	    number_to_delete = forward_point (1) - PT;
+	    chars_to_delete = 1;
 	  else
 	    {
 	      /* The actual cursor position after the trial of moving
@@ -426,7 +411,7 @@ internal_self_insert (c, noautofill)
 	      int actual_clm
 		= XFASTINT (Fmove_to_column (make_number (target_clm), Qnil));
 
-	      number_to_delete = PT - pos;
+	      chars_to_delete = PT - pos;
 
 	      if (actual_clm > target_clm)
 		{
@@ -435,7 +420,7 @@ internal_self_insert (c, noautofill)
 		  spaces_to_insert = actual_clm - target_clm;
 		}
 	    }
-	  SET_PT (pos);
+	  SET_PT_BOTH (pos, pos_byte);
 	  hairy = 2;
 	}
       hairy = 2;
@@ -466,7 +451,7 @@ internal_self_insert (c, noautofill)
 	hairy = 2;
     }
 
-  if (number_to_delete)
+  if (chars_to_delete)
     {
       string = make_string (str, len);
       if (spaces_to_insert)
@@ -476,8 +461,9 @@ internal_self_insert (c, noautofill)
 	  string = concat2 (tem, string);
 	}
 
-      replace_range (PT, PT + number_to_delete, string, 1, 1);
-      SET_PT (PT + XSTRING (string)->size);
+      replace_range (PT, PT + chars_to_delete, string, 1, 1);
+      SET_PT_BOTH (PT + 1 + spaces_to_insert,
+		   PT_BYTE + XSTRING (string)->size);
     }
   else
     insert_and_inherit (str, len);
@@ -489,13 +475,13 @@ internal_self_insert (c, noautofill)
       Lisp_Object tem;
 
       if (c == '\n')
-	/* After inserting a newline, move to previous line and fill */
-	/* that.  Must have the newline in place already so filling and */
-	/* justification, if any, know where the end is going to be. */
-	SET_PT (PT - 1);
+	/* After inserting a newline, move to previous line and fill
+	   that.  Must have the newline in place already so filling and
+	   justification, if any, know where the end is going to be.  */
+	SET_PT_BOTH (PT - 1, PT_BYTE - 1);
       tem = call0 (current_buffer->auto_fill_function);
       if (c == '\n')
-	SET_PT (PT + 1);
+	SET_PT_BOTH (PT + 1, PT_BYTE + 1);
       if (!NILP (tem))
 	hairy = 2;
     }
@@ -505,10 +491,8 @@ internal_self_insert (c, noautofill)
   if (!NILP (Vself_insert_face)
       && EQ (current_kboard->Vlast_command, Vself_insert_face_command))
     {
-      Lisp_Object before, after;
-      XSETINT (before, PT - len);
-      XSETINT (after, PT);
-      Fput_text_property (before, after, Qface, Vself_insert_face, Qnil);
+      Fput_text_property (make_number (PT - 1), make_number (PT),
+			  Qface, Vself_insert_face, Qnil);
       Vself_insert_face = Qnil;
     }
 #endif
