@@ -1,6 +1,6 @@
 ;;; mwheel.el --- Mouse support for MS intelli-mouse type mice
 
-;; Copyright (C) 1998, Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, Free Software Foundation, Inc.
 ;; Maintainer: William M. Perry <wmperry@gnu.org>
 ;; Keywords: mouse
 
@@ -41,7 +41,7 @@
 
 (require 'custom)
 
-(defcustom mwheel-scroll-amount '(5 . 1)
+(defcustom mouse-wheel-scroll-amount '(5 . 1)
   "Amount to scroll windows by when spinning the mouse wheel.
 This is actually a cons cell, where the first item is the amount to scroll
 on a normal wheel event, and the second is the amount to scroll when the
@@ -59,7 +59,7 @@ A near full screen is `next-screen-context-lines' less than a full screen."
 		  (const :tag "Full screen" :value nil)
 		  (integer :tag "Specific # of lines"))))
 
-(defcustom mwheel-follow-mouse nil
+(defcustom mouse-wheel-follow-mouse nil
   "Whether the mouse wheel should scroll the window that the mouse is over.
 This can be slightly disconcerting, but some people may prefer it."
   :group 'mouse
@@ -80,13 +80,13 @@ This can be slightly disconcerting, but some people may prefer it."
 
 (defun mwheel-scroll (event)
   (interactive "e")
-  (let ((curwin (if mwheel-follow-mouse
+  (let ((curwin (if mouse-wheel-follow-mouse
 		    (prog1
 			(selected-window)
 		      (select-window (mwheel-event-window event)))))
 	(amt (if (memq 'shift (event-modifiers event))
-		 (cdr mwheel-scroll-amount)
-	       (car mwheel-scroll-amount))))
+		 (cdr mouse-wheel-scroll-amount)
+	       (car mouse-wheel-scroll-amount))))
     (unwind-protect
 	(let ((button (mwheel-event-button event)))
 	  (cond ((= button 4) (scroll-down amt))
@@ -110,10 +110,10 @@ Returns non-nil if the new state is enabled."
   ;; (S-)*mouse-[45], since those are aliases for the button
   ;; equivalents in XEmacs, but I want this to work in as many
   ;; versions of XEmacs as it can.
-  (let* ((mwheel-running-xemacs (string-match "XEmacs" (emacs-version)))
-	 (keys (if mwheel-running-xemacs
-		   '(button4 [(shift button4)] button5 [(shift button5)])
-		 '([mouse-4] [S-mouse-4] [mouse-5] [S-mouse-5]))))
+  (let ((keys
+	 (if (featurep 'xemacs)
+	     '(button4 [(shift button4)] button5 [(shift button5)])
+	   '([mouse-4] [S-mouse-4] [mouse-5] [S-mouse-5]))))
     ;; This condition-case is here because Emacs 19 will throw an error
     ;; if you try to define a key that it does not know about.  I for one
     ;; prefer to just unconditionally do a mwheel-install in my .emacs, so
