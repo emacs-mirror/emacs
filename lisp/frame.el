@@ -229,7 +229,7 @@ These supersede the values given in `default-frame-alist'.")
 	      (redirect-frame-focus frame-initial-frame new)
 
 	      ;; Finally, get rid of the old frame.
-	      (delete-frame frame-initial-frame))
+	      (delete-frame frame-initial-frame t))
 
 	  ;; Otherwise, we don't need all that rigamarole; just apply
 	  ;; the new parameters.
