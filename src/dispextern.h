@@ -242,7 +242,9 @@ struct glyph
   int charpos;
 
   /* Lisp object source of this glyph.  Currently either a buffer or
-     a string, or 0.  */
+     a string, if the glyph was produced from characters which came from 
+     a buffer or a string; or 0 if the glyph was inserted by redisplay
+     for its own purposes such as padding.  */
   Lisp_Object object;
 
   /* Width in pixels.  */
@@ -281,8 +283,9 @@ struct glyph
      padding. */
   unsigned padding_p : 1;
 
-  /* 1 means the actual glyph is not available in the current
-     system.  */
+  /* 1 means the actual glyph is not available, draw a box instead.
+     This can happen when a font couldn't be loaded, or a character
+     doesn't have a glyph in a font.  */
   unsigned glyph_not_available_p : 1;
 
   /* Face of the glyph.  */
