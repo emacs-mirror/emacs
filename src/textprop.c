@@ -45,9 +45,12 @@ Lisp_Object Qmodification;
 Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
 Lisp_Object Qinvisible, Qread_only;
 
-/* Extract the interval at position BEGIN from OBJECT, a string
-   or buffer.  Additionally, check that BEGIN and END are within
-   the bounds of OBJECT.
+/* Extract the interval at the position pointed to by BEGIN from
+   OBJECT, a string or buffer.  Additionally, check that the positions
+   pointed to by BEGIN and END are within the bounds of OBJECT, and
+   reverse them if *BEGIN is greater than *END.  The objects pointed
+   to by BEGIN and END may be integers or markers; if the latter, they
+   are coerced to integers.
 
    Note that buffer points don't correspond to interval indices.
    For example, point-max is 1 greater than the index of the last
@@ -58,7 +61,9 @@ Lisp_Object Qinvisible, Qread_only;
    Handle this case specially.
 
    If FORCE is soft (0), it's OK to return NULL_INTERVAL.  Otherwise,
-   create an interval tree for OBJECT if one doesn't exist. */
+   create an interval tree for OBJECT if one doesn't exist, provided
+   the object actually contains text.  In the current design, if there
+   is no text, there can be no text properties. */
 
 #define soft 0
 #define hard 1
