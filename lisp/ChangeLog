@@ -13,6 +13,12 @@
 
 2001-12-07  Dave Love  <fx@gnu.org>
 
+	* language/lao-util.el: Add Unicode equivalents for rules.
+	(lao-post-read-conversion): New function.
+
+	* language/lao.el: Add Unicode equivalents.
+	(lao): Add post-read conversion.
+
 	* international/latin1-disp.el: Fix some 8-bit-graphic characters.
 	Use iso2022 encoding.
 	(latin1-char-displayable-p): Doc fix.
