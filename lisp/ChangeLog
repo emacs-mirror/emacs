@@ -1,3 +1,8 @@
+2004-10-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* info.el (Info-fontify-node): For multiline refs,
+	arrange to unfontify newline and surrounding whitespace.
+
 2004-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-arch.el (vc-arch-workfile-version): Don't burp if the patch-log
