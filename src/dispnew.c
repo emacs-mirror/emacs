@@ -45,6 +45,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "xterm.h"
 #endif	/* HAVE_X_WINDOWS */
 
+#include <errno.h>
+
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -55,9 +57,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* The s- file might have overridden the definition with one that works for
    the system's C library.  But we are using the GNU C library, so this is
    the right definition for every system.  */
+#ifdef GNU_LIBRARY_PENDING_OUTPUT_COUNT
+#define PENDING_OUTPUT_COUNT GNU_LIBRARY_PENDING_OUTPUT_COUNT
+#else
 #undef	PENDING_OUTPUT_COUNT
 #define	PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufp - (FILE)->__buffer)
-#else
+#endif
+#else /* not __GNU_LIBRARY__ */
 #ifndef PENDING_OUTPUT_COUNT
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)
 #endif
