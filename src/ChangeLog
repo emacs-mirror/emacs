@@ -1,3 +1,8 @@
+2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (popup_get_selection): Only pop down dialogs
+	on C-g and Escape.
+
 2004-12-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dispextern.h: Change HAVE_CARBON to MAC_OS.

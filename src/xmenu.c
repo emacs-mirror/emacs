@@ -1232,25 +1232,16 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
           event.xbutton.state = 0;
 #endif
         }
-      /* If the user presses a key that doesn't go to the menu,
-         deactivate the menu.
-         The user is likely to do that if we get wedged.
-         All toolkits now pop down menus on ESC.
-         For dialogs however, the focus may not be on the dialog, so
-         in that case, we pop down. */
+      /* Pop down on C-g and Escape.  */
       else if (event.type == KeyPress
                && down_on_keypress
                && dpyinfo->display == event.xbutton.display)
         {
           KeySym keysym = XLookupKeysym (&event.xkey, 0);
 
-          /* Pop down on C-g.  */
-          if (keysym == XK_g && (event.xkey.state & ControlMask) != 0)
+          if ((keysym == XK_g && (event.xkey.state & ControlMask) != 0)
+              || keysym == XK_Escape) /* Any escape, ignore modifiers.  */
             popup_activated_flag = 0;
-
-          if (!IsModifierKey (keysym)
-              && x_any_window_to_frame (dpyinfo, event.xany.window) != NULL)
-	    popup_activated_flag = 0;
         }
 
       x_dispatch_event (&event, event.xany.display);
