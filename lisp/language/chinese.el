@@ -201,7 +201,7 @@ accepts Big5 for input also (which is then converted to CNS)."))
   "GB18030 encoding for Chinese (MIME:GB18030)."
   :coding-type 'charset
   :mnemonic ?c
-  :charset-list '(chinese-gb18030)
+  :charset-list '(gb18030)
   :mime-charset 'gb18030
   )
 (define-coding-system-alias 'gb18030 'chinese-gb18030)
