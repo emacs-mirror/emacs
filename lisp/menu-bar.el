@@ -1016,7 +1016,8 @@ key (or menu-item)"))
 
 (defun menu-bar-update-buffers-1 (elt)
   (cons (format
-	 (format "%%%ds  %%s%%s  %%s" menu-bar-update-buffers-maxbuf)
+ 	 ;; (format "%%%ds  %%s%%s  %%s" menu-bar-update-buffers-maxbuf)
+	 "%s  %s%s  --  %s"
 	 (cdr elt)
 	 (if (buffer-modified-p (car elt))
 	     "*" " ")
