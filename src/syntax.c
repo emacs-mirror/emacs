@@ -2458,14 +2458,14 @@ do { prev_from = from;				\
       oldstate = Fcdr (oldstate);
       tem = Fcar (oldstate);
       /* Check whether we are inside string_fence-style string: */
-      state.instring = ( !NILP (tem) 
-			 ? ( INTEGERP (tem) ? XINT (tem) : ST_STRING_STYLE) 
-			 : -1);
+      state.instring = (!NILP (tem) 
+			? (INTEGERP (tem) ? XINT (tem) : ST_STRING_STYLE) 
+			: -1);
 
       oldstate = Fcdr (oldstate);
       tem = Fcar (oldstate);
-      state.incomment = ( !NILP (tem)
-			 ? ( INTEGERP (tem) ? XINT (tem) : -1)
+      state.incomment = (!NILP (tem)
+			 ? (INTEGERP (tem) ? XINT (tem) : -1)
 			 : 0);
 
       oldstate = Fcdr (oldstate);
@@ -2477,8 +2477,8 @@ do { prev_from = from;				\
       oldstate = Fcdr (oldstate);
       oldstate = Fcdr (oldstate);
       tem = Fcar (oldstate);
-      state.comstyle = NILP (tem) ? 0 : ( EQ (tem, Qsyntax_table) 
-					  ? ST_COMMENT_STYLE : 1 );
+      state.comstyle = NILP (tem) ? 0 : (EQ (tem, Qsyntax_table) 
+					 ? ST_COMMENT_STYLE : 1);
 
       oldstate = Fcdr (oldstate);
       tem = Fcar (oldstate);
