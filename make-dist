@@ -241,6 +241,7 @@ if [ $update = yes ];
 then
   echo "Updating Info files"
   (cd man; make -f Makefile.in srcdir=. info)
+  (cd lispref; make -f Makefile.in srcdir=. info)
 
   echo "Updating finder, custom and autoload data"
   (cd lisp; make updates EMACS="$EMACS")
@@ -306,7 +307,7 @@ echo "Updating version number in README"
 
 
 echo "Creating subdirectories"
-for subdir in lisp site-lisp \
+for subdir in lisp site-lisp lispref \
 	      leim real-leim real-leim/CXTERM-DIC real-leim/MISC-DIC \
 	      real-leim/SKK-DIC real-leim/ja-dic real-leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
@@ -598,6 +599,16 @@ echo "Making links to \`man'"
  cd ../${tempdir}/man
  rm -f \#*\# =* *~ core emacs-index* *.Z *.z xmail
  rm -f emacs.?? termcap.?? gdb.?? *.log *.toc *.dvi *.oaux)
+
+echo "Making links to \`lispref'"
+(cd lispref
+ ln *.texi *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/lispref
+ test -f README && ln README ../${tempdir}/lispref
+ test -f Makefile.in && ln Makefile.in ../${tempdir}/lispref
+ ln ChangeLog ../${tempdir}/lispref
+ cd ../${tempdir}/lispref
+ rm -f \#*\# =* *~ core elisp-index* *.Z *.z xmail
+ rm -f elisp.?? *.log *.toc *.dvi *.oaux)
 
 echo "Making links to \`vms'"
 (cd vms
