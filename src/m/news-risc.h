@@ -31,7 +31,9 @@
 /* #define C_OPTIMIZE_SWITCH -O2 */
 #define C_OPTIMIZE_SWITCH -O
 
+#ifndef __GNUC__
 #define C_DEBUG_SWITCH -g3
+#endif
 
 #undef TERMINFO
 
@@ -42,5 +44,8 @@
 #undef LINKER
 #undef LIBS_MACHINE
 #define LIBS_MACHINE -lmld
+
+#undef KERNEL_FILE
+#define KERNEL_FILE "/vmunix"
 
 #endif /* not NEWSOS5 */
