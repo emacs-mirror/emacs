@@ -3,12 +3,7 @@
 @setchapternewpage odd
 @settitle GNU Emacs Manual
 @setfilename ../info/emacs
-@c The Option Index is produced only in the on-line version,
-@c because the index entries related to command-line options
-@c tend to point to the same pages and all begin with a dash.
-@ifnottex
 @defcodeindex op
-@end ifnottex
 @synindex pg cp
 
 @c The edition number appears in several places in this file
