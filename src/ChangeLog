@@ -1,3 +1,10 @@
+2000-07-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* fontset.c (fontset_ref): Remove INLINE declaration.
+	(fontset_ref_via_base): Likewise.
+	(Fset_fontset_font): Convert FAMILY and REGISTRY specifications
+	to downcase.
+
 2000-07-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (IT_note_mouse_highlight): Process overlays in the
