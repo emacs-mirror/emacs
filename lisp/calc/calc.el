@@ -1142,7 +1142,7 @@ commands given here will actually operate on the *Calculator* stack."
 ;;;###autoload
 (defun calc (&optional arg full-display interactive)
   "The Emacs Calculator.  Full documentation is listed under \"calc-mode\"."
-  (interactive "P")
+  (interactive "P\ni\np")
   (if arg
       (unless (eq arg 0)
 	(calc-extensions)
@@ -1188,17 +1188,16 @@ commands given here will actually operate on the *Calculator* stack."
 	     (window-point full-display)
 	     (select-window full-display))
 	(calc-check-defines)
-	(when (and calc-said-hello
-		   (or (interactive-p) interactive))
+	(when (and calc-said-hello interactive)
 	  (sit-for 2)
 	  (message ""))
 	(setq calc-said-hello t)))))
 
 ;;;###autoload
-(defun full-calc ()
+(defun full-calc (&optional interactive)
   "Invoke the Calculator and give it a full-sized window."
-  (interactive)
-  (calc nil t (interactive-p)))
+  (interactive "p")
+  (calc nil t interactive))
 
 (defun calc-same-interface (arg)
   "Invoke the Calculator using the most recent interface (calc or calc-keypad)."
@@ -1215,8 +1214,8 @@ commands given here will actually operate on the *Calculator* stack."
 	  (calc arg calc-full-mode t))))))
 
 
-(defun calc-quit (&optional non-fatal)
-  (interactive)
+(defun calc-quit (&optional non-fatal interactive)
+  (interactive "i\np")
   (and calc-standalone-flag (not non-fatal)
        (save-buffers-kill-emacs nil))
   (if (and (equal (buffer-name) "*Gnuplot Trail*")
@@ -1226,7 +1225,7 @@ commands given here will actually operate on the *Calculator* stack."
       (calc-edit-cancel)
     (if (eq major-mode 'MacEdit-mode)
 	(MacEdit-cancel-edit)
-      (if (and (interactive-p)
+      (if (and interactive
 	       calc-embedded-info
 	       (eq (current-buffer) (aref calc-embedded-info 0)))
 	  (calc-embedded nil)
@@ -1266,22 +1265,22 @@ or a list containing a character position and an error message in string form."
   (calc-do-calc-eval str separator args))
 
 ;;;###autoload
-(defun calc-keypad ()
+(defun calc-keypad (&optional interactive)
   "Invoke the Calculator in \"visual keypad\" mode.
 This is most useful in the X window system.
 In this mode, click on the Calc \"buttons\" using the left mouse button.
 Or, position the cursor manually and do M-x calc-keypad-press."
-  (interactive)
+  (interactive "p")
   (calc-extensions)
-  (calc-do-keypad calc-full-mode (interactive-p)))
+  (calc-do-keypad calc-full-mode interactive))
 
 ;;;###autoload
-(defun full-calc-keypad ()
+(defun full-calc-keypad (&optional interactive)
   "Invoke the Calculator in full-screen \"visual keypad\" mode.
 See calc-keypad for details."
-  (interactive)
+  (interactive "p")
   (calc-extensions)
-  (calc-do-keypad t (interactive-p)))
+  (calc-do-keypad t interactive))
 
 
 (defvar calc-aborted-prefix nil)
@@ -1802,8 +1801,8 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
   val)
 
 
-(defun calc-trail-display (flag &optional no-refresh)
-  (interactive "P")
+(defun calc-trail-display (flag &optional no-refresh interactive)
+  (interactive "P\ni\np")
   (let ((win (get-buffer-window (calc-trail-buffer))))
     (if (setq calc-display-trail
 	      (not (if flag (memq flag '(nil 0)) win)))
@@ -1817,7 +1816,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	       (setq overlay-arrow-string calc-trail-overlay
 		     overlay-arrow-position calc-trail-pointer)
 	       (or no-refresh
-		   (if (interactive-p)
+		   (if interactive
 		       (calc-do-refresh)
 		     (calc-refresh))))))
       (if win
@@ -1825,7 +1824,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	    (delete-window win)
 	    (calc-wrapper
 	     (or no-refresh
-		 (if (interactive-p)
+		 (if interactive
 		     (calc-do-refresh)
 		   (calc-refresh))))))))
   calc-trail-buffer)
