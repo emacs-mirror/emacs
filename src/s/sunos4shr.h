@@ -27,4 +27,4 @@
 
 #define UNEXEC	unexsunos4.o
 #define RUN_TIME_REMAP
-#define LD_CMD cc
+#define LINKER cc

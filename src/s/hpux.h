@@ -199,7 +199,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define srand srand48
 
 /* In hpux, the symbol SIGIO is defined, but the feature
-   does not really exist.
+   doesn't work in the way Emacs needs it to.
 
    Here we assume that signal.h is included before config.h
    so that we can override it here.  */

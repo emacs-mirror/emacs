@@ -27,7 +27,3 @@
    should be writable by everyone.  THE STRING MUST END WITH A
    SLASH!!!  */
 #define PATH_LOCK "/usr/local/lib/emacs/lock/"
-
-/* the name of the file !!!SuperLock!!! in the directory
- specified by PATH_LOCK.  Yes, this is redundant.  */
-#define PATH_SUPERLOCK "/usr/local/lib/emacs/lock/!!!SuperLock!!!"

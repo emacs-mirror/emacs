@@ -82,8 +82,7 @@ dumplisppath=`echo ${dumplisppath} | ${removenullpaths}` ;	\
 -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${dumplisppath}'";'	\
 -e 's;\(#.*PATH_EXEC\).*$$;\1 "${libdir}";'			\
 -e 's;\(#.*PATH_DATA\).*$$;\1 "${datadir}";'			\
--e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";'			\
--e 's;\(#.*PATH_SUPERLOCK\).*$$;\1 "${lockdir}/!!!SuperLock!!!";'
+-e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";'
 
 (cd lib-src; make) || exit 1
 (cd src; make) || exit 1
