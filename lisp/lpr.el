@@ -43,7 +43,7 @@
   "*Name of program for printing a file.")
 
 (defvar lpr-headers-switches
-  (if (equal lpr-command "lpr") "-p" nil)
+  (if (equal lpr-command "lpr") '("-p") nil)
   "*List of strings to use as options for `lpr' to request page headings.")
 
 (defvar print-region-function nil
@@ -53,7 +53,7 @@ See definition of `print-region-1' for calling conventions.")
 (defvar lpr-page-header-program "pr"
   "*Name of program for adding page headers to a file.")
 
-(defvar lpr-page-header-switches nil
+(defvar lpr-page-header-switches '("-f")
   "*List of strings to use as options for `lpr-page-header-program'.")
 
 ;;;###autoload
