@@ -132,7 +132,7 @@ Reveal mode renders invisible text around point visible again.
 Interactively, with no prefix argument, toggle the mode.
 With universal prefix ARG (or if ARG is nil) turn mode on.
 With zero or negative ARG turn mode off."
-  :lighter "Reveal"
+  :lighter (global-reveal-mode nil " Reveal")
   (if reveal-mode
       (progn
 	(set (make-local-variable 'search-invisible) t)
