@@ -355,6 +355,14 @@ getloadavg (loadavg, nelem)
 {
   int elem = 0;			/* Return value.  */
 
+#ifdef NO_GET_LOAD_AVG
+#define LDAV_DONE
+  /* Set errno to zero to indicate that there was no particular error;
+     this function just can't work at all on this system.  */
+  errno = 0;
+  elem = -1;
+#endif
+
 #if !defined (LDAV_DONE) && defined (LINUX)
 #define LDAV_DONE
 #undef LOAD_AVE_TYPE
@@ -540,13 +548,13 @@ getloadavg (loadavg, nelem)
 
 #if !defined (LDAV_DONE) && defined (OSF_MIPS)
 #define LDAV_DONE
-#define LDAV_PRIVILEGED
 
   struct tbl_loadavg load_ave;
   table (TBL_LOADAVG, 0, &load_ave, 1, sizeof (load_ave));
-  loadavg[elem++] = (load_ave.tl_lscale == 0
-		     ? load_ave.tl_avenrun.d[0]
-		     : (load_ave.tl_avenrun.l[0] / load_ave.tl_lscale));
+  loadavg[elem++]
+    = (load_ave.tl_lscale == 0
+       ? load_ave.tl_avenrun.d[0]
+       : (load_ave.tl_avenrun.l[0] / (double) load_ave.tl_lscale));
 #endif	/* OSF_MIPS */
 
 #if !defined (LDAV_DONE) && defined (VMS)
