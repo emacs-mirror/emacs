@@ -1,5 +1,8 @@
 2001-10-04  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* uniquify.el (uniquify-get-proposed-name): Don't assume dirsep is /.
+	(uniquify-reverse-components): Remove.
+
 	* emacs-lisp/bytecomp.el (byte-recompile-directory):
 	Make sure the file is readable.
 	(byte-compile-file): Don't compile if `no-byte-compile' is set.
