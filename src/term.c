@@ -2120,13 +2120,15 @@ set_tty_color_mode (f, val)
 	color_mode_spec = Qnil;
       else
 	color_mode_spec = Fassq (val, XSYMBOL (tty_color_mode_alist)->value);
-      current_mode_spec = assq_no_quit (Qtty_color_mode, f->param_alist);
 
       if (CONSP (color_mode_spec))
 	color_mode = XCDR (color_mode_spec);
       else
 	color_mode = Qnil;
     }
+
+  current_mode_spec = assq_no_quit (Qtty_color_mode, f->param_alist);
+
   if (CONSP (current_mode_spec))
     current_mode = XCDR (current_mode_spec);
   else
