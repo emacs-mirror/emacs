@@ -26,12 +26,13 @@
 
 ;; Vietnamese uses ASCII characters and additional 134 unique
 ;; characters (these are Latin alphabets with various diacritical and
-;; tone marks).  As far as I know, Vietnamese now has 4 different ways
-;; for representing these characters: VISCII, VSCII, VIQR, and
-;; Unicode.  VISCII and VSCII are simple 1-byte code which assigns 134
-;; unique characters in control-code area (0x00..0x1F) and right half
-;; area (0x80..0xFF).  VIQR is a menmonic encoding specification
-;; representing diacritical marks by following ASCII characters.
+;; tone marks).  As far as I know, Vietnamese now has 5 different ways
+;; for representing these characters: VISCII, TCVN-5712, VPS, VIQR,
+;; and Unicode.  VISCII, TCVN-5712 and VPS are simple 1-byte code
+;; which assigns 134 unique characters in control-code area
+;; (0x00..0x1F) and right half area (0x80..0xFF).  VIQR is a menmonic
+;; encoding specification representing diacritical marks by following
+;; ASCII characters.
 
 ;;; Code:
 
