@@ -379,7 +379,7 @@ inherit all the commands defined in this map.")
 In this mode, paragraphs are delimited only by blank or white lines.
 You can thus get the full benefit of adaptive filling
  (see the variable `adaptive-fill-mode').
-\\{text-mode-map}
+\\@{text-mode-map@}
 Turning on Text mode runs the normal hook `text-mode-hook'."
 @end group
 @group
@@ -481,7 +481,6 @@ correspondingly more complicated.  Here are excerpts from
       (modify-syntax-entry ?' "'   " table)
       (modify-syntax-entry ?, "'   " table)
 @end group
-@end group
 @group
       ;; @r{@dots{}likewise for many other characters@dots{}}
       (modify-syntax-entry ?\( "()  " table)
@@ -490,6 +489,7 @@ correspondingly more complicated.  Here are excerpts from
       (modify-syntax-entry ?\] ")[  " table))
     table))
 @end group
+@group
 ;; @r{Create an abbrev table for lisp-mode.}
 (define-abbrev-table 'lisp-mode-abbrev-table ())
 @end group
