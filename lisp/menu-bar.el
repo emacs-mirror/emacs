@@ -335,7 +335,7 @@ Do the same for the keys of the same name."
 
 (defvar menu-bar-custom-menu (make-sparse-keymap "Customize"))
 
-(define-key menu-bar-custom-menu [custom-menu-update]
+(define-key menu-bar-custom-menu [Custom-menu-update]
   '("Update This Menu" . custom-menu-update))
 (define-key menu-bar-custom-menu [customize-apropos]
   '("Apropos..." . customize-apropos))
@@ -346,7 +346,7 @@ Do the same for the keys of the same name."
 (define-key menu-bar-custom-menu [customize-variable]
   '("Specific Variable..." . customize-variable))
 (define-key menu-bar-custom-menu [customize]
-  '("Browse Hierarchy of User Options" . customize))
+  '("Browse Hierarchy of User Options" . customize-browse))
 
 (define-key menu-bar-help-menu [emacs-version]
   '("Show Version" . emacs-version))
