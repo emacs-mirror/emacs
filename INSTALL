@@ -1,0 +1,489 @@
+GNU Emacs Installation Guide
+Copyright (c) 1992 Free software Foundation, Inc.
+
+   Permission is granted to anyone to make or distribute verbatim copies
+   of this document as received, in any medium, provided that the
+   copyright notice and permission notice are preserved,
+   and that the distributor grants the recipient permission
+   for further redistribution as permitted by this notice.
+
+   Permission is granted to distribute modified versions
+   of this document, or of portions of it,
+   under the above conditions, provided also that they
+   carry prominent notices stating who last changed them,
+   and that any new or changed statements about the activities
+   of the Free Software Foundation are approved by the Foundation.
+
+
+BUILDING AND INSTALLATION:
+
+1) Make sure your system has enough swapping space allocated to handle
+a program whose pure code is 900k bytes and whose data area is at
+least 400k and can reach 8Mb or more.  If the swapping space is
+insufficient, you will get an error in the command `temacs -batch -l
+loadup dump', found in `./src/ymakefile', or possibly when running the
+final dumped Emacs.
+ 
+Building Emacs requires about 30 Mb of disk space.  Installed, Emacs
+occupies about 20 Mb; this includes the executable files, lisp
+libraries, miscellaneous data files, and on-line documentation.
+
+2) Consult `./etc/MACHINES' to see what configuration name you should
+give to the `configure' program.  That file sometimes offers hints for
+getting around some possible installation problems.
+
+3) In the top directory of the Emacs distribution, run the program
+`configure' as follows:
+
+    ./configure CONFIGURATION-NAME [--OPTION[=VALUE]] ...
+
+The CONFIGURATION-NAME argument should be a configuration name given
+in `./etc/MACHINES'.  If omitted, `configure' will try to guess your
+system type by inspecting its environment; if it cannot, you must find
+the appropriate configuration name in `./etc/MACHINES' and specify it
+explicitly.
+
+The `--with-x', `--with-x11', and `--with-x10' options specify which
+window system Emacs should support.  If you don't want X support,
+specify `--with-x=no'.  If all of these options are omitted,
+`configure' will try to figure out for itself whether your system has
+X11, and arrange to use it if present.
+
+The `--x-includes=DIR' and `--x-libraries=DIR' options tell the build
+process where the compiler should look for the include files and
+object libraries used with the X Window System.  Normally, your
+compiler should be able to find these by default; these options should
+only be necessary if you have your X Window System files installed in
+unusual places.
+
+The `--run-in-place' option sets up default values for the path
+variables in `./Makefile' so that Emacs will expect to find its data
+files (lisp libraries, runnable programs, and the like) in the same
+locations they occupy while Emacs builds.  This means that you don't
+have to install Emacs in order to run it; it uses its data files as
+they were unpacked.
+
+The `--with-gcc' option specifies that the build process should
+compile Emacs using GCC.  If you don't want to use GCC, specify
+`--with-gcc=no'.  If this option is omitted, `configure' will search
+for GCC in your load path, and use it if present.
+
+The `--srcdir=DIR' option specifies that the configuration and build
+processes should look for the Emacs source code in DIR, when DIR is
+not the current directory.
+
+The `--prefix=PREFIXDIR' option specifies where the installation process
+should put emacs and its data files.  This defaults to `/usr/local'.
+- Emacs (and the other utilities users run) go in PREFIXDIR/bin
+  (unless the `--exec-prefix' option says otherwise).
+- The architecture-independent files go in PREFIXDIR/lib/emacs/VERSION
+  (where VERSION is the version number of Emacs, like `19.7').
+- The architecture-dependent files go in
+  PREFIXDIR/lib/emacs/VERSION/CONFIGURATION
+  (where CONFIGURATION is the configuration name, like mips-dec-ultrix4.2),
+  unless the `--exec-prefix' option says otherwise.
+
+The `--exec-prefix=EXECDIR' option allows you to specify a separate
+portion of the directory tree for installing architecture-specific
+files, like executables and utility programs.  If specified,
+- Emacs (and the other utilities users run) go in EXECDIR/bin, and
+- The architecture-dependent files go in
+  EXECDIR/lib/emacs/VERSION/CONFIGURATION.
+EXECDIR/bin should be a directory that is normally in users' PATHs.
+
+For example, the command
+
+    ./configure mips-dec-ultrix --with-x11
+
+configures Emacs to build for a DECstation running Ultrix, with
+support for the X11 window system.
+
+The `configure' program does not accept abbreviations for its
+options.
+
+Note that `configure' doesn't do any compilation or installation
+itself.  It just creates the files that influence those things:
+`./Makefile', `build-install', and `./src/config.h'.  For details on
+exactly what it does, see the section called `CONFIGURATION BY HAND',
+below.
+
+When it is done, `configure' prints a description of what it did and
+leaves a copy in the file `config.status'.  That file is also a shell
+script which, when run, recreates the same configuration; it contains
+the verbal description as a comment.  If `configure' exits with an
+error after disturbing the status quo, it removes `config.status'.
+
+The work of `configure' can be done by editing various files in the
+distribution, but using `configure' is supposed to be simpler.  See
+the section called "CONFIGURATION BY HAND" below if you want to do the
+configuration yourself.
+
+4) Look at `./lisp/paths.el'; if some of those values are not right
+for your system, edit the file `./lisp/site-init.el' containing Emacs
+Lisp code to override them; you probably don't want to edit paths.el
+itself.  YOU MUST USE THE LISP FUNCTION `setq' TO ASSIGN VALUES,
+rather than `defvar', as used by `./lisp/paths.el'.  For example,
+
+     (setq news-inews-program "/usr/bin/inews")
+
+is how you would override the default value of the variable
+news-inews-program (which is "/usr/local/inews").
+
+Note that, on some systems, the code you place in site-init.el must
+not use expand-file-name or any other function which may look
+something up in the system's password and user information database.
+See `./PROBLEMS' for more details on which systems this affects.
+
+5) Put into `./lisp/site-init.el' any Emacs Lisp code you want Emacs
+to load before it is dumped out.  
+
+Note that, on some systems, the code you place in site-init.el must
+not use expand-file-name or any other function which may look
+something up in the system's password and user information database.
+See `./PROBLEMS' for more details on which systems this affects.
+
+This file is nonexistent in the distribution.  You do not need to
+create it if you have nothing to put in it.
+
+6) Refer to the file `./etc/TERMS' for information on fields you may
+wish to add to various termcap entries.  The files `./etc/termcap.ucb'
+and `./etc/termcap.dat' may already contain appropriately-modified
+entries.
+
+7) Run `make' in the top directory of the Emacs distribution to finish
+building Emacs in the standard way.  The final executable file will be
+named `src/emacs'.  If you want to have Emacs's executable programs
+and data files installed as well, run `make install'.
+
+By default, Emacs installs its files in the following directories:
+
+`/usr/local/bin' holds the executable programs users normally run -
+		`emacs', `etags', `ctags', `b2m', and `emacsclient'.
+
+`/usr/local/lib/emacs/VERSION/lisp' holds the Emacs Lisp library;
+		`VERSION' stands for the number of the Emacs version
+		you are installing, like `18.59' or `19.0'.  Since the
+		lisp library changes from one version of Emacs to
+		another, including the version number in the path
+		allows you to have several versions of Emacs installed
+		at the same time; this means that you don't have to
+		make Emacs unavailable while installing a new
+		version.
+
+		Emacs searches for its lisp files in
+		`/usr/local/lib/emacs/site-lisp', then in this
+		directory.
+
+`/usr/local/lib/emacs/VERSION/etc' holds the Emacs tutorial, the DOC
+		file, the `yow' database, and other
+		architecture-independent files Emacs might need while
+		running.  VERSION is as specified for `.../lisp'.
+
+`/usr/local/lib/emacs/lock' contains files indicating who is editing
+		what, so Emacs can detect editing clashes between
+		users.
+
+`/usr/local/lib/emacs/VERSION/CONFIGURATION-NAME' contains executable
+		programs used by Emacs that users are not expected to
+		run themselves.
+		`VERSION' is the number of the Emacs version you are
+		installing, and `CONFIGURATION-NAME' is the argument
+		you gave to the `configure' program to identify the
+		architecture and operating system of your machine,
+		like `mips-dec-ultrix' or `sparc-sun-sunos'.  Since
+		these files are specific to the version of Emacs,
+		operating system, and architecture in use, including
+		the configuration name in the path allows you to have
+		several versions of Emacs for any mix of machines and
+		operating systems installed at the same time; this is
+		useful for sites at which different kinds of machines
+		share the file system Emacs is installed on.
+
+`/usr/local/info' holds the on-line documentation for Emacs, known as
+		"info files".  Many other GNU programs are documented
+		using info files as well, so this directory stands
+		apart from the other, Emacs-specific directories.
+
+`/usr/local/man/man1' holds the man pages for the programs installed
+		in `/usr/local/bin'.
+
+If these directories are not what you want, you can specify where to
+install Emacs's libraries and data files or where Emacs should search
+for its lisp files by giving values for `make' variables as part of
+the command.  See the section below called `MAKE VARIABLES' for more
+information on this.
+
+8) Check the file `dir' in your site's info directory (usually
+/usr/local/info) to make sure that it has a menu entry for the Emacs
+info files.
+
+9) You are done!
+
+
+MAKE VARIABLES
+
+You can change where the build process installs Emacs and its data
+files by specifying values for `make' variables as part of the `make'
+command line.  For example, if you type
+
+    make install bindir=/usr/local/gnubin
+
+the `bindir=/usr/local/gnubin' argument indicates that the Emacs
+executable files should go in `/usr/local/gnubin', not
+`/usr/local/bin'.
+
+Here is a complete list of the variables you may want to set.
+
+`bindir' indicates where to put executable programs that users can
+	run.  This defaults to /usr/local/bin.
+
+`datadir' indicates where to put the architecture-independent
+	read-only data files that Emacs refers to while it runs; it
+	defaults to /usr/local/lib.  We create the following
+	subdirectories under `datadir':
+	- `emacs/VERSION/lisp', containing the Emacs lisp library, and
+	- `emacs/VERSION/etc', containing the Emacs tutorial, the DOC
+		file, and the `yow' database.
+	`VERSION' is the number of the Emacs version you are installing,
+	like `18.59' or `19.0'.  Since these files vary from one version
+	of Emacs to another, including the version number in the path
+	allows you to have several versions of Emacs installed at the
+	same time; this means that you don't have to make Emacs
+	unavailable while installing a new version.
+
+`statedir' indicates where to put architecture-independent data files
+	that Emacs modifies while it runs; it defaults to
+	/usr/local/lib as well.  We create the following
+	subdirectories under `statedir':
+	- `emacs/lock', containing files indicating who is editing
+		what, so Emacs can detect editing clashes between
+		users.
+
+`libdir' indicates where to put architecture-specific data files that
+	Emacs refers to as it runs; it too defaults to `/usr/local/lib'.
+	We create the following subdirectories under `libdir':
+	- `emacs/VERSION/CONFIGURATION-NAME', containing executable
+		programs used by Emacs that users are not expected to run
+		themselves.  
+	`VERSION' is the number of the Emacs version you are installing,
+	and `CONFIGURATION-NAME' is the argument you gave to the
+	`configure' program to identify the architecture and operating
+	system of your machine, like `mips-dec-ultrix' or
+	`sparc-sun-sunos'.  Since these files are specific to the version
+	of Emacs, operating system, and architecture in use, including
+	the configuration name in the path allows you to have several
+	versions of Emacs for any mix of machines and operating systems
+	installed at the same time; this is useful for sites at which
+	different kinds of machines share the file system Emacs is
+	installed on.
+
+`infodir' indicates where to put the info files distributed with
+	Emacs; it defaults to `/usr/local/info'.
+
+`mandir' indicates where to put the man pages for Emacs and its
+	utilities (like `etags'); it defaults to
+	`/usr/local/man/man1'.
+
+`manext' gives the extension the man pages should be installed with.
+	It should contain a period, followed by the appropriate
+	digit.  It defaults to `.1'.  For example given the default
+	values for `mandir' and `manext', the Emacs man page would be
+	installed as `/usr/local/man/man1/emacs.1'.
+
+`prefix' doesn't give a path for any specific part of Emacs; instead,
+	its value is used to determine the defaults for all the
+	architecture-independent path variables - `datadir',
+	`statedir', `infodir', and `mandir'.  Its default value is
+	`/usr/local'; the other variables add on `lib' or `man' to it
+	by default.
+
+	For example, suppose your site generally places GNU software
+	under `/usr/users/software/gnusoft' instead of `/usr/local'.
+	By including
+	    `prefix=/usr/users/software/gnusoft'
+	in the arguments to `make', you can instruct the build process
+	to place all of the Emacs data files in the appropriate
+	directories under that path.
+
+`exec_prefix' serves the same purpose as `prefix', but instead
+	determines the default values for the architecture-dependent
+	path variables - `bindir' and `libdir'.
+
+The above variables serve analogous purposes in the makefiles for all
+GNU software; here are some variables specific to Emacs.
+
+`lispdir' indicates where Emacs installs and expects its lisp
+	library.  Its default value, based on `datadir' (which see),
+	is `/usr/local/lib/emacs/VERSION/lisp' (where `VERSION' is as
+	described above).
+
+`locallisppath' indicates where Emacs should search for lisp files
+	specific to your site.  It should be a colon-separated list of
+	directories; Emacs checks them in order before checking
+	`lispdir'.
+
+`lisppath' is the complete list of directories Emacs should search for
+	its lisp files; its default value is the concatenation of
+	`lispdir' and `locallisppath'.  It should be a colon-separated
+	list of directories; Emacs checks them in the order they
+	appear.
+
+`etcdir' indicates where Emacs should install and expect the rest of
+	its architecture-independent data, like the tutorial, DOC
+	file, and yow database.  Its default value, based on `datadir'
+	(which see), is `/usr/local/lib/emacs/VERSION/etc'.
+
+`lockdir' indicates the directory where Emacs keeps track of its
+	locking information.  Its default value, based on `statedir'
+	(which see), is `/usr/local/lib/emacs/lock'.
+
+`archlibdir' indicates where Emacs installs and expects the
+	executable files and other architecture-dependent data it uses
+	while running.  Its default value, based on `libdir' (which
+	see), is `/usr/local/lib/emacs/VERSION/CONFIGURATION-NAME'
+	(where VERSION and CONFIGURATION-NAME are as described above).
+
+Remember that you must specify any variable values you need each time
+you run `make' in the top directory.  If you run `make' once to build
+emacs, test it, and then run `make' again to install the files, you
+must provide the same variable settings each time.  To make the
+settings persist, you can edit them into the `Makefile' in the top
+directory, but be aware that running the `configure' program erases
+`Makefile' and rebuilds it from `Makefile.in'.
+
+The top-level Makefile stores the variable settings it used in the
+Makefiles for the subdirectories, so you don't have to specify them
+when running make in the subdirectories.
+
+
+CONFIGURATION BY HAND
+
+Running the `configure' program performs the following steps.
+
+1) Copy `./src/config.h.in' to `./src/config.h'.
+
+2) Consult `./etc/MACHINES' to see what configuration name you should
+use for your system.  Look at the code of the `configure' script to
+see which operating system and architecture description files from
+`src/s' and `src/m' should be used for that configuration name.  Edit
+`src/config.h', and change the two `#include' directives to include
+the appropriate system and architecture description files.
+
+2) Edit `./src/config.h' to set the right options for your system.  If
+you need to override any of the definitions in the s/*.h and m/*.h
+files for your system and machine, do so by editing config.h, not by
+changing the s/*.h and m/*.h files.  Occasionally you may need to
+redefine parameters used in `./lib-src/movemail.c'.
+
+3) If you're going to use the make utility to build Emacs, copy
+`./Makefile.in' to `./Makefile', and then edit that to specify the
+appropriate values for the variables in the sections entitled "Things
+`configure' Might Edit" and "Where To Install Things."  Note that you
+may only need to change the variables `prefix' and `exec_prefix',
+since the rest of the variables have reasonable defaults based on
+them.
+
+4) Typing `make src/Makefile lib-src/Makefile' builds the
+makefiles for the subdirectories, editing in the values for the path
+variables you establed in step 3.
+
+-- or --
+
+4) If you're going to use the build-install script to build Emacs,
+copy `./build-install.in' to `./build-install', and edit the similar
+definitions found at the top of the script.
+
+
+The `configure' script is built from `configure.in' by the `autoconf'
+program.  However, since Emacs has configuration requirements that
+autoconf can't meet, `configure.in' uses an unholy marriage of
+custom-baked configuration code and autoconf macros.  New versions of
+autoconf could very well break this arrangement, so it may be wise to
+avoid rebuilding `configure' from `configure.in' when possible.
+
+
+BUILDING GNU EMACS BY HAND
+
+Once Emacs is configured, running `make' or running the shell script
+`build-install' in the top directory performs the following steps.
+
+1) Run `make src/paths.h' in the top directory.  This produces
+`./src/paths.h' from the template file `./src/paths.h.in', changing
+the paths to the values specified in `./Makefile'.
+
+2) Cd to `./lib-src' and run `make'.  This creates executables named
+`ctags' and `etags' and `wakeup' and `make-docfile' and `digest-doc'
+and `test-distrib'.  And others.
+
+3) Cd to `./src' and Run `make'.  This refers to files in the `./lisp'
+and `./lib-src' subdirectories using names `../lisp' and
+`../lib-src'.
+
+This creates a file `./src/emacs' which is the runnable Emacs,
+assigning it a new version number by incrementing the version stored
+in `./lisp/version.el'.
+
+It also creates a file in `./etc' whose name is `DOC' followed by the
+current Emacs version.  This file contains documentation strings for
+all the functions in Emacs.  Each time you run make to make a new
+emacs, a new DOC file with a new name is made.  You must keep the DOC
+file for an Emacs version as long as you keep using that Emacs
+version.
+
+
+INSTALLATION BY HAND
+
+The steps below are done by the shell script `build-install' or by
+running `make install' in the main directory of the Emacs
+distribution.
+
+1) Copy `./lisp' and its subdirectories, `./etc', and the executables
+in `./lib-src' to their final destinations, as selected in `./src/paths.h'.
+
+Strictly speaking, not all of the executables in `./lib-src' need be copied.
+- The programs `cvtmail', `emacsserver', `env', `fakemail', `hexl',
+    `movemail', `timer', `vcdiff', `wakeup', and `yow' are used by
+    Emacs; they do need to be copied.
+- The programs `etags', `ctags', `emacsclient', `b2m', and `rcs2log'
+    are intended to be run by users; they are handled below.
+- The programs `make-docfile', `make-path', and `test-distrib' were
+    used in building Emacs, and are not needed any more.
+- The programs `digest-doc' and `sorted-doc' convert a `DOC' file into
+    a file for users to read.  There is no important reason to move them.
+
+2) Copy the files in `./info' to the place specified in
+`./lisp/site-init.el' or `./lisp/paths.el'.  Note that if the
+destination directory already contains a file named `dir', you
+probably don't want to replace it with the `dir' file in the Emacs
+distribution.  Instead, you should make sure that the existing `dir'
+file contains an appropriate menu entry for the Emacs info.
+
+3) Create a directory for Emacs to use for clash detection, named as
+indicated by the PATH_LOCK macro in `./src/paths.h'.
+
+4) Copy `./src/emacs' to `/usr/local/bin', or to some other directory
+in users' search paths.  `./src/emacs' has an alternate name
+`./src/emacs-EMACSVERSION'; you may wish to make a symbolic link named
+`/usr/local/bin/emacs' pointing to that alternate name, as an easy way
+of installing different versions.
+
+You can delete `./src/temacs'.
+
+5) Copy the programs `b2m', `emacsclient', `ctags', `etags', and
+`rcs2log' from `./lib-src' to `/usr/local/bin'.  These programs are
+intended for users to run.
+
+6) Copy the man pages in `./etc' for emacs, ctags, and etags into the
+appropriate man directories.
+
+7) The files in the `./src' subdirectory, except for `emacs', are not
+used by Emacs once it is built.  The source would be handy for
+debugging.
+
+
+PROBLEMS
+
+See the file PROBLEMS in this directory for a list of various
+problems sometimes encountered, and what to do about them.
+
+
