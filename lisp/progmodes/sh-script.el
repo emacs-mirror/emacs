@@ -883,6 +883,7 @@ Else indexing follows an inheritance logic which works in two ways:
 
   - Fall back on successive ancestors (see `sh-ancestor-alist') as long as
     the alist contains no value for the current shell.
+    The ultimate default is always `sh'.
 
   - If the value thus looked up is a list starting with `eval' its `cdr' is
     first evaluated.  If that is also a list and the first argument is a
@@ -906,6 +907,9 @@ in ALIST."
 	(while (and sh-shell
 		    (not (setq elt (assq sh-shell list))))
 	  (setq sh-shell (cdr (assq sh-shell sh-ancestor-alist))))
+	;; If the shell is not known, treat it as sh.
+	(unless elt
+	  (setq elt (assq 'sh list)))
 	(if (and (consp (setq val (cdr elt)))
 		 (eq (car val) 'eval))
 	    (setcdr elt
