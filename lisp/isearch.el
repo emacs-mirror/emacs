@@ -223,128 +223,122 @@ Default value, nil, means edit the string instead."
 
 ;;; Define isearch-mode keymap.
 
-(defvar isearch-mode-map nil
-  "Keymap for isearch-mode.")
+(defvar isearch-mode-map
+  (let* ((i 0)
+	 (map (make-keymap)))
+    (or (vectorp (nth 1 map))
+	(char-table-p (nth 1 map))
+	(error "The initialization of isearch-mode-map must be updated"))
+    ;; Make all multibyte characters search for themselves.
+    (let ((l (generic-character-list))
+	  (table (nth 1 map)))
+      (while l
+	(set-char-table-default table (car l) 'isearch-printing-char)
+	(setq l (cdr l))))
+    ;; Make function keys, etc, exit the search.
+    (define-key map [t] 'isearch-other-control-char)
+    ;; Control chars, by default, end isearch mode transparently.
+    ;; We need these explicit definitions because, in a dense keymap, 
+    ;; the binding for t does not affect characters.
+    ;; We use a dense keymap to save space.
+    (while (< i ?\ )
+      (define-key map (make-string 1 i) 'isearch-other-control-char)
+      (setq i (1+ i)))
 
-(or isearch-mode-map
-    (let* ((i 0)
-	   (map (make-keymap)))
-      (or (vectorp (nth 1 map))
-	  (char-table-p (nth 1 map))
-	  (error "The initialization of isearch-mode-map must be updated"))
-      ;; Make all multibyte characters search for themselves.
-      (let ((l (generic-character-list))
-	    (table (nth 1 map)))
-	(while l
-	  (set-char-table-default table (car l) 'isearch-printing-char)
-	  (setq l (cdr l))))
-      ;; Make function keys, etc, exit the search.
-      (define-key map [t] 'isearch-other-control-char)
-      ;; Control chars, by default, end isearch mode transparently.
-      ;; We need these explicit definitions because, in a dense keymap, 
-      ;; the binding for t does not affect characters.
-      ;; We use a dense keymap to save space.
-      (while (< i ?\ )
-	(define-key map (make-string 1 i) 'isearch-other-control-char)
-	(setq i (1+ i)))
+    ;; Single-byte printing chars extend the search string by default.
+    (setq i ?\ )
+    (while (< i 256)
+      (define-key map (vector i) 'isearch-printing-char)
+      (setq i (1+ i)))
 
-      ;; Single-byte printing chars extend the search string by default.
-      (setq i ?\ )
-      (while (< i 256)
-	(define-key map (vector i) 'isearch-printing-char)
-	(setq i (1+ i)))
+    ;; To handle local bindings with meta char prefix keys, define
+    ;; another full keymap.  This must be done for any other prefix
+    ;; keys as well, one full keymap per char of the prefix key.  It
+    ;; would be simpler to disable the global keymap, and/or have a
+    ;; default local key binding for any key not otherwise bound.
+    (let ((meta-map (make-sparse-keymap)))
+      (define-key map (char-to-string meta-prefix-char) meta-map)
+      (define-key map [escape] meta-map))
+    (define-key map (vector meta-prefix-char t) 'isearch-other-meta-char)
 
-      ;; To handle local bindings with meta char prefix keys, define
-      ;; another full keymap.  This must be done for any other prefix
-      ;; keys as well, one full keymap per char of the prefix key.  It
-      ;; would be simpler to disable the global keymap, and/or have a
-      ;; default local key binding for any key not otherwise bound.
-      (let ((meta-map (make-sparse-keymap)))
-	(define-key map (char-to-string meta-prefix-char) meta-map)
-	(define-key map [escape] meta-map))
-      (define-key map (vector meta-prefix-char t) 'isearch-other-meta-char)
-
-      ;; Several non-printing chars change the searching behavior.
-      (define-key map "\C-s" 'isearch-repeat-forward)
-      (define-key map "\C-r" 'isearch-repeat-backward)
-      ;; Define M-C-s and M-C-r like C-s and C-r so that the same key
-      ;; combinations can be used to repeat regexp isearches that can
-      ;; be used to start these searches.
-      (define-key map "\M-\C-s" 'isearch-repeat-forward)
-      (define-key map "\M-\C-r" 'isearch-repeat-backward)
-      (define-key map "\177" 'isearch-delete-char)
-      (define-key map "\C-g" 'isearch-abort)
-      ;; This assumes \e is the meta-prefix-char.
-      (or (= ?\e meta-prefix-char)
-	  (error "Inconsistency in isearch.el"))
-      (define-key map "\e\e\e" 'isearch-cancel)
-      (define-key map  [escape escape escape] 'isearch-cancel)
+    ;; Several non-printing chars change the searching behavior.
+    (define-key map "\C-s" 'isearch-repeat-forward)
+    (define-key map "\C-r" 'isearch-repeat-backward)
+    ;; Define M-C-s and M-C-r like C-s and C-r so that the same key
+    ;; combinations can be used to repeat regexp isearches that can
+    ;; be used to start these searches.
+    (define-key map "\M-\C-s" 'isearch-repeat-forward)
+    (define-key map "\M-\C-r" 'isearch-repeat-backward)
+    (define-key map "\177" 'isearch-delete-char)
+    (define-key map "\C-g" 'isearch-abort)
+    ;; This assumes \e is the meta-prefix-char.
+    (or (= ?\e meta-prefix-char)
+	(error "Inconsistency in isearch.el"))
+    (define-key map "\e\e\e" 'isearch-cancel)
+    (define-key map  [escape escape escape] 'isearch-cancel)
     
-      (define-key map "\C-q" 'isearch-quote-char)
+    (define-key map "\C-q" 'isearch-quote-char)
 
-      (define-key map "\r" 'isearch-exit)
-      (define-key map "\C-j" 'isearch-printing-char)
-      (define-key map "\t" 'isearch-printing-char)
-      (define-key map " " 'isearch-whitespace-chars)
-      (define-key map [?\S-\ ] 'isearch-whitespace-chars)
+    (define-key map "\r" 'isearch-exit)
+    (define-key map "\C-j" 'isearch-printing-char)
+    (define-key map "\t" 'isearch-printing-char)
+    (define-key map " " 'isearch-whitespace-chars)
+    (define-key map [?\S-\ ] 'isearch-whitespace-chars)
     
-      (define-key map "\C-w" 'isearch-yank-word)
-      (define-key map "\C-y" 'isearch-yank-line)
+    (define-key map "\C-w" 'isearch-yank-word)
+    (define-key map "\C-y" 'isearch-yank-line)
 
-      ;; Define keys for regexp chars * ? |.
-      ;; Nothing special for + because it matches at least once.
-      (define-key map "*" 'isearch-*-char)
-      (define-key map "?" 'isearch-*-char)
-      (define-key map "|" 'isearch-|-char)
+    ;; Define keys for regexp chars * ? |.
+    ;; Nothing special for + because it matches at least once.
+    (define-key map "*" 'isearch-*-char)
+    (define-key map "?" 'isearch-*-char)
+    (define-key map "|" 'isearch-|-char)
 
 ;;; Turned off because I find I expect to get the global definition--rms.
 ;;;      ;; Instead bind C-h to special help command for isearch-mode.
 ;;;      (define-key map "\C-h" 'isearch-mode-help)
 
-      (define-key map "\M-n" 'isearch-ring-advance)
-      (define-key map "\M-p" 'isearch-ring-retreat)
-      (define-key map "\M-y" 'isearch-yank-kill)
+    (define-key map "\M-n" 'isearch-ring-advance)
+    (define-key map "\M-p" 'isearch-ring-retreat)
+    (define-key map "\M-y" 'isearch-yank-kill)
 
-      (define-key map "\M-\t" 'isearch-complete)
+    (define-key map "\M-\t" 'isearch-complete)
 
-      ;; Pass frame events transparently so they won't exit the search.
-      ;; In particular, if we have more than one display open, then a
-      ;; switch-frame might be generated by someone typing at another keyboard.
-      (define-key map [switch-frame] nil)
-      (define-key map [delete-frame] nil)
-      (define-key map [iconify-frame] nil)
-      (define-key map [make-frame-visible] nil)
-      ;; For searching multilingual text.
-      (define-key map "\C-\\" 'isearch-toggle-input-method)
-      (define-key map "\C-^" 'isearch-toggle-specified-input-method)
+    ;; Pass frame events transparently so they won't exit the search.
+    ;; In particular, if we have more than one display open, then a
+    ;; switch-frame might be generated by someone typing at another keyboard.
+    (define-key map [switch-frame] nil)
+    (define-key map [delete-frame] nil)
+    (define-key map [iconify-frame] nil)
+    (define-key map [make-frame-visible] nil)
+    ;; For searching multilingual text.
+    (define-key map "\C-\\" 'isearch-toggle-input-method)
+    (define-key map "\C-^" 'isearch-toggle-specified-input-method)
 
-      ;; People expect to be able to paste with the mouse.
-      (define-key map [mouse-2] #'isearch-mouse-yank)
-      (define-key map [down-mouse-2] nil)
+    ;; People expect to be able to paste with the mouse.
+    (define-key map [mouse-2] #'isearch-mouse-yank)
+    (define-key map [down-mouse-2] nil)
 
-      (setq isearch-mode-map map)
-      ))
+    ;; Some bindings you may want to put in your isearch-mode-hook.
+    ;; Suggest some alternates...
+    (define-key map "\M-c" 'isearch-toggle-case-fold)
+    (define-key map "\M-r" 'isearch-toggle-regexp)
+    (define-key map "\M-e" 'isearch-edit-string)
 
-;; Some bindings you may want to put in your isearch-mode-hook.
-;; Suggest some alternates...
-;; (define-key isearch-mode-map "\C-t" 'isearch-toggle-case-fold)
-;; (define-key isearch-mode-map "\C-t" 'isearch-toggle-regexp)
-;; (define-key isearch-mode-map "\C-^" 'isearch-edit-string)
+    map)
+  "Keymap for `isearch-mode'.")
 
-
-(defvar minibuffer-local-isearch-map nil
+(defvar minibuffer-local-isearch-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-map)
+    (define-key map "\r" 'isearch-nonincremental-exit-minibuffer)
+    (define-key map "\M-n" 'isearch-ring-advance-edit)
+    (define-key map "\M-p" 'isearch-ring-retreat-edit)
+    (define-key map "\M-\t" 'isearch-complete-edit)
+    (define-key map "\C-s" 'isearch-forward-exit-minibuffer)
+    (define-key map "\C-r" 'isearch-reverse-exit-minibuffer)
+    map)
   "Keymap for editing isearch strings in the minibuffer.")
-
-(or minibuffer-local-isearch-map
-    (let ((map (copy-keymap minibuffer-local-map)))
-      (define-key map "\r" 'isearch-nonincremental-exit-minibuffer)
-      (define-key map "\M-n" 'isearch-ring-advance-edit)
-      (define-key map "\M-p" 'isearch-ring-retreat-edit)
-      (define-key map "\M-\t" 'isearch-complete-edit)
-      (define-key map "\C-s" 'isearch-forward-exit-minibuffer)
-      (define-key map "\C-r" 'isearch-reverse-exit-minibuffer)
-      (setq minibuffer-local-isearch-map map)
-      ))
 
 ;; Internal variables declared globally for byte-compiler.
 ;; These are all set with setq while isearching
@@ -925,7 +919,7 @@ Use `isearch-exit' to quit without signaling."
 			   isearch-string ""))
 	;; If already have what to search for, repeat it.
 	(or isearch-success
-	    (progn 
+	    (progn
 	      (goto-char (if isearch-forward (point-min) (point-max)))
 	      (setq isearch-wrapped t))))
     ;; C-s in reverse or C-r in forward, change direction.
@@ -1158,7 +1152,7 @@ and the meta character is unread so that it applies to editing the string."
 	   ;; so that the translated key takes effect within isearch.
 	   (cancel-kbd-macro-events)
 	   (if (lookup-key global-map key)
-	       (progn 
+	       (progn
 		 (isearch-done)
 		 (apply 'isearch-unread keylist))
 	     (setq keylist
@@ -1626,9 +1620,7 @@ If there is no completion possible, say so and continue searching."
 ;;; opened overlays, except the ones that contain the latest match.
 (defun isearch-clean-overlays ()
   (when isearch-opened-overlays
-    ;; Use a cycle instead of a mapcar here?
-    (mapcar 
-     (function isearch-open-necessary-overlays) isearch-opened-overlays)
+    (mapc 'isearch-open-necessary-overlays isearch-opened-overlays)
     (setq isearch-opened-overlays nil)))
 
 ;;; Verify if the current match is outside of each element of
@@ -1650,7 +1642,7 @@ If there is no completion possible, say so and continue searching."
       ;; this function, not by us tweaking the overlay properties.
       (setq fct-temp (overlay-get ov 'isearch-open-invisible-temporary))
       (if inside-overlay
-	(setq isearch-opened-overlays (cons ov isearch-opened-overlays))
+	  (setq isearch-opened-overlays (cons ov isearch-opened-overlays))
 	(if fct-temp
 	    (funcall fct-temp ov t)
 	  (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
@@ -1719,9 +1711,7 @@ If there is no completion possible, say so and continue searching."
 		 (progn
 		   (setq isearch-opened-overlays
 			 (append isearch-opened-overlays crt-overlays))
-		   ;; maybe use a cycle instead of mapcar?
-		   (mapcar (function isearch-open-overlay-temporary)
-			   crt-overlays)
+		   (mapc 'isearch-open-overlay-temporary crt-overlays)
 		   nil)
 	       t))))))
 
@@ -1800,7 +1790,7 @@ since they have special meaning in a regexp."
 ;; General function to unread characters or events.
 ;; Also insert them in a keyboard macro being defined.
 (defun isearch-unread (&rest char-or-events)
-  (mapcar 'store-kbd-macro-event char-or-events)
+  (mapc 'store-kbd-macro-event char-or-events)
   (setq unread-command-events
 	(append char-or-events unread-command-events)))
 
@@ -1911,7 +1901,7 @@ is nil.  This function is called when exiting an incremental search if
           (cdr isearch-lazy-highlight-overlays))))
 
 (defun isearch-lazy-highlight-new-loop ()
-  "Cleanup any previous isearch-lazy-highlight loop and begin a new one.
+  "Cleanup any previous `isearch-lazy-highlight' loop and begin a new one.
 This happens when `isearch-update' is invoked (which can cause the
 search string to change)."
   (if (and isearch-lazy-highlight
