@@ -300,9 +300,12 @@ message in the @samp{*Compilation*} buffer, you go to the source code
 for that error message.  If you click @kbd{Mouse-2} on a completion in
 the @samp{*Completions*} buffer, you choose that completion.
 
+@vindex mouse-highlight
   You can usually tell when @kbd{Mouse-2} has this special sort of
 meaning because the sensitive text highlights when you move the mouse
-over it.
+over it.  The variable @code{mouse-highlight} controls whether to do
+this highlighting always (even when such text appears where the mouse
+already is), never, or only immediately after you move the mouse.
 
 @node Menu Mouse Clicks
 @section Mouse Clicks for Menus
