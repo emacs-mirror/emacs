@@ -33,6 +33,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "paths.h"
 #include "commands.h"
 #include "keyboard.h"
+#include "termhooks.h"
 #endif
 
 #ifdef lint
@@ -49,6 +50,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 Lisp_Object Qread_char, Qget_file_char, Qstandard_input;
 Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;
+Lisp_Object Qascii_character;
+
+extern Lisp_Object Qevent_symbol_element_mask;
 
 /* non-zero if inside `load' */
 int load_in_progress;
@@ -200,11 +204,25 @@ If you want to read non-character events, or ignore them, call\n\
     if (! NILP (delayed_switch_frame))
       unread_switch_frame = delayed_switch_frame;
 
-    /* Only ASCII characters are acceptable.  */
+    /* Only ASCII characters are acceptable.
+       But convert certain symbols to their ASCII equivalents.  */
+    if (XTYPE (val) == Lisp_Symbol)
+      {
+	Lisp_Object tem, tem1, tem2;
+	tem = Fget (val, Qevent_symbol_element_mask);
+	if (!NILP (tem))
+	  {
+	    tem1 = Fget (Fcar (tem), Qascii_character);
+	    /* Merge this symbol's modifier bits
+	       with the ASCII equivalent of its basic code.  */
+	    if (!NILP (tem1))
+	      XFASTINT (val) = XINT (tem1) | XINT (Fcar (Fcdr (tem)));
+	  }
+      }
     if (XTYPE (val) != Lisp_Int)
       {
 	unread_command_events = Fcons (val, Qnil);
-	error ("Object read was not a character");
+	error ("Non-character input-event");
       }
   }
 #else
@@ -241,6 +259,21 @@ It is returned as a number.  Non character events are ignored.")
       {
 	val = read_char (0, 0, 0, Qnil, 0);
 
+	/* Convert certain symbols (for keys like RET, DEL, TAB)
+	   to ASCII integers.  */
+	if (XTYPE (val) == Lisp_Symbol)
+	  {
+	    Lisp_Object tem, tem1;
+	    tem = Fget (val, Qevent_symbol_element_mask);
+	    if (!NILP (tem))
+	      {
+		tem1 = Fget (Fcar (tem), Qascii_character);
+		/* Merge this symbol's modifier bits
+		   with the ASCII equivalent of its basic code.  */
+		if (!NILP (tem1))
+		  XFASTINT (val) = XINT (tem1) | XINT (Fcar (Fcdr (tem)));
+	      }
+	  }
 	if (XTYPE (val) == Lisp_Int)
 	  break;
 
@@ -790,7 +823,7 @@ read_escape (readcharfun)
       c = READCHAR;
       if (c == '\\')
 	c = read_escape (readcharfun);
-      return c | CHAR_META;
+      return c | meta_modifier;
 
     case 'S':
       c = READCHAR;
@@ -799,7 +832,34 @@ read_escape (readcharfun)
       c = READCHAR;
       if (c == '\\')
 	c = read_escape (readcharfun);
-      return c | CHAR_SHIFT;
+      return c | shift_modifier;
+
+    case 'H':
+      c = READCHAR;
+      if (c != '-')
+	error ("Invalid escape character syntax");
+      c = READCHAR;
+      if (c == '\\')
+	c = read_escape (readcharfun);
+      return c | hyper_modifier;
+
+    case 'A':
+      c = READCHAR;
+      if (c != '-')
+	error ("Invalid escape character syntax");
+      c = READCHAR;
+      if (c == '\\')
+	c = read_escape (readcharfun);
+      return c | alt_modifier;
+
+    case 's':
+      c = READCHAR;
+      if (c != '-')
+	error ("Invalid escape character syntax");
+      c = READCHAR;
+      if (c == '\\')
+	c = read_escape (readcharfun);
+      return c | super_modifier;
 
     case 'C':
       c = READCHAR;
@@ -818,7 +878,7 @@ read_escape (readcharfun)
       else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
 	return (c & (037 | ~0177));
       else
-	return c | CHAR_CTL;
+	return c | ctrl_modifier;
 
     case '0':
     case '1':
@@ -1747,4 +1807,7 @@ but does prevent execution of the rest of the FORMS.");
 
   Qget_file_char = intern ("get-file-char");
   staticpro (&Qget_file_char);
+
+  Qascii_character = intern ("ascii-character");
+  staticpro (&Qascii_character);
 }
