@@ -1,6 +1,6 @@
 /* impl.h.mpscamc: MEMORY POOL SYSTEM CLASS "AMC"
  *
- * $HopeName$
+ * $HopeName: MMsrc!mpscamc.h(trunk.1) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
@@ -10,6 +10,5 @@
 #include "mps.h"
 
 extern mps_class_t mps_class_amc(void);
-extern unsigned mps_amc_collections(mps_pool_t pool_amc);
 
 #endif /* mpscamc_h */
