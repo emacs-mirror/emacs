@@ -83,7 +83,7 @@ INSTALLABLE_SCRIPTS = rcs-checkin
 # Things that Emacs runs internally, or during the build process,
 # which should not be installed in bindir.
 UTILITIES= test-distrib make-path wakeup profile make-docfile digest-doc \
-	sorted-doc movemail cvtmail fakemail yow env emacsserver hexl timer
+	sorted-doc movemail cvtmail fakemail yow emacsserver hexl timer
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 # deleted by the distclean target.
@@ -225,9 +225,6 @@ fakemail: ${srcdir}/fakemail.c ../src/config.h
 
 yow: ${srcdir}/yow.c ../src/paths.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/yow.c $(LOADLIBES) -o yow
-
-env: ${srcdir}/env.c ../src/config.h
-	$(CC) -DEMACS ${ALL_CFLAGS} ${srcdir}/env.c $(LOADLIBES) -o env
 
 emacsserver: ${srcdir}/emacsserver.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsserver.c $(LOADLIBES) -o emacsserver
