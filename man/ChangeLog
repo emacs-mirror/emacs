@@ -1,3 +1,7 @@
+2003-10-22  Miles Bader  <miles@gnu.org>
+
+	* Makefile.in (info): Move before $(top_srcdir)/info.
+
 2003-10-22  Nick Roberts  <nick@nick.uklinux.net>
 
 	* building.texi (Watch Expressions): Update section on data display
