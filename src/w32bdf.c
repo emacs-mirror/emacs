@@ -55,8 +55,8 @@ cache_bitmap *pcached_bitmap_latest = cached_bitmap_slots;
 static int 
 search_file_line(char *key, char *start, int len, char **val, char **next)
 {
-  int linelen;
-  unsigned char *p, *q;
+  unsigned int linelen;
+  unsigned char *p;
 
   p = memchr(start, '\n', len);
   if (!p) return -1;
@@ -321,7 +321,6 @@ static font_char*
 get_cached_font_char(bdffont *fontp, int index)
 {
   font_char *pch, *result;
-  int i;
 
   if (!BDF_CODEPOINT_RANGE_COVER_P(index))
     return NULL;
@@ -341,7 +340,6 @@ static font_char*
 cache_char_offset(bdffont *fontp, int index, unsigned char *offset)
 {
   font_char *pch, *result;
-  int i;
 
   if (!BDF_CODEPOINT_RANGE_COVER_P(index))
     return NULL;
@@ -572,7 +570,6 @@ get_bitmap_with_cache(bdffont *fontp, int index)
 static HBITMAP
 create_offscreen_bitmap(HDC hdc, int width, int height, unsigned char **bitsp)
 {
-  HBITMAP hBMP;
   struct {
     BITMAPINFOHEADER h;
     RGBQUAD c[2];
