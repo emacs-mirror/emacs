@@ -2204,9 +2204,10 @@ extern EMACS_INT tool_bar_button_relief;
 			 Terminal Capabilities
  ***********************************************************************/
 
-/* Each of these is a bit representing a terminal `capability' (bold, inverse,
-   etc).  They are used to when calling `tty_capable_p' to ask what a terminal
-   supports.  */
+/* Each of these is a bit representing a terminal `capability' (bold,
+   inverse, etc).  They are or'd together to specify the set of
+   capabilities being queried for when calling `tty_capable_p' (which
+   returns true if the terminal supports all of them).  */
 
 #define TTY_CAP_INVERSE		0x01
 #define TTY_CAP_UNDERLINE	0x02
