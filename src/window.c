@@ -1985,9 +1985,9 @@ display_buffer_1 (window)
 }
 
 DEFUN ("special-display-p", Fspecial_display_p, Sspecial_display_p, 1, 1, 0,
-  "Returns non-nil if a buffer named BUFFER-NAME would be created specially.
-The value is actually t if the frame should be called with default frame
-parameters, and a list of frame parameters if they were specified.
+  "Returns non-nil if a buffer named BUFFER-NAME would be created specially.\n\
+The value is actually t if the frame should be called with default frame\n\
+parameters, and a list of frame parameters if they were specified.\n\
 See `special-display-buffer-names', and `special-display-regexps'.")
   (buffer_name)
      Lisp_Object buffer_name;
@@ -2019,7 +2019,7 @@ See `special-display-buffer-names', and `special-display-regexps'.")
 }  
 
 DEFUN ("same-window-p", Fsame_window_p, Ssame_window_p, 1, 1, 0,
-  "Returns non-nil if a new buffer named BUFFER-NAME would use the same window.
+  "Returns non-nil if a new buffer named BUFFER-NAME would use the same window.\n\
 See `same-window-buffer-names' and `same-window-regexps'.")
   (buffer_name)
      Lisp_Object buffer_name;
