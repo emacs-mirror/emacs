@@ -5916,6 +5916,7 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
       EMACS_INT prev_Z = Z, prev_Z_BYTE = Z_BYTE;
       Lisp_Object val;
 
+      TEMP_SET_PT_BOTH (coding->dst_pos, coding->dst_pos_byte);
       GCPRO2 (coding->src_object, coding->dst_object);
       val = call1 (CODING_ATTR_POST_READ (attrs),
 		   make_number (coding->produced_char));
