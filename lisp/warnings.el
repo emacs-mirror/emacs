@@ -257,7 +257,13 @@ See also `warning-series', `warning-prefix-function' and
 	    ;; Do this unconditionally, since there is no way
 	    ;; to view logged messages unless we output them.
 	    (with-current-buffer buffer
-	      (message "%s" (buffer-substring start end)))
+	      (save-excursion
+		;; Don't include the final newline in the arg
+		;; to `message', because it adds a newline.
+		(goto-char end)
+		(if (bolp)
+		    (forward-char -1))
+		(message "%s" (buffer-substring start (point)))))
 	  ;; Interactively, decide whether the warning merits
 	  ;; immediate display.
 	  (or (< (warning-numeric-level level)
