@@ -178,7 +178,9 @@ The functions \\[mail-send-on-exit] or \\[mail-dont-send] select
 the RMAIL summary buffer before returning, if it exists and this variable
 is non-nil.")
 
-(defvar mail-send-nonascii 'query
+;; I find that this happens so often, for innocent reasons,
+;; that it is not acceptable to bother the user about it -- rms.
+(defvar mail-send-nonascii t
   "*Specify whether to allow sending non-ASCII characters in mail.
 If t, that means do allow it.  nil means don't allow it.
 `query' means ask the user each time.
@@ -1077,7 +1079,8 @@ and don't delete any header fields."
 	    nil
 	  (goto-char start)
 	  (let ((mail-indentation-spaces (if arg (prefix-numeric-value arg)
-					   mail-indentation-spaces)))
+					   mail-indentation-spaces))
+		(mark-even-if-inactive t))
 	    (if mail-citation-hook
 		(run-hooks 'mail-citation-hook)
 	      (if mail-yank-hooks
