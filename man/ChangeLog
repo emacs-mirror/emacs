@@ -1,3 +1,16 @@
+2003-02-28  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* tramp.texi: Version 2.0.30 released.
+	Replace word "path" with "localname" where used as a component of
+	a Tramp file name.
+
+2003-02-28  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Frequently Asked Questions): `tramp-chunksize'
+	introduced.
+	(Installation): Explain what to do if files from the tramp/contrib
+	directory are needed.
+
 2003-02-23  Alex Schroeder <alex@emacswiki.org>
 
 	* smtpmail.texi (How Mail Works): New.

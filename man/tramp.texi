@@ -12,7 +12,7 @@
 @c Makefile, so you should edit the top-level Makefile to change
 @c the version number.
 @macro trampver{}
-2.0.29
+2.0.30
 @end macro
 
 @c Entries for @command{install-info} to use
@@ -57,17 +57,17 @@
 @end ifset
 
 @c Macros for formatting a filename.
-@c trampfn is for a full filename, trampfnmhp means method, host, path
+@c trampfn is for a full filename, trampfnmhp means method, host, localname
 @c were given, and so on.
-@macro trampfn(method, user, host, path)
-@value{tramp-prefix}@value{method}@value{user}@@@value{host}@value{tramp-postfix}@value{path}
+@macro trampfn(method, user, host, localname)
+@value{tramp-prefix}@value{method}@value{user}@@@value{host}@value{tramp-postfix}@value{localname}
 @end macro
 
 @copying
 Copyright @copyright{} 1999, 2000, 2001, 2002, 2003 Free Software
 Foundation, Inc.
 
-@quotation
+@quotation     
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -158,7 +158,7 @@ For the end user:
 
 For the developer:
 * Version Control::             The inner workings of remote version control.
-* Files directories and paths::  How file names, directories and paths are mangled and managed.
+* Files directories and localnames::  How file names, directories and localnames are mangled and managed.
 * Issues::                      Debatable Issues and What Was Decided.
 
 @detailmenu
@@ -197,9 +197,9 @@ Things related to Version Control that don't fit elsewhere
 * Remote File Ownership::       How VC determines who owns a workfile.
 * Back-end Versions::           How VC determines what release your RCS is.
 
-How file names, directories and paths are mangled and managed.
+How file names, directories and localnames are mangled and managed.
 
-* Path deconstruction::         Breaking a path into its components.
+* Localname deconstruction::         Breaking a localname into its components.
 
 @end detailmenu
 @end menu
@@ -447,18 +447,27 @@ The easiest way to proceed is as follows:
 
 @itemize @bullet
 @item
-Choose a directory, say @file{~/@value{emacs-dir}/}.  Change into that directory and
-unpack the tarball.  This will give you a directory
-@file{~/@value{emacs-dir}/tramp/} which contains subdirectories @file{lisp} for the
-Lisp code and @file{texi} for the documentation.
+Choose a directory, say @file{~/@value{emacs-dir}/}.  Change into that
+directory and unpack the tarball.  This will give you a directory
+@file{~/@value{emacs-dir}/tramp/} which contains subdirectories
+@file{lisp} for the Lisp code and @file{texi} for the documentation.
 
 @item
 Optionally byte-compile all files in the Lisp directory,
-@file{~/@value{emacs-dir}/tramp/lisp/}, by issuing a command like the following from
-the top level directory @file{~/@value{emacs-dir}/tramp/}:
+@file{~/@value{emacs-dir}/tramp/lisp/}, by issuing a command like the
+following from the top level directory
+@file{~/@value{emacs-dir}/tramp/}:
 
 @example
 make EMACS=@value{emacs-dir} all
+@end example
+
+If there are missing libraries reported it is likely they are provided
+in the @file{~/@value{emacs-dir}/tramp/contrib/} directory.  This
+case, you need to call @command{make} like this:
+
+@example
+make EMACS=@value{emacs-dir} USE_CONTRIB=1 all
 @end example
 
 @item
@@ -479,8 +488,12 @@ Tell @value{emacs-name} about the new Lisp directory and the
 
 @lisp
 (add-to-list 'load-path "~/@value{emacs-dir}/tramp/lisp/")
+(add-to-list 'load-path "~/@value{emacs-dir}/tramp/contrib/")
 (require 'tramp)
 @end lisp
+
+The second @command{add-to-list} must be used only if you've compiled
+with the @command{USE_CONTRIB} parameter.
 
 @item
 To be able to read the Info documentation, create a file
@@ -978,7 +991,7 @@ another UNIX host or, more interesting, a host running MS Windows.  So
 far, it is tested towards MS Windows NT, MS Windows 2000, and MS
 Windows XP.
 
-The first directory in the path must be a share name on the remote
+The first directory in the localname must be a share name on the remote
 host.  Remember, that the @code{$} character in which default shares
 usually end, must be written @code{$$} due to environment variable
 substitution in file names.  If no share name is given (i.e. remote
@@ -1026,8 +1039,8 @@ of multi-hop filenames is slightly different than the format of normal
 
 @cindex method multi
 @cindex multi method
-A multi-hop file name specifies a method, a number of hops, and a path
-name on the remote system.  The method name is always
+A multi-hop file name specifies a method, a number of hops, and a
+localname (path name on the remote system).  The method name is always
 @option{multi}.
 
 Each hop consists of a @dfn{hop method} specification, a user name and
@@ -1108,7 +1121,7 @@ the standard port.
 When you select an appropriate transfer method for your typical usage
 you should set the variable @var{tramp-default-method} to reflect that
 choice.  This variable controls which method will be used when a method
-is not specified in the @tramp{} file path.  For example:
+is not specified in the @tramp{} file name.  For example:
 
 @lisp
 (setq tramp-default-method "scp")
@@ -1202,7 +1215,7 @@ Example:
 
 @defun tramp-set-completion-function method function-list
 This function sets @var{function-list} as list of completion functions
-for @var{method}.
+for @var{method}. 
 
 Example:
 @example
@@ -1487,9 +1500,9 @@ key!
 @cindex filename syntax
 @cindex filename examples
 
-To access the file @var{path} on the remote machine @var{machine} you
+To access the file @var{localname} on the remote machine @var{machine} you
 would specify the filename
-@file{@value{tramp-prefix}@var{machine}@value{tramp-postfix}@var{path}}.
+@file{@value{tramp-prefix}@var{machine}@value{tramp-postfix}@var{localname}}.
 This will connect to @var{machine} and transfer the file using the
 default method.  @xref{Default Method}.
 
@@ -1885,6 +1898,16 @@ if [ "$@{HISTSIZE-unset@}" != "unset" ] ; then
 fi
 @end example
 
+
+@item @tramp{} doesn't transfer strings with more than 500 characters
+correctly
+
+On some few systems, the implementation of @code{process-send-string}
+seems to be broken for longer strings.  This case, you should
+customize the variable @code{tramp-chunksize} to 500.  For a
+description how to determine whether this is necessary see the
+documentation of @code{tramp-chunksize}.
+
 @end itemize
 
 
@@ -1936,7 +1959,7 @@ operations on files accessed via @tramp{}.
 
 In the case of a remote file, the @code{shell-command} interface is
 used, with some wrapper code, to provide the same functionality on the
-remote machine as would be seen on the local machine.
+remote machine as would be seen on the local machine. 
 
 
 @node Changed workfiles
@@ -2034,27 +2057,28 @@ Eventually these values will be captured by @tramp{} on a system by
 system basis and the results cached to improve performance.
 
 
-@node Files directories and paths
-@chapter How file names, directories and paths are mangled and managed.
+@node Files directories and localnames
+@chapter How file names, directories and localnames are mangled and managed.
 
 @menu
-* Path deconstruction::         Breaking a path into its components.
+* Localname deconstruction::    Breaking a localname into its components.
 @end menu
 
 
-@node Path deconstruction
-@section Breaking a path into its components.
+@node Localname deconstruction
+@section Breaking a localname into its components.
 
-@tramp{} filenames are somewhat different, obviously, to ordinary path
+@tramp{} file names are somewhat different, obviously, to ordinary file
 names. As such, the lisp functions @code{file-name-directory} and
-@code{file-name-nondirectory} are overridden within the @tramp{} package.
+@code{file-name-nondirectory} are overridden within the @tramp{}
+package.
 
 Their replacements are reasonably simplistic in their approach. They
-dissect the filename, call the original handler on the remote path and
-then rebuild the @tramp{} path with the result.
+dissect the filename, call the original handler on the localname and
+then rebuild the @tramp{} file name with the result.
 
 This allows the platform specific hacks in the original handlers to take
-effect while preserving the @tramp{} path information.
+effect while preserving the @tramp{} file name information.
 
 
 @node Issues
