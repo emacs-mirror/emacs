@@ -1,7 +1,7 @@
 /* impl.h.meter: METER INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: mps.design.metrics.
  *

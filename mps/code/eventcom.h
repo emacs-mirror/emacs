@@ -1,6 +1,6 @@
 /* impl.h.eventcom -- Event Logging Common Definitions
  *
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * $Id$
  *
  * .sources: mps.design.telemetry

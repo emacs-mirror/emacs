@@ -1,7 +1,7 @@
 /* impl.h.pooln: NULL POOL
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: The null pool class is here for pedagogical purposes.  It
  * is a skeleton of a pool class.  The class exhibits all the generic

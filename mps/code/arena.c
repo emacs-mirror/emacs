@@ -1,7 +1,7 @@
 /* impl.c.arena: ARENA ALLOCATION FEATURES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: design.mps.arena is the main design document.  */
 

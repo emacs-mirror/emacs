@@ -1,7 +1,7 @@
 # impl.gmk.eg: GNUMAKEFILE FRAGMENT FOR EGCS
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.
+# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 #
 # This file is included by platform makefiles that use the EGCS
 # compiler.  It defines the compiler specific variables that the

@@ -1,7 +1,7 @@
 /*  impl.h.th: THREAD MANAGER
  *
  *  $Id$
- *  Copyright (c) 2001 Ravenbrook Limited.
+ *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  *  .purpose: Provides thread suspension facilities to the shield.
  *  See design.mps.thread-manager.  Each thread has to be

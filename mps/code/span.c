@@ -1,7 +1,7 @@
 /* impl.c.span: ANSI STACK PROBE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * PURPOSE
  *

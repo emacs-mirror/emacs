@@ -1,7 +1,7 @@
 /*  impl.c.poolncv: NULL POOL COVERAGE TEST
  *
  *  $Id$
- *  Copyright (c) 2001 Ravenbrook Limited.
+ *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"

@@ -1,7 +1,7 @@
 /* impl.c.mpsliban: RAVENBROOK MEMORY POOL SYSTEM LIBRARY INTERFACE (ANSI)
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: The purpose of this code is
  *   1. to connect the MPS Library Interface to the ANSI C libraries,

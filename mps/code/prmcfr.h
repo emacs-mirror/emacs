@@ -1,7 +1,7 @@
 /* impl.h.prmcfr:  PROTECTION MUTATOR CONTEXT (FREEBSD)
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MPS developers.
  */

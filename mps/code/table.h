@@ -1,5 +1,5 @@
 /* impl.h.table: Interface for a dictionary
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * $Id$
  */

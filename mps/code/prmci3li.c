@@ -1,7 +1,7 @@
 /* impl.c.prmci3li: PROTECTION MUTATOR CONTEXT INTEL 386 (LINUX)
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This module implements the part of the protection module
  * that decodes the MutatorFaultContext. 

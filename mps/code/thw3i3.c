@@ -1,7 +1,7 @@
 /* impl.c.thw3i3: WIN32 THREAD MANAGER
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * Implements thread registration, suspension, and stack
  * scanning.  See design.mps.thread-manager

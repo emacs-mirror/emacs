@@ -1,7 +1,7 @@
 /* impl.c.boot: BOOTSTRAP ALLOCATOR
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .overview: A structure and protocols for allocating memory from a
  * given block.  Very simple, it basically just increments a pointer.

@@ -1,7 +1,7 @@
 /* impl.c.ref: REFERENCES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Implement operations on Ref, RefSet, ZoneSet, and Rank.
  *

@@ -1,7 +1,7 @@
 /*  impl.c.thfri3: Threads Manager for Intel x86 systems on FreeBSD
  *
  *  $Id$
- *  Copyright (c) 2001 Ravenbrook Limited.
+ *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is a pthreads implementation of the threads manager.
  * This implements impl.h.th.

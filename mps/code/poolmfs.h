@@ -4,7 +4,7 @@
  *
  *  $Id$
  *
- *  Copyright (c) 2001 Ravenbrook Limited.
+ *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  *  The MFS pool is used to manage small fixed-size chunks of memory.  It
  *  stores control structures in the memory it manages, rather than to one

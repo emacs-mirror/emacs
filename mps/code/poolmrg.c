@@ -1,7 +1,7 @@
 /* impl.c.poolmrg: MANUAL RANK GUARDIAN POOL
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
