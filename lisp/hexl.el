@@ -182,31 +182,36 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
         (setq buffer-read-only read-only)
         (hexl-goto-address original-point)))))
 
+(defvar hexl-in-save-buffer nil)
+
 (defun hexl-save-buffer ()
   "Save a hexl format buffer as binary in visited file if modified."
   (interactive)
-  (set-buffer-modified-p (if (buffer-modified-p)
-			     (save-excursion
-			       (let ((buf (generate-new-buffer " hexl"))
-				     (name (buffer-name))
-				     (file-name (buffer-file-name))
-				     (start (point-min))
-				     (end (point-max))
-				     modified)
-				 (set-buffer buf)
-				 (insert-buffer-substring name start end)
-				 (set-buffer name)
-				 (dehexlify-buffer)
-				 (save-buffer)
-				 (setq modified (buffer-modified-p))
-				 (delete-region (point-min) (point-max))
-				 (insert-buffer-substring buf start end)
-				 (kill-buffer buf)
-				 modified))
-			   (message "(No changes need to be saved)")
-			   nil))
-  ;; Return t to indicate we have saved t
-  t)
+  (if hexl-in-save-buffer nil
+    (set-buffer-modified-p (if (buffer-modified-p)
+			       (save-excursion
+				 (let ((buf (generate-new-buffer " hexl"))
+				       (name (buffer-name))
+				       (file-name (buffer-file-name))
+				       (start (point-min))
+				       (end (point-max))
+				       modified)
+				   (set-buffer buf)
+				   (insert-buffer-substring name start end)
+				   (set-buffer name)
+				   (dehexlify-buffer)
+				   ;; Prevent infinite recursion.
+				   (let ((hexl-in-save-buffer t))
+				     (save-buffer))
+				   (setq modified (buffer-modified-p))
+				   (delete-region (point-min) (point-max))
+				   (insert-buffer-substring buf start end)
+				   (kill-buffer buf)
+				   modified))
+			     (message "(No changes need to be saved)")
+			     nil))
+    ;; Return t to indicate we have saved t
+    t))
 
 ;;;###autoload
 (defun hexl-find-file (filename)
