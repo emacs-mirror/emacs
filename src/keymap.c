@@ -121,10 +121,11 @@ static void describe_command P_ ((Lisp_Object, Lisp_Object));
 static void describe_translation P_ ((Lisp_Object, Lisp_Object));
 static void describe_map P_ ((Lisp_Object, Lisp_Object,
 			      void (*) P_ ((Lisp_Object, Lisp_Object)),
-			      int, Lisp_Object, Lisp_Object*, int));
+			      int, Lisp_Object, Lisp_Object*, int, int));
 static void describe_vector P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				 void (*) (Lisp_Object, Lisp_Object), int,
-				 Lisp_Object, Lisp_Object, int *, int, int));
+				 Lisp_Object, Lisp_Object, int *,
+				 int, int, int));
 static void silly_event_symbol_error P_ ((Lisp_Object));
 
 /* Keymap object support - constructors and predicates.			*/
@@ -2835,7 +2836,7 @@ You type        Translation\n\
 
   if (!NILP (Vkey_translation_map))
     describe_map_tree (Vkey_translation_map, 0, Qnil, prefix,
-		       "Key translations", nomenu, 1, 0);
+		       "Key translations", nomenu, 1, 0, 0);
 
 
   /* Print the (major mode) local map.  */
@@ -2848,7 +2849,7 @@ You type        Translation\n\
   if (!NILP (start1))
     {
       describe_map_tree (start1, 1, shadow, prefix,
-			 "\f\nOverriding Bindings", nomenu, 0, 0);
+			 "\f\nOverriding Bindings", nomenu, 0, 0, 0);
       shadow = Fcons (start1, shadow);
     }
   else
@@ -2869,7 +2870,8 @@ You type        Translation\n\
       if (!NILP (start1))
 	{
 	  describe_map_tree (start1, 1, shadow, prefix,
-			     "\f\n`keymap' Property Bindings", nomenu, 0, 0);
+			     "\f\n`keymap' Property Bindings", nomenu,
+			     0, 0, 0);
 	  shadow = Fcons (start1, shadow);
 	}
 
@@ -2897,7 +2899,8 @@ You type        Translation\n\
 	  p += sizeof (" Minor Mode Bindings") - 1;
 	  *p = 0;
 
-	  describe_map_tree (maps[i], 1, shadow, prefix, title, nomenu, 0, 0);
+	  describe_map_tree (maps[i], 1, shadow, prefix,
+			     title, nomenu, 0, 0, 0);
 	  shadow = Fcons (maps[i], shadow);
 	}
 
@@ -2907,23 +2910,23 @@ You type        Translation\n\
 	{
 	  if (EQ (start1, XBUFFER (buffer)->keymap))
 	    describe_map_tree (start1, 1, shadow, prefix,
-			       "\f\nMajor Mode Bindings", nomenu, 0, 0);
+			       "\f\nMajor Mode Bindings", nomenu, 0, 0, 0);
 	  else
 	    describe_map_tree (start1, 1, shadow, prefix,
 			       "\f\n`local-map' Property Bindings",
-			       nomenu, 0, 0);
+			       nomenu, 0, 0, 0);
 
 	  shadow = Fcons (start1, shadow);
 	}
     }
 
   describe_map_tree (current_global_map, 1, shadow, prefix,
-		     "\f\nGlobal Bindings", nomenu, 0, 1);
+		     "\f\nGlobal Bindings", nomenu, 0, 1, 0);
 
   /* Print the function-key-map translations under this prefix.  */
   if (!NILP (Vfunction_key_map))
     describe_map_tree (Vfunction_key_map, 0, Qnil, prefix,
-		       "\f\nFunction key map translations", nomenu, 1, 0);
+		       "\f\nFunction key map translations", nomenu, 1, 0, 0);
 
   UNGCPRO;
   return Qnil;
@@ -2944,17 +2947,21 @@ You type        Translation\n\
    so print strings and vectors differently.
 
    If ALWAYS_TITLE is nonzero, print the title even if there are no maps
-   to look through.  */
+   to look through.
+
+   If MENTION_SHADOW is nonzero, then when something is shadowed by SHADOW,
+   don't omit it; instead, mention it but say it is shadowed.  */
 
 void
 describe_map_tree (startmap, partial, shadow, prefix, title, nomenu, transl,
-		   always_title)
+		   always_title, mention_shadow)
      Lisp_Object startmap, shadow, prefix;
      int partial;
      char *title;
      int nomenu;
      int transl;
      int always_title;
+     int mention_shadow;
 {
   Lisp_Object maps, orig_maps, seen, sub_shadows;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -3056,7 +3063,7 @@ key             binding\n\
 
       describe_map (Fcdr (elt), prefix,
 		    transl ? describe_translation : describe_command,
-		    partial, sub_shadows, &seen, nomenu);
+		    partial, sub_shadows, &seen, nomenu, mention_shadow);
 
     skip: ;
     }
@@ -3136,7 +3143,8 @@ describe_translation (definition, args)
    PARTIAL, SHADOW, NOMENU are as in `describe_map_tree' above.  */
 
 static void
-describe_map (map, prefix, elt_describer, partial, shadow, seen, nomenu)
+describe_map (map, prefix, elt_describer, partial, shadow,
+	      seen, nomenu, mention_shadow)
      register Lisp_Object map;
      Lisp_Object prefix;
      void (*elt_describer) P_ ((Lisp_Object, Lisp_Object));
@@ -3144,6 +3152,7 @@ describe_map (map, prefix, elt_describer, partial, shadow, seen, nomenu)
      Lisp_Object shadow;
      Lisp_Object *seen;
      int nomenu;
+     int mention_shadow;
 {
   Lisp_Object tail, definition, event;
   Lisp_Object tem;
@@ -3173,9 +3182,10 @@ describe_map (map, prefix, elt_describer, partial, shadow, seen, nomenu)
 	  || CHAR_TABLE_P (XCAR (tail)))
 	describe_vector (XCAR (tail),
 			 prefix, Qnil, elt_describer, partial, shadow, map,
-			 (int *)0, 0, 1);
+			 (int *)0, 0, 1, mention_shadow);
       else if (CONSP (XCAR (tail)))
 	{
+	  int this_shadowed = 0;
 	  event = XCAR (XCAR (tail));
 
 	  /* Ignore bindings whose "prefix" are not really valid events.
@@ -3204,7 +3214,13 @@ describe_map (map, prefix, elt_describer, partial, shadow, seen, nomenu)
 	  if (!NILP (shadow))
 	    {
 	      tem = shadow_lookup (shadow, kludge, Qt);
-	      if (!NILP (tem)) continue;
+	      if (!NILP (tem))
+		{
+		  if (mention_shadow)
+		    this_shadowed = 1;
+		  else
+		    continue;
+		}
 	    }
 
 	  tem = Flookup_key (map, kludge, Qt);
@@ -3224,6 +3240,13 @@ describe_map (map, prefix, elt_describer, partial, shadow, seen, nomenu)
 	     elt_describer will take care of spacing out far enough
 	     for alignment purposes.  */
 	  (*elt_describer) (definition, Qnil);
+
+	  if (this_shadowed)
+	    {
+	      SET_PT (PT - 1);
+	      insert_string ("  (binding currently shadowed)");
+	      SET_PT (PT + 1);
+	    }
 	}
       else if (EQ (XCAR (tail), Qkeymap))
 	{
@@ -3262,7 +3285,7 @@ DESCRIBER is the output function used; nil means use `princ'.  */)
   specbind (Qstandard_output, Fcurrent_buffer ());
   CHECK_VECTOR_OR_CHAR_TABLE (vector);
   describe_vector (vector, Qnil, describer, describe_vector_princ, 0,
-		   Qnil, Qnil, (int *)0, 0, 0);
+		   Qnil, Qnil, (int *)0, 0, 0, 0);
 
   return unbind_to (count, Qnil);
 }
@@ -3304,7 +3327,8 @@ DESCRIBER is the output function used; nil means use `princ'.  */)
 static void
 describe_vector (vector, prefix, args, elt_describer,
 		 partial, shadow, entire_map,
-		 indices, char_table_depth, keymap_p)
+		 indices, char_table_depth, keymap_p,
+		 mention_shadow)
      register Lisp_Object vector;
      Lisp_Object prefix, args;
      void (*elt_describer) P_ ((Lisp_Object, Lisp_Object));
@@ -3314,6 +3338,7 @@ describe_vector (vector, prefix, args, elt_describer,
      int *indices;
      int char_table_depth;
      int keymap_p;
+     int mention_shadow;
 {
   Lisp_Object definition;
   Lisp_Object tem2;
@@ -3397,6 +3422,7 @@ describe_vector (vector, prefix, args, elt_describer,
 
   for (i = from; i < to; i++)
     {
+      int this_shadowed = 0;
       QUIT;
 
       if (CHAR_TABLE_P (vector))
@@ -3456,7 +3482,13 @@ describe_vector (vector, prefix, args, elt_describer,
 
 	  tem = shadow_lookup (shadow, kludge, Qt);
 
-	  if (!NILP (tem)) continue;
+	  if (!NILP (tem))
+	    {
+	      if (mention_shadow)
+		this_shadowed = 1;
+	      else
+		continue;
+	    }
 	}
 
       /* Ignore this definition if it is shadowed by an earlier
@@ -3532,7 +3564,8 @@ describe_vector (vector, prefix, args, elt_describer,
 	  insert ("\n", 1);
 	  describe_vector (definition, prefix, args, elt_describer,
 			   partial, shadow, entire_map,
-			   indices, char_table_depth + 1, keymap_p);
+			   indices, char_table_depth + 1, keymap_p,
+			   mention_shadow);
 	  continue;
 	}
 
@@ -3606,6 +3639,13 @@ describe_vector (vector, prefix, args, elt_describer,
 	 elt_describer will take care of spacing out far enough
 	 for alignment purposes.  */
       (*elt_describer) (definition, args);
+
+      if (this_shadowed)
+	{
+	  SET_PT (PT - 1);
+	  insert_string ("  (binding currently shadowed)");
+	  SET_PT (PT + 1);
+	}
     }
 
   /* For (sub) char-table, print `defalt' slot at last.  */

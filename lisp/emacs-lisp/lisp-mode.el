@@ -182,7 +182,7 @@
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
   (make-local-variable 'outline-regexp)
-  (setq outline-regexp ";;;;* [^ \t\n]\\|(")
+  (setq outline-regexp ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|(")
   (make-local-variable 'outline-level)
   (setq outline-level 'lisp-outline-level)
   (make-local-variable 'comment-start)
@@ -212,11 +212,10 @@
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
-  (if (looking-at "(\\|;;;###autoload")
-      1000
-    (looking-at outline-regexp)
-    (- (match-end 0) (match-beginning 0))))
-
+  (let ((len (- (match-end 0) (match-beginning 0))))
+    (if (looking-at "(\\|;;;###autoload")
+	1000
+      len)))
 
 (defvar lisp-mode-shared-map
   (let ((map (make-sparse-keymap)))

@@ -1515,9 +1515,11 @@ Buffers menu is regenerated."
     (dolist (f (frame-list))
       (when (equal last-command-event (frame-parameter f 'name))
 	(setq frame f)))
-  (make-frame-visible frame)
-  (raise-frame frame)
-  (select-frame frame)))
+    ;; FRAME can be nil when user specifies the selected frame.
+    (setq frame (or frame (selected-frame)))
+    (make-frame-visible frame)
+    (raise-frame frame)
+    (select-frame frame)))
 
 (defun menu-bar-update-buffers-1 (elt)
   (let* ((buf (car elt))

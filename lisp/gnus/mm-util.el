@@ -1,5 +1,5 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -901,7 +901,7 @@ If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'."
 		 (file-directory-p
 		  (setq dir (concat (file-name-directory
 				     (directory-file-name path))
-				    "etc/" (or package "gnus/")))))
+				    "etc/images/" (or package "gnus/")))))
 	(push dir result))
       (push path result))))
 

@@ -1427,7 +1427,7 @@ command_loop_1 ()
 	resize_echo_area_exactly ();
 
       if (!NILP (Vdeferred_action_list))
-	call0 (Vdeferred_action_function);
+	safe_run_hooks (Qdeferred_action_function);
 
       if (!NILP (Vpost_command_idle_hook) && !NILP (Vrun_hooks))
 	{

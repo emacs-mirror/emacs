@@ -27,17 +27,7 @@ results compatible with running the same file without compilation.
 @xref{Loading Non-ASCII}.
 
   In general, any version of Emacs can run byte-compiled code produced
-by recent earlier versions of Emacs, but the reverse is not true.  A
-major incompatible change was introduced in Emacs version 19.29, and
-files compiled with versions since that one will definitely not run
-in earlier versions unless you specify a special option.
-@iftex
-@xref{Docs and Compilation}.
-@end iftex
-In addition, the modifier bits in keyboard characters were renumbered in
-Emacs 19.29; as a result, files compiled in versions before 19.29 will
-not work in subsequent versions if they contain character constants with
-modifier bits.
+by recent earlier versions of Emacs, but the reverse is not true.
 
 @vindex no-byte-compile
   If you do not want a Lisp file to be compiled, ever, put a file-local
@@ -122,6 +112,9 @@ macros must already be defined for proper compilation.  For more
 details, see @ref{Compiling Macros}.  If a program does not work the
 same way when compiled as it does when interpreted, erroneous macro
 definitions are one likely cause (@pxref{Problems with Macros}).
+Inline (@code{defsubst}) functions are less troublesome; if you
+compile a call to such a function before its definition is known, the
+call will still work right, it will just run slower.
 
   Normally, compiling a file does not evaluate the file's contents or
 load the file.  But it does execute any @code{require} calls at top
@@ -313,14 +306,13 @@ directory where you built it, you will experience this problem
 occasionally if you edit and recompile Lisp files.  When it happens, you
 can cure the problem by reloading the file after recompiling it.
 
-  Byte-compiled files made with recent versions of Emacs (since 19.29)
-will not load into older versions because the older versions don't
-support this feature.  You can turn off this feature at compile time by
-setting @code{byte-compile-dynamic-docstrings} to @code{nil}; then you
-can compile files that will load into older Emacs versions.  You can do
-this globally, or for one source file by specifying a file-local binding
-for the variable.  One way to do that is by adding this string to the
-file's first line:
+  You can turn off this feature at compile time by setting
+@code{byte-compile-dynamic-docstrings} to @code{nil}; this is useful
+mainly if you expect to change the file, and you want Emacs processes
+that have already loaded it to keep working when the file changes.
+You can do this globally, or for one source file by specifying a
+file-local binding for the variable.  One way to do that is by adding
+this string to the file's first line:
 
 @example
 -*-byte-compile-dynamic-docstrings: nil;-*-

@@ -1397,7 +1397,7 @@ Make your editing in this buffer take effect for this session."
 		 :tag "Save for Future Sessions"
 		 :help-echo "\
 Make your editing in this buffer take effect for future Emacs sessions.
-This updates your Emacs initialization file or creates a new one one."
+This updates your Emacs initialization file or creates a new one."
 		 :action (lambda (widget &optional event)
 			   (Custom-save)))
   (if custom-reset-button-menu
@@ -1671,15 +1671,15 @@ group now hidden, invoke \"Show\", above, to show contents.")
 the value displayed for this %c is invalid and cannot be set.")
     (modified "*" custom-modified-face "\
 you have edited the value as text, but you have not set the %c." "\
-you have edited something in this group, but not set it.")
+you have edited something in this group, but not set anything yet.")
     (set "+" custom-set-face "\
 you have set this %c, but not saved it for future sessions." "\
-something in this group has been set, but not saved.")
+you have set something in this group, but not saved anything yet.")
     (changed ":" custom-changed-face "\
 this %c has been changed outside the customize buffer." "\
 something in this group has been changed outside customize.")
     (saved "!" custom-saved-face "\
-this %c has been set and saved." "\
+You have set this %c and saved it through Customize in your init file." "\
 something in this group has been set and saved.")
     (rogue "@" custom-rogue-face "\
 this %c has not been changed with customize." "\

@@ -1,3 +1,11 @@
+2005-02-14  Lute Kamstra  <lute@gnu.org>
+
+	* TODO: Remove battery.el entry (DONE).
+
+	* TUTORIAL.nl: Synchronize with TUTORIAL.  Correct some typos.
+	Make the terminology more consistent.  Fill the text using the
+	default `fill-column'.
+
 2005-02-08  Lute Kamstra  <lute@gnu.org>
 
 	* TUTORIAL: Remove some uses of the term "buffer" before it is

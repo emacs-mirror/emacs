@@ -115,10 +115,10 @@ the four cells of the symbol @code{buffer-file-name}:
      @result{} "buffer-file-name"
 (symbol-value 'buffer-file-name)
      @result{} "/gnu/elisp/symbols.texi"
-(symbol-plist 'buffer-file-name)
-     @result{} (variable-documentation 29529)
 (symbol-function 'buffer-file-name)
      @result{} #<subr buffer-file-name>
+(symbol-plist 'buffer-file-name)
+     @result{} (variable-documentation 29529)
 @end example
 
 @noindent

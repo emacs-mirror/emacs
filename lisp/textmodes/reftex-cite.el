@@ -679,9 +679,12 @@ While entering the regexp, completion on knows citation keys is possible.
               (setq start (1+ start)))))
         ;; Should we cleanup empty optional arguments?
         ;; if the first is empty, it can be removed.  If the second is empty,
-        ;; it has to go.
+        ;; it has to go.  If there is only a single arg and empty, it can go
+	;; as well.
         (when reftex-cite-cleanup-optional-args
           (cond 
+           ((string-match "\\([a-zA-Z0-9]\\)\\[\\]{" string)
+            (setq string (replace-match "\\1{" nil nil string)))
            ((string-match "\\[\\]\\(\\[[a-zA-Z0-9., ]+\\]\\)" string)
             (setq string (replace-match "\\1" nil nil string)))
            ((string-match "\\[\\]\\[\\]" string)

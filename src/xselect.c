@@ -1925,7 +1925,12 @@ lisp_data_to_selection_data (display, obj,
     }
   else if (STRINGP (obj))
     {
-      xassert (! STRING_MULTIBYTE (obj));
+      if (SCHARS (obj) < SBYTES (obj))
+	/* OBJ is a multibyte string containing a non-ASCII char.  */
+	Fsignal (Qerror, /* Qselection_error */
+		 Fcons (build_string
+			("Non-ASCII string must be encoded in advance"),
+			Fcons (obj, Qnil)));
       if (NILP (type))
 	type = QSTRING;
       *format_ret = 8;
@@ -2201,7 +2206,10 @@ Disowning it means there is no such selection.  */)
 {
   Time timestamp;
   Atom selection_atom;
-  struct selection_input_event event;
+  union {
+    struct selection_input_event sie;
+    struct input_event ie;
+  } event;
   Display *display;
   struct x_display_info *dpyinfo;
   struct frame *sf = SELECTED_FRAME ();
@@ -2232,10 +2240,10 @@ Disowning it means there is no such selection.  */)
      the selection owner to None.  The NCD server does, the MIT Sun4 server
      doesn't.  So we synthesize one; this means we might get two, but
      that's ok, because the second one won't have any effect.  */
-  SELECTION_EVENT_DISPLAY (&event) = display;
-  SELECTION_EVENT_SELECTION (&event) = selection_atom;
-  SELECTION_EVENT_TIME (&event) = timestamp;
-  x_handle_selection_clear ((struct input_event *) &event);
+  SELECTION_EVENT_DISPLAY (&event.sie) = display;
+  SELECTION_EVENT_SELECTION (&event.sie) = selection_atom;
+  SELECTION_EVENT_TIME (&event.sie) = timestamp;
+  x_handle_selection_clear (&event.ie);
 
   return Qt;
 }

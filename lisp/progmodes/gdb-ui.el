@@ -79,6 +79,8 @@
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-server-prefix nil)
 (defvar gdb-flush-pending-output nil)
+(defvar gdb-location-list nil "List of directories for source files.")
+(defvar gdb-find-file-unhook nil)
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
@@ -191,6 +193,36 @@ detailed description of this mode.
   :group 'gud
   :version "22.1")
 
+(defun gdb-set-gud-minor-mode (buffer)
+  "Set gud-minor-mode from find-file if appropriate."
+  (goto-char (point-min))
+  (unless (search-forward "No source file named " nil t)
+    (condition-case nil
+	(gdb-enqueue-input
+	 (list (concat gdb-server-prefix "info source\n")
+	       `(lambda () (gdb-set-gud-minor-mode-1 ,buffer))))
+      (error (setq gdb-find-file-unhook t)))))
+
+(defun gdb-set-gud-minor-mode-1 (buffer)
+  (goto-char (point-min))
+  (if (and (search-forward "Located in " nil t)
+	   (looking-at "\\S-*")
+	   (string-equal (buffer-file-name buffer)
+			 (match-string 0)))
+      (with-current-buffer buffer
+	(set (make-local-variable 'gud-minor-mode) 'gdba)
+	(set (make-local-variable 'tool-bar-map) gud-tool-bar-map))))
+
+(defun gdb-set-gud-minor-mode-existing-buffers ()
+  (dolist (buffer (buffer-list))
+    (let ((file (buffer-file-name buffer)))
+      (if file
+	(progn
+	  (gdb-enqueue-input
+	   (list (concat gdb-server-prefix "list "
+			 (file-name-nondirectory file) ":1\n")
+		 `(lambda () (gdb-set-gud-minor-mode ,buffer)))))))))
+
 (defun gdb-ann3 ()
   (setq gdb-debug-log nil)
   (set (make-local-variable 'gud-minor-mode) 'gdba)
@@ -249,6 +281,7 @@ detailed description of this mode.
   (setq gdb-server-prefix "server ")
   (setq gdb-flush-pending-output nil)
   (setq gdb-location-list nil)
+  (setq gdb-find-file-unhook nil)
   ;;
   (setq gdb-buffer-type 'gdba)
   ;;
@@ -263,6 +296,7 @@ detailed description of this mode.
   (gdb-enqueue-input (list "server list MAIN__\n" 'ignore))   ; Fortran program
   (gdb-enqueue-input (list "server info source\n" 'gdb-source-info))
   ;;
+  (gdb-set-gud-minor-mode-existing-buffers)
   (run-hooks 'gdba-mode-hook))
 
 (defcustom gdb-use-colon-colon-notation nil
@@ -1048,8 +1082,6 @@ happens to be appropriate."
   ;; buffer specific functions
   gdb-info-breakpoints-custom)
 
-(defvar gdb-location-list nil "List of directories for source files.")
-
 (defconst breakpoint-xpm-data
   "/* XPM */
 static char *magick[] = {
@@ -1159,13 +1191,11 @@ static char *magick[] = {
 			   (setq file (cdr (assoc bptno gdb-location-list))))
 			(unless (string-equal file "File not found")
 			  (if file
-			      (with-current-buffer
-				  (find-file-noselect file)
-				(save-current-buffer
-				  (set (make-local-variable 'gud-minor-mode)
+			      (with-current-buffer (find-file-noselect file)
+				(set (make-local-variable 'gud-minor-mode)
 				     'gdba)
-				  (set (make-local-variable 'tool-bar-map)
-				       gud-tool-bar-map))
+				(set (make-local-variable 'tool-bar-map)
+				     gud-tool-bar-map)
 				;; only want one breakpoint icon at each location
 				(save-excursion
 				  (goto-line (string-to-number line))
@@ -2054,15 +2084,15 @@ Kills the gdb buffers and resets the source buffers."
   "Find the source file where the program starts and displays it with related
 buffers."
   (goto-char (point-min))
-  (if (search-forward "Located in " nil t)
-      (if (looking-at "\\S-*")
-	  (setq gdb-main-file (match-string 0))))
+  (if (and (search-forward "Located in " nil t)
+	   (looking-at "\\S-*"))
+      (setq gdb-main-file (match-string 0)))
  (if gdb-many-windows
       (gdb-setup-windows)
    (gdb-get-create-buffer 'gdb-breakpoints-buffer)
-    (if gdb-show-main
-      (let ((pop-up-windows t))
-	(display-buffer (gud-find-file gdb-main-file))))))
+   (if gdb-show-main
+       (let ((pop-up-windows t))
+	 (display-buffer (gud-find-file gdb-main-file))))))
 
 (defun gdb-get-location (bptno line flag)
   "Find the directory containing the relevant source file.
@@ -2084,6 +2114,23 @@ Add directory to search path for source files using the GDB command, dir."))
     (save-excursion
       (goto-line (string-to-number line))
       (gdb-put-breakpoint-icon (eq flag ?y) bptno))))
+
+(add-hook 'find-file-hook 'gdb-find-file-hook)
+
+(defun gdb-find-file-hook ()
+  (if (and (not gdb-find-file-unhook)
+	   ;; in case gud or gdb-ui is just loaded
+	   gud-comint-buffer
+	   (buffer-name gud-comint-buffer)
+	   (with-current-buffer gud-comint-buffer
+	     (eq gud-minor-mode 'gdba)))
+      (condition-case nil
+	(gdb-enqueue-input
+	 (list (concat gdb-server-prefix "list "
+		       (file-name-nondirectory buffer-file-name)
+		       ":1\n")
+	       `(lambda () (gdb-set-gud-minor-mode ,(current-buffer)))))
+	(error (setq gdb-find-file-unhook t)))))
 
 ;;from put-image
 (defun gdb-put-string (putstring pos &optional dprop)

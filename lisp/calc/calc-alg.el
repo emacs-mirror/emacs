@@ -746,6 +746,55 @@
 		     (list '* (list 'calcFunc-sin (list '* (1- n) a))
 			   (list 'calcFunc-sin a))))))))
 
+(math-defsimplify calcFunc-sec
+  (or (and (math-looks-negp (nth 1 math-simplify-expr))
+	   (list 'calcFunc-sec (math-neg (nth 1 math-simplify-expr))))
+      (and (eq calc-angle-mode 'rad)
+	   (let ((n (math-linear-in (nth 1 math-simplify-expr) '(var pi var-pi))))
+	     (and n
+		  (math-div 1 (math-known-sin (car n) (nth 1 n) 120 300)))))
+      (and (eq calc-angle-mode 'deg)
+	   (let ((n (math-integer-plus (nth 1 math-simplify-expr))))
+	     (and n
+                  (math-div 1 (math-known-sin (car n) (nth 1 n) '(frac 2 3) 300)))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arcsin)
+           (math-div 
+            1
+            (list 'calcFunc-sqrt 
+                  (math-sub 1 (math-sqr (nth 1 (nth 1 math-simplify-expr)))))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arccos)
+           (math-div 
+            1
+            (nth 1 (nth 1 math-simplify-expr))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arctan)
+           (list 'calcFunc-sqrt
+                 (math-add 1 
+                           (math-sqr (nth 1 (nth 1 math-simplify-expr))))))))
+
+(math-defsimplify calcFunc-csc
+  (or (and (math-looks-negp (nth 1 math-simplify-expr))
+	   (math-neg (list 'calcFunc-csc (math-neg (nth 1 math-simplify-expr)))))
+      (and (eq calc-angle-mode 'rad)
+	   (let ((n (math-linear-in (nth 1 math-simplify-expr) '(var pi var-pi))))
+	     (and n
+                  (math-div 1 (math-known-sin (car n) (nth 1 n) 120 0)))))
+      (and (eq calc-angle-mode 'deg)
+	   (let ((n (math-integer-plus (nth 1 math-simplify-expr))))
+	     (and n
+                  (math-div 1 (math-known-sin (car n) (nth 1 n) '(frac 2 3) 0)))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arcsin)
+	   (math-div 1 (nth 1 (nth 1 math-simplify-expr))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arccos)
+           (math-div 
+            1
+            (list 'calcFunc-sqrt (math-sub 1 (math-sqr 
+                                              (nth 1 (nth 1 math-simplify-expr)))))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arctan)
+	   (math-div (list 'calcFunc-sqrt
+			   (math-add 1 (math-sqr 
+                                        (nth 1 (nth 1 math-simplify-expr)))))
+                     (nth 1 (nth 1 math-simplify-expr))))))
+
 (defun math-should-expand-trig (x &optional hyperbolic)
   (let ((m (math-is-multiple x)))
     (and math-living-dangerously
@@ -826,6 +875,28 @@
 			   (list 'calcFunc-sin (nth 1 m)))
 	       (math-div (list 'calcFunc-sin (nth 1 math-simplify-expr))
 			 (list 'calcFunc-cos (nth 1 math-simplify-expr))))))))
+
+(math-defsimplify calcFunc-cot
+  (or (and (math-looks-negp (nth 1 math-simplify-expr))
+	   (math-neg (list 'calcFunc-cot (math-neg (nth 1 math-simplify-expr)))))
+      (and (eq calc-angle-mode 'rad)
+	   (let ((n (math-linear-in (nth 1 math-simplify-expr) '(var pi var-pi))))
+	     (and n
+                  (math-div 1 (math-known-tan (car n) (nth 1 n) 120)))))
+      (and (eq calc-angle-mode 'deg)
+	   (let ((n (math-integer-plus (nth 1 math-simplify-expr))))
+	     (and n
+                  (math-div 1 (math-known-tan (car n) (nth 1 n) '(frac 2 3))))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arcsin)
+	   (math-div (list 'calcFunc-sqrt
+			   (math-sub 1 (math-sqr (nth 1 (nth 1 math-simplify-expr)))))
+                     (nth 1 (nth 1 math-simplify-expr))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arccos)
+	   (math-div (nth 1 (nth 1 math-simplify-expr))
+                     (list 'calcFunc-sqrt
+			   (math-sub 1 (math-sqr (nth 1 (nth 1 math-simplify-expr)))))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arctan)
+	   (math-div 1 (nth 1 (nth 1 math-simplify-expr))))))
 
 (defun math-known-tan (plus n mul)
   (setq n (math-mul n mul))
@@ -929,6 +1000,58 @@
 			   (list 'calcFunc-sinh (nth 1 m)))
 	       (math-div (list 'calcFunc-sinh (nth 1 math-simplify-expr))
 			 (list 'calcFunc-cosh (nth 1 math-simplify-expr))))))))
+
+(math-defsimplify calcFunc-sech
+  (or (and (math-looks-negp (nth 1 math-simplify-expr))
+	   (list 'calcFunc-sech (math-neg (nth 1 math-simplify-expr))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arcsinh)
+	   math-living-dangerously
+           (math-div 
+            1
+            (list 'calcFunc-sqrt 
+                  (math-add (math-sqr (nth 1 (nth 1 math-simplify-expr))) 1))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arccosh)
+	   math-living-dangerously
+           (math-div 1 (nth 1 (nth 1 math-simplify-expr))) 1)
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arctanh)
+	   math-living-dangerously
+           (list 'calcFunc-sqrt
+                 (math-sub 1 (math-sqr (nth 1 (nth 1 math-simplify-expr))))))))
+
+(math-defsimplify calcFunc-csch
+  (or (and (math-looks-negp (nth 1 math-simplify-expr))
+	   (math-neg (list 'calcFunc-csch (math-neg (nth 1 math-simplify-expr)))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arcsinh)
+	   math-living-dangerously
+           (math-div 1 (nth 1 (nth 1 math-simplify-expr))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arccosh)
+	   math-living-dangerously
+           (math-div 
+            1
+            (list 'calcFunc-sqrt 
+                  (math-sub (math-sqr (nth 1 (nth 1 math-simplify-expr))) 1))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arctanh)
+	   math-living-dangerously
+	   (math-div (list 'calcFunc-sqrt
+			   (math-sub 1 (math-sqr (nth 1 (nth 1 math-simplify-expr)))))
+                     (nth 1 (nth 1 math-simplify-expr))))))
+
+(math-defsimplify calcFunc-coth
+  (or (and (math-looks-negp (nth 1 math-simplify-expr))
+	   (math-neg (list 'calcFunc-coth (math-neg (nth 1 math-simplify-expr)))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arcsinh)
+	   math-living-dangerously
+	   (math-div (list 'calcFunc-sqrt
+			   (math-add (math-sqr (nth 1 (nth 1 math-simplify-expr))) 1))
+                     (nth 1 (nth 1 math-simplify-expr))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arccosh)
+	   math-living-dangerously
+	   (math-div (nth 1 (nth 1 math-simplify-expr))
+                     (list 'calcFunc-sqrt
+			   (math-sub (math-sqr (nth 1 (nth 1 math-simplify-expr))) 1))))
+      (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arctanh)
+	   math-living-dangerously
+	   (math-div 1 (nth 1 (nth 1 math-simplify-expr))))))
 
 (math-defsimplify calcFunc-arcsin
   (or (and (math-looks-negp (nth 1 math-simplify-expr))
@@ -1043,8 +1166,13 @@
 			   (math-equal-int (nth 2 a) 2)
 			   (or (and (eq (car-safe (nth 1 a)) 'calcFunc-sinh)
 				    (list 'calcFunc-cosh (nth 1 (nth 1 a))))
+                               (and (eq (car-safe (nth 1 a)) 'calcFunc-csch)
+				    (list 'calcFunc-coth (nth 1 (nth 1 a))))
 			       (and (eq (car-safe (nth 1 a)) 'calcFunc-tan)
 				    (list '/ 1 (list 'calcFunc-cos
+						     (nth 1 (nth 1 a)))))
+			       (and (eq (car-safe (nth 1 a)) 'calcFunc-cot)
+				    (list '/ 1 (list 'calcFunc-sin
 						     (nth 1 (nth 1 a)))))))))
 	       (and (eq (car-safe (nth 1 math-simplify-expr)) '^)
 		    (list '^

@@ -111,7 +111,8 @@ was supplied when Emacs was started.
   Most often, the minibuffer is used to read text as a string.  It can
 also be used to read a Lisp object in textual form.  The most basic
 primitive for minibuffer input is @code{read-from-minibuffer}; it can do
-either one.
+either one.  There are also specialized commands for reading
+commands, variables, file names, etc. (@pxref{Completion}).
 
   In most cases, you should not call minibuffer input functions in the
 middle of a Lisp function.  Instead, do all minibuffer input as part of
@@ -234,9 +235,11 @@ default, it makes the following bindings:
 @code{abort-recursive-edit}
 
 @item @kbd{M-n}
+@itemx @key{DOWN}
 @code{next-history-element}
 
 @item @kbd{M-p}
+@itemx @key{UP}
 @code{previous-history-element}
 
 @item @kbd{M-s}

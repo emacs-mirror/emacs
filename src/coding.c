@@ -6357,7 +6357,12 @@ encode_coding_string (str, coding, nocopy)
 
   if (SYMBOLP (coding->pre_write_conversion)
       && !NILP (Ffboundp (coding->pre_write_conversion)))
-    str = run_pre_post_conversion_on_str (str, coding, 1);
+    {
+      str = run_pre_post_conversion_on_str (str, coding, 1);
+      /* As STR is just newly generated, we don't have to copy it
+	 anymore.  */
+      nocopy = 1;
+    }
 
   from = 0;
   to = SCHARS (str);
@@ -6365,21 +6370,10 @@ encode_coding_string (str, coding, nocopy)
 
   /* Encoding routines determine the multibyteness of the source text
      by coding->src_multibyte.  */
-  coding->src_multibyte = STRING_MULTIBYTE (str);
+  coding->src_multibyte = SCHARS (str) < SBYTES (str);
   coding->dst_multibyte = 0;
   if (! CODING_REQUIRE_ENCODING (coding))
-    {
-      coding->consumed = SBYTES (str);
-      coding->consumed_char = SCHARS (str);
-      if (STRING_MULTIBYTE (str))
-	{
-	  str = Fstring_as_unibyte (str);
-	  nocopy = 1;
-	}
-      coding->produced = SBYTES (str);
-      coding->produced_char = SCHARS (str);
-      return (nocopy ? str : Fcopy_sequence (str));
-    }
+    goto no_need_of_encoding;
 
   if (coding->composing != COMPOSITION_DISABLED)
     coding_save_composition (coding, from, to, str);
@@ -6395,7 +6389,7 @@ encode_coding_string (str, coding, nocopy)
       if (from == to_byte)
 	{
 	  coding_free_composition_data (coding);
-	  return (nocopy ? str : Fcopy_sequence (str));
+	  goto no_need_of_encoding;
 	}
       shrinked_bytes = from + (SBYTES (str) - to_byte);
     }
@@ -6440,6 +6434,25 @@ encode_coding_string (str, coding, nocopy)
   coding_free_composition_data (coding);
 
   return newstr;
+
+ no_need_of_encoding:
+  coding->consumed = SBYTES (str);
+  coding->consumed_char = SCHARS (str);
+  if (STRING_MULTIBYTE (str))
+    {
+      if (nocopy)
+	/* We are sure that STR doesn't contain a multibyte
+	   character.  */
+	STRING_SET_UNIBYTE (str);
+      else
+	{
+	  str = Fstring_as_unibyte (str);
+	  nocopy = 1;
+	}
+    }
+  coding->produced = SBYTES (str);
+  coding->produced_char = SCHARS (str);
+  return (nocopy ? str : Fcopy_sequence (str));
 }
 
 

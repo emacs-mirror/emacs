@@ -73,6 +73,7 @@ and you can select it by typing @kbd{M-x @var{l}-mode @key{RET}}.
 @cindex Metafont mode
 @cindex Modula2 mode
 @cindex Prolog mode
+@cindex Python mode
 @cindex Simula mode
 @cindex VHDL mode
 @cindex M4 mode
@@ -84,7 +85,7 @@ variant of Lisp) and the Scheme-based DSSSL expression language, Ada,
 ASM, AWK, C, C++, Delphi (Object Pascal), Fortran (free format and fixed
 format), Icon, IDL (CORBA), IDLWAVE, Java, Metafont (@TeX{}'s
 companion for font creation), Modula2, Objective-C, Octave, Pascal,
-Perl, Pike, PostScript, Prolog, Simula, Tcl, and VHDL.  There is
+Perl, Pike, PostScript, Prolog, Python, Simula, Tcl, and VHDL.  There is
 also a major mode for makefiles, called Makefile mode.  An alternative
 mode for Perl is called CPerl mode.  Modes are available for the
 scripting languages of the common GNU and Unix shells, VMS DCL, and
@@ -241,6 +242,9 @@ which puts point at the beginning and mark at the end of the current
 defun.  This is the easiest way to get ready to kill the defun in
 order to move it to a different place in the file.  If you use the
 command while point is between defuns, it uses the following defun.
+Successive uses of @kbd{C-M-h}, or using it in Transient Mark mode
+when the mark is active, includes an additional defun in the region
+each time.
 
   In C mode, @kbd{C-M-h} runs the function @code{c-mark-function},
 which is almost the same as @code{mark-defun}; the difference is that
@@ -375,7 +379,7 @@ whitespace at the beginning of the line, @key{TAB} puts it at the end of
 that whitespace; otherwise, @key{TAB} keeps point fixed with respect to
 the characters around it.
 
-  Use @kbd{C-q @key{TAB}} to insert a tab at point.
+  Use @kbd{C-q @key{TAB}} to insert a tab character at point.
 
 @kindex C-j
 @findex newline-and-indent
@@ -384,12 +388,13 @@ the characters around it.
 followed by a @key{TAB}.  @kbd{C-j} at the end of a line creates a
 blank line and then gives it the appropriate indentation.
 
-  @key{TAB} indents lines that start within a parenthetical grouping
-each under the preceding line (or the text after the parenthesis).
-Therefore, if you manually give one of these lines a nonstandard
-indentation, the lines below will tend to follow it.  This behavior is
-convenient in cases where you have overridden the standard result of
-@key{TAB} because you find it unaesthetic for a particular line.
+  @key{TAB} indents a line that starts within a parenthetical grouping
+under the preceding line within the grouping, or the text after the
+parenthesis.  Therefore, if you manually give one of these lines a
+nonstandard indentation, the lines below will tend to follow it.  This
+behavior is convenient in cases where you have overridden the standard
+result of @key{TAB} because you find it unaesthetic for a particular
+line.
 
   Remember that an open-parenthesis, open-brace or other opening delimiter
 at the left margin is assumed by Emacs (including the indentation routines)
@@ -586,10 +591,11 @@ example,
 
 @noindent
 specifies an explicit choice for Java mode, and the default @samp{gnu}
-style for the other C-like modes.  This variable takes effect when you
-select one of the C-like major modes; thus, if you specify a new
-default style for Java mode, you can make it take effect in an
-existing Java mode buffer by typing @kbd{M-x java-mode} there.
+style for the other C-like modes.  (These settings are actually the
+defaults.)  This variable takes effect when you select one of the
+C-like major modes; thus, if you specify a new default style for Java
+mode, you can make it take effect in an existing Java mode buffer by
+typing @kbd{M-x java-mode} there.
 
   The @code{gnu} style specifies the formatting recommended by the GNU
 Project for C; it is the default, so as to encourage use of our
@@ -712,8 +718,10 @@ at or after point and the mark.
 use @kbd{C-M-@@} (@code{mark-sexp}), which sets mark at the same place
 that @kbd{C-M-f} would move to.  @kbd{C-M-@@} takes arguments like
 @kbd{C-M-f}.  In particular, a negative argument is useful for putting
-the mark at the beginning of the previous balanced expression.
-The alias @kbd{C-M-@key{SPC}} is equivalent to @kbd{C-M-@@}.
+the mark at the beginning of the previous balanced expression.  The
+alias @kbd{C-M-@key{SPC}} is equivalent to @kbd{C-M-@@}.  If you use
+this command repeatedly, or in Transient Mark mode whenever the mark
+is active, it extends the region by one sexp each time.
 
   In languages that use infix operators, such as C, it is not possible
 to recognize all balanced expressions as such because there can be
@@ -1066,9 +1074,10 @@ use in your program.
 @kindex C-h S
   For C, Lisp, and other languages that have documentation in Info,
 you can use @kbd{C-h S} (@code{info-lookup-symbol}) to view the Info
-documentation for a symbol.  You specify the symbol with the
-minibuffer; the default is the symbol appearing in the buffer at
-point.
+documentation for a symbol used in the program.  You specify the
+symbol with the minibuffer; the default is the symbol appearing in the
+buffer at point.  For example, in C mode this looks for the symbol in
+the C Library Manual.
 
   The major mode determines where to look for documentation for the
 symbol---which Info files to look in, and which indices to search.
@@ -1316,7 +1325,9 @@ symbol names.
   The character @kbd{M-@key{TAB}} runs a command to complete the
 partial symbol before point against the set of meaningful symbol
 names.  This command inserts at point any additional characters that
-it can determine from the partial name.
+it can determine from the partial name.  (If your window manager
+defines @kbd{M-@key{TAB}} to switch windows, you can type this Emacs
+command as @kbd{@key{ESC} @key{TAB}}.)
 
   If the partial name in the buffer has multiple possible completions
 that differ in the very next character, so that it is impossible to
@@ -1513,10 +1524,10 @@ With prefix argument @var{n}, move @var{n} times.
 
   In C mode and related modes, certain printing characters are
 ``electric''---in addition to inserting themselves, they also reindent
-the current line and may insert newlines.  This feature is controlled by
-the variable @code{c-auto-newline}.  The ``electric'' characters are
-@kbd{@{}, @kbd{@}}, @kbd{:}, @kbd{#}, @kbd{;}, @kbd{,}, @kbd{<},
-@kbd{>}, @kbd{/}, @kbd{*}, @kbd{(}, and @kbd{)}.
+the current line, and optionally also insert newlines.  The
+``electric'' characters are @kbd{@{}, @kbd{@}}, @kbd{:}, @kbd{#},
+@kbd{;}, @kbd{,}, @kbd{<}, @kbd{>}, @kbd{/}, @kbd{*}, @kbd{(}, and
+@kbd{)}.
 
   Electric characters insert newlines only when the @dfn{auto-newline}
 feature is enabled (indicated by @samp{/a} in the mode line after the

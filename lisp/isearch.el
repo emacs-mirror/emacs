@@ -740,7 +740,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (setq ;; quit-flag nil  not for isearch-mode
    isearch-adjusted nil
    isearch-yank-flag nil)
-  (if isearch-lazy-highlight (isearch-lazy-highlight-new-loop))
+  (when isearch-lazy-highlight
+    (isearch-lazy-highlight-new-loop nil nil))
   ;; We must prevent the point moving to the end of composition when a
   ;; part of the composition has just been searched.
   (setq disable-point-adjustment t))
@@ -2314,6 +2315,8 @@ since they have special meaning in a regexp."
 
 (defvar isearch-lazy-highlight-overlays nil)
 (defvar isearch-lazy-highlight-wrapped nil)
+(defvar isearch-lazy-highlight-start-limit nil)
+(defvar isearch-lazy-highlight-end-limit nil)
 (defvar isearch-lazy-highlight-start nil)
 (defvar isearch-lazy-highlight-end nil)
 (defvar isearch-lazy-highlight-timer nil)
@@ -2339,10 +2342,12 @@ is nil.  This function is called when exiting an incremental search if
     (cancel-timer isearch-lazy-highlight-timer)
     (setq isearch-lazy-highlight-timer nil)))
 
-(defun isearch-lazy-highlight-new-loop ()
+(defun isearch-lazy-highlight-new-loop (beg end)
   "Cleanup any previous `lazy-highlight' loop and begin a new one.
-This happens when `isearch-update' is invoked (which can cause the
-search string to change or the window to scroll)."
+BEG and END specify the bounds within which highlighting should occur.
+This is called when `isearch-update' is invoked (which can cause the
+search string to change or the window to scroll).  It is also used
+by other Emacs features."
   (when (and (null executing-kbd-macro)
              (sit-for 0)         ;make sure (window-start) is credible
              (or (not (equal isearch-string
@@ -2360,6 +2365,8 @@ search string to change or the window to scroll)."
     ;; something important did indeed change
     (isearch-lazy-highlight-cleanup t) ;kill old loop & remove overlays
     (when (not isearch-invalid-regexp)
+      (setq isearch-lazy-highlight-start-limit beg
+	    isearch-lazy-highlight-end-limit end)
       (setq isearch-lazy-highlight-window       (selected-window)
             isearch-lazy-highlight-window-start (window-start)
             isearch-lazy-highlight-window-end   (window-end)
@@ -2382,12 +2389,14 @@ Attempt to do the search exactly the way the pending isearch would."
     (funcall (isearch-search-fun)
              isearch-string
              (if isearch-forward
-                 (if isearch-lazy-highlight-wrapped
-                     isearch-lazy-highlight-start
-                   (window-end))
-               (if isearch-lazy-highlight-wrapped
-                   isearch-lazy-highlight-end
-                 (window-start)))
+                 (min (or isearch-lazy-highlight-end-limit (point-max))
+		      (if isearch-lazy-highlight-wrapped
+			  isearch-lazy-highlight-start
+			(window-end)))
+               (max (or isearch-lazy-highlight-start-limit (point-min))
+		    (if isearch-lazy-highlight-wrapped
+			isearch-lazy-highlight-end
+		      (window-start))))
              t)))
 
 (defun isearch-lazy-highlight-update ()
@@ -2446,9 +2455,11 @@ Attempt to do the search exactly the way the pending isearch would."
 		      (if isearch-forward
 			  (progn
 			    (setq isearch-lazy-highlight-end (window-start))
-			    (goto-char (window-start)))
+			    (goto-char (max (or isearch-lazy-highlight-start-limit (point-min))
+					    (window-start))))
 			(setq isearch-lazy-highlight-start (window-end))
-			(goto-char (window-end)))))))
+			(goto-char (min (or isearch-lazy-highlight-end-limit (point-max))
+					(window-end))))))))
 	    (unless nomore
 	      (setq isearch-lazy-highlight-timer
 		    (run-at-time lazy-highlight-interval nil
