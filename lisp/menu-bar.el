@@ -292,6 +292,28 @@ A large number or nil slows down menu responsiveness.")
   (raise-frame last-command-event)
   (select-frame last-command-event))
 
+(defun menu-bar-update-buffers-1 (elt)
+  (cons (format
+	 (format "%%%ds  %%s%%s  %%s" maxbuf)
+	 (cdr elt)
+	 (if (buffer-modified-p (car elt))
+	     "*" " ")
+	 (save-excursion
+	   (set-buffer (car elt))
+	   (if buffer-read-only "%" " "))
+	 (let ((file
+		(or (buffer-file-name (car elt))
+		    (save-excursion
+		      (set-buffer (car elt))
+		      list-buffers-directory)
+		    "")))
+	   (setq file (or (file-name-directory file)
+			  ""))
+	   (if (> (length file) 20)
+	       (setq file (concat "..." (substring file -17))))
+	   file))
+	(car elt)))
+
 (defun menu-bar-update-buffers ()
   ;; If user discards the Buffers item, play along.
   (and (lookup-key (current-global-map) [menu-bar buffer])
@@ -308,38 +330,42 @@ A large number or nil slows down menu responsiveness.")
 	 ;; Make the menu of buffers proper.
 	 (setq buffers-menu
 	       (cons "Select Buffer"
-		     (let ((tail buffers)
-			   (maxbuf 0)
-			   (maxlen 0)
-			   alist
-			   head)
+		     (let* ((buffer-list
+			     (mapcar 'list buffers))
+			    tail
+			    (maxbuf 0)
+			    (maxlen 0)
+			    alist
+			    head)
+		       ;; Put into each element of buffer-list
+		       ;; the name for actual display,
+		       ;; perhaps truncated in the middle.
+		       (setq tail buffer-list)
 		       (while tail
-			 (or (eq ?\ (aref (buffer-name (car tail)) 0))
+			 (let ((name (buffer-name (car (car tail)))))
+			   (setcdr (car tail)
+				   (if (> (length name) 27)
+				       (concat (substring name 0 12)
+					       "..."
+					       (substring name -12))
+				     name)))
+			 (setq tail (cdr tail)))
+		       ;; Compute the maximum length of any name.
+		       (setq tail buffer-list)
+		       (while tail
+			 (or (eq ?\ (aref (cdr (car tail)) 0))
 			     (setq maxbuf
 				   (max maxbuf
-					(length (buffer-name (car tail))))))
+					(length (cdr (car tail))))))
 			 (setq tail (cdr tail)))
-		       (setq tail buffers)
+		       ;; Set ALIST to an alist of the form
+		       ;; ITEM-STRING . BUFFER
+		       (setq tail buffer-list)
 		       (while tail
 			 (let ((elt (car tail)))
-			   (or (eq ?\ (aref (buffer-name elt) 0))
+			   (or (eq ?\ (aref (cdr elt) 0))
 			       (setq alist (cons
-					    (cons
-					     (format
-					      (format "%%%ds  %%s%%s  %%s"
-						      maxbuf)
-					      (buffer-name elt)
-					      (if (buffer-modified-p elt)
-						  "*" " ")
-					      (save-excursion
-						(set-buffer elt)
-						(if buffer-read-only "%" " "))
-					      (or (buffer-file-name elt)
-						  (save-excursion
-						    (set-buffer elt)
-						    list-buffers-directory)
-						  ""))
-					     elt)
+					    (menu-bar-update-buffers-1 elt)
 					    alist)))
 			   (and alist (> (length (car (car alist))) maxlen)
 				(setq maxlen (length (car (car alist))))))
