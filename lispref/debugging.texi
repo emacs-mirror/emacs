@@ -89,6 +89,10 @@ The value can also be a list of error conditions that should call the
 debugger.  For example, if you set it to the list
 @code{(void-variable)}, then only errors about a variable that has no
 value invoke the debugger.
+
+When this variable is non-@code{nil}, Emacs does not catch errors that
+happen in process filter functions and sentinels.  Therefore, these
+errors also can invoke the debugger.  @xref{Processes}.
 @end defopt
 
   To debug an error that happens during loading of the @file{.emacs}

@@ -17,6 +17,8 @@ not be displayed in any windows.
 
 @menu
 * Buffer Basics::       What is a buffer?
+* Current Buffer::      Designating a buffer as current
+                          so primitives will access its contents.
 * Buffer Names::        Accessing and changing buffer names.
 * Buffer File Name::    The buffer file name indicates which file is visited.
 * Buffer Modification:: A buffer is @dfn{modified} if it needs to be saved.
@@ -26,8 +28,7 @@ not be displayed in any windows.
 * The Buffer List::     How to look at all the existing buffers.
 * Creating Buffers::    Functions that create buffers.
 * Killing Buffers::     Buffers exist until explicitly killed.
-* Current Buffer::      Designating a buffer as current
-                          so primitives will access its contents.
+* Indirect Buffers::    An indirect buffer shares text with some other buffer.
 @end menu
 
 @node Buffer Basics
@@ -73,6 +74,130 @@ variables related to the display of buffers in windows, see
 @defun bufferp object
 This function returns @code{t} if @var{object} is a buffer,
 @code{nil} otherwise.
+@end defun
+
+@node Current Buffer
+@section The Current Buffer
+@cindex selecting a buffer
+@cindex changing to another buffer
+@cindex current buffer
+
+  There are, in general, many buffers in an Emacs session.  At any time,
+one of them is designated as the @dfn{current buffer}.  This is the
+buffer in which most editing takes place, because most of the primitives
+for examining or changing text in a buffer operate implicitly on the
+current buffer (@pxref{Text}).  Normally the buffer that is displayed on
+the screen in the selected window is the current buffer, but this is not
+always so: a Lisp program can designate any buffer as current
+temporarily in order to operate on its contents, without changing what
+is displayed on the screen.
+
+  The way to designate a current buffer in a Lisp program is by calling
+@code{set-buffer}.  The specified buffer remains current until a new one
+is designated.
+
+  When an editing command returns to the editor command loop, the
+command loop designates the buffer displayed in the selected window as
+current, to prevent confusion: the buffer that the cursor is in when
+Emacs reads a command is the buffer that the command will apply to.
+(@xref{Command Loop}.)  Therefore, @code{set-buffer} is not the way to
+switch visibly to a different buffer so that the user can edit it.  For
+this, you must use the functions described in @ref{Displaying Buffers}.
+
+  However, Lisp functions that change to a different current buffer
+should not depend on the command loop to set it back afterwards.
+Editing commands written in Emacs Lisp can be called from other programs
+as well as from the command loop.  It is convenient for the caller if
+the subroutine does not change which buffer is current (unless, of
+course, that is the subroutine's purpose).  Therefore, you should
+normally use @code{set-buffer} within a @code{save-excursion} that will
+restore the current buffer when your function is done
+(@pxref{Excursions}).  Here is an example, the code for the command
+@code{append-to-buffer} (with the documentation string abridged):
+
+@example
+@group
+(defun append-to-buffer (buffer start end)
+  "Append to specified buffer the text of the region.
+@dots{}"
+  (interactive "BAppend to buffer: \nr")
+  (let ((oldbuf (current-buffer)))
+    (save-excursion
+      (set-buffer (get-buffer-create buffer))
+      (insert-buffer-substring oldbuf start end))))
+@end group
+@end example
+
+@noindent
+This function binds a local variable to the current buffer, and then
+@code{save-excursion} records the values of point, the mark, and the
+original buffer.  Next, @code{set-buffer} makes another buffer current.
+Finally, @code{insert-buffer-substring} copies the string from the
+original current buffer to the new current buffer.
+
+  If the buffer appended to happens to be displayed in some window, 
+the next redisplay will show how its text has changed.  Otherwise, you
+will not see the change immediately on the screen.  The buffer becomes
+current temporarily during the execution of the command, but this does
+not cause it to be displayed.
+
+  If you make local bindings (with @code{let} or function arguments) for
+a variable that may also have buffer-local bindings, make sure that the
+same buffer is current at the beginning and at the end of the local
+binding's scope.  Otherwise you might bind it in one buffer and unbind
+it in another!  There are two ways to do this.  In simple cases, you may
+see that nothing ever changes the current buffer within the scope of the
+binding.  Otherwise, use @code{save-excursion} to make sure that the
+buffer current at the beginning is current again whenever the variable
+is unbound.
+
+  It is not reliable to change the current buffer back with
+@code{set-buffer}, because that won't do the job if a quit happens while
+the wrong buffer is current.  Here is what @emph{not} to do:
+
+@example
+@group
+(let (buffer-read-only
+      (obuf (current-buffer)))
+  (set-buffer @dots{})
+  @dots{}
+  (set-buffer obuf))
+@end group
+@end example
+
+@noindent
+Using @code{save-excursion}, as shown below, handles quitting, errors,
+and @code{throw}, as well as ordinary evaluation.
+
+@example
+@group
+(let (buffer-read-only)
+  (save-excursion
+    (set-buffer @dots{})
+    @dots{}))
+@end group
+@end example
+
+@defun current-buffer
+This function returns the current buffer.
+
+@example
+@group
+(current-buffer)
+     @result{} #<buffer buffers.texi>
+@end group
+@end example
+@end defun
+
+@defun set-buffer buffer-or-name
+This function makes @var{buffer-or-name} the current buffer.  It does
+not display the buffer in the currently selected window or in any other
+window, so the user cannot necessarily see the buffer.  But Lisp
+programs can in any case work on it.
+
+This function returns the buffer identified by @var{buffer-or-name}.
+An error is signaled if @var{buffer-or-name} does not identify an
+existing buffer.
 @end defun
 
 @node Buffer Names
@@ -533,6 +658,12 @@ If @var{buffer-or-name} is not supplied (or if it is not a buffer),
 then @code{other-buffer} returns the first buffer on the buffer list
 that is not visible in any window in a visible frame.
 
+If the selected frame has a non-@code{nil} @code{buffer-predicate}
+parameter, then @code{other-buffer} uses that predicate to decide which
+buffers to consider.  It calls the predicate once for each buffer, and
+if the value is @code{nil}, that buffer is ignored.  @xref{X Frame
+Parameters}.
+
 @c Emacs 19 feature
 If @var{visible-ok} is @code{nil}, @code{other-buffer} avoids returning
 a buffer visible in any window on any visible frame, except as a last
@@ -589,8 +720,9 @@ An error is signaled if @var{name} is not a string.
 @end group
 @end example
 
-The major mode for the new buffer is set according to the variable
-@code{default-major-mode}.  @xref{Auto Major Mode}.
+The major mode for the new buffer is set to Fundamental mode.  The
+variable @code{default-major-mode} is handled at a higher level.
+@xref{Auto Major Mode}.
 @end defun
 
 @defun generate-new-buffer name
@@ -618,8 +750,9 @@ An error is signaled if @var{name} is not a string.
 @end group
 @end example
 
-The major mode for the new buffer is set by the value of
-@code{default-major-mode}.  @xref{Auto Major Mode}.
+The major mode for the new buffer is set to Fundamental mode.  The
+variable @code{default-major-mode} is handled at a higher level.
+@xref{Auto Major Mode}.
 
 See the related function @code{generate-new-buffer-name} in @ref{Buffer
 Names}.
@@ -713,126 +846,48 @@ variable @code{buffer-offer-save} automatically becomes buffer-local
 when set for any reason.  @xref{Buffer-Local Variables}.
 @end defvar
 
-@node Current Buffer
-@section The Current Buffer
-@cindex selecting a buffer
-@cindex changing to another buffer
-@cindex current buffer
+@node Indirect Buffers
+@section Indirect Buffers
+@cindex indirect buffers
+@cindex base buffer
 
-  There are, in general, many buffers in an Emacs session.  At any time,
-one of them is designated as the @dfn{current buffer}.  This is the
-buffer in which most editing takes place, because most of the primitives
-for examining or changing text in a buffer operate implicitly on the
-current buffer (@pxref{Text}).  Normally the buffer that is displayed on
-the screen in the selected window is the current buffer, but this is not
-always so: a Lisp program can designate any buffer as current
-temporarily in order to operate on its contents, without changing what
-is displayed on the screen.
+  An @dfn{indirect buffer} shares the text of some other buffer, which
+is called the @dfn{base buffer} of the indirect buffer.  In some ways it
+is the equivalent, for buffers, of a symbolic link among files.  The base
+buffer may not itself be an indirect buffer.
 
-  The way to designate a current buffer in a Lisp program is by calling
-@code{set-buffer}.  The specified buffer remains current until a new one
-is designated.
+  The text of the indirect buffer is always identical to the text of its
+base buffer; changes made by editing either one are visible immediately
+in the other.  This includes the text properties as well as the characters
+themselves.
 
-  When an editing command returns to the editor command loop, the
-command loop designates the buffer displayed in the selected window as
-current, to prevent confusion: the buffer that the cursor is in when
-Emacs reads a command is the buffer that the command will apply to.
-(@xref{Command Loop}.)  Therefore, @code{set-buffer} is not the way to
-switch visibly to a different buffer so that the user can edit it.  For
-this, you must use the functions described in @ref{Displaying Buffers}.
+  But in all other respects, the indirect buffer and its base buffer are
+completely separate.  They have different names, different values of
+point, different narrowing, different markers and overlays (though
+inserting or deleting text in either buffer relocates the markers and
+overlays for both), different major modes, and different local
+variables.
 
-  However, Lisp functions that change to a different current buffer
-should not depend on the command loop to set it back afterwards.
-Editing commands written in Emacs Lisp can be called from other programs
-as well as from the command loop.  It is convenient for the caller if
-the subroutine does not change which buffer is current (unless, of
-course, that is the subroutine's purpose).  Therefore, you should
-normally use @code{set-buffer} within a @code{save-excursion} that will
-restore the current buffer when your function is done
-(@pxref{Excursions}).  Here is an example, the code for the command
-@code{append-to-buffer} (with the documentation string abridged):
+  An indirect buffer cannot visit a file, but its base buffer can.  If
+you try to save the indirect buffer, that actually works by saving the
+base buffer.
 
-@example
-@group
-(defun append-to-buffer (buffer start end)
-  "Append to specified buffer the text of the region.
-@dots{}"
-  (interactive "BAppend to buffer: \nr")
-  (let ((oldbuf (current-buffer)))
-    (save-excursion
-      (set-buffer (get-buffer-create buffer))
-      (insert-buffer-substring oldbuf start end))))
-@end group
-@end example
+  Killing an indirect buffer has no effect on its base buffer.  Killing
+the base buffer effectively kills the indirect buffer in that it cannot
+ever again be the current buffer.
 
-@noindent
-This function binds a local variable to the current buffer, and then
-@code{save-excursion} records the values of point, the mark, and the
-original buffer.  Next, @code{set-buffer} makes another buffer current.
-Finally, @code{insert-buffer-substring} copies the string from the
-original current buffer to the new current buffer.
+@deffn Command make-indirect-buffer base-buffer name
+This creates an indirect buffer named @var{name} whose base buffer
+is @var{base-buffer}.  The argument @var{base-buffer} may be a buffer
+or a string.
+ 
+If @var{base-buffer} is an indirect buffer, its base buffer is used as
+the base for the new buffer.
+@end deffn
 
-  If the buffer appended to happens to be displayed in some window, 
-the next redisplay will show how its text has changed.  Otherwise, you
-will not see the change immediately on the screen.  The buffer becomes
-current temporarily during the execution of the command, but this does
-not cause it to be displayed.
-
-  If you make local bindings (with @code{let} or function arguments) for
-a variable that may also have buffer-local bindings, make sure that the
-same buffer is current at the beginning and at the end of the local
-binding's scope.  Otherwise you might bind it in one buffer and unbind
-it in another!  There are two ways to do this.  In simple cases, you may
-see that nothing ever changes the current buffer within the scope of the
-binding.  Otherwise, use @code{save-excursion} to make sure that the
-buffer current at the beginning is current again whenever the variable
-is unbound.
-
-  It is not reliable to change the current buffer back with
-@code{set-buffer}, because that won't do the job if a quit happens while
-the wrong buffer is current.  Here is what @emph{not} to do:
-
-@example
-@group
-(let (buffer-read-only
-      (obuf (current-buffer)))
-  (set-buffer @dots{})
-  @dots{}
-  (set-buffer obuf))
-@end group
-@end example
-
-@noindent
-Using @code{save-excursion}, as shown below, handles quitting, errors,
-and @code{throw}, as well as ordinary evaluation.
-
-@example
-@group
-(let (buffer-read-only)
-  (save-excursion
-    (set-buffer @dots{})
-    @dots{}))
-@end group
-@end example
-
-@defun current-buffer
-This function returns the current buffer.
-
-@example
-@group
-(current-buffer)
-     @result{} #<buffer buffers.texi>
-@end group
-@end example
+@defun buffer-base-buffer buffer
+This function returns the base buffer of @var{buffer}.  If @var{buffer}
+is not indirect, the value is @code{nil}.  Otherwise, the value is
+another buffer, which is never an indirect buffer.
 @end defun
 
-@defun set-buffer buffer-or-name
-This function makes @var{buffer-or-name} the current buffer.  It does
-not display the buffer in the currently selected window or in any other
-window, so the user cannot necessarily see the buffer.  But Lisp
-programs can in any case work on it.
-
-This function returns the buffer identified by @var{buffer-or-name}.
-An error is signaled if @var{buffer-or-name} does not identify an
-existing buffer.
-@end defun

@@ -582,6 +582,21 @@ keymap, if any, overrides all other maps that would have been active,
 except for the current global map.
 @end defvar
 
+@defvar overriding-local-map-menu-flag
+If this variable is non-@code{nil}, the value of
+@code{overriding-local-map} can affect the display of the menu bar.  The
+default value is @code{nil}, so @code{overriding-local-map} has no
+effect on the menu bar.
+
+Note that @code{overriding-local-map} does affect the execution of key
+sequences entered using the menu bar, even if it does not affect the
+menu bar display.  So if a menu bar key sequence comes in, you should
+clear @code{overriding-local-map} before looking up and executing that
+key sequence.  Modes that use @code{overriding-local-map} would
+typically do this anyway; normally they respond to events that they do
+not handle by ``unreading'' them and and exiting.
+@end defvar
+
 @node Key Lookup
 @section Key Lookup
 @cindex key lookup
@@ -912,6 +927,13 @@ single @kbd{M-x}, @code{"\C-f"} is read as containing a single
 containing a single @kbd{C-M-x}.  You can also use this escape syntax in
 vectors, as well as others that aren't allowed in strings; one example
 is @samp{[?\C-\H-x home]}.  @xref{Character Type}.
+
+  The key definition and lookup functions accept an alternate syntax for
+event types in a key sequence that is a vector: you can use a list
+containing modifier names plus one base event (a character or function
+key name).  For example, @code{(control ?a)} is equivalent to
+@code{?\C-a} and @code{(hyper control left)} is equivalent to
+@code{C-H-left}.
 
   For the functions below, an error is signaled if @var{keymap} is not a
 keymap or if @var{key} is not a string or vector representing a key
@@ -1584,6 +1606,11 @@ for the menu bar, the item appears just once.  If the user clicks on
 that menu bar item, it brings up a single, combined submenu containing
 all the subcommands of that item---the global subcommands, the local
 subcommands, and the minor mode subcommands, all together.
+
+  The variable @code{overriding-local-map} is normally ignored when
+determining the menu bar contents.  That is, the menu bar is computed
+from the keymaps that would be active if @code{overriding-local-map}
+were @code{nil}.  @xref{Active Keymaps}.
 
   In order for a frame to display a menu bar, its @code{menu-bar-lines}
 parameter must be greater than zero.  Emacs uses just one line for the

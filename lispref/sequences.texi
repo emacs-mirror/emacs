@@ -462,11 +462,12 @@ existing vector.
 @end group
 @end example
 
-When an argument is an integer (not a sequence of integers), it is
-converted to a string of digits making up the decimal printed
-representation of the integer.  This special case exists for
-compatibility with Mocklisp, and we don't recommend you take advantage
-of it.  If you want to convert an integer to digits in this way, use
+The @code{vconcat} function also allows integers as arguments.  It
+converts them to strings of digits, making up the decimal print
+representation of the integer, and then uses the strings instead of the
+original integers.  @strong{Don't use this feature; we plan to eliminate
+it.  If you already use this feature, change your programs now!}  The
+proper way to convert an integer to a decimal number in this way is with
 @code{format} (@pxref{Formatting Strings}) or @code{number-to-string}
 (@pxref{String Conversion}).
 

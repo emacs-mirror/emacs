@@ -708,6 +708,39 @@ always affects the most local existing binding.
 @end quotation
 @end defun
 
+  One other function for setting a variable is designed to add
+an element to a list if it is not already present in the list.
+
+@defun add-to-list symbol element
+This function sets the variable @var{symbol} by consing @var{element}
+onto the old value, if @var{element} is not already a member of that
+value.  The value of @var{symbol} had better be a list already.
+
+Here's a scenario showing how to use @code{add-to-list}:
+
+@example
+(setq foo '(a b))
+     @result{} (a b)
+
+(add-to-list 'foo 'c)     ;; @r{Add @code{c}.}
+     @result{} (c a b)
+
+(add-to-list 'foo 'b)     ;; @r{No effect.}
+     @result{} (c a b)
+
+foo                       ;; @r{@code{foo} was changed.}
+     @result{} (c a b)
+@end example
+@end defun
+
+  An equivalent expression for @code{(add-to-list '@var{var}
+@var{value})} is this:
+
+@example
+(or (member @var{value} @var{var})
+    (setq @var{var} (cons @var{value} @var{var})))
+@end example
+
 @node Variable Scoping
 @section Scoping Rules for Variable Bindings
 
@@ -921,7 +954,8 @@ languages in one form or another.  Emacs also supports another, unusual
 kind of variable binding: @dfn{buffer-local} bindings, which apply only
 to one buffer.  Emacs Lisp is meant for programming editing commands,
 and having different values for a variable in different buffers is an
-important customization method.
+important customization method.  (A few variables have bindings that
+are local to a given X terminal; see @ref{Multiple Displays}.)
 
 @menu
 * Intro to Buffer-Local::      Introduction and concepts.
@@ -1072,6 +1106,9 @@ Making a variable buffer-local within a @code{let}-binding for that
 variable does not work.  This is because @code{let} does not distinguish
 between different kinds of bindings; it knows only which variable the
 binding was made for.
+
+@strong{Note:} do not use @code{make-local-variable} for a hook
+variable.  Instead, use @code{make-local-hook}.  @xref{Hooks}.
 @end deffn
 
 @deffn Command make-variable-buffer-local variable
@@ -1114,6 +1151,12 @@ the current buffer is used.
 
 Note that storing new values into the @sc{cdr}s of cons cells in this
 list does @emph{not} change the local values of the variables.
+@end defun
+
+@defun local-variable-p variable
+This returns @code{t} if @var{variable} is buffer-local in the current
+buffer.  It is much faster to get the answer this way than to examine
+the value of @code{buffer-local-variables}.
 @end defun
 
 @deffn Command kill-local-variable variable
@@ -1277,4 +1320,3 @@ evaluated.
 @end group
 @end example
 @end defun
-

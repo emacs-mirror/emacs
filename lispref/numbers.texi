@@ -372,8 +372,8 @@ commonly used.
 if any argument is floating.
 
   It is important to note that in GNU Emacs Lisp, arithmetic functions
-do not check for overflow.  Thus @code{(1+ 8388607)} may evaluate to
-@minus{}8388608, depending on your hardware.
+do not check for overflow.  Thus @code{(1+ 134217727)} may evaluate to
+@minus{}134217728, depending on your hardware.
 
 @defun 1+ number-or-marker
 This function returns @var{number-or-marker} plus 1.
@@ -642,11 +642,11 @@ number.
 
 The function @code{lsh}, like all Emacs Lisp arithmetic functions, does
 not check for overflow, so shifting left can discard significant bits
-and change the sign of the number.  For example, left shifting 8,388,607
-produces @minus{}2 on a 24-bit machine:
+and change the sign of the number.  For example, left shifting
+134,217,727 produces @minus{}2 on a 28-bit machine:
 
 @example
-(lsh 8388607 1)          ; @r{left shift}
+(lsh 134217727 1)          ; @r{left shift}
      @result{} -2
 @end example
 
@@ -1009,8 +1009,17 @@ This function returns a pseudo-random integer.  Repeated calls return a
 series of pseudo-random integers.
 
 If @var{limit} is @code{nil}, then the value may in principle be any
-integer.  If @var{limit} is a positive integer, the value is chosen to
-be nonnegative and less than @var{limit} (only in Emacs 19).
+integer.  However, on machines where integers have more than 32 bits,
+the possible values may be limited to the interval
+@tex
+$[0,2^{32})$.
+@end tex
+@ifinfo
+[0,2**32).
+@end ifinfo
+
+If @var{limit} is a positive integer, the value is chosen to be
+nonnegative and less than @var{limit} (only in Emacs 19).
 
 If @var{limit} is @code{t}, it means to choose a new seed based on the
 current time of day and on Emacs's process @sc{id} number.

@@ -22,8 +22,8 @@ however, as fast as true compiled code.
 
   In general, any version of Emacs can run byte-compiled code produced
 by recent earlier versions of Emacs, but the reverse is not true.  In
-particular, if you compile a program with Emacs 18, you can run the
-compiled code in Emacs 19, but not vice versa.
+particular, if you compile a program with Emacs 19.29, the compiled
+code does not run in earlier versions.
 
   @xref{Compilation Errors}, for how to investigate errors occurring in
 byte compilation.
@@ -31,6 +31,8 @@ byte compilation.
 @menu
 * Speed of Byte-Code::          An example of speedup from byte compilation.
 * Compilation Functions::       Byte compilation functions.
+* Docs and Compilation::        Dynamic loading of documentation strings.
+* Dynamic Loading::             Dynamic loading of individual functions.
 * Eval During Compile::  	Code to be evaluated when you compile.
 * Byte-Code Objects::		The data type used for byte-compiled functions.
 * Disassembly::                 Disassembling byte-code; how to read byte-code.
@@ -109,7 +111,7 @@ i.e., the compiler does not follow indirection to another symbol.
 @code{byte-compile} returns the new, compiled definition of
 @var{symbol}.
 
-If @var{symbol}'s definition is a byte-code function object,
+  If @var{symbol}'s definition is a byte-code function object,
 @code{byte-compile} does nothing and returns @code{nil}.  Lisp records
 only one function definition for any symbol, and if that is already
 compiled, non-compiled code is not available anywhere.  So there is no
@@ -221,10 +223,129 @@ part of a byte-code function object, and only rarely due to an explicit
 call to @code{byte-code}.
 @end defun
 
+@node Docs and Compilation
+@section Documentation Strings and Compilation
+@cindex dynamic loading of documentation
+
+  Functions and variables loaded from a byte-compiled file access their
+documentation strings dynamically from the file whenever needed.  This
+saves space within Emacs, and make loading faster because the
+documentation strings themselves need not be processed while loading the
+file.  Actual access to the documentation strings becomes slower as a
+result, but this normally is not enough to bother users.
+
+  Dynamic access to documentation strings does have drawbacks:
+
+@itemize @bullet
+@item
+If you delete or move the compiled file after loading it, Emacs can no
+longer access the documentation strings for the functions and variables
+in the file.
+
+@item
+If you alter the compiled file (such as by compiling a new version),
+then further access to documentation strings in this file will give
+nonsense results.
+@end itemize
+
+  If your site installs Emacs following the usual procedures, these
+problems will never normally occur.  Installing a new version uses a new
+directory with a different name; as long as the old version remains
+installed, its files will remain unmodified in the places where they are
+expected to be.
+
+  However, if you have build Emacs yourself and use it from the
+directory where you built it, you will experience this problem
+occasionally if you edit and recompile Lisp files.  When it happens, you
+can cure the problem by reloading the file after recompiling it.
+
+  Byte-compiled files made with Emacs 19.29 will not load into older
+versions because the older versions don't support this feature.  You can
+turn off this feature by setting @code{byte-compile-dynamic-docstrings}
+to @code{nil}.  Once this is done, you can compile files that will load
+into older Emacs versions.  You can do this globally, or for one source
+file by specifying a file-local binding for the variable.  Here's one
+way:
+
+@example
+-*-byte-compile-dynamic-docstrings: nil;-*-
+@end example
+
+@defvar byte-compile-dynamic-docstrings
+If this is non-@code{nil}, the byte compiler generates compiled files
+that are set up for dynamic loading of documentation strings.
+@end defvar
+
+@cindex @samp{#@@@var{count}}
+@cindex @samp{#$}
+  The dynamic documentation string feature writes compiled files that
+use a special Lisp reader construct, @samp{#@@@var{count}}.  This
+construct skips the next @var{count} characters.  It also uses the
+@samp{#$} construct, which stands for ``the name of this file, as a
+string.''  It is best not to use these constructs in Lisp source files.
+
+@node Dynamic Loading
+@section Dynamic Loading of Individual Functions
+
+@cindex dynamic loading of functions
+@cindex lazy loading
+  When you compile a file, you can optionally enable the @dfn{dynamic
+function loading} feature (also known as @dfn{lazy loading}).  With
+dynamic function loading, loading the file doesn't fully read the
+function definitions in the file.  Instead, each function definition
+contains a place-holder which refers to the file.  The first time each
+function is called, it reads the full definition from the file, to
+replace the place-holder.
+
+  The advantage of dynamic function loading is that loading the file
+becomes much faster.  This is a good thing for a file which contains
+many separate commands, provided that using one of them does not imply
+you will soon (or ever) use the rest.  A specialized mode which provides
+many keyboard commands often has that usage pattern: a user may invoke
+the mode, but use only a few of the commands it provides.
+
+  The dynamic loading feature has certain disadvantages:
+
+@itemize @bullet
+@item
+If you delete or move the compiled file after loading it, Emacs can no
+longer load the remaining function definitions not already loaded.
+
+@item
+If you alter the compiled file (such as by compiling a new version),
+then trying to load any function not already loaded will get nonsense
+results.
+@end itemize
+
+  If you compile a new version of the file, the best thing to do is
+immediately load the new compiled file.  That will prevent any future
+problems.
+
+  The byte compiler uses the dynamic function loading feature if the
+variable @code{byte-compile-dynamic} is non-@code{nil} at compilation
+time.  Do not set this variable globally, since dynamic loading is
+desirable only for certain files.  Instead, enable the feature for
+specific source files with file-local variable bindings, like this:
+
+@example
+-*-byte-compile-dynamic: t;-*-
+@end example
+
+@defvar byte-compile-dynamic
+If this is non-@code{nil}, the byte compiler generates compiled files
+that are set up for dynamic function loading.
+@end defvar
+
+@defun fetch-bytecode function
+This immediately finishes loading the definition of @var{function} from
+its byte-compiled file, if it is not fully loaded already.  The argument
+@var{function} may be a byte-code function object or a function name.
+@end defun
+
 @node Eval During Compile
 @section Evaluation During Compilation
 
-These features permit you to write code to be evaluated during
+  These features permit you to write code to be evaluated during
 compilation of a program.
 
 @defspec eval-and-compile body

@@ -101,6 +101,10 @@ error @code{file-error} (with @samp{Cannot open load file
 @var{filename}}).  But if @var{missing-ok} is non-@code{nil}, then
 @code{load} just returns @code{nil}.
 
+You can use the variable @code{load-read-function} to specify a function
+for @code{load} to use instead of @code{read} for reading expressions.
+See below.
+
 @code{load} returns @code{t} if the file loads successfully.
 @end defun
 
@@ -191,6 +195,15 @@ This variable is non-@code{nil} if Emacs is in the process of loading a
 file, and it is @code{nil} otherwise.  This is how @code{defun} and
 @code{provide} determine whether a load is in progress, so that their
 effect can be undone if the load fails.
+@end defvar
+
+@defvar load-read-function
+This variable specifies an alternate expression-reading function for
+@code{load} and @code{eval-region} to use instead of @code{read}.
+The function should accept one argument, just as @code{read} does.
+
+Normally, the variable's value is @code{nil}, which means those
+functions should use @code{read}.
 @end defvar
 
   To learn how @code{load} is used to build Emacs, see @ref{Building Emacs}.
@@ -326,7 +339,6 @@ convention used only in the preloaded Lisp files such as
 documentation string in the @file{etc/DOC} file.  @xref{Building Emacs}.
 
 @node Repeated Loading
-@comment  node-name,  next,  previous,  up
 @section Repeated Loading
 @cindex repeated loading
 

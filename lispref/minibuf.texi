@@ -554,7 +554,7 @@ too short).  Both of those begin with the string @samp{foobar}.
 @end smallexample
 @end defun
 
-@defun all-completions string collection &optional predicate 
+@defun all-completions string collection &optional predicate nospace
 This function returns a list of all possible completions of
 @var{string}.  The parameters to this function are the same as to
 @code{try-completion}.
@@ -562,6 +562,9 @@ This function returns a list of all possible completions of
 If @var{collection} is a function, it is called with three arguments:
 @var{string}, @var{predicate} and @code{t}; then @code{all-completions}
 returns whatever the function returns.  @xref{Programmed Completion}.
+
+If @var{nospace} is non-@code{nil}, completions that start with a space
+are ignored unless @var{string} also starts with a space.
 
 Here is an example, using the function @code{test} shown in the
 example for @code{try-completion}:
@@ -1369,12 +1372,17 @@ The current value of this variable is used to rebind @code{help-form}
 locally inside the minibuffer (@pxref{Help Functions}).
 @end defvar
 
+@defun active-minibuffer-window
+This function returns the currently active minibuffer window, or
+@code{nil} if none is currently active.
+@end defun
+
 @defun minibuffer-window &optional frame
-This function returns the window that is used for the minibuffer.  In
-Emacs 18, there is one and only one minibuffer window; this window
-always exists and cannot be deleted.  In Emacs 19, each frame can have
-its own minibuffer, and this function returns the minibuffer window used
-for frame @var{frame} (which defaults to the currently selected frame).
+This function returns the minibuffer window used for frame @var{frame}.
+If @var{frame} is @code{nil}, that stands for the current frame.  Note
+that the minibuffer window used by a frame need not be part of that
+frame---a frame that has no minibuffer of its own necessarily uses some
+other frame's minibuffer window.
 @end defun
 
 @c Emacs 19 feature

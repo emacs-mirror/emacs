@@ -14,7 +14,8 @@ that Emacs presents to the user.
 * Screen Size::         How big is the Emacs screen.
 * Truncation::          Folding or wrapping long text lines.
 * The Echo Area::       Where messages are displayed.
-* Selective Display::   Hiding part of the buffer text.
+* Invisible Text::      Hiding part of the buffer text.
+* Selective Display::   Hiding part of the buffer text (the old way).
 * Overlay Arrow::       Display of an arrow to indicate position.
 * Temporary Displays::  Displays that go away automatically.
 * Overlays::		Use overlays to highlight parts of the buffer.
@@ -168,12 +169,27 @@ If it is non-@code{nil}, these lines are truncated; otherwise,
   You can override the images that indicate continuation or truncation
 with the display table; see @ref{Display Tables}.
 
+  If your buffer contains @strong{very} long lines, and you use
+continuation to display them, just thinking about them can make Emacs
+redisplay slow.
+
+@defvar cache-long-line-scans
+If this variable is non-@code{nil}, various indentation and motion
+functions, and Emacs redisplay, cache the results of their scans for
+newlines, and consult the cache to avoid rescanning regions of the
+buffer unless they are modified.
+
+Turning on the newline cache slows down processing of short lines.
+
+This variable is automatically local in every buffer.
+@end defvar
+
 @node The Echo Area
 @section The Echo Area
 @cindex error display
 @cindex echo area
 
-  The @dfn{echo area} is used for displaying messages made with the
+The @dfn{echo area} is used for displaying messages made with the
 @code{message} primitive, and for echoing keystrokes.  It is not the
 same as the minibuffer, despite the fact that the minibuffer appears
 (when active) in the same place on the screen as the echo area.  The
@@ -187,7 +203,7 @@ functions with @code{t} as the stream (@pxref{Output Functions}), or as
 follows:
 
 @defun message string &rest arguments
-This function prints a one-line message in the echo area.  The
+This function displays a one-line message in the echo area.  The
 argument @var{string} is similar to a C language @code{printf} control
 string.  See @code{format} in @ref{String Conversion}, for the details
 on the conversion specifications.  @code{message} returns the
@@ -217,6 +233,21 @@ Minibuffer depth is 0.
 @end example
 @end defun
 
+Almost all the messages displayed in the echo area are also recorded
+in the @samp{*Messages*} buffer.
+
+@defopt message-log-max
+This variable specifies how many lines to keep in the @samp{*Messages*}
+buffer.  The value @code{t} means there is no limit on how many lines to
+keep.  The value @code{nil} disables message logging entirely.  Here's
+how to display a message and prevent it from being logged:
+
+@example
+(let (message-log-max)
+  (message @dots{}))
+@end example
+@end defopt
+
 @defvar cursor-in-echo-area
 This variable controls where the cursor appears when a message is
 displayed in the echo area.  If it is non-@code{nil}, then the cursor
@@ -225,6 +256,62 @@ point---not in the echo area at all.
 
 The value is normally @code{nil}; Lisp programs bind it to @code{t}
 for brief periods of time.
+@end defvar
+
+@node Invisible Text
+@section Invisible Text
+
+@cindex invisible text
+You can make characters @dfn{invisible}, so that they do not appear on
+the screen, with the @code{invisible} property.  This can be either a
+text property or a property of an overlay.
+
+In the simplest case, any non-@code{nil} @code{invisible} property makes
+a character invisible.  This is the default case---if you don't alter
+the default value of @code{buffer-invisibility-spec}, this is how the
+@code{invisibility} property works.  This feature is much like selective
+display (@pxref{Selective Display}), but more general and cleaner.
+
+More generally, you can use the variable @code{buffer-invisibility-spec}
+to control which values of the @code{invisible} property make text
+invisible.  This permits you to classify the text into different subsets
+in advance, by giving them different @code{invisible} values, and
+subsequently make various subsets visible or invisible by changing the
+value of @code{buffer-invisibility-spec}.
+
+Controlling visibility with @code{buffer-invisibility-spec} is
+especially useful in a program to display the list of entries in a data
+base.  It permits the implementation of convenient filtering commands to
+view just a part of the entries in the data base.  Setting this variable
+is very fast, much faster than scanning all the text in the buffer
+looking for things to change.
+
+@defvar buffer-invisibility-spec
+This variable specifies which kinds of @code{invisible} properties
+actually make a character invisible.
+
+@table @asis
+@item @code{t}
+A character is invisible if its @code{invisible} property is
+non-@code{nil}.  This is the default.
+
+@item a list
+Each element of the list makes certain characters invisible.
+Ultimately, a character is invisible if any of the elements of this list
+applies to it.  The list can have two kinds of elements:
+
+@table @code
+@item @var{atom}
+A character is invisible if its @code{invisible} propery value
+is @var{atom} or if it is a list with @var{atom} as a member.
+
+@item (@var{atom} . t)
+A character is invisible if its @code{invisible} propery value
+is @var{atom} or if it is a list with @var{atom} as a member.
+Moreover, if this character is at the end of a line and is followed
+by a visible newline, it displays an ellipsis.
+@end table
+@end table
 @end defvar
 
 @node Selective Display
@@ -237,9 +324,13 @@ lines do not appear.
 
   The first variant, explicit selective display, is designed for use in
 a Lisp program.  The program controls which lines are hidden by altering
-the text.  Outline mode uses this variant.  In the second variant, the
-choice of lines to hide is made automatically based on indentation.
-This variant is designed as a user-level feature.
+the text.  Outline mode has traditionally used this variant.  It has
+been partially replaced by the invisible text feature (@pxref{Invisible
+Text}); there is a new version of Outline mode which uses that instead.
+
+  In the second variant, the choice of lines to hide is made
+automatically based on indentation.  This variant is designed as a
+user-level feature.
 
   The way you control explicit selective display is by replacing a
 newline (control-j) with a carriage return (control-m).  The text that
@@ -370,12 +461,17 @@ given time.
 @c now.  Is it?
 @end defvar
 
+  You can do the same job by creating an overlay with a
+@code{before-string} property.  @xref{Overlay Properties}.
+
 @node Temporary Displays
 @section Temporary Displays
 
   Temporary displays are used by commands to put output into a buffer
 and then present it to the user for perusal rather than for editing.
-Many of the help commands use this feature.
+Many of the help commands use this feature.  Nowadays you can do the
+same job by creating an overlay with a @code{before-string} property.
+@xref{Overlay Properties}.
 
 @defspec with-output-to-temp-buffer buffer-name forms@dots{}
 This function executes @var{forms} while arranging to insert any
@@ -527,11 +623,18 @@ what they should mean.
 If the @code{window} property is non-@code{nil}, then the overlay
 applies only on that window.
 
+@item category
+@kindex category @r{(overlay property)}
+If an overlay has a @code{category} property, we call it the
+@dfn{category} of the character.  It should be a symbol.  The properties
+of the symbol serve as defaults for the properties of the overlay.
+
 @item face
 @kindex face @r{(overlay property)}
-This property controls the font and color of text.  @xref{Faces}, for
-more information.  This feature is temporary; in the future, we may
-replace it with other ways of specifying how to display text.
+This property controls the font and color of text.  Its value is a face
+name or a list of face names.  @xref{Faces}, for more information.  This
+feature may be temporary; in the future, we may replace it with other
+ways of specifying how to display text.
 
 @item mouse-face
 @kindex mouse-face @r{(overlay property)}
@@ -543,39 +646,67 @@ the range of the overlay.  This feature may be temporary, like
 @kindex modification-hooks @r{(overlay property)}
 This property's value is a list of functions to be called if any
 character within the overlay is changed or if text is inserted strictly
-within the overlay.  Each function receives three arguments: the
-overlay, and the beginning and end of the part of the buffer being
+within the overlay.
+
+The hook functions are called both before and after each change.
+If the functions save the information they receive, and compare notes
+between calls, they can determine exactly what change has been made
+in the buffer text.
+
+When called before a change, each function receives four arguments: the
+overlay, @code{nil}, and the beginning and end of the text range to be
 modified.
+
+When called after a change, each function receives five arguments: the
+overlay, @code{t}, the beginning and end of the text range just
+modified, and the length of the pre-change text replaced by that range.
+(For an insertion, the pre-change length is zero; for a deletion, that
+length is the number of characters deleted, and the post-change
+beginning and end are at the same place.)
 
 @item insert-in-front-hooks
 @kindex insert-in-front-hooks @r{(overlay property)}
-This property's value is a list of functions to be called
-if text is inserted right at the beginning of the overlay.
+This property's value is a list of functions to be called before and
+after inserting text right at the beginning of the overlay.  The calling
+conventions are the same as for the @code{modification-hooks} functions.
 
 @item insert-behind-hooks
 @kindex insert-behind-hooks @r{(overlay property)}
-This property's value is a list of functions to be called if text is
-inserted right at the end of the overlay.
+This property's value is a list of functions to be called before and
+after inserting text right at the end of the overlay.  The calling
+conventions are the same as for the @code{modification-hooks} functions.
 
 @item invisible
 @kindex invisible @r{(overlay property)}
-A non-@code{nil} @code{invisible} property means that the text in the
-overlay does not appear on the screen.  This works much like selective
-display.  Details of this feature are likely to change in future
-versions, so check the @file{etc/NEWS} file in the version you are
-using.
+The @code{invisible} property can make the text in the overlay
+invisible, which means that it does not appear on the screen.
+@xref{Invisible Text}, for details.
+
+@item intangible
+@kindex intangible @r{(overlay property)}
+The @code{intangible} property on an overlay works just like the
+@code{intangible} text propert.  @xref{Special Properties}, for details.
 
 @item before-string
 @kindex before-string @r{(overlay property)}
 This property's value is a string to add to the display at the beginning
 of the overlay.  The string does not appear in the buffer in any
-sense---only on the screen.  This is not yet implemented, but will be.
+sense---only on the screen.  The string should contain only characters
+that display as a single column---control characters, including tabs or
+newlines, will give strange results.
 
 @item after-string
 @kindex after-string @r{(overlay property)}
 This property's value is a string to add to the display at the end of
 the overlay.  The string does not appear in the buffer in any
-sense---only on the screen.  This is not yet implemented, but will be.
+sense---only on the screen.  The string should contain only characters
+that display as a single column---control characters, including tabs or
+newlines, will give strange results.
+
+@item evaporate
+@kindex evaporate @r{(overlay property)}
+If this property is non-@code{nil}, the overlay is deleted automatically
+if it ever becomes empty (i.e., if it spans no characters).
 @end table
 
   These are the functions for reading and writing the properties of an
@@ -583,8 +714,10 @@ overlay.
 
 @defun overlay-get overlay prop
 This function returns the value of property @var{prop} recorded in
-@var{overlay}.  If @var{overlay} does not record any value for that
-property, then the value is @code{nil}.
+@var{overlay}, if any.  If @var{overlay} does not record any value for
+that property, but it does have a @code{category} property which is a
+symbol, that symbol's @var{prop} property is used.  Otherwise, the value
+is @code{nil}.
 @end defun
 
 @defun overlay-put overlay prop value
@@ -654,6 +787,11 @@ This function returns the buffer position of the next beginning or end
 of an overlay, after @var{pos}.
 @end defun
 
+@defun previous-overlay-change pos
+This function returns the buffer position of the previous beginning or
+end of an overlay, before @var{pos}.
+@end defun
+
 @node Faces
 @section Faces
 @cindex face
@@ -666,6 +804,12 @@ control the display of text on the screen.
 Each face has its own @dfn{face id number} which distinguishes faces at
 low levels within Emacs.  However, for most purposes, you can refer to
 faces in Lisp programs by their names.
+
+@defun facep object
+This function returns @code{t} if @var{object} is a face name symbol (or
+if it is a vector of the kind used internally to record face data).  It
+returns @code{nil} otherwise.
+@end defun
 
 Each face name is meaningful for all frames, and by default it has the
 same meaning in all frames.  But you can arrange to give a particular
@@ -1051,9 +1195,10 @@ This creates and returns a display table.  The table initially has
 element says how to display the character code @var{n}.  The value
 should be @code{nil} or a vector of glyph values (@pxref{Glyphs}).  If
 an element is @code{nil}, it says to display that character according to
-the usual display conventions (@pxref{Usual Display}).  Note that the
-display table has no effect on the tab and newline characters; they are
-always displayed as whitespace in their usual special fashion.
+the usual display conventions (@pxref{Usual Display}).
+
+  If you use the display table to change the display of newline
+characters, the whole buffer will be displayed as one long ``line.''
 
   The remaining six elements of a display table serve special purposes,
 and @code{nil} means use the default stated below.

@@ -350,6 +350,20 @@ See @code{documentation} in @ref{Accessing Documentation}, for another
 example using @code{mapatoms}.
 @end defun
 
+@defun unintern symbol &optional obarray
+This function deletes @var{symbol} from the obarray @var{obarray}.  If
+@code{symbol} is not actually in the obarray, @code{unintern} does
+nothing.  If @var{obarray} is @code{nil}, the current obarray is used.
+
+If you provide a string instead of a symbol as @var{symbol}, it stands
+for a symbol name.  Then @code{unintern} deletes the symbol (if any) in
+the obarray which has that name.  If there is no such symbol,
+@code{unintern} does nothing.
+
+If @code{unintern} does delete a symbol, it returns @code{t}.  Otherwise
+it returns @code{nil}.
+@end defun
+
 @node Property Lists,, Creating Symbols, Symbols
 @section Property Lists
 @cindex property list
@@ -378,6 +392,16 @@ objects, but the names are usually symbols.  They are compared using
 @noindent
 Here @code{lisp-indent-function} and @code{byte-compile} are property
 names, and the other two elements are the corresponding values.
+
+@menu
+* Plists and Alists::           Comparison of the advantages of property
+                                  lists and association lists.
+* Symbol Plists::               Functions to access symbols' property lists.
+* Other Plists::                Accessing property lists stored elsewhere.
+@end menu
+
+@node Plists and Alists
+@subsection Property Lists and Association Lists
 
 @cindex property lists vs association lists
   Association lists (@pxref{Association Lists}) are very similar to
@@ -408,12 +432,15 @@ name.)  An association list may be used like a stack where associations
 are pushed on the front of the list and later discarded; this is not
 possible with a property list.
 
+@node Symbol Plists
+@subsection Property List Functions for Symbols
+
 @defun symbol-plist symbol
 This function returns the property list of @var{symbol}.
 @end defun
 
 @defun setplist symbol plist
-  This function sets @var{symbol}'s property list to @var{plist}.
+This function sets @var{symbol}'s property list to @var{plist}.
 Normally, @var{plist} should be a well-formed property list, but this is
 not enforced.
 
@@ -458,3 +485,37 @@ The @code{put} function returns @var{value}.
      @result{} (verb transitive noun (a buzzing little bug))
 @end smallexample
 @end defun
+
+@node Other Plists
+@subsection Property Lists Outside Symbols
+
+  These two functions are useful for manipulating property lists
+that are stored in places other than symbols:
+
+@defun plist-get plist property
+This returns the value of the @var{property} property
+stored in the property list @var{plist}.  For example,
+
+@example
+(plist-get '(foo 4) 'foo)
+     @result{} 4
+@end example
+@end defun
+
+@defun plist-put plist property value
+This stores @var{value} as the value of the @var{property} property
+stored in the property list @var{plist}.  It may modify @var{plist}
+destructively, or it may construct new list structure without altering
+the old.  The function returns the modified property list, so you can
+store that back in the place where you got @var{plist}.  For example,
+
+@example
+(setq my-plist '(bar t foo 4))
+     @result{} (bar t foo 4)
+(setq my-plist (plist-put my-plist 'foo 69))
+     @result{} (bar t foo 69)
+(setq my-plist (plist-put my-plist 'quux '(a)))
+     @result{} (quux (a) bar t foo 5)
+@end example
+@end defun
+

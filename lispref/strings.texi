@@ -218,10 +218,10 @@ not @code{eq} to any existing string.
 
 When an argument is an integer (not a sequence of integers), it is
 converted to a string of digits making up the decimal printed
-representation of the integer.  @string{Don't use this feature---it
-exists for historical compatibility only, and we plan to change it by
-and by.}  If you wish to convert an integer to a decimal number in this
-way, use @code{format} (@pxref{Formatting Strings}) or
+representation of the integer.  @strong{Don't use this feature; we plan
+to eliminate it.  If you already use this feature, change your programs
+now!}  The proper way to convert an integer to a decimal number in this
+way is with @code{format} (@pxref{Formatting Strings}) or
 @code{number-to-string} (@pxref{String Conversion}).
 
 @example
@@ -270,6 +270,10 @@ match exactly; case is significant.
 (string= "ab" "ABC")
      @result{} nil
 @end example
+
+The function @code{string=} ignores the text properties of the
+two strings.  To compare strings in a way that compares their text
+properties also, use @code{equal} (@pxref{Equality Predicates}).
 @end defun
 
 @defun string-equal string1 string2

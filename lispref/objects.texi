@@ -1229,11 +1229,34 @@ pass an argument to @code{+} that it cannot handle:
 
 @cindex type predicates
 @cindex testing types
-  Lisp provides functions, called @dfn{type predicates}, to test whether
-an object is a member of a given type.  (Following a convention of long
-standing, the names of most Emacs Lisp predicates end in @samp{p}.)
+  If you want your program to handle different types differently, you
+must do explicit type checking.  The most common way to check the type
+of an object is to call a @dfn{type predicate} function.  Emacs has a
+type predicate for each type, as well as some predicates for
+combinations of types.
 
-Here is a table of predefined type predicates, in alphabetical order,
+  A type predicate function takes one argument; it returns @code{t} if
+the argument belongs to the appropriate type, and @code{nil} otherwise.
+Following a general Lisp convention for predicate functions, most type
+predicates' names end with @samp{p}.
+
+  Here is an example which uses the predicates @code{listp} to check for
+a list and @code{symbolp} to check for a symbol.
+
+@example
+(defun add-on (x)
+  (cond ((symbolp x)
+         ;; If X is a symbol, put it on LIST.
+         (setq list (cons x list)))
+        ((listp x)
+         ;; If X is a list, add its elements to LIST.
+         (setq list (append x list)))
+        (t
+         ;; We only handle symbols and lists.
+         (error "Invalid argument %s in add-on" x))))
+@end example
+
+  Here is a table of predefined type predicates, in alphabetical order,
 with references to further information.
 
 @table @code
@@ -1333,6 +1356,33 @@ with references to further information.
 @item windowp
 @xref{Basic Windows, windowp}.
 @end table
+
+  The most general way to check the type of an object is to call the
+function @code{type-of}.  Recall that each object belongs to one and
+only one primitive type; @code{type-of} tells you which one (@pxref{Lisp
+Data Types}).  But @code{type-of} knows nothing about non-primitive
+types.  In most cases, it is more convenient to use type predicates than
+@code{type-of}.
+
+@defun type-of object
+This function returns a symbol naming the primitive type of
+@var{object}.  The value is one of @code{symbol}, @code{integer},
+@code{float}, @code{string}, @code{cons}, @code{vector}, @code{marker},
+@code{overlay}, @code{window}, @code{buffer}, @code{subr},
+@code{compiled-function}, @code{window-configuration}, or
+@code{process}.
+
+@example
+(type-of 1)
+     @result{} integer
+(type-of 'nil)
+     @result{} symbol
+(type-of '())    ; @r{@code{()} is @code{nil}.}
+     @result{} symbol
+(type-of '(x))
+     @result{} cons
+@end example
+@end defun
 
 @node Equality Predicates
 @section Equality Predicates
@@ -1460,7 +1510,10 @@ arguments to see if their elements are the same.  So, if two objects are
 @end group
 @end example
 
-Comparison of strings uses @code{string=}, and is case-sensitive.
+Comparison of strings is case-sensitive and takes account of text
+properties as well as the characters in the strings.  To compare
+two strings' characters without comparing their text properties,
+use @code{string=} (@pxref{Text Comparison}).
 
 @example
 @group

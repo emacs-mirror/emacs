@@ -659,8 +659,10 @@ Contrast this with @code{set-buffer}, which makes @var{buffer-or-name}
 the current buffer but does not display it in the selected window.
 @xref{Current Buffer}.
 
-If @var{buffer-or-name} does not identify an existing buffer, then
-a new buffer by that name is created.
+If @var{buffer-or-name} does not identify an existing buffer, then a new
+buffer by that name is created.  The major mode for the new buffer is
+set according to the variable @code{default-major-mode}.  @xref{Auto
+Major Mode}.
 
 Normally the specified buffer is put at the front of the buffer list.
 This affects the operation of @code{other-buffer}.  However, if
@@ -715,7 +717,9 @@ already displayed in the selected window and @var{other-window} is
 for @var{buffer-or-name}, so that nothing needs to be done.
 
 If @var{buffer-or-name} is a string that does not name an existing
-buffer, a buffer by that name is created.
+buffer, a buffer by that name is created.  The major mode for the new
+buffer is set according to the variable @code{default-major-mode}.
+@xref{Auto Major Mode}.
 @end defun
 
 @node Choosing Window
@@ -1519,6 +1523,23 @@ before it automatically deleted.  Making a window smaller than
 created narrower than this.  The absolute minimum width is one; any
 value below that is ignored.  The default value is 10.
 @end defopt
+
+@defvar window-size-change-functions
+This variable holds a list of functions to be called if the size of any
+window changes for any reason.  The functions are called just once per
+redisplay, and just once for each frame on which size changes have
+occurred.
+
+Each function receives the frame as its sole argument.  There is no
+direct way to find out which windows changed size, or precisely how;
+however, if your size-change function keeps track, after each change, of
+the windows that interest you, you can figure out what has changed by
+comparing the old size data with the new.
+
+Creating or deleting windows counts as a size change, and therefore
+causes these functions to be called.  Changing the frame size also
+counts, because it changes the sizes of the existing windows.
+@end defvar
 
 @node Coordinates and Windows
 @section Coordinates and Windows

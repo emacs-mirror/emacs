@@ -203,6 +203,7 @@ called interactively.
 @section Backquote
 @cindex backquote (list substitution)
 @cindex ` (list substitution)
+@findex `
 
   Macros often need to construct large list structures from a mixture of
 constants and nonconstant parts.  To make this easier, use the macro
@@ -215,11 +216,11 @@ two forms yield identical results:
 
 @example
 @group
-(` (a list of (+ 2 3) elements))
+`(a list of (+ 2 3) elements)
      @result{} (a list of (+ 2 3) elements)
 @end group
 @group
-(quote (a list of (+ 2 3) elements))
+'(a list of (+ 2 3) elements)
      @result{} (a list of (+ 2 3) elements)
 @end group
 @end example
@@ -235,7 +236,7 @@ argument of @code{,} and puts the value in the list structure:
      @result{} (a list of 5 elements)
 @end group
 @group
-(` (a list of (, (+ 2 3)) elements))
+`(a list of ,(+ 2 3) elements)
      @result{} (a list of 5 elements)
 @end group
 @end example
@@ -258,7 +259,7 @@ Here are some examples:
      @result{} (1 2 3 4 2 3)
 @end group
 @group
-(` (1 (,@@ some-list) 4 (,@@ some-list)))
+`(1 ,@@some-list 4 ,@@some-list)
      @result{} (1 2 3 4 2 3)
 @end group
 
@@ -273,57 +274,22 @@ Here are some examples:
      @result{} (use the words foo bar as elements)
 @end group
 @group
-(` (use the words (,@@ (cdr list)) as elements))
+`(use the words ,@@(cdr list) as elements)
      @result{} (use the words foo bar as elements)
 @end group
 @end example
 
-Emacs 18 had a bug that made the previous example fail.  The bug
-affected @code{,@@} followed only by constant elements.  If you are
-concerned with Emacs 18 compatibility, you can work around the bug like
-this:
-
-@example
-(` (use the words (,@@ (cdr list)) as elements @code{(,@@ nil)}))
-@end example
-
-@noindent
-@code{(,@@ nil)} avoids the problem by being a nonconstant element that
-does not affect the result.
-
-@defmac ` list
-This macro quotes @var{list} except for any sublists of the form
-@code{(, @var{subexp})} or @code{(,@@ @var{listexp})}.  Backquote
-replaces these sublists with the value of @var{subexp} (as a single
-element) or @var{listexp} (by splicing).  Backquote copies the structure
-of @var{list} down to the places where variable parts are substituted.
-
-@ignore  @c these work now!
-There are certain contexts in which @samp{,} would not be recognized and
-should not be used:
-
-@smallexample
-@group
-;; @r{Use of a @samp{,} expression as the @sc{cdr} of a list.}
-(` (a . (, 1)))                             ; @r{Not @code{(a . 1)}}
-     @result{} (a \, 1)                                
-@end group
-
-@group
-;; @r{Use of @samp{,} in a vector.}
-(` [a (, 1) c])                             ; @r{Not @code{[a 1 c]}}
-     @error{} Wrong type argument                      
-@end group
-@end smallexample
-@end ignore
-@end defmac
-
-@cindex CL note---@samp{,}, @samp{,@@} as functions
 @quotation
-@b{Common Lisp note:} In Common Lisp, @samp{,} and @samp{,@@} are
-implemented as reader macros, so they do not require parentheses.  In
-Emacs Lisp they use function call syntax because reader macros are not
-supported (for simplicity's sake).
+Before Emacs version 19.29, @code{`} used a different syntax which
+required an extra level of parentheses around the entire backquote
+construct.  Likewise, each @code{,} or @code{,@@} substition required an
+extra level of parentheses surrounding both the @code{,} or @code{,@@}
+and the following expression.  The old syntax required whitespace
+between the @code{`}, @code{,} or @code{,@@} and the following
+expression.
+
+This syntax is still accepted, but no longer recommended except for
+compatibility with old Emacs versions.
 @end quotation
 
 @node Problems with Macros

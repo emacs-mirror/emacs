@@ -66,7 +66,10 @@ asterisk (@samp{*}).
 date as being a holiday.  Its value may be a character to insert next to
 the date, or a face name to use for displaying the date.  Likewise, the
 variable @code{diary-entry-marker} specifies how to mark a date that has
-diary entries.
+diary entries.  The calendar creates faces named @code{holiday-face} and
+@code{diary-face} for these purposes; those symbols are the default
+values of these variables, when Emacs supports multiple faces on your
+terminal.
 
 @vindex calendar-load-hook
   The variable @code{calendar-load-hook} is a normal hook run when the
@@ -104,7 +107,10 @@ changing its face or by adding an asterisk.  Here's how to use it:
 @vindex calendar-today-marker
 The variable @code{calendar-today-marker} specifies how to mark today's
 date.  Its value should be a character to insert next to the date or a
-face name to use for displaying the date.
+face name to use for displaying the date.  A face named
+@code{calendar-today-face} is provided for this purpose; that symbol is
+the default for this variable when Emacs supports multiple faces on your
+terminal.
 
 @vindex today-invisible-calendar-hook
 @noindent

@@ -14,11 +14,13 @@ horizontally into smaller windows.
 
 @cindex terminal frame
 @cindex X window frame
-  When Emacs runs on a text-only terminal, it has just one frame, a
-@dfn{terminal frame}.  There is no way to create another terminal frame
-after startup.  If Emacs has an X display, it does not have a terminal
-frame; instead, it starts with a single @dfn{X window frame}.  You can
-create more; see @ref{Creating Frames}.
+  When Emacs runs on a text-only terminal, it starts with one
+@dfn{terminal frames}.  If you create additional ones, Emacs displays
+one and only one at any given time---on the terminal screen, of course.
+
+  When Emacs uses X for display, it does not have a terminal frame;
+instead, it starts with a single @dfn{X window frame}.  It can display
+multiple X window frames at the same time, each in its own X window.
 
 @defun framep object
 This predicate returns @code{t} if @var{object} is a frame, and
@@ -26,8 +28,10 @@ This predicate returns @code{t} if @var{object} is a frame, and
 @end defun
 
 @menu
-* Creating Frames::		Creating additional X Window frames.
+* Creating Frames::		Creating additional frames.
+* Multiple Displays::           Creating frames on other X displays.
 * Frame Parameters::		Controlling frame size, position, font, etc.
+* Frame Titles::                Automatic updating of frame titles.
 * Deleting Frames::		Frames last until explicitly deleted.
 * Finding All Frames::		How to examine all existing frames.
 * Frames and Windows::		A frame contains windows;
@@ -57,8 +61,8 @@ This predicate returns @code{t} if @var{object} is a frame, and
 To create a new frame, call the function @code{make-frame}.
 
 @defun make-frame alist
-This function creates a new frame, if the display mechanism permits
-creation of frames.  (An X server does; an ordinary terminal does not.)
+This function creates a new frame.  If you are using X, it makes
+an X window frame; otherwise, it makes a terminal frame.
 
 The argument is an alist specifying frame parameters.  Any parameters
 not mentioned in @var{alist} default according to the value of the
@@ -67,8 +71,7 @@ either default from the standard X defaults file and X resources.
 
 The set of possible parameters depends in principle on what kind of
 window system Emacs uses to display its frames.  @xref{X Frame
-Parameters}, for documentation of individual parameters you can specify
-when creating an X window frame.
+Parameters}, for documentation of individual parameters you can specify.
 @end defun
 
 @defvar before-make-frame-hook
@@ -79,6 +82,62 @@ frame.
 @defvar after-make-frame-hook
 A normal hook run by @code{make-frame} after it creates the frame.
 @end defvar
+
+@node Multiple Displays
+@section Multiple Displays
+@cindex multiple displays
+@cindex multiple X terminals
+@cindex displays, multiple
+
+  A single Emacs can talk to more than one X Windows display.
+Initially, Emacs uses just one display---the one chosen with the
+@code{DISPLAY} environment variable or with the @samp{--display} option
+(@pxref{Initial Options,,, emacs, The GNU Emacs Manual}).  To connect to
+another display, use the command @code{make-frame-on-display} or specify
+the @code{display} frame parameter when you create the frame.
+
+  Emacs treats each X server as a separate terminal, giving each one its
+own selected frame and its own minibuffer windows.  A few Lisp variables
+have values local to the current terminal (that is, the terminal
+corresponding to the currently selected frame): these are
+@code{default-minibuffer-frame}, @code{defining-kbd-macro},
+@code{last-kbd-macro}, @code{multiple-frames} and
+@code{system-key-alist}.  These variables are always terminal-local and
+can never be buffer-local.
+
+  A single X server can handle more than one screen.  A display name
+@samp{@var{host}.@var{server}.@var{screen}} has three parts; the last
+part specifies the screen number for a given server.  When you use two
+screens belonging to one server, Emacs knows by the similarity in their
+names that they share a single keyboard, and it treats them as a single
+terminal.
+
+@deffn Command make-frame-on-display display &optional parameters
+This creates a new frame on display @var{display}, taking the other
+frame parameters from @var{parameters}.  Aside from the @var{display}
+argument, it is like @code{make-frame} (@pxref{Creating Frames}).
+@end deffn
+
+@defun x-display-list
+This returns a list that indicates which X displays Emacs has a
+connection to.  The elements of the list are display names (strings).
+@end defun
+
+@defun x-open-connection display &optional xrm-string
+This function opens a connection to the X display @var{display}.  It
+does not create a frame on that display, but it permits you to check
+that communication can be established with that display.
+
+The optional second argument @var{xrm-string} should be a string of
+resources in xrdb format, or @code{nil}.  The resources, if specified,
+apply to all Emacs frames created on this display.
+@end defun
+
+@defun x-close-connection display
+This function closes the connection to display @var{display}.  Before
+you can do this, you must first delete all the frames that were open on
+that display (@pxref{Deleting Frames}).
+@end defun
 
 @node Frame Parameters
 @section Frame Parameters
@@ -95,7 +154,7 @@ and width.
 @menu
 * Parameter Access::       How to change a frame's parameters.
 * Initial Parameters::	   Specifying frame parameters when you make a frame.
-* X Frame Parameters::     Individual parameters documented.
+* X Frame Parameters::     List of frame parameters.
 * Size and Position::      Changing the size and position of a frame.
 @end menu
 
@@ -180,7 +239,9 @@ instead.  @xref{Command Arguments,,, emacs, The GNU Emacs Manual}.
 @subsection X Window Frame Parameters
 
 Just what parameters a frame has depends on what display mechanism it
-uses.  Here is a table of the parameters of an X window frame:
+uses.  Here is a table of the parameters of an X window frame; of these,
+@code{name}, @code{height}, @code{width}, and @code{buffer-predicate}
+provide meaningful information in non-X frames.
 
 @table @code
 @item name
@@ -193,15 +254,32 @@ If you specify the frame name explicitly when you create the frame, the
 name is also used (instead of the name of the Emacs executable) when
 looking up X resources for the frame.
 
+@item display
+The display on which to open this frame.  It should be a string of the
+form @code{"@var{host}:@var{dpy}.@var{screen}"}, just like the
+@code{DISPLAY} environment variable.
+
 @item left
-The screen position of the left edge, in pixels.  The value may be
-@code{-} instead of a number; that represents @samp{-0} in a geometry
-specification.
+The screen position of the left edge, in pixels, with respect to the
+left edge of the screen.  The value may be a positive number @var{pos},
+or a list of the form @code{(+ @var{pos})} which permits specifying a
+negative @var{pos} value.
+
+A negative number @minus{}@var{pos}, or a list of the form @code{(-
+@var{pos})}, actually specifies the position of the right edge of the
+window with respect to the right edge of the screen, counting toward the
+left.
 
 @item top
-The screen position of the top edge, in pixels.  The value may be
-@code{-} instead of a number; that represents @samp{-0} in a geometry
-specification.
+The screen position of the top edge, in pixels, with respect to the
+top edge of the screen.  The value may be a positive number @var{pos},
+or a list of the form @code{(+ @var{pos})} which permits specifying a
+negative @var{pos} value.
+
+A negative number @minus{}@var{pos}, or a list of the form @code{(-
+@var{pos})}, actually specifies the position of the bottom edge of the
+window with respect to the bottom edge of the screen, counting toward the
+top.
 
 @item icon-left
 The screen position of the left edge @emph{of the frame's icon}, in
@@ -237,6 +315,14 @@ yes, @code{nil} means no, @code{only} means this frame is just a
 minibuffer, a minibuffer window (in some other frame) means the new
 frame uses that minibuffer.
 
+@item buffer-predicate
+The buffer-predicate function for this frame.  The function
+@code{other-buffer} uses this predicate (from the selected frame) to
+decide which buffers it should consider, if the predicate is not
+@code{nil}.  It calls the predicate with one arg, a buffer, once for
+each buffer; if the predicate returns a non-@code{nil} value, it
+considers that buffer.
+
 @item font
 The name of the font for displaying text in the frame.  This is a
 string.
@@ -255,6 +341,9 @@ Whether the frame has scroll bars for vertical scrolling
 Whether the frame has scroll bars for horizontal scrolling
 (non-@code{nil} means yes).  (Horizontal scroll bars are not currently
 implemented.)
+
+@item scroll-bar-width
+The width of the vertical scroll bar, in pixels.
 
 @item icon-type
 The type of icon to use for this frame when it is iconified.  If the
@@ -279,11 +368,12 @@ The color for the cursor that shows point.
 The color for the border of the frame.
 
 @item cursor-type
-The way to display the cursor.  There are two legitimate values:
-@code{bar} and @code{box}.  The symbol @code{bar} specifies a vertical
-bar between characters as the cursor.  The symbol @code{box} specifies
-an ordinary black box overlaying the character after point; that is the
-default.
+The way to display the cursor.  The legitimate values are @code{bar},
+@code{box}, and @code{(bar . @var{width})}.  The symbol @code{box}
+specifies an ordinary black box overlaying the character after point;
+that is the default.  The symbol @code{bar} specifies a vertical bar
+between characters as the cursor.  @code{(bar . @var{width})} specifies
+a bar @var{width} pixels wide.
 
 @item border-width
 The width in pixels of the window border.
@@ -376,9 +466,37 @@ gives the values specified for them.  Each element looks like
 @code{(@var{parameter} . @var{value})}.  The possible @var{parameter}
 values are @code{left}, @code{top}, @code{width}, and @code{height}.
 
+For the size parameters, the value must be an integer.  The position
+parameter names @code{left} and @code{top} are not totally accurate,
+because some values indicate the position of the right or bottom edges
+instead.  These are the @var{value} possibilities for the position
+parameters:
+
+@table @asis
+@item an integer
+A positive integer relates the left edge or top edge of the window to
+the left or top edge of the screen.  A negative integer relates the
+right or bottom edge of the window to the right or bottom edge of the
+screen.
+
+@item (+ @var{position})
+This specifies the position of the left or top edge of the window
+relative to the left or top edge of the screen.  The integer
+@var{position} may be positive or negative; a negative value specifies a
+position outside the screen.
+
+@item (- @var{position})
+This specifies the position of the right or bottom edge of the window
+relative to the right or bottom edge of the screen.  The integer
+@var{position} may be positive or negative; a negative value specifies a
+position outside the screen.
+@end table
+
+Here is an example:
+
 @smallexample
 (x-parse-geometry "35x70+0-0")
-     @result{} ((width . 35) (height . 70) (left . 0) (top . -1))
+     @result{} ((width . 35) (height . 70) (left . 0) (top - 0))
 @end smallexample
 @end defun
 
@@ -387,6 +505,42 @@ New functions @code{set-frame-height} and @code{set-frame-width} set the
 size of a specified frame.  The frame is the first argument; the size is
 the second.
 @end ignore
+
+@node Frame Titles
+@section Frame Titles
+
+Every frame has a title; most window managers display the frame title at
+the top of the frame.  You can specify an explicit title with the
+@code{name} frame property.  But normally you don't specify this
+explicitly, and Emacs computes the title automatically.
+
+Emacs computes the frame title based on a template stored in the
+variable @code{frame-title-format}.
+
+@defvar frame-title-format
+This variable specifies how to compute a title for a frame
+when you have not explicitly specified one.
+
+The variable's value is actually a mode line construct, just like
+@code{mode-line-format}.  @xref{Mode Line Data}.
+@end defvar
+
+@defvar icon-title-format
+This variable specifies how to compute the title for an iconified frame,
+when you have not explicitly specified the frame title.  This title
+appears in the icon itself.
+@end defvar
+
+@defvar multiple-frames
+This variable is set automatically by Emacs.  Its value is @code{t} when
+there are two or more frames (not counting minibuffer-only frames or
+invisible frames).  The default value of @code{frame-title-format} uses
+@code{multiple-frames} so as to put the buffer name in the frame title
+only when there is more than one frame.
+
+The variable is always local to the current X terminal and cannot be
+buffer-local.  @xref{Multiple Displays}.
+@end defvar
 
 @node Deleting Frames
 @section Deleting Frames
@@ -409,6 +563,12 @@ The function @code{frame-live-p} returns non-@code{nil} if the frame
 @var{frame} has not been deleted.
 @end defun
 
+  Some window managers provide a command to delete a window.  These work
+by sending a special message to the program than operates the window.
+When Emacs gets one of these commands, it generates a
+@code{delete-frame} event, whose normal definition is a command that
+calls the function @code{delete-frame}.  @xref{Misc Events}.
+
 @node Finding All Frames
 @section Finding All Frames
 
@@ -421,7 +581,8 @@ doesn't have any effect on the internals of Emacs.
 
 @defun visible-frame-list
 This function returns a list of just the currently visible frames.
-@xref{Visibility of Frames}.
+@xref{Visibility of Frames}.  (Terminal frames always count as
+``visible'', even though only the selected one is actually displayed.)
 @end defun
 
 @defun next-frame &optional frame minibuf
@@ -502,6 +663,12 @@ If you use a minibuffer-only frame, you might want that frame to raise
 when you enter the minibuffer.  If so, set the variable
 @code{minibuffer-auto-raise} to @code{t}.  @xref{Raising and Lowering}.
 
+@defvar default-minibuffer-frame
+This variable specifies the frame to use for the minibuffer window, by
+default.  It is always local to the current X terminal and cannot be
+buffer-local.  @xref{Multiple Displays}.
+@end defvar
+
 @node Input Focus
 @section Input Focus
 @cindex input focus
@@ -524,12 +691,20 @@ the function @code{select-frame}.  This does not override the window
 manager; rather, it escapes from the window manager's control until
 that control is somehow reasserted.
 
+When using a text-only terminal, there is no window manager; therefore,
+@code{switch-frame} is the only way to switch frames, and the effect
+lasts until overridden by a subsequent call to @code{switch-frame}.
+Only the selected terminal frame is actually displayed on the terminal.
+Each terminal screen except for the initial one has a number, and the
+number of the selected frame appears in the mode line after the word
+@samp{Emacs}.
+
 @c ??? This is not yet implemented properly.
 @defun select-frame frame
 This function selects frame @var{frame}, temporarily disregarding the
-focus of the X server.  The selection of @var{frame} lasts until the
-next time the user does something to select a different frame, or until
-the next time this function is called.
+focus of the X server if any.  The selection of @var{frame} lasts until
+the next time the user does something to select a different frame, or
+until the next time this function is called.
 @end defun
 
 Emacs cooperates with the X server and the window managers by arranging
@@ -583,10 +758,14 @@ change it.
 @cindex iconified frame
 @cindex frame visibility
 
-A frame may be @dfn{visible}, @dfn{invisible}, or @dfn{iconified}.  If
-it is visible, you can see its contents.  If it is iconified, the
-frame's contents do not appear on the screen, but an icon does.  If the
-frame is invisible, it doesn't show on the screen, not even as an icon.
+An X windo frame may be @dfn{visible}, @dfn{invisible}, or
+@dfn{iconified}.  If it is visible, you can see its contents.  If it is
+iconified, the frame's contents do not appear on the screen, but an icon
+does.  If the frame is invisible, it doesn't show on the screen, not
+even as an icon.
+
+Visibility is meaningless for terminal frames, since only the selected
+one is actually displayed in any case.
 
 @deffn Command make-frame-visible &optional frame
 This function makes frame @var{frame} visible.  If you omit @var{frame},
@@ -613,6 +792,11 @@ This returns the visibility status of frame @var{frame}.  The value is
 parameter.  You can read or change it as such.  @xref{X Frame
 Parameters}.
 
+  The user can iconify and deiconify frames with the window manager.
+This happens below the level at which Emacs can exert any control, but
+Emacs does provide events that you can use to keep track of such
+changes.  @xref{Misc Events}.
+
 @node Raising and Lowering
 @section Raising and Lowering Frames
 
@@ -634,13 +818,13 @@ screen.
 
 You can raise and lower Emacs's X windows with these functions:
 
-@defun raise-frame frame
+@deffn Command raise-frame frame
 This function raises frame @var{frame}.
-@end defun
+@end deffn
 
-@defun lower-frame frame
+@deffn Command lower-frame frame
 This function lowers frame @var{frame}.
-@end defun
+@end deffn
 
 @defopt minibuffer-auto-raise
 If this is non-@code{nil}, activation of the minibuffer raises the frame
@@ -771,6 +955,9 @@ characters.  These coordinates are not required to be within the frame.
 @node Pop-Up Menus
 @section Pop-Up Menus
 
+  When using X windows, a Lisp program can pop up a menu which the
+user can choose from with the mouse.
+
 @defun x-popup-menu position menu
 This function displays a pop-up menu and returns an indication of
 what selection the user makes.
@@ -873,8 +1060,8 @@ pop-up menu in the center of the frame.
 @cindex pointer shape
 @cindex mouse pointer shape
 
-  These variables specify which mouse pointer shape to use in various
-situations:
+  These variables specify which shape to use for the mouse pointer in
+various situations:
 
 @table @code
 @item x-pointer-shape
@@ -1072,68 +1259,74 @@ If you specify them, the key is
 @section Data about the X Server
 
   This section describes functions and a variable that you can use to
-get information about the capabilities and origin of the X server that
-Emacs is displaying its frames on.
+get information about the capabilities and origin of an X display that
+Emacs is using.  Each of these functions lets you specify the display
+you are interested in: the @var{display} argument can be either a
+display name, or a frame (meaning use the display that frame is on).  If
+you omit the @var{display} argument, that means to use the selected
+frame's display.
 
-@defun x-display-screens
-This function returns the number of screens associated with the current
-display.
+@defun x-display-screens &optional display
+This function returns the number of screens associated with the display.
 @end defun
 
-@defun x-server-version
-This function returns the list of version numbers of the X server in
-use.
+@defun x-server-version &optional display
+This function returns the list of version numbers of the X server
+running the display.
 @end defun
 
-@defun x-server-vendor
-This function returns the vendor supporting the X server in use.
+@defun x-server-vendor &optional display
+This function returns the vendor that provided the X server software.
 @end defun
 
-@defun x-display-pixel-height
-This function returns the height of this X screen in pixels.
+@defun x-display-pixel-height &optional display
+This function returns the height of the screen in pixels.
 @end defun
 
-@defun x-display-mm-height
-This function returns the height of this X screen in millimeters.
+@defun x-display-mm-height &optional display
+This function returns the height of the screen in millimeters.
 @end defun
 
-@defun x-display-pixel-width
-This function returns the width of this X screen in pixels.
+@defun x-display-pixel-width &optional display
+This function returns the width of the screen in pixels.
 @end defun
 
-@defun x-display-mm-width
-This function returns the width of this X screen in millimeters.
+@defun x-display-mm-width &optional display
+This function returns the width of the screen in millimeters.
 @end defun
 
-@defun x-display-backing-store
-This function returns the backing store capability of this screen.
+@defun x-display-backing-store &optional display
+This function returns the backing store capability of the screen.
 Values can be the symbols @code{always}, @code{when-mapped}, or
 @code{not-useful}.
 @end defun
 
-@defun x-display-save-under
-This function returns non-@code{nil} if this X screen supports the
+@defun x-display-save-under &optional display
+This function returns non-@code{nil} if the display supports the
 SaveUnder feature.
 @end defun
 
-@defun x-display-planes
-This function returns the number of planes this display supports.
+@defun x-display-planes &optional display
+This function returns the number of planes the display supports.
 @end defun
 
-@defun x-display-visual-class
-This function returns the visual class for this X screen.  The value is
-one of the symbols @code{static-gray}, @code{gray-scale},
+@defun x-display-visual-class &optional display
+This function returns the visual class for the screen.  The value is one
+of the symbols @code{static-gray}, @code{gray-scale},
 @code{static-color}, @code{pseudo-color}, @code{true-color}, and
 @code{direct-color}.
 @end defun
 
-@defun x-display-color-p
-This function returns @code{t} if the X screen in use is a color
-screen.
+@defun x-display-grayscale-p &optional display
+This function returns @code{t} if the screen can display shades of gray.
 @end defun
 
-@defun x-display-color-cells
-This function returns the number of color cells this X screen supports.
+@defun x-display-color-p &optional display
+This function returns @code{t} if the screen is a color screen.
+@end defun
+
+@defun x-display-color-cells &optional display
+This function returns the number of color cells the screen supports.
 @end defun
 
 @ignore

@@ -156,6 +156,11 @@ It is not necessary for @var{start} to be less than @var{end}; the
 arguments can be given in either order.  But most often the smaller
 argument is written first.
 
+If the text being copied has any text properties, these are copied into
+the string along with the characters they belong to.  @xref{Text
+Properties}.  However, overlays (@pxref{Overlays}) in the buffer and
+their properties are ignored, not copied.
+
 @example
 @group
 ---------- Buffer: foo ----------
@@ -174,6 +179,24 @@ This is the contents of buffer foo
 "
 @end group
 @end example
+@end defun
+
+@defun buffer-substring-without-properties start end
+This is like @code{buffer-substring}, except that it does not copy text
+properties, just the characters themselves.  @xref{Text Properties}.
+Here's an example of using this function to get a word to look up in an
+alist:
+
+@example
+(setq flammable
+      (assoc (buffer-substring start end)
+             '(("wood" . t) ("paper" . t)
+               ("steel" . nil) ("asbestos" . nil))))
+@end example
+
+If this were written using @code{buffer-substring} instead, it would not
+work reliably; any text properties that happened to be in the word
+copied from the buffer would make the comparisons fail.
 @end defun
 
 @defun buffer-string
@@ -343,18 +366,17 @@ it except to install it on a keymap.
 
 In an interactive call, @var{count} is the numeric prefix argument.
 
-This function calls @code{auto-fill-function} if the current column number
-is greater than the value of @code{fill-column} and the character
-inserted is a space (@pxref{Auto Filling}).
+This command calls @code{auto-fill-function} whenever that is
+non-@code{nil} and the character inserted is a space or a newline
+(@pxref{Auto Filling}).
 
 @c Cross refs reworded to prevent overfull hbox.  --rjc 15mar92
-This function performs abbrev expansion if Abbrev mode is enabled and
+This command performs abbrev expansion if Abbrev mode is enabled and
 the inserted character does not have word-constituent
 syntax. (@xref{Abbrevs}, and @ref{Syntax Class Table}.)
 
-This function is also responsible for calling 
-@code{blink-paren-function} when the inserted character has close
-parenthesis syntax (@pxref{Blinking}).
+This is also responsible for calling @code{blink-paren-function} when
+the inserted character has close parenthesis syntax (@pxref{Blinking}).
 @end deffn
 
 @deffn Command newline &optional number-of-newlines 
@@ -709,6 +731,9 @@ This command saves the region defined by @var{start} and @var{end} on
 the kill ring, but does not delete the text from the buffer.  It returns
 @code{nil}.  It also indicates the extent of the text copied by moving
 the cursor momentarily, or by displaying a message in the echo area.
+
+The command does not set @code{this-command} to @code{kill-region}, so a
+subsequent kill command does not append to the same kill ring entry.
 
 Don't call @code{copy-region-as-kill} in Lisp programs unless you aim to
 support Emacs 18.  For Emacs 19, it is better to use @code{kill-new} or
@@ -1073,8 +1098,11 @@ specified width.  The width is controlled by the variable
 automatically as you insert it, but changes to existing text may leave
 it improperly filled.  Then you must fill the text explicitly.
 
-  Most of the functions in this section return values that are not
-meaningful.
+  Most of the commands in this section return values that are not
+meaningful.  All the functions that do filling take note of the current
+left margin, current right margin, and current justification style.  If
+the current justification style is @code{none}, the filling functions
+don't actually do anything.
 
 @deffn Command fill-paragraph justify-flag
 @cindex filling a paragraph
@@ -1123,8 +1151,11 @@ described above.
 This command considers a region of text as a paragraph and fills it.  If
 the region was made up of many paragraphs, the blank lines between
 paragraphs are removed.  This function justifies as well as filling when
-@var{justify-flag} is non-@code{nil}.  In an interactive call, any
-prefix argument requests justification.
+@var{justify-flag} is non-@code{nil}.  The precise value of
+@var{justify-flag} specifies a style of justification, as in
+@code{justify-current-line}, below.
+
+In an interactive call, any prefix argument requests justification.
 
 In Adaptive Fill mode, which is enabled by default,
 @code{fill-region-as-paragraph} on an indented paragraph when there is
@@ -1132,11 +1163,37 @@ no fill prefix uses the indentation of the second line of the paragraph
 as the fill prefix.
 @end deffn
 
-@deffn Command justify-current-line
+@deffn Command justify-current-line how eop nosqueeze
 This command inserts spaces between the words of the current line so
 that the line ends exactly at @code{fill-column}.  It returns
 @code{nil}.
+
+The argument @var{how}, if non-@code{nil} specifies explicitly the style
+of justification.  It can be @code{left}, @code{right}, @code{full},
+@code{center}, or @code{none}.  If it is @code{t}, that means to do
+follow specified justification style (see @code{current-justification},
+below).  @code{nil} means to do full justification.
+
+If @var{eop} is non-@code{nil}, that means do left-justification when
+@code{current-justification} specifies full justification.  This is used
+for the last line of a paragraph; even if the paragraph as a whole is
+fully justified, the last line should not be.
+
+If @var{nosqueeze} is non-@code{nil}, that means do not change interior
+whitespace.
 @end deffn
+
+@defopt default-justification
+This variable's value specifies the style of justification to use for
+text that doesn't specify a style with a text property.  The possible
+values are @code{left}, @code{right}, @code{full}, @code{center}, or
+@code{none}.
+@end defopt
+
+@defun current-justification
+This function returns the proper justification style to use for filling
+the text around point.
+@end defun
 
 @defopt fill-prefix
 This variable specifies a string of text that appears at the beginning
@@ -1168,6 +1225,67 @@ buffers that do not override it.  This is the same as
 The default value for @code{default-fill-column} is 70.
 @end defvar
 
+@defvar fill-paragraph-function
+This variable provides a way for major modes to override the filling of
+paragraphs.  If the value is non-@code{nil}, @code{fill-paragraph} calls
+this function to do the work.  If the function returns a non-@code{nil}
+value, @code{fill-paragraph} assumes the job is done, and immediately
+returns that value.
+
+The usual use of this feature is to fill comments in programming
+language modes.  If the function needs to fill a paragraph in the usual
+way, it can do so as follows:
+
+@example
+(let ((fill-paragraph-function nil))
+  (fill-paragraph arg))
+@end example
+@end defvar
+
+@deffn Command set-left-margin from to margin
+This sets the @code{left-margin} property on the text from @var{from} to
+@var{to} to the value @var{margin}.  If Auto Fill mode is enabled, this
+command also refills the region to fit the new margin.
+@end deffn
+
+@deffn Command set-right-margin from to margin
+This sets the @code{fill-colmn} property on the text from @var{from} to
+@var{to} so as to yield a right margin of width @var{margin}.  If Auto
+Fill mode is enabled, this command also refills the region to fit the
+new margin.
+@end deffn
+
+@defun current-left-margin
+This function returns the proper left margin value to use for filling
+the text around point.  The value is the sum of the @code{left-margin}
+property of the character at the start of the current line (or zero if
+none), plus the value of the variable @code{left-margin}.
+@end defun
+
+@defun current-fill-column
+This function returns the proper fill column value to use for filling
+the text around point.  The value is the value of the @code{fill-column}
+variable, minus the value of the @code{right-margin} property of the
+character after point.
+@end defun
+
+@deffn Command move-to-left-margin &optional n force
+This function moves point to the left margin of the current line.  The
+column moved to is determined by calling the function
+@code{current-left-margin}.  If the argument @var{n} is specified,
+@code{move-to-left-margin} moves forward @var{n}@minus{}1 lines first.
+
+If @var{force} is non-@code{nil}, that says to fix the line's
+indentation if that doesn't match the left margin value.
+@end deffn
+
+@defun delete-to-left-margin from to
+This function removes left margin indentation from the text
+between @var{from} and @var{to}.  The amount of indentation
+to delete is determined by calling @code{current-left-margin}.
+In no case does this function delete non-whitespace.
+@end defun
+
 @node Auto Filling
 @comment  node-name,  next,  previous,  up
 @section Auto Filling
@@ -1180,10 +1298,9 @@ For a description of functions that you can call explicitly to fill and
 justify existing text, see @ref{Filling}.
 
 @defvar auto-fill-function
-The value of this variable should be a function (of no arguments) to
-be called after self-inserting a space at a column beyond
-@code{fill-column}.  It may be @code{nil}, in which case nothing
-special is done.
+The value of this variable should be a function (of no arguments) to be
+called after self-inserting a space or a newline.  It may be @code{nil},
+in which case nothing special is done in that case.
 
 The value of @code{auto-fill-function} is @code{do-auto-fill} when
 Auto-Fill mode is enabled.  That is a function whose sole purpose is to
@@ -1935,6 +2052,7 @@ along with the characters; this includes such diverse functions as
 * Changing Properties::		Setting the properties of a range of text.
 * Property Search::		Searching for where a property changes value.
 * Special Properties::		Particular properties with special meanings.
+* Format Properties::           Properties for representing formatting of text.
 * Sticky Properties::           How inserted text gets properties from
                                   neighboring text.
 * Saving Properties::           Saving text properties in files, and reading
@@ -1985,6 +2103,22 @@ This function returns the entire property list of the character at
 @var{position} in the string or buffer @var{object}.  If @var{object} is
 @code{nil}, it defaults to the current buffer.
 @end defun
+
+@defvar default-text-properties
+This variable holds a property list giving default values for text
+properties.  Whenever a character does not specify a value for a
+property, the value stored in this list is used instead.  Here is an
+example:
+
+@example
+(setq default-text-properties '(foo 69))
+;; @r{Make sure character 1 has no properties of its own.}
+(set-text-properties 1 2 nil)
+;; @r{What we get, when we ask, is the default value.}
+(get-text-property 1 'foo)
+     @result{} 69
+@end example
+@end defvar
 
 @node Changing Properties
 @subsection Changing Text Properties
@@ -2067,6 +2201,10 @@ from the specified range of text.  Here's an example:
 (set-text-properties @var{start} @var{end} nil)
 @end example
 @end defun
+
+See also the function @code{buffer-substring-without-properties}
+(@pxref{Buffer Contents}) which copies text from the buffer
+but does not copy its properties.
 
 @node Property Search
 @subsection Property Search Functions
@@ -2188,9 +2326,9 @@ of the symbol serve as defaults for the properties of the character.
 @cindex face codes of text
 @kindex face @r{(text property)}
 You can use the property @code{face} to control the font and color of
-text.  @xref{Faces}, for more information.  This feature is temporary;
-in the future, we may replace it with other ways of specifying how to
-display text.
+text.  Its value is a face name or a list of face names.  @xref{Faces},
+for more information.  This feature may be temporary; in the future, we
+may replace it with other ways of specifying how to display text.
 
 @item mouse-face
 @kindex mouse-face @r{(text property)}
@@ -2225,16 +2363,19 @@ and then remove the property.  @xref{Read Only Buffers}.
 
 @item invisible
 @kindex invisible @r{(text property)}
-A non-@code{nil} @code{invisible} property means a character does not
-appear on the screen.  This works much like selective display.  Details
-of this feature are likely to change in future versions, so check the
-@file{etc/NEWS} file in the version you are using.
+A non-@code{nil} @code{invisible} property can make a character invisible
+on the screen.  @xref{Invisible Text}, for details.
 
 @item intangible
 @kindex intangible @r{(text property)}
-A non-@code{nil} @code{intangible} property on a character prevents
-putting point before that character.  If you try, point actually goes
-after the character (and after all succeeding intangible characters).
+If a group of consecutive characters have equal and non-@code{nil}
+@code{intangible} properties, then you cannot place point between them.
+If you move point forward into the group, point actually moves to the
+end of the group.  If you try to move point backward into the group,
+point actually moves to the start of the group.
+
+When the variable @code{inhibit-point-motion-hooks} is non-@code{nil},
+the @code{intangible} property is ignored.
 
 @item modification-hooks
 @cindex change hooks for a character
@@ -2298,8 +2439,35 @@ value of point runs these hook functions.
 
 @defvar inhibit-point-motion-hooks
 When this variable is non-@code{nil}, @code{point-left} and
-@code{point-entered} hooks are not run.
+@code{point-entered} hooks are not run, and the @code{intangible}
+property has no effect.
 @end defvar
+
+@node Format Properties
+@section Formatted Text Properties
+
+  These text properties affect the behavior of the fill commands.  They
+are used for representing formatted text.  @xref{Filling}.
+
+@table code
+@item hard
+If a newline character has this property, it is a ``hard'' newline.
+The fill commands do not alter hard newlines and do not move words
+across them.  However, this property takes effect only if the variable
+@code{use-hard-newlines} is non-@code{nil}.
+
+@item right-margin
+This property specifies the right margin for filling this part of the
+text.
+
+@item left-margin
+This property specifies the left margin for filling this part of the
+text.
+
+@item justification
+This property specifies the style of justification for filling this part
+of the text.
+@end table
 
 @node Sticky Properties
 @subsection Stickiness of Text Properties

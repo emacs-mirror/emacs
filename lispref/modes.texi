@@ -547,6 +547,16 @@ those such as Dired and Rmail that are useful only with text that has
 been specially prepared.
 @end defopt
 
+@defun set-buffer-major-mode buffer
+This function sets the major mode of @var{buffer} to the value of
+@code{default-major-mode}.  If that variable is @code{nil}, it uses
+the current buffer's major mode (if that is suitable).
+
+The low-level primitives for creating buffers do not use this function,
+but medium-level commands such as @code{switch-to-buffer} should use it
+whenever they create buffers.
+@end defun
+
 @defvar initial-major-mode
 @cindex @samp{*scratch*}
 The value of this variable determines the major mode of the initial
@@ -929,7 +939,8 @@ Force redisplay of the current buffer's mode line.
 strings, symbols, and numbers kept in the buffer-local variable
 @code{mode-line-format}.  The data structure is called a @dfn{mode line
 construct}, and it is built in recursive fashion out of simpler mode line
-constructs.
+constructs.  The same data structure is used for constructing
+frame titles (pxref{Frame Titles}).
 
 @defvar mode-line-format
 The value of this variable is a mode line construct with overall
@@ -1177,20 +1188,39 @@ The current buffer name, obtained with the @code{buffer-name} function.
 The visited file name, obtained with the @code{buffer-file-name}
 function.  @xref{Buffer File Name}.
 
+@item %F
+The name of the selected frame.
+
+@item %c
+The current column number of point.
+
+@item %l
+The current line number of point.
+
 @item %*
 @samp{%} if the buffer is read only (see @code{buffer-read-only}); @*
 @samp{*} if the buffer is modified (see @code{buffer-modified-p}); @*
 @samp{-} otherwise.  @xref{Buffer Modification}.
 
 @item %+
+@samp{*} if the buffer is modified (see @code{buffer-modified-p}); @*
+@samp{%} if the buffer is read only (see @code{buffer-read-only}); @*
+@samp{-} otherwise.  This differs from @samp{%*} only for a modified
+read-only buffer.  @xref{Buffer Modification}.
+
+@item %&
 @samp{*} if the buffer is modified, and @samp{-} otherwise.
 
 @item %s
 The status of the subprocess belonging to the current buffer, obtained with
 @code{process-status}.  @xref{Process Information}.
 
+@item %t
+Whether the visited file is a text file or a binary file.  (This is a
+meaningful distinction only on certain operating systems.)
+
 @item %p
-The percent of the buffer above the @strong{top} of window, or
+The percentage of the buffer text above the @strong{top} of window, or
 @samp{Top}, @samp{Bottom} or @samp{All}.
 
 @item %P
@@ -1353,7 +1383,7 @@ For example, here's how @code{emacs-lisp-hooks} runs its mode hook:
 @end example
 @end defun
 
-@defun add-hook hook function &optional append
+@defun add-hook hook function &optional append local
 This function is the handy way to add function @var{function} to hook
 variable @var{hook}.  The argument @var{function} may be any valid Lisp
 function with the proper number of arguments.  For example,
@@ -1376,27 +1406,29 @@ executed first (barring another @code{add-hook} call).
 
 If the optional argument @var{append} is non-@code{nil}, the new hook
 function goes at the end of the hook list and will be executed last.
+
+If @var{local} is non-@code{nil}, that says to make the new hook
+function local to the current buffer.  Before you can do this, you must
+make the hook itself buffer-local by calling @code{make-local-hook}
+(@strong{not} @code{make-local-variable}).  If the hook itself is not
+buffer-local, then the value of @var{local} makes no difference---the
+hook function is always global.
 @end defun
 
-@defun remove-hook hook function 
+@defun remove-hook hook function &optional local
 This function removes @var{function} from the hook variable @var{hook}.
+
+If @var{local} is non-@code{nil}, that says to remove @var{function}
+from the local hook list instead of from the global hook list.  If the
+hook itself is not buffer-local, then the value of @var{local} makes no
+difference.
 @end defun
 
-@ignore  @c Should no longer be necessary
-If you make a hook variable buffer-local, copy its value before you use
-@code{add-hook} or @code{remove-hook} to change it.  For example,
+@defun make-local-hook hook
+This function makes the hook variable @code{hook} local to the current
+buffer.  When a hook variable is local, it can have local and global
+hook functions, and @code{run-hooks} runs all of them.
 
-@example
-(defun my-major-mode ()
-  @dots{}
-  (make-local-variable 'foo-hook)
-  (if (boundp 'foo-hook)
-      (setq foo-hook (copy-sequence foo-hook)))
-  (add-hook 'foo-hook 'my-foo-function)"
-  @dots{}
-  )
-@end example
-
-Otherwise you may accidentally alter the list structure that forms part
-of the global value of the hook variable.
-@end ignore
+Do not use @code{make-local-variable} directly for hook variables; it is
+not sufficient.
+@end defun

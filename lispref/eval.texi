@@ -165,6 +165,10 @@ reached, or until an error is signaled and not handled.
 If @var{stream} is supplied, @code{standard-output} is bound to it
 during the evaluation.
 
+You can use the variable @code{load-read-function} to specify a function
+for @code{eval-region} to use instead of @code{read} for reading
+expressions.  @xref{How Programs Do Loading}.
+
 @code{eval-region} always returns @code{nil}.
 @end deffn
 

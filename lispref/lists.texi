@@ -554,34 +554,14 @@ not a list, the sequence's elements do not become elements of the
 resulting list.  Instead, the sequence becomes the final @sc{cdr}, like
 any other non-list final argument.
 
-Integers are also allowed as arguments to @code{append}.  They are
-converted to strings of digits making up the decimal print
-representation of the integer, and these strings are then appended.
-Here's what happens:
-
-@example
-@group
-(setq trees '(pine oak))
-     @result{} (pine oak)
-@end group
-@group
-(char-to-string 54)
-     @result{} "6"
-@end group
-@group
-(setq longer-list (append trees 6 '(spruce)))
-     @result{} (pine oak 54 spruce)
-@end group
-@group
-(setq x-list (append trees 6 6))
-     @result{} (pine oak 54 . 6)
-@end group
-@end example
-
-This special case exists for compatibility with Mocklisp, and we don't
-recommend you take advantage of it.  If you want to convert an integer
-in this way, use @code{format} (@pxref{Formatting Strings}) or
-@code{number-to-string} (@pxref{String Conversion}).
+The @code{append} function also allows integers as arguments.  It
+converts them to strings of digits, making up the decimal print
+representation of the integer, and then uses the strings instead of the
+original integers.  @strong{Don't use this feature; we plan to eliminate
+it.  If you already use this feature, change your programs now!}  The
+proper way to convert an integer to a decimal number in this way is with
+@code{format} (@pxref{Formatting Strings}) or @code{number-to-string}
+(@pxref{String Conversion}).
 @end defun
 
 @defun reverse list
@@ -1301,6 +1281,16 @@ Here is another example, in which the keys and values are not symbols:
 (cdr (assoc 2 needles-per-cluster))
      @result{} ("Austrian Pine" "Red Pine")
 @end smallexample
+@end defun
+
+@defun rassoc value alist
+This function returns the first association with value @var{value} in
+@var{alist}.  It returns @code{nil} if no association in @var{alist} has
+a @sc{cdr} @code{equal} to @var{value}.
+
+@code{rassoc} is like @code{assoc} except that it compares the @sc{cdr} of
+each @var{alist} association instead of the @sc{car}.  You can think of
+this as ``reverse @code{assoc}'', finding the key for a given value.
 @end defun
 
 @defun assq key alist

@@ -17,6 +17,7 @@ portions of it.
 * String Search::         Search for an exact match.
 * Regular Expressions::   Describing classes of strings.
 * Regexp Search::         Searching for a match for a regexp.
+* POSIX Regexps::         Searching POSIX-style for the longest match.
 * Search and Replace::	  Internals of @code{query-replace}.
 * Match Data::            Finding out which part of the text matched
                             various parts of a regexp, after regexp search.
@@ -226,12 +227,12 @@ The next alternative is for @samp{a*} to match only two @samp{a}s.
 With this choice, the rest of the regexp matches successfully.@refill
 
 Nested repetition operators can be extremely slow if they specify
-backtracking loops.  For example, @samp{\(x+y*\)*a} could take hours to
-match the sequence @samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz}.  The
-slowness is because Emacs must try each imaginable way of grouping the
-35 @samp{x}'s before concluding that none of them can work.  To make
-sure your regular expressions run fast, check nested repetitions
-carefully.
+backtracking loops.  For example, it could take hours for the regular
+expression @samp{\(x+y*\)*a} to match the sequence
+@samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz}.  The slowness is because
+Emacs must try each imaginable way of grouping the 35 @samp{x}'s before
+concluding that none of them can work.  To make sure your regular
+expressions run fast, check nested repetitions carefully.
 
 @item +
 @cindex @samp{+} in regexp
@@ -715,6 +716,48 @@ comes back" twice.
 @end example
 @end defun
 
+@node POSIX Regexps
+@section POSIX Regular Expression Searching
+
+  The usual regular expression functions do backtracking when necessary
+to handle the @samp{\|} and repetition constructs, but they continue
+this only until they find @emph{some} match.  Then they succeed and
+report the first match found.
+
+  This section describes alternative search functions which perform the
+full backtracking specified by the POSIX standard for regular expression
+matching.  They continue backtracking until they have tried all
+possibilities and found all matches, so they can report the longest
+match, as required by POSIX.  This is much slower, so use these
+functions only when you really need the longest match.
+
+  In Emacs versions prior to 19.29, these functions did not exist, and
+the functions described above implemented full POSIX backtracking.
+
+@defun posix-search-forward regexp &optional limit noerror repeat
+This is like @code{re-search-forward} except that it performs the full
+backtracking specified by the POSIX standard for regular expression
+matching.
+@end defun
+
+@defun posix-search-backward regexp &optional limit noerror repeat
+This is like @code{re-search-backward} except that it performs the full
+backtracking specified by the POSIX standard for regular expression
+matching.
+@end defun
+
+@defun posix-looking-at regexp
+This is like @code{looking-at} except that it performs the full
+backtracking specified by the POSIX standard for regular expression
+matching.
+@end defun
+
+@defun posix-string-match regexp string &optional start
+This is like @code{string-match} except that it performs the full
+backtracking specified by the POSIX standard for regular expression
+matching.
+@end defun
+
 @ignore
 @deffn Command delete-matching-lines regexp
 This function is identical to @code{delete-non-matching-lines}, save
@@ -909,34 +952,56 @@ match data around it, to prevent it from being overwritten.
 @node Simple Match Data
 @subsection Simple Match Data Access
 
-  This section explains how to use the match data to find the starting
-point or ending point of the text that was matched by a particular
-search, or by a particular parenthetical subexpression of a regular
-expression.
+  This section explains how to use the match data to find out what was
+matched by the last search or match operation.
+
+  You can ask about the entire matching text, or about a particular
+parenthetical subexpression of a regular expression.  The @var{count}
+argument in the functions below specifies which.  If @var{count} is
+zero, you are asking about the entire match.  If @var{count} is
+positive, it specifies which subexpression you want.
+
+  Recall that the subexpressions of a regular expression are those
+expressions grouped with escaped parentheses, @samp{\(@dots{}\)}.  The
+@var{count}th subexpression is found by counting occurrences of
+@samp{\(} from the beginning of the whole regular expression.  The first
+subexpression is numbered 1, the second 2, and so on.  Only regular
+expressions can have subexpressions---after a simple string search, the
+only information available is about the entire match.
+
+@defun match-string count &optional in-string
+This function returns, as a string, the text matched in the last search
+or match operation.  It returns the entire text if @var{count} is zero,
+or just the portion corresponding to the @var{count}th parenthetical
+subexpression, if @var{count} is positive.  If @var{count} is out of
+range, the value is @code{nil}.
+
+If the last such operation was done against a string with
+@code{string-match}, then you should pass the same string as the
+argument @var{in-string}.  Otherwise, after a buffer search or match,
+you should omit @var{in-string} or pass @code{nil} for it; but you
+should make sure that the current buffer when you call
+@code{match-string} is the one in which you did the searching or
+matching.
+@end defun
 
 @defun match-beginning count
 This function returns the position of the start of text matched by the
 last regular expression searched for, or a subexpression of it.
 
 If @var{count} is zero, then the value is the position of the start of
-the text matched by the whole regexp.  Otherwise, @var{count}, specifies
-a subexpression in the regular expresion.  The value of the function is
-the starting position of the match for that subexpression.
+the entire match.  Otherwise, @var{count}, specifies a subexpression in
+the regular expresion, and the value of the function is the starting
+position of the match for that subexpression.
 
-Subexpressions of a regular expression are those expressions grouped
-with escaped parentheses, @samp{\(@dots{}\)}.  The @var{count}th
-subexpression is found by counting occurrences of @samp{\(} from the
-beginning of the whole regular expression.  The first subexpression is
-numbered 1, the second 2, and so on.
-
-The value is @code{nil} for a subexpression inside a
-@samp{\|} alternative that wasn't used in the match.
+The value is @code{nil} for a subexpression inside a @samp{\|}
+alternative that wasn't used in the match.
 @end defun
 
 @defun match-end count
-This function returns the position of the end of the text that matched
-the last regular expression searched for, or a subexpression of it.
-This function is otherwise similar to @code{match-beginning}.
+This function is like @code{match-beginning} except that it returns the
+position of the end of the match, rather than the position of the
+beginning.
 @end defun
 
   Here is an example of using the match data, with a comment showing the
@@ -948,6 +1013,15 @@ positions within the text:
               "The quick fox jumped quickly.")
               ;0123456789      
      @result{} 4
+@end group
+
+@group
+(match-string 0 "The quick fox jumped quickly.")
+     @result{} "quick"
+(match-string 1 "The quick fox jumped quickly.")
+     @result{} "qu"
+(match-string 2 "The quick fox jumped quickly.")
+     @result{} "ick"
 @end group
 
 @group
@@ -1004,11 +1078,15 @@ character of the buffer counts as 1.)
 @var{replacement}.
 
 @cindex case in replacements
-@defun replace-match replacement &optional fixedcase literal
-This function replaces the buffer text matched by the last search, with
-@var{replacement}.  It applies only to buffers; you can't use
-@code{replace-match} to replace a substring found with
-@code{string-match}.
+@defun replace-match replacement &optional fixedcase literal string
+This function replaces the text in the buffer (or in @var{string}) that
+was matched by the last search.  It replaces that text with
+@var{replacement}.
+
+If @var{string} is @code{nil}, @code{replace-match} does the replacement
+by editing the buffer; it leaves point at the end of the replacement
+text, and returns @code{t}.  If @var{string} is a string, it does the
+replacement by constructing and returning a new string.
 
 If @var{fixedcase} is non-@code{nil}, then the case of the replacement
 text is not changed; otherwise, the replacement text is converted to a
@@ -1044,9 +1122,6 @@ Subexpressions are those expressions grouped inside @samp{\(@dots{}\)}.
 @cindex @samp{\} in replacement
 @samp{\\} stands for a single @samp{\} in the replacement text.
 @end table
-
-@code{replace-match} leaves point at the end of the replacement text,
-and returns @code{t}.
 @end defun
 
 @node Entire Match Data
@@ -1239,19 +1314,27 @@ default value is @code{"^\014"} (i.e., @code{"^^L"} or @code{"^\C-l"});
 this matches a line that starts with a formfeed character.
 @end defvar
 
+  The following two regular expressions should @emph{not} assume the
+match always starts at the beginning of a line; they should not use
+@samp{^} to anchor the match.  Most often, the paragraph commands do
+check for a match only at the beginning of a line, which means that
+@samp{^} would be superfluous.  When there is a left margin, they accept
+matches that start after the left margin.  In that case, a @samp{^}
+would be incorrect.
+
 @defvar paragraph-separate
 This is the regular expression for recognizing the beginning of a line
 that separates paragraphs.  (If you change this, you may have to
 change @code{paragraph-start} also.)  The default value is
-@w{@code{"^[@ \t\f]*$"}}, which matches a line that consists entirely of
-spaces, tabs, and form feeds.
+@w{@code{"[@ \t\f]*$"}}, which matches a line that consists entirely of
+spaces, tabs, and form feeds (after its left margin).
 @end defvar
 
 @defvar paragraph-start
 This is the regular expression for recognizing the beginning of a line
 that starts @emph{or} separates paragraphs.  The default value is
-@w{@code{"^[@ \t\n\f]"}}, which matches a line starting with a space, tab,
-newline, or form feed.
+@w{@code{"[@ \t\n\f]"}}, which matches a line starting with a space, tab,
+newline, or form feed (after its left margin).
 @end defvar
 
 @defvar sentence-end

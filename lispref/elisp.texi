@@ -6,8 +6,8 @@
 @c %**end of header
 
 @ifinfo
-This version is the edition 2.3 of the GNU Emacs Lisp
-Reference Manual.  It corresponds to Emacs Version 19.25.
+This version is the edition 2.4 of the GNU Emacs Lisp
+Reference Manual.  It corresponds to Emacs Version 19.29.
 @c Please REMEMBER to update edition number in *four* places in this file
 @c                 and also in *one* place in intro.texi
 
@@ -15,7 +15,7 @@ Published by the Free Software Foundation
 675 Massachusetts Avenue
 Cambridge, MA 02139 USA
 
-Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc. 
 
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -68,21 +68,20 @@ instead of in the original English.
 @subtitle for Unix Users
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
-@subtitle Second Edition, June 1993
-@subtitle Revision 2.3, June 1994
+@subtitle Revision 2.4, June 1995
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc. 
 
 @sp 2
-Edition 2.3 @*
-Revised for Emacs Version 19.25,@*
-June, 1994.@*
+Edition 2.4 @*
+Revised for Emacs Version 19.29,@*
+June, 1995.@*
 @sp 2
-ISBN 1-882114-40-X
+ISBN 1-882114-71-X
 
 @sp 2
 Published by the Free Software Foundation @*
@@ -113,8 +112,8 @@ Cover art by Etienne Suvasa.
 @node Top, Copying, (dir), (dir)
 
 @ifinfo
-This Info file contains edition 2.3 of the GNU Emacs Lisp
-Reference Manual, corresponding to GNU Emacs version 19.25.
+This Info file contains edition 2.4 of the GNU Emacs Lisp
+Reference Manual, corresponding to GNU Emacs version 19.29.
 @end ifinfo
 
 @menu
@@ -268,7 +267,7 @@ Numbers
 * Arithmetic Operations::     How to add, subtract, multiply and divide.
 * Bitwise Operations::        Logical and, or, not, shifting.
 * Numeric Conversions::	      Converting float to integer and vice versa.
-* Transcendental Functions::  Trig, exponential and logarithmic functions.
+* Math Functions::            Trig, exponential and logarithmic functions.
 * Random Numbers::            Obtaining random integers, predictable or not.
 
 Strings and Characters
@@ -707,7 +706,7 @@ The Kill Ring
 * Kill Ring Concepts::      What text looks like in the kill ring.
 * Kill Functions::          Functions that kill text.
 * Yank Commands::           Commands that access the kill ring.
-* Low Level Kill Ring::	    Functions and variables for kill ring access.
+* Low-Level Kill Ring::	    Functions and variables for kill ring access.
 * Internals of Kill Ring::  Variables that hold kill-ring data.
 
 Indentation

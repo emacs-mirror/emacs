@@ -20,6 +20,8 @@ pertaining to the terminal and the screen.
 * System Environment::  Distinguish the name and kind of system.
 * User Identification:: Finding the name and user id of the user.
 * Time of Day::		Getting the current time.
+* Time Conversion::     Converting a time from numeric form to a string, or
+                          to calendrical data (or vice versa).
 * Timers::		Setting a timer to call a function at a certain time.
 * Terminal Input::      Recording terminal input for debugging.
 * Terminal Output::     Recording terminal output for debugging.
@@ -598,6 +600,23 @@ This function returns the name of the machine you are running on.
 @end example
 @end defun
 
+@vindex system-name
+  The symbol @code{system-name} is a variable as well as a function.  In
+fact, the function returns whatever value the variable
+@code{system-name} currently holds.  Thus, you can set the variable
+@code{system-name} in case Emacs is confused about the name of your
+system.  The variable is also useful for constructing frame titles
+(@pxref{Frame Titles}).
+
+@defvar mail-host-address
+If this variable is non-@code{nil}, it is used instead of
+@code{system-name} for purposes of generating email addresses.  For
+example, it is used when constructing the default value of
+@code{user-mail-address}.  @xref{User Identification}.  (Since this is
+done when Emacs starts up, the value actually used is the one saved when
+Emacs was dumped.  @xref{Building Emacs}.)
+@end defvar
+
 @defun getenv var
 @cindex environment variable access
 This function returns the value of the environment variable @var{var},
@@ -630,6 +649,13 @@ This command sets the value of the environment variable named
 function works by modifying @code{process-environment}; binding that
 variable with @code{let} is also reasonable practice.
 @end deffn
+
+@defvar path-separator
+This variable holds a string which says which character separates
+directories in a search path (as found in an environment variable).  Its
+value is @code{":"} for Unix and GNU systems, and @code{";"} for MS-DOS
+and Windows NT.
+@end defvar
 
 @defvar process-environment
 This variable is a list of strings, each describing one environment
@@ -708,12 +734,21 @@ indicating whether the privilege is currently enabled.
 @node User Identification
 @section User Identification
 
-@defun user-login-name
-This function returns the name under which the user is logged in.  If
-the environment variable @code{LOGNAME} is set, that value is used.
-Otherwise, if the environment variable @code{USER} is set, that value is
-used.  Otherwise, the value is based on the effective @sc{uid}, not the
-real @sc{uid}.
+@defvar user-mail-address
+This holds the nominal email address of the user who is using Emacs.
+When Emacs starts up, it computes a default value that is usually right,
+but users often set this themselves when the default value is not right.
+@end defvar
+
+@defun user-login-name &optional uid
+If you don't specify @var{uid}, this function returns the name under
+which the user is logged in.  If the environment variable @code{LOGNAME}
+is set, that value is used.  Otherwise, if the environment variable
+@code{USER} is set, that value is used.  Otherwise, the value is based
+on the effective @sc{uid}, not the real @sc{uid}.
+
+If you specify @var{uid}, the value is the user name that corresponds
+to @var{uid} (which should be an integer).
 
 @example
 @group
@@ -739,6 +774,28 @@ This function returns the full name of the user.
 @end group
 @end example
 @end defun
+
+@vindex user-full-name
+@vindex user-real-login-name
+@vindex user-login-name
+  The symbols @code{user-login-name}, @code{user-real-login-name} and
+@code{user-full-name} are variables as well as functions.  The functions
+return the same values that the variables hold.  These variables allow
+you to ``fake out'' Emacs by telling the functions what to return.  The
+variables are also useful for constructing frame titles (@pxref{Frame
+Titles}).
+
+@defvar user-real-login-name
+This variable holds the same value that the function
+@code{user-real-login-name} returns.  The variable lets you alter the value;
+also, you can use variables for constructing frame titles.
+@end defvar
+
+@defvar user-full-name
+This variable holds the same value that the function
+@code{user-full-name} returns.  The variable lets you alter the value;
+also, you can use variables for constructing frame titles.
+@end defvar
 
 @defun user-real-uid
 This function returns the real @sc{uid} of the user.
@@ -825,7 +882,149 @@ The argument @var{time-value}, if given, specifies a time to analyze
 instead of the current time.  The argument should be a cons cell
 containing two integers, or a list whose first two elements are
 integers.  Thus, you can use times obtained from @code{current-time}
-(see below) and from @code{file-attributes} (@pxref{File Attributes}).
+(see above) and from @code{file-attributes} (@pxref{File Attributes}).
+@end defun
+
+@node Time Conversion
+@section Time Conversion
+
+  These functions convert time values (lists of two or three integers)
+to strings or to calendrical information.  There is also a function to
+convert calendrical information to a time value.  You can get time
+values from the functions @code{current-time} (@pxref{Time of Day}) and
+@code{file-attributes} (@pxref{File Attributes}).
+
+@defun format-time-string format-string time
+This function converts @var{time} to a string according to
+@var{format-string}.  The argument @var{format-string} may contain
+@samp{%}-sequences which say to substitute parts of the time.  Here is a
+table of what the @samp{%}-sequences mean:
+
+@table @samp
+@item %a
+This stands for the abbreviated name of the day of week.
+@item %A
+This stands for the full name of the day of week.
+@item %b
+This stands for the abbreviated name of the month.
+@item %B
+This stands for the full name of the month.
+@item %c
+This is a synonym for @samp{%x %X}.
+@item %C
+This has a locale-specific meaning.  In the C locale, it is equivalent
+to @samp{%A, %B %e, %Y}.
+@item %d
+This stands for the day of month, zero-padded.
+@item %D
+This is a synonym for @samp{%m/%d/%y}.
+@item %e
+This stands for the day of month, blank-padded.
+@item %h
+This is a synonym for @samp{%b}.
+@item %H
+This stands for the hour (00-23).
+@item %I
+This stands for the hour (00-12).
+@item %j
+This stands for the day of the year (001-366).
+@item %k
+This stands for the hour (0-23), blank padded.
+@item %l
+This stands for the hour (1-12), blank padded.
+@item %m
+This stands for the month (01-12).
+@item %M
+This stands for the minute (00-59).
+@item %n
+This stands for a newline.
+@item %p
+This stands for @samp{AM} or @samp{PM}, as appropriate.
+@item %r
+This is a synonym for @samp{%I:%M:%S %p}.
+@item %R
+This is a synonym for @samp{%H:%M}.
+@item %S
+This stands for the seconds (00-60).
+@item %t
+This stands for a tab character.
+@item %T
+This is a synonym for @samp{%H:%M:%S}.
+@item %U
+This stands for the week of the year (01-52), assuming that weeks
+start on Sunday.
+@item %w
+This stands for the numeric day of week (0-6).  Sunday is day 0.
+@item %W
+This stands for the week of the year (01-52), assuming that weeks
+start on Monday.
+@item %x
+This has a locale-specific meaning.  In the C locale, it is equivalent
+to @samp{%D}.
+@item %X
+This has a locale-specific meaning.  In the C locale, it is equivalent
+to @samp{%T}.
+@item %y
+This stands for the year without century (00-99).
+@item %Y
+This stands for the year with century.
+@item %Z
+This stands for the time zone abbreviation.
+@end table
+@end defun
+
+@defun decode-time time
+This function converts a time value into calendrical form.  The return
+value is a list of nine elements, as follows:
+
+@example
+(@var{seconds} @var{minutes} @var{hour} @var{day} @var{month} @var{year} @var{dow} @var{dst} @var{zone})
+@end example
+
+Here is what the elements mean:
+
+@table @var
+@item sec
+The number of seconds past the minute, as an integer between 0 and 59.
+@item minute
+The number of minutes past the hour, as an integer between 0 and 59.
+@item hour
+The hour of the day, as an integer between 0 and 23.
+@item day
+The day of the month, as an integer between 1 and 31.
+@item month
+The month of the year, as an integer between 1 and 12.
+@item year
+The year, an integer typically greater than 1900.
+@item dow
+The day of week, as an integer between 0 and 6, where 0 stands for
+Sunday.
+@item dst
+@code{t} if daylight savings time is effect, otherwise @code{nil}.
+@item zone
+An integer indicating the number of seconds east of Greenwich.
+@end table
+
+Note that Common Lisp has different meanings for @var{dow} and
+@var{zone}.
+@end defun
+
+@defun encode-time seconds minutes hour day month year &optional zone
+This function is the inverse of @code{decode-time}.  It converts seven
+items of calendrical data into a time value.
+
+For the meanings of the arguments, see the table above under
+@code{decode-time}.
+
+Year numbers less than 100 are treated just like other year numbers.  If
+you them to stand for years above 1900, you must alter them yourself
+before you call @code{encode-time}.
+
+The optional argument @var{zone} defaults to the current time zone and
+its daylight savings time rules.  If specified, it can be either a list
+(as you would get from @code{current-time-zone}) or an integer (as you
+would get from @code{decode-time}).  The specified zone is used without
+any further alteration for daylight savings time.
 @end defun
 
 @node Timers
@@ -1271,6 +1470,9 @@ by HP X servers whose numeric code is (1 << 28) + 168.
 It is not a problem if the alist defines keysyms for other X servers, as
 long as they don't conflict with the ones used by the X server actually
 in use.
+
+The variable is always local to the current X terminal and cannot be
+buffer-local.  @xref{Multiple Displays}.
 @end defvar
 
 @node Flow Control

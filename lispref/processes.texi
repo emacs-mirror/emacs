@@ -148,23 +148,52 @@ user types another @kbd{C-g}, that kills the subprocess instantly with
 18.  In version 19, they return an indication of how the process
 terminated.
 
-@defun call-process program &optional infile buffer-or-name display &rest args
+@defun call-process program &optional infile destination display &rest args
 This function calls @var{program} in a separate process and waits for
 it to finish.
 
 The standard input for the process comes from file @var{infile} if
-@var{infile} is not @code{nil} and from @file{/dev/null} otherwise.  The
-process output gets inserted in buffer @var{buffer-or-name} before point,
-if that argument names a buffer.  If @var{buffer-or-name} is @code{t},
-output is sent to the current buffer; if @var{buffer-or-name} is
-@code{nil}, output is discarded. 
+@var{infile} is not @code{nil} and from @file{/dev/null} otherwise.
+The argument @var{destination} says where to put the process output.
+Here are the possibilities:
 
-If @var{buffer-or-name} is the integer 0, @code{call-process} returns
-@code{nil} immediately and discards any output.  In this case, the
-process is not truly synchronous, since it can run in parallel with
-Emacs; but you can think of it as synchronous in that Emacs is
-essentially finished with the subprocess as soon as this function
-returns.
+@table @asis
+@item a buffer
+Insert the output in that buffer, before point.  This includes both the
+standard output stream and the standard error stream of the process.
+
+@item a string
+Find or create a buffer with that name, then insert
+the output in that buffer, before point.
+
+@item @code{t}
+Insert the output in the current buffer, before point.
+
+@item @code{nil}
+Discard the output.
+
+@item 0
+Discard the output, and return immediately without waiting
+for the subprocess to finish.
+
+In this case, the process is not truly synchronous, since it can run in
+parallel with Emacs; but you can think of it as synchronous in that
+Emacs is essentially finished with the subprocess as soon as this
+function returns.
+
+@item (@var{real-destination} @var{error-destination})
+Keep the standard output stream separate from the standard error stream;
+deal with the ordinary output as specified by @var{real-destination},
+and dispose of the error output according to @var{error-destination}.
+The value @code{nil} means discard it, @code{t} means mix it with the
+ordinary output, and a string specifies a file name to redirect error
+output into.
+
+You can't directly specify a buffer to put the error output in; that is
+too difficult to implement.  But you can achieve this result by sending
+the error output to a temporary file and then inserting the file into a
+buffer.
+@end table
 
 If @var{display} is non-@code{nil}, then @code{call-process} redisplays
 the buffer as output is inserted.  Otherwise the function does no
@@ -216,16 +245,16 @@ of @code{call-process}:
 @end smallexample
 @end defun
 
-@defun call-process-region start end program &optional delete buffer-or-name display &rest args
+@defun call-process-region start end program &optional delete destination display &rest args
 This function sends the text between @var{start} to @var{end} as
 standard input to a process running @var{program}.  It deletes the text
 sent if @var{delete} is non-@code{nil}; this is useful when @var{buffer}
 is @code{t}, to insert the output in the current buffer.
 
-The arguments @var{buffer-or-name} and @var{display} control what to do
+The arguments @var{destination} and @var{display} control what to do
 with the output from the subprocess, and whether to update the display
 as it comes in.  For details, see the description of
-@code{call-process}, above.  If @var{buffer-or-name} is the integer 0,
+@code{call-process}, above.  If @var{destination} is the integer 0,
 @code{call-process-region} discards the output and returns @code{nil}
 immediately, without waiting for the subprocess to finish.
 
@@ -241,7 +270,7 @@ In the following example, we use @code{call-process-region} to run the
 @code{cat} utility, with standard input being the first five characters
 in buffer @samp{foo} (the word @samp{input}).  @code{cat} copies its
 standard input into its standard output.  Since the argument
-@var{buffer-or-name} is @code{t}, this output is inserted in the current
+@var{destination} is @code{t}, this output is inserted in the current
 buffer.
 
 @smallexample
@@ -390,6 +419,10 @@ with one subprocess by binding the variable around the call to
   (start-process @dots{}))
 @end group
 @end smallexample
+
+To determine whether a given subprocess actually got a pipe or a
+@sc{pty}, use the function @code{process-tty-name} (@pxref{Process
+Information}).
 @end defvar
 
 @node Deleting Processes
@@ -558,6 +591,13 @@ This function returns the exit status of @var{process} or the signal
 number that killed it.  (Use the result of @code{process-status} to
 determine which of those it is.)  If @var{process} has not yet
 terminated, the value is 0.
+@end defun
+
+@defun process-tty-name process
+This function returns the terminal name that @var{process} is using for
+its communication with Emacs---or @code{nil} if it is using pipes
+instead of a terminal (see @code{process-connection-type} in
+@ref{Asynchronous Processes}).
 @end defun
 
 @node Input to Processes
@@ -846,6 +886,13 @@ command would be unpredictable.  If you want to permit quitting inside a
 filter function, bind @code{inhibit-quit} to @code{nil}.
 @xref{Quitting}.
 
+  If an error happens during execution of a filter function, it is
+caught automatically, so that it doesn't stop the execution of whatever
+programs was running when the filter function was started.  However, if
+@code{debug-on-error} is non-@code{nil}, the error-catching is turned
+off.  This makes it possible to use the Lisp debugger to debug the
+filter function.  @xref{Debugger}.
+
   Many filter functions sometimes or always insert the text in the
 process's buffer, mimicking the actions of Emacs when there is no
 filter.  Such filter functions need to use @code{set-buffer} in order to
@@ -1056,6 +1103,13 @@ into a dead buffer, it will get an error.  If the buffer is dead,
 matching had to explicitly save and restore the match data.  Now Emacs
 does this automatically; sentinels never need to do it explicitly.
 @xref{Match Data}.
+
+  If an error happens during execution of a sentinel, it is caught
+automatically, so that it doesn't stop the execution of whatever
+programs was running when the sentinel was started.  However, if
+@code{debug-on-error} is non-@code{nil}, the error-catching is turned
+off.  This makes it possible to use the Lisp debugger to debug the
+sentinel.  @xref{Debugger}.
 
 @defun set-process-sentinel process sentinel
 This function associates @var{sentinel} with @var{process}.  If

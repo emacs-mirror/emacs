@@ -370,6 +370,12 @@ The cursor does not move into the echo area.  Prompt.
 This kind of input is used by commands such as @code{describe-key} and
 @code{global-set-key}.
 
+@item K
+A key sequence, whose definition you intend to change.  This works like
+@samp{k}, except that it suppresses, for the last input event in the key
+sequence, the conversions that are normally used (when necessary) to
+convert an undefined key into a defined one.
+
 @item m
 @cindex marker argument
 The position of the mark, as an integer.  No I/O.
@@ -766,6 +772,7 @@ This function returns non-@code{nil} if @var{event} is an input event.
 * Repeat Events::               Double and triple click (or drag, or down).
 * Motion Events::		Just moving the mouse, not pushing a button.
 * Focus Events::		Moving the mouse between frames.
+* Misc Events::                 Other events window systems can generate.
 * Event Examples::		Examples of the lists for mouse events.
 * Classifying Events::		Finding the modifier keys in an event symbol.
 				Event types.
@@ -1222,6 +1229,34 @@ sequence.  If the user changes focus in the middle of a key
 sequence---that is, after a prefix key---then Emacs reorders the events
 so that the focus event comes either before or after the multi-event key
 sequence, and not within it.
+
+@node Misc Events
+@subsection Miscellaneous Window System Events
+
+A few other event types represent occurrences within the window system.
+
+@table @code
+@cindex @code{delete-frame} event
+@item (delete-frame (@var{frame}))
+This kind of event indicates that the user gave the window manager
+a command to delete a particular window, which happens to be an Emacs frame.
+
+The standard definition of the @code{delete-frame} event is to delete @var{frame}.
+
+@cindex @code{iconify-frame} event
+@item (iconify-frame (@var{frame}))
+This kind of event indicates that the user iconified @var{frame} using
+the window manager.  Its standard definition is @code{ignore}; since
+the frame has already been iconified, Emacs has no work to do.
+The purpose of this event type is so that you can keep track of such
+events if you want to.
+
+@cindex @code{deiconify-frame} event
+@item (deiconify-frame (@var{frame}))
+This kind of event indicates that the user deiconified @var{frame} using
+the window manager.  Its standard definition is @code{ignore}; since the
+frame has already been iconified, Emacs has no work to do.
+@end table
 
 @node Event Examples
 @subsection Event Examples
@@ -1835,6 +1870,9 @@ If @var{nodisp} is non-@code{nil}, then @code{sit-for} does not
 redisplay, but it still returns as soon as input is available (or when
 the timeout elapses).
 
+Iconifying or deiconifying a frame makes @code{sit-for} return, because
+that generates an event.  @xref{Misc Events}.
+
 The usual purpose of @code{sit-for} is to give the user time to read
 text that you display.
 @end defun
@@ -2339,6 +2377,9 @@ encounters an error or a failing search.
 @defvar last-kbd-macro
 This variable is the definition of the most recently defined keyboard
 macro.  Its value is a string or vector, or @code{nil}.
+
+The variable is always local to the current X terminal and cannot be
+buffer-local.  @xref{Multiple Displays}.
 @end defvar
 
 @defvar executing-macro
@@ -2354,5 +2395,8 @@ This variable indicates whether a keyboard macro is being defined.  A
 command can test this variable to behave differently while a macro is
 being defined.  The commands @code{start-kbd-macro} and
 @code{end-kbd-macro} set this variable---do not set it yourself.
+
+The variable is always local to the current X terminal and cannot be
+buffer-local.  @xref{Multiple Displays}.
 @end defvar
 

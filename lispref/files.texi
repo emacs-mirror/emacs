@@ -34,6 +34,7 @@ substitutions such as @samp{$HOME}.  @xref{File Name Expansion}.
 * Create/Delete Dirs::	     Creating and Deleting Directories.
 * Magic File Names::	     Defining "magic" special handling
 			       for certain file names.
+* Format Conversion::        Conversion to and from various file formats.
 * Files and MS-DOS::         Distinguishing text and binary files on MS-DOS.
 @end menu
 
@@ -426,6 +427,10 @@ contents of the buffer (actually, just the accessible portion) with the
 contents of the file.  This is better than simply deleting the buffer
 contents and inserting the whole file, because (1) it preserves some
 marker positions and (2) it puts less data in the undo list.
+
+The function @code{insert-file-contents} checks the file contents
+against the defined file formats, and converts the file contents if
+appropriate.  @xref{Format Conversion}.
 @end defun
 
 If you want to pass a file name to another process so that another
@@ -488,6 +493,10 @@ Normally, @code{write-region} displays a message @samp{Wrote file
 nor @code{nil} nor a string, then this message is inhibited.  This
 feature is useful for programs that use files for internal purposes,
 files that the user does not need to know about.
+
+The function @code{write-region} converts the data which it writes to
+the appropriate file formats specified by @code{buffer-file-format}.
+@xref{Format Conversion}.
 @end deffn
 
 @node File Locks
@@ -684,6 +693,11 @@ we can deduce that any attempt to read a file in @file{/foo/} will
 give an error.
 @end defun
 
+@defun file-ownership-preserved-p filename
+This function returns @code{t} if deleting the file @var{filename} and
+then creating it anew would keep the file's owner unchanged.
+@end defun
+
 @defun file-newer-than-file-p filename1 filename2
 @cindex file age
 @cindex file modification time
@@ -785,6 +799,12 @@ existing directory, @code{nil} otherwise.
      @result{} t
 @end group
 @end example
+@end defun
+
+@defun file-regular-p filename
+This function returns @code{t} if the file @var{filename} exists and is
+a regular file (not a directory, symbolic link, named pipe, terminal, or
+other I/O device).
 @end defun
 
 @node Truenames
@@ -1307,6 +1327,12 @@ backup version numbers, or trailing tildes.
      @result{} "foo"
 @end group
 @end example
+@end defun
+
+@defun file-name-sans-extension filename
+This function returns @var{filename} sans its final ``extension'', if
+any.  The extension, in a file name, is the part that follows the last
+@samp{.}.
 @end defun
 
 @node Directory Names
@@ -1943,6 +1969,124 @@ This is useful for running a subprocess; every subprocess must have a
 non-magic directory to serve as its current directory, and this function
 is a good way to come up with one.
 @end defun
+
+@node Format Conversion
+@section File Format Conversion
+
+@cindex file format conversion
+@cindex encoding file formats
+@cindex decoding file formats
+  The variable @code{format-alist} defines a list of @dfn{file formats},
+which are textual representations used in files for the data (text,
+text-properties, and possibly other information) in an Emacs buffer.
+Emacs performs format conversion when reading and writing files.
+
+@defvar format-alist
+This list contains one format definition for each defined file format.
+@end defvar
+
+@cindex format definition
+Each format definition is a list of this form:
+
+@example
+(@var{name} @var{doc-string} @var{regexp} @var{from-fn} @var{to-fn} @var{modify} @var{mode-fn})
+@end example
+
+Here is what the elements in a format definition mean:
+
+@table @var
+@item name
+The name of this format.
+
+@item doc-string
+A documentation string for the format.
+
+@item regexp
+A regular expression which is used to recognize files represented in
+this format.
+
+@item from-fn
+A function to call to decode data in this format (to convert file data into
+the usual Emacs data representation).
+
+The @var{from-fn} is called with two args, @var{begin} and @var{end},
+which specify the part of the buffer it should convert.  It should convert
+the text by editing it in place.  Since this can change the length of the
+text, @var{from-fn} should return the modified end position.
+
+One responsibility of @var{from-fm} is to make sure that the beginning
+of the file no longer matches @var{regexp}.  Otherwise it is likely to
+get called again.
+
+@item to-fn
+A function to call to encode data in this format (to convert
+the usual Emacs data representation into this format).
+
+The @var{to-fn} is called with two args, @var{begin} and @var{end},
+which specify the part of the buffer it should convert.  There are
+two ways it can do the conversion:
+
+@itemize @bullet
+@item
+By editing the buffer in place.  In this case, @var{to-fn} should
+return the end-position of the range of text, as modified.
+
+@item
+By returning a list of annotations.  This is a list of elements of the
+form @code{(@var{position} . @var{string})}, where @var{position} is an
+integer specifying the relative position in the text to be written, and
+@var{string} is the annotation to add there.  The list must be sorted in
+order of position when @var{to-fn} returns it.
+
+When @code{write-region} actually writes the text from the buffer to the
+file, it intermixes the specified annotations at the corresponding
+positions.  All this takes place without modifying the buffer.
+@end itemize
+
+@item modify
+A flag, @code{t} if the encoding function modifies the buffer, and
+@code{nil} if it works by returning a list of annotations.
+
+@item mode
+A mode function to call after visiting a file converted from this
+format.
+@end table
+
+The function @code{insert-file-contents} automatically recognizes file
+formats when it reads the specified file.  It checks the text of the
+beginning of the file against the regular expressions of the format
+definitions, and if it finds a match, it calls the decoding function for
+that format.  Then it checks all the known formats over again.
+It keeps checking them until none of them is applicable.
+
+Visiting a file, with @code{find-file-noselect} or the commands that use
+it, performs conversion likewise (because it calls
+@code{insert-file-contents}); but it also calls the mode function for
+each format that it decodes.  It stores a list of the format names
+in the buffer-local variable @code{buffer-file-format}.
+
+@defvar buffer-file-format
+This variable holds a list of the file formats that were decoded in the
+course of visiting the current buffer's file.  It is always local in all
+buffers.
+@end defvar
+
+When @code{write-region} writes data into a file, it first calls the
+encoding functions for the formats listed in @code{buffer-file-format}.
+
+@defun format-write-file file format
+This command writes the current buffer contents into the file @var{file}
+in format @var{format}, and makes that format the default for future
+saves of the buffer.
+@end defun
+
+@defvar auto-save-file-format
+This variable specifies the format to use for auto-saving.  Its value is
+a list of format names, just like the value of
+@code{buffer-file-format}; but it is used instead of
+@code{buffer-file-format} for writing auto-save files.  This variable
+is always local in all buffers.
+@end defvar
 
 @node Files and MS-DOS
 @section Files and MS-DOS
