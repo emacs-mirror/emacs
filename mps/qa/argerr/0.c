@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = create a space with a NULL space_t
  language = c
  link = testlib.o

@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = NULL base for mps_root_create_table
  language = c
  link = testlib.o

@@ -1,4 +1,5 @@
 #!/usr/local/bin/perl -w
+# $HopeName$
 #
 # Compile all the .c files in $testlib_dir,
 # putting the resulting .o files in $obj_dir.

@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = null 2nd arg to pool_create
  language = c
  link = testlib.o newfmt.o

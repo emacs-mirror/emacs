@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = free in the wrong pool (and a destroyed pool at that!)
  language = c
  link = testlib.o

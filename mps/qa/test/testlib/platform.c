@@ -1,3 +1,6 @@
+/* $HopeName$
+*/
+
 #include "mps.h"
 #include "platform.h"
 

@@ -1,4 +1,5 @@
 #!/usr/local/bin/perl -w
+# $HopeName$
 #
 # First, we'll set up @INC so we can find the other
 # perl scripts we require. This program will be in the

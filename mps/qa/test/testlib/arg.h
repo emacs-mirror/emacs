@@ -1,4 +1,5 @@
-/* arg.h
+/* $HopeName$
+arg.h
    useful things for arg-err tests
 */
 

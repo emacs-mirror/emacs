@@ -1,4 +1,5 @@
-/* awlfmt.c
+/* $HopeName$
+awlfmt.c
    A format simlar to newfmt, but for the awl pool
 */
 

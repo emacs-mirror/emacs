@@ -1,4 +1,5 @@
-/* exfmt.c
+/* $HopeName$
+exfmt.c
    A format for the awl and amc pools which can cope with exact references
    See comments in header file for usage.
 */

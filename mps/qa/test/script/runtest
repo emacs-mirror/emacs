@@ -1,4 +1,5 @@
 #!/usr/local/perl
+# $HopeName$
 #
 # provides subroutines to run tests and testsets
 #
@@ -26,16 +27,18 @@ sub clib {
  open(MANIFEST, "$testlib_dir/manifest");
  &compiler_settings;
  while ($tlfile = <MANIFEST>) {
-  chop($tlfile);
-  $tlfile = $testlib_dir."/".$tlfile;
-  $tlobj = $tlfile;
-  $tlobj =~ s/\.c/$obj_suffix/;
-  $tlobj =~ s/$testlib_dir/$obj_dir/;
+  unless ($tlfile =~ /^%/) {
+   chop($tlfile);
+   $tlfile = $testlib_dir."/".$tlfile;
+   $tlobj = $tlfile;
+   $tlobj =~ s/\.c/$obj_suffix/;
+   $tlobj =~ s/$testlib_dir/$obj_dir/;
 
-  if (&compile($tlfile, $tlobj)) {
-  } else {
-   $success = 0;
-   &logcomment(" failed on %tlfile.");
+   if (&compile($tlfile, $tlobj)) {
+   } else {
+    $success = 0;
+    &logcomment(" failed on %tlfile.");
+   }
   }
  }
  close(MANIFEST);

@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = request.dylan.170439 (detect bad pointers)
  language = c
  link = testlib.o exfmt.o

@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = create 1000 spaces and destroy each one just before the next is created
  language = c
  link = testlib.o

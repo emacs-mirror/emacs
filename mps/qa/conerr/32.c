@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = create AP in a pool that doesn't support it
  language = c
  link = testlib.o

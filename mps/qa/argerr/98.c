@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = MAX+1 root mode for mps_root_create
  language = c
  link = testlib.o

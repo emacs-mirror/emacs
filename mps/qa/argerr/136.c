@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = highbit set rank for mps_root_create_reg (with stack scan ambig)
  language = c
  link = testlib.o

@@ -1,4 +1,5 @@
 #!/usr/local/perl
+# $HopeName$
 #
 # provides subroutines to help in creating test logs and
 # reports

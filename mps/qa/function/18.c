@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = create lots of pools at once (and cause to run out of memory)
  language = c
  link = testlib.o newfmt.o

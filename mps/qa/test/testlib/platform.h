@@ -1,4 +1,5 @@
-/* platform.h
+/* $HopeName$
+platform.h
    load appropriate header files to do platform-specific
    stuff.
 */

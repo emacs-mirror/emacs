@@ -1,4 +1,5 @@
-/* exfmt.h
+/* $HopeName$
+exfmt.h
    A format for the awl and amc pools, which will work without
    register roots. To use it, you must take precautions. You must
    register exfmt_root as a root, and unless you register the

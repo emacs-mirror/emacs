@@ -1,4 +1,5 @@
 run tests, reporting results and verdict
+% $HopeName$
 
 Usage: qa try [<options>] <testfile> [<testfile> ...]
 

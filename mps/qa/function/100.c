@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = MFS functional test  allocate and free in manual fixed small pool
  language = c
  link = testlib.o

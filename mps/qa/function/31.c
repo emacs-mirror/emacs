@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = regression test for request.dylan.170459 (scanning and buffers in AWL)
  language = c
  link = testlib.o awlfmt.o

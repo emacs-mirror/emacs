@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary =  check exfmt works.
  language = c
  link = testlib.o exfmt.o

@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = AMC and itself performance
  language = c
  link = testlib.o fastfmt.o

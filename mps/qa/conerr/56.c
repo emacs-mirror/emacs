@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = isstale in destroyed space
  language = c
  link = myfmt.o testlib.o

@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = UNALIGNED stackpointer for mps_root_create_reg
  language = c
  link = testlib.o

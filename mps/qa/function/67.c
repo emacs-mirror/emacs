@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = test for non-bug with mark-sweep scanning in AWL
  language = c
  link = testlib.o exfmt.o

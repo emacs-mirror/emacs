@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = allocate 100 items, throw away and repeat
  language = c
  link = myfmt.o testlib.o

@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = pointer to null addr to fix (function)
  language = c
  link = testlib.o newfmt.o

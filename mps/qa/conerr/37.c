@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = reserve and commit with different address
  language = c
  link = myfmt.o testlib.o

@@ -1,4 +1,5 @@
 compile test libraries
+% $HopeName$
 
 Usage: qa clib [-i MMQA_MPS_INCLUDE_DIR] [-v MMQA_INTERFACE_VERSION]
 

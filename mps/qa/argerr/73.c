@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = UNALIGNED thr_t to thread_dereg
  language = c
  link = testlib.o
