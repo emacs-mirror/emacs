@@ -168,8 +168,12 @@ minibuffer by typing @kbd{C-g}.  @xref{Minibuffer}.
   Each text window's last line is a @dfn{mode line}, which describes what
 is going on in that window.  When there is only one text window, the
 mode line appears right above the echo area; it is the next-to-last line
-on the frame.  The mode line is in inverse video if the terminal
-supports that, and it starts and ends with dashes.
+on the frame.  The mode line starts and ends with dashes.  On a
+text-mode display, the mode line is in inverse video if the terminal
+supports that; on a graphics display, the mode line is by default drawn
+with a 3D box appearence, which makes it slightly larger than a normal
+text line (if you don't like that, the 3D appearence can be turned off;
+see @ref{Optional Mode Line}).
 
   Normally, the mode line looks like this:
 
