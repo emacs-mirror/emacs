@@ -1130,7 +1130,7 @@ When used interactively, PARENT will be the topic under point."
   (unless parent
     (setq parent (caar gnus-topic-topology)))
   (let ((top (cdr (gnus-topic-find-topology parent)))
-	(full-topic (or full-topic `((,topic visible)))))
+	(full-topic (or full-topic (list (list topic 'visible nil nil)))))
     (unless top
       (error "No such parent topic: %s" parent))
     (if previous

@@ -84,6 +84,7 @@ If N is a negative number, save the N previous articles.
 If N is nil and any articles have been marked with the process mark,
 save those articles instead."
   (interactive "P")
+  (require 'gnus-art)
   (let ((gnus-default-article-saver 'gnus-summary-save-in-vm))
     (gnus-summary-save-article arg)))
 

@@ -3595,7 +3595,7 @@ than 988 characters long, and if they are not, trim them until they are."
     (if (not (and message-this-is-mail mua))
 	(message-setup-1 headers replybuffer actions)
       (if replybuffer
-	  (setq yank-action (list 'insert-buffer replybuffer)))
+	  (setq yank-action (cons 'insert-buffer replybuffer)))
       (setq headers (copy-sequence headers))
       (setq field (assq 'Subject headers))
       (when field
