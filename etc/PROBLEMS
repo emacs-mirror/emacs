@@ -827,6 +827,16 @@ file could fail to load if it is compressed.
 The solution is to uncompress all .el files which don't have a .elc
 file.
 
+Another possible reason for such failures is stale *.elc files
+lurking somewhere on your load-path.  The following command will
+print any duplicate Lisp files that are present in load-path:
+
+    emacs -q -batch -f list-load-path-shadows
+
+If this command prints any file names, some of these files are stale,
+and should be deleted or their directories removed from your
+load-path.
+
 * Attempting to visit remote files via ange-ftp fails.
 
 If the error message is "ange-ftp-file-modtime: Specified time is not
