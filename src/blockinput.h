@@ -111,10 +111,8 @@ extern int pending_atimers;
 #define UNBLOCK_INPUT_TO(LEVEL)				\
   do							\
     {							\
-      int oldlevel = interrupt_input_blocked;		\
       interrupt_input_blocked = (LEVEL) + 1;		\
-      if (interrupt_input_blocked != oldlevel + 1)	\
-        UNBLOCK_INPUT;					\
+      UNBLOCK_INPUT;					\
     }							\
   while (0)
 
