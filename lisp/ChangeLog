@@ -1,3 +1,8 @@
+2002-09-29  Noah Friedman  <friedman@splode.com>
+
+	* subr.el (read-key): Use read-key-auxiliary-map, not
+	read-key-aux-map.
+
 2002-09-29  Richard M. Stallman  <rms@gnu.org>
 
 	* startup.el (user-mail-address): Initialize to a useful value
