@@ -355,7 +355,7 @@ buf_bytepos_to_charpos (b, bytepos)
 
   if (bytepos - best_below_byte < best_above_byte - bytepos)
     {
-      int record = best_above_byte - bytepos > 5000;
+      int record = bytepos - best_below_byte > 5000;
 
       while (best_below_byte < bytepos)
 	{
@@ -365,8 +365,10 @@ buf_bytepos_to_charpos (b, bytepos)
 
       /* If this position is quite far from the nearest known position,
 	 cache the correspondence by creating a marker here.
-	 It will last until the next GC.  */
-      if (record)
+	 It will last until the next GC.
+	 But don't do it if BUF_MARKERS is nil;
+	 that is a signal from Fset_buffer_multibyte.  */
+      if (record && ! NILP (BUF_MARKERS (b)))
 	{
 	  Lisp_Object marker, buffer;
 	  marker = Fmake_marker ();
@@ -396,8 +398,10 @@ buf_bytepos_to_charpos (b, bytepos)
 
       /* If this position is quite far from the nearest known position,
 	 cache the correspondence by creating a marker here.
-	 It will last until the next GC.  */
-      if (record)
+	 It will last until the next GC.
+	 But don't do it if BUF_MARKERS is nil;
+	 that is a signal from Fset_buffer_multibyte.  */
+      if (record && ! NILP (BUF_MARKERS (b)))
 	{
 	  Lisp_Object marker, buffer;
 	  marker = Fmake_marker ();
@@ -739,6 +743,8 @@ unchain_marker (marker)
   if (EQ (b->name, Qnil))
     abort ();
 
+  XMARKER (marker)->buffer = 0;
+
   tail = BUF_MARKERS (b);
   prev = Qnil;
   while (XSYMBOL (tail) != XSYMBOL (Qnil))
@@ -764,13 +770,17 @@ unchain_marker (marker)
 	      XMARKER (prev)->chain = next;
 	      XSETMARKBIT (XMARKER (prev)->chain, omark);
 	    }
-	  break;
+	  /* We have removed the marker from the chain;
+	     no need to scan the rest of the chain.  */
+	  return;
 	}
       else
 	prev = tail;
       tail = next;
     }
-  XMARKER (marker)->buffer = 0;
+
+  /* Marker was not in its chain.  */
+  abort ();
 }
 
 /* Return the char position of marker MARKER, as a C integer.  */
