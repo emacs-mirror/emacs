@@ -1,3 +1,7 @@
+2003-11-19  Andreas Schwab  <schwab@suse.de>
+
+	* simple.el (set-variable): Fix indentation.
+
 2003-11-17  Kenichi Handa  <handa@m17n.org>
 
 	* international/latin1-disp.el (latin1-display-ucs-per-lynx): Fix
