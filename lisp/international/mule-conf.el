@@ -303,7 +303,7 @@
    nil ascii-eol ascii-cntl nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii)))
 
-;; Use iso-safe for terminal output if some other coding system is
+;; Use iso-safe for terminal output if some other coding system is not
 ;; specified explicitely.
 (set-safe-terminal-coding-system-internal 'iso-safe)
 
@@ -334,7 +334,7 @@
       coding-category-iso-7		'iso-2022-7bit
       coding-category-iso-7-tight	'iso-2022-jp
       coding-category-iso-8-1		'iso-latin-1
-      coding-category-iso-8-2		'japanese-iso-8bit
+      coding-category-iso-8-2		'iso-latin-1
       coding-category-iso-7-else	'iso-2022-7bit-lock
       coding-category-iso-8-else	'iso-2022-8bit-ss2
       coding-category-ccl		nil
@@ -343,10 +343,10 @@
       coding-category-binary		'no-conversion)
 
 (set-coding-priority
- '(coding-category-iso-7-tight
-   coding-category-iso-7
-   coding-category-iso-8-1
+ '(coding-category-iso-8-1
    coding-category-iso-8-2
+   coding-category-iso-7-tight
+   coding-category-iso-7
    coding-category-iso-7-else
    coding-category-iso-8-else
    coding-category-emacs-mule
