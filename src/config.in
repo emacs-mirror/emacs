@@ -131,6 +131,8 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_LIBRESOLV
 #undef HAVE_LIBXMU
 #undef HAVE_LIBNCURSES
+#undef HAVE_LIBKRB
+#undef HAVE_LIBDES
 
 #undef HAVE_ALLOCA_H
 
