@@ -32,21 +32,35 @@
 ;;; Code:
 
 (put 'file-locked 'error-conditions '(file-locked file-error error))
+(put 'file-locked 'error-message "File is locked")
 
 ;;;###autoload
-(defun ask-user-about-lock (fn opponent)
-  "Ask user what to do when he wants to edit FILE but it is locked by USER.
+(defun ask-user-about-lock (file opponent)
+  "Ask user what to do when he wants to edit FILE but it is locked by OPPONENT.
 This function has a choice of three things to do:
-  do (signal 'buffer-file-locked (list FILE USER))
+  do (signal 'buffer-file-locked (list FILE OPPONENT))
     to refrain from editing the file
   return t (grab the lock on the file)
   return nil (edit the file even though it is locked).
-You can rewrite it to use any criterion you like to choose which one to do."
+You can redefine this function to choose among those three alternatives
+in any way you like."
   (discard-input)
   (save-window-excursion
-    (let (answer)
+    (let (answer short-opponent short-file)
+      (setq short-file
+	    (if (> (length file) 22)
+		(concat "..." (substring file (- (length file) 22)))
+	      file))
+      (setq short-opponent
+	    (if (> (length opponent) 25)
+		(save-match-data
+		  (string-match " (pid [0-9]+)" opponent)
+		  (concat (substring opponent 0 13) "..."
+			  (match-string 0 opponent)))
+	      opponent))
       (while (null answer)
-	(message "%s is locking %s: action (s, q, p, ?)? " opponent fn)
+	(message "%s locked by %s: (s, q, p, ?)? "
+		 short-file short-opponent)
 	(let ((tem (let ((inhibit-quit t)
 			 (cursor-in-echo-area t))
 		     (prog1 (downcase (read-char))
@@ -66,7 +80,7 @@ You can rewrite it to use any criterion you like to choose which one to do."
 		   (ask-user-about-lock-help)
 		   (setq answer nil))
 		  ((eq (cdr answer) 'yield)
-		   (signal 'file-locked (list "File is locked" fn opponent)))))))
+		   (signal 'file-locked (list file opponent)))))))
       (cdr answer))))
 
 (defun ask-user-about-lock-help ()
