@@ -805,7 +805,7 @@ print (obj, printcharfun, escapeflag)
       break;
 
     case Lisp_Compiled:
-      strout ("#<byte-code ", -1, printcharfun);
+      strout ("#", -1, printcharfun);
     case Lisp_Vector:
       PRINTCHAR ('[');
       {
@@ -819,8 +819,6 @@ print (obj, printcharfun, escapeflag)
 	  }
       }
       PRINTCHAR (']');
-      if (XTYPE (obj) == Lisp_Compiled)
-	PRINTCHAR ('>');
       break;
 
 #ifndef standalone

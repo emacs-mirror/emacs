@@ -791,6 +791,15 @@ read1 (readcharfun)
       }
 
     case '#':
+      c = READCHAR;
+      if (c == '[')
+	{
+	  /* Accept compiled functions at read-time so that we don't have to
+	     build them using function calls.  */
+	  Lisp_Object tmp = read_vector (readcharfun);
+	  return Fmake_byte_code (XVECTOR(tmp)->size, XVECTOR (tmp)->contents);
+	}
+      UNREAD (c);
       return Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#", 1), Qnil));
 
     case ';':
