@@ -37,7 +37,7 @@
 If TEST returns non-nil, bind `it' to the value, and evaluate
 TRUE-BODY.  Otherwise, evaluate forms in FALSE-BODY as if in `progn'.
 Compare with `if'."
-  (let ((sym (gensym "--ibuffer-aif-")))
+  (let ((sym (make-symbol "ibuffer-aif-sym")))
     `(let ((,sym ,test))
        (if ,sym
 	   (let ((it ,sym))
@@ -56,7 +56,7 @@ During evaluation of body, bind `it' to the value returned by TEST."
 
 (defmacro ibuffer-save-marks (&rest body)
   "Save the marked status of the buffers and execute BODY; restore marks."
-  (let ((bufsym (gensym)))
+  (let ((bufsym (make-symbol "bufsym")))
     `(let ((,bufsym (current-buffer))
 	   (ibuffer-save-marks-tmp-mark-list (ibuffer-current-state-list)))
        (unwind-protect
