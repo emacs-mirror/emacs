@@ -4891,6 +4891,8 @@ get_next_display_element (it)
 	     translated to octal form.  */
 	  else if ((it->c < ' '
 		    && (it->area != TEXT_AREA
+			/* In mode line, treat \n, \t like other crl chars.  */
+			|| (it->glyph_row && it->glyph_row->mode_line_p)
 			|| (it->c != '\n' && it->c != '\t')))
 		   || (it->multibyte_p
 		       ? ((it->c >= 127
