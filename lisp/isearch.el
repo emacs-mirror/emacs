@@ -978,7 +978,7 @@ Use `isearch-exit' to quit without signaling."
 		(or (if isearch-regexp
 			(car regexp-search-ring)
 		      (car search-ring))
-		    "")
+		    (error "No previous search string"))
 		isearch-message
 		(mapconcat 'isearch-text-char-description
 			   isearch-string "")
