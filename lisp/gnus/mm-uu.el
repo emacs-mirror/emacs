@@ -1,4 +1,4 @@
-;;; mm-uu.el -- Return uu stuffs as mm handles
+;;; mm-uu.el -- Return uu stuff as mm handles
 ;; Copyright (c) 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
@@ -57,11 +57,11 @@
 (defcustom mm-uu-decode-function 'uudecode-decode-region
   "*Function to uudecode.
 Internal function is done in elisp by default, therefore decoding may
-appear to be horribly slow . You can make Gnus use the external Unix
+appear to be horribly slow.  You can make Gnus use the external Unix
 decoder, such as uudecode."
-  :type '(choice (item :tag "internal" uudecode-decode-region)
-		 (item :tag "external" uudecode-decode-region-external))
-  :group 'gnus-article-mime) 
+  :type '(choice (const :tag "internal" uudecode-decode-region)
+		 (const :tag "external" uudecode-decode-region-external))
+  :group 'gnus-article-mime)
 
 (defconst mm-uu-binhex-begin-line
   "^:...............................................................$")
@@ -70,16 +70,16 @@ decoder, such as uudecode."
 (defcustom mm-uu-binhex-decode-function 'binhex-decode-region
   "*Function to binhex decode.
 Internal function is done in elisp by default, therefore decoding may
-appear to be horribly slow . You can make Gnus use the external Unix
+appear to be horribly slow.  You can make Gnus use the external Unix
 decoder, such as hexbin."
-  :type '(choice (item :tag "internal" binhex-decode-region)
-		 (item :tag "external" binhex-decode-region-external))
-  :group 'gnus-article-mime) 
+  :type '(choice (const :tag "internal" binhex-decode-region)
+		 (const :tag "external" binhex-decode-region-external))
+  :group 'gnus-article-mime)
 
 (defconst mm-uu-shar-begin-line "^#! */bin/sh")
 (defconst mm-uu-shar-end-line "^exit 0\\|^$")
 
-;;; Thanks to Edward J. Sabol <sabol@alderaan.gsfc.nasa.gov> and 
+;;; Thanks to Edward J. Sabol <sabol@alderaan.gsfc.nasa.gov> and
 ;;; Peter von der Ah\'e <pahe@daimi.au.dk>
 (defconst mm-uu-forward-begin-line "^-+ \\(Start of \\)?Forwarded message")
 (defconst mm-uu-forward-end-line "^-+ End \\(of \\)?forwarded message")
@@ -94,6 +94,18 @@ decoder, such as hexbin."
   "The default disposition of uu parts.
 This can be either \"inline\" or \"attachment\".")
 
+(defcustom mm-uu-configure-list nil
+  "A list of mm-uu configuration.
+To disable dissecting shar codes, for instance, add
+`(shar . disabled)' to this list."
+  :type '(repeat (choice (const :tag "postscript" (postscript . disabled))
+			 (const :tag "uu" (uu . disabled))
+			 (const :tag "binhax" (binhex . disabled))
+			 (const :tag "shar" (shar . disabled))
+			 (const :tag "forward" (forward . disabled))))
+  :group 'gnus-article-mime
+  :set 'mm-uu-configure)
+
 (defun mm-uu-configure-p  (key val)
   (member (cons key val) mm-uu-configure-list))
 
@@ -101,7 +113,7 @@ This can be either \"inline\" or \"attachment\".")
   (if symbol (set-default symbol value))
   (setq mm-uu-begin-line nil)
   (mapcar '(lambda (type)
-	     (if (mm-uu-configure-p type 'disabled) 
+	     (if (mm-uu-configure-p type 'disabled)
 		 nil
 	       (setq mm-uu-begin-line
 		     (concat mm-uu-begin-line
@@ -111,20 +123,6 @@ This can be either \"inline\" or \"attachment\".")
 					      "-begin-line")))))))
 	  '(uu postscript binhex shar forward)))
 
-(defcustom mm-uu-configure-list nil
-  "A list of mm-uu configuration.
-To disable dissecting shar codes, for instance, add
-`(shar . disabled)' to this list."
-  :type '(repeat (cons 
-		  (choice (item postscript)
-			  (item uu) 
-			  (item binhex)
-			  (item shar)
-			  (item forward))
-		  (choice (item disabled))))
-  :group 'gnus-article-mime
-  :set 'mm-uu-configure) 
-
 (mm-uu-configure)
 
 ;;;### autoload
@@ -132,7 +130,7 @@ To disable dissecting shar codes, for instance, add
 (defun mm-uu-dissect ()
   "Dissect the current buffer and return a list of uu handles."
   (let (text-start start-char end-char
-		   type file-name end-line result text-plain-type 
+		   type file-name end-line result text-plain-type
 		   start-char-1 end-char-1
 		   (case-fold-search t))
     (save-excursion
@@ -165,7 +163,7 @@ To disable dissecting shar codes, for instance, add
 	  (setq end-char-1 (match-beginning 0))
 	  (forward-line)
 	  (setq end-char (point))
-	  (when (cond 
+	  (when (cond
 		 ((eq type 'binhex)
 		  (setq file-name
 			(ignore-errors
@@ -227,7 +225,7 @@ To disable dissecting shar codes, for instance, add
 
 ;;;### autoload
 (defun mm-uu-test ()
-  "Check whether the current buffer contains uu stuffs."
+  "Check whether the current buffer contains uu stuff."
   (save-excursion
     (goto-char (point-min))
     (let (type end-line result
