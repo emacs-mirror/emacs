@@ -146,31 +146,33 @@ The expansion is entirely correct because it uses the C preprocessor."
   (modify-syntax-entry ?| "." perl-mode-syntax-table)
 )
 
-(defconst perl-indent-level 4
+(defvar perl-indent-level 4
   "*Indentation of Perl statements with respect to containing block.")
-(defconst perl-continued-statement-offset 4
+(defvar perl-continued-statement-offset 4
   "*Extra indent for lines not starting new statements.")
-(defconst perl-continued-brace-offset -4
+(defvar perl-continued-brace-offset -4
   "*Extra indent for substatements that start with open-braces.
-This is in addition to perl-continued-statement-offset.")
-(defconst perl-brace-offset 0
+This is in addition to `perl-continued-statement-offset'.")
+(defvar perl-brace-offset 0
   "*Extra indentation for braces, compared with other text in same context.")
-(defconst perl-brace-imaginary-offset 0
+(defvar perl-brace-imaginary-offset 0
   "*Imagined indentation of an open brace that actually follows a statement.")
-(defconst perl-label-offset -2
+(defvar perl-label-offset -2
   "*Offset of Perl label lines relative to usual indentation.")
 
-(defconst perl-tab-always-indent t
-  "*Non-nil means TAB in Perl mode should always indent the current line,
-regardless of where in the line point is when the TAB command is used.")
+(defvar perl-tab-always-indent t
+  "*Non-nil means TAB in Perl mode always indents the current line.
+Otherwise it inserts a tab character if you type it past the first
+nonwhite character on the line.")
 
-(defconst perl-tab-to-comment t
-  "*Non-nil means that for lines which don't need indenting, TAB will
-either indent an existing comment, move to end-of-line, or if at end-of-line
-already, create a new comment.")
+(defvar perl-tab-to-comment t
+  "*Non-nil means TAB moves to eol or makes a comment in some cases.
+For lines which don't need indenting, TAB either indents an
+existing comment, moves to end-of-line, or if at end-of-line already,
+create a new comment.")
 
-(defconst perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:"
-  "*Lines starting with this regular expression will not be auto-indented.")
+(defvar perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:"
+  "*Lines starting with this regular expression are not auto-indented.")
 
 ;;;###autoload
 (defun perl-mode ()
@@ -190,7 +192,7 @@ Variables controlling indentation style:
     either delete an empty comment, indent an existing comment, move 
     to end-of-line, or if at end-of-line already, create a new comment.
  perl-nochange
-    Lines starting with this regular expression will not be auto-indented.
+    Lines starting with this regular expression are not auto-indented.
  perl-indent-level
     Indentation of Perl statements within surrounding block.
     The surrounding block's indentation is the indentation
@@ -200,7 +202,7 @@ Variables controlling indentation style:
     then-clause of an if or body of a while.
  perl-continued-brace-offset
     Extra indentation given to a brace that starts a substatement.
-    This is in addition to perl-continued-statement-offset.
+    This is in addition to `perl-continued-statement-offset'.
  perl-brace-offset
     Extra indentation for line if it starts with an open brace.
  perl-brace-imaginary-offset
@@ -217,8 +219,7 @@ Various indentation styles:       K&R  BSD  BLK  GNU  LW
   perl-brace-imaginary-offset      0    0    4    0    0
   perl-label-offset               -5   -8   -2   -2   -2
 
-Turning on Perl mode calls the value of the variable perl-mode-hook with no 
-args, if that value is non-nil."
+Turning on Perl mode runs the normal hook `perl-mode-hook'."
   (interactive)
   (kill-all-local-variables)
   (use-local-map perl-mode-map)
@@ -262,8 +263,8 @@ args, if that value is non-nil."
 	   comment-column))))		; except leave at least one space.
 
 (defun electric-perl-terminator (arg)
-  "Insert character.  If at end-of-line, and not in a comment or a quote,
-correct the line's indentation."
+  "Insert character and adjust indentation.
+If at end-of-line, and not in a comment or a quote, correct the's indentation."
   (interactive "P")
   (let ((insertpos (point)))
     (and (not arg)			; decide whether to indent
@@ -300,13 +301,13 @@ correct the line's indentation."
 
 With an argument, indent the current line, regardless of other options.
 
-If perl-tab-always-indent is nil and point is not in the indentation
+If `perl-tab-always-indent' is nil and point is not in the indentation
 area at the beginning of the line, simply insert a tab.
 
 Otherwise, indent the current line.  If point was within the indentation
 area it is moved to the end of the indentation area.  If the line was
 already indented properly and point was not within the indentation area,
-and if perl-tab-to-comment is non-nil (the default), then do the first
+and if `perl-tab-to-comment' is non-nil (the default), then do the first
 possible action from the following list:
 
   1) delete an empty comment
@@ -361,7 +362,8 @@ possible action from the following list:
 			 (ding t))))))))))))
 
 (defun perl-indent-line (&optional nochange parse-start)
-  "Indent current line as Perl code.  Return the amount the indentation 
+  "Indent current line as Perl code.
+Return the amount the indentation 
 changed by, or (parse-state) if line starts in a quoted string."
   (let ((case-fold-search nil)
 	(pos (- (point-max) (point)))
