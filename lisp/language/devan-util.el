@@ -427,7 +427,7 @@ Default value contains only the basic rules.  You may add your own
 preferred rule from the sanskrit fonts."  )
 
 (defvar dev-char-glyph-hash
-  (let* ((hash (makehash 'equal)))
+  (let* ((hash (make-hash-table :test 'equal)))
     (mapc (function (lambda (x) (puthash (car x) (cdr x) hash)))
 	  dev-char-glyph)
     hash))
@@ -468,7 +468,7 @@ preferred rule from the sanskrit fonts."  )
     ("\$,4"L(B\$,4"'(B\$,4"&(B" . "\$,4"O(B")
     ))
 (defvar dev-glyph-glyph-hash
-  (let* ((hash (makehash 'equal)))
+  (let* ((hash (make-hash-table :test 'equal)))
     (mapc (function (lambda (x) (puthash (car x) (cdr x) hash)))
 	  dev-glyph-glyph)
     hash))
@@ -483,7 +483,7 @@ preferred rule from the sanskrit fonts."  )
     ("$,4",(B" . "$,4"0(B")
     ("$,4"-(B" . "$,4"1(B")))
 (defvar dev-glyph-glyph-2-hash
-  (let* ((hash (makehash 'equal)))
+  (let* ((hash (make-hash-table :test 'equal)))
     (mapc (function (lambda (x) (puthash (car x) (cdr x) hash)))
 	  dev-glyph-glyph-2)
     hash))
