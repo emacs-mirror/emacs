@@ -74,7 +74,6 @@ else
 USING_SH = 1
 THE_SHELL = $(SHELL)
 SHELLTYPE=SH
-SETLOADPATH=EMACSLOADPATH=$(CURDIR)/../lisp
 endif
 
 MAKETYPE=gmake
@@ -103,6 +102,8 @@ SUBSYSTEM_CONSOLE=-Wl,-subsystem,console
 ifndef INSTALL_DIR
 INSTALL_DIR     = $(CURDIR)/..
 endif
+
+export EMACSLOADPATH
 
 # Determine the architecture we're running on.
 # Define ARCH for our purposes; 
