@@ -43,12 +43,15 @@
 		      "/usr/local/info/"))
 	 ;; Typically on a GNU system, installed info files are found
 	 ;; in /usr/info, but the default prefix is /usr/local.
+	 ;; (Standalone info has a long list of alternative
+	 ;; directories to search; perhaps we should try to be more
+	 ;; consistent.)
 	 (usrdir "/usr/info")
 	 (sysdir (and (file-directory-p usrdir)
 		      (not (string= configure-info-directory usrdir))
 		      (list usrdir)))
 	 (configdir (file-name-as-directory configure-info-directory)))
-    (setq start (nconc sysdir start (list configdir)))
+    (setq start (nconc start (list configdir) sysdir))
     start)
   "Default list of directories to search for Info documentation files.
 They are searched in the order they are given in the list.
