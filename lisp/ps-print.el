@@ -3,10 +3,10 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson <thompson@wg2.waii.com>
-;; Version: 1.10
+;; Version: Jim's last version is 1.10
 ;; Keywords: print, PostScript
 
-;; This file is not yet part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -21,11 +21,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-
-;; LCD Archive Entry:
-;; ps-print|James C. Thompson|thompson@wg2.waii.com|
-;; Jim's Pretty-Good PostScript Generator for Emacs 19 (ps-print)|
-;; 26-Feb-1994|1.6|~/packages/ps-print.el|
 
 ;;; Commentary:
 
@@ -418,16 +413,17 @@ the left on even-numbered pages.")
 'ps-letter, 'ps-legal, or 'ps-a4.")
 
 (defvar ps-print-header t
-  "*Non-nil means print a header at the top of each page.  By default,
-the header displays the buffer name, page number, and, if the buffer
-is visiting a file, the file's directory.  Headers are customizable by
-changing variables `ps-header-left' and `ps-header-right'.")
+  "*Non-nil means print a header at the top of each page.
+By default, the header displays the buffer name, page number, and, if
+the buffer is visiting a file, the file's directory.  Headers are
+customizable by changing variables `ps-header-left' and
+`ps-header-right'.")
 
 (defvar ps-print-header-frame t
   "*Non-nil means draw a gaudy frame around the header.")
 
 (defvar ps-show-n-of-n t
-  "*Non-nil means show page numbers as \"n/m\", meaning page n of m.
+  "*Non-nil means show page numbers as `N/M', meaning page N of M.
 Note: page numbers are displayed as part of headers, see variable `ps-
 print-headers'.")
 
@@ -443,62 +439,66 @@ print-headers'.")
   "*RGB values of the default background color.  Defaults to white.")
 
 (defvar ps-font-size 10
-  "*Specifies the size, in points, of the font to print text in.")
+  "*Font size, in points, for generating Postscript.")
 
 (defvar ps-font "Courier"
-  "*Specifies the name of the font family to print text in.")
+  "*Font family name for ordinary text, when generating Postscript.")
 
 (defvar ps-font-bold "Courier-Bold"
-  "*Specifies the name of the font family to print bold text in.")
+  "*Font family name for bold text, when generating Postscript.")
 
 (defvar ps-font-italic "Courier-Oblique"
-  "*Specifies the name of the font family to print italic text in.")
+  "*Font family name for italic text, when generating Postscript.")
 
 (defvar ps-font-bold-italic "Courier-BoldOblique"
-  "*Specifies the name of the font family to print bold-italic text in.")
+  "*Font family name for bold italic text, when generating Postscript.")
 
 (defvar ps-avg-char-width (if (fboundp 'float) 5.6 6)
-  "*Specifies the average width, in points, of a character.  This is the
-value that ps-print uses to determine the length, x-dimension, of the
-text it has printed, and thus affects the point at which long lines
-wrap around.  Note that if you change the font or font size, you will
-probably have to adjust this value to match.")
+  "*The average width, in points, of a character, for generating Postscript.
+This is the value that ps-print uses to determine the length,
+x-dimension, of the text it has printed, and thus affects the point at
+which long lines wrap around.  If you change the font or
+font size, you will probably have to adjust this value to match.")
 
 (defvar ps-space-width (if (fboundp 'float) 5.6 6)
-  "*Specifies the width of a space character.  This value is used in
-expanding tab characters.")
+  "*The width of a space character, for generating Postscript.
+This value is used in expanding tab characters.")
 
 (defvar ps-line-height (if (fboundp 'float) 11.29 11)
-  "*Specifies the height of a line.  This is the value that ps-print
-uses to determine the height, y-dimension, of the lines of text it has
-printed, and thus affects the point at which page-breaks are placed.
-Note that if you change the font or font size, you will probably have
-to adjust this value to match.  Note also that the line-height is
-*not* the same as the point size of the font.")
+  "*The height of a line, for generating Postscript.
+This is the value that ps-print uses to determine the height,
+y-dimension, of the lines of text it has printed, and thus affects the
+point at which page-breaks are placed.  If you change the font or font
+size, you will probably have to adjust this value to match.  The
+line-height is *not* the same as the point size of the font.")
 
 (defvar ps-auto-font-detect t
   "*Non-nil means automatically detect bold/italic face attributes.
-Nil means rely solely on the lists `ps-bold-faces', `ps-italic-faces',
+nil means rely solely on the lists `ps-bold-faces', `ps-italic-faces',
 and `ps-underlined-faces'.")
 
 (defvar ps-bold-faces '()
-  "*A list of the \(non-bold\) faces that should be printed in bold font.")
+  "*A list of the \(non-bold\) faces that should be printed in bold font.
+This applies to generating Postscript.")
 
 (defvar ps-italic-faces '()
-  "*A list of the \(non-italic\) faces that should be printed in italic font.")
+  "*A list of the \(non-italic\) faces that should be printed in italic font.
+This applies to generating Postscript.")
 
 (defvar ps-underlined-faces '()
-  "*A list of the \(non-underlined\) faces that should be printed underlined.")
+  "*A list of the \(non-underlined\) faces that should be printed underlined.
+This applies to generating Postscript.")
 
 (defvar ps-header-lines 2
-  "*The number of lines to display in the page header.")
+  "*Number of lines to display in page header, when generating Postscript.")
 (make-variable-buffer-local 'ps-header-lines)
 
 (defvar ps-left-header
   (list 'ps-get-buffer-name 'ps-header-dirpart)
   "*The items to display on the right part of the page header.
+This applies to generating Postscript.
 
-Should contain a list of strings and symbols, each representing an
+The value should be a list of strings and symbols, each representing an
 entry in the PostScript array HeaderLinesLeft.
 
 Strings are inserted unchanged into the array; those representing
@@ -515,8 +515,9 @@ string delimiters added to it.")
 (defvar ps-right-header
   (list "/pagenumberstring load" 'time-stamp-yy/mm/dd 'time-stamp-hh:mm:ss)
   "*The items to display on the left part of the page header.
+This applies to generating Postscript.
 
-See the variable ps-left-header for a description of the format of
+See the variable `ps-left-header' for a description of the format of
 this variable.")
 (make-variable-buffer-local 'ps-right-header)
 
@@ -534,7 +535,7 @@ printers require slightly different versions of this line.")
 Ps-print sets this value to nil after it builds its internal reference
 lists of bold and italic faces.  By settings its value back to t, you
 can force ps-print to rebuild the lists the next time you invoke one
-of the -with-faces commands.
+of the ...-with-faces commands.
 
 You should set this value back to t after you change the attributes of
 any face, or create new faces.  Most users shouldn't have to worry
@@ -554,7 +555,7 @@ variable.")
 (defun ps-print-buffer (&optional filename)
   "Generate and print a PostScript image of the buffer.
 
-When called with a numeric prefix argument (C-u), prompt the user for
+When called with a numeric prefix argument (C-u), prompts the user for
 the name of a file to save the PostScript image in, instead of sending
 it to the printer.
 
