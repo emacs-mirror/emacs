@@ -42,7 +42,7 @@
   :group 'environment)
 
 (defgroup dired-mark nil
-  "Handling marks in dired."
+  "Handling marks in Dired."
   :prefix "dired-"
   :group 'dired)
 
@@ -1199,7 +1199,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 (defun dired-mode (&optional dirname switches)
   "\
 Mode for \"editing\" directory listings.
-In dired, you are \"editing\" a list of the files in a directory and
+In Dired, you are \"editing\" a list of the files in a directory and
   \(optionally) its subdirectories, in the format of `ls -lR'.
   Each directory is a page: use \\[backward-page] and \\[forward-page] to move pagewise.
 \"Editing\" means that you can run shell commands on files, visit,
@@ -1339,7 +1339,7 @@ Optional prefix ARG says how many lines to move; default is one line."
   (dired-next-dirline (- arg)))
 
 (defun dired-up-directory (&optional other-window)
-  "Run dired on parent directory of current directory.
+  "Run Dired on parent directory of current directory.
 Find the parent directory either in this buffer or another buffer.
 Creates a buffer if necessary."
   (interactive "P")
@@ -1355,62 +1355,67 @@ Creates a buffer if necessary."
 	    (dired up))
 	  (dired-goto-file dir)))))
 
-;; Force `f' rather than `e' in the mode doc:
-(defalias 'dired-advertised-find-file 'dired-find-file)
-(defun dired-find-file ()
-  "In dired, visit the file or directory named on this line."
+(defun dired-get-file-for-visit ()
+  "Get the current line's file name, with an error if file does not exist."
   (interactive)
   (let ((file-name (file-name-sans-versions (dired-get-filename) t)))
     (if (file-exists-p file-name)
-	(find-file file-name)
+	file-name
       (if (file-symlink-p file-name)
 	  (error "File is a symlink to a nonexistent target")
 	(error "File no longer exists; type `g' to update Dired buffer")))))
 
+;; Force `f' rather than `e' in the mode doc:
+(defalias 'dired-advertised-find-file 'dired-find-file)
+(defun dired-find-file ()
+  "In Dired, visit the file or directory named on this line."
+  (interactive)
+  (find-file (dired-get-file-for-visit)))
+
 (defun dired-find-alternate-file ()
-  "In dired, visit this file or directory instead of the dired buffer."
+  "In Dired, visit this file or directory instead of the dired buffer."
   (interactive)
   (set-buffer-modified-p nil)
-  (find-alternate-file (dired-get-filename)))
+  (find-alternate-file (dired-get-file-for-visit)))
 
 (defun dired-mouse-find-file-other-window (event)
-  "In dired, visit the file or directory name you click on."
+  "In Dired, visit the file or directory name you click on."
   (interactive "e")
   (let (file)
     (save-excursion
       (set-buffer (window-buffer (posn-window (event-end event))))
       (save-excursion
 	(goto-char (posn-point (event-end event)))
-	(setq file (dired-get-filename))))
+	(setq file (dired-get-file-for-visit))))
     (select-window (posn-window (event-end event)))
     (find-file-other-window (file-name-sans-versions file t))))
 
 (defun dired-view-file ()
-  "In dired, examine a file in view mode, returning to dired when done.
+  "In Dired, examine a file in view mode, returning to dired when done.
 When file is a directory, show it in this buffer if it is inserted;
 otherwise, display it in another buffer."
   (interactive)
-  (if (file-directory-p (dired-get-filename))
-      (or (and (cdr dired-subdir-alist)
-	       (dired-goto-subdir (dired-get-filename)))
-	  (dired (dired-get-filename)))
-    (view-file (dired-get-filename))))
+  (let ((file (dired-get-file-for-visit)))
+    (if (file-directory-p file)
+	(or (and (cdr dired-subdir-alist)
+		 (dired-goto-subdir file))
+	    (dired file))
+      (view-file file))))
 
 (defun dired-find-file-other-window ()
-  "In dired, visit this file or directory in another window."
+  "In Dired, visit this file or directory in another window."
   (interactive)
-  (find-file-other-window (file-name-sans-versions (dired-get-filename) t)))
+  (find-file-other-window (dired-get-file-for-visit)))
 
 (defun dired-display-file ()
-  "In dired, display this file or directory in another window."
+  "In Dired, display this file or directory in another window."
   (interactive)
-  (let ((file (file-name-sans-versions (dired-get-filename) t)))
-    (display-buffer (find-file-noselect file))))
+  (display-buffer (find-file-noselect (dired-get-file-for-visit))))
 
-;;; Functions for extracting and manipulating file names in dired buffers.
+;;; Functions for extracting and manipulating file names in Dired buffers.
 
 (defun dired-get-filename (&optional localp no-error-if-not-filep)
-  "In dired, return name of file mentioned on this line.
+  "In Dired, return name of file mentioned on this line.
 Value returned normally includes the directory name.
 Optional arg LOCALP with value `no-dir' means don't include directory
   name in result.  A value of `verbatim' means to return the name exactly as
@@ -1995,7 +2000,7 @@ Anything else, ask for each sub-directory."
       (delete-directory file))))
 
 (defun dired-do-flagged-delete (&optional nomessage)
-  "In dired, delete the files flagged for deletion.
+  "In Dired, delete the files flagged for deletion.
 If NOMESSAGE is non-nil, we don't display any message
 if there are no flagged files."
   (interactive)
@@ -2302,7 +2307,7 @@ If looking at a subdir, unmark all its files except `.' and `..'."
     (dired-mark arg)))
 
 (defun dired-flag-file-deletion (arg)
-  "In dired, flag the current line's file for deletion.
+  "In Dired, flag the current line's file for deletion.
 With prefix arg, repeat over several lines.
 
 If on a subdir headerline, mark all its files except `.' and `..'."
@@ -2311,7 +2316,7 @@ If on a subdir headerline, mark all its files except `.' and `..'."
     (dired-mark arg)))
 
 (defun dired-unmark-backward (arg)
-  "In dired, move up lines and remove deletion flag there.
+  "In Dired, move up lines and remove deletion flag there.
 Optional prefix ARG says how many lines to unflag; default is one line."
   (interactive "p")
   (dired-unmark (- arg)))
@@ -2398,7 +2403,7 @@ A prefix argument means to unmark them instead.
      "matching file")))
 
 (defun dired-flag-files-regexp (regexp)
-  "In dired, flag all files containing the specified REGEXP for deletion.
+  "In Dired, flag all files containing the specified REGEXP for deletion.
 The match is against the non-directory part of the filename.  Use `^'
   and `$' to anchor matches.  Exclude subdirs by hiding them.
 `.' and `..' are never flagged."
