@@ -2498,7 +2498,9 @@ allocate_vectorlike (len, type)
   /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
      because mapped region contents are not preserved in
      a dumped Emacs.  */
+  BLOCK_INPUT;
   mallopt (M_MMAP_MAX, 0);
+  UNBLOCK_INPUT;
 #endif
 
   nbytes = sizeof *p + (len - 1) * sizeof p->contents[0];
@@ -2506,7 +2508,9 @@ allocate_vectorlike (len, type)
 
 #ifdef DOUG_LEA_MALLOC
   /* Back to a reasonable maximum of mmap'ed areas.  */
+  BLOCK_INPUT;
   mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
+  UNBLOCK_INPUT;
 #endif
 
   consing_since_gc += nbytes;
