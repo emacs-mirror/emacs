@@ -1,3 +1,8 @@
+2000-10-19  Jason Rumney  <jasonr@gnu.org>
+
+	* dired.el (dired-insert-directory): Do not let errors signalled by
+	attempt to run dired-free-space-program prevent dired from working.
+
 2000-10-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* diff-mode.el (diff-find-file-name): Fix regex subgroup number.
@@ -10867,5 +10872,5 @@
 See ChangeLog.8 for earlier changes.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:

@@ -1,3 +1,21 @@
+2000-10-19  Jason Rumney  <jasonr@altavista.net>
+
+	* w32console.c: Do not undef HAVE_WINDOW_SYSTEM before
+	including dispextern.h, as it stops faces from working.
+
+	* w32fns.c (Fx_create_frame): Don't bother calling
+	face-set-after-frame-default since the caller does it for us
+	anyway. Clean up calls to x_get_arg to be consistent with X.
+
+	* w32term.c (x_produce_glyphs): Handle
+	unibyte_display_via_language_environment correctly.
+	(w32_draw_box_rect): Fix the calculation of width and height.
+
+	* w32menu.c (add_menu_item): Do not use MF_OWNERDRAW for titles,
+	as it has stopped working.
+	(Fx_popup_menu, Fx_popup_dialog): Check for tool-bar position like
+	menu-bar.
+
 2000-10-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* eval.c (skip_debugger): Prevent a compiler warning.
