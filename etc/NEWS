@@ -15,7 +15,8 @@ so we will look at it and add it to the manual.
 * Installation Changes in Emacs 21.4
 
 ** You can build Emacs with Gtk+ widgets by specifying `--with-x-toolkit=gtk'
-when you run configure.  This requires Gtk+ 2.0 or newer.
+when you run configure.  This requires Gtk+ 2.0 or newer.  This port
+provides a way to display multilingual text in menus (with some caveats).
 
 ---
 ** Emacs can now be built without sound support.
@@ -2167,7 +2168,7 @@ It does not copy abbrevs from the parent mode's abbrev table.
 +++
 ** `provide' and `featurep' now accept an optional second argument
 to test/provide subfeatures.  Also `provide' now checks `after-load-alist'
-and run any code associated with the provided feature.
+and runs any code associated with the provided feature.
 
 ** The variable `compilation-parse-errors-filename-function' can
 be used to transform filenames found in compilation output.

@@ -1,3 +1,9 @@
+2003-06-23  Dave Love  <fx@gnu.org>
+
+	* configure.in: Check for sys/_mbstate_t.h.  Test
+	XRegisterIMInstantiateCallback prototype.
+	(AH_BOTTOM): Define DO_BLOCK_INPUT, my_strftime.
+
 2003-06-06  Dave Love  <fx@gnu.org>
 
 	* configure.in: Check for locale.h.

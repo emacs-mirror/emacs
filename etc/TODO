@@ -3,7 +3,7 @@
 If you are ready to start working on any of these TODO items, we
 appreciate your help; please write to emacs-devel@gnu.org so we can be
 aware that the problem is being addressed, and talk with you how to do
-it best.  Since Emacs is an FSF-copyrighted packages, please be
+it best.  Since Emacs is an FSF-copyrighted package, please be
 prepared to sign legal papers to transfer the copyright on your work
 to the FSF.
 
@@ -49,7 +49,9 @@ Important features:
   in the menu or by rendering in an unmapped window and copying the
   pixels.  Note that the relevant Xlib functions assume a specific
   locale; that isn't good enough even if X can render the arbitrary
-  text, which it often can't as far as I can tell.  -- fx]
+  text, which it often can't as far as I can tell.  -- fx] [The gtk
+  port now displays multilingual text in menus, but only insofar as
+  Emacs can encode it as utf-8 and gtk can display the result.]
 
 * Remove the limitation that window and frame widths and heights can
   be only full columns/lines.
@@ -157,7 +159,8 @@ Other features we would like:
   holidays, quoting characters?,...
 
 * Improve the GC (generational, incremental).  (We may be able to use
-  the Boehm collector.)  [fx is working on this.]
+  the Boehm collector.)  [See the Boehm-GC branch in CVS for work on
+  this.]
 
 * Check what hooks would help Emacspeak -- see the defadvising in W3.
 
