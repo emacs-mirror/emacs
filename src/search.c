@@ -1005,16 +1005,13 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
   if (running_asynch_code)
     save_search_regs ();
 
+  /* Searching 0 times means don't move.  */
   /* Null string is found at starting position.  */
-  if (len == 0)
+  if (len == 0 || n == 0)
     {
       set_search_regs (pos, 0);
       return pos;
     }
-
-  /* Searching 0 times means don't move.  */
-  if (n == 0)
-    return pos;
 
   if (RE && !trivial_regexp_p (string))
     {
@@ -1896,12 +1893,15 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 }
 
 /* Record beginning BEG_BYTE and end BEG_BYTE + NBYTES
-   for a match just found in the current buffer.  */
+   for the overall match just found in the current buffer.
+   Also clear out the match data for registers 1 and up.  */
 
 static void
 set_search_regs (beg_byte, nbytes)
      int beg_byte, nbytes;
 {
+  int i;
+
   /* Make sure we have registers in which to store
      the match position.  */
   if (search_regs.num_regs == 0)
@@ -1909,6 +1909,13 @@ set_search_regs (beg_byte, nbytes)
       search_regs.start = (regoff_t *) xmalloc (2 * sizeof (regoff_t));
       search_regs.end = (regoff_t *) xmalloc (2 * sizeof (regoff_t));
       search_regs.num_regs = 2;
+    }
+
+  /* Clear out the other registers.  */
+  for (i = 1; i < search_regs.num_regs; i++)
+    {
+      search_regs.start[i] = -1;
+      search_regs.end[i] = -1;
     }
 
   search_regs.start[0] = BYTE_TO_CHAR (beg_byte);
