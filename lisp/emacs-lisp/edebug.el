@@ -306,13 +306,6 @@ except when debugging needs suggest otherwise."
           (setq newsymbol (make-symbol newname))))
     newsymbol))
 
-;; Only used by CL-like code.
-(defun edebug-keywordp (object)
-  "Return t if OBJECT is a keyword.
-A keyword is a symbol that starts with `:'."
-  (and (symbolp object)
-       (= ?: (aref (symbol-name object) 0))))
-
 (defun edebug-lambda-list-keywordp (object)
   "Return t if OBJECT is a lambda list keyword.
 A lambda list keyword is a symbol that starts with `&'."
@@ -1450,7 +1443,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 	  (cond
 	   ;; Check for constant symbols that don't get wrapped.
 	   ((or (memq form '(t nil))
-		(and (fboundp 'edebug-keywordp) (edebug-keywordp form)))
+		(keywordp form))
 	    form)
 
 	   (t ;; just a variable
@@ -1993,7 +1986,7 @@ expressions; a `progn' form will be returned enclosing these forms."
    edebug-spec-list
    stringp
    [edebug-lambda-list-keywordp &rest edebug-spec]
-   ;; [edebug-keywordp gate edebug-spec] ;; need edebug-keywordp for this.
+   [keywordp gate edebug-spec]
    edebug-spec-p  ;; Including all the special ones e.g. form.
    symbolp;; a predicate
    ))
@@ -2150,6 +2143,14 @@ expressions; a `progn' form will be returned enclosing these forms."
 	   [&optional stringp]
 	   [&optional ("interactive" interactive)]
 	   def-body))
+
+(def-edebug-spec easy-menu-define (symbolp body))
+
+(def-edebug-spec with-custom-print body)
+
+(def-edebug-spec sregexq (&rest sexp))
+
+(def-edebug-spec define-minor-mode (symbolp stringp body))
 
 ;;; The debugger itself
 
