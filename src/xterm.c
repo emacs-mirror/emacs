@@ -5151,7 +5151,7 @@ x_insert_glyphs (start, len)
 			  - shift_by_width);
 
   /* Shift right.  */
-  frame_x = WINDOW_TO_FRAME_PIXEL_X (w, output_cursor.x);
+  frame_x = window_box_left (w, updated_area) + output_cursor.x;
   frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, output_cursor.y);
   XCopyArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), FRAME_X_WINDOW (f),
 	     f->output_data.x->normal_gc,
