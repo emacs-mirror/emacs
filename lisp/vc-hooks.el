@@ -878,13 +878,22 @@ control system name."
 	  (and vc-type
 	       (concat " " (or label (symbol-name vc-type)) 
 		       (and vc-display-status (vc-status file)))))
+    ;; If the file is locked by some other user, make
+    ;; the buffer read-only.  Like this, even root
+    ;; cannot modify a file without locking it first.
     (and vc-type 
 	 (equal file (buffer-file-name))
 	 (vc-locking-user file)
-	 ;; If the file is locked by some other user, make
-	 ;; the buffer read-only.  Like this, even root
-	 ;; cannot modify a file without locking it first.
 	 (not (string= (user-login-name) (vc-locking-user file)))
+	 (setq buffer-read-only t))
+    ;; If the user is root, and the file is not owner-readable,
+    ;; then pretend that we can't read it
+    ;; even though we can (because root can read anything).
+    (and vc-type
+	 (equal file (buffer-file-name))
+	 (not buffer-read-only)
+	 (zerop (user-real-uid))
+	 (zerop (logand (file-modes (buffer-file-name)) 128))
 	 (setq buffer-read-only t))
     (force-mode-line-update)
     ;;(set-buffer-modified-p (buffer-modified-p)) ;;use this if Emacs 18
