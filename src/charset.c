@@ -1015,29 +1015,39 @@ The conversion is done based on `nonascii-translation-table' (which see)\n\
 }
 
 DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
-  "Return byte length of multi-byte form of CHAR.")
+  "Return 1 regardless of the argument CHAR.
+This is now an obsolte function.  We keep is just for backward compatibility.")
   (ch)
      Lisp_Object ch;
 {
   Lisp_Object val;
-  int bytes;
 
   CHECK_NUMBER (ch, 0);
-  if (COMPOSITE_CHAR_P (XFASTINT (ch)))
+  return make_number (1);
+}
+
+/* Return how many bytes C will occupy in a multibyte buffer.
+   Don't call this function directly, instead use macro CHAR_BYTES.  */
+int
+char_bytes (c)
+     int c;
+{
+  int bytes;
+
+  if (COMPOSITE_CHAR_P (c))
     {
-      unsigned int id = COMPOSITE_CHAR_ID (XFASTINT (ch));
+      unsigned int id = COMPOSITE_CHAR_ID (c);
 
       bytes = (id < n_cmpchars ? cmpchar_table[id]->len : 1);
     }
   else
     {
-      int charset = CHAR_CHARSET (XFASTINT (ch));
+      int charset = CHAR_CHARSET (c);
 
       bytes = CHARSET_DEFINED_P (charset) ? CHARSET_BYTES (charset) : 1;
     }
 
-  XSETFASTINT (val, bytes);
-  return val;
+  return make_number (bytes);
 }
 
 /* Return the width of character of which multi-byte form starts with
