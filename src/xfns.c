@@ -1989,7 +1989,7 @@ x_set_font (f, arg, oldval)
   BLOCK_INPUT;
   result = (STRINGP (fontset_name)
 	    ? x_new_fontset (f, XSTRING (fontset_name)->data)
-	    : x_new_font (f, XSTRING (arg)->data));
+	    : x_new_fontset (f, XSTRING (arg)->data));
   UNBLOCK_INPUT;
   
   if (EQ (result, Qnil))
@@ -2005,10 +2005,10 @@ x_set_font (f, arg, oldval)
 	  if (old_fontset == f->output_data.x->fontset)
 	    return;
 	}
-      else if (!NILP (Fequal (result, oldval)))
+      store_frame_param (f, Qfont, result);
+      if (!NILP (Fequal (result, oldval)))
 	return;
       
-      store_frame_param (f, Qfont, result);
       recompute_basic_faces (f);
     }
   else
@@ -4429,28 +4429,22 @@ This function is an internal primitive--use `make-frame' instead.  */)
     BLOCK_INPUT;
     /* First, try whatever font the caller has specified.  */
     if (STRINGP (font))
-      {
-	tem = Fquery_fontset (font, Qnil);
-	if (STRINGP (tem))
-	  font = x_new_fontset (f, XSTRING (tem)->data);
-	else
-	  font = x_new_font (f, XSTRING (font)->data);
-      }
+      font = x_new_fontset (f, XSTRING (font)->data);
     
     /* Try out a font which we hope has bold and italic variations.  */
     if (!STRINGP (font))
-      font = x_new_font (f, "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1");
+      font = x_new_fontset (f, "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1");
     if (!STRINGP (font))
-      font = x_new_font (f, "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
+      font = x_new_fontset (f, "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
     if (! STRINGP (font))
-      font = x_new_font (f, "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
+      font = x_new_fontset (f, "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
     if (! STRINGP (font))
       /* This was formerly the first thing tried, but it finds too many fonts
 	 and takes too long.  */
-      font = x_new_font (f, "-*-*-medium-r-*-*-*-*-*-*-c-*-iso8859-1");
+      font = x_new_fontset (f, "-*-*-medium-r-*-*-*-*-*-*-c-*-iso8859-1");
     /* If those didn't work, look for something which will at least work.  */
     if (! STRINGP (font))
-      font = x_new_font (f, "-*-fixed-*-*-*-*-*-140-*-*-c-*-iso8859-1");
+      font = x_new_fontset (f, "-*-fixed-*-*-*-*-*-140-*-*-c-*-iso8859-1");
     UNBLOCK_INPUT;
     if (! STRINGP (font))
       font = build_string ("fixed");
@@ -12098,6 +12092,7 @@ meaning don't clear the cache.  */);
   find_ccl_program_func = x_find_ccl_program;
   query_font_func = x_query_font;
   set_frame_fontset_func = x_set_font;
+  get_font_repertory_func = x_get_font_repertory;
   check_window_system_func = check_x;
 
   /* Images.  */
