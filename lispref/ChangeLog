@@ -1,3 +1,10 @@
+2005-02-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Color Names): Add pointer to the X docs about RGB
+	color specifications.  Improve indexing
+	(Text Terminal Colors): Replace the description of RGB values by
+	an xref to "Color Names".
+
 2005-02-03  Richard M. Stallman  <rms@gnu.org>
 
 	* windows.texi (Basic Windows): Add cursor-in-non-selected-windows.

@@ -1,3 +1,11 @@
+2005-02-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Frame Parameters): Add an xref to the description
+	of list-colors-display.  Add a pointer to the X docs about colors.
+
+	* cmdargs.texi (Colors): Mention 16-, 88- and 256-color modes.
+	Impove docs of list-colors-display.
+
 2005-02-03  Lute Kamstra  <lute@gnu.org>
 
 	* frames.texi (Frames, Drag and Drop): Fix typos.
