@@ -30,10 +30,16 @@ Each element of list is a list (FILENAME NODENAME BUFFERPOS).")
   "Non-nil allows Info to execute Lisp code associated with nodes.
 The Lisp code is executed when the node is selected.")
 
-(defvar Info-directory-list t
+(defvar Info-default-directory-list nil
+  "List of default directories to search for Info documentation files.
+This value is used as the default for `Info-directory-list'.  It is set
+in paths.el.")
+
+(defvar Info-directory-list nil
   "List of directories to search for Info documentation files.
-t means not yet initialized.  In this case, Info uses the environment
-variable INFODIR to initialize it.")
+nil means not yet initialized.  In this case, Info uses the environment
+variable INFODIR to initialize it, or `Info-default-directory-list'
+if there is no INFODIR variable in the environment.")
 
 (defvar Info-current-file nil
   "Info file that Info is now looking at, or nil.")
@@ -59,15 +65,19 @@ In interactive use, a prefix argument directs this command
 to read a file name from the minibuffer."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Info file name: " nil nil t))))
-  (if (eq Info-directory-list t)
-      (let ((path (getenv "INFOPATH"))
-	    list)
-	(and path
-	     (while (> (length path) 0)
-	       (let ((idx (or (string-match ":" path) (length path))))
-		 (setq list (cons (substring path 0 idx) list)
-		       path (substring path (min (1+ idx) (length path)))))))
-	(setq Info-directory-list (nreverse list))))
+  (or Info-directory-list
+      (setq Info-directory-list
+	    (let ((path (getenv "INFOPATH")))
+	      (if path
+		  (let ((list nil)
+			idx)
+		    (while (> (length path) 0)
+		      (setq idx (or (string-match ":" path) (length path))
+			    list (cons (substring path 0 idx) list)
+			    path (substring path (min (1+ idx)
+						      (length path)))))
+		    (nreverse list))
+		Info-default-directory-list))))
   (if file
       (Info-goto-node (concat "(" file ")"))
     (if (get-buffer "*info*")
@@ -299,6 +309,14 @@ to read a file name from the minibuffer."
     (Info-find-node (if (equal filename "") nil filename)
 		    (if (equal nodename "") "Top" nodename))))
 
+(defun Info-restore-point (hl)
+  "If this node has been visited, restore the point value when we left."
+  (if hl
+      (if (and (equal (nth 0 (car hl)) Info-current-file)
+	       (equal (nth 1 (car hl)) Info-current-node))
+	  (goto-char (nth 2 (car hl)))
+	(Info-restore-point (cdr hl)))))
+
 (defvar Info-last-search nil
   "Default regexp for \\<info-mode-map>\\[Info-search] command to search for.")
 
@@ -407,7 +425,8 @@ to read a file name from the minibuffer."
 (defun Info-up ()
   "Go to the superior node of this node."
   (interactive)
-  (Info-goto-node (Info-extract-pointer "up")))
+  (Info-goto-node (Info-extract-pointer "up"))
+  (Info-restore-point Info-history))
 
 (defun Info-last ()
   "Go back to the last node visited."
@@ -536,9 +555,9 @@ Completion is allowed, and the menu item point is on is the default."
 						   default)
 					   "Menu item: ")
 				       completions nil t)))
-	 ;; we rely on the bug (which RMS won't change for his own reasons)
-	 ;; that ;; completing-read accepts an input of "" even when the
-	 ;; require-match argument is true and "" is not a valid possibility
+	 ;; we rely on the fact that completing-read accepts an input
+	 ;; of "" even when the require-match argument is true and ""
+	 ;; is not a valid possibility
 	 (if (string= item "")
 	     (if default
 		 (setq item default)
@@ -736,14 +755,14 @@ SIG optional fourth argument, controls action on no match
 	    (t
 	     (error "No %s around position %d" errorstring pos))))))
 
-(defun Info-follow-nearest-node (event)
+(defun Info-follow-nearest-node (click)
   "\\<Info-mode-map>Follow a node reference near point.  Like \\[Info-menu], \\Info-follow-reference], \\[Info-next], \\[Info-previous] or \\Info-up] command.
 At end of the node's text, moves to the next node."
-  (interactive "@e")
-  (let* ((relative-coordinates (coordinates-in-window-p (car event)
+  (interactive "K")
+  (let* ((relative-coordinates (coordinates-in-window-p (mouse-coords click)
 							(selected-window)))
 	 (rel-x (car relative-coordinates))
-	 (rel-y (car (cdr relative-coordinates))))
+	 (rel-y (cdr relative-coordinates)))
     (move-to-window-line rel-y)
     (move-to-column rel-x))
   (let (node)
@@ -802,20 +821,8 @@ At end of the node's text, moves to the next node."
   (define-key Info-mode-map "q" 'Info-exit)
   (define-key Info-mode-map "s" 'Info-search)
   (define-key Info-mode-map "u" 'Info-up)
-  (define-key Info-mode-map "\177" 'scroll-down))
-
-(defvar Info-mode-mouse-map nil
-  "Mouse map for use with Info mode.")
-
-(if Info-mode-mouse-map
-    nil
-  (if (null (cdr global-mouse-map))
-      nil
-    (setq Info-mode-mouse-map (make-sparse-keymap))
-    (define-key Info-mode-mouse-map mouse-button-middle
-      'Info-follow-nearest-node)
-    (define-key Info-mode-mouse-map mouse-button-left 'mouse-scroll-up-full)
-    (define-key Info-mode-mouse-map mouse-button-right 'mouse-scroll-down-full)))
+  (define-key Info-mode-map "\177" 'scroll-down)
+  )
 
 ;; Info mode is suitable only for specially formatted data.
 (put 'info-mode 'mode-class 'special)
@@ -835,17 +842,13 @@ Selecting other nodes:
 \\[Info-up]	Move \"up\" from this node.
 \\[Info-menu]	Pick menu item specified by name (or abbreviation).
 	Picking a menu item causes another node to be selected.
+\\[Info-directory]	Go to the Info directory node.
 \\[Info-follow-reference]	Follow a cross reference.  Reads name of reference.
 \\[Info-last]	Move to the last node you were at.
 
 Moving within a node:
 \\[scroll-up]	scroll forward a full screen.     \\[scroll-down]  scroll backward.
 \\[beginning-of-buffer]	Go to beginning of node.
-
-Mouse commands:
-Middle Button	Go to node mentioned in the text near where you click.
-Left Button	Scroll forward a full screen.
-Right Button	Scroll backward.
 
 Advanced commands:
 \\[Info-exit]	Quit Info: reselect previously selected buffer.
@@ -864,7 +867,6 @@ Advanced commands:
   (setq local-abbrev-table text-mode-abbrev-table)
   (setq case-fold-search t)
   (setq buffer-read-only t)
-  (setq buffer-mouse-map Info-mode-mouse-map)
   (make-local-variable 'Info-current-file)
   (make-local-variable 'Info-current-subfile)
   (make-local-variable 'Info-current-node)
