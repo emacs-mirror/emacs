@@ -3888,6 +3888,8 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
      int left_x, top_y, right_x, bottom_y, left_p, right_p, raised_p;
      XRectangle *clip_rect;
 {
+  Display *dpy = FRAME_X_DISPLAY (f);
+  Window window = FRAME_X_WINDOW (f);
   int i;
   GC gc;
   
@@ -3895,40 +3897,40 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
     gc = f->output_data.x->white_relief.gc;
   else
     gc = f->output_data.x->black_relief.gc;
-  XSetClipRectangles (FRAME_X_DISPLAY (f), gc, 0, 0, clip_rect, 1, Unsorted);
+  XSetClipRectangles (dpy, gc, 0, 0, clip_rect, 1, Unsorted);
 
   /* Top.  */
   for (i = 0; i < width; ++i)
-    XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+    XDrawLine (dpy, window, gc,
 	       left_x + i * left_p, top_y + i,
 	       right_x + 1 - i * right_p, top_y + i);
 
   /* Left.  */
   if (left_p)
     for (i = 0; i < width; ++i)
-      XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+      XDrawLine (dpy, window, gc,
 		 left_x + i, top_y + i, left_x + i, bottom_y - i + 1);
 
-  XSetClipMask (FRAME_X_DISPLAY (f), gc, None);
+  XSetClipMask (dpy, gc, None);
   if (raised_p)
     gc = f->output_data.x->black_relief.gc;
   else
     gc = f->output_data.x->white_relief.gc;
-  XSetClipRectangles (FRAME_X_DISPLAY (f), gc, 0, 0, clip_rect, 1, Unsorted);
+  XSetClipRectangles (dpy, gc, 0, 0, clip_rect, 1, Unsorted);
   
   /* Bottom.  */
   for (i = 0; i < width; ++i)
-    XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-	       left_x + i * left_p + 1, bottom_y - i,
-	       right_x + 1 - i * right_p, bottom_y - i);
+    XDrawLine (dpy, window, gc,
+	       left_x + i * left_p, bottom_y - i,
+	       right_x + 2 - i * right_p, bottom_y - i);
   
   /* Right.  */
   if (right_p)
     for (i = 0; i < width; ++i)
-      XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+      XDrawLine (dpy, window, gc,
 		 right_x - i, top_y + i + 1, right_x - i, bottom_y - i);
 
-  XSetClipMask (FRAME_X_DISPLAY (f), gc, None);
+  XSetClipMask (dpy, gc, None);
 }
 
 
