@@ -63,8 +63,8 @@ that Ediff doesn't know about.")
 (defun ediff-has-face-support-p ()
   (cond ((ediff-window-display-p))
 	(ediff-force-faces)
-	(ediff-emacs-p (or (x-display-color-p)
-			   (memq (ediff-device-type) '(pc))))
+	((ediff-color-display-p))
+	(ediff-emacs-p (memq (ediff-device-type) '(pc)))
 	(ediff-xemacs-p (memq (ediff-device-type) '(tty pc)))))
 
 (defun ediff-has-toolbar-support-p ()
@@ -739,22 +739,15 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
 	  ((memq op '(< <=)) t))))
   
   
-
-;; A fix for NeXT Step
-;; Should probably be eliminated in later versions.
-(if (and (ediff-window-display-p) (eq (ediff-device-type) 'ns))
-    (progn
-      (fset 'x-display-color-p (symbol-function 'ns-display-color-p))
-      (fset 'x-color-defined-p (symbol-function 'ns-color-defined-p))
-      (fset 'x-display-pixel-height (symbol-function 'ns-display-pixel-height))
-      (fset 'x-display-pixel-width (symbol-function 'ns-display-pixel-width))
-      ))
-
-
-(defsubst ediff-color-display-p ()
-  (if ediff-emacs-p
-      (x-display-color-p)
-    (eq (device-class (selected-device)) 'color)))
+(defun ediff-color-display-p ()
+  (condition-case nil
+      (if ediff-emacs-p
+	  (if (fboundp 'display-color-p)
+	      (display-color-p)
+	    (x-display-color-p))
+	(eq (device-class (selected-device)) 'color))
+    (error
+     nil)))
 
   
 (if (ediff-has-face-support-p)
@@ -762,12 +755,10 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
 	(progn
 	  (fset 'ediff-valid-color-p (symbol-function 'valid-color-name-p))
 	  (fset 'ediff-get-face (symbol-function 'get-face)))
-      ;; Temporary fix for OS/2 port of Emacs
-      ;; pm-win.el in PM-Emacs should be fixed.
-      (if (eq (ediff-device-type) 'pm)
-	  (fset 'ediff-valid-color-p 
-		(lambda (color) (assoc color pm-color-alist)))
-	(fset 'ediff-valid-color-p (symbol-function 'x-color-defined-p)))
+      (fset 'ediff-valid-color-p (symbol-function
+				  (if (fboundp 'color-defined-p)
+				      'color-defined-p
+				    'x-color-defined-p)))
       (fset 'ediff-get-face (symbol-function 'internal-get-face))))
 
 (if (ediff-window-display-p)
@@ -777,10 +768,14 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
 		(symbol-function 'device-pixel-width))
 	  (fset 'ediff-display-pixel-height
 		(symbol-function 'device-pixel-height)))
-      (fset 'ediff-display-pixel-width 
-	    (symbol-function 'x-display-pixel-width))
-      (fset 'ediff-display-pixel-height
-	    (symbol-function 'x-display-pixel-height))))
+      (fset 'ediff-display-pixel-width (symbol-function
+					(if (fboundp 'display-pixel-width)
+					    'display-pixel-width
+					  'x-display-pixel-width)))
+      (fset 'ediff-display-pixel-height (symbol-function
+					 (if (fboundp 'display-pixel-height)
+					     'display-pixel-height
+					   'x-display-pixel-height)))))
       
 ;; A-list of current-diff-overlay symbols asssociated with buf types
 (defconst ediff-current-diff-overlay-alist

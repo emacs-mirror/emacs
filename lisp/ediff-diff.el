@@ -1216,7 +1216,7 @@ Used for splitting difference regions into individual words.")
   "*Characters constituting white space.
 These characters are ignored when differing regions are split into words.")
 
-(defvar ediff-word-1 "\\(a-zA-Z---_\\|\w\\)"
+(defvar ediff-word-1 "a-zA-Z---_"
   "*Characters that constitute words of type 1.
 More precisely, [ediff-word-1] is a regexp that matches type 1 words.
 See `ediff-forward-word' for more details.")  
@@ -1253,13 +1253,19 @@ arguments to `skip-chars-forward'."
       (> (skip-chars-forward ediff-word-4) 0)
       ))
 
+
 (defun ediff-wordify (beg end in-buffer out-buffer &optional control-buf)
-  (let (sv-point string)
+  (let (inbuf-syntax-tbl sv-point string)
     (save-excursion
      (set-buffer in-buffer)
+     (setq inbuf-syntax-tbl (syntax-table))
      (setq string (buffer-substring-no-properties beg end))
 
      (set-buffer out-buffer)
+     ;; Make sure that temp buff syntax table is the same a the original buf
+     ;; syntax tbl, because we use ediff-forward-word in both and
+     ;; ediff-forward-word depends on the syntax classes of characters.
+     (set-syntax-table inbuf-syntax-tbl)
      (erase-buffer)
      (insert string)
      (goto-char (point-min))
@@ -1271,7 +1277,8 @@ arguments to `skip-chars-forward'."
        ;; different invocations
        (if control-buf
 	   (funcall 
-	    (ediff-with-current-buffer control-buf ediff-forward-word-function))
+	    (ediff-with-current-buffer 
+		control-buf ediff-forward-word-function))
 	 (funcall ediff-forward-word-function))
        (setq sv-point (point))
        (skip-chars-forward ediff-whitespace)
