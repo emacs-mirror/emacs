@@ -379,12 +379,15 @@ string is passed through `substitute-command-keys'.")
   return doc;
 }
 
-DEFUN ("documentation-property", Fdocumentation_property, Sdocumentation_property, 2, 3, 0,
+DEFUN ("documentation-property", Fdocumentation_property,
+       Sdocumentation_property, 2, 3, 0,
   "Return the documentation string that is SYMBOL's PROP property.\n\
-This is like `get', but it can refer to strings stored in the\n\
-`etc/DOC' file; and if the value is a string, it is passed through\n\
-`substitute-command-keys'.  A non-nil third argument RAW avoids this\n\
-translation.")
+Third argument RAW omitted or nil means pass the result through\n\
+`substitute-command-keys' if it is a string.\n\
+\n\
+This is differs from `get' in that it can refer to strings stored in the\n\
+`etc/DOC' file; and that it evaluates documentation properties that\n\
+aren't strings.")
   (symbol, prop, raw)
      Lisp_Object symbol, prop, raw;
 {
@@ -393,8 +396,12 @@ translation.")
   tem = Fget (symbol, prop);
   if (INTEGERP (tem))
     tem = get_doc_string (XINT (tem) > 0 ? tem : make_number (- XINT (tem)), 0, 0);
-  else if (CONSP (tem))
+  else if (CONSP (tem) && INTEGERP (XCDR (tem)))
     tem = get_doc_string (tem, 0, 0);
+  else if (!STRINGP (tem))
+    /* Feval protects its argument.  */
+    tem = Feval (tem);
+  
   if (NILP (raw) && STRINGP (tem))
     tem = Fsubstitute_command_keys (tem);
   return tem;
