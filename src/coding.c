@@ -6333,6 +6333,8 @@ about coding-system objects.  */)
     return Qt;
   if (!SYMBOLP (obj))
     return Qnil;
+  if (! NILP (Fget (obj, Qcoding_system_define_form)))
+    return Qt;
   /* Get coding-spec vector for OBJ.  */
   obj = Fget (obj, Qcoding_system);
   return ((VECTORP (obj) && XVECTOR (obj)->size == 5)
