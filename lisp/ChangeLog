@@ -1,3 +1,8 @@
+2004-12-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xt-mouse.el (xterm-mouse-event): Correct cursor position in a
+	buffer with a display margin.
+
 2004-12-08  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-keypd.el (calc-keypad-mode): Unbind unused mouse events.
