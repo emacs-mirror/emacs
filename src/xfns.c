@@ -1176,12 +1176,18 @@ x_real_positions (f, xptr, yptr)
       Window wm_window, rootw;
       Window *tmp_children;
       unsigned int tmp_nchildren;
+      int success;
 
-      XQueryTree (FRAME_X_DISPLAY (f), win, &rootw,
-                  &wm_window, &tmp_children, &tmp_nchildren);
-      XFree ((char *) tmp_children);
+      success = XQueryTree (FRAME_X_DISPLAY (f), win, &rootw,
+			    &wm_window, &tmp_children, &tmp_nchildren);
 
       had_errors = x_had_errors_p (FRAME_X_DISPLAY (f));
+
+      /* Don't free tmp_children if XQueryTree failed.  */
+      if (! success)
+	break;
+
+      XFree ((char *) tmp_children);
 
       if (wm_window == rootw || had_errors)
         break;
