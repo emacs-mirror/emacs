@@ -9,9 +9,10 @@ emacs
 emacs-*
 epaths.h
 obj
-obj-spd
 prefix-args
 stamp-oldxmenu
 temacs
 _gdbinit
 gdb.ini
+*-spd
+*.pdb

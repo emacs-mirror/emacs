@@ -15,9 +15,10 @@ hexl
 make-docfile
 movemail
 obj
-obj-spd
 profile
 sorted-doc
 test-distrib
 yow
 Makefile
+*-spd
+*.pdb
