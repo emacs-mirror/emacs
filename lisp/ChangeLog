@@ -1,3 +1,11 @@
+2003-05-17  John Paul Wallington  <jpw@gnu.org>
+
+	* international/ja-dic-cnv.el (skkdic-okuri-nasi-entries)
+	(skkdic-okuri-nasi-entries-count): Use defvar for non-constants.
+
+	* register.el (number-to-register): Use `string-to-number' instead
+	of `string-to-int'.
+
 2003-05-17  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* which-func.el (which-func-format): Make it risky-local-variable.
@@ -132,7 +140,7 @@
 
 2003-05-14  John Paul Wallington  <jpw@gnu.org>
 
-	* ls-lisp.el (insert-directory): Remove --dired switch when
+	* ls-lisp.el (insert-directory): Discard --dired switch when
 	`ls-lisp-use-insert-directory-program' is nil.
 
 2003-05-13  Stefan Monnier  <monnier@cs.yale.edu>
