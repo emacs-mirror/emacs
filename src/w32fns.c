@@ -5537,11 +5537,17 @@ w32_load_system_font (f,fontname,size)
       {
 	HDC hdc;
 	HANDLE oldobj;
+        int codepage = w32_codepage_for_font (fontname);
 
 	hdc = GetDC (dpyinfo->root_window);
 	oldobj = SelectObject (hdc, font->hfont);
+
 	ok = GetTextMetrics (hdc, &font->tm);
-        font->double_byte_p = GetFontLanguageInfo(hdc) & GCP_DBCS;
+        if (codepage == CP_UNICODE)
+          font->double_byte_p = 1;
+        else
+          font->double_byte_p = GetFontLanguageInfo(hdc) & GCP_DBCS;
+
 	SelectObject (hdc, oldobj);
 	ReleaseDC (dpyinfo->root_window, hdc);
         /* Fill out details in lf according to the font that was
