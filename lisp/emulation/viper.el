@@ -88,7 +88,7 @@
 ;;    The same macro name can have several different definitions:
 ;;    one global, several definitions for various major modes, and
 ;;    definitions for specific buffers.
-;;    Bffer-specific definitions override mode-specific
+;;    Buffer-specific definitions override mode-specific
 ;;    definitions, which, in turn, override global definitions.
 ;;
 ;;
@@ -100,8 +100,8 @@
 
 ;;; Acknowledgements:
 ;;  -----------------
-;;  Bug reports and ideas contributed by the following users
-;;  have helped improve Viper and the various versions of VIP.
+;;  Bug reports and ideas contributed by many users have helped
+;;  improve Viper and the various versions of VIP.
 ;;  See the on-line manual for a complete list of contributors. 
 ;;
 ;;
@@ -155,8 +155,8 @@
 ;;  For instance,  C-c will not have its standard Emacs binding
 ;;  and so many of the goodies of Emacs are not available.
 ;;
-;;  An skilled user, should set vip-expert-level to at least 3. This will
-;;  enable ;;  C-c and many Emacs facilities will become available.
+;;  A skilled user should set vip-expert-level to at least 3. This will
+;;  enable `C-c' and many Emacs facilities will become available.
 ;;  In this case, vip-vi-diehard-minor-mode is inactive.
 ;;
 ;;  Viper gurus should have at least
@@ -821,7 +821,7 @@ These buffers can be cycled through via :R and :P commands.")
   "t means, arrange that vi-state will be a default.")
 
 (defvar vip-ms-style-os-p (memq system-type '(ms-dos windows-nt windows-95))
-  "Tells is Emacs is running under an MS-style OS: ms-dos, window-nt, W95.")
+  "Tells if Emacs is running under an MS-style OS: ms-dos, windows-nt, W95.")
 (defvar vip-vms-os-p (memq system-type '(vax-vms axp-vms))
   "Tells if Emacs is running under VMS.")
 
