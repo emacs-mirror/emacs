@@ -1602,7 +1602,7 @@ If third arg TARGETDEPTH is non-nil, parsing stops if the depth\n\
 in parentheses becomes equal to TARGETDEPTH.\n\
 Fourth arg STOPBEFORE non-nil means stop when come to\n\
  any character that starts a sexp.\n\
-Fifth arg STATE is a seven-list like what this function returns.\n\
+Fifth arg STATE is an eight-list like what this function returns.\n\
 It is used to initialize the state of the parse.  Its second and third
 elements are ignored.
 Sixth args COMMENTSTOP non-nil means stop at the start of a comment.")
