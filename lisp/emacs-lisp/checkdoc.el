@@ -653,8 +653,7 @@ style."
 			(sit-for 2))
 		    (setq err-list (cdr err-list))))
 		(beginning-of-defun)
-		(let ((pe (car err-list))
-		      (ne (funcall findfunc nil)))
+		(let ((ne (funcall findfunc nil)))
 		  (if ne
 		      (setq err-list (cons ne err-list))
 		    (cond ((not err-list)
@@ -900,7 +899,7 @@ Prefix argument TAKE-NOTES means to continue through the whole buffer and
 save warnings in a separate buffer.  Second optional argument START-POINT
 is the starting location.  If this is nil, `point-min' is used instead."
   (interactive "P")
-  (let ((wrong nil) (msg nil) (errors nil)
+  (let ((wrong nil) (msg nil)
 	;; Assign a flag to spellcheck flag
 	(checkdoc-spellcheck-documentation-flag
 	 (car (memq checkdoc-spellcheck-documentation-flag
@@ -2598,14 +2597,13 @@ This function will not modify `match-data'."
   (setq checkdoc-output-mode-map (make-sparse-keymap))
   (if (not (string-match "XEmacs" emacs-version))
       (define-key checkdoc-output-mode-map [mouse-2]
-	'checkdoc-find-error-mouse))
+	'checkdoc-find-error))
   (define-key checkdoc-output-mode-map "\C-c\C-c" 'checkdoc-find-error)
   (define-key checkdoc-output-mode-map "\C-m" 'checkdoc-find-error))
 
 (defun checkdoc-output-mode ()
   "Create and setup the buffer used to maintain checkdoc warnings.
-\\<checkdoc-output-mode-map>\\[checkdoc-find-error]  - Go to this error location
-\\[checkdoc-find-error-mouse] - Goto the error clicked on."
+\\<checkdoc-output-mode-map>\\[checkdoc-find-error]  - Go to this error location."
   (if (get-buffer checkdoc-diagnostic-buffer)
       (get-buffer checkdoc-diagnostic-buffer)
     (save-excursion
@@ -2619,16 +2617,11 @@ This function will not modify `match-data'."
       (run-hooks 'checkdoc-output-mode-hook)
       (current-buffer))))
 
-(defun checkdoc-find-error-mouse (e)
-  ;; checkdoc-params: (e)
-  "Call `checkdoc-find-error' where the user clicks the mouse."
-  (interactive "e")
-  (mouse-set-point e)
-  (checkdoc-find-error))
-
-(defun checkdoc-find-error ()
+(defalias 'checkdoc-find-error-mouse 'checkdoc-find-error)
+(defun checkdoc-find-error (&optional event)
   "In a checkdoc diagnostic buffer, find the error under point."
-  (interactive)
+  (interactive (list last-input-event))
+  (if event (posn-set-point (event-end e)))
   (beginning-of-line)
   (if (looking-at "\\(\\(\\w+\\|\\s_\\)+\\.el\\):\\([0-9]+\\):")
       (let ((l (string-to-int (match-string 3)))
