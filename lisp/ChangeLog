@@ -1,3 +1,20 @@
+2001-02-20  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Timestamp package replacement.  Some enhancements.
+	Some XEmacs compatibility.  Doc fix.
+	(ps-print-version): New version number (6.4).
+	(ps-printer-name): Initialization fix.
+	(ps-zebra-stripe-follow): Funcionality enhancement.
+	(ps-prologue-file): Code enhancement.
+	(ps-right-header): Timestamp package replacement.
+	(ps-setup, ps-face-bold-p, ps-face-italic-p,
+	ps-get-page-dimensions)
+	(ps-generate-header, ps-begin-file, ps-begin-job)
+	(ps-generate-postscript-with-faces, ps-do-despool): Code fix.
+	(ps-time-stamp-mon-dd-yyyy, ps-time-stamp-hh:mm:ss): New funs.
+	(ps-zebra-stripe-full-p, ps-zebra-stripe-alist): New vars.
+	(coding-system-for-write): Var declaration (XEmacs compatibility).
+	
 2001-02-20  Miles Bader  <miles@gnu.org>
 
 	* image-file.el (image-file-name-extensions): Add "tif".
