@@ -218,6 +218,9 @@ tex shell terminates.")
   "Command to run TeX.
 The name of the file, preceded by a blank, will be added to this string.")
 
+(defvar tex-command-end ""
+  "String to add to the end of the command to run TeX.")
+
 (defvar tex-trailer nil
   "String appended after the end of a region sent to TeX by \\[tex-region].")
 
@@ -484,6 +487,7 @@ special subshell is initiated, the hook `tex-shell-hook' is run."
   (setq mode-name "TeX")
   (setq major-mode 'plain-tex-mode)
   (setq tex-command tex-run-command)
+  (setq tex-command-end " \\\\nonstopmode\\\\input")
   (setq tex-start-of-header "%\\*\\*start of header")
   (setq tex-end-of-header "%\\*\\*end of header")
   (setq tex-trailer "\\bye\n")
@@ -709,6 +713,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
 	facemenu-end-add-face "}"
 	facemenu-remove-face-function t)
   (make-local-variable 'tex-command)
+  (make-local-variable 'tex-command-end)
   (make-local-variable 'tex-start-of-header)
   (make-local-variable 'tex-end-of-header)
   (make-local-variable 'tex-trailer))
@@ -1062,7 +1067,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 
 (defun tex-start-tex (command file)
   "Start a TeX run, using COMMAND on FILE."
-  (let* ((cmd (concat command " \\\\nonstopmode\\\\input"))
+  (let* ((cmd (concat command text-command-end))
          (star (string-match "\\*" cmd))
          (compile-command
           (if star (concat (substring cmd 0 star)
