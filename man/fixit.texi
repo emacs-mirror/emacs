@@ -16,7 +16,7 @@ command (usually), a part of a command (in the case of
 @code{query-replace}), or several consecutive self-inserting characters.
 Consecutive repetitions of @kbd{C-_} or @kbd{C-x u} undo earlier and
 earlier changes, back to the limit of the undo information available.
-@xref{Undo}, for for more information.
+@xref{Undo}, for more information.
 
 @menu
 * Kill Errors:: Commands to kill a batch of recently entered text.
