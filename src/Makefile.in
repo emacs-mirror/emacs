@@ -689,7 +689,7 @@ lisp= \
 	${lispsource}abbrev.elc \
 	${lispsource}buff-menu.elc \
 	${lispsource}button.elc \
-	${lispsource}byte-run.elc \
+	${lispsource}emacs-lisp/byte-run.elc \
 	${lispsource}cus-face.elc \
 	${lispsource}cus-start.elc \
 	${lispsource}custom.elc \
@@ -702,7 +702,7 @@ lisp= \
 	${lispsource}format.elc \
 	${lispsource}facemenu.elc \
 	MOUSE_SUPPORT \
-	${lispsource}float-sup.elc \
+	${lispsource}emacs-lisp/float-sup.elc \
 	${lispsource}frame.elc \
 	${lispsource}help.elc \
 	${lispsource}indent.elc \
@@ -710,7 +710,7 @@ lisp= \
 	${lispsource}loadup.el \
 	${lispsource}loaddefs.el \
 	${lispsource}bindings.elc \
-	${lispsource}map-ynp.elc \
+	${lispsource}emacs-lisp/map-ynp.elc \
 	${lispsource}menu-bar.elc \
 	${lispsource}international/mule.elc \
 	${lispsource}international/mule-conf.el \
@@ -762,7 +762,7 @@ lisp= \
 	${lispsource}textmodes/page.elc \
 	${lispsource}textmodes/paragraphs.elc \
 	${lispsource}textmodes/text-mode.elc \
-	${lispsource}timer.elc \
+	${lispsource}emacs-lisp/timer.elc \
 	${lispsource}vc-hooks.elc \
 	${lispsource}ediff-hook.elc \
 	VMS_SUPPORT \
@@ -780,7 +780,7 @@ shortlisp= \
 	../lisp/abbrev.elc \
 	../lisp/buff-menu.elc \
 	../lisp/button.elc \
-	../lisp/byte-run.elc \
+	../lisp/emacs-lisp/byte-run.elc \
 	../lisp/cus-face.elc \
 	../lisp/cus-start.elc \
 	../lisp/custom.elc \
@@ -790,7 +790,7 @@ shortlisp= \
 	../lisp/facemenu.elc \
 	../lisp/faces.elc \
 	../lisp/files.elc \
-	../lisp/float-sup.elc \
+	../lisp/emacs-lisp/float-sup.elc \
 	../lisp/format.elc \
 	../lisp/frame.elc \
 	../lisp/help.elc \
@@ -799,7 +799,7 @@ shortlisp= \
 	../lisp/loadup.el \
 	../lisp/loaddefs.el \
 	../lisp/bindings.elc \
-	../lisp/map-ynp.elc \
+	../lisp/emacs-lisp/map-ynp.elc \
 	../lisp/env.elc \
 	../lisp/international/mule.elc \
 	../lisp/international/mule-conf.el \
@@ -852,7 +852,7 @@ shortlisp= \
 	../lisp/textmodes/page.elc \
 	../lisp/textmodes/paragraphs.elc \
 	../lisp/textmodes/text-mode.elc \
-	../lisp/timer.elc \
+	../lisp/emacs-lisp/timer.elc \
 	../lisp/vc-hooks.elc \
 	../lisp/ediff-hook.elc \
 	../lisp/widget.elc \
