@@ -1,3 +1,7 @@
+2005-03-15  Lute Kamstra  <lute@gnu.org>
+
+	* edebug.texi (Instrumenting Macro Calls): Fix typos.
+
 2005-03-08  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Specified Space): Property :width is support on
