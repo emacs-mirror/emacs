@@ -1,3 +1,7 @@
+2001-10-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* window.c (Fscroll_left, Fscroll_right): Doc fix.
+
 2001-10-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_display_and_set_cursor): If cursor_in_echo_area,
