@@ -33,7 +33,8 @@
  "ISO 2022 based 8-bit encoding for Hebrew (MIME:ISO-8859-8)"
  '((ascii t) (hebrew-iso8859-8 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil nil t)
- '(ascii hebrew-iso8859-8))
+ '((safe-charsets ascii hebrew-iso8859-8)
+   (mime-charset . iso-8859-8)))
 
 (define-coding-system-alias 'iso-8859-8 'hebrew-iso-8bit)
 
@@ -41,8 +42,7 @@
   "Setup multilingual environment (MULE) for Hebrew.
 But, please note that right-to-left writing is not yet supported."
   (interactive)
-  (setup-8-bit-environment "Hebrew" 'hebrew-iso8859-8 'hebrew-iso-8bit
-			   "hebrew"))
+  (setup-8-bit-environment "Hebrew" 'hebrew-iso8859-8 "hebrew"))
 
 (set-language-info-alist
  "Hebrew" '((setup-function . setup-hebrew-environment)
