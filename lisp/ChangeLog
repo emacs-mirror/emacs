@@ -1,3 +1,10 @@
+2004-08-19  Masatake YAMATO  <jet@gyve.org>
+
+	* emacs-lisp/elp.el (elp-results-symname-map): New keymap.
+	(elp-results-jump-to-definition-by-mouse)
+	(elp-results-jump-to-definition, elp-output-insert-symname): New Functions.
+	(elp-output-result): Use elp-output-insert-symname.
+
 2004-08-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/copyright.el (copyright-update-year): Delete code
