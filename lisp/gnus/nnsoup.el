@@ -114,7 +114,7 @@ backend for the messages.")
 	;; articles in SEQUENCE come from.
 	(while (and areas sequence)
 	  ;; Peel off areas that are below sequence.
-	  (while (and areas (< (cdaar areas) (car sequence)))
+	  (while (and areas (< (cdar (car areas)) (car sequence)))
 	    (setq areas (cdr areas)))
 	  (when areas
 	    ;; This is a useful area.
@@ -130,7 +130,7 @@ backend for the messages.")
 	      (setq use-nov nil))
 	    ;; We assign the portion of `sequence' that is relevant to
 	    ;; this MSG packet to this packet.
-	    (while (and sequence (<= (car sequence) (cdaar areas)))
+	    (while (and sequence (<= (car sequence) (cdar (car areas))))
 	      (push (car sequence) this-area-seq)
 	      (setq sequence (cdr sequence)))
 	    (setcar useful-areas (cons (nreverse this-area-seq)
@@ -249,7 +249,7 @@ backend for the messages.")
   ;; Try to guess the type based on the first article in the group.
   (when (not article)
     (setq article
-	  (cdaar (cddr (assoc group nnsoup-group-alist)))))
+	  (cdar (car (cddr (assoc group nnsoup-group-alist))))))
   (if (not article)
       'unknown
     (let ((kind (gnus-soup-encoding-kind
@@ -371,7 +371,7 @@ backend for the messages.")
 	  (setq min (caaar e))
 	  (while (cdr e)
 	    (setq e (cdr e)))
-	  (setq max (cdaar e))
+	  (setq max (cdar (car e)))
 	  (setcdr entry (cons (cons min max) (cdr entry)))))
       (setq nnsoup-group-alist-touched t))
     nnsoup-group-alist))
@@ -651,7 +651,7 @@ backend for the messages.")
 (defun nnsoup-article-to-area (article group)
   "Return the area that ARTICLE in GROUP is located in."
   (let ((areas (cddr (assoc group nnsoup-group-alist))))
-    (while (and areas (< (cdaar areas) article))
+    (while (and areas (< (cdar (car areas)) article))
       (setq areas (cdr areas)))
     (and areas (car areas))))
 

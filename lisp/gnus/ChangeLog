@@ -1,3 +1,11 @@
+2002-07-06  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-topic.el (gnus-topic-indent, gnus-topic-unindent): Change
+	cdaar to cdar and car.
+
+	* nnsoup.el (nnsoup-retrieve-headers, nnsoup-request-type) 
+	(nnsoup-read-active-file, nnsoup-article-to-area): Ditto.
+
 2002-07-03  Juanma Barranquero  <lektu@terra.es>
 
 	* gnus-sum.el (gnus-summary-highlight): Fix typo.

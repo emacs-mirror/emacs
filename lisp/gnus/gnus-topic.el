@@ -1416,7 +1416,7 @@ If UNINDENT, remove an indentation."
 	(gnus-topic-kill-group)
 	(push (cdar gnus-topic-killed-topics) gnus-topic-alist)
 	(gnus-topic-create-topic
-	 topic parent nil (cdaar gnus-topic-killed-topics))
+	 topic parent nil (cdar (car gnus-topic-killed-topics)))
 	(pop gnus-topic-killed-topics)
 	(or (gnus-topic-goto-topic topic)
 	    (gnus-topic-goto-topic parent))))))
@@ -1435,7 +1435,7 @@ If UNINDENT, remove an indentation."
       (push (cdar gnus-topic-killed-topics) gnus-topic-alist)
       (gnus-topic-create-topic
        topic grandparent (gnus-topic-next-topic parent)
-       (cdaar gnus-topic-killed-topics))
+       (cdar (car gnus-topic-killed-topics)))
       (pop gnus-topic-killed-topics)
       (gnus-topic-goto-topic topic))))
 
