@@ -1,6 +1,6 @@
 ;;; winner.el --- Restore old window configurations
 
-;; Copyright (C) 1997, 1998 Free Software Foundation. Inc.
+;; Copyright (C) 1997, 1998, 2001 Free Software Foundation. Inc.
 
 ;; Author: Ivar Rummelhoff <ivarru@math.uio.no>
 ;; Created: 27 Feb 1997
@@ -144,6 +144,16 @@ use either \\[customize] or the function `winner-mode'."
 
 ;; Frames affected by the previous command.
 (defvar winner-last-frames nil)
+
+
+(defun winner-equal (a b)
+  "Check two Winner configurations A and B for equality.
+Winner configurations are of the form (CONFIG BUFFERS),
+where CONFIG is a window configuration and BUFFERS is a list of
+buffers."
+  (and (compare-window-configurations (car a) (car b))
+       (equal (cdr a) (cdr b))))
+
 
 ;; Save the current window configuration, if it has changed.
 ;; Then return frame, else return nil.
@@ -426,10 +436,6 @@ In other words, \"undo\" changes in window configuration."
    (t (error "Previous command was not a winner-undo"))))
 
 ;;; To be evaluated when the package is loaded:
-
-(if (fboundp 'compare-window-configurations)
-    (defalias 'winner-equal 'compare-window-configurations)
-  (defalias 'winner-equal 'equal))
 
 (unless winner-mode-map
   (setq winner-mode-map (make-sparse-keymap))
