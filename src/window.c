@@ -2575,7 +2575,7 @@ change_window_height (delta, widthflag)
       /* Look at one sibling at a time,
 	 moving away from this window in both directions alternately,
 	 and take as much as we can get without deleting that sibling.  */
-      while (delta > 0)
+      while (delta != 0)
 	{
 	  if (delta == 0)
 	    break;
