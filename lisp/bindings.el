@@ -503,7 +503,7 @@ is okay.  See `mode-line-format'.")
 		".a" ".ln" ".blg" ".bbl" ".dll" ".drv" ".vxd" ".386"))
 	     ((eq system-type 'vax-vms)
 	      '(".obj" ".exe" ".bin" ".lbin" ".sbin"
-		".brn" ".rnt" ".lni" ".lis"
+		".brn" ".rnt" ".lni"
 		".olb" ".tlb" ".mlb" ".hlb"))
 	     (t
 	      '(".o" "~" ".bin" ".lbin" ".so"
