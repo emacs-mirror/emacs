@@ -1045,7 +1045,9 @@ do_completion ()
   Lisp_Object completion, tem;
   int completedp;
   Lisp_Object last;
+  struct gcpro gcpro1, gcpro2;
 
+  GCPRO2 (completion, last);
   completion = Ftry_completion (Fbuffer_string (), Vminibuffer_completion_table,
 				Vminibuffer_completion_predicate);
   last = last_exact_completion;
@@ -1055,11 +1057,15 @@ do_completion ()
     {
       bitch_at_user ();
       temp_echo_area_glyphs (" [No match]");
+      UNGCPRO;
       return 0;
     }
 
   if (EQ (completion, Qt))	/* exact and unique match */
-    return 1;
+    {
+      UNGCPRO;
+      return 1;
+    }
 
   /* compiler bug */
   tem = Fstring_equal (completion, Fbuffer_string());
@@ -1097,7 +1103,9 @@ do_completion ()
 		 Qlambda);
 
   if (NILP (tem))
-    { /* not an exact match */
+    {
+      /* not an exact match */
+      UNGCPRO;
       if (completedp)
 	return 5;
       else if (auto_help)
@@ -1107,7 +1115,10 @@ do_completion ()
       return 6;
     }
   else if (completedp)
-    return 4;
+    {
+      UNGCPRO;
+      return 4;
+    }
   /* If the last exact completion and this one were the same,
      it means we've already given a "Complete but not unique"
      message and the user's hit TAB again, so now we give him help.  */
@@ -1118,9 +1129,10 @@ do_completion ()
       if (!NILP (Fequal (tem, last)))
 	Fminibuffer_completion_help ();
     }
+  UNGCPRO;
   return 3;
 }
-  
+
 /* Like assoc but assumes KEY is a string, and ignores case if appropriate.  */
 
 Lisp_Object
@@ -1561,6 +1573,9 @@ syms_of_minibuf ()
 
   Qminibuffer_completion_predicate = intern ("minibuffer-completion-predicate");
   staticpro (&Qminibuffer_completion_predicate);
+
+  staticpro (&last_exact_completion);
+  last_exact_completion = Qnil;
 
   staticpro (&last_minibuf_string);
   last_minibuf_string = Qnil;
