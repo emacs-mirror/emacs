@@ -513,6 +513,8 @@ just as `query-replace' does.  Instead, write a simple loop like this:
     (replace-match \"foobar\" nil nil))
 which will run faster and probably do exactly what you want."
   (or map (setq map query-replace-map))
+  (and query-flag minibuffer-auto-raise
+       (raise-frame (window-frame (minibuffer-window))))
   (let ((nocasify (not (and case-fold-search case-replace
 			    (string-equal from-string
 					  (downcase from-string)))))
