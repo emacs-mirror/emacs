@@ -2676,9 +2676,13 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		 Therefore, if we get an error reading and errno =
 		 EIO, just continue, because the child process has
 		 exited and should clean itself up soon (e.g. when we
-		 get a SIGCHLD). */
+		 get a SIGCHLD).
+
+		 However, it has been known to happen that the SIGCHLD
+		 got lost.  So raise the signl again just in case.
+		 It can't hurt.  */
 	      else if (nread == -1 && errno == EIO)
-		;
+		kill (getpid (), SIGCHLD);
 #endif				/* HAVE_PTYS */
 	      /* If we can detect process termination, don't consider the process
 		 gone just because its pipe is closed.  */
