@@ -268,13 +268,12 @@ and create such a submap in that new map."
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive
-   (list (let ((comint-file-name-regexp "~/A-Za-z0-9+@:_.$#%,={}-"))
-	   (read-from-minibuffer "Run gdb (like this): "
-				 (if (consp gud-gdb-history)
-				     (car gud-gdb-history)
-				   "gdb ")
-				 gdb-minibuffer-local-map nil
-				 '(gud-gdb-history . 1)))))
+   (list (read-from-minibuffer "Run gdb (like this): "
+			       (if (consp gud-gdb-history)
+				   (car gud-gdb-history)
+				 "gdb ")
+			       gdb-minibuffer-local-map nil
+			       '(gud-gdb-history . 1))))
 
   (gud-common-init command-line 'gud-gdb-massage-args
 		   'gud-gdb-marker-filter 'gud-gdb-find-file)
