@@ -48,6 +48,10 @@ extern Lisp_Object last_nonmenu_event;
 /* List of command events to be re-read, or Qnil.  */
 extern Lisp_Object Vunread_command_events;
 
+/* Command char event to be re-read, or -1 if none.
+   Setting this is obsolete, but some things should still check it.  */
+extern int unread_command_char;
+
 /* Last command executed by the editor command loop, not counting
    commands that set the prefix argument.  */
 
