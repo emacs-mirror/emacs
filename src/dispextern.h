@@ -1375,6 +1375,10 @@ struct face_cache
 
   /* The allocated size, and number of used slots of faces_by_id.  */
   int size, used;
+
+  /* Flag indicating that attributes of the `menu' face have been
+     changed.  */
+  unsigned menu_face_changed_p : 1;
 };
 
 
