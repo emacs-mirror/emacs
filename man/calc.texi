@@ -546,8 +546,35 @@ you can also go to the part of the manual describing any Calc key,
 function, or variable using @w{@kbd{h k}}, @kbd{h f}, or @kbd{h v},
 respectively.  @xref{Help Commands}.
 
-Printed copies of this manual are also available from the Free Software
-Foundation.
+The Calc manual can be printed, but because the manual is so large, you
+should only make a printed copy if you really need it.  To print the
+manual, you will need the @TeX{} typesetting program (this is a free
+program by Donald Knuth at Stanford University) as well as the
+@file{texindex} program and @file{texinfo.tex} file, both of which can
+be obtained from the FSF as part of the @code{texinfo} package.
+To print the Calc manual in one huge tome, you will need the
+source code to this manual, @file{calc.texi}, available as part of the
+Emacs source.  Once you have this file, type @kbd{texi2dvi calc.texi}.
+Alternatively, change to the @file{man} subdirectory of the Emacs
+source distribution, and type @kbd{make calc.dvi}. (Don't worry if you
+get some ``overfull box'' warnings while @TeX{} runs.)
+The result will be a device-independent output file called
+@file{calc.dvi}, which you must print in whatever way is right
+for your system.  On many systems, the command is
+
+@example
+lpr -d calc.dvi
+@end example
+
+@noindent
+or
+
+@example
+dvips calc.dvi
+@end example
+
+@c Printed copies of this manual are also available from the Free Software
+@c Foundation.
 
 @node Notations Used in This Manual, Demonstration of Calc, About This Manual, Getting Started
 @section Notations Used in This Manual
@@ -1501,8 +1528,8 @@ general areas.
 
 @ifinfo
 You may wish to print out a copy of the Calc Summary and keep notes on
-it as you learn Calc.  @xref{Installation}, to see how to make a printed
-summary.  @xref{Summary}.
+it as you learn Calc.  @xref{About This Manual}, to see how to make a
+printed summary.  @xref{Summary}.
 @end ifinfo
 @iftex
 The Calc Summary at the end of the reference manual includes some blank
@@ -5599,8 +5626,8 @@ entering them on the fly.
 
 (@bullet{}) @strong{Exercise 1.}  Type @kbd{m s} to get Symbolic
 mode, then enter the formula @samp{@w{(2 + sqrt(2))} / @w{(1 + sqrt(2))}}.
-Using a rewrite rule, simplify this formula by multiplying both
-sides by the conjugate @w{@samp{1 - sqrt(2)}}.  The result will have
+Using a rewrite rule, simplify this formula by multiplying the top and
+bottom by the conjugate @w{@samp{1 - sqrt(2)}}.  The result will have
 to be expanded by the distributive law; do this with another
 rewrite.  @xref{Rewrites Answer 1, 1}. (@bullet{})
 
@@ -11292,6 +11319,21 @@ where @var{a} and @var{M} are real numbers or HMS forms, and
 In many applications @expr{a} and @expr{M} will be
 integers but this is not required.
 
+@ignore
+@mindex M
+@end ignore
+@kindex M (modulo forms)
+@ignore
+@mindex mod
+@end ignore
+@tindex mod (operator)
+To create a modulo form during numeric entry, press the shift-@kbd{M}
+key to enter the word @samp{mod}.  As a special convenience, pressing
+shift-@kbd{M} a second time automatically enters the value of @expr{M}
+that was most recently used before.  During algebraic entry, either
+type @samp{mod} by hand or press @kbd{M-m} (that's @kbd{@key{META}-m}).
+Once again, pressing this a second time enters the current modulo.
+
 Modulo forms are not to be confused with the modulo operator @samp{%}.
 The expression @samp{27 % 10} means to compute 27 modulo 10 to produce
 the result 7.  Further computations treat this 7 as just a regular integer.
@@ -11324,24 +11366,6 @@ in the sense of reducing
 modulo @expr{M}, this is not a useful definition from the
 number-theoretical point of view.)
 
-@ignore
-@mindex M
-@end ignore
-@kindex M (modulo forms)
-@ignore
-@mindex mod
-@end ignore
-@tindex mod (operator)
-To create a modulo form during numeric entry, press the shift-@kbd{M}
-key to enter the word @samp{mod}.  As a special convenience, pressing
-shift-@kbd{M} a second time automatically enters the value of @expr{M}
-that was most recently used before.  During algebraic entry, either
-type @samp{mod} by hand or press @kbd{M-m} (that's @kbd{@key{META}-m}).
-Once again, pressing this a second time enters the current modulo.
-
-You can also use @kbd{v p} and @kbd{%} to modify modulo forms.
-@xref{Building Vectors}.  @xref{Basic Arithmetic}.
-
 It is possible to mix HMS forms and modulo forms.  For example, an
 HMS form modulo 24 could be used to manipulate clock times; an HMS
 form modulo 360 would be suitable for angles.  Making the modulo @expr{M}
@@ -11353,6 +11377,9 @@ mode were inadvertently set to Radians, in which case
 Modulo forms cannot have variables or formulas for components.  If you
 enter the formula @samp{(x + 2) mod 5}, Calc propagates the modulus
 to each of the coefficients:  @samp{(1 mod 5) x + (2 mod 5)}.
+
+You can use @kbd{v p} and @kbd{%} to modify modulo forms.
+@xref{Packing and Unpacking}.  @xref{Basic Arithmetic}.
 
 @ignore
 @starindex
@@ -12487,8 +12514,10 @@ of the above example situations would produce polar complex numbers.
 Division of two integers normally yields a floating-point number if the
 result cannot be expressed as an integer.  In some cases you would
 rather get an exact fractional answer.  One way to accomplish this is
-to multiply fractions instead:  @kbd{6 @key{RET} 1:4 *} produces @expr{3:2}
-even though @kbd{6 @key{RET} 4 /} produces @expr{1.5}.
+to use the @kbd{:} (@code{calc-fdiv}) [@code{fdiv}] command, which
+divides the two integers on the top of the stack to produce a fraction:
+@kbd{6 @key{RET} 4 :} produces @expr{3:2} even though 
+@kbd{6 @key{RET} 4 /} produces @expr{1.5}.
 
 @kindex m f
 @pindex calc-frac-mode
@@ -13293,7 +13322,7 @@ are displayed in clumps of 3 or 4 (depending on the current radix)
 separated by commas.
 
 The @kbd{d g} command toggles grouping on and off.
-With a numerix prefix of 0, this command displays the current state of
+With a numeric prefix of 0, this command displays the current state of
 the grouping flag; with an argument of minus one it disables grouping;
 with a positive argument @expr{N} it enables grouping on every @expr{N}
 digits.  For floating-point numbers, grouping normally occurs only
@@ -13799,11 +13828,12 @@ The @kbd{d t} (@code{calc-truncate-stack}) command moves the @samp{.}@:
 line that marks the top-of-stack up or down in the Calculator buffer.
 The number right above that line is considered to the be at the top of
 the stack.  Any numbers below that line are ``hidden'' from all stack
-operations.  This is similar to the Emacs ``narrowing'' feature, except
-that the values below the @samp{.} are @emph{visible}, just temporarily
-frozen.  This feature allows you to keep several independent calculations
-running at once in different parts of the stack, or to apply a certain
-command to an element buried deep in the stack.
+operations (although still visible to the user).  This is similar to the
+Emacs ``narrowing'' feature, except that the values below the @samp{.}
+are @emph{visible}, just temporarily frozen.  This feature allows you to
+keep several independent calculations running at once in different parts
+of the stack, or to apply a certain command to an element buried deep in
+the stack.
 
 Pressing @kbd{d t} by itself moves the @samp{.} to the line the cursor
 is on.  Thus, this line and all those below it become hidden.  To un-hide
@@ -16242,7 +16272,7 @@ must be positive real number.
 @kindex :
 @pindex calc-fdiv
 @tindex fdiv
-The @kbd{:} (@code{calc-fdiv}) command [@code{fdiv} function in a formula]
+The @kbd{:} (@code{calc-fdiv}) [@code{fdiv}] command
 divides the two integers on the top of the stack to produce a fractional
 result.  This is a convenient shorthand for enabling Fraction mode (with
 @kbd{m f}) temporarily and using @samp{/}.  Note that during numeric entry
@@ -19622,7 +19652,7 @@ subtracted, multiplied, and divided; @pxref{Basic Arithmetic}.
 @mindex @null
 @end ignore
 @tindex |
-The @kbd{|} (@code{calc-concat}) command ``concatenates'' two vectors
+The @kbd{|} (@code{calc-concat}) [@code{vconcat}] command ``concatenates'' two vectors
 into one.  For example, after @kbd{@w{[ 1 , 2 ]} [ 3 , 4 ] |}, the stack
 will contain the single vector @samp{[1, 2, 3, 4]}.  If the arguments
 are matrices, the rows of the first matrix are concatenated with the
@@ -20023,7 +20053,7 @@ a one-column matrix.
 @kindex v v
 @pindex calc-reverse-vector
 @tindex rev
-The @kbd{v v} (@code{calc-reverse-vector}) [@code{vec}] command reverses
+The @kbd{v v} (@code{calc-reverse-vector}) [@code{rev}] command reverses
 a vector end-for-end.  Given a matrix, it reverses the order of the rows.
 (To reverse the columns instead, just use @kbd{v t v v v t}.  The same
 principle can be used to apply other vector commands to the columns of
@@ -22672,7 +22702,7 @@ on while doing algebra; @pxref{Fraction Mode}.
 Quotients are simplified by comparing all terms in the numerator
 with all terms in the denominator for possible cancellation using
 the distributive law.  For example, @expr{a x^2 b / c x^3 d} will
-cancel @expr{x^2} from both sides to get @expr{a b / c x d}.
+cancel @expr{x^2} from the top and bottom to get @expr{a b / c x d}.
 (The terms in the denominator will then be rearranged to @expr{c d x}
 as described above.)  If there is any common integer or fractional
 factor in the numerator and denominator, it is cancelled out;
@@ -34603,48 +34633,6 @@ plots.
 
 @end example
 @end ifinfo
-@appendixsec Printed Documentation
-
-@noindent
-Because the Calc manual is so large, you should only make a printed
-copy if you really need it.  To print the manual, you will need the
-@TeX{} typesetting program (this is a free program by Donald Knuth
-at Stanford University) as well as the @file{texindex} program and
-@file{texinfo.tex} file, both of which can be obtained from the FSF
-as part of the @code{texinfo} package.
-
-To print the Calc manual in one huge 470 page tome, you will need the
-source code to this manual, @file{calc.texi}, available as part of the
-Emacs source.  Once you have this file, type @kbd{texi2dvi calc.texi}.
-Alternatively, change to the @file{man} subdirectory of the Emacs
-source distribution, and type @kbd{make calc.dvi}. (Don't worry if you
-get some ``overfull box'' warnings while @TeX{} runs.)
-
-The result will be a device-independent output file called
-@file{calc.dvi}, which you must print in whatever way is right
-for your system.  On many systems, the command is
-
-@example
-lpr -d calc.dvi
-@end example
-
-@noindent
-or
-
-@example
-dvips calc.dvi
-@end example
-
-@c the bumpoddpages macro was deleted
-@ignore
-@cindex Marginal notes, adjusting
-Marginal notes for each function and key sequence normally alternate
-between the left and right sides of the page, which is correct if the
-manual is going to be bound as double-sided pages.  Near the top of
-the file @file{calc.texi} you will find alternate definitions of
-the @code{\bumpoddpages} macro that put the marginal notes always on
-the same side, best if you plan to be binding single-sided pages.
-@end ignore
 
 @appendixsec Settings File
 
@@ -34696,15 +34684,6 @@ belanger@@truman.edu
 @end example
 
 @noindent
-(In the following text, ``I'' refers to the original Calc author, Dave
-Gillespie).
-
-While I cannot guarantee that I will have time to work on your bug,
-I do try to fix bugs quickly whenever I can.
-
-The latest version of Calc is available from Savannah, in the Emacs
-CVS tree.  See @uref{http://savannah.gnu.org/projects/emacs}.
-
 There is an automatic command @kbd{M-x report-calc-bug} which helps
 you to report bugs.  This command prompts you for a brief subject
 line, then leaves you in a mail editing buffer.  Type @kbd{C-c C-c} to
@@ -34712,18 +34691,18 @@ send your mail.  Make sure your subject line indicates that you are
 reporting a Calc bug; this command sends mail to the maintainer's
 regular mailbox.
 
-If you have suggestions for additional features for Calc, I would
-love to hear them.  Some have dared to suggest that Calc is already
-top-heavy with features; I really don't see what they're talking
-about, so, if you have ideas, send them right in.  (I may even have
-time to implement them!)
+If you have suggestions for additional features for Calc, please send
+them.  Some have dared to suggest that Calc is already top-heavy with
+features; this obviously cannot be the case, so if you have ideas, send
+them right in.
 
 At the front of the source file, @file{calc.el}, is a list of ideas for
-future work which I have not had time to do.  If any enthusiastic souls
-wish to take it upon themselves to work on these, I would be delighted.
-Please let me know if you plan to contribute to Calc so I can coordinate
-your efforts with mine and those of others.  I will do my best to help
-you in whatever way I can.
+future work.  If any enthusiastic souls wish to take it upon themselves
+to work on these, please send a message (using @kbd{M-x report-calc-bug})
+so any efforts can be coordinated.
+
+The latest version of Calc is available from Savannah, in the Emacs
+CVS tree.  See @uref{http://savannah.gnu.org/projects/emacs}.
 
 @c [summary]
 @node Summary, Key Index, Reporting Bugs, Top
