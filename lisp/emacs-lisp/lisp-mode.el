@@ -740,28 +740,42 @@ and initial semicolons."
 	(fill-paragraph justify)
 
       ;; Narrow to include only the comment, and then fill the region.
-      (save-restriction
-	(beginning-of-line)
-	(narrow-to-region
-	 ;; Find the first line we should include in the region to fill.
-	 (save-excursion
-	   (while (and (zerop (forward-line -1))
-		       (looking-at "^[ \t]*;")))
-	   ;; We may have gone too far.  Go forward again.
-	   (or (looking-at ".*;")
-	       (forward-line 1))
-	   (point))
-	 ;; Find the beginning of the first line past the region to fill.
-	 (save-excursion
-	   (while (progn (forward-line 1)
+      (save-excursion
+	(save-restriction
+	  (beginning-of-line)
+	  (narrow-to-region
+	   ;; Find the first line we should include in the region to fill.
+	   (save-excursion
+	     (while (and (zerop (forward-line -1))
 			 (looking-at "^[ \t]*;")))
-	   (point)))
+	     ;; We may have gone too far.  Go forward again.
+	     (or (looking-at ".*;")
+		 (forward-line 1))
+	     (point))
+	   ;; Find the beginning of the first line past the region to fill.
+	   (save-excursion
+	     (while (progn (forward-line 1)
+			   (looking-at "^[ \t]*;")))
+	     (point)))
 
-	;; Lines with only semicolons on them can be paragraph boundaries.
-	(let ((paragraph-start (concat paragraph-start "\\|[ \t;]*$"))
-	      (paragraph-separate (concat paragraph-start "\\|[ \t;]*$"))
-	      (fill-prefix comment-fill-prefix))
-	  (fill-paragraph justify))))
+	  ;; Lines with only semicolons on them can be paragraph boundaries.
+	  (let* ((paragraph-start (concat paragraph-start "\\|[ \t;]*$"))
+		 (paragraph-separate (concat paragraph-start "\\|[ \t;]*$"))
+		 (paragraph-ignore-fill-prefix nil)
+		 (fill-prefix comment-fill-prefix)
+		 (end (progn
+			(forward-paragraph)
+			(or (bolp) (newline 1))
+			(point)))
+		 (beg (progn (backward-paragraph) (point))))
+	    (fill-region-as-paragraph beg end
+				      justify nil
+				      (save-excursion
+					(goto-char beg)
+					(if (looking-at fill-prefix)
+					    nil
+					  (re-search-forward comment-start-skip)
+					  (point))))))))
     t))
 
 
