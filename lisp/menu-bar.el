@@ -128,7 +128,7 @@
 (put 'undo 'menu-enable '(if (eq last-command 'undo)
 			     pending-undo-list
 			   (consp buffer-undo-list)))
-(put 'query-replace 'menu-enable (not buffer-read-only))
+(put 'query-replace 'menu-enable '(not buffer-read-only))
 
 (autoload 'ispell-menu-map "ispell" nil t 'keymap)
 
