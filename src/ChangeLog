@@ -1,5 +1,20 @@
 2001-03-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.c (do_switch_frame): Remove unused parameter NO_EVENT, add
+	FOR_DELETION.  Avoid resizing the mini-window of the selected
+	frame if FOR_DELETION is set.
+	(Fselect_frame, Fhandle_switch_frame, Fdelete_frame)
+	(Fmake_frame_invisible): Change calls to do_switch_frame for new
+	signature.
+
+	* window.c (Fset_window_configuration): Change call to
+	do_switch_frame to new format.
+
+	* keyboard.c (quit_throw_to_read_char): Change call to
+	do_switch_frame to new format.
+
+	* lisp.h (do_switch_frame): Change prototype.
+
 	* frame.c (Fframe_parameters): In the `buffer-list' frame
 	parameter, store the buffer list of FRAME, not the list of the
 	selected frame.

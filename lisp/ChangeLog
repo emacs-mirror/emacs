@@ -1,5 +1,7 @@
 2001-03-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* bindings.el (features): Add `md5' and `overlay' to the list.
+
 	* scroll-bar.el (toplevel): Test if `x-toolkit-scroll-bars' is
 	bound before using it.  It's not bound when configured without X,
 	for instance.
