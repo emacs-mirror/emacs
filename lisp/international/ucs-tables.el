@@ -70,17 +70,8 @@
 ;; to inconsistent behaviour between CCL-based coding systems which
 ;; use explicit translation tables and the rest.)
 
-;; Command `ucs-insert' is convenient for inserting a given Unicode.
+;; Command `ucs-insert' is convenient for inserting a given unicode.
 ;; (See also the `ucs' input method.)
-
-;; A replacement CCL program is provided which allows characters in
-;; the `ucs-mule-to-mule-unicode' table to be displayed with an
-;; iso-10646-encoded font.  E.g. to use a `Unicode' font for Cyrillic:
-;;
-;;   (set-fontset-font "fontset-startup"
-;;                     (cons (make-char 'cyrillic-iso8859-5 160)
-;;                           (make-char 'cyrillic-iso8859-5 255))
-;;                     '(nil . "ISO10646-1"))
 
 ;;; Code:
 
@@ -1226,9 +1217,9 @@ unification on input operations."
     (setq-default translation-table-for-input nil))
 
   (when for-encode
-    ;; Make mule-utf-* disabled for all characters in
-    ;; ucs-mule-to-mule-unicode but what originally supported and what
-    ;; translated bt utf-translation-table-for-decode when
+    ;; Disable mule-utf-* encoding for all characters in
+    ;; ucs-mule-to-mule-unicode except what was originally supported
+    ;; and what is translated by utf-translation-table-for-decode when
     ;; `utf-fragment-on-decoding' is non-nil.
     (let ((coding-list '(mule-utf-8 mule-utf-16-be mule-utf-16-le))
 	  (safe (coding-system-get 'mule-utf-8 'safe-chars)))
@@ -2444,9 +2435,10 @@ Interactively, prompts for a hex string giving the code."
 	    (optimize-char-table encode-translator))
 	(if (charsetp cs)
 	    (push cs safe-charsets)
-	  (setq safe-charsets
-		(append (delq 'ascii (coding-system-get cs 'safe-charsets))
-			safe-charsets)))
+	  (if (coding-system-p cs)
+	      (setq safe-charsets
+		    (append (delq 'ascii (coding-system-get cs 'safe-charsets))
+			    safe-charsets))))
 	(cond ((eq cs 'vietnamese-viscii)
 	       (coding-system-put 'vietnamese-viscii
 				  'translation-table-for-input
