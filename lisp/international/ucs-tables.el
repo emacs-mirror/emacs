@@ -2443,11 +2443,7 @@ Interactively, prompts for a hex string giving the code."
 	       (coding-system-put cs 'translation-table-for-input cs)))))
     (optimize-char-table ucs-mule-to-mule-unicode)
     (dolist (c safe-charsets)
-      (aset table (make-char c) t))
-    (coding-system-put 'mule-utf-8 'safe-charsets
-		       (append (coding-system-get 'mule-utf-8 'safe-charsets)
-			       safe-charsets))
-    (register-char-codings 'mule-utf-8 table)))
+      (aset table (make-char c) t))))
 
 (defvar translation-table-for-input (make-translation-table))
 
