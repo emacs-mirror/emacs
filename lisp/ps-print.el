@@ -2367,23 +2367,21 @@ StandardEncoding 46 82 getinterval aload pop
   /SpaceWidth /f0 findfont setfont ( ) stringwidth pop def
   % ---- save the state of the document (useful for ghostscript!)
   /docState save def
+  /JackGhostscript where {pop 1 27.7 29.7 div scale}if
   % ---- [andrewi] set PageSize based on chosen dimensions
   /setpagedevice where {
     pop
     1 dict dup
-      /PageSize [ PrintPageWidth LeftMargin RightMargin add add
-                  LandscapePageHeight ] put
+    /PageSize [ PrintPageWidth LeftMargin add RightMargin add
+                LandscapePageHeight ] put
     setpagedevice
-  } if
-  % ---- [jack] Kludge: my ghostscript window is 21x27.7 instead of 21x29.7
-  /JackGhostscript where {
-    pop 1 27.7 29.7 div scale
-  } if
-  LandscapeMode {
-    % ---- translate to bottom-right corner of Portrait page
-    LandscapePageHeight 0 translate
-    90 rotate
-    } if
+  }{
+    LandscapeMode {
+      % ---- translate to bottom-right corner of Portrait page
+      LandscapePageHeight 0 translate
+      90 rotate
+    }if
+  }ifelse
   /ColumnWidth PrintWidth InterColumn add def
   % ---- translate to lower left corner of TEXT
   LeftMargin BottomMargin translate
@@ -4562,7 +4560,7 @@ page-height == bm + print-height + tm - ho - hh
 
   (ps-mule-initialize)
 
-  (ps-output "%%EndPrologue\n%%BeginSetup\nBeginDoc\n%%EndSetup\n\n")))
+  (ps-output "%%EndPrologue\n%%BeginSetup\nBeginDoc\n%%EndSetup\n\n"))
 
 (defun ps-header-dirpart ()
   (let ((fname (buffer-file-name)))
