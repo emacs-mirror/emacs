@@ -1306,7 +1306,7 @@ main (argc, argv
          creates a full-fledge output_mac type frame.  This does not
          work correctly before syms_of_textprop, syms_of_macfns,
          syms_of_ccl, syms_of_fontset, syms_of_xterm, syms_of_search,
-         syms_of_frame, mac_initialize, and init_keyboard have already
+         syms_of_frame, mac_term_init, and init_keyboard have already
          been called.  */
       syms_of_textprop ();
       syms_of_macfns ();
@@ -1318,7 +1318,7 @@ main (argc, argv
       syms_of_search ();
       syms_of_frame ();
 
-      mac_initialize ();
+      mac_term_init (build_string ("Mac"), NULL, NULL);
       init_keyboard ();
 #endif
 

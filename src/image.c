@@ -83,16 +83,19 @@ typedef struct w32_bitmap_record Bitmap_Record;
 
 #ifdef MAC_OS
 #include "macterm.h"
+#include <sys/stat.h>
 #ifndef MAC_OSX
 #include <alloca.h>
+#include <sys/param.h>
 #endif
 #ifdef MAC_OSX
-#include <sys/stat.h>
 #include <QuickTime/QuickTime.h>
 #else /* not MAC_OSX */
 #include <Windows.h>
 #include <Gestalt.h>
 #include <TextUtils.h>
+#include <ImageCompression.h>
+#include <QuickTimeComponents.h>
 #endif /* not MAC_OSX */
 
 /* MAC_TODO : Color tables on Mac.  */

@@ -218,6 +218,9 @@ struct mac_display_info
   struct image_cache *image_cache;
 };
 
+/* This checks to make sure we have a display.  */
+extern void check_mac P_ ((void));
+
 #define x_display_info mac_display_info
 
 /* This is a chain of structures for all the X displays currently in use.  */
@@ -388,6 +391,9 @@ struct mac_output {
   /* The background for which the above relief GCs were set up.
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
+
+  /* Hints for the size and the position of a window.  */
+  XSizeHints *size_hints;
 };
 
 typedef struct mac_output mac_output;
@@ -406,6 +412,8 @@ typedef struct mac_output mac_output;
 #define FRAME_FONTSET(f) ((f)->output_data.mac->fontset)
 
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.mac->baseline_offset)
+
+#define FRAME_SIZE_HINTS(f) ((f)->output_data.mac->size_hints)
 
 /* This gives the w32_display_info structure for the display F is on.  */
 #define FRAME_MAC_DISPLAY_INFO(f) (&one_mac_display_info)
@@ -596,6 +604,7 @@ extern void XFreePixmap P_ ((Display *, Pixmap));
 extern void XSetForeground P_ ((Display *, GC, unsigned long));
 extern void mac_draw_line_to_pixmap P_ ((Display *, Pixmap, GC, int, int,
 					 int, int));
+extern void mac_unload_font P_ ((struct mac_display_info *, XFontStruct *));
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0

@@ -21908,20 +21908,6 @@ expose_window (w, fr)
 	}
     }
 
-#ifdef HAVE_CARBON
-  /* Display scroll bar for this window.  */
-  if (!NILP (w->vertical_scroll_bar))
-    {
-      /* ++KFS:
-	 If this doesn't work here (maybe some header files are missing),
-	 make a function in macterm.c and call it to do the job! */
-      ControlHandle ch
-	= SCROLL_BAR_CONTROL_HANDLE (XSCROLL_BAR (w->vertical_scroll_bar));
-
-      Draw1Control (ch);
-    }
-#endif
-
   return mouse_face_overwritten_p;
 }
 
@@ -21979,16 +21965,6 @@ expose_frame (f, x, y, w, h)
       TRACE ((stderr, " garbaged\n"));
       return;
     }
-
-#ifdef HAVE_CARBON
-  /* MAC_TODO: this is a kludge, but if scroll bars are not activated
-     or deactivated here, for unknown reasons, activated scroll bars
-     are shown in deactivated frames in some instances.  */
-  if (f == FRAME_MAC_DISPLAY_INFO (f)->x_focus_frame)
-    activate_scroll_bars (f);
-  else
-    deactivate_scroll_bars (f);
-#endif
 
   /* If basic faces haven't been realized yet, there is no point in
      trying to redraw anything.  This can happen when we get an expose

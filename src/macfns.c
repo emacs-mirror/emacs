@@ -158,9 +158,7 @@ Lisp_Object Qshift;
 
 extern Lisp_Object Vwindow_system_version;
 
-extern int mac_initialized;
-
-
+#if 0 /* Use xstricmp instead. */
 /* compare two strings ignoring case */
 
 static int
@@ -171,13 +169,14 @@ stricmp (const char *s, const char *t)
       return 0;
   return tolower (*s) - tolower (*t);
 }
+#endif
 
 /* compare two strings up to n characters, ignoring case */
 
 static int
 strnicmp (const char *s, const char *t, unsigned int n)
 {
-  for ( ; n-- > 0 && tolower (*s) == tolower (*t); s++, t++)
+  for ( ; n > 0 && tolower (*s) == tolower (*t); n--, s++, t++)
     if (*s == '\0')
       return 0;
   return n == 0 ? 0 : tolower (*s) - tolower (*t);
@@ -190,7 +189,7 @@ void
 check_mac ()
 {
   if (! mac_in_use)
-    error ("Mac OS not in use or not initialized");
+    error ("Mac native windows not in use or not initialized");
 }
 
 /* Nonzero if we can use mouse menus.
@@ -228,33 +227,28 @@ struct mac_display_info *
 check_x_display_info (frame)
      Lisp_Object frame;
 {
-  if (!mac_initialized)
-    {
-      mac_initialize ();
-      mac_initialized = 1;
-    }
+  struct mac_display_info *dpyinfo = NULL;
 
   if (NILP (frame))
     {
       struct frame *sf = XFRAME (selected_frame);
 
       if (FRAME_MAC_P (sf) && FRAME_LIVE_P (sf))
-	return FRAME_MAC_DISPLAY_INFO (sf);
+	dpyinfo = FRAME_MAC_DISPLAY_INFO (sf);
+      else if (x_display_list != 0)
+	dpyinfo = x_display_list;
       else
-	return &one_mac_display_info;
+	error ("Mac native windows are not in use or not initialized");
     }
   else if (STRINGP (frame))
-    return x_display_info_for_name (frame);
+    dpyinfo = x_display_info_for_name (frame);
   else
     {
-      FRAME_PTR f;
-
-      CHECK_LIVE_FRAME (frame);
-      f = XFRAME (frame);
-      if (! FRAME_MAC_P (f))
-	error ("non-mac frame used");
-      return FRAME_MAC_DISPLAY_INFO (f);
+      FRAME_PTR f = check_x_frame (frame);
+      dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
     }
+
+  return dpyinfo;
 }
 
 /* Return the Emacs frame-object corresponding to a mac window.
@@ -1109,7 +1103,7 @@ mac_color_map_lookup (colorname)
   BLOCK_INPUT;
 
   for (i = 0; i < sizeof (mac_color_map) / sizeof (mac_color_map[0]); i++)
-    if (stricmp (colorname, mac_color_map[i].name) == 0)
+    if (xstricmp (colorname, mac_color_map[i].name) == 0)
       {
         ret = make_number (mac_color_map[i].color);
         break;
@@ -2059,13 +2053,49 @@ x_set_scroll_bar_default_width (f)
 
 /* Subroutines of creating a frame.  */
 
+static char *
+mac_get_rdb_resource (rdb, resource)
+     char *rdb;
+     char *resource;
+{
+  char *value = rdb;
+  int len = strlen (resource);
+
+  while (*value)
+    {
+      if ((strncmp (value, resource, len) == 0) && (value[len] == ':'))
+        return xstrdup (&value[len + 1]);
+
+      value = strchr (value, '\0') + 1;
+    }
+
+  return NULL;
+}
+
+/* Retrieve the string resource specified by NAME with CLASS from
+   database RDB. */
+
 char *
 x_get_string_resource (rdb, name, class)
      XrmDatabase rdb;
      char *name, *class;
 {
-  /* MAC_TODO: implement resource strings */
+  if (rdb)
+    {
+      char *resource;
+
+      if (resource = mac_get_rdb_resource (rdb, name))
+        return resource;
+      if (resource = mac_get_rdb_resource (rdb, class))
+        return resource;
+    }
+
+  /* MAC_TODO: implement resource strings.  (Maybe Property Lists?)  */
+#if 0
+  return mac_get_string_resource (name, class);
+#else
   return (char *)0;
+#endif
 }
 
 /* Return the value of parameter PARAM.
@@ -2229,36 +2259,38 @@ XParseGeometry (string, x, y, width, height)
 }
 
 
-#if 0 /* MAC_TODO */
 /* Create and set up the Mac window for frame F.  */
 
+extern install_window_handler (WindowPtr);
+
 static void
-mac_window (f, window_prompting, minibuffer_only)
+mac_window (f)
      struct frame *f;
-     long window_prompting;
-     int minibuffer_only;
 {
   Rect r;
 
   BLOCK_INPUT;
 
-  /* Use the resource name as the top-level window name
-     for looking up resources.  Make a non-Lisp copy
-     for the window manager, so GC relocation won't bother it.
-
-     Elsewhere we specify the window name for the window manager.  */
-
-  {
-    char *str = (char *) SDATA (Vx_resource_name);
-    f->namebuf = (char *) xmalloc (strlen (str) + 1);
-    strcpy (f->namebuf, str);
-  }
-
   SetRect (&r, f->left_pos, f->top_pos,
            f->left_pos + FRAME_PIXEL_WIDTH (f),
            f->top_pos + FRAME_PIXEL_HEIGHT (f));
+#if TARGET_API_MAC_CARBON
+  CreateNewWindow (kDocumentWindowClass,
+		   kWindowStandardDocumentAttributes
+		   /* | kWindowToolbarButtonAttribute */,
+		   &r, &FRAME_MAC_WINDOW (f));
+  if (FRAME_MAC_WINDOW (f))
+    {
+      SetWRefCon (FRAME_MAC_WINDOW (f), (long) f->output_data.mac);
+      install_window_handler (FRAME_MAC_WINDOW (f));
+    }
+#else
   FRAME_MAC_WINDOW (f)
-    = NewCWindow (NULL, &r, "\p", 1, zoomDocProc, (WindowPtr) -1, 1, (long) f->output_data.mac);
+    = NewCWindow (NULL, &r, "\p", false, zoomDocProc,
+		  (WindowPtr) -1, 1, (long) f->output_data.mac);
+#endif
+  /* so that update events can find this mac_output struct */
+  f->output_data.mac->mFP = f;  /* point back to emacs frame */
 
   validate_x_resource_name ();
 
@@ -2276,17 +2308,11 @@ mac_window (f, window_prompting, minibuffer_only)
     x_set_name (f, name, explicit);
   }
 
-  ShowWindow (FRAME_MAC_WINDOW (f));
-
   UNBLOCK_INPUT;
-
-  if (!minibuffer_only && FRAME_EXTERNAL_MENU_BAR (f))
-    initialize_frame_menubar (f);
 
   if (FRAME_MAC_WINDOW (f) == 0)
     error ("Unable to create window");
 }
-#endif /* MAC_TODO */
 
 /* Handle the icon stuff for this window.  Perhaps later we might
    want an x_set_icon_position which can be called interactively as
@@ -2703,6 +2729,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "bufferPredicate", "BufferPredicate", RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qtitle, Qnil,
 		       "title", "Title", RES_TYPE_STRING);
+  x_default_parameter (f, parms, Qfullscreen, Qnil,
+                       "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
   f->output_data.mac->parent_desc = FRAME_MAC_DISPLAY_INFO (f)->root_window;
 
@@ -2728,8 +2756,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   tem = mac_get_arg (parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
-  /* mac_window (f, window_prompting, minibuffer_only); */
-  make_mac_frame (f);
+  mac_window (f);
 
   x_icon (f, parms);
   x_make_gc (f);
@@ -2763,14 +2790,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
   FRAME_LINES (f) = 0;
   change_frame_size (f, height, width, 1, 0, 0);
 
-#if 0 /* MAC_TODO: when we have window manager hints */
   /* Tell the server what size and position, etc, we want, and how
      badly we want them.  This should be done after we have the menu
      bar so that its size can be taken into account.  */
   BLOCK_INPUT;
   x_wm_set_size_hint (f, window_prompting, 0);
   UNBLOCK_INPUT;
-#endif
 
   /* Make the window appear on the frame and enable display, unless
      the caller says not to.  However, with explicit parent, Emacs
@@ -3144,6 +3169,9 @@ x_display_info_for_name (name)
 
   CHECK_STRING (name);
 
+  if (! EQ (Vwindow_system, intern ("mac")))
+    error ("Not using Mac native windows");
+
   for (dpyinfo = &one_mac_display_info, names = x_display_name_list;
        dpyinfo;
        dpyinfo = dpyinfo->next, names = XCDR (names))
@@ -3171,7 +3199,6 @@ x_display_info_for_name (name)
   return dpyinfo;
 }
 
-#if 0 /* MAC_TODO: implement network support */
 DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
        1, 3, 0,
        doc: /* Open a connection to a server.
@@ -3190,7 +3217,7 @@ terminate Emacs if we can't open the connection.  */)
     CHECK_STRING (xrm_string);
 
   if (! EQ (Vwindow_system, intern ("mac")))
-    error ("Not using Mac OS");
+    error ("Not using Mac native windows");
 
   if (! NILP (xrm_string))
     xrm_option = (unsigned char *) SDATA (xrm_string);
@@ -3238,11 +3265,9 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name)
       {
-        if (dpyinfo->font_table[i].name != dpyinfo->font_table[i].full_name)
-          xfree (dpyinfo->font_table[i].full_name);
-        xfree (dpyinfo->font_table[i].name);
-        x_unload_font (dpyinfo, dpyinfo->font_table[i].font);
+        mac_unload_font (dpyinfo, dpyinfo->font_table[i].font);
       }
+
   x_destroy_all_bitmaps (dpyinfo);
 
   x_delete_display (dpyinfo);
@@ -3250,7 +3275,6 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
 
   return Qnil;
 }
-#endif /* 0 */
 
 DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
        doc: /* Return the list of display names that Emacs has connections to.  */)
@@ -3813,18 +3837,23 @@ x_create_tip_frame (dpyinfo, parms, text)
 
     BLOCK_INPUT;
     SetRect (&r, 0, 0, 1, 1);
+#if TARGET_API_MAC_CARBON
     if (CreateNewWindow (kHelpWindowClass,
 #ifdef MAC_OS_X_VERSION_10_2
 			 kWindowIgnoreClicksAttribute |
 #endif
+			 kWindowNoUpdatesAttribute |
 			 kWindowNoActivatesAttribute,
 			 &r, &tip_window) == noErr)
+#else
+    if (tip_window = NewCWindow (NULL, &r, "\p", false, plainDBox,
+				 NULL, false, 0L))
+#endif
       {
 	FRAME_MAC_WINDOW (f) = tip_window;
 	SetWRefCon (tip_window, (long) f->output_data.mac);
 	/* so that update events can find this mac_output struct */
 	f->output_data.mac->mFP = f;
-	ShowWindow (tip_window);
       }
     UNBLOCK_INPUT;
   }
@@ -4140,6 +4169,7 @@ Text larger than the specified size is clipped.  */)
   BLOCK_INPUT;
   MoveWindow (FRAME_MAC_WINDOW (f), root_x, root_y, false);
   SizeWindow (FRAME_MAC_WINDOW (f), width, height, true);
+  ShowWindow (FRAME_MAC_WINDOW (f));
   BringToFront (FRAME_MAC_WINDOW (f));
   UNBLOCK_INPUT;
 
@@ -4198,7 +4228,7 @@ Value is t if tooltip was open, nil otherwise.  */)
 
 
 
-#ifdef TARGET_API_MAC_CARBON
+#if TARGET_API_MAC_CARBON
 /***********************************************************************
 			File selection dialog
  ***********************************************************************/
@@ -4405,14 +4435,19 @@ frame_parm_handler mac_frame_parm_handlers[] =
   x_set_fringe_width,
   x_set_fringe_width,
   0, /* x_set_wait_for_wm, */
-  0, /* MAC_TODO: x_set_fullscreen, */
+  x_set_fullscreen,
 };
 
 void
 syms_of_macfns ()
 {
-  /* Certainly running on Mac.  */
+#ifdef MAC_OSX
+  /* This is zero if not using Mac native windows.  */
+  mac_in_use = 0;
+#else
+  /* Certainly running on Mac native windows.  */
   mac_in_use = 1;
+#endif
 
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
@@ -4536,10 +4571,8 @@ Chinese, Japanese, and Korean.  */);
   defsubr (&Sx_display_backing_store);
   defsubr (&Sx_display_save_under);
   defsubr (&Sx_create_frame);
-#if 0 /* MAC_TODO: implement network support */
   defsubr (&Sx_open_connection);
   defsubr (&Sx_close_connection);
-#endif
   defsubr (&Sx_display_list);
   defsubr (&Sx_synchronize);
 

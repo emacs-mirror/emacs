@@ -62,18 +62,17 @@ typedef unsigned long Time;
 #else
 #include <QuickDraw.h>		/* for WindowPtr */
 #include <QDOffscreen.h>	/* for GWorldPtr */
-#include <Controls.h>		/* for ControlHandle in xdisp.c */
+#include <Windows.h>
 #include <Gestalt.h>
 #endif
 
+typedef WindowPtr Window;
 typedef GWorldPtr Pixmap;
 
 #if TARGET_API_MAC_CARBON
-typedef struct OpaqueWindowPtr *Window;
 #define Cursor ThemeCursor
 #define No_Cursor (-1)
 #else
-typedef WindowPtr Window;
 #define SetPortWindowPort(w) SetPort(w)
 #define Cursor CursHandle
 #define No_Cursor (0)
@@ -197,6 +196,29 @@ XCreateGC (void *, Window, unsigned long, XGCValues *);
 #define AllValues 	0x000F
 #define XNegative 	0x0010
 #define YNegative 	0x0020
+
+typedef struct {
+    	long flags;	/* marks which fields in this structure are defined */
+#if 0
+	int x, y;		/* obsolete for new window mgrs, but clients */
+	int width, height;	/* should set so old wm's don't mess up */
+#endif
+	int min_width, min_height;
+#if 0
+	int max_width, max_height;
+#endif
+    	int width_inc, height_inc;
+#if 0
+	struct {
+		int x;	/* numerator */
+		int y;	/* denominator */
+	} min_aspect, max_aspect;
+#endif
+	int base_width, base_height;		/* added by ICCCM version 1 */
+#if 0
+	int win_gravity;			/* added by ICCCM version 1 */
+#endif
+} XSizeHints;
 
 #define USPosition	(1L << 0) /* user specified x, y */
 #define USSize		(1L << 1) /* user specified width, height */

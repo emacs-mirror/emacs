@@ -1,3 +1,130 @@
+2004-12-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h: Change HAVE_CARBON to MAC_OS.
+	(struct glyph_string): Likewise.
+	* emacs.c (main) [MAC_OS8]: Call mac_term_init instead of
+	mac_initialize.
+	* fileio.c (Fnext_read_file_uses_dialog_p, Fread_file_name):
+	Change TARGET_API_MAC_CARBON to HAVE_CARBON.
+	* fns.c (vector): Change MAC_OSX to MAC_OS.
+	* frame.c (x_set_frame_parameters, x_report_frame_params)
+	(x_set_fullscreen): Remove #ifndef HAVE_CARBON.
+	(x_set_border_width, Vdefault_frame_scroll_bars): Change
+	HAVE_CARBON to MAC_OS.
+	* image.c [MAC_OS]: Include sys/stat.h.
+	[MAC_OS && !MAC_OSX]: Include sys/param.h, ImageCompression.h, and
+	QuickTimeComponents.h.
+	* mac.c [!MAC_OSX] (mac_wait_next_event): Add extern.
+	[!MAC_OSX] (select): Use mac_wait_next_event.
+	[!MAC_OSX] (run_mac_command): Change EXEC_SUFFIXES to
+	Vexec_suffixes.
+	[!MAC_OSX] (select, run_mac_command): Change `#ifdef
+	TARGET_API_MAC_CARBON' to `#if TARGET_API_MAC_CARBON'.
+	(mac_clear_font_name_table): Add extern.
+	(Fmac_clear_font_name_table): New defun.
+	(syms_of_mac): Defsubr it.
+	[MAC_OSX] (SELECT_POLLING_PERIOD_USEC): New define.
+	[MAC_OSX] (select_and_poll_event): New function.
+	[MAC_OSX] (sys_select): Use it.
+	[MAC_OSX && SELECT_USE_CFSOCKET] (socket_callback): New function.
+	[MAC_OSX && SELECT_USE_CFSOCKET]
+	(SELECT_TIMEOUT_THRESHOLD_RUNLOOP, EVENT_CLASS_SOCK): New defines.
+	[MAC_OSX] (sys_select) [SELECT_USE_CFSOCKET]: Use CFSocket and
+	RunLoop for simultaneously monitoring two kinds of inputs, window
+	events and process outputs, without periodically polling.
+	* macfns.c (mac_initialized): Remove extern.
+	(stricmp): Put in #if 0.  All callers changed to use xstricmp in
+	xfaces.c.
+	(strnicmp): Decrement `n' at the end of each loop, not the
+	beginning.
+	(check_mac): Use the term "Mac native windows" instead of "Mac
+	OS".
+	(check_x_display_info, x_display_info_for_name): Sync with xfns.c.
+	(mac_get_rdb_resource): New function (from w32reg.c).
+	(x_get_string_resource): Use it.
+	(install_window_handler): Add extern.
+	(mac_window): New function.
+	(Fx_create_frame): Use it instead of make_mac_frame.  Set
+	parameter for Qfullscreen.  Call x_wm_set_size_hint.
+	(Fx_open_connection, Fx_close_connection): New defuns.
+	(syms_of_macfns): Defsubr them.
+	(x_create_tip_frame) [TARGET_API_MAC_CARBON]: Add
+	kWindowNoUpdatesAttribute to the window attribute.
+	(x_create_tip_frame) [!TARGET_API_MAC_CARBON]: Use NewCWindow.
+	(x_create_tip_frame): Don't call ShowWindow.
+	(Fx_show_tip): Call ShowWindow.
+	(Fx_file_dialog): Change `#ifdef TARGET_API_MAC_CARBON' to `#if
+	TARGET_API_MAC_CARBON'.
+	(mac_frame_parm_handlers): Set handlers for Qfullscreen.
+	(syms_of_macfns) [MAC_OSX]: Initialize mac_in_use to 0.
+	* macgui.h [!MAC_OSX]: Don't include Controls.h.  Include
+	Windows.h.
+	(Window): Typedef to WindowPtr and move outside `#if
+	TARGET_API_MAC_CARBON'.
+	(XSizeHints): New struct.
+	* macterm.c (x_update_begin, x_update_end)
+	[TARGET_API_MAC_CARBON]: Disable screen updates during update of a
+	frame.
+	(x_draw_glyph_string_background, x_draw_glyph_string_foreground)
+	[MAC_OS8]: Use XDrawImageString/XDrawImageString16.
+	(construct_mouse_click): Put in #if 0.
+	(x_check_fullscreen, x_check_fullscreen_move): Remove decls.
+	(x_scroll_bar_create, x_scroll_bar_handle_click): Change `#ifdef
+	TARGET_API_MAC_CARBON' to `#if TARGET_API_MAC_CARBON'.
+	(activate_scroll_bars, deactivate_scroll_bars)
+	[!TARGET_API_MAC_CARBON]: Use ActivateControl/DeactivateControl.
+	(x_make_frame_visible) [TARGET_API_MAC_CARBON]: Reposition window
+	if the position is neither user-specified nor program-specified.
+	(x_free_frame_resources): Free size_hints.
+	(x_wm_set_size_hint): Allocate size_hints if needed.  Set
+	size_hints.
+	(mac_clear_font_name_table): New function.
+	(mac_do_list_fonts): Initialize font_name_table if needed.
+	(x_list_fonts): Don't initialize font_name_table.  Add BLOCK_INPUT
+	around mac_do_list_fonts.
+	(mac_unload_font): New function.
+	(x_load_font): Add BLOCK_INPUT around XLoadQueryFont.
+	(init_mac_drag_n_drop, mac_do_receive_drag): Enclose declarations
+	and definitions with #if TARGET_API_MAC_CARBON.
+	[USE_CARBON_EVENTS] (mac_handle_window_event): Add decl.
+	(install_window_handler): Add decl.
+	(do_window_update): Add BeginUpdate/EndUpdate for the tooltip
+	window.  Use UpdateControls.  Get the rectangle that should be
+	updated and restrict the target of expose_frame to it.
+	(do_grow_window): Set minimum height/width according to
+	size_hints.
+	(do_grow_window) [TARGET_API_MAC_CARBON]: Use ResizeWindow.
+	(do_zoom_window): Don't use x_set_window_size.
+	[USE_CARBON_EVENTS] (mac_handle_window_event): New function.
+	(install_window_handler): New function.
+	[!USE_CARBON_EVENTS] (mouse_region): New variable.
+	[!USE_CARBON_EVENTS] (mac_wait_next_event): New function.
+	(XTread_socket) [USE_CARBON_EVENTS]: Move call to
+	GetEventDispatcherTarget inside BLOCK_INPUT.
+	(XTread_socket) [!USE_CARBON_EVENTS]: Use mac_wait_next_event.
+	Update mouse_region when mouse is moved.
+	(make_mac_frame): Remove.
+	(make_mac_terminal_frame): Put in #ifdef MAC_OS8.  Initialize
+	mouse pointer shapes.  Change values of f->left_pos and
+	f->top_pos.  Don't use make_mac_frame.  Use NewCWindow.  Don't
+	call ShowWindow.
+	(mac_initialize_display_info) [MAC_OSX]: Create mac_id_name from
+	Vinvocation_name and Vsystem_name.
+	(mac_make_rdb): New function (from w32term.c).
+	(mac_term_init): Use it.  Add BLOCK_INPUT.  Error if display has
+	already been opened.  Don't pass argument to
+	mac_initialize_display_info.  Don't set dpyinfo->height/width.
+	Add entries to x_display_list and x_display_name_list.
+	(x_delete_display): New function.
+	(mac_initialize): Don't call mac_initialize_display_info.
+	(syms_of_macterm) [!MAC_OSX]: Don't call Fprovide.	
+	* macterm.h (check_mac): Add extern.
+	(struct mac_output): New member size_hints.
+	(FRAME_SIZE_HINTS): New macro.
+	(mac_unload_font): Add extern.
+	* xdisp.c (expose_window, expose_frame): Remove kludges for Mac.
+	* xfaces.c (clear_font_table) [MAC_OS]: call mac_unload_font.
+
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
 	* buffer.c (Fbuffer_disable_undo): Deleted (moved to simple.el).
