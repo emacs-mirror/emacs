@@ -1,16 +1,20 @@
+2002-09-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mail/sendmail.el (mail-mode): Don't set local-abbrev-table.
+	(mail-mode-abbrev-table): Set to text-mode-abbrev-table.
+
 2002-09-02  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.15 released.
 	(require 'base64): Most modern Emacsen have the base64
 	encode/decode functions built in, so test to see if they are bound
-	before we go blindly requiring base64.el.  From Steve Youngs
-	<youngs@xemacs.org>.
+	before we go blindly requiring base64.el.
+	From Steve Youngs <youngs@xemacs.org>.
 	(tramp-feature-write-region-fix): XEmacs doesn't have a
 	'find-operation-coding-system' and this variable doesn't seem to
-	be used anywhere so wrap it in (unless (featurep 'xemacs)).  From
-	Steve Youngs <youngs@xemacs.org>.
-	(tramp-methods): Remove duplicate definition of ssh1-old and
-	ssh2-old.
+	be used anywhere so wrap it in (unless (featurep 'xemacs)).
+	From Steve Youngs <youngs@xemacs.org>.
+	(tramp-methods): Remove duplicate definition of ssh1-old and ssh2-old.
 	(tramp-open-connection-su): Use user name "root" if no user name
 	is given.
 
@@ -25,7 +29,7 @@
 	passing to tramp-invoke-ange-ftp 'set-file-modes.
 	(tramp-invoke-ange-ftp): `tramp-disable-ange-ftp' must be called
 	again after activating `ange-ftp'.
-	
+
 2002-09-02  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-ignore-item-temp-list): New variable.
@@ -89,6 +93,20 @@
 	* font-core.el (font-lock-change-mode): Avoid changing buffer
 	state in any way.
 
+2002-08-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easymenu.el (easy-menu-filter-return):
+	Handle the case where the filter returns a single menu entry.
+	(easy-menu-add): Improve docstring.
+	(easy-menu-current-active-maps): Remove.
+	(easy-menu-get-map): Use current-active-maps.
+
+	* cus-edit.el (custom-unlispify-menu-entry): Don't remove
+	the -p prefix from variables since they shouldn't have it anyway.
+	(custom-group-menu-create, customize-menu-create):
+	Only cdr if applicable, since custom-menu-create might return
+	a vector (i.e. a single menu entry).
+
 2002-08-30  Edward M. Reingold  <reingold@emr.cs.iit.edu>
 
 	* calendar/diary-lib.el (diary-mail-entries): Don't overwrite
@@ -149,9 +167,28 @@
 	(occur-mode): Use it.
 	(occur-hook): Set default to nil.
 
+2002-08-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* net/ange-ftp.el: Use match-string and drop useless `function's.
+	(ange-ftp-get-process): Bind `ange-ftp-this-user' and
+	`ange-ftp-this-host' before running ange-ftp-process-startup-hook.
+	(ange-ftp-ls-parser): Use `switches' arg instead of dynamic binding.
+	(ange-ftp-parse-dired-listing): Update the calls.
+	(dired-local-variables-file): Declare to shut quieten the compiler.
+	(ange-ftp-file-entry-active-p): Remove.
+	(ange-ftp-file-name-all-completions, ange-ftp-file-name-completion):
+	Don't exclude dangling symlinks.
+	(ange-ftp-file-name-completion-1): Make predicate optional.
+	(ange-ftp-parse-list-func-alist): Use add-to-list to update.
+	(ange-ftp-fix-name-for-bs2000): Use subst-char-in-string.
+	(ange-ftp-bs2000-posix-hook-installed): Remove.
+	(ange-ftp-add-bs2000-posix-host): Don't use it anymore.
+	(ange-ftp-bs2000-cd-to-posix): Use `ange-ftp-this-user' and
+	`ange-ftp-this-host' instead of `user' and `host'.
+
 2002-08-29  Richard M. Stallman  <rms@gnu.org>
 
-	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix): 
+	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix):
 	Decide here whether to print which form we're compiling.
 	If we do that, still print file and line.  Make file name
 	relative to default-directory.	Print fewer newlines.
@@ -162,7 +199,7 @@
 	(byte-compile-warning-series): New function.
 	(byte-compile-file): Set byte-compile-last-logged-file, don't bind it.
 	(byte-compile-display-log-head-p): Function deleted.
-	
+
 	* warnings.el (warning-series): Now can be a marker, not an integer.
 	(display-warning): Handle new value for warning-series.
 
@@ -172,13 +209,13 @@
 
 2002-08-29  Kim F. Storm  <storm@cua.dk>
 
-	* kmacro.el: Changed default bindings from F7/F8 to F3/F4.
-	Changed default binding of C-x e to kmacro-end-or-call-macro.
+	* kmacro.el: Change default bindings from F7/F8 to F3/F4.
+	Change default binding of C-x e to kmacro-end-or-call-macro.
 	(kmacro-call-repeat-key, kmacro-call-repeat-with-arg): New custom
 	variables.
 	(kmacro-get-prefix-arg): New function.
-	(kmacro-repeat-on-last-key): Renamed from kmacro-repeat-loop and improved.
-	Callers changed.
+	(kmacro-repeat-on-last-key): Rename from kmacro-repeat-loop and
+	improve.  Callers changed.
 	(kmacro-call-macro): Repeat macro by repeating last key or
 	key defined in kmacro-call-repeat-key.  New third arg non-nil
 	means to end current macro.
