@@ -1,3 +1,9 @@
+2000-10-04  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* emacs.texi (Top): Update version in `Antinews' menu entry.
+	(Copying): Change example year to `20yy'.
+	* mh-e.texi (Copying): Likewise.
+
 2000-09-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* search.texi (Other Repeating Search): Describe `how-many'
