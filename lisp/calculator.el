@@ -4,7 +4,7 @@
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
-;; Time-stamp: <2001-10-11 16:18:29 eli>
+;; Time-stamp: <2003-01-22 17:35:34 jbarranquero>
 
 ;; This file is part of GNU Emacs.
 
@@ -129,14 +129,14 @@ character, in this case the `calculator-standard-displayer' function
 will be used with this character for a format string.")
 
 (defcustom calculator-displayers
-  '(((std ?n) "Standard dislpay, decimal point or scientific")
+  '(((std ?n) "Standard display, decimal point or scientific")
     (calculator-eng-display "Eng display")
     ((std ?f) "Standard display, decimal point")
-    ((std ?e) "Standard dislpay, scientific")
+    ((std ?e) "Standard display, scientific")
     ("%S"     "Emacs printer"))
   "*A list of displayers.
 Each element is a list of a displayer and a description string.  The
-first element is the one which is curently used, this is for the display
+first element is the one which is currently used, this is for the display
 of result values not values in expressions.  A displayer specification
 is the same as the values that can be stored in `calculator-displayer'.
 
@@ -537,7 +537,7 @@ Used for repeating operations in calculator-repR/L.")
              ,@(mapcar (lambda (x) (nth 1 x)) radix-selectors)
              "---"
              ,@(mapcar (lambda (x) (nth 2 x)) radix-selectors)))
-           ("Decimal Dislpay"
+           ("Decimal Display"
             ,@(mapcar (lambda (d)
                         (vector (cadr d)
                                 ;; Note: inserts actual object here
@@ -721,7 +721,7 @@ See the documentation for `calculator-mode' for more information."
     (calculator)))
 
 ;;;---------------------------------------------------------------------
-;;; Operatos
+;;; Operators
 
 (defun calculator-op-arity (op)
   "Return OP's arity, 2, +1 or -1."
