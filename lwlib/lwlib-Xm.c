@@ -265,7 +265,10 @@ destroy_all_children (widget, first_child_to_destroy)
 	  XtSetArg (al[0], XmNsubMenuId, &submenu); 
   	  XtGetValues (children[i], al, 1);
 	  if (submenu)
-	    XtDestroyWidget (submenu);
+            {
+              destroy_all_children (submenu, 0);
+              XtDestroyWidget (submenu);
+            }
 	  XtDestroyWidget (children[i]);
 	}
 
@@ -731,6 +734,9 @@ update_one_menu_entry (instance, widget, val, deep_p)
 			     (XtPointer)instance);
 	      XtManageChild (button);
 	    }
+
+          if (widget_list)
+            XtFree ((char*) widget_list);
 	}
     }
   else if (!contents)

@@ -1,3 +1,9 @@
+2003-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* lwlib-Xm.c (update_one_menu_entry): Deallocate widget_list.
+	(destroy_all_children): Call it self to destroy sub menu children.
+
+
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Version 21.2 released.
