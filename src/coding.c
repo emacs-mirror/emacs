@@ -2208,6 +2208,8 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	DECODE_COMPOSITION_END ('1');
       src = src_base;
       c = *src++;
+      if (! NILP (translation_table))
+	c = translate_char (translation_table, c, 0, 0, 0);
       EMIT_CHAR (c);
     }
 
