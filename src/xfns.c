@@ -2187,7 +2187,7 @@ fonts), even if they match PATTERN and FACE.")
       if (face_id < 0 || face_id > FRAME_N_FACES (f))
 	face_id = 0;
       size_ref = FRAME_FACES (f) [face_id]->font;
-      if (size_ref == (XFontStruct *) (~0))
+      if (size_ref == (XFontStruct *) (~0) || size_ref == NULL)
 	size_ref = f->display.x->font;
     }
 
