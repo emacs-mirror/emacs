@@ -52,6 +52,9 @@ knows about many aspects of C syntax.
 indents to the next tab stop column.  You can set the tab stops with
 @kbd{M-x edit-tab-stops}.
 
+  Normally, @key{TAB} inserts a mix of tabs and spaces to indent lines.
+@xref{Just Spaces}, for how to override that.
+
 @menu
 * Indentation Commands::  Various commands and techniques for indentation.
 * Tab Stops::             You can set arbitrary "tab stops" and then
