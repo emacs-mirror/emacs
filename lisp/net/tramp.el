@@ -159,7 +159,8 @@ Nil means to use a separate filename syntax for Tramp.")
 
 (defgroup tramp nil
   "Edit remote files with a combination of rsh and rcp or similar programs."
-  :group 'files)
+  :group 'files
+  :version "21.4")
 
 (defcustom tramp-verbose 9
   "*Verbosity level for tramp.el.  0 means be silent, 10 is most verbose."
