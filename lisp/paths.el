@@ -52,8 +52,10 @@ comparision."
 		    dirs)))
 
 (defvar Info-default-directory-list
-  (let* ((config
-	  (list (file-name-as-directory configure-info-directory)))
+  (let* ((config-dir
+	  (file-name-as-directory configure-info-directory))
+	 (config
+	  (list config-dir))
 	 (unpruned-prefixes
 	  ;; Directory trees that may not exist at installation time, and
 	  ;; so shouldn't be pruned based on existance.
@@ -66,22 +68,32 @@ comparision."
 	  ;; Subdirectories in each directory tree that may contain info
 	  ;; directories.
 	  '("" "share/" "gnu/" "gnu/lib/" "gnu/lib/emacs/"
-	    "emacs/" "lib/" "lib/emacs/")))
-    (nconc
-     (apply #'nconc
-	    (mapcar (lambda (pfx)
-		      (let ((dirs
-			     (mapcar (lambda (sfx) (concat pfx sfx "info/"))
-				     suffixes)))
-			(if (member pfx unpruned-prefixes)
-			    dirs
-			  (prune-directory-list dirs config))))
-		    prefixes))
-     config))
+	    "emacs/" "lib/" "lib/emacs/"))
+	 (standard-info-dirs
+	  (apply #'nconc
+		 (mapcar (lambda (pfx)
+			   (let ((dirs
+				  (mapcar (lambda (sfx)
+					    (concat pfx sfx "info/"))
+					  suffixes)))
+			     (if (member pfx unpruned-prefixes)
+				 dirs
+			       (prune-directory-list dirs config))))
+			 prefixes))))
+    ;; If $(prefix)/info is not one of the standard info directories,
+    ;; they are probably installing an experimental version of Emacs,
+    ;; so make sure that experimental version's Info files override
+    ;; the ones in standard directories.
+    (if (member config-dir standard-info-dirs)
+	(nconc (delete config-dir standard-info-dirs) config)
+      (cons config-dir standard-info-dirs)))
   "Default list of directories to search for Info documentation files.
 They are searched in the order they are given in the list.
 Therefore, the directory of Info files that come with Emacs
-normally should come last (so that local files override standard ones).
+normally should come last (so that local files override standard ones),
+unless Emacs is installed into a non-standard directory.  In the latter
+case, the directory of Info files that come with Emacs should be
+first in this list.
 
 Once Info is started, the list of directories to search
 comes from the variable `Info-directory-list'.
