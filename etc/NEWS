@@ -97,6 +97,13 @@ to get the old behavior.  The new options `save-place-save-skipped'
 and `save-place-skip-check-regexp' allow further fine-tuning of this
 feature.
 
+** You can have several Emacs servers on the same machine.
+
+	% emacs --eval '(setq server-name "foo")' -f server-start &
+	% emacs --eval '(setq server-name "bar")' -f server-start &
+	% emacsclient -s foo file1
+	% emacsclient -s bar file2
+
 ** On window systems, lines which are exactly as wide as the window
 (not counting the final newline character) are no longer broken into
 two lines on the display (with just the newline on the second line).

@@ -1,12 +1,25 @@
+2004-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-name): New var.
+	(server-socket-dir): New var to replace server-socket-name.
+	(server-start): Use them.
+
 2004-03-11  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-read-response): Abort if process has
 	died to avoid infloop.  Reported by Jonathan Glauner
 	<jglauner@sbum.org>.
 
+2004-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-check-cache, smerge-check): New var and fun.
+	(smerge-mode-menu): Use it to deactivate menu entries.
+	(smerge-keep-current): New fun.
+	(smerge-keep-current): Use it.
+
 2004-03-10  John Paul Wallington  <jpw@gnu.org>
 
-	* foldout.el (foldout-fold-list, foldout-modeline-string): 
+	* foldout.el (foldout-fold-list, foldout-modeline-string):
 	Declare them as variables, not constants.
 
 2004-03-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
