@@ -265,7 +265,7 @@ do_scrolling (frame, matrix, window_size, unchanged_at_top)
       bcopy (current_frame->pix_height, temp_frame->pix_height,
 	     current_frame->height * sizeof (short));
       bcopy (current_frame->max_ascent, temp_frame->max_ascent,
-	     current_frame->height * sizeof (int));
+	     current_frame->height * sizeof (short));
     }
 #endif
 
