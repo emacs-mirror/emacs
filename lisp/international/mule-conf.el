@@ -293,6 +293,7 @@
 (put 'undecided 'eol-type
      (make-subsidiary-coding-system 'undecided))
 
+(define-coding-system-alias 'unix 'undecided-unix)
 (define-coding-system-alias 'dos 'undecided-dos)
 (define-coding-system-alias 'mac 'undecided-mac)
 
