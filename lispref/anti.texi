@@ -1,0 +1,582 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 1993 Free Software Foundation, Inc. 
+@c See the file elisp.texi for copying conditions.
+@node Antinews, Index, Standard Hooks, Top
+@appendix Emacs 18 Antinews
+
+For those users who live backwards in time, here is information about
+downgrading to Emacs version 18.  We hope you will enjoy the greater
+simplicity that results from the absence of many Emacs 19 features.
+
+@section Old Features in the Lisp Language
+
+The following functions are missing or different in Emacs version 18.
+
+@itemize @bullet
+@item
+The functions @code{delete}, @code{member}, @code{indirect-function},
+@code{map-y-or-n-p}, and @code{invocation-name} have been removed.
+
+@item
+The function @code{read} now skips a terminator character that
+terminates a symbol when reading from a buffer.  Thus, if you use
+@code{read} on a buffer containing @samp{foo(bar)} following point, it
+returns @code{foo} and leaves point after the open-parenthesis.  This
+means there's no way you can properly read the list @samp{(bar)}, but
+that's the way the cookie crumbles.
+
+Because of this simplification, it's no longer necessary for an input
+stream function to accept an optional argument.  In Emacs 18, an input
+stream is always called with no arguments, and should always return
+the next character of input.
+
+@item
+The function @code{documentation} takes just one argument;
+@code{documentation-property} takes just two.
+
+@item
+@code{random} no longer has the optional argument @var{n}.
+
+@item 
+You can no longer arrange to run a hook if a particular Lisp library is
+loaded.  The variable @code{after-load-alist} and the function
+@code{eval-after-load} have been removed.
+
+@item
+The function @code{autoload} no longer supports autoloading a keymap.
+
+@item
+``Magic'' comments of the form @samp{;;;###autoload} are now just
+comments.  They don't do anything in particular except look pretty.
+If you want a function to be autoloaded by default, edit @file{loaddefs.h}
+by hand.  What do you think editors are for? 
+
+@item
+We took out the @samp{%S} from the @code{format} function, and the
+optional argument @var{noescap} from @code{prin1-to-string}.  We removed
+the @code{print-level} variable.
+@end itemize
+
+@section Compilation Features
+
+@itemize @bullet
+@item
+Inline functions are nonexistent in Emacs 18.  We find they make the
+calling function unnecessarily large.  (Small size is one of the 
+features of Emacs 18.)
+
+@item
+We eliminated the two special forms, @code{eval-when-compile} and
+@code{eval-and-compile}, as well as the @code{compile-defun} command.
+
+@item
+When you load a Lisp file or library, you will no longer receive a
+warning if the directory contains both a @samp{.elc} file and a new
+@samp{.el} file that is newer.  So be on your toes.
+
+@item
+We removed the special data type for byte-code functions.  Compiled
+functions now work by means of an interpreted function which calls
+the function @code{bytecode}.  That function runs the byte code
+interpreter.
+@end itemize
+
+@section Floating Point Numbers
+
+Emacs 18 doesn't have or need floating point arithmetic built in.
+It has a handy Lisp program that allows you to emulate floating point.
+You'll have to write programs specially to use it, though.
+
+As a result, certain macros, functions, and predicates no longer handle
+specifications for floating point numbers.
+
+The function @code{string-to-number}, the predicate @code{floatp}, and
+the variable @code{float-output-format} have all been eliminated.
+
+The functions @code{float}, @code{truncate}, @code{floor}, @code{ceil},
+@code{round}, and @code{logb} do not exist; neither do the functions
+@code{abs}, @code{cos}, @code{sin}, @code{tan}, @code{acos},
+@code{asin}, @code{atan}, @code{exp}, @code{expt}, @code{log10},
+@code{log}, or @code{sqrt}.
+
+The @code{format} function no longer handles the specifications
+@samp{%e}, @samp{%f} and @samp{%g} for printing floating point numbers;
+likewise for @code{message}.
+
+@section Changes in Basic Editing Functions
+
+@itemize @bullet
+@item
+@code{kill-new} and @code{kill-append}, the primitives for putting text
+in the kill ring, have been eliminated.
+@c @code{kill-append} seems to exist as a non-documented (no doc string)
+@c primitive in emacs 18.  but news.texi said it was new for 19.
+
+@item
+The variables @code{interprogram-paste-function} and
+@code{interprogram-cut-function} have been removed in Emacs 18.
+
+In addition, there's no need for @code{mark-active} and
+@code{deactivate-mark} because there is no Transient Mark mode.  We also
+removed the hooks @code{activate-mark-hook} and
+@code{deactivate-mark-hook}.
+
+@item
+The @code{kill-region} function can no longer be used in read-only
+buffers.  The @code{compare-buffer-substrings} and @code{current-kill}
+functions have been removed.
+
+@item
+The variable @code{overwrite-mode-binary} has been removed.
+
+@item
+The function @code{move-to-column} allows just one argument,
+@var{column}. 
+
+@item 
+The search functions now just return @code{t} when successful.  This
+affects the functions @code{search-forward}, @code{search-backward},
+@code{word-search-forward}, @code{word-search-backward},
+@code{re-search-forward}, and @code{re-search-backward}.
+
+@item
+When you do regular expression searching or matching, there is a fixed
+limit of ten @samp{\(@dots{}\)} pairs that you can get information about
+with @code{match-beginning} and @code{match-end}.  Moreover,
+@code{save-match-data} does not exist; you must use an explicit
+@code{unwind-protect} to save the match data.
+
+@item
+@code{translate-region} is gone.
+
+@item
+The variables @code{before-change-function},
+@code{after-change-function}, and @code{first-change-hook} have been
+eliminated.
+
+@item
+The second argument to @code{insert-abbrev-table-description} is no
+longer optional.
+@end itemize
+
+@section Text Properties
+
+We eliminated text properties.
+
+@section Features for Files
+ 
+Many file-related functions have been eliminated or simplified.  Here is
+a basic listing of these functions.
+
+The functions @code{file-accessible-directory-p}, @code{file-truename},
+@code{make-directory}, @code{delete-directory},
+@code{set-visited-file-modtime}, @code{directory-abbrev-alist},
+@code{abbreviate-file-name}, @code{write-region},
+@code{write-contents-hooks}, @code{after-save-hook},
+@code{set-default-file-modes}, @code{default-file-modes}, and
+@code{unix-sync} have been eliminated.
+
+We got rid of the ``initial file name'' argument to
+@code{read-file-name}.
+
+Additionally, we removed the 12th element from the list returned by
+@code{file-attributes}.
+
+@code{directory-files} always sorts the list of files.  It's not user
+friendly to process the files in any haphazard order.
+
+We eliminated the variables @code{write-contents-hooks} and
+@code{local-write-file-hooks}.
+
+@section Making Certain File Names ``Magic''
+
+There are no more magic filenames.  Sorry, but all the mana has been
+used up.
+
+@section Frames
+
+There is only one frame in Emacs 18, so all of the frame functions have
+been eliminated.
+
+@section X Window System Features
+
+We have simplified the way Emacs and X interact by removing a great deal
+of creeping featurism.
+
+@itemize @bullet
+@item
+The functions @code{mouse-position} and @code{set-mouse-position}, and
+the special form @code{track-mouse} have been eliminated.
+
+@item
+Likewise, the functions @code{x-set-selection}, @code{x-set-cut-buffer},
+@code{x-close-current-connection}, and @code{x-open-connection} have all
+been removed from Emacs Lisp 18.
+
+@item
+We removed a series of functions that gave information about the X
+server and the screen you were using; after all, the whole point of X is
+that all servers are equivalent.  The names of the removed functions
+are: @code{x-display-screens}, @code{x-server-version},
+@code{x-server-vendor}, @code{x-display-pixel-height},
+@code{x-display-mm-height}, @code{x-display-pixel-width},
+@code{x-display-mm-width}, @code{x-display-backing-store},
+@code{x-display-save-under}, @code{x-display-planes},
+@code{x-display-visual-class}, @code{x-display-color-p}, and
+@code{x-display-color-cells}.
+
+Additionally, we removed the variable @code{x-no-window-manager} and the
+functions @code{x-synchronize} and @code{x-get-resource}.
+
+We didn't abolish @code{x-display-color-p}, but we renamed it to
+@code{x-color-display-p}.  We did abolish @code{x-color-defined-p}.
+
+@item
+@code{x-popup-menu} no longer accepts a keymap for its first argument.
+
+@item
+We removed both the function @code{x-rebind-key} and the related
+function @code{x-rebind-keys}.
+
+@item 
+We abolished @code{x-parse-geometry}.
+@end itemize
+
+@section Window Actions that Were No Longer Useful
+
+Various behaviors of windows in Emacs 19 were obsolete by the time Emacs
+18 was due to come out.  We have removed them.  These changes are listed
+below. 
+
+@itemize @bullet
+@item
+We removed the functions @code{window-at}, @code{window-minibuffer-p},
+@code{set-window-dedicated-p}, @code{coordinates-in-window-p},
+@code{walk-windows}, @code{window-dedicated-p}, and @code{window-end}.
+
+@item
+We removed the variables @code{pop-up-frames},
+@code{pop-up-frame-function}, @code{display-buffer-function}, and
+@code{other-window-scroll-buffer}.
+
+@item
+The function @code{minibuffer-window} no longer accepts a frame as
+argument, since frames as objects do not exist in Emacs version 18.  It
+returns the window used for minibuffers.
+
+@item
+The functions @code{next-window} and @code{previous-window} no longer
+accept the @var{all-frames} argument since there is just one frame.
+
+@item
+The functions @code{get-lru-window}, @code{get-largest-window},
+@code{get-buffer-window}, and @code{get-buffer-window} also no longer
+take the optional argument @var{all-frames} because there is just one
+frame to search.
+@end itemize
+
+@section Display Features
+
+@itemize @bullet
+@item
+There are no overlays, and no faces.
+
+@item
+We eliminated the mode line spec @samp{%l} that in later versions used
+to display the current line number.  We removed the variables
+@code{line-number-mode} and @code{line-number-display-limit}.
+
+@item
+@code{baud-rate} is now a function rather than a variable.
+
+@item
+You can no longer call @code{message} with @code{nil} as the only
+argument; therefore, you can not reliably make the contents of the
+minibuffer visible.
+
+@item
+The variable @code{temp-buffer-show-function} has been renamed
+@code{temp-buffer-show-hook}.
+
+@item
+We removed the function @code{force-mode-line-update}.  Use
+the following idiom instead:
+
+@example
+(set-buffer-modified-p (buffer-modified-p))
+@end example
+
+@item
+Display tables no longer exist.  We know what the @sc{ASCII} characters
+should look like, and we made them look that way.
+@end itemize
+
+@section Working with Input Events
+
+The big news about input events is that we got rid of function key
+and mouse events.  Now the only input events are characters.
+What's more, these characters now have to be in the range of 0 to 127,
+optionally with a meta bit.  This makes for big simplifications.
+
+@itemize @bullet
+@item
+Functions like @code{define-key}, @code{global-set-key},
+@code{read-key-sequence}, and @code{local-set-key} used to accept
+strings or vectors in Emacs 19; now they only accept strings.
+
+@item
+The documentation functions (@code{single-key-description},
+@code{key-description}, etc.) also no longer accept vectors, but they do
+accept strings.
+
+@item
+We removed the @code{read-event}, @code{event-start},
+@code{posn-window}, @code{posn-point}, @code{posn-col-row},
+@code{posn-timestamp}, @code{scroll-bar-scale}, and @code{event-end}
+functions, since they were only useful for non-character events.
+
+@item
+We removed the @code{unread-command-events} and @code{last-event-frame}
+variables.
+
+@item
+The functions @code{this-command-keys} and @code{recent-keys} now always
+return a string.  Likewise, a keyboard macro's definition can only be a
+string, not a vector.
+
+@item
+We eliminated @samp{e} as an interactive specification since it
+was useful only with non-character events.
+
+@item
+In Emacs 18, we represent Meta characters as character objects with the
+same encoding used in strings: 128 plus the corresponding non-Meta
+@sc{ASCII} character.
+@end itemize
+
+@section Menus
+
+You can no longer define menus as keymaps; good system design requires
+crafting a special-purpose interface for each facility, so it can
+precisely fit the requirements of that facility.  We decided that
+unifying keymaps and menus was simply too much of a strain.
+
+In Emacs 18, you can only activate menus with the mouse.  Using them
+with a keyboard was too confusing for too many users.
+
+Emacs 18 has no menu bars.  All functions and variables related to the
+menu bar have been eliminated.
+
+@section Changes in Minibuffer Features
+
+The minibuffer history feature has been eliminated.  Thus, we removed
+the optional argument @var{hist} from the minibuffer input functions
+@code{read-from-minibuffer} and @code{completing-read}.
+
+The @var{initial} argument to @code{read-from-minibuffer} and other
+minibuffer input functions can no longer be a cons cell
+@code{(@var{string} . @var{position})}.
+
+In the function @code{read-no-blanks-input}, the @var{initial} argument
+is no longer optional.
+
+@section New Features for Defining Commands
+
+@itemize @bullet
+@item
+The special meaning of @samp{@@} in an interactive specification has
+been eliminated.
+
+@item
+Emacs 18 does not support use of format-style @samp{%}-sequences in the
+prompt strings in interactive specifications.
+
+@item
+The property @code{enable-recursive-minibuffers} no longer has any
+special meaning.
+@end itemize
+
+@section Removed Features for Reading Input
+
+We removed the third argument (@var{meta}) from the function
+@code{set-input-mode}.  Consequently, we added the variable
+@code{meta-flag}; set it to @code{t} to enable use of a Meta key, and
+to @code{nil} to disable it.  (Those are the only two alternatives.)
+
+We also removed the variable @code{extra-keyboard-modifiers}.
+
+We removed the function @code{keyboard-translate} and the variables
+@code{num-input-keys} and @code{function-key-map}.
+
+@section Removed Syntax Table Features
+
+@itemize @bullet
+@item
+We eliminated the functions @code{skip-syntax-forward},
+@code{skip-syntax-backward}, @code{forward-comment}.
+
+@item
+We removed the syntax flag for ``prefix syntax'' and the flag for the
+alternate comment style.  Emacs 18 supports only one style of comment
+in any given syntax table.
+
+@item
+We abolished the variable @code{words-include-escapes}.
+@end itemize
+
+@section The Case Table
+
+Case tables do not exist in Emacs 18.  Due to this change, we have
+removed the associated functions @code{set-standard-case-table},
+@code{standard-case-table}, @code{current-case-table},
+@code{set-case-table}, and @code{set-case-syntax-pair}.
+
+@section Features for Dealing with Buffers
+
+@itemize @bullet
+@item
+We eliminated several functions for dealing with buffers:
+@code{buffer-modified-tick} and @code{generate-new-buffer-name}.
+
+@item
+We renamed @code{buffer-disable-undo} to @code{buffer-flush-undo}---a
+more picturesque name, you will agree.
+
+@item
+The function @code{other-buffer} takes just one argument in Emacs 18.
+
+@item
+The function @code{rename-buffer} now requires you to specify precisely
+the new name you want.
+
+@item
+We removed the local variable @code{list-buffers-directory}.
+
+@item
+We got rid of the hook @code{kill-buffer-hook}.
+@end itemize
+
+@section Local Variables Features
+
+@itemize @bullet
+@item
+The function @code{kill-all-local-variables} always eliminates all
+buffer-local variables of the current buffer.  No more exceptions.
+
+@item
+Making a variable buffer-local when it is void now sets it to
+@code{nil}.
+
+@item
+We eliminated the functions @code{default-boundp}, because it is no
+longer possible for the default binding of a variable to be void.
+
+@item
+The special forms @code{defconst} and @code{defvar} now set the
+variable's local value rather than its default value when the variable
+is local in the current buffer.
+@end itemize
+
+@section Features for Subprocesses
+
+@code{call-process} and @code{call-process-region} no longer indicate
+the termination status of the subprocess.  We call on users to have faith
+that the subprocess executed properly.
+
+@itemize
+@item
+The standard asynchronous subprocess features do not work on VMS;
+instead, special VMS asynchronous subprocess functions have been added.
+Since they are only for VMS, we can't be bothered documenting them;
+sorry.  Use the source, Luke!
+
+@item
+The function @code{signal-process} has been removed.
+
+@item
+We eliminated the transaction queue feature, and the associated
+functions @code{tq-create}, @code{tq-enqueue}, and @code{tq-close}.
+@end itemize
+
+@section Dealing with Times And Time Delays
+
+@itemize @bullet
+@item
+We removed the functions @code{current-time}, @code{current-time-zone},
+@code{run-at-time}, and @code{cancel-timer}. 
+
+@item
+The function @code{current-time-string} no longer accepts any optional
+arguments.
+
+@item
+The functions @code{sit-for} and @code{sleep-for} no longer allow an
+optional argument to let you specify the time period in milliseconds;
+just in seconds.  Additionally, we took out the optional third argument
+@var{nodisp} from @code{sit-for}.
+
+@item
+We removed the optional second and third arguments from the
+@code{accept-process-output} function.  It accepts just one argument,
+the process.
+@end itemize
+
+@need 3000
+
+@section Features not Available for Lisp Debuggers
+
+@itemize @bullet
+@item
+In Emacs 18, you can no longer specify to invoke the Lisp debugger only
+upon encountering certain types of errors.  Any non-@code{nil} value for
+the variable @code{debug-on-error} says to invoke the debugger for any
+error whatever.
+
+@item
+We removed the variable @code{command-debug-status} and the function
+@code{backtrace-frame}. 
+@end itemize
+
+@section Memory Allocation Changes
+
+We removed the function @code{memory-limit}.
+
+The list returned by @code{garbage-collect} no longer contains an
+element to describe floating point numbers, since there aren't any
+floating point numbers in Emacs 18.
+
+@section Hook Changes
+
+@itemize @bullet
+@item
+We removed the hooks @code{pre-abbrev-expand-hook},
+@code{pre-command-hook}, @code{post-command-hook}, and
+@code{auto-save-hook}.
+
+@item
+We removed the variable
+@code{revert-buffer-insert-file-contents-function}.
+
+@item
+We also removed the new function @code{add-hook}; you will have to set
+your hooks by hand.  If you want to get really into the swing of things,
+set your hook variables the archaic way: store just one function rather
+than a list of functions.  But that is optional.
+
+@item
+The variable @code{lisp-indent-hook} has been renamed to
+@code{lisp-indent-function}.
+
+@item
+The variable @code{auto-fill-function} has been renamed to
+@code{auto-fill-hook}.
+
+@item
+The @code{blink-paren-function} has been renamed to
+@code{blink-paren-hook}.
+
+@item
+The variable @code{temp-buffer-show-function} has been renamed to
+@code{temp-buffer-show-hook}.
+@end itemize
