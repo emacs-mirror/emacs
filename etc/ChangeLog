@@ -1,3 +1,7 @@
+2005-04-05  Marcelo Toledo  <marcelo@marcelotoledo.org>
+
+        * TUTORIAL.translators: Added the field Maintainer.
+
 2005-04-04  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* TUTORIAL.it: Move "copying conditions at end" sentence after title.
@@ -25,10 +29,10 @@
 
         * TUTORIAL.bg: Fix title line; Applied TUTORIAL changes in
         revision 1.59, "Emacs" is not transliterated to cyrillic anymore;
-        Minor fixes; by Ognyan Kulev <ogi@fmi.uni-sofia.bg>.
+        Minor fixes; patch by Ognyan Kulev <ogi@fmi.uni-sofia.bg>.
 
         * TUTORIAL.sv: Sync some other changes with the TUTORIAL version
-        1.61 in CVS by Mats Lidell <matsl@contactor.se>.
+        1.61 in CVS patch by Mats Lidell <matsl@contactor.se>.
 
 2005-04-01  Lute Kamstra  <lute@gnu.org>
 

@@ -268,7 +268,7 @@ etc/TUTORIAL.de
 etc/TUTORIAL.es          Marcelo Toledo
 etc/TUTORIAL.fr          Thien-Thi Nguyen
 etc/TUTORIAL.it          Thien-Thi Nguyen
-etc/TUTORIAL.ja          Thien-Thi Nguyen (w/ help from Kenichi Handa)
+etc/TUTORIAL.ja
 etc/TUTORIAL.ko
 etc/TUTORIAL.nl		 Lute Kamstra
 etc/TUTORIAL.pl
@@ -276,7 +276,7 @@ etc/TUTORIAL.pt_BR       Marcelo Toledo
 etc/TUTORIAL.ro
 etc/TUTORIAL.ru
 etc/TUTORIAL.sk
-etc/TUTORIAL.sl
+etc/TUTORIAL.sl          Primoz PETERLIN <primoz.peterlin@biofiz.mf.uni-lj.si>
 etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
 etc/TUTORIAL.th
 etc/TUTORIAL.zh
