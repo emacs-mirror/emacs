@@ -601,6 +601,9 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   if (NILP (object))
     XSET (object, Lisp_Buffer, current_buffer);
 
+  if (!NILP (limit))
+    CHECK_NUMBER_COERCE_MARKER (limit, 0);
+
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
     return limit;
@@ -670,6 +673,9 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   if (NILP (object))
     XSET (object, Lisp_Buffer, current_buffer);
 
+  if (!NILP (limit))
+    CHECK_NUMBER_COERCE_MARKER (limit, 0);
+
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
     return limit;
@@ -706,6 +712,9 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
 
   if (NILP (object))
     XSET (object, Lisp_Buffer, current_buffer);
+
+  if (!NILP (limit))
+    CHECK_NUMBER_COERCE_MARKER (limit, 0);
 
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
@@ -749,6 +758,9 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
 
   if (NILP (object))
     XSET (object, Lisp_Buffer, current_buffer);
+
+  if (!NILP (limit))
+    CHECK_NUMBER_COERCE_MARKER (limit, 0);
 
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
