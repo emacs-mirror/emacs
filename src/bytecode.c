@@ -578,7 +578,7 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bsave_current_buffer:
 	case Bsave_current_buffer_1:
-	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+	  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
 	  break;
 
 	case Bsave_window_excursion:
