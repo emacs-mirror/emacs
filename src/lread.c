@@ -213,8 +213,9 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii)
 #ifdef standalone
   return make_number (getchar ());
 #else
-  register Lisp_Object val;
-  register Lisp_Object delayed_switch_frame = Qnil;
+  register Lisp_Object val, delayed_switch_frame;
+
+  delayed_switch_frame = Qnil;
 
   /* Read until we get an acceptable event.  */
  retry:
@@ -1520,8 +1521,9 @@ intern (str)
 {
   Lisp_Object tem;
   int len = strlen (str);
-  Lisp_Object obarray = Vobarray;
+  Lisp_Object obarray;
 
+  obarray = Vobarray;
   if (XTYPE (obarray) != Lisp_Vector || XVECTOR (obarray)->size == 0)
     obarray = check_obarray (obarray);
   tem = oblookup (obarray, str, len);
