@@ -179,7 +179,10 @@ X frame."
 (defun standard-display-european (arg &optional auto)
   "Toggle display of European characters encoded with ISO 8859.
 When enabled, characters in the range of 160 to 255 display not
-as octal escapes, but as accented characters.
+as octal escapes, but as accented characters.  Codes 146 and 160
+display as apostrophe and space, even though they are not the ASCII
+codes for apostrophe and space.
+
 With prefix argument, enable European character display iff arg is positive.
 
 Normally, this function turns off `enable-multibyte-characters'
