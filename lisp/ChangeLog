@@ -1,3 +1,11 @@
+2001-01-12  Dave Love  <fx@gnu.org>
+
+	* cus-edit.el (customize-menu-create): Fix the :filter following
+	easymenu change.
+
+	* wid-edit.el (function): Add :match-alternatives.
+	(widget-color-action): Doc fix.
+
 2001-01-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* calendar/calendar.el (calendar-basic-setup): Doc fix.
