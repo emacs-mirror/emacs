@@ -1,5 +1,31 @@
 2002-11-18  Dave Love  <fx@gnu.org>
 
+	* m/orion105.h (HAVE_ALLOCA): Don't define.
+
+	* m/m68k.h, m/arm.h, mtekxd88.h, m/tower32v3.h: Don't define
+	alloca.
+
+	* m/intel386.h: Don't include alloca.h or define alloca.
+
+	* m/ia64.h: Don't include alloca.h, stdlib.h.  Don't declare
+	malloc, realloc, calloc.
+
+	* m/hp800.h, m/sr2k.h, m/ns16000.h, m/wicat.h (bcopy, bzero)
+	(bcmp): Don't define.
+
+	* m/delta.h (bcopy, bzero, bcmp, alloca): Don't define.
+
+	* m/amdahl.h: Don't define LIB_STANDARD.
+
+	* m/alpha.h: Move OSF1 stuff from here to s/osf1.h.
+
+	* s/osf1.h: Move OSF1 stuff from m/alpha.h to here.
+
+	* s/irix4-0.h, s/irix5-0.h, m/powerpcle.h, m/sparc.h: Don't
+	include alloca.h.
+
+	* s/aix3-2.h (HAVE_FSYNC): Don't define.
+
 	* regex.c (_GNU_SOURCE): Don't define.
 
 	* process.c (_GNU_SOURCE): Don't define.
