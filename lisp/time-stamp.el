@@ -2,7 +2,7 @@
 ;;; Copyright 1989, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
-;; Time-stamp: <93/09/24 16:02:25 gildea>
+;; Time-stamp: <93/12/07 07:38:54 gildea>
 ;; Keywords: tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -184,7 +184,7 @@ otherwise the value of the function system-name."
 (defun time-stamp-month-dd-yyyy ()
   "Return the current date as a string in \"Month dd, yyyy\" form."
   (let ((date (current-time-string)))
-    (format "%s %02d, %s"
+    (format "%s %d, %s"
 	    (aref time-stamp-month-full-names
 		  (cdr (assoc (substring date 4 7) time-stamp-month-numbers)))
 	    (string-to-int (substring date 8 10))
@@ -272,5 +272,4 @@ The first character of dd is Space if the value is less than 10."
 (provide 'time-stamp)
 
 ;;; time-stamp.el ends here
-
 
