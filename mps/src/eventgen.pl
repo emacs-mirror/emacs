@@ -1,8 +1,8 @@
 #!/usr/local/bin/perl -w
-# impl.pl.eventgen -- Generator for impl.h.eventgen
+# impl.pl.eventgen: GENERATOR FOR impl.h.eventgen
 #
 # Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
-# $HopeName: MMsrc!eventgen.pl(trunk.5) $
+# $HopeName: MMsrc!eventgen.pl(trunk.6) $
 #
 # Invoke this script in the src directory.
 # It works by scanning *.c for EVENT_[A-Z], 
@@ -14,7 +14,7 @@
 # You will need to have eventgen.h claimed, and you should
 # remember to check it in afterwards.
 
-$HopeName = '$HopeName: MMsrc!eventgen.pl(trunk.5) $';
+$HopeName = '$HopeName: MMsrc!eventgen.pl(trunk.6) $';
 
 %Formats = ();
 
@@ -23,25 +23,19 @@ $HopeName = '$HopeName: MMsrc!eventgen.pl(trunk.5) $';
   "S", "char *",
   "U", "unsigned",
   "W", "Word",
-  "A", "struct AddrStruct *",
+  "A", "Addr",
   "P", "void *",
 	  );
 
-while(<*.c>) {
-  open(C, "<$_") || die "Can't open $_";
 
-  print STDERR "$_ ... ";
-
-  while(<C>) {
-    if(/EVENT_([A-Z]+)\(/) { 
-      $Formats{$1} = 1 if(!defined($Formats{$1}));
-    }
+open(C, "<eventdef.h") || die "Can't open $_";
+while(<C>) {
+  if(/RELATION\([^,]*,[^,]*,[^,]*,[^,]*, ([A-Z]+)\)/) { 
+    $Formats{$1} = 1 if(!defined($Formats{$1}));
   }
-
-  close(C);
 }
+close(C);
 
-print STDERR "\n";
 
 open(H, ">eventgen.h") || die "Can't open eventgen.h for output";
 
