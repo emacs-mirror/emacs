@@ -163,8 +163,7 @@ enum Lisp_Misc_Type
 
 /* These values are overridden by the m- file on some machines.  */
 #ifndef VALBITS
-/* The -1 is for the markbit.  */
-#define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS - 1)
+#define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS)
 #endif
 
 #ifndef NO_UNION_TYPE
@@ -183,20 +182,17 @@ union Lisp_Object
     struct
       {
 	EMACS_INT val  : VALBITS;
-	EMACS_INT type : GCTYPEBITS + 1;
+	EMACS_UINT type : GCTYPEBITS;
       } s;
     struct
       {
 	EMACS_UINT val : VALBITS;
-	EMACS_INT type : GCTYPEBITS + 1;
+	EMACS_UINT type : GCTYPEBITS;
       } u;
     struct
       {
 	EMACS_UINT val		: VALBITS;
 	enum Lisp_Type type	: GCTYPEBITS;
-	/* The markbit is not really part of the value of a Lisp_Object,
-	   and is always zero except during garbage collection.  */
-	EMACS_UINT markbit	: 1;
       } gu;
   }
 Lisp_Object;
@@ -212,19 +208,16 @@ union Lisp_Object
 
     struct
       {
-	EMACS_INT type : GCTYPEBITS+1;
+	EMACS_UINT type : GCTYPEBITS;
 	EMACS_INT val  : VALBITS;
       } s;
     struct
       {
-	EMACS_INT type : GCTYPEBITS+1;
+	EMACS_UINT type : GCTYPEBITS;
 	EMACS_UINT val : VALBITS;
       } u;
     struct
       {
-	/* The markbit is not really part of the value of a Lisp_Object,
-	   and is always zero except during garbage collection.  */
-	EMACS_UINT markbit	: 1;
 	enum Lisp_Type type	: GCTYPEBITS;
 	EMACS_UINT val		: VALBITS;
       } gu;
@@ -269,7 +262,7 @@ LISP_MAKE_RVALUE (Lisp_Object o)
    Likewise in the type slot of a float and in the size slot of strings.  */
 
 #ifndef MARKBIT
-#define MARKBIT ((EMACS_INT) ((EMACS_UINT) 1 << (VALBITS + GCTYPEBITS)))
+#define MARKBIT ((EMACS_INT) ((EMACS_UINT) 1 << (VALBITS + GCTYPEBITS - 1)))
 #endif /*MARKBIT */
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
@@ -323,7 +316,7 @@ enum pvec_type
     on all machines, but would penalize machines which don't need it)
  */
 #ifndef XTYPE
-#define XTYPE(a) ((enum Lisp_Type) ((a) >> VALBITS))
+#define XTYPE(a) ((enum Lisp_Type) (((EMACS_UINT) (a)) >> VALBITS))
 #endif
 
 #ifndef XSETTYPE
@@ -373,25 +366,6 @@ enum pvec_type
 #define XGCTYPE(a) ((enum Lisp_Type) (((a) >> VALBITS) & GCTYPEMASK))
 #endif
 
-#if VALBITS + GCTYPEBITS == BITS_PER_EMACS_INT - 1
-/* Make XMARKBIT faster if mark bit is sign bit.  */
-#ifndef XMARKBIT
-#define XMARKBIT(a) ((a) < 0)
-#endif
-#endif /* markbit is sign bit */
-
-#ifndef XMARKBIT
-#define XMARKBIT(a) ((a) & MARKBIT)
-#endif
-
-#ifndef XMARK
-#define XMARK(a) ((a) |= MARKBIT)
-#endif
-
-#ifndef XUNMARK
-#define XUNMARK(a) ((a) &= ~MARKBIT)
-#endif
-
 #endif /* NO_UNION_TYPE */
 
 #ifndef NO_UNION_TYPE
@@ -432,9 +406,6 @@ extern Lisp_Object make_number ();
  Outside of garbage collection, all mark bits are always zero.  */
 
 #define XGCTYPE(a) ((a).gu.type)
-#define XMARKBIT(a) ((a).gu.markbit)
-#define XMARK(a) (XMARKBIT(a) = 1)
-#define XUNMARK(a) (XMARKBIT(a) = 0)
 
 #endif /* NO_UNION_TYPE */
 
