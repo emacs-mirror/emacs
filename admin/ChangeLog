@@ -1,3 +1,9 @@
+2003-02-10  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* make-changelog-diff: New script, code stolen from make-announcement.
+
+	* make-announcement: Use make-changelog-diff.
+
 2003-01-20  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* make-tarball.txt: Step-by-step instructions for making a tarball.
