@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/03/30 19:38:34 $|$Revision: 1.28 $
+;; |$Date: 1993/03/30 19:42:10 $|$Revision: 1.29 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -92,8 +92,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.28 1993/03/30 19:38:34 rms Exp rms $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.29 1993/03/30 19:42:10 rms Exp rms $
 ;;; $Log: isearch.el,v $
+; Revision 1.29  1993/03/30  19:42:10  rms
+; (isearch-done): Customize the message about mark.
+;
 ; Revision 1.28  1993/03/30  19:38:34  rms
 ; (isearch-mode-map): Delete the binding for C-h.
 ;
@@ -1101,13 +1104,13 @@ Obsolete."
   (isearch-process-search-char ?\n))
 
 (defun isearch-printing-char ()
-  "Any other printing character => add it to the search string and search."
+  "Add this ordinary printing character to the search string and search."
   (interactive)
   (isearch-process-search-char (isearch-last-command-char)))
 
 (defun isearch-whitespace-chars ()
   "Match all whitespace chars, if in regexp mode.
-If not in regexp mode, activate word search."
+If you want to search for just a space, type C-q SPC."
   (interactive)
   (if isearch-regexp 
       (if search-whitespace-regexp
