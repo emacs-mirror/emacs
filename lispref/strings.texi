@@ -442,8 +442,8 @@ portion) is less.
 
 @defun assoc-ignore-case key alist
 This function works like @code{assoc}, except that @var{key} must be a
-string, and comparison is done using @code{compare-strings}.
-Case differences are ignored in this comparison.
+string, and comparison is done using @code{compare-strings}, ignoring
+case differences.  @xref{Association Lists}.
 @end defun
 
 @defun assoc-ignore-representation key alist
@@ -554,6 +554,8 @@ floating point number, this function returns 0.
      @result{} 0
 (string-to-number "-4.5")
      @result{} -4.5
+(string-to-number "1e5")
+     @result{} 100000.0
 @end example
 
 @findex string-to-int
