@@ -1,3 +1,11 @@
+1999-11-24  Dave Love  <fx@gnu.org>
+
+	* info.el:
+	(Info-build-node-completions, Info-search, Info-follow-reference)
+	(Info-complete-menu-item, Info-menu, Info-index, Info-get-token)
+	(Info-find-emacs-command-nodes): Avoid properties on matched text
+	which may appear in minibuffer.
+
 1999-11-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* locate.el (locate-with-filter): Doc fix.
