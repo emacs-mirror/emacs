@@ -519,7 +519,7 @@ Uses the `derived-mode-parent' property of the symbol to trace backwards."
 (defmacro easy-mmode-define-navigation (base re &optional name endfun)
   "Define BASE-next and BASE-prev to navigate in the buffer.
 RE determines the places the commands should move point to.
-NAME should describe the entities matched by RE and is used to build
+NAME should describe the entities matched by RE.  It is used to build
   the docstrings of the two functions.
 BASE-next also tries to make sure that the whole entry is visible by
   searching for its end (by calling ENDFUN if provided or by looking for
@@ -538,16 +538,18 @@ ENDFUN should return the end position (with or without moving point)."
 	 (unless count (setq count 1))
 	 (if (< count 0) (,prev-sym (- count))
 	   (if (looking-at ,re) (incf count))
-	   (unless (re-search-forward ,re nil t count)
-	     (error ,(format "No next %s" name)))
-	   (goto-char (match-beginning 0))
-	   (when (eq (current-buffer) (window-buffer (selected-window)))
-	     (let ((endpt (or (save-excursion
-				,(if endfun `(,endfun)
-				   `(re-search-forward ,re nil t 2)))
-			      (point-max))))
-	       (unless (<= endpt (window-end))
-		 (recenter '(0)))))))
+	   (if (not (re-search-forward ,re nil t count))
+	       (if (looking-at ,re)
+		   (goto-char (or ,(if endfun `(,endfun)) (point-max)))
+		 (error ,(format "No next %s" name)))
+	     (goto-char (match-beginning 0))
+	     (when (eq (current-buffer) (window-buffer (selected-window)))
+	       (let ((endpt (or (save-excursion
+				  ,(if endfun `(,endfun)
+				     `(re-search-forward ,re nil t 2)))
+				(point-max))))
+		 (unless (pos-visible-in-window-p endpt nil t)
+		   (recenter '(0))))))))
        (defun ,prev-sym (&optional count)
 	 ,(format "Go to the previous COUNT'th %s" (or name base-name))
 	 (interactive)
