@@ -353,6 +353,7 @@ static void redraw_previous_char ();
 static void redraw_following_char ();
 static unsigned int x_x_to_emacs_modifiers ();
 
+static int fast_find_position ();
 static void note_mouse_highlight ();
 static void clear_mouse_face ();
 static void show_mouse_face ();
@@ -2170,9 +2171,10 @@ note_mouse_highlight (f, x, y)
 	  break;
       pos = ptr[i];
       /* Is it outside the displayed active region (if any)?  */
-      if (pos > 0
-	  && ! (EQ (window, mouse_face_window)
-		&& pos >= mouse_face_beg && pos < mouse_face_end))
+      if (pos <= 0)
+	clear_mouse_face ();
+      else if (! (EQ (window, mouse_face_window)
+		  && pos >= mouse_face_beg && pos < mouse_face_end))
 	{
 	  Lisp_Object mouse_face, overlay, position;
 	  Lisp_Object *overlay_vec;
@@ -2277,8 +2279,6 @@ note_mouse_highlight (f, x, y)
 	  ZV = ozv;
 	  current_buffer = obuf;
 	}
-      else if (pos <= 0)
-	clear_mouse_face ();
     }
 }
 
@@ -2366,7 +2366,7 @@ show_mouse_face (hl)
       /* If the cursor's in the text we are about to rewrite,
 	 turn the cursor off.  */
       if (i == curs_y
-	  && (curs_x >= begrow - 1 || curs_x <= endrow))
+	  && (curs_x >= begcol - 1 && curs_x <= endcol))
 	{
 	  x_display_cursor (f, 0);
 	  cursor_off = 1;
