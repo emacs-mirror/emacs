@@ -1,3 +1,8 @@
+2003-11-01  Andrew Choi  <akochoi@shaw.ca>
+
+	* macterm.c (XTread_socket): Handle menubar selection and grow
+	window only for mouseDown events.
+	
 2003-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_term_init): For GTK part, increase x_initialized
