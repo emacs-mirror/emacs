@@ -1083,12 +1083,12 @@ command_loop_1 ()
 	    {
 	      /* Recognize some common commands in common situations and
 		 do them directly.  */
-	      if (EQ (this_command, Qforward_char) && point < ZV)
+	      if (EQ (this_command, Qforward_char) && PT < ZV)
 		{
                   struct Lisp_Vector *dp
 		    = window_display_table (XWINDOW (selected_window));
-		  lose = FETCH_CHAR (point);
-		  SET_PT (point + 1);
+		  lose = FETCH_CHAR (PT);
+		  SET_PT (PT + 1);
 		  if ((dp
 		       ? (VECTORP (DISP_CHAR_VECTOR (dp, lose))
 			  && XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1)
@@ -1096,7 +1096,7 @@ command_loop_1 ()
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  >= MODIFF)
 		      && (XFASTINT (XWINDOW (selected_window)->last_point)
-			  == point - 1)
+			  == PT - 1)
 		      && !windows_or_buffers_changed
 		      && EQ (current_buffer->selective_display, Qnil)
 		      && !detect_input_pending ()
@@ -1104,12 +1104,12 @@ command_loop_1 ()
 		    no_redisplay = direct_output_forward_char (1);
 		  goto directly_done;
 		}
-	      else if (EQ (this_command, Qbackward_char) && point > BEGV)
+	      else if (EQ (this_command, Qbackward_char) && PT > BEGV)
 		{
                   struct Lisp_Vector *dp
 		    = window_display_table (XWINDOW (selected_window));
-		  SET_PT (point - 1);
-		  lose = FETCH_CHAR (point);
+		  SET_PT (PT - 1);
+		  lose = FETCH_CHAR (PT);
 		  if ((dp
 		       ? (XTYPE (DISP_CHAR_VECTOR (dp, lose)) != Lisp_Vector
 			  && XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1)
@@ -1117,7 +1117,7 @@ command_loop_1 ()
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  >= MODIFF)
 		      && (XFASTINT (XWINDOW (selected_window)->last_point)
-			  == point + 1)
+			  == PT + 1)
 		      && !windows_or_buffers_changed
 		      && EQ (current_buffer->selective_display, Qnil)
 		      && !detect_input_pending ()
@@ -1143,8 +1143,7 @@ command_loop_1 ()
 		    }
 		  lose = (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  < MODIFF)
-		    || (XFASTINT (XWINDOW (selected_window)->last_point)
-			  != point)
+		    || (XFASTINT (XWINDOW (selected_window)->last_point) != PT)
 		    || MODIFF <= current_buffer->save_modified
 		    || windows_or_buffers_changed
 		    || !EQ (current_buffer->selective_display, Qnil)
@@ -1156,7 +1155,7 @@ command_loop_1 ()
 		      nonundocount = 0;
 		    }
 		  if (!lose &&
-		      (point == ZV || FETCH_CHAR (point) == '\n'))
+		      (PT == ZV || FETCH_CHAR (PT) == '\n'))
 		    {
 		      struct Lisp_Vector *dp
 			= window_display_table (XWINDOW (selected_window));
