@@ -1,3 +1,7 @@
+2003-05-26  Eduardo Mu,Aq(Boz  <emufer@terra.es>  (tiny change)
+
+	* emacs-lisp/cl-extra.el (cl-make-hash-table): Fix typo.
+
 2003-05-10  Oliver Scholz  <alkibiades@gmx.de>
 
 	* startup.el (fancy-splash-default-action): Fix docstring.
