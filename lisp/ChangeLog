@@ -20,7 +20,7 @@
 	* language/ind-util.el (range): Function deleted.
 	(indian-regexp-of-hashtbl-keys): Renamed from `regexp-of-hashtbl-keys'.
 	All calls changed.
-	
+
 	* language/devan-util.el (devanagari-range): Renamed from `range'.
 	All calls changed.
 	(devanagari-regexp-of-hashtbl-keys):
@@ -33,14 +33,14 @@
 	(indian-char-glyph): Moved from indian.el
 	(indian--puthash-char, mapthread): Don't quote lambda.
 	(indian--map): New function.
-	(indian--puthash-v, indian--puthash-c, indian--puthash-m) 
+	(indian--puthash-v, indian--puthash-c, indian--puthash-m)
 	(indian--puthash-cv): Use it.
 
-	* language/indian.el (indian-glyph-char, indian-glyph-max-char) 
+	* language/indian.el (indian-glyph-char, indian-glyph-max-char)
 	(indian-char-glyph): Moved to ind-util.el
 
-	* language/devan-util.el (devanagari-post-read-conversion): New
-	function.
+	* language/devan-util.el (devanagari-post-read-conversion):
+	New function.
 
 	* language/georgian.el: New file.
 
@@ -50,17 +50,16 @@
 	Add utf-8 case.
 	(set-language-environment): Process required-features earlier.
 
-	* international/quail.el (quail-keyboard-layout-alist): Add
-	pc105-uk.
+	* international/quail.el (quail-keyboard-layout-alist):
+	Add pc105-uk.
 	(quail-keyboard-layout-type): Fix :type.
 	(quail-choose-completion-string): Simplify.
-	(quail-update-leim-list-file): Don't get fooled by commented-out
-	code.
+	(quail-update-leim-list-file): Don't get fooled by commented-out code.
 	(quail-input-string-to-events): Run events through
 	translation-table-for-input.
 
-	* international/mule-conf.el (translation-table-for-input): New
-	variable.
+	* international/mule-conf.el (translation-table-for-input):
+	New variable.
 	(latin-iso8859-14): Amend description.
 	(file-coding-system-alist): Add entry for utf-8.
 
@@ -70,13 +69,25 @@
 
 	* language/hebrew.el ("Windows-1255"): New language.
 
-	* language/european.el ("Welsh", "Latin-7", "Lithuanian") 
+	* language/european.el ("Welsh", "Latin-7", "Lithuanian")
 	("Latvian"): New languages.
+
+2001-12-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xml.el: Use setq rather than (set 'foo bar).
+	Use push+nreverse rather than append.
+	(xml-node-name, xml-node-attributes, xml-node-children):
+	Use defsubst rather than macros.
+	(xml-parse-region): Handle a nil return value from xml-parse-tag.
+	(xml-parse-tag): Don't skip white space.  Return nil for a comment.
+	Concat the two strings surrounding a comment into a single string.
+
+	* newcomment.el (comment-indent): Jump to the middle of empty comments.
 
 2001-12-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* select.el (xselect-convert-to-class, xselect-convert-to-name):
-	Documented.
+	Document.
 
 2001-12-14  Andre Spiegel  <spiegel@gnu.org>
 
@@ -87,7 +98,7 @@
 
 2001-12-13  David Ponce  <david@dponce.com>
 
-	* ruler-mode.el (ruler-mode-extra-left-cols): Removed.
+	* ruler-mode.el (ruler-mode-extra-left-cols): Remove.
 	(ruler-mode-left-fringe-cols): New macro.
 	(ruler-mode-right-fringe-cols): New macro.
 	(ruler-mode-left-scroll-bar-cols): New macro.
