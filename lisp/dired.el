@@ -117,11 +117,11 @@ The target is used in the prompt for file copy, rename etc.")
 
 (defvar dired-font-lock-keywords
   '(;; Put directory headers in italics.
-    ("^  \\(/.+\\)$" 1 font-lock-type-face)
+    ("^  \\(/.+\\)" 1 font-lock-type-face)
     ;; Put symlinks in bold italics.
     ("\\([^ ]+\\) -> [^ ]+$" . font-lock-function-name-face)
     ;; Put marks in bold.
-    ("^\\([^ ]\\).*$" 1 font-lock-keyword-face t)
+    ("^[^ ]" . font-lock-reference-face)
     ;; Put files that are subdirectories in bold.
     ("^..d.* \\([^ ]+\\)$" 1 font-lock-keyword-face))
   "Additional expressions to highlight in Dired mode.")
