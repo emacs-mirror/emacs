@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/compile
 @node Byte Compilation, Debugging, Loading, Top
@@ -29,11 +29,52 @@ compiled code in Emacs 19, but not vice versa.
 byte compilation.
 
 @menu
+* Speed of Byte-Code::          An example of speedup from byte compilation.
 * Compilation Functions::       Byte compilation functions.
 * Eval During Compile::  	Code to be evaluated when you compile.
 * Byte-Code Objects::		The data type used for byte-compiled functions.
 * Disassembly::                 Disassembling byte-code; how to read byte-code.
 @end menu
+
+@node Speed of Byte-Code
+@section Performance of Byte-Compiled Code
+
+  A byte-compiled function is not as efficient as a primitive function
+written in C, but runs much faster than the version written in Lisp.
+Here is an example:
+
+@example
+@group
+(defun silly-loop (n)
+  "Return time before and after N iterations of a loop."
+  (let ((t1 (current-time-string)))
+    (while (> (setq n (1- n)) 
+              0))
+    (list t1 (current-time-string))))
+@result{} silly-loop
+@end group
+
+@group
+(silly-loop 100000)
+@result{} ("Fri Mar 18 17:25:57 1994"
+    "Fri Mar 18 17:26:28 1994")  ; @r{31 seconds}
+@end group
+
+@group
+(byte-compile 'silly-loop)
+@result{} @r{[Compiled code not shown]}
+@end group
+
+@group
+(silly-loop 100000)
+@result{} ("Fri Mar 18 17:26:52 1994"
+    "Fri Mar 18 17:26:58 1994")  ; @r{6 seconds}
+@end group
+@end example
+
+  In this example, the interpreted code required 31 seconds to run,
+whereas the byte-compiled code required 6 seconds.  These results are
+representative, but actual results will vary greatly.
 
 @node Compilation Functions
 @comment  node-name,  next,  previous,  up
@@ -54,55 +95,25 @@ problem, but are not necessarily erroneous.
 expanded when they are compiled, so the macros must already be defined
 for proper compilation.  For more details, see @ref{Compiling Macros}.
 
-  While byte-compiling a file, any @code{require} calls at top-level are
-executed.  One way to ensure that necessary macro definitions are
-available during compilation is to require the file that defines them.
-@xref{Features}.
-
-  A byte-compiled function is not as efficient as a primitive function
-written in C, but runs much faster than the version written in Lisp.
-For a rough comparison, consider the example below:
-
-@example
-@group
-(defun silly-loop (n)
-  "Return time before and after N iterations of a loop."
-  (let ((t1 (current-time-string)))
-    (while (> (setq n (1- n)) 
-              0))
-    (list t1 (current-time-string))))
-@result{} silly-loop
-@end group
-
-@group
-(silly-loop 100000)
-@result{} ("Thu Jan 12 20:18:38 1989" 
-    "Thu Jan 12 20:19:29 1989")  ; @r{51 seconds}
-@end group
-
-@group
-(byte-compile 'silly-loop)
-@result{} @r{[Compiled code not shown]}
-@end group
-
-@group
-(silly-loop 100000)
-@result{} ("Thu Jan 12 20:21:04 1989" 
-    "Thu Jan 12 20:21:17 1989")  ; @r{13 seconds}
-@end group
-@end example
-
-  In this example, the interpreted code required 51 seconds to run,
-whereas the byte-compiled code required 13 seconds.  These results are
-representative, but actual results will vary greatly.
+  Normally, compiling a file does not evaluate the file's contents or
+load the file.  But it does execute any @code{require} calls at
+top-level in the file.  One way to ensure that necessary macro
+definitions are available during compilation is to require the file that
+defines them.  @xref{Features}.
 
 @defun byte-compile symbol
-  This function byte-compiles the function definition of @var{symbol},
+This function byte-compiles the function definition of @var{symbol},
 replacing the previous definition with the compiled one.  The function
 definition of @var{symbol} must be the actual code for the function;
 i.e., the compiler does not follow indirection to another symbol.
-@code{byte-compile} does not compile macros.  @code{byte-compile}
-returns the new, compiled definition of @var{symbol}.
+@code{byte-compile} returns the new, compiled definition of
+@var{symbol}.
+
+If @var{symbol}'s definition is a byte-code function object,
+@code{byte-compile} does nothing and returns @code{nil}.  Lisp records
+only one function definition for any symbol, and if that is already
+compiled, non-compiled code is not available anywhere.  So there is no
+way to ``compile the same definition again.''
 
 @example
 @group
@@ -110,12 +121,12 @@ returns the new, compiled definition of @var{symbol}.
   "Compute factorial of INTEGER."
   (if (= 1 integer) 1
     (* integer (factorial (1- integer)))))
-     @result{} factorial
+@result{} factorial
 @end group
 
 @group
 (byte-compile 'factorial)
-     @result{}
+@result{}
 #[(integer)
   "^H\301U\203^H^@@\301\207\302^H\303^HS!\"\207"
   [integer 1 * factorial]
@@ -124,11 +135,11 @@ returns the new, compiled definition of @var{symbol}.
 @end example
 
 @noindent
-The result is a compiled function object.  The string it contains is the
-actual byte-code; each character in it is an instruction.  The vector
-contains all the constants, variable names and function names used by
-the function, except for certain primitives that are coded as special
-instructions.
+The result is a byte-code function object.  The string it contains is
+the actual byte-code; each character in it is an instruction or an
+operand of an instruction.  The vector contains all the constants,
+variable names and function names used by the function, except for
+certain primitives that are coded as special instructions.
 @end defun
 
 @deffn Command compile-defun
@@ -139,18 +150,18 @@ function.
 @end deffn
 
 @deffn Command byte-compile-file filename
-  This function compiles a file of Lisp code named @var{filename} into
+This function compiles a file of Lisp code named @var{filename} into
 a file of byte-code.  The output file's name is made by appending
 @samp{c} to the end of @var{filename}.
 
-  Compilation works by reading the input file one form at a time.  If it
+Compilation works by reading the input file one form at a time.  If it
 is a definition of a function or macro, the compiled function or macro
 definition is written out.  Other forms are batched together, then each
 batch is compiled, and written so that its compiled code will be
 executed when the file is read.  All comments are discarded when the
 input file is read.
 
-  This command returns @code{t}.  When called interactively, it prompts
+This command returns @code{t}.  When called interactively, it prompts
 for the file name.
 
 @example
@@ -174,24 +185,24 @@ for the file name.
 
 @deffn Command byte-recompile-directory directory flag
 @cindex library compilation
-  This function recompiles every @samp{.el} file in @var{directory} that
+This function recompiles every @samp{.el} file in @var{directory} that
 needs recompilation.  A file needs recompilation if a @samp{.elc} file
 exists but is older than the @samp{.el} file.
 
-  If a @samp{.el} file exists, but there is no corresponding @samp{.elc}
-file, then @var{flag} is examined.  If it is @code{nil}, the file is
-ignored.  If it is non-@code{nil}, the user is asked whether the file
-should be compiled.
+If a @samp{.el} file exists, but there is no corresponding @samp{.elc}
+file, then @var{flag} says what to do.  If it is @code{nil}, the file is
+ignored.  If it is non-@code{nil}, the user is asked whether to compile
+the file.
 
-  The returned value of this command is unpredictable.
+The returned value of this command is unpredictable.
 @end deffn
 
 @defun batch-byte-compile
-  This function runs @code{byte-compile-file} on the files remaining on
-the command line.  This function must be used only in a batch execution
-of Emacs, as it kills Emacs on completion.  An error in one file does
-not prevent processing of subsequent files.  (The file which gets the
-error will not, of course, produce any compiled code.)
+This function runs @code{byte-compile-file} on files specified on the
+command line.  This function must be used only in a batch execution of
+Emacs, as it kills Emacs on completion.  An error in one file does not
+prevent processing of subsequent files.  (The file which gets the error
+will not, of course, produce any compiled code.)
 
 @example
 % emacs -batch -f batch-byte-compile *.el
@@ -200,14 +211,14 @@ error will not, of course, produce any compiled code.)
 
 @defun byte-code code-string data-vector max-stack
 @cindex byte-code interpreter
-  This function actually interprets byte-code.  A byte-compiled function
+This function actually interprets byte-code.  A byte-compiled function
 is actually defined with a body that calls @code{byte-code}.  Don't call
 this function yourself.  Only the byte compiler knows how to generate
 valid calls to this function.
 
-  In newer Emacs versions (19 and up), byte-code is usually executed as
-part of a compiled function object, and only rarely as part of a call to
-@code{byte-code}.
+In newer Emacs versions (19 and up), byte-code is usually executed as
+part of a byte-code function object, and only rarely due to an explicit
+call to @code{byte-code}.
 @end defun
 
 @node Eval During Compile
@@ -305,10 +316,10 @@ This function constructs and returns a byte-code function object
 with @var{elements} as its elements.
 @end defun
 
-  You should not try to come up with the elements for a byte-code function
-yourself, because if they are inconsistent, Emacs may crash when you
-call the function.  Always leave it to the byte-compiler to create these
-objects; it, we hope, always makes the elements consistent.
+  You should not try to come up with the elements for a byte-code
+function yourself, because if they are inconsistent, Emacs may crash
+when you call the function.  Always leave it to the byte-compiler to
+create these objects; it makes the elements consistent (we hope).
 
   You can access the elements of a byte-code object using @code{aref};
 you can also use @code{vconcat} to create a vector with the same
@@ -324,14 +335,14 @@ disassembler converts the byte-compiled code into humanly readable
 form.
 
   The byte-code interpreter is implemented as a simple stack machine.
-Values get stored by being pushed onto the stack, and are popped off and
-manipulated, the results being pushed back onto the stack.  When a
-function returns, the top of the stack is popped and returned as the
+It pushes values onto a stack of its own, then pops them off to use them
+in calculations and push the result back on the stack.  When a byte-code
+function returns, it pops a value off the stack and returns it as the
 value of the function.
 
-  In addition to the stack, values used during byte-code execution can
-be stored in ordinary Lisp variables.  Variable values can be pushed
-onto the stack, and variables can be set by popping the stack.
+  In addition to the stack, byte-code functions can use, bind and set
+ordinary Lisp variables, by transferring values between variables and
+the stack.
 
 @deffn Command disassemble object &optional stream
 This function prints the disassembled code for @var{object}.  If
@@ -500,7 +511,7 @@ The @code{silly-loop} function is somewhat more complex:
 
 @group
 5   dup                     ; @r{Duplicate the top of the stack;}
-                            ;   @r{i.e. copy the top of}
+                            ;   @r{i.e., copy the top of}
                             ;   @r{the stack and push the}
                             ;   @r{copy onto the stack.}
 @end group
