@@ -1,3 +1,10 @@
+2003-01-13  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* fileio.c (Fdelete_directory, Fdelete_file): Document the
+	behaviour in front of symlinks.
+	(Fdelete_file): Raise an error on directories.
+	(Fdo_auto_save): Add gcpros around Ffile_name_directory.
+
 2003-01-10  Andreas Schwab  <schwab@suse.de>
 
 	* alloc.c (pure_alloc): Correct alignment for Lisp_Floats.
