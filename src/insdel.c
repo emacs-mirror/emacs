@@ -40,6 +40,7 @@ static void gap_right P_ ((int, int));
 static void adjust_markers_gap_motion P_ ((int, int, int));
 static void adjust_markers_for_insert P_ ((int, int, int, int, int, int, int));
 static void adjust_markers_for_delete P_ ((int, int, int, int));
+static void adjust_markers_for_record_delete P_ ((int, int, int, int));
 static void adjust_point P_ ((int, int));
 
 Lisp_Object Fcombine_after_change_execute ();
@@ -339,8 +340,6 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
   Lisp_Object marker;
   register struct Lisp_Marker *m;
   register int charpos;
-  /* This is what GAP_SIZE will be when this deletion is finished.  */
-  int coming_gap_size = GAP_SIZE + to_byte - from_byte;
 
   marker = BUF_MARKERS (current_buffer);
 
@@ -367,6 +366,37 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
 	  m->charpos = from;
 	  m->bytepos = from_byte;
 	}
+
+      marker = m->chain;
+    }
+}
+
+/* Adjust all markers for calling record_delete for combining bytes.
+   whose range in bytes is FROM_BYTE to TO_BYTE.
+   The range in charpos is FROM to TO.  */
+
+static void
+adjust_markers_for_record_delete (from, from_byte, to, to_byte)
+     register int from, from_byte, to, to_byte;
+{
+  Lisp_Object marker;
+  register struct Lisp_Marker *m;
+  register int charpos;
+
+  marker = BUF_MARKERS (current_buffer);
+
+  while (!NILP (marker))
+    {
+      m = XMARKER (marker);
+      charpos = m->charpos;
+
+      /* If the marker is after the deletion,
+	 relocate by number of chars / bytes deleted.  */
+      if (charpos > to)
+	;
+      /* Here's the case where a marker is inside text being deleted.  */
+      else if (charpos > from)
+	record_marker_adjustment (marker, from - charpos);
 
       marker = m->chain;
     }
@@ -920,10 +950,19 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
      from the buffer and reinsert them.  */
 
   if (combined_after_bytes)
-    record_delete (PT, combined_after_bytes);
+    {
+      adjust_markers_for_record_delete (PT, PT_BYTE,
+					PT + combined_after_bytes,
+					PT_BYTE + combined_after_bytes);
+      record_delete (PT, combined_after_bytes);
+    }
 
   if (combined_before_bytes)
-    record_delete (PT - 1, 1);
+    {
+      adjust_markers_for_record_delete (PT - 1, CHAR_TO_BYTE (PT - 1),
+					PT, PT_BYTE);
+      record_delete (PT - 1, 1);
+    }
 
   record_insert (PT - !!combined_before_bytes,
 		 nchars - combined_before_bytes + !!combined_before_bytes);
@@ -1091,10 +1130,19 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
      from the buffer and reinsert them.  */
 
   if (combined_after_bytes)
-    record_delete (PT, combined_after_bytes);
+    {
+      adjust_markers_for_record_delete (PT, PT_BYTE,
+					PT + combined_after_bytes,
+					PT_BYTE + combined_after_bytes);
+      record_delete (PT, combined_after_bytes);
+    }
 
   if (combined_before_bytes)
-    record_delete (PT - 1, 1);
+    {
+      adjust_markers_for_record_delete (PT - 1, CHAR_TO_BYTE (PT - 1),
+					PT, PT_BYTE);
+      record_delete (PT - 1, 1);
+    }
 
   record_insert (PT - !!combined_before_bytes,
 		 nchars - combined_before_bytes + !!combined_before_bytes);
@@ -1247,10 +1295,19 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
      from the buffer and reinsert them.  */
 
   if (combined_after_bytes)
-    record_delete (PT, combined_after_bytes);
+    {
+      adjust_markers_for_record_delete (PT, PT_BYTE,
+					PT + combined_after_bytes,
+					PT_BYTE + combined_after_bytes);
+      record_delete (PT, combined_after_bytes);
+    }
 
   if (combined_before_bytes)
-    record_delete (PT - 1, 1);
+    {
+      adjust_markers_for_record_delete (PT - 1, CHAR_TO_BYTE (PT - 1),
+					PT, PT_BYTE);
+      record_delete (PT - 1, 1);
+    }
 
   record_insert (PT - !!combined_before_bytes,
 		 nchars - combined_before_bytes + !!combined_before_bytes);
@@ -1334,10 +1391,19 @@ adjust_after_replace (from, from_byte, to, to_byte, len, len_byte, replace)
     = count_combining_after (GPT_ADDR, len_byte, from, from_byte);
 
   if (combined_after_bytes)
-    record_delete (from, combined_after_bytes);
+    {
+      adjust_markers_for_record_delete (from, from_byte,
+					from + combined_after_bytes,
+					from_byte + combined_after_bytes);
+      record_delete (from, combined_after_bytes);
+    }
 
   if (combined_before_bytes)
-    record_delete (from - 1, 1);
+    {
+      adjust_markers_for_record_delete (from - 1, CHAR_TO_BYTE (from - 1),
+					from, from_byte);
+      record_delete (from - 1, 1);
+    }
 
   /* Update various buffer positions for the new text.  */
   GAP_SIZE -= len_byte;
@@ -1517,10 +1583,19 @@ replace_range (from, to, new, prepare, inherit)
      from the buffer and reinsert them.  */
 
   if (combined_after_bytes)
-    record_delete (PT, combined_after_bytes);
+    {
+      adjust_markers_for_record_delete (PT, PT_BYTE,
+					PT + combined_after_bytes,
+					PT_BYTE + combined_after_bytes);
+      record_delete (PT, combined_after_bytes);
+    }
 
   if (combined_before_bytes)
-    record_delete (PT - 1, 1);
+    {
+      adjust_markers_for_record_delete (PT - 1, CHAR_TO_BYTE (PT - 1),
+					PT, PT_BYTE);
+      record_delete (PT - 1, 1);
+    }
 
   record_insert (PT - !!combined_before_bytes,
 		 inschars - combined_before_bytes + !!combined_before_bytes);
@@ -1727,9 +1802,28 @@ del_range_2 (from, from_byte, to, to_byte)
      Do this before recording the deletion,
      so that undo handles this after reinserting the text.  */
   adjust_markers_for_delete (from, from_byte, to, to_byte);
+  if (combined_after_bytes)
+    {
+      int from_byte_1 = from_byte;
+      DEC_POS (from_byte_1);
 
+      /* Adjust markers for the phony deletion
+	 that we are about to call record_undo for.  */
+
+      /* Here we delete the markers that formerly
+	 pointed at TO ... TO + COMBINED_AFTER_BYTES.
+	 But because of the call to adjust_markers_for_delete, above,
+	 they now point at FROM ... FROM + COMBINED_AFTER_BYTES.  */
+      adjust_markers_for_record_delete (from, from_byte,
+					from + combined_after_bytes,
+					from_byte + combined_after_bytes);
+
+      adjust_markers_for_record_delete (from - 1, from_byte_1,
+					from, from_byte);
+    }
   record_delete (from - !!combined_after_bytes,
 		 nchars_del + combined_after_bytes + !!combined_after_bytes);
+
   if (combined_after_bytes)
     /* COMBINED_AFTER_BYTES nonzero means that the above record_delete
        moved the gap by calling Fbuffer_substring.  We must move the
@@ -1772,10 +1866,11 @@ del_range_2 (from, from_byte, to, to_byte)
     end_unchanged = Z - GPT;
 
   if (combined_after_bytes)
-    combine_bytes (from, from_byte, combined_after_bytes);
+    {
+      combine_bytes (from, from_byte, combined_after_bytes);
 
-  if (combined_after_bytes)
-    record_insert (GPT - 1, 1);
+      record_insert (GPT - 1, 1);
+    }
 
   evaporate_overlays (from);
   signal_after_change (from, nchars_del, 0);
