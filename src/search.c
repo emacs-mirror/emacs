@@ -429,7 +429,7 @@ fast_string_match (regexp, string)
   re_match_object = string;
   
   val = re_search (bufp, (char *) XSTRING (string)->data,
-		   XSTRING (string)->size, 0, XSTRING (string)->size,
+		   XSTRING (string)->size_byte, 0, XSTRING (string)->size_byte,
 		   0);
   immediate_quit = 0;
   return val;
@@ -922,7 +922,7 @@ static int
 trivial_regexp_p (regexp)
      Lisp_Object regexp;
 {
-  int len = XSTRING (regexp)->size;
+  int len = XSTRING (regexp)->size_byte;
   unsigned char *s = XSTRING (regexp)->data;
   unsigned char c;
   while (--len >= 0)
@@ -1005,6 +1005,8 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
   if (RE && !trivial_regexp_p (string))
     {
       struct re_pattern_buffer *bufp;
+      int pos_byte = CHAR_TO_BYTE (pos);
+      int lim_byte = CHAR_TO_BYTE (lim);
 
       bufp = compile_pattern (string, &search_regs, trt, posix,
 			      !NILP (current_buffer->enable_multibyte_characters));
@@ -1038,9 +1040,10 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 	{
 	  int val;
 	  val = re_search_2 (bufp, (char *) p1, s1, (char *) p2, s2,
-			     pos - BEGV, lim - pos, &search_regs,
+			     pos_byte - BEGV_BYTE, lim_byte - pos_byte,
+			     &search_regs,
 			     /* Don't allow match past current point */
-			     pos - BEGV);
+			     pos_byte - BEGV_BYTE);
 	  if (val == -2)
 	    {
 	      matcher_overflow ();
@@ -1070,8 +1073,9 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 	{
 	  int val;
 	  val = re_search_2 (bufp, (char *) p1, s1, (char *) p2, s2,
-			     pos - BEGV, lim - pos, &search_regs,
-			     lim - BEGV);
+			     pos_byte - BEGV_BYTE, lim_byte - pos_byte,
+			     &search_regs,
+			     lim_byte - BEGV_BYTE);
 	  if (val == -2)
 	    {
 	      matcher_overflow ();
