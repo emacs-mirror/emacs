@@ -1882,6 +1882,7 @@ extern int nonascii_insert_offset;
 extern Lisp_Object Vnonascii_translation_table;
 EXFUN (Fchar_bytes, 1);
 EXFUN (Fchar_width, 1);
+EXFUN (Fstring, MANY);
 extern int chars_in_text P_ ((unsigned char *, int));
 extern int multibyte_chars_in_text P_ ((unsigned char *, int));
 extern int unibyte_char_to_multibyte P_ ((int));
@@ -1976,7 +1977,7 @@ extern Lisp_Object concat2 P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object concat3 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object nconc2 P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object assq_no_quit P_ ((Lisp_Object, Lisp_Object));
-extern void clear_string_char_byte_cache P_ (());
+extern void clear_string_char_byte_cache P_ ((void));
 extern int string_char_to_byte P_ ((Lisp_Object, int));
 extern int string_byte_to_char P_ ((Lisp_Object, int));
 extern Lisp_Object string_make_multibyte P_ ((Lisp_Object));
@@ -2143,6 +2144,7 @@ extern void free_cons P_ ((struct Lisp_Cons *));
 extern void init_alloc_once P_ ((void));
 extern void init_alloc P_ ((void));
 extern void syms_of_alloc P_ ((void));
+extern struct buffer * allocate_buffer P_ ((void));
 
 /* Defined in print.c */
 extern Lisp_Object Vprin1_to_string_buffer;
@@ -2318,6 +2320,11 @@ extern void init_editfns P_ ((void));
 extern void syms_of_editfns P_ ((void));
 EXFUN (Fcurrent_message, 0);
 extern Lisp_Object Vinhibit_field_text_motion;
+EXFUN (Fconstrain_to_field, 4);
+EXFUN (Ffield_string, 1);
+EXFUN (Fdelete_field, 1);
+EXFUN (Ffield_beginning, 2);
+EXFUN (Ffield_string_no_properties, 1);
 
 /* defined in buffer.c */
 extern void nsberror P_ ((Lisp_Object));
@@ -2486,7 +2493,7 @@ EXFUN (Finput_pending_p, 0);
 extern Lisp_Object menu_bar_items P_ ((Lisp_Object));
 extern Lisp_Object tool_bar_items P_ ((Lisp_Object, int *));
 extern Lisp_Object Qvertical_scroll_bar;
-extern void discard_mouse_events ();
+extern void discard_mouse_events P_ ((void));
 EXFUN (Fevent_convert_list, 1);
 EXFUN (Fread_key_sequence, 5);
 EXFUN (Fset_input_mode, 4);
@@ -2805,6 +2812,11 @@ extern int getloadavg P_ ((double *, int));
 extern void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void syms_of_xfns P_ ((void));
 extern void init_xfns P_ ((void));
+EXFUN (Fxw_display_color_p, 1);
+#ifdef HAVE_X_I18N
+extern void free_frame_xic P_ ((struct frame *))
+#endif
+/* Fixme: x_defined_color needs declaring, but needs FRAME_PTR and XColor. */
 #endif
 
 /* Defined in xselect.c */
@@ -2815,7 +2827,9 @@ extern void syms_of_xterm P_ ((void));
 
 /* Defined in getloadavg.c */
 extern int getloadavg P_ ((double [], int));
-
+
+/* Defined in composite.c */
+extern void compose_text P_ ((int, int, Lisp_Object, Lisp_Object, Lisp_Object));
 /* Nonzero means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */
 extern int initialized;
