@@ -3,7 +3,7 @@
 ;; Copyright (C) 1986, 87, 88, 1997 Free Software Foundation, Inc.
 
 ;; Author: Bill Rozas <jinx@martigny.ai.mit.edu>
-;; Maintainer: FSF
+;; Adapted-by: Dave Love <d.love@dl.ac.uk>
 ;; Keywords: languages, lisp
 
 ;; This file is part of GNU Emacs.
@@ -22,10 +22,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
-
-;; Originally adapted from Lisp mode by Bill Rozas, jinx@prep with a
-;; comment that the code should be merged back.  Merging done by
-;; d.love@dl.ac.uk when DSSSL features added.
 
 ;;; Commentary:
 
@@ -116,11 +112,11 @@
 
 (defvar scheme-imenu-generic-expression
       '((nil 
-	 "^(define\\(\\|-\\(generic\\(\\|-procedure\\)\\|method\\)\\)*\\s-+(?\\(\\(\\sw\\|\\s_\\)+\\)" 4)
+	 "^(define\\(\\|-\\(generic\\(\\|-procedure\\)\\|method\\)\\)*\\s-+(?\\(\\sw+\\)" 4)
 	(" Types" 
-	 "^(define-class\\s-+(?\\(\\(\\sw\\|\\s_\\)+\\)" 1)
+	 "^(define-class\\s-+(?\\(\\sw+\\)" 1)
 	(" Macros"
-	 "^(\\(defmacro\\|define-macro\\|define-syntax\\)\\s-+(?\\(\\(\\sw\\|\\s_\\)+\\)" 2))
+	 "^(\\(defmacro\\|define-macro\\|define-syntax\\)\\s-+(?\\(\\sw+\\)" 2))
   "Imenu generic expression for Scheme mode.  See `imenu-generic-expression'.")
 
 (defun scheme-mode-variables ()
@@ -162,9 +158,12 @@
   (make-local-variable 'lisp-indent-function)
   (set lisp-indent-function 'scheme-indent-function)
   (setq mode-line-process '("" scheme-mode-line-process))
+  (make-local-variable 'imenu-case-fold-search)
+  (setq imenu-case-fold-search t)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression scheme-imenu-generic-expression)
-  (setq imenu-case-fold-search t))
+  (make-local-variable 'imenu-syntax-alist)
+  (setq imenu-syntax-alist '(("+-*/.<>=?!$%_&~^:" . "w"))))
 
 (defvar scheme-mode-line-process "")
 
@@ -266,15 +265,15 @@ See `run-hooks'."
   ;; should be at the first level, though you don't see this anyhow if
   ;; it gets split up.
   '((" Defines" 
-     "^(define\\s-+(?\\(\\(\\sw\\|\\s_\\)+\\)" 1)
+     "^(define\\s-+(?\\(\\sw+\\)" 1)
     (" Modes"
-     "^\\s-*(mode\\s-+\\(\\(\\sw\\|\\s-\\|\\s_\\)+\\)" 1)
+     "^\\s-*(mode\\s-+\\(\\(\\sw\\|\\s-\\)+\\)" 1)
     (" Elements"
      ;; (element foo ...) or (element (foo bar ...) ...)
      ;; Fixme: Perhaps it should do `root'.
-     "^\\s-*(element\\s-+(?\\(\\(\\sw\\|\\s-\\|\\s_\\)+\\))?" 1)
+     "^\\s-*(element\\s-+(?\\(\\(\\sw\\|\\s-\\)+\\))?" 1)
     (" Declarations" 
-     "^(declare\\(-\\sw+\\)+\\>\\s-+\\(\\(\\sw\\|\\s_\\)+\\)" 2))
+     "^(declare\\(-\\sw+\\)+\\>\\s-+\\(\\sw+\\)" 2))
   "Imenu generic expression for DSSSL mode.  See `imenu-generic-expression'.")
 
 ;;;###autoload
@@ -295,7 +294,7 @@ if that value is non-nil and inserts the value of
   (scheme-mode-initialize)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(dsssl-font-lock-keywords
-			     nil t (("+-*/.<>=!?$%_&~^:" . "w"))
+			     nil t (("+-*/.<>=?$%_&~^:" . "w"))
 			     beginning-of-defun
 			     (font-lock-comment-start-regexp . ";")
 			     (font-lock-mark-block-function . mark-defun)))
@@ -311,8 +310,9 @@ if that value is non-nil and inserts the value of
   (run-hooks 'scheme-mode-hook)
   (run-hooks 'dsssl-mode-hook)
   (scheme-mode-variables)
+  (setq imenu-case-fold-search nil)
   (setq imenu-generic-expression dsssl-imenu-generic-expression)
-  (setq imenu-case-fold-search nil))
+  (setq imenu-syntax-alist '(("+-*/.<>=?$%_&~^:" . "w"))))
 
 ;; Extra syntax for DSSSL.  This isn't separated from Scheme, but
 ;; shouldn't cause much trouble in scheme-mode.
