@@ -589,22 +589,21 @@ popped up to accept a comment."
 Optional arg (interactive prefix) non-nil means prompt for user name and site.
 Second arg is file name of change log.  \
 If nil, uses `change-log-default-name'."
-  (interactive)
+  (interactive (if current-prefix-arg
+		   (list current-prefix-arg
+			 (prompt-for-change-log-name))))
   (let (;; Extract the comment first so we get any error before doing anything.
 	(comment (ring-ref vc-comment-ring 0))
-	;; Don't let add-change-log-entry insert anything but the file name.
+	;; Don't let add-change-log-entry insert a defun name.
 	(add-log-current-defun-function 'ignore)
 	end)
     ;; Call add-log to do half the work.
-    (if (interactive-p)
-	;; This is better than repeating its interactive spec here.
-	(call-interactively 'add-change-log-entry-other-window)
-      (add-change-log-entry-other-window whoami file-name))
+    (add-change-log-entry whoami file-name t t)
     ;; Insert the VC comment, leaving point before it.
     (setq end (save-excursion (insert comment) (point-marker)))
     (if (looking-at "\\s *\\s(")
 	;; It starts with an open-paren, as in "(foo): Frobbed."
-	;; So remove the ": " add-change-log-entry-other-window inserted.
+	;; So remove the ": " add-log inserted.
 	(delete-char -2))
     ;; Canonicalize the white space between the file name and comment.
     (just-one-space)
@@ -618,6 +617,7 @@ If nil, uses `change-log-default-name'."
     ;; Fill the inserted text, preserving open-parens at bol.
     (let ((paragraph-separate (concat paragraph-separate "\\|^\\s *\\s("))
 	  (paragraph-start (concat paragraph-start "\\|^\\s *\\s(")))
+      (beginning-of-line)
       (fill-region (point) end))
     ;; Canonicalize the white space at the end of the entry so it is
     ;; separated from the next entry by a single blank line.
