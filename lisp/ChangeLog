@@ -2,6 +2,23 @@
 
 	* vc-arch.el (vc-arch-state): Fix parsing for `names' method.
 
+2004-09-08  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (perform-replace): Use `query-replace-descr'.
+
+	* cus-start.el (history-delete-duplicates): Specify customization.
+
+	* diff-mode.el (diff-mode-map):
+	* progmodes/compile.el (compilation-mode-map):
+	* progmodes/grep.el (grep-mode-map):
+	* replace.el (occur-mode-map): Rename `next-error-follow-mode'
+	to `next-error-follow-minor-mode'.
+
+2004-09-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* isearch.el (isearch-lazy-highlight-update): Take into account
+	the case of zero-length match at the search bound.
+
 2004-09-08  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-rect.el (cua--highlight-rectangle): Fix last
