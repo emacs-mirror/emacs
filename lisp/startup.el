@@ -1436,7 +1436,8 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		   (mapcar (lambda (elt)
 			     (list (concat "-" (car elt))))
 			   command-switch-alist)))
-	  (line 0))
+	  (line 0)
+	  (column 0))
 
       ;; Add the long X options to longopts.
       (setq tem command-line-x-option-alist)
@@ -1545,6 +1546,10 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		((string-match "^\\+[0-9]+\\'" argi)
 		 (setq line (string-to-int argi)))
 		
+		((string-match "^\\+\\([0-9]+\\):\\([0-9]+\\)\\'" argi)
+		 (setq line (string-to-int (match-string 1 argi))
+		       column (string-to-int (match-string 2 argi))))
+
 		((setq tem (assoc argi command-line-x-option-alist))
 		 ;; Ignore X-windows options and their args if not using X.
 		 (setq command-line-args-left
@@ -1568,7 +1573,10 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		     (find-file-other-window file)))
 		 (or (zerop line)
 		     (goto-line line))
-		 (setq line 0))
+		 (setq line 0)
+		 (unless (< column 1)
+		   (move-to-column (1- column)))
+		 (setq column 0))
 		
 		((equal argi "--")
 		 (setq just-files t))
@@ -1595,7 +1603,10 @@ Type \\[describe-distribution] for information on getting the latest version."))
 			     (find-file-other-window file)))
 			 (or (zerop line)
 			     (goto-line line))
-			 (setq line 0))))))))
+			 (setq line 0)
+			 (unless (< column 1)
+			   (move-to-column (1- column)))
+			 (setq column 0))))))))
       ;; If 3 or more files visited, and not all visible,
       ;; show user what they all are.  But leave the last one current.
       (and (> file-count 2)
