@@ -68,6 +68,13 @@
        (member (downcase (file-name-nondirectory shell-name)) 
 	       w32-system-shells)))
 
+(defun w32-shell-dos-semantics ()
+  "Return t if the interactive shell being used expects msdos shell semantics."
+  (or (w32-system-shell-p (w32-shell-name))
+      (and (member (downcase (file-name-nondirectory (w32-shell-name)))
+		   '("cmdproxy" "cmdproxy.exe"))
+	   (w32-system-shell-p (getenv "COMSPEC")))))
+
 (defvar w32-allow-system-shell nil
   "*Disable startup warning when using \"system\" shells.")
 
