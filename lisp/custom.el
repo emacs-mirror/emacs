@@ -177,7 +177,7 @@ The following keywords are meaningful:
 	VALUE should be a function used to initialize the
 	variable.  It takes two arguments, the symbol and value
 	given in the `defcustom' call.  The default is
-	`custom-initialize-reset.'
+	`custom-initialize-reset'.
 :set	VALUE should be a function to set the value of the symbol.
 	It takes two arguments, the symbol to set and the value to
 	give it.  The default choice of function is `custom-set-default'.
