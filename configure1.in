@@ -582,6 +582,11 @@ case "${configuration}" in
     esac
   ;;
 
+  ## Intel 860
+  i860-*-sysvr4 )
+    machine=i860 opsys=usg5-4
+  ;;
+
   ## Silicon Graphics machines
   ## Iris 2500 and Iris 2500 Turbo (aka the Iris 3030)
   m68*-sgi-iris3.5 )
