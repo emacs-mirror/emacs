@@ -124,7 +124,7 @@
 #define SUNOS_5
 #endif
 
-#if defined (__osf__) && defined (__alpha__)
+#if defined (__osf__) && (defined (__alpha) || defined (__alpha__))
 #define OSF_ALPHA
 #endif
 
