@@ -125,11 +125,13 @@ the tail of the list.")
      (1 font-lock-keyword-face)
      (2 font-lock-string-face)))
   "Expressions to fontify in Decipher mode.
+
 Ciphertext uses `font-lock-keyword-face', plaintext uses
 `font-lock-string-face', comments use `font-lock-comment-face', and
 checkpoints use `font-lock-reference-face'.  You can customize the
 display by changing these variables.  For best results, I recommend
 that all faces use the same background color.
+
 For example, to display ciphertext in the `bold' face, use
   (add-hook 'decipher-mode-hook
             (lambda () (set (make-local-variable 'font-lock-keyword-face)
@@ -406,13 +408,17 @@ The most useful commands are:
               (setcdr (nthcdr (1- new-size) decipher-undo-list) nil)
               (setq decipher-undo-list-size new-size))))))
 
+(defun decipher-get-undo-copy (cons)
+  (if cons
+      (cons (car cons) (cdr cons))))
+
 (defun decipher-get-undo (cipher-char plain-char)
   ;; Return an undo record that will undo the result of
   ;;   (decipher-set-map CIPHER-CHAR PLAIN-CHAR)
-  ;; We must use copy-list because the original cons cells will be
+  ;; We must copy the cons cell because the original cons cells will be
   ;; modified using setcdr.
-  (let ((cipher-map (copy-list (rassoc cipher-char decipher-alphabet)))
-        (plain-map  (copy-list (assoc  plain-char  decipher-alphabet))))
+  (let ((cipher-map (decipher-get-undo-copy (rassoc cipher-char decipher-alphabet)))
+        (plain-map  (decipher-get-undo-copy (assoc  plain-char  decipher-alphabet))))
     (cond ((equal ?\  plain-char)
            cipher-map)
           ((equal cipher-char (cdr plain-map))
