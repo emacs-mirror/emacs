@@ -49,7 +49,7 @@ This variable is automatically local in each buffer where it is set.
 
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `auto-show-mode'."
-  :set (lambda (symbol value) (auto-show-mode value))
+  :set (lambda (symbol value) (auto-show-mode (if value 1 0)))
   :require 'auto-show
   :initialize 'custom-initialize-default
   :link '(emacs-commentary-link "auto-show.el")
