@@ -490,17 +490,20 @@ This returns ARGS with the arguments that have been processed removed."
 		   "Yellow"
 		   "green yellow"
 		   "GreenYellow")
-  "The full list of X colors from the rgb.text file.")
+  "The full list of X colors from the `rgb.text' file.")
 
-(defun x-defined-colors ()
-  "Return a list of colors supported by the current X-Display."
+(defun x-defined-colors (&optional frame)
+  "Return a list of colors supported for a particular frame.
+The argument FRAME specifies which frame to try.
+The value may be different for frames on different X displays."
+  (or frame (setq frame (selected-frame)))
   (let ((all-colors x-colors)
 	(this-color nil)
 	(defined-colors nil))
     (while all-colors
       (setq this-color (car all-colors)
 	    all-colors (cdr all-colors))
-      (and (x-color-defined-p this-color)
+      (and (face-color-supported-p frame this-color t)
 	   (setq defined-colors (cons this-color defined-colors))))
     defined-colors))
 
