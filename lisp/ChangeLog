@@ -1,5 +1,11 @@
 2000-10-04  Peter Breton  <pbreton@ne.mediaone.net>
 
+	* net/net-utils.el (nslookup-font-lock-keywords,
+	ftp-font-lock-keywords, smbclient-font-lock-keywords): 
+	Only set if window-system is non-nil
+	(net-utils-run-program): Returns buffer.
+	(network-connection-reconnect): Added this function.
+
 	* generic.el: 
 	Incorporates extensive cleanup and docfixes by 
 	Stefan Monnier (monnier+gnu/emacs@flint.cs.yale.edu).
