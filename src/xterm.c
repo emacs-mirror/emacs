@@ -3913,26 +3913,28 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 
 	case LeaveNotify:
-	  f = x_any_window_to_frame (event.xcrossing.window);
-
-	  if (f == mouse_face_mouse_frame)
-	    /* If we move outside the frame,
-	       then we're certainly no longer on any text in the frame.  */
-	    clear_mouse_face ();
-
-	  if (event.xcrossing.focus)
+	  f = x_top_window_to_frame (event.xcrossing.window);
+	  if (f)
 	    {
-	      if (! x_focus_event_frame)
-		x_new_focus_frame (0);
-	      else
-		x_new_focus_frame (f);
-	    }
-	  else 
-	    {
-	      if (f == x_focus_event_frame)
-		x_focus_event_frame = 0;
-	      if (f == x_focus_frame)
-		x_new_focus_frame (0);
+	      if (f == mouse_face_mouse_frame)
+		/* If we move outside the frame,
+		   then we're certainly no longer on any text in the frame.  */
+		clear_mouse_face ();
+
+	      if (event.xcrossing.focus)
+		{
+		  if (! x_focus_event_frame)
+		    x_new_focus_frame (0);
+		  else
+		    x_new_focus_frame (f);
+		}
+	      else 
+		{
+		  if (f == x_focus_event_frame)
+		    x_focus_event_frame = 0;
+		  if (f == x_focus_frame)
+		    x_new_focus_frame (0);
+		}
 	    }
 #ifdef USE_X_TOOLKIT
 	  goto OTHER;
