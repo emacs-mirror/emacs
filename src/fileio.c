@@ -3149,8 +3149,7 @@ This does code conversion according to the value of\n\
       val = Qemacs_mule;
     else
       {
-	if (SYMBOLP (Vset_auto_coding_function)
-	    && !NILP (Fboundp (Vset_auto_coding_function)))
+	if (! NILP (Vset_auto_coding_function))
 	  {
 	    /* Find a coding system specified in the heading two lines
 	       or in the tailing several lines of the file.  We assume
