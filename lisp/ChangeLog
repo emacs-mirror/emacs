@@ -11,6 +11,7 @@
 
 	* calc/calcalg3.el (calc-invent-variables): Convert integer to
 	string.
+	* calc/calcalg2.el (math-solve-get-sign): Ditto.
 
 	* ibuffer.el (ibuffer-compile-format): Don't uselessly bind `pt'
 	in generated function.
