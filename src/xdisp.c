@@ -215,6 +215,8 @@ extern int pending_menu_activation;
 extern int interrupt_input;
 extern int command_loop_level;
 
+extern Lisp_Object do_mouse_tracking;
+
 extern int minibuffer_auto_raise;
 extern Lisp_Object Vminibuffer_list;
 
@@ -20764,6 +20766,10 @@ define_frame_cursor1 (f, cursor, pointer)
      Cursor cursor;
      Lisp_Object pointer;
 {
+  /* Do not change cursor shape while dragging mouse.  */
+  if (!NILP (do_mouse_tracking))
+    return;
+
   if (!NILP (pointer))
     {
       if (EQ (pointer, Qarrow))
