@@ -1,3 +1,23 @@
+1999-11-24  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-find-sqli-buffer): New function.
+	(sql-set-sqli-buffer-generally): New function.
+	(sql-set-sqli-buffer): Better checking of new-buffer.
+	(sql-copy-column): Add comma after INTO clause, too.
+
+1999-11-24  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-imenu-generic-expression): New, used to set
+	imenu-generic-expression.
+
+	* sql.el (sql-mode): Use ?_ and ?. instead of 95 and 46 when
+	setting font-lock-defaults' SYNTAX-ALIST.  Set
+	imenu-generic-expression, imenu-case-fold-search, and
+	imenu-syntax-alist.
+
+	* sql.el (sql-interactive-mode): Use ?_ and ?. instead of 95
+	and 46 when setting font-lock-defaults' SYNTAX-ALIST.
+
 1999-11-23  Andrew Innes  <andrewi@gnu.org>
 
 	* w32-win.el (w32-drag-n-drop): Load files in current window, if
