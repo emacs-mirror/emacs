@@ -71,6 +71,16 @@ extern void abort ();
 
 #include "../lwlib/lwlib.h"
 
+/* Do the EDITRES protocol if running X11R5 */
+#if (XtSpecificationRelease >= 5)
+#define HACK_EDITRES
+extern void _XEditResCheckMessages();
+#endif /* R5 + Athena */
+
+/* Unique id counter for widgets created by the Lucid Widget
+   Library. */
+extern LWLIB_ID widget_id_tick;
+
 /* The one and only application context associated with the connection
    to the one and only X display that Emacs uses.  */
 XtAppContext Xt_app_con;
@@ -315,8 +325,7 @@ x_any_window_to_frame (wdesc)
 	  || wdesc == XtWindow (x->edit_widget))
 	return f;
       /* Match if the window is this frame's menubar.  */
-      if (x->menubar_widget 
-	  && wdesc == XtWindow (x->menubar_widget))
+      if (lw_window_is_in_menubar (wdesc, x->menubar_widget))
 	return f;
     }
   return 0;
@@ -1921,7 +1930,7 @@ x_window (f, window_prompting, minibuffer_only)
 
   Widget shell_widget;
   Widget pane_widget;
-  Widget screen_widget;
+  Widget frame_widget;
   char* name;
   Arg al [25];
   int ac;
@@ -1943,12 +1952,12 @@ x_window (f, window_prompting, minibuffer_only)
   f->display.x->widget = shell_widget;
   /* maybe_set_screen_title_format (shell_widget); */
 
-
-  ac = 0;
-  XtSetArg (al[ac], XtNborderWidth, 0); ac++;
-  pane_widget = XtCreateWidget ("pane",
-				panedWidgetClass,
-				shell_widget, al, ac);
+  pane_widget = lw_create_widget ("main", "pane", widget_id_tick++,
+				  (widget_value *) NULL,
+				  shell_widget, False,
+				  (lw_callback) NULL,
+				  (lw_callback) NULL,
+				  (lw_callback) NULL);
 
   f->display.x->column_widget = pane_widget;
 
@@ -1964,15 +1973,16 @@ x_window (f, window_prompting, minibuffer_only)
   XtSetArg (al[ac], XtNallowResize, 1); ac++;
   XtSetArg (al[ac], XtNresizeToPreferred, 1); ac++;
   XtSetArg (al[ac], XtNemacsFrame, f); ac++;
-  screen_widget = XtCreateWidget (name,
+  frame_widget = XtCreateWidget (name,
 				  emacsFrameClass,
 				  pane_widget, al, ac);
+  lw_set_main_areas (pane_widget, f->display.x->menubar_widget, frame_widget);
  
-  f->display.x->edit_widget = screen_widget;
+  f->display.x->edit_widget = frame_widget;
  
   if (f->display.x->menubar_widget)
     XtManageChild (f->display.x->menubar_widget);
-  XtManageChild (screen_widget); 
+  XtManageChild (frame_widget); 
 
   /* Do some needed geometry management.  */
   {
@@ -2023,7 +2033,7 @@ x_window (f, window_prompting, minibuffer_only)
   XtManageChild (pane_widget);
   XtRealizeWidget (shell_widget);
 
-  FRAME_X_WINDOW (f) = XtWindow (screen_widget); 
+  FRAME_X_WINDOW (f) = XtWindow (frame_widget); 
 
   validate_x_resource_name ();
   class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
@@ -2036,11 +2046,15 @@ x_window (f, window_prompting, minibuffer_only)
 
   hack_wm_protocols (shell_widget);
 
+#ifdef HACK_EDITRES
+  XtAddEventHandler (shell_widget, 0, True, _XEditResCheckMessages, 0);
+#endif
+
   /* Do a stupid property change to force the server to generate a
      propertyNotify event so that the event_stream server timestamp will
      be initialized to something relevant to the time we created the window.
      */
-  XChangeProperty (XtDisplay (screen_widget), XtWindow (screen_widget),
+  XChangeProperty (XtDisplay (frame_widget), XtWindow (frame_widget),
 		   Xatom_wm_protocols, XA_ATOM, 32, PropModeAppend,
 		   (unsigned char*) NULL, 0);
 
@@ -2050,7 +2064,7 @@ x_window (f, window_prompting, minibuffer_only)
   XChangeWindowAttributes (XtDisplay (shell_widget), XtWindow (shell_widget),
 			   attribute_mask, &attributes);
 
-  XtMapWidget (screen_widget);
+  XtMapWidget (frame_widget);
 
   /* x_set_name normally ignores requests to set the name if the
      requested name is the same as the current name.  This is the one
