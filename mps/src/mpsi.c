@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.34) $
+ * $HopeName: MMsrc!mpsi.c(trunk.35) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -26,18 +26,19 @@
  * check that protocols are obeyed by the client.  It probably doesn't
  * meet checking requirements.
  *
- * .varargs: (rule.universal.complete) The varargs passed to mps_alloc(_v)
- * are ignored at the moment.  None of the pool implementations use them.
+ * .varargs: (rule.universal.complete) The varargs passed to
+ * mps_alloc(_v) are ignored at the moment.  None of the pool
+ * implementations use them.
  *
  * .poll: (rule.universal.complete) Various allocation methods call
  * ArenaPoll to allow the MPM to "steal" CPU time and get on with
  * background tasks such as incremental GC.  This mechanism hasn't been
  * well thought out.
  *
- * .root-mode: (rule.universal.complete) The root "mode", which specifies
- * things like the protectability of roots, is ignored at present.  This
- * is because the MPM doesn't ever try to protect them.  In future, it
- * will.
+ * .root-mode: (rule.universal.complete) The root "mode", which
+ * specifies things like the protectability of roots, is ignored at
+ * present.  This is because the MPM doesn't ever try to protect them.
+ * In future, it will.
  *
  * .reg-scan: (rule.universal.complete) At present, we only support
  * register scanning using our own ambiguous register and stack scanning
@@ -51,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.34) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.35) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -170,6 +171,7 @@ mps_res_t mps_arena_extend(mps_arena_t mps_arena,
   Res res;
 
   ArenaEnter(arena);
+  AVER(size > 0);
   res = ArenaExtend(arena, (Addr)base, (Size)size);
   ArenaLeave(arena);
 
@@ -307,9 +309,9 @@ mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
   AVER(mps_arena_o != NULL);
 
   res = ArenaCreateV(&arena, (ArenaClass)mps_arena_class, args);
+
   if(res != ResOK)
     return res;
-  
   *mps_arena_o = (mps_arena_t)arena;
   return MPS_RES_OK;
 }
@@ -374,7 +376,6 @@ mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
   ArenaLeave(arena);
 
   if(res != ResOK) return res;
-
   *mps_fmt_o = (mps_fmt_t)format;
   return MPS_RES_OK;
 }
@@ -391,7 +392,7 @@ void mps_fmt_destroy(mps_fmt_t mps_fmt)
 
   AVERT(Format, format);
 
-  FormatDestroy((Format)mps_fmt);
+  FormatDestroy(format);
 
   ArenaLeave(arena);
 }
@@ -431,7 +432,6 @@ mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o,
   ArenaLeave(arena);
   
   if(res != ResOK) return res;
-  
   *mps_pool_o = (mps_pool_t)pool;
   return res;
 }
@@ -490,8 +490,8 @@ mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t mps_pool, size_t size,
   res = PoolAlloc(&p, pool, size);
 
   ArenaLeave(arena);
+
   if(res != ResOK) return res;
-  
   *p_o = (mps_addr_t)p;
   return MPS_RES_OK;
 }
@@ -541,7 +541,6 @@ mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool, ...)
   ArenaLeave(arena);
 
   if(res != ResOK) return res;
-
   *mps_ap_o = (mps_ap_t)BufferAP(buf);
   return MPS_RES_OK;
 }
@@ -570,7 +569,6 @@ mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t mps_pool,
   ArenaLeave(arena);
 
   if(res != ResOK) return res;
-
   *mps_ap_o = (mps_ap_t)BufferAP(buf);
   return MPS_RES_OK;
 }
@@ -588,6 +586,7 @@ void mps_ap_destroy(mps_ap_t mps_ap)
 
   AVERT(Buffer, buf);
   BufferDestroy(buf);
+
   ArenaLeave(arena);
 }
 
@@ -596,8 +595,8 @@ void mps_ap_destroy(mps_ap_t mps_ap)
  *
  * .reserve.call: mps_reserve does not call BufferReserve, but instead
  * uses the in-line macro from impl.h.mps.  This is so that it calls
- * mps_ap_fill and thence ArenaPoll (.poll).  The consistency checks here
- * are the ones which can be done outside the MPM.  See also .commit.call.
+ * mps_ap_fill and thence ArenaPoll (.poll).  The consistency checks
+ * are those which can be done outside the MPM.  See also .commit.call.
  */
 
 mps_res_t (mps_reserve)(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
@@ -669,7 +668,6 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
   ArenaLeave(arena);
   
   if(res != ResOK) return res;
-  
   *p_o = (mps_addr_t)p;
   return MPS_RES_OK;
 }
@@ -720,18 +718,15 @@ mps_res_t mps_root_create(mps_root_t *mps_root_o,
   ArenaEnter(arena);
 
   AVER(mps_root_o != NULL);
-  AVERT(Arena, arena);
-  AVER(mps_root_scan != NULL);
   AVER(mps_rm == (mps_rm_t)0);
 
   /* See .root-mode. */
   res = RootCreateFun(&root, arena, rank,
-                   (RootScanMethod)mps_root_scan, p, s);
+                      (RootScanMethod)mps_root_scan, p, s);
 
   ArenaLeave(arena);
   
   if(res != ResOK) return res;
-  
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
@@ -751,13 +746,12 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
   ArenaEnter(arena);
 
   AVER(mps_root_o != NULL);
-  AVERT(Arena, arena);
   AVER(base != NULL);
-  AVER((unsigned long)size > 0);
+  AVER(size > 0);
 
-  /* Note, size is the length of the array at base, not */
-  /* the size in bytes.  However, RootCreateTable expects */
-  /* base and limit pointers.  Be careful. */
+  /* .root.table-size: size is the length of the array at base, not */
+  /* the size in bytes.  However, RootCreateTable expects base and */
+  /* limit pointers.  Be careful. */
 
   res = RootCreateTable(&root, arena, rank, mode,
                         (Addr *)base, (Addr *)base + size);
@@ -765,7 +759,6 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
   ArenaLeave(arena);
   
   if(res != ResOK) return res;
-  
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
@@ -786,14 +779,11 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
   ArenaEnter(arena);
 
   AVER(mps_root_o != NULL);
-  AVERT(Arena, arena);
   AVER(base != NULL);
-  AVER((unsigned long)size > 0);
+  AVER(size > 0);
   /* Can't check anything about mask */
 
-  /* Note, size is the length of the array at base, not */
-  /* the size in bytes.  However, RootCreateTable expects */
-  /* base and limit pointers.  Be careful. */
+  /* See .root.table-size. */
 
   res = RootCreateTableMasked(&root, arena, rank, mode,
                               (Addr *)base, (Addr *)base + size,
@@ -802,7 +792,6 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
   ArenaLeave(arena);
   
   if(res != ResOK) return res;
-  
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
@@ -824,10 +813,6 @@ mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
   ArenaEnter(arena);
 
   AVER(mps_root_o != NULL);
-  AVERT(Arena, arena);
-  AVER(scan != NULL);
-  AVER(base != NULL);
-  AVER(base < limit);
 
   res = RootCreateFmt(&root, arena, rank, mode, scan,
                       (Addr)base, (Addr)limit);
@@ -835,7 +820,6 @@ mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
   ArenaLeave(arena);
   
   if(res != ResOK) return res;
-
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
@@ -858,8 +842,6 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
   ArenaEnter(arena);
 
   AVER(mps_root_o != NULL);
-  AVERT(Arena, arena);
-  AVERT(Thread, thread);
   AVER(mps_reg_scan != NULL);
   AVER(mps_reg_scan == mps_stack_scan_ambig); /* .reg.scan */
   AVER(reg_scan_p != NULL); /* stackBot */
@@ -874,7 +856,6 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
   ArenaLeave(arena);
   
   if(res != ResOK) return res;
-  
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
@@ -942,7 +923,6 @@ mps_res_t mps_thread_reg(mps_thr_t *mps_thr_o, mps_arena_t mps_arena)
   ArenaLeave(arena);
   
   if(res != ResOK) return res;
-  
   *mps_thr_o = (mps_thr_t)thread;
   return MPS_RES_OK;
 }
@@ -994,7 +974,8 @@ void mps_ld_add(mps_ld_t mps_ld, mps_arena_t mps_arena, mps_addr_t addr)
  * See design.mps.interface.c.lock-free.
  */
 
-void mps_ld_merge(mps_ld_t mps_ld, mps_arena_t mps_arena, mps_ld_t mps_from)
+void mps_ld_merge(mps_ld_t mps_ld, mps_arena_t mps_arena,
+                  mps_ld_t mps_from)
 {
   Arena arena = (Arena)mps_arena;
   LD ld = (LD)mps_ld;
@@ -1035,7 +1016,7 @@ mps_res_t mps_fix(mps_ss_t mps_ss, mps_addr_t *ref_io)
 mps_word_t mps_collections(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
-  return ArenaEpoch(arena);  /* thread safe: see impl.h.arena.epoch.ts */
+  return ArenaEpoch(arena); /* thread safe: see impl.h.arena.epoch.ts */
 }
 
 
@@ -1085,7 +1066,7 @@ mps_bool_t mps_message_poll(mps_arena_t mps_arena)
 
 
 mps_message_type_t mps_message_type(mps_arena_t mps_arena,
-                               mps_message_t mps_message)
+                                    mps_message_t mps_message)
 {
   Arena arena = (Arena)mps_arena;
   Message message = (Message)mps_message;
@@ -1100,7 +1081,8 @@ mps_message_type_t mps_message_type(mps_arena_t mps_arena,
   return (mps_message_type_t)type;
 }
 
-void mps_message_discard(mps_arena_t mps_arena, mps_message_t mps_message)
+void mps_message_discard(mps_arena_t mps_arena,
+                         mps_message_t mps_message)
 {
   Arena arena = (Arena)mps_arena;
   Message message = (Message)mps_message;
@@ -1143,7 +1125,6 @@ mps_bool_t mps_message_get(mps_message_t *mps_message_return,
   if(b) {
     *mps_message_return = (mps_message_t)message;
   }
-
   return b;
 }
 
@@ -1163,7 +1144,6 @@ mps_bool_t mps_message_queue_type(mps_message_type_t *mps_message_type_return,
   if(b) {
     *mps_message_type_return = (mps_message_type_t)type;
   }
-
   return b;
 }
 
@@ -1183,8 +1163,10 @@ void mps_message_finalization_ref(mps_addr_t *mps_addr_return,
   AVER(mps_addr_return != NULL);
   
   ArenaEnter(arena);
+
   AVERT(Arena, arena);
   MessageFinalizationRef(&ref, arena, message);
   ArenaPoke(arena, (Addr)mps_addr_return, (Word)ref);
+
   ArenaLeave(arena);
 }
