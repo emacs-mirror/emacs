@@ -152,9 +152,11 @@ Make tags based on regexp matching for the files following this option,
 in addition to the tags made with the standard parsing based on
 language. May be freely intermixed with filenames and the \fB\-R\fP
 option.  The regexps are cumulative, i.e. each such option will add to
-the previous ones.  The regexps are of the form:
+the previous ones.  The regexps are of one of the forms:
 .br
-	\fB/\fP\fItagregexp/\fP[\fInameregexp\fP\fB/\fP]\fImodifiers\fP
+	[\fB{\fP\fIlanguage\fP\fB}\fP]\fB/\fP\fItagregexp/\fP[\fInameregexp\fP\fB/\fP]\fImodifiers\fP
+.br
+	\fB@\fP\fIregexfile\fP
 .br
 
 where \fItagregexp\fP is used to match the tag.  It should not match
@@ -173,6 +175,15 @@ that the \fItagregexp\fP will be matched against the whole file contents
 at once, rather than line by line, and the matching sequence can match
 multiple lines; and \fIs\fP, which implies \fIm\fP and means that the
 dot character in \fItagregexp\fP matches the newline char as well.
+.br
+cthe optional \fB{\fP\fIlanguage\fP\fB}\fP means that the tag should be
+created only for files of language \fIlanguage\fP, and ignored
+otherwise.  This is particularly useful when storing many predefined
+regexps in a file.
+.br
+In its second form, \fIregexfile\fP is the name of a file containing
+regexps, one per line.  Lines beginning with a space or tab are assumed
+to be comments, and ignored.
 
 .br
 Here are some examples.  All the regexps are quoted to protect them

@@ -570,11 +570,11 @@ comparison.
 ** Etags changes.
 
 *** New syntax for regular expressions, multi-line regular expressions.
-The syntax --ignore-case-regexp=/REGEX/NAME/ is now undocumented and
-retained only for backward compatibility.  The new equivalent syntax is
---regex=/REGEX/NAME/i.  More generally, it is --regex=/REGEX/NAME/MODS,
-where `/NAME' is optional, as usual, and MODS is a string of 0 or more
-characters among `i' (ignore case), `m' (multi-line) and `s'
+The syntax --ignore-case-regexp=/regex/ is now undocumented and retained
+only for backward compatibility.  The new equivalent syntax is
+--regex=/regex/i.  More generally, it is --regex=/TAGREGEX/TAGNAME/MODS,
+where `/TAGNAME' is optional, as usual, and MODS is a string of 0 or
+more characters among `i' (ignore case), `m' (multi-line) and `s'
 (single-line).  The `m' and `s' modifiers behave as in Perl regular
 expressions: `m' allows regexps to match more than one line, while `s'
 (which implies `m') means that `.' matches newlines.  The ability to
@@ -585,6 +585,15 @@ and rapid prototyping for tagging new languages.
 The escaped character sequence \a, \b, \d, \e, \f, \n, \r, \t, \v,
 respectively, stand for the ASCII characters BEL, BS, DEL, ESC, FF, NL,
 CR, TAB, VT,
+
+*** Regular expressions can be bound to a given language
+The syntax --regex={LANGUAGE}REGEX means that REGEX is used to make tags
+only for files of language LANGUAGE, and ignored otherwise.  This is
+particularly useful when storing regexps in a file.
+
+*** Regular expressions can be read from a file
+The --regex=@regexfile option means read the regexps from a file, one
+per line.  Lines beginning with space or tab are ignored.
 
 *** In Prolog, etags creates tags for rules in addition to predicates.
 
