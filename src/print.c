@@ -300,9 +300,17 @@ print_string (string, printcharfun)
      Lisp_Object string;
      Lisp_Object printcharfun;
 {
-  if (EQ (printcharfun, Qnil) || EQ (printcharfun, Qt))
-    /* In predictable cases, strout is safe: output to buffer or frame.  */
+  if (EQ (printcharfun, Qt))
+    /* strout is safe for output to a frame (echo area).  */
     strout (XSTRING (string)->data, XSTRING (string)->size, printcharfun);
+  else if (EQ (printcharfun, Qnil))
+    {
+#ifdef MAX_PRINT_CHARS
+      if (max_print)
+        print_chars += XSTRING (string)->size;
+#endif /* MAX_PRINT_CHARS */
+      insert_from_string (string, 0, XSTRING (string)->size, 1);
+    }
   else
     {
       /* Otherwise, fetch the string address for each character.  */
