@@ -24,8 +24,9 @@
 
 ;;; Commentary:
 
-;; The character set ISO8859-5 is supported.  KOI-8 and ALTERNATIVNYJ
-;; are converted to ISO8859-5 internally.
+;; The character set ISO8859-5 is supported.  See
+;; http://www.ecma.ch/ecma1/STAND/ECMA-113.HTM.  KOI-8 and
+;; ALTERNATIVNYJ are converted to ISO8859-5 internally.
 
 ;;; Code:
 

@@ -25,6 +25,7 @@
 ;;; Commentary:
 
 ;; For Hebrew, the character sets ISO8859-8 is supported.
+;; See http://www.ecma.ch/ecma1/STAND/ECMA-121.HTM.
 
 ;;; Code:
 
