@@ -1316,6 +1316,13 @@ You can also control the amount of time Emacs is busy before the
 busy-cursor is displayed, by customizing the value of the variable
 @code{busy-cursor-delay}.
 
+@vindex x-stretch-cursor
+@cindex wide block cursor
+  Emacs on X can draw the block cursor as wide as the glyph under the
+cursor.  For example, if the cursor is on a TAB character, it is drawn
+as wide as that TAB is on the display.  To turn on this feature, set the
+variable @code{x-stretch-cursor} to a non-nil value.
+
 @node Non-Window Terminals
 @section Non-Window Terminals
 @cindex non-window terminals
