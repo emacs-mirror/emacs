@@ -1,3 +1,8 @@
+2002-07-31  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* ibuffer.el (ibuffer-fontification-alist): Use
+	`font-lock-constant-face' instead of `font-lock-reference-face'.
+
 2002-07-31  John Wiegley  <johnw@gnu.org>
 
 	* pcomplete.el (pcomplete-comint-setup): Use `add-to-list', to
