@@ -2769,7 +2769,7 @@ update_frame_tool_bar (f)
       struct image *img;
       Lisp_Object image;
       GtkWidget *wicon = iter ? GTK_WIDGET (iter->data) : 0;
-      
+
       if (iter) iter = g_list_next (iter);
 
       /* If image is a vector, choose the image according to the
@@ -2825,7 +2825,7 @@ update_frame_tool_bar (f)
           /* Save the image so we can see if an update is needed when
              this function is called again.  */
           g_object_set_data (G_OBJECT (w), XG_TOOL_BAR_IMAGE_DATA,
-                             (gpointer)img);
+                             (gpointer)img->pixmap);
 
           /* Catch expose events to overcome an annoying redraw bug, see
              comment for xg_tool_bar_expose_callback.  */
@@ -2867,13 +2867,11 @@ update_frame_tool_bar (f)
           GtkWidget *wvbox = gtk_bin_get_child (GTK_BIN (wicon));
           GList *chlist = gtk_container_get_children (GTK_CONTAINER (wvbox));
           GtkImage *wimage = GTK_IMAGE (chlist->data);
-          struct image *old_img = g_object_get_data (G_OBJECT (wimage),
-                                                     XG_TOOL_BAR_IMAGE_DATA);
+          Pixmap old_img = (Pixmap)g_object_get_data (G_OBJECT (wimage),
+                                                      XG_TOOL_BAR_IMAGE_DATA);
           g_list_free (chlist);
 
-          if (! old_img
-              || old_img->pixmap != img->pixmap
-              || old_img->mask != img->mask)
+          if (old_img != img->pixmap)
             {
               GdkPixmap *gpix = gdk_pixmap_foreign_new (img->pixmap);
               GdkBitmap *gmask = img->mask ?
@@ -2883,7 +2881,7 @@ update_frame_tool_bar (f)
             }
 
           g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_IMAGE_DATA,
-                             (gpointer)img);
+                             (gpointer)img->pixmap);
 
           gtk_widget_set_sensitive (wicon, enabled_p);
           gtk_widget_show (wicon);
