@@ -66,7 +66,7 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
   (if (and buffer-undo-list (not (eq buffer-undo-list t)))
       (setq buffer-undo-list (cons (point) buffer-undo-list)))
   ;; Don't let Adaptive Fill mode alter the fill prefix permanently.
-  (let ((fill-prefix fill-prefix))
+  (let ((fill-prefix fill-prefix) spc)
     ;; Figure out how this paragraph is indented, if desired.
     (if (and adaptive-fill-mode
 	     (or (null fill-prefix) (string= fill-prefix "")))
@@ -114,34 +114,48 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
       ;; from is now before the text to fill,
       ;; but after any fill prefix on the first line.
 
+      ;; spc (our filler character) is normally SPC;
+      ;; if SPC does not have syntax class whitespace, find a filler that does.
+      (if (= (char-syntax ?\ ) ?\ )
+	  (setq spc ?\ )
+	(setq spc 0)
+	(while (not (= (char-syntax spc) ?\ ))
+	  (setq spc (1+ spc))))
+
       ;; Make sure sentences ending at end of line get an extra space.
-      ;; loses on split abbrevs ("Mr.\nSmith")
+      ;; loses on split abbrevs ("Mr.\nSmith").  This is fairly specific
+      ;; to text mode.
       (goto-char from)
       (while (re-search-forward "[.?!][])}\"']*$" nil t)
-	(insert ? ))
+	(insert spc))
 
       ;; Then change all newlines to spaces.
-      (subst-char-in-region from (point-max) ?\n ?\ )
+      (subst-char-in-region from to ?\n spc)
 
-      ;; Flush excess spaces, except in the paragraph indentation.
+      ;; Go to beginning of paragraph (after indent)
       (goto-char from)
-      (skip-chars-forward " \t")
-      ;; nuke tabs while we're at it; they get screwed up in a fill
-      ;; this is quick, but loses when a sole tab follows the end of a sentence.
-      ;; actually, it is difficult to tell that from "Mr.\tSmith".
-      ;; blame the typist.
-      (subst-char-in-region (point) (point-max) ?\t ?\ )
-      (while (re-search-forward "   *" nil t)
+      (skip-syntax-forward " ")
+
+      ;; If tabs have whitespace class, nuke them; they get screwed up
+      ;; in a fill.  This is quick, but loses when a sole tab follows
+      ;; the end of a sentence.  actually, it is difficult to tell
+      ;; that from "Mr.\tSmith".  Blame the typist.
+      (if (= (char-syntax ?\t) ?\ )
+	  (subst-char-in-region (point) to ?\t spc))
+
+      ;; Flush excess whitespace, except in the paragraph indentation.
+      (while (re-search-forward "\\s-\\s-\\s-*" nil t)
 	(delete-region
 	 (+ (match-beginning 0)
 	    (if (save-excursion
-		  (skip-chars-backward " ]})\"'")
+		  (skip-syntax-backward " ).")
 		  (memq (preceding-char) '(?. ?? ?!)))
 		2 1))
 	 (match-end 0)))
       (goto-char (point-max))
       (delete-horizontal-space)
-      (insert "  ")
+      (insert spc)
+      (insert spc)
       (goto-char (point-min))
 
       ;; This is the actual filling loop.
@@ -152,7 +166,7 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 	  (if (eobp)
 	      nil
 	    ;; Move back to start of word.
-	    (skip-chars-backward "^ \n" linebeg)
+	    (skip-syntax-backward "^ " linebeg)
 	    ;; Don't break after a period followed by just one space.
 	    ;; Move back to the previous place to break.
 	    ;; The reason is that if a period ends up at the end of a line,
@@ -160,16 +174,16 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 	    ;; If we now know it does not end a sentence,
 	    ;; avoid putting it at the end of the line.
 	    (while (and (> (point) (+ linebeg 2))
-			(eq (preceding-char) ?\ )
+			(eq (char-syntax (preceding-char)) ?\ )
 			(eq (char-after (- (point) 2)) ?\.))
 	      (forward-char -2)
-	      (skip-chars-backward "^ \n" linebeg))
+	      (skip-syntax-backward "^ " linebeg))
 	    (if (if (zerop prefixcol) (bolp) (>= prefixcol (current-column)))
 		;; Keep at least one word even if fill prefix exceeds margin.
 		;; This handles all but the first line of the paragraph.
 		(progn
-		  (skip-chars-forward " ")
-		  (skip-chars-forward "^ \n"))
+		  (skip-syntax-forward " ")
+		  (skip-syntax-forward "^ "))
 	      ;; Normally, move back over the single space between the words.
 	      (forward-char -1)))
 	    (if (and fill-prefix (zerop prefixcol)
@@ -179,12 +193,12 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 		;; Keep at least one word even if fill prefix exceeds margin.
 		;; This handles the first line of the paragraph.
 		(progn
-		  (skip-chars-forward " ")
-		  (skip-chars-forward "^ \n")))
+		  (skip-syntax-forward " ")
+		  (skip-syntax-forward "^ ")))
 	  ;; Replace all whitespace here with one newline.
 	  ;; Insert before deleting, so we don't forget which side of
 	  ;; the whitespace point or markers used to be on.
-	  (skip-chars-backward " ")
+	  (skip-syntax-backward " ")
 	  (insert ?\n)
 	  (delete-horizontal-space)
 	  ;; Insert the fill prefix at start of each line.
@@ -236,17 +250,17 @@ Prefix arg (non-nil third arg, if called from program) means justify as well."
     (let (ncols beg indent)
       (beginning-of-line)
       (forward-char (length fill-prefix))
-      (skip-chars-forward " \t")
+      (skip-syntax-forward " " (save-excursion (end-of-line) (point)))
       (setq indent (current-column))
       (setq beg (point))
       (end-of-line)
       (narrow-to-region beg (point))
       (goto-char beg)
-      (while (re-search-forward "   *" nil t)
+      (while (re-search-forward "\\s-\\s-\\s-*" nil t)
 	(delete-region
 	 (+ (match-beginning 0)
 	    (if (save-excursion
-		 (skip-chars-backward " ])\"'")
+		 (skip-syntax-backward " ).")
 		 (memq (preceding-char) '(?. ?? ?!)))
 		2 1))
 	 (match-end 0)))
