@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-info.el,v 1.8 2001/12/31 20:28:40 rms Exp $
+;; Revision: $Id: pcvs-info.el,v 1.9 2002/04/03 16:56:36 kai Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -44,15 +44,6 @@
 (defcustom cvs-display-full-path t
   "*Specifies how the filenames should look like in the listing.
 If t, their full path name will be displayed, else only the filename."
-  :group 'pcl-cvs
-  :type '(boolean))
-
-(defvar global-font-lock-mode)
-(defvar font-lock-auto-fontify)
-(defcustom cvs-highlight
-  (or (and (boundp 'font-lock-auto-fontify) font-lock-auto-fontify)
-      (and (boundp 'global-font-lock-mode) global-font-lock-mode))
-  "*Whether to use text highlighting (à la font-lock) or not."
   :group 'pcl-cvs
   :type '(boolean))
 
@@ -319,17 +310,15 @@ FI-OR-TYPE can either be a symbol (a fileinfo-type) or a fileinfo."
 	 (eq (car (memq func (cdr (assq type cvs-states)))) func))))
 
 (defun cvs-add-face (str face &optional keymap &rest properties)
-  (when (or cvs-highlight properties)
-    (add-text-properties 0 (length str)
-			 (append
-			  (when cvs-highlight
-			    (list* 'face face
-				   (when keymap
-				     (list* 'mouse-face 'highlight
-					    (when (keymapp keymap)
-					      (list 'keymap keymap))))))
-			  properties)
-			 str))
+  (add-text-properties 0 (length str)
+		       (append
+			(list* 'font-lock-face face
+			       (when keymap
+				 (list* 'mouse-face 'highlight
+					(when (keymapp keymap)
+					  (list 'keymap keymap)))))
+			properties)
+		       str)
   str)
 
 (defun cvs-fileinfo-pp (fileinfo)
