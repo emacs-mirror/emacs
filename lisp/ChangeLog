@@ -1,3 +1,9 @@
+2001-11-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* menu-bar.el (menu-bar-edit-menu): Don't use x-selection-exists-p if
+	it is not fboundp.
+	(clipboard-yank): Ditto.
+
 2001-11-10  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el (redisplay-dont-pause): Don't set.
