@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.13 2000/11/19 09:46:04 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.14 2000/11/20 14:14:25 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -365,7 +365,7 @@ whether to remove it."
 	    (vc-do-command nil 1 "rcs" (vc-name file)
 			   (concat "-u" old-version))))))))
 
-(defun vc-rcs-checkout (file &optional writable rev workfile)
+(defun vc-rcs-checkout (file &optional editable rev workfile)
   "Retrieve a copy of a saved version of FILE into a workfile."
   (let ((filename (or workfile file))
 	(file-buffer (get-file-buffer file))
@@ -389,7 +389,7 @@ whether to remove it."
 	      ;; RCS can't check out into arbitrary file names directly.
 	      ;; Use `co -p' and make stdout point to the correct file.
 	      (let ((vc-modes (logior (file-modes (vc-name file))
-				      (if writable 128 0)))
+				      (if editable 128 0)))
 		    (failed t))
 		(unwind-protect
 		    (progn
@@ -399,12 +399,12 @@ whether to remove it."
                           (apply 'vc-do-command
                                  (current-buffer) 0 "co" (vc-name file)
                                  "-q" ;; suppress diagnostic output
-                                 (if writable "-l")
+                                 (if editable "-l")
                                  (concat "-p" rev)
                                  switches)))
                       (set-file-modes filename
 				      (logior (file-modes (vc-name file))
-					      (if writable 128 0)))
+					      (if editable 128 0)))
 		      (setq failed nil))
 		  (and failed (file-exists-p filename)
 		       (delete-file filename))))
@@ -419,7 +419,7 @@ whether to remove it."
 		     ;; If locking is not strict, force to overwrite
 		     ;; the writable workfile.
 		     (if (eq (vc-checkout-model file) 'implicit) "-f")
-		     (if writable "-l")
+		     (if editable "-l")
 		     (if rev (concat "-r" rev)
 		       ;; if no explicit revision was specified,
 		       ;; check out that of the working file
@@ -447,9 +447,9 @@ whether to remove it."
   (vc-do-command nil 0 "co" (vc-name file) "-f"
 		 (concat "-u" (vc-workfile-version file))))
 
-(defun vc-rcs-cancel-version (file writable)
+(defun vc-rcs-cancel-version (file editable)
   "Undo the most recent checkin of FILE.
-WRITABLE non-nil means previous version should be locked."
+EDITABLE non-nil means previous version should be locked."
   (let* ((target (vc-workfile-version file))
 	 (previous (if (vc-trunk-p target) "" (vc-branch-part target)))
 	 (config (current-window-configuration))
@@ -462,7 +462,7 @@ WRITABLE non-nil means previous version should be locked."
       (condition-case err
 	  (progn
 	    (vc-do-command nil 0 "co" (vc-name file) "-f"
-			   (concat (if writable "-l" "-u") previous))
+			   (concat (if editable "-l" "-u") previous))
 	    (setq done t))
 	(error (set-buffer "*vc*")
 	       (goto-char (point-min))
