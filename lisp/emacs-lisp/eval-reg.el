@@ -1,5 +1,9 @@
 ;;; eval-region.el --- Redefine eval-region, and subrs that use it, in Lisp
+
 ;; Copyright (C) 1994 Daniel LaLiberte
+
+;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
+;; Keywords: lisp
 
 ;; This file is part of GNU Emacs.
 
@@ -34,9 +38,6 @@
 ;;; that replaces Emacs Lisp subroutines with Lisp versions of the
 ;;; same.
 
-;;;; Installation
-;;; =============
-
 ;;; Eval-region may be installed, after loading, by calling:
 ;;; (elisp-eval-region-install).  Installation can be undone with:
 ;;; (elisp-eval-region-uninstall).
@@ -49,6 +50,9 @@
     elisp-eval-region-uninstall
     elisp-eval-region-level
     with-elisp-eval-region
+    eval-region
+    eval-buffer
+    eval-current-buffer
     ))
 '(in-package elisp-eval-region)
 
@@ -208,3 +212,4 @@ This version from eval-region calls `eval-region' on the whole buffer."
 
 
 (provide 'elisp-eval-region)
+
