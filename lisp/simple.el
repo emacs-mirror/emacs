@@ -742,9 +742,10 @@ then call `undo-more' one or more times to undo them."
 
 If COMMAND ends in ampersand, execute it asynchronously.
 The output appears in the buffer `*Async Shell Command*'.
+That buffer is in shell mode.
 
-Otherwise, COMMAND is executed synchronously.  The output appears
-in the buffer `*Shell Command Output*'.
+Otherwise, COMMAND is executed synchronously.  The output appears in the
+buffer `*Shell Command Output*'.
 If the output is one line, it is displayed in the echo area *as well*,
 but it is nonetheless available in buffer `*Shell Command Output*',
 even though that buffer is not automatically displayed.
@@ -771,80 +772,51 @@ In either case, the output is inserted after point (leaving mark after it)."
 	     ;; aliases for shell commands then they can still have them.
 	     (call-process shell-file-name nil t nil
 			   shell-command-switch command)
-	     ;; This is like exchange-point-and-mark, but doesn't activate the mark.
-	     ;; It is cleaner to avoid activation, even though the command
-	     ;; loop would deactivate the mark because we inserted text.
+	     ;; This is like exchange-point-and-mark, but doesn't
+	     ;; activate the mark.  It is cleaner to avoid activation,
+	     ;; even though the command loop would deactivate the mark
+	     ;; because we inserted text.
 	     (goto-char (prog1 (mark t)
 			  (set-marker (mark-marker) (point)
 				      (current-buffer)))))
     ;; Preserve the match data in case called from a program.
-    (let ((data (match-data)))
-      (unwind-protect
-	  (if (string-match "[ \t]*&[ \t]*$" command)
-	      ;; Command ending with ampersand means asynchronous.
-	      (let ((buffer (get-buffer-create
-			     (or output-buffer "*Asynch Shell Command*")))
-		    (directory default-directory)
-		    proc)
-		;; Remove the ampersand.
-		(setq command (substring command 0 (match-beginning 0)))
-		;; If will kill a process, query first.
-		(setq proc (get-buffer-process buffer))
-		(if proc
-		    (if (yes-or-no-p "A command is running.  Kill it? ")
-			(kill-process proc)
-		      (error "Shell command in progress")))
-		(save-excursion
-		  (set-buffer buffer)
-		  (setq buffer-read-only nil)
-		  (erase-buffer)
-		  (display-buffer buffer)
-		  (setq default-directory directory)
-		  (setq proc (start-process "Shell" buffer 
-					    shell-file-name 
-					    shell-command-switch command))
-		  (setq mode-line-process '(":%s"))
-		  (set-process-sentinel proc 'shell-command-sentinel)
-		  (set-process-filter proc 'shell-command-filter)
-		  ))
-	    (shell-command-on-region (point) (point) command nil))
-	(store-match-data data)))))
+    (save-match-data
+      (if (string-match "[ \t]*&[ \t]*$" command)
+	  ;; Command ending with ampersand means asynchronous.
+	  (let ((buffer (get-buffer-create
+			 (or output-buffer "*Asynch Shell Command*")))
+		(directory default-directory)
+		proc)
+	    ;; Remove the ampersand.
+	    (setq command (substring command 0 (match-beginning 0)))
+	    ;; If will kill a process, query first.
+	    (setq proc (get-buffer-process buffer))
+	    (if proc
+		(if (yes-or-no-p "A command is running.  Kill it? ")
+		    (kill-process proc)
+		  (error "Shell command in progress")))
+	    (save-excursion
+	      (set-buffer buffer)
+	      (setq buffer-read-only nil)
+	      (erase-buffer)
+	      (display-buffer buffer)
+	      (setq default-directory directory)
+	      (setq proc (start-process "Shell" buffer shell-file-name 
+					shell-command-switch command))
+	      (setq mode-line-process '(":%s"))
+	      (require 'shell) (shell-mode)
+	      (set-process-sentinel proc 'shell-command-sentinel)
+	      ))
+	(shell-command-on-region (point) (point) command nil)
+	))))
 
 ;; We have a sentinel to prevent insertion of a termination message
 ;; in the buffer itself.
 (defun shell-command-sentinel (process signal)
-  (if (and (memq (process-status process) '(exit signal))
-	   (buffer-name (process-buffer process)))
-      (progn
-	(message "%s: %s." 
-		 (car (cdr (cdr (process-command process))))
-		 (substring signal 0 -1))
-	(save-excursion
-	  (set-buffer (process-buffer process))
-	  (setq mode-line-process nil))
-	(delete-process process))))
-
-(defun shell-command-filter (proc string)
-  ;; Do save-excursion by hand so that we can leave point numerically unchanged
-  ;; despite an insertion immediately after it.
-  (let* ((obuf (current-buffer))
-	 (buffer (process-buffer proc))
-	 opoint
-	 (window (get-buffer-window buffer))
-	 (pos (window-start window)))
-    (unwind-protect
-	(progn
-	  (set-buffer buffer)
-	  (or (= (point) (point-max))
-	      (setq opoint (point)))
-	  (goto-char (point-max))
-	  (insert-before-markers string))
-      ;; insert-before-markers moved this marker: set it back.
-      (set-window-start window pos)
-      ;; Finish our save-excursion.
-      (if opoint
-	  (goto-char opoint))
-      (set-buffer obuf))))
+  (if (memq (process-status process) '(exit signal))
+      (message "%s: %s." 
+	       (car (cdr (cdr (process-command process))))
+	       (substring signal 0 -1))))
 
 (defun shell-command-on-region (start end command
 				      &optional output-buffer replace)
@@ -2585,6 +2557,20 @@ in the mode line."
   (interactive "P")
   (setq line-number-mode
 	(if (null arg) (not line-number-mode)
+	  (> (prefix-numeric-value arg) 0)))
+  (force-mode-line-update))
+
+(defvar column-number-mode nil
+  "*Non-nil means display column number in mode line.")
+
+(defun column-number-mode (arg)
+  "Toggle Column Number mode.
+With arg, turn Column Number mode on iff arg is positive.
+When Column Number mode is enabled, the column number appears
+in the mode line."
+  (interactive "P")
+  (setq column-number-mode
+	(if (null arg) (not column-number-mode)
 	  (> (prefix-numeric-value arg) 0)))
   (force-mode-line-update))
 
