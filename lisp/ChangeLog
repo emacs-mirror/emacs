@@ -1,5 +1,10 @@
 2000-07-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* play/cookie1.el: Add explanation of how to make cookie.el
+	compatible with strfile(1) to comment.
+
+	* subr.el (remove, remq): New functions.
+
 	* midnight.el (clean-buffer-list-kill-never-regexps): Correctly
 	escape `*' in regexps.
 	(midnight-find): Reverse order of arguments in the funcall of
@@ -9,6 +14,38 @@
 	and `.class'.
 
 	* play/meese.el: Add Commentary section.
+
+2000-07-27  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-ms): Added autoload cookie.
+	(sql-ingres, sql-solid, sql-mysql, sql-informix, sql-sybase)
+	(sql-oracle): Ditto.
+	(sql-help): Doc change.
+
+	(sql-mode-oracle-font-lock-keywords): Added PL/SQL keywords, data
+	types and exceptions.
+
+2000-07-27  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-placeholder-history): New variable.
+	(sql-query-placeholders-and-send): New function that will query
+	the user and replace placeholders with user input.
+	(sql-oracle): If running on NT, set comint-input-sender to
+	sql-query-placeholders-and-send.
+
+	(sql-stop): If in the SQLi buffer, insert stop notification, else
+	present it as a message.
+
+2000-07-27  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-input-ring-separator): Doc change.
+	(sql-input-ring-file-name): Doc change.
+	(sql-interactive-mode): Use `sql-input-ring-separator' and
+	`sql-input-ring-file-name' to set the comint-mode equivalents
+	without making them local variables.
+	(sql-stop): Don't bind `sql-input-ring-separator' and
+	`sql-input-ring-file-name' dynamically to their comint-mode
+	equivalents.
 
 2000-07-27  Kenichi Handa  <handa@etl.go.jp>
 

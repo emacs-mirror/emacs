@@ -1322,7 +1322,20 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
-** The function `delete' now also works on vectors and strings.
+** Two new functions for removing elements from lists/sequences
+were added
+
+- Function: remove ELT SEQ
+
+Return a copy of SEQ with all occurences of ELT removed.  SEQ must be
+a list, vector, or string.  The comparison is done with `equal'.
+
+- Function: remq ELT LIST
+
+Return a copy of LIST with all occurences of ELT removed.  The
+comparison is done with `eq'.
+
+** The function `delete' now also works with vectors and strings.
 
 ** The meaning of the `:weakness WEAK' argument of make-hash-table
 has been changed.

@@ -1,3 +1,7 @@
+2000-07-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* make-dist (aclocal.m4): Include in distribution.
+
 2000-07-26  Dave Love  <fx@gnu.org>
 
 	* configure.in (AC_SYS_LARGEFILE): Moved earlier.
