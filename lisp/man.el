@@ -693,7 +693,7 @@ Same for the ANSI bold and normal escape sequences."
     (backward-delete-char 2)
     (put-text-property (1- (point)) (point) 'face Man-underline-face))
   (goto-char (point-min))
-  (while (re-search-forward "\\(.\\)\\(\b\\1\\)+" nil t)
+  (while (re-search-forward "\\(.\\)\\(\b+\\1\\)+" nil t)
     (replace-match "\\1")
     (put-text-property (1- (point)) (point) 'face Man-overstrike-face))
   (goto-char (point-min))
