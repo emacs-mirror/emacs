@@ -3816,7 +3816,8 @@ the default method of inserting the completion in BUFFER.")
 (defun choose-completion-string (choice &optional buffer base-size)
   "Switch to BUFFER and insert the completion choice CHOICE.
 BASE-SIZE, if non-nil, says how many characters of BUFFER's text
-to keep.  If it is nil, use choose-completion-delete-max-match instead."
+to keep.  If it is nil, we call `choose-completion-delete-max-match'
+to decide what to delete."
 
   ;; If BUFFER is the minibuffer, exit the minibuffer
   ;; unless it is reading a file name and CHOICE is a directory,
