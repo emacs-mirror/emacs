@@ -1,3 +1,8 @@
+2001-06-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/fill.el (fill-region-as-paragraph): Don't look further
+	back than LINEBEG.
+
 2001-06-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xt-mouse.el (xterm-mouse-event): If the buffer displayed in the
@@ -6,8 +11,8 @@
 
 2001-06-25  Milan Zamazal  <pdm@zamazal.org>
 
-	* progmodes/glasses.el (glasses-make-readable): Consider
-	underscores too when separating a parenthesis.
+	* progmodes/glasses.el (glasses-make-readable): Consider underscores
+	too when separating a parenthesis.
 
 2001-06-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -19,8 +24,8 @@
 
 2001-06-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* files.el (auto-mode-alist): Add configure.ac (autoconf).  From
-	Karl Eichwalder <ke@suse.de>.
+	* files.el (auto-mode-alist): Add configure.ac (autoconf).
+	From Karl Eichwalder <ke@suse.de>.
 
 2001-06-23  Richard M. Stallman  <rms@gnu.org>
 
@@ -43,8 +48,7 @@
 
 	* indent.el (indent-relative-maybe, indent-relative): Doc fix.
 
-	* menu-bar.el (toggle-debug-on-quit, toggle-debug-on-error): Doc
-	fix.
+	* menu-bar.el (toggle-debug-on-quit, toggle-debug-on-error): Doc fix.
 
 2001-06-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -60,8 +64,7 @@
 	(dabbrev--find-expansion): Simplify code in various ways.
 	Don't treat minibuffers specially.
 	Call dabbrev--make-friend-buffer-list.
-	(dabbrev--select-buffers): Don't treat minibuffers specially.
-	Simplify.
+	(dabbrev--select-buffers): Don't treat minibuffers specially.  Simplify.
 	(dabbrev--scanning-message): Do nothing when minibuffer is current.
 
 2001-06-19  John Wiegley  <johnw@gnu.org>
@@ -72,9 +75,8 @@
 
 2001-06-19  John Wiegley  <johnw@gnu.org>
 
-	* eshell/esh-mode.el: Disabled a test that often yields false
-	failures.
-	
+	* eshell/esh-mode.el: Disabled a test that often yields false failures.
+
 2001-06-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* woman.el (WoMan-highlight-references): Add help-echo to
