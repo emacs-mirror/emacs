@@ -1,9 +1,7 @@
-2001-01-29  Gerd Moellmann  <gerd@gnu.org>
+2001-01-29  Dave Love  <fx@gnu.org>
 
-	* mail/rmail.el (rmail-ignored-headers): Add X-Sign, X-BeenThere,
-	X-Mailman-Version, Precedence, List-Help, List-Post,
-	List-Subscribe, List-Id, List-Unsubscribe, List-Archive,
-	Content-Type, Content-Length.
+	* international/mule-conf.el (chinese-big5-1, chinese-big5-2): Doc
+	fix.
 
 2001-01-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
