@@ -387,26 +387,22 @@ the car and cdr are the same symbol.")
 
 
 
-(defvar sh-mode-syntax-table
-  '((sh eval sh-mode-syntax-table ()
-	?\# "<"
-	?\^l ">#"
-	?\n ">#"
-	?\" "\"\""
-	?\' "\"'"
-	?\` "\"`"
-	?! "_"
-	?% "_"
-	?: "_"
-	?. "_"
-	?^ "_"
-	?~ "_"
-	?< "."
-	?> ".")
-    (csh eval identity sh)
-    (rc eval identity sh))
-  "Syntax-table used in Shell-Script mode.  See `sh-feature'.")
-
+(easy-mmode-defsyntax sh-mode-syntax-table
+  '((?\# . "<")
+   (?\^l . ">#")
+   (?\n . ">#")
+   (?\" . "\"\"")
+   (?\' . "\"'")
+   (?\` . "\"`")
+   (?! . "_")
+   (?% . "_")
+   (?: . "_")
+   (?. . "_")
+   (?^ . "_")
+   (?~ . "_")
+   (?< . ".")
+   (?> . "."))
+  "Syntax-table used in Shell-Script mode.")
 
 
 (defvar sh-mode-map
@@ -756,6 +752,21 @@ See `sh-feature'."
   "List of all shell variables available for completing read.
 See `sh-feature'.")
 
+
+;;; Font-Lock support
+
+(defface sh-heredoc-face
+  '((((class color)
+      (background dark))
+     (:foreground "yellow" :bold t))
+    (((class color)
+      (background light))
+     (:foreground "tan" ))
+    (t
+     (:bold t)))
+  "Face to show a here-document"
+  :group 'sh-indentation)
+(defvar sh-heredoc-face 'sh-heredoc-face)
 
 
 (defvar sh-font-lock-keywords
@@ -867,6 +878,13 @@ See `sh-feature'.")
 	(match-beginning 0) (match-string 2) (match-end 1)))
     ;; Distinguish the special close-paren in `case'.
     (")" 0 (sh-font-lock-paren (match-beginning 0)))))
+
+(defun sh-font-lock-syntactic-face-function (state)
+  (if (nth 3 state)
+      (if (char-valid-p (nth 3 state))
+	  font-lock-string-face
+	sh-heredoc-face)
+    font-lock-comment-face))
 
 (defgroup sh-indentation nil
   "Variables controlling indentation in shell scripts.
@@ -1093,7 +1111,6 @@ This is for the rc shell."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
-
 ;; Internal use - not designed to be changed by the user:
 
 (defun sh-mkword-regexpr (word)
@@ -1163,7 +1180,7 @@ frequently editing existing scripts with different styles.")
 (put 'sh-mode 'mode-class 'special)
 
 ;;;###autoload
-(defun sh-mode ()
+(define-derived-mode sh-mode nil "Shell-script"
   "Major mode for editing shell scripts.
 This mode works for many shells, since they all have roughly the same syntax,
 as far as commands, arguments, variables, pipes, comments etc. are concerned.
@@ -1216,9 +1233,6 @@ indicate what shell it is use `sh-alias-alist' to translate.
 
 If your shell gives error messages with line numbers, you can use \\[executable-interpret]
 with your script for an edit-interpret-debug cycle."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map sh-mode-map)
   (make-local-variable 'skeleton-end-hook)
   (make-local-variable 'paragraph-start)
   (make-local-variable 'paragraph-separate)
@@ -1240,18 +1254,7 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'imenu-generic-expression)
   (make-local-variable 'sh-indent-supported-here)
   (make-local-variable 'font-lock-unfontify-region-function)
-  (setq major-mode 'sh-mode
-	mode-name "Shell-script"
-	;; not very clever, but enables wrapping skeletons around regions
-	indent-region-function (lambda (b e)
-				 (save-excursion
-				   (goto-char b)
-				   (skip-syntax-backward "-")
-				   (setq b (point))
-				   (goto-char e)
-				   (skip-syntax-backward "-")
-				   (indent-rigidly b (point) sh-indentation)))
-	skeleton-end-hook (lambda ()
+  (setq skeleton-end-hook (lambda ()
 			    (or (eolp) (newline) (indent-relative)))
 	paragraph-start (concat page-delimiter "\\|$")
 	paragraph-separate paragraph-start
@@ -1266,7 +1269,9 @@ with your script for an edit-interpret-debug cycle."
 	  ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
 	  (font-lock-syntactic-keywords
 	   ;; Copy so we can use destructive update in `sh-font-lock-heredoc'.
-	   . ,(copy-sequence sh-font-lock-syntactic-keywords)))
+	   . ,(copy-sequence sh-font-lock-syntactic-keywords))
+	  (font-lock-syntactic-face-function
+	   . sh-font-lock-syntactic-face-function))
 	skeleton-pair-alist '((?` _ ?`))
 	skeleton-pair-filter 'sh-quoted-p
 	skeleton-further-elements '((< '(- (min sh-indentation
@@ -1285,10 +1290,8 @@ with your script for an edit-interpret-debug cycle."
 		 ((and buffer-file-name
 		       (string-match "\\.m?spec$" buffer-file-name))
 		  "rpm")))))
-    (if interpreter
-	(sh-set-shell interpreter nil nil)
-      (sh-set-shell sh-shell-file nil nil))
-    (run-hooks 'sh-mode-hook)))
+    (sh-set-shell (or interpreter sh-shell-file) nil nil)))
+
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
 
@@ -1415,8 +1418,6 @@ Calls the value of `sh-set-shell-hook' if set."
 	sh-shell-variables-initialized nil
 	imenu-generic-expression (sh-feature sh-imenu-generic-expression)
 	imenu-case-fold-search nil)
-  (set-syntax-table (or (sh-feature sh-mode-syntax-table)
-			(standard-syntax-table)))
   (dolist (var (sh-feature sh-variables))
     (sh-remember-variable var))
   (make-local-variable 'indent-line-function)
@@ -1529,14 +1530,6 @@ in ALIST."
 ;;;		(car (cdr list))))
 ;;;	  (setq list (cdr (cdr list)))))
 ;;;      (symbol-value sh-shell)))
-
-
-(defun sh-mode-syntax-table (table &rest list)
-  "Copy TABLE and set syntax for successive CHARs according to strings S."
-  (setq table (copy-syntax-table table))
-  (while list
-    (modify-syntax-entry (pop list) (pop list) table))
-  table)
 
 
 (defun sh-append (ancestor &rest list)
@@ -3301,8 +3294,7 @@ t means to return a list of all possible completions of STRING.
 	 > "select " str " in " _ "; do" \n
 	 > ?$ str \n
 	 "done" > )
-  (bash eval sh-append ksh88)
-  )
+  (bash eval sh-append ksh88))
 ;;;(put 'sh-select 'menu-enable '(sh-feature sh-select))
 
 
