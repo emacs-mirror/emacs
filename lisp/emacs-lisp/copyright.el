@@ -82,41 +82,40 @@ than adding to it."
 	      (insert current-year)
 	      (message "Copyright updated to %s%s."
 		       (if replace "" "include ") current-year)
-	      (if replace-copying-with
-		  (let ((case-fold-search t)
-			beg)
-		    (goto-char (point-min))
-		    ;; Find the beginning of the copyright.
-		    (if (search-forward "copyright" nil t)
-			(progn
-			  ;; Look for a blank line or a line
-			  ;; containing only comment chars.
-			  (if (re-search-forward "^\\(\\s \\s<\\|\\s>\\)*$"
-						 nil t)
-			      (forward-line 1)
-			    (with-output-to-temp-buffer "*Help*"
-			      (princ (substitute-command-keys "\
+	  (if replace-copying-with
+	      (let ((case-fold-search t)
+		    beg)
+		(goto-char (point-min))
+		;; Find the beginning of the copyright.
+		(if (search-forward "copyright" nil t)
+		    (progn
+		      ;; Look for a blank line or a line
+		      ;; containing only comment chars.
+		      (if (re-search-forward "^\\(\\s \\s<\\|\\s>\\)*$" nil t)
+			  (forward-line 1)
+			(with-output-to-temp-buffer "*Help*"
+			  (princ (substitute-command-keys "\
 I don't know where the copying notice begins.
 Put point there and hit \\[exit-recursive-edit]."))
-			      (recursive-edit)))
-			  (setq beg (point))
-			  (or (search-forward "02139, USA." nil t)
-			      (with-output-to-temp-buffer "*Help*"
-				(princ (substitute-command-keys "\
+			  (recursive-edit)))
+		      (setq beg (point))
+		      (or (search-forward "02139, USA." nil t)
+			  (with-output-to-temp-buffer "*Help*"
+			    (princ (substitute-command-keys "\
 I don't know where the copying notice ends.
 Put point there and hit \\[exit-recursive-edit]."))
-				(recursive-edit)))
-			  (delete-region beg (point))))
-		    (insert-file replace-copying-with))
-		(if (re-search-forward
-		     "; either version \\(.+\\), or (at your option)"
-		     nil t)
-		    (progn
-		      (goto-char (match-beginning 1))
-		      (delete-region (point) (match-end 1))
-		      (insert current-gpl-version)))))
+			    (recursive-edit)))
+		      (delete-region beg (point))))
+		(insert-file replace-copying-with))
+	    (if (re-search-forward
+		 "; either version \\(.+\\), or (at your option)"
+		 nil t)
+		(progn
+		  (goto-char (match-beginning 1))
+		  (delete-region (point) (match-end 1))
+		  (insert current-gpl-version))))
 	  (or ask-upd
-	      (error "This buffer contains no copyright notice!")))))))
+	      (error "This buffer contains no copyright notice!"))))))))
 
 ;;;###autoload
 (defun ask-to-update-copyright ()
