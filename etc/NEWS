@@ -28,6 +28,9 @@ Emacs with Leim.
 
 * Changes in Emacs 21.3
 
+---
+** LDAP support now defaults to ldapsearch from OpenLDAP version 2.
+
 +++
 ** The new command-line option --color=MODE lets you specify a standard
 mode for a tty color support.  It is meant to be used on character
