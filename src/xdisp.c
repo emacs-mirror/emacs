@@ -10610,7 +10610,7 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
 		       glyph->pixel_width,
 		       0,
 		       '.',
-		       glyph->u.face_id,
+		       glyph->face_id,
 		       glyph->left_box_line_p,
 		       glyph->right_box_line_p);
 	    }
@@ -10624,7 +10624,7 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
 		       glyph->pixel_width,
 		       glyph->u.img_id,
 		       '.',
-		       glyph->u.face_id,
+		       glyph->face_id,
 		       glyph->left_box_line_p,
 		       glyph->right_box_line_p);
 	    }
