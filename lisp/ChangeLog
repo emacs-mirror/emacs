@@ -1,3 +1,11 @@
+2002-05-08  Toru Tomabechi  <Toru.Tomabechi@orient.unil.ch>
+
+	* language/tibet-util.el (tibetan-canonicalize-for-unicode-alist) 
+	(tibetan-canonicalize-for-unicode-regexp): New variables.
+	(tibetan-canonicalize-for-unicode-region): New function.
+	(tibetan-strict-unicode): New variable.
+	(tibetan-pre-write-canonicalize-for-unicode): New function.
+
 2002-05-07  Markus Rost  <rost@math.ohio-state.edu>
 
 	* net/ange-ftp.el (ange-ftp-re-read-dir): Don't hide it behind
