@@ -914,10 +914,18 @@ F7 starts a macro, F8 ends the macro, and pressing F8 again executes
 the last macro.  While defining the macro, F7 inserts a counter value
 which automatically increments every time the macro is executed.
 
-M-F7 edits the last macro, C-F7 sets the counter, and S-F7 sets the
-counter format. S-F8 executes the previous macro (actually the head of
-the keyboard macro ring), and C-F8 cycles through the keyboard macro
-ring. C-u F8 swaps the last macro with the head of the macro ring.
+There is now a keyboard macro ring which stores the most recently
+defined macros.
+
+The C-x C-k sequence is now a prefix for the kmacro keymap which
+defines bindings for moving through the keyboard macro ring,
+C-x C-k C-p and C-x C-k C-n, editing the last macro C-x C-k C-e,
+manipulating the macro counter and format via C-x C-k C-c,
+C-x C-k C-a, and C-x C-k C-f.  See the commentary in kmacro.el
+for more commands.
+
+The normal macro bindings C-x (, C-x ), and C-x e now interfaces to 
+the keyboard macro ring.
 
 +++
 *** Calc is now part of the Emacs distribution.
