@@ -1,6 +1,6 @@
 ;;; gs.el --- interface to Ghostscript
 
-;; Copyright (C) 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -115,10 +115,10 @@ SPEC is a GS image specification.  IMG-WIDTH is the width of the
 requested image, and IMG-HEIGHT is the height of the requested
 image in pixels."
   (let* ((box (plist-get (cdr spec) :bounding-box))
-	 (llx (nth 0 box))
-	 (lly (nth 1 box))
-	 (urx (nth 2 box))
-	 (ury (nth 3 box))
+	 (llx (elt 0 box))
+	 (lly (elt 1 box))
+	 (urx (elt 2 box))
+	 (ury (elt 3 box))
 	 (rotation (or (plist-get (cdr spec) :rotate) 0))
 	 ;; The pixel width IMG-WIDTH of the pixmap gives the
 	 ;; dots, URX - LLX give the inch.
