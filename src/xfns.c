@@ -106,8 +106,12 @@ extern void free_frame_menubar ();
 #define MAXREQUEST(dpy) ((dpy)->max_request_size)
 #endif
 
-/* The name we're using in resource queries.  */
+/* The name we're using in resource queries.  Most often "emacs".  */
 Lisp_Object Vx_resource_name;
+
+/* The application class we're using in resource queries.
+   Normally "Emacs".  */
+Lisp_Object Vx_resource_class;
 
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
@@ -2015,6 +2019,9 @@ validate_x_resource_name ()
   Lisp_Object new;
   int i;
 
+  if (!STRINGP (Vx_resource_class))
+    Vx_resource_class = build_string (EMACS_CLASS);
+
   if (STRINGP (Vx_resource_name))
     {
       unsigned char *p = XSTRING (Vx_resource_name)->data;
@@ -2110,7 +2117,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
 			      + XSTRING (attribute)->size
 			      + 3);
 
-  class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
+  class_key = (char *) alloca (XSTRING (Vx_resource_class)->size
 			       + XSTRING (class)->size
 			       + (STRINGP (subclass)
 				  ? XSTRING (subclass)->size : 0)
@@ -2119,7 +2126,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
   /* Start with emacs.FRAMENAME for the name (the specific one)
      and with `Emacs' for the class key (the general one).  */
   strcpy (name_key, XSTRING (Vx_resource_name)->data);
-  strcpy (class_key, EMACS_CLASS);
+  strcpy (class_key, XSTRING (Vx_resource_class)->data);
 
   strcat (class_key, ".");
   strcat (class_key, XSTRING (class)->data);
@@ -2714,7 +2721,7 @@ x_window (f, window_prompting, minibuffer_only)
   validate_x_resource_name ();
 
   class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
-  class_hints.res_class = EMACS_CLASS;
+  class_hints.res_class = (char *) XSTRING (Vx_resource_class)->data;
   XSetClassHint (FRAME_X_DISPLAY (f), XtWindow (shell_widget), &class_hints);
 
 #ifdef HAVE_X_I18N
@@ -2874,7 +2881,7 @@ x_window (f)
   validate_x_resource_name ();
 
   class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
-  class_hints.res_class = EMACS_CLASS;
+  class_hints.res_class = (char *) XSTRING (Vx_resource_class)->data;
   XSetClassHint (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &class_hints);
 
   /* The menubar is part of the ordinary display;
@@ -5153,13 +5160,27 @@ unless you set the mouse color.");
   Vx_pointer_shape = Qnil;
 
   DEFVAR_LISP ("x-resource-name", &Vx_resource_name,
-    "The name Emacs uses to look up X resources; for internal use only.\n\
+    "The name Emacs uses to look up X resources.\n\
 `x-get-resource' uses this as the first component of the instance name\n\
 when requesting resource values.\n\
 Emacs initially sets `x-resource-name' to the name under which Emacs\n\
 was invoked, or to the value specified with the `-name' or `-rn'\n\
-switches, if present.");
+switches, if present.\n\
+\n\
+It may be useful to bind this variable locally around a call\n\
+to `x-get-resource'.  See also the variable `x-resource-class'.");
   Vx_resource_name = Qnil;
+
+  DEFVAR_LISP ("x-resource-class", &Vx_resource_class,
+    "The class Emacs uses to look up X resources.\n\
+`x-get-resource' uses this as the first component of the instance class\n\
+when requesting resource values.\n\
+Emacs initially sets `x-resource-class' to \"Emacs\".\n\
+\n\
+Setting this variable permanently is not a reasonable thing to do,\n\
+but binding this variable locally around a call to `x-get-resource'\n\
+is a reasonabvle practice.  See also the variable `x-resource-name'.");
+  Vx_resource_class = build_string (EMACS_CLASS);
 
 #if 0 /* This doesn't really do anything.  */
   DEFVAR_LISP ("x-nontext-pointer-shape", &Vx_nontext_pointer_shape,
