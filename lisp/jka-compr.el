@@ -1,6 +1,6 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files
 
-;; Copyright (C) 1993, 1994, 1995, 1997, 1999  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000  Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF
@@ -811,6 +811,21 @@ saying whether the mode is now on or off."
 	   (message "Automatic file (de)compression is now OFF.")))
 
     flag))
+
+
+(defmacro with-auto-compression-mode (&rest body)
+  "Evalutes BODY with automatic file compression and uncompression enabled."
+  (let ((already-installed (make-symbol "already-installed")))
+    `(let ((,already-installed (jka-compr-installed-p)))
+       (unwind-protect
+	   (progn
+	     (unless ,already-installed
+	       (jka-compr-install))
+	     ,@body)
+	 (unless ,already-installed
+	   (jka-compr-uninstall))))))
+(put 'with-auto-compression-mode 'lisp-indent-function 0)
+
 
 (defun jka-compr-build-file-regexp ()
   (concat
