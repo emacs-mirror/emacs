@@ -815,8 +815,10 @@ button end points."
 	(children (widget-get widget :children)))
     (set-marker from nil)
     (set-marker to nil)
-    (delete-overlay button)
-    (delete-overlay field)
+    (when button
+      (delete-overlay button))
+    (when field
+      (delete-overlay field))
     (mapcar 'widget-leave-text children)))
 
 ;;; Keymap and Commands.
