@@ -104,8 +104,6 @@ These supersede the values given in `default-frame-alist'.")
 	  (set-window-dedicated-p (frame-selected-window frame) t)
 	  (frame-selected-window frame))))))
 
-(setq special-display-function 'special-display-popup-frame)
-
 ;; Handle delete-frame events from the X server.
 (defun handle-delete-frame (event)
   (interactive "e")
@@ -150,10 +148,13 @@ These supersede the values given in `default-frame-alist'.")
 ;;; file - if there is no frame with a minibuffer open now, create
 ;;; one to display messages while loading the init file.
 (defun frame-initialize ()
-  
+ 
   ;; Are we actually running under a window system at all?
   (if (and window-system (not noninteractive))
       (progn
+	;; Turn on special-display processing only if there's a window system.
+	(setq special-display-function 'special-display-popup-frame)
+
 	;; If there is no frame with a minibuffer besides the terminal
 	;; frame, then we need to create the opening frame.  Make sure
 	;; it has a minibuffer, but let initial-frame-alist omit the
