@@ -11,16 +11,6 @@
         thing even when keymaps of overlays are involved.
         (mouse-drag-drag) Likewise.
 
-2001-11-13  Alan Shutko  <ats@acm.org>
-
-	* compile.el (recompile): Use compilation-arguments if set, so as
-	to be able to M-x recompile the exact command which created a
-	compilation-mode buffer.
-
-2001-11-13  Richard M. Stallman  <rms@gnu.org>
-
-	* progmodes/ada-mode.el (ada-fill-comment-prefix): Doc fix.
-
 2001-11-15  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/ada-mode.el (ada-add-extensions): Quote regexp special
@@ -81,7 +71,16 @@
 
 	* README: Update maintainer.
 
->>>>>>> 1.3022
+2001-11-13  Alan Shutko  <ats@acm.org>
+
+	* compile.el (recompile): Use compilation-arguments if set, so as
+	to be able to M-x recompile the exact command which created a
+	compilation-mode buffer.
+
+2001-11-13  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/ada-mode.el (ada-fill-comment-prefix): Doc fix.
+
 2001-11-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* mouse.el (mouse-drag-region): Don't run the up-event
