@@ -32,7 +32,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is $Revision: 14.14 $";
+char pot_etags_version[] = "@(#) pot revision number is $Revision: 2.84 $";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -2077,7 +2077,7 @@ hash (str, len)
 #ifdef __GNUC__
 __inline
 #endif
-struct C_stab_entry *
+static struct C_stab_entry *
 in_word_set (str, len)
      register const char *str;
      register unsigned int len;
