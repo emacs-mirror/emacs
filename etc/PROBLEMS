@@ -837,6 +837,22 @@ If this command prints any file names, some of these files are stale,
 and should be deleted or their directories removed from your
 load-path.
 
+* Emacs prints an error at startup after upgrading from an earlier version.
+
+An example of such an error is:
+
+  x-complement-fontset-spec: "Wrong type argument: stringp, nil" 
+
+This can be another symptom of stale *.elc files in your classpath.
+The following command will print any duplicate Lisp files that are
+present in load-path:
+
+    emacs -q -batch -f list-load-path-shadows
+
+If this command prints any file names, some of these files are stale,
+and should be deleted or their directories removed from your
+load-path.
+
 * Attempting to visit remote files via ange-ftp fails.
 
 If the error message is "ange-ftp-file-modtime: Specified time is not
