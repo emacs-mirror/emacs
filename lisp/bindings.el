@@ -148,7 +148,7 @@ corresponding to the mode line clicked."
 		     'local-map mode-line-input-method-map))))
     ,(propertize
       "%Z"
-      'help-echo 
+      'help-echo
       (purecopy (lambda (window object point)
 		  (save-window-excursion
 		    (select-window window)
@@ -239,7 +239,7 @@ Normally nil in most modes, since there is no process to display.")
      (propertize "   %[(" 'help-echo help-echo)
      '(:eval (mode-line-mode-name)) 'mode-line-process 'minor-mode-alist
      (propertize "%n" 'help-echo "mouse-2: widen"
-		 'local-map (make-mode-line-mouse-map 
+		 'local-map (make-mode-line-mouse-map
 			     'mouse-2 #'mode-line-widen))
      (propertize ")%]--" 'help-echo help-echo)
      `(which-func-mode ("" which-func-format ,dashes))
@@ -377,10 +377,10 @@ FMT is a format specifier such as \"%12b\".  This function adds
 text properties for face, help-echo, and local-map to it."
   (list (propertize fmt
 		    'face '(:weight bold)
-		    'help-echo 
+		    'help-echo
 		    (purecopy "mouse-1: previous buffer, mouse-3: next buffer")
 		    'local-map mode-line-buffer-identification-keymap)))
-  
+
 (setq-default mode-line-buffer-identification
 	      (propertized-buffer-identification "%12b"))
 
@@ -426,10 +426,10 @@ is okay.  See `mode-line-format'.")
 		".a" ".ln" ".blg" ".bbl"))
 	     ((eq system-type 'vax-vms)
 	      '(".obj" ".exe" ".bin" ".lbin" ".sbin"
-		".brn" ".rnt" ".mem" ".lni" ".lis"
+		".brn" ".rnt" ".lni" ".lis"
 		".olb" ".tlb" ".mlb" ".hlb"))
 	     (t
-	      '(".o" "~" ".bin" ".lbin" ".fasl" ".ufsl"
+	      '(".o" "~" ".bin" ".lbin"
 		".a" ".ln" ".blg" ".bbl")))
        '(".elc" ".lof"
 	 ".glo" ".idx" ".lot"
@@ -437,10 +437,12 @@ is okay.  See `mode-line-format'.")
 	 ".dvi" ".fmt" ".tfm" ".pdf"
 	 ;; Java compiled
 	 ".class"
-	 ;; Clisp
-	 ".fas" ".lib"
+	 ;; CLISP
+	 ".fas" ".lib" ".mem"
 	 ;; CMUCL
 	 ".x86f" ".sparcf"
+         ;; Other CL implementations (Allegro, LispWorks)
+         ".fasl" ".ufsl" ".fsl" ".dxl"
 	 ;; Libtool
 	 ".lo" ".la"
 	 ;; Texinfo-related
@@ -465,7 +467,7 @@ is okay.  See `mode-line-format'.")
 	"^Save not confirmed$"
 	"^Recover-file cancelled\\.$"
 	"^Cannot switch buffers in a dedicated window$"
-	
+
 	;; ediff
 	"^Errors in diff output. Diff output is in "
 	"^Hmm... I don't see an Ediff command around here...$"

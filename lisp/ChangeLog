@@ -1,5 +1,8 @@
 2001-10-12  Sam Steingold  <sds@gnu.org>
 
+	* bindings.el (completion-ignored-extensions): CL-related
+	extensions are platform-independent.
+
 	* net/ange-ftp.el (ange-ftp-copy-files-async): New function for
 	asynchronous multiple file copying.
 
