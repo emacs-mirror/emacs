@@ -250,4 +250,20 @@ but default input method is set to \"german-postfix\"."))
 	      (documentation . t))
  '("European"))
 
+;; For Turkish, the character set ISO-8859-9 (Latin-5) is used.  But,
+;; before the introduction of ISO-8859-9 in 1988, ISO-8859-3 (Latin-3)
+;; was used for Turkish.  Those who use Latin-3 for Turkish should use
+;; "Latin-3" language environment.
+
+(set-language-info-alist
+ "Turkish" '((charset ascii latin-iso8859-9)
+	     (coding-system iso-latin-5)
+	     (coding-priority iso-latin-5)
+	     (nonascii-translation . latin-iso8859-9)
+	     (unibyte-syntax . "latin-5")
+	     (unibyte-display . iso-latin-5)
+	     (input-method . "turkish-postfix")
+	     (sample-text . "Turkish (T,M|(Brk,Mg(Be)	Merhaba")
+	     (documentation . t)))
+
 ;;; european.el ends here
