@@ -1,3 +1,10 @@
+2001-11-28  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (INDIAN): Adjusted for the file name change;
+	quail/devanagari.elc -> quail/indian.elc.
+
+	* makefile.nt (INDIAN): Likewise.
+
 2001-11-21  KAWABATA, Taichi <batta@beige.ocn.ne.jp>
 
 	* quail/devanagari.el: Renamed to indian.el.
