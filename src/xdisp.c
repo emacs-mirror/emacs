@@ -516,12 +516,24 @@ static int last_max_ascent, last_height;
 
 #define TEXT_PROP_DISTANCE_LIMIT 100
 
+#if GLYPH_DEBUG
+
 /* Non-zero means print traces of redisplay if compiled with
    GLYPH_DEBUG != 0.  */
 
-#if GLYPH_DEBUG
 int trace_redisplay_p;
+
+/* Non-zero means trace with TRACE_MOVE to stderr.  */
+
+int trace_move;
+
+#ifdef DEBUG_TRACE_MOVE
+#define TRACE_MOVE(x)	if (trace_move) fprintf x; else (void) 0
+#else
+#define TRACE_MOVE(x)	(void) 0;
 #endif
+
+#endif /* GLYPH_DEBUG */
 
 /* Non-zero means automatically scroll windows horizontally to make
    point visible.  */
@@ -655,6 +667,7 @@ static void extend_face_to_end_of_line P_ ((struct it *));
 static int append_space P_ ((struct it *, int));
 static void make_cursor_line_fully_visible P_ ((struct window *));
 static int try_scrolling P_ ((Lisp_Object, int, int, int, int));
+static int try_cursor_movement P_ ((Lisp_Object, struct text_pos, int *));
 static int trailing_whitespace_p P_ ((int));
 static int message_log_check_duplicate P_ ((int, int, int, int));
 int invisible_p P_ ((Lisp_Object, Lisp_Object));
@@ -4265,7 +4278,7 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 
   while (1)
     {
-      int x, i;
+      int x, i, ascent, descent;
       
       /* Stop when ZV or TO_CHARPOS reached.  */
       if (!get_next_display_element (it)
@@ -4282,6 +4295,15 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 	 x-position before this display element in case it does not
 	 fit on the line.  */
       x = it->current_x;
+      
+      /* Remember the line height so far in case the next element doesn't
+	 fit on the line.  */
+      if (!it->truncate_lines_p)
+	{
+	  ascent = it->max_ascent;
+	  descent = it->max_descent;
+	}
+      
       PRODUCE_GLYPHS (it);
 
       if (it->area != TEXT_AREA)
@@ -4347,8 +4369,14 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 			set_iterator_to_next (it);
 		    }
 		  else
-		    it->current_x = x;
-
+		    {
+		      it->current_x = x;
+		      it->max_ascent = ascent;
+		      it->max_descent = descent;
+		    }
+		  
+		  TRACE_MOVE ((stderr, "move_it_in: continued at %d\n",
+			       IT_CHARPOS (*it)));
 		  result = MOVE_LINE_CONTINUED;
 		  break;
 		}
@@ -4423,8 +4451,9 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 {
   enum move_it_result skip, skip2 = MOVE_X_REACHED;
   int line_height;
+  int reached = 0;
 
-  while (1)
+  for (;;)
     {
       if (op & MOVE_TO_VPOS)
 	{
@@ -4433,31 +4462,46 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	  if ((op & (MOVE_TO_X | MOVE_TO_POS)) == 0)
 	    {
 	      if (it->vpos == to_vpos)
-		break;
-	      skip = move_it_in_display_line_to (it, -1, -1, 0);
+		{
+		  reached = 1;
+		  break;
+		}
+	      else
+		skip = move_it_in_display_line_to (it, -1, -1, 0);
 	    }
 	  else
 	    {
 	      /* TO_VPOS >= 0 means stop at TO_X in the line at
 		 TO_VPOS, or at TO_POS, whichever comes first.  */
+	      if (it->vpos == to_vpos)
+		{
+		  reached = 2;
+		  break;
+		}
+	      
 	      skip = move_it_in_display_line_to (it, to_charpos, to_x, op);
 
 	      if (skip == MOVE_POS_MATCH_OR_ZV || it->vpos == to_vpos)
-		break;
+		{
+		  reached = 3;
+		  break;
+		}
 	      else if (skip == MOVE_X_REACHED && it->vpos != to_vpos)
 		{
 		  /* We have reached TO_X but not in the line we want.  */
 		  skip = move_it_in_display_line_to (it, to_charpos,
 						     -1, MOVE_TO_POS);
 		  if (skip == MOVE_POS_MATCH_OR_ZV)
-		    break;
+		    {
+		      reached = 4;
+		      break;
+		    }
 		}
 	    }
 	}
       else if (op & MOVE_TO_Y)
 	{
 	  struct it it_backup;
-	  int done_p;
 	  
 	  /* TO_Y specified means stop at TO_X in the line containing
 	     TO_Y---or at TO_CHARPOS if this is reached first.  The
@@ -4479,22 +4523,27 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 
 	  /* If TO_CHARPOS is reached or ZV, we don't have to do more.  */
 	  if (skip == MOVE_POS_MATCH_OR_ZV)
-	    break;
+	    {
+	      reached = 5;
+	      break;
+	    }
 	  
 	  /* If TO_X was reached, we would like to know whether TO_Y
 	     is in the line.  This can only be said if we know the
 	     total line height which requires us to scan the rest of
 	     the line.  */
-	  done_p = 0;
 	  if (skip == MOVE_X_REACHED)
 	    {
 	      it_backup = *it;
+	      TRACE_MOVE ((stderr, "move_it: from %d\n", IT_CHARPOS (*it)));
 	      skip2 = move_it_in_display_line_to (it, to_charpos, -1,
 						  op & MOVE_TO_POS);
+	      TRACE_MOVE ((stderr, "move_it: to %d\n", IT_CHARPOS (*it)));
 	    }
 
 	  /* Now, decide whether TO_Y is in this line.  */
 	  line_height = it->max_ascent + it->max_descent;
+	  TRACE_MOVE ((stderr, "move_it: line_height = %d\n", line_height));
 	  
 	  if (to_y >= it->current_y
 	      && to_y < it->current_y + line_height)
@@ -4504,16 +4553,16 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 		   we scanned too far.  We have to restore IT's settings
 		   to the ones before skipping.  */
 		*it = it_backup;
-	      done_p = 1;
+	      reached = 6;
 	    }
 	  else if (skip == MOVE_X_REACHED)
 	    {
 	      skip = skip2;
 	      if (skip == MOVE_POS_MATCH_OR_ZV)
-		done_p = 1;
+		reached = 7;
 	    }
 
-	  if (done_p)
+	  if (reached)
 	    break;
 	}
       else
@@ -4522,7 +4571,8 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
       switch (skip)
 	{
 	case MOVE_POS_MATCH_OR_ZV:
-	  return;
+	  reached = 8;
+	  goto out;
 
 	case MOVE_NEWLINE_OR_CR:
 	  set_iterator_to_next (it);
@@ -4534,7 +4584,10 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	  reseat_at_next_visible_line_start (it, 0);
 	  if ((op & MOVE_TO_POS) != 0
 	      && IT_CHARPOS (*it) > to_charpos)
-	    goto out;
+	    {
+	      reached = 9;
+	      goto out;
+	    }
 	  break;
 
 	case MOVE_LINE_CONTINUED:
@@ -4554,7 +4607,10 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
       last_max_ascent = it->max_ascent;
       it->max_ascent = it->max_descent = 0;
     }
- out:;
+  
+ out:
+
+  TRACE_MOVE ((stderr, "move_it_to: reached %d\n", reached));
 }
 
 
@@ -4603,6 +4659,7 @@ move_it_vertically_backward (it, dy)
 	      MOVE_TO_POS | MOVE_TO_VPOS);
   xassert (IT_CHARPOS (*it) >= BEGV);
   line_height = it2.max_ascent + it2.max_descent;
+  
   move_it_to (&it2, start_pos, -1, -1, -1, MOVE_TO_POS);
   xassert (IT_CHARPOS (*it) >= BEGV);
   h = it2.current_y - it->current_y;
@@ -4657,8 +4714,10 @@ move_it_vertically (it, dy)
     move_it_vertically_backward (it, -dy);
   else if (dy > 0)
     {
+      TRACE_MOVE ((stderr, "move_it_v: from %d, %d\n", IT_CHARPOS (*it), dy));
       move_it_to (it, ZV, -1, it->current_y + dy, -1,
 		  MOVE_TO_POS | MOVE_TO_Y);
+      TRACE_MOVE ((stderr, "move_it_v: to %d\n", IT_CHARPOS (*it)));
 
       /* If buffer ends in ZV without a newline, move to the start of
 	 the line to satisfy the post-condition.  */
@@ -8511,7 +8570,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       
       /* Point is in the scroll margin at the bottom of the window, or
 	 below.  Compute a new window start that makes point visible.  */
-      
+
       /* Compute the distance from the scroll margin to PT.
 	 Give up if the distance is greater than scroll_max.  */
       start_display (&it, w, scroll_margin_pos);
@@ -8522,6 +8581,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 		     ? it.max_ascent + it.max_descent
 		     : last_height);
       dy = it.current_y + line_height - y0;
+      
       if (dy > scroll_max)
 	return 0;
       
@@ -8706,6 +8766,209 @@ compute_window_start_on_continuation_line (w)
 }
 
 
+/* Try cursor movement in case text has not changes in window WINDOW,
+   with window start STARTP.  Value is
+
+   1	if successful
+   
+   0	if this method cannot be used
+   
+   -1	if we know we have to scroll the display.  *SCROLL_STEP is
+   set to 1, under certain circumstances, if we want to scroll as
+   if scroll-step were set to 1.  See the code.  */
+
+static int
+try_cursor_movement (window, startp, scroll_step)
+     Lisp_Object window;
+     struct text_pos startp;
+     int *scroll_step;
+{
+  struct window *w = XWINDOW (window);
+  struct frame *f = XFRAME (w->frame);
+  int rc = 0;
+  
+  /* Handle case where text has not changed, only point, and it has
+     not moved off the frame.  */
+  if (/* Point may be in this window.  */
+      PT >= CHARPOS (startp)
+      /* If we don't check this, we are called to move the cursor in a
+	 horizontally split window with a current matrix that doesn't
+	 fit the display.  */
+      && !windows_or_buffers_changed
+      /* Selective display hasn't changed.  */
+      && !current_buffer->clip_changed
+      /* If force-mode-line-update was called, really redisplay;
+	 that's how redisplay is forced after e.g. changing
+	 buffer-invisibility-spec.  */
+      && NILP (w->update_mode_line)
+      /* Can't use this case if highlighting a region.  When a 
+         region exists, cursor movement has to do more than just
+         set the cursor.  */
+      && !(!NILP (Vtransient_mark_mode)
+	   && !NILP (current_buffer->mark_active))
+      && NILP (w->region_showing)
+      && NILP (Vshow_trailing_whitespace)
+      /* Right after splitting windows, last_point may be nil.  */
+      && INTEGERP (w->last_point)
+      /* This code is not used for mini-buffer for the sake of the case
+	 of redisplaying to replace an echo area message; since in
+	 that case the mini-buffer contents per se are usually
+	 unchanged.  This code is of no real use in the mini-buffer
+	 since the handling of this_line_start_pos, etc., in redisplay
+	 handles the same cases.  */
+      && !EQ (window, minibuf_window)
+      /* When splitting windows or for new windows, it happens that
+	 redisplay is called with a nil window_end_vpos or one being
+	 larger than the window.  This should really be fixed in
+	 window.c.  I don't have this on my list, now, so we do
+	 approximately the same as the old redisplay code.  --gerd.  */
+      && INTEGERP (w->window_end_vpos)
+      && XFASTINT (w->window_end_vpos) < w->current_matrix->nrows
+      && (FRAME_WINDOW_P (f)
+	  || !MARKERP (Voverlay_arrow_position)
+	  || current_buffer != XMARKER (Voverlay_arrow_position)->buffer))
+    {
+      int this_scroll_margin;
+      struct glyph_row *row;
+
+#if GLYPH_DEBUG
+      debug_method_add (w, "cursor movement");
+#endif
+
+      /* Scroll if point within this distance from the top or bottom
+	 of the window.  This is a pixel value.  */
+      this_scroll_margin = max (0, scroll_margin);
+      this_scroll_margin = min (this_scroll_margin, XFASTINT (w->height) / 4);
+      this_scroll_margin *= CANON_Y_UNIT (f);
+
+      /* Start with the row the cursor was displayed during the last
+	 not paused redisplay.  Give up if that row is not valid.  */
+      if (w->last_cursor.vpos >= w->current_matrix->nrows)
+	rc = -1;
+      else
+	{
+	  row = MATRIX_ROW (w->current_matrix, w->last_cursor.vpos);
+	  if (row->mode_line_p)
+	    ++row;
+	  if (!row->enabled_p)
+	    rc = -1;
+	}
+
+      if (rc == 0)
+	{
+	  int scroll_p = 0;
+	  
+	  if (PT > XFASTINT (w->last_point))
+	    {
+	      /* Point has moved forward.  */
+	      int last_y = window_text_bottom_y (w) - this_scroll_margin;
+	  
+	      while (MATRIX_ROW_END_CHARPOS (row) < PT
+		     && MATRIX_ROW_BOTTOM_Y (row) < last_y)
+		{
+		  xassert (row->enabled_p);
+		  ++row;
+		}
+
+	      /* The end position of a row equals the start position
+		 of the next row.  If PT is there, we would rather
+		 display it in the next line.  Exceptions are when the
+		 row ends in the middle of a character, or ends in
+		 ZV.  */
+	      if (MATRIX_ROW_BOTTOM_Y (row) < last_y
+		  && MATRIX_ROW_END_CHARPOS (row) == PT
+		  && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)
+		  && !row->ends_at_zv_p)
+		{
+		  xassert (row->enabled_p);
+		  ++row;
+		}
+
+	      /* If within the scroll margin, scroll.  Note that
+		 MATRIX_ROW_BOTTOM_Y gives the pixel position at which
+		 the next line would be drawn, and that
+		 this_scroll_margin can be zero.  */
+	      if (MATRIX_ROW_BOTTOM_Y (row) > last_y
+		  || PT > MATRIX_ROW_END_CHARPOS (row)
+		  /* Line is completely visible last line in window
+		     and PT is to be set in the next line.  */
+		  || (MATRIX_ROW_BOTTOM_Y (row) == last_y
+		      && PT == MATRIX_ROW_END_CHARPOS (row)
+		      && !row->ends_at_zv_p
+		      && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)))
+		scroll_p = 1;
+	    }
+	  else if (PT < XFASTINT (w->last_point))
+	    {
+	      /* Cursor has to be moved backward.  Note that PT >=
+		 CHARPOS (startp) because of the outer
+		 if-statement.  */
+	      while (!row->mode_line_p
+		     && (MATRIX_ROW_START_CHARPOS (row) > PT
+			 || (MATRIX_ROW_START_CHARPOS (row) == PT
+			     && MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P (row)))
+		     && (row->y > this_scroll_margin
+			 || CHARPOS (startp) == BEGV))
+		{
+		  xassert (row->enabled_p);
+		  --row;
+		}
+
+	      /* Consider the following case: Window starts at BEGV,
+		 there is invisible, intangible text at BEGV, so that
+		 display starts at some point START > BEGV.  It can
+		 happen that we are called with PT somewhere between
+		 BEGV and START.  Try to handle that case.  */
+	      if (row < w->current_matrix->rows
+		  || row->mode_line_p)
+		{
+		  row = w->current_matrix->rows;
+		  if (row->mode_line_p)
+		    ++row;
+		}
+
+	      /* Due to newlines in overlay strings, we may have to
+		 skip forward over overlay strings.  */
+	      while (MATRIX_ROW_END_CHARPOS (row) == PT
+		     && MATRIX_ROW_ENDS_IN_OVERLAY_STRING_P (row)
+		     && !row->ends_at_zv_p)
+		++row;
+	  
+	      /* If within the scroll margin, scroll.  */
+	      if (row->y < this_scroll_margin
+		  && CHARPOS (startp) != BEGV)
+		scroll_p = 1;
+	    }
+
+	  if (PT < MATRIX_ROW_START_CHARPOS (row)
+	      || PT > MATRIX_ROW_END_CHARPOS (row))
+	    {
+	      /* if PT is not in the glyph row, give up.  */
+	      rc = -1;
+	    }
+	  else if (MATRIX_ROW_PARTIALLY_VISIBLE_P (row)
+		   && window_box_height (w) > row->height)
+	    {
+	      /* If we end up in a partially visible line, let's make it
+		 fully visible, except when it's taller than the window,
+		 in which case we can't do much about it.  */
+	      *scroll_step = 1;
+	      rc = -1;
+	    }
+	  else if (scroll_p)
+	    rc = -1;
+	  else
+	    {
+	      set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
+	      rc = 1;
+	    }
+	}
+    }
+
+  return rc;
+}
+
+
 /* Redisplay leaf window WINDOW.  JUST_THIS_ONE_P non-zero means only
    selected_window is redisplayed.  */
 
@@ -8726,6 +8989,7 @@ redisplay_window (window, just_this_one_p)
   int current_matrix_up_to_date_p = 0;
   int temp_scroll_step = 0;
   int count = specpdl_ptr - specpdl;
+  int rc;
 
   SET_TEXT_POS (lpoint, PT, PT_BYTE);
   opoint = lpoint;
@@ -8886,7 +9150,6 @@ redisplay_window (window, just_this_one_p)
       && CHARPOS (startp) <= ZV)
     {
       w->optional_new_start = Qnil;
-      /* This takes a mini-buffer prompt into account.  */
       start_display (&it, w, startp);
       move_it_to (&it, PT, 0, it.last_visible_y, -1,
 		  MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
@@ -8983,170 +9246,14 @@ redisplay_window (window, just_this_one_p)
   /* Handle case where text has not changed, only point, and it has
      not moved off the frame.  */
   if (current_matrix_up_to_date_p
-      /* Point may be in this window.  */
-      && PT >= CHARPOS (startp)
-      /* If we don't check this, we are called to move the cursor in a
-	 horizontally split window with a current matrix that doesn't
-	 fit the display.  */
-      && !windows_or_buffers_changed
-      /* Selective display hasn't changed.  */
-      && !current_buffer->clip_changed
-      /* If force-mode-line-update was called, really redisplay;
-	 that's how redisplay is forced after e.g. changing
-	 buffer-invisibility-spec.  */
-      && NILP (w->update_mode_line)
-      /* Can't use this case if highlighting a region.  When a 
-         region exists, cursor movement has to do more than just
-         set the cursor.  */
-      && !(!NILP (Vtransient_mark_mode)
-	   && !NILP (current_buffer->mark_active))
-      && NILP (w->region_showing)
-      && NILP (Vshow_trailing_whitespace)
-      /* Right after splitting windows, last_point may be nil.  */
-      && INTEGERP (w->last_point)
-      /* This code is not used for mini-buffer for the sake of the case
-	 of redisplaying to replace an echo area message; since in
-	 that case the mini-buffer contents per se are usually
-	 unchanged.  This code is of no real use in the mini-buffer
-	 since the handling of this_line_start_pos, etc., in redisplay
-	 handles the same cases.  */
-      && !EQ (window, minibuf_window)
-      /* When splitting windows or for new windows, it happens that
-	 redisplay is called with a nil window_end_vpos or one being
-	 larger than the window.  This should really be fixed in
-	 window.c.  I don't have this on my list, now, so we do
-	 approximately the same as the old redisplay code.  --gerd.  */
-      && INTEGERP (w->window_end_vpos)
-      && XFASTINT (w->window_end_vpos) < w->current_matrix->nrows
-      && (FRAME_WINDOW_P (f)
-	  || !MARKERP (Voverlay_arrow_position)
-	  || current_buffer != XMARKER (Voverlay_arrow_position)->buffer))
+      && (rc = try_cursor_movement (window, startp, &temp_scroll_step),
+	  rc != 0))
     {
-      int this_scroll_margin;
-      struct glyph_row *row;
-      int scroll_p;
-
-#if GLYPH_DEBUG
-      debug_method_add (w, "cursor movement");
-#endif
-
-      /* Scroll if point within this distance from the top or bottom
-	 of the window.  This is a pixel value.  */
-      this_scroll_margin = max (0, scroll_margin);
-      this_scroll_margin = min (this_scroll_margin, XFASTINT (w->height) / 4);
-      this_scroll_margin *= CANON_Y_UNIT (f);
-
-      /* Start with the row the cursor was displayed during the last
-	 not paused redisplay.  Give up if that row is not valid.  */
-      if (w->last_cursor.vpos >= w->current_matrix->nrows)
+      if (rc == -1)
 	goto try_to_scroll;
-      row = MATRIX_ROW (w->current_matrix, w->last_cursor.vpos);
-      if (row->mode_line_p)
-	++row;
-      if (!row->enabled_p)
-	goto try_to_scroll;
-
-      scroll_p = 0;
-      if (PT > XFASTINT (w->last_point))
-	{
-	  /* Point has moved forward.  */
-	  int last_y = window_text_bottom_y (w) - this_scroll_margin;
-	  
-	  while (MATRIX_ROW_END_CHARPOS (row) < PT
-		 && MATRIX_ROW_BOTTOM_Y (row) < last_y)
-	    {
-	      xassert (row->enabled_p);
-	      ++row;
-	    }
-
-	  /* The end position of a row equals the start position of
-	     the next row.  If PT is there, we would rather display it
-	     in the next line.  Exceptions are when the row ends in
-	     the middle of a character, or ends in ZV.  */
-	  if (MATRIX_ROW_BOTTOM_Y (row) < last_y
-	      && MATRIX_ROW_END_CHARPOS (row) == PT
-	      && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)
-	      && !row->ends_at_zv_p)
-	    {
-	      xassert (row->enabled_p);
-	      ++row;
-	    }
-
-	  /* If within the scroll margin, scroll.  Note that
-	     MATRIX_ROW_BOTTOM_Y gives the pixel position at which the
-	     next line would be drawn, and that this_scroll_margin can
-	     be zero.  */
-	  if (MATRIX_ROW_BOTTOM_Y (row) > last_y
-	      || PT > MATRIX_ROW_END_CHARPOS (row)
-	      /* Line is completely visible last line in window and PT
-		 is to be set in the next line.  */
-	      || (MATRIX_ROW_BOTTOM_Y (row) == last_y
-		  && PT == MATRIX_ROW_END_CHARPOS (row)
-		  && !row->ends_at_zv_p
-		  && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)))
-	    scroll_p = 1;
-	}
-      else if (PT < XFASTINT (w->last_point))
-	{
-	  /* Cursor has to be moved backward.  Note that PT >=
-	     CHARPOS (startp) because of the outer if-statement.  */
-	  while (!row->mode_line_p
-		 && (MATRIX_ROW_START_CHARPOS (row) > PT
-		     || (MATRIX_ROW_START_CHARPOS (row) == PT
-			 && MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P (row)))
-		 && (row->y > this_scroll_margin
-		     || CHARPOS (startp) == BEGV))
-	    {
-	      xassert (row->enabled_p);
-	      --row;
-	    }
-
-	  /* Consider the following case: Window starts at BEGV, there
-	     is invisible, intangible text at BEGV, so that display
-	     starts at some point START > BEGV.  It can happen that
-	     we are called with PT somewhere between BEGV and START.
-	     Try to handle that case.  */
-	  if (row < w->current_matrix->rows
-	      || row->mode_line_p)
-	    {
-	      row = w->current_matrix->rows;
-	      if (row->mode_line_p)
-		++row;
-	    }
-
-	  /* Due to newlines in overlay strings, we may have to skip
-	     forward over overlay strings.  */
-	  while (MATRIX_ROW_END_CHARPOS (row) == PT
-		 && MATRIX_ROW_ENDS_IN_OVERLAY_STRING_P (row)
-		 && !row->ends_at_zv_p)
-	    ++row;
-	  
-	  /* If within the scroll margin, scroll.  */
-	  if (row->y < this_scroll_margin
-	      && CHARPOS (startp) != BEGV)
-	    scroll_p = 1;
-	}
-
-      /* if PT is not in the glyph row, give up.  */
-      if (PT < MATRIX_ROW_START_CHARPOS (row)
-	  || PT > MATRIX_ROW_END_CHARPOS (row))
-	goto try_to_scroll;
-
-      /* If we end up in a partially visible line, let's make it fully
-	 visible.  This can be done most easily by using the existing
-	 scrolling code.  */
-      if (MATRIX_ROW_PARTIALLY_VISIBLE_P (row))
-	{
-	  temp_scroll_step = 1;
-	  goto try_to_scroll;
-	}
-      else if (scroll_p)
-	goto try_to_scroll;
-      
-      set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
-      goto done;
+      else
+	goto done;
     }
-  
   /* If current starting point was originally the beginning of a line
      but no longer is, find a new starting point.  */
   else if (!NILP (w->start_at_line_beg)
