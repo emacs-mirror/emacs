@@ -4180,7 +4180,7 @@ conditional/loop constructs."
       (let ((indent-info (if cperl-emacs-can-parse
 			     (list nil nil nil)	; Cannot use '(), since will modify
 			   nil))
-	    (pm 0) (imenu-scanning-message "Indenting... (%3d%%)")
+	    (pm 0)
 	    after-change-functions	; Speed it up!
 	    st comm old-comm-indent new-comm-indent p pp i empty)
 	(if h-a-c (add-hook 'after-change-functions 'cperl-delay-update-hook))
