@@ -5,6 +5,8 @@
 	(decode_coding_sjis_big5): Likewise.
 	(Fdetect_coding_region): Call detect_coding_system with tailing
 	anchor byte `\0' for more rigid detection.
+	(detect_coding_mask): Fix the incorrect handling of arg
+	MULTIBYTEP.
 	(Fdetect_coding_string): Likewise.
 
 2001-03-07  Stefan Monnier  <monnier@cs.yale.edu>
