@@ -1,6 +1,7 @@
 ;;; goto-addr.el --- click to browse URL or to send to e-mail address
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 
+;; Author: Eric Ding <ericding@mit.edu>
 ;; Maintainer: Eric Ding <ericding@mit.edu>
 ;; Created: 15 Aug 1995
 ;; Keywords: mh-e, www, mouse, mail
@@ -27,21 +28,12 @@
 ;; URL or e-mail address, and either load the URL into a browser of
 ;; your choice using the browse-url package, or if it's an e-mail
 ;; address, to send an e-mail to that address.  By default, we bind to
-;; the [S-mouse-1] and the [C-c return] key sequences.
-;;
-;; You will also need the browse-url.el package to use goto-address.
-;; You can find it at <URL:http://wombat.doc.ic.ac.uk/emacs/browse-url.el>.
+;; the [S-mouse-2] and the [C-c return] key sequences.
 
 ;; INSTALLATION
 ;;
-;; To install goto-address, put goto-addr.el somewhere in
-;; your load-path and add the following to your .emacs file:
-;;
-;; (autoload 'goto-address "goto-addr"
-;;  "Set up buffer to click to browse URL or to send to e-mail address" t)
-;;
-;; To use it in a particular mode (for example, while reading mail in
-;; mh-e), add something like this in your .emacs file:
+;; To use goto-address in a particular mode (for example, while
+;; reading mail in mh-e), add something like this in your .emacs file:
 ;; 
 ;; (add-hook 'mh-show-mode-hook 'goto-address)
 ;;
@@ -56,7 +48,7 @@
 ;;
 ;; (defun my-goto-address ()
 ;;   (goto-address)
-;;   (local-unset-key [S-mouse-1])
+;;   (local-unset-key [S-mouse-2])
 ;;   (local-set-key [mouse-2] 'goto-address-at-mouse))
 ;;
 ;; (add-hook 'mh-show-mode-hook 'my-goto-address)
@@ -78,17 +70,20 @@
 ;;   (say, using font-lock-fontify-buffer), then font-lock face will
 ;;   override goto-address faces.
 
-;;; Change log:
-
 ;;; Code:
 
 (require 'browse-url)
 
+;;; I don't expect users to want fontify'ing without highlighting.
 (defvar goto-address-fontify-p t
-  "*If t, URL's and e-mail address in buffer are fontified.")
+  "*If t, URL's and e-mail addresses in buffer are fontified.
+But only if `goto-address-highlight-p' is also non-nil.")
+
+(defvar goto-address-highlight-p t
+  "*If t, URL's and e-mail addresses in buffer are highlighted.")
 
 (defvar goto-address-fontify-maximum-size 30000
-  "*Maximum size of file in which to fontify URL's.")
+  "*Maximum size of file in which to fontify and/or highlight URL's.")
 
 (defvar goto-address-mail-regexp
   "[-a-zA-Z0-9._]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
@@ -108,45 +103,36 @@ Two pre-made functions are `goto-address-send-using-mail' (sendmail);
 and `goto-address-send-using-mhe' (MH-E).")
 
 (defun goto-address-fontify ()
-  "Fontify the URL's and e-mail addresses in the current buffer."
+  "Fontify the URL's and e-mail addresses in the current buffer.
+This function implements `goto-address-highlight-p'
+and `goto-address-fontify-p'."
   (save-excursion
     (let ((inhibit-read-only t)
+	  (inhibit-point-motion-hooks t)
 	  (modified (buffer-modified-p)))
       (goto-char (point-min))
       (if (< (- (point-max) (point)) goto-address-fontify-maximum-size)
 	  (progn
 	    (while (re-search-forward goto-address-url-regexp nil t)
-	      ;; if text is invisible, we ignore it
-	      (and (goto-address-skip-invisible (match-beginning 0))
-		   (progn
-		     (goto-char (match-end 0))
+	      (progn
+		(goto-char (match-end 0))
+		(and goto-address-fontify-p
 		     (put-text-property (match-beginning 0) (match-end 0)
-					'face 'bold)
-		     (put-text-property (match-beginning 0) (match-end 0)
-					'mouse-face 'highlight))))
+					'face 'bold))
+		(put-text-property (match-beginning 0) (match-end 0)
+				   'mouse-face 'highlight)))
 	    (goto-char (point-min))
 	    (while (re-search-forward goto-address-mail-regexp nil t)
-	      ;; if text is invisible, we ignore it
-	      (and (goto-address-skip-invisible (match-beginning 0))
-		   (progn
-		     (goto-char (match-end 0))
+	      (progn
+		(goto-char (match-end 0))
+		(and goto-address-fontify-p
 		     (put-text-property (match-beginning 0) (match-end 0)
-					'face 'italic)
-		     (put-text-property (match-beginning 0) (match-end 0)
-					'mouse-face 'secondary-selection))))))
+					'face 'italic))
+		(put-text-property (match-beginning 0) (match-end 0)
+			       'mouse-face 'secondary-selection)))))
       (and (buffer-modified-p)
 	   (not modified)
 	   (set-buffer-modified-p nil)))))
-
-(defun goto-address-skip-invisible (char)
-  "If char is not invisible, then return t.  Otherwise, move forward in buffer
-until a non-invisible char is found, goto that position, and return nil."
-  (if (get-text-property char 'invisible)
-      (let ((char (1+ char)))
-	(while (get-text-property char 'invisible)
-	  (setq char (1+ char))
-	  (goto-char char)))
-    t))
 
 ;;; code to find and goto addresses; much of this has been blatantly
 ;;; snarfed from browse-url.el
@@ -211,11 +197,19 @@ address.  If no e-mail address found, return the empty string."
   (and (goto-char (point-min))
        (end-of-line 2)))
 
+;;;###autoload
 (defun goto-address ()
+  "Sets up goto-address functionality in the current buffer.
+Allows user to use mouse/keyboard command to click to go to a URL
+or to send e-mail.
+By default, goto-address binds to S-mouse-2 and C-c RET.
+
+Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
+`goto-address-highlight-p' for more information)."
   (interactive)
-  (local-set-key [S-mouse-1] 'goto-address-at-mouse)
+  (local-set-key [S-mouse-2] 'goto-address-at-mouse)
   (local-set-key "\C-c\r" 'goto-address-at-point)
-  (if goto-address-fontify-p
+  (if goto-address-highlight-p
       (goto-address-fontify)))
 
 (provide 'goto-addr)
