@@ -77,13 +77,11 @@ Lisp_Object Qarith_error;
 extern double logb ();
 #endif /* not HPUX and HAVE_LOGB */
 
-#ifndef MSDOS
 #if defined(DOMAIN) && defined(SING) && defined(OVERFLOW)
     /* If those are defined, then this is probably a `matherr' machine. */
 # ifndef HAVE_MATHERR
 #  define HAVE_MATHERR
 # endif
-#endif
 #endif
 
 #ifdef NO_MATHERR
