@@ -1217,17 +1217,21 @@ provides special commands for editing and inserting comments.
 @kindex M-;
 @cindex indentation for comments
 @findex indent-for-comment
+@findex comment-dwim
 
   The comment commands insert, kill and align comments.
 
 @c WideCommands
 @table @kbd
 @item M-;
-Insert or align comment (@code{indent-for-comment}).
+Call the comment command that is appropriate for the context
+(@code{comment-dwim}).
+@item M-x indent-for-comment
+Insert or align comment.
 @item C-x ;
 Set comment column (@code{set-comment-column}).
 @item C-u - C-x ;
-Kill comment on current line (@code{kill-comment}).
+Kill comment on current line (@code{comment-kill}).
 @item C-M-j
 Like @key{RET} followed by inserting and aligning a comment
 (@code{indent-new-comment-line}).
@@ -1235,7 +1239,7 @@ Like @key{RET} followed by inserting and aligning a comment
 Add or remove comment delimiters on all the lines in the region.
 @end table
 
-  The command that creates a comment is @kbd{M-;} (@code{indent-for-comment}).
+  The command that creates a comment is @kbd{M-x indent-for-comment}.
 If there is no comment already on the line, a new comment is created,
 aligned at a specific column called the @dfn{comment column}.  The comment
 is created by inserting the string Emacs thinks comments should start with
@@ -1245,10 +1249,24 @@ indentation is done to a suitable boundary (usually, at least one space is
 inserted).  If the major mode has specified a string to terminate comments,
 that is inserted after point, to keep the syntax valid.
 
-  @kbd{M-;} can also be used to align an existing comment.  If a line
-already contains the string that starts comments, then @kbd{M-;} just moves
-point after it and reindents it to the conventional place.  Exception:
-comments starting in column 0 are not moved.
+  @kbd{M-x indent-for-comment} can also be used to align an existing
+comment.  If a line already contains the string that starts comments,
+then @kbd{M-x indent-for-comment} just moves point after it and
+reindents it to the conventional place.  Exception: comments starting in
+column 0 are not moved.
+
+  @kbd{M-;} (@code{comment-dwim}) conveniently combines
+@code{indent-for-comment} with @code{comment-region} and
+@code{uncomment-region}, described below in @ref{Multi-Line Comments},
+as appropriate for the current context.  If the region is active and the
+Transient Mark mode is on (@pxref{Transient Mark}), @kbd{M-;} invokes
+@code{comment-region}, unless the region consists only of comments, in
+which case it invokes @code{uncomment-region}.  Otherwise, if the
+current line is empty, @kbd{M-;} inserts a comment and indents it.  If
+the current line is not empty, @kbd{M-;} invokes @code{comment-kill} if
+a numeric argument was given, else it reindents the comment on the
+current line.  (The @dfn{dwim} in @code{comment-dwim} is an acronym for
+``Do What I Mean''.)
 
   Some major modes have special rules for indenting certain kinds of
 comments in certain contexts.  For example, in Lisp code, comments which
@@ -1275,16 +1293,18 @@ useful for moving directly to the start of the comment.
 
 @kindex C-u - C-x ;
 @findex kill-comment
-  @kbd{C-u - C-x ;} (@code{kill-comment}) kills the comment on the current line,
+@findex comment-kill
+  @kbd{C-u - C-x ;} (@code{comment-kill}) kills the comment on the current line,
 if there is one.  The indentation before the start of the comment is killed
 as well.  If there does not appear to be a comment in the line, nothing is
 done.  To reinsert the comment on another line, move to the end of that
 line, do @kbd{C-y}, and then do @kbd{M-;} to realign it.  Note that
 @kbd{C-u - C-x ;} is not a distinct key; it is @kbd{C-x ;} (@code{set-comment-column})
 with a negative argument.  That command is programmed so that when it
-receives a negative argument it calls @code{kill-comment}.  However,
-@code{kill-comment} is a valid command which you could bind directly to a
-key if you wanted to.
+receives a negative argument it calls @code{comment-kill}.  However,
+@code{comment-kill} is a valid command which you could bind directly to a
+key if you wanted to.  (For compatibility with previous versions,
+@code{kill-comment} is provided as an alias to @code{comment-kill}.)
 
 @node Multi-Line Comments
 @subsection Multiple Lines of Comments
@@ -1334,7 +1354,7 @@ can set it to a number explicitly.  Alternatively, the command @kbd{C-x ;}
 at.  @kbd{C-u C-x ;} sets the comment column to match the last comment
 before point in the buffer, and then does a @kbd{M-;} to align the
 current line's comment under the previous one.  Note that @kbd{C-u - C-x ;}
-runs the function @code{kill-comment} as described above.
+runs the function @code{comment-kill} as described above.
 
   The variable @code{comment-column} is per-buffer: setting the variable
 in the normal fashion affects only the current buffer, but there is a
