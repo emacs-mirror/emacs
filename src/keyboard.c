@@ -4670,7 +4670,7 @@ make_lispy_event (event)
 	    else
 	      XSETINT (posn,
 		       buffer_posn_from_coords (XWINDOW (window),
-						column, row));
+						&column, &row));
 	  }
 
 	{
