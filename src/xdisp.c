@@ -1419,12 +1419,12 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 
   if (!NILP (w->vchild))
     {
-      redisplay_windows (w->vchild);
+      redisplay_windows (w->vchild, preserve_echo_area);
       return;
     }
   if (!NILP (w->hchild))
     {
-      redisplay_windows (w->hchild);
+      redisplay_windows (w->hchild, preserve_echo_area);
       return;
     }
   if (NILP (w->buffer))
