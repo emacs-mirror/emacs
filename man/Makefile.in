@@ -26,7 +26,7 @@ DVI_TARGETS = emacs.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		 pcl-cvs.dvi woman.dvi emacs-mime.dvi eshell.dvi \
 		speedbar.dvi
-INFOSOURCES = info.texi info-stnd.texi
+INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
 .SUFFIXES: .texi .dvi
