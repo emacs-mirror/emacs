@@ -130,7 +130,10 @@ If the buffer is visiting a new file, the value is nil.")
 
 (defconst file-precious-flag nil
   "*Non-nil means protect against I/O errors while saving files.
-Some modes set this non-nil in particular buffers.")
+Some modes set this non-nil in particular buffers.
+Note that this forces backups to be made by copying.
+Yet, at the same time, saving a precious file
+breaks any hard links between it and other files.")
 
 (defvar version-control nil
   "*Control use of version numbers for backup files.
