@@ -159,6 +159,10 @@ It creates the Imenu index for the buffer, if necessary."
      (which-func-mode -1)   ; Function mode off
      (message "Error in which-func-update: %s" info))))
 
+;; This is the name people would normally expect.
+;;;###autoload
+(defalias 'which-function-mode 'which-func-mode)
+
 ;;;###autoload
 (defun which-func-mode (&optional arg)
   "Toggle Which Function mode, globally.
