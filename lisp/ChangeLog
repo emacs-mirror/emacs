@@ -1,7 +1,6 @@
 
 2002-07-25  Carsten Dominik  <dominik@astro.uva.nl>
 
-
 	* textmodes/reftex.el (reftex-compile-variables): Simplified
 	regular expression.
 
@@ -67,7 +66,7 @@
 	(byte-compile-find-cl-functions): New function.
 	(displaying-byte-compile-warnings):
 	Call byte-compile-find-cl-functions.
-	
+
 	* warnings.el (warning-levels): Add %s to the strings.
 	(warning-group-format): New variable.
 	(warning-suppress-log-types): Renamed from warning-suppress-log.
@@ -80,7 +79,7 @@
 
 	* files.el (basic-save-buffer-2): If there's an error writing the file,
 	unrename the backup file if it was just made.
-	(backup-buffer, basic-save-buffer-2, basic-save-buffer-1) 
+	(backup-buffer, basic-save-buffer-2, basic-save-buffer-1)
 	(basic-save-buffer): Value now has form (MODES . BACKUPNAME)
 	when a backup was just made by renaming.  Otherwise it's nil.
 
@@ -123,7 +122,7 @@
 2002-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* simple.el (undo, undo-more): Adjust messages when undoing in a
-	region. 
+	region.
 
 2002-07-22  John Paul Wallington  <jpw@shootybangbang.com>
 
@@ -161,14 +160,14 @@
 	return (MARK . ENTRY).
 
 	* calendar/diary-lib.el (check-calendar-holidays, diary-iso-date)
-	(calendar-holiday-list, diary-french-date, diary-mayan-date) 
-	(diary-julian-date, diary-astro-day-number, diary-chinese-date) 
-	(diary-islamic-date, list-islamic-diary-entries) 
-	(mark-islamic-diary-entries, mark-islamic-calendar-date-pattern) 
-	(diary-hebrew-date, diary-omer, diary-yahrzeit, diary-parasha) 
-	(diary-rosh-hodesh, list-hebrew-diary-entries) 
-	(mark-hebrew-diary-entries, mark-hebrew-calendar-date-pattern) 
-	(diary-coptic-date, diary-persian-date, diary-phases-of-moon) 
+	(calendar-holiday-list, diary-french-date, diary-mayan-date)
+	(diary-julian-date, diary-astro-day-number, diary-chinese-date)
+	(diary-islamic-date, list-islamic-diary-entries)
+	(mark-islamic-diary-entries, mark-islamic-calendar-date-pattern)
+	(diary-hebrew-date, diary-omer, diary-yahrzeit, diary-parasha)
+	(diary-rosh-hodesh, list-hebrew-diary-entries)
+	(mark-hebrew-diary-entries, mark-hebrew-calendar-date-pattern)
+	(diary-coptic-date, diary-persian-date, diary-phases-of-moon)
 	(diary-sunrise-sunset, diary-sabbath-candles):
 	Remove interactive flag from autoloads.
 
@@ -183,7 +182,7 @@
 	(reftex-cite-format-builtin): Added ?n for nocite.
 
 	* textmodes/reftex-index.el (reftex-query-index-phrase): Use
-	`reftex-index-verify-function'. 
+	`reftex-index-verify-function'.
 
 	* textmodes/reftex-toc.el (reftex-re-enlarge): Handle horizontal
 	splitting.
@@ -214,7 +213,7 @@
 	(reftex-no-info-message): likewise
 	(reftex-mode): Define systax table for bibtex parsing.
 	(reftex-syntax-table-for-bib): Syntax table for bibtex parsing.
-	
+
 	* textmodes/reftex-cite.el (reftex-format-names): %a as name
 	format lists all names.
 	(reftex-parse-bibtex-entry): Use `reftex-syntax-table-for-bib'.
@@ -226,7 +225,7 @@
 	Cope if buffer-file-coding-system is nil.
 
 	* bindings.el (last-buffer): Use buffer-list with frame arg.
-	Create *scratch* if no other choice exists.  Fix bugs. 
+	Create *scratch* if no other choice exists.  Fix bugs.
 
 2002-07-21  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
@@ -273,9 +272,9 @@
 	Don't display the log buffer at the end.
 	(byte-compile-warnings-point-max): Variable deleted.
 	(byte-compile-log-1): Rewrite for trace info, not used for warnings.
-	(byte-compile-last-warned-form, byte-compile-last-logged-file): 
+	(byte-compile-last-warned-form, byte-compile-last-logged-file):
 	Defvars moved.
-	
+
 	* warnings.el: New file.
 
 2002-07-19  Richard M. Stallman  <rms@gnu.org>
@@ -308,7 +307,7 @@
 	* subr.el (dot, dot-max, dot-min, dot-marker, buffer-flush-undo)
 	(baud-rate, compiled-function-p, define-function, unread-command-char)
 	(executing-macro, post-command-idle-hook, post-command-idle-delay): Move
-	obsolescence declarations from subr.el.
+	obsolescence declarations from emacs-lisp/bytecomp.el.
 	(directory-sep-char, mode-line-inverse-video): Add obsolescence
 	declaration.
 
@@ -375,7 +374,7 @@
 	(unify-8859-on-decoding-mode): Doc mod.  Change code.  Fix custom
 	version.  Add custom dependencies.
 	(ucs-insert): Check for null from decode-char.
-	(translation-table-for-input, ucs-quail-activate) 
+	(translation-table-for-input, ucs-quail-activate)
 	(ucs-minibuffer-setup, ccl-encode-unicode-font)
 	(ucs-tables-unload-hook): New.
 
@@ -412,9 +411,9 @@
 	("Cyrillic-ALT"): Change input method.
 	("Windows-1251", "Tajik", "Bulgarian", "Belarusian"): New.
 
-	* international/utf-8.el (utf-8-subst-table) 
-	(utf-8-subst-rev-table, utf-8-translation-table-for-decode) 
-	(utf-8-fragment-on-decoding, ccl-untranslated-to-ucs) 
+	* international/utf-8.el (utf-8-subst-table)
+	(utf-8-subst-rev-table, utf-8-translation-table-for-decode)
+	(utf-8-fragment-on-decoding, ccl-untranslated-to-ucs)
 	(utf-8-ccl-regs, utf-8-translate-cjk): New.
 	(ccl-encode-mule-utf-8): Use utf-8-subst-rev-table.
 	(ccl-decode-mule-utf-8, ccl-untranslated-to-ucs)
