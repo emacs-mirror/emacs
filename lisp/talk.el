@@ -50,12 +50,13 @@ Each element has the form (DISPLAY FRAME BUFFER).")
   "Connect to the Emacs talk group from the current X display or tty frame."
   (interactive)
   (let ((type (frame-live-p (selected-frame))))
-    (case type
-      ;; Termcap frame
-      ((t) (talk-add-tty-frame (selected-frame)))
-      ;; X frame
-      ((x) (talk-add-display (frame-parameter (selected-frame) 'display)))
-      (t (error "Could not determine frame type"))))
+    (if (eq type t)
+	;; Termcap frame
+	(talk-add-tty-frame (selected-frame))
+      (if (eq type 'x)
+	  ;; X frame
+	  (talk-add-display (frame-parameter (selected-frame) 'display))
+	(error "Could not determine frame type"))))
   (talk-update-buffers))
 
 (defun talk-add-display (display)
