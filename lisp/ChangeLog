@@ -1,3 +1,8 @@
+2002-07-12  Juanma Barranquero  <lektu@terra.es>
+
+	* timer.el (timer-set-time-with-usecs): Fix documentation. Simplify
+	extraction of time data.
+
 2002-07-12  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* help-fns.el (describe-variable): Mention if the variable is an
