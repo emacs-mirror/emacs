@@ -1162,7 +1162,8 @@ relock:
 ctagsfiles = [a-zA-Z]*.[hc]
 TAGS: $(srcdir)/$(ctagsfiles)
 	../lib-src/etags --include=TAGS-LISP \
-	--regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' $(ctagsfiles)
+	  --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
+	  $(srcdir)/$(ctagsfiles)
 frc:
 TAGS-LISP: frc
 	$(MAKE) -f ${lispsource}Makefile TAGS-LISP ETAGS=../lib-src/etags \
