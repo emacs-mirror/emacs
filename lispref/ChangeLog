@@ -1,3 +1,10 @@
+2004-07-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* os.texi: Update copyright.
+	(Session Management): Grammar fix.
+	Clarify which Emacs does the restarting.
+	Use @samp for *scratch* buffer.
+
 2004-07-04  Alan Mackenzie  <acm@muc.de>
 
 	* frames.texi (Input Focus): Add documentation for
