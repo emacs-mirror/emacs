@@ -169,13 +169,14 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 	      ;; kind of paren to match the one we started at.
 	      (when (integerp pos)
 		(let ((beg (min pos oldpos)) (end (max pos oldpos)))
-		  (when (/= (char-syntax (char-after beg)) ?\$)
+		  (unless (eq (car (syntax-after beg)) 8) ;Not syntax `$'.
 		    (setq mismatch
-			  (not (eq (or (cdr (get-text-property (1- end) 'syntax-table))
-				       (char-before end))
-				   ;; This can give nil.
-				   (or (cdr (get-text-property beg 'syntax-table))
-				       (matching-paren (char-after beg))))))))))))
+			  (not (or (eq (char-before end)
+				       ;; This can give nil.
+				       (cdr (syntax-after beg)))
+				   (eq (char-after beg)
+				       ;; This can give nil.
+				       (cdr (syntax-after (1- end)))))))))))))
 	;;
 	;; Highlight the other end of the sexp, or unhighlight if none.
 	(if (not pos)
