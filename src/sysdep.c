@@ -1895,6 +1895,16 @@ get_system_name ()
       hp = gethostbyname (system_name_saved);
       if (hp && strlen (hp->h_name) < sizeof(system_name_saved))
 	strcpy (system_name_saved, hp->h_name);
+      if (hp && !index (system_name_saved, '.'))
+	{
+	  /* We still don't have a fully qualified domain name.
+	     Try to find one in the list of alternate names */
+	  char **alias = hp->h_aliases;
+	  while (*alias && !index (*alias, '.'))
+	    alias++;
+	  if (*alias && strlen (*alias) < sizeof (system_name_saved))
+	    strcpy (system_name_saved, *alias);
+	}
     }
 #endif /* HAVE_SOCKETS */
 #endif /* not VMS */
