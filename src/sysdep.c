@@ -4995,7 +4995,7 @@ bzero (b, length)
 #endif /* no bzero */
 #endif /* BSTRING */
 
-#if (defined (BSTRING) && !defined (bcopy)) || defined (NEED_BCOPY)
+#if (!defined (BSTRING) && !defined (bcopy)) || defined (NEED_BCOPY)
 #undef bcopy
 
 /* Saying `void' requires a declaration, above, where bcopy is used
@@ -5023,7 +5023,7 @@ bcopy (b1, b2, length)
 }
 #endif /* (defined (BSTRING) && !defined (bcopy)) || defined (NEED_BCOPY) */
 
-#ifdef BSTRING
+#ifndef BSTRING
 #ifndef bcmp
 int
 bcmp (b1, b2, length)	/* This could be a macro! */
