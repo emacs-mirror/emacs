@@ -395,7 +395,17 @@ If SCOPE is nil, the user is asked to specify the scope."
 	      (vip-save-string-in-file 
 	       (format "\n(vip-record-kbd-macro %S '%S %s '%S)"
 		       (vip-display-macro macro-name)
-		       state macro-body scope) 
+		       state
+		       ;; if we don't let vector macro-body through %S,
+		       ;; the symbols `\.' `\[' etc will be converted into
+		       ;; characters, causing invalid read  error on recorded
+		       ;; macros in .vip.
+		       ;; I am not sure is macro-body can still be a string at
+		       ;; this point, but I am preserving this option anyway.
+		       (if (vectorp macro-body)
+			   (format "%S" macro-body)
+			 macro-body)
+		       scope) 
 	       vip-custom-file-name))
 	  
 	  (message msg)
