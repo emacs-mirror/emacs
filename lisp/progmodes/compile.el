@@ -66,75 +66,6 @@ will be parsed and highlighted as soon as you try to move to them."
 		 (integer :tag "First N lines"))
   :group 'compilation)
 
-;;; This has to be here so it can be called
-;;; by the following defcustoms.
-(defun grep-compute-defaults ()
-  (unless (or (not grep-use-null-device) (eq grep-use-null-device t))
-    (setq grep-use-null-device
-	  (with-temp-buffer
-	    (let ((hello-file (expand-file-name "HELLO" data-directory)))
-	      (not
-	       (and (equal (condition-case nil
-			       (if grep-command
-				   ;; `grep-command' is already set, so
-				   ;; use that for testing.
-				   (call-process-shell-command
-				    grep-command nil t nil
-				    "^English" hello-file)
-				 ;; otherwise use `grep-program'
-				 (call-process grep-program nil t nil
-					       "-nH" "^English" hello-file))
-			     (error nil))
-			   0)
-		    (progn
-		      (goto-char (point-min))
-		      (looking-at
-		       (concat (regexp-quote hello-file)
-			       ":[0-9]+:English")))))))))
-  (unless grep-command
-    (setq grep-command
-	  (let ((required-options (if grep-use-null-device "-n" "-nH")))
-	    (if (equal (condition-case nil ; in case "grep" isn't in exec-path
-			   (call-process grep-program nil nil nil
-					 "-e" "foo" null-device)
-			 (error nil))
-		       1)
-		(format "%s %s -e " grep-program required-options)
-	      (format "%s %s " grep-program required-options)))))
-  (unless grep-find-use-xargs
-    (setq grep-find-use-xargs
-	  (if (and
-               (equal (call-process "find" nil nil nil
-                                    null-device "-print0")
-                      0)
-               (equal (call-process "xargs" nil nil nil
-                                    "-0" "-e" "echo")
-		     0))
-	      'gnu)))
-  (unless grep-find-command
-    (setq grep-find-command
-	  (cond ((eq grep-find-use-xargs 'gnu)
-		 (format "%s . -type f -print0 | xargs -0 -e %s"
-			 find-program grep-command))
-		(grep-find-use-xargs
-		 (format "%s . -type f -print | xargs %s"
-                         find-program grep-command))
-		(t (cons (format "%s . -type f -exec %s {} %s \\;"
-				 find-program grep-command null-device)
-			 (+ 22 (length grep-command)))))))
-  (unless grep-tree-command
-    (setq grep-tree-command
-	  (let* ((glen (length grep-program))
-		 (gcmd (concat grep-program " <C>" (substring grep-command glen))))
-	    (cond ((eq grep-find-use-xargs 'gnu)
-		   (format "%s <D> <X> -type f <F> -print0 | xargs -0 -e %s <R>"
-			   find-program gcmd))
-		  (grep-find-use-xargs
-		   (format "%s <D> <X> -type f <F> -print | xargs %s <R>"
-			   find-program gcmd))
-		  (t (format "%s <D> <X> -type f <F> -exec %s <R> {} %s \\;"
-			     find-program gcmd null-device)))))))
-
 (defcustom grep-command nil
   "The default grep command for \\[grep].
 If the grep program used supports an option to always include file names
@@ -749,6 +680,73 @@ original use.  Otherwise, it recompiles using `compile-command'."
 		   (t
 		    (cons msg code)))
 	   (cons msg code)))))
+
+(defun grep-compute-defaults ()
+  (unless (or (not grep-use-null-device) (eq grep-use-null-device t))
+    (setq grep-use-null-device
+	  (with-temp-buffer
+	    (let ((hello-file (expand-file-name "HELLO" data-directory)))
+	      (not
+	       (and (equal (condition-case nil
+			       (if grep-command
+				   ;; `grep-command' is already set, so
+				   ;; use that for testing.
+				   (call-process-shell-command
+				    grep-command nil t nil
+				    "^English" hello-file)
+				 ;; otherwise use `grep-program'
+				 (call-process grep-program nil t nil
+					       "-nH" "^English" hello-file))
+			     (error nil))
+			   0)
+		    (progn
+		      (goto-char (point-min))
+		      (looking-at
+		       (concat (regexp-quote hello-file)
+			       ":[0-9]+:English")))))))))
+  (unless grep-command
+    (setq grep-command
+	  (let ((required-options (if grep-use-null-device "-n" "-nH")))
+	    (if (equal (condition-case nil ; in case "grep" isn't in exec-path
+			   (call-process grep-program nil nil nil
+					 "-e" "foo" null-device)
+			 (error nil))
+		       1)
+		(format "%s %s -e " grep-program required-options)
+	      (format "%s %s " grep-program required-options)))))
+  (unless grep-find-use-xargs
+    (setq grep-find-use-xargs
+	  (if (and
+               (equal (call-process "find" nil nil nil
+                                    null-device "-print0")
+                      0)
+               (equal (call-process "xargs" nil nil nil
+                                    "-0" "-e" "echo")
+		      0))
+	      'gnu)))
+  (unless grep-find-command
+    (setq grep-find-command
+	  (cond ((eq grep-find-use-xargs 'gnu)
+		 (format "%s . -type f -print0 | xargs -0 -e %s"
+			 find-program grep-command))
+		(grep-find-use-xargs
+		 (format "%s . -type f -print | xargs %s"
+                         find-program grep-command))
+		(t (cons (format "%s . -type f -exec %s {} %s \\;"
+				 find-program grep-command null-device)
+			 (+ 22 (length grep-command)))))))
+  (unless grep-tree-command
+    (setq grep-tree-command
+	  (let* ((glen (length grep-program))
+		 (gcmd (concat grep-program " <C>" (substring grep-command glen))))
+	    (cond ((eq grep-find-use-xargs 'gnu)
+		   (format "%s <D> <X> -type f <F> -print0 | xargs -0 -e %s <R>"
+			   find-program gcmd))
+		  (grep-find-use-xargs
+		   (format "%s <D> <X> -type f <F> -print | xargs %s <R>"
+			   find-program gcmd))
+		  (t (format "%s <D> <X> -type f <F> -exec %s <R> {} %s \\;"
+			     find-program gcmd null-device)))))))
 
 ;;;###autoload
 (defun grep (command-args)
