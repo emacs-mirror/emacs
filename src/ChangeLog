@@ -1,3 +1,14 @@
+2000-06-10  Kenichi Handa  <handa@etl.go.jp>
+
+	* charset.c (update_charset_table): Update the table
+	bytes_by_char_head.
+	(init_charset_once): Initialize elements of bytes_by_char_head to
+	1 except for leading codes for private charases.
+
+	* charset.h (CHARSET_8_BIT_GRAPHIC): Define as 0x80.
+	(UNIBYTE_STR_AS_MULTIBYTE_P): Fix for an invalid multibyte
+	sequence.
+
 2000-06-09  Ken Raeburn  <raeburn@gnu.org>
 
 	* xterm.c (x_connection_closed): If dpyinfo is NULL, don't try to
