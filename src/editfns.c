@@ -2551,7 +2551,12 @@ Use %% to put a single % into the output.")
 	       be a double.  */
 	    if (*format == 'e' || *format == 'f' || *format == 'g')
 	      args[n] = Ffloat (args[n]);
+	    else
 #endif
+	      if (*format != 'd' && *format != 'o' && *format != 'x'
+		  && *format != 'X' && *format != 'c')
+		error ("Invalid format operation %%%c", *format);
+
 	    thissize = 30;	
 	    if (*format == 'c'
 		&& (! SINGLE_BYTE_CHAR_P (XINT (args[n]))
