@@ -49,10 +49,14 @@ Return t if file exists."
 	      ;; We can't use `generate-new-buffer' because files.el
 	      ;; is not yet loaded.
 	      (get-buffer-create (generate-new-buffer-name " *load*"))))
-	   (load-in-progress t))
-      (or nomessage (message "Loading %s..." file))
-      (if purify-flag
-	  (setq preloaded-file-list (cons file preloaded-file-list)))
+	   (load-in-progress t)
+	   (source (save-match-data (string-match "\\.el\\'" fullname))))
+      (unless nomessage
+	(if source
+	    (message "Loading %s (source)..." file)
+	  (message "Loading %s..." file)))
+      (when purify-flag
+	(setq preloaded-file-list (cons file preloaded-file-list)))
       (unwind-protect
 	  (let ((load-file-name fullname)
 		(inhibit-file-name-operation nil))
@@ -68,10 +72,12 @@ Return t if file exists."
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
       (let ((hook (assoc file after-load-alist)))
-	      (if hook
-		  (mapcar (function eval) (cdr hook))))
-      (or nomessage noninteractive
-	  (message "Loading %s...done" file))
+	(when hook
+	  (mapcar (function eval) (cdr hook))))
+      (unless (or nomessage noninteractive)
+	(if source
+	    (message "Loading %s (source)...done" file)
+	  (message "Loading %s...done" file)))
       t)))
 
 ;; API (Application Program Interface) for charsets.
