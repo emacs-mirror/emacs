@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.30 1997/10/28 21:59:48 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.31 1997/10/28 22:16:24 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -96,7 +96,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.30 1997/10/28 21:59:48 os10000 Exp os10000 $
+;;      $Id: todo-mode.el,v 1.31 1997/10/28 22:16:24 os10000 Exp os10000 $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -267,6 +267,12 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.31  1997/10/28  22:16:24  os10000
+;; Three insertion options:
+;; i without prefix: ask for category, do binary insertion
+;; i with prefix: do binary insertion in current category
+;; uppercase I: insert directly under cursor
+;;
 ;; Revision 1.30  1997/10/28 21:59:48  os10000
 ;; Improved documentation, fixed insertion with prefix.
 ;;
@@ -731,7 +737,7 @@ Use `todo-categories' instead.")
 ;;;### autoload
 (defun todo-add-category (cat) 
   "Add new category CAT to the TODO list."
-  (interactive)
+  (interactive "sCategory: ")
   (save-window-excursion
     (setq todo-categories (cons cat todo-categories))
     (find-file todo-file-do)
@@ -891,7 +897,7 @@ category."
 		   " "
 		 "\n\t")
 	       "(" (nth todo-category-number todo-categories) ": "
-	       comment ")\n")))
+	       comment ")")))
         (goto-char (todo-item-start))
         (let ((temp-point (point)))
           (if (looking-at (regexp-quote todo-prefix))
@@ -899,7 +905,7 @@ category."
 	    ;; Standard prefix -> timestamp
             ;; Else prefix non-standard item start with timestamp
             (insert (time-stamp-string)))
-          (append-to-file temp-point (todo-item-end) todo-file-done)
+          (append-to-file temp-point (1+ (todo-item-end)) todo-file-done)
           (delete-region temp-point (1+ (todo-item-end))))
         (todo-backward-item)
         (message ""))
