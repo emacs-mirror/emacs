@@ -2884,16 +2884,15 @@ It returns the number of characters changed.  */)
     {
       if (! EQ (XCHAR_TABLE (table)->purpose, Qtranslation_table))
 	error ("Not a translation table");
+      size = MAX_CHAR;
       tt = NULL;
     }
   else
     {
       CHECK_STRING (table);
 
-      if (multibyte != (SCHARS (table) < SBYTES (table)))
-	table = (multibyte
-		 ? string_make_multibyte (table)
-		 : string_make_unibyte (table));
+      if (! multibyte && (SCHARS (table) < SBYTES (table)))
+	table = string_make_unibyte (table);
       string_multibyte = SCHARS (table) < SBYTES (table);
       size = SBYTES (table);
       tt = SDATA (table);
@@ -2914,45 +2913,56 @@ It returns the number of characters changed.  */)
       Lisp_Object val;
 
       if (multibyte)
-	nc = oc = STRING_CHAR_AND_LENGTH (p, 0, len);
+	oc = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, len);
       else
-	nc = oc = *p, len = 1;
-      if (tt)
+	oc = *p, len = 1;
+      if (oc < size)
 	{
-	  if (oc < size)
+	  if (tt)
 	    {
 	      if (string_multibyte)
 		{
 		  str = tt + string_char_to_byte (table, oc);
-		  nc = STRING_CHAR_AND_LENGTH (str, 0, str_len);
+		  nc = STRING_CHAR_AND_LENGTH (str, MAX_MULTIBYTE_LENGTH, 
+					       str_len);
 		}
 	      else
 		{
-		  str = tt + oc;
-		  nc = tt[oc], str_len = 1;
+		  nc = tt[oc];
+		  if (! ASCII_BYTE_P (nc) && multibyte)
+		    {
+		      str_len = BYTE8_STRING (nc, buf);
+		      str = buf;
+		    }
+		  else
+		    {
+		      str_len = 1;
+		      str = tt + oc;
+		    }
 		}
 	    }
-	}
-      else
-	{
-	  val = CHAR_TABLE_REF (table, oc);
-	  if (CHARACTERP (val))
+	  else
 	    {
-	      nc = XFASTINT (val);
-	      str_len = CHAR_STRING (nc, buf);
-	      str = buf;
-	    }
-	  else if (VECTORP (val) || (CONSP (val)))
-	    {
-	      /* VAL is [TO_CHAR ...] or (([FROM-CHAR ...] .  TO) ...)
-		 where TO is TO-CHAR or [TO-CHAR ...].  */
-	      nc = -1;
-	    }
-	}
+	      int c;
 
-      if (nc != oc)
-	{
-	  if (nc >= 0)
+	      nc = oc;
+	      val = CHAR_TABLE_REF (table, oc);
+	      if (CHARACTERP (val)
+		  && (c = XINT (val), CHAR_VALID_P (c, 0)))
+		{
+		  nc = c;
+		  str_len = CHAR_STRING (nc, buf);
+		  str = buf;
+		}
+	      else if (VECTORP (val) || (CONSP (val)))
+		{
+		  /* VAL is [TO_CHAR ...] or (([FROM-CHAR ...] .  TO) ...)
+		     where TO is TO-CHAR or [TO-CHAR ...].  */
+		  nc = -1;
+		}
+	    }
+
+	  if (nc != oc && nc >= 0)
 	    {
 	      /* Simple one char to one char translation.  */
 	      if (len != str_len)
@@ -2975,7 +2985,7 @@ It returns the number of characters changed.  */)
 		}
 	      ++cnt;
 	    }
-	  else
+	  else if (nc < 0)
 	    {
 	      Lisp_Object string;
 
