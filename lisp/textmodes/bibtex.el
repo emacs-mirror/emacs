@@ -695,7 +695,7 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 (defconst bibtex-reference-head
   (concat "^\\( \\|\t\\)*\\("
 	  bibtex-reference-type
-	  "\\)[ \t]*[({]\\("
+	  "\\)[ \t]*[({][ \t]*\\("
 	  bibtex-reference-key
 	  "\\)"))
 ;; Regexp defining format of the header line of a BibTeX reference
