@@ -74,6 +74,10 @@
   pcomplete, assoc, xml, cvs-status (should be described in PCL-CVS manual);
   other progmodes, probably in separate manual.
 
+* Update and expand the Info mode manual.
+  Many Info commands are completely undocumented, including the
+  mouse-related ones.
+
 * Get some major packages installed: W3/url (development version needs
   significant work), PSGML, Mule-UCS, Tramp (?).  Check the
   assignments file for other packages which might go in and have been
@@ -155,3 +159,6 @@
   size and its position from lines instead of characters.
 
 * Adapt the gnuserv/gnudoit features for server/emacsclient.
+
+* Remove the special treatment of binary files by DOS and Windows ports.
+  They should use find-file-literally and `no-conversion' instead.
