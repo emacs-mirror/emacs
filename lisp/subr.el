@@ -1944,6 +1944,8 @@ This is run just before the mode dependent hooks.")
 (defun run-mode-hooks (&rest hooks)
   "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
 Execution is delayed if `delay-mode-hooks' is non-nil.
+If `delay-mode-hooks' is nil, run `after-change-major-mode-hook'
+after running the mode hooks.
 Major mode functions should use this."
   (if delay-mode-hooks
       ;; Delaying case.
@@ -1952,8 +1954,8 @@ Major mode functions should use this."
     ;; Normal case, just run the hook as before plus any delayed hooks.
     (setq hooks (nconc (nreverse delayed-mode-hooks) hooks))
     (setq delayed-mode-hooks nil)
-    (run-hooks 'after-change-major-mode-hook)
-    (apply 'run-hooks hooks)))
+    (apply 'run-hooks hooks)
+    (run-hooks 'after-change-major-mode-hook)))
 
 (defmacro delay-mode-hooks (&rest body)
   "Execute BODY, but delay any `run-mode-hooks'.
