@@ -81,6 +81,16 @@ Lisp_Object Vkill_emacs_hook;
   on subsequent starts.  */
 int initialized;
 
+#ifdef DOUG_LEA_MALLOC
+/* Preserves a pointer to the memory allocated that copies that
+   static data inside glibc's malloc.  */
+void *malloc_state_ptr;
+/* From glibc, a routine that returns a copy of the malloc internal state.  */
+extern void *malloc_get_state ();
+/* From glibc, a routine that overwrites the malloc internal state.  */
+extern void malloc_set_state ();
+#endif
+
 /* Variable whose value is symbol giving operating system type.  */
 Lisp_Object Vsystem_type;
 
@@ -484,6 +494,14 @@ main (argc, argv, envp)
 
 #ifdef LINUX_SBRK_BUG
   __sbrk (1);
+#endif
+
+#ifdef DOUG_LEA_MALLOC
+  if (initialized)
+    {
+      malloc_set_state (malloc_state_ptr);
+      free (malloc_state_ptr);
+    }
 #endif
 
   sort_args (argc, argv);
@@ -1510,8 +1528,14 @@ and announce itself normally when it is run.")
   memory_warnings (my_edata, malloc_warning);
 #endif /* not WINDOWSNT */
 #endif
+#ifdef DOUG_LEA_MALLOC
+  malloc_state_ptr = malloc_get_state ();
+#endif
   unexec (XSTRING (filename)->data,
 	  !NILP (symfile) ? XSTRING (symfile)->data : 0, my_edata, 0, 0);
+#ifdef DOUG_LEA_MALLOC
+  free (malloc_state_ptr);
+#endif
 #endif /* not VMS */
 
   Vpurify_flag = tem;
