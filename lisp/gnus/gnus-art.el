@@ -171,7 +171,7 @@ asynchronously.	 The compressed face will be piped to this command."
 
 (defcustom gnus-article-x-face-too-ugly nil
   "Regexp matching posters whose face shouldn't be shown automatically."
-  :type 'regexp
+  :type '(choice regexp (const nil))
   :group 'gnus-article-washing)
 
 (defcustom gnus-emphasis-alist
@@ -276,7 +276,7 @@ If `gnus-save-all-headers' is non-nil, this variable will be ignored.
 If that variable is nil, however, all headers that match this regexp
 will be kept while the rest will be deleted before saving."
   :group 'gnus-article-saving
-  :type '(repeat string))
+  :type 'regexp)
 
 (defcustom gnus-default-article-saver 'gnus-summary-save-in-rmail
   "A function to save articles in your favourite format.
