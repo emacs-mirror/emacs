@@ -1250,6 +1250,12 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** Function `make-obsolete' now has an optional arg to say when the
+function was declared obsolete.
+
+** Function plist-member is renamed from widget-plist-member (which is
+retained as an alias).
+
 ** Easy-menu's :filter now works as in XEmacs.
 It takes the unconverted (i.e. XEmacs) form of the menu and the result
 is automatically converted to Emacs' form.
