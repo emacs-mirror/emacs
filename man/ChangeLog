@@ -1,3 +1,8 @@
+2005-01-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Keep Arguments): Mention that keeping arguments
+	doesn't work with keyboard macros.
+
 2005-01-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.47.

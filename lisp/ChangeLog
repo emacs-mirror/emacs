@@ -1,3 +1,8 @@
+2005-01-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-prog.el (calc-execute-kbd-macro):
+	Ignore calc-keep-arg-flag.
+
 2005-01-19  Kenichi Handa  <handa@m17n.org>
 
 	* textmodes/ispell.el (ispell-looking-at): New function.
