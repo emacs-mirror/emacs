@@ -703,6 +703,9 @@ which will run faster and probably do exactly what you want."
   (let ((nocasify (not (and case-fold-search case-replace
 			    (string-equal from-string
 					  (downcase from-string)))))
+	(case-fold-search (and case-fold-search
+			       (string-equal from-string
+					     (downcase from-string))))
 	(literal (not regexp-flag))
 	(search-function (if regexp-flag 're-search-forward 'search-forward))
 	(search-string from-string)
