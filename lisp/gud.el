@@ -983,12 +983,29 @@ comint mode, which see."
 		      (while (and w (= ?- (aref (car w) 0)))
 			(setq w (cdr w)))
 		      (car w)))
+	 (file-subst
+	  (and file-word (substitute-in-file-name file-word)))
 	 (args (delq file-word (cdr words)))
+	 ;; If a directory was specified, expand the file name.
+	 ;; Otherwise, don't expand it, so GDB can use the PATH.
+	 ;; A file name without directory is literally valid
+	 ;; only if the file exists in ., and in that case,
+	 ;; omitting the expansion here has no visible effect.
 	 (file (and file-word
-		    (expand-file-name (substitute-in-file-name file-word))))
+		    (if (file-name-directory file-subst)
+			(expand-file-name file-subst)
+		      file-subst)))
 	 (filepart (and file-word (file-name-nondirectory file))))
     (switch-to-buffer (concat "*gud-" filepart "*"))
-    (and file-word (setq default-directory (file-name-directory file)))
+    ;; Set default-directory to the file's directory.
+    (and file-word
+	 ;; Don't set default-directory if no directory was specified.
+	 ;; In that case, either the file is found in the current directory,
+	 ;; in which case this setq is a no-op,
+	 ;; or it is found by searching PATH,
+	 ;; in which case we don't know what directory it was found in.
+	 (file-name-directory file)
+	 (setq default-directory (file-name-directory file)))
     (or (bolp) (newline))
     (insert "Current directory is " default-directory "\n")
     (apply 'make-comint (concat "gud-" filepart) program nil
