@@ -1,3 +1,25 @@
+2001-02-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (split_font_name): Compute numeric value of
+	XLFD_AVGWIDTH.
+	(LFACE_AVGWIDTH): New macro.
+	(LFACEP): Use AREF.
+	(check_lface_attrs): Check LFACE_AVGWIDTH.
+	(lface_fully_specified_p): Don't check LFACE_AVGWIDTH.
+	(set_lface_from_font_name): Set LFACE_AVGWIDTH.
+	(merge_face_vectors): Check LFACE_AVGWIDTH.
+	(Finternal_make_lisp_face): Use AREF.
+	(xm_set_menu_resources_from_menu_face)
+	(xl_set_menu_resources_from_menu_face): Check LFACE_AVGWIDTH.
+	(Finternal_lisp_face_empty_p): Use AREF.
+	(lface_same_font_attributes_p): Compare LFACE_AVGWIDTH.
+	(better_font_p, exact_face_match_p): Add parameter AVGWIDTH.
+	Compare average widths..
+	(best_matching_font): Arrange for comparing average widths.
+
+	* dispextern.h (enum lface_attribute_index): Add
+	LFACE_AVGWIDTH_INDEX (invisible from Lisp).
+	
 2001-02-05  Dave Love  <fx@gnu.org>
 
 	* puresize.h: Revert last change following loadup.el change.
