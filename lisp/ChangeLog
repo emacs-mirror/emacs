@@ -1,3 +1,26 @@
+2003-05-27  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/sh-script.el (sh-here-document-word): Document
+	new treatment of leading "-".
+	(sh-maybe-here-document): Strip a leading "-" from closing
+	heredoc delimiter, if present.
+
+	* align.el (align-rules-list): Doc fix.
+
+	* calendar/timeclock.el: Update copyright.
+	(timeclock-ask-before-exiting): Put `timeclock-query-out' on 
+	`kill-emacs-query-functions' rather than `kill-emacs-hook'.
+	(timeclock-mode-string): Doc fix.
+	(timeclock-modeline-display): Doc fix.  Use `global-mode-string'
+	rather than `mode-line-format'.
+	(timeclock-query-out): Doc fix.
+	(timeclock-update-modeline): No need for `let*', so use `let'.
+	Add some help-echo text to `timeclock-mode-string'.
+	(timeclock-mode-string): Give it the risky-local-variable
+	property, so that help-echo text will display.
+	(timeclock-find-discrep): Set `accum' to 0 if
+	`timeclock-discrepancy' is nil.
+	
 2003-05-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/lisp-mode.el (lisp-font-lock-syntactic-face-function):
