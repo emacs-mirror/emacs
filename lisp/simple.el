@@ -1040,11 +1040,18 @@ to make one entry in the kill ring."
 	     (eq last-command 'kill-region)
 	     (eq beg end)))
     ;; Don't let the undo list be truncated before we can even access it.
-    (let ((undo-strong-limit (+ (- (max beg end) (min beg end)) 100)))
+    (let ((undo-strong-limit (+ (- (max beg end) (min beg end)) 100))
+	  (old-list buffer-undo-list)
+	  tail)
       (delete-region beg end)
+      ;; Search back in buffer-undo-list for this string,
+      ;; in case a change hook made property changes.
+      (setq tail buffer-undo-list)
+      (while (not (stringp (car (car tail))))
+	(setq tail (cdr tail)))
       ;; Take the same string recorded for undo
       ;; and put it in the kill-ring.
-      (kill-new (car (car buffer-undo-list)))
+      (kill-new (car (car tail)))
       (setq this-command 'kill-region)))
 
    (t
