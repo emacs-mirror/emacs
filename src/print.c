@@ -2085,7 +2085,9 @@ Also print formfeeds as `\\f'.  */);
   DEFVAR_BOOL ("print-escape-nonascii", &print_escape_nonascii,
 	       doc: /* Non-nil means print unibyte non-ASCII chars in strings as \\OOO.
 \(OOO is the octal representation of the character code.)
-Only single-byte characters are affected, and only in `prin1'.  */);
+Only single-byte characters are affected, and only in `prin1'.
+When the output goes in a multibyte buffer, this feature is
+enabled regardless of the value of the variable.  */);
   print_escape_nonascii = 0;
 
   DEFVAR_BOOL ("print-escape-multibyte", &print_escape_multibyte,
