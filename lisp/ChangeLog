@@ -1,3 +1,22 @@
+2000-10-06  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* net/net-utils.el (nslookup-prompt-regexp, ftp-prompt-regexp) 
+	(smbclient-prompt-regexp): Add usage note to doc string.
+	(ftp-font-lock-keywords, smbclient-font-lock-keywords): Removed.
+	(ftp-mode, smbclient-mode): Don't set `font-lock-defaults'.
+	Use add-hook for adding the comint filter function, and only do so
+	if it's not already in the global hook list.
+	(ftp-mode, smbclient-mode, nslookup-mode): Remove redundant calls
+	to `make-local-variable'.
+	(nslookup-font-lock-keywords): Remove prompt entry.
+	(nslookup): Don't set the process-filter.
+	(finger): Exit the loop correctly when the regexps list runs out.
+	(ftp, smbclient, smbclient-list-shares):
+	Set the real major mode immediately, not after execing.
+	Use `pop-to-buffer' instead of `switch-to-buffer-other-window'.
+
+	* comint.el (comint-watch-for-password-prompt): Use STRING as a prompt.
+
 2000-10-05  Alex Schroeder  <alex@gnu.org>
 
 	* sql.el (sql-mysql-options): New variable.
