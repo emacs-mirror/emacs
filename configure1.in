@@ -71,9 +71,9 @@ short_usage="Usage: ${progname} CONFIGURATION [-OPTION[=VALUE] ...]
 Set compilation and installation parameters for GNU Emacs, and report.
 CONFIGURATION specifies the machine and operating system to build for.
 --with-x		Support the X Window System.
---with-x=no		Don't support the X Window System.
---x-includes=DIR 	Search for X Window System header files in DIR.
---x-libraries=DIR	Search for X Window System libraries in DIR.
+--with-x=no		Don't support X.
+--x-includes=DIR 	Search for X header files in DIR.
+--x-libraries=DIR	Search for X libraries in DIR.
 --with-gcc		Use GCC to compile Emacs.
 --with-gcc=no		Don't use GCC to compile Emacs.
 --run-in-place		Use libraries and data files directly out of the 
@@ -148,7 +148,7 @@ Set it to either \`yes' or \`no'."
         ;;
 
 	## Has the user specified whether or not they want GCC?
-	"with_gcc" )
+	"with_gcc" | "with_gnu_cc" )
 	  ## Make sure the value given was either "yes" or "no".
 	  case "${val}" in
 	    y | ye | yes )	val=yes ;;
@@ -912,7 +912,7 @@ esac
 case "${window_system}" in
   "none" | "x11" | "x10" ) ;;
   "" )
-    echo "  No window system specifed.  Looking for X Windows."
+    echo "  No window system specifed.  Looking for X window system."
     window_system=none
     if [ -r /usr/lib/libX11.a \
 	 -o -d /usr/include/X11 \
