@@ -193,6 +193,9 @@ extern struct frame *updating_frame;
    x_focus_event_frame.  */
 struct frame *x_focus_frame;
 
+/* This is a frame waiting to be autoraised, within XTread_socket.  */
+struct frame *pending_autoraise_frame;
+
 /* The last frame mentioned in a FocusIn or FocusOut event.  This is
    separate from x_focus_frame, because whether or not LeaveNotify
    events cause us to lose focus depends on whether or not we have
@@ -1717,7 +1720,9 @@ x_new_focus_frame (frame)
 #endif /* ! 0 */
 
       if (x_focus_frame && x_focus_frame->auto_raise)
-	x_raise_frame (x_focus_frame);
+	pending_autoraise_frame = x_focus_frame;
+      else
+	pending_autoraise_frame = 0;
     }
 
   XTframe_rehighlight ();
@@ -4302,6 +4307,16 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
     x_do_pending_expose ();
 #endif
 
+  /* If the focus was just given to an autoraising frame,
+     raise it now.  */
+#ifdef HAVE_X11
+  if (pending_autoraise_frame)
+    {
+      x_raise_frame (pending_autoraise_frame);
+      pending_autoraise_frame = 0;
+    }
+#endif
+
   UNBLOCK_INPUT;
   return count;
 }
@@ -5082,6 +5097,7 @@ x_new_font (f, fontname)
 		f->display.x->font->fid);
 
       frame_update_line_height (f);
+      x_set_window_size (f, 0, f->width, f->height);
     }
   else
     /* If we are setting a new frame's font for the first time,
@@ -5397,8 +5413,12 @@ x_make_frame_visible (f)
 #else /* not USE_X_TOOLKIT */
       XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
 #endif /* not USE_X_TOOLKIT */
+#if 0 /* This seems to bring back scroll bars in the wrong places
+	 if the window configuration has changed.  They seem
+	 to come back ok without this.  */
       if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
 	XMapSubwindows (x_current_display, FRAME_X_WINDOW (f));
+#endif
 #else /* ! defined (HAVE_X11) */
       XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
       if (f->display.x->icon_desc != 0)
@@ -5563,8 +5583,10 @@ x_iconify_frame (f)
     {
       /* If the frame was withdrawn, before, we must map it.  */
       XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
+#if 0 /* We don't have subwindows in the icon.  */
       if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
 	XMapSubwindows (x_current_display, FRAME_X_WINDOW (f));
+#endif
     }
 
   f->async_iconified = 1;
@@ -5608,6 +5630,9 @@ x_destroy_window (f)
     x_focus_frame = 0;
   if (f == x_highlight_frame)
     x_highlight_frame = 0;
+
+  if (f == mouse_face_mouse_frame)
+    clear_mouse_face ();
 
   UNBLOCK_INPUT;
 }
@@ -5690,13 +5715,12 @@ mouse_event_pending_p ()
 
 #ifdef HAVE_X11
 
-/* Record the gravity used previously, in case CHANGE_GRAVITY is 0.  */
-static int previous_gravity;
-
 /* SPEC_X and SPEC_Y are the specified positions.
    We look only at their sign, to decide the gravity.
    If CHANGE_GRAVITY is 0, we ignore SPEC_X and SPEC_Y
-   and leave the gravity unchanged.  */
+   and leave the gravity unchanged.
+
+   CHANGE_GRAVITY is nonzero when PROMPTING is nonzero.  */
 
 x_wm_set_size_hint (f, prompting, change_gravity, spec_x, spec_y)
      struct frame *f;
@@ -5733,42 +5757,36 @@ x_wm_set_size_hint (f, prompting, change_gravity, spec_x, spec_y)
 #endif /* not USE_X_TOOLKIT */
   size_hints.width_inc = FONT_WIDTH (f->display.x->font);
   size_hints.height_inc = f->display.x->line_height;
-#if 0
-  size_hints.max_width = x_screen_width - CHAR_TO_PIXEL_WIDTH (f, 0);
-  size_hints.max_height = x_screen_height - CHAR_TO_PIXEL_HEIGHT (f, 0);
-#endif    
+
   {
     int base_width, base_height;
+    int min_rows = 0, min_cols = 0;
 
     base_width = CHAR_TO_PIXEL_WIDTH (f, 0);
     base_height = CHAR_TO_PIXEL_HEIGHT (f, 0);
 
-    {
-      int min_rows = 0, min_cols = 0;
-      check_frame_size (f, &min_rows, &min_cols);
+    check_frame_size (f, &min_rows, &min_cols);
 
-      /* The window manager uses the base width hints to calculate the
-	 current number of rows and columns in the frame while
-	 resizing; min_width and min_height aren't useful for this
-	 purpose, since they might not give the dimensions for a
-	 zero-row, zero-column frame.
-
-	 We use the base_width and base_height members if we have
-	 them; otherwise, we set the min_width and min_height members
-	 to the size for a zero x zero frame.  */
+    /* The window manager uses the base width hints to calculate the
+       current number of rows and columns in the frame while
+       resizing; min_width and min_height aren't useful for this
+       purpose, since they might not give the dimensions for a
+       zero-row, zero-column frame.
+       
+       We use the base_width and base_height members if we have
+       them; otherwise, we set the min_width and min_height members
+       to the size for a zero x zero frame.  */
 
 #ifdef HAVE_X11R4
-      size_hints.flags |= PBaseSize;
-      size_hints.base_width = base_width;
-      size_hints.base_height = base_height;
-      size_hints.min_width  = base_width + min_cols * size_hints.width_inc;
-      size_hints.min_height = base_height + min_rows * size_hints.height_inc;
+    size_hints.flags |= PBaseSize;
+    size_hints.base_width = base_width;
+    size_hints.base_height = base_height;
+    size_hints.min_width  = base_width + min_cols * size_hints.width_inc;
+    size_hints.min_height = base_height + min_rows * size_hints.height_inc;
 #else
-      size_hints.min_width = base_width;
-      size_hints.min_height = base_height;
+    size_hints.min_width = base_width;
+    size_hints.min_height = base_height;
 #endif
-    }
-
   }
 
   if (prompting)
@@ -5787,7 +5805,9 @@ x_wm_set_size_hint (f, prompting, change_gravity, spec_x, spec_y)
 	size_hints.flags |= USPosition;
       if (hints.flags & USSize)
 	size_hints.flags |= USSize;
+      size_hints.win_gravity = hints.win_gravity;
     }
+
 #if defined (PWinGravity)
   if (change_gravity)
     {
@@ -5797,21 +5817,18 @@ x_wm_set_size_hint (f, prompting, change_gravity, spec_x, spec_y)
 	  size_hints.win_gravity = NorthWestGravity;
 	  break;
 	case 1:
-	  size_hints.win_gravity = NorthEastGravity;
+	  size_hints.win_gravity = SouthWestGravity;
 	  break;
 	case 2:
-	  size_hints.win_gravity = SouthWestGravity;
+	  size_hints.win_gravity = NorthEastGravity;
 	  break;
 	case 3:
 	  size_hints.win_gravity = SouthEastGravity;
 	  break;
 	}
-      previous_gravity = size_hints.win_gravity;
+      if (! (size_hints.flags & USPosition))
+	size_hints.flags |= PWinGravity;
     }
-  else
-    size_hints.win_gravity = previous_gravity;
-
-  size_hints.flags |= PWinGravity;
 #endif /* PWinGravity */
 
 #ifdef HAVE_X11R4
