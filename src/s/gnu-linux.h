@@ -239,3 +239,19 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
 #define ADJUST_EXEC_HEADER \
   unexec_text_start = N_TXTADDR(ohdr) + A_TEXT_OFFSET(ohdr)
+
+/* In 19.23 and 19.24, configure sometimes fails to define these.
+   It has to do with the fact that configure uses CFLAGS when linking
+   while Makefile.in.in (erroneously) fails to do so when linking temacs.  */
+#ifndef HAVE_GETTIMEOFDAY
+#define HAVE_GETTIMEOFDAY
+#endif
+#ifndef HAVE_MKDIR
+#define HAVE_MKDIR
+#endif
+#ifndef HAVE_RMDIR
+#define HAVE_RMDIR
+#endif
+#ifndef HAVE_XSCREENNUMBEROFSCREEN
+#define HAVE_XSCREENNUMBEROFSCREEN
+#endif
