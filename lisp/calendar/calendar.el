@@ -52,7 +52,7 @@
 ;; The following files are part of the calendar/diary code:
 
 ;;       cal-menu.el                   Menu support
-;;       diary.el, diary-ins.el        Diary functions
+;;       diary-lib.el, diary-ins.el    Diary functions
 ;;       holidays.el                   Holiday functions
 ;;       cal-french.el                 French Revolutionary calendar
 ;;       cal-mayan.el                  Mayan calendars
@@ -1179,7 +1179,7 @@ to be replaced by asterisks to highlight it whenever it is in the window."
         (list-calendar-holidays)))
   (run-hooks 'initial-calendar-window-hook))
 
-(autoload 'view-diary-entries "diary"
+(autoload 'view-diary-entries "diary-lib"
   "Prepare and display a buffer with diary entries.
 Searches your diary file for entries that match ARG days starting with
 the date indicated by the cursor position in the displayed three-month
@@ -1242,14 +1242,14 @@ calendar."
   "Move cursor to previous instance of Mayan Haab/Tzoklin combination."
   t)
 
-(autoload 'show-all-diary-entries "diary"
+(autoload 'show-all-diary-entries "diary-lib"
   "Show all of the diary entries in the diary file.
 This function gets rid of the selective display of the diary file so that
 all entries, not just some, are visible.  If there is no diary buffer, one
 is created."
   t)
 
-(autoload 'mark-diary-entries "diary"
+(autoload 'mark-diary-entries "diary-lib"
   "Mark days in the calendar window that have diary entries.
 Each entry in diary file visible in the calendar window is marked."
   t)
