@@ -67,7 +67,7 @@ char *superlock_path;
 /* Set LOCK to the name of the lock file for the filename FILE.
    char *LOCK; Lisp_Object FILE;  */
 
-#ifdef SHORT_FILE_NAMES
+#ifndef HAVE_LONG_FILE_NAMES
 
 #define MAKE_LOCK_PATH(lock, file) \
   (lock = (char *) alloca (14 + strlen (lock_path) + 1), \
@@ -107,7 +107,7 @@ fill_in_lock_short_file_name (lockfile, fn)
 	   crc.byte[4], crc.byte[5], crc.byte[6]);
 }
 
-#else /* !defined SHORT_FILE_NAMES */
+#else /* defined HAVE_LONG_FILE_NAMES */
 
 #define MAKE_LOCK_PATH(lock, file) \
   (lock = (char *) alloca (XSTRING (file)->size + strlen (lock_path) + 1), \
@@ -132,7 +132,7 @@ fill_in_lock_file_name (lockfile, fn)
 	*p = '!';
     }
 }
-#endif /* SHORT_FILE_NAMES */
+#endif /* !defined HAVE_LONG_FILE_NAMES */
 
 static Lisp_Object
 lock_file_owner_name (lfname)
@@ -169,7 +169,7 @@ lock_file_owner_name (lfname)
    and put in the Emacs lock directory.  */
 /* (ie., /ka/king/junk.tex -> /!/!ka!king!junk.tex). */
 
-/* If SHORT_FILE_NAMES is defined, the lock file name is the hex
+/* If HAVE_LONG_FILE_NAMES is not defined, the lock file name is the hex
    representation of a 14-bytes CRC generated from the file name
    and put in the Emacs lock directory (not very nice, but it works).
    (ie., /ka/king/junk.tex -> /!/ec92d3ed24a8f0). */
