@@ -145,7 +145,9 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 	;; Set up key-translation-map as indicated by `double-map'.
 	(kill-local-variable 'key-translation-map)
 	(make-local-variable 'key-translation-map)
-	(setq key-translation-map (copy-keymap key-translation-map))
+	(setq key-translation-map (if (keymapp key-translation-map)
+				      (copy-keymap key-translation-map)
+				    (make-sparse-keymap)))
 	(mapcar (function (lambda (entry)
 			    (define-key key-translation-map
 			      (vector (nth 0 entry))
