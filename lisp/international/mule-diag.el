@@ -63,15 +63,6 @@
 (defun list-character-sets (arg)
   "Display a list of all character sets.
 
-The ID-NUM column contains a charset identification number for
-internal Emacs use.
-
-The MULTIBYTE-FORM column contains the format of the buffer and string
-multibyte sequence of characters in the charset using one to four
-hexadecimal digits.
-  `xx' stands for any byte in the range 0..127.
-  `XX' stands for any byte in the range 160..255.
-
 The D column contains the dimension of this character set.  The CH
 column contains the number of characters in a block of this character
 set.  The FINAL-CHAR column contains an ISO-2022 <final-char> to use
@@ -263,9 +254,11 @@ detailed meanings of these arguments."
       (setq ch (cond ((< i min)
 		      32)
 		     ((charsetp charset)
-		      (if (= row 0)
-			  (make-char charset i)
-			(make-char charset row i)))
+		      (condition-case nil
+			  (if (= row 0)
+			      (make-char charset i)
+			    (make-char charset row i))
+			(error 32)))	; gap in mapping
 		     ((and (symbolp charset) (get charset 'translation-table))
 		      (aref (get charset 'translation-table) i))
 		     (t (funcall charset (+ (* row 256) i)))))
