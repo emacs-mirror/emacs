@@ -1,3 +1,7 @@
+1999-11-11  Erik Naggum  <erik@naggum.no>
+
+	* configure.in (bitmapdir): Allow for both "bitmaps" directories.
+
 1999-11-08  Dave Love  <fx@gnu.org>
 
 	* configure.in: Fix change for --with-pop default.
