@@ -1,3 +1,8 @@
+2001-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* keymap.c (Flookup_key):
+	Add error message for trying to bind [DEL], [RET], etc.
+
 2001-12-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_setup_relief_colors): Don't compute an image's
