@@ -633,6 +633,8 @@ xaw_create_scrollbar (instance)
 		 (XtPointer) instance);
 
   return scrollbar;
+#else
+  return NULL;
 #endif
 }
 
