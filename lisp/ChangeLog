@@ -1,3 +1,13 @@
+2004-11-09  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-defalias):
+	Turn off warnings for the new function even if definition not constant.
+	If the definition isn't a quoted symbol, record (FUNCTION . t).
+	(byte-compile-function-environment): Now allow (FUNCTION . t) as elt.
+	(byte-compile-callargs-warn): Handle (FUNCTION . t).
+	(display-call-tree, byte-compile-arglist-warn):
+	Handle t returned by byte-compile-fdefinition.
+
 2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* help-fns.el (help-C-file-name): File name must be in build-files
