@@ -227,7 +227,8 @@ in the buffer that the occurrences were found in.
   (setq mode-name "Occur")
   (make-local-variable 'occur-buffer)
   (make-local-variable 'occur-nlines)
-  (make-local-variable 'occur-pos-list))
+  (make-local-variable 'occur-pos-list)
+  (run-hooks 'occur-mode-hook))
 
 (defun occur-mode-goto-occurrence ()
   "Go to the line this occurrence was found in, in the buffer it was found in."
