@@ -2658,15 +2658,10 @@ Obeying it means displaying in another window the specified file and line."
 ;; point is gud-find-expr, which tries to return an lvalue expression from
 ;; around point.
 
-(defvar gud-find-expr 'gud-find-c-expr)
+(defvar gud-find-expr-function 'gud-find-c-expr)
 
 (defun gud-find-expr (&rest args)
-  (apply gud-find-expr args))
-
-(defun gud-find-fortran-expr ()
-  ;; Consider \n as punctuation (end of expression).
-  (with-syntax-table fortran-gud-syntax-table
-    (gud-find-c-expr)))
+  (apply gud-find-expr-function args))
 
 ;; The next eight functions are hacked from gdbsrc.el by
 ;; Debby Ayers <ayers@asc.slb.com>,
