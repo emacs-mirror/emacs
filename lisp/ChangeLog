@@ -1,3 +1,18 @@
+2004-04-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* comint.el (comint-prompt-read-only): New variable.
+	(comint-output-filter): Implement it.
+
+	* ielm.el (ielm-prompt-read-only, ielm-prompt): Update docstring.
+	(ielm-prompt-internal): New variable.
+	(ielm-font-lock-keywords): Remove irrelevant ielm-prompt keyword.
+	(ielm-send-input): Delete unused variable `buf'.
+	(ielm-eval-input): Use `ielm-prompt-internal'.
+	(inferior-emacs-lisp-mode): Use new variables
+	`comint-prompt-read-only' and `ielm-prompt-internal'.
+	Get rid of obsolete variable `directory-sep-char'.
+	(ielm): Use `zerop'.
+
 2004-04-29  John Paul Wallington  <jpw@gnu.org>
 
 	* thumbs.el (toplevel): Require cl at compile time.
