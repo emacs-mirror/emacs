@@ -735,8 +735,6 @@ void
 echo_char (c)
      Lisp_Object c;
 {
-  extern char *push_key_description ();
-
   if (current_kboard->immediate_echo)
     {
       char *ptr = current_kboard->echoptr;
@@ -755,14 +753,7 @@ echo_char (c)
 	      > ECHOBUFSIZE - KEY_DESCRIPTION_SIZE)
 	    return;
 
-	  if (ASCII_BYTE_P (ch))
-	    ptr = push_key_description (ch, ptr);
-	  else
-	    {
-	      if (SINGLE_BYTE_CHAR_P (ch))
-		ch = unibyte_char_to_multibyte (ch);	      
-	      ptr += CHAR_STRING (ch, ptr);
-	    }
+	  ptr = push_key_description (ch, ptr, 1);
 	}
       else if (SYMBOLP (c))
 	{
