@@ -86,7 +86,7 @@ xlw_create_menubar (instance)
   widget =
     XtVaCreateWidget (instance->info->name, xlwMenuWidgetClass,
 		      instance->parent,
-		      XtNmenu, instance->info->val,
+		      XtNmenu, tem,
 		      0);
 
   XtFree (tem);
@@ -115,7 +115,7 @@ xlw_create_popup_menu (instance)
   widget = 
     XtVaCreateManagedWidget ("popup", xlwMenuWidgetClass,
 			     popup_shell,
-			     XtNmenu, instance->info->val,
+			     XtNmenu, tem,
 			     XtNhorizontal, False,
 			     0);
 
