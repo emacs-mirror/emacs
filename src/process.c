@@ -807,6 +807,19 @@ Value is t if a query was formerly required.")
 
   return Fnull (tem);
 }
+
+#if 0 /* Turned off because we don't currently record this info
+	 in the process.  Perhaps add it.  */
+DEFUN ("process-connection", Fprocess_connection, Sprocess_connection, 1, 1, 0,
+ "Return the connection type of `PROCESS'.\n\
+The value is `nil' for a pipe,\n\
+`t' or `pty' for a pty, or `stream' for a socket connection.")
+  (process)
+     Lisp_Object process;
+{
+  return XPROCESS (process)->type;
+}
+#endif
 
 Lisp_Object
 list_processes_1 ()
@@ -2985,16 +2998,7 @@ init_process ()
       proc_buffered_char[i] = -1;
     }
 }
-#if 0
-DEFUN ("process-connection", Fprocess_connection, Sprocess_connection, 0, 1, 0,
- "Return the connection type of `PROCESS'.  This can be nil (pipe),\n\
-t or pty (pty) or stream (socket connection).")
-  (process)
-     Lisp_Object process;
-{
-  return XPROCESS (process)->type;
-}
-#endif
+
 syms_of_process ()
 {
 #ifdef HAVE_SOCKETS
@@ -3211,9 +3215,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
 
 DEFUN ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
-  "Return the (or, a) process associated with BUFFER.\n\
-This copy of Emacs has not been built to support subprocesses, so this\n\
-function always returns nil.")
+  /* Don't confused make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (name)
      register Lisp_Object name;
 {
