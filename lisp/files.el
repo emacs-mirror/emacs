@@ -2337,8 +2337,7 @@ Don't call it from programs!  Use `insert-file-contents' instead.
   "Append the contents of the region to the end of file FILENAME.
 When called from a function, expects three arguments,
 START, END and FILENAME.  START and END are buffer positions
-saying what text to write.
-A prefix argument enables user to specify the coding-system interactively."
+saying what text to write."
   (interactive "r\nFAppend to file: ")
   (write-region start end filename t))
 
