@@ -1,3 +1,8 @@
+2001-11-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* configure.in: Reindent --help output.
+	From Per Starback (starback@ling.uu.se).
+	
 2001-10-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure.in: New entry for HP/UX-11.

@@ -1,3 +1,12 @@
+2001-11-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* xfaces.c (Finternal_merge_in_global_face): Reindent.
+	(Fface_font): Ditto.
+	(Finternal_set_alternative_font_registry_alist): Ditto.
+	(Ftty_suppress_bold_inverse_default_colors): Ditto.
+
+	* xfns.c (x-get-resource): Reindent.
+
 2001-10-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* s/hpux11.h: New file.
