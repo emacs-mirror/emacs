@@ -936,7 +936,7 @@ when generating Postscript."
 ;;; Colors
 
 (defcustom ps-print-color-p (or (fboundp 'x-color-values)   ; Emacs
-				(fboundp 'pixel-components) ; XEmacs
+				(fboundp 'pixel-components)) ; XEmacs
 					; xemacs
 ; Printing color requires x-color-values.
   "*If non-nil, print the buffer's text in color."
