@@ -1,3 +1,7 @@
+2003-08-31  Jason Rumney  <jasonr@gnu.org>
+
+	* xdisp.c (init_iterator): Remove old WINDOWSNT conditional.
+
 2003-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_term_init): Initialize new fields in x_display_info.
