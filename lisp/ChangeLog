@@ -1,3 +1,12 @@
+2001-11-09  Andre Spiegel  <spiegel@gnu.org>
+
+	Suggested by Kalle Olavi Niemitalo <kon@iki.fi>:
+
+	* vc-hooks.el (vc-error-occured): Backquotified.
+	(vc-file-prop-obarray): Use prime length for better efficiency.
+
+	* vc.el (vc-clear-context): Fill obarray with 0, not nil.
+
 2001-11-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/mule.el (make-translation-table): Doc fix.
