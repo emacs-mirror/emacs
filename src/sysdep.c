@@ -1102,7 +1102,7 @@ reset_sys_modes ()
     reset_sigio ();
 #endif /* BSD4_1 */
 
-  while (EMACS_SET_TTY (input_fd, &old_tty, 0) < 0 && errno == EINTR)
+  while (! EMACS_SET_TTY (input_fd, &old_tty, 0) && errno == EINTR)
     ;
 
 #ifdef AIX
