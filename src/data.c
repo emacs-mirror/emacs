@@ -2018,18 +2018,18 @@ DEFUN ("ash", Fash, Sash, 2, 2, 0,
   "Return VALUE with its bits shifted left by COUNT.\n\
 If COUNT is negative, shifting is actually to the right.\n\
 In this case, the sign bit is duplicated.")
-  (num1, num2)
-     register Lisp_Object num1, num2;
+  (value, num2)
+     register Lisp_Object value, num2;
 {
   register Lisp_Object val;
 
-  CHECK_NUMBER (num1, 0);
-  CHECK_NUMBER (num2, 1);
+  CHECK_NUMBER (value, 0);
+  CHECK_NUMBER (count, 1);
 
-  if (XINT (num2) > 0)
-    XSETINT (val, XINT (num1) << XFASTINT (num2));
+  if (XINT (count) > 0)
+    XSETINT (val, XINT (value) << XFASTINT (count));
   else
-    XSETINT (val, XINT (num1) >> -XINT (num2));
+    XSETINT (val, XINT (value) >> -XINT (count));
   return val;
 }
 
@@ -2037,18 +2037,18 @@ DEFUN ("lsh", Flsh, Slsh, 2, 2, 0,
   "Return VALUE with its bits shifted left by COUNT.\n\
 If COUNT is negative, shifting is actually to the right.\n\
 In this case,  zeros are shifted in on the left.")
-  (num1, num2)
-     register Lisp_Object num1, num2;
+  (value, count)
+     register Lisp_Object value, count;
 {
   register Lisp_Object val;
 
-  CHECK_NUMBER (num1, 0);
-  CHECK_NUMBER (num2, 1);
+  CHECK_NUMBER (value, 0);
+  CHECK_NUMBER (count, 1);
 
-  if (XINT (num2) > 0)
-    XSETINT (val, (EMACS_UINT) XUINT (num1) << XFASTINT (num2));
+  if (XINT (count) > 0)
+    XSETINT (val, (EMACS_UINT) XUINT (value) << XFASTINT (count));
   else
-    XSETINT (val, (EMACS_UINT) XUINT (num1) >> -XINT (num2));
+    XSETINT (val, (EMACS_UINT) XUINT (value) >> -XINT (count));
   return val;
 }
 
