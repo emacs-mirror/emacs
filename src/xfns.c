@@ -1870,7 +1870,12 @@ be shared by the new frame.")
 
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
-  x_default_parameter (f, parms, Qfont, build_string ("9x15"),
+  x_default_parameter (f, parms, Qfont, 
+		       build_string
+		       /* If we use an XLFD name for this font, the lisp code
+			  knows how to find variants which are bold, italic,
+			  etcetera.  */
+		       ("-*-fixed-*-*-*-*-*-120-*-*-c-*-iso8859-1"),
 		       "font", "Font", string);
   x_default_parameter (f, parms, Qborder_width, make_number (2),
 		       "borderwidth", "BorderWidth", number);
