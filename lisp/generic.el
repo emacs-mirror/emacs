@@ -219,8 +219,10 @@ additional setup.
 
 The optional CUSTOM-KEYWORD-ARGS are pairs of keywords and
 values.  They will be passed to the generated `defcustom' form of
-the mode hook variable MODE-hook.  You can specify keyword
-arguments without specifying a docstring.
+the mode hook variable MODE-hook.  Defaults to MODE without the
+possible trailing \"-mode\".  (This default may not be a valid
+customization group defined with `defgroup'.  Make sure it is.)
+You can specify keyword arguments without specifying a docstring.
 
 See the file generic-x.el for some examples of `define-generic-mode'."
   (declare (debug (sexp def-form def-form def-form form def-form
@@ -245,9 +247,8 @@ See the file generic-x.el for some examples of `define-generic-mode'."
     (unless (plist-get custom-keyword-args :group)
       (setq custom-keyword-args
 	    (plist-put custom-keyword-args 
-		       :group `(or (custom-current-group)
-				   ',(intern (replace-regexp-in-string
-					      "-mode\\'" "" mode-name))))))
+		       :group `',(intern (replace-regexp-in-string
+					  "-mode\\'" "" mode-name)))))
 
     `(progn
        ;; Add a new entry.
