@@ -5462,6 +5462,11 @@ This function is an internal primitive--use `make-frame' instead.")
 	;
     }
   UNGCPRO;
+  
+  /* Make sure windows on this frame appear in calls to next-window
+     and similar functions.  */
+  Vwindow_list = Qnil;
+  
   return unbind_to (count, frame);
 }
 
