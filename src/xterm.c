@@ -2611,7 +2611,10 @@ x_set_mouse_face_gc (s)
   /* What face has to be used for the mouse face?  */
   face_id = FRAME_X_DISPLAY_INFO (s->f)->mouse_face_face_id;
   face = FACE_FROM_ID (s->f, face_id);
-  face_id = FACE_FOR_CHAR (s->f, face, s->first_glyph->u.ch);
+  if (s->first_glyph->type == CHAR_GLYPH)
+    face_id = FACE_FOR_CHAR (s->f, face, s->first_glyph->u.ch);
+  else
+    face_id = FACE_FOR_CHAR (s->f, face, 0);
   s->face = FACE_FROM_ID (s->f, face_id);
   PREPARE_FACE_FOR_DISPLAY (s->f, s->face);
 
