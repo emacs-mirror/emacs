@@ -505,6 +505,7 @@ read_minibuf_unwind (data)
   /* Make sure minibuffer window is erased, not ignored.  */
   windows_or_buffers_changed++;
   XSETFASTINT (XWINDOW (window)->last_modified, 0);
+  XSETFASTINT (XWINDOW (window)->last_overlay_modified, 0);
 }
 
 
