@@ -1,5 +1,19 @@
 2001-12-15  Dave Love  <fx@gnu.org>
 
+	* language/ind-util.el: Don't require cl.
+	(indian-glyph-char, indian-glyph-max-char)
+	(indian-char-glyph): Moved from indian.el
+	(indian--puthash-char, mapthread): Don't quote lambda.
+	(indian--map): New function.
+	(indian--puthash-v, indian--puthash-c, indian--puthash-m) 
+	(indian--puthash-cv): Use it.
+
+	* language/indian.el (indian-glyph-char, indian-glyph-max-char) 
+	(indian-char-glyph): Moved to ind-util.el
+
+	* language/devan-util.el (devanagari-post-read-conversion): New
+	function.
+
 	* language/georgian.el: New file.
 
 	* international/mule-cmds.el (locale-language-names): Add various
