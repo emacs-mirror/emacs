@@ -281,6 +281,7 @@ install: all mkdir
 	     (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xf - ) ; \
 	     for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
 	       rm -rf $${subdir}/RCS ; \
+	       rm -rf $${subdir}/CVS ; \
 	       rm -f  $${subdir}/\#* ; \
 	       rm -f  $${subdir}/*~ ; \
 	     done ; \
@@ -316,6 +317,7 @@ install.sysv: all mkdir
 	     (cd $${dir}; find . -print | cpio -pdum ${dest} ) ; \
 	     for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
 	       rm -rf $${subdir}/RCS ; \
+	       rm -rf $${subdir}/CVS ; \
 	       rm -f  $${subdir}/\#* ; \
 	       rm -f  $${subdir}/*~ ; \
 	     done ; \
@@ -349,6 +351,7 @@ install.xenix: all mkdir
 	     (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xpf - ) ; \
 	     for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
 	       rm -rf $${subdir}/RCS ; \
+	       rm -rf $${subdir}/CVS ; \
 	       rm -f  $${subdir}/\#* ; \
 	       rm -f  $${subdir}/*~ ; \
 	     done ; \
@@ -387,6 +390,7 @@ install.aix: all mkdir
 	     (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xBf - ) ; \
 	     for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
 	       rm -rf $${subdir}/RCS ; \
+	       rm -rf $${subdir}/CVS ; \
 	       rm -f  $${subdir}/\#* ; \
 	       rm -f  $${subdir}/*~ ; \
 	     done ; \
