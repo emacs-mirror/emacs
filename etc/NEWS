@@ -6,7 +6,11 @@ Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
 For older news, see the file ONEWS
 
 
-* Changes in Emacs 21.2
+* Changes in Emacs 21.3
+ 
+** Display of hollow cursors now obeys the buffer-local value (if any)
+of `cursor-in-non-selected-windows' in the buffer that the cursor
+appears in.
 
 ** The default values of `tooltip-delay' and `tooltip-hide-delay'
 were changed.
@@ -106,7 +110,15 @@ SQL buffer.
 	       (master-set-slave sql-buffer))))
 
 
-* Lisp Changes in Emacs 21.2
+* Lisp Changes in Emacs 21.3
+
+** New function `buffer-local-value'.
+
+- Function: buffer-local-value variable buffer
+
+This function returns the buffer-local binding of VARIABLE (a symbol)
+in buffer BUFFER.  If VARIABLE does not have a buffer-local binding in
+buffer BUFFER, it returns the default value of VARIABLE instead.
 
 ** The default value of paragraph-start and indent-line-function has
 been changed to reflect the one used in text-mode rather than the one
