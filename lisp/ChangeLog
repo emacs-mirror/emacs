@@ -1,5 +1,10 @@
 2000-12-02  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* textmodes/tex-mode.el (tex-start-shell): Obey shell-file-name.
+	(tex-main-file, tex-file): Simplify.
+	(tex-generate-zap-file-name): Use subst-char-in-string.
+	(tex-strip-dots): Remove.
+
 	* tmm.el (tmm-get-keymap): Eval the menu name in `menu-item'.
 
 	* textmodes/ispell.el (check-ispell-version): Don't use match-beginning
