@@ -54,7 +54,7 @@ int minibuf_level;
 /* Nonzero means display completion help for invalid input */
 int auto_help;
 
-/* Fread_minibuffer leaves the input, as a string, here */
+/* Fread_minibuffer leaves the input here as a string. */
 Lisp_Object last_minibuf_string;
 
 /* Nonzero means let functions called when within a minibuffer 
@@ -105,7 +105,11 @@ Lisp_Object read_minibuf ();
    with initial position HISTPOS.  (BACKUP_N should be <= 0.)
 
    Normally return the result as a string (the text that was read),
-   but if EXPFLAG is non-nil, read it and return the object read.  */
+   but if EXPFLAG is non-nil, read it and return the object read.
+   If HISTVAR is given, save the value read on that history only if it doesn't
+   match the front of that history list exactly.  The value is pushed onto
+   the list as the string that was read, or as the object that resulted iff
+   EXPFLAG is non-nil.  */
 
 Lisp_Object
 read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
@@ -252,25 +256,32 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   val = make_buffer_string (1, Z);
   bcopy (GAP_END_ADDR, XSTRING (val)->data + GPT - BEG, Z - GPT);
 
+  /* VAL is the string of minibuffer text.  */
+  last_minibuf_string = val;
+
+  /* If Lisp form desired instead of string, parse it. */
+  if (expflag)
+    val = Fread (val);
+
   /* Add the value to the appropriate history list.  */
   if (XTYPE (Vminibuffer_history_variable) == Lisp_Symbol
-      && ! EQ (XSYMBOL (Vminibuffer_history_variable)->value, Qunbound)
-      && NILP (Fstring_equal
-	       (val, Fcar (Fsymbol_value (Vminibuffer_history_variable)))))
-    Fset (Vminibuffer_history_variable,
-	  Fcons (val, Fsymbol_value (Vminibuffer_history_variable)));
+      && ! EQ (XSYMBOL (Vminibuffer_history_variable)->value, Qunbound))
+    {
+      /* If the caller wanted to save the value read on a history list,
+	 then do so if the value is not already the front of the list. */
+      Lisp_Object histval = Fsymbol_value (Vminibuffer_history_variable);
+
+      /* The value of the history variable must be a cons or nil.  Other
+	 values are unacceptable.  We silenty ignore these values. */
+      if (NILP (histval)
+	  || (CONSP (histval) && NILP (Fequal (val, Fcar (histval)))))
+	Fset (Vminibuffer_history_variable, Fcons (val, histval));
+    }
 
   unbind_to (count, Qnil);	/* The appropriate frame will get selected
 				   in set-window-configuration.  */
 
   UNGCPRO;
-
-  /* VAL is the string of minibuffer text.  */
-  last_minibuf_string = val;
-
-  /* If Lisp form desired instead of string, parse it */
-  if (expflag)
-    val = Fread (val);
 
   return val;
 }
@@ -455,7 +466,7 @@ If non-nil second arg INITIAL-INPUT is a string to insert before reading.")
   return Fread_from_minibuffer (prompt, initial_input, Qnil, Qnil, Qnil);
 }
 
-DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 2, 2, 0,
+DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 1, 2, 0,
   "Args PROMPT and INIT, strings.  Read a string from the terminal, not allowing blanks.\n\
 Prompt with PROMPT, and provide INIT as an initial value of the input string.")
   (prompt, init)
@@ -1142,9 +1153,10 @@ is added, provided that matches some possible completion.")
   Lisp_Object completion, tem;
   register int i;
   register unsigned char *completion_string;
-  /* We keep calling Fbuffer_string
-     rather than arrange for GC to hold onto a pointer to
-     one of the strings thus made.  */
+  struct gcpro gcpro1;
+
+  /* We keep calling Fbuffer_string rather than arrange for GC to
+     hold onto a pointer to one of the strings thus made.  */
 
   completion = Ftry_completion (Fbuffer_string (),
 				Vminibuffer_completion_table,
@@ -1158,7 +1170,7 @@ is added, provided that matches some possible completion.")
   if (EQ (completion, Qt))
     return Qnil;
 
-#if 0 /* How the below code used to look, for reference */
+#if 0 /* How the below code used to look, for reference. */
   tem = Fbuffer_string ();
   b = XSTRING (tem)->data;
   i = ZV - 1 - XSTRING (completion)->size;
@@ -1215,19 +1227,26 @@ is added, provided that matches some possible completion.")
   i = ZV - BEGV;
 
   /* If completion finds next char not unique,
-     consider adding a space or a hyphen */
+     consider adding a space or a hyphen. */
   if (i == XSTRING (completion)->size)
     {
+      GCPRO1 (completion);
       tem = Ftry_completion (concat2 (Fbuffer_string (), build_string (" ")),
 			     Vminibuffer_completion_table,
 			     Vminibuffer_completion_predicate);
+      UNGCPRO;
+
       if (XTYPE (tem) == Lisp_String)
 	completion = tem;
       else
 	{
-	  tem = Ftry_completion (concat2 (Fbuffer_string (), build_string ("-")),
-				 Vminibuffer_completion_table,
-				 Vminibuffer_completion_predicate);
+	  GCPRO1 (completion);
+	  tem =
+	    Ftry_completion (concat2 (Fbuffer_string (), build_string ("-")),
+			     Vminibuffer_completion_table,
+			     Vminibuffer_completion_predicate);
+	  UNGCPRO;
+
 	  if (XTYPE (tem) == Lisp_String)
 	    completion = tem;
 	}
@@ -1235,6 +1254,7 @@ is added, provided that matches some possible completion.")
 
   /* Now find first word-break in the stuff found by completion.
      i gets index in string of where to stop completing.  */
+
   completion_string = XSTRING (completion)->data;
 
   for (; i < XSTRING (completion)->size; i++)
