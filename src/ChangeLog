@@ -1,5 +1,35 @@
 2000-02-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (inhibit_busy_cursor, busy_count): Removed.
+	(Fx_show_busy_cursor, Fx_hide_busy_cursor): Removed.
+	(busy_cursor_atimer, busy_cursor_shown_p, Vbusy_cursor_delay): New
+	variables.
+	(DEFAULT_BUSY_CURSOR_DELAY): New define.
+	(start_busy_cursor, cancel_busy_cursor, show_busy_cursor)
+	(hide_busy_cursor): New functions.
+	(syms_of_xfns): DEFVAR_LISP Vbusy_cursor_delay.
+
+	* minibuf.c (read_minibuf): Cancel busy-cursor.
+
+	* keyboard.c (command_loop_1): Call start_busy_cursor before
+	Fcommand_execute and cancel_busy_cursor after it.
+	(timer_check): Remove busy-cursor code.
+	(Fread_key_sequence, Fread_key_sequence_vector): Start/cancel busy
+	cursor timer.
+
+	* process.c (wait_reading_process_input): Remove busy-cursor code.
+
+	* eval.c (Fsignal): Call cancel_busy_cursor instead of
+	Fx_hide_busy_cursor.
+
+	* dispextern.h (Fx_show_busy_cursor, Fx_hide_busy_cursor):
+	Remove prototyoes.
+	(start_busy_cursor, cancel_busy_cursor): Add prototypes.
+
+	* lisp.h (Fx_hide_busy_cursor): Remove prototype.
+
+	* xterm.c (XTread_socket): Remove busy-cursor code.
+
 	* dispnew.c (flush_stdout) [GLYPH_DEBUG]: New function.
 	(build_frame_matrix_from_leaf_window): Put code handling
 	glyph row's not being a slice of a frame row in #if 0.
