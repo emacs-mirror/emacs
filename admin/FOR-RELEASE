@@ -57,7 +57,7 @@ Trying 192.87.102.36...
 Connected to ftp.nluug.nl.
 
 Ange-ftp chokes on the `No route to host' message and doesn't look any
-further. 
+further.
 
 I think in the near future we will see more of this problem, so it might be
 time to make anfe-ftp more intelligent.
@@ -111,6 +111,28 @@ we come to mark the http buffers as dead.
 
 
 * REDISPLAY RELATED BUGS
+
+** Strange text scrolling with Emacs + GTK
+
+> I could reproduce the problem with the latest CVS.
+>
+>   % emacs -Q
+>   M-x info RET
+>   M->
+>   C-l
+>   C-x ( C-u - 1 C-v C-x )
+>   C-x e e e e ...
+>
+> I see the problem around "CC mode" and "Forms".
+
+It is not specific for the first line of a buffer.
+
+Rather it happens for lines which are indented but the
+indentation is controlled by a display property and
+the newline is part of that display property -- in
+that case, the indentation is not recognized for the
+first display line.
+
 
 ** Avoid unbreakable loops in redisplay.
 
