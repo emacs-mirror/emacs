@@ -1,5 +1,8 @@
 2000-09-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* keymap.c (Fset_keymap_parent): Check for cycles in keymap
+	inheritance.
+
 	* xdisp.c (try_window_id): When trying to locate cursor in
 	unchanged rows at the top, handle the case that we can't find it.
 
