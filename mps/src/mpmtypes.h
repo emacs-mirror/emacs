@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.63) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.64) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -76,6 +76,7 @@ typedef struct ActionStruct *Action;    /* design.mps.action */
 typedef struct MutatorFaultContextStruct
         *MutatorFaultContext;           /* design.mps.prot */
 typedef struct PoolDebugMixinStruct *PoolDebugMixin;
+typedef struct AllocPatternStruct *AllocPattern;
 
 
 /* Splay* -- See design.mps.splay */
@@ -182,7 +183,7 @@ typedef Res (*PoolFixEmergencyMethod)(Pool pool, ScanState ss,
 typedef void (*PoolReclaimMethod)(Pool pool, Trace trace, Seg seg);
 typedef double (*PoolBenefitMethod)(Pool pool, Action action);
 typedef Res (*PoolActMethod)(Pool pool, Action action);
-typedef void (*PoolRampBeginMethod)(Pool pool, Buffer buf);
+typedef void (*PoolRampBeginMethod)(Pool pool, Buffer buf, Bool collectAll);
 typedef void (*PoolRampEndMethod)(Pool pool, Buffer buf);
 typedef void (*PoolWalkMethod)(Pool pool, Seg seg,
                                FormattedObjectsStepMethod f,
