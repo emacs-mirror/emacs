@@ -1,7 +1,7 @@
 /* impl.h.protocol: PROTOCOL INHERITANCE DEFINITIONS
  *
- * $HopeName: MMsrc!protocol.h(trunk.3) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!protocol.h(trunk.4) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 
 #ifndef protocol_h
@@ -16,8 +16,9 @@
 
 #define DERIVE_LOCAL(name) protocol ## name
 #define DERIVE_STRUCT(name) name ## Struct
-#define DERIVE_ENSURE(name) Ensure ## name 
-#define DERIVE_ENSURE_INTERNAL(name) protocolEnsure ## name
+#define DERIVE_ENSURE(name) name ## Get
+#define DERIVE_ENSURE_OLD(name) Ensure ## name
+#define DERIVE_ENSURE_INTERNAL(name) protocolGet ## name
 #define DERIVE_GUARDIAN(name) protocol ## name ## Guardian
 #define DERIVE_STATIC_STORAGE(name) protocol ## name ## Struct
 
@@ -30,17 +31,14 @@
   (((ProtocolClass)(class))->superclass) = (ProtocolClass)(super)
 
 
-/* DEFINE_CLASS
- *
- * The standard macro for defining a ProtocolClass.
- */
+/* DEFINE_CLASS -- the standard macro for defining a ProtocolClass */
 
 #define DEFINE_CLASS(className, var) \
   static Bool DERIVE_GUARDIAN(className) = FALSE; \
   static DERIVE_STRUCT(className) DERIVE_STATIC_STORAGE(className); \
-  static void DERIVE_ENSURE_INTERNAL(className) (className); \
-  extern className DERIVE_ENSURE(className) (void); \
-  extern className DERIVE_ENSURE(className) (void) \
+  static void DERIVE_ENSURE_INTERNAL(className)(className); \
+  extern className DERIVE_ENSURE(className)(void); \
+  className DERIVE_ENSURE(className)(void) \
   { \
     if (DERIVE_GUARDIAN(className) == FALSE) { \
       LockClaimGlobalRecursive(); \
@@ -53,13 +51,16 @@
     } \
     return &DERIVE_STATIC_STORAGE(className); \
   } \
+  /* old name for backward compatibility */ \
+  extern className DERIVE_ENSURE_OLD(className)(void); \
+  className DERIVE_ENSURE_OLD(className)(void) \
+  { \
+    return DERIVE_ENSURE(className)(); \
+  } \
   static void DERIVE_ENSURE_INTERNAL(className) (className var)
 
 
-/* INHERIT_CLASS
- *
- * The standard macro for inheriting from a superclass.
- */
+/* INHERIT_CLASS -- the standard macro for inheriting from a superclass */
 
 #define INHERIT_CLASS(this, parentName) \
   BEGIN \
@@ -69,13 +70,12 @@
   END
 
 
-/* DEFINE_ALIAS_CLASS
+/* DEFINE_ALIAS_CLASS -- define a new class for the same type
  *
  * A convenience macro. Aliases the structure and pointer types
  * for className to be the same as typeName, and then defines
  * the class className.
  */
-
 #define DEFINE_ALIAS_CLASS(className, typeName, var) \
   typedef typeName className; \
   typedef DERIVE_STRUCT(typeName) DERIVE_STRUCT(className); \
@@ -87,39 +87,28 @@
 #define ProtocolInstSig  ((Sig)0x519B6014) /* SIGnature PROtocol INst */
 
 
-/* ProtocolClass
- *
- * The structure which supports classes for the inheritance
- *  protocol.
- */
+/* ProtocolClass -- the class containing the support for the protocol */
 
 typedef struct ProtocolClassStruct *ProtocolClass;
 
 
-/* ProtocolInst
- *
- * The structure which supports instances for the inheritance 
- * protocol.
- */
+/* ProtocolInst -- the instance structure for support of the protocol */
 
 typedef struct ProtocolInstStruct *ProtocolInst;
 
 
-/* ProtocolCoerceInstMethod
+/* ProtocolCoerceInstMethod -- coerce "pro" to an instance of "interface"
  *
- * coerce "pro" to an instance of "interface"
  * If "pro" is an instance of "interface", then returns TRUE 
  * and sets coerceResult to point directly to the part of "pro" 
  * which contains the slots for "interface" 
  */
-
 typedef Bool (*ProtocolCoerceInstMethod)(ProtocolInst *coerceResult,
                                          ProtocolInst pro, 
                                          ProtocolClass interface);
 
-/* ProtocolCoerceClassMethod
+/* ProtocolCoerceClassMethod -- coerce "proClass" to an "interface" class
  *
- * coerce "proClass" to an "interface" class 
  * If "proClass" is a subclass of "interface", then returns TRUE
  * and sets coerceResult to point directly to the part of 
  * "proClass" which contains the slots for "interface".
@@ -144,14 +133,12 @@ typedef struct ProtocolInstStruct {
 } ProtocolInstStruct;
 
 
-/* EnsureProtocolClass
+/* ProtocolClassGet -- Returns the root of the protocol class hierarchy
  *
- * Returns the root of the protocol class hierarchy.
  * Function name conforms to standard conventions for 
  * protocols.
  */
-
-extern ProtocolClass EnsureProtocolClass(void);
+extern ProtocolClass ProtocolClassGet(void);
 
 
 /* Checking functions */
@@ -165,7 +152,6 @@ extern Bool ProtocolInstCheck(ProtocolInst pro);
  * A predicate for testing subclass relationships.
  * A protocol class is always a subclass of itself.
  */
-
 extern Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super);
 
 
@@ -191,7 +177,6 @@ extern Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super);
  * probably wish to cast this. See 
  * design.mps.protocol.int.static-superclass
  */
-
 #define SUPERCLASS(className)  \
   ProtocolClassSuperclassPoly(DERIVE_ENSURE(className)())
 
