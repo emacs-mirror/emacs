@@ -269,6 +269,315 @@ If TABLE is nil or omitted, `standard-display-table' is used."
 	  (setq i (1+ i))))
       (setq surrogates (cdr surrogates)))))
 
+(defvar IT-unicode-translations
+  '(
+    (mule-unicode-0100-24ff		; charset
+     256				; base
+     256 563				; first, last
+     [ "A-" "a-" "A(" "a(" "A;" "a;" "C'" "c'" "C>" "c>" ; Latin Extended-A
+       "C." "c." "C<" "c<" "D<" "d<" "D/" "d/" "E-" "e-"
+       "E(" "e(" "E." "e." "E;" "e;" "E<" "e<" "G>" "g>"
+       "G(" "g(" "G." "g." "G," "g," "H>" "h>" "H/" "h/"
+       "I~" "i~" "I-" "i-" "I(" "i(" "I;" "i;" "I." "i."
+       "IJ" "ij" "J>" "j>" "K," "k," "kk" "L'" "l'" "L,"
+       "l," "L<" "l<" "L." "l." "L/" "l/" "N'" "n'" "N,"
+       "n," "N<" "n<" "'n" "NG" "ng" "O-" "o-" "O(" "o("
+       "O\"" "o\"" "OE" "oe" "R'" "r'" "R," "r," "R<" "r<"
+       "S'" "s'" "S>" "s>" "S," "s," "S<" "s<" "T," "t,"
+       "T<" "t<" "T/" "t/" "U~" "u~" "U-" "u-" "U(" "u("
+       "U0" "u0" "U\"" "u\"" "U;" "u;" "W>" "w>" "Y>" "y>"
+       "Y:" "Z'" "z'" "Z." "z." "Z<" "z<" "s1"                ; 017f
+       "b/" "B2" "=B" "=b" "B6" "b6" "!C" "C2" "c2" "-D" ;Lat. Extended-B
+       "D2" "=D" "=d" "!d" "!E" "-E" "Eps" "F2" "f2" "G2"
+       "V0" "hv" "io" "-I" "K2" "k2" "-l"  "la-" "!M" "2N"
+       "n_" "-O" "O9" "o9" "OI" "oi" "P2" "p2" "'R" "!S"
+       "!s" "Esh" "!esh" "t~" "T2" "t2" "T~" "U9" "u9" "Ups"
+       "V2" "Y2" "y2" "Z/" "z/" "ED" "!ED" "!ed" "ed;" "2/"
+       "5-" "_5-" "ts" "wn" "|_" "||" "|=" "!_" "DZ<" "Dz<"
+       "dz<" "LJ3" "Lj3" "lj3" "NJ3" "Nj3" "nj3" "A<" "a<" "I<"
+       "i<" "O<" "o<" "U<" "u<" "U:-" "u:-" "U:'" "u:'" "U:<"
+       "u:<" "U:!" "u:!" "e1" "A:-" "a:-" "A.-" "a.-" "AE-" "ae-"
+       "G/" "g/" "G<" "g<" "K<" "k<" "O;" "o;" "O1" "o1"
+       "EZ" "ez" "j<" "DZ3" "Dz3" "dz3" "G'" "g'" "Hv" "Wn"
+       "N`" "n`" "AA'" "aa'" "AE'" "ae'" "O/'" "o/'" "A!!" "a!!"
+       "A)" "a)" "E!!" "e!!" "E)" "e)" "I!!" "i!!" "I)" "i)"
+       "O!!" "o!!" "O)" "o)" "R!!" "r!!" "R)" "r)" "U!!" "u!!"
+       "U)" "u)" ",S" ",s" ",T" ",t" "'3" "'3_" "H<" "h<"
+       nil nil "8" "8_" "Z2" "z2" "A." "a." "E," "e,"
+       "O:-" "o:-" "O~-" "o~-" "O." "o." "O.-" "o.-" "Y-" "y-"] ; 0x233
+
+     )
+
+    (mule-unicode-0100-24ff		; charset
+     256				; base
+     884 1123				; first, last
+     [ "'" "," nil nil nil nil "j3" nil nil nil        ; Greek
+       "?;" nil nil nil nil nil "'*" "'%" "A%" ".*"
+       "E%" "Y%" "I%" nil "O%" nil "U%" "W%" "i3" "A*"
+       "B*" "G*" "D*" "E*" "Z*" "H*" "Th*" "I*" "K*" "L*"
+       "M*" "N*" "C*" "O*" "P*" "R*" nil "S*" "T*" "U*"
+       "F*" "X*" "Q*" "W*" "J*" "V*" "a%" "e%" "y%" "i%"
+       "u3" "a*" "b*" "g*" "d*" "e*" "z*" "h*" "th*" "i*"
+       "k*" "l*" "m*" "n*" "c*" "o*" "p*" "r*" "*s" "s*"
+       "t*" "u*" "f*" "x*" "q*" "w*" "j*" "v*" "o%" "u%"
+       "w%" nil "b3" "th%" "U2*" "'U2*" "U:2*" "ph*" "pi*" "ka*"
+       nil nil "Sti" "sti" "Dig" "dig" "Kop" "kop" "Sam" "sam"
+       "She" "she" "Fei" "fei" "Khe" "khe" "Hor" "hor" "Gan" "gan"
+       "Shi" "shi" "Dei" "dei" "ka*" "rh*" "ls*" "yo*" nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       "IE'" "E:" "D%" "G%" "IE" "DS" "II" "YI" "J%" "LJ" ; Cyrillic
+       "NJ" "Ts"  "KJ" "`I=" "V%" "DZ" 65 "B=" 66 "G="
+       68 69 "Z%" 51 85 "J=" 75 "L=" 77 72
+       79 "P=" 80 67 84 89 "F=" 88 "C=" "C%"
+       "S%" "Sc" "=\"" "Y=" "%\"" "Ee" "JU" "JA" 97 "b="
+       98 "g=" 103 101 "z%" "z=" 117 "j=" 107 "l="
+       109 "n=" 111 "p=" 112 99 "t=" 121 "f=" 120
+       "c=" "c%" "s%" "sc" "='" "y=" "%'" "ee" "ju" "ja"
+       "ie'" "e:" "d%" "g%" "ie" "ds" "ii" "yi" "j%" "lj"
+       "nj" "ts" "kj" "v%" "`i=" "dz" "OM=" "om=" "Y3" "y3"] ; 0x463
+     )
+
+    (mule-unicode-0100-24ff		; charset
+     256				; base
+     1488 1645				; first, last
+     [ "A+" "B+" "G+" "D+" "H+" "W+" "Z+" "X+" "Tj" "J+" ; Hebrew
+       "K%" "K+" "L+" "M%" "M+" "N%" "N+" "S+" "E+" "P%"
+       "P+" "Zj" "ZJ" "Q+" "R+" "Sh" "T+" nil nil nil
+       nil nil "WW+" "WJ+" "JJ+" "'+" "\"+" nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       ",+" nil nil nil nil nil nil nil nil nil          ; Arabic
+       nil nil nil nil nil ";+" nil nil nil "?+"
+       nil "H'" "aM" "aH" "wH" "ah" "yH" "a+" "b+" "tm"
+       "t+" "tk" "g+" "hk" "x+" "d+" "dk" "r+" "z+" "s+"
+       "sn" "c+" "dd" "tj" "zH" "e+" "i+" nil nil nil
+       nil nil "++" "f+" "q+" "k+" "l+" "m+" "n+" "h+"
+       "w+" "j+" "y+" ":+" "\"+" "=+" "/+" "'+" "1+" "3+"
+       "0+" nil nil nil nil nil nil nil nil nil
+       nil nil nil nil "0a" "1a" "2a" "3a" "4a" "5a"
+       "6a" "7a" "8a" "9a" "a%" "a." "a," "a*" ]
+     )
+
+    (mule-unicode-0100-24ff		; charset
+     256				; base
+     7680 9450				; first, last
+     [ "A-0" "a-0" "B." "b." "B-." "b-." "B_" "b_" "C,'" "c,'" ; Lat Ext Add
+       "D." "d." "D-." "d-." "D_" "d_" "D," "d," "D->" "d->"
+       "E-!" "e-!" "E-'" "e-'" "E->" "e->" "E-?" "e-?" "E,(" "e,("
+       "F." "f." "G-" "g-" "H." "h." "H-." "h-." "H:" "h:"
+       "H," "h," "H-(" "h-(" "I-?" "i-?" "I:'" "i:'" "K'" "k'"
+       "K-." "k-." "K_" "k_" "L-." "l-." "_L-." "_l-." "L_" "l_"
+       "L->" "l->" "M'" "m'" "M." "m." "M-." "m-." "N." "n."
+       "N-." "n-." "N_" "n_" "N->" "n->" "O?'" "o?'" "O?:" "o?:"
+       "O-!" "o-!" "O-'" "o-'" "P'" "p'" "P." "p." "R." "r."
+       "R-." "r-." "_R-." "_r-." "R_" "r_" "S." "s." "S-." "s-."
+       "S'." "s'." "S<." "s<." ".S-." ".s-." "T." "t." "T-." "t-."
+       "T_" "t_" "T->" "t->" "U_:" "u_:" "U-?" "u-?" "U->" "u->"
+       "U?'" "u?'" "U-:" "u-:" "V?" "v?" "V-." "v-." "W!" "w!"
+       "W'" "w'" "W:" "w:" "W." "w." "W-." "w-." "X."  "x."
+       "X:" "x:" "Y." "y." "Z>" "z>" "Z-." "z-." "Z_" "z_"
+       "h_" "t:" "w0" "y0" "a))" "s1." nil nil nil nil
+       "A-." "a-." "A2" "a2" "A>'" "a>'" "A>!" "a>!" "A>2" "a>2"
+       "A>~" "a>~" ".A>" ".a>" "A('" "a('" "A(!" "a(!" "A(2" "a(2"
+       "A(~" "a(~" ".A(" ".a(" "E-." "e-." "E2" "e2" "E~" "e~"
+       "E>'" "e>'" "E>!" "e>!" "E>2" "e>2" "E>~" "e>~" ".E>" ".e>"
+       "I2" "i2" "I-." "i-." "O-." "o-." "O2" "o2" "O>'" "o>'"
+       "O>!" "o>!" "O>2" "o>2" "O>~" "o>~" ".O>" ".o>" "O9'" "o9'"
+       "O9!" "o9!" "O92" "o92" "O9~" "o9~" ".O9" ".o9" "U-." "u-."
+       "U2" "u2" "U9'" "u9'" "U9!" "u9!" "U92" "u92" "U9~" "u9~"
+       ".U9" ".u9" "Y!" "y!" "Y-." "y-." "Y2" "y2" "Y~" "y~"
+       nil nil nil nil nil nil "a*," "a*;" nil nil ; Greek Ext (0x1f00)
+       nil nil nil nil "A*," "A*;" nil nil nil nil
+       nil nil "e*," "e*;" nil nil nil nil nil nil
+       "E*," "E*;" nil nil nil nil nil nil "y*," "y*;"
+       nil nil nil nil nil nil "Y*," "Y*;" nil nil
+       nil nil nil nil "i*," "i*;" nil nil nil nil
+       nil nil "I*," "I*;" nil nil nil nil nil nil
+       "o*," "o*;" nil nil nil nil nil nil "O*," "O*;"
+       nil nil nil nil nil nil "u*," "u*;" nil nil
+       nil nil nil nil nil "U*;" nil nil nil nil
+       nil nil "w*," "w*;" nil nil nil nil nil nil
+       "W*," "W*;" nil nil nil nil nil nil "a*!" "a*'"
+       "e*!" "e*'" "y*!" "y*'" "i*!" "i*'" "o*!" "o*'" "u*!" "u*'"
+       "w*!" "w*'" nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil "a*(" "a*-" nil "a*j" nil nil "a*~" nil
+       "A*(" "A*-" "A*!" "A*'" "A*J" ")*" "J3" ",," "?*" "?:"
+       nil "y*j" nil nil "y*?" nil "E*!"  "E*'" "Y*!" "Y*'"
+       "Y*J" ",!" ",'" "?," "i*(" "i*-" nil nil nil nil
+       "i*?" nil "I*(" "I*-" "I*!" "I*'" nil ";!" ";'" "?;"
+       "u*(" "u*-" nil nil "r*," "r*;" "u*?" nil "U*(" "U*-"
+       "U*!" "U*'" "R*;" "!:" ":'" "!*" nil nil nil "w*j"
+       nil nil "w*?" nil "O*!" "O*'" "W*!" "W*'" "W*J" "/*"
+       ";;" nil nil nil "1N" "1M" "3M" "4M" "6M" nil          ; Gen Punct
+       nil "1T" "1H" nil nil nil "LRM" "RLM" "-1" nil
+       nil "--" "---" "===" "!2" "=2" "'6" "'9" ".9" "9'"
+       "``" "''" ":9" "9``" "/-" "/=" "sb" "3b" nil ".."
+       "..." ".-" "LSep" "PSep" "LR[" "RL[" "PDF" "LRO" "RLO" 255
+       "%o" "%oo" "'" "''" "\"'" "`" "``" "```" ".^" "<,"
+       ",>" ":X" "!!" "?!" "'-" nil nil nil nil "-b"
+       "/f" nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil "^0" nil nil nil "^4" "^5"
+       "^6" "^7" "^8" "^9" "^+" "^-" "^=" "^(" "^)" "^n"
+       "_0" "_1" "_2" "_3" "_4" "_5" "_6" "_7" "_8" "_9"
+       "_+" "_-" "_=" "_(" "_)" nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil "Ff" "Li" nil nil "Pt"
+       nil "W=" "NIS" nil "E=" nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil "a/c" "a/s"
+       nil "oC" nil "c/o" "c/u" "=e" nil "oF" nil nil
+       nil nil "-h" "=h" nil nil nil nil nil nil
+       "N0" "PO" nil nil nil nil "Re" nil "Rx" nil
+       "SM" "TEL" "TM" nil nil nil "Om" nil nil nil
+       "oK" "AO" nil nil "Est" nil nil nil nil nil
+       nil "Aleph" "Bet" "Gimel" "Dalet" "=i=" nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil "1/3" "2/3" "1/5" "2/5" "3/5" "4/5" "1/6" "5/6" "1/8"
+       "3/8" "5/8" "7/8" "1/" ".I" "II" "III" "IV" ".V" "VI"
+       "VII" "VIII" "IX" "X" "XI" "XII" ".L" ".C" ".D" ".M"
+       ".i" "ii" "iii" "iv" ".v" "vi" "vii" "viii" "ix" ".x"
+       "xi" ".l" ".c" ".d" ".m" "CD" "DD" "CoD" "CI" nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil "<-" "|^" "->" "|v" "<->" "v|^" "^\\" "/^" "\\v"
+       "v/" "<-/" "/->" "<~" "~>" "<<-" "|^^" "->>" "|vv" "<-<"
+       ">->" "<-|" "_|^" "|->" "-|v" "_v|^" "<-?" "?->" "<-o" "o->"
+       "<~>" "<-/>" nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil "<=/" "<=/>" "/=>" "<=" "||^" "=>" "||v"
+       "<=>" "v||^" "^\\\\" "//^" "\\\\v" "v//" "<-=" "=->" nil nil
+       nil nil "<.." ":^" "..>" ":v" nil nil "<::" "::^"
+       "::>" "::v" nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil "FA" "C." "dP" "TE" "~TE" "/0"
+       "DE" "NB" "(-" "~(-" "e-" "-)" "~-)" "-e" "QED" "*P"
+       nil "+Z" "--" "-+" ".+" "./" ".\\" "*-" "Ob" "Sb"
+       "SQR" "CBR" nil "0(" "00" "-L" "-V" nil nil ".|"
+       "~.|" "||" "/||" "AND" "OR" "(U" ")U" "In" "DI" nil
+       "Io" nil nil nil nil nil ".:" ":." ":R" "::"
+       ".-." "-:" ":-:" ":~:" "?~" "~?" "??" nil nil "/~"
+       "-~" "~-" "/~-" "~=" "~/=" "/~=" "~~" "/~~" nil nil
+       "=?" ")(" "v^" "^_" ".=" "=;" ".=." nil ":=" "=:"
+       nil "=o" "=)" "=^" "=v" "*=" "=<>" "=df" nil "?="
+       "!=" "-=" "!-=" "==" "=<" ">=" nil nil nil nil
+       "<<" ">>" "()" "/)(" "!<" "!>" nil nil nil nil
+       nil nil nil nil nil nil "<'" "`>" "=<'" "`>="
+       "~<'" "`>~" "/<'" "/`>" "(C" ")C" "/(C" "/)C" "(_" ")_"
+       "/(_" "/)_" nil nil nil nil nil nil nil nil
+       nil nil nil "0+" "0-" "0x" "0/" "0." "0o" "0*"
+       "0=" "0_" nil nil nil nil "|T" "T|" "-T" "_T"
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil "-,-"
+       nil "XOR" "NAND" "NOR" nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil "<." ".>"
+       "<<<" ">>>" nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil ":3" "..." nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil "Eh" nil  nil nil nil nil "<7" ">7"
+       "7<" "7>" nil nil nil nil "~I" nil "(A" nil
+       nil "TR" nil "=||" "88" nil nil nil nil nil
+       nil nil "Iu" "Il" nil nil "-^-" "-`-" "D->" nil
+       nil "</" "/>" "<-D" nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil "NUL" "SOH" "STX" "ETX"
+       "EOT" "ENQ" "ACK" "BEL" "BS" "HT" "LF" "VT" "FF" "CR"
+       "SS" "SI" "DLE" "DC1" "DC2" "DC3" "DC4" "NAK" "SYN" "ETB"
+       "CAN" "EM" "SUB" "ESC" "FS" "GS" "RS" "US" "SP" "DEL"
+       "b/" ",_," "NL" nil "?^" nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil nil nil nil nil nil nil nil nil
+       nil nil "1-o" "2-o" "3-o" "4-o" "5-o" "6-o" "7-o" "8-o"
+       "9-o" "10-o" "11-o" "12-o" "13-o" "14-o" "15-o" "16-o" "17-o" "18-o"
+       "19-o" "20-o" "(1)" "(2)" "(3)" "(4)" "(5)" "(6)" "(7)" "(8)"
+       "(9)" "(10)" "(11)" "(12)" "(13)" "(14)" "(15)" "(16)" "(17)" "(18)"
+       "(19)" "(20)" "1." "2." "3." "4." "5." "6." "7." "8."
+       "9." "10." "11." "12." "13." "14." "15." "16." "17." "18."
+       "19." "20." "(a)" "(b)" "(c)" "(d)" "(e)" "(f)" "(g)" "(h)"
+       "(i)" "(j)" "(k)" "(l)" "(m)" "(n)" "(o)" "(p)" "(q)" "(r)"
+       "(s)" "(t)" "(u)" "(v)" "(w)" "(x)" "(y)" "(z)" "A-o" "B-o"
+       "C-o" "D-o" "E-o" "F-o" "G-o" "H-o" "I-o" "J-o" "K-o" "L-o"
+       "M-o" "N-o" "O-o" "P-o" "Q-o" "R-o" "S-o" "T-o" "U-o" "V-o"
+       "W-o" "X-o" "Y-o" "Z-o" "a-o" "b-o" "c-o" "d-o" "e-o" "f-o"
+       "g-o" "h-o" "i-o" "j-o" "k-o" "l-o" "m-o" "n-o" "o-o" "p-o"
+       "q-o" "r-o" "s-o" "t-o" "u-o" "v-o" "w-o" "x-o" "y-o" "z-o"
+       "0-o" ]
+     )
+    )
+
+  "A list of mule-unicode-* character sets and the strings that
+should be used to represent the characters from each set on a DOS
+terminal which does not have corresponding glyphs built into the
+installed codepage.")
+
+(defun IT-setup-unicode-display (&optional table)
+  "Set up display table TABLE for displaying mule-unicode-* characters
+on a DOS terminal.  If TABLE is nil or omitted, `standard-display-table'
+is used."
+  (interactive)
+  (let ((disp-tab (or table standard-display-table))
+	(tail IT-unicode-translations)
+	translation)
+    (while tail
+      (setq translation (car tail) tail (cdr tail))
+      (let* ((chset (car translation))
+	     (base (nth 1 translation))
+	     (first (nth 2 translation))
+	     (last (nth 3 translation))
+	     (table (nth 4 translation))
+	     (i 0)
+	     (this (- first base))
+	     glyph)
+	(while (<= i (- last first))
+	  (setq glyph (aref table i))
+	  (if glyph
+	      (aset disp-tab (make-char chset
+					(+ (/ this 96) 32)
+					(+ (% this 96) 32))
+		    (vconcat
+		     (if (numberp glyph)
+			 (char-to-string glyph)
+		       (if (> (length glyph) 1) (concat "{" glyph "}")
+			 glyph)))))
+	  (setq i (1+ i) this (1+ this)))))))
+
 (defun dos-cpNNN-setup (codepage)
   "Set up the MULE environment using the DOS codepage CODEPAGE.
 
