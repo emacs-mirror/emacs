@@ -23,6 +23,8 @@
 	(syms_of_character): Setup Vprintable_chars.
 
 	* editfns.c (Fchar_equal): Fix for the unibyte case.
+	(Finsert_byte): New function.
+	(syms_of_editfns): Defsubr it.
 
 	* keyboard.c (read_key_sequence): Use ~CHAR_MODIFIER_MASK instead
 	of direct code 0x3ffff.
