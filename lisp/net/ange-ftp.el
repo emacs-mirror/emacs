@@ -3442,7 +3442,7 @@ Value is (0 0) if the modification time cannot be determined."
     ;; Bob@rattlesnake.com reports that is returns something different
     ;; for at least one FTP server.  So, let's use the response only
     ;; if it matches the Internet draft.
-    (when (string-match "^213 [0-9]\\{14\\}$" line)
+    (when (save-match-data (string-match "^213 [0-9]\\{14\\}$" line))
       (setq modtime
 	    (encode-time
 	     (string-to-number (substring line 16 18))
