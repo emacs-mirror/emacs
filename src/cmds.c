@@ -256,6 +256,12 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
   return Qnil;
 }
 
+/* Insert character C1.  If NOAUTOFILL is nonzero, don't do autofill
+   even if it is enabled.
+
+   If this insertion is suitable for direct output (completely simple),
+   return 0.  A value of 1 indicates this *might* not have been simple.  */
+
 internal_self_insert (c1, noautofill)
      char c1;
      int noautofill;
@@ -284,8 +290,11 @@ internal_self_insert (c1, noautofill)
       && NILP (current_buffer->read_only)
       && point > BEGV && SYNTAX (FETCH_CHAR (point - 1)) == Sword)
     {
-      tem = Fexpand_abbrev ();
-      if (!NILP (tem))
+      Fexpand_abbrev ();
+      /* We can't trust the value of Fexpand_abbrev,
+	 but if the buffer is now changed, this is "hairy"
+	 and not suitable for direct output.  */
+      if (MODIFF <= current_buffer->save_modified)
 	hairy = 1;
     }
   if ((c == ' ' || c == '\n')
