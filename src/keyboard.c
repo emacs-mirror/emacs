@@ -908,7 +908,6 @@ command_loop_1 ()
   nonundocount = 0;
   no_redisplay = 0;
   this_command_key_count = 0;
-  last_command = this_command;
 
   /* Make sure this hook runs after commands that get errors and
      throw to top level.  */
@@ -923,6 +922,9 @@ command_loop_1 ()
       
       Vpost_command_hook = Vcommand_hook_internal;
     }
+
+  /* Do this after running Vpost_command_hook, for consistency.  */
+  last_command = this_command;
 
   while (1)
     {
