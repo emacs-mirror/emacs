@@ -1,5 +1,8 @@
 2002-05-09  Richard M. Stallman  <rms@gnu.org>
 
+	* mail/rmail.el (rmail-show-message):
+	Catch error in check-coding-system.
+
 	* progmodes/compile.el (compilation-error-regexp-alist): 
 	New element to recognize Python error messages.
 	
