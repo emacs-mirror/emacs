@@ -1953,7 +1953,11 @@ Both characters must have the same length of multi-byte form.")
   int changed = 0;
   unsigned char fromwork[4], *fromstr, towork[4], *tostr, *p;
   int count = specpdl_ptr - specpdl;
-  int maybe_byte_combining = 0;
+#define COMBINING_NO	 0
+#define COMBINING_BEFORE 1
+#define COMBINING_AFTER  2
+#define COMBINING_BOTH (COMBINING_BEFORE | COMBINING_AFTER)
+  int maybe_byte_combining = COMBINING_NO;
 
   validate_region (&start, &end);
   CHECK_NUMBER (fromchar, 2);
@@ -1964,11 +1968,17 @@ Both characters must have the same length of multi-byte form.")
       len = CHAR_STRING (XFASTINT (fromchar), fromwork, fromstr);
       if (CHAR_STRING (XFASTINT (tochar), towork, tostr) != len)
 	error ("Characters in subst-char-in-region have different byte-lengths");
-      if (len == 1)
-	/* If *TOSTR is in the range 0x80..0x9F, it may be combined
-           with the after bytes.  If it is in the range 0xA0..0xFF, it
-           may be combined with the before bytes.  */
-	maybe_byte_combining = !ASCII_BYTE_P (*tostr);
+      if (!ASCII_BYTE_P (*tostr))
+	{
+	  /* If *TOSTR is in the range 0x80..0x9F and TOCHAR is not a
+	     complete multibyte character, it may be combined with the
+	     after bytes.  If it is in the range 0xA0..0xFF, it may be
+	     combined with the before and after bytes.  */
+	  if (!CHAR_HEAD_P (*tostr))
+	    maybe_byte_combining = COMBINING_BOTH;
+	  else if (BYTES_BY_CHAR_HEAD (*tostr) > len)
+	    maybe_byte_combining = COMBINING_AFTER;
+	}
     }
   else
     {
@@ -2035,10 +2045,13 @@ Both characters must have the same length of multi-byte form.")
 	  /* Take care of the case where the new character
 	     combines with neighboring bytes.  */ 
 	  if (maybe_byte_combining
-	      && (CHAR_HEAD_P (*tostr)
-		  ? ! CHAR_HEAD_P (FETCH_BYTE (pos_byte + 1))
-		  : (pos_byte > BEG_BYTE
-		     && ! ASCII_BYTE_P (FETCH_BYTE (pos_byte - 1)))))
+	      && (maybe_byte_combining == COMBINING_AFTER
+		  ? (pos_byte_next < Z_BYTE
+		     && ! CHAR_HEAD_P (FETCH_BYTE (pos_byte_next)))
+		  : ((pos_byte_next < Z_BYTE
+		      && ! CHAR_HEAD_P (FETCH_BYTE (pos_byte_next)))
+		     || (pos_byte > BEG_BYTE
+			 && ! ASCII_BYTE_P (FETCH_BYTE (pos_byte - 1))))))
 	    {
 	      Lisp_Object tem, string;
 
@@ -2047,9 +2060,8 @@ Both characters must have the same length of multi-byte form.")
 	      tem = current_buffer->undo_list;
 	      GCPRO1 (tem);
 
-	      /* Make a multibyte string containing this single-byte
-		  character.  */
-	      string = make_multibyte_string (tostr, 1, 1);
+	      /* Make a multibyte string containing this single character.  */
+	      string = make_multibyte_string (tostr, 1, len);
 	      /* replace_range is less efficient, because it moves the gap,
 		 but it handles combining correctly.  */
 	      replace_range (pos, pos + 1, string,
