@@ -1104,40 +1104,40 @@ menubar_selection_callback (widget, id, client_data)
 	}
       else if (EQ (XVECTOR (vector)->contents[i], Qt))
 	{
-	  prefix
-	    = XVECTOR (vector)->contents[i + MENU_ITEMS_PANE_PREFIX];
+	  prefix = XVECTOR (vector)->contents[i + MENU_ITEMS_PANE_PREFIX];
 	  i += MENU_ITEMS_PANE_LENGTH;
 	}
       else
 	{
-	  entry
-	    = XVECTOR (vector)->contents[i + MENU_ITEMS_ITEM_VALUE];
+	  entry = XVECTOR (vector)->contents[i + MENU_ITEMS_ITEM_VALUE];
 	  if ((int) client_data == i)
 	    {
 	      int j;
 	      struct input_event buf;
+	      Lisp_Object frame;
 
+	      XSETFRAME (frame, f);
 	      buf.kind = menu_bar_event;
-	      buf.frame_or_window = Qmenu_bar;
+	      buf.frame_or_window = Fcons (frame, Qmenu_bar);
 	      kbd_buffer_store_event (&buf);
 
 	      for (j = 0; j < submenu_depth; j++)
 		if (!NILP (subprefix_stack[j]))
 		  {
 		    buf.kind = menu_bar_event;
-		    buf.frame_or_window = subprefix_stack[j];
+		    buf.frame_or_window = Fcons (frame, subprefix_stack[j]);
 		    kbd_buffer_store_event (&buf);
 		  }
 
 	      if (!NILP (prefix))
 		{
 		  buf.kind = menu_bar_event;
-		  buf.frame_or_window = prefix;
+		  buf.frame_or_window = Fcons (frame, prefix);
 		  kbd_buffer_store_event (&buf);
 		}
 
 	      buf.kind = menu_bar_event;
-	      buf.frame_or_window = entry;
+	      buf.frame_or_window = Fcons (frame, entry);
 	      kbd_buffer_store_event (&buf);
 
 	      return;
