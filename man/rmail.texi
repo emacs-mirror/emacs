@@ -1124,7 +1124,9 @@ appropriately, you can specify a POP inbox by using a ``file name'' of
 the form @samp{po:@var{username}}, in the inbox list of an Rmail file.
 @code{movemail} handles such a name by opening a connection to the POP
 server.  The @code{MAILHOST} environment variable specifies the machine
-to look for the server on.
+to look for the server on; alternatively, you can specify the POP server
+host name as part of the mailbox name using the syntax
+@samp{po:@var{username}:@var{hostname}}.
 
 @vindex rmail-pop-password
 @vindex rmail-pop-password-required
