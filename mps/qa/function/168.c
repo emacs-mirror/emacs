@@ -1,13 +1,13 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!168.c(trunk.1) $
+ id = $HopeName: MMQA_test_function!168.c(trunk.2) $
  summary = MVFF split allocate from SW log (af_six), with hysteresis control
  language = c
  link = testlib.o
  stdin = af_six
  parameters = EXTEND=65536 AVGSIZE=32 ALIGN=8 \
               ARENAHIGH=1 SLOTHIGH=1 FIRST=1 SPLIT1=0 SPLIT2=0 \
-              COMMIT=(1024*1024*30) SPARE=0
+              COMMIT=30000000 SPARE=0
 OUTPUT_SPEC
  result = pass
 END_HEADER
