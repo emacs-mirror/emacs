@@ -492,6 +492,9 @@ The time should be in either 24 hour format or am/pm format."
 ;; hold the arguments that list-diary-entries received.
 ;; They specify the range of dates that the diary is being processed for.
 
+(eval-when-compile (defvar number)
+		   (defvar original-date)
+		   (defvar diary-entries-list))
 ;;;###autoload
 (defun appt-make-list ()
   ;; We have something to do if the range of dates that the diary is
