@@ -751,6 +751,29 @@ Return 0 if there is no such symbol."
 	  (set-syntax-table stab)))
     (error 0)))
 
+(defun help-xref-on-pp (from to)
+  "Add xrefs for symbols in `pp's output between FROM and TO."
+  (let ((ost (syntax-table)))
+    (unwind-protect
+	(save-excursion
+	  (save-restriction
+	    (set-syntax-table emacs-lisp-mode-syntax-table)
+	    (narrow-to-region from to)
+	    (goto-char (point-min))
+	    (while (not (eobp))
+	      (cond
+	       ((looking-at "\"") (forward-sexp 1))
+	       ((looking-at "#<") (search-forward ">" nil 'move))
+	       ((looking-at "\\(\\(\\sw\\|\\s_\\)+\\)")
+		(let* ((sym (intern-soft
+			     (buffer-substring (match-beginning 1) (match-end 1))))
+		       (fn (cond ((fboundp sym) #'describe-function)
+				 ((and sym (boundp sym)) #'describe-variable))))
+		  (when fn (help-xref-button 1 fn sym)))
+		(goto-char (match-end 1)))
+	       (t (forward-char 1))))))
+      (set-syntax-table ost))))
+
 (defun describe-variable (variable)
   "Display the full documentation of VARIABLE (a symbol).
 Returns the documentation as a string, also."
@@ -772,20 +795,27 @@ Returns the documentation as a string, also."
 	  (if (not (boundp variable))
 	      (progn
 		(princ " is void")
-		(terpri)
 		(setq valvoid t))
-	    (princ "'s value is ")
-	    (terpri)
-	    (pp (symbol-value variable))
-	    (terpri))
+	    (let ((val (symbol-value variable)))
+	      (with-current-buffer standard-output
+		(princ "'s value is ")
+		(terpri)
+		(let ((from (point)))
+		  (pp val)
+		  (help-xref-on-pp from (point))))))
+	  (terpri)
 	  (if (local-variable-p variable)
 	      (progn
 		(princ (format "Local in buffer %s; " (buffer-name)))
 		(if (not (default-boundp variable))
 		    (princ "globally void")
-		  (princ "global value is ")
-		  (terpri)
-		  (pp (default-value variable)))
+		  (let ((val (default-value variable)))
+		    (with-current-buffer standard-output
+		      (princ "global value is ")
+		      (terpri)
+		      (let ((from (point)))
+			(pp val)
+			(help-xref-on-pp from (point))))))
 		(terpri)))
 	  (terpri)
 	  (save-current-buffer
