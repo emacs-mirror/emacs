@@ -31,6 +31,10 @@
   for building parts of Emacs that need to invoke Emacs itself (leim and
   "make bootstrap", for example). Also see the Trouble-shooting section
   below if you decide to go ahead and use Cygwin make.
+
+  In addition, using 4NT as your shell is known to fail the build process,
+  at least for 4NT version 3.01.  Use cmd.exe, the default NT shell,
+  instead.
  
                                          sh exists     no sh
 
