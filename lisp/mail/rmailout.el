@@ -194,7 +194,7 @@ If the pruned message header is shown on the current message, then
 messages will be appended with pruned headers; otherwise, messages
 will be appended with their original headers.
 
-The default file name comes from `rmail-last-file',
+The default file name comes from `rmail-default-file',
 which is updated to the name you use in this command.
 
 The optional third argument NOATTRIBUTE, if non-nil, says not
