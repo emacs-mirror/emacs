@@ -27,6 +27,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'ind-util))
+
 ;; Set standard fontname specification of characters in the default
 ;; fontset to find an appropriate font for each charset.  This is used
 ;; to generate a font name for a fontset if the fontset doesn't
