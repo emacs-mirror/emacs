@@ -470,9 +470,7 @@ Used to decide whether to save completions.")
 
 (defun cmpl-hours-since-origin ()
   (let ((time (current-time)))
-    (truncate
-     (+ (* (/ (car time) 3600.0) (lsh 1 16))
-	(/ (nth 2 time) 3600.0)))))
+    (floor (+ (* 65536.0 (nth 0 time)) (nth 1 time)) 3600)))
 
 ;;---------------------------------------------------------------------------
 ;; "Symbol" parsing functions
