@@ -42,16 +42,19 @@ This function works by modifying `process-environment'."
     (let ((pattern (concat "\\`" (regexp-quote (concat variable "="))))
 	  (case-fold-search nil)
 	  (scan process-environment))
-      (while scan
-	(cond
-	 ((string-match pattern (car scan))
-          (if (eq nil value)
-              (setq process-environment (delq (car scan) process-environment))
-            (setcar scan (concat variable "=" value)))
-	  (setq scan nil))
-	 ((null (setq scan (cdr scan)))
-	  (setq process-environment
-		(cons (concat variable "=" value) process-environment))))))))
+      (if scan
+	  (while scan
+	    (cond
+	     ((string-match pattern (car scan))
+	      (if (eq nil value)
+		  (setq process-environment (delq (car scan) process-environment))
+		(setcar scan (concat variable "=" value)))
+	      (setq scan nil))
+	     ((null (setq scan (cdr scan)))
+	      (setq process-environment
+		    (cons (concat variable "=" value) process-environment)))))
+	(setq process-environment
+	      (cons (concat variable "=" value) process-environment))))))
 
 (provide 'env)
 
