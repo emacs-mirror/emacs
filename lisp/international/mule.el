@@ -2126,7 +2126,7 @@ This function is intended to be added to `auto-coding-functions'."
 		  (save-excursion
 		    (forward-line 10)
 		    (point))))
-  (when (and (search-forward "<html>" size t)
+  (when (and (search-forward "<html" size t)
 	     (re-search-forward "<meta\\s-+http-equiv=\"content-type\"\\s-+content=\"text/\\sw+;\\s-*charset=\\(.+?\\)\"" size t))
       (let* ((match (match-string 1))
 	     (sym (intern (downcase match))))
