@@ -1,6 +1,6 @@
 ;;; backquote.el --- implement the ` Lisp construct
 
-;;; Copyright (C) 1990, 1992, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 92, 1994, 2001, 2004  Free Software Foundation, Inc.
 
 ;; Author: Rick Sladkey <jrs@world.std.com>
 ;; Maintainer: FSF
@@ -44,6 +44,9 @@
   "Like `list' but the last argument is the tail of the new list.
 
 For example (backquote-list* 'a 'b 'c) => (a b . c)"
+  ;; The recursive solution is much nicer:
+  ;; (if list (cons first (apply 'backquote-list*-function list)) first))
+  ;; but Emacs is not very good at efficiently processing recursion.
   (if list
       (let* ((rest list) (newlist (cons first nil)) (last newlist))
 	(while (cdr rest)
@@ -58,7 +61,10 @@ For example (backquote-list* 'a 'b 'c) => (a b . c)"
   "Like `list' but the last argument is the tail of the new list.
 
 For example (backquote-list* 'a 'b 'c) => (a b . c)"
-  (setq list (reverse (cons first list))
+  ;; The recursive solution is much nicer:
+  ;; (if list (list 'cons first (cons 'backquote-list*-macro list)) first))
+  ;; but Emacs is not very good at efficiently processing such things.
+  (setq list (nreverse (cons first list))
 	first (car list)
 	list (cdr list))
   (if list

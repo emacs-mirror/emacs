@@ -52,8 +52,8 @@
  nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2" 3' 4* 5: 6, 7. 8; 9( 0) -_ =+ ,L!(B
-;;   ,L9(B  ,LF(B  ,LC(B  ,L:(B  ,L5(B  ,L=(B  ,L3(B  ,LH(B  ,LI(B  ,L7(B  ,LE(B  ,Lj(B
-;;    ,LD(B  ,LK(B  ,L2(B  ,L0(B  ,L?(B  ,L@(B  ,L>(B  ,L;(B  ,L4(B ,L6(B  ,LM(B
+;;   ,L9(B  ,LF(B  ,LC(B  ,L:(B  ,L5(B  ,L=(B  ,L3(B  ,LH(B  ,LI(B  ,L7(B  ,LE(B  ,LJ(B
+;;    ,LD(B  ,LK(B  ,L2(B  ,L0(B  ,L?(B  ,L@(B  ,L>(B  ,L;(B  ,L4(B  ,L6(B  ,LM(B
 ;;     ,LO(B  ,LG(B  ,LA(B  ,L<(B  ,L8(B  ,LB(B  ,LL(B  ,L1(B  ,LN(B  /?
 
 (quail-define-rules
@@ -174,8 +174,8 @@
  nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2" 3,Lp(B 4; 5% 6: 7? 8* 9( 0) -_ =+ ,Lq!(B
-;;   ,L9(B  ,LF(B  ,LC(B  ,L:(B  ,L5(B  ,L=(B  ,L3(B  ,LH(B  ,LI(B  ,L7(B  ,LE(B  ,Lj(B
-;;    ,LD(B  ,LK(B  ,L2(B  ,L0(B  ,L?(B  ,L@(B  ,L>(B  ,L;(B  ,L4(B ,L6(B  ,LM(B
+;;   ,L9(B  ,LF(B  ,LC(B  ,L:(B  ,L5(B  ,L=(B  ,L3(B  ,LH(B  ,LI(B  ,L7(B  ,LE(B  ,LJ(B
+;;    ,LD(B  ,LK(B  ,L2(B  ,L0(B  ,L?(B  ,L@(B  ,L>(B  ,L;(B  ,L4(B  ,L6(B  ,LM(B
 ;;     ,LO(B  ,LG(B  ,LA(B  ,L<(B  ,L8(B  ,LB(B  ,LL(B  ,L1(B  ,LN(B  .,
 
 (quail-define-rules
@@ -999,8 +999,8 @@ as follows.
 (quail-define-package
  "cyrillic-translit" "Cyrillic" ",L6(Bt" nil
  "Intuitively transliterated keyboard layout.
-Most convenient for entering Russian but all Cyrillic characters are included.
-Should handle most cases. However:
+Most convenient for entering Russian, but all Cyrillic characters
+are included.  Should handle most cases.  However:
   for ,Lf(B (TSE) use \"c\", never \"ts\"
   ,Li(B (SHCHA = Bulgarian SHT) = \"shch\", \"sj\", \"/sht\" or \"/t\",
   ,Lm(B (REVERSE ROUNDED E) = \"e'\" or \"e`\"
@@ -1072,8 +1072,8 @@ Unicode based."
  nil t t t t nil nil nil nil nil t)
 
 ;; $,1(q(!(B 1! 2" 3N 4; 5% 6: 7? 8* 9( 0) -_ =+
-;;     $,1(9(B  $,1(F(B  $,1(C(B  $,1(:(B  $,1(5(B  $,1(=(B  $,1(3(B  $,1(H(B  $,1(.(B $,1(7(B  $,1(E(B  '
-;;      $,1(D(B  $,1(K(B  $,1(2(B  $,1(0(B  $,1(?(B  $,1(@(B  $,1(>(B  $,1(;(B  $,1(4(B $,1(6(B  $,1(M(B
+;;     $,1(9(B  $,1(F(B  $,1(C(B  $,1(:(B  $,1(5(B  $,1(=(B  $,1(3(B  $,1(H(B  $,1(.(B  $,1(7(B  $,1(E(B  '
+;;      $,1(D(B  $,1(K(B  $,1(2(B  $,1(0(B  $,1(?(B  $,1(@(B  $,1(>(B  $,1(;(B  $,1(4(B  $,1(6(B  $,1(M(B
 ;;       $,1(O(B  $,1(G(B  $,1(A(B  $,1(<(B  $,1(&(B  $,1(B(B  $,1(L(B  $,1(1(B  $,1(N(B  .,
 
 (quail-define-rules

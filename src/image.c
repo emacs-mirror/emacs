@@ -606,6 +606,7 @@ Lisp_Object Qxbm;
 
 extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
 extern Lisp_Object QCdata, QCtype;
+extern Lisp_Object Qcenter;
 Lisp_Object QCascent, QCmargin, QCrelief;
 Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
 Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask;
@@ -613,7 +614,6 @@ Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask;
 /* Other symbols.  */
 
 Lisp_Object Qlaplace, Qemboss, Qedge_detection, Qheuristic;
-Lisp_Object Qcenter;
 
 /* Time in seconds after which images should be removed from the cache
    if not displayed.  */
@@ -7400,8 +7400,6 @@ syms_of_image ()
   staticpro (&Qedge_detection);
   Qheuristic = intern ("heuristic");
   staticpro (&Qheuristic);
-  Qcenter = intern ("center");
-  staticpro (&Qcenter);
 
   Qpostscript = intern ("postscript");
   staticpro (&Qpostscript);

@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.161 2004/03/15 03:53:05 monnier Exp $
+;; $Id: vc-hooks.el,v 1.163 2004/03/23 20:59:19 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -463,8 +463,15 @@ and does not employ any heuristic at all."
 (defun vc-default-workfile-unchanged-p (backend file)
   "Check if FILE is unchanged by diffing against the master version.
 Return non-nil if FILE is unchanged."
-  ;; If rev1 is nil, `diff' uses the current workfile version.
-  (zerop (vc-call diff file)))
+  (let ((diff-args-length
+         (length (cadr (symbol-function
+                        (vc-find-backend-function backend 'diff))))))
+    (zerop (if (> diff-args-length 4) 
+               ;; If the implementation supports it, let the output
+               ;; go to *vc*, not *vc-diff*, since this is an internal call.
+               (vc-call diff file nil nil "*vc*")
+             ;; for backward compatibility
+             (vc-call diff file)))))
 
 (defun vc-workfile-version (file)
   "Return the version level of the current workfile FILE.
@@ -758,14 +765,17 @@ Used in `find-file-not-found-functions'."
   ;; When a file does not exist, ignore cached info about it
   ;; from a previous visit.
   (vc-file-clearprops buffer-file-name)
-  (if (and (vc-backend buffer-file-name)
-	   (yes-or-no-p
-	    (format "File %s was lost; check out from version control? "
-		    (file-name-nondirectory buffer-file-name))))
-    (save-excursion
-      (require 'vc)
-      (setq default-directory (file-name-directory buffer-file-name))
-      (not (vc-error-occurred (vc-checkout buffer-file-name))))))
+  (let ((backend (vc-backend buffer-file-name)))
+    (if backend (vc-call-backend backend find-file-not-found-hook))))
+
+(defun vc-default-find-file-not-found-hook (backend)
+  (if (yes-or-no-p
+       (format "File %s was lost; check out from version control? "
+	       (file-name-nondirectory buffer-file-name)))
+      (save-excursion
+	(require 'vc)
+	(setq default-directory (file-name-directory buffer-file-name))
+	(not (vc-error-occurred (vc-checkout buffer-file-name))))))
 
 (add-hook 'find-file-not-found-functions 'vc-file-not-found-hook)
 

@@ -60,7 +60,6 @@ Preserves the `buffer-modified-p' state of the current buffer."
 
 (defgroup jit-lock nil
   "Font Lock support mode to fontify just-in-time."
-  :link '(custom-manual "(emacs)Support Modes")
   :version "21.1"
   :group 'font-lock)
 

@@ -927,9 +927,9 @@ exited abnormally with code %d\n"
     (if (buffer-local-value 'compilation-scroll-output outbuf)
 	(save-selected-window
 	  (select-window outwin)
-	  (goto-char (point-max)))
-      ;; Make it so the next C-x ` will use this buffer.
-      (setq compilation-last-buffer outbuf))))
+	  (goto-char (point-max))))
+    ;; Make it so the next C-x ` will use this buffer.
+    (setq compilation-last-buffer outbuf)))
 
 (defun compilation-set-window-height (window)
   "Set the height of WINDOW according to `compilation-window-height'."

@@ -4116,6 +4116,15 @@ The completion list buffer is available as the value of `standard-output'.")
 
 ;; This function goes in completion-setup-hook, so that it is called
 ;; after the text of the completion list buffer is written.
+(defface completion-emphasis 
+  '((t (:inherit bold)))
+  "Face put on the first uncommon character in completions in *Completions* buffer."
+  :group 'completion)
+
+(defface completion-de-emphasis 
+  '((t (:inherit default)))
+  "Face put on the common prefix substring in completions in *Completions* buffer."
+  :group 'completion)
 
 (defun completion-setup-function ()
   (save-excursion
@@ -4145,6 +4154,27 @@ The completion list buffer is available as the value of `standard-output'.")
 	(save-match-data
 	  (if (minibufferp mainbuf)
 	      (setq completion-base-size 0))))
+       ;; Put emphasis and de-emphasis faces on completions.
+      (when completion-base-size
+	(let ((common-string-length (length 
+				     (substring mbuf-contents 
+						completion-base-size)))
+	      (element-start (next-single-property-change 
+			      (point-min)
+			      'mouse-face))
+	      element-common-end)
+	  (while element-start
+	    (setq element-common-end  (+ element-start common-string-length))
+	    (when (and (get-char-property element-start 'mouse-face)
+		       (get-char-property element-common-end 'mouse-face))
+	      (put-text-property element-start element-common-end
+				 'font-lock-face 'completion-de-emphasis)
+	      (put-text-property element-common-end (1+ element-common-end)
+				 'font-lock-face 'completion-emphasis))
+	    (setq element-start (next-single-property-change 
+				 element-start
+				 'mouse-face)))))
+      ;; Insert help string.
       (goto-char (point-min))
       (if (display-mouse-p)
 	  (insert (substitute-command-keys

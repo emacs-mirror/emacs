@@ -4205,14 +4205,20 @@ program specified by `directory-free-space-program' if that is non-nil."
 (defun insert-directory (file switches &optional wildcard full-directory-p)
   "Insert directory listing for FILE, formatted according to SWITCHES.
 Leaves point after the inserted text.
-SWITCHES may be a string of options, or a list of strings.
+SWITCHES may be a string of options, or a list of strings
+representing individual options.
 Optional third arg WILDCARD means treat FILE as shell wildcard.
 Optional fourth arg FULL-DIRECTORY-P means file is a directory and
 switches do not contain `d', so that a full listing is expected.
 
 This works by running a directory listing program
 whose name is in the variable `insert-directory-program'.
-If WILDCARD, it also runs the shell specified by `shell-file-name'."
+If WILDCARD, it also runs the shell specified by `shell-file-name'.
+
+When SWITCHES contains the long `--dired' option,this function
+treats it specially, for the sake of dired.  However, the
+normally equivalent short `-D' option is just passed on to
+`insert-directory-program', as any other option."
   ;; We need the directory in order to find the right handler.
   (let ((handler (find-file-name-handler (expand-file-name file)
 					 'insert-directory)))
@@ -4301,7 +4307,9 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	      (access-file file "Reading directory")
 	      (error "Listing directory failed but `access-file' worked")))
 
-	  (when (string-match "--dired\\>" switches)
+	  (when (if (stringp switches)
+		    (string-match "--dired\\>" switches)
+		  (member "--dired" switches))
 	    (forward-line -2)
             (when (looking-at "//SUBDIRED//")
               (delete-region (point) (progn (forward-line 1) (point)))

@@ -45,12 +45,6 @@
 	Only try su-fallback if the socket name was not explicit.
 	Check socket name length in su-fallback case as well.
 
-2004-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* emacsclient.c (main): Stop if socket name too long.
-	Only try su-fallback if the socket name was not explicit.
-	Check socket name length in su-fallback case as well.
-
 2004-01-08  Andreas Schwab  <schwab@suse.de>
 
 	* emacsclient.c (main): Save errno from socket_status.

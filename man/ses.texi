@@ -835,7 +835,7 @@ Ami Fischman @email{fischman@@zion.bpnetworks.com}@*
 Thomas Gehrlein @email{Thomas.Gehrlein@@t-online.de}@*
 Chris F.A. Johnson @email{c.f.a.johnson@@rogers.com}@*
 Yusong Li @email{lyusong@@hotmail.com}@*
-Yuri Linkov @email{link0ff@@yahoo.com}@*
+Juri Linkov @email{juri@@jurta.org}@*
 Harald Maier @email{maierh@@myself.com}@*
 Alan Nash @email{anash@@san.rr.com}@*
 François Pinard @email{pinard@@iro.umontreal.ca}@*

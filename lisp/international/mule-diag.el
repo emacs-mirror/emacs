@@ -845,7 +845,7 @@ Priority order for recognizing coding systems when reading files:\n")
 		 (setq codings (cons x codings))))
 	   (get (car categories) 'coding-systems))
 	  (if codings
-	      (let ((max-col (frame-width))
+	      (let ((max-col (window-width))
 		    pos)
 		(princ (format "\
   The following are decoded correctly but recognized as %s:\n   "

@@ -1,3 +1,15 @@
+2004-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* update-subdirs: Add local variables to prevent byte-compiling.
+
+2004-03-21  Dave Love  <fx@gnu.org>
+
+	* configure.in: Fix previous change.
+
+2004-03-18  Dave Love  <fx@gnu.org>
+
+	* configure.in: Add -znocombreloc to LDFLAGS if compiler supports it.
+
 2004-03-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* info/dir (File): Add SMTP and SES.
@@ -34,7 +46,7 @@
 
 2004-01-06  Eric Hanchrow <offby1@blarg.net> (tiny change)
 
-	* make-dist (tempdir): Include cursors in nt/icons
+	* make-dist (tempdir): Include cursors in nt/icons.
 
 2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
 

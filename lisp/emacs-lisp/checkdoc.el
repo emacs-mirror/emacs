@@ -1,6 +1,6 @@
 ;;; checkdoc.el --- check documentation strings for style requirements
 
-;;;  Copyright (C) 1997, 1998, 2001  Free Software Foundation
+;;;  Copyright (C) 1997, 1998, 2001, 2004  Free Software Foundation
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.6.2
@@ -2657,7 +2657,7 @@ function called to create the messages."
   (setq checkdoc-pending-errors t)
   (checkdoc-output-to-error-buffer
    "\n" (checkdoc-buffer-label) ":"
-   (int-to-string (count-lines (point-min) (or point 1))) ": "
+   (int-to-string (count-lines (point-min) (or point (point-min)))) ": "
    msg))
 
 (defun checkdoc-output-to-error-buffer (&rest text)
@@ -2692,6 +2692,8 @@ function called to create the messages."
 
 (add-to-list 'debug-ignored-errors
 	     "Argument `.*' should appear (as .*) in the doc string")
+(add-to-list 'debug-ignored-errors
+	     "Lisp symbol `.*' should appear in quotes")
 (add-to-list 'debug-ignored-errors "Disambiguate .* by preceding .*")
 
 (provide 'checkdoc)

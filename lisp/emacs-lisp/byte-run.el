@@ -1,6 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2004  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -67,14 +67,14 @@
 ;; This has a special byte-hunk-handler in bytecomp.el.
 (defmacro defsubst (name arglist &rest body)
   "Define an inline function.  The syntax is just like that of `defun'."
+  (declare (debug defun))
   (or (memq (get name 'byte-optimizer)
 	    '(nil byte-compile-inline-expand))
       (error "`%s' is a primitive" name))
-  (list 'prog1
-	(cons 'defun (cons name (cons arglist body)))
-	(list 'eval-and-compile
-	      (list 'put (list 'quote name)
-		    ''byte-optimizer ''byte-compile-inline-expand))))
+  `(prog1
+       (defun ,name ,arglist ,@body)
+     (eval-and-compile
+       (put ',name 'byte-optimizer 'byte-compile-inline-expand))))
 
 (defun make-obsolete (fn new &optional when)
   "Make the byte-compiler warn that FUNCTION is obsolete.
@@ -109,6 +109,7 @@ was first made obsolete, for example a date or a release number."
 (defmacro dont-compile (&rest body)
   "Like `progn', but the body always runs interpreted (not compiled).
 If you think you need this, you're probably making a mistake somewhere."
+  (declare (debug t))
   (list 'eval (list 'quote (if (cdr body) (cons 'progn body) (car body)))))
 
 
@@ -121,6 +122,7 @@ If you think you need this, you're probably making a mistake somewhere."
 (defmacro eval-when-compile (&rest body)
   "Like `progn', but evaluates the body at compile time.
 The result of the body appears to the compiler as a quoted constant."
+  (declare (debug t))
   ;; Not necessary because we have it in b-c-initial-macro-environment
   ;; (list 'quote (eval (cons 'progn body)))
   (cons 'progn body))
@@ -128,6 +130,7 @@ The result of the body appears to the compiler as a quoted constant."
 (put 'eval-and-compile 'lisp-indent-hook 0)
 (defmacro eval-and-compile (&rest body)
   "Like `progn', but evaluates the body at compile time and at load time."
+  (declare (debug t))
   ;; Remember, it's magic.
   (cons 'progn body))
 

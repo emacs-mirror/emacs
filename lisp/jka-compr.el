@@ -1,6 +1,6 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files
 
-;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF
@@ -138,6 +138,10 @@ for `jka-compr-compression-info-list')."
      "bzip2ing"        "bzip2"         nil
      "bunzip2ing"      "bzip2"         ("-d")
      nil t "BZh"]
+    ["\\.tbz\\'"
+     "bzip2ing"        "bzip2"         nil
+     "bunzip2ing"      "bzip2"         ("-d")
+     nil nil "BZh"]
     ["\\.tgz\\'"
      "zipping"        "gzip"         ("-c" "-q")
      "unzipping"      "gzip"         ("-c" "-q" "-d")
@@ -145,7 +149,14 @@ for `jka-compr-compression-info-list')."
     ["\\.g?z\\(~\\|\\.~[0-9]+~\\)?\\'"
      "zipping"        "gzip"         ("-c" "-q")
      "unzipping"      "gzip"         ("-c" "-q" "-d")
-     t t "\037\213"])
+     t t "\037\213"]
+    ;; dzip is gzip with random access.  Its compression program can't
+    ;; read/write stdin/out, so .dz files can only be viewed without
+    ;; saving, having their contents decompressed with gzip.
+    ["\\.dz\\'"
+     nil              nil            nil
+     "unzipping"      "gzip"         ("-c" "-q" "-d")
+     nil t "\037\213"])
 
   "List of vectors that describe available compression techniques.
 Each element, which describes a compression technique, is a vector of
@@ -160,6 +171,7 @@ APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS], where:
                          type of compression (nil means no message)
 
    compress-program      is a program that performs this compression
+                         (nil means visit file in read-only mode)
 
    compress-args         is a list of args to pass to the compress program
 
@@ -199,7 +211,7 @@ invoked."
   :group 'jka-compr)
 
 (defcustom jka-compr-mode-alist-additions
-  (list (cons "\\.tgz\\'" 'tar-mode))
+  (list (cons "\\.tgz\\'" 'tar-mode) (cons "\\.tbz\\'" 'tar-mode))
   "A list of pairs to add to `auto-mode-alist' when jka-compr is installed."
   :type '(repeat (cons string symbol))
   :group 'jka-compr)
@@ -421,16 +433,16 @@ There should be no more than seven characters after the final `/'."
 	(let ((can-append (jka-compr-info-can-append info))
 	      (compress-program (jka-compr-info-compress-program info))
 	      (compress-message (jka-compr-info-compress-message info))
-	      (uncompress-program (jka-compr-info-uncompress-program info))
-	      (uncompress-message (jka-compr-info-uncompress-message info))
 	      (compress-args (jka-compr-info-compress-args info))
-	      (uncompress-args (jka-compr-info-uncompress-args info))
 	      (base-name (file-name-nondirectory visit-file))
 	      temp-file temp-buffer
 	      ;; we need to leave `last-coding-system-used' set to its
 	      ;; value after calling write-region the first time, so
 	      ;; that `basic-save-buffer' sees the right value.
 	      (coding-system-used last-coding-system-used))
+
+          (or compress-program
+              (error "No compression program defined"))
 
 	  (setq temp-buffer (get-buffer-create " *jka-compr-wr-temp*"))
 	  (with-current-buffer temp-buffer
@@ -630,6 +642,9 @@ There should be no more than seven characters after the final `/'."
 ;;; 				(list 'integerp insval)))
 ;;; 		    (setq size insval)))
 ;;; 	      (setq p (cdr p))))
+
+          (or (jka-compr-info-compress-program info)
+              (message "You can't save this buffer because compression program is not defined"))
 
 	  (list filename size))
 

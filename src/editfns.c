@@ -4157,7 +4157,7 @@ Transposing beyond buffer boundaries is an error.  */)
       transpose_markers (start1, end1, start2, end2,
 			 start1_byte, start1_byte + len1_byte,
 			 start2_byte, start2_byte + len2_byte);
-      fix_overlays_in_range (start1, end2);
+      fix_start_end_in_overlays (start1, end2);
     }
 
   return Qnil;

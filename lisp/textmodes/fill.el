@@ -32,7 +32,7 @@
 
 (defgroup fill nil
   "Indenting and filling text."
-  :link '(custom-manual "(emacs)Filling Text")
+  :link '(custom-manual "(emacs)Filling")
   :group 'editing)
 
 (defcustom fill-individual-varying-indent nil

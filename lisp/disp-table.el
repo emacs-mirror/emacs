@@ -1,6 +1,6 @@
 ;;; disp-table.el --- functions for dealing with char tables
 
-;; Copyright (C) 1987, 1994, 1995, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 94, 95, 1999, 2004  Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Based on a previous version by Howard Gayle
@@ -116,9 +116,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
   (or standard-display-table
       (setq standard-display-table (make-display-table)))
   (while (<= l h)
-    (if (and (>= l ?\ ) (< l 127))
-	(aset standard-display-table l nil)
-      (aset standard-display-table l (vector l)))
+    (aset standard-display-table l (if (or (< l ?\ ) (>= l 127)) (vector l)))
     (setq l (1+ l))))
 
 ;;;###autoload

@@ -325,19 +325,33 @@ displayed in a window:
 	  ;; At the first check in any given day, update our
 	  ;; appointments to today's list.
 
-	  (if (or force
+	  (if (or force                 ; eg initialize, diary save
                   (null appt-prev-comp-time)             ; first check
 		  (< cur-comp-time appt-prev-comp-time)) ; new day
 	      (condition-case nil
-		  (progn
-		    (if appt-display-diary
-                        (let ((diary-hook
-                               (if (assoc 'appt-make-list diary-hook)
-                                   diary-hook
-                                 (cons 'appt-make-list diary-hook))))
-                          (diary))
-		      (let ((diary-display-hook 'appt-make-list))
-			(diary))))
+                  (if appt-display-diary
+                      (let ((diary-hook
+                             (if (assoc 'appt-make-list diary-hook)
+                                 diary-hook
+                               (cons 'appt-make-list diary-hook))))
+                        (diary))
+                    (let ((diary-display-hook 'appt-make-list)
+                          (d-buff (find-buffer-visiting
+                                   (substitute-in-file-name diary-file)))
+                          selective)
+                      (if d-buff        ; diary buffer exists
+                          (with-current-buffer d-buff
+                            (setq selective selective-display)))
+                      (diary)
+                      ;; If the diary buffer existed before this command,
+                      ;; restore its display state. Otherwise, kill it.
+                      (if d-buff
+                          ;; Displays the diary buffer.
+                          (or selective (show-all-diary-entries))
+                        (and
+                         (setq d-buff (find-buffer-visiting
+                                       (substitute-in-file-name diary-file)))
+                         (kill-buffer d-buff)))))
 		(error nil)))
 
 	  (setq appt-prev-comp-time cur-comp-time
@@ -637,7 +651,7 @@ hour and minute parts."
 (defun appt-update-list ()
   "If the current buffer is visiting the diary, update appointments.
 This function is intended for use with `write-file-functions'."
-  (and (equal buffer-file-name (expand-file-name diary-file))
+  (and (string-equal buffer-file-name (expand-file-name diary-file))
        appt-timer
        (let ((appt-display-diary nil))
          (appt-check t)))

@@ -35,10 +35,10 @@ Based on Hebrew typewriter keys.
 Hebrew letters are assigned to lowercases.
 " nil t t t t nil nil nil nil nil t)
 
-;;  1! 2@ 3# 4$ 5% 6^ 7& 8* 9( 0) _- += ~;
-;;   /Q 'W ,Hw(BE ,Hx(BR ,H`(BT ,Hh(BY ,He(BU ,Ho(BI ,Hm(BO ,Ht(BP {[ {]
-;;    ,Hy(BA ,Hc(BS ,Hb(BD ,Hk(BF ,Hr(BG ,Hi(BH ,Hg(BJ ,Hl(BK ,Hj(BL :,Hs(B ", |\
-;;     ,Hf(BZ ,Hq(BX ,Ha(BC ,Hd(BV ,Hp(BB ,Hn(BN ,Hv(BM <,Hz(B >,Hu(B ?.
+;;  1! 2@ 3# 4$ 5% 6^ 7& 8* 9( 0) -_ =+ ;~
+;;   /Q 'W ,Hw(BE ,Hx(BR ,H`(BT ,Hh(BY ,He(BU ,Ho(BI ,Hm(BO ,Ht(BP [{ ]}
+;;    ,Hy(BA ,Hc(BS ,Hb(BD ,Hk(BF ,Hr(BG ,Hi(BH ,Hg(BJ ,Hl(BK ,Hj(BL ,Hs(B: ," \|
+;;     ,Hf(BZ ,Hq(BX ,Ha(BC ,Hd(BV ,Hp(BB ,Hn(BN ,Hv(BM ,Hz(B< ,Hu(B> .?
 ;;
 
 (quail-define-rules

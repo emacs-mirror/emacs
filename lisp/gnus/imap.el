@@ -1,5 +1,5 @@
 ;;; imap.el --- imap library
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
@@ -1803,7 +1803,8 @@ Return nil if no complete line has arrived."
 	(when (eq (char-after) ?\))
 	  (imap-forward)
 	  (nreverse addresses)))
-    (assert (imap-parse-nil))))
+    ;; (assert (imap-parse-nil)) ; With assert, the code might not be eval'd.
+    (imap-parse-nil)))
 
 ;;   mailbox         = "INBOX" / astring
 ;;                       ; INBOX is case-insensitive.  All case variants of
@@ -2343,7 +2344,8 @@ Return nil if no complete line has arrived."
 	      (imap-forward)
 	      (push (imap-parse-string-list) dsp)
 	      (imap-forward))
-	  (assert (imap-parse-nil)))
+	  ;; (assert (imap-parse-nil)) ; Code in assert might not be eval'd.
+	  (imap-parse-nil))
 	(push (nreverse dsp) ext))
       (when (eq (char-after) ?\ );; body-fld-lang
 	(imap-forward)

@@ -452,14 +452,14 @@ This can be found in an RCS or SCCS header."
     (if keywords
 	(split-string keywords ",?[ \t]"))))
 
+(defvar finder-known-keywords)
 (defun lm-keywords-finder-p (&optional file)
   "Return non-nil if any keywords in FILE are known to finder."
   (require 'finder)
   (let ((keys (lm-keywords-list file)))
     (catch 'keyword-found
       (while keys
-	(if (assoc (intern (car keys)) 
-		   (with-no-warnings finder-known-keywords))
+	(if (assoc (intern (car keys)) finder-known-keywords)
 	    (throw 'keyword-found t))
 	(setq keys (cdr keys)))
       nil)))

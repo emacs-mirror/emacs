@@ -1,3 +1,10 @@
+2004-03-22  Juri Linkov  <juri@jurta.org>
+
+	* sequences.texi (Sequence Functions): Replace xref to `Vectors'
+	with `Vector Functions'.
+
+	* text.texi (Sorting): Add missing quote.
+
 2004-03-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* intro.texi (Lisp History): Replace xref to `cl' manual with
