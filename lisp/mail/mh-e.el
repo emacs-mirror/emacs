@@ -60,7 +60,7 @@
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.18 1998/03/08 00:25:49 rms Exp kwzh $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.19 1998/04/15 06:31:29 kwzh Exp rms $")
 
 ;;; Code:
 
@@ -428,7 +428,6 @@ previous refile or write command."
 	 (message "Destination: %s" (cdr mh-last-destination))))
   (mh-next-msg))
 
-
 (defun mh-quit ()
   "Quit the current mh-e folder.
 Start by running mh-before-quit-hook.  Restore the previous window
@@ -437,10 +436,9 @@ configuration, if one exists.  Finish by running mh-quit-hook."
   (run-hooks 'mh-before-quit-hook) 
   (mh-update-sequences)
   (mh-invalidate-show-buffer)
-  (quit-window)
-  (and mh-show-buffer
-       (get-buffer mh-show-buffer)
-       (bury-buffer mh-show-buffer))
+  (bury-buffer (current-buffer))
+  (if (get-buffer mh-show-buffer)
+      (bury-buffer mh-show-buffer))
   (if mh-previous-window-config
       (set-window-configuration mh-previous-window-config))
   (run-hooks 'mh-quit-hook))
