@@ -188,6 +188,9 @@ The following keywords are meaningful:
         VALUE should be a string specifying that the variable was
         first introduced, or its default value was changed, in Emacs
         version VERSION.
+:set-after VARIABLE
+	Specifies that SYMBOL should be set after VARIABLE when
+	both have been customized.
 
 Read the section about customization in the Emacs Lisp manual for more
 information."
