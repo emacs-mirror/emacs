@@ -21,10 +21,14 @@ Boston, MA 02111-1307, USA.  */
 
 
 #define NO_SHORTNAMES
-#include <../src/config.h>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #undef signal
 
-#include <ctype.h> 
+#include <ctype.h>
 #include <stdio.h>
 #include <getopt.h>
 #ifdef HAVE_UNISTD_H
@@ -84,18 +88,18 @@ decode_options (argc, argv)
 	break;
 
       alternate_editor = getenv ("ALTERNATE_EDITOR");
-      
+
       switch (opt)
 	{
 	case 0:
 	  /* If getopt returns 0, then it has already processed a
 	     long-named option.  We should do nothing.  */
 	  break;
-	  
+
 	case 'a':
 	  alternate_editor = optarg;
 	  break;
-	  
+
 	case 'n':
 	  nowait = 1;
 	  break;
@@ -157,7 +161,6 @@ quote_file_name (name)
     }
   *q++ = 0;
 
-  
   return copy;
 }
 
@@ -198,7 +201,6 @@ fail (argc, argv)
 }
 
 
-       
 
 #if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
 
@@ -272,7 +274,7 @@ main (argc, argv)
   if (argc - optind < 1)
     print_help_and_exit ();
 
-  /* 
+  /*
    * Open up an AF_UNIX socket in this person's home directory
    */
 
@@ -282,7 +284,7 @@ main (argc, argv)
       perror ("socket");
       fail (argc, argv);
     }
-  
+
   server.sun_family = AF_UNIX;
 
   {
@@ -317,11 +319,11 @@ main (argc, argv)
 	   our euid.  If so, look for a socket based on the UID
 	   associated with the name.  This is reminiscent of the logic
 	   that init_editfns uses to set the global Vuser_full_name.  */
- 
+
 	char *user_name = (char *) getenv ("LOGNAME");
 	if (!user_name)
 	  user_name = (char *) getenv ("USER");
-       
+
 	if (user_name)
 	  {
 	    struct passwd *pw = getpwnam (user_name);
@@ -334,7 +336,7 @@ main (argc, argv)
 	      }
 	  }
       }
- 
+
      switch (sock_status)
        {
        case 1:
@@ -346,7 +348,7 @@ main (argc, argv)
 	     fail (argc, argv);
 	   }
 	 break;
-	 
+
        case 2:
 	 /* `stat' failed */
 	 if (errno == ENOENT)
@@ -448,8 +450,8 @@ main (argc, argv)
      the first line we read will actually be the output we just sent.
      We can't predict whether that will happen, so if it does, we
      detect it by recognizing `Client: ' at the beginning.  */
-  
-  while (str = fgets (string, BUFSIZ, in))
+
+  while ((str = fgets (string, BUFSIZ, in)))
     printf ("%s", str);
 
   return 0;
