@@ -1487,7 +1487,9 @@ Return nil if there is no such person."
 	 file
 	 (and oldvers (concat "-r" oldvers))
 	 (and newvers (concat "-r" newvers))
-	 diff-switches
+	 (if (listp diff-switches)
+	     diff-switches
+	   (list diff-switches))
   ))
 
 (defun vc-check-headers ()
