@@ -29,9 +29,9 @@
 ;; `tool-bar-add-item' and `tool-bar-add-item-from-menu'.
 
 ;; The normal global binding for [tool-bar] (below) uses the value of
-;; `tool-bar-map' as the actual keymap used to define the tool bar.
-;; Modes may either bind items under the [tool-bar] prefix key of the
-;; local map to add to the global bar or may set `tool-bar-map'
+;; `tool-bar-map' as the actual keymap to define the tool bar.  Modes
+;; may either bind items under the [tool-bar] prefix key of the local
+;; map to add to the global bar or may set `tool-bar-map'
 ;; buffer-locally to override it.  (Some items are removed from the
 ;; global bar in modes which have `special' as their `mode-class'
 ;; properlty.)
