@@ -1,3 +1,41 @@
+2002-10-21  Juanma Barranquero  <lektu@terra.es>
+
+	* wid-edit.el (widget-choose): Fix typo.
+
+	* calendar/diary-lib.el (diary-name-pattern): Likewise.
+
+	* emacs-lisp/elint.el (elint-error, elint-warning): Likewise.
+
+	* emacs-lisp/lisp.el (beginning-of-defun): Likewise.
+
+	* emulation/edt-mapper.el (top-level): Likewise.
+
+	* eshell/esh-var.el (eshell/define): Likewise.
+
+	* mail/feedmail.el (feedmail-nuke-body-in-fcc)
+	(feedmail-queue-draft-directory): Likewise.
+
+	* net/ange-ftp.el (ange-ftp-ls): Likewise.
+
+	* obsolete/cplus-md.el (c++-empty-arglist-indent): Likewise.
+
+	* progmodes/cperl-mode.el (cperl-invert-if-unless): Likewise.
+
+	* progmodes/ebrowse.el (ebrowse-ts)
+	(ebrowse-view/find-file-and-search-pattern): Likewise.
+
+	* progmodes/f90.el (f90-insert-end): Likewise.
+
+	* progmodes/hideif.el (hide-ifdef-region): Likewise.
+
+	* progmodes/sh-script.el (sh-indent-for-then): Likewise.
+
+	* textmodes/bibtex.el (bibtex-find-entry-location): Likewise.
+
+	* textmodes/sgml-mode.el (html-imenu-index): Likewise.
+
+	* emacs-lisp/edebug.el (edebug-gensym): Fix spacing.
+
 2002-10-16  Juanma Barranquero  <lektu@terra.es>
 
 	* vc-hooks.el (vc-insert-file): Fix typo.

@@ -1,3 +1,17 @@
+2002-10-21  Juanma Barranquero  <lektu@terra.es>
+
+	* gnus-cus.el (gnus-group-customize): Fix typo.
+
+	* gnus-nocem.el (gnus-nocem-liberal-fetch): Likewise.
+
+	* gnus-util.el (gnus-parse-netrc): Likewise.
+
+	* nnlistserv.el (nnlistserv-kk-create-mapping): Likewise.
+
+	* nnweb.el (nnweb-dejanews-create-mapping)
+	(nnweb-reference-create-mapping, nnweb-altavista-create-mapping)
+	(nnweb-google-create-mapping): Likewise.
+
 2002-09-06  Juanma Barranquero  <lektu@terra.es>
 
 	* gnus-int.el (gnus-status-message): Fix spacing.
