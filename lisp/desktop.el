@@ -85,6 +85,7 @@
 ;;            f89-kam@nada.kth.se (Klas Mellbourn)   for a mh-e tip.
 ;;            kifer@sbkifer.cs.sunysb.edu (M. Kifer) for a bug hunt.
 ;;            treese@lcs.mit.edu (Win Treese)        for ange-ftp tips.
+;;            pot@cnuce.cnr.it (Francesco Potorti`)  for misc. tips.
 ;; ---------------------------------------------------------------------------
 ;; TODO:
 ;;
@@ -438,20 +439,26 @@ MODE is the major mode."
 	    (delete-file filename)))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-read ()
-  "Read the Desktop file and the files it specifies."
+  "Read the Desktop file and the files it specifies.
+This is a no-op when Emacs is running in batch mode."
   (interactive)
-  (let ((filename))
-    (if (file-exists-p (concat "./" desktop-basefilename))
-	(setq desktop-dirname (expand-file-name "./"))
-      (if (file-exists-p (concat "~/" desktop-basefilename))
-	  (setq desktop-dirname (expand-file-name "~/"))
-	(setq desktop-dirname nil)))
-    (if desktop-dirname
-	(progn
-	  (load (concat desktop-dirname desktop-basefilename) t t t)
-	  (run-hooks 'desktop-delay-hook)
-	  (message "Desktop loaded."))
-      (desktop-clear))))
+  (if noninteractive
+      nil
+    (let ((dirs '("./" "~/")))
+      (while (and dirs
+		  (not (file-exists-p (expand-file-name
+				       desktop-basefilename
+				       (car dirs)))))
+	(setq dirs (cdr dirs)))
+      (setq desktop-dirname (and dirs (expand-file-name (car dirs))))
+      (if desktop-dirname
+	  (progn
+	    (load (expand-file-name desktop-basefilename desktop-dirname)
+		  t t t)
+	    (run-hooks 'desktop-delay-hook)
+	    (setq desktop-delay-hook nil)
+	    (message "Desktop loaded."))
+	(desktop-clear)))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-load-default ()
   "Load the `default' start-up library manually.
