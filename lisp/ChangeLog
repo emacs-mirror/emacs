@@ -1,3 +1,7 @@
+2003-07-06  John Paul Wallington  <jpw@gnu.org>
+
+	* vc.el (vc-annotate-offset): Move defvar up.
+
 2003-07-06  Kim F. Storm  <storm@cua.dk>
 
 	* info.el (Info-menu-entry-name-re): Add `:' to second [] part.
