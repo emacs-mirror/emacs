@@ -1,6 +1,6 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
@@ -392,11 +392,6 @@ and after the region marked by the rectangle to search."
   "*Font used by CUA for highlighting the non-selected rectangle lines."
   :group 'cua)
 
-(defcustom cua-undo-max 64
-  "*Max no of undoable CUA rectangle changes (including undo)."
-  :type 'integer
-  :group 'cua)
-
 
 ;;; Global Mark Customization
 
@@ -739,15 +734,6 @@ Repeating prefix key when region is active works as a single prefix key."
 	     (+ arg ?0)))
   (if cua--register nil arg))
 
-;;; Enhanced undo - restore rectangle selections
-
-(defun cua-undo (&optional arg)
-  "Undo some previous changes.
-Knows about CUA rectangle highlighting in addition to standard undo."
-  (interactive "*P")
-  (if (fboundp 'cua--rectangle-undo)
-      (cua--rectangle-undo arg)
-    (undo arg)))
 
 ;;; Region specific commands
 
@@ -988,21 +974,6 @@ With a double \\[universal-argument] prefix argument, unconditionally set mark."
     (if cua-enable-region-auto-help
 	(cua-help-for-region t)))))
 
-(defvar cua--standard-movement-commands
-  '(forward-char backward-char
-    next-line previous-line
-    forward-word backward-word
-    end-of-line beginning-of-line
-    end-of-buffer beginning-of-buffer
-    scroll-up scroll-down cua-scroll-up cua-scroll-down
-    forward-sentence backward-sentence
-    forward-paragraph backward-paragraph)
-  "List of standard movement commands.
-Extra commands should be added to `cua-movement-commands'")
-
-(defvar cua-movement-commands nil
-  "User may add additional movement commands to this list.")
-
 ;;; Scrolling commands which does not signal errors at top/bottom
 ;;; of buffer at first key-press (instead moves to top/bottom
 ;;; of buffer).
@@ -1025,6 +996,8 @@ If ARG is the atom `-', scroll downward by nearly full screen."
 	(scroll-up arg)
       (end-of-buffer (goto-char (point-max)))))))
 
+(put 'cua-scroll-up 'CUA 'move)
+
 (defun cua-scroll-down (&optional arg)
   "Scroll text of current window downward ARG lines; or near full screen if no ARG.
 If window cannot be scrolled further, move cursor to top line instead.
@@ -1042,6 +1015,8 @@ If ARG is the atom `-', scroll upward by nearly full screen."
     (condition-case nil
 	(scroll-down arg)
       (beginning-of-buffer (goto-char (point-min)))))))
+
+(put 'cua-scroll-up 'CUA 'move)
 
 ;;; Cursor indications
 
@@ -1073,8 +1048,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
 (defun cua--pre-command-handler ()
   (condition-case nil
-      (let ((movement (or (memq this-command cua--standard-movement-commands)
-			  (memq this-command cua-movement-commands))))
+      (let ((movement (eq (get this-command 'CUA) 'move)))
 
 	;; Cancel prefix key timeout if user enters another key.
 	(when cua--prefix-override-timer
@@ -1251,9 +1225,6 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (define-key cua-global-keymap [remap yank-pop]		'cua-paste-pop)
   ;; set mark
   (define-key cua-global-keymap [remap set-mark-command]	'cua-set-mark)
-  ;; undo
-  (define-key cua-global-keymap [remap undo]		'cua-undo)
-  (define-key cua-global-keymap [remap advertised-undo]	'cua-undo)
 
   ;; scrolling
   (define-key cua-global-keymap [remap scroll-up]	'cua-scroll-up)
@@ -1305,6 +1276,20 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (define-key cua--region-keymap [remap keyboard-quit]		'cua-cancel)
   )
 
+
+;; Setup standard movement commands to be recognized by CUA.
+
+(dolist (cmd
+ '(forward-char backward-char
+   next-line previous-line
+   forward-word backward-word
+   end-of-line beginning-of-line
+   end-of-buffer beginning-of-buffer
+   scroll-up scroll-down
+   forward-sentence backward-sentence
+   forward-paragraph backward-paragraph))
+  (put cmd 'CUA 'move))
+
 ;; State prior to enabling cua-mode
 ;; Value is a list with the following elements:
 ;;   transient-mark-mode
@@ -1349,9 +1334,6 @@ paste (in addition to the normal emacs bindings)."
       (setq emulation-mode-map-alists (delq 'cua--keymap-alist emulation-mode-map-alists))
     (add-to-list 'emulation-mode-map-alists 'cua--keymap-alist)
     (cua--select-keymaps))
-
-  (if (fboundp 'cua--rectangle-on-off)
-      (cua--rectangle-on-off cua-mode))
 
   (cond
    (cua-mode
