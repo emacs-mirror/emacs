@@ -9,7 +9,7 @@
 
 2000-11-28  Gerd Moellmann  <gerd@gnu.org>
 
-	* xselect.c (wait_for_property_change): Update copyright.
+	* xselect.c: Update copyright.
 
 	* window.c (coordinates_in_window): If on a mode or header line,
 	but sufficiently close to its start, return ``on vertical

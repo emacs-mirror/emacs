@@ -42,7 +42,7 @@ lacks unexec, asynchronous processes, and networking support.
 * Changes in Emacs 21.1
 
 ** The new command M-x delete-trailing-whitespace RET will delete the
-traling whitespace within the current restriction.  You can also add
+trailing whitespace within the current restriction.  You can also add
 this function to `write-file-hooks' or `local-write-file-hooks'.
 
 ** When visiting a file with M-x find-file-literally, no newlines will
