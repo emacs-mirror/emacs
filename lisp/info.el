@@ -1521,10 +1521,28 @@ N is the digit argument used to invoke this command."
 		(not (string-match "\\<index\\>" Info-current-node)))
 	   (Info-goto-node (Info-extract-menu-counting 1))
 	   t)
-	  ((save-excursion (search-backward "next:" nil t))
+	  ((save-excursion
+	     (save-restriction
+	       (let (limit)
+		 (when Info-header-line
+		   (goto-char (point-min))
+		   (widen)
+		   (forward-line -1)
+		   (setq limit (point))
+		   (forward-line 1))
+		 (search-backward "next:" limit t))))
 	   (Info-next)
 	   t)
-	  ((and (save-excursion (search-backward "up:" nil t))
+	  ((and (save-excursion
+		  (save-restriction
+		    (let (limit)
+		      (when Info-header-line
+			(goto-char (point-min))
+			(widen)
+			(forward-line -1)
+			(setq limit (point))
+			(forward-line 1))
+		      (search-backward "up:" limit t))))
 		;; Use string-equal, not equal, to ignore text props.
 		(not (string-equal (downcase (Info-extract-pointer "up"))
 				   "top")))
