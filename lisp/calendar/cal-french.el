@@ -168,11 +168,12 @@ Echo French Revolutionary date unless NOECHO is t."
                                (mapcar
                                 '(lambda (x) (concat "Jour " x))
                                 french-calendar-special-days-array)
+                             (nreverse
                               (cdr;; we don't want rev. day in a non-leap yr.
                                (nreverse
                                 (mapcar
                                  '(lambda (x) (concat "Jour " x))
-                                 french-calendar-special-days-array)))))))
+                                 french-calendar-special-days-array))))))))
           (completion-ignore-case t)
           (month (cdr (assoc
                        (capitalize
@@ -192,7 +193,7 @@ Echo French Revolutionary date unless NOECHO is t."
           (day (if (> month 12)
                    (- month 12)
                  (calendar-read
-                  "Jour (1-10)): "
+                  "Jour (1-10): "
                   '(lambda (x) (and (<= 1 x) (<= x 10))))))
           (month (if (> month 12) 13 month))
           (day (+ day (* 10 (1- decade)))))
