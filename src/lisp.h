@@ -242,7 +242,7 @@ Lisp_Object;
 
 #ifdef NO_UNION_TYPE
 
-#define Lisp_Object int
+#define Lisp_Object EMACS_INT
 
 /* These values are overridden by the m- file on some machines.  */
 #ifndef VALBITS
@@ -254,9 +254,9 @@ Lisp_Object;
 #endif
 
 #ifndef VALMASK
-#define VALMASK ((1<<VALBITS) - 1)
+#define VALMASK ((((EMACS_INT) 1)<<VALBITS) - 1)
 #endif
-#define GCTYPEMASK ((1<<GCTYPEBITS) - 1)
+#define GCTYPEMASK ((((EMACS_INT) 1)<<GCTYPEBITS) - 1)
 
 /* Two flags that are set during GC.  On some machines, these flags
    are defined differently by the m- file.  */
@@ -270,7 +270,9 @@ Lisp_Object;
    is a "large" one, one which was separately malloc'd
    rather than being part of a string block.  */
 
+#ifndef MARKBIT
 #define MARKBIT (1 << (VALBITS + GCTYPEBITS))
+#endif /*MARKBIT */
 
 /* In the size word of a vector, this bit means the vector has been marked.
    In the size word of a large string, likewise.  */
@@ -300,7 +302,7 @@ you lose
 #endif
 
 #ifndef XSETTYPE
-#define XSETTYPE(a, b) ((a)  =  XUINT (a) | ((int)(b) << VALBITS))
+#define XSETTYPE(a, b) ((a)  =  XUINT (a) | ((EMACS_INT)(b) << VALBITS))
 #endif
 
 /* Use XFASTINT for fast retrieval and storage of integers known
@@ -354,7 +356,7 @@ extern int pure_size;
 
 #ifndef XSET
 #define XSET(var, type, ptr) \
-   ((var) = ((int)(type) << VALBITS) + ((int) (ptr) & VALMASK))
+   ((var) = ((EMACS_INT)(type) << VALBITS) + ((EMACS_INT) (ptr) & VALMASK))
 #endif
 
 /* During garbage collection, XGCTYPE must be used for extracting types
@@ -446,19 +448,19 @@ extern int pure_size;
 #define XPROCESS(a) ((struct Lisp_Process *) XPNTR(a))
 #define XFLOAT(a) ((struct Lisp_Float *) XPNTR(a))
 
-#define XSETCONS(a, b) XSETPNTR(a, (int) (b))
-#define XSETBUFFER(a, b) XSETPNTR(a, (int) (b))
-#define XSETVECTOR(a, b) XSETPNTR(a, (int) (b))
-#define XSETSUBR(a, b) XSETPNTR(a, (int) (b))
-#define XSETSTRING(a, b) XSETPNTR(a, (int) (b))
-#define XSETSYMBOL(a, b) XSETPNTR(a, (int) (b))
-#define XSETFUNCTION(a, b) XSETPNTR(a, (int) (b))
-#define XSETMARKER(a, b) XSETPNTR(a, (int) (b))
-#define XSETOBJFWD(a, b) XSETPNTR(a, (int) (b))
-#define XSETINTPTR(a, b) XSETPNTR(a, (int) (b))
-#define XSETWINDOW(a, b) XSETPNTR(a, (int) (b))
-#define XSETPROCESS(a, b) XSETPNTR(a, (int) (b))
-#define XSETFLOAT(a, b) XSETPNTR(a, (int) (b))
+#define XSETCONS(a, b) XSETPNTR(a, (EMACS_INT) (b))
+#define XSETBUFFER(a, b) XSETPNTR(a, (EMACS_INT) (b))
+#define XSETVECTOR(a, b) XSETPNTR(a, (EMACS_INT) (b))
+#define XSETSUBR(a, b) XSETPNTR(a, (EMACS_INT) (b))
+#define XSETSTRING(a, b) XSETPNTR(a, (EMACS_INT) (b))
+#define XSETSYMBOL(a, b) XSETPNTR(a, (EMACS_INT) (b))
+#define XSETFUNCTION(a, b) XSETPNTR(a, (EMACS_INT) (b))
+#define XSETMARKER(a, b) XSETPNTR(a, (EMACS_INT) (b))
+#define XSETOBJFWD(a, b) XSETPNTR(a, (EMACS_INT) (b))
+#define XSETINTPTR(a, b) XSETPNTR(a, (EMACS_INT) (b))
+#define XSETWINDOW(a, b) XSETPNTR(a, (EMACS_INT) (b))
+#define XSETPROCESS(a, b) XSETPNTR(a, (EMACS_INT) (b))
+#define XSETFLOAT(a, b) XSETPNTR(a, (EMACS_INT) (b))
 
 #ifdef USE_TEXT_PROPERTIES
 /* Basic data type for use of intervals.  See the macros in intervals.h */
@@ -549,14 +551,14 @@ struct Lisp_Buffer_Cons
 
 struct Lisp_String
   {
-    int size;
+    EMACS_INT size;
     DECLARE_INTERVALS		/* `data' field must be last. */
     unsigned char data[1];
   };
 
 struct Lisp_Vector
   {
-    int size;
+    EMACS_INT size;
     struct Lisp_Vector *next;
     Lisp_Object contents[1];
   };
