@@ -4025,7 +4025,7 @@ have both Backspace, Delete and F1 keys."
 (defun delete-key-deletes-forward-mode (&optional arg)
   "Toggle Delete key deleting forward or backward.
 With numeric arg, turn the mode on if and only iff ARG is positive.
-For more details, see `delete-key-deleted-forward'."
+For more details, see `delete-key-deletes-forward'."
   (interactive "P")
   (setq delete-key-deletes-forward
 	(if arg
