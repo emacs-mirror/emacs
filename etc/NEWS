@@ -953,6 +953,10 @@ expression from that list, are not checked.
 
 ** New modes and packages
 
+*** The Ebrowse package implements a C++ class browser and tags
+facilities tailored for use with C++.  It is documented in a
+separate Texinfo file.
+
 *** The PCL-CVS package available by either running M-x cvs-examine
 or by visiting a CVS administrative directory (with a prefix argument)
 provides an alternative interface to VC-dired for CVS.
