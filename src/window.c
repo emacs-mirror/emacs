@@ -63,7 +63,7 @@ enum window_part
 
 
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
-Lisp_Object Qwindow_size_fixed, Qleft_fringe, Qright_fringe;
+Lisp_Object Qwindow_size_fixed;
 extern Lisp_Object Qheight, Qwidth;
 
 static int displayed_window_lines P_ ((struct window *));
@@ -5673,11 +5673,6 @@ init_window ()
 void
 syms_of_window ()
 {
-  Qleft_fringe = intern ("left-fringe");
-  staticpro (&Qleft_fringe);
-  Qright_fringe = intern ("right-fringe");
-  staticpro (&Qright_fringe);
-  
   Qwindow_size_fixed = intern ("window-size-fixed");
   staticpro (&Qwindow_size_fixed);
   
