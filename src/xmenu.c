@@ -1727,7 +1727,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 		      if (!NILP (prefix))
 			entry = Fcons (prefix, entry);
 		      for (j = submenu_depth - 1; j >= 0; j--)
-			if (!NILP (subprefix_stack[j], entry))
+			if (!NILP (subprefix_stack[j]))
 			  entry = Fcons (subprefix_stack[j], entry);
 		    }
 		  return entry;
