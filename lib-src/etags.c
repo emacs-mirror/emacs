@@ -31,12 +31,14 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (pot@gnu.org) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 13.31";
+char pot_etags_version[] = "@(#) pot revision number is 13.33";
 
 #define	TRUE	1
 #define	FALSE	0
 
-#define _GNU_SOURCE		/* enables some compiler checks on GNU */
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE		/* enables some compiler checks on GNU */
+#endif
 #ifndef DEBUG
 # define DEBUG FALSE
 #endif
@@ -934,7 +936,7 @@ main (argc, argv)
 	case 'o':
 	  if (tagfile)
 	    {
-	      error ("-%c option may only be given once.", opt);
+	      error ("-o option may only be given once.", (char *)NULL);
 	      suggest_asking_for_help ();
 	    }
 	  tagfile = optarg;
@@ -1012,7 +1014,7 @@ main (argc, argv)
 
   if (nincluded_files == 0 && file_count == 0)
     {
-      error ("no input files specified.", 0);
+      error ("no input files specified.", (char *)NULL);
       suggest_asking_for_help ();
     }
 
@@ -2786,7 +2788,7 @@ C_entries (c_ext, inf)
 		      lp += 2;
 		      toklen += 2;
 		      c = lp[-1];
-		      goto intoken;
+		      goto intok;
 		    }
 		  else
 		    {
@@ -2881,7 +2883,7 @@ C_entries (c_ext, inf)
 		    }
 		} /* if (endtoken (c)) */
 	      else if (intoken (c))
-		intoken:
+		intok:
 		{
 		  toklen++;
 		  continue;
@@ -4112,8 +4114,6 @@ Postscript_functions (inf)
  * look for (def ... ((...(xyzzy ....
  * look for (set! xyzzy
  */
-
-void get_scheme ();
 
 void
 Scheme_functions (inf)
@@ -5401,13 +5401,13 @@ canonicalize_filename (fn)
      register char *fn;
 {
 #ifdef DOS_NT
+  /* Canonicalize drive letter case.  */
+  if (islower (fn[0]))
+    fn[0] = toupper (fn[0]);
   /* Convert backslashes to slashes.  */
   for (; *fn != '\0'; fn++)
     if (*fn == '\\')
       *fn = '/';
-  /* Canonicalize drive letter case.  */
-  if (islower (path[0]))
-    path[0] = toupper (path[0]);
 #else
   /* No action. */
   fn = NULL;			/* shut up the compiler */
