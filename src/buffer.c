@@ -164,6 +164,27 @@ DEFUN ("buffer-list", Fbuffer_list, Sbuffer_list, 0, 0, 0,
   return Fmapcar (Qcdr, Vbuffer_alist);
 }
 
+/* Like Fassoc, but use Fstring_equal to compare
+   (which ignores text properties),
+   and don't ever QUIT.  */
+
+static Lisp_Object
+assoc_ignore_text_properties (key, list)
+     register Lisp_Object key;
+     Lisp_Object list;
+{
+  register Lisp_Object tail;
+  for (tail = list; !NILP (tail); tail = Fcdr (tail))
+    {
+      register Lisp_Object elt, tem;
+      elt = Fcar (tail);
+      tem = Fstring_equal (Fcar (elt), key);
+      if (!NILP (tem))
+	return elt;
+    }
+  return Qnil;
+}
+
 DEFUN ("get-buffer", Fget_buffer, Sget_buffer, 1, 1, 0,
   "Return the buffer named NAME (a string).\n\
 If there is no live buffer named NAME, return nil.\n\
@@ -175,7 +196,7 @@ NAME may also be a buffer; if so, the value is that buffer.")
     return name;
   CHECK_STRING (name, 0);
 
-  return Fcdr (Fassoc (name, Vbuffer_alist));
+  return Fcdr (assoc_ignore_text_properties (name, Vbuffer_alist));
 }
 
 DEFUN ("get-file-buffer", Fget_file_buffer, Sget_file_buffer, 1, 1, 0,
@@ -258,7 +279,11 @@ The value is never nil.")
 
   b->mark = Fmake_marker ();
   /*b->number = make_number (++buffer_count);*/
+
+  name = Fcopy_sequence (name);
+  INITIALIZE_INTERVAL (XSTRING (name), NULL_INTERVAL);
   b->name = name;
+
   if (XSTRING (name)->data[0] != ' ')
     b->undo_list = Qnil;
   else
@@ -627,6 +652,18 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
 	continue;
       if (XSTRING (XBUFFER (buf)->name)->data[0] == ' ')
 	continue;
+#ifdef MULTI_FRAME
+      /* If the selected frame has a buffer_predicate,
+	 disregard buffers that don't fit the predicate.  */
+      tem = frame_buffer_predicate ();
+      if (!NILP (tem))
+	{
+	  tem = call1 (tem, buf);
+	  if (NILP (tem))
+	    continue;
+	}
+#endif
+
       if (NILP (visible_ok))
 	tem = Fget_buffer_window (buf, Qt);
       else
