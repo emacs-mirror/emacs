@@ -1,3 +1,7 @@
+2000-09-27  Miles Bader  <miles@gnu.org>
+
+	* image-file.el: New file.
+
 2000-09-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* ediff-wind.el (ediff-control-frame-parameters): Add zero
