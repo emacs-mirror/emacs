@@ -1454,7 +1454,8 @@ lw_separator_p (label, type, motif_p)
 	  }
     }
   else if (strlen (label) > 3
-	   && bcmp (label, "--", 2) == 0)
+	   && bcmp (label, "--", 2) == 0
+	   && label[2] != '-')
     {
       /* Alternative, more Emacs-style names.  */
       static struct separator_table
