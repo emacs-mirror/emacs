@@ -2135,6 +2135,7 @@ extern int invisible_p P_ ((Lisp_Object, Lisp_Object));
 extern void prepare_menu_bars P_ ((void));
 extern void syms_of_xdisp P_ ((void));
 extern void init_xdisp P_ ((void));
+extern Lisp_Object eval_form P_ ((Lisp_Object));
 
 /* Defined in vm-limit.c.  */
 extern void memory_warnings P_ ((POINTER_TYPE *, void (*warnfun) ()));
