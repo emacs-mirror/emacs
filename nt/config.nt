@@ -205,7 +205,7 @@ Boston, MA 02111-1307, USA.  */
 
    See s/template.h for documentation on writing s/SYSTEM.h files.  */
 #undef config_opsysfile 
-#include "s/windowsnt.h"
+#include "s/ms-w32.h"
 
 /* The configuration script defines machfile to be the name of the
    m/MACHINE.h file that describes the machine you are using.  The file is
