@@ -516,10 +516,19 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p, just_compute
 	}
       else 
 	{
+	  int x_offset = x + h_spacing + shadow;
 	  char* display_string = resource_widget_value (mw, val);
 	  draw_shadow_rectangle (mw, ws->window, x, y, width, height, True);
-	  XDrawString (XtDisplay (mw), ws->window, text_gc,
-		       x + h_spacing + shadow,
+
+	  /* Deal with centering a menu title. */
+	  if (!horizontal_p && !val->contents && !val->call_data)
+	    {
+	      int l = string_width (mw, display_string);
+
+	      if (width > l)
+		x_offset = (width - l) >> 1;
+	    }
+          XDrawString (XtDisplay (mw), ws->window, text_gc, x_offset,
 		       y + v_spacing + shadow + font_ascent,
 		       display_string, strlen (display_string));
 	  
