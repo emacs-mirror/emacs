@@ -362,16 +362,6 @@ case "${srcdir}" in
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
 
-#### Make sure that the source directory doesn't already have a
-#### configured system in it.
-if [ `pwd` != `(cd ${srcdir} && pwd)` ] \
-   && [ -f "${srcdir}/src/config.h" ] ; then
-  (echo "${progname}: the directory tree \`${srcdir}' is being used"
-   echo "   as a build directory right now; it has been configured in its own"
-   echo "   right.  You can't use srcdir in this situation.") >&2
-  exit 1
-fi
-
 ### Make the necessary directories, if they don't exist.
 for dir in ./src ./lib-src ./cpp ./oldXMenu ./etc ; do
   if [ ! -d ${dir} ]; then
@@ -562,6 +552,9 @@ case "${canonical}" in
   ## HP 9000 series 200 or 300
   m68*-hp-bsd* )
     machine=hp9000s300 opsys=bsd4-3
+  ;;
+  m68*-hp-netbsd* )
+    machine=hp9000s300 opsys=netbsd
   ;;
   ## HP/UX 7, 8 and 9 are supported on these machines.
   m68*-hp-hpux* )
@@ -900,6 +893,7 @@ case "${canonical}" in
       *-sco3.2v4* )		opsys=sco4 ;;
       *-bsd386* )		opsys=bsd386 ;;
       *-386bsd* )	        opsys=386bsd ;;
+      *-netbsd* )	        opsys=netbsd ;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
   ;;
@@ -1182,11 +1176,13 @@ dnl If found, this defines HAVE_LIBDNET, which m/pmax.h checks,
 dnl and also adds -ldnet to LIBS, which Autoconf uses for checks.
 AC_HAVE_LIBRARY(-ldnet)
 
-AC_HAVE_LIBRARY(-lXbsd, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd"
-    if test -d /usr/X386/include; then
-      HAVE_XFREE386=yes
-      test -z "${C_SWITCH_X_SITE}" && C_SWITCH_X_SITE="-I/usr/X386/include"
-    fi)
+AC_HAVE_LIBRARY(-lXbsd, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
+
+echo checking for XFree86
+if test -d /usr/X386/include; then
+  HAVE_XFREE386=yes
+  test -z "${C_SWITCH_X_SITE}" && C_SWITCH_X_SITE="-I/usr/X386/include"
+fi
 
 if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
