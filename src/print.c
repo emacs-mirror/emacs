@@ -1258,6 +1258,8 @@ print (obj, printcharfun, escapeflag)
 		 character slots.  But we add #^ as a prefix.  */
 	      PRINTCHAR ('#');
 	      PRINTCHAR ('^');
+	      if (SUB_CHAR_TABLE_P (obj))
+		PRINTCHAR ('^');
 	      size &= PSEUDOVECTOR_SIZE_MASK;
 	    }
 	  if (size & PSEUDOVECTOR_FLAG)

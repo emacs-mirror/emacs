@@ -1336,7 +1336,24 @@ read1 (readcharfun, pch, first_in_list)
 		  || XVECTOR (tmp)->size > CHAR_TABLE_STANDARD_SLOTS + 10)
 		error ("Invalid size char-table");
 	      XSETCHAR_TABLE (tmp, XCHAR_TABLE (tmp));
+	      XCHAR_TABLE (tmp)->top = Qt;
 	      return tmp;
+	    }
+	  else if (c == '^')
+	    {
+	      c = READCHAR;
+	      if (c == '[')
+		{
+		  Lisp_Object tmp;
+		  tmp = read_vector (readcharfun);
+		  if (XVECTOR (tmp)->size != SUB_CHAR_TABLE_STANDARD_SLOTS)
+		    error ("Invalid size char-table");
+		  XSETCHAR_TABLE (tmp, XCHAR_TABLE (tmp));
+		  XCHAR_TABLE (tmp)->top = Qnil;
+		  return tmp;
+		}
+	      Fsignal (Qinvalid_read_syntax,
+		       Fcons (make_string ("#^^", 3), Qnil));
 	    }
 	  Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#^", 2), Qnil));
 	}
