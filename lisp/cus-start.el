@@ -93,7 +93,12 @@
 					     (symbol :format "%v"))
 				     (const :tag "always" t)))
 	     (debug-ignored-errors debug (repeat (choice symbol regexp)))
-	     (debug-on-quit debug choice)
+	     (debug-on-quit debug
+			    (choice (const :tag "off")
+				    (repeat :menu-tag "When"
+					    :value (nil)
+					    (symbol :format "%v"))
+				    (const :tag "always" t)))
 	     ;; fileio.c
 	     (insert-default-directory minibuffer boolean)
 	     ;; frame.c
