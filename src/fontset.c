@@ -34,6 +34,8 @@ Lisp_Object Vglobal_fontset_alist;
 Lisp_Object Vfont_encoding_alist;
 Lisp_Object Vuse_default_ascent;
 Lisp_Object Valternative_fontname_alist;
+Lisp_Object Vhighlight_wrong_size_font;
+Lisp_Object Vclip_large_size_font;
 
 /* We had better have our own strcasecmp function because some system
    doesn't have it.  */
@@ -832,6 +834,17 @@ is assumed to be what specified by _MULE_DEFAULT_ASCENT property of a font.");
 When no font can be opened by a fontname, the corresponding
 alternative fontnames are tried.");
   Valternative_fontname_alist = Qnil;
+
+  DEFVAR_LISP ("highlight-wrong-size-font", &Vhighlight_wrong_size_font,
+     "*Non-nil means highlight characters shown in wrong size fonts somehow.\n\
+The way to highlight them depends on window system on which Emacs runs.\n\
+On X window, rectangle is shown around each such characters.");
+  Vhighlight_wrong_size_font = Qt;
+
+  DEFVAR_LISP ("clip-large-size-font", &Vclip_large_size_font,
+     "*Non-nil means clip glyphs shown in large size fonts.\n\
+The hight of clipping area is the same as the hight of ASCII characters.");
+  Vclip_large_size_font = Qt;
 
   defsubr (&Squery_fontset);
   defsubr (&Snew_fontset);
