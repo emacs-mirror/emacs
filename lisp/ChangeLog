@@ -1,11 +1,13 @@
+1999-11-30  Dave Love  <fx@gnu.org>
+
+	* faces.el (set-face-documentation): Purecopy STRING.
+
 1999-11-29  Dave Love  <fx@gnu.org>
 
 	* derived.el: Doc fixes, remove old backquote syntax.
 
 	* cus-edit.el (custom-save-variables, custom-save-faces): Write a
 	comment warning about editing.
-
-1999-11-29  Dave Love  <fx@gnu.org>
 
 	* help.el (help-mode-hook): Define.
 
