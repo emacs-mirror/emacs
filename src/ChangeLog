@@ -1,5 +1,8 @@
 2001-02-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_set_font): If font hasn't changed, avoid recomputing
+	faces and other things.
+
 	* xdisp.c (get_next_display_element): Fix case of empty
 	display table entry.
 

@@ -1,5 +1,7 @@
 2001-02-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* wid-edit.el (widget-button-click): Fix last change.
+
 	* frame.el (frame-notice-user-settings): When resizing the initial
 	frame because the tool bar is off, also change the frame's top
 	position if a negative top position was specified.
