@@ -1,3 +1,7 @@
+2002-09-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* syntax.c (skip_syntaxes): Fix previous change.
+
 2002-09-13  Kenichi Handa  <handa@etl.go.jp>
 
 	* syntax.c (skip_chars): Fix previous change.

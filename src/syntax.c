@@ -1731,7 +1731,7 @@ skip_syntaxes (forwardp, string, lim)
   if (XINT (lim) < BEGV)
     XSETFASTINT (lim, BEGV);
 
-  if (forward ? PT >= XFASTINT (lim) : PT <= XFASTINT (lim))
+  if (forwardp ? (PT >= XFASTINT (lim)) : (PT <= XFASTINT (lim)))
     return 0;
 
   multibyte = (!NILP (current_buffer->enable_multibyte_characters)
