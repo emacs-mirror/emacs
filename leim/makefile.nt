@@ -47,20 +47,16 @@ SUBDIRS=quail
 
 # Files generated from TIT dictionaries for Chinese GB character set.
 TIT_GB=\
-	quail/CTLau.elc		\
 	quail/CCDOSPY.elc	\
 	quail/Punct.elc		\
-	quail/PY.elc		\
 	quail/QJ.elc		\
 	quail/SW.elc		\
-	quail/TONEPY.elc	\
-	quail/ZIRANMA.elc
+	quail/TONEPY.elc
 
 # Files generated from TIT dictionaries for Chinese BIG5 character set.
 TIT_BIG5=\
 	quail/4Corner.elc	\
 	quail/ARRAY30.elc	\
-	quail/CTLauB.elc	\
 	quail/ECDICT.elc	\
 	quail/ETZY.elc		\
 	quail/Punct-b5.elc	\
@@ -72,24 +68,20 @@ CHINESE_TIT=$(TIT_GB) $(TIT_BIG5)
 
 NON_TIT_GB=$(srcdir)/quail/py-punct.elc
 
-NON_TIT_BIG5=$(srcdir)/quail/quick-b5.elc $(srcdir)/quail/tsang-b5.elc \
-	     $(srcdir)/quail/pypunct-b5.elc
+NON_TIT_BIG5=$(srcdir)/quail/quick-b5.elc
 
-NON_TIT_CNS=$(srcdir)/quail/quick-cns.elc $(srcdir)/quail/tsang-cns.elc
-
-CHINESE_NON_TIT=$(NON_TIT_GB) $(NON_TIT_BIG5) $(NON_TIT_CNS)
+CHINESE_NON_TIT=$(NON_TIT_GB) $(NON_TIT_BIG5)
 
 CHINESE_GB=$(TIT_GB) $(NON_TIT_GB)
 
 CHINESE_BIG5=$(TIT_BIG5) $(NON_TIT_BIG5) 
-
-CHINESE_CNS=$(NON_TIT_CNS) 
 
 JAPANESE=$(srcdir)/quail/japanese.elc $(srcdir)/ja-dic/ja-dic.elc
 
 KOREAN=	$(srcdir)/quail/hangul.elc	\
 	$(srcdir)/quail/hangul3.elc	\
 	$(srcdir)/quail/hanja.elc	\
+	$(srcdir)/quail/hanja3.elc	\
 	$(srcdir)/quail/hanja-jis.elc	\
 	$(srcdir)/quail/symbol-ksc.elc
 
@@ -103,7 +95,10 @@ INDIAN=$(srcdir)/quail/devanagari.elc
 
 TIBETAN=$(srcdir)/quail/tibetan.elc
 
-LATIN=$(srcdir)/quail/latin-pre.elc $(srcdir)/quail/latin-post.elc
+LATIN=	$(srcdir)/quail/latin-pre.elc	\
+	$(srcdir)/quail/latin-post.elc	\
+	$(srcdir)/quail/latin-alt.elc	\
+	$(srcdir)/quail/latin-ltx.elc
 
 SLAVIC= \
 	$(srcdir)/quail/czech.elc \
@@ -118,7 +113,17 @@ MISC= \
 	$(srcdir)/quail/ipa.elc \
 	$(srcdir)/quail/hebrew.elc
 
-CHINESE=$(CHINESE_GB) $(CHINESE_BIG5) $(CHINESE_CNS)
+MISC_DIC=\
+	quail/tsang-b5.elc	\
+	quail/quick-b5.elc	\
+	quail/tsang-cns.elc	\
+	quail/quick-cns.elc	\
+	quail/PY.elc		\
+	quail/ZIRANMA.elc	\
+	quail/CTLau.elc		\
+	quail/CTLau-b5.elc
+
+CHINESE=$(CHINESE_GB) $(CHINESE_BIG5)
 EASTASIA=$(CHINESE) $(JAPANESE) $(KOREAN)
 ASIA=$(EASTASIA) $(THAI) $(VIETNAMESE) $(LAO) $(INDIAN) $(TIBETAN)
 EUROPEAN=$(LATIN) $(SLAVIC) $(GREEK) $(RUSSIAN)
@@ -127,7 +132,7 @@ WORLD=$(ASIA) $(EUROPEAN) $(MISC)
 TIT=$(CHINESE_TIT)
 NON_TIT=$(CHINESE_NON_TIT) $(JAPANESE) $(KOREAN) $(EUROPEAN) $(MISC)
 
-all: $(BUILT_EMACS) $(SUBDIRS) $(TIT) leim-list.el
+all: $(BUILT_EMACS) $(SUBDIRS) $(TIT) $(MISC_DIC) leim-list.el
 
 # To ensure that we can run Emacs.  This target is ignored (never
 # being hit) if a user changes default value of EMACS.
@@ -138,6 +143,14 @@ $(SUBDIRS):
 	mkdir $@
 	echo stamp>stamp-subdir
 
+# The rules which generate $(TIT) and ${MISC_DIC) files create them all
+# in one go.  So we need to prevent parallel execution for that target,
+# otherwise Emacs complains about files being locked.  .NOTPARALLEL is
+# for GNU Make, .NO_PARALLEL is for other Make's.
+.NOTPARALLEL: $(TIT) $(MISC_DIC)
+
+.NO_PARALLEL: $(TIT) $(MISC_DIC)
+
 # Rule to generate quail/*.el from CXTERM-DIC/*.tit.
 $(TIT): $(SUBDIRS)
 	set EMACSLOADPATH=$(buildlisppath)
@@ -145,6 +158,14 @@ $(TIT): $(SUBDIRS)
 	    --eval "(batch-titdic-convert t)" -dir quail $(srcdir)/CXTERM-DIC
 	$(RUN_EMACS)  -l $(buildlisppath)/international/quail \
 	    -f batch-byte-compile $(TIT:.elc=.el)
+
+# Rule to generate quail/*.el from CXTERM-DIC/*.tit.
+$(MISC_DIC): $(SUBDIRS)
+	set EMACSLOADPATH=$(buildlisppath)
+	$(RUN_EMACS) -l $(buildlisppath)/international/titdic-cnv \
+	    -f batch-miscdic-convert -dir quail $(srcdir)/MISC-DIC
+	$(RUN_EMACS)  -l $(buildlisppath)/international/quail \
+	    -f batch-byte-compile $(MISC_DIC:.elc=.el)
 
 .SUFFIXES: .elc .el
 
@@ -167,9 +188,15 @@ install: all
 	if not exist same-dir.tst $(CP_DIR) ja-dic $(INSTALLDIR)\ja-dic
 	- $(DEL) $(INSTALLDIR)\same-dir.tst
 
+TIT_EL=$(TIT:.elc=.el)
+MISC_DIC_EL=$(MISC_DIC:.elc=.el)
+
 clean mostlyclean:
-	for %%f in ($(TIT:/=\)) do $(DEL) %%fc
 	for %%f in ($(TIT:/=\)) do $(DEL) %%f
+	for %%f in ($(TIT_EL:/=\)) do $(DEL) %%f
+	for %%f in ($(MISC_DIC:/=\)) do $(DEL) %%f
+	for %%f in ($(MISC_DIC_EL:/=\)) do $(DEL) %%f
+	for %%f in ($(WORLD:/=\)) do $(DEL) %%f
 	$(DEL) leim-list.el
 
 distclean maintainer-clean:
