@@ -500,10 +500,10 @@ case "${canonical}" in
 
   ## Acorn RISCiX:
   arm-acorn-riscix1.1* )
-    machine=riscix opsys=riscix1-1
+    machine=acorn opsys=riscix1-1
   ;;
   arm-acorn-riscix1.2* | arm-acorn-riscix )
-    machine=riscix opsys=riscix1-2
+    machine=acorn opsys=riscix1-2
   ;;
 
   ## Alliant machines
