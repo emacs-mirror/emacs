@@ -1142,8 +1142,8 @@ list_buffers_1 (files)
   desired_point = Qnil;
   other_file_symbol = intern ("list-buffers-directory");
 
-  XSETFASTINT (col1, 19);
-  XSETFASTINT (col2, 26);
+  XSETFASTINT (col1, 17);
+  XSETFASTINT (col2, 28);
   XSETFASTINT (col3, 40);
   XSETFASTINT (minspace, 1);
 
@@ -1152,8 +1152,8 @@ list_buffers_1 (files)
   current_buffer->read_only = Qnil;
 
   write_string ("\
- MR Buffer         Size   Mode          File\n\
- -- ------         ----   ----          ----\n", -1);
+ MR Buffer           Size Mode          File\n\
+ -- ------           ---- ----          ----\n", -1);
 
   for (tail = Vbuffer_alist; !NILP (tail); tail = Fcdr (tail))
     {
@@ -1177,9 +1177,27 @@ list_buffers_1 (files)
       write_string ((b != current_buffer && NILP (b->read_only))
 		    ? "  " : "% ", -1);
       Fprinc (b->name, Qnil);
-      Findent_to (col1, make_number (2));
-      XSETFASTINT (tem, BUF_Z (b) - BUF_BEG (b));
-      Fprin1 (tem, Qnil);
+      tem = Findent_to (col1, make_number (2));
+      {
+	char sizebuf[9];
+	int i;
+	char *p;
+
+	sprintf (sizebuf, "%8d", BUF_Z (b) - BUF_BEG (b));
+	/* Here's how many extra columns the buffer name used.  */
+	i = XFASTINT (tem) - XFASTINT (col1);
+	/* Skip that many spaces in the size, if it has that many,
+	   to keep the size values right-aligned if possible.  */
+	p = sizebuf;
+	while (i > 0)
+	  {
+	    if (*p == ' ')
+	      p++;
+	    i--;
+	  }
+
+	write_string (p, -1);
+      }
       Findent_to (col2, minspace);
       Fprinc (b->mode_name, Qnil);
       Findent_to (col3, minspace);
