@@ -1289,7 +1289,8 @@ An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY."
 					 (calendar-last-day-of-month m1 y1)))))
 			(and (<= d1 d) (<= d d2))))
 		 ;; only possible base dates straddle two months
-		 (and (/= m1 m2)
+		 (and (or (< y1 y2)
+ 			  (and (= y1 y2) (< m1 m2)))
 		      (or
 		       ;; m1, d1 works as a base date
 		       (and
