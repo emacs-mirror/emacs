@@ -1,3 +1,20 @@
+2000-02-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* uniquify.el (toplevel): Require CL at compile time.
+	(uniquify-push): Removed.
+
+	* shadowfile.el (shadow-when): Removed.
+
+	* tempo.el (tempo-dolist, tempo-mapc): Removed.
+	(tempo-process-and-insert-string): Use dolist instead of
+	tempo-dolist.
+
+	* textmodes/sgml-mode.el (sgml-mode-common): Remove `$' from
+	regexp for paragraph-start.
+
+	* mail/mail-utils.el (rmail-dont-reply-to): Remove leading
+	commas as well.
+
 2000-02-10  Dave Love  <fx@gnu.org>
 
 	* wid-edit.el: (widgets) [defgroup]: Remove url link.
