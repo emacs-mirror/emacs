@@ -445,6 +445,7 @@ void (*keyboard_init_hook) ();
 
 static int read_avail_input ();
 static void get_input_pending ();
+static int readable_events ();
 static Lisp_Object read_char_menu_prompt ();
 static Lisp_Object make_lispy_event ();
 static Lisp_Object make_lispy_movement ();
@@ -1748,6 +1749,10 @@ kbd_buffer_store_event (event)
       if (event->modifiers & ctrl_modifier)
 	c = make_ctrl_char (c);
 
+      c |= (event->modifiers
+	    & (meta_modifier | alt_modifier
+	       | hyper_modifier | super_modifier));
+
       if (c == quit_char)
 	{
 	  extern SIGTYPE interrupt_signal ();
@@ -1779,8 +1784,6 @@ kbd_buffer_store_event (event)
 	  sys_suspend ();
 	  return;
 	}
-
-      XSET (event->code, Lisp_Int, c);
     }
 
   if (kbd_store_ptr - kbd_buffer == KBD_BUFFER_SIZE)
@@ -4835,7 +4838,10 @@ interrupt_signal ()
       printf ("Auto-save? (y or n) ");
       fflush (stdout);
       if (((c = getchar ()) & ~040) == 'Y')
-	Fdo_auto_save (Qnil, Qnil);
+	{
+	  Fdo_auto_save (Qt, Qnil);
+	  printf ("Auto-save done\n");
+	}
       while (c != '\n') c = getchar ();
 #ifdef VMS
       printf ("Abort (and enter debugger)? (y or n) ");
