@@ -3448,15 +3448,20 @@ usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
 #endif
 
 DEFUN ("langinfo", Flanginfo, Slanginfo, 1, 1, 0,
-       doc: /* Access locale category ITEM, if available.
+       doc: /* Access locale data ITEM, if available.
 
 ITEM may be one of the following:
-`codeset', returning the character set as a string (CODESET);
-`days', returning a 7-element vector of day names (DAY_n);
-`months', returning a 12-element vector of month names (MON_n).
+`codeset', returning the character set as a string (locale item CODESET);
+`days', returning a 7-element vector of day names (locale items DAY_n);
+`months', returning a 12-element vector of month names (locale items MON_n);
+`paper', returning a list (WIDTH, HEIGHT) for the default paper size,
+  where the width and height are in mm (locale items PAPER_WIDTH,
+  PAPER_HEIGHT).
 
 If the system can't provide such information through a call to
 nl_langinfo(3), return nil.
+
+See also Info node `(libc)Locales'.
 
 The data read from the system are decoded using `locale-coding-system'.  */)
      (item)
