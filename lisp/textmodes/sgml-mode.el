@@ -132,18 +132,30 @@ This takes effect when first loading the `sgml-mode' library.")
   "Keymap for SGML mode.  See also `sgml-specials'.")
 
 
-(defvar sgml-mode-syntax-table
-  (let ((table (copy-syntax-table text-mode-syntax-table)))
+(defun sgml-make-syntax-table (specials)
+  (let ((table (make-syntax-table text-mode-syntax-table)))
     (modify-syntax-entry ?< "(>" table)
     (modify-syntax-entry ?> ")<" table)
-    (if (memq ?- sgml-specials)
+    (modify-syntax-entry ?: "_" table)
+    (modify-syntax-entry ?_ "_" table)
+    (modify-syntax-entry ?. "_" table)
+    (if (memq ?- specials)
 	(modify-syntax-entry ?- "_ 1234" table))
-    (if (memq ?\" sgml-specials)
+    (if (memq ?\" specials)
 	(modify-syntax-entry ?\" "\"\"" table))
-    (if (memq ?' sgml-specials)
+    (if (memq ?' specials)
 	(modify-syntax-entry ?\' "\"'" table))
-    table)
+    table))
+
+(defvar sgml-mode-syntax-table (sgml-make-syntax-table sgml-specials)
   "Syntax table used in SGML mode.  See also `sgml-specials'.")
+
+(defconst sgml-tag-syntax-table
+  (let ((table (sgml-make-syntax-table '(?- ?\" ?\'))))
+    (dolist (char '(?\( ?\) ?\{ ?\} ?\[ ?\] ?$ ?% ?& ?* ?+ ?/))
+      (modify-syntax-entry char "." table))
+    table)
+  "Syntax table used to parse SGML tags.")
 
 
 (defcustom sgml-name-8bit-mode nil
@@ -225,6 +237,7 @@ separated by a space."
   :type '(choice (const nil) integer)
   :group 'sgml)
 
+(defconst sgml-tag-name-re "<\\([!/?]?[[:alpha:]][-_.:[:alnum:]]*\\)")
 (defconst sgml-start-tag-regex
   "<[[:alpha:]]\\([-_.:[:alnum:]= \n\t]\\|\"[^\"]*\"\\|'[^']*'\\)*"
   "Regular expression that matches a non-empty start tag.
@@ -235,7 +248,7 @@ Any terminating `>' or `/' is not matched.")
 (defconst sgml-font-lock-keywords-1
   '(("<\\([!?][[:alpha:]][-_.:[:alnum:]]*\\)" 1 font-lock-keyword-face)
     ("<\\(/?[[:alpha:]][-_.:[:alnum:]]*\\)" 1 font-lock-function-name-face)
-    ;; FIXME: this doesn't cover the variable using a default value.
+    ;; FIXME: this doesn't cover the variables using a default value.
     ("\\([[:alpha:]][-_.:[:alnum:]]*\\)=[\"']" 1 font-lock-variable-name-face)
     ("[&%][[:alpha:]][-_.:[:alnum:]]*;?" . font-lock-variable-name-face)))
 
@@ -634,20 +647,12 @@ With prefix argument, only self insert."
 	       "No description available")))
 
 
-(defun sgml-maybe-end-tag ()
-  "Name self unless in position to end a tag."
-  (interactive)
-  (or (condition-case nil
-	  (save-excursion (up-list -1))
-	(error
-	 (sgml-name-self)
-	 t))
-      (condition-case nil
-	  (progn
-	    (save-excursion (up-list 1))
-	    (sgml-name-self))
-	(error (self-insert-command 1)))))
-
+(defun sgml-maybe-end-tag (&optional arg)
+  "Name self unless in position to end a tag or a prefix ARG is given."
+  (interactive "P")
+  (if (or arg (eq (car (sgml-lexical-context)) 'tag))
+      (self-insert-command (prefix-numeric-value arg))
+    (sgml-name-self)))
 
 (defun sgml-skip-tag-backward (arg)
   "Skip to beginning of tag or matching opening tag if present.
@@ -769,8 +774,7 @@ With prefix argument ARG, repeat this ARG times."
 		   (if arg
 		       (>= (prefix-numeric-value arg) 0)
 		     (not sgml-tags-invisible)))
-	      (while (re-search-forward "<\\([!/?]?[[:alpha:]][-_.:[:alnum:]]*\\)"
-					nil t)
+	      (while (re-search-forward sgml-tag-name-re nil t)
 		(setq string
 		      (cdr (assq (intern-soft (downcase (match-string 1)))
 				 sgml-display-text)))
@@ -829,24 +833,49 @@ and move to the line in the SGML document that caused it."
   (compile-internal command "No more errors"))
 
 
+(defun sgml-lexical-context (&optional limit)
+  "Return the lexical context at point as (TYPE . START).
+START is the location of the start of the lexical element.
+TYPE is one of `string', `comment', `tag', `cdata', ....
+Return nil if we are inside text (i.e. outside of any kind of tag).
+
+If non-nil LIMIT is a nearby position before point outside of any tag."
+  ;; As usual, it's difficult to get a reliable answer without parsing the
+  ;; whole buffer.  We'll assume that a tag at indentation is outside of
+  ;; any string or tag or comment or ...
+  (save-excursion
+    (let ((pos (point))
+	  (state nil))
+      ;; Hopefully this regexp will match something that's not inside
+      ;; a tag and also hopefully the match is nearby.
+      (when (or (and limit (goto-char limit))
+		(re-search-backward "^[ \t]*<" nil t))
+	(with-syntax-table sgml-tag-syntax-table
+	  (while (< (point) pos)
+	    ;; When entering this loop we're inside text.
+	    (skip-chars-forward "^<" pos)
+	    ;; We skipped text and reached a tag.  Parse it.
+	    ;; FIXME: this does not handle CDATA and funny stuff yet.
+	    (setq state (parse-partial-sexp (point) pos 0)))
+	  (cond
+	   ((nth 3 state) (cons 'string (nth 8 state)))
+	   ((nth 4 state) (cons 'comment (nth 8 state)))
+	   ((and state (> (nth 0 state) 0)) (cons 'tag (nth 1 state)))
+	   (t nil)))))))
+
 (defun sgml-beginning-of-tag (&optional top-level)
   "Skip to beginning of tag and return its name.
-If this can't be done, return t."
-  (or (if top-level
-	  (condition-case nil
-	      (up-list -1)
-	    (error t))
-	(>= (point)
-	    (if (search-backward "<" nil t)
-		(save-excursion
-		  (forward-list)
-		  (point))
-	      0)))
-      (if (looking-at "<[!/?]?[[:alpha:]][-_.:[:alnum:]]*")
-	  (buffer-substring-no-properties
-	   (1+ (point))
-	   (match-end 0))
-	t)))
+If this can't be done, return nil."
+  (let ((context (sgml-lexical-context)))
+    (if (eq (car context) 'tag)
+	(progn
+	  (goto-char (cdr context))
+	  (when (looking-at sgml-tag-name-re)
+	    (match-string-no-properties 1)))
+      (if top-level nil
+	(when context
+	  (goto-char (cdr context))
+	  (sgml-beginning-of-tag t))))))
 
 (defun sgml-value (alist)
   "Interactively insert value taken from attributerule ALIST.
@@ -875,13 +904,94 @@ With prefix argument, unquote the region."
     (goto-char end)
     (setq end start))
   (if unquotep
-      (while (re-search-forward "&\\(amp\\|\\(l\\|\\(g\\)\\)t\\);" end t)
+      (while (re-search-forward "&\\(amp\\|\\(l\\|\\(g\\)\\)t\\)[;\n]" end t)
 	(replace-match (if (match-end 3) ">" (if (match-end 2) "<" "&"))))
     (while (re-search-forward "[&<>]" end t)
       (replace-match (cdr (assq (char-before) '((?& . "&amp;")
 						(?< . "&lt;")
 						(?> . "&gt;"))))))))
 
+
+(defun sgml-calculate-indent ()
+  "Calculate the column to which this line should be indented."
+  (let ((lcon (sgml-lexical-context)))
+    ;; Indent comment-start markers inside <!-- just like comment-end markers.
+    (if (and (eq (car lcon) 'tag)
+	     (looking-at "--")
+	     (save-excursion (goto-char (cdr lcon)) (looking-at "<!--")))
+	(setq lcon (cons 'comment (+ (cdr lcon) 2))))
+
+    (case (car lcon)
+      (string
+       ;; Go back to previous non-empty line.
+       (while (and (> (point) (cdr lcon))
+		   (zerop (forward-line -1))
+		   (looking-at "[ \t]*$")))
+       (if (> (point) (cdr lcon))
+	   ;; Previous line is inside the string.
+	   (current-indentation)
+	 (goto-char (cdr lcon))
+	 (1+ (current-column))))
+
+      (comment
+       (let ((mark (looking-at "--")))
+	 ;; Go back to previous non-empty line.
+	 (while (and (> (point) (cdr lcon))
+		     (zerop (forward-line -1))
+		     (or (looking-at "[ \t]*$")
+			 (if mark (not (looking-at "[ \t]*--"))))))
+	 (if (> (point) (cdr lcon))
+	     ;; Previous line is inside the comment.
+	     (skip-chars-forward " \t")
+	   (goto-char (cdr lcon)))
+	 (when (and (not mark) (looking-at "--"))
+	   (forward-char 2) (skip-chars-forward " \t"))
+	 (current-column)))
+
+      (tag
+       (goto-char (1+ (cdr lcon)))
+       (skip-chars-forward "^ \t\n")	;Skip tag name.
+       (skip-chars-forward " \t")
+       (if (not (eolp))
+	   (current-column)
+	 ;; This is the first attribute: indent.
+	 (goto-char (1+ (cdr lcon)))
+	 (+ (current-column) sgml-basic-offset)))
+
+      (t
+       (while (looking-at "</")
+	 (forward-sexp 1)
+	 (skip-chars-forward " \t"))
+       (let ((context (xml-lite-get-context)))
+	 (cond
+	  ((null context) 0)		; no context
+	  ;; Align closing tag with the opening one.
+	  ;; ((and (eq (length context) 1) (looking-at "</"))
+	  ;;  (goto-char (xml-lite-tag-start (car context)))
+	  ;;  (current-column))
+	  (t
+	   (let ((here (point)))
+	     (goto-char (xml-lite-tag-end (car context)))
+	     (skip-chars-forward " \t\n")
+	     (if (< (point) here)
+		 (current-column)
+	       (goto-char (xml-lite-tag-start (car context)))
+	       (+ (current-column) sgml-basic-offset))))))))))
+
+(defun sgml-indent-line ()
+  "Indent the current line as SGML."
+  (interactive)
+  (let* ((savep (point))
+	 (indent-col
+	  (save-excursion
+	    (beginning-of-line)
+	    (skip-chars-forward " \t")
+	    (if (>= (point) savep) (setq savep nil))
+	    ;; calculate basic indent
+	    (sgml-calculate-indent))))
+    (if savep
+	(save-excursion (indent-line-to indent-col))
+      (indent-line-to indent-col))))
 
 ;;; HTML mode
 
