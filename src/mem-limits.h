@@ -32,7 +32,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 extern int __data_start;
 #define start_of_data()	&__data_start
 
-#else
+#else /* not _LIBC */
 
 #if defined (__osf__) && (defined (__mips) || defined (mips) || defined(__alpha))
 #include <sys/time.h>
@@ -88,12 +88,12 @@ extern char etext;
 #endif
 #endif
 
-#else  /* Not emacs */ 
+#else  /* not emacs */ 
 extern char etext;
 #define start_of_data() &etext
-#endif /* Not emacs */
+#endif /* not emacs */
 
-#endif /* _LIBC */
+#endif /* not _LIBC */
 
 
 /* start of data space; can be changed by calling malloc_init */
