@@ -382,7 +382,7 @@ calendar-time-zone are used to interpret local time."
 
 (defun solar-longitude (d)
   "Longitude of sun on astronomical (Julian) day number D.
-Accurary is about 0.01 degree (about 365.25*24*60*0.01/360 = 15 minutes).
+Accuracy is about 0.01 degree (about 365.25*24*60*0.01/360 = 15 minutes).
 
 The values of calendar-daylight-savings-starts,
 calendar-daylight-savings-starts-time, calendar-daylight-savings-ends,
