@@ -145,7 +145,7 @@ open-parenthesis, and point ends up at the beginning of the line."
 This is identical to beginning-of-defun, except that point does not move
 to the beginning of the line when `defun-prompt-regexp' is non-nil."
   (interactive "p")
-  (and arg (< arg 0) (forward-char 1))
+  (and arg (< arg 0) (not (eobp)) (forward-char 1))
   (and (re-search-backward (if defun-prompt-regexp
 			       (concat "^\\s(\\|"
 				       "\\(" defun-prompt-regexp "\\)\\s(")
