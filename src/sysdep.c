@@ -522,9 +522,13 @@ child_setup_tty (out)
 #ifdef IUCLC
   s.main.c_iflag &= ~IUCLC;	/* Disable downcasing on input.  */
 #endif
+#ifdef ISTRIP
+  s.main.c_iflag &= ~ISTRIP;	/* don't strip 8th bit on input */
+#endif
 #ifdef OLCUC
   s.main.c_oflag &= ~OLCUC;	/* Disable upcasing on output.  */
 #endif
+  s.main.c_oflag &= ~TAB3;	/* Disable tab expansion */
   s.main.c_cflag = (s.main.c_cflag & ~CSIZE) | CS8; /* Don't strip 8th bit */
 #if 0
   /* Said to be unnecessary:  */
