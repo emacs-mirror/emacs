@@ -975,8 +975,8 @@ This function allows vectors as well as strings.")
       res = make_specified_string (XSTRING (string)->data + from_byte,
 				   to_char - from_char, to_byte - from_byte,
 				   STRING_MULTIBYTE (string));
-      copy_text_properties (from_char, to_char, string,
-			    make_number (0), res, Qnil);
+      copy_text_properties (make_number (from_char), make_number (to_char),
+			    string, make_number (0), res, Qnil);
     }
   else
     res = Fvector (to_char - from_char,
@@ -1016,7 +1016,8 @@ substring_both (string, from, from_byte, to, to_byte)
       res = make_specified_string (XSTRING (string)->data + from_byte,
 				   to - from, to_byte - from_byte,
 				   STRING_MULTIBYTE (string));
-      copy_text_properties (from, to, string, make_number (0), res, Qnil);
+      copy_text_properties (make_number (from), make_number (to),
+			    string, make_number (0), res, Qnil);
     }
   else
     res = Fvector (to - from,
@@ -1763,12 +1764,15 @@ a character set name, or a character code.")
       charset_info = Fget (range, Qcharset);
       CHECK_VECTOR (charset_info, 0);
 
-      return Faref (char_table, XVECTOR (charset_info)->contents[0] + 128);
+      return Faref (char_table,
+		    make_number (XINT (XVECTOR (charset_info)->contents[0])
+				 + 128));
     }
   else if (VECTORP (range))
     {
       if (XVECTOR (range)->size == 1)
-	return Faref (char_table, XVECTOR (range)->contents[0] + 128);
+	return Faref (char_table,
+		      make_number (XINT (XVECTOR (range)->contents[0]) + 128));
       else
 	{
 	  int size = XVECTOR (range)->size;
@@ -1808,7 +1812,9 @@ a coding system, or a character code.")
       charset_info = Fget (range, Qcharset);
       CHECK_VECTOR (charset_info, 0);
 
-      return Faset (char_table, XVECTOR (charset_info)->contents[0] + 128,
+      return Faset (char_table,
+		    make_number (XINT (XVECTOR (charset_info)->contents[0])
+				 + 128),
 		    value);
     }
   else if (INTEGERP (range))
@@ -1816,7 +1822,9 @@ a coding system, or a character code.")
   else if (VECTORP (range))
     {
       if (XVECTOR (range)->size == 1)
-	return Faset (char_table, XVECTOR (range)->contents[0] + 128, value);
+	return Faset (char_table,
+		      make_number (XINT (XVECTOR (range)->contents[0]) + 128),
+		      value);
       else
 	{
 	  int size = XVECTOR (range)->size;
