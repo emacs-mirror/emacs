@@ -999,6 +999,9 @@ IT_write_glyphs (struct glyph *str, int str_len)
 	  register GLYPH g = GLYPH_FROM_CHAR_GLYPH (*str);
 	  int glyph_not_in_table = 0;
 
+	  /* If g is negative, it means we have a multibyte character
+	     in *str.  That's what GLYPH_FROM_CHAR_GLYPH returns for
+	     multibyte characters.  */
 	  if (g < 0 || g >= tlen)
 	    {
 	      /* This glyph doesn't have an entry in Vglyph_table.  */
@@ -1034,7 +1037,7 @@ IT_write_glyphs (struct glyph *str, int str_len)
 
 	  /* If the face of this glyph is different from the current
 	     screen face, update the screen attribute byte.  */
-	  cf = FAST_GLYPH_FACE (g);
+	  cf = str->face_id;
 	  if (cf != screen_face)
 	    IT_set_face (cf);	/* handles invalid faces gracefully */
 
