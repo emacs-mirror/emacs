@@ -204,6 +204,7 @@ nil for FUNCTION means all messages."
 	(setq rmail-summary-buffer nil)
 	(save-excursion
 	  (let ((rbuf (current-buffer))
+		(vbuf rmail-view-buffer)
 		(total rmail-total-messages))
 	    (set-buffer sumbuf)
 	    ;; Set up the summary buffer's contents.
@@ -219,6 +220,7 @@ nil for FUNCTION means all messages."
 	    (make-local-variable 'minor-mode-alist)
 	    (setq minor-mode-alist (list (list t (concat ": " description))))
 	    (setq rmail-buffer rbuf
+		  rmail-view-buffer vbuf
 		  rmail-summary-redo redo-form
 		  rmail-total-messages total))))
       (setq rmail-summary-buffer sumbuf))
@@ -263,6 +265,12 @@ nil for FUNCTION means all messages."
 	    (if (= ?0 (char-after (+ 3 (rmail-msgbeg msg))))
 		?\- ?\ )))
     line))
+
+;;;###autoload
+(defvar rmail-summary-line-decoder (function identity)
+  "*Function to decode summary-line.
+
+By default, `identity' is set.")
 
 (defun rmail-make-summary-line-1 (msg)
   (goto-char (rmail-msgbeg msg))
@@ -318,10 +326,12 @@ nil for FUNCTION means all messages."
 	  (insert "Summary-line: " line)))
     (setq pos (string-match "#" line))
     (aset rmail-summary-vector (1- msg)
-	  (concat (format "%4d  " msg)
-		  (substring line 0 pos)
-		  labels
-		  (substring line (1+ pos))))))
+	  (funcall rmail-summary-line-decoder
+		   (concat (format "%4d  " msg)
+			   (substring line 0 pos)
+			   labels
+			   (substring line (1+ pos)))))
+    ))
 
 (defun rmail-make-basic-summary-line ()
   (goto-char (point-min))
@@ -471,7 +481,8 @@ messages, or backward if NUMBER is negative."
 				      non-del-msg-found)))
       (setq count (1- count))))
   (beginning-of-line)
-  (display-buffer rmail-buffer))
+  (display-buffer rmail-view-buffer)
+  )
 
 (defun rmail-summary-previous-msg (&optional number)
   (interactive "p")
@@ -687,6 +698,7 @@ Commands for sorting the summary:
   (setq buffer-read-only t)
   (set-syntax-table text-mode-syntax-table)
   (make-local-variable 'rmail-buffer)
+  (make-local-variable 'rmail-view-buffer)
   (make-local-variable 'rmail-total-messages)
   (make-local-variable 'rmail-current-message)
   (setq rmail-current-message nil)
@@ -739,7 +751,7 @@ Search, the `unseen' attribute is restored.")
 	    (setq rmail-summary-put-back-unseen nil))
 
 	(or (eq rmail-current-message msg-num)
-	    (let ((window (get-buffer-window rmail-buffer))
+	    (let ((window (get-buffer-window rmail-view-buffer))
 		  (owin (selected-window)))
 	      (if isearch-mode
 		  (save-excursion
@@ -1055,7 +1067,7 @@ advance to the next message."
   (interactive "P")
   (if (eq dist '-)
       (rmail-summary-scroll-msg-down nil)
-    (let ((rmail-buffer-window (get-buffer-window rmail-buffer)))
+    (let ((rmail-buffer-window (get-buffer-window rmail-view-buffer)))
       (if rmail-buffer-window
 	  (if (let ((rmail-summary-window (selected-window)))
 		(select-window rmail-buffer-window)
@@ -1070,7 +1082,7 @@ advance to the next message."
 	      (if (not rmail-summary-scroll-between-messages)
 		  (error "End of buffer")
 		(rmail-summary-next-msg (or dist 1)))
-	    (let ((other-window-scroll-buffer rmail-buffer))
+	    (let ((other-window-scroll-buffer rmail-view-buffer))
 	      (scroll-other-window dist)))
 	;; If it isn't visible at all, show the beginning.
 	(rmail-summary-beginning-of-message)))))
