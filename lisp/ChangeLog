@@ -2,6 +2,7 @@
 
 	* net/ange-ftp.el (ange-ftp-allow-child-lookup): Always return nil.
 	This fixes a bug that treated all files as directories.
+	(ange-ftp-insert-directory): Explicitly follow symlinks.
 
 	* international/iso-transl.el (iso-transl-char-map) Eliminate the
 	alias symbols--put the translated sequences here directly.
