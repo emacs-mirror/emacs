@@ -126,6 +126,7 @@ and sent with `smtpmail-send-queued-mail'."
 This is mainly useful for development purposes, to learn about
 new SMTP extensions that might be useful to support."
   :type 'boolean
+  :version "21.1"
   :group 'smtpmail)
 
 (defvar smtpmail-queue-index-file "index"
