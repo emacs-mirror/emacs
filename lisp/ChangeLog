@@ -1,3 +1,8 @@
+2003-02-14  Juanma Barranquero  <lektu@terra.es>
+
+	* international/mule-cmds.el (view-hello-file): Use `view-file'
+	instead of `find-file-read-only'.
+
 2003-02-13  Markus Rost  <rost@math.ohio-state.edu>
 
 	* files.el (find-alternate-file): Undo last change.
