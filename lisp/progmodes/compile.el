@@ -553,10 +553,28 @@ While grep runs asynchronously, you can use the \\[next-error] command
 to find the text that grep hits refer to.
 
 This command uses a special history list for its arguments, so you can
-easily repeat a grep command."
+easily repeat a grep command.
+
+A prefix argument says to default the argument based upon the current
+tag the cursor is over."
   (interactive
-   (list (read-from-minibuffer "Run grep (like this): "
-			       grep-command nil nil 'grep-history)))
+   (let (grep-default)
+     (when (and current-prefix-arg grep-history)
+       (let* ((tag-default
+	       (funcall (or find-tag-default-function
+			    (get major-mode 'find-tag-default-function)
+			    ;; We use grep-tag-default instead of
+			    ;; find-tag-default, to avoid loading etags.
+			    'grep-tag-default))))
+	 (setq grep-default (car grep-history))
+	 ;; Replace the thing matching for with that around cursor
+	 (if (string-match "[^ ]+\\s +\\(-[^ ]+\\)*\\s *\\(\"[^\"]+\"\\|[^ ]+\\)" grep-default)
+	     (setq grep-default (replace-match tag-default t t
+					       grep-default 2)))))
+     (list (read-from-minibuffer "Run grep (like this): "
+				 (or grep-default grep-command)
+				 nil nil 'grep-history))))
+
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
   (let* ((compilation-process-setup-function 'grep-process-setup)
@@ -567,6 +585,23 @@ easily repeat a grep command."
 				;; Give it a simpler regexp to match.
 				nil grep-regexp-alist)))))
 
+;; This is a copy of find-tag-default from etags.el.
+(defun grep-tag-default ()
+  (save-excursion
+    (while (looking-at "\\sw\\|\\s_")
+      (forward-char 1))
+    (when (or (re-search-backward "\\sw\\|\\s_"
+				  (save-excursion (beginning-of-line) (point))
+				  t)
+	      (re-search-forward "\\(\\sw\\|\\s_\\)+"
+				 (save-excursion (end-of-line) (point))
+				 t))
+      (goto-char (match-end 0))
+      (buffer-substring (point)
+			(progn (forward-sexp -1)
+			       (while (looking-at "\\s'")
+				 (forward-char 1))
+			       (point))))))
 
 ;;;###autoload
 (defun grep-find (command-args)
