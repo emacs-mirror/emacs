@@ -1,6 +1,6 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 96, 2000, 2001
+;; Copyright (C) 1985, 86, 87, 93, 94, 96, 2000, 2001, 2002
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -44,9 +44,18 @@ default, which is system-dependent, and is the same as used by Rmail."
 		 (file :format "%v"))
   :group 'display-time)
 
+(defcustom display-time-mail-directory nil
+  "*Name of mail inbox directory, for indicating existence of new mail.
+Non-nil and not a string means don't check for mail.
+When nil, no checking for mail in directory is done."
+  :type '(choice (const :tag "None" nil)
+		 (directory :format "%v"))
+  :group 'display-time)
+
 (defcustom display-time-mail-function nil
   "*Function to call, for indicating existence of new mail.
-nil means use the default method of checking `display-time-mail-file'."
+nil means use the default method of checking `display-time-mail-file'
+or files in `display-time-mail-directory'."
   :type '(choice (const :tag "Default" nil)
 		 (function))
   :group 'display-time)
@@ -118,7 +127,8 @@ display."
   :type 'face)
 
 (defvar display-time-mail-icon
-  (find-image '((:type xbm :file "letter.xbm" :ascent center)))
+  (find-image '((:type xpm :file "letter.xpm" :ascent center)
+		(:type xbm :file "letter.xbm" :ascent center)))
   "Image specification to offer as the mail indicator on a graphic
 display.  See `display-time-use-mail-icon' and
 `display-time-mail-face'.")
@@ -158,7 +168,7 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
 			     ,@(list :background (face-attribute
 						  display-time-mail-face
 						  :background)))
-		 'help-echo "mouse-2: Read mail"
+		 'help-echo "You have new mail; mouse-2: Read mail"
 		 'local-map (make-mode-line-mouse-map 'mouse-2
 						      read-mail-command)))
       ""))
@@ -214,6 +224,19 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
   (display-time-update)
   (sit-for 0))
 
+(defun display-time-mail-check-directory ()
+  (let ((mail-files (directory-files display-time-mail-directory t))
+	(size 0))
+    (while (and mail-files (= size 0))
+      ;; Count size of regular files only.
+      (setq size (+ size (or (and (file-regular-p (car mail-files))
+				  (nth 7 (file-attributes (car mail-files))))
+			     0)))
+      (setq mail-files (cdr mail-files)))
+    (if (> size 0)
+	size
+      nil)))
+
 ;; Update the display-time info for the mode line
 ;; but don't redisplay right now.  This is used for
 ;; things like Rmail `g' that want to force an update
@@ -247,6 +270,8 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
                                       (user-login-name))))
 	 (mail (or (and display-time-mail-function
 			(funcall display-time-mail-function))
+		   (and display-time-mail-directory
+			(display-time-mail-check-directory))
 		   (and (stringp mail-spool-file)
 			(or (null display-time-server-down-time)
 			    ;; If have been down for 20 min, try again.
