@@ -460,7 +460,7 @@ contain matches to the regexp.\)")
     'pages-directory-goto)
   (define-key pages-directory-map "\C-c\C-p\C-a" 'add-new-page))
 
-(defvar original-page-delimiter "^"
+(defvar original-page-delimiter "^\f"
   "Default page delimiter.")
 
 (defun set-page-delimiter (regexp reset-p)
@@ -473,7 +473,7 @@ resets the page-delimiter to the original value."
   
   (interactive
    (if current-prefix-arg
-       (list original-page-delimiter "^")
+       (list original-page-delimiter "^\f")
      (list (read-string "Set page-delimiter to regexp: " page-delimiter)
            nil)))
   (make-local-variable 'original-page-delimiter)
