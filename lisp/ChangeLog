@@ -190,9 +190,11 @@
 	Add parameters.  Pause to display error only when
 	desktop-missing-file-warning is non-nil.
 	(dired-desktop-buffer-misc-data): Move from desktop.el.  Add parameter.
+	(dired-mode): Bind desktop-buffer-misc-data-function.
 	* info.el (Info-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
 	(Info-desktop-buffer-misc-data): Move from desktop.el.  Add parameter.
+	(Info-mode): Bind desktop-buffer-misc-data-function.
 	* mail/rmail.el (rmail-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
 	* mh-e/mh-e.el (mh-restore-desktop-buffer): Move from desktop.el.
