@@ -1174,9 +1174,9 @@ and to type `C-f' at the end of the search string in the minibuffer.
 search string used as the string to replace.
 
 +++
-** New user option `isearch-resume-enabled'.
-This option can be disabled, to avoid the normal behavior of isearch
-which puts calls to `isearch-resume' in the command history.
+** Isearch no longer adds `isearch-resume' commands to the command
+history by default.  To enable this feature, customize the new
+user option `isearch-resume-in-command-history'.
 
 +++
 ** New user option `history-delete-duplicates'.
