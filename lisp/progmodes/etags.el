@@ -1421,8 +1421,6 @@ see the doc of that variable if you want to add names to the list."
   (pop-to-buffer "*Tags Table List*")
   (setq buffer-read-only nil)
   (erase-buffer)
-  (setq selective-display t
-	selective-display-ellipses nil)
   (let ((set-list tags-table-set-list)
 	(desired-point nil))
     (if tags-table-list
@@ -1464,16 +1462,30 @@ see the doc of that variable if you want to add names to the list."
 	(goto-char desired-point))
     (set-window-start (selected-window) 1 t))
   (set-buffer-modified-p nil)
+  (select-tags-table-mode))
+
+(defvar select-tags-table-mode-map)
+(let ((map (make-sparse-keymap)))
+  (define-key map "t" 'select-tags-table-select)
+  (define-key map " " 'next-line)
+  (define-key map "\^?" 'previous-line)
+  (define-key map "n" 'next-line)
+  (define-key map "p" 'previous-line)
+  (define-key map "q" 'select-tags-table-quit)
+  (setq select-tags-table-mode-map map))
+
+(defun select-tags-table-mode ()
+  "Major mode for choosing a current tags table among those already loaded.
+
+\\{select-tags-table-mode-map}"
+  (interactive)
+  (kill-all-local-variables)
   (setq buffer-read-only t
+	major-mode 'select-tags-table-mode
 	mode-name "Select Tags Table")
-  (let ((map (make-sparse-keymap)))
-    (define-key map "t" 'select-tags-table-select)
-    (define-key map " " 'next-line)
-    (define-key map "\^?" 'previous-line)
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
-    (define-key map "q" 'select-tags-table-quit)
-    (use-local-map map)))
+  (use-local-map select-tags-table-mode-map)
+  (setq selective-display t
+	selective-display-ellipses nil))
   
 (defun select-tags-table-select ()
   "Select the tags table named on this line."
