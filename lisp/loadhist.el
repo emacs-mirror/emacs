@@ -116,9 +116,9 @@ pertinent symbols.")
 ;;;###autoload
 (defun unload-feature (feature &optional force)
   "Unload the library that provided FEATURE, restoring all its autoloads.
-If the feature is required by any other loaded code, and optional FORCE
+If the feature is required by any other loaded code, and prefix arg FORCE
 is nil, raise an error."
-  (interactive (list (read-feature "Feature: ")))
+  (interactive (list (read-feature "Feature: ") current-prefix-arg))
   (if (not (featurep feature))
       (error "%s is not a currently loaded feature" (symbol-name feature)))
   (if (not force)
