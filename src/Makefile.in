@@ -1,5 +1,5 @@
 # Makefile for GNU Emacs.
-# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000, 2001, 2002
+# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000, 2001, 2002, 2003
 # Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -1038,7 +1038,7 @@ emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
 fileio.o: fileio.c window.h buffer.h systime.h $(INTERVAL_SRC) character.h \
    coding.h ccl.h msdos.h dispextern.h $(config_h)
 filelock.o: filelock.c buffer.h charset.h coding.h systime.h epaths.h \
-   $(config_h)
+   $(config_h) character.h
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    buffer.h character.h fontset.h msdos.h dosfns.h dispextern.h $(config_h)
@@ -1049,13 +1049,13 @@ indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
    termopts.h disptab.h region-cache.h character.h category.h composite.h \
    dispextern.h keyboard.h
 insdel.o: insdel.c window.h buffer.h $(INTERVAL_SRC) blockinput.h character.h \
-   dispextern.h atimer.h systime.h $(config_h)
+   dispextern.h atimer.h systime.h $(config_h) region-cache.h
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h character.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
    systty.h systime.h dispextern.h syntax.h $(INTERVAL_SRC) blockinput.h \
    atimer.h xterm.h puresize.h msdos.h $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
-   atimer.h systime.h puresize.h character.h charset.h intervals.h $(config_h)
+   atimer.h systime.h puresize.h character.h charset.h  $(INTERVAL_SRC) $(config_h)
 lastfile.o: lastfile.c  $(config_h)
 macros.o: macros.c window.h buffer.h commands.h macros.h keyboard.h \
 	dispextern.h $(config_h)
@@ -1090,7 +1090,7 @@ sysdep.o: sysdep.c $(config_h) dispextern.h termhooks.h termchar.h termopts.h \
    window.h msdos.h dosfns.h keyboard.h
 term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
    disptab.h dispextern.h keyboard.h character.h charset.h coding.h ccl.h \
-   msdos.h
+   msdos.h keymap.h
 termcap.o: termcap.c $(config_h)
 terminfo.o: terminfo.c $(config_h)
 tparam.o: tparam.c $(config_h)
@@ -1108,20 +1108,20 @@ window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    $(config_h)
 xdisp.o: xdisp.c macros.h commands.h indent.h buffer.h dispextern.h coding.h \
    termchar.h frame.h window.h disptab.h termhooks.h character.h charset.h \
-   $(config_h) msdos.h composite.h fontset.h
+   $(config_h) msdos.h composite.h fontset.h region-cache.h
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
    window.h character.h charset.h msdos.h dosfns.h composite.h atimer.h \
-   systime.h fontset.h $(config_h)
+   systime.h fontset.h $(config_h) $(INTERVAL_SRC)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
-   character.h charset.h coding.h $(config_h)
+   character.h charset.h coding.h $(config_h) termhooks.h coding.h
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
    charset.h keyboard.h $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h \
-   systime.h msdos.h $(config_h)
+   systime.h msdos.h $(config_h) coding.h
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
    dispextern.h frame.h disptab.h blockinput.h atimer.h systime.h syssignal.h \
    keyboard.h gnu.h character.h charset.h ccl.h fontset.h composite.h \
-   coding.h $(config_h)
+   coding.h $(config_h) $(INTERVAL_SRC)
 xselect.o: xselect.c dispextern.h frame.h xterm.h blockinput.h character.h \
    coding.h composite.h ccl.h buffer.h atimer.h systime.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
@@ -1145,7 +1145,7 @@ fns.o: fns.c commands.h $(config_h) frame.h buffer.h character.h keyboard.h \
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h character.h \
    $(config_h) dispextern.h msdos.h composite.h
 lread.o: lread.c commands.h keyboard.h buffer.h epaths.h character.h \
-   charset.h $(config_h) termhooks.h msdos.h
+   charset.h $(config_h) termhooks.h msdos.h coding.h
 
 /* Text properties support */
 textprop.o: textprop.c buffer.h window.h dispextern.h $(INTERVAL_SRC) \
