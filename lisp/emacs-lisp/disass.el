@@ -104,8 +104,9 @@ redefine OBJECT if it is a symbol."
 	   (setq obj (cdr obj))		;throw lambda away
 	   (setq args (car obj))	;save arg list
 	   (setq obj (cdr obj)))
-	  (t
-	   (setq args (aref obj 0))))
+	  ((byte-code-function-p obj)
+	   (setq args (aref obj 0)))
+          (t (error "Compilation failed")))
     (if (zerop indent) ; not a nested function
 	(progn
 	  (indent-to indent)
