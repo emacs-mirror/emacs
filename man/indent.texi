@@ -128,11 +128,13 @@ previous line, the whitespace before point is deleted and the first
 indentation point then applicable is used.  If no indentation point is
 applicable even then, @code{indent-relative} runs @code{tab-to-tab-stop}
 @ifinfo
-(@pxref{Tab Stops}).
+(@pxref{Tab Stops}),
 @end ifinfo
 @iftex
-(see next section).
+(see next section),
 @end iftex
+unless it is called with a numeric argument, in which case it does
+nothing.
 
   @code{indent-relative} is the definition of @key{TAB} in Indented Text
 mode.  @xref{Text}.
