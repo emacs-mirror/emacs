@@ -269,31 +269,34 @@ minibuffer."
 	   ;; Define SPC as a prefix char to get to this menu.
 	   (define-key overriding-terminal-local-map " "
 	     (setq map (make-sparse-keymap title)))
-	   (while items
-	     (setq choice (car items) items (cdr items))
-	     (if (consp choice)
-		 (let* ((name (car choice))
-		       (function (cdr choice))
-		       (character (aref name 0)))
-		   ;; Pick a character for this choice;
-		   ;; avoid duplication.
-		   (when (lookup-key map (vector character))
-		     (setq character (downcase character))
-		     (when (lookup-key map (vector character))
-		       (setq character next-digit
-			     next-digit (1+ next-digit))))
-		   (define-key map (vector character)
-		     (cons (format "%c = %s" character name) function)))))
-	   (define-key map [?\C-g] '("Quit" . keyboard-quit))
+	   (save-excursion
+	     (set-buffer (get-buffer-create " widget-choose"))
+	     (erase-buffer)
+	     (insert "Available choices:\n\n")
+	     (while items
+	       (setq choice (car items) items (cdr items))
+	       (if (consp choice)
+		   (let* ((name (car choice))
+			 (function (cdr choice)))
+		     (insert (format "%c = %s\n" next-digit name))
+		     (define-key map (vector next-digit) function)))
+	       ;; Allocate digits to disabled alternatives
+	       ;; so that the digit of a given alternative never varies.
+	       (setq next-digit (1+ next-digit)))
+	     (insert "\nC-g = Quit"))
+	   (define-key map [?\C-g] 'keyboard-quit)
 	   (define-key map [t] 'keyboard-quit)
 	   (setcdr map (nreverse (cdr map)))
 	   ;; Unread a SPC to lead to our new menu.
 	   (setq unread-command-events (cons ?\ unread-command-events))
 	   ;; Read a char with the menu, and return the result
 	   ;; that corresponds to it.
-	   (setq value
-		 (lookup-key overriding-terminal-local-map
-			     (read-key-sequence title) t))
+	   (save-window-excursion
+	     (display-buffer (get-buffer " widget-choose"))
+	     (let ((cursor-in-echo-area t))
+	       (setq value
+		     (lookup-key overriding-terminal-local-map
+				 (read-key-sequence title) t))))
 	   (when (eq value 'keyboard-quit)
 	     (error "Canceled"))
 	   value))))
@@ -1993,7 +1996,7 @@ when he invoked the menu."
 				      (widget-get current :value)))
       (widget-setup)
       (widget-apply widget :notify widget event)))
-  (run-hooks 'widget-edit-hook))
+  (run-hook-with-args 'widget-edit-functions widget))
 
 (defun widget-choice-validate (widget)
   ;; Valid if we have made a valid choice.
@@ -2049,7 +2052,7 @@ when he invoked the menu."
   ;; Toggle value.
   (widget-value-set widget (not (widget-value widget)))
   (widget-apply widget :notify widget event)
-  (run-hooks 'widget-edit-hook))
+  (run-hook-with-args 'widget-edit-functions widget))
 
 ;;; The `checkbox' Widget.
 
