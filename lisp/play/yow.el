@@ -1,6 +1,6 @@
 ;;; yow.el --- quote random zippyisms
 
-;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2000 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Richard Mlynarik
@@ -57,16 +57,8 @@
 	   (insert yow))
 	  ((not (interactive-p))
 	   yow)
-	  ((not (string-match "\n" yow))
-	   (delete-windows-on (get-buffer-create "*Help*"))
-	   (message "%s" yow))
 	  (t
-	   (message "Yow!")
-	   (with-output-to-temp-buffer "*Help*"
-	     (princ yow)
-	     (save-excursion
-	       (set-buffer standard-output)
-	       (help-mode)))))))
+	   (message "%s" yow)))))
 
 (defsubst read-zippyism (prompt &optional require-match)
   "Read a Zippyism from the minibuffer with completion, prompting with PROMPT.
