@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: c, matching, tools
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2002 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -945,7 +945,7 @@ and the name of the file passed in."
 
 (defvar ff-function-name nil "Name of the function we are in.")
 
-(eval-when-compile (require 'ada-mode))
+;(eval-when-compile (require 'ada-mode))
 
 ;; bind with (setq ff-pre-load-hooks 'ff-which-function-are-we-in)
 ;;
