@@ -504,7 +504,7 @@ FILE is passed through `expand-file-name'; BODY executed within
 `save-excursion'.  If FILE is not under version control, or locked by
 somebody else, signal error."
   `(let ((file (expand-file-name ,file)))
-     (or (vc-registered file)
+     (or (vc-backend file)
 	 (error (format "File not under version control: `%s'" file)))
      (unless (vc-editable-p file)
        (let ((state (vc-state file)))
@@ -833,7 +833,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 		(error "Aborted")))))
     
     ;; Do the right thing
-    (if (not (vc-registered file))
+    (if (not (vc-backend file))
 	(vc-register verbose comment)
       (vc-recompute-state file)
       (if visited (vc-mode-line file))
@@ -845,12 +845,12 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	(cond
 	 (verbose
 	  ;; go to a different version
-	  (setq version 
+	  (setq version
 		(read-string "Branch, version, or backend to move to: "))
-	  (let ((vsym (intern (upcase version))))
+	  (let ((vsym (intern-soft (upcase version))))
 	    (if (member vsym vc-handled-backends)
 		(vc-transfer-file file vsym)
-	      (vc-checkout file (eq (vc-checkout-model file) 'implicit) 
+	      (vc-checkout file (eq (vc-checkout-model file) 'implicit)
 			   version))))
 	 ((not (eq (vc-checkout-model file) 'implicit))
 	  ;; check the file out
@@ -928,8 +928,9 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	(if (save-window-excursion
 	      (vc-version-diff file (vc-workfile-version file) nil)
 	      (goto-char (point-min))
-	      (insert-string (format "Changes to %s since last lock:\n\n"
-				     file))
+	      (let ((inhibit-read-only t))
+		(insert-string
+		 (format "Changes to %s since last lock:\n\n" file)))
 	      (not (beep))
 	      (yes-or-no-p (concat "File has unlocked changes.  "
 				   "Claim lock retaining changes? ")))
@@ -2240,7 +2241,7 @@ To get a prompt, use a prefix argument."
 	(when (vc-call-backend backend 'registered buffer-file-name)
 	  (push backend backends)))
       ;; Find the next backend.
-      (let ((def (car (delq backend (memq backend (append backends backends)))))
+      (let ((def (car (delq backend (append (memq backend backends) backends))))
 	    (others (delete backend backends)))
 	(cond
 	 ((null others) (error "No other backend to switch to"))
@@ -2252,17 +2253,20 @@ To get a prompt, use a prefix argument."
 	     (mapcar (lambda (b) (list (downcase (symbol-name b)))) backends)
 	     nil t nil nil (downcase (symbol-name def))))))
        (t def))))))
-  (unless (vc-call-backend backend 'registered file)
-    (error "%s is not registered in %s" file backend))
-  (vc-file-clearprops file)
-  (vc-file-setprop file 'vc-backend backend)
-  (vc-resynch-buffer file t t))
+  (unless (eq backend (vc-backend file))
+    (unless (vc-call-backend backend 'registered file)
+      (error "%s is not registered in %s" file backend))
+    (vc-file-clearprops file)
+    (vc-file-setprop file 'vc-backend backend)
+    ;; Force recomputation of the state
+    (vc-call-backend backend 'registered file)
+    (vc-mode-line file)))
 
 ;;;autoload
 (defun vc-transfer-file (file new-backend)
-  "Transfer FILE to another version control system NEW-BACKEND.  
+  "Transfer FILE to another version control system NEW-BACKEND.
 If NEW-BACKEND has a higher precedence than FILE's current backend
-\(i.e. it comes earlier in vc-handled-backends), then register FILE in
+\(i.e.  it comes earlier in `vc-handled-backends'), then register FILE in
 NEW-BACKEND, using the version number from the current backend as the
 base level.  If NEW-BACKEND has a lower precedence than the current
 backend, then commit all changes that were made under the current
