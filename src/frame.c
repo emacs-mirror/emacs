@@ -1880,6 +1880,8 @@ frame_name_fnn_p (str, len)
     {
       char *end_ptr;
 
+      strtol (str + 1, &end_ptr, 10);
+
       if (end_ptr == str + len)
 	return 1;
     }
