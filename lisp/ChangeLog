@@ -1,3 +1,10 @@
+2003-09-16  Miles Bader  <miles@gnu.ai.mit.edu>
+
+	From David Ponce <david.ponce@wanadoo.fr>:
+	* makefile.w32-in (DONTCOMPILE): Add loaddefs-boot.el.
+	(bootstrap-clean-CMD, bootstrap-clean-SH): Recreate loaddefs.el
+	from loaddefs-boot.el if necessary.
+
 2003-09-15  Zoltan Kemenczy <kemenczy@rogers.com>
 
 	* progmodes/gud.el (gud-find-class): Make jdb work again since
