@@ -8,7 +8,7 @@
 ;; LCD Archive Entry:
 ;; edebug|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A source level debugger for Emacs Lisp.
-;; |$Date: 1996/03/20 13:19:48 $|$Revision: 3.5.1.27 $|~/modes/edebug.el|
+;; |$Date: 1996/03/20 13:30:16 $|$Revision: 3.6 $|~/modes/edebug.el|
 
 ;; This file is part of GNU Emacs.
 
@@ -85,7 +85,7 @@
 ;;; Code:
 
 (defconst edebug-version
-  (let ((raw-version "$Revision: 3.5.1.27 $"))
+  (let ((raw-version "$Revision: 3.6 $"))
     (substring raw-version (string-match "[0-9.]*" raw-version)
 	       (match-end 0))))
      
@@ -2263,7 +2263,7 @@ error is signaled again."
 	    (cl-lexical-debug t)
 
 	    ;; Save the outside value of executing macro.  (here??)
-	    (edebug-outside-executing-macro executing-macro)
+	    (edebug-outside-executing-macro executing-kbd-macro)
 	    (edebug-outside-pre-command-hook pre-command-hook)
 	    (edebug-outside-post-command-hook post-command-hook)
 	    (edebug-outside-post-command-idle-hook post-command-idle-hook))
@@ -2271,8 +2271,8 @@ error is signaled again."
 	    (let (;; Don't keep reading from an executing kbd macro
 		  ;; within edebug unless edebug-continue-kbd-macro is
 		  ;; non-nil.  Again, local binding may not be best.
-		  (executing-macro 
-		   (if edebug-continue-kbd-macro executing-macro))
+		  (executing-kbd-macro 
+		   (if edebug-continue-kbd-macro executing-kbd-macro))
 
 		  ;; Disable command hooks.  This is essential when
 		  ;; a hook function is instrumented - to avoid infinite loop.
@@ -2290,7 +2290,7 @@ error is signaled again."
 		  (edebug-enter edebug-function edebug-args edebug-body)
 		(fset 'signal (symbol-function 'edebug-original-signal))))
 	  ;; Reset global variables in case outside value was changed.
-	  (setq executing-macro edebug-outside-executing-macro
+	  (setq executing-kbd-macro edebug-outside-executing-macro
 		pre-command-hook edebug-outside-pre-command-hook
 		post-command-hook edebug-outside-post-command-hook
 		post-command-idle-hook edebug-outside-post-command-idle-hook
@@ -3565,7 +3565,7 @@ Return the result of the last expression."
 	     (standard-output edebug-outside-standard-output)
 	     (standard-input edebug-outside-standard-input)
 
-	     (executing-macro edebug-outside-executing-macro)
+	     (executing-kbd-macro edebug-outside-executing-macro)
 	     (defining-kbd-macro edebug-outside-defining-kbd-macro)
 	     (pre-command-hook edebug-outside-pre-command-hook)
 	     (post-command-hook edebug-outside-post-command-hook)
@@ -3607,7 +3607,7 @@ Return the result of the last expression."
 	    edebug-outside-standard-output standard-output
 	    edebug-outside-standard-input standard-input
 
-	    edebug-outside-executing-macro executing-macro
+	    edebug-outside-executing-macro executing-kbd-macro
 	    edebug-outside-defining-kbd-macro defining-kbd-macro
 	    edebug-outside-pre-command-hook pre-command-hook
 	    edebug-outside-post-command-hook post-command-hook

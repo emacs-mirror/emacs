@@ -1557,7 +1557,7 @@ In Transient Mark mode, this does not activate the mark."
 	  (move-marker (car (nthcdr global-mark-ring-max global-mark-ring))
 		       nil)
 	  (setcdr (nthcdr (1- global-mark-ring-max) global-mark-ring) nil))))
-  (or nomsg executing-macro (> (minibuffer-depth) 0)
+  (or nomsg executing-kbd-macro (> (minibuffer-depth) 0)
       (message "Mark set"))
   (if (or activate (not transient-mark-mode))
       (set-mark (mark t)))

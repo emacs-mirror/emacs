@@ -77,7 +77,7 @@ first will be printed into the backtrace buffer."
 	(debugger-old-buffer (current-buffer))
 	(debugger-step-after-exit nil)
 	;; Don't keep reading from an executing kbd macro!
-	(executing-macro nil)
+	(executing-kbd-macro nil)
 	;; Save the outer values of these vars for the `e' command
 	;; before we replace the values.
 	(debugger-outer-match-data (match-data))

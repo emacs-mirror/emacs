@@ -134,7 +134,7 @@ Conditions are:
        like file-name and other custom-func completions)."
 
   (and (window-minibuffer-p (selected-window))
-       (not executing-macro)
+       (not executing-kbd-macro)
        (not (symbolp minibuffer-completion-table))))
 
 ;;;_ > icomplete-minibuffer-setup ()
