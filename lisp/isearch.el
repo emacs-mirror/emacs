@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/08/05 04:15:20 $|$Revision: 1.71 $
+;; |$Date: 1994/08/30 07:03:33 $|$Revision: 1.72 $
 
 ;; This file is part of GNU Emacs.
 
@@ -745,8 +745,9 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 					    isearch-string
 					    minibuffer-local-isearch-map nil
 					    'junk-ring))
-		    isearch-new-message (mapconcat 'text-char-description
-						   isearch-new-string "")))
+		    isearch-new-message
+		    (mapconcat 'isearch-text-char-description
+			       isearch-new-string "")))
 	  ;; Always resume isearching by restarting it.
 	  (isearch-mode isearch-forward 
 			isearch-regexp 
