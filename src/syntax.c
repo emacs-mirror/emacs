@@ -1728,12 +1728,12 @@ skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
 		      if (negate)
 			break;
 		      else
-			goto fwd_ok;
+			goto fwd_unibyte_ok;
 		    }
 
 		  if (!fastmap[*p])
 		    break;
-
+		fwd_unibyte_ok:
 		  p++, pos++;
 		}
 	  }
@@ -1801,12 +1801,12 @@ skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
 		      if (negate)
 			break;
 		      else
-			goto fwd_ok;
+			goto back_unibyte_ok;
 		    }
 
 		  if (!fastmap[p[-1]])
 		    break;
-
+		back_unibyte_ok:
 		  p--, pos--;
 		}
 	  }
