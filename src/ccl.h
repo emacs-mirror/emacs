@@ -55,9 +55,14 @@ struct ccl_program {
   int stack_idx;		/* How deep the call of CCL_Call is nested.  */
   int eol_type;			/* When the CCL program is used for
 				   encoding by a coding system, set to
-				   the eol_type of the coding
-				   system.  */
+				   the eol_type of the coding system.
+				   In other cases, always
+				   CODING_EOL_LF.  */
   int multibyte;		/* 1 if the source text is multibyte.  */
+  int cr_consumed;		/* Flag for encoding DOS-like EOL
+				   format when the CCL program is used
+				   for encoding by a coding
+				   system.  */
 };
 
 /* This data type is used for the spec field of the structure
