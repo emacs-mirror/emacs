@@ -311,7 +311,9 @@ Lisp_Object Qcharset, Qiso_2022, Qutf_8, Qutf_16, Qshift_jis, Qbig5;
 Lisp_Object Qbig, Qlittle;
 Lisp_Object Qcoding_system_history;
 Lisp_Object Qvalid_codes;
-Lisp_Object QCcategory;
+Lisp_Object QCcategory, QCmnemonic, QCdefalut_char;
+Lisp_Object QCdecode_translation_table, QCencode_translation_table;
+Lisp_Object QCpost_read_conversion, QCpre_write_conversion;
 
 extern Lisp_Object Qinsert_file_contents, Qwrite_region;
 Lisp_Object Qcall_process, Qcall_process_region, Qprocess_argument;
@@ -5484,8 +5486,9 @@ decode_eol (coding)
 }
 
 
-/* Return a translation table from coding system attribute vector ATTRS
-   for encoding (ENCODEP is nonzero) or decoding (ENCODEP is zeor). */
+/* Return a translation table (or list of them) from coding system
+   attribute vector ATTRS for encoding (ENCODEP is nonzero) or
+   decoding (ENCODEP is zero). */
 
 static INLINE
 get_translation_table (attrs, encodep)
@@ -5498,12 +5501,26 @@ get_translation_table (attrs, encodep)
   else
     translation_table = CODING_ATTR_DECODE_TBL (attrs),
       standard = Vstandard_translation_table_for_decode;
-  if (! NILP (translation_table) && SYMBOLP (translation_table))
-    translation_table = Fget (translation_table, Qtranslation_table);
   if (NILP (translation_table))
-    translation_table = standard;
-  if (! CHAR_TABLE_P (translation_table))
-    translation_table = Qnil;
+    return standard;
+  if (SYMBOLP (translation_table))
+    translation_table = Fget (translation_table, Qtranslation_table);
+  else if (CONSP (translation_table))
+    {
+      Lisp_Object val;
+
+      translation_table = Fcopy_sequence (translation_table);
+      for (val = translation_table; CONSP (val); val = XCDR (val))
+	if (SYMBOLP (XCAR (val)))
+	  XSETCAR (val, Fget (XCAR (val), Qtranslation_table));
+    }
+  if (! NILP (standard))
+    {
+      if (CONSP (translation_table))
+	translation_table = nconc2 (translation_table, Fcons (standard, Qnil));
+      else
+	translation_table = Fcons (translation_table, Fcons (standard, Qnil));
+    }
   return translation_table;
 }
 
@@ -5892,7 +5909,7 @@ decode_coding (coding)
   ALLOC_CONVERSION_WORK_AREA (coding);
 
   attrs = CODING_ID_ATTRS (coding->id);
-  translation_table = get_translation_table (attrs, 1);
+  translation_table = get_translation_table (attrs, 0);
 
   do
     {
@@ -7099,7 +7116,7 @@ char_encodable_p (c, attrs)
   Lisp_Object translation_table;
 
   translation_table = CODING_ATTR_TRANS_TBL (attrs);
-  if (CHAR_TABLE_P (translation_table))
+  if (! NILP (translation_table))
     c = translate_char (translation_table, c);
   for (tail = CODING_ATTR_CHARSET_LIST (attrs);
        CONSP (tail); tail = XCDR (tail))
@@ -8166,12 +8183,12 @@ usage: (define-coding-system-internal ...)  */)
   CODING_ATTR_ASCII_COMPAT (attrs) = args[coding_arg_ascii_compatible_p];
 
   val = args[coding_arg_decode_translation_table];
-  if (! CHAR_TABLE_P (val))
+  if (! CHAR_TABLE_P (val) && ! CONSP (val))
     CHECK_SYMBOL (val);
   CODING_ATTR_DECODE_TBL (attrs) = val;
 
   val = args[coding_arg_encode_translation_table];
-  if (! CHAR_TABLE_P (val))
+  if (! CHAR_TABLE_P (val) && ! CONSP (val))
     CHECK_SYMBOL (val);
   CODING_ATTR_ENCODE_TBL (attrs) = val;
 
@@ -8581,6 +8598,59 @@ usage: (define-coding-system-internal ...)  */)
 }
 
 
+DEFUN ("coding-system-put", Fcoding_system_put, Scoding_system_put,
+       3, 3, 0,
+       doc: /* Change value in CODING-SYSTEM's property list PROP to VAL.  */)
+  (coding_system, prop, val)
+     Lisp_Object coding_system, prop, val;
+{
+  Lisp_Object spec, attrs, plist;
+
+  CHECK_CODING_SYSTEM_GET_SPEC (coding_system, spec);
+  attrs = AREF (spec, 0);
+  if (EQ (prop, QCmnemonic))
+    {
+      if (! STRINGP (val))
+	CHECK_CHARACTER (val);
+      CODING_ATTR_MNEMONIC (attrs) = val;
+    }
+  else if (EQ (prop, QCdefalut_char))
+    {
+      if (NILP (val))
+	val = make_number (' ');
+      else
+	CHECK_CHARACTER (val);
+      CODING_ATTR_DEFAULT_CHAR (attrs) = val;
+    }
+  else if (EQ (prop, QCdecode_translation_table))
+    {
+      if (! CHAR_TABLE_P (val) && ! CONSP (val))
+	CHECK_SYMBOL (val);
+      CODING_ATTR_DECODE_TBL (attrs) = val;
+    }
+  else if (EQ (prop, QCencode_translation_table))
+    {
+      if (! CHAR_TABLE_P (val) && ! CONSP (val))
+	CHECK_SYMBOL (val);
+      CODING_ATTR_ENCODE_TBL (attrs) = val;
+    }
+  else if (EQ (prop, QCpost_read_conversion))
+    {
+      CHECK_SYMBOL (val);
+      CODING_ATTR_POST_READ (attrs) = val;
+    }
+  else if (EQ (prop, QCpre_write_conversion))
+    {
+      CHECK_SYMBOL (val);
+      CODING_ATTR_PRE_WRITE (attrs) = val;
+    }
+
+  CODING_ATTR_PLIST (attrs)
+    = Fplist_put (CODING_ATTR_PLIST (attrs), prop, val);
+  return val;
+}
+
+
 DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
        Sdefine_coding_system_alias, 2, 2, 0,
        doc: /* Define ALIAS as an alias for CODING-SYSTEM.  */)
@@ -8843,6 +8913,12 @@ syms_of_coding ()
   DEFSYM (Qemacs_mule, "emacs-mule");
 
   DEFSYM (QCcategory, ":category");
+  DEFSYM (QCmnemonic, ":mnemonic");
+  DEFSYM (QCdefalut_char, ":default-char");
+  DEFSYM (QCdecode_translation_table, ":decode-translation-table");
+  DEFSYM (QCencode_translation_table, ":encode-translation-table");
+  DEFSYM (QCpost_read_conversion, ":post-read-conversion");
+  DEFSYM (QCpre_write_conversion, ":pre-write-conversion");
 
   Vcoding_category_table
     = Fmake_vector (make_number (coding_category_max), Qnil);
@@ -8920,6 +8996,7 @@ syms_of_coding ()
   defsubr (&Sset_coding_system_priority);
   defsubr (&Sdefine_coding_system_internal);
   defsubr (&Sdefine_coding_system_alias);
+  defsubr (&Scoding_system_put);
   defsubr (&Scoding_system_base);
   defsubr (&Scoding_system_plist);
   defsubr (&Scoding_system_aliases);
