@@ -31,8 +31,7 @@
 ;;; Code: 
 
 (defvar soundex-alist
-  '((?A . nil) (?E . nil) (?H . nil) (?I . nil) (?O . nil) (?U . nil)
-    (?W . nil) (?Y . nil) (?B . "1") (?F . "1") (?P . "1") (?V . "1")
+  '((?B . "1") (?F . "1") (?P . "1") (?V . "1")
     (?C . "2") (?G . "2") (?J . "2") (?K . "2") (?Q . "2") (?S . "2")
     (?X . "2") (?Z . "2") (?D . "3") (?T . "3") (?L . "4") (?M . "5")
     (?N . "5") (?R . "6"))
@@ -46,7 +45,7 @@ and Searching\", Addison-Wesley (1973), pp. 391-392."
   (let* ((word (upcase word)) (length (length word))
 	 (code (cdr (assq (aref word 0) soundex-alist)))
 	 (key (substring word 0 1)) (index 1) (prev-code code))
-    ;; once we have a four char key, were done
+    ;; once we have a four char key, we're done
     (while (and (> 4 (length key)) (< index length))
       ;; look up the code for each letter in word at index
       (setq code (cdr (assq (aref word index) soundex-alist))
