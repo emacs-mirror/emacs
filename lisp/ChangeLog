@@ -1,3 +1,24 @@
+2004-09-20  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail): Error if file is Babyl format.
+	(rmail-process-new-messages, rmail-reply-callback, rmail-mark-message)
+	(rmail-narrow-to-message): Doc fix.
+	(rmail-reply, rmail-forward, rmail-resend, rmail-retry-failure)
+	(rmail-browse-body): Immediate error if file is empty.
+
+	* mail/rmail.el (rmail-convert-file, rmail-insert-rmail-file-header)
+	(rmail-convert-to-babyl-format): Functions deleted.
+	(rmail-mode): Don't call rmail-convert-file.
+
+	* net/browse-url.el (browse-url-activate-urls): Add autoload.
+
+	* mail/rmailedit.el (rmail-edit-current-message): 
+	Immediate error if file is empty.
+
+	* mail/rmailkwd.el (rmail-read-label, rmail-set-label): 
+	Immediate error if file is empty.
+	(rmail-parse-file-keywords): Function deleted.
+
 2003-02-14  ARISAWA Akihiro  <ari@mbf.sphere.ne.jp>  (tiny change)
 
 	* time.el (display-time-string-forms): Add face property to mail
