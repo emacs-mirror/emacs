@@ -7686,7 +7686,8 @@ file_dialog_callback (hwnd, msg, wParam, lParam)
     {
       OFNOTIFY * notify = (OFNOTIFY *)lParam;
       /* Detect when the Filter dropdown is changed.  */
-      if (notify->hdr.code == CDN_TYPECHANGE)
+      if (notify->hdr.code == CDN_TYPECHANGE
+	  || notify->hdr.code == CDN_INITDONE)
 	{
 	  HWND dialog = GetParent (hwnd);
 	  HWND edit_control = GetDlgItem (dialog, FILE_NAME_TEXT_FIELD);
@@ -7700,8 +7701,10 @@ file_dialog_callback (hwnd, msg, wParam, lParam)
 	    }
 	  else
 	    {
-	      CommDlg_OpenSave_SetControlText (dialog, FILE_NAME_TEXT_FIELD,
-					       "");
+	      /* Don't override default filename on init done.  */
+	      if (notify->hdr.code == CDN_TYPECHANGE)
+		CommDlg_OpenSave_SetControlText (dialog,
+						 FILE_NAME_TEXT_FIELD, "");
 	      EnableWindow (edit_control, TRUE);
 	    }
 	}
@@ -7723,6 +7726,7 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   char filename[MAX_PATH + 1];
   char init_dir[MAX_PATH + 1];
+  int default_filter_index = 1; /* 1: All Files, 2: Directories only  */
 
   GCPRO5 (prompt, dir, default_filename, mustmatch, file);
   CHECK_STRING (prompt);
@@ -7746,9 +7750,7 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
       if (!file_name_only)
         file_name_only = full_path_name;
       else
-        {
-          file_name_only++;
-        }
+	file_name_only++;
 
       strncpy (filename, file_name_only, MAX_PATH);
       filename[MAX_PATH] = '\0';
@@ -7773,6 +7775,15 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
     file_details.nMaxFile = sizeof (filename);
     file_details.lpstrInitialDir = init_dir;
     file_details.lpstrTitle = SDATA (prompt);
+
+    /* If prompt starts with Dired, default to directories only.  */
+    /* A bit hacky, but there doesn't seem to be a better way to
+       DTRT for dired.  */
+    if (strncmp (file_details.lpstrTitle, "Dired", 5) == 0)
+      default_filter_index = 2;
+
+    file_details.nFilterIndex = default_filter_index;
+
     file_details.Flags = (OFN_HIDEREADONLY | OFN_NOCHANGEDIR
 			  | OFN_EXPLORER | OFN_ENABLEHOOK);
     if (!NILP (mustmatch))
@@ -7785,7 +7796,7 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
 	dostounix_filename (filename);
 	if (file_details.nFilterIndex == 2)
 	  {
-	    /* "Folder Only" selected - strip dummy file name.  */
+	    /* "Directories" selected - strip dummy file name.  */
 	    char * last = strrchr (filename, '/');
 	    *last = '\0';
 	  }
