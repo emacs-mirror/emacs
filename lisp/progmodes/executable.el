@@ -70,16 +70,6 @@ Typical values are 73 (+x) or -493 (rwxr-xr-x).")
 
 (defvar executable-command nil)
 
-
-;; Autoload cookie deleted here because it made loaddefs.el fail to load.
-;; -rms
-(or (assoc "tail" interpreter-mode-alist)
-    (nconc interpreter-mode-alist
-	   '(("tail" . text-mode)
-	     ("more" . text-mode)
-	     ("less" . text-mode)
-	     ("pg" . text-mode))))
-
 (defvar executable-self-display "tail"
   "*Command you use with argument `+2' to make text files self-display.
 Note that the like of `more' doesn't work too well under Emacs  \\[shell].")
