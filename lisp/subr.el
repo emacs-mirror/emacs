@@ -430,7 +430,6 @@ Please convert your programs to use the variable `baud-rate' directly."
 (defalias 'string= 'string-equal)
 (defalias 'string< 'string-lessp)
 (defalias 'move-marker 'set-marker)
-(defalias 'eql 'eq)
 (defalias 'not 'null)
 (defalias 'rplaca 'setcar)
 (defalias 'rplacd 'setcdr)
