@@ -712,6 +712,9 @@ and move to the line in the SGML document that caused it."
 				    (and name
 					 (file-name-nondirectory name))))))))
   (setq sgml-saved-validate-command command)
+  (if (or (not compilation-ask-about-save)
+	  (y-or-n-p (message "Save buffer %s? " (buffer-name))))
+      (save-buffer))
   (compile-internal command "No more errors"))
 
 
