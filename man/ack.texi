@@ -202,7 +202,7 @@ pong game.
 Viktor Dukhovni wrote support for dumping under SunOS version 4.
 
 @item
-John Eaton co-wrote Octave mode (@file{octave.el} and related files).
+John Eaton co-wrote Octave mode (@file{octave-mod.el} and related files).
 
 @item
 Rolf Ebert co-wrote Ada mode (@file{ada-mode.el}).
@@ -428,7 +428,7 @@ Anders Holst wrote @file{hippie-exp.el}, a versatile completion and
 expansion package.
 
 @item
-Kurt Hornik co-wrote Octave mode (@file{octave.el} and related files).
+Kurt Hornik co-wrote Octave mode (@file{octave-mod.el} and related files).
 
 @item
 Tom Houlder wrote @file{mantemp.el}, which generates manual C@t{++}
