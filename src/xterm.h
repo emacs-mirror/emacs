@@ -67,6 +67,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_X11R4
 #endif
 
+#ifdef XlibSpecificationRelease
+#if XlibSpecificationRelease >= 5
+#define HAVE_X11R5
+#endif
+#endif
+
 #define PIX_TYPE unsigned long
 #define XDISPLAY x_current_display,
 #define XFlushQueue() XFlush(x_current_display)
