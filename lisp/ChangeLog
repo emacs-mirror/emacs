@@ -1,3 +1,8 @@
+2000-08-17  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (insert-directory): Don't lose original file name,
+	undoing an undocumented change.
+
 2000-08-17  Alex Schroeder  <alex@gnu.org>
 
 	* sql.el (sql-magic-go): Use comint-bol.
