@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.299 2001/05/03 00:36:07 monnier Exp $
+;; $Id: vc.el,v 1.300 2001/07/11 22:55:05 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -804,6 +804,7 @@ Else, add CODE to the process' sentinel."
 Each function is called inside the buffer in which the command was run
 and is passed 3 argument: the COMMAND, the FILE and the FLAGS.")
 
+;;;###autoload
 (defun vc-do-command (buffer okstatus command file &rest flags)
   "Execute a version control command, notifying user and checking for errors.
 Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil or the
@@ -3080,9 +3081,6 @@ Invoke FUNC f ARGS on each VC-managed file f underneath it."
 (provide 'vc)
 
 ;; DEVELOPER'S NOTES ON CONCURRENCY PROBLEMS IN THIS CODE
-;;
-;; This is actually seriously out-of-date because the code has changed
-;; a fair bit since then.  -stef
 ;;
 ;; These may be useful to anyone who has to debug or extend the package.
 ;; (Note that this information corresponds to versions 5.x. Some of it
