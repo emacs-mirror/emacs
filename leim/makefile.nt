@@ -137,8 +137,8 @@ $(dot)$(dot)/src/emacs:
 $(SUBDIRS):
 	mkdir $@
 	echo stamp>stamp-subdir
-	echo (if (fboundp 'normal-top-level-add-subdirs-to-load-path) >subdirs.el
-	echo     (normal-top-level-add-subdirs-to-load-path)) >>subdirs.el
+#	echo (if (fboundp 'normal-top-level-add-subdirs-to-load-path) >subdirs.el
+#	echo     (normal-top-level-add-subdirs-to-load-path)) >>subdirs.el
 
 # Rule to generate quail/*.el from CXTERM-DIC/*.tit.
 $(TIT):
@@ -158,7 +158,7 @@ install: all
 	- $(DEL) $(INSTALLDIR)\same-dir.tst
 	echo SameDirTest > $(INSTALLDIR)\same-dir.tst
 	if not exist same-dir.tst $(CP) leim-list.el $(INSTALLDIR)
-	if not exist same-dir.tst $(CP) subdirs.el $(INSTALLDIR)
+#	if not exist same-dir.tst $(CP) subdirs.el $(INSTALLDIR)
 	if not exist same-dir.tst $(CP_DIR) quail $(INSTALLDIR)\quail
 	if not exist same-dir.tst $(CP_DIR) skk $(INSTALLDIR)\skk
 	- $(DEL) $(INSTALLDIR)\same-dir.tst
