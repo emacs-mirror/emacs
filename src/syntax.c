@@ -1851,7 +1851,7 @@ DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 6, 0,
 
 init_syntax_once ()
 {
-  register int i;
+  register int i, c;
   Lisp_Object temp;
 
   /* This has to be done here, before we call Fmake_char_table.  */
@@ -1907,11 +1907,17 @@ init_syntax_once ()
 
   temp = XVECTOR (Vsyntax_code_object)->contents[(int) Ssymbol];
   for (i = 0; i < 10; i++)
-    SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, "_-+*/&|<>="[i], temp);
+    {
+      c = "_-+*/&|<>="[i];
+      SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, c, temp);
+    }
 
   temp = XVECTOR (Vsyntax_code_object)->contents[(int) Spunct];
   for (i = 0; i < 12; i++)
-    SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, ".,;:?!#@~^'`"[i], temp);
+    {
+      c = ".,;:?!#@~^'`"[i];
+      SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, c, temp);
+    }
 }
 
 syms_of_syntax ()
