@@ -40,7 +40,7 @@
 ;;; Forms mode means visiting a data file which is supposed to consist
 ;;; of records each containing a number of fields.  The records are
 ;;; separated by a newline, the fields are separated by a user-defined
-;;; field separater (default: TAB).
+;;; field separator (default: TAB).
 ;;; When shown, a record is transferred to an Emacs buffer and
 ;;; presented using a user-defined form.  One record is shown at a
 ;;; time.
@@ -54,7 +54,7 @@
 ;;; will be buried, for it is never accessed directly.
 ;;;
 ;;; Forms mode is invoked using M-x forms-find-file control-file .
-;;; Alternativily `forms-find-file-other-window' can be used.
+;;; Alternatively `forms-find-file-other-window' can be used.
 ;;;
 ;;; You may also visit the control file, and switch to forms mode by hand
 ;;; with M-x forms-mode .
@@ -114,7 +114,7 @@
 ;;;			the form.
 ;;;			This variable denotes the separator character
 ;;;			to be used for this purpose.  Upon display, all
-;;;			occurrencies of this character are translated
+;;;			occurrences of this character are translated
 ;;;			to newlines.  Upon storage they are translated
 ;;;			back to the separator character.
 ;;;
@@ -197,7 +197,7 @@
 ;;; is left.  The contents of the form are parsed using information
 ;;; obtained from `forms-format-list', and the fields which are
 ;;; deduced from the form are modified.  Fields not shown on the forms
-;;; retain their origional values.  The newly formed record then
+;;; retain their original values.  The newly formed record then
 ;;; replaces the contents of the old record in `forms--file-buffer'.
 ;;; A parse routine `forms--parser' is built upon startup to parse
 ;;; the records.
@@ -288,10 +288,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.22 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.23 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.22 1995/10/30 17:07:02 rms Exp jvromans $")
+  $Id: forms.el,v 2.23 1995/11/16 20:04:57 jvromans Exp kwzh $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -701,7 +701,7 @@ Commands:                        Equivalent keys in read-only mode:
   ;; of the fields on the display. This array is used by 
   ;; `forms--parser-using-text-properties' to extract the fields data
   ;; from the form on the screen.
-  ;; Upon completion, `forms-format-list' is garanteed correct, so
+  ;; Upon completion, `forms-format-list' is guaranteed correct, so
   ;; `forms--make-format' and `forms--make-parser' do not need to perform
   ;; any checks.
 
@@ -1706,7 +1706,7 @@ As a side effect: re-calculates the number of records in the data file."
 (defun forms-toggle-read-only (arg)
   "Toggles read-only mode of a forms mode buffer.
 With an argument, enables read-only mode if the argument is positive.
-Otherwise enables edit mode if the visited file is writeable."
+Otherwise enables edit mode if the visited file is writable."
 
   (interactive "P")
 
@@ -1984,7 +1984,7 @@ Calls `forms-write-file-filter' before writing out the data."
 (defun forms-enumerate (the-fields)
   "Take a quoted list of symbols, and set their values to sequential numbers.
 The first symbol gets number 1, the second 2 and so on.
-It returns the higest number.
+It returns the highest number.
 
 Usage: (setq forms-number-of-fields
              (forms-enumerate
