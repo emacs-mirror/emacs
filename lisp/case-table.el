@@ -140,6 +140,7 @@ It also modifies `standard-syntax-table' to give them the syntax of
 word constituents."
   (setq uc (set-case-syntax-1 uc))
   (setq lc (set-case-syntax-1 lc))
+  (aset table lc lc)
   (let ((up (get-upcase-table table)))
     (aset up uc uc)
     (aset up lc uc))
@@ -158,6 +159,8 @@ word constituents."
   (setq lc (set-case-syntax-1 lc))
   (aset table uc lc)
   (aset table lc lc)
+  (let ((up (get-upcase-table table)))
+    (aset up uc uc))
   ;; Clear out the extra slots so that they will be
   ;; recomputed from the main (downcase) table and upcase table.
   (set-char-table-extra-slot table 1 nil)
