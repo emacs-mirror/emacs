@@ -7,7 +7,7 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	print, PostScript, multibyte, mule
-;; Time-stamp:	<98/12/15 14:04:50 handa>
+;; Time-stamp:	<99/02/19 13:15:52 vinicius>
 
 ;; This file is part of GNU Emacs.
 
@@ -485,7 +485,7 @@ See the documentation of `ps-mule-get-font-spec' for FONT-SPEC's meaning."
 	 (ps-output-prologue (funcall func charset font-spec)))
     (ps-output-prologue
      (list (format "/%s %f /%s Def%sFontMule\n"
-		   scaled-font-name ps-font-size font-name
+		   scaled-font-name ps-font-size-internal font-name
 		   (if (eq ps-mule-current-charset 'ascii) "Ascii" ""))))
     (if font-cache
 	(setcar (cdr font-cache)
