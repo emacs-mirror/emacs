@@ -1,3 +1,11 @@
+2002-04-15  Richard M. Stallman  <rms@gnu.org>
+
+	* facemenu.el (facemenu-add-new-face): Use this only for faces.
+	Delete arg MENU.
+	(facemenu-add-new-color): New function.
+	(facemenu-set-foreground, facemenu-set-background):
+	Use facemenu-add-new-color.
+
 2002-04-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ediff-init.el (ediff-current-diff-face-A) 
