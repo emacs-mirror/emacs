@@ -1,3 +1,9 @@
+2001-03-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* print.c (Fprin1, Fprin1_to_string, Fprinc, Fprint): Doc fix.
+
+	* buffer.c (syms_of_buffer): Doc fix.
+
 2001-03-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (x_update_menu_appearance): Use local variable
