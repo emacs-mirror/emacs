@@ -148,6 +148,10 @@ The function @code{assoc-delete-all} has itself been deleted.
 So there!
 
 @item
+The keyword @code{:set-after} no longer does anything in
+@code{defcustom}.
+
+@item
 The variable @code{small-temporary-file-directory} has no special
 meaning.  There's only one variable for specifying which directory to
 use for temporary files, @code{temporary-file-directory}, but not all

@@ -257,6 +257,13 @@ Use the @code{:set} function to initialize the variable, if it is
 already set or has been customized; otherwise, just use
 @code{set-default}.
 @end table
+
+@item :set-after @var{variables}
+When setting variables according to saved customizations, make sure to
+set the variables @var{variables} before this one; in other words, delay
+setting this variable until after those others have been handled.  Use
+@code{:set-after} if setting this variable won't work properly unless
+those other variables already have their intended values.
 @end table
 
   The @code{:require} option is useful for an option that turns on the
