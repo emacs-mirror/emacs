@@ -1,6 +1,6 @@
 # impl.nmk.w3ppmv: WINDOWS (POWERPC) NMAKE FILE
 #
-# $HopeName: MMsrc!w3ppmv.nmk(trunk.40) $
+# $HopeName: MMsrc!w3ppmv.nmk(trunk.41) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 PFM = w3ppmv
@@ -20,8 +20,8 @@ MPM = <assert> <ring> <mpm> <bt> <protocol> \
       <abq> <meter> <cbs> <poolmv2> <splay> <version>
 SW  = <assert> <ring> <mpm> <bt> <protocol> \
       <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
-      <pool> <poolabs> <poolmfs> \
-      <poolmv> <root> <format> <buffer> <lockw3> \
+      <pool> <poolabs> <poolmfs> <poolmv> \
+      <root> <format> <buffer> \
       <ref> <trace> <protsw> <prmcan> <shield> <vmw3> \
       <than> <ssan> <mpsi> <ld> \
       <event> <action> <seg> <sac> <poolmrg> <message> <mpsioan> \
@@ -31,8 +31,8 @@ PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
 AMS = <poolams>
 AWL = <poolawl>
-LO  = <poollo>
-DW  = <fmtdy>
+LO = <poollo>
+DW = <fmtdy>
 DWTEST = <fmtdytst>
 POOLN = <pooln>
 ARENAAN = <arenaan>
@@ -40,6 +40,7 @@ TESTLIB = <testlib>
 
 
 !INCLUDE commpre.nmk
+
 
 # Source to object file mappings
 # and CFLAGS amalgamation
