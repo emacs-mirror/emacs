@@ -135,7 +135,9 @@ static void adjust_glyph_matrix P_ ((struct window *, struct glyph_matrix *,
 				     int, int, struct dim));
 static void change_frame_size_1 P_ ((struct frame *, int, int, int, int, int));
 static void swap_glyph_pointers P_ ((struct glyph_row *, struct glyph_row *));
+#ifdef GLYPH_DEBUG
 static int glyph_row_slice_p P_ ((struct glyph_row *, struct glyph_row *));
+#endif
 static void fill_up_frame_row_with_spaces P_ ((struct glyph_row *, int));
 static void build_frame_matrix_from_window_tree P_ ((struct glyph_matrix *,
 						     struct window *));
@@ -1190,6 +1192,8 @@ assign_row (to, from)
    is non-zero if the glyph memory of WINDOW_ROW is part of the glyph
    memory of FRAME_ROW.  */
 
+#ifdef GLYPH_DEBUG
+
 static int
 glyph_row_slice_p (window_row, frame_row)
      struct glyph_row *window_row, *frame_row;
@@ -1202,6 +1206,7 @@ glyph_row_slice_p (window_row, frame_row)
 	  && window_glyph_start < frame_glyph_end);
 }
 
+#endif /* GLYPH_DEBUG */
 
 #if 0
 
@@ -3136,7 +3141,6 @@ direct_output_for_insert (g)
   int added_width;
   struct text_pos pos;
   int delta, delta_bytes;
-  int mouse_face_overwritten_p;
 
   /* Not done directly.  */
   redisplay_performed_directly_p = 0;
