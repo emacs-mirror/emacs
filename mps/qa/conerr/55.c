@@ -1,6 +1,8 @@
-/* test add to ld in destroyed space
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = add to ld in destroyed space
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

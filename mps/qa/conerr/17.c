@@ -1,6 +1,8 @@
-/* test destroy a pool though containining an AP
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = destroy a pool though containining an AP
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

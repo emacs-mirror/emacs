@@ -1,6 +1,8 @@
-/* test create a format in an uncreated space
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = create a format in an uncreated space
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

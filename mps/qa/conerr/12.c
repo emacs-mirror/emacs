@@ -1,6 +1,8 @@
-/* test destroy a format though attached to a pool
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = destroy a format though attached to a pool
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

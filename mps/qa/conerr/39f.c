@@ -1,6 +1,8 @@
-/* test commit without reserving
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = commit without reserving
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

@@ -1,6 +1,8 @@
-/* test create a space and then destroy it, twice!
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = create a space and then destroy it, twice!
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

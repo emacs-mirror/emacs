@@ -1,6 +1,8 @@
-/* test destroy root twice
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = destroy root twice
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

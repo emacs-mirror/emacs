@@ -1,6 +1,8 @@
-/* test free in a destroyed pool
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = free in a destroyed pool
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

@@ -1,6 +1,8 @@
-/* test isstale on ld in wrong space
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = isstale on ld in wrong space
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

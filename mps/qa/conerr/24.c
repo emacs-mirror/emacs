@@ -1,6 +1,8 @@
-/* test alloc in pool not supporting alloc
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = alloc in pool not supporting alloc
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"
