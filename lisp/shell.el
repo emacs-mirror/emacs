@@ -415,28 +415,29 @@ buffer."
   (make-local-variable 'list-buffers-directory)
   (setq list-buffers-directory (expand-file-name default-directory))
   ;; shell-dependent assignments.
-  (let ((shell (file-name-nondirectory (car
-		 (process-command (get-buffer-process (current-buffer)))))))
-    (setq comint-input-ring-file-name
-	  (or (getenv "HISTFILE")
-	      (cond ((string-equal shell "bash") "~/.bash_history")
-		    ((string-equal shell "ksh") "~/.sh_history")
-		    (t "~/.history"))))
-    (if (or (equal comint-input-ring-file-name "")
-	    (equal (file-truename comint-input-ring-file-name)
-		   (file-truename "/dev/null")))
-	(setq comint-input-ring-file-name nil))
-    ;; Arrange to write out the input ring on exit, if the shell doesn't
-    ;; do this itself.
-    (if (and comint-input-ring-file-name
-	     (string-match shell-dumb-shell-regexp shell))
-	(set-process-sentinel (get-buffer-process (current-buffer))
-			      #'shell-write-history-on-exit))
-    (setq shell-dirstack-query
-	  (cond ((string-equal shell "sh") "pwd")
-		((string-equal shell "ksh") "echo $PWD ~-")
-		(t "dirs"))))
-  (comint-read-input-ring t))
+  (unless comint-input-ring
+    (let ((shell (file-name-nondirectory (car
+		   (process-command (get-buffer-process (current-buffer)))))))
+      (setq comint-input-ring-file-name
+	    (or (getenv "HISTFILE")
+		(cond ((string-equal shell "bash") "~/.bash_history")
+		      ((string-equal shell "ksh") "~/.sh_history")
+		      (t "~/.history"))))
+      (if (or (equal comint-input-ring-file-name "")
+	      (equal (file-truename comint-input-ring-file-name)
+		     (file-truename "/dev/null")))
+	  (setq comint-input-ring-file-name nil))
+      ;; Arrange to write out the input ring on exit, if the shell doesn't
+      ;; do this itself.
+      (if (and comint-input-ring-file-name
+	       (string-match shell-dumb-shell-regexp shell))
+	  (set-process-sentinel (get-buffer-process (current-buffer))
+				#'shell-write-history-on-exit))
+      (setq shell-dirstack-query
+	    (cond ((string-equal shell "sh") "pwd")
+		  ((string-equal shell "ksh") "echo $PWD ~-")
+		  (t "dirs"))))
+    (comint-read-input-ring t)))
 
 (defun shell-write-history-on-exit (process event)
   "Called when the shell process is stopped.
