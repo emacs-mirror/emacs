@@ -21,6 +21,11 @@
 
 (provide 'compile)
 
+;;;###autoload
+(defvar compilation-mode-hook nil
+  "*List of hook functions run by compilation-mode (see `run-hooks').")
+
+;;;###autoload
 (defconst compilation-window-height nil
   "*Number of lines in a compilation window.  If nil, use Emacs default.")
 
@@ -101,8 +106,9 @@ are found.")
 compilation.  If REGEXP matches, the FILE-IDX'th subexpression gives the file
 name, and the LINE-IDX'th subexpression gives the line number.")
 
+;;;###autoload
 (defvar compilation-search-path '(nil)
-  "List of directories to search for source files named in error messages.
+  "*List of directories to search for source files named in error messages.
 Elements should be directory names, not file names of directories.
 nil as an element means to try the default directory.")
 
@@ -299,7 +305,9 @@ means the default).  The defaults for these variables are the global values of
   "Major mode for compilation log buffers.
 \\<compilation-mode-map>To visit the source for a line-numbered error,
 move point to the error message line and type \\[compile-goto-error].
-To kill the compilation, type \\[kill-compilation]."
+To kill the compilation, type \\[kill-compilation].
+
+Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (interactive)
   (fundamental-mode)
   (use-local-map compilation-mode-map)
@@ -312,7 +320,8 @@ To kill the compilation, type \\[kill-compilation]."
   (set (make-local-variable 'compilation-old-error-list) nil)
   (set (make-local-variable 'compilation-parsing-end) 1)
   (set (make-local-variable 'compilation-directory-stack) nil)
-  (setq compilation-last-buffer (current-buffer)))
+  (setq compilation-last-buffer (current-buffer))
+  (run-hooks 'compilation-mode-hook))
 
 ;; Called when compilation process changes state.
 (defun compilation-sentinel (proc msg)
