@@ -509,7 +509,7 @@ BUFFER may be a buffer or the name of one.")
    Buffers denote the first process in the buffer, and nil denotes the
    current buffer.  */
 
-Lisp_Object
+static Lisp_Object
 get_process (name)
      register Lisp_Object name;
 {
