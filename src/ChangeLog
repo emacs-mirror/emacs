@@ -1,3 +1,8 @@
+2000-01-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (Fclear_this_command_keys): Clear recent_keys
+	vector, too.
+
 2000-01-11  Andreas Schwab  <schwab@suse.de>
 
 	* coding.c (code_convert_region): Initialize total_skip.

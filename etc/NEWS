@@ -889,6 +889,9 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
+** The function `clear-this-command-keys' now also clears the vector
+returned by function `recent-keys'.
+
 ** New function `keyword-p' is an efficient type predicate for keyword
 symbols.
 
