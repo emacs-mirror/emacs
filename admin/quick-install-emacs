@@ -8,7 +8,7 @@
 PUBLIC_LIBSRC_BINARIES='b2m emacsclient etags ctags ebrowse'
 PUBLIC_LIBSRC_SCRIPTS='grep-changelog rcs-checkin'
 
-AVOID="CVS -DIC README COPYING ChangeLog ~ [.]orig$ [.]rej$ Makefile makefile stamp-subdir .cvsignore .arch-ids \{arch\} [.][cho]$ make-docfile testfile test-distrib"
+AVOID="CVS -DIC README COPYING ChangeLog ~ [.]orig$ [.]rej$ Makefile makefile stamp-subdir [.]cvsignore [.]arch-ids [{]arch[}] [.][cho]$ make-docfile testfile test-distrib"
 
 # Prune old binaries lying around in the source tree
 PRUNE=no
@@ -174,10 +174,6 @@ if test x"$PRUNE" != xno; then
     PRUNED="$PRUNED $D"
   done
   for D in `ls -1t $BUILD/src/emacs-$VERSION.* | sed 1d`; do
-    echo $REMOVE_CMD $D
-    PRUNED="$PRUNED $D"
-  done
-  for D in `ls -1t $BUILD/lib-src/fns-* | sed 1d`; do
     echo $REMOVE_CMD $D
     PRUNED="$PRUNED $D"
   done

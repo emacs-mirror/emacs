@@ -1,3 +1,10 @@
+2003-09-27  Miles Bader  <miles@gnu.ai.mit.edu>
+
+	* quick-install-emacs: Remove fns-* pruning, since that file no
+	longer seems to be generated.
+	(AVOID): Quote literal periods.  Quote braces in a way acceptable
+	to all parties (gawk gets bitchy about using `\').
+
 2003-08-19  Miles Bader  <miles@gnu.org>
 
 	* quick-install-emacs: Add arch-specific ignored files to
