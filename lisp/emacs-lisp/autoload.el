@@ -87,8 +87,8 @@ or macro definition or a defcustom)."
      ((memq car '(defun define-skeleton defmacro define-derived-mode
 		   define-generic-mode easy-mmode-define-minor-mode
 		   easy-mmode-define-global-mode
-		   define-minor-mode defun*))
-      (let* ((macrop (eq car 'defmacro))
+		   define-minor-mode defun* defmacro*))
+      (let* ((macrop (memq car '(defmacro defmacro*)))
 	     (name (nth 1 form))
 	     (body (nthcdr (get car 'doc-string-elt) form))
 	     (doc (if (stringp (car body)) (pop body))))
