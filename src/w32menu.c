@@ -1747,9 +1747,6 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
   pos.y = y;
   ClientToScreen (FRAME_W32_WINDOW (f), &pos);
 
-  /* Free the widget_value objects we used to specify the contents.  */
-  free_menubar_widget_value_tree (first_wv);
-
   /* No selection has been chosen yet.  */
   menu_item_selection = 0;
 
@@ -1761,6 +1758,9 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
   /* Clean up extraneous mouse events which might have been generated
      during the call. */
   discard_mouse_events ();
+
+  /* Free the widget_value objects we used to specify the contents.  */
+  free_menubar_widget_value_tree (first_wv);
 
   DestroyMenu (menu);
 
@@ -2056,7 +2056,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       else
 	out_string = wv->name;
 
-      if (wv->title || wv->call_data == 0)
+      if (wv->title)
 	{
 #if 0  /* no GC while popup menu is active */
 	  out_string = LocalAlloc (0, strlen (wv->name) + 1);
@@ -2170,7 +2170,8 @@ w32_menu_display_help (HMENU menu, UINT item, UINT flags)
       get_menu_item_info (menu, item, FALSE, &info);
 
       show_help_echo (info.dwItemData ?
-		      build_string ((char *) info.dwItemData) : Qnil, 1);
+		      build_string ((char *) info.dwItemData) : Qnil,
+                      Qnil, -1, 1);
     }
 }
 
