@@ -1,3 +1,9 @@
+2000-01-28  Dave Love  <fx@gnu.org>
+
+	* s/irix6-5.h: Revert last change after change to irix5-0.h.
+
+	* m/iris4d.h (C_SWITCH_MACHINE): Don't use -G0.
+
 2000-01-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* buffer.c (Fother_buffer): Don't call Fset_buffer_major_mode

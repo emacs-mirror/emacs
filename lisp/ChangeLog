@@ -1,5 +1,7 @@
 2000-01-28  Dave Love  <fx@gnu.org>
 
+	* emacs-lisp/cl-macs.el: Remove dotimes, dolist.
+
 	* emacs-lisp/cl.el: Remove stuff for dotimes, dolist, push, pop.
 	Don't use lisp-indent-hook property.
 	(cl-abs): Remove.
