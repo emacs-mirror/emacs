@@ -1167,15 +1167,22 @@
 
 ;;; Make fundamental coding systems.
 
-;; The coding system `no-conversion' is already defined in coding.c as
-;; below:
+;; The coding system `no-conversion' and `undecided' are already
+;; defined in coding.c as below:
 ;;
 ;; (define-coding-system 'no-conversion
-;;   "Do no conversion."
+;;   "..."
 ;;   :coding-type 'raw-text
-;;   :mnemonic ?=)
+;;   ...)
+;; (define-coding-system 'undecided
+;;   "..."
+;;   :coding-type 'undecided
+;;   ...)
 
 (define-coding-system-alias 'binary 'no-conversion)
+(define-coding-system-alias 'unix 'undecided-unix)
+(define-coding-system-alias 'dos 'undecided-dos)
+(define-coding-system-alias 'mac 'undecided-mac)
 
 (define-coding-system 'raw-text
   "Raw text, which means text contains random 8-bit codes.
