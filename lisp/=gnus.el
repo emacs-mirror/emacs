@@ -1,6 +1,6 @@
 ;;; GNUS: an NNTP-based News Reader for GNU Emacs
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
-;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.20 1993/06/10 10:40:16 jimb Exp jimb $
+;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.21 1993/06/10 11:46:43 jimb Exp jimb $
 
 ;; This file is part of GNU Emacs.
 
@@ -6571,7 +6571,7 @@ If optional argument RAWFILE is non-nil, the raw startup file is read."
     ;; but no longer viable because of extensive backtracking in Emacs 19:
     ;; "^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(\\(...\\)*.*\\)$" nil t)
     (while (re-search-forward
-	    "^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(\\|[^ \t].*\\)$" nil t)
+	    "^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(\\|[^ \t\n].*\\)$" nil t)
       (setq newsgroup (buffer-substring (match-beginning 1) (match-end 1)))
       ;; Check duplications of newsgroups.
       ;; Note: Checking the duplications takes very long time.
