@@ -1355,42 +1355,7 @@ XTframe_rehighlight ()
     }
 }
 
-/* Mouse clicks and mouse movement.  Rah.  */
-#ifdef HAVE_X11
-
-/* Given a pixel position (PIX_X, PIX_Y) on the frame F, return
-   glyph co-ordinates in (*X, *Y).  Set *BOUNDS to the rectangle
-   that the glyph at X, Y occupies, if BOUNDS != 0.  */
-static void
-pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds)
-     FRAME_PTR f;
-     register unsigned int pix_x, pix_y;
-     register int *x, *y;
-     XRectangle *bounds;
-{
-  pix_x = PIXEL_TO_CHAR_COL (f, pix_x);
-  pix_y = PIXEL_TO_CHAR_ROW (f, pix_y);
-
-  if (bounds)
-    {
-      bounds->width  = FONT_WIDTH  (f->display.x->font);
-      bounds->height = FONT_HEIGHT (f->display.x->font);
-      bounds->x = CHAR_TO_PIXEL_COL (f, pix_x);
-      bounds->y = CHAR_TO_PIXEL_ROW (f, pix_y);
-    }
-
-  if (pix_x < 0) pix_x = 0;
-  else if (pix_x > f->width) pix_x = f->width;
-
-  if (pix_y < 0) pix_y = 0;
-  else if (pix_y > f->height) pix_y = f->height;
-
-  *x = pix_x;
-  *y = pix_y;
-}
-
-/* Any buttons grabbed. */
-unsigned int x_mouse_grabbed;
+/* Keyboard processing - modifier keys, vendor-specific keysyms, etc. */
 
 /* Which modifier keys are on which modifier bits?
 
@@ -1539,6 +1504,59 @@ x_emacs_to_x_modifiers (state)
 	  | ((state & ctrl_modifier)		? ControlMask      : 0)
 	  | ((state & meta_modifier)		? x_meta_mod_mask  : 0));
 }
+
+/* Return true iff KEYSYM is a vendor-specific keysym that we should
+   return as a function key.  If you add a keysym to this, you should
+   make sure that the tables make_lispy_event uses contain a suitable
+   name for it.  */
+static int
+x_is_vendor_fkey (sym)
+     KeySym sym;
+{
+  return 0
+#ifdef DXK_Remove
+    || (sym == DXK_Remove)
+#endif
+      ;
+}
+
+
+/* Mouse clicks and mouse movement.  Rah.  */
+#ifdef HAVE_X11
+
+/* Given a pixel position (PIX_X, PIX_Y) on the frame F, return
+   glyph co-ordinates in (*X, *Y).  Set *BOUNDS to the rectangle
+   that the glyph at X, Y occupies, if BOUNDS != 0.  */
+static void
+pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds)
+     FRAME_PTR f;
+     register unsigned int pix_x, pix_y;
+     register int *x, *y;
+     XRectangle *bounds;
+{
+  pix_x = PIXEL_TO_CHAR_COL (f, pix_x);
+  pix_y = PIXEL_TO_CHAR_ROW (f, pix_y);
+
+  if (bounds)
+    {
+      bounds->width  = FONT_WIDTH  (f->display.x->font);
+      bounds->height = FONT_HEIGHT (f->display.x->font);
+      bounds->x = CHAR_TO_PIXEL_COL (f, pix_x);
+      bounds->y = CHAR_TO_PIXEL_ROW (f, pix_y);
+    }
+
+  if (pix_x < 0) pix_x = 0;
+  else if (pix_x > f->width) pix_x = f->width;
+
+  if (pix_y < 0) pix_y = 0;
+  else if (pix_y > f->height) pix_y = f->height;
+
+  *x = pix_x;
+  *y = pix_y;
+}
+
+/* Any buttons grabbed. */
+unsigned int x_mouse_grabbed;
 
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
 
@@ -2881,7 +2899,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			  && (unsigned)(keysym) < XK_KP_Space)
 #endif
 		      || IsKeypadKey (keysym)       /* 0xff80 <= x < 0xffbe */
-		      || IsFunctionKey (keysym))    /* 0xffbe <= x < 0xffe1 */
+		      || IsFunctionKey (keysym)     /* 0xffbe <= x < 0xffe1 */
+		      || x_is_vendor_fkey (orig_keysym)) /* wherever */
 		    {
 		      if (temp_index == sizeof temp_buffer / sizeof (short))
 			temp_index = 0;
