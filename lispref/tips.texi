@@ -74,6 +74,16 @@ If you define a major mode, make sure to run a hook variable using
 @code{run-hooks}, just as the existing major modes do.  @xref{Hooks}.
 
 @item
+If the purpose of a function is to tell you whether a certain condition
+is true or false, give the function a name that ends in @samp{p}.  If
+the name is one word, add just @samp{p}; if the name is multiple words,
+add @samp{-p}.  Examples are @code{framep} and @code{frame-live-p}.
+
+@item
+If a user option variable records a true-or-false condition, give it a
+name that ends in @samp{-flag}.
+
+@item
 Please do not define @kbd{C-c @var{letter}} as a key in your major
 modes.  These sequences are reserved for users; they are the
 @strong{only} sequences reserved for users, so we cannot do without
