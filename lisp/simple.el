@@ -2330,6 +2330,9 @@ Setting this variable automatically makes it local to the current buffer.")
 (defconst auto-fill-inhibit-regexp nil
   "*Regexp to match lines which should not be auto-filled.")
 
+;; This function is the auto-fill-function of a buffer
+;; when Auto-Fill mode is enabled.
+;; It returns t if it really did any work.
 (defun do-auto-fill ()
   (let (fc justify bol give-up
 	   (fill-prefix fill-prefix))
@@ -2419,7 +2422,8 @@ Setting this variable automatically makes it local to the current buffer.")
 	    ;; No place to break => stop trying.
 	    (setq give-up t))))
       ;; justify last line
-      (justify-current-line justify t t)))) 
+      (justify-current-line justify t t)
+      t))) 
 
 (defun auto-fill-mode (&optional arg)
   "Toggle auto-fill mode.
