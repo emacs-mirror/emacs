@@ -4837,9 +4837,9 @@ Does not restore the value of point in current buffer.")
  ***********************************************************************/
 
 DEFUN ("set-window-margins", Fset_window_margins, Sset_window_margins,
-       2, 3, "",
+       2, 3, 0,
   "Set width of marginal areas of window WINDOW.\n\
-If window is nil or omitted, set margins of the currently selected window.\n\
+If window is nil, set margins of the currently selected window.\n\
 First parameter LEFT-WIDTH specifies the number of character\n\
 cells to reserve for the left marginal area.  Second parameter\n\
 RIGHT-WIDTH does the same for the right marginal area.\n\
