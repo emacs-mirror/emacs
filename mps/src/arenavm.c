@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY ARENA CLASS
  *
- * $HopeName: MMsrc!arenavm.c(trunk.69) $
+ * $HopeName: MMsrc!arenavm.c(trunk.70) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  *
@@ -17,7 +17,7 @@
  *
  * .improve.table.zone-zero: It would be better to make sure that the
  * page tables are in zone zero, since that zone is least useful for
- * GC.  (But it would change how vmFindFreeInZones avoids allocating
+ * GC.  (But it would change how pagesFindFreeInZones avoids allocating
  * over the tables, see .alloc.skip.)
  */
 
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.69) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.70) $");
 
 
 /* @@@@ Arbitrary calculation for the maximum number of distinct */
@@ -34,7 +34,6 @@ SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.69) $");
 /* .gencount.const: Must be a constant suitable for use as an */
 /* array size. */
 #define VMArenaGenCount ((Count)(MPS_WORD_WIDTH/2))
-
 
 /* VMChunk -- chunks for VM arenas */
 
@@ -451,12 +450,6 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
 
   /* have to have a valid arena before calling ChunkCreate */
   vmArena->sig = VMArenaSig;
-
-  if ((ArenaClass)mps_arena_class_vm() == class)
-    EVENT_PWW(ArenaCreateVM, arena, userSize, chunkSize);
-  else
-    EVENT_PWW(ArenaCreateVMNZ, arena, userSize, chunkSize);
-
   res = VMChunkCreate(&chunk, vmArena, userSize);
   if (res != ResOK)
     goto failChunkCreate;
@@ -465,13 +458,16 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   /* .zoneshift: Set the zone shift to divide the chunk into the same */
   /* number of stripes as will fit into a reference set (the number of */
   /* bits in a word).  Fail if the chunk is so small stripes are smaller */
-  /* than pages.  Note that some zones are discontiguous in the */
-  /* chunk if the size is not a power of 2.  See */
-  /* design.mps.arena.class.fields. */
+  /* than pages.  Note that some zones are discontiguous in the chunk if */
+  /* the size is not a power of 2.  See design.mps.arena.class.fields. */
   chunkSize = AddrOffset(chunk->base, chunk->limit);
   arena->zoneShift = SizeFloorLog2(chunkSize >> MPS_WORD_SHIFT);
 
   AVERT(VMArena, vmArena);
+  if ((ArenaClass)mps_arena_class_vm() == class)
+    EVENT_PWW(ArenaCreateVM, arena, userSize, chunkSize);
+  else
+    EVENT_PWW(ArenaCreateVMNZ, arena, userSize, chunkSize);
   *arenaReturn = arena;
   return ResOK;
 
