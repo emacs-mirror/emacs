@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages.
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: FSF
@@ -1295,7 +1295,11 @@ at the end of the line."
     ;; we want.
     (setq compilation-error-list compilation-old-error-list)
     (while (and compilation-error-list
-		(> (point) (car (car compilation-error-list))))
+		;; The marker can point nowhere if we previously
+		;; failed to find the relevant file.  See
+		;; compilation-next-error-locus.
+		(or (null (marker-buffer (caar compilation-error-list)))
+		    (> (point) (caar compilation-error-list))))
       (setq compilation-error-list (cdr compilation-error-list)))
     (or compilation-error-list
 	(error "No error to go to")))
@@ -1322,7 +1326,11 @@ other kinds of prefix arguments are ignored."
   ;; we want.
   (setq compilation-error-list compilation-old-error-list)
   (while (and compilation-error-list
-	      (> (point) (car (car compilation-error-list))))
+	      ;; The marker can point nowhere if we previously
+	      ;; failed to find the relevant file.  See
+	      ;; compilation-next-error-locus.
+	      (or (null (marker-buffer (caar compilation-error-list)))
+		  (> (point) (caar compilation-error-list))))
     (setq compilation-error-list (cdr compilation-error-list)))
 
   (push-mark)
