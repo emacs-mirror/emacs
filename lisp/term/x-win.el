@@ -482,12 +482,24 @@ turn off scroll bars; otherwise, turn on scroll bars."
 ;;; with older X applications, this checks cut buffer 0 before
 ;;; retrieving the value of the primary selection.
 (defun x-cut-buffer-or-selection-value ()
-  (let ((text (or (x-selection-value))))
-    (if (or (string= text x-last-selected-text)
-	    (string= ""))
-	nil
-      (setq x-last-selected-text nil)
-      text)))
+  (let (text)
+
+    ;; Consult the cut buffer, then the selection.  Treat empty strings
+    ;; as if they were unset.
+    (setq text (x-get-cut-buffer 0))
+    (if (string= text "") (setq text nil))
+    (or text (setq text (x-get-cut-buffer 0)))
+    (if (string= text "") (setq text nil))
+
+    (cond
+     ((not text) nil)
+     ((eq text x-last-selected-text) nil)
+     ((string= text x-last-selected-text)
+      ;; Record the newer string, so subsequent calls can use the `eq' test.
+      (setq x-last-selected-text text)
+      nil)
+     (t
+      (setq x-last-selected-text text)))))
 
 ;;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-cut-function 'x-select-text)
