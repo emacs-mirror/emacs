@@ -3141,10 +3141,12 @@ setup_coding_system (coding_system, coding)
 	if (reg_bits)
 	  for (charset = 0; charset <= MAX_CHARSET; charset++)
 	    {
-	      if (CHARSET_VALID_P (charset))
+	      if (CHARSET_VALID_P (charset)
+		  && (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
+		      == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))
 		{
 		  /* There exist some default graphic registers to be
-		     used CHARSET.  */
+		     used by CHARSET.  */
 
 		  /* We had better avoid designating a charset of
 		     CHARS96 to REG 0 as far as possible.  */
