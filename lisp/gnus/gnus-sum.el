@@ -621,21 +621,25 @@ is not run if `gnus-visual' is nil."
 
 ;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
 (defcustom gnus-structured-field-decoder
-  (if (featurep 'mule)
+  (if (and (featurep 'mule)
+	   (boundp 'enable-multibyte-characters))
       (lambda (string)
-	(if gnus-mule-coding-system
+	(if (and enable-multibyte-characters gnus-mule-coding-system)
 	    (decode-coding-string string gnus-mule-coding-system)
-	  )))
+	  string))
+    'identity)
   "Function to decode non-ASCII characters in structured field for summary."
   :group 'gnus-various
   :type 'function)
 
 (defcustom gnus-unstructured-field-decoder
-  (if (featurep 'mule)
+  (if (and (featurep 'mule)
+	   (boundp 'enable-multibyte-characters))
       (lambda (string)
-	(if gnus-mule-coding-system 
+	(if (and enable-multibyte-characters gnus-mule-coding-system)
 	    (decode-coding-string string gnus-mule-coding-system)
-	  )))
+	  string))
+    'identity)
   "Function to decode non-ASCII characters in unstructured field for summary."
   :group 'gnus-various
   :type 'function)
