@@ -75,7 +75,7 @@
 ;;   When you load this file, completion will be on.  I suggest you use the
 ;; compiled version (because it is noticeably faster).
 ;;
-;;  M-X completion-mode toggles whether or not new words are added to the
+;;  M-x completion-mode toggles whether or not new words are added to the
 ;; database by changing the value of enable-completion.
 ;;
 ;;  SAVING/LOADING COMPLETIONS
@@ -350,31 +350,17 @@ are automatically added to the completion database."
 ;;  "*The period in seconds to wait for emacs to be idle before autosaving
 ;;the completions.  Default is a 1/2 hour.")
 
-(defconst completion-min-length nil ;; defined below in eval-when
+(defvar completion-min-length 6
   "*The minimum length of a stored completion.
 DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
 
-(defconst completion-max-length nil ;; defined below in eval-when
+(defvar completion-max-length 200
   "*The maximum length of a stored completion.
 DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
 
-(defconst completion-prefix-min-length nil ;; defined below in eval-when
+(defvar completion-prefix-min-length 3
   "The minimum length of a completion search string.
 DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
-
-(defmacro eval-when-compile-load-eval (&rest body)
-  ;; eval everything before expanding
-  (mapcar 'eval body)
-  (cons 'progn body))
-
-(defun completion-eval-when ()
-  (eval-when-compile-load-eval
-   ;; These vars. are defined at both compile and load time.
-   (setq completion-min-length 6)
-   (setq completion-max-length 200)
-   (setq completion-prefix-min-length 3)))
-
-(completion-eval-when)
 
 ;;---------------------------------------------------------------------------
 ;; Internal Variables
@@ -395,18 +381,6 @@ Used to decide whether to save completions.")
 ;;---------------------------------------------------------------------------
 ;; Low level tools
 ;;---------------------------------------------------------------------------
-
-;;-----------------------------------------------
-;; Misc.
-;;-----------------------------------------------
-
-(defun minibuffer-window-selected-p ()
-  "True iff the current window is the minibuffer."
-  (window-minibuffer-p (selected-window)))
-
-;; This used to be `(eval form)'.  Eval FORM at run time now.
-(defmacro cmpl-read-time-eval (form)
-  form)
 
 ;;-----------------------------------------------
 ;; String case coercion
@@ -592,7 +566,7 @@ Used to decide whether to save completions.")
 (defvar cmpl-saved-point nil)
 
 (defun symbol-under-point ()
-  "Returns the symbol that the point is currently on.
+  "Return the symbol that the point is currently on.
 But only if it is longer than `completion-min-length'."
   (setq cmpl-saved-syntax (syntax-table))
   (unwind-protect
@@ -617,10 +591,10 @@ But only if it is longer than `completion-min-length'."
 		  (setq cmpl-symbol-end (point))
 		  (goto-char cmpl-saved-point)))
 	   ;; Return completion if the length is reasonable.
-	   (if (and (<= (cmpl-read-time-eval completion-min-length)
+	   (if (and (<= completion-min-length
 			(- cmpl-symbol-end cmpl-symbol-start))
 		    (<= (- cmpl-symbol-end cmpl-symbol-start)
-			(cmpl-read-time-eval completion-max-length)))
+			completion-max-length))
 	       (buffer-substring cmpl-symbol-start cmpl-symbol-end)))))
     (set-syntax-table cmpl-saved-syntax)))
 
@@ -637,7 +611,7 @@ But only if it is longer than `completion-min-length'."
 ;;
 
 (defun symbol-before-point ()
-  "Returns a string of the symbol immediately before point.
+  "Return a string of the symbol immediately before point.
 Returns nil if there isn't one longer than `completion-min-length'."
   ;; This is called when a word separator is typed so it must be FAST !
   (setq cmpl-saved-syntax (syntax-table))
@@ -657,8 +631,7 @@ Returns nil if there isn't one longer than `completion-min-length'."
 		      (goto-char cmpl-symbol-end)))
 	       ;; Return value if long enough.
 	       (if (>= cmpl-symbol-end
-		       (+ cmpl-symbol-start
-			  (cmpl-read-time-eval completion-min-length)))
+		       (+ cmpl-symbol-start completion-min-length))
 		   (buffer-substring cmpl-symbol-start cmpl-symbol-end)))
 	      ((= cmpl-preceding-syntax ?w)
 	       ;; chars to ignore at end
@@ -675,10 +648,10 @@ Returns nil if there isn't one longer than `completion-min-length'."
 	       ;; Restore state.
 	       (goto-char cmpl-saved-point)
 	       ;; Return completion if the length is reasonable
-	       (if (and (<= (cmpl-read-time-eval completion-min-length)
+	       (if (and (<= completion-min-length
 			    (- cmpl-symbol-end cmpl-symbol-start))
 			(<= (- cmpl-symbol-end cmpl-symbol-start)
-			    (cmpl-read-time-eval completion-max-length)))
+			    completion-max-length))
 		   (buffer-substring cmpl-symbol-start cmpl-symbol-end)))))
     (set-syntax-table cmpl-saved-syntax)))
 
@@ -734,11 +707,10 @@ Returns nil if there isn't one longer than `completion-min-length'."
 		      (setq cmpl-symbol-start (point))
 		      (goto-char cmpl-symbol-end)))
 	       ;; Return completion if the length is reasonable.
-	       (if (and (<= (cmpl-read-time-eval
-			     completion-prefix-min-length)
+	       (if (and (<= completion-prefix-min-length
 			    (- cmpl-symbol-end cmpl-symbol-start))
 			(<= (- cmpl-symbol-end cmpl-symbol-start)
-			    (cmpl-read-time-eval completion-max-length)))
+			    completion-max-length))
 		   (buffer-substring cmpl-symbol-start cmpl-symbol-end)))))
     ;; Restore syntax table.
     (set-syntax-table cmpl-saved-syntax)))
@@ -833,7 +805,7 @@ Returns nil if there isn't one longer than `completion-min-length'."
 
 
 (defun reset-cdabbrev (abbrev-string &optional initial-completions-tried)
-  "Resets the cdabbrev search to search for abbrev-string.
+  "Reset the cdabbrev search to search for ABBREV-STRING.
 INITIAL-COMPLETIONS-TRIED is a list of downcased strings to ignore
 during the search."
   (setq cdabbrev-abbrev-string abbrev-string
@@ -849,7 +821,7 @@ during the search."
 
 
 (defun reset-cdabbrev-window (&optional initializep)
-  "Resets the cdabbrev search to search for abbrev-string."
+  "Reset the cdabbrev search to search for abbrev-string."
   ;; Set the window
   (cond (initializep
 	 (setq cdabbrev-current-window (selected-window)))
@@ -1037,7 +1009,7 @@ Each symbol is bound to a single completion entry.")
 
 ;; CONSTRUCTOR
 (defun make-completion (string)
-  "Returns a list of a completion entry."
+  "Return a list of a completion entry."
   (list (list string 0 nil current-completion-source)))
 
 ;; Obsolete
@@ -1070,7 +1042,7 @@ Each symbol is bound to a single completion entry.")
 ;; Constructor
 
 (defun make-cmpl-prefix-entry (completion-entry-list)
-  "Makes a new prefix entry containing only completion-entry."
+  "Make a new prefix entry containing only completion-entry."
   (cons completion-entry-list completion-entry-list))
 
 ;;-----------------------------------------------
@@ -1221,8 +1193,7 @@ Returns the completion entry."
 	    ;; setup the prefix
 	    (prefix-entry (find-cmpl-prefix-entry
 			    (substring cmpl-db-downcase-string 0
-				       (cmpl-read-time-eval
-					completion-prefix-min-length)))))
+				       completion-prefix-min-length))))
 	;; The next two forms should happen as a unit (atomically) but
 	;; no fatal errors should result if that is not the case.
 	(cond (prefix-entry
@@ -1253,8 +1224,7 @@ Returns the completion entry."
       ;; found
       (let* ((prefix-entry (find-cmpl-prefix-entry
 			     (substring cmpl-db-downcase-string 0
-					(cmpl-read-time-eval
-					 completion-prefix-min-length))))
+					completion-prefix-min-length)))
 	     (splice-ptr (locate-completion-entry cmpl-db-entry prefix-entry))
 	     (cmpl-ptr (cdr splice-ptr)))
 	;; update entry
@@ -1277,8 +1247,7 @@ Returns the completion entry."
 	  ;; setup the prefix
 	  (prefix-entry (find-cmpl-prefix-entry
 			  (substring cmpl-db-downcase-string 0
-				     (cmpl-read-time-eval
-				      completion-prefix-min-length)))))
+				     completion-prefix-min-length))))
       (cond (prefix-entry
 	     ;; Splice in at head
 	     (setcdr entry (cmpl-prefix-entry-head prefix-entry))
@@ -1301,8 +1270,7 @@ String must be longer than `completion-prefix-min-length'."
       ;; found
       (let* ((prefix-entry (find-cmpl-prefix-entry
 			     (substring cmpl-db-downcase-string 0
-					(cmpl-read-time-eval
-					 completion-prefix-min-length))))
+					completion-prefix-min-length)))
 	     (splice-ptr (locate-completion-entry cmpl-db-entry prefix-entry)))
 	 ;; delete symbol reference
 	 (set cmpl-db-symbol nil)
@@ -1577,7 +1545,7 @@ If there are no more entries, try cdabbrev and returns only a string."
 
 
 (defun completion-search-peek (use-cdabbrev)
-  "Returns the next completion entry without actually moving the pointers.
+  "Return the next completion entry without actually moving the pointers.
 Calling this again or calling `completion-search-next' results in the same
 string being returned.  Depends on `case-fold-search'.
 If there are no more entries, try cdabbrev and then return only a string."
@@ -1707,7 +1675,7 @@ Prefix args ::
   ;; Get the next completion
   (let* ((print-status-p
 	  (and (>= baud-rate completion-prompt-speed-threshold)
-	       (not (minibuffer-window-selected-p))))
+	       (not (window-minibuffer-p (selected-window)))))
 	 (insert-point (point))
 	 (entry (completion-search-next cmpl-current-index))
 	 string)
@@ -2266,7 +2234,7 @@ If file is not specified, then use `save-completions-file-name'."
 
 (defun initialize-completions ()
   "Load the default completions file.
-Also sets up so that exiting emacs will automatically save the file."
+Also sets up so that exiting Emacs will automatically save the file."
   (interactive)
   (cond ((not cmpl-initialized-p)
 	 (load-completions-from-file)))
@@ -2531,8 +2499,7 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 
   (initialize-completions))
 
-(mapc (lambda (x)
-	(add-to-list 'debug-ignored-errors x))
+(mapc (lambda (x) (add-to-list 'debug-ignored-errors x))
       '("^To complete, the point must be after a symbol at least [0-9]* character long\\.$"
 	"^The string \".*\" is too short to be saved as a completion\\.$"))
 
