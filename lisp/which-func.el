@@ -136,12 +136,15 @@ It creates the Imenu index for the buffer, if necessary."
       (setq which-func-mode which-func-mode-global)
     (setq which-func-mode nil))
 
-  (if (and which-func-mode
-           (not (member major-mode which-func-non-auto-modes))
-           (or (< buffer-saved-size which-func-maxout)
-               (= which-func-maxout 0)))
-      (setq imenu--index-alist
-	    (save-excursion (funcall imenu-create-index-function)))))
+  (condition-case nil
+      (if (and which-func-mode
+	       (not (member major-mode which-func-non-auto-modes))
+	       (or (< buffer-saved-size which-func-maxout)
+		   (= which-func-maxout 0)))
+	  (setq imenu--index-alist
+		(save-excursion (funcall imenu-create-index-function))))
+    (error
+     (setq which-func-mode nil))))
 
 (defun which-func-update ()
   ;; Update the string containing the current function.
