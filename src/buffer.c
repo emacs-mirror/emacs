@@ -5238,7 +5238,8 @@ On other systems, this variable is normally always nil.");
   DEFVAR_PER_BUFFER ("default-directory", &current_buffer->directory,
 		     make_number (Lisp_String),
     "Name of default directory of current buffer.  Should end with slash.\n\
-Each buffer has its own value of this variable.");
+Each buffer has its own value of this variable.  To change the\n\
+default directory, use function `cd'.");
 
   DEFVAR_PER_BUFFER ("auto-fill-function", &current_buffer->auto_fill_function,
 		     Qnil,
