@@ -1,6 +1,14 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* On OSF/Dec Unix/Tru64/<whatever it is this year> under X locally or
+remotely, M-SPC acts as a `compose' key with strange results.  See
+keyboard(5).
+
+Changing Alt_L to Meta_L fixes it:
+% xmodmap -e 'keysym Alt_L = Meta_L Alt_L'
+% xmodmap -e 'keysym Alt_R = Meta_R Alt_R'  
+
 * Error "conflicting types for `initstate'" compiling with GCC on Irix 6.
 
 Install GCC 2.95 or a newer version, and this problem should go away.
