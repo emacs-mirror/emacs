@@ -132,6 +132,12 @@ extern int errno;
 #  undef FSCALE
 # endif
 
+/* Same issues as for NeXT apply to the HURD-based GNU system.  */
+# ifdef __GNU__
+#  undef BSD
+#  undef FSCALE
+# endif /* __GNU__ */
+
 /* Set values that are different from the defaults, which are
    set a little farther down with #ifndef.  */
 
@@ -528,13 +534,13 @@ static long offset;
 
 #if !defined(VMS) && !defined(sgi) && !defined(__linux__)
 static struct nlist nl[2];
-#endif
+#endif /* Not VMS or sgi */
 
 #ifdef SUNOS_5
 static kvm_t *kd;
 #endif /* SUNOS_5 */
 
-# endif /* LOAD_AVE_TYPE && !HAVE_LIBKSTAT */
+#endif /* LOAD_AVE_TYPE && !HAVE_LIBKSTAT */
 
 /* Put the 1 minute, 5 minute and 15 minute load averages
    into the first NELEM elements of LOADAVG.
