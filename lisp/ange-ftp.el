@@ -1499,7 +1499,7 @@ then kill the related ftp process."
 	  (if parsed
 	      (let ((host (nth 0 parsed))
 		    (user (nth 1 parsed)))
-		(kill-buffer (ange-ftp-ftp-process-buffer host user))))))))
+		(kill-buffer (get-buffer (ange-ftp-ftp-process-buffer host user)))))))))
 
 (defun ange-ftp-quote-string (string)
   "Quote any characters in STRING that may confuse the ftp process."
