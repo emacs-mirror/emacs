@@ -199,13 +199,14 @@
   (setq w3m-display-inline-images mm-inline-text-html-with-images))
 
 (defun mm-w3m-cid-retrieve-1 (url handle)
-  (if (mm-multiple-handles handle)
-      (dolist (elem handle)
-	(mm-w3m-cid-retrieve-1 url elem))
-    (when (and (listp handle)
-	       (equal url (mm-handle-id handle)))
-      (mm-insert-part handle)
-      (throw 'found-handle (mm-handle-media-type handle)))))
+  (dolist (elem handle)
+    (when (listp elem)
+      (if (equal url (mm-handle-id elem))
+	  (progn
+	    (mm-insert-part elem)
+	    (throw 'found-handle (mm-handle-media-type elem))))
+      (if (equal "multipart" (mm-handle-media-supertype elem))
+	  (mm-w3m-cid-retrieve-1 url elem)))))
 
 (defun mm-w3m-cid-retrieve (url &rest args)
   "Insert a content pointed by URL if it has the cid: scheme."

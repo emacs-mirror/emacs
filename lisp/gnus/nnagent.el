@@ -103,7 +103,7 @@
 
 (defun nnagent-request-type (group article)
   (unless (stringp article)
-    (let ((gnus-plugged t))
+    (let ((gnus-agent nil))
       (if (not (gnus-check-backend-function
 		'request-type (car gnus-command-method)))
 	  'unknown
@@ -122,9 +122,14 @@
 
 (deffoo nnagent-request-set-mark (group action server)
   (with-temp-buffer
-    (insert (format "(%s-request-set-mark \"%s\" '%s \"%s\")\n"
-		    (nth 0 gnus-command-method) group action
-		    (or server (nth 1 gnus-command-method))))
+    (insert "(gnus-agent-synchronize-group-flags \""
+	    group 
+	    "\" '")
+    (gnus-pp action)
+    (insert " \""
+	    (gnus-method-to-server gnus-command-method)
+	    "\"")
+    (insert ")\n")
     (append-to-file (point-min) (point-max) (gnus-agent-lib-file "flags")))
   nil)
 

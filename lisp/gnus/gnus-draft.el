@@ -132,17 +132,21 @@
 
 (defun gnus-draft-send (article &optional group interactive)
   "Send message ARTICLE."
-  (let ((message-syntax-checks (if interactive message-syntax-checks
-				 'dont-check-for-anything-just-trust-me))
-	(message-hidden-headers nil)
-	(message-inhibit-body-encoding (or (not group)
-					   (equal group "nndraft:queue")
-					   message-inhibit-body-encoding))
-	(message-send-hook (and group (not (equal group "nndraft:queue"))
-				message-send-hook))
-	(message-setup-hook (and group (not (equal group "nndraft:queue"))
-				 message-setup-hook))
-	type method move-to)
+  (let* ((is-queue (or (not group)
+                       (equal group "nndraft:queue")))
+         (message-syntax-checks (if interactive message-syntax-checks
+                                  'dont-check-for-anything-just-trust-me))
+         (message-hidden-headers nil)
+         (message-inhibit-body-encoding (or is-queue
+                                            message-inhibit-body-encoding))
+         (message-send-hook (and (not is-queue)
+                                 message-send-hook))
+         (message-setup-hook (and (not is-queue)
+                                  message-setup-hook))
+         (gnus-agent-queue-mail (and (not is-queue)
+                                     gnus-agent-queue-mail))
+	 (rfc2047-encode-encoded-words nil)
+         type method move-to)
     (gnus-draft-setup article (or group "nndraft:queue"))
     ;; We read the meta-information that says how and where
     ;; this message is to be sent.
@@ -196,22 +200,25 @@
 (defun gnus-group-send-queue ()
   "Send all sendable articles from the queue group."
   (interactive)
-  (gnus-activate-group "nndraft:queue")
-  (save-excursion
-    (let* ((articles (nndraft-articles))
-	   (unsendable (gnus-uncompress-range
-			(cdr (assq 'unsend
-				   (gnus-info-marks
-				    (gnus-get-info "nndraft:queue"))))))
-	   (gnus-posting-styles nil)
-	   (total (length articles))
-	   article)
-      (while (setq article (pop articles))
-	(unless (memq article unsendable)
-	  (let ((message-sending-message
-		 (format "Sending message %d of %d..."
-			 (- total (length articles)) total)))
-	    (gnus-draft-send article)))))))
+  (when (or gnus-plugged
+	    (not gnus-agent-prompt-send-queue)
+	    (gnus-y-or-n-p "Gnus is unplugged; really send queue? "))
+    (gnus-activate-group "nndraft:queue")
+    (save-excursion
+      (let* ((articles (nndraft-articles))
+	     (unsendable (gnus-uncompress-range
+			  (cdr (assq 'unsend
+				     (gnus-info-marks
+				      (gnus-get-info "nndraft:queue"))))))
+	     (gnus-posting-styles nil)
+	     (total (length articles))
+	     article)
+	(while (setq article (pop articles))
+	  (unless (memq article unsendable)
+	    (let ((message-sending-message
+		   (format "Sending message %d of %d..."
+			   (- total (length articles)) total)))
+	      (gnus-draft-send article))))))))
 
 ;;;###autoload
 (defun gnus-draft-reminder ()
@@ -265,12 +272,13 @@
 	      `(lambda (arg)
 		 (gnus-post-method arg ,(car ga))))
 	(unless (equal (cadr ga) "")
-	  (message-add-action
-	   `(progn
-	      (gnus-add-mark ,(car ga) 'replied ,(cadr ga))
-	      (gnus-request-set-mark ,(car ga) (list (list (list ,(cadr ga))
-							   'add '(reply)))))
-	   'send))))))
+	  (dolist (article (cdr ga))
+	    (message-add-action
+	     `(progn
+		(gnus-add-mark ,(car ga) 'replied ,article)
+		(gnus-request-set-mark ,(car ga) (list (list (list ,article)
+							     'add '(reply)))))
+	     'send)))))))
 
 (defun gnus-draft-article-sendable-p (article)
   "Say whether ARTICLE is sendable."
