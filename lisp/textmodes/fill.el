@@ -32,10 +32,13 @@
 Non-nil means changing indent doesn't end a paragraph.
 That mode can handle paragraphs with extra indentation on the first line,
 but it requires separator lines between paragraphs.
-Nil means that any change in indentation starts a new paragraph.")
+A value of nil means that any change in indentation starts a new paragraph.")
+
+(defconst sentence-end-double-space t
+  "*Non-nil means a single space does not end a sentence.")
 
 (defun set-fill-prefix ()
-  "Set the fill-prefix to the current line up to point.
+  "Set the fill prefix to the current line up to point.
 Filling expects lines to start with the fill prefix and
 reinserts the fill prefix in each resulting line."
   (interactive)
@@ -58,8 +61,10 @@ on the second line of a paragraph is used as the standard indentation
 for the paragraph.")
 
 (defun fill-region-as-paragraph (from to &optional justify-flag)
-  "Fill region as one paragraph: break lines to fit fill-column.
+  "Fill region as one paragraph: break lines to fit `fill-column'.
 Prefix arg means justify too.
+If `sentence-end-double-space' is non-nil, then period followed by one
+space does not end a sentence, so don't break a line there.
 From program, pass args FROM, TO and JUSTIFY-FLAG."
   (interactive "r\nP")
   ;; Arrange for undoing the fill to restore point.
@@ -126,17 +131,18 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
       ;; Flush excess spaces, except in the paragraph indentation.
       (goto-char from)
       (skip-chars-forward " \t")
-      ;; nuke tabs while we're at it; they get screwed up in a fill
-      ;; this is quick, but loses when a sole tab follows the end of a sentence.
-      ;; actually, it is difficult to tell that from "Mr.\tSmith".
-      ;; blame the typist.
+      ;; Nuke tabs while we're at it; they get screwed up in a fill.
+      ;; This is quick, but loses when a tab follows the end of a sentence.
+      ;; Actually, it is difficult to tell that from "Mr.\tSmith".
+      ;; Blame the typist.
       (subst-char-in-region (point) (point-max) ?\t ?\ )
       (while (re-search-forward "   *" nil t)
 	(delete-region
 	 (+ (match-beginning 0)
-	    (if (save-excursion
-		  (skip-chars-backward " ]})\"'")
-		  (memq (preceding-char) '(?. ?? ?!)))
+	    (if (and sentence-end-double-space
+		     (save-excursion
+		       (skip-chars-backward " ]})\"'")
+		       (memq (preceding-char) '(?. ?? ?!))))
 		2 1))
 	 (match-end 0)))
       (goto-char (point-max))
@@ -159,12 +165,13 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 	    ;; further fills will assume it ends a sentence.
 	    ;; If we now know it does not end a sentence,
 	    ;; avoid putting it at the end of the line.
-	    (while (and (> (point) (+ linebeg 2))
-			(eq (preceding-char) ?\ )
-			(not (eq (following-char) ?\ ))
-			(eq (char-after (- (point) 2)) ?\.))
-	      (forward-char -2)
-	      (skip-chars-backward "^ \n" linebeg))
+	    (if sentence-end-double-space
+		(while (and (> (point) (+ linebeg 2))
+			    (eq (preceding-char) ?\ )
+			    (not (eq (following-char) ?\ ))
+			    (eq (char-after (- (point) 2)) ?\.))
+		  (forward-char -2)
+		  (skip-chars-backward "^ \n" linebeg)))
 	    (if (if (zerop prefixcol)
 		    (save-excursion
 		      (skip-chars-backward " " linebeg)
@@ -178,9 +185,10 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 		  (while (and (not (eobp))
 			      (or first
 				  (and (not (bobp))
+				       sentence-end-double-space
 				       (save-excursion (forward-char -1)
-						       (looking-at "\\. ")
-						       (not (looking-at "\\.  "))))))
+						       (and (looking-at "\\. ")
+							    (not (looking-at "\\.  ")))))))
 		    (skip-chars-forward " ")
 		    (skip-chars-forward "^ \n")
 		    (setq first nil)))
@@ -197,8 +205,10 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 		  (while (and (not (eobp))
 			      (or first
 				  (and (not (bobp))
+				       sentence-end-double-space
 				       (save-excursion (forward-char -1)
-						       (looking-at "\\. ")))))
+						       (and (looking-at "\\. ")
+							    (not (looking-at "\\.  ")))))))
 		    (skip-chars-forward " ")
 		    (skip-chars-forward "^ \n")
 		    (setq first nil)))))
@@ -222,7 +232,9 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 		 (forward-line 1))))))))
 
 (defun fill-paragraph (arg)
-  "Fill paragraph at or after point.  Prefix arg means justify as well."
+  "Fill paragraph at or after point.  Prefix arg means justify as well.
+If `sentence-end-double-space' is non-nil, then period followed by one
+space does not end a sentence, so don't break a line there."
   (interactive "P")
   (let ((before (point)))
     (save-excursion
@@ -235,7 +247,9 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 
 (defun fill-region (from to &optional justify-flag)
   "Fill each of the paragraphs in the region.
-Prefix arg (non-nil third arg, if called from program) means justify as well."
+Prefix arg (non-nil third arg, if called from program) means justify as well.
+If `sentence-end-double-space' is non-nil, then period followed by one
+space does not end a sentence, so don't break a line there."
   (interactive "r\nP")
   (save-restriction
    (narrow-to-region from to)
