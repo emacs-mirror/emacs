@@ -61,7 +61,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define NO_UNION_TYPE
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
-   the 24-bit bit field into an int.  In other words, if bit fields
+   the bit field into an int.  In other words, if bit fields
    are always unsigned.
 
    If you use NO_UNION_TYPE, this flag does not matter.  */
@@ -129,9 +129,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define TEXT_START 0x400000
 
 /*
- * DATA_SEG_BITS forces that bit to be or'd in with any pointers which
- * are trying to access pure strings (as gnu-emacs only allows 24 bits
- * for the value field of a LISP_OBJECT).
+ * DATA_SEG_BITS forces extra bits to be or'd in with any pointers which
+ * were stored in a Lisp_Object (as Emacs uses fewer than 32 bits for
+ * the value field of a LISP_OBJECT).
  */
 
 #define DATA_START 0x10000000
