@@ -2666,7 +2666,7 @@ fit on a typical screen, either, so you will have to use horizontal
 scrolling to see them all.  Press @kbd{<} and @kbd{>} to scroll the
 stack window left and right by half its width.  Another way to view
 something large is to press @kbd{`} (back-quote) to edit the top of
-stack in a separate window.  (Press @kbd{M-# M-#} when you are done.)
+stack in a separate window.  (Press @kbd{C-c C-c} when you are done.)
 
 You can enter non-decimal numbers using the @kbd{#} symbol, too.
 Let's see what the hexadecimal number @samp{5FE} looks like in
@@ -5588,8 +5588,8 @@ having to retype it.
 @end smallexample
 
 To edit a variable, type @kbd{s e} and the variable name, use regular
-Emacs editing commands as necessary, then type @kbd{M-# M-#} or
-@kbd{C-c C-c} to store the edited value back into the variable.
+Emacs editing commands as necessary, then type @kbd{C-c C-c} to store
+the edited value back into the variable. 
 You can also use @w{@kbd{s e}} to create a new variable if you wish.
 
 Notice that the first time you use each rule, Calc puts up a ``compiling''
@@ -6381,7 +6381,7 @@ calc-kbd-pop          # Restore values (Z ')
 @end smallexample
 
 @noindent
-Press @kbd{M-# M-#} to finish editing and return to the Calculator.
+Press @kbd{C-c C-c} to finish editing and return to the Calculator.
 
 @smallexample
 @group
@@ -12059,13 +12059,11 @@ regular Emacs commands.  With a numeric prefix argument, it edits the
 specified number of stack entries at once.  (An argument of zero edits
 the entire stack; a negative argument edits one specific stack entry.)
 
-When you are done editing, press @kbd{M-# M-#} to finish and return
+When you are done editing, press @kbd{C-c C-c} to finish and return
 to Calc.  The @key{RET} and @key{LFD} keys also work to finish most
 sorts of editing, though in some cases Calc leaves @key{RET} with its
 usual meaning (``insert a newline'') if it's a situation where you
-might want to insert new lines into the editing buffer.  The traditional
-Emacs ``finish'' key sequence, @kbd{C-c C-c}, also works to finish
-editing and may be easier to type, depending on your keyboard.
+might want to insert new lines into the editing buffer.
 
 When you finish editing, the Calculator parses the lines of text in
 the @samp{*Calc Edit*} buffer as numbers or formulas, replaces the
@@ -12073,18 +12071,18 @@ original stack elements in the original buffer with these new values,
 then kills the @samp{*Calc Edit*} buffer.  The original Calculator buffer
 continues to exist during editing, but for best results you should be
 careful not to change it until you have finished the edit.  You can
-also cancel the edit by pressing @kbd{M-# x}.
+also cancel the edit by killing the buffer with @kbd{C-x k}.
 
 The formula is normally reevaluated as it is put onto the stack.
 For example, editing @samp{a + 2} to @samp{3 + 2} and pressing
-@kbd{M-# M-#} will push 5 on the stack.  If you use @key{LFD} to
+@kbd{C-c C-c} will push 5 on the stack.  If you use @key{LFD} to
 finish, Calc will put the result on the stack without evaluating it.
 
-If you give a prefix argument to @kbd{M-# M-#} (or @kbd{C-c C-c}),
+If you give a prefix argument to @kbd{C-c C-c},
 Calc will not kill the @samp{*Calc Edit*} buffer.  You can switch
 back to that buffer and continue editing if you wish.  However, you
 should understand that if you initiated the edit with @kbd{`}, the
-@kbd{M-# M-#} operation will be programmed to replace the top of the
+@kbd{C-c C-c} operation will be programmed to replace the top of the
 stack with the new edited value, and it will do this even if you have
 rearranged the stack in the meanwhile.  This is not so much of a problem
 with other editing commands, though, such as @kbd{s e}
@@ -15264,8 +15262,8 @@ unrelated to the syntax tables described in the Emacs manual.)
 The @kbd{Z S} (@code{calc-edit-user-syntax}) command edits the
 syntax table for the current language mode.  If you want your
 syntax to work in any language, define it in the Normal language
-mode.  Type @kbd{M-# M-#} to finish editing the syntax table, or
-@kbd{M-# x} to cancel the edit.  The @kbd{m m} command saves all
+mode.  Type @kbd{C-c C-c} to finish editing the syntax table, or
+@kbd{C-x k} to cancel the edit.  The @kbd{m m} command saves all
 the syntax tables along with the other mode settings;
 @pxref{General Mode Commands}.
 
@@ -21809,7 +21807,7 @@ The @kbd{j D} command is implemented using rewrite rules.
 @xref{Selections with Rewrite Rules}.  The rules are stored in
 the Calc variable @code{DistribRules}.  A convenient way to view
 these rules is to use @kbd{s e} (@code{calc-edit-variable}) which
-displays and edits the stored value of a variable.  Press @kbd{M-# M-#}
+displays and edits the stored value of a variable.  Press @kbd{C-c C-c}
 to return from editing mode; be careful not to make any actual changes
 or else you will affect the behavior of future @kbd{j D} commands!
 
@@ -23585,7 +23583,7 @@ on variables, but you can use the @kbd{a b} (@code{calc-substitute})
 command to substitute actual values for function calls like @samp{as(3)}.
 
 The @kbd{s G} (@code{calc-edit-GenCount}) command is a convenient
-way to create or edit this variable.  Press @kbd{M-# M-#} to finish.
+way to create or edit this variable.  Press @kbd{C-c C-c} to finish.
 
 If you have not stored a value in @code{GenCount}, or if the value
 in that variable is not a positive integer, the regular
@@ -28089,7 +28087,7 @@ value of a variable without ever putting that value on the stack
 or simplifying or evaluating the value.  It prompts for the name of
 the variable to edit.  If the variable has no stored value, the
 editing buffer will start out empty.  If the editing buffer is
-empty when you press @kbd{M-# M-#} to finish, the variable will
+empty when you press @kbd{C-c C-c} to finish, the variable will
 be made void.  @xref{Editing Stack Entries}, for a general
 description of editing.
 
@@ -28936,7 +28934,7 @@ dumb terminals will be
 @texline @math{80\times24}
 @infoline 80x24
 characters.  The graph is displayed in
-an Emacs ``recursive edit''; type @kbd{q} or @kbd{M-# M-#} to exit
+an Emacs ``recursive edit''; type @kbd{q} or @kbd{C-c C-c} to exit
 the recursive edit and return to Calc.  Note that the @code{dumb}
 device is present only in GNUPLOT 3.0 and later versions.
 
@@ -30116,7 +30114,7 @@ by holding down Shift and Meta and alternately typing two keys.)
 The @kbd{M-# `} (@code{calc-embedded-edit}) command edits the
 embedded formula at the current point as if by @kbd{`} (@code{calc-edit}).
 Embedded mode does not have to be enabled for this to work.  Press
-@kbd{M-# M-#} to finish the edit, or @kbd{M-# x} to cancel.
+@kbd{C-c C-c} to finish the edit, or @kbd{C-x k} to cancel.
 
 @node Assignments in Embedded Mode, Mode Settings in Embedded Mode, More About Embedded Mode, Embedded Mode
 @section Assignments in Embedded Mode
@@ -30833,14 +30831,14 @@ been defined by a keyboard macro tries to use the @code{edit-kbd-macro}
 command to edit the macro.  This command may be found in the
 @file{macedit} package, a copy of which comes with Calc.  It decomposes
 the macro definition into full Emacs command names, like @code{calc-pop}
-and @code{calc-add}.  Type @kbd{M-# M-#} to finish editing and update
-the definition stored on the key, or, to cancel the edit, type
-@kbd{M-# x}.
+and @code{calc-add}.  Type @kbd{C-c C-c} to finish editing and update
+the definition stored on the key, or, to cancel the edit, kill the
+buffer with @kbd{C-x k}.
 
 If you give a negative numeric prefix argument to @kbd{Z E}, the keyboard
 macro is edited in spelled-out keystroke form.  For example, the editing
 buffer might contain the nine characters @w{@samp{1 @key{RET} 2 +}}.  When you press
-@kbd{M-# M-#}, the @code{read-kbd-macro} feature of the @file{macedit}
+@kbd{C-c C-c}, the @code{read-kbd-macro} feature of the @file{macedit}
 package is used to reinterpret these key names.  The
 notations @code{RET}, @code{LFD}, @code{TAB}, @code{SPC}, @code{DEL}, and
 @code{NUL} must be written in all uppercase, as must the prefixes @code{C-}
@@ -31250,8 +31248,9 @@ by a @kbd{Z F} command.
 
 The @kbd{Z E} (@code{calc-user-define-edit}) command on a key that has
 been defined by a formula uses a variant of the @code{calc-edit} command
-to edit the defining formula.  Press @kbd{M-# M-#} to finish editing and
-store the new formula back in the definition, or @kbd{M-# x} to
+to edit the defining formula.  Press @kbd{C-c C-c} to finish editing and
+store the new formula back in the definition, or kill the buffer with
+@kbd{C-x k} to
 cancel the edit.  (The argument list and other properties of the
 definition are unchanged; to adjust the argument list, you can use
 @kbd{Z G} to grab the function onto the stack, edit with @kbd{`}, and
@@ -35725,9 +35724,9 @@ Variable name may be a single digit or a full name.
 
 @c 30
 @item
-Editing occurs in a separate buffer.  Press @kbd{M-# M-#} (or @kbd{C-c C-c},
-@key{LFD}, or in some cases @key{RET}) to finish the edit, or press
-@kbd{M-# x} to cancel the edit.  The @key{LFD} key prevents evaluation
+Editing occurs in a separate buffer.  Press @kbd{C-c C-c} (or 
+@key{LFD}, or in some cases @key{RET}) to finish the edit, or kill the
+buffer with @kbd{C-x k} to cancel the edit.  The @key{LFD} key prevents evaluation
 of the result of the edit.
 
 @c 31
