@@ -1,6 +1,6 @@
 /* impl.c.dumper: Simple Event Dumper
  *
- * $HopeName: MMsrc!dumper.c(trunk.2) $
+ * $HopeName: MMsrc!dumper.c(trunk.3) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -34,6 +34,7 @@ typedef struct AddrStruct *Addr;
 
 
 static char *prog;
+static FILE *progin;
 
 
 static void error (const char *format, ...) {
@@ -51,7 +52,7 @@ static void error (const char *format, ...) {
 #define PROCESS(ch, type, _length, printfFormat, cast) \
   case ch: { \
     type v; \
-    size_t n = fread(&v, (_length), 1, stdin); \
+    size_t n = fread(&v, (_length), 1, progin); \
     if(n < 1) \
       error("Can't read data for format code >%c<", ch); \
     printf(printfFormat " ", (cast)v); \
@@ -80,7 +81,7 @@ static void readEvent(char *type, char *format, Word code, Word length,
         v = malloc(length * sizeof(Word));
         if(v == NULL)
           error("Can't allocate string space %u", (unsigned)length);
-        n = fread((void *)v, sizeof(Word), length, stdin); 
+        n = fread((void *)v, sizeof(Word), length, progin); 
         if(n < 1) 
           error("Can't read data for string"); 
         printf("%s  ", v); 
@@ -99,25 +100,43 @@ static void readEvent(char *type, char *format, Word code, Word length,
 
         
 int main(int argc, char *argv[]) {
-  size_t n;
   Word header[3];
+  size_t arg = 1;
 
   prog = (argc >= 1 ? argv[0] : "unknown");
 
-  while(!feof(stdin)) {
-    n = fread(header, sizeof(Word), 3, stdin);
-    if(n < 3) {
-      if(feof(stdin))
-        continue;
-      error("Can't read from input");
+  /* parse options here [there aren't any] */
+
+  do {
+    if(argc <= 1) {
+      progin = stdin;
+    } else {
+      char *filename = argv[arg];
+      assert(filename != NULL);
+      progin = fopen(filename, "rb");
+      /* fopen returns NULL in error (ISO C 7.9.5.3) */
+      if(progin == NULL) {
+        error("Failed to open \"%s\".\n", filename);
+      }
+      ++arg;
     }
-    
-    switch(header[0]) {
+    while(!feof(progin)) {
+      size_t n;
+      n = fread(header, sizeof(Word), 3, progin);
+      if(n < 3) {
+	if(feof(progin))
+	  continue;
+	error("Can't read from input");
+      }
+      
+      switch(header[0]) {
 #include "eventdef.h"
       default:
-      error("Unknown event code %08lX", header[0]);
+	error("Unknown event code %08lX", header[0]);
+      }
     }
-  }
+  } while(arg < argc);
+
   return(0);
 }
   
