@@ -364,7 +364,7 @@ extern void set_window_height P_ ((Lisp_Object, int, int));
 extern void set_window_width P_ ((Lisp_Object, int, int));
 extern void change_window_height P_ ((int, int));
 extern void delete_all_subwindows P_ ((struct window *));
-extern void free_window_starts P_ ((struct frame *, int));
+extern void freeze_window_starts P_ ((struct frame *, int));
 extern void foreach_window ();
 
 /* Make WINDOW display BUFFER as its contents.  RUN_HOOKS_P non-zero
