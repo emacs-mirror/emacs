@@ -1768,7 +1768,8 @@ normal otherwise."
     ;; clicks the menu bar during the sit-for.
     (when (display-popup-menus-p)
       (precompute-menubar-bindings))
-    (setq menubar-bindings-done t)
+    (with-no-warnings
+     (setq menubar-bindings-done t))
 
     ;; If *scratch* is selected and it is empty, insert an
     ;; initial message saying not to create a file there.
