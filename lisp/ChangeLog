@@ -1,5 +1,8 @@
 2000-09-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* menu-bar.el (menu-bar-update-buffers): Call frame-parameter
+	instead of frame-parameters.
+
 	* faces.el (set-face-attribute): Simplify by calling 
 	internal-set-lisp-face-attribute with FRAME being 0.
 

@@ -1,5 +1,7 @@
 2000-09-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.c (Fframe_parameter): Handle `name' specially.
+
 	* xfaces.c (Finternal_set_lisp_face_attribute): If FRAME is 0,
 	change face on all frames, and change the default for new frames.
 
