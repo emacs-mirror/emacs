@@ -1,6 +1,6 @@
 /* impl.c.testlib: Test library
  *
- * $HopeName: MMsrc!testlib.c(trunk.9) $
+ * $HopeName: MMsrc!testlib.c(trunk.10) $
  * Copyright (C) 1995, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -57,34 +57,36 @@ void die(mps_res_t res, const char *s)
  * non-zero and larger than the ones for lower generations.
  */
 
+#define multFREQ(freq, mult) ((freq) = (unsigned long)((freq) * (mult)))
+
 void adjust_collection_freq(double multiplier)
 {
-  AMCGen0Frequency *= multiplier;
+  multFREQ(AMCGen0Frequency, multiplier);
   if(AMCGen0Frequency == 0)
     AMCGen0Frequency = 1;
-  AMCGen1Frequency *= multiplier;
+  multFREQ(AMCGen1Frequency, multiplier);
   if(AMCGen1Frequency <= AMCGen0Frequency)
     AMCGen1Frequency = AMCGen0Frequency + 1;
-  AMCGen2Frequency *= multiplier;
+  multFREQ(AMCGen2Frequency, multiplier);
   if(AMCGen2Frequency <= AMCGen1Frequency)
     AMCGen2Frequency = AMCGen1Frequency + 1;
-  AMCGen2plusFrequencyMultiplier *= multiplier;
+  multFREQ(AMCGen2plusFrequencyMultiplier, multiplier);
   if(AMCGen2plusFrequencyMultiplier == 0)
     AMCGen2plusFrequencyMultiplier = 1;
-  AMCGen0RampmodeFrequency *= multiplier;
+  multFREQ(AMCGen0RampmodeFrequency, multiplier);
   if(AMCGen0RampmodeFrequency == 0)
     AMCGen0RampmodeFrequency = 1;
-  AMCGen1RampmodeFrequency *= multiplier;
+  multFREQ(AMCGen1RampmodeFrequency, multiplier);
   if(AMCGen1RampmodeFrequency == AMCGen0RampmodeFrequency)
     AMCGen1RampmodeFrequency = AMCGen0RampmodeFrequency + 1;
-  AMCRampGenFrequency *= multiplier;
+  multFREQ(AMCRampGenFrequency, multiplier);
   assert(AMCRampGenFollows == 1);
   if(AMCRampGenFrequency <= AMCGen1RampmodeFrequency)
     AMCRampGenFrequency = AMCGen1RampmodeFrequency + 1;
-  AMCGen2RampmodeFrequency *= multiplier;
+  multFREQ(AMCGen2RampmodeFrequency, multiplier);
   if(AMCGen2RampmodeFrequency <= AMCRampGenFrequency)
     AMCGen2RampmodeFrequency = AMCRampGenFrequency * 2;
-  AMCGen2plusRampmodeFrequencyMultiplier *= multiplier;
+  multFREQ(AMCGen2plusRampmodeFrequencyMultiplier, multiplier);
   if(AMCGen2plusRampmodeFrequencyMultiplier == 0)
     AMCGen2plusRampmodeFrequencyMultiplier = 1;
 }
