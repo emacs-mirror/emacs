@@ -21,16 +21,16 @@
    along with GNU Emacs; see the file COPYING.  If not, write to
    the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
 #include "getopt.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 /* Conditionalize function prototypes.  */
 
