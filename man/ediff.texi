@@ -1726,7 +1726,6 @@ Ediff does not let you use the option @samp{-c}, as it doesn't recognize this
 format yet.
 
 @item ediff-coding-system-for-read
-@itemx ediff-coding-system-for-read
 @vindex ediff-coding-system-for-read
 This variable specifies the coding system to use when reading the output
 that the programs @code{diff3} and @code{diff} send to Emacs. The default
