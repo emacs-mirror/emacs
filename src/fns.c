@@ -871,14 +871,12 @@ If STRING is multibyte, the result is STRING itself.")
 {
   if (! STRING_MULTIBYTE (string))
     {
-      int newlen = multibyte_chars_in_text (XSTRING (string)->data,
-					    STRING_BYTES (XSTRING (string)));
-      /* If all the chars are ASCII, STRING is already suitable.  */
-      if (newlen != STRING_BYTES (XSTRING (string)))
-	{
-	  string = Fcopy_sequence (string);
-	  XSTRING (string)->size = newlen;
-	}
+      int nbytes = STRING_BYTES (XSTRING (string));
+      int newlen = multibyte_chars_in_text (XSTRING (string)->data, nbytes);
+
+      string = Fcopy_sequence (string);
+      XSTRING (string)->size = newlen;
+      XSTRING (string)->size_byte = nbytes;
     }
   return string;
 }
