@@ -1,3 +1,8 @@
+2004-07-09  John Paul Wallington  <jpw@gnu.org>
+
+	* emacs-lisp/re-builder.el (reb-update-overlays): Distinguish
+	between one and several matches in message.
+
 2004-07-09  Richard M. Stallman  <rms@gnu.org>
 
 	* mouse.el (mouse-set-region-1): If transient-mark-mode
