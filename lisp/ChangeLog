@@ -1,3 +1,22 @@
+2000-08-25  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/kkc.el: Remove SKK from Keywords.  Require
+	ja-dic-utl instead of skkdic-utl.
+
+	* international/ja-dic-cnv.el: Renamed from skkdic-cnv.el.
+	Provide ja-dic-cnv instead of skkdic-cnv.
+	(ja-dic-filename): Renamed from skkdic-filename.  Referers changed
+	(iso-2022-7bit-short): Add safe-charsets property.
+	(skkdic-convert-postfix): Search Japanese chou-on character in
+	addition to Hiragana character.
+	(skkdic-convert-prefix, skkdic-collect-okuri-nasi): Likewise.
+	(skkdic-convert): Change file names from skkdic.el to ja-dic.el
+	(batch-skkdic-convert): Likewise.
+
+	* international/ja-dic-utl.el: Renamed from skkdic-utl.el.
+	Provide ja-dic-utl instead of skkdic-utl.
+	(skkdic-lookup-key): Load ja-dic/ja-dic, not skkdic/skkdic.
+
 2000-08-24  Dave Love  <fx@gnu.org>
 
 	* disp-table.el (standard-display-default): Make the test of `l'
