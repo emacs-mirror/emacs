@@ -1,3 +1,8 @@
+2001-08-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* hi-lock.el (hi-lock-unface-buffer): Don't call x-popup-menu if
+	display-popup-menus-p returns nil.
+
 2001-08-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* isearch.el (isearch-mouse-2): Renamed from isearch-mouse-yank.
