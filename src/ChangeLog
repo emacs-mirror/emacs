@@ -1,3 +1,7 @@
+2002-11-26  Dave Love  <fx@gnu.org>
+
+	* fns.c (Flanginfo): Call synchronize_system_time_locale.
+
 2002-11-07  Kenichi Handa  <handa@m17n.org>
 
 	The following changes are to make character composition happen
@@ -29,6 +33,9 @@
 	compose_chars_in_text.
 
 2002-11-06  Dave Love  <fx@gnu.org>
+
+	* keyboard.c (read_char): Modify checking around use of
+	Vkeyboard_translate_table.
 
 	* xterm.c (XTread_socket): Check Lisp types for Vx_keysym_table
 	and fix C types.
