@@ -4844,6 +4844,7 @@ DEFUN ("save-window-excursion", Fsave_window_excursion, Ssave_window_excursion,
   "Execute body, preserving window sizes and contents.\n\
 Restore which buffer appears in which window, where display starts,\n\
 and the value of point and mark for each window.\n\
+Also restore the choice of selected window.\n\
 Also restore which buffer is current.\n\
 Does not restore the value of point in current buffer.")
   (args)
