@@ -1,6 +1,6 @@
 /* impl.c.locus: LOCUS MANAGER
  *
- * $HopeName: MMsrc!locus.c(trunk.2) $
+ * $HopeName: MMsrc!locus.c(trunk.3) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -16,7 +16,7 @@
 #include <float.h> /* for DBL_MAX */
 
 
-SRCID(locus, "$HopeName: MMsrc!locus.c(trunk.2) $");
+SRCID(locus, "$HopeName: MMsrc!locus.c(trunk.3) $");
 
 
 /* SegPrefCheck -- check the consistency of a segment preference */
@@ -279,7 +279,6 @@ Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace)
   GenDesc gen;
   ZoneSet condemnedSet = ZoneSetEMPTY;
   Size condemnedSize = 0, survivorSize = 0, genNewSize, genTotalSize;
-  Ring node, nextNode;
 
   AVERT(Chain, chain);
   AVERT(Trace, trace);
@@ -297,10 +296,6 @@ Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace)
     survivorSize += (Size)(genNewSize * (1.0 - gen->mortality))
                     /* predict survivors will survive again */
                     + (genTotalSize - genNewSize);
-    RING_FOR(node, &gen->locusRing, nextNode) { /* reset newSize */
-      PoolGen pgen = RING_ELT(PoolGen, genRing, node);
-      pgen->newSize = (Size)0;
-    }
 
     if (++currGenSerial >= chain->genCount)
       break; /* reached the top */
@@ -327,7 +322,6 @@ Res ChainCondemnAll(Chain chain, Trace trace)
 {
   Ring node, nextNode;
   Bool haveWhiteSegs = FALSE;
-  size_t i;
   Res res;
 
   /* Condemn every segment in every pool using this chain. */
@@ -336,7 +330,6 @@ Res ChainCondemnAll(Chain chain, Trace trace)
     PoolGen nursery = RING_ELT(PoolGen, genRing, node);
     Pool pool = nursery->pool;
     Ring segNode, nextSegNode;
-    Ring topNode, nextTopNode;
 
     AVERT(Pool, pool);
     AVER((pool->class->attr & AttrGC) != 0);
@@ -347,23 +340,6 @@ Res ChainCondemnAll(Chain chain, Trace trace)
       if (res != ResOK)
         goto failBegin;
       haveWhiteSegs = TRUE;
-    }
-    /* Reset newSize in the top gen PoolGens. */
-    /* This is a slow way to find the top gen of this pool, but never mind. */
-    RING_FOR(topNode, &chain->arena->topGen.locusRing, nextTopNode) {
-      PoolGen pgen = RING_ELT(PoolGen, genRing, topNode);
-
-      if (pgen->pool == pool) {
-        pgen->newSize = (Size)0;
-        break;
-      }
-    }
-  }
-  /* Reset newSize in all the lower PoolGens. */
-  for (i = 0; i < chain->genCount; ++i) {
-    RING_FOR(node, &chain->gens[i].locusRing, nextNode) {
-      PoolGen pgen = RING_ELT(PoolGen, genRing, node);
-      pgen->newSize = (Size)0;
     }
   }
   
