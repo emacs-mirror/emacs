@@ -127,7 +127,9 @@ NOTE-END */
 
 #else /* SOLARIS2_4 */
 #ifndef __GNUC__
+#if 0 /* wisner@gryphon.com says this screws up cpp */
 #define C_SWITCH_MACHINE -Xa
+#endif
 #ifndef NOT_C_CODE
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
