@@ -3572,6 +3572,33 @@ Output from processes can arrive in between bunches.")
   return Qnil;
 }
 
+/* Return the foreground process group for the tty/pty that
+   the process P uses.  */
+static int
+emacs_get_tty_pgrp (p)
+     struct Lisp_Process *p;
+{
+  int gid = -1;
+
+#ifdef TIOCGPGRP 
+  if (ioctl (XINT (p->infd), TIOCGPGRP, &gid) == -1 && ! NILP (p->tty_name))
+    {
+      int fd;
+      /* Some OS:es (Solaris 8/9) does not allow TIOCGPGRP from the
+	 master side.  Try the slave side.  */
+      fd = emacs_open (XSTRING (p->tty_name)->data, O_RDONLY, 0);
+
+      if (fd != -1)
+	{
+	  ioctl (fd, TIOCGPGRP, &gid);
+	  emacs_close (fd);
+	}
+    }
+#endif /* defined (TIOCGPGRP ) */
+
+  return gid;
+}
+
 DEFUN ("process-running-child-p", Fprocess_running_child_p,
        Sprocess_running_child_p, 0, 1, 0,
   "Return t if PROCESS has given the terminal to a child.\n\
@@ -3582,7 +3609,7 @@ return t unconditionally.")
 {
   /* Initialize in case ioctl doesn't exist or gives an error,
      in a way that will cause returning t.  */
-  int gid = 0;
+  int gid;
   Lisp_Object proc;
   struct Lisp_Process *p;
 
@@ -3596,12 +3623,7 @@ return t unconditionally.")
     error ("Process %s is not active",
 	   XSTRING (p->name)->data);
 
-#ifdef TIOCGPGRP 
-  if (!NILP (p->subtty))
-    ioctl (XFASTINT (p->subtty), TIOCGPGRP, &gid);
-  else
-    ioctl (XINT (p->infd), TIOCGPGRP, &gid);
-#endif /* defined (TIOCGPGRP ) */
+  gid = emacs_get_tty_pgrp (p);
 
   if (gid == XFASTINT (p->pid))
     return Qnil;
@@ -3748,19 +3770,14 @@ process_send_signal (process, signo, current_group, nomsg)
 	 But, TIOCGPGRP does not work on E50 ;-P works fine on E60"
 	 His patch indicates that if TIOCGPGRP returns an error, then
 	 we should just assume that p->pid is also the process group id.  */
-      {
-	int err;
 
-	if (!NILP (p->subtty))
-	  err = ioctl (XFASTINT (p->subtty), TIOCGPGRP, &gid);
-	else
-	  err = ioctl (XINT (p->infd), TIOCGPGRP, &gid);
+      gid = emacs_get_tty_pgrp (p);
 
 #ifdef pfa
-	if (err == -1)
-	  gid = - XFASTINT (p->pid);
+      if (gid == -1)
+        gid = - XFASTINT (p->pid);
 #endif /* ! defined (pfa) */
-      }
+
       if (gid == -1)
 	no_pgrp = 1;
       else
@@ -3822,7 +3839,10 @@ process_send_signal (process, signo, current_group, nomsg)
   /* gid may be a pid, or minus a pgrp's number */
 #ifdef TIOCSIGSEND
   if (!NILP (current_group))
-    ioctl (XINT (p->infd), TIOCSIGSEND, signo);
+    {
+      if (ioctl (XINT (p->infd), TIOCSIGSEND, signo) == -1)
+	EMACS_KILLPG (-gid, signo);
+    }
   else
     {
       gid = - XFASTINT (p->pid);

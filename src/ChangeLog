@@ -1,3 +1,10 @@
+2003-02-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* process.c (emacs_get_tty_pgrp): New function.
+	(Fprocess_running_child_p, process_send_signal): Call
+        emacs_get_tty_pgrp instead of ioctl.
+	(process_send_signal): Call EMACS_KILLPG if ioctl TIOCSIGSEND fails.
+
 2003-02-19  Juanma Barranquero  <lektu@terra.es>
 
 	* s/hpux10.h (HPUX10): Define it just once.
