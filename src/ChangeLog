@@ -1,5 +1,8 @@
 2000-03-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_term_init): Unblock input around call1 of
+	Qvendor_specific_keysyms.
+
 	* syntax.c (open_paren_in_column_0_is_defun_start): New variable.
 	(find_defun_start): Consider an open parenthesis in column 0
 	a defun start only if open_paren_in_column_0_is_defun_start is set.
