@@ -529,12 +529,11 @@ relocate_fd (fd, min)
       int new = dup (fd);
       if (new == -1)
 	{
-	  char message1[] =
-	    "Error while setting up child: ";
-	  char message2[] = "\n";
-	  write (2, message1, sizeof (message1) - 1);
+	  char *message1 = "Error while setting up child: ";
+	  char *message2 = "\n";
+	  write (2, message1, strlen (message1));
 	  write (2, sys_errlist[errno], strlen (sys_errlist[errno]));
-	  write (2, message2, sizeof (message2) - 1);
+	  write (2, message2, strlen (message2));
 	  _exit (1);
 	}
       /* Note that we hold the original FD open while we recurse,
