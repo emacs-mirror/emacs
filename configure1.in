@@ -212,7 +212,7 @@ Set it to either \`yes' or \`no'."
 #echo "${progname}: the \`--${optname}' option is supposed to have a value
 #which is \`yes', \`no', \`lucid', \`athena', \`motif' or \`open-look'."
 echo "${progname}: the \`--${optname}' option is supposed to have a value
-which is \`yes', \`no', \`lucid', or \`athena'.
+which is \`yes', \`no', \`lucid', or \`athena'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    ;;
