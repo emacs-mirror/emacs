@@ -1,3 +1,8 @@
+2002-01-12  Andreas Schwab  <schwab@suse.de>
+
+	* .gdbinit (xbuffer): Remove address operator since data is now a
+	pointer.
+
 2002-01-11  Richard M. Stallman  <rms@gnu.org>
 
 	* insdel.c (adjust_after_replace_noundo): New function.
