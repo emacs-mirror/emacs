@@ -2839,7 +2839,7 @@ detect_eol (coding, src, src_bytes)
     {
 #if 0
       /* This code is suppressed until we find a better way to
-         distinguish raw-text and binary.  */
+	 distinguish raw text file and binary file.  */
 
       /* If we have already detected that the coding is raw-text, the
 	 coding should actually be no-conversion.  */
@@ -3182,7 +3182,7 @@ If only ASCII characters are found, it returns `undecided'\n\
 	    {
 #if 0
 	      /* This code is suppressed until we find a better way to
-		 distinguish raw-text and binary.  */
+		 distinguish raw text file and binary file.  */
 
 	      if (idx == CODING_CATEGORY_IDX_RAW_TEXT
 		  && eol_type == CODING_EOL_INCONSISTENT)
