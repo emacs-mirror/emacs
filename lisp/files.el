@@ -159,14 +159,16 @@ Loading an abbrev file sets this to t.")
 (defconst find-file-run-dired t
   "*Non-nil says run dired if find-file is given the name of a directory.")
 
-(put 'find-file-not-found-hooks 'permanent-local t)
+;;;It is not useful to make this a local variable.
+;;;(put 'find-file-not-found-hooks 'permanent-local t)
 (defvar find-file-not-found-hooks nil
   "List of functions to be called for `find-file' on nonexistent file.
 These functions are called as soon as the error is detected.
 `buffer-file-name' is already set up.
 The functions are called in the order given until one of them returns non-nil.")
 
-(put 'find-file-hooks 'permanent-local t)
+;;;It is not useful to make this a local variable.
+;;;(put 'find-file-hooks 'permanent-local t)
 (defvar find-file-hooks nil
   "List of functions to be called after a buffer is loaded from a file.
 The buffer's local variables (if any) will have been processed before the
