@@ -195,7 +195,7 @@ the car and cdr are the same symbol.")
 
 (defun sh-canonicalize-shell (shell)
   "Convert a shell name SHELL to the one we should handle it as."
-  (if (string-match "\.exe\\'" shell)
+  (if (string-match "\\.exe\\'" shell)
       (setq shell (substring shell 0 (match-beginning 0))))
   (or (symbolp shell)
       (setq shell (intern shell)))
@@ -840,7 +840,7 @@ Calls the value of `sh-set-shell-hook' if set."
 				      (lambda (x) (eq (cdr x) 'sh-mode)))
 		     (eq executable-query 'function)
 		     t))
-  (if (string-match "\.exe\\'" shell)
+  (if (string-match "\\.exe\\'" shell)
       (setq shell (substring shell 0 (match-beginning 0))))
   (setq sh-shell (intern (file-name-nondirectory shell))
 	sh-shell (or (cdr (assq sh-shell sh-alias-alist))
