@@ -15,6 +15,10 @@
 	contents to the current condition.  Set histpos to 1 if initial
 	contents is equal to the last history element.
 
+	* info.el (Info-search-whitespace-regexp): Remove shy group.
+	(Info-search): Forward line if search is on the header line.
+	Use search-whitespace-regexp in two other places.
+
 2004-11-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fringe.el (fringe-indicators): Add fake defvar to avoid compiler
