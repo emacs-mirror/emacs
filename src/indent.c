@@ -512,7 +512,7 @@ current_column_1 ()
   /* Start the scan at the beginning of this line with column number 0.  */
   register int col = 0;
   int scan, scan_byte;
-  int next_boundary, next_boundary_byte;
+  int next_boundary;
   int opoint = PT, opoint_byte = PT_BYTE;
 
   scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, 1);
@@ -520,7 +520,6 @@ current_column_1 ()
   scan = PT, scan_byte = PT_BYTE;
   SET_PT_BOTH (opoint, opoint_byte);
   next_boundary = scan;
-  next_boundary_byte = scan_byte;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
@@ -540,7 +539,6 @@ current_column_1 ()
 	    goto endloop;
 	  if (scan != old_scan)
 	    scan_byte = CHAR_TO_BYTE (scan);
-	  next_boundary_byte = CHAR_TO_BYTE (next_boundary);
 	}
 
       /* Check composition sequence.  */
@@ -936,9 +934,7 @@ The return value is the current column.  */)
   Lisp_Object val;
   int prev_col = 0;
   int c = 0;
-  int next_boundary;
-
-  int pos_byte, next_boundary_byte;
+  int next_boundary, pos_byte;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   CHECK_NATNUM (column);
@@ -948,7 +944,6 @@ The return value is the current column.  */)
   pos_byte = PT_BYTE;
   end = ZV;
   next_boundary = pos;
-  next_boundary_byte = PT_BYTE;
 
   /* If we're starting past the desired column,
      back up to beginning of line and scan from there.  */
@@ -968,7 +963,6 @@ The return value is the current column.  */)
 	  pos = skip_invisible (pos, &next_boundary, end, Qnil);
 	  if (pos != prev)
 	    pos_byte = CHAR_TO_BYTE (pos);
-	  next_boundary_byte = CHAR_TO_BYTE (next_boundary);
 	  if (pos >= end)
 	    goto endloop;
 	}
