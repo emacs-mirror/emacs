@@ -1,3 +1,8 @@
+2002-01-19  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_create_frame): Bind redisplay-dont-pause around
+	call to face-set-after-frame-default.
+
 2002-01-18  Richard M. Stallman  <rms@gnu.org>
 
 	* dispextern.h (WINDOW_WANTS_MODELINE_P): Check window height > 1. 
