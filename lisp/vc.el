@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.237 1998/09/10 21:50:05 fx Exp fx $
+;; $Id: vc.el,v 1.238 1998/10/30 19:11:08 fx Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -493,6 +493,39 @@ If nil, VC itself computes this value when it is first needed."
 	   (string= tip-version workfile-version))))
      ;; CVS
      t))
+
+;;; Two macros for elisp programming
+;;;###autoload
+(defmacro with-vc-file (file comment &rest body)
+  "Execute BODY, checking out a writable copy of FILE first if necessary.
+After BODY has been executed, check-in FILE with COMMENT (a string).  
+FILE is passed through `expand-file-name'; BODY executed within 
+`save-excursion'.  If FILE is not under version control, or locked by 
+somebody else, signal error."
+  `(let ((file (expand-file-name ,file)))
+     (or (vc-registered file)
+	 (error (format "File not under version control: `%s'" file)))
+     (let ((locking-user (vc-locking-user file)))
+       (cond ((and (not locking-user)
+                   (eq (vc-checkout-model file) 'manual))
+              (vc-checkout file t))
+             ((and (stringp locking-user)
+                   (not (string= locking-user (vc-user-login-name))))
+              (error (format "`%s' is locking `%s'" locking-user file)))))
+     (save-excursion
+       ,@body)
+     (vc-checkin file nil ,comment)))
+
+;;;###autoload
+(defmacro edit-vc-file (file comment &rest body)
+  "Edit FILE under version control, executing BODY.  Checkin with COMMENT.
+This macro uses `with-vc-file', passing args to it.
+However, before executing BODY, find FILE, and after BODY, save buffer."
+  `(with-vc-file
+    ,file ,comment
+    (find-file ,file)
+    ,@body
+    (save-buffer)))
 
 (defun vc-ensure-vc-buffer ()
   ;; Make sure that the current buffer visits a version-controlled file.
