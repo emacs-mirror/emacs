@@ -188,7 +188,7 @@ The following key sequence may cause multilingual text insertion."
 			(or (aref encoded-kbd-iso2022-invocations 2)
 			    (aref encoded-kbd-iso2022-invocations 0))))
 	 (last-command-char
-	  (if (= (charset-bytes charset) 1)
+	  (if (= (charset-dimension charset) 1)
 	      (make-char charset last-command-char)
 	    (make-char charset last-command-char (read-char-exclusive)))))
     (self-insert-command 1)
@@ -201,7 +201,7 @@ The following key sequence may cause multilingual text insertion."
 			(or (aref encoded-kbd-iso2022-invocations 2)
 			    (aref encoded-kbd-iso2022-invocations 1))))
 	 (last-command-char
-	  (if (= (charset-bytes charset) 1)
+	  (if (= (charset-dimension charset) 1)
 	      (make-char charset last-command-char)
 	    (make-char charset last-command-char (read-char-exclusive)))))
     (self-insert-command 1)
@@ -224,35 +224,43 @@ The following key sequence may cause multilingual text insertion."
 			      (read-char-exclusive)))))
     (self-insert-command 1)))
 
+;; Input mode at the time Encoded-kbd mode is turned on is saved here.
+(defvar saved-input-mode nil)
+
 ;;;###autoload
 (defun encoded-kbd-mode (&optional arg)
   "Toggle Encoded-kbd minor mode.
-With arg, turn Keyboard-kbd mode on if and only if arg is positive.
+With arg, turn Encoded-kbd mode on if and only if arg is positive.
 
-When in Encoded-kbd mode, a text sent from a terminal keyboard
+When in Encoded-kbd mode, a text sent from keyboard
 is accepted as a multilingual text encoded in a coding system
-set by the command `encoded-kbd-set-coding-system'"
+set by the command `set-keyboard-coding-system'."
   (interactive "P")
+  (if encoded-kbd-mode
+      ;; We must at first reset input-mode to the original.
+      (apply 'set-input-mode saved-input-mode))
   (setq encoded-kbd-mode
 	(if (null arg) (null encoded-kbd-mode)
 	  (> (prefix-numeric-value arg) 0)))
   (if encoded-kbd-mode
-      (let ((coding (keyboard-coding-system))
-	    (input-mode (current-input-mode)))
+      (let ((coding (keyboard-coding-system)))
+	(setq saved-input-mode  (current-input-mode))
 	(cond ((null coding)
 	       (setq encoded-kbd-mode nil) 
-	       (error "No coding-system for terminal keyboard is set"))
+	       (error "No coding system for keyboard input is set"))
 
 	      ((= (coding-system-type coding) 1) ; SJIS
-	       (set-input-mode (nth 0 input-mode) (nth 1 input-mode)
-			       'use-8th-bit (nth 3 input-mode))	
+	       (set-input-mode
+		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
+		'use-8th-bit (nth 3 saved-input-mode))	
 	       (setq encoded-kbd-coding 'sjis))
 
 	      ((= (coding-system-type coding) 2) ; ISO2022
 	       (if (aref (coding-system-flags coding) 7) ; 7-bit only
 		   (setq encoded-kbd-coding 'iso2022-7)
-		 (set-input-mode (nth 0 input-mode) (nth 1 input-mode)
-				 'use-8th-bit (nth 3 input-mode))	
+		 (set-input-mode
+		  (nth 0 saved-input-mode) (nth 1 saved-input-mode)
+		  'use-8th-bit (nth 3 saved-input-mode))	
 		 (setq encoded-kbd-coding 'iso2022-8))
 	       (make-variable-buffer-local 'encoded-kbd-iso2022-designations)
 	       (setq encoded-kbd-iso2022-designations (make-vector 4 nil))
@@ -261,7 +269,10 @@ set by the command `encoded-kbd-set-coding-system'"
 		 (while (< i 4)
 		   (if (charsetp (aref flags i))
 		       (aset encoded-kbd-iso2022-designations i
-			     (aref flags i)))
+			     (aref flags i))
+		     (if (charsetp (car-safe (aref flags i)))
+		       (aset encoded-kbd-iso2022-designations i
+			     (car (aref flags i)))))
 		   (setq i (1+ i))))
 	       (make-variable-buffer-local 'encoded-kbd-iso2022-invocations)
 	       (setq encoded-kbd-iso2022-invocations (make-vector 3 nil))
@@ -269,19 +280,15 @@ set by the command `encoded-kbd-set-coding-system'"
 	       (aset encoded-kbd-iso2022-invocations 1 1))
 
 	      ((= (coding-system-type coding) 3) ; BIG5
-	       (set-input-mode (nth 0 input-mode) (nth 1 input-mode)
-			       'use-8th-bit (nth 3 input-mode))	
+	       (set-input-mode
+		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
+		'use-8th-bit (nth 3 saved-input-mode))	
 	       (setq encoded-kbd-coding 'big5))
 
 	      (t
 	       (setq encoded-kbd-mode nil)
 	       (error "Coding-system `%s' is not supported in Encoded-kbd mode"
 		      (keyboard-coding-system))))
-	(setq inactivate-current-input-method-function 'encoded-kbd-mode)
-	(setq describe-current-input-method-function 'encoded-kbd-mode-help)
-	(run-hooks 'encoded-kbd-mode-hook))
-    (setq describe-current-input-method-function nil)
-    (setq current-input-method nil))
-  (force-mode-line-update))
+	(run-hooks 'encoded-kbd-mode-hook))))
 
 ;;; encoded-kb.el ends here
