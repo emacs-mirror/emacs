@@ -1,3 +1,11 @@
+2002-10-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-print-log): Unconditionally use `show-log-entry'.
+	(vc-default-show-log-entry): New fun.
+
+	* subr.el (read-key-auxiliary-map, read-key): Remove.
+	(read-quoted-char): Undo the `read-key' change of 2002-06-23.
+
 2002-10-03  Markus Rost  <rost@math.ohio-state.edu>
 
 	* progmodes/ada-stmt.el (ada-stmt-add-to-ada-menu):  Handle the
