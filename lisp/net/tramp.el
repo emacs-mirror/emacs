@@ -2978,7 +2978,7 @@ Falls back to normal file name handler if no tramp file name handler exists."
 Requests suitable for Ange-FTP will be forwarded to Ange-FTP.
 Also see the variables `tramp-ftp-method', `tramp-default-method',
 and `tramp-default-method-alist'."
-j  (let ((a1 (rassq 'ange-ftp-hook-function file-name-handler-alist))
+  (let ((a1 (rassq 'ange-ftp-hook-function file-name-handler-alist))
 	(a2 (rassq 'ange-ftp-completion-hook-function file-name-handler-alist))
 	(a3 (rassq 'tramp-file-name-handler file-name-handler-alist)))
     (setq file-name-handler-alist
