@@ -61,15 +61,15 @@
    "Asma" "`Izzat" "Mashiyyat" "`Ilm" "Qudrat" "Qawl" "Masa'il"
    "Sharaf" "Sultan" "Mulk" "`Ala"])
 
-(defvar calendar-bahai-epoch (calendar-absolute-from-gregorian '(3 21 1844))
+(defvar calendar-bahai-epoch (calendar-absolute-from-gregorian '(3 21 1843))
   "Absolute date of start of Baha'i calendar = March 19, 622 A.D. (Julian).")
 
 (defun bahai-calendar-leap-year-p (year)
   "True if YEAR is a leap year on the Baha'i calendar."
-  (calendar-leap-year-p (+ year 1844)))
+  (calendar-leap-year-p (+ year 1843)))
 
 (defvar bahai-calendar-leap-base
-  (+ (/ 1844 4) (- (/ 1844 100)) (/ 1844 400)))
+  (+ (/ 1843 4) (- (/ 1843 100)) (/ 1843 400)))
 
 (defun calendar-absolute-from-bahai (date)
   "Compute absolute date from Baha'i date DATE.
@@ -78,7 +78,7 @@ Gregorian date Sunday, December 31, 1 BC."
   (let* ((month (extract-calendar-month date))
 	 (day (extract-calendar-day date))
 	 (year (extract-calendar-year date))
-	 (prior-years (+ (1- year) 1844))
+	 (prior-years (+ (1- year) 1843))
 	 (leap-days (- (+ (/ prior-years 4) ; Leap days in prior years.
 			  (- (/ prior-years 100))
 			  (/ prior-years 400))
@@ -95,7 +95,7 @@ Gregorian date Sunday, December 31, 1 BC."
   (if (< date calendar-bahai-epoch)
       (list 0 0 0) ;; pre-Baha'i date
     (let* ((greg (calendar-gregorian-from-absolute date))
-	   (year (+ (- (extract-calendar-year greg) 1844)
+	   (year (+ (- (extract-calendar-year greg) 1843)
 		    (if (or (> (extract-calendar-month greg) 3)
 			    (and (= (extract-calendar-month greg) 3)
 				 (>= (extract-calendar-day greg) 21)))
