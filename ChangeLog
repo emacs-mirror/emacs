@@ -1,3 +1,8 @@
+2002-10-15  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (bootstrap-lisp): Don't ignore errors.
+	Fix typo in .PHONY spec.
+	
 2002-08-26  Kim F. Storm  <storm@cua.dk>
 
 	* Makefile.in (install-arch-indep): Do not remove DOC file
