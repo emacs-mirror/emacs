@@ -107,6 +107,11 @@ int charset_primary;
 /* List of charsets ordered by the priority.  */
 Lisp_Object Vcharset_ordered_list;
 
+/* Incremented everytime we change Vcharset_ordered_list.  This is
+   unsigned short so that it fits in Lisp_Int and never match with
+   -1.  */
+unsigned short charset_ordered_list_tick;
+
 /* List of iso-2022 charsets.  */
 Lisp_Object Viso_2022_charset_list;
 
@@ -1055,6 +1060,7 @@ usage: (define-charset-internal ...)  */)
       Vcharset_list = Fcons (args[charset_arg_name], Vcharset_list);
       Vcharset_ordered_list = nconc2 (Vcharset_ordered_list, 
 				      Fcons (make_number (id), Qnil));
+      charset_ordered_list_tick++;
     }
 
   return Qnil;
@@ -1124,12 +1130,18 @@ DEFUN ("set-charset-plist", Fset_charset_plist, Sset_charset_plist, 2, 2, 0,
 }
 
 
-DEFUN ("unify-charset", Funify_charset, Sunify_charset, 1, 2, 0,
+DEFUN ("unify-charset", Funify_charset, Sunify_charset, 1, 3, 0,
        doc: /* Unify characters of CHARSET with Unicode.
 This means reading the relevant file and installing the table defined
-by CHARSET's `:unify-map' property.  */)
-     (charset, unify_map)
-     Lisp_Object charset, unify_map;
+by CHARSET's `:unify-map' property.
+
+Optional second arg UNIFY-MAP a file name string or vector that has
+the same meaning of the `:unify-map' attribute of the function
+`define-charset' (which see).
+
+Optional third argument DEUNIFY, if non-nil, means to de-unify CHARSET.  */)
+     (charset, unify_map, deunify)
+     Lisp_Object charset, unify_map, deunify;
 {
   int id;
   struct charset *cs;
@@ -1138,21 +1150,38 @@ by CHARSET's `:unify-map' property.  */)
   cs = CHARSET_FROM_ID (id);
   if (CHARSET_METHOD (cs) == CHARSET_METHOD_MAP_DEFERRED)
     load_charset (cs);
-  if (CHARSET_UNIFIED_P (cs)
-      && CHAR_TABLE_P (CHARSET_DEUNIFIER (cs)))
+  if (NILP (deunify)
+      ? CHARSET_UNIFIED_P (cs) && ! NILP (CHARSET_DEUNIFIER (cs))
+      : ! CHARSET_UNIFIED_P (cs))
     return Qnil;
+
   CHARSET_UNIFIED_P (cs) = 0;
-  if (NILP (unify_map))
-    unify_map = CHARSET_UNIFY_MAP (cs);
-  if (STRINGP (unify_map))
-    load_charset_map_from_file (cs, unify_map, 2);
-  else if (VECTORP (unify_map))
-    load_charset_map_from_vector (cs, unify_map, 2);
-  else if (NILP (unify_map))
-    error ("No unify-map for charset");
-  else
-    error ("Bad unify-map arg");
-  CHARSET_UNIFIED_P (cs) = 1;
+  if (NILP (deunify))
+    {
+      if (CHARSET_METHOD (cs) != CHARSET_METHOD_OFFSET)
+	error ("Can't unify charset: %s", XSYMBOL (charset)->name->data);
+      if (NILP (unify_map))
+	unify_map = CHARSET_UNIFY_MAP (cs);
+      if (STRINGP (unify_map))
+	load_charset_map_from_file (cs, unify_map, 2);
+      else if (VECTORP (unify_map))
+	load_charset_map_from_vector (cs, unify_map, 2);
+      else if (NILP (unify_map))
+	error ("No unify-map for charset");
+      else
+	error ("Bad unify-map arg");
+      CHARSET_UNIFIED_P (cs) = 1;
+    }
+  else if (CHAR_TABLE_P (Vchar_unify_table))
+    {
+      int min_code = CHARSET_MIN_CODE (cs);
+      int max_code = CHARSET_MAX_CODE (cs);
+      int min_char = DECODE_CHAR (cs, min_code);
+      int max_char = DECODE_CHAR (cs, max_code);
+      
+      char_table_set_range (Vchar_unify_table, min_char, max_char, Qnil);
+    }
+    
   return Qnil;
 }
 
@@ -1235,8 +1264,8 @@ int
 string_xstring_p (string)
      Lisp_Object string;
 {
-  unsigned char *p = XSTRING (string)->data;
-  unsigned char *endp = p + STRING_BYTES (XSTRING (string));
+  const unsigned char *p = XSTRING (string)->data;
+  const unsigned char *endp = p + STRING_BYTES (XSTRING (string));
   struct charset *charset;
 
   if (XSTRING (string)->size == STRING_BYTES (XSTRING (string)))
@@ -1265,11 +1294,11 @@ string_xstring_p (string)
 
 static void
 find_charsets_in_text (ptr, nchars, nbytes, charsets, table)
-     unsigned char *ptr;
+     const unsigned char *ptr;
      int nchars, nbytes;
      Lisp_Object charsets, table;
 {
-  unsigned char *pend = ptr + nbytes;
+  const unsigned char *pend = ptr + nbytes;
   int ncharsets = ASIZE (charsets);
 
   if (nchars == nbytes)
@@ -1490,7 +1519,7 @@ encode_char (charset, c)
       deunifier = CHARSET_DEUNIFIER (charset);
       if (! CHAR_TABLE_P (deunifier))
 	{
-	  Funify_charset (CHARSET_NAME (charset), Qnil);
+	  Funify_charset (CHARSET_NAME (charset), Qnil, Qnil);
 	  deunifier = CHARSET_DEUNIFIER (charset);
 	}
       deunified = CHAR_TABLE_REF (deunifier, c);
@@ -1530,14 +1559,8 @@ encode_char (charset, c)
 	  struct charset *this_charset = CHARSET_FROM_ID (id);
 
 	  code = ENCODE_CHAR (this_charset, c);
-	  if (code != CHARSET_INVALID_CODE (this_charset)
-	      && (code_offset < 0 || code >= code_offset))
-	    {
-	      code += code_offset;
-	      if (code >= charset->min_code && code <= charset->max_code
-		  && CODE_POINT_TO_INDEX (charset, code) >= 0)
-		return code;
-	    }
+	  if (code != CHARSET_INVALID_CODE (this_charset))
+	    return code + code_offset;
 	}
       return CHARSET_INVALID_CODE (charset);
     }
@@ -1904,6 +1927,7 @@ usage: (set-charset-priority &rest charsets)  */)
   arglist[0] = Fnreverse (new_head);
   arglist[1] = old_list;
   Vcharset_ordered_list = Fnconc (2, arglist);
+  charset_ordered_list_tick++;
   return Qnil;
 }
 
