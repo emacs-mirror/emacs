@@ -73,6 +73,11 @@ Lisp_Object Vx_toolkit_scroll_bars;
 static int last_mousemove_x = 0;
 static int last_mousemove_y = 0;
 
+/* Define GET_WHEEL_DELTA_WPARAM macro if system headers don't.  */
+#ifndef GET_WHEEL_DELTA_WPARAM
+#define GET_WHEEL_DELTA_WPARAM(wparam) ((short)HIWORD (wparam))
+#endif
+
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
 
