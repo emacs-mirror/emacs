@@ -1,7 +1,10 @@
-2000-01-11 Sun  Jari Aalto  <jari.aalto@poboxes.com>
+2000-01-11  Jari Aalto  <jari.aalto@poboxes.com>
 
+	* add-log.el (add-log-current-defun): Handle user-defined
+	add-log-current-function returning nil,
+	
 	* add-log.el (add-change-log-entry): Insert version number
-	if having found a current function.
+	if having found a current function
 
 	* add-log.el (add-log-current-defun): Call
 	`add-log-current-defun-function'.  Try matches at level 0 and
