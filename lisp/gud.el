@@ -307,7 +307,7 @@ off the specialized speedbar mode."
 (defvar gud-gdb-history nil)
 
 (defun gud-gdb-massage-args (file args)
-  (cons "-fullname" args))
+  args)
 
 (defvar gud-gdb-marker-regexp
   ;; This used to use path-separator instead of ":";
@@ -383,7 +383,7 @@ off the specialized speedbar mode."
     (read-from-minibuffer
      (format "Run %s (like this): " minor-mode)
      (or (car-safe (symbol-value hist-sym))
-	 (concat (or cmd-name (symbol-name minor-mode)) " " init))
+	 (concat (or cmd-name (symbol-name minor-mode)) " --fullname " init))
      gud-minibuffer-local-map nil
      hist-sym)))
 
