@@ -522,12 +522,12 @@ do this, Emacs renames the original file to a new name so that it is
 not lost.  The new name is made by adding "~" to the end of the
 original file's name.
 
-When saving is finished, Emacs prints the name of the file written.
+When saving is finished, Emacs displays the name of the file written.
 You should save fairly often, so that you will not lose very much
 work if the system should crash.
 
 >> Type C-x C-s, saving your copy of the tutorial.
-   This should print "Wrote ...TUTORIAL" at the bottom of the screen.
+   This should show "Wrote ...TUTORIAL" at the bottom of the screen.
 
 NOTE: On some systems, typing C-x C-s will freeze the screen and you
 will see no further output from Emacs.  This indicates that an
@@ -989,10 +989,10 @@ Here are some other useful C-h options:
 		function.
 
 >> Try typing C-h f previous-line<Return>.
-   This prints all the information Emacs has about the
+   This displays all the information Emacs has about the
    function which implements the C-p command.
 
-A similar command C-h v prints the documentation of variables whose
+A similar command C-h v displays the documentation of variables whose
 values you can set to customize Emacs behavior.  You need to type in
 the name of the variable when Emacs prompts for it.
 
