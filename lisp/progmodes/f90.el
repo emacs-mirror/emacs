@@ -464,28 +464,28 @@ This highlights variable types, \"keywords,\" etc.")
     (progn
       (add-menu nil "F90"
 		'(
-		  ["Indent subprogram"       f90-indent-subprogram t]
-		  ["Mark subprogram"         f90-mark-subprogram t]
-		  ["Beginning of subprogram" f90-beginning-of-subprogram t]
-		  ["End of subprogram"       f90-end-of-subprogram t]
+		  ["Indent Subprogram"       f90-indent-subprogram t]
+		  ["Mark Subprogram"         f90-mark-subprogram t]
+		  ["Beginning of Subprogram" f90-beginning-of-subprogram t]
+		  ["End of Subprogram"       f90-end-of-subprogram t]
 		  "-----"
-		  ["(Un)Comment region"      f90-comment-region t]
-		  ["Indent region"           indent-region t]
-		  ["Fill region"             f90-fill-region t]
+		  ["(Un)Comment Region"      f90-comment-region t]
+		  ["Indent Region"           indent-region t]
+		  ["Fill Region"             f90-fill-region t]
 		  "-----"
-		  ["Break line at point"     f90-break-line t]
-		  ["Join with next line"     f90-join-lines t]
-		  ["Insert newline."         newline t]
-		  ["Insert end."             f90-insert-end t]
+		  ["Break Line at Point"     f90-break-line t]
+		  ["Join with Next Line"     f90-join-lines t]
+		  ["Insert Newline"          newline t]
+		  ["Insert End"              f90-insert-end t]
 		  "-----"
-		  ["UPCASE keywords (buffer)"      f90-upcase-keywords t]
-		  ["UPCASE keywords (region)"      f90-upcase-region-keywords
+		  ["Upcase Keywords (buffer)"      f90-upcase-keywords t]
+		  ["Upcase Keywords (region)"      f90-upcase-region-keywords
 		   t]
-		  ["Capitalize keywords (buffer)"  f90-capitalize-keywords t]
-		  ["Capitalize keywords (region)" 
+		  ["Capitalize Keywords (buffer)"  f90-capitalize-keywords t]
+		  ["Capitalize Keywords (region)" 
 		   f90-capitalize-region-keywords t]
-		  ["downcase keywords (buffer)"    f90-downcase-keywords t]
-		  ["downcase keywords (region)"   
+		  ["Downcase Keywords (buffer)"    f90-downcase-keywords t]
+		  ["Downcase Keywords (region)"   
 		   f90-downcase-region-keywords t]
 		  "-----"
 		  ["Toggle abbrev-mode"   abbrev-mode             t]
@@ -499,23 +499,23 @@ This highlights variable types, \"keywords,\" etc.")
   (define-key f90-mode-map [menu-bar f90 f90-auto-fill-mode]
     '("Toggle auto-fill" . f90-auto-fill-mode))
   (define-key f90-mode-map [menu-bar f90 f90-downcase-region-keywords]
-    '("downcase keywords (region)" . f90-downcase-region-keywords))
+    '("Downcase Keywords (region)" . f90-downcase-region-keywords))
   (define-key f90-mode-map [menu-bar f90 f90-downcase-keywords]
-    '("downcase keywords (buffer)" . f90-downcase-keywords))
+    '("Downcase Keywords (buffer)" . f90-downcase-keywords))
   (define-key f90-mode-map [menu-bar f90 f90-capitalize-keywords]
-    '("Capitalize keywords (region)" . f90-capitalize-region-keywords))
+    '("Capitalize Keywords (region)" . f90-capitalize-region-keywords))
   (define-key f90-mode-map [menu-bar f90 f90-capitalize-region-keywords]
-    '("Capitalize keywords (buffer)" . f90-capitalize-keywords))
+    '("Capitalize Keywords (buffer)" . f90-capitalize-keywords))
   (define-key f90-mode-map [menu-bar f90 f90-upcase-region-keywords]
-    '("UPCASE keywords (region)" . f90-upcase-region-keywords))
+    '("Upcase keywords (region)" . f90-upcase-region-keywords))
   (define-key f90-mode-map [menu-bar f90 f90-upcase-keywords]
-    '("UPCASE keywords (buffer)" . f90-upcase-keywords))
+    '("Upcase keywords (buffer)" . f90-upcase-keywords))
   (define-key f90-mode-map [menu-bar f90 f90-insert-end]
-    '("Insert end." . f90-insert-end))
+    '("Insert end" . f90-insert-end))
   (define-key f90-mode-map [menu-bar f90 f90-join-lines]
-    '("Join with next line." . f90-join-lines))
+    '("Join with Next Line" . f90-join-lines))
   (define-key f90-mode-map [menu-bar f90 f90-break-line]
-    '("Break line at point" . f90-break-line))
+    '("Break Line at Point" . f90-break-line))
   (define-key f90-mode-map [menu-bar f90 f90-fill-region]
     '("Fill Region" . f90-fill-region))
   (define-key f90-mode-map [menu-bar f90 indent-region]
