@@ -268,6 +268,8 @@ If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there."
   (interactive (list (region-beginning) (region-end)
 		     (if current-prefix-arg 'full)))
+  (unless (memq justify '(nil none full center left right))
+    (setq justify 'full))
   ;; Arrange for undoing the fill to restore point.
   (if (and buffer-undo-list (not (eq buffer-undo-list t)))
       (setq buffer-undo-list (cons (point) buffer-undo-list)))
@@ -573,10 +575,13 @@ argument to it), and if it returns non-nil, we simply return its value."
 
 (defun fill-region (from to &optional justify nosqueeze to-eop)
   "Fill each of the paragraphs in the region.
-Prefix arg (non-nil third arg, if called from program) means justify as well.
+A prefix arg means justify as well.
 Ordinarily the variable `fill-column' controls the width.
 
-Noninteractively, fourth arg NOSQUEEZE non-nil means to leave
+Noninteractively, the third argument JUSTIFY specifies which
+kind of justification to do: `full', `left', `right', `center',
+or `none' (equivalent to nil).
+The fourth arg NOSQUEEZE non-nil means to leave
 whitespace other than line breaks untouched, and fifth arg TO-EOP
 non-nil means to keep filling to the end of the paragraph (or next
 hard newline, if `use-hard-newlines' is on).
@@ -585,6 +590,8 @@ If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there."
   (interactive (list (region-beginning) (region-end)
 		     (if current-prefix-arg 'full)))
+  (unless (memq justify '(nil none full center left right))
+    (setq justify 'full))
   (let (end beg)
     (save-restriction
       (goto-char (max from to))
