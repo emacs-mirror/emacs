@@ -3,9 +3,8 @@
 ;; Copyright (C) 1994,1995,1997,1998 Free Software Foundation, Inc.
 
 ;; Author:        1994-1998 Barry A. Warsaw
-;; Maintainer:    tools-help@python.org
+;; Maintainer:    FSF
 ;; Created:       26-Feb-1994
-;; Version:       3.2
 ;; Keywords:      debugging lisp tools
 
 ;; This file is part of GNU Emacs.
@@ -192,9 +191,6 @@ In other words, a new unique buffer is create every time you run
 
 (defconst elp-version "3.2"
   "ELP version number.")
-
-(defconst elp-help-address "tools-help@python.org"
-  "Address accepting submissions of bug reports and questions.")
 
 (defvar elp-results-buffer "*ELP Profiling Results*"
   "Buffer name for outputting profiling results.")
@@ -585,23 +581,6 @@ displayed."
     ;; reset profiling info if desired
     (and elp-reset-after-results
 	 (elp-reset-all))))
-
-
-(eval-when-compile
- (require 'reporter))
-
-;;;###autoload
-(defun elp-submit-bug-report ()
-  "Submit via mail, a bug report on elp."
-  (interactive)
-  (and
-   (y-or-n-p "Do you want to submit a report on elp? ")
-   (require 'reporter)
-   (reporter-submit-bug-report
-    elp-help-address (concat "elp " elp-version)
-    '(elp-report-limit
-      elp-reset-after-results
-      elp-sort-by-function))))
 
 (provide 'elp)
 
