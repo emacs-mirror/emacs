@@ -570,9 +570,8 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
   register Lisp_Object val;
   register int size;
 
-  if (!INTEGERP (length) || XINT (length) < 0)
-    length = wrong_type_argument (Qnatnump, length);
-  size = XINT (length);
+  CHECK_NATNUM (length, 0);
+  size = XFASTINT (length);
 
   val = Qnil;
   while (size-- > 0)
@@ -594,9 +593,8 @@ See also the function `vector'.")
   register Lisp_Object vector;
   register struct Lisp_Vector *p;
 
-  if (!INTEGERP (length) || XINT (length) < 0)
-    length = wrong_type_argument (Qnatnump, length);
-  sizei = XINT (length);
+  CHECK_NATNUM (length, 0);
+  sizei = XFASTINT (length);
 
   p = (struct Lisp_Vector *) xmalloc (sizeof (struct Lisp_Vector) + (sizei - 1) * sizeof (Lisp_Object));
   VALIDATE_LISP_STORAGE (p, 0);
@@ -885,10 +883,9 @@ Both LENGTH and INIT must be numbers.")
   register Lisp_Object val;
   register unsigned char *p, *end, c;
 
-  if (!INTEGERP (length) || XINT (length) < 0)
-    length = wrong_type_argument (Qnatnump, length);
+  CHECK_NATNUM (length, 0);
   CHECK_NUMBER (init, 1);
-  val = make_uninit_string (XINT (length));
+  val = make_uninit_string (XFASTINT (length));
   c = XINT (init);
   p = XSTRING (val)->data;
   end = p + XSTRING (val)->size;
