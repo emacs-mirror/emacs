@@ -99,7 +99,7 @@ _start (void)
 {
   extern void mainCRTStartup (void);
 
-#if 0
+#if 1
   /* Give us a way to debug problems with crashes on startup when
      running under the MSVC profiler. */
   if (GetEnvironmentVariable ("EMACS_DEBUG", NULL, 0) > 0)
@@ -499,6 +499,14 @@ copy_executable_and_dump_data (file_data *p_infile,
 #define DST_TO_OFFSET()  PTR_TO_OFFSET (dst, p_outfile)
 #define ROUND_UP_DST(align) \
   (dst = p_outfile->file_base + ROUND_UP (DST_TO_OFFSET (), (align)))
+#define ROUND_UP_DST_AND_ZERO(align)						\
+  do {										\
+    unsigned char *newdst = p_outfile->file_base				\
+      + ROUND_UP (DST_TO_OFFSET (), (align));					\
+    /* Zero the alignment slop; it may actually initialize real data.  */	\
+    memset (dst, 0, newdst - dst);						\
+    dst = newdst;								\
+  } while (0)
 
   /* Copy the source image sequentially, ie. section by section after
      copying the headers and section table, to simplify the process of
@@ -522,13 +530,16 @@ copy_executable_and_dump_data (file_data *p_infile,
   COPY_CHUNK ("Copying section table...", section,
 	      nt_header->FileHeader.NumberOfSections * sizeof (*section));
 
+  /* Align the first section's raw data area, and set the header size
+     field accordingly.  */
+  ROUND_UP_DST_AND_ZERO (dst_nt_header->OptionalHeader.FileAlignment);
+  dst_nt_header->OptionalHeader.SizeOfHeaders = DST_TO_OFFSET ();
+
   for (i = 0; i < nt_header->FileHeader.NumberOfSections; i++)
     {
       char msg[100];
       sprintf (msg, "Copying raw data for %s...", section->Name);
 
-      /* Align the section's raw data area.  */
-      ROUND_UP_DST (dst_nt_header->OptionalHeader.FileAlignment);
       dst_save = dst;
 
       /* Update the file-relative offset for this section's raw data (if
@@ -541,6 +552,8 @@ copy_executable_and_dump_data (file_data *p_infile,
       COPY_CHUNK
 	(msg, OFFSET_TO_PTR (section->PointerToRawData, p_infile),
 	 section->SizeOfRawData);
+      /* Ensure alignment slop is zeroed.  */
+      ROUND_UP_DST_AND_ZERO (dst_nt_header->OptionalHeader.FileAlignment);
 
       /* Note that various sections below may be aliases.  */
       if (section == data_section)
@@ -608,12 +621,12 @@ copy_executable_and_dump_data (file_data *p_infile,
 	  dst_section->Characteristics |= IMAGE_SCN_CNT_INITIALIZED_DATA;
 	}
 
+      /* Align the section's raw data area.  */
+      ROUND_UP_DST (dst_nt_header->OptionalHeader.FileAlignment);
+
       section++;
       dst_section++;
     }
-
-  /* Pad out the final section raw data area.  */
-  ROUND_UP_DST (dst_nt_header->OptionalHeader.FileAlignment);
 
   /* Copy remainder of source image.  */
   do
