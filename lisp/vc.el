@@ -2138,13 +2138,13 @@ From a program, any arguments are passed to the `rcs2log' script."
       (setq oldvers (vc-lookup-triple file oldvers))
       (setq newvers (vc-lookup-triple file newvers)))
      ((eq backend 'RCS)
-      (if (not oldvers) (setq oldvers (vc-workfile-version file)))))
+      (if (not oldvers) (setq oldvers (vc-workfile-version file)))
+      ;; If we know that --brief is not supported, don't try it.
+      (setq cmp (and cmp (not (eq vc-rcsdiff-knows-brief 'no))))))
      ;; SCCS and RCS shares a lot of code.
     (cond
      ((or (eq backend 'SCCS) (eq backend 'RCS))
-      (let* ((command (if (eq backend 'SCCS)
-			  "vcdiff"
-			"rcsdiff"))
+      (let* ((command (if (eq backend 'SCCS) "vcdiff" "rcsdiff"))
 	     (mode (if (eq backend 'RCS) 'WORKFILE 'MASTER))
 	     (options (append (list (and cmp "--brief")
 				    "-q"
@@ -2156,11 +2156,17 @@ From a program, any arguments are passed to the `rcs2log' script."
 				     (list diff-switches)))))
 	     (status (apply 'vc-do-command "*vc-diff*" 2 
 			    command file mode options)))
-	;; Some RCS versions don't understand "--brief"; work around this.
+	;; If --brief didn't work, do a double-take and remember it 
+        ;; for the future.
 	(if (eq status 2)
-	    (apply 'vc-do-command "*vc-diff*" 1 command file 'WORKFILE
-		   (if cmp (cdr options) options))
-	  status)))
+            (prog1
+                (apply 'vc-do-command "*vc-diff*" 1 command file 'WORKFILE
+                       (if cmp (cdr options) options))
+              (if cmp (setq vc-rcsdiff-knows-brief 'no)))
+          ;; If --brief DID work, remember that, too.
+	  (and cmp (not vc-rcsdiff-knows-brief)
+               (setq vc-rcsdiff-knows-brief 'yes))
+          status)))
      ;; CVS is different.  
      ((eq backend 'CVS)
       (if (string= (vc-workfile-version file) "0") ;CVS
