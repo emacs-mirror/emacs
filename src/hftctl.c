@@ -52,6 +52,7 @@
 #include <termios.h>
 #include <termio.h>
 #include <sys/hft.h>
+#include <sys/uio.h>
 #include <sys/tty.h>
 /* #include <sys/pty.h> */
 #define REMOTE 0x01
@@ -76,8 +77,8 @@ typedef int    (*FUNC)();     /* pointer to a function        */
 
 /*************** EXTERNAL / GLOBAL DATA AREA ********************/
 
-       int              hfqry();
-       int              hfskbd();
+static int              hfqry();
+static int              hfskbd();
        char            *malloc();
 
 extern int              errno;
