@@ -619,7 +619,7 @@ language you are using."
 (define-key global-map [menu] 'execute-extended-command)
 (define-key global-map [find] 'search-forward)
 
-(define-key global-map [delete] 'delete-char)
+(define-key global-map [delete] 'backward-delete-char)
 
 ;; natural bindings for terminal keycaps --- defined in X keysym order
 (define-key global-map [home]		'beginning-of-buffer)
