@@ -137,8 +137,7 @@ Returns the number of actions taken."
 		  ;; Prompt the user about this object.
 		  (if mouse-event
 		      (setq def (or (x-popup-dialog mouse-event
-						    (list "gratuitous"
-							  (cons prompt map)))
+						    (cons prompt map))
 				    'quit))
 		    ;; Prompt in the echo area.
 		    (let ((cursor-in-echo-area (not no-cursor-in-echo-area)))
