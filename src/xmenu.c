@@ -1539,7 +1539,7 @@ set_frame_menubar (f, first_time)
 
       /* The third arg is DEEP_P, which says to consider the entire
 	 menu trees we supply, rather than just the menu bar item names.  */
-      lw_modify_all_widgets (id, first_wv, 1);
+      lw_modify_all_widgets ((LWLIB_ID) id, first_wv, 1);
 
       /* Re-enable the edit widget to resize.  */
       lw_allow_resizing (f->display.x->widget, True);
@@ -1547,7 +1547,7 @@ set_frame_menubar (f, first_time)
   else
     {
       menubar_widget = lw_create_widget ("menubar", "menubar", 
-					 id, first_wv, 
+					 (LWLIB_ID) id, first_wv, 
 					 f->display.x->column_widget,
 					 0,
 					 popup_activate_callback,
@@ -1614,7 +1614,7 @@ free_frame_menubar (f)
     {
       id = frame_vector_add_frame (f);
       BLOCK_INPUT;
-      lw_destroy_all_widgets (id);
+      lw_destroy_all_widgets ((LWLIB_ID) id);
       XVECTOR (frame_vector)->contents[id] = Qnil;
       UNBLOCK_INPUT;
     }
@@ -1641,8 +1641,13 @@ free_frame_menubar (f)
 #ifdef USE_X_TOOLKIT
 
 /* We need a unique id for each widget handled by the Lucid Widget
-   library.  This includes the frame main windows, popup menu and
-   dialog box.  */
+   library.
+
+   For the main windows, and popup menus, we use this counter,
+   which we increment each time after use.
+
+   For menu bars, we use the index of the frame in frame_vector
+   as the id.  */
 LWLIB_ID widget_id_tick;
 
 #ifdef __STDC__
@@ -1671,7 +1676,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
      char **error;
 {
   int i;
-  int menu_id;
+  LWLIB_ID menu_id;
   Widget menu;
   Arg av [2];
   int ac = 0;
@@ -1821,7 +1826,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
     }
 
   /* Actually create the menu.  */
-  menu_id = ++widget_id_tick;
+  menu_id = widget_id_tick++;
   menu = lw_create_widget ("popup", first_wv->name, menu_id, first_wv,
 			   f->display.x->widget, 1, 0,
 			   popup_selection_callback,
@@ -1934,7 +1939,7 @@ xdialog_show (f, keymaps, title, error)
      char **error;
 {
   int i, nb_buttons=0;
-  int dialog_id;
+  LWLIB_ID dialog_id;
   Widget menu;
   char dialog_name[6];
 
@@ -2044,7 +2049,7 @@ xdialog_show (f, keymaps, title, error)
   }
 
   /* Actually create the dialog.  */
-  dialog_id = ++widget_id_tick;
+  dialog_id = widget_id_tick++;
   menu = lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
 			   f->display.x->widget, 1, 0,
 			   dialog_selection_callback, 0);
