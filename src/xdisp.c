@@ -643,6 +643,7 @@ static void reseat P_ ((struct it *, struct text_pos, int));
 static void reseat_1 P_ ((struct it *, struct text_pos, int));
 static void back_to_previous_visible_line_start P_ ((struct it *));
 static void reseat_at_previous_visible_line_start P_ ((struct it *));
+static void reseat_at_next_visible_line_start P_ ((struct it *, int));
 static int next_element_from_display_vector P_ ((struct it *));
 static int next_element_from_string P_ ((struct it *));
 static int next_element_from_c_string P_ ((struct it *));
@@ -1319,6 +1320,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
       /* Reset these values to zero becaue the produce_special_glyphs
 	 above has changed them.  */
       it->pixel_width = it->ascent = it->descent = 0;
+      it->phys_ascent = it->phys_descent = 0;
     }
 
   /* Set this after getting the dimensions of truncation and
@@ -3028,14 +3030,16 @@ reseat_at_previous_visible_line_start (it)
 
 
 /* Reseat iterator IT on the next visible line start in the current
-   buffer.  Skip over invisible text that is so because of selective
-   display.  Compute faces, overlays etc at the new position.  Note
-   that this function does not skip over text that is invisible
-   because of text properties.  */
+   buffer.  ON_NEWLINE_P non-zero means position IT on the newline
+   preceding the line start.  Skip over invisible text that is so
+   because of selective display.  Compute faces, overlays etc at the
+   new position.  Note that this function does not skip over text that
+   is invisible because of text properties.  */
 
 static void
-reseat_at_next_visible_line_start (it)
+reseat_at_next_visible_line_start (it, on_newline_p)
      struct it *it;
+     int on_newline_p;
 {
   /* Restore the buffer position when currently not delivering display
      elements from the current buffer.  This is the case, for example,
@@ -3070,6 +3074,13 @@ reseat_at_next_visible_line_start (it)
 	       && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
 				     it->selective))
 	  forward_to_next_line_start (it);
+
+      /* Position on the newline if we should.  */
+      if (on_newline_p && IT_CHARPOS (*it) > BEGV)
+	{
+	  --IT_CHARPOS (*it);
+	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (IT_CHARPOS (*it));
+	}
       
       /* Set the iterator there.  The 0 as the last parameter of
 	 reseat means don't force a text property lookup.  The lookup
@@ -3427,7 +3438,7 @@ set_iterator_to_next (it)
 	 current_buffer.  Advance in the buffer, and maybe skip over
 	 invisible lines that are so because of selective display.  */
       if (ITERATOR_AT_END_OF_LINE_P (it))
-	reseat_at_next_visible_line_start (it);
+	reseat_at_next_visible_line_start (it, 0);
       else
 	{
 	  xassert (it->len != 0);
@@ -3462,8 +3473,10 @@ set_iterator_to_next (it)
 	  it->dpvec = NULL;
 	  it->current.dpvec_index = -1;
 
-	  /* Consume the character which was displayed via IT->dpvec.  */
-	  if (it->dpvec_char_len)
+	  /* Skip over characters which were displayed via IT->dpvec.  */
+	  if (it->dpvec_char_len < 0)
+	    reseat_at_next_visible_line_start (it, 1);
+	  else if (it->dpvec_char_len > 0)
 	    {
 	      it->len = it->dpvec_char_len;
 	      set_iterator_to_next (it);
@@ -3875,7 +3888,10 @@ next_element_from_buffer (it)
 		  && indented_beyond_p (IT_CHARPOS (*it) + 1,
 					IT_BYTEPOS (*it) + 1,
 					it->selective))
-		next_element_from_ellipsis (it);
+		{
+		  next_element_from_ellipsis (it);
+		  it->dpvec_char_len = -1;
+		}
 	    }
 	  else if (it->c == '\r' && it->selective == -1)
 	    {
@@ -3883,6 +3899,7 @@ next_element_from_buffer (it)
 		 CR to the end of the line is invisible, with maybe an
 		 ellipsis displayed for it.  */
 	      next_element_from_ellipsis (it);
+	      it->dpvec_char_len = -1;
 	    }
 	}
     }
@@ -4251,7 +4268,7 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 
 	case MOVE_LINE_TRUNCATED:
 	  it->continuation_lines_width = 0;
-	  reseat_at_next_visible_line_start (it);
+	  reseat_at_next_visible_line_start (it, 0);
 	  if ((op & MOVE_TO_POS) != 0
 	      && IT_CHARPOS (*it) > to_charpos)
 	    goto out;
@@ -5901,8 +5918,8 @@ display_toolbar_line (it)
   /* If line is empty, make it occupy the rest of the toolbar.  */
   if (!row->displays_text_p)
     {
-      row->height = it->last_visible_y - row->y;
-      row->ascent = 0;
+      row->height = row->phys_height = it->last_visible_y - row->y;
+      row->ascent = row->phys_ascent = 0;
     }
   
   row->full_width_p = 1;
@@ -9907,9 +9924,11 @@ compute_line_metrics (it)
       if (row->height == 0)
 	{
 	  if (it->max_ascent + it->max_descent == 0)
-	    it->max_descent = CANON_Y_UNIT (it->f);
+	    it->max_descent = it->max_phys_descent = CANON_Y_UNIT (it->f);
 	  row->ascent = it->max_ascent;
 	  row->height = it->max_ascent + it->max_descent;
+	  row->phys_ascent = it->max_phys_ascent;
+	  row->phys_height = it->max_phys_ascent + it->max_phys_descent;
 	}
       
       /* Compute the width of this line.  */
@@ -9919,6 +9938,19 @@ compute_line_metrics (it)
 
       xassert (row->pixel_width >= 0);
       xassert (row->ascent >= 0 && row->height > 0);
+
+      row->overlapping_p = (MATRIX_ROW_OVERLAPS_SUCC_P (row)
+			    || MATRIX_ROW_OVERLAPS_PRED_P (row));
+
+      /* If first line's physical ascent is larger than its logical
+         ascent, use the physical ascent, and make the row taller.
+         This makes accented characters fully visible.  */
+      if (row == it->w->desired_matrix->rows
+	  && row->phys_ascent > row->ascent)
+	{
+	  row->height += row->phys_ascent - row->ascent;
+	  row->ascent = row->phys_ascent;
+	}
 
       /* Compute how much of the line is visible.  */
       row->visible_height = row->height;
@@ -9936,8 +9968,8 @@ compute_line_metrics (it)
   else
     {
       row->pixel_width = row->used[TEXT_AREA];
-      row->ascent = 0;
-      row->height = row->visible_height = 1;
+      row->ascent = row->phys_ascent = 0;
+      row->height = row->phys_height = row->visible_height = 1;
     }
 
   /* Compute a hash code for this row.  */
@@ -9949,6 +9981,7 @@ compute_line_metrics (it)
 		   + (row->glyphs[area][i].type << 2));
 
   it->max_ascent = it->max_descent = 0;
+  it->max_phys_ascent = it->max_phys_descent = 0;
 }
 
 
@@ -10252,6 +10285,8 @@ display_line (it)
      text hscrolled, if there is any, or zero.  */
   row->ascent = it->max_ascent;
   row->height = it->max_ascent + it->max_descent;
+  row->phys_ascent = it->max_phys_ascent;
+  row->phys_height = it->max_phys_ascent + it->max_phys_descent;
 
   /* Loop generating characters.  The loop is left with IT on the next
      character to display.  */
@@ -10297,6 +10332,9 @@ display_line (it)
 	{
 	  row->ascent = max (row->ascent, it->max_ascent);
 	  row->height = max (row->height, it->max_ascent + it->max_descent);
+	  row->phys_ascent = max (row->phys_ascent, it->max_phys_ascent);
+	  row->phys_height = max (row->phys_height,
+				  it->max_phys_ascent + it->max_phys_descent);
 	  set_iterator_to_next (it);
 	  continue;
 	}
@@ -10320,6 +10358,9 @@ display_line (it)
 	  ++it->hpos;
 	  row->ascent = max (row->ascent, it->max_ascent);
 	  row->height = max (row->height, it->max_ascent + it->max_descent);
+	  row->phys_ascent = max (row->phys_ascent, it->max_phys_ascent);
+	  row->phys_height = max (row->phys_height,
+				  it->max_phys_ascent + it->max_phys_descent);
 	  if (it->current_x - it->pixel_width < it->first_visible_x)
 	    row->x = x - it->first_visible_x;
 	}
@@ -10398,6 +10439,9 @@ display_line (it)
 	  
 	  row->ascent = max (row->ascent, it->max_ascent);
 	  row->height = max (row->height, it->max_ascent + it->max_descent);
+	  row->phys_ascent = max (row->phys_ascent, it->max_phys_ascent);
+	  row->phys_height = max (row->phys_height,
+				  it->max_phys_ascent + it->max_phys_descent);
 	  
 	  /* End of this display line if row is continued.  */
 	  if (row->continued_p)
@@ -10448,7 +10492,7 @@ display_line (it)
 	  
 	  row->truncated_on_right_p = 1;
 	  it->continuation_lines_width = 0;
-	  reseat_at_next_visible_line_start (it);
+	  reseat_at_next_visible_line_start (it, 0);
 	  row->ends_at_zv_p = FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n';
 	  it->hpos = hpos_before;
 	  it->current_x = x_before;
@@ -11666,6 +11710,8 @@ display_string (string, lisp_string, face_string, face_string_pos,
 
   row->ascent = it->max_ascent;
   row->height = it->max_ascent + it->max_descent;
+  row->phys_ascent = it->max_phys_ascent;
+  row->phys_height = it->max_phys_ascent + it->max_phys_descent;
 
   /* This condition is for the case that we are called with current_x
      past last_visible_x.  */
@@ -11713,6 +11759,9 @@ display_string (string, lisp_string, face_string, face_string_pos,
 
 	  row->ascent = max (row->ascent, it->max_ascent);
 	  row->height = max (row->height, it->max_ascent + it->max_descent);
+	  row->phys_ascent = max (row->phys_ascent, it->max_phys_ascent);
+	  row->phys_height = max (row->phys_height,
+				  it->max_phys_ascent + it->max_phys_descent);
 	  x += glyph->pixel_width;
 	  ++i;
 	}
