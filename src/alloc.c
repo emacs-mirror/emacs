@@ -110,7 +110,7 @@ Lisp_Object memory_signal_data;
 /* Define DONT_COPY_FLAG to be the bit in a small string that was placed
    in the low bit of the size field when marking small strings.  */
 #ifndef DONT_COPY_FLAG
-#define DONT_COPY_FLAG PSEUDO_VECTOR_FLAG
+#define DONT_COPY_FLAG PSEUDOVECTOR_FLAG
 #endif /* no DONT_COPY_FLAG  */
 
 /* Buffer in which we save a copy of the C stack at each GC.  */
