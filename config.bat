@@ -29,7 +29,9 @@ rem     line length limit.
 rem   + rm, mv, chmod (From GNU file utilities).
 rem   + sed.
 rem
-rem   You must install in directory c:/emacs or change this script.
+rem   You must install in directory c:/emacs or change this script, the
+rem   files msdos/sed*.inp, and lisp/dos-fns.el.  (The latter must be
+rem   recompiled.)
 rem   ----------------------------------------------------------------------
 if not "%2" == "" goto usage
 if "%1" == "msdos" goto msdos
