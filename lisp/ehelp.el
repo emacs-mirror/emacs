@@ -72,56 +72,45 @@ buffer's window disappears (ie we use save-window-excursion)
 BUFFER is put into default-major-mode (or fundamental-mode) when we exit"
   (setq buffer (get-buffer-create (or buffer "*Help*")))
   (let ((one (one-window-p t))
-	(two nil))
-    (save-window-excursion
-      (save-excursion
-	(if one (goto-char (window-start (selected-window))))
-	(let ((pop-up-windows t))
-	  (pop-to-buffer buffer))
-	(unwind-protect
-	    (progn
-	      (save-excursion
-		(set-buffer buffer)
-		(electric-help-mode)
-		(setq buffer-read-only nil)
-		(or noerase (erase-buffer)))
-	      (let ((standard-output buffer))
-		(if (funcall thunk)
-		    ()
-		  (set-buffer buffer)
-		  (set-buffer-modified-p nil)
-		  (goto-char (point-min))
-		  (if one (shrink-window-if-larger-than-buffer (selected-window)))))
-	      (set-buffer buffer)
-	      (run-hooks 'electric-help-mode-hook)
-	      (setq two (electric-help-command-loop))
-	      (cond ((eq (car-safe two) 'retain)
-		     (setq two (vector (window-height (selected-window))
-				       (window-start (selected-window))
-				       (window-hscroll (selected-window))
-				       (point))))
-		    (t (setq two nil))))
-				  
-	  (message "")
-	  (set-buffer buffer)
-	  (setq buffer-read-only nil)
-	  (condition-case ()
-	      (funcall (or default-major-mode 'fundamental-mode))
-	    (error nil)))))
-    (if two
-	(let ((pop-up-windows t)
-	      tem)
-	  (pop-to-buffer buffer)
-	  (setq tem (- (window-height (selected-window)) (elt two 0)))
-	  (if (> tem 0) (shrink-window tem))
-	  (set-window-start (selected-window) (elt two 1) t)
-	  (set-window-hscroll (selected-window) (elt two 2))
-	  (goto-char (elt two 3)))
-      ;;>> Perhaps this shouldn't be done.
-      ;; so that when we say "Press space to bury" we mean it
-      (replace-buffer-in-windows buffer)
-      ;; must do this outside of save-window-excursion
-      (bury-buffer buffer))))
+	(config (current-window-configuration))
+        (bury nil))
+    (unwind-protect
+         (save-excursion
+           (if one (goto-char (window-start (selected-window))))
+           (let ((pop-up-windows t))
+             (pop-to-buffer buffer))
+           (save-excursion
+             (set-buffer buffer)
+             (electric-help-mode)
+             (setq buffer-read-only nil)
+             (or noerase (erase-buffer)))
+           (let ((standard-output buffer))
+             (if (not (funcall thunk))
+                 (progn
+                   (set-buffer buffer)
+                   (set-buffer-modified-p nil)
+                   (goto-char (point-min))
+                   (if one (shrink-window-if-larger-than-buffer (selected-window))))))
+           (set-buffer buffer)
+           (run-hooks 'electric-help-mode-hook)
+           (if (eq (car-safe (electric-help-command-loop))
+                   'retain)
+               (setq config (current-window-configuration))
+               (setq bury t)))
+      (message "")
+      (set-buffer buffer)
+      (setq buffer-read-only nil)
+      (condition-case ()
+          (funcall (or default-major-mode 'fundamental-mode))
+        (error nil))
+      (set-window-configuration config)
+      (if bury
+          (progn
+            ;;>> Perhaps this shouldn't be done.
+            ;; so that when we say "Press space to bury" we mean it
+            (replace-buffer-in-windows buffer)
+            ;; must do this outside of save-window-excursion
+            (bury-buffer buffer))))))
 
 (defun electric-help-command-loop ()
   (catch 'exit
