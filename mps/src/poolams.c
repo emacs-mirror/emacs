@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(MMdevel_poolams.4) $
+ * $HopeName: MMsrc!poolams.c(trunk.2) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  * 
  * NOTES
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(MMdevel_poolams.4) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.2) $");
 
 /* These two BT utility functions should be in the BT module.
  * See design.mps.poolams.bt.utilities */
@@ -204,7 +204,7 @@ static Res AMSBTCreate(BT *btReturn, Space space, Count length)
   AVERT(Space, space);
   AVER(length > 0);
 
-  res = SpaceAlloc(&p, space, BTSize(length));
+  res = ArenaAlloc(&p, space, BTSize(length));
   if(res != ResOK)
     return res;
   bt = (BT)p;
@@ -223,7 +223,7 @@ static void AMSBTDestroy(BT bt, Space space, Count length)
   AVERT(Space, space);
   AVER(length > 0);
   
-  SpaceFree(space, (Addr)bt, BTSize(length));
+  ArenaFree(space, bt, BTSize(length));
 }
 
 static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
@@ -250,7 +250,7 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   if (size == 0)
     return ResMEMORY;
   
-  res = SpaceAlloc(&p, space, (Size)sizeof(AMSGroupStruct));
+  res = ArenaAlloc(&p, space, (Size)sizeof(AMSGroupStruct));
   if (res != ResOK)
     goto failGroup;
   group = (AMSGroup)p;
@@ -298,7 +298,7 @@ failMark:
 failAlloc:
   PoolSegFree(pool, seg);
 failSeg:
-  SpaceFree(space, (Addr)group, (Size)sizeof(AMSGroupStruct));
+  ArenaFree(space, group, (Size)sizeof(AMSGroupStruct));
 failGroup:
   return res;
 }
@@ -325,7 +325,7 @@ static void AMSGroupDestroy(AMSGroup group)
   AMSBTDestroy(group->markTable, space, group->grains);
   AMSBTDestroy(group->scanTable, space, group->grains);
   PoolSegFree(AMSPool(ams), group->seg);
-  SpaceFree(space, (Addr)group, (Size)sizeof(AMSGroupStruct));
+  ArenaFree(space, group, (Size)sizeof(AMSGroupStruct));
 }  
   
 static Res AMSInit(Pool pool, va_list arg)

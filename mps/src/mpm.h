@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.38) $
+ * $HopeName: MMsrc!mpm.h(trunk.39) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -429,10 +429,7 @@ extern void (ArenaPoll)(Arena arena);
 /* doesn't need to poll when allocating. */
 
 extern Res ArenaAlloc(void **baseReturn, Arena arena, Size size);
-extern void ArenaFree(Arena arena, Addr base, Size size);
-/* backward compatibility */
-#define SpaceAlloc(baseReturn, arena, size) ArenaAlloc(baseReturn, arena, size)
-#define SpaceFree(arena, base, size) ArenaFree(arena, base, size)
+extern void ArenaFree(Arena arena, void *base, Size size);
 
 #define ArenaPoolRing(arena)    (&(arena)->poolRing)
 #define ArenaRootRing(arena)    (&(arena)->rootRing)

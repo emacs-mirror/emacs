@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.10) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.11) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -28,7 +28,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.10) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.11) $");
 
 
 #define MRGSig          ((Sig)0x519369B0) /* SIGnature MRG POol */
@@ -97,7 +97,7 @@ static void MRGGroupDestroy(MRGGroup group, MRG mrg)
   RingRemove(&group->group);
   PoolSegFree(pool, group->refseg);
   PoolSegFree(pool, group->linkseg);
-  SpaceFree(PoolSpace(pool), (Addr)group, (Size)sizeof(MRGGroupStruct));
+  ArenaFree(PoolSpace(pool), group, (Size)sizeof(MRGGroupStruct));
 }
 
 static Res MRGGroupCreate(MRGGroup *groupReturn, MRG mrg)
@@ -117,9 +117,9 @@ static Res MRGGroupCreate(MRGGroup *groupReturn, MRG mrg)
 
   pool = MRGPool(mrg);
   space = PoolSpace(pool);
-  res = SpaceAlloc(&v, space, (Size)sizeof(MRGGroupStruct));
+  res = ArenaAlloc(&v, space, (Size)sizeof(MRGGroupStruct));
   if(res != ResOK)
-    goto failSpaceAlloc;
+    goto failArenaAlloc;
   group = v;
   res = PoolSegAlloc(&refseg, SegPrefDefault(), pool, mrg->extendBy);
   if(res != ResOK)
@@ -164,8 +164,8 @@ static Res MRGGroupCreate(MRGGroup *groupReturn, MRG mrg)
 failLinkSegAlloc:
   PoolSegFree(pool, refseg);
 failRefSegAlloc:
-  SpaceFree(space, (Addr)group, (Size)sizeof(MRGGroupStruct)); 
-failSpaceAlloc:
+  ArenaFree(space, group, (Size)sizeof(MRGGroupStruct)); 
+failArenaAlloc:
   return res;
 }
 

@@ -1,6 +1,6 @@
 /* impl.c.format: OBJECT FORMATS
  *
- * $HopeName: MMsrc!format.c(MMdevel_config_thread.2) $
+ * $HopeName: MMsrc!format.c(trunk.16) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * DESIGN
@@ -10,7 +10,7 @@
 
 #include "mpm.h"
 
-SRCID(format, "$HopeName: MMsrc!format.c(trunk.15) $");
+SRCID(format, "$HopeName: MMsrc!format.c(trunk.16) $");
 
 
 Bool FormatCheck(Format format)
@@ -84,7 +84,7 @@ void FormatDestroy(Format format)
   
   RingFinish(&format->arenaRing);
 
-  ArenaFree(format->arena, (Addr)format, sizeof(FormatStruct));
+  ArenaFree(format->arena, format, sizeof(FormatStruct));
 }
 
 /* Must be thread safe.  See design.mps.interface.c.thread-safety. */
