@@ -73,7 +73,7 @@ point, the one underneath the cursor, like @kbd{C-d} (see below).
 @cindex newline
    To end a line and start typing a new one, type @key{RET}.  This
 inserts a newline character in the buffer.  If point is in the middle of
-a line, @key{RET} splits the line.  Typing @key{DEL} when the cursor is
+a line, the effect is to split the line.  Typing @key{DEL} when the cursor is
 at the beginning of a line deletes the preceding newline, thus joining
 the line with the preceding line.
 
@@ -219,17 +219,21 @@ numeric argument @var{n}, move to @var{n}/10 of the way from the top.
 @item M->
 Move to the end of the buffer (@code{end-of-buffer}).
 @item C-v
-Scroll the display one screen forward, and move point if necessary to put
-it on the screen (@code{scroll-up}).  This doesn't always
-move point, but it is commonly used to do so.
-If your keyboard has a @key{PAGEDOWN} key, it does the same thing.
+@itemx @key{PAGEDOWN}
+@itemx @key{PRIOR}
+Scroll the display one screen forward, and move point if necessary to
+put it on the screen (@code{scroll-up}).  This doesn't always move
+point, but it is commonly used to do so.  If your keyboard has a
+@key{PAGEDOWN} or @key{PRIOR} key, it does the same thing.
 
 Scrolling commands are further described in @ref{Scrolling}.
 @item M-v
+@itemx @key{PAGEUP}
+@itemx @key{NEXT}
 Scroll one screen backward, and move point if necessary to put it on
 the screen (@code{scroll-down}).  This doesn't always move point, but
-it is commonly used to do so.  The @key{PAGEUP} key has the same
-effect.
+it is commonly used to do so.  If your keyboard has a @key{PAGEUP} or
+@key{NEXT} key, it does the same thing.
 @item M-x goto-char
 Read a number @var{n} and move point to buffer position @var{n}.
 Position 1 is the beginning of the buffer.
@@ -256,11 +260,11 @@ to the end of another line.  Normally, @code{track-eol} is @code{nil}.
 @xref{Variables}, for how to set variables such as @code{track-eol}.
 
 @vindex next-line-add-newlines
-  @kbd{C-n} normally gets an error when you use it on the last line of
-the buffer (just as @kbd{C-p} gets an error on the first line).  But
-if you set the variable @code{next-line-add-newlines} to a
-non-@code{nil} value, @kbd{C-n} on the last line of a buffer creates
-an additional line at the end and moves down onto it.
+  @kbd{C-n} normally stops at the end of the bufer when you use it on
+the last line of the buffer.  But if you set the variable
+@code{next-line-add-newlines} to a non-@code{nil} value, @kbd{C-n} on
+the last line of a buffer creates an additional line at the end and
+moves down onto it.
 
 @node Erasing
 @section Erasing Text
@@ -319,6 +323,7 @@ tedious.
 @item C-x u
 Undo one batch of changes---usually, one command worth (@code{undo}).
 @item C-_
+@itemx C-/
 The same.
 @item C-u C-x u
 Undo one batch of changes in the region.
@@ -326,10 +331,12 @@ Undo one batch of changes in the region.
 
 @kindex C-x u
 @kindex C-_
+@kindex C-/
 @findex undo
-  The command @kbd{C-x u} or @kbd{C-_} is how you undo.  The first time
-you give this command, it undoes the last change.  Point moves back to
-where it was before the command that made the change.
+  The command @kbd{C-x u} (or @kbd{C-_} or @kbd{C-/}) is how you undo.
+The first time you give this command, it undoes the last change.
+Point moves back to where it was before the command that made the
+change.
 
   Consecutive repetitions of @kbd{C-_} or @kbd{C-x u} undo earlier and
 earlier changes, back to the limit of the undo information available.
@@ -345,14 +352,16 @@ the sequence of undoing, then type more undo commands.
 @cindex selective undo
 @kindex C-u C-x u
   Ordinary undo applies to all changes made in the current buffer.  You
-can also perform @dfn{selective undo}, limited to the current region.
+can also perform @dfn{selective undo}, limited to the current region
+(@pxref{The Region}).
 To do this, specify the region you want, then run the @code{undo}
 command with a prefix argument (the value does not matter): @kbd{C-u C-x
 u} or @kbd{C-u C-_}.  This undoes the most recent change in the region.
 To undo further changes in the same region, repeat the @code{undo}
-command (no prefix argument is needed).  In Transient Mark mode, any use
-of @code{undo} when there is an active region performs selective undo;
-you do not need a prefix argument.
+command (no prefix argument is needed).  In Transient Mark mode
+(@pxref{Transient Mark}), any use of @code{undo} when there is an
+active region performs selective undo; you do not need a prefix
+argument.
 
   If you notice that a buffer has been modified accidentally, the
 easiest way to recover is to type @kbd{C-_} repeatedly until the stars
@@ -407,11 +416,10 @@ future.  But if you didn't expect the command to create such large
 undo data, then it is probably a bug and you should report it.
 @xref{Bugs,, Reporting Bugs}.
 
-  The reason the @code{undo} command has two keys, @kbd{C-x u} and
-@kbd{C-_}, set up to run it is that it is worthy of a single-character
-key, but on some keyboards it is not obvious how to type @kbd{C-_}.
-@kbd{C-x u} is an alternative you can type straightforwardly on any
-terminal.
+  The reason the @code{undo} command has three key bindings, @kbd{C-x
+u}, @kbd{C-_} and @kbd{C-/}, is that it is worthy of a
+single-character key, but @kbd{C-x u} is more straightforward for
+beginners to type.
 
 @node Basic Files
 @section Files
@@ -722,9 +730,10 @@ act in the opposite direction.
 @kindex M-@t{-}
 @findex digit-argument
 @findex negative-argument
-  If your terminal keyboard has a @key{META} key, the easiest way to
-specify a numeric argument is to type digits and/or a minus sign while
-holding down the @key{META} key.  For example,
+  If your terminal keyboard has a @key{META} key (labeled @key{ALT} on
+PC keyboards), the easiest way to specify a numeric argument is to
+type digits and/or a minus sign while holding down the @key{META} key.
+For example,
 
 @example
 M-5 C-n
@@ -777,8 +786,9 @@ with an argument of one.  (@xref{Killing}, for more information on
   A few commands treat a plain @kbd{C-u} differently from an ordinary
 argument.  A few others may treat an argument of just a minus sign
 differently from an argument of @minus{}1.  These unusual cases are
-described when they come up; they are always for reasons of convenience
-of use of the individual command.
+described when they come up; they are always for reasons of
+convenience of use of the individual command, and they are documented
+in the command's documentation string.
 
   You can use a numeric argument to insert multiple copies of a
 character.  This is straightforward unless the character is a digit; for
