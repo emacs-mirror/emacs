@@ -314,7 +314,7 @@ Thus, this does not include the shell's current directory.")
        (define-key shell-mode-map "\M-?"
 	 'comint-dynamic-list-filename-completions)
        (define-key shell-mode-map [menu-bar completion]
-	 (cons "Complete" 
+	 (cons "Complete"
 	       (copy-keymap (lookup-key comint-mode-map [menu-bar completion]))))
        (define-key-after (lookup-key shell-mode-map [menu-bar completion])
 	 [complete-env-variable] '("Complete Env. Variable Name" .
@@ -415,7 +415,7 @@ buffer."
   (make-local-variable 'list-buffers-directory)
   (setq list-buffers-directory (expand-file-name default-directory))
   ;; shell-dependent assignments.
-  (unless comint-input-ring
+  (when (zerop (ring-length comint-input-ring))
     (let ((shell (file-name-nondirectory (car
 		   (process-command (get-buffer-process (current-buffer)))))))
       (setq comint-input-ring-file-name
