@@ -1453,7 +1453,8 @@ See also the function `condition-case'.  */)
      Lisp_Object error_symbol, data;
 {
   /* When memory is full, ERROR-SYMBOL is nil,
-     and DATA is (REAL-ERROR-SYMBOL . REAL-DATA).  */
+     and DATA is (REAL-ERROR-SYMBOL . REAL-DATA).
+     That is a special case--don't do this in other situations.  */
   register struct handler *allhandlers = handlerlist;
   Lisp_Object conditions;
   extern int gc_in_progress;
@@ -1474,22 +1475,27 @@ See also the function `condition-case'.  */)
   else
     real_error_symbol = error_symbol;
 
+#if 0 /* rms: I don't know why this was here,
+	 but it is surely wrong for an error that is handled.  */
 #ifdef HAVE_X_WINDOWS
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
+#endif 
 
   /* This hook is used by edebug.  */
-  if (! NILP (Vsignal_hook_function))
+  if (! NILP (Vsignal_hook_function)
+      && ! NILP (error_symbol))
     call2 (Vsignal_hook_function, error_symbol, data);
 
   conditions = Fget (real_error_symbol, Qerror_conditions);
 
   /* Remember from where signal was called.  Skip over the frame for
      `signal' itself.  If a frame for `error' follows, skip that,
-     too.  */
+     too.  Don't do this when ERROR_SYMBOL is nil, because that
+     is a memory-full error.  */
   Vsignaling_function = Qnil;
-  if (backtrace_list)
+  if (backtrace_list && !NILP (error_symbol))
     {
       bp = backtrace_list->next;
       if (bp && bp->function && EQ (*bp->function, Qerror))
@@ -1511,13 +1517,6 @@ See also the function `condition-case'.  */)
       clause = find_handler_clause (handlerlist->handler, conditions,
 				    error_symbol, data, &debugger_value);
 
-#if 0 /* Most callers are not prepared to handle gc if this returns.
-	 So, since this feature is not very useful, take it out.  */
-      /* If have called debugger and user wants to continue,
-	 just return nil.  */
-      if (EQ (clause, Qlambda))
-	return debugger_value;
-#else
       if (EQ (clause, Qlambda))
 	{
 	  /* We can't return values to code which signaled an error, but we
@@ -1527,7 +1526,6 @@ See also the function `condition-case'.  */)
 	  else
 	    error ("Cannot return from the debugger in an error");
 	}
-#endif
 
       if (!NILP (clause))
 	{
