@@ -245,7 +245,7 @@ struct frame
     struct x_output *x;
     struct w32_output *w32;
     struct mac_output *mac;
-    int nothing;
+    EMACS_INT nothing;
   }
   output_data;
 
