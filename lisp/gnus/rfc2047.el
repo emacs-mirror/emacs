@@ -473,51 +473,51 @@ By default, the region is treated as containing addresses (see
 	    (goto-char (min (point-max) (+ 56 bol)))
 	    (search-backward "=" (- (point) 2) t)
 	    (unless (or (bobp) (eobp))
-	      (insert ?\n)
+	      (insert "\n")
 	      (setq bol (point)))))))))
 
 ;;;
 ;;; Functions for decoding RFC2047 messages
 ;;;
 
-(eval-and-compile
-  (defvar rfc2047-encoded-word-regexp
-    "=\\?\\([^][\000-\040()<>@,\;:\\\"/?.=]+\\)\\?\\(B\\|Q\\)\\?\
-\\([!->@-~ +]+\\)\\?="))
+(defvar rfc2047-encoded-word-regexp
+  "=\\?\\([^][\000-\040()<>@,\;:\\\"/?.=]+\\)\\?\\(B\\|Q\\)\\?\\([!->@-~ +]+\\)\\?=")
 
 (defun rfc2047-decode-region (start end)
   "Decode MIME-encoded words in region between START and END."
   (interactive "r")
   (let ((case-fold-search t)
-	(undoing (not (eq t buffer-undo-list)))
 	b e)
-    (unwind-protect
-	(save-excursion
-	  (save-restriction
-	    (buffer-enable-undo)
-	    (narrow-to-region start end)
-	    (goto-char (point-min))
-	    ;; Remove whitespace between encoded words.
-	    (while (re-search-forward
-		    (eval-when-compile
-		      (concat "\\(" rfc2047-encoded-word-regexp "\\)"
-			      "\\(\n?[ \t]\\)+"
-			      "\\(" rfc2047-encoded-word-regexp "\\)"))
-		    nil t)
-	      (delete-region (goto-char (match-end 1)) (match-beginning 6)))
-	    ;; Decode the encoded words.
-	    (setq b (goto-char (point-min)))
-	    (while (re-search-forward rfc2047-encoded-word-regexp nil t)
-	      (setq e (match-beginning 0))
-	      (rfc2047-parse-and-decode (match-beginning 0) (match-end 0)))
-	    (when (and (mm-multibyte-p)
-		       mail-parse-charset
-		       (not (eq mail-parse-charset 'us-ascii))
-		       (not (eq mail-parse-charset 'gnus-decoded)))
-	      (mm-decode-coding-region b (point-max) mail-parse-charset))
-	    (rfc2047-unfold-region (point-min) (point-max))))
-      (unless undoing
-	(buffer-disable-undo)))))
+    (save-excursion
+      (save-restriction
+	(narrow-to-region start end)
+	(goto-char (point-min))
+	;; Remove whitespace between encoded words.
+	(while (re-search-forward
+		(concat "\\(" rfc2047-encoded-word-regexp "\\)"
+			"\\(\n?[ \t]\\)+"
+			"\\(" rfc2047-encoded-word-regexp "\\)")
+		nil t)
+	  (delete-region (goto-char (match-end 1)) (match-beginning 6)))
+	;; Decode the encoded words.
+	(setq b (goto-char (point-min)))
+	(while (re-search-forward rfc2047-encoded-word-regexp nil t)
+	  (setq e (match-beginning 0))
+	  (insert (rfc2047-parse-and-decode
+		   (prog1
+		       (match-string 0)
+		     (delete-region (match-beginning 0) (match-end 0)))))
+	  (when (and (mm-multibyte-p)
+		     mail-parse-charset
+		     (not (eq mail-parse-charset 'gnus-decoded)))
+	    (mm-decode-coding-region b e mail-parse-charset))
+	  (setq b (point)))
+	(when (and (mm-multibyte-p)
+		   mail-parse-charset
+		   (not (eq mail-parse-charset 'us-ascii))
+		   (not (eq mail-parse-charset 'gnus-decoded)))
+	  (mm-decode-coding-region b (point-max) mail-parse-charset))
+	(rfc2047-unfold-region (point-min) (point-max))))))
 
 (defun rfc2047-decode-string (string)
   "Decode the quoted-printable-encoded STRING and return the results."
@@ -530,26 +530,22 @@ By default, the region is treated as containing addresses (see
 	(rfc2047-decode-region (point-min) (point-max)))
       (buffer-string))))
 
-(defun rfc2047-parse-and-decode (b e)
+(defun rfc2047-parse-and-decode (word)
   "Decode WORD and return it if it is an encoded word.
 Return WORD if not."
-  (save-restriction
-    (narrow-to-region b e)
-    (goto-char b)
-    (when (looking-at (eval-when-compile
-			(concat "\\`" rfc2047-encoded-word-regexp "\\'")))
-      (condition-case nil
-	  (let ((charset (match-string 1))
-		(encoding (upcase (match-string 2))))
-	    (undo-boundary)
-	    (delete-region (match-beginning 0) (1+ (match-end 2)))
-	    (delete-region (- (point-max) 2) (point-max))
-	    (rfc2047-decode charset encoding (point-min) (point-max)))
-	;; If we get an error, undo the change
-	(error (undo))))))
+  (if (not (string-match rfc2047-encoded-word-regexp word))
+      word
+    (or
+     (condition-case nil
+	 (rfc2047-decode
+	  (match-string 1 word)
+	  (upcase (match-string 2 word))
+	  (match-string 3 word))
+       (error word))
+     word)))
 
-(defun rfc2047-decode (charset encoding b e)
-  "Decode from the given MIME CHARSET in the given ENCODING in region B to E.
+(defun rfc2047-decode (charset encoding string)
+  "Decode STRING from the given MIME CHARSET in the given ENCODING.
 Valid ENCODINGs are \"B\" and \"Q\".
 If your Emacs implementation can't decode CHARSET, return nil."
   (if (stringp charset)
@@ -568,16 +564,18 @@ If your Emacs implementation can't decode CHARSET, return nil."
       (when (and (eq cs 'ascii)
 		 mail-parse-charset)
 	(setq cs mail-parse-charset))
-      (save-restriction
-	(narrow-to-region b e)
-	(cond
-	 ((equal "B" encoding)
-	  (base64-decode-region b e))
-	 ((equal "Q" encoding)
-	  (subst-char-in-region b e ?_ ?  t)
-	  (quoted-printable-decode-region b e))
-	 (t (error "Invalid encoding: %s" encoding)))
-	(mm-decode-coding-region (point-min) (point-max) cs)))))
+      ;; Ensure unibyte result in Emacs 20.
+      (let (default-enable-multibyte-characters)
+	(with-temp-buffer
+	  (mm-decode-coding-string
+	   (cond
+	    ((equal "B" encoding)
+	     (base64-decode-string string))
+	    ((equal "Q" encoding)
+	     (quoted-printable-decode-string
+	      (mm-replace-chars-in-string string ?_ ? )))
+	    (t (error "Invalid encoding: %s" encoding)))
+	   cs))))))
 
 (provide 'rfc2047)
 
