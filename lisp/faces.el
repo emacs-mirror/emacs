@@ -1271,7 +1271,8 @@ If omitted or nil, that stands for the selected frame's display."
   "*The brightness of the background.
 Set this to the symbol `dark' if your background color is dark, `light' if
 your background is light, or nil (default) if you want Emacs to
-examine the brightness for you."
+examine the brightness for you.  Don't set this variable with `setq';
+this won't have the expected effect."
   :group 'faces
   :set #'(lambda (var value)
 	   (set-default var value)
