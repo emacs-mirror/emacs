@@ -2657,7 +2657,9 @@ which are the arguments that `revert-buffer' received.")
 (defvar revert-buffer-insert-file-contents-function nil
   "Function to use to insert contents when reverting this buffer.
 Gets two args, first the nominal file name to use,
-and second, t if reading the auto-save file.")
+and second, t if reading the auto-save file.
+
+The function you specify is responsible for updating (or preserving) point.")
 
 (defvar before-revert-hook nil
   "Normal hook for `revert-buffer' to run before reverting.
@@ -2714,8 +2716,7 @@ non-nil, it is called instead of rereading visited file contents."
   (interactive (list (not current-prefix-arg)))
   (if revert-buffer-function
       (funcall revert-buffer-function ignore-auto noconfirm)
-    (let* ((opoint (point))
-	   (auto-save-p (and (not ignore-auto)
+    (let* ((auto-save-p (and (not ignore-auto)
 			     (recent-auto-save-p)
 			     buffer-auto-save-file-name
 			     (file-readable-p buffer-auto-save-file-name)
@@ -2771,9 +2772,9 @@ non-nil, it is called instead of rereading visited file contents."
 			  ;; any code conversion.
 			  (if auto-save-p 'no-conversion
 			    coding-system-for-read)))
+		     ;; Note that this preserves point in an intelligent way.
 		     (insert-file-contents file-name (not auto-save-p)
 					   nil nil t))))
-	       (goto-char (min opoint (point-max)))
 	       ;; Recompute the truename in case changes in symlinks
 	       ;; have changed the truename.
 	       (setq buffer-file-truename
