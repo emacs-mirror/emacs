@@ -1,6 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.8) $
+ *  $HopeName: MMsrc!fmtdy.c(trunk.9) $
  *  Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  *  All objects, B:
@@ -68,6 +68,8 @@
 
 #define ALIGN           sizeof(mps_word_t)
 
+
+#ifndef NDEBUG
 
 static int dylan_wrapper_check(mps_word_t *w)
 {
@@ -175,6 +177,9 @@ static int dylan_wrapper_check(mps_word_t *w)
 
   return 1;
 }
+
+#endif /* NDEBUG */
+
 
 /* Scan a contiguous array of references in [base, limit). */
 /* This code has been hand-optimised and examined using Metrowerks */
@@ -622,9 +627,8 @@ mps_addr_t dylan_read(mps_addr_t addr)
 
 mps_bool_t dylan_check(mps_addr_t addr)
 {
-  mps_word_t *p = (mps_word_t *)addr;
   assert(addr != 0);
   assert(((mps_word_t)addr & (ALIGN-1)) == 0);
-  assert(dylan_wrapper_check((mps_word_t *)p[0]));
+  assert(dylan_wrapper_check((mps_word_t *)((mps_word_t *)addr)[0]));
   return 1;
 }
