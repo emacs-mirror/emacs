@@ -580,10 +580,19 @@ pending in the shell buffer and not yet sent.
 
 @item C-c C-o
 @kindex C-c C-o @r{(Shell mode)}
-@findex comint-kill-output
-Kill the last batch of output from a shell command
-(@code{comint-kill-output}).  This is useful if a shell command spews
-out lots of output that just gets in the way.
+@findex comint-delete-output
+Delete the last batch of output from a shell command
+(@code{comint-delete-output}).  This is useful if a shell command spews
+out lots of output that just gets in the way.  This command used to be
+called @code{comint-kill-output}.
+
+@item C-c C-s
+@kindex C-c C-s @r{(Shell mode)}
+@findex comint-write-output
+Write the last batch of output from a shell command to a file
+(@code{comint-write-output}).  With a prefix argument, the file is
+appended to instead.  Any prompt at the end of the output is not
+written.
 
 @item C-c C-r
 @itemx C-M-l
