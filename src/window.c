@@ -2697,6 +2697,9 @@ struct save_window_data
     Lisp_Object minibuf_scroll_window;
     Lisp_Object root_window;
     Lisp_Object focus_frame;
+    /* Record the values of window-min-width and window-min-height
+       so that window sizes remain consistent with them.  */
+    Lisp_Object min_width, min_height;
     /* A vector, interpreted as a struct saved_window */
     Lisp_Object saved_windows;
   };
@@ -2795,6 +2798,11 @@ by `current-window-configuration' (which see).")
 #endif
 
       windows_or_buffers_changed++;
+
+      /* Temporarily avoid any problems with windows that are smaller
+	 than they are supposed to be.  */
+      window_min_height = 1;
+      window_min_width = 1;
 
       /* Kludge Alert!
 	 Mark all windows now on frame as "deleted".
@@ -2935,6 +2943,10 @@ by `current-window-configuration' (which see).")
 	x_set_menu_bar_lines (f, previous_frame_menu_bar_lines, 0);
 #endif
     }
+
+  /* Restore the minimum heights recorded in the configuration.  */
+  window_min_height = XINT (data->min_height);
+  window_min_width = XINT (data->min_width);
 
 #ifdef MULTI_FRAME
   /* Fselect_window will have made f the selected frame, so we
@@ -3105,6 +3117,8 @@ redirection (see `redirect-frame-focus').")
   data->minibuf_scroll_window = Vminibuf_scroll_window;
   data->root_window = FRAME_ROOT_WINDOW (f);
   data->focus_frame = FRAME_FOCUS_FRAME (f);
+  XSET (data->min_height, Lisp_Int, window_min_height);
+  XSET (data->min_width, Lisp_Int, window_min_width);
   tem = Fmake_vector (make_number (n_windows), Qnil);
   data->saved_windows = tem;
   for (i = 0; i < n_windows; i++)
