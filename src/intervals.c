@@ -2161,18 +2161,16 @@ get_property_and_range (pos, prop, val, start, end, object)
   return 1;
 }
 
-/* If TYPE is `keymap', return the map specified by the `keymap'
-   property at POSITION in BUFFER or nil.
-
-   Otherwise return the proper local map for position POSITION in
-   BUFFER.  Use the map specified by the local-map property, if any.
-   Otherwise, use BUFFER's local map.  */
+/* Return the proper local keymap TYPE for position POSITION in
+   BUFFER; TYPE should be one of `keymap' or `local-map'.  Use the map
+   specified by the PROP property, if any.  Otherwise, if TYPE is
+   `local-map' use BUFFER's local map.  */
 
 Lisp_Object
 get_local_map (position, buffer, type)
      register int position;
      register struct buffer *buffer;
-     enum map_property type;
+     Lisp_Object type;
 {
   Lisp_Object prop, lispy_position, lispy_buffer;
   int old_begv, old_zv, old_begv_byte, old_zv_byte;
@@ -2198,9 +2196,7 @@ get_local_map (position, buffer, type)
     --position;
   XSETFASTINT (lispy_position, position);
   XSETBUFFER (lispy_buffer, buffer);
-  prop = Fget_char_property (lispy_position,
-			     type == keymap ? Qkeymap : Qlocal_map,
-			     lispy_buffer);
+  prop = Fget_char_property (lispy_position, type, lispy_buffer);
 
   BUF_BEGV (buffer) = old_begv;
   BUF_ZV (buffer) = old_zv;
@@ -2212,7 +2208,7 @@ get_local_map (position, buffer, type)
   if (CONSP (prop))
     return prop;
 
-  if (type == keymap)
+  if (EQ (type, Qkeymap))
     return Qnil;
   else
     return buffer->keymap;
