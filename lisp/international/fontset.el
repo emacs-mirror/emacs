@@ -357,9 +357,9 @@
 (setq vertical-centering-font-regexp
       "gb2312\\|jisx0208\\|jisx0212\\|ksc5601\\|cns11643\\|big5")
 
-;; We must adjust the size of these fonts.
-(setq face-resizing-fonts '(("-cdac$" . 1.3)))
-
+;; CDAC fonts are actually smaller than their design sizes.
+(setq face-font-rescale-alist
+      '(("-cdac$" . 1.3)))
 
 (defvar x-font-name-charset-alist nil
   "This variable has no meaning now.  Just kept for backward compatibility.")
