@@ -1,3 +1,8 @@
+2004-05-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* select.el (xselect-convert-to-string): Bind `inhibit-read-only'
+	to t.
+
 2004-05-03  Nick Roberts  <nickrob@gnu.org>
 
 	* progmodes/gdb-ui.el (gud-watch, gdb-display-buffer)
