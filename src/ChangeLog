@@ -1,3 +1,60 @@
+2000-03-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (single_submenu): Set help string to NULL if none.
+	(w32_menu_show): Set help string correctly.
+	(add-menu-item): Set help string in MIIM_DATA for menu item.
+	Load SetMenuItemInfoA explicitly.
+	(w32_menu_display_help): New function.
+	
+	* w32fns.c (w32_wnd_proc): Handle WM_MENUSELECT message.
+	(QCdata): Moved to xdisp.c.
+
+	* w32term.c (w32_read_socket): Handle WM_MENUSELECT message.
+	(Vw32_charset_to_codepage_alist): Removed.
+	(Vw32_charset_info_alist): New variable.
+	(Qw32_charset_[ansi, default, symbol, shiftjis, hangul, gb2312,
+	chinesebig5, oem, easteurope, turkish, baltic, russian, arabic,
+	greek, hebrew, thai, johab, mac, unicode]): New symbols.
+	(x_produce_glyphs): Remove out of date #ifdef 0'd section. Replace
+	with TODO comment.
+	(w32_codepage_for_font): Use Vw32_charset_info_alist.
+	(syms_of_w32term): Remove Vw32_charset_to_codepage_alist.
+	Define Vw32_charset_info_alist and w32_charset symbols.
+
+2000-03-22  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.nt (w32bdf.obj): Update dependencies.
+
+	* w32bdf.c: Include frame.h and dispextern.h before fontset.h.
+
+	* w32fns.c: Include fontset.h after dispextern.h.
+	(Fx_create_frame): Do not create fontset.
+	(w32_load_system_font): Doc fix.
+	(Fx_close_connection): Free full_name if it is not shared.
+
+	* w32term.c: Include fontset.h after dispextern.h.
+	(x_get_glyph_face_and_encoding): New parameter two_byte_p. Callers
+	updated.
+	(w32_per_char_metric): If PCM is invalid, delete and return NULL.
+	(x_get_char_and_face_encoding): Use FACE_FOR_CHAR to get face_id.
+	(w32_font_is_double_byte): New function, needs body.
+	(x_append_glyph): Set glyph->glyph_not_available_p.
+	(x_produce_glyphs): Set it->glyph_not_available_p.  Don't set
+	it->charset.  If it->multibyte_p is zero and it->c is a multibyte
+	character, convert it to a unibyte character.
+	(struct glyph_string): Delete member `charset'.
+	(W32_TEXTOUT): Temporarily remove charset_dim until another way of
+	calculating it is found.
+	(x_set_mouse_face_gc): Call FACE_FOR_CHAR to get face_id.  Handle
+	the case that per char metric is not available correctly.
+	(x_fill_glyph_string): Handle the case that the specific glyph is
+	not available correctly.
+	(BUILD_CHAR_GLYPH_STRINGS): Don't set s->charset.
+	(BUILD_COMPOSITE_GLYPH_STRING): Likewise.
+	(x_new_font): Call FS_LOAD_FONT, not fs_load_font.
+	(x_new_fontset): Call fontset_ascii to get ASCII font name of the
+	fontset.  Don't call FS_LOAD_FONT.
+
 2000-03-22  Ken Raeburn  <raeburn@gnu.org>
 
 	* intervals.h (NULL_INTERVAL): Cast to INTERVAL type.
