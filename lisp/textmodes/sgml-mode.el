@@ -1,6 +1,6 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes
 
-;; Copyright (C) 1992, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1995, 1996, 1998 Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Adapted-By: ESR; Daniel.Pfeiffer@Informatik.START.dbp.de
@@ -303,7 +303,8 @@ varables of same name)."
 	      `((1 (,(concat "<\\("
 			     (mapconcat 'car sgml-tag-face-alist "\\|")
 			     "\\)\\([ \t].+\\)?>\\(.+\\)</\\1>")
-		    3 (cdr (assoc (match-string 1) ',sgml-tag-face-alist)))))))
+		    3 (cdr (assoc (downcase (match-string 1))
+                                  ',sgml-tag-face-alist)))))))
   (setq indent-line-function 'indent-relative-maybe
 	;; A start or end tag by itself on a line separates a paragraph.
 	;; This is desirable because SGML discards a newline that appears
@@ -539,7 +540,7 @@ If QUIET, do not print a message when there are no attributes for TAG."
 						    alist)))))
 	    (if (string= "" attribute)
 		(setq i 0)
-	      (sgml-value (assoc attribute alist))
+	      (sgml-value (assoc (downcase attribute) alist))
 	      (setq i (1- i))))
 	  (if (eq (preceding-char) ? )
 	      (delete-backward-char 1)))
@@ -574,9 +575,9 @@ With prefix argument, only self insert."
       (error "No tag selected"))
   (setq tag (downcase tag))
   (message "%s"
-	   (or (cdr (assoc tag sgml-tag-help))
+	   (or (cdr (assoc (downcase tag) sgml-tag-help))
 	       (and (eq (aref tag 0) ?/)
-		    (cdr (assoc (substring tag 1) sgml-tag-help)))
+		    (cdr (assoc (downcase (substring tag 1)) sgml-tag-help)))
 	       "No description available")))
 
 
