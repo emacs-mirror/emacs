@@ -2,7 +2,7 @@
  * 
  *                  WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc!thnti3.c(trunk.8) $
+ *  $HopeName: MMsrc!thnti3.c(trunk.9) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -73,10 +73,12 @@
 
 #include <windows.h>
 
-SRCID("$HopeName: MMsrc!thnti3.c(trunk.8) $");
+SRCID("$HopeName: MMsrc!thnti3.c(trunk.9) $");
 
+#define ThreadSig	((Sig)0x51924EAD)
 
-typedef struct ThreadStruct {
+typedef struct ThreadStruct
+{
   Sig sig;
   DequeNodeStruct spaceDeque; /* threads attached to space */
   HANDLE handle;   /* Handle of thread .thread.handle */
@@ -84,14 +86,11 @@ typedef struct ThreadStruct {
 } ThreadStruct;
 
 
-static SigStruct ThreadSigStruct;
-
 #ifdef DEBUG
 
 Bool ThreadIsValid(Thread thread, ValidationType validParam)
 {
-  AVER(ISVALIDNESTED(Sig, &ThreadSigStruct));
-  AVER(thread->sig == &ThreadSigStruct);
+  AVER(thread->sig == ThreadSig);
 
   AVER(ISVALIDNESTED(DequeNode, &thread->spaceDeque));
 
@@ -134,8 +133,7 @@ Error ThreadRegister(Thread *threadReturn, Space space)
 
   DequeNodeInit(&thread->spaceDeque);
 
-  SigInit(&ThreadSigStruct, "Thread");
-  thread->sig = &ThreadSigStruct;
+  thread->sig = ThreadSig;
 
   AVER(ISVALID(Thread, thread));
 

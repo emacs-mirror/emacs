@@ -2,7 +2,7 @@
  *
  *                     VIRTUAL MEMORY MAPPING FOR SUNOS 4
  *
- *  $HopeName: MMsrc!vmsu.c(trunk.7) $
+ *  $HopeName: MMsrc!vmsu.c(trunk.8) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -49,7 +49,7 @@
 #include <errno.h>
 #include <sys/errno.h>
 
-SRCID("$HopeName$");
+SRCID("$HopeName: MMsrc!vmsu.c(trunk.8) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -60,9 +60,7 @@ extern int close(int fd);
 extern int munmap(caddr_t addr, int len);
 extern int getpagesize(void);
 
-
-static SigStruct VMSigStruct;
-
+#define VMSig	((Sig)0x519FEE33)
 
 typedef struct VMStruct
 {
@@ -90,8 +88,7 @@ Addr VMGrain(void)
 Bool VMIsValid(VM vm, ValidationType validParam)
 {
   AVER(vm != NULL);
-  AVER(ISVALIDNESTED(Sig, vm->sig));
-  AVER(vm->sig == &VMSigStruct);
+  AVER(vm->sig == VMSig);
   AVER(vm->zero_fd >= 0);
   AVER(vm->none_fd >= 0);
   AVER(vm->zero_fd != vm->none_fd);
@@ -167,8 +164,7 @@ Error VMCreate(VM *vmReturn, Addr size)
   vm->base = (Addr)addr;
   vm->limit = vm->base + size;
 
-  SigInit(&VMSigStruct, "VM");
-  vm->sig = &VMSigStruct;
+  vm->sig = VMSig;
 
   AVER(ISVALID(VM, vm));
 

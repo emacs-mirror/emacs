@@ -2,7 +2,7 @@
  *
  *                  RECURSIVE LOCKS IN WIN32
  *
- *  $HopeName: MMsrc!locknt.c(trunk.4) $
+ *  $HopeName: MMsrc!locknt.c(trunk.5) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -34,16 +34,13 @@
 
 #include <windows.h>
 
-SRCID("$HopeName$");
-
-static SigStruct LockSigStruct;
+SRCID("$HopeName: MMsrc!locknt.c(trunk.5) $");
 
 #ifdef DEBUG
 
 Bool LockIsValid(Lock lock, ValidationType validParam)
 {
-  AVER(ISVALIDNESTED(Sig, &LockSigStruct));
-  AVER(lock->sig == &LockSigStruct);
+  AVER(lock->sig == LockSig);
   return TRUE;
 }  
 
@@ -54,8 +51,7 @@ void LockInit(Lock lock)
   AVER(lock != NULL);
   lock->claims = 0; 
   InitializeCriticalSection(&lock->cs);
-  SigInit(&LockSigStruct, "Lock");
-  lock->sig = &LockSigStruct;
+  lock->sig = LockSig;
   AVER(ISVALID(Lock, lock));
 }
 

@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- *  $HopeName: MMsrc!trace.c(trunk.8) $
+ *  $HopeName: MMsrc!trace.c(trunk.9) $
  */
 
 #include "std.h"
@@ -14,10 +14,7 @@
 #include "rootst.h"
 #include <limits.h>
 
-SRCID("$HopeName$");
-
-
-static SigStruct TraceSigStruct;
+SRCID("$HopeName: MMsrc!trace.c(trunk.9) $");
 
 
 
@@ -27,8 +24,7 @@ Bool TraceIsValid(Trace trace, ValidationType validParam)
 {
   RefRank rank;
   AVER(trace != NULL);
-  AVER(ISVALIDNESTED(Sig, &TraceSigStruct));
-  AVER(trace->sig == &TraceSigStruct);
+  AVER(trace->sig == TraceSig);
   AVER(ISVALIDNESTED(Space, trace->space));
   for(rank = 0; rank < RefRankMAX; ++rank)
     AVER(trace->work[rank].marked >= trace->work[rank].scanned);
@@ -72,8 +68,7 @@ found:
   trace->ss.summary = RefSetEmpty;
   trace->rank = 0;                /* current rank */
 
-  SigInit(&TraceSigStruct, "Trace");
-  trace->sig = &TraceSigStruct;
+  trace->sig = TraceSig;
   
   space->busyTraces = TraceSetAdd(space->busyTraces, id);
 

@@ -2,7 +2,7 @@
  *
  *           MALLOC-BASED PSUEDO-VIRTUAL MEMORY MAPPING
  *
- *  $HopeName: MMsrc!vman.c(trunk.5) $
+ *  $HopeName: MMsrc!vman.c(trunk.6) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -27,12 +27,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-SRCID("$HopeName$");
+SRCID("$HopeName: MMsrc!vman.c(trunk.6) $");
 
-
-static SigStruct VMSigStruct;
-
-
+#define VMSig	((Sig)0x519FEE33)
 
 typedef struct VMStruct
 {
@@ -53,8 +50,7 @@ Addr VMGrain(void)
 Bool VMIsValid(VM vm, ValidationType validParam)
 {
   AVER(vm != NULL);
-  AVER(ISVALIDNESTED(Sig, vm->sig));
-  AVER(vm->sig == &VMSigStruct);
+  AVER(vm->sig == VMSig);
   AVER(vm->base != 0);
   AVER(vm->limit != 0);
   AVER(vm->base < vm->limit);
@@ -95,8 +91,7 @@ Error VMCreate(VM *vmReturn, Addr size)
 
   memset((void *)vm->base, VMAN_JUNKBYTE, (size_t)size);
 
-  SigInit(&VMSigStruct, "VM");
-  vm->sig = &VMSigStruct;
+  vm->sig = VMSig;
 
   AVER(ISVALID(VM, vm));
   

@@ -2,7 +2,7 @@
  *
  *                  ALLOCATION BUFFER IMPLEMENTATION
  *
- *  $HopeName: MMsrc!buffer.c(trunk.5) $
+ *  $HopeName: MMsrc!buffer.c(trunk.6) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -43,10 +43,7 @@
 #include "shield.h"
 #include "trace.h"
 
-SRCID("$HopeName$");
-
-
-static SigStruct BufferSigStruct;
+SRCID("$HopeName: MMsrc!buffer.c(trunk.6) $");
 
 
 
@@ -120,8 +117,7 @@ void BufferDestroy(Buffer buffer)
 Bool BufferIsValid(Buffer buffer, ValidationType validParam)
 {
   AVER(buffer != NULL);
-  AVER(ISVALIDNESTED(Sig, &BufferSigStruct));
-  AVER(buffer->sig == &BufferSigStruct);
+  AVER(buffer->sig == BufferSig);
   AVER(ISVALIDNESTED(DequeNode, &buffer->poolDeque));
   AVER(buffer->base <= buffer->ap.init);
   AVER(buffer->ap.init <= buffer->ap.alloc);
@@ -209,8 +205,7 @@ void BufferInit(Buffer buffer, Pool pool,
   DequeNodeInit(&buffer->poolDeque);
   DequeAppend(&pool->bufferDeque, &buffer->poolDeque);
 
-  SigInit(&BufferSigStruct, "Buffer");
-  buffer->sig = &BufferSigStruct;
+  buffer->sig = BufferSig;
 
   AVER(ISVALID(Buffer, buffer));
 }
