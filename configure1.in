@@ -447,11 +447,11 @@ case "${configuration}" in
   i386-ibm-aix1.2 )
     machine=ibmps2-aix opsys=usg5-3
   ;;
-  rs6000-ibm-aix | rs6000-ibm-aix32* )
-    machine=ibmrs6000 opsys=aix3-2
-  ;;
-  rs6000-ibm-aix31* )
+  rs6000-ibm-aix3.1 )
     machine=ibmrs6000 opsys=aix3-1
+  ;;
+  rs6000-ibm-aix3.2 | rs6000-ibm-aix* )
+    machine=ibmrs6000 opsys=aix3-2
   ;;
   romp-ibm-bsd* )
     machine=ibmrt opsys=bsd4-2
