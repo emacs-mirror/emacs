@@ -239,6 +239,9 @@ Several are for Debian GNU/Linux in particular.
 	Wnn6,
 	SJ3 Ver.2
 
+ * Tramp: Remote file access via rsh/ssh
+   <URL:ftp://ls6.cs.uni-dortmund.de/pub/tramp.tar.gz>
+
  * VM (View Mail): <URL:http://www.wonderworks.com/vm/> Alternative
    mail reader.  There is a VM newsgroup: <URL:news:gnu.emacs.vm.info>
 
