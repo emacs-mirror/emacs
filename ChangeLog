@@ -3,7 +3,7 @@
 	* configure.in (HAVE_RANDOM_HEAPSTART): Change AC_MSG_ERROR to
 	AC_MSG_WARN.
 
-2004-10-05  Jan D.  <jan.h.d@swipnet.se>
+2004-10-05  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_RANDOM_HEAPSTART): Renamed HAVE_EXECSHIELD.
 	Run test to see if heap start address is random.
