@@ -252,6 +252,8 @@ Applies to lines after point."
 (defvar occur-command-arguments nil
   "Arguments that were given to `occur' when it made this buffer.")
 
+(put 'occur-mode 'mode-class 'special)
+
 (defun occur-mode ()
   "Major mode for output from \\[occur].
 \\<occur-mode-map>Move point to one of the items in this buffer, then use
@@ -348,10 +350,10 @@ Interactively it is the prefix arg.
 
 The lines are shown in a buffer named `*Occur*'.
 It serves as a menu to find any of the occurrences in this buffer.
-\\[describe-mode] in that buffer will explain how.
+\\<occur-mode-map>\\[describe-mode] in that buffer will explain how.
 
-If REGEXP contains upper case characters (excluding those preceded by
-\\), the matching is case-sensitive."
+If REGEXP contains upper case characters (excluding those preceded by `\\'),
+the matching is case-sensitive."
   (interactive
    (list (let* ((default (car regexp-history))
 		(input
