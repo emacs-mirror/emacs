@@ -193,6 +193,7 @@ int load_dangerous_libraries;
 
 static Lisp_Object Vbytecomp_version_regexp;
 
+static void to_multibyte P_ ((char **, char **, int *));
 static void readevalloop P_ ((Lisp_Object, FILE*, Lisp_Object, 
 			      Lisp_Object (*) (), int,
 			      Lisp_Object, Lisp_Object));
@@ -1769,6 +1770,43 @@ read_integer (readcharfun, radix)
 }
 
 
+/* Convert unibyte text in read_buffer to multibyte.
+
+   Initially, *P is a pointer after the end of the unibyte text, and
+   the pointer *END points after the end of read_buffer.
+
+   If read_buffer doesn't have enough room to hold the result
+   of the conversion, reallocate it and adjust *P and *END.
+
+   At the end, make *P point after the result of the conversion, and
+   return in *NCHARS the number of characters in the converted
+   text.  */
+
+static void
+to_multibyte (p, end, nchars)
+     char **p, **end;
+     int *nchars;
+{
+  int nbytes;
+
+  parse_str_as_multibyte (read_buffer, *p - read_buffer, &nbytes, nchars);
+  if (nbytes > read_buffer_size)
+    {
+      int offset = *p - read_buffer;
+      read_buffer_size *= 2;
+      read_buffer = (char *) xrealloc (read_buffer, read_buffer_size);
+      *p = read_buffer + offset;
+      *end = read_buffer + read_buffer_size;
+    }
+
+  if (nbytes != *nchars)
+    nbytes = str_as_multibyte (read_buffer, read_buffer_size,
+			       *p - read_buffer, nchars);
+  
+  *p = read_buffer + nbytes;
+}
+
+
 /* If the next token is ')' or ']' or '.', we store that character
    in *PCH and the return value is not interesting.  Else, we store
    zero in *PCH and we read and return one lisp object.
@@ -2122,8 +2160,8 @@ read1 (readcharfun, pch, first_in_list)
 
     case '"':
       {
-	register char *p = read_buffer;
-	register char *end = read_buffer + read_buffer_size;
+	char *p = read_buffer;
+	char *end = read_buffer + read_buffer_size;
 	register int c;
 	/* Nonzero if we saw an escape sequence specifying
 	   a multibyte character.  */
@@ -2208,15 +2246,13 @@ read1 (readcharfun, pch, first_in_list)
 	  return make_number (0);
 
 	if (force_multibyte)
-	  p = read_buffer + str_as_multibyte (read_buffer, end - read_buffer,
-					      p - read_buffer, &nchars);
+	  to_multibyte (&p, &end, &nchars);
 	else if (force_singlebyte)
 	  nchars = p - read_buffer;
 	else if (load_convert_to_unibyte)
 	  {
 	    Lisp_Object string;
-	    p = read_buffer + str_as_multibyte (read_buffer, end - read_buffer,
-						p - read_buffer, &nchars);
+	    to_multibyte (&p, &end, &nchars);
 	    if (p - read_buffer != nchars)
 	      {
 		string = make_multibyte_string (read_buffer, nchars,
@@ -2226,13 +2262,14 @@ read1 (readcharfun, pch, first_in_list)
 	  }
 	else if (EQ (readcharfun, Qget_file_char)
 		 || EQ (readcharfun, Qlambda))
-	  /* Nowadays, reading directly from a file is used only for
-	     compiled Emacs Lisp files, and those always use the
-	     Emacs internal encoding.  Meanwhile, Qlambda is used
-	     for reading dynamic byte code (compiled with
-	     byte-compile-dynamic = t).  */
-	  p = read_buffer + str_as_multibyte (read_buffer, end - read_buffer,
-					      p - read_buffer, &nchars);
+	  {
+	    /* Nowadays, reading directly from a file is used only for
+	       compiled Emacs Lisp files, and those always use the
+	       Emacs internal encoding.  Meanwhile, Qlambda is used
+	       for reading dynamic byte code (compiled with
+	       byte-compile-dynamic = t).  */
+	    to_multibyte (&p, &end, &nchars);
+	  }
 	else
 	  /* In all other cases, if we read these bytes as
 	     separate characters, treat them as separate characters now.  */
