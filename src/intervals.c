@@ -769,11 +769,43 @@ adjust_intervals_for_insertion (tree, position, length)
      So split this interval at the insertion point.  */
   if (! (position == i->position || eobp)
       && END_NONSTICKY_P (i)
-      && ! FRONT_STICKY_P (i))
+      && FRONT_NONSTICKY_P (i))
     {
-      temp = split_interval_right (i, position - i->position);
-      copy_properties (i, temp);
-      i = temp;
+      Lisp_Object tail;
+      Lisp_Object front, rear;
+
+      front = textget (i->plist, Qfront_sticky);
+      rear  = textget (i->plist, Qrear_nonsticky);
+
+      /* Does any actual property pose an actual problem?  */
+      for (tail = i->plist; ! NILP (tail); tail = Fcdr (Fcdr (tail)))
+	{
+	  Lisp_Object prop;
+	  prop = XCONS (tail)->car;
+
+	  /* Is this particular property rear-sticky?
+	     Note, if REAR isn't a cons, it must be non-nil,
+	     which means that all properties are rear-nonsticky.  */
+	  if (CONSP (rear) && NILP (Fmemq (prop, rear)))
+	    continue;
+
+	  /* Is this particular property front-sticky?
+	     Note, if FRONT isn't a cons, it must be nil,
+	     which means that all properties are front-nonsticky.  */
+	  if (CONSP (front) && ! NILP (Fmemq (prop, front)))
+	    continue;
+
+	  /* PROP isn't sticky on either side => it is a real problem.  */
+	  break;
+	}
+
+      /* If any property is a real problem, split the interval.  */
+      if (! NILP (tail))
+	{
+	  temp = split_interval_right (i, position - i->position);
+	  copy_properties (i, temp);
+	  i = temp;
+	}
     }
 
   /* If we are positioned between intervals, check the stickiness of
