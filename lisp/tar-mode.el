@@ -414,7 +414,7 @@ MODE should be an integer which is a file mode value."
 Place a dired-like listing on the front;
 then narrow to it, so that only that listing
 is visible (and the real data of the buffer is hidden)."
-  (message "parsing tar file...")
+  (message "Parsing tar file...")
   (let* ((result '())
 	 (pos 1)
 	 (bs (max 1 (- (buffer-size) 1024))) ; always 2+ empty blocks at end.
@@ -578,10 +578,14 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   (setq revert-buffer-function 'tar-mode-revert)
   (make-local-variable 'enable-local-variables)
   (setq enable-local-variables nil)
+  (make-local-variable 'next-line-add-newlines)
+  (setq next-line-add-newlines nil)
   (setq major-mode 'tar-mode)
   (setq mode-name "Tar")
   (use-local-map tar-mode-map)
   (auto-save-mode 0)
+  (make-local-variable 'local-write-file-hooks)
+  (setq local-write-file-hooks '(tar-mode-write-file))
   (widen)
   (if (and (boundp 'tar-header-offset) tar-header-offset)
       (narrow-to-region 1 tar-header-offset)
@@ -590,12 +594,10 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   )
 
 
-;; This should be converted to use a minor mode keymap.
-
 (defun tar-subfile-mode (p)
   "Minor mode for editing an element of a tar-file.
-This mode redefines C-x C-s to save the current buffer back into its 
-associated tar-file buffer.  You must save that buffer to actually
+This mode redefines the save-buffer command to save the current buffer back
+into its associated tar-file buffer.  You must save that buffer to actually
 save your changes to disk."
   (interactive "P")
   (or (and (boundp 'tar-superior-buffer) tar-superior-buffer)
@@ -732,6 +734,7 @@ save your changes to disk."
 	  (progn
 	    (view-buffer buffer)
 	    (and just-created
+		 ;; This will be created by view.el
 		 (setq view-exit-action 'kill-buffer)))
 	(if (eq other-window-p 'display)
 	    (display-buffer buffer)
@@ -868,7 +871,7 @@ This does not modify the disk image; you must save the tar file itself
 for this to be permanent."
   (interactive)
   (if (or noconfirm
-	  (y-or-n-p "expunge files marked for deletion? "))
+	  (y-or-n-p "Expunge files marked for deletion? "))
       (let ((n 0))
 	(save-excursion
 	  (goto-char 0)
@@ -882,8 +885,8 @@ for this to be permanent."
 	  (narrow-to-region 1 tar-header-offset)
 	  )
 	(if (zerop n)
-	    (message "nothing to expunge.")
-	    (message "%s expunged.  Be sure to save this buffer." n)))))
+	    (message "Nothing to expunge.")
+	    (message "%s files expunged.  Be sure to save this buffer." n)))))
 
 
 (defun tar-clear-modification-flags ()
@@ -1123,7 +1126,7 @@ to make your changes permanent."
     (set-buffer-modified-p t)   ; mark the tar file as modified
     (set-buffer subfile)
     (set-buffer-modified-p nil) ; mark the tar subfile as unmodified
-    (message "saved into tar-buffer `%s' -- remember to save that buffer!"
+    (message "Saved into tar-buffer `%s'.  Be sure to save that buffer!"
 	     (buffer-name tar-superior-buffer))
     ;; Prevent ordinary saving from happening.
     t)))
@@ -1158,35 +1161,19 @@ Leaves the region wide."
 
 
 ;; Used in write-file-hook to write tar-files out correctly.
-(defun tar-mode-maybe-write-tar-file ()
-  ;;
-  ;; If the current buffer is in Tar mode and has its header-offset set,
-  ;; only write out the part of the file after the header-offset.
-  ;;
-  (if (and (eq major-mode 'tar-mode)
-	   (and (boundp 'tar-header-offset) tar-header-offset))
-      (unwind-protect
-	(save-excursion
-	  (tar-clear-modification-flags)
-	  (widen)
-	  ;; Doing this here confuses things - the region gets left too wide!
-	  ;; I suppose this is run in a context where changing the buffer is bad.
-	  ;; (tar-pad-to-blocksize)
-	  (write-region tar-header-offset (1+ (buffer-size)) buffer-file-name nil t)
-	  ;; return T because we've written the file.
-	  t)
-	(narrow-to-region 1 tar-header-offset)
-	t)
-      ;; return NIL because we haven't.
-      nil))
-
+(defun tar-mode-write-file ()
+  (unwind-protect
+      (save-excursion
+	(widen)
+	;; Doing this here confuses things - the region gets left too wide!
+	;; I suppose this is run in a context where changing the buffer is bad.
+	;; (tar-pad-to-blocksize)
+	(write-region tar-header-offset (point-max) buffer-file-name nil t)
+	(tar-clear-modification-flags))
+    (narrow-to-region 1 tar-header-offset))
+  ;; return T because we've written the file.
+  t)
 
-;;; Patch it in.
-
-(or (memq 'tar-mode-maybe-write-tar-file write-file-hooks)
-    (setq write-file-hooks
-	  (cons 'tar-mode-maybe-write-tar-file write-file-hooks)))
-
 (provide 'tar-mode)
 
 ;;; tar-mode.el ends here
