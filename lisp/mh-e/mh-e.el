@@ -2441,6 +2441,17 @@ well.")
                 "^There is no other window$"))
   (add-to-list 'debug-ignored-errors mess))
 
+;;;;  Desktop support
+
+;;;###autoload
+(defun mh-restore-desktop-buffer (desktop-buffer-file-name
+                                  desktop-buffer-name
+                                  desktop-buffer-misc)
+  "Restore an mh folder buffer specified in a desktop file."
+  (mh-find-path)
+  (mh-visit-folder desktop-buffer-name)
+  (current-buffer))
+
 (provide 'mh-e)
 
 ;;; Local Variables:

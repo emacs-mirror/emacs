@@ -220,14 +220,14 @@ to them."
     buffer))
 
 (defmacro url-file-create-wrapper (method args)
-  (` (defalias (quote (, (intern (format "url-ftp-%s" method))))
-       (defun (, (intern (format "url-file-%s" method))) (, args)
-	 (, (format "FTP/FILE URL wrapper around `%s' call." method))
-	 (setq url (url-file-build-filename url))
-	 (and url ((, method) (,@ (remove '&rest (remove '&optional args)))))))))
+  `(defalias ',(intern (format "url-ftp-%s" method))
+     (defun ,(intern (format "url-file-%s" method)) ,args
+       ,(format "FTP/FILE URL wrapper around `%s' call." method)
+       (setq url (url-file-build-filename url))
+       (and url (,method ,@(remove '&rest (remove '&optional args)))))))
 
 (url-file-create-wrapper file-exists-p (url))
-(url-file-create-wrapper file-attributes (url))
+(url-file-create-wrapper file-attributes (url &optional id-format))
 (url-file-create-wrapper file-symlink-p (url))
 (url-file-create-wrapper file-readable-p (url))
 (url-file-create-wrapper file-writable-p (url))

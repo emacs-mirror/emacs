@@ -812,7 +812,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	    }
 	  else
 	    {			/* function is on a key */
-	      tem = Fkey_description (tem);
+	      tem = Fkey_description (tem, Qnil);
 	      goto subst_string;
 	    }
 	}

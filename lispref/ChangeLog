@@ -1,3 +1,42 @@
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
+
+2004-04-18  Jesper Harder  <harder@ifa.au.dk>
+
+	* tips.texi (Coding Conventions): defopt -> defcustom.
+
+2004-04-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* sequences.texi: Various clarifications.
+
+2004-04-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffers.texi (Read Only Buffers): Mention optional ARG to
+	`toggle-read-only'.
+
+2004-04-14  Nick Roberts  <nick@nick.uklinux.net>
+
+	* windows.texi (Selecting Windows): Note that get-lru-window
+	returns a full-width window if possible.
+
+2004-04-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffers.texi: Various changes in addition to:
+	(Buffer File Name): Add `find-buffer-visiting'.
+	(Buffer Modification): Mention optional ARG to `not-modified'.
+	(Indirect Buffers): Mention optional CLONE argument to
+	`make-indirect-buffer'.
+
+	* files.texi: Various changes in addition to:
+	(Visiting Functions): `find-file-hook' is now a normal hook.
+	(File Name Expansion): Explain difference between the way that
+	`expand-file-name' and `file-truename' treat `..'.
+	(Contents of Directories): Mention optional ID-FORMAT argument to
+	`directory-files-and-attributes'.
+	(Format Conversion): Mention new optional CONFIRM argument to
+	`format-write-file'.
+
 2004-04-12  Miles Bader  <miles@gnu.org>
 
 	* macros.texi (Expansion): Add description of `macroexpand-all'.

@@ -218,10 +218,492 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
+
+2004-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-next-error): New fun.
+	(diff-mode): Use it.
+
+	* simple.el (next-error): Change arg name.
+	Add support for the documented C-u C-x ` usage.
+
+	* frame.el (special-display-popup-frame, next-multiframe-window)
+	(previous-multiframe-window): Only consider frames on same display.
+
+2004-04-22  Lars Hansen  <larsh@math.ku.dk>
+
+	* info.el (Info-restore-desktop-buffer): Delete with-no-warnings.
+	* mh-e/mh-e.el (mh-restore-desktop-buffer): Delete with-no-warnings.
+
+2004-04-22  Kim F. Storm  <storm@cua.dk>
+
+	* net/telnet.el (telnet): Add optional port arg.
+
+2004-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Minor sanity check on the `hyperlink' slot.
+
+	* Makefile.in (recompile): Compile new files.
+
+	* emacs-lisp/bytecomp.el (batch-byte-recompile-directory):
+	Add byte-recompile-directory's optional `arg'.
+
+	* cvs-status.el (cvs-tree-use-charset): New var.
+	(cvs-tree-char-space, cvs-tree-char-hbar, cvs-tree-char-vbar)
+	(cvs-tree-char-branch, cvs-tree-char-eob, cvs-tree-char-bob)
+	(cvs-status-cvstrees): Use it.
+
+	* emacs-lisp/checkdoc.el (checkdoc-output-mode):
+	Make it a normal major mode.
+	(checkdoc-buffer-label): Make sure the file name is meaningful.
+	(checkdoc-output-to-error-buffer): Remove.
+	(checkdoc-error, checkdoc-start-section): Rewrite.
+
+	* info.el (info-node, info-menu-5, info-xref, info-header-node)
+	(Info-title-1-face, Info-title-2-face, Info-title-3-face)
+	(Info-title-4-face): Use new syntax.
+	(info-xref-visited): Inherit from info-xref.
+
+	* progmodes/python.el (python-maybe-jython): Don't assume point-min==1.
+
+2004-04-21  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* simple.el (next-error-last-buffer, next-error-function):
+	New variables for the next-error framework.
+	(next-error-buffer-p): New function.
+	(next-error-find-buffer): Generalize compilation-find-buffer.
+	(next-error, previous-error, first-error, next-error-no-select)
+	(previous-error-no-select): Move from compile.el.
+
+	* replace.el (occur-next-error, occur-1): Hook into the next-error
+	framework.
+
+	* progmodes/compile.el (compilation-start):
+	Set next-error-last-buffer so next-error knows where to jump.
+	(compilation-setup): Set the buffer-local variable
+	next-error-function to 'compilation-next-error-function.
+	(compilation-buffer-p, compilation-buffer-internal-p): Use an
+	alternate way to find if a buffer is a compilation buffer, for
+	next-error convenience.
+	(next-error-no-select, previous-error-no-select, next-error)
+	(previous-error, first-error): Move to simple.el.
+	(compilation-find-buffer): Move to next-error-find-buffer in simple.el.
+	(compilation-last-buffer): Remove.
+	(compilation-start, compilation-next-error, compilation-setup)
+	(compilation-next-error-function, compilation-find-buffer):
+	Remove compilation-last-buffer use.
+
+2004-04-21  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (WINS): Add url/ directory.
+
+	* font-lock.el (font-lock-preprocessor-face): Remove spurious quote.
+	(font-lock-warning-face): Fix spacing.
+
+2004-04-21  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-buffer-mode-handlers): New variable.
+	Alist of major mode specific functions to restore a desktop buffer.
+	(desktop-buffer-handlers): Make variable obsolete.
+	(desktop-create-buffer): Use desktop-buffer-mode-handlers.
+	Catch errors signaled in handlers.  Update buffer count.
+	Evaluate desktop-buffer-point.
+	(desktop-buffer-dired): Rename to dired-restore-desktop-buffer and
+	move to dired.el.
+	(desktop-buffer-info): Rename to Info-restore-desktop-buffer and
+	move to info.el.
+	(desktop-buffer-rmail): Rename to rmail-restore-desktop-buffer and
+	move to mail/rmail.el.
+	(desktop-buffer-mh): Rename to mh-restore-desktop-buffer and move
+	to mh-e/mh-e.el.
+	(desktop-buffer-file): Rename to desktop-restore-file-buffer.
+	On fail, print message (to message buffer) even if
+	desktop-missing-file-warning is nil.
+	(desktop-buffer-misc-data-function): New buffer local variable.
+	Function returning major mode specific data.
+	(desktop-buffer-misc-functions): Make variable obsolete.
+	(desktop-save): Use desktop-buffer-misc-data-function.
+	(desktop-buffer-dired-misc-data): Rename to
+	dired-desktop-buffer-misc-data and move to dired.el.
+	(desktop-buffer-info-misc-data): Rename to
+	Info-desktop-buffer-misc-data and move to info.el.
+	(desktop-read): Add message about number of buffers restored/failed.
+	* dired.el (dired-restore-desktop-buffer) Move from desktop.el.
+	Add parameters.  Pause to display error only when
+	desktop-missing-file-warning is non-nil.
+	(dired-desktop-buffer-misc-data): Move from desktop.el.  Add parameter.
+	* info.el (Info-restore-desktop-buffer): Move from desktop.el.
+	Add Parameters.
+	(Info-desktop-buffer-misc-data): Move from desktop.el.  Add parameter.
+	* mail/rmail.el (rmail-restore-desktop-buffer): Move from desktop.el.
+	Add Parameters.
+	* mh-e/mh-e.el (mh-restore-desktop-buffer): Move from desktop.el.
+	Add Parameters.
+
+2003-04-21  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* dabbrev.el (dabbrev--substitute-expansion): Fix a bug which lost
+	the case of letters in case-insensitive expansions on certain
+	abbreviations.
+
+2004-04-21  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/cperl-mode.el (cperl-putback-char):
+	Delete Emacs 18 definition.
+
+	* international/mule.el (ctext-post-read-conversion):
+	Use assoc-string, not assoc-ignore-case.
+
+	* international/mule-cmds.el: Use assoc-string, not assoc-ignore-case.
+
+	* emacs-lisp/easymenu.el (easy-menu-add):
+	Do call x-popup-menu, but only if it's defined.
+
+	* emacs-lisp/disass.el (disassemble): Handle lambda-exp as arg.
+
+	* emacs-lisp/bytecomp.el (byte-compile-no-warnings):
+	Handle multiple args: compile like progn.
+
+	* emacs-lisp/byte-run.el (with-no-warnings): Simplify:
+	take all args as &rest arg.
+
+	* autoinsert.el (auto-insert-alist): Insert the user's name in
+	copyright notice, rather than Free Software Foundation.
+
+2004-04-21  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Make it work on *Help* buffer.
+
+2004-04-21  Kim F. Storm  <storm@cua.dk>
+
+	* image.el (insert-image): Add optional SLICE arg.
+	(insert-sliced-image): New defun.
+
+2004-04-20  Lawrence Mitchell  <wence@gmx.li>  (tiny change)
+
+	* subr.el (read-number): Check whether `default' is nil.
+
+2004-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-error-properties):
+	Split into two.
+	(compilation-internal-error-properties): New one.
+	(compilation-compat-error-properties): Use it.  Fix the non-marker case.
+
+2004-04-20  Richard M. Stallman  <rms@gnu.org>
+
+	* window.el (split-window-save-restore-data):
+	Don't update the data if OLD-INFO is nil.
+
+	* view.el (view-return-to-alist): Mark it permanent local.
+
+	* subr.el (event-modifiers): Fix the criterion for ASCII control chars.
+
+	* recentf.el (recentf-save-list): Catch and warn about errors.
+
+	* menu-bar.el (menu-bar-update-buffers): Call copy-sequence
+	so "Buffers" won't be pure.
+
+	* help-mode.el (help-mode-finish): Set help-return-alist first
+	thing, setting only the entry for the selected window.
+
+	* help-fns.el (describe-function-1): If many non-control non-meta
+	keys run the command, don't list all of them.
+
+2004-04-20  Juanma Barranquero  <lektu@terra.es>
+
+	* vc-svn.el (vc-svn-print-log, vc-svn-diff): Add optional BUFFER
+	arg.  Copied from Andre Spiegel's patch of 2004-03-21.
+
+	* calendar/time-date.el (time-to-day-in-year): Fix docstring.
+
+2004-04-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-lookup-key): New optional arg
+	NOT-RESET-INDICES.
+	(quail-get-translations): Call quail-lookup-key with
+	NOT-RESET-INDICES t.
+	(quail-completion): Likewise.
+	(quail-lookup-map-and-concat): Likewise.
+
+2004-04-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-update-translation): Don't insert
+	such an unsupported multibyte char in a unibyte buffer.
+
+2004-04-20  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-frame-parameters): New constant.
+	(gdb-frame-breakpoints-buffer, gdb-frame-stack-buffer)
+	(gdb-frame-threads-buffer, gdb-frame-registers-buffer)
+	(gdb-frame-locals-buffer, gdb-frame-gdb-buffer)
+	(gdb-frame-assembler-buffer): Improve behaviour with
+	multiple frames.
+	(gdb-display-buffer): Extend search to all visible frames.
+
+2004-04-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format): Don't remove ^M
+	characters left after base64 decoding.
+	(rmail-decode-region): Use -dos variety of `coding', to remove any
+	^M characters left after qp or base64 decoding.
+
+2004-04-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-open-local-file, x-dnd-open-file): Improve error
+	messages.
+
+2004-04-19  Stephen Eglen  <stephen@gnu.org>
+
+	* add-log.el (add-change-log-entry): Update doc string to mention
+	add-log-full-name and add-log-mailing-address.
+
+2004-04-18  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-find-file, Info-find-node-2): Add history and toc.
+	(Info-find-node-2): Simplify error message.
+	(Info-insert-dir): Use Info-following-node-name.
+	(Info-goto-node): Remove *info-history* and *info-toc*.
+	(Info-history): Create a node of the virtual history file.
+	(Info-toc): Create a node of the virtual toc file.
+	(Info-insert-toc): New arg `curr-file' for reference file names.
+	(info-apropos): Remove redundant var binding for temp-file.
+	(Info-index, Info-index-next, Info-mode): Doc fix.
+	(Info-goto-emacs-command-node): Don't jump to *info* from
+	non-*info* Info buffers.
+	(Info-fontify-node): Don't show the file name of external
+	references if `Info-hide-note-references' is `hide'.  Don't hide
+	newlines at the end of paragraphs.
+
+	* international/mule-diag.el (list-input-methods):
+	Fix args to help-xref-button.
+
+	* help-fns.el (help-with-tutorial): Call `hack-local-variables'
+	to put into effect local variables from TUTORIAL files.
+
+	* textmodes/paragraphs.el (sentence-end) <function>: New fun
+	with default value taken from the variable `sentence-end'.
+	(sentence-end) <defcustom>: Set default to nil.  Doc fix.
+	Add nil const to :type.
+	(sentence-end-without-period, sentence-end-double-space)
+	(sentence-end-without-space): Doc fix.
+
+	* textmodes/paragraphs.el (forward-sentence):
+	* textmodes/fill.el (canonically-space-region, fill-nobreak-p)
+	(fill-delete-newlines):
+	* progmodes/cc-cmds.el (c-beginning-of-statement):
+	Use function `sentence-end' instead of variable `sentence-end'.
+
+2004-04-18  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/compile.el (compilation-start): Set window start to
+	point-min if compilation-scroll-output is nil.
+
+2004-04-18  John Wiegley  <johnw@newartisans.com>
+
+	* iswitchb.el (iswitchb-completions): Remove dependency on cl.
+
+2004-04-18  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-goto-info): Require 'info.
+	(gdb-info-breakpoints-custom): Revert previous change.
+	(gdb-view-assembler): Update assembler if necessary.
+	(gdb-frame-handler): Parse correctly for gdb-current-frame.
+	(gdb-display-source-buffer): Update properly when both source and
+	assembler are visible.
+
+2004-04-17  John Wiegley  <johnw@newartisans.com>
+
+	* iswitchb.el (iswitchb-max-to-show): Add a new config variable
+	which limits the number of names shown in the minibuffer.  Off by
+	default.
+	(iswitchb-completions): Use `iswitchb-max-to-show'.  This speeds
+	up iswitchb for users with a multitude of open buffers by showing
+	only the first and last N/2 buffers in the completion list (which
+	is enough to aid C-s/C-r, and to know that more characters are
+	needed to refine the completion list).
+
+2004-04-17  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (locate-file-completion): Handle nil in path-and-suffixes.
+	(file-truename): Expand all ~ constructs directly.
+	(insert-directory): Delete any error msg output by the
+	`insert-directory-program'.
+
+	* allout.el (allout-mode-exposure-menu, allout-mode-editing-menu):
+	(allout-mode-navigation-menu, allout-mode-misc-menu): New defvars.
+	(allout-prior-bindings, allout-added-bindings): Defvars deleted.
+	(allout-init): Use find-file-hook, not find-file-hooks.
+	(allout-mode): Eliminate Emacs 18 support.
+	Use write-contents-functions, not local-write-file-hooks.
+
+2004-04-17  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-error-properties): Fix for
+	adding messages when there are already markers for their file.
+	(compilation-fake-loc): New function.
+
+2004-04-16  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el (python-compilation-line-number): Fix braindamage.
+	(python-load-file): Fix python-orig-start setting.
+
+	* progmodes/compile.el: Doc fixes.
+	(compilation-error-regexp-alist-alist)
+	(compilation-mode-font-lock-keywords): Allow non-ASCII where possible.
+	(compilation-assq): Wrap in eval-when-compile.
+	(compilation-mode-font-lock-keywords): Don't use list*.
+	(compilation-start): Avoid warning.
+	(compilation-compat-error-properties)
+	(compilation-directory-properties): Add keymap property.
+	(compilation-parsing-end): Make it a marker for better compatibility.
+
+	* progmodes/python.el (python-after-info-look): Use with-no-warnings.
+
+2004-04-16  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el: Doc fixes.
+	(xml-get-children): Only looks at sub-tags and ignore strings.
+
+	* xml.el (xml-parse-tag): Avoid overwriting node-name.
+
+2004-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url/url-util.el (url-debug): Use with-current-buffer.
+
+	* url/url-nfs.el (url-nfs-file-attributes): Add id-format parameter.
+	(url-nfs-create-wrapper): Use new backquote syntax.
+
+	* url/url-https.el (url-https-file-attributes): Add id-format param.
+
+	* url/url-http.el (url-http-head-file-attributes)
+	(url-http-file-attributes): Add id-format parameter.
+
+	* url/url-handlers.el: Use new find-file-hook.
+	(url-file-attributes): Add id-format parameter.
+
+	* url/url-file.el (url-file-create-wrapper): Use new backquote syntax.
+	(url-file-file-attributes): Add id-format parameter.
+
+	* url/url-dav.el: Use with-current-buffer.
+	(url-dav-process-response): Fix regexps and spurious quote.
+	(url-dav-file-attributes): Add id-format param.
+
+	* diff-mode.el (diff-end-of-hunk): Be more careful with unified hunks.
+
+2004-04-16  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-default-workfile-unchanged-p): Quote signal.
+
+	* vc.el (vc-print-log): Likewise.
+
+2004-04-16  Masatake YAMATO  <jet@gyve.org>
+
+	* simple.el (completion-setup-function): Set an initial value
+	to `element-common-end' before entering loop.  Set a value
+	to `element-common-end' at the end of loop.
+	The bug is reported by Juri Linkov <juri@jurta.org> in emacs-devel list.
+	(completions-common-part): Rename from completion-de-emphasis.
+	(completions-first-difference): Rename from completion-emphasis.
+	Suggested by RMS.
+
+2004-04-16  Juanma Barranquero  <lektu@terra.es>
+
+	* bookmark.el (bookmark-send-edited-annotation): Fix docstring.
+	(bookmark-edit-annotation-mode): Add mode name.
+
+2004-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-match-conflict): Try to do something sensible
+	for nested conflict markers.
+	(smerge-find-conflict): Better handle errors in smerge-match-conflict.
+
+2004-04-15  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-goto-info): New function.
+
+	* progmodes/gud.el (gud-menu-map, gud-tool-bar-map): Add help button.
+
+2004-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (batch-byte-compile-file):
+	Give a backtrace if requested.
+
+	* progmodes/ada-mode.el (ada-create-menu): Remove redundant call.
+
+	* progmodes/python.el (python-mouse-2-command, python-RET-command):
+	Remove unused functions.
+	(python-orig-start-line, python-orig-file): Remove.
+	(python-orig-start): New var.
+	(python-input-filter, python-compilation-line-number)
+	(python-send-region, python-load-file): Use it.
+
+	* info.el (info): Always jump to *info*.
+
+	* subr.el (posn-set-point): New function.
+
+	* mouse.el (mouse-set-point): Use it.
+
+	* progmodes/compile.el (compile-goto-error): Use it.
+	(compilation-button-map): New keymap.
+	(compilation-error-properties): Use it.
+	(compilation-shell-minor-mode-map): Don't bind mouse-2.
+
+	* smerge-mode.el (smerge-popup-context-menu): Use it.
+
+	* emacs-lisp/checkdoc.el (checkdoc-output-mode-map)
+	(checkdoc-find-error-mouse, checkdoc-find-error): Use it to merge the
+	mouse and non-mouse case.
+
+	* diff-mode.el (diff-goto-source): Make it work for mouse bindings.
+	(diff-mouse-goto-source): Make it an alias of diff-goto-source.
+
+	* pcvs.el (cvs-mode-toggle-mark): Rename from cvs-mouse-toggle-mark.
+	Make it work for non-mouse events.
+
+	* pcvs-info.el (cvs-status-map): Update binding name.
+
+2004-04-14  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-maybe-do-ns): New function to handle namespace
+	parsing of both attribute and element names.
+	(xml-ns-parse-ns-attrs, xml-ns-expand-el, xml-ns-expand-attr)
+	(xml-intern-attrlist): Remove in favor of xml-maybe-do-ns.
+	(xml-parse-tag): Update assumed namespaces.  Clean up namespace parsing.
+	(xml-parse-attlist): Make it do its own namespace parsing.
+
+2004-04-14  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el (run-python): Fix use of \n.
+	(python-load-file): Remove `try' from Python fragment.
+	(python-describe-symbol): Fix message.
+
+	* comint.el: Doc fixes.
+	(comint-last-input-start, comint-last-input-end)
+	(comint-last-output-start): Give them values.
+	(comint-arguments): Avoid warning.
+	(comint-skip-prompt): Use line-end-position.
+	(comint-backward-matching-input): Rename arg to agree with doc.
+	(comint-extract-string): Use syntax-ppss.
+	(comint-dynamic-simple-complete): Delete useless list construction.
+	(comint-redirect-subvert-readonly): New.
+	(comint-redirect-preoutput-filter): Use it.
+
+	* emacs-lisp/lisp.el (beginning-of-defun-raw, end-of-defun):
+	Correctly handle negative arguments when calling hook functions.
+
+2004-04-14  Jesper Harder  <harder@ifa.au.dk>
+
+	* info.el (info-apropos): Don't clobber Info-history-list.
+
 2004-04-14  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* progmodes/compile.el (compilation-setup): Localize
-	overlay-arrow-position.
+	* progmodes/compile.el (compilation-setup):
+	Localize overlay-arrow-position.
 	(compilation-sentinel): Restructure code equivalently.
 	(compilation-next-error): Find message on same line after point if
 	not found before point.
@@ -239,7 +721,7 @@
 	in addition it also disables menu-bar, tool-bar, scroll-bars,
 	tool-tips, and the blinking cursor.
 	(command-line-1): Skip startup screen if -Q.
-	(fancy-splash-head): Use :align-to center prop to center splash image.
+	(fancy-splash-head): Use ":align-to center" prop to center splash image.
 
 	* emulation/cua-base.el (cua-read-only-cursor-color)
 	(cua-overwrite-cursor-color, cua-global-mark-cursor-color): Doc fix.
@@ -273,6 +755,10 @@
 
 	* progmodes/python.el (run-python): Use compilation-shell-minor-mode.
 	Set compilation-error-regexp-alist earlier.
+
+	* progmodes/compile.el (compilation-minor-mode-map)
+	(compilation-shell-minor-mode-map, compile-mouse-goto-error)
+	(compile-goto-error): Re-merge the mouse and non-mouse commands.
 
 2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -436,7 +922,7 @@
 
 2004-04-08  Nick Roberts  <nick@nick.uklinux.net>
 
-	* progmodes/gdb-ui.el (gdb-source-window): Remove variable
+	* progmodes/gdb-ui.el (gdb-source-window): Remove variable.
 	(gdb-goto-breakpoint, gdb-display-buffer)
 	(gdb-display-source-buffer, gdb-view-source-function)
 	(gdb-view-assembler, gdb-setup-windows, gdb-restore-windows)
@@ -475,7 +961,8 @@
 	Use Info-search-whitespace-regexp.  Set Info-search-case-fold.
 	(Info-search-case-sensitively, Info-search-next): New fun.
 	(Info-up): Move point to the menu item of the current node.
-	(Info-history): New fun. Add *info-history* to same-window-buffer-names.
+	(Info-history): New fun.  Add *info-history* to
+	same-window-buffer-names.
 	(Info-toc): New fun.  Add *info-toc* to same-window-buffer-names.
 	(Info-insert-toc): New fun.
 	(Info-build-toc): New fun.
@@ -509,19 +996,6 @@
 	or fourth match for help-echo.  Display visited nodes in a
 	different face.  Unhide file names of external references.
 	Unhide newlines.  Display visited menu items in a different face.
-
-2004-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* progmodes/compile.el: Require CL.
-	(compilation-mode-font-lock-keywords): Re-install the "line as
-	function" patch.
-
-	* help-fns.el (help-C-source-directory): New var.
-	(help-subr-name, help-C-file-name, help-find-C-source): New funs.
-	(describe-function-1, describe-variable): Use them.
-
-	* help-mode.el (help-function-def, help-variable-def): Handle hyperrefs
-	to C source files specially.
 
 2004-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -815,7 +1289,7 @@
 
 	* progmodes/gdb-ui.el (gdb-ann3, gdb-send-item)
 	(gud-gdba-marker-filter): Log the process input and output, if
-	required. (from Stefan Monnier)
+	required.  From Stefan Monnier.
 	(gdb-debug-log, gdb-enable-debug-log): New variables.
 	(gdb-post-prompt): Don't do gdb-var-update on Mac OS X.
 
@@ -1653,7 +2127,7 @@
 
 	* printing.el: Replace "As Is..." in PostScript file print/preview by
 	"No Preprocessing...".  Suggested by Colin Marquardt
-	<marquardt@zmd.de>.
+	<_marquardt_@zmd.de>.
 	(pr-insert-section-4): Adjust buffer interface.
 
 2004-02-29  Kai Grossjohann  <kai.grossjohann@gmx.net>
@@ -1738,7 +2212,7 @@
 	(top-level): Require password.el if visible.  Should be mandatory
 	once No Gnus has found its way into (X)Emacs.
 	(tramp-read-passwd): Invoke `password-read' if available,
-	`read-passwd' otherwise. `ange-ftp-read-passwd' isn't used as
+	`read-passwd' otherwise.  `ange-ftp-read-passwd' isn't used as
 	fallback any longer.
 	(tramp-clear-passwd): New function.
 	(tramp-process-actions, tramp-process-multi-actions):
@@ -3160,7 +3634,7 @@
 
 	* gdb-ui.el (gdb-prompt): Change filter for level 3 annotations,
 	if necessary.
-	(gdb-ann3): New function. Initialise M-x gdb as for M-x gdba if
+	(gdb-ann3): New function.  Initialise M-x gdb as for M-x gdba if
 	annotations are detected.
 	(gud-gdba-marker-filter): Use global variable gud-marker-acc
 	instead of a local one to allow transition from
@@ -3254,7 +3728,7 @@
 	* gdb-ui.el (gdba, gdb-assembler-mode): Call the mode "Machine" as
 	a mode called "Assembler" already exists.
 	(gdb-use-colon-colon-notation, gdb-show-changed-values): New options.
-	(gud-watch): Use format option. Remove font properties from string.
+	(gud-watch): Use format option.  Remove font properties from string.
 	(gdb-var-create-handler, gdb-var-list-children-handler):
 	Don't bother about properties as there are none.
 	(gdb-var-create-handler, gdb-var-list-children-handler)
@@ -3347,7 +3821,7 @@
 	(tramp-handle-file-attributes): Replace proprietary optional
 	parameter NONNUMERIC by the recently (Emacs 21.4) introduced ID-FORMAT.
 	(tramp-handle-file-attributes-with-perl): Handle parameter
-	NONNUMERIC if set. This wasn't done in the past.
+	NONNUMERIC if set.  This wasn't done in the past.
 	(tramp-post-connection): Apply second parameter "$2" if
 	`tramp-remote-perl' is called.
 
@@ -4121,7 +4595,7 @@
 	* progmodes/gud.el (gud-menu-map, gud-tool-bar-map):
 	Replace gud-display with gud-watch.
 	(gud-speedbar-buttons): Add stuff for watching expressions
-	in the speedbar when using M-x gdba. Use dolist on old part
+	in the speedbar when using M-x gdba.  Use dolist on old part
 	of this function.
 
 	* gdb-ui.el (gdb-var-list, gdb-var-changed, gdb-update-flag)
@@ -4356,7 +4830,7 @@
 	* ffap.el (ffap-shell-prompt-regexp): Add regexp to identify
 	common shell prompts that are not common filename or URL characters.
 	(ffap-file-at-point): Use the new regexp to strip the prompts from
-	the file names. This is an issue mostly for user prompts that
+	the file names.  This is an issue mostly for user prompts that
 	don't have a trailing space and find-file-at-point is invoked from
 	within a shell inside emacs.
 
@@ -4573,7 +5047,7 @@
 
 	* gdb-ui.el (gud-display1): Use gud-call to prevent extra prompt
 	being displayed in GUD buffer.
-	(gdb-idle-input-queue): Remove var. Use just one queue.
+	(gdb-idle-input-queue): Remove var.  Use just one queue.
 	(gdb-enqueue-idle-input,gdb-dequeue-idle-input):
 	Remove functions.  Use just one queue.
 	(gdb-prompt, gdb-subprompt, def-gdb-auto-update-trigger)
@@ -4757,7 +5231,7 @@
 2003-08-24  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gud.el (gud-display-line): Don't set window-point if
-	source buffer is not visible. (Only happens with M-x gdba).
+	source buffer is not visible.  (Only happens with M-x gdba.)
 
 	* gdb-ui.el (gdba): Remove gdb-quit (previously removed) from
 	documentation.
@@ -5796,33 +6270,33 @@
 	(bibtex-autokey-get-names): Fiddle with regexps.
 	(bibtex-generate-autokey): Use identity.
 	(bibtex-parse-keys): Use simplified parsing algorithm if
-	bibtex-parse-keys-fast is non-nil. Simplify. Change order of
-	arguments. Return alist of keys.
-	(bibtex-parse-strings): Simplify. Return alist of strings.
+	bibtex-parse-keys-fast is non-nil.  Simplify.  Change order of
+	arguments.  Return alist of keys.
+	(bibtex-parse-strings): Simplify.  Return alist of strings.
 	(bibtex-complete-string-cleanup): Fix docstring.
 	(bibtex-read-key): New function.
-	(bibtex-mode): Fix docstring. Do not parse for keys and
-	strings when the mode is entered. Set fill-paragraph-function to
-	bibtex-fill-field. Setup font-lock-mark-block-function the way
+	(bibtex-mode): Fix docstring.  Do not parse for keys and
+	strings when the mode is entered.  Set fill-paragraph-function to
+	bibtex-fill-field.  Setup font-lock-mark-block-function the way
 	font-lock intended.
-	(bibtex-entry): Use bibtex-read-key. Obey bibtex-autofill-types.
+	(bibtex-entry): Use bibtex-read-key.  Obey bibtex-autofill-types.
 	(bibtex-parse-entry, bibtex-autofill-entry): New functions.
 	(bibtex-print-help-message, bibtex-remove-OPT-or-ALT)
 	(bibtex-Preamble): Avoid hard coded constants.
-	(bibtex-make-field): Fix docstring. Simplify.
+	(bibtex-make-field): Fix docstring.  Simplify.
 	(bibtex-beginning-of-entry): Always return new position of point.
 	(bibtex-end-of-entry): Rearrange cond clauses.
 	(bibtex-count-entries, bibtex-validate, bibtex-reformat):
 	Update for changes of bibtex-map-entries.
 	(bibtex-ispell-abstract): Do not move point.
-	(bibtex-entry-index): Use downcase. Simplify.
+	(bibtex-entry-index): Use downcase.  Simplify.
 	(bibtex-lessp): Handle catch-all.
 	(bibtex-find-crossref): Turn into a command.
-	(bibtex-find-entry): Simplify. Use bibtex-read-key. Fix regexp.
-	(bibtex-clean-entry): Use bibtex-read-key. Handle string and
+	(bibtex-find-entry): Simplify.  Use bibtex-read-key.  Fix regexp.
+	(bibtex-clean-entry): Use bibtex-read-key.  Handle string and
 	preamble entries.
 	(bibtex-fill-field-bounds): New function.
-	(bibtex-fill-field): New command. Bound to fill-paragraph-function.
+	(bibtex-fill-field): New command.  Bound to fill-paragraph-function.
 	(bibtex-fill-entry): Use bibtex-fill-field-bounds
 	(bibtex-String): Use bibtex-strings.  Always obey
 	bibtex-sort-ignore-string-entries.

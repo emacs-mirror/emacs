@@ -88,6 +88,12 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** You can now use next-error (C-x `) and previous-error to advance to
+the next/previous matching line found by M-x occur.
+
+** Telnet will now prompt you for a port number with C-u M-x telnet.
+
++++
 ** New command line option -Q.
 
 This is like using -q --no-site-file, but in addition it also disables
@@ -372,6 +378,11 @@ If you prefer the old behavior, you can set the new user option
 *** The new command `info-apropos' searches the indices of the known
 Info files on your system for a string, and builds a menu of the
 possible matches.
+
+*** Images in Info pages are supported.
+Info pages show embedded images, in Emacs frames with image support.
+Info documentation that includes images, processed with makeinfo
+version 4.7 or newer, compiles to Info pages with embedded images.
 
 +++
 *** The default value for `Info-scroll-prefer-subnodes' is now nil.
@@ -1604,13 +1615,19 @@ candidate is a directory.
 to the text before point.  If there is text in the buffer after point,
 it remains unchanged.
 
-** Visual feedback of *Completions* buffer is enhanced.
-Faces are put on the common prefix substrings and the first uncommon
-charachters of each completion candidate in the *Completions* buffer.
-`completion-de-emphasis' is put on the common prefix substrings as the
-face; and `completion-emphasis' is put on the first uncommon
-charachters. By default `completion-de-emphasis' is inherited from
-`default' face. `completion-emphasis' is inherited from `bold' face.
+** Enhanced visual feedback in *Completions* buffer.
+
+Completions lists use faces to highlight what all completions
+have in common and where they begin to differ.
+
+The common prefix shared by all possible completions uses the face
+`completions-common-part', while the first character that isn't the
+same uses the face `completions-first-difference'.  By default,
+`completions-common-part' inherits from `default', and
+`completions-first-difference' inherits from `bold'.  The idea of
+`completions-common-part' is that you can use it to make the common
+parts less visible than normal, so that the rest of the differing
+parts is, by contrast, slightly highlighted.
 
 +++
 ** New user option `inhibit-startup-buffer-menu'.
@@ -1943,8 +1960,33 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** New functions posn-at-point and posn-at-x-y returns
+click-event-style position information for a given visible buffer
+position or for a given window pixel coordinate.
+
+** Function pos-visible-in-window-p now returns the pixel coordinates
+and partial visiblity state of the corresponding row, if the PARTIALLY
+arg is non-nil.
+
+** The function `eql' is now available without requiring the CL package.
+
 ** The display space :width and :align-to text properties are now
 supported on text terminals.
+
+** Support for displaying image slices
+
+*** New display property (slice X Y WIDTH HEIGHT) may be used with
+an image property to display only a specific slice of the image.
+
+*** Function insert-image has new optional fourth arg to
+specify image slice (X Y WIDTH HEIGHT).
+
+*** New function insert-sliced-image inserts a given image as a
+specified number of evenly sized slices (rows x columns).
+
+*** Trailing newlines no longer contribute to the height of a display
+row; instead the height of the newline glyph is reduced.  This allows
+sliced images to use a height less than the default line height.
 
 ** Enhancements to stretch display properties
 
@@ -2063,6 +2105,12 @@ number of corresponding line in current buffer.
 ** The default value of `sentence-end' is now defined using the new
 variable `sentence-end-without-space' which contains such characters
 that end a sentence without following spaces.
+
+** The function `sentence-end' should be used to obtain the value of
+the variable `sentence-end'.  If the variable `sentence-end' is nil,
+then this function returns the regexp constructed from the variables
+`sentence-end-without-period', `sentence-end-double-space' and
+`sentence-end-without-space'.
 
 +++
 ** The flags, width, and precision options for %-specifications in function

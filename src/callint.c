@@ -209,7 +209,7 @@ fix_command (input, values)
 	  Lisp_Object intail, valtail;
 	  for (intail = Fcdr (input), valtail = values;
 	       CONSP (valtail);
-	       intail = Fcdr (intail), valtail = Fcdr (valtail))
+	       intail = Fcdr (intail), valtail = XCDR (valtail))
 	    {
 	      Lisp_Object elt;
 	      elt = Fcar (intail);
@@ -612,7 +612,7 @@ supply if the command inquires which events were used to invoke it.  */)
 					  Qnil, Qnil, Qnil, Qnil);
 	    unbind_to (speccount1, Qnil);
 	    teml = args[i];
-	    visargs[i] = Fkey_description (teml);
+	    visargs[i] = Fkey_description (teml, Qnil);
 
 	    /* If the key sequence ends with a down-event,
 	       discard the following up-event.  */
@@ -639,7 +639,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	    args[i] = Fread_key_sequence (build_string (callint_message),
 					  Qnil, Qt, Qnil, Qnil);
 	    teml = args[i];
-	    visargs[i] = Fkey_description (teml);
+	    visargs[i] = Fkey_description (teml, Qnil);
 	    unbind_to (speccount1, Qnil);
 
 	    /* If the key sequence ends with a down-event,

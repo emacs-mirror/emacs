@@ -195,14 +195,17 @@ Commands:
 
 ;;;###autoload
 (defun help-mode-finish ()
+  (let ((entry (assq (selected-window) view-return-to-alist)))
+	(if entry (setcdr entry (cons (selected-window)
+				      help-return-method))
+	  (setq view-return-to-alist
+		(cons (cons (selected-window) help-return-method)
+		      view-return-to-alist))))
   (when (eq major-mode 'help-mode)
     ;; View mode's read-only status of existing *Help* buffer is lost
     ;; by with-output-to-temp-buffer.
     (toggle-read-only 1)
-    (help-make-xrefs (current-buffer)))
-  (setq view-return-to-alist
-	(list (cons (selected-window) help-return-method))))
-
+    (help-make-xrefs (current-buffer))))
 
 ;; Grokking cross-reference information in doc strings and
 ;; hyperlinking it.

@@ -194,7 +194,7 @@ static Lisp_Object make_fontset P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 static int fontset_id_valid_p P_ ((int));
 static Lisp_Object fontset_pattern_regexp P_ ((Lisp_Object));
 static Lisp_Object font_family_registry P_ ((Lisp_Object, int));
-static Lisp_Object regulalize_fontname P_ ((Lisp_Object));
+static Lisp_Object regularize_fontname P_ ((Lisp_Object));
 
 
 /********** MACROS AND FUNCTIONS TO HANDLE FONTSET **********/
@@ -1042,7 +1042,7 @@ check_fontset_name (name)
    string, maybe change FONTNAME to (FAMILY . REGISTRY).  */
 
 static Lisp_Object
-regulalize_fontname (Lisp_Object fontname)
+regularize_fontname (Lisp_Object fontname)
 {
   Lisp_Object family, registry;
 
@@ -1133,7 +1133,7 @@ name of a font, REGISTRY is a registry name of a font.  */)
   if (!NILP (frame))
     CHECK_LIVE_FRAME (frame);
 
-  elt = Fcons (make_number (from), regulalize_fontname (fontname));
+  elt = Fcons (make_number (from), regularize_fontname (fontname));
   for (; from <= to; from++)
     FONTSET_SET (fontset, from, elt);
   Foptimize_char_table (fontset);
@@ -1540,7 +1540,7 @@ It is intended that this function is called only from
 
       elt = XCAR (tail);
       target = Fcar (elt);
-      elt = Fcons (Qnil, regulalize_fontname (Fcdr (elt)));
+      elt = Fcons (Qnil, regularize_fontname (Fcdr (elt)));
       if (! CHAR_TABLE_P (target))
 	{
 	  int charset, c;

@@ -1218,7 +1218,7 @@ selected translation."
    (t
     (error "Invalid object in Quail map: %s" def))))
 
-(defun quail-lookup-key (key &optional len)
+(defun quail-lookup-key (key &optional len not-reset-indices)
   "Lookup KEY of length LEN in the current Quail map and return the definition.
 The returned value is a Quail map specific to KEY."
   (or len
@@ -1256,7 +1256,7 @@ The returned value is a Quail map specific to KEY."
 	  (if (and (consp translation) (vectorp (cdr translation)))
 	      (progn
 		(setq quail-current-translations translation)
-		(if (quail-forget-last-selection)
+		(if (and (not not-reset-indices) (quail-forget-last-selection))
 		    (setcar (car quail-current-translations) 0))))))
     ;; We may have to reform cdr part of MAP.
     (if (and (cdr map) (functionp (cdr map)))
@@ -1524,6 +1524,28 @@ with more keys."
       (let (pos)
 	(quail-delete-region)
 	(setq pos (point))
+	(or enable-multibyte-characters
+	    (let (char)
+	      (if (stringp quail-current-str)
+		  (catch 'tag
+		    (mapc #'(lambda (ch)
+			      (when (/= (unibyte-char-to-multibyte
+					 (multibyte-char-to-unibyte ch))
+					ch)
+				  (setq char ch)
+				  (throw 'tag nil)))
+			  quail-current-str))
+		(if (/= (unibyte-char-to-multibyte
+			 (multibyte-char-to-unibyte quail-current-str))
+			quail-current-str)
+		    (setq char quail-current-str)))
+	      (when char
+		(message "Can't input %c in the current unibyte buffer" char)
+		(ding)
+		(sit-for 2)
+		(message nil)
+		(setq quail-current-str nil)
+		(throw 'quail-tag nil))))
 	(insert quail-current-str)
 	(move-overlay quail-overlay pos (point))
 	(if (overlayp quail-conv-overlay)
@@ -2021,7 +2043,7 @@ minibuffer and the selected frame has no other windows)."
 
 (defun quail-get-translations ()
   "Return a string containing the current possible translations."
-  (let ((map (quail-lookup-key quail-current-key))
+  (let ((map (quail-lookup-key quail-current-key nil t))
 	(str (copy-sequence quail-current-key)))
     (if quail-current-translations
 	(quail-update-current-translations))
@@ -2092,7 +2114,7 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
   (quail-setup-completion-buf)
   (let ((win (get-buffer-window quail-completion-buf 'visible))
 	(key quail-current-key)
-	(map (quail-lookup-key quail-current-key))
+	(map (quail-lookup-key quail-current-key nil t))
 	(require-update nil))
     (with-current-buffer quail-completion-buf
       (if (and win
@@ -2673,7 +2695,7 @@ function `quail-install-map' (which see)."
 	 (translation-list nil)
 	 map)
     (while (> len 0)
-      (setq map (quail-lookup-key key len)
+      (setq map (quail-lookup-key key len t)
 	    len (1- len))
       (if map
 	  (let* ((def (quail-map-definition map))

@@ -1,4 +1,4 @@
-;;; cvs-status.el --- major mode for browsing `cvs status' output
+;;; cvs-status.el --- major mode for browsing `cvs status' output -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1999, 2000, 03, 2004  Free Software Foundation, Inc.
 
@@ -384,23 +384,45 @@ the list is a three-string list TAG, KIND, REV."
 ;;;; CVSTree-style trees
 ;;;;
 
-(defvar cvs-tree-use-jisx0208
-  (and (char-displayable-p (make-char 'japanese-jisx0208 40 44)) t)
+(defvar cvs-tree-use-jisx0208 nil)	;Old compat var.
+(defvar cvs-tree-use-charset
+  (cond
+   (cvs-tree-use-jisx0208 'jisx0208)
+   ((char-displayable-p ?━) 'unicode)
+   ((char-displayable-p (make-char 'japanese-jisx0208 40 44)) 'jisx0208))
   "*Non-nil if we should use the graphical glyphs from `japanese-jisx0208'.
 Otherwise, default to ASCII chars like +, - and |.")
 
 (defconst cvs-tree-char-space
-  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 33 33) "  "))
+  (case cvs-tree-use-charset
+    (jisx0208 (make-char 'japanese-jisx0208 33 33))
+    (unicode " ")
+    (t "  ")))
 (defconst cvs-tree-char-hbar
-  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 44) "--"))
+  (case cvs-tree-use-charset
+    (jisx0208 (make-char 'japanese-jisx0208 40 44))
+    (unicode "━")
+    (t "--")))
 (defconst cvs-tree-char-vbar
-  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 45) "| "))
+  (case cvs-tree-use-charset
+    (jisx0208 (make-char 'japanese-jisx0208 40 45))
+    (unicode "┃")
+    (t "| ")))
 (defconst cvs-tree-char-branch
-  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 50) "+-"))
+  (case cvs-tree-use-charset
+    (jisx0208 (make-char 'japanese-jisx0208 40 50))
+    (unicode "┣")
+    (t "+-")))
 (defconst cvs-tree-char-eob		;end of branch
-  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 49) "`-"))
+  (case cvs-tree-use-charset
+    (jisx0208 (make-char 'japanese-jisx0208 40 49))
+    (unicode "┗")
+    (t "`-")))
 (defconst cvs-tree-char-bob		;beginning of branch
-  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 51) "+-"))
+  (case cvs-tree-use-charset
+    (jisx0208 (make-char 'japanese-jisx0208 40 51))
+    (unicode "┳")
+    (t "+-")))
 
 (defun cvs-tag-lessp (tag1 tag2)
   (eq (cvs-tag-compare tag1 tag2) 'more2))
@@ -411,7 +433,7 @@ Otherwise, default to ASCII chars like +, - and |.")
   "Look for a list of tags, and replace it with a tree.
 Optional prefix ARG chooses between two representations."
   (interactive "P")
-  (when (and cvs-tree-use-jisx0208
+  (when (and cvs-tree-use-charset
 	     (not enable-multibyte-characters))
     ;; We need to convert the buffer from unibyte to multibyte
     ;; since we'll use multibyte chars for the tree.

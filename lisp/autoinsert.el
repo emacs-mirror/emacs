@@ -136,7 +136,7 @@ If this contains a %s, that will be replaced by the matching rule."
     (("\\.[1-9]\\'" . "Man page skeleton")
      "Short description: "
      ".\\\" Copyright (C), " (substring (current-time-string) -4) "  "
-     (getenv "ORGANIZATION") | "Free Software Foundation, Inc."
+     (getenv "ORGANIZATION") | (progn user-full-name)
      "
 .\\\" You may distribute this file under the terms of the GNU Free
 .\\\" Documentation Licence.

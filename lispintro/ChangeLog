@@ -1,3 +1,7 @@
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
+
 2004-02-29  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (mostlyclean, clean, maintainer-clean): Use

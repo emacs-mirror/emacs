@@ -130,7 +130,7 @@ to confuse some users sometimes."
   "The prefix that CVS prepends to files when rcsmerge'ing.")
 
 (easy-mmode-defmap cvs-status-map
-  '(([(mouse-2)] . cvs-mouse-toggle-mark))
+  '(([(mouse-2)] . cvs-mode-toggle-mark))
   "Local keymap for text properties of status")
 
 ;; Constructor:

@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
-;; Copyright (C) 1994, 95, 97, 98, 99, 2000, 2001, 2002, 2003
+;; Copyright (C) 1994, 95, 97, 98, 99, 2000, 2001, 2002, 03, 2004
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
@@ -4732,7 +4732,6 @@ Moves to 'begin' if in a declarative part."
 	     )))
 
     (easy-menu-define ada-mode-menu ada-mode-map "Menu keymap for Ada mode" m)
-    (easy-menu-add ada-mode-menu ada-mode-map)
     (if (featurep 'xemacs)
 	(progn
 	  (define-key ada-mode-map [menu-bar] ada-mode-menu)

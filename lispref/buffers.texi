@@ -215,12 +215,16 @@ of course.  Instead, whichever buffer was current just before exit
 remains current.
 @end defspec
 
-@defmac with-current-buffer buffer body...
+@defmac with-current-buffer buffer-or-name body...
 The @code{with-current-buffer} macro saves the identity of the current
-buffer, makes @var{buffer} current, evaluates the @var{body} forms, and
-finally restores the buffer.  The return value is the value of the last
-form in @var{body}.  The current buffer is restored even in case of an
-abnormal exit via @code{throw} or error (@pxref{Nonlocal Exits}).
+buffer, makes @var{buffer-or-name} current, evaluates the @var{body}
+forms, and finally restores the buffer.  The return value is the value
+of the last form in @var{body}.  The current buffer is restored even
+in case of an abnormal exit via @code{throw} or error (@pxref{Nonlocal
+Exits}).
+
+An error is signaled if @var{buffer-or-name} does not identify an
+existing buffer.
 @end defmac
 
 @anchor{Definition of with-temp-buffer}
@@ -237,9 +241,10 @@ return the contents of the temporary buffer by using
 
 The current buffer is restored even in case of an abnormal exit via
 @code{throw} or error (@pxref{Nonlocal Exits}).
-@end defmac
 
-See also @code{with-temp-file} in @ref{Writing to Files}.
+See also @code{with-temp-file} in @ref{Definition of with-temp-file,,
+Writing to Files}.
+@end defmac
 
 @node Buffer Names
 @section Buffer Names
@@ -293,8 +298,7 @@ foo
 
 @deffn Command rename-buffer newname &optional unique
 This function renames the current buffer to @var{newname}.  An error
-is signaled if @var{newname} is not a string, or if there is already a
-buffer with that name.  The function returns @var{newname}.
+is signaled if @var{newname} is not a string.
 
 @c Emacs 19 feature
 Ordinarily, @code{rename-buffer} signals an error if @var{newname} is
@@ -302,6 +306,8 @@ already in use.  However, if @var{unique} is non-@code{nil}, it modifies
 @var{newname} to make a name that is not in use.  Interactively, you can
 make @var{unique} non-@code{nil} with a numeric prefix argument.
 (This is how the command @code{rename-uniquely} is implemented.)
+
+This function returns the name actually given to the buffer.
 @end deffn
 
 @defun get-buffer buffer-or-name
@@ -330,11 +336,12 @@ See also the function @code{get-buffer-create} in @ref{Creating Buffers}.
 @end defun
 
 @c Emacs 19 feature
-@defun generate-new-buffer-name starting-name &rest ignore
+@defun generate-new-buffer-name starting-name &optional ignore
 This function returns a name that would be unique for a new buffer---but
 does not create the buffer.  It starts with @var{starting-name}, and
 produces a name not currently in use for any buffer by appending a
-number inside of @samp{<@dots{}>}.
+number inside of @samp{<@dots{}>}.  It starts at 2 and keeps
+incrementing the number until it is not the name of an existing buffer.
 
 If the optional second argument @var{ignore} is non-@code{nil}, it
 should be a string; it makes a difference if it is a name in the
@@ -404,9 +411,11 @@ Emacs.
 @end defvar
 
 @defvar buffer-file-truename
-This buffer-local variable holds the truename of the file visited in the
-current buffer, or @code{nil} if no file is visited.  It is a permanent
-local, unaffected by @code{kill-all-local-variables}.  @xref{Truenames}.
+This buffer-local variable holds the abbreviated truename of the file
+visited in the current buffer, or @code{nil} if no file is visited.
+It is a permanent local, unaffected by
+@code{kill-all-local-variables}.  @xref{Truenames}, and
+@ref{Definition of abbreviate-file-name}.
 @end defvar
 
 @defvar buffer-file-number
@@ -420,6 +429,9 @@ The value is normally a list of the form @code{(@var{filenum}
 all files accessible on the system.  See the function
 @code{file-attributes}, in @ref{File Attributes}, for more information
 about them.
+
+If @code{buffer-file-name} is the name of a symbolic link, then both
+numbers refer to the recursive target.
 @end defvar
 
 @defun get-file-buffer filename
@@ -427,7 +439,9 @@ This function returns the buffer visiting file @var{filename}.  If
 there is no such buffer, it returns @code{nil}.  The argument
 @var{filename}, which must be a string, is expanded (@pxref{File Name
 Expansion}), then compared against the visited file names of all live
-buffers.
+buffers.  Note that the buffer's @code{buffer-file-name} must match
+the expansion of @var{filename} exactly.  This function will not
+recognize other names for the same file.
 
 @example
 @group
@@ -439,6 +453,18 @@ buffers.
 In unusual circumstances, there can be more than one buffer visiting
 the same file name.  In such cases, this function returns the first
 such buffer in the buffer list.
+@end defun
+
+@defun find-buffer-visiting filename &optional predicate
+This is like @code{get-file-buffer}, except that it can return any
+buffer visiting the file @emph{possibly under a different name}.  That
+is, the buffer's @code{buffer-file-name} does not need to match the
+expansion of @var{filename} exactly, it only needs to refer to the
+same file.  If @var{predicate} is non-@code{nil}, it should be a
+function of one argument, a buffer visiting @var{filename}.  The
+buffer is only considered a suitable return value if @var{predicate}
+returns non-@code{nil}.  If it can not find a suitable buffer to
+return, @code{find-buffer-visiting} returns @code{nil}.
 @end defun
 
 @deffn Command set-visited-file-name filename &optional no-query along-with-file
@@ -455,14 +481,24 @@ use.
 
 If @var{filename} is @code{nil} or the empty string, that stands for
 ``no visited file''.  In this case, @code{set-visited-file-name} marks
-the buffer as having no visited file.
+the buffer as having no visited file, without changing the buffer's
+modified flag.
 
-Normally, this function asks the user for confirmation if the specified
-file already exists.  If @var{no-query} is non-@code{nil}, that prevents
-asking this question.
+Normally, this function asks the user for confirmation if there
+already is a buffer visiting @var{filename}.  If @var{no-query} is
+non-@code{nil}, that prevents asking this question.  If there already
+is a buffer visiting @var{filename}, and the user confirms or
+@var{query} is non-@code{nil}, this function makes the new buffer name
+unique by appending a number inside of @samp{<@dots{}>} to @var{filename}.
 
-If @var{along-with-file} is non-@code{nil}, that means to assume that the
-former visited file has been renamed to @var{filename}.
+If @var{along-with-file} is non-@code{nil}, that means to assume that
+the former visited file has been renamed to @var{filename}.  In this
+case, the command does not change the buffer's modified flag, nor the
+buffer's recorded last file modification time as reported by
+@code{visited-file-modtime} (@pxref{Modification Time}).  If
+@var{along-with-file} is @code{nil}, this function clears the recorded
+last file modification time, after which @code{visited-file-modtime}
+returns zero.
 
 @c Wordy to avoid overfull hbox.  --rjc 16mar92
 When the function @code{set-visited-file-name} is called interactively, it
@@ -523,10 +559,11 @@ Like @code{set-buffer-modified-p}, but does not force redisplay
 of mode lines.
 @end defun
 
-@deffn Command not-modified
-This command marks the current buffer as unmodified, and not needing to
-be saved.  With prefix arg, it marks the buffer as modified, so that it
-will be saved at the next suitable occasion.
+@deffn Command not-modified &optional arg
+This command marks the current buffer as unmodified, and not needing
+to be saved.  If @var{arg} is non-@code{nil}, it marks the buffer as
+modified, so that it will be saved at the next suitable occasion.
+Interactively, @var{arg} is the prefix argument.
 
 Don't use this function in programs, since it prints a message in the
 echo area; use @code{set-buffer-modified-p} (above) instead.
@@ -537,6 +574,7 @@ echo area; use @code{set-buffer-modified-p} (above) instead.
 This function returns @var{buffer}'s modification-count.  This is a
 counter that increments every time the buffer is modified.  If
 @var{buffer} is @code{nil} (or omitted), the current buffer is used.
+The counter can wrap around occasionally.
 @end defun
 
 @node Modification Time
@@ -561,6 +599,16 @@ visited or saved it.
 
 The function returns @code{t} if the last actual modification time and
 Emacs's recorded modification time are the same, @code{nil} otherwise.
+It also returns @code{t} if the buffer has no recorded last
+modification time, that is if @code{visited-file-modtime} would return
+zero.
+
+It always returns @code{t} for buffers that are not visiting a file,
+even if @code{visited-file-modtime} returns a non-zero value.  For
+instance, it always returns @code{t} for dired buffers.  It returns
+@code{t} for buffers that are visiting a file that does not exist and
+never existed, but @code{nil} for file-visiting buffers whose file has
+been deleted.
 @end defun
 
 @defun clear-visited-file-modtime
@@ -576,10 +624,30 @@ file should not be done.
 
 @c Emacs 19 feature
 @defun visited-file-modtime
-This function returns the buffer's recorded last file modification time,
-as a list of the form @code{(@var{high} . @var{low})}.  (This is the
-same format that @code{file-attributes} uses to return time values; see
-@ref{File Attributes}.)
+This function returns the current buffer's recorded last file
+modification time, as a list of the form @code{(@var{high} .
+@var{low})}.  (This is the same format that @code{file-attributes}
+uses to return time values; see @ref{File Attributes}.)
+
+The function returns zero if the buffer has no recorded last
+modification time, which can happen, for instance, if the record has
+been explicitly cleared by @code{clear-visited-file-modtime} or if the
+buffer is not visiting a file.  Note, however, that
+@code{visited-file-modtime} can return a non-zero value for some
+buffers that are not visiting files, but are nevertheless closely
+associated with a file.  This happens, for instance, with dired
+buffers listing a directory.  For such buffers,
+@code{visited-file-modtime} returns the last modification time of that
+directory, as recorded by dired.
+
+For a new buffer visiting a not yet existing file, @var{high} is
+@minus{}1 and @var{low} is 65535, that is,
+@ifnottex
+@w{2**16 - 1.}
+@end ifnottex
+@tex
+@math{2^{16}-1}.
+@end tex
 @end defun
 
 @c Emacs 19 feature
@@ -589,7 +657,7 @@ of the visited file, to the value specified by @var{time} if @var{time}
 is not @code{nil}, and otherwise to the last modification time of the
 visited file.
 
-If @var{time} is not @code{nil}, it should have the form
+If @var{time} is neither @code{nil} nor zero, it should have the form
 @code{(@var{high} . @var{low})} or @code{(@var{high} @var{low})}, in
 either case containing two integers, each of which holds 16 bits of the
 time.
@@ -655,12 +723,13 @@ The buffer is read-only if this variable is non-@code{nil}.
 @end defvar
 
 @defvar inhibit-read-only
-If this variable is non-@code{nil}, then read-only buffers and read-only
-characters may be modified.  Read-only characters in a buffer are those
-that have non-@code{nil} @code{read-only} properties (either text
-properties or overlay properties).  @xref{Special Properties}, for more
-information about text properties.  @xref{Overlays}, for more
-information about overlays and their properties.
+If this variable is non-@code{nil}, then read-only buffers and,
+depending on the actual value, some or all read-only characters may be
+modified.  Read-only characters in a buffer are those that have
+non-@code{nil} @code{read-only} properties (either text properties or
+overlay properties).  @xref{Special Properties}, for more information
+about text properties.  @xref{Overlays}, for more information about
+overlays and their properties.
 
 If @code{inhibit-read-only} is @code{t}, all @code{read-only} character
 properties have no effect.  If @code{inhibit-read-only} is a list, then
@@ -668,12 +737,17 @@ properties have no effect.  If @code{inhibit-read-only} is a list, then
 of the list (comparison is done with @code{eq}).
 @end defvar
 
-@deffn Command toggle-read-only
-This command changes whether the current buffer is read-only.  It is
+@deffn Command toggle-read-only &optional arg
+This command toggles whether the current buffer is read-only.  It is
 intended for interactive use; do not use it in programs.  At any given
 point in a program, you should know whether you want the read-only flag
 on or off; so you can set @code{buffer-read-only} explicitly to the
 proper value, @code{t} or @code{nil}.
+
+If @var{arg} is non-@code{nil}, it should be a raw prefix argument.
+@code{toggle-read-only} sets @code{buffer-read-only} to @code{t} if
+the numeric value of that prefix argument is positive and to
+@code{nil} otherwise.  @xref{Prefix Command Arguments}.
 @end deffn
 
 @defun barf-if-buffer-read-only
@@ -816,12 +890,14 @@ buffer and gives it a unique name.
 subprocess can also create a buffer (@pxref{Processes}).
 
 @defun get-buffer-create name
-This function returns a buffer named @var{name}.  It returns an existing
+This function returns a buffer named @var{name}.  It returns a live
 buffer with that name, if one exists; otherwise, it creates a new
 buffer.  The buffer does not become the current buffer---this function
 does not change which buffer is current.
 
-An error is signaled if @var{name} is not a string.
+If @var{name} is a buffer instead of a string, it is returned, even if
+it is dead.  An error is signaled if @var{name} is neither a string
+nor a buffer.
 
 @example
 @group
@@ -830,8 +906,8 @@ An error is signaled if @var{name} is not a string.
 @end group
 @end example
 
-The major mode for the new buffer is set to Fundamental mode.  The
-variable @code{default-major-mode} is handled at a higher level.
+The major mode for a newly created buffer is set to Fundamental mode.
+The variable @code{default-major-mode} is handled at a higher level.
 @xref{Auto Major Mode}.
 @end defun
 
@@ -905,8 +981,8 @@ this feature to test whether a buffer has been killed:
 
 @deffn Command kill-buffer buffer-or-name
 This function kills the buffer @var{buffer-or-name}, freeing all its
-memory for other uses or to be returned to the operating system.  It
-returns @code{nil}.
+memory for other uses or to be returned to the operating system.  If
+@var{buffer-or-name} is @code{nil}, it kills the current buffer.
 
 Any processes that have this buffer as the @code{process-buffer} are
 sent the @code{SIGHUP} signal, which normally causes them to terminate.
@@ -921,16 +997,20 @@ for confirmation, clear the modified flag before calling
 
 Killing a buffer that is already dead has no effect.
 
+This function returns @code{t} if it actually killed the buffer.  It
+returns @code{nil} if the user refuses to confirm or if
+@var{buffer-or-name} was already dead.
+
 @smallexample
 (kill-buffer "foo.unchanged")
-     @result{} nil
+     @result{} t
 (kill-buffer "foo.changed")
 
 ---------- Buffer: Minibuffer ----------
 Buffer foo.changed modified; kill anyway? (yes or no) @kbd{yes}
 ---------- Buffer: Minibuffer ----------
 
-     @result{} nil
+     @result{} t
 @end smallexample
 @end deffn
 
@@ -953,13 +1033,15 @@ is not cleared by changing major modes.
 
 @defvar buffer-offer-save
 This variable, if non-@code{nil} in a particular buffer, tells
-@code{save-buffers-kill-emacs} and @code{save-some-buffers} to offer to
-save that buffer, just as they offer to save file-visiting buffers.  The
-variable @code{buffer-offer-save} automatically becomes buffer-local
-when set for any reason.  @xref{Buffer-Local Variables}.
+@code{save-buffers-kill-emacs} and @code{save-some-buffers} (if the
+second optional argument to that function is @code{t}) to offer to
+save that buffer, just as they offer to save file-visiting buffers.
+@xref{Definition of save-some-buffers}.  The variable
+@code{buffer-offer-save} automatically becomes buffer-local when set
+for any reason.  @xref{Buffer-Local Variables}.
 @end defvar
 
-@defun buffer-live-p buffer
+@defun buffer-live-p object
 This function returns @code{t} if @var{object} is a buffer which has
 not been killed, @code{nil} otherwise.
 @end defun
@@ -994,19 +1076,29 @@ buffer.
 the base buffer effectively kills the indirect buffer in that it cannot
 ever again be the current buffer.
 
-@deffn Command make-indirect-buffer base-buffer name
-This creates an indirect buffer named @var{name} whose base buffer
-is @var{base-buffer}.  The argument @var{base-buffer} may be a buffer
-or a string.
+@deffn Command make-indirect-buffer base-buffer name &optional clone
+This creates and returns an indirect buffer named @var{name} whose
+base buffer is @var{base-buffer}.  The argument @var{base-buffer} may
+be a live buffer or the name (a string) of an existing buffer.  If
+@var{name} is the name of an existing buffer, an error is signaled.
+
+If @var{clone} is non-@code{nil}, then the indirect buffer originally
+shares the ``state'' of @var{base-buffer} such as major mode, minor
+modes, buffer local variables and so on.  If @var{clone} is omitted
+or @code{nil} the indirect buffer's state is set to the default state
+for new buffers.
 
 If @var{base-buffer} is an indirect buffer, its base buffer is used as
-the base for the new buffer.
+the base for the new buffer.  If, in addition, @var{clone} is
+non-@code{nil}, the initial state is copied from the actual base
+buffer, not from @var{base-buffer}.
 @end deffn
 
-@defun buffer-base-buffer buffer
-This function returns the base buffer of @var{buffer}.  If @var{buffer}
-is not indirect, the value is @code{nil}.  Otherwise, the value is
-another buffer, which is never an indirect buffer.
+@defun buffer-base-buffer &optional buffer
+This function returns the base buffer of @var{buffer}, which defaults
+to the current buffer.  If @var{buffer} is not indirect, the value is
+@code{nil}.  Otherwise, the value is another buffer, which is never an
+indirect buffer.
 @end defun
 
 @node Buffer Gap

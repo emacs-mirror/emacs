@@ -63,6 +63,7 @@ With ARG, you are asked to choose which language."
       (setq default-directory (expand-file-name "~/"))
       (setq buffer-auto-save-file-name nil)
       (insert-file-contents (expand-file-name filename data-directory))
+      (hack-local-variables)
       (goto-char (point-min))
       (search-forward "\n<<")
       (beginning-of-line)
@@ -357,16 +358,31 @@ KIND should be `var' for a variable or `subr' for a subroutine."
     (when (commandp function)
       (let* ((remapped (command-remapping function))
 	     (keys (where-is-internal
-		    (or remapped function) overriding-local-map nil nil)))
+		    (or remapped function) overriding-local-map nil nil))
+	     non-modified-keys)
+	;; Which non-control non-meta keys run this command?
+	(dolist (key keys)
+	  (if (member (event-modifiers (aref key 0)) '(nil (shift)))
+	      (push key non-modified-keys)))
 	(when remapped
 	  (princ "It is remapped to `")
 	  (princ (symbol-name remapped))
 	  (princ "'"))
+
 	(when keys
 	  (princ (if remapped " which is bound to " "It is bound to "))
 	  ;; FIXME: This list can be very long (f.ex. for self-insert-command).
-	  (princ (mapconcat 'key-description keys ", ")))
-	(when (or remapped keys)
+	  ;; If there are many, remove them from KEYS.
+	  (if (< (length non-modified-keys) 10)
+	      (princ (mapconcat 'key-description keys ", "))	      
+	    (dolist (key non-modified-keys)
+	      (setq keys (delq key keys)))
+	    (if keys
+		(progn
+		  (princ (mapconcat 'key-description keys ", "))
+		  (princ ", and many ordinary text characters"))
+	      (princ "many ordinary text characters"))))
+	(when (or remapped keys non-modified-keys)
 	  (princ ".")
 	  (terpri))))
     (let* ((arglist (help-function-arglist def))

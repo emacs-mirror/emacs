@@ -51,7 +51,6 @@ Boston, MA 02111-1307, USA.  */
 typedef struct x_bitmap_record Bitmap_Record;
 #define GET_PIXEL(ximg, x, y) XGetPixel(ximg, x, y)
 #define NO_PIXMAP None
-#define PNG_BG_COLOR_SHIFT 0
 
 #define RGB_PIXEL_COLOR unsigned long
 
@@ -69,7 +68,6 @@ typedef struct x_bitmap_record Bitmap_Record;
 typedef struct w32_bitmap_record Bitmap_Record;
 #define GET_PIXEL(ximg, x, y) GetPixel(ximg, x, y)
 #define NO_PIXMAP 0
-#define PNG_BG_COLOR_SHIFT 0
 
 #define RGB_PIXEL_COLOR COLORREF
 
@@ -104,7 +102,6 @@ typedef struct mac_bitmap_record Bitmap_Record;
 
 #define GET_PIXEL(ximg, x, y) XGetPixel(ximg, x, y)
 #define NO_PIXMAP 0
-#define PNG_BG_COLOR_SHIFT 8
 
 #define RGB_PIXEL_COLOR unsigned long
 
@@ -1079,12 +1076,20 @@ prepare_image_for_display (f, img)
    drawn in face FACE.  */
 
 int
-image_ascent (img, face)
+image_ascent (img, face, slice)
      struct image *img;
      struct face *face;
+     struct glyph_slice *slice;
 {
-  int height = img->height + img->vmargin;
+  int height;
   int ascent;
+
+  if (slice->height == img->height)
+    height = img->height + img->vmargin;
+  else if (slice->y == 0)
+    height = slice->height + img->vmargin;
+  else
+    height = slice->height;
 
   if (img->ascent == CENTERED_IMAGE_ASCENT)
     {
@@ -1172,7 +1177,7 @@ four_corners_best (ximg, width, height)
 /* Return the `background' field of IMG.  If IMG doesn't have one yet,
    it is guessed heuristically.  If non-zero, XIMG is an existing
    XImage object (or device context with the image selected on W32) to
-   use for the heuristic.  */ 
+   use for the heuristic.  */
 
 RGB_PIXEL_COLOR
 image_background (img, f, ximg)
@@ -1205,7 +1210,7 @@ image_background (img, f, ximg)
 
       if (free_ximg)
 	Destroy_Image (ximg, prev);
-      
+
       img->background_valid = 1;
     }
 
@@ -2990,7 +2995,7 @@ xbm_load_image (f, img, contents, end)
 	  non_default_colors = 1;
 	}
 
-      Create_Pixmap_From_Bitmap_Data (f, img, data, 
+      Create_Pixmap_From_Bitmap_Data (f, img, data,
 				      foreground, background,
 				      non_default_colors);
       xfree (data);
@@ -3857,7 +3862,7 @@ lookup_rgb_color (f, r, g, b)
       /* Assemble the pixel color.  */
       return pr | pg | pb;
     }
-  
+
   for (p = ct_table[i]; p; p = p->next)
     if (p->r == r && p->g == g && p->b == b)
       break;
@@ -4968,7 +4973,7 @@ pbm_load (f, img)
   x_destroy_x_image (ximg);
 
   /* X and W32 versions did it here, MAC version above.  ++kfs
-     img->width = width;   
+     img->width = width;
      img->height = height; */
 
   UNGCPRO;
@@ -5412,9 +5417,9 @@ png_load (f, img)
 	      png_color_16 user_bg;
 
 	      bzero (&user_bg, sizeof user_bg);
-	      user_bg.red = color.red >> PNG_BG_COLOR_SHIFT;
-	      user_bg.green = color.green >> PNG_BG_COLOR_SHIFT;
-	      user_bg.blue = color.blue >> PNG_BG_COLOR_SHIFT;
+	      user_bg.red = color.red >> 8;
+	      user_bg.green = color.green >> 8;
+	      user_bg.blue = color.blue >> 8;
 
 	      fn_png_set_background (png_ptr, &user_bg,
 				     PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
@@ -5438,9 +5443,9 @@ png_load (f, img)
 	  x_query_color (f, &color);
 
 	  bzero (&frame_background, sizeof frame_background);
-	  frame_background.red = color.red;
-	  frame_background.green = color.green;
-	  frame_background.blue = color.blue;
+	  frame_background.red = color.red >> 8;
+	  frame_background.green = color.green >> 8;
+	  frame_background.blue = color.blue >> 8;
 #endif /* HAVE_X_WINDOWS */
 
 #ifdef HAVE_NTGUI
@@ -5451,9 +5456,9 @@ png_load (f, img)
 	  x_query_color (f, &color);
 #endif
 	  bzero (&frame_background, sizeof frame_background);
-	  frame_background.red = 256 * GetRValue (color);
-	  frame_background.green = 256 * GetGValue (color);
-	  frame_background.blue = 256 * GetBValue (color);
+	  frame_background.red = GetRValue (color);
+	  frame_background.green = GetGValue (color);
+	  frame_background.blue = GetBValue (color);
 #endif /* HAVE_NTGUI */
 
 #ifdef MAC_OS

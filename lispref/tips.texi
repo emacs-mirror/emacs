@@ -254,7 +254,7 @@ Avoid using macros that define functions and variables with names that
 are constructed.  It is best for maintenance when the name of the
 function or variable being defined is given explicitly in the source
 code, as the second element of the list---as it is when you use
-@code{defun}, @code{defalias}, @code{defvar} and @code{defopt}.
+@code{defun}, @code{defalias}, @code{defvar} and @code{defcustom}.
 
 @item
 Please keep the names of your Emacs Lisp source files to 13 characters

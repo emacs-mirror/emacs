@@ -5509,7 +5509,8 @@ e_write (desc, string, start, end, coding)
 DEFUN ("verify-visited-file-modtime", Fverify_visited_file_modtime,
        Sverify_visited_file_modtime, 1, 1, 0,
        doc: /* Return t if last mod time of BUF's visited file matches what BUF records.
-This means that the file has not been changed since it was visited or saved.  */)
+This means that the file has not been changed since it was visited or saved.
+See Info node `(elisp)Modification Time' for more details.  */)
      (buf)
      Lisp_Object buf;
 {
@@ -5565,7 +5566,9 @@ DEFUN ("visited-file-modtime", Fvisited_file_modtime,
        Svisited_file_modtime, 0, 0, 0,
        doc: /* Return the current buffer's recorded visited file modification time.
 The value is a list of the form (HIGH . LOW), like the time values
-that `file-attributes' returns.  */)
+that `file-attributes' returns.  If the current buffer has no recorded
+file modification time, this function returns 0.
+See Info node `(elisp)Modification Time' for more details.  */)
      ()
 {
   return long_to_cons ((unsigned long) current_buffer->modtime);

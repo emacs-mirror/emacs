@@ -298,6 +298,15 @@ example functions that filter buffernames."
   :type '(repeat (choice regexp function))
   :group 'iswitchb)
 
+(defcustom iswitchb-max-to-show nil
+  "*If non-nil, limit the number of names shown in the minibuffer.
+If this value is N, and N is greater than the number of matching
+buffers, the first N/2 and the last N/2 matching buffers are
+shown.  This can greatly speed up iswitchb if you have a
+multitude of buffers open."
+  :type '(choice (const :tag "Show all" nil) integer)
+  :group 'iswitchb)
+
 (defcustom iswitchb-cannot-complete-hook 'iswitchb-completion-help
   "*Hook run when `iswitchb-complete' can't complete any more.
 The most useful values are `iswitchb-completion-help', which pops up a
@@ -1185,6 +1194,15 @@ Copied from `icomplete-exhibit' with two changes:
 		   contents
 		   (not minibuffer-completion-confirm)))))))
 
+(defun iswitchb-output-completion (com)
+  (if (= (length com) most-len)
+      ;; Most is one exact match,
+      ;; note that and leave out
+      ;; for later indication:
+      (ignore
+       (setq most-is-exact t))
+    (substring com most-len)))
+
 (defun iswitchb-completions (name require-match)
   "Return the string that is displayed after the user's text.
 Modified from `icomplete-completions'."
@@ -1224,28 +1242,29 @@ Modified from `icomplete-completions'."
 		     "")
 		   (if (not iswitchb-use-fonts) " [Matched]")))
 	  (t				;multiple matches
+	   (if (and iswitchb-max-to-show
+		    (> (length comps) iswitchb-max-to-show))
+	       (setq comps
+		     (append
+		      (let ((res nil)
+			    (comp comps)
+			    (end (/ iswitchb-max-to-show 2)))
+			(while (>= (setq end (1- end)) 0)
+			  (setq res (cons (car comp) res)
+				comp (cdr comp)))
+			(nreverse res))
+		      (list "...")
+		      (nthcdr (- (length comps)
+				 (/ iswitchb-max-to-show 2)) comps))))
 	   (let* (
 		  ;;(most (try-completion name candidates predicate))
 		  (most nil)
 		  (most-len (length most))
 		  most-is-exact
-		  (alternatives
-		   (apply
-		    (function concat)
-		    (cdr (apply
-			  (function nconc)
-			  (mapcar '(lambda (com)
-				     (if (= (length com) most-len)
-					 ;; Most is one exact match,
-					 ;; note that and leave out
-					 ;; for later indication:
-					 (progn
-					   (setq most-is-exact t)
-					   ())
-				       (list ","
-					     (substring com
-							most-len))))
-				  comps))))))
+		  (alternatives (if most
+				    (mapconcat 'iswitchb-output-completion
+					       comps ",")
+				  (mapconcat 'identity comps ","))))
 
 	     (concat
 

@@ -1,3 +1,13 @@
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
+
+2004-04-17  Paul Eggert  <eggert@gnu.org>
+
+	* rcs2log (Help): Clarify wording of the usage message.
+	Problem reported by Alan Mackenzie in
+	<http://mail.gnu.org/archive/html/bug-gnu-emacs/2004-04/msg00188.html>.
+
 2004-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* make-docfile.c (xmalloc): Fix return type.

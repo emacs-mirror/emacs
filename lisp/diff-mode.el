@@ -48,7 +48,6 @@
 ;;
 ;; - Refine hunk on a word-by-word basis.
 ;;
-;; - Use the new next-error-function to allow C-x `.
 ;; - Handle `diff -b' output in context->unified.
 
 ;;; Code:
@@ -110,7 +109,7 @@ when editing big diffs)."
     ("}" . diff-file-next)
     ("{" . diff-file-prev)
     ("\C-m" . diff-goto-source)
-    ([mouse-2] . diff-mouse-goto-source)
+    ([mouse-2] . diff-goto-source)
     ;; From XEmacs' diff-mode.
     ("W" . widen)
     ;;("." . diff-goto-source)		;display-buffer
@@ -305,7 +304,11 @@ when editing big diffs)."
 (defvar diff-narrowed-to nil)
 
 (defun diff-end-of-hunk (&optional style)
-  (if (looking-at diff-hunk-header-re) (goto-char (match-end 0)))
+  (when (looking-at diff-hunk-header-re)
+    (unless style
+      ;; Especially important for unified (because headers are ambiguous).
+      (setq style (cdr (assq (char-after) '((?@ . unified) (?* . context))))))
+    (goto-char (match-end 0)))
   (let ((end (and (re-search-forward (case style
 				       ;; A `unified' header is ambiguous.
 				       (unified (concat "^[^-+# \\]\\|"
@@ -545,14 +548,6 @@ Non-nil OLD means that we want the old file."
 	 (set (make-local-variable 'diff-remembered-files-alist)
 	      (cons (cons fs file) diff-remembered-files-alist))
 	 file)))))
-
-
-(defun diff-mouse-goto-source (event)
-  "Run `diff-goto-source' for the diff at a mouse click."
-  (interactive "e")
-  (save-excursion
-    (mouse-set-point event)
-    (diff-goto-source)))
 
 
 (defun diff-ediff-patch ()
@@ -890,9 +885,14 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 	  (diff-fixup-modifs (point) (cdr diff-unhandled-changes)))))
     (setq diff-unhandled-changes nil)))
 
-;;;;
-;;;; The main function
-;;;;
+(defun diff-next-error (arg reset)
+  ;; Select a window that displays the current buffer so that point
+  ;; movements are reflected in that window.  Otherwise, the user might
+  ;; never see the hunk corresponding to the source she's jumping to.
+  (pop-to-buffer (current-buffer))
+  (if reset (goto-char (point-min)))
+  (diff-hunk-next arg)
+  (diff-goto-source))
 
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"
@@ -920,6 +920,7 @@ a diff with \\[diff-reverse-direction]."
   ;;   (set (make-local-variable 'paragraph-separate) paragraph-start)
   ;;   (set (make-local-variable 'page-delimiter) "--- [^\t]+\t")
   ;; compile support
+  (set (make-local-variable 'next-error-function) 'diff-next-error)
 
   (when (and (> (point-max) (point-min)) diff-default-read-only)
     (toggle-read-only t))
@@ -1223,16 +1224,19 @@ With a prefix argument, try to REVERSE the hunk."
     (diff-hunk-status-msg line-offset (diff-xor reverse switched) t)))
 
 
-(defun diff-goto-source (&optional other-file)
+(defalias 'diff-mouse-goto-source 'diff-goto-source)
+
+(defun diff-goto-source (&optional other-file event)
   "Jump to the corresponding source line.
 `diff-jump-to-old-file' (or its opposite if the OTHER-FILE prefix arg
 is given) determines whether to jump to the old or the new file.
 If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[universal-argument])
   then `diff-jump-to-old-file' is also set, for the next invocations."
-  (interactive "P")
+  (interactive (list current-prefix-arg last-input-event))
   ;; When pointing at a removal line, we probably want to jump to
   ;; the old location, and else to the new (i.e. as if reverting).
   ;; This is a convenient detail when using smerge-diff.
+  (if event (posn-set-point (event-end event)))
   (let ((rev (not (save-excursion (beginning-of-line) (looking-at "[-<]")))))
     (destructuring-bind (buf line-offset pos src dst &optional switched)
 	(diff-find-source-location other-file rev)

@@ -274,6 +274,17 @@ enum glyph_type
 };
 
 
+/* Structure describing how to use partial glyphs (images slicing) */
+
+struct glyph_slice
+{
+  unsigned x : 16;
+  unsigned y : 16;
+  unsigned width : 16;
+  unsigned height : 16;
+};
+
+
 /* Glyphs.
 
    Be extra careful when changing this structure!  Esp. make sure that
@@ -352,6 +363,8 @@ struct glyph
      w32_char_font_type.  Otherwise it equals FONT_TYPE_UNKNOWN.  */
   unsigned font_type : 3;
 
+  struct glyph_slice slice;
+
   /* A union of sub-structures for different glyph types.  */
   union
   {
@@ -390,11 +403,20 @@ struct glyph
 #define CHAR_GLYPH_SPACE_P(GLYPH) \
      (GLYPH_FROM_CHAR_GLYPH ((GLYPH)) == SPACEGLYPH)
 
+/* Are glyph slices of glyphs *X and *Y equal */
+
+#define GLYPH_SLICE_EQUAL_P(X, Y)		\
+  ((X)->slice.x == (Y)->slice.x			\
+   && (X)->slice.y == (Y)->slice.y		\
+   && (X)->slice.width == (Y)->slice.width	\
+   && (X)->slice.height == (Y)->slice.height)
+
 /* Are glyphs *X and *Y displayed equal?  */
 
 #define GLYPH_EQUAL_P(X, Y)					\
      ((X)->type == (Y)->type					\
       && (X)->u.val == (Y)->u.val				\
+      && GLYPH_SLICE_EQUAL_P (X, Y)				\
       && (X)->face_id == (Y)->face_id				\
       && (X)->padding_p == (Y)->padding_p			\
       && (X)->left_box_line_p == (Y)->left_box_line_p		\
@@ -1143,6 +1165,9 @@ struct glyph_string
   /* Image, if any.  */
   struct image *img;
 
+  /* Slice */
+  struct glyph_slice slice;
+
   struct glyph_string *next, *prev;
 };
 
@@ -1611,7 +1636,7 @@ extern int face_change_count;
    width and height of the bitmap, DH is the height adjustment (if
    bitmap is periodic).  X and Y are frame coordinates of the area to
    display the bitmap, DY is relative offset of the bitmap into that
-   area.  BX, NX, BY, NY specifies the area to clear if the bitmap 
+   area.  BX, NX, BY, NY specifies the area to clear if the bitmap
    does not fill the entire area.  FACE is the fringe face.  */
 
 struct draw_fringe_bitmap_params
@@ -1719,6 +1744,15 @@ enum prop_idx
 
   /* Sentinel.  */
   LAST_PROP_IDX
+};
+
+
+struct it_slice
+{
+  Lisp_Object x;
+  Lisp_Object y;
+  Lisp_Object width;
+  Lisp_Object height;
 };
 
 
@@ -1834,6 +1868,7 @@ struct it
     unsigned multibyte_p : 1;
     unsigned string_from_display_prop_p : 1;
     unsigned display_ellipsis_p : 1;
+    struct it_slice slice;
     Lisp_Object space_width;
     short voffset;
     Lisp_Object font_height;
@@ -1888,6 +1923,10 @@ struct it
      skipped due to selective display.  */
   unsigned face_before_selective_p : 1;
 
+  /* If 1, adjust current glyph so it does not increase current row
+     descent/ascent.  */
+  unsigned constrain_row_ascent_descent_p : 1;
+
   /* The ID of the default face to use.  One of DEFAULT_FACE_ID,
      MODE_LINE_FACE_ID, etc, depending on what we are displaying.  */
   int base_face_id;
@@ -1912,6 +1951,9 @@ struct it
 
   /* If what == IT_IMAGE, the id of the image to display.  */
   int image_id;
+
+  /* Values from `slice' property.  */
+  struct it_slice slice;
 
   /* Value of the `space-width' property, if any; nil if none.  */
   Lisp_Object space_width;
@@ -2180,7 +2222,7 @@ struct redisplay_interface
   int (*encode_char) P_ ((int c, XChar2b *char2b,
 			  struct font_info *font_into, int *two_byte_p));
 
-/* Compute left and right overhang of glyph string S.  
+/* Compute left and right overhang of glyph string S.
    A NULL pointer if platform does not support this. */
   void (*compute_glyph_string_overhangs) P_ ((struct glyph_string *s));
 
@@ -2208,7 +2250,7 @@ struct redisplay_interface
   void (*draw_vertical_window_border) P_ ((struct window *w,
 					   int x, int y0, int y1));
 
-/* Shift display of frame F to make room for inserted glyphs. 
+/* Shift display of frame F to make room for inserted glyphs.
    The area at pixel (X,Y) of width WIDTH and height HEIGHT is
    shifted right by SHIFT_BY pixels.  */
   void (*shift_glyphs_for_insert) P_ ((struct frame *f,
@@ -2527,7 +2569,7 @@ extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
 extern int help_echo_showing_p;
 extern int current_mode_line_height, current_header_line_height;
 extern Lisp_Object help_echo_string, help_echo_window;
-extern Lisp_Object help_echo_object, previous_help_echo_string; 
+extern Lisp_Object help_echo_object, previous_help_echo_string;
 extern int help_echo_pos;
 extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
@@ -2637,6 +2679,8 @@ unsigned long image_background P_ ((struct image *, struct frame *,
 int image_background_transparent P_ ((struct image *, struct frame *,
 				      XImagePtr_or_DC mask));
 
+int image_ascent P_ ((struct image *, struct face *, struct glyph_slice *));
+
 #endif
 
 /* Defined in sysdep.c */
@@ -2741,7 +2785,7 @@ extern int required_matrix_height P_ ((struct window *));
 extern Lisp_Object buffer_posn_from_coords P_ ((struct window *,
 						int *, int *,
 						struct display_pos *,
-						Lisp_Object *, 
+						Lisp_Object *,
 						int *, int *, int *, int *));
 extern Lisp_Object mode_line_string P_ ((struct window *, enum window_part,
 					 int *, int *, int *,

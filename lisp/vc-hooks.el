@@ -475,7 +475,7 @@ Return non-nil if FILE is unchanged."
                               (vc-find-backend-function (vc-backend file)
                                                         'diff))))
                     (not (eq (caddr err) 5)))
-                (signal wrong-number-of-arguments err)
+                (signal 'wrong-number-of-arguments err)
               (vc-call diff file))))))
 
 (defun vc-workfile-version (file)

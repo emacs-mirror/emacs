@@ -1403,9 +1403,9 @@ Each element must be one of the names listed in the variable
 	      (let* ((M (char-after (+ pos 4)))
 		     (L (char-after (+ pos 5)))
 		     (encoding (match-string 2))
-		     (encoding-info (assoc-ignore-case 
+		     (encoding-info (assoc-string 
 				     encoding
-				     ctext-non-standard-encodings-alist))
+				     ctext-non-standard-encodings-alist t))
 		     (coding (if encoding-info
 				 (nth 1 encoding-info)
 			       (setq encoding (intern (downcase encoding)))

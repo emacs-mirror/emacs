@@ -322,7 +322,11 @@ DEFUN ("pos-visible-in-window-p", Fpos_visible_in_window_p,
 Return nil if that position is scrolled vertically out of view.
 If a character is only partially visible, nil is returned, unless the
 optional argument PARTIALLY is non-nil.
-POS defaults to point in WINDOW; WINDOW defaults to the selected window.  */)
+POS defaults to point in WINDOW; WINDOW defaults to the selected window.
+
+If POS is visible, return t if PARTIALLY is nil; if PARTIALLY is non-nil,
+return value is a list (X Y PARTIAL) where X and Y are the pixel relative
+coordinate  */)
      (pos, window, partially)
      Lisp_Object pos, window, partially;
 {
@@ -330,8 +334,9 @@ POS defaults to point in WINDOW; WINDOW defaults to the selected window.  */)
   register int posint;
   register struct buffer *buf;
   struct text_pos top;
-  Lisp_Object in_window;
-  int fully_p;
+  Lisp_Object in_window = Qnil;
+  int fully_p = 1;
+  int x, y;
 
   w = decode_window (window);
   buf = XBUFFER (w->buffer);
@@ -347,38 +352,20 @@ POS defaults to point in WINDOW; WINDOW defaults to the selected window.  */)
   else
     posint = XMARKER (w->pointm)->charpos;
 
-  /* If position is above window start, it's not visible.  */
-  if (posint < CHARPOS (top))
-    in_window = Qnil;
-  else if (XFASTINT (w->last_modified) >= BUF_MODIFF (buf)
-	   && XFASTINT (w->last_overlay_modified) >= BUF_OVERLAY_MODIFF (buf)
-	   && posint < BUF_Z (buf) - XFASTINT (w->window_end_pos))
-    {
-      /* If frame is up-to-date, and POSINT is < window end pos, use
-	 that info.  This doesn't work for POSINT == end pos, because
-	 the window end pos is actually the position _after_ the last
-	 char in the window.  */
-      if (NILP (partially))
-	{
-	  pos_visible_p (w, posint, &fully_p, NILP (partially));
-	  in_window = fully_p ? Qt : Qnil;
-	}
-      else
-	in_window = Qt;
-    }
-  else if (posint > BUF_ZV (buf))
-    in_window = Qnil;
-  else if (CHARPOS (top) < BUF_BEGV (buf) || CHARPOS (top) > BUF_ZV (buf))
-    /* If window start is out of range, do something reasonable.  */
-    in_window = Qnil;
-  else
-    {
-      if (pos_visible_p (w, posint, &fully_p, NILP (partially)))
-	in_window = !NILP (partially) || fully_p ? Qt : Qnil;
-      else
-	in_window = Qnil;
-    }
+  /* If position is above window start or outside buffer boundaries,
+     or if window start is out of range, position is not visible.  */
+  if (posint >= CHARPOS (top)
+      && posint <= BUF_ZV (buf)
+      && CHARPOS (top) >= BUF_BEGV (buf)
+      && CHARPOS (top) <= BUF_ZV (buf)
+      && pos_visible_p (w, posint, &fully_p, &x, &y, NILP (partially))
+      && (!NILP (partially) || fully_p))
+    in_window = Qt;
 
+  if (!NILP (in_window) && !NILP (partially))
+    in_window = Fcons (make_number (x),
+		       Fcons (make_number (y),
+			      Fcons (fully_p ? Qt : Qnil, Qnil)));
   return in_window;
 }
 
@@ -2078,6 +2065,7 @@ check_all_windows ()
 
 DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 1, 0,
        doc: /* Return the window least recently selected or used for display.
+Return a full-width window if possible.
 If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
@@ -3459,7 +3447,7 @@ DEFUN ("force-window-update", Fforce_window_update, Sforce_window_update,
        0, 1, 0,
        doc: /* Force redisplay of all windows.
 If optional arg OBJECT is a window, force redisplay of that window only.
-If OBJECT is a buffer or buffer name, force redisplay of all windows 
+If OBJECT is a buffer or buffer name, force redisplay of all windows
 displaying that buffer.  */)
      (object)
      Lisp_Object object;
@@ -3481,7 +3469,7 @@ displaying that buffer.  */)
       ++update_mode_lines;
       return Qt;
     }
-    
+
   if (STRINGP (object))
     object = Fget_buffer (object);
   if (BUFFERP (object) && !NILP (XBUFFER (object)->name))
@@ -3546,7 +3534,7 @@ temp_output_buffer_show (buf)
 	  Lisp_Object prev_window, prev_buffer;
 	  prev_window = selected_window;
 	  XSETBUFFER (prev_buffer, old);
-	  
+
 	  /* Select the window that was chosen, for running the hook.
 	     Note: Both Fselect_window and select_window_norecord may
 	     set-buffer to the buffer displayed in the window,
@@ -6066,7 +6054,7 @@ If TYPE is t, use the frame's scroll-bar type.  */)
     vertical_type = Qnil;
 
   if (!(EQ (vertical_type, Qnil)
-	|| EQ (vertical_type, Qleft) 
+	|| EQ (vertical_type, Qleft)
 	|| EQ (vertical_type, Qright)
 	|| EQ (vertical_type, Qt)))
     error ("Invalid type of vertical scroll bar");
@@ -6115,12 +6103,13 @@ value.  */)
 			   Smooth scrolling
  ***********************************************************************/
 
-DEFUN ("window-vscroll", Fwindow_vscroll, Swindow_vscroll, 0, 1, 0,
+DEFUN ("window-vscroll", Fwindow_vscroll, Swindow_vscroll, 0, 2, 0,
        doc: /* Return the amount by which WINDOW is scrolled vertically.
 Use the selected window if WINDOW is nil or omitted.
-Value is a multiple of the canonical character height of WINDOW.  */)
-     (window)
-     Lisp_Object window;
+Normally, value is a multiple of the canonical character height of WINDOW;
+optional second arg PIXELS_P means value is measured in pixels.  */)
+  (window, pixels_p)
+     Lisp_Object window, pixels_p;
 {
   Lisp_Object result;
   struct frame *f;
@@ -6134,7 +6123,9 @@ Value is a multiple of the canonical character height of WINDOW.  */)
   f = XFRAME (w->frame);
 
   if (FRAME_WINDOW_P (f))
-    result = FRAME_CANON_Y_FROM_PIXEL_Y (f, -w->vscroll);
+    result = (NILP (pixels_p)
+	      ? FRAME_CANON_Y_FROM_PIXEL_Y (f, -w->vscroll)
+	      : make_number (-w->vscroll));
   else
     result = make_number (0);
   return result;
@@ -6142,12 +6133,13 @@ Value is a multiple of the canonical character height of WINDOW.  */)
 
 
 DEFUN ("set-window-vscroll", Fset_window_vscroll, Sset_window_vscroll,
-       2, 2, 0,
+       2, 3, 0,
        doc: /* Set amount by which WINDOW should be scrolled vertically to VSCROLL.
-WINDOW nil means use the selected window.  VSCROLL is a non-negative
-multiple of the canonical character height of WINDOW.  */)
-     (window, vscroll)
-     Lisp_Object window, vscroll;
+WINDOW nil means use the selected window.  Normally, VSCROLL is a
+non-negative multiple of the canonical character height of WINDOW;
+optional third arg PIXELS_P non-nil means that VSCROLL is in pixels.  */)
+  (window, vscroll, pixels_p)
+     Lisp_Object window, vscroll, pixels_p;
 {
   struct window *w;
   struct frame *f;
@@ -6165,7 +6157,9 @@ multiple of the canonical character height of WINDOW.  */)
     {
       int old_dy = w->vscroll;
 
-      w->vscroll = - FRAME_LINE_HEIGHT (f) * XFLOATINT (vscroll);
+      w->vscroll = - (NILP (pixels_p)
+		      ? FRAME_LINE_HEIGHT (f) * XFLOATINT (vscroll)
+		      : XFLOATINT (vscroll));
       w->vscroll = min (w->vscroll, 0);
 
       /* Adjust glyph matrix of the frame if the virtual display
@@ -6177,7 +6171,7 @@ multiple of the canonical character height of WINDOW.  */)
       XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
     }
 
-  return Fwindow_vscroll (window);
+  return Fwindow_vscroll (window, pixels_p);
 }
 
 

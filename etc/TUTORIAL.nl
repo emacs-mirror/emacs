@@ -302,16 +302,21 @@ kunt zien, zoals A, 7, *, en dergelijke, worden door Emacs als tekst
 geïnterpreteerd en meteen aan de tekst.  Type <Return> (de `volgende regel'
 toets) om een Newline toe te voegen en dus een nieuwe regel te beginnen.
 
-Je kunt het laatste teken dat je intypte weghalen door <Delete> te typen.
-<Delete> is een toets op het toetsenbord, die soms ook wel "Del"
-heet.  In sommige gevallen dient de "Backspace" toets als <Delete>, maar
-niet altijd!
+Je kunt het laatste teken dat je intypte weghalen door <Delback> te typen.
+<Delback> is een toets op het toetsenbord--dezelfde toets die je normaal
+gesproken gebruikt, buiten Emacs, om het laatst ingetypte teken te wissen.
+Het is meestal een grote toets, een paar rijen boven de <Return> toets,
+waar "Delete", "Del" of "Backspace" op staat.
 
-In het algemeen haalt <Delete> het teken dat juist voor de cursorpositie
+Als er op die grote toets "Backspace" staat, dan is dat degene die je
+gebruikt voor <Delback>.  Er kan op een andere plaats ook nog een andere
+toets zijn waarop "Delete" staat, maar dat is niet <Delback>.
+
+In het algemeen haalt <Delback> het teken dat juist voor de cursorpositie
 staat weg.
 
 >> Probeer dit nu: type een paar letters en haal ze weer weg door een paar
-   keer op <Delete> te drukken.  Maak je niet druk over het feit dat dit
+   keer op <Delback> te drukken.  Maak je niet druk over het feit dat dit
    bestand verandert; je zult niets veranderen aan de originele versie van
    deze uitleg.  Je zit slechts je eigen kopie te wijzigen.
 
@@ -323,7 +328,7 @@ schermregel verder gaat.
 >> Voeg nu tekst toe totdat je de rechter kantlijn raakt, en blijf
    toevoegen.  Je zult zien dat er een vervolgregel verschijnt.
 
->> Type weer enkele keren <Delete> om zoveel tekens weg te halen tot
+>> Type weer enkele keren <Delback> om zoveel tekens weg te halen tot
    de regel weer op een schermregel past.  De vervolgregel zal verdwijnen.
 
 Je kunt een Newline weggooien als elk ander teken.  Als je een Newline
@@ -331,7 +336,7 @@ weggooit voeg je de twee regels waar de Newline tussen staat samen tot een
 enkele regel.  Als de regel die het resultaat is van deze operatie niet op
 een schermregel past zal hij getoond worden met een vervolgregel.
 
->> Beweeg de cursor naar het begin van een regel en type <Delete>.  Dit
+>> Beweeg de cursor naar het begin van een regel en type <Delback>.  Dit
    voegt de huidige en vorige regel samen.
 
 >> Type <Return> om de Newline die je net weggooide weer toe te voegen.
@@ -346,18 +351,18 @@ Je hebt nu de basismanier geleerd om iets in Emacs te typen en fouten te
 corrigeren.  Je kunt tekst ook per woord of regel weggooien.  Hier volgt
 een samenvatting van de commando's om tekst te verwijderen:
 
-	<Delete>     haal het teken weg dat voor de cursor staat
+	<Delback>    haal het teken weg dat voor de cursor staat
 	C-d	     haal het teken weg dat achter de cursor staat
 
-	M-<Delete>   gooi het woord weg dat voor de cursor staat
+	M-<Delback>  gooi het woord weg dat voor de cursor staat
 	M-d	     gooi het woord weg dat achter de cursor staat
 
 	C-k	     gooi alles weg van de cursor tot het eind van de regel
 	M-k	     gooi alles weg van de cursor tot het eind van de zin
 
-Merk op dat <Delete> en C-d met M-<Delete> en M-d de analogie die begon
+Merk op dat <Delback> en C-d met M-<Delback> en M-d de analogie die begon
 met C-f en M-f verder trekken (waarbij we voor het gemak even vergeten dat
-<Delete> niet echt een control teken is).  C-k en M-k lijken enigzins op
+<Delback> niet echt een control teken is).  C-k en M-k lijken enigzins op
 C-e en M-e in hun relatie tot regels en zinnen.
 
 Als je meer dan een enkel teken tegelijk weghaalt bewaart Emacs de tekst
@@ -825,8 +830,7 @@ het zoeken.
    zien wat er met de cursor gebeurt.  Je hebt nu eenmaal naar het woord
    `cursor' gezocht.
 >> Type nogmaals C-s, om het volgende woord `cursor' te zoeken
-  
-> Type nu viermaal <Delete> en let op de cursorbewegingen.
+>> Type nu viermaal <Delback> en let op de cursorbewegingen.
 >> Type <RET> om het zoeken te beëindigen.
 
 Zag je wat er gebeurde?  Tijdens incrementeel zoeken probeert Emacs naar
@@ -835,12 +839,12 @@ hebt.  Om naar de volgende plek te gaan, type je C-s nog een keer.  Als er
 geen volgende plek is gevonden piept Emacs en vertelt je dat de zoekopdracht
 is beëindigd. (`failing' in het Engels); met C-g kun je het zoeken afbreken.
 
-Als je tijdens incrementeel zoeken <Delete> typt, zul je zien dat het
+Als je tijdens incrementeel zoeken <Delback> typt, zul je zien dat het
 laatste teken dat je in de zoekstring typte weggehaald wordt en dat het
 zoeken teruggaat naar de voorgaande plaats.  Als je bijvoorbeeld begint
 met zoeken en je typt een "c" dan ga je naar de plaats waar de "c" het
 eerst voorkomt.  Type je vervolgens een "u" dan gaat de cursor naar de
-plaats waar de string "cu" het eerst voorkomt".  Als je nu <Delete> typt, dan
+plaats waar de string "cu" het eerst voorkomt".  Als je nu <Delback> typt, dan
 wordt de "u" van de zoekstring afgehaald en gaat de cursor terug naar de
 plaats waar hij stond voordat je de "u" intypte, i.e. de plaats waar "c" het
 eerst voorkomt.
@@ -1087,5 +1091,9 @@ The conditions for copying Emacs itself are more complex, but in the
 same spirit.  Please read the file COPYING and then do give copies of
 GNU Emacs to your friends.  Help stamp out software obstructionism
 ("ownership") by using, writing, and sharing free software!)
+
+;;; Local Variables:
+;;;   coding: latin-1
+;;; End:
 
 ;;; arch-tag: 3399e308-e605-4125-8fbb-b2fe91ac3149

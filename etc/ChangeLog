@@ -1,3 +1,22 @@
+2004-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* TODO: Use outline mode.  Remove compile.el entry (done).
+
+2004-04-18  Juri Linkov  <juri@jurta.org>
+
+	* TUTORIAL.fr, TUTORIAL.pl, TUTORIAL.ru, TUTORIAL.sl, TUTORIAL.sv
+	* TUTORIAL.th: Add sentence-end-double-space: nil.
+
+	* TUTORIAL.it, TUTORIAL.nl, TUTORIAL.sv: Add coding: latin-1.
+
+2004-04-16  David Kastrup  <dak@gnu.org>
+
+	* TUTORIAL.ru: Changes by Alex Ott checked in.
+
+2004-04-14  Jan Nieuwenhuizen  <janneke@gnu.org>
+
+	* TUTORIAL.nl: Update Delete/Delback translation.
+
 2004-04-05  Jesper Harder  <harder@ifa.au.dk>
 
 	* TODO: Remove index-apropos entry.

@@ -1,3 +1,11 @@
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* nmake.defs:
+	* gmake.defs:
+	* makefile.w32-in:
+	* makefile.def:
+	* makefile.nt: Add "-*- makefile -*-" mode tag.
+
 2004-04-10  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>
 
 	* runemacs.c (WinMain): Let emacs environment default to parent.

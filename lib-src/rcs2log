@@ -2,34 +2,57 @@
 
 # RCS to ChangeLog generator
 
-# Generate a change log prefix from RCS files (perhaps in the CVS repository)
-# and the ChangeLog (if any).
-# Output the new prefix to standard output.
-# You can edit this prefix by hand, and then prepend it to ChangeLog.
+Help='
+Generate ChangeLog entries from RCS files (perhaps in a CVS repository)
+and the ChangeLog file (if any).  An RCS file typically has a name
+ending in ",v", and represents the entire history of a file that is
+under revision control.  The ChangeLog file logs entries for changes,
+in reverse chronological order.
 
-# Ignore log entries that start with `#'.
-# Clump together log entries that start with `{topic} ',
-# where `topic' contains neither white space nor `}'.
+Generate entries for changes entered into RCS (or CVS) more recently
+than the newest existing entry in the ChangeLog file.  You can then
+edit these entries by hand, and prepend them to the ChangeLog file.
 
-Help='The default FILEs are the files registered under the working directory.
+Output the resulting ChangeLog entries to standard output.
+Each entry looks something like this:
+
+2004-04-17  Paul Eggert  <eggert@gnu.org>
+
+	* rcs2log (Help): Clarify wording of the usage message.
+	Problem reported by Alan Mackenzie in
+	<http://mail.gnu.org/archive/html/bug-gnu-emacs/2004-04/msg00188.html>.
+
+ChangeLog entries contain the current date, full name, email address
+including hostname, the name of the affected file, and commentary.
+RCS and CVS logs lack full names and email addresses, so they are
+inferred from login names using a heuristic that can be overridden
+via the -u option.
+
+Ignore log entries that start with "#".
+Clump together log entries that start with "{topic} ",
+where "topic" contains neither white space nor "}".
+
+If no FILE is specified, use all files under the working directory
+that are maintained under version control.
+
 Options:
 
-  -c CHANGELOG  Output a change log prefix to CHANGELOG (default ChangeLog).
+  -c FILE  Output ChangeLog entries for FILE (default ChangeLog).
   -h HOSTNAME  Use HOSTNAME in change log entries (default current host).
   -i INDENT  Indent change log lines by INDENT spaces (default 8).
   -l LENGTH  Try to limit log lines to LENGTH characters (default 79).
-  -L FILE  Use rlog-format FILE for source of logs.
+  -L FILE  Use FILE (same format as "rlog") for source of logs.
   -R  If no FILEs are given and RCS is used, recurse through working directory.
-  -r OPTION  Pass OPTION to subsidiary log command.
+  -r OPTION  Pass OPTION to subsidiary command (either "rlog" or "cvs -q log").
   -t TABWIDTH  Tab stops are every TABWIDTH characters (default 8).
-  -u "LOGIN<tab>FULLNAME<tab>MAILADDR"  Assume LOGIN has FULLNAME and MAILADDR.
+  -u "LOGIN<tab>FULLNAME<tab>EMAILADDR"  LOGIN has FULLNAME and EMAILADDR.
   -v  Append RCS revision to file names in log lines.
   --help  Output help.
   --version  Output version number.
 
 Report bugs to <bug-gnu-emacs@gnu.org>.'
 
-Id='$Id: rcs2log,v 1.53 2004/02/15 07:41:58 uid65632 Exp $'
+Id='$Id$'
 
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003,
 # 2004 Free Software Foundation, Inc.

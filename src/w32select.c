@@ -259,10 +259,17 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
 
   ok = EmptyClipboard () && SetClipboardData (CF_TEXT, htext);
 
+  CloseClipboard ();
+
+  /* Common sense says to read the sequence number inside the
+     OpenClipboard/ CloseClipboard block to avoid race conditions
+     where another app puts something on the clipboard straight after
+     us. But experience suggests that the sequence number from the
+     SetClipboardData is not allocated until we close the clipboard!
+     Since clipboard operations are normally user-driven, the race
+     condition is probably not going to really happen.  */
   if (clipboard_sequence_fn)
     last_clipboard_sequence_number = clipboard_sequence_fn ();
-
-  CloseClipboard ();
 
   if (ok) goto done;
 

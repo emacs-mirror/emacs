@@ -30,15 +30,12 @@ EXFUN (Fdefine_key, 3);
 EXFUN (Flookup_key, 3);
 EXFUN (Fcommand_remapping, 1);
 EXFUN (Fkey_binding, 3);
-EXFUN (Fkey_description, 1);
+EXFUN (Fkey_description, 2);
 EXFUN (Fsingle_key_description, 2);
 EXFUN (Fwhere_is_internal, 5);
 extern Lisp_Object access_keymap P_ ((Lisp_Object, Lisp_Object, int, int, int));
 extern Lisp_Object get_keyelt P_ ((Lisp_Object, int));
 extern Lisp_Object get_keymap P_ ((Lisp_Object, int, int));
-extern void describe_vector P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-				 void (*) (Lisp_Object, Lisp_Object), int,
-				 Lisp_Object, Lisp_Object, int *, int));
 extern void describe_map_tree P_ ((Lisp_Object, int, Lisp_Object, Lisp_Object,
 				   char *, int, int, int));
 extern int current_minor_maps P_ ((Lisp_Object **, Lisp_Object **));

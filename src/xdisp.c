@@ -301,6 +301,7 @@ extern Lisp_Object Qface, Qinvisible, Qwidth;
 Lisp_Object Vdisplay_pixels_per_inch;
 Lisp_Object Qspace, QCalign_to, QCrelative_width, QCrelative_height;
 Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qraise;
+Lisp_Object Qslice;
 Lisp_Object Qcenter;
 Lisp_Object Qmargin, Qpointer;
 extern Lisp_Object Qheight;
@@ -1235,9 +1236,9 @@ line_bottom_y (it)
    and header-lines heights.  */
 
 int
-pos_visible_p (w, charpos, fully, exact_mode_line_heights_p)
+pos_visible_p (w, charpos, fully, x, y, exact_mode_line_heights_p)
      struct window *w;
-     int charpos, *fully, exact_mode_line_heights_p;
+     int charpos, *fully, *x, *y, exact_mode_line_heights_p;
 {
   struct it it;
   struct text_pos top;
@@ -1285,14 +1286,27 @@ pos_visible_p (w, charpos, fully, exact_mode_line_heights_p)
 	  visible_p = 1;
 	  *fully = bottom_y <= it.last_visible_y;
 	}
+      if (visible_p && x)
+	{
+	  *x = it.current_x;
+	  *y = max (top_y + it.max_ascent - it.ascent, window_top_y);
+	}
     }
   else if (it.current_y + it.max_ascent + it.max_descent > it.last_visible_y)
     {
+      struct it it2;
+
+      it2 = it;
       move_it_by_lines (&it, 1, 0);
       if (charpos < IT_CHARPOS (it))
 	{
 	  visible_p = 1;
-	  *fully  = 0;
+	  if (x)
+	    {
+	      move_it_to (&it2, charpos, -1, -1, -1, MOVE_TO_POS);
+	      *x = it2.current_x;
+	      *y = it2.current_y + it2.max_ascent - it2.ascent;
+	    }
 	}
     }
 
@@ -1300,6 +1314,7 @@ pos_visible_p (w, charpos, fully, exact_mode_line_heights_p)
     set_buffer_internal_1 (old_buffer);
 
   current_header_line_height = current_mode_line_height = -1;
+
   return visible_p;
 }
 
@@ -2067,7 +2082,8 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   if (FRAME_FACE_CACHE (it->f)->used == 0)
     recompute_basic_faces (it->f);
 
-  /* Current value of the `space-width', and 'height' properties.  */
+  /* Current value of the `slice', `space-width', and 'height' properties.  */
+  it->slice.x = it->slice.y = it->slice.width = it->slice.height = Qnil;
   it->space_width = Qnil;
   it->font_height = Qnil;
 
@@ -3275,8 +3291,9 @@ handle_display_prop (it)
     }
 
   /* Reset those iterator values set from display property values.  */
-  it->font_height = Qnil;
+  it->slice.x = it->slice.y = it->slice.width = it->slice.height = Qnil;
   it->space_width = Qnil;
+  it->font_height = Qnil;
   it->voffset = 0;
 
   /* We don't support recursive `display' properties, i.e. string
@@ -3295,6 +3312,7 @@ handle_display_prop (it)
       && !EQ (XCAR (prop), Qimage)
       && !EQ (XCAR (prop), Qspace)
       && !EQ (XCAR (prop), Qwhen)
+      && !EQ (XCAR (prop), Qslice)
       && !EQ (XCAR (prop), Qspace_width)
       && !EQ (XCAR (prop), Qheight)
       && !EQ (XCAR (prop), Qraise)
@@ -3489,6 +3507,30 @@ handle_single_display_prop (it, prop, object, position,
       value = XCAR (XCDR (prop));
       if (NUMBERP (value) && XFLOATINT (value) > 0)
 	it->space_width = value;
+    }
+  else if (CONSP (prop)
+	   && EQ (XCAR (prop), Qslice))
+    {
+      /* `(slice X Y WIDTH HEIGHT)'.  */
+      Lisp_Object tem;
+
+      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
+	return 0;
+
+      if (tem = XCDR (prop), CONSP (tem))
+	{
+	  it->slice.x = XCAR (tem);
+	  if (tem = XCDR (tem), CONSP (tem))
+	    {
+	      it->slice.y = XCAR (tem);
+	      if (tem = XCDR (tem), CONSP (tem))
+		{
+		  it->slice.width = XCAR (tem);
+		  if (tem = XCDR (tem), CONSP (tem))
+		    it->slice.height = XCAR (tem);
+		}
+	    }
+	}
     }
   else if (CONSP (prop)
 	   && EQ (XCAR (prop), Qraise)
@@ -4331,6 +4373,7 @@ push_it (it)
   p->string_nchars = it->string_nchars;
   p->area = it->area;
   p->multibyte_p = it->multibyte_p;
+  p->slice = it->slice;
   p->space_width = it->space_width;
   p->font_height = it->font_height;
   p->voffset = it->voffset;
@@ -4363,6 +4406,7 @@ pop_it (it)
   it->string_nchars = p->string_nchars;
   it->area = p->area;
   it->multibyte_p = p->multibyte_p;
+  it->slice = p->slice;
   it->space_width = p->space_width;
   it->font_height = p->font_height;
   it->voffset = p->voffset;
@@ -9428,7 +9472,7 @@ update_overlay_arrows (up_to_date)
       if (!SYMBOLP (var))
 	continue;
 
-      if (up_to_date)
+      if (up_to_date > 0)
 	{
 	  Lisp_Object val = find_symbol_value (var);
 	  Fput (var, Qlast_arrow_position,
@@ -10762,15 +10806,14 @@ make_cursor_line_fully_visible (w, force_p)
   if (!MATRIX_ROW_PARTIALLY_VISIBLE_P (row))
     return 1;
 
-  if (force_p)
-    return 0;
-
   /* If the row the cursor is in is taller than the window's height,
      it's not clear what to do, so do nothing.  */
   window_height = window_box_height (w);
   if (row->height >= window_height)
-    return 1;
-
+    {
+      if (!force_p || w->vscroll)
+	return 1;
+    }
   return 0;
 
 #if 0
@@ -10878,6 +10921,12 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
     }
   else
     this_scroll_margin = 0;
+
+  /* Force scroll_conservatively to have a reasonable value so it doesn't
+     cause an overflow while computing how much to scroll.  */
+  if (scroll_conservatively)
+    scroll_conservatively = min (scroll_conservatively,
+                                 MOST_POSITIVE_FIXNUM / FRAME_LINE_HEIGHT (f));
 
   /* Compute how much we should try to scroll maximally to bring point
      into view.  */
@@ -14148,8 +14197,12 @@ append_space (it, default_face_p)
 	  face = FACE_FROM_ID (it->f, it->face_id);
 	  it->face_id = FACE_FOR_CHAR (it->f, face, 0);
 
+	  if (it->max_ascent > 0 || it->max_descent > 0)
+	    it->constrain_row_ascent_descent_p = 1;
+
 	  PRODUCE_GLYPHS (it);
 
+	  it->constrain_row_ascent_descent_p = 0;
 	  it->current_x = saved_x;
 	  it->object = saved_object;
 	  it->position = saved_pos;
@@ -17296,6 +17349,7 @@ fill_image_glyph_string (s)
   xassert (s->first_glyph->type == IMAGE_GLYPH);
   s->img = IMAGE_FROM_ID (s->f, s->first_glyph->u.img_id);
   xassert (s->img);
+  s->slice = s->first_glyph->slice;
   s->face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
   s->font = s->face->font;
   s->width = s->first_glyph->pixel_width;
@@ -18094,7 +18148,7 @@ take_vertical_position_into_account (it)
       if (it->voffset < 0)
 	/* Increase the ascent so that we can display the text higher
 	   in the line.  */
-	it->ascent += abs (it->voffset);
+	it->ascent -= it->voffset;
       else
 	/* Increase the descent so that we can display the text lower
 	   in the line.  */
@@ -18114,6 +18168,7 @@ produce_image_glyph (it)
   struct image *img;
   struct face *face;
   int face_ascent, glyph_ascent;
+  struct glyph_slice slice;
 
   xassert (it->what == IT_IMAGE);
 
@@ -18137,19 +18192,68 @@ produce_image_glyph (it)
   /* Make sure X resources of the image is loaded.  */
   prepare_image_for_display (it->f, img);
 
-  it->ascent = it->phys_ascent = glyph_ascent = image_ascent (img, face);
-  it->descent = it->phys_descent = img->height + 2 * img->vmargin - it->ascent;
-  it->pixel_width = img->width + 2 * img->hmargin;
+  slice.x = slice.y = 0;
+  slice.width = img->width;
+  slice.height = img->height;
+
+  if (INTEGERP (it->slice.x))
+    slice.x = XINT (it->slice.x);
+  else if (FLOATP (it->slice.x))
+    slice.x = XFLOAT_DATA (it->slice.x) * img->width;
+
+  if (INTEGERP (it->slice.y))
+    slice.y = XINT (it->slice.y);
+  else if (FLOATP (it->slice.y))
+    slice.y = XFLOAT_DATA (it->slice.y) * img->height;
+
+  if (INTEGERP (it->slice.width))
+    slice.width = XINT (it->slice.width);
+  else if (FLOATP (it->slice.width))
+    slice.width = XFLOAT_DATA (it->slice.width) * img->width;
+
+  if (INTEGERP (it->slice.height))
+    slice.height = XINT (it->slice.height);
+  else if (FLOATP (it->slice.height))
+    slice.height = XFLOAT_DATA (it->slice.height) * img->height;
+
+  if (slice.x >= img->width)
+    slice.x = img->width;
+  if (slice.y >= img->height)
+    slice.y = img->height;
+  if (slice.x + slice.width >= img->width)
+    slice.width = img->width - slice.x;
+  if (slice.y + slice.height > img->height)
+    slice.height = img->height - slice.y;
+
+  if (slice.width == 0 || slice.height == 0)
+    return;
+
+  it->ascent = it->phys_ascent = glyph_ascent = image_ascent (img, face, &slice);
+
+  it->descent = slice.height - glyph_ascent;
+  if (slice.y == 0)
+    it->descent += img->vmargin;
+  if (slice.y + slice.height == img->height)
+    it->descent += img->vmargin;
+  it->phys_descent = it->descent;
+
+  it->pixel_width = slice.width;
+  if (slice.x == 0)
+    it->pixel_width += img->hmargin;
+  if (slice.x + slice.width == img->width)
+    it->pixel_width += img->hmargin;
 
   /* It's quite possible for images to have an ascent greater than
      their height, so don't get confused in that case.  */
   if (it->descent < 0)
     it->descent = 0;
 
+#if 0  /* this breaks image tiling */
   /* If this glyph is alone on the last line, adjust it.ascent to minimum row ascent.  */
   face_ascent = face->font ? FONT_BASE (face->font) : FRAME_BASELINE_OFFSET (it->f);
   if (face_ascent > it->ascent)
     it->ascent = it->phys_ascent = face_ascent;
+#endif
 
   it->nglyphs = 1;
 
@@ -18157,13 +18261,15 @@ produce_image_glyph (it)
     {
       if (face->box_line_width > 0)
 	{
-	  it->ascent += face->box_line_width;
-	  it->descent += face->box_line_width;
+	  if (slice.y == 0)
+	    it->ascent += face->box_line_width;
+	  if (slice.y + slice.height == img->height)
+	    it->descent += face->box_line_width;
 	}
 
-      if (it->start_of_box_run_p)
+      if (it->start_of_box_run_p && slice.x == 0)
 	it->pixel_width += abs (face->box_line_width);
-      if (it->end_of_box_run_p)
+      if (it->end_of_box_run_p && slice.x + slice.width == img->width)
 	it->pixel_width += abs (face->box_line_width);
     }
 
@@ -18192,6 +18298,7 @@ produce_image_glyph (it)
 	  glyph->glyph_not_available_p = 0;
 	  glyph->face_id = it->face_id;
 	  glyph->u.img_id = img->id;
+	  glyph->slice = slice;
 	  glyph->font_type = FONT_TYPE_UNKNOWN;
 	  ++it->glyph_row->used[area];
 	}
@@ -18485,6 +18592,7 @@ x_produce_glyphs (it)
 
 	  pcm = rif->per_char_metric (font, &char2b,
 				      FONT_TYPE_FOR_UNIBYTE (font, it->char_to_display));
+
 	  it->ascent = FONT_BASE (font) + boff;
 	  it->descent = FONT_DESCENT (font) - boff;
 
@@ -18497,9 +18605,25 @@ x_produce_glyphs (it)
 	  else
 	    {
 	      it->glyph_not_available_p = 1;
-              it->phys_ascent = FONT_BASE (font) + boff;
-              it->phys_descent = FONT_DESCENT (font) - boff;
+	      it->phys_ascent = it->ascent;
+	      it->phys_descent = it->descent;
 	      it->pixel_width = FONT_WIDTH (font);
+	    }
+
+	  if (it->constrain_row_ascent_descent_p)
+	    {
+	      if (it->descent > it->max_descent)
+		{
+		  it->ascent += it->descent - it->max_descent;
+		  it->descent = it->max_descent;
+		}
+	      if (it->ascent> it->max_ascent)
+		{
+		  it->descent = min (it->max_descent, it->descent + it->ascent - it->max_ascent);
+		  it->ascent = it->max_ascent;
+		}
+	      it->phys_ascent = min (it->phys_ascent, it->ascent);
+	      it->phys_descent = min (it->phys_descent, it->descent);
 	    }
 
 	  /* If this is a space inside a region of text with
@@ -18534,6 +18658,14 @@ x_produce_glyphs (it)
 	  if (face->overline_p)
 	    it->ascent += 2;
 
+	  if (it->constrain_row_ascent_descent_p)
+	    {
+	      if (it->ascent > it->max_ascent)
+		it->ascent = it->max_ascent;
+	      if (it->descent > it->max_descent)
+		it->descent = it->max_descent;
+	    }
+
 	  take_vertical_position_into_account (it);
 
 	  /* If we have to actually produce glyphs, do it.  */
@@ -18560,13 +18692,31 @@ x_produce_glyphs (it)
 	}
       else if (it->char_to_display == '\n')
 	{
-	  /* A newline has no width but we need the height of the line.  */
+	  /* A newline has no width but we need the height of the line.
+	     But if previous part of the line set a height, don't
+	     increase that height */
+
 	  it->pixel_width = 0;
 	  it->nglyphs = 0;
-	  it->ascent = it->phys_ascent = FONT_BASE (font) + boff;
-	  it->descent = it->phys_descent = FONT_DESCENT (font) - boff;
 
-	  if (face->box != FACE_NO_BOX
+	  it->ascent = FONT_BASE (font) + boff;
+	  it->descent = FONT_DESCENT (font) - boff;
+
+	  if (it->max_ascent > 0 || it->max_descent > 0)
+	    {
+	      it->ascent = it->descent = 0;
+	    }
+	  else
+	    {
+	      it->ascent = FONT_BASE (font) + boff;
+	      it->descent = FONT_DESCENT (font) - boff;
+	    }
+
+	  it->phys_ascent = it->ascent;
+	  it->phys_descent = it->descent;
+
+	  if ((it->max_ascent > 0 || it->max_descent > 0)
+	      && face->box != FACE_NO_BOX
 	      && face->box_line_width > 0)
 	    {
 	      it->ascent += face->box_line_width;
@@ -20541,7 +20691,9 @@ note_mouse_highlight (f, x, y)
 	      Lisp_Object image_map, hotspot;
 	      if ((image_map = Fplist_get (XCDR (img->spec), QCmap),
 		   !NILP (image_map))
-		  && (hotspot = find_hot_spot (image_map, dx, dy),
+		  && (hotspot = find_hot_spot (image_map,
+					       glyph->slice.x + dx,
+					       glyph->slice.y + dy),
 		      CONSP (hotspot))
 		  && (hotspot = XCDR (hotspot), CONSP (hotspot)))
 		{
@@ -21578,6 +21730,8 @@ syms_of_xdisp ()
   staticpro (&Qspace_width);
   Qraise = intern ("raise");
   staticpro (&Qraise);
+  Qslice = intern ("slice");
+  staticpro (&Qslice);
   Qspace = intern ("space");
   staticpro (&Qspace);
   Qmargin = intern ("margin");

@@ -933,7 +933,7 @@ primitive that waits.
 streams of the subprocess, because Emacs normally spawns the subprocess
 inside a pseudo-TTY, and a pseudo-TTY has only one output channel.  If
 you want to keep the output to those streams separate, you should
-redirect one of them to a file--for example, by using an appropriate
+redirect one of them to a file---for example, by using an appropriate
 shell command.
 
 @menu
@@ -1896,7 +1896,7 @@ that port.
 @end table
 
 The original argument list, modified with the actual connection
-information, is available via the `process-contact' function.
+information, is available via the @code{process-contact} function.
 @end defun
 
 @defun set-network-process-option process option value
@@ -1905,7 +1905,7 @@ This function sets or modifies a network option for network process
 @var{option} and their corresponding values @var{value}.
 
 The current setting of an option is available via the
-`process-contact' function.
+@code{process-contact} function.
 @end defun
 
 @defun network-interface-list

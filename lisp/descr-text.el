@@ -474,6 +474,7 @@ as well as widgets, buttons, overlays, and text properties."
 			    standard-display-table))
 	 (disp-vector (and display-table (aref display-table char)))
 	 (multibyte-p enable-multibyte-characters)
+	 text-prop-description
 	 item-list max-width unicode)
     (if (eq charset 'unknown)
 	(setq item-list
@@ -582,8 +583,14 @@ as well as widgets, buttons, overlays, and text properties."
 		      (cons (list "Unicode data" " ") unicodedata))))))
     (setq max-width (apply #'max (mapcar #'(lambda (x) (length (car x)))
 					 item-list)))
-    (when (eq (current-buffer) (get-buffer "*Help*"))
-      (error "Can't describe char in Help buffer"))
+    (setq text-prop-description
+	  (with-temp-buffer
+	    (let ((buf (current-buffer)))
+	      (save-excursion
+		(set-buffer buffer)
+		(describe-text-properties pos buf)))
+	    (buffer-string)))
+
     (with-output-to-temp-buffer "*Help*"
       (with-current-buffer standard-output
 	(set-buffer-multibyte multibyte-p)
@@ -658,10 +665,8 @@ as well as widgets, buttons, overlays, and text properties."
 	  (insert "\nSee the variable `reference-point-alist' for "
 		  "the meaning of the rule.\n"))
 
-	(let ((output (current-buffer)))
-	  (with-current-buffer buffer
-	    (describe-text-properties pos output))
-	  (describe-text-mode))))))
+	(insert text-prop-description)
+	(describe-text-mode)))))
 
 (defalias 'describe-char-after 'describe-char)
 (make-obsolete 'describe-char-after 'describe-char "21.5")

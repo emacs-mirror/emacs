@@ -7407,7 +7407,7 @@ parse_menu_item (item, notreal, inmenubar)
       newcache = chkcache;
       if (chkcache)
 	{
-	  tem = Fkey_description (tem);
+	  tem = Fkey_description (tem, Qnil);
 	  if (CONSP (prefix))
 	    {
 	      if (STRINGP (XCAR (prefix)))
@@ -9806,7 +9806,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	  int count = SPECPDL_INDEX ();
 
 	  record_unwind_protect (pop_message_unwind, Qnil);
-	  binding = Fkey_description (bindings);
+	  binding = Fkey_description (bindings, Qnil);
 
 	  newmessage
 	    = (char *) alloca (SCHARS (SYMBOL_NAME (function))
@@ -10489,6 +10489,61 @@ The elements of this list correspond to the arguments of
   return Flist (sizeof (val) / sizeof (val[0]), val);
 }
 
+DEFUN ("posn-at-x-y", Fposn_at_x_y, Sposn_at_x_y, 2, 3, 0,
+       doc: /* Return position information for pixel coordinates X and Y.
+By default, X and Y are relative to text area of the selected window.
+Optional third arg FRAME_OR_WINDOW non-nil specifies frame or window.
+
+The return value is similar to a mouse click position:
+   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
+    IMAGE (DX . DY) (WIDTH . HEIGHT))
+The `posn-' functions access elements of such lists.  */)
+  (x, y, frame_or_window)
+     Lisp_Object x, y, frame_or_window;
+{
+  if (NILP (frame_or_window))
+    frame_or_window = selected_window;
+
+  if (WINDOWP (frame_or_window))
+    {
+      struct window *w;
+
+      CHECK_LIVE_WINDOW (frame_or_window);
+
+      w = XWINDOW (frame_or_window);
+      XSETINT (x, (WINDOW_TO_FRAME_PIXEL_X (w, XINT (x))
+		   + window_box_left_offset (w, TEXT_AREA)));
+      XSETINT (y, WINDOW_TO_FRAME_PIXEL_Y (w, XINT (y)));
+      frame_or_window = w->frame;
+    }
+
+  CHECK_LIVE_FRAME (frame_or_window);
+
+  return make_lispy_position (XFRAME (frame_or_window), &x, &y, 0);
+}
+
+DEFUN ("posn-at-point", Fposn_at_point, Sposn_at_point, 0, 2, 0,
+       doc: /* Return position information for buffer POS in WINDOW.
+POS defaults to point in WINDOW; WINDOW defaults to the selected window.
+
+Return nil if position is not visible in window.  Otherwise,
+the return value is similar to that returned by event-start for
+a mouse click at the upper left corner of the glyph corresponding
+to the given buffer position:
+   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
+    IMAGE (DX . DY) (WIDTH . HEIGHT))
+The `posn-' functions access elements of such lists.  */*/)
+  (pos, window)
+     Lisp_Object pos, window;
+{
+  Lisp_Object tem;
+
+  tem = Fpos_visible_in_window_p (pos, window, Qt);
+  if (!NILP (tem))
+    tem = Fposn_at_x_y (XCAR (tem), XCAR (XCDR (tem)), window);
+  return tem;
+}
+
 
 /*
  * Set up a new kboard object with reasonable initial values.
@@ -10912,6 +10967,8 @@ syms_of_keyboard ()
   defsubr (&Sset_input_mode);
   defsubr (&Scurrent_input_mode);
   defsubr (&Sexecute_extended_command);
+  defsubr (&Sposn_at_point);
+  defsubr (&Sposn_at_x_y);
 
   DEFVAR_LISP ("last-command-char", &last_command_char,
 	       doc: /* Last input event that was part of a command.  */);

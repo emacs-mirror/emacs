@@ -650,14 +650,16 @@ and `down'."
 	(setq type (car type)))
     (if (symbolp type)
 	(cdr (get type 'event-symbol-elements))
-      (let ((list nil))
-	(or (zerop (logand type ?\M-\^@))
+      (let ((list nil)
+	    (char (logand type (lognot (logior ?\M-\^@ ?\C-\^@ ?\S-\^@
+					       ?\H-\^@ ?\s-\^@ ?\A-\^@)))))
+	(if (not (zerop (logand type ?\M-\^@)))
 	    (setq list (cons 'meta list)))
-	(or (and (zerop (logand type ?\C-\^@))
-		 (>= (logand type 127) 32))
+	(if (or (not (zerop (logand type ?\C-\^@)))
+		(< char 32))
 	    (setq list (cons 'control list)))
-	(or (and (zerop (logand type ?\S-\^@))
-		 (= (logand type 255) (downcase (logand type 255))))
+	(if (or (not (zerop (logand type ?\S-\^@)))
+		(/= char (downcase char)))
 	    (setq list (cons 'shift list)))
 	(or (zerop (logand type ?\H-\^@))
 	    (setq list (cons 'hyper list)))
@@ -684,7 +686,7 @@ The value is a printing character (not upper case) or a symbol."
 
 (defsubst event-start (event)
   "Return the starting position of EVENT.
-If EVENT is a mouse press or a mouse click, this returns the location
+If EVENT is a mouse or key press or a mouse click, this returns the location
 of the event.
 If EVENT is a drag, this returns the drag's starting position.
 The return value is of the form
@@ -695,7 +697,8 @@ The `posn-' functions access elements of such lists."
     (list (selected-window) (point) '(0 . 0) 0)))
 
 (defsubst event-end (event)
-  "Return the ending location of EVENT.  EVENT should be a click or drag event.
+  "Return the ending location of EVENT.
+EVENT should be a click, drag, or key press event.
 If EVENT is a click event, this function is the same as `event-start'.
 The return value is of the form
    (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
@@ -732,6 +735,15 @@ and `event-end' functions."
       (if (consp (nth 1 position))
 	  (car (nth 1 position))
 	(nth 1 position))))
+
+(defun posn-set-point (position)
+  "Move point to POSITION.
+Select the corresponding window as well."
+    (if (not (windowp (posn-window position)))
+	(error "Position not in text area of window"))
+    (select-window (posn-window position))
+    (if (numberp (posn-point position))
+	(goto-char (posn-point position))))
 
 (defsubst posn-x-y (position)
   "Return the x and y coordinates in POSITION.
@@ -1325,7 +1337,8 @@ Optional DEFAULT is a default password to use instead of empty input."
     (while
 	(progn
 	  (let ((str (read-from-minibuffer prompt nil nil nil nil
-					   (number-to-string default))))
+					   (and default
+						(number-to-string default)))))
 	    (setq n (cond
 		     ((zerop (length str)) default)
 		     ((stringp str) (read str)))))

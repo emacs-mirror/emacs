@@ -1488,7 +1488,7 @@ more \"DWIM:ey\"."
 				     (save-excursion
 				       (beginning-of-line)
 				       (or (not (re-search-backward
-						 sentence-end
+						 (sentence-end)
 						 (c-point 'bopl)
 						 t))
 					   (< (match-end 0)

@@ -3,6 +3,7 @@
 ;; Copyright (C) 2003, 04  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
+;; Maintainer: FSF
 ;; Created: Nov 2003
 ;; Keywords: languages
 
@@ -66,10 +67,8 @@
 (require 'comint)
 (eval-when-compile
   (require 'compile)
-  (autoload 'Info-last "info")
-  (autoload 'Info-exit "info")
   (autoload 'info-lookup-maybe-add-help "info-look"))
-(autoload 'compilation-start "compile")	; spurious compiler warning anyway
+(autoload 'compilation-start "compile")
 
 (defgroup python nil
   "Silly walks in the Python language"
@@ -605,7 +604,7 @@ start of buffer."
 	(def-re (rx (and line-start (0+ space) (or "def" "class")
 			 (1+ space)
 			 (group (1+ (or word (syntax symbol)))))))
-	point found lep def-line)
+	found lep def-line)
     (if (python-comment-line-p)
 	(setq ci most-positive-fixnum))
     (while (and (not (bobp)) (not found))
@@ -822,17 +821,19 @@ move and return nil.  Otherwise return t."
 
 ;;;; Imenu.
 
+(defvar python-recursing)
 (defun python-imenu-create-index ()
   "`imenu-create-index-function' for Python.
 
 Makes nested Imenu menus from nested `class' and `def' statements.
 The nested menus are headed by an item referencing the outer
 definition; it has a space prepended to the name so that it sorts
-first with `imenu--sort-by-name'."
-  (unless (boundp 'recursing)		; dynamically bound below
+first with `imenu--sort-by-name' (though, unfortunately, sub-menus
+precede it)."
+  (unless (boundp 'python-recursing)		; dynamically bound below
     (goto-char (point-min)))		; normal call from Imenu
   (let (index-alist			; accumulated value to return
-	name is-class pos)
+	name)
     (while (re-search-forward
 	    (rx (and line-start (0+ space) ; leading space
 		     (or (group "def") (group "class"))	    ; type
@@ -845,7 +846,7 @@ first with `imenu--sort-by-name'."
 	      (setq name (concat "class " name)))
 	  (save-restriction
 	    (narrow-to-defun)
-	    (let* ((recursing t)
+	    (let* ((python-recursing t)
 		   (sublist (python-imenu-create-index)))
 	      (if sublist
 		  (progn (push (cons (concat " " name) pos) sublist)
@@ -936,32 +937,37 @@ Additional arguments are added when the command is used by `run-python'
 et al.")
 
 (defvar python-buffer nil
-  "*The current python process buffer.
-To run multiple Python processes, start the first with \\[run-python].
-It will be in a buffer named *Python*.  Rename that with
-\\[rename-buffer].  Now start a new process with \\[run-python].  It
-will be in a new buffer, named *Python*.  Switch between the different
-process buffers with \\[switch-to-buffer].
+  "The current python process buffer."
+  ;; Fixme: a single process is currently assumed, so that this doc
+  ;; is misleading.
 
-Commands that send text from source buffers to Python processes have
-to choose a process to send to.  This is determined by global variable
-`python-buffer'.  Suppose you have three inferior Pythons running:
-    Buffer	Process
-    foo		python
-    bar		python<2>
-    *Python*    python<3>
-If you do a \\[python-send-region-and-go] command on some Python source
-code, what process does it go to?
+;;   "*The current python process buffer.
+;; To run multiple Python processes, start the first with \\[run-python].
+;; It will be in a buffer named *Python*.  Rename that with
+;; \\[rename-buffer].  Now start a new process with \\[run-python].  It
+;; will be in a new buffer, named *Python*.  Switch between the different
+;; process buffers with \\[switch-to-buffer].
 
-- In a process buffer (foo, bar, or *Python*), send it to that process.
-- In some other buffer (e.g. a source file), send it to the process
-  attached to `python-buffer'.
-Process selection is done by function `python-proc'.
+;; Commands that send text from source buffers to Python processes have
+;; to choose a process to send to.  This is determined by global variable
+;; `python-buffer'.  Suppose you have three inferior Pythons running:
+;;     Buffer	Process
+;;     foo		python
+;;     bar		python<2>
+;;     *Python*    python<3>
+;; If you do a \\[python-send-region-and-go] command on some Python source
+;; code, what process does it go to?
 
-Whenever \\[run-python] starts a new process, it resets `python-buffer'
-to be the new process's buffer.  If you only run one process, this will
-do the right thing.  If you run multiple processes, you can change
-`python-buffer' to another process buffer with \\[set-variable].")
+;; - In a process buffer (foo, bar, or *Python*), send it to that process.
+;; - In some other buffer (e.g. a source file), send it to the process
+;;   attached to `python-buffer'.
+;; Process selection is done by function `python-proc'.
+
+;; Whenever \\[run-python] starts a new process, it resets `python-buffer'
+;; to be the new process's buffer.  If you only run one process, this will
+;; do the right thing.  If you run multiple processes, you can change
+;; `python-buffer' to another process buffer with \\[set-variable]."
+  )
 
 (defconst python-compilation-regexp-alist
   `((,(rx (and line-start (1+ (any " \t")) "File \""
@@ -970,6 +976,9 @@ do the right thing.  If you run multiple processes, you can change
      1 python-compilation-line-number))
   "`compilation-error-regexp-alist' for inferior Python.")
 
+;; Fixme: This should inherit some stuff from python-mode, but I'm not
+;; sure how much: at least some keybindings, like C-c C-f; syntax?;
+;; font-locking, e.g. for triple-quoted strings?
 (define-derived-mode inferior-python-mode comint-mode "Inferior Python"
   "Major mode for interacting with an inferior Python process.
 A Python process can be started with \\[run-python].
@@ -996,7 +1005,8 @@ For running multiple processes in multiple buffers, see `python-buffer'.
   (add-hook 'comint-input-filter-functions 'python-input-filter nil t)
   (add-hook 'comint-preoutput-filter-functions #'python-preoutput-filter
 	    nil t)
-  ;; Still required by `comint-redirect-send-command', for instance:
+  ;; Still required by `comint-redirect-send-command', for instance
+  ;; (and we need to match things like `>>> ... >>> '):
   (set (make-local-variable 'comint-prompt-regexp) "^\\([>.]\\{3\\} \\)+")
   (set (make-local-variable 'compilation-error-regexp-alist)
        python-compilation-regexp-alist)
@@ -1008,18 +1018,15 @@ Default ignores all inputs of 0, 1, or 2 non-blank characters."
   :type 'regexp
   :group 'python)
 
-(defvar python-orig-start-line nil
-  "Line number at start of region sent to inferior Python.")
-
-(defvar python-orig-file nil
-  "File name to associate with errors found in inferior Python.")
+(defvar python-orig-start nil
+  "Marker to the start of the region passed to the inferior Python.
+It can also be a filename.")
 
 (defun python-input-filter (str)
   "`comint-input-filter' function for inferior Python.
 Don't save anything for STR matching `inferior-python-filter-regexp'.
 Also resets variables for adjusting error messages."
-  (setq python-orig-file nil
-	python-orig-start-line 1)
+  (setq python-orig-start nil)
   (not (string-match inferior-python-filter-regexp str)))
 
 ;; Fixme: Loses with quoted whitespace.
@@ -1035,14 +1042,19 @@ Also resets variables for adjusting error messages."
 (defun python-compilation-line-number (file col)
   "Return error descriptor of error found for FILE, column COL.
 Used as line-number hook function in `python-compilation-regexp-alist'."
-  (let ((line (save-excursion
-		(goto-char (match-beginning 2))
-		(read (current-buffer)))))
-    (list (point-marker) (if python-orig-file
-			     (list python-orig-file default-directory)
-			   file)
-	  (+ line (1- python-orig-start-line))
-	  nil)))
+  (let ((line (string-to-number (match-string 2))))
+    (cons (point-marker)
+	  (if (and (markerp python-orig-start)
+		   (marker-buffer python-orig-start))
+	      (let ((start python-orig-start))
+		(with-current-buffer (marker-buffer python-orig-start)
+		  (goto-char start)
+		  (forward-line (1- line))
+		  (point-marker)))
+	    (list (if (stringp python-orig-start)
+		      (list python-orig-start default-directory)
+		    file)
+		  line col)))))
 
 (defvar python-preoutput-result nil
   "Data from output line last `_emacs_out' line seen by the preoutput filter.")
@@ -1117,8 +1129,8 @@ def _emacs_args (name):  # get arglist of name for eldoc &c
         doc = func.__doc__
         if doc.find (' ->') != -1:
             print '_emacs_out', doc.split (' ->')[0]
-        elif doc.find ('\n') != -1:
-            print '_emacs_out', doc.split ('\n')[0]
+        elif doc.find ('\\n') != -1:
+            print '_emacs_out', doc.split ('\\n')[0]
         return None
     if inspect.ismethod (func): func = func.im_func
     if not inspect.isfunction (func):
@@ -1128,33 +1140,6 @@ def _emacs_args (name):  # get arglist of name for eldoc &c
 
 print '_emacs_ok'"))
   (unless noshow (pop-to-buffer (setq python-buffer "*Python*"))))
-
-(defun python-mouse-2-command (event)
-  "Command bound to `mouse-2' in inferior Python buffer.
-Selects Comint or Compilation mode command as appropriate."
-  (interactive "e")
-  ;; This only works with the font-lock-based compilation mode.
-  (call-interactively
-   (lookup-key (if (save-window-excursion
-		     (save-excursion
-		       (mouse-set-point event)
-		       (consp (get-text-property (line-beginning-position)
-						 'message))))
-		   compilation-mode-map
-		 comint-mode-map)
-	       [mouse-2])))
-
-(defun python-RET-command ()
-  "Command bound to `RET' in inferior Python buffer.
-Selects Comint or Compilation mode command as appropriate."
-  (interactive)
-  ;; This only works with the font-lock-based compilation mode.
-  (call-interactively
-   (lookup-key (if (consp (get-text-property (line-beginning-position)
-					     'message))
-		   compilation-mode-map
-		 comint-mode-map)
-	       "\C-m")))
 
 (defun python-send-region (start end)
   "Send the region to the inferior Python process."
@@ -1177,10 +1162,7 @@ Selects Comint or Compilation mode command as appropriate."
   (interactive "r")
   (let* ((f (make-temp-file "py"))
 	 (command (format "_emacs_execfile(%S)" f))
-	 (orig-file (buffer-file-name))
-	 (orig-line (save-restriction
-		      (widen)
-		      (line-number-at-pos start))))
+	 (orig-start (copy-marker start)))
     (if (save-excursion
 	  (goto-char start)
 	  (/= 0 (current-indentation)))	; need dummy block
@@ -1189,8 +1171,7 @@ Selects Comint or Compilation mode command as appropriate."
     (when python-buffer
       (with-current-buffer python-buffer
 	(let ((end (marker-position (process-mark (python-proc)))))
-	  (set (make-local-variable 'python-orig-file) orig-file)
-	  (set (make-local-variable 'python-orig-start-line) orig-line)
+	  (set (make-local-variable 'python-orig-start) orig-start)
 	  (set (make-local-variable 'compilation-error-list) nil)
 	  (let ((comint-input-filter-functions
 		 (delete 'python-input-filter comint-input-filter-functions)))
@@ -1266,21 +1247,17 @@ module-qualified names."
 	;; (set (make-local-variable 'compilation-old-error-list) nil)
 	(let ((comint-input-filter-functions
 	       (delete 'python-input-filter comint-input-filter-functions)))
+	  (set (make-local-variable 'python-orig-start) nil)
+	  ;; Fixme: I'm not convinced by this logic from python-mode.el.
 	  (python-send-string
 	   (if (string-match "\\.py\\'" file-name)
 	       ;; Fixme: make sure the directory is in the path list
 	       (let ((module (file-name-sans-extension
 			      (file-name-nondirectory file-name))))
-		 (set (make-local-variable 'python-orig-file) nil)
-		 (set (make-local-variable 'python-orig-start-line) nil)
 		 (format "\
-try:
-    if globals().has_key(%S): reload(%s)
-    else: import %s
-except: None
+if globals().has_key(%S): reload(%s)
+else: import %s
 " module module module))
-	     (set (make-local-variable 'python-orig-file) file-name)
-	     (set (make-local-variable 'python-orig-start-line) 1)
 	     (format "execfile('%s')" file-name))))
 	(set-marker compilation-parsing-end end)
 	(setq compilation-last-buffer (current-buffer))))))
@@ -1316,7 +1293,7 @@ Interactively, prompt for symbol."
 	 (enable-recursive-minibuffers t)
 	 val)
      (setq val (read-string (if symbol
-				(format "Describe variable (default %s): "
+				(format "Describe symbol (default %s): "
 				      symbol)
 			      "Describe symbol: ")
 			    nil nil symbol))
@@ -1367,10 +1344,12 @@ Used with `eval-after-load'."
 	 ;; Whether info files have a Python version suffix, e.g. in Debian.
 	 (versioned 
 	  (with-temp-buffer
-	    (Info-mode)
+	    (with-no-warnings (Info-mode))
 	    (condition-case ()
-		(Info-goto-node (format "(python%s-lib)Miscellaneous Index"
-					version))
+		;; Don't use `info' because it would pop-up a *info* buffer.
+		(with-no-warnings
+		 (Info-goto-node (format "(python%s-lib)Miscellaneous Index"
+					 version)))
 	      (error nil)))))
     (info-lookup-maybe-add-help
      :mode 'python-mode
@@ -1436,7 +1415,7 @@ The criterion is either a match for `jython-mode' via
 		(while (re-search-forward
 			(rx (and line-start (or "import" "from") (1+ space)
 				 (group (1+ (not (any " \t\n."))))))
-			10000	     ; Probably not worth customizing.
+			(+ (point-min) 10000) ; Probably not worth customizing.
 			t)
 		  (if (member (match-string 1) python-jython-packages)
 		      (throw 'done t))))
@@ -1558,7 +1537,7 @@ Uses `python-beginning-of-block', `python-end-of-block'."
 
 (defvar outline-heading-end-regexp)
 (defvar eldoc-print-current-symbol-info-function)
-
+(defvar python-mode-running)
 ;;;###autoload
 (define-derived-mode python-mode fundamental-mode "Python"
   "Major mode for editing Python files.

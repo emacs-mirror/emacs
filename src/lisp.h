@@ -382,7 +382,7 @@ enum pvec_type
 
 #ifdef EXPLICIT_SIGN_EXTEND
 /* Make sure we sign-extend; compilers have been known to fail to do so.  */
-#define XINT(a) (((a).i << (BITS_PER_EMACS_INT - VALBITS)) \
+#define XINT(a) (((a).s.val << (BITS_PER_EMACS_INT - VALBITS)) \
 		 >> (BITS_PER_EMACS_INT - VALBITS))
 #else
 #define XINT(a) ((a).s.val)
@@ -400,7 +400,7 @@ enum pvec_type
 extern Lisp_Object make_number ();
 #endif
 
-#define EQ(x, y) ((x).s.val == (y).s.val)
+#define EQ(x, y) ((x).s.val == (y).s.val && (x).s.type == (y).s.type)
 
 #endif /* NO_UNION_TYPE */
 
@@ -2396,7 +2396,8 @@ void set_frame_cursor_types P_ ((struct frame *, Lisp_Object));
 extern void syms_of_xdisp P_ ((void));
 extern void init_xdisp P_ ((void));
 extern Lisp_Object safe_eval P_ ((Lisp_Object));
-extern int pos_visible_p P_ ((struct window *, int, int *, int));
+extern int pos_visible_p P_ ((struct window *, int, int *,
+			      int *, int *, int));
 
 /* Defined in vm-limit.c.  */
 extern void memory_warnings P_ ((POINTER_TYPE *, void (*warnfun) ()));

@@ -1,3 +1,15 @@
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
+
+2004-04-18  Juri Linkov  <juri@jurta.org>
+
+	* fixit.texi (Spelling): Remove file extension from ispell xref.
+
+2004-04-15  Kim F. Storm  <storm@cua.dk>
+
+	* cmdargs.texi (Initial Options): Add -Q.
+
 2004-04-05  Kim F. Storm  <storm@cua.dk>
 
 	* custom.texi (File Variables): Add safe-local-eval-forms.
@@ -97,13 +109,11 @@
 	* cmdargs.texi (Action Arguments): Add alias --find-file.  Add
 	--directory, --help, --version.  Move text about command-line-args
 	to Command Arguments.
-	(Initial Options): Remove alias -batch.  Add @cindex for --script.
-	Fix @cindex for -q.  Add --no-desktop.  Add alias --no-multibyte,
-	--no-unibyte.
+	(Initial Options): Add @cindex for --script.  Fix @cindex for -q.
+	Add --no-desktop.  Add alias --no-multibyte, --no-unibyte.
 	(Window Size X): Join -g and --geometry.  Add @cindex.
 	(Borders X): Fix @cindex for -ib.  Add @cindex for -bw.
 	(Title X): Remove alias -title.
-	(Icons X): Remove alias -iconic.
 	(Misc X): New node.
 
 2004-02-17  Karl Berry  <karl@gnu.org>

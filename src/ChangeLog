@@ -67,6 +67,162 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
+
+2004-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (XINT) [EXPLICIT_SIGN_EXTEND && !NO_UNION_TYPE]:
+	Don't make assumptions about the relative place of i and val.
+	(EQ) [!NO_UNION_TYPE]: Don't forget to check the type match as well.
+
+2004-04-21  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct glyph_slice): New struct.
+	(struct glyph): New member slice.
+	(GLYPH_SLICE_EQUAL_P): New macro.
+	(GLYPH_EQUAL_P): Use it.
+	(struct glyph_string): New member slice.
+	(struct it_slice): New struct.
+	(struct it): New member slice, add member to stack too.
+	New member constrain_row_ascent_descent_p.
+	(image_ascent): Add prototype.
+
+	* dispnew.c (buffer_posn_from_coords): Return full image width
+	and height even for image slices (posn is relative to full image).
+	(marginal_area_string): Adjust x0,y0 for image slice.
+
+	* image.c (image_ascent): Add slice arg; calculate ascent for
+	image slice (or full image).
+
+	* keyboard.c (Fposn_at_x_y, Fposn_at_point): New defuns.
+	(syms_of_keyboard): Defsubr them.
+
+	* lisp.h (pos_visible_p): Fix prototype.
+
+	* macterm.c (x_draw_relief_rect):  Add top_p and bot_p args.
+	(x_draw_glyph_string_box): Fix call to x_draw_relief_rect.
+	(x_draw_image_foreground, x_draw_image_relief)
+	(x_draw_image_foreground_1, x_draw_image_glyph_string):
+	Draw sliced images.
+
+	* w32term.c (w32_draw_relief_rect): Add top_p and bot_p args.
+	(x_draw_glyph_string_box): Fix call to x_draw_relief_rect.
+	(x_draw_image_foreground, x_draw_image_relief)
+	(w32_draw_image_foreground_1, x_draw_image_glyph_string):
+	Draw sliced images.
+
+	* w32term.h (image_ascent): Remove prototype.
+
+	* window.c (Fpos_visible_in_window_p): Return pixel position if
+	PARTIALLY arg is non-nil.  Simplify.  Doc fix.
+	(Fwindow_vscroll, Fset_window_vscroll): Add optional PIXEL_P arg
+	to return/set vscroll in pixels.
+
+	* window.h (Fwindow_vscroll, Fset_window_vscroll): Fix EXFUN.
+
+	* xdisp.c (Qslice): New variable.
+	(syms_of_xdisp): Intern and staticpro it.
+	(pos_visible_p): Return pixel position in new x and y args.
+	(init_iterator): Reset it->slice info.
+	(handle_display_prop): Parse (slice ...) property.
+	(push_it, pop_it): Save/restore slice info.
+	(make_cursor_line_fully_visible): Fix 2004-04-14 change.  Do not
+	force repositioning of tall row if window is vscrolled, as that
+	would reset vscroll.
+	(append_space): Set it->constrain_row_ascent_descent_p to avoid
+	increasing row height if row is non-empty.
+	(fill_image_glyph_string): Copy slice info.
+	(take_vertical_position_into_account): Simplify.
+	(produce_image_glyph): Handle iterator slice info, setup glyph
+	slice info.  Do not force minimum line height.
+	(x_produce_glyphs): If it->constrain_row_ascent_descent_p is set,
+	do not increase height (ascent/descent) of non-empty row when
+	adding normal character glyph; instead reduce glyph ascent/descent
+	appropriately; if row is higher than current glyph, adjust glyph
+	descent/ascent to reposition glyph within the existing row.
+	Likewise, when char is newline, only set ascent/descent if row is
+	currently empty.
+	(note_mouse_highlight): Handle hotspots with sliced image.
+
+	* xterm.c (x_draw_relief_rect): Add top_p and bot_p args.
+	(x_draw_glyph_string_box): Fix call to x_draw_relief_rect.
+	(x_draw_image_foreground, x_draw_image_relief)
+	(x_draw_image_foreground_1, x_draw_image_glyph_string):
+	Draw sliced images.
+
+	* xterm.h (image_ascent): Remove prototype.
+
+2004-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fkey_description): Fix the usual int/Lisp_Object mixup.
+
+2004-04-20  John Paul Wallington  <jpw@gnu.org>
+
+	* fns.c (Fassoc, Feql): Fix indentation.
+
+	* fontset.c (regularize_fontname): Rename from regulalize_fontname.
+
+2004-04-19  John Paul Wallington  <jpw@gnu.org>
+
+	* fns.c (Feql): New function.
+	(syms_of_fns): Defsubr it.
+
+2004-04-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32select.c (Fw32_set_clipboard_data): Get sequence number
+	after closing the clipboard.
+
+2004-04-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffer.c (Fbuffer_base_buffer): Doc fix.
+
+2004-04-17  Kim F. Storm  <storm@cua.dk>
+
+	* keymap.c (Fkey_description): Add optional PREFIX arg.
+	Combine prefix with KEYS to make up the full key sequence to describe.
+	Correlate meta_prefix_char and following (simple) key to describe
+	as meta modifier.  All callers changed.
+	(describe_map): Rename arg `keys' to `prefix'.  Remove local
+	`elt_prefix' var.  Use Fkey_description with prefix instead of
+	elt_prefix combined with Fsingle_key_description.
+	(describe_vector): Declare static.  Replace arg `elt_prefix' with
+	`prefix'.  Add KEYMAP_P arg.  Add local var `elt_prefix'; use it
+	if !KEYMAP_P. Use Fkey_description with prefix instead of
+	Fsingle_key_description.
+
+	* keymap.h (Fkey_description): Fix prototype.
+	(describe_vector): Remove prototype.
+
+	* xdisp.c (update_overlay_arrows): Fix handling of up_to_date < 0.
+
+	* image.c (PNG_BG_COLOR_SHIFT): Remove.
+	(png_load): Fix calculation of transparent background color on X
+	and W32 platforms.
+
+2004-04-16  Juanma Barranquero  <lektu@terra.es>
+
+	* xdisp.c (try_scrolling): Make sure `scroll-conservatively' is
+	not too large before computing how much to scroll.
+
+2004-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.c (Ffile_attributes): Don't pass extra nil arg to file-handler.
+
+2004-04-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fileio.c (Fverify_visited_file_modtime, Fvisited_file_modtime):
+	Add hyperlink to Elisp manual to the docstring.
+
+2004-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* callint.c (fix_command): Use XDCR.
+
+2004-04-14  Nick Roberts  <nick@nick.uklinux.net>
+
+	* window.c (Fget_lru_window): Doc fix.
+
 2004-04-14  Kim F. Storm  <storm@cua.dk>
 
 	* editfns.c (Fformat): Fix allocation size of precision array.
@@ -85,6 +241,11 @@
 	higher-than-window cursor row - both initially and again with
 	centering_position = 0.
 	Clear desired matrix before retrying with centering_position = 0.
+
+2004-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (scan_lists): Simplify backward string scan.
+	Fix off-by-one boundary check for string and comment fences.
 
 2004-04-13  Joe Buehler  <jbuehler@hekimian.com>
 
@@ -8471,16 +8632,16 @@
 2002-07-11  Juanma Barranquero  <lektu@terra.es>
 
 	* alloc.c, buffer.c, bytecode.c, callint.c, callproc.c, coding.c,
-	* composite.c, dired.c, dispnew.c, editfns.c, emacs.c, eval.c,
-	* fileio.c, fns.c, insdel.c, keyboard.c, keymap.c, lread.c, macfns.c,
-	* macmenu.c, macros.c, minibuf.c, print.c, process.c, sound.c,
-	* textprop.c, w32fns.c, w32menu.c, window.c, xfaces.c, xfns.c,
-	* xmenu.c, xselect.c, xterm.c: Use SPECPDL_INDEX wherever makes sense.
+	composite.c, dired.c, dispnew.c, editfns.c, emacs.c, eval.c,
+	fileio.c, fns.c, insdel.c, keyboard.c, keymap.c, lread.c, macfns.c,
+	macmenu.c, macros.c, minibuf.c, print.c, process.c, sound.c,
+	textprop.c, w32fns.c, w32menu.c, window.c, xfaces.c, xfns.c,
+	xmenu.c, xselect.c, xterm.c: Use SPECPDL_INDEX wherever makes sense.
 
 2002-07-10  Juanma Barranquero  <lektu@terra.es>
 
-	* lisp.h (SPECPDL_INDEX): Rename from BINDING_STACK_SIZE. All callers
-	changed.
+	* lisp.h (SPECPDL_INDEX): Rename from BINDING_STACK_SIZE.
+	All callers changed.
 
 2002-07-09  Stefan Monnier  <monnier@cs.yale.edu>
 

@@ -1,6 +1,6 @@
 ;;; gdb-ui.el --- User Interface for running GDB
 
-;; Author: Nick Roberts <nick@nick.uklinux.net>
+;; Author: Nick Roberts <nickrob@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
@@ -75,21 +75,32 @@ pops up the GUD buffer unless `gdb-show-main' is t. In this case
 it starts with two windows: one displaying the GUD buffer and the
 other with the source file with the main routine of the debugee.
 
-If `gdb-many-windows' is t the layout below will appear
-regardless of the value of `gdb-show-main' unless
+If `gdb-many-windows' is t, regardless of the value of
+`gdb-show-main', the layout below will appear unless
 `gdb-use-inferior-io-buffer' is nil when the source buffer
 occupies the full width of the frame. Keybindings are given in
 relevant buffer.
 
+Watch expressions appear in the speedbar/slowbar.
+
+The following interactive lisp functions help control operation :
+
+`gdb-many-windows'    - Toggle the number of windows gdb uses.
+`gdb-restore-windows' - To restore the window layout.
+
+See Info node `(emacs)GDB Graphical Interface' for a more
+detailed description of this mode.
+
+
 ---------------------------------------------------------------------
                                GDB Toolbar
 ---------------------------------------------------------------------
-GUD buffer (I/O of GDB)           | Locals buffer
+ GUD buffer (I/O of GDB)          | Locals buffer
                                   |
                                   |
                                   |
 ---------------------------------------------------------------------
-Source buffer                     | Input/Output (of debugee) buffer
+ Source buffer                    | Input/Output (of debugee) buffer
                                   | (comint-mode)
                                   |
                                   |
@@ -98,28 +109,12 @@ Source buffer                     | Input/Output (of debugee) buffer
                                   |
                                   |
 ---------------------------------------------------------------------
-Stack buffer                      | Breakpoints buffer
+ Stack buffer                     | Breakpoints buffer
  RET      gdb-frames-select       | SPC    gdb-toggle-breakpoint
                                   | RET    gdb-goto-breakpoint
                                   |   d    gdb-delete-breakpoint
 ---------------------------------------------------------------------
-
-All the buffers share the toolbar and source should always display in the same
-window e.g after typing g on a breakpoint in the breakpoints buffer. Breakpoint
-icons are displayed both by setting a break with gud-break and by typing break
-in the GUD buffer.
-
-This works best (depending on the size of your monitor) using most of the
-screen.
-
-Displayed expressions appear in separate frames. Arrays may be displayed
-as slices and visualised using the graph program from plotutils if installed.
-Pointers in structures may be followed in a tree-like fashion.
-
-The following interactive lisp functions help control operation :
-
-`gdb-many-windows'    - Toggle the number of windows gdb uses.
-`gdb-restore-windows' - To restore the window layout."
+"
   ;;
   (interactive (list (gud-query-cmdline 'gdba)))
   ;;
@@ -223,6 +218,12 @@ speedbar."
        (list (concat "server interpreter mi \"-var-create - * "  expr "\"\n")
 	     `(lambda () (gdb-var-create-handler ,expr))))))
   (select-window (get-buffer-window gud-comint-buffer)))
+
+(defun gdb-goto-info ()
+  (interactive)
+  (select-frame (make-frame))
+  (require 'info)
+  (Info-goto-node "(emacs)GDB Graphical Interface"))
 
 (defconst gdb-var-create-regexp
 "name=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",type=\"\\(.*?\\)\"")
@@ -688,9 +689,9 @@ This filter may simply queue output for a later time."
 	 (string-to-int (match-string 2 args))))
   (setq gdb-current-address (match-string 3 args))
   (setq gdb-view-source t)
-;; cover for auto-display output which comes *before*
-;; stopped annotation
-    (if (eq (gdb-get-output-sink) 'inferior) (gdb-set-output-sink 'user)))
+  ;; cover for auto-display output which comes *before*
+  ;; stopped annotation
+  (if (eq (gdb-get-output-sink) 'inferior) (gdb-set-output-sink 'user)))
 
 (defun gdb-send-item (item)
   (if gdb-enable-debug-log (push (cons 'send item) gdb-debug-log))
@@ -1112,7 +1113,8 @@ static char *magick[] = {
 			  (save-excursion
 			    (goto-line (string-to-number line))
 			    (gdb-put-breakpoint-icon (eq flag ?y)))))))))
-	  (end-of-line))))))
+	  (end-of-line)))))
+  (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
 (defun gdb-mouse-toggle-breakpoint (event)
   "Toggle breakpoint with mouse click in left margin."
@@ -1139,10 +1141,18 @@ static char *magick[] = {
   (gdb-display-buffer
    (gdb-get-create-buffer 'gdb-breakpoints-buffer)))
 
+(defconst gdb-frame-parameters
+  '((height . 12) (width . 60)
+    (unsplittable . t)
+    (tool-bar-lines . nil)
+    (menu-bar-lines . nil)
+    (minibuffer . nil)))
+
 (defun gdb-frame-breakpoints-buffer ()
   (interactive)
-  (switch-to-buffer-other-frame
-   (gdb-get-create-buffer 'gdb-breakpoints-buffer)))
+  (select-frame (make-frame gdb-frame-parameters))
+  (switch-to-buffer (gdb-get-create-buffer 'gdb-breakpoints-buffer))
+  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
 
 (defvar gdb-breakpoints-mode-map
   (let ((map (make-sparse-keymap))
@@ -1262,8 +1272,9 @@ current line."
 
 (defun gdb-frame-stack-buffer ()
   (interactive)
-  (switch-to-buffer-other-frame
-   (gdb-get-create-buffer 'gdb-stack-buffer)))
+  (select-frame (make-frame gdb-frame-parameters))
+  (switch-to-buffer (gdb-get-create-buffer 'gdb-stack-buffer))
+  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
 
 (defvar gdb-frames-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1338,8 +1349,9 @@ the source buffer."
 
 (defun gdb-frame-threads-buffer ()
   (interactive)
-  (switch-to-buffer-other-frame
-   (gdb-get-create-buffer 'gdb-threads-buffer)))
+  (select-frame (make-frame gdb-frame-parameters))
+  (switch-to-buffer (gdb-get-create-buffer 'gdb-threads-buffer))
+  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
 
 (defvar gdb-threads-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1419,8 +1431,9 @@ the source buffer."
 
 (defun gdb-frame-registers-buffer ()
   (interactive)
-  (switch-to-buffer-other-frame
-   (gdb-get-create-buffer 'gdb-registers-buffer)))
+  (select-frame (make-frame gdb-frame-parameters))
+  (switch-to-buffer (gdb-get-create-buffer 'gdb-registers-buffer))
+  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
 
 ;;
 ;; Locals buffer.
@@ -1490,8 +1503,9 @@ the source buffer."
 
 (defun gdb-frame-locals-buffer ()
   (interactive)
-  (switch-to-buffer-other-frame
-   (gdb-get-create-buffer 'gdb-locals-buffer)))
+  (select-frame (make-frame gdb-frame-parameters))
+  (switch-to-buffer (gdb-get-create-buffer 'gdb-locals-buffer))
+  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
 
 
 ;;;; Window management
@@ -1512,7 +1526,7 @@ the source buffer."
 		  (set-window-dedicated-p win t))))
 	  (setq answer (get-buffer-window buf))
 	  (if (not answer)
-	      (let ((window (get-lru-window)))
+	      (let ((window (get-lru-window 'visible)))
 		(if window
 		    (progn
 		      (set-window-buffer window buf)
@@ -1523,7 +1537,7 @@ the source buffer."
 	  (if (eq gud-comint-buffer (window-buffer win))
 	      (set-window-dedicated-p win nil)))))
     (if must-split
-	(let* ((largest (get-largest-window))
+	(let* ((largest (get-largest-window 'visible))
 	       (cur-size (window-height largest))
 	       (new-size (and size (< size cur-size) (- cur-size size))))
 	  (setq answer (split-window largest new-size))
@@ -1532,11 +1546,9 @@ the source buffer."
 
 (defun gdb-display-source-buffer (buffer)
   (if (eq gdb-selected-view 'source)
-      (progn
 	(gdb-display-buffer buffer)
-	(get-buffer-window buffer))
-    (gdb-display-buffer (gdb-get-buffer 'gdb-assembler-buffer))
-    nil))
+    (gdb-display-buffer (gdb-get-buffer 'gdb-assembler-buffer)))
+    (get-buffer-window buffer))
 
 
 ;;; Shared keymap initialization:
@@ -1590,8 +1602,9 @@ the source buffer."
 
 (defun gdb-frame-gdb-buffer ()
   (interactive)
-  (switch-to-buffer-other-frame
-   (gdb-get-create-buffer 'gdba)))
+  (select-frame (make-frame gdb-frame-parameters))
+  (switch-to-buffer (gdb-get-create-buffer 'gdba))
+  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
 
 (defun gdb-display-gdb-buffer ()
   (interactive)
@@ -1612,6 +1625,7 @@ the source buffer."
 (defun gdb-view-assembler()
   (interactive)
   (gdb-display-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))
+  (gdb-invalidate-assembler)
   (setq gdb-selected-view 'assembler))
 
 ;(defun gdb-view-both()
@@ -1656,7 +1670,7 @@ the source buffer."
   (other-window 1))
 
 (defcustom gdb-many-windows nil
-  "Nil (the default value) means just pops up the GUD buffer
+  "Nil (the default value) means just pop up the GUD buffer
 unless `gdb-show-main' is t. In this case it starts with two
 windows: one displaying the GUD buffer and the other with the
 source file with the main routine of the debugee. Non-nil means
@@ -1919,8 +1933,9 @@ BUFFER nil or omitted means use the current buffer."
 
 (defun gdb-frame-assembler-buffer ()
   (interactive)
-  (switch-to-buffer-other-frame
-   (gdb-get-create-buffer 'gdb-assembler-buffer)))
+  (select-frame (make-frame gdb-frame-parameters))
+  (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))
+  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
 
 ;; modified because if gdb-current-address has changed value a new command
 ;; must be enqueued to update the buffer with the new output
@@ -1964,7 +1979,7 @@ BUFFER nil or omitted means use the current buffer."
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
     (forward-line)
-    (if (looking-at ".*=\\s-+0x\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*\\)")
+    (if (looking-at ".*=\\s-+0x\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*?\\);? ")
 	(progn
 	  (setq gdb-current-frame (match-string 2))
 	  (let ((address (match-string 1)))

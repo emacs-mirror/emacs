@@ -2361,7 +2361,7 @@ If FOCUS-REV is non-nil, leave the point at that revision."
                          (vc-find-backend-function (vc-backend file) 
                                                    'print-log))))
                (not (eq (caddr err) 2)))
-           (signal wrong-number-of-arguments err)
+           (signal 'wrong-number-of-arguments err)
          ;; for backward compatibility
          (vc-call print-log file)
          (set-buffer "*vc*"))))

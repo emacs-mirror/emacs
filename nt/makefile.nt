@@ -1,5 +1,4 @@
-#
-#  Top level makefile for building GNU Emacs on Windows NT
+#  Top level -*- makefile -*- for building GNU Emacs on Windows NT
 #  Copyright (c) 1993-2000 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.

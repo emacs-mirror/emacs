@@ -1864,7 +1864,7 @@ function should return the binding to use instead.
 @cindex menu separators
 
   A menu separator is a kind of menu item that doesn't display any
-text--instead, it divides the menu into subparts with a horizontal line.
+text---instead, it divides the menu into subparts with a horizontal line.
 A separator looks like this in the menu keymap:
 
 @example
@@ -2333,7 +2333,7 @@ command @var{def}, and @var{key} is the fake function key symbol in the
 prefix keymap.  The remaining arguments @var{props} are additional
 property list elements to add to the menu item specification.
 
-To define items in some local map, bind @code{`tool-bar-map} with
+To define items in some local map, bind @code{tool-bar-map} with
 @code{let} around calls of this function:
 @example
 (defvar foo-tool-bar-map

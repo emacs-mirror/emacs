@@ -8320,17 +8320,27 @@
 	indicating source of entry to add-to-diary-list.
 	(diary-button-face, diary-entry, diary-goto-entry): New, to
 	support click to diary file.
-	(fancy-diary-display): Buttonize diary entries.
+	(fancy-diary-display): Buttonize diary entries.  Use new mode
+	fancy-diary-display-mode.
 	(list-sexp-diary-entries): Pass a marker indicating source of
 	entry to add-to-diary-list.
 	(diary-date): Return mark as well as entry.
+	(add-to-diary-list): Add new marker argument, appended to
+	diary-entries-list.
+	(diary-mode, fancy-diary-display-mode): New derived modes, for
+	diary file and fancy diary buffer respectively.
+	(fancy-diary-font-lock-keywords, diary-font-lock-keywords): New
+	variables.
+	(font-lock-diary-sexps, font-lock-diary-date-forms): New
+	functions, used in diary-font-lock-keywords.
 
 	* calendar/calendar.el (diary-face): New.
 	(european-calendar-display-form, describe-calendar-mode)
 	(mark-visible-calendar-date, calendar-mark-today): Tidy doc string.
-	(calendar-make-alist): New.
-	(calendar-mode): Set up font-lock mode.
+	(calendar-mode): Set up font-lock mode, using new variable
+	calendar-font-lock-keywords.
 	(generate-calendar-window): Fontify if font-lock-mode is on.
+	(calendar-font-lock-keywords): New variable.
 
 2002-11-16  Ivan Zakharyaschev  <imz@altlinux.org>  (tiny change)
 

@@ -1,4 +1,4 @@
-# Makefile for the GNU Emacs Lisp Reference Manual.
+# -*- Makefile -*- for the GNU Emacs Lisp Reference Manual.
 
 # Copyright (C) 2003
 #  Free Software Foundation, Inc.

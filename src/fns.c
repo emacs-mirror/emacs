@@ -1560,7 +1560,7 @@ assq_no_quit (key, list)
 DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
        doc: /* Return non-nil if KEY is `equal' to the car of an element of LIST.
 The value is actually the first element of LIST whose car equals KEY.  */)
-       (key, list)
+     (key, list)
      Lisp_Object key, list;
 {
   Lisp_Object result, car;
@@ -2135,6 +2135,18 @@ The PLIST is modified by side effects.  */)
   return plist;
 }
 
+DEFUN ("eql", Feql, Seql, 2, 2, 0,
+       doc: /* Return t if the two args are the same Lisp object.
+Floating-point numbers of equal value are `eql', but they may not be `eq'.  */)
+     (obj1, obj2)
+     Lisp_Object obj1, obj2;
+{
+  if (FLOATP (obj1))
+    return internal_equal (obj1, obj2, 0, 0) ? Qt : Qnil;
+  else
+    return EQ (obj1, obj2) ? Qt : Qnil;
+}
+
 DEFUN ("equal", Fequal, Sequal, 2, 2, 0,
        doc: /* Return t if two Lisp objects have similar structure and contents.
 They must have the same data type.
@@ -5740,6 +5752,7 @@ used if both `use-dialog-box' and this variable are non-nil.  */);
   defsubr (&Sput);
   defsubr (&Slax_plist_get);
   defsubr (&Slax_plist_put);
+  defsubr (&Seql);
   defsubr (&Sequal);
   defsubr (&Sequal_including_properties);
   defsubr (&Sfillarray);

@@ -83,7 +83,7 @@ dictated by `allout-layout' should be imposed on mode activation.
 
 With value t, auto-mode-activation and auto-layout are enabled.
 \(This also depends on `allout-find-file-hook' being installed in
-`find-file-hooks', which is also done by `allout-init'.)
+`find-file-hook', which is also done by `allout-init'.)
 
 With value `ask', auto-mode-activation is enabled, and endorsement for
 performing auto-layout is asked of the user each time.
@@ -507,7 +507,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version
-  (let ((rcs-rev "$Revision: 1.48 $"))
+  (let ((rcs-rev "$Revision$"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -726,17 +726,12 @@ See doc string for allout-keybindings-list for format of binding list."
 			      (car (cdr cell)))))))
 	    keymap-list)
     map))
-;;;_   = allout-prior-bindings - being deprecated.
-(defvar allout-prior-bindings nil
-  "Variable for use in V18, with `allout-added-bindings', for
-resurrecting, on mode deactivation, bindings that existed before
-activation.  Being deprecated.")
-;;;_   = allout-added-bindings - being deprecated
-(defvar allout-added-bindings nil
-  "Variable for use in V18, with `allout-prior-bindings', for
-resurrecting, on mode deactivation, bindings that existed before
-activation.  Being deprecated.")
+
 ;;;_  : Menu bar
+(defvar allout-mode-exposure-menu)
+(defvar allout-mode-editing-menu)
+(defvar allout-mode-navigation-menu)
+(defvar allout-mode-misc-menu)
 (defun produce-allout-mode-menubar-entries ()
   (require 'easymenu)
   (easy-menu-define allout-mode-exposure-menu
@@ -909,7 +904,7 @@ mode from prop-line file-var activation.  Used by `allout-mode' function
 to track repeats.")
 ;;;_   > allout-write-file-hook ()
 (defun allout-write-file-hook ()
-  "In `allout-mode', run as a `local-write-file-hooks' activity.
+  "In `allout-mode', run as a `write-contents-functions' activity.
 
 Currently just sets `allout-during-write-cue', so outline change-protection
 knows to keep inactive during file write."
@@ -950,7 +945,7 @@ the `allout-layout' variable.  (See `allout-layout' and
 `allout-expose-topic' docstrings for more details on auto layout).
 
 `allout-init' works by setting up (or removing)
-`allout-find-file-hook' in `find-file-hooks', and giving
+`allout-find-file-hook' in `find-file-hook', and giving
 `allout-auto-activation' a suitable setting.
 
 To prime your emacs session for full auto-outline operation, include
@@ -979,16 +974,16 @@ the following two lines in your emacs init file:
        (curr-mode 'allout-auto-activation))
 
     (cond ((not mode)
-	   (setq find-file-hooks (delq hook find-file-hooks))
+	   (setq find-file-hook (delq hook find-file-hook))
 	   (if (interactive-p)
 	       (message "Allout outline mode auto-activation inhibited.")))
 	  ((eq mode 'report)
-	   (if (memq hook find-file-hooks)
+	   (if (memq hook find-file-hook)
 	       ;; Just punt and use the reports from each of the modes:
 	       (allout-init (symbol-value curr-mode))
 	     (allout-init nil)
 	     (message "Allout outline mode auto-activation inhibited.")))
-	  (t (add-hook 'find-file-hooks hook)
+	  (t (add-hook 'find-file-hook hook)
 	     (set curr-mode		; `set', not `setq'!
 		  (cond ((eq mode 'activate)
 			 (message
@@ -1252,19 +1247,6 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
 				       ; active state or *de*activation
 				       ; specifically requested:
       (setq allout-explicitly-deactivated t)
-      (if (string-match "^18\." emacs-version)
-				       ; Revoke those keys that remain
-				       ; as we set them:
-	  (let ((curr-loc (current-local-map)))
-	   (mapcar (function
-		    (lambda (cell)
-		      (if (eq (lookup-key curr-loc (car cell))
-			      (car (cdr cell)))
-			  (define-key curr-loc (car cell)
-			    (assq (car cell) allout-prior-bindings)))))
-		   allout-added-bindings)
-	   (allout-resumptions 'allout-added-bindings)
-	   (allout-resumptions 'allout-prior-bindings)))
 
       (if allout-old-style-prefixes
 	  (progn
@@ -1273,9 +1255,9 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
       (allout-resumptions 'selective-display)
       (if (and (boundp 'before-change-functions) before-change-functions)
 	  (allout-resumptions 'before-change-functions))
-      (setq local-write-file-hooks
-	   (delq 'allout-write-file-hook
-		 local-write-file-hooks))
+      (setq write-contents-functions
+	    (delq 'allout-write-file-hook
+		  write-contents-functions))
       (allout-resumptions 'paragraph-start)
       (allout-resumptions 'paragraph-separate)
       (allout-resumptions (if (string-match "^18" emacs-version)
@@ -1315,13 +1297,6 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
 		     (cons '(allout-mode . allout-mode-map)
 			   minor-mode-map-alist))))
 
-				       ; V18 minor-mode key bindings:
-				       ; Stash record of added bindings
-				       ; for later revocation:
-	(allout-resumptions 'allout-added-bindings
-			    (list allout-keybindings-list))
-	(allout-resumptions 'allout-prior-bindings
-			    (list (current-local-map)))
 				       ; and add them:
 	(use-local-map (produce-allout-mode-map allout-keybindings-list
 						(current-local-map)))
@@ -1340,7 +1315,7 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
 				       ; Temporarily set by any outline
 				       ; functions that can be trusted to
 				       ; deal properly with concealed text.
-      (add-hook 'local-write-file-hooks 'allout-write-file-hook)
+      (add-hook 'write-contents-functions 'allout-write-file-hook)
 				       ; Custom auto-fill func, to support
 				       ; respect for topic headline,
 				       ; hanging-indents, etc:

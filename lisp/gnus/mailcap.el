@@ -271,6 +271,7 @@ validity.  Otherwise, if it is a non-function Lisp symbol or list
 whose car is a symbol, it is `eval'led to yield the validity.  If it
 is a string or list of strings, it represents a shell command to run
 to return a true or false shell value for the validity.")
+(put 'mailcap-mime-data 'risky-local-variable t)
 
 (defcustom mailcap-download-directory nil
   "*Directory to which `mailcap-save-binary-file' downloads files by default.
