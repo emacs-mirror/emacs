@@ -147,12 +147,12 @@ int sign_extend_temp;
 
 int
 sign_extend_lisp_int (num)
-     int num;
+     EMACS_INT num;
 {
-  if (num & (1 << (VALBITS - 1)))
-    return num | ((-1) << VALBITS);
+  if (num & (((EMACS_INT) 1) << (VALBITS - 1)))
+    return num | (((EMACS_INT) (-1)) << VALBITS);
   else
-    return num & ((1 << VALBITS) - 1);
+    return num & ((((EMACS_INT) 1) << VALBITS) - 1);
 }
 
 /* Data type predicates */
