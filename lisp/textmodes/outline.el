@@ -433,10 +433,10 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 
 
 ;; Exclude from the region BEG ... END all overlays
-;; with a non-nil PROP property.
+;; which have PROP as the value of the `invisible' property.
 ;; Exclude them by shrinking them to exclude BEG ... END,
 ;; or even by splitting them if necessary.
-;; Overlays without a non-nil PROP property are not touched.
+;; Overlays without such an `invisible' property are not touched.
 (defun outline-discard-overlays (beg end prop)
   (if (< end beg)
       (setq beg (prog1 end (setq end beg))))
@@ -446,7 +446,7 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 	  o1)
       (while overlays
 	(setq o (car overlays))
-	(if (overlay-get o prop)
+	(if (eq (overlay-get o 'invisible) prop)
 	    ;; Either push this overlay outside beg...end
 	    ;; or split it to exclude beg...end
 	    ;; or delete it entirely (if it is contained in beg...end).
