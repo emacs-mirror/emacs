@@ -307,6 +307,11 @@ PARENT should be nil or another keymap.")
 	 If we came to the end, add the parent in PREV.  */
       if (! CONSP (list) || EQ (Qkeymap, XCONS (list)->car))
 	{
+	  /* If we already have the right parent, return now
+	     so that we avoid the loops below.  */
+	  if (EQ (XCONS (prev)->cdr, parent))
+	    return parent;
+
 	  XCONS (prev)->cdr = parent;
 	  break;
 	}
