@@ -1,3 +1,12 @@
+2004-11-13  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-drag-copy-region): Add :version.
+	(mouse-drag-mode-line-1): Let bind mouse-autoselect-window to nil
+	while dragging mode line, so mode line can be dragged downwards.
+	(mouse-drag-region-1): Let bind make-cursor-line-fully-visible
+	while pressing mouse button so window doesn't scroll until we
+	release the mouse if clicking on partially visible line.
+
 2004-11-12  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-graph.el (calc-dumb-map):  Declare it.

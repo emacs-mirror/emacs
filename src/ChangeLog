@@ -1,3 +1,10 @@
+2004-11-13  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (make_cursor_line_fully_visible_p): New variable.
+	(syms_of_xdisp): DEFVAR_BOOL it.
+	(make_cursor_line_fully_visible, try_cursor_movement)
+	(try_window_id): Use it.
+
 2004-11-12  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (struct glyph_row): New member extra_line_spacing.
