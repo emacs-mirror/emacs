@@ -59,6 +59,7 @@ such support.
 * Font Lock::           Minor mode for syntactic highlighting using faces.
 * Support Modes::       Font Lock support modes make Font Lock faster.
 * Highlight Changes::   Using colors to show where you changed the buffer.
+* Highlight Interactively:: Tell Emacs what text to highlight.
 * Trailing Whitespace:: Showing possibly-spurious trailing whitespace.
 * Tooltips::            Showing `tooltips', AKA `ballon help' for active text.
 * Mouse Avoidance::     Moving the mouse pointer out of the way.
@@ -1124,6 +1125,72 @@ like this:
   Use @kbd{M-x highlight-changes-mode} to enable a minor mode
 that uses faces (colors, typically) to indicate which parts of
 the buffer were changed most recently.
+
+@node Highlight Interactively
+@section Interactive Highlighting of Arbitrary Text
+
+@cindex highlighting, arbitrary text
+@cindex interactive highlighting
+  Sometimes, you could need to highlight arbitrary strings in the
+buffer.  For example, you might wish to see all the references to a
+certain variable in a program source file or highlight certain parts in
+a voluminous output of some program, or make certain cliches stand out.
+
+@findex hi-lock-mode
+  Use the @kbd{M-x hi-lock-mode} command to turn on a minor mode that
+allows you to specify regular expressions of the text to be highlighted.
+@code{hi-lock-mode} works like Font Lock (@pxref{Font Lock}), except
+that it lets you control what parts of text are highlighted.
+@code{hi-lock-mode} provides several functions:
+
+@table @kbd
+@item C-x w h
+@kindex C-x w i
+@findex highlight-regexp
+Specify the regular expression (@pxref{Regexps}) for the parts of buffer
+text that are to be highlighted (@code{highlight-regexp}).  It prompts
+for the regular expression, then for the name of the face with which to
+highlight the text that matches.
+
+@item C-x w r
+@kindex C-x w r
+@findex unhighlight-regexp
+Unhighlight @var{regexp} (@code{unhighlight-regexp}).  Prompts for the
+regular expression, and will accept only one of the regexps inserted by
+other @code{hi-lock} commands.
+
+@item C-x w l
+@kindex C-x w l
+@findex highlight-lines-matching-regexp
+@cindex lines, highlighting
+@cindex highlighting lines of text
+Specify the regular expression (@pxref{Regexps}) for the lines of buffer
+text that are to be highlighted
+(@code{highlight-lines-matching-regexp}).  It prompts for the regular
+expression, then for the name of the face with which to highlight the
+matching lines.
+
+@item C-x w b
+@kindex C-x w b
+@findex hi-lock-write-interactive-patterns
+This runs the @code{hi-lock-write-interactive-patterns} command which
+inserts the patterns added by @kbd{M-x highlight-regexp} and @kbd{M-x
+highlight-lines-matching-regexp} into the current buffer at point, as
+comments.  These patterns will be read the next time the file is
+visited, or when the @kbd{M-x hi-lock-find-patterns} command is issued.
+
+@item C-x w i
+@kindex C-x w i
+@findex hi-lock-find-patterns
+@vindex hi-lock-exclude-modes
+Re-read patterns stored in a buffer in the format produced by @kbd{M-x
+hi-lock-write-interactive-patterns}
+(@code{hi-lock-write-interactive-patterns}.  If you invoke this command
+in a buffer whose major mode is a member of the list that is the value
+of the variable @code{hi-lock-exclude-modes}, this command has no
+effect.
+@end table
+
 
 @node Trailing Whitespace
 @section Trailing Whitespace
