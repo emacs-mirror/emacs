@@ -35,8 +35,6 @@
 # endif
 #endif
 
-#include "md5.h"
-
 #ifdef _LIBC
 # include <endian.h>
 # if __BYTE_ORDER == __BIG_ENDIAN
@@ -52,6 +50,8 @@
 # define md5_stream __md5_stream
 # define md5_buffer __md5_buffer
 #endif
+
+#include "md5.h"
 
 #ifdef WORDS_BIGENDIAN
 # define SWAP(n)							\
