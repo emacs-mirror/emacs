@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
-;;; Copyright (C) 1985, 1986, 1992, 1994 Free Software Foundation, Inc.
+;;; Copyright (C) 1985, 1986, 1992, 1994, 1995 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -831,15 +831,16 @@ Wildcards and redirection are handled as usual in the shell."
 		(cons 'progn body)
 		(list 'store-match-data original)))))
 
-(defmacro match-string (num &optional string)
+(defun match-string (num &optional string)
   "Return string of text matched by last search.
 NUM specifies which parenthesized expression in the last regexp.
  Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
 Zero means the entire text matched by the whole regexp or whole string.
 STRING should be given if the last search was by `string-match' on STRING."
-  (list 'and (list 'match-beginning num)
-	(append (if string (list 'substring string) '(buffer-substring))
-		(list (list 'match-beginning num) (list 'match-end num)))))
+  (if (match-beginning num)
+      (if string
+	  (substring string (match-beginning num) (match-end num))
+	(buffer-substring (match-beginning num) (match-end num)))))
 
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
