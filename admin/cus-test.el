@@ -93,14 +93,18 @@
 ;; 288 features required
 ;; 10 files loaded
 ;; The following load problems appeared:
-;; (killing x-win (file-error Cannot open load file x-win))
 ;; Symbol faces has loaddefs as custom dependency
+;; (reftex-index-support reftex-vars (void-function reftex-set-dirty))
+;; (eshell-script em-script (void-variable eshell-directory-name))
+;; (pcomplete em-cmpl (void-function eshell-under-windows-p))
+;; (eshell-ext esh-ext (void-function eshell-under-windows-p))
 ;; ...
 ;;
 ;; 422 libraries had no load errors
 ;; The following load problems appeared:
 ;; (eudc-export error 255)
-;; ...
+;; (ada-xref error 255)
+;; (ada-stmt error 255)
 
 ;;; Code:
 
@@ -403,6 +407,8 @@ in the emacs source directory."
 	    ;; We are still loading it when we call this,
 	    ;; and it is not in load-history yet.
 	    ((equal load "cus-edit"))
+	    ;; In this test, we don't care about deps in lisp/term/
+	    ((locate-library (concat term-file-prefix load)))
 	    (t
 	     ;; (condition-case nil (load load) (error nil))
 	     (condition-case alpha
