@@ -1,3 +1,8 @@
+2003-04-30  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* Makefile.in: Make things function properly in case both LessTif
+	and Open Motif are installed.
+
 2003-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* lwlib-Xm.c (update_one_menu_entry): Deallocate widget_list.
