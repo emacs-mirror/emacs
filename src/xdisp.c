@@ -593,8 +593,8 @@ redisplay ()
       && current_buffer == XBUFFER (w->buffer)
       && NILP (w->force_start)
       /* Point must be on the line that we have info recorded about */
-      && point >= tlbufpos
-      && point <= Z - tlendpos
+      && PT >= tlbufpos
+      && PT <= Z - tlendpos
       /* All text outside that line, including its final newline,
 	 must be unchanged */
       && (XFASTINT (w->last_modified) >= MODIFF
@@ -658,7 +658,7 @@ redisplay ()
 	  else
 	    goto cancel;
 	}
-      else if (point == XFASTINT (w->last_point))
+      else if (PT == XFASTINT (w->last_point))
 	{
 	  if (!must_finish)
 	    {
@@ -674,7 +674,7 @@ redisplay ()
 	{
 	  pos = *compute_motion (tlbufpos, 0,
 				 XINT (w->hscroll) ? 1 - XINT (w->hscroll) : 0,
-				 point, 2, - (1 << (SHORTBITS - 1)),
+				 PT, 2, - (1 << (SHORTBITS - 1)),
 				 window_internal_width (w) - 1,
 				 XINT (w->hscroll),
 				 pos_tab_offset (w, tlbufpos), w);
@@ -1028,13 +1028,13 @@ redisplay_window (window, just_this_one)
   register struct window *w = XWINDOW (window);
   FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
   int height;
-  register int lpoint = point;
+  register int lpoint = PT;
   struct buffer *old = current_buffer;
   register int width = window_internal_width (w) - 1;
   register int startp;
   register int hscroll = XINT (w->hscroll);
   struct position pos;
-  int opoint = point;
+  int opoint = PT;
   int tem;
   int window_needs_modeline;
 
@@ -1088,7 +1088,7 @@ redisplay_window (window, just_this_one)
   /* Otherwise set up data on this window; select its buffer and point value */
 
   current_buffer = XBUFFER (w->buffer);
-  opoint = point;
+  opoint = PT;
 
   /* Count number of windows showing the selected buffer.  */
 
@@ -1102,15 +1102,15 @@ redisplay_window (window, just_this_one)
   if (!EQ (window, selected_window))
     {
       SET_PT (marker_position (w->pointm));
-      if (point < BEGV)
+      if (PT < BEGV)
 	{
 	  SET_PT (BEGV);
-	  Fset_marker (w->pointm, make_number (point), Qnil);
+	  Fset_marker (w->pointm, make_number (PT), Qnil);
 	}
-      else if (point > (ZV - 1))
+      else if (PT > (ZV - 1))
 	{
 	  SET_PT (ZV);
-	  Fset_marker (w->pointm, make_number (point), Qnil);
+	  Fset_marker (w->pointm, make_number (PT), Qnil);
 	}
     }
 
@@ -1146,11 +1146,11 @@ redisplay_window (window, just_this_one)
 				width, hscroll, pos_tab_offset (w, startp), w);
 	  SET_PT (pos.bufpos);
 	  if (w != XWINDOW (selected_window))
-	    Fset_marker (w->pointm, make_number (point), Qnil);
+	    Fset_marker (w->pointm, make_number (PT), Qnil);
 	  else
 	    {
 	      if (current_buffer == old)
-		lpoint = point;
+		lpoint = PT;
 	      FRAME_CURSOR_X (f) = max (0, pos.hpos) + XFASTINT (w->left);
 	      FRAME_CURSOR_Y (f) = pos.vpos + XFASTINT (w->top);
 	    }
@@ -1169,7 +1169,7 @@ redisplay_window (window, just_this_one)
      in redisplay handles the same cases.  */
 
   if (XFASTINT (w->last_modified) >= MODIFF
-      && point >= startp && !clip_changed
+      && PT >= startp && !clip_changed
       && (just_this_one || XFASTINT (w->width) == FRAME_WIDTH (f))
       /* Can't use this case if highlighting a region.  */
       && !(!NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active))
@@ -1177,7 +1177,7 @@ redisplay_window (window, just_this_one)
       && !EQ (window, minibuf_window))
     {
       pos = *compute_motion (startp, 0, (hscroll ? 1 - hscroll : 0),
-			    point, height + 1, 10000, width, hscroll,
+			    PT, height + 1, 10000, width, hscroll,
 			    pos_tab_offset (w, startp), w);
 
       if (pos.vpos < height)
@@ -1210,7 +1210,7 @@ redisplay_window (window, just_this_one)
       goto recenter;
     }
   else if (just_this_one && !MINI_WINDOW_P (w)
-	   && point >= startp
+	   && PT >= startp
 	   && XFASTINT (w->last_modified)
 	   /* or else vmotion on first line won't work.  */
 	   && ! NILP (w->start_at_line_beg)
@@ -1260,7 +1260,7 @@ redisplay_window (window, just_this_one)
 
   if (scroll_step && !clip_changed)
     {
-      if (point > startp)
+      if (PT > startp)
 	{
 	  pos = *vmotion (Z - XFASTINT (w->window_end_pos),
 			  scroll_step, width, hscroll, window);
@@ -1268,10 +1268,10 @@ redisplay_window (window, just_this_one)
 	    goto scroll_fail;
 	}
 
-      pos = *vmotion (startp, point < startp ? - scroll_step : scroll_step,
+      pos = *vmotion (startp, PT < startp ? - scroll_step : scroll_step,
 		      width, hscroll, window);
 
-      if (point >= pos.bufpos)
+      if (PT >= pos.bufpos)
 	{
 	  try_window (window, pos.bufpos);
 	  if (cursor_vpos >= 0)
@@ -1293,7 +1293,7 @@ recenter:
   /* Forget any previously recorded base line for line number display.  */
   w->base_line_number = Qnil;
 
-  pos = *vmotion (point, - (height / 2), width, hscroll, window);
+  pos = *vmotion (PT, - (height / 2), width, hscroll, window);
   try_window (window, pos.bufpos);
 
   startp = marker_position (w->start);
@@ -1470,7 +1470,7 @@ try_window_id (window)
 			width, hscroll, pos_tab_offset (w, start), w);
   if (bp.vpos >= height)
     {
-      if (point < bp.bufpos && !bp.contin)
+      if (PT < bp.bufpos && !bp.contin)
 	{
 	  /* All changes are below the frame, and point is on the frame.
 	     We don't need to change the frame at all.
@@ -1574,22 +1574,22 @@ try_window_id (window)
       XFASTINT (w->window_end_vpos) += scroll_amount;
 
       /* Before doing any scrolling, verify that point will be on frame. */
-      if (point > ep.bufpos && !(point <= xp.bufpos && xp.bufpos < height))
+      if (PT > ep.bufpos && !(PT <= xp.bufpos && xp.bufpos < height))
 	{
-	  if (point <= xp.bufpos)
+	  if (PT <= xp.bufpos)
 	    {
 	      pp = *compute_motion (ep.bufpos, ep.vpos, ep.hpos,
-				    point, height, - (1 << (SHORTBITS - 1)),
+				    PT, height, - (1 << (SHORTBITS - 1)),
 				    width, hscroll, epto, w);
 	    }
 	  else
 	    {
 	      pp = *compute_motion (xp.bufpos, xp.vpos, xp.hpos,
-				    point, height, - (1 << (SHORTBITS - 1)),
+				    PT, height, - (1 << (SHORTBITS - 1)),
 				    width, hscroll,
 				    pos_tab_offset (w, xp.bufpos), w);
 	    }
-	  if (pp.bufpos < point || pp.vpos == height)
+	  if (pp.bufpos < PT || pp.vpos == height)
 	    return 0;
 	  cursor_vpos = pp.vpos + top;
 	  cursor_hpos = pp.hpos + XFASTINT (w->left);
@@ -1757,7 +1757,7 @@ try_window_id (window)
       /* Here is a case where display_text_line sets cursor_vpos wrong.
 	 Make it be fixed up, below.  */
       if (xp.bufpos == ZV
-	  && xp.bufpos == point)
+	  && xp.bufpos == PT)
 	cursor_vpos = -1;
     }
 
@@ -1786,7 +1786,7 @@ try_window_id (window)
   /* If point was not in a line that was displayed, find it */
   if (cursor_vpos < 0)
     {
-      val = *compute_motion (start, 0, lmargin, point, 10000, 10000,
+      val = *compute_motion (start, 0, lmargin, PT, 10000, 10000,
 			     width, hscroll, pos_tab_offset (w, start), w);
       /* Admit failure if point is off frame now */
       if (val.vpos >= height)
@@ -2127,7 +2127,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	    break;
 
 	  /* Did we reach point?  Record the cursor location.  */
-	  if (pos == point && cursor_vpos < 0)
+	  if (pos == PT && cursor_vpos < 0)
 	    {
 	      cursor_vpos = vpos;
 	      cursor_hpos = p1 - leftmargin;
@@ -2155,7 +2155,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 		next_invisible = end;
 	      if (! NILP (prop))
 		{
-		  if (pos < point && next_invisible >= point)
+		  if (pos < PT && next_invisible >= PT)
 		    {
 		      cursor_vpos = vpos;
 		      cursor_hpos = p1 - leftmargin;
@@ -2188,8 +2188,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
 	  /* Wouldn't you hate to read the next line to someone over
              the phone?  */
-	  if (pos < point && point < pause)
-	    pause = point;
+	  if (pos < PT && PT < pause)
+	    pause = PT;
 	  if (pos < GPT && GPT < pause)
 	    pause = GPT;
 
@@ -2410,7 +2410,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
   /* If point is at eol or in invisible text at eol,
      record its frame location now.  */
 
-  if (start <= point && point <= lastpos && cursor_vpos < 0)
+  if (start <= PT && PT <= lastpos && cursor_vpos < 0)
     {
       cursor_vpos = vpos;
       cursor_hpos = p1 - leftmargin;
