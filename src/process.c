@@ -3324,8 +3324,13 @@ send_process (proc, buf, len, object)
 	  to =  string_byte_to_char (object, from_byte + len);
 	}
 
-      if (from_byte >= 0 && coding->composing != COMPOSITION_DISABLED)
-	coding_save_composition (coding, from, to, object);
+      if (coding->composing != COMPOSITION_DISABLED)
+	{
+	  if (from_byte >= 0)
+	    coding_save_composition (coding, from, to, object);
+	  else
+	    coding->composing = COMPOSITION_DISABLED;
+	}
 
       if (STRING_BYTES (XSTRING (XPROCESS (proc)->encoding_buf)) < require)
 	XPROCESS (proc)->encoding_buf = make_uninit_string (require);
