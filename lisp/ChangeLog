@@ -1,3 +1,8 @@
+2003-01-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (print-fontset): Insert proper
+	newline and indentation spaces.
+
 2003-01-07  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/byte-opt.el (side-effect-free-fns): Add langinfo,
