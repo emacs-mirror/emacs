@@ -1,3 +1,7 @@
+2001-01-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* s/msdos.h (GC_MARK_STACK): Define to GC_MAKE_GCPROS_NOOPS.
+
 2001-01-20  Andrew Innes  <andrewi@gnu.org>
 
 	* w32term.c (w32_ring_bell): Only support visible bell on w32
