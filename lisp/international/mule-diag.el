@@ -710,6 +710,8 @@ in place of `..':
       (print-coding-system-briefly (keyboard-coding-system))
       (princ "Coding system for terminal output:\n  ")
       (print-coding-system-briefly (terminal-coding-system))
+      (princ "Coding system for inter-client cut and paste:\n  ")
+      (print-coding-system-briefly selection-coding-system)
       (when (get-buffer-process (current-buffer))
 	(princ "Coding systems for process I/O:\n")
 	(princ "  encoding input to the process: ")
