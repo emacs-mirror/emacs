@@ -1,13 +1,12 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!143.c(trunk.2) $
  summary = EPDR fenceposting check: free
  language = c
  link = testlib.o
 OUTPUT_SPEC
  assert = true
- assertfile = .\dbgpool.c
- assertcond = FenceCheck(debug, pool, old, size)
+ assertcond = fencepost check on free
 END_HEADER
 */
 
