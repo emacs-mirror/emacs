@@ -1,3 +1,8 @@
+2005-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xrdb.c (x_load_resources): Use different char *helv when I18N
+	is present.
+
 2005-03-17  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (syms_of_coding): Docstring of coding-category-list
