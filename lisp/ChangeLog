@@ -1,8 +1,11 @@
 2002-08-26  Miles Bader  <miles@gnu.org>
 
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Expand defconst value.
+
 	* emacs-lisp/byte-opt.el (byte-opt-update-stack-params): New macro.
 	(byte-optimize-lapcode): Keep track of stack-depth in final pass too.
 	Add more optimizations for lexical binding.
+	(byte-compile-inline-expand): Macroexpand result of inlining.
 
 	* emacs-lisp/bytecomp.el (byte-compile-lambda): Update call to
 	byte-compile-closure-initial-lexenv-p.
