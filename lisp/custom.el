@@ -353,9 +353,30 @@ Fourth argument TYPE is the custom option type."
 	 (custom-add-load symbol value))
 	((eq keyword :tag)
 	 (put symbol 'custom-tag value))
+	((eq keyword :set-after)
+	 (custom-add-dependencies symbol value))
 	(t
 	 (error "Unknown keyword %s" keyword))))
 
+(defun custom-add-dependencies (symbol value)
+  "To the custom option SYMBOL, add dependencies specified by VALUE.
+VALUE should be a list of symbols.  For each symbol in that list,
+this specifies that SYMBOL should be set after the specified symbol, if
+both appear in constructs like `custom-set-variables'."
+  (unless (listp value)
+    (error "Invalid custom dependency `%s'" value))
+  (let* ((deps (get symbol 'custom-dependencies))
+	 (new-deps deps))
+    (while value
+      (let ((dep (car value)))
+	(unless (symbolp dep)
+	  (error "Invalid custom dependency `%s'" dep))
+	(unless (memq dep new-deps)
+	  (setq new-deps (cons dep new-deps)))
+	(setq value (cdr value))))
+    (unless (eq deps new-deps)
+      (put symbol 'custom-dependencies new-deps))))
+  
 (defun custom-add-option (symbol option)
   "To the variable SYMBOL add OPTION.
 
@@ -404,6 +425,18 @@ If NOW is present and non-nil, VALUE is also evaluated and bound as
 the default value for the SYMBOL.
 REQUEST is a list of features we must require for SYMBOL.
 COMMENT is a comment string about SYMBOL."
+  (setq args
+	(sort args
+	      (lambda (a1 a2)
+		(let* ((sym1 (car a1))
+		       (sym2 (car a2))
+		       (1-then-2 (memq sym1 (get sym2 'custom-dependencies)))
+		       (2-then-1 (memq sym2 (get sym1 'custom-dependencies))))
+		  (cond ((and 1-then-2 2-then-1)
+			 (error "Circular custom dependency between `%s' and `%s'"
+				sym1 sym2))
+			(2-then-1 nil)
+			(t t))))))
   (while args
     (let ((entry (car args)))
       (if (listp entry)
