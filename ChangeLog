@@ -1,3 +1,7 @@
+2000-10-19  Eric M. Ludlam  <zappo@ultranet.com>
+
+	* info/dir (Speedbar): Add entry.
+
 2000-10-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* INSTALL: Describe the new image-support options to the configure
