@@ -304,7 +304,8 @@ C-w print information on absence of warranty for GNU Emacs."
 		   (t "")))
       (terpri)
       (if (documentation function)
-	  (princ (documentation function))
+	  (progn (terpri)
+		 (princ (documentation function)))
 	(princ "not documented"))
       (cond ((byte-code-function-p def)
 	     (save-excursion
