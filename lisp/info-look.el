@@ -795,6 +795,52 @@ Return nil if there is nothing appropriate in the buffer near point."
 		 (t nil)))
 	      nil; "^ - [^:]+:[ ]+" don't think this prefix is useful here.
 	      nil)))
+
+;; coreutils and bash builtins overlap in places, eg. printf, so there's a
+;; question which should come first.  Some of the sh-utils descriptions are
+;; more detailed, but if bash is usually /bin/sh on a GNU system then the
+;; builtins will be what's normally run.
+;;
+;; Maybe special variables like $? should be matched as $?, not just ?.
+;; This would avoid a clash between variable $! and negation !, or variable
+;; $# and comment # (though comment # is not currently indexed in bash).
+;; Unfortunately if $? etc is the symbol, then we wouldn't be taken to the
+;; exact spot in the relevant node, since the bash manual has just `?' etc
+;; there.  Maybe an extension to the prefix/suffix scheme could help this.
+
+(info-lookup-maybe-add-help
+ :mode 'sh-mode :topic 'symbol
+ ;; bash has "." and ":" in its index, but those chars will probably never
+ ;; work in info, so don't bother matching them in the regexp.
+ :regexp "\\([a-zA-Z0-9_-]+\\|[!{}@*#?$]\\|\\[\\[?\\|]]?\\)"
+ :doc-spec '(("(bash)Builtin Index"       nil "^`" "[ .']")
+             ("(bash)Reserved Word Index" nil "^`" "[ .']")
+             ("(bash)Variable Index"      nil "^`" "[ .']")
+             ;; coreutils (version 4.5.10) doesn't have a separate program
+             ;; index, so exclude extraneous stuff (most of it) by demanding
+             ;; "[a-z]+" in the trans-func.
+             ("(coreutils)Index"
+              (lambda (item) (if (string-match "\\`[a-z]+\\'" item) item)))
+             ;; diff (version 2.8.1) has only a few programs, index entries
+             ;; are things like "foo invocation".
+             ("(diff)Index"
+              (lambda (item)
+		(if (string-match "\\`\\([a-z]+\\) invocation\\'" item)
+                    (match-string 1 item))))
+             ;; there's no plain "sed" index entry as such, mung another
+             ;; hopefully unique one to get to the invocation section
+             ("(sed)Concept Index"
+              (lambda (item)
+                (if (string-equal item "Standard input, processing as input")
+                    "sed")))
+             ;; there's no plain "awk" or "gawk" index entries, mung other
+             ;; hopefully unique ones to get to the command line options
+             ("(gawk)Index"
+              (lambda (item)
+                (cond ((string-equal item "gawk, extensions, disabling")
+                       "awk")
+                      ((string-equal item "gawk, versions of, information about, printing")
+                       "gawk"))))))
 
 (provide 'info-look)
 
