@@ -1,3 +1,9 @@
+2002-02-07  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mail/rmail.el (rmail-enable-mime-composing): New. A lightweight
+	version of rmail-enable-mime.
+	(rmail-forward): Use it.
+
 2002-02-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* textmodes/sgml-mode.el (sgml-start-tag-regex)
