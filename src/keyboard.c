@@ -1649,7 +1649,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   jmp_buf local_getcjmp;
   jmp_buf save_jump;
   int key_already_recorded = 0;
-  Lisp_Object tem;
+  Lisp_Object tem, save;
   Lisp_Object also_record;
   also_record = Qnil;
 
@@ -2028,8 +2028,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   /* Process special events within read_char
      and loop around to read another event.  */
+  save = Vquit_flag;
+  Vquit_flag = Qnil;
   tem = get_keyelt (access_keymap (get_keymap_1 (Vspecial_event_map, 0, 0),
 				   c, 0, 0), 1);
+  Vquit_flag = save;
 
   if (!NILP (tem))
     {
