@@ -1839,7 +1839,7 @@ Use `store-match-data' to reinstate the data in this list.")
   int i, len;
 
   if (NILP (last_thing_searched))
-    error ("match-data called before any match found");
+    return Qnil;
 
   data = (Lisp_Object *) alloca ((2 * search_regs.num_regs)
 				 * sizeof (Lisp_Object));
