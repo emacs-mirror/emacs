@@ -45,6 +45,7 @@
 ;; This code depends on call-process passing back the subprocess exit
 ;; status.  Thus, you need Emacs 18.58 or later to run it.  For the
 ;; vc-directory command to work properly as documented, you need 19.
+;; You also need Emacs 19's ring.el.
 ;;
 ;; The vc code maintains some internal state in order to reduce expensive
 ;; version-control operations to a minimum.  Some names are only computed
@@ -158,6 +159,11 @@ is sensitive to blank lines.")
       (vc-file-setprop file 'vc-name
 		       (let ((name-and-type (vc-registered file)))
 			 (and name-and-type (car name-and-type))))))
+
+(defun vc-registration-error (file)
+  (if file
+      (error "File %s is not under version control." file)
+    (error "Buffer %s is not associated with a file." (buffer-name))))
 
 (defvar vc-binary-assoc nil)
 
@@ -276,7 +282,8 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 			;; iff that buffer is a compilation output buffer
 			;; that contains markers into the current buffer.
 			(save-excursion
-			  (mapcar (lambda (buffer)
+			  (mapcar (function
+				   (lambda (buffer)
 				    (set-buffer buffer)
 				    (let ((errors (or
 						   compilation-old-error-list
@@ -290,7 +297,7 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 						  (cdr (car errors))))
 					     (setq buffer-error-marked-p t))
 					(setq errors (cdr errors)))
-				      (if buffer-error-marked-p buffer)))
+				      (if buffer-error-marked-p buffer))))
 				  (buffer-list)))))))
 
     ;; the actual revisit
@@ -454,7 +461,7 @@ lock steals will raise an error."
       (pop-to-buffer vc-parent-buffer))
     (if buffer-file-name
 	(vc-next-action-on-file buffer-file-name verbose)
-      (error "There is no file associated with buffer %s" (buffer-name)))))
+      (vc-registration-error nil))))
 
 ;;; These functions help the vc-next-action entry point
 
@@ -710,6 +717,8 @@ and two version designators specifying which versions to compare."
 	(error "There is no version-control master associated with this buffer."))
     (let ((file buffer-file-name)
 	  unchanged)
+      (or (and file (vc-name file))
+	  (vc-registration-error file))
       (vc-buffer-sync)
       (setq unchanged (vc-workfile-unchanged-p buffer-file-name))
       (if unchanged
@@ -885,10 +894,11 @@ on a buffer attached to the file named in the current Dired buffer line."
 	  (setq buffer-read-only nil)
 	  (forward-line 1)	;; Skip header line
 	  (mapcar
-	   (lambda (x)
+	   (function
+	    (lambda (x)
 	     (forward-char 2)	;; skip dired's mark area
 	     (vc-dired-reformat-line x)
-	     (forward-line 1))	;; go to next line
+	     (forward-line 1)))	;; go to next line
 	   (nreverse userlist))
 	  (setq buffer-read-only t)
 	  (goto-char (point-min))
@@ -926,6 +936,10 @@ on a buffer attached to the file named in the current Dired buffer line."
 
 (or (boundp 'minor-mode-map-alist)
     (fset 'vc-directory 'vc-directory-18))
+
+; Emacs 18 also lacks these.
+(or (boundp 'compilation-old-error-list)
+    (setq compilation-old-error-list nil))
 
 ;; Named-configuration support for SCCS
 
@@ -1018,7 +1032,7 @@ levels in the snapshot."
 	(vc-shrink-to-fit)
 	(goto-char (point-min))
 	)
-    (error "There is no version-control master associated with this buffer")
+    (vc-registration-error buffer-file-name)
     )
   )
 
@@ -1483,7 +1497,7 @@ Return nil if there is no such person."
       (setq newvers (vc-lookup-triple file newvers)))
   (apply 'vc-do-command 1
 	 (or (vc-backend-dispatch file "vcdiff" "rcsdiff")
-	     (error "File %s is not under version control." file))
+	     (vc-registration-error file))
 	 file
 	 (and oldvers (concat "-r" oldvers))
 	 (and newvers (concat "-r" newvers))
