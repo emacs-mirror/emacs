@@ -48,6 +48,8 @@
 (defvar flow-control-c-q-replacement ?\036
   "Character that replaces C-q, when flow control handling is enabled.")
 
+(put 'keyboard-translate-table 'char-table-extra-slots 0)
+
 ;;;###autoload
 (defun enable-flow-control (&optional argument)
   "Toggle flow control handling.
@@ -64,27 +66,28 @@ With arg, enable flow control mode if arg is positive, otherwise disable."
 	(set-input-mode t nil (nth 2 (current-input-mode)))
 	(if keyboard-translate-table
 	    (progn
-	      (aset keyboard-translate-table flow-control-c-s-replacement
-		    flow-control-c-s-replacement)
-	      (aset keyboard-translate-table ?\^s ?\^s)
-	      (aset keyboard-translate-table flow-control-c-q-replacement
-		    flow-control-c-q-replacement)
-	      (aset keyboard-translate-table ?\^q ?\^q))))
+	      (aset keyboard-translate-table flow-control-c-s-replacement nil)
+	      (aset keyboard-translate-table ?\^s nil)
+	      (aset keyboard-translate-table flow-control-c-q-replacement nil)
+	      (aset keyboard-translate-table ?\^q nil))))
     ;; Turn flow control on.
     ;; Tell emacs to pass C-s and C-q to OS.
     (set-input-mode nil t (nth 2 (current-input-mode)))
     ;; Initialize translate table, saving previous mappings, if any.
-    (let ((the-table (make-string (max 128 (length keyboard-translate-table))
-				  0)))
-      (let ((i 0)
-	    (j (length keyboard-translate-table)))
-	(while (< i j)
-	  (aset the-table i (elt keyboard-translate-table i))
-	  (setq i (1+ i)))
-	(while (< i 128)
-	  (aset the-table i i)
-	  (setq i (1+ i))))
-      (setq keyboard-translate-table the-table))
+    (cond ((null keyboard-translate-table)
+	   (setq keyboard-translate-table
+		 (make-char-table 'keyboard-translate-table nil)))
+	  ((char-table-p keyboard-translate-table)
+	   (setq keyboard-translate-table
+		 (copy-sequence keyboard-translate-table)))
+	  (t
+	   (let ((the-table (make-char-table 'keyboard-translate-table nil)))
+	     (let ((i 0)
+		   (j (length keyboard-translate-table)))
+	       (while (< i j)
+		 (aset the-table i (elt keyboard-translate-table i))
+		 (setq i (1+ i))))
+	     (setq keyboard-translate-table the-table))))
     ;; Swap C-s and C-\
     (aset keyboard-translate-table flow-control-c-s-replacement ?\^s)
     (aset keyboard-translate-table ?\^s flow-control-c-s-replacement)
