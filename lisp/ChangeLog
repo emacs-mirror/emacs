@@ -1,3 +1,10 @@
+2001-12-24  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* term/internal.el (dos-cpNNN-setup, dos-codepage-setup):
+	Call IT-setup-unicode-display here instead of adding it to
+	dos-codepage-setup-hook, so that Unicode display tables are set
+	before dos-codepage-setup-hook runs.
+
 2001-12-24  Richard M. Stallman  <rms@gnu.org>
 
 	* faces.el (minibuffer-prompt): New face.
