@@ -1,4 +1,4 @@
-2003-03-28  Francesco Potort,Al(B  <pot@gnu.org>
+2003-03-28  Daniel Bergstr,Av(Bm  <daniel.bergstrom@gis.ericsson.se>  (tiny change)
 
 	* etags.c (erlang_attribute): Account for error returned by erlang_atom.
 
