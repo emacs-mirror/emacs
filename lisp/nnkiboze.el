@@ -147,7 +147,8 @@ If the stream is opened, return T, otherwise return NIL."
 (defun nnkiboze-close-group (group &optional server)
   (nnkiboze-possibly-change-newsgroups group)
   ;; Remove NOV lines of articles that are marked as read.
-  (if (not (file-exists-p (nnkiboze-nov-file-name)))
+  (if (or (not (file-exists-p (nnkiboze-nov-file-name)))
+	  (not (eq major-mode 'gnus-summary-mode)))
       ()
     (save-excursion
       (let ((unreads gnus-newsgroup-unreads)
