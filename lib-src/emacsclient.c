@@ -1,4 +1,4 @@
-/* Client process that communicates with GNU Emacs acting as server.
+/* Client process that communicates with GNU Emacs acting as server.`
    Copyright (C) 1986, 1987 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -52,6 +52,10 @@ main (argc, argv)
 #include <stdio.h>
 #include <errno.h>
 
+#ifndef SERVER_HOME_DIR
+#include <sys/stat.h>
+#endif
+
 extern int sys_nerr;
 extern char *sys_errlist[];
 extern int errno;
@@ -66,6 +70,9 @@ main (argc, argv)
   struct sockaddr_un server;
   char *homedir, *cwd, *str;
   char string[BUFSIZ];
+#ifndef SERVER_HOME_DIR
+  struct stat statbfr;
+#endif  
 
   char *getenv (), *getwd ();
   int geteuid ();
