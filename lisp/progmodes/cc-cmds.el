@@ -1202,6 +1202,8 @@ sentence motion in or near comments and multiline strings."
 (put 'c-electric-delete    'pending-delete   'supersede) ; pending-del
 (put 'c-electric-backspace 'delete-selection 'supersede) ; delsel
 (put 'c-electric-backspace 'pending-delete   'supersede) ; pending-del
+(put 'c-electric-delete-forward 'delete-selection 'supersede) ; delsel
+(put 'c-electric-delete-forward 'pending-delete   'supersede) ; pending-del
 
 
 ;; This is used by indent-for-comment to decide how much to indent a
