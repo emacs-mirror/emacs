@@ -649,7 +649,7 @@ int flow_control;
 /* After a command is executed, if point is moved into a region that
    has specific properties (e.g. composition, display), we adjust
    point to the boundary of the region.  But, if a command sets this
-   valiable to non-nil, we suppress this point adjustment.  This
+   variable to non-nil, we suppress this point adjustment.  This
    variable is set to nil before reading a command.  */
 
 Lisp_Object Vdisable_point_adjustment;
@@ -1240,7 +1240,7 @@ command_loop ()
 /* Here we catch errors in execution of commands within the
    editing loop, and reenter the editing loop.
    When there is an error, cmd_error runs and returns a non-nil
-   value to us.  A value of nil means that cmd_loop_1 itself
+   value to us.  A value of nil means that command_loop_1 itself
    returned due to end of file (or end of kbd macro).  */
 
 Lisp_Object
@@ -2027,7 +2027,7 @@ make_ctrl_char (c)
    the `display' property).  POS is the position in that string under
    the mouse.
 
-   OK_TO_IVERWRITE_KEYSTROKE_ECHO non-zero means it's okay if the help
+   OK_TO_OVERWRITE_KEYSTROKE_ECHO non-zero means it's okay if the help
    echo overwrites a keystroke echo currently displayed in the echo
    area.
 
@@ -2324,7 +2324,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      all, or it's from echoing from a different kboard than the
      current one.  */
   
-  if (/* There currently something in the echo area  */
+  if (/* There currently is something in the echo area.  */
       !NILP (echo_area_buffer[0])
       && (/* And it's either not from echoing.  */
 	  !EQ (echo_area_buffer[0], echo_message_buffer)
@@ -4758,7 +4758,7 @@ make_lispy_event (event)
 				      Qfunction_key,
 				      current_kboard->Vsystem_key_alist,
 				      0, &current_kboard->system_key_syms,
-				      (unsigned)-1);
+				      (unsigned) -1);
 	}
 
 #ifdef XK_kana_A
@@ -5391,7 +5391,7 @@ make_lispy_event (event)
     case TOOL_BAR_EVENT:
       if (EQ (event->arg, event->frame_or_window))
 	/* This is the prefix key.  We translate this to
-	   `(tool_bar)' because the code in keyboard.c for menu
+	   `(tool_bar)' because the code in keyboard.c for tool bar
 	   events, which we use, relies on this.  */
 	return Fcons (Qtool_bar, Qnil);
       else if (SYMBOLP (event->arg))
@@ -7092,7 +7092,7 @@ parse_menu_item (item, notreal, inmenubar)
  ***********************************************************************/
 
 /* A vector holding tool bar items while they are parsed in function
-   tool_bar_items runs Each item occupies TOOL_BAR_ITEM_NSCLOTS elements
+   tool_bar_items. Each item occupies TOOL_BAR_ITEM_NSCLOTS elements
    in the vector.  */
 
 static Lisp_Object tool_bar_items_vector;
@@ -7399,7 +7399,7 @@ parse_tool_bar_item (key, item)
 	       && (CONSP (value)
 		   || (VECTORP (value) && XVECTOR (value)->size == 4)))
 	/* Value is either a single image specification or a vector
-	   of 4 such specifications for the different buttion states.  */
+	   of 4 such specifications for the different button states.  */
 	PROP (TOOL_BAR_ITEM_IMAGES) = value;
     }
 
@@ -9549,7 +9549,7 @@ clear_input_pending ()
 
 /* Return nonzero if there are pending requeued events.
    This isn't used yet.  The hope is to make wait_reading_process_input
-   call it, and return return if it runs Lisp code that unreads something.
+   call it, and return if it runs Lisp code that unreads something.
    The problem is, kbd_buffer_get_event needs to be fixed to know what
    to do in that case.  It isn't trivial.  */
 
@@ -9861,7 +9861,7 @@ clear_waiting_for_input ()
   input_available_clear_time = 0;
 }
 
-/* This routine is called at interrupt level in response to C-G.
+/* This routine is called at interrupt level in response to C-g.
    
    If interrupt_input, this is the handler for SIGINT.  Otherwise, it
    is called from kbd_buffer_store_event, in handling SIGIO or
