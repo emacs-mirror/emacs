@@ -218,11 +218,20 @@ your own function which is called when `font-lock-mode' is toggled via
 ;; Get rid of fontification for the old major mode.
 ;; We do this when changing major modes.
 (defun font-lock-change-mode ()
-  (let ((inhibit-read-only t))
+  (let ((inhibit-read-only t)
+	(inhibit-point-motion-hooks t)
+	(inhibit-modification-hooks t)
+	(deactivate-mark nil)
+	(buffer-file-name nil)
+	(buffer-file-truename nil)
+	(buffer-undo-list t)
+	(modified (buffer-modified-p)))
     (save-restriction
       (widen)
       (remove-list-of-text-properties
-       (point-min) (point-max) '(font-lock-face))))
+       (point-min) (point-max) '(font-lock-face)))
+    (unless modified
+      (restore-buffer-modified-p nil)))
   (when font-lock-defaults
     (font-lock-unfontify-buffer)))
 
