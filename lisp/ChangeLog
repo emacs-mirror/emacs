@@ -1,3 +1,18 @@
+1999-10-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* Makefile (dontcompilefiles): Obsoleted.
+	(DONTCOMPILE): Added emacs-lisp/cl-specs.el.
+	(EL): Unused.
+	(temacs): Removed (unused).
+	(cus-load.el, finder-inf.el, loaddefs.el): New targets to build a dummy
+	  version of the file (necessary for the update to work properly).
+	(autoloads): Force the use of `pwd`/loaddefs.el.
+	(updates); Redefined in terms of other targets to reduce redundancy.
+	(.el.elc): New default rule, just in case you want it.
+	(compile): Use a single invocation of Emacs.
+	(bootstrap-compile); Unneeded.
+	(autoloads-with-other-emacs): Unneeded now that autoloads is fixed.
+
 1999-10-19  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/eval-reg.el: Removed -- not now needed by edebug.

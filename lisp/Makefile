@@ -5,7 +5,7 @@
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
 
-EMACS = emacs 
+EMACS = emacs
 
 # Command line flags for Emacs.  This must include --multibyte,
 # otherwise some files will not compile.
@@ -17,18 +17,10 @@ lisptagsfiles1 = [a-zA-Z]*.el
 lisptagsfiles2 = [a-zA-Z]*/[a-zA-Z]*.el
 ETAGS = ../lib-src/etags
 
-# Leave this in.  I don't know if some utility depends on it.
-
-dontcompilefiles: bindings.el blessmail.el bruce.el cus-load.el cus-start.el
-dontcompilefiles: forms-d2.el forms-pass.el 
-dontcompilefiles: latin-1.el latin-2.el latin-3.el latin-4.el latin-5.el
-dontcompilefiles: loaddefs.el loadup.el mule-conf.el patcomp.el
-dontcompilefiles: paths.el sc.el subdirs.el term-nasty.el version.el 
-dontcompilefiles: generic-x.el latin-8.el latin-9.el
-
 # Files which should not be compiled.  All file names must be relative
 # to the `lisp' directory.
-
+# - emacs-lisp/cl-specs.el:  only contains `def-edebug-spec's so there's
+#   no point compiling it, although it doesn't hurt.
 DONTCOMPILE = bindings.el mail/blessmail.el play/bruce.el cus-load.el \
 	cus-start.el forms-d2.el forms-pass.el \
 	international/latin-1.el international/latin-2.el \
@@ -36,19 +28,12 @@ DONTCOMPILE = bindings.el mail/blessmail.el play/bruce.el cus-load.el \
 	international/latin-5.el \
 	loaddefs.el loadup.el international/mule-conf.el patcomp.el \
 	paths.el mail/sc.el subdirs.el term-nasty.el version.el \
-	generic-x.el international/latin-8.el international/latin-9.el
-
-# All Lisp source files in the current directory.
-
-EL	= $(lisptagsfiles1) $(lisptagsfiles2)
+	generic-x.el international/latin-8.el international/latin-9.el \
+	emacs-lisp/cl-specs.el finder-inf.el
 
 # The actual Emacs command run in the targets below.
 
 emacs = $(EMACS) $(EMACSOPT)
-
-# The Emacs used to compile Lisp files from scratch.
-
-temacs=../src/temacs -batch -l ./loadup.el 
 
 # Common command to find subdirectories
 
@@ -61,36 +46,44 @@ setwins=subdirs=`find $$wd -type d -print`; \
 
 doit:
 
-custom-deps: doit
+cus-load.el:
+	touch $@
+custom-deps: cus-load.el doit
 	wd=.; $(setwins); \
 	echo Directories: $$wins; \
 	$(emacs) -l cus-dep -f custom-make-dependencies $$wins
 
-finder-data: doit
+finder-inf.el:
+	echo "(provide 'finder-inf)" >> $@
+finder-data: finder-inf.el doit
 	wd=.; $(setwins); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder -f finder-compile-keywords-make-dist $$wins
 
-autoloads: doit
+loaddefs.el:
+	echo ";;; loaddefs.el --- automatically extracted autoloads" >> $@
+	echo ";;" >> $@; echo ";;; Code:" >> $@
+	echo "" >> $@
+	echo ";;; Local Variables:" >> $@
+	echo ";;; version-control: never" >> $@
+	echo ";;; no-byte-compile: t" >> $@
+	echo ";;; no-update-autoloads: t" >> $@
+	echo ";;; End:" >> $@
+	echo ";;; loaddefs.el ends here" >> $@
+autoloads: loaddefs.el doit
 	wd=.; $(setwins); \
 	echo Directories: $$wins; \
-	$(emacs) -f batch-update-autoloads $$wins
+	$(emacs) --eval '(setq generated-autoload-file "'`pwd`'/loaddefs.el")' -f batch-update-autoloads $$wins
 
+subdirs.el:
+	$(MAKE) $(MFLAGS) update-subdirs
 update-subdirs: doit
 	wd=.; $(setwins); \
 	for file in $$wins; do \
 	   ../update-subdirs $$file; \
 	done;
 
-updates: doit
-	wd=.; $(setwins); \
-	for file in $$wins; do \
-	   ../update-subdirs $$file; \
-	done; \
-	echo Directories: $$wins; \
-	$(emacs) -l cus-dep -f custom-make-dependencies $$wins; \
-	$(emacs) -l finder -f finder-compile-keywords-make-dist $$wins; \
-	$(emacs) -f batch-update-autoloads $$wins
+updates: update-subdirs autoloads finder-data custom-deps
 
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
 	${ETAGS} $(lisptagsfiles1) $(lisptagsfiles2)
@@ -98,6 +91,12 @@ TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
 TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
 	${ETAGS} -o TAGS-LISP \
 	  $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
+
+.el.elc: subdirs.el
+	-EMACSLOADPATH=`pwd` $(emacs) -f batch-byte-compile $<
+
+$(DONTCOMPILE:.el=.elc):
+	-rm -f $@
 
 # Compile all Lisp files, except those from DONTCOMPILE.  This
 # compiles files unconditionally.  All .elc files are made writable
@@ -109,62 +108,14 @@ TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
 # make sure require's and load's in the files being compiled find
 # the right files.
 
-compile: doit
-	wd=`pwd`;						\
-	find $$wd -name "*.elc" -print | xargs chmod +w;	\
-	subdirs=`find $$wd -type d -print`; 			\
-	for dir in $$subdirs; do 				\
-	   case $$dir in 					\
-	     */Old | */RCS | */CVS | */=* ) ;; 			\
-	     *) loadpath="$$loadpath \"$$dir\"" ;; 		\
-	   esac; 						\
-        done; 							\
-	loadpath="(setq load-path '($$loadpath))";		\
-	dont_compile=`echo $(DONTCOMPILE)`;			\
-	for el in $(EL); do					\
-	  compile_it=y;						\
-	  for dont in $$dont_compile; do			\
-	    if test $$el = $$dont; then				\
-	      compile_it=n;					\
-            fi;							\
-          done;							\
-          if test $$compile_it = y; then			\
-            $(emacs) --eval "$$loadpath" -f batch-byte-compile $$el; \
-          else							\
-            echo "Don't compile $$el";				\
-          fi;							\
-	done
-
-# Compile Lisp files when all we have is the temacs in ../src.  All
-# .elc files under the current directory are deleted first to make
-# sure we start from a clean basis.
-
-bootstrap-compile: doit
-	wd=`pwd`;						\
-	find $$wd -name "*.elc" -print | xargs rm -f            \
-	subdirs=`find $$wd -type d -print`; 			\
-	for dir in $$subdirs; do 				\
-	   case $$dir in 					\
-	     */Old | */RCS | */CVS | */=* ) ;; 			\
-	     *) loadpath="$$loadpath \"$$dir\"" ;; 		\
-	   esac; 						\
-        done; 							\
-	loadpath="(setq load-path '($$loadpath))";		\
-	dont_compile=`echo $(DONTCOMPILE)`;			\
-	for el in $(EL); do					\
-	  compile_it=y;						\
-	  for dont in $$dont_compile; do			\
-	    if test $$el = $$dont; then				\
-	      compile_it=n;					\
-            fi;							\
-          done;							\
-          if test $$compile_it = y; then			\
-            $(temacs) --eval "$$loadpath" -f batch-byte-compile $$el; \
-          else							\
-            echo "Don't compile $$el";				\
-          fi;							\
-	done
-
+compile: subdirs.el doit
+	find . -name "*.elc" -print | xargs chmod +w;		\
+	wd=.; $(setwins);					\
+	elpat=`echo $$wins | tr '[ 	]' '[\012\012]' | 	\
+		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
+	els=`echo $$elpat $(DONTCOMPILE) | tr '[	 ]' '[\012\012]' | sort | uniq -u`; \
+	echo $$els; \
+	EMACSLOADPATH=`pwd` $(emacs) -f batch-byte-compile $$els
 
 # Recompile all Lisp files which are newer than their .elc files.
 # Note that this doesn't create .elc files.  It only recompiles if an
@@ -172,18 +123,5 @@ bootstrap-compile: doit
 
 recompile: doit
 	$(emacs) -f batch-byte-recompile-directory .
-
-# Build loaddefs.el but with an Emacs executable which was not built
-# in the current directory tree.  The problem in this case is that
-# autoload.el reads and writes loaddefs.el in its `source-directory'.
-# If that's different from the current directory tree, we can't build
-# loaddefs.el.
-#   Can't this rule be used in place of `autoload'? -sm
-
-autoloads-with-other-emacs: doit
-	wd=.; $(setwins);						\
-	echo Directories: $$wins;				\
-	$(emacs) --eval '(setq source-directory ".")'		\
-		-f batch-update-autoloads $$wins
 
 # Makefile ends here.
