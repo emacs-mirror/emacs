@@ -17176,10 +17176,9 @@ compute_overhangs_and_x (s, x, backward_p)
 #define BUILD_CHAR_GLYPH_STRINGS(START, END, HEAD, TAIL, HL, X, LAST_X)	   \
      do									   \
        {								   \
-	 int c, face_id;						   \
+	 int face_id;							   \
 	 XChar2b *char2b;						   \
 									   \
-	 c = (row)->glyphs[area][START].u.ch;				   \
 	 face_id = (row)->glyphs[area][START].face_id;			   \
 									   \
 	 s = (struct glyph_string *) alloca (sizeof *s);		   \
@@ -17320,7 +17319,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
      int x;
      struct glyph_row *row;
      enum glyph_row_area area;
-     int start, end;
+     EMACS_INT start, end;
      enum draw_glyphs_face hl;
      int overlaps_p;
 {
@@ -18425,7 +18424,8 @@ x_insert_glyphs (start, len)
   int line_height, shift_by_width, shifted_region_width;
   struct glyph_row *row;
   struct glyph *glyph;
-  int frame_x, frame_y, hpos;
+  int frame_x, frame_y;
+  EMACS_INT hpos;
 
   xassert (updated_window && updated_row);
   BLOCK_INPUT;
@@ -18991,7 +18991,6 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
   int active_cursor;
   struct glyph_matrix *current_glyphs;
   struct glyph_row *glyph_row;
-  struct glyph *glyph;
 
   /* This is pointless on invisible frames, and dangerous on garbaged
      windows and frames; in the latter case, the frame or window may
@@ -19009,7 +19008,6 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
 
   current_glyphs = w->current_matrix;
   glyph_row = MATRIX_ROW (current_glyphs, vpos);
-  glyph = glyph_row->glyphs[TEXT_AREA] + hpos;
 
   /* If cursor row is not enabled, we don't really know where to
      display the cursor.  */
@@ -19281,7 +19279,7 @@ cursor_in_mouse_face_p (w)
 static int
 fast_find_position (w, charpos, hpos, vpos, x, y, stop)
      struct window *w;
-     int charpos;
+     EMACS_INT charpos;
      int *hpos, *vpos, *x, *y;
      Lisp_Object stop;
 {
@@ -19344,7 +19342,7 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
 static int
 fast_find_position (w, pos, hpos, vpos, x, y, stop)
      struct window *w;
-     int pos;
+     EMACS_INT pos;
      int *hpos, *vpos, *x, *y;
      Lisp_Object stop;
 {
@@ -19458,7 +19456,7 @@ fast_find_position (w, pos, hpos, vpos, x, y, stop)
 static int
 fast_find_string_pos (w, pos, object, hpos, vpos, x, y, right_p)
      struct window *w;
-     int pos;
+     EMACS_INT pos;
      Lisp_Object object;
      int *hpos, *vpos, *x, *y;
      int right_p;
