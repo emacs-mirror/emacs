@@ -11761,25 +11761,33 @@ x_calc_absolute_position (f)
 				  - PIXEL_WIDTH (f)
 				  + f->output_data.x->left_pos);
 
-  if (flags & YNegative)
-    {
-      int menubar_height = 0;
+  {
+    int height = PIXEL_HEIGHT (f);
 
-#ifdef USE_X_TOOLKIT
-      if (f->output_data.x->menubar_widget)
-	menubar_height
-	  = (f->output_data.x->menubar_widget->core.height
-	     + f->output_data.x->menubar_widget->core.border_width);
+#if defined USE_X_TOOLKIT && defined USE_MOTIF
+    /* Something is fishy here.  When using Motif, starting Emacs with
+       `-g -0-0', the frame appears too low by a few pixels.
+
+       This seems to be so because initially, while Emacs is starting,
+       the column widget's height and the frame's pixel height are
+       different.  The column widget's height is the right one.  In
+       later invocations, when Emacs is up, the frame's pixel height
+       is right, though.
+
+       It's not obvious where the initial small difference comes from.
+       2000-12-01, gerd.  */
+    
+    XtVaGetValues (f->output_data.x->column_widget, XtNheight, &height, NULL);
 #endif
-      
-      f->output_data.x->top_pos = (FRAME_X_DISPLAY_INFO (f)->height
-				   - 2 * f->output_data.x->border_width
-				   - win_y
-				   - PIXEL_HEIGHT (f)
-				   - menubar_height
-				   + f->output_data.x->top_pos);
-    }
 
+  if (flags & YNegative)
+    f->output_data.x->top_pos = (FRAME_X_DISPLAY_INFO (f)->height
+				 - 2 * f->output_data.x->border_width
+				 - win_y
+				 - height
+				 + f->output_data.x->top_pos);
+  }
+  
   /* The left_pos and top_pos
      are now relative to the top and left screen edges,
      so the flags should correspond.  */
