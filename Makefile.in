@@ -711,7 +711,7 @@ dvi:
 ### special emacs executable is built from Lisp sources, which is then
 ### used to compile Lisp files.  The last step is a "normal" make.
 
-.PHONY: bootstrap bootstrap-lisp-1 boostrap-src bootstrap-lisp bootstrap-clean
+.PHONY: bootstrap
 .PHONY: maybe_bootstrap
 
 maybe_bootstrap:
@@ -721,16 +721,12 @@ maybe_bootstrap:
 	  exit 1;\
 	fi
 
-bootstrap: bootstrap-clean-before bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean-after all info
-
-bootstrap-lisp-1:
+bootstrap: bootstrap-clean-before info FRC
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean)
-
-bootstrap-lisp:
-	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs)
-
-bootstrap-src:
 	(cd src; $(MAKE) $(MFLAGS) bootstrap)
+	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs)
+	(cd src; $(MAKE) $(MFLAGS) mostlyclean)
+	$(MAKE) $(MFLAGS) all
 
 ### Used for `bootstrap' to avoid deleting existing dumped Emacs executables.
 bootstrap-clean-before: FRC
@@ -743,5 +739,3 @@ bootstrap-clean-before: FRC
 	-(cd lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
 
-bootstrap-clean-after:
-	(cd src; $(MAKE) $(MFLAGS) mostlyclean)
