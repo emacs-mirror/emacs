@@ -2216,7 +2216,7 @@ handle_face_prop (it)
 					     it->region_beg_charpos,
 					     it->region_end_charpos,
 					     &next_stop,
-					     base_face_id);
+					     base_face_id, 0);
       
 #if 0 /* This shouldn't be neccessary.  Let's check it.  */
       /* If IT is used to display a mode line we would really like to
@@ -2324,7 +2324,7 @@ face_before_or_after_it_pos (it, before_p)
 					 it->region_beg_charpos,
 					 it->region_end_charpos,
 					 &next_check_charpos,
-					 base_face_id);
+					 base_face_id, 0);
 
       /* Correct the face for charsets different from ASCII.  Do it
 	 for the multibyte case only.  The face returned above is
@@ -13791,7 +13791,7 @@ display_string (string, lisp_string, face_string, face_string_pos,
 	= face_at_string_position (it->w, face_string, face_string_pos,
 				   0, it->region_beg_charpos,
 				   it->region_end_charpos,
-				   &endptr, it->base_face_id);
+				   &endptr, it->base_face_id, 0);
       face = FACE_FROM_ID (it->f, it->face_id);
       it->face_box_p = face->box != FACE_NO_BOX;
     }
