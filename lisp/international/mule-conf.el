@@ -164,6 +164,9 @@
 (define-iso-single-byte-charset 'iso-8859-15 'latin-iso8859-15
   "ISO/IEC 8859/15" "Latin-9" 203 ?b 142 "8859-15")
 
+(define-iso-single-byte-charset 'iso-8859-16 'latin-iso8859-16
+  "ISO/IEC 8859/16" "Latin-9" 226 ?f nil "8859-16")
+
 (define-charset 'thai-tis620
   "TIS620.2533"
   :short-name "TIS620.2533"
@@ -803,6 +806,7 @@ is treated as a character."
 (define-coding-system 'emacs-mule
  "Emacs 21 internal format used in buffer and string."
  :coding-type 'emacs-mule
+ :charset-list 'emacs-mule
  :mnemonic ?M)
 
 (define-coding-system 'utf-8
