@@ -597,6 +597,7 @@ copy_text_and_data (new)
   return 0;
 }
 
+#define UnexBlockSz (1<<12)			/* read/write block size */
 write_segment (new, ptr, end)
      int new;
      register char *ptr, *end;
@@ -604,14 +605,12 @@ write_segment (new, ptr, end)
   register int i, nwrite, ret;
   char buf[80];
   extern int errno;
-  char zeros[128];
-
-  bzero (zeros, sizeof zeros);
+  char zeros[UnexBlockSz];
 
   for (i = 0; ptr < end;)
     {
-      /* distance to next multiple of 128.  */
-      nwrite = (((int) ptr + 128) & -128) - (int) ptr;
+      /* distance to next block.  */
+      nwrite = (((int) ptr + UnexBlockSz) & -UnexBlockSz) - (int) ptr;
       /* But not beyond specified end.  */
       if (nwrite > end - ptr) nwrite = end - ptr;
       ret = write (new, ptr, nwrite);
@@ -621,7 +620,8 @@ write_segment (new, ptr, end)
 	 So write zeros for it.  */
       if (ret == -1 && errno == EFAULT)
 	{
-	write (new, zeros, nwrite);
+	  bzero (zeros, nwrite);
+	  write (new, zeros, nwrite);
 	}
       else if (nwrite != ret)
 	{
@@ -645,7 +645,7 @@ copy_sym (new, a_out, a_name, new_name)
      int new, a_out;
      char *a_name, *new_name;
 {
-  char page[1024];
+  char page[UnexBlockSz];
   int n;
 
   if (a_out < 0)
@@ -752,6 +752,13 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
   for (nsyms = 0; nsyms < f_hdr.f_nsyms; nsyms++)
     {
       read (new, &symentry, SYMESZ);
+      if (symentry.n_sclass == C_BINCL || symentry.n_sclass == C_EINCL)
+	{
+	  symentry.n_value += bias;
+	  lseek (new, -SYMESZ, 1);
+	  write (new, &symentry, SYMESZ);
+	}
+
       for (naux = symentry.n_numaux; naux-- != 0; )
 	{
 	  read (new, &auxentry, AUXESZ);
@@ -788,7 +795,6 @@ unrelocate_symbols (new, a_out, a_name, new_name)
   ulong t_reloc = (ulong) &_text - f_ohdr.text_start;
   ulong d_reloc = (ulong) &_data - ALIGN(f_ohdr.data_start, 2);
   int * p;
-  int dirty;
 
   if (load_scnptr == 0)
     return 0;
@@ -820,20 +826,12 @@ unrelocate_symbols (new, a_out, a_name, new_name)
 	  }
 	ldrel = ldrel_buf;
       }
-      dirty = 0;
-
-      /* this code may not be necessary */
-      /* I originally had == in the "assignment" and it still unrelocated */
 
       /* move the BSS loader symbols to the DATA segment */
-      if (ldrel->l_rsecnm == f_ohdr.o_snbss)
-	ldrel->l_rsecnm = f_ohdr.o_sndata, dirty++;
-
       if (ldrel->l_symndx == SYMNDX_BSS)
-	ldrel->l_symndx = SYMNDX_DATA, dirty++;
-
-      if (dirty)
 	{
+	  ldrel->l_symndx = SYMNDX_DATA;
+
 	  lseek (new,
 		 load_scnptr + LDHDRSZ + LDSYMSZ*ldhdr.l_nsyms + LDRELSZ*i,
 		 0);
