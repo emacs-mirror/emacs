@@ -1,0 +1,9 @@
+# -sed2x.inp------------------------------------------------------------
+# Extra configuration script for src/config.h for DesqView/X
+# ----------------------------------------------------------------------
+/^#undef HAVE_X_WINDOWS *$/s/undef/define/
+/^#undef HAVE_X11 *$/s/undef/define/
+/^#undef HAVE_X_MENU *$/s/undef/define/
+/^#undef HAVE_XSCREENNUMBEROFSCREEN *$/s/undef/define/
+/^#undef HAVE_XSETWMPROTOCOLS *$/s/undef/define/
+/^#undef HAVE_SELECT *$/s/undef/define/

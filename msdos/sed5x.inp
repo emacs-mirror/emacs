@@ -1,0 +1,11 @@
+# -sed5x.inp------------------------------------------------------------
+# Configuration script for oldxmenu/makefile for DesqView/X
+# ----------------------------------------------------------------------
+/^srcdir *=/s/@[^@\n]*@/./
+/^VPATH *=/s/@[^@\n]*@/./
+/^C_SWITCH_X_SITE *=/s/@[^@\n]*@//
+/^CC *=/s/@[^@\n]*@/gcc/
+/^CPP *=/s/@[^@\n]*@/gcc -e/
+/^CFLAGS *=/s/@[^@\n]*@/-O2 -g/
+/^LN_S *=/s/@[^@\n]*@/ln -s/
+s/|| true//

@@ -1,0 +1,76 @@
+# make all	to compile and build Emacs.
+# make install	to install it.
+# make TAGS	to update tags tables.
+#
+# make clean  or  make mostlyclean
+#      Delete all files from the current directory that are normally
+#      created by building the program.	 Don't delete the files that
+#      record the configuration.  Also preserve files that could be made
+#      by building, but normally aren't because the distribution comes
+#      with them.
+#
+#      Delete `.dvi' files here if they are not part of the distribution.
+# 
+# make distclean
+#      Delete all files from the current directory that are created by
+#      configuring or building the program.  If you have unpacked the
+#      source and built the program without creating any other files,
+#      `make distclean' should leave only the files that were in the
+#      distribution.
+# 
+# make realclean
+#      Delete everything from the current directory that can be
+#      reconstructed with this Makefile.  This typically includes
+#      everything deleted by distclean, plus more: C source files
+#      produced by Bison, tags tables, info files, and so on.
+#
+# make extraclean
+#      Still more severe - delete backup and autosave files, too.
+
+all:	lib-src src
+
+lib-src: FRC
+	cd lib-src
+	$(MAKE)
+	cd ..
+
+src: FRC
+	cd src
+	$(MAKE)
+	cd ..
+
+install: all
+	-md bin
+	cd lib-src
+	coff2exe hexl
+	coff2exe etags
+	coff2exe ctags
+	coff2exe b2m
+	mv -f *.exe ../bin/
+	cd ..
+	cd src
+	coff2exe emacs
+	stubedit emacs.exe minstack=512k
+	mv -f emacs.exe ../bin/
+	cd ..
+
+FRC:
+
+TAGS tags:	lib-src
+	cd src
+	go32 ../lib-src/etags *.[ch] ../lisp/*.el ../lisp/term/*.el
+	cd ..
+
+check:
+	@echo "We don't have any tests for GNU Emacs yet."
+
+clean:
+	cd lib-src
+	$(MAKE) clean
+	cd ..
+	cd src
+	$(MAKE) clean
+	cd ..
+	cd oldxmenu
+	-$(MAKE) clean
+	cd ..
