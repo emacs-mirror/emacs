@@ -57,6 +57,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef TERMCAP
 #define TERMINFO
 
+#define NO_REMAP
+
+/* The rest of the file certainly needs updating for Emacs 19.29!  */
+
 /* Define sizes of portions of a Lisp_Object.  */
 #define VALBITS 24
 
@@ -72,5 +76,3 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Move some garbage-collector flag bits to different bit positions.  */
 #define ARRAY_MARK_FLAG (1 << 27)
-
-#define NO_REMAP
