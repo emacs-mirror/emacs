@@ -902,7 +902,7 @@ display the result of expression evaluation."
                (eq this-command last-command)
                (if (boundp 'edebug-active) edebug-active)))
       (let ((char-string
-             (if (or (and (boundp 'edebug-active) edebug-active)
+             (if (or (if (boundp 'edebug-active) edebug-active)
                      (memq this-command '(eval-last-sexp eval-print-last-sexp)))
                  (prin1-char value))))
         (if char-string
@@ -4678,7 +4678,8 @@ of the differing parts is, by contrast, slightly highlighted."
 			       (point-min)
 			       'mouse-face))
 	       (element-common-end
-		(+ (or element-start nil) common-string-length))
+		(and element-start
+		     (+ (or element-start nil) common-string-length)))
 	       (maxp (point-max)))
 	  (while (and element-start (< element-common-end maxp))
 	    (when (and (get-char-property element-start 'mouse-face)

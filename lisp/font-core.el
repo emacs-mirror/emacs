@@ -203,7 +203,8 @@ this function onto `change-major-mode-hook'."
   ;; `font-lock-defaults'.
   (when (or font-lock-defaults
 	    (and (boundp 'font-lock-keywords) font-lock-keywords)
-	    (cdr (assq major-mode font-lock-defaults-alist)))
+	    (with-no-warnings
+	     (cdr (assq major-mode font-lock-defaults-alist))))
     (font-lock-mode-internal mode)))
 
 (defun turn-on-font-lock ()

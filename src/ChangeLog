@@ -1,3 +1,16 @@
+2005-02-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* keyboard.c: If HAVE_FCNTL_H include fcntl.h.
+
+2005-02-12  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (expose_window): Don't fix overlaps for mode lines.
+
+2005-02-10  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (try_window_id): Set first_unchanged_at_end_row to NULL
+	if it moves outside window or it doesn't display text.
+
 2005-02-09  Kim F. Storm  <storm@cua.dk>
 
 	* undo.c (Fprimitive_undo): Check that undo function does not

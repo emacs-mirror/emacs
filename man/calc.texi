@@ -17,15 +17,11 @@
 @c $x$ in TeX, @samp{x} otherwise.
 
 @iftex
-@macro texline{stuff}
-\stuff\
+@macro texline
 @end macro
 @alias infoline=comment
-@tex
-\gdef\exprsetup{\tex \let\t\ttfont \turnoffactive}
-\gdef\expr{\exprsetup$\exprfinish}
-\gdef\exprfinish#1{#1$\endgroup}
-@end tex
+@alias expr=math
+@alias tfn=code
 @alias mathit=expr
 @macro cpi{}
 @math{@pi{}}
@@ -41,15 +37,13 @@
 \stuff\
 @end macro
 @alias expr=samp
+@alias tfn=t
 @alias mathit=i
 @macro cpi{}
 @expr{pi}
 @end macro
 @macro cpiover{den}
 @expr{pi/\den\}
-@end macro
-@macro LaTeX{}
-La@TeX{}
 @end macro
 @end ifnottex
 
@@ -666,7 +660,7 @@ Click on the @key{2}, @key{ENTER}, @key{3}, @key{+}, and @key{SQRT}
 ``buttons'' using your left mouse button.
 
 @noindent
-Click on @key{PI}, @key{2}, and @t{y^x}.
+Click on @key{PI}, @key{2}, and @tfn{y^x}.
 
 @noindent
 Click on @key{INV}, then @key{ENTER} to swap the two results.
@@ -739,7 +733,7 @@ these equations for the variables @expr{x} and @expr{y}.
 Type @kbd{d B} to view the solutions in more readable notation.
 Type @w{@kbd{d C}} to view them in C language notation, @kbd{d T}
 to view them in the notation for the @TeX{} typesetting system,
-and @kbd{d L} to view them in the notation for the @LaTeX{} typesetting
+and @kbd{d L} to view them in the notation for the La@TeX{} typesetting
 system.  Type @kbd{d N} to return to normal notation.
 
 @noindent
@@ -1124,7 +1118,7 @@ is
 Calc has added annotations to the file to help it remember the modes
 that were used for this formula.  They are formatted like comments
 in the @TeX{} typesetting language, just in case you are using @TeX{} or
-@LaTeX{}. (In this example @TeX{} is not being used, so you might want
+La@TeX{}. (In this example @TeX{} is not being used, so you might want
 to move these comments up to the top of the file or otherwise put them
 out of the way.)
 
@@ -5221,7 +5215,7 @@ One more mode that makes reading formulas easier is Big mode.
 Here things like powers, square roots, and quotients and fractions
 are displayed in a two-dimensional pictorial form.  Calc has other
 language modes as well, such as C mode, FORTRAN mode, @TeX{} mode
-and @LaTeX{} mode.
+and La@TeX{} mode.
 
 @smallexample
 @group
@@ -9074,9 +9068,9 @@ apply and the rewrites will stop right away.
 @starindex
 @end ignore
 @tindex nterms
-If @expr{x} is the sum @expr{a + b}, then `@t{nterms(}@var{x}@t{)}' must
-be `@t{nterms(}@var{a}@t{)}' plus `@t{nterms(}@var{b}@t{)}'.  If @expr{x}
-is not a sum, then `@t{nterms(}@var{x}@t{)}' = 1.
+If @expr{x} is the sum @expr{a + b}, then `@tfn{nterms(}@var{x}@tfn{)}' must
+be `@tfn{nterms(}@var{a}@tfn{)}' plus `@tfn{nterms(}@var{b}@tfn{)}'.  If @expr{x}
+is not a sum, then `@tfn{nterms(}@var{x}@tfn{)}' = 1.
 
 @smallexample
 @group
@@ -10875,8 +10869,8 @@ Rectangular complex numbers can also be displayed in @samp{@var{a}+@var{b}i}
 notation; @pxref{Complex Formats}.
 
 Polar complex numbers are displayed in the form 
-@texline `@t{(}@var{r}@t{;}@math{\theta}@t{)}'
-@infoline `@t{(}@var{r}@t{;}@var{theta}@t{)}'
+@texline `@tfn{(}@var{r}@tfn{;}@math{\theta}@tfn{)}'
+@infoline `@tfn{(}@var{r}@tfn{;}@var{theta}@tfn{)}'
 where @var{r} is the nonnegative magnitude and 
 @texline @math{\theta}
 @infoline @var{theta} 
@@ -11293,7 +11287,7 @@ conversions.
 A @dfn{modulo form} is a real number which is taken modulo (i.e., within
 an integer multiple of) some value @var{M}.  Arithmetic modulo @var{M}
 often arises in number theory.  Modulo forms are written
-`@var{a} @t{mod} @var{M}',
+`@var{a} @tfn{mod} @var{M}',
 where @var{a} and @var{M} are real numbers or HMS forms, and
 @texline @math{0 \le a < M}.
 @infoline @expr{0 <= a < @var{M}}.
@@ -11317,15 +11311,15 @@ are integers, this calculation is done much more efficiently than
 actually computing the power and then reducing.)
 
 @cindex Modulo division
-Two modulo forms `@var{a} @t{mod} @var{M}' and `@var{b} @t{mod} @var{M}'
+Two modulo forms `@var{a} @tfn{mod} @var{M}' and `@var{b} @tfn{mod} @var{M}'
 can be divided if @expr{a}, @expr{b}, and @expr{M} are all
 integers.  The result is the modulo form which, when multiplied by
-`@var{b} @t{mod} @var{M}', produces `@var{a} @t{mod} @var{M}'.  If
+`@var{b} @tfn{mod} @var{M}', produces `@var{a} @tfn{mod} @var{M}'.  If
 there is no solution to this equation (which can happen only when
 @expr{M} is non-prime), or if any of the arguments are non-integers, the
 division is left in symbolic form.  Other operations, such as square
 roots, are not yet supported for modulo forms.  (Note that, although
-@w{`@t{(}@var{a} @t{mod} @var{M}@t{)^.5}'} will compute a ``modulo square root''
+@w{`@tfn{(}@var{a} @tfn{mod} @var{M}@tfn{)^.5}'} will compute a ``modulo square root''
 in the sense of reducing 
 @texline @math{\sqrt a}
 @infoline @expr{sqrt(a)} 
@@ -11377,8 +11371,8 @@ The algebraic function @samp{makemod(a, m)} builds the modulo form
 @cindex Standard deviations
 An @dfn{error form} is a number with an associated standard
 deviation, as in @samp{2.3 +/- 0.12}.  The notation
-@texline `@var{x} @t{+/-} @math{\sigma}' 
-@infoline `@var{x} @t{+/-} sigma' 
+@texline `@var{x} @tfn{+/-} @math{\sigma}' 
+@infoline `@var{x} @tfn{+/-} sigma' 
 stands for an uncertain value which follows
 a normal or Gaussian distribution of mean @expr{x} and standard
 deviation or ``error'' 
@@ -11424,11 +11418,11 @@ Consult a good text on error analysis for a discussion of the proper use
 of standard deviations.  Actual errors often are neither Gaussian-distributed
 nor uncorrelated, and the above formulas are valid only when errors
 are small.  As an example, the error arising from
-@texline `@t{sin(}@var{x} @t{+/-} @math{\sigma}@t{)}' 
-@infoline `@t{sin(}@var{x} @t{+/-} @var{sigma}@t{)}' 
+@texline `@tfn{sin(}@var{x} @tfn{+/-} @math{\sigma}@tfn{)}' 
+@infoline `@tfn{sin(}@var{x} @tfn{+/-} @var{sigma}@tfn{)}' 
 is 
-@texline `@math{\sigma} @t{abs(cos(}@var{x}@t{))}'.  
-@infoline `@var{sigma} @t{abs(cos(}@var{x}@t{))}'.  
+@texline `@math{\sigma} @tfn{abs(cos(}@var{x}@tfn{))}'.  
+@infoline `@var{sigma} @tfn{abs(cos(}@var{x}@tfn{))}'.  
 When @expr{x} is close to zero,
 @texline @math{\cos x}
 @infoline @expr{cos(x)} 
@@ -11560,14 +11554,14 @@ contain zero inside them Calc is forced to give the result,
 While it may seem that intervals and error forms are similar, they are
 based on entirely different concepts of inexact quantities.  An error
 form 
-@texline `@var{x} @t{+/-} @math{\sigma}' 
-@infoline `@var{x} @t{+/-} @var{sigma}' 
+@texline `@var{x} @tfn{+/-} @math{\sigma}' 
+@infoline `@var{x} @tfn{+/-} @var{sigma}' 
 means a variable is random, and its value could
 be anything but is ``probably'' within one 
 @texline @math{\sigma} 
 @infoline @var{sigma} 
 of the mean value @expr{x}. An interval 
-`@t{[}@var{a} @t{..@:} @var{b}@t{]}' means a
+`@tfn{[}@var{a} @tfn{..@:} @var{b}@tfn{]}' means a
 variable's value is unknown, but guaranteed to lie in the specified
 range.  Error forms are statistical or ``average case'' approximations;
 interval arithmetic tends to produce ``worst case'' bounds on an
@@ -12745,9 +12739,7 @@ The @kbd{m D} (@code{calc-default-simplify-mode}) command restores the
 default simplifications for all formulas.  This includes many easy and
 fast algebraic simplifications such as @expr{a+0} to @expr{a}, and
 @expr{a + 2 a} to @expr{3 a}, as well as evaluating functions like
-@texline @t{deriv}@expr{(x^2,x)}
-@infoline @expr{@t{deriv}(x^2, x)} 
-to @expr{2 x}.
+@expr{@tfn{deriv}(x^2, x)} to @expr{2 x}.
 
 @kindex m B
 @pindex calc-bin-simplify-mode
@@ -13925,7 +13917,7 @@ left or right as you prefer.
 @noindent
 The commands in this section change Calc to use a different notation for
 entry and display of formulas, corresponding to the conventions of some
-other common language such as Pascal or @LaTeX{}.  Objects displayed on the
+other common language such as Pascal or La@TeX{}.  Objects displayed on the
 stack or yanked from the Calculator to an editing buffer will be formatted
 in the current language; objects entered in algebraic entry or yanked from
 another buffer will be interpreted according to the current language.
@@ -13950,10 +13942,10 @@ the brackets in @samp{a[1]} and @samp{a[2]}, would not have known that
 and would have written the formula back with notations (like implicit
 multiplication) which would not have been legal for a C program.
 
-As another example, suppose you are maintaining a C program and a @LaTeX{}
+As another example, suppose you are maintaining a C program and a La@TeX{}
 document, each of which needs a copy of the same formula.  You can grab the
-formula from the program in C mode, switch to @LaTeX{} mode, and yank the
-formula into the document in @LaTeX{} math-mode format.
+formula from the program in C mode, switch to La@TeX{} mode, and yank the
+formula into the document in La@TeX{} math-mode format.
 
 Language modes are selected by typing the letter @kbd{d} followed by a
 shifted letter key.
@@ -14147,7 +14139,7 @@ convert to lower-case on input.  With a negative prefix, these modes
 convert to lower-case for display and input.
 
 @node TeX and LaTeX Language Modes, Eqn Language Mode, C FORTRAN Pascal, Language Modes
-@subsection @TeX{} and @LaTeX{} Language Modes
+@subsection @TeX{} and La@TeX{} Language Modes
 
 @noindent
 @kindex d T
@@ -14159,38 +14151,38 @@ convert to lower-case for display and input.
 The @kbd{d T} (@code{calc-tex-language}) command selects the conventions
 of ``math mode'' in Donald Knuth's @TeX{} typesetting language,
 and the @kbd{d L} (@code{calc-latex-language}) command selects the
-conventions of ``math mode'' in @LaTeX{}, a typesetting language that
-uses @TeX{} as its formatting engine.  Calc's @LaTeX{} language mode can
-read any formula that the @TeX{} language mode can, although @LaTeX{}
+conventions of ``math mode'' in La@TeX{}, a typesetting language that
+uses @TeX{} as its formatting engine.  Calc's La@TeX{} language mode can
+read any formula that the @TeX{} language mode can, although La@TeX{}
 mode may display it differently.
 
 Formulas are entered and displayed in the appropriate notation;
 @texline @math{\sin(a/b)}
 @infoline @expr{sin(a/b)}
 will appear as @samp{\sin\left( a \over b \right)} in @TeX{} mode and
-@samp{\sin\left(\frac@{a@}@{b@}\right)} in @LaTeX{} mode.
+@samp{\sin\left(\frac@{a@}@{b@}\right)} in La@TeX{} mode.
 Math formulas are often enclosed by @samp{$ $} signs in @TeX{} and
-@LaTeX{}; these should be omitted when interfacing with Calc.  To Calc,
+La@TeX{}; these should be omitted when interfacing with Calc.  To Calc,
 the @samp{$} sign has the same meaning it always does in algebraic
 formulas (a reference to an existing entry on the stack).
 
 Complex numbers are displayed as in @samp{3 + 4i}.  Fractions and
 quotients are written using @code{\over} in @TeX{} mode (as in 
-@code{@{a \over b@}}) and @code{\frac} in @LaTeX{} mode (as in
+@code{@{a \over b@}}) and @code{\frac} in La@TeX{} mode (as in
 @code{\frac@{a@}@{b@}});  binomial coefficients are written with
 @code{\choose} in @TeX{} mode (as in @code{@{a \choose b@}}) and
-@code{\binom} in @LaTeX{} mode (as in @code{\binom@{a@}@{b@}}).
+@code{\binom} in La@TeX{} mode (as in @code{\binom@{a@}@{b@}}).
 Interval forms are written with @code{\ldots}, and error forms are
 written with @code{\pm}. Absolute values are written as in 
 @samp{|x + 1|}, and the floor and ceiling functions are written with
 @code{\lfloor}, @code{\rfloor}, etc. The words @code{\left} and
-@code{\right} are ignored when reading formulas in @TeX{} and @LaTeX{}
+@code{\right} are ignored when reading formulas in @TeX{} and La@TeX{}
 modes.  Both @code{inf} and @code{uinf} are written as @code{\infty};
 when read, @code{\infty} always translates to @code{inf}.
 
 Function calls are written the usual way, with the function name followed
 by the arguments in parentheses.  However, functions for which @TeX{}
-and @LaTeX{} have special names (like @code{\sin}) will use curly braces
+and La@TeX{} have special names (like @code{\sin}) will use curly braces
 instead of parentheses for very simple arguments.  During input, curly
 braces and parentheses work equally well for grouping, but when the
 document is formatted the curly braces will be invisible.  Thus the
@@ -14201,14 +14193,14 @@ but
 @texline @math{\sin(2 + x)}.
 @infoline @expr{sin(2 + x)}.
 
-Function and variable names not treated specially by @TeX{} and @LaTeX{}
+Function and variable names not treated specially by @TeX{} and La@TeX{}
 are simply written out as-is, which will cause them to come out in
 italic letters in the printed document.  If you invoke @kbd{d T} or
 @kbd{d L} with a positive numeric prefix argument, names of more than
 one character will instead be enclosed in a protective commands that
 will prevent them from being typeset in the math italics; they will be
 written @samp{\hbox@{@var{name}@}} in @TeX{} mode and 
-@samp{\text@{@var{name}@}} in @LaTeX{} mode.  The
+@samp{\text@{@var{name}@}} in La@TeX{} mode.  The
 @samp{\hbox@{ @}} and @samp{\text@{ @}} notations are ignored during
 reading.  If you use a negative prefix argument, such function names are
 written @samp{\@var{name}}, and function names that begin with @code{\} during
@@ -14219,7 +14211,7 @@ any @TeX{} mode.)
 
 During reading, text of the form @samp{\matrix@{ ...@: @}} is replaced
 by @samp{[ ...@: ]}.  The same also applies to @code{\pmatrix} and
-@code{\bmatrix}.  In @LaTeX{} mode this also applies to 
+@code{\bmatrix}.  In La@TeX{} mode this also applies to 
 @samp{\begin@{matrix@} ... \end@{matrix@}},
 @samp{\begin@{bmatrix@} ... \end@{bmatrix@}},
 @samp{\begin@{pmatrix@} ... \end@{pmatrix@}}, as well as
@@ -14229,7 +14221,7 @@ and the symbols @samp{\cr} and @samp{\\} are interpreted as semicolons.
 During output, matrices are displayed in @samp{\matrix@{ a & b \\ c & d@}}
 format in @TeX{} mode and in 
 @samp{\begin@{pmatrix@} a & b \\ c & d \end@{pmatrix@}} format in
-@LaTeX{} mode; you may need to edit this afterwards to change to your
+La@TeX{} mode; you may need to edit this afterwards to change to your
 preferred matrix form.  If you invoke @kbd{d T} or @kbd{d L} with an
 argument of 2 or -2, then matrices will be displayed in two-dimensional
 form, such as 
@@ -14253,7 +14245,7 @@ c & d
 @end example
 
 @noindent
-While this wouldn't bother Calc, it is incorrect @LaTeX{}.
+While this wouldn't bother Calc, it is incorrect La@TeX{}.
 (Similarly for @TeX{}.)
 
 Accents like @code{\tilde} and @code{\bar} translate into function
@@ -14261,7 +14253,7 @@ calls internally (@samp{tilde(x)}, @samp{bar(x)}).  The @code{\underline}
 sequence is treated as an accent.  The @code{\vec} accent corresponds
 to the function name @code{Vec}, because @code{vec} is the name of
 a built-in Calc function.  The following table shows the accents
-in Calc, @TeX{}, @LaTeX{} and @dfn{eqn} (described in the next section):
+in Calc, @TeX{}, La@TeX{} and @dfn{eqn} (described in the next section):
 
 @iftex
 @begingroup
@@ -14436,7 +14428,7 @@ reading is:
 @end example
 
 Note that, because these symbols are ignored, reading a @TeX{} or
-@LaTeX{} formula into Calc and writing it back out may lose spacing and
+La@TeX{} formula into Calc and writing it back out may lose spacing and
 font information. 
 
 Also, the ``discretionary multiplication sign'' @samp{\*} is read
@@ -14607,7 +14599,7 @@ treated the same as a space in @dfn{eqn} mode, as is the @samp{~}
 symbol (these are used to introduce spaces of various widths into
 the typeset output of @dfn{eqn}).
 
-As in @LaTeX{} mode, Calc's formatter omits parentheses around the
+As in La@TeX{} mode, Calc's formatter omits parentheses around the
 arguments of functions like @code{ln} and @code{sin} if they are
 ``simple-looking''; in this case Calc surrounds the argument with
 braces, separated by a @samp{~} from the function name: @samp{sin~@{x@}}.
@@ -15939,7 +15931,7 @@ FORTRAN language mode (@kbd{d F}).
 @TeX{} language mode (@kbd{d T}; @pxref{TeX and LaTeX Language Modes}).
 
 @item LaTeX
-@LaTeX{} language mode (@kbd{d L}; @pxref{TeX and LaTeX Language Modes}).
+La@TeX{} language mode (@kbd{d L}; @pxref{TeX and LaTeX Language Modes}).
 
 @item Eqn
 @dfn{Eqn} language mode (@kbd{d E}; @pxref{Eqn Language Mode}).
@@ -16515,7 +16507,7 @@ no second argument at all.
 
 @cindex Fractional part of a number
 To compute the fractional part of a number (i.e., the amount which, when
-added to `@t{floor(}@var{n}@t{)}', will produce @var{n}) just take @var{n}
+added to `@tfn{floor(}@var{n}@tfn{)}', will produce @var{n}) just take @var{n}
 modulo 1 using the @code{%} command.
 
 Note also the @kbd{\} (integer quotient), @kbd{f I} (integer logarithm),
@@ -16542,8 +16534,8 @@ this command replaces each element by its complex conjugate.
 The @kbd{G} (@code{calc-argument}) [@code{arg}] command computes the
 ``argument'' or polar angle of a complex number.  For a number in polar
 notation, this is simply the second component of the pair
-@texline `@t{(}@var{r}@t{;}@math{\theta}@t{)}'.
-@infoline `@t{(}@var{r}@t{;}@var{theta}@t{)}'.
+@texline `@tfn{(}@var{r}@tfn{;}@math{\theta}@tfn{)}'.
+@infoline `@tfn{(}@var{r}@tfn{;}@var{theta}@tfn{)}'.
 The result is expressed according to the current angular mode and will
 be in the range @mathit{-180} degrees (exclusive) to @mathit{+180} degrees
 (inclusive), or the equivalent range in radians.
@@ -18811,7 +18803,7 @@ where @var{m} and
 are both real numbers, the result uses a Gaussian distribution with mean
 @var{m} and standard deviation 
 @texline @math{\sigma}.
-@var{s}.
+@infoline @var{s}.
 
 If @expr{M} is an interval form, the lower and upper bounds specify the
 acceptable limits of the random numbers.  If both bounds are integers,
@@ -20491,7 +20483,7 @@ has an infinite weight, next to which an error form with a finite
 weight is completely negligible.)
 
 This function also works for distributions (error forms or
-intervals).  The mean of an error form `@var{a} @t{+/-} @var{b}' is simply
+intervals).  The mean of an error form `@var{a} @tfn{+/-} @var{b}' is simply
 @expr{a}.  The mean of an interval is the mean of the minimum
 and maximum values of the interval.
 
@@ -22263,17 +22255,17 @@ Manipulation}.  The @kbd{m D} command turns the default simplifications
 back on.
 
 The most basic default simplification is the evaluation of functions.
-For example, @expr{2 + 3} is evaluated to @expr{5}, and @expr{@t{sqrt}(9)}
+For example, @expr{2 + 3} is evaluated to @expr{5}, and @expr{@tfn{sqrt}(9)}
 is evaluated to @expr{3}.  Evaluation does not occur if the arguments
-to a function are somehow of the wrong type @expr{@t{tan}([2,3,4])}),
-range (@expr{@t{tan}(90)}), or number (@expr{@t{tan}(3,5)}), 
-or if the function name is not recognized (@expr{@t{f}(5)}), or if
+to a function are somehow of the wrong type @expr{@tfn{tan}([2,3,4])}),
+range (@expr{@tfn{tan}(90)}), or number (@expr{@tfn{tan}(3,5)}), 
+or if the function name is not recognized (@expr{@tfn{f}(5)}), or if
 Symbolic mode (@pxref{Symbolic Mode}) prevents evaluation
-(@expr{@t{sqrt}(2)}).
+(@expr{@tfn{sqrt}(2)}).
 
 Calc simplifies (evaluates) the arguments to a function before it
-simplifies the function itself.  Thus @expr{@t{sqrt}(5+4)} is
-simplified to @expr{@t{sqrt}(9)} before the @code{sqrt} function
+simplifies the function itself.  Thus @expr{@tfn{sqrt}(5+4)} is
+simplified to @expr{@tfn{sqrt}(9)} before the @code{sqrt} function
 itself is applied.  There are very few exceptions to this rule:
 @code{quote}, @code{lambda}, and @code{condition} (the @code{::}
 operator) do not evaluate their arguments, @code{if} (the @code{? :}
@@ -22398,7 +22390,7 @@ terms of the product: @expr{x^a x^b} goes to
 @texline @math{x^{a+b}}
 @infoline @expr{x^(a+b)}
 where @expr{a} is a number, or an implicit 1 (as in @expr{x}),
-or the implicit one-half of @expr{@t{sqrt}(x)}, and similarly for
+or the implicit one-half of @expr{@tfn{sqrt}(x)}, and similarly for
 @expr{b}.  The result is written using @samp{sqrt} or @samp{1/sqrt}
 if the sum of the powers is @expr{1/2} or @expr{-1/2}, respectively.
 If the sum of the powers is zero, the product is simplified to
@@ -22489,20 +22481,20 @@ is safe to simplify, but
 is not.)  @xref{Declarations}, for ways to inform Calc that your
 variables satisfy these requirements.
 
-As a special case of this rule, @expr{@t{sqrt}(x)^n} is simplified to
+As a special case of this rule, @expr{@tfn{sqrt}(x)^n} is simplified to
 @texline @math{x^{n/2}}
 @infoline @expr{x^(n/2)} 
 only for even integers @expr{n}.
 
 If @expr{a} is known to be real, @expr{b} is an even integer, and
 @expr{c} is a half- or quarter-integer, then @expr{(a^b)^c} is
-simplified to @expr{@t{abs}(a^(b c))}.
+simplified to @expr{@tfn{abs}(a^(b c))}.
 
 Also, @expr{(-a)^b} is simplified to @expr{a^b} if @expr{b} is an
 even integer, or to @expr{-(a^b)} if @expr{b} is an odd integer,
 for any negative-looking expression @expr{-a}.
 
-Square roots @expr{@t{sqrt}(x)} generally act like one-half powers
+Square roots @expr{@tfn{sqrt}(x)} generally act like one-half powers
 @texline @math{x^{1:2}}
 @infoline @expr{x^1:2} 
 for the purposes of the above-listed simplifications.
@@ -22513,21 +22505,21 @@ Also, note that
 is changed to 
 @texline @math{x^{-1:2}},
 @infoline @expr{x^(-1:2)},
-but @expr{1 / @t{sqrt}(x)} is left alone.
+but @expr{1 / @tfn{sqrt}(x)} is left alone.
 
 @tex
 \bigskip
 @end tex
 
 Generic identity matrices (@pxref{Matrix Mode}) are simplified by the
-following rules:  @expr{@t{idn}(a) + b} to @expr{a + b} if @expr{b}
+following rules:  @expr{@tfn{idn}(a) + b} to @expr{a + b} if @expr{b}
 is provably scalar, or expanded out if @expr{b} is a matrix;
-@expr{@t{idn}(a) + @t{idn}(b)} to @expr{@t{idn}(a + b)}; 
-@expr{-@t{idn}(a)} to @expr{@t{idn}(-a)}; @expr{a @t{idn}(b)} to 
-@expr{@t{idn}(a b)} if @expr{a} is provably scalar, or to @expr{a b} 
-if @expr{a} is provably non-scalar;  @expr{@t{idn}(a) @t{idn}(b)} to
-@expr{@t{idn}(a b)}; analogous simplifications for quotients involving
-@code{idn}; and @expr{@t{idn}(a)^n} to @expr{@t{idn}(a^n)} where
+@expr{@tfn{idn}(a) + @tfn{idn}(b)} to @expr{@tfn{idn}(a + b)}; 
+@expr{-@tfn{idn}(a)} to @expr{@tfn{idn}(-a)}; @expr{a @tfn{idn}(b)} to 
+@expr{@tfn{idn}(a b)} if @expr{a} is provably scalar, or to @expr{a b} 
+if @expr{a} is provably non-scalar;  @expr{@tfn{idn}(a) @tfn{idn}(b)} to
+@expr{@tfn{idn}(a b)}; analogous simplifications for quotients involving
+@code{idn}; and @expr{@tfn{idn}(a)^n} to @expr{@tfn{idn}(a^n)} where
 @expr{n} is an integer.
 
 @tex
@@ -22536,27 +22528,27 @@ if @expr{a} is provably non-scalar;  @expr{@t{idn}(a) @t{idn}(b)} to
 
 The @code{floor} function and other integer truncation functions
 vanish if the argument is provably integer-valued, so that
-@expr{@t{floor}(@t{round}(x))} simplifies to @expr{@t{round}(x)}.
+@expr{@tfn{floor}(@tfn{round}(x))} simplifies to @expr{@tfn{round}(x)}.
 Also, combinations of @code{float}, @code{floor} and its friends,
 and @code{ffloor} and its friends, are simplified in appropriate
 ways.  @xref{Integer Truncation}.
 
-The expression @expr{@t{abs}(-x)} changes to @expr{@t{abs}(x)}.
-The expression @expr{@t{abs}(@t{abs}(x))} changes to
-@expr{@t{abs}(x)};  in fact, @expr{@t{abs}(x)} changes to @expr{x} or
+The expression @expr{@tfn{abs}(-x)} changes to @expr{@tfn{abs}(x)}.
+The expression @expr{@tfn{abs}(@tfn{abs}(x))} changes to
+@expr{@tfn{abs}(x)};  in fact, @expr{@tfn{abs}(x)} changes to @expr{x} or
 @expr{-x} if @expr{x} is provably nonnegative or nonpositive
 (@pxref{Declarations}). 
 
 While most functions do not recognize the variable @code{i} as an
 imaginary number, the @code{arg} function does handle the two cases
-@expr{@t{arg}(@t{i})} and @expr{@t{arg}(-@t{i})} just for convenience.
+@expr{@tfn{arg}(@tfn{i})} and @expr{@tfn{arg}(-@tfn{i})} just for convenience.
 
-The expression @expr{@t{conj}(@t{conj}(x))} simplifies to @expr{x}.
+The expression @expr{@tfn{conj}(@tfn{conj}(x))} simplifies to @expr{x}.
 Various other expressions involving @code{conj}, @code{re}, and
 @code{im} are simplified, especially if some of the arguments are
 provably real or involve the constant @code{i}.  For example,
-@expr{@t{conj}(a + b i)} is changed to 
-@expr{@t{conj}(a) - @t{conj}(b) i},  or to @expr{a - b i} if @expr{a}
+@expr{@tfn{conj}(a + b i)} is changed to 
+@expr{@tfn{conj}(a) - @tfn{conj}(b) i},  or to @expr{a - b i} if @expr{a}
 and @expr{b} are known to be real.
 
 Functions like @code{sin} and @code{arctan} generally don't have
@@ -22566,13 +22558,13 @@ described in the next section does provide some simplifications for
 these functions, though.
 
 One important simplification that does occur is that
-@expr{@t{ln}(@t{e})} is simplified to 1, and @expr{@t{ln}(@t{e}^x)} is
+@expr{@tfn{ln}(@tfn{e})} is simplified to 1, and @expr{@tfn{ln}(@tfn{e}^x)} is
 simplified to @expr{x} for any @expr{x}.  This occurs even if you have
 stored a different value in the Calc variable @samp{e}; but this would
 be a bad idea in any case if you were also using natural logarithms!
 
-Among the logical functions, @t{(@var{a} <= @var{b})} changes to
-@t{@var{a} > @var{b}} and so on.  Equations and inequalities where both sides
+Among the logical functions, @tfn{(@var{a} <= @var{b})} changes to
+@tfn{@var{a} > @var{b}} and so on.  Equations and inequalities where both sides
 are either negative-looking or zero are simplified by negating both sides
 and reversing the inequality.  While it might seem reasonable to simplify
 @expr{!!x} to @expr{x}, this would not be valid in general because
@@ -22696,17 +22688,17 @@ user might not have been thinking of.
 Square roots of integer or rational arguments are simplified in
 several ways.  (Note that these will be left unevaluated only in
 Symbolic mode.)  First, square integer or rational factors are
-pulled out so that @expr{@t{sqrt}(8)} is rewritten as
-@texline @math{2\,\t{sqrt}(2)}.
+pulled out so that @expr{@tfn{sqrt}(8)} is rewritten as
+@texline @math{2\,@tfn{sqrt}(2)}.
 @infoline @expr{2 sqrt(2)}.  
 Conceptually speaking this implies factoring the argument into primes
 and moving pairs of primes out of the square root, but for reasons of
 efficiency Calc only looks for primes up to 29.
 
 Square roots in the denominator of a quotient are moved to the
-numerator:  @expr{1 / @t{sqrt}(3)} changes to @expr{@t{sqrt}(3) / 3}.
+numerator:  @expr{1 / @tfn{sqrt}(3)} changes to @expr{@tfn{sqrt}(3) / 3}.
 The same effect occurs for the square root of a fraction:
-@expr{@t{sqrt}(2:3)} changes to @expr{@t{sqrt}(6) / 3}.
+@expr{@tfn{sqrt}(2:3)} changes to @expr{@tfn{sqrt}(6) / 3}.
 
 @tex
 \bigskip
@@ -22739,16 +22731,16 @@ declared to be an integer.
 @end tex
 
 Trigonometric functions are simplified in several ways.  First,
-@expr{@t{sin}(@t{arcsin}(x))} is simplified to @expr{x}, and
+@expr{@tfn{sin}(@tfn{arcsin}(x))} is simplified to @expr{x}, and
 similarly for @code{cos} and @code{tan}.  If the argument to
 @code{sin} is negative-looking, it is simplified to 
-@expr{-@t{sin}(x),},  and similarly for @code{cos} and @code{tan}.
+@expr{-@tfn{sin}(x),},  and similarly for @code{cos} and @code{tan}.
 Finally, certain special values of the argument are recognized;
 @pxref{Trigonometric and Hyperbolic Functions}.
 
 Trigonometric functions of inverses of different trigonometric
-functions can also be simplified, as in @expr{@t{sin}(@t{arccos}(x))}
-to @expr{@t{sqrt}(1 - x^2)}.
+functions can also be simplified, as in @expr{@tfn{sin}(@tfn{arccos}(x))}
+to @expr{@tfn{sqrt}(1 - x^2)}.
 
 Hyperbolic functions of their inverses and of negative-looking
 arguments are also handled, as are exponentials of inverse
@@ -22757,29 +22749,29 @@ hyperbolic functions.
 No simplifications for inverse trigonometric and hyperbolic
 functions are known, except for negative arguments of @code{arcsin},
 @code{arctan}, @code{arcsinh}, and @code{arctanh}.  Note that
-@expr{@t{arcsin}(@t{sin}(x))} can @emph{not} safely change to
+@expr{@tfn{arcsin}(@tfn{sin}(x))} can @emph{not} safely change to
 @expr{x}, since this only correct within an integer multiple of 
 @texline @math{2 \pi}
 @infoline @expr{2 pi} 
-radians or 360 degrees.  However, @expr{@t{arcsinh}(@t{sinh}(x))} is
+radians or 360 degrees.  However, @expr{@tfn{arcsinh}(@tfn{sinh}(x))} is
 simplified to @expr{x} if @expr{x} is known to be real.
 
 Several simplifications that apply to logarithms and exponentials
-are that @expr{@t{exp}(@t{ln}(x))}, 
-@texline @t{e}@math{^{\ln(x)}},
-@infoline @expr{e^@t{ln}(x)}, 
+are that @expr{@tfn{exp}(@tfn{ln}(x))}, 
+@texline @tfn{e}@math{^{\ln(x)}},
+@infoline @expr{e^@tfn{ln}(x)}, 
 and
 @texline @math{10^{{\rm log10}(x)}}
-@infoline @expr{10^@t{log10}(x)} 
-all reduce to @expr{x}.  Also, @expr{@t{ln}(@t{exp}(x))}, etc., can
+@infoline @expr{10^@tfn{log10}(x)} 
+all reduce to @expr{x}.  Also, @expr{@tfn{ln}(@tfn{exp}(x))}, etc., can
 reduce to @expr{x} if @expr{x} is provably real.  The form
-@expr{@t{exp}(x)^y} is simplified to @expr{@t{exp}(x y)}.  If @expr{x}
+@expr{@tfn{exp}(x)^y} is simplified to @expr{@tfn{exp}(x y)}.  If @expr{x}
 is a suitable multiple of 
 @texline @math{\pi i} 
 @infoline @expr{pi i}
 (as described above for the trigonometric functions), then
-@expr{@t{exp}(x)} or @expr{e^x} will be expanded.  Finally,
-@expr{@t{ln}(x)} is simplified to a form involving @code{pi} and
+@expr{@tfn{exp}(x)} or @expr{e^x} will be expanded.  Finally,
+@expr{@tfn{ln}(x)} is simplified to a form involving @code{pi} and
 @code{i} where @expr{x} is provably negative, positive imaginary, or
 negative imaginary. 
 
@@ -22851,9 +22843,9 @@ by @kbd{a e}.
 
 Inverse trigonometric or hyperbolic functions, called with their
 corresponding non-inverse functions as arguments, are simplified
-by @kbd{a e}.  For example, @expr{@t{arcsin}(@t{sin}(x))} changes
-to @expr{x}.  Also, @expr{@t{arcsin}(@t{cos}(x))} and
-@expr{@t{arccos}(@t{sin}(x))} both change to @expr{@t{pi}/2 - x}.
+by @kbd{a e}.  For example, @expr{@tfn{arcsin}(@tfn{sin}(x))} changes
+to @expr{x}.  Also, @expr{@tfn{arcsin}(@tfn{cos}(x))} and
+@expr{@tfn{arccos}(@tfn{sin}(x))} both change to @expr{@tfn{pi}/2 - x}.
 These simplifications are unsafe because they are valid only for
 values of @expr{x} in a certain range; outside that range, values
 are folded down to the 360-degree range that the inverse trigonometric
@@ -22869,22 +22861,22 @@ in a restricted range of @expr{x}; for example, in
 the powers cancel to get @expr{x}, which is valid for positive values
 of @expr{x} but not for negative or complex values.
 
-Similarly, @expr{@t{sqrt}(x^a)} and @expr{@t{sqrt}(x)^a} are both
+Similarly, @expr{@tfn{sqrt}(x^a)} and @expr{@tfn{sqrt}(x)^a} are both
 simplified (possibly unsafely) to 
 @texline @math{x^{a/2}}.
 @infoline @expr{x^(a/2)}.
 
-Forms like @expr{@t{sqrt}(1 - sin(x)^2)} are simplified to, e.g.,
-@expr{@t{cos}(x)}.  Calc has identities of this sort for @code{sin},
+Forms like @expr{@tfn{sqrt}(1 - sin(x)^2)} are simplified to, e.g.,
+@expr{@tfn{cos}(x)}.  Calc has identities of this sort for @code{sin},
 @code{cos}, @code{tan}, @code{sinh}, and @code{cosh}.
 
 Arguments of square roots are partially factored to look for
 squared terms that can be extracted.  For example,
-@expr{@t{sqrt}(a^2 b^3 + a^3 b^2)} simplifies to 
-@expr{a b @t{sqrt}(a+b)}.
+@expr{@tfn{sqrt}(a^2 b^3 + a^3 b^2)} simplifies to 
+@expr{a b @tfn{sqrt}(a+b)}.
 
-The simplifications of @expr{@t{ln}(@t{exp}(x))},
-@expr{@t{ln}(@t{e}^x)}, and @expr{@t{log10}(10^x)} to @expr{x} are also
+The simplifications of @expr{@tfn{ln}(@tfn{exp}(x))},
+@expr{@tfn{ln}(@tfn{e}^x)}, and @expr{@tfn{log10}(10^x)} to @expr{x} are also
 unsafe because of problems with principal values (although these
 simplifications are safe if @expr{x} is known to be real).
 
@@ -24436,8 +24428,8 @@ contain error forms.  The data values must either all include errors
 or all be plain numbers.  Error forms can go anywhere but generally
 go on the numbers in the last row of the data matrix.  If the last
 row contains error forms
-@texline `@var{y_i}@w{ @t{+/-} }@math{\sigma_i}', 
-@infoline `@var{y_i}@w{ @t{+/-} }@var{sigma_i}', 
+@texline `@var{y_i}@w{ @tfn{+/-} }@math{\sigma_i}', 
+@infoline `@var{y_i}@w{ @tfn{+/-} }@var{sigma_i}', 
 then the 
 @texline @math{\chi^2}
 @infoline @expr{chi^2}
@@ -24589,17 +24581,17 @@ Linear or multilinear.  @mathit{a + b x + c y + d z}.
 @item 2-9
 Polynomials.  @mathit{a + b x + c x^2 + d x^3}.
 @item e
-Exponential.  @mathit{a} @t{exp}@mathit{(b x)} @t{exp}@mathit{(c y)}.
+Exponential.  @mathit{a} @tfn{exp}@mathit{(b x)} @tfn{exp}@mathit{(c y)}.
 @item E
-Base-10 exponential.  @mathit{a} @t{10^}@mathit{(b x)} @t{10^}@mathit{(c y)}.
+Base-10 exponential.  @mathit{a} @tfn{10^}@mathit{(b x)} @tfn{10^}@mathit{(c y)}.
 @item x
-Exponential (alternate notation).  @t{exp}@mathit{(a + b x + c y)}.
+Exponential (alternate notation).  @tfn{exp}@mathit{(a + b x + c y)}.
 @item X
-Base-10 exponential (alternate).  @t{10^}@mathit{(a + b x + c y)}.
+Base-10 exponential (alternate).  @tfn{10^}@mathit{(a + b x + c y)}.
 @item l
-Logarithmic.  @mathit{a + b} @t{ln}@mathit{(x) + c} @t{ln}@mathit{(y)}.
+Logarithmic.  @mathit{a + b} @tfn{ln}@mathit{(x) + c} @tfn{ln}@mathit{(y)}.
 @item L
-Base-10 logarithmic.  @mathit{a + b} @t{log10}@mathit{(x) + c} @t{log10}@mathit{(y)}.
+Base-10 logarithmic.  @mathit{a + b} @tfn{log10}@mathit{(x) + c} @tfn{log10}@mathit{(y)}.
 @item ^
 General exponential.  @mathit{a b^x c^y}.
 @item p
@@ -28353,7 +28345,7 @@ since the evaluation step will also evaluate @code{pi}.
 @cindex @samp{=>} operator
 The special algebraic symbol @samp{=>} is known as the @dfn{evaluates-to
 operator}.  (It will show up as an @code{evalto} function call in
-other language modes like Pascal and @LaTeX{}.)  This is a binary
+other language modes like Pascal and La@TeX{}.)  This is a binary
 operator, that is, it has a lefthand and a righthand argument,
 although it can be entered with the righthand argument omitted.
 
@@ -30008,16 +30000,16 @@ you haven't done anything with this formula yet.
 When Embedded mode ``activates'' a formula, i.e., when it examines
 the formula for the first time since the buffer was created or
 loaded, Calc tries to sense the language in which the formula was
-written.  If the formula contains any @LaTeX{}-like @samp{\} sequences,
-it is parsed (i.e., read) in @LaTeX{} mode.  If the formula appears to
+written.  If the formula contains any La@TeX{}-like @samp{\} sequences,
+it is parsed (i.e., read) in La@TeX{} mode.  If the formula appears to
 be written in multi-line Big mode, it is parsed in Big mode.  Otherwise,
 it is parsed according to the current language mode.
 
 Note that Calc does not change the current language mode according
-to what it finds.  Even though it can read a @LaTeX{} formula when
-not in @LaTeX{} mode, it will immediately rewrite this formula using
+to what it finds.  Even though it can read a La@TeX{} formula when
+not in La@TeX{} mode, it will immediately rewrite this formula using
 whatever language mode is in effect.  You must then type @kbd{d L}
-to switch Calc permanently into @LaTeX{} mode if that is what you
+to switch Calc permanently into La@TeX{} mode if that is what you
 desire.
 
 @tex
@@ -30038,8 +30030,8 @@ version.
 
 Plain formulas are preceded and followed by @samp{%%%} signs
 by default.  This notation has the advantage that the @samp{%}
-character begins a comment in @TeX{} and @LaTeX{}, so if your formula is 
-embedded in a @TeX{} or @LaTeX{} document its plain version will be
+character begins a comment in @TeX{} and La@TeX{}, so if your formula is 
+embedded in a @TeX{} or La@TeX{} document its plain version will be
 invisible in the final printed copy.  @xref{Customizing
 Embedded Mode}, to see how to change the ``plain'' formula
 delimiters, say to something that @dfn{eqn} or some other
@@ -30329,7 +30321,7 @@ a few lines that look like this:
 @noindent
 where the leading and trailing @samp{---} can be replaced by
 any suitable strings (which must be the same on all three lines)
-or omitted altogether; in a @TeX{} or @LaTeX{} file, @samp{%} would be a good
+or omitted altogether; in a @TeX{} or La@TeX{} file, @samp{%} would be a good
 leading string and no trailing string would be necessary.  In a
 C program, @samp{/*} and @samp{*/} would be good leading and
 trailing strings.
@@ -34786,7 +34778,7 @@ keystrokes are not listed in this summary.
 @r{       @:      .     @:number       @:        @:@:0.number}
 @r{       @:      _     @:number       @:        @:-@:number}
 @r{       @:      e     @:number       @:        @:@:1e number}
-@r{       @:      #     @:number       @:        @:@:current-radix@t{#}number}
+@r{       @:      #     @:number       @:        @:@:current-radix@tfn{#}number}
 @r{       @:      P     @:(in number)  @:        @:+/-@:}
 @r{       @:      M     @:(in number)  @:        @:mod@:}
 @r{       @:      @@ ' " @:  (in number)@:        @:@:HMS form}
@@ -35346,8 +35338,8 @@ keystrokes are not listed in this summary.
 @r{       @:      s &   @:var          @: 29,47  @:calc-store-inv@:  (v^-1)}
 @r{       @:      s [   @:var          @: 29,47  @:calc-store-decr@:  (v-1)}
 @r{       @:      s ]   @:var          @: 29,47  @:calc-store-incr@:  (v-(-1))}
-@r{    a b@:      s :   @:             @:     2  @:assign@:(a,b)  a @t{:=} b}
-@r{      a@:      s =   @:             @:     1  @:evalto@:(a,b)  a @t{=>}}
+@r{    a b@:      s :   @:             @:     2  @:assign@:(a,b)  a @tfn{:=} b}
+@r{      a@:      s =   @:             @:     1  @:evalto@:(a,b)  a @tfn{=>}}
 
 @c
 @r{       @:      t [   @:             @:     4  @:calc-trail-first@:}

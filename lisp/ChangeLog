@@ -1,3 +1,54 @@
+2005-02-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.el (custom-theme-set-variables): Handle variable aliases.
+
+	* frame.el (blink-cursor-timer): Doc fix.
+	(blink-cursor): Make it an alias for `blink-cursor-mode' and
+	declare obsolete.
+	(blink-cursor-mode): Define with defcustom and use correct
+	standard expression in that defcustom.
+	* startup.el (command-line): Adapt to above changes in frame.el.
+
+2005-02-11  Lute Kamstra  <lute@gnu.org>
+
+	* apropos.el (apropos-score-doc): Prevent division by zero.
+
+2005-02-11  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar--get-event-property): Doc fix.
+	(icalendar--get-event-property-attributes)
+	(icalendar--get-event-properties)
+	(icalendar--datetime-to-diary-date): New functions.
+	(icalendar--split-value): Doc fix.
+	(icalendar--datetime-to-noneuropean-date)
+	(icalendar--datetime-to-european-date): New optional argument
+	SEPARATOR.  Return result as a string instead of a list.
+	(icalendar--get-weekday-number): Check if ABBREVWEEKDAY is nil.
+	(icalendar--convert-string-for-export): Rename arg S to STRING.
+	(icalendar-export-region): Doc fix.  Change name of error buffer.
+	Save output buffer.
+	(icalendar-import-file): Add blank at end of prompt.
+	(icalendar-import-buffer): Doc fix.  Do not switch to error
+	buffer.  Indicate status in return value.
+	(icalendar--convert-ical-to-diary): Doc fix.  Change name of error
+	buffer.  Save output buffer.  Handle exception from recurrence
+	rules (EXDATE, EXRULE).  Handle start- and end-date of recurring
+	events.  Fix problems with weekly all-day events.
+
+2005-02-10  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (eval-expression-print-format):
+	Avoid warning about edebug-active.
+
+	* help.el (help-for-help-internal): Renamed from help-for-help.
+	(help-for-help): Define with defalias.
+
+	* font-core.el (font-lock-default-function): Use with-no-warnings.
+
+	* cus-edit.el (custom-buffer-create-internal): Improve help-echo.
+
+	* custom.el (defface): Doc fix.
+
 2005-02-10  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-ann3): Re-instate GDB command "set
