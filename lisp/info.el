@@ -129,6 +129,12 @@ Do the right thing if the file has been compressed or zipped."
 	(setq tail (cdr tail)))
       (setq fullname (concat filename (car (car tail)))
 	    decoder (cdr (car tail)))
+      ;; check for conflict with jka-compr
+      (if (and (featurep 'jka-compr)
+	       (jka-compr-installed-p)
+	       (jka-compr-get-compression-info (concat filename
+						       (car (car tail)))))
+	  (setq decoder nil))
       (or tail
 	  (error "Can't find %s or any compressed version of it!" filename)))
     (insert-file-contents fullname visit)
