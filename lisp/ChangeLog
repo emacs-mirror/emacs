@@ -1,5 +1,17 @@
 2001-04-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* cus-load.el (normal-erase-is-backspace): Use it instead of
+	delete-key-deletes-forward.
+
+	* startup.el (command-line): Use normal-erase-is-backspace and
+	normal-erase-is-backspace-mode.
+
+	* simple.el (normal-erase-is-backspace): Rename from
+	delete-key-deletes-forward.  Doc fix.
+	(normal-erase-is-backspace-mode): Rename from
+	delete-key-deletes-forward-mode.  Doc fix.  Run
+	normal-erase-is-backspace-hook.
+
 	* dired.el (dired-move-to-filename-regexp): Support file sizes in
 	``human-readable'' format produced by GNU `ls'.  
 	(dired-move-to-filename-regexp): Recognize ISO format dates.  From
