@@ -1,3 +1,10 @@
+2001-03-12  Philippe Waroquiers  <wao@gull.tact.cfmu.eurocontrol.be>
+
+	* progmodes/etags.el (tags-compression-info-list): New variable.
+	(find-tag-in-order): Use it to deal with compressed source files.
+	(tag-file-name-match-p): New function.
+	(etags-recognize-tags-table): Use it for better match of file names.
+
 2001-03-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-cmds.el (register-input-method): Doc fix.
@@ -20,10 +27,10 @@
 2001-03-10  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-do-command): If the destination buffer is already
-	current, don't set it up and don't erase it.  Updated doc string 
+	current, don't set it up and don't erase it.  Updated doc string
 	to reflect that.
 	(vc-version-diff): When doing a single file diff, don't switch to the
-	*vc-diff* buffer before the command.  This is to preserve local 
+	*vc-diff* buffer before the command.  This is to preserve local
 	variable bindings that might affect the diff command.
 	(vc-print-log): Don't switch to the *vc* buffer before the
 	command, so that local variable bindings are preserved.
@@ -34,7 +41,7 @@
 
 	* vc-cvs.el: (vc-cvs-checkin): When removing the sticky tag,
 	make output go to buffer *vc*, not the current buffer.
-	
+
 2001-03-09  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* hi-lock.el (hi-lock-line-face-buffer): Wrap the regexp in a group
@@ -166,7 +173,7 @@
 
 2001-03-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* international/codepage.el (cp770-decode-table) 
+	* international/codepage.el (cp770-decode-table)
 	(cp773-decode-table, cp774-decode-table): New variables.
 
 	* man.el (Man-hyphenated-reference-regexp): New variable.
@@ -194,12 +201,12 @@
 
 2001-03-05  Richard M. Stallman  <rms@gnu.org>
 
-	* mail/rmail.el (rmail-retry-failure): 
+	* mail/rmail.el (rmail-retry-failure):
 	Don't call rmail-beginning-of-message.
 	Don't discard From: field.  Do discard Received: field.
 	Use unwind-protect to re-prune.
 	(rmail-retry-ignored-headers): Discard X-Authentication-Warning field.
-	
+
 2001-03-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-title): Add autoload cookie.
@@ -328,7 +335,7 @@
 2001-02-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* help.el (describe-project): Display the file THE-GNU-PROJECT.
-	
+
 	* help.el (view-order-manuals): Use goto-address.
 
 	* startup.el (command-line-1): Add info about ordering manuals
@@ -341,7 +348,7 @@
 
 2001-02-26  Gerd Moellmann  <gerd@gnu.org>
 
-	* lazy-lock.el (lazy-lock-fontify-after-idle): Make sure to 
+	* lazy-lock.el (lazy-lock-fontify-after-idle): Make sure to
 	fontify in the right buffer.
 
 	* allout.el (outline-flag-region): Move macro in front of first
@@ -466,7 +473,7 @@
 	(ps-time-stamp-mon-dd-yyyy, ps-time-stamp-hh:mm:ss): New funs.
 	(ps-zebra-stripe-full-p, ps-zebra-stripe-alist): New vars.
 	(coding-system-for-write): Var declaration (XEmacs compatibility).
-	
+
 2001-02-20  Miles Bader  <miles@gnu.org>
 
 	* image-file.el (image-file-name-extensions): Add "tif".
@@ -508,10 +515,10 @@
 
 2001-02-16  Gerd Moellmann  <gerd@gnu.org>
 
-	* textmodes/flyspell.el (flyspell-region, flyspell-buffer): 
+	* textmodes/flyspell.el (flyspell-region, flyspell-buffer):
 	Add autoload cookies.
 
-	* calendar/cal-tex.el (cal-tex-weekly4-box): Respect setting 
+	* calendar/cal-tex.el (cal-tex-weekly4-box): Respect setting
 	of cal-tex-24.
 
 2001-02-16  Eli Zaretskii  <eliz@is.elta.co.il>
