@@ -335,7 +335,8 @@ write-date, checksum, link-type, and link-name."
     (concat (substring str 4 16) (substring str 19 24))))
 
 (defun tar-grind-file-mode (mode string start)
-  "Write a \"-rw--r--r-\" representing MODE into STRING beginning at START."
+  "Store `-rw--r--r--' indicating MODE into STRING beginning at START.
+MODE should be an integer which is a file mode value."
   (aset string start       (if (zerop (logand 256 mode)) ?- ?r))
   (aset string (+ start 1) (if (zerop (logand 128 mode)) ?- ?w))
   (aset string (+ start 2) (if (zerop (logand  64 mode)) ?- ?x)) 
