@@ -1,5 +1,8 @@
 2000-05-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.c (frames_bury_buffer): Don't add a buffer to the frame's
+	buffer list that wasn't selected in that frame.
+
 	* filelock.c (get_boot_time): To obtain an 8 char file name, which
 	is needed on mescaline, use a 2 char prefix, and call
 	make_temp_name with second arg non-zero.
