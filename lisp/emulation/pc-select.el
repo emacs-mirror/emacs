@@ -79,7 +79,7 @@
 
 ;;; Code:
 
-;;;; Customization:
+;; Customization:
 (defgroup pc-select nil
   "Emulate pc bindings."
   :prefix "pc-select"
@@ -119,14 +119,15 @@ This gives mostly Emacs-like behaviour with only the selection keys enabled."
 If `interprogram-cut-function' is non-nil, also save the text for a window
 system cut and paste.
 
-Deactivating mark is to avoid confusion with delete-selection-mode
-and transient-mark-mode."
+Deactivating mark is to avoid confusion with `delete-selection-mode'
+and `transient-mark-mode'."
  (interactive "r")
  (copy-region-as-kill beg end)
  (setq mark-active nil)
  (message "Region saved"))
 
 (defun exchange-point-and-mark-nomark  ()
+  "Like `exchange-point-and-mark' but without activating the mark."
   (interactive)
   (exchange-point-and-mark)
   (setq mark-active nil))
@@ -198,7 +199,7 @@ to create a line, and moves the cursor to that line.  Otherwise it moves the
 cursor to the end of the buffer \(if already at the end of the buffer, an error
 is signaled).
 
-The command C-x C-n can be used to create
+The command \\[set-goal-column] can be used to create
 a semipermanent goal column to which this command always moves.
 Then it does not try to move vertically.  This goal column is stored
 in `goal-column', which is nil when there is none."
@@ -331,7 +332,7 @@ to create a line, and moves the cursor to that line.  Otherwise it moves the
 cursor to the end of the buffer (if already at the end of the buffer, an error
 is signaled).
 
-The command C-x C-n can be used to create
+The command \\[set-goal-column] can be used to create
 a semipermanent goal column to which this command always moves.
 Then it does not try to move vertically.  This goal column is stored
 in `goal-column', which is nil when there is none."
@@ -453,7 +454,7 @@ If there is no character in the target line exactly over the current column,
 the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
 
-The command C-x C-n can be used to create
+The command \\[set-goal-column] can be used to create
 a semipermanent goal column to which this command always moves.
 Then it does not try to move vertically.
 
@@ -555,7 +556,7 @@ If there is no character in the target line exactly over the current column,
 the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
 
-The command C-x C-n can be used to create
+The command \\[set-goal-column] can be used to create
 a semipermanent goal column to which this command always moves.
 Then it does not try to move vertically."
   (interactive "p")
@@ -622,9 +623,9 @@ S-C-LEFT and S-C-RIGHT move back or forward one word, leaving the mark behind.
 
 M-LEFT and M-RIGHT move back or forward one word or sexp, disabling the mark.
 S-M-LEFT and S-M-RIGHT move back or forward one word or sexp, leaving the mark
-behind. To control wether these keys move word-wise or sexp-wise set the
-variable pc-select-meta-moves-sexps after loading pc-select.el but before
-turning pc-selection-mode on.
+behind.  To control whether these keys move word-wise or sexp-wise set the
+variable `pc-select-meta-moves-sexps' after loading pc-select.el but before
+turning `pc-selection-mode' on.
 
 C-DOWN and C-UP move back or forward a paragraph, disabling the mark.
 S-C-DOWN and S-C-UP move back or forward a paragraph, leaving the mark behind.
@@ -645,17 +646,18 @@ S-INSERT yanks text from the kill ring (`yank').
 C-INSERT copies the region into the kill ring (`copy-region-as-kill').
 
 In addition, certain other PC bindings are imitated (to avoid this, set
-the variable pc-select-selection-keys-only to t after loading pc-select.el
-but before calling pc-selection-mode):
+the variable `pc-select-selection-keys-only' to t after loading pc-select.el
+but before calling `pc-selection-mode'):
 
-  F6           other-window
-  DELETE       delete-char
-  C-DELETE     kill-line
-  M-DELETE     kill-word
-  C-M-DELETE   kill-sexp
-  C-BACKSPACE  backward-kill-word
-  M-BACKSPACE  undo"
-
+  F6           `other-window'
+  DELETE       `delete-char'
+  C-DELETE     `kill-line'
+  M-DELETE     `kill-word'
+  C-M-DELETE   `kill-sexp'
+  C-BACKSPACE  `backward-kill-word'
+  M-BACKSPACE  `undo'"
+  ;; FIXME: make into a proper minor mode (i.e. undoable).
+  ;; FIXME: bring pc-bindings-mode here ?
   (interactive)
   ;;
   ;; keybindings
@@ -727,57 +729,55 @@ but before calling pc-selection-mode):
   (global-set-key [S-C-down] 'forward-paragraph-mark)
   (global-set-key [S-C-up] 'backward-paragraph-mark)
 
-  (or pc-select-selection-keys-only
-      (progn
-	;; We are behaving like normal-erase-is-backspace-mode, so
-	;; say so explicitly.  But don't do that on a Unix tty, since
-	;; some of them have keyboards that by default already behave
-	;; as if normal-erase-is-backspace mode is on, and turning it
-	;; a second time screws them up.
-	(if (or (eq window-system 'x)
-		(memq system-name '(ms-dos windows-nt)))
-	    (progn
-	      (setq-default normal-erase-is-backspace t)
-	      (normal-erase-is-backspace-mode 1))
-	  ;; This is for tty.  We don't turn on normal-erase-is-backspace,
-	  ;; but bind keys as pc-selection-mode did before
-	  ;; normal-erase-is-backspace was invented, to keep us back
-	  ;; compatible.
-	  (global-set-key [delete] 'delete-char)  ; KDelete       Del
-	  (define-key function-key-map  [M-delete] [?\M-d])
-	  (global-set-key [C-backspace] 'backward-kill-word))
-	(define-key global-map [S-insert]  'yank)
-	(define-key global-map [C-insert]  'copy-region-as-kill)
-	(define-key global-map [S-delete]  'kill-region)
+  (unless pc-select-selection-keys-only
+    ;; We are behaving like normal-erase-is-backspace-mode, so
+    ;; say so explicitly.  But don't do that on a Unix tty, since
+    ;; some of them have keyboards that by default already behave
+    ;; as if normal-erase-is-backspace mode is on, and turning it
+    ;; a second time screws them up.
+    (if (or (eq window-system 'x)
+	    (memq system-name '(ms-dos windows-nt macos)))
+	(progn
+	  (setq-default normal-erase-is-backspace t)
+	  (normal-erase-is-backspace-mode 1))
+      ;; This is for tty.  We don't turn on normal-erase-is-backspace,
+      ;; but bind keys as pc-selection-mode did before
+      ;; normal-erase-is-backspace was invented, to keep us back
+      ;; compatible.
+      (global-set-key [delete] 'delete-char) ; KDelete       Del
+      (define-key function-key-map  [M-delete] [?\M-d])
+      (global-set-key [C-backspace] 'backward-kill-word))
+    (define-key global-map [S-insert]  'yank)
+    (define-key global-map [C-insert]  'copy-region-as-kill)
+    (define-key global-map [S-delete]  'kill-region)
 
-	;; The following bindings are useful on Sun Type 3 keyboards
-	;; They implement the Get-Delete-Put (copy-cut-paste)
-	;; functions from sunview on the L6, L8 and L10 keys
-	;; Sam Steingold <sds@gnu.org> says that f16 is copy and f18 is paste.
-	(define-key global-map [f16]  'copy-region-as-kill)
-	(define-key global-map [f18]  'yank)
-	(define-key global-map [f20]  'kill-region)
+    ;; The following bindings are useful on Sun Type 3 keyboards
+    ;; They implement the Get-Delete-Put (copy-cut-paste)
+    ;; functions from sunview on the L6, L8 and L10 keys
+    ;; Sam Steingold <sds@gnu.org> says that f16 is copy and f18 is paste.
+    (define-key global-map [f16]  'copy-region-as-kill)
+    (define-key global-map [f18]  'yank)
+    (define-key global-map [f20]  'kill-region)
 
-	;; The following bindings are from Pete Forman.
-	(global-set-key [f6] 'other-window)	; KNextPane     F6
-	(global-set-key [C-delete] 'kill-line)	; KEraseEndLine cDel
-	(global-set-key "\M-\d" 'undo)		; KUndo         aBS
+    ;; The following bindings are from Pete Forman.
+    (global-set-key [f6] 'other-window)	; KNextPane     F6
+    (global-set-key [C-delete] 'kill-line) ; KEraseEndLine cDel
+    (global-set-key "\M-\d" 'undo)	; KUndo         aBS
 
-	;; The following binding is taken from pc-mode.el
-	;; as suggested by RMS.
-	;; I only used the one that is not covered above.
-	(global-set-key [C-M-delete]  'kill-sexp)
-	;; Next line proposed by Eli Barzilay
-	(global-set-key [C-escape]    'electric-buffer-list)))
+    ;; The following binding is taken from pc-mode.el
+    ;; as suggested by RMS.
+    ;; I only used the one that is not covered above.
+    (global-set-key [C-M-delete]  'kill-sexp)
+    ;; Next line proposed by Eli Barzilay
+    (global-set-key [C-escape]    'electric-buffer-list))
   ;;
   ;; setup
   ;;
   ;; Next line proposed by Eli Barzilay
   (setq highlight-nonselected-windows nil)
-  (setq transient-mark-mode t)
+  (transient-mark-mode 1)
   (setq mark-even-if-inactive t)
-  (delete-selection-mode 1)
-)
+  (delete-selection-mode 1))
 
 ;;;###autoload
 (defcustom pc-selection-mode nil
