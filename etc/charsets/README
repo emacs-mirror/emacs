@@ -27,14 +27,14 @@
 Each line contains a code point and the corresponding Unicode
 character code separated by a space.  Both code points and Unicode
 character codes are in hexadecimal preceded by "0x".  Comments may be
-used, starting with "#".  Code ranges may also be used, with endpoints
-separated by "-", covering the same number of codepoints and
-unicodes.
+used, starting with "#".  Code ranges may also be used, with
+(inclusive) start and end code points separated by "-" followed by the
+unicode of the start of the range
 
 Examples:
 0xA0 0x00A0  # no-break space
 
-0x81308130-0x81308435	0x0080-0x00A3 # map onto a Unicode range
+0x8141-0x8143 0x4E04 # map onto a Unicode range
 
 
 (2) Source of mapping files
