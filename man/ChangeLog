@@ -1,3 +1,15 @@
+2000-08-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* killing.texi (Killing): Document kill-read-only-ok.
+
+	* buffers.texi (Misc Buffer): Likewise
+
+2000-08-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* widget.texi (Top): Add Index in the menu.
+	(many nodes): Add index entries.
+	(Index): New node.
+
 2000-08-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* faq.texi (Disabling backups): Replace reference to 
