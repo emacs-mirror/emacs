@@ -36,3 +36,6 @@
 
 /* Reread the time zone on startup.  */
 #define LOCALTIME_CACHE
+
+#define HAVE_TERMIOS
+#define NO_TERMIO
