@@ -141,20 +141,32 @@ See `center-line' for more info."
 	    (center-line))
 	(forward-line 1)))))
 
-(defun center-line ()
+(defun center-line (&optional nlines)
   "Center the line point is on, within the width specified by `fill-column'.
 This means adjusting the indentation so that it equals
-the distance between the end of the text and `fill-column'."
-  (interactive)
-  (save-excursion
-    (let ((lm (current-left-margin))
-	  line-length)
-      (beginning-of-line)
-      (delete-horizontal-space)
-      (end-of-line)
-      (delete-horizontal-space)
-      (setq line-length (current-column))
-      (indent-line-to 
-	(+ lm (/ (- fill-column lm line-length) 2))))))
+the distance between the end of the text and `fill-column'.
+The argument NLINES says how many lines to center."
+  (interactive "P")
+  (if nlines (setq nlines (prefix-numeric-value nlines)))
+  (while (not (eq nlines 0))
+    (save-excursion
+      (let ((lm (current-left-margin))
+	    line-length)
+	(beginning-of-line)
+	(delete-horizontal-space)
+	(end-of-line)
+	(delete-horizontal-space)
+	(setq line-length (current-column))
+	(if (> (- fill-column lm line-length) 0)
+	    (indent-line-to 
+	     (+ lm (/ (- fill-column lm line-length) 2))))))
+    (cond ((null nlines)
+	   (setq nlines 0))
+	  ((> nlines 0)
+	   (setq nlines (1- nlines))
+	   (forward-line 1))
+	  ((< nlines 0)
+	   (setq nlines (1+ nlines))
+	   (forward-line -1)))))
 
 ;;; text-mode.el ends here
