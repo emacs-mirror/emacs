@@ -51,6 +51,7 @@
 ;;; repetitive strain injury?
 
 ;;; This package was inspired by Roland McGrath's hanoi-break.el.
+;;; Thanks to Mark Ashton <mpashton@gnu.ai.mit.edu> for feedback and ideas.
 
 ;;; Code:
 
@@ -73,11 +74,11 @@ See the docstring for the `type-break-mode' command for more information.")
   "*Number of seconds of idle time considered to be an adequate typing rest.
 
 When this variable is non-`nil', emacs checks the idle time between
-keystrokes.  If this idle time is long enough to be considered a "good"
+keystrokes.  If this idle time is long enough to be considered a \"good\"
 rest from typing, then the next typing break is simply rescheduled for later.
 
-The user will also be admonished if a forced break isn't at least as long
-as this time, to remind them to rest longer next time.")
+If a break is interrupted before this much time elapses, the user will be
+asked whether or not really to interrupt the break.")
 
 ;;;###autoload
 (defvar type-break-query-interval 60
@@ -87,7 +88,7 @@ finally submits to taking a typing break.")
 
 ;;;###autoload
 (defvar type-break-keystroke-threshold
-  ;; Assuming typing speed is 30wpm (on the average, do you really
+  ;; Assuming typing speed is 35wpm (on the average, do you really
   ;; type more than that in a minute?  I spend a lot of time reading mail
   ;; and simply studying code in buffers) and average word length is
   ;; about 5 letters, default upper threshold to the average number of
@@ -95,7 +96,7 @@ finally submits to taking a typing break.")
   ;; user goes through a furious burst of typing activity, cause a typing
   ;; break to be required sooner than originally scheduled.
   ;; Conversely, the minimum threshold should be about a fifth of this.
-  (let* ((wpm 30)
+  (let* ((wpm 35)
          (avg-word-length 5)
          (upper (* wpm avg-word-length (/ type-break-interval 60)))
          (lower (/ upper 5)))
@@ -124,22 +125,19 @@ keystroke even though they really require multiple keys to generate them.")
 It should take a string as an argument, the prompt.
 Usually this should be set to `yes-or-no-p' or `y-or-n-p'.")
 
-(defvar type-break-demo-function-vector
-  [type-break-demo-life type-break-demo-hanoi]
-  "*Vector consisting of functions to run as demos during typing breaks.
+(defvar type-break-demo-functions
+  '(type-break-demo-life type-break-demo-hanoi)
+  "*List of functions to consider running as demos during typing breaks.
 When a typing break begins, one of these functions is selected randomly
 to have emacs do something interesting.
 
-Any function in this vector should start a demo which ceases as soon as a
+Any function in this list should start a demo which ceases as soon as a
 key is pressed.")
 
 ;; These are internal variables.  Do not set them yourself.
 
-;; Non-nil when a scheduled typing break is due.
-(defvar type-break-alarm-p nil)
-
+(defvar type-break-alarm-p nil) ; Non-nil when a scheduled typing break is due.
 (defvar type-break-keystroke-count 0)
-
 (defvar type-break-time-last-break nil)
 (defvar type-break-time-next-break nil)
 (defvar type-break-time-last-command (current-time))
@@ -151,9 +149,18 @@ key is pressed.")
 ;; seconds to the cdr of some of my stored time values, which may throw off
 ;; the number of bits in the cdr.
 (defsubst type-break-time-difference (a b)
-  (+ (lsh (- (car b) (car a)) 16)
-     (- (car (cdr b)) (car (cdr a)))))
+  (abs (+ (lsh (- (car b) (car a)) 16)
+          (- (car (cdr b)) (car (cdr a))))))
 
+(defsubst type-break-format-time (secs)
+  (let ((mins (/ secs 60)))
+    (cond
+     ((> mins 0)
+      (format "%d minutes" mins))
+     (t
+      (format "%d seconds" secs)))))
+
+
 ;;;###autoload
 (defun type-break-mode (&optional prefix)
   "Enable or disable typing-break mode.
@@ -167,9 +174,8 @@ again in a short period of time.  The idea is to give the user enough time
 to find a good breaking point in his or her work, but be sufficiently
 annoying to discourage putting typing breaks off indefinitely.
 
-Calling this command with no prefix argument toggles this mode.
 A negative prefix argument disables this mode.
-A non-negative prefix argument or any other non-`nil' argument enables it.
+No argument or any non-negative argument enables it.
 
 The user may enable or disable this mode by setting the variable of the
 same name, though setting it in that way doesn't reschedule a break or
@@ -185,23 +191,17 @@ schedule between regular typing breaks.  This variable doesn't directly
 affect the time schedule; it simply provides a default for the
 `type-break-schedule' command.
 
-The variable `type-break-query-interval' specifies the number of seconds to
-schedule between repeated queries for breaks when the user answers \"no\"
-to the previous query.
-
-The variable `type-break-good-rest-interval' specifies the minimum amount
-of time which is considered a reasonable typing break.  Whenever that time
-has elapsed, typing breaks are automatically rescheduled for later even if
-emacs didn't prompt you to take one first.  You can disable this behavior.
+If set, the variable `type-break-good-rest-interval' specifies the minimum
+amount of time which is considered a reasonable typing break.  Whenever
+that time has elapsed, typing breaks are automatically rescheduled for
+later even if emacs didn't prompt you to take one first.  Also, if a break
+is ended before this much time has elapsed, the user will be asked whether
+or not to continue.
 
 The variable `type-break-keystroke-threshold' is used to determine the
 thresholds at which typing breaks should be considered.  You can use
 the command `type-break-guestimate-keystroke-threshold' to try to
 approximate good values for this.
-
-The variable `type-break-query-function' should contain a function (or the
-symbolic name of a function) to be used to query the user for typing
-breaks.
 
 Finally, the command `type-break-statistics' prints interesting things."
   (interactive "P")
@@ -209,20 +209,12 @@ Finally, the command `type-break-statistics' prints interesting things."
   (add-hook 'post-command-hook 'type-break-check 'append)
 
   (let ((already-enabled type-break-mode))
-    (cond
-     ((null prefix)
-      (setq type-break-mode (not type-break-mode)))
-     ((numberp (prefix-numeric-value prefix))
-      (setq type-break-mode (>= (prefix-numeric-value prefix) 0)))
-     (prefix
-      (setq type-break-mode t))
-     (t
-      (setq type-break-mode nil)))
+    (setq type-break-mode (>= (prefix-numeric-value prefix) 0))
 
     (cond
      ((and already-enabled type-break-mode)
       (and (interactive-p)
-           (message "type-break-mode was already enabled")))
+           (message "type-break-mode is enabled")))
      (type-break-mode
       (setq type-break-keystroke-count 0)
       (type-break-schedule)
@@ -237,34 +229,50 @@ Finally, the command `type-break-statistics' prints interesting things."
   "Take a typing break.
 
 During the break, a demo selected from the functions listed in
-`type-break-demo-function-vector' is run.
+`type-break-demo-functions' is run.
 
 After the typing break is finished, the next break is scheduled
-as per the function `type-break-schedule', and the keystroke counter is
-reset."
+as per the function `type-break-schedule'."
   (interactive)
-  (setq type-break-time-last-break (current-time))
-  (save-window-excursion
-    ;; Eat the screen.
-    (and (eq (selected-window) (minibuffer-window))
-         (other-window 1))
-    (delete-other-windows)
-    (scroll-right (window-width))
-    (message "Press any key to resume from typing break.")
+  (let ((continue t)
+        (start-time (current-time)))
+    (setq type-break-time-last-break start-time)
+    (while continue
+      (save-window-excursion
+        ;; Eat the screen.
+        (and (eq (selected-window) (minibuffer-window))
+             (other-window 1))
+        (delete-other-windows)
+        (scroll-right (window-width))
+        (message "Press any key to resume from typing break.")
 
-    (random t)
-    (let* ((len (length type-break-demo-function-vector))
-           (idx (random len))
-           (fn (aref type-break-demo-function-vector idx)))
-      (condition-case ()
-          (funcall fn)
-        (error nil))))
+        (random t)
+        (let* ((len (length type-break-demo-functions))
+               (idx (random len))
+               (fn (nth idx type-break-demo-functions)))
+          (condition-case ()
+              (funcall fn)
+            (error nil))))
 
-  (and type-break-good-rest-interval
-       (< (type-break-time-difference type-break-time-last-command
-                                      (current-time))
-          type-break-good-rest-interval)
-       (message "That typing break wasn't really long enough.  Rest more next time."))
+      (cond
+       (type-break-good-rest-interval
+        (let ((break-secs (type-break-time-difference
+                           start-time (current-time))))
+          (cond
+           ((>= break-secs type-break-good-rest-interval)
+            (setq continue nil))
+           ;; Don't be pedantic; if user's rest was only a minute or two
+           ;; short, why bother?
+           ((> 120 (abs (- break-secs type-break-good-rest-interval)))
+            (setq continue nil))
+           ((funcall 
+             type-break-query-function
+             (format "You really ought to rest %s more.  Continue break? "
+                     (type-break-format-time (- type-break-good-rest-interval
+                                                break-secs)))))
+           (t
+            (setq continue nil)))))
+       (t (setq continue nil)))))
 
   (setq type-break-keystroke-count 0)
   (type-break-schedule))
@@ -321,6 +329,7 @@ keystroke threshold has been exceeded."
                 type-break-good-rest-interval)
              (progn
                (setq type-break-keystroke-count 0)
+               (setq type-break-time-last-break (current-time))
                (type-break-schedule)))
         (setq type-break-time-last-command (current-time))))
 
@@ -330,10 +339,12 @@ keystroke threshold has been exceeded."
 
       (cond
        ((input-pending-p))
+       ((eq (selected-window) (minibuffer-window)))
        (type-break-alarm-p
         (cond
          ((and min-threshold
-               (< type-break-keystroke-count min-threshold)))
+               (< type-break-keystroke-count min-threshold))
+          (type-break-schedule))
          (t
           ;; If the keystroke count is within min-threshold characters of
           ;; the maximum threshold, set the count to min-threshold.  That
@@ -401,6 +412,8 @@ keystroke threshold has been exceeded."
       (condition-case ()
           (progn
             (life 3)
+            ;; wait for user to return
+            (read-char)
             (kill-buffer "*Life*"))
         (life-extinct
          (message (get 'life-extinct 'error-message))
@@ -431,13 +444,10 @@ Current keystroke count     : %s"
                    (if (and type-break-mode type-break-time-next-break)
                        (format "%s\t(%s from now)"
                                (current-time-string type-break-time-next-break)
-                               (let* ((secs (type-break-time-difference
-                                             (current-time) 
-                                             type-break-time-next-break))
-                                      (mins (/ secs 60)))
-                                 (if (> mins 0)
-                                     (format "%d minutes" mins)
-                                   (format "%d seconds" secs))))
+                               (type-break-format-time 
+                                (type-break-time-difference
+                                (current-time) 
+                                type-break-time-next-break)))
                      "none scheduled")
                    (or (car type-break-keystroke-threshold) "none")
                    (or (cdr type-break-keystroke-threshold) "none")
