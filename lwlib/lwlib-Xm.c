@@ -345,7 +345,13 @@ make_menu_in_widget (widget_instance* instance, Widget widget,
       XtSetArg (al [ac], XmNalignment, XmALIGNMENT_BEGINNING); ac++;
       XtSetArg (al [ac], XmNuserData, cur->call_data); ac++;
       
-      if (all_dashes_p (cur->name))
+      if (instance->pop_up_p && !cur->contents && !cur->call_data)
+	{
+	  ac = 0;
+	  XtSetArg (al[ac], XmNalignment, XmALIGNMENT_CENTER); ac++;
+	  button = XmCreateLabel (widget, cur->name, al, ac);
+	}
+      else if (all_dashes_p (cur->name))
 	{
 	  button = XmCreateSeparator (widget, cur->name, NULL, 0);
 	}
@@ -1514,4 +1520,43 @@ xm_set_keyboard_focus (Widget parent, Widget w)
 {
   XmProcessTraversal (w, 0);
   XtSetKeyboardFocus (parent, w);
+}
+
+/* Motif hack to set the main window areas. */
+void
+xm_set_main_areas (parent, menubar, work_area)
+     Widget parent;
+     Widget menubar;
+     Widget work_area;
+{
+  XmMainWindowSetAreas (parent,
+			menubar,	/* menubar (maybe 0) */
+			0,		/* command area (psheets) */
+			0,		/* horizontal scroll */
+			0,              /* vertical scroll */
+			work_area);	/* work area */
+}
+
+/* Motif hack to control resizing on the menubar. */
+void
+xm_manage_resizing (w, flag)
+     Widget w;
+     Boolean flag;
+{
+  if (flag)
+    {
+      /* Enable the edit widget for resizing. */
+      Arg al[1];
+      
+      XtSetArg (al[0], XtNallowShellResize, 0);
+      XtSetValues (w, al, 1);
+    }
+  else
+    {
+      /* Disable the edit widget from resizing. */
+      Arg al[1];
+      
+      XtSetArg (al[0], XtNallowShellResize, 0);
+      XtSetValues (w, al, 1);
+    }
 }
