@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.123 $")
+(defconst byte-compile-version "$Revision: 2.124 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1315,13 +1315,13 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
   nil)
 
 
-(defsubst byte-compile-const-symbol-p (symbol &optional value)
+(defsubst byte-compile-const-symbol-p (symbol &optional any-value)
   "Non-nil if SYMBOL is constant.
-If VALUE is nil, only return non-nil if the value of the symbol is the
+If ANY-VALUE is nil, only return non-nil if the value of the symbol is the
 symbol itself."
   (or (memq symbol '(nil t))
       (keywordp symbol)
-      (if value (memq symbol byte-compile-const-variables))))
+      (if any-value (memq symbol byte-compile-const-variables))))
 
 (defmacro byte-compile-constp (form)
   "Return non-nil if FORM is a constant."
