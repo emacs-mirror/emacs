@@ -173,7 +173,7 @@ and radicals is as below:
     ("chinese-tonepy" "调拼"
      "Pinyin base input method for Chinese charset GB2312 (`chinese-gb2312').
 
-Pinyin is the standared roman transliteration method for Chinese.
+Pinyin is the standard roman transliteration method for Chinese.
 For the details of Pinyin system, see the documentation of the input
 method `chinese-py'.
 
@@ -499,7 +499,10 @@ the generated Quail package is saved."
 	  (if (not (search-forward "\nBEGIN" nil t))
 	      (error "TIT dictionary can't be decoded correctly"))
 
-	  ;; Process the header part.
+	  ;; Process the header part in multibyte mode.
+	  (with-current-buffer standard-output
+	    (set-buffer-multibyte t))
+	  (set-buffer-multibyte t)
 	  (forward-line 1)
 	  (narrow-to-region (point-min) (point))
 	  (tit-process-header filename)
@@ -850,7 +853,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 
 Pinyin base input method for Chinese charset GB2312 (`chinese-gb2312').
 
-Pinyin is the standared roman transliteration method for Chinese.
+Pinyin is the standard roman transliteration method for Chinese.
 Pinyin uses a sequence of Latin alphabetic characters for each Chinese
 character.  The sequence is made by the combination of the initials
 \(the beginning sounds) and finals (the ending sounds).
