@@ -1244,7 +1244,7 @@ mark_window_display_accurate (window, flag)
 
       w->window_end_valid = w->buffer;
       w->update_mode_line = Qnil;
-      if (!NILP (w->buffer))
+      if (!NILP (w->buffer) && flag)
 	XBUFFER (w->buffer)->clip_changed = 0;
 
       if (!NILP (w->vchild))
