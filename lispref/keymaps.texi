@@ -561,7 +561,7 @@ when the minor mode is enabled.  Modes for emulation can specify
 additional active keymaps through the variable
 @code{emulation-mode-map-alists}.
 
-  The highest precedence normal keymap comes from the @code{keymapo}
+  The highest precedence normal keymap comes from the @code{keymap}
 text or overlay property.  If that is non-@code{nil}, it is the first
 keymap to be processed, in normal circumstances.
 
