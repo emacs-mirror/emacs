@@ -1,10 +1,10 @@
 ;;; fast-lock.el --- Automagic text properties caching for fast Font Lock mode.
 
-;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: faces files
-;; Version: 3.13
+;; Version: 3.14
 
 ;;; This file is part of GNU Emacs.
 
@@ -172,6 +172,10 @@
 ;; - Added `fast-lock-get-syntactic-properties'
 ;; - Renamed `fast-lock-set-face-properties' to `fast-lock-add-properties'
 ;; - Made `fast-lock-add-properties' add syntactic and face fontification data
+;; 3.13--3.14:
+;; - Made `fast-lock-cache-name' cope with `windowsnt' (Geoff Voelker fix)
+;; - Made `fast-lock-verbose' use `other' widget (Andreas Schwab fix)
+;; - Used `with-temp-message' where possible to make messages temporary.
 
 ;;; Code:
 
@@ -211,6 +215,14 @@
 	       faces)))))
   ;;
   ;; We use this for compatibility with a future Emacs.
+  (or (fboundp 'with-temp-message)
+      (defmacro with-temp-message (message &rest body)
+	(` (let ((current-message (current-message)))
+	     (unwind-protect
+		 (progn (message (, message)) (,@ body))
+	       (message current-message))))))
+  ;;
+  ;; We use this for compatibility with a future Emacs.
   (or (fboundp 'defcustom)
       (defmacro defcustom (symbol value doc &rest args) 
 	(` (defvar (, symbol) (, value) (, doc))))))
@@ -219,7 +231,7 @@
 ;  "Submit via mail a bug report on fast-lock.el."
 ;  (interactive)
 ;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.13"
+;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.14"
 ;     '(fast-lock-cache-directories fast-lock-minimum-size
 ;       fast-lock-save-others fast-lock-save-events fast-lock-save-faces
 ;       fast-lock-verbose)
@@ -238,7 +250,7 @@
 
 ;; User Variables:
 
-(defcustom fast-lock-minimum-size (* 25 1024)
+(defcustom fast-lock-minimum-size 25600
   "*Minimum size of a buffer for cached fontification.
 Only buffers more than this can have associated Font Lock cache files saved.
 If nil, means cache files are never created.
@@ -306,8 +318,8 @@ Font Lock cache files saved.  Ownership may be unknown for networked files."
   "*If non-nil, means show status messages for cache processing.
 If a number, only buffers greater than this size have processing messages."
   :type '(choice (const :tag "never" nil)
-		 (integer :tag "size")
-		 (other :tag "always" t))
+		 (other :tag "always" t)
+		 (integer :tag "size"))
   :group 'fast-lock)
 
 (defvar fast-lock-save-faces
@@ -561,26 +573,29 @@ See `fast-lock-cache-directory'."
 		     (> (buffer-size) fast-lock-verbose)
 		   fast-lock-verbose))
 	(saved t))
-    (if verbose (message "Saving %s font lock cache..." (buffer-name)))
-    (condition-case nil
-	(save-excursion
-	  (print (list 'fast-lock-cache-data 3
-		       (list 'quote timestamp)
-		       (list 'quote font-lock-syntactic-keywords)
-		       (list 'quote (fast-lock-get-syntactic-properties))
-		       (list 'quote font-lock-keywords)
-		       (list 'quote (fast-lock-get-face-properties)))
-		 tpbuf)
-	  (set-buffer tpbuf)
-	  (write-region (point-min) (point-max) file nil 'quietly)
-	  (setq fast-lock-cache-timestamp timestamp
-		fast-lock-cache-filename file))
-      (error (setq saved 'error)) (quit (setq saved 'quit)))
-    (kill-buffer tpbuf)
-    (if verbose (message "Saving %s font lock cache...%s" (buffer-name)
-			 (cond ((eq saved 'error) "failed")
-			       ((eq saved 'quit) "aborted")
-			       (t "done"))))
+    (with-temp-message
+	(if verbose
+	    (format "Saving %s font lock cache..." (buffer-name))
+	  (current-message))
+      (condition-case nil
+	  (save-excursion
+	    (print (list 'fast-lock-cache-data 3
+			 (list 'quote timestamp)
+			 (list 'quote font-lock-syntactic-keywords)
+			 (list 'quote (fast-lock-get-syntactic-properties))
+			 (list 'quote font-lock-keywords)
+			 (list 'quote (fast-lock-get-face-properties)))
+		   tpbuf)
+	    (set-buffer tpbuf)
+	    (write-region (point-min) (point-max) file nil 'quietly)
+	    (setq fast-lock-cache-timestamp timestamp
+		  fast-lock-cache-filename file))
+	(error (setq saved 'error)) (quit (setq saved 'quit)))
+      (kill-buffer tpbuf))
+    (cond ((eq saved 'quit)
+	   (message "Saving %s font lock cache...quit" (buffer-name)))
+	  ((eq saved 'error)
+	   (message "Saving %s font lock cache...failed" (buffer-name))))
     ;; We return non-nil regardless of whether a failure occurred.
     saved))
 
@@ -615,14 +630,17 @@ See `fast-lock-cache-directory'."
 	    (not (equal syntactic-keywords font-lock-syntactic-keywords))
 	    (not (equal keywords font-lock-keywords)))
 	(setq loaded nil)
-      (if verbose (message "Loading %s font lock cache..." (buffer-name)))
-      (condition-case nil
-	  (fast-lock-add-properties syntactic-properties face-properties)
-	(error (setq loaded 'error)) (quit (setq loaded 'quit)))
-      (if verbose (message "Loading %s font lock cache...%s" (buffer-name)
-			   (cond ((eq loaded 'error) "failed")
-				 ((eq loaded 'quit) "aborted")
-				 (t "done")))))
+      (with-temp-message
+	  (if verbose
+	      (format "Loading %s font lock cache..." (buffer-name))
+	    (current-message))
+	(condition-case nil
+	    (fast-lock-add-properties syntactic-properties face-properties)
+	  (error (setq loaded 'error)) (quit (setq loaded 'quit))))
+      (cond ((eq loaded 'quit)
+	     (message "Loading %s font lock cache...quit" (buffer-name)))
+	    ((eq loaded 'error)
+	     (message "Loading %s font lock cache...failed" (buffer-name)))))
     (setq font-lock-fontified (eq loaded t)
 	  fast-lock-cache-timestamp (and (eq loaded t) timestamp))))
 
@@ -814,6 +832,10 @@ See `fast-lock-get-face-properties'."
     (if (consp alist)
 	(cdr (or (assq major-mode alist) (assq t alist)))
       alist)))
+
+(unless (fboundp 'current-message)
+  (defun current-message ()
+    ""))
 
 ;; Install ourselves:
 
