@@ -229,8 +229,6 @@ struct mac_display_info one_mac_display_info;
 
 extern struct frame *updating_frame;
 
-extern int waiting_for_input;
-
 /* This is a frame waiting to be auto-raised, within XTread_socket.  */
 
 struct frame *pending_autoraise_frame;

@@ -274,8 +274,6 @@ Lisp_Object x_display_name_list;
 
 extern struct frame *updating_frame;
 
-extern int waiting_for_input;
-
 /* This is a frame waiting to be auto-raised, within XTread_socket.  */
 
 struct frame *pending_autoraise_frame;
