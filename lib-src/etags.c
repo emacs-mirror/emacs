@@ -25,7 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Gnu Emacs TAGS format and modifications by RMS?
  *	Sam Kendall added C++.
  *
- *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer. 9.5
+ *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer. 9.7
  */
 
 #ifdef HAVE_CONFIG_H
@@ -1788,7 +1788,6 @@ consider_token (c, lp, tokp, c_ext, cblev, is_func)
      int cblev;			/* IN: curly brace level */
      logical *is_func;		/* OUT */
 {
-  logical firsttok;		/* TRUE if have seen first token in ()'s */
   Stab_entry *tokse = stab_find (get_C_stab (c_ext), tokp->p, tokp->len);
   enum sym_type toktype = stab_type (tokse);
 
@@ -2776,7 +2775,7 @@ prolog_getit (s, lineno, linecharno)
   *s = '\0';
   strcpy (nambuf, save_s);
   *s = tmpc;
-  pfnote (nambuf, TRUE, save_s, strlen (nambuf), lineno, linecharno);
+  pfnote (nambuf, TRUE, FALSE, save_s, strlen (nambuf), lineno, linecharno);
 }
 
 /* It is assumed that prolog predicate starts from column 0. */
