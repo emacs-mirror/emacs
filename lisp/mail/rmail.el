@@ -1376,7 +1376,7 @@ It returns t if it got any new messages."
       (if popmail
 	  (setq renamep t)
 	(setq file (file-truename
-		    (expand-file-name (substitute-in-file-name file)))))
+		    (substitute-in-file-name (expand-file-name file)))))
       (setq tofile (expand-file-name
 		    ;; Generate name to move to from inbox name,
 		    ;; in case of multiple inboxes that need moving.
