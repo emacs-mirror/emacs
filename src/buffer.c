@@ -100,6 +100,7 @@ struct buffer buffer_local_types;
 
 Lisp_Object Fset_buffer ();
 void set_buffer_internal ();
+static void call_overlay_mod_hooks ();
 
 /* Alist of all buffer names vs the buffers. */
 /* This used to be a variable, but is no longer,
@@ -1866,6 +1867,100 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
     = Fcons (prop, Fcons (value, plist));
 
   return value;
+}
+
+/* Run the modification-hooks of overlays that include
+   any part of the text in START to END.
+   Run the insert-before-hooks of overlay starting at END,
+   and the insert-after-hooks of overlay ending at START.  */
+
+void
+verify_overlay_modification (start, end)
+     Lisp_Object start, end;
+{
+  Lisp_Object prop, overlay, tail;
+  int insertion = EQ (start, end);
+
+  for (tail = current_buffer->overlays_before;
+       CONSP (tail);
+       tail = XCONS (tail)->cdr)
+    {
+      int startpos, endpos;
+      int ostart, oend;
+
+      overlay = XCONS (tail)->car;
+
+      ostart = OVERLAY_START (overlay);
+      oend = OVERLAY_END (overlay);
+      endpos = OVERLAY_POSITION (oend);
+      if (XFASTINT (start) > endpos)
+	break;
+      startpos = OVERLAY_POSITION (ostart);
+      if (XFASTINT (end) == startpos && insertion)
+	{
+	  prop = Foverlay_get (overlay, Qinsert_in_front_hooks);
+	  call_overlay_mod_hooks (prop, overlay, start, end);
+	}
+      if (XFASTINT (start) == endpos && insertion)
+	{
+	  prop = Foverlay_get (overlay, Qinsert_behind_hooks);
+	  call_overlay_mod_hooks (prop, overlay, start, end);
+	}
+      if (insertion
+	  ? (XFASTINT (start) > startpos && XFASTINT (end) < endpos)
+	  : (XFASTINT (start) >= startpos && XFASTINT (end) <= endpos))
+	{
+	  prop = Foverlay_get (overlay, Qmodification_hooks);
+	  call_overlay_mod_hooks (prop, overlay, start, end);
+	}
+    }
+
+  for (tail = current_buffer->overlays_after;
+       CONSP (tail);
+       tail = XCONS (tail)->cdr)
+    {
+      int startpos, endpos;
+      int ostart, oend;
+
+      overlay = XCONS (tail)->car;
+
+      ostart = OVERLAY_START (overlay);
+      oend = OVERLAY_END (overlay);
+      startpos = OVERLAY_POSITION (ostart);
+      if (XFASTINT (end) < startpos)
+	break;
+      if (XFASTINT (end) == startpos && insertion)
+	{
+	  prop = Foverlay_get (overlay, Qinsert_in_front_hooks);
+	  call_overlay_mod_hooks (prop, overlay, start, end);
+	}
+      if (XFASTINT (start) == endpos && insertion)
+	{
+	  prop = Foverlay_get (overlay, Qinsert_behind_hooks);
+	  call_overlay_mod_hooks (prop, overlay, start, end);
+	}
+      if (insertion
+	  ? (XFASTINT (start) > startpos && XFASTINT (end) < endpos)
+	  : (XFASTINT (start) >= startpos && XFASTINT (end) <= endpos))
+	{
+	  prop = Foverlay_get (overlay, Qmodification_hooks);
+	  call_overlay_mod_hooks (prop, overlay, start, end);
+	}
+    }
+}
+
+static void
+call_overlay_mod_hooks (list, overlay, start, end)
+     Lisp_Object list, overlay, start, end;
+{
+  struct gcpro gcpro1;
+  GCPRO1 (list);
+  while (!NILP (list))
+    {
+      call3 (Fcar (list), overlay, start, end);
+      list = Fcdr (list);
+    }
+  UNGCPRO;
 }
 
 /* Somebody has tried to store NEWVAL into the buffer-local slot with
