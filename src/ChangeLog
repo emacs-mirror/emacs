@@ -1,5 +1,7 @@
 2003-03-13  Andreas Schwab  <schwab@suse.de>
 
+	* gtkutil.c: Add prototype for create_menus.
+
 	* data.c (long_to_cons): Fix type of top.
 
 	* xselect.c (selection_data_to_lisp_data): Use int instead of
