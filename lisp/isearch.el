@@ -1680,32 +1680,35 @@ If there is no completion possible, say so and continue searching."
     (mapc 'isearch-open-necessary-overlays isearch-opened-overlays)
     (setq isearch-opened-overlays nil)))
 
+
+(defun isearch-intersects-p (start0 end0 start1 end1)
+  "Return t if regions START0..END0 and START1..END1 intersect."
+  (or (and (>= start0 start1) (< start0 end1))
+      (and (>= end0 start1)   (< end0 end1))
+      (and (>= start1 start0) (< start1 end0))
+      (and (>= end1 start0)   (< end1 end0))))
+
+
 ;;; Verify if the current match is outside of each element of
 ;;; `isearch-opened-overlays', if so close that overlay.
-(defun isearch-close-unecessary-overlays (begin end)
-  (let ((ov-list isearch-opened-overlays)
-	ov
-	inside-overlay
-	fct-temp)
+
+(defun isearch-close-unnecessary-overlays (begin end)
+  (let ((overlays isearch-opened-overlays))
     (setq isearch-opened-overlays nil)
-    (while ov-list
-      (setq ov (car ov-list))
-      (setq ov-list (cdr ov-list))
-      (setq inside-overlay (or (and  (> begin (overlay-start ov)) 
-				     (< begin (overlay-end ov)))
-			       (and  (> end (overlay-start ov)) 
-				     (< end (overlay-end ov)))))
-      ;; If this exists it means that the overlay was opened using
-      ;; this function, not by us tweaking the overlay properties.
-      (setq fct-temp (overlay-get ov 'isearch-open-invisible-temporary))
-      (if inside-overlay
-	  (setq isearch-opened-overlays (cons ov isearch-opened-overlays))
-	(if fct-temp
-	    (funcall fct-temp ov t)
-	  (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
-	  (overlay-put ov 'intangible (overlay-get ov 'isearch-intangible))
-	  (overlay-put ov 'isearch-invisible nil)
-	  (overlay-put ov 'isearch-intangible nil))))))
+    (dolist (ov overlays)
+      (if (isearch-intersects-p begin end (overlay-start ov) (overlay-end ov))
+	  (push ov isearch-opened-overlays)
+	(let ((fct-temp (overlay-get ov 'isearch-open-invisible-temporary)))
+	  (if fct-temp
+	      ;; If this exists it means that the overlay was opened
+	      ;; using this function, not by us tweaking the overlay
+	      ;; properties.
+	      (funcall fct-temp ov t)
+	    (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
+	    (overlay-put ov 'intangible (overlay-get ov 'isearch-intangible))
+	    (overlay-put ov 'isearch-invisible nil)
+	    (overlay-put ov 'isearch-intangible nil)))))))
+
 
 (defun isearch-range-invisible (beg end)
   "Return t if all the text from BEG to END is invisible."
@@ -1719,7 +1722,7 @@ If there is no completion possible, say so and continue searching."
 	       ;; the list of overlays that could be opened
 	       (crt-overlays nil))
 	   (when (and can-be-opened isearch-hide-immediately) 
-	     (isearch-close-unecessary-overlays beg end))
+	     (isearch-close-unnecessary-overlays beg end))
 	   ;; If the following character is currently invisible,
 	   ;; skip all characters with that same `invisible' property value.
 	   ;; Do that over and over.
