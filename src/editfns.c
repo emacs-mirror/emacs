@@ -760,7 +760,9 @@ If you them to stand for years above 1900, you must do that yourself.")
 
   fullyear = XINT (year);
 
-  /* Adjust incoming datespec to epoch = March 1, year 0.  */
+  /* Adjust incoming datespec to epoch = March 1, year 0.
+     The "date" March 1, year 0, is an abstraction used purely for its
+     computational convenience; year 0 never existed.  */
   mon = XINT (month) - 1 + 10;
   fullyear += mon/12 - 1;
   mon %= 12;
