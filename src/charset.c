@@ -386,6 +386,7 @@ split_non_ascii_string (str, len, charset, c1, c2)
   *charset = cs;
   *c1 = code1;
   *c2 = code2;
+  return 0;
 }
 
 /* Return 1 iff character C has valid printable glyph.
