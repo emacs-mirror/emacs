@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.29) $
+ * $HopeName: MMsrc!trace.c(trunk.30) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.29) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.30) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -609,9 +609,11 @@ static Res TraceScan(TraceSet ts, Rank rank,
     return res;
   }
 
-  /* The summary of references seen by scan must be a subset of */
-  /* the ones we thought were there before. */
-  AVER(RefSetSub(ss.summary, SegSummary(seg)));
+  /* The summary of references seen by scan must be equal to those */
+  /* which we saw before, unless there's been a write barrier hit */
+  /* in which case the segment summary is set to RefSetUNIV */
+  AVER((ss.summary == SegSummary(seg)) || 
+       (SegSummary(seg) == RefSetUNIV));
   TraceSetSummary(space, seg,
                   TraceSetUnion(ss.fixed,
                                 TraceSetDiff(ss.summary, ss.white)));
