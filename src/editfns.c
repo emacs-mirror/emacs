@@ -1266,6 +1266,13 @@ determines whether case is significant or ignored.")
   return make_number (0);
 }
 
+static Lisp_Object
+subst_char_in_region_unwind (arg)
+     Lisp_Object arg;
+{
+  return current_buffer->undo_list = arg;
+}
+
 DEFUN ("subst-char-in-region", Fsubst_char_in_region,
   Ssubst_char_in_region, 4, 5, 0,
   "From START to END, replace FROMCHAR with TOCHAR each time it occurs.\n\
@@ -1276,6 +1283,7 @@ and don't mark the buffer as really changed.")
 {
   register int pos, stop, look;
   int changed = 0;
+  int count = specpdl_ptr - specpdl;
 
   validate_region (&start, &end);
   CHECK_NUMBER (fromchar, 2);
@@ -1284,6 +1292,16 @@ and don't mark the buffer as really changed.")
   pos = XINT (start);
   stop = XINT (end);
   look = XINT (fromchar);
+
+  /* If we don't want undo, turn off putting stuff on the list.
+     That's faster than getting rid of things,
+     and it prevents even the entry for a first change.  */
+  if (!NILP (noundo))
+    {
+      record_unwind_protect (subst_char_in_region_unwind,
+			     current_buffer->undo_list);
+      current_buffer->undo_list = Qt;
+    }
 
   while (pos < stop)
     {
@@ -1315,6 +1333,7 @@ and don't mark the buffer as really changed.")
     signal_after_change (XINT (start),
 			 stop - XINT (start), stop - XINT (start));
 
+  unbind_to (count, Qnil);
   return Qnil;
 }
 
