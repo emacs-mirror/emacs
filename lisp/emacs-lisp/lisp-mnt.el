@@ -370,6 +370,23 @@ This can be found in an RCS or SCCS header."
     (let ((keywords (lm-header "keywords")))
       (and keywords (downcase keywords)))))
 
+(defun lm-keywords-list (&optional file)
+  "Return list of keywords given in file FILE."
+  (let ((keywords (lm-keywords file)))
+    (if keywords
+	(split-string keywords ",?[ \t]"))))
+
+(defun lm-keywords-finder-p (&optional file)
+  "Return non-nil if any keywords in FILE are known to finder."
+  (require 'finder)
+  (let ((keys (lm-keywords-list file)))
+    (catch 'keyword-found
+      (while keys
+	(if (assoc (intern (car keys)) finder-known-keywords)
+	    (throw 'keyword-found t))
+	(setq keys (cdr keys)))
+      nil)))
+
 (defun lm-adapted-by (&optional file)
   "Return the adapted-by names in file FILE, or current buffer if FILE is nil.
 This is the name of the person who cleaned up this package for
@@ -439,6 +456,8 @@ Optional argument VERB specifies verbosity."
 		"Can't find a one-line 'Summary' description")
 	       ((not (lm-keywords))
 		"Keywords: tag missing.")
+	       ((not (lm-keywords-finder-p))
+		"Keywords: no valid finder keywords.")
 	       ((not (lm-commentary-mark))
 		"Can't find a 'Commentary' section marker.")
 	       ((not (lm-history-mark))
