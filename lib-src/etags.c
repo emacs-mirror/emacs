@@ -28,7 +28,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char etags_version[] = "@(#) pot revision number is 10.15";
+char pot_etags_version[] = "@(#) pot revision number is 10.18";
 
 #ifdef MSDOS
 #include <fcntl.h>
@@ -53,33 +53,23 @@ extern char *getenv ();
 extern char *getcwd ();
 
 
-/* Define the symbol ETAGS to make the program "etags",
- which makes emacs-style tag tables by default.
- Define CTAGS to make the program "ctags" compatible with the usual one.
- Define neither one to get behavior that depends
- on the name with which the program is invoked
- (but we don't normally compile it that way).  */
-
-#if !defined(ETAGS) && !defined(CTAGS)
-/* If neither is defined, program can be run as either. */
-#define ETAGS
-#define CTAGS
-#endif
-
-/* On VMS, CTAGS is not useful, so always do ETAGS.  */
-#ifdef VMS
-#ifndef ETAGS
-#define ETAGS
-#endif
+/* Define CTAGS to make the program "ctags" compatible with the usual one.
+ Let it undefined to make the program "etags", which makes emacs-style
+ tag tables and tags typedefs, #defines and struct/union/enum by default. */
+#ifdef CTAGS
+# undef  CTAGS
+# define CTAGS TRUE
+#else
+# define CTAGS FALSE
 #endif
 
 /* Exit codes for success and failure.  */
 #ifdef VMS
-#define	GOOD	(1)
-#define BAD	(0)
+#define	GOOD	1
+#define BAD	0
 #else
-#define	GOOD	(0)
-#define	BAD	(1)
+#define	GOOD	0
+#define	BAD	1
 #endif
 
 /*
@@ -247,15 +237,13 @@ char *curfile,			/* current input file name		*/
  *intk = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz$0123456789";
 
 int append_to_tagfile;		/* -a: append to tags */
-int emacs_tags_format;		/* emacs style output (no -e option any more) */
 /* The following three default to 1 for etags, but to 0 for ctags.  */
 int typedefs;			/* -t: create tags for typedefs */
 int typedefs_and_cplusplus;	/* -T: create tags for typedefs, level */
 				/* 0 struct/enum/union decls, and C++ */
-				/* member functions */
+				/* member functions. */
 int constantypedefs;		/* -d: create tags for C #define and enum */
-				/* constants. Default under etags.  Enum */
-				/* constants not implemented. */
+				/* constants.  Enum consts not implemented. */
 				/* -D: opposite of -d.  Default under ctags. */
 int update;			/* -u: update tags */
 int vgrind_style;		/* -v: create vgrind style index output */
@@ -316,16 +304,11 @@ struct
 void
 print_version ()
 {
-#ifdef CTAGS
-  printf ("CTAGS ");
-#ifdef ETAGS
-  printf ("and ");
-#endif
-#endif
-#ifdef ETAGS
-  printf ("ETAGS ");
-#endif
-  printf ("for Emacs version 19.\n");
+#ifdef VERSION
+  printf ("%s for Emacs version %g.\n", (CTAGS) ? "CTAGS" : "ETAGS", VERSION);
+#else
+  printf ("%s for Emacs version 19.\n", (CTAGS) ? "CTAGS" : "ETAGS");
+#endif  
 
   exit (GOOD);
 }
@@ -340,48 +323,34 @@ names from stdin.\n\n", progname);
   puts ("-a, --append\n\
         Append tag entries to existing tags file.");
 
-#ifdef CTAGS
-  puts ("-B, --backward-search\n\
+  if (CTAGS)
+    puts ("-B, --backward-search\n\
         Write the search commands for the tag entries using '?', the\n\
         backward-search command.");
-#endif
 
   puts ("-C, --c++\n\
         Treat files with `.c' and `.h' extensions as C++ code, not C\n\
         code.  Files with `.C', `.H', `.cxx', `.hxx', or `.cc'\n\
         extensions are always assumed to be C++ code.");
 
-#ifdef ETAGS
-  puts ("-d, --defines\n\
-        Create tag entries for #defines, too.  This is the default\n\
-        behavior.");
-#else
-  puts ("-d, --defines\n\
-        Create tag entries for #defines, too.");
-#endif
+  if (CTAGS)
+    puts ("-d, --defines\n\
+        Create tag entries for C #defines, too.");
+  else
+    puts ("-D, --no-defines\n\
+        Don't create tag entries for C #defines.  This makes the tags\n\
+	file smaller.");
 
-#ifdef CTAGS
-  puts ("-D, --no-defines\n\
-        Don't create tag entries for #defines.  This is the default\n\
-        behavior.");
-#else
-  puts ("-D, --no-defines\n\
-        Don't create tag entries for #defines.");
-#endif
-
-#ifdef CTAGS
-  puts ("-F, --forward-search\n\
+  if (CTAGS)
+    puts ("-F, --forward-search\n\
         Write the search commands for the tag entries using '/', the\n\
         forward-search command.");
-#endif
 
-
-#ifdef ETAGS
-  puts ("-i FILE, --include=FILE\n\
+  if (!CTAGS)
+    puts ("-i FILE, --include=FILE\n\
         Include a note in tag file indicating that, when searching for\n\
         a tag, one should also consult the tags file FILE after\n\
         checking the current file.");
-#endif
 
   puts ("-o FILE, --output=FILE\n\
         Write the tags to FILE.");
@@ -389,35 +358,39 @@ names from stdin.\n\n", progname);
         Don't rely on indentation quite as much as normal.  Currently,\n\
         this means not to assume that a closing brace in the first\n\
         column is the final brace of a function or structure\n\
-        definition.");
-  puts ("-t, --typedefs\n\
-        Generate tag entries for typedefs.  This is the default\n\
-        behavior.");
-  puts ("-T, --typedefs-and-c++\n\
-        Generate tag entries for typedefs, struct/enum/union tags, and\n\
-        C++ member functions.");
+        definition in C and C++.");
 
-#ifdef CTAGS
-  puts ("-u, --update\n\
+  if (CTAGS)
+    {
+      puts ("-t, --typedefs\n\
+        Generate tag entries for C typedefs.");
+      puts ("-T, --typedefs-and-c++\n\
+        Generate tag entries for C typedefs, C struct/enum/union tags,\n\
+        and C++ member functions.");
+    }
+
+  if (CTAGS)
+    {
+      puts ("-u, --update\n\
         Update the tag entries for the given files, leaving tag\n\
         entries for other files in place.  Currently, this is\n\
         implemented by deleting the existing entries for the given\n\
         files and then rewriting the new entries at the end of the\n\
         tags file.  It is often faster to simply rebuild the entire\n\
         tag file than to use this.");
-  puts ("-v, --vgrind\n\
+      puts ("-v, --vgrind\n\
         Generates an index of items intended for human consumption,\n\
         similar to the output of vgrind.  The index is sorted, and\n\
         gives the page number of each item.");
-  puts ("-x, --cxref\n\
+      puts ("-x, --cxref\n\
         Like --vgrind, but in the style of cxref, rather than vgrind.\n\
         The output uses line numbers instead of page numbers, but\n\
         beyond that the differences are cosmetic; try both to see\n\
         which you like.");
-  puts ("-w, --no-warn\n\
+      puts ("-w, --no-warn\n\
         Suppress warning messages about entries defined in multiple\n\
         files.");
-#endif
+    }
 
   puts ("-V, --version\n\
         Print the version of the program.\n\
@@ -451,23 +424,17 @@ main (argc, argv)
 
   progname = argv[0];
 
-#ifndef CTAGS
-  emacs_tags_format = 1;
-#else
-  emacs_tags_format = 0;
-#endif
-
   /*
    * If etags, always find typedefs and structure tags.  Why not?
    * Also default is to find macro constants.
    */
-  if (emacs_tags_format)
+  if (!CTAGS)
     typedefs = typedefs_and_cplusplus = constantypedefs = 1;
 
   for (;;)
     {
       int opt;
-      opt = getopt_long (argc, argv, "aCdDo:f:StTi:BFuvxwVH", longopts, 0);
+      opt = getopt_long (argc, argv, "aCdDf:o:StTi:BFuvxwVH", longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -492,7 +459,7 @@ main (argc, argv)
 	case 'D':
 	  constantypedefs = 0;
 	  break;
-	case 'f':
+	case 'f':		/* for compatibility with old makefiles */
 	case 'o':
 	  if (outfile)
 	    {
@@ -505,13 +472,6 @@ main (argc, argv)
 	case 'S':
 	  noindentypedefs++;
 	  break;
-	case 't':
-	  typedefs++;
-	  break;
-	case 'T':
-	  typedefs++;
-	  typedefs_and_cplusplus++;
-	  break;
 	case 'V':
 	  print_version ();
 	  break;
@@ -521,7 +481,7 @@ main (argc, argv)
 
 	  /* Etags options */
 	case 'i':
-	  if (!emacs_tags_format)
+	  if (CTAGS)
 	    goto usage;
 	  included_files[nincluded_files++] = optarg;
 	  break;
@@ -529,31 +489,35 @@ main (argc, argv)
 	  /* Ctags options. */
 	case 'B':
 	  searchar = '?';
-	  if (emacs_tags_format)
-	    goto usage;
+	  if (!CTAGS) goto usage;
 	  break;
 	case 'F':
 	  searchar = '/';
-	  if (emacs_tags_format)
-	    goto usage;
+	  if (!CTAGS) goto usage;
+	  break;
+	case 't':
+	  typedefs++;
+	  if (!CTAGS) goto usage;
+	  break;
+	case 'T':
+	  typedefs++;
+	  typedefs_and_cplusplus++;
+	  if (!CTAGS) goto usage;
 	  break;
 	case 'u':
 	  update++;
-	  if (emacs_tags_format)
-	    goto usage;
+	  if (!CTAGS) goto usage;
 	  break;
 	case 'v':
 	  vgrind_style++;
 	  /*FALLTHRU*/
 	case 'x':
 	  cxref_style++;
-	  if (emacs_tags_format)
-	    goto usage;
+	  if (!CTAGS) goto usage;
 	  break;
 	case 'w':
 	  no_warnings++;
-	  if (emacs_tags_format)
-	    goto usage;
+	  if (!CTAGS) goto usage;
 	  break;
 
 	default:
@@ -573,7 +537,7 @@ main (argc, argv)
 
   if (outfile == NULL)
     {
-      outfile = emacs_tags_format ? "TAGS" : "tags";
+      outfile = CTAGS ? "tags" : "TAGS";
     }
   getcwd (cwd, BUFSIZ);		/* the current working directory */
   strcat (cwd, "/");
@@ -595,7 +559,7 @@ main (argc, argv)
   /*
    * loop through files finding functions
    */
-  if (emacs_tags_format)
+  if (!CTAGS)
     {
       if (streq (outfile, "-"))
 	outf = stdout;
@@ -644,7 +608,7 @@ main (argc, argv)
 	process_file (this_file);
     }
 
-  if (emacs_tags_format)
+  if (!CTAGS)
     {
       while (nincluded_files-- > 0)
 	fprintf (outf, "\f\n%s,include\n", *included_files++);
@@ -711,7 +675,7 @@ process_file (file)
     {
       return;
     }
-  if (emacs_tags_format)
+  if (!CTAGS)
     {
       char *filename;
 
@@ -809,6 +773,7 @@ find_entries (file)
 	     || streq (cp + 1, "scheme")
 	     || streq (cp + 1, "t")
 	     || streq (cp + 1, "sch")
+	     || streq (cp + 1, "ss")
 	     || streq (cp + 1, "SM")
 	     || streq (cp + 1, "SCM")
 	     /* The `SCM' or `scm' prefix with a version number */
@@ -923,7 +888,7 @@ pfnote (name, is_func, named, linestart, linelen, lno, cno)
   np = xnew (1, NODE);
   if (np == NULL)
     {
-      if (!emacs_tags_format)
+      if (CTAGS)
 	{
 	  /* It's okay to output early in etags -- it only disrupts the
 	   * character count of the tag entries, which is no longer used
@@ -937,7 +902,7 @@ pfnote (name, is_func, named, linestart, linelen, lno, cno)
       np = xnew (1, NODE);
     }
   /* If ctags mode, change name "main" to M<thisfilename>. */
-  if (!emacs_tags_format && !cxref_style && streq (name, "main"))
+  if (CTAGS && !cxref_style && streq (name, "main"))
     {
       fp = etags_rindex (curfile, '/');
       name = concat ("M", fp == 0 ? curfile : fp + 1, "");
@@ -954,7 +919,7 @@ pfnote (name, is_func, named, linestart, linelen, lno, cno)
   /* UNCOMMENT THE +1 HERE: */
   np->cno = cno /* + 1 */ ;	/* our char numbers are 0-base; emacs's are 1-base */
   np->left = np->right = 0;
-  if (emacs_tags_format)
+  if (!CTAGS)
     {
       c = linestart[linelen];
       linestart[linelen] = 0;
@@ -965,7 +930,7 @@ pfnote (name, is_func, named, linestart, linelen, lno, cno)
       linestart = tem;
     }
   np->pat = savestr (linestart);
-  if (emacs_tags_format)
+  if (!CTAGS)
     {
       linestart[linelen] = c;
     }
@@ -1019,7 +984,7 @@ add_node (node, cur_node_p)
       return;
     }
 
-  if (emacs_tags_format)
+  if (!CTAGS)
     {
       /* Etags Mode */
       if (last_node == NULL)
@@ -1085,7 +1050,7 @@ put_entries (node)
 
   /* Output this entry */
 
-  if (emacs_tags_format)
+  if (!CTAGS)
     {
       if (node->named)
 	{
@@ -1150,9 +1115,10 @@ number_len (num)
 
 /*
  * Return total number of characters that put_entries will output for
- * the nodes in the subtree of the specified node.  Works only if emacs_tags_format
- * is set, but called only in that case.  This count is irrelevant with
- * the new tags.el, but is still supplied for backward compatibility.
+ * the nodes in the subtree of the specified node.  Works only if
+ * we are not ctags, but called only in that case.  This count
+ * is irrelevant with the new tags.el, but is still supplied for
+ * backward compatibility.
  */
 int
 total_size_of_entries (node)
