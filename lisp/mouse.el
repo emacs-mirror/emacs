@@ -45,25 +45,31 @@
 ;; Provide a mode-specific menu on a mouse button.
 
 (defun mouse-major-mode-menu (event prefix)
-  "Pop up a mode-specific menu of mouse commands."
+  "Pop up a mode-specific menu of mouse commands.
+Default to the Edit menu if the major mode doesn't define a menu."
   ;; Switch to the window clicked on, because otherwise
   ;; the mode's commands may not make sense.
   (interactive "@e\nP")
   ;; Let the mode update its menus first.
   (run-hooks 'activate-menubar-hook)
-  (let (;; This is where mouse-major-mode-menu-prefix
-	;; returns the prefix we should use (after menu-bar).
-	;; It is either nil or (SOME-SYMBOL).
-	(mouse-major-mode-menu-prefix nil)
-	;; Make a keymap in which our last command leads to a menu
-	(newmap (make-sparse-keymap (concat mode-name " Mode")))
-	result)
-    ;; Make our menu inherit from the desired keymap
-    ;; which we want to display as the menu now.
-    (set-keymap-parent newmap
-		       (mouse-major-mode-menu-1
-			(and (current-local-map)
-			     (lookup-key (current-local-map) [menu-bar]))))
+  (let* (;; This is where mouse-major-mode-menu-prefix
+	 ;; returns the prefix we should use (after menu-bar).
+	 ;; It is either nil or (SOME-SYMBOL).
+	 (mouse-major-mode-menu-prefix nil)
+	 ;; Keymap from which to inherit; may be null.
+	 (ancestor (mouse-major-mode-menu-1
+		    (and (current-local-map)
+			 (lookup-key (current-local-map) [menu-bar]))))
+	 ;; Make a keymap in which our last command leads to a menu or
+	 ;; default to the edit menu.
+	 (newmap (if ancestor
+		     (make-sparse-keymap (concat mode-name " Mode"))
+		   menu-bar-edit-menu))
+	 result)
+    (if ancestor
+	;; Make our menu inherit from the desired keymap which we want
+	;; to display as the menu now.
+	(set-keymap-parent newmap ancestor))
     (setq result (x-popup-menu t (list newmap)))
     (if result
 	(let ((command (key-binding
