@@ -1,5 +1,15 @@
 2000-12-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (check_current_matrix_flags) [GLYPH_DEBUG]: New
+	function.
+	(update_window) [GLYPH_DEBUG]: Call it.
+	(scrolling_window): Prevent including current rows which are below
+	what's displayed in the window.
+
+	* xdisp.c (try_window_reusing_current_matrix)
+	<new start <= old start>:  Disable rows in the current matrix
+	which are below the window after scrolling.
+	
 	* xdisp.c (move_it_by_lines): Don't do optimizations if NEED_Y_P
 	is zero.  It's not worth the complexity.
 	(invisible_text_between_p): Put in #if 0 because unused.
