@@ -837,6 +837,8 @@ extern int lisp_string_width P_ ((Lisp_Object, int, int *, int *));
 extern int char_bytes P_ ((int));
 extern int char_valid_p P_ ((int, int));
 
+EXFUN (Funibyte_char_to_multibyte, 1);
+
 extern Lisp_Object Vtranslation_table_vector;
 
 /* Return a translation table of id number ID.  */
