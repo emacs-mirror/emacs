@@ -1,11 +1,15 @@
+2001-07-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* info.el (Info-build-node-completions):
+	Make Info-current-file-completions buffer local.
+
 2001-07-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* which-func.el (which-func-mode, which-func-ff-hook)
-	(which-function-mode): Remove references to
-	which-func-mode-global.
+	(which-function-mode): Remove references to which-func-mode-global.
 
-	* calendar/cal-islam.el (calendar-goto-islamic-date): Add 
-	autoload cookie.
+	* calendar/cal-islam.el (calendar-goto-islamic-date):
+	Add  autoload cookie.
 
 	* play/fortune.el: Add types to defcustoms.
 
@@ -29,8 +33,8 @@
 
 2001-07-11  Gerd Moellmann  <gerd@gnu.org>
 
-	* mail/mail-extr.el (mail-extr-all-top-level-domains): Increase
-	the size of the obarray.
+	* mail/mail-extr.el (mail-extr-all-top-level-domains):
+	Increase the size of the obarray.
 	(mail-extr-all-top-level-domains): Add more toplevel domains,
 	add more long names.
 	From: Per Starback <starback@ling.uu.se>.
