@@ -120,7 +120,7 @@ Returns the number of actions taken."
 		     (if (funcall prompter elt)
 			 (progn
 			   (funcall actor elt)
-			   (setq actions (1+ actions)))))
+			   (setq actions (1+ actions))))))
 		  ((= ?? char)
 		   (setq unread-command-char help-char)
 		   (setq next (` (function (lambda ()
@@ -134,7 +134,7 @@ Returns the number of actions taken."
 		   (sit-for 1)
 		   (setq next (` (function (lambda ()
 					     (setq next (, next))
-					     t))))))))
+					     t)))))))
 	(if (eval prompt)
 	    (progn
 	      (funcall actor (car list))
