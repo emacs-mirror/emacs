@@ -584,10 +584,6 @@ language you are using."
 
 (make-variable-buffer-local 'minor-mode-overriding-map-alist)
 
-;; From macros.c
-(define-key ctl-x-map "(" 'start-kbd-macro)
-(define-key ctl-x-map ")" 'end-kbd-macro)
-(define-key ctl-x-map "e" 'call-last-kbd-macro)
 ;; From frame.c
 (global-set-key [switch-frame] 'handle-switch-frame)
 (global-set-key [delete-frame] 'handle-delete-frame)
