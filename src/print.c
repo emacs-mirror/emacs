@@ -387,6 +387,7 @@ temp_output_buffer_setup (bufname)
 
   Fset_buffer (Fget_buffer_create (build_string (bufname)));
 
+  current_buffer->directory = old->directory;
   current_buffer->read_only = Qnil;
   Ferase_buffer ();
 
