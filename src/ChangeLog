@@ -1,3 +1,8 @@
+2000-08-11  Kenichi Handa  <handa@etl.go.jp>
+
+	* xdisp.c (TRACE_MOVE) [GLYPH_DEBUG]: Delete the last semicolon.
+	(TRACE_MOVE) [not GLYPH_DEBUG]: Define dummy.
+
 2000-08-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (trace_move) [GLYPH_DEBUG]: New variable.
