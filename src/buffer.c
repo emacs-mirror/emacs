@@ -330,7 +330,7 @@ The value is never nil.")
   if (XSTRING (name)->size == 0)
     error ("Empty string for buffer name is not allowed");
 
-  b = (struct buffer *) xmalloc (sizeof (struct buffer));
+  b = (struct buffer *) allocate_buffer ();
 
   b->size = sizeof (struct buffer) / sizeof (EMACS_INT);
 
@@ -427,8 +427,7 @@ NAME should be a string which is not the name of an existing buffer.")
   if (XSTRING (name)->size == 0)
     error ("Empty string for buffer name is not allowed");
 
-  b = (struct buffer *) xmalloc (sizeof (struct buffer));
-
+  b = (struct buffer *) allocate_buffer ();
   b->size = sizeof (struct buffer) / sizeof (EMACS_INT);
 
   if (XBUFFER (base_buffer)->base_buffer)
