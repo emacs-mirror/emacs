@@ -1253,10 +1253,36 @@ The function `blink-cursor-start' is called when the timer fires.")
 
 (defvar blink-cursor-timer nil
   "Timer started from `blink-cursor-start'.
-This timer calls `blink-cursor' every `blink-cursor-interval' seconds.")
+This timer calls `blink-cursor-timer-function' every
+`blink-cursor-interval' seconds.")
 
-(defvar blink-cursor-mode nil
-  "Non-nil means blinking cursor is active.")
+;; The strange sequence below is meant to set both the right temporary
+;; value and the right "standard expression" , according to Custom,
+;; for blink-cursor-mode.  We do not know the standard _evaluated_
+;; value yet, because the standard expression uses values that are not
+;; yet set.  Evaluating it now would yield an error, but we make sure
+;; that it is not evaluated, by ensuring that blink-cursor-mode is set
+;; before the defcustom is evaluated and by using the right :initialize
+;; function.  The correct evaluated standard value will be installed
+;; in startup.el using exactly the same expression as in the defcustom.
+(defvar blink-cursor-mode)
+(unless (boundp 'blink-cursor-mode) (setq blink-cursor-mode nil))
+(defcustom blink-cursor-mode
+  (not (or noninteractive
+	   emacs-quick-startup
+	   (eq system-type 'ms-dos)
+	   (not (memq window-system '(x w32)))))
+  "*Non-nil means Blinking Cursor mode is active."
+  :group 'cursor
+  :tag "Blinking cursor"
+  :type 'boolean
+  :initialize 'custom-initialize-set
+  :set #'(lambda (symbol value)
+	   (set-default symbol value)
+	   (blink-cursor-mode (or value 0))))
+
+(defvaralias 'blink-cursor 'blink-cursor-mode)
+(make-obsolete-variable 'blink-cursor 'blink-cursor-mode "22.1")
 
 (defun blink-cursor-mode (arg)
   "Toggle blinking cursor mode.
@@ -1288,18 +1314,6 @@ cursor display.  On a text-only terminal, this is not implemented."
 				     'blink-cursor-start))
 	  (setq blink-cursor-mode t))
       (internal-show-cursor nil t))))
-
-;; Note that this is really initialized from startup.el before
-;; the init-file is read.
-
-(defcustom blink-cursor nil
-  "*Non-nil means blinking cursor mode is active."
-  :group 'cursor
-  :tag "Blinking cursor"
-  :type 'boolean
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (blink-cursor-mode (or value 0))))
 
 (defun blink-cursor-start ()
   "Timer function called from the timer `blink-cursor-idle-timer'.
