@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.32 2000/10/18 08:50:39 eliz Exp $
+;; Revision: $Id: diff-mode.el,v 1.33 2000/10/19 15:42:21 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -44,10 +44,8 @@
 
 ;; Todo:
 
-;; - Spice up the minor-mode with font-lock support.
 ;; - Improve narrowed-view support.
 ;; - Improve the `compile' support (?).
-;; - Recognize pcl-cvs' special string for `cvs-execute-single'.
 ;; - Support for # comments in context->unified.
 ;; - Do a fuzzy search in diff-goto-source.
 ;; - Allow diff.el to use diff-mode.
@@ -55,6 +53,10 @@
 ;;   in context (and normal) diffs and to jump to the corresponding
 ;;   (i.e. new or old) file.
 ;; - Handle `diff -b' output in context->unified.
+
+;; Low priority:
+;; - Spice up the minor-mode with font-lock support.
+;; - Recognize pcl-cvs' special string for `cvs-execute-single'.
 
 ;;; Code:
 
@@ -95,9 +97,9 @@ when editing big diffs)."
 (defvar diff-outline-regexp
   "\\([*+][*+][*+] [^0-9]\\|@@ ...\\|\\*\\*\\* [0-9].\\|--- [0-9]..\\)")
 
-;;;; 
+;;;;
 ;;;; keymap, menu, ...
-;;;; 
+;;;;
 
 (easy-mmode-defmap diff-mode-shared-map
   '(;; From Pavel Machek's patch-mode.
@@ -137,6 +139,7 @@ when editing big diffs)."
     ;; From compilation-minor-mode.
     ("\C-c\C-c" . diff-goto-source)
     ;; Misc operations.
+    ("\C-c\C-s" . diff-split-hunk)
     ("\C-c\C-a" . diff-apply-hunk)
     ("\C-c\C-t" . diff-test-hunk))
   "Keymap for `diff-mode'.  See also `diff-mode-shared-map'.")
@@ -145,7 +148,8 @@ when editing big diffs)."
   "Menu for `diff-mode'."
   '("Diff"
     ["Jump to Source"		diff-goto-source	t]
-    ["Apply with Ediff"		diff-ediff-patch	t]
+    ["Apply hunk"		diff-apply-hunk		t]
+    ["Apply diff with Ediff"	diff-ediff-patch	t]
     ["-----" nil nil]
     ["Reverse direction"	diff-reverse-direction	t]
     ["Context -> Unified"	diff-context->unified	t]
@@ -163,9 +167,9 @@ when editing big diffs)."
   "Keymap for `diff-minor-mode'.  See also `diff-mode-shared-map'.")
 
 
-;;;; 
+;;;;
 ;;;; font-lock support
-;;;; 
+;;;;
 
 (defface diff-header-face
   '((((type tty pc) (class color) (background light))
@@ -286,9 +290,9 @@ when editing big diffs)."
     ("--- \\([0-9]+\\),[0-9]+ ----" nil 1)
     ("\\([0-9]+\\)\\(,[0-9]+\\)?[adc]\\([0-9]+\\)" nil 3)))
 
-;;;; 
+;;;;
 ;;;; Movement
-;;;; 
+;;;;
 
 (defconst diff-hunk-header-re "^\\(@@ -[0-9,]+ \\+[0-9,]+ @@.*\\|\\*\\{15\\}.*\n\\*\\*\\* .+ \\*\\*\\*\\*\\|[0-9]+\\(,[0-9]+\\)?[acd][0-9]+\\(,[0-9]+\\)?\\)$")
 (defconst diff-file-header-re (concat "^\\(--- .+\n\\+\\+\\+\\|\\*\\*\\* .+\n---\\|[^-+!<>0-9@* ]\\).+\n" (substring diff-hunk-header-re 1)))
@@ -395,6 +399,34 @@ If the prefix ARG is given, restrict the view to the current file instead."
 	(delete-region (if (match-end 4) (match-beginning 0) (match-end 1))
 		       (match-beginning 3))
 	(beginning-of-line)))))
+
+(defun diff-count-matches (re start end)
+  (save-excursion
+    (let ((n 0))
+      (goto-char start)
+      (while (re-search-forward re end t) (incf n))
+      n)))
+
+(defun diff-split-hunk ()
+  "Split the current (unified diff) hunk at point into two hunks."
+  (interactive)
+  (beginning-of-line)
+  (let ((pos (point))
+	(start (progn (diff-beginning-of-hunk) (point))))
+    (unless (looking-at "@@ -\\([0-9]+\\),[0-9]+ \\+\\([0-9]+\\),[0-9]+ @@")
+      (error "diff-split-hunk only works on unified context diffs"))
+    (forward-line 1)
+    (let* ((start1 (string-to-number (match-string 1)))
+	   (start2 (string-to-number (match-string 2)))
+	   (newstart1 (+ start1 (diff-count-matches "^[- \t]" (point) pos)))
+	   (newstart2 (+ start2 (diff-count-matches "^[+ \t]" (point) pos))))
+      (goto-char pos)
+      ;; Hopefully the after-change-function will not screw us over.
+      (insert "@@ -" (number-to-string newstart1) ",1 +"
+	      (number-to-string newstart2) ",1 @@\n")
+      ;; Fix the original hunk-header.
+      (diff-fixup-modifs start pos))))
+      
 
 ;;;;
 ;;;; jump to other buffers
