@@ -805,7 +805,7 @@ x_set_frame_parameters (f, alist)
   if (EQ (height, Qunbound))
     XSETINT (height, FRAME_HEIGHT (f));
 
-  /* Don't set these parameters these unless they've been explicitly
+  /* Don't set these parameters unless they've been explicitly
      specified.  The window might be mapped or resized while we're in
      this function, and we don't want to override that unless the lisp
      code has asked for it.
