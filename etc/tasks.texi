@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate August 16, 1999
+@set lastupdate August 28, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -336,9 +336,6 @@ files without reading entire files into core.
 
 @item
 An @code{nroff} macro package to simplify @code{texi2roff}.
-
-@item
-An implementation of XML (see @uref{http://www.w3.org/XML/}).
 
 @item
 A queueing system for the mailer Smail that groups pending work by
