@@ -577,9 +577,49 @@ w32_is_dos_binary (char * filename)
   return is_dos_binary;
 }
 
-/* We pass our process ID to our children by setting up an environment
-   variable in their environment.  */
-char ppid_env_var_buffer[64];
+int
+compare_env (const char **strp1, const char **strp2)
+{
+  const char *str1 = *strp1, *str2 = *strp2;
+
+  while (*str1 && *str2 && *str1 != '=' && *str2 != '=')
+    {
+      if (tolower (*str1) > tolower (*str2))
+	return 1;
+      else if (tolower (*str1) < tolower (*str2))
+	return -1;
+      str1++, str2++;
+    }
+
+  if (*str1 == '=' && *str2 == '=')
+    return 0;
+  else if (*str1 == '=')
+    return -1;
+  else
+    return 1;
+}
+
+void
+merge_and_sort_env (char **envp1, char **envp2, char **new_envp)
+{
+  char **optr, **nptr;
+  int num;
+
+  nptr = new_envp;
+  optr = envp1;
+  while (*optr)
+    *nptr++ = *optr++;
+  num = optr - envp1;
+
+  optr = envp2;
+  while (*optr)
+    *nptr++ = *optr++;
+  num += optr - envp2;
+
+  qsort (new_envp, num, sizeof (char *), compare_env);
+
+  *nptr = NULL;
+}
 
 /* When a new child process is created we need to register it in our list,
    so intercept spawn requests.  */
@@ -588,11 +628,15 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 {
   Lisp_Object program, full;
   char *cmdline, *env, *parg, **targ;
-  int arglen;
+  int arglen, numenv;
   int pid;
   child_process *cp;
   int is_dos_binary;
-  
+  /* We pass our process ID to our children by setting up an environment
+     variable in their environment.  */
+  char ppid_env_var_buffer[64];
+  char *extra_env[] = {ppid_env_var_buffer, NULL};
+
   /* We don't care about the other modes */
   if (mode != _P_NOWAIT)
     {
@@ -726,16 +770,24 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   /* and envp...  */
   arglen = 1;
   targ = envp;
+  numenv = 1; /* for end null */
   while (*targ)
     {
       arglen += strlen (*targ++) + 1;
+      numenv++;
     }
+  /* extra env vars... */
   sprintf (ppid_env_var_buffer, "__PARENT_PROCESS_ID=%d", 
 	   GetCurrentProcessId ());
   arglen += strlen (ppid_env_var_buffer) + 1;
+  numenv++;
 
+  /* merge env passed in and extra env into one, and sort it.  */
+  targ = (char **) alloca (numenv * sizeof (char *));
+  merge_and_sort_env (envp, extra_env, targ);
+
+  /* concatenate env entries.  */
   env = alloca (arglen);
-  targ = envp;
   parg = env;
   while (*targ)
     {
@@ -743,8 +795,6 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       parg += strlen (*targ++);
       *parg++ = '\0';
     }
-  strcpy (parg, ppid_env_var_buffer);
-  parg += strlen (ppid_env_var_buffer);
   *parg++ = '\0';
   *parg = '\0';
 
