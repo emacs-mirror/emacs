@@ -657,13 +657,15 @@ positions (integers or markers) specifying the region."
     (narrow-to-region beg end)
     (goto-char (point-min))
     (while (re-search-forward diacritic-composition-pattern nil t)
-      (compose-region (match-beginning 0) (match-end 0)))))
+      (if (= (char-syntax (char-after (match-beginning 0))) ?w)
+	  (compose-region (match-beginning 0) (match-end 0))))))
 
 (defun diacritic-compose-string (string)
   "Compose diacritic characters in STRING and return the resulting string."
   (let ((idx 0))
     (while (setq idx (string-match diacritic-composition-pattern string idx))
-      (compose-string string idx (match-end 0))
+      (if (= (char-syntax (aref string idx)) ?w)
+	  (compose-string string idx (match-end 0)))
       (setq idx (match-end 0))))
   string)
 
@@ -671,10 +673,6 @@ positions (integers or markers) specifying the region."
   "Compose diacritic characters in the current buffer."
   (interactive)
   (diacritic-compose-region (point-min) (point-max)))
-
-(defun diacritic-post-read-conversion (len)
-  (diacritic-compose-region (point) (+ (point) len))
-  len)
 
 (defun diacritic-composition-function (pos &optional string)
   "Compose diacritic text around POS.
@@ -688,7 +686,7 @@ or nil if no characters are composed."
       (if (>= pos 0)
 	  (let ((ch (aref string pos))
 		start end components ch composition)
-	    (when (and (>= ch 32) (or (< ch 127) (>= ch 160)))
+	    (when (= (char-syntax ch) ?w)
 	      (setq start pos
 		    end (length string)
 		    components (list ch)
@@ -706,7 +704,7 @@ or nil if no characters are composed."
     (if (>= pos (point-min))
 	(let ((ch (char-after pos))
 	      start end components composition)
-	  (when (and (>= ch 32) (or (< ch 127) (>= ch 160)))
+	  (when (= (char-syntax ch) ?w)
 	    (setq start pos
 		  end (point-max)
 		  components (list ch)
