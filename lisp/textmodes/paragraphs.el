@@ -224,13 +224,13 @@ See `forward-sentence' for more information."
 (defun kill-sentence (&optional arg)
   "Kill from point to end of sentence.
 With arg, repeat; negative arg -N means kill back to Nth start of sentence."
-  (interactive "*p")
+  (interactive "p")
   (kill-region (point) (progn (forward-sentence arg) (point))))
 
 (defun backward-kill-sentence (&optional arg)
   "Kill back from point to start of sentence.
 With arg, repeat, or kill forward to Nth end of sentence if negative arg -N."
-  (interactive "*p")
+  (interactive "p")
   (kill-region (point) (progn (backward-sentence arg) (point))))
 
 (defun mark-end-of-sentence (arg)
