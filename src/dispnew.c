@@ -1694,14 +1694,15 @@ change_frame_size (frame, newheight, newwidth, pretend, delay)
 	{
 	  /* Frame has both root and minibuffer.  */
 	  set_window_height (FRAME_ROOT_WINDOW (frame),
-			     newheight - 1, 0);
+			     newheight - 1 - FRAME_MENU_BAR_LINES (frame), 0);
 	  XFASTINT (XWINDOW (FRAME_MINIBUF_WINDOW (frame))->top)
 	    = newheight - 1;
 	  set_window_height (FRAME_MINIBUF_WINDOW (frame), 1, 0);
 	}
       else
 	/* Frame has just one top-level window.  */
-	set_window_height (FRAME_ROOT_WINDOW (frame), newheight, 0);
+	set_window_height (FRAME_ROOT_WINDOW (frame),
+			   newheight - FRAME_MENU_BAR_LINES (frame), 0);
 
       if (FRAME_TERMCAP_P (frame) && !pretend)
 	FrameRows = newheight;
