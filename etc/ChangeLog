@@ -1,3 +1,13 @@
+2001-04-10  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-prin1.ps: Footer implementation.  Doc fix.
+	(doLineNumber): Code fix for line number color.
+	(BeginPage, BeginSheet, HeaderFramePath, HeaderFrame, HeaderText): Code
+	fix for footer implementation.
+	(TextStart, SetFooterLines, FooterFrameStart, doFramePath)
+	(FooterFramePath, doFrame, FooterFrame, FooterStart)
+	(HeaderOrFooterTextLines, HeaderOrFooterText, FooterText): New funs.
+
 2001-04-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* splash8.xpm: New image from Luis Fernandes <elf@ee.ryerson.ca>

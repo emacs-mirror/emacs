@@ -1,4 +1,4 @@
-2001-04-07  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+2001-04-10  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Footer implementation.  Doc fix.
 	(ps-print-version): New version number (6.5.1).

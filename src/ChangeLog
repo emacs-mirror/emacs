@@ -1,3 +1,13 @@
+2001-04-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* w32proc.c (sys_spawnve): Quote more chars for Cygwin.
+
+	* w32.c (sys_open): Try to open file without _O_CREAT first, to be
+	able to write to hidden and system files.  Make file handles
+	non-inheritable.
+
+	* fileio.c (Fcopy_file) [WINDOWSNT]: Use CopyFile.
+
 2001-04-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* fns.c (Fplist_get, Fplist_put): Add QUITs.
