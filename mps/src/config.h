@@ -1,12 +1,12 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(MMdevel_drj_arena_hysteresis.2) $
- * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!config.h(trunk.34) $
+ * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
  *
  * This module translates from high-level symbols defined by the
- * external build system (gnumake, nmake, etc) into specific sets
+ * external build system (gnumake, nmake, etc.) into specific sets
  * of features used by MPS modules.  For example, the build system
  * will defined one of the CONFIG_VAR_* symbols to indicate which
  * variety it is building, this file translates that into a certain
@@ -38,28 +38,34 @@
 #define MPS_VARIETY_STRING      "hi"
 #define MPS_HOT
 #define MPS_HOT_RED
+#define EVENT_NONE
 #elif defined(CONFIG_VAR_CI)    /* Cool, Internal; variety.ci */
 #define MPS_VARIETY_STRING      "ci"
 #define MPS_COOL
+#define EVENT_NONE
 #elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
 #define MPS_VARIETY_STRING      "ti"
-#define EVENT
 #define MPS_COOL
+#define EVENT
 #elif defined(CONFIG_VAR_HE)    /* Hot, External; variety.he */
 #define MPS_VARIETY_STRING      "he"
 #define MPS_HOT
 #define MPS_HOT_RED
+#define EVENT_NONE
 #elif defined(CONFIG_VAR_CE)    /* Cool, External; variety.ce */
 #define MPS_VARIETY_STRING      "ce"
 #define MPS_COOL
+#define EVENT_NONE
 #elif defined(CONFIG_VAR_WI)    /* White hot, Internal; variety.wi */
 #define MPS_VARIETY_STRING      "wi"
 #define MPS_HOT
 #define MPS_HOT_WHITE
+#define EVENT_NONE
 #elif defined(CONFIG_VAR_WE)    /* White hot, External; variety.we */
 #define MPS_VARIETY_STRING      "we"
 #define MPS_HOT
 #define MPS_HOT_WHITE
+#define EVENT_NONE
 #elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii */
 #define MPS_VARIETY_STRING      "ii"
 #define MPS_HOT
@@ -67,6 +73,15 @@
 #define EVENT
 #else
 #error "No target variety configured."
+#endif
+
+
+#if defined(EVENT)
+#define DIAGNOSTICS
+#elif defined(EVENT_NONE)
+#define DIAGNOSTICS_NONE
+#else
+#error "Events not configured."
 #endif
 
 
@@ -104,6 +119,7 @@
 #pragma warning(disable: 4701)
 #endif /* MPS_ARCH_PP */
 
+
 /* In white-hot versions, absolutely no checking is done.  This leads to
  * many spurious warnings because parameters are suddenly unused, etc.
  * We aren't interested in these.
@@ -125,10 +141,11 @@
 /* .epvm.subsequent-segment: POOLEPVM_DEFAULT_SUBSEQUENT_SEG_SIZE is
  * a default for the alignment of subsequent segments (non-initial
  * at each save level) in EPVM.  See
- * design.mps.poolepvm:arch.segment.size.
+ * design.mps.poolepvm.arch.segment.size.
  */
 
 #define POOLEPVM_DEFAULT_SUBSEQUENT_SEG_SIZE (64ul * 1024)
+
  
 /* .prod.arena-size: ARENA_SIZE is currently set larger for the
  * MM/Dylan product as an interim solution.
