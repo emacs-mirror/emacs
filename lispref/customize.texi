@@ -585,7 +585,7 @@ The value must be a coding-system name, and you can do completion with
 
 @item color
 The value must be a valid color name, and you can do completion with
-@kbd{M-@key{TAB}}.  A sample is provided,
+@kbd{M-@key{TAB}}.  A sample is provided.
 @end table
 
 @node Composite Types
@@ -1083,7 +1083,7 @@ types by a simple example.
   :tag "Node"
   :type '(choice (string :tag "Leaf" :value "")
                  (cons :tag "Interior"
-                       :value ("" . "") 
+                       :value ("" . "")
                        binary-tree-of-string
                        binary-tree-of-string)))
 
@@ -1102,7 +1102,7 @@ argument with the same syntax as the keyword argument to
 @code{defcustom} with the same name.  The third argument is a
 documentation string for the new widget.  You will be able to see that
 string with the @kbd{M-x widget-browse @key{ret} binary-tree-of-string
-@key{ret}} command.  
+@key{ret}} command.
 
 After these mandatory arguments follows the keyword arguments.  The most
 important is @code{:type}, which describes the datatype we want to match
@@ -1116,7 +1116,7 @@ indented four spaces relatively to the parent node, making the tree
 structure apparent in the customization buffer.
 
 The @code{defcustom} shows how the new widget can be used as an ordinary
-customization type. 
+customization type.
 
 If you wonder about the name @code{lazy}, know that the other composite
 widgets convert their inferior widgets to internal form when the widget

@@ -4029,7 +4029,7 @@ setup_raw_text_coding_system (coding)
    o coding-category-utf-8
 
 	The category for a coding system which has the same code range
-	as UTF-8 (cf. RFC2279).  Assigned the coding-system (Lisp
+	as UTF-8 (cf. RFC3629).  Assigned the coding-system (Lisp
 	symbol) `utf-8' by default.
 
    o coding-category-utf-16-be

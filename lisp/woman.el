@@ -539,9 +539,9 @@ Change only via `Customization' or the function `add-hook'."
 	(mapcar 'woman-Cyg-to-Win path)
       path))
   "*List of dirs to search and/or files to try for man config file.
-A trailing separator (`/' for UNIX etc.) on directories is optional
-and the filename used if a directory is specified is the first to
-match the regexp \"man.*\\.conf\".
+A trailing separator (`/' for UNIX etc.) on directories is optional,
+and the filename is used if a directory specified is the first to
+contain the strings \"man\" and \".conf\" (in that order).
 If MANPATH is not set but a config file is found then it is parsed
 instead to provide a default value for `woman-manpath'."
   :type '(repeat string)
@@ -554,7 +554,9 @@ Look in `woman-man.conf-path' and return a value for `woman-manpath'.
 Concatenate data from all lines in the config file of the form
   MANPATH  /usr/man
 or
-  MANDATORY_MANPATH  /usr/man"
+  MANDATORY_MANPATH  /usr/man
+or
+  OPTIONAL_MANPATH  /usr/man"
   ;; Functionality suggested by Charles Curley.
   (let ((path woman-man.conf-path)
 	file manpath)
@@ -574,7 +576,7 @@ or
 		    (while (re-search-forward
 			    ;; `\(?: ... \)' is a "shy group"
 			    "\
-^[ \t]*\\(?:MANDATORY_\\)?MANPATH[ \t]+\\(\\S-+\\)" nil t)
+^[ \t]*\\(?:MANDATORY_\\|OPTIONAL_\\)?MANPATH[ \t]+\\(\\S-+\\)" nil t)
 		      (setq manpath (cons (match-string 1) manpath)))
 		    manpath))
 		 ))

@@ -1,3 +1,34 @@
+2004-03-07  Dave Love  <fx@gnu.org>
+
+	* net/browse-url.el (rfc2368-parse-mailto-url): Autoload.
+	(browse-url-mail): Use it.
+
+	* mail/rfc2368.el (rfc2368-unhexify-char): Deleted.
+	(rfc2368-unhexify-string): Use replace-regexp-in-string.
+
+2004-03-07  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
+
+	* woman.el (woman-man.conf-path): Doc fix.
+	(woman-parse-man.conf): Also parse OPTIONAL_MANPATH.
+
+2004-03-07  Eli Zaretskii  <eliz@elta.co.il>
+
+	* sort.el (sort-columns): Remove ms-dos from the list of systems
+	where the external `sort' command is not used.
+
+2004-03-07  Kim F. Storm  <storm@cua.dk>
+
+	* gdb-ui.el (gdb-overlay-arrow-position): Add defvar.
+	(gdb-reset): Reset gdb-overlay-arrow-position marker and remove it
+	from overlay-arrow-variable-list.
+	(gdb-assembler-mode): Use add-to-list for
+	gdb-overlay-arrow-position.
+
+2004-03-06  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-assembler-mode, gdb-assembler-custom): Set up
+	overlay arrow string properly for the assembler buffer.
+
 2004-03-05  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-assembler-mode): Create a second overlay arrow
