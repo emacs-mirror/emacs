@@ -1450,7 +1450,7 @@ DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
 Returns info on amount of space in use:\n\
  ((USED-CONSES . FREE-CONSES) (USED-SYMS . FREE-SYMS)\n\
   (USED-MARKERS . FREE-MARKERS) USED-STRING-CHARS USED-VECTOR-SLOTS\n\
-  (USED-FLOATS . FREE-FLOATS))\n\
+  (USED-FLOATS . FREE-FLOATS) (USED-INTERVALS . FREE-INTERVALS))\n\
 Garbage collection happens automatically if you cons more than\n\
 `gc-cons-threshold' bytes of Lisp data since previous garbage collection.")
   ()
@@ -1625,15 +1625,21 @@ Garbage collection happens automatically if you cons more than\n\
 				     make_number (total_free_markers)),
 			      Fcons (make_number (total_string_size),
 				     Fcons (make_number (total_vector_size),
-
+	 Fcons (Fcons
 #ifdef LISP_FLOAT_TYPE
-					    Fcons (Fcons (make_number (total_floats),
-							  make_number (total_free_floats)),
-						   Qnil)
+		(make_number (total_floats),
+		 make_number (total_free_floats)),
 #else /* not LISP_FLOAT_TYPE */
-					    Qnil
+		(make_number (0), make_number (0)),
 #endif /* not LISP_FLOAT_TYPE */
-					    )))));
+		Fcons (Fcons
+#ifdef USE_TEXT_PROPERTIES
+		       (make_number (total_intervals),
+			make_number (total_free_intervals)),
+#else /* not USE_TEXT_PROPERTIES */
+		       (make_number (0), make_number (0)),
+#endif /* not USE_TEXT_PROPERTIES */
+		       Qnil)))))));
 }
 
 #if 0
