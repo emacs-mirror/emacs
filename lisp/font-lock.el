@@ -353,11 +353,16 @@ Each element should have one of these forms:
  (MATCHER HIGHLIGHT ...)
  (eval . FORM)
 
-where HIGHLIGHT should be either MATCH-HIGHLIGHT or MATCH-ANCHORED.
+where MATCHER can be either the regexp to search for, or the function name to
+call to make the search (called with one argument, the limit of the search) and
+return non-nil if it succeeds (and set `match-data' appropriately).
+MATCHER regexps can be generated via the function `regexp-opt'.
 
 FORM is an expression, whose value should be a keyword element, evaluated when
 the keyword is (first) used in a buffer.  This feature can be used to provide a
 keyword that can only be generated when Font Lock mode is actually turned on.
+
+HIGHLIGHT should be either MATCH-HIGHLIGHT or MATCH-ANCHORED.
 
 For highlighting single items, for example each instance of the word \"foo\",
 typically only MATCH-HIGHLIGHT is required.
@@ -369,13 +374,14 @@ MATCH-HIGHLIGHT should be of the form:
 
  (MATCH FACENAME OVERRIDE LAXMATCH)
 
-where MATCHER can be either the regexp to search for, or the function name to
-call to make the search (called with one argument, the limit of the search) and
-return non-nil if it succeeds (and set `match-data' appropriately).
-MATCHER regexps can be generated via the function `regexp-opt'.  MATCH is
-the subexpression of MATCHER to be highlighted.  FACENAME is an expression
-whose value is the face name to use.  Face default attributes can be
-modified via \\[customize].
+MATCH is the subexpression of MATCHER to be highlighted.  FACENAME is an
+expression whose value is the face name to use.  Face default attributes
+can be modified via \\[customize].  Instead of a face, FACENAME can
+evaluate to a property list of the form (face VAL1 PROP2 VAL2 PROP3 VAL3 ...)
+in which case all the listed text-properties will be set rather than
+just `face'.  In such a case, you will most likely want to put those
+properties in `font-lock-extra-managed-props' or to override
+`font-lock-unfontify-region-function'.
 
 OVERRIDE and LAXMATCH are flags.  If OVERRIDE is t, existing fontification can
 be overwritten.  If `keep', only parts not already fontified are highlighted.
@@ -793,6 +799,10 @@ For example:
 adds two fontification patterns for C mode, to fontify `FIXME:' words, even in
 comments, and to fontify `and', `or' and `not' words as keywords.
 
+When used from an elisp package (such as a minor mode), it is recommended
+to use nil for MODE (and place the call in a loop or on a hook) to avoid
+subtle problems due to details of the implementation.
+
 Note that some modes have specialised support for additional patterns, e.g.,
 see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 `objc-font-lock-extra-types' and `java-font-lock-extra-types'."
@@ -870,7 +880,11 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
   "Remove highlighting KEYWORDS for MODE.
 
 MODE should be a symbol, the major mode command name, such as `c-mode'
-or nil.  If nil, highlighting keywords are removed for the current buffer."
+or nil.  If nil, highlighting keywords are removed for the current buffer.
+
+When used from an elisp package (such as a minor mode), it is recommended
+to use nil for MODE (and place the call in a loop or on a hook) to avoid
+subtle problems due to details of the implementation."
   (cond (mode
 	 ;; Remove one keyword at the time.
 	 (dolist (keyword keywords)
@@ -1607,7 +1621,6 @@ START should be at the beginning of a line."
 		      (re-search-forward matcher end t)
 		    (funcall matcher end)))
 	(when (and font-lock-multiline
-		   (match-beginning 0)
 		   (>= (point)
 		       (save-excursion (goto-char (match-beginning 0))
 				       (forward-line 1) (point))))
