@@ -294,9 +294,9 @@ Return what remains of the list.")
 		     then don't mark unmodified.  */
 		  if (mod_time != current_buffer->modtime)
 		    break;
-    #ifdef CLASH_DETECTION
+#ifdef CLASH_DETECTION
 		  Funlock_buffer ();
-    #endif /* CLASH_DETECTION */
+#endif /* CLASH_DETECTION */
 		  Fset_buffer_modified_p (Qnil);
 		}
 	      else if (XTYPE (car) == Lisp_Int && XTYPE (cdr) == Lisp_Int)
