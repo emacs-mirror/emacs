@@ -1,3 +1,8 @@
+2002-05-04  Andrew Choi  <akochoi@shaw.ca>
+
+	* macterm.c (XTread_socket): Call WaitNextEvent once instead of
+	repeatedly.
+
 2002-05-03  Jason Rumney  <jasonr@gnu.org>
 
 	* process.c (Fmake_network_process): Only support server sockets

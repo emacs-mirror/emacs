@@ -12301,7 +12301,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
   if (NILP (Fboundp (Qmac_ready_for_drag_n_drop)))
     event_mask -= highLevelEventMask;
 
-  while (WaitNextEvent (event_mask, &er, 0L, NULL) && numchars > 0)
+  if (WaitNextEvent (event_mask, &er, (expected ? app_sleep_time : 0L), NULL))
     switch (er.what)
       {
       case mouseDown:
@@ -12339,8 +12339,6 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
               mouse_tracking_in_progress = mouse_tracking_none;
               tracked_scroll_bar = NULL;
               count++;
-	      bufp++;
-	      numchars--;
               break;
             }
 
@@ -12356,8 +12354,6 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
                 bufp->kind = menu_bar_activate_event;
                 XSETFRAME (bufp->frame_or_window, f);
                 count++;
-		bufp++;
-		numchars--;
               }
 	      break;
 
@@ -12437,8 +12433,6 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 		    }
 								
 	          count++;
-		  bufp++;
-		  numchars--;
 	        }
 	      break;
 
@@ -12462,8 +12456,6 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	          XSETFRAME (bufp->frame_or_window,
 			     ((mac_output *) GetWRefCon (window_ptr))->mFP);
  	          count++;
-		  bufp++;
-		  numchars--;
 	        }
 	      break;
 
@@ -12603,8 +12595,6 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	bufp->timestamp = er.when * (1000 / 60);  /* ticks to milliseconds */
 
 	count++;
-	bufp++;
-	numchars--;
 	break;
 
       case kHighLevelEvent:
@@ -12655,8 +12645,6 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 #endif /* not TARGET_API_MAC_CARBON */
             
             count++;
-	    bufp++;
-	    numchars--;
           }
         
       default:
