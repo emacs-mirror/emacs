@@ -17,8 +17,8 @@
 @set DATE December 2000
 @set AUTHOR Carsten Dominik
 @set AUTHOR-EMAIL dominik@@astro.uva.nl
-@set MAINTAINER Carsten Dominik
-@set MAINTAINER-EMAIL dominik@@astro.uva.nl
+@set MAINTAINER John-David Smith
+@set MAINTAINER-EMAIL jdsmith@@astro.cornell.edu
 @set IDLWAVE-HOMEPAGE http://www.strw.leidenuniv.nl/~dominik/Tools/idlwave
 @c %**end of header
 @finalout
@@ -2267,14 +2267,16 @@ Chris wrote @file{idl.el} and @file{idl-shell.el} and maintained them
 for several years.
 
 @item
-@uref{mailto:dominik@@astro.uva.nl, @b{Carsten Dominik}}, current author
-and maintainer.  I have been in charge of the package since version
-3.0. I am also responsible for the manual.
+@uref{mailto:dominik@@astro.uva.nl, @b{Carsten Dominik}}, who have
+been in charge of the package since version 3.0, and also wrote this
+manual.
 
-@item 
-@uref{mailto:jdsmith@@astrosun.tn.cornell.edu, @b{J.D. Smith}} has
-shaped Object method completion and most new features in version 4.0
-with his ideas, bug reports, and patient explanations of IDL internals. 
+@item
+@uref{mailto: jdsmith@@astro.cornell.edu, @b{John-David Smith}},
+current maintainer, who is also responsible for this manual's
+maintenance.  John-David has also shaped Object method completion and
+most new features in version 4.0 with his ideas, bug reports, and
+patient explanations of IDL internals.
 @end itemize
 
 @noindent
