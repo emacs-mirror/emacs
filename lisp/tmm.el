@@ -1,10 +1,11 @@
 ;;; tmm.el --- text mode access to menu-bar
 
-;; Copyright (C) 1994, 1995, 1996, 2000, 2001
+;; Copyright (C) 1994, 1995, 1996, 2000, 2001, 2002
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich <ilya@math.mps.ohio-state.edu>
 ;; Maintainer: FSF
+;; Keywords: convenience
 
 ;; This file is part of GNU Emacs.
 
@@ -25,13 +26,7 @@
 
 ;;; Commentary:
 
-;; To use this package add 
-
-;; (autoload 'tmm-menubar 'tmm "Text mode substitute for menubar" t) 
-;; (global-set-key [f10] 'tmm-menubar)
-;; to your .emacs file. You can also add your own access to different
-;; menus available in Window System Emacs modeling definition after
-;; tmm-menubar.
+;; This package provides text mode access to the menu bar.
 
 ;;; Code:
 
@@ -401,7 +396,7 @@ element of keymap, an `x-popup-menu' argument, or an element of
 `x-popup-menu' argument (when IN-X-MENU is not-nil).
 This function adds the element only if it is not already present.
 It uses the free variable `tmm-table-undef' to keep undefined keys."
-  (let (km str cache plist filter (event (car elt)))
+  (let (km str cache plist filter visible (event (car elt)))
     (setq elt (cdr elt))
     (if (eq elt 'undefined)
 	(setq tmm-table-undef (cons (cons event nil) tmm-table-undef))
@@ -439,6 +434,9 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 	       (setq filter (plist-get plist :filter))
 	       (if filter
 		   (setq km (funcall filter km)))
+	       (setq visible (plist-get plist :visible))
+	       (if visible
+		   (setq km (and (eval visible) km)))
 	       (and str
 		    (consp (nth 3 elt))
 		    (stringp (cdr (nth 3 elt))) ; keyseq cache
