@@ -3324,6 +3324,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #else
 	  XNextEvent (dpyinfo->display, &event);
 #endif
+#ifdef HAVE_X_I18N
+	  /* The necessity of the following line took me
+	     a full work-day to decipher from the docs!!  */
+	  if (FRAME_XIC (f) && XFilterEvent (&event, None))
+	    break;
+#endif
 	  event_found = 1;
 
 	  switch (event.type)
@@ -3667,10 +3673,6 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #ifdef HAVE_X_I18N
 		  if (FRAME_XIC (f))
 		    {
-		      /* The necessity of the following line took me
-			 a full work-day to decipher from the docs!!  */
-		      if (XFilterEvent (&event, None))
-			break;
 		      nbytes = XmbLookupString (FRAME_XIC (f),
 						&event.xkey, copy_buffer,
 						80, &keysym,
