@@ -89,7 +89,7 @@ Valid encodings are nil, `Q' and `B'.")
 (defvar rfc2047-q-encoding-alist
   '(("\\(From\\|Cc\\|To\\|Bcc\||Reply-To\\):" . "-A-Za-z0-9!*+/")
     ;; = (\075), _ (\137), ? (\077) are used in the encoded word.
-    ;; Avoid using 8bit characters. Some versions of Emacs has bug!
+    ;; Avoid using 8bit characters.
     ;; Equivalent to "^\000-\007\011\013\015-\037\200-\377=_?"
     ("." . "\010\012\014\040-\074\076\100-\136\140-\177"))
   "Alist of header regexps and valid Q characters.")
@@ -160,9 +160,14 @@ Should be called narrowed to the head of the message."
 	     (t)))
 	  (goto-char (point-max)))))))
 
+;; Fixme: This, and the require below may not be the Right Thing, but
+;; should be safe just before release.  -- fx 2001-02-08
+(eval-when-compile (defvar message-posting-charset))
+
 (defun rfc2047-encodable-p ()
   "Return non-nil if any characters in current buffer need encoding in headers.
 The buffer may be narrowed."
+  (require 'message)			; for message-posting-charset
   (let ((charsets
 	 (mapcar
 	  'mm-mime-charset
@@ -229,7 +234,7 @@ The buffer may be narrowed."
     result))
 
 (defun rfc2047-encode-region (b e)
-  "Encode all encodable words in region."
+  "Encode all encodable words in region B to E."
   (let ((words (rfc2047-dissect-region b e)) word)
     (save-restriction
       (narrow-to-region b e)
@@ -293,7 +298,7 @@ The buffer may be narrowed."
 	(forward-line 1)))))
 
 (defun rfc2047-fold-region (b e)
-  "Fold long lines in the region."
+  "Fold long lines in region B to E."
   (save-restriction
     (narrow-to-region b e)
     (goto-char (point-min))
@@ -313,7 +318,7 @@ The buffer may be narrowed."
 	  (setq bol (1- (point)))
 	  ;; Don't break before the first non-LWSP characters.
 	  (skip-chars-forward " \t")
-	  (forward-char 1))
+	  (unless (eobp) (forward-char 1)))
 	(cond
 	 ((eq (char-after) ?\n)
 	  (forward-char 1)
@@ -347,10 +352,10 @@ The buffer may be narrowed."
 	(setq bol (1- (point)))
 	;; Don't break before the first non-LWSP characters.
 	(skip-chars-forward " \t")
-	(forward-char 1)))))
+	(unless (eobp) (forward-char 1))))))
 
 (defun rfc2047-unfold-region (b e)
-  "Unfold lines in the region."
+  "Unfold lines in region B to E."
   (save-restriction
     (narrow-to-region b e)
     (goto-char (point-min))
