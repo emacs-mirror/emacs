@@ -77,16 +77,22 @@ This defaults to the value of `user-mail-address'.")
   "Find a change log file for \\[add-change-log-entry] and return the name.
 
 Optional arg FILE-NAME specifies the file to use.
-If FILE-NAME is nil, use the value of `change-log-default-name' if non-nil.
-Otherwise, search in the current directory and its successive parents
-for a file named `ChangeLog' (or whatever we use on this operating system).
+If FILE-NAME is nil, use the value of `change-log-default-name'.
+If 'change-log-default-name' is nil, behave as though it were 'ChangeLog'
+\(or whatever we use on this operating system).
+
+If 'change-log-default-name' contains a leading directory component, then
+simply find it in the current directory.  Otherwise, search in the current 
+directory and its successive parents for a file so named.
 
 Once a file is found, `change-log-default-name' is set locally in the
 current buffer to the complete file name."
   ;; If user specified a file name or if this buffer knows which one to use,
   ;; just use that.
   (or file-name
-      (setq file-name change-log-default-name)
+      (setq file-name (and change-log-default-name
+			   (file-name-directory change-log-default-name)
+			   change-log-default-name))
       (progn
 	;; Chase links in the source file
 	;; and use the change log in the dir where it points.
