@@ -1,7 +1,7 @@
 2000-08-23  Kenichi Handa  <handa@etl.go.jp>
 
-	* coding.c (encode_eol): Handled the case of dst_bytes zero
-	correctly.  Set coding->produced_char correctly.
+	* coding.c (encode_eol): Fix bug for the case of dst_bytes being
+	zero.  Set coding->produced_char correctly.
 
 2000-08-22  Andrew Innes  <andrewi@gnu.org>
 
