@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.30 $
+;; Version: $Revision: 1.31 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/05/10 18:22:21 $|$Revision: 1.30 $|~/modes/tcl.el.Z|
+;; $Date: 1995/05/10 23:38:12 $|$Revision: 1.31 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,10 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.31  1995/05/10  23:38:12  tromey
+;; (tcl-add-fsf-menu): Use make-lucid-menu-keymap, not
+;; "make-xemacs-menu-keymap".
+;;
 ;; Revision 1.30  1995/05/10  18:22:21  tromey
 ;; Bug fix in menu code for XEmacs.
 ;;
@@ -296,7 +300,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.30 $")
+(defconst tcl-version "$Revision: 1.31 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -616,6 +620,7 @@ This variable is generally set from `tcl-proc-regexp',
 ;; like 2 sexps.
 (defvar tcl-type-alist
   '(
+    ("proc" nil tcl-expr tcl-commands)
     ("expr" tcl-expr)
     ("catch" tcl-commands)
     ("if" tcl-expr "then" tcl-commands)
