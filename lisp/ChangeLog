@@ -1,5 +1,10 @@
 2000-06-05  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* mail/mh-comp.el (mh-send-sub): Check mh-etc is bound before using it.
+	(mh-letter-mode): Derive from text-mode.
+	This implicitly means that it now calls kill-all-local-variables.
+	Also remove the Emacs-18 compatibility code.
+
 	* emacs-lisp/autoload.el (make-autoload): Simplify docstring.
 	Make use of symbol-property doc-string-elt.
 	Use memq rather than a sequence of eq.
