@@ -37,8 +37,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <Xm/FileSB.h>
 #include <Xm/Label.h>
 #include <Xm/List.h>
+#include <Xm/MainW.h>
 #include <Xm/MenuShell.h>
 #include <Xm/MessageB.h>
+#include <Xm/PanedW.h>
 #include <Xm/PushB.h>
 #include <Xm/PushBG.h>
 #include <Xm/ArrowB.h>
@@ -84,8 +86,8 @@ make_destroyed_instance (char* name, char* type, Widget widget, Widget parent,
 {
   destroyed_instance* instance =
     (destroyed_instance*)malloc (sizeof (destroyed_instance));
-  instance->name = strdup (name);
-  instance->type = strdup (type);
+  instance->name = safe_strdup (name);
+  instance->type = safe_strdup (type);
   instance->widget = widget;
   instance->parent = parent;
   instance->pop_up_p = pop_up_p;
@@ -635,7 +637,7 @@ xm_update_one_value (widget_instance* instance, Widget widget,
 		{
 		  if (val->value)
 		    free (val->value);
-		  val->value = strdup (XtName (toggle));
+		  val->value = safe_strdup (XtName (toggle));
 		}
 	    }
 	  val->edited = True;
@@ -659,7 +661,7 @@ xm_update_one_value (widget_instance* instance, Widget widget,
 		  if (pos_list [j] == i)
 		    {
 		      cur->selected = True;
-		      val->value = strdup (cur->name);
+		      val->value = safe_strdup (cur->name);
 		    }
 	      }
 	  val->edited = 1;
@@ -1152,6 +1154,20 @@ make_popup_menu (widget_instance* instance)
   parent->core.window = parent_window;
   return result;
 }
+static Widget
+make_main (widget_instance* instance)
+{
+  Widget parent = instance->parent;
+  Widget result;
+  Arg al[2];
+  int ac;
+
+  ac = 0;
+  XtSetArg (al[ac], XtNborderWidth, 0); ac++;
+  XtSetArg (al[ac], XmNspacing, 0); ac++;
+  result = XmCreateMainWindow (parent, instance->info->name, al, ac);
+  return result;
+}
 
 /* Table of functions to create widgets */
 
@@ -1260,6 +1276,7 @@ xm_creation_table [] =
 {
   {"menubar", 			make_menubar},
   {"popup",			make_popup_menu},
+  {"main",			make_main},
 #ifdef ENERGIZE
   {"project_p_sheet",		make_project_p_sheet},
   {"debugger_p_sheet",		make_debugger_p_sheet},
