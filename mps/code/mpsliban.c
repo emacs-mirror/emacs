@@ -112,6 +112,12 @@ mps_clock_t mps_clock(void)
 }
 
 
+mps_clock_t mps_clocks_per_sec(void)
+{
+  return (unsigned long)CLOCKS_PER_SEC;
+}
+
+
 unsigned long mps_lib_telemetry_control(void)
 {
   char *s;

@@ -556,19 +556,33 @@ void ArenaPoll(Globals globals)
 Bool ArenaStep(Globals globals, double interval)
 {
   double size;
-  Bool b;
-
-  UNUSED(interval);
+  Bool b, stepped;
+  Word start;
+  Word end;
 
   AVERT(Globals, globals);
+  AVER(interval >= 0.0);
 
-  b = TracePoll(globals);
+  interval = interval * mps_clocks_per_sec();
+  start = mps_clock();
+  end = start + interval;
+  
+
+  AVER(end >= start);
+
+  stepped = FALSE;
+  /* loop while there is work to do and time on the clock. */
+  do {
+    b = TracePoll(globals);
+    if (b)
+      stepped = TRUE;
+  } while (b && mps_clock() < end);
 
   size = globals->fillMutatorSize;
   globals->pollThreshold = size + ArenaPollALLOCTIME;
   AVER(globals->pollThreshold > size); /* enough precision? */
 
-  return b;
+  return stepped;
 }
 
 /* ArenaFinalize -- registers an object for finalization
