@@ -1,3 +1,11 @@
+2003-06-06  Jason Rumney  <jasonr@gnu.org>
+
+	* w32reg.c (SYSTEM_DEFAULT_RESOURCES): New constant.
+	(w32_get_string_resource): Try SYSTEM_DEFAULT_RESOURCES last.
+
+	* xfaces.c (Finternal_face_x_get_resource): Do it on Windows and
+	Mac too.
+
 2003-06-05  Dave Love  <fx@gnu.org>
 
 	* mktime.c (__mktime_internal): Merge changes from gnulib
