@@ -58,6 +58,8 @@
 (define-key help-map "d" 'describe-function)
 (define-key help-map "f" 'describe-function)
 
+(define-key help-map "F" 'view-emacs-FAQ)
+
 (define-key help-map "i" 'info)
 (define-key help-map "\C-f" 'Info-goto-emacs-command-node)
 (define-key help-map "\C-k" 'Info-goto-emacs-key-command-node)
@@ -309,6 +311,11 @@ of the key sequence that ran this command."
   (interactive)
   (find-file-read-only (expand-file-name "NEWS" data-directory)))
 
+(defun view-emacs-FAQ ()
+  "Display the Emacs Frequently Asked Questions (FAQ) file."
+  (interactive)
+  (find-file-read-only (expand-file-name "FAQ" data-directory)))
+
 (defun view-lossage ()
   "Display last 100 input keystrokes."
   (interactive)
@@ -345,6 +352,7 @@ c  describe-key-briefly.  Type a command key sequence;
 f  describe-function.  Type a function name and get documentation of it.
 C-f Info-goto-emacs-command-node.  Type a function name;
 	it takes you to the Info node for that command.
+F  view-emacs-FAQ.  Shows emacs frequently asked questions file.
 i  info. The  info  documentation reader.
 k  describe-key.  Type a command key sequence;
 	it displays the full documentation.
