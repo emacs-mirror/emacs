@@ -263,6 +263,6 @@ bootstrap-clean:
 bootstrap: autoloads compile-files custom-deps
 
 distclean:
-	-rm -f $(lisp)/Makefile
+	-rm -f ./Makefile
 
 # Makefile ends here.
