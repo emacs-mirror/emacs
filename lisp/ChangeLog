@@ -1,3 +1,35 @@
+2003-06-22  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/diary-lib.el (diary-check-diary-file): New function.
+	(diary, view-diary-entries, show-all-diary-entries)
+	(mark-diary-entries): Use it.
+	(view-other-diary-entries): Doc fix.  Use `prefix-numeric-value'.
+	(diary-syntax-table, diary-attrtype-convert, diary-mail-days): Doc
+	fix.
+	(diary-modified, d-file): No need to defvar (for compiler).
+	(list-diary-entries): No need for `let*' so use `let'.
+	(simple-diary-display): Use `diary-file' directly rather than
+	inheriting `d-file' from `list-diary-entries' caller.
+	(make-fancy-diary-buffer, show-all-diary-entries):
+	`mode-line-format' already buffer-local.
+	(diary-mail-addr): Set to the empty string (rather than nil) if
+	undefined, as per `user-mail-address'.
+	(diary-mail-entries): Doc fix.  Error if `diary-mail-address'
+	unset.
+	(mark-sexp-diary-entries): Don't regexp-quote sexp-mark twice.
+	Remove an un-needed `if'.
+	(list-sexp-diary-entries): Remove local vars mark and s-entry, and
+	use `let' rather than `let*'.
+	(diary-date, insert-monthly-diary-entry)
+	(insert-yearly-diary-entry, insert-anniversary-diary-entry)
+	(insert-block-diary-entry, insert-cyclic-diary-entry)
+	(font-lock-diary-date-forms): No need for `let*' so use `let'.
+	(make-diary-entry): Doc fix.  Use `or' rather than `if'.
+	(diary-font-lock-keywords): Use `when'.  `cal-islam' is required
+	feature, not `cal-islamic'.
+	`calendar-islamic-month-name-array-leap-year' does not exist - use
+	`calendar-islamic-month-name-array'.
+
 2003-06-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/utf-16.el: Many name changes: utf-16-{be,le} ->
