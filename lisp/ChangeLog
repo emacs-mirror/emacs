@@ -1,3 +1,22 @@
+2001-10-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	These changes add support for Calendar-related items in the
+	menu bar on tty's as well:
+
+	* calendar/calendar.el (calendar-mode-map): Require cal-menu
+	unconditionally.
+	(calendar-mode): Set up activate-menubar-hook unconditionally.
+
+	* calendar/cal-menu.el (cal-menu-x-popup-menu): New function,
+	calls x-popup-menu only if popup menus are supported.
+	(calendar-mouse-insert-hebrew-diary-entry)
+	(calendar-mouse-insert-islamic-diary-entry)
+	(calendar-mouse-holidays, calendar-mouse-view-diary-entries)
+	(calendar-mouse-view-other-diary-entries)
+	(calendar-mouse-print-dates, calendar-mouse-2-date-menu)
+	(calendar-mouse-cal-tex-menu, cal-tex-mouse-filofax): Call
+	cal-menu-x-popup-menu instead of x-popup-menu.
+
 2001-10-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* gs.el (gs-set-ghostview-window-prop): Fix args of `elt'.
