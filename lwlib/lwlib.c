@@ -1420,6 +1420,7 @@ lw_separator_p (label, type, motif_p)
       }
       separator_names[] =
       {
+	"space",		     SEPARATOR_NO_LINE,
 	"noLine",		     SEPARATOR_NO_LINE,
 	"singleLine",		     SEPARATOR_SINGLE_LINE,
 	"doubleLine",		     SEPARATOR_DOUBLE_LINE,
