@@ -130,6 +130,9 @@ Lisp_Object Vhelp_form;
 /* Command to run when the help character follows a prefix key.  */
 Lisp_Object Vprefix_help_command;
 
+/* Keymap for items that appear at end of menu bar.  */
+Lisp_Object Vhelp_menu_bar_map;
+
 /* Character that causes a quit.  Normally C-g.
 
    If we are running on an ordinary terminal, this must be an ordinary
@@ -3199,6 +3202,8 @@ menu_bar_items ()
 	result = menu_bar_one_keymap (def, result);
     }
 
+  result = menu_bar_one_keymap (Vhelp_menu_bar_map, result);
+
   result = Fnreverse (result);
   Vinhibit_quit = oquit;
   return result;
@@ -5198,6 +5203,10 @@ Buffer modification stores t in this variable.");
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,
     "t means menu bar, specified Lucid style, needs to be recomputed.");
   Vlucid_menu_bar_dirty_flag = Qnil;
+
+  DEFVAR_LISP ("help-menu-bar-map", &Vhelp_menu_bar_map,
+    "Keymap defining global menu items to appear at end of menu bar.");
+  Vhelp_menu_bar_map = Qnil;
 }
 
 keys_of_keyboard ()
