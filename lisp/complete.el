@@ -1,6 +1,7 @@
 ;;; complete.el --- partial completion mechanism plus other goodies
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 1999, 2000
+;;  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: abbrev convenience
@@ -156,6 +157,10 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
 
 (defvar PC-default-bindings t
   "If non-nil, default partial completion key bindings are suppressed.")
+
+(defvar PC-env-vars-alist nil
+  "A list of the environment variable names and values.")
+
 
 (defvar PC-old-read-file-name-internal nil)
 
@@ -197,6 +202,13 @@ See also the variable `PC-include-file-path'."
 		 (symbol-function 'read-file-name-internal))
 	   (fset 'read-file-name-internal
 		 'PC-read-include-file-name-internal)))
+    (when (and on-p (null PC-env-vars-alist))
+      (setq PC-env-vars-alist
+	    (mapcar (lambda (string)
+		      (let ((d (string-match "=" string)))
+			(cons (concat "$" (substring string 0 d))
+			      (and d (substring string (1+ d))))))
+		    process-environment)))
     ;; Finally set the mode variable.
     (setq partial-completion-mode on-p)))
 
@@ -377,11 +389,12 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 	 (pred minibuffer-completion-predicate)
 	 (filename (funcall PC-completion-as-file-name-predicate))
 	 (dirname nil)
-	 dirlength
+	 (dirlength 0)
 	 (str (buffer-substring beg end))
 	 (incname (and filename (string-match "<\\([^\"<>]*\\)>?$" str)))
 	 (ambig nil)
 	 basestr
+	 env-on
 	 regex
 	 p offset
 	 (poss nil)
@@ -393,21 +406,19 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 	     (PC-is-complete-p str table pred))
 	'complete
 
-      ;; Record how many characters at the beginning are not included
-      ;; in completion.
-      (setq dirlength
-	    (if filename
-		(length (file-name-directory str))
-	      0))
-
       ;; Do substitutions in directory names
       (and filename
-	   (not (equal str (setq p (substitute-in-file-name str))))
-	   (progn
+           (setq basestr (or (file-name-directory str) ""))
+           (setq dirlength (length basestr))
+	   ;; Do substitutions in directory names
+           (setq p (substitute-in-file-name basestr))
+           (not (string-equal basestr p))
+           (setq str (concat p (file-name-nondirectory str)))
+           (progn
 	     (delete-region beg end)
-	     (insert p)
-	     (setq str p end (+ beg (length str)))))
-
+	     (insert str)
+	     (setq end (+ beg (length str)))))
+      
       ;; Prepare various delimiter strings
       (or (equal PC-word-delimiters PC-delims)
 	  (setq PC-delims PC-word-delimiters
@@ -484,6 +495,12 @@ of `minibuffer-completion-table' and the minibuffer contents.")
       ;;(setq the-regex regex)
       (setq regex (concat "\\`" regex))
 
+      (and (> (length basestr) 0)
+           (= (aref basestr 0) ?$)
+           (setq env-on t
+                 table PC-env-vars-alist
+                 pred nil))
+
       ;; Find an initial list of possible completions
       (if (not (setq p (string-match (concat PC-delim-regex
 					     (if filename "\\|\\*" ""))
@@ -491,15 +508,18 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 				     (+ (length dirname) offset))))
 
 	  ;; Minibuffer contains no hyphens -- simple case!
-	  (setq poss (all-completions str
+	  (setq poss (all-completions (if env-on
+					  basestr str)
 				      table
 				      pred))
 
 	;; Use all-completions to do an initial cull.  This is a big win,
 	;; since all-completions is written in C!
-	(let ((compl (all-completions (substring str 0 p)
-				      table
-				      pred)))
+	(let ((compl (all-completions (if env-on
+					  (file-name-nondirectory (substring str 0 p))
+					(substring str 0 p))
+                                        table
+                                        pred)))
 	  (setq p compl)
 	  (while p
 	    (and (string-match regex (car p))
@@ -665,7 +685,8 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
        ;; Only one possible completion
        (t
-	(if (equal basestr (car poss))
+	(if (and (equal basestr (car poss))
+		 (not (and env-on filename)))
 	    (if (null mode)
 		(PC-temp-minibuffer-message " [Sole completion]"))
 	  (delete-region beg end)
@@ -753,6 +774,21 @@ or properties are considered."
 			    (symbol-plist sym))))))
 	 (PC-not-minibuffer t))
     (PC-do-completion nil beg end)))
+
+(defun PC-complete-as-file-name ()
+   "Perform completion on file names preceding point.
+ Environment vars are converted to their values."
+   (interactive)
+   (let* ((end (point))
+          (beg (if (re-search-backward "[^\\][ \t\n\"\`\'][^ \t\n\"\`\']"
+				       (point-min) t)
+                   (+ (point) 2)
+                   (point-min)))
+          (minibuffer-completion-table 'read-file-name-internal)
+          (minibuffer-completion-predicate "")
+          (PC-not-minibuffer t))
+     (goto-char end)
+     (PC-do-completion nil beg end)))
 
 ;;; Use the shell to do globbing.
 ;;; This could now use file-expand-wildcards instead.
