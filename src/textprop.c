@@ -203,7 +203,7 @@ interval_has_all_properties (plist, i)
      Lisp_Object plist;
      INTERVAL i;
 {
-  register Lisp_Object tail1, tail2, sym1, sym2;
+  register Lisp_Object tail1, tail2, sym1;
   register int found;
 
   /* Go through each element of PLIST.  */
@@ -1039,7 +1039,6 @@ is the string or buffer containing the text.")
   register INTERVAL prev_changed = NULL_INTERVAL;
   register int s, len;
   Lisp_Object ostart, oend;
-  int have_modified = 0;
 
   ostart = start;
   oend = end;
@@ -1437,7 +1436,6 @@ text_property_list (object, start, end, prop)
 {
   struct interval *i;
   Lisp_Object result;
-  int s, e;
 
   result = Qnil;
   
@@ -1571,7 +1569,7 @@ verify_interval_modification (buf, start, end)
      int start, end;
 {
   register INTERVAL intervals = BUF_INTERVALS (buf);
-  register INTERVAL i, prev;
+  register INTERVAL i;
   Lisp_Object hooks;
   register Lisp_Object prev_mod_hooks;
   Lisp_Object mod_hooks;
