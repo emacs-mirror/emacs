@@ -2598,18 +2598,19 @@ regex_compile (pattern, size, syntax, bufp)
 		      {
 			if (! SINGLE_BYTE_CHAR_P (c1))
 			  {
-			    /* Handle a range such as \177-\377 in
-			       multibyte mode.  Split that into two
-			       ranges, the low one ending at 0237, and
-			       the high one starting at the smallest
-			       character in the charset of C1 and
-			       ending at C1.  */
+			    /* Handle a range starting with a
+			       character of less than 256, and ending
+			       with a character of not less than 256.
+			       Split that into two ranges, the low one
+			       ending at 0377, and the high one
+			       starting at the smallest character in
+			       the charset of C1 and ending at C1.  */
 			    int charset = CHAR_CHARSET (c1);
 			    int c2 = MAKE_CHAR (charset, 0, 0);
 			    
 			    SET_RANGE_TABLE_WORK_AREA (range_table_work,
 						       c2, c1);
-			    c1 = 0237;
+			    c1 = 377;
 			  }
 		      }
 		    else if (!SAME_CHARSET_P (c, c1))
