@@ -496,11 +496,22 @@ This does fairly subdued highlighting.")
  "For consideration as a value of `c-font-lock-keywords'.
 This does a lot more highlighting.")
 
+(defconst c++-font-lock-keywords-1 nil
+ "For consideration as a value of `c++-font-lock-keywords'.
+This does fairly subdued highlighting.")
+
+(defconst c++-font-lock-keywords-2 nil
+ "For consideration as a value of `c++-font-lock-keywords'.
+This does a lot more highlighting.")
+
 (let* ((storage "auto\\|extern\\|register\\|static\\|typedef")
        (struct "struct\\|union\\|enum")
        (prefixes "signed\\|unsigned\\|short\\|long")
        (types (concat prefixes "\\|int\\|char\\|float\\|double\\|void"))
-       (ctoken "[a-zA-Z0-9_:~*]+"))
+       (ctoken "[a-zA-Z0-9_:~*]+")
+       (c++-things (concat
+		    "const\\|class\\|protected:\\|private:\\|public:\\|inline\\|"
+		    "new\\|delete")))
  (setq c-font-lock-keywords-1
   (list
    ;; fontify preprocessor directives as comments.
@@ -559,6 +570,7 @@ This does a lot more highlighting.")
     ;;
     ;; fontify all storage classes and type specifiers
     (cons (concat "\\<\\(" storage "\\)\\>") 'font-lock-type-face)
+    (cons (concat "\\<\\(" types "\\)\\>") 'font-lock-type-face)
     (cons (concat "\\<\\(\\(\\(" prefixes "\\)\\>[ \t]*\\)*\\(" types
 	   "\\)\\)\\>")
      'font-lock-type-face)
@@ -586,15 +598,22 @@ This does a lot more highlighting.")
     ;; Fontify global variables without a type.
 ;    '("^\\([_a-zA-Z0-9:~*]+\\)[ \t]*[[;={]" 1 font-lock-function-name-face)
     )))
+
+ (setq c++-font-lock-keywords-1
+       (cons 
+	(concat "\\(" c++-things "\\)[ \t\n]")
+	c-font-lock-keywords-1))
+ (setq c++-font-lock-keywords-2
+       (cons 
+	(cons (concat "\\<\\(" c++-things "\\)\\>") 'font-lock-type-face)
+	c-font-lock-keywords-2))
  )
 
 ; default to the gaudier variety?
-;(defvar c-font-lock-keywords c-font-lock-keywords-2
-;  "Additional expressions to highlight in C mode.")
 (defvar c-font-lock-keywords c-font-lock-keywords-1
   "Additional expressions to highlight in C mode.")
 
-(defvar c++-font-lock-keywords c-font-lock-keywords
+(defvar c++-font-lock-keywords c++-font-lock-keywords-1
   "Additional expressions to highlight in C++ mode.")
 
 
