@@ -5,7 +5,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-parse.el,v 1.11 2002/03/17 20:48:14 monnier Exp $
+;; Revision: $Id: pcvs-parse.el,v 1.12 2002/06/24 22:49:06 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -266,7 +266,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        ;; [-n update] A new (or pruned) directory appeared but isn't traversed
        (and
 	(cvs-match "New directory `\\(.*\\)' -- ignored$" (dir 1))
-	(cvs-parsed-fileinfo 'MESSAGE " " (file-name-as-directory dir)))
+	;; (cvs-parsed-fileinfo 'MESSAGE " " (file-name-as-directory dir))
+	(cvs-parsed-fileinfo '(NEED-UPDATE . NEW-DIR) dir))
 
        ;; File removed, since it is removed (by third party) in repository.
        (and
@@ -286,6 +287,9 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        (and
 	(cvs-match "\\(.*\\), version \\(.*\\), resurrected$"
 		   (path 1) (base-rev 2))
+	;; FIXME: resurrection only brings back the original version,
+	;; not the latest on the branch, so `up-to-date' is not always
+	;; what we want.
 	(cvs-parsed-fileinfo '(UP-TO-DATE . RESURRECTED) path nil
 			     :base-rev base-rev))
 
@@ -444,6 +448,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
       (cvs-match "Locally Removed$"	(type 'REMOVED))
       (cvs-match "Locally Modified$"	(type 'MODIFIED))
       (cvs-match "Needs Merge$"		(type 'NEED-MERGE))
+      (cvs-match "Entry Invalid"	(type '(NEED-MERGE . REMOVED)))
       (cvs-match "Unknown$"		(type 'UNKNOWN)))
      (cvs-match "$")
      (cvs-or
