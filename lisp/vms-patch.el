@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(setq auto-mode-alist (cons '(("\\.com\\'" . dcl-mode)) auto-mode-alist))
+
 ;;; Functions that need redefinition
 
 ;;; VMS file names are upper case, but buffer names are more
