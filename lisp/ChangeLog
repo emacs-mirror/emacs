@@ -1,3 +1,10 @@
+2005-03-02  Romain Francoise  <romain@orebokech.com>
+
+	* ibuf-ext.el (ibuffer-filter-disable): Move back to the current
+	buffer after removing limits.
+	(ibuffer-pop-filter): Ditto.
+	Update copyright.
+
 2005-03-02  Miles Bader  <miles@gnu.org>
 
 	* button.el (make-text-button): If the user doesn't specify a
