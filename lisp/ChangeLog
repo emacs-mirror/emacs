@@ -1,3 +1,12 @@
+2002-02-06  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (where-is): Report remapped commands.
+
+	* help-fns.el (describe-function-1): Ditto.
+
+	* subr.el (global-set-key, local-set-key): Accept a symbol for the
+	KEY argument (like define-key).
+
 2002-02-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* textmodes/flyspell.el (flyspell-insert-function): Doc fix.
