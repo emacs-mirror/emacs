@@ -24,7 +24,8 @@ sections at the end of this chapter which apply specifically for the
 Windows version.
 
 @menu
-* Input: MS-DOS Input.         Keyboard and mouse usage on MS-DOS.
+* Keyboard: MS-DOS Keyboard.   Keyboard conventions on MS-DOS.
+* Mouse: MS-DOS Mouse.         Mouse conventions on MS-DOS.
 * Display: MS-DOS Display.     Fonts, frames and display size on MS-DOS.
 * Files: MS-DOS File Names.    File name conventions on MS-DOS.
 * Text and Binary::            Text files on MS-DOS use CRLF to separate lines.
@@ -35,8 +36,28 @@ Windows version.
 * Windows System Menu::        Controlling what the ALT key does.
 @end menu
 
-@node MS-DOS Input
-@section Keyboard and Mouse on MS-DOS
+@node MS-DOS Keyboard
+@section Keyboard Usage on MS-DOS
+
+@kindex DEL @r{(MS-DOS)}
+@kindex BS @r{(MS-DOS)}
+  The key that is called @key{DEL} in Emacs (because that's how it is
+designated on most workstations) is known as @key{BS} (backspace) on a
+PC.  That is why the PC-specific terminal initialization remaps the
+@key{BS} key to act as @key{DEL}; the @key{DELETE} key is remapped to act
+as @kbd{C-d} for the same reasons.
+
+@kindex C-g @r{(MS-DOS)}
+@kindex C-BREAK @r{(MS-DOS)}
+@cindex quitting on MS-DOS
+  Emacs built for MS-DOS recognizes @kbd{C-@key{BREAK}} as a quit
+character, just like @kbd{C-g}.  This is because Emacs cannot detect
+that you have typed @kbd{C-g} until it is ready for more input.  As a
+consequence, you cannot use @kbd{C-g} to stop a running command
+(@pxref{Quitting}).  By contrast, @kbd{C-@key{BREAK}} @emph{is} detected
+as soon as you type it (as @kbd{C-g} is on other systems), so it can be
+used to stop a running command and for emergency escape
+(@pxref{Emergency Escape}).
 
 @cindex Meta (under MS-DOS)
 @cindex Hyper (under MS-DOS)
@@ -68,25 +89,8 @@ following line into your @file{_emacs} file:
 (define-key function-key-map [kp-enter] [?\C-j])
 @end smallexample
 
-@kindex DEL @r{(MS-DOS)}
-@kindex BS @r{(MS-DOS)}
-  The key that is called @key{DEL} in Emacs (because that's how it is
-designated on most workstations) is known as @key{BS} (backspace) on a
-PC.  That is why the PC-specific terminal initialization remaps the
-@key{BS} key to act as @key{DEL}; the @key{DEL} key is remapped to act
-as @kbd{C-d} for the same reasons.
-
-@kindex C-g @r{(MS-DOS)}
-@kindex C-BREAK @r{(MS-DOS)}
-@cindex quitting on MS-DOS
-  Emacs built for MS-DOS recognizes @kbd{C-@key{BREAK}} as a quit
-character, just like @kbd{C-g}.  This is because Emacs cannot detect
-that you have typed @kbd{C-g} until it is ready for more input.  As a
-consequence, you cannot use @kbd{C-g} to stop a running command
-(@pxref{Quitting}).  By contrast, @kbd{C-@key{BREAK}} @emph{is} detected
-as soon as you type it (as @kbd{C-g} is on other systems), so it can be
-used to stop a running command and for emergency escape
-(@pxref{Emergency Escape}).
+@node MS-DOS Mouse
+@section Mouse Usage on MS-DOS
 
 @cindex mouse support under MS-DOS
   Emacs on MS-DOS supports a mouse (on the default terminal only).
@@ -281,7 +285,7 @@ only see their short 8+3 aliases.
 
 @cindex @env{HOME} directory under MS-DOS
   MS-DOS has no notion of home directory, so Emacs on MS-DOS pretends
-that the directory where it is installed is the value of @env{HOME}
+that the directory where it is installed is the value of the @env{HOME}
 environment variable.  That is, if your Emacs binary,
 @file{emacs.exe}, is in the directory @file{c:/utils/emacs/bin}, then
 Emacs acts as if @env{HOME} were set to @samp{c:/utils/emacs}.  In
@@ -603,11 +607,11 @@ etc.
 MS-DOS normally doesn't allow use of several codepages in a single
 session.  MS-DOS was designed to load a single codepage at system
 startup, and require you to reboot in order to change
-it@footnote{Normally, one particular codepage is burnt into the display
-memory, while other codepages can be installed by modifying system
-configuration files, such as @file{CONFIG.SYS}, and rebooting.  While
-third-party software is known to exist that allows to change the
-codepage without rebooting, we describe here how a stock MS-DOS system
+it@footnote{Normally, one particular codepage is burnt into the
+display memory, while other codepages can be installed by modifying
+system configuration files, such as @file{CONFIG.SYS}, and rebooting.
+While there is third-party software that allows changing the codepage
+without rebooting, we describe here how a stock MS-DOS system
 behaves.}.  Much the same limitation applies when you run DOS
 executables on other systems such as MS-Windows.
 
@@ -749,7 +753,7 @@ asynchronous invocation on other platforms
 the @kbd{M-x eshell} command.  This invokes the Eshell package that
 implements a Posix-like shell entirely in Emacs Lisp.
 
-  By contrast, Emacs compiled as native Windows application
+  By contrast, Emacs compiled as a native Windows application
 @strong{does} support asynchronous subprocesses.  @xref{Windows
 Processes}.
 
@@ -782,7 +786,7 @@ the @code{dired-listing-switches} variable.  The options that work are
 @node Windows Processes
 @section Subprocesses on Windows 9X/ME and Windows NT/2K
 
-Emacs compiled as a native Windows application (as opposed to the DOS
+  Emacs compiled as a native Windows application (as opposed to the DOS
 version) includes full support for asynchronous subprocesses.
 In the Windows version, synchronous and asynchronous subprocesses work
 fine on both
