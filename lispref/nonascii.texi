@@ -275,6 +275,11 @@ into several character sets.  For example, one set of Chinese
 characters, generally known as Big 5, is divided into two Emacs
 character sets, @code{chinese-big5-1} and @code{chinese-big5-2}.
 
+  @sc{ascii} characters are in character set @code{ascii}.  The
+non-@sc{ascii} characters 128 through 159 are in character set
+@code{eight-bit-control}, and codes 160 through 255 are in character set
+@code{eight-bit-graphic}.
+
 @defun charsetp object
 Returns @code{t} if @var{object} is a symbol that names a character set,
 @code{nil} otherwise.
@@ -411,10 +416,6 @@ be used in scanning the text (@pxref{Translation of Characters}).  If it
 is non-@code{nil}, then each character in the region is translated
 through this table, and the value returned describes the translated
 characters instead of the characters actually in the buffer.
-
-When a buffer contains non-@sc{ascii} characters, codes 128 through 255,
-they are assigned the character set @code{unknown}.  @xref{Explicit
-Encoding}.
 @end defun
 
 @defun find-charset-string string &optional translation
