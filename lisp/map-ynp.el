@@ -139,16 +139,17 @@ Returns the number of actions taken."
 						    (cons prompt map))
 				    'quit))
 		    ;; Prompt in the echo area.
-		    (let ((cursor-in-echo-area (not no-cursor-in-echo-area)))
+		    (let ((cursor-in-echo-area (not no-cursor-in-echo-area))
+			  (message-log-max nil))
 		      (message "%s(y, n, !, ., q, %sor %s) "
 			       prompt user-keys
 			       (key-description (vector help-char)))
-		      (setq char (read-event)))
-		    ;; Show the answer to the question.
-		    (message "%s(y, n, !, ., q, %sor %s) %s"
-			     prompt user-keys
-			     (key-description (vector help-char))
-			     (single-key-description char))
+		      (setq char (read-event))
+		      ;; Show the answer to the question.
+		      (message "%s(y, n, !, ., q, %sor %s) %s"
+			       prompt user-keys
+			       (key-description (vector help-char))
+			       (single-key-description char)))
 		    (setq def (lookup-key map (vector char))))
 		  (cond ((eq def 'exit)
 			 (setq next (function (lambda () nil))))
@@ -243,7 +244,8 @@ the current %s and exit."
 	  (setq unread-command-events
 		(cons delayed-switch-frame unread-command-events))))
     ;; Clear the last prompt from the minibuffer.
-    (message "")
+    (let ((message-log-max nil))
+      (message ""))
     ;; Return the number of actions that were taken.
     actions))
 
