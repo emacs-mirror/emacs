@@ -145,8 +145,8 @@ This uses the variables `adapive-fill-prefix' and `adaptive-fill-function'."
     (let ((start (point))
 	  (eol (save-excursion (end-of-line) (point))))
       (if (not (looking-at paragraph-start))
-	  (cond ((re-search-forward adaptive-fill-regexp nil t)
-		 (buffer-substring-no-properties start (point)))
+	  (cond ((looking-at adaptive-fill-regexp)
+		 (buffer-substring-no-properties start (match-end 0)))
 		(t (funcall adaptive-fill-function)))))))
 
 (defun fill-region-as-paragraph (from to &optional justify nosqueeze)
@@ -768,7 +768,7 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
       (narrow-to-region (point) max)
       ;; Loop over paragraphs.
       (while (progn (skip-chars-forward " \t\n") (not (eobp)))
-	(beginning-of-line)
+	(move-to-left-margin)
 	(let ((start (point))
 	      fill-prefix fill-prefix-regexp)
 	  ;; Find end of paragraph, and compute the smallest fill-prefix
@@ -780,13 +780,14 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
 				 (looking-at fill-prefix-regexp)))
 		       (setq fill-prefix
 			     (if (and adaptive-fill-mode adaptive-fill-regexp
-				      (looking-at (concat "\\(" adaptive-fill-regexp "\\)")))
-				 (match-string 1)
-			       (buffer-substring (point)
-						 (save-excursion (skip-chars-forward " \t") (point))))
-			     fill-prefix-regexp
-			     (regexp-quote fill-prefix)))
-		   (forward-line 1)
+				      (looking-at adaptive-fill-regexp))
+				 (match-string 0)
+			       (buffer-substring 
+				(point)
+				(save-excursion (skip-chars-forward " \t")
+						(point))))
+			     fill-prefix-regexp (regexp-quote fill-prefix)))
+		   (move-to-left-margin 1)
 		   ;; Now stop the loop if end of paragraph.
 		   (and (not (eobp))
 			(if fill-individual-varying-indent
