@@ -1,3 +1,17 @@
+2003-07-25  John Paul Wallington  <jpw@gnu.org>
+
+	* server.el (server-start): Check `server-process' is non-nil
+	before killing it to avoid killing current buffer's process.
+
+	* simple.el (choose-completion-string): Use `minibufferp';
+	test `completion-reference-buffer' if `buffer' arg is nil.
+	(push-mark): Use `when' and `unless'.
+	(pop-mark): Use `when'.
+
+	* mouse-sel.el (mouse-sel-get-selection-function):
+	Check `x-last-selected-text-primary'.  Don't barf if it or
+	`x-last-selected-text' aren't bound.
+
 2003-07-25  Kevin Rodgers  <ihs_4664@yahoo.com>  (tiny change)
 
 	* menu-bar.el (menu-bar-tools-menu): Minor change in strings.
