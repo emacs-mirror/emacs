@@ -248,7 +248,9 @@ macro to be executed before appending to it."
   "Insert macro counter and increment with ARG or 1 if missing.
 With \\[universal-argument], insert previous kmacro-counter (but do not modify counter)."
   (interactive "P")
-  (setq kmacro-initial-counter-value nil)
+  (if kmacro-initial-counter-value
+      (setq kmacro-counter kmacro-initial-counter-value
+	    kmacro-initial-counter-value nil))
   (if (and arg (listp arg))
       (insert (format kmacro-counter-format kmacro-last-counter))
     (insert (format kmacro-counter-format kmacro-counter))
@@ -275,23 +277,23 @@ With \\[universal-argument], insert previous kmacro-counter (but do not modify c
   "Set kmacro-counter to ARG or prompt if missing.
 With \\[universal-argument] prefix, reset counter to its value prior to this iteration of the macro."
   (interactive "NMacro counter value: ")
-  (setq kmacro-last-counter kmacro-counter
-	kmacro-counter (if (and current-prefix-arg (listp current-prefix-arg))
-			   kmacro-counter-value-start
-			 arg))
-  ;; setup initial macro counter value if we are not executing a macro.
-  (setq kmacro-initial-counter-value
-	(and (not (or defining-kbd-macro executing-kbd-macro))
-	     kmacro-counter))
-  (unless executing-kbd-macro
-    (kmacro-display-counter)))
+  (if (not (or defining-kbd-macro executing-kbd-macro))
+      (kmacro-display-counter (setq kmacro-initial-counter-value arg))
+    (setq kmacro-last-counter kmacro-counter
+	  kmacro-counter (if (and current-prefix-arg (listp current-prefix-arg))
+			     kmacro-counter-value-start
+			   arg))
+    (unless executing-kbd-macro
+      (kmacro-display-counter))))
 
 
 (defun kmacro-add-counter (arg)
   "Add numeric prefix arg (prompt if missing) to macro counter.
 With \\[universal-argument], restore previous counter value."
   (interactive "NAdd to macro counter: ")
-  (setq kmacro-initial-counter-value nil)
+  (if kmacro-initial-counter-value
+      (setq kmacro-counter kmacro-initial-counter-value
+	    kmacro-initial-counter-value nil))
   (let ((last kmacro-last-counter))
     (setq kmacro-last-counter kmacro-counter
 	  kmacro-counter (if (and current-prefix-arg (listp current-prefix-arg))
@@ -394,7 +396,10 @@ Optional arg EMPTY is message to print if no macros are defined."
 	     (m (format-kbd-macro macro))
 	     (l (length m))
 	     (z (and nil trunc (> l x))))
-	(message (format "%s: %s%s" (or descr "Macro")
+	(message (format "%s%s: %s%s" (or descr "Macro")
+			 (if (= kmacro-counter 0) ""
+			   (format " [%s]"
+				   (format kmacro-counter-format-start kmacro-counter)))
 			 (if z (substring m 0 (1- x)) m) (if z "..." ""))))
     (message (or empty "No keyboard macros defined"))))
 
