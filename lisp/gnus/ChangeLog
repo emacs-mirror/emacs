@@ -1,3 +1,7 @@
+2000-10-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mm-encode.el: Require CL.  At least, for `incf'.
+
 2000-10-06  Dave Love  <fx@gnu.org>
 
 	* gnus-audio.el: Don't require cl.
