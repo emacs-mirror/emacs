@@ -1,3 +1,52 @@
+2003-09-29  Dave Love  <fx@gnu.org>
+
+	* xmenu.c (find_and_call_menu_selection): Make menu_bar_items_used
+	EMACS_INT.
+
+	* xfns.c (DefaultDepthOfScreen, x_encode_text): Remove unused vars.
+
+	* xfaces.c (face_numeric_value): Declare dim size_t.
+	(Finternal_lisp_face_equal_p): Remove unused f.
+
+	* xdisp.c (BUILD_CHAR_GLYPH_STRINGS, display_and_set_cursor)
+	(MATRIX_ROW): Remove unused vars.
+	(draw_glyphs, x_insert_glyphs, fast_find_position)
+	(fast_find_position, fast_find_string_pos): Use EMACS_INT for
+	byte/char counts.
+
+	* regex.c (regex_compile): Remove unused var.
+
+	* minibuf.c (Fminibuffer_complete_word): Remove unused var.
+
+	* keymap.c (Fset_keymap_parent, map_keymap, Fcopy_keymap)
+	(Faccessible_keymaps, where_is_internal): Remove unused vars.
+
+	* keyboard.c (cancel_hourglass_unwind): Return Qnil.
+
+	* frame.c (frame_name_fnn_p): Make len EMACS_INT.
+
+	* fileio.c (Fwrite_region): Remove unused var.
+
+	* dispnew.c (adjust_frame_glyphs_for_frame_redisplay)
+	(adjust_frame_glyphs_for_window_redisplay): Remove unused ch_dim.
+
+	* composite.c (Fremove_list_of_text_properties): Declare.
+
+	* coding.c (inhibit_pre_post_conversion): Removed (unused).
+	(alloc_destination, produce_chars): Use EMACS_INT for byte/char
+	counts.
+	(coding_inherit_eol_type): Remove unused attrs.
+	(detect_coding): Cast arg of detect_eol.
+
+	* charset.c (syms_of_charset): Remove unused var p.
+	(find_charsets_in_text, Ffind_charset_region): Use EMACS_INT for
+	byte/char counts.
+
+	* casetab.c (set_case_table): Remove unused var.
+
+	* window.c (Fdisplay_buffer, Fframe_selected_window): Remove
+	unsued vars.
+
 2003-09-26  Dave Love  <fx@gnu.org>
 
 	* xterm.c (x_bitmap_mask): Declare.

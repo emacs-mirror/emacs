@@ -61,11 +61,14 @@ Minor modes: unify-8859-on-encoding-mode, unify-8859-on-decoding-mode
 
 * Lisp changes in Emacs 22.1
 
+map-char-table's behaviour has changed.
+
 New functions: characterp, max-char, map-charset-chars,
 define-charset-alias, primary-charset, set-primary-charset,
 unify-charset, clear-charset-maps, charset-priority-list,
 set-charset-priority, define-coding-system,
-define-coding-system-alias, coding-system-aliases
+define-coding-system-alias, coding-system-aliases, langinfo,
+string-to-multibyte.
 
 Changed functions: copy-sequence, decode-char, encode-char,
 set-fontset-font, new-fontset, modify-syntax-entry, define-charset,

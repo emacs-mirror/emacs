@@ -2576,7 +2576,7 @@ _ACEOF
   powerpc-apple-darwin* )
     machine=powermac opsys=darwin
     # Define CPP as follows to make autoconf work correctly.
-    CPP="cc -E -traditional-cpp"
+    CPP="gcc -E -no-cpp-precomp"
   ;;
 
   ## AMD x86-64 Linux-based GNU system
@@ -8191,7 +8191,7 @@ echo "$as_me: error: Conflicting options, --with-gtk is incompatible with --with
    { (exit 1); exit 1; }; };
   fi
   GLIB_REQUIRED=2.0.1
-  GTK_REQUIRED=2.2
+  GTK_REQUIRED=2.0.1
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
     if test "X${with_pkg_config_prog}" != X; then
