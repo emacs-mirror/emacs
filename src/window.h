@@ -212,7 +212,7 @@ struct window
 #define WINDOW_RIGHT_MARGIN(W)						    \
   (WINDOW_RIGHT_EDGE (W)						    \
    - (! FRAME_HAS_VERTICAL_SCROLL_BARS (XFRAME (WINDOW_FRAME (W)))	    \
-      ? 1								    \
+      ? ((WINDOW_RIGHTMOST_P (W)) ? 0 : 1)			    	    \
       : FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (XFRAME (WINDOW_FRAME (W))) \
       ? FRAME_SCROLL_BAR_COLS (XFRAME (WINDOW_FRAME (W)))		    \
       : 0))
