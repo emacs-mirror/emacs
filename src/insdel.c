@@ -485,7 +485,9 @@ insert_from_buffer_1 (buf, pos, length, inherit)
 
   if (pos < BUF_GPT (buf))
     {
-      chunk = min (length, BUF_GPT (buf) - pos);
+      chunk = BUF_GPT (buf) - pos;
+      if (chunk > length)
+	chunk = length;
       bcopy (BUF_CHAR_ADDRESS (buf, pos), GPT_ADDR, chunk);
     }
   else
