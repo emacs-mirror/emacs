@@ -166,20 +166,6 @@ this:
           (lambda () (setq debug-on-error t)))
 @end example
 
-When the debugger is entered, it shows a backtrace (@pxref{Using
-Debugger}).  If you like to see the backtrace when an error happens,
-but you do not want to enter the debugger, you can set the variable
-@code{stack-trace-on-error} to non-@code{nil}.
-
-@defopt stack-trace-on-error
-This variable determines whether a backtrace buffer is shown when an
-error is signalled and not handled.  If @code{stack-trace-on-error} is
-@code{t}, all kinds of errors display a backtrace; if it is
-@code{nil}, none do.  If the value is a list, an error only means to
-display a backtrace if one of its condition symbols appears in the
-list.
-@end defopt
-
 @node Infinite Loops
 @subsection Debugging Infinite Loops
 @cindex infinite loops
