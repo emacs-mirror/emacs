@@ -265,7 +265,7 @@ Only visible heading lines are considered."
       (error "before first heading")))
 
 (defun outline-on-heading-p ()
-  "Return T if point is on a (visible) heading line."
+  "Return t if point is on a (visible) heading line."
   (save-excursion
     (beginning-of-line)
     (and (bolp)
@@ -365,21 +365,26 @@ while if FLAG is `\\^M' (control-M) the text is hidden."
   (outline-flag-subtree ?\n))
 
 (defun hide-sublevels (levels)
-  "Hide everything except the top LEVELS levels of headers."
+  "Hide everything but the top LEVELS levels of headers, in whole buffer."
   (interactive "p")
   (if (< levels 1)
       (error "Must keep at least one level of headers"))
   (setq levels (1- levels))
   (save-excursion
     (goto-char (point-min))
-    (or (outline-on-heading-p)
-	(outline-next-heading))
-    (hide-subtree)
-    (show-children levels)
-    (condition-case err
-      (while (outline-get-next-sibling)
-	(hide-subtree)
-	(show-children levels))
+    (condition-case nil
+	;; Keep advancing to the next top-level heading.
+	(while (progn (or (and (bobp) (outline-on-heading-p))
+			  (outline-next-heading))
+		      (not (eobp)))
+	  (setq first nil)
+	  (let ((end (save-excursion (outline-end-of-subtree) (point))))
+	    ;; Hide everything under that.
+	    (outline-flag-region (point) end ?\^M)
+	    ;; Show the first LEVELS levels under that.
+	    (show-children levels)
+	    ;; Move to the next, since we already found it.
+	    (goto-char end)))
       (error nil))))
 
 (defun hide-other ()
@@ -482,8 +487,8 @@ With argument, move up ARG levels."
       (setq arg (- arg 1)))))
 
 (defun outline-forward-same-level (arg)
-  "Move forward to the ARG'th subheading from here of the same level as the
-present one. It stops at the first and last subheadings of a superior heading."
+  "Move forward to the ARG'th subheading at same level as this one.
+Stop at the first and last subheadings of a superior heading."
   (interactive "p")
   (outline-back-to-heading)
   (while (> arg 0)
@@ -498,8 +503,7 @@ present one. It stops at the first and last subheadings of a superior heading."
 	  (error ""))))))
 
 (defun outline-get-next-sibling ()
-  "Position the point at the next heading of the same level, 
-and return that position or nil if it cannot be found."
+  "Move to next heading of the same level, and return point or nil if none."
   (let ((level (funcall outline-level)))
     (outline-next-visible-heading 1)
     (while (and (> (funcall outline-level) level)
@@ -510,8 +514,8 @@ and return that position or nil if it cannot be found."
       (point))))
 	
 (defun outline-backward-same-level (arg)
-  "Move backward to the ARG'th subheading from here of the same level as the
-present one. It stops at the first and last subheadings of a superior heading."
+  "Move backward to the ARG'th subheading at same level as this one.
+Stop at the first and last subheadings of a superior heading."
   (interactive "p")
   (outline-back-to-heading)
   (while (> arg 0)
@@ -526,8 +530,7 @@ present one. It stops at the first and last subheadings of a superior heading."
 	  (error ""))))))
 
 (defun outline-get-last-sibling ()
-  "Position the point at the previous heading of the same level, 
-and return that position or nil if it cannot be found."
+  "Move to next heading of the same level, and return point or nil if none."
   (let ((level (funcall outline-level)))
     (outline-previous-visible-heading 1)
     (while (and (> (funcall outline-level) level)
