@@ -374,7 +374,6 @@ static int internal_terminal = 0;
 #ifndef HAVE_X_WINDOWS
 extern unsigned char ScreenAttrib;
 static int screen_face;
-static int highlight;
 
 static int screen_size_X;
 static int screen_size_Y;
@@ -895,12 +894,10 @@ IT_set_face (int face)
   dflt_fg = dfp->foreground;
   dflt_bg = dfp->background;
 
-  /* Don't use invalid colors.  In particular, FACE_TTY_DEFAULT_*
-     colors mean use the colors of the default face, except that if
-     highlight is on, invert the foreground and the background.  Note
-     that we assume all 16 colors to be available for the background,
-     since Emacs switches on this mode (and loses the blinking
-     attribute) at startup.  */
+  /* Don't use invalid colors.  In particular, FACE_TTY_DEFAULT_* colors
+     mean use the colors of the default face.  Note that we assume all
+     16 colors to be available for the background, since Emacs switches
+     on this mode (and loses the blinking attribute) at startup.  */
   if (fg == FACE_TTY_DEFAULT_COLOR || fg == FACE_TTY_DEFAULT_FG_COLOR)
     fg = FRAME_FOREGROUND_PIXEL (sf);
   else if (fg == FACE_TTY_DEFAULT_BG_COLOR)
@@ -911,8 +908,7 @@ IT_set_face (int face)
     bg = FRAME_FOREGROUND_PIXEL (sf);
 
   /* Make sure highlighted lines really stand out, come what may.  */
-  if ((highlight || fp->tty_reverse_p)
-      && (fg == dflt_fg && bg == dflt_bg))
+  if (fp->tty_reverse_p && (fg == dflt_fg && bg == dflt_bg))
     {
       unsigned long tem = fg;
 
@@ -928,8 +924,8 @@ IT_set_face (int face)
       bg = tem2;
     }
   if (termscript)
-    fprintf (termscript, "<FACE %d%s: %d/%d[FG:%d/BG:%d]>", face,
-	     highlight ? "H" : "", fp->foreground, fp->background, fg, bg);
+    fprintf (termscript, "<FACE %d: %d/%d[FG:%d/BG:%d]>", face,
+	     fp->foreground, fp->background, fg, bg);
   if (fg >= 0 && fg < 16)
     {
       ScreenAttrib &= 0xf0;
@@ -1936,26 +1932,10 @@ IT_cmgoto (FRAME_PTR f)
 }
 
 static void
-IT_reassert_line_highlight (int new, int vpos)
-{
-  highlight = new;
-}
-
-static void
-IT_change_line_highlight (int new_highlight, int y, int vpos, int first_unused_hpos)
-{
-  highlight = new_highlight;
-  IT_cursor_to (vpos, 0);
-  IT_clear_end_of_line (first_unused_hpos);
-}
-
-static void
 IT_update_begin (struct frame *f)
 {
   struct display_info *display_info = FRAME_X_DISPLAY_INFO (f);
   struct frame *mouse_face_frame = display_info->mouse_face_mouse_frame;
-  
-  highlight = 0;
 
   BLOCK_INPUT;
 
@@ -2013,7 +1993,6 @@ IT_update_begin (struct frame *f)
 static void
 IT_update_end (struct frame *f)
 {
-  highlight = 0;
   FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 0;
 }
 
@@ -2150,7 +2129,6 @@ IT_set_terminal_modes (void)
 {
   if (termscript)
     fprintf (termscript, "\n<SET_TERM>");
-  highlight = 0;
 
   screen_size_X = ScreenCols ();
   screen_size_Y = ScreenRows ();
@@ -2227,8 +2205,6 @@ IT_reset_terminal_modes (void)
 
   if (termscript)
     fprintf (termscript, "\n<RESET_TERM>");
-
-  highlight = 0;
 
   if (!term_setup_done)
     return;
@@ -2608,10 +2584,8 @@ internal_terminal_init ()
   clear_to_end_hook = IT_clear_to_end;
   clear_end_of_line_hook = IT_clear_end_of_line;
   clear_frame_hook = IT_clear_screen;
-  change_line_highlight_hook = IT_change_line_highlight;
   update_begin_hook = IT_update_begin;
   update_end_hook = IT_update_end;
-  reassert_line_highlight_hook = IT_reassert_line_highlight;
   frame_up_to_date_hook = IT_frame_up_to_date;
 
   /* These hooks are called by term.c without being checked.  */
