@@ -363,6 +363,8 @@ notably at the end of lines.
 All these functions have been rewritten to avoid inserting unwanted
 spaces, and an optional prefix now allows them to behave the old way.
 
+There is a new command M-x replace-rectangle.
+
 ** The new command M-x query-replace-regexp-eval acts like
 query-replace-regexp, but takes a Lisp expression which is evaluated
 after each match to get the replacement text.
@@ -1013,6 +1015,9 @@ with extension `.diff', `.diffs', `.patch' and `.rej'.
 *** EUDC, the Emacs Unified Directory Client, provides a common user
 interface to access directory servers using different directory
 protocols.  It has a separate manual.
+
+*** autoconf.el provides a major mode for editing configure.in files
+for Autoconf, selected automatically.
 
 *** glasses.el
 
