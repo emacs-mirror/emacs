@@ -665,9 +665,9 @@ Note:    it means the file has no messages in it.\n\^_")))
       (setq coding-system (detect-coding-region from to t)))
     (unless (memq coding-system
 		  '(undecided undecided-unix))
-      (let (buffer-file-truename)	; Avoid locking when decoding.
-	(decode-coding-region from to coding-system)
-	(setq coding-system last-coding-system-used)))
+      (set-buffer-modified-p t)		; avoid locking when decoding
+      (decode-coding-region from to coding-system)
+      (setq coding-system last-coding-system-used))
     (set-buffer-modified-p modifiedp)
     (setq buffer-file-coding-system nil)
     (setq save-buffer-coding-system
