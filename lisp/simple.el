@@ -135,7 +135,7 @@ to navigate in it.")
                       (current-buffer)))
                (error "No next-error capable buffer found"))))))))
 
-(defun next-error (arg &optional reset)
+(defun next-error (&optional arg reset)
   "Visit next next-error message and corresponding source code.
 
 If all the error messages parsed so far have been processed already,
@@ -175,7 +175,7 @@ See variables `compilation-parse-errors-function' and
 
 (define-key ctl-x-map "`" 'next-error)
 
-(defun previous-error (n)
+(defun previous-error (&optional n)
   "Visit previous next-error message and corresponding source code.
 
 Prefix arg N says how many error messages to move backwards (or
@@ -183,9 +183,9 @@ forwards, if negative).
 
 This operates on the output from the \\[compile] and \\[grep] commands."
   (interactive "p")
-  (next-error (- n)))
+  (next-error (- (or n 1))))
 
-(defun first-error (n)
+(defun first-error (&optional n)
   "Restart at the first error.
 Visit corresponding source code.
 With prefix arg N, visit the source code of the Nth error.
@@ -193,7 +193,7 @@ This operates on the output from the \\[compile] command, for instance."
   (interactive "p")
   (next-error n t))
 
-(defun next-error-no-select (n)
+(defun next-error-no-select (&optional n)
   "Move point to the next error in the next-error buffer and highlight match.
 Prefix arg N says how many error messages to move forwards (or
 backwards, if negative).
@@ -203,14 +203,14 @@ select the source buffer."
   (next-error n)
   (pop-to-buffer next-error-last-buffer))
 
-(defun previous-error-no-select (n)
+(defun previous-error-no-select (&optional n)
   "Move point to the previous error in the next-error buffer and highlight match.
 Prefix arg N says how many error messages to move backwards (or
 forwards, if negative).
 Finds and highlights the source line like \\[previous-error], but does not
 select the source buffer."
   (interactive "p")
-  (next-error-no-select (- n)))
+  (next-error-no-select (- (or n 1))))
 
 ;;;
 
