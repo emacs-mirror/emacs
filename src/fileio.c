@@ -2446,7 +2446,7 @@ If VISIT is non-nil, BEG and END must be nil.")
       error ("maximum buffer size exceeded");
   }
 
-  if (NILP (visit))
+  if (NILP (visit) && total > 0)
     prepare_to_modify_buffer (point, point);
 
   move_gap (point);
