@@ -4631,7 +4631,7 @@ The elements of this list correspond to the arguments of\n\
   val[2] = meta_key == 2 ? make_number (0) : meta_key == 1 ? Qt : Qnil;
   XFASTINT (val[3]) = quit_char;
 
-  return Flist (val, sizeof (val) / sizeof (val[0]));
+  return Flist (sizeof (val) / sizeof (val[0]), val);
 }
 
 
