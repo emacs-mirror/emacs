@@ -255,7 +255,7 @@ rigidly along with this one."
     (skip-chars-forward " \t")
     (if (looking-at "\\s<\\s<\\s<")
 	;; Don't alter indentation of a ;;; comment line.
-	nil
+	(goto-char (- (point-max) pos))
       (if (and (looking-at "\\s<") (not (looking-at "\\s<\\s<")))
 	  ;; Single-semicolon comment lines should be indented
 	  ;; as comment lines, not as code.

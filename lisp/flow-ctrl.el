@@ -72,9 +72,9 @@
 ;;;###autoload
 (defun evade-flow-control-on (&rest losing-terminal-types)
   "Enable flow control if using one of a specified set of terminal types.
-Use `(evade-flow-control-on "vt100" "h19")' to enable flow control
+Use `(evade-flow-control-on \"vt100\" \"h19\")' to enable flow control
 on VT-100 and H19 terminals.  When flow control is enabled,
-you must type C-\ to get the effect of a C-s, and type C-^
+you must type C-\\ to get the effect of a C-s, and type C-^
 to get the effect of a C-q."
   (let ((term (getenv "TERM"))
 	hyphend)
