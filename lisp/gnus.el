@@ -5981,17 +5981,17 @@ score file entries for articles to include in the group."
 (defun gnus-group-enter-directory (dir)
   "Enter an ephemeral nneething group."
   (interactive "DDirectory to read: ")
-  (let* ((method (list 'nneething dir))
+  (let* ((method (list 'nneething dir (nneething-read-only t)))
 	 (leaf (gnus-group-prefixed-name
 		(file-name-nondirectory (directory-file-name dir))
 		method))
 	 (name (gnus-generate-new-group-name leaf)))
-    (let ((nneething-read-only t))
-      (or (gnus-group-read-ephemeral-group
-	   name method t
-	   (cons (current-buffer) (if (eq major-mode 'gnus-summary-mode)
-				      'summary 'group)))
-	  (error "Couldn't enter %s" dir)))))
+    (unless (gnus-group-read-ephemeral-group
+	     name method t
+	     (cons (current-buffer)
+		   (if (eq major-mode 'gnus-summary-mode)
+		       'summary 'group)))
+      (error "Couldn't enter %s" dir))))
 
 ;; Group sorting commands
 ;; Suggested by Joe Hildebrand <hildjj@idaho.fuentez.com>.
