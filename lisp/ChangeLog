@@ -1,3 +1,9 @@
+2000-08-31  Peter Breton  <pbreton@ne.mediaone.net>
+
+	* filecache.el (file-cache-add-directory-using-find): Don't quote 
+	wildcards on MS-DOS. Suggested by Eli Zaretskii <eliz@is.elta.co.il>.
+
+
 2000-08-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* help.el (help-make-xrefs): Don't make hyperlinks for incorrect
