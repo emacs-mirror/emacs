@@ -1,5 +1,11 @@
-2000-10-16  Miles Bader  <miles@gnu.org>
+2000-10-16  Gerd Moellmann  <gerd@gnu.org>
+	
+	* xdisp.c (try_scrolling) <cursor in scroll margin at the bottom>:
+	Don't add in the last line's height when deciding if the new
+	position is below the scroll margin.
 
+2000-10-16  Miles Bader  <miles@gnu.org>
+	
 	* xfns.c (xpm_lookup_color): Make h unsigned to avoid wackiness
 	when the high bit gets set.
 

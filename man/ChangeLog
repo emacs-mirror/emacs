@@ -1,3 +1,7 @@
+2000-10-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* sending.texi (Distracting NSA): Change the example.
+
 2000-10-13  John Wiegley  <johnw@gnu.org>
 
 	* eshell.texi (Installation): Changed URL reference for where to
