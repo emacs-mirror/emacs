@@ -84,7 +84,8 @@ Argument is a character, naming the register."
   (interactive "cJump to register: ")
   (let ((val (get-register char)))
     (cond
-     ((frame-configuration-p val)
+     ((and (fboundp 'frame-configuration-p)
+	   (frame-configuration-p val))
       (set-frame-configuration val))
      ((window-configuration-p val)
       (set-window-configuration val))
