@@ -1367,7 +1367,6 @@ Otherwise use brackets."
   :group 'custom-buffer)
 
 (defun custom-buffer-create-internal (options &optional description)
-  (message "Creating customization buffer...")
   (custom-mode)
   (if custom-buffer-verbose-help
       (progn
@@ -1387,7 +1386,6 @@ Invoke " (if custom-raised-buttons
 		       :help-echo "Read the online help."
 		       "(emacs)Easy Customization")
 	(widget-insert " for more information.\n\n")
-	(message "Creating customization buttons...")
 	(widget-insert "Operate on everything in this buffer:\n "))
     (widget-insert " "))
   (widget-create 'push-button
@@ -1478,13 +1476,15 @@ Un-customize all values in this buffer.  They get their standard settings."
   (unless (eq (preceding-char) ?\n)
     (widget-insert "\n"))
   (message "Creating customization items ...done")
+  (message "Resetting customization items...")
   (unless (eq custom-buffer-style 'tree)
     (mapc 'custom-magic-reset custom-options))
+  (message "Resetting customization items...done")
   (message "Creating customization setup...")
   (widget-setup)
   (buffer-enable-undo)
   (goto-char (point-min))
-  (message "Creating customization buffer...done"))
+  (message "Creating customization setup...done"))
 
 ;;; The Tree Browser.
 
@@ -1675,15 +1675,15 @@ group now hidden, invoke \"Show\", above, to show contents.")
 the value displayed for this %c is invalid and cannot be set.")
     (modified "*" custom-modified-face "\
 you have edited the value as text, but you have not set the %c." "\
-you have edited something in this group, but not set anything yet.")
+something in this group has been edited but not set.")
     (set "+" custom-set-face "\
 you have set this %c, but not saved it for future sessions." "\
-you have set something in this group, but not saved anything yet.")
+something in this group has been set but not saved.")
     (changed ":" custom-changed-face "\
 this %c has been changed outside the customize buffer." "\
 something in this group has been changed outside customize.")
     (saved "!" custom-saved-face "\
-You have set this %c and saved it through Customize in your init file." "\
+You've set this %c and Customize saved it in your init file." "\
 something in this group has been set and saved.")
     (rogue "@" custom-rogue-face "\
 this %c has not been changed with customize." "\
@@ -3285,54 +3285,69 @@ restoring it to the state of a face that has never been customized."
 
 ;;; The `face' Widget.
 
-(define-widget 'face 'default
-  "Select and customize a face."
-  :convert-widget 'widget-value-convert-widget
-  :button-prefix 'widget-push-button-prefix
-  :button-suffix 'widget-push-button-suffix
-  :format "%{%t%}: %[select face%] %v"
-  :tag "Face"
-  :value 'default
+(defvar widget-face-prompt-value-history nil
+  "History of input to `widget-face-prompt-value'.")
+
+(define-widget 'face 'restricted-sexp
+  "A Lisp face name."
+  :complete-function (lambda ()
+		       (interactive)
+		       (lisp-complete-symbol 'facep))
+  :prompt-value 'widget-field-prompt-value
+  :prompt-internal 'widget-symbol-prompt-internal
+  :prompt-match 'facep
+  :prompt-history 'widget-face-prompt-value-history
   :value-create 'widget-face-value-create
-  :value-delete 'widget-face-value-delete
-  :value-get 'widget-value-value-get
-  :validate 'widget-children-validate
-  :action 'widget-face-action
-  :match (lambda (widget value) (symbolp value)))
+  :action 'widget-field-action
+  :match-alternatives '(facep)
+  :validate (lambda (widget)
+	      (unless (facep (widget-value widget))
+		(widget-put widget :error (format "Invalid face: %S"
+						  (widget-value widget)))
+		widget))
+  :value 'ignore
+  :tag "Function")
+
+
+;;; There is a bug here: the sample doesn't get redisplayed
+;;; in the new font when you specify one.  Does anyone know how to
+;;; make that work?  -- rms.
 
 (defun widget-face-value-create (widget)
-  "Create a `custom-face' child."
-  (let* ((symbol (widget-value widget))
-	 (custom-buffer-style 'face)
-	 (child (widget-create-child-and-convert
-		 widget 'custom-face
-		 :custom-level nil
-		 :value symbol)))
-    (custom-magic-reset child)
-    (setq custom-options (cons child custom-options))
-    (widget-put widget :children (list child))))
+  "Create an editable face name field."
+  (let ((buttons (widget-get widget :buttons))
+	(symbol (widget-get widget :value)))
+    ;; Sample.
+    (push (widget-create-child-and-convert widget 'item
+					   :format "(%{%t%})"
+					   :sample-face symbol
+					   :tag "sample")
+	  buttons)
+    (insert " ")
+    ;; Update buttons.
+    (widget-put widget :buttons buttons))
 
-(defun widget-face-value-delete (widget)
-  "Remove the child from the options."
-  (let ((child (car (widget-get widget :children))))
-    (setq custom-options (delq child custom-options))
-    (widget-children-value-delete widget)))
+  (let ((size (widget-get widget :size))
+	(value (widget-get widget :value))
+	(from (point))
+	;; This is changed to a real overlay in `widget-setup'.  We
+	;; need the end points to behave differently until
+	;; `widget-setup' is called.
+	(overlay (cons (make-marker) (make-marker))))
+    (widget-put widget :field-overlay overlay)
+    (insert value)
+    (and size
+	 (< (length value) size)
+	 (insert-char ?\  (- size (length value))))
+    (unless (memq widget widget-field-list)
+      (setq widget-field-new (cons widget widget-field-new)))
+    (move-marker (cdr overlay) (point))
+    (set-marker-insertion-type (cdr overlay) nil)
+    (when (null size)
+      (insert ?\n))
+    (move-marker (car overlay) from)
+    (set-marker-insertion-type (car overlay) t)))
 
-(defvar face-history nil
-  "History of entered face names.")
-
-(defun widget-face-action (widget &optional event)
-  "Prompt for a face."
-  (let ((answer (completing-read "Face: "
-				 (mapcar (lambda (face)
-					   (list (symbol-name face)))
-					 (face-list))
-				 nil nil nil
-				 'face-history)))
-    (unless (zerop (length answer))
-      (widget-value-set widget (intern answer))
-      (widget-apply widget :notify widget event)
-      (widget-setup))))
 
 ;;; The `hook' Widget.
 
