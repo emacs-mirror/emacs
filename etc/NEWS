@@ -16,6 +16,9 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
+** The new command `clone-buffer-indirectly' can be used to create
+an indirect buffer that is a twin copy of the current buffer.
+
 ** New user options `backup-directory-alist' and
 `make-backup-file-name-function' are provided to control the placement
 of backups, typically in a single directory or in an invisible
@@ -100,6 +103,19 @@ area or with tooltips.
 
 ** New user option `read-mail-command' specifies a command to use to
 read mail from the menu etc.
+
+** Changes in Texinfo mode.
+
+** A couple of new key bindings have been added for inserting Texinfo
+macros
+
+  Key binding	Macro
+  -------------------------
+  C-c C-c C-s	@strong
+  C-c C-c C-e	@emph
+  C-c C-c u	@url
+  C-c C-c q     @quotation
+  C-c C-c m	@email
 
 ** Changes in Outline mode.
 

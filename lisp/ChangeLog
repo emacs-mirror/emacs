@@ -1,3 +1,15 @@
+2000-04-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/texinfo.el (texinfo-insert-@email)
+	(texinfo-insert-@emph, texinfo-insert-@quotation)
+	(texinfo-insert-@strong, texinfo-insert-@url): New functions.
+	(texinfo-mode-map): Add key bindings for them.
+
+	* files.el (basic-save-buffer-2): Use a template with `$'
+	instead of `#' for VMS.
+
+	* simple.el (clone-indirect-buffer): New function.
+
 2000-04-16  Stephen Eglen  <stephen@gnu.org>
 
 	* iswitchb.el (iswitchb-case): New function.  If the user input

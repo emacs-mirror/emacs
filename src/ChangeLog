@@ -1,5 +1,9 @@
 2000-04-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (clone_per_buffer_values): New function.
+	(Fmake_indirect_buffer): Add optional argument CLONE.  Call
+	clone_per_buffer_values if CLONE is not nil.
+
 	* xfaces.c (Ftty_suppress_bold_inverse_default_colors): Doc fix.
 
 2000-04-16  Dave Love  <fx@gnu.org>
