@@ -384,7 +384,7 @@ x_get_local_selection (selection_symbol, target_type)
 
 /* Subroutines of x_reply_selection_request.  */
 
-/* Send a SelectionNotify event to the requester with property=None,
+/* Send a SelectionNotify event to the requestor with property=None,
    meaning we were unable to do what they wanted.  */
 
 static void
@@ -394,14 +394,14 @@ x_decline_selection_request (event)
   XSelectionEvent reply;
   reply.type = SelectionNotify;
   reply.display = SELECTION_EVENT_DISPLAY (event);
-  reply.requester = SELECTION_EVENT_REQUESTER (event);
+  reply.requestor = SELECTION_EVENT_REQUESTOR (event);
   reply.selection = SELECTION_EVENT_SELECTION (event);
   reply.time = SELECTION_EVENT_TIME (event);
   reply.target = SELECTION_EVENT_TARGET (event);
   reply.property = None;
 
   BLOCK_INPUT;
-  XSendEvent (reply.display, reply.requester, False, 0L,
+  XSendEvent (reply.display, reply.requestor, False, 0L,
 	      (XEvent *) &reply);
   XFlush (reply.display);
   UNBLOCK_INPUT;
@@ -498,7 +498,7 @@ x_reply_selection_request (event, format, data, size, type)
 {
   XSelectionEvent reply;
   Display *display = SELECTION_EVENT_DISPLAY (event);
-  Window window = SELECTION_EVENT_REQUESTER (event);
+  Window window = SELECTION_EVENT_REQUESTOR (event);
   int bytes_remaining;
   int format_bytes = format/8;
   int max_bytes = SELECTION_QUANTUM (display);
@@ -509,7 +509,7 @@ x_reply_selection_request (event, format, data, size, type)
 
   reply.type = SelectionNotify;
   reply.display = display;
-  reply.requester = window;
+  reply.requestor = window;
   reply.selection = SELECTION_EVENT_SELECTION (event);
   reply.time = SELECTION_EVENT_TIME (event);
   reply.target = SELECTION_EVENT_TARGET (event);
@@ -1030,7 +1030,7 @@ fetch_multiple_target (event)
      XSelectionRequestEvent *event;
 {
   Display *display = event->display;
-  Window window = event->requester;
+  Window window = event->requestor;
   Atom target = event->target;
   Atom selection_atom = event->selection;
   int result;
@@ -1085,10 +1085,10 @@ static Lisp_Object
 x_get_foreign_selection (selection_symbol, target_type)
      Lisp_Object selection_symbol, target_type;
 {
-  Window requester_window = FRAME_X_WINDOW (selected_frame);
+  Window requestor_window = FRAME_X_WINDOW (selected_frame);
   Display *display = FRAME_X_DISPLAY (selected_frame);
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (selected_frame);
-  Time requester_time = last_event_timestamp;
+  Time requestor_time = last_event_timestamp;
   Atom target_property = dpyinfo->Xatom_EMACS_TMP;
   Atom selection_atom = symbol_to_x_atom (dpyinfo, display, selection_symbol);
   Atom type_atom;
@@ -1104,11 +1104,11 @@ x_get_foreign_selection (selection_symbol, target_type)
   BLOCK_INPUT;
   x_catch_errors (display);
   XConvertSelection (display, selection_atom, type_atom, target_property,
-		     requester_window, requester_time);
+		     requestor_window, requestor_time);
   XFlush (display);
 
   /* Prepare to block until the reply has been read.  */
-  reading_selection_window = requester_window;
+  reading_selection_window = requestor_window;
   reading_which_selection = selection_atom;
   XCONS (reading_selection_reply)->car = Qnil;
 
@@ -1142,7 +1142,7 @@ x_get_foreign_selection (selection_symbol, target_type)
 
   /* Otherwise, the selection is waiting for us on the requested property.  */
   return
-    x_get_window_property_as_lisp_data (display, requester_window,
+    x_get_window_property_as_lisp_data (display, requestor_window,
 					target_property, target_type,
 					selection_atom);
 }
@@ -1697,7 +1697,7 @@ void
 x_handle_selection_notify (event)
      XSelectionEvent *event;
 {
-  if (event->requester != reading_selection_window)
+  if (event->requestor != reading_selection_window)
     return;
   if (event->selection != reading_which_selection)
     return;
