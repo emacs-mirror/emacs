@@ -9,6 +9,7 @@ TEX=tex
 MAKE=make
 SHELL=/bin/sh
 INSTALL_INFO = install-info
+MAKEINFO=makeinfo
 
 # Where the TeX macros are kept:
 texmacrodir = /usr/local/lib/tex/macros
@@ -47,7 +48,7 @@ srcs = elisp.texi back.texi \
 
 elisp: $(srcs) index.texi
 	rm -f elisp-*
-	makeinfo elisp.texi
+	$(MAKEINFO) elisp.texi
 
 elisp.dvi: $(srcs) index.texi
 	# Avoid losing old contents of aux file entirely.
