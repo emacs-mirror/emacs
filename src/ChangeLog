@@ -1,3 +1,8 @@
+2001-10-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (XTset_vertical_scroll_bar) [!USE_TOOLKIT_SCROLL_BARS]:
+	Fix clearing in the case of scroll bars on the right.
+	
 2001-10-26  Juanma Barranquero <lektu@terra.es>
 
 	* w32gui.h (XImage): Add a dummy typedef.
