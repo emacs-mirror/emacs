@@ -131,13 +131,11 @@
 	* term/mac-win.el (interprogram-paste-function): Handle empty
 	clipboard.
 
-2003-01-22  Karl Berry  <karl@gnu.org>
+2003-01-22  Aubrey Jaffer  <agj@alum.mit.edu>  (tiny change)
 
-	* info.el (Info-index): change pattern so that index entries with
+	* info.el (Info-index): Change pattern so that index entries with
 	colons can be read properly; also, require at least one space
-	after the colons, which makeinfo puts in.  From: Aubrey Jaffer
-	<agj@alum.mit.edu>, 7 Nov 2002 21:16:12 -0500, sent to
-	bug-texinfo.
+	after the colons, which makeinfo puts in.
 
 2003-01-22  Andreas Schwab  <schwab@suse.de>
 
