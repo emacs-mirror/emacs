@@ -98,6 +98,12 @@ Lisp_Object Vload_file_name;
 /* Function to use for reading, in `load' and friends.  */
 Lisp_Object Vload_read_function;
 
+/* The association list of objects read with the #n=object form.
+   Each member of the list has the form (n . object), and is used to
+   look up the object for the corresponding #n# construct.
+   It must be set to nil before all top-level calls to read0.  */
+Lisp_Object read_objects;
+
 /* Nonzero means load should forcibly load all dynamic doc strings.  */
 static int load_force_doc_strings;
 
@@ -802,6 +808,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag)
       else
 	{
 	  UNREAD (c);
+	  read_objects = Qnil;
 	  if (NILP (Vload_read_function))
 	    val = read0 (readcharfun);
 	  else
@@ -949,6 +956,7 @@ STREAM or the value of `standard-input' may be:\n\
     stream = Qread_char;
 
   new_backquote_flag = 0;
+  read_objects = Qnil;
 
 #ifndef standalone
   if (EQ (stream, Qread_char))
@@ -996,6 +1004,7 @@ START and END optionally delimit a substring of STRING from which to read;\n\
   read_from_string_limit = endval;
 
   new_backquote_flag = 0;
+  read_objects = Qnil;
 
   tem = read0 (string);
   return Fcons (tem, make_number (read_from_string_index));
@@ -1191,6 +1200,8 @@ read1 (readcharfun, pch, first_in_list)
      int first_in_list;
 {
   register int c;
+  int uninterned_symbol = 0;
+
   *pch = 0;
 
  retry:
@@ -1353,7 +1364,43 @@ read1 (readcharfun, pch, first_in_list)
 	return Vload_file_name;
       if (c == '\'')
 	return Fcons (Qfunction, Fcons (read0 (readcharfun), Qnil));
+      /* #:foo is the uninterned symbol named foo.  */
+      if (c == ':')
+	{
+	  uninterned_symbol = 1;
+	  c = READCHAR;
+	  goto default_label;
+	}
+      /* Reader forms that can reuse previously read objects.  */
+      if (c >= '0' && c <= '9')
+	{
+	  int n = 0;
+	  Lisp_Object tem;
 
+	  /* Read a non-negative integer.  */
+	  while (c >= '0' && c <= '9')
+	    {
+	      n *= 10;
+	      n += c - '0';
+	      c = READCHAR;
+	    }
+	  /* #n=object returns object, but associates it with n for #n#.  */
+	  if (c == '=')
+	    {
+	      tem = read0 (readcharfun);
+	      read_objects = Fcons (Fcons (make_number (n), tem), read_objects);
+	      return tem;
+	    }
+	  /* #n# returns a previously read object.  */
+	  if (c == '#')
+	    {
+	      tem = Fassq (make_number (n), read_objects);
+	      if (CONSP (tem))
+		return XCDR (tem);
+	      /* Fall through to error message.  */
+	    }
+	  /* Fall through to error message.  */
+	}
 
       UNREAD (c);
       Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#", 1), Qnil));
@@ -1545,7 +1592,7 @@ read1 (readcharfun, pch, first_in_list)
 	    UNREAD (c);
 	}
 
-	if (!quoted)
+	if (!quoted && !uninterned_symbol)
 	  {
 	    register char *p1;
 	    register Lisp_Object val;
@@ -1581,7 +1628,10 @@ read1 (readcharfun, pch, first_in_list)
 #endif
 	  }
 
-	return intern (read_buffer);
+	if (uninterned_symbol)
+	  return make_symbol (read_buffer);
+	else
+	  return intern (read_buffer);
       }
     }
 }
@@ -1865,6 +1915,19 @@ intern (str)
 		   : make_string (str, len)),
 		  obarray);
 }
+
+/* Create an uninterned symbol with name STR.  */
+
+Lisp_Object
+make_symbol (str)
+     char *str;
+{
+  int len = strlen (str);
+
+  return Fmake_symbol ((!NILP (Vpurify_flag)
+			? make_pure_string (str, len)
+			: make_string (str, len)));
+}
 
 DEFUN ("intern", Fintern, Sintern, 1, 2, 0,
   "Return the canonical symbol whose name is STRING.\n\
@@ -1888,6 +1951,7 @@ it defaults to the value of `obarray'.")
   if (!NILP (Vpurify_flag))
     string = Fpurecopy (string);
   sym = Fmake_symbol (string);
+  XSYMBOL (sym)->obarray = obarray;
 
   ptr = &XVECTOR (obarray)->contents[XINT (tem)];
   if (SYMBOLP (*ptr))
@@ -2103,6 +2167,7 @@ init_obarray ()
   initial_obarray = Vobarray;
   staticpro (&initial_obarray);
   /* Intern nil in the obarray */
+  XSYMBOL (Qnil)->obarray = Vobarray;
   /* These locals are to kludge around a pyramid compiler bug. */
   hash = hash_string ("nil", 3);
   /* Separate statement here to avoid VAXC bug. */
@@ -2505,4 +2570,7 @@ You cannot count on them to still be there!");
   staticpro (&Qload_file_name);
 
   staticpro (&dump_path);
+
+  staticpro (&read_objects);
+  read_objects = Qnil;
 }
