@@ -842,9 +842,9 @@ For example:
 				 :help "Unsubscribe from the current group")
 	      (tool-bar-add-item-from-menu
 	       'gnus-group-exit "exit-gnus" gnus-group-mode-map)
-	      tool-bar-map))
-    (if gnus-group-toolbar-map
-	(set (make-local-variable 'tool-bar-map) gnus-group-toolbar-map))))
+	      tool-bar-map)))
+  (if gnus-group-toolbar-map
+      (set (make-local-variable 'tool-bar-map) gnus-group-toolbar-map)))
 
 (defun gnus-group-mode ()
   "Major mode for reading news.
