@@ -31,6 +31,9 @@ NOTE-END
 
 #define BITS_PER_LONG 64
 #define BITS_PER_EMACS_INT 64
+#ifndef _LP64
+#define _LP64
+#endif
 
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
@@ -153,7 +156,7 @@ NOTE-END
 # endif
 #endif
 
-#if defined(__NetBSD__) || defined(__OpenBSD__)
+#if defined(__OpenBSD__)
 #define ORDINARY_LINK
 #endif
 
