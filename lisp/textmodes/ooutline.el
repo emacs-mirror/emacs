@@ -101,8 +101,9 @@ in the file it applies to.")
   "Non-nil if using Outline mode as a minor mode of some other mode.")
 (make-variable-buffer-local 'outline-minor-mode)
 (put 'outline-minor-mode 'permanent-local t)
-(setq minor-mode-alist (append minor-mode-alist
-			       (list '(outline-minor-mode " Outl"))))
+(or (assq 'outline-minor-mode minor-mode-alist)
+    (setq minor-mode-alist (append minor-mode-alist
+				   (list '(outline-minor-mode " Outl")))))
 
 ;;;###autoload
 (defun outline-mode ()
