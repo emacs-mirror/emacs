@@ -1820,7 +1820,12 @@ redisplay_region (buf, start, end)
       start = end; end = temp;
     }
 
-  if (buf != current_buffer)
+  /* If this is a buffer not in the selected window,
+     we must do other windows.  */
+  if (buf != XBUFFER (XWINDOW (selected_window)->buffer))
+    windows_or_buffers_changed = 1;
+  /* If multiple windows show this buffer, we must do other windows.  */
+  else if (buffer_shared > 1)
     windows_or_buffers_changed = 1;
   else
     {
