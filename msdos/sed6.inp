@@ -3,3 +3,7 @@
 # ----------------------------------------------------------------------
 /^srcdir *=/s/@[^@\n]*@/./
 /^VPATH *=/s/@[^@\n]*@/./
+/^ENVADD/c\
+ENVADD =\
+export TEXINPUTS := $(srcdir)";"$(TEXINPUTS)\
+export MAKEINFO := $(MAKEINFO) -I$(srcdir)
