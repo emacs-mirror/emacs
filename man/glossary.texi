@@ -204,7 +204,7 @@ for creating, aligning and killing comments.  @xref{Comments}.
 @item Common Lisp
 Common Lisp is a dialect of Lisp (q.v.@:) much larger and more powerful
 than Emacs Lisp.  Emacs provides a subset of Common Lisp in the CL
-package.  @xref{Common Lisp,,, cl, Common Lisp Extensions}.
+package.  @xref{Top, Common Lisp, Overview, cl, Common Lisp Extensions}.
 
 @item Compilation
 Compilation is the process of creating an executable program from source
