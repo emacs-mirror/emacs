@@ -1,3 +1,9 @@
+2004-05-10  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/unrmail.el (unrmail): Mostly rewritten.  Parses the file
+	directly without calling any functions in Rmail.
+	(unrmail-unprune): Function deleted.
+
 2004-05-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (inferior-python-mode-map): Remove erroneous
