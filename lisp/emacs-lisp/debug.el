@@ -60,7 +60,7 @@ first will be printed into the backtrace buffer."
 	(debug-on-error nil)
 	(debug-on-quit nil)
 	(debugger-buffer (let ((default-major-mode 'fundamental-mode))
-			   (generate-new-buffer "*Backtrace*")))
+			   (get-buffer-create "*Backtrace*")))
 	(debugger-old-buffer (current-buffer))
 	(debugger-step-after-exit nil)
 	;; Don't keep reading from an executing kbd macro!
@@ -136,9 +136,18 @@ first will be printed into the backtrace buffer."
 		    (buffer-read-only t))
 		(message "")
 		(recursive-edit))))
-	;; So that users do not try to execute debugger commands
-	;;  in an invalid context
-	(kill-buffer debugger-buffer)
+	;; Kill or at least neuter the backtrace buffer, so that users
+	;; don't try to execute debugger commands in an invalid context.
+	(if (get-buffer-window debugger-buffer 'visible)
+	    ;; Still visible despite the save-window-excursion?  Maybe it
+	    ;; it's in a pop-up frame.  It would be annoying to delete and
+	    ;; recreate it every time the debugger stops, so instead we'll
+	    ;; erase it but leave it visible.
+	    (save-excursion
+	      (set-buffer debugger-buffer)
+	      (erase-buffer)
+	      (fundamental-mode))
+	  (kill-buffer debugger-buffer))
 	(store-match-data debugger-match-data)))
     ;; Put into effect the modified values of these variables
     ;; in case the user set them with the `e' command.
