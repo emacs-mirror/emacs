@@ -475,8 +475,7 @@ DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0, "T if SYMBOL's value is not void.")
       valcontents = swap_in_symval_forwarding (sym, valcontents);
     }
 
-  return (VOIDP (valcontents) || EQ (valcontents, Qunbound)
-	  ? Qnil : Qt);
+  return (EQ (valcontents, Qunbound) ? Qnil : Qt);
 }
 
 DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0, "T if SYMBOL's function definition is not void.")
@@ -484,9 +483,7 @@ DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0, "T if SYMBOL's function definitio
      register Lisp_Object sym;
 {
   CHECK_SYMBOL (sym, 0);
-  return ((VOIDP (XSYMBOL (sym)->function)
-	   || EQ (XSYMBOL (sym)->function, Qunbound))
-	  ? Qnil : Qt);
+  return (EQ (XSYMBOL (sym)->function, Qunbound) ? Qnil : Qt);
 }
 
 DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0, "Make SYMBOL's value be void.")
@@ -790,9 +787,6 @@ find_symbol_value (sym)
 
     case Lisp_Buffer_Objfwd:
       return *(Lisp_Object *)(XUINT (valcontents) + (char *)current_buffer);
-
-    case Lisp_Void:
-      return Qunbound;
     }
 
   return valcontents;
@@ -817,7 +811,7 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
   (sym, newval)
      register Lisp_Object sym, newval;
 {
-  int voide = (VOIDP (newval) || EQ (newval, Qunbound));
+  int voide = EQ (newval, Qunbound);
 
   register Lisp_Object valcontents, tem1, current_alist_element;
 
@@ -929,7 +923,7 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
 /* Access or set a buffer-local symbol's default value.  */
 
 /* Return the default value of SYM, but don't check for voidness.
-   Return Qunbound or a Lisp_Void object if it is void.  */
+   Return Qunbound if it is void.  */
 
 Lisp_Object
 default_value (sym)
@@ -981,8 +975,7 @@ for this variable.")
   register Lisp_Object value;
 
   value = default_value (sym);
-  return (VOIDP (value) || EQ (value, Qunbound)
-	  ? Qnil : Qt);
+  return (EQ (value, Qunbound) ? Qnil : Qt);
 }
 
 DEFUN ("default-value", Fdefault_value, Sdefault_value, 1, 1, 0,
@@ -996,7 +989,7 @@ local bindings in certain buffers.")
   register Lisp_Object value;
 
   value = default_value (sym);
-  if (VOIDP (value) || EQ (value, Qunbound))
+  if (EQ (value, Qunbound))
     return Fsignal (Qvoid_variable, Fcons (sym, Qnil));
   return value;
 }
