@@ -1,3 +1,13 @@
+2002-04-28  Colin Walters  <walters@verbum.org>
+
+	* ibuffer.el (ibuffer-mode): Additional documentation on filter
+	groups.
+	
+2002-04-28  John Paul Wallington <jpw@shootybangbang.com>
+
+	* ibuf-ext.el (ibuffer-set-filter-groups-by-mode): Don't make an
+	ibuffer-mode filter group if `ibuffer-view-ibuffer' is nil.
+
 2002-04-28  Richard M. Stallman  <rms@gnu.org>
 
 	* filesets.el: New file.
