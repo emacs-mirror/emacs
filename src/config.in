@@ -324,3 +324,25 @@ extern char *getenv ();
 #endif
 
 #endif /* EMACS_CONFIG_H */
+
+/* These default definitions are good for almost all machines.
+   The exceptions override them in m/*.h.  */
+
+#ifndef BITS_PER_CHAR
+#define BITS_PER_CHAR 8
+#endif
+
+#ifndef BITS_PER_SHORT
+#define BITS_PER_SHORT 16
+#endif
+
+/* Note that lisp.h uses this in a preprocessor conditional, so it
+   would not work to use sizeof.  That being so, we do all of them
+   without sizeof, for uniformity's sake.  */
+#ifndef BITS_PER_INT
+#define BITS_PER_INT 32
+#endif
+
+#ifndef BITS_PER_LONG
+#define BITS_PER_LONG 32
+#endif
