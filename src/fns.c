@@ -47,23 +47,24 @@ DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
   return arg;
 }
 
+extern long get_random ();
+extern void seed_random ();
+extern long time ();
+
 DEFUN ("random", Frandom, Srandom, 0, 1, 0,
   "Return a pseudo-random number.\n\
 All integers representable in Lisp are equally likely.\n\
   On most systems, this is 28 bits' worth.\n\
-With argument N, return random number in interval [0,N).\n\
+With positive integer argument N, return random number in interval [0,N).\n\
 With argument t, set the random number seed from the current time and pid.")
   (limit)
      Lisp_Object limit;
 {
   int val;
   unsigned long denominator;
-  extern long random ();
-  extern srandom ();
-  extern long time ();
 
   if (EQ (limit, Qt))
-    srandom (getpid () + time (0));
+    seed_random (getpid () + time (0));
   if (NATNUMP (limit) && XFASTINT (limit) != 0)
     {
       /* Try to take our random number from the higher bits of VAL,
@@ -75,11 +76,11 @@ With argument t, set the random number seed from the current time and pid.")
 	 when using a large limit.  */
       denominator = ((unsigned long)1 << VALBITS) / XFASTINT (limit);
       do
-	val = (random () & (((unsigned long)1 << VALBITS) - 1)) / denominator;
+	val = get_random () / denominator;
       while (val >= XFASTINT (limit));
     }
   else
-    val = random ();
+    val = get_random ();
   return make_number (val);
 }
 
