@@ -2463,26 +2463,25 @@ field.
 This function modifies the existing fontset @var{name} to
 use the font name @var{fontname} for the character @var{character}.
 
-If @var{name} is nil, this function modifies the default
-fontset of which short name is "fontset-default".
+If @var{name} is @code{nil}, this function modifies the default
+fontset of which short name is @samp{fontset-default}.
 
-@var{character} may be a cons; @samp{(@var{from}
-. @var{to})}, where @var{from} and @var{to} are non-generic
-characters.  In that case, use @var{fontname} for all
-characters in the range @var{from} and @var{to} (inclusive).
+@var{character} may be a cons; @code{(@var{from} . @var{to})}, where
+@var{from} and @var{to} are non-generic characters.  In that case, use
+@var{fontname} for all characters in the range @var{from} and @var{to}
+(inclusive).
 
 @var{character} may be a charset.  In that case, use
 @var{fontname} for all character in the charsets.
 
-@var{fontname} may be a cons; @samp{(@var{family}
-. @var{registry})}, where @var{family} is a family name of a
-font (possibly including a foundry name at the head),
-@var{registry} is a registry name of a font (possibly
-including an encoding name at the tail).
+@var{fontname} may be a cons; @code{(@var{family} . @var{registry})},
+where @var{family} is a family name of a font (possibly including a
+foundry name at the head), @var{registry} is a registry name of a font
+(possibly including an encoding name at the tail).
 
-For instance, this changes the default fontset to use a font
-of which registry name is "JISX0208.1983" for all characters
-belonging to the charset `japanese-jisx0208'.
+For instance, this changes the default fontset to use a font of which
+registry name is @samp{JISX0208.1983} for all characters belonging to
+the charset @code{japanese-jisx0208}.
 
 @example
 (set-fontset-font nil 'japanese-jisx0208 '(nil . "JISX0208.1983"))
