@@ -1136,6 +1136,11 @@ earlier versions.
 Emacs 21 needs version 10 or later of AUC TeX; upgrading should solve
 these problems.
 
+* No colors in AUC TeX with Emacs 21.
+
+Upgrade to AUC TeX version 10 or later, and make sure it is
+byte-compiled with Emacs 21.
+
 * Running TeX from AUC TeX package with Emacs 20.3 gives a Lisp error
 about a read-only tex output buffer.
 
