@@ -1,6 +1,7 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985,86,87,93,94,95,96,97,1998,2000 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,93,94,95,96,97,1998,2000
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -141,6 +142,10 @@ Lisp_Object Vpop_up_frame_function;
 /* Function to call to handle Fdisplay_buffer.  */
 
 Lisp_Object Vdisplay_buffer_function;
+
+/* Non-nil means that Fdisplay_buffer should even the heights of windows.  */
+
+Lisp_Object Veven_window_heights;
 
 /* List of buffer *names* for buffers that should have their own frames.  */
 
@@ -2843,7 +2848,11 @@ If FRAME is a frame, search only that frame.\n\
 If FRAME is nil, search only the selected frame\n\
  (actually the last nonminibuffer frame),\n\
  unless `pop-up-frames' or `display-buffer-reuse-frames' is non-nil,\n\
- which means search visible and iconified frames.")
+ which means search visible and iconified frames.\n\
+\n\
+If `even-window-heights' is non-nil, window heights will be evened out\n\
+if displaying the buffer causes two vertically\ adjacent windows to be\n\
+displayed.")
   (buffer, not_this_window, frame)
      register Lisp_Object buffer, not_this_window, frame;
 {
@@ -2992,6 +3001,7 @@ If FRAME is nil, search only the selected frame\n\
 	  if (!NILP (XWINDOW (window)->next))
 	    other = lower = XWINDOW (window)->next, upper = window;
 	  if (!NILP (other)
+	      && !NILP (Veven_window_heights)
 	      /* Check that OTHER and WINDOW are vertically arrayed.  */
 	      && !EQ (XWINDOW (other)->top, XWINDOW (window)->top)
 	      && (XFASTINT (XWINDOW (other)->height)
@@ -5490,6 +5500,11 @@ It will receive two args, the buffer and a flag which if non-nil means\n\
 Commands such as `switch-to-buffer-other-window' and `find-file-other-window'\n\
 work using this function.");
   Vdisplay_buffer_function = Qnil;
+
+  DEFVAR_LISP ("even-window-heights", &Veven_window_heights,
+    "*If non-nil, `display-buffer' should even the window heights.\n\
+If nil, `display-buffer' will leave the window configuation alone.");
+  Veven_window_heights = Qt;
 
   DEFVAR_LISP ("minibuffer-scroll-window", &Vminibuf_scroll_window,
     "Non-nil means it is the window that C-M-v in minibuffer should scroll.");
