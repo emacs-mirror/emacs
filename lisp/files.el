@@ -365,6 +365,9 @@ and ignores this variable."
 	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
   "The directory for writing temporary files.")
 
+;; The system null device. (Should reference NULL_DEVICE from C.)
+(defvar null-device "/dev/null" "The system null device.")
+
 ;; This hook function provides support for ange-ftp host name
 ;; completion.  It runs the usual ange-ftp hook, but only for
 ;; completion operations.  Having this here avoids the need
