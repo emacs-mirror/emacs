@@ -16,13 +16,17 @@ Copyright (c) 1985, 2000, 2001 Free Software Foundation, Inc.
 should read the Windows-specific section near the end of this
 document.]
 
-It is a good idea to run Emacs under GDB (or some other suitable
+** When you debug Emacs with GDB, you should start it in the directory
+where you built Emacs.  That directory has a .gdbinit file that defines
+various "user-defined" commands for debugging Emacs.
+
+** It is a good idea to run Emacs under GDB (or some other suitable
 debugger) *all the time*.  Then, when Emacs crashes, you will be able
 to debug the live process, not just a core dump.  (This is especially
 important on systems which don't support core files, and instead print
 just the registers and some stack addresses.)
 
-If Emacs hangs, or seems to be stuck in some infinite loop, typing
+** If Emacs hangs, or seems to be stuck in some infinite loop, typing
 "kill -TSTP PID", where PID is the Emacs process ID, will cause GDB to
 kick in, provided that you run under GDB.
 
