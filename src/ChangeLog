@@ -1,5 +1,10 @@
 2000-09-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (clear_image_cache): Clear current matrices of all
+	frames sharing an image cache.  Block input while freeing
+	images.  Fix timestamp comparison.
+	(x_clear_image): Also free the mask.
+
 	* xfns.c (lookup_image): Block input while loading the image so
 	that we won't get interrupted in a state where the image isn't yet
 	set up completely.
