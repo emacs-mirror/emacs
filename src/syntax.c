@@ -466,7 +466,7 @@ describe_syntax_1 (vector)
 {
   struct buffer *old = current_buffer;
   set_buffer_internal (XBUFFER (Vstandard_output));
-  describe_vector (vector, Qnil, describe_syntax, 0, Qnil);
+  describe_vector (vector, Qnil, describe_syntax, 0, Qnil, Qnil);
   call0 (intern ("help-mode"));
   set_buffer_internal (old);
   return Qnil;
