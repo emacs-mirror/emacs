@@ -1,3 +1,7 @@
+2004-01-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/cc-defs.el: Do not require cl at run time.
+
 2004-01-16  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/cl.el (cl-cannot-unload): New function.
