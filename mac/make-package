@@ -42,7 +42,7 @@
 progname="$0"
 
 srcdir="`pwd`/.."
-builddir=..
+builddir=${srcdir}
 
 ## Default location to place it is /usr/local
 prefix=/usr/local
@@ -55,6 +55,7 @@ comp_diskimage=yes
 self_contained=no
 app_symlink=no
 full_dist=yes
+build_in_place=no
 keep_directory=no
 
 ac_prev=
@@ -74,6 +75,14 @@ do
        ac_prev=prefix ;;
     -p=* | -prefix=* | --p=* | --prefix=*)
        prefix=`expr "x$1" : 'x[^=]*=\(.*\)'` ;;
+    --build-in-place | --build-in-place )
+       build_in_place=yes ;;
+    --build-dir | -build-dir | --builddir | -build-dir)
+       build_in_place=no
+       ac_prev=builddir;;
+    --build-dir=* | -build-dir=* | -builddir=* | --builddir=*)
+       build_in_place=no
+       builddir=`expr "x$1" : 'x[^=]*=\(.*\)'`;;
     -no-configure | -no-conf | --no-configure | --no-conf | --without-config)
        with_config=no ;;
     -no-app | --no-app | -without-app | --without-app)
@@ -135,6 +144,11 @@ Options:
       --self-contained    Create an Emacs.app that is self-contained;
                           prefix will be ignored and all files installed 
                           inside the application 
+      --build-in-place    Build the application in the source directory
+                          instead of a temporary directory.  
+      --build-dir=DIR     Build the application in the specified directory
+                          instead of a temporary directory.  Mutually exclusive
+                          with --build-in-place.
   -C,option               Pass option to configure
   -M,option               Pass option to make
 EOF
@@ -219,11 +233,35 @@ fi
 tempparentfull="`pwd`/${tempparent}"
 tempparentdist=${tempparentfull}/dist
 
+if test "$build_in_place" = "no"; then
+    case ${builddir} in
+      ${srcdir})
+        tempbuild="make-package.build.$$"
+	builddir="`pwd`/${tempbuild}"
+	removable_build_dir=${builddir}
+	;;
+      [\\/]* | ?:[\\/]* ) #Absolutepath.
+        mkdir -p ${builddir}
+        ;;
+      *)
+	mkdir -p ${builddir}
+	builddir=`cd $builddir && pwd`
+	;;
+    esac
+fi
+# Location of install package
+packagedir=${builddir}/mac/Emacs.pkg
+
+echo Building in directory ${builddir}
 echo Installing into directory ${tempparentfull} >&2
+
+### This trap ensures that the staging directory will be cleaned up even
+### when the script is interrupted in mid-career.
+trap "echo 'Interrupted...cleaning up the staging directory'; rm -rf ${tempparent} ${removable_build_dir} ${packagedir}; exit 1" 1 2 15
 
 # Run configure in the new tempparent directory
 if test "$with_config" = "yes"; then
-    (cd ..; ./configure ${config_options} --prefix=${prefix})
+    (cd ${builddir}; ${srcdir}/configure ${config_options} --prefix=${prefix})
 fi
 
 installprefix=${tempparentfull}${prefix}
@@ -232,12 +270,8 @@ if test "$self_contained" = "yes"; then
     installprefix=$tempparentfull/$appsdir/$emapp/Contents/Resources
 fi
 
-### This trap ensures that the staging directory will be cleaned up even
-### when the script is interrupted in mid-career.
-trap "echo 'Interrupted...cleaning up the staging directory'; rm -rf ${tempparent}; rm -rf Emacs.pkg; exit 1" 1 2 15
-
 ## Make bootstrap if .elc files are missing from distribution
-if [ ! -f ../lisp/abbrev.elc ]; then
+if [ ! -f ${srcdir}/lisp/abbrev.elc ]; then
    echo "Required .elc files missing; making bootstrap..."
    if ! (cd ${builddir}; make bootstrap prefix=$installprefix $make_options); then
       echo "Make bootstrap failed...  Aborting make-package."
@@ -263,7 +297,7 @@ if test "$with_app" == "yes"; then
   mkdir ${tempappdir}
 
   ## Copy Emacs application
-  cp -r Emacs.app ${tempappdir}
+  cp -r ${builddir}/mac/Emacs.app ${tempappdir}
   ## Delete any CVS files
   find ${tempappdir} -name "CVS" -type d -exec rm -rf {} \;
 
@@ -294,15 +328,15 @@ fi
 
 echo "Creating Package Info file"
 
-mkdir Emacs.pkg
-mkdir Emacs.pkg/Contents
-mkdir Emacs.pkg/Contents/Resources
-mkdir Emacs.pkg/Contents/Resources/English.lproj
-echo 'pmkrpkg1' > Emacs.pkg/Contents/PkgInfo
+mkdir ${packagedir}
+mkdir ${packagedir}/Contents
+mkdir ${packagedir}/Contents/Resources
+mkdir ${packagedir}/Contents/Resources/English.lproj
+echo 'pmkrpkg1' > ${packagedir}/Contents/PkgInfo
 
-infofile=Emacs.pkg/Contents/Resources/English.lproj/Emacs.info
+infofile=${packagedir}/Contents/Resources/English.lproj/Emacs.info
 
-echo 'Title Emacs' > ${infofile}
+echo 'Title GNU Emacs' > ${infofile}
 echo "Version ${version}" >> ${infofile}
 echo "Description Install GNU Emacs ${version} as a command-line app and a Mac OS Application" >> ${infofile}
 echo 'DefaultLocation /' >> ${infofile}
@@ -321,41 +355,41 @@ echo 'InstallFat NO' >> ${infofile}
 # chown -Rh 0 ${tempparentfull}
 
 echo "Creating pax file"
-(cd ${tempparentfull}; pax -w -f ../Emacs.pkg/Contents/Resources/Emacs.pax .; cd ..)
+(cd ${tempparentfull}; pax -w -f ${packagedir}/Contents/Resources/Emacs.pax .)
 echo "Compressing pax file"
-gzip Emacs.pkg/Contents/Resources/Emacs.pax
+gzip ${packagedir}/Contents/Resources/Emacs.pax
 
 echo "Creating bom file"
-mkbom ${tempparentfull} Emacs.pkg/Contents/Resources/Emacs.bom
+mkbom ${tempparentfull} ${packagedir}/Contents/Resources/Emacs.bom
 
 echo "Generating sizes file"
-sizesfile=Emacs.pkg/Contents/Resources/Emacs.sizes
+sizesfile=${packagedir}/Contents/Resources/Emacs.sizes
 
 numFiles=`du -a ${tempparent} | wc -l`
 installedSize=`du -s ${tempparent} | cut -f1`
-compressedSize=`du -s Emacs.pkg | cut -f1`
+compressedSize=`du -s ${packagedir} | cut -f1`
 
 echo "NumFiles ${numFiles}" > ${sizesfile}
 echo "InstalledSize ${installedSize}" >> ${sizesfile}
 echo "CompressedSize ${compressedSize}" >> ${sizesfile}
 cat ${sizesfile}
 
-mv ${tempparentfull} ${emacsname}
-
 echo "Creating Disc Image"
 ## Allocate an extra 5000 sectors (about 2.5 mg)
-## Note a sector appears to be ~500k
+## Note a sector appears to be 512k
 sectorsAlloced=`echo 2*${compressedSize}+5000|bc`
-hdiutil create -ov EmacsRW -sectors ${sectorsAlloced}
+hdiutil create -ov ${builddir}/mac/EmacsRW -sectors ${sectorsAlloced}
 ## Need to format the disc image before mounting
-mountLoc=`hdid -nomount EmacsRW.dmg | grep HFS | cut -f1`
+mountLoc=`hdid -nomount ${builddir}/mac/EmacsRW.dmg | grep HFS | cut -f1`
 /sbin/newfs_hfs -v Emacs ${mountLoc}
 hdiutil eject ${mountLoc}
 echo "Copying Package to Disc Image"
-hdid EmacsRW.dmg
+hdid ${builddir}/mac/EmacsRW.dmg
 
 if test "$keep_directory" = "no"; then
-    rm -rf ${emacsname}
+    rm -rf ${tempparentfull}
+else
+    mv ${tempparentfull} ${emacsname}
 fi
 
 if [ ! -d /Volumes/Emacs ]; then
@@ -365,20 +399,20 @@ create a disc image." >&2
   exit 0
 fi
 
-cp -R Emacs.pkg /Volumes/Emacs
+cp -R ${packagedir} /Volumes/Emacs
 
 ## Converting Disk Image to read-only
 echo 'Converting Disc Image to read-only'
 hdiutil eject ${mountLoc}
-hdiutil resize EmacsRW.dmg -sectors min
+hdiutil resize ${builddir}/mac/EmacsRW.dmg -sectors min
 if test "$comp_diskimage" = "yes"; then
-    hdiutil convert EmacsRW.dmg -format UDZO -imagekey zlib-level=2 -o EmacsInstaller.dmg
+    hdiutil convert ${builddir}/mac/EmacsRW.dmg -format UDZO -imagekey zlib-level=2 -o ${srcdir}/mac/EmacsInstaller.dmg
 else
-    hdiutil convert EmacsRW.dmg -format UDRO -o EmacsInstaller.dmg
+    hdiutil convert ${builddir}/mac/EmacsRW.dmg -format UDRO -o ${srcdir}/mac/EmacsInstaller.dmg
 fi
-rm EmacsRW.dmg
+rm ${builddir}/mac/EmacsRW.dmg
 
 echo "Cleaning up the staging directory"
-rm -rf Emacs.pkg
+rm -rf ${builddir}/mac/Emacs.pkg ${removable_build_dir}
 
 ### make-package ends here
