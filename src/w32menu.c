@@ -2166,7 +2166,7 @@ w32_menu_display_help (HMENU menu, UINT item, UINT flags)
       get_menu_item_info (menu, item, FALSE, &info);
 
       show_help_echo (info.dwItemData ?
-		      build_string ((char *) info.dwItemData) : Qnil);
+		      build_string ((char *) info.dwItemData) : Qnil, 1);
     }
 }
 
