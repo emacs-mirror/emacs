@@ -1143,6 +1143,7 @@ single_submenu (item_key, item_name, maps)
   wv->value = 0;
   wv->enabled = 1;
   wv->button_type = BUTTON_TYPE_NONE;
+  wv->help = Qnil;
   first_wv = wv;
   save_wv = 0;
   prev_wv = 0;
@@ -1215,6 +1216,7 @@ single_submenu (item_key, item_name, maps)
 	      wv->value = 0;
 	      wv->enabled = 1;
 	      wv->button_type = BUTTON_TYPE_NONE;
+	      wv->help = Qnil;
 	    }
 	  save_wv = wv;
 	  prev_wv = 0;
@@ -1327,6 +1329,7 @@ set_frame_menubar (f, first_time, deep_p)
   wv->value = 0;
   wv->enabled = 1;
   wv->button_type = BUTTON_TYPE_NONE;
+  wv->help = Qnil;
   first_wv = wv;
 
   if (deep_p)
@@ -1463,6 +1466,7 @@ set_frame_menubar (f, first_time, deep_p)
 	  wv->value = 0;
 	  wv->enabled = 1;
 	  wv->button_type = BUTTON_TYPE_NONE;
+	  wv->help = Qnil;
 	  /* This prevents lwlib from assuming this
 	     menu item is really supposed to be empty.  */
 	  /* The EMACS_INT cast avoids a warning.
@@ -1604,6 +1608,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
   wv->value = 0;
   wv->enabled = 1;
   wv->button_type = BUTTON_TYPE_NONE;
+  wv->Qnil;
   first_wv = wv;
   first_pane = 1;
  
@@ -1670,6 +1675,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	      wv->value = 0;
 	      wv->enabled = 1;
 	      wv->button_type = BUTTON_TYPE_NONE;
+	      wv->help = Qnil;
 	      save_wv = wv;
 	      prev_wv = 0;
 	    }
@@ -1752,6 +1758,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	 so that it looks better.  Having two separators looks odd.  */
       wv_sep->name = "--";
       wv_sep->next = first_wv->contents;
+      wv_sep->help = Qnil;
 
 #ifndef HAVE_MULTILINGUAL_MENU
       if (STRING_MULTIBYTE (title))
@@ -1761,6 +1768,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
       wv_title->enabled = TRUE;
       wv_title->title = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
+      wv_title->help = Qnil;
       wv_title->next = wv_sep;
       first_wv->contents = wv_title;
     }
@@ -1896,6 +1904,7 @@ w32_dialog_show (f, keymaps, title, error)
       prev_wv->name++;
     prev_wv->enabled = 1;
     prev_wv->name = "message";
+    prev_wv->help = Qnil;
     first_wv = prev_wv;
  
     /* Loop over all panes and items, filling in the tree.  */
@@ -1941,6 +1950,7 @@ w32_dialog_show (f, keymaps, title, error)
 	wv->value = (char *) XSTRING (item_name)->data;
 	wv->call_data = (void *) &XVECTOR (menu_items)->contents[i];
 	wv->enabled = !NILP (enable);
+	wv->help = Qnil;
 	prev_wv = wv;
 
 	if (! boundary_seen)
@@ -1957,6 +1967,7 @@ w32_dialog_show (f, keymaps, title, error)
 
     wv = xmalloc_widget_value ();
     wv->name = dialog_name;
+    wv->help = Qnil;
 
     /* Dialog boxes use a really stupid name encoding
        which specifies how many buttons to use
