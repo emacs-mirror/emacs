@@ -262,7 +262,11 @@ and the end of the buffer are still visible."
 (defun eshell-smart-redisplay ()
   "Display as much output as possible, smartly."
   (if (eobp)
-      (recenter -1)
+      (save-excursion
+	(recenter -1)
+	;; trigger the redisplay now, so that we catch any attempted
+	;; point motion; this is to cover for a redisplay bug
+	(eshell-redisplay))
     (let ((top-point (point)))
       (and (memq 'eshell-smart-display-move pre-command-hook)
 	   (>= (point) eshell-last-input-start)
