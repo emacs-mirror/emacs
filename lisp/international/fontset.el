@@ -382,7 +382,8 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
     (while fontsets
       (setq fontset-name (car (car fontsets)) fontsets (cdr fontsets))
       (setq l (cons (list (fontset-plain-name fontset-name) fontset-name) l)))
-    (cons "Fontset" l)))
+    (cons "Fontset"
+	  (sort l (function (lambda (x y) (string< (car x) (car y))))))))
 
 (defun fontset-plain-name (fontset)
   "Return a plain and descriptive name of FONTSET."
