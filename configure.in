@@ -1457,9 +1457,6 @@ if test x"${REL_ALLOC}" = x; then
   REL_ALLOC=${GNU_MALLOC}
 fi
 
-LISP_FLOAT_TYPE=yes
-
-
 #### Add the libraries to LIBS and check for some functions.
 
 if test x"${OVERRIDE_CPPFLAGS}" != x; then
@@ -2022,9 +2019,6 @@ if test "${GNU_MALLOC}" = "yes" ; then
 fi
 if test "${REL_ALLOC}" = "yes" ; then
   AC_DEFINE(REL_ALLOC)
-fi
-if test "${LISP_FLOAT_TYPE}" = "yes" ; then
-  AC_DEFINE(LISP_FLOAT_TYPE)
 fi
 
 #### Report on what we decided to do.
