@@ -61,6 +61,7 @@
 
 (require 'vc-hooks)
 (require 'ring)
+(eval-when-compile (require 'dired))	; for dired-map-over-marks macro
 
 (if (not (assoc 'vc-parent-buffer minor-mode-alist))
     (setq minor-mode-alist
@@ -676,8 +677,11 @@ If nil, uses `change-log-default-name'."
 	))
   ;; Sync parent buffer in case the user modified it while editing the comment.
   (save-excursion
-    (set-buffer vc-parent-buffer)
-    (vc-buffer-sync))
+    (let ((buffer (get-file-buffer vc-log-file)))
+      (if buffer
+	  (progn
+	    (set-buffer buffer)
+	    (vc-buffer-sync)))))
   ;; OK, do it to it
   (if vc-log-operation
       (save-excursion
