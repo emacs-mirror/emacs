@@ -1182,13 +1182,16 @@ insert_from_gap (nchars, nbytes)
   if (GPT_BYTE < GPT)
     abort ();
 
-  adjust_overlays_for_insert (GPT, nchars);
-  adjust_markers_for_insert (GPT, GPT_BYTE,
-			     GPT + nchars, GPT_BYTE + nbytes,
-			     0);
+  adjust_overlays_for_insert (GPT - nchars, nchars);
+  adjust_markers_for_insert (GPT - nchars, GPT_BYTE - nbytes,
+			     GPT, GPT_BYTE, 0);
 
   if (BUF_INTERVALS (current_buffer) != 0)
-    offset_intervals (current_buffer, GPT, nchars);
+    {
+      offset_intervals (current_buffer, GPT - nchars, nchars);
+      graft_intervals_into_buffer (NULL_INTERVAL, GPT - nchars, nchars,
+				   current_buffer, 0);
+    }
 
   if (GPT - nchars < PT)
     adjust_point (nchars, nbytes);
