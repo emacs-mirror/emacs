@@ -973,6 +973,12 @@ configuration."
   (and (consp object)
        (eq (car object) 'frame-configuration)))
 
+(defun functionp (object)
+  "Non-nil of OBJECT is a type of object that can be called as a function."
+  (or (subrp object) (compiled-function-p object)
+      (eq (car-safe object) 'lambda)
+      (and (symbolp object) (fboundp object))))
+
 ;; now in fns.c
 ;(defun nth (n list)
 ;  "Returns the Nth element of LIST.
