@@ -67,7 +67,7 @@ on the second line of a paragraph is used as the standard indentation
 for the paragraph.  If the paragraph has just one line, the indentation
 is taken from that line.")
 
-(defun adaptive-fill-function nil
+(defvar adaptive-fill-function nil
   "*Function to call to choose a fill prefix for a paragraph.
 This function is used when `adaptive-fill-regexp' does not match.")
 
