@@ -220,6 +220,9 @@ This is the contents of buffer foo
 "
 @end group
 @end example
+
+When this function is used in the minibuffer, the value does not include
+the prompt.
 @end defun
 
 @defun thing-at-point thing
@@ -275,7 +278,7 @@ and @samp{rara!}.  The value is 2 because the first substring is greater
 at the second character.
 
 @example
-(compare-buffer-substring nil 6 11 nil 16 21)
+(compare-buffer-substrings nil 6 11 nil 16 21)
      @result{} 2
 @end example
 @end defun
@@ -481,6 +484,8 @@ This function deletes the entire text of the current buffer, leaving it
 empty.  If the buffer is read-only, it signals a @code{buffer-read-only}
 error.  Otherwise, it deletes the text without asking for any
 confirmation.  It returns @code{nil}.
+
+In the minibuffer, @code{erase-buffer} does not delete the prompt.
 
 Normally, deleting a large amount of text from a buffer inhibits further
 auto-saving of that buffer ``because it has shrunk''.  However,
@@ -1790,8 +1795,8 @@ converts the tab into spaces so that it can move precisely to column
 @var{force}, since there is no way to split them.
 
 The argument @var{force} also has an effect if the line isn't long
-enough to reach column @var{column}; in that case, it says to add
-whitespace at the end of the line to reach that column.
+enough to reach column @var{column}; if it is @code{t}, that means to
+add whitespace at the end of the line to reach that column.
 
 If @var{column} is not an integer, an error is signaled.
 
@@ -2540,14 +2545,31 @@ of the symbol serve as defaults for the properties of the character.
 @cindex face codes of text
 @kindex face @r{(text property)}
 You can use the property @code{face} to control the font and color of
-text.  Its value is a face name or a list of face names.  @xref{Faces},
-for more information.
+text.  @xref{Faces}, for more information.
 
-If the property value is a list, elements may also have the form
-@code{(foreground-color . @var{color-name})} or @code{(background-color
-. @var{color-name})}.  These elements specify just the foreground color
-or just the background color; therefore, there is no need to create a
-face for each color that you want to use.
+In the simplest case, the value is a face name.  It can also be a list;
+then each element can be any of these possibilities;
+
+@itemize @bullet
+@item
+A face name (a symbol or string).
+
+@item
+Starting in Emacs 21, a property list of face attributes.  This has the
+form (@var{keyword} @var{value} @dots{}), where each @var{keyword} is a
+face attribute name and @var{value} is a meaningful value for that
+attribute.  With this feature, you do not need to create a face each
+time you want to specify a particular attribute for certain text.
+@xref{Face Attributes}.
+
+@item
+A cons cell of the form @code{(foreground-color . @var{color-name})} or
+@code{(background-color . @var{color-name})}.  These elements specify
+just the foreground color or just the background color.
+
+@code{(foreground-color . @var{color-name})} is equivalent to
+@code{(:foreground @var{color-name})}, and likewise for the background.
+@end itemize
 
 @xref{Font Lock Mode}, for information on how to update @code{face}
 properties automatically based on the contents of the text.
@@ -2558,6 +2580,26 @@ The property @code{mouse-face} is used instead of @code{face} when the
 mouse is on or near the character.  For this purpose, ``near'' means
 that all text between the character and where the mouse is have the same
 @code{mouse-face} property value.
+
+@item fontified
+@kindex fontified @r{(text property)}
+This property, if non-@code{nil}, says that text in the buffer has
+had faces assigned automatically by a feature such as Font-Lock mode.
+@xref{Auto Faces}.
+
+@item display
+@kindex display @r{(text property)}
+This property activates various features that change the
+way text is displayed.  For example, it can make text appear taller
+or shorter, higher or lower, wider or narror, or replaced with an image.
+@xref{Display Property}.
+
+@item help-echo
+@kindex help-echo @r{(text property)}
+If text has a string as its @code{help-echo} property, then when you
+move the mouse onto that text, Emacs displays that string in the echo
+area, or in the tooltip window.  This feature is used in the mode line.
+It is available starting in Emacs 21.
 
 @item local-map
 @cindex keymap of character
@@ -3231,7 +3273,7 @@ all markers unrelocated.
 @cindex base 64 encoding
 
   Base 64 code is used in email to encode a sequence of 8-bit bytes as a
-longer sequence of @sc{ASCII} graphic characters.  This section
+longer sequence of @sc{ascii} graphic characters.  This section
 describes the functions for converting to and from this code.
 
 @defun base64-encode-region beg end &optional no-line-break
@@ -3376,4 +3418,15 @@ to call.  Here is an example:
 @defvar first-change-hook
 This variable is a normal hook that is run whenever a buffer is changed
 that was previously in the unmodified state.
+@end defvar
+
+@defvar inhibit-modification-hooks
+@tindex inhibit-modification-hooks
+If this variable is non-@code{nil}, all of the change hooks are
+disabled; none of them run.  This affects all the hook variables
+described above in this section, as well as the hooks attached to
+certain special text properties (@pxref{Special Properties}) and overlay
+properties (@pxref{Overlay Properties}).
+
+This variable is available starting in Emacs 21.
 @end defvar

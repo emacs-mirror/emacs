@@ -124,17 +124,17 @@ completely masks any lower-precedence keymap.
 
 @item @var{vector}
 If an element of a keymap is a vector, the vector counts as bindings for
-all the @sc{ASCII} characters, codes 0 through 127; vector element
+all the @sc{ascii} characters, codes 0 through 127; vector element
 @var{n} is the binding for the character with code @var{n}.  This is a
 compact way to record lots of bindings.  A keymap with such a vector is
 called a @dfn{full keymap}.  Other keymaps are called @dfn{sparse
 keymaps}.
 
 When a keymap contains a vector, it always defines a binding for each
-@sc{ASCII} character, even if the vector contains @code{nil} for that
+@sc{ascii} character, even if the vector contains @code{nil} for that
 character.  Such a binding of @code{nil} overrides any default key
-binding in the keymap, for @sc{ASCII} characters.  However, default
-bindings are still meaningful for events other than @sc{ASCII}
+binding in the keymap, for @sc{ascii} characters.  However, default
+bindings are still meaningful for events other than @sc{ascii}
 characters.  A binding of @code{nil} does @emph{not} override
 lower-precedence keymaps; thus, if the local map gives a binding of
 @code{nil}, Emacs uses the binding from the global map.
@@ -215,8 +215,8 @@ otherwise.  More precisely, this function tests for a list whose
 @c ??? This should come after make-sparse-keymap
 @defun make-keymap &optional prompt
 This function creates and returns a new full keymap (i.e., one
-containing a vector of length 128 for defining all the @sc{ASCII}
-characters).  The new keymap initially binds all @sc{ASCII} characters
+containing a vector of length 128 for defining all the @sc{ascii}
+characters).  The new keymap initially binds all @sc{ascii} characters
 to @code{nil}, and does not bind any other kind of event.
 
 @example
@@ -567,7 +567,7 @@ other.
 This function returns the current buffer's local keymap, or @code{nil}
 if it has none.  In the following example, the keymap for the
 @samp{*scratch*} buffer (using Lisp Interaction mode) is a sparse keymap
-in which the entry for @key{ESC}, @sc{ASCII} code 27, is another sparse
+in which the entry for @key{ESC}, @sc{ascii} code 27, is another sparse
 keymap.
 
 @example
@@ -953,7 +953,7 @@ This variable is the meta-prefix character code.  It is used when
 translating a meta character to a two-character sequence so it can be
 looked up in a keymap.  For useful results, the value should be a prefix
 event (@pxref{Prefix Keys}).  The default value is 27, which is the
-@sc{ASCII} code for @key{ESC}.
+@sc{ascii} code for @key{ESC}.
 
 As long as the value of @code{meta-prefix-char} remains 27, key
 lookup translates @kbd{M-b} into @kbd{@key{ESC} b}, which is normally
@@ -1256,6 +1256,35 @@ redefines @kbd{C-x C-\} to move down a line.
 redefines the first (leftmost) mouse button, typed with the Meta key, to
 set point where you click.
 
+@cindex non-ASCII text in keybindings
+  Be careful when using non-@sc{ascii} text characters in Lisp
+specifications of keys to bind.  If these are read as multibyte text, as
+they usually will be in a Lisp file (@pxref{Loading Non-ASCII}), you
+must type the keys as multibyte too.  For instance, if you use this:
+
+@smallexample
+(global-set-key "@"o" 'my-function) ; bind o-umlaut
+@end smallexample
+
+@noindent
+or
+
+@smallexample
+(global-set-key ?@"o 'my-function) ; bind o-umlaut
+@end smallexample
+
+@noindent
+and your language environment is multibyte Latin-1, these commands
+actually bind the multibyte character with code 2294, not the unibyte
+Latin-1 character with code 246 (@kbd{M-v}).  In order to use this
+binding, you need to enter the multibyte Latin-1 character as keyboard
+input.  One way to do this is by using an appropriate input method
+(@pxref{Input Methods, , Input Methods, emacs,The GNU Emacs Manual}).
+
+  If you want to use a unibyte character in the key binding, you can
+construct the key sequence string using @code{multibyte-char-to-unibyte}
+or @code{string-make-unibyte} (@pxref{Converting Representations}).
+
 @deffn Command global-set-key key definition
 This function sets the binding of @var{key} in the current global map
 to @var{definition}.
@@ -1431,7 +1460,7 @@ If @var{firstonly} is @code{non-ascii}, then the value is a single
 string representing the first key sequence found, rather than a list of
 all possible key sequences.  If @var{firstonly} is @code{t}, then the
 value is the first key sequence, except that key sequences consisting
-entirely of @sc{ASCII} characters (or meta variants of @sc{ASCII}
+entirely of @sc{ascii} characters (or meta variants of @sc{ascii}
 characters) are preferred to all other key sequences.
 
 If @var{noindirect} is non-@code{nil}, @code{where-is-internal} doesn't
@@ -1457,13 +1486,13 @@ listing includes only keys that start with @var{prefix}.
 The listing describes meta characters as @key{ESC} followed by the
 corresponding non-meta character.
 
-When several characters with consecutive @sc{ASCII} codes have the
+When several characters with consecutive @sc{ascii} codes have the
 same definition, they are shown together, as
 @samp{@var{firstchar}..@var{lastchar}}.  In this instance, you need to
-know the @sc{ASCII} codes to understand which characters this means.
+know the @sc{ascii} codes to understand which characters this means.
 For example, in the default global map, the characters @samp{@key{SPC}
-..@: ~} are described by a single line.  @key{SPC} is @sc{ASCII} 32,
-@kbd{~} is @sc{ASCII} 126, and the characters between them include all
+..@: ~} are described by a single line.  @key{SPC} is @sc{ascii} 32,
+@kbd{~} is @sc{ascii} 126, and the characters between them include all
 the normal printing characters, (e.g., letters, digits, punctuation,
 etc.@:); all these characters are bound to @code{self-insert-command}.
 @end deffn
@@ -1483,6 +1512,7 @@ work with the keyboard also.
 * Keyboard Menus::		How they actuate it with the keyboard.
 * Menu Example::		Making a simple menu.
 * Menu Bar::			How to customize the menu bar.
+* Tool Bar::                    A tool bar is a row of images.
 * Modifying Menus::             How to add new items to a menu.
 @end menu
 
@@ -1509,10 +1539,11 @@ an existing menu, you can specify its position in the menu using
 @menu
 * Simple Menu Items::       A simple kind of menu key binding,
                               limited in capabilities.
-* Alias Menu Items::        Using command aliases in menu items.
 * Extended Menu Items::     More powerful menu item definitions
                               let you specify keywords to enable
                               various features.
+* Menu Separators::         Drawing a horizontal line through a menu.
+* Alias Menu Items::        Using command aliases in menu items.
 @end menu
 
 @node Simple Menu Items
@@ -1591,7 +1622,8 @@ the item looks like this:
 @end example
 
 @noindent
-where a string consisting of two or more dashes specifies a separator line.
+A string starting with two or more dashes specifies a separator line;
+see @ref{Menu Separators}.
 
   To define a real menu item which can be selected, the extended format
 item looks like this:
@@ -1609,11 +1641,12 @@ string.  Thus, the string need not be a constant.  The third element,
 other information.  Here is a table of the properties that are supported:
 
 @table @code
-@item :enable FORM
+@item :enable @var{form}
 The result of evaluating @var{form} determines whether the item is
-enabled (non-@code{nil} means yes).
+enabled (non-@code{nil} means yes).  If the item is not enabled,
+you can't really click on it.
 
-@item :visible FORM
+@item :visible @var{form}
 The result of evaluating @var{form} determines whether the item should
 actually appear in the menu (non-@code{nil} means yes).  If the item
 does not appear, then the menu is displayed as if this item were
@@ -1683,6 +1716,80 @@ The property value @var{filter-fn} should be a function of one argument;
 when it is called, its argument will be @var{real-binding}.  The
 function should return the binding to use instead.
 @end table
+
+@node Menu Separators
+@subsubsection Menu Separators
+@cindex menu separators
+
+  A menu separator is a kind of menu item that doesn't display any
+text--instead, it divides the menu into subparts with a horizontal line.
+A separator looks like this in the menu keymap:
+
+@example
+(menu-item @var{separator-type})
+@end example
+
+@noindent
+where @var{separator-type} is a string starting with two or more dashes.
+
+  In the simplest case, @var{separator-type} consists of only dashes.
+That specifies the default kind of separator.  (For compatibility,
+@code{""} and @code{-} also count as separators.)
+
+  Starting in Emacs 21, certain other values of @var{separator-type}
+specify a different style of separator.  Here is a table of them:
+
+@table @code
+@item "--no-line"
+@itemx "--space"
+An extra vertical space, with no actual line.
+
+@item "--single-line"
+A single line in the menu's foreground color.
+
+@item "--double-line"
+A double line in the menu's foreground color.
+
+@item "--single-dashed-line"
+A single dashed line in the menu's foreground color.
+
+@item "--double-dashed-line"
+A double dashed line in the menu's foreground color.
+
+@item "--shadow-etched-in"
+A single line with a 3D sunken appearance.  This is the default,
+used separators consisting of dashes only.
+
+@item "--shadow-etched-out"
+A single line with a 3D raised appearance.
+
+@item "--shadow-etched-in-dash"
+A single dashed line with a 3D sunken appearance.
+
+@item "--shadow-etched-out-dash"
+A single dashed line with a 3D raised appearance.
+
+@item "--shadow-double-etched-in"
+Two lines with a 3D sunken appearance.
+
+@item "--shadow-double-etched-out"
+Two lines with a 3D raised appearance.
+
+@item "--shadow-double-etched-in-dash"
+Two dashed lines with a 3D sunken appearance.
+
+@item "--shadow-double-etched-out-dash"
+Two dashed lines with a 3D raised appearance.
+@end table
+
+  You can also give these names in another style, adding a colon after
+the double-dash and replacing each single dash with capitalization of
+the following word.  Thus, @code{"--:singleLine"}, is equivalent to
+@code{"--single-line"}.
+
+  Some systems and display toolkits don't really handle all of these
+separator types.  If you use a type that isn't supported, the menu
+displays a similar kind of separator that is supported.
 
 @node Alias Menu Items
 @subsubsection Alias Menu Items
@@ -1977,6 +2084,115 @@ This normal hook is run whenever the user clicks on the menu bar, before
 displaying a submenu.  You can use it to update submenus whose contents
 should vary.
 @end defvar
+
+@node Tool Bar
+@subsection Tool bars
+@cindex tool bar
+
+  A @dfn{tool bar} is a row of icons at the top of a frame, that execute
+commands when you click on them---in effect, a kind of graphical menu
+bar.  Emacs supports tool bars starting with version 21.
+
+  The frame parameter @code{tool-bar-lines} (X resource @samp{toolBar})
+controls how may lines' worth of height to reserve for the tool bar.  A
+zero value suppresses the tool bar.  If the value is nonzero, and
+@code{auto-resize-tool-bars} is non-@code{nil}, the tool bar expands and
+contracts automatically as needed to hold the specified contents.
+
+  The tool bar contents are controlled by a menu keymap attached to a
+fake ``function key'' called @code{tool-bar} (much like the way the menu
+bar is controlled).  So you define a tool bar item using
+@code{define-key}, like this:
+
+@example
+(define-key global-map [tool-bar @var{key}] @var{item})
+@end example
+
+@noindent
+where @var{key} is a fake ``function key'' to distinguish this item from
+other items, and @var{item} is a menu item key binding (@pxref{Extended
+Menu Items}), which says how to display this item and how it behaves.
+
+  The usual menu keymap item properties, @code{:visible},
+@code{:enable}, @code{:button}, and @code{:filter}, are useful in
+tool bar bindings and have their normal meanings.  The @var{real-binding}
+in the item must be a command, not a keymap; in other words, it does not
+work to define a tool bar icon as a prefix key.
+
+  The @code{:help} property is meaningful, and specifies a ``help-echo''
+string to display while the mouse is on that item.
+
+  In addition, you should use the @code{:image} property;
+this is how you specify the image to display in the tool bar:
+
+@table @code
+@item :image @var{image}
+@var{images} is either a single image specification or a vector of four
+image specifications.  If you use a vector of four,
+one of them is used, depending on circumstances:
+
+@table @asis
+@item item 0
+Used when the iitem is enabled and selected.
+@item item 1
+Used when the item is enabled and deselected.
+@item item 2
+Used when the item is disabled and selected.
+@item item 3
+Used when the item is disabled and deselected.
+@end table
+@end table
+
+@tindex auto-resize-tool-bar
+@defvar auto-resize-tool-bar
+If this variable is non-@code{nil}, the tool bar automatically resizes to
+show all defined tool bar items---but not larger than a quarter of the
+frame's height.
+@end defvar
+
+@tindex auto-raise-tool-bar-items
+@defvar auto-raise-tool-bar-items
+If this variable is non-@code{nil}, tool bar items display
+in raised form when the mouse moves over them.
+@end defvar
+
+@tindex tool-bar-item-margin
+@defvar tool-bar-item-margin
+This variable specifies an extra margin to add around tool bar items.
+The value is an integer, a number of pixels.  The default is 1.
+@end defvar
+
+@tindex tool-bar-item-relief
+@defvar tool-bar-item-relief
+This variable specifies the shadow width for tool bar items.
+The value is an integer, a number of pixels.  The default is 3.
+@end defvar
+
+  You can define a special meaning for clicking on a tool bar item with
+the shift, control, meta, etc., modifiers.  You do this by setting up
+additional items that relate to the original item through the fake
+function keys.  Specifically, the additional items should use the
+modified versions of the same fake function key used to name the
+original item.
+
+  Thus, if the original item was defined this way,
+
+@example
+(define-key global-map [tool-bar shell]
+  '(menu-item "Shell" shell
+              :image (image :type xpm :file "shell.xpm")))
+@end example
+
+@noindent
+then here is how you can define clicking on the same tool bar image with
+the shift modifier:
+
+@example
+(define-key global-map [tool-bar S-shell] 'some-command)
+@end example
+
+@xref{Function Keys}, for more information about how to add modifiers to
+function keys.
 
 @node Modifying Menus
 @subsection Modifying Menus

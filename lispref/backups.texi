@@ -179,6 +179,19 @@ This variable is significant only if @code{backup-by-copying} is
 non-@code{nil}.
 @end defvar
 
+@defvar backup-by-copying-when-privileged-mismatch
+This variable, if non-@code{nil}, specifies the same behavior as
+@code{backup-by-copying-when-mismatch}, but only for certain user-id
+values: namely, those less than or equal to a certain number.  You set
+this variable to that number.
+
+Thus, if you set @code{backup-by-copying-when-privileged-mismatch}
+to 0, backup by copying is done for the superuser only,
+when necessary to prevent a change in the owner of the file.
+
+The default is 200.
+@end defvar
+
 @node Numbered Backups
 @subsection Making and Deleting Numbered Backup Files
 
@@ -393,8 +406,8 @@ integer.  Otherwise, it turns auto-saving off.
 
 @defun auto-save-file-name-p filename
 This function returns a non-@code{nil} value if @var{filename} is a
-string that could be the name of an auto-save file.  It works based on
-knowledge of the naming convention for auto-save files: a name that
+string that could be the name of an auto-save file.  It assumes
+the usual naming convention for auto-save files: a name that
 begins and ends with hash marks (@samp{#}) is a possible auto-save file
 name.  The argument @var{filename} should not contain a directory part.
 
@@ -433,8 +446,8 @@ correspondingly.
 This function returns the file name to use for auto-saving the current
 buffer.  This is just the file name with hash marks (@samp{#}) prepended
 and appended to it.  This function does not look at the variable
-@code{auto-save-visited-file-name} (described below); you should check
-that before calling this function.
+@code{auto-save-visited-file-name} (described below); callers of this
+function should check that variable first.
 
 @example
 @group
@@ -475,10 +488,11 @@ file that you are editing.  Normally, this variable is @code{nil}, so
 auto-save files have distinct names that are created by
 @code{make-auto-save-file-name}.
 
-When you change the value of this variable, the value does not take
-effect until the next time auto-save mode is reenabled in any given
-buffer.  If auto-save mode is already enabled, auto-saves continue to go
-in the same file name until @code{auto-save-mode} is called again.
+When you change the value of this variable, the new value does not take
+effect in an existing buffer until the next time auto-save mode is
+reenabled in it.  If auto-save mode is already enabled, auto-saves
+continue to go in the same file name until @code{auto-save-mode} is
+called again.
 @end defvar
 
 @defun recent-auto-save-p
@@ -493,18 +507,18 @@ function returns @code{nil}.
 @end defun
 
 @defopt auto-save-interval
-The value of this variable is the number of characters that Emacs
-reads from the keyboard between auto-saves.  Each time this many more
-characters are read, auto-saving is done for all buffers in which it is
+The value of this variable specifies how often to do auto-saving, in
+terms of number of input events.  Each time this many additional input
+events are read, Emacs does auto-saving for all buffers in which that is
 enabled.
 @end defopt
 
 @defopt auto-save-timeout
 The value of this variable is the number of seconds of idle time that
 should cause auto-saving.  Each time the user pauses for this long,
-Emacs auto-saves any buffers that need it.  (Actually, the specified
-timeout is multiplied by a factor depending on the size of the current
-buffer.)
+Emacs does auto-saving for all buffers in which that is enabled.
+(Actually, the specified timeout is multiplied by a factor depending on
+the size of the current buffer.)
 @end defopt
 
 @defvar auto-save-hook
@@ -552,14 +566,15 @@ nothing.
 
 @defvar buffer-saved-size
 The value of this buffer-local variable is the length of the current
-buffer as of the last time it was read in, saved, or auto-saved.  This is
+buffer, when it was last read in, saved, or auto-saved.  This is
 used to detect a substantial decrease in size, and turn off auto-saving
 in response.
 
-If it is @minus{}1, that means auto-saving is temporarily shut off in this
-buffer due to a substantial deletion.  Explicitly saving the buffer
-stores a positive value in this variable, thus reenabling auto-saving.
-Turning auto-save mode off or on also alters this variable.
+If it is @minus{}1, that means auto-saving is temporarily shut off in
+this buffer due to a substantial decrease in size.  Explicitly saving
+the buffer stores a positive value in this variable, thus reenabling
+auto-saving.  Turning auto-save mode off or on also updates this
+variable, so that the substantial decrease in size is forgotten.
 @end defvar
 
 @defvar auto-save-list-file-name
@@ -570,14 +585,14 @@ enabled.  The first line gives the name of the visited file (it's empty
 if the buffer has none), and the second gives the name of the auto-save
 file.
 
-If Emacs exits normally, it deletes this file.  If Emacs crashes, you
+When Emacs exits normally, it deletes this file; if Emacs crashes, you
 can look in the file to find all the auto-save files that might contain
 work that was otherwise lost.  The @code{recover-session} command uses
-these files.
+this file to find them.
 
-The default name for this file is in your home directory and starts with
-@samp{.saves-}.  It also contains the Emacs process @sc{id} and the host
-name.
+The default name for this file specifies your home directory and starts
+with @samp{.saves-}.  It also contains the Emacs process @sc{id} and the
+host name.
 @end defvar
 
 @node Reverting
@@ -594,10 +609,10 @@ file on disk.  This action undoes all changes since the file was visited
 or saved.
 
 By default, if the latest auto-save file is more recent than the visited
-file, @code{revert-buffer} asks the user whether to use that instead.
-But if the argument @var{ignore-auto} is non-@code{nil}, then only the
-the visited file itself is used.  Interactively, @var{ignore-auto} is
-@code{t} unless there is a numeric prefix argument; thus, the
+file, and the argument @var{ignore-auto} is non-@code{nil},
+@code{revert-buffer} asks the user whether to use that auto-save
+instead.  When you invoke this command interactively, @var{ignore-auto}
+is @code{t} unless there is a numeric prefix argument; thus, the
 interactive default is to check the auto-save file.
 
 Normally, @code{revert-buffer} asks for confirmation before it changes
@@ -608,9 +623,9 @@ Reverting tries to preserve marker positions in the buffer by using the
 replacement feature of @code{insert-file-contents}.  If the buffer
 contents and the file contents are identical before the revert
 operation, reverting preserves all the markers.  If they are not
-identical, reverting does change the buffer; then it preserves the
-markers in the unchanged text (if any) at the beginning and end of the
-buffer.  Preserving any additional markers would be problematical.
+identical, reverting does change the buffer; in that case, it preserves
+the markers in the unchanged text (if any) at the beginning and end of
+the buffer.  Preserving any additional markers would be problematical.
 @end deffn
 
 You can customize how @code{revert-buffer} does its work by setting
@@ -618,10 +633,10 @@ these variables---typically, as buffer-local variables.
 
 @defvar revert-without-query
 This variable holds a list of files that should be reverted without
-query.  The value is a list of regular expressions.  If a file name
-matches one of these regular expressions, then @code{revert-buffer}
-reverts the file without asking the user for confirmation, if the file
-has changed on disk and the buffer is not modified.
+query.  The value is a list of regular expressions.  If the visited file
+name matches one of these regular expressions, and the file has changed
+on disk but the buffer is not modified, then @code{revert-buffer}
+reverts the file without asking the user for confirmation.
 @end defvar
 
 @defvar revert-buffer-function
@@ -637,20 +652,20 @@ regenerate the contents.
 @end defvar
 
 @defvar revert-buffer-insert-file-contents-function
-The value of this variable, if non-@code{nil}, is the function to use to
+The value of this variable, if non-@code{nil}, specifies the function to use to
 insert the updated contents when reverting this buffer.  The function
 receives two arguments: first the file name to use; second, @code{t} if
 the user has asked to read the auto-save file.
 @end defvar
 
 @defvar before-revert-hook
-This normal hook is run by @code{revert-buffer} before actually
+This normal hook is run by @code{revert-buffer} before
 inserting the modified contents---but only if
 @code{revert-buffer-function} is @code{nil}.
 @end defvar
 
 @defvar after-revert-hook
-This normal hook is run by @code{revert-buffer} after actually inserting
+This normal hook is run by @code{revert-buffer} after inserting
 the modified contents---but only if @code{revert-buffer-function} is
 @code{nil}.
 @end defvar

@@ -19,7 +19,7 @@ definitions---as well as face definitions (@pxref{Defining Faces}).
 @end menu
 
 @node Common Keywords
-@section Common Keywords for All Kinds of Items
+@section Common Item Keywords
 
   All kinds of customization declarations (for variables and groups, and
 for faces) accept keyword arguments for specifying various information.
@@ -31,8 +31,8 @@ The keyword @code{:tag} is an exception because any given item can only
 display one name.
 
 @table @code
-@item :tag @var{name}
-Use @var{name}, a string, instead of the item's name, to label the item
+@item :tag @var{label}
+Use @var{label}, a string, instead of the item's name, to label the item
 in customization menus and buffers.
 
 @item :group @var{group}
@@ -42,7 +42,7 @@ Put this customization item in group @var{group}.  When you use
 
 If you use this keyword more than once, you can put a single item into
 more than one group.  Displaying any of those groups will show this
-item.  Be careful not to overdo this!
+item.  Please don't overdo this, since the result would be annoying.
 
 @item :link @var{link-data}
 Include an external link after the documentation string for this item.
@@ -113,7 +113,8 @@ keyword.
 @tindex defgroup
 Declare @var{group} as a customization group containing @var{members}.
 Do not quote the symbol @var{group}.  The argument @var{doc} specifies
-the documentation string for the group.
+the documentation string for the group.  It should not start with a
+@samp{*} as in @code{defcustom}; that convention is for variables only.
 
 The argument @var{members} is a list specifying an initial set of
 customization items to be members of the group.  However, most often
@@ -165,12 +166,20 @@ turn this feature back on, if someone would like to do the work.
 @tindex defcustom
 Declare @var{option} as a customizable user option variable.  Do not
 quote @var{option}.  The argument @var{doc} specifies the documentation
-string for the variable.
+string for the variable; it should normally start with a @samp{*}.  This
+marks the variable, for other purposes, as one that users may want to
+customize.
 
 If @var{option} is void, @code{defcustom} initializes it to
 @var{default}.  @var{default} should be an expression to compute the
 value; be careful in writing it, because it can be evaluated on more
 than one occasion.
+
+When you evaluate a @code{defcustom} form with @kbd{C-M-x} in Emacs Lisp
+mode (@code{eval-defun}), a special feature of @code{eval-defun}
+arranges to set the variable unconditionally, without testing whether
+its value is void.  (The same feature applies to @code{defvar}.)
+@xref{Defining Variables}.
 @end defmac
 
   @code{defcustom} accepts the following additional keywords:
@@ -277,7 +286,8 @@ options for @code{emacs-lisp-mode-hook}, but not by editing its
 definition.   You can do it thus:
 
 @example
-(custom-add-option 'emacs-lisp-mode-hook 'my-lisp-mode-initialization)
+(custom-add-option 'emacs-lisp-mode-hook
+                   'my-lisp-mode-initialization)
 @end example
 
 @defun custom-add-option symbol option
@@ -392,10 +402,9 @@ edit both the key and the value of each pair.
 
 You can specify the key and value types like this:
 
-@example
-(alist :key-type @var{key-type}
-       :value-type @var{value-type})
-@end example
+@smallexample
+(alist :key-type @var{key-type} :value-type @var{value-type})
+@end smallexample
 
 @noindent
 where @var{key-type} and @var{value-type} are customization type
@@ -414,9 +423,9 @@ The argument to the @code{:options} keywords should be a list of option
 specifications.  Ordinarily, the options are simply atoms, which are the
 specified keys.  For example:
 
-@example
+@smallexample
 :options '("foo" "bar" "baz")
-@end example
+@end smallexample
 
 @noindent
 specifies that there are three ``known'' keys, namely @code{"foo"},
@@ -428,9 +437,9 @@ You can specify this by using a list instead of an atom in the option
 specification.  The first element will specify the key, like before,
 while the second element will specify the value type.
 
-@example
+@smallexample
 :options '("foo" ("bar" integer) "baz")
-@end example
+@end smallexample
 
 Finally, you may want to change how the key is presented.  By default,
 the key is simply shown as a @code{const}, since the user cannot change
@@ -440,36 +449,36 @@ you may want to use a more specialized type for presenting the key, like
 This is done by using a customization type specification instead of a
 symbol for the key.
 
-@example
+@smallexample
 :options '("foo" ((function-item some-function) integer) "baz")
-@end example
+@end smallexample
 
 Many alists use lists with two elements, instead of cons cells.  For
 example,
 
-@example
+@smallexample
 (defcustom list-alist '(("foo" 1) ("bar" 2) ("baz" 3))
   "Each element is a list of the form (KEY VALUE).")
-@end example
+@end smallexample
 
 @noindent
 instead of 
 
-@example
+@smallexample
 (defcustom cons-alist '(("foo" . 1) ("bar" . 2) ("baz" . 3))
   "Each element is a cons-cell (KEY . VALUE).")
-@end example
+@end smallexample
 
 Because of the way lists are implemented on top of cons cells, you can
 treat @code{list-alist} in the example above as a cons cell alist, where
 the value type is a list with a single element containing the real
 value.
 
-@example
+@smallexample
 (defcustom list-alist '(("foo" 1) ("bar" 2) ("baz" 3))
   "Each element is a list of the form (KEY VALUE)."
   :type '(alist :value-type (group integer)))
-@end example
+@end smallexample
 
 The @code{group} widget is used here instead of @code{list} only because
 the formatting is better suited for the purpose.
@@ -477,7 +486,7 @@ the formatting is better suited for the purpose.
 Similarily, you can have alists with more values associated with each
 key, using variations of this trick:
 
-@example
+@smallexample
 (defcustom person-data '(("brian"  50 t) 
                          ("dorith" 55 nil)
                          ("ken"    52 t))
@@ -489,16 +498,16 @@ key, using variations of this trick:
                   ("ken" "cat"))
   "Alist where the KEY is a person, and the VALUE is a list of pets."
   :type '(alist :value-type (repeat string)))
-@end example
+@end smallexample
 
 @item plist
 The @code{plist} custom type is similar to the @code{alist} (see above),
 except that the information is stored as a property list, i.e. a list of
 this form:
 
-@example
+@smallexample
 (@var{key} @var{value} @var{key} @var{value} @var{key} @var{value} @dots{})
-@end example
+@end smallexample
 
 The default @code{:key-type} for @code{plist} is @code{symbol},
 rather than @code{sexp}.

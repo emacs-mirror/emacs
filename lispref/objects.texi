@@ -25,7 +25,7 @@ but not for ``the'' type of an object.
 which all other types are constructed, are called @dfn{primitive
 types}.  Each object belongs to one and only one primitive type.  These
 types include @dfn{integer}, @dfn{float}, @dfn{cons}, @dfn{symbol},
-@dfn{string}, @dfn{vector}, @dfn{subr}, @dfn{byte-code function}, plus
+@dfn{string}, @dfn{vector}, @dfn{subr}, and @dfn{byte-code function}, plus
 several special types, such as @dfn{buffer}, that are related to
 editing.  (@xref{Editing Types}.)
 
@@ -52,6 +52,7 @@ to use these types can be found in later chapters.
 * Comments::                    Comments and their formatting conventions.
 * Programming Types::           Types found in all Lisp systems.
 * Editing Types::               Types specific to Emacs.
+* Circular Objects::            Read syntax for circular structure.
 * Type Predicates::             Tests related to types.
 * Equality Predicates::         Tests of equality between any two objects.
 @end menu
@@ -146,6 +147,7 @@ latter are unique to Emacs Lisp.
 * Vector Type::         One-dimensional arrays.
 * Char-Table Type::     One-dimensional sparse arrays indexed by characters.
 * Bool-Vector Type::    One-dimensional arrays of @code{t} or @code{nil}.
+* Hash Table Type::     Super-fast lookup tables.
 * Function Type::       A piece of executable code you can call from elsewhere.
 * Macro Type::          A method of expanding an expression into another
                           expression, more fundamental but less pretty.
@@ -164,14 +166,14 @@ latter are unique to Emacs Lisp.
 -2**27
 @end ifinfo
 @tex
-$-2^{27}$
+@math{-2^{27}}
 @end tex
 to
 @ifinfo
 2**27 - 1)
 @end ifinfo
 @tex
-$2^{28}-1$)
+@math{2^{28}-1})
 @end tex
 on most machines.  (Some machines may provide a wider range.)  It is
 important to note that the Emacs Lisp arithmetic functions do not check
@@ -187,7 +189,7 @@ leading @samp{+} or a final @samp{.}.
 @group
 -1               ; @r{The integer -1.}
 1                ; @r{The integer 1.}
-1.               ; @r{Also The integer 1.}
+1.               ; @r{Also the integer 1.}
 +1               ; @r{Also the integer 1.}
 268435457        ; @r{Also the integer 1 on a 28-bit implementation.}
 @end group
@@ -212,7 +214,7 @@ number whose value is 1500.  They are all equivalent.
 
 @node Character Type
 @subsection Character Type
-@cindex @sc{ASCII} character codes
+@cindex @sc{ascii} character codes
 
   A @dfn{character} in Emacs Lisp is nothing more than an integer.  In
 other words, characters are represented by their character codes.  For
@@ -290,6 +292,7 @@ respectively.  Thus,
 ?\r @result{} 13                ; @r{carriage return, @key{RET}, @kbd{C-m}}
 ?\e @result{} 27                ; @r{escape character, @key{ESC}, @kbd{C-[}}
 ?\\ @result{} 92                ; @r{backslash character, @kbd{\}}
+?\d @result{} 127               ; @r{delete character, @key{DEL}}
 @end example
 
 @cindex escape sequence
@@ -312,17 +315,17 @@ equivalent to @samp{?\^I} and to @samp{?\^i}:
 @end example
 
   In strings and buffers, the only control characters allowed are those
-that exist in @sc{ASCII}; but for keyboard input purposes, you can turn
+that exist in @sc{ascii}; but for keyboard input purposes, you can turn
 any character into a control character with @samp{C-}.  The character
-codes for these non-@sc{ASCII} control characters include the
+codes for these non-@sc{ascii} control characters include the
 @tex
-$2^{26}$
+@math{2^{26}}
 @end tex
 @ifinfo
 2**26
 @end ifinfo
 bit as well as the code for the corresponding non-control
-character.  Ordinary terminals have no way of generating non-@sc{ASCII}
+character.  Ordinary terminals have no way of generating non-@sc{ascii}
 control characters, but you can generate them straightforwardly using X
 and other window systems.
 
@@ -349,7 +352,7 @@ people who read it.
   A @dfn{meta character} is a character typed with the @key{META}
 modifier key.  The integer that represents such a character has the
 @tex
-$2^{27}$
+@math{2^{27}}
 @end tex
 @ifinfo
 2**27
@@ -360,14 +363,14 @@ of basic character codes.
 
   In a string, the
 @tex
-$2^{7}$
+@math{2^{7}}
 @end tex
 @ifinfo
 2**7
 @end ifinfo
 bit attached to an ASCII character indicates a meta character; thus, the
 meta characters that can fit in a string have codes in the range from
-128 to 255, and are the meta versions of the ordinary @sc{ASCII}
+128 to 255, and are the meta versions of the ordinary @sc{ascii}
 characters.  (In Emacs versions 18 and older, this convention was used
 for characters outside of strings as well.)
 
@@ -379,11 +382,11 @@ or as @samp{?\M-\101}.  Likewise, you can write @kbd{C-M-b} as
 @samp{?\M-\C-b}, @samp{?\C-\M-b}, or @samp{?\M-\002}.
 
   The case of a graphic character is indicated by its character code;
-for example, @sc{ASCII} distinguishes between the characters @samp{a}
-and @samp{A}.  But @sc{ASCII} has no way to represent whether a control
+for example, @sc{ascii} distinguishes between the characters @samp{a}
+and @samp{A}.  But @sc{ascii} has no way to represent whether a control
 character is upper case or lower case.  Emacs uses the
 @tex
-$2^{25}$
+@math{2^{25}}
 @end tex
 @ifinfo
 2**25
@@ -405,7 +408,7 @@ significant in these prefixes.)  Thus, @samp{?\H-\M-\A-x} represents
 @kbd{Alt-Hyper-Meta-x}.
 @tex
 Numerically, the
-bit values are $2^{22}$ for alt, $2^{23}$ for super and $2^{24}$ for hyper.
+bit values are @math{2^{22}} for alt, @math{2^{23}} for super and @math{2^{24}} for hyper.
 @end tex
 @ifinfo
 Numerically, the
@@ -420,9 +423,9 @@ character code in either octal or hex.  To use octal, write a question
 mark followed by a backslash and the octal character code (up to three
 octal digits); thus, @samp{?\101} for the character @kbd{A},
 @samp{?\001} for the character @kbd{C-a}, and @code{?\002} for the
-character @kbd{C-b}.  Although this syntax can represent any @sc{ASCII}
+character @kbd{C-b}.  Although this syntax can represent any @sc{ascii}
 character, it is preferred only when the precise octal value is more
-important than the @sc{ASCII} representation.
+important than the @sc{ascii} representation.
 
 @example
 @group
@@ -520,6 +523,11 @@ char-to-string      ; @r{A symbol named @samp{char-to-string}.}
 @end group
 @end example
 
+@cindex @samp{#:} read syntax
+  Normally the Lisp reader interns all symbols (@pxref{Creating
+Symbols}).  To prevent interning, you can write @samp{#:} before the
+name of the symbol.
+
 @node Sequence Type
 @subsection Sequence Types
 
@@ -559,7 +567,7 @@ same object, @code{nil}.
 
   A @dfn{cons cell} is an object that consists of two slots, called the
 @sc{car} slot and the @sc{cdr} slot.  Each slot can @dfn{hold} or
-@dfn{refer to} any Lisp object.  We also say that the ``the @sc{car} of
+@dfn{refer to} any Lisp object.  We also say that ``the @sc{car} of
 this cons cell is'' whatever object its @sc{car} slot currently holds,
 and likewise for the @sc{cdr}.
 
@@ -794,7 +802,8 @@ sets the variable @code{alist-of-colors} to an alist of three elements.  In the
 first element, @code{rose} is the key and @code{red} is the value.
 
   @xref{Association Lists}, for a further explanation of alists and for
-functions that work on alists.
+functions that work on alists.  @xref{Hash Tables}, for another kind of
+lookup table, which is much faster for handling a large number of keys.
 
 @node Array Type
 @subsection Array Type
@@ -884,9 +893,9 @@ but the newline is ignored if escaped."
 @node Non-ASCII in Strings
 @subsubsection Non-ASCII Characters in Strings
 
-  You can include a non-@sc{ASCII} international character in a string
+  You can include a non-@sc{ascii} international character in a string
 constant by writing it literally.  There are two text representations
-for non-@sc{ASCII} characters in Emacs strings (and in buffers): unibyte
+for non-@sc{ascii} characters in Emacs strings (and in buffers): unibyte
 and multibyte.  If the string constant is read from a multibyte source,
 such as a multibyte buffer or string, or a file that would be visited as
 multibyte, then the character is read as a multibyte character, and that
@@ -895,7 +904,7 @@ unibyte source, then the character is read as unibyte and that makes the
 string unibyte.
 
   You can also represent a multibyte non-@sc{ASCII} character with its
-character code, using a hex escape, @samp{\x@var{nnnnnnn}}, with as many
+character code: use a hex escape, @samp{\x@var{nnnnnnn}}, with as many
 digits as necessary.  (Multibyte non-@sc{ASCII} character codes are all
 greater than 256.)  Any character which is not a valid hex digit
 terminates this construct.  If the next character in the string could be
@@ -906,7 +915,7 @@ constant is just like backslash-newline; it does not contribute any
 character to the string, but it does terminate the preceding hex escape.
 
   Using a multibyte hex escape forces the string to multibyte.  You can
-represent a unibyte non-@sc{ASCII} character with its character code,
+represent a unibyte non-@sc{ascii} character with its character code,
 which must be in the range from 128 (0200 octal) to 255 (0377 octal).
 This forces a unibyte string.
   
@@ -925,16 +934,16 @@ description of the read syntax for characters.
 
   However, not all of the characters you can write with backslash
 escape-sequences are valid in strings.  The only control characters that
-a string can hold are the @sc{ASCII} control characters.  Strings do not
-distinguish case in @sc{ASCII} control characters.
+a string can hold are the @sc{ascii} control characters.  Strings do not
+distinguish case in @sc{ascii} control characters.
 
   Properly speaking, strings cannot hold meta characters; but when a
 string is to be used as a key sequence, there is a special convention
-that provides a way to represent meta versions of @sc{ASCII} characters in a
+that provides a way to represent meta versions of @sc{ascii} characters in a
 string.  If you use the @samp{\M-} syntax to indicate a meta character
 in a string constant, this sets the
 @tex
-$2^{7}$
+@math{2^{7}}
 @end tex
 @ifinfo
 2**7
@@ -1043,7 +1052,7 @@ Syntax tables (@pxref{Syntax Tables}).
   A @dfn{bool-vector} is a one-dimensional array of elements that
 must be @code{t} or @code{nil}.
 
-  The printed representation of a Bool-vector is like a string, except
+  The printed representation of a bool-vector is like a string, except
 that it begins with @samp{#&} followed by the length.  The string
 constant that follows actually specifies the contents of the bool-vector
 as a bitmap---each ``character'' in the string contains 8 bits, which
@@ -1061,6 +1070,19 @@ these extras really make no difference.
 ;; @r{These are equal since only the first 3 bits are used.}
 (equal #&3"\377" #&3"\007")
      @result{} t
+@end example
+
+@node Hash Table Type
+@subsection Hash Table Type
+
+    A hash table is a very fast kind of lookup table, somewhat like an
+alist in that it maps keys to corresponding values, but much faster.
+Hash tables are a new feature in Emacs 21; they have no read syntax, and
+print using hash notation.  @xref{Hash Tables}.
+
+@example
+(make-hash-table)
+     @result{} #<hash-table 'eql nil 0/65 0x83af980>
 @end example
 
 @node Function Type
@@ -1156,11 +1178,11 @@ opening @samp{[}.
 @subsection Autoload Type
 
   An @dfn{autoload object} is a list whose first element is the symbol
-@code{autoload}.  It is stored as the function definition of a symbol as
-a placeholder for the real definition; it says that the real definition
-is found in a file of Lisp code that should be loaded when necessary.
-The autoload object contains the name of the file, plus some other
-information about the real definition.
+@code{autoload}.  It is stored as the function definition of a symbol,
+where it serves as a placeholder for the real definition.  The autoload
+object says that the real definition is found in a file of Lisp code
+that should be loaded when necessary.  It contains the name of the file,
+plus some other information about the real definition.
 
   After the file has been loaded, the symbol should have a new function
 definition that is not an autoload object.  The new definition is then
@@ -1207,9 +1229,9 @@ buffer need not be displayed in any window.
   The contents of a buffer are much like a string, but buffers are not
 used like strings in Emacs Lisp, and the available operations are
 different.  For example, you can insert text efficiently into an
-existing buffer, whereas ``inserting'' text into a string requires
-concatenating substrings, and the result is an entirely new string
-object.
+existing buffer, altering the buffer's contents, whereas ``inserting''
+text into a string requires concatenating substrings, and the result is
+an entirely new string object.
 
   Each buffer has a designated position called @dfn{point}
 (@pxref{Positions}).  At any time, one buffer is the @dfn{current
@@ -1430,6 +1452,69 @@ syntax, and print in hash notation, giving the buffer name and range of
 positions.
 
   @xref{Overlays}, for how to create and use overlays.
+
+@node Circular Objects
+@section Read Syntax for Circular Objects
+@cindex circular structure, read syntax
+@cindex shared structure, read syntax
+@cindex @samp{#@var{n}=} read syntax
+@cindex @samp{#@var{n}#} read syntax
+
+  In Emacs 21, to represent shared or circular structure within a
+complex of Lisp objects, you can use the reader constructs
+@samp{#@var{n}=} and @samp{#@var{n}#}.
+
+  Use @code{#@var{n}=} before an object to label it for later reference;
+subsequently, you can use @code{#@var{n}#} to refer the same object in
+another place.  Here, @var{n} is some integer.  For example, here is how
+to make a list in which the first element recurs as the third element:
+
+@example
+(#1=(a) b #1#)
+@end example
+
+@noindent
+This differs from ordinary syntax such as this
+
+@example
+((a) b (a))
+@end example
+
+@noindent
+which would result in a list whose first and third elements
+look alike but are not the same Lisp object.  This shows the difference:
+
+@example
+(prog1 nil
+  (setq x '(#1=(a) b #1#)))
+(eq (nth 0 x) (nth 2 x))
+     @result{} t
+(setq x '((a) b (a)))
+(eq (nth 0 x) (nth 2 x))
+     @result{} nil
+@end example
+
+  You can also use the same syntax to make a circular structure, which
+appears as an ``element'' within itself.  Here is an example:
+
+@example
+#1=(a #1#)
+@end example
+
+@noindent
+This makes a list whose second element is the list itself.
+Here's how you can see that it really works:
+
+@example
+(prog1 nil
+  (setq x '#1=(a #1#)))
+(eq x (cadr x))
+     @result{} t
+@end example
+
+  The Lisp printer can produce this syntax to record circular and shared
+structure in a Lisp object, if you bind the variable @code{print-circle}
+to a non-@code{nil} value.  @xref{Output Variables}.
 
 @node Type Predicates
 @section Type Predicates
@@ -1764,7 +1849,7 @@ arguments to see if their elements are the same.  So, if two objects are
 Comparison of strings is case-sensitive, but does not take account of
 text properties---it compares only the characters in the strings.
 A unibyte string never equals a multibyte string unless the
-contents are entirely @sc{ASCII} (@pxref{Text Representations}).
+contents are entirely @sc{ascii} (@pxref{Text Representations}).
 
 @example
 @group

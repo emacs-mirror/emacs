@@ -34,9 +34,9 @@ portions of it.
 
   These are the primitive functions for searching through the text in a
 buffer.  They are meant for use in programs, but you may call them
-interactively.  If you do so, they prompt for the search string;
-@var{limit} and @var{noerror} are set to @code{nil}, and @var{repeat}
-is set to 1.
+interactively.  If you do so, they prompt for the search string; the
+arguments @var{limit} and @var{noerror} are @code{nil}, and @var{repeat}
+is 1.
 
   These search functions convert the search string to multibyte if the
 buffer is multibyte; they convert the search string to unibyte if the
@@ -167,6 +167,7 @@ regexps; the following section says how to search for them.
 
 @menu
 * Syntax of Regexps::       Rules for writing regular expressions.
+* Regexp Functions::        Functions for operating on regular expressions.
 * Regexp Example::          Illustrates regular expression syntax.
 @end menu
 
@@ -182,21 +183,33 @@ special characters will be defined in the future.  Any other character
 appearing in a regular expression is ordinary, unless a @samp{\}
 precedes it.
 
-For example, @samp{f} is not a special character, so it is ordinary, and
+  For example, @samp{f} is not a special character, so it is ordinary, and
 therefore @samp{f} is a regular expression that matches the string
 @samp{f} and no other string.  (It does @emph{not} match the string
-@samp{ff}.)  Likewise, @samp{o} is a regular expression that matches
-only @samp{o}.@refill
+@samp{fg}, but it does match a @emph{part} of that string.)  Likewise,
+@samp{o} is a regular expression that matches only @samp{o}.@refill
 
-Any two regular expressions @var{a} and @var{b} can be concatenated.  The
+  Any two regular expressions @var{a} and @var{b} can be concatenated.  The
 result is a regular expression that matches a string if @var{a} matches
 some amount of the beginning of that string and @var{b} matches the rest of
 the string.@refill
 
-As a simple example, we can concatenate the regular expressions @samp{f}
+  As a simple example, we can concatenate the regular expressions @samp{f}
 and @samp{o} to get the regular expression @samp{fo}, which matches only
 the string @samp{fo}.  Still trivial.  To do something more powerful, you
-need to use one of the special characters.  Here is a list of them:
+need to use one of the special regular expression constructs.
+
+@menu
+* Regexp Special::      Special characters in regular expressions.
+* Char Classes::        Character classes used in regular expressions.
+* Regexp Backslash::    Backslash-sequences in regular expressions.
+@end menu
+
+@node Regexp Special
+@subsubsection Special Characters in Regular Expressions
+
+  Here is a list of the characters that are special in a regular
+expression.
 
 @need 800
 @table @asis
@@ -266,23 +279,10 @@ matches @samp{cr}, @samp{car}, @samp{cdr}, @samp{caddaar}, etc.
 
 You can also include character ranges in a character alternative, by
 writing the starting and ending characters with a @samp{-} between them.
-Thus, @samp{[a-z]} matches any lower-case @sc{ASCII} letter.  Ranges may be
+Thus, @samp{[a-z]} matches any lower-case @sc{ascii} letter.  Ranges may be
 intermixed freely with individual characters, as in @samp{[a-z$%.]},
-which matches any lower case @sc{ASCII} letter or @samp{$}, @samp{%} or
+which matches any lower case @sc{ascii} letter or @samp{$}, @samp{%} or
 period.
- 
-You cannot always match all non-@sc{ASCII} characters with the regular
-expression @samp{[\200-\377]}.  This works when searching a unibyte
-buffer or string (@pxref{Text Representations}), but not in a multibyte
-buffer or string, because many non-@sc{ASCII} characters have codes
-above octal 0377.  However, the regular expression @samp{[^\000-\177]}
-does match all non-@sc{ASCII} characters, in both multibyte and unibyte
-representations, because only the @sc{ASCII} characters are excluded.
-
-The beginning and end of a range must be in the same character set
-(@pxref{Character Sets}).  Thus, @samp{[a-\x8e0]} is invalid because
-@samp{a} is in the @sc{ASCII} character set but the character 0x8e0
-(@samp{a} with grave accent) is in the Emacs character set for Latin-1.
 
 Note that the usual regexp special characters are not special inside a
 character alternative.  A completely different set of characters is
@@ -296,6 +296,27 @@ matches both @samp{]} and @samp{-}.
 
 To include @samp{^} in a character alternative, put it anywhere but at
 the beginning.
+
+The beginning and end of a range must be in the same character set
+(@pxref{Character Sets}).  Thus, @samp{[a-\x8e0]} is invalid because
+@samp{a} is in the @sc{ascii} character set but the character 0x8e0
+(@samp{a} with grave accent) is in the Emacs character set for Latin-1.
+ 
+You cannot always match all non-@sc{ascii} characters with the regular
+expression @samp{[\200-\377]}.  This works when searching a unibyte
+buffer or string (@pxref{Text Representations}), but not in a multibyte
+buffer or string, because many non-@sc{ascii} characters have codes
+above octal 0377.  However, the regular expression @samp{[^\000-\177]}
+does match all non-@sc{ascii} characters (see below regarding @samp{^}),
+in both multibyte and unibyte representations, because only the
+@sc{ascii} characters are excluded.
+
+Starting in Emacs 21, a character alternative can also specify named
+character classes (@pxref{Char Classes}).  This is a POSIX feature whose
+syntax is @samp{[:@var{class}:]}.  Using a character class is equivalent
+to mentioning each of the characters in that class; but the latter is
+not feasible in practice, since some classes include thousands of
+different characters.
 
 @item @samp{[^ @dots{} ]}
 @cindex @samp{^} in regexp
@@ -321,13 +342,20 @@ the beginning of a line.
 When matching a string instead of a buffer, @samp{^} matches at the
 beginning of the string or after a newline character @samp{\n}.
 
+For historical compatibility reasons, @samp{^} can be used only at the
+beginning of the regular expression, or after @samp{\(} or @samp{\|}.
+
 @item @samp{$}
 @cindex @samp{$} in regexp
+@cindex end of line in regexp
 is similar to @samp{^} but matches only at the end of a line.  Thus,
 @samp{x+$} matches a string of one @samp{x} or more at the end of a line.
 
 When matching a string instead of a buffer, @samp{$} matches at the end
 of the string or before a newline character @samp{\n}.
+
+For historical compatibility reasons, @samp{$} can be used only at the
+end of the regular expression, or before @samp{\)} or @samp{\|}.
 
 @item @samp{\}
 @cindex @samp{\} in regexp
@@ -354,11 +382,66 @@ ordinary since there is no preceding expression on which the @samp{*}
 can act.  It is poor practice to depend on this behavior; quote the
 special character anyway, regardless of where it appears.@refill
 
-For the most part, @samp{\} followed by any character matches only that
-character.  However, there are several exceptions: two-character
-sequences starting with @samp{\} which have special meanings.  (The
-second character in such a sequence is always ordinary when used on its
-own.)  Here is a table of @samp{\} constructs.
+@node Char Classes
+@subsubsection Character Classes
+@cindex character classes in regexp
+
+  Here is a table of the classes you can use in a character alternative,
+in Emacs 21, and what they mean:
+
+@table @samp
+@item [:ascii:]
+This matches any ASCII (unibyte) character.
+@item [:alnum:]
+This matches any letter or digit.  (At present, for multibyte
+characters, it matches anything that has word syntax.)
+@item [:alpha:]
+This matches any letter.  (At present, for multibyte characters, it
+matches anything that has word syntax.)
+@item [:blank:]
+This matches space and tab only.
+@item [:cntrl:]
+This matches any ASCII control character.
+@item [:digit:]
+This matches @samp{0} through @samp{9}.  Thus, @samp{[-+[:digit:]]}
+matches any digit, as well as @samp{+} and @samp{-}.
+@item [:graph:]
+This matches graphic characters---everything except ASCII control characters,
+space, and DEL.
+@item [:lower:]
+This matches any lower-case letter, as determined by
+the current case table (@pxref{Case Tables}).
+@item [:nonascii:]
+This matches any non-ASCII (multibyte) character.
+@item [:print:]
+This matches printing characters---everything except ASCII control
+characters and DEL.
+@item [:punct:]
+This matches any punctuation character.  (At present, for multibyte
+characters, it matches anything that has non-word syntax.)
+@item [:space:]
+This matches any character that has whitespace syntax
+(@pxref{Syntax Class Table}).
+@item [:upper:]
+This matches any upper-case letter, as determined by
+the current case table (@pxref{Case Tables}).
+@item [:word:]
+This matches any character that has word syntax (@pxref{Syntax Class
+Table}).
+@item [:xdigit:]
+This matches the hexadecimal digits: @samp{0} through @samp{9}, @samp{a}
+through @samp{f} and @samp{A} through @samp{F}.
+@end table
+
+@node Regexp Backslash
+@subsubsection Backslash Constructs in Regular Expressions
+
+  For the most part, @samp{\} followed by any character matches only
+that character.  However, there are several exceptions: certain
+two-character sequences starting with @samp{\} that have special
+meanings.  (The character after the @samp{\} in such a sequence is
+always ordinary when used on its own.)  Here is a table of the special
+@samp{\} constructs.
 
 @table @samp
 @item \|
@@ -376,7 +459,9 @@ but no other string.@refill
 surrounding @samp{\( @dots{} \)} grouping can limit the grouping power of
 @samp{\|}.@refill
 
-Full backtracking capability exists to handle multiple uses of @samp{\|}.
+Full backtracking capability exists to handle multiple uses of
+@samp{\|}, if you use the POSIX regular expression functions
+(@pxref{POSIX Regexps}).
 
 @item \( @dots{} \)
 @cindex @samp{(} in regexp
@@ -505,62 +590,6 @@ as @samp{[]]}), and so is a string that ends with a single @samp{\}.  If
 an invalid regular expression is passed to any of the search functions,
 an @code{invalid-regexp} error is signaled.
 
-@defun regexp-quote string
-This function returns a regular expression string that matches exactly
-@var{string} and nothing else.  This allows you to request an exact
-string match when calling a function that wants a regular expression.
-
-@example
-@group
-(regexp-quote "^The cat$")
-     @result{} "\\^The cat\\$"
-@end group
-@end example
-
-One use of @code{regexp-quote} is to combine an exact string match with
-context described as a regular expression.  For example, this searches
-for the string that is the value of @var{string}, surrounded by
-whitespace:
-
-@example
-@group
-(re-search-forward
- (concat "\\s-" (regexp-quote string) "\\s-"))
-@end group
-@end example
-@end defun
-
-@defun regexp-opt strings &optional paren
-@tindex regexp-opt
-This function returns an efficient regular expression that will match
-any of the strings @var{strings}.  This is useful when you need to make
-matching or searching as fast as possible---for example, for Font Lock
-mode.
-
-If the optional argument @var{paren} is non-@code{nil}, then the
-returned regular expression is always enclosed by at least one
-parentheses-grouping construct.
-
-This simplified definition of @code{regexp-opt} produces a
-regular expression which is equivalent to the actual value
-(but not as efficient):
-
-@example
-(defun regexp-opt (strings paren)
-  (let ((open-paren (if paren "\\(" ""))
-        (close-paren (if paren "\\)" "")))
-    (concat open-paren
-            (mapconcat 'regexp-quote strings "\\|")
-            close-paren)))
-@end example
-@end defun
-
-@defun regexp-opt-depth regexp
-@tindex regexp-opt-depth
-This function returns the total number of grouping constructs
-(parenthesized expressions) in @var{regexp}.
-@end defun
-
 @node Regexp Example
 @comment  node-name,  next,  previous,  up
 @subsection Complex Regexp Example
@@ -623,6 +652,72 @@ used to match the end of a line.
 Finally, the last part of the pattern matches any additional whitespace
 beyond the minimum needed to end a sentence.
 @end table
+
+@node Regexp Functions
+@subsection Regular Expression Functions
+
+  These functions operate on regular expressions.
+
+@defun regexp-quote string
+This function returns a regular expression whose only exact match is
+@var{string}.  Using this regular expression in @code{looking-at} will
+succeed only if the next characters in the buffer are @var{string};
+using it in a search function will succeed if the text being searched
+contains @var{string}.
+
+This allows you to request an exact string match or search when calling
+a function that wants a regular expression.
+
+@example
+@group
+(regexp-quote "^The cat$")
+     @result{} "\\^The cat\\$"
+@end group
+@end example
+
+One use of @code{regexp-quote} is to combine an exact string match with
+context described as a regular expression.  For example, this searches
+for the string that is the value of @var{string}, surrounded by
+whitespace:
+
+@example
+@group
+(re-search-forward
+ (concat "\\s-" (regexp-quote string) "\\s-"))
+@end group
+@end example
+@end defun
+
+@defun regexp-opt strings &optional paren
+@tindex regexp-opt
+This function returns an efficient regular expression that will match
+any of the strings @var{strings}.  This is useful when you need to make
+matching or searching as fast as possible---for example, for Font Lock
+mode.
+
+If the optional argument @var{paren} is non-@code{nil}, then the
+returned regular expression is always enclosed by at least one
+parentheses-grouping construct.
+
+This simplified definition of @code{regexp-opt} produces a
+regular expression which is equivalent to the actual value
+(but not as efficient):
+
+@example
+(defun regexp-opt (strings paren)
+  (let ((open-paren (if paren "\\(" ""))
+        (close-paren (if paren "\\)" "")))
+    (concat open-paren
+            (mapconcat 'regexp-quote strings "\\|")
+            close-paren)))
+@end example
+@end defun
+
+@defun regexp-opt-depth regexp
+@tindex regexp-opt-depth
+This function returns the total number of grouping constructs
+(parenthesized expressions) in @var{regexp}.
+@end defun
 
 @node Regexp Search
 @section Regular Expression Searching
@@ -908,9 +1003,18 @@ The argument @var{replacements} specifies what to replace occurrences
 with.  If it is a string, that string is used.  It can also be a list of
 strings, to be used in cyclic order.
 
+If @var{replacements} is a cons cell, @var{(@var{function}
+. @var{data})}, this means to call @var{function} after each match to
+get the replacement text.  This function is called with two arguments:
+@var{data}, and the number of replacements already made.
+
 If @var{repeat-count} is non-@code{nil}, it should be an integer.  Then
 it specifies how many times to use each of the strings in the
 @var{replacements} list before advancing cyclicly to the next one.
+
+If @var{from-string} contains upper-case letters, then
+@code{perform-replace} binds @code{case-fold-search} to @code{nil}, and
+it uses the @code{replacements} without altering the case of them.
 
 Normally, the keymap @code{query-replace-map} defines the possible user
 responses for queries.  The argument @var{map}, if non-@code{nil}, is a
@@ -1009,7 +1113,7 @@ match data around it, to prevent it from being overwritten.
 @end menu
 
 @node Replacing Match
-@subsection Replacing the Text That Matched
+@subsection Replacing the Text that Matched
 
   This function replaces the text matched by the last search with
 @var{replacement}.
@@ -1038,9 +1142,6 @@ capitalized, then the first word of the replacement text is capitalized.
 If the original text contains just one word, and that word is a capital
 letter, @code{replace-match} considers this a capitalized first word
 rather than all upper case.
-
-If @code{case-replace} is @code{nil}, then case conversion is not done,
-regardless of the value of @var{fixed-case}.  @xref{Searching and Case}.
 
 If @var{literal} is non-@code{nil}, then @var{replacement} is inserted
 exactly as it is, the only alterations being case changes as needed.
@@ -1361,8 +1462,8 @@ preserve case.  If the variable is @code{nil}, that means to use the
 replacement text verbatim.  A non-@code{nil} value means to convert the
 case of the replacement text according to the text being replaced.
 
-The function @code{replace-match} is where this variable actually has
-its effect.  @xref{Replacing Match}.
+This variable is used by passing it as an argument to the function
+@code{replace-match}.  @xref{Replacing Match}.
 @end defopt
 
 @defopt case-fold-search

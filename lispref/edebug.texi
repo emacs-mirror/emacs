@@ -66,9 +66,9 @@ enable you to use it.
 * Jumping::			Commands to jump to a specified place.
 * Misc: Edebug Misc.		Miscellaneous commands.
 * Breakpoints::			Setting breakpoints to make the program stop.
-* Trapping Errors::		trapping errors with Edebug.
+* Trapping Errors::		Trapping errors with Edebug.
 * Views: Edebug Views.		Views inside and outside of Edebug.
-* Eval: Edebug Eval.			Evaluating expressions within Edebug.
+* Eval: Edebug Eval.		Evaluating expressions within Edebug.
 * Eval List::			Expressions whose values are displayed
 				  each time you enter Edebug.
 * Printing in Edebug::		Customization of printing.
@@ -89,23 +89,23 @@ first move point into the definition of a function or macro and then do
 @ref{Instrumenting}, for alternative ways to instrument code.
 
   Once a function is instrumented, any call to the function activates
-Edebug.  Activating Edebug may stop execution and let you step through
-the function, or it may update the display and continue execution while
-checking for debugging commands, depending on which Edebug execution
-mode you have selected.  The default execution mode is step, which does
-stop execution.  @xref{Edebug Execution Modes}.
+Edebug.  Depending on which Edebug execution mode you have selected,
+activating Edebug may stop execution and let you step through the
+function, or it may update the display and continue execution while
+checking for debugging commands.  The default execution mode is step,
+which stops execution.  @xref{Edebug Execution Modes}.
 
   Within Edebug, you normally view an Emacs buffer showing the source of
 the Lisp code you are debugging.  This is referred to as the @dfn{source
-code buffer}.  This buffer is temporarily read-only.
+code buffer}, and is is temporarily read-only.
 
   An arrow at the left margin indicates the line where the function is
 executing.  Point initially shows where within the line the function is
 executing, but this ceases to be true if you move point yourself.
 
   If you instrument the definition of @code{fac} (shown below) and then
-execute @code{(fac 3)}, here is what you normally see.  Point is at the
-open-parenthesis before @code{if}.
+execute @code{(fac 3)}, here is what you would normally see.  Point is
+at the open-parenthesis before @code{if}.
 
 @example
 (defun fac (n)
@@ -118,7 +118,7 @@ open-parenthesis before @code{if}.
 The places within a function where Edebug can stop execution are called
 @dfn{stop points}.  These occur both before and after each subexpression
 that is a list, and also after each variable reference.  
-Here we show with periods the stop points found in the function
+Here we use periods to show the stop points in the function
 @code{fac}:
 
 @example
@@ -163,7 +163,7 @@ into it, to invoke Edebug at the proper places.
 argument on a definition, it instruments the definition before
 evaluating it.  (The source code itself is not modified.)  If the
 variable @code{edebug-all-defs} is non-@code{nil}, that inverts the
-meaning of the prefix argument: then @kbd{C-M-x} instruments the
+meaning of the prefix argument: in this case, @kbd{C-M-x} instruments the
 definition @emph{unless} it has a prefix argument.  The default value of
 @code{edebug-all-defs} is @code{nil}.  The command @kbd{M-x
 edebug-all-defs} toggles the value of the variable
@@ -188,10 +188,11 @@ instrument any top-level form regardless of the values of
 (@code{edebug-instrument-callee}) instruments the definition of the
 function or macro called by the list form after point, if is not already
 instrumented.  This is possible only if Edebug knows where to find the
-source for that function; after loading Edebug, @code{eval-region}
-records the position of every definition it evaluates, even if not
-instrumenting it.  See also the @kbd{i} command (@pxref{Jumping}), which
-steps into the call after instrumenting the function.
+source for that function; for this reading, after loading Edebug,
+@code{eval-region} records the position of every definition it
+evaluates, even if not instrumenting it.  See also the @kbd{i} command
+(@pxref{Jumping}), which steps into the call after instrumenting the
+function.
 
 @cindex special forms (Edebug)
 @cindex interactive commands (Edebug)
@@ -201,15 +202,16 @@ steps into the call after instrumenting the function.
 @pindex cl-specs.el
   Edebug knows how to instrument all the standard special forms,
 @code{interactive} forms with an expression argument, anonymous lambda
-expressions, and other defining forms.  Edebug cannot know what a
-user-defined macro will do with the arguments of a macro call, so you
-must tell it; see @ref{Instrumenting Macro Calls}, for details.
+expressions, and other defining forms.  However, Edebug cannot determine
+on its own what a user-defined macro will do with the arguments of a
+macro call, so you must provide that information; see @ref{Instrumenting
+Macro Calls}, for details.
 
   When Edebug is about to instrument code for the first time in a
 session, it runs the hook @code{edebug-setup-hook}, then sets it to
-@code{nil}.  You can use this to arrange to load Edebug specifications
+@code{nil}.  You can use this to load Edebug specifications
 (@pxref{Instrumenting Macro Calls}) associated with a package you are
-using, but actually load them only if you use Edebug.
+using, but only when you use Edebug.
 
 @findex eval-expression @r{(Edebug)}
   To remove instrumentation from a definition, simply re-evaluate its
@@ -238,12 +240,12 @@ before it stops.
 
 Normally, you specify the Edebug execution mode by typing a command to
 continue the program in a certain mode.  Here is a table of these
-commands.  All except for @kbd{S} resume execution of the program, at
+commands; all except for @kbd{S} resume execution of the program, at
 least for a certain distance.
 
 @table @kbd
 @item S
-Stop: don't execute any more of the program for now, just wait for more
+Stop: don't execute any more of the program, but wait for more
 Edebug commands (@code{edebug-stop}).
 
 @item @key{SPC}
@@ -296,7 +298,7 @@ Keyboard macros containing the commands in this section do not
 completely work: exiting from Edebug, to resume the program, loses track
 of the keyboard macro.  This is not easy to fix.  Also, defining or
 executing a keyboard macro outside of Edebug does not affect commands
-inside Edebug.  This is usually an advantage.  But see the
+inside Edebug.  This is usually an advantage.  See also the
 @code{edebug-continue-kbd-macro} option (@pxref{Edebug Options}).
 
 When you enter a new Edebug level, the initial execution mode comes from
@@ -316,8 +318,8 @@ breakpoint reached before the intended stop point will also stop
 execution.  @xref{Breakpoints}, for the details on breakpoints.
 
   These commands may fail to work as expected in case of nonlocal exit,
-because a nonlocal exit can bypass the temporary breakpoint where you
-expected the program to stop.
+as that can bypass the temporary breakpoint where you expected the
+program to stop.
 
 @table @kbd
 @item h
@@ -348,13 +350,13 @@ With a prefix argument @var{n}, the temporary breakpoint is placed
 more elements, then the place to stop is after the containing
 expression.
 
-Be careful that the position @kbd{C-M-f} finds is a place that the
-program will really get to; this may not be true in a
-@code{cond}, for example.
+You must check that the position @kbd{C-M-f} finds is a place that the
+program will really get to.  In @code{cond}, for example, this may not
+be true.
 
-The @kbd{f} command does @code{forward-sexp} starting at point, rather
-than at the stop point, for flexibility.  If you want to execute one
-expression @emph{from the current stop point}, type @kbd{w} first, to
+For flexibility, the @kbd{f} command does @code{forward-sexp} starting
+at point, rather than at the stop point.  If you want to execute one
+expression @emph{from the current stop point}, first type @kbd{w}, to
 move point there, and then type @kbd{f}.
 
 The @kbd{o} command continues ``out of'' an expression.  It places a
@@ -397,7 +399,7 @@ activity.  However, instrumented code protected with
 debugging.
 
 @item Q
-Like @kbd{q} but don't stop even for protected code
+Like @kbd{q}, but don't stop even for protected code
 (@code{top-level-nonstop}).
 
 @item r
@@ -415,22 +417,21 @@ The backtrace buffer is killed automatically when you continue
 execution.
 @end table
 
-From the Edebug recursive edit, you may invoke commands that activate
-Edebug again recursively.  Any time Edebug is active, you can quit to
-the top level with @kbd{q} or abort one recursive edit level with
-@kbd{C-]}.  You can display a backtrace of all the 
-pending evaluations with @kbd{d}.
+You can invoke commands from Edebug that activate Edebug again
+recursively.  Whenever Edebug is active, you can quit to the top level
+with @kbd{q} or abort one recursive edit level with @kbd{C-]}.  You can
+display a backtrace of all the pending evaluations with @kbd{d}.
 
 @node Breakpoints
 @subsection Breakpoints
 
 @cindex breakpoints
-Edebug's step mode stops execution at the next stop point reached.
+Edebug's step mode stops execution when the next stop point is reached.
 There are three other ways to stop Edebug execution once it has started:
 breakpoints, the global break condition, and source breakpoints.
 
 While using Edebug, you can specify @dfn{breakpoints} in the program you
-are testing: points where execution should stop.  You can set a
+are testing: these are places where execution should stop.  You can set a
 breakpoint at any stop point, as defined in @ref{Using Edebug}.  For
 setting and unsetting breakpoints, the stop point that is affected is
 the first one at or after point in the source code buffer.  Here are the
@@ -440,8 +441,8 @@ Edebug commands for breakpoints:
 @item b
 Set a breakpoint at the stop point at or after point
 (@code{edebug-set-breakpoint}).  If you use a prefix argument, the
-breakpoint is temporary (it turns off the first time it stops the
-program).
+breakpoint is temporary---it turns off the first time it stops the
+program.
 
 @item u
 Unset the breakpoint (if any) at the stop point at or after 
@@ -463,7 +464,8 @@ with @kbd{u}.  First move point to the Edebug stop point of your choice,
 then type @kbd{b} or @kbd{u} to set or unset a breakpoint there.
 Unsetting a breakpoint where none has been set has no effect.
 
-Re-evaluating or reinstrumenting a definition forgets all its breakpoints.
+Re-evaluating or reinstrumenting a definition removes all of its
+previous breakpoints.
 
 A @dfn{conditional breakpoint} tests a condition each time the program
 gets there.  Any errors that occur as a result of evaluating the
@@ -478,7 +480,7 @@ You can make a conditional or unconditional breakpoint
 breakpoint.  When a temporary breakpoint stops the program, it is
 automatically unset.
 
-Edebug always stops or pauses at a breakpoint except when the Edebug
+Edebug always stops or pauses at a breakpoint, except when the Edebug
 mode is Go-nonstop.  In that mode, it ignores breakpoints entirely.
 
 To find out where your breakpoints are, use the @kbd{B} command, which
@@ -500,7 +502,7 @@ point in the buffer.
 @cindex global break condition
   A @dfn{global break condition} stops execution when a specified
 condition is satisfied, no matter where that may occur.  Edebug
-evaluates the global break condition at every stop point.  If it
+evaluates the global break condition at every stop point; if it
 evaluates to a non-@code{nil} value, then execution stops or pauses
 depending on the execution mode, as if a breakpoint had been hit.  If
 evaluating the condition gets an error, execution does not stop.
@@ -520,11 +522,12 @@ should reset the condition to @code{nil} when not using it.
 @findex edebug
 @cindex source breakpoints
   All breakpoints in a definition are forgotten each time you
-reinstrument it.  To make a breakpoint that won't be forgotten, you can
-write a @dfn{source breakpoint}, which is simply a call to the function
-@code{edebug} in your source code.  You can, of course, make such a call
-conditional.  For example, in the @code{fac} function, insert the first
-line as shown below to stop when the argument reaches zero:
+reinstrument it.  If you wish to make a breakpoint that won't be
+forgotten, you can write a @dfn{source breakpoint}, which is simply a
+call to the function @code{edebug} in your source code.  You can, of
+course, make such a call conditional.  For example, in the @code{fac}
+function, you can insert the first line as shown below, to stop when the
+argument reaches zero:
 
 @example
 (defun fac (n)
@@ -553,10 +556,10 @@ and @code{edebug-on-quit}; see @ref{Edebug Options}.
 
   When Edebug responds to an error, it shows the last stop point
 encountered before the error.  This may be the location of a call to a
-function which was not instrumented, within which the error actually
+function which was not instrumented, and within which the error actually
 occurred.  For an unbound variable error, the last known stop point
 might be quite distant from the offending variable reference.  In that
-case you might want to display a full backtrace (@pxref{Edebug Misc}).
+case, you might want to display a full backtrace (@pxref{Edebug Misc}).
 
 @c Edebug should be changed for the following: -- dan
   If you change @code{debug-on-error} or @code{debug-on-quit} while
@@ -616,12 +619,12 @@ open.
 @node Edebug Eval
 @subsection Evaluation
 
-  While within Edebug, you can evaluate expressions ``as if'' Edebug were
-not running.  Edebug tries to be invisible to the expression's
+  While within Edebug, you can evaluate expressions ``as if'' Edebug
+were not running.  Edebug tries to be invisible to the expression's
 evaluation and printing.  Evaluation of expressions that cause side
-effects will work as expected except for things that Edebug explicitly
-saves and restores.  @xref{The Outside Context}, for details on this
-process.
+effects will work as expected, except for changes to data that Edebug
+explicitly saves and restores.  @xref{The Outside Context}, for details
+on this process.
 
 @table @kbd
 @item e @var{exp} @key{RET}
@@ -739,9 +742,9 @@ eval-last-sexp
 To delete a group, move point into it and type @kbd{C-c C-d}, or simply
 delete the text for the group and update the evaluation list with
 @kbd{C-c C-u}.  To add a new expression to the evaluation list, insert
-the expression at a suitable place, and insert a new comment line.  (You
-need not insert dashes in the comment line---its contents don't matter.)
-Then type @kbd{C-c C-u}.
+the expression at a suitable place, insert a new comment line, then type
+@kbd{C-c C-u}.  You need not insert dashes in the comment line---its
+contents don't matter.
 
 After selecting @samp{*edebug*}, you can return to the source code
 buffer with @kbd{C-c C-w}.  The @samp{*edebug*} buffer is killed when
@@ -764,22 +767,18 @@ and @code{edebug-print-level} specify the values to use within Edebug.)
 @xref{Output Variables}.
 
 @defopt edebug-print-length
-If non-@code{nil}, bind @code{print-length} to this while printing
-results in Edebug.  The default value is @code{50}.
+If non-@code{nil}, Edebug binds @code{print-length} to this value while
+printing results.  The default value is @code{50}.
 @end defopt
 
 @defopt edebug-print-level 
-If non-@code{nil}, bind @code{print-level} to this while printing
-results in Edebug.  The default value is @code{50}.
+If non-@code{nil}, Edebug binds @code{print-level} to this value while
+printing results.  The default value is @code{50}.
 @end defopt
 
   You can also print circular structures and structures that share
-elements more informatively by using the @file{cust-print} package.
-
-  To load @file{cust-print} and activate custom printing only for
-Edebug, simply use the command @kbd{M-x edebug-install-custom-print}.
-To restore the standard print functions, use @kbd{M-x
-edebug-uninstall-custom-print}.
+elements more informatively by binding @code{print-circle}
+to a non-@code{nil} value.
 
   Here is an example of code that creates a circular structure:
 
@@ -796,8 +795,8 @@ structure.  This notation is used for any shared elements of lists or
 vectors.
 
 @defopt edebug-print-circle 
-If non-@code{nil}, bind @code{print-circle} to this while printing
-results in Edebug.  The default value is @code{nil}.
+If non-@code{nil}, Edebug binds @code{print-circle} to this value while
+printing results.  The default value is @code{nil}.
 @end defopt
 
   Other programs can also use custom printing; see @file{cust-print.el}
@@ -816,9 +815,9 @@ trace recording, set @code{edebug-trace} to a non-@code{nil} value.
 mode (@pxref{Edebug Execution Modes}).
 
   When trace recording is enabled, each function entry and exit adds
-lines to the trace buffer.  A function entry record looks like
-@samp{::::@{} followed by the function name and argument values.  A
-function exit record looks like @samp{::::@}} followed by the function
+lines to the trace buffer.  A function entry record consists of
+@samp{::::@{}, followed by the function name and argument values.  A
+function exit record consists of @samp{::::@}}, followed by the function
 name and result of the function.
 
   The number of @samp{:}s in an entry shows its recursion depth.  You
@@ -834,7 +833,7 @@ redefining the functions @code{edebug-print-trace-before} and
 @defmac edebug-tracing string body@dots{}
 This macro requests additional trace information around the execution
 of the @var{body} forms.  The argument @var{string} specifies text
-to put in the trace buffer.  All the arguments are evaluated.
+to put in the trace buffer.  All the arguments are evaluated, and
 @code{edebug-tracing} returns the value of the last form in @var{body}.
 @end defmac
 
@@ -964,15 +963,15 @@ the current window configuration from ``outside'' Edebug
 the program), it restores the previous window configuration.
 
 Emacs redisplays only when it pauses.  Usually, when you continue
-execution, the program comes back into Edebug at a breakpoint or after
-stepping without pausing or reading input in between.  In such cases,
+execution, the program re-enters Edebug at a breakpoint or after
+stepping, without pausing or reading input in between.  In such cases,
 Emacs never gets a chance to redisplay the ``outside'' configuration.
-What you see is the same window configuration as the last time Edebug
-was active, with no interruption.
+Consequently, what you see is the same window configuration as the last
+time Edebug was active, with no interruption.
 
 Entry to Edebug for displaying something also saves and restores the
-following data, but some of these are deliberately not restored if an
-error or quit signal occurs.
+following data (though some of them are deliberately not restored if an
+error or quit signal occurs).
 
 @itemize @bullet
 @item 

@@ -10,7 +10,7 @@
   A @dfn{buffer} is a Lisp object containing text to be edited.  Buffers
 are used to hold the contents of files that are being visited; there may
 also be buffers that are not visiting files.  While several buffers may
-exist at one time, exactly one buffer is designated the @dfn{current
+exist at one time, only one buffer is designated the @dfn{current
 buffer} at any time.  Most editing commands act on the contents of the
 current buffer.  Each buffer, including the current buffer, may or may
 not be displayed in any windows.
@@ -18,7 +18,7 @@ not be displayed in any windows.
 @menu
 * Buffer Basics::       What is a buffer?
 * Current Buffer::      Designating a buffer as current
-                          so primitives will access its contents.
+                          so that primitives will access its contents.
 * Buffer Names::        Accessing and changing buffer names.
 * Buffer File Name::    The buffer file name indicates which file is visited.
 * Buffer Modification:: A buffer is @dfn{modified} if it needs to be saved.
@@ -39,8 +39,8 @@ not be displayed in any windows.
 @ifinfo
   A @dfn{buffer} is a Lisp object containing text to be edited.  Buffers
 are used to hold the contents of files that are being visited; there may
-also be buffers that are not visiting files.  While several buffers may
-exist at one time, exactly one buffer is designated the @dfn{current
+also be buffers that are not visiting files.  Although several buffers
+normally exist, only one buffer is designated the @dfn{current
 buffer} at any time.  Most editing commands act on the contents of the
 current buffer.  Each buffer, including the current buffer, may or may
 not be displayed in any windows.
@@ -103,12 +103,12 @@ current, to prevent confusion: the buffer that the cursor is in when
 Emacs reads a command is the buffer that the command will apply to.
 (@xref{Command Loop}.)  Therefore, @code{set-buffer} is not the way to
 switch visibly to a different buffer so that the user can edit it.  For
-this, you must use the functions described in @ref{Displaying Buffers}.
+that, you must use the functions described in @ref{Displaying Buffers}.
 
-  However, Lisp functions that change to a different current buffer
+  @strong{Note:} Lisp functions that change to a different current buffer
 should not depend on the command loop to set it back afterwards.
 Editing commands written in Emacs Lisp can be called from other programs
-as well as from the command loop.  It is convenient for the caller if
+as well as from the command loop; it is convenient for the caller if
 the subroutine does not change which buffer is current (unless, of
 course, that is the subroutine's purpose).  Therefore, you should
 normally use @code{set-buffer} within a @code{save-current-buffer} or
@@ -153,9 +153,9 @@ binding.  Otherwise, use @code{save-current-buffer} or
 @code{save-excursion} to make sure that the buffer current at the
 beginning is current again whenever the variable is unbound.
 
-  It is not reliable to change the current buffer back with
-@code{set-buffer}, because that won't do the job if a quit happens while
-the wrong buffer is current.  Here is what @emph{not} to do:
+  Do not rely on using @code{set-buffer} to change the current buffer
+back, because that won't do the job if a quit happens while the wrong
+buffer is current.  Here is what @emph{not} to do:
 
 @example
 @group
@@ -192,10 +192,9 @@ This function returns the current buffer.
 @end defun
 
 @defun set-buffer buffer-or-name
-This function makes @var{buffer-or-name} the current buffer.  It does
-not display the buffer in the currently selected window or in any other
-window, so the user cannot necessarily see the buffer.  But Lisp
-programs can in any case work on it.
+This function makes @var{buffer-or-name} the current buffer.  This does
+not display the buffer in any window, so the user cannot necessarily see
+the buffer.  But Lisp programs will now operate on it.
 
 This function returns the buffer identified by @var{buffer-or-name}.
 An error is signaled if @var{buffer-or-name} does not identify an
@@ -302,18 +301,15 @@ Ordinarily, @code{rename-buffer} signals an error if @var{newname} is
 already in use.  However, if @var{unique} is non-@code{nil}, it modifies
 @var{newname} to make a name that is not in use.  Interactively, you can
 make @var{unique} non-@code{nil} with a numeric prefix argument.
-
-One application of this command is to rename the @samp{*shell*} buffer
-to some other name, thus making it possible to create a second shell
-buffer under the name @samp{*shell*}.
+(This is how the command @code{rename-uniquely} is implemented.)
 @end deffn
 
 @defun get-buffer buffer-or-name
 This function returns the buffer specified by @var{buffer-or-name}.
 If @var{buffer-or-name} is a string and there is no buffer with that
 name, the value is @code{nil}.  If @var{buffer-or-name} is a buffer, it
-is returned as given.  (That is not very useful, so the argument is usually 
-a name.)  For example:
+is returned as given; that is not very useful, so the argument is usually 
+a name.  For example:
 
 @example
 @group
@@ -374,7 +370,7 @@ supplied, it defaults to the current buffer.
 @defvar buffer-file-name
 This buffer-local variable contains the name of the file being visited
 in the current buffer, or @code{nil} if it is not visiting a file.  It
-is a permanent local, unaffected by @code{kill-local-variables}.
+is a permanent local variable, unaffected by @code{kill-local-variables}.
 
 @example
 @group
@@ -621,7 +617,7 @@ the read-only flag with @kbd{C-x C-q}.
 
 @item
 Modes such as Dired and Rmail make buffers read-only when altering the
-contents with the usual editing commands is probably a mistake.
+contents with the usual editing commands would probably be a mistake.
 
 The special commands of these modes bind @code{buffer-read-only} to
 @code{nil} (with @code{let}) or bind @code{inhibit-read-only} to
@@ -649,7 +645,7 @@ of the list (comparison is done with @code{eq}).
 
 @deffn Command toggle-read-only
 This command changes whether the current buffer is read-only.  It is
-intended for interactive use; don't use it in programs.  At any given
+intended for interactive use; do not use it in programs.  At any given
 point in a program, you should know whether you want the read-only flag
 on or off; so you can set @code{buffer-read-only} explicitly to the
 proper value, @code{t} or @code{nil}.
@@ -857,8 +853,8 @@ text space available for other use.
   The buffer object for the buffer that has been killed remains in
 existence as long as anything refers to it, but it is specially marked
 so that you cannot make it current or display it.  Killed buffers retain
-their identity, however; two distinct buffers, when killed, remain
-distinct according to @code{eq}.
+their identity, however; if you kill two distinct buffers, they remain
+distinct according to @code{eq} although both are dead.
 
   If you kill a buffer that is current or displayed in a window, Emacs
 automatically selects or displays some other buffer instead.  This means
@@ -916,9 +912,9 @@ Buffer foo.changed modified; kill anyway? (yes or no) @kbd{yes}
 After confirming unsaved changes, @code{kill-buffer} calls the functions
 in the list @code{kill-buffer-query-functions}, in order of appearance,
 with no arguments.  The buffer being killed is the current buffer when
-they are called.  The idea is that these functions ask for confirmation
-from the user for various nonstandard reasons.  If any of them returns
-@code{nil}, @code{kill-buffer} spares the buffer's life.
+they are called.  The idea of this feature is that these functions will
+ask for confirmation from the user.  If any of them returns @code{nil},
+@code{kill-buffer} spares the buffer's life.
 @end defvar
 
 @defvar kill-buffer-hook
@@ -951,7 +947,7 @@ base buffer; changes made by editing either one are visible immediately
 in the other.  This includes the text properties as well as the characters
 themselves.
 
-  But in all other respects, the indirect buffer and its base buffer are
+  In all other respects, the indirect buffer and its base buffer are
 completely separate.  They have different names, different values of
 point, different narrowing, different markers and overlays (though
 inserting or deleting text in either buffer relocates the markers and
@@ -959,8 +955,8 @@ overlays for both), different major modes, and different buffer-local
 variables.
 
   An indirect buffer cannot visit a file, but its base buffer can.  If
-you try to save the indirect buffer, that actually works by saving the
-base buffer.
+you try to save the indirect buffer, that actually saves the base
+buffer.
 
   Killing an indirect buffer has no effect on its base buffer.  Killing
 the base buffer effectively kills the indirect buffer in that it cannot

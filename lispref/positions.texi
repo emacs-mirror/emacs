@@ -42,10 +42,10 @@ the character that immediately follows point; point is actually before
 the character on which the cursor sits.
 
 @cindex point with narrowing
-  The value of point is a number between 1 and the buffer size plus 1.
-If narrowing is in effect (@pxref{Narrowing}), then point is constrained
-to fall within the accessible portion of the buffer (possibly at one end
-of it).
+  The value of point is a number no less than 1, and no greater than the
+buffer size plus 1.  If narrowing is in effect (@pxref{Narrowing}), then
+point is constrained to fall within the accessible portion of the buffer
+(possibly at one end of it).
 
   Each buffer has its own value of point, which is independent of the
 value of point in other buffers.  Each window also has a value of point,
@@ -81,7 +81,7 @@ is the position of the start of the region that you narrowed to.
 This function returns the maximum accessible value of point in the
 current buffer.  This is @code{(1+ (buffer-size))}, unless narrowing is
 in effect, in which case it is the position of the end of the region
-that you narrowed to.  (@pxref{Narrowing}).
+that you narrowed to.  (@xref{Narrowing}.)
 @end defun
 
 @defun buffer-end flag
@@ -89,10 +89,13 @@ This function returns @code{(point-min)} if @var{flag} is less than 1,
 @code{(point-max)} otherwise.  The argument @var{flag} must be a number.
 @end defun
 
-@defun buffer-size
+@defun buffer-size &optional buffer
 This function returns the total number of characters in the current
 buffer.  In the absence of any narrowing (@pxref{Narrowing}),
 @code{point-max} returns a value one larger than this.
+
+If you specify a buffer, @var{buffer}, then the value is the
+size of @var{buffer}.
 
 @example
 @group
@@ -190,6 +193,9 @@ the buffer boundary (except perhaps after the last word), the value is
 @code{t}.  Otherwise, the return value is @code{nil} and point stops
 at the buffer boundary.
 
+In the minibuffer, the end of the prompt always acts as a word boundary,
+regardless of what characters appear before and after it.
+
 In an interactive call, @var{count} is set to the numeric prefix
 argument.
 @end deffn
@@ -241,7 +247,8 @@ they set the mark and display messages in the echo area.
 This function moves point to the beginning of the buffer (or the limits
 of the accessible portion, when narrowing is in effect), setting the
 mark at the previous position.  If @var{n} is non-@code{nil}, then it
-puts point @var{n} tenths of the way from the beginning of the buffer.
+puts point @var{n} tenths of the way from the beginning of the
+accessible portion of the buffer.
 
 In an interactive call, @var{n} is the numeric prefix argument,
 if provided; otherwise @var{n} defaults to @code{nil}.
@@ -250,10 +257,11 @@ if provided; otherwise @var{n} defaults to @code{nil}.
 @end deffn
 
 @deffn Command end-of-buffer &optional n
-This function moves point to the end of the buffer (or the limits of
-the accessible portion, when narrowing is in effect), setting the mark
-at the previous position.  If @var{n} is non-@code{nil}, then it puts
-point @var{n} tenths of the way from the end of the buffer.
+This function moves point to the end of the buffer (or the limits of the
+accessible portion, when narrowing is in effect), setting the mark at
+the previous position.  If @var{n} is non-@code{nil}, then it puts point
+@var{n} tenths of the way from the end of the accessible portion of the
+buffer.
 
 In an interactive call, @var{n} is the numeric prefix argument,
 if provided; otherwise @var{n} defaults to @code{nil}.
@@ -308,6 +316,9 @@ argument @var{count} not @code{nil} or 1, it moves forward
 If this function reaches the end of the buffer (or of the accessible
 portion, if narrowing is in effect), it positions point there.  No error
 is signaled.
+
+As a special feature, in the minibuffer, this command will not
+move back into the prompt, if it starts from after the prompt.
 @end deffn
 
 @defun line-beginning-position &optional count
@@ -584,7 +595,7 @@ expressions (also called @dfn{sexps} in connection with moving across
 them in Emacs).  The syntax table controls how these functions interpret
 various characters; see @ref{Syntax Tables}.  @xref{Parsing
 Expressions}, for lower-level primitives for scanning sexps or parts of
-sexps.  For user-level commands, see @ref{Lists Commands,,, emacs, GNU
+sexps.  For user-level commands, see @ref{Lists Commands,,, emacs, The GNU
 Emacs Manual}.
 
 @deffn Command forward-list arg
@@ -725,9 +736,9 @@ is zero or less.
   It is often useful to move point ``temporarily'' within a localized
 portion of the program, or to switch buffers temporarily.  This is
 called an @dfn{excursion}, and it is done with the @code{save-excursion}
-special form.  This construct saves the current buffer and its values of
-point and the mark so they can be restored after the completion of the
-excursion.
+special form.  This construct initially remembers the identity of the
+current buffer, and its values of point and the mark, and restores them
+after the completion of the excursion.
 
   The forms for saving and restoring the configuration of windows are
 described elsewhere (see @ref{Window Configurations}, and @pxref{Frame

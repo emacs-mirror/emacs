@@ -94,7 +94,7 @@ x
 @end example
 
 @node Constant Variables
-@section Variables That Never Change
+@section Variables that Never Change
 @vindex nil
 @vindex t
 @kindex setting-constant
@@ -104,8 +104,8 @@ include @code{nil} and @code{t}, as well as any symbol whose name starts
 with @samp{:}.  These symbols cannot be rebound, nor can their values be
 changed.  Any attempt to set or bind @code{nil} or @code{t} signals a
 @code{setting-constant} error.  The same is true for a symbol whose name
-starts with @samp{:}, except that you are allowed to set such a symbol to
-itself.
+starts with @samp{:} (if it is interned in the standard obarray), except
+that you are allowed to set such a symbol to itself.
 
 @example
 @group
@@ -563,8 +563,9 @@ then the variable is a user option.
   If a user option variable has a @code{variable-interactive} property,
 the @code{set-variable} command uses that value to control reading the
 new value for the variable.  The property's value is used as if it were
-to @code{interactive} (@pxref{Using Interactive}).  However, this feature
-is largely obsoleted by @code{defcustom} (@pxref{Customization}).
+specified in @code{interactive} (@pxref{Using Interactive}).  However,
+this feature is largely obsoleted by @code{defcustom}
+(@pxref{Customization}).
 
   @strong{Warning:} If the @code{defconst} and @code{defvar} special
 forms are used while the variable has a local binding, they set the
@@ -606,8 +607,7 @@ variable.  Here's a safe way to avoid that:
 @example
 (defvar my-mode-map nil
   @var{docstring})
-(if my-mode-map
-    nil
+(unless my-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key my-mode-map "\C-c\C-a" 'my-command)
     @dots{}
@@ -624,8 +624,7 @@ each form, if you do want to reinitialize the variable.
 @example
 (defvar my-mode-map nil
   @var{docstring})
-(if my-mode-map
-    nil
+(unless my-mode-map
   (setq my-mode-map (make-sparse-keymap))
   (define-key my-mode-map "\C-c\C-a" 'my-command)
   @dots{})
@@ -854,10 +853,10 @@ the others.
 @cindex dynamic scoping
   Local bindings in Emacs Lisp have @dfn{indefinite scope} and
 @dfn{dynamic extent}.  @dfn{Scope} refers to @emph{where} textually in
-the source code the binding can be accessed.  Indefinite scope means
+the source code the binding can be accessed.  ``Indefinite scope'' means
 that any part of the program can potentially access the variable
 binding.  @dfn{Extent} refers to @emph{when}, as the program is
-executing, the binding exists.  Dynamic extent means that the binding
+executing, the binding exists.  ``Dynamic extent'' means that the binding
 lasts as long as the activation of the construct that established it.
 
   The combination of dynamic extent and indefinite scope is called
@@ -902,9 +901,9 @@ definitions:
   In a lexically scoped language, the binding of @code{x} in
 @code{binder} would never be accessible in @code{user}, because
 @code{user} is not textually contained within the function
-@code{binder}.  However, in dynamically scoped Emacs Lisp, @code{user}
+@code{binder}.  However, in dynamically-scoped Emacs Lisp, @code{user}
 may or may not refer to the binding of @code{x} established in
-@code{binder}, depending on circumstances:
+@code{binder}, depending on the circumstances:
 
 @itemize @bullet
 @item
@@ -1065,9 +1064,9 @@ use short names like @code{x}.
 @cindex buffer-local variables
 
   Global and local variable bindings are found in most programming
-languages in one form or another.  Emacs also supports additional,
+languages in one form or another.  Emacs, however, also supports additional,
 unusual kinds of variable binding: @dfn{buffer-local} bindings, which
-apply only in one buffer, and frame-local bindings, which apply only in
+apply only in one buffer, and @dfn{frame-local} bindings, which apply only in
 one frame.  Having different values for a variable in different buffers
 and/or frames is an important customization method.
 
@@ -1100,7 +1099,7 @@ this is the global binding.
   A variable can have buffer-local bindings in some buffers but not in
 other buffers.  The default binding is shared by all the buffers that
 don't have their own bindings for the variable.  (This includes all
-newly created buffers.)  If you set the variable in a buffer that does
+newly-created buffers.)  If you set the variable in a buffer that does
 not have a buffer-local binding for it, this sets the default binding
 (assuming there are no frame-local bindings to complicate the matter),
 so the new value is visible in all the buffers that see the default
@@ -1239,7 +1238,7 @@ If the variable is terminal-local, this function signals an error.  Such
 variables cannot have buffer-local bindings as well.  @xref{Multiple
 Displays}.
 
-@strong{Note:} do not use @code{make-local-variable} for a hook
+@strong{Note:} Do not use @code{make-local-variable} for a hook
 variable.  Instead, use @code{make-local-hook}.  @xref{Hooks}.
 @end deffn
 

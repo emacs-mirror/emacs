@@ -71,7 +71,7 @@ A syntax table can inherit the data for some characters from the
 standard syntax table, while specifying other characters itself.  The
 ``inherit'' syntax class means ``inherit this character's syntax from
 the standard syntax table.''  Just changing the standard syntax for a
-characters affects all syntax tables which inherit from it.
+character affects all syntax tables that inherit from it.
 
 @defun syntax-table-p object
 This function returns @code{t} if @var{object} is a syntax table.
@@ -92,9 +92,11 @@ syntax table and its class in any other table.
 
   Each class is designated by a mnemonic character, which serves as the
 name of the class when you need to specify a class.  Usually the
-designator character is one that is frequently in that class; however,
+designator character is one that is often assigned that class; however,
 its meaning as a designator is unvarying and independent of what syntax
-that character currently has.
+that character currently has.  Thus, @samp{\} as a designator character
+always gives ``escape character'' syntax, regardless of what syntax
+@samp{\} currently has.
 
 @cindex syntax descriptor
   A syntax descriptor is a Lisp string that specifies a syntax class, a
@@ -106,7 +108,7 @@ character or flags are needed, one character is sufficient.
 
   For example, the syntax descriptor for the character @samp{*} in C
 mode is @samp{@w{. 23}} (i.e., punctuation, matching character slot
-unused, second character of a comment-starter, first character of an
+unused, second character of a comment-starter, first character of a
 comment-ender), and the entry for @samp{/} is @samp{@w{. 14}} (i.e.,
 punctuation, matching character slot unused, first character of a
 comment-starter, second character of a comment-ender).
@@ -542,6 +544,10 @@ This function moves point forward across characters having syntax classes
 mentioned in @var{syntaxes}.  It stops when it encounters the end of
 the buffer, or position @var{limit} (if specified), or a character it is
 not supposed to skip.
+
+If @var{syntaxes} starts with @samp{^}, then the function skips
+characters whose syntax is @emph{not} in @var{syntaxes}.
+
 The return value is the distance traveled, which is a nonnegative
 integer.
 @end defun
@@ -549,8 +555,11 @@ integer.
 @defun skip-syntax-backward syntaxes &optional limit
 This function moves point backward across characters whose syntax
 classes are mentioned in @var{syntaxes}.  It stops when it encounters
-the beginning of the buffer, or position @var{limit} (if specified), or a
-character it is not supposed to skip.
+the beginning of the buffer, or position @var{limit} (if specified), or
+a character it is not supposed to skip.
+
+If @var{syntaxes} starts with @samp{^}, then the function skips
+characters whose syntax is @emph{not} in @var{syntaxes}.
 
 The return value indicates the distance traveled.  It is an integer that
 is zero or less.
@@ -856,7 +865,7 @@ category table defines its own categories, but normally these are
 initialized by copying from the standard categories table, so that the
 standard categories are available in all modes.
 
-  Each category has a name, which is an @sc{ASCII} printing character in
+  Each category has a name, which is an @sc{ascii} printing character in
 the range @w{@samp{ }} to @samp{~}.  You specify the name of a category
 when you define it with @code{define-category}.
 

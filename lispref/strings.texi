@@ -27,7 +27,7 @@ keyboard character events.
 * Creating Strings::          Functions to allocate new strings.
 * Modifying Strings::         Altering the contents of an existing string.
 * Text Comparison::           Comparing characters or strings.
-* String Conversion::         Converting characters or strings and vice versa.
+* String Conversion::         Converting to and from characters and strings.
 * Formatting Strings::        @code{format}: Emacs's analogue of @code{printf}.
 * Case Conversion::           Case conversion functions.
 * Case Tables::		      Customizing case conversion.
@@ -43,7 +43,7 @@ used.  Thus, strings really contain integers.
   The length of a string (like any array) is fixed, and cannot be
 altered once the string exists.  Strings in Lisp are @emph{not}
 terminated by a distinguished character code.  (By contrast, strings in
-C are terminated by a character with @sc{ASCII} code 0.)
+C are terminated by a character with @sc{ascii} code 0.)
 
   Since strings are arrays, and therefore sequences as well, you can
 operate on them with the general array and sequence functions.
@@ -51,25 +51,25 @@ operate on them with the general array and sequence functions.
 change individual characters in a string using the functions @code{aref}
 and @code{aset} (@pxref{Array Functions}).
 
-  There are two text representations for non-@sc{ASCII} characters in
+  There are two text representations for non-@sc{ascii} characters in
 Emacs strings (and in buffers): unibyte and multibyte (@pxref{Text
-Representations}).  @sc{ASCII} characters always occupy one byte in a
-string; in fact, when a string is all @sc{ASCII}, there is no real
+Representations}).  An @sc{ascii} character always occupies one byte in a
+string; in fact, when a string is all @sc{ascii}, there is no real
 difference between the unibyte and multibyte representations.
 For most Lisp programming, you don't need to be concerned with these two
 representations.
 
   Sometimes key sequences are represented as strings.  When a string is
 a key sequence, string elements in the range 128 to 255 represent meta
-characters (which are extremely large integers) rather than character
+characters (which are large integers) rather than character
 codes in the range 128 to 255.
 
   Strings cannot hold characters that have the hyper, super or alt
-modifiers; they can hold @sc{ASCII} control characters, but no other
-control characters.  They do not distinguish case in @sc{ASCII} control
+modifiers; they can hold @sc{ascii} control characters, but no other
+control characters.  They do not distinguish case in @sc{ascii} control
 characters.  If you want to store such characters in a sequence, such as
 a key sequence, you must use a vector instead of a string.
-@xref{Character Type}, for more information about representation of meta
+@xref{Character Type}, for more information about the representation of meta
 and other modifiers for keyboard input characters.
 
   Strings are useful for holding regular expressions.  You can also
@@ -200,7 +200,7 @@ Functions}).
 If the characters copied from @var{string} have text properties, the
 properties are copied into the new string also.  @xref{Text Properties}.
 
-@code{substring} also allows vectors for the first argument.
+@code{substring} also accepts a vector for the first argument.
 For example:
 
 @example
@@ -250,8 +250,8 @@ When an argument is an integer (not a sequence of integers), it is
 converted to a string of digits making up the decimal printed
 representation of the integer.  @strong{Don't use this feature; we plan
 to eliminate it.  If you already use this feature, change your programs
-now!}  The proper way to convert an integer to a decimal number in this
-way is with @code{format} (@pxref{Formatting Strings}) or
+now!}  The proper way to convert an integer to its decimal printed form
+is with @code{format} (@pxref{Formatting Strings}) or
 @code{number-to-string} (@pxref{String Conversion}).
 
 @example
@@ -271,7 +271,7 @@ Lists}.
 
 @defun split-string string separators
 @tindex split-string
-Split @var{string} into substrings in between matches for the regular
+This function splits @var{string} into substrings at matches for the regular
 expression @var{separators}.  Each match for @var{separators} defines a
 splitting point; the substrings between the splitting points are made
 into a list, which is the value returned by @code{split-string}.
@@ -367,7 +367,7 @@ The function @code{string=} ignores the text properties of the two
 strings.  When @code{equal} (@pxref{Equality Predicates}) compares two
 strings, it uses @code{string=}.
 
-If the strings contain non-@sc{ASCII} characters, and one is unibyte
+If the strings contain non-@sc{ascii} characters, and one is unibyte
 while the other is multibyte, then they cannot be equal.  @xref{Text
 Representations}.
 @end defun
@@ -379,9 +379,9 @@ Representations}.
 @cindex lexical comparison
 @defun string< string1 string2
 @c (findex string< causes problems for permuted index!!)
-This function compares two strings a character at a time.  First it
-scans both the strings at once to find the first pair of corresponding
-characters that do not match.  If the lesser character of those two is
+This function compares two strings a character at a time.  It
+scans both the strings at the same time to find the first pair of corresponding
+characters that do not match.  If the lesser character of these two is
 the character from @var{string1}, then @var{string1} is less, and this
 function returns @code{t}.  If the lesser character is the one from
 @var{string2}, then @var{string1} is greater, and this function returns
@@ -389,11 +389,11 @@ function returns @code{t}.  If the lesser character is the one from
 
 Pairs of characters are compared according to their character codes.
 Keep in mind that lower case letters have higher numeric values in the
-@sc{ASCII} character set than their upper case counterparts; digits and
+@sc{ascii} character set than their upper case counterparts; digits and
 many punctuation characters have a lower numeric value than upper case
-letters.  An @sc{ASCII} character is less than any non-@sc{ASCII}
-character; a unibyte non-@sc{ASCII} character is always less than any
-multibyte non-@sc{ASCII} character (@pxref{Text Representations}).
+letters.  An @sc{ascii} character is less than any non-@sc{ascii}
+character; a unibyte non-@sc{ascii} character is always less than any
+multibyte non-@sc{ascii} character (@pxref{Text Representations}).
 
 @example
 @group
@@ -433,11 +433,12 @@ no characters is less than any other string.
 
 @defun compare-strings string1 start1 end1 string2 start2 end2 &optional ignore-case
 @tindex compare-strings
-This function compares a specified part of @var{string1} with a
+This function compares the specified part of @var{string1} with the
 specified part of @var{string2}.  The specified part of @var{string1}
-runs from index @var{start1} up to index @var{end1} (default, the end of
-the string).  The specified part of @var{string2} runs from index
-@var{start2} up to index @var{end2} (default, the end of the string).
+runs from index @var{start1} up to index @var{end1} (@code{nil} means
+the end of the string).  The specified part of @var{string2} runs from
+index @var{start2} up to index @var{end2} (@code{nil} means the end of
+the string).
 
 The strings are both converted to multibyte for the comparison
 (@pxref{Text Representations}) so that a unibyte string can be equal to
@@ -500,7 +501,7 @@ This function returns a new string containing one character,
 @cindex string to character
   This function returns the first character in @var{string}.  If the
 string is empty, the function returns 0.  The value is also 0 when the
-first character of @var{string} is the null character, @sc{ASCII} code
+first character of @var{string} is the null character, @sc{ascii} code
 0.
 
 @example
@@ -510,8 +511,10 @@ first character of @var{string} is the null character, @sc{ASCII} code
      @result{} 120
 (string-to-char "")
      @result{} 0
+@group
 (string-to-char "\000")
      @result{} 0
+@end group
 @end example
 
 This function may be eliminated in the future if it does not seem useful
@@ -523,7 +526,7 @@ enough to retain.
 @cindex integer to decimal
 This function returns a string consisting of the printed base-ten
 representation of @var{number}, which may be an integer or a floating
-point number.  The value starts with a sign if the argument is
+point number.  The returned value starts with a minus sign if the argument is
 negative.
 
 @example
@@ -553,8 +556,9 @@ more work and does not seem useful.
 The parsing skips spaces and tabs at the beginning of @var{string}, then
 reads as much of @var{string} as it can interpret as a number.  (On some
 systems it ignores other whitespace at the beginning, not just spaces
-and tabs.)  If the first character after the ignored whitespace is not a
-digit or a plus or minus sign, this function returns 0.
+and tabs.)  If the first character after the ignored whitespace is
+neither a digit, nor a plus or minus sign, nor the leading dot of a
+floating point number, this function returns 0.
 
 @example
 (string-to-number "256")
@@ -607,6 +611,10 @@ This function returns a new string that is made by copying
 @var{string} and then replacing any format specification 
 in the copy with encodings of the corresponding @var{objects}.  The
 arguments @var{objects} are the computed values to be formatted.
+
+The characters in @var{string}, other than the format specifications,
+are copied directly into the output; starting in Emacs 21, if they have
+text properties, these are copied into the output also.
 @end defun
 
 @cindex @samp{%} in format
@@ -645,6 +653,10 @@ made without quoting (that is, using @code{princ}, not
 @code{prin1}---@pxref{Output Functions}).  Thus, strings are represented
 by their contents alone, with no @samp{"} characters, and symbols appear
 without @samp{\} characters.
+
+Starting in Emacs 21, if the object is a string, its text properties are
+copied into the output.  The text properties of the @samp{%s} itself
+are also copied, but those of the object take priority.
 
 If there is no corresponding object, the empty string is used.
 
@@ -774,15 +786,15 @@ not truncated.  In the third case, the padding is on the right.
   The character case functions change the case of single characters or
 of the contents of strings.  The functions normally convert only
 alphabetic characters (the letters @samp{A} through @samp{Z} and
-@samp{a} through @samp{z}, as well as non-ASCII letters); other
-characters are not altered.  (You can specify a different case
-conversion mapping by specifying a case table---@pxref{Case Tables}.)
+@samp{a} through @samp{z}, as well as non-@sc{ascii} letters); other
+characters are not altered.  You can specify a different case
+conversion mapping by specifying a case table (@pxref{Case Tables}).
 
   These functions do not modify the strings that are passed to them as
 arguments.
 
   The examples below use the characters @samp{X} and @samp{x} which have
-@sc{ASCII} codes 88 and 120 respectively.
+@sc{ascii} codes 88 and 120 respectively.
 
 @defun downcase string-or-char
 This function converts a character or a string to lower case.
@@ -814,7 +826,7 @@ lower case is converted to upper case.
 When the argument to @code{upcase} is a character, @code{upcase}
 returns the corresponding upper case character.  This value is an integer.
 If the original character is upper case, or is not a letter, then the
-value equals the original character.
+value returned equals the original character.
 
 @example
 (upcase "The cat in the hat")
@@ -921,7 +933,7 @@ of them, or @samp{A} for both of them).
 
   The extra table @var{equivalences} is a map that cyclicly permutes
 each equivalence class (of characters with the same canonical
-equivalent).  (For ordinary @sc{ASCII}, this would map @samp{a} into
+equivalent).  (For ordinary @sc{ascii}, this would map @samp{a} into
 @samp{A} and @samp{A} into @samp{a}, and likewise for each set of
 equivalent characters.)
 
@@ -958,7 +970,7 @@ This sets the current buffer's case table to @var{table}.
 @end defun
 
   The following three functions are convenient subroutines for packages
-that define non-@sc{ASCII} character sets.  They modify the specified
+that define non-@sc{ascii} character sets.  They modify the specified
 case table @var{case-table}; they also modify the standard syntax table.
 @xref{Syntax Tables}.  Normally you would use these functions to change
 the standard case table.

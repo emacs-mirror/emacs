@@ -8,7 +8,7 @@
 @cindex multibyte characters
 @cindex non-ASCII characters
 
-  This chapter covers the special issues relating to non-@sc{ASCII}
+  This chapter covers the special issues relating to non-@sc{ascii}
 characters and how they are stored in strings and buffers.
 
 @menu
@@ -40,8 +40,8 @@ attention to the difference.
 @cindex unibyte text
   In unibyte representation, each character occupies one byte and
 therefore the possible character codes range from 0 to 255.  Codes 0
-through 127 are @sc{ASCII} characters; the codes from 128 through 255
-are used for one non-@sc{ASCII} character set (you can choose which
+through 127 are @sc{ascii} characters; the codes from 128 through 255
+are used for one non-@sc{ascii} character set (you can choose which
 character set by setting the variable @code{nonascii-insert-offset}).
 
 @cindex leading code
@@ -132,30 +132,30 @@ alternative, to convert the buffer contents to multibyte, is not
 acceptable because the buffer's representation is a choice made by the
 user that cannot be overridden automatically.
 
-  Converting unibyte text to multibyte text leaves @sc{ASCII} characters
-unchanged, and likewise 128 through 159.  It converts the non-@sc{ASCII}
+  Converting unibyte text to multibyte text leaves @sc{ascii} characters
+unchanged, and likewise 128 through 159.  It converts the non-@sc{ascii}
 codes 160 through 255 by adding the value @code{nonascii-insert-offset}
 to each character code.  By setting this variable, you specify which
 character set the unibyte characters correspond to (@pxref{Character
 Sets}).  For example, if @code{nonascii-insert-offset} is 2048, which is
 @code{(- (make-char 'latin-iso8859-1) 128)}, then the unibyte
-non-@sc{ASCII} characters correspond to Latin 1.  If it is 2688, which
+non-@sc{ascii} characters correspond to Latin 1.  If it is 2688, which
 is @code{(- (make-char 'greek-iso8859-7) 128)}, then they correspond to
 Greek letters.
 
-  Converting multibyte text to unibyte is simpler: it performs
-logical-and of each character code with 255.  If
-@code{nonascii-insert-offset} has a reasonable value, corresponding to
-the beginning of some character set, this conversion is the inverse of
-the other: converting unibyte text to multibyte and back to unibyte
-reproduces the original unibyte text.
+  Converting multibyte text to unibyte is simpler: it discards all but
+the low 8 bits of each character code.  If @code{nonascii-insert-offset}
+has a reasonable value, corresponding to the beginning of some character
+set, this conversion is the inverse of the other: converting unibyte
+text to multibyte and back to unibyte reproduces the original unibyte
+text.
 
 @defvar nonascii-insert-offset
 @tindex nonascii-insert-offset
-This variable specifies the amount to add to a non-@sc{ASCII} character
+This variable specifies the amount to add to a non-@sc{ascii} character
 when converting unibyte text to multibyte.  It also applies when
 @code{self-insert-command} inserts a character in the unibyte
-non-@sc{ASCII} range, 128 through 255.  However, the function
+non-@sc{ascii} range, 128 through 255.  However, the function
 @code{insert-char} does not perform this conversion.
 
 The right value to use to select character set @var{cs} is @code{(-
@@ -245,7 +245,7 @@ codes.  The valid character codes for unibyte representation range from
 codes for multibyte representation range from 0 to 524287, but not all
 values in that range are valid.  In particular, the values 128 through
 255 are not legitimate in multibyte text (though they can occur in ``raw
-bytes''; @pxref{Explicit Encoding}).  Only the @sc{ASCII} codes 0
+bytes''; @pxref{Explicit Encoding}).  Only the @sc{ascii} codes 0
 through 127 are fully legitimate in both representations.
 
 @defun char-valid-p charcode
@@ -281,7 +281,7 @@ character sets, @code{chinese-big5-1} and @code{chinese-big5-2}.
 
 @defun charsetp object
 @tindex charsetp
-Return @code{t} if @var{object} is a character set name symbol,
+Returns @code{t} if @var{object} is a symbol that names a character set,
 @code{nil} otherwise.
 @end defun
 
@@ -296,6 +296,15 @@ This function returns the name of the character set that @var{character}
 belongs to.
 @end defun
 
+@defun charset-plist charset
+@tindex charset-plist
+This function returns the charset property list of the character set
+@var{charset}.  Although @var{charset} is a symbol, this is not the same
+as the property list of that symbol.  Charset properties are used for
+special purposes within Emacs; for example, @code{x-charset-registry}
+helps determine which fonts to use (@pxref{Font Selection}).
+@end defun
+
 @node Chars and Bytes
 @section Characters and Bytes
 @cindex bytes and characters
@@ -304,7 +313,7 @@ belongs to.
 @cindex dimension (of character set)
   In multibyte representation, each character occupies one or more
 bytes.  Each character set has an @dfn{introduction sequence}, which is
-normally one or two bytes long.  (Exception: the @sc{ASCII} character
+normally one or two bytes long.  (Exception: the @sc{ascii} character
 set has a zero-length introduction sequence.)  The introduction sequence
 is the beginning of the byte sequence for any character in the character
 set.  The rest of the character's bytes distinguish it from the other
@@ -354,7 +363,7 @@ values is the character set's dimension.
      @result{} (ascii 65)
 @end example
 
-Unibyte non-@sc{ASCII} characters are considered as part of
+Unibyte non-@sc{ascii} characters are considered as part of
 the @code{ascii} character set:
 
 @example
@@ -418,7 +427,7 @@ In two peculiar cases, the value includes the symbol @code{unknown}:
 
 @itemize @bullet
 @item
-When a unibyte buffer contains non-@sc{ASCII} characters.
+When a unibyte buffer contains non-@sc{ascii} characters.
 
 @item
 When a multibyte buffer contains invalid byte-sequences (raw bytes).
@@ -445,10 +454,10 @@ for other purposes.  Some coding systems specify their own particular
 translation tables; there are also default translation tables which
 apply to all other coding systems.
 
-@defun make-translation-table translations
-This function returns a translation table based on the arguments
-@var{translations}.  Each argument---each element of
-@var{translations}---should be a list of the form @code{(@var{from}
+@defun make-translation-table &rest translations
+This function returns a translation table based on the argument
+@var{translations}.  Each element of
+@var{translations} should be a list of the form @code{(@var{from}
 . @var{to})}; this says to translate the character @var{from} into
 @var{to}.
 
@@ -495,7 +504,8 @@ subprocess or receives text from a subprocess, it normally performs
 character code conversion and end-of-line conversion as specified
 by a particular @dfn{coding system}.
 
-  How to define a coding system is an arcane matter, not yet documented.
+  How to define a coding system is an arcane matter, and is not
+documented here.
 
 @menu
 * Coding System Basics::
@@ -523,16 +533,15 @@ characters; for example, there are three coding systems for the Cyrillic
 (Russian) alphabet: ISO, Alternativnyj, and KOI8.
 
   Most coding systems specify a particular character code for
-conversion, but some of them leave this unspecified---to be chosen
-heuristically based on the data.
+conversion, but some of them leave the choice unspecified---to be chosen
+heuristically for each file, based on the data.
 
 @cindex end of line conversion
   @dfn{End of line conversion} handles three different conventions used
 on various systems for representing end of line in files.  The Unix
 convention is to use the linefeed character (also called newline).  The
-DOS convention is to use the two character sequence, carriage-return
-linefeed, at the end of a line.  The Mac convention is to use just
-carriage-return.
+DOS convention is to use a carriage-return and a linefeed at the end of
+a line.  The Mac convention is to use just carriage-return.
 
 @cindex base coding system
 @cindex variant coding system
@@ -610,10 +619,14 @@ to a subprocess.
 @defvar save-buffer-coding-system
 @tindex save-buffer-coding-system
 This variable specifies the coding system for saving the buffer---but it
-is not used for @code{write-region}.  When saving the buffer asks the
-user to specify a different coding system, and
-@code{save-buffer-coding-system} was used, then it is updated to the
-coding system that was specified.
+is not used for @code{write-region}.
+
+When a command to save the buffer starts out to use
+@code{save-buffer-coding-system}, and that coding system cannot handle
+the actual text in the buffer, the command asks the user to choose
+another coding system.  After that happens, the command also updates
+@code{save-buffer-coding-system} to represent the coding system that the
+user specified.
 @end defvar
 
 @defvar last-coding-system-used
@@ -623,8 +636,8 @@ coding system name that was used.  The explicit encoding and decoding
 functions (@pxref{Explicit Encoding}) set it too.
 
 @strong{Warning:} Since receiving subprocess output sets this variable,
-it can change whenever Emacs waits; therefore, you should use copy the
-value shortly after the function call which stores the value you are
+it can change whenever Emacs waits; therefore, you should copy the
+value shortly after the function call that stores the value you are
 interested in.
 @end defvar
 
@@ -634,7 +647,7 @@ selections for the window system.  @xref{Window System Selections}.
 @node Lisp and Coding Systems
 @subsection Coding Systems in Lisp
 
-  Here are Lisp facilities for working with coding systems;
+  Here are the Lisp facilities for working with coding systems:
 
 @defun coding-system-list &optional base-only
 @tindex coding-system-list
@@ -711,7 +724,7 @@ decreasing priority.  But if @var{highest} is non-@code{nil}, then the
 return value is just one coding system, the one that is highest in
 priority.
 
-If the region contains only @sc{ASCII} characters, the value
+If the region contains only @sc{ascii} characters, the value
 is @code{undecided} or @code{(undecided)}.
 @end defun
 
@@ -788,13 +801,14 @@ expression that matches certain file names.  The element applies to file
 names that match @var{pattern}.
 
 The @sc{cdr} of the element, @var{coding}, should be either a coding
-system, a cons cell containing two coding systems, or a function symbol.
-If @var{val} is a coding system, that coding system is used for both
-reading the file and writing it.  If @var{val} is a cons cell containing
-two coding systems, its @sc{car} specifies the coding system for
-decoding, and its @sc{cdr} specifies the coding system for encoding.
+system, a cons cell containing two coding systems, or a function name (a
+symbol with a function definition).  If @var{coding} is a coding system,
+that coding system is used for both reading the file and writing it.  If
+@var{coding} is a cons cell containing two coding systems, its @sc{car}
+specifies the coding system for decoding, and its @sc{cdr} specifies the
+coding system for encoding.
 
-If @var{val} is a function symbol, the function must return a coding
+If @var{coding} is a function name, the function must return a coding
 system or a cons cell containing two coding systems.  This value is used
 as described above.
 @end defvar
@@ -810,8 +824,8 @@ coding systems used for I/O to the subprocess, but you can specify
 other coding systems later using @code{set-process-coding-system}.
 @end defvar
 
-  @strong{Warning:} Coding systems such as @code{undecided} which
-determine the coding system from the data do not work entirely reliably
+  @strong{Warning:} Coding systems such as @code{undecided}, which
+determine the coding system from the data, do not work entirely reliably
 with asynchronous subprocess output.  This is because Emacs handles
 asynchronous subprocess output in batches, as it arrives.  If the coding
 system leaves the character code conversion unspecified, or leaves the
@@ -859,13 +873,14 @@ for decoding (in case @var{operation} does decoding), and
 @var{encoding-system} is the coding system for encoding (in case
 @var{operation} does encoding).
 
-The argument @var{operation} should be an Emacs I/O primitive:
+The argument @var{operation} should be a symbol, one of
 @code{insert-file-contents}, @code{write-region}, @code{call-process},
 @code{call-process-region}, @code{start-process}, or
-@code{open-network-stream}.
+@code{open-network-stream}.  These are the names of the Emacs I/O primitives
+that can do coding system conversion.
 
 The remaining arguments should be the same arguments that might be given
-to that I/O primitive.  Depending on which primitive, one of those
+to that I/O primitive.  Depending on the primitive, one of those
 arguments is selected as the @dfn{target}.  For example, if
 @var{operation} does file I/O, whichever argument specifies the file
 name is the target.  For subprocess primitives, the process name is the
@@ -1079,13 +1094,15 @@ that means do not encode terminal output.
 @cindex text files and binary files
 @cindex binary files and text files
 
-  Emacs on MS-DOS and on MS-Windows recognizes certain file names as
-text files or binary files.  By ``binary file'' we mean a file of
-literal byte values that are not necessary meant to be characters.
-Emacs does no end-of-line conversion and no character code conversion
-for a binary file.  Meanwhile, when you create a new file which is
-marked by its name as a ``text file'', Emacs uses DOS end-of-line
-conversion.
+  On MS-DOS and Microsoft Windows, Emacs guesses the appropriate
+end-of-line conversion for a file by looking at the file's name.  This
+feature classifies fils as @dfn{text files} and @dfn{binary files}.  By
+``binary file'' we mean a file of literal byte values that are not
+necessarily meant to be characters; Emacs does no end-of-line conversion
+and no character code conversion for them.  On the other hand, the bytes
+in a text file are intended to represent characters; when you create a
+new file whose name implies that it is a text file, Emacs uses DOS
+end-of-line conversion.
 
 @defvar buffer-file-type
 This variable, automatically buffer-local in each buffer, records the
@@ -1108,7 +1125,7 @@ Each element has the form (@var{regexp} . @var{type}), where
 compute which.  If it is a function, then it is called with a single
 argument (the file name) and should return @code{t} or @code{nil}.
 
-Emacs when running on MS-DOS or MS-Windows checks this alist to decide
+When running on MS-DOS or MS-Windows, Emacs checks this alist to decide
 which coding system to use when reading a file.  For a text file,
 @code{undecided-dos} is used.  For a binary file, @code{no-conversion}
 is used.
@@ -1131,9 +1148,9 @@ from the file contents, in the usual Emacs fashion.
 @section Input Methods
 @cindex input methods
 
-  @dfn{Input methods} provide convenient ways of entering non-@sc{ASCII}
+  @dfn{Input methods} provide convenient ways of entering non-@sc{ascii}
 characters from the keyboard.  Unlike coding systems, which translate
-non-@sc{ASCII} characters to and from encodings meant to be read by
+non-@sc{ascii} characters to and from encodings meant to be read by
 programs, input methods provide human-friendly commands.  (@xref{Input
 Methods,,, emacs, The GNU Emacs Manual}, for information on how users
 use input methods to enter text.)  How to define input methods is not

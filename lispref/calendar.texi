@@ -117,6 +117,10 @@ terminal.
   A similar normal hook, @code{today-invisible-calendar-hook} is run if
 the current date is @emph{not} visible in the window.
 
+@vindex calendar-move-hook
+  Starting in Emacs 21, each of the calendar cursor motion commands
+runs the hook @code{calendar-move-hook} after it moves the cursor.
+
 @node Holiday Customizing
 @section Customizing the Holidays
 
@@ -776,7 +780,7 @@ can use
 @noindent
 and the fancy diary will show
 @smallexample
-Ruth & Ed's anniversary
+Ed's anniversary
 @end smallexample
 @noindent
 both on December 15 and on December 22.

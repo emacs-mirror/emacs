@@ -879,6 +879,7 @@ comment:
 (function @var{symbol}) @equiv{} (quote @var{symbol}) @equiv{} '@var{symbol}
 @end example
 
+@cindex @samp{#'} syntax
   The read syntax @code{#'} is a short-hand for using @code{function}.
 For example, 
 

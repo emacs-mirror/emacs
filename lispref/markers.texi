@@ -136,7 +136,7 @@ integer or floating point) or a marker, @code{nil} otherwise.
 @end defun
 
 @node Creating Markers
-@section Functions That Create Markers
+@section Functions that Create Markers
 
   When you create a new marker, you can make it point nowhere, or point
 to the present position of point, or to the beginning or end of the

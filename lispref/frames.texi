@@ -24,8 +24,22 @@ a single @dfn{window frame}, but you can create more, and Emacs can
 display several such frames at once as is usual for window systems.
 
 @defun framep object
-This predicate returns @code{t} if @var{object} is a frame, and
-@code{nil} otherwise.
+This predicate returns a non-@code{nil} value if @var{object} is a
+frame, and @code{nil} otherwise.  For a frame, the value indicates which
+kind of display the frame uses:
+
+@table @code
+@item x
+The frame is displayed in an X window.
+@item t
+A terminal frame on a character display.
+@item mac
+The frame is displayed on a Macintosh.
+@item w32
+The frame is displayed on MS-Windows 9X/NT.
+@item pc
+The frame is displayed on an MS-DOS terminal.
+@end table
 @end defun
 
 @menu
@@ -49,10 +63,8 @@ This predicate returns @code{t} if @var{object} is a frame, and
 * Dialog Boxes::                Displaying a box to ask yes or no.
 * Pointer Shapes::              Specifying the shape of the mouse pointer.
 * Window System Selections::    Transferring text to and from other X clients.
-* Font Names::                  Looking up font names.
-* Fontsets::                    A fontset is a collection of fonts
-                                  for displaying various character sets.
 * Color Names::	                Getting the definitions of color names.
+* Text Terminal Colors::        Defining colors for text-only terminals.
 * Resources::		        Getting resource values from the server.
 * Server Data::		        Getting info about the X server.
 @end menu
@@ -86,8 +98,8 @@ A normal hook run by @code{make-frame} before it actually creates the
 frame.
 @end defvar
 
-@defvar after-make-frame-hook
-@tindex after-make-frame-hook
+@defvar after-make-frame-functions
+@tindex after-make-frame-functions
 An abnormal hook run by @code{make-frame} after it creates the frame.
 Each function in @code{after-make-frame-hook} receives one argument, the
 frame just created.
@@ -163,14 +175,17 @@ that display (@pxref{Deleting Frames}).
 @node Frame Parameters
 @section Frame Parameters
 
-A frame has many parameters that control its appearance and behavior.
+  A frame has many parameters that control its appearance and behavior.
 Just what parameters a frame has depends on what display mechanism it
 uses.
 
-Frame parameters exist for the sake of window systems.  A terminal frame
-has a few parameters, mostly for compatibility's sake; only the @code{height},
-@code{width}, @code{name}, @code{title}, @code{buffer-list} and
-@code{buffer-predicate} parameters do something special.
+  Frame parameters exist mostly for the sake of window systems.  A
+terminal frame has a few parameters, mostly for compatibility's sake;
+only the @code{height}, @code{width}, @code{name}, @code{title},
+@code{menu-bar-lines}, @code{buffer-list} and @code{buffer-predicate}
+parameters do something special.  If the terminal supports colors, the
+parameters @code{foreground-color}, @code{background-color},
+@code{background-mode} and @code{display-type} are also meaningful.
 
 @menu
 * Parameter Access::       How to change a frame's parameters.
@@ -222,7 +237,7 @@ created initial frame.
 If these settings affect the frame geometry and appearance, you'll see
 the frame appear with the wrong ones and then change to the specified
 ones.  If that bothers you, you can specify the same geometry and
-appearance with X resources; those do take affect before the frame is
+appearance with X resources; those do take effect before the frame is
 created.  @xref{Resources X,, X Resources, emacs, The GNU Emacs Manual}.
 
 X resource settings typically apply to all frames.  If you want to
@@ -391,7 +406,9 @@ ordered most-recently-selected first.
 @item font
 The name of the font for displaying text in the frame.  This is a
 string, either a valid font name for your system or the name of an Emacs
-fontset (@pxref{Fontsets}).
+fontset (@pxref{Fontsets}).  Changing this frame parameter on a frame,
+also changes the font-related attributes of the default face on that
+frame.
 
 @item auto-raise
 Whether selecting the frame raises it (non-@code{nil} means yes).
@@ -424,30 +441,40 @@ appears.  If this is @code{nil}, the frame's title is used.
 
 @item foreground-color
 The color to use for the image of a character.  This is a string; the
-window system defines the meaningful color names.
-
-If you set the @code{foreground-color} frame parameter, you should
-call @code{frame-update-face-colors} to update faces accordingly.
+window system defines the meaningful color names.  Changing this
+parameter is equivalent to changing the foreground color of the face
+@code{default} on the frame in question.
 
 @item background-color
-The color to use for the background of characters.
-
-If you set the @code{background-color} frame parameter, you should
-call @code{frame-update-face-colors} to update faces accordingly.
-@xref{Face Functions}.
+The color to use for the background of characters.  Changing this
+parameter is equivalent to changing the foreground color of the face
+@code{default} on the frame in question.
 
 @item background-mode
 This parameter is either @code{dark} or @code{light}, according
 to whether the background color is a light one or a dark one.
 
 @item mouse-color
-The color for the mouse pointer.
+The color for the mouse pointer.  Changing this parameter is equivalent
+to changing the background color of face @code{mouse}.
 
 @item cursor-color
-The color for the cursor that shows point.
+The color for the cursor that shows point. Changing this parameter is
+equivalent to changing the background color of face @code{cursor}.
 
 @item border-color
-The color for the border of the frame.
+The color for the border of the frame. Changing this parameter is
+equivalent to changing the background color of face @code{border}.
+
+@item scroll-bar-foreground
+If non-@code{nil}, the color for the foreground of scroll bars.
+Changing this parameter is equivalent to setting the foreground color of
+face @code{scroll-bar}.
+
+@item scroll-bar-background
+If non-@code{nil}, the color for the background of scroll bars.
+Changing this parameter is equivalent to setting the foreground color of
+face @code{scroll-bar}.
 
 @item display-type
 This parameter describes the range of possible colors that can be used
@@ -481,6 +508,17 @@ The number of lines to allocate at the top of the frame for a menu bar.
 The default is 1.  @xref{Menu Bar}.  (In Emacs versions that use the X
 toolkit, there is only one menu bar line; all that matters about the
 number you specify is whether it is greater than zero.)
+
+@item screen-gamma
+If this is a number, Emacs performs ``gamma correction'' on colors.  The
+value should be the screen gamma of your display, a floating point
+number.  Usual PC monitors have a screen gamma of 2.2.  Smaller values
+result in darker colors; you might want to try a screen gamma of 1.5 for
+LCD color displays.  The viewing gamma Emacs uses is 0.4545 (1/2.2).
+
+@item tool-bar-lines
+The number of lines to use for the toolbar.  A value of @code{nil} means
+don't display a tool bar.
 
 @ignore
 @item parent-id
@@ -755,7 +793,7 @@ upper left corner, down and to the right, until it reaches the window at
 the lower right corner (always the minibuffer window, if the frame has
 one), and then it moves back to the top.  @xref{Cyclic Window Ordering}.
 
-@defun frame-top-window frame
+@defun frame-first-window frame
 This returns the topmost, leftmost window of frame @var{frame}.
 @end defun
 
@@ -1309,180 +1347,160 @@ like the way successive kills in Emacs move down the kill ring.
 @defvar selection-coding-system
 @tindex selection-coding-system
 This variable specifies the coding system to use when reading and
-writing a selections, the clipboard, or a cut buffer.  @xref{Coding
+writing selections, the clipboard, or a cut buffer.  @xref{Coding
 Systems}.  The default is @code{compound-text}.
 @end defvar
 
-@need 1500
-@node Font Names
-@section Looking up Font Names
+@cindex clipboard support (for MS-Windows)
+When Emacs runs on MS-Windows, it does not implement X selections in
+general, but it it does support the clipboard.  @code{x-get-selection}
+and @code{x-set-selection} on MS-Windows support the text data type
+only; if the clipboard holds other types of data, Emacs treats the
+clipboard as empty.
 
-@defun x-list-font pattern &optional face frame maximum
-This function returns a list of available font names that match
-@var{pattern}.  If the optional arguments @var{face} and @var{frame} are
-specified, then the list is limited to fonts that are the same size as
-@var{face} currently is on @var{frame}.
-
-The argument @var{pattern} should be a string, perhaps with wildcard
-characters: the @samp{*} character matches any substring, and the
-@samp{?} character matches any single character.  Pattern matching
-of font names ignores case.
-
-If you specify @var{face} and @var{frame}, @var{face} should be a face name
-(a symbol) and @var{frame} should be a frame.
-
-The optional argument @var{maximum} sets a limit on how many fonts to
-return.  If this is non-@code{nil}, then the return value is truncated
-after the first @var{maximum} matching fonts.  Specifying a small value
-for @var{maximum} can make this function much faster, in cases where
-many fonts match the pattern.
-@end defun
-
-@node Fontsets
-@section Fontsets
-
-  A @dfn{fontset} is a list of fonts, each assigned to a range of
-character codes.  An individual font cannot display the whole range of
-characters that Emacs supports, but a fontset can.  Fontsets have names,
-just as fonts do, and you can use a fontset name in place of a font name
-when you specify the ``font'' for a frame or a face.  Here is
-information about defining a fontset under Lisp program control.
-
-@defun create-fontset-from-fontset-spec fontset-spec &optional style-variant-p noerror
-This function defines a new fontset according to the specification
-string @var{fontset-spec}.  The string should have this format:
-
-@smallexample
-@var{fontpattern}, @r{[}@var{charsetname}:@var{fontname}@r{]@dots{}}
-@end smallexample
-
-@noindent
-Whitespace characters before and after the commas are ignored.
-
-The first part of the string, @var{fontpattern}, should have the form of
-a standard X font name, except that the last two fields should be
-@samp{fontset-@var{alias}}.
-
-The new fontset has two names, one long and one short.  The long name is
-@var{fontpattern} in its entirety.  The short name is
-@samp{fontset-@var{alias}}.  You can refer to the fontset by either
-name.  If a fontset with the same name already exists, an error is
-signaled, unless @var{noerror} is non-@code{nil}, in which case this
-function does nothing.
-
-If optional argument @var{style-variant-p} is non-@code{nil}, that says
-to create bold, italic and bold-italic variants of the fontset as well.
-These variant fontsets do not have a short name, only a long one, which
-is made by altering @var{fontpattern} to indicate the bold or italic
-status.
-
-The specification string also says which fonts to use in the fontset.
-See below for the details.
-@end defun
-
-  The construct @samp{@var{charset}:@var{font}} specifies which font to
-use (in this fontset) for one particular character set.  Here,
-@var{charset} is the name of a character set, and @var{font} is the font
-to use for that character set.  You can use this construct any number of
-times in the specification string.
-
-  For the remaining character sets, those that you don't specify
-explicitly, Emacs chooses a font based on @var{fontpattern}: it replaces
-@samp{fontset-@var{alias}} with a value that names one character set.
-For the @sc{ASCII} character set, @samp{fontset-@var{alias}} is replaced
-with @samp{ISO8859-1}.
-
-  In addition, when several consecutive fields are wildcards, Emacs
-collapses them into a single wildcard.  This is to prevent use of
-auto-scaled fonts.  Fonts made by scaling larger fonts are not usable
-for editing, and scaling a smaller font is not useful because it is
-better to use the smaller font in its own size, which Emacs does.
-
-  Thus if @var{fontpattern} is this,
-
-@example
--*-fixed-medium-r-normal-*-24-*-*-*-*-*-fontset-24
-@end example
-
-@noindent
-the font specification for ASCII characters would be this:
-
-@example
--*-fixed-medium-r-normal-*-24-*-ISO8859-1
-@end example
-
-@noindent
-and the font specification for Chinese GB2312 characters would be this:
-
-@example
--*-fixed-medium-r-normal-*-24-*-gb2312*-*
-@end example
-
-  You may not have any Chinese font matching the above font
-specification.  Most X distributions include only Chinese fonts that
-have @samp{song ti} or @samp{fangsong ti} in the @var{family} field.  In
-such a case, @samp{Fontset-@var{n}} can be specified as below:
-
-@smallexample
-Emacs.Fontset-0: -*-fixed-medium-r-normal-*-24-*-*-*-*-*-fontset-24,\
-        chinese-gb2312:-*-*-medium-r-normal-*-24-*-gb2312*-*
-@end smallexample
-
-@noindent
-Then, the font specifications for all but Chinese GB2312 characters have
-@samp{fixed} in the @var{family} field, and the font specification for
-Chinese GB2312 characters has a wild card @samp{*} in the @var{family}
-field.
+@defopt x-select-enable-clipboard
+If this is non-@code{nil}, the Emacs yank functions consult the
+clipboard before the primary selection, and the kill functions store in
+the clipboard as well as the primary selection.  Otherwise they do not
+access the clipboard at all.  The default is @code{nil} on most systems,
+but @code{t} on MS-Windows.
+@end defopt
 
 @node Color Names
 @section Color Names
 
-@defun x-color-defined-p color &optional frame
+  These functions provide a way to determine which color names are
+valid, and what they look like.
+
+@defun color-defined-p color &optional frame
+@tindex color-defined-p
 This function reports whether a color name is meaningful.  It returns
 @code{t} if so; otherwise, @code{nil}.  The argument @var{frame} says
 which frame's display to ask about; if @var{frame} is omitted or
 @code{nil}, the selected frame is used.
 
 Note that this does not tell you whether the display you are using
-really supports that color.  You can ask for any defined color on any
-kind of display, and you will get some result---that is how the X server
-works.  Here's an approximate way to test whether your display supports
-the color @var{color}:
+really supports that color.  When using X, you can ask for any defined
+color on any kind of display, and you will get some result---typically,
+the best it knows how to do.  Here's an approximate way to test whether
+your display supports the color @var{color}:
 
 @example
 (defun x-color-supported-p (color &optional frame)
-  (and (x-color-defined-p color frame)
+  (and (color-defined-p color frame)
        (or (x-display-color-p frame)
            (member color '("black" "white"))
            (and (> (x-display-planes frame) 1)
                 (equal color "gray")))))
 @end example
+
+This function used to be called @code{x-color-defined-p},
+and that name is still supported as an alias.
 @end defun
 
-@defun x-color-values color &optional frame
+@defun defined-colors &optional frame
+@tindex defined-colors
+This function returns a list of the color names that are defined
+and supported on frame @var{frame} (default, the selected frame).
+
+This function used to be called @code{x-defined-colors},
+and that name is still supported as an alias.
+@end defun
+
+@defun color-values color &optional frame
+@tindex color-values
 This function returns a value that describes what @var{color} should
 ideally look like.  If @var{color} is defined, the value is a list of
 three integers, which give the amount of red, the amount of green, and
 the amount of blue.  Each integer ranges in principle from 0 to 65535,
-but in practice no value seems to be above 65280.  If @var{color} is not
-defined, the value is @code{nil}.
+but in practice no value seems to be above 65280.  This kind
+of three-element list is called an @dfn{rgb value}.
+
+If @var{color} is not defined, the value is @code{nil}.
 
 @example
-(x-color-values "black")
+(color-values "black")
      @result{} (0 0 0)
-(x-color-values "white")
+(color-values "white")
      @result{} (65280 65280 65280)
-(x-color-values "red")
+(color-values "red")
      @result{} (65280 0 0)
-(x-color-values "pink")
+(color-values "pink")
      @result{} (65280 49152 51968)
-(x-color-values "hungry")
+(color-values "hungry")
      @result{} nil
 @end example
 
 The color values are returned for @var{frame}'s display.  If @var{frame}
 is omitted or @code{nil}, the information is returned for the selected
 frame's display.
+
+This function used to be called @code{x-color-values},
+and that name is still supported as an alias.
+@end defun
+
+@node Text Terminal Colors
+@section Text Terminal Colors
+@cindex colors on text-only terminals
+
+  Emacs can display color on text-only terminals, starting with version
+21.  These terminals support only a small number of colors, and the
+computer uses small integers to select colors on the terminal.  This
+means that the computer cannot reliably tell what the selected color
+looks like; instead, you have to inform your application which small
+integers correspond to which colors.  However, Emacs does know the
+standard set of colors and will try to use them automatically.
+
+@cindex rgb value
+  Several of these functions use or return @dfn{rgb values}.  An rgb
+value is a list of three integers, which give the amount of red, the
+amount of green, and the amount of blue.  Each integer ranges in
+principle from 0 to 65535, but in practice the largest value used is
+65280.
+
+@defun tty-define-color name number &optional rgb
+@tindex tty-define-color
+This function associates the color name @var{name} with
+color number @var{number} on the terminal.
+
+The optional argument @var{rgb}, if specified, is an rgb value; it says
+what the color actually looks like.  If you do not specify @var{rgb},
+then this color cannot be used by @code{tty-color-approximate} to
+approximate other colors, because Emacs does not know what it looks
+like.
+@end defun
+
+@defun tty-clear-colors
+@tindex tty-clear-colors
+This function clears the table of defined colors for a text-only terminal.
+@end defun
+
+@defvar tty-color-alist
+@tindex tty-color-alist
+This variable holds an alist recording the colors supported by the
+terminal.
+
+Each element has the form @code{(@var{name} @var{number} . @var{rgb})}
+or @code{(@var{name} @var{number})}.  Here, @var{name} is the color
+name, @var{number} is the number used to specify it to the terminal.
+If present, @var{rgb} is an rgb value that says what the color
+actually looks like.
+@end defun
+
+@defun tty-color-approximate rgb
+@tindex tty-color-approximate
+This function finds the closest available color, among those in
+@code{tty-color-alist}, to that described by the rgb value @var{rgb}.
+@end defun
+
+@defun tty-color-translate color
+@tindex tty-color-translate
+This function finds the closest available color, among those in
+@code{tty-color-alist}, to the name @var{color}.  If that name
+is not defined, the value is @code{nil}.
+
+@var{color} can be an X-style @code{#@var{xxxyyyzzz}} specification
+instead of an actual name.
 @end defun
 
 @node Resources

@@ -97,7 +97,7 @@ installation directory for Lisp files when you install Emacs.
 
 @item
 Specify a non-@code{nil} value for
-@code{byte-compile-dynamic-docstrings} as a local variable in each these
+@code{byte-compile-dynamic-docstrings} as a local variable in each of these
 files, and load them with either @file{site-load.el} or
 @file{site-init.el}.  (This method has the drawback that the
 documentation strings take up space in Emacs all the time.)
@@ -107,7 +107,7 @@ documentation strings take up space in Emacs all the time.)
 @file{site-init.el} that would alter any of the features that users
 expect in an ordinary unmodified Emacs.  If you feel you must override
 normal features for your site, do it with @file{default.el}, so that
-users can override your changes if they wish.  @xref{Start-up Summary}.
+users can override your changes if they wish.  @xref{Startup Summary}.
 
 @defun dump-emacs to-file from-file
 @cindex unexec
@@ -125,7 +125,7 @@ you must run Emacs with @samp{-batch}.
 
   Emacs Lisp uses two kinds of storage for user-created Lisp objects:
 @dfn{normal storage} and @dfn{pure storage}.  Normal storage is where
-all the new data created during an Emacs session is kept; see the
+all the new data created during an Emacs session are kept; see the
 following section for information on normal storage.  Pure storage is
 used for certain data in the preloaded standard Lisp files---data that
 should never change during actual use of Emacs.
@@ -142,8 +142,8 @@ increase the compilation parameter @code{PURESIZE} in the file
 preload additional libraries or add features to the standard ones.
 
 @defun purecopy object
-This function makes a copy of @var{object} in pure storage and returns
-it.  It copies strings by simply making a new string with the same
+This function makes a copy in pure storage of @var{object}, and returns
+it.  It copies a string by simply making a new string with the same
 characters in pure storage.  It recursively copies the contents of
 vectors and cons cells.  It does not make copies of other objects such
 as symbols, but just returns them unchanged.  It signals an error if
@@ -553,10 +553,10 @@ you use @code{GCPRO2}, you must declare @code{gcpro1} and @code{gcpro2}.
 Alas, we can't explain all the tricky details here.
 
   You must not use C initializers for static or global variables unless
-they are never written once Emacs is dumped.  These variables with
-initializers are allocated in an area of memory that becomes read-only
-(on certain operating systems) as a result of dumping Emacs.  @xref{Pure
-Storage}.
+the variables are never stored in once Emacs is dumped.  These variables
+with initializers are allocated in an area of memory that becomes
+read-only (on certain operating systems) as a result of dumping Emacs.
+@xref{Pure Storage}.
 
   Do not use static variables within functions---place all static
 variables at top level in the file.  This is necessary because Emacs on
@@ -587,16 +587,19 @@ file, add to it a @code{syms_of_@var{filename}} (e.g.,
 of these functions are called, and add a call to
 @code{syms_of_@var{filename}} there.
 
+@vindex byte-boolean-vars
   The function @code{syms_of_@var{filename}} is also the place to define
 any C variables that are to be visible as Lisp variables.
 @code{DEFVAR_LISP} makes a C variable of type @code{Lisp_Object} visible
 in Lisp.  @code{DEFVAR_INT} makes a C variable of type @code{int}
 visible in Lisp with a value that is always an integer.
 @code{DEFVAR_BOOL} makes a C variable of type @code{int} visible in Lisp
-with a value that is either @code{t} or @code{nil}.
+with a value that is either @code{t} or @code{nil}.  Note that variables
+defined with @code{DEFVAR_BOOL} are automatically added to the list
+@code{byte-boolean-vars} used by the byte compiler.
 
   If you define a file-scope C variable of type @code{Lisp_Object},
-you must protect it for garbage-collection by calling @code{staticpro}
+you must protect it from garbage-collection by calling @code{staticpro}
 in @code{syms_of_@var{filename}}, like this:
 
 @example
@@ -681,6 +684,11 @@ number of arguments.  They work by calling @code{Ffuncall}.
 @file{lisp.h} contains the definitions for some important macros and
 functions.
 
+  If you define a function which is side-effect free, update the code in
+@file{byte-opt.el} which binds @code{side-effect-free-fns} and
+@code{side-effect-and-error-free-fns} to include it.  This will help the
+optimizer.
+
 @node Object Internals
 @appendixsec Object Internals
 @cindex object internals
@@ -729,9 +737,9 @@ This field contains the time when the buffer was last saved, as an integer.
 
 @item modtime
 This field contains the modification time of the visited file.  It is
-set when the file is written or read.  Every time the buffer is written
-to the file, this field is compared to the modification time of the
-file.  @xref{Buffer Modification}.
+set when the file is written or read.  Before writing the buffer into a
+file, this field is compared to the modification time of the file to see
+if the file has changed on disk.  @xref{Buffer Modification}.
 
 @item auto_save_modified
 This field contains the time when the buffer was last auto-saved.
@@ -872,7 +880,9 @@ the screen is @w{line 0}.)
 The height of the window, measured in lines.
 
 @item width
-The width of the window, measured in columns.
+The width of the window, measured in columns.  This width includes the
+scroll bar and fringes, and/or the separator line on the right of the
+window (if any).
 
 @item next
 This is the window that is the next in the chain of siblings.  It is

@@ -61,7 +61,7 @@ definition is distinct from that of Text mode, but was derived from it.
   Rmail Edit mode offers an example of changing the major mode
 temporarily for a buffer, so it can be edited in a different way (with
 ordinary Emacs commands rather than Rmail commands).  In such cases, the
-temporary major mode usually has a command to switch back to the
+temporary major mode usually provides a command to switch back to the
 buffer's usual mode (Rmail mode, in this case).  You might be tempted to
 present the temporary redefinitions inside a recursive edit and restore
 the usual ones when the user exits; but this is a bad idea because it
@@ -70,8 +70,8 @@ recursive edits must be exited most-recently-entered first.  Using an
 alternative major mode avoids this limitation.  @xref{Recursive
 Editing}.
 
-  The standard GNU Emacs Lisp library directory contains the code for
-several major modes, in files such as @file{text-mode.el},
+  The standard GNU Emacs Lisp library directory tree contains the code
+for several major modes, in files such as @file{text-mode.el},
 @file{texinfo.el}, @file{lisp-mode.el}, @file{c-mode.el}, and
 @file{rmail.el}.  You can study these libraries to see how modes are
 written.  Text mode is perhaps the simplest major mode aside from
@@ -245,7 +245,7 @@ with value @code{special}, put on as follows:
 @end example
 
 @noindent
-This tells Emacs that new buffers created while the current buffer has
+This tells Emacs that new buffers created while the current buffer is in
 Funny mode should not inherit Funny mode.  Modes such as Dired, Rmail,
 and Buffer List use this feature.
 
@@ -368,7 +368,7 @@ correspondingly more complicated.  Here are excerpts from
 @group
       ;; @r{Set syntax of chars up to 0 to class of chars that are}
       ;;   @r{part of symbol names but not words.}
-      ;;   @r{(The number 0 is @code{48} in the @sc{ASCII} character set.)}
+      ;;   @r{(The number 0 is @code{48} in the @sc{ascii} character set.)}
       (while (< i ?0) 
         (modify-syntax-entry i "_   " emacs-lisp-mode-syntax-table)
         (setq i (1+ i)))
@@ -782,7 +782,8 @@ individually or in combination.  Minor modes would be better named
 ``generally available, optional feature modes,'' except that such a name
 would be unwieldy.
 
-  A minor mode is not usually a modification of single major mode.  For
+  A minor mode is not usually meant as a variation of a single major mode.
+Usually they are general and can apply to many major modes.  For
 example, Auto Fill mode works with any major mode that permits text
 insertion.  To be general, a minor mode must be effectively independent
 of the things major modes do.
@@ -825,7 +826,7 @@ mode.  We call this the @dfn{mode variable}.  The minor mode command
 should set this variable (@code{nil} to disable; anything else to
 enable).
 
-If it is possible, implement the mode so that setting the variable
+If possible, implement the mode so that setting the variable
 automatically enables or disables the mode.  Then the minor mode command
 does not need to do anything except set the variable.
 
@@ -890,6 +891,40 @@ check for an existing element, to avoid duplication.  For example:
   You can also use @code{add-to-list} to add an element to this list
 just once (@pxref{Setting Variables}).
 
+  Global minor modes distributed with Emacs should if possible support
+enabling and disabling via Custom (@pxref{Customization}).  To do this,
+the first step is to define the mode variable with @code{defcustom}, and
+specify @code{:type boolean}.
+
+  If just setting the variable is not sufficient to enable the mode, you
+should also specify a @code{:set} method which enables the mode by
+invoke the mode command.  Note in the variable's documentation string that
+setting the variable other than via Custom may not take effect.
+
+  Also mark the definition with an autoload cookie (@pxref{Autoload}),
+and specify a @code{:require} so that customizing the variable will load
+the library that defines the mode.  This will copy suitable definitions
+into @file{loaddefs.el} so that users can use @code{customize-option} to
+enable the mode.  For example:
+
+@smallexample
+@group
+
+;;;###autoload
+(defcustom msb-mode nil
+  "Toggle msb-mode.
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `msb-mode'."
+  :set (lambda (symbol value)
+	 (msb-mode (or value 0)))
+  :initialize 'custom-initialize-default
+  :version "20.4"
+  :type    'boolean
+  :group   'msb
+  :require 'msb)
+@end group
+@end smallexample
+
 @node Keymaps and Minor Modes
 @subsection Keymaps and Minor Modes
 
@@ -908,15 +943,15 @@ standard one.  The editor command loop handles this function specially.)
 
 The key sequences bound in a minor mode should consist of @kbd{C-c}
 followed by a punctuation character @emph{other than} @kbd{@{},
-@kbd{@}}, @kbd{<}, @kbd{>}, @kbd{:} or @kbd{;}.  (Those few punctuation
+@kbd{@}}, @kbd{<}, @kbd{>}, @kbd{:}, and @kbd{;}.  (Those few punctuation
 characters are reserved for major modes.)
 
 @node Easy-Mmode
 @subsection Easy-Mmode
 
   The easy-mmode package provides a convenient way of implementing a
-minor mode; with it, you can specify everything about a simple minor
-mode in one self-contained definition.
+mode in one self-contained definition.  It currently supports only
+buffer-local minor modes, not global ones.
 
 @defmac easy-mmode-define-minor-mode mode doc &optional init-value mode-indicator keymap
 @tindex easy-mmode-define-minor-mode
@@ -978,35 +1013,39 @@ mode is enabled.  It initializes the keymap with key bindings for
 @section Mode Line Format
 @cindex mode line
 
-  Each Emacs window (aside from minibuffer windows) includes a mode line,
-which displays status information about the buffer displayed in the
-window.  The mode line contains information about the buffer, such as its
-name, associated file, depth of recursive editing, and the major and
-minor modes.
+  Each Emacs window (aside from minibuffer windows) typically has a mode
+line at the bottom, which displays status information about the buffer
+displayed in the window.  The mode line contains information about the
+buffer, such as its name, associated file, depth of recursive editing,
+and major and minor modes.  A window can also have a @dfn{header
+line}, which is much like the mode line but appears at the top of the
+window (starting in Emacs 21).
 
-  This section describes how the contents of the mode line are
-controlled.  We include it in this chapter because much of the
+  This section describes how to control the contents of the mode line
+and header line.  We include it in this chapter because much of the
 information displayed in the mode line relates to the enabled major and
 minor modes.
 
   @code{mode-line-format} is a buffer-local variable that holds a
 template used to display the mode line of the current buffer.  All
-windows for the same buffer use the same @code{mode-line-format} and
-their mode lines appear the same (except for scrolling percentages, and
-line and column numbers).
+windows for the same buffer use the same @code{mode-line-format}, so
+their mode lines appear the same---except for scrolling percentages, and
+line and column numbers, since those depend on point and on how the
+window is scrolled.  @code{header-line-format} is used likewise for
+header lines.
 
-  The mode line of a window is normally updated whenever a different
-buffer is shown in the window, or when the buffer's modified-status
-changes from @code{nil} to @code{t} or vice-versa.  If you modify any of
-the variables referenced by @code{mode-line-format} (@pxref{Mode Line
-Variables}), or any other variables and data structures that affect how
-text is displayed (@pxref{Display}), you may want to force an update of
-the mode line so as to display the new information or display it in
-the new way.
+  The mode line and header line of a window are normally updated
+whenever a different buffer is shown in the window, or when the buffer's
+modified-status changes from @code{nil} to @code{t} or vice-versa.  If
+you modify any of the variables referenced by @code{mode-line-format}
+(@pxref{Mode Line Variables}), or any other variables and data
+structures that affect how text is displayed (@pxref{Display}), you may
+want to force an update of the mode line so as to display the new
+information or display it in the new way.
 
 @c Emacs 19 feature
 @defun force-mode-line-update
-Force redisplay of the current buffer's mode line.
+Force redisplay of the current buffer's mode line and header line.
 @end defun
 
   The mode line is usually displayed in inverse video; see
@@ -1016,6 +1055,8 @@ Force redisplay of the current buffer's mode line.
 * Mode Line Data::        The data structure that controls the mode line.
 * Mode Line Variables::   Variables used in that data structure.
 * %-Constructs::          Putting information into a mode line.
+* Properties in Mode::    Using text properties in the mode line.
+* Header Lines::          Like a mode line, but at the top.
 @end menu
 
 @node Mode Line Data
@@ -1034,6 +1075,9 @@ The value of this variable is a mode line construct with overall
 responsibility for the mode line format.  The value of this variable
 controls which other variables are used to form the mode line text, and
 where they appear.
+
+If you set this variable to @code{nil} in a buffer, that buffer does not
+have a mode line.  (This feature was added in Emacs 21.)
 @end defvar
 
   A mode line construct may be as simple as a fixed string of text, but
@@ -1050,6 +1094,11 @@ variables that @code{mode-line-format} refers to.
   A mode line construct may be a list, a symbol, or a string.  If the
 value is a list, each element may be a list, a symbol, or a string.
 
+  The mode line can display various faces, if the strings that control
+it have the @code{face} property.  @xref{Properties in Mode}.  In
+addition, the face @code{mode-line} is used as a default for the whole
+mode line (@pxref{Standard Faces}).
+
 @table @code
 @cindex percent symbol in mode line
 @item @var{string}
@@ -1061,7 +1110,7 @@ is left justified).  @xref{%-Constructs}.
 @item @var{symbol}
 A symbol as a mode line construct stands for its value.  The value of
 @var{symbol} is used as a mode line construct, in place of @var{symbol}.
-However, the symbols @code{t} and @code{nil} are ignored; so is any
+However, the symbols @code{t} and @code{nil} are ignored, as is any
 symbol whose value is void.
 
 There is one exception: if the value of @var{symbol} is a string, it is
@@ -1072,14 +1121,19 @@ A list whose first element is a string or list means to process all the
 elements recursively and concatenate the results.  This is the most
 common form of mode line construct.
 
+@item (:eval @var{form})
+A list whose first element is the symbol @code{:eval} says to evaluate
+@var{form}, and use the result as a string to display.
+(This feature is new as of Emacs 21.)
+
 @item (@var{symbol} @var{then} @var{else})
-A list whose first element is a symbol is a conditional.  Its meaning
-depends on the value of @var{symbol}.  If the value is non-@code{nil},
-the second element, @var{then}, is processed recursively as a mode line
-element.  But if the value of @var{symbol} is @code{nil}, the third
-element, @var{else}, is processed recursively.  You may omit @var{else};
-then the mode line element displays nothing if the value of @var{symbol}
-is @code{nil}.
+A list whose first element is a symbol that is not a keyword specifies a
+conditional.  Its meaning depends on the value of @var{symbol}.  If the
+value is non-@code{nil}, the second element, @var{then}, is processed
+recursively as a mode line element.  But if the value of @var{symbol} is
+@code{nil}, the third element, @var{else}, is processed recursively.
+You may omit @var{else}; then the mode line element displays nothing if
+the value of @var{symbol} is @code{nil}.
 
 @item (@var{width} @var{rest}@dots{})
 A list whose first element is an integer specifies truncation or
@@ -1124,7 +1178,7 @@ directory.
    "   "
    'global-mode-string
    "   %[("
-   'mode-name 
+   '(:eval (mode-line-mode-name))
    'mode-line-process  
    'minor-mode-alist 
    "%n" 
@@ -1268,7 +1322,7 @@ The default value of @code{default-mode-line-format} is this list:
  global-mode-string
 @group
  "   %[("
- mode-name 
+ (:eval (mode-line-mode-name))
  mode-line-process
  minor-mode-alist 
  "%n" 
@@ -1315,7 +1369,8 @@ The title (only on a window system) or the name of the selected frame.
 The current column number of point.
 
 @item %l
-The current line number of point.
+The current line number of point, counting within the accessible portion
+of the buffer.
 
 @item %*
 @samp{%} if the buffer is read only (see @code{buffer-read-only}); @*
@@ -1383,6 +1438,64 @@ The value of @code{global-mode-string}.  Currently, only
 @code{display-time} modifies the value of @code{global-mode-string}.
 @end table
 
+@node Properties in Mode
+@subsection Properties in the Mode Line
+
+  Starting in Emacs 21, certain text properties are meaningful in the
+mode line.  The @code{face} property affects the appearance of text; the
+@code{help-echo} property associate help strings with the text, and
+@code{local-map} can make the text mouse-sensitive.
+
+  There are three ways to specify text properties for text in the mode
+line:
+
+@enumerate
+@item
+Put a string with the @code{local-map} property directly into the
+mode-line data structure.
+
+@item
+Put a @code{local-map} property on a mode-line %-construct
+such as @samp{%12b}; then the expansion of the %-construct
+will have that same text property.
+
+@item
+Use a list containing @code{:eval @var{form}} in the mode-line data
+structure, and make @var{form} evaluate to a string that has a
+@code{local-map} property.
+@end enumerate
+
+  You use the @code{local-map} property to specify a keymap.  Like any
+keymap, it can bind character keys and function keys; but that has no
+effect, since is impossible to move point into the mode line, This
+keymap can only take real effect for mouse clicks.
+
+@node Header Lines
+@subsection Window Header Lines
+@cindex header line (of a window)
+@cindex window header line
+
+  Starting in Emacs 21, a window can have a @dfn{header line} at the
+top, just as it can have a mode line at the bottom.  The header line
+feature works just like the mode line feature, except that it's
+controlled by different variables.
+
+@tindex header-line-format
+@defvar header-line-format
+This variable, local in every buffer, specifies how to display the
+header line, for windows displaying the buffer.  The format of the value
+is the same as for @code{mode-line-format} (@xref{Mode Line Data}).
+@end defvar
+
+@tindex default-header-line-format
+@defvar default-header-line-format
+This variable holds the default @code{header-line-format} for buffers
+that do not override it.  This is the same as @code{(default-value
+'header-line-format)}.
+
+It is normally @code{nil}, so that ordinary buffers have no header line.
+@end defvar
+
 @node Imenu
 @section Imenu
 
@@ -1390,9 +1503,10 @@ The value of @code{global-mode-string}.  Currently, only
   @dfn{Imenu} is a feature that lets users select a definition or
 section in the buffer, from a menu which lists all of them, to go
 directly to that location in the buffer.  Imenu works by constructing a
-buffer index which lists the names and positions of the definitions or
-portions of in the buffer, so the user can pick one of them to move to.
-This section explains how to customize Imenu for a major mode.
+buffer index which lists the names and buffer positions of the
+definitions, or portions of the buffer, so the user can pick one of them
+to move to.  This section explains how to customize Imenu for a major
+mode.
 
   The usual and simplest way is to set the variable
 @code{imenu-generic-expression}:
@@ -1413,9 +1527,10 @@ for this element should go in a submenu of the buffer index;
 in the top level of the buffer index.
 
 The second item in the list, @var{regexp}, is a regular expression
-(@pxref{Regular Expressions}); wherever it matches, that is a definition
-to mention in the buffer index.  The third item, @var{subexp}, indicates
-which subexpression in @var{regexp} matches the definition's name.
+(@pxref{Regular Expressions}); anything in the buffer that it matches is
+considered a definition, to mention in the buffer index.  The third
+item, @var{subexp}, indicates which subexpression in @var{regexp}
+matches the definition's name.
 
 An element can also look like this:
 
@@ -1483,7 +1598,7 @@ For example, Fortran mode uses it this way:
 
 The @code{imenu-generic-expression} patterns can then use @samp{\\sw+}
 instead of @samp{\\(\\sw\\|\\s_\\)+}.  Note that this technique may be
-inconvenient to use when the mode needs to limit the initial character
+inconvenient when the mode needs to limit the initial character
 of a name to a smaller set of characters than are allowed in the rest
 of a name.
 
@@ -1682,7 +1797,7 @@ expression or a function, as described above.  The @sc{cdr},
 highlighted (instead of the entire text that @var{matcher} matched).
 
 @example
-;; @r{Highlight the @samp{bar} in each occurrences of @samp{fubar},}
+;; @r{Highlight the @samp{bar} in each occurrence of @samp{fubar},}
 ;; @r{using @code{font-lock-keyword-face}.}
 ("fu\\(bar\\)" . 1)
 @end example
@@ -1734,7 +1849,7 @@ Here are some examples of elements of this kind, and what they do:
 ;; @r{@code{foo-bar-face} should be a variable whose value is a face.}
 ("foo\\|bar" 0 foo-bar-face t)
 
-;; @r{Highlight the first subexpression within each occurrences}
+;; @r{Highlight the first subexpression within each occurrence}
 ;; @r{that the function @code{fubar-match} finds,}
 ;; @r{using the face which is the value of @code{fubar-face}.}
 (fubar-match 1 fubar-face)

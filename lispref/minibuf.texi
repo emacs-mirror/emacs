@@ -42,12 +42,26 @@ windows always appear at the bottom of a frame.  (Sometimes frames have
 no minibuffer window, and sometimes a special kind of frame contains
 nothing but a minibuffer window; see @ref{Minibuffers and Frames}.)
 
-  The minibuffer's window is normally a single line.  You can resize it
-temporarily with the window sizing commands; it reverts to its normal
-size when the minibuffer is exited.  You can resize it permanently by
-using the window sizing commands in the frame's other window, when the
-minibuffer is not active.  If the frame contains just a minibuffer, you
-can change the minibuffer's size by changing the frame's size.
+  The text in the minibuffer always starts with the @dfn{prompt string},
+the text that was specified by the program that is using the minibuffer
+to tell the user what sort of input to type.  This text is marked
+read-only so you won't accidentally delete or change it.  In other
+respects, it is an ordinary part of the buffer contents, but certain
+functions such as @code{erase-buffer}, @code{buffer-string},
+@code{beginning-of-line}, @code{forward-word}, @code{forward-sentence},
+and @code{forward-paragraph}, treat it a little bit specially.  (In
+older Emacs versions, the prompt was displayed using a special mechanism
+and was not part of the buffer contents.)
+
+@c ???
+  The minibuffer's window is normally a single line; it grows
+automatically if necessary if the contents require more space.  You can
+explicitly resize it temporarily with the window sizing commands; it
+reverts to its normal size when the minibuffer is exited.  You can
+resize it permanently by using the window sizing commands in the frame's
+other window, when the minibuffer is not active.  If the frame contains
+just a minibuffer, you can change the minibuffer's size by changing the
+frame's size.
 
   If a command uses a minibuffer while there is an active minibuffer,
 this is called a @dfn{recursive minibuffer}.  The first minibuffer is
@@ -724,7 +738,7 @@ see @ref{Completion Commands}.
 @end defun
 
 @node Completion Commands
-@subsection Minibuffer Commands That Do Completion
+@subsection Minibuffer Commands that Do Completion
 
   This section describes the keymaps, commands and user options used in
 the minibuffer to do completion.
@@ -1483,9 +1497,16 @@ This function returns the prompt string of the currently active
 minibuffer.  If no minibuffer is active, it returns @code{nil}.
 @end defun
 
-@defun minibuffer-prompt-width
-This function returns the display width of the prompt string of the
-currently active minibuffer.  If no minibuffer is active, it returns 0.
+@tindex minubuffer-prompt-end
+@defun minubuffer-prompt-end
+This function, available starting in Emacs 21, returns the current
+position of the end of the minibuffer prompt, if a minibuffer is
+current.  Otherwise, it returns zero.
+@end defun
+
+@defun minubuffer-prompt-width
+This function returns the current display-width of the minibuffer
+prompt, if a minibuffer is current.  Otherwise, it returns zero.
 @end defun
 
 @defvar minibuffer-setup-hook

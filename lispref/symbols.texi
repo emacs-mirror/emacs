@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/symbols
-@node Symbols, Evaluation, Sequences Arrays Vectors, Top
+@node Symbols, Evaluation, Hash Tables, Top
 @chapter Symbols
 @cindex symbol
 
@@ -57,7 +57,7 @@ The @dfn{function cell} holds the function definition of the symbol.
 When a symbol is used as a function, its function definition is used in
 its place.  This cell is also used to make a symbol stand for a keymap
 or a keyboard macro, for editor command execution.  Because each symbol
-has separate value and function cells, variables and function names do
+has separate value and function cells, variables names and function names do
 not conflict.  See @code{symbol-function} in @ref{Function Cells}.
 
 @item Property list
@@ -194,7 +194,9 @@ book cover to cover when looking up Jan Jones, you start with the J's
 and go from there.  That is a simple version of hashing.  Each element
 of the obarray is a @dfn{bucket} which holds all the symbols with a
 given hash code; to look for a given name, it is sufficient to look
-through all the symbols in the bucket for that name's hash code.
+through all the symbols in the bucket for that name's hash code.  (The
+same idea is used for general Emacs hash tables, but they are a
+different data type; see @ref{Hash Tables}.)
 
 @cindex interning
   If a symbol with the desired name is found, the reader uses that
@@ -208,6 +210,11 @@ particular name.  Other like-named symbols may exist, but not in the
 same obarray.  Thus, the reader gets the same symbols for the same
 names, as long as you keep reading with the same obarray.
 
+  Interning usually happens automatically in the reader, but sometimes
+other programs need to do it.  For example, after the @kbd{M-x} command
+obtains the command name as a string using the minibuffer, it then
+interns the string, to get the interned symbol with that name.
+
 @cindex symbol equality
 @cindex uninterned symbol
   No obarray contains all symbols; in fact, some symbols are not in any
@@ -215,6 +222,10 @@ obarray.  They are called @dfn{uninterned symbols}.  An uninterned
 symbol has the same four cells as other symbols; however, the only way
 to gain access to it is by finding it in some other object or as the
 value of a variable.
+
+  Creating an uninterned symbol is useful in generating Lisp code,
+because an uninterned symbol used as a variable in the code you generate
+cannot clash with any variables used in other Lisp programs.
 
   In Emacs Lisp, an obarray is actually a vector.  Each element of the
 vector is a bucket; its value is either an interned symbol whose name
@@ -224,7 +235,7 @@ in the bucket.  Because these links are invisible, there is no way to
 find all the symbols in an obarray except using @code{mapatoms} (below).
 The order of symbols in a bucket is not significant.
 
-  In an empty obarray, every element is 0, and you can create an obarray
+  In an empty obarray, every element is 0, so you can create an obarray
 with @code{(make-vector @var{length} 0)}.  @strong{This is the only
 valid way to create an obarray.}  Prime numbers as lengths tend
 to result in good hashing; lengths one less than a power of two are also

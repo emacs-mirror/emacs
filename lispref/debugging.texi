@@ -510,9 +510,9 @@ debugger.
 
 @defvar debugger
 The value of this variable is the function to call to invoke the
-debugger.  Its value must be a function of any number of arguments (or,
-more typically, the name of a function).  Presumably this function will
-enter some kind of debugger.  The default value of the variable is
+debugger.  Its value must be a function of any number of arguments, or,
+more typically, the name of a function.  This function should invoke
+some kind of debugger.  The default value of the variable is
 @code{debug}.
 
 The first argument that Lisp hands to the function indicates why it
@@ -531,11 +531,13 @@ value is always @code{nil}.
 
 In the following example, a Lisp expression calls @code{backtrace}
 explicitly.  This prints the backtrace to the stream
-@code{standard-output}: in this case, to the buffer
-@samp{backtrace-output}.  Each line of the backtrace represents one
-function call.  The line shows the values of the function's arguments if
-they are all known.  If they are still being computed, the line says so.
-The arguments of special forms are elided.
+@code{standard-output}, which, in this case, is the buffer
+@samp{backtrace-output}.
+
+Each line of the backtrace represents one function call.  The line shows
+the values of the function's arguments if they are all known; if they
+are still being computed, the line says so.  The arguments of special
+forms are elided.
 
 @smallexample
 @group
@@ -620,9 +622,9 @@ bound to @code{nil}.  The debugger can set this variable to leave
 information for future debugger invocations during the same command
 invocation.
 
-The advantage, for the debugger, of using this variable rather than an
-ordinary global variable is that the data will never carry over to a
-subsequent command invocation.
+The advantage of using this variable rather than an ordinary global
+variable is that the data will never carry over to a subsequent command
+invocation.
 @end defvar
 
 @defun backtrace-frame frame-number
@@ -630,11 +632,11 @@ The function @code{backtrace-frame} is intended for use in Lisp
 debuggers.  It returns information about what computation is happening
 in the stack frame @var{frame-number} levels down.
 
-If that frame has not evaluated the arguments yet (or is a special
-form), the value is @code{(nil @var{function} @var{arg-forms}@dots{})}.
+If that frame has not evaluated the arguments yet, or is a special
+form, the value is @code{(nil @var{function} @var{arg-forms}@dots{})}.
 
 If that frame has evaluated its arguments and called its function
-already, the value is @code{(t @var{function}
+already, the return value is @code{(t @var{function}
 @var{arg-values}@dots{})}.
 
 In the return value, @var{function} is whatever was supplied as the
@@ -679,12 +681,9 @@ find the mismatch.)
 @subsection Excess Open Parentheses
 
   The first step is to find the defun that is unbalanced.  If there is
-an excess open parenthesis, the way to do this is to insert a
-close parenthesis at the end of the file and type @kbd{C-M-b}
-(@code{backward-sexp}).  This will move you to the beginning of the
-defun that is unbalanced.  (Then type @kbd{C-@key{SPC} C-_ C-u
-C-@key{SPC}} to set the mark there, undo the insertion of the
-close parenthesis, and finally return to the mark.)
+an excess open parenthesis, the way to do this is to go to the end of
+the file and type @kbd{C-u C-M-u}.  This will move you to the beginning
+of the defun that is unbalanced.
 
   The next step is to determine precisely what is wrong.  There is no
 way to be sure of this except by studying the program, but often the
@@ -715,11 +714,9 @@ anything.
 @node Excess Close
 @subsection Excess Close Parentheses
 
-  To deal with an excess close parenthesis, first insert an open
-parenthesis at the beginning of the file, back up over it, and type
-@kbd{C-M-f} to find the end of the unbalanced defun.  (Then type
-@kbd{C-@key{SPC} C-_ C-u C-@key{SPC}} to set the mark there, undo the
-insertion of the open parenthesis, and finally return to the mark.)
+  To deal with an excess close parenthesis, first go to the beginning of
+the file, then type @kbd{C-u -1 C-M-u} to find the end of the unbalanced
+defun.
 
   Then find the actual matching close parenthesis by typing @kbd{C-M-f}
 at the beginning of that defun.  This will leave you somewhere short of

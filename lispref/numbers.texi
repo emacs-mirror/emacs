@@ -40,14 +40,14 @@ minimum range is @minus{}134217728 to 134217727 (28 bits; i.e.,
 -2**27
 @end ifinfo
 @tex 
-$-2^{27}$
+@math{-2^{27}}
 @end tex
 to 
 @ifinfo 
 2**27 - 1),
 @end ifinfo
 @tex 
-$2^{27}-1$),
+@math{2^{27}-1}),
 @end tex
 but some machines may provide a wider range.  Many examples in this
 chapter assume an integer has 28 bits.
@@ -312,6 +312,8 @@ otherwise.
 
 @defun max number-or-marker &rest numbers-or-markers
 This function returns the largest of its arguments.
+If any of the argument is floating-point, the value is returned
+as floating point, even if it was given as an integer.
 
 @example
 (max 20)
@@ -319,12 +321,14 @@ This function returns the largest of its arguments.
 (max 1 2.5)
      @result{} 2.5
 (max 1 3 2.5)
-     @result{} 3
+     @result{} 3.0
 @end example
 @end defun
 
 @defun min number-or-marker &rest numbers-or-markers
 This function returns the smallest of its arguments.
+If any of the argument is floating-point, the value is returned
+as floating point, even if it was given as an integer.
 
 @example
 (min -4 1)
@@ -958,14 +962,14 @@ The value of @code{(asin @var{arg})} is a number between
 @minus{}pi/2
 @end ifinfo
 @tex
-$-\pi/2$
+@math{-\pi/2}
 @end tex
 and
 @ifinfo
 pi/2
 @end ifinfo
 @tex
-$\pi/2$
+@math{\pi/2}
 @end tex
 (inclusive) whose sine is @var{arg}; if, however, @var{arg}
 is out of range (outside [-1, 1]), then the result is a NaN.
@@ -977,7 +981,7 @@ The value of @code{(acos @var{arg})} is a number between 0 and
 pi
 @end ifinfo
 @tex
-$\pi$
+@math{\pi}
 @end tex
 (inclusive) whose cosine is @var{arg}; if, however, @var{arg}
 is out of range (outside [-1, 1]), then the result is a NaN.
@@ -989,14 +993,14 @@ The value of @code{(atan @var{arg})} is a number between
 @minus{}pi/2
 @end ifinfo
 @tex
-$-\pi/2$
+@math{-\pi/2}
 @end tex
 and
 @ifinfo
 pi/2
 @end ifinfo
 @tex
-$\pi/2$
+@math{\pi/2}
 @end tex
 (exclusive) whose tangent is @var{arg}.
 @end defun
@@ -1004,14 +1008,14 @@ $\pi/2$
 @defun exp arg
 This is the exponential function; it returns
 @tex
-$e$
+@math{e}
 @end tex
 @ifinfo
 @i{e}
 @end ifinfo
 to the power @var{arg}.
 @tex
-$e$
+@math{e}
 @end tex
 @ifinfo
 @i{e}
@@ -1024,7 +1028,7 @@ logarithms.
 This function returns the logarithm of @var{arg}, with base @var{base}.
 If you don't specify @var{base}, the base
 @tex
-$e$
+@math{e}
 @end tex
 @ifinfo
 @i{e}
@@ -1085,9 +1089,9 @@ first call to @code{(random)} after you start Emacs always returns
 -1457731, and the second one always returns -7692030.  This
 repeatability is helpful for debugging.
 
-If you want truly unpredictable random numbers, execute @code{(random
-t)}.  This chooses a new seed based on the current time of day and on
-Emacs's process @sc{id} number.
+If you want random numbers that don't always come out the same, execute
+@code{(random t)}.  This chooses a new seed based on the current time of
+day and on Emacs's process @sc{id} number.
 
 @defun random &optional limit
 This function returns a pseudo-random integer.  Repeated calls return a

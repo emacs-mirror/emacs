@@ -67,34 +67,35 @@ A sparse keymap used by Emacs Lisp mode.
 
 @item facemenu-menu
 @vindex facemenu-menu
-The keymap that displays the Text Properties menu.
+The sparse keymap that displays the Text Properties menu.
 
 @item facemenu-background-menu
 @vindex facemenu-background-menu
-The keymap that displays the Background Color submenu of the Text
+The sparse keymap that displays the Background Color submenu of the Text
 Properties menu.
 
 @item facemenu-face-menu
 @vindex facemenu-face-menu
-The keymap that displays the Face submenu of the Text Properties menu.
+The sparse keymap that displays the Face submenu of the Text Properties menu.
 
 @item facemenu-foreground-menu
 @vindex facemenu-foreground-menu
-The keymap that displays the Foreground Color submenu of the Text
+The sparse keymap that displays the Foreground Color submenu of the Text
 Properties menu.
 
 @item facemenu-indentation-menu
 @vindex facemenu-indentation-menu
-The keymap that displays the Indentation submenu of the Text Properties menu.
+The sparse keymap that displays the Indentation submenu of the Text
+Properties menu.
 
 @item facemenu-justification-menu
 @vindex facemenu-justification-menu
-The keymap that displays the Justification submenu of the Text
+The sparse keymap that displays the Justification submenu of the Text
 Properties menu.
 
 @item facemenu-special-menu
 @vindex facemenu-special-menu
-The keymap that displays the Special Props submenu of the Text
+The sparse keymap that displays the Special Props submenu of the Text
 Properties menu.
 
 @item function-key-map
@@ -104,7 +105,7 @@ If there are none, then it contains an empty sparse keymap.
 
 @item fundamental-mode-map
 @vindex fundamental-mode-map
-The local keymap for Fundamental mode.@*
+The sparse keymap for Fundamental mode.@*
 It is empty and should not be changed.
 
 @item Helper-help-map
@@ -132,7 +133,7 @@ bindings, unlike @code{function-key-map}.  @xref{Translating Input}.
 
 @item lisp-interaction-mode-map
 @vindex lisp-interaction-mode-map
-A sparse keymap used by Lisp mode.
+A sparse keymap used by Lisp Interaction mode.
 
 @item lisp-mode-map
 @vindex lisp-mode-map
@@ -171,10 +172,10 @@ where it describes the main use of the @kbd{C-c} prefix key.
 
 @item occur-mode-map
 @vindex occur-mode-map
-A local keymap used by Occur mode.
+A sparse keymap used by Occur mode.
 
 @item query-replace-map
-A local keymap used for responses in @code{query-replace} and related
+A sparse keymap used for responses in @code{query-replace} and related
 commands; also for @code{y-or-n-p} and @code{map-y-or-n-p}.  The functions
 that use this map do not support prefix keys; they look up one event at a
 time.

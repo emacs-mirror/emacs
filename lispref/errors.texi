@@ -64,12 +64,12 @@ See @code{/} and @code{%} in @ref{Numbers}.
 
 @item end-of-file
 @code{"End of file during parsing"}@*
-Note that this is not a @code{file-error}
+Note that this is not a subcategory of @code{file-error},
 because it pertains to the Lisp reader, not to file I/O.
 @xref{Input Functions}.
 
 @item file-already-exists
-This is a @code{file-error}.@*
+This is a subcategory of @code{file-error}.@*
 @xref{Writing to Files}.
 
 @item file-date-error
@@ -84,11 +84,11 @@ condition @code{file-error} is present.@*
 @xref{Files}.
 
 @item file-locked     
-This is a @code{file-error}.@*
+This is a subcategory of @code{file-error}.@*
 @xref{File Locks}.
 
 @item file-supersession
-This is a @code{file-error}.@*
+This is a subcategory of @code{file-error}.@*
 @xref{Modification Time}.
 
 @item invalid-function

@@ -23,8 +23,9 @@ displayed in windows.
 * Window Point::            Each window has its own location of point.
 * Window Start::            The display-start position controls which text
                               is on-screen in the window.
-* Vertical Scrolling::      Moving text up and down in the window.
-* Horizontal Scrolling::    Moving text sideways on the window.
+* Textual Scrolling::       Moving text up and down through the window.
+* Vertical Scrolling::      Moving the contents up and down on the window.
+* Horizontal Scrolling::    Moving the contents sideways on the window.
 * Size of Window::          Accessing the size of a window.
 * Resizing Windows::        Changing the size of a window.
 * Coordinates and Windows:: Converting coordinates to windows.
@@ -251,40 +252,32 @@ characters.  The display table can specify alternative border
 characters; see @ref{Display Tables}.
 @end deffn
 
-@deffn Command split-window-vertically size
+@deffn Command split-window-vertically &optional size
 This function splits the selected window into two windows, one above the
 other, leaving the upper of the two windows selected, with @var{size}
 lines.  (If @var{size} is negative, then the lower of the two windows
 gets @minus{} @var{size} lines and the upper window gets the rest, but
 the upper window is still the one selected.)
-
-This function is simply an interface to @code{split-window}.
-Here is the complete function definition for it:
-
-@smallexample
-@group
-(defun split-window-vertically (&optional arg)
-  "Split current window into two windows, @dots{}"
-  (interactive "P")
-  (split-window nil (and arg (prefix-numeric-value arg))))
-@end group
-@end smallexample
 @end deffn
 
 @deffn Command split-window-horizontally size
 This function splits the selected window into two windows
 side-by-side, leaving the selected window with @var{size} columns.
 
-This function is simply an interface to @code{split-window}.  Here is
-the complete definition for @code{split-window-horizontally} (except for
-part of the documentation string):
+This function is basically an interface to @code{split-window}.
+You could define a simplified version of the function like this:
 
 @smallexample
 @group
 (defun split-window-horizontally (&optional arg)
   "Split selected window into two windows, side by side..."
   (interactive "P")
-  (split-window nil (and arg (prefix-numeric-value arg)) t))
+@endgroup
+@group
+  (let ((size (and arg (prefix-numeric-value arg))))
+    (and size (< size 0)
+	 (setq size (+ (window-width) size)))
+    (split-window nil size t)))
 @end group
 @end smallexample
 @end deffn
@@ -565,10 +558,14 @@ ordering of windows.  The other arguments specify which windows to
 include in the cycle, as in @code{next-window}.
 @end defun
 
-@deffn Command other-window count
+@deffn Command other-window count &optional all-frames
 This function selects the @var{count}th following window in the cyclic
 order.  If count is negative, then it moves back @minus{}@var{count}
 windows in the cycle, rather than forward.  It returns @code{nil}.
+
+The argument @var{all-frames} has the same meaning is as in
+@code{next-window}, but the @var{minibuf} argument of @code{next-window}
+is always effectively @code{nil}.
 
 In an interactive call, @var{count} is the numeric prefix argument.
 @end deffn
@@ -895,11 +892,11 @@ variable is a function that creates a frame using parameters from
 @code{pop-up-frame-alist}.
 @end defvar
 
-@defvar pop-up-frame-alist
+@defopt pop-up-frame-alist
 This variable holds an alist specifying frame parameters used when
 @code{display-buffer} makes a new frame.  @xref{Frame Parameters}, for
 more information about frame parameters.
-@end defvar
+@end defopt
 
 @defopt special-display-buffer-names
 A list of buffer names for buffers that should be displayed specially.
@@ -938,16 +935,24 @@ The default value of this variable is
 @code{special-display-popup-frame}.
 @end defvar
 
-@defun special-display-popup-frame buffer
+@defun special-display-popup-frame buffer &rest args
 This function makes @var{buffer} visible in a frame of its own.  If
 @var{buffer} is already displayed in a window in some frame, it makes
 the frame visible and raises it, to use that window.  Otherwise, it
 creates a frame that will be dedicated to @var{buffer}.
 
-This function uses an existing window displaying @var{buffer} whether or
-not it is in a frame of its own; but if you set up the above variables
-in your init file, before @var{buffer} was created, then presumably the
-window was previously made by this function.
+If @var{args} is an alist, it specifies frame parameters for the new
+frame.
+
+If @var{args} is a list whose @sc{car} is a symbol, then @code{(car
+@var{args})} is called as a function to actually create and set up the
+frame; it is called with @var{buffer} as first argument, and @code{(cdr
+@var{args})} as additional arguments.
+
+This function always uses an existing window displaying @var{buffer},
+whether or not it is in a frame of its own; but if you set up the above
+variables in your init file, before @var{buffer} was created, then
+presumably the window was previously made by this function.
 @end defun
 
 @defopt special-display-frame-alist
@@ -1035,10 +1040,11 @@ point and the buffer's point always move together; they remain equal.
 when the user switches to another buffer, the cursor jumps to the
 position of point in that buffer.
 
-@defun window-point window
+@defun window-point &optional window
 This function returns the current position of point in @var{window}.
 For a nonselected window, this is the value point would have (in that
-window's buffer) if that window were selected.
+window's buffer) if that window were selected.  If @var{window} is
+@code{nil}, the selected window is used.
 
 When @var{window} is the selected window and its buffer is also the
 current buffer, the value returned is the same as point in that buffer.
@@ -1081,10 +1087,11 @@ display-start position is set to a display-start position recently used
 for the same buffer, or 1 if the buffer doesn't have any.
 
 Redisplay updates the window-start position (if you have not specified
-it explicitly since the previous redisplay) so that point appears on the
-screen.  Nothing except redisplay automatically changes the window-start
-position; if you move point, do not expect the window-start position to
-change in response until after the next redisplay.
+it explicitly since the previous redisplay)---for example, to make sure
+point appears on the screen.  Nothing except redisplay automatically
+changes the window-start position; if you move point, do not expect the
+window-start position to change in response until after the next
+redisplay.
 
 For a realistic example of using @code{window-start}, see the
 description of @code{count-lines} in @ref{Text Lines}.
@@ -1188,18 +1195,22 @@ argument @var{position} defaults to the current position of point;
 The @code{pos-visible-in-window-p} function considers only vertical
 scrolling.  If @var{position} is out of view only because @var{window}
 has been scrolled horizontally, @code{pos-visible-in-window-p} returns
-@code{t}.  @xref{Horizontal Scrolling}.
+@code{t} anyway.  @xref{Horizontal Scrolling}.
 @end defun
 
-@node Vertical Scrolling
-@section Vertical Scrolling
-@cindex vertical scrolling
-@cindex scrolling vertically
+@node Textual Scrolling
+@section Textual Scrolling
+@cindex textual scrolling
+@cindex scrolling textually
 
-  Vertical scrolling means moving the text up or down in a window.  It
-works by changing the value of the window's display-start location.  It
-may also change the value of @code{window-point} to keep it on the
-screen.
+  @dfn{Textual scrolling} means moving the text up or down though a
+window.  It works by changing the value of the window's display-start
+location.  It may also change the value of @code{window-point} to keep
+point on the screen.
+
+  Textual scrolling was formerly called ``vertical scrolling,'' but we
+changed its name to distinguish it from the new vertical fractional
+scrolling feature (@pxref{Vertical Scrolling}).
 
   In the commands @code{scroll-up} and @code{scroll-down}, the directions
 ``up'' and ``down'' refer to the motion of the text in the buffer at which
@@ -1218,9 +1229,10 @@ position of a window on the terminal does not move, and short scrolling
 commands clearly move the text up or down on the screen.  We have chosen
 names that fit the user's point of view.
 
-  The scrolling functions (aside from @code{scroll-other-window}) have
-unpredictable results if the current buffer is different from the buffer
-that is displayed in the selected window.  @xref{Current Buffer}.
+  The textual scrolling functions (aside from
+@code{scroll-other-window}) have unpredictable results if the current
+buffer is different from the buffer that is displayed in the selected
+window.  @xref{Current Buffer}.
 
 @deffn Command scroll-up &optional count
 This function scrolls the text in the selected window upward
@@ -1251,10 +1263,14 @@ This function scrolls the text in another window upward @var{count}
 lines.  Negative values of @var{count}, or @code{nil}, are handled
 as in @code{scroll-up}.
 
-You can specify a buffer to scroll with the variable
-@code{other-window-scroll-buffer}.  When the selected window is the
-minibuffer, the next window is normally the one at the top left corner.
-You can specify a different window to scroll with the variable
+You can specify which buffer to scroll by setting the variable
+@code{other-window-scroll-buffer} to a buffer.  If that buffer isn't
+already displayed, @code{scroll-other-window} displays it in some
+window.
+
+When the selected window is the minibuffer, the next window is normally
+the one at the top left corner.  You can specify a different window to
+scroll, when the minibuffer is selected, by setting the variable
 @code{minibuffer-scroll-window}.  This variable has no effect when any
 other window is selected.  @xref{Minibuffer Misc}.
 
@@ -1353,43 +1369,122 @@ Replaces three keystroke sequence C-u 0 C-l."
 @end example
 @end deffn
 
+@node Vertical Scrolling
+@section Vertical Fractional Scrolling
+@cindex Vertical Fractional Scrolling
+
+  @dfn{Vertical fractional scrolling} means shifting the image in the
+window up or down by a specified multiple or fraction of a line.
+Starting in Emacs 21, each window has a @dfn{vertical scroll position},
+which is a number, never less than zero.  It specifies how far to raise
+the contents of the window.  Raising the window contents generally makes
+all or part of some lines disappear off the top, and all or part of some
+other lines appear at the bottom.  The usual value is zero.
+
+  The vertical scroll position is measured in units of the normal line
+height, which is the height of the default font.  Thus, if the value is
+.5, that means the window contents are scrolled up half the normal line
+height.  If it is 3.3, that means the window contents are scrolled up
+somewhat over three times the normal line height.
+
+  What fraction of a line the vertical scrolling covers, or how many
+lines, depends on what the lines contain.  A value of .5 could scroll a
+line whose height is very short off the screen, while a value of 3.3
+could scroll just part of the way through a tall line or an image.
+
+@defun window-vscroll &optional window
+This function returns the current vertical scroll position of
+@var{window}, If @var{window} is @code{nil}, the selected window is
+used.
+
+@example
+@group
+(window-vscroll)
+     @result{} 0
+@end group
+@end example
+@end defun
+
+@defun set-window-vscroll window lines
+This function sets @var{window}'s vertical scroll position to
+@var{lines}.  The argument @var{lines} should be zero or positive; if
+not, it is taken as zero.
+
+The actual vertical scroll position must always correspond
+to an integral number of pixels, so the value you specify
+is rounded accordingly.
+
+The return value is the result of this rounding.
+
+@example
+@group
+(set-window-vscroll (selected-window) 1.2)
+     @result{} 1.13
+@end group
+@end example
+@end defun
+
 @node Horizontal Scrolling
 @section Horizontal Scrolling
 @cindex horizontal scrolling
 
-  Because we read English from left to right in the ``inner loop'', and
-from top to bottom in the ``outer loop'', horizontal scrolling is not
-like vertical scrolling.  Vertical scrolling involves selection of a
-contiguous portion of text to display, but horizontal scrolling causes
-part of each line to go off screen.  The amount of horizontal scrolling
-is therefore specified as a number of columns rather than as a position
-in the buffer.  It has nothing to do with the display-start position
-returned by @code{window-start}.
+  @dfn{Horizontal scrolling} means shifting the image in the window left
+or right by a specified multiple of the normal character width.  Each
+window has a @dfn{vertical scroll position}, which is a number, never
+less than zero.  It specifies how far to shift the contents left.
+Shifting the window contents left generally makes all or part of some
+characters disappear off the left, and all or part of some other
+characters appear at the right.  The usual value is zero.
+
+  The horizontal scroll position is measured in units of the normal
+character width, which is the width of space in the default font.  Thus,
+if the value is 5, that means the window contents are scrolled left by 5
+times the the normal character width.  How many characters actually
+disappear off to the left depends on their width, and could vary from
+line to line.
+
+  Because we read from side to side in the ``inner loop'', and from top
+to bottom in the ``outer loop'', the effect of horizontal scrolling is
+not like that of textual or vertical scrolling.  Textual scrolling
+involves selection of a portion of text to display, and vertical
+scrolling moves the window contents contiguously; but horizontal
+scrolling causes part of @emph{each line} to go off screen.
 
   Usually, no horizontal scrolling is in effect; then the leftmost
 column is at the left edge of the window.  In this state, scrolling to
-the right is meaningless, since there is no data to the left of the
-screen to be revealed by it; so this is not allowed.  Scrolling to the
-left is allowed; it scrolls the first columns of text off the edge of
-the window and can reveal additional columns on the right that were
-truncated before.  Once a window has a nonzero amount of leftward
-horizontal scrolling, you can scroll it back to the right, but only so
-far as to reduce the net horizontal scroll to zero.  There is no limit
-to how far left you can scroll, but eventually all the text will
-disappear off the left edge.
+the right is meaningless, since there is no data to the left of the edge
+to be revealed by it; so this is not allowed.  Scrolling to the left is
+allowed; it scrolls the first columns of text off the edge of the window
+and can reveal additional columns on the right that were truncated
+before.  Once a window has a nonzero amount of leftward horizontal
+scrolling, you can scroll it back to the right, but only so far as to
+reduce the net horizontal scroll to zero.  There is no limit to how far
+left you can scroll, but eventually all the text will disappear off the
+left edge.
 
-@deffn Command scroll-left count
+  In Emacs 21, redisplay automatically alters the horizontal scrolling
+of a window as necessary to ensure that point is always visible.
+However, you can still set the horizontal scrolling value explicitly.
+The value you specify will be used, provided it leaves point visible.
+
+@deffn Command scroll-left &optional count
 This function scrolls the selected window @var{count} columns to the
-left (or to the right if @var{count} is negative).  The return value is
-the total amount of leftward horizontal scrolling in effect after the
-change---just like the value returned by @code{window-hscroll} (below).
+left (or to the right if @var{count} is negative).  The default
+for @var{count} is the window width, minus 2.
+
+The return value is the total amount of leftward horizontal scrolling in
+effect after the change---just like the value returned by
+@code{window-hscroll} (below).
 @end deffn
 
-@deffn Command scroll-right count
+@deffn Command scroll-right &optional count
 This function scrolls the selected window @var{count} columns to the
-right (or to the left if @var{count} is negative).  The return value is
-the total amount of leftward horizontal scrolling in effect after the
-change---just like the value returned by @code{window-hscroll} (below).
+right (or to the left if @var{count} is negative).  The default
+for @var{count} is the window width, minus 2.
+
+The return value is the total amount of leftward horizontal scrolling in
+effect after the change---just like the value returned by
+@code{window-hscroll} (below).
 
 Once you scroll a window as far right as it can go, back to its normal
 position where the total leftward scrolling is zero, attempts to scroll
@@ -1426,6 +1521,7 @@ If @var{window} is @code{nil}, the selected window is used.
 This function sets the number of columns from the left margin that
 @var{window} is scrolled from the value of @var{columns}.  The argument
 @var{columns} should be zero or positive; if not, it is taken as zero.
+Fractional values of @var{columns} are not supported at present.
 
 The value returned is @var{columns}.
 
@@ -1516,12 +1612,12 @@ the frame.  The element @var{right} of the value is one more than the
 rightmost column used by @var{window}, and @var{bottom} is one more than
 the bottommost row used by @var{window} and its mode-line.
 
-When you have side-by-side windows, the right edge value for a window
-with a neighbor on the right includes the width of the separator between
-the window and that neighbor.  This separator may be a column of
-@samp{|} characters or it may be a scroll bar.  Since the width of the
-window does not include this separator, the width does not equal the
-difference between the right and left edges in this case.
+If a window has a scroll bar, the right edge value includes the width of
+the scroll bar.  Otherwise, if the window has a neighbor on the right,
+its right edge value includes the width of the separator line between
+the window and that neighbor.  Since the width of the window does not
+include this separator, the width does not usually equal the difference
+between the right and left edges.
 
 Here is the result obtained on a typical 24-line terminal with just one
 window:
@@ -1538,14 +1634,12 @@ The bottom edge is at line 23 because the last line is the echo area.
 
 If @var{window} is at the upper left corner of its frame, then
 @var{bottom} is the same as the value of @code{(window-height)},
-@var{right} is almost the same as the value of
-@code{(window-width)}@footnote{They are not exactly equal because
-@var{right} includes the vertical separator line or scroll bar, while
-@code{(window-width)} does not.}, and @var{top} and @var{left} are zero.
-For example, the edges of the following window are @w{@samp{0 0 5 8}}.
-Assuming that the frame has more than 8 columns, the last column of the
-window (column 7) holds a border rather than text.  The last row (row 4)
-holds the mode line, shown here with @samp{xxxxxxxxx}.
+@var{right} is almost the same as the value of @code{(window-width)},
+and @var{top} and @var{left} are zero.  For example, the edges of the
+following window are @w{@samp{0 0 8 5}}.  Assuming that the frame has
+more than 8 columns, the last column of the window (column 7) holds a
+border rather than text.  The last row (row 4) holds the mode line,
+shown here with @samp{xxxxxxxxx}.
 
 @example
 @group
@@ -1561,15 +1655,9 @@ holds the mode line, shown here with @samp{xxxxxxxxx}.
 @end group
 @end example
 
-When there are side-by-side windows, any window not at the right edge of
-its frame has a separator in its last column or columns.  The separator
-counts as one or two columns in the width of the window.  A window never
-includes a separator on its left, since that belongs to the window to
-the left.
-
 In the following example, let's suppose that the frame is 7
 columns wide.  Then the edges of the left window are @w{@samp{0 0 4 3}}
-and the edges of the right window are @w{@samp{4 0 7 3}}.
+and the edges of the right window are @w{@samp{4 0 8 3}}.
 
 @example
 @group
@@ -1609,6 +1697,13 @@ lines.  If a window from which columns are stolen shrinks below
 If the requested size would exceed that of the window's frame, then the
 function makes the window occupy the entire height (or width) of the
 frame.
+
+If there are various other windows from which lines or columns can be
+stolen, and some of them specify fixed size (using
+@code{window-size-fixed}, see below), they are left untouched while
+other windows are ``robbed.''  If it would be necessary to alter the
+size of a fixed-size window, @code{enlarge-window} gets an error
+instead.
 
 If @var{size} is negative, this function shrinks the window by
 @minus{}@var{size} lines or columns.  If that makes the window smaller
@@ -1652,16 +1747,46 @@ It could be defined as follows:
 @end example
 @end deffn
 
-@deffn Command shrink-window-if-larger-than-buffer window
+@deffn Command shrink-window-if-larger-than-buffer &optional window
 This command shrinks @var{window} to be as small as possible while still
 showing the full contents of its buffer---but not less than
-@code{window-min-height} lines.
+@code{window-min-height} lines.  If @var{window} is not given,
+it defaults to the selected window.
 
 However, the command does nothing if the window is already too small to
 display the whole text of the buffer, or if part of the contents are
 currently scrolled off screen, or if the window is not the full width of
 its frame, or if the window is the only window in its frame.
 @end deffn
+
+@tindex window-size-fixed
+@defvar window-size-fixed
+If this variable is non-@code{nil}, in any given buffer,
+then the size of any window displaying the buffer remains fixed
+unless you explicitly change it or Emacs has no other choice.
+(This feature is new in Emacs 21.)
+
+If the value is @code{height}, then only the window's height is fixed;
+if the value is @code{width}, then only the window's width is fixed.
+Any other non-@code{nil} value fixes both the width and the height.
+
+The usual way to use this variable is to give it a buffer-local value in
+a particular buffer.  That way, the windows (but usually there is only
+one) displaying that buffer have fixed size.
+
+Explicit size-change functions such as @code{enlarge-window}
+get an error if they would have to change a window size which is fixed.
+Therefore, when you want to change the size of such a window,
+you should bind @code{window-size-fixed} to @code{nil}, like this:
+
+@example
+(let ((window-size-fixed nil))
+   (enlarge-window 10))
+@end example
+
+Note that changing the frame size will change the size of a
+fixed-size window, if there is no other alternative.
+@end defvar
 
 @cindex minimum window size
   The following two variables constrain the window-size-changing
@@ -1721,11 +1846,14 @@ window.
 @item mode-line
 The coordinates are in the mode line of @var{window}.
 
-@item vertical-split
+@item header-line
+The coordinates are in the header line of @var{window}.
+
+@item vertical-line
 The coordinates are in the vertical line between @var{window} and its
 neighbor to the right.  This value occurs only if the window doesn't
 have a scroll bar; positions in a scroll bar are considered outside the
-window.
+window for these purposes.
 
 @item nil
 The coordinates are not in any part of @var{window}.
@@ -1750,8 +1878,8 @@ configuration previously saved.
 configuration instead of a window configuration.  @xref{Frame
 Configurations}.
 
-@defun current-window-configuration
-This function returns a new object representing the selected frame's
+@defun current-window-configuration &optional frame
+This function returns a new object representing @var{frame}'s
 current window configuration, including the number of windows, their
 sizes and current buffers, which window is the selected window, and for
 each window the displayed buffer, the display-start position, and the
@@ -1759,16 +1887,20 @@ positions of point and the mark.  It also includes the values of
 @code{window-min-height}, @code{window-min-width} and
 @code{minibuffer-scroll-window}.  An exception is made for point in the
 current buffer, whose value is not saved.
+
+If @var{frame} is omitted, the selected frame is used.
 @end defun
 
 @defun set-window-configuration configuration
 This function restores the configuration of windows and buffers as
-specified by @var{configuration}.  The argument @var{configuration} must
-be a value that was previously returned by
-@code{current-window-configuration}.  This configuration is restored in
-the frame from which @var{configuration} was made, whether that frame is
-selected or not.  This always counts as a window size change and
-triggers execution of the @code{window-size-change-functions}
+specified by @var{configuration}, for the frame that @var{configuration}
+was created for.
+
+The argument @var{configuration} must be a value that was previously
+returned by @code{current-window-configuration}.  This configuration is
+restored in the frame from which @var{configuration} was made, whether
+that frame is selected or not.  This always counts as a window size
+change and triggers execution of the @code{window-size-change-functions}
 (@pxref{Window Hooks}), because @code{set-window-configuration} doesn't
 know how to tell whether the new configuration actually differs from the
 old one.
@@ -1913,7 +2045,7 @@ This function sets @var{window}'s end trigger position at
 @var{position}.
 @end defun
 
-@defun window-redisplay-end-trigger window
+@defun window-redisplay-end-trigger &optional window
 @tindex window-redisplay-end-trigger
 This function returns @var{window}'s current end trigger position.
 @end defun

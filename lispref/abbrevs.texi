@@ -4,7 +4,7 @@
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/abbrevs
 @node Abbrevs, Processes, Syntax Tables, Top
-@chapter Abbrevs And Abbrev Expansion
+@chapter Abbrevs and Abbrev Expansion
 @cindex abbrev
 @cindex abbrev table
 

@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/sequences
-@node Sequences Arrays Vectors, Symbols, Lists, Top
+@node Sequences Arrays Vectors, Hash Tables, Lists, Top
 @chapter Sequences, Arrays, and Vectors
 @cindex sequence
 
@@ -312,7 +312,7 @@ first element is at index zero.
 @end group
 @group
 (aref "abcdefg" 1)
-     @result{} 98           ; @r{@samp{b} is @sc{ASCII} code 98.}
+     @result{} 98           ; @r{@samp{b} is @sc{ascii} code 98.}
 @end group
 @end example
 

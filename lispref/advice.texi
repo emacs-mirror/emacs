@@ -174,6 +174,9 @@ actually called.  If more than one piece of advice specifies an argument
 list, then the first one (the one with the smallest position) found in
 the list of all classes of advice is used.
 
+@xref{Argument Access in Advice}, for more information about argument
+lists and advice.
+
 The remaining elements, @var{flags}, are symbols that specify further
 information about how to use this piece of advice.  Here are the valid
 symbols and their meanings:
@@ -210,7 +213,7 @@ unless subsequently explicitly enabled.  @xref{Enabling Advice}.
 Activate advice for @var{function} when this @code{defadvice} is
 compiled or macroexpanded.  This generates a compiled advised definition
 according to the current advice state, which will be used during
-activation if appropriate.
+activation if appropriate.  @xref{Preactivation}.
 
 This is useful only if this @code{defadvice} is byte-compiled.
 @end table
@@ -301,7 +304,9 @@ specified @var{class}, then @var{position} specifies where in the list
 to put the new piece of advice.  The value of @var{position} can either
 be @code{first}, @code{last}, or a number (counting from 0 at the
 beginning of the list).  Numbers outside the range are mapped to the
-closest extreme position.
+beginning or the end of the range, whichever is closer.  The
+@var{position} value is ignored when redefining an existing piece of
+advice.
 
 If @var{function} already has a piece of @var{advice} with the same
 name, then the position argument is ignored and the old advice is
@@ -339,7 +344,7 @@ the command also compiles the combined definition which implements the
 advice.
 
 @deffn Command ad-activate function &optional compile
-This command activates the advice for @var{function}.
+This command activates all the advice defined for @var{function}.
 @end deffn
 
 To activate advice for a function whose advice is already active is not

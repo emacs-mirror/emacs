@@ -20,8 +20,8 @@ write several forms in succession in the body of a function, or at top
 level in a file of Lisp code---the forms are executed in the order
 written.  We call this @dfn{textual order}.  For example, if a function
 body consists of two forms @var{a} and @var{b}, evaluation of the
-function evaluates first @var{a} and then @var{b}, and the function's
-value is the value of @var{b}.
+function evaluates first @var{a} and then @var{b}.  The result of
+evaluating @var{b} becomes the value of the function.
 
   Explicit control structures make possible an order of execution other
 than sequential.
@@ -60,9 +60,9 @@ control construct of Lisp.
 
 @noindent
 and it says to execute the forms @var{a}, @var{b}, @var{c}, and so on, in
-that order.  These forms are called the body of the @code{progn} form.
+that order.  These forms are called the @dfn{body} of the @code{progn} form.
 The value of the last form in the body becomes the value of the entire
-@code{progn}.
+@code{progn}.  @code{(progn)} returns @code{nil}.
 
 @cindex implicit @code{progn}
   In the early days of Lisp, @code{progn} was the only way to execute
@@ -72,8 +72,8 @@ body of a function, where (at that time) only one form was allowed.  So
 the body of a function was made into an ``implicit @code{progn}'':
 several forms are allowed just as in the body of an actual @code{progn}.
 Many other control structures likewise contain an implicit @code{progn}.
-As a result, @code{progn} is not used as often as it used to be.  It is
-needed now most often inside an @code{unwind-protect}, @code{and},
+As a result, @code{progn} is not used as much as it was many years ago.
+It is needed now most often inside an @code{unwind-protect}, @code{and},
 @code{or}, or in the @var{then}-part of an @code{if}.
 
 @defspec progn forms@dots{}
@@ -265,6 +265,7 @@ For example,
 
 @example
 @group
+(setq a 5)
 (cond ((eq a 'hack) 'foo)
       (t "default"))
 @result{} "default"
@@ -272,8 +273,8 @@ For example,
 @end example
 
 @noindent
-This expression is a @code{cond} which returns @code{foo} if the value
-of @code{a} is @code{hack}, and returns the string @code{"default"} otherwise.
+This @code{cond} expression returns @code{foo} if the value of @code{a}
+is @code{hack}, and returns the string @code{"default"} otherwise.
 @end defspec
 
 Any conditional construct can be expressed with @code{cond} or with
@@ -310,11 +311,14 @@ order written.
 
 If any of the @var{conditions} evaluates to @code{nil}, then the result
 of the @code{and} must be @code{nil} regardless of the remaining
-@var{conditions}; so @code{and} returns right away, ignoring the
-remaining @var{conditions}.
+@var{conditions}; so @code{and} returns @code{nil} right away, ignoring
+the remaining @var{conditions}.
 
 If all the @var{conditions} turn out non-@code{nil}, then the value of
-the last of them becomes the value of the @code{and} form.
+the last of them becomes the value of the @code{and} form.  Just
+@code{(and)}, with no @var{conditions}, returns @code{t}, appropriate
+because all the @var{conditions} turned out non-@code{nil}.  (Think
+about it; which one did not?)
 
 Here is an example.  The first condition returns the integer 1, which is
 not @code{nil}.  Similarly, the second condition returns the integer 2,
@@ -368,10 +372,13 @@ right away, ignoring the remaining @var{conditions}.  The value it
 returns is the non-@code{nil} value of the condition just evaluated.
 
 If all the @var{conditions} turn out @code{nil}, then the @code{or}
-expression returns @code{nil}.
+expression returns @code{nil}.  Just @code{(or)}, with no
+@var{conditions}, returns @code{nil}, appropriate because all the
+@var{conditions} turned out @code{nil}.  (Think about it; which one
+did not?)
 
-For example, this expression tests whether @code{x} is either 0 or
-@code{nil}:
+For example, this expression tests whether @code{x} is either 
+@code{nil} or the integer zero:
 
 @example
 (or (eq x nil) (eq x 0))
@@ -446,9 +453,10 @@ The value of a @code{while} form is always @code{nil}.
 @end group
 @end example
 
-If you would like to execute something on each iteration before the
-end-test, put it together with the end-test in a @code{progn} as the
-first argument of @code{while}, as shown here:
+To write a ``repeat...until'' loop, which will execute something on each
+iteration and then do the end-test, put the body followed by the
+end-test in a @code{progn} as the first argument of @code{while}, as
+shown here:
 
 @example
 @group
@@ -560,9 +568,10 @@ With the return point in effect, @code{catch} evaluates the forms of the
 error or nonlocal exit) the value of the last body form is returned from
 the @code{catch}.
 
-If a @code{throw} is done within @var{body} specifying the same value
-@var{tag}, the @code{catch} exits immediately; the value it returns is
-whatever was specified as the second argument of @code{throw}.
+If a @code{throw} is executed during the execution of @var{body},
+specifying the same value @var{tag}, the @code{catch} form exits
+immediately; the value it returns is whatever was specified as the
+second argument of @code{throw}.
 @end defspec
 
 @defun throw tag value
@@ -641,13 +650,6 @@ printed.  Finally the second body form in the outer @code{catch}, which is
 
 @example
 @group
-(defun catch2 (tag)
-  (catch tag
-    (throw 'hack 'yes)))
-@result{} catch2
-@end group
-
-@group
 (catch 'hack
   (print (catch2 'quux))
   'no)
@@ -708,6 +710,11 @@ buffer.  You can also signal errors explicitly with the functions
   Quitting, which happens when the user types @kbd{C-g}, is not 
 considered an error, but it is handled almost like an error.
 @xref{Quitting}.
+
+  The error message should state what is wrong (``File does not
+exist''), not how things ought to be (``File must exist'').  The
+convention in Emacs Lisp is that error messages should start with a
+capital letter, but should not end with any sort of punctuation.
 
 @defun error format-string &rest args
 This function signals an error with an error message constructed by
@@ -852,7 +859,7 @@ above, there is one handler, and it specifies one condition name,
   The search for an applicable handler checks all the established handlers
 starting with the most recently established one.  Thus, if two nested
 @code{condition-case} forms offer to handle the same error, the inner of
-the two will actually handle it.
+the two gets to handle it.
 
   If an error is handled by some @code{condition-case} form, this
 ordinarily prevents the debugger from being run, even if
@@ -881,10 +888,11 @@ totally unpredictable, such as when the program evaluates an expression
 read from the user.
 
   Error signaling and handling have some resemblance to @code{throw} and
-@code{catch}, but they are entirely separate facilities.  An error
-cannot be caught by a @code{catch}, and a @code{throw} cannot be handled
-by an error handler (though using @code{throw} when there is no suitable
-@code{catch} signals an error that can be handled).
+@code{catch} (@pxref{Catch and Throw}), but they are entirely separate
+facilities.  An error cannot be caught by a @code{catch}, and a
+@code{throw} cannot be handled by an error handler (though using
+@code{throw} when there is no suitable @code{catch} signals an error
+that can be handled).
 
 @defspec condition-case var protected-form handlers@dots{}
 This special form establishes the error handlers @var{handlers} around
@@ -1127,9 +1135,9 @@ the value of the last @var{body} form, after it evaluates the
 @var{cleanup-forms}.  If the @var{body} forms do not finish,
 @code{unwind-protect} does not return any value in the normal sense.
 
-Only the @var{body} is actually protected by the @code{unwind-protect}.
-If any of the @var{cleanup-forms} themselves exits nonlocally (e.g., via
-a @code{throw} or an error), @code{unwind-protect} is @emph{not}
+Only the @var{body} is protected by the @code{unwind-protect}.  If any
+of the @var{cleanup-forms} themselves exits nonlocally (via a
+@code{throw} or an error), @code{unwind-protect} is @emph{not}
 guaranteed to evaluate the rest of them.  If the failure of one of the
 @var{cleanup-forms} has the potential to cause trouble, then protect it
 with another @code{unwind-protect} around that form.
@@ -1167,13 +1175,13 @@ Several of the macros defined in this manual use @code{unwind-protect}
 in this way.
 
 @findex ftp-login
-  Here is an actual example taken from the file @file{ftp.el}.  It
-creates a process (@pxref{Processes}) to try to establish a connection
-to a remote machine.  As the function @code{ftp-login} is highly
-susceptible to numerous problems that the writer of the function cannot
-anticipate, it is protected with a form that guarantees deletion of the
-process in the event of failure.  Otherwise, Emacs might fill up with
-useless subprocesses.
+  Here is an actual example derived from an FTP package.  It creates a
+process (@pxref{Processes}) to try to establish a connection to a remote
+machine.  As the function @code{ftp-login} is highly susceptible to
+numerous problems that the writer of the function cannot anticipate, it
+is protected with a form that guarantees deletion of the process in the
+event of failure.  Otherwise, Emacs might fill up with useless
+subprocesses.
 
 @smallexample
 @group
@@ -1188,7 +1196,7 @@ useless subprocesses.
 @end group
 @end smallexample
 
-  This example actually has a small bug: if the user types @kbd{C-g} to
+  This example has a small bug: if the user types @kbd{C-g} to
 quit, and the quit happens immediately after the function
 @code{ftp-setup-buffer} returns but before the variable @code{process} is
 set, the process will not be killed.  There is no easy way to fix this bug,

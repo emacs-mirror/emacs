@@ -14,6 +14,12 @@ it gives advice on making effective use of the features described in the
 previous chapters, and describes conventions Emacs Lisp programmers
 should follow.
 
+  You can automatically check some of the conventions described below by
+running the command @kbd{M-x checkdoc RET} when visiting a Lisp file.
+It cannot check all of the conventions, and not all the warnings it
+gives necessarily correspond to problems, but it is worth examining them
+all.
+
 @menu
 * Coding Conventions::        Conventions for clean and robust programs.
 * Compilation Tips::          Making compiled code run fast.
@@ -287,6 +293,17 @@ coherent if all libraries use the same conventions.
 Try to avoid compiler warnings about undefined free variables, by adding
 @code{defvar} definitions for these variables.
 
+Sometimes adding a @code{require} for another package is useful to avoid
+compilation warnings for variables and functions defined in that
+package.  If you do this, often it is better if the @cpde{require} acts
+only at compile time.  Here's how to do that:
+
+@example
+(eval-when-compile
+  (require 'foo)
+  (defvar bar-baz))
+@end example
+
 If you bind a variable in one function, and use it or set it in another
 function, the compiler warns about the latter function unless the
 variable has a definition.  But often these variables have short names,
@@ -421,12 +438,12 @@ should be made up of complete sentences also, but they may be filled if
 that looks good.
 
 @item
-For consistency, phrase the verb in the first sentence of a
-function's documentation string as an infinitive with ``to'' omitted.  For
-instance, use ``Return the cons of A and B.'' in preference to ``Returns
-the cons of A and B@.''  Usually it looks good to do likewise for the
-rest of the first paragraph.  Subsequent paragraphs usually look better
-if they have proper subjects.
+For consistency, phrase the verb in the first sentence of a function's
+documentation string as an imperative--for instance, use ``Return the
+cons of A and B.'' in preference to ``Returns the cons of A and B@.''
+Usually it looks good to do likewise for the rest of the first
+paragraph.  Subsequent paragraphs usually look better if each sentence
+has a proper subject.
 
 @item
 Write documentation strings in the active voice, not the passive, and in
@@ -485,9 +502,15 @@ a name for that value.  Thus, the documentation string of the function
 @code{/} refers to its second argument as @samp{DIVISOR}, because the
 actual argument name is @code{divisor}.
 
-Also use all caps for meta-syntactic variables, such as when you show
+Also use all caps for metasyntactic variables, such as when you show
 the decomposition of a list or vector into subunits, some of which may
-vary.
+vary.  @samp{KEY} and @samp{VALUE} in the following example
+illustrate this practice:
+
+@example
+The argument TABLE should be an alist whose elements
+have the form (KEY . VALUE).  Here, KEY is ...
+@end example
 
 @item
 @iftex
@@ -536,6 +559,14 @@ that satisfy the criterion.
 @noindent
 does not make a hyperlink to the documentation, irrelevant here, of the
 function @code{list}.
+
+To make a hyperlink to Info documentation, write the name of the Info
+node in single quotes, preceded by @samp{info node} or @samp{Info
+node}.  The Info file name defaults to @samp{emacs}.  For example,
+
+@smallexample
+See Info node `Font Lock' and Info node `(elisp)Font Lock Basics'.
+@end smallexample
 
 @item
 Don't write key sequences directly in documentation strings.  Instead,
@@ -659,7 +690,21 @@ Manipulating Comments, emacs, The GNU Emacs Manual}.
 
   Emacs has conventions for using special comments in Lisp libraries
 to divide them into sections and give information such as who wrote
-them.  This section explains these conventions.  First, an example:
+them.  This section explains these conventions.
+
+  We'll start with an example, a package that is included in the Emacs
+distribution.
+
+  Parts of this example reflect its status as part of Emacs; for
+example, the copyright notice lists the Free Software Foundation as the
+copyright holder, and the copying permission says the file is part of
+Emacs.  When you write a package and post it, the copyright holder would
+be you (unless your employer claims to own it instead), and you should
+get the suggested copying permission from the end of the GNU General
+Public License itself.  Don't say your file is part of Emacs
+if we haven't installed it in Emacs yet!
+
+  With that warning out of the way, on to the example:
 
 @smallexample
 @group
@@ -773,7 +818,8 @@ This begins change log information stored in the library file (if you
 store the change history there).  For most of the Lisp
 files distributed with Emacs, the change history is kept in the file
 @file{ChangeLog} and not in the source file at all; these files do
-not have a @samp{;;; Change Log:} line.
+not have a @samp{;;; Change Log:} line.  @samp{History} is an
+alternative to @samp{Change Log}.
 
 @item ;;; Code:
 This begins the actual code of the program.

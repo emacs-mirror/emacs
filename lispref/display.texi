@@ -11,6 +11,7 @@ that Emacs presents to the user.
 
 @menu
 * Refresh Screen::      Clearing the screen and redrawing everything on it.
+* Forcing Redisplay::   Forcing redisplay.
 * Truncation::          Folding or wrapping long text lines.
 * The Echo Area::       Where messages are displayed.
 * Invisible Text::      Hiding part of the buffer text.
@@ -20,6 +21,8 @@ that Emacs presents to the user.
 * Overlays::		Use overlays to highlight parts of the buffer.
 * Width::               How wide is a character or string.
 * Faces::		A face defines a graphics appearance: font, color, etc.
+* Display Property::    Enabling special display features.
+* Images::              Displaying images in Emacs buffers.
 * Blinking::            How Emacs shows the matching open parenthesis.
 * Inverse Video::	Specifying how the screen looks.
 * Usual Display::	The usual conventions for displaying nonprinting chars.
@@ -63,6 +66,32 @@ This variable controls whether Emacs redraws the entire screen after it
 has been suspended and resumed.  Non-@code{nil} means there is no need
 to redraw, @code{nil} means redrawing is needed.  The default is @code{nil}.
 @end defvar
+
+@node Forcing Redisplay
+@section Forcing Redisplay
+@cindex forcing redisplay
+
+  Emacs redisplay normally stops if input arrives, and does not happen
+at all if input is available before it starts.  Most of the time, this
+is exactly what you want.  However, you can prevent preemption by
+binding @code{redisplay-dont-pause} to a non-@code{nil} value.
+
+@tindex redisplay-dont-pause
+@defvar redisplay-dont-pause
+If this variable is non-@code{nil}, pending input does not
+prevent or halt redisplay; redisplay occurs, and finishes,
+regardless of whether input is available.  This feature is available
+as of Emacs 21.
+@end defvar
+
+  You can request a display update, but only if no input is pending,
+with @code{(sit-for 0)}.  To force a display update even when input is
+pending, do this:
+
+@example
+(let ((redisplay-dont-pause t))
+  (sit-for 0))
+@end example
 
 @node Truncation
 @section Truncation
@@ -158,10 +187,14 @@ constructed string.
 In batch mode, @code{message} prints the message text on the standard
 error stream, followed by a newline.
 
+If @var{string}, or strings among the @var{arguments}, have @code{face}
+text properties, these affect the way the message is displayed.
+
 @c Emacs 19 feature
-If @var{string} is @code{nil}, @code{message} clears the echo area.  If
-the minibuffer is active, this brings the minibuffer contents back onto
-the screen immediately.
+If @var{string} is @code{nil}, @code{message} clears the echo area; if
+the echo area has been expanded automatically, this brings it back to
+its normal size.  If the minibuffer is active, this brings the
+minibuffer contents back onto the screen immediately.
 
 @example
 @group
@@ -682,7 +715,7 @@ these affect the display of the text within the overlay.
 @node Overlay Properties
 @subsection Overlay Properties
 
-Overlay properties are like text properties in that the properties that
+  Overlay properties are like text properties in that the properties that
 alter how a character is displayed can come from either source.  But in
 most respects they are different.  Text properties are considered a part
 of the text; overlays are specifically considered not to be part of the
@@ -692,6 +725,29 @@ buffer's text properties marks the buffer as modified, while moving an
 overlay or changing its properties does not.  Unlike text property
 changes, overlay changes are not recorded in the buffer's undo list.
 @xref{Text Properties}, for comparison.
+
+  These functions are used for reading and writing the properties of an
+overlay:
+
+@defun overlay-get overlay prop
+This function returns the value of property @var{prop} recorded in
+@var{overlay}, if any.  If @var{overlay} does not record any value for
+that property, but it does have a @code{category} property which is a
+symbol, that symbol's @var{prop} property is used.  Otherwise, the value
+is @code{nil}.
+@end defun
+
+@defun overlay-put overlay prop value
+This function sets the value of property @var{prop} recorded in
+@var{overlay} to @var{value}.  It returns @var{value}.
+@end defun
+
+  See also the function @code{get-char-property} which checks both
+overlay properties and text properties for a given character.
+@xref{Examining Properties}.
+
+  Many overlay properties have special meanings; here is a table
+of them:
 
 @table @code
 @item priority
@@ -721,19 +777,50 @@ of the symbol serve as defaults for the properties of the overlay.
 @item face
 @kindex face @r{(overlay property)}
 This property controls the way text is displayed---for example, which
-font and which colors.  Its value is a face name or a list of face
-names.  @xref{Faces}, for more information.
+font and which colors.  @xref{Faces}, for more information.
 
-If the property value is a list, elements may also have the form
-@code{(foreground-color . @var{color-name})} or @code{(background-color
-. @var{color-name})}.  These elements specify just the foreground color
-or just the background color; therefore, there is no need to create a
-face for each color that you want to use.
+In the simplest case, the value is a face name.  It can also be a list;
+then each element can be any of these possibilities;
+
+@itemize @bullet
+@item
+A face name (a symbol or string).
+
+@item
+Starting in Emacs 21, a property list of face attributes.  This has the
+form (@var{keyword} @var{value} @dots{}), where each @var{keyword} is a
+face attribute name and @var{value} is a meaningful value for that
+attribute.  With this feature, you do not need to create a face each
+time you want to specify a particular attribute for certain text.
+@xref{Face Attributes}.
+
+@item
+A cons cell of the form @code{(foreground-color . @var{color-name})} or
+@code{(background-color . @var{color-name})}.  These elements specify
+just the foreground color or just the background color.
+
+@code{(foreground-color . @var{color-name})} is equivalent to
+@code{(:foreground @var{color-name})}, and likewise for the background.
+@end itemize
 
 @item mouse-face
 @kindex mouse-face @r{(overlay property)}
 This property is used instead of @code{face} when the mouse is within
 the range of the overlay.
+
+@item display
+@kindex display @r{(overlay property)}
+This property activates various features that change the
+way text is displayed.  For example, it can make text appear taller
+or shorter, higher or lower, wider or narror, or replaced with an image.
+@xref{Display Property}.
+
+@item help-echo
+@kindex help-echo @r{(text property)}
+If an overlay has a string as its @code{help-echo} property, then when
+you move the mouse onto the text in the overlay, Emacs displays that
+string in the echo area, or in the tooltip window.  It is available
+starting in Emacs 21.
 
 @item modification-hooks
 @kindex modification-hooks @r{(overlay property)}
@@ -817,26 +904,6 @@ If this property is non-@code{nil}, it specifies a keymap for a portion
 of the text.  The property's value replaces the buffer's local map, when
 the character after point is within the overlay.  @xref{Active Keymaps}.
 @end table
-
-  These are the functions for reading and writing the properties of an
-overlay.
-
-@defun overlay-get overlay prop
-This function returns the value of property @var{prop} recorded in
-@var{overlay}, if any.  If @var{overlay} does not record any value for
-that property, but it does have a @code{category} property which is a
-symbol, that symbol's @var{prop} property is used.  Otherwise, the value
-is @code{nil}.
-@end defun
-
-@defun overlay-put overlay prop value
-This function sets the value of property @var{prop} recorded in
-@var{overlay} to @var{value}.  It returns @var{value}.
-@end defun
-
-  See also the function @code{get-char-property} which checks both
-overlay properties and text properties for a given character.
-@xref{Examining Properties}.
 
 @node Managing Overlays
 @subsection Managing Overlays
@@ -974,13 +1041,14 @@ the beginning of the result if one multi-column character in
 @section Faces
 @cindex face
 
-A @dfn{face} is a named collection of graphical attributes: font,
-foreground color, background color, and optional underlining.  Faces
-control the display of text on the screen.
+  A @dfn{face} is a named collection of graphical attributes: font
+family, foreground color, background color, optional underlining, and
+many others.  Faces are used in Emacs to control the style of display of
+particular parts of the text or the frame.
 
 @cindex face id
 Each face has its own @dfn{face number}, which distinguishes faces at
-low levels within Emacs.  However, for most purposes, you can refer to
+low levels within Emacs.  However, for most purposes, you refer to
 faces in Lisp programs by their names.
 
 @defun facep object
@@ -996,23 +1064,56 @@ face name a special meaning in one frame if you wish.
 @menu
 * Standard Faces::      The faces Emacs normally comes with.
 * Defining Faces::      How to define a face with @code{defface}.
-* Merging Faces::	How Emacs decides which face to use for a character.
+* Face Attributes::     What is in a face?
+* Attribute Functions:: Functions to examine and set face attributes.
+* Merging Faces::	How Emacs combines the faces specified for a character.
+* Font Selection::      Finding the best available font for a face.
 * Face Functions::	How to define and examine faces.
+* Auto Faces::          Hook for automatic face assignment.
+* Font Lookup::         Looking up the names of available fonts
+                          and information about them.
+* Fontsets::            A fontset is a collection of fonts
+                          that handle a range of character sets.
 @end menu
 
 @node Standard Faces
 @subsection Standard Faces
 
-  This table lists all the standard faces and their uses.
+  This table lists all the standard faces and their uses.  Most of them
+are used for displaying certain parts of the frames or certain kinds of
+text; you can control how those places look by customizing these faces.
 
 @table @code
 @item default
 @kindex default @r{(face name)}
 This face is used for ordinary text.
 
+@item mode-line
+@kindex mode-line @r{(face name)}
+This face is used for mode lines, and for menu bars
+when toolkit menus are not used.
+
 @item modeline
 @kindex modeline @r{(face name)}
-This face is used for mode lines and menu bars.
+This is an alias for the @code{mode-line} face, for compatibility with
+old Emacs versions.
+
+@item header-line
+@kindex header-line @r{(face name)}
+This face is used for the header lines of windows that have them.
+
+@item fringe
+@kindex fringe @r{(face name)}
+This face controls the colors of window fringes, the thin areas on
+either side that are used to display continuation and truncation glyphs.
+
+@item scroll-bar
+@kindex scroll-bar @r{(face name)}
+This face controls the colors for display of scroll bars.
+
+@item tool-bar
+@kindex tool-bar @r{(face name)}
+This face is used for display of the tool bar, if any.
 
 @item region
 @kindex region @r{(face name)}
@@ -1026,10 +1127,16 @@ This face is used to show any secondary selection you have made.
 @kindex highlight @r{(face name)}
 This face is meant to be used for highlighting for various purposes.
 
-@item underline
-@kindex underline @r{(face name)}
-This face underlines text.
+@item trailing-whitespace
+@kindex trailing-whitespace @r{(face name)}
+This face is used to display excess whitespace at the end of a line.
+@end table
 
+  In contrast, these faces are provided to change the appearance of text
+in specific ways.  You can use them on specific text, when you want
+the effects they produce.
+
+@table @code
 @item bold
 @kindex bold @r{(face name)}
 This face uses a bold font, if possible.  It uses the bold variant of
@@ -1044,6 +1151,20 @@ This face uses the italic variant of the frame's font, if it has one.
 @kindex bold-italic @r{(face name)}
 This face uses the bold italic variant of the frame's font, if it has
 one.
+
+@item underline
+@kindex underline @r{(face name)}
+This face underlines text.
+
+@item fixed-patch
+@kindex fixed-patch @r{(face name)}
+This face forces use of a particular fixed-width font.
+
+@item variable-patch
+@kindex variable-patch @r{(face name)}
+This face forces use of a particular variable-width font.  It's
+reasonable to customize this to use a diffrent variable-width font, if
+you like, but you should not make it a fixed-width font.
 @end table
 
 @node Defining Faces
@@ -1139,32 +1260,352 @@ background colors.  If it is @code{light}, then Emacs treats all frames
 as if they had a light background.
 @end defopt
 
+@node Face Attributes
+@subsection Face Attributes
+@cindex face attributes
+
+  The effect of using a face is determined by a fixed set of @dfn{face
+attributes}.  This table lists all the face attributes, and what they
+mean.  Note that in general, more than one face be specified for a given
+piece of text; when that happens, the attributes of all the faces are
+merged to specify how to display the text.  @xref{Merging Faces}.
+
+  In Emacs 21, any attribute in a face can have the value
+@code{unspecified}.  This means the face doesn't specify that attribute.
+In face merging, when the first face fails to specify a particular
+attribute, that means the next face gets a chance.  However, the
+@code{default} face must specify all attributes.
+
+  Some of these font attributes are meaningful only on certain
+kinds of displays---if your display cannot handle a certain attribute,
+the attribute is ignored.
+
+@table @code
+@item :family
+Font family name, or fontset name (@pxref{Fontsets}).  If you specify a
+font family name, the wild-cards @samp{*} and @samp{?} are allowed.
+
+@item :width
+Relative proportionate width, also known as the character set width or
+set width.  This should be one of the symbols @code{ultra-condensed},
+@code{extra-condensed}, @code{condensed}, @code{semi-condensed},
+@code{normal}, @code{semi-expanded}, @code{expanded},
+@code{extra-expanded}, or @code{ultra-expanded}.
+   
+@item :height
+Font height, an integer in units of 1/10pt.
+   
+@item :weight
+Font weight---a symbol from this series (from most dense to most faint):
+@code{ultra-bold}, @code{extra-bold}, @code{bold}, @code{semi-bold},
+@code{normal}, @code{semi-light}, @code{light}, @code{extra-light},
+@code{ultra-light}, or else @code{nil} meaning this attribute is not
+specified.
+   
+@item :slant
+Font slant---one of the symbols @code{italic}, @code{oblique}, @code{normal},
+@code{reverse-italic}, or @code{reverse-oblique}.
+   
+@item :foreground
+Foreground color, a string.
+   
+@item :background
+Background color, a string.
+
+@item :inverse-video
+Whether or not characters should be displayed in inverse video.  The
+value should be @code{t} (yes) or @code{nil} (no).
+
+@item :stipple
+The background stipple, a bitmap name.
+
+The value can be a string; then is the name of a file of pixmap data.
+The file is found in the directories listed in the variable
+@code{x-bitmap-file-path}.
+
+Alternatively, the value can be a list of the form @code{(@var{width}
+@var{height} @var{data})}.  Here, width and height are the size in
+pixels, and @var{data} is a string containing the raw bits of the
+bitmap.
+
+If the value is @code{nil}, that means use no stipple pattern.
+
+Normally you do not need to set the stipple attribute, because it is
+used automatically to handle certain shades of gray.
+
+@item :underline
+Whether or not characters should be underlined, and in what color.  If
+the value is @code{t}, underlining uses the foreground color of the
+face.  If the value is a string, underlining uses that color.  The
+value @code{nil} means do not underline.
+
+@item :overline
+Whether or not characters should be overlined, and in what color.
+The value is used like that of @code{:underline}.
+
+@item :strike-through
+Whether or not characters should be strike-through, and in what
+color.  The value is used like that of @code{:underline}.
+
+@item :box
+Whether or not a box should be drawn around characters, its color, the
+width of the box lines, and 3D appearance.  See below for the possible
+values and what they mean.
+@end table
+
+  Here are the possible values of the @code{:box} attribute, and what
+they mean:
+
+@table @asis
+@item @code{nil}
+Don't draw a box.
+
+@item @code{t}
+Draw a box with lines of width 1, in the foreground color.
+
+@item @var{color}
+Draw a box with lines of width 1, in color @var{color}.
+
+@item @code{(:line-width @var{width} :color @var{color} :style @var{style})}
+This way you can explicitly specify all aspects of the box.  The value
+@var{width} specifies the width of the lines to draw; it defaults to 1.
+
+The value @var{color} specifies the color to draw with.  The default is
+the foreground color of the face for simple boxes, and the background
+color of the face for 3D boxes.
+
+The value @var{style} specifies whether to draw a 3D box.  If it is
+@code{released-button}, the box looks like a 3D button that is not being
+pressed.  If it is @code{pressed-button}, the box looks like a 3D button
+that is being pressed.  If it is @code{nil} or omitted, a plain 2D box
+is used.
+@end table
+
+  The attributes @code{:overline}, @code{:strike-through} and
+@code{:box} are new in Emacs 21.  The attributes @code{:family},
+@code{:height}, @code{:width}, @code{:weight}, @code{:slant} are also
+new, previous versions had another way to specify some of the same
+information.
+
+@table @code
+@item :font
+This attribute specified the font name.
+
+@item :bold
+A non-@code{nil} value specifies a bold font.
+
+@item :italic
+A non-@code{nil} value specifies an italic font.
+@end table
+
+  For compatibility, you can still set these ``attributes'' in Emacs 21,
+even though they are not real face attributes.  Here is what that does:
+
+@table @code
+@item :font
+@code{:font} is not really a font attribute, but you can use it in
+@code{set-face-attribute} to specify several attributes at once.  You
+specify an X font name as the value, and based on this font name, and
+it sets the attributes @code{:family}, @code{:width}, @code{:height},
+@code{:weight}, and @code{:slant} according to the font name.
+
+If the value is a pattern with wildcards, the first font that matches
+the pattern is used to set these attributes.
+
+@item :bold
+A non-@code{nil} makes the face bold; @code{nil} makes it normal.
+This actually works by setting the @code{:weight} attribute.
+
+@item :italic
+A non-@code{nil} makes the face italic; @code{nil} makes it normal.
+This actually works by setting the @code{:slant} attribute.
+@end table
+
+@defvar x-bitmap-file-path
+This variable specifies a list of directories for searching
+for bitmap files, for the @code{:stipple} attribute.
+@end defvar
+
+@node Attribute Functions
+@subsection Face Attribute Functions
+
+  You can modify the attributes of an existing face with the following
+functions.  If you specify @var{frame}, they affect just that frame;
+otherwise, they affect all frames as well as the defaults that apply to
+new frames.
+
+@tindex set-face-attribute
+@defun set-face-attribute face frame &rest arguments
+This function sets one or more attributes of face @var{face}
+for frame @var{frame}.  If @var{frame} is @code{nil}, it sets
+the attribute for all frames, and the defaults for new frames.
+
+The extra arguments @var{arguments} specify the attributes to set, and
+the values for them.  They should consist of alternating attribute names
+(such as @code{:family} or @code{:underline} and corresponding values.
+Thus,
+
+@example
+(set-face-attribute 'foo nil
+                    :width :extended
+                    :weight :bold
+                    :underline "red")
+@end example
+
+@noindent
+sets the attributes @code{:width}, @code{:weight} and @code{:underline}
+to the corresponding values.
+@end defun
+
+@tindex face-attribute
+@defun face-attribute face attribute &optional frame
+This returns the value of the @var{attribute} attribute of face
+@var{face} on @var{frame}.  If @var{frame} is @code{nil},
+that means the selected frame.
+
+If @var{frame} is @code{t}, the value is the default for
+@var{face} for new frames.
+
+For example,
+
+@example
+(face-attribute 'bold :weight)
+     @result{} bold
+@end example
+@end defun
+
+  For older Emacs versions, you can these functions to set
+and examine the face attributes which existed in those versions.
+
+@defun set-face-foreground face color &optional frame
+@defunx set-face-background face color &optional frame
+These functions set the foreground (or background, respectively) color
+of face @var{face} to @var{color}.  The argument @var{color} should be a
+string, the name of a color.
+
+Certain shades of gray are implemented by stipple patterns on
+black-and-white screens.
+@end defun
+
+@defun set-face-stipple face pattern &optional frame
+This function sets the background stipple pattern of face @var{face} to
+@var{pattern}.  The argument @var{pattern} should be the name of a
+stipple pattern defined by the X server, or @code{nil} meaning don't use
+stipple.
+
+Normally there is no need to pay attention to stipple patterns, because
+they are used automatically to handle certain shades of gray.
+@end defun
+
+@defun set-face-font face font &optional frame
+This function sets the font of face @var{face}.
+
+In Emacs 21, this actually sets the attributes @code{:family},
+@code{:width}, @code{:height}, @code{:weight}, and @code{:slant}
+according to the font name @var{font}.
+
+In Emacs 20, this sets the font attribute.  Once you set the font
+explicitly, the bold and italic attributes cease to have any effect,
+because the precise font that you specified is used.
+@end defun
+
+@defun set-face-bold-p face bold-p &optional frame
+@tindex set-face-bold-p
+This function specifies whether @var{face} should be bold.  If
+@var{bold-p} is non-@code{nil}, that means yes; @code{nil} means no.
+
+In Emacs 21, this sets the @code{:weight} attribute.
+In Emacs 20, it sets the @code{:bold} attribute.
+@end defun
+
+@defun set-face-italic-p face italic-p &optional frame
+@tindex set-face-italic-p
+This function specifies whether @var{face} should be italic.  If
+@var{italic-p} is non-@code{nil}, that means yes; @code{nil} means no.
+
+In Emacs 21, this sets the @code{:slant} attribute.
+In Emacs 20, it sets the @code{:italic} attribute.
+@end defun
+
+@defun set-face-underline-p face underline-p &optional frame
+This function sets the underline attribute of face @var{face}.
+Non-@code{nil} means do underline; @code{nil} means don't.
+@end defun
+
+@defun invert-face face &optional frame
+This function inverts the @code{:inverse-video} attribute of face
+@var{face}.  If the attribute is @code{nil}, this function sets it to
+@code{t}, and vice versa.
+@end defun
+
+  These functions examine the attributes of a face.  If you don't
+specify @var{frame}, they refer to the default data for new frames.
+
+@defun face-foreground face &optional frame
+@defunx face-background face &optional frame
+These functions return the foreground color (or background color,
+respectively) of face @var{face}, as a string.
+@end defun
+
+@defun face-stipple face &optional frame
+This function returns the name of the background stipple pattern of face
+@var{face}, or @code{nil} if it doesn't have one.
+@end defun
+
+@defun face-font face &optional frame
+This function returns the name of the font of face @var{face}.
+@end defun
+
+@defun face-bold-p face &optional frame
+@tindex face-bold-p
+This function returns @code{t} if @var{face} is bold---that is, if it is
+bolder than normal.  It returns @code{nil} otherwise.
+@end defun
+
+@defun face-italic-p face &optional frame
+@tindex face-italic-p
+This function returns @code{t} if @var{face} is italic or oblique,
+@code{nil} otherwise.
+@end defun
+
+@defun face-underline-p face &optional frame
+This function returns the @code{:underline} attribute of face @var{face}.
+@end defun
+
+@defun face-inverse-video-p face &optional frame
+This function returns the @code{:inverse-video} attribute of face @var{face}.
+@end defun
+
 @node Merging Faces
 @subsection Merging Faces for Display
 
-  Here are all the ways to specify which face to use for display of text:
+  Here are the ways to specify which faces to use for display of text:
 
 @itemize @bullet
 @item
-With defaults.  Each frame has a @dfn{default face}, which is used for
-all text that doesn't somehow specify another face.  (We may change this
-in a forthcoming Emacs version to serve as a default for all text.)
+With defaults.  The @code{default} face is used as the ultimate
+default for all text.  (In Emacs 19 and 20, the @code{default}
+face is used only when no other face is specified.)
+
+For a mode line or header line, the face @code{modeline} or
+@code{header-line} is used just before @code{default}.
 
 @item
-With text properties.  A character may have a @code{face} property; if so,
-it is displayed with that face.  @xref{Special Properties}.
+With text properties.  A character can have a @code{face} property; if
+so, the faces and face attributes specified there apply.  @xref{Special
+Properties}.
 
 If the character has a @code{mouse-face} property, that is used instead
 of the @code{face} property when the mouse is ``near enough'' to the
 character.
 
 @item
-With overlays.  An overlay may have @code{face} and @code{mouse-face}
+With overlays.  An overlay can have @code{face} and @code{mouse-face}
 properties too; they apply to all the text covered by the overlay.
 
 @item
 With a region that is active.  In Transient Mark mode, the region is
-highlighted with a particular face (see @code{region-face}, below).
+highlighted with the face @code{region} (@pxref{Standard Faces}).
 
 @item
 With special glyphs.  Each glyph can specify a particular face 
@@ -1181,17 +1622,132 @@ properties, and last the default face.
   When multiple overlays cover one character, an overlay with higher
 priority overrides those with lower priority.  @xref{Overlays}.
 
-  If an attribute such as the font or a color is not specified in any of
-the above ways, the frame's own font or color is used.
+  In Emacs 20, if an attribute such as the font or a color is not
+specified in any of the above ways, the frame's own font or color is
+used.  In newer Emacs versions, this cannot happen, because the
+@code{default} face specifies all attributes---in fact, the frame's own
+font and colors are synonymous with those of the default face.
+
+@node Font Selection
+@subsection Font Selection
+
+  @dfn{Selecting a font} means mapping the specified face attributes for
+a character to a font that is available on a particular display.  The
+face attributes, as determined by face merging, specify most of the
+font choice, but not all.  Part of the choice depends on what character
+it is.
+
+  For multibyte characters, typically each font covers only one
+character set.  So each character set (@pxref{Character Sets}) specifies
+a registry and encoding to use, with the character set's
+@code{x-charset-registry} property.  Its value is a string containing
+the registry and the encoding, with a dash between them:
+
+@example
+(plist-get (charset-plist 'latin-iso8859-1)
+           'x-charset-registry)
+     @result{} "ISO8859-1"
+@end example
+
+  Unibyte text does not have character sets, so displaying a unibyte
+character takes the registry and encoding from the variable
+@code{face-default-registry}.
+
+@defvar face-default-registry
+This variable specifies which registry and encoding to use in choosing
+fonts for unibyte characters.  The value is initialized at Emacs startup
+time from the font the user specified for Emacs.
+@end defvar
+
+  If the face specifies a fontset name, that fontset determines a
+pattern for fonts of the given charset.  If the face specifies a font
+family, a font pattern is constructed.
+
+  Emacs tries to find an available font for the given face attributes
+and character's registry and encoding.  If there is a font that matches
+exactly, it is used, of course.  The hard case is when no available font
+exactly fits the specification.  Then Emacs looks for one that is
+``close''---one attribute at a time.  You can specify the order
+to consider the attributes.
+
+@defvar face-font-selection-order
+@tindex face-font-selection-order
+This variable specifies the order of importance of the face attributes
+@code{:width}, @code{:height}, @code{:weight}, and @code{:slant}.  The
+value should be a list containing those four symbols, in order of
+decreasing importance.
+
+Font selection first finds the best available matches for the first
+attribute listed; then, among the fonts which are best in that way, it
+searches for the best matches in the second attribute, and so on.
+
+The attributes @code{:weight} and @code{:width} have symbolic values in
+a range centered around @code{normal}.  Matches that are more extreme
+(farther from @code{normal}) are somewhat preferred to matches that are
+less extreme (closer to @code{normal}); this is designed to ensure that
+non-normal faces contrast with normal ones, whenever possible.
+
+The default is @code{(:width :height :weight :slant)}, which means first
+find the fonts closest to the specified @code{:width}, then---among the
+fonts with that width---find a best match for the specified font height,
+and so on.
+
+One example of a case where this variable makes a difference is when the
+default font has no italic equivalent.  With the default ordering, the
+@code{italic} face will use a non-italic font that is similar to the
+default one.  But if you put @code{:slant} before @code{:height}, the
+@code{italic} face will use an italic font, even if its height is not
+quite right.
+@end defvar
+
+@defvar face-alternative-font-family-alist
+@tindex face-alternative-font-family-alist
+This variable lets you specify alternative font families to try, if a
+given family is specified and doesn't exist.  Each element should have
+this form:
+
+@example
+(@var{family} @var{alternate-families}@dots{})
+@end example
+
+If @var{family} is specified but not available, Emacs will try the other
+families given in @var{alternate-families}, one by one, until it finds a
+family that does exist.
+@end defvar
+
+  Emacs can make use of scalable fonts, but by default it does not use
+them, since the use of too many or too big scalable fonts can crash
+XFree86 servers.
+
+@defvar scalable-fonts-allowed
+@tindex scalable-fonts-allowed
+This variable controls which scalable fonts to use.  A value of
+@code{nil}, the default, means do not use scalable fonts.  @code{t}
+means to use any scalable font that seems appropriate for the text.
+
+Otherwise, the value must be a list of regular expressions.  Then a
+scalable font is enabled for use if its name matches any regular
+expression in the list.  For example,
+
+@example
+(setq scalable-fonts-allowed '("muleindian-2$"))
+@end example
+
+@noindent
+allows the use of scalable fonts with registry @code{muleindian-2}.
+@end example
+
+@defun clear-face-cache &optional unload-p
+@tindex clear-face-cache
+This function clears the face cache for all frames.
+If @var{unload-p} is non-@code{nil}, that means to unload
+all unused fonts as well.
+@end defun
 
 @node Face Functions
 @subsection Functions for Working with Faces
 
-  The attributes a face can specify include the font, the foreground
-color, the background color, and underlining.  The face can also leave
-these unspecified by giving the value @code{nil} for them.
-
-  Here are the primitives for creating and changing faces.
+  Here are additional functions for creating and working with faces.
 
 @defun make-face name
 This function defines a new face named @var{name}, initially with all
@@ -1218,95 +1774,6 @@ copies the attributes of @var{old-face} in @var{frame} to @var{new-name}
 in @var{new-frame}.
 @end defun
 
-  You can modify the attributes of an existing face with the following
-functions.  If you specify @var{frame}, they affect just that frame;
-otherwise, they affect all frames as well as the defaults that apply to
-new frames.
-
-@defun set-face-foreground face color &optional frame
-@defunx set-face-background face color &optional frame
-These functions set the foreground (or background, respectively) color
-of face @var{face} to @var{color}.  The argument @var{color} should be a
-string, the name of a color.
-
-Certain shades of gray are implemented by stipple patterns on
-black-and-white screens.
-@end defun
-
-@defun set-face-stipple face pattern &optional frame
-This function sets the background stipple pattern of face @var{face} to
-@var{pattern}.  The argument @var{pattern} should be the name of a
-stipple pattern defined by the X server, or @code{nil} meaning don't use
-stipple.
-
-Normally there is no need to pay attention to stipple patterns, because
-they are used automatically to handle certain shades of gray.
-@end defun
-
-@defun set-face-font face font &optional frame
-This function sets the font of face @var{face}.  The argument @var{font}
-should be a string, either a valid font name for your system or the name
-of an Emacs fontset (@pxref{Fontsets}).  Note that if you set the font
-explicitly, the bold and italic attributes cease to have any effect,
-because the precise font that you specified is always used.
-@end defun
-
-@defun set-face-bold-p face bold-p &optional frame
-@tindex set-face-bold-p
-This function sets the bold attribute of face @var{face}.
-Non-@code{nil} means bold; @code{nil} means non-bold.
-@end defun
-
-@defun set-face-italic-p face italic-p &optional frame
-@tindex set-face-italic-p
-This function sets the italic attribute of face @var{face}.
-Non-@code{nil} means italic; @code{nil} means non-italic.
-@end defun
-
-@defun set-face-underline-p face underline-p &optional frame
-This function sets the underline attribute of face @var{face}.
-Non-@code{nil} means do underline; @code{nil} means don't.
-@end defun
-
-@defun invert-face face &optional frame
-Swap the foreground and background colors of face @var{face}.  If the
-face doesn't specify both foreground and background, then its foreground
-and background are set to the default background and foreground,
-respectively.
-@end defun
-
-  These functions examine the attributes of a face.  If you don't
-specify @var{frame}, they refer to the default data for new frames.
-
-@defun face-foreground face &optional frame
-@defunx face-background face &optional frame
-These functions return the foreground color (or background color,
-respectively) of face @var{face}, as a string.
-@end defun
-
-@defun face-stipple face &optional frame
-This function returns the name of the background stipple pattern of face
-@var{face}, or @code{nil} if it doesn't have one.
-@end defun
-
-@defun face-font face &optional frame
-This function returns the name of the font of face @var{face}.
-@end defun
-
-@defun face-bold-p face &optional frame
-@tindex face-bold-p
-This function returns the bold attribute of face @var{face}.
-@end defun
-
-@defun face-italic-p face &optional frame
-@tindex face-italic-p
-This function returns the italic attribute of face @var{face}.
-@end defun
-
-@defun face-underline-p face &optional frame
-This function returns the underline attribute of face @var{face}.
-@end defun
-
 @defun face-id face
 This function returns the face number of face @var{face}.
 @end defun
@@ -1329,22 +1796,801 @@ face if each attribute is either the same as that of the default face or
 @code{nil} (meaning to inherit from the default).
 @end defun
 
-@defvar region-face
-This variable's value specifies the face number to use to display characters
-in the region when it is active (in Transient Mark mode only).  The face
-thus specified takes precedence over all faces that come from text
-properties and overlays, for characters in the region.  @xref{The Mark},
-for more information about Transient Mark mode.
-
-Normally, the value is the face number of the face named @code{region}.
-@end defvar
-
 @tindex frame-update-face-colors
 @defun frame-update-face-colors frame
 This function updates the way faces display on @var{frame}, for a change
 in @var{frame}'s foreground or background color.
 @end defun
 
+@node Auto Faces
+@subsection Automatic Face Assignment
+@cindex automatic face assignment
+@cindex faces, automatic choice
+
+@cindex Font-Lock mode
+  Starting with Emacs 21, a hook is available for automatically
+assigning faces to text in the buffer.  This hook is used for part of
+the implementation of Font-Lock mode.
+
+@tindex fontification-functions
+@defvar fontification-functions
+This variable holds a list of functions that are called by Emacs
+redisplay as needed to assign faces automatically to text in the buffer.
+
+The functions are called in the order listed, with one argument, a
+buffer position @var{pos}.  Each function should attempt to assign faces
+to the text in the current buffer starting at @var{pos}.
+
+Each function should record the faces they assign by setting the
+@code{face} property.  It should also add a non-@code{nil}
+@code{fontified} property for all the text it has assigned faces to.
+That property tells redisplay that faces have been assigned to that text
+already.
+
+It is probably a good idea for each function to do nothing if the
+character after @var{pos} already has a non-@code{nil} @code{fontified}
+property, but this is not required.  If one function overrides the
+assignments made by a previous one, the properties as they are
+after the last function finishes are the ones that really matter.
+
+For efficiency, we recommend writing these functions so that they
+usually assign faces to around 400 to 600 characters at each call.
+@end defvar
+
+@node Font Lookup
+@subsection Looking Up Fonts
+
+@defun x-list-fonts pattern &optional face frame maximum
+This function returns a list of available font names that match
+@var{pattern}.  If the optional arguments @var{face} and @var{frame} are
+specified, then the list is limited to fonts that are the same size as
+@var{face} currently is on @var{frame}.
+
+The argument @var{pattern} should be a string, perhaps with wildcard
+characters: the @samp{*} character matches any substring, and the
+@samp{?} character matches any single character.  Pattern matching
+of font names ignores case.
+
+If you specify @var{face} and @var{frame}, @var{face} should be a face name
+(a symbol) and @var{frame} should be a frame.
+
+The optional argument @var{maximum} sets a limit on how many fonts to
+return.  If this is non-@code{nil}, then the return value is truncated
+after the first @var{maximum} matching fonts.  Specifying a small value
+for @var{maximum} can make this function much faster, in cases where
+many fonts match the pattern.
+@end defun
+
+  These additional functions are available starting in Emacs 21.
+
+@defun x-family-fonts &optional family frame
+@tindex x-family-fonts
+This function returns a list describing the available fonts for family
+@var{family} on @var{frame}.  If @var{family} is omitted or @code{nil},
+this list applies to all families, and therefore, it contains all
+available fonts.  Otherwise, @var{family} must be a string; it may
+contain the wildcards @samp{?} and @samp{*}.
+
+The list describes the display that @var{frame} is on; if @var{frame} is
+omitted or @code{nil}, it applies to the selected frame's display.
+
+The list contains a vector of the following form for each font:
+
+@example
+[@var{family} @var{width} @var{point-size} @var{weight} @var{slant}
+ @var{fixed-p} @var{full} @var{registry-and-encoding}]
+@end example
+
+The first five elements correspond to face attributes; if you
+specify these attributes for a face, it will use this font.
+
+The last three elements give additional information about the font.
+@var{fixed-p} is non-nil if the font is fixed-pitch.  @var{full} is the
+full name of the font, and @var{registry-and-encoding} is a string
+giving the registry and encoding of the font.
+
+The result list is sorted according to the current face font sort order.
+@end defun
+
+@defun x-font-family-list &optional frame
+@tindex x-font-family-list
+This function returns a list of the font families available for
+@var{frame}'s display.  If @var{frame} is omitted or @code{nil}, it
+describes the selected frame's display.
+
+The value is a list of elements of this form:
+
+@example
+(@var{family} . @var{fixed-p})
+@end example
+
+@noindent
+Here @var{family} is a font family, and @var{fixed-p} is
+non-@code{nil} if fonts of that family are fixed-pitch.
+@end defun
+
+@defvar font-list-limit
+@tindex font-list-limit
+This variable specifies maximum number of fonts to consider in font
+matching.  The function @code{x-family-fonts} will not return more than
+that many fonts, and font selection will consider only that many fonts
+when searching a matching font for face attributes.  The default is
+currently 100.
+@end defvar
+
+@node Fontsets
+@subsection Fontsets
+
+  A @dfn{fontset} is a list of fonts, each assigned to a range of
+character codes.  An individual font cannot display the whole range of
+characters that Emacs supports, but a fontset can.  Fontsets have names,
+just as fonts do, and you can use a fontset name in place of a font name
+when you specify the ``font'' for a frame or a face.  Here is
+information about defining a fontset under Lisp program control.
+
+@defun create-fontset-from-fontset-spec fontset-spec &optional style-variant-p noerror
+This function defines a new fontset according to the specification
+string @var{fontset-spec}.  The string should have this format:
+
+@smallexample
+@var{fontpattern}, @r{[}@var{charsetname}:@var{fontname}@r{]@dots{}}
+@end smallexample
+
+@noindent
+Whitespace characters before and after the commas are ignored.
+
+The first part of the string, @var{fontpattern}, should have the form of
+a standard X font name, except that the last two fields should be
+@samp{fontset-@var{alias}}.
+
+The new fontset has two names, one long and one short.  The long name is
+@var{fontpattern} in its entirety.  The short name is
+@samp{fontset-@var{alias}}.  You can refer to the fontset by either
+name.  If a fontset with the same name already exists, an error is
+signaled, unless @var{noerror} is non-@code{nil}, in which case this
+function does nothing.
+
+If optional argument @var{style-variant-p} is non-@code{nil}, that says
+to create bold, italic and bold-italic variants of the fontset as well.
+These variant fontsets do not have a short name, only a long one, which
+is made by altering @var{fontpattern} to indicate the bold or italic
+status.
+
+The specification string also says which fonts to use in the fontset.
+See below for the details.
+@end defun
+
+  The construct @samp{@var{charset}:@var{font}} specifies which font to
+use (in this fontset) for one particular character set.  Here,
+@var{charset} is the name of a character set, and @var{font} is the font
+to use for that character set.  You can use this construct any number of
+times in the specification string.
+
+  For the remaining character sets, those that you don't specify
+explicitly, Emacs chooses a font based on @var{fontpattern}: it replaces
+@samp{fontset-@var{alias}} with a value that names one character set.
+For the @sc{ascii} character set, @samp{fontset-@var{alias}} is replaced
+with @samp{ISO8859-1}.
+
+  In addition, when several consecutive fields are wildcards, Emacs
+collapses them into a single wildcard.  This is to prevent use of
+auto-scaled fonts.  Fonts made by scaling larger fonts are not usable
+for editing, and scaling a smaller font is not useful because it is
+better to use the smaller font in its own size, which Emacs does.
+
+  Thus if @var{fontpattern} is this,
+
+@example
+-*-fixed-medium-r-normal-*-24-*-*-*-*-*-fontset-24
+@end example
+
+@noindent
+the font specification for ASCII characters would be this:
+
+@example
+-*-fixed-medium-r-normal-*-24-*-ISO8859-1
+@end example
+
+@noindent
+and the font specification for Chinese GB2312 characters would be this:
+
+@example
+-*-fixed-medium-r-normal-*-24-*-gb2312*-*
+@end example
+
+  You may not have any Chinese font matching the above font
+specification.  Most X distributions include only Chinese fonts that
+have @samp{song ti} or @samp{fangsong ti} in the @var{family} field.  In
+such a case, @samp{Fontset-@var{n}} can be specified as below:
+
+@smallexample
+Emacs.Fontset-0: -*-fixed-medium-r-normal-*-24-*-*-*-*-*-fontset-24,\
+        chinese-gb2312:-*-*-medium-r-normal-*-24-*-gb2312*-*
+@end smallexample
+
+@noindent
+Then, the font specifications for all but Chinese GB2312 characters have
+@samp{fixed} in the @var{family} field, and the font specification for
+Chinese GB2312 characters has a wild card @samp{*} in the @var{family}
+field.
+
+@node Display Property
+@section The @code{display} Property
+@cindex display specification
+@kindex display @r{(text property)}
+
+  The @code{display} text property is used to insert images into text,
+and also control other aspects of how text displays.  These features are
+available starting in Emacs 21.  The value of the @code{display}
+property should be a display specification, or a list or vector
+containing several display specifications.  The rest of this section
+describes several kinds of display specifications and what they mean.
+
+@menu
+* Specified Space::
+* Other Display Specs::
+* Display Margins::
+* Conditional Display::
+@end menu
+
+@node Specified Space
+@subsection Specified Spaces
+@cindex spaces, specified height or width
+@cindex specified spaces
+@cindex variable-width spaces
+
+  To display a space of specified width and/or height, use a display
+specification of the form @code{(space @var{props})}, where @var{props}
+is a property list (see below).  You can put this property on one or
+more consecutive characters; a space of the specified height and width
+is displayed in place of @emph{all} of those characters.
+
+@table @code
+@item :width @var{width}
+Specifies that the space width should be @var{width} times the normal
+character width.  @var{width} can be an integer or floating point
+number.
+
+@item :relative-width @var{factor}
+Specifies that the width of the stretch should be computed from the
+first character in the group of consecutive characters that have the
+same @code{display} property.  The space width is the width of that
+character, multiplied by @var{factor}.
+
+@item :align-to @var{hpos}
+Specifies that the space should be wide enough to reach @var{hpos}.  The
+value @var{hpos} is measured in units of the normal character width.
+@end table
+
+  Exactly one of the above properties should be used.  You can also
+specify the height of the space, with other properties:
+
+@table @code
+@item :height @var{height}
+Specifies the height of the space, as @var{height},
+measured in terms of the normal line height.
+
+@item :relative-height @var{factor}
+Specifies the height of the space, multiplying the ordinary height
+of the text having this display specification by @var{factor}.
+
+@item :ascent @var{ascent}
+Specifies that @var{ascent} percent of the height of the space should be
+considered as the ascent of the space.  The value of @var{ascent} must
+be a non-negative number no greater than 100.
+@end table
+
+  You should not use both @code{:height} and @code{:relative-height}
+together.
+
+@node Other Display Specs
+@subsection Other Display Specifications
+
+@table @code
+@item (image . @var{image-props})
+This is in fact an image descriptor (@pxref{Images}).  When used as a
+display specification, it means to display the image instead of the text
+that has the display specification.
+
+@item (space-width @var{factor})
+This display specification affects all the spaces in the text that has
+the specification.  It displays all of these spaces @var{factor} times
+as wide as normal.  The element @var{factor} should be an integer or
+float.
+
+@item (height @var{height})
+This display specification makes the text taller or shorter.
+Here are the possibilities for @var{height}:
+
+@table @asis
+@item @code{(+ @var{n})}
+This means to use a font that is @var{n} steps larger.  A ``step'' is
+defined by the set of available fonts; each size for which a font is
+available counts as a step.  @var{n} should be an integer.
+
+@item @code{(- @var{n})}
+This means to use a font that is @var{n} steps smaller.
+
+@item a number, @var{factor}
+A number, @var{factor}, means to use a font that is @var{factor} times
+as tall as the default font.
+
+@item a symbol, @var{function}
+A symbol is a function to compute the height.  It is called with the
+current height as argument, and should return the new height to use.
+
+@item anything else, @var{form}
+If the @var{height} value doesn't fit the previous possibilities, it is
+a form.  Emacs evaluates it to get the new height, with the symbol
+@code{height} bound to the current specified font height.
+@end table
+
+@item (raise @var{factor})
+This kind of display specification raises or lowers the text
+it applies to, relative to the baseline of the line.
+
+@var{factor} must be a number, which is interpreted as a multiple of the
+height of the affected text.  If it is positive, that means to display
+the characters raised.  If it is negative, that means to display them
+lower down.
+
+If the text also has a @code{height} display specification, that does
+not affect the amount of raising or lowering, which is based on the
+faces used for the text.
+@end table
+
+@node Display Margins
+@subsection Displaying in the Margins
+@cindex display margins
+@cindex margins, display
+
+  A buffer can have blank areas called @dfn{display margins} on the left
+and on the right.  Ordinary text never appears in these areas, but you
+can put things into the display margins using the @code{display}
+property.
+
+  To put text in the left or right display margin of the window, use a
+display specification of the form @code{(margin right-margin)} or
+@code{(margin left-margin)} on it.  To put an image in a display margin,
+use that display specification along with the display specification for
+the image.
+
+  Before the display margins can display anything, you must give
+them a nonzero width.  The usual way to do that is to set these
+variables:
+
+@defvar left-margin-width
+@tindex left-margin-width
+This variable specifies the width of the left margin.
+It is buffer-local in all buffers.
+@end defvar
+
+@defvar right-margin-width
+@tindex right-margin-width
+This variable specifies the width of the right margin.
+It is buffer-local in all buffers.
+@end defvar
+
+  Setting these variables does not immediately affect the window.  These
+variables are checked when a new buffer is displayed in the window.
+Thus, you can make changes take effect by calling
+@code{set-window-buffer}.
+
+  You can also set the margin widths immediately.
+
+@defun set-window-margins window left right
+@tindex set-window-margins
+This function specifies the margin widths for window @var{window}.
+The argument @var{left} controls the left margin and 
+@var{right} controls the right margin.
+@end defun
+
+@defun window-margins &optional window
+@tindex window-margins
+This function returns the left and right margins of @var{window}
+as a cons cell of the form @code{(@var{left} . @var{right})}.
+If @var{window} is @code{nil}, the selected window is used.
+@end defun
+
+@node Conditional Display
+@subsection Conditional Display Specifications
+@cindex conditional display specifications
+
+  You can make any display specification conditional.  To do that,
+package it in another list of the form @code{(when @var{condition}
+@var{spec})}.  Then the specification @var{spec} applies only when
+@var{condition} evaluates to a non-@code{nil} value.  During the
+evaluation, point is temporarily set at the end position of the text
+having this conditional display specification.
+
+@node Images
+@section Images
+@cindex images in buffers
+
+  To display an image in an Emacs buffer, you must first create an image
+descriptor, then use it as a display specifier in the @code{display}
+property of text that is displayed (@pxref{Display Property}).  Like the
+@code{display} property, this feature is available starting in Emacs 21.
+
+  Emacs can display a number of different image formats; some of them
+are supported only if particular support libraries are installed on your
+machine.  The supported image formats include XBM, XPM (needing the
+libraries @code{libXpm} version 3.4k and @code{libz}), GIF (needing
+@code{libungif} 4.1.0), Postscript, PBM, JPEG (needing the
+@code{libjpeg} library version v6a), TIFF (needing @code{libtiff} v3.4),
+and PNG (needing @code{libpng} 1.0.2).
+
+  You specify one of these formats with an image type symbol.  The image
+type symbols are @code{xbm}, @code{xpm}, @code{gif}, @code{postscript},
+@code{pbm}, @code{jpeg}, @code{tiff}, and @code{png}.
+
+@defvar image-types
+This variable contains a list of those image type symbols that are
+supported in the current configuration.
+@end defvar
+
+@menu
+* Image Descriptors::
+* XBM Images::                    
+* XPM Images::
+* GIF Images::
+* Postscript Images::
+* Other Image Types::
+* Defining Images::
+* Showing Images::
+* Image Cache::
+@end menu
+
+@node Image Descriptors
+@subsection Image Descriptors
+@cindex image descriptor
+
+  An image description is a list of the form @code{(image
+. @var{props})}, where @var{props} is a property list containing
+alternating keyword symbols (symbols whose names start with a colon) and
+their values.  Every image descriptor must contain the property
+@code{:type @var{type}} to specify the format of the image.  The value
+of @var{type} should be an image type symbol; for example, @code{xpm}
+for an image in XPM format.
+
+  Here is a list of other properties that are meaningful for all image
+types:
+
+@table @code
+@item :ascent @var{ascent}
+The @code{:ascent} property specifies the percentage of the image's
+height to use for its ascent---that is, the part above the baseline.  The
+value, @var{ascent}, must be a number in the range 0 to 100.  If this
+property is omitted, it defaults to 50.
+
+@item :margin @var{margin}
+The @code{:margin} property specifies how many pixels to add as an extra
+margin around the image.  The value, @var{margin}, must be a
+non-negative number; if it is not specified, the default is zero.
+
+@item :relief @var{relief}
+The @code{:relief} property, if non-@code{nil}, adds a shadow rectangle
+around the image.  The value, @var{relief}, specifies the width of the
+shadow lines, in pixels.  If @var{relief} is negative, shadows are drawn
+so that the image appears as a pressed button; otherwise, it appears as
+an unpressed button.
+
+@item :algorithm @var{algorithm}
+The @code{:algorithm} property, if non-@code{nil}, specifies a
+conversion algorithm that should be applied to the image before it is
+displayed; the value, @var{algorithm}, specifies which algorithm.
+
+Currently, the only meaningful value for @var{algorithm} (aside from
+@code{nil}) is @code{laplace}; this applies the Laplace edge detection
+algorithm, which blurs out small differences in color while highlighting
+larger differences.  People sometimes consider this useful for
+displaying the image for a ``disabled'' button.
+
+@item :heuristic-mask @var{transparent-color}
+The @code{:heuristic-mask} property, if non-@code{nil}, specifies that a
+certain color in the image should be transparent.  Each pixel where this
+color appears will actually allow the frame's background to show
+through.
+
+If @var{transparent-color} is @code{t}, then determine the transparent
+color by looking at the four corners of the image.  This uses the color
+that occurs most frequently near the corners as the transparent color.
+
+Otherwise, @var{heuristic-mask} should specify the transparent color
+directly, as a list of three integers in the form @code{(@var{red}
+@var{green} @var{blue})}.
+
+@item :file @var{file}
+The @code{:file} property specifies to load the image from file
+@var{file}.  If @var{file} is not an absolute file name, it is expanded
+in @code{data-directory}.
+
+@item :data @var{data}
+The @code{:data} property specifies the actual contents of the image.
+Each image must use either @code{:data} or @code{:file}, but not both.
+However, only certain image types support @code{:data}; for other types,
+you must use @code{:file}.
+
+The formats that support @code{:data} include XBM and XPM.
+Before using @code{:data}, see the section describing the specific
+format you wish to use for further information.
+@end table
+
+@node XBM Images
+@subsection XBM Images
+@cindex XBM
+
+  To use XBM format, specify @code{xbm} as the image type.  This image
+format doesn't require an external library, so images of this type are
+always supported.
+
+  Additional image properties supported for the @code{xbm} image type are:
+
+@table @code
+@item :foreground @var{foreground}
+The value, @var{foreground}, should be a string specifying the image
+foreground color.  This color is used for each pixel in the XBM that is
+1.  The default is the frame's foreground color.
+
+@item :background @var{background}
+The value, @var{background}, should be a string specifying the image
+background color.  This color is used for each pixel in the XBM that is
+0.  The default is the frame's background color.
+@end table
+
+  You can specify an XBM image using data within Emacs instead
+of an external file.  To do this, don't use @code{:file}; instead,
+use the following three properties (all of them):
+
+@table @code
+@item :width @var{width}
+The value, @var{width}, specifies the width the image in pixels.
+
+@item :height @var{height}
+The value, @var{height}, specifies the height of the image in pixels.
+
+@item :data @var{data}
+The value, @var{data}, is normally a string or a bool-vector.  Either
+way, it must contain enough bits for the area of the image: at least
+@var{width} * @code{height}.
+
+Alternatively, @var{data} can be a vector of strings or bool-vectors,
+each specifying one line of the image.
+@end table
+
+@node XPM Images
+@subsection XPM Images
+@cindex XPM
+
+  To use XPM format, specify @code{xpm} as the image type.  These
+additional image properties are meaningful with the @code{xpm} image
+type:
+
+@table @code
+@item :color-symbols @var{symbols}
+The value, @var{symbols}, should be an alist whose elements have the
+form @code{(@var{name} . @var{color})}.  In each element, @var{name} is
+the name of a color as it appears in the image file, and @var{color}
+specifies the actual color to use for displaying that name.
+
+@item :data @var{data}
+XPM images can be displayed from data instead of files.  In that case,
+use the @code{:data} property instead of the @code{:file} property.
+
+The value @var{data} must be a string containing an XPM image.  The
+contents of the string have same format as an external XPM file.
+@end table
+
+@node GIF Images
+@subsection GIF Images
+@cindex GIF
+
+  For GIF images, specify image type @code{gif}.  Because of the patents
+in the US covering the LZW algorithm, the continued use of GIF format is
+a problem for the whole Internet; to end this problem, it is a good idea
+for everyone, even outside the US, to stop using GIFS right away
+(@uref{http://www.burnallgifs.org/}).  But if you still want to use
+them, Emacs can display them.
+
+@table @code
+@item :index @var{index}
+You can use @code{:index} to specify one image from a GIF file that
+contains more than one image.  This property specifies use of image
+number @var{index} from the file.  An error is signaled if the GIF file
+doesn't contain an image with index @var{index}.
+@end table
+
+@ignore
+This could be used to implement limited support for animated GIFs.
+For example, the following function displays a multi-image GIF file
+at point-min in the current buffer, switching between sub-images
+every 0.1 seconds.
+
+(defun show-anim (file max)
+  "Display multi-image GIF file FILE which contains MAX subimages."
+  (display-anim (current-buffer) file 0 max t))
+
+(defun display-anim (buffer file idx max first-time)
+  (when (= idx max)
+    (setq idx 0))
+  (let ((img (create-image file nil :image idx)))
+    (save-excursion
+      (set-buffer buffer)
+      (goto-char (point-min))
+      (unless first-time (delete-char 1))
+      (insert-image img))
+    (run-with-timer 0.1 nil 'display-anim buffer file (1+ idx) max nil)))
+@end ignore
+
+@node Postscript Images
+@subsection Postscript Images
+@cindex Postscript images
+
+  To use Postscript for an image, specify image type @code{postscript}.
+This works only if you have Ghostscript installed.  You must always use
+these three properties:
+
+@table @code
+@item :pt-width @var{width}
+The value, @var{width}, specifies the width of the image measured in
+points (1/72 inch).  @var{width} must be an integer.
+
+@item :pt-height @var{height}
+The value, @var{height}, specifies the height of the image in points
+(1/72 inch).  @var{height} must be an integer.
+
+@item :bounding-box @var{box}
+The value, @var{box}, must be a list or vector of four integers, which
+specifying the bounding box of the Postscript image, analogous to the
+@samp{BoundingBox} comment found in Postscript files.
+
+@example
+%%BoundingBox: 22 171 567 738
+@end example
+@end table
+
+@node Other Image Types
+@subsection Other Image Types
+@cindex PBM
+
+  For PBM images, specify image type @code{pbm}.  Color, gray-scale and
+monochromatic images are supported.
+
+  For JPEG images, specify image type @code{jpeg}.  There are no
+additional image properties defined.
+
+  For TIFF images, specify image type @code{tiff}.
+
+  For PNG images, specify image type @code{png}.
+
+@node Defining Images
+@subsection Defining Images
+
+  The functions @code{create-image} and @code{defimage} provide
+convenient ways to create image descriptors.
+
+@defun create-image file &optional type &rest props
+@tindex create-image
+This function creates and returns an image descriptor which uses the
+data in @var{file}.
+
+The optional argument @var{type} is a symbol specifying the image type.
+If @var{type} is omitted or @code{nil}, @code{create-image} tries to
+determine the image type from the file's first few bytes, or else
+from the file's name.
+
+The remaining arguments, @var{props}, specify additional image
+properties---for example,
+
+@example
+(create-image "foo.xpm" 'xpm :heuristic-mask t)
+@end example
+
+The function returns @code{nil} if images of this type are not
+supported.  Otherwise it returns an image descriptor.
+@end defun
+
+@defmac defimage variable doc &rest specs
+@tindex defimage
+This macro defines @var{variable} as an image name.  The second argument,
+@var{doc}, is an optional documentation string.  The remaining
+arguments, @var{specs}, specify alternative ways to display the image.
+
+Each argument in @var{specs} has the form of a property list, and each
+one should specify at least the @code{:type} property and the
+@code{:file} property.  Here is an example:
+
+@smallexample
+(defimage test-image ((:type xpm :file \"~/test1.xpm\")
+                      (:type xbm :file \"~/test1.xbm\")))"
+@end smallexample
+
+@code{defimage} tests each argument, one by one, to see if it is
+usable---that is, if the type is supported and the file exists.  The
+first usable argument is used to make an image descriptor which is
+stored in the variable @var{variable}.
+
+If none of the alternatives will work, then @var{variable} is defined
+as @code{nil}.
+@end defmac
+
+@node Showing Images
+@subsection Showing Images
+
+  You can use an image descriptor by setting up the @code{display}
+property yourself, but it is easier to use the functions in this
+section.
+
+@defun insert-image image &optional area
+This function inserts @var{image} in the current buffer at point.  The
+value @var{image} should be an image descriptor; it could be a value
+returned by @code{create-image}, or the value of a symbol defined with
+@code{defimage}.
+
+The argument @var{area} specifies whether to put the image in a margin.
+If it is @code{left-margin}, the image appears in the left margin;
+@code{right-margin} specifies the right margin.  If @var{area} is
+@code{nil} or omitted, the image is displayed at point within the
+buffer's text.
+
+Internally, this function inserts an @samp{x} in the buffer, and gives
+it a @code{display} property which specifies this image.  @xref{Display
+Property}.
+@end defun
+
+@defun put-image image pos &optional area
+This function puts image @var{image} in front of @var{pos} in the
+current buffer.  The argument @var{pos} should be an integer or a
+marker.  It specifies the buffer position where the image should appear.
+
+The argument @var{image} must be an image descriptor, perhaps returned
+by @code{create-image} or stored by @code{defimage}.
+
+The argument @var{area} specifies whether to put the image in a margin.
+If it is @code{left-margin}, the image appears in the left margin;
+@code{right-margin} specifies the right margin.  If @var{area} is
+@code{nil} or omitted, the image is displayed at point within the
+buffer's text.
+
+Internally, this function creates an overlay, and gives it a
+@code{before-string} property containing text that has a @code{display}
+property whose value is the image.  (Whew!)
+@end defun
+
+@defun remove-images start end &optional buffer
+This function removes images in @var{buffer} between positions
+@var{start} and @var{end}.  If @var{buffer} is omitted or @code{nil},
+images are removed from the current buffer.
+
+This remove only images that were put into @var{buffer} the way
+@code{put-image} does it, not images that were inserted with
+@code{insert-image} or in other ways.
+@end defun
+
+@node Image Cache
+@subsection Image Cache
+
+  Emacs stores images in an image cache when it displays them, so it can
+display them again more efficiently.  It removes an image from the cache
+when it hasn't been displayed for a specified period of time.
+
+@defvar image-cache-eviction-delay
+@tindex image-cache-eviction-delay
+This variable specifies the number of seconds an image can remain in the
+cache without being displayed.  When an image is not displayed for this
+length of time, Emacs removes it from the image cache.
+
+If the value is @code{nil}, Emacs does not remove images from the cache
+except when you explicitly clear it.  This mode can be useful for
+debugging.
+@end defvar
+
+@defun clear-image-cache &optional frame
+@tindex clear-image-cache
+This function clears the image cache.  If @var{frame} is non-@code{nil},
+only the cache for that frame is cleared.  Otherwise all frames' caches
+are cleared.
+@end defun
 @node Blinking
 @section Blinking Parentheses
 @cindex parenthesis matching
@@ -1451,13 +2697,19 @@ Character code 10 is a newline.
 All other codes in the range 0 through 31, and code 127, display in one
 of two ways according to the value of @code{ctl-arrow}.  If it is
 non-@code{nil}, these codes map to sequences of two glyphs, where the
-first glyph is the @sc{ASCII} code for @samp{^}.  (A display table can
+first glyph is the @sc{ascii} code for @samp{^}.  (A display table can
 specify a glyph to use instead of @samp{^}.)  Otherwise, these codes map
 just like the codes in the range 128 to 255.
 
+On MS-DOS terminals, Emacs arranges by default for the character code
+127 to be mapped to the glyph code 127, which normally displays as an
+empty polygon.  This glyph is used to display non-@sc{ascii} characters
+that the MS-DOS terminal doesn't support.  @xref{MS-DOS and MULE,,,
+emacs, The GNU Emacs Manual}.
+
 @item
 Character codes 128 through 255 map to sequences of four glyphs, where
-the first glyph is the @sc{ASCII} code for @samp{\}, and the others are
+the first glyph is the @sc{ascii} code for @samp{\}, and the others are
 digit characters representing the character code in octal.  (A display
 table can specify a glyph to use instead of @samp{\}.)
 
@@ -1511,11 +2763,11 @@ stops used by the command @code{tab-to-tab-stop}.  @xref{Indent Tabs}.
 @cindex display table
 You can use the @dfn{display table} feature to control how all possible
 character codes display on the screen.  This is useful for displaying
-European languages that have letters not in the @sc{ASCII} character
+European languages that have letters not in the @sc{ascii} character
 set.
 
 The display table maps each character code into a sequence of
-@dfn{glyphs}, each glyph being an image that takes up one character
+@dfn{glyphs}, each glyph being a graphic that takes up one character
 position on the screen.  You can also define how to display each glyph
 on your terminal, using the @dfn{glyph table}.
 
@@ -1557,9 +2809,14 @@ means to use the default for that slot, as stated below.
 @table @asis
 @item 0
 The glyph for the end of a truncated screen line (the default for this
-is @samp{$}).  @xref{Glyphs}.
+is @samp{$}).  @xref{Glyphs}.  Newer Emacs versions, on some platforms,
+display arrows to indicate truncation---the display table has no effect
+in these situations.
 @item 1
 The glyph for the end of a continued line (the default is @samp{\}).
+Newer Emacs versions, on some platforms, display curved arrows to
+indicate truncation---the display table has no effect in these
+situations.
 @item 2
 The glyph for indicating a character displayed as an octal character
 code (the default is @samp{\}).
@@ -1570,7 +2827,9 @@ A vector of glyphs for indicating the presence of invisible lines (the
 default is @samp{...}).  @xref{Selective Display}.
 @item 5
 The glyph used to draw the border between side-by-side windows (the
-default is @samp{|}).  @xref{Splitting Windows}.
+default is @samp{|}).  @xref{Splitting Windows}.  This takes effect only
+when there are no scroll bars; if scroll bars are supported and in use,
+a scroll bar separates the two windows.
 @end table
 
   For example, here is how to construct a display table that mimics the
@@ -1603,6 +2862,18 @@ This function stores @var{value} in the extra slot @var{slot} of
 @code{truncation}, @code{wrap}, @code{escape}, @code{control},
 @code{selective-display}, and @code{vertical-border}.
 @end defun
+
+@defun describe-display-table display-table
+@tindex describe-display-table
+This function displays a description of the display table
+@var{display-table} in a help buffer.
+@end defun
+
+@deffn Command describe-current-display-table
+@tindex describe-current-display-table
+This command displays a description of the current display table in a
+help buffer.
+@end deffn
 
 @node Active Display Table
 @subsection Active Display Table
@@ -1644,6 +2915,9 @@ if the window specifies none, its buffer specifies none, and
 @code{standard-display-table} is @code{nil}---then Emacs uses the usual
 display conventions for all character codes in that window.  @xref{Usual
 Display}.
+
+A number of functions for changing the standard display table
+are defined in the library @file{disp-table}.
 
 @node Glyphs
 @subsection Glyphs
@@ -1693,6 +2967,12 @@ $2^{19}$.)
 
   If a glyph code is greater than or equal to the length of the glyph
 table, that code is automatically simple.
+
+@defun create-glyph string
+@tindex create-glyph
+This function returns a newly-allocated glyph code which is set up to
+display by sending @var{string} to the terminal.
+@end defun
 
 @node Beeping
 @section Beeping
@@ -1747,9 +3027,11 @@ under.  The possible values are
 @cindex X Window System
 Emacs is displaying using X.
 @item pc
-Emacs is displaying using MSDOS.
+Emacs is displaying using MS-DOS.
 @item w32
-Emacs is displaying using Windows NT or Windows 95.
+Emacs is displaying using Windows NT or Windows 9x.
+@item mac
+Emacs is displaying using a Macintosh.
 @item nil
 Emacs is using a character-based terminal.
 @end table

@@ -302,6 +302,26 @@ This is in contrast to @code{cdr}, which signals an error if
 @end example
 @end defun
 
+@tindex pop
+@defmac pop listname
+This macro is a way of examining the @sc{car} of a list,
+and taking it off the list, all at once.  It is new in Emacs 21.
+
+It operates on the list which is stored in the symbol @var{listname}.
+It removes this element from the list by setting @var{listname}
+to the @sc{cdr} of its old value---but it also returns the @sc{car}
+of that list, which is the element being removed.
+
+@example
+x
+     @result{} (a b c)
+(pop x)
+     @result{} a
+x
+     @result{} (b c)
+@end example
+@end defmac
+
 @defun nth n list
 This function returns the @var{n}th element of @var{list}.  Elements
 are numbered starting with zero, so the @sc{car} of @var{list} is
@@ -440,6 +460,13 @@ Note that there is no conflict between the variable named @code{list}
 used in this example and the function named @code{list} described below;
 any symbol can serve both purposes.
 @end defun
+
+@tindex push
+@defmac push newelt listname
+This macro provides an alternative way to write
+@code{(setq @var{listname} (cons @var{newelt} @var{listname}))}.
+It is new in Emacs 21.
+@end defmac
 
 @defun list &rest objects
 This function creates a list with @var{objects} as its elements.  The
@@ -1509,4 +1536,14 @@ the associations of one copy without affecting the other:
 @end smallexample
 @end defun
 
+@defun assoc-delete-all key alist
+@tindex assoc-delete-all
+This function deletes from @var{alist} all the elements whose @sc{car}
+is @var{key}.  It returns the modified alist.
 
+@example
+(assoc-delete-all 'foo
+                  '((foo 1) (bar 2) (foo 3) (lose 4)))
+     @result{} ((bar 2) (lose 4))
+@end example
+@end defun

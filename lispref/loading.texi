@@ -36,7 +36,7 @@ containing Lisp code.
 @menu
 * How Programs Do Loading::     The @code{load} function and others.
 * Library Search::              Finding a library to load.
-* Loading Non-ASCII::           Non-@sc{ASCII} characters in Emacs Lisp files.
+* Loading Non-ASCII::           Non-@sc{ascii} characters in Emacs Lisp files.
 * Autoload::                    Setting up a function to autoload.
 * Repeated Loading::            Precautions about loading a file twice.
 * Named Features::              Loading a library if it isn't already loaded.
@@ -257,10 +257,10 @@ subdirectories multiple levels down are added to @code{load-path}.
 
   Not all subdirectories are included, though.  Subdirectories whose
 names do not start with a letter or digit are excluded.  Subdirectories
-named @file{RCS} are excluded.  Also, a subdirectory which contains a
-file named @file{.nosearch} is excluded.  You can use these methods to
-prevent certain subdirectories of the @file{site-lisp} directories from
-being searched.
+named @file{RCS} or @file{CVS} are excluded.  Also, a subdirectory which
+contains a file named @file{.nosearch} is excluded.  You can use these
+methods to prevent certain subdirectories of the @file{site-lisp}
+directories from being searched.
 
   If you run Emacs from the directory where it was built---that is, an
 executable that has not been formally installed---then @code{load-path}
@@ -287,7 +287,7 @@ tells @code{locate-library} to display the file name in the echo area.
 @node Loading Non-ASCII
 @section Loading Non-ASCII Characters
 
-  When Emacs Lisp programs contain string constants with non-@sc{ASCII}
+  When Emacs Lisp programs contain string constants with non-@sc{ascii}
 characters, these can be represented within Emacs either as unibyte
 strings or as multibyte strings (@pxref{Text Representations}).  Which
 representation is used depends on how the file is read into Emacs.  If
@@ -301,7 +301,7 @@ unibyte text, and its string constants will be unibyte strings.
   To make the results more predictable, Emacs always performs decoding
 into the multibyte representation when loading Lisp files, even if it
 was started with the @samp{--unibyte} option.  This means that string
-constants with non-@sc{ASCII} characters translate into multibyte
+constants with non-@sc{ascii} characters translate into multibyte
 strings.  The only exception is when a particular file specifies no
 decoding.
 
@@ -313,13 +313,13 @@ notice whether the user prefers unibyte or multibyte text, by checking
 @code{default-enable-multibyte-characters}, and convert representations
 appropriately.
 
-  In most Emacs Lisp programs, the fact that non-@sc{ASCII} strings are
+  In most Emacs Lisp programs, the fact that non-@sc{ascii} strings are
 multibyte strings should not be noticeable, since inserting them in
 unibyte buffers converts them to unibyte automatically.  However, if
 this does make a difference, you can force a particular Lisp file to be
 interpreted as unibyte by writing @samp{-*-unibyte: t;-*-} in a
 comment on the file's first line.  With that designator, the file will
-be unconditionally be interpreted as unibyte, even in an ordinary
+unconditionally be interpreted as unibyte, even in an ordinary
 multibyte Emacs session.
 
 @node Autoload
@@ -432,13 +432,20 @@ autoloads for all files in the current directory.
 
   The same magic comment can copy any kind of form into
 @file{loaddefs.el}.  If the form following the magic comment is not a
-function definition, it is copied verbatim.  You can also use a magic
-comment to execute a form at build time @emph{without} executing it when
-the file itself is loaded.  To do this, write the form @emph{on the same
-line} as the magic comment.  Since it is in a comment, it does nothing
-when you load the source file; but @kbd{M-x update-file-autoloads}
-copies it to @file{loaddefs.el}, where it is executed while building
-Emacs.
+function-defining form or a @code{defcustom} form, it is copied
+verbatim.  ``Function-defining forms'' include @code{define-skeleton},
+@code{define-derived-mode}, @code{define-generic-mode} and
+@code{easy-mmode-define-minor-mode} as well as @code{defun} and
+@code{defmacro}.  To save space, a @code{defcustom} form is converted to
+a @code{defvar} in @file{loaddefs.el}, with some additional information
+if it uses @code{:require}.
+
+  You can also use a magic comment to execute a form at build time
+@emph{without} executing it when the file itself is loaded.  To do this,
+write the form @emph{on the same line} as the magic comment.  Since it
+is in a comment, it does nothing when you load the source file; but
+@kbd{M-x update-file-autoloads} copies it to @file{loaddefs.el}, where
+it is executed while building Emacs.
 
   The following example shows how @code{doctor} is prepared for
 autoloading with a magic comment:
@@ -456,17 +463,17 @@ autoloading with a magic comment:
 Here's what that produces in @file{loaddefs.el}:
 
 @smallexample
-(autoload 'doctor "doctor"
-  "\
+(autoload 'doctor "doctor" "\
 Switch to *doctor* buffer and start giving psychotherapy."
   t)
 @end smallexample
 
 @noindent
 The backslash and newline immediately following the double-quote are a
-convention used only in the preloaded Lisp files such as
+convention used only in the preloaded uncompiled Lisp files such as
 @file{loaddefs.el}; they tell @code{make-docfile} to put the
 documentation string in the @file{etc/DOC} file.  @xref{Building Emacs}.
+See also the commentary in @file{lib-src/make-docfile.c}.
 
 @node Repeated Loading
 @section Repeated Loading
@@ -591,7 +598,9 @@ done.
   When @code{require} is used at top level in a file, it takes effect
 when you byte-compile that file (@pxref{Byte Compilation}) as well as
 when you load it.  This is in case the required package contains macros
-that the byte compiler must know about.
+that the byte compiler must know about.  It also avoids byte-compiler
+warnings for functions and variables defined in the file loaded with
+@code{require}.
 
   Although top-level calls to @code{require} are evaluated during
 byte compilation, @code{provide} calls are not.  Therefore, you can
@@ -701,6 +710,8 @@ is defined, it is run as a normal hook before restoring the previous
 definitions, @emph{instead of} the usual hook-removing actions.  The
 unload hook ought to undo all the global state changes made by the
 library that might cease to work once the library is unloaded.
+@code{unload-feature} can cause problems with libraries that fail to do
+this, so it should be used with caution.
 
 Ordinarily, @code{unload-feature} refuses to unload a library on which
 other loaded libraries depend.  (A library @var{a} depends on library
@@ -741,7 +752,16 @@ The value of @code{load-history} may have one element whose @sc{car} is
 by adding the symbols defined to the element for the file being visited,
 rather than replacing that element.  @xref{Eval}.
 
-  Preloaded libraries don't contribute to @code{load-history}.
+  Preloaded libraries don't contribute initially to @code{load-history}.
+Instead, preloading writes information about preloaded libraries into a
+file, which can be loaded later on to to add information to
+@code{load-history} describing the preloaded files.  This file is
+installed in @code{exec-directory} and has a name of the form
+@file{fns-@var{emacsversion}.el}.
+
+@findex symbol-file
+  See the source for the function @code{symbol-file}, for an example of
+code that loads this file to find functions in preloaded libraries.
 
 @tindex loadhist-special-hooks
 @defvar loadhist-special-hooks
@@ -784,8 +804,8 @@ customizations if you don't feel they must meet the design standards for
 programs meant for wider use.
 
 @defvar after-load-alist
-An alist of expressions to evaluate if and when particular libraries are
-loaded.  Each element looks like this:
+This variable holds an alist of expressions to evaluate if and when
+particular libraries are loaded.  Each element looks like this:
 
 @example
 (@var{filename} @var{forms}@dots{})

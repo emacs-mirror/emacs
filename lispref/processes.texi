@@ -58,7 +58,7 @@ The other two, @code{call-process} and @code{call-process-region},
 create a synchronous process and do not return a process object
 (@pxref{Synchronous Processes}).
 
-  Synchronous and asynchronous processes are explained in following
+  Synchronous and asynchronous processes are explained in the following
 sections.  Since the three functions are all called in a similar
 fashion, their common arguments are described here.
 
@@ -108,7 +108,7 @@ Environment}.
 
 @defvar exec-directory 
 @pindex movemail
-The value of this variable is the name of a directory (a string) that
+The value of this variable is a string, the name of a directory that
 contains programs that come with GNU Emacs, programs intended for Emacs
 to invoke.  The program @code{movemail} is an example of such a program;
 Rmail uses it to fetch new mail from an inbox.
@@ -130,7 +130,7 @@ file name.
 @section Shell Arguments
 
   Lisp programs sometimes need to run a shell and give it a command
-which contains file names that were specified by the user.  These
+that contains file names that were specified by the user.  These
 programs ought to be able to support any valid file name.  But the shell
 gives special treatment to certain characters, and if these characters
 occur in the file name, they will confuse the shell.  To handle these
@@ -143,16 +143,18 @@ work reliably to concatenate the return value into a shell command
 and then pass it to a shell for execution.
 
 Precisely what this function does depends on your operating system.  The
-function is designed to work with the usual shell syntax; if you use an
-unusual shell, you will need to redefine this function.  On MS-DOS, the
-function returns @var{argument} unchanged; while this is not really
-correct, it is the best one can do, since the MS-DOS shell has no
-quoting features.
+function is designed to work with the syntax of your system's standard
+shell; if you use an unusual shell, you will need to redefine this
+function.
 
 @example
 ;; @r{This example shows the behavior on GNU and Unix systems.}
 (shell-quote-argument "foo > bar")
      @result{} "foo\\ \\>\\ bar"
+
+;; @r{This example shows the behavior on MS-DOS and MS-Windows systems.}
+(shell-quote-argument "foo > bar")
+     @result{} "\"foo > bar\""
 @end example
 
 Here's an example of using @code{shell-quote-argument} to construct
@@ -171,18 +173,20 @@ a shell command:
 @cindex synchronous subprocess
 
   After a @dfn{synchronous process} is created, Emacs waits for the
-process to terminate before continuing.  Starting Dired is an example of
-this: it runs @code{ls} in a synchronous process, then modifies the
-output slightly.  Because the process is synchronous, the entire
-directory listing arrives in the buffer before Emacs tries to do
-anything with it.
+process to terminate before continuing.  Starting Dired on GNU or
+Unix@footnote{On other systems, Emacs uses a Lisp emulation of
+@code{ls}; see @ref{Contents of Directories}.} is an example of this: it
+runs @code{ls} in a synchronous process, then modifies the output
+slightly.  Because the process is synchronous, the entire directory
+listing arrives in the buffer before Emacs tries to do anything with it.
 
   While Emacs waits for the synchronous subprocess to terminate, the
 user can quit by typing @kbd{C-g}.  The first @kbd{C-g} tries to kill
 the subprocess with a @code{SIGINT} signal; but it waits until the
 subprocess actually terminates before quitting.  If during that time the
 user types another @kbd{C-g}, that kills the subprocess instantly with
-@code{SIGKILL} and quits immediately.  @xref{Quitting}.
+@code{SIGKILL} and quits immediately (except on MS-DOS, where killing
+other processes doesn't work).  @xref{Quitting}.
 
   The synchronous subprocess functions return an indication of how the
 process terminated.
@@ -197,7 +201,7 @@ This function calls @var{program} in a separate process and waits for
 it to finish.
 
 The standard input for the process comes from file @var{infile} if
-@var{infile} is not @code{nil}, and from @file{/dev/null} otherwise.
+@var{infile} is not @code{nil}, and from the null device otherwise.
 The argument @var{destination} says where to put the process output.
 Here are the possibilities:
 
@@ -216,13 +220,16 @@ Insert the output in the current buffer, before point.
 Discard the output.
 
 @item 0
-Discard the output, and return immediately without waiting
+Discard the output, and return @code{nil} immediately without waiting
 for the subprocess to finish.
 
 In this case, the process is not truly synchronous, since it can run in
 parallel with Emacs; but you can think of it as synchronous in that
 Emacs is essentially finished with the subprocess as soon as this
 function returns.
+
+MS-DOS doesn't support asynchronous subprocesses, so this option doesn't
+work there.
 
 @item @code{(@var{real-destination} @var{error-destination})}
 Keep the standard output stream separate from the standard error stream;
@@ -242,11 +249,12 @@ If @var{display} is non-@code{nil}, then @code{call-process} redisplays
 the buffer as output is inserted.  (However, if the coding system chosen
 for decoding output is @code{undecided}, meaning deduce the encoding
 from the actual data, then redisplay sometimes cannot continue once
-non-@sc{ASCII} characters are encountered.  There are fundamental
-reasons why it is hard to fix this.)  Otherwise the function
-@code{call-process} does no redisplay, and the results become visible on
-the screen only when Emacs redisplays that buffer in the normal course
-of events.
+non-@sc{ascii} characters are encountered.  There are fundamental
+reasons why it is hard to fix this; see @ref{Output from Processes}.)
+
+Otherwise the function @code{call-process} does no redisplay, and the
+results become visible on the screen only when Emacs redisplays that
+buffer in the normal course of events.
 
 The remaining arguments, @var{args}, are strings that specify command
 line arguments for the program.
@@ -262,7 +270,7 @@ In the examples below, the buffer @samp{foo} is current.
 @smallexample
 @group
 (call-process "pwd" nil t)
-     @result{} nil
+     @result{} 0
 
 ---------- Buffer: foo ----------
 /usr/user/lewis/manual
@@ -271,7 +279,7 @@ In the examples below, the buffer @samp{foo} is current.
 
 @group
 (call-process "grep" nil "bar" nil "lewis" "/etc/passwd")
-     @result{} nil
+     @result{} 0
 
 ---------- Buffer: bar ----------
 lewis:5LTsHm66CSWKg:398:21:Bil Lewis:/user/lewis:/bin/csh
@@ -294,7 +302,7 @@ be found in the definition of @code{insert-directory}:
 @end defun
 
 @defun call-process-region start end program &optional delete destination display &rest args
-This function sends the text between @var{start} to @var{end} as
+This function sends the text from @var{start} to @var{end} as
 standard input to a process running @var{program}.  It deletes the text
 sent if @var{delete} is non-@code{nil}; this is useful when
 @var{destination} is @code{t}, to insert the output in the current
@@ -305,7 +313,8 @@ with the output from the subprocess, and whether to update the display
 as it comes in.  For details, see the description of
 @code{call-process}, above.  If @var{destination} is the integer 0,
 @code{call-process-region} discards the output and returns @code{nil}
-immediately, without waiting for the subprocess to finish.
+immediately, without waiting for the subprocess to finish (this only
+works if asynchronous subprocess are supported).
 
 The remaining arguments, @var{args}, are strings that specify command
 line arguments for the program.
@@ -331,7 +340,7 @@ input@point{}
 
 @group
 (call-process-region 1 6 "cat" nil t)
-     @result{} nil
+     @result{} 0
 
 ---------- Buffer: foo ----------
 inputinput@point{}
@@ -368,7 +377,7 @@ then returns the command's output as a string.
   After an @dfn{asynchronous process} is created, Emacs and the subprocess
 both continue running immediately.  The process thereafter runs
 in parallel with Emacs, and the two can communicate with each other
-using the functions described in following sections.  However,
+using the functions described in the following sections.  However,
 communication is only partially asynchronous: Emacs sends data to the
 process only when certain functions are called, and Emacs accepts data
 from the process only when Emacs is waiting for input or for a time
@@ -429,10 +438,10 @@ use.
 The point of running a program through the shell, rather than directly
 with @code{start-process}, is so that you can employ shell features such
 as wildcards in the arguments.  It follows that if you include an
-arbitrary user-specified filename in the command, you should quote it
+arbitrary user-specified arguments in the command, you should quote it
 with @code{shell-quote-argument} first, so that any special shell
-characters in the file name do @emph{not} have their special shell
-meanings.  @xref{Shell Arguments}.
+characters do @emph{not} have their special shell meanings.  @xref{Shell
+Arguments}.
 @end defun
 
 @defvar process-connection-type
@@ -450,7 +459,7 @@ often better to use a pipe, because they are more efficient.  In
 addition, the total number of @sc{pty}s is limited on many systems and
 it is good not to waste them.
 
-The value @code{process-connection-type} is used when
+The value of @code{process-connection-type} is used when
 @code{start-process} is called.  So you can specify how to communicate
 with one subprocess by binding the variable around the call to
 @code{start-process}.
@@ -727,7 +736,7 @@ introduction.txt                text.texi~
 @end smallexample
 @end defun
 
-@deffn Command process-send-region process-name start end
+@defun process-send-region process-name start end
 This function sends the text in the region defined by @var{start} and
 @var{end} as standard input to @var{process-name}, which is a process or
 a process name.  (If it is @code{nil}, the current buffer's process is
@@ -736,7 +745,7 @@ used.)
 An error is signaled unless both @var{start} and @var{end} are
 integers or markers that indicate positions in the current buffer.  (It
 is unimportant which number is larger.)
-@end deffn
+@end defun
 
 @defun process-send-eof &optional process-name
   This function makes @var{process-name} see an end-of-file in its

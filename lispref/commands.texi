@@ -322,7 +322,7 @@ You can use @samp{e} more than once in a single command's interactive
 specification.  If the key sequence that invoked the command has
 @var{n} events that are lists, the @var{n}th @samp{e} provides the
 @var{n}th such event.  Events that are not lists, such as function keys
-and @sc{ASCII} characters, do not count where @samp{e} is concerned.
+and @sc{ascii} characters, do not count where @samp{e} is concerned.
 
 @item f
 A file name of an existing file (@pxref{File Names}).  The default
@@ -760,7 +760,7 @@ last-command-event
 @end example
 
 @noindent
-The value is 5 because that is the @sc{ASCII} code for @kbd{C-e}.
+The value is 5 because that is the @sc{ascii} code for @kbd{C-e}.
 
 The alias @code{last-command-char} exists for compatibility with
 Emacs version 18.
@@ -834,7 +834,7 @@ An input character event consists of a @dfn{basic code} between 0 and
 @item meta
 The
 @tex
-$2^{27}$
+@math{2^{27}}
 @end tex
 @ifinfo
 2**27
@@ -845,57 +845,57 @@ typed with the meta key held down.
 @item control
 The
 @tex
-$2^{26}$
+@math{2^{26}}
 @end tex
 @ifinfo
 2**26
 @end ifinfo
-bit in the character code indicates a non-@sc{ASCII}
+bit in the character code indicates a non-@sc{ascii}
 control character.
 
-@sc{ASCII} control characters such as @kbd{C-a} have special basic
+@sc{ascii} control characters such as @kbd{C-a} have special basic
 codes of their own, so Emacs needs no special bit to indicate them.
 Thus, the code for @kbd{C-a} is just 1.
 
-But if you type a control combination not in @sc{ASCII}, such as
+But if you type a control combination not in @sc{ascii}, such as
 @kbd{%} with the control key, the numeric value you get is the code
 for @kbd{%} plus
 @tex
-$2^{26}$
+@math{2^{26}}
 @end tex
 @ifinfo
 2**26
 @end ifinfo
-(assuming the terminal supports non-@sc{ASCII}
+(assuming the terminal supports non-@sc{ascii}
 control characters).
 
 @item shift
 The
 @tex
-$2^{25}$
+@math{2^{25}}
 @end tex
 @ifinfo
 2**25
 @end ifinfo
-bit in the character code indicates an @sc{ASCII} control
+bit in the character code indicates an @sc{ascii} control
 character typed with the shift key held down.
 
 For letters, the basic code itself indicates upper versus lower case;
 for digits and punctuation, the shift key selects an entirely different
 character with a different basic code.  In order to keep within the
-@sc{ASCII} character set whenever possible, Emacs avoids using the
+@sc{ascii} character set whenever possible, Emacs avoids using the
 @tex
-$2^{25}$
+@math{2^{25}}
 @end tex
 @ifinfo
 2**25
 @end ifinfo
 bit for those characters.
 
-However, @sc{ASCII} provides no way to distinguish @kbd{C-A} from
+However, @sc{ascii} provides no way to distinguish @kbd{C-A} from
 @kbd{C-a}, so Emacs uses the
 @tex
-$2^{25}$
+@math{2^{25}}
 @end tex
 @ifinfo
 2**25
@@ -906,7 +906,7 @@ bit in @kbd{C-A} and not in
 @item hyper
 The
 @tex
-$2^{24}$
+@math{2^{24}}
 @end tex
 @ifinfo
 2**24
@@ -917,7 +917,7 @@ typed with the hyper key held down.
 @item super
 The
 @tex
-$2^{23}$
+@math{2^{23}}
 @end tex
 @ifinfo
 2**23
@@ -928,7 +928,7 @@ typed with the super key held down.
 @item alt
 The
 @tex
-$2^{22}$
+@math{2^{22}}
 @end tex
 @ifinfo
 2**22
@@ -966,10 +966,10 @@ function keys:
 
 @table @asis
 @item @code{backspace}, @code{tab}, @code{newline}, @code{return}, @code{delete}
-These keys correspond to common @sc{ASCII} control characters that have
+These keys correspond to common @sc{ascii} control characters that have
 special keys on most keyboards.
 
-In @sc{ASCII}, @kbd{C-i} and @key{TAB} are the same character.  If the
+In @sc{ascii}, @kbd{C-i} and @key{TAB} are the same character.  If the
 terminal can distinguish between them, Emacs conveys the distinction to
 Lisp programs by representing the former as the integer 9, and the
 latter as the symbol @code{tab}.
@@ -981,7 +981,7 @@ character @kbd{C-i}) also applies to @code{tab}.  Likewise for the other
 symbols in this group.  The function @code{read-char} likewise converts
 these events into characters.
 
-In @sc{ASCII}, @key{BS} is really @kbd{C-h}.  But @code{backspace}
+In @sc{ascii}, @key{BS} is really @kbd{C-h}.  But @code{backspace}
 converts into the character code 127 (@key{DEL}), not into code 8
 (@key{BS}).  This is what most users prefer.
 
@@ -1657,7 +1657,7 @@ additional modifier bits, we had to change the representation of meta
 characters.  Now the flag that represents the Meta modifier in a
 character is
 @tex
-$2^{27}$
+@math{2^{27}}
 @end tex
 @ifinfo
 2**27
@@ -1677,14 +1677,14 @@ in the string unchanged.
 @item
 The meta variants of those characters, with codes in the range of
 @tex
-$2^{27}$
+@math{2^{27}}
 @end tex
 @ifinfo
 2**27
 @end ifinfo
 to
 @tex
-$2^{27} + 127$,
+@math{2^{27} + 127},
 @end tex
 @ifinfo
 2**27+127,
@@ -1692,14 +1692,14 @@ $2^{27} + 127$,
 can also go in the string, but you must change their
 numeric values.  You must set the
 @tex
-$2^{7}$
+@math{2^{7}}
 @end tex
 @ifinfo
 2**7
 @end ifinfo
 bit instead of the
 @tex
-$2^{27}$
+@math{2^{27}}
 @end tex
 @ifinfo
 2**27
@@ -1708,7 +1708,7 @@ bit, resulting in a value between 128 and 255.  Only a unibyte string
 can include these codes.
 
 @item
-Non-@sc{ASCII} characters above 256 can be included in a multibyte string.
+Non-@sc{ascii} characters above 256 can be included in a multibyte string.
 
 @item
 Other keyboard character events cannot fit in a string.  This includes
@@ -1869,7 +1869,7 @@ Echo Area}.
 
 If @var{inherit-input-method} is non-@code{nil}, then the current input
 method (if any) is employed to make it possible to enter a
-non-@sc{ASCII} character.  Otherwise, input method handling is disabled
+non-@sc{ascii} character.  Otherwise, input method handling is disabled
 for reading this event.
 
 If @code{cursor-in-echo-area} is non-@code{nil}, then @code{read-event}
@@ -1899,7 +1899,7 @@ user generates an event which is not a character (i.e. a mouse click or
 function key event), @code{read-char} signals an error.  The arguments
 work as in @code{read-event}.
 
-In the first example, the user types the character @kbd{1} (@sc{ASCII}
+In the first example, the user types the character @kbd{1} (@sc{ascii}
 code 49).  The second example shows a keyboard macro definition that
 calls @code{read-char} from the minibuffer using @code{eval-expression}.
 @code{read-char} reads the keyboard macro's very next character, which
@@ -2078,7 +2078,7 @@ This variable records the last terminal input event read, whether
 as part of a command or explicitly by a Lisp program.
 
 In the example below, the Lisp program reads the character @kbd{1},
-@sc{ASCII} code 49.  It becomes the value of @code{last-input-event},
+@sc{ascii} code 49.  It becomes the value of @code{last-input-event},
 while @kbd{C-e} (we assume @kbd{C-x C-e} command is used to evaluate
 this expression) remains the value of @code{last-command-event}.
 
@@ -2171,12 +2171,8 @@ period measured in milliseconds.  This adds to the period specified by
 @var{seconds}.  If the system doesn't support waiting fractions of a
 second, you get an error if you specify nonzero @var{millisec}.
 
-@cindex forcing redisplay
-Redisplay is always preempted if input arrives, and does not happen at
-all if input is available before it starts.  Thus, there is no way to
-force screen updating if there is pending input; however, if there is no
-input pending, you can force an update with no delay by using
-@code{(sit-for 0)}.
+The expression @code{(sit-for 0)} is a convenient way to request a
+redisplay, without any delay.  @xref{Forcing Redisplay}.
 
 If @var{nodisp} is non-@code{nil}, then @code{sit-for} does not
 redisplay, but it still returns as soon as input is available (or when

@@ -1,248 +1,226 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1998 Free Software Foundation, Inc. 
+@c Copyright (C) 1999 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @node Antinews, Index, Standard Hooks, Top
-@appendix Emacs 19 Antinews
+@appendix Emacs 20 Antinews
 
 For those users who live backwards in time, here is information about
-downgrading to Emacs version 19.34.  We hope you will enjoy the greater
-simplicity that results from the absence of many Emacs 20 features.  In
-the following section, we carry this information back as far as Emacs
-19.29, for which the previous printed edition of this manual was made.
+downgrading to Emacs version 20.4.  We hope you will enjoy the greater
+simplicity that results from the absence of many Emacs 21 features.  In
+the following section, we carry this information back to Emacs
+20.3, for which the previous printed edition of this manual was made.
 
-@section Old Lisp Features in Emacs 19
-
-Here are the most important of the features that you will learn
-to do without in Emacs 19:
+@section Old Lisp Features in Emacs 20
 
 @itemize @bullet
 @item
-In a great simplification, Emacs 19 supports ASCII characters only.
-There are no multibyte characters, character sets, language
-environments, coding systems, or input methods; all the functions that
-specifically relate to them are gone as well.
-
-Valid character codes for text must be in the range 0 through 255.
-Within this range, there are no invalid character codes.
+The @code{push} and @code{pop} macros are not defined.
 
 @item
-The Custom facility has been replaced with a much simpler and more
-general method of defining user option variables.  Instead of
-@code{defcustom}, which requires you to specify each user option's data
-type and classify options into groups, all you have to do is write a
-@code{defvar}.  You should still start the documentation string with
-@samp{*}, though.
+You can't display images in buffers.  (Emacs is meant for editing text.)
+With no images, there are no display margins, and no tool bars.
+
+@item
+The @code{display} text property has no special meaning; you can use it
+freely in Lisp programs, with no effects except what you implement for
+yourself.  With no images, who needs the @code{display} text property?
+
+@item
+Faces have fewer attributes.  The attributes @code{:family},
+@code{:height}, @code{:width}, @code{:weight}, and @code{:slant},
+have been replaced with a font name, a ``bold'' flag, and an
+``italic'' flag.
+
+The attributes @code{:overline}, @code{:strike-through}
+and @code{:box} have been eliminated too.
+
+With fewer font attributes, there are no functions
+@code{set-face-attribute} and @code{face-attribute}.  Instead, you
+access these attributes using functions such as @code{face-font}, and
+set them with functions such as @code{set-face-font}.  (These functions
+were available in Emacs 21, but are not as useful there.)
+
+@item
+There are no facilities for playing sound.  This means Emacs will
+respect your peace and quiet, aside from occasional beeps.
+
+@item
+Regular expressions do not support the POSIX character classes
+such as @samp{[:alpha:]}.  All characters are created equal.
+
+@item
+Hash tables have been eliminated; use alists instead.
+
+@item
+The Lisp printer does not detect and report circular structure.  That is
+ok, because the Lisp reader cannot recreate circular structure anyway.
+However, there is a library @samp{cust-print.el} which can report
+circular structure.
+
+@item
+Emacs provides its own implementation of scroll bars, instead
+of using those of the X toolkit.  They always use the frame foreground
+and background colors, so you cannot specify different colors for
+the scroll bars.
+
+@item
+For simplicity, all ASCII characters now have the same height and width.
+(Certain characters, such as Chinese characters, always have have twice
+the standard width.)  All characters are created equal.
+
+@item
+Tooltips operate using ordinary Emacs frames.
+
+@item
+Areas of the mode line are not mouse-sensitive; however, some mouse
+commands are available for the mode line as a whole.
+
+@item
+Windows cannot have header lines.  Conversely, there is no way to turn
+off the mode line of a window unless it is a minibuffer.
+
+@item
+Plain dashes are the only separators you can use in a menu.
+
+@item
+Vertical fractional scrolling does not exist.
+
+@item
+The functions @code{format} and @code{message} ignore and discard text
+properties.
+
+@item
+Colors are supported only on window systems, not on text-only terminals.
+So the support functions for colors on text-only terminals are
+not needed.
+
+@item
+The functions @code{color-values}, @code{color-defined-p} and
+@code{defined-colors} have been renamed to @code{x-color-values},
+@code{x-color-defined-p} and @code{x-defined-colors}.
+
+@item
+Windows cannot be made fixed-width or fixed-height;
+Emacs will adjust the size of all windows when it needs to.
+
+@item
+The minibuffer prompt does not actually appear in content of the
+minibuffer; it is displayed specially in the minibuffer window.
+
+@item
+The ``exclusive open'' feature of @code{write-region}
+has been eliminated; any non-@code{nil} value for the seventh
+argument now means to ask the user for confirmation.
+
+@item
+The function @code{buffer-size} always reports on the
+current buffer.
+
+@item
+The function @code{assoc-delete-all} has itself been deleted. 
+So there!
+
+@item
+The variable @code{small-temporary-file-directory} has no special
+meaning.  There's only one variable for specifying which directory to
+use for temporary files, @code{temporary-file-directory}, but not all
+Emacs features use it anyway.  Some use the @code{TMP} environment
+variable, and some use the @code{TMPDIR} environment variable.
+
+@item
+The variable  @code{inhibit-modification-hooks}
+has no special meaning.
+
+@item
+The hook @code{fontification-functions} has been eliminated,
+but there are other hooks, such as @code{window-scroll-functions},
+that you can use to do a similar job.
+
+@item
+The variable  @code{redisplay-dont-pause}
+has no special meaning.
+
+@item
+The hook @code{calendar-move-hook} has been deleted.
+
+@item
+The function @code{move-to-column} treats any non-@code{nil}
+second argument just like @code{t}.
 @end itemize
+
+@section Old Lisp Features in Emacs 20.3
+
+Here are the most important of the features that you will learn
+to do without in Emacs 20.3:
 
 Here are changes in the Lisp language itself:
 
 @itemize @bullet
 @item
-Symbols whose names start with @samp{:} are no longer special
-in any way.  They start out void, like most other symbols.
+The functions @code{line-beginning-position} and @code{line-end-position}
+have been eliminated.
 
 @item
-The macros @code{when} and @code{unless} have been deleted.
+The functions @code{directory-files-and-attributes},
+@code{file-attributes-lessp}, and @code{file-expand-wildcards}, have
+been eliminated.
 
 @item
-The functions @code{caar}, @code{cadr}, @code{cdar} and @code{cddr}
-no longer exist.
+The functions @code{decode-coding-region} and @code{encode-coding-region}
+leave text properties untouched, in case that is useful.  (It rarely makes
+any sense, though.)
 
 @item
-The function @code{functionp} is now gone.  If you don't know
-by now whether something is a function, Emacs can't tell you.
-@end itemize
-
-Here are changes in handling strings and text.
-
-@itemize @bullet
-@item
-The function @code{substring} works only on strings, not on vectors.
+The functions @code{position-bytes} and @code{byte-to-position} have
+been eliminated.
 
 @item
-There are no more character categories.
+Temporary buffers made with @code{with-output-to-temp-buffer} are now
+modifiable by default, and use Fundamental mode rather than Help mode.
 
 @item
-When you compare strings with @code{equal}, it now compares
-their string properties as well as their text.  All must match,
-or the strings are not equal.
+The functions @code{sref} interprets its @var{index} argument as a
+number of bytes, not a number of characters.  And the function
+@code{char-bytes} actually tries to report on the number of bytes that a
+character occupies.
 
 @item
-@code{format-time-string} no longer supports specified field width
-or specified padding.
+The function @code{process-running-child-p} has been eliminated.
 
 @item
-The functions @code{split-string} and @code{string} no longer exist.
-Neither does @code{store-substring} or @code{sref}.
+The function @code{interrupt-process} and similar functions no longer do
+anything special when the second argument is @code{lambda}.
 
 @item
-All printing characters have the same width.  Therefore, we have deleted
-@code{char-width}, @code{string-width} and
-@code{truncate-string-to-width}.
+The function @code{define-prefix-command} accepts only two arguments.
 
 @item
-We have eliminated the functions @code{next-char-property-change} and
-@code{previous-char-property-change} also.
+The meaning of the second argument to @code{read-char},
+@code{read-event}, and @code{read-char-exclusive} has been reversed:
+they use the current input method if the argument is if @code{nil}.
 
 @item
-Syntax parsing now determines the syntax of each character from the
-syntax table alone---not from text properties.  This makes the syntax
-codes @samp{|} and @samp{!}, which were meant for use with text
-properties, useless; so we have deleted them.
+The function @code{with-temp-message} has been eliminated. 
 
 @item
-In the function @code{parse-partial-sexp}, passing @code{syntax-table}
-as the sixth argument @var{commentstop} no longer has any special meaning.
-And the return value has only eight elements.
-@end itemize
-
-Here are changes in other areas of Emacs Lisp:
-
-@itemize @bullet
-@item
-The macros @code{save-current-buffer}, @code{with-current-buffer},
-@code{with-temp-buffer}, @code{with-temp-file}, @code{save-selected-window}, 
-and @code{with-output-to-string} are gone.
+The function @code{clear-this-command-keys} has been eliminated. 
 
 @item
-The easy-mmode facility for defining minor modes is gone too.
+The functions @code{gap-position} and @code{gap-size} have been eliminated. 
 
 @item
-Process filters and sentinels must explicitly save the match data, with
-@code{save-match-data}, or they will clobber the match data and
-something horrible will happen.
+In @code{modify-face}, an argument of @code{(nil)} has no special
+meaning.
 
 @item
-As part of our effort to loosen up, @code{batch-byte-compile-file} no
-longer returns a nonzero status code if there is a compilation error.
+The base64 conversion functions have been eliminated.
 
 @item
-The ``mail user agent'' feature is gone.
+Wildcard support has been eliminated from @code{find-file}
+and allied functions.
 
 @item
-We have removed the functions @code{add-to-invisibility-spec} and
-@code{remove-from-invisibility-spec}, so you should manipulate
-the value of @code{buffer-invisibility-spec} by hand.
-
-@item
-The functions @code{face-documentation}, @code{face-bold-p},
-@code{face-italic-p}, @code{set-face-bold-p}, @code{set-face-italic-p}
-are gone.  Instead, use @code{make-face-bold} and friends.
-
-@item
-All the functions that operate on a file now discard an extra redundant
-directory name from the beginning of the file name---just like
-@code{substitute-in-file-name}.
-
-@item
-We have got rid of the function @code{access-file}.
-
-@item
-Most of the minibuffer input functions no longer take a default value as
-an argument.  Also, they do not discard text properties from the result.
-This means that if you insert text with text properties into the minibuffer,
-the minibuffer value really will contain text properties.
-
-@item
-Only the simple menu item format is supported (@pxref{Simple Menu Items}).
-
-@item
-You can still bind @code{x-resource-class} around a call to
-@code{x-get-resource}, but it won't do anything special.
-
-@item
-Wave goodbye to the hooks @code{before-make-frame-hook},
-@code{after-make-frame-functions}, and
-@code{window-configuration-change-hook},
-
-@item
-The functions and variables that deal with MS Windows NT/95
-have been renamed to start with @samp{win32-} instead of @samp{w32-}.
-This is because we admire Microsoft more each day as we go back
-into the past.
-@end itemize
-
-@section Onward into the Past!
-
-Here we go even further back, as far as Emacs 19.29, for which the
-previous printed edition of the Emacs Lisp manual was made.
-
-@itemize @bullet
-@item
-There are no char-tables or bool-vectors.  Syntax tables, display
-tables, and case tables are all vectors now, and the value of
-@code{keyboard-translate-table} should be a vector or a string.
-
-@item
-There is only one kind of marker.  When you insert text at the place
-where a marker points, the marker always ends up before that text,
-unless you use @code{insert-before-markers}, which puts all the markers
-after the inserted text.
-
-@item
-There is no function @code{overlays-in}.
-
-@item
-The variable @code{print-length} applies only to lists, not to
-vectors or strings.
-
-@item
-The function @code{convert-standard-filename} no longer exists, so each
-Lisp package must independently figure out which file names to use for
-its initialization files on each kind of operating system.
-
-@item
-The macro @code{with-timeout} has been eliminated, along with the
-function @code{y-or-n-p-with-timeout}.  Idle timers don't exist at all;
-instead, maybe you can use @code{post-command-idle-hook} to do some of
-the same job.
-
-@item
-The functions @code{keymap-parent} and @code{set-keymap-parent} are
-gone.  We expect keymaps to recognize their own parents.
-
-@item
-When you delete text and then undo a deletion, markers that were
-originally inside the deleted text end up either at the beginning
-or the end of it---not back in their original places.
-
-@item
-The interactive specification @samp{N} is gone now.
-
-@item
-There is no more @code{safe-length}.  Don't try to be so safe!  Did you
-expect to live forever?
-
-@item
-We got rid of @code{insert-file-contents-literally}, because
-programmers are too literal-minded anyway.
-
-@item
-As part of our continuing effort to help Lisp programmers to relax, we
-threw out the function @code{error-message-string}.  Don't worry so much
-about errors!  We all make mistakes.
-
-@item
-The keymap @code{special-event-map} is gone, because Emacs has no more
-special events.  If you want to hold a party in Emacs, please let us
-know.
-
-@item
-You can't do date arithmetic with @code{encode-time} any more.
-
-@item
-The functions @code{command-execute} and @code{call-interactively} no
-longer accept the optional argument @var{keys}.
-
-@item
-@code{get-buffer-window-list} is gone as well.
-
-@item
-With the function @code{replace-match}, you can only replace the whole
-match, not a subexpression of it.
-
-@item
-We eliminated the hooks @code{buffer-access-fontify-functions},
-@code{window-scroll-functions}, and @code{redisplay-end-trigger-functions}.
+@code{file-attributes} returns the file size and the file inode number
+only as a simple integer.
 @end itemize

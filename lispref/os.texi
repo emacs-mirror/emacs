@@ -15,7 +15,7 @@ and flow control.
 pertaining to the terminal and the screen.
 
 @menu
-* Starting Up::         Customizing Emacs start-up processing.
+* Starting Up::         Customizing Emacs startup processing.
 * Getting Out::         How exiting works (permanent or temporary).
 * System Environment::  Distinguish the name and kind of system.
 * User Identification:: Finding the name and user id of the user.
@@ -25,6 +25,7 @@ pertaining to the terminal and the screen.
 * Timers::		Setting a timer to call a function at a certain time.
 * Terminal Input::      Recording terminal input for debugging.
 * Terminal Output::     Recording terminal output for debugging.
+* Sound Output::        Playing sounds on the computer's speaker.
 * Special Keysyms::     Defining system-specific key symbols for X windows.
 * Flow Control::        How to turn output flow control on or off.
 * Batch Mode::          Running Emacs without terminal interaction.
@@ -37,17 +38,17 @@ pertaining to the terminal and the screen.
 can customize these actions.
 
 @menu
-* Start-up Summary::        Sequence of actions Emacs performs at start-up.
+* Startup Summary::         Sequence of actions Emacs performs at startup.
 * Init File::               Details on reading the init file (@file{.emacs}).
 * Terminal-Specific::       How the terminal-specific Lisp file is read.
-* Command Line Arguments::  How command line arguments are processed,
+* Command-Line Arguments::  How command-line arguments are processed,
                               and how you can customize them.
 @end menu
 
-@node Start-up Summary
-@subsection Summary: Sequence of Actions at Start Up
+@node Startup Summary
+@subsection Summary: Sequence of Actions at Startup
 @cindex initialization
-@cindex start up of Emacs
+@cindex startup of Emacs
 @cindex @file{startup.el}
 
    The order of operations performed (in @file{startup.el}) by Emacs when
@@ -86,7 +87,7 @@ It loads the library @file{site-start}, unless the option
 @item 
 It loads the file @file{~/.emacs}, unless @samp{-q} or @samp{-batch} was
 specified on the command line.  The @samp{-u} option can specify another
-user name whose home directory should be used instead of @file{~}.
+user whose home directory should be used instead of @file{~}.
 
 @item 
 It loads the library @file{default}, unless @code{inhibit-default-init}
@@ -127,7 +128,7 @@ It runs @code{window-setup-hook}.  @xref{Window Systems}.
 
 @item 
 It displays copyleft, nonwarranty, and basic use information, provided
-there were no remaining command line arguments (a few steps above),
+there were no remaining command-line arguments (a few steps above),
 the value of @code{inhibit-startup-message} is @code{nil}, and the
 buffer is still empty.
 @end enumerate
@@ -170,12 +171,12 @@ message for someone else.
 @cindex @file{.emacs}
 
   When you start Emacs, it normally attempts to load the file
-@file{.emacs} from your home directory.  This file, if it exists, must
-contain Lisp code.  It is called your @dfn{init file}.  The command line
-switches @samp{-q} and @samp{-u} affect the use of the init file;
-@samp{-q} says not to load an init file, and @samp{-u} says to load a
-specified user's init file instead of yours.  @xref{Entering Emacs,,,
-emacs, The GNU Emacs Manual}.
+@file{.emacs} from your home directory.  This file is called your
+@dfn{init file}.  If it exists, it must contain Lisp code.  The
+command-line switches @samp{-q} and @samp{-u} affect the use of the init
+file; @samp{-q} says not to load an init file, and @samp{-u} says to
+load a specified user's init file instead of yours.  @xref{Entering
+Emacs,,, emacs, The GNU Emacs Manual}.
 
 @cindex default init file
   A site may have a @dfn{default init file}, which is the library named
@@ -200,9 +201,8 @@ Emacs.
 @end defvar
 
   If there is a great deal of code in your @file{.emacs} file, you
-should move it into another file named @file{@var{something}.el},
-byte-compile it (@pxref{Byte Compilation}), and make your @file{.emacs}
-file load the other file using @code{load} (@pxref{Loading}).
+can make it load faster by renaming it to @file{.emacs.el}
+and then byte-compiling it (@pxref{Byte Compilation}).
 
   @xref{Init File Examples,,, emacs, The GNU Emacs Manual}, for
 examples of how to make various commonly desired customizations in your
@@ -234,7 +234,8 @@ before the terminal-specific initialization.
   Each terminal type can have its own Lisp library that Emacs loads when
 run on that type of terminal.  The library's name is constructed by
 concatenating the value of the variable @code{term-file-prefix} and the
-terminal type.  Normally, @code{term-file-prefix} has the value
+terminal type (specified by the environment variable @code{TERM}).
+Normally, @code{term-file-prefix} has the value
 @code{"term/"}; changing this is not recommended.  Emacs finds the file
 in the normal manner, by searching the @code{load-path} directories, and
 trying the @samp{.elc} and @samp{.el} suffixes.
@@ -279,6 +280,9 @@ You may set the @code{term-file-prefix} variable to @code{nil} in your
 @file{.emacs} file if you do not wish to load the
 terminal-initialization file.  To do this, put the following in
 your @file{.emacs} file: @code{(setq term-file-prefix nil)}.
+
+On MS-DOS, if the environment variable @code{TERM} is not set, Emacs
+uses @samp{internal} as the terminal type.
 @end defvar
 
 @defvar term-setup-hook 
@@ -293,27 +297,27 @@ terminal-specific file.
   See @code{window-setup-hook} in @ref{Window Systems}, for a related
 feature.
 
-@node Command Line Arguments
-@subsection Command Line Arguments
-@cindex command line arguments
+@node Command-Line Arguments
+@subsection Command-Line Arguments
+@cindex command-line arguments
 
-  You can use command line arguments to request various actions when you
+  You can use command-line arguments to request various actions when you
 start Emacs.  Since you do not need to start Emacs more than once per
 day, and will often leave your Emacs session running longer than that,
-command line arguments are hardly ever used.  As a practical matter, it
+command-line arguments are hardly ever used.  As a practical matter, it
 is best to avoid making the habit of using them, since this habit would
 encourage you to kill and restart Emacs unnecessarily often.  These
 options exist for two reasons: to be compatible with other editors (for
 invocation by other programs) and to enable shell scripts to run
 specific Lisp programs.
 
-  This section describes how Emacs processes command line arguments,
+  This section describes how Emacs processes command-line arguments,
 and how you can customize them.
 
 @ignore
   (Note that some other editors require you to start afresh each time
 you want to edit a file.  With this kind of editor, you will probably
-specify the file as a command line argument.  The recommended way to
+specify the file as a command-line argument.  The recommended way to
 use GNU Emacs is to start it only once, just after you log in, and do
 all your editing in the same Emacs process.  Each time you want to edit
 a different file, you visit it with the existing Emacs, which eventually
@@ -333,19 +337,19 @@ processed.
 
 If you redump Emacs by calling @code{dump-emacs}, you may wish to set
 this variable to @code{nil} first in order to cause the new dumped Emacs
-to process its new command line arguments.
+to process its new command-line arguments.
 @end defvar
 
 @defvar command-switch-alist
 @cindex switches on command line
 @cindex options on command line
-@cindex command line options
+@cindex command-line options
 The value of this variable is an alist of user-defined command-line
 options and associated handler functions.  This variable exists so you
 can add elements to it.
 
-A @dfn{command line option} is an argument on the command line of the
-form:
+A @dfn{command-line option} is an argument on the command line, which
+has the form:
 
 @example
 -@var{option}
@@ -357,8 +361,10 @@ The elements of the @code{command-switch-alist} look like this:
 (@var{option} . @var{handler-function})
 @end example
 
-The @var{handler-function} is called to handle @var{option} and receives
-the option name as its sole argument.
+The @sc{car}, @var{option}, is a string, the name of a command-line
+option (not including the initial hyphen).  The @var{handler-function}
+is called to handle @var{option}, and receives the option name as its
+sole argument.
 
 In some cases, the option is followed in the command line by an
 argument.  In these cases, the @var{handler-function} can find all the
@@ -366,14 +372,14 @@ remaining command-line arguments in the variable
 @code{command-line-args-left}.  (The entire list of command-line
 arguments is in @code{command-line-args}.)
 
-The command line arguments are parsed by the @code{command-line-1}
+The command-line arguments are parsed by the @code{command-line-1}
 function in the @file{startup.el} file.  See also @ref{Command
 Switches, , Command Line Switches and Arguments, emacs, The GNU Emacs
 Manual}.
 @end defvar
 
 @defvar command-line-args
-The value of this variable is the list of command line arguments passed
+The value of this variable is the list of command-line arguments passed
 to Emacs.
 @end defvar
 
@@ -436,10 +442,10 @@ input) can read them.
 @end defun
 
   All the information in the Emacs process, aside from files that have
-been saved, is lost when the Emacs is killed.  Because killing Emacs
-inadvertently can lose a lot of work, Emacs queries for confirmation
-before actually terminating if you have buffers that need saving or
-subprocesses that are running.  This is done in the function
+been saved, is lost when the Emacs process is killed.  Because killing
+Emacs inadvertently can lose a lot of work, Emacs queries for
+confirmation before actually terminating if you have buffers that need
+saving or subprocesses that are running.  This is done in the function
 @code{save-buffers-kill-emacs}.
 
 @defvar kill-emacs-query-functions
@@ -475,7 +481,7 @@ subprocess of Emacs.  Then you would exit the shell to return to Emacs.
 may not have a parent that can resume it again, and in any case you can
 give input to some other job such as a shell merely by moving to a
 different window.  Therefore, suspending is not allowed when Emacs is using
-a window system.
+a window system (X Windows or MS Windows).
 
 @defun suspend-emacs string
 This function stops Emacs and returns control to the superior process.
@@ -545,11 +551,12 @@ Resumed!
 @end defun
 
 @defvar suspend-hook
-This variable is a normal hook run before suspending.
+This variable is a normal hook that Emacs runs before suspending.
 @end defvar
 
 @defvar suspend-resume-hook
-This variable is a normal hook run after suspending.
+This variable is a normal hook that Emacs runs on resuming
+after a suspension.
 @end defvar
 
 @node System Environment
@@ -598,7 +605,9 @@ Hewlett-Packard HPUX operating system.
 Silicon Graphics Irix system.
 
 @item ms-dos
-Microsoft MS-DOS ``operating system.''
+Microsoft MS-DOS ``operating system.''  Emacs compiled with DJGPP for
+MS-DOS binds @code{system-type} to @code{ms-dos} even when you run it on
+MS-Windows.
 
 @item next-mach
 NeXT Mach-based system.
@@ -616,7 +625,8 @@ AT&T System V.
 VAX VMS.
 
 @item windows-nt
-Microsoft windows NT.
+Microsoft windows NT.  The same executable supports Windows 9X, but the
+value of @code{system-type} is @code{windows-nt} in either case.
 
 @item xenix
 SCO Xenix 386.
@@ -710,7 +720,7 @@ process-environment
 This variable holds a string which says which character separates
 directories in a search path (as found in an environment variable).  Its
 value is @code{":"} for Unix and GNU systems, and @code{";"} for MS-DOS
-and Windows NT.
+and MS-Windows.
 @end defvar
 
 @defvar invocation-name
@@ -770,10 +780,11 @@ in the system's terminal driver, before Emacs was started.
 
 @defun setprv privilege-name &optional setp getprv
 This function sets or resets a VMS privilege.  (It does not exist on
-Unix.)  The first arg is the privilege name, as a string.  The second
-argument, @var{setp}, is @code{t} or @code{nil}, indicating whether the
-privilege is to be turned on or off.  Its default is @code{nil}.  The
-function returns @code{t} if successful, @code{nil} otherwise.
+other systems.)  The first argument is the privilege name, as a string.
+The second argument, @var{setp}, is @code{t} or @code{nil}, indicating
+whether the privilege is to be turned on or off.  Its default is
+@code{nil}.  The function returns @code{t} if successful, @code{nil}
+otherwise.
 
   If the third argument, @var{getprv}, is non-@code{nil}, @code{setprv}
 does not change the privilege, but returns @code{t} or @code{nil}
@@ -785,7 +796,7 @@ indicating whether the privilege is currently enabled.
 
 @defvar init-file-user
 This variable says which user's init files should be used by Emacs---or
-@code{nil} if none.  The value reflects command line options such as
+@code{nil} if none.  The value reflects command-line options such as
 @samp{-q} or @samp{-u @var{user}}.
 
 Lisp packages that load files of customizations, or any other sort of
@@ -830,8 +841,9 @@ environment variables @code{LOGNAME} and @code{USER}.
 
 @defun user-full-name &optional uid
 This function returns the full name of the logged-in user---or the value
-of the environment variables @code{NAME}, if that is set.
+of the environment variable @code{NAME}, if that is set.
 
+@c "Bil" is the correct spelling.
 @example
 @group
 (user-full-name)
@@ -907,7 +919,7 @@ two elements are integers.  Thus, you can use times obtained from
 This function returns the system's time value as a list of three
 integers: @code{(@var{high} @var{low} @var{microsec})}.  The integers
 @var{high} and @var{low} combine to give the number of seconds since
-0:00 January 1, 1970, which is
+0:00 January 1, 1970 (local time), which is
 @ifinfo
 @var{high} * 2**16 + @var{low}.
 @end ifinfo
@@ -916,8 +928,8 @@ $high*2^{16}+low$.
 @end tex
 
 The third element, @var{microsec}, gives the microseconds since the
-start of the current second (or 0 for systems that return time only on
-the resolution of a second).
+start of the current second (or 0 for systems that return time with
+the resolution of only one second).
 
 The first two elements can be compared with file time values such as you
 get with the function @code{file-attributes}.  @xref{File Attributes}.
@@ -931,7 +943,7 @@ in.
 The value has the form @code{(@var{offset} @var{name})}.  Here
 @var{offset} is an integer giving the number of seconds ahead of UTC
 (east of Greenwich).  A negative value means west of Greenwich.  The
-second element, @var{name} is a string giving the name of the time
+second element, @var{name}, is a string giving the name of the time
 zone.  Both elements change when daylight savings time begins or ends;
 if the user has specified a time zone that does not use a seasonal time
 adjustment, then the value is constant through time.
@@ -998,7 +1010,7 @@ This is a synonym for @samp{%b}.
 @item %H
 This stands for the hour (00-23).
 @item %I
-This stands for the hour (00-12).
+This stands for the hour (01-12).
 @item %j
 This stands for the day of the year (001-366).
 @item %k
@@ -1018,7 +1030,7 @@ This is a synonym for @samp{%I:%M:%S %p}.
 @item %R
 This is a synonym for @samp{%H:%M}.
 @item %S
-This stands for the seconds (00-60).
+This stands for the seconds (00-59).
 @item %t
 This stands for a tab character.
 @item %T
@@ -1068,9 +1080,9 @@ return value is a list of nine elements, as follows:
 Here is what the elements mean:
 
 @table @var
-@item sec
+@item seconds
 The number of seconds past the minute, as an integer between 0 and 59.
-@item minute
+@item minutes
 The number of minutes past the hour, as an integer between 0 and 59.
 @item hour
 The hour of the day, as an integer between 0 and 23.
@@ -1099,9 +1111,9 @@ This function is the inverse of @code{decode-time}.  It converts seven
 items of calendrical data into a time value.  For the meanings of the
 arguments, see the table above under @code{decode-time}.
 
-Year numbers less than 100 are treated just like other year numbers.  If
-you want them to stand for years above 1900, you must alter them yourself
-before you call @code{encode-time}.
+Year numbers less than 100 are not treated specially.  If you want them
+to stand for years above 1900, you must alter them yourself before you
+call @code{encode-time}.
 
 The optional argument @var{zone} defaults to the current time zone and
 its daylight savings time rules.  If specified, it can be either a list
@@ -1121,7 +1133,7 @@ feature makes it possible to use the elements of a list returned by
 @end example
 
 You can perform simple date arithmetic by using out-of-range values for
-the @var{sec}, @var{minute}, @var{hour}, @var{day}, and @var{month}
+the @var{seconds}, @var{minutes}, @var{hour}, @var{day}, and @var{month}
 arguments; for example, day 0 means the day preceding the given month.
 
 The operating system puts limits on the range of possible time values;
@@ -1174,6 +1186,9 @@ denotes 65 seconds from now.
 @item 1 min 2 sec 3 hour 4 day 5 week 6 fortnight 7 month 8 year
 denotes exactly 103 months, 123 days, and 10862 seconds from now.
 @end table
+
+For relative time values, Emacs considers a month to be exactly thirty
+days, and a year to be exactly 365.25 days.
 
 If @var{time} is a number (integer or floating point), that specifies a
 relative time measured in seconds.
@@ -1236,10 +1251,10 @@ can use in calling @code{cancel-timer} (see below).
   Emacs becomes ``idle'' when it starts waiting for user input, and it
 remains idle until the user provides some input.  If a timer is set for
 five seconds of idleness, it runs approximately five seconds after Emacs
-first became idle.  Even if its @var{repeat} is true, this timer will
-not run again as long as Emacs remains idle, because the duration of
-idleness will continue to increase and will not go down to five seconds
-again.
+first becomes idle.  Even if @var{repeat} is non-@code{nil}, this timer
+will not run again as long as Emacs remains idle, because the duration
+of idleness will continue to increase and will not go down to five
+seconds again.
 
   Emacs can do various things while idle: garbage collect, autosave or
 handle data from a subprocess.  But these interludes during idleness do
@@ -1247,7 +1262,7 @@ not interfere with idle timers, because they do not reset the clock of
 idleness to zero.  An idle timer set for 600 seconds will run when ten
 minutes have elapsed since the last user command was finished, even if
 subprocess output has been accepted thousands of times within those ten
-minutes, even if there have been garbage collections and autosaves.
+minutes, and even if there have been garbage collections and autosaves.
 
   When the user supplies input, Emacs becomes non-idle while executing the
 input.  Then it becomes idle again, and all the idle timers that are
@@ -1284,7 +1299,7 @@ functions.
 This function sets the mode for reading keyboard input.  If
 @var{interrupt} is non-null, then Emacs uses input interrupts.  If it is
 @code{nil}, then it uses @sc{cbreak} mode.  The default setting is
-system dependent.  Some systems always use @sc{cbreak} mode regardless
+system-dependent.  Some systems always use @sc{cbreak} mode regardless
 of what is specified.
 
 When Emacs communicates directly with X, it ignores this argument and
@@ -1314,7 +1329,7 @@ Emacs is currently using.
 
 @c Emacs 19 feature
 @defun current-input-mode
-This function returns current mode for reading keyboard input.  It
+This function returns the current mode for reading keyboard input.  It
 returns a list, corresponding to the arguments of @code{set-input-mode},
 of the form @code{(@var{interrupt} @var{flow} @var{meta} @var{quit})} in
 which:
@@ -1379,10 +1394,10 @@ This variable is the translate table for keyboard characters.  It lets
 you reshuffle the keys on the keyboard without changing any command
 bindings.  Its value is normally a char-table, or else @code{nil}.
 
-If @code{keyboard-translate-table} is a char-table, then each character
-read from the keyboard is looked up in this character.  If the value
-found there is non-@code{nil}, then it is used instead of the
-actual input character.
+If @code{keyboard-translate-table} is a char-table
+(@pxref{Char-Tables}), then each character read from the keyboard is
+looked up in this char-table.  If the value found there is
+non-@code{nil}, then it is used instead of the actual input character.
 
 In the example below, we set @code{keyboard-translate-table} to a
 char-table.  Then we fill it in to swap the characters @kbd{C-s} and
@@ -1573,7 +1588,7 @@ trigger an Emacs bug, for the sake of a bug report.
 @section Terminal Output
 @cindex terminal output
 
-  The terminal output functions send output to the terminal or keep
+  The terminal output functions send output to the terminal, or keep
 track of output sent to the terminal.  The variable @code{baud-rate}
 tells you what Emacs thinks is the output speed of the terminal.
 
@@ -1607,8 +1622,8 @@ This function sends @var{string} to the terminal without alteration.
 Control characters in @var{string} have terminal-dependent effects.
 
 One use of this function is to define function keys on terminals that
-have downloadable function key definitions.  For example, this is how on
-certain terminals to define function key 4 to move forward four
+have downloadable function key definitions.  For example, this is how (on
+certain terminals) to define function key 4 to move forward four
 characters (by transmitting the characters @kbd{C-u C-f} to the
 computer):
 
@@ -1641,6 +1656,51 @@ See also @code{open-dribble-file} in @ref{Terminal Input}.
 @end example
 @end deffn
 
+@node Sound Output
+@section Sound Output
+@cindex sound
+
+  To play sound using Emacs, use the function @code{play-sound}.  Only
+certain systems are supported; if you call @code{play-sound} on a system
+which cannot really do the job, it gives an error.  Emacs version 20 and
+earlier did not support sound at all.
+
+  The sound must be stored as a file in RIFF-WAVE format (@samp{.wav})
+or Sun Audio format (@samp{.au}).
+
+@tindex play-sound
+@defun play-sound sound
+This function plays a specified sound.  The argument, @var{sound}, has
+the form @code{(sound @var{properties}...)}, where the @var{properties}
+consist of alternating keywords (particular symbols recognized
+specially) and values corresponding to them.
+
+Here is a table of the keywords that are currently meaningful in
+@var{sound}, and their meanings:
+
+@table @code
+@item :file @var{file}
+This specifies the file containing the sound to play.
+If the file name is not absolute, it is expanded against
+the directory @code{data-directory}.
+
+@item :volume @var{volume}
+This specifies how loud to play the sound.  It should be a number in the
+range of 0 to 1.  The default is to use whatever volume has been
+specified before.
+@end table
+
+Before actually playing the sound, @code{play-sound}
+calls the functions in the list @code{play-sound-functions}.
+Each function is called with one argument, @var{sound}.
+@end defun
+
+@tindex play-sound-functions
+@defvar play-sound-functions
+A list of functions to be called before playing a sound.  Each function
+is called with one argument, a property list that describes the sound.
+@end defvar
+
 @node Special Keysyms
 @section System-Specific X11 Keysyms
 
@@ -1649,7 +1709,7 @@ To define system-specific X11 keysyms, set the variable
 
 @defvar system-key-alist
 This variable's value should be an alist with one element for each
-system-specific keysym.  An element has this form: @code{(@var{code}
+system-specific keysym.  Each element has the form @code{(@var{code}
 . @var{symbol})}, where @var{code} is the numeric keysym code (not
 including the ``vendor specific'' bit, 
 @ifinfo 
@@ -1660,8 +1720,8 @@ $-2^{28}$),
 @end tex
 and @var{symbol} is the name for the function key.
 
-For example @code{(168 . mute-acute)} defines a system-specific key used
-by HP X servers whose numeric code is
+For example @code{(168 . mute-acute)} defines a system-specific key (used
+by HP X servers) whose numeric code is
 @ifinfo 
 -2**28
 @end ifinfo
@@ -1694,7 +1754,7 @@ entries and DEC terminal concentrators, see @file{emacs/etc/TERMS}.
 @code{C-s} and @kbd{C-q} for flow control.  Therefore, the choice of
 @kbd{C-s} and @kbd{C-q} as command characters for searching and quoting
 was natural and uncontroversial.  With so many commands needing key
-assignments, of course we assigned meanings to nearly all @sc{ASCII}
+assignments, of course we assigned meanings to nearly all @sc{ascii}
 control characters.
 
   Later, some terminals were introduced which required these characters
@@ -1769,7 +1829,7 @@ speed when calculating the padding needed.  @xref{Terminal Output}.
 @cindex batch mode
 @cindex noninteractive use
 
-  The command line option @samp{-batch} causes Emacs to run
+  The command-line option @samp{-batch} causes Emacs to run
 noninteractively.  In this mode, Emacs does not read commands from the
 terminal, it does not alter the terminal modes, and it does not expect
 to be outputting to an erasable screen.  The idea is that you specify
@@ -1779,7 +1839,7 @@ loads the library named @var{file}, and @samp{-f @var{function}}, which
 calls @var{function} with no arguments.
 
   Any Lisp program output that would normally go to the echo area,
-either using @code{message} or using @code{prin1}, etc., with @code{t}
+either using @code{message}, or using @code{prin1}, etc., with @code{t}
 as the stream, goes instead to Emacs's standard error descriptor when
 in batch mode.  Thus, Emacs behaves much like a noninteractive
 application program.  (The echo area output that Emacs itself normally
