@@ -28,6 +28,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #endif
 
+#include "emacssignal.h"
+
 #ifdef LISP_FLOAT_TYPE
 #include <math.h>
 #endif /* LISP_FLOAT_TYPE */
@@ -1946,7 +1948,7 @@ arith_error (signo)
 #ifdef BSD4_1
   sigrelse (SIGFPE);
 #else /* not BSD4_1 */
-  sigsetmask (0);
+  sigsetmask (SIGEMPTYMASK);
 #endif /* not BSD4_1 */
 
   Fsignal (Qarith_error, Qnil);

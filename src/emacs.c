@@ -211,7 +211,10 @@ main (argc, argv, envp)
 #endif
 
 #ifdef HAVE_X_WINDOWS
-  /* Stupid kludge to catch command-line display spec.  ask jla */
+  /* Stupid kludge to catch command-line display spec.  We can't
+     handle this argument entirely in window system dependent code
+     because we don't even know which window system dependent code
+     to run until we've recognized this argument.  */
   {
     int i;
 
@@ -334,6 +337,10 @@ main (argc, argv, envp)
       noninteractive = 1;
     }
 
+#ifdef POSIX_SIGNALS
+  init_signals ();
+#endif
+
   if (
 #ifndef CANNOT_DUMP
       ! noninteractive || initialized
@@ -406,7 +413,7 @@ main (argc, argv, envp)
 #endif
   init_eval ();
   init_data ();
-  init_read ();
+  init_lread ();
 
   init_cmdargs (argc, argv, skip_args);	/* Create list Vcommand_line_args */
   init_buffer ();	/* Init default directory of main buffer */
@@ -448,7 +455,7 @@ main (argc, argv, envp)
 #ifdef MAINTAIN_ENVIRONMENT
       syms_of_environ ();
 #endif /* MAINTAIN_ENVIRONMENT */
-      syms_of_read ();
+      syms_of_lread ();
       syms_of_print ();
       syms_of_eval ();
       syms_of_fns ();

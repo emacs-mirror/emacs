@@ -148,10 +148,6 @@ extern int x_input_blocked;
    during the current critical section.  */
 extern int x_pending_input;
 
-#ifndef sigmask
-#define sigmask(no) (1L << ((no) - 1))
-#endif
-
 /* Begin critical section. */
 #define BLOCK_INPUT (x_input_blocked++)
 
