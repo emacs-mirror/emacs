@@ -2387,6 +2387,7 @@ x_encode_text (string, coding_system, selectionp, text_bytes, stringp)
   int bufsize;
   unsigned char *buf;
   struct coding_system coding;
+  extern Lisp_Object Qcompound_text_with_extensions;
 
   charset_info = find_charset_in_text (str, chars, bytes, NULL, Qnil);
   if (charset_info == 0)
@@ -2418,7 +2419,9 @@ x_encode_text (string, coding_system, selectionp, text_bytes, stringp)
   buf = (unsigned char *) xmalloc (bufsize);
   encode_coding (&coding, str, buf, bytes, bufsize);
   *text_bytes = coding.produced;
-  *stringp = (charset_info == 1 || !EQ (coding_system, Qcompound_text));
+  *stringp = (charset_info == 1
+	      || (!EQ (coding_system, Qcompound_text)
+		  && !EQ (coding_system, Qcompound_text_with_extensions)));
   return buf;
 }
 
