@@ -239,8 +239,9 @@ A formfeed is not considered whitespace by this function."
       (while (re-search-forward "\\s-$" nil t)
 	(skip-syntax-backward "-" (save-excursion (forward-line 0) (point)))
 	;; Don't delete formfeeds, even if they are considered whitespace.
-	(if (looking-at ".*\f")
-	    (goto-char (match-end 0)))
+	(save-match-data
+	  (if (looking-at ".*\f")
+	      (goto-char (match-end 0))))
 	(delete-region (point) (match-end 0))))))
 
 (defun newline-and-indent ()
