@@ -222,12 +222,8 @@ Boston, MA 02111-1307, USA.  */
 /* Paul Abrahams <abrahams@equinox.shaysnet.com> says this is needed.  */
 #define LIB_MOTIF -lXm -lXpm
 
-#if 0 /* bobg@ipost.com reports that terminal type unknown, used by
-	 comint.el, is broken "on Linux".  I don't know which system
-	 or version he means.  */
 #ifdef HAVE_NCURSES
 #define TERMINFO
-#endif
 #endif
 
 #define HAVE_SYSVIPC
