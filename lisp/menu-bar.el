@@ -183,21 +183,29 @@ A large number or nil slows down menu responsiveness."
 (defun nonincremental-repeat-search-forward ()
   "Search forward for the previous search string."
   (interactive)
+  (if (null search-ring)
+      (error "No previous search"))
   (search-forward (car search-ring)))
 
 (defun nonincremental-repeat-search-backward ()
   "Search backward for the previous search string."
   (interactive)
+  (if (null search-ring)
+      (error "No previous search"))
   (search-backward (car search-ring)))
 
 (defun nonincremental-repeat-re-search-forward ()
   "Search forward for the previous regular expression."
   (interactive)
+  (if (null regex-search-ring)
+      (error "No previous search"))
   (re-search-forward (car regexp-search-ring)))
 
 (defun nonincremental-repeat-re-search-backward ()
   "Search backward for the previous regular expression."
   (interactive)
+  (if (null regex-search-ring)
+      (error "No previous search"))
   (re-search-backward (car regexp-search-ring)))
 
 (define-key menu-bar-search-menu [query-replace-regexp]
