@@ -1,3 +1,10 @@
+2000-09-04  Dave Love  <fx@gnu.org>
+
+	* wid-edit.el (widget-sexp-validate): Fix garbled code.
+
+	* custom.el (custom-set-variables): Print message about errors in
+	setting.
+
 2000-09-03  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in: Change to DOS line endings.
