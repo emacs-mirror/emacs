@@ -112,7 +112,7 @@ where SECTION is the desired section of the manual, as in \"tty(4)\"."
       ;; Fixed line counts are risky, but allow us to preserve
       ;; significant blank lines.
       (setq start (save-excursion (forward-line -10) (point)))
-      (setq end (save-excursion (forward-line 4) (point)))
+      (setq end (save-excursion (forward-line 3) (point)))
       (delete-region start end)))
   ;; Catch the final footer.
   (goto-char (point-max))
