@@ -583,7 +583,8 @@ If FRAME is omitted, describe the currently selected frame."
 If FRAME is omitted, describe the currently selected frame."
   (cdr (assq 'width (frame-parameters frame))))
 
-(defun set-default-font (font-name)
+(defalias 'set-default-font 'set-frame-font)
+(defun set-frame-font (font-name)
   "Set the font of the selected frame to FONT.
 When called interactively, prompt for the name of the font to use.
 To get the frame's current default font, use `frame-parameters'."
