@@ -1,3 +1,8 @@
+2002-06-15  Richard M. Stallman  <rms@gnu.org>
+
+	* ielm.el (ielm-eval-input): Use error-message-string.
+	(ielm-format-error, ielm-format-errors): Functions deleted.
+
 2002-06-14  Kim F. Storm  <storm@filanet.dk>
 
 	* progmodes/compile.el (grep-tree): Doc fixes.
