@@ -1987,11 +1987,8 @@ An error message with no file name and no file name has been seen earlier"))
   ;; Add elements to variable compilation-regexps that is bound in
   ;; compilation-parse-errors.
   (and (not (eq this t))
-       (while this
-	 (setq compilation-regexps
-	       (cons (cons (car (car this)) (cons type (cdr (car this))))
-		     compilation-regexps))
-	 (setq this (cdr this)))))
+       (dolist (el this)
+	 (push (cons (car el) (cons type (cdr el))) compilation-regexps))))
 
 (defun compile-buffer-substring (index)
   "Get substring matched by INDEXth subexpression."
