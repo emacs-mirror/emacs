@@ -28,6 +28,9 @@
 
 ;;; Code:
 
+;; We need macros in dired.el to compile properly.
+(eval-when-compile (require 'dired))
+
 ;;; 15K
 ;;;###begin dired-cmd.el
 ;; Diffing and compressing
@@ -127,7 +130,7 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
 	;; and this file won't fit in the length limit, process now.
 	(if (and pending (> (+ thislength pending-length) max))
 	    (setq failures
-		  (nconc (apply function (append args pending) pending)
+		  (nconc (apply function (append args pending))
 			 failures)
 		  pending nil
 		  pending-length 0))
@@ -137,7 +140,7 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
 	(setq pending files)
 	(setq pending-length (+ thislength pending-length))
 	(setq files rest)))
-    (nconc (apply function (append args pending) pending)
+    (nconc (apply function (append args pending))
 	   failures)))
 
 ;;;###autoload
@@ -171,6 +174,8 @@ Uses the shell command coming from variables `lpr-command' and
    (format prompt (dired-mark-prompt arg files)) initial))
 
 ;;; Cleaning a directory: flagging some backups for deletion.
+
+(defvar dired-file-version-alist)
 
 (defun dired-clean-directory (keep)
   "Flag numerical backups for deletion.
@@ -282,46 +287,47 @@ with a prefix argument."
 ;; The in-background argument is only needed in Emacs 18 where
 ;; shell-command doesn't understand an appended ampersand `&'.
 ;;;###autoload
-(defun dired-do-shell-command (&optional arg in-background)
-  "Run a shell command on the marked files.
-If there is output, it goes to a separate buffer.
-Normally the command is run on each file individually.
-However, if there is a `*' in the command then it is run
-just once with the entire file list substituted there.
-
+(defun dired-do-shell-command (command &optional arg)
+  "Run a shell command COMMAND on the marked files.
 If no files are marked or a specific numeric prefix arg is given,
 the next ARG files are used.  Just \\[universal-argument] means the current file.
 The prompt mentions the file(s) or the marker, as appropriate.
 
-No automatic redisplay is attempted, as the file names may have
-changed.  Type \\[dired-do-redisplay] to redisplay the marked files.
+If there is output, it goes to a separate buffer.
+
+Normally the command is run on each file individually.
+However, if there is a `*' in the command then it is run
+just once with the entire file list substituted there.
+
+No automatic redisplay of dired buffers is attempted, as there's no
+telling what files the command may have changed.  Type
+\\[dired-do-redisplay] to redisplay the marked files.
 
 The shell command has the top level directory as working directory, so
 output files usually are created there instead of in a subdir."
 ;;Functions dired-run-shell-command and dired-shell-stuff-it do the
 ;;actual work and can be redefined for customization.
-  (interactive "P")
+  (interactive (list
+		;; Want to give feedback whether this file or marked files are used:
+		(dired-read-shell-command (concat "! on "
+						  "%s: ")
+					  current-prefix-arg
+					  (dired-get-marked-files
+					   t current-prefix-arg))
+		current-prefix-arg))
   (let* ((on-each (not (string-match "\\*" command)))
-	 (prompt (concat (if in-background "& on " "! on ")
-			 (if on-each "each " "")
-			 "%s: "))
-	 (file-list (dired-get-marked-files t arg))
-	 ;; Want to give feedback whether this file or marked files are used:
-	 (command (dired-read-shell-command
-		   prompt arg file-list)))
+	 (file-list (dired-get-marked-files t arg)))
     (if on-each
 	(dired-bunch-files
 	 (- 10000 (length command))
 	 (function (lambda (&rest files)
 		     (dired-run-shell-command
-		      (dired-shell-stuff-it command files t arg))
-		     in-background))
+		      (dired-shell-stuff-it command files t arg))))
 	 nil
 	 file-list)
       ;; execute the shell command
       (dired-run-shell-command
-       (dired-shell-stuff-it command file-list nil arg)
-       in-background))))
+       (dired-shell-stuff-it command file-list nil arg)))))
 
 ;; Might use {,} for bash or csh:
 (defvar dired-mark-prefix ""
@@ -356,12 +362,10 @@ output files usually are created there instead of in a subdir."
 	(funcall stuff-it fns)))))
 
 ;; This is an extra function so that it can be redefined by ange-ftp.
-(defun dired-run-shell-command (command &optional in-background)
-  (if (not in-background)
-      (shell-command command)
-    ;; We need this only in Emacs 18 (19's shell command has `&').
-    ;; comint::background is defined in emacs-19.el.
-    (comint::background command)))
+(defun dired-run-shell-command (command)
+  (shell-command command)
+  ;; Return nil for sake of nconc in dired-bunch-files.
+  nil)
 
 ;; In Emacs 19 this will return program's exit status.
 ;; This is a separate function so that ange-ftp can redefine it.
@@ -398,17 +402,6 @@ output files usually are created there instead of in a subdir."
 
 ;; Commands that delete or redisplay part of the dired buffer.
 
-;;;###autoload
-(defun dired-kill-line-or-subdir (&optional arg)
-  "Kill this line (but don't delete its file).
-Optional prefix argument is a repeat factor.
-If file is displayed as in situ subdir, kill that as well.
-If on a subdir headerline, kill whole subdir."
-  (interactive "p")
-  (if (dired-get-subdir)
-      (dired-kill-subdir)
-    (dired-kill-line arg)))
-
 (defun dired-kill-line (&optional arg)
   (interactive "P")
   (setq arg (prefix-numeric-value arg))
@@ -431,31 +424,38 @@ If on a subdir headerline, kill whole subdir."
 ;;;###autoload
 (defun dired-do-kill-lines (&optional arg fmt)
   "Kill all marked lines (not the files).
-With a prefix arg, kill all lines not marked or flagged."
+With a prefix argument, kill that many lines starting with the current line.
+\(A negative argument kills lines before the current line.)
+To kill an entire subdirectory, go to its directory header line
+and use this command with a prefix argument (the value does not matter)."
   ;; Returns count of killed lines.  FMT="" suppresses message.
   (interactive "P")
-  (save-excursion
-    (goto-char (point-min))
-    (let (buffer-read-only (count 0))
-      (if (not arg)			; kill marked lines
-	  (let ((regexp (dired-marker-regexp)))
-	    (while (and (not (eobp))
-			(re-search-forward regexp nil t))
+  (if arg
+      (if (dired-get-subdir)
+	  (dired-kill-subdir)
+	(dired-kill-line arg))
+    (save-excursion
+      (goto-char (point-min))
+      (let (buffer-read-only (count 0))
+	(if (not arg)			; kill marked lines
+	    (let ((regexp (dired-marker-regexp)))
+	      (while (and (not (eobp))
+			  (re-search-forward regexp nil t))
+		(setq count (1+ count))
+		(delete-region (progn (beginning-of-line) (point))
+			       (progn (forward-line 1) (point)))))
+	  ;; else kill unmarked lines
+	  (while (not (eobp))
+	    (if (or (dired-between-files)
+		    (not (looking-at "^  ")))
+		(forward-line 1)
 	      (setq count (1+ count))
-	      (delete-region (progn (beginning-of-line) (point))
-			     (progn (forward-line 1) (point)))))
-	;; else kill unmarked lines
-	(while (not (eobp))
-	  (if (or (dired-between-files)
-		  (not (looking-at "^  ")))
-	      (forward-line 1)
-	    (setq count (1+ count))
-	    (delete-region (point) (save-excursion
-				     (forward-line 1)
-				     (point))))))
-      (or (equal "" fmt)
-	  (message (or fmt "Killed %d line%s.") count (dired-plural-s count)))
-      count)))
+	      (delete-region (point) (save-excursion
+				       (forward-line 1)
+				       (point))))))
+	(or (equal "" fmt)
+	    (message (or fmt "Killed %d line%s.") count (dired-plural-s count)))
+	count))))
 
 ;;;###end dired-cmd.el
 
@@ -645,7 +645,8 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
   ;; here is faster than with dired-add-entry's optional arg).
   ;; Does not update other dired buffers.  Use dired-relist-entry for that.
   (beginning-of-line)
-  (let ((char (following-char)) (opoint (point)))
+  (let ((char (following-char)) (opoint (point))
+	(buffer-read-only))
     (delete-region (point) (progn (forward-line 1) (point)))
     (if file
 	(progn
@@ -801,12 +802,14 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
   "*Non-nil if Dired should ask about making backups before overwriting files.
 Special value `always' suppresses confirmation.")
 
+(defvar dired-overwrite-confirmed)
+
 (defun dired-handle-overwrite (to)
   ;; Save old version of a to be overwritten file TO.
-  ;; `overwrite-confirmed' and `overwrite-backup-query' are fluid vars
+  ;; `dired-overwrite-confirmed' and `overwrite-backup-query' are fluid vars
   ;; from dired-create-files.
   (if (and dired-backup-overwrite
-	   overwrite-confirmed
+	   dired-overwrite-confirmed
 	   (or (eq 'always dired-backup-overwrite)
 	       (dired-query 'overwrite-backup-query
 			(format "Make backup for existing file `%s'? " to))))
@@ -1013,7 +1016,7 @@ Optional arg GLOBAL means to replace all matches."
 	  (if (not to)
 	      (setq skipped (cons (dired-make-relative from) skipped))
 	    (let* ((overwrite (file-exists-p to))
-		   (overwrite-confirmed	; for dired-handle-overwrite
+		   (dired-overwrite-confirmed	; for dired-handle-overwrite
 		    (and overwrite
 			 (let ((help-form '(format "\
 Type SPC or `y' to overwrite file `%s',
@@ -1030,7 +1033,7 @@ ESC or `q' to not overwrite any of the remaining files,
 			   (t nil))))
 	      (condition-case err
 		  (progn
-		    (funcall file-creator from to overwrite-confirmed)
+		    (funcall file-creator from to dired-overwrite-confirmed)
 		    (if overwrite
 			;; If we get here, file-creator hasn't been aborted
 			;; and the old entry (if any) has to be deleted

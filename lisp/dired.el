@@ -630,7 +630,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   (define-key dired-mode-map "/" 'dired-mark-directories)
   (define-key dired-mode-map "@" 'dired-mark-symlinks)
   (define-key dired-mode-map "~" 'dired-flag-backup-files)
-  ;; Upper case keys (except !, c) for operating on the marked files
+  ;; Upper case keys (except !) for operating on the marked files
   (define-key dired-mode-map "C" 'dired-do-copy)
   (define-key dired-mode-map "B" 'dired-do-byte-compile)
   (define-key dired-mode-map "D" 'dired-do-delete)
@@ -657,8 +657,6 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   ;; move to marked files
   (define-key dired-mode-map "\M-{" 'dired-prev-marked-file)
   (define-key dired-mode-map "\M-}" 'dired-next-marked-file)
-  ;; kill marked files
-  (define-key dired-mode-map "\M-k" 'dired-do-kill-lines)
   ;; Make all regexp commands share a `%' prefix:
   (fset 'dired-regexp-prefix (make-sparse-keymap))
   (define-key dired-mode-map "%" 'dired-regexp-prefix)
@@ -672,13 +670,14 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   (define-key dired-mode-map "%R" 'dired-do-rename-regexp)
   (define-key dired-mode-map "%S" 'dired-do-symlink-regexp)
   ;; Lower keys for commands not operating on all the marked files
+  (define-key dired-mode-map "c" 'dired-change-marks)
   (define-key dired-mode-map "d" 'dired-flag-file-deletion)
   (define-key dired-mode-map "e" 'dired-find-file)
   (define-key dired-mode-map "f" 'dired-advertised-find-file)
   (define-key dired-mode-map "g" 'revert-buffer)
   (define-key dired-mode-map "h" 'describe-mode)
   (define-key dired-mode-map "i" 'dired-maybe-insert-subdir)
-  (define-key dired-mode-map "k" 'dired-kill-line-or-subdir)
+  (define-key dired-mode-map "k" 'dired-do-kill-lines)
   (define-key dired-mode-map "l" 'dired-do-redisplay)
   (define-key dired-mode-map "m" 'dired-mark)
   (define-key dired-mode-map "n" 'dired-next-line)
@@ -1678,6 +1677,24 @@ With prefix argument, unflag these files."
 	    (if fn (backup-file-name-p fn))))
      "backup file")))
 
+(defun dired-change-marks (&optional old new)
+  "Change all OLD marks to NEW marks.
+OLD and NEW are both characters used to mark files."
+  (interactive
+   (let* ((cursor-in-echo-area t)
+	  (old (progn (message "Change (old mark): ") (read-char)))
+	  (new (progn (message  "Change %c marks to (new mark): " old)
+		      (read-char))))
+     (list old new)))
+  (let ((regexp (format "^%s" (regexp-quote old)))
+	(buffer-read-only))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward regexp nil t)
+	(beginning-of-line)
+	(delete-region (point) (1+ (point)))
+	(insert-char new 1)))))
+
 (defun dired-unmark-all-files (flag &optional arg)
   "Remove a specific mark or any mark from every file.
 With an arg, queries for each marked file.
@@ -1713,7 +1730,7 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
       (let ((owindow (selected-window))
 	    (window (display-buffer (get-buffer dired-log-buffer))))
 	(unwind-protect
-	    (save-excursion
+	    (progn
 	      (select-window window)
 	      (goto-char (point-max))
 	      (recenter -1))
@@ -1881,28 +1898,23 @@ Uses the shell command coming from variables `lpr-command' and
   t)
 
 (autoload 'dired-do-shell-command "dired-aux"
-  "Run a shell command on the marked files.
-If there is output, it goes to a separate buffer.
-Normally the command is run on each file individually.
-However, if there is a `*' in the command then it is run
-just once with the entire file list substituted there.
-
+  "Run a shell command COMMAND on the marked files.
 If no files are marked or a specific numeric prefix arg is given,
 the next ARG files are used.  Just \\[universal-argument] means the current file.
 The prompt mentions the file(s) or the marker, as appropriate.
 
-No automatic redisplay is attempted, as the file names may have
-changed.  Type \\[dired-do-redisplay] to redisplay the marked files.
+If there is output, it goes to a separate buffer.
+
+Normally the command is run on each file individually.
+However, if there is a `*' in the command then it is run
+just once with the entire file list substituted there.
+
+No automatic redisplay of dired buffers is attempted, as there's no
+telling what files the command may have changed.  Type
+\\[dired-do-redisplay] to redisplay the marked files.
 
 The shell command has the top level directory as working directory, so
 output files usually are created there instead of in a subdir."
-  t)
-
-(autoload 'dired-kill-line-or-subdir "dired-aux"
-  "Kill this line (but don't delete its file).
-Optional prefix argument is a repeat factor.
-If file is displayed as in situ subdir, kill that as well.
-If on a subdir headerline, kill whole subdir."
   t)
 
 (autoload 'dired-do-kill-lines "dired-aux"
