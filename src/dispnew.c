@@ -1858,7 +1858,7 @@ update_line (frame, vpos)
   current_frame->charstarts[vpos] = temp1;
 }
 
-/* A vector of size NFRAMES + 3 * NBUFFERS + 1, containing the session's
+/* A vector of size >= NFRAMES + 3 * NBUFFERS + 1, containing the session's
    frames, buffers, buffer-read-only flags, and buffer-modified-flags,
    and a trailing sentinel (so we don't need to add length checks).  */
 static Lisp_Object frame_and_buffer_state;
@@ -1897,7 +1897,10 @@ the current state.\n")
     n++;
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
     n += 3;
-  frame_and_buffer_state = Fmake_vector (make_number (n), Qlambda);
+  /* Reallocate the vector if it's grown, or if it's shrunk a lot.  */
+  if (n > XVECTOR (frame_and_buffer_state)->size
+      || n < XVECTOR (frame_and_buffer_state)->size / 2)
+    frame_and_buffer_state = Fmake_vector (make_number (n), Qlambda);
   vecp = XVECTOR (frame_and_buffer_state)->contents;
   FOR_EACH_FRAME (tail, frame)
     *vecp++ = frame;
@@ -1908,6 +1911,9 @@ the current state.\n")
       *vecp++ = XBUFFER (buf)->read_only;
       *vecp++ = Fbuffer_modified_p (buf);
     }
+  /* If we left any slack in the vector, fill it up now.  */
+  for (; n < XVECTOR (frame_and_buffer_state)->size; ++n)
+    *vecp++ = Qlambda;
   return Qt;
 }
 
