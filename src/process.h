@@ -60,6 +60,8 @@ struct Lisp_Process
     /* t if this is a real child process.
        For a net connection, it is a plist based on the arguments to make-network-process.  */
     Lisp_Object childp;
+    /* Plist for this process' private variables.  */
+    Lisp_Object private_vars;
     /* Marker set to end of last buffer-inserted output from this process */
     Lisp_Object mark;
     /* Non-nil means kill silently if Emacs is exited.
