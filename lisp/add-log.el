@@ -333,7 +333,7 @@ Has a preference of looking backwards."
 		       (skip-chars-forward " ")
 		       (buffer-substring (point)
 					 (progn (forward-sexp 1) (point))))))
-		((and (memq major-mode '(c-mode c++-mode c++-c-mode))
+		((and (memq major-mode '(c-mode c++-mode c++-c-mode objc-mode))
 		      (save-excursion (beginning-of-line)
 				      ;; Use eq instead of = here to avoid
 				      ;; error when at bob and char-after
@@ -349,9 +349,7 @@ Has a preference of looking backwards."
 		 (skip-chars-forward " \t")
 		 (buffer-substring (point)
 				   (progn (forward-sexp 1) (point))))
-		((and (eq major-mode 'objc-mode)
-		      (get-method-definition)))
-		((memq major-mode '(c-mode c++-mode c++-c-mode))
+		((memq major-mode '(c-mode c++-mode c++-c-mode objc-mode))
 		 (beginning-of-line)
 		 ;; See if we are in the beginning part of a function,
 		 ;; before the open brace.  If so, advance forward.
@@ -393,36 +391,38 @@ Has a preference of looking backwards."
 				     (skip-chars-forward " ,")))
 			       (buffer-substring (point)
 						 (progn (forward-sexp 1) (point))))
-			   ;; Ordinary C function syntax.
-			   (setq beg (point))
-			   (if (condition-case nil
-				   ;; Protect against "Unbalanced parens" error.
-				   (progn
-				     (down-list 1) ; into arglist
-				     (backward-up-list 1)
-				     (skip-chars-backward " \t")
-				     t)
-				 (error nil))
-			       ;; Verify initial pos was after
-			       ;; real start of function.
-			       (if (and (save-excursion
-					  (goto-char beg)
-					  ;; For this purpose, include the line
-					  ;; that has the decl keywords.  This
-					  ;; may also include some of the
-					  ;; comments before the function.
-					  (while (and (not (bobp))
-						      (save-excursion
-							(forward-line -1)
-							(looking-at "[^\n\f]")))
-					    (forward-line -1))
-					  (>= location (point)))
-					;; Consistency check: going down and up
-					;; shouldn't take us back before BEG.
-					(> (point) beg))
-				   (buffer-substring (point)
-						     (progn (backward-sexp 1)
-							    (point))))))))))
+                           (if (looking-at "^[+-]")
+                               (get-method-definition)
+                             ;; Ordinary C function syntax.
+                             (setq beg (point))
+                             (if (condition-case nil
+                                     ;; Protect against "Unbalanced parens" error.
+                                     (progn
+                                       (down-list 1) ; into arglist
+                                       (backward-up-list 1)
+                                       (skip-chars-backward " \t")
+                                       t)
+                                   (error nil))
+                                 ;; Verify initial pos was after
+                                 ;; real start of function.
+                                 (if (and (save-excursion
+                                            (goto-char beg)
+                                            ;; For this purpose, include the line
+                                            ;; that has the decl keywords.  This
+                                            ;; may also include some of the
+                                            ;; comments before the function.
+                                            (while (and (not (bobp))
+                                                        (save-excursion
+                                                          (forward-line -1)
+                                                          (looking-at "[^\n\f]")))
+                                              (forward-line -1))
+                                            (>= location (point)))
+                                          ;; Consistency check: going down and up
+                                          ;; shouldn't take us back before BEG.
+                                          (> (point) beg))
+                                     (buffer-substring (point)
+                                                       (progn (backward-sexp 1)
+                                                              (point)))))))))))
 		((memq major-mode
 		       '(TeX-mode plain-TeX-mode LaTeX-mode;; tex-mode.el
 				  plain-tex-mode latex-mode;; cmutex.el
