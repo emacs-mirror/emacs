@@ -1714,7 +1714,7 @@ emacs_mule_char (coding, src, nbytes, nchars, id)
 	  if (! (charset = emacs_mule_charset[c]))
 	    goto invalid_code;
 	  ONE_MORE_BYTE (c);
-	  if (c < 0)
+	  if (c < 0xA0)
 	    goto invalid_code;
 	  code = c & 0x7F;
 	  break;
@@ -1724,10 +1724,10 @@ emacs_mule_char (coding, src, nbytes, nchars, id)
 	      || c == EMACS_MULE_LEADING_CODE_PRIVATE_12)
 	    {
 	      ONE_MORE_BYTE (c);
-	      if (c < 0 || ! (charset = emacs_mule_charset[c]))
+	      if (c < 0xA0 || ! (charset = emacs_mule_charset[c]))
 		goto invalid_code;
 	      ONE_MORE_BYTE (c);
-	      if (c < 0)
+	      if (c < 0xA0)
 		goto invalid_code;
 	      code = c & 0x7F;
 	    }
@@ -1736,11 +1736,11 @@ emacs_mule_char (coding, src, nbytes, nchars, id)
 	      if (! (charset = emacs_mule_charset[c]))
 		goto invalid_code;
 	      ONE_MORE_BYTE (c);
-	      if (c < 0)
+	      if (c < 0xA0)
 		goto invalid_code;
 	      code = (c & 0x7F) << 8;
 	      ONE_MORE_BYTE (c);
-	      if (c < 0)
+	      if (c < 0xA0)
 		goto invalid_code;
 	      code |= c & 0x7F;
 	    }
@@ -1751,11 +1751,11 @@ emacs_mule_char (coding, src, nbytes, nchars, id)
 	  if (c < 0 || ! (charset = emacs_mule_charset[c]))
 	    goto invalid_code;
 	  ONE_MORE_BYTE (c);
-	  if (c < 0)
+	  if (c < 0xA0)
 	    goto invalid_code;
 	  code = (c & 0x7F) << 8;
 	  ONE_MORE_BYTE (c);
-	  if (c < 0)
+	  if (c < 0xA0)
 	    goto invalid_code;
 	  code |= c & 0x7F;
 	  break;
@@ -3232,7 +3232,10 @@ decode_coding_iso_2022 (coding)
 			  && src + 1 < src_end
 			  && src[0] == '%'
 			  && src[1] == '@')
-			break;
+			{
+			  src += 2;
+			  break;
+			}
 		      *p++ = ASCII_BYTE_P (c1) ? c1 : BYTE8_TO_CHAR (c1);
 		    }
 		  if (p + 3 > charbuf_end)
@@ -5948,11 +5951,14 @@ produce_composition (coding, charbuf, pos)
 
   len = -charbuf[0];
   to = pos + charbuf[2];
+  if (to <= pos)
+    return;
   method = (enum composition_method) (charbuf[3]);
 
   if (method == COMPOSITION_RELATIVE)
     components = Qnil;
-  else
+  else if (method >= COMPOSITION_WITH_RULE
+	   && method <= COMPOSITION_WITH_RULE_ALTCHARS)
     {
       Lisp_Object args[MAX_COMPOSITION_COMPONENTS * 2 - 1];
       int i;
@@ -5960,10 +5966,16 @@ produce_composition (coding, charbuf, pos)
       len -= 4;
       charbuf += 4;
       for (i = 0; i < len; i++)
-	args[i] = make_number (charbuf[i]);
+	{
+	  args[i] = make_number (charbuf[i]);
+	  if (args[i] < 0)
+	    return;
+	}
       components = (method == COMPOSITION_WITH_ALTCHARS
 		    ? Fstring (len, args) : Fvector (len, args));
     }
+  else
+    return;
   compose_text (pos, to, components, Qnil, coding->dst_object);
 }
 
@@ -7021,7 +7033,9 @@ If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.  */
 DEFUN ("check-coding-system", Fcheck_coding_system, Scheck_coding_system,
        1, 1, 0,
        doc: /* Check validity of CODING-SYSTEM.
-If valid, return CODING-SYSTEM, else signal a `coding-system-error' error.  */)
+If valid, return CODING-SYSTEM, else signal a `coding-system-error' error.
+It is valid if it is nil or a symbol defined as a coding system by the
+function `define-coding-system'.  */)
   (coding_system)
      Lisp_Object coding_system;
 {
@@ -9574,3 +9588,6 @@ emacs_strerror (error_number)
 }
 
 #endif /* emacs */
+
+/* arch-tag: 3a3a2b01-5ff6-4071-9afe-f5b808d9229d
+   (do not change this comment) */
