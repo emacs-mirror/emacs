@@ -1,3 +1,8 @@
+2001-01-02  Andrew Innes  <andrewi@gnu.org>
+
+	* config.nt (RE_TRANSLATE): Use CHAR_TABLE_TRANSLATE macro rather
+	than the function.
+
 2000-12-17  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (install): Copy directories to the correct

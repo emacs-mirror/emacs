@@ -1,3 +1,50 @@
+2001-01-02  Andrew Innes  <andrewi@gnu.org>
+
+	* term.c (FRAME_TERMCAP_P) [WINDOWSNT]: Remove redefinition.
+
+	* frame.h (output_method): Add output_w32_console method.
+	(FRAME_W32_CONSOLE_P): New macro.
+
+	* frame.c (make_terminal_frame) [WINDOWSNT]: Make terminal frames
+	use output_w32_console method.
+	(Qw32_console): New Lisp_Object.
+	(Fframep): Return it.
+	(syms_of_frame): Init it.
+	(Fframe_parameters): Report w32console as font for w32_console
+	frames.
+
+	* xfaces.c (realize_default_face): Set face foreground and
+	background to unspecified for w32_console frames.
+	(realize_face): Realize face cache for w32_console frames.
+	(realize_tty_face): Accept w32_console frames.
+
+	* xdisp.c (handle_single_display_prop): Return if frame is
+	w32_console.
+	(init_iterator) [WINDOWSNT]: Initialize frame face cache if
+	necessary, even if running interactively.
+
+	* dispnew.c (Fredraw_frame): Call set_terminal_modes for
+	w32_console frames.
+
+	* w32term.c (x_update_begin): 
+	(x_update_end): 
+	(x_clear_frame): 
+	(x_ins_del_lines): 
+	(x_change_line_highlight): 
+	(x_delete_glyphs): 
+	(w32_ring_bell): 
+	(x_update_begin): 
+	(x_update_end): 
+	(w32_reassert_line_highlight): 
+	(w32_frame_rehighlight): 
+	(w32_frame_raise_lower): Do nothing if not w32 frame.
+
+	* w32xfns.c (get_frame_dc): Abort if called on a non-w32 frame.
+
+	* w32fns.c (Fx_display_color_cells): Determine correct value, when
+	system doesn't tell us directly.
+	(Fx_display_visual_class): Implement properly.
+
 2001-01-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (Frecenter): Handle centering in graphical frames
