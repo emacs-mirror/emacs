@@ -70,6 +70,19 @@
 	     (eol-mnemonic-unix mule string)
 	     (eol-mnemonic-dos mule string)
 	     (eol-mnemonic-mac mule string)
+	     (file-coding-system-alist
+	      mule
+	      (alist
+	       :key-type (regexp :tag "File regexp")
+	       :value-type (choice
+			    :value (undecided . undecided)
+			    (cons :tag "Encoding/decoding pair"
+				  :value (undecided . undecided)
+				  (coding-system :tag "Decoding")
+				  (coding-system :tag "Encoding"))
+			    (coding-system :tag "Single coding system"
+					   :value undecided)
+			    (function :value ignore))))
 	     ;; dired.c
 	     (completion-ignored-extensions dired 
 					    (repeat (string :format "%v")))
@@ -191,6 +204,7 @@
 	     (window-min-height windows integer)
 	     (window-min-width windows integer)
 	     (scroll-preserve-screen-position windows boolean)
+	     (display-buffer-reuse-frames windows boolean "21.1")
 	     ;; xdisp.c
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)
