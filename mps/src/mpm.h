@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.42) $
+ * $HopeName: MMsrc!mpm.h(trunk.43) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -220,6 +220,8 @@ extern void (BTRes)(BT bt, Index index);
     ~((Word)1<<((i)&~((Word)-1<<MPS_WORD_SHIFT))); \
   END
 
+extern Res BTCreate(BT *btReturn, Arena arena, Count length);
+extern void BTDestroy(BT bt, Arena arena, Count length);
 extern void BTSetRange(BT bt, Index base, Index limit);
 extern Bool BTIsSetRange(BT bt, Index base, Index limit);
 extern void BTResRange(BT bt, Index base, Index limit);
@@ -232,6 +234,8 @@ extern Bool BTFindLongResRange(Index *baseReturn, Index *limitReturn,
                                BT bt,
                                Index searchBase, Index searchLimit,
                                unsigned long length);
+extern Bool BTRangesSame(BT BTx, BT BTy, Index base, Index limit);
+extern void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit);
 
 
 /* Pool Interface -- see impl.c.pool */

@@ -1,6 +1,6 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.7) $
+ * $HopeName: MMsrc!bt.c(trunk.8) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -19,8 +19,46 @@
 
 #include "mpm.h"
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.7) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.8) $");
 
+
+/* AMSBTCreate -- allocate a BT from the control pool
+ * 
+ * See design.mps.bt.if.create
+ */
+
+Res BTCreate(BT *btReturn, Arena arena, Count length)
+{
+  Res res;
+  BT bt;
+  void *p;
+
+  AVER(btReturn != NULL);
+  AVERT(Arena, arena);
+  AVER(length > 0);
+
+  res = ArenaAlloc(&p, arena, BTSize(length));
+  if(res != ResOK)
+    return res;
+  bt = (BT)p;
+
+  *btReturn = bt;
+  return ResOK;
+}
+
+/* BTDestroy -- free a BT to the control pool.
+ * 
+ * See design.mps.bt.if.destroy
+ */
+
+void BTDestroy(BT bt, Arena arena, Count length)
+{
+  AVER(bt != NULL);
+  AVERT(Arena, arena);
+  AVER(length > 0);
+  
+  ArenaFree(arena, bt, BTSize(length));
+}
 
 /* BTCheck -- check the validity of a bit table
  *
@@ -247,3 +285,38 @@ Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn,
                         searchBase, searchLimit,
                         length, length);
 }
+
+/* BTRangesSame -- check that a range of bits in two BTs are the same.
+ * 
+ * See design.mps.bt.if.ranges-same
+ */
+ 
+Bool BTRangesSame(BT BTx, BT BTy, Index base, Index limit)
+{
+  Index i = base;
+  while(i < limit) {
+    if (BTGet(BTx, i) != BTGet(BTy, i))
+      return FALSE;
+    ++ i;
+  }
+  return TRUE;
+}
+
+/* BTCopyInvertRange -- copy a range of bits from one BT to another,
+ * inverting them as you go.
+ * 
+ * See design.mps.bt.if.copy-invert-range
+ */
+
+void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit)
+{
+  Index i = base;
+  while(i < limit) {
+    if (BTGet(fromBT, i))
+      BTRes(toBT,i);
+    else
+      BTSet(toBT,i);
+    ++ i;
+  }
+}
+
