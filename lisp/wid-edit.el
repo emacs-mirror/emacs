@@ -470,6 +470,11 @@ Otherwise, just return the value."
 		:value-set (widget-apply widget
 					 :value-to-internal value)))
 
+(defun widget-default-get (widget)
+  "Extract the defaylt value of WIDGET."
+  (or (widget-get widget :value)
+      (widget-apply widget :default-get)))
+
 (defun widget-match-inline (widget vals)
   ;; In WIDGET, match the start of VALS.
   (cond ((widget-get widget :inline)
@@ -1334,6 +1339,7 @@ Optional EVENT is the event that triggered the action."
   :delete 'widget-default-delete
   :value-set 'widget-default-value-set
   :value-inline 'widget-default-value-inline
+  :default-get 'widget-default-default-get
   :menu-tag-get 'widget-default-menu-tag-get
   :validate (lambda (widget) nil)
   :active 'widget-default-active
@@ -1529,6 +1535,10 @@ If that does not exists, call the value of `widget-complete-field'."
   (if (widget-get widget :inline)
       (widget-value widget)
     (list (widget-value widget))))
+
+(defun widget-default-default-get (widget)
+  ;; Get `:value'.
+  (widget-get widget :value))
 
 (defun widget-default-menu-tag-get (widget)
   ;; Use tag or value for menus.
@@ -1903,6 +1913,7 @@ If END is omitted, it defaults to the length of LIST."
   :value-delete 'widget-children-value-delete
   :value-get 'widget-choice-value-get
   :value-inline 'widget-choice-value-inline
+  :default-get 'widget-choice-default-get
   :mouse-down-action 'widget-choice-mouse-down-action
   :action 'widget-choice-action
   :error "Make a choice"
@@ -1946,6 +1957,10 @@ If END is omitted, it defaults to the length of LIST."
 (defun widget-choice-value-inline (widget)
   ;; Get value of the child widget.
   (widget-apply (car (widget-get widget :children)) :value-inline))
+
+(defun widget-choice-default-get (widget)
+  ;; Get default for the first choice.
+  (widget-default-get (car (widget-get widget :args))))
 
 (defcustom widget-choice-toggle nil
   "If non-nil, a binary choice will just toggle between the values.
@@ -2023,9 +2038,9 @@ when he invoked the menu."
       (when this-explicit
 	(widget-put widget :explicit-choice current)
 	(widget-put widget :explicit-choice-value (widget-get widget :value)))
-      (widget-value-set widget 
-			(widget-apply current :value-to-external
-				      (widget-get current :value)))
+      (let ((value (widget-default-get current)))
+	(widget-value-set widget 
+			  (widget-apply current :value-to-external value)))
       (widget-setup)
       (widget-apply widget :notify widget event)))
   (run-hook-with-args 'widget-edit-functions widget))
@@ -2635,7 +2650,8 @@ when he invoked the menu."
 		(if conv
 		    (setq child (widget-create-child-value 
 				 widget type value))
-		  (setq child (widget-create-child widget type))))
+		  (setq child (widget-create-child-value 
+			       widget type (widget-default-get type)))))
 	       (t 
 		(error "Unknown escape `%c'" escape)))))
      (widget-put widget 
@@ -2661,6 +2677,7 @@ when he invoked the menu."
   :value-create 'widget-group-value-create
   :value-delete 'widget-children-value-delete
   :value-get 'widget-editable-list-value-get
+  :default-get 'widget-group-default-get
   :validate 'widget-children-validate
   :match 'widget-group-match
   :match-inline 'widget-group-match-inline)
@@ -2686,6 +2703,10 @@ when he invoked the menu."
 		   (widget-create-child-value widget arg  (car (car answer)))))
 	    children))
     (widget-put widget :children (nreverse children))))
+
+(defun widget-group-default-get (widget)
+  ;; Get the default of the components.
+  (mapcar 'widget-default-get (widget-get widget :args)))
 
 (defun widget-group-match (widget values)
   ;; Match if the components match.
