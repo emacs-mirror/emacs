@@ -241,7 +241,10 @@ struct frame
   /* Number of elements in the vector that have meaningful data.  */
   int menu_bar_items_used;
 
-  /* Width of the scroll bar, in pixels and in characters.  */
+  /* Width of the scroll bar, in pixels and in characters.
+     scroll_bar_cols tracks scroll_bar_pixel_width if the latter is positive;
+     a zero value in scroll_bar_pixel_width means to compute the actual width
+     on the fly, using scroll_bar_cols and the current font width.  */
   int scroll_bar_pixel_width;
   int scroll_bar_cols;
 };
