@@ -520,7 +520,7 @@ If the third argument is incorrect, Emacs may crash.")
 	    v1 = vectorp[op];
 	    if (SYMBOLP (v1))
 	      {
-		v2 = XSYMBOL (v1)->value;
+		v2 = SYMBOL_VALUE (v1);
 		if (MISCP (v2) || EQ (v2, Qunbound))
 		  {
 		    BEFORE_POTENTIAL_GC ();
@@ -626,16 +626,9 @@ If the third argument is incorrect, Emacs may crash.")
 	    /* Inline the most common case.  */
 	    if (SYMBOLP (sym)
 		&& !EQ (val, Qunbound)
-		&& !MISCP (XSYMBOL (sym)->value)
-		/* I think this should either be checked in the byte
-		   compiler, or there should be a flag indicating that
-		   a symbol might be constant in Lisp_Symbol, instead
-		   of checking this here over and over again. --gerd.  */
-		&& !EQ (sym, Qnil)
-		&& !EQ (sym, Qt)
-		&& !(XSYMBOL (sym)->name->data[0] == ':'
-		     && EQ (XSYMBOL (sym)->obarray, initial_obarray)
-		     && !EQ (val, sym)))
+		&& !XSYMBOL (sym)->indirect_variable
+		&& !XSYMBOL (sym)->constant
+		&& !MISCP (XSYMBOL (sym)->value))
 	      XSYMBOL (sym)->value = val;
 	    else
 	      {
