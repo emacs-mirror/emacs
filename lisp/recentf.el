@@ -793,7 +793,7 @@ unchanged."
 Used by `recentf-edit-list' and `recentf-open-files' dialogs."
   (interactive)
   (kill-buffer (current-buffer))
-  (message "Dialog canceled."))
+  (message "Dialog canceled"))
 
 (defvar recentf-dialog-mode-map nil
   "`recentf-dialog-mode' keymap.")
