@@ -317,7 +317,8 @@ where @var{NAME} is the Lisp data base name you are using.
 @item --append
 By default, each run of @command{ebrowse} erases the old contents of the
 output file when writing to it.  You can instruct @command{ebrowse} to
-append its output to an existing file with this command line option.
+append its output to an existing file produced by @command[ebrowse}
+with this command line option.
 @end table
 
 
