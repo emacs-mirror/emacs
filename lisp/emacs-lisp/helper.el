@@ -121,7 +121,8 @@
     (save-excursion
       (set-buffer (get-buffer-create "*Help*"))
       (erase-buffer)
-      (insert name " Mode\n" documentation)))
+      (insert name " Mode\n" documentation)
+      (help-mode)))
   (Helper-help-scroller))
 
 ;;;###autoload
