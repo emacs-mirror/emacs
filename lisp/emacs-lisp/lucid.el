@@ -135,6 +135,8 @@ bottom of the buffer stack."
 (defalias 'find-face 'internal-find-face)
 (defalias 'get-face 'internal-get-face)
 (defalias 'try-face-font 'internal-try-face-font)
+
+(defalias 'exec-to-string 'shell-command-to-string)
 
 (defun make-extent (beg end &optional buffer)
   (make-overlay beg end buffer))
