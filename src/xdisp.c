@@ -6842,17 +6842,6 @@ push_message ()
 }
 
 
-/* Handler for record_unwind_protect calling pop_message.  */
-
-Lisp_Object
-push_message_unwind (dummy)
-     Lisp_Object dummy;
-{
-  pop_message ();
-  return Qnil;
-}
-
-
 /* Restore message display from the top of Vmessage_stack.  */
 
 void
@@ -6868,6 +6857,16 @@ restore_message ()
     message3_nolog (msg, 0, 0);
 }
 
+
+/* Handler for record_unwind_protect calling pop_message.  */
+
+Lisp_Object
+pop_message_unwind (dummy)
+     Lisp_Object dummy;
+{
+  pop_message ();
+  return Qnil;
+}
 
 /* Pop the top-most entry off Vmessage_stack.  */
 
