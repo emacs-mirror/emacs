@@ -339,6 +339,9 @@ If a number, only buffers greater than this size have fontification messages."
 (defvar font-lock-warning-face		'font-lock-warning-face
   "Face name to use for things that should stand out.")
 
+(defvar font-lock-preprocessor-face	'font-lock-preprocessor-face
+  "Face name to use for preprocessor directives.")
+
 (defvar font-lock-reference-face	'font-lock-constant-face)
 (make-obsolete-variable 'font-lock-reference-face 'font-lock-constant-face)
 
@@ -1618,6 +1621,11 @@ A LEVEL of nil is equal to a LEVEL of 0, a LEVEL of t is equal to
     (((class color) (background dark)) (:foreground "Pink" :weight bold))
     (t (:inverse-video t :weight bold)))
   "Font Lock mode face used to highlight warnings."
+  :group 'font-lock-highlighting-faces)
+
+(defface font-lock-preprocessor-face
+  '((t :inherit 'font-lock-builtin-face))
+  "Font Lock mode face used to highlight preprocessor directives."
   :group 'font-lock-highlighting-faces)
 
 ;;; End of Colour etc. support.
