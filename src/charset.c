@@ -747,13 +747,14 @@ The width is measured by how many columns it occupies on the screen.")
 {
   Lisp_Object val, disp;
   int c;
+  struct Lisp_Char_Table *dp = buffer_display_table ();
 
   CHECK_NUMBER (ch, 0);
 
   c = XINT (ch);
 
   /* Get the way the display table would display it.  */
-  disp = DISP_CHAR_VECTOR (buffer_display_table (current_buffer), (c));
+  disp = dp ? DISP_CHAR_VECTOR (dp, c) : Qnil;
 
   if (VECTORP (disp))
     XSETINT (val, XVECTOR (disp)->size);
