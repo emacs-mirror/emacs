@@ -391,7 +391,7 @@ BBDB fields.  SPECs are sexps which are evaluated:
 (defcustom eudc-bbdb-use-locations-as-attribute-names t
   "If non-nil, BBDB address and phone locations are used as attribute names.
 This has no effect on queries (you can't search for a specific location)
-but influences the way records are displayed"
+but influences the way records are displayed."
   :type 'boolean
   :group 'eudc-bbdb)
 
