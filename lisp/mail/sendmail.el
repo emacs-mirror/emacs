@@ -43,8 +43,9 @@ If `parens', they look like:
 	king@grassland.com (Elvis Parsley)
 If `angles', they look like:
 	Elvis Parsley <king@grassland.com>
-If `default', Rmail allows the system to insert its default From field."
-  :type '(choice (const nil) (const parens) (const angles) (const default))
+If `system-default', Rmail allows the system to insert its default From field."
+  :type '(choice (const nil) (const parens) (const angles)
+		 (const system-default))
   :version "20.3"
   :group 'sendmail)
 
