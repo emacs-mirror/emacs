@@ -40,10 +40,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define __TIMEVAL__
 #endif
 
+/* These don't seem to be used.  */
+#if 0
 /* Display Context for the icons */ 
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
-/* #include <X11/Xmu/Drawing.h> */  /* Appears not to be used */
+#include <X11/Xmu/Drawing.h>
+#endif
+
 #include <X11/Xos.h>
 
 
@@ -428,7 +432,7 @@ load_color (f, name)
 static void
 unload_color (f, pixel)
      struct frame *f;
-     Pixel pixel;
+     unsigned long pixel;
 {
   /* Since faces get built by copying parameters from other faces, the
      allocation counts for the colors get all screwed up.  I don't see
