@@ -288,50 +288,6 @@ or one is an alias of the other."
 		 (and (vectorp eol-type-1) (vectorp eol-type-2)))))))
 
 ;;;###autoload
-(defun coding-system-change-eol-conversion (coding-system eol-type)
-  "Return a coding system which differs from CODING-SYSTEM in eol conversion.
-The returned coding system converts end-of-line by EOL-TYPE
-but text as the same way as CODING-SYSTEM.
-EOL-TYPE should be `unix', `dos', `mac', or nil.
-If EOL-TYPE is nil, the returned coding system detects
-how end-of-line is formatted automatically while decoding.
-
-EOL-TYPE can be specified by an integer 0, 1, or 2.
-They means `unix', `dos', and `mac' respectively."
-  (if (symbolp eol-type)
-      (setq eol-type (cond ((eq eol-type 'unix) 0)
-			   ((eq eol-type 'dos) 1)
-			   ((eq eol-type 'mac) 2)
-			   (t eol-type))))
-  (let ((orig-eol-type (coding-system-eol-type coding-system)))
-    (if (vectorp orig-eol-type)
-	(if (not eol-type)
-	    coding-system
-	  (aref orig-eol-type eol-type))
-      (let ((base (coding-system-base coding-system)))
-	(if (not eol-type)
-	    base
-	  (if (= eol-type orig-eol-type)
-	      coding-system
-	    (setq orig-eol-type (coding-system-eol-type base))
-	    (if (vectorp orig-eol-type)
-		(aref orig-eol-type eol-type))))))))
-
-;;;###autoload
-(defun coding-system-change-text-conversion (coding-system coding)
-  "Return a coding system which differs from CODING-SYSTEM in text conversion.
-The returned coding system converts text by CODING
-but end-of-line as the same way as CODING-SYSTEM.
-If CODING is nil, the returned coding system detects
-how text is formatted automatically while decoding."
-  (if (not coding)
-      (coding-system-base coding-system)
-    (let ((eol-type (coding-system-eol-type coding-system)))
-      (coding-system-change-eol-conversion
-       coding
-       (if (numberp eol-type) (aref [unix dos mac] eol-type))))))
-
-;;;###autoload
 (defmacro detect-coding-with-priority (from to priority-list)
   "Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
 PRIORITY-LIST is an alist of coding categories vs the corresponding
