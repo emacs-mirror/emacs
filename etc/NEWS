@@ -1791,6 +1791,11 @@ configuration files.
 * Lisp Changes in Emacs 21.4
 
 +++
+** The flags, width, and precision options for %-specifications in function
+`format' are now documented.  Some flags that were accepted but not
+implemented (such as "*") are no longer accepted.
+
++++
 ** New function `delete-dups' destructively removes `equal' duplicates
 from a list.  Of several `equal' occurrences of an element in the list,
 the last one is kept.

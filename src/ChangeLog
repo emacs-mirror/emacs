@@ -1,3 +1,7 @@
+2004-01-24  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* editfns.c (Fformat): Make both passes accept the same set of flags.
+
 2004-01-23  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (Fmd5): If OBJECT is a buffer different from the current
