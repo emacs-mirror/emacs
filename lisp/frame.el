@@ -166,6 +166,14 @@ These supersede the values given in `default-frame-alist'.")
 ;;; information to which we must react; do what needs to be done.
 (defun frame-notice-user-settings ()
 
+  ;; Make menu-bar-mode and default-frame-alist consistent.
+  (let ((default (assq 'menu-bar-lines default-frame-alist)))
+    (if default
+	(setq menu-bar-mode (not (eq (cdr default) 0)))
+      (setq default-frame-alist
+	    (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
+		  default-frame-alist))))
+
   ;; Creating and deleting frames may shift the selected frame around,
   ;; and thus the current buffer.  Protect against that.  We don't
   ;; want to use save-excursion here, because that may also try to set
