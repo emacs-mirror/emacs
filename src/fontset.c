@@ -1441,11 +1441,10 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	    CHECK_STRING (AREF (font_spec, j));
 	    ASET (font_spec, j, Fdowncase (AREF (font_spec, j)));
 	  }
+      family = AREF (font_spec, FONT_SPEC_FAMILY_INDEX);
       /* REGISTRY should not be omitted.  */
       CHECK_STRING (AREF (font_spec, FONT_SPEC_REGISTRY_INDEX));
-      registry = Fdowncase (AREF (font_spec, FONT_SPEC_REGISTRY_INDEX));
-      ASET (font_spec, FONT_SPEC_REGISTRY_INDEX, registry);
-
+      registry = AREF (font_spec, FONT_SPEC_REGISTRY_INDEX);
     }
   else if (CONSP (font_spec))
     {
