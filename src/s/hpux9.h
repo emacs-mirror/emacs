@@ -46,3 +46,6 @@
 
 /* HP-UX doesn't supply nor need Xmu.  */
 #define LIBXMU
+
+/* zoo@armadillo.com says we don't need -lXext in HPUX 9.  */
+#undef LIBX11_SYSTEM
