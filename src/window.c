@@ -1164,7 +1164,7 @@ delete_window (window)
   register Lisp_Object tem, parent, sib;
   register struct window *p;
   register struct window *par;
-  FRAME_PTR frame;
+  struct frame *f;
 
   /* Because this function is called by other C code on non-leaf
      windows, the CHECK_LIVE_WINDOW macro would choke inappropriately,
@@ -1188,18 +1188,17 @@ delete_window (window)
 
   windows_or_buffers_changed++;
   Vwindow_list = Qnil;
-  frame = XFRAME (WINDOW_FRAME (p));
-  FRAME_WINDOW_SIZES_CHANGED (frame) = 1;
+  f = XFRAME (WINDOW_FRAME (p));
+  FRAME_WINDOW_SIZES_CHANGED (f) = 1;
 
   /* Are we trying to delete any frame's selected window?  */
   {
-    Lisp_Object frame, pwindow;
+    Lisp_Object pwindow;
 
     /* See if the frame's selected window is either WINDOW
        or any subwindow of it, by finding all that window's parents
        and comparing each one with WINDOW.  */
-    frame = WINDOW_FRAME (XWINDOW (window));
-    pwindow = FRAME_SELECTED_WINDOW (XFRAME (frame));
+    pwindow = FRAME_SELECTED_WINDOW (f);
 
     while (!NILP (pwindow))
       {
@@ -1221,7 +1220,7 @@ delete_window (window)
 	if (EQ (window, selected_window))
 	  Fselect_window (alternative);
 	else
-	  FRAME_SELECTED_WINDOW (XFRAME (frame)) = alternative;
+	  FRAME_SELECTED_WINDOW (f) = alternative;
       }
   }
 
@@ -1240,7 +1239,7 @@ delete_window (window)
      events and other events that access glyph matrices are not
      processed while we are changing them.  */
   BLOCK_INPUT;
-  free_window_matrices (XWINDOW (FRAME_ROOT_WINDOW (frame)));
+  free_window_matrices (XWINDOW (FRAME_ROOT_WINDOW (f)));
 
   tem = p->next;
   if (!NILP (tem))
@@ -1297,7 +1296,7 @@ delete_window (window)
   p->buffer = p->hchild = p->vchild = Qnil;
 
   /* Adjust glyph matrices. */
-  adjust_glyphs (frame);
+  adjust_glyphs (f);
   UNBLOCK_INPUT;
 }
 
@@ -4931,7 +4930,6 @@ the return value is nil.  Otherwise the value is t.")
 	      xassert (NILP (leaf_windows[i]->hchild) 
 		       && NILP (leaf_windows[i]->vchild));
 	      free_window_matrices (leaf_windows[i]);
-	      SET_FRAME_GARBAGED (f);
 	    }
 	  else if (EQ (leaf_windows[i]->buffer, new_current_buffer))
 	    ++n;
