@@ -1,3 +1,7 @@
+2005-01-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/uni-name.el: Re-generated.
+
 2005-02-24  Miles Bader  <miles@gnu.org>
 
 	* international/mule.el (auto-coding-regexp-alist)

@@ -1,3 +1,7 @@
+2005-03-02  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el (unidata-get-name): Handle "CJK IDEOGRAPH".
+
 2005-01-30  Kenichi Handa  <handa@m17n.org>
 
 	Sub-directory `unidata' is for codes to generate charprop.el and
