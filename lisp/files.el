@@ -1836,8 +1836,7 @@ With arg, set read-only iff arg is positive."
 	(if (null arg)
             (not buffer-read-only)
             (> (prefix-numeric-value arg) 0)))
-  ;; Force mode-line redisplay
-  (set-buffer-modified-p (buffer-modified-p)))
+  (force-mode-line-update))
 
 (defun insert-file (filename)
   "Insert contents of file FILENAME into buffer after point.
@@ -1896,7 +1895,7 @@ or multiple mail buffers, etc."
 	   (name (buffer-name new-buf)))
       (kill-buffer new-buf)
       (rename-buffer name)
-      (set-buffer-modified-p (buffer-modified-p))))) ; force mode line update
+      (force-mode-line-update))))
 
 (defun make-directory (dir &optional parents)
   "Create the directory DIR and any nonexistent parent dirs.
