@@ -2516,10 +2516,12 @@ init_lread ()
     }
   else
     {
-      /* ../lisp refers to the build directory.
-	 NORMAL refers to the lisp dir in the source directory.  */
-      Vload_path = Fcons (build_string ("../lisp"),
-			  decode_env_path (0, normal));
+      /* NORMAL refers to the lisp dir in the source directory.  */
+      /* We used to add ../lisp at the front here, but
+	 that caused trouble because it was copied from dump_path
+	 into Vload_path, aboe, when Vinstallation_directory was non-nil.
+	 It should be unnecessary.  */
+      Vload_path = decode_env_path (0, normal);
       dump_path = Vload_path;
     }
 #endif
