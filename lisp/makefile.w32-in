@@ -171,9 +171,39 @@ finder-data: doit
 	$(emacs) -l finder -f finder-compile-keywords-make-dist $(lisp) $(WINS)
 
 loaddefs.el:
+	$(MAKE) $(MFLAGS) loaddefs.el-$(SHELLTYPE)
+	cp loaddefs.el-$(SHELLTYPE) $@
+	rm loaddefs.el-$(SHELLTYPE)
+
+loaddefs.el-SH:
+	echo ";;; loaddefs.el --- automatically extracted autoloads" > $@
+	echo ";;" >> $@; echo ";;; Code:" >> $@
+	echo "(autoload 'define-minor-mode \"easy-mmode\")" >>$@
+	echo "(autoload 'define-ccl-program \"ccl\")" >>$@
+	echo "(autoload 'regexp-opt \"regexp-opt\")" >>$@
+	echo "(autoload 'string-to-list \"mule-util\")" >>$@
+	echo "(autoload 'define-derived-mode \"derived\")" >>$@
+	echo "(autoload 'encoded-kbd-mode \"encoded-kb\")" >>$@
+	echo "(defvar cvs-global-menu nil)" >>$@
+	echo "" >> $@
+	echo ";;; Local Variables:" >> $@
+	echo ";;; version-control: never" >> $@
+	echo ";;; no-byte-compile: t" >> $@
+	echo ";;; no-update-autoloads: t" >> $@
+	echo ";;; End:" >> $@
+	echo ";;; loaddefs.el ends here" >> $@
+
+loaddefs.el-CMD:
 	echo ;;; loaddefs.el --- automatically extracted autoloads> $@
 	echo ;;; Code:>> $@
-	echo >> $@
+	echo (autoload 'define-minor-mode "easy-mmode")>> $@
+	echo (autoload 'define-ccl-program "ccl")>> $@
+	echo (autoload 'regexp-opt "regexp-opt")>> $@
+	echo (autoload 'string-to-list "mule-util")>> $@
+	echo (autoload 'define-derived-mode "derived")>> $@
+	echo (autoload 'encoded-kbd-mode "encoded-kb")>> $@
+	echo (defvar cvs-global-menu nil)>> $@
+	echo.>> $@
 	echo ;;; Local Variables:>> $@
 	echo ;;; version-control: never>> $@
 	echo ;;; no-byte-compile: t>> $@
@@ -205,8 +235,7 @@ update-subdirs-CMD: doit
 	echo ))>> subdirs.el
 
 update-subdirs-SH: doit
-	wd=$(lisp); $(setwins); \
-	for file in $$wins; do \
+	for file in $(WINS); do \
 	   $(srcdir)/update-subdirs $$file; \
 	done;
 
@@ -247,21 +276,23 @@ compile: subdirs.el compile-$(SHELLTYPE) doit
 
 compile-CMD:
 #	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
-	for %f in ($(COMPILE_FIRST)) do $(emacs) -f batch-byte-compile %f
-	for %f in (. $(WINS)) do for %g in (%f/*.el) do $(emacs) -f batch-byte-compile %f/%g
+	for %f in ($(COMPILE_FIRST)) do \
+	  $(emacs) -l loaddefs -f batch-byte-compile-if-not-done %f
+	for %f in (. $(WINS)) do for %g in (%f/*.el) do \
+	  $(emacs) -l loaddefs -f batch-byte-compile-if-not-done %f/%g
 
 compile-SH:
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
-	  $(emacs) -f batch-byte-compile $$el; \
+	  $(emacs) -l loaddefs -f batch-byte-compile-if-not-done $$el; \
 	done
 	for dir in $(lisp) $(WINS); do \
 	  for el in $$dir/*.el; do \
 	    if test -f $$el; \
 	    then \
 	      echo Compiling $$el; \
-	      $(emacs) -f batch-byte-compile-if-not-done $$el; \
+	      $(emacs) -l loaddefs -f batch-byte-compile-if-not-done $$el; \
 	    fi \
 	  done; \
 	done
@@ -324,7 +355,7 @@ recompile: doit
 # bootstrap-emacs will be built from sources only.
 
 # Need separate version for sh and native cmd.exe
-bootstrap-clean: bootstrap-clean-$(SHELLTYPE)
+bootstrap-clean: bootstrap-clean-$(SHELLTYPE) loaddefs.el
 
 bootstrap-clean-CMD:
 #	if exist $(EMACS) $(MAKE) $(MFLAGS) autoloads
