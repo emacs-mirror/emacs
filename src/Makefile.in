@@ -163,6 +163,10 @@ CC = C_COMPILER
 #define LD_SWITCH_X_SITE
 #endif
 
+#ifndef LD_SWITCH_X_DEFAULT
+#define LD_SWITCH_X_DEFAULT
+#endif
+
 /* These can be passed in from config.h to define special load and
    compile switches needed by individual sites */
 #ifndef LD_SWITCH_SITE
@@ -321,7 +325,9 @@ LIBXT=
 #endif
 
 #ifdef HAVE_X11
-LIBX= $(LIBXMENU) LD_SWITCH_X_SITE $(LIBXT) LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM
+/* LD_SWITCH_X_DEFAULT comes after everything else that specifies
+   options for where to find X libraries, but before those libraries.  */
+LIBX= $(LIBXMENU) LD_SWITCH_X_SITE LD_SWITCH_X_DEFAULT $(LIBXT) LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM
 #else /* not HAVE_X11 */
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE -lX10 LIBX10_MACHINE LIBX10_SYSTEM
 #endif /* not HAVE_X11 */
