@@ -1086,7 +1086,8 @@ if you wish to pass an empty string as the argument."
 	 (setq backup-inhibited t)))
   ;; If auto-save was not already on, turn it on if appropriate.
   (if (not buffer-auto-save-file-name)
-      (auto-save-mode (and buffer-file-name auto-save-default))
+      (and buffer-file-name auto-save-default
+	   (auto-save-mode t))
     ;; If auto save is on, start using a new name.
     ;; We deliberately don't rename or delete the old auto save
     ;; for the old visited file name.  This is because perhaps
@@ -1381,7 +1382,8 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 	      (setq buffer-file-name
 		    (expand-file-name (read-file-name "File to save in: ") nil)
 		    default-directory (file-name-directory buffer-file-name))
-	      (auto-save-mode auto-save-default)))
+	      (and auto-save-default (not buffer-auto-save-file-name)
+		   (auto-save-mode t))))
 	(or (verify-visited-file-modtime (current-buffer))
 	    (not (file-exists-p buffer-file-name))
 	    (yes-or-no-p
