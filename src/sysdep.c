@@ -795,9 +795,9 @@ sys_subshell ()
     goto xyzzy;
 
   dir = expand_and_dir_to_file (Funhandled_file_name_directory (dir), Qnil);
-  str = (unsigned char *) alloca (XSTRING (dir)->size + 2);
-  len = XSTRING (dir)->size;
-  bcopy (XSTRING (dir)->data, str, len);
+  str = (unsigned char *) alloca (SCHARS (dir) + 2);
+  len = SCHARS (dir);
+  bcopy (SDATA (dir), str, len);
   if (str[len - 1] != '/') str[len++] = '/';
   str[len] = 0;
  xyzzy:
@@ -2465,7 +2465,7 @@ init_system_name ()
 #endif /* BSD4_1 */
   {
     unsigned char *p;
-    for (p = XSTRING (Vsystem_name)->data; *p; p++)
+    for (p = SDATA (Vsystem_name); *p; p++)
       if (*p == ' ' || *p == '\t')
 	*p = '-';
   }

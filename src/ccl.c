@@ -2198,12 +2198,12 @@ See the documentation of `define-ccl-program' for the detail of CCL program.  */
       if (ccl.ic < i && i < ccl.size)
 	ccl.ic = i;
     }
-  outbufsize = STRING_BYTES (XSTRING (str)) * ccl.buf_magnification + 256;
+  outbufsize = SBYTES (str) * ccl.buf_magnification + 256;
   outbuf = (char *) xmalloc (outbufsize);
   ccl.last_block = NILP (contin);
   ccl.multibyte = STRING_MULTIBYTE (str);
-  produced = ccl_driver (&ccl, XSTRING (str)->data, outbuf,
-			 STRING_BYTES (XSTRING (str)), outbufsize, (int *) 0);
+  produced = ccl_driver (&ccl, SDATA (str), outbuf,
+			 SBYTES (str), outbufsize, (int *) 0);
   for (i = 0; i < 8; i++)
     XSET (AREF (status, i), Lisp_Int, ccl.reg[i]);
   XSETINT (AREF (status, 8), ccl.ic);

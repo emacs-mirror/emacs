@@ -837,7 +837,7 @@ on its property list).  */)
   if (INTEGERP (documentation) && XINT (documentation) < 0)
     return Qt;
   if (STRINGP (documentation)
-      && ((unsigned char) XSTRING (documentation)->data[0] == '*'))
+      && ((unsigned char) SREF (documentation, 0) == '*'))
     return Qt;
   /* If it is (STRING . INTEGER), a negative integer means a user variable.  */
   if (CONSP (documentation)
@@ -1554,7 +1554,7 @@ See also the function `condition-case'.  */)
     data = Fcons (error_symbol, data);
 
   string = Ferror_message_string (data);
-  fatal ("%s", XSTRING (string)->data, 0);
+  fatal ("%s", SDATA (string), 0);
 }
 
 /* Return nonzero iff LIST is a non-nil atom or
@@ -1920,7 +1920,7 @@ do_autoload (fundef, funname)
      of what files are preloaded and when.  */
   if (! NILP (Vpurify_flag))
     error ("Attempt to autoload %s while preparing to dump",
-	   XSTRING (SYMBOL_NAME (funname))->data);
+	   SDATA (SYMBOL_NAME (funname)));
 
   fun = funname;
   CHECK_SYMBOL (funname);
@@ -1959,7 +1959,7 @@ do_autoload (fundef, funname)
 
   if (!NILP (Fequal (fun, fundef)))
     error ("Autoloading failed to define function %s",
-	   XSTRING (SYMBOL_NAME (funname))->data);
+	   SDATA (SYMBOL_NAME (funname)));
   UNGCPRO;
 }
 
@@ -2938,7 +2938,7 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
 	{
 	  tem = AREF (object, COMPILED_BYTECODE);
 	  if (CONSP (tem) && STRINGP (XCAR (tem)))
-	    error ("Invalid byte code in %s", XSTRING (XCAR (tem))->data);
+	    error ("Invalid byte code in %s", SDATA (XCAR (tem)));
 	  else
 	    error ("Invalid byte code");
 	}

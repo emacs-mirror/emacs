@@ -330,7 +330,7 @@ if (1)									\
     else								\
       {									\
 	gl_state.b_property = 0;					\
-	gl_state.e_property = 1 + XSTRING (gl_state.object)->size;	\
+	gl_state.e_property = 1 + SCHARS (gl_state.object);		\
 	gl_state.offset = 0;						\
       }									\
     gl_state.use_global = 0;						\

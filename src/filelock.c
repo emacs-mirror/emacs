@@ -222,7 +222,7 @@ get_boot_time ()
 	      args[3] = Qnil;
 	      args[4] = build_string ("-c");
 	      sprintf (cmd_string, "gunzip < %s.%d.gz > %s",
-		       WTMP_FILE, counter, XSTRING (tempname)->data);
+		       WTMP_FILE, counter, SDATA (tempname));
 	      args[5] = build_string (cmd_string);
 	      Fcall_process (6, args);
 	      filename = tempname;
@@ -232,9 +232,9 @@ get_boot_time ()
 
       if (! NILP (filename))
 	{
-	  get_boot_time_1 (XSTRING (filename)->data, 1);
+	  get_boot_time_1 (SDATA (filename), 1);
 	  if (delete_flag)
-	    unlink (XSTRING (filename)->data);
+	    unlink (SDATA (filename));
 	}
     }
 
@@ -325,7 +325,7 @@ typedef struct
    trailing period plus one for the digit after it plus one for the
    null.  */
 #define MAKE_LOCK_NAME(lock, file) \
-  (lock = (char *) alloca (STRING_BYTES (XSTRING (file)) + 2 + 1 + 1 + 1), \
+  (lock = (char *) alloca (SBYTES (file) + 2 + 1 + 1 + 1), \
    fill_in_lock_file_name (lock, (file)))
 
 static void
@@ -337,7 +337,7 @@ fill_in_lock_file_name (lockfile, fn)
   struct stat st;
   int count = 0;
 
-  strcpy (lockfile, XSTRING (fn)->data);
+  strcpy (lockfile, SDATA (fn));
 
   /* Shift the nondirectory part of the file name (including the null)
      right two characters.  Here is one of the places where we'd have to
@@ -378,11 +378,11 @@ lock_file_1 (lfname, force)
   char *lock_info_str;
 
   if (STRINGP (Fuser_login_name (Qnil)))
-    user_name = (char *)XSTRING (Fuser_login_name (Qnil))->data;
+    user_name = (char *)SDATA (Fuser_login_name (Qnil));
   else
     user_name = "";
   if (STRINGP (Fsystem_name ()))
-    host_name = (char *)XSTRING (Fsystem_name ())->data;
+    host_name = (char *)SDATA (Fsystem_name ());
   else
     host_name = "";
   lock_info_str = (char *)alloca (strlen (user_name) + strlen (host_name)
@@ -503,7 +503,7 @@ current_lock_owner (owner, lfname)
   
   /* On current host?  */
   if (STRINGP (Fsystem_name ())
-      && strcmp (owner->host, XSTRING (Fsystem_name ())->data) == 0)
+      && strcmp (owner->host, SDATA (Fsystem_name ())) == 0)
     {
       if (owner->pid == getpid ())
         ret = 2; /* We own it.  */

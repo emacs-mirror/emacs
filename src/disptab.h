@@ -90,8 +90,8 @@ extern Lisp_Object Vglyph_table;
 /* Assuming that GLYPH_SIMPLE_P (BASE, LEN, G) is 0,
    return the length and the address of the character-sequence
    used for outputting GLYPH G.  */
-#define GLYPH_LENGTH(base,g)   XSTRING (base[g])->size
-#define GLYPH_STRING(base,g)   XSTRING (base[g])->data
+#define GLYPH_LENGTH(base,g)   SCHARS (base[g])
+#define GLYPH_STRING(base,g)   SDATA (base[g])
 
 /* GLYPH for a space character.  */
 

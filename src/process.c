@@ -419,7 +419,7 @@ status_message (status)
 	signame = "unknown";
       string = build_string (signame);
       string2 = build_string (coredump ? " (core dumped)\n" : "\n");
-      XSTRING (string)->data[0] = DOWNCASE (XSTRING (string)->data[0]);
+      SREF (string, 0) = DOWNCASE (SREF (string, 0));
       return concat2 (string, string2);
     }
   else if (EQ (symbol, Qexit))
@@ -637,7 +637,7 @@ get_process (name)
       if (NILP (obj))
 	obj = Fget_buffer (name);
       if (NILP (obj))
-	error ("Process %s does not exist", XSTRING (name)->data);
+	error ("Process %s does not exist", SDATA (name));
     }
   else if (NILP (name))
     obj = Fcurrent_buffer ();
@@ -650,7 +650,7 @@ get_process (name)
     {
       proc = Fget_buffer_process (obj);
       if (NILP (proc))
-	error ("Buffer %s has no process", XSTRING (XBUFFER (obj)->name)->data);
+	error ("Buffer %s has no process", SDATA (XBUFFER (obj)->name));
     }
   else
     {
@@ -1070,17 +1070,17 @@ list_processes_1 (query_only)
       if (!NILP (query_only) && !NILP (p->kill_without_query))
 	continue;
       if (STRINGP (p->name)
-	  && ( i = XSTRING (p->name)->size, (i > w_proc)))
+	  && ( i = SCHARS (p->name), (i > w_proc)))
 	w_proc = i;
       if (!NILP (p->buffer))
 	{
 	  if (NILP (XBUFFER (p->buffer)->name) && w_buffer < 8)
 	    w_buffer = 8;  /* (Killed) */
-	  else if ((i = XSTRING (XBUFFER (p->buffer)->name)->size, (i > w_buffer)))
+	  else if ((i = SCHARS (XBUFFER (p->buffer)->name), (i > w_buffer)))
 	    w_buffer = i;
 	}
       if (STRINGP (p->tty_name)
-	  && (i = XSTRING (p->tty_name)->size, (i > w_tty)))
+	  && (i = SCHARS (p->tty_name), (i > w_tty)))
 	w_tty = i;
     }
 
@@ -1206,7 +1206,7 @@ list_processes_1 (query_only)
 	    port = Fnumber_to_string (port);
 	  sprintf (tembuf, "(network %s server on %s)\n",
 		   (DATAGRAM_CHAN_P (XINT (p->infd)) ? "datagram" : "stream"),
-		   XSTRING (port)->data);
+		   SDATA (port));
 	  insert_string (tembuf);
 	}
       else if (NETCONN1_P (p))
@@ -1222,7 +1222,7 @@ list_processes_1 (query_only)
 	    }
 	  sprintf (tembuf, "(network %s connection to %s)\n",
 		   (DATAGRAM_CHAN_P (XINT (p->infd)) ? "datagram" : "stream"),
-		   XSTRING (host)->data);
+		   SDATA (host));
 	  insert_string (tembuf);
         }
       else 
@@ -1400,21 +1400,21 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 #ifdef VMS
   /* Make a one member argv with all args concatenated
      together separated by a blank.  */
-  len = STRING_BYTES (XSTRING (program)) + 2;
+  len = SBYTES (program) + 2;
   for (i = 3; i < nargs; i++)
     {
       tem = args[i];
       CHECK_STRING (tem);
-      len += STRING_BYTES (XSTRING (tem)) + 1;	/* count the blank */
+      len += SBYTES (tem) + 1;	/* count the blank */
     }
   new_argv = (unsigned char *) alloca (len);
-  strcpy (new_argv, XSTRING (program)->data);
+  strcpy (new_argv, SDATA (program));
   for (i = 3; i < nargs; i++)
     {
       tem = args[i];
       CHECK_STRING (tem);
       strcat (new_argv, " ");
-      strcat (new_argv, XSTRING (tem)->data);
+      strcat (new_argv, SDATA (tem));
     }
   /* Need to add code here to check for program existence on VMS */
   
@@ -1422,9 +1422,9 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   new_argv = (unsigned char **) alloca ((nargs - 1) * sizeof (char *));
 
   /* If program file name is not absolute, search our path for it */
-  if (!IS_DIRECTORY_SEP (XSTRING (program)->data[0])
-      && !(XSTRING (program)->size > 1
-	   && IS_DEVICE_SEP (XSTRING (program)->data[1])))
+  if (!IS_DIRECTORY_SEP (SREF (program, 0))
+      && !(SCHARS (program) > 1
+	   && IS_DEVICE_SEP (SREF (program, 1))))
     {
       struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
@@ -1436,7 +1436,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	report_file_error ("Searching for program", Fcons (program, Qnil));
       tem = Fexpand_file_name (tem, Qnil);
       tem = ENCODE_FILE (tem);
-      new_argv[0] = XSTRING (tem)->data;
+      new_argv[0] = SDATA (tem);
     }
   else
     {
@@ -1444,7 +1444,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	error ("Specified program for new process is a directory");
 
       tem = ENCODE_FILE (program);
-      new_argv[0] = XSTRING (tem)->data;
+      new_argv[0] = SDATA (tem);
     }
 
   /* Here we encode arguments by the coding system used for sending
@@ -1459,7 +1459,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
       if (STRING_MULTIBYTE (tem))
 	tem = (code_convert_string_norecord
 	       (tem, XPROCESS (proc)->encode_coding_system, 1));
-      new_argv[i - 2] = XSTRING (tem)->data;
+      new_argv[i - 2] = SDATA (tem);
     }
   new_argv[i - 2] = 0;
 #endif /* not VMS */
@@ -2092,7 +2092,7 @@ conv_lisp_to_sockaddr (family, address, sa, len)
       if (family == AF_LOCAL)
 	{
 	  struct sockaddr_un *sockun = (struct sockaddr_un *) sa;
-	  cp = XSTRING (address)->data;
+	  cp = SDATA (address);
 	  for (i = 0; i < sizeof (sockun->sun_path) && *cp; i++)
 	    sockun->sun_path[i] = *cp++;
 	}
@@ -2232,9 +2232,9 @@ set_socket_options (s, opts, no_error)
 	  opt = XCAR (opt);
 	}
       if (STRINGP (opt))
-	name = (char *) XSTRING (opt)->data;
+	name = (char *) SDATA (opt);
       else if (SYMBOLP (opt))
-	name = (char *) XSTRING (SYMBOL_NAME (opt))->data;
+	name = (char *) SDATA (SYMBOL_NAME (opt));
       else {
 	error ("Mal-formed option list");
 	return 0;
@@ -2300,9 +2300,9 @@ set_socket_options (s, opts, no_error)
 		if (NILP (val))
 		  arg = "";
 		else if (STRINGP (val))
-		  arg = (char *) XSTRING (val)->data;
+		  arg = (char *) SDATA (val);
 		else if (XSYMBOL (val))
-		  arg = (char *) XSTRING (SYMBOL_NAME (val))->data;
+		  arg = (char *) SDATA (SYMBOL_NAME (val));
 		else 
 		  error ("Invalid argument to %s option", name);
 	      }
@@ -2632,16 +2632,16 @@ usage: (make-network-process &rest ARGS)  */)
     {
       struct servent *svc_info;
       CHECK_STRING (service);
-      svc_info = getservbyname (XSTRING (service)->data, "tcp");
+      svc_info = getservbyname (SDATA (service), "tcp");
       if (svc_info == 0)
-	error ("Unknown service: %s", XSTRING (service)->data);
+	error ("Unknown service: %s", SDATA (service));
       port = svc_info->s_port;
     }
 
   s = connect_server (0);
   if (s < 0)
     report_file_error ("error creating socket", Fcons (name, Qnil));
-  send_command (s, C_PORT, 0, "%s:%d", XSTRING (host)->data, ntohs (port));
+  send_command (s, C_PORT, 0, "%s:%d", SDATA (host), ntohs (port));
   send_command (s, C_DUMB, 1, 0);
 
 #else  /* not TERM */
@@ -2694,7 +2694,7 @@ usage: (make-network-process &rest ARGS)  */)
       CHECK_STRING (service);
       bzero (&address_un, sizeof address_un);
       address_un.sun_family = AF_LOCAL;
-      strncpy (address_un.sun_path, XSTRING (service)->data, sizeof address_un.sun_path);
+      strncpy (address_un.sun_path, SDATA (service), sizeof address_un.sun_path);
       ai.ai_addr = (struct sockaddr *) &address_un;
       ai.ai_addrlen = sizeof address_un;
       goto open_socket;
@@ -2739,7 +2739,7 @@ usage: (make-network-process &rest ARGS)  */)
       else
 	{
 	  CHECK_STRING (service);
-	  portstring = XSTRING (service)->data;
+	  portstring = SDATA (service);
 	}
 
       immediate_quit = 1;
@@ -2749,12 +2749,12 @@ usage: (make-network-process &rest ARGS)  */)
       hints.ai_family = NILP (Fplist_member (contact, QCfamily)) ? AF_UNSPEC : family;
       hints.ai_socktype = socktype;
       hints.ai_protocol = 0;
-      ret = getaddrinfo (XSTRING (host)->data, portstring, &hints, &res);
+      ret = getaddrinfo (SDATA (host), portstring, &hints, &res);
       if (ret)
 #ifdef HAVE_GAI_STRERROR
-	error ("%s/%s %s", XSTRING (host)->data, portstring, gai_strerror(ret));
+	error ("%s/%s %s", SDATA (host), portstring, gai_strerror(ret));
 #else
-        error ("%s/%s getaddrinfo error %d", XSTRING (host)->data, portstring, ret);
+        error ("%s/%s getaddrinfo error %d", SDATA (host), portstring, ret);
 #endif
       immediate_quit = 0;
 
@@ -2773,10 +2773,10 @@ usage: (make-network-process &rest ARGS)  */)
     {
       struct servent *svc_info;
       CHECK_STRING (service);
-      svc_info = getservbyname (XSTRING (service)->data, 
+      svc_info = getservbyname (SDATA (service), 
 				(socktype == SOCK_DGRAM ? "udp" : "tcp"));
       if (svc_info == 0)
-	error ("Unknown service: %s", XSTRING (service)->data);
+	error ("Unknown service: %s", SDATA (service));
       port = svc_info->s_port;
     }
 
@@ -2794,7 +2794,7 @@ usage: (make-network-process &rest ARGS)  */)
 	 as it may `hang' emacs for a very long time.  */
       immediate_quit = 1;
       QUIT;
-      host_info_ptr = gethostbyname (XSTRING (host)->data);
+      host_info_ptr = gethostbyname (SDATA (host));
       immediate_quit = 0;
   
       if (host_info_ptr)
@@ -2808,9 +2808,9 @@ usage: (make-network-process &rest ARGS)  */)
 	/* Attempt to interpret host as numeric inet address */
 	{
 	  IN_ADDR numeric_addr;
-	  numeric_addr = inet_addr ((char *) XSTRING (host)->data);
+	  numeric_addr = inet_addr ((char *) SDATA (host));
 	  if (NUMERIC_ADDR_ERROR)
-	    error ("Unknown host \"%s\"", XSTRING (host)->data);
+	    error ("Unknown host \"%s\"", SDATA (host));
 
 	  bcopy ((char *)&numeric_addr, (char *) &address_in.sin_addr,
 		 sizeof (address_in.sin_addr));
@@ -4283,7 +4283,7 @@ read_process_output (proc, channel)
          the tail of decoding buffer) should be prepended to the new
          data read to decode all together.  */
       chars = (char *) alloca (nbytes + carryover);
-      bcopy (XSTRING (p->decoding_buf)->data, buf, carryover);
+      bcopy (SDATA (p->decoding_buf), buf, carryover);
       bcopy (vs->inputBuffer, chars + carryover, nbytes);
     }
 #else /* not VMS */
@@ -4301,7 +4301,7 @@ read_process_output (proc, channel)
   chars = (char *) alloca (carryover + readmax);
   if (carryover)
     /* See the comment above.  */
-    bcopy (XSTRING (p->decoding_buf)->data, chars, carryover);
+    bcopy (SDATA (p->decoding_buf), chars, carryover);
 
 #ifdef DATAGRAM_SOCKETS
   /* We have a working select, so proc_buffered_char is always -1.  */
@@ -4414,11 +4414,11 @@ read_process_output (proc, channel)
 	}
 
       carryover = nbytes - coding->consumed;
-      bcopy (chars + coding->consumed, XSTRING (p->decoding_buf)->data,
+      bcopy (chars + coding->consumed, SDATA (p->decoding_buf),
 	     carryover);
       XSETINT (p->decoding_carryover, carryover);
-      nbytes = STRING_BYTES (XSTRING (text));
-      nchars = XSTRING (text)->size;
+      nbytes = SBYTES (text);
+      nchars = SCHARS (text);
       if (nbytes > 0)
 	internal_condition_case_1 (read_process_output_call,
 				   Fcons (outstream,
@@ -4515,7 +4515,7 @@ read_process_output (proc, channel)
 	    }
 	}
       carryover = nbytes - coding->consumed;
-      bcopy (chars + coding->consumed, XSTRING (p->decoding_buf)->data,
+      bcopy (chars + coding->consumed, SDATA (p->decoding_buf),
 	     carryover);
       XSETINT (p->decoding_carryover, carryover);
       /* Adjust the multibyteness of TEXT to that of the buffer.  */
@@ -4524,8 +4524,8 @@ read_process_output (proc, channel)
 	text = (STRING_MULTIBYTE (text)
 		? Fstring_as_unibyte (text)
 		: Fstring_as_multibyte (text));
-      nbytes = STRING_BYTES (XSTRING (text));
-      nchars = XSTRING (text)->size;
+      nbytes = SBYTES (text);
+      nchars = SCHARS (text);
       /* Insert before markers in case we are inserting where
 	 the buffer's mark is, and the user's next command is Meta-y.  */
       insert_from_string_before_markers (text, 0, 0, nchars, nbytes, 0);
@@ -4633,10 +4633,10 @@ send_process (proc, buf, len, object)
     update_status (XPROCESS (proc));
   if (! EQ (XPROCESS (proc)->status, Qrun))
     error ("Process %s not running",
-	   XSTRING (XPROCESS (proc)->name)->data);
+	   SDATA (XPROCESS (proc)->name));
   if (XINT (XPROCESS (proc)->outfd) < 0)
     error ("Output file descriptor of %s is closed",
-	   XSTRING (XPROCESS (proc)->name)->data);
+	   SDATA (XPROCESS (proc)->name));
 
   coding = proc_encode_coding_system[XINT (XPROCESS (proc)->outfd)];
   Vlast_coding_system_used = coding->symbol;
@@ -4691,7 +4691,7 @@ send_process (proc, buf, len, object)
 	}
       else if (STRINGP (object))
 	{
-	  from_byte = buf - XSTRING (object)->data;
+	  from_byte = buf - SDATA (object);
 	  from = string_byte_to_char (object, from_byte);
 	  to =  string_byte_to_char (object, from_byte + len);
 	}
@@ -4704,19 +4704,19 @@ send_process (proc, buf, len, object)
 	    coding->composing = COMPOSITION_DISABLED;
 	}
 
-      if (STRING_BYTES (XSTRING (XPROCESS (proc)->encoding_buf)) < require)
+      if (SBYTES (XPROCESS (proc)->encoding_buf) < require)
 	XPROCESS (proc)->encoding_buf = make_uninit_string (require);
 
       if (from_byte >= 0)
 	buf = (BUFFERP (object)
 	       ? BUF_BYTE_ADDRESS (XBUFFER (object), from_byte)
-	       : XSTRING (object)->data + from_byte);
+	       : SDATA (object) + from_byte);
 
       object = XPROCESS (proc)->encoding_buf;
-      encode_coding (coding, (char *) buf, XSTRING (object)->data,
-		     len, STRING_BYTES (XSTRING (object)));
+      encode_coding (coding, (char *) buf, SDATA (object),
+		     len, SBYTES (object));
       len = coding->produced;
-      buf = XSTRING (object)->data;
+      buf = SDATA (object);
       if (temp_buf)
 	xfree (temp_buf);
     }
@@ -4849,7 +4849,7 @@ send_process (proc, buf, len, object)
 		      if (BUFFERP (object))
 			offset = BUF_PTR_BYTE_POS (XBUFFER (object), buf);
 		      else if (STRINGP (object))
-			offset = buf - XSTRING (object)->data;
+			offset = buf - SDATA (object);
 
 		      XSETFASTINT (zero, 0);
 #ifdef EMACS_HAS_USECS
@@ -4861,7 +4861,7 @@ send_process (proc, buf, len, object)
 		      if (BUFFERP (object))
 			buf = BUF_BYTE_ADDRESS (XBUFFER (object), offset);
 		      else if (STRINGP (object))
-			buf = offset + XSTRING (object)->data;
+			buf = offset + SDATA (object);
 
 		      rv = 0;
 		    }
@@ -4893,10 +4893,10 @@ send_process (proc, buf, len, object)
       deactivate_process (proc);
 #ifdef VMS
       error ("Error writing to process %s; closed it", 
-	     XSTRING (XPROCESS (proc)->name)->data);
+	     SDATA (XPROCESS (proc)->name));
 #else
       error ("SIGPIPE raised on process %s; closed it",
-	     XSTRING (XPROCESS (proc)->name)->data);
+	     SDATA (XPROCESS (proc)->name));
 #endif
     }
 
@@ -4946,8 +4946,8 @@ Output from processes can arrive in between bunches.  */)
   Lisp_Object proc;
   CHECK_STRING (string);
   proc = get_process (process);
-  send_process (proc, XSTRING (string)->data,
-		STRING_BYTES (XSTRING (string)), string);
+  send_process (proc, SDATA (string),
+		SBYTES (string), string);
   return Qnil;
 }
 
@@ -4970,10 +4970,10 @@ return t unconditionally.  */)
 
   if (!EQ (p->childp, Qt))
     error ("Process %s is not a subprocess",
-	   XSTRING (p->name)->data);
+	   SDATA (p->name));
   if (XINT (p->infd) < 0)
     error ("Process %s is not active",
-	   XSTRING (p->name)->data);
+	   SDATA (p->name));
 
 #ifdef TIOCGPGRP 
   if (!NILP (p->subtty))
@@ -5018,10 +5018,10 @@ process_send_signal (process, signo, current_group, nomsg)
 
   if (!EQ (p->childp, Qt))
     error ("Process %s is not a subprocess",
-	   XSTRING (p->name)->data);
+	   SDATA (p->name));
   if (XINT (p->infd) < 0)
     error ("Process %s is not active",
-	   XSTRING (p->name)->data);
+	   SDATA (p->name));
 
   if (NILP (p->pty_flag))
     current_group = Qnil;
@@ -5337,7 +5337,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
       unsigned char *name;
 
       CHECK_SYMBOL (sigcode);
-      name = XSTRING (SYMBOL_NAME (sigcode))->data;
+      name = SDATA (SYMBOL_NAME (sigcode));
 
       if (0)
 	;
@@ -5464,7 +5464,7 @@ text to PROCESS after you call this function.  */)
   if (! NILP (XPROCESS (proc)->raw_status_low))
     update_status (XPROCESS (proc));
   if (! EQ (XPROCESS (proc)->status, Qrun))
-    error ("Process %s not running", XSTRING (XPROCESS (proc)->name)->data);
+    error ("Process %s not running", SDATA (XPROCESS (proc)->name));
 
   if (CODING_REQUIRE_FLUSHING (coding))
     {
@@ -5946,9 +5946,9 @@ encode subprocess input.  */)
   CHECK_PROCESS (proc);
   p = XPROCESS (proc);
   if (XINT (p->infd) < 0)
-    error ("Input file descriptor of %s closed", XSTRING (p->name)->data);
+    error ("Input file descriptor of %s closed", SDATA (p->name));
   if (XINT (p->outfd) < 0)
-    error ("Output file descriptor of %s closed", XSTRING (p->name)->data);
+    error ("Output file descriptor of %s closed", SDATA (p->name));
 
   p->decode_coding_system = Fcheck_coding_system (decoding);
   p->encode_coding_system = Fcheck_coding_system (encoding);

@@ -7269,7 +7269,7 @@ note_mouse_highlight (f, x, y)
 	      if (NILP (b))
 		b = make_number (0);
 	      if (NILP (e))
-		e = make_number (XSTRING (object)->size - 1);
+		e = make_number (SCHARS (object) - 1);
 	      fast_find_string_pos (w, XINT (b), object,
 				    &dpyinfo->mouse_face_beg_col,
 				    &dpyinfo->mouse_face_beg_row,
@@ -7367,7 +7367,7 @@ note_mouse_highlight (f, x, y)
 	    /* Try text properties.  */
 	    if (STRINGP (object)
 		&& charpos >= 0
-		&& charpos < XSTRING (object)->size)
+		&& charpos < SCHARS (object))
 	      {
 		help = Fget_text_property (make_number (charpos),
 					   Qhelp_echo, object);
@@ -12099,7 +12099,7 @@ x_error_catcher (display, error)
      XErrorEvent *error;
 {
   XGetErrorText (display, error->error_code,
-		 XSTRING (x_error_message_string)->data,
+		 SDATA (x_error_message_string),
 		 X_ERROR_MESSAGE_SIZE);
 }
 
@@ -12131,7 +12131,7 @@ x_catch_errors (dpy)
   record_unwind_protect (x_catch_errors_unwind, x_error_message_string);
 
   x_error_message_string = make_uninit_string (X_ERROR_MESSAGE_SIZE);
-  XSTRING (x_error_message_string)->data[0] = 0;
+  SREF (x_error_message_string, 0) = 0;
 
   return count;
 }
@@ -12158,8 +12158,8 @@ x_check_errors (dpy, format)
   /* Make sure to catch any errors incurred so far.  */
   XSync (dpy, False);
 
-  if (XSTRING (x_error_message_string)->data[0])
-    error (format, XSTRING (x_error_message_string)->data);
+  if (SREF (x_error_message_string, 0))
+    error (format, SDATA (x_error_message_string));
 }
 
 /* Nonzero if we had any X protocol errors
@@ -12172,7 +12172,7 @@ x_had_errors_p (dpy)
   /* Make sure to catch any errors incurred so far.  */
   XSync (dpy, False);
 
-  return XSTRING (x_error_message_string)->data[0] != 0;
+  return SREF (x_error_message_string, 0) != 0;
 }
 
 /* Forget about any errors we have had, since we did x_catch_errors on DPY.  */
@@ -12181,7 +12181,7 @@ void
 x_clear_errors (dpy)
      Display *dpy;
 {
-  XSTRING (x_error_message_string)->data[0] = 0;
+  SREF (x_error_message_string, 0) = 0;
 }
 
 /* Stop catching X protocol errors and let them make Emacs die.
@@ -12481,7 +12481,7 @@ x_new_fontset (f, fontsetname)
        to do.  */
     return fontset_name (fontset);
 
-  result = x_new_font (f, (XSTRING (fontset_ascii (fontset))->data));
+  result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
 
   if (!STRINGP (result))
     /* Can't load ASCII font.  */
@@ -12493,7 +12493,7 @@ x_new_fontset (f, fontsetname)
 #ifdef HAVE_X_I18N
   if (FRAME_XIC (f)
       && (FRAME_XIC_STYLE (f) & (XIMPreeditPosition | XIMStatusArea)))
-    xic_set_xfontset (f, XSTRING (fontset_ascii (fontset))->data);
+    xic_set_xfontset (f, SDATA (fontset_ascii (fontset)));
 #endif
   
   return build_string (fontsetname);
@@ -14093,7 +14093,7 @@ x_list_fonts (f, pattern, size, maxnames)
 	  XFontStruct *font;
 	  unsigned long value;
 
-	  font = XLoadQueryFont (dpy, XSTRING (pattern)->data);
+	  font = XLoadQueryFont (dpy, SDATA (pattern));
 	  if (x_had_errors_p (dpy))
 	    {
 	      /* This error is perhaps due to insufficient memory on X
@@ -14136,7 +14136,7 @@ x_list_fonts (f, pattern, size, maxnames)
 	{
 	  /* We try at least 10 fonts because XListFonts will return
 	     auto-scaled fonts at the head.  */
-	  names = XListFonts (dpy, XSTRING (pattern)->data, max (maxnames, 10),
+	  names = XListFonts (dpy, SDATA (pattern), max (maxnames, 10),
 			      &num_fonts);
 	  if (x_had_errors_p (dpy))
 	    {
@@ -14237,7 +14237,7 @@ x_list_fonts (f, pattern, size, maxnames)
 	      BLOCK_INPUT;
 	      count = x_catch_errors (dpy);
 	      thisinfo = XLoadQueryFont (dpy,
-					 XSTRING (XCAR (tem))->data);
+					 SDATA (XCAR (tem)));
 	      if (x_had_errors_p (dpy))
 		{
 		  /* This error is perhaps due to insufficient memory on X
@@ -14417,9 +14417,9 @@ x_load_font (f, fontname, size)
 	for (tail = font_names; CONSP (tail); tail = XCDR (tail))
 	  if (dpyinfo->font_table[i].name
 	      && (!strcmp (dpyinfo->font_table[i].name,
-			   XSTRING (XCAR (tail))->data)
+			   SDATA (XCAR (tail)))
 		  || !strcmp (dpyinfo->font_table[i].full_name,
-			      XSTRING (XCAR (tail))->data)))
+			      SDATA (XCAR (tail)))))
 	    return (dpyinfo->font_table + i);
     }
 
@@ -14437,7 +14437,7 @@ x_load_font (f, fontname, size)
        a bug of not finding a font even if the font surely exists and
        is loadable by XLoadQueryFont.  */
     if (size > 0 && !NILP (font_names))
-      fontname = (char *) XSTRING (XCAR (font_names))->data;
+      fontname = (char *) SDATA (XCAR (font_names));
 
     BLOCK_INPUT;
     count = x_catch_errors (FRAME_X_DISPLAY (f));
@@ -14689,7 +14689,7 @@ same_x_server (name1, name2)
      char *name1, *name2;
 {
   int seen_colon = 0;
-  unsigned char *system_name = XSTRING (Vsystem_name)->data;
+  unsigned char *system_name = SDATA (Vsystem_name);
   int system_name_length = strlen (system_name);
   int length_until_period = 0;
 
@@ -14771,7 +14771,7 @@ x_term_init (display_name, xrm_option, resource_name)
 	argv[argc++] = xrm_option;
       }
     stop_polling ();
-    dpy = XtOpenDisplay (Xt_app_con, XSTRING (display_name)->data,
+    dpy = XtOpenDisplay (Xt_app_con, SDATA (display_name),
 			 resource_name, EMACS_CLASS,
 			 emacs_options, XtNumber (emacs_options),
 			 &argc, argv);
@@ -14787,7 +14787,7 @@ x_term_init (display_name, xrm_option, resource_name)
 #ifdef HAVE_X11R5
   XSetLocaleModifiers ("");
 #endif
-  dpy = XOpenDisplay (XSTRING (display_name)->data);
+  dpy = XOpenDisplay (SDATA (display_name));
 #endif /* not USE_X_TOOLKIT */
 
   /* Detect failure.  */
@@ -14809,8 +14809,8 @@ x_term_init (display_name, xrm_option, resource_name)
 
     for (share = x_display_list, tail = x_display_name_list; share;
 	 share = share->next, tail = XCDR (tail))
-      if (same_x_server (XSTRING (XCAR (XCAR (tail)))->data,
-			 XSTRING (display_name)->data))
+      if (same_x_server (SDATA (XCAR (XCAR (tail))),
+			 SDATA (display_name)))
 	break;
     if (share)
       dpyinfo->kboard = share->kboard;
@@ -14856,11 +14856,11 @@ x_term_init (display_name, xrm_option, resource_name)
 #endif /* ! 0 */
 
   dpyinfo->x_id_name
-    = (char *) xmalloc (STRING_BYTES (XSTRING (Vinvocation_name))
-			+ STRING_BYTES (XSTRING (Vsystem_name))
+    = (char *) xmalloc (SBYTES (Vinvocation_name)
+			+ SBYTES (Vsystem_name)
 			+ 2);
   sprintf (dpyinfo->x_id_name, "%s@%s",
-	   XSTRING (Vinvocation_name)->data, XSTRING (Vsystem_name)->data);
+	   SDATA (Vinvocation_name), SDATA (Vsystem_name));
 
   /* Figure out which modifier bits mean what.  */
   x_find_modifier_meanings (dpyinfo);
@@ -14923,8 +14923,8 @@ x_term_init (display_name, xrm_option, resource_name)
 					  build_string ("PrivateColormap"),
 					  Qnil, Qnil);
 	  if (STRINGP (value)
-	      && (!strcmp (XSTRING (value)->data, "true")
-		  || !strcmp (XSTRING (value)->data, "on")))
+	      && (!strcmp (SDATA (value), "true")
+		  || !strcmp (SDATA (value), "on")))
 	    dpyinfo->cmap = XCopyColormapAndFree (dpyinfo->display, dpyinfo->cmap);
 	}
     }
@@ -15084,8 +15084,8 @@ x_term_init (display_name, xrm_option, resource_name)
 				    build_string ("Synchronous"),
 				    Qnil, Qnil);
     if (STRINGP (value)
-	&& (!strcmp (XSTRING (value)->data, "true")
-	    || !strcmp (XSTRING (value)->data, "on")))
+	&& (!strcmp (SDATA (value), "true")
+	    || !strcmp (SDATA (value), "on")))
       XSynchronize (dpyinfo->display, True);
   }
   

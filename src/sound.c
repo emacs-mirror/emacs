@@ -433,8 +433,8 @@ Internal use only, use `play-sound' instead.  */)
   else
     {
       s.data = attrs[SOUND_DATA];
-      s.header_size = min (MAX_SOUND_HEADER_BYTES, STRING_BYTES (XSTRING (s.data)));
-      bcopy (XSTRING (s.data)->data, s.header, s.header_size);
+      s.header_size = min (MAX_SOUND_HEADER_BYTES, SBYTES (s.data));
+      bcopy (SDATA (s.data), s.header, s.header_size);
     }
 
   /* Find out the type of sound.  Give up if we can't tell.  */
@@ -443,9 +443,9 @@ Internal use only, use `play-sound' instead.  */)
   /* Set up a device.  */
   if (STRINGP (attrs[SOUND_DEVICE]))
     {
-      int len = XSTRING (attrs[SOUND_DEVICE])->size;
+      int len = SCHARS (attrs[SOUND_DEVICE]);
       sd.file = (char *) alloca (len + 1);
-      strcpy (sd.file, XSTRING (attrs[SOUND_DEVICE])->data);
+      strcpy (sd.file, SDATA (attrs[SOUND_DEVICE]));
     }
 
   if (INTEGERP (attrs[SOUND_VOLUME]))
@@ -624,8 +624,8 @@ wav_play (s, sd)
      files I found so far.  If someone feels inclined to implement the
      whole RIFF-WAVE spec, please do.  */
   if (STRINGP (s->data))
-    sd->write (sd, XSTRING (s->data)->data + sizeof *header,
-	       STRING_BYTES (XSTRING (s->data)) - sizeof *header);
+    sd->write (sd, SDATA (s->data) + sizeof *header,
+	       SBYTES (s->data) - sizeof *header);
   else
     {
       char *buffer;
@@ -712,8 +712,8 @@ au_play (s, sd)
   sd->configure (sd);
 
   if (STRINGP (s->data))
-    sd->write (sd, XSTRING (s->data)->data + header->data_offset,
-	       STRING_BYTES (XSTRING (s->data)) - header->data_offset);
+    sd->write (sd, SDATA (s->data) + header->data_offset,
+	       SBYTES (s->data) - header->data_offset);
   else
     {
       int blksize = 2048;

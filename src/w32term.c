@@ -6508,9 +6508,9 @@ note_mode_line_highlight (w, x, mode_line_p)
 
       if (glyph < end
 	  && STRINGP (glyph->object)
-	  && XSTRING (glyph->object)->intervals
+	  && STRING_INTERVALS (glyph->object)
 	  && glyph->charpos >= 0
-	  && glyph->charpos < XSTRING (glyph->object)->size)
+	  && glyph->charpos < SCHARS (glyph->object))
 	{
 	  /* If we're on a string with `help-echo' text property,
 	     arrange for the help to be displayed.  This is done by
@@ -6829,7 +6829,7 @@ note_mouse_highlight (f, x, y)
 	      if (NILP (b))
 		b = make_number (0);
 	      if (NILP (e))
-		e = make_number (XSTRING (object)->size - 1);
+		e = make_number (SCHARS (object) - 1);
 	      fast_find_string_pos (w, XINT (b), object,
 				    &dpyinfo->mouse_face_beg_col,
 				    &dpyinfo->mouse_face_beg_row,
@@ -6927,7 +6927,7 @@ note_mouse_highlight (f, x, y)
 	    /* Try text properties.  */
 	    if (STRINGP (object)
 		&& charpos >= 0
-		&& charpos < XSTRING (object)->size)
+		&& charpos < SCHARS (object))
 	      {
 		help = Fget_text_property (make_number (charpos),
 					   Qhelp_echo, object);
@@ -8619,7 +8619,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 		  /* We may get paint messages even though the client
 		     area is clipped - these are not expose events. */
 		  DebPrint (("clipped frame %p (%s) got WM_PAINT - ignored\n", f,
-			     XSTRING (f->name)->data));
+			     SDATA (f->name)));
 		}
 	      else if (f->async_visible != 1)
 		{
@@ -8628,7 +8628,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 		  f->async_iconified = 0;
 		  SET_FRAME_GARBAGED (f);
 		  DebPrint (("frame %p (%s) reexposed by WM_PAINT\n", f,
-			     XSTRING (f->name)->data));
+			     SDATA (f->name)));
 
 		  /* WM_PAINT serves as MapNotify as well, so report
 		     visibility changes properly.  */
@@ -9308,7 +9308,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 		  if (!FRAME_OBSCURED_P (f))
 		    {
 		      DebPrint (("frame %p (%s) obscured\n", f,
-				 XSTRING (f->name)->data));
+				 SDATA (f->name)));
 		    }
 		}
 	      else
@@ -9320,7 +9320,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 		    {
 		      SET_FRAME_GARBAGED (f);
 		      DebPrint (("obscured frame %p (%s) found to be visible\n", f,
-				 XSTRING (f->name)->data));
+				 SDATA (f->name)));
 
 		      /* Force a redisplay sooner or later.  */
 		      record_asynch_buffer_change ();
@@ -9991,7 +9991,7 @@ x_bitmap_icon (f, icon)
   if (NILP (icon))
     hicon = LoadIcon (hinst, EMACS_CLASS);
   else if (STRINGP (icon))
-    hicon = LoadImage (NULL, (LPCTSTR) XSTRING (icon)->data, IMAGE_ICON, 0, 0,
+    hicon = LoadImage (NULL, (LPCTSTR) SDATA (icon), IMAGE_ICON, 0, 0,
 		       LR_DEFAULTSIZE | LR_LOADFROMFILE);
   else if (SYMBOLP (icon))
     {
@@ -10121,7 +10121,7 @@ x_new_fontset (f, fontsetname)
        to do.  */
     return fontset_name (fontset);
 
-  result = x_new_font (f, (XSTRING (fontset_ascii (fontset))->data));
+  result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
 
   if (!STRINGP (result))
     /* Can't load ASCII font.  */
@@ -11047,11 +11047,11 @@ w32_initialize_display_info (display_name)
   dpyinfo->name_list_element = XCAR (w32_display_name_list);
   
   dpyinfo->w32_id_name
-    = (char *) xmalloc (XSTRING (Vinvocation_name)->size
-			+ XSTRING (Vsystem_name)->size
+    = (char *) xmalloc (SCHARS (Vinvocation_name)
+			+ SCHARS (Vsystem_name)
 			+ 2);
   sprintf (dpyinfo->w32_id_name, "%s@%s",
-	   XSTRING (Vinvocation_name)->data, XSTRING (Vsystem_name)->data);
+	   SDATA (Vinvocation_name), SDATA (Vsystem_name));
 
   /* Default Console mode values - overridden when running in GUI mode
      with values obtained from system metrics.  */

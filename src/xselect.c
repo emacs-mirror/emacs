@@ -200,9 +200,9 @@ symbol_to_x_atom (dpyinfo, display, sym)
 #endif
   if (!SYMBOLP (sym)) abort ();
 
-  TRACE1 (" XInternAtom %s", (char *) XSTRING (SYMBOL_NAME (sym))->data);
+  TRACE1 (" XInternAtom %s", (char *) SDATA (SYMBOL_NAME (sym)));
   BLOCK_INPUT;
-  val = XInternAtom (display, (char *) XSTRING (SYMBOL_NAME (sym))->data, False);
+  val = XInternAtom (display, (char *) SDATA (SYMBOL_NAME (sym)), False);
   UNBLOCK_INPUT;
   return val;
 }
@@ -1272,7 +1272,7 @@ x_get_foreign_selection (selection_symbol, target_type)
   if (NILP (XCAR (reading_selection_reply)))
     error ("Timed out waiting for reply from selection owner");
   if (EQ (XCAR (reading_selection_reply), Qlambda))
-    error ("No `%s' selection", XSTRING (SYMBOL_NAME (selection_symbol))->data);
+    error ("No `%s' selection", SDATA (SYMBOL_NAME (selection_symbol)));
 
   /* Otherwise, the selection is waiting for us on the requested property.  */
   return
@@ -1662,7 +1662,7 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	    str = run_pre_post_conversion_on_str (str, &coding, 0);
 	  Vlast_coding_system_used = coding.symbol;
 	}
-      compose_chars_in_text (0, XSTRING (str)->size, str);
+      compose_chars_in_text (0, SCHARS (str), str);
       return str;
     }
   /* Convert a single atom to a Lisp_Symbol.  Convert a set of atoms to
@@ -1778,7 +1778,7 @@ lisp_data_to_selection_data (display, obj,
 	  Lisp_Object unibyte_string;
 
 	  unibyte_string = string_make_unibyte (obj);
-	  *data_ret = XSTRING (unibyte_string)->data;
+	  *data_ret = SDATA (unibyte_string);
 	  *nofree_ret = 1;
 	  *size_ret = SBYTES (unibyte_string);
 	}
@@ -1786,7 +1786,7 @@ lisp_data_to_selection_data (display, obj,
 	{
 	  *data_ret = x_encode_text (obj, Vnext_selection_coding_system, 1,
 				     (int *) size_ret, &stringp);
-	  *nofree_ret = (*data_ret == XSTRING (obj)->data);
+	  *nofree_ret = (*data_ret == SDATA (obj));
 	}
       if (NILP (type))
 	type = (stringp ? QSTRING : QCOMPOUND_TEXT);
@@ -2277,8 +2277,8 @@ DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
   CHECK_STRING (string);
   buffer_atom = symbol_to_x_atom (FRAME_X_DISPLAY_INFO (sf),
 				  display, buffer);
-  data = (unsigned char *) XSTRING (string)->data;
-  bytes = STRING_BYTES (XSTRING (string));
+  data = (unsigned char *) SDATA (string);
+  bytes = SBYTES (string);
   bytes_remaining = bytes;
 
   if (! FRAME_X_DISPLAY_INFO (sf)->cut_buffers_initialized)

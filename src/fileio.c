@@ -269,8 +269,8 @@ report_file_error (string, data)
       default:
 	/* System error messages are capitalized.  Downcase the initial
 	   unless it is followed by a slash.  */
-	if (XSTRING (errstring)->data[1] != '/')
-	  XSTRING (errstring)->data[0] = DOWNCASE (XSTRING (errstring)->data[0]);
+	if (SREF (errstring, 1) != '/')
+	  SREF (errstring, 0) = DOWNCASE (SREF (errstring, 0));
 
 	Fsignal (Qfile_error,
 		 Fcons (build_string (string), Fcons (errstring, data)));
@@ -408,11 +408,11 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.  */)
 #ifdef FILE_SYSTEM_CASE
   filename = FILE_SYSTEM_CASE (filename);
 #endif
-  beg = XSTRING (filename)->data;
+  beg = SDATA (filename);
 #ifdef DOS_NT
   beg = strcpy (alloca (strlen (beg) + 1), beg);
 #endif
-  p = beg + STRING_BYTES (XSTRING (filename));
+  p = beg + SBYTES (filename);
 
   while (p != beg && !IS_DIRECTORY_SEP (p[-1])
 #ifdef VMS
@@ -480,8 +480,8 @@ or the entire name if it contains no slash.  */)
   if (!NILP (handler))
     return call2 (handler, Qfile_name_nondirectory, filename);
 
-  beg = XSTRING (filename)->data;
-  end = p = beg + STRING_BYTES (XSTRING (filename));
+  beg = SDATA (filename);
+  end = p = beg + SBYTES (filename);
 
   while (p != beg && !IS_DIRECTORY_SEP (p[-1])
 #ifdef VMS
@@ -637,8 +637,8 @@ On VMS, converts \"[X]FOO.DIR\" to \"[X.FOO]\", etc.  */)
   if (!NILP (handler))
     return call2 (handler, Qfile_name_as_directory, file);
 
-  buf = (char *) alloca (STRING_BYTES (XSTRING (file)) + 10);
-  return build_string (file_name_as_directory (buf, XSTRING (file)->data));
+  buf = (char *) alloca (SBYTES (file) + 10);
+  return build_string (file_name_as_directory (buf, SDATA (file)));
 }
 
 /*
@@ -833,11 +833,11 @@ it returns a file name such as \"[X]Y.DIR.1\".  */)
   /* 20 extra chars is insufficient for VMS, since we might perform a
      logical name translation. an equivalence string can be up to 255
      chars long, so grab that much extra space...  - sss */
-  buf = (char *) alloca (STRING_BYTES (XSTRING (directory)) + 20 + 255);
+  buf = (char *) alloca (SBYTES (directory) + 20 + 255);
 #else
-  buf = (char *) alloca (STRING_BYTES (XSTRING (directory)) + 20);
+  buf = (char *) alloca (SBYTES (directory) + 20);
 #endif
-  directory_file_name (XSTRING (directory)->data, buf);
+  directory_file_name (SDATA (directory), buf);
   return build_string (buf);
 }
 
@@ -912,10 +912,10 @@ make_temp_name (prefix, base64_p)
 #endif
     }
   
-  len = XSTRING (prefix)->size;
+  len = SCHARS (prefix);
   val = make_uninit_string (len + 3 + pidlen);
-  data = XSTRING (val)->data;
-  bcopy(XSTRING (prefix)->data, data, len);
+  data = SDATA (val);
+  bcopy(SDATA (prefix), data, len);
   p = data + len;
 
   bcopy (pidbuf, p, pidlen);
@@ -970,7 +970,7 @@ make_temp_name (prefix, base64_p)
     }
 
   error ("Cannot create temporary name for prefix `%s'",
-	 XSTRING (prefix)->data);
+	 SDATA (prefix));
   return Qnil;
 }
 
@@ -1073,7 +1073,7 @@ See also the function `substitute-in-file-name'.  */)
 	return call3 (handler, Qexpand_file_name, name, default_directory);
     }
 
-  o = XSTRING (default_directory)->data;
+  o = SDATA (default_directory);
 
   /* Make sure DEFAULT_DIRECTORY is properly expanded.
      It would be better to do this down below where we actually use
@@ -1118,7 +1118,7 @@ See also the function `substitute-in-file-name'.  */)
   name = FILE_SYSTEM_CASE (name);
 #endif
 
-  nm = XSTRING (name)->data;
+  nm = SDATA (name);
 
 #ifdef DOS_NT
   /* We will force directory separators to be either all \ or /, so make
@@ -1292,21 +1292,21 @@ See also the function `substitute-in-file-name'.  */)
 #ifdef WINDOWSNT
 	  if (IS_DIRECTORY_SEP (nm[1]))
 	    {
-	      if (strcmp (nm, XSTRING (name)->data) != 0)
+	      if (strcmp (nm, SDATA (name)) != 0)
 		name = build_string (nm);
 	    }
 	  else
 #endif
 	  /* drive must be set, so this is okay */
-	  if (strcmp (nm - 2, XSTRING (name)->data) != 0)
+	  if (strcmp (nm - 2, SDATA (name)) != 0)
 	    {
 	      name = make_string (nm - 2, p - nm + 2);
-	      XSTRING (name)->data[0] = DRIVE_LETTER (drive);
-	      XSTRING (name)->data[1] = ':';
+	      SREF (name, 0) = DRIVE_LETTER (drive);
+	      SREF (name, 1) = ':';
 	    }
 	  return name;
 #else /* not DOS_NT */
-	  if (nm == XSTRING (name)->data)
+	  if (nm == SDATA (name))
 	    return name;
 	  return build_string (nm);
 #endif /* not DOS_NT */
@@ -1419,7 +1419,7 @@ See also the function `substitute-in-file-name'.  */)
 #endif
       && !newdir)
     {
-      newdir = XSTRING (default_directory)->data;
+      newdir = SDATA (default_directory);
 #ifdef DOS_NT
       /* Note if special escape prefix is present, but remove for now.  */
       if (newdir[0] == '/' && newdir[1] == ':')
@@ -1726,7 +1726,7 @@ See also the function `substitute-in-file-name'.")
   name = Fupcase (name);
 #endif
 
-  nm = XSTRING (name)->data;
+  nm = SDATA (name);
 
   /* If nm is absolute, flush ...// and detect /./ and /../.
      If no /./ or /../ we can return right away.  */
@@ -1835,7 +1835,7 @@ See also the function `substitute-in-file-name'.")
 	  if (index (nm, '/'))
 	    return build_string (sys_translate_unix (nm));
 #endif /* VMS */
-	  if (nm == XSTRING (name)->data)
+	  if (nm == SDATA (name))
 	    return name;
 	  return build_string (nm);
 	}
@@ -1896,7 +1896,7 @@ See also the function `substitute-in-file-name'.")
       if (NILP (defalt))
 	defalt = current_buffer->directory;
       CHECK_STRING (defalt);
-      newdir = XSTRING (defalt)->data;
+      newdir = SDATA (defalt);
     }
 
   /* Now concatenate the directory and name to new space in the stack frame */
@@ -2046,13 +2046,13 @@ duplicates what `expand-file-name' does.  */)
   if (!NILP (handler))
     return call2 (handler, Qsubstitute_in_file_name, filename);
 
-  nm = XSTRING (filename)->data;
+  nm = SDATA (filename);
 #ifdef DOS_NT
   nm = strcpy (alloca (strlen (nm) + 1), nm);
   CORRECT_DIR_SEPS (nm);
-  substituted = (strcmp (nm, XSTRING (filename)->data) != 0);
+  substituted = (strcmp (nm, SDATA (filename)) != 0);
 #endif
-  endp = nm + STRING_BYTES (XSTRING (filename));
+  endp = nm + SBYTES (filename);
 
   /* If /~ or // appears, discard everything through first slash.  */
 
@@ -2168,7 +2168,7 @@ duplicates what `expand-file-name' does.  */)
 
   /* If substitution required, recopy the string and do it */
   /* Make space in stack frame for the new copy */
-  xnm = (unsigned char *) alloca (STRING_BYTES (XSTRING (filename)) + total + 1);
+  xnm = (unsigned char *) alloca (SBYTES (filename) + total + 1);
   x = xnm;
 
   /* Copy the rest of the name through, replacing $ constructs with values */
@@ -2279,16 +2279,16 @@ expand_and_dir_to_file (filename, defdir)
   absname = Fexpand_file_name (filename, defdir);
 #ifdef VMS
   {
-    register int c = XSTRING (absname)->data[STRING_BYTES (XSTRING (absname)) - 1];
+    register int c = SREF (absname, SBYTES (absname) - 1);
     if (c == ':' || c == ']' || c == '>')
       absname = Fdirectory_file_name (absname);
   }
 #else
   /* Remove final slash, if any (unless this is the root dir).
      stat behaves differently depending!  */
-  if (XSTRING (absname)->size > 1
-      && IS_DIRECTORY_SEP (XSTRING (absname)->data[STRING_BYTES (XSTRING (absname)) - 1])
-      && !IS_DEVICE_SEP (XSTRING (absname)->data[STRING_BYTES (XSTRING (absname))-2]))
+  if (SCHARS (absname) > 1
+      && IS_DIRECTORY_SEP (SREF (absname, SBYTES (absname) - 1))
+      && !IS_DEVICE_SEP (SREF (absname, SBYTES (absname)-2)))
     /* We cannot take shortcuts; they might be wrong for magic file names.  */
     absname = Fdirectory_file_name (absname);
 #endif
@@ -2323,7 +2323,7 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
 
   /* stat is a good way to tell whether the file exists,
      regardless of what access permissions it has.  */
-  if (stat (XSTRING (encoded_filename)->data, &statbuf) >= 0)
+  if (stat (SDATA (encoded_filename), &statbuf) >= 0)
     {
       if (! interactive)
 	Fsignal (Qfile_already_exists,
@@ -2331,7 +2331,7 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
 			Fcons (absname, Qnil)));
       GCPRO1 (absname);
       tem = format1 ("File %s already exists; %s anyway? ",
-		     XSTRING (absname)->data, querystring);
+		     SDATA (absname), querystring);
       if (quick)
 	tem = Fy_or_n_p (tem);
       else
@@ -2404,12 +2404,12 @@ A prefix arg makes KEEP-TIME non-nil.  */)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (encoded_newname, "copy to it",
 				  INTEGERP (ok_if_already_exists), &out_st, 0);
-  else if (stat (XSTRING (encoded_newname)->data, &out_st) < 0)
+  else if (stat (SDATA (encoded_newname), &out_st) < 0)
     out_st.st_mode = 0;
 
 #ifdef WINDOWSNT
-  if (!CopyFile (XSTRING (encoded_file)->data,
-		 XSTRING (encoded_newname)->data, 
+  if (!CopyFile (SDATA (encoded_file),
+		 SDATA (encoded_newname), 
 		 FALSE))
     report_file_error ("Copying file", Fcons (file, Fcons (newname, Qnil)));
   else if (NILP (keep_time))
@@ -2419,7 +2419,7 @@ A prefix arg makes KEEP-TIME non-nil.  */)
       char * filename;
 
       EMACS_GET_TIME (now);
-      filename = XSTRING (encoded_newname)->data;
+      filename = SDATA (encoded_newname);
 
       /* Ensure file is writable while its modified time is set.  */
       attributes = GetFileAttributes (filename);
@@ -2436,7 +2436,7 @@ A prefix arg makes KEEP-TIME non-nil.  */)
       SetFileAttributes (filename, attributes);
     }
 #else /* not WINDOWSNT */
-  ifd = emacs_open (XSTRING (encoded_file)->data, O_RDONLY, 0);
+  ifd = emacs_open (SDATA (encoded_file), O_RDONLY, 0);
   if (ifd < 0)
     report_file_error ("Opening input file", Fcons (file, Qnil));
 
@@ -2472,13 +2472,13 @@ A prefix arg makes KEEP-TIME non-nil.  */)
 
 #ifdef VMS
   /* Create the copy file with the same record format as the input file */
-  ofd = sys_creat (XSTRING (encoded_newname)->data, 0666, ifd);
+  ofd = sys_creat (SDATA (encoded_newname), 0666, ifd);
 #else
 #ifdef MSDOS
   /* System's default file type was set to binary by _fmode in emacs.c.  */
-  ofd = creat (XSTRING (encoded_newname)->data, S_IREAD | S_IWRITE);
+  ofd = creat (SDATA (encoded_newname), S_IREAD | S_IWRITE);
 #else /* not MSDOS */
-  ofd = creat (XSTRING (encoded_newname)->data, 0666);
+  ofd = creat (SDATA (encoded_newname), 0666);
 #endif /* not MSDOS */
 #endif /* VMS */
   if (ofd < 0)
@@ -2504,14 +2504,14 @@ A prefix arg makes KEEP-TIME non-nil.  */)
 	  EMACS_TIME atime, mtime;
 	  EMACS_SET_SECS_USECS (atime, st.st_atime, 0);
 	  EMACS_SET_SECS_USECS (mtime, st.st_mtime, 0);
-	  if (set_file_times (XSTRING (encoded_newname)->data,
+	  if (set_file_times (SDATA (encoded_newname),
 			      atime, mtime))
 	    Fsignal (Qfile_date_error,
 		     Fcons (build_string ("Cannot set file date"),
 			    Fcons (newname, Qnil)));
 	}
 #ifndef MSDOS
-      chmod (XSTRING (encoded_newname)->data, st.st_mode & 07777);
+      chmod (SDATA (encoded_newname), st.st_mode & 07777);
 #else /* MSDOS */
 #if defined (__DJGPP__) && __DJGPP__ > 1
       /* In DJGPP v2.0 and later, fstat usually returns true file mode bits,
@@ -2519,7 +2519,7 @@ A prefix arg makes KEEP-TIME non-nil.  */)
          get only the READ bit, which will make the copied file read-only,
          so it's better not to chmod at all.  */
       if ((_djstat_flags & _STFAIL_WRITEBIT) == 0)
-	chmod (XSTRING (encoded_newname)->data, st.st_mode & 07777);
+	chmod (SDATA (encoded_newname), st.st_mode & 07777);
 #endif /* DJGPP version 2 or newer */
 #endif /* MSDOS */
     }
@@ -2553,7 +2553,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
 
   encoded_dir = ENCODE_FILE (directory);
 
-  dir = XSTRING (encoded_dir)->data;
+  dir = SDATA (encoded_dir);
 
 #ifdef WINDOWSNT
   if (mkdir (dir) != 0)
@@ -2583,7 +2583,7 @@ DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete 
 
   encoded_dir = ENCODE_FILE (directory);
 
-  dir = XSTRING (encoded_dir)->data;
+  dir = SDATA (encoded_dir);
 
   if (rmdir (dir) != 0)
     report_file_error ("Removing directory", Flist (1, &directory));
@@ -2609,7 +2609,7 @@ If file has multiple names, it continues to exist with the other names.  */)
 
   encoded_file = ENCODE_FILE (filename);
 
-  if (0 > unlink (XSTRING (encoded_file)->data))
+  if (0 > unlink (SDATA (encoded_file)))
     report_file_error ("Removing old name", Flist (1, &filename));
   return Qnil;
 }
@@ -2679,10 +2679,10 @@ This is what happens in interactive use with M-x.  */)
     barf_or_query_if_file_exists (encoded_newname, "rename to it",
 				  INTEGERP (ok_if_already_exists), 0, 0);
 #ifndef BSD4_1
-  if (0 > rename (XSTRING (encoded_file)->data, XSTRING (encoded_newname)->data))
+  if (0 > rename (SDATA (encoded_file), SDATA (encoded_newname)))
 #else
-  if (0 > link (XSTRING (encoded_file)->data, XSTRING (encoded_newname)->data)
-      || 0 > unlink (XSTRING (encoded_file)->data))
+  if (0 > link (SDATA (encoded_file), SDATA (encoded_newname))
+      || 0 > unlink (SDATA (encoded_file)))
 #endif
     {
       if (errno == EXDEV)
@@ -2754,8 +2754,8 @@ This is what happens in interactive use with M-x.  */)
     barf_or_query_if_file_exists (encoded_newname, "make it a new name",
 				  INTEGERP (ok_if_already_exists), 0, 0);
 
-  unlink (XSTRING (newname)->data);
-  if (0 > link (XSTRING (encoded_file)->data, XSTRING (encoded_newname)->data))
+  unlink (SDATA (newname));
+  if (0 > link (SDATA (encoded_file), SDATA (encoded_newname)))
     {
 #ifdef NO_ARG_ARRAY
       args[0] = file;
@@ -2795,7 +2795,7 @@ This happens for interactive use with M-x.  */)
   /* If the link target has a ~, we must expand it to get
      a truly valid file name.  Otherwise, do not expand;
      we want to permit links to relative file names.  */
-  if (XSTRING (filename)->data[0] == '~')
+  if (SREF (filename, 0) == '~')
     filename = Fexpand_file_name (filename, Qnil);
   linkname = Fexpand_file_name (linkname, Qnil);
 
@@ -2820,15 +2820,15 @@ This happens for interactive use with M-x.  */)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (encoded_linkname, "make it a link",
 				  INTEGERP (ok_if_already_exists), 0, 0);
-  if (0 > symlink (XSTRING (encoded_filename)->data,
-		   XSTRING (encoded_linkname)->data))
+  if (0 > symlink (SDATA (encoded_filename),
+		   SDATA (encoded_linkname)))
     {
       /* If we didn't complain already, silently delete existing file.  */
       if (errno == EEXIST)
 	{
-	  unlink (XSTRING (encoded_linkname)->data);
-	  if (0 <= symlink (XSTRING (encoded_filename)->data,
-			    XSTRING (encoded_linkname)->data))
+	  unlink (SDATA (encoded_linkname));
+	  if (0 <= symlink (SDATA (encoded_filename),
+			    SDATA (encoded_linkname)))
 	    {
 	      UNGCPRO;
 	      return Qnil;
@@ -2860,15 +2860,15 @@ If STRING is nil or a null string, the logical name NAME is deleted.  */)
 {
   CHECK_STRING (name);
   if (NILP (string))
-    delete_logical_name (XSTRING (name)->data);
+    delete_logical_name (SDATA (name));
   else
     {
       CHECK_STRING (string);
 
-      if (XSTRING (string)->size == 0)
-	delete_logical_name (XSTRING (name)->data);
+      if (SCHARS (string) == 0)
+	delete_logical_name (SDATA (name));
       else
-	define_logical_name (XSTRING (name)->data, XSTRING (string)->data);
+	define_logical_name (SDATA (name), SDATA (string));
     }
 
   return string;
@@ -2887,7 +2887,7 @@ DEFUN ("sysnetunam", Fsysnetunam, Ssysnetunam, 2, 2, 0,
   CHECK_STRING (path);
   CHECK_STRING (login);
 
-  netresult = netunam (XSTRING (path)->data, XSTRING (login)->data);
+  netresult = netunam (SDATA (path), SDATA (login));
 
   if (netresult == -1)
     return Qnil;
@@ -2906,7 +2906,7 @@ On Unix, this is a name starting with a `/' or a `~'.  */)
   unsigned char *ptr;
 
   CHECK_STRING (filename);
-  ptr = XSTRING (filename)->data;
+  ptr = SDATA (filename);
   if (IS_DIRECTORY_SEP (*ptr) || *ptr == '~'
 #ifdef VMS
 /* ??? This criterion is probably wrong for '<'.  */
@@ -3003,7 +3003,7 @@ See also `file-readable-p' and `file-attributes'.  */)
 
   absname = ENCODE_FILE (absname);
 
-  return (stat (XSTRING (absname)->data, &statbuf) >= 0) ? Qt : Qnil;
+  return (stat (SDATA (absname), &statbuf) >= 0) ? Qt : Qnil;
 }
 
 DEFUN ("file-executable-p", Ffile_executable_p, Sfile_executable_p, 1, 1, 0,
@@ -3026,7 +3026,7 @@ For a directory, this means you can access files in that directory.  */)
 
   absname = ENCODE_FILE (absname);
 
-  return (check_executable (XSTRING (absname)->data) ? Qt : Qnil);
+  return (check_executable (SDATA (absname)) ? Qt : Qnil);
 }
 
 DEFUN ("file-readable-p", Ffile_readable_p, Sfile_readable_p, 1, 1, 0,
@@ -3055,7 +3055,7 @@ See also `file-exists-p' and `file-attributes'.  */)
 #if defined(DOS_NT) || defined(macintosh)
   /* Under MS-DOS, Windows, and Macintosh, open does not work for
      directories.  */
-  if (access (XSTRING (absname)->data, 0) == 0)
+  if (access (SDATA (absname), 0) == 0)
     return Qt;
   return Qnil;
 #else /* not DOS_NT and not macintosh */
@@ -3064,13 +3064,13 @@ See also `file-exists-p' and `file-attributes'.  */)
   /* Opening a fifo without O_NONBLOCK can wait.
      We don't want to wait.  But we don't want to mess wth O_NONBLOCK
      except in the case of a fifo, on a system which handles it.  */
-  desc = stat (XSTRING (absname)->data, &statbuf);
+  desc = stat (SDATA (absname), &statbuf);
   if (desc < 0)
     return Qnil;
   if (S_ISFIFO (statbuf.st_mode))
     flags |= O_NONBLOCK;
 #endif
-  desc = emacs_open (XSTRING (absname)->data, flags, 0);
+  desc = emacs_open (SDATA (absname), flags, 0);
   if (desc < 0)
     return Qnil;
   emacs_close (desc);
@@ -3099,8 +3099,8 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
     return call2 (handler, Qfile_writable_p, absname);
 
   encoded = ENCODE_FILE (absname);
-  if (stat (XSTRING (encoded)->data, &statbuf) >= 0)
-    return (check_writable (XSTRING (encoded)->data)
+  if (stat (SDATA (encoded), &statbuf) >= 0)
+    return (check_writable (SDATA (encoded))
 	    ? Qt : Qnil);
 
   dir = Ffile_name_directory (absname);
@@ -3118,11 +3118,11 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
   /* The read-only attribute of the parent directory doesn't affect
      whether a file or directory can be created within it.  Some day we
      should check ACLs though, which do affect this.  */
-  if (stat (XSTRING (dir)->data, &statbuf) < 0)
+  if (stat (SDATA (dir), &statbuf) < 0)
     return Qnil;
   return (statbuf.st_mode & S_IFMT) == S_IFDIR ? Qt : Qnil;
 #else
-  return (check_writable (!NILP (dir) ? (char *) XSTRING (dir)->data : "")
+  return (check_writable (!NILP (dir) ? (char *) SDATA (dir) : "")
 	  ? Qt : Qnil);
 #endif
 }
@@ -3150,9 +3150,9 @@ If there is no error, we return nil.  */)
 
   encoded_filename = ENCODE_FILE (absname);
 
-  fd = emacs_open (XSTRING (encoded_filename)->data, O_RDONLY, 0);
+  fd = emacs_open (SDATA (encoded_filename), O_RDONLY, 0);
   if (fd < 0)
-    report_file_error (XSTRING (string)->data, Fcons (filename, Qnil));
+    report_file_error (SDATA (string), Fcons (filename, Qnil));
   emacs_close (fd);
 
   return Qnil;
@@ -3192,7 +3192,7 @@ Otherwise returns nil.  */)
       bzero (buf, bufsize);
       
       errno = 0;
-      valsize = readlink (XSTRING (filename)->data, buf, bufsize);
+      valsize = readlink (SDATA (filename), buf, bufsize);
       if (valsize == -1)
 	{
 #ifdef ERANGE
@@ -3241,7 +3241,7 @@ See `file-symlink-p' to distinguish symlinks.  */)
 
   absname = ENCODE_FILE (absname);
 
-  if (stat (XSTRING (absname)->data, &st) < 0)
+  if (stat (SDATA (absname), &st) < 0)
     return Qnil;
   return (st.st_mode & S_IFMT) == S_IFDIR ? Qt : Qnil;
 }
@@ -3307,7 +3307,7 @@ This is the sort of file that holds an ordinary stream of data bytes.  */)
 
     /* Tell stat to use expensive method to get accurate info.  */
     Vw32_get_true_file_attributes = Qt;
-    result = stat (XSTRING (absname)->data, &st);
+    result = stat (SDATA (absname), &st);
     Vw32_get_true_file_attributes = tem;
 
     if (result < 0)
@@ -3315,7 +3315,7 @@ This is the sort of file that holds an ordinary stream of data bytes.  */)
     return (st.st_mode & S_IFMT) == S_IFREG ? Qt : Qnil;
   }
 #else
-  if (stat (XSTRING (absname)->data, &st) < 0)
+  if (stat (SDATA (absname), &st) < 0)
     return Qnil;
   return (st.st_mode & S_IFMT) == S_IFREG ? Qt : Qnil;
 #endif
@@ -3340,10 +3340,10 @@ DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
 
   absname = ENCODE_FILE (absname);
 
-  if (stat (XSTRING (absname)->data, &st) < 0)
+  if (stat (SDATA (absname), &st) < 0)
     return Qnil;
 #if defined (MSDOS) && __DJGPP__ < 2
-  if (check_executable (XSTRING (absname)->data))
+  if (check_executable (SDATA (absname)))
     st.st_mode |= S_IEXEC;
 #endif /* MSDOS && __DJGPP__ < 2 */
 
@@ -3370,7 +3370,7 @@ Only the 12 low bits of MODE are used.  */)
 
   encoded_absname = ENCODE_FILE (absname);
 
-  if (chmod (XSTRING (encoded_absname)->data, XINT (mode)) < 0)
+  if (chmod (SDATA (encoded_absname), XINT (mode)) < 0)
     report_file_error ("Doing chmod", Fcons (absname, Qnil));
 
   return Qnil;
@@ -3456,12 +3456,12 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   absname2 = ENCODE_FILE (absname2);
   UNGCPRO;
 
-  if (stat (XSTRING (absname1)->data, &st) < 0)
+  if (stat (SDATA (absname1), &st) < 0)
     return Qnil;
 
   mtime1 = st.st_mtime;
 
-  if (stat (XSTRING (absname2)->data, &st) < 0)
+  if (stat (SDATA (absname2), &st) < 0)
     return Qt;
 
   return (mtime1 > st.st_mtime) ? Qt : Qnil;
@@ -3640,15 +3640,15 @@ actually used.  */)
 
     /* Tell stat to use expensive method to get accurate info.  */
     Vw32_get_true_file_attributes = Qt;
-    total = stat (XSTRING (filename)->data, &st);
+    total = stat (SDATA (filename), &st);
     Vw32_get_true_file_attributes = tem;
   }
   if (total < 0)
 #else
 #ifndef APOLLO
-  if (stat (XSTRING (filename)->data, &st) < 0)
+  if (stat (SDATA (filename), &st) < 0)
 #else
-  if ((fd = emacs_open (XSTRING (filename)->data, O_RDONLY, 0)) < 0
+  if ((fd = emacs_open (SDATA (filename), O_RDONLY, 0)) < 0
       || fstat (fd, &st) < 0)
 #endif /* not APOLLO */
 #endif /* WINDOWSNT */
@@ -3683,7 +3683,7 @@ actually used.  */)
 #endif
 
   if (fd < 0)
-    if ((fd = emacs_open (XSTRING (filename)->data, O_RDONLY, 0)) < 0)
+    if ((fd = emacs_open (SDATA (filename), O_RDONLY, 0)) < 0)
       goto badopen;
 
   /* Replacement should preserve point as it preserves markers.  */
@@ -3779,7 +3779,7 @@ actually used.  */)
 
 	      if (nread < 0)
 		error ("IO error reading %s: %s",
-		       XSTRING (orig_filename)->data, emacs_strerror (errno));
+		       SDATA (orig_filename), emacs_strerror (errno));
 	      else if (nread > 0)
 		{
 		  struct buffer *prev = current_buffer;
@@ -3896,7 +3896,7 @@ actually used.  */)
 	  nread = emacs_read (fd, buffer, sizeof buffer);
 	  if (nread < 0)
 	    error ("IO error reading %s: %s",
-		   XSTRING (orig_filename)->data, emacs_strerror (errno));
+		   SDATA (orig_filename), emacs_strerror (errno));
 	  else if (nread == 0)
 	    break;
 
@@ -3967,7 +3967,7 @@ actually used.  */)
 	      nread = emacs_read (fd, buffer + total_read, trial - total_read);
 	      if (nread < 0)
 		error ("IO error reading %s: %s",
-		       XSTRING (orig_filename)->data, emacs_strerror (errno));
+		       SDATA (orig_filename), emacs_strerror (errno));
 	      else if (nread == 0)
 		break;
 	      total_read += nread;
@@ -4150,7 +4150,7 @@ actually used.  */)
 
 	  if (how_much == -1)
 	    error ("IO error reading %s: %s",
-		   XSTRING (orig_filename)->data, emacs_strerror (errno));
+		   SDATA (orig_filename), emacs_strerror (errno));
 	  else if (how_much == -2)
 	    error ("maximum buffer size exceeded");
 	}
@@ -4370,7 +4370,7 @@ actually used.  */)
 
   if (how_much < 0)
     error ("IO error reading %s: %s",
-	   XSTRING (orig_filename)->data, emacs_strerror (errno));
+	   SDATA (orig_filename), emacs_strerror (errno));
 
  notfound:
 
@@ -4493,7 +4493,7 @@ actually used.  */)
       if (!EQ (current_buffer->undo_list, Qt))
 	current_buffer->undo_list = Qnil;
 #ifdef APOLLO
-      stat (XSTRING (filename)->data, &st);
+      stat (SDATA (filename), &st);
 #endif
 
       if (NILP (handler))
@@ -4880,7 +4880,7 @@ This does code conversion according to the value of
 
   encoded_filename = ENCODE_FILE (filename);
 
-  fn = XSTRING (encoded_filename)->data;
+  fn = SDATA (encoded_filename);
   desc = -1;
   if (!NILP (append))
 #ifdef DOS_NT
@@ -4897,7 +4897,7 @@ This does code conversion according to the value of
 	desc = emacs_open (fn, O_RDWR, 0);
 	if (desc < 0)
 	  desc = creat_copy_attrs (STRINGP (current_buffer->filename)
-				   ? XSTRING (current_buffer->filename)->data : 0,
+				   ? SDATA (current_buffer->filename) : 0,
 				   fn);
       }
     else                /* Write to temporary name and rename if no errors */
@@ -4909,8 +4909,8 @@ This does code conversion according to the value of
 	  {
 	    temp_name = Fmake_temp_name (concat2 (temp_name,
 						  build_string ("$$SAVE$$")));
-	    fname = XSTRING (filename)->data;
-	    fn = XSTRING (temp_name)->data;
+	    fname = SDATA (filename);
+	    fn = SDATA (temp_name);
 	    desc = creat_copy_attrs (fname, fn);
 	    if (desc < 0)
 	      {
@@ -5019,7 +5019,7 @@ This does code conversion according to the value of
 
   if (STRINGP (start))
     {
-      failure = 0 > a_write (desc, start, 0, XSTRING (start)->size,
+      failure = 0 > a_write (desc, start, 0, SCHARS (start),
 			     &annotations, &coding);
       save_errno = errno;
     }
@@ -5129,7 +5129,7 @@ This does code conversion according to the value of
     current_buffer->modtime = st.st_mtime;
 
   if (failure)
-    error ("IO error writing %s: %s", XSTRING (filename)->data,
+    error ("IO error writing %s: %s", SDATA (filename),
 	   emacs_strerror (save_errno));
 
   if (visiting)
@@ -5304,7 +5304,7 @@ a_write (desc, string, pos, nchars, annot, coding)
       tem = Fcdr (Fcar (*annot));
       if (STRINGP (tem))
 	{
-	  if (0 > e_write (desc, tem, 0, XSTRING (tem)->size, coding))
+	  if (0 > e_write (desc, tem, 0, SCHARS (tem), coding))
 	    return -1;
 	}
       *annot = Fcdr (*annot);
@@ -5340,8 +5340,8 @@ e_write (desc, string, start, end, coding)
 
   if (STRINGP (string))
     {
-      addr = XSTRING (string)->data;
-      nbytes = STRING_BYTES (XSTRING (string));
+      addr = SDATA (string);
+      nbytes = SBYTES (string);
       coding->src_multibyte = STRING_MULTIBYTE (string);
     }
   else if (start < end)
@@ -5429,7 +5429,7 @@ This means that the file has not been changed since it was visited or saved.  */
 
   filename = ENCODE_FILE (b->filename);
 
-  if (stat (XSTRING (filename)->data, &st) < 0)
+  if (stat (SDATA (filename), &st) < 0)
     {
       /* If the file doesn't exist now and didn't exist before,
 	 we say that it isn't modified, provided the error is a tame one.  */
@@ -5497,7 +5497,7 @@ An argument specifies the modification time value to use
 
       filename = ENCODE_FILE (filename);
 
-      if (stat (XSTRING (filename)->data, &st) >= 0)
+      if (stat (SDATA (filename), &st) >= 0)
 	current_buffer->modtime = st.st_mtime;
     }
 
@@ -5519,14 +5519,14 @@ auto_save_error (error)
   args[2] = Ferror_message_string (error);
   msg = Fformat (3, args);
   GCPRO1 (msg);
-  nbytes = STRING_BYTES (XSTRING (msg));
+  nbytes = SBYTES (msg);
 
   for (i = 0; i < 3; ++i)
     {
       if (i == 0)
-	message2 (XSTRING (msg)->data, nbytes, STRING_MULTIBYTE (msg));
+	message2 (SDATA (msg), nbytes, STRING_MULTIBYTE (msg));
       else
-	message2_nolog (XSTRING (msg)->data, nbytes, STRING_MULTIBYTE (msg));
+	message2_nolog (SDATA (msg), nbytes, STRING_MULTIBYTE (msg));
       Fsleep_for (make_number (1), Qnil);
     }
 
@@ -5541,7 +5541,7 @@ auto_save_1 ()
 
   /* Get visited file's mode to become the auto save file's mode.  */
   if (! NILP (current_buffer->filename)
-      && stat (XSTRING (current_buffer->filename)->data, &st) >= 0)
+      && stat (SDATA (current_buffer->filename), &st) >= 0)
     /* But make sure we can overwrite it later!  */
     auto_save_mode_bits = st.st_mode | 0600;
   else
@@ -5635,7 +5635,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	    call2 (Qmake_directory, dir, Qt);
 	}
       
-      stream = fopen (XSTRING (listfile)->data, "w");
+      stream = fopen (SDATA (listfile), "w");
       if (stream != NULL)
 	{
 	  /* Arrange to close that file whether or not we get an error.
@@ -5678,12 +5678,12 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	  {
 	    if (!NILP (b->filename))
 	      {
-		fwrite (XSTRING (b->filename)->data, 1,
-			STRING_BYTES (XSTRING (b->filename)), stream);
+		fwrite (SDATA (b->filename), 1,
+			SBYTES (b->filename), stream);
 	      }
 	    putc ('\n', stream);
-	    fwrite (XSTRING (b->auto_save_file_name)->data, 1,
-		    STRING_BYTES (XSTRING (b->auto_save_file_name)), stream);
+	    fwrite (SDATA (b->auto_save_file_name), 1,
+		    SBYTES (b->auto_save_file_name), stream);
 	    putc ('\n', stream);
 	  }
 
@@ -5817,17 +5817,17 @@ double_dollars (val)
   register int n;
   int osize, count;
 
-  osize = STRING_BYTES (XSTRING (val));
+  osize = SBYTES (val);
 
   /* Count the number of $ characters.  */
-  for (n = osize, count = 0, old = XSTRING (val)->data; n > 0; n--)
+  for (n = osize, count = 0, old = SDATA (val); n > 0; n--)
     if (*old++ == '$') count++;
   if (count > 0)
     {
-      old = XSTRING (val)->data;
-      val = make_uninit_multibyte_string (XSTRING (val)->size + count,
+      old = SDATA (val);
+      val = make_uninit_multibyte_string (SCHARS (val) + count,
 					  osize + count);
-      new = XSTRING (val)->data;
+      new = SDATA (val);
       for (n = osize; n > 0; n--)
 	if (*old != '$')
 	  *new++ = *old++;
@@ -5870,7 +5870,7 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
   /* No need to protect ACTION--we only compare it with t and nil.  */
   GCPRO5 (string, realdir, name, specdir, orig_string);
 
-  if (XSTRING (string)->size == 0)
+  if (SCHARS (string) == 0)
     {
       if (EQ (action, Qlambda))
 	{
@@ -5931,8 +5931,8 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
 	      Lisp_Object tem = XCAR (all);
 	      int len;
 	      if (STRINGP (tem) &&
-		  (len = XSTRING (tem)->size, len > 0) &&
-		  IS_DIRECTORY_SEP (XSTRING (tem)->data[len-1]))
+		  (len = SCHARS (tem), len > 0) &&
+		  IS_DIRECTORY_SEP (SREF (tem, len-1)))
 		comp = Fcons (tem, comp);
 	    }
 	}
@@ -5957,7 +5957,7 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
 #ifdef VMS
   /* Supposedly this helps commands such as `cd' that read directory names,
      but can someone explain how it helps them? -- RMS */
-  if (XSTRING (name)->size == 0)
+  if (SCHARS (name) == 0)
     return Qt;
 #endif /* VMS */
   if (!NILP (Vread_file_name_predicate))
@@ -6014,23 +6014,23 @@ provides a file dialog box.  */)
 #endif
   if (homedir != 0
       && STRINGP (dir)
-      && !strncmp (homedir, XSTRING (dir)->data, strlen (homedir))
-      && IS_DIRECTORY_SEP (XSTRING (dir)->data[strlen (homedir)]))
+      && !strncmp (homedir, SDATA (dir), strlen (homedir))
+      && IS_DIRECTORY_SEP (SDATA (dir)[strlen (homedir)]))
     {
-      dir = make_string (XSTRING (dir)->data + strlen (homedir) - 1,
-			 STRING_BYTES (XSTRING (dir)) - strlen (homedir) + 1);
-      XSTRING (dir)->data[0] = '~';
+      dir = make_string (SDATA (dir) + strlen (homedir) - 1,
+			 SBYTES (dir) - strlen (homedir) + 1);
+      SREF (dir, 0) = '~';
     }
   /* Likewise for default_filename.  */
   if (homedir != 0
       && STRINGP (default_filename)
-      && !strncmp (homedir, XSTRING (default_filename)->data, strlen (homedir))
-      && IS_DIRECTORY_SEP (XSTRING (default_filename)->data[strlen (homedir)]))
+      && !strncmp (homedir, SDATA (default_filename), strlen (homedir))
+      && IS_DIRECTORY_SEP (SDATA (default_filename)[strlen (homedir)]))
     {
       default_filename
-	= make_string (XSTRING (default_filename)->data + strlen (homedir) - 1,
-		       STRING_BYTES (XSTRING (default_filename)) - strlen (homedir) + 1);
-      XSTRING (default_filename)->data[0] = '~';
+	= make_string (SDATA (default_filename) + strlen (homedir) - 1,
+		       SBYTES (default_filename) - strlen (homedir) + 1);
+      SREF (default_filename, 0) = '~';
     }
   if (!NILP (default_filename))
     {
@@ -6048,7 +6048,7 @@ provides a file dialog box.  */)
 	  args[0] = insdef;
 	  args[1] = initial;
 	  insdef = Fconcat (2, args);
-	  pos = make_number (XSTRING (double_dollars (dir))->size);
+	  pos = make_number (SCHARS (double_dollars (dir)));
 	  insdef = Fcons (double_dollars (insdef), pos);
 	}
       else
@@ -6093,7 +6093,7 @@ provides a file dialog box.  */)
       /* If DIR contains a file name, split it.  */
       Lisp_Object file;
       file = Ffile_name_nondirectory (dir);
-      if (XSTRING (file)->size && NILP (default_filename))
+      if (SCHARS (file) && NILP (default_filename))
 	{
 	  default_filename = file;
 	  dir = Ffile_name_directory (dir);
@@ -6137,7 +6137,7 @@ provides a file dialog box.  */)
 
   if (!NILP (tem) && !NILP (default_filename))
     val = default_filename;
-  else if (XSTRING (val)->size == 0 && NILP (insdef))
+  else if (SCHARS (val) == 0 && NILP (insdef))
     {
       if (!NILP (default_filename))
 	val = default_filename;

@@ -7005,9 +7005,9 @@ note_mode_line_highlight (w, x, mode_line_p)
 
       if (glyph < end
 	  && STRINGP (glyph->object)
-	  && XSTRING (glyph->object)->intervals
+	  && STRING_INTERVALS (glyph->object)
 	  && glyph->charpos >= 0
-	  && glyph->charpos < XSTRING (glyph->object)->size)
+	  && glyph->charpos < SCHARS (glyph->object))
 	{
 	  /* If we're on a string with `help-echo' text property,
 	     arrange for the help to be displayed.  This is done by
@@ -7328,7 +7328,7 @@ note_mouse_highlight (f, x, y)
 	      if (NILP (b))
 		b = make_number (0);
 	      if (NILP (e))
-		e = make_number (XSTRING (object)->size - 1);
+		e = make_number (SCHARS (object) - 1);
 	      fast_find_string_pos (w, XINT (b), object,
 				    &dpyinfo->mouse_face_beg_col,
 				    &dpyinfo->mouse_face_beg_row,
@@ -7426,7 +7426,7 @@ note_mouse_highlight (f, x, y)
 	    /* Try text properties.  */
 	    if (STRINGP (object)
 		&& charpos >= 0
-		&& charpos < XSTRING (object)->size)
+		&& charpos < SCHARS (object))
 	      {
 		help = Fget_text_property (make_number (charpos),
 					   Qhelp_echo, object);
@@ -9469,7 +9469,7 @@ x_bitmap_icon (f, icon)
   if (NILP (icon))
     hicon = LoadIcon (hinst, EMACS_CLASS);
   else if (STRINGP (icon))
-    hicon = LoadImage (NULL, (LPCTSTR) XSTRING (icon)->data, IMAGE_ICON, 0, 0,
+    hicon = LoadImage (NULL, (LPCTSTR) SDATA (icon), IMAGE_ICON, 0, 0,
 		       LR_DEFAULTSIZE | LR_LOADFROMFILE);
   else if (SYMBOLP (icon))
     {
@@ -9606,7 +9606,7 @@ x_new_fontset (f, fontsetname)
        to do.  */
     return fontset_name (fontset);
 
-  result = x_new_font (f, (XSTRING (fontset_ascii (fontset))->data));
+  result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
 
   if (!STRINGP (result))
     /* Can't load ASCII font.  */
@@ -10893,7 +10893,7 @@ x_list_fonts (struct frame *f,
 	}
     }
 
-  ptnstr = XSTRING (pattern)->data;
+  ptnstr = SDATA (pattern);
 
   GCPRO2 (pattern, newlist);
 
@@ -11243,9 +11243,9 @@ x_load_font (f, fontname, size)
 	for (tail = font_names; CONSP (tail); tail = XCDR (tail))
 	  if (dpyinfo->font_table[i].name
 	      && (!strcmp (dpyinfo->font_table[i].name,
-			   XSTRING (XCAR (tail))->data)
+			   SDATA (XCAR (tail)))
 		  || !strcmp (dpyinfo->font_table[i].full_name,
-			      XSTRING (XCAR (tail))->data)))
+			      SDATA (XCAR (tail)))))
 	    return (dpyinfo->font_table + i);
     }
 
@@ -11263,7 +11263,7 @@ x_load_font (f, fontname, size)
        a bug of not finding a font even if the font surely exists and
        is loadable by XLoadQueryFont.  */
     if (size > 0 && !NILP (font_names))
-      fontname = (char *) XSTRING (XCAR (font_names))->data;
+      fontname = (char *) SDATA (XCAR (font_names));
 
     font = (MacFontStruct *) XLoadQueryFont (FRAME_MAC_DISPLAY (f), fontname);
     if (!font)
@@ -11457,7 +11457,7 @@ same_x_server (name1, name2)
      char *name1, *name2;
 {
   int seen_colon = 0;
-  unsigned char *system_name = XSTRING (Vsystem_name)->data;
+  unsigned char *system_name = SDATA (Vsystem_name);
   int system_name_length = strlen (system_name);
   int length_until_period = 0;
 
@@ -12968,7 +12968,7 @@ same_x_server (name1, name2)
      char *name1, *name2;
 {
   int seen_colon = 0;
-  unsigned char *system_name = XSTRING (Vsystem_name)->data;
+  unsigned char *system_name = SDATA (Vsystem_name);
   int system_name_length = strlen (system_name);
   int length_until_period = 0;
 
@@ -13026,11 +13026,11 @@ mac_initialize_display_info ()
   
 #if 0
   dpyinfo->mac_id_name
-    = (char *) xmalloc (XSTRING (Vinvocation_name)->size
-			+ XSTRING (Vsystem_name)->size
+    = (char *) xmalloc (SCHARS (Vinvocation_name)
+			+ SCHARS (Vsystem_name)
 			+ 2);
   sprintf (dpyinfo->mac_id_name, "%s@%s",
-	   XSTRING (Vinvocation_name)->data, XSTRING (Vsystem_name)->data);
+	   SDATA (Vinvocation_name), SDATA (Vsystem_name));
 #else
   dpyinfo->mac_id_name = (char *) xmalloc (strlen ("Mac Display") + 1);
   strcpy (dpyinfo->mac_id_name, "Mac Display");

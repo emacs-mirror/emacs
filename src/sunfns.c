@@ -240,13 +240,13 @@ expressed as a string.  If ICON is nil then the original arrow cursor is used.  
     CHECK_NUMBER (X_Hot);
     CHECK_NUMBER (Y_Hot);
     CHECK_STRING (Data);
-    if (XSTRING(Data)->size != 32) return(Qnil);
+    if (SCHARS (Data) != 32) return(Qnil);
     /*
      *	Setup the new cursor
      */
     NewCursor.cur_xhot = X_Hot;
     NewCursor.cur_yhot = Y_Hot;
-    cp = XSTRING(Data)->data;
+    cp = SDATA (Data);
     p = CursorData;
     i = 16;
     while(--i >= 0)
@@ -267,7 +267,7 @@ sel_write (sel, file)
      struct selection *sel;
      FILE *file;
 {
-  fwrite (XSTRING (Current_Selection)->data, sizeof (char), 
+  fwrite (SDATA (Current_Selection), sizeof (char), 
 	  sel->sel_items, file);
 }
 
@@ -330,7 +330,7 @@ DEFUN ("sun-set-selection", Fsun_set_selection, Ssun_set_selection, 1, 1,
 
   CHECK_GFX (Qnil);
   selection.sel_type = SELTYPE_CHAR;
-  selection.sel_items = XSTRING (str)->size;
+  selection.sel_items = SCHARS (str);
   selection.sel_itembytes = 1;
   selection.sel_pubflags = 1;
   selection_set(&selection, sel_write, sel_clear, win_fd);
@@ -371,10 +371,10 @@ sun_item_create (Pair)
   if (VECTORP (Value)) {
     submenu = sun_menu_create (Value);
     menu_item = menu_create_item
-      (MENU_RELEASE, MENU_PULLRIGHT_ITEM, XSTRING(String)->data, submenu, 0);
+      (MENU_RELEASE, MENU_PULLRIGHT_ITEM, SDATA (String), submenu, 0);
   } else {
     menu_item = menu_create_item
-      (MENU_RELEASE, MENU_STRING_ITEM, XSTRING(String)->data, Value, 0);
+      (MENU_RELEASE, MENU_STRING_ITEM, SDATA (String), Value, 0);
   }
   return menu_item;
 }

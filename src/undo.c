@@ -142,7 +142,7 @@ record_delete (beg, string)
   if (EQ (current_buffer->undo_list, Qt))
     return;
 
-  if (PT == beg + XSTRING (string)->size)
+  if (PT == beg + SCHARS (string))
     {
       XSETINT (sbeg, -beg);
       record_point (PT);
@@ -334,7 +334,7 @@ truncate_undo_list (list, minsize, maxsize)
 	  size_so_far += sizeof (struct Lisp_Cons);
 	  if (STRINGP (XCAR (elt)))
 	    size_so_far += (sizeof (struct Lisp_String) - 1
-			    + XSTRING (XCAR (elt))->size);
+			    + SCHARS (XCAR (elt)));
 	}
 
       /* Advance to next element.  */
@@ -369,7 +369,7 @@ truncate_undo_list (list, minsize, maxsize)
 	  size_so_far += sizeof (struct Lisp_Cons);
 	  if (STRINGP (XCAR (elt)))
 	    size_so_far += (sizeof (struct Lisp_String) - 1
-			    + XSTRING (XCAR (elt))->size);
+			    + SCHARS (XCAR (elt)));
 	}
 
       /* Advance to next element.  */

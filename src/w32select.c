@@ -125,8 +125,8 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
   
   BLOCK_INPUT;
 
-  nbytes = STRING_BYTES (XSTRING (string)) + 1;
-  src = XSTRING (string)->data;
+  nbytes = SBYTES (string) + 1;
+  src = SDATA (string);
   dst = src;
 
   /* We need to know how many lines there are, since we need CRLF line
@@ -141,7 +141,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
   {
     /* Since we are now handling multilingual text, we must consider
        encoding text for the clipboard.  */
-    int charset_info = find_charset_in_text (src, XSTRING (string)->size,
+    int charset_info = find_charset_in_text (src, SCHARS (string),
 					     nbytes, NULL, Qnil);
 
     if (charset_info == 0)
@@ -202,8 +202,8 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
 	    && !NILP (Ffboundp (coding.pre_write_conversion)))
 	  {
 	    string = run_pre_post_conversion_on_str (string, &coding, 1);
-	    src = XSTRING (string)->data;
-	    nbytes = STRING_BYTES (XSTRING (string));
+	    src = SDATA (string);
+	    nbytes = SBYTES (string);
 	  }
 	coding.src_multibyte = 1;
 	coding.dst_multibyte = 0;
@@ -368,7 +368,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
 	/* Convert CRLF line endings (the standard CF_TEXT clipboard
 	   format) to LF endings as used internally by Emacs.  */
 
-	dst = XSTRING (ret)->data;
+	dst = SDATA (ret);
 	while (1)
 	  {
 	    unsigned char *next;

@@ -188,7 +188,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
      unwind_protect to do so would be a pain.  */
  retry:
   
-  d = opendir (XSTRING (dirfilename)->data);
+  d = opendir (SDATA (dirfilename));
   if (d == NULL)
     report_file_error ("Opening directory", Fcons (directory, Qnil));
 
@@ -199,13 +199,13 @@ directory_files_internal (directory, full, match, nosort, attrs)
 			 Fcons (make_number (((unsigned long) d) >> 16),
 				make_number (((unsigned long) d) & 0xffff)));
 
-  directory_nbytes = STRING_BYTES (XSTRING (directory));
+  directory_nbytes = SBYTES (directory);
   re_match_object = Qt;
 
   /* Decide whether we need to add a directory separator.  */
 #ifndef VMS
   if (directory_nbytes == 0
-      || !IS_ANY_SEP (XSTRING (directory)->data[directory_nbytes - 1]))
+      || !IS_ANY_SEP (SREF (directory, directory_nbytes - 1)))
     needsep = 1;
 #endif /* not VMS */
 
@@ -237,7 +237,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
 	  /* Note: ENCODE_FILE can GC; it should protect its argument,
 	     though.  */
 	  name = DECODE_FILE (name);
-	  len = STRING_BYTES (XSTRING (name));
+	  len = SBYTES (name);
 
 	  /* Now that we have unwind_protect in place, we might as well
              allow matching to be interrupted.  */
@@ -245,7 +245,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
 	  QUIT;
 
 	  if (NILP (match)
-	      || (0 <= re_search (bufp, XSTRING (name)->data, len, 0, len, 0)))
+	      || (0 <= re_search (bufp, SDATA (name), len, 0, len, 0)))
 	    wanted = 1;
 
 	  immediate_quit = 0;
@@ -259,25 +259,25 @@ directory_files_internal (directory, full, match, nosort, attrs)
 		  int nchars;
 
 		  fullname = make_uninit_multibyte_string (nbytes, nbytes);
-		  bcopy (XSTRING (directory)->data, XSTRING (fullname)->data,
+		  bcopy (SDATA (directory), SDATA (fullname),
 			 directory_nbytes);
 		  
 		  if (needsep)
-		    XSTRING (fullname)->data[directory_nbytes] = DIRECTORY_SEP;
+		    SREF (fullname, directory_nbytes) = DIRECTORY_SEP;
 		  
-		  bcopy (XSTRING (name)->data,
-			 XSTRING (fullname)->data + directory_nbytes + needsep,
+		  bcopy (SDATA (name),
+			 SDATA (fullname) + directory_nbytes + needsep,
 			 len);
 		  
-		  nchars = chars_in_text (XSTRING (fullname)->data, nbytes);
+		  nchars = chars_in_text (SDATA (fullname), nbytes);
 
 		  /* Some bug somewhere.  */
 		  if (nchars > nbytes)
 		    abort ();
 		      
-		  XSTRING (fullname)->size = nchars;
+		  SCHARS (fullname) = nchars;
 		  if (nchars == nbytes)
-		    SET_STRING_BYTES (XSTRING (fullname), -1);
+		    STRING_SET_UNIBYTE (fullname);
 		  
 		  finalname = fullname;
 		}
@@ -519,7 +519,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 
   for (passcount = !!all_flag; NILP (bestmatch) && passcount < 2; passcount++)
     {
-      d = opendir (XSTRING (Fdirectory_file_name (encoded_dir))->data);
+      d = opendir (SDATA (Fdirectory_file_name (encoded_dir)));
       if (!d)
 	report_file_error ("Opening directory", Fcons (dirname, Qnil));
 
@@ -542,9 +542,9 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 	  if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))
 	    goto quit;
 	  if (! DIRENTRY_NONEMPTY (dp)
-	      || len < XSTRING (encoded_file)->size
-	      || 0 <= scmp (dp->d_name, XSTRING (encoded_file)->data,
-			    XSTRING (encoded_file)->size))
+	      || len < SCHARS (encoded_file)
+	      || 0 <= scmp (dp->d_name, SDATA (encoded_file),
+			    SCHARS (encoded_file)))
 	    continue;
 
           if (file_name_completion_stat (encoded_dir, dp, &st) < 0)
@@ -561,7 +561,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		 actually in the way in a directory contains only one file.  */
 	      if (!passcount && TRIVIAL_DIRECTORY_ENTRY (dp->d_name))
 		continue;
-	      if (!passcount && len > XSTRING (encoded_file)->size)
+	      if (!passcount && len > SCHARS (encoded_file))
 		/* Ignore directories if they match an element of
 		   completion-ignored-extensions which ends in a slash.  */
 		for (tem = Vcompletion_ignored_extensions;
@@ -575,10 +575,10 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		    /* Need to encode ELT, since scmp compares unibyte
 		       strings only.  */
 		    elt = ENCODE_FILE (elt);
-		    elt_len = XSTRING (elt)->size - 1; /* -1 for trailing / */
+		    elt_len = SCHARS (elt) - 1; /* -1 for trailing / */
 		    if (elt_len <= 0)
 		      continue;
-		    p1 = XSTRING (elt)->data;
+		    p1 = SDATA (elt);
 		    if (p1[elt_len] != '/')
 		      continue;
 		    skip = len - elt_len;
@@ -594,7 +594,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
             {
 	      /* Compare extensions-to-be-ignored against end of this file name */
 	      /* if name is not an exact match against specified string */
-	      if (!passcount && len > XSTRING (encoded_file)->size)
+	      if (!passcount && len > SCHARS (encoded_file))
 		/* and exit this for loop if a match is found */
 		for (tem = Vcompletion_ignored_extensions;
 		     CONSP (tem); tem = XCDR (tem))
@@ -604,12 +604,12 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		    /* Need to encode ELT, since scmp compares unibyte
 		       strings only.  */
 		    elt = ENCODE_FILE (elt);
-		    skip = len - XSTRING (elt)->size;
+		    skip = len - SCHARS (elt);
 		    if (skip < 0) continue;
 
 		    if (0 <= scmp (dp->d_name + skip,
-				   XSTRING (elt)->data,
-				   XSTRING (elt)->size))
+				   SDATA (elt),
+				   SCHARS (elt)))
 		      continue;
 		    break;
 		  }
@@ -661,13 +661,13 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 	      else
 		{
 		  bestmatch = name;
-		  bestmatchsize = XSTRING (name)->size;
+		  bestmatchsize = SCHARS (name);
 		}
 	    }
 	  else
 	    {
 	      compare = min (bestmatchsize, len);
-	      p1 = XSTRING (bestmatch)->data;
+	      p1 = SDATA (bestmatch);
 	      p2 = (unsigned char *) dp->d_name;
 	      matchsize = scmp(p1, p2, compare);
 	      if (matchsize < 0)
@@ -682,7 +682,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		     but BESTMATCH is not (it is too long).  */
 		  if ((matchsize == len
 		       && matchsize + !!directoryp 
-			  < XSTRING (bestmatch)->size)
+			  < SCHARS (bestmatch))
 		      ||
 		      /* If there is no exact match ignoring case,
 			 prefer a match that does not change the case
@@ -695,9 +695,9 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		      (((matchsize == len)
 			==
 			(matchsize + !!directoryp 
-			 == XSTRING (bestmatch)->size))
-		       && !bcmp (p2, XSTRING (encoded_file)->data, XSTRING (encoded_file)->size)
-		       && bcmp (p1, XSTRING (encoded_file)->data, XSTRING (encoded_file)->size)))
+			 == SCHARS (bestmatch)))
+		       && !bcmp (p2, SDATA (encoded_file), SCHARS (encoded_file))
+		       && bcmp (p1, SDATA (encoded_file), SCHARS (encoded_file))))
 		    {
 		      bestmatch = make_string (dp->d_name, len);
 		      if (directoryp)
@@ -727,7 +727,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 	bestmatch = DECODE_FILE (bestmatch);
       return bestmatch;
     }
-  if (matchcount == 1 && bestmatchsize == XSTRING (file)->size)
+  if (matchcount == 1 && bestmatchsize == SCHARS (file))
     return Qt;
   bestmatch = Fsubstring (bestmatch, make_number (0),
 			  make_number (bestmatchsize));
@@ -777,7 +777,7 @@ file_name_completion_stat (dirname, dp, st_addr)
      struct stat *st_addr;
 {
   int len = NAMLEN (dp);
-  int pos = XSTRING (dirname)->size;
+  int pos = SCHARS (dirname);
   int value;
   char *fullname = (char *) alloca (len + pos + 2);
 
@@ -794,7 +794,7 @@ file_name_completion_stat (dirname, dp, st_addr)
 #endif /* __DJGPP__ > 1 */
 #endif /* MSDOS */
 
-  bcopy (XSTRING (dirname)->data, fullname, pos);
+  bcopy (SDATA (dirname), fullname, pos);
 #ifndef VMS
   if (!IS_DIRECTORY_SEP (fullname[pos - 1]))
     fullname[pos++] = DIRECTORY_SEP;
@@ -847,7 +847,7 @@ Returns nil if the file cannot be opened or if there is no version limit.  */)
   filename = Fexpand_file_name (filename, Qnil);
   fab      = cc$rms_fab;
   xabfhc   = cc$rms_xabfhc;
-  fab.fab$l_fna = XSTRING (filename)->data;
+  fab.fab$l_fna = SDATA (filename);
   fab.fab$b_fns = strlen (fab.fab$l_fna);
   fab.fab$l_xab = (char *) &xabfhc;
   status = sys$open (&fab, 0, 0);
@@ -916,7 +916,7 @@ If file does not exist, returns nil.  */)
 
   encoded = ENCODE_FILE (filename);
 
-  if (lstat (XSTRING (encoded)->data, &s) < 0)
+  if (lstat (SDATA (encoded), &s) < 0)
     return Qnil;
 
   switch (s.st_mode & S_IFMT)
@@ -946,7 +946,7 @@ If file does not exist, returns nil.  */)
   dirname = Ffile_name_directory (filename);
   if (! NILP (dirname))
     encoded = ENCODE_FILE (dirname);
-  if (! NILP (dirname) && stat (XSTRING (encoded)->data, &sdir) == 0)
+  if (! NILP (dirname) && stat (SDATA (encoded), &sdir) == 0)
     values[9] = (sdir.st_gid != s.st_gid) ? Qt : Qnil;
   else					/* if we can't tell, assume worst */
     values[9] = Qt;

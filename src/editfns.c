@@ -1202,7 +1202,7 @@ name, or nil if there is no such user.  */)
   else if (NUMBERP (uid))
     pw = (struct passwd *) getpwuid ((uid_t) XFLOATINT (uid));
   else if (STRINGP (uid))
-    pw = (struct passwd *) getpwnam (XSTRING (uid)->data);
+    pw = (struct passwd *) getpwnam (SDATA (uid));
   else
     error ("Invalid UID specification");
 
@@ -1215,7 +1215,7 @@ name, or nil if there is no such user.  */)
   full = make_string (p, q ? q - p : strlen (p));
 
 #ifdef AMPERSAND_FULL_NAME
-  p = XSTRING (full)->data;
+  p = SDATA (full);
   q = (unsigned char *) index (p, '&');
   /* Substitute the login name for the &, upcasing the first character.  */
   if (q)
@@ -1224,10 +1224,10 @@ name, or nil if there is no such user.  */)
       Lisp_Object login;
 
       login = Fuser_login_name (make_number (pw->pw_uid));
-      r = (unsigned char *) alloca (strlen (p) + XSTRING (login)->size + 1);
+      r = (unsigned char *) alloca (strlen (p) + SCHARS (login) + 1);
       bcopy (p, r, q - p);
       r[q - p] = 0;
-      strcat (r, XSTRING (login)->data);
+      strcat (r, SDATA (login));
       r[q - p] = UPCASE (r[q - p]);
       strcat (r, q + 1);
       full = build_string (r);
@@ -1250,7 +1250,7 @@ char *
 get_system_name ()
 {
   if (STRINGP (Vsystem_name))
-    return (char *) XSTRING (Vsystem_name)->data;
+    return (char *) SDATA (Vsystem_name);
   else
     return "";
 }
@@ -1479,7 +1479,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 						Vlocale_coding_system, 1);
 
   /* This is probably enough.  */
-  size = STRING_BYTES (XSTRING (format_string)) * 6 + 50;
+  size = SBYTES (format_string) * 6 + 50;
 
   tm = ut ? gmtime (&value) : localtime (&value);
   if (! tm)
@@ -1493,8 +1493,8 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
       int result;
 
       buf[0] = '\1';
-      result = emacs_memftimeu (buf, size, XSTRING (format_string)->data,
-				STRING_BYTES (XSTRING (format_string)),
+      result = emacs_memftimeu (buf, size, SDATA (format_string),
+				SBYTES (format_string),
 				tm, ut);
       if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
 	return code_convert_string_norecord (make_string (buf, result),
@@ -1502,8 +1502,8 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 
       /* If buffer was too small, make it bigger and try again.  */
       result = emacs_memftimeu (NULL, (size_t) -1,
-				XSTRING (format_string)->data,
-				STRING_BYTES (XSTRING (format_string)),
+				SDATA (format_string),
+				SBYTES (format_string),
 				tm, ut);
       size = result + 1;
     }
@@ -1610,7 +1610,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
       if (EQ (zone, Qt))
 	tzstring = "UTC0";
       else if (STRINGP (zone))
-	tzstring = (char *) XSTRING (zone)->data;
+	tzstring = (char *) SDATA (zone);
       else if (INTEGERP (zone))
 	{
 	  int abszone = abs (XINT (zone));
@@ -1788,7 +1788,7 @@ If TZ is t, use Universal Time.  */)
   else
     {
       CHECK_STRING (tz);
-      tzstring = (char *) XSTRING (tz)->data;
+      tzstring = (char *) SDATA (tz);
     }
 
   set_time_zone_rule (tzstring);
@@ -1934,8 +1934,8 @@ general_insert_function (insert_func, insert_from_string_func,
       else if (STRINGP (val))
 	{
 	  (*insert_from_string_func) (val, 0, 0,
-				      XSTRING (val)->size,
-				      STRING_BYTES (XSTRING (val)),
+				      SCHARS (val),
+				      SBYTES (val),
 				      inherit);
 	}
       else
@@ -2146,7 +2146,7 @@ make_buffer_string_both (start, start_byte, end, end_byte, props)
     result = make_uninit_multibyte_string (end - start, end_byte - start_byte);
   else
     result = make_uninit_string (end - start);
-  bcopy (BYTE_POS_ADDR (start_byte), XSTRING (result)->data,
+  bcopy (BYTE_POS_ADDR (start_byte), SDATA (result),
 	 end_byte - start_byte);
 
   /* If desired, update and copy the text properties.  */
@@ -2659,8 +2659,8 @@ It returns the number of characters changed.  */)
   validate_region (&start, &end);
   CHECK_STRING (table);
 
-  size = STRING_BYTES (XSTRING (table));
-  tt = XSTRING (table)->data;
+  size = SBYTES (table);
+  tt = SDATA (table);
 
   pos_byte = CHAR_TO_BYTE (XINT (start));
   stop = CHAR_TO_BYTE (XINT (end));
@@ -2929,7 +2929,7 @@ usage: (message STRING &rest ARGS)  */)
     {
       register Lisp_Object val;
       val = Fformat (nargs, args);
-      message3 (val, STRING_BYTES (XSTRING (val)), STRING_MULTIBYTE (val));
+      message3 (val, SBYTES (val), STRING_MULTIBYTE (val));
       return val;
     }
 }
@@ -2979,13 +2979,13 @@ usage: (message-box STRING &rest ARGS)  */)
 	  message_text = (char *)xmalloc (80);
 	  message_length = 80;
 	}
-      if (STRING_BYTES (XSTRING (val)) > message_length)
+      if (SBYTES (val) > message_length)
 	{
-	  message_length = STRING_BYTES (XSTRING (val));
+	  message_length = SBYTES (val);
 	  message_text = (char *)xrealloc (message_text, message_length);
 	}
-      bcopy (XSTRING (val)->data, message_text, STRING_BYTES (XSTRING (val)));
-      message2 (message_text, STRING_BYTES (XSTRING (val)),
+      bcopy (SDATA (val), message_text, SBYTES (val));
+      message2 (message_text, SBYTES (val),
 		STRING_MULTIBYTE (val));
       return val;
     }
@@ -3058,7 +3058,7 @@ usage: (propertize STRING &rest PROPERTIES)  */)
     }
 
   Fadd_text_properties (make_number (0),
-			make_number (XSTRING (string)->size),
+			make_number (SCHARS (string)),
 			properties, string);
   RETURN_UNGCPRO (string);
 }
@@ -3069,9 +3069,8 @@ usage: (propertize STRING &rest PROPERTIES)  */)
 
 #define CONVERTED_BYTE_SIZE(MULTIBYTE, STRING)				\
   (((MULTIBYTE) && ! STRING_MULTIBYTE (STRING))				\
-   ? count_size_as_multibyte (XSTRING (STRING)->data,			\
-			      STRING_BYTES (XSTRING (STRING)))		\
-   : STRING_BYTES (XSTRING (STRING)))
+   ? count_size_as_multibyte (SDATA (STRING), SBYTES (STRING))		\
+   : SBYTES (STRING))
 
 DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
        doc: /* Format a string out of a control-string and arguments.
@@ -3133,8 +3132,8 @@ usage: (format STRING &rest OBJECTS)  */)
      and later find it has to be multibyte, we jump back to retry.  */
  retry:
 
-  format = XSTRING (args[0])->data;
-  end = format + STRING_BYTES (XSTRING (args[0]));
+  format = SDATA (args[0]);
+  end = format + SBYTES (args[0]);
   longest_format = 0;
 
   /* Make room in result for all the non-%-codes in the control string.  */
@@ -3255,7 +3254,7 @@ usage: (format STRING &rest OBJECTS)  */)
 		    goto retry;
 		  }
 		args[n] = Fchar_to_string (args[n]);
-		thissize = STRING_BYTES (XSTRING (args[n]));
+		thissize = SBYTES (args[n]);
 	      }
 	  }
 	else if (FLOATP (args[n]) && *format != 's')
@@ -3303,7 +3302,7 @@ usage: (format STRING &rest OBJECTS)  */)
   n = 0;
 
   /* Scan the format and store result in BUF.  */
-  format = XSTRING (args[0])->data;
+  format = SDATA (args[0]);
   maybe_combine_byte = 0;
   while (format != end)
     {
@@ -3353,13 +3352,13 @@ usage: (format STRING &rest OBJECTS)  */)
 		  && multibyte
 		  && !ASCII_BYTE_P (*((unsigned char *) p - 1))
 		  && STRING_MULTIBYTE (args[n])
-		  && !CHAR_HEAD_P (XSTRING (args[n])->data[0]))
+		  && !CHAR_HEAD_P (SREF (args[n], 0)))
 		maybe_combine_byte = 1;
-	      nbytes = copy_text (XSTRING (args[n])->data, p,
-				  STRING_BYTES (XSTRING (args[n])),
+	      nbytes = copy_text (SDATA (args[n]), p,
+				  SBYTES (args[n]),
 				  STRING_MULTIBYTE (args[n]), multibyte);
 	      p += nbytes;
-	      nchars += XSTRING (args[n])->size;
+	      nchars += SCHARS (args[n]);
 	      end = nchars;
 
 	      if (negative)
@@ -3371,7 +3370,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	      /* If this argument has text properties, record where
 		 in the result string it appears.  */
-	      if (XSTRING (args[n])->intervals)
+	      if (STRING_INTERVALS (args[n]))
 		{
 		  if (!info)
 		    {
@@ -3450,19 +3449,19 @@ usage: (format STRING &rest OBJECTS)  */)
      arguments has text properties, set up text properties of the
      result string.  */
 
-  if (XSTRING (args[0])->intervals || info)
+  if (STRING_INTERVALS (args[0]) || info)
     {
       Lisp_Object len, new_len, props;
       struct gcpro gcpro1;
 
       /* Add text properties from the format string.  */
-      len = make_number (XSTRING (args[0])->size);
+      len = make_number (SCHARS (args[0]));
       props = text_property_list (args[0], make_number (0), len, Qnil);
       GCPRO1 (props);
 
       if (CONSP (props))
 	{
-	  new_len = make_number (XSTRING (val)->size);
+	  new_len = make_number (SCHARS (val));
 	  extend_property_ranges (props, len, new_len);
 	  add_text_properties_from_list (val, props, make_number (0));
 	}
@@ -3472,7 +3471,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	for (n = 1; n < nargs; ++n)
 	  if (info[n].end)
 	    {
-	      len = make_number (XSTRING (args[n])->size);
+	      len = make_number (SCHARS (args[n]));
 	      new_len = make_number (info[n].end - info[n].start);
 	      props = text_property_list (args[n], make_number (0), len, Qnil);
 	      extend_property_ranges (props, len, new_len);

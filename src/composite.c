@@ -615,8 +615,8 @@ compose_chars_in_text (start, end, string)
       count = SPECPDL_INDEX ();
       GCPRO1 (string);
       stop = end;
-      ptr = XSTRING (string)->data + string_char_to_byte (string, start);
-      pend = ptr + STRING_BYTES (XSTRING (string));
+      ptr = SDATA (string) + string_char_to_byte (string, start);
+      pend = ptr + SBYTES (string);
     }
   else
     {
@@ -650,7 +650,7 @@ compose_chars_in_text (start, end, string)
 	    break;
 	  stop = end;
 	  if (STRINGP (string))
-	    ptr = XSTRING (string)->data + string_char_to_byte (string, start);
+	    ptr = SDATA (string) + string_char_to_byte (string, start);
 	  else
 	    ptr = CHAR_POS_ADDR (start);
 	}
@@ -680,7 +680,7 @@ compose_chars_in_text (start, end, string)
 		    {
 		      start += XINT (val);
 		      if (STRINGP (string))
-			ptr = XSTRING (string)->data + string_char_to_byte (string, start);
+			ptr = SDATA (string) + string_char_to_byte (string, start);
 		      else
 			ptr = CHAR_POS_ADDR (start);
 		    }
@@ -746,7 +746,7 @@ for the composition.   See `compose-string' for more detail.  */)
 
   if (XINT (start) < 0 ||
       XINT (start) > XINT (end)
-      || XINT (end) > XSTRING (string)->size)
+      || XINT (end) > SCHARS (string))
     args_out_of_range (start, end);
 
   compose_text (XINT (start), XINT (end), components, mod_func, string);
@@ -779,7 +779,7 @@ See `find-composition' for more detail.  */)
   if (!NILP (string))
     {
       CHECK_STRING (string);
-      if (XINT (pos) < 0 || XINT (pos) > XSTRING (string)->size)
+      if (XINT (pos) < 0 || XINT (pos) > SCHARS (string))
 	args_out_of_range (string, pos);
     }
   else

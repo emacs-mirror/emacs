@@ -159,8 +159,8 @@ call_process_cleanup (fdpid)
   register Lisp_Object file;
   file = Fcdr (fdpid);
   emacs_close (XFASTINT (Fcar (fdpid)));
-  if (strcmp (XSTRING (file)-> data, NULL_DEVICE) != 0)
-    unlink (XSTRING (file)->data);
+  if (strcmp (SDATA (file), NULL_DEVICE) != 0)
+    unlink (SDATA (file));
 #else /* not MSDOS and not MAC_OS8 */
   register int pid = XFASTINT (Fcdr (fdpid));
 
@@ -371,7 +371,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
   display = nargs >= 4 ? args[3] : Qnil;
 
-  filefd = emacs_open (XSTRING (infile)->data, O_RDONLY, 0);
+  filefd = emacs_open (SDATA (infile), O_RDONLY, 0);
   if (filefd < 0)
     {
       report_file_error ("Opening process input file", Fcons (infile, Qnil));
@@ -389,7 +389,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       emacs_close (filefd);
       report_file_error ("Searching for program", Fcons (args[0], Qnil));
     }
-  new_argv[0] = XSTRING (path)->data;
+  new_argv[0] = SDATA (path);
   if (nargs > 4)
     {
       register int i;
@@ -407,7 +407,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	      if (argument_coding.type == coding_type_ccl)
 		setup_ccl_program (&(argument_coding.spec.ccl.encoder), Qnil);
 	    }
-	  new_argv[i - 3] = XSTRING (args[i])->data;
+	  new_argv[i - 3] = SDATA (args[i]);
 	}
       UNGCPRO;
       new_argv[nargs - 3] = 0;
@@ -443,9 +443,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 #ifdef MAC_OS8
   /* Since we don't have pipes on the Mac, create a temporary file to
      hold the output of the subprocess.  */
-  tempfile = (char *) alloca (STRING_BYTES (XSTRING (Vtemp_file_name_pattern)) + 1);
-  bcopy (XSTRING (Vtemp_file_name_pattern)->data, tempfile,
-	 STRING_BYTES (XSTRING (Vtemp_file_name_pattern)) + 1);
+  tempfile = (char *) alloca (SBYTES (Vtemp_file_name_pattern) + 1);
+  bcopy (SDATA (Vtemp_file_name_pattern), tempfile,
+	 SBYTES (Vtemp_file_name_pattern) + 1);
 
   mktemp (tempfile);
 
@@ -505,11 +505,11 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     else if (STRINGP (error_file))
       {
 #ifdef DOS_NT
-	fd_error = emacs_open (XSTRING (error_file)->data,
+	fd_error = emacs_open (SDATA (error_file),
 			       O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
 			       S_IREAD | S_IWRITE);
 #else  /* not DOS_NT */
-	fd_error = creat (XSTRING (error_file)->data, 0666);
+	fd_error = creat (SDATA (error_file), 0666);
 #endif /* not DOS_NT */
       }
 
@@ -545,15 +545,15 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
         close (fd_error);
       fd1 = -1; /* No harm in closing that one! */
 
-      infn = XSTRING (infile)->data;
+      infn = SDATA (infile);
       outfn = tempfile;
       if (NILP (error_file))
         errfn = NULL_DEVICE;
       else if (EQ (Qt, error_file))
         errfn = outfn;
       else
-        errfn = XSTRING (error_file)->data;
-      currdn = XSTRING (current_dir)->data;
+        errfn = SDATA (error_file);
+      currdn = SDATA (current_dir);
       pid = run_mac_command (new_argv, currdn, infn, outfn, errfn);
 
       /* Record that the synchronous process exited and note its
@@ -1047,9 +1047,9 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   strcat (tempfile, "detmp.XXX");
 #endif
 #else /* not DOS_NT */
-  char *tempfile = (char *) alloca (STRING_BYTES (XSTRING (Vtemp_file_name_pattern)) + 1);
-  bcopy (XSTRING (Vtemp_file_name_pattern)->data, tempfile,
-	 STRING_BYTES (XSTRING (Vtemp_file_name_pattern)) + 1);
+  char *tempfile = (char *) alloca (SBYTES (Vtemp_file_name_pattern) + 1);
+  bcopy (SDATA (Vtemp_file_name_pattern), tempfile,
+	 SBYTES (Vtemp_file_name_pattern) + 1);
 #endif /* not DOS_NT */
 
   coding_systems = Qt;
@@ -1188,7 +1188,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
     register char *temp;
     register int i;
 
-    i = STRING_BYTES (XSTRING (current_dir));
+    i = SBYTES (current_dir);
 #ifdef MSDOS
     /* MSDOS must have all environment variables malloc'ed, because
        low-level libc functions that launch subsidiary processes rely
@@ -1199,7 +1199,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 #endif
     temp = pwd_var + 4;
     bcopy ("PWD=", pwd_var, 4);
-    bcopy (XSTRING (current_dir)->data, temp, i);
+    bcopy (SDATA (current_dir), temp, i);
     if (!IS_DIRECTORY_SEP (temp[i - 1])) temp[i++] = DIRECTORY_SEP;
     temp[i] = 0;
 
@@ -1253,7 +1253,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 	 tem = XCDR (tem))
       {
 	char **ep = env;
-	char *string = (char *) XSTRING (XCAR (tem))->data;
+	char *string = (char *) SDATA (XCAR (tem));
 	/* See if this string duplicates any string already in the env.
 	   If so, don't put it in.
 	   When an env var has multiple definitions,
@@ -1280,7 +1280,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   }
 #ifdef WINDOWSNT
   prepare_standard_handles (in, out, err, handles);
-  set_process_dir (XSTRING (current_dir)->data);
+  set_process_dir (SDATA (current_dir));
 #else  /* not WINDOWSNT */
   /* Make sure that in, out, and err are not actually already in
      descriptors zero, one, or two; this could happen if Emacs is
@@ -1405,18 +1405,18 @@ getenv_internal (var, varlen, value, valuelen)
 
       entry = XCAR (scan);
       if (STRINGP (entry)
-	  && STRING_BYTES (XSTRING (entry)) > varlen
-	  && XSTRING (entry)->data[varlen] == '='
+	  && SBYTES (entry) > varlen
+	  && SREF (entry, varlen) == '='
 #ifdef WINDOWSNT
 	  /* NT environment variables are case insensitive.  */
-	  && ! strnicmp (XSTRING (entry)->data, var, varlen)
+	  && ! strnicmp (SDATA (entry), var, varlen)
 #else  /* not WINDOWSNT */
-	  && ! bcmp (XSTRING (entry)->data, var, varlen)
+	  && ! bcmp (SDATA (entry), var, varlen)
 #endif /* not WINDOWSNT */
 	  )
 	{
-	  *value    = (char *) XSTRING (entry)->data + (varlen + 1);
-	  *valuelen = STRING_BYTES (XSTRING (entry)) - (varlen + 1);
+	  *value    = (char *) SDATA (entry) + (varlen + 1);
+	  *valuelen = SBYTES (entry) - (varlen + 1);
 	  return 1;
 	}
     }
@@ -1435,7 +1435,7 @@ This function consults the variable ``process-environment'' for its value.  */)
   int valuelen;
 
   CHECK_STRING (var);
-  if (getenv_internal (XSTRING (var)->data, STRING_BYTES (XSTRING (var)),
+  if (getenv_internal (SDATA (var), SBYTES (var),
 		       &value, &valuelen))
     return make_string (value, valuelen);
   else
@@ -1550,13 +1550,13 @@ init_callproc ()
 #endif
     {
       tempdir = Fdirectory_file_name (Vexec_directory);
-      if (access (XSTRING (tempdir)->data, 0) < 0)
+      if (access (SDATA (tempdir), 0) < 0)
 	dir_warning ("Warning: arch-dependent data dir (%s) does not exist.\n",
 		     Vexec_directory);
     }
 
   tempdir = Fdirectory_file_name (Vdata_directory);
-  if (access (XSTRING (tempdir)->data, 0) < 0)
+  if (access (SDATA (tempdir), 0) < 0)
     dir_warning ("Warning: arch-independent data dir (%s) does not exist.\n",
 		 Vdata_directory);
 

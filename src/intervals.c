@@ -80,8 +80,8 @@ create_root_interval (parent)
     }
   else if (STRINGP (parent))
     {
-      new->total_length = XSTRING (parent)->size;
-      XSTRING (parent)->intervals = new;
+      new->total_length = SCHARS (parent);
+      STRING_INTERVALS (parent) = new;
       new->position = 0;
     }
 
@@ -452,7 +452,7 @@ balance_possible_root_interval (interval)
       if (BUFFERP (parent))
 	BUF_INTERVALS (XBUFFER (parent)) = interval;
       else if (STRINGP (parent))
-	XSTRING (parent)->intervals = interval;
+	STRING_INTERVALS (parent) = interval;
     }
 
   return interval;
@@ -1280,7 +1280,7 @@ delete_interval (i)
       if (BUFFERP (owner))
 	BUF_INTERVALS (XBUFFER (owner)) = parent;
       else if (STRINGP (owner))
-	XSTRING (owner)->intervals = parent;
+	STRING_INTERVALS (owner) = parent;
       else
 	abort ();
 
@@ -2247,7 +2247,7 @@ get_property_and_range (pos, prop, val, start, end, object)
   else if (BUFFERP (object))
     i = find_interval (BUF_INTERVALS (XBUFFER (object)), pos);
   else if (STRINGP (object))
-    i = find_interval (XSTRING (object)->intervals, pos);
+    i = find_interval (STRING_INTERVALS (object), pos);
   else
     abort ();
 
@@ -2384,7 +2384,7 @@ copy_intervals_to_string (string, buffer, position, length)
     return;
 
   SET_INTERVAL_OBJECT (interval_copy, string);
-  XSTRING (string)->intervals = interval_copy;
+  STRING_INTERVALS (string) = interval_copy;
 }
 
 /* Return 1 if strings S1 and S2 have identical properties; 0 otherwise.
@@ -2396,10 +2396,10 @@ compare_string_intervals (s1, s2)
 {
   INTERVAL i1, i2;
   int pos = 0;
-  int end = XSTRING (s1)->size;
+  int end = SCHARS (s1);
 
-  i1 = find_interval (XSTRING (s1)->intervals, 0);
-  i2 = find_interval (XSTRING (s2)->intervals, 0);
+  i1 = find_interval (STRING_INTERVALS (s1), 0);
+  i2 = find_interval (STRING_INTERVALS (s2), 0);
 
   while (pos < end)
     {

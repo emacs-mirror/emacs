@@ -695,9 +695,9 @@ Return t if file exists.  */)
 
   /* Avoid weird lossage with null string as arg,
      since it would try to load a directory as a Lisp file */
-  if (XSTRING (file)->size > 0)
+  if (SCHARS (file) > 0)
     {
-      int size = STRING_BYTES (XSTRING (file));
+      int size = SBYTES (file);
       Lisp_Object tmp[2];
 
       GCPRO1 (file);
@@ -706,10 +706,10 @@ Return t if file exists.  */)
 	{
 	  /* Don't insist on adding a suffix if FILE already ends with one.  */
 	  if (size > 3
-	      && !strcmp (XSTRING (file)->data + size - 3, ".el"))
+	      && !strcmp (SDATA (file) + size - 3, ".el"))
 	    must_suffix = Qnil;
 	  else if (size > 4
-		   && !strcmp (XSTRING (file)->data + size - 4, ".elc"))
+		   && !strcmp (SDATA (file) + size - 4, ".elc"))
 	    must_suffix = Qnil;
 	  /* Don't insist on adding a suffix
 	     if the argument includes a directory name.  */
@@ -778,7 +778,7 @@ Return t if file exists.  */)
     Vloads_in_progress = Fcons (found, Vloads_in_progress);
   }
 
-  if (!bcmp (&(XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 4]),
+  if (!bcmp (&(SREF (found, SBYTES (found) - 4)),
 	     ".elc", 4))
     /* Load .elc files directly, but not when they are
        remote and have no handler!  */
@@ -793,7 +793,7 @@ Return t if file exists.  */)
 	      safe_p = 0;
 	      if (!load_dangerous_libraries)
 		error ("File `%s' was not compiled in Emacs",
-		       XSTRING (found)->data);
+		       SDATA (found));
 	      else if (!NILP (nomessage))
 		message_with_string ("File `%s' not compiled in Emacs", found, 1);
 	    }
@@ -806,10 +806,10 @@ Return t if file exists.  */)
 #ifdef DOS_NT
 	  fmode = "rb";
 #endif /* DOS_NT */
-	  stat ((char *)XSTRING (efound)->data, &s1);
-	  XSTRING (efound)->data[STRING_BYTES (XSTRING (efound)) - 1] = 0;
-	  result = stat ((char *)XSTRING (efound)->data, &s2);
-	  XSTRING (efound)->data[STRING_BYTES (XSTRING (efound)) - 1] = 'c';
+	  stat ((char *)SDATA (efound), &s1);
+	  SREF (efound, SBYTES (efound) - 1) = 0;
+	  result = stat ((char *)SDATA (efound), &s2);
+	  SREF (efound, SBYTES (efound) - 1) = 'c';
 	  UNGCPRO;
 
 	  if (result >= 0 && (unsigned) s1.st_mtime < (unsigned) s2.st_mtime)
@@ -823,7 +823,7 @@ Return t if file exists.  */)
 		  Lisp_Object file;
 		  file = Fsubstring (found, make_number (0), make_number (-1));
 		  message_with_string ("Source file `%s' newer than byte-compiled file",
-				       file, SMBP (file));
+				       file, STRING_MULTIBYTE (file));
 		}
 	    }
 	}
@@ -848,7 +848,7 @@ Return t if file exists.  */)
   emacs_close (fd);
   GCPRO1 (efound);
   efound = ENCODE_FILE (found);
-  stream = fopen ((char *) XSTRING (efound)->data, fmode);
+  stream = fopen ((char *) SDATA (efound), fmode);
   UNGCPRO;
 #else  /* not WINDOWSNT */
   stream = fdopen (fd, fmode);
@@ -856,7 +856,7 @@ Return t if file exists.  */)
   if (stream == 0)
     {
       emacs_close (fd);
-      error ("Failure to create stdio stream for %s", XSTRING (file)->data);
+      error ("Failure to create stdio stream for %s", SDATA (file));
     }
 
   if (! NILP (Vpurify_flag))
@@ -958,9 +958,9 @@ static int
 complete_filename_p (pathname)
      Lisp_Object pathname;
 {
-  register unsigned char *s = XSTRING (pathname)->data;
+  register unsigned char *s = SDATA (pathname);
   return (IS_DIRECTORY_SEP (s[0])
-	  || (XSTRING (pathname)->size > 2
+	  || (SCHARS (pathname) > 2
 	      && IS_DEVICE_SEP (s[1]) && IS_DIRECTORY_SEP (s[2]))
 #ifdef ALTOS
 	  || *s == '@'
@@ -1032,7 +1032,7 @@ openp (path, str, suffixes, storeptr, predicate)
     {
       CHECK_STRING_CAR (tail);
       max_suffix_len = max (max_suffix_len,
-			    STRING_BYTES (XSTRING (XCAR (tail))));
+			    SBYTES (XCAR (tail)));
     }
 
   string = filename = Qnil;
@@ -1060,7 +1060,7 @@ openp (path, str, suffixes, storeptr, predicate)
 
       /* Calculate maximum size of any filename made from
 	 this path element/specified file name and any possible suffix.  */
-      want_size = max_suffix_len + STRING_BYTES (XSTRING (filename)) + 1;
+      want_size = max_suffix_len + SBYTES (filename) + 1;
       if (fn_size < want_size)
 	fn = (char *) alloca (fn_size = 100 + want_size);
 
@@ -1068,29 +1068,29 @@ openp (path, str, suffixes, storeptr, predicate)
       for (tail = NILP (suffixes) ? default_suffixes : suffixes;
 	   CONSP (tail); tail = XCDR (tail))
 	{
-	  int lsuffix = STRING_BYTES (XSTRING (XCAR (tail)));
+	  int lsuffix = SBYTES (XCAR (tail));
 	  Lisp_Object handler;
 	  int exists;
 
 	  /* Concatenate path element/specified name with the suffix.
 	     If the directory starts with /:, remove that.  */
-	  if (XSTRING (filename)->size > 2
-	      && XSTRING (filename)->data[0] == '/'
-	      && XSTRING (filename)->data[1] == ':')
+	  if (SCHARS (filename) > 2
+	      && SREF (filename, 0) == '/'
+	      && SREF (filename, 1) == ':')
 	    {
-	      strncpy (fn, XSTRING (filename)->data + 2,
-		       STRING_BYTES (XSTRING (filename)) - 2);
-	      fn[STRING_BYTES (XSTRING (filename)) - 2] = 0;
+	      strncpy (fn, SDATA (filename) + 2,
+		       SBYTES (filename) - 2);
+	      fn[SBYTES (filename) - 2] = 0;
 	    }
 	  else
 	    {
-	      strncpy (fn, XSTRING (filename)->data,
-		       STRING_BYTES (XSTRING (filename)));
-	      fn[STRING_BYTES (XSTRING (filename))] = 0;
+	      strncpy (fn, SDATA (filename),
+		       SBYTES (filename));
+	      fn[SBYTES (filename)] = 0;
 	    }
 
 	  if (lsuffix != 0)  /* Bug happens on CCI if lsuffix is 0.  */
-	    strncat (fn, XSTRING (XCAR (tail))->data, lsuffix);
+	    strncat (fn, SDATA (XCAR (tail)), lsuffix);
 
 	  /* Check that the file exists and is not a directory.  */
 	  /* We used to only check for handlers on non-absolute file names:
@@ -1125,7 +1125,7 @@ openp (path, str, suffixes, storeptr, predicate)
 	      char *pfn;
 
 	      encoded_fn = ENCODE_FILE (string);
-	      pfn = XSTRING (encoded_fn)->data;
+	      pfn = SDATA (encoded_fn);
 	      exists = (stat (pfn, &st) >= 0
 			&& (st.st_mode & S_IFMT) != S_IFDIR);
 	      if (exists)
@@ -1507,12 +1507,12 @@ read_internal_start (stream, start, end)
     {
       int startval, endval;
       if (NILP (end))
-	endval = XSTRING (stream)->size;
+	endval = SCHARS (stream);
       else
 	{
 	  CHECK_NUMBER (end);
 	  endval = XINT (end);
-	  if (endval < 0 || endval > XSTRING (stream)->size)
+	  if (endval < 0 || endval > SCHARS (stream))
 	    args_out_of_range (stream, end);
 	}
 
@@ -1963,17 +1963,17 @@ read1 (readcharfun, pch, first_in_list)
 
 	      UNREAD (c);
 	      tmp = read1 (readcharfun, pch, first_in_list);
-	      if (size_in_chars != XSTRING (tmp)->size
+	      if (size_in_chars != SCHARS (tmp)
 		  /* We used to print 1 char too many
 		     when the number of bits was a multiple of 8.
 		     Accept such input in case it came from an old version.  */
 		  && ! (XFASTINT (length)
-			== (XSTRING (tmp)->size - 1) * BITS_PER_CHAR))
+			== (SCHARS (tmp) - 1) * BITS_PER_CHAR))
 		Fsignal (Qinvalid_read_syntax,
 			 Fcons (make_string ("#&...", 5), Qnil));
 		
 	      val = Fmake_bool_vector (length, Qnil);
-	      bcopy (XSTRING (tmp)->data, XBOOL_VECTOR (val)->data,
+	      bcopy (SDATA (tmp), XBOOL_VECTOR (val)->data,
 		     size_in_chars);
 	      /* Clear the extraneous bits in the last byte.  */
 	      if (XINT (length) != size_in_chars * BITS_PER_CHAR)
@@ -2614,7 +2614,7 @@ substitute_object_recurse (object, placeholder, subtree)
 	/* Check for text properties in each interval.
 	   substitute_in_interval contains part of the logic. */
 
-	INTERVAL    root_interval = XSTRING (subtree)->intervals;
+	INTERVAL    root_interval = STRING_INTERVALS (subtree);
 	Lisp_Object arg           = Fcons (object, placeholder);
 	   
 	traverse_intervals_noorder (root_interval,
@@ -2760,8 +2760,8 @@ read_vector (readcharfun, bytecodeflag)
 		  /* Coerce string to unibyte (like string-as-unibyte,
 		     but without generating extra garbage and
 		     guaranteeing no change in the contents).  */
-		  XSTRING (bytestr)->size = STRING_BYTES (XSTRING (bytestr));
-		  SET_STRING_BYTES (XSTRING (bytestr), -1);
+		  SCHARS (bytestr) = SBYTES (bytestr);
+		  STRING_SET_UNIBYTE (bytestr);
 
 		  item = Fread (bytestr);
 		  if (!CONSP (item))
@@ -3040,9 +3040,9 @@ it defaults to the value of `obarray'.  */)
 
   CHECK_STRING (string);
 
-  tem = oblookup (obarray, XSTRING (string)->data,
-		  XSTRING (string)->size,
-		  STRING_BYTES (XSTRING (string)));
+  tem = oblookup (obarray, SDATA (string),
+		  SCHARS (string),
+		  SBYTES (string));
   if (!INTEGERP (tem))
     return tem;
 
@@ -3055,7 +3055,7 @@ it defaults to the value of `obarray'.  */)
   else
     XSYMBOL (sym)->interned = SYMBOL_INTERNED;
 
-  if ((XSTRING (string)->data[0] == ':')
+  if ((SREF (string, 0) == ':')
       && EQ (obarray, initial_obarray))
     {
       XSYMBOL (sym)->constant = 1;
@@ -3124,9 +3124,9 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
       string = name;
     }
 
-  tem = oblookup (obarray, XSTRING (string)->data,
-		  XSTRING (string)->size,
-		  STRING_BYTES (XSTRING (string)));
+  tem = oblookup (obarray, SDATA (string),
+		  SCHARS (string),
+		  SBYTES (string));
   if (INTEGERP (tem))
     return Qnil;
   /* If arg was a symbol, don't delete anything but that symbol itself.  */
@@ -3203,9 +3203,9 @@ oblookup (obarray, ptr, size, size_byte)
   else
     for (tail = bucket; ; XSETSYMBOL (tail, XSYMBOL (tail)->next))
       {
-	if (STRING_BYTES (XSTRING (SYMBOL_NAME (tail))) == size_byte
-	    && XSTRING (SYMBOL_NAME (tail))->size == size
-	    && !bcmp (XSTRING (SYMBOL_NAME (tail))->data, ptr, size_byte))
+	if (SBYTES (SYMBOL_NAME (tail)) == size_byte
+	    && SCHARS (SYMBOL_NAME (tail)) == size
+	    && !bcmp (SDATA (SYMBOL_NAME (tail)), ptr, size_byte))
 	  return tail;
 	else if (XSYMBOL (tail)->next == 0)
 	  break;
@@ -3618,7 +3618,7 @@ init_lread ()
 	  if (STRINGP (dirfile))
 	    {
 	      dirfile = Fdirectory_file_name (dirfile);
-	      if (access (XSTRING (dirfile)->data, 0) < 0)
+	      if (access (SDATA (dirfile), 0) < 0)
 		dir_warning ("Warning: Lisp directory `%s' does not exist.\n",
 			     XCAR (path_tail));
 	    }
@@ -3654,10 +3654,10 @@ dir_warning (format, dirname)
      Lisp_Object dirname;
 {
   char *buffer
-    = (char *) alloca (XSTRING (dirname)->size + strlen (format) + 5);
+    = (char *) alloca (SCHARS (dirname) + strlen (format) + 5);
 
-  fprintf (stderr, format, XSTRING (dirname)->data);
-  sprintf (buffer, format, XSTRING (dirname)->data);
+  fprintf (stderr, format, SDATA (dirname));
+  sprintf (buffer, format, SDATA (dirname));
   /* Don't log the warning before we've initialized!! */
   if (initialized)
     message_dolog (buffer, strlen (buffer), 0, STRING_MULTIBYTE (dirname));

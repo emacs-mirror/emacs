@@ -290,7 +290,7 @@ Boston, MA 02111-1307, USA.  */
 /* Make a copy of the contents of Lisp string S on the stack using
    alloca.  Value is a pointer to the copy.  */
 
-#define LSTRDUPA(S) STRDUPA (XSTRING ((S))->data)
+#define LSTRDUPA(S) STRDUPA (SDATA ((S)))
 
 /* Size of hash table of realized faces in face caches (should be a
    prime number).  */
@@ -1146,7 +1146,7 @@ the pixmap.  Bits are stored row by row, each row occupies
 	{
 	  int bytes_per_row = ((XFASTINT (width) + BITS_PER_CHAR - 1)
 			       / BITS_PER_CHAR);
-	  if (STRING_BYTES (XSTRING (data)) >= bytes_per_row * XINT (height))
+	  if (SBYTES (data) >= bytes_per_row * XINT (height))
 	    pixmap_p = 1;
 	}
     }
@@ -1190,7 +1190,7 @@ load_pixmap (f, name, w_ptr, h_ptr)
       h = XINT (Fcar (Fcdr (name)));
       bits = Fcar (Fcdr (Fcdr (name)));
 
-      bitmap_id = x_create_bitmap_from_data (f, XSTRING (bits)->data,
+      bitmap_id = x_create_bitmap_from_data (f, SDATA (bits),
 					     w, h);
     }
   else
@@ -1569,7 +1569,7 @@ If FRAME is nil or omitted, use the selected frame.  */)
   CHECK_FRAME (frame);
   CHECK_STRING (color);
   f = XFRAME (frame);
-  return face_color_gray_p (f, XSTRING (color)->data) ? Qt : Qnil;
+  return face_color_gray_p (f, SDATA (color)) ? Qt : Qnil;
 }
 
 
@@ -1587,7 +1587,7 @@ COLOR must be a valid color name.  */)
   CHECK_FRAME (frame);
   CHECK_STRING (color);
   f = XFRAME (frame);
-  if (face_color_supported_p (f, XSTRING (color)->data, !NILP (background_p)))
+  if (face_color_supported_p (f, SDATA (color), !NILP (background_p)))
     return Qt;
   return Qnil;
 }
@@ -1621,7 +1621,7 @@ load_color (f, face, name, target_index)
 
   /* if the color map is full, defined_color will return a best match
      to the values in an existing cell. */
-  if (!defined_color (f, XSTRING (name)->data, &color, 1))
+  if (!defined_color (f, SDATA (name), &color, 1))
     {
       add_to_log ("Unable to load color \"%s\"", name, Qnil);
 
@@ -1701,7 +1701,7 @@ load_face_colors (f, face, attrs)
      face_color_supported_p is smart enough to know that grays are
      "supported" as background because we are supposed to use stipple
      for them.  */
-  if (!face_color_supported_p (f, XSTRING (bg)->data, 0)
+  if (!face_color_supported_p (f, SDATA (bg), 0)
       && !NILP (Fbitmap_spec_p (Vface_default_stipple)))
     {
       x_destroy_bitmap (f, face->stipple);
@@ -2476,7 +2476,7 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p)
   for (tem = lfonts; CONSP (tem) && n < nfonts; tem = XCDR (tem))
     {
       Lisp_Object elt, tail;
-      char *name = XSTRING (XCAR (tem))->data;
+      char *name = SDATA (XCAR (tem));
 
       /* Ignore fonts matching a pattern from face-ignored-fonts.  */
       for (tail = Vface_ignored_fonts; CONSP (tail); tail = XCDR (tail))
@@ -2520,7 +2520,7 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p)
 	  Lisp_Object entry = XCAR (list);
 	  if (CONSP (entry)
 	      && STRINGP (XCAR (entry))
-	      && strcmp (XSTRING (XCAR (entry))->data, pattern) == 0)
+	      && strcmp (SDATA (XCAR (entry)), pattern) == 0)
 	    break;
 	  list = XCDR (list);
 	}
@@ -2536,8 +2536,8 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p)
 		     STRINGP (name))
 		 /* Ignore patterns equal to PATTERN because we tried that
 		    already with no success.  */
-		 && (strcmp (XSTRING (name)->data, pattern) == 0
-		     || (n = x_face_list_fonts (f, XSTRING (name)->data,
+		 && (strcmp (SDATA (name), pattern) == 0
+		     || (n = x_face_list_fonts (f, SDATA (name),
 						fonts, nfonts, 0),
 			 n == 0)))
 	    patterns = XCDR (patterns);
@@ -2647,8 +2647,8 @@ font_list_1 (f, pattern, family, registry, fonts)
 
   if (NILP (pattern))
     {
-      family_str = (NILP (family) ? "*" : (char *) XSTRING (family)->data);
-      registry_str = (NILP (registry) ? "*" : (char *) XSTRING (registry)->data);
+      family_str = (NILP (family) ? "*" : (char *) SDATA (family));
+      registry_str = (NILP (registry) ? "*" : (char *) SDATA (registry));
 
       pattern_str = (char *) alloca (strlen (family_str)
 				     + strlen (registry_str)
@@ -2666,7 +2666,7 @@ font_list_1 (f, pattern, family, registry, fonts)
 	}
     }
   else
-    pattern_str = (char *) XSTRING (pattern)->data;
+    pattern_str = (char *) SDATA (pattern);
 
   return sorted_font_list (f, pattern_str, cmp_font_names, fonts);
 }
@@ -3087,7 +3087,7 @@ resolve_face_name (face_name)
   Lisp_Object aliased;
 
   if (STRINGP (face_name))
-    face_name = intern (XSTRING (face_name)->data);
+    face_name = intern (SDATA (face_name));
 
   while (SYMBOLP (face_name))
     {
@@ -3210,13 +3210,13 @@ set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
   int pt;
   int have_xlfd_p;
   int fontset;
-  char *font_name = XSTRING (fontname)->data;
+  char *font_name = SDATA (fontname);
   struct font_info *font_info;
 
   /* If FONTNAME is actually a fontset name, get ASCII font name of it.  */
   fontset = fs_query_fontset (fontname, 0);
   if (fontset >= 0)
-    font_name = XSTRING (fontset_ascii (fontset))->data;
+    font_name = SDATA (fontset_ascii (fontset));
 
   /* Check if FONT_NAME is surely available on the system.  Usually
      FONT_NAME is already cached for the frame F and FS_LOAD_FONT
@@ -3522,7 +3522,7 @@ merge_face_vector_with_property (f, to, prop)
 	    add_to_log ("Invalid face color", color_name, Qnil);
 	}
       else if (SYMBOLP (first)
-	       && *XSTRING (SYMBOL_NAME (first))->data == ':')
+	       && *SDATA (SYMBOL_NAME (first)) == ':')
 	{
 	  /* Assume this is the property list form.  */
 	  while (CONSP (prop) && CONSP (XCDR (prop)))
@@ -3904,7 +3904,7 @@ FRAME 0 means change the face on all frames, and change the default
       if (!UNSPECIFIEDP (value))
 	{
 	  CHECK_STRING (value);
-	  if (XSTRING (value)->size == 0)
+	  if (SCHARS (value) == 0)
 	    signal_error ("Invalid face family", value);
 	}
       old_value = LFACE_FAMILY (lface);
@@ -3964,7 +3964,7 @@ FRAME 0 means change the face on all frames, and change the default
 	     && !EQ (value, Qnil))
 	    /* Underline color.  */
 	    || (STRINGP (value)
-		&& XSTRING (value)->size == 0))
+		&& SCHARS (value) == 0))
 	  signal_error ("Invalid face underline", value);
 
       old_value = LFACE_UNDERLINE (lface);
@@ -3978,7 +3978,7 @@ FRAME 0 means change the face on all frames, and change the default
 	     && !EQ (value, Qnil))
 	    /* Overline color.  */
 	    || (STRINGP (value)
-		&& XSTRING (value)->size == 0))
+		&& SCHARS (value) == 0))
 	  signal_error ("Invalid face overline", value);
 
       old_value = LFACE_OVERLINE (lface);
@@ -3992,7 +3992,7 @@ FRAME 0 means change the face on all frames, and change the default
 	     && !EQ (value, Qnil))
 	    /* Strike-through color.  */
 	    || (STRINGP (value)
-		&& XSTRING (value)->size == 0))
+		&& SCHARS (value) == 0))
 	  signal_error ("Invalid face strike-through", value);
 
       old_value = LFACE_STRIKE_THROUGH (lface);
@@ -4014,7 +4014,7 @@ FRAME 0 means change the face on all frames, and change the default
       else if (INTEGERP (value))
 	valid_p = XINT (value) != 0;
       else if (STRINGP (value))
-	valid_p = XSTRING (value)->size > 0;
+	valid_p = SCHARS (value) > 0;
       else if (CONSP (value))
 	{
 	  Lisp_Object tem;
@@ -4038,7 +4038,7 @@ FRAME 0 means change the face on all frames, and change the default
 		}
 	      else if (EQ (k, QCcolor))
 		{
-		  if (!STRINGP (v) || XSTRING (v)->size == 0)
+		  if (!STRINGP (v) || SCHARS (v) == 0)
 		    break;
 		}
 	      else if (EQ (k, QCstyle))
@@ -4081,7 +4081,7 @@ FRAME 0 means change the face on all frames, and change the default
 	     on the frame (display) whether the color will be valid
 	     when the face is realized.  */
 	  CHECK_STRING (value);
-	  if (XSTRING (value)->size == 0)
+	  if (SCHARS (value) == 0)
 	    signal_error ("Empty foreground color value", value);
 	}
       old_value = LFACE_FOREGROUND (lface);
@@ -4095,7 +4095,7 @@ FRAME 0 means change the face on all frames, and change the default
 	     on the frame (display) whether the color will be valid
 	     when the face is realized.  */
 	  CHECK_STRING (value);
-	  if (XSTRING (value)->size == 0)
+	  if (SCHARS (value) == 0)
 	    signal_error ("Empty background color value", value);
 	}
       old_value = LFACE_BACKGROUND (lface);
@@ -4445,13 +4445,13 @@ face_boolean_x_resource_value (value, signal_p)
 
   xassert (STRINGP (value));
 
-  if (xstricmp (XSTRING (value)->data, "on") == 0
-      || xstricmp (XSTRING (value)->data, "true") == 0)
+  if (xstricmp (SDATA (value), "on") == 0
+      || xstricmp (SDATA (value), "true") == 0)
     result = Qt;
-  else if (xstricmp (XSTRING (value)->data, "off") == 0
-	   || xstricmp (XSTRING (value)->data, "false") == 0)
+  else if (xstricmp (SDATA (value), "off") == 0
+	   || xstricmp (SDATA (value), "false") == 0)
     result = Qnil;
-  else if (xstricmp (XSTRING (value)->data, "unspecified") == 0)
+  else if (xstricmp (SDATA (value), "unspecified") == 0)
     result = Qunspecified;
   else if (signal_p)
     signal_error ("Invalid face attribute value from X resource", value);
@@ -4471,7 +4471,7 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
   CHECK_SYMBOL (attr);
   CHECK_STRING (value);
 
-  if (xstricmp (XSTRING (value)->data, "unspecified") == 0)
+  if (xstricmp (SDATA (value), "unspecified") == 0)
     value = Qunspecified;
   else if (EQ (attr, QCheight))
     {
@@ -4482,7 +4482,7 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
   else if (EQ (attr, QCbold) || EQ (attr, QCitalic))
     value = face_boolean_x_resource_value (value, 1);
   else if (EQ (attr, QCweight) || EQ (attr, QCslant) || EQ (attr, QCwidth))
-    value = intern (XSTRING (value)->data);
+    value = intern (SDATA (value));
   else if (EQ (attr, QCreverse_video) || EQ (attr, QCinverse_video))
     value = face_boolean_x_resource_value (value, 1);
   else if (EQ (attr, QCunderline)
@@ -4528,7 +4528,7 @@ x_update_menu_appearance (f)
       char line[512];
       Lisp_Object lface = lface_from_face_name (f, Qmenu, 1);
       struct face *face = FACE_FROM_ID (f, MENU_FACE_ID);
-      char *myname = XSTRING (Vx_resource_name)->data;
+      char *myname = SDATA (Vx_resource_name);
       int changed_p = 0;
 #ifdef USE_MOTIF
       const char *popup_path = "popup_menu";
@@ -4540,10 +4540,10 @@ x_update_menu_appearance (f)
 	{
 	  sprintf (line, "%s.%s*foreground: %s",
 		   myname, popup_path,
-		   XSTRING (LFACE_FOREGROUND (lface))->data);
+		   SDATA (LFACE_FOREGROUND (lface)));
 	  XrmPutLineResource (&rdb, line);
 	  sprintf (line, "%s.pane.menubar*foreground: %s",
-		   myname, XSTRING (LFACE_FOREGROUND (lface))->data);
+		   myname, SDATA (LFACE_FOREGROUND (lface)));
 	  XrmPutLineResource (&rdb, line);
 	  changed_p = 1;
 	}
@@ -4552,10 +4552,10 @@ x_update_menu_appearance (f)
 	{
 	  sprintf (line, "%s.%s*background: %s",
 		   myname, popup_path,
-		   XSTRING (LFACE_BACKGROUND (lface))->data);
+		   SDATA (LFACE_BACKGROUND (lface)));
 	  XrmPutLineResource (&rdb, line);
 	  sprintf (line, "%s.pane.menubar*background: %s",
-		   myname, XSTRING (LFACE_BACKGROUND (lface))->data);
+		   myname, SDATA (LFACE_BACKGROUND (lface)));
 	  XrmPutLineResource (&rdb, line);
 	  changed_p = 1;
 	}
@@ -4837,10 +4837,10 @@ lface_equal_p (v1, v2)
 	  switch (XTYPE (a))
 	    {
 	    case Lisp_String:
-	      equal_p = ((STRING_BYTES (XSTRING (a))
-			  == STRING_BYTES (XSTRING (b)))
-			 && bcmp (XSTRING (a)->data, XSTRING (b)->data,
-				  STRING_BYTES (XSTRING (a))) == 0);
+	      equal_p = ((SBYTES (a)
+			  == SBYTES (b))
+			 && bcmp (SDATA (a), SDATA (b),
+				  SBYTES (a)) == 0);
 	      break;
 
 	    case Lisp_Int:
@@ -4942,7 +4942,7 @@ hash_string_case_insensitive (string)
   unsigned char *s;
   unsigned hash = 0;
   xassert (STRINGP (string));
-  for (s = XSTRING (string)->data; *s; ++s)
+  for (s = SDATA (string); *s; ++s)
     hash = (hash << 1) ^ tolower (*s);
   return hash;
 }
@@ -4975,8 +4975,8 @@ lface_same_font_attributes_p (lface1, lface2)
 {
   xassert (lface_fully_specified_p (lface1)
 	   && lface_fully_specified_p (lface2));
-  return (xstricmp (XSTRING (lface1[LFACE_FAMILY_INDEX])->data,
-		    XSTRING (lface2[LFACE_FAMILY_INDEX])->data) == 0
+  return (xstricmp (SDATA (lface1[LFACE_FAMILY_INDEX]),
+		    SDATA (lface2[LFACE_FAMILY_INDEX])) == 0
 	  && EQ (lface1[LFACE_HEIGHT_INDEX], lface2[LFACE_HEIGHT_INDEX])
 	  && EQ (lface1[LFACE_SWIDTH_INDEX], lface2[LFACE_SWIDTH_INDEX])
 	  && EQ (lface1[LFACE_AVGWIDTH_INDEX], lface2[LFACE_AVGWIDTH_INDEX])
@@ -4985,8 +4985,8 @@ lface_same_font_attributes_p (lface1, lface2)
 	  && (EQ (lface1[LFACE_FONT_INDEX], lface2[LFACE_FONT_INDEX])
 	      || (STRINGP (lface1[LFACE_FONT_INDEX])
 		  && STRINGP (lface2[LFACE_FONT_INDEX])
-		  && xstricmp (XSTRING (lface1[LFACE_FONT_INDEX])->data,
-			       XSTRING (lface2[LFACE_FONT_INDEX])->data))));
+		  && xstricmp (SDATA (lface1[LFACE_FONT_INDEX]),
+			       SDATA (lface2[LFACE_FONT_INDEX])))));
 }
 
 
@@ -5141,11 +5141,11 @@ If FRAME is unspecified or nil, the current frame is used.  */)
 
   if ((CONSP (color1) && !parse_rgb_list (color1, &cdef1))
       || !STRINGP (color1)
-      || !defined_color (f, XSTRING (color1)->data, &cdef1, 0))
+      || !defined_color (f, SDATA (color1), &cdef1, 0))
     signal_error ("Invalid color", color1);
   if ((CONSP (color2) && !parse_rgb_list (color2, &cdef2))
       || !STRINGP (color2)
-      || !defined_color (f, XSTRING (color2)->data, &cdef2, 0))
+      || !defined_color (f, SDATA (color2), &cdef2, 0))
     signal_error ("Invalid color", color2);
 
   return make_number (color_distance (&cdef1, &cdef2));
@@ -6347,7 +6347,7 @@ try_font_list (f, attrs, family, registry, fonts)
      if the family is -etl-fixed, e.g.  The following widens the
      choices and fixes that problem.  */
   if (nfonts == 0 && STRINGP (face_family) && STRINGP (registry)
-      && xstricmp (XSTRING (registry)->data, "mac-roman") == 0)
+      && xstricmp (SDATA (registry), "mac-roman") == 0)
     nfonts = try_alternative_families (f, face_family, Qnil, fonts);
 #endif
 
@@ -6421,7 +6421,7 @@ choose_face_font (f, attrs, fontset, c)
   
   /* If what we got is a name pattern, return it.  */
   if (STRINGP (pattern))
-    return xstrdup (XSTRING (pattern)->data);
+    return xstrdup (SDATA (pattern));
 
   /* Get a list of fonts matching that pattern and choose the
      best match for the specified face attributes from it.  */
@@ -6927,7 +6927,7 @@ map_tty_color (f, face, idx, defaulted)
   color = face->lface[idx];
   
   if (STRINGP (color)
-      && XSTRING (color)->size
+      && SCHARS (color)
       && CONSP (Vtty_defined_color_alist)
       && (def = assq_no_quit (color, call1 (Qtty_color_alist, frame)),
 	  CONSP (def)))
@@ -7277,7 +7277,7 @@ face_at_string_position (w, string, pos, bufpos, region_beg,
      Limit is the maximum position up to which to check for property
      changes in Fnext_single_property_change.  Strings are usually
      short, so set the limit to the end of the string.  */
-  XSETFASTINT (limit, XSTRING (string)->size);
+  XSETFASTINT (limit, SCHARS (string));
   end = Fnext_single_property_change (position, prop_name, string, limit);
   if (INTEGERP (end))
     *endptr = XFASTINT (end);
@@ -7345,13 +7345,13 @@ dump_realized_face (face)
 #endif
   fprintf (stderr, "foreground: 0x%lx (%s)\n",
 	   face->foreground,
-	   XSTRING (face->lface[LFACE_FOREGROUND_INDEX])->data);
+	   SDATA (face->lface[LFACE_FOREGROUND_INDEX]));
   fprintf (stderr, "background: 0x%lx (%s)\n",
 	   face->background,
-	   XSTRING (face->lface[LFACE_BACKGROUND_INDEX])->data);
+	   SDATA (face->lface[LFACE_BACKGROUND_INDEX]));
   fprintf (stderr, "font_name: %s (%s)\n",
 	   face->font_name,
-	   XSTRING (face->lface[LFACE_FAMILY_INDEX])->data);
+	   SDATA (face->lface[LFACE_FAMILY_INDEX]));
 #ifdef HAVE_X_WINDOWS
   fprintf (stderr, "font = %p\n", face->font);
 #endif
@@ -7359,7 +7359,7 @@ dump_realized_face (face)
   fprintf (stderr, "fontset: %d\n", face->fontset);
   fprintf (stderr, "underline: %d (%s)\n",
 	   face->underline_p,
-	   XSTRING (Fsymbol_name (face->lface[LFACE_UNDERLINE_INDEX]))->data);
+	   SDATA (Fsymbol_name (face->lface[LFACE_UNDERLINE_INDEX])));
   fprintf (stderr, "hash: %d\n", face->hash);
   fprintf (stderr, "charset: %d\n", face->charset);
 }

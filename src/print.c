@@ -290,7 +290,7 @@ static Lisp_Object
 print_unwind (saved_text)
      Lisp_Object saved_text;
 {
-  bcopy (XSTRING (saved_text)->data, print_buffer, XSTRING (saved_text)->size);
+  bcopy (SDATA (saved_text), print_buffer, SCHARS (saved_text));
   return Qnil;
 }
 
@@ -461,7 +461,7 @@ print_string (string, printcharfun)
       int chars;
 
       if (STRING_MULTIBYTE (string))
-	chars = XSTRING (string)->size;
+	chars = SCHARS (string);
       else if (EQ (printcharfun, Qt)
 	       ? ! NILP (buffer_defaults.enable_multibyte_characters)
 	       : ! NILP (current_buffer->enable_multibyte_characters))
@@ -472,22 +472,22 @@ print_string (string, printcharfun)
 	  Lisp_Object newstr;
 	  int bytes;
 
-	  chars = STRING_BYTES (XSTRING (string));
-	  bytes = parse_str_to_multibyte (XSTRING (string)->data, chars);
+	  chars = SBYTES (string);
+	  bytes = parse_str_to_multibyte (SDATA (string), chars);
 	  if (chars < bytes)
 	    {
 	      newstr = make_uninit_multibyte_string (chars, bytes);
-	      bcopy (XSTRING (string)->data, XSTRING (newstr)->data, chars);
-	      str_to_multibyte (XSTRING (newstr)->data, bytes, chars);
+	      bcopy (SDATA (string), SDATA (newstr), chars);
+	      str_to_multibyte (SDATA (newstr), bytes, chars);
 	      string = newstr;
 	    }
 	}
       else
-	chars = STRING_BYTES (XSTRING (string));
+	chars = SBYTES (string);
 
       /* strout is safe for output to a frame (echo area) or to print_buffer.  */
-      strout (XSTRING (string)->data,
-	      chars, STRING_BYTES (XSTRING (string)),
+      strout (SDATA (string),
+	      chars, SBYTES (string),
 	      printcharfun, STRING_MULTIBYTE (string));
     }
   else
@@ -495,24 +495,24 @@ print_string (string, printcharfun)
       /* Otherwise, string may be relocated by printing one char.
 	 So re-fetch the string address for each character.  */
       int i;
-      int size = XSTRING (string)->size;
-      int size_byte = STRING_BYTES (XSTRING (string));
+      int size = SCHARS (string);
+      int size_byte = SBYTES (string);
       struct gcpro gcpro1;
       GCPRO1 (string);
       if (size == size_byte)
 	for (i = 0; i < size; i++)
-	  PRINTCHAR (XSTRING (string)->data[i]);
+	  PRINTCHAR (SREF (string, i));
       else
 	for (i = 0; i < size_byte; i++)
 	  {
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
 	    int len;
-	    int ch = STRING_CHAR_AND_LENGTH (XSTRING (string)->data + i,
+	    int ch = STRING_CHAR_AND_LENGTH (SDATA (string) + i,
 					     size_byte - i, len);
 	    if (!CHAR_VALID_P (ch, 0))
 	      {
-		ch = XSTRING (string)->data[i];
+		ch = SREF (string, i);
 		len = 1;
 	      }
 	    PRINTCHAR (ch);
@@ -664,7 +664,7 @@ usage: (with-output-to-temp-buffer BUFFNAME BODY ...)  */)
   GCPRO1(args);
   name = Feval (Fcar (args));
   CHECK_STRING (name);
-  temp_output_buffer_setup (XSTRING (name)->data);
+  temp_output_buffer_setup (SDATA (name));
   buf = Vstandard_output;
   UNGCPRO;
 
@@ -1074,7 +1074,7 @@ float_to_string (buf, data)
       /* Check that the spec we have is fully valid.
 	 This means not only valid for printf,
 	 but meant for floats, and reasonable.  */
-      cp = XSTRING (Vfloat_output_format)->data;
+      cp = SDATA (Vfloat_output_format);
 
       if (cp[0] != '%')
 	goto lose;
@@ -1104,7 +1104,7 @@ float_to_string (buf, data)
       if (cp[1] != 0)
 	goto lose;
 
-      sprintf (buf, XSTRING (Vfloat_output_format)->data, data);
+      sprintf (buf, SDATA (Vfloat_output_format), data);
     }
 
   /* Make sure there is a decimal point with digit after, or an
@@ -1243,7 +1243,7 @@ print_preprocess (obj)
 	{
 	case Lisp_String:
 	  /* A string may have text properties, which can be circular.  */
-	  traverse_intervals_noorder (XSTRING (obj)->intervals,
+	  traverse_intervals_noorder (STRING_INTERVALS (obj),
 				      print_preprocess_string, Qnil);
 	  break;
 
@@ -1379,15 +1379,15 @@ print_object (obj, printcharfun, escapeflag)
 
 	  GCPRO1 (obj);
 
-	  if (!NULL_INTERVAL_P (XSTRING (obj)->intervals))
+	  if (!NULL_INTERVAL_P (STRING_INTERVALS (obj)))
 	    {
 	      PRINTCHAR ('#');
 	      PRINTCHAR ('(');
 	    }
 
 	  PRINTCHAR ('\"');
-	  str = XSTRING (obj)->data;
-	  size_byte = STRING_BYTES (XSTRING (obj));
+	  str = SDATA (obj);
+	  size_byte = SBYTES (obj);
 
 	  for (i = 0, i_byte = 0; i_byte < size_byte;)
 	    {
@@ -1467,9 +1467,9 @@ print_object (obj, printcharfun, escapeflag)
 	    }
 	  PRINTCHAR ('\"');
 
-	  if (!NULL_INTERVAL_P (XSTRING (obj)->intervals))
+	  if (!NULL_INTERVAL_P (STRING_INTERVALS (obj)))
 	    {
-	      traverse_intervals (XSTRING (obj)->intervals,
+	      traverse_intervals (STRING_INTERVALS (obj),
 				  0, print_interval, printcharfun);
 	      PRINTCHAR (')');
 	    }
@@ -1481,8 +1481,8 @@ print_object (obj, printcharfun, escapeflag)
     case Lisp_Symbol:
       {
 	register int confusing;
-	register unsigned char *p = XSTRING (SYMBOL_NAME (obj))->data;
-	register unsigned char *end = p + STRING_BYTES (XSTRING (SYMBOL_NAME (obj)));
+	register unsigned char *p = SDATA (SYMBOL_NAME (obj));
+	register unsigned char *end = p + SBYTES (SYMBOL_NAME (obj));
 	register int c;
 	int i, i_byte, size_byte;
 	Lisp_Object name;
@@ -1517,7 +1517,7 @@ print_object (obj, printcharfun, escapeflag)
 	    PRINTCHAR (':');
 	  }
 
-	size_byte = STRING_BYTES (XSTRING (name));
+	size_byte = SBYTES (name);
 
 	for (i = 0, i_byte = 0; i_byte < size_byte;)
 	  {
@@ -1735,9 +1735,9 @@ print_object (obj, printcharfun, escapeflag)
 	    {
 	      PRINTCHAR (' ');
 	      PRINTCHAR ('\'');
-	      strout (XSTRING (SYMBOL_NAME (h->test))->data, -1, -1, printcharfun, 0);
+	      strout (SDATA (SYMBOL_NAME (h->test)), -1, -1, printcharfun, 0);
 	      PRINTCHAR (' ');
-	      strout (XSTRING (SYMBOL_NAME (h->weak))->data, -1, -1, printcharfun, 0);
+	      strout (SDATA (SYMBOL_NAME (h->weak)), -1, -1, printcharfun, 0);
 	      PRINTCHAR (' ');
 	      sprintf (buf, "%d/%d", XFASTINT (h->count),
 		       XVECTOR (h->next)->size);

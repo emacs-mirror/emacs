@@ -667,7 +667,7 @@ string_display_width (string, beg, end)
   int b, e;
 
   if (NILP (end))
-    e = XSTRING (string)->size;
+    e = SCHARS (string);
   else
     {
       CHECK_NUMBER (end);
@@ -683,10 +683,10 @@ string_display_width (string, beg, end)
     }
 
   /* Make a pointer for decrementing through the chars before point.  */
-  ptr = XSTRING (string)->data + e;
+  ptr = SDATA (string) + e;
   /* Make a pointer to where consecutive chars leave off,
      going backwards from point.  */
-  stop = XSTRING (string)->data + b;
+  stop = SDATA (string) + b;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 

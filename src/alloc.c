@@ -1684,8 +1684,8 @@ Both LENGTH and INIT must be numbers.  */)
     {
       nbytes = XINT (length);
       val = make_uninit_string (nbytes);
-      p = XSTRING (val)->data;
-      end = p + XSTRING (val)->size;
+      p = SDATA (val);
+      end = p + SCHARS (val);
       while (p != end)
 	*p++ = c;
     }
@@ -1696,7 +1696,7 @@ Both LENGTH and INIT must be numbers.  */)
 
       nbytes = len * XINT (length);
       val = make_uninit_multibyte_string (XINT (length), nbytes);
-      p = XSTRING (val)->data;
+      p = SDATA (val);
       end = p + nbytes;
       while (p != end)
 	{
@@ -1783,8 +1783,8 @@ make_unibyte_string (contents, length)
 {
   register Lisp_Object val;
   val = make_uninit_string (length);
-  bcopy (contents, XSTRING (val)->data, length);
-  SET_STRING_BYTES (XSTRING (val), -1);
+  bcopy (contents, SDATA (val), length);
+  STRING_SET_UNIBYTE (val);
   return val;
 }
 
@@ -1799,7 +1799,7 @@ make_multibyte_string (contents, nchars, nbytes)
 {
   register Lisp_Object val;
   val = make_uninit_multibyte_string (nchars, nbytes);
-  bcopy (contents, XSTRING (val)->data, nbytes);
+  bcopy (contents, SDATA (val), nbytes);
   return val;
 }
 
@@ -1814,9 +1814,9 @@ make_string_from_bytes (contents, nchars, nbytes)
 {
   register Lisp_Object val;
   val = make_uninit_multibyte_string (nchars, nbytes);
-  bcopy (contents, XSTRING (val)->data, nbytes);
-  if (STRING_BYTES (XSTRING (val)) == XSTRING (val)->size)
-    SET_STRING_BYTES (XSTRING (val), -1);
+  bcopy (contents, SDATA (val), nbytes);
+  if (SBYTES (val) == SCHARS (val))
+    STRING_SET_UNIBYTE (val);
   return val;
 }
 
@@ -1833,9 +1833,9 @@ make_specified_string (contents, nchars, nbytes, multibyte)
 {
   register Lisp_Object val;
   val = make_uninit_multibyte_string (nchars, nbytes);
-  bcopy (contents, XSTRING (val)->data, nbytes);
+  bcopy (contents, SDATA (val), nbytes);
   if (!multibyte)
-    SET_STRING_BYTES (XSTRING (val), -1);
+    STRING_SET_UNIBYTE (val);
   return val;
 }
 
@@ -1860,7 +1860,7 @@ make_uninit_string (length)
 {
   Lisp_Object val;
   val = make_uninit_multibyte_string (length, length);
-  SET_STRING_BYTES (XSTRING (val), -1);
+  STRING_SET_UNIBYTE (val);
   return val;
 }
 
@@ -2701,10 +2701,10 @@ make_event_array (nargs, args)
     result = Fmake_string (make_number (nargs), make_number (0));
     for (i = 0; i < nargs; i++)
       {
-	XSTRING (result)->data[i] = XINT (args[i]);
+	SREF (result, i) = XINT (args[i]);
 	/* Move the meta bit to the right place for a string char.  */
 	if (XINT (args[i]) & CHAR_META)
-	  XSTRING (result)->data[i] |= 0x80;
+	  SREF (result, i) |= 0x80;
       }
     
     return result;
@@ -3955,8 +3955,8 @@ Does not copy symbols.  Copies strings without text properties.  */)
   else if (FLOATP (obj))
     return make_pure_float (XFLOAT_DATA (obj));
   else if (STRINGP (obj))
-    return make_pure_string (XSTRING (obj)->data, XSTRING (obj)->size,
-			     STRING_BYTES (XSTRING (obj)),
+    return make_pure_string (SDATA (obj), SCHARS (obj),
+			     SBYTES (obj),
 			     STRING_MULTIBYTE (obj));
   else if (COMPILEDP (obj) || VECTORP (obj))
     {
@@ -4700,7 +4700,7 @@ mark_object (argptr)
 
 	if (!PURE_POINTER_P (XSTRING (ptr->xname)))
 	  MARK_STRING (XSTRING (ptr->xname));
-	MARK_INTERVAL_TREE (XSTRING (ptr->xname)->intervals);
+	MARK_INTERVAL_TREE (STRING_INTERVALS (ptr->xname));
 	
 	/* Note that we do not mark the obarray of the symbol.
 	   It is safe not to do so because nothing accesses that

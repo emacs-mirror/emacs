@@ -5224,7 +5224,7 @@ coding_save_composition (coding, from, to, obj)
 	      else if (VECTORP (val) || STRINGP (val))
 		{
 		  int len = (VECTORP (val)
-			     ? XVECTOR (val)->size : XSTRING (val)->size);
+			     ? XVECTOR (val)->size : SCHARS (val));
 		  int i;
 		  for (i = 0; i < len; i++)
 		    {
@@ -5832,7 +5832,7 @@ run_pre_post_conversion_on_str (str, coding, encodep)
   buf->enable_multibyte_characters = multibyte ? Qt : Qnil;
 
   insert_from_string (str, 0, 0,
-		      XSTRING (str)->size, STRING_BYTES (XSTRING (str)), 0);
+		      SCHARS (str), SBYTES (str), 0);
   UNGCPRO;
   inhibit_pre_post_conversion = 1;
   if (encodep)
@@ -5864,7 +5864,7 @@ decode_coding_string (str, coding, nocopy)
   int consumed, consumed_char, produced, produced_char;
 
   from = 0;
-  to_byte = STRING_BYTES (XSTRING (str));
+  to_byte = SBYTES (str);
 
   saved_coding_symbol = coding->symbol;
   coding->src_multibyte = STRING_MULTIBYTE (str);
@@ -5874,7 +5874,7 @@ decode_coding_string (str, coding, nocopy)
       /* See the comments in code_convert_region.  */
       if (coding->type == coding_type_undecided)
 	{
-	  detect_coding (coding, XSTRING (str)->data, to_byte);
+	  detect_coding (coding, SDATA (str), to_byte);
 	  if (coding->type == coding_type_undecided)
 	    {
 	      coding->type = coding_type_emacs_mule;
@@ -5889,7 +5889,7 @@ decode_coding_string (str, coding, nocopy)
 	  && coding->type != coding_type_ccl)
 	{
 	  saved_coding_symbol = coding->symbol;
-	  detect_eol (coding, XSTRING (str)->data, to_byte);
+	  detect_eol (coding, SDATA (str), to_byte);
 	  if (coding->eol_type == CODING_EOL_UNDECIDED)
 	    coding->eol_type = CODING_EOL_LF;
 	  /* We had better recover the original eol format if we
@@ -5908,7 +5908,7 @@ decode_coding_string (str, coding, nocopy)
     {
       /* Decoding routines expect the source text to be unibyte.  */
       str = Fstring_as_unibyte (str);
-      to_byte = STRING_BYTES (XSTRING (str));
+      to_byte = SBYTES (str);
       nocopy = 1;
       coding->src_multibyte = 0;
     }
@@ -5916,24 +5916,24 @@ decode_coding_string (str, coding, nocopy)
   /* Try to skip the heading and tailing ASCIIs.  */
   if (require_decoding && coding->type != coding_type_ccl)
     {
-      SHRINK_CONVERSION_REGION (&from, &to_byte, coding, XSTRING (str)->data,
+      SHRINK_CONVERSION_REGION (&from, &to_byte, coding, SDATA (str),
 				0);
       if (from == to_byte)
 	require_decoding = 0;
-      shrinked_bytes = from + (STRING_BYTES (XSTRING (str)) - to_byte);
+      shrinked_bytes = from + (SBYTES (str) - to_byte);
     }
 
   if (!require_decoding)
     {
-      coding->consumed = STRING_BYTES (XSTRING (str));
-      coding->consumed_char = XSTRING (str)->size;
+      coding->consumed = SBYTES (str);
+      coding->consumed_char = SCHARS (str);
       if (coding->dst_multibyte)
 	{
 	  str = Fstring_as_multibyte (str);
 	  nocopy = 1;
 	}
-      coding->produced = STRING_BYTES (XSTRING (str));
-      coding->produced_char = XSTRING (str)->size;
+      coding->produced = SBYTES (str);
+      coding->produced_char = SCHARS (str);
       return (nocopy ? str : Fcopy_sequence (str));
     }
 
@@ -5945,7 +5945,7 @@ decode_coding_string (str, coding, nocopy)
   consumed = consumed_char = produced = produced_char = 0;
   while (1)
     {
-      result = decode_coding (coding, XSTRING (str)->data + from + consumed,
+      result = decode_coding (coding, SDATA (str) + from + consumed,
 			      buf.data + produced, to_byte - from - consumed,
 			      buf.size - produced);
       consumed += coding->consumed;
@@ -6014,11 +6014,11 @@ decode_coding_string (str, coding, nocopy)
   else
     newstr = make_uninit_string (produced + shrinked_bytes);
   if (from > 0)
-    bcopy (XSTRING (str)->data, XSTRING (newstr)->data, from);
-  bcopy (buf.data, XSTRING (newstr)->data + from, produced);
+    bcopy (SDATA (str), SDATA (newstr), from);
+  bcopy (buf.data, SDATA (newstr) + from, produced);
   if (shrinked_bytes > from)
-    bcopy (XSTRING (str)->data + to_byte,
-	   XSTRING (newstr)->data + from + produced,
+    bcopy (SDATA (str) + to_byte,
+	   SDATA (newstr) + from + produced,
 	   shrinked_bytes - from);
   free_conversion_buffer (&buf);
 
@@ -6052,8 +6052,8 @@ encode_coding_string (str, coding, nocopy)
     str = run_pre_post_conversion_on_str (str, coding, 1);
 
   from = 0;
-  to = XSTRING (str)->size;
-  to_byte = STRING_BYTES (XSTRING (str));
+  to = SCHARS (str);
+  to_byte = SBYTES (str);
 
   /* Encoding routines determine the multibyteness of the source text
      by coding->src_multibyte.  */
@@ -6061,15 +6061,15 @@ encode_coding_string (str, coding, nocopy)
   coding->dst_multibyte = 0;
   if (! CODING_REQUIRE_ENCODING (coding))
     {
-      coding->consumed = STRING_BYTES (XSTRING (str));
-      coding->consumed_char = XSTRING (str)->size;
+      coding->consumed = SBYTES (str);
+      coding->consumed_char = SCHARS (str);
       if (STRING_MULTIBYTE (str))
 	{
 	  str = Fstring_as_unibyte (str);
 	  nocopy = 1;
 	}
-      coding->produced = STRING_BYTES (XSTRING (str));
-      coding->produced_char = XSTRING (str)->size;
+      coding->produced = SBYTES (str);
+      coding->produced_char = SCHARS (str);
       return (nocopy ? str : Fcopy_sequence (str));
     }
 
@@ -6079,11 +6079,11 @@ encode_coding_string (str, coding, nocopy)
   /* Try to skip the heading and tailing ASCIIs.  */
   if (coding->type != coding_type_ccl)
     {
-      SHRINK_CONVERSION_REGION (&from, &to_byte, coding, XSTRING (str)->data,
+      SHRINK_CONVERSION_REGION (&from, &to_byte, coding, SDATA (str),
 				1);
       if (from == to_byte)
 	return (nocopy ? str : Fcopy_sequence (str));
-      shrinked_bytes = from + (STRING_BYTES (XSTRING (str)) - to_byte);
+      shrinked_bytes = from + (SBYTES (str) - to_byte);
     }
 
   len = encoding_buffer_size (coding, to_byte - from);
@@ -6092,7 +6092,7 @@ encode_coding_string (str, coding, nocopy)
   consumed = consumed_char = produced = produced_char = 0;
   while (1)
     {
-      result = encode_coding (coding, XSTRING (str)->data + from + consumed,
+      result = encode_coding (coding, SDATA (str) + from + consumed,
 			      buf.data + produced, to_byte - from - consumed,
 			      buf.size - produced);
       consumed += coding->consumed;
@@ -6114,11 +6114,11 @@ encode_coding_string (str, coding, nocopy)
 
   newstr = make_uninit_string (produced + shrinked_bytes);
   if (from > 0)
-    bcopy (XSTRING (str)->data, XSTRING (newstr)->data, from);
-  bcopy (buf.data, XSTRING (newstr)->data + from, produced);
+    bcopy (SDATA (str), SDATA (newstr), from);
+  bcopy (buf.data, SDATA (newstr) + from, produced);
   if (shrinked_bytes > from)
-    bcopy (XSTRING (str)->data + to_byte,
-	   XSTRING (newstr)->data + from + produced,
+    bcopy (SDATA (str) + to_byte,
+	   SDATA (newstr) + from + produced,
 	   shrinked_bytes - from);
 
   free_conversion_buffer (&buf);
@@ -6160,7 +6160,7 @@ DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
       val = Fcompleting_read (prompt, Vcoding_system_alist, Qnil,
 			      Qt, Qnil, Qcoding_system_history, Qnil, Qnil);
     }
-  while (XSTRING (val)->size == 0);
+  while (SCHARS (val) == 0);
   return (Fintern (val, Qnil));
 }
 
@@ -6176,7 +6176,7 @@ If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.  */
   val = Fcompleting_read (prompt, Vcoding_system_alist, Qnil,
 			  Qt, Qnil, Qcoding_system_history,
 			  default_coding_system, Qnil);
-  return (XSTRING (val)->size == 0 ? Qnil : Fintern (val, Qnil));
+  return (SCHARS (val) == 0 ? Qnil : Fintern (val, Qnil));
 }
 
 DEFUN ("check-coding-system", Fcheck_coding_system, Scheck_coding_system,
@@ -6318,12 +6318,12 @@ highest priority.  */)
 {
   CHECK_STRING (string);
 
-  return detect_coding_system (XSTRING (string)->data,
+  return detect_coding_system (SDATA (string),
 			       /* "+ 1" is to include the anchor byte
 				  `\0'.  With this, code detectors can
 				  handle the tailing bytes more
 				  accurately.  */
-			       STRING_BYTES (XSTRING (string)) + 1,
+			       SBYTES (string) + 1,
 			       !NILP (highest),
 			       STRING_MULTIBYTE (string));
 }
@@ -6420,9 +6420,9 @@ DEFUN ("find-coding-systems-region-internal",
     {
       if (!STRING_MULTIBYTE (start))
 	return Qt;
-      p1 = XSTRING (start)->data, p1end = p1 + STRING_BYTES (XSTRING (start));
+      p1 = SDATA (start), p1end = p1 + SBYTES (start);
       p2 = p2end = p1end;
-      if (XSTRING (start)->size != STRING_BYTES (XSTRING (start)))
+      if (SCHARS (start) != SBYTES (start))
 	non_ascii_p = 1;
     }
   else
@@ -6508,7 +6508,7 @@ code_convert_region1 (start, end, coding_system, encodep)
     return make_number (to - from);
 
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
-    error ("Invalid coding system: %s", XSTRING (SYMBOL_NAME (coding_system))->data);
+    error ("Invalid coding system: %s", SDATA (SYMBOL_NAME (coding_system)));
 
   coding.mode |= CODING_MODE_LAST_BLOCK;
   coding.src_multibyte = coding.dst_multibyte
@@ -6563,7 +6563,7 @@ code_convert_string1 (string, coding_system, nocopy, encodep)
     return (NILP (nocopy) ? Fcopy_sequence (string) : string);
 
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
-    error ("Invalid coding system: %s", XSTRING (SYMBOL_NAME (coding_system))->data);
+    error ("Invalid coding system: %s", SDATA (SYMBOL_NAME (coding_system)));
 
   coding.mode |= CODING_MODE_LAST_BLOCK;
   string = (encodep
@@ -6622,7 +6622,7 @@ code_convert_string_norecord (string, coding_system, encodep)
     return string;
 
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
-    error ("Invalid coding system: %s", XSTRING (SYMBOL_NAME (coding_system))->data);
+    error ("Invalid coding system: %s", SDATA (SYMBOL_NAME (coding_system)));
 
   coding.composing = COMPOSITION_DISABLED;
   coding.mode |= CODING_MODE_LAST_BLOCK;
@@ -6867,7 +6867,7 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
     error ("Invalid first argument");
   if (nargs < 1 + XINT (target_idx))
     error ("Too few arguments for operation: %s",
-	   XSTRING (SYMBOL_NAME (operation))->data);
+	   SDATA (SYMBOL_NAME (operation)));
   target = args[XINT (target_idx) + 1];
   if (!(STRINGP (target)
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
@@ -7430,7 +7430,7 @@ emacs_strerror (error_number)
       Lisp_Object dec = code_convert_string_norecord (build_string (str),
 						      Vlocale_coding_system,
 						      0);
-      str = (char *) XSTRING (dec)->data;
+      str = (char *) SDATA (dec);
     }
 
   return str;

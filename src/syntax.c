@@ -908,7 +908,7 @@ text property.  */)
 
   CHECK_STRING (string);
 
-  p = XSTRING (string)->data;
+  p = SDATA (string);
   code = (enum syntaxcode) syntax_spec_code[*p++];
   if (((int) code & 0377) == 0377)
     error ("invalid syntax description letter: %c", p[-1]);
@@ -920,7 +920,7 @@ text property.  */)
     {
       int len;
       int character = (STRING_CHAR_AND_LENGTH
-		       (p, STRING_BYTES (XSTRING (string)) - 1, len));
+		       (p, SBYTES (string) - 1, len));
       XSETINT (match, character);
       if (XFASTINT (match) == ' ')
 	match = Qnil;
@@ -1369,10 +1369,10 @@ skip_chars (forwardp, syntaxp, string, lim)
   int len;
 
   CHECK_STRING (string);
-  char_ranges = (int *) alloca (XSTRING (string)->size * (sizeof (int)) * 2);
+  char_ranges = (int *) alloca (SCHARS (string) * (sizeof (int)) * 2);
   string_multibyte = STRING_MULTIBYTE (string);
-  str = XSTRING (string)->data;
-  size_byte = STRING_BYTES (XSTRING (string));
+  str = SDATA (string);
+  size_byte = SBYTES (string);
 
   /* Adjust the multibyteness of the string to that of the buffer.  */
   if (multibyte != string_multibyte)
@@ -1380,14 +1380,14 @@ skip_chars (forwardp, syntaxp, string, lim)
       int nbytes;
 
       if (multibyte)
-	nbytes = count_size_as_multibyte (XSTRING (string)->data,
-					  XSTRING (string)->size);
+	nbytes = count_size_as_multibyte (SDATA (string),
+					  SCHARS (string));
       else
-	nbytes = XSTRING (string)->size;
+	nbytes = SCHARS (string);
       if (nbytes != size_byte)
 	{
 	  str = (unsigned char *) alloca (nbytes);
-	  copy_text (XSTRING (string)->data, str, size_byte,
+	  copy_text (SDATA (string), str, size_byte,
 		     string_multibyte, multibyte);
 	  size_byte = nbytes;
 	}
@@ -1409,7 +1409,7 @@ skip_chars (forwardp, syntaxp, string, lim)
   i_byte = 0;
 
   if (i_byte < size_byte
-      && XSTRING (string)->data[0] == '^')
+      && SREF (string, 0) == '^')
     {
       negate = 1; i_byte++;
     }

@@ -327,10 +327,10 @@ unmark_byte_stack ()
       XUNMARK (stack->byte_string);
       XUNMARK (stack->constants);
 
-      if (stack->byte_string_start != XSTRING (stack->byte_string)->data)
+      if (stack->byte_string_start != SDATA (stack->byte_string))
 	{
 	  int offset = stack->pc - stack->byte_string_start;
-	  stack->byte_string_start = XSTRING (stack->byte_string)->data;
+	  stack->byte_string_start = SDATA (stack->byte_string);
 	  stack->pc = stack->byte_string_start + offset;
 	}
     }
@@ -460,11 +460,11 @@ If the third argument is incorrect, Emacs may crash.  */)
        convert them back to the originally intended unibyte form.  */
     bytestr = Fstring_as_unibyte (bytestr);
 
-  bytestr_length = STRING_BYTES (XSTRING (bytestr));
+  bytestr_length = SBYTES (bytestr);
   vectorp = XVECTOR (vector)->contents;
 
   stack.byte_string = bytestr;
-  stack.pc = stack.byte_string_start = XSTRING (bytestr)->data;
+  stack.pc = stack.byte_string_start = SDATA (bytestr);
   stack.constants = vector;
   stack.bottom = (Lisp_Object *) alloca (XFASTINT (maxdepth)
                                          * sizeof (Lisp_Object));
@@ -896,7 +896,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	case Btemp_output_buffer_setup:
 	  BEFORE_POTENTIAL_GC ();
 	  CHECK_STRING (TOP);
-	  temp_output_buffer_setup (XSTRING (TOP)->data);
+	  temp_output_buffer_setup (SDATA (TOP));
 	  AFTER_POTENTIAL_GC ();
 	  TOP = Vstandard_output;
 	  break;

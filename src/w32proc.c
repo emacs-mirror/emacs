@@ -760,7 +760,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
     }
 
   /* make sure argv[0] and cmdname are both in DOS format */
-  cmdname = XSTRING (program)->data;
+  cmdname = SDATA (program);
   unixtodos_filename (cmdname);
   argv[0] = cmdname;
 
@@ -784,7 +784,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 	strcpy (cmdname, egetenv ("CMDPROXY"));
       else
 	{
-	  strcpy (cmdname, XSTRING (Vinvocation_directory)->data);
+	  strcpy (cmdname, SDATA (Vinvocation_directory));
 	  strcat (cmdname, "cmdproxy.exe");
 	}
       unixtodos_filename (cmdname);
@@ -1723,7 +1723,7 @@ All path elements in FILENAME are converted to their short names.  */)
   filename = Fexpand_file_name (filename, Qnil);
 
   /* luckily, this returns the short version of each element in the path.  */
-  if (GetShortPathName (XSTRING (filename)->data, shortname, MAX_PATH) == 0)
+  if (GetShortPathName (SDATA (filename), shortname, MAX_PATH) == 0)
     return Qnil;
 
   CORRECT_DIR_SEPS (shortname);
@@ -1747,7 +1747,7 @@ All path elements in FILENAME are converted to their long names.  */)
   /* first expand it.  */
   filename = Fexpand_file_name (filename, Qnil);
 
-  if (!w32_get_long_filename (XSTRING (filename)->data, longname, MAX_PATH))
+  if (!w32_get_long_filename (SDATA (filename), longname, MAX_PATH))
     return Qnil;
 
   CORRECT_DIR_SEPS (longname);

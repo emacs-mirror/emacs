@@ -573,7 +573,7 @@ if (1)									   \
     CHARIDX++;								   \
     if (STRING_MULTIBYTE (STRING))					   \
       {									   \
-	unsigned char *ptr = &XSTRING (STRING)->data[BYTEIDX];		   \
+	unsigned char *ptr = &SREF (STRING, BYTEIDX);			   \
 	int space_left = XSTRING (STRING)->size_byte - BYTEIDX;		   \
 	int actual_len;							   \
 									   \
@@ -581,7 +581,7 @@ if (1)									   \
 	BYTEIDX += actual_len;						   \
       }									   \
     else								   \
-      OUTPUT = XSTRING (STRING)->data[BYTEIDX++];			   \
+      OUTPUT = SREF (STRING, BYTEIDX++);				   \
   }									   \
 else
 
@@ -590,7 +590,7 @@ else
 #define FETCH_STRING_CHAR_ADVANCE_NO_CHECK(OUTPUT, STRING, CHARIDX, BYTEIDX)  \
 if (1)									      \
   {									      \
-    unsigned char *fetch_string_char_ptr = &XSTRING (STRING)->data[BYTEIDX];  \
+    unsigned char *fetch_string_char_ptr = &SREF (STRING, BYTEIDX);  \
     int fetch_string_char_space_left = XSTRING (STRING)->size_byte - BYTEIDX; \
     int actual_len;							      \
     									      \

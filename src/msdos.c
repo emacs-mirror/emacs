@@ -1454,9 +1454,9 @@ IT_note_mode_line_highlight (struct window *w, int x, int mode_line_p)
       end = glyph + row->used[TEXT_AREA];
       if (glyph < end
 	  && STRINGP (glyph->object)
-	  && XSTRING (glyph->object)->intervals
+	  && STRING_INTERVALS (glyph->object)
 	  && glyph->charpos >= 0
-	  && glyph->charpos < XSTRING (glyph->object)->size)
+	  && glyph->charpos < SCHARS (glyph->object))
 	{
 	  /* If we're on a string with `help-echo' text property,
 	     arrange for the help to be displayed.  This is done by
@@ -1738,7 +1738,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 	  else if (NILP (help)
 		   && ((STRINGP (glyph->object)
 			&& glyph->charpos >= 0
-			&& glyph->charpos < XSTRING (glyph->object)->size)
+			&& glyph->charpos < SCHARS (glyph->object))
 		       || (BUFFERP (glyph->object)
 			   && glyph->charpos >= BEGV
 			   && glyph->charpos < ZV)))
@@ -2454,7 +2454,7 @@ IT_set_frame_parameters (f, alist)
 	{
 	  x_set_title (f, val);
 	  if (termscript)
-	    fprintf (termscript, "<TITLE: %s>\n", XSTRING (val)->data);
+	    fprintf (termscript, "<TITLE: %s>\n", SDATA (val));
 	}
       else if (EQ (prop, Qcursor_type))
 	{
@@ -4405,7 +4405,7 @@ The argument object is never altered--the value is a copy.  */)
     return Qnil;
 
   tem = Fcopy_sequence (filename);
-  msdos_downcase_filename (XSTRING (tem)->data);
+  msdos_downcase_filename (SDATA (tem));
   return tem;
 }
 

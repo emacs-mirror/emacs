@@ -293,7 +293,7 @@ make_frame (mini_p)
     buf = Fcurrent_buffer ();
     /* If buf is a 'hidden' buffer (i.e. one whose name starts with
        a space), try to find another one.  */
-    if (XSTRING (Fbuffer_name (buf))->data[0] == ' ')
+    if (SREF (Fbuffer_name (buf), 0) == ' ')
       buf = Fother_buffer (buf, Qnil, Qnil);
 
     /* Use set_window_buffer, not Fset_window_buffer, and don't let
@@ -1115,7 +1115,7 @@ frame.  The hook is called with one argument FRAME.  */)
 #ifdef MAC_OS8
       /* Terminal frame deleted before any other visible frames are
 	 created.  */
-      && strcmp (XSTRING (f->name)->data, "F1") != 0
+      && strcmp (SDATA (f->name), "F1") != 0
 #endif
      )
     error ("Attempt to delete the sole visible or iconified frame");
@@ -1869,8 +1869,8 @@ set_term_frame_name (f, name)
 
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
-      if (frame_name_fnn_p (XSTRING (f->name)->data,
-			    STRING_BYTES (XSTRING (f->name))))
+      if (frame_name_fnn_p (SDATA (f->name),
+			    SBYTES (f->name)))
 	return;
 
       terminal_frame_count++;
@@ -1887,7 +1887,7 @@ set_term_frame_name (f, name)
 
       /* Don't allow the user to set the frame name to F<num>, so it
 	 doesn't clash with the names we generate for terminal frames.  */
-      if (frame_name_fnn_p (XSTRING (name)->data, STRING_BYTES (XSTRING (name))))
+      if (frame_name_fnn_p (SDATA (name), SBYTES (name)))
 	error ("Frame names of the form F<num> are usurped by Emacs");
     }
 
@@ -2005,13 +2005,13 @@ If FRAME is omitted, return information on the currently selected frame.  */)
       elt = Fassq (Qforeground_color, alist);
       if (!NILP (elt) && CONSP (elt) && STRINGP (XCDR (elt)))
 	{
-	  if (strncmp (XSTRING (XCDR (elt))->data,
+	  if (strncmp (SDATA (XCDR (elt)),
 		       unspecified_bg,
-		       XSTRING (XCDR (elt))->size) == 0)
+		       SCHARS (XCDR (elt))) == 0)
 	    store_in_alist (&alist, Qforeground_color, tty_color_name (f, bg));
-	  else if (strncmp (XSTRING (XCDR (elt))->data,
+	  else if (strncmp (SDATA (XCDR (elt)),
 			    unspecified_fg,
-			    XSTRING (XCDR (elt))->size) == 0)
+			    SCHARS (XCDR (elt))) == 0)
 	    store_in_alist (&alist, Qforeground_color, tty_color_name (f, fg));
 	}
       else
@@ -2019,13 +2019,13 @@ If FRAME is omitted, return information on the currently selected frame.  */)
       elt = Fassq (Qbackground_color, alist);
       if (!NILP (elt) && CONSP (elt) && STRINGP (XCDR (elt)))
 	{
-	  if (strncmp (XSTRING (XCDR (elt))->data,
+	  if (strncmp (SDATA (XCDR (elt)),
 		       unspecified_fg,
-		       XSTRING (XCDR (elt))->size) == 0)
+		       SCHARS (XCDR (elt))) == 0)
 	    store_in_alist (&alist, Qbackground_color, tty_color_name (f, fg));
-	  else if (strncmp (XSTRING (XCDR (elt))->data,
+	  else if (strncmp (SDATA (XCDR (elt)),
 			    unspecified_bg,
-			    XSTRING (XCDR (elt))->size) == 0)
+			    SCHARS (XCDR (elt))) == 0)
 	    store_in_alist (&alist, Qbackground_color, tty_color_name (f, bg));
 	}
       else
@@ -2112,8 +2112,8 @@ If FRAME is nil, describe the currently selected frame.  */)
 
 		  if (EQ (parameter, Qbackground_color))
 		    {
-		      color_name = XSTRING (value)->data;
-		      csz = XSTRING (value)->size;
+		      color_name = SDATA (value);
+		      csz = SCHARS (value);
 		      if (strncmp (color_name, unspecified_bg, csz) == 0)
 			value = tty_color_name (f, FRAME_BACKGROUND_PIXEL (f));
 		      else if (strncmp (color_name, unspecified_fg, csz) == 0)
@@ -2121,8 +2121,8 @@ If FRAME is nil, describe the currently selected frame.  */)
 		    }
 		  else if (EQ (parameter, Qforeground_color))
 		    {
-		      color_name = XSTRING (value)->data;
-		      csz = XSTRING (value)->size;
+		      color_name = SDATA (value);
+		      csz = SCHARS (value);
 		      if (strncmp (color_name, unspecified_fg, csz) == 0)
 			value = tty_color_name (f, FRAME_FOREGROUND_PIXEL (f));
 		      else if (strncmp (color_name, unspecified_bg, csz) == 0)

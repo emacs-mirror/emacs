@@ -743,7 +743,7 @@ bug_reporting_address ()
   if (!STRINGP(temp))
     return REPORT_EMACS_BUG_ADDRESS;
 
-  string = XSTRING (temp)->data;
+  string = SDATA (temp);
 
   /* Count dots in `emacs-version'.  */
   while (*string)
@@ -817,7 +817,7 @@ main (argc, argv, envp)
 	}
       else
 	{
-	  printf ("GNU Emacs %s\n", XSTRING (tem)->data);
+	  printf ("GNU Emacs %s\n", SDATA (tem));
 	  printf ("Copyright (C) 2002 Free Software Foundation, Inc.\n");
 	  printf ("GNU Emacs comes with ABSOLUTELY NO WARRANTY.\n");
 	  printf ("You may redistribute copies of Emacs\n");
@@ -1908,7 +1908,7 @@ all of which are called before Emacs is actually killed.  */)
      kill it because we are exiting Emacs deliberately (not crashing).
      Do it after shut_down_emacs, which does an auto-save.  */
   if (STRINGP (Vauto_save_list_file_name))
-    unlink (XSTRING (Vauto_save_list_file_name)->data);
+    unlink (SDATA (Vauto_save_list_file_name));
 
   exit (INTEGERP (arg) ? XINT (arg)
 #ifdef VMS
@@ -1977,8 +1977,8 @@ shut_down_emacs (sig, no_x, stuff)
 #ifdef HAVE_X_WINDOWS
   /* It's not safe to call intern here.  Maybe we are crashing.  */
   if (!noninteractive && SYMBOLP (Vwindow_system)
-      && XSTRING (SYMBOL_NAME (Vwindow_system))->size == 1
-      && XSTRING (SYMBOL_NAME (Vwindow_system))->data[0] == 'x'
+      && SCHARS (SYMBOL_NAME (Vwindow_system)) == 1
+      && SREF (SYMBOL_NAME (Vwindow_system), 0) == 'x'
       && ! no_x)
     Fx_close_current_connection ();
 #endif /* HAVE_X_WINDOWS */
@@ -2036,7 +2036,7 @@ This function exists on systems that use HAVE_SHM.  */)
 #ifndef SYSTEM_MALLOC
   memory_warnings (my_edata, malloc_warning);
 #endif
-  map_out_data (XSTRING (filename)->data);
+  map_out_data (SDATA (filename));
 
   Vpurify_flag = tem;
 
@@ -2075,7 +2075,7 @@ You must run Emacs in batch mode in order to dump it.  */)
   if (!NILP (symfile))
     {
       CHECK_STRING (symfile);
-      if (XSTRING (symfile)->size)
+      if (SCHARS (symfile))
 	symfile = Fexpand_file_name (symfile, Qnil);
     }
 
@@ -2092,7 +2092,7 @@ You must run Emacs in batch mode in order to dump it.  */)
 
   fflush (stdout);
 #ifdef VMS
-  mapout_data (XSTRING (filename)->data);
+  mapout_data (SDATA (filename));
 #else
   /* Tell malloc where start of impure now is.  */
   /* Also arrange for warnings when nearly out of space.  */
@@ -2110,8 +2110,8 @@ You must run Emacs in batch mode in order to dump it.  */)
 #ifdef USE_MMAP_FOR_BUFFERS
   mmap_set_vars (0);
 #endif
-  unexec (XSTRING (filename)->data,
-	  !NILP (symfile) ? XSTRING (symfile)->data : 0, my_edata, 0, 0);
+  unexec (SDATA (filename),
+	  !NILP (symfile) ? SDATA (symfile) : 0, my_edata, 0, 0);
 #ifdef USE_MMAP_FOR_BUFFERS
   mmap_set_vars (1);
 #endif
@@ -2151,7 +2151,7 @@ synchronize_locale (category, plocale, desired_locale)
     {
       *plocale = desired_locale;
       setlocale (category, (STRINGP (desired_locale)
-			    ? (char *)(XSTRING (desired_locale)->data)
+			    ? (char *)(SDATA (desired_locale))
 			    : ""));
     }
 }

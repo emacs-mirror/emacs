@@ -2747,7 +2747,7 @@ BUFFER can be a buffer or buffer name.  */)
     {
       if (!NILP (w->dedicated) && !EQ (tem, buffer))
 	error ("Window is dedicated to `%s'",
-	       XSTRING (XBUFFER (tem)->name)->data);
+	       SDATA (XBUFFER (tem)->name));
 
       unshow_buffer (w);
     }

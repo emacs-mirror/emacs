@@ -700,14 +700,14 @@ DESCRIPTION (string) is the description string of the charset.  */)
       || !STRINGP (vec[7])
       || !STRINGP (vec[8]))
     error ("Invalid info-vector argument for defining charset %s",
-	   XSTRING (SYMBOL_NAME (charset_symbol))->data);
+	   SDATA (SYMBOL_NAME (charset_symbol)));
 
   if (NILP (charset_id))
     {
       charset_id = get_new_private_charset_id (XINT (vec[0]), XINT (vec[2]));
       if (XINT (charset_id) == 0)
 	error ("There's no room for a new private charset %s",
-	       XSTRING (SYMBOL_NAME (charset_symbol))->data);
+	       SDATA (SYMBOL_NAME (charset_symbol)));
     }
 
   update_charset_table (charset_id, vec[0], vec[1], vec[2], vec[3],
@@ -779,7 +779,7 @@ CHARSET should be defined by `defined-charset' in advance.  */)
   if (XINT (final_char) < '0' || XFASTINT (final_char) > '~')
     error ("Invalid FINAL-CHAR %c, it should be `0'..`~'", XINT (chars));
   if ((charset = get_charset_id (charset_symbol)) < 0)
-    error ("Invalid charset %s", XSTRING (SYMBOL_NAME (charset_symbol))->data);
+    error ("Invalid charset %s", SDATA (SYMBOL_NAME (charset_symbol)));
 
   ISO_CHARSET_TABLE (dimension, chars, final_char) = charset;
   return Qnil;
@@ -943,8 +943,8 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
   CHECK_STRING (str);
 
   bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
-  find_charset_in_text (XSTRING (str)->data, XSTRING (str)->size,
-			STRING_BYTES (XSTRING (str)), charsets, table);
+  find_charset_in_text (SDATA (str), SCHARS (str),
+			SBYTES (str), charsets, table);
 
   val = Qnil;
   if (charsets[1])
@@ -1335,9 +1335,9 @@ lisp_string_width (string, precision, nchars, nbytes)
      Lisp_Object string;
      int precision, *nchars, *nbytes;
 {
-  int len = XSTRING (string)->size;
-  int len_byte = STRING_BYTES (XSTRING (string));
-  unsigned char *str = XSTRING (string)->data;
+  int len = SCHARS (string);
+  int len_byte = SBYTES (string);
+  unsigned char *str = SDATA (string);
   int i = 0, i_byte = 0;
   int width = 0;
   struct Lisp_Char_Table *dp = buffer_display_table ();

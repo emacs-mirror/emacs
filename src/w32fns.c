@@ -571,7 +571,7 @@ x_create_bitmap_from_file (f, file)
     {
       if (dpyinfo->bitmaps[id].refcount
 	  && dpyinfo->bitmaps[id].file
-	  && !strcmp (dpyinfo->bitmaps[id].file, (char *) XSTRING (file)->data))
+	  && !strcmp (dpyinfo->bitmaps[id].file, (char *) SDATA (file)))
 	{
 	  ++dpyinfo->bitmaps[id].refcount;
 	  return id + 1;
@@ -584,7 +584,7 @@ x_create_bitmap_from_file (f, file)
     return -1;
   emacs_close (fd);
 
-  filename = (char *) XSTRING (found)->data;
+  filename = (char *) SDATA (found);
 
   hinst = LoadLibraryEx (filename, NULL, LOAD_LIBRARY_AS_DATAFILE);
 
@@ -600,11 +600,11 @@ x_create_bitmap_from_file (f, file)
   id = x_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
   dpyinfo->bitmaps[id - 1].refcount = 1;
-  dpyinfo->bitmaps[id - 1].file = (char *) xmalloc (XSTRING (file)->size + 1);
+  dpyinfo->bitmaps[id - 1].file = (char *) xmalloc (SCHARS (file) + 1);
   dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = height;
   dpyinfo->bitmaps[id - 1].width = width;
-  strcpy (dpyinfo->bitmaps[id - 1].file, XSTRING (file)->data);
+  strcpy (dpyinfo->bitmaps[id - 1].file, SDATA (file));
 
   return id;
 #endif  /* TODO */
@@ -1216,7 +1216,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
   CHECK_STRING (filename);
   abspath = Fexpand_file_name (filename, Qnil);
 
-  fp = fopen (XSTRING (filename)->data, "rt");
+  fp = fopen (SDATA (filename), "rt");
   if (fp)
     {
       char buf[512];
@@ -1556,7 +1556,7 @@ w32_color_map_lookup (colorname)
 
       tem = Fcar (elt);
 
-      if (lstrcmpi (XSTRING (tem)->data, colorname) == 0)
+      if (lstrcmpi (SDATA (tem), colorname) == 0)
 	{
 	  ret = XUINT (Fcdr (elt));
 	  break;
@@ -1986,9 +1986,9 @@ x_decode_color (f, arg, def)
 
   CHECK_STRING (arg);
 
-  if (strcmp (XSTRING (arg)->data, "black") == 0)
+  if (strcmp (SDATA (arg), "black") == 0)
     return BLACK_PIX_DEFAULT (f);
-  else if (strcmp (XSTRING (arg)->data, "white") == 0)
+  else if (strcmp (SDATA (arg), "white") == 0)
     return WHITE_PIX_DEFAULT (f);
 
   if ((FRAME_W32_DISPLAY_INFO (f)->n_planes * FRAME_W32_DISPLAY_INFO (f)->n_cbits) == 1)
@@ -1996,7 +1996,7 @@ x_decode_color (f, arg, def)
 
   /* w32_defined_color is responsible for coping with failures
      by looking for a near-miss.  */
-  if (w32_defined_color (f, XSTRING (arg)->data, &cdef, 1))
+  if (w32_defined_color (f, SDATA (arg), &cdef, 1))
     return cdef.pixel;
 
   /* defined_color failed; return an ultimate default.  */
@@ -2476,11 +2476,11 @@ x_set_icon_name (f, arg, oldval)
   BLOCK_INPUT;
 
   result = x_text_icon (f,
-			(char *) XSTRING ((!NILP (f->icon_name)
-					   ? f->icon_name
-					   : !NILP (f->title)
-					   ? f->title
-					   : f->name))->data);
+			(char *) SDATA ((!NILP (f->icon_name)
+					 ? f->icon_name
+					 : !NILP (f->title)
+					 ? f->title
+					 : f->name)));
 
   if (result)
     {
@@ -2522,12 +2522,12 @@ x_set_font (f, arg, oldval)
 
   BLOCK_INPUT;
   result = (STRINGP (fontset_name)
-            ? x_new_fontset (f, XSTRING (fontset_name)->data)
-            : x_new_font (f, XSTRING (arg)->data));
+            ? x_new_fontset (f, SDATA (fontset_name))
+            : x_new_font (f, SDATA (arg)));
   UNBLOCK_INPUT;
   
   if (EQ (result, Qnil))
-    error ("Font `%s' is not defined", XSTRING (arg)->data);
+    error ("Font `%s' is not defined", SDATA (arg));
   else if (EQ (result, Qt))
     error ("The characters of the given font have varying widths");
   else if (STRINGP (result))
@@ -2812,7 +2812,7 @@ x_set_name (f, name, explicit)
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
       if (!strcmp (FRAME_W32_DISPLAY_INFO (f)->w32_id_name,
-		   XSTRING (f->name)->data))
+		   SDATA (f->name)))
 	return;
       name = build_string (FRAME_W32_DISPLAY_INFO (f)->w32_id_name);
     }
@@ -2836,7 +2836,7 @@ x_set_name (f, name, explicit)
 	name = ENCODE_SYSTEM (name);
 
       BLOCK_INPUT;
-      SetWindowText(FRAME_W32_WINDOW (f), XSTRING (name)->data);
+      SetWindowText(FRAME_W32_WINDOW (f), SDATA (name));
       UNBLOCK_INPUT;
     }
 }
@@ -2896,7 +2896,7 @@ x_set_title (f, name, old_name)
 	name = ENCODE_SYSTEM (name);
 
       BLOCK_INPUT;
-      SetWindowText(FRAME_W32_WINDOW (f), XSTRING (name)->data);
+      SetWindowText(FRAME_W32_WINDOW (f), SDATA (name));
       UNBLOCK_INPUT;
     }
 }
@@ -3002,10 +3002,10 @@ validate_x_resource_name ()
 
   if (STRINGP (Vx_resource_name))
     {
-      unsigned char *p = XSTRING (Vx_resource_name)->data;
+      unsigned char *p = SDATA (Vx_resource_name);
       int i;
 
-      len = STRING_BYTES (XSTRING (Vx_resource_name));
+      len = SBYTES (Vx_resource_name);
 
       /* Only letters, digits, - and _ are valid in resource names.
 	 Count the valid characters and count the invalid ones.  */
@@ -3044,12 +3044,12 @@ validate_x_resource_name ()
 
   for (i = 0; i < len; i++)
     {
-      int c = XSTRING (new)->data[i];
+      int c = SREF (new, i);
       if (! ((c >= 'a' && c <= 'z')
 	     || (c >= 'A' && c <= 'Z')
 	     || (c >= '0' && c <= '9')
 	     || c == '-' || c == '_'))
-	XSTRING (new)->data[i] = '_';
+	SREF (new, i) = '_';
     }
 }
 
@@ -3087,37 +3087,37 @@ and the class is `Emacs.CLASS.SUBCLASS'.  */)
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  Make them big enough for the worst case.  */
-  name_key = (char *) alloca (STRING_BYTES (XSTRING (Vx_resource_name))
+  name_key = (char *) alloca (SBYTES (Vx_resource_name)
 			      + (STRINGP (component)
-				 ? STRING_BYTES (XSTRING (component)) : 0)
-			      + STRING_BYTES (XSTRING (attribute))
+				 ? SBYTES (component) : 0)
+			      + SBYTES (attribute)
 			      + 3);
 
   class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
-			       + STRING_BYTES (XSTRING (class))
+			       + SBYTES (class)
 			       + (STRINGP (subclass)
-				  ? STRING_BYTES (XSTRING (subclass)) : 0)
+				  ? SBYTES (subclass) : 0)
 			       + 3);
 
   /* Start with emacs.FRAMENAME for the name (the specific one)
      and with `Emacs' for the class key (the general one).  */
-  strcpy (name_key, XSTRING (Vx_resource_name)->data);
+  strcpy (name_key, SDATA (Vx_resource_name));
   strcpy (class_key, EMACS_CLASS);
 
   strcat (class_key, ".");
-  strcat (class_key, XSTRING (class)->data);
+  strcat (class_key, SDATA (class));
 
   if (!NILP (component))
     {
       strcat (class_key, ".");
-      strcat (class_key, XSTRING (subclass)->data);
+      strcat (class_key, SDATA (subclass));
 
       strcat (name_key, ".");
-      strcat (name_key, XSTRING (component)->data);
+      strcat (name_key, SDATA (component));
     }
 
   strcat (name_key, ".");
-  strcat (name_key, XSTRING (attribute)->data);
+  strcat (name_key, SDATA (attribute));
 
   value = x_get_string_resource (Qnil,
 				 name_key, class_key);
@@ -3140,13 +3140,13 @@ x_get_resource_string (attribute, class)
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  */
-  name_key = (char *) alloca (STRING_BYTES (XSTRING (Vinvocation_name))
+  name_key = (char *) alloca (SBYTES (Vinvocation_name)
 			      + strlen (attribute) + 2);
   class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
 			       + strlen (class) + 2);
 
   sprintf (name_key, "%s.%s",
-	   XSTRING (Vinvocation_name)->data,
+	   SDATA (Vinvocation_name),
 	   attribute);
   sprintf (class_key, "%s.%s", EMACS_CLASS, class);
 
@@ -3201,15 +3201,15 @@ w32_get_arg (alist, param, attribute, class, type)
 	  switch (type)
 	    {
 	    case RES_TYPE_NUMBER:
-	      return make_number (atoi (XSTRING (tem)->data));
+	      return make_number (atoi (SDATA (tem)));
 
 	    case RES_TYPE_FLOAT:
-	      return make_float (atof (XSTRING (tem)->data));
+	      return make_float (atof (SDATA (tem)));
 
 	    case RES_TYPE_BOOLEAN:
 	      tem = Fdowncase (tem);
-	      if (!strcmp (XSTRING (tem)->data, "on")
-		  || !strcmp (XSTRING (tem)->data, "true"))
+	      if (!strcmp (SDATA (tem), "on")
+		  || !strcmp (SDATA (tem), "true"))
 		return Qt;
 	      else 
 		return Qnil;
@@ -3223,11 +3223,11 @@ w32_get_arg (alist, param, attribute, class, type)
 	      {
 		Lisp_Object lower;
 		lower = Fdowncase (tem);
-		if (!strcmp (XSTRING (lower)->data, "on")
-		    || !strcmp (XSTRING (lower)->data, "true"))
+		if (!strcmp (SDATA (lower), "on")
+		    || !strcmp (SDATA (lower), "true"))
 		  return Qt;
-		else if (!strcmp (XSTRING (lower)->data, "off")
-		      || !strcmp (XSTRING (lower)->data, "false"))
+		else if (!strcmp (SDATA (lower), "off")
+		      || !strcmp (SDATA (lower), "false"))
 		  return Qnil;
 		else
 		  return Fintern (tem, Qnil);
@@ -3284,7 +3284,7 @@ or a list (- N) meaning -N pixels relative to bottom/right corner.  */)
 
   CHECK_STRING (string);
 
-  geometry = XParseGeometry ((char *) XSTRING (string)->data,
+  geometry = XParseGeometry ((char *) SDATA (string),
 			     &x, &y, &width, &height);
 
   result = Qnil;
@@ -5342,7 +5342,7 @@ w32_window (f, window_prompting, minibuffer_only)
      Elsewhere we specify the window name for the window manager.  */
      
   {
-    char *str = (char *) XSTRING (Vx_resource_name)->data;
+    char *str = (char *) SDATA (Vx_resource_name);
     f->namebuf = (char *) xmalloc (strlen (str) + 1);
     strcpy (f->namebuf, str);
   }
@@ -5409,9 +5409,9 @@ x_icon (f, parms)
 	 ? IconicState
 	 : NormalState));
 
-  x_text_icon (f, (char *) XSTRING ((!NILP (f->icon_name)
+  x_text_icon (f, (char *) SDATA ((!NILP (f->icon_name)
 				     ? f->icon_name
-				     : f->name))->data);
+				     : f->name)));
 #endif
 
   UNBLOCK_INPUT;
@@ -5621,9 +5621,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
       {
         tem = Fquery_fontset (font, Qnil);
         if (STRINGP (tem))
-          font = x_new_fontset (f, XSTRING (tem)->data);
+          font = x_new_fontset (f, SDATA (tem));
         else
-          font = x_new_font (f, XSTRING (font)->data);
+          font = x_new_font (f, SDATA (font));
       }
     /* Try out a font which we hope has bold and italic variations.  */
     if (!STRINGP (font))
@@ -5912,12 +5912,12 @@ w32_load_system_font (f,fontname,size)
 	for (tail = font_names; CONSP (tail); tail = XCDR (tail))
 	  if (dpyinfo->font_table[i].name
               && (!strcmp (dpyinfo->font_table[i].name,
-                           XSTRING (XCAR (tail))->data)
+                           SDATA (XCAR (tail)))
                   || !strcmp (dpyinfo->font_table[i].full_name,
-                              XSTRING (XCAR (tail))->data)))
+                              SDATA (XCAR (tail)))))
 	    return (dpyinfo->font_table + i);
 
-      fontname = (char *) XSTRING (XCAR (font_names))->data;
+      fontname = (char *) SDATA (XCAR (font_names));
     }
   else if (w32_strict_fontnames)
     {
@@ -6125,9 +6125,9 @@ int size;
       char *bdf_name, *bdf_file;
       Lisp_Object bdf_pair;
 
-      bdf_name = XSTRING (XCAR (bdf_fonts))->data;
+      bdf_name = SDATA (XCAR (bdf_fonts));
       bdf_pair = Fassoc (XCAR (bdf_fonts), Vw32_bdf_filename_alist);
-      bdf_file = XSTRING (XCDR (bdf_pair))->data;
+      bdf_file = SDATA (XCDR (bdf_pair));
 
       retval = w32_load_bdf_font (f, bdf_name, size, bdf_file);
 
@@ -6413,7 +6413,7 @@ w32_to_x_charset (fncharset)
             || !SYMBOLP (XCAR (XCDR (this_entry))))
           continue;
 
-        x_charset = XSTRING (XCAR (this_entry))->data;
+        x_charset = SDATA (XCAR (this_entry));
         w32_charset = XCAR (XCDR (this_entry));
         codepage = XCDR (XCDR (this_entry));
 
@@ -7196,7 +7196,7 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
 
     if (!NILP (lpef->pattern))
       {
-        charset = xlfd_charset_of_font (XSTRING(lpef->pattern)->data);
+        charset = xlfd_charset_of_font (SDATA (lpef->pattern));
 
 	/* We already checked charsets above, but DEFAULT_CHARSET
            slipped through.  So only allow exact matches for DEFAULT_CHARSET.  */
@@ -7216,7 +7216,7 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
     for ( ; CONSP (charset_list); charset_list = Fcdr (charset_list))
       {
 	Lisp_Object this_charset = Fcar (charset_list);
-	charset = XSTRING (this_charset)->data;
+	charset = SDATA (this_charset);
 
 	/* List bold and italic variations if w32-enable-synthesized-fonts
 	   is non-nil and this is a plain font.  */
@@ -7261,7 +7261,7 @@ enum_font_maybe_add_to_list (lpef, logfont, match_charset, width)
     return;
 
   if (NILP (lpef->pattern)
-      || w32_font_match (buf, XSTRING (lpef->pattern)->data))
+      || w32_font_match (buf, SDATA (lpef->pattern)))
     {
       /* Check if we already listed this font.  This may happen if
          w32_enable_synthesized_fonts is non-nil, and there are real
@@ -7335,15 +7335,15 @@ static Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern, int max_names)
   int n_fonts = 0;
 
   list = Vw32_bdf_filename_alist;
-  ptnstr = XSTRING (pattern)->data;
+  ptnstr = SDATA (pattern);
 
   for ( ; CONSP (list); list = XCDR (list))
     {
       tem = XCAR (list);
       if (CONSP (tem))
-        fontname = XSTRING (XCAR (tem))->data;
+        fontname = SDATA (XCAR (tem));
       else if (STRINGP (tem))
-        fontname = XSTRING (tem)->data;
+        fontname = SDATA (tem);
       else
         continue;
 
@@ -7395,7 +7395,7 @@ w32_list_fonts (f, pattern, size, maxnames)
 
       /* Avoid expensive EnumFontFamilies functions if we are not
          going to be able to output one of these anyway. */
-      codepage = w32_codepage_for_font (XSTRING (tpat)->data);
+      codepage = w32_codepage_for_font (SDATA (tpat));
       if (codepage != CP_8BIT && codepage != CP_UNICODE
           && codepage != CP_DEFAULT && codepage != CP_UNKNOWN
 	  && !IsValidCodePage(codepage))
@@ -7422,7 +7422,7 @@ w32_list_fonts (f, pattern, size, maxnames)
       /* Use EnumFontFamiliesEx where it is available, as it knows
          about character sets.  Fall back to EnumFontFamilies for
          older versions of NT that don't support the 'Ex function.  */
-      x_to_w32_font (XSTRING (tpat)->data, &ef.logfont);
+      x_to_w32_font (SDATA (tpat), &ef.logfont);
       {
         LOGFONT font_match_pattern;
         HMODULE gdi32 = GetModuleHandle ("gdi32.dll");
@@ -7492,7 +7492,7 @@ w32_list_fonts (f, pattern, size, maxnames)
               HDC hdc;
               HANDLE oldobj;
 
-              if (!x_to_w32_font (XSTRING (XCAR (tem))->data, &lf))
+              if (!x_to_w32_font (SDATA (XCAR (tem)), &lf))
                 continue;
 
               BLOCK_INPUT;
@@ -7639,7 +7639,7 @@ w32_find_bdf_fonts_in_dir (Lisp_Object directory)
   for ( ; CONSP(filelist); filelist = XCDR (filelist))
     {
       Lisp_Object filename = XCAR (filelist);
-      if (w32_BDF_to_x_font (XSTRING (filename)->data, fontname, 100))
+      if (w32_BDF_to_x_font (SDATA (filename), fontname, 100))
           store_in_alist (&list, build_string (fontname), filename);
     }
   return list;
@@ -7684,7 +7684,7 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
 
   CHECK_STRING (color);
 
-  if (w32_defined_color (f, XSTRING (color)->data, &foo, 0))
+  if (w32_defined_color (f, SDATA (color), &foo, 0))
     return Qt;
   else
     return Qnil;
@@ -7700,7 +7700,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
 
   CHECK_STRING (color);
 
-  if (w32_defined_color (f, XSTRING (color)->data, &foo, 0))
+  if (w32_defined_color (f, SDATA (color), &foo, 0))
     {
       Lisp_Object rgb[3];
 
@@ -8031,10 +8031,10 @@ x_display_info_for_name (name)
   validate_x_resource_name ();
 
   dpyinfo = w32_term_init (name, (unsigned char *)0,
-			     (char *) XSTRING (Vx_resource_name)->data);
+			     (char *) SDATA (Vx_resource_name));
 
   if (dpyinfo == 0)
-    error ("Cannot connect to server %s", XSTRING (name)->data);
+    error ("Cannot connect to server %s", SDATA (name));
 
   w32_in_use = 1;
   XSETFASTINT (Vwindow_system_version, 3);
@@ -8089,7 +8089,7 @@ terminate Emacs if we can't open the connection.  */)
     Vw32_color_map = Fw32_default_color_map ();
 
   if (! NILP (xrm_string))
-    xrm_option = (unsigned char *) XSTRING (xrm_string)->data;
+    xrm_option = (unsigned char *) SDATA (xrm_string);
   else
     xrm_option = (unsigned char *) 0;
 
@@ -8098,7 +8098,7 @@ terminate Emacs if we can't open the connection.  */)
   {
     char basename[ MAX_PATH ], *str;
 
-    strcpy (basename, XSTRING (Vinvocation_name)->data);
+    strcpy (basename, SDATA (Vinvocation_name));
     str = strrchr (basename, '.');
     if (str) *str = 0;
     Vinvocation_name = build_string (basename);
@@ -8110,15 +8110,15 @@ terminate Emacs if we can't open the connection.  */)
   /* This is what opens the connection and sets x_current_display.
      This also initializes many symbols, such as those used for input.  */
   dpyinfo = w32_term_init (display, xrm_option,
-			     (char *) XSTRING (Vx_resource_name)->data);
+			     (char *) SDATA (Vx_resource_name));
 
   if (dpyinfo == 0)
     {
       if (!NILP (must_succeed))
 	fatal ("Cannot connect to server %s.\n",
-	       XSTRING (display)->data);
+	       SDATA (display));
       else
-	error ("Cannot connect to server %s", XSTRING (display)->data);
+	error ("Cannot connect to server %s", SDATA (display));
     }
 
   w32_in_use = 1;
@@ -8402,7 +8402,7 @@ parse_image_spec (spec, keywords, nkeywords, type)
 
       /* Find key in KEYWORDS.  Error if not found.  */
       for (i = 0; i < nkeywords; ++i)
-	if (strcmp (keywords[i].name, XSTRING (SYMBOL_NAME (key))->data) == 0)
+	if (strcmp (keywords[i].name, SDATA (SYMBOL_NAME (key))) == 0)
 	  break;
 
       if (i == nkeywords)
@@ -8916,7 +8916,7 @@ x_alloc_image_color (f, img, color_name, dflt)
 
   xassert (STRINGP (color_name));
 
-  if (w32_defined_color (f, XSTRING (color_name)->data, &color, 1))
+  if (w32_defined_color (f, SDATA (color_name), &color, 1))
     {
       /* This isn't called frequently so we get away with simply
 	 reallocating the color vector to the needed size, here.  */
@@ -9694,7 +9694,7 @@ xbm_image_p (object)
 
 	      if (STRINGP (elt))
 		{
-		  if (XSTRING (elt)->size
+		  if (SCHARS (elt)
 		      < (width + BITS_PER_CHAR - 1) / BITS_PER_CHAR)
 		    return 0;
 		}
@@ -9709,7 +9709,7 @@ xbm_image_p (object)
 	}
       else if (STRINGP (data))
 	{
-	  if (XSTRING (data)->size
+	  if (SCHARS (data)
 	      < (width + BITS_PER_CHAR - 1) / BITS_PER_CHAR * height)
 	    return 0;
 	}
@@ -10073,9 +10073,9 @@ xbm_file_p (data)
 {
   int w, h;
   return (STRINGP (data)
-	  && xbm_read_bitmap_data (XSTRING (data)->data,
-				   (XSTRING (data)->data
-				    + STRING_BYTES (XSTRING (data))),
+	  && xbm_read_bitmap_data (SDATA (data),
+				   (SDATA (data)
+				    + SBYTES (data)),
 				   &w, &h, NULL));
 }
 
@@ -10111,7 +10111,7 @@ xbm_load (f, img)
 	  return 0;
 	}
 
-      contents = slurp_file (XSTRING (file)->data, &size);
+      contents = slurp_file (SDATA (file), &size);
       if (contents == NULL)
 	{
 	  image_error ("Error loading XBM image `%s'", img->spec, Qnil);
@@ -10161,9 +10161,9 @@ xbm_load (f, img)
 					  background);
 
       if (in_memory_file_p)
-	success_p = xbm_load_image (f, img, XSTRING (data)->data,
-				    (XSTRING (data)->data
-				     + STRING_BYTES (XSTRING (data))));
+	success_p = xbm_load_image (f, img, SDATA (data),
+				    (SDATA (data)
+				     + SBYTES (data)));
       else
 	{
 	  if (VECTORP (data))
@@ -10177,13 +10177,13 @@ xbm_load (f, img)
 		{
 		  Lisp_Object line = XVECTOR (data)->contents[i];
 		  if (STRINGP (line))
-		    bcopy (XSTRING (line)->data, p, nbytes);
+		    bcopy (SDATA (line), p, nbytes);
 		  else
 		    bcopy (XBOOL_VECTOR (line)->data, p, nbytes);
 		}
 	    }
 	  else if (STRINGP (data))
-	    bits = XSTRING (data)->data;
+	    bits = SDATA (data);
 	  else
 	    bits = XBOOL_VECTOR (data)->data;
 
@@ -10372,10 +10372,10 @@ xpm_load (f, img)
 	{
 	  Lisp_Object name = XCAR (XCAR (tail));
 	  Lisp_Object color = XCDR (XCAR (tail));
-	  xpm_syms[i].name = (char *) alloca (XSTRING (name)->size + 1);
-	  strcpy (xpm_syms[i].name, XSTRING (name)->data);
-	  xpm_syms[i].value = (char *) alloca (XSTRING (color)->size + 1);
-	  strcpy (xpm_syms[i].value, XSTRING (color)->data);
+	  xpm_syms[i].name = (char *) alloca (SCHARS (name) + 1);
+	  strcpy (xpm_syms[i].name, SDATA (name));
+	  xpm_syms[i].value = (char *) alloca (SCHARS (color) + 1);
+	  strcpy (xpm_syms[i].value, SDATA (color));
 	}
     }
 
@@ -10394,14 +10394,14 @@ xpm_load (f, img)
 	}
       
       rc = XpmReadFileToPixmap (NULL, FRAME_W32_WINDOW (f),
-				XSTRING (file)->data, &img->pixmap, &img->mask,
+				SDATA (file), &img->pixmap, &img->mask,
 				&attrs);
     }
   else
     {
       Lisp_Object buffer = image_spec_value (img->spec, QCdata, NULL);
       rc = XpmCreatePixmapFromBuffer (NULL, FRAME_W32_WINDOW (f),
-				      XSTRING (buffer)->data,
+				      SDATA (buffer),
 				      &img->pixmap, &img->mask,
 				      &attrs);
     }
@@ -11218,8 +11218,8 @@ pbm_read_file (file, size)
   char *buf = NULL;
   struct stat st;
 
-  if (stat (XSTRING (file)->data, &st) == 0
-      && (fp = fopen (XSTRING (file)->data, "r")) != NULL
+  if (stat (SDATA (file), &st) == 0
+      && (fp = fopen (SDATA (file), "r")) != NULL
       && (buf = (char *) xmalloc (st.st_size),
 	  fread (buf, 1, st.st_size, fp) == st.st_size))
     {
@@ -11272,7 +11272,7 @@ pbm_load (f, img)
           return 0;
         }
 
-      contents = slurp_file (XSTRING (file)->data, &size);
+      contents = slurp_file (SDATA (file), &size);
       if (contents == NULL)
 	{
 	  image_error ("Error reading `%s'", file, Qnil);
@@ -11287,8 +11287,8 @@ pbm_load (f, img)
     {
       Lisp_Object data;
       data = image_spec_value (img->spec, QCdata, NULL);
-      p = XSTRING (data)->data;
-      end = p + STRING_BYTES (XSTRING (data));
+      p = SDATA (data);
+      end = p + SBYTES (data);
     }
 
   /* Check magic number.  */
@@ -11644,7 +11644,7 @@ png_load (f, img)
         }
 
       /* Open the image file.  */
-      fp = fopen (XSTRING (file)->data, "rb");
+      fp = fopen (SDATA (file), "rb");
       if (!fp)
         {
           image_error ("Cannot open image file `%s'", file, Qnil);
@@ -11666,8 +11666,8 @@ png_load (f, img)
   else
     {
       /* Read from memory.  */
-      tbr.bytes = XSTRING (specified_data)->data;
-      tbr.len = STRING_BYTES (XSTRING (specified_data));
+      tbr.bytes = SDATA (specified_data);
+      tbr.len = SBYTES (specified_data);
       tbr.index = 0;
 
       /* Check PNG signature.  */
@@ -11793,7 +11793,7 @@ png_load (f, img)
 	/* The user specified `:background', use that.  */
 	{
 	  COLORREF color;
-	  if (w32_defined_color (f, XSTRING (specified_bg)->data, &color, 0))
+	  if (w32_defined_color (f, SDATA (specified_bg), &color, 0))
 	    {
 	      png_color_16 user_bg;
 
@@ -12213,7 +12213,7 @@ jpeg_load (f, img)
           return 0;
         }
   
-      fp = fopen (XSTRING (file)->data, "r");
+      fp = fopen (SDATA (file), "r");
       if (fp == NULL)
         {
           image_error ("Cannot open `%s'", file, Qnil);
@@ -12260,8 +12260,8 @@ jpeg_load (f, img)
   if (NILP (specified_data))
     jpeg_stdio_src (&cinfo, fp);
   else
-    jpeg_memory_src (&cinfo, XSTRING (specified_data)->data,
-		     STRING_BYTES (XSTRING (specified_data)));
+    jpeg_memory_src (&cinfo, SDATA (specified_data),
+		     SBYTES (specified_data));
 
   jpeg_read_header (&cinfo, TRUE);
 
@@ -12604,7 +12604,7 @@ tiff_load (f, img)
 	}
 	  
       /* Try to open the image file.  */
-      tiff = TIFFOpen (XSTRING (file)->data, "r");
+      tiff = TIFFOpen (SDATA (file), "r");
       if (tiff == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
@@ -12615,8 +12615,8 @@ tiff_load (f, img)
   else
     {
       /* Memory source! */
-      memsrc.bytes = XSTRING (specified_data)->data;
-      memsrc.len = STRING_BYTES (XSTRING (specified_data));
+      memsrc.bytes = SDATA (specified_data);
+      memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
       tiff = TIFFClientOpen ("memory_source", "r", &memsrc,
@@ -12852,7 +12852,7 @@ gif_load (f, img)
         }
   
       /* Open the GIF file.  */
-      gif = DGifOpenFileName (XSTRING (file)->data);
+      gif = DGifOpenFileName (SDATA (file));
       if (gif == NULL)
         {
           image_error ("Cannot open `%s'", file, Qnil);
@@ -12864,8 +12864,8 @@ gif_load (f, img)
     {
       /* Read from memory! */
       current_gif_memory_src = &memsrc;
-      memsrc.bytes = XSTRING (specified_data)->data;
-      memsrc.len = STRING_BYTES (XSTRING (specified_data));
+      memsrc.bytes = SDATA (specified_data);
+      memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
       gif = DGifOpen(&memsrc, gif_read_from_memory);
@@ -13323,10 +13323,10 @@ selected frame.  Value is VALUE.  */)
   CHECK_STRING (value);
 
   BLOCK_INPUT;
-  prop_atom = XInternAtom (FRAME_W32_DISPLAY (f), XSTRING (prop)->data, False);
+  prop_atom = XInternAtom (FRAME_W32_DISPLAY (f), SDATA (prop), False);
   XChangeProperty (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f),
 		   prop_atom, XA_STRING, 8, PropModeReplace,
-		   XSTRING (value)->data, XSTRING (value)->size);
+		   SDATA (value), SCHARS (value));
 
   /* Make sure the property is set when we return.  */
   XFlush (FRAME_W32_DISPLAY (f));
@@ -13352,7 +13352,7 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
 
   CHECK_STRING (prop);
   BLOCK_INPUT;
-  prop_atom = XInternAtom (FRAME_W32_DISPLAY (f), XSTRING (prop)->data, False);
+  prop_atom = XInternAtom (FRAME_W32_DISPLAY (f), SDATA (prop), False);
   XDeleteProperty (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f), prop_atom);
 
   /* Make sure the property is removed when we return.  */
@@ -13386,7 +13386,7 @@ value.  */)
 
   CHECK_STRING (prop);
   BLOCK_INPUT;
-  prop_atom = XInternAtom (FRAME_W32_DISPLAY (f), XSTRING (prop)->data, False);
+  prop_atom = XInternAtom (FRAME_W32_DISPLAY (f), SDATA (prop), False);
   rc = XGetWindowProperty (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f),
 			   prop_atom, 0, 0, False, XA_STRING,
 			   &actual_type, &actual_format, &actual_size,
@@ -13753,9 +13753,9 @@ x_create_tip_frame (dpyinfo, parms, text)
       {
 	tem = Fquery_fontset (font, Qnil);
 	if (STRINGP (tem))
-	  font = x_new_fontset (f, XSTRING (tem)->data);
+	  font = x_new_fontset (f, SDATA (tem));
 	else
-	  font = x_new_font (f, XSTRING (font)->data);
+	  font = x_new_font (f, SDATA (font));
       }
     
     /* Try out a font which we hope has bold and italic variations.  */
@@ -14313,14 +14313,14 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
   /* Create the dialog with PROMPT as title, using DIR as initial
      directory and using "*" as pattern.  */
   dir = Fexpand_file_name (dir, Qnil);
-  strncpy (init_dir, XSTRING (dir)->data, MAX_PATH);
+  strncpy (init_dir, SDATA (dir), MAX_PATH);
   init_dir[MAX_PATH] = '\0';
   unixtodos_filename (init_dir);
 
   if (STRINGP (default_filename))
     {
       char *file_name_only;
-      char *full_path_name = XSTRING (default_filename)->data;
+      char *full_path_name = SDATA (default_filename);
 
       unixtodos_filename (full_path_name);
 
@@ -14354,7 +14354,7 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
     file_details.lpstrFile = filename;
     file_details.nMaxFile = sizeof (filename);
     file_details.lpstrInitialDir = init_dir;
-    file_details.lpstrTitle = XSTRING (prompt)->data;
+    file_details.lpstrTitle = SDATA (prompt);
     file_details.Flags = (OFN_HIDEREADONLY | OFN_NOCHANGEDIR
 			  | OFN_EXPLORER | OFN_ENABLEHOOK);
     if (!NILP (mustmatch))
@@ -14507,11 +14507,11 @@ otherwise it is an integer representing a ShowWindow flag:
   document = ENCODE_FILE (document);
   if ((int) ShellExecute (NULL,
 			  (STRINGP (operation) ?
-			   XSTRING (operation)->data : NULL),
-			  XSTRING (document)->data,
+			   SDATA (operation) : NULL),
+			  SDATA (document),
 			  (STRINGP (parameters) ?
-			   XSTRING (parameters)->data : NULL),
-			  XSTRING (current_dir)->data,
+			   SDATA (parameters) : NULL),
+			  SDATA (current_dir),
 			  (INTEGERP (show_flag) ?
 			   XINT (show_flag) : SW_SHOWDEFAULT))
       > 32)
@@ -14573,7 +14573,7 @@ w32_parse_hot_key (key)
       c = Fcar (c);
       if (!SYMBOLP (c))
 	abort ();
-      vk_code = lookup_vk_code (XSTRING (SYMBOL_NAME (c))->data);
+      vk_code = lookup_vk_code (SDATA (SYMBOL_NAME (c)));
     }
   else if (INTEGERP (c))
     {
@@ -14777,7 +14777,7 @@ If the underlying system call fails, value is nil.  */)
     /* On Windows, we may need to specify the root directory of the
        volume holding FILENAME.  */
     char rootname[MAX_PATH];
-    char *name = XSTRING (encoded)->data;
+    char *name = SDATA (encoded);
 
     /* find the root name of the volume if given */
     if (isalpha (name[0]) && name[1] == ':')

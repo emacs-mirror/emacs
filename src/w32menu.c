@@ -518,7 +518,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
   enabled = XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE];
   item_string = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME]; 
 
-  if (!NILP (map) && XSTRING (item_string)->data[0] == '@')
+  if (!NILP (map) && SREF (item_string, 0) == '@')
     {
       if (!NILP (enabled))
 	/* An enabled separate pane. Remember this to handle it later.  */
@@ -1201,7 +1201,7 @@ single_submenu (item_key, item_name, maps)
 	    }
 #endif
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) XSTRING (pane_name)->data);
+			 ? "" : (char *) SDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
@@ -1265,9 +1265,9 @@ single_submenu (item_key, item_name, maps)
 	  else
 	    save_wv->contents = wv;
 
-	  wv->name = (char *) XSTRING (item_name)->data;
+	  wv->name = (char *) SDATA (item_name);
 	  if (!NILP (descrip))
-	    wv->key = (char *) XSTRING (descrip)->data;
+	    wv->key = (char *) SDATA (descrip);
 	  wv->value = 0;
 	  /* The EMACS_INT cast avoids a warning.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
@@ -1448,7 +1448,7 @@ set_frame_menubar (f, first_time, deep_p)
 	  string = XVECTOR (items)->contents[i + 1];
 	  if (NILP (string))
 	    break;
-	  wv->name = (char *) XSTRING (string)->data;
+	  wv->name = (char *) SDATA (string);
 	  wv = wv->next;
 	}
 
@@ -1471,7 +1471,7 @@ set_frame_menubar (f, first_time, deep_p)
 	    break;
 
 	  wv = xmalloc_widget_value ();
-	  wv->name = (char *) XSTRING (string)->data;
+	  wv->name = (char *) SDATA (string);
 	  wv->value = 0;
 	  wv->enabled = 1;
 	  wv->button_type = BUTTON_TYPE_NONE;
@@ -1662,7 +1662,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	    }
 #endif
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) XSTRING (pane_name)->data);
+			 ? "" : (char *) SDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
@@ -1727,9 +1727,9 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	    prev_wv->next = wv;
 	  else 
 	    save_wv->contents = wv;
-	  wv->name = (char *) XSTRING (item_name)->data;
+	  wv->name = (char *) SDATA (item_name);
 	  if (!NILP (descrip))
-	    wv->key = (char *) XSTRING (descrip)->data;
+	    wv->key = (char *) SDATA (descrip);
 	  wv->value = 0;
 	  /* Use the contents index as call_data, since we are
              restricted to 16-bits.  */
@@ -1773,7 +1773,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
       if (STRING_MULTIBYTE (title))
 	title = ENCODE_SYSTEM (title);
 #endif
-      wv_title->name = (char *) XSTRING (title)->data;
+      wv_title->name = (char *) SDATA (title);
       wv_title->enabled = TRUE;
       wv_title->title = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
@@ -1906,7 +1906,7 @@ w32_dialog_show (f, keymaps, title, error)
     pane_name = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_NAME];
     prefix = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_PREFIX];
     pane_string = (NILP (pane_name)
-		   ? "" : (char *) XSTRING (pane_name)->data);  
+		   ? "" : (char *) SDATA (pane_name));  
     prev_wv = xmalloc_widget_value ();
     prev_wv->value = pane_string;
     if (keymaps && !NILP (prefix))
@@ -1955,8 +1955,8 @@ w32_dialog_show (f, keymaps, title, error)
 	prev_wv->next = wv;
 	wv->name = (char *) button_names[nb_buttons];
 	if (!NILP (descrip))
-	  wv->key = (char *) XSTRING (descrip)->data;
-	wv->value = (char *) XSTRING (item_name)->data;
+	  wv->key = (char *) SDATA (descrip);
+	wv->value = (char *) SDATA (item_name);
 	wv->call_data = (void *) &XVECTOR (menu_items)->contents[i];
 	wv->enabled = !NILP (enable);
 	wv->help = Qnil;

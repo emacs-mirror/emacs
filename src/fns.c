@@ -132,7 +132,7 @@ To get the number of bytes, use `string-bytes'. */)
 
  retry:
   if (STRINGP (sequence))
-    XSETFASTINT (val, XSTRING (sequence)->size);
+    XSETFASTINT (val, SCHARS (sequence));
   else if (VECTORP (sequence))
     XSETFASTINT (val, XVECTOR (sequence)->size);
   else if (CHAR_TABLE_P (sequence))
@@ -208,7 +208,7 @@ If STRING is a multibyte string, this is greater than the length of STRING. */)
      Lisp_Object string;
 {
   CHECK_STRING (string);
-  return make_number (STRING_BYTES (XSTRING (string)));
+  return make_number (SBYTES (string));
 }
 
 DEFUN ("string-equal", Fstring_equal, Sstring_equal, 2, 2, 0,
@@ -225,9 +225,9 @@ Symbols are also allowed; their print names are used instead. */)
   CHECK_STRING (s1);
   CHECK_STRING (s2);
 
-  if (XSTRING (s1)->size != XSTRING (s2)->size
-      || STRING_BYTES (XSTRING (s1)) != STRING_BYTES (XSTRING (s2))
-      || bcmp (XSTRING (s1)->data, XSTRING (s2)->data, STRING_BYTES (XSTRING (s1))))
+  if (SCHARS (s1) != SCHARS (s2)
+      || SBYTES (s1) != SBYTES (s2)
+      || bcmp (SDATA (s1), SDATA (s2), SBYTES (s1)))
     return Qnil;
   return Qt;
 }
@@ -272,11 +272,11 @@ If string STR1 is greater, the value is a positive number N;
   i1_byte = string_char_to_byte (str1, i1);
   i2_byte = string_char_to_byte (str2, i2);
 
-  end1_char = XSTRING (str1)->size;
+  end1_char = SCHARS (str1);
   if (! NILP (end1) && end1_char > XINT (end1))
     end1_char = XINT (end1);
 
-  end2_char = XSTRING (str2)->size;
+  end2_char = SCHARS (str2);
   if (! NILP (end2) && end2_char > XINT (end2))
     end2_char = XINT (end2);
 
@@ -290,7 +290,7 @@ If string STR1 is greater, the value is a positive number N;
 	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c1, str1, i1, i1_byte);
       else
 	{
-	  c1 = XSTRING (str1)->data[i1++];
+	  c1 = SREF (str1, i1++);
 	  c1 = unibyte_char_to_multibyte (c1);
 	}
 
@@ -298,7 +298,7 @@ If string STR1 is greater, the value is a positive number N;
 	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c2, str2, i2, i2_byte);
       else
 	{
-	  c2 = XSTRING (str2)->data[i2++];
+	  c2 = SREF (str2, i2++);
 	  c2 = unibyte_char_to_multibyte (c2);
 	}
 
@@ -354,9 +354,9 @@ Symbols are also allowed; their print names are used instead. */)
 
   i1 = i1_byte = i2 = i2_byte = 0;
 
-  end = XSTRING (s1)->size;
-  if (end > XSTRING (s2)->size)
-    end = XSTRING (s2)->size;
+  end = SCHARS (s1);
+  if (end > SCHARS (s2))
+    end = SCHARS (s2);
 
   while (i1 < end)
     {
@@ -370,7 +370,7 @@ Symbols are also allowed; their print names are used instead. */)
       if (c1 != c2)
 	return c1 < c2 ? Qt : Qnil;
     }
-  return i1 < XSTRING (s2)->size ? Qt : Qnil;
+  return i1 < SCHARS (s2) ? Qt : Qnil;
 }
 
 static Lisp_Object concat ();
@@ -641,11 +641,11 @@ concat (nargs, args, target_type, last_special)
 	      if (STRING_MULTIBYTE (this))
 		{
 		  some_multibyte = 1;
-		  result_len_byte += STRING_BYTES (XSTRING (this));
+		  result_len_byte += SBYTES (this);
 		}
 	      else
-		result_len_byte += count_size_as_multibyte (XSTRING (this)->data,
-							    XSTRING (this)->size);
+		result_len_byte += count_size_as_multibyte (SDATA (this),
+							    SCHARS (this));
 	    }
 	}
 
@@ -695,17 +695,17 @@ concat (nargs, args, target_type, last_special)
       if (STRINGP (this) && STRINGP (val)
 	  && STRING_MULTIBYTE (this) == some_multibyte)
 	{
-	  int thislen_byte = STRING_BYTES (XSTRING (this));
+	  int thislen_byte = SBYTES (this);
 	  int combined;
 
-	  bcopy (XSTRING (this)->data, XSTRING (val)->data + toindex_byte,
-		 STRING_BYTES (XSTRING (this)));
+	  bcopy (SDATA (this), SDATA (val) + toindex_byte,
+		 SBYTES (this));
 	  combined =  (some_multibyte && toindex_byte > 0
-		       ? count_combining (XSTRING (val)->data,
+		       ? count_combining (SDATA (val),
 					  toindex_byte + thislen_byte,
 					  toindex_byte)
 		       : 0);
-	  if (! NULL_INTERVAL_P (XSTRING (this)->intervals))
+	  if (! NULL_INTERVAL_P (STRING_INTERVALS (this)))
 	    {
 	      textprops[num_textprops].argnum = argnum;
 	      /* We ignore text properties on characters being combined.  */
@@ -714,20 +714,20 @@ concat (nargs, args, target_type, last_special)
 	    }
 	  toindex_byte += thislen_byte;
 	  toindex += thisleni - combined;
-	  XSTRING (val)->size -= combined;
+	  SCHARS (val) -= combined;
 	}
       /* Copy a single-byte string to a multibyte string.  */
       else if (STRINGP (this) && STRINGP (val))
 	{
-	  if (! NULL_INTERVAL_P (XSTRING (this)->intervals))
+	  if (! NULL_INTERVAL_P (STRING_INTERVALS (this)))
 	    {
 	      textprops[num_textprops].argnum = argnum;
 	      textprops[num_textprops].from = 0;
 	      textprops[num_textprops++].to = toindex;
 	    }
-	  toindex_byte += copy_text (XSTRING (this)->data,
-				     XSTRING (val)->data + toindex_byte,
-				     XSTRING (this)->size, 0, 1);
+	  toindex_byte += copy_text (SDATA (this),
+				     SDATA (val) + toindex_byte,
+				     SCHARS (this), 0, 1);
 	  toindex += thisleni;
 	}
       else
@@ -755,7 +755,7 @@ concat (nargs, args, target_type, last_special)
 		  }
 		else
 		  {
-		    XSETFASTINT (elt, XSTRING (this)->data[thisindex++]);
+		    XSETFASTINT (elt, SREF (this, thisindex++));
 		    if (some_multibyte
 			&& (XINT (elt) >= 0240
 			    || (XINT (elt) >= 0200
@@ -797,14 +797,14 @@ concat (nargs, args, target_type, last_special)
 		    if (some_multibyte)
 		      toindex_byte
 			+= CHAR_STRING (XINT (elt),
-					XSTRING (val)->data + toindex_byte);
+					SDATA (val) + toindex_byte);
 		    else
-		      XSTRING (val)->data[toindex_byte++] = XINT (elt);
+		      SREF (val, toindex_byte++) = XINT (elt);
 		    if (some_multibyte
 			&& toindex_byte > 0
-			&& count_combining (XSTRING (val)->data,
+			&& count_combining (SDATA (val),
 					    toindex_byte, toindex_byte - 1))
-		      XSTRING (val)->size--;
+		      SCHARS (val)--;
 		    else
 		      toindex++;
 		  }
@@ -815,7 +815,7 @@ concat (nargs, args, target_type, last_special)
 		    int c = XINT (elt);
 		    /* P exists as a variable
 		       to avoid a bug on the Masscomp C compiler.  */
-		    unsigned char *p = & XSTRING (val)->data[toindex_byte];
+		    unsigned char *p = & SREF (val, toindex_byte);
 
 		    toindex_byte += CHAR_STRING (c, p);
 		    toindex++;
@@ -836,7 +836,7 @@ concat (nargs, args, target_type, last_special)
 	  this = args[textprops[argnum].argnum];
 	  props = text_property_list (this,
 				      make_number (0),
-				      make_number (XSTRING (this)->size),
+				      make_number (SCHARS (this)),
 				      Qnil);
 	  /* If successive arguments have properites, be sure that the
 	     value of `composition' property be the copy.  */
@@ -844,7 +844,7 @@ concat (nargs, args, target_type, last_special)
 	    make_composition_value_copy (props);
 	  add_text_properties_from_list (val, props,
 					 make_number (textprops[argnum].to));
-	  last_to_end = textprops[argnum].to + XSTRING (this)->size;
+	  last_to_end = textprops[argnum].to + SCHARS (this);
 	}
     }
   return val;
@@ -875,8 +875,8 @@ string_char_to_byte (string, char_index)
     return char_index;
 
   best_below = best_below_byte = 0;
-  best_above = XSTRING (string)->size;
-  best_above_byte = STRING_BYTES (XSTRING (string));
+  best_above = SCHARS (string);
+  best_above_byte = SBYTES (string);
 
   if (EQ (string, string_char_byte_cache_string))
     {
@@ -907,7 +907,7 @@ string_char_to_byte (string, char_index)
     {
       while (best_above > char_index)
 	{
-	  unsigned char *pend = XSTRING (string)->data + best_above_byte;
+	  unsigned char *pend = SDATA (string) + best_above_byte;
 	  unsigned char *pbeg = pend - best_above_byte;
 	  unsigned char *p = pend - 1;
 	  int bytes;
@@ -948,8 +948,8 @@ string_byte_to_char (string, byte_index)
     return byte_index;
 
   best_below = best_below_byte = 0;
-  best_above = XSTRING (string)->size;
-  best_above_byte = STRING_BYTES (XSTRING (string));
+  best_above = SCHARS (string);
+  best_above_byte = SBYTES (string);
 
   if (EQ (string, string_char_byte_cache_string))
     {
@@ -980,7 +980,7 @@ string_byte_to_char (string, byte_index)
     {
       while (best_above_byte > byte_index)
 	{
-	  unsigned char *pend = XSTRING (string)->data + best_above_byte;
+	  unsigned char *pend = SDATA (string) + best_above_byte;
 	  unsigned char *pbeg = pend - best_above_byte;
 	  unsigned char *p = pend - 1;
 	  int bytes;
@@ -1020,18 +1020,18 @@ string_make_multibyte (string)
   if (STRING_MULTIBYTE (string))
     return string;
 
-  nbytes = count_size_as_multibyte (XSTRING (string)->data,
-				    XSTRING (string)->size);
+  nbytes = count_size_as_multibyte (SDATA (string),
+				    SCHARS (string));
   /* If all the chars are ASCII, they won't need any more bytes
      once converted.  In that case, we can return STRING itself.  */
-  if (nbytes == STRING_BYTES (XSTRING (string)))
+  if (nbytes == SBYTES (string))
     return string;
 
   buf = (unsigned char *) alloca (nbytes);
-  copy_text (XSTRING (string)->data, buf, STRING_BYTES (XSTRING (string)),
+  copy_text (SDATA (string), buf, SBYTES (string),
 	     0, 1);
 
-  return make_multibyte_string (buf, XSTRING (string)->size, nbytes);
+  return make_multibyte_string (buf, SCHARS (string), nbytes);
 }
 
 /* Convert STRING to a single-byte string.  */
@@ -1045,12 +1045,12 @@ string_make_unibyte (string)
   if (! STRING_MULTIBYTE (string))
     return string;
 
-  buf = (unsigned char *) alloca (XSTRING (string)->size);
+  buf = (unsigned char *) alloca (SCHARS (string));
 
-  copy_text (XSTRING (string)->data, buf, STRING_BYTES (XSTRING (string)),
+  copy_text (SDATA (string), buf, SBYTES (string),
 	     1, 0);
 
-  return make_unibyte_string (buf, XSTRING (string)->size);
+  return make_unibyte_string (buf, SCHARS (string));
 }
 
 DEFUN ("string-make-multibyte", Fstring_make_multibyte, Sstring_make_multibyte,
@@ -1096,10 +1096,10 @@ corresponding single byte.  */)
 
   if (STRING_MULTIBYTE (string))
     {
-      int bytes = STRING_BYTES (XSTRING (string));
+      int bytes = SBYTES (string);
       unsigned char *str = (unsigned char *) xmalloc (bytes);
 
-      bcopy (XSTRING (string)->data, str, bytes);
+      bcopy (SDATA (string), str, bytes);
       bytes = str_as_unibyte (str, bytes);
       string = make_unibyte_string (str, bytes);
       xfree (str);
@@ -1125,17 +1125,17 @@ multibyte character of charset `eight-bit-control' or `eight-bit-graphic'.  */)
       Lisp_Object new_string;
       int nchars, nbytes;
 
-      parse_str_as_multibyte (XSTRING (string)->data,
-			      STRING_BYTES (XSTRING (string)),
+      parse_str_as_multibyte (SDATA (string),
+			      SBYTES (string),
 			      &nchars, &nbytes);
       new_string = make_uninit_multibyte_string (nchars, nbytes);
-      bcopy (XSTRING (string)->data, XSTRING (new_string)->data,
-	     STRING_BYTES (XSTRING (string)));
-      if (nbytes != STRING_BYTES (XSTRING (string)))
-	str_as_multibyte (XSTRING (new_string)->data, nbytes,
-			  STRING_BYTES (XSTRING (string)), NULL);
+      bcopy (SDATA (string), SDATA (new_string),
+	     SBYTES (string));
+      if (nbytes != SBYTES (string))
+	str_as_multibyte (SDATA (new_string), nbytes,
+			  SBYTES (string), NULL);
       string = new_string;
-      XSTRING (string)->intervals = NULL_INTERVAL;
+      STRING_INTERVALS (string) = NULL_INTERVAL;
     }
   return string;
 }
@@ -1190,8 +1190,8 @@ This function allows vectors as well as strings.  */)
 
   if (STRINGP (string))
     {
-      size = XSTRING (string)->size;
-      size_byte = STRING_BYTES (XSTRING (string));
+      size = SCHARS (string);
+      size_byte = SBYTES (string);
     }
   else
     size = XVECTOR (string)->size;
@@ -1225,7 +1225,7 @@ This function allows vectors as well as strings.  */)
 
   if (STRINGP (string))
     {
-      res = make_specified_string (XSTRING (string)->data + from_byte,
+      res = make_specified_string (SDATA (string) + from_byte,
 				   to_char - from_char, to_byte - from_byte,
 				   STRING_MULTIBYTE (string));
       copy_text_properties (make_number (from_char), make_number (to_char),
@@ -1257,8 +1257,8 @@ With one argument, just copy STRING without its properties.  */)
 
   CHECK_STRING (string);
 
-  size = XSTRING (string)->size;
-  size_byte = STRING_BYTES (XSTRING (string));
+  size = SCHARS (string);
+  size_byte = SBYTES (string);
 
   if (NILP (from))
     from_char = from_byte = 0;
@@ -1292,7 +1292,7 @@ With one argument, just copy STRING without its properties.  */)
     args_out_of_range_3 (string, make_number (from_char),
 			 make_number (to_char));
 
-  return make_specified_string (XSTRING (string)->data + from_byte,
+  return make_specified_string (SDATA (string) + from_byte,
 				to_char - from_char, to_byte - from_byte,
 				STRING_MULTIBYTE (string));
 }
@@ -1314,8 +1314,8 @@ substring_both (string, from, from_byte, to, to_byte)
 
   if (STRINGP (string))
     {
-      size = XSTRING (string)->size;
-      size_byte = STRING_BYTES (XSTRING (string));
+      size = SCHARS (string);
+      size_byte = SBYTES (string);
     }
   else
     size = XVECTOR (string)->size;
@@ -1325,7 +1325,7 @@ substring_both (string, from, from_byte, to, to_byte)
 
   if (STRINGP (string))
     {
-      res = make_specified_string (XSTRING (string)->data + from_byte,
+      res = make_specified_string (SDATA (string) + from_byte,
 				   to - from, to_byte - from_byte,
 				   STRING_MULTIBYTE (string));
       copy_text_properties (make_number (from), make_number (to),
@@ -1693,18 +1693,18 @@ to be sure of changing the value of `foo'.  */)
       int c;
 
       for (i = nchars = nbytes = ibyte = 0;
-	   i < XSTRING (seq)->size;
+	   i < SCHARS (seq);
 	   ++i, ibyte += cbytes)
 	{
 	  if (STRING_MULTIBYTE (seq))
 	    {
-	      c = STRING_CHAR (&XSTRING (seq)->data[ibyte],
-			       STRING_BYTES (XSTRING (seq)) - ibyte);
+	      c = STRING_CHAR (&SREF (seq, ibyte),
+			       SBYTES (seq) - ibyte);
 	      cbytes = CHAR_BYTES (c);
 	    }
 	  else
 	    {
-	      c = XSTRING (seq)->data[i];
+	      c = SREF (seq, i);
 	      cbytes = 1;
 	    }
 
@@ -1715,34 +1715,34 @@ to be sure of changing the value of `foo'.  */)
 	    }
 	}
 
-      if (nchars != XSTRING (seq)->size)
+      if (nchars != SCHARS (seq))
 	{
 	  Lisp_Object tem;
 
 	  tem = make_uninit_multibyte_string (nchars, nbytes);
 	  if (!STRING_MULTIBYTE (seq))
-	    SET_STRING_BYTES (XSTRING (tem), -1);
+	    STRING_SET_UNIBYTE (tem);
 
 	  for (i = nchars = nbytes = ibyte = 0;
-	       i < XSTRING (seq)->size;
+	       i < SCHARS (seq);
 	       ++i, ibyte += cbytes)
 	    {
 	      if (STRING_MULTIBYTE (seq))
 		{
-		  c = STRING_CHAR (&XSTRING (seq)->data[ibyte],
-				   STRING_BYTES (XSTRING (seq)) - ibyte);
+		  c = STRING_CHAR (&SREF (seq, ibyte),
+				   SBYTES (seq) - ibyte);
 		  cbytes = CHAR_BYTES (c);
 		}
 	      else
 		{
-		  c = XSTRING (seq)->data[i];
+		  c = SREF (seq, i);
 		  cbytes = 1;
 		}
 
 	      if (!INTEGERP (elt) || c != XINT (elt))
 		{
-		  unsigned char *from = &XSTRING (seq)->data[ibyte];
-		  unsigned char *to   = &XSTRING (tem)->data[nbytes];
+		  unsigned char *from = &SREF (seq, ibyte);
+		  unsigned char *to   = &SREF (tem, nbytes);
 		  EMACS_INT n;
 
 		  ++nchars;
@@ -2176,12 +2176,12 @@ internal_equal (o1, o2, depth)
       break;
 
     case Lisp_String:
-      if (XSTRING (o1)->size != XSTRING (o2)->size)
+      if (SCHARS (o1) != SCHARS (o2))
 	return 0;
-      if (STRING_BYTES (XSTRING (o1)) != STRING_BYTES (XSTRING (o2)))
+      if (SBYTES (o1) != SBYTES (o2))
 	return 0;
-      if (bcmp (XSTRING (o1)->data, XSTRING (o2)->data,
-		STRING_BYTES (XSTRING (o1))))
+      if (bcmp (SDATA (o1), SDATA (o2),
+		SBYTES (o1)))
 	return 0;
       return 1;
 
@@ -2221,15 +2221,15 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
     }
   else if (STRINGP (array))
     {
-      register unsigned char *p = XSTRING (array)->data;
+      register unsigned char *p = SDATA (array);
       CHECK_NUMBER (item);
       charval = XINT (item);
-      size = XSTRING (array)->size;
+      size = SCHARS (array);
       if (STRING_MULTIBYTE (array))
 	{
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len = CHAR_STRING (charval, str);
-	  int size_byte = STRING_BYTES (XSTRING (array));
+	  int size_byte = SBYTES (array);
 	  unsigned char *p1 = p, *endp = p + size_byte;
 	  int i;
 
@@ -3113,12 +3113,12 @@ is nil, and `use-dialog-box' is non-nil.  */)
       ans = Fdowncase (Fread_from_minibuffer (prompt, Qnil, Qnil, Qnil,
 					      Qyes_or_no_p_history, Qnil,
 					      Qnil));
-      if (XSTRING (ans)->size == 3 && !strcmp (XSTRING (ans)->data, "yes"))
+      if (SCHARS (ans) == 3 && !strcmp (SDATA (ans), "yes"))
 	{
 	  UNGCPRO;
 	  return Qt;
 	}
-      if (XSTRING (ans)->size == 2 && !strcmp (XSTRING (ans)->data, "no"))
+      if (SCHARS (ans) == 2 && !strcmp (SDATA (ans), "no"))
 	{
 	  UNGCPRO;
 	  return Qnil;
@@ -3257,7 +3257,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
 	 of what files are preloaded and when.  */
       if (! NILP (Vpurify_flag))
 	error ("(require %s) while preparing to dump",
-	       XSTRING (SYMBOL_NAME (feature))->data);
+	       SDATA (SYMBOL_NAME (feature)));
       
       /* A certain amount of recursive `require' is legitimate,
 	 but if we require the same feature recursively 3 times,
@@ -3271,7 +3271,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
 	}
       if (nesting > 2)
 	error ("Recursive `require' for feature `%s'",
-	       XSTRING (SYMBOL_NAME (feature))->data);
+	       SDATA (SYMBOL_NAME (feature)));
 
       /* Update the list for any nested `require's that occur.  */
       record_unwind_protect (require_unwind, require_nesting_list);
@@ -3294,7 +3294,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
       tem = Fmemq (feature, Vfeatures);
       if (NILP (tem))
 	error ("Required feature `%s' was not provided",
-	       XSTRING (SYMBOL_NAME (feature))->data);
+	       SDATA (SYMBOL_NAME (feature)));
 
       /* Once loading finishes, don't undo it.  */
       Vautoload_queue = Qt;
@@ -3557,7 +3557,7 @@ into shorter lines.  */)
   /* We need to allocate enough room for encoding the text.
      We need 33 1/3% more space, plus a newline every 76
      characters, and then we round up. */
-  length = STRING_BYTES (XSTRING (string));
+  length = SBYTES (string);
   allength = length + length/3 + 1;
   allength += allength / MIME_LINE_LENGTH + 1 + 6;
 
@@ -3567,7 +3567,7 @@ into shorter lines.  */)
   else
     encoded = (char *) xmalloc (allength);
 
-  encoded_length = base64_encode_1 (XSTRING (string)->data,
+  encoded_length = base64_encode_1 (SDATA (string),
 				    encoded, length, NILP (no_line_break),
 				    STRING_MULTIBYTE (string));
   if (encoded_length > allength)
@@ -3760,7 +3760,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
 
   CHECK_STRING (string);
 
-  length = STRING_BYTES (XSTRING (string));
+  length = SBYTES (string);
   /* We need to allocate enough room for decoding the text. */
   if (length <= MAX_ALLOCA)
     decoded = (char *) alloca (length);
@@ -3768,7 +3768,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
     decoded = (char *) xmalloc (length);
 
   /* The decoded result should be unibyte. */
-  decoded_length = base64_decode_1 (XSTRING (string)->data, decoded, length,
+  decoded_length = base64_decode_1 (SDATA (string), decoded, length,
 				    0, NULL);
   if (decoded_length > length)
     abort ();
@@ -4772,8 +4772,8 @@ sxhash (obj, depth)
       break;
 
     case Lisp_Symbol:
-      hash = sxhash_string (XSTRING (SYMBOL_NAME (obj))->data,
-			    XSTRING (SYMBOL_NAME (obj))->size);
+      hash = sxhash_string (SDATA (SYMBOL_NAME (obj)),
+			    SCHARS (SYMBOL_NAME (obj)));
       break;
 
     case Lisp_Misc:
@@ -4781,7 +4781,7 @@ sxhash (obj, depth)
       break;
 
     case Lisp_String:
-      hash = sxhash_string (XSTRING (obj)->data, XSTRING (obj)->size);
+      hash = sxhash_string (SDATA (obj), SCHARS (obj));
       break;
 
       /* This can be everything from a vector to an overlay.  */
@@ -5206,8 +5206,8 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
       if (STRING_MULTIBYTE (object))
 	object = code_convert_string1 (object, coding_system, Qnil, 1);
 
-      size = XSTRING (object)->size;
-      size_byte = STRING_BYTES (XSTRING (object));
+      size = SCHARS (object);
+      size_byte = SBYTES (object);
 
       if (!NILP (start))
 	{
@@ -5339,8 +5339,8 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	object = code_convert_string1 (object, coding_system, Qnil, 1);
     }
 
-  md5_buffer (XSTRING (object)->data + start_byte, 
-	      STRING_BYTES(XSTRING (object)) - (size_byte - end_byte), 
+  md5_buffer (SDATA (object) + start_byte, 
+	      SBYTES (object) - (size_byte - end_byte), 
 	      digest);
 
   for (i = 0; i < 16; i++)

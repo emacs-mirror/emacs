@@ -233,21 +233,21 @@ string_to_object (val, defalt)
 
   GCPRO2 (val, defalt);
 
-  if (STRINGP (val) && XSTRING (val)->size == 0
+  if (STRINGP (val) && SCHARS (val) == 0
       && STRINGP (defalt))
     val = defalt;
 
   expr_and_pos = Fread_from_string (val, Qnil, Qnil);
   pos = XINT (Fcdr (expr_and_pos));
-  if (pos != XSTRING (val)->size)
+  if (pos != SCHARS (val))
     {
       /* Ignore trailing whitespace; any other trailing junk
 	 is an error.  */
       int i;
       pos = string_char_to_byte (val, pos);
-      for (i = pos; i < STRING_BYTES (XSTRING (val)); i++)
+      for (i = pos; i < SBYTES (val); i++)
 	{
-	  int c = XSTRING (val)->data[i];
+	  int c = SREF (val, i);
 	  if (c != ' ' && c != '\t' && c != '\n')
 	    error ("Trailing garbage following expression");
 	}
@@ -280,7 +280,7 @@ read_minibuf_noninteractive (map, initial, prompt, backup_n, expflag,
   char *line, *s;
   Lisp_Object val;
 
-  fprintf (stdout, "%s", XSTRING (prompt)->data);
+  fprintf (stdout, "%s", SDATA (prompt));
   fflush (stdout);
 
   val = Qnil;
@@ -648,7 +648,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   last_minibuf_string = val;
 
   /* Add the value to the appropriate history list unless it is empty.  */
-  if (XSTRING (val)->size != 0
+  if (SCHARS (val) != 0
       && SYMBOLP (Vminibuffer_history_variable))
     {
       /* If the caller wanted to save the value read on a history list,
@@ -868,9 +868,9 @@ If the variable `minibuffer-allow-text-properties' is non-nil,
 	  /* Convert to distance from end of input.  */
 	  if (XINT (position) < 1)
 	    /* A number too small means the beginning of the string.  */
-	    pos =  - XSTRING (initial_contents)->size;
+	    pos =  - SCHARS (initial_contents);
 	  else
-	    pos = XINT (position) - 1 - XSTRING (initial_contents)->size;
+	    pos = XINT (position) - 1 - SCHARS (initial_contents);
 	}
     }
 
@@ -950,7 +950,7 @@ Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
   val = Fread_from_minibuffer (prompt, initial_input, Qnil,
 			       Qnil, history, default_value,
 			       inherit_input_method);
-  if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (default_value))
+  if (STRINGP (val) && SCHARS (val) == 0 && ! NILP (default_value))
     val = default_value;
   return val;
 }
@@ -1185,9 +1185,9 @@ is used to further constrain the set of candidates.  */)
       /* Is this element a possible completion? */
 
       if (STRINGP (eltstring)
-	  && XSTRING (string)->size <= XSTRING (eltstring)->size
+	  && SCHARS (string) <= SCHARS (eltstring)
 	  && (tem = Fcompare_strings (eltstring, make_number (0),
-				      make_number (XSTRING (string)->size),
+				      make_number (SCHARS (string)),
 				      string, make_number (0), Qnil,
 				      completion_ignore_case ?Qt : Qnil),
 	      EQ (Qt, tem)))
@@ -1233,11 +1233,11 @@ is used to further constrain the set of candidates.  */)
 	    {
 	      matchcount = 1;
 	      bestmatch = eltstring;
-	      bestmatchsize = XSTRING (eltstring)->size;
+	      bestmatchsize = SCHARS (eltstring);
 	    }
 	  else
 	    {
-	      compare = min (bestmatchsize, XSTRING (eltstring)->size);
+	      compare = min (bestmatchsize, SCHARS (eltstring));
 	      tem = Fcompare_strings (bestmatch, make_number (0),
 				      make_number (compare),
 				      eltstring, make_number (0),
@@ -1259,8 +1259,8 @@ is used to further constrain the set of candidates.  */)
 		     use it as the best match rather than one that is not an
 		     exact match.  This way, we get the case pattern
 		     of the actual match.  */
-		  if ((matchsize == XSTRING (eltstring)->size
-		       && matchsize < XSTRING (bestmatch)->size)
+		  if ((matchsize == SCHARS (eltstring)
+		       && matchsize < SCHARS (bestmatch))
 		      ||
 		      /* If there is more than one exact match ignoring case,
 			 and one of them is exact including case,
@@ -1268,29 +1268,29 @@ is used to further constrain the set of candidates.  */)
 		      /* If there is no exact match ignoring case,
 			 prefer a match that does not change the case
 			 of the input.  */
-		      ((matchsize == XSTRING (eltstring)->size)
+		      ((matchsize == SCHARS (eltstring))
 		       ==
-		       (matchsize == XSTRING (bestmatch)->size)
+		       (matchsize == SCHARS (bestmatch))
 		       && (tem = Fcompare_strings (eltstring, make_number (0),
-						   make_number (XSTRING (string)->size),
+						   make_number (SCHARS (string)),
 						   string, make_number (0),
 						   Qnil,
 						   Qnil),
 			   EQ (Qt, tem))
 		       && (tem = Fcompare_strings (bestmatch, make_number (0),
-						   make_number (XSTRING (string)->size),
+						   make_number (SCHARS (string)),
 						   string, make_number (0),
 						   Qnil,
 						   Qnil),
 			   ! EQ (Qt, tem))))
 		    bestmatch = eltstring;
 		}
-	      if (bestmatchsize != XSTRING (eltstring)->size
+	      if (bestmatchsize != SCHARS (eltstring)
 		  || bestmatchsize != matchsize)
 		/* Don't count the same string multiple times.  */
 		matchcount++;
 	      bestmatchsize = matchsize;
-	      if (matchsize <= XSTRING (string)->size
+	      if (matchsize <= SCHARS (string)
 		  && matchcount > 1)
 		/* No need to look any further.  */
 		break;
@@ -1303,13 +1303,13 @@ is used to further constrain the set of candidates.  */)
   /* If we are ignoring case, and there is no exact match,
      and no additional text was supplied,
      don't change the case of what the user typed.  */
-  if (completion_ignore_case && bestmatchsize == XSTRING (string)->size
-      && XSTRING (bestmatch)->size > bestmatchsize)
+  if (completion_ignore_case && bestmatchsize == SCHARS (string)
+      && SCHARS (bestmatch) > bestmatchsize)
     return minibuf_conform_representation (string, bestmatch);
 
   /* Return t if the supplied string is an exact match (counting case);
      it does not require any change to be made.  */
-  if (matchcount == 1 && bestmatchsize == XSTRING (string)->size
+  if (matchcount == 1 && bestmatchsize == SCHARS (string)
       && (tem = Fcompare_strings (bestmatch, make_number (0),
 				  make_number (bestmatchsize),
 				  string, make_number (0),
@@ -1423,17 +1423,17 @@ are ignored unless STRING itself starts with a space.  */)
       /* Is this element a possible completion? */
 
       if (STRINGP (eltstring)
-	  && XSTRING (string)->size <= XSTRING (eltstring)->size
+	  && SCHARS (string) <= SCHARS (eltstring)
 	  /* If HIDE_SPACES, reject alternatives that start with space
 	     unless the input starts with space.  */
-	  && ((STRING_BYTES (XSTRING (string)) > 0
-	       && XSTRING (string)->data[0] == ' ')
-	      || XSTRING (eltstring)->data[0] != ' '
+	  && ((SBYTES (string) > 0
+	       && SREF (string, 0) == ' ')
+	      || SREF (eltstring, 0) != ' '
 	      || NILP (hide_spaces))
 	  && (tem = Fcompare_strings (eltstring, make_number (0),
-				      make_number (XSTRING (string)->size),
+				      make_number (SCHARS (string)),
 				      string, make_number (0),
-				      make_number (XSTRING (string)->size),
+				      make_number (SCHARS (string)),
 				      completion_ignore_case ? Qt : Qnil),
 	      EQ (Qt, tem)))
 	{
@@ -1553,7 +1553,7 @@ Completion ignores case if the ambient value of
 	{
 	  CHECK_NUMBER (position);
 	  /* Convert to distance from end of input.  */
-	  pos = XINT (position) - XSTRING (init)->size;
+	  pos = XINT (position) - SCHARS (init);
 	}
     }
 
@@ -1579,7 +1579,7 @@ Completion ignores case if the ambient value of
 		      histvar, histpos, def, 0,
 		      !NILP (inherit_input_method));
 
-  if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (def))
+  if (STRINGP (val) && SCHARS (val) == 0 && ! NILP (def))
     val = def;
 
   RETURN_UNGCPRO (unbind_to (count, val));
@@ -1613,9 +1613,9 @@ the values STRING, PREDICATE and `lambda'.  */)
     {
       /* Bypass intern-soft as that loses for nil.  */
       tem = oblookup (alist,
-		      XSTRING (string)->data,
-		      XSTRING (string)->size,
-		      STRING_BYTES (XSTRING (string)));
+		      SDATA (string),
+		      SCHARS (string),
+		      SBYTES (string));
       if (!SYMBOLP (tem))
 	{
 	  if (STRING_MULTIBYTE (string))
@@ -1624,9 +1624,9 @@ the values STRING, PREDICATE and `lambda'.  */)
 	    string = Fstring_make_multibyte (string);
 
 	  tem = oblookup (Vminibuffer_completion_table,
-			  XSTRING (string)->data,
-			  XSTRING (string)->size,
-			  STRING_BYTES (XSTRING (string)));
+			  SDATA (string),
+			  SCHARS (string),
+			  SBYTES (string));
 	  if (!SYMBOLP (tem))
 	    return Qnil;
 	}
@@ -1716,7 +1716,7 @@ do_completion ()
       /* Some completion happened */
 
       if (! NILP (Vminibuffer_completing_file_name)
-	  && XSTRING (completion)->data[STRING_BYTES (XSTRING (completion)) - 1] == '/'
+	  && SREF (completion, SBYTES (completion) - 1) == '/'
 	  && PT < ZV
 	  && FETCH_CHAR (PT_BYTE) == '/')
 	{
@@ -1963,9 +1963,9 @@ Return nil if there is no valid completion, else t.  */)
 
 #if 0 /* How the below code used to look, for reference. */
   tem = Fminibuffer_contents ();
-  b = XSTRING (tem)->data;
-  i = ZV - 1 - XSTRING (completion)->size;
-  p = XSTRING (completion)->data;
+  b = SDATA (tem);
+  i = ZV - 1 - SCHARS (completion);
+  p = SDATA (completion);
   if (i > 0 ||
       0 <= scmp (b, p, ZV - 1))
     {
@@ -1996,8 +1996,8 @@ Return nil if there is no valid completion, else t.  */)
 	    Finsert (1, &tem);
 	  }
       }
-    buffer_nchars = XSTRING (tem)->size; /* # chars in what we completed.  */
-    completion_nchars = XSTRING (completion)->size;
+    buffer_nchars = SCHARS (tem); /* # chars in what we completed.  */
+    completion_nchars = SCHARS (completion);
     i = buffer_nchars - completion_nchars;
     if (i > 0
 	||
@@ -2042,7 +2042,7 @@ Return nil if there is no valid completion, else t.  */)
 
   /* If completion finds next char not unique,
      consider adding a space or a hyphen. */
-  if (i == XSTRING (completion)->size)
+  if (i == SCHARS (completion))
     {
       GCPRO1 (completion);
       tem = Ftry_completion (concat2 (minibuffer_completion_contents (),
@@ -2072,9 +2072,9 @@ Return nil if there is no valid completion, else t.  */)
      i gets index in string of where to stop completing.  */
   {
     int len, c;
-    int bytes = STRING_BYTES (XSTRING (completion));
-    completion_string = XSTRING (completion)->data;
-    for (; i_byte < STRING_BYTES (XSTRING (completion)); i_byte += len, i++)
+    int bytes = SBYTES (completion);
+    completion_string = SDATA (completion);
+    for (; i_byte < SBYTES (completion); i_byte += len, i++)
       {
 	c = STRING_CHAR_AND_LENGTH (completion_string + i_byte,
 				    bytes - i_byte,
@@ -2100,7 +2100,7 @@ Return nil if there is no valid completion, else t.  */)
   /* Otherwise insert in minibuffer the chars we got */
 
   if (! NILP (Vminibuffer_completing_file_name)
-      && XSTRING (completion)->data[STRING_BYTES (XSTRING (completion)) - 1] == '/'
+      && SREF (completion, SBYTES (completion) - 1) == '/'
       && PT < ZV
       && FETCH_CHAR (PT_BYTE) == '/')
     {
@@ -2163,16 +2163,16 @@ It can find the completion buffer in `standard-output'.  */)
 	    {
 	      tem = XCAR (elt);
 	      CHECK_STRING (tem);
-	      length = XSTRING (tem)->size;
+	      length = SCHARS (tem);
 
 	      tem = Fcar (XCDR (elt));
 	      CHECK_STRING (tem);
-	      length += XSTRING (tem)->size;
+	      length += SCHARS (tem);
 	    }
 	  else
 	    {
 	      CHECK_STRING (elt);
-	      length = XSTRING (elt)->size;
+	      length = SCHARS (elt);
 	    }
 
 	  /* This does a bad job for narrower than usual windows.
@@ -2400,7 +2400,7 @@ or until the next input event arrives, whichever comes first.  */)
      (string)
      Lisp_Object string;
 {
-  temp_echo_area_glyphs (XSTRING (string)->data);
+  temp_echo_area_glyphs (SDATA (string));
   return Qnil;
 }
 

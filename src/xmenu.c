@@ -505,7 +505,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
   enabled = XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE];
   item_string = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME]; 
 
-  if (!NILP (map) && XSTRING (item_string)->data[0] == '@')
+  if (!NILP (map) && SREF (item_string, 0) == '@')
     {
       if (!NILP (enabled))
 	/* An enabled separate pane. Remember this to handle it later.  */
@@ -551,8 +551,8 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
 		  index++;		/* Skip a left, right divider. */
 		else
 		  {
-		    if (!submenu && XSTRING (tem)->data[0] != '\0'
-			&& XSTRING (tem)->data[0] != '-')
+		    if (!submenu && SREF (tem, 0) != '\0'
+			&& SREF (tem, 0) != '-')
 		      XVECTOR (menu_items)->contents[index + MENU_ITEMS_ITEM_NAME]
 			= concat2 (build_string ("    "), tem);
 		    index += MENU_ITEMS_ITEM_LENGTH;
@@ -568,8 +568,8 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
 	  prefix = build_string (NILP (selected) ? "( ) " : "(*) ");
       }
     /* Not a button. If we have earlier buttons, then we need a prefix.  */
-    else if (!*notbuttons_ptr && XSTRING (item_string)->data[0] != '\0'
-	     && XSTRING (item_string)->data[0] != '-')
+    else if (!*notbuttons_ptr && SREF (item_string, 0) != '\0'
+	     && SREF (item_string, 0) != '-')
       prefix = build_string ("    ");
 
     if (!NILP (prefix))
@@ -1453,7 +1453,7 @@ single_submenu (item_key, item_name, maps)
 	    }
 #endif
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) XSTRING (pane_name)->data);
+			 ? "" : (char *) SDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
@@ -1517,9 +1517,9 @@ single_submenu (item_key, item_name, maps)
 	  else
 	    save_wv->contents = wv;
 
-	  wv->name = (char *) XSTRING (item_name)->data;
+	  wv->name = (char *) SDATA (item_name);
 	  if (!NILP (descrip))
-	    wv->key = (char *) XSTRING (descrip)->data;
+	    wv->key = (char *) SDATA (descrip);
 	  wv->value = 0;
 	  /* The EMACS_INT cast avoids a warning.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
@@ -1753,7 +1753,7 @@ set_frame_menubar (f, first_time, deep_p)
 	  string = XVECTOR (items)->contents[i + 1];
 	  if (NILP (string))
 	    break;
-	  wv->name = (char *) XSTRING (string)->data;
+	  wv->name = (char *) SDATA (string);
 	  wv = wv->next;
 	}
 
@@ -1776,7 +1776,7 @@ set_frame_menubar (f, first_time, deep_p)
 	    break;
 
 	  wv = xmalloc_widget_value ();
-	  wv->name = (char *) XSTRING (string)->data;
+	  wv->name = (char *) SDATA (string);
 	  wv->value = 0;
 	  wv->enabled = 1;
 	  wv->button_type = BUTTON_TYPE_NONE;
@@ -2051,7 +2051,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	    }
 #endif
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) XSTRING (pane_name)->data);
+			 ? "" : (char *) SDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
@@ -2116,9 +2116,9 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	    prev_wv->next = wv;
 	  else 
 	    save_wv->contents = wv;
-	  wv->name = (char *) XSTRING (item_name)->data;
+	  wv->name = (char *) SDATA (item_name);
 	  if (!NILP (descrip))
-	    wv->key = (char *) XSTRING (descrip)->data;
+	    wv->key = (char *) SDATA (descrip);
 	  wv->value = 0;
 	  /* If this item has a null value,
 	     make the call_data null so that it won't display a box
@@ -2169,7 +2169,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	title = ENCODE_SYSTEM (title);
 #endif
       
-      wv_title->name = (char *) XSTRING (title)->data;
+      wv_title->name = (char *) SDATA (title);
       wv_title->enabled = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
       wv_title->next = wv_sep1;
@@ -2370,7 +2370,7 @@ xdialog_show (f, keymaps, title, error)
     pane_name = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_NAME];
     prefix = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_PREFIX];
     pane_string = (NILP (pane_name)
-		   ? "" : (char *) XSTRING (pane_name)->data);  
+		   ? "" : (char *) SDATA (pane_name));  
     prev_wv = xmalloc_widget_value ();
     prev_wv->value = pane_string;
     if (keymaps && !NILP (prefix))
@@ -2417,8 +2417,8 @@ xdialog_show (f, keymaps, title, error)
 	prev_wv->next = wv;
 	wv->name = (char *) button_names[nb_buttons];
 	if (!NILP (descrip))
-	  wv->key = (char *) XSTRING (descrip)->data;
-	wv->value = (char *) XSTRING (item_name)->data;
+	  wv->key = (char *) SDATA (descrip);
+	wv->value = (char *) SDATA (item_name);
 	wv->call_data = (void *) &XVECTOR (menu_items)->contents[i];
 	wv->enabled = !NILP (enable);
 	wv->help = Qnil;
@@ -2656,7 +2656,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	  pane_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_NAME];
 	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) XSTRING (pane_name)->data);
+			 ? "" : (char *) SDATA (pane_name));
 	  if (keymaps && !NILP (prefix))
 	    pane_string++;
 
@@ -2683,7 +2683,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 		  j++;
 		  continue;
 		}
-	      width = STRING_BYTES (XSTRING (item));
+	      width = SBYTES (item);
 	      if (width > maxwidth)
 		maxwidth = width;
 
@@ -2706,34 +2706,34 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	  descrip
 	    = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
 	  help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
-	  help_string = STRINGP (help) ? XSTRING (help)->data : NULL;
+	  help_string = STRINGP (help) ? SDATA (help) : NULL;
 	  
 	  if (!NILP (descrip))
 	    {
-	      int gap = maxwidth - STRING_BYTES (XSTRING (item_name));
+	      int gap = maxwidth - SBYTES (item_name);
 #ifdef C_ALLOCA
 	      Lisp_Object spacer;
 	      spacer = Fmake_string (make_number (gap), make_number (' '));
 	      item_name = concat2 (item_name, spacer);
 	      item_name = concat2 (item_name, descrip);
-	      item_data = XSTRING (item_name)->data;
+	      item_data = SDATA (item_name);
 #else
 	      /* if alloca is fast, use that to make the space,
 		 to reduce gc needs.  */
 	      item_data
 		= (unsigned char *) alloca (maxwidth
-					    + STRING_BYTES (XSTRING (descrip)) + 1);
-	      bcopy (XSTRING (item_name)->data, item_data,
-		     STRING_BYTES (XSTRING (item_name)));
-	      for (j = XSTRING (item_name)->size; j < maxwidth; j++)
+					    + SBYTES (descrip) + 1);
+	      bcopy (SDATA (item_name), item_data,
+		     SBYTES (item_name));
+	      for (j = SCHARS (item_name); j < maxwidth; j++)
 		item_data[j] = ' ';
-	      bcopy (XSTRING (descrip)->data, item_data + j,
-		     STRING_BYTES (XSTRING (descrip)));
-	      item_data[j + STRING_BYTES (XSTRING (descrip))] = 0;
+	      bcopy (SDATA (descrip), item_data + j,
+		     SBYTES (descrip));
+	      item_data[j + SBYTES (descrip)] = 0;
 #endif
 	    }
 	  else
-	    item_data = XSTRING (item_name)->data;
+	    item_data = SDATA (item_name);
 
 	  if (XMenuAddSelection (FRAME_X_DISPLAY (f),
 				 menu, lpane, 0, item_data,

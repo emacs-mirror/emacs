@@ -288,9 +288,9 @@ supply if the command inquires which events were used to invoke it.  */)
     {
       /* Make a copy of string so that if a GC relocates specs,
 	 `string' will still be valid.  */
-      string = (unsigned char *) alloca (STRING_BYTES (XSTRING (specs)) + 1);
-      bcopy (XSTRING (specs)->data, string,
-	     STRING_BYTES (XSTRING (specs)) + 1);
+      string = (unsigned char *) alloca (SBYTES (specs) + 1);
+      bcopy (SDATA (specs), string,
+	     SBYTES (specs) + 1);
     }
   else if (string == 0)
     {
@@ -453,7 +453,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	argstrings[j]
 	  = (EQ (visargs[j], Qnil)
 	     ? (unsigned char *) ""
-	     : XSTRING (visargs[j])->data);
+	     : SDATA (visargs[j]));
 
       /* Process the format-string in prompt1, putting the output
 	 into callint_message.  Make callint_message bigger if necessary.
@@ -599,7 +599,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	  if (next_event >= key_count)
 	    error ("%s must be bound to an event with parameters",
 		   (SYMBOLP (function)
-		    ? (char *) XSTRING (SYMBOL_NAME (function))->data
+		    ? (char *) SDATA (SYMBOL_NAME (function))
 		    : "command"));
 	  args[i] = XVECTOR (keys)->contents[next_event++];
 	  varies[i] = -1;
@@ -644,7 +644,7 @@ supply if the command inquires which events were used to invoke it.  */)
 		tem = Fread_from_minibuffer (build_string (callint_message),
 					     Qnil, Qnil, Qnil, Qnil, Qnil,
 					     Qnil);
-		if (! STRINGP (tem) || XSTRING (tem)->size == 0)
+		if (! STRINGP (tem) || SCHARS (tem) == 0)
 		  args[i] = Qnil;
 		else
 		  args[i] = Fread (tem);

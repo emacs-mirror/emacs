@@ -2048,7 +2048,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 
 	  if (NILP (path))
 	    return -1;
-	  if (posix_to_mac_pathname (XSTRING (path)->data, tempmacpathname,
+	  if (posix_to_mac_pathname (SDATA (path), tempmacpathname,
 				    MAXPATHLEN+1) == 0)
 	    return -1;
 	}
@@ -2529,7 +2529,7 @@ component.  */)
 
   CHECK_STRING (script);
   
-  status = do_applescript (XSTRING (script)->data, &result);
+  status = do_applescript (SDATA (script), &result);
   if (status)
     {
       if (!result)
@@ -2566,7 +2566,7 @@ DEFUN ("mac-file-name-to-posix", Fmac_file_name_to_posix,
 
   CHECK_STRING (mac_filename);
   
-  if (mac_to_posix_pathname (XSTRING (mac_filename)->data, posix_filename,
+  if (mac_to_posix_pathname (SDATA (mac_filename), posix_filename,
 			   MAXPATHLEN))
     return build_string (posix_filename);
   else
@@ -2584,7 +2584,7 @@ DEFUN ("posix-file-name-to-mac", Fposix_file_name_to_mac,
 
   CHECK_STRING (posix_filename);
   
-  if (posix_to_mac_pathname (XSTRING (posix_filename)->data, mac_filename,
+  if (posix_to_mac_pathname (SDATA (posix_filename), mac_filename,
 			   MAXPATHLEN))
     return build_string (mac_filename);
   else
@@ -2670,9 +2670,9 @@ DEFUN ("mac-cut-function", Fmac_cut_function, Smac_cut_function, 1, 2, 0,
 
   CHECK_STRING (value);
   
-  len = XSTRING (value)->size;
+  len = SCHARS (value);
   buf = (char *) alloca (len+1);
-  bcopy (XSTRING (value)->data, buf, len);
+  bcopy (SDATA (value), buf, len);
   buf[len] = '\0';
   
   /* convert to Mac-style eol's before sending to clipboard */

@@ -1062,7 +1062,7 @@ the front of KEYMAP.  */)
 	/* We must use Fkey_description rather than just passing key to
 	   error; key might be a vector, not a string.  */
 	error ("Key sequence %s uses invalid prefix characters",
-	       XSTRING (Fkey_description (key))->data);
+	       SDATA (Fkey_description (key)));
     }
 }
 
@@ -1223,8 +1223,8 @@ silly_event_symbol_error (c)
       error ((modifiers & ~meta_modifier
 	      ? "To bind the key %s, use [?%s], not [%s]"
 	      : "To bind the key %s, use \"%s\", not [%s]"),
-	     XSTRING (SYMBOL_NAME (c))->data, XSTRING (keystring)->data,
-	     XSTRING (SYMBOL_NAME (c))->data);
+	     SDATA (SYMBOL_NAME (c)), SDATA (keystring),
+	     SDATA (SYMBOL_NAME (c)));
     }
 }
 
@@ -1746,8 +1746,8 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 	      int i, i_byte, c;
 	      Lisp_Object copy;
 
-	      copy = Fmake_vector (make_number (XSTRING (prefix)->size), Qnil);
-	      for (i = 0, i_byte = 0; i < XSTRING (prefix)->size;)
+	      copy = Fmake_vector (make_number (SCHARS (prefix)), Qnil);
+	      for (i = 0, i_byte = 0; i < SCHARS (prefix);)
 		{
 		  int i_before = i;
 
@@ -1876,7 +1876,7 @@ spaces are put between sequence elements, etc.  */)
     {
       Lisp_Object vector;
       vector = Fmake_vector (Flength (keys), Qnil);
-      for (i = 0, i_byte = 0; i < XSTRING (keys)->size; )
+      for (i = 0, i_byte = 0; i < SCHARS (keys); )
 	{
 	  int c;
 	  int i_before = i;
@@ -2120,8 +2120,8 @@ around function keys and event symbols.  */)
       if (NILP (no_angles))
 	{
 	  char *buffer
-	    = (char *) alloca (STRING_BYTES (XSTRING (SYMBOL_NAME (key))) + 5);
-	  sprintf (buffer, "<%s>", XSTRING (SYMBOL_NAME (key))->data);
+	    = (char *) alloca (SBYTES (SYMBOL_NAME (key)) + 5);
+	  sprintf (buffer, "<%s>", SDATA (SYMBOL_NAME (key)));
 	  return build_string (buffer);
 	}
       else
@@ -2659,8 +2659,8 @@ You type        Translation\n\
   if (STRINGP (Vkeyboard_translate_table) && !NILP (prefix))
     {
       int c;
-      unsigned char *translate = XSTRING (Vkeyboard_translate_table)->data;
-      int translate_len = XSTRING (Vkeyboard_translate_table)->size;
+      unsigned char *translate = SDATA (Vkeyboard_translate_table);
+      int translate_len = SCHARS (Vkeyboard_translate_table);
 
       for (c = 0; c < translate_len; c++)
 	if (translate[c] != c)
@@ -2738,13 +2738,13 @@ You type        Translation\n\
 	  if (!SYMBOLP (modes[i]))
 	    abort();
 
-	  p = title = (char *) alloca (42 + XSTRING (SYMBOL_NAME (modes[i]))->size);
+	  p = title = (char *) alloca (42 + SCHARS (SYMBOL_NAME (modes[i])));
 	  *p++ = '\f';
 	  *p++ = '\n';
 	  *p++ = '`';
-	  bcopy (XSTRING (SYMBOL_NAME (modes[i]))->data, p,
-		 XSTRING (SYMBOL_NAME (modes[i]))->size);
-	  p += XSTRING (SYMBOL_NAME (modes[i]))->size;
+	  bcopy (SDATA (SYMBOL_NAME (modes[i])), p,
+		 SCHARS (SYMBOL_NAME (modes[i])));
+	  p += SCHARS (SYMBOL_NAME (modes[i]));
 	  *p++ = '\'';
 	  bcopy (" Minor Mode Bindings", p, sizeof (" Minor Mode Bindings") - 1);
 	  p += sizeof (" Minor Mode Bindings") - 1;
@@ -2875,7 +2875,7 @@ key             binding\n\
 
 	  /* If the sequence by which we reach this keymap is zero-length,
 	     then the shadow map for this keymap is just SHADOW.  */
-	  if ((STRINGP (prefix) && XSTRING (prefix)->size == 0)
+	  if ((STRINGP (prefix) && SCHARS (prefix) == 0)
 	      || (VECTORP (prefix) && XVECTOR (prefix)->size == 0))
 	    ;
 	  /* If the sequence by which we reach this keymap actually has
@@ -3361,8 +3361,8 @@ describe_vector (vector, elt_prefix, args, elt_describer,
 	      insert_string ("<");
 	      tem2 = CHARSET_TABLE_INFO (i - 128, CHARSET_SHORT_NAME_IDX);
 	      if (STRINGP (tem2))
-		insert_from_string (tem2, 0, 0, XSTRING (tem2)->size,
-				    STRING_BYTES (XSTRING (tem2)), 0);
+		insert_from_string (tem2, 0, 0, SCHARS (tem2),
+				    SBYTES (tem2), 0);
 	      else
 		insert ("?", 1);
 	      insert (">", 1);

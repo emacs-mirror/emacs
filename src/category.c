@@ -69,12 +69,12 @@ those categories.  */)
   if (STRING_MULTIBYTE (categories))
     error ("Multibyte string in make-category-set");
 
-  len = XSTRING (categories)->size;
+  len = SCHARS (categories);
   while (--len >= 0)
     {
       Lisp_Object category;
 
-      XSETFASTINT (category, XSTRING (categories)->data[len]);
+      XSETFASTINT (category, SREF (categories, len));
       CHECK_CATEGORY (category);
       SET_CATEGORY_SET (val, category, Qt);
     }

@@ -1111,7 +1111,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
     outgoing_nbytes = nchars;
   else if (! STRING_MULTIBYTE (string))
     outgoing_nbytes
-      = count_size_as_multibyte (&XSTRING (string)->data[pos_byte],
+      = count_size_as_multibyte (&SREF (string, pos_byte),
 				 nbytes);
 
   GCPRO1 (string);
@@ -1128,7 +1128,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 
   /* Copy the string text into the buffer, perhaps converting
      between single-byte and multibyte.  */
-  copy_text (XSTRING (string)->data + pos_byte, GPT_ADDR, nbytes,
+  copy_text (SDATA (string) + pos_byte, GPT_ADDR, nbytes,
 	     STRING_MULTIBYTE (string),
 	     ! NILP (current_buffer->enable_multibyte_characters));
 
@@ -1169,9 +1169,9 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 
   offset_intervals (current_buffer, PT, nchars);
 
-  intervals = XSTRING (string)->intervals;
+  intervals = STRING_INTERVALS (string);
   /* Get the intervals for the part of the string we are inserting.  */
-  if (nbytes < STRING_BYTES (XSTRING (string)))
+  if (nbytes < SBYTES (string))
     intervals = copy_intervals (intervals, pos, nchars);
 			       
   /* Insert those intervals.  */
@@ -1358,8 +1358,8 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
 
   if (STRINGP (prev_text))
     {
-      nchars_del = XSTRING (prev_text)->size;
-      nbytes_del = STRING_BYTES (XSTRING (prev_text));
+      nchars_del = SCHARS (prev_text);
+      nbytes_del = SBYTES (prev_text);
     }
 
   /* Update various buffer positions for the new text.  */
@@ -1493,8 +1493,8 @@ replace_range (from, to, new, prepare, inherit, markers)
      Lisp_Object new;
      int from, to, prepare, inherit, markers;
 {
-  int inschars = XSTRING (new)->size;
-  int insbytes = STRING_BYTES (XSTRING (new));
+  int inschars = SCHARS (new);
+  int insbytes = SBYTES (new);
   int from_byte, to_byte;
   int nbytes_del, nchars_del;
   register Lisp_Object temp;
@@ -1539,7 +1539,7 @@ replace_range (from, to, new, prepare, inherit, markers)
     outgoing_insbytes = inschars;
   else if (! STRING_MULTIBYTE (new))
     outgoing_insbytes
-      = count_size_as_multibyte (XSTRING (new)->data, insbytes);
+      = count_size_as_multibyte (SDATA (new), insbytes);
 
   /* Make sure point-max won't overflow after this insertion.  */
   XSETINT (temp, Z_BYTE - nbytes_del + insbytes);
@@ -1582,7 +1582,7 @@ replace_range (from, to, new, prepare, inherit, markers)
 
   /* Copy the string text into the buffer, perhaps converting
      between single-byte and multibyte.  */
-  copy_text (XSTRING (new)->data, GPT_ADDR, insbytes,
+  copy_text (SDATA (new), GPT_ADDR, insbytes,
 	     STRING_MULTIBYTE (new),
 	     ! NILP (current_buffer->enable_multibyte_characters));
 
@@ -1629,7 +1629,7 @@ replace_range (from, to, new, prepare, inherit, markers)
 
   /* Get the intervals for the part of the string we are inserting--
      not including the combined-before bytes.  */
-  intervals = XSTRING (new)->intervals;
+  intervals = STRING_INTERVALS (new);
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, from, inschars,
 			       current_buffer, inherit);

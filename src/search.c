@@ -128,16 +128,16 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
 
   if (multibyte == STRING_MULTIBYTE (pattern))
     {
-      raw_pattern = (unsigned char *) XSTRING (pattern)->data;
-      raw_pattern_size = STRING_BYTES (XSTRING (pattern));
+      raw_pattern = (unsigned char *) SDATA (pattern);
+      raw_pattern_size = SBYTES (pattern);
     }
   else if (multibyte)
     {
-      raw_pattern_size = count_size_as_multibyte (XSTRING (pattern)->data,
-						  XSTRING (pattern)->size);
+      raw_pattern_size = count_size_as_multibyte (SDATA (pattern),
+						  SCHARS (pattern));
       raw_pattern = (unsigned char *) alloca (raw_pattern_size + 1);
-      copy_text (XSTRING (pattern)->data, raw_pattern,
-		 XSTRING (pattern)->size, 0, 1);
+      copy_text (SDATA (pattern), raw_pattern,
+		 SCHARS (pattern), 0, 1);
     }
   else
     {
@@ -147,10 +147,10 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
 	 by subtracting nonascii-insert-offset from each non-ASCII char,
 	 so that only the multibyte chars which really correspond to
 	 the chosen single-byte character set can possibly match.  */
-      raw_pattern_size = XSTRING (pattern)->size;
+      raw_pattern_size = SCHARS (pattern);
       raw_pattern = (unsigned char *) alloca (raw_pattern_size + 1);
-      copy_text (XSTRING (pattern)->data, raw_pattern,
-		 STRING_BYTES (XSTRING (pattern)), 1, 0);
+      copy_text (SDATA (pattern), raw_pattern,
+		 SBYTES (pattern), 1, 0);
     }
 
   cp->regexp = Qnil;
@@ -217,7 +217,7 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
 	 should never appear before a non-nil entry.  */
       if (NILP (cp->regexp))
 	goto compile_it;
-      if (XSTRING (cp->regexp)->size == XSTRING (pattern)->size
+      if (SCHARS (cp->regexp) == SCHARS (pattern)
 	  && STRING_MULTIBYTE (cp->regexp) == STRING_MULTIBYTE (pattern)
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
 	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
@@ -372,7 +372,7 @@ string_match_1 (regexp, string, start, posix)
     pos = 0, pos_byte = 0;
   else
     {
-      int len = XSTRING (string)->size;
+      int len = SCHARS (string);
 
       CHECK_NUMBER (start);
       pos = XINT (start);
@@ -391,9 +391,9 @@ string_match_1 (regexp, string, start, posix)
   immediate_quit = 1;
   re_match_object = string;
   
-  val = re_search (bufp, (char *) XSTRING (string)->data,
-		   STRING_BYTES (XSTRING (string)), pos_byte,
-		   STRING_BYTES (XSTRING (string)) - pos_byte,
+  val = re_search (bufp, (char *) SDATA (string),
+		   SBYTES (string), pos_byte,
+		   SBYTES (string) - pos_byte,
 		   &search_regs);
   immediate_quit = 0;
   last_thing_searched = Qt;
@@ -456,9 +456,9 @@ fast_string_match (regexp, string)
   immediate_quit = 1;
   re_match_object = string;
   
-  val = re_search (bufp, (char *) XSTRING (string)->data,
-		   STRING_BYTES (XSTRING (string)), 0,
-		   STRING_BYTES (XSTRING (string)), 0);
+  val = re_search (bufp, (char *) SDATA (string),
+		   SBYTES (string), 0,
+		   SBYTES (string), 0);
   immediate_quit = 0;
   return val;
 }
@@ -939,8 +939,8 @@ static int
 trivial_regexp_p (regexp)
      Lisp_Object regexp;
 {
-  int len = STRING_BYTES (XSTRING (regexp));
-  unsigned char *s = XSTRING (regexp)->data;
+  int len = SBYTES (regexp);
+  unsigned char *s = SDATA (regexp);
   while (--len >= 0)
     {
       switch (*s++)
@@ -1011,8 +1011,8 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
      Lisp_Object inverse_trt;
      int posix;
 {
-  int len = XSTRING (string)->size;
-  int len_byte = STRING_BYTES (XSTRING (string));
+  int len = SCHARS (string);
+  int len_byte = SBYTES (string);
   register int i;
 
   if (running_asynch_code)
@@ -1136,7 +1136,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       int raw_pattern_size_byte;
       unsigned char *patbuf;
       int multibyte = !NILP (current_buffer->enable_multibyte_characters);
-      unsigned char *base_pat = XSTRING (string)->data;
+      unsigned char *base_pat = SDATA (string);
       int charset_base = -1;
       int boyer_moore_ok = 1;
 
@@ -1146,19 +1146,19 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 
       if (multibyte == STRING_MULTIBYTE (string))
 	{
-	  raw_pattern = (unsigned char *) XSTRING (string)->data;
-	  raw_pattern_size = XSTRING (string)->size;
-	  raw_pattern_size_byte = STRING_BYTES (XSTRING (string));
+	  raw_pattern = (unsigned char *) SDATA (string);
+	  raw_pattern_size = SCHARS (string);
+	  raw_pattern_size_byte = SBYTES (string);
 	}
       else if (multibyte)
 	{
-	  raw_pattern_size = XSTRING (string)->size;
+	  raw_pattern_size = SCHARS (string);
 	  raw_pattern_size_byte
-	    = count_size_as_multibyte (XSTRING (string)->data,
+	    = count_size_as_multibyte (SDATA (string),
 				       raw_pattern_size);
 	  raw_pattern = (unsigned char *) alloca (raw_pattern_size_byte + 1);
-	  copy_text (XSTRING (string)->data, raw_pattern,
-		     XSTRING (string)->size, 0, 1);
+	  copy_text (SDATA (string), raw_pattern,
+		     SCHARS (string), 0, 1);
 	}
       else
 	{
@@ -1168,11 +1168,11 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	     by subtracting nonascii-insert-offset from each non-ASCII char,
 	     so that only the multibyte chars which really correspond to
 	     the chosen single-byte character set can possibly match.  */
-	  raw_pattern_size = XSTRING (string)->size;
-	  raw_pattern_size_byte = XSTRING (string)->size;
+	  raw_pattern_size = SCHARS (string);
+	  raw_pattern_size_byte = SCHARS (string);
 	  raw_pattern = (unsigned char *) alloca (raw_pattern_size + 1);
-	  copy_text (XSTRING (string)->data, raw_pattern,
-		     STRING_BYTES (XSTRING (string)), 1, 0);
+	  copy_text (SDATA (string), raw_pattern,
+		     SBYTES (string), 1, 0);
 	}
 
       /* Copy and optionally translate the pattern.  */
@@ -1948,8 +1948,8 @@ wordify (string)
   int adjust;
 
   CHECK_STRING (string);
-  p = XSTRING (string)->data;
-  len = XSTRING (string)->size;
+  p = SDATA (string);
+  len = SCHARS (string);
 
   for (i = 0, i_byte = 0; i < len; )
     {
@@ -1975,12 +1975,12 @@ wordify (string)
   adjust = - punct_count + 5 * (word_count - 1) + 4;
   if (STRING_MULTIBYTE (string))
     val = make_uninit_multibyte_string (len + adjust,
-					STRING_BYTES (XSTRING (string))
+					SBYTES (string)
 					+ adjust);
   else
     val = make_uninit_string (len + adjust);
 
-  o = XSTRING (val)->data;
+  o = SDATA (val);
   *o++ = '\\';
   *o++ = 'b';
   prev_c = 0;
@@ -1994,7 +1994,7 @@ wordify (string)
 
       if (SYNTAX (c) == Sword)
 	{
-	  bcopy (&XSTRING (string)->data[i_byte_orig], o,
+	  bcopy (&SREF (string, i_byte_orig), o,
 		 i_byte - i_byte_orig);
 	  o += i_byte - i_byte_orig;
 	}
@@ -2242,7 +2242,7 @@ since only regular expressions have distinguished subexpressions.  */)
     {
       if (search_regs.start[sub] < 0
 	  || search_regs.start[sub] > search_regs.end[sub]
-	  || search_regs.end[sub] > XSTRING (string)->size)
+	  || search_regs.end[sub] > SCHARS (string))
 	args_out_of_range (make_number (search_regs.start[sub]),
 			   make_number (search_regs.end[sub]));
     }
@@ -2342,7 +2342,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  /* We build up the substituted string in ACCUM.  */
 	  Lisp_Object accum;
 	  Lisp_Object middle;
-	  int length = STRING_BYTES (XSTRING (newtext));
+	  int length = SBYTES (newtext);
 
 	  accum = Qnil;
 
@@ -2434,7 +2434,7 @@ since only regular expressions have distinguished subexpressions.  */)
      perform substitution on the replacement string.  */
   if (NILP (literal))
     {
-      int length = STRING_BYTES (XSTRING (newtext));
+      int length = SBYTES (newtext);
       unsigned char *substed;
       int substed_alloc_size, substed_len;
       int buf_multibyte = !NILP (current_buffer->enable_multibyte_characters);
@@ -2471,7 +2471,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  else
 	    {
 	      /* Note that we don't have to increment POS.  */
-	      c = XSTRING (newtext)->data[pos_byte++];
+	      c = SDATA (newtext)[pos_byte++];
 	      if (buf_multibyte)
 		c = unibyte_char_to_multibyte (c);
 	    }
@@ -2493,7 +2493,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		}
 	      else
 		{
-		  c = XSTRING (newtext)->data[pos_byte++];
+		  c = SREF (newtext, pos_byte++);
 		  if (buf_multibyte)
 		    c = unibyte_char_to_multibyte (c);
 		}
@@ -2558,7 +2558,7 @@ since only regular expressions have distinguished subexpressions.  */)
   /* Replace the old text with the new in the cleanest possible way.  */
   replace_range (search_regs.start[sub], search_regs.end[sub],
 		 newtext, 1, 0, 1);
-  newpoint = search_regs.start[sub] + XSTRING (newtext)->size;
+  newpoint = search_regs.start[sub] + SCHARS (newtext);
 
   if (case_action == all_caps)
     Fupcase_region (make_number (search_regs.start[sub]),
@@ -2849,12 +2849,12 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 
   CHECK_STRING (string);
 
-  temp = (unsigned char *) alloca (STRING_BYTES (XSTRING (string)) * 2);
+  temp = (unsigned char *) alloca (SBYTES (string) * 2);
 
   /* Now copy the data into the new string, inserting escapes. */
 
-  in = XSTRING (string)->data;
-  end = in + STRING_BYTES (XSTRING (string));
+  in = SDATA (string);
+  end = in + SBYTES (string);
   out = temp; 
 
   for (; in != end; in++)
@@ -2868,7 +2868,7 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
     }
 
   return make_specified_string (temp,
-				XSTRING (string)->size + backslashes_added,
+				SCHARS (string) + backslashes_added,
 				out - temp,
 				STRING_MULTIBYTE (string));
 }

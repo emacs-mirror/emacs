@@ -3698,7 +3698,7 @@ get_overlay_strings (it, charpos)
       it->stop_charpos = 0;
       xassert (STRINGP (it->string));
       it->end_charpos = SCHARS (it->string);
-      it->multibyte_p = SMBP (it->string);
+      it->multibyte_p = STRING_MULTIBYTE (it->string);
       it->method = next_element_from_string;
     }
   else
@@ -6102,9 +6102,9 @@ message_with_string (m, string, log)
 	  message = Fformat (2, args);
 
 	  if (log)
-	    message3 (message, SBYTES (message), SMBP (message));
+	    message3 (message, SBYTES (message), STRING_MULTIBYTE (message));
 	  else
-	    message3_nolog (message, SBYTES (message), SMBP (message));
+	    message3_nolog (message, SBYTES (message), STRING_MULTIBYTE (message));
 
 	  UNGCPRO;
 
@@ -6824,7 +6824,7 @@ restore_message ()
   xassert (CONSP (Vmessage_stack));
   msg = XCAR (Vmessage_stack);
   if (STRINGP (msg))
-    message3_nolog (msg, SBYTES (msg), SMBP (msg));
+    message3_nolog (msg, SBYTES (msg), STRING_MULTIBYTE (msg));
   else
     message3_nolog (msg, 0, 0);
 }

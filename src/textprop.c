@@ -776,7 +776,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
       if (NILP (position))
 	{
 	  if (NILP (limit))
-	    position = make_number (XSTRING (object)->size);
+	    position = make_number (SCHARS (object));
 	  else
 	    position = limit;
 	}
@@ -842,7 +842,7 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
       if (NILP (position))
 	{
 	  if (NILP (limit))
-	    position = make_number (XSTRING (object)->size);
+	    position = make_number (SCHARS (object));
 	  else
 	    position = limit;
 	}
@@ -935,7 +935,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 	
       if (NULL_INTERVAL_P (next))
 	XSETFASTINT (position, (STRINGP (object)
-				? XSTRING (object)->size
+				? SCHARS (object)
 				: BUF_ZV (XBUFFER (object))));
       else
 	XSETFASTINT (position, next->position);
@@ -955,7 +955,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
     return limit;
   if (NILP (limit))
     XSETFASTINT (limit, (STRINGP (object)
-			 ? XSTRING (object)->size
+			 ? SCHARS (object)
 			 : BUF_ZV (XBUFFER (object))));
   if (!(next->position < XFASTINT (limit)))
     return limit;
@@ -1035,7 +1035,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
     return limit;
   if (NILP (limit))
     XSETFASTINT (limit, (STRINGP (object)
-			 ? XSTRING (object)->size
+			 ? SCHARS (object)
 			 : BUF_ZV (XBUFFER (object))));
   if (!(next->position < XFASTINT (limit)))
     return limit;
@@ -1306,12 +1306,12 @@ set_text_properties (start, end, properties, object, signal_after_change_p)
      get rid of its intervals.  */
   if (NILP (properties) && STRINGP (object)
       && XFASTINT (start) == 0
-      && XFASTINT (end) == XSTRING (object)->size)
+      && XFASTINT (end) == SCHARS (object))
     {
-      if (! XSTRING (object)->intervals)
+      if (! STRING_INTERVALS (object))
 	return Qt;
 
-      XSTRING (object)->intervals = 0;
+      STRING_INTERVALS (object) = 0;
       return Qt;
     }
 

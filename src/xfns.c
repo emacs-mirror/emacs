@@ -636,7 +636,7 @@ x_create_bitmap_from_file (f, file)
     {
       if (dpyinfo->bitmaps[id].refcount
 	  && dpyinfo->bitmaps[id].file
-	  && !strcmp (dpyinfo->bitmaps[id].file, (char *) XSTRING (file)->data))
+	  && !strcmp (dpyinfo->bitmaps[id].file, (char *) SDATA (file)))
 	{
 	  ++dpyinfo->bitmaps[id].refcount;
 	  return id + 1;
@@ -649,7 +649,7 @@ x_create_bitmap_from_file (f, file)
     return -1;
   emacs_close (fd);
 
-  filename = (char *) XSTRING (found)->data;
+  filename = (char *) SDATA (found);
 
   result = XReadBitmapFile (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    filename, &width, &height, &bitmap, &xhot, &yhot);
@@ -660,11 +660,11 @@ x_create_bitmap_from_file (f, file)
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
   dpyinfo->bitmaps[id - 1].refcount = 1;
   dpyinfo->bitmaps[id - 1].file
-    = (char *) xmalloc (STRING_BYTES (XSTRING (file)) + 1);
+    = (char *) xmalloc (SBYTES (file) + 1);
   dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = height;
   dpyinfo->bitmaps[id - 1].width = width;
-  strcpy (dpyinfo->bitmaps[id - 1].file, XSTRING (file)->data);
+  strcpy (dpyinfo->bitmaps[id - 1].file, SDATA (file));
 
   return id;
 }
@@ -1385,9 +1385,9 @@ x_decode_color (f, color_name, mono_color)
 #if 0 /* Don't do this.  It's wrong when we're not using the default
 	 colormap, it makes freeing difficult, and it's probably not
 	 an important optimization.  */
-  if (strcmp (XSTRING (color_name)->data, "black") == 0)
+  if (strcmp (SDATA (color_name), "black") == 0)
     return BLACK_PIX_DEFAULT (f);
-  else if (strcmp (XSTRING (color_name)->data, "white") == 0)
+  else if (strcmp (SDATA (color_name), "white") == 0)
     return WHITE_PIX_DEFAULT (f);
 #endif
 
@@ -1397,7 +1397,7 @@ x_decode_color (f, color_name, mono_color)
 
   /* x_defined_color is responsible for coping with failures
      by looking for a near-miss.  */
-  if (x_defined_color (f, XSTRING (color_name)->data, &cdef, 1))
+  if (x_defined_color (f, SDATA (color_name), &cdef, 1))
     return cdef.pixel;
 
   Fsignal (Qerror, Fcons (build_string ("Undefined color"),
@@ -1914,9 +1914,9 @@ x_set_icon_type (f, arg, oldval)
   BLOCK_INPUT;
   if (NILP (arg))
     result = x_text_icon (f,
-			  (char *) XSTRING ((!NILP (f->icon_name)
+			  (char *) SDATA ((!NILP (f->icon_name)
 					     ? f->icon_name
-					     : f->name))->data);
+					     : f->name)));
   else
     result = x_bitmap_icon (f, arg);
 
@@ -1968,11 +1968,11 @@ x_set_icon_name (f, arg, oldval)
   BLOCK_INPUT;
 
   result = x_text_icon (f,
-			(char *) XSTRING ((!NILP (f->icon_name)
-					   ? f->icon_name
-					   : !NILP (f->title)
-					   ? f->title
-					   : f->name))->data);
+			(char *) SDATA ((!NILP (f->icon_name)
+					 ? f->icon_name
+					 : !NILP (f->title)
+					 ? f->title
+					 : f->name)));
 
   if (result)
     {
@@ -2000,12 +2000,12 @@ x_set_font (f, arg, oldval)
 
   BLOCK_INPUT;
   result = (STRINGP (fontset_name)
-	    ? x_new_fontset (f, XSTRING (fontset_name)->data)
-	    : x_new_font (f, XSTRING (arg)->data));
+	    ? x_new_fontset (f, SDATA (fontset_name))
+	    : x_new_font (f, SDATA (arg)));
   UNBLOCK_INPUT;
   
   if (EQ (result, Qnil))
-    error ("Font `%s' is not defined", XSTRING (arg)->data);
+    error ("Font `%s' is not defined", SDATA (arg));
   else if (EQ (result, Qt))
     error ("The characters of the given font have varying widths");
   else if (STRINGP (result))
@@ -2375,9 +2375,9 @@ x_encode_text (string, coding_system, selectionp, text_bytes, stringp)
      int *text_bytes, *stringp;
      int selectionp;
 {
-  unsigned char *str = XSTRING (string)->data;
-  int chars = XSTRING (string)->size;
-  int bytes = STRING_BYTES (XSTRING (string));
+  unsigned char *str = SDATA (string);
+  int chars = SCHARS (string);
+  int bytes = SBYTES (string);
   int charset_info;
   int bufsize;
   unsigned char *buf;
@@ -2399,9 +2399,9 @@ x_encode_text (string, coding_system, selectionp, text_bytes, stringp)
       && !NILP (Ffboundp (coding.pre_write_conversion)))
     {
       string = run_pre_post_conversion_on_str (string, &coding, 1);
-      str = XSTRING (string)->data;
-      chars = XSTRING (string)->size;
-      bytes = STRING_BYTES (XSTRING (string));
+      str = SDATA (string);
+      chars = SCHARS (string);
+      bytes = SBYTES (string);
     }
   coding.src_multibyte = 1;
   coding.dst_multibyte = 0;
@@ -2458,7 +2458,7 @@ x_set_name (f, name, explicit)
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
       if (!strcmp (FRAME_X_DISPLAY_INFO (f)->x_id_name,
-		   XSTRING (f->name)->data))
+		   SDATA (f->name)))
 	return;
       name = build_string (FRAME_X_DISPLAY_INFO (f)->x_id_name);
     }
@@ -2517,16 +2517,16 @@ x_set_name (f, name, explicit)
 	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &icon);
 #endif /* not USE_X_TOOLKIT */
 	if (!NILP (f->icon_name)
-	    && icon.value != XSTRING (f->icon_name)->data)
+	    && icon.value != SDATA (f->icon_name))
 	  xfree (icon.value);
-	if (text.value != XSTRING (name)->data)
+	if (text.value != SDATA (name))
 	  xfree (text.value);
       }
 #else /* not HAVE_X11R4 */
       XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    XSTRING (name)->data);
+		    SDATA (name));
       XStoreName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  XSTRING (name)->data);
+		  SDATA (name));
 #endif /* not HAVE_X11R4 */
       UNBLOCK_INPUT;
     }
@@ -2624,16 +2624,16 @@ x_set_title (f, name, old_name)
 	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &icon);
 #endif /* not USE_X_TOOLKIT */
 	if (!NILP (f->icon_name)
-	    && icon.value != XSTRING (f->icon_name)->data)
+	    && icon.value != SDATA (f->icon_name))
 	  xfree (icon.value);
-	if (text.value != XSTRING (name)->data)
+	if (text.value != SDATA (name))
 	  xfree (text.value);
       }
 #else /* not HAVE_X11R4 */
       XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    XSTRING (name)->data);
+		    SDATA (name));
       XStoreName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  XSTRING (name)->data);
+		  SDATA (name));
 #endif /* not HAVE_X11R4 */
       UNBLOCK_INPUT;
     }
@@ -2758,10 +2758,10 @@ validate_x_resource_name ()
 
   if (STRINGP (Vx_resource_name))
     {
-      unsigned char *p = XSTRING (Vx_resource_name)->data;
+      unsigned char *p = SDATA (Vx_resource_name);
       int i;
 
-      len = STRING_BYTES (XSTRING (Vx_resource_name));
+      len = SBYTES (Vx_resource_name);
 
       /* Only letters, digits, - and _ are valid in resource names.
 	 Count the valid characters and count the invalid ones.  */
@@ -2800,12 +2800,12 @@ validate_x_resource_name ()
 
   for (i = 0; i < len; i++)
     {
-      int c = XSTRING (new)->data[i];
+      int c = SREF (new, i);
       if (! ((c >= 'a' && c <= 'z')
 	     || (c >= 'A' && c <= 'Z')
 	     || (c >= '0' && c <= '9')
 	     || c == '-' || c == '_'))
-	XSTRING (new)->data[i] = '_';
+	SREF (new, i) = '_';
     }
 }
 
@@ -2845,37 +2845,37 @@ and the class is `Emacs.CLASS.SUBCLASS'.  */)
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  Make them big enough for the worst case.  */
-  name_key = (char *) alloca (STRING_BYTES (XSTRING (Vx_resource_name))
+  name_key = (char *) alloca (SBYTES (Vx_resource_name)
 			      + (STRINGP (component)
-				 ? STRING_BYTES (XSTRING (component)) : 0)
-			      + STRING_BYTES (XSTRING (attribute))
+				 ? SBYTES (component) : 0)
+			      + SBYTES (attribute)
 			      + 3);
 
-  class_key = (char *) alloca (STRING_BYTES (XSTRING (Vx_resource_class))
-			       + STRING_BYTES (XSTRING (class))
+  class_key = (char *) alloca (SBYTES (Vx_resource_class)
+			       + SBYTES (class)
 			       + (STRINGP (subclass)
-				  ? STRING_BYTES (XSTRING (subclass)) : 0)
+				  ? SBYTES (subclass) : 0)
 			       + 3);
 
   /* Start with emacs.FRAMENAME for the name (the specific one)
      and with `Emacs' for the class key (the general one).  */
-  strcpy (name_key, XSTRING (Vx_resource_name)->data);
-  strcpy (class_key, XSTRING (Vx_resource_class)->data);
+  strcpy (name_key, SDATA (Vx_resource_name));
+  strcpy (class_key, SDATA (Vx_resource_class));
 
   strcat (class_key, ".");
-  strcat (class_key, XSTRING (class)->data);
+  strcat (class_key, SDATA (class));
 
   if (!NILP (component))
     {
       strcat (class_key, ".");
-      strcat (class_key, XSTRING (subclass)->data);
+      strcat (class_key, SDATA (subclass));
 
       strcat (name_key, ".");
-      strcat (name_key, XSTRING (component)->data);
+      strcat (name_key, SDATA (component));
     }
 
   strcat (name_key, ".");
-  strcat (name_key, XSTRING (attribute)->data);
+  strcat (name_key, SDATA (attribute));
 
   value = x_get_string_resource (check_x_display_info (Qnil)->xrdb,
 				 name_key, class_key);
@@ -2911,37 +2911,37 @@ display_x_get_resource (dpyinfo, attribute, class, component, subclass)
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  Make them big enough for the worst case.  */
-  name_key = (char *) alloca (STRING_BYTES (XSTRING (Vx_resource_name))
+  name_key = (char *) alloca (SBYTES (Vx_resource_name)
 			      + (STRINGP (component)
-				 ? STRING_BYTES (XSTRING (component)) : 0)
-			      + STRING_BYTES (XSTRING (attribute))
+				 ? SBYTES (component) : 0)
+			      + SBYTES (attribute)
 			      + 3);
 
-  class_key = (char *) alloca (STRING_BYTES (XSTRING (Vx_resource_class))
-			       + STRING_BYTES (XSTRING (class))
+  class_key = (char *) alloca (SBYTES (Vx_resource_class)
+			       + SBYTES (class)
 			       + (STRINGP (subclass)
-				  ? STRING_BYTES (XSTRING (subclass)) : 0)
+				  ? SBYTES (subclass) : 0)
 			       + 3);
 
   /* Start with emacs.FRAMENAME for the name (the specific one)
      and with `Emacs' for the class key (the general one).  */
-  strcpy (name_key, XSTRING (Vx_resource_name)->data);
-  strcpy (class_key, XSTRING (Vx_resource_class)->data);
+  strcpy (name_key, SDATA (Vx_resource_name));
+  strcpy (class_key, SDATA (Vx_resource_class));
 
   strcat (class_key, ".");
-  strcat (class_key, XSTRING (class)->data);
+  strcat (class_key, SDATA (class));
 
   if (!NILP (component))
     {
       strcat (class_key, ".");
-      strcat (class_key, XSTRING (subclass)->data);
+      strcat (class_key, SDATA (subclass));
 
       strcat (name_key, ".");
-      strcat (name_key, XSTRING (component)->data);
+      strcat (name_key, SDATA (component));
     }
 
   strcat (name_key, ".");
-  strcat (name_key, XSTRING (attribute)->data);
+  strcat (name_key, SDATA (attribute));
 
   value = x_get_string_resource (dpyinfo->xrdb, name_key, class_key);
 
@@ -2963,13 +2963,13 @@ x_get_resource_string (attribute, class)
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  */
-  name_key = (char *) alloca (STRING_BYTES (XSTRING (Vinvocation_name))
+  name_key = (char *) alloca (SBYTES (Vinvocation_name)
 			      + strlen (attribute) + 2);
   class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
 			       + strlen (class) + 2);
 
   sprintf (name_key, "%s.%s",
-	   XSTRING (Vinvocation_name)->data,
+	   SDATA (Vinvocation_name),
 	   attribute);
   sprintf (class_key, "%s.%s", EMACS_CLASS, class);
 
@@ -3027,15 +3027,15 @@ x_get_arg (dpyinfo, alist, param, attribute, class, type)
 	  switch (type)
 	    {
 	    case RES_TYPE_NUMBER:
-	      return make_number (atoi (XSTRING (tem)->data));
+	      return make_number (atoi (SDATA (tem)));
 
 	    case RES_TYPE_FLOAT:
-	      return make_float (atof (XSTRING (tem)->data));
+	      return make_float (atof (SDATA (tem)));
 
 	    case RES_TYPE_BOOLEAN:
 	      tem = Fdowncase (tem);
-	      if (!strcmp (XSTRING (tem)->data, "on")
-		  || !strcmp (XSTRING (tem)->data, "true"))
+	      if (!strcmp (SDATA (tem), "on")
+		  || !strcmp (SDATA (tem), "true"))
 		return Qt;
 	      else 
 		return Qnil;
@@ -3049,11 +3049,11 @@ x_get_arg (dpyinfo, alist, param, attribute, class, type)
 	      {
 		Lisp_Object lower;
 		lower = Fdowncase (tem);
-		if (!strcmp (XSTRING (lower)->data, "on")
-		    || !strcmp (XSTRING (lower)->data, "true"))
+		if (!strcmp (SDATA (lower), "on")
+		    || !strcmp (SDATA (lower), "true"))
 		  return Qt;
-		else if (!strcmp (XSTRING (lower)->data, "off")
-		      || !strcmp (XSTRING (lower)->data, "false"))
+		else if (!strcmp (SDATA (lower), "off")
+		      || !strcmp (SDATA (lower), "false"))
 		  return Qnil;
 		else
 		  return Fintern (tem, Qnil);
@@ -3186,7 +3186,7 @@ or a list (- N) meaning -N pixels relative to bottom/right corner.  */)
 
   CHECK_STRING (string);
 
-  geometry = XParseGeometry ((char *) XSTRING (string)->data,
+  geometry = XParseGeometry ((char *) SDATA (string),
 			     &x, &y, &width, &height);
 
 #if 0
@@ -3559,7 +3559,7 @@ create_frame_xic (f)
 	{
 	  /* Determine the base fontname from the ASCII font name of
 	     FONTSET.  */
-	  char *ascii_font = (char *) XSTRING (fontset_ascii (fontset))->data;
+	  char *ascii_font = (char *) SDATA (fontset_ascii (fontset));
 	  char *p = ascii_font;
 	  int i;
 
@@ -3780,7 +3780,7 @@ x_window (f, window_prompting, minibuffer_only)
      Elsewhere we specify the window name for the window manager.  */
      
   {
-    char *str = (char *) XSTRING (Vx_resource_name)->data;
+    char *str = (char *) SDATA (Vx_resource_name);
     f->namebuf = (char *) xmalloc (strlen (str) + 1);
     strcpy (f->namebuf, str);
   }
@@ -3913,8 +3913,8 @@ x_window (f, window_prompting, minibuffer_only)
 
   validate_x_resource_name ();
 
-  class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
-  class_hints.res_class = (char *) XSTRING (Vx_resource_class)->data;
+  class_hints.res_name = (char *) SDATA (Vx_resource_name);
+  class_hints.res_class = (char *) SDATA (Vx_resource_class);
   XSetClassHint (FRAME_X_DISPLAY (f), XtWindow (shell_widget), &class_hints);
 
 #ifdef HAVE_X_I18N
@@ -4041,8 +4041,8 @@ x_window (f)
   
   validate_x_resource_name ();
 
-  class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
-  class_hints.res_class = (char *) XSTRING (Vx_resource_class)->data;
+  class_hints.res_name = (char *) SDATA (Vx_resource_name);
+  class_hints.res_class = (char *) SDATA (Vx_resource_class);
   XSetClassHint (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &class_hints);
 
   /* The menubar is part of the ordinary display;
@@ -4129,9 +4129,9 @@ x_icon (f, parms)
 	 ? IconicState
 	 : NormalState));
 
-  x_text_icon (f, (char *) XSTRING ((!NILP (f->icon_name)
+  x_text_icon (f, (char *) SDATA ((!NILP (f->icon_name)
 				     ? f->icon_name
-				     : f->name))->data);
+				     : f->name)));
 
   UNBLOCK_INPUT;
 }
@@ -4464,9 +4464,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
       {
 	tem = Fquery_fontset (font, Qnil);
 	if (STRINGP (tem))
-	  font = x_new_fontset (f, XSTRING (tem)->data);
+	  font = x_new_fontset (f, SDATA (tem));
 	else
-	  font = x_new_font (f, XSTRING (font)->data);
+	  font = x_new_font (f, SDATA (font));
       }
     
     /* Try out a font which we hope has bold and italic variations.  */
@@ -4780,7 +4780,7 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
 
   CHECK_STRING (color);
 
-  if (x_defined_color (f, XSTRING (color)->data, &foo, 0))
+  if (x_defined_color (f, SDATA (color), &foo, 0))
     return Qt;
   else
     return Qnil;
@@ -4796,7 +4796,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
 
   CHECK_STRING (color);
 
-  if (x_defined_color (f, XSTRING (color)->data, &foo, 0))
+  if (x_defined_color (f, SDATA (color), &foo, 0))
     {
       Lisp_Object rgb[3];
 
@@ -5207,12 +5207,12 @@ select_visual (dpyinfo)
       /* VALUE should be of the form CLASS-DEPTH, where CLASS is one
 	 of `PseudoColor', `TrueColor' etc. and DEPTH is the color
 	 depth, a decimal number.  NAME is compared with case ignored.  */
-      char *s = (char *) alloca (STRING_BYTES (XSTRING (value)) + 1);
+      char *s = (char *) alloca (SBYTES (value) + 1);
       char *dash;
       int i, class = -1;
       XVisualInfo vinfo;
 
-      strcpy (s, XSTRING (value)->data);
+      strcpy (s, SDATA (value));
       dash = index (s, '-');
       if (dash)
 	{
@@ -5236,7 +5236,7 @@ select_visual (dpyinfo)
       if (class == -1
 	  || !XMatchVisualInfo (dpy, XScreenNumberOfScreen (screen),
 				dpyinfo->n_planes, class, &vinfo))
-	fatal ("Invalid visual specification `%s'", XSTRING (value)->data);
+	fatal ("Invalid visual specification `%s'", SDATA (value));
       
       dpyinfo->visual = vinfo.visual;
     }
@@ -5295,10 +5295,10 @@ x_display_info_for_name (name)
   validate_x_resource_name ();
 
   dpyinfo = x_term_init (name, (char *)0,
-			 (char *) XSTRING (Vx_resource_name)->data);
+			 (char *) SDATA (Vx_resource_name));
 
   if (dpyinfo == 0)
-    error ("Cannot connect to X server %s", XSTRING (name)->data);
+    error ("Cannot connect to X server %s", SDATA (name));
 
   x_in_use = 1;
   XSETFASTINT (Vwindow_system_version, 11);
@@ -5328,7 +5328,7 @@ terminate Emacs if we can't open the connection.  */)
     error ("Not using X Windows");
 
   if (! NILP (xrm_string))
-    xrm_option = (unsigned char *) XSTRING (xrm_string)->data;
+    xrm_option = (unsigned char *) SDATA (xrm_string);
   else
     xrm_option = (unsigned char *) 0;
 
@@ -5337,7 +5337,7 @@ terminate Emacs if we can't open the connection.  */)
   /* This is what opens the connection and sets x_current_display.
      This also initializes many symbols, such as those used for input.  */
   dpyinfo = x_term_init (display, xrm_option,
-			 (char *) XSTRING (Vx_resource_name)->data);
+			 (char *) SDATA (Vx_resource_name));
 
   if (dpyinfo == 0)
     {
@@ -5346,9 +5346,9 @@ terminate Emacs if we can't open the connection.  */)
 Check the DISPLAY environment variable or use `-d'.\n\
 Also use the `xhost' program to verify that it is set to permit\n\
 connections from your machine.\n",
-	       XSTRING (display)->data);
+	       SDATA (display));
       else
-	error ("Cannot connect to X server %s", XSTRING (display)->data);
+	error ("Cannot connect to X server %s", SDATA (display));
     }
 
   x_in_use = 1;
@@ -5662,7 +5662,7 @@ parse_image_spec (spec, keywords, nkeywords, type)
 
       /* Find key in KEYWORDS.  Error if not found.  */
       for (i = 0; i < nkeywords; ++i)
-	if (strcmp (keywords[i].name, XSTRING (SYMBOL_NAME (key))->data) == 0)
+	if (strcmp (keywords[i].name, SDATA (SYMBOL_NAME (key))) == 0)
 	  break;
 
       if (i == nkeywords)
@@ -6142,7 +6142,7 @@ x_alloc_image_color (f, img, color_name, dflt)
 
   xassert (STRINGP (color_name));
 
-  if (x_defined_color (f, XSTRING (color_name)->data, &color, 1))
+  if (x_defined_color (f, SDATA (color_name), &color, 1))
     {
       /* This isn't called frequently so we get away with simply
 	 reallocating the color vector to the needed size, here.  */
@@ -6880,7 +6880,7 @@ xbm_image_p (object)
 
 	      if (STRINGP (elt))
 		{
-		  if (XSTRING (elt)->size
+		  if (SCHARS (elt)
 		      < (width + BITS_PER_CHAR - 1) / BITS_PER_CHAR)
 		    return 0;
 		}
@@ -6895,7 +6895,7 @@ xbm_image_p (object)
 	}
       else if (STRINGP (data))
 	{
-	  if (XSTRING (data)->size
+	  if (SCHARS (data)
 	      < (width + BITS_PER_CHAR - 1) / BITS_PER_CHAR * height)
 	    return 0;
 	}
@@ -7225,9 +7225,9 @@ xbm_file_p (data)
 {
   int w, h;
   return (STRINGP (data)
-	  && xbm_read_bitmap_data (XSTRING (data)->data,
-				   (XSTRING (data)->data
-				    + STRING_BYTES (XSTRING (data))),
+	  && xbm_read_bitmap_data (SDATA (data),
+				   (SDATA (data)
+				    + SBYTES (data)),
 				   &w, &h, NULL));
 }
 
@@ -7263,7 +7263,7 @@ xbm_load (f, img)
 	  return 0;
 	}
 
-      contents = slurp_file (XSTRING (file)->data, &size);
+      contents = slurp_file (SDATA (file), &size);
       if (contents == NULL)
 	{
 	  image_error ("Error loading XBM image `%s'", img->spec, Qnil);
@@ -7313,9 +7313,9 @@ xbm_load (f, img)
 					  background);
 
       if (in_memory_file_p)
-	success_p = xbm_load_image (f, img, XSTRING (data)->data,
-				    (XSTRING (data)->data
-				     + STRING_BYTES (XSTRING (data))));
+	success_p = xbm_load_image (f, img, SDATA (data),
+				    (SDATA (data)
+				     + SBYTES (data)));
       else
 	{
 	  if (VECTORP (data))
@@ -7329,13 +7329,13 @@ xbm_load (f, img)
 		{
 		  Lisp_Object line = XVECTOR (data)->contents[i];
 		  if (STRINGP (line))
-		    bcopy (XSTRING (line)->data, p, nbytes);
+		    bcopy (SDATA (line), p, nbytes);
 		  else
 		    bcopy (XBOOL_VECTOR (line)->data, p, nbytes);
 		}
 	    }
 	  else if (STRINGP (data))
-	    bits = XSTRING (data)->data;
+	    bits = SDATA (data);
 	  else
 	    bits = XBOOL_VECTOR (data)->data;
 
@@ -7737,10 +7737,10 @@ xpm_load (f, img)
 	{
 	  Lisp_Object name = XCAR (XCAR (tail));
 	  Lisp_Object color = XCDR (XCAR (tail));
-	  xpm_syms[i].name = (char *) alloca (XSTRING (name)->size + 1);
-	  strcpy (xpm_syms[i].name, XSTRING (name)->data);
-	  xpm_syms[i].value = (char *) alloca (XSTRING (color)->size + 1);
-	  strcpy (xpm_syms[i].value, XSTRING (color)->data);
+	  xpm_syms[i].name = (char *) alloca (SCHARS (name) + 1);
+	  strcpy (xpm_syms[i].name, SDATA (name));
+	  xpm_syms[i].value = (char *) alloca (SCHARS (color) + 1);
+	  strcpy (xpm_syms[i].value, SDATA (color));
 	}
     }
 
@@ -7761,14 +7761,14 @@ xpm_load (f, img)
 	}
       
       rc = XpmReadFileToPixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				XSTRING (file)->data, &img->pixmap, &img->mask,
+				SDATA (file), &img->pixmap, &img->mask,
 				&attrs);
     }
   else
     {
       Lisp_Object buffer = image_spec_value (img->spec, QCdata, NULL);
       rc = XpmCreatePixmapFromBuffer (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				      XSTRING (buffer)->data,
+				      SDATA (buffer),
 				      &img->pixmap, &img->mask,
 				      &attrs);
     }
@@ -8568,7 +8568,7 @@ pbm_load (f, img)
 	  return 0;
 	}
 
-      contents = slurp_file (XSTRING (file)->data, &size);
+      contents = slurp_file (SDATA (file), &size);
       if (contents == NULL)
 	{
 	  image_error ("Error reading `%s'", file, Qnil);
@@ -8583,8 +8583,8 @@ pbm_load (f, img)
     {
       Lisp_Object data;
       data = image_spec_value (img->spec, QCdata, NULL);
-      p = XSTRING (data)->data;
-      end = p + STRING_BYTES (XSTRING (data));
+      p = SDATA (data);
+      end = p + SBYTES (data);
     }
 
   /* Check magic number.  */
@@ -8933,7 +8933,7 @@ png_load (f, img)
 	}
 
       /* Open the image file.  */
-      fp = fopen (XSTRING (file)->data, "rb");
+      fp = fopen (SDATA (file), "rb");
       if (!fp)
 	{
 	  image_error ("Cannot open image file `%s'", file, Qnil);
@@ -8955,8 +8955,8 @@ png_load (f, img)
   else
     {
       /* Read from memory.  */
-      tbr.bytes = XSTRING (specified_data)->data;
-      tbr.len = STRING_BYTES (XSTRING (specified_data));
+      tbr.bytes = SDATA (specified_data);
+      tbr.len = SBYTES (specified_data);
       tbr.index = 0;
 
       /* Check PNG signature.  */
@@ -9079,7 +9079,7 @@ png_load (f, img)
 	/* The user specified `:background', use that.  */
 	{
 	  XColor color;
-	  if (x_defined_color (f, XSTRING (specified_bg)->data, &color, 0))
+	  if (x_defined_color (f, SDATA (specified_bg), &color, 0))
 	    {
 	      png_color_16 user_bg;
 
@@ -9499,7 +9499,7 @@ jpeg_load (f, img)
 	  return 0;
 	}
   
-      fp = fopen (XSTRING (file)->data, "r");
+      fp = fopen (SDATA (file), "r");
       if (fp == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
@@ -9546,8 +9546,8 @@ jpeg_load (f, img)
   if (NILP (specified_data))
     jpeg_stdio_src (&cinfo, (FILE *) fp);
   else
-    jpeg_memory_src (&cinfo, XSTRING (specified_data)->data,
-		     STRING_BYTES (XSTRING (specified_data)));
+    jpeg_memory_src (&cinfo, SDATA (specified_data),
+		     SBYTES (specified_data));
 
   jpeg_read_header (&cinfo, TRUE);
 
@@ -9893,7 +9893,7 @@ tiff_load (f, img)
 	}
 	  
       /* Try to open the image file.  */
-      tiff = TIFFOpen (XSTRING (file)->data, "r");
+      tiff = TIFFOpen (SDATA (file), "r");
       if (tiff == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
@@ -9904,8 +9904,8 @@ tiff_load (f, img)
   else
     {
       /* Memory source! */
-      memsrc.bytes = XSTRING (specified_data)->data;
-      memsrc.len = STRING_BYTES (XSTRING (specified_data));
+      memsrc.bytes = SDATA (specified_data);
+      memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
       tiff = TIFFClientOpen ("memory_source", "r", &memsrc,
@@ -10142,7 +10142,7 @@ gif_load (f, img)
 	}
   
       /* Open the GIF file.  */
-      gif = DGifOpenFileName (XSTRING (file)->data);
+      gif = DGifOpenFileName (SDATA (file));
       if (gif == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
@@ -10154,8 +10154,8 @@ gif_load (f, img)
     {
       /* Read from memory! */
       current_gif_memory_src = &memsrc;
-      memsrc.bytes = XSTRING (specified_data)->data;
-      memsrc.len = STRING_BYTES (XSTRING (specified_data));
+      memsrc.bytes = SDATA (specified_data);
+      memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
       gif = DGifOpen(&memsrc, gif_read_from_memory);
@@ -10605,10 +10605,10 @@ selected frame.  Value is VALUE.  */)
   CHECK_STRING (value);
 
   BLOCK_INPUT;
-  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), XSTRING (prop)->data, False);
+  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SDATA (prop), False);
   XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		   prop_atom, XA_STRING, 8, PropModeReplace,
-		   XSTRING (value)->data, XSTRING (value)->size);
+		   SDATA (value), SCHARS (value));
 
   /* Make sure the property is set when we return.  */
   XFlush (FRAME_X_DISPLAY (f));
@@ -10630,7 +10630,7 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
 
   CHECK_STRING (prop);
   BLOCK_INPUT;
-  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), XSTRING (prop)->data, False);
+  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SDATA (prop), False);
   XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), prop_atom);
 
   /* Make sure the property is removed when we return.  */
@@ -10661,7 +10661,7 @@ value.  */)
 
   CHECK_STRING (prop);
   BLOCK_INPUT;
-  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), XSTRING (prop)->data, False);
+  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SDATA (prop), False);
   rc = XGetWindowProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			   prop_atom, 0, 0, False, XA_STRING,
 			   &actual_type, &actual_format, &actual_size,
@@ -11054,9 +11054,9 @@ x_create_tip_frame (dpyinfo, parms, text)
       {
 	tem = Fquery_fontset (font, Qnil);
 	if (STRINGP (tem))
-	  font = x_new_fontset (f, XSTRING (tem)->data);
+	  font = x_new_fontset (f, SDATA (tem));
 	else
-	  font = x_new_font (f, XSTRING (font)->data);
+	  font = x_new_font (f, SDATA (font));
       }
     
     /* Try out a font which we hope has bold and italic variations.  */
@@ -11620,10 +11620,10 @@ selection dialog's entry field, if MUSTMATCH is non-nil.  */)
   /* Create the dialog with PROMPT as title, using DIR as initial
      directory and using "*" as pattern.  */
   dir = Fexpand_file_name (dir, Qnil);
-  dir_xmstring = XmStringCreateLocalized (XSTRING (dir)->data);
+  dir_xmstring = XmStringCreateLocalized (SDATA (dir));
   pattern_xmstring = XmStringCreateLocalized ("*");
     
-  XtSetArg (al[ac], XmNtitle, XSTRING (prompt)->data); ++ac;
+  XtSetArg (al[ac], XmNtitle, SDATA (prompt)); ++ac;
   XtSetArg (al[ac], XmNdirectory, dir_xmstring); ++ac;
   XtSetArg (al[ac], XmNpattern, pattern_xmstring); ++ac;
   XtSetArg (al[ac], XmNresizePolicy, XmRESIZE_GROW); ++ac;
@@ -11674,7 +11674,7 @@ selection dialog's entry field, if MUSTMATCH is non-nil.  */)
       int item_pos;
 
       default_xmstring
-	= XmStringCreateLocalized (XSTRING (default_filename)->data);
+	= XmStringCreateLocalized (SDATA (default_filename));
 
       if (!XmListItemExists (list, default_xmstring))
 	{

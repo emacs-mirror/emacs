@@ -344,8 +344,8 @@ Returns the abbrev symbol, if expansion took place.  */)
 
       del_range_both (wordstart, wordstart_byte, wordend, wordend_byte, 1);
 
-      insert_from_string (expansion, 0, 0, XSTRING (expansion)->size,
-			  STRING_BYTES (XSTRING (expansion)), 1);
+      insert_from_string (expansion, 0, 0, SCHARS (expansion),
+			  SBYTES (expansion), 1);
       SET_PT (PT + whitecnt);
 
       if (uccount && !lccount)
@@ -427,11 +427,11 @@ is not undone.  */)
       if (!STRINGP (val))
 	error ("value of abbrev-symbol must be a string");
       zv_before = ZV;
-      del_range_byte (PT_BYTE, PT_BYTE + STRING_BYTES (XSTRING (val)), 1);
+      del_range_byte (PT_BYTE, PT_BYTE + SBYTES (val), 1);
       /* Don't inherit properties here; just copy from old contents.  */
       insert_from_string (Vlast_abbrev_text, 0, 0,
-			  XSTRING (Vlast_abbrev_text)->size,
-			  STRING_BYTES (XSTRING (Vlast_abbrev_text)), 0);
+			  SCHARS (Vlast_abbrev_text),
+			  SBYTES (Vlast_abbrev_text), 0);
       Vlast_abbrev_text = Qnil;
       /* Total number of characters deleted.  */
       adjust = ZV - zv_before;

@@ -379,7 +379,7 @@ add_window_display_history (w, msg, paused_p)
 	   w,
 	   ((BUFFERP (w->buffer)
 	     && STRINGP (XBUFFER (w->buffer)->name))
-	    ? (char *) XSTRING (XBUFFER (w->buffer)->name)->data
+	    ? (char *) SDATA (XBUFFER (w->buffer)->name)
 	    : "???"),
 	   paused_p ? " ***paused***" : "");
   strcat (buf, msg);
@@ -6058,7 +6058,7 @@ FILE = nil means just close any termscript file currently open.  */)
   if (! NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
-      termscript = fopen (XSTRING (file)->data, "w");
+      termscript = fopen (SDATA (file), "w");
       if (termscript == 0)
 	report_file_error ("Opening termscript", Fcons (file, Qnil));
     }
@@ -6075,11 +6075,11 @@ Control characters in STRING will have terminal-dependent effects.  */)
 {
   /* ??? Perhaps we should do something special for multibyte strings here.  */
   CHECK_STRING (string);
-  fwrite (XSTRING (string)->data, 1, STRING_BYTES (XSTRING (string)), stdout);
+  fwrite (SDATA (string), 1, SBYTES (string), stdout);
   fflush (stdout);
   if (termscript)
     {
-      fwrite (XSTRING (string)->data, 1, STRING_BYTES (XSTRING (string)),
+      fwrite (SDATA (string), 1, SBYTES (string),
 	      termscript);
       fflush (termscript);
     }
@@ -6330,7 +6330,7 @@ the current state.  */)
     {
       buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
-      if (XSTRING (XBUFFER (buf)->name)->data[0] == ' ')
+      if (SREF (XBUFFER (buf)->name, 0) == ' ')
 	continue;
       if (!EQ (*vecp++, buf))
 	goto changed;
@@ -6364,7 +6364,7 @@ the current state.  */)
     {
       buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
-      if (XSTRING (XBUFFER (buf)->name)->data[0] == ' ')
+      if (SREF (XBUFFER (buf)->name, 0) == ' ')
 	continue;
       *vecp++ = buf;
       *vecp++ = XBUFFER (buf)->read_only;

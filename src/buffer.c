@@ -193,7 +193,7 @@ nsberror (spec)
      Lisp_Object spec;
 {
   if (STRINGP (spec))
-    error ("No buffer named %s", XSTRING (spec)->data);
+    error ("No buffer named %s", SDATA (spec));
   error ("Invalid buffer argument");
 }
 
@@ -341,7 +341,7 @@ The value is never nil.  */)
   if (!NILP (buf))
     return buf;
 
-  if (XSTRING (name)->size == 0)
+  if (SCHARS (name) == 0)
     error ("Empty string for buffer name is not allowed");
 
   b = (struct buffer *) allocate_buffer ();
@@ -397,10 +397,10 @@ The value is never nil.  */)
   b->zv_marker = Qnil;
 
   name = Fcopy_sequence (name);
-  XSTRING (name)->intervals = NULL_INTERVAL;
+  STRING_INTERVALS (name) = NULL_INTERVAL;
   b->name = name;
 
-  if (XSTRING (name)->data[0] != ' ')
+  if (SREF (name, 0) != ' ')
     b->undo_list = Qnil;
   else
     b->undo_list = Qt;
@@ -520,13 +520,13 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
 
   buf = Fget_buffer (name);
   if (!NILP (buf))
-    error ("Buffer name `%s' is in use", XSTRING (name)->data);
+    error ("Buffer name `%s' is in use", SDATA (name));
 
   base_buffer = Fget_buffer (base_buffer);
   if (NILP (base_buffer))
-    error ("No such buffer: `%s'", XSTRING (name)->data);
+    error ("No such buffer: `%s'", SDATA (name));
 
-  if (XSTRING (name)->size == 0)
+  if (SCHARS (name) == 0)
     error ("Empty string for buffer name is not allowed");
 
   b = (struct buffer *) allocate_buffer ();
@@ -556,7 +556,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   all_buffers = b;
 
   name = Fcopy_sequence (name);
-  XSTRING (name)->intervals = NULL_INTERVAL;
+  STRING_INTERVALS (name) = NULL_INTERVAL;
   b->name = name;
 
   reset_buffer (b);
@@ -1091,7 +1091,7 @@ This does not change the name of the visited file (if any).  */)
 
   CHECK_STRING (newname);
 
-  if (XSTRING (newname)->size == 0)
+  if (SCHARS (newname) == 0)
     error ("Empty string is invalid as a buffer name");
 
   tem = Fget_buffer (newname);
@@ -1106,7 +1106,7 @@ This does not change the name of the visited file (if any).  */)
       if (!NILP (unique))
 	newname = Fgenerate_new_buffer_name (newname, current_buffer->name);
       else
-	error ("Buffer name `%s' is in use", XSTRING (newname)->data);
+	error ("Buffer name `%s' is in use", SDATA (newname));
     }
 
   current_buffer->name = newname;
@@ -1163,7 +1163,7 @@ If BUFFER is omitted or nil, some interesting buffer is returned.  */)
       buf = Fcdr (Fcar (tail));
       if (EQ (buf, buffer))
 	continue;
-      if (XSTRING (XBUFFER (buf)->name)->data[0] == ' ')
+      if (SDATA (XBUFFER (buf)->name)[0] == ' ')
 	continue;
       /* If the selected frame has a buffer_predicate,
 	 disregard buffers that don't fit the predicate.  */
@@ -1289,7 +1289,7 @@ with SIGHUP.  */)
     {
       GCPRO1 (buf);
       tem = do_yes_or_no_p (format1 ("Buffer %s modified; kill anyway? ",
-				     XSTRING (b->name)->data));
+				     SDATA (b->name)));
       UNGCPRO;
       if (NILP (tem))
 	return Qnil;
@@ -1535,7 +1535,7 @@ the current buffer's major mode.  */)
   Lisp_Object function;
 
   if (STRINGP (XBUFFER (buffer)->name)
-      && strcmp (XSTRING (XBUFFER (buffer)->name)->data, "*scratch*") == 0)
+      && strcmp (SDATA (XBUFFER (buffer)->name), "*scratch*") == 0)
     function = find_symbol_value (intern ("initial-major-mode"));
   else
     {
@@ -2883,24 +2883,24 @@ record_overlay_string (ssl, str, str2, pri, size)
   ssl->used++;
 
   if (NILP (current_buffer->enable_multibyte_characters))
-    nbytes = XSTRING (str)->size;
+    nbytes = SCHARS (str);
   else if (! STRING_MULTIBYTE (str))
-    nbytes = count_size_as_multibyte (XSTRING (str)->data,
-				      STRING_BYTES (XSTRING (str)));
+    nbytes = count_size_as_multibyte (SDATA (str),
+				      SBYTES (str));
   else
-    nbytes = STRING_BYTES (XSTRING (str));
+    nbytes = SBYTES (str);
 
   ssl->bytes += nbytes;
 
   if (STRINGP (str2))
     {
       if (NILP (current_buffer->enable_multibyte_characters))
-	nbytes = XSTRING (str2)->size;
+	nbytes = SCHARS (str2);
       else if (! STRING_MULTIBYTE (str2))
-	nbytes = count_size_as_multibyte (XSTRING (str2)->data,
-					  STRING_BYTES (XSTRING (str2)));
+	nbytes = count_size_as_multibyte (SDATA (str2),
+					  SBYTES (str2));
       else
-	nbytes = STRING_BYTES (XSTRING (str2));
+	nbytes = SBYTES (str2);
 
       ssl->bytes += nbytes;
     }
@@ -3012,8 +3012,8 @@ overlay_strings (pos, w, pstr)
 	{
 	  int nbytes;
 	  tem = overlay_tails.buf[i].string;
-	  nbytes = copy_text (XSTRING (tem)->data, p,
-			      STRING_BYTES (XSTRING (tem)),
+	  nbytes = copy_text (SDATA (tem), p,
+			      SBYTES (tem),
 			      STRING_MULTIBYTE (tem), multibyte);
 	  p += nbytes;
 	}
@@ -3021,15 +3021,15 @@ overlay_strings (pos, w, pstr)
 	{
 	  int nbytes;
 	  tem = overlay_heads.buf[i].string;
-	  nbytes = copy_text (XSTRING (tem)->data, p,
-			      STRING_BYTES (XSTRING (tem)),
+	  nbytes = copy_text (SDATA (tem), p,
+			      SBYTES (tem),
 			      STRING_MULTIBYTE (tem), multibyte);
 	  p += nbytes;
 	  tem = overlay_heads.buf[i].string2;
 	  if (STRINGP (tem))
 	    {
-	      nbytes = copy_text (XSTRING (tem)->data, p,
-				  STRING_BYTES (XSTRING (tem)),
+	      nbytes = copy_text (SDATA (tem), p,
+				  SBYTES (tem),
 				  STRING_MULTIBYTE (tem), multibyte);
 	      p += nbytes;
 	    }
@@ -4282,7 +4282,7 @@ buffer_slot_type_mismatch (offset)
 
   sym = PER_BUFFER_SYMBOL (offset);
   error ("Only %s should be stored in the buffer-local variable %s",
-	 type_name, XSTRING (SYMBOL_NAME (sym))->data);
+	 type_name, SDATA (SYMBOL_NAME (sym)));
 }
 
 
@@ -5066,7 +5066,7 @@ init_buffer ()
 	 because of the ange-ftp completion handler.
 	 However, it is not necessary to turn / into /:/.
 	 So avoid doing that.  */
-      && strcmp ("/", XSTRING (current_buffer->directory)->data))
+      && strcmp ("/", SDATA (current_buffer->directory)))
     current_buffer->directory
       = concat2 (build_string ("/:"), current_buffer->directory);
 

@@ -501,12 +501,12 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
   BLOCK_INPUT;
 
-  nbytes = STRING_BYTES (XSTRING (string));
-  src = XSTRING (string)->data;
+  nbytes = SBYTES (string);
+  src = SDATA (string);
 
   /* Since we are now handling multilingual text, we must consider
      encoding text for the clipboard.  */
-  charset_info = find_charset_in_text (src, XSTRING (string)->size, nbytes,
+  charset_info = find_charset_in_text (src, SCHARS (string), nbytes,
 				       NULL, Qnil);
 
   if (charset_info == 0)
@@ -531,8 +531,8 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 	  && !NILP (Ffboundp (coding.pre_write_conversion)))
 	{
 	  string = run_pre_post_conversion_on_str (string, &coding, 1);
-	  src = XSTRING (string)->data;
-	  nbytes = STRING_BYTES (XSTRING (string));
+	  src = SDATA (string);
+	  nbytes = SBYTES (string);
 	}
       coding.src_multibyte = 1;
       coding.dst_multibyte = 0;

@@ -855,7 +855,7 @@ echo_now ()
   echoing = 1;
   message3_nolog (current_kboard->echo_string,
 		  SBYTES (current_kboard->echo_string),
-		  SMBP (current_kboard->echo_string));
+		  STRING_MULTIBYTE (current_kboard->echo_string));
   echoing = 0;
 
   /* Record in what buffer we echoed, and from which kboard.  */
@@ -1204,7 +1204,7 @@ cmd_error_internal (data, context)
 	 *Messages*.  */
       if (!NILP (Vsignaling_function) && SYMBOLP (Vsignaling_function))
 	{
-	  char *name = XSTRING (SYMBOL_NAME (Vsignaling_function))->data;
+	  char *name = SDATA (SYMBOL_NAME (Vsignaling_function));
 	  message_dolog (name, strlen (name), 0, 0);
 	  message_dolog (": ", 2, 0, 0);
 	  Vsignaling_function = Qnil;
@@ -2111,14 +2111,14 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
 		Vpre_help_message = current_message ();
 	      
 	      specbind (Qmessage_truncate_lines, Qt);
-	      message3_nolog (help, STRING_BYTES (XSTRING (help)),
+	      message3_nolog (help, SBYTES (help),
 			      STRING_MULTIBYTE (help));
 	      unbind_to (count, Qnil);
 	    }
 	  else if (STRINGP (Vpre_help_message))
 	    {
 	      message3_nolog (Vpre_help_message,
-			      STRING_BYTES (XSTRING (Vpre_help_message)),
+			      SBYTES (Vpre_help_message),
 			      STRING_MULTIBYTE (Vpre_help_message));
 	      Vpre_help_message = Qnil;
 	    }
@@ -2745,7 +2745,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	RETURN_UNGCPRO (c);
 
       if ((STRINGP (Vkeyboard_translate_table)
-	   && XSTRING (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
+	   && SCHARS (Vkeyboard_translate_table) > (unsigned) XFASTINT (c))
 	  || (VECTORP (Vkeyboard_translate_table)
 	      && XVECTOR (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
 	  || (CHAR_TABLE_P (Vkeyboard_translate_table)
@@ -3161,8 +3161,8 @@ record_char (c)
 	  if (SYMBOLP (dribblee))
 	    {
 	      putc ('<', dribble);
-	      fwrite (XSTRING (SYMBOL_NAME (dribblee))->data, sizeof (char),
-		      STRING_BYTES (XSTRING (SYMBOL_NAME (dribblee))),
+	      fwrite (SDATA (SYMBOL_NAME (dribblee)), sizeof (char),
+		      SBYTES (SYMBOL_NAME (dribblee)),
 		      dribble);
 	      putc ('>', dribble);
 	    }
@@ -4929,7 +4929,7 @@ make_lispy_event (event)
 		    if (NILP (string))
 		      break;
 		    if (column >= XINT (pos)
-			&& column < XINT (pos) + XSTRING (string)->size)
+			&& column < XINT (pos) + SCHARS (string))
 		      {
 			item = AREF (items, i);
 			break;
@@ -5703,8 +5703,8 @@ apply_modifiers_uncached (modifiers, base, base_len, base_len_byte)
 
     new_name = make_uninit_multibyte_string (mod_len + base_len,
 					     mod_len + base_len_byte);
-    bcopy (new_mods, XSTRING (new_name)->data,	       mod_len);
-    bcopy (base,     XSTRING (new_name)->data + mod_len, base_len_byte);
+    bcopy (new_mods, SDATA (new_name),	       mod_len);
+    bcopy (base,     SDATA (new_name) + mod_len, base_len_byte);
 
     return Fintern (new_name, Qnil);
   }
@@ -5762,8 +5762,8 @@ parse_modifiers (symbol)
       Lisp_Object unmodified;
       Lisp_Object mask;
 
-      unmodified = Fintern (make_string (XSTRING (SYMBOL_NAME (symbol))->data + end,
-					 STRING_BYTES (XSTRING (SYMBOL_NAME (symbol))) - end),
+      unmodified = Fintern (make_string (SDATA (SYMBOL_NAME (symbol)) + end,
+					 SBYTES (SYMBOL_NAME (symbol)) - end),
 			    Qnil);
 
       if (modifiers & ~VALMASK)
@@ -5816,9 +5816,9 @@ apply_modifiers (modifiers, base)
     {
       /* We have to create the symbol ourselves.  */
       new_symbol = apply_modifiers_uncached (modifiers,
-					     XSTRING (SYMBOL_NAME (base))->data,
-					     XSTRING (SYMBOL_NAME (base))->size,
-					     STRING_BYTES (XSTRING (SYMBOL_NAME (base))));
+					     SDATA (SYMBOL_NAME (base)),
+					     SCHARS (SYMBOL_NAME (base)),
+					     SBYTES (SYMBOL_NAME (base)));
 
       /* Add the new symbol to the base's cache.  */
       entry = Fcons (index, new_symbol);
@@ -5956,9 +5956,9 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist_or_stem,
 	value = Fcdr_safe (Fassq (symbol_int, name_alist_or_stem));
       else if (STRINGP (name_alist_or_stem))
 	{
-	  int len = STRING_BYTES (XSTRING (name_alist_or_stem));
+	  int len = SBYTES (name_alist_or_stem);
 	  char *buf = (char *) alloca (len + 50);
-	  sprintf (buf, "%s-%d", XSTRING (name_alist_or_stem)->data,
+	  sprintf (buf, "%s-%d", SDATA (name_alist_or_stem),
 		   XINT (symbol_int) + 1);
 	  value = intern (buf);
 	}
@@ -6039,8 +6039,8 @@ has the same base event type and all the specified modifiers.  */)
     }
 
   /* Let the symbol A refer to the character A.  */
-  if (SYMBOLP (base) && XSTRING (SYMBOL_NAME (base))->size == 1)
-    XSETINT (base, XSTRING (SYMBOL_NAME (base))->data[0]);
+  if (SYMBOLP (base) && SCHARS (SYMBOL_NAME (base)) == 1)
+    XSETINT (base, SDATA (SYMBOL_NAME (base))[0]);
 
   if (INTEGERP (base))
     {
@@ -7720,8 +7720,8 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
     return Qnil;
 
   /* Prompt string always starts with map's prompt, and a space.  */
-  strcpy (menu, XSTRING (name)->data);
-  nlength = STRING_BYTES (XSTRING (name));
+  strcpy (menu, SDATA (name));
+  nlength = SBYTES (name);
   menu[nlength++] = ':';
   menu[nlength++] = ' ';
   menu[nlength] = 0;
@@ -7799,8 +7799,8 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 
 		  upcased_event = Fupcase (event);
 		  downcased_event = Fdowncase (event);
-		  char_matches = (XINT (upcased_event) == XSTRING (s)->data[0]
-				  || XINT (downcased_event) == XSTRING (s)->data[0]);
+		  char_matches = (XINT (upcased_event) == SREF (s, 0)
+				  || XINT (downcased_event) == SREF (s, 0));
 		  if (! char_matches)
 		    desc = Fsingle_key_description (event, Qnil);
 
@@ -7829,8 +7829,8 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 
 		  /* If we have room for the prompt string, add it to this line.
 		     If this is the first on the line, always add it.  */
-		  if ((XSTRING (s)->size + i + 2
-		       + (char_matches ? 0 : XSTRING (desc)->size + 3))
+		  if ((SCHARS (s) + i + 2
+		       + (char_matches ? 0 : SCHARS (desc) + 3))
 		      < width
 		      || !notfirst)
 		    {
@@ -7850,20 +7850,20 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 		      if (! char_matches)
 			{
 			  /* Add as much of string as fits.  */
-			  thiswidth = XSTRING (desc)->size;
+			  thiswidth = SCHARS (desc);
 			  if (thiswidth + i > width)
 			    thiswidth = width - i;
-			  bcopy (XSTRING (desc)->data, menu + i, thiswidth);
+			  bcopy (SDATA (desc), menu + i, thiswidth);
 			  i += thiswidth;
 			  strcpy (menu + i, " = ");
 			  i += 3;
 			}
 
 		      /* Add as much of string as fits.  */
-		      thiswidth = XSTRING (s)->size;
+		      thiswidth = SCHARS (s);
 		      if (thiswidth + i > width)
 			thiswidth = width - i;
-		      bcopy (XSTRING (s)->data, menu + i, thiswidth);
+		      bcopy (SDATA (s), menu + i, thiswidth);
 		      i += thiswidth;
 		      menu[i] = 0;
 		    }
@@ -8594,7 +8594,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		      pos = XCDR (string);
 		      string = XCAR (string);
                       if (XINT (pos) >= 0
-			  && XINT (pos) < XSTRING (string)->size)
+			  && XINT (pos) < SCHARS (string))
                         {
                           map = Fget_text_property (pos, Qlocal_map, string);
                           if (!NILP (map))
@@ -8622,7 +8622,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		  pos = XCDR (string);
 		  string = XCAR (string);
 		  if (XINT (pos) >= 0
-		      && XINT (pos) < XSTRING (string)->size)
+		      && XINT (pos) < SCHARS (string))
 		    {
 		      map = Fget_text_property (pos, Qlocal_map, string);
 		      if (!NILP (map))
@@ -8923,7 +8923,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 		      for (i = 0; i < len; i++)
 			XSETFASTINT (keybuf[fkey_start + i],
-				     XSTRING (fkey_next)->data[i]);
+				     SREF (fkey_next, i));
 		    }
 
 		  mock_input = t;
@@ -9462,7 +9462,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 			       Qt, Qnil, Qextended_command_history, Qnil,
 			       Qnil);
 
-  if (STRINGP (function) && XSTRING (function)->size == 0)
+  if (STRINGP (function) && SCHARS (function) == 0)
     error ("No command name given");
 
   /* Set this_command_keys to the concatenation of saved_keys and
@@ -9538,12 +9538,12 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	  binding = Fkey_description (bindings);
 
 	  newmessage
-	    = (char *) alloca (XSTRING (SYMBOL_NAME (function))->size
-			       + STRING_BYTES (XSTRING (binding))
+	    = (char *) alloca (SCHARS (SYMBOL_NAME (function))
+			       + SBYTES (binding)
 			       + 100);
 	  sprintf (newmessage, "You can run the command `%s' with %s",
-		   XSTRING (SYMBOL_NAME (function))->data,
-		   XSTRING (binding)->data);
+		   SDATA (SYMBOL_NAME (function)),
+		   SDATA (binding));
 	  message2_nolog (newmessage,
 			  strlen (newmessage),
 			  STRING_MULTIBYTE (binding));
@@ -9769,7 +9769,7 @@ If FILE is nil, close any open dribble file.  */)
   if (!NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
-      dribble = fopen (XSTRING (file)->data, "w");
+      dribble = fopen (SDATA (file), "w");
       if (dribble == 0)
 	report_file_error ("Opening dribble", Fcons (file, Qnil));
     }
@@ -9869,8 +9869,8 @@ stuff_buffered_input (stuffstring)
     {
       register int count;
 
-      p = XSTRING (stuffstring)->data;
-      count = STRING_BYTES (XSTRING (stuffstring));
+      p = SDATA (stuffstring);
+      count = SBYTES (stuffstring);
       while (count-- > 0)
 	stuff_char (*p++);
       stuff_char ('\n');

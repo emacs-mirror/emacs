@@ -311,7 +311,7 @@ interned in the initial obarray.  */)
      Lisp_Object object;
 {
   if (SYMBOLP (object)
-      && XSTRING (SYMBOL_NAME (object))->data[0] == ':'
+      && SREF (SYMBOL_NAME (object), 0) == ':'
       && SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P (object))
     return Qt;
   return Qnil;
@@ -873,7 +873,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 	  *XINTFWD (valcontents)->intvar = XINT (newval);
 	  if (*XINTFWD (valcontents)->intvar != XINT (newval))
 	    error ("Value out of range for variable `%s'",
-		   XSTRING (SYMBOL_NAME (symbol))->data);
+		   SDATA (SYMBOL_NAME (symbol)));
 	  break;
 
 	case Lisp_Misc_Boolfwd:
@@ -891,7 +891,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 
 	    type = PER_BUFFER_TYPE (offset);
 	    if (XINT (type) == -1)
-	      error ("Variable %s is read-only", XSTRING (SYMBOL_NAME (symbol))->data);
+	      error ("Variable %s is read-only", SDATA (SYMBOL_NAME (symbol)));
 
 	    if (! NILP (type) && ! NILP (newval)
 		&& XTYPE (newval) != XINT (type))
@@ -1447,7 +1447,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
-    error ("Symbol %s may not be buffer-local", XSTRING (SYMBOL_NAME (variable))->data);
+    error ("Symbol %s may not be buffer-local", SDATA (SYMBOL_NAME (variable)));
 
   if (BUFFER_LOCAL_VALUEP (valcontents) || BUFFER_OBJFWDP (valcontents))
     return variable;
@@ -1500,7 +1500,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
-    error ("Symbol %s may not be buffer-local", XSTRING (SYMBOL_NAME (variable))->data);
+    error ("Symbol %s may not be buffer-local", SDATA (SYMBOL_NAME (variable)));
 
   if (BUFFER_LOCAL_VALUEP (valcontents) || BUFFER_OBJFWDP (valcontents))
     {
@@ -1643,7 +1643,7 @@ See `modify-frame-parameters'.  */)
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents)
       || BUFFER_OBJFWDP (valcontents))
-    error ("Symbol %s may not be frame-local", XSTRING (SYMBOL_NAME (variable))->data);
+    error ("Symbol %s may not be frame-local", SDATA (SYMBOL_NAME (variable)));
 
   if (BUFFER_LOCAL_VALUEP (valcontents)
       || SOME_BUFFER_LOCAL_VALUEP (valcontents))
@@ -1827,14 +1827,14 @@ or a byte-code object.  IDX starts at 0.  */)
     {
       int c, idxval_byte;
 
-      if (idxval < 0 || idxval >= XSTRING (array)->size)
+      if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
       if (! STRING_MULTIBYTE (array))
-	return make_number ((unsigned char) XSTRING (array)->data[idxval]);
+	return make_number ((unsigned char) SREF (array, idxval));
       idxval_byte = string_char_to_byte (array, idxval);
 
-      c = STRING_CHAR (&XSTRING (array)->data[idxval_byte],
-		       STRING_BYTES (XSTRING (array)) - idxval_byte);
+      c = STRING_CHAR (&SREF (array, idxval_byte),
+		       SBYTES (array) - idxval_byte);
       return make_number (c);
     }
   else if (BOOL_VECTOR_P (array))
@@ -2026,29 +2026,29 @@ IDX starts at 0.  */)
       int idxval_byte, prev_bytes, new_bytes;
       unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
 
-      if (idxval < 0 || idxval >= XSTRING (array)->size)
+      if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
       CHECK_NUMBER (newelt);
 
       idxval_byte = string_char_to_byte (array, idxval);
-      p1 = &XSTRING (array)->data[idxval_byte];
+      p1 = &SREF (array, idxval_byte);
       PARSE_MULTIBYTE_SEQ (p1, nbytes - idxval_byte, prev_bytes);
       new_bytes = CHAR_STRING (XINT (newelt), p0);
       if (prev_bytes != new_bytes)
 	{
 	  /* We must relocate the string data.  */
-	  int nchars = XSTRING (array)->size;
-	  int nbytes = STRING_BYTES (XSTRING (array));
+	  int nchars = SCHARS (array);
+	  int nbytes = SBYTES (array);
 	  unsigned char *str;
 
 	  str = (nbytes <= MAX_ALLOCA
 		 ? (unsigned char *) alloca (nbytes)
 		 : (unsigned char *) xmalloc (nbytes));
-	  bcopy (XSTRING (array)->data, str, nbytes);
+	  bcopy (SDATA (array), str, nbytes);
 	  allocate_string_data (XSTRING (array), nchars,
 				nbytes + new_bytes - prev_bytes);
-	  bcopy (str, XSTRING (array)->data, idxval_byte);
-	  p1 = XSTRING (array)->data + idxval_byte;
+	  bcopy (str, SDATA (array), idxval_byte);
+	  p1 = SDATA (array) + idxval_byte;
 	  bcopy (str + idxval_byte + prev_bytes, p1 + new_bytes,
 		 nbytes - (idxval_byte + prev_bytes));
 	  if (nbytes > MAX_ALLOCA)
@@ -2060,36 +2060,36 @@ IDX starts at 0.  */)
     }
   else
     {
-      if (idxval < 0 || idxval >= XSTRING (array)->size)
+      if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
       CHECK_NUMBER (newelt);
 
       if (XINT (newelt) < 0 || SINGLE_BYTE_CHAR_P (XINT (newelt)))
-	XSTRING (array)->data[idxval] = XINT (newelt);
+	SREF (array, idxval) = XINT (newelt);
       else
 	{
 	  /* We must relocate the string data while converting it to
 	     multibyte.  */
 	  int idxval_byte, prev_bytes, new_bytes;
 	  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
-	  unsigned char *origstr = XSTRING (array)->data, *str;
+	  unsigned char *origstr = SDATA (array), *str;
 	  int nchars, nbytes;
 
-	  nchars = XSTRING (array)->size;
+	  nchars = SCHARS (array);
 	  nbytes = idxval_byte = count_size_as_multibyte (origstr, idxval);
 	  nbytes += count_size_as_multibyte (origstr + idxval,
 					     nchars - idxval);
 	  str = (nbytes <= MAX_ALLOCA
 		 ? (unsigned char *) alloca (nbytes)
 		 : (unsigned char *) xmalloc (nbytes));
-	  copy_text (XSTRING (array)->data, str, nchars, 0, 1);
+	  copy_text (SDATA (array), str, nchars, 0, 1);
 	  PARSE_MULTIBYTE_SEQ (str + idxval_byte, nbytes - idxval_byte,
 			       prev_bytes);
 	  new_bytes = CHAR_STRING (XINT (newelt), p0);
 	  allocate_string_data (XSTRING (array), nchars,
 				nbytes + new_bytes - prev_bytes);
-	  bcopy (str, XSTRING (array)->data, idxval_byte);
-	  p1 = XSTRING (array)->data + idxval_byte;
+	  bcopy (str, SDATA (array), idxval_byte);
+	  p1 = SDATA (array) + idxval_byte;
 	  while (new_bytes--)
 	    *p1++ = *p0++;
 	  bcopy (str + idxval_byte + prev_bytes, p1,
@@ -2339,7 +2339,7 @@ If the base used is not 10, floating point is not recognized.  */)
 
   /* Skip any whitespace at the front of the number.  Some versions of
      atoi do this anyway, so we might as well make Emacs lisp consistent.  */
-  p = XSTRING (string)->data;
+  p = SDATA (string);
   while (*p == ' ' || *p == '\t')
     p++;
 

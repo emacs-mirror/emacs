@@ -370,7 +370,7 @@ font_family_registry (fontname, force)
      int force;
 {
   Lisp_Object family, registry;
-  char *p = XSTRING (fontname)->data;
+  char *p = SDATA (fontname);
   char *sep[15];
   int i = 0;
 
@@ -557,7 +557,7 @@ fontset_font_pattern (f, id, c)
      font name.  */
   elt = XCDR (elt);
   xassert (STRINGP (elt));
-  fontp = FS_LOAD_FONT (f, c, XSTRING (elt)->data, -1);
+  fontp = FS_LOAD_FONT (f, c, SDATA (elt), -1);
   if (!fontp)
     return Qnil;
 
@@ -616,7 +616,7 @@ fs_load_font (f, c, fontname, id, face)
       if (!fontname && charset == CHARSET_ASCII)
 	{
 	  elt = FONTSET_ASCII (fontset);
-	  fontname = XSTRING (XCDR (elt))->data;
+	  fontname = SDATA (XCDR (elt));
 	}
     }
 
@@ -705,7 +705,7 @@ fs_load_font (f, c, fontname, id, face)
    the corresponding regular expression.  */
 static Lisp_Object Vcached_fontset_data;
 
-#define CACHED_FONTSET_NAME (XSTRING (XCAR (Vcached_fontset_data))->data)
+#define CACHED_FONTSET_NAME (SDATA (XCAR (Vcached_fontset_data)))
 #define CACHED_FONTSET_REGEX (XCDR (Vcached_fontset_data))
 
 /* If fontset name PATTERN contains any wild card, return regular
@@ -715,21 +715,21 @@ static Lisp_Object
 fontset_pattern_regexp (pattern)
      Lisp_Object pattern;
 {
-  if (!index (XSTRING (pattern)->data, '*')
-      && !index (XSTRING (pattern)->data, '?'))
+  if (!index (SDATA (pattern), '*')
+      && !index (SDATA (pattern), '?'))
     /* PATTERN does not contain any wild cards.  */
     return Qnil;
 
   if (!CONSP (Vcached_fontset_data)
-      || strcmp (XSTRING (pattern)->data, CACHED_FONTSET_NAME))
+      || strcmp (SDATA (pattern), CACHED_FONTSET_NAME))
     {
       /* We must at first update the cached data.  */
-      char *regex = (char *) alloca (XSTRING (pattern)->size * 2 + 3);
+      char *regex = (char *) alloca (SCHARS (pattern) * 2 + 3);
       char *p0, *p1 = regex;
 
       /* Convert "*" to ".*", "?" to ".".  */
       *p1++ = '^';
-      for (p0 = (char *) XSTRING (pattern)->data; *p0; p0++)
+      for (p0 = (char *) SDATA (pattern); *p0; p0++)
 	{
 	  if (*p0 == '*')
 	    {
@@ -744,7 +744,7 @@ fontset_pattern_regexp (pattern)
       *p1++ = '$';
       *p1++ = 0;
 
-      Vcached_fontset_data = Fcons (build_string (XSTRING (pattern)->data),
+      Vcached_fontset_data = Fcons (build_string (SDATA (pattern)),
 				    build_string (regex));
     }
 
@@ -789,10 +789,10 @@ fs_query_fontset (name, regexpp)
 	  || !BASE_FONTSET_P (fontset))
 	continue;
 
-      this_name = XSTRING (FONTSET_NAME (fontset))->data;
+      this_name = SDATA (FONTSET_NAME (fontset));
       if (regexpp
 	  ? fast_c_string_match_ignore_case (name, this_name) >= 0
-	  : !strcmp (XSTRING (name)->data, this_name))
+	  : !strcmp (SDATA (name), this_name))
 	return i;
     }
   return -1;
@@ -815,7 +815,7 @@ If REGEXPP is non-nil, PATTERN is a regular expression.  */)
 
   CHECK_STRING (pattern);
 
-  if (XSTRING (pattern)->size == 0)
+  if (SCHARS (pattern) == 0)
     return Qnil;
 
   id = fs_query_fontset (pattern, !NILP (regexpp));
@@ -854,11 +854,11 @@ list_fontsets (f, pattern, size)
 	  || !BASE_FONTSET_P (fontset)
 	  || !EQ (frame, FONTSET_FRAME (fontset)))
 	continue;
-      name = XSTRING (FONTSET_NAME (fontset))->data;
+      name = SDATA (FONTSET_NAME (fontset));
 
       if (!NILP (regexp)
 	  ? (fast_c_string_match_ignore_case (regexp, name) < 0)
-	  : strcmp (XSTRING (pattern)->data, name))
+	  : strcmp (SDATA (pattern), name))
 	continue;
 
       if (size)
@@ -892,7 +892,7 @@ FONTLIST is an alist of charsets vs corresponding font name patterns.  */)
   tem = Fquery_fontset (name, Qnil);
   if (!NILP (tem))
     error ("Fontset `%s' matches the existing fontset `%s'",
-	   XSTRING (name)->data, XSTRING (tem)->data);
+	   SDATA (name), SDATA (tem));
 
   /* Check the validity of FONTLIST while creating a template for
      fontset elements.  */
@@ -969,7 +969,7 @@ check_fontset_name (name)
   CHECK_STRING (name);
   id = fs_query_fontset (name, 0);
   if (id < 0)
-    error ("Fontset `%s' does not exist", XSTRING (name)->data);
+    error ("Fontset `%s' does not exist", SDATA (name));
   return FONTSET_FROM_ID (id);
 }
 
@@ -1120,7 +1120,7 @@ If the named font is not yet loaded, return nil.  */)
   if (!query_font_func)
     error ("Font query function is not supported");
 
-  fontp = (*query_font_func) (f, XSTRING (name)->data);
+  fontp = (*query_font_func) (f, SDATA (name));
   if (!fontp)
     return Qnil;
 
@@ -1338,7 +1338,7 @@ If FRAME is omitted, it defaults to the currently selected frame.  */)
   if (CONSP (elt))
     {
       elt = XCAR (elt);
-      fontp = (*query_font_func) (f, XSTRING (elt)->data);
+      fontp = (*query_font_func) (f, SDATA (elt));
     }
   val = Fmake_vector (make_number (3), val);
   AREF (val, 0) = fontp ? make_number (fontp->size) : make_number (0);

@@ -216,8 +216,8 @@ smc_save_yourself_CB (smcConn,
   props[props_idx]->type = SmARRAY8;
   props[props_idx]->num_vals = 1;
   props[props_idx]->vals = &values[val_idx++];
-  props[props_idx]->vals[0].length = strlen (XSTRING (Vinvocation_name)->data);
-  props[props_idx]->vals[0].value = XSTRING (Vinvocation_name)->data;
+  props[props_idx]->vals[0].length = strlen (SDATA (Vinvocation_name));
+  props[props_idx]->vals[0].value = SDATA (Vinvocation_name);
   ++props_idx;
   
   /* How to restart Emacs (i.e.: /path/to/emacs --smid=xxxx). */
@@ -244,8 +244,8 @@ smc_save_yourself_CB (smcConn,
   props[props_idx]->type = SmARRAY8;
   props[props_idx]->num_vals = 1;
   props[props_idx]->vals = &values[val_idx++];
-  props[props_idx]->vals[0].length = strlen (XSTRING (Vuser_login_name)->data);
-  props[props_idx]->vals[0].value = XSTRING (Vuser_login_name)->data;
+  props[props_idx]->vals[0].length = strlen (SDATA (Vuser_login_name));
+  props[props_idx]->vals[0].value = SDATA (Vuser_login_name);
   ++props_idx;
 
   /* The current directory property, not mandatory */
@@ -407,12 +407,12 @@ x_session_initialize ()
   /* Check if we where started by the session manager.  If so, we will
      have a previous id. */
   if (! EQ (Vx_session_previous_id, Qnil) && STRINGP (Vx_session_previous_id))
-    previous_id = XSTRING (Vx_session_previous_id)->data;
+    previous_id = SDATA (Vx_session_previous_id);
 
   /* Construct the path to the Emacs program. */
   if (! EQ (Vinvocation_directory, Qnil))
-    name_len += strlen (XSTRING (Vinvocation_directory)->data);
-  name_len += strlen (XSTRING (Vinvocation_name)->data);
+    name_len += strlen (SDATA (Vinvocation_directory));
+  name_len += strlen (SDATA (Vinvocation_name));
 
   /* This malloc will not be freed, but it is only done once, and hopefully
      not very large  */
@@ -420,8 +420,8 @@ x_session_initialize ()
   emacs_program[0] = '\0';
 
   if (! EQ (Vinvocation_directory, Qnil))
-    strcpy (emacs_program, XSTRING (Vinvocation_directory)->data);
-  strcat (emacs_program, XSTRING (Vinvocation_name)->data);
+    strcpy (emacs_program, SDATA (Vinvocation_directory));
+  strcat (emacs_program, SDATA (Vinvocation_name));
   
   /* The SM protocol says all callbacks are mandatory, so set up all
      here and in the mask passed to SmcOpenConnection */
