@@ -1,0 +1,18 @@
+#!/usr/local/bin/perl
+#
+# run tests interactively (allows for user input, immediate results,
+# &c, and give results in standard format)
+
+&options(
+ "MPS_INCLUDE_DIR",
+ "MPS_LINK_OBJ",
+ "INTERFACE_VERSION",
+ "PLATFORM"
+);
+
+require "require";
+
+foreach $testfile (@qa_args) {
+ &run_test($testfile, "yes", "results");
+}
+
