@@ -220,7 +220,9 @@ main (argc, argv)
   size_t fromlen;
 #endif
   struct sockaddr_un server, fromunix;
+#ifdef SERVER_HOME_DIR
   char *homedir;
+#endif
   char *str, string[BUFSIZ], code[BUFSIZ];
   FILE *infile;
   FILE **openfiles;
