@@ -1304,7 +1304,7 @@ set_text_properties (start, end, properties, object, signal_after_change_p)
    the text.  This does not obey any hooks.
    You can provide the interval that START is located in as I,
    or pass NULL for I and this function will find it.
-   This function assumes that START < END.  */
+   START and END can be in any order.  */
 
 void
 set_text_properties_1 (start, end, properties, buffer, i)
@@ -1317,7 +1317,14 @@ set_text_properties_1 (start, end, properties, buffer, i)
 
   s = XINT (start);
   len = XINT (end) - s;
-  eassert (len > 0);
+  if (len == 0)
+    return;
+  if (len < 0)
+    {
+      s = s + len;
+      len = - len;
+    }
+
   if (i == 0)
     i = find_interval (BUF_INTERVALS (XBUFFER (buffer)), s);
 
