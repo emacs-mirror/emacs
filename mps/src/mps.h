@@ -1,9 +1,6 @@
-/*  impl.h.mps:
+/* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM INTERFACE
  *
- *           HARLEQUIN MEMORY POOL SYSTEM INTERFACE
- *
- *  $HopeName: MMsrc!mps.h(trunk.10) $
- *
+ *  $HopeName: MMsrc!mps.h(trunk.11) $
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -90,7 +87,7 @@ enum
  * .ranks: Keep in sync with impl.h.mpmty.ranks
  */
 
-typedef int mps_rank_t;
+typedef unsigned mps_rank_t;
 enum
 {
   MPS_RANK_AMBIG = 0,           /* ambiguous reference */
@@ -362,8 +359,12 @@ extern void (mps_tramp)(void **r_o,
 
 #ifdef MPS_PF_W3I3MV
 
-#define mps_tramp(_r_o, _f, _p, _s) \
+#define mps_tramp(r_o, f, p, s) \
   MPS_BEGIN \
+    void **_r_o = (r_o); \
+    void *(*_f)(void *, size_t) = (f); \
+    void *_p = (p); \
+    size_t _s = (s); \
     void *_hp; size_t _hs; \
     __try { \
       *(_r_o) = (*(_f))(_p, _s); \
@@ -374,8 +375,12 @@ extern void (mps_tramp)(void **r_o,
 
 #else /* MPS_PF_W3I3MV */
 
-#define mps_tramp(_r_o, _f, _p, _s) \
+#define mps_tramp(r_o, f, p, s) \
   MPS_BEGIN \
+    void **_r_o = (r_o); \
+    void *(*_f)(void *, size_t) = (f); \
+    void *_p = (p); \
+    size_t _s = (s); \
     *(_r_o) = (*(_f))(_p, _s); \
   MPS_END
 
@@ -423,29 +428,30 @@ extern mps_msg_handler_t
 
 extern mps_res_t mps_fix(mps_ss_t mps_ss, mps_addr_t *ref_io);
 
-#define MPS_SCAN_BEGIN(_mps_ss) \
+#define MPS_SCAN_BEGIN(ss) \
   MPS_BEGIN \
-    mps_word_t _mps_w0 = (_mps_ss)->w0; \
-    mps_word_t _mps_w1 = (_mps_ss)->w1; \
-    mps_word_t _mps_w2 = (_mps_ss)->w2; \
+    mps_ss_t _ss = (ss); \
+    mps_word_t _mps_w0 = (_ss)->w0; \
+    mps_word_t _mps_w1 = (_ss)->w1; \
+    mps_word_t _mps_w2 = (_ss)->w2; \
     mps_word_t _mps_wt; \
     {
 
-#define MPS_FIX1(_mps_ss, _mps_ref) \
-  (_mps_wt = 1uL<<((mps_word_t)(_mps_ref)>>_mps_w0&(MPS_WORD_WIDTH-1)), \
+#define MPS_FIX1(ss, ref) \
+  (_mps_wt = 1uL<<((mps_word_t)(ref)>>_mps_w0&(MPS_WORD_WIDTH-1)), \
    _mps_w2 |= _mps_wt, \
    _mps_w1 & _mps_wt)
 
-#define MPS_FIX2(_mps_ss, _mps_ref_io) \
-  ((*(_mps_ss)->fix)(_mps_ss, _mps_ref_io))
+#define MPS_FIX2(ss, ref_io) \
+  ((*(ss)->fix)(ss, ref_io))
 
-#define MPS_FIX(_mps_ss, _mps_ref_io) \
-  (MPS_FIX1(_mps_ss, *(_mps_ref_io)) ? \
-   MPS_FIX2(_mps_ss, _mps_ref_io) : MPS_RES_OK)
+#define MPS_FIX(ss, ref_io) \
+  (MPS_FIX1(ss, *(ref_io)) ? \
+   MPS_FIX2(ss, ref_io) : MPS_RES_OK)
 
-#define MPS_SCAN_END(_mps_ss) \
+#define MPS_SCAN_END(ss) \
    } \
-   (_mps_ss)->w2 = _mps_w2; \
+   (ss)->w2 = _mps_w2; \
   MPS_END
 
 

@@ -1,6 +1,6 @@
 /*  ==== TEST LIBRARY ====
  *
- *  $HopeName$
+ *  $HopeName: MMsrc!testlib.c(trunk.5) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -9,7 +9,7 @@
  *  Notes
  */
 
-#include "std.h"
+#include "mpm.h"
 #include "testlib.h"
 
 #include <math.h>

@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.15) $
+ * $HopeName: MMsrc!pool.c(trunk.16) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.15) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.16) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -24,23 +24,23 @@ Bool PoolClassCheck(PoolClass class)
   /* greater than the size of the class-specific portion of the instance */
   CHECKL(class->offset <= (size_t)(class->size - sizeof(PoolStruct)));
   CHECKL(AttrCheck(class->attr));
-  CHECKL(FunctionCheck(class->init));
-  CHECKL(FunctionCheck(class->finish));
-  CHECKL(FunctionCheck(class->alloc));
-  CHECKL(FunctionCheck(class->free));
-  CHECKL(FunctionCheck(class->bufferInit));
-  CHECKL(FunctionCheck(class->bufferFinish));
-  CHECKL(FunctionCheck(class->bufferFill));
-  CHECKL(FunctionCheck(class->bufferTrip));
-  CHECKL(FunctionCheck(class->bufferExpose));
-  CHECKL(FunctionCheck(class->bufferCover));
-  CHECKL(FunctionCheck(class->condemn));
-  CHECKL(FunctionCheck(class->grey));
-  CHECKL(FunctionCheck(class->scan));
-  CHECKL(FunctionCheck(class->fix));
-  CHECKL(FunctionCheck(class->reclaim));
-  CHECKL(FunctionCheck(class->access));
-  CHECKL(FunctionCheck(class->describe));
+  CHECKL(FUNCHECK(class->init));
+  CHECKL(FUNCHECK(class->finish));
+  CHECKL(FUNCHECK(class->alloc));
+  CHECKL(FUNCHECK(class->free));
+  CHECKL(FUNCHECK(class->bufferInit));
+  CHECKL(FUNCHECK(class->bufferFinish));
+  CHECKL(FUNCHECK(class->bufferFill));
+  CHECKL(FUNCHECK(class->bufferTrip));
+  CHECKL(FUNCHECK(class->bufferExpose));
+  CHECKL(FUNCHECK(class->bufferCover));
+  CHECKL(FUNCHECK(class->condemn));
+  CHECKL(FUNCHECK(class->grey));
+  CHECKL(FUNCHECK(class->scan));
+  CHECKL(FUNCHECK(class->fix));
+  CHECKL(FUNCHECK(class->reclaim));
+  CHECKL(FUNCHECK(class->access));
+  CHECKL(FUNCHECK(class->describe));
   CHECKL(class->endSig == PoolClassSig);
   return TRUE;
 }
