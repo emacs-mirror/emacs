@@ -3,7 +3,8 @@
 ;; Copyright (C) 1999 Free Software Foundation, Inc.
 ;;
 ;; Author: Christoph.Wedler@sap.com
-;; Version: $Id: antlr-mode.el,v 1.2 1999/11/11 14:40:51 wedler Exp $
+;; Version: $Id: antlr-mode.el,v 1.2 1999/12/16 19:30:34 wedler Exp $
+;; X-URL: http://www.fmi.uni-passau.de/~wedler/antlr-mode/
 
 ;; This file is part of GNU Emacs.
 
@@ -35,7 +36,7 @@
 
 ;; This package provides the following features:
 ;;  * Indentation for the current line (TAB) and selected region (C-M-\).
-;;  * Syntax coloring (via font-lock) with language dependend coloring.
+;;  * Syntax coloring (via font-lock) with language dependent coloring.
 ;;  * Support for imenu/speedbar: menu "Index" (Parser, Lexer, TreeParser).
 ;;  * Direct move to previous/next rule, beginning/end of rule body etc.
 
@@ -56,6 +57,10 @@
 ;; `antlr-language', see also `antlr-font-lock-maximum-decoration'.  We define
 ;; special font-lock faces for the grammar code to allow you to distinguish
 ;; ANTLR keywords from Java/C++ keywords.
+
+;; Bug fixes, bug reports, improvements, and suggestions are strongly
+;; appreciated.  Please check the newest version first:
+;;   http://www.fmi.uni-passau.de/~wedler/antlr-mode/changes.html
 
 ;;; Installation:
 
@@ -105,6 +110,7 @@
   "Major mode for ANTLR grammar files."
   :group 'languages
   :link '(emacs-commentary-link "antlr-mode.el")
+  :link '(url-link "http://www.fmi.uni-passau.de/~wedler/antlr-mode/")
   :prefix "antlr-")
 
 (defconst antlr-version "1.2"
@@ -212,6 +218,7 @@ imenu."
     (define-key map "\C-c\C-e" 'antlr-end-of-body)
     (define-key map "\C-c\C-f" 'c-forward-into-nomenclature)
     (define-key map "\C-c\C-b" 'c-backward-into-nomenclature)
+    (define-key map "\C-c\C-c" 'comment-region)
     ;; I'm too lazy to define my own:
     (define-key map "\ea" 'c-beginning-of-statement)
     (define-key map "\ee" 'c-end-of-statement)
@@ -226,6 +233,14 @@ imenu."
 		     :active (not buffer-read-only)]
 		    ["Indent for Comment" indent-for-comment
 		     :active (not buffer-read-only)]
+		    ["Comment Out Region" comment-region
+		     :active (and (not buffer-read-only)
+				  (c-region-is-active-p))]
+		    ["Uncomment Region"
+		     (comment-region (region-beginning) (region-end) '(4))
+		     :active (and (not buffer-read-only)
+				  (c-region-is-active-p))]
+		    "---"
 		    ["Backward Rule" antlr-beginning-of-rule t]
 		    ["Forward Rule" antlr-end-of-rule t]
 		    ["Start of Rule Body" antlr-beginning-of-body
@@ -427,7 +442,7 @@ context_cache.")
 ;; checkdoc-params: (from count dummy)
   "Like `scan-sexps' but with additional arguments.
 When optional arg NO-ERROR is non-nil, `scan-sexps' will return nil
-instead of signalling an error."
+instead of signaling an error."
   (if no-error
       (condition-case nil
 	  (scan-sexps from count)
@@ -479,7 +494,7 @@ WARNING: this may alter `match-data'."
 (defun antlr-re-search-forward (regexp bound)
   "Search forward from point for regular expression REGEXP.
 Set point to the end of the occurrence found, and return point.  Return
-nil if no occurence was found.  Do not search within comments, strings
+nil if no occurrence was found.  Do not search within comments, strings
 and actions/semantic predicates.  BOUND bounds the search; it is a
 buffer position.  See also the functions `match-beginning', `match-end'
 and `replace-match'."
@@ -493,7 +508,7 @@ and `replace-match'."
 (defun antlr-search-forward (string)
   "Search forward from point for STRING.
 Set point to the end of the occurrence found, and return point.  Return
-nil if no occurence was found.  Do not search within comments, strings
+nil if no occurrence was found.  Do not search within comments, strings
 and actions/semantic predicates."
   ;; WARNING: Should only be used with `antlr-action-syntax-table'!
   (let ((continue t))
@@ -504,7 +519,7 @@ and actions/semantic predicates."
 (defun antlr-search-backward (string)
   "Search backward from point for STRING.
 Set point to the beginning of the occurrence found, and return point.
-Return nil if no occurence was found.  Do not search within comments,
+Return nil if no occurrence was found.  Do not search within comments,
 strings and actions/semantic predicates."
   ;; WARNING: Should only be used with `antlr-action-syntax-table'!
   (let ((continue t))
@@ -545,7 +560,7 @@ See `antlr-font-lock-additional-keywords', `antlr-language' and
 ;;;===========================================================================
 
 (defun antlr-imenu-create-index-function ()
-  "Return imenu index-alist for ANTLR gramar files."
+  "Return imenu index-alist for ANTLR grammar files."
   (let ((items nil)
 	(lexer nil)
 	(parser nil)
@@ -646,7 +661,7 @@ If SKIP-COMMENT is non-nil, also skip the comment after that part."
   "Move forward to next end of rule.  Do it ARG many times.
 A grammar class header and the file prelude are also considered as a
 rule.  Negative argument ARG means move back to ARGth preceding end of
-rule.  The behaviour is not defined when ARG is zero.  If SKIP-COMMENT
+rule.  The behavior is not defined when ARG is zero.  If SKIP-COMMENT
 is non-nil, move to beginning of the rule."
   ;; WARNING: Should only be used with `antlr-action-syntax-table'!
   ;; PRE: ARG<>0
@@ -778,7 +793,7 @@ multiplied by:
  - minus 1 if `antlr-indent-item-regexp' matches the beginning of the
    line starting from the first non-blank.
 
-Lines inside block commments are not changed or indented by
+Lines inside block comments are not changed or indented by
 `c-indent-line', see `antlr-indent-comment'."
   (let ((orig (point)) bol boi indent syntax)
     (beginning-of-line)
@@ -992,3 +1007,8 @@ Used in `antlr-mode'.  Also a useful function in `java-mode-hook'."
 		     alist nil))))))
 
 ;;; antlr-mode.el ends here
+
+; LocalWords:  antlr ANother ANTLR's Cpp Lexer TreeParser esp refs VALUEs ea ee
+; LocalWords:  Java's Nomencl ruledef tokendef ruleref tokenref setType ader
+; LocalWords:  ivate syntab lexer treeparser lic rotected rivate bor boi AFAIK
+; LocalWords:  slist knr inexpr
