@@ -913,8 +913,8 @@ Auto-indent does not happen if a numeric ARG is used."
 \\([ \t]*\\(\\sw\\|\\s_\\)+\\)?\\)?")
 
 (defvar fortran-end-prog-re
-  "Regexp possibly marking subprogram end."
-  (concat "^[ \t0-9]*" fortran-end-prog-re1))
+  (concat "^[ \t0-9]*" fortran-end-prog-re1)
+  "Regexp possibly marking subprogram end.")
 
 (defun fortran-check-end-prog-re ()
   "Check a preliminary match against `fortran-end-prog-re'."
