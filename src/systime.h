@@ -60,10 +60,10 @@ extern long timezone;
    EMACS_SET_SECS (TIME, SECONDS) sets that to SECONDS.
 
    EMACS_HAS_USECS is defined iff EMACS_TIME has a usecs component.
-   EMACS_USECS (TIME) is an rvalue for the milliseconds component of TIME.
-   	This returns zero if EMACS_TIME doesn't have a milliseconds component.
-   EMACS_SET_USECS (TIME, MILLISECONDS) sets that to MILLISECONDS.
-	This does nothing if EMACS_TIME doesn't have a milliseconds component.
+   EMACS_USECS (TIME) is an rvalue for the microseconds component of TIME.
+   	This returns zero if EMACS_TIME doesn't have a microseconds component.
+   EMACS_SET_USECS (TIME, MICROSECONDS) sets that to MICROSECONDS.
+	This does nothing if EMACS_TIME doesn't have a microseconds component.
 
    EMACS_SET_SECS_USECS (TIME, SECS, USECS) sets both components of TIME.
 
@@ -90,7 +90,7 @@ extern long timezone;
 #define EMACS_SECS(time)		    ((time).tv_sec  + 0)
 #define EMACS_USECS(time)		    ((time).tv_usec + 0)
 #define EMACS_SET_SECS(time, seconds)	    ((time).tv_sec  = (seconds))
-#define EMACS_SET_USECS(time, milliseconds) ((time).tv_usec = (milliseconds))
+#define EMACS_SET_USECS(time, microseconds) ((time).tv_usec = (microseconds))
 
 #define EMACS_GET_TIME(time)					\
 {								\
@@ -233,7 +233,7 @@ extern long timezone;
 #else /* ! defined (ultrix) || defined (hpux) || defined (_AIX) */
 /* If we are running SunOS, Mt. Xinu BSD, or MACH 2.5, these systems have a
    timezone function.  */
-#if (defined (hp9000) && ! defined (hpux) && defined (unix)) || defined (MACH) || defined (sun)
+#if (defined (hp9000) && ! defined (hpux) && defined (unix)) || defined (MACH) || defined (sun) || defined (NeXT)
 
 #define EMACS_GET_TZ_NAMES(standard, savings)				\
   do {									\
