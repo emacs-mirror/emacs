@@ -1,6 +1,6 @@
 /* impl.c.tract: TRACTS
  *
- * $HopeName: MMsrc!tract.c(MMdevel_tony_sunset.1) $
+ * $HopeName: !tract.c(trunk.2) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(tract, "$HopeName: MMsrc!tract.c(MMdevel_tony_sunset.1) $");
+SRCID(tract, "$HopeName: !tract.c(trunk.2) $");
 
 
 

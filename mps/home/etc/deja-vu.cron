@@ -1,7 +1,0 @@
-# $HopeName: HOMEmm!etc:deja-vu.cron(trunk.11) $
-# minutes hours day-of-month month day-of-week command
-10 21  *  *  *  sh -c ". etc/shenv && overnight checkout"
-20 21  *  *  *  sh -c "./bin/tidy"
-30 21  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_src_trunk sus8gc"
- 0  1  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_dylan_honeybee sus8gc"
-30  4  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_dylan_sunflower sus8gc"

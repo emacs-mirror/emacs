@@ -1,6 +1,6 @@
 /* impl.h.sac: SEGREGATED ALLOCATION CACHES INTERFACE
  *
- * $HopeName: MMsrc!sac.h(MM_epcore_brisling.1) $
+ * $HopeName: !sac.h(trunk.2) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 

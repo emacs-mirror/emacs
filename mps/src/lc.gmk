@@ -1,6 +1,6 @@
 # impl.gmk.lc: GNUMAKEFILE FRAGMENT FOR LCC
 #
-# $HopeName: MMsrc!lc.gmk(trunk.3) $
+# $HopeName: !lc.gmk(trunk.4) $
 # Copyright (C) 1996,1997, 1998 Harlequin Group, all rights reserved
 #
 # This file is included by platform makefiles that use the LCC

@@ -1,7 +1,7 @@
 /*  impl.h.ss
  *              STACK SCANNING
  *
- *  $HopeName: MMsrc!ss.h(MMdevel_restr.2) $
+ *  $HopeName: !ss.h(trunk.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *

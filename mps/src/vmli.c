@@ -1,6 +1,6 @@
 /* impl.c.vmli: VIRTUAL MEMORY MAPPING FOR LINUX
  *
- * $HopeName: MMsrc!vmli.c(trunk.5) $
+ * $HopeName: !vmli.c(trunk.6) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is the implementation of the virtual memory mapping 
@@ -51,7 +51,7 @@
 /* for sysconf(2),close(2) */
 #include <unistd.h>
 
-SRCID(vmli, "$HopeName: MMsrc!vmli.c(trunk.5) $");
+SRCID(vmli, "$HopeName: !vmli.c(trunk.6) $");
 
 
 /* VMStruct -- virtual memory structure */

@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.37) $
+ * $HopeName: !poolamc.c(trunk.38) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.37) $");
+SRCID(poolamc, "$HopeName: !poolamc.c(trunk.38) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */

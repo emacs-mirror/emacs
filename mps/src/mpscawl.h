@@ -1,6 +1,6 @@
 /* impl.h.mpscaawl: MEMORY POOL SYSTEM CLASS "AWL"
  *
- * $HopeName: MMsrc!mpscawl.h(trunk.1) $
+ * $HopeName: !mpscawl.h(trunk.2) $
  * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
  */
 

@@ -1,6 +1,6 @@
 /*  impl.c.messtest: MESSAGE TEST
  *
- *  $HopeName: MMsrc!messtest.c() $
+ *  $HopeName: !messtest.c(trunk.1) $
  * Copyright (C) 1999 Harlequin Ltd.  All rights reserved.
  */
 
@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-SRCID(messtest, "$HopeName: MMsrc!messtest.c() $");
+SRCID(messtest, "$HopeName: !messtest.c(trunk.1) $");
 
 
 

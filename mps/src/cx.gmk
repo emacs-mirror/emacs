@@ -1,6 +1,6 @@
 # impl.gmk.sc: GNUMAKEFILE FRAGMENT FOR CXREF
 #
-# $HopeName: MMsrc!cx.gmk(trunk.3) $
+# $HopeName: !cx.gmk(trunk.4) $
 #
 # This file is included by platform makefiles that generate a c
 # cross-reference using the cxref tool.

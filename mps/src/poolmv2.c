@@ -1,6 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE POOL, II
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.13) $
+ * $HopeName: !poolmv2.c(trunk.14) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: any MPS developer
@@ -18,7 +18,7 @@
 #include "cbs.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.13) $");
+SRCID(poolmv2, "$HopeName: !poolmv2.c(trunk.14) $");
 
 
 /* Signatures */

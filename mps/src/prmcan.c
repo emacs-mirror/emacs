@@ -1,6 +1,6 @@
 /* impl.c.prmcan: PROTECTION MUTATOR CONTEXT (ANSI)
  *
- * $HopeName$
+ * $HopeName: !prmcan.c(trunk.1) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP

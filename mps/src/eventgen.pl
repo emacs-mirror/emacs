@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 # impl.pl.eventgen: GENERATOR FOR impl.h.eventgen
 #
-# $HopeName: MMsrc!eventgen.pl(trunk.12) $
+# $HopeName: !eventgen.pl(trunk.13) $
 # Copyright (C) 1999 Harlequin Limited.  All rights reserved.
 #
 # .how: Invoke this script in the src directory.  It works by scanning
@@ -11,7 +11,7 @@
 # You will need to have eventgen.h claimed, and you should
 # remember to check it in afterwards.
 
-$HopeName = '$HopeName: MMsrc!eventgen.pl(trunk.12) $';
+$HopeName = '$HopeName: !eventgen.pl(trunk.13) $';
 
 %Formats = ();
 
