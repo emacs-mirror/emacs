@@ -1,3 +1,10 @@
+2003-07-26  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-default-registered, vc-make-version-backup): 
+	Use with-no-warnings.
+	(vc-file-not-found-hook): Add this to find-file-not-found-functions,
+	rather than to find-file-not-found-hook, which doesn't exist.
+
 2003-07-26  Markus Rost  <rost@math.ohio-state.edu>
 
 	* international/quail.el (quail-translate-key): Fix previous
