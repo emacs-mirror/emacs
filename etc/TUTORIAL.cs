@@ -19,7 +19,7 @@ Znaky ">>" na levém okraji znaèí místa, kde si máte vyzkou¹et pøíkaz.
 Napøíklad:
 <<Blank lines inserted here by startup of help-with-tutorial>>
 >>  Nyní stisknìte C-v (view next screen) pro posun na dal¹í obrazovku.
-        (Smìle do toho, proveïte to pøidr¾ením klávesy control a stiskem v.)
+        (Smìle do toho, proveïte to pøidr¾ením klávesy CONTROL a stiskem v.)
 	Od této chvíle byste toto mìli provádìt kdykoliv doètete zobrazenou
         obrazovku.
 
@@ -45,7 +45,7 @@ K prohlí¾ení obrazovkových stránek jsou u¾iteèné následující pøíkazy:
 	M-v	Posun o obrazovku zpìt
 	C-l	Smazání obrazovky a znovuzobrazení celého textu,
 		 pøitom se text pod kurzorem pøesune ke støedu obrazovky.
-		 (Jedná se o control-L a ne control-1.)
+		 (Jedná se o CONTROL-L a ne CONTROL-1.)
 
 >> Najdìte kurzor a zapamatujte si, jaký text je kolem nìj.
    Pak stisknìte C-l.
@@ -111,7 +111,7 @@ ani¾ by kurzor opustil obrazovku.
    co se stane.
 
 Jestli¾e je posun po znacích pøíli¹ pomalý, mù¾ete se pohybovat po
-slovech.  M-f (Meta-f) provádí posun o slovo vpøed a M-b provádí posun
+slovech.  M-f (META-f) provádí posun o slovo vpøed a M-b provádí posun
 o slovo zpìt.
 
 >> Stisknìte nìkolikrát M-f a M-b.
@@ -126,10 +126,10 @@ smìru.
    mezi nimi.
 
 V¹imnìte si analogie mezi C-f a C-b na jedné stranì a M-f a M-b na
-stranì druhé.  Meta znaky jsou velmi èasto vyu¾ívány pro operace
+stranì druhé.  Znaky s klávesou META jsou velmi èasto vyu¾ívány pro operace
 vztahující se k entitám definovaným jazykem (slova, vìty, odstavce),
-zatímco Control znaky pracují na základních prvcích nezávislých na tom,
-co zrovna editujete (znaky, øádky, apod.).
+zatímco znaky s klávesou CONTROL pracují na základních prvcích
+nezávislých na tom, co zrovna editujete (znaky, øádky, apod.).
 
 Tato analogie platí také pro øádky a vìty: C-a a C-e provádí pøesun
 na zaèátek a konec øádku, M-a a M-e provádí pøesun na zaèátek a konec
@@ -167,8 +167,8 @@ pohyb mezi slovy a vìtami:
 >> Vyzkou¹ejte si teï nìkolikrát v¹echny tyto pøíkazy pro procvièení.
    Jsou to nejpou¾ívanìj¹í pøíkazy.
 
-Dal¹í dva dùle¾ité pøíkazy pro pohyb kurzoru jsou M-< (Meta men¹í-ne¾),
-který provede pøesun na zaèátek celého textu, a M-> (Meta vìt¹í-ne¾),
+Dal¹í dva dùle¾ité pøíkazy pro pohyb kurzoru jsou M-< (META men¹í-ne¾),
+který provede pøesun na zaèátek celého textu, a M-> (META vìt¹í-ne¾),
 který provede pøesun na konec celého textu.
 
 Na vìt¹inì terminálù je "<" nad èárkou, tak¾e pro vyvolání tohoto znaku
@@ -272,12 +272,12 @@ jednookenní editace.  Je to jednoduché:
 
 	C-x 1	Jedno okno (tj. zru¹ení v¹ech ostatních oken)
 
-Tedy vlo¾ení Control-x následované èíslicí 1.  C-x 1 roz¹íøí okno
+Tedy vlo¾ení CONTROL-x následované èíslicí 1.  C-x 1 roz¹íøí okno
 obsahující kurzor pøes celou obrazovku.  Zru¹í to v¹echna ostatní okna.
 
->> Stisknìte Control-h k Control-f.
+>> Stisknìte C-h k C-f.
    Pozorujte, jak se aktuální okno zmen¹í a objeví se nové okno za
-   úèelem zobrazení dokumentace k pøíkazu Control-f.
+   úèelem zobrazení dokumentace k pøíkazu C-f.
 
 >> Stisknìte C-x 1 a pozorujte, jak okno s dokumentací zmizí.
 
@@ -341,7 +341,7 @@ Zde je shrnutí operací pro mazání textu:
 	M-k	     Zru¹ení textu do konce aktuální vìty
 
 V¹imnìte si, ¾e <Delete> a C-d, resp. M-<Delete> a M-d, roz¹iøují
-paralelu zapoèatou C-f a M-f (pravda, <Delete> opravdu není control
+paralelu zapoèatou C-f a M-f (pravda, <Delete> opravdu není CONTROL
 znak, ale netrapme se tím).  C-k a M-k jsou jako C-e a M-e ve smyslu
 vztahu øádkù k vìtám.
 
@@ -475,8 +475,8 @@ vyhledáte soubor, jeho jméno se objeví pøesnì na tom místì.
 
 Pøíkazy pro vyhledávání a ukládání souborù se na rozdíl od ostatních
 pøíkazù, které jste se zatím nauèili, skládají ze dvou znakù.  Oba
-zaèínají znakem Control-x.  Existuje celá øada pøíkazù zaèínajících na
-Control-x; mnoho z nich pracuje se soubory, buffery a podobnými vìcmi.
+zaèínají znakem CONTROL-x.  Existuje celá øada pøíkazù zaèínajících na
+CONTROL-x; mnoho z nich pracuje se soubory, buffery a podobnými vìcmi.
 Tyto pøíkazy jsou dlouhé dva, tøi nebo ètyøi znaky.
 
 Dal¹í vìcí ohlednì pøíkazu pro vyhledání souboru je to, ¾e musíte øíct,
@@ -587,7 +587,7 @@ neulo¾ili.  Pro ka¾dý takový buffer se vás zeptá, zda jej má ulo¾it.
 --------------------------
 
 Existuje mnohem, mnohem více pøíkazù Emacsu, ne¾ které by vùbec mohly
-být rozmístìny na v¹echny control a meta znaky.  Emacs tento problém
+být rozmístìny na v¹echny CONTROL a META znaky.  Emacs tento problém
 obchází prostøednictvím X (eXtend) pøíkazu.  Ten vzniká dvìma zpùsoby:
 
 	C-x	Znakový eXtend.  Následován jedním znakem.
@@ -769,7 +769,7 @@ numerický argument.
 
 Jestli¾e provedete zmìny uprostøed odstavce, Auto Fill mód jej
 nepøeformátuje. 
-Pro pøeformátování odstavce stisknìte M-q (Meta-q) s kurzorem uvnitø
+Pro pøeformátování odstavce stisknìte M-q (META-q) s kurzorem uvnitø
 odstavce.
 
 >> Pøesuòte kurzor do pøedchozího odstavce a stisknìte M-q.
@@ -821,7 +821,7 @@ na¹li první výskyt "k".  Jestli¾e nyní stisknete "u", kurzor se pøesune na
 první výskyt "ku".  Teï stisknìte <Delete>.  To vyma¾e "u" z hledaného
 øetìzce a kurzor se pøesune zpìt na první výskyt "k".
 
-Jestli¾e uprostøed hledání stisknete control nebo meta znak (s nìkolika
+Jestli¾e uprostøed hledání stisknete CONTROL nebo META znak (s nìkolika
 výjimkami -- znaky, které jsou speciální v hledání, jako C-s a C-r),
 hledání se ukonèí.
 
@@ -843,7 +843,7 @@ více oken souèasnì.
    Obì okna zobrazují tento tutoriál.  Kurzor zùstává navrchu okna.
 
 >> Tisknìte C-M-v pro scrollování spodního okna.
-   (Nemáte-li skuteènou klávesu Meta, stisknìte ESC C-v.)
+   (Nemáte-li skuteènou klávesu META, stisknìte ESC C-v.)
 
 >> Stisknìte C-x o ("o" jako "other") pro pøesun kurzoru do dolního okna.
 
@@ -919,7 +919,7 @@ abyste mohli zaèít Emacs pou¾ívat.  V Emacsu je toho tolik, ¾e by bylo
 nemo¾né to zde v¹echno objasnit.  Nicménì se o Emacsu mù¾ete nauèit
 více, proto¾e má mnoho u¾iteèných vlastností.  Emacs nabízí pøíkazy pro
 ètení dokumentace svých pøíkazù.  V¹echny tyto "help" pøíkazy
-zaèínají znakem Control-h, který se nazývá "help znak".
+zaèínají znakem CONTROL-h, který se nazývá "help znak".
 
 Pro pou¾ití vlastností nápovìdy stisknìte znak C-h a pak znak øíkající,
 jaký druh nápovìdy ¾ádáte.  Jste-li OPRAVDU ztraceni, stisknìte C-h ? a
@@ -936,7 +936,7 @@ toho pou¾ívat klávesu F1 nebo M-x help RET.)
 Nejzákladnìj¹í help pøíkaz je C-h c.  Stisknìte C-h, znak c a klávesový
 pøíkaz; Emacs pak zobrazí velmi struèný popis pøíkazu.
 
->> Stisknìte C-h c Control-p.
+>> Stisknìte C-h c C-p.
    Hlá¹ení by mìlo vypadat asi takto
 
 	C-p runs the command previous-line
@@ -952,7 +952,7 @@ klávesu) <ESC>v jsou po C-h c povoleny také.
 
 K získání více informací o pøíkazu místo C-h c pou¾ijte C-h k.
 
->> Stisknìte C-h k Control-p.
+>> Stisknìte C-h k C-p.
 
 To zobrazí dokumentaci k funkci a její jméno v emacsovém oknì.  A¾
 výstup pøeètete, stisknìte C-x 1, abyste se textu nápovìdy zbavili.
@@ -974,7 +974,7 @@ zadat a¾ se na nìj Emacs zeptá.
    C-h a	Pøíkazové apropos.  Zadejte klíèové slovo a Emacs vypí¹e
 		v¹echny pøíkazy, jejich¾ jména obsahují toto klíèové
 		slovo.  V¹echny tyto pøíkazy mohou být vyvolány pomocí
-		Meta-x.  Pro nìkteré pøíkazy pøíkazové apropos vypí¹e
+		META-x.  Pro nìkteré pøíkazy pøíkazové apropos vypí¹e
 		také jedno nebo dvouznakové sekvence, které provádìjí
 		tentý¾ pøíkaz.
 

@@ -16,7 +16,7 @@ The characters ">>" at the left margin indicate directions for you to
 try using a command.  For instance:
 <<Blank lines inserted here by startup of help-with-tutorial>>
 >>  Now type C-v (View next screen) to move to the next screen.
-	(go ahead, do it by holding down the control key while typing v).
+	(go ahead, do it by holding down the CONTROL key while typing v).
 	From now on, you should do this again whenever you finish
 	reading the screen.
 
@@ -42,7 +42,7 @@ The following commands are useful for viewing screenfuls:
 	C-l	Clear screen and redisplay all the text,
 		 moving the text around the cursor
 		 to the center of the screen.
-		 (That's control-L, not control-1.)
+		 (That's CONTROL-L, not CONTROL-1.)
 
 >> Find the cursor, and note what text is near it.
    Then type C-l.
@@ -108,7 +108,7 @@ without moving it off the screen.
    see what happens.
 
 If moving by characters is too slow, you can move by words.  M-f
-(Meta-f) moves forward a word and M-b moves back a word.
+(META-f) moves forward a word and M-b moves back a word.
 
 >> Type a few M-f's and M-b's.
 
@@ -162,8 +162,8 @@ word and sentence moving commands:
 >> Try all of these commands now a few times for practice.
    These are the most often used commands.
 
-Two other important cursor motion commands are M-< (Meta Less-than),
-which moves to the beginning of the whole text, and M-> (Meta
+Two other important cursor motion commands are M-< (META Less-than),
+which moves to the beginning of the whole text, and M-> (META
 Greater-than), which moves to the end of the whole text.
 
 On most terminals, the "<" is above the comma, so you must use the
@@ -274,20 +274,20 @@ one-window editing.  It is simple:
 
 	C-x 1	One window (i.e., kill all other windows).
 
-That is Control-x followed by the digit 1.  C-x 1 expands the window
+That is CONTROL-x followed by the digit 1.  C-x 1 expands the window
 which contains the cursor, to occupy the full screen.  It deletes all
 other windows.
 
 >> Move the cursor to this line and type C-u 0 C-l.
->> Type Control-h k Control-f.
+>> Type CONTROL-h k CONTROL-f.
    See how this window shrinks, while a new one appears
-   to display documentation on the Control-f command.
+   to display documentation on the CONTROL-f command.
 
 >> Type C-x 1 and see the documentation listing window disappear.
 
 This command is unlike the other commands you have learned in that it
-consists of two characters.  It starts with the character Control-x.
-There is a whole series of commands that start with Control-x; many of
+consists of two characters.  It starts with the character CONTROL-x.
+There is a whole series of commands that start with CONTROL-x; many of
 them have to do with windows, files, buffers, and related things.
 These commands are two, three or four characters long.
 
@@ -783,7 +783,7 @@ as a numeric argument.
 
 If you make changes in the middle of a paragraph, Auto Fill mode
 does not re-fill it for you.
-To re-fill the paragraph, type M-q (Meta-q) with the cursor inside
+To re-fill the paragraph, type M-q (META-q) with the cursor inside
 that paragraph.
 
 >> Move the cursor into the previous paragraph and type M-q.
@@ -856,14 +856,14 @@ the search is reversed.
 One of the nice features of Emacs is that you can display more than one
 window on the screen at the same time.
 
->> Move the cursor to this line and type C-u 0 C-l (that's control-L, not
-   control-1).
+>> Move the cursor to this line and type C-u 0 C-l (that's CONTROL-L, not
+   CONTROL-1).
 
 >> Now type C-x 2 which splits the screen into two windows.
    Both windows display this tutorial.  The cursor stays in the top window.
 
 >> Type C-M-v to scroll the bottom window.
-   (If you do not have a real Meta key, type ESC C-v.)
+   (If you do not have a real META key, type ESC C-v.)
 
 >> Type C-x o ("o" for "other") to move the cursor to the bottom window.
 >> Use C-v and M-v in the bottom window to scroll it.
@@ -888,8 +888,8 @@ typing v.  It does not matter whether CONTROL or META "comes first,"
 because both of these keys act by modifying the characters you type.
 
 If you do not have a real META key, and you use ESC instead, the order
-does matter: you must type ESC followed by Control-v, because
-Control-ESC v will not work.  This is because ESC is a character in
+does matter: you must type ESC followed by CONTROL-v, because
+CONTROL-ESC v will not work.  This is because ESC is a character in
 its own right, not a modifier key.
 
 >> Type C-x 1 (in the top window) to get rid of the bottom window.
@@ -941,7 +941,7 @@ it would be impossible to explain it all here.  However, you may want
 to learn more about Emacs since it has many other useful features.
 Emacs provides commands for reading documentation about Emacs
 commands.  These "help" commands all start with the character
-Control-h, which is called "the Help character".
+CONTROL-h, which is called "the Help character".
 
 To use the Help features, type the C-h character, and then a
 character saying what kind of help you want.  If you are REALLY lost,
@@ -998,7 +998,7 @@ the name of the variable when Emacs prompts for it.
 
    C-h a	Command Apropos.  Type in a keyword and Emacs will list
 		all the commands whose names contain that keyword.
-		These commands can all be invoked with Meta-x.
+		These commands can all be invoked with META-x.
 		For some commands, Command Apropos will also list a one
 		or two character sequence which runs the same command.
 

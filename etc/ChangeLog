@@ -1,3 +1,7 @@
+2001-08-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* TUTORIAL, TUTORIAL.cs: be consistent when naming CONTROL and META keys.
+
 2001-05-17  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.1: Add the latest changes to etags behaviour.
