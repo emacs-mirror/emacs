@@ -1148,6 +1148,7 @@ $(BLD)\w32term.obj: \
 	$(SRC)\w32term.c \
 	$(SRC)\lisp.h \
 	$(SRC)\blockinput.h \
+	$(SRC)\w32heap.h \
 	$(SRC)\w32term.h \
 	$(SRC)\w32gui.h \
 	$(SRC)\systty.h \
