@@ -104,9 +104,13 @@ and then returns."
 		     (setcdr local-map (, helped-map))
 		     (define-key local-map [t] 'undefined)
 		     (if three-step-help
-			 (setq key (let ((overriding-local-map local-map))
-				     (read-key-sequence nil))
-			       char (aref key 0))
+			 (progn
+			   (setq key (let ((overriding-local-map local-map))
+				     (read-key-sequence nil)))
+			   ;; Make the HELP key translate to C-h.
+			   (if (lookup-key function-key-map key)
+			       (setq key (lookup-key function-key-map key)))
+			   (setq char (aref key 0)))
 		       (setq char ??))
 		     (if (or (eq char ??) (eq char help-char))
 			 (progn
