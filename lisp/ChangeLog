@@ -1,3 +1,17 @@
+2004-06-07  Juanma Barranquero  <lektu@terra.es>
+
+	* completion.el (completion-kill-region): Doc fix.
+
+	* format.el (format-insert-annotations)
+	(format-annotate-location): Doc fixes.
+	(format-subtract-regions): Make arguments match their use in
+	docstring.
+
+	* simple.el (kill-region): Doc fix.
+
+	* subr.el (insert-buffer-substring-no-properties)
+	(insert-buffer-substring-as-yank): Doc fixes.
+
 2004-06-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* dired.el (dired-undo): Call `dired-build-subdir-alist'.

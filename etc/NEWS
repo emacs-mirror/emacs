@@ -2043,7 +2043,7 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
-** The sentinel is now called whan a network process is deleted with
+** The sentinel is now called when a network process is deleted with
 delete-process.  The status message passed to the sentinel for a
 deleted network process is "deleted".  The message passed to the
 sentinel when the connection is closed by the remote peer has been
