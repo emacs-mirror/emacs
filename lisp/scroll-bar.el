@@ -58,25 +58,30 @@ that scroll bar position."
 
 (defvar scroll-bar-mode)
 
+(defvar scroll-bar-mode-explicit nil
+  "Non-nil means `set-scroll-bar-mode' should really do something.
+This is nil while loading `scroll-bar.el', and t afterward.")
+
 (defun set-scroll-bar-mode (ignore value)
   "Set `scroll-bar-mode' to VALUE and put the new value into effect."
   (setq scroll-bar-mode value)
 
-  ;; Apply it to default-frame-alist.
-  (let ((parameter (assq 'vertical-scroll-bars default-frame-alist)))
-    (if (consp parameter)
-	(setcdr parameter scroll-bar-mode)
-      (setq default-frame-alist
-	    (cons (cons 'vertical-scroll-bars scroll-bar-mode)
-		  default-frame-alist))))
+  (when scroll-bar-mode-explicit
+    ;; Apply it to default-frame-alist.
+    (let ((parameter (assq 'vertical-scroll-bars default-frame-alist)))
+      (if (consp parameter)
+	  (setcdr parameter scroll-bar-mode)
+	(setq default-frame-alist
+	      (cons (cons 'vertical-scroll-bars scroll-bar-mode)
+		    default-frame-alist))))
 
-  ;; Apply it to existing frames.
-  (let ((frames (frame-list)))
-    (while frames
-      (modify-frame-parameters
-       (car frames)
-       (list (cons 'vertical-scroll-bars scroll-bar-mode)))
-      (setq frames (cdr frames)))))
+    ;; Apply it to existing frames.
+    (let ((frames (frame-list)))
+      (while frames
+	(modify-frame-parameters
+	 (car frames)
+	 (list (cons 'vertical-scroll-bars scroll-bar-mode)))
+	(setq frames (cdr frames))))))
 
 (defcustom scroll-bar-mode 'left
   "*Specify whether to have vertical scroll bars, and on which side.
@@ -91,6 +96,10 @@ it takes effect immediately for all frames."
 		 (const right))
   :group 'frames
   :set 'set-scroll-bar-mode)
+
+;; We just set scroll-bar-mode, but that was the default.
+;; If it is set again, that is for real.
+(setq scroll-bar-mode-explicit t)
 
 (defun scroll-bar-mode (flag)
   "Toggle display of vertical scroll bars on all frames.
