@@ -127,7 +127,7 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 	(setq library (substring library 0 (match-beginning 1))))
     (let* ((path find-function-source-path)
 	   (compression (or (rassq 'jka-compr-handler file-name-handler-alist)
-			    (member 'crypt-find-file-hook find-file-hooks)))
+			    (member 'crypt-find-file-hook find-file-hook)))
 	   (filename (progn
 		       ;; use `file-name-sans-extension' here? (if it gets fixed)
 		       (if (string-match "\\(\\.el\\)\\'" library)
