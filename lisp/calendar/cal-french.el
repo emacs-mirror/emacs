@@ -173,7 +173,7 @@ Defaults to today's date if DATE is not given."
   (let ((f (calendar-french-date-string (calendar-cursor-to-date t))))
     (if (string-equal f "")
         (message "Date is pre-French Revolution")
-      (message f))))
+      (message "French Revolutionary date: %s" f))))
 
 (defun calendar-goto-french-date (date &optional noecho)
   "Move cursor to French Revolutionary date DATE.
