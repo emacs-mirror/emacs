@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.10) $
+# $HopeName: MMsrc!comm.gmk(trunk.11) $
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -26,7 +26,7 @@
 #
 # %%PART: Add a new parameter for the files included in the part.
 # Parameters:
-#   PFM		platform code, e.g. "suspgc"
+#   PFM		platform code, e.g. "sus8gc"
 #   MPM		as above for the "mpm" part
 #   MPMS	assembler sources for the "mpm" part (.s files)
 #   MPMPS	pre-processor assembler sources for the "mpm" part (.S files)
