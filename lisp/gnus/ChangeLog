@@ -1,3 +1,7 @@
+2004-08-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* time-date.el: Removed.  Merged into ../calendar/time-date.el.
+
 2004-08-02  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* blink.pbm, blink.xpm, braindamaged.xpm, cry.xpm, dead.xpm,
