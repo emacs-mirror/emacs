@@ -2248,7 +2248,7 @@ map_obarray (obarray, fn, arg)
   for (i = XVECTOR (obarray)->size - 1; i >= 0; i--)
     {
       tail = XVECTOR (obarray)->contents[i];
-      if (XFASTINT (tail) != 0)
+      if (SYMBOLP (tail))
 	while (1)
 	  {
 	    (*fn) (tail, arg);
