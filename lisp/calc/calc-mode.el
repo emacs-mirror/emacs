@@ -309,25 +309,22 @@
 (defun calc-settings-file-name (name &optional arg)
   (interactive
    (list (read-file-name (format "Settings file name (normally %s): "
-				 (abbreviate-file-name (or user-init-file
-							   "~/.emacs"))))
+				 (abbreviate-file-name calc-settings-file)))
 	 current-prefix-arg))
   (calc-wrapper
    (setq arg (if arg (prefix-numeric-value arg) 0))
-   (if (equal name "")
+   (if (string-equal (file-name-nondirectory name) "")
        (message "Calc settings file is \"%s\"" calc-settings-file)
      (if (< (math-abs arg) 2)
 	 (let ((list calc-mode-var-list))
 	   (while list
 	     (set (car (car list)) (nth 1 (car list)))
 	     (setq list (cdr list)))))
-     ;; FIXME: we should use ~/.calc or so in order to avoid
-     ;; reexecuting ~/.emacs (it's not always idempotent) -cgw 2001.11.12
      (setq calc-settings-file name)
      (or (and
 	  calc-settings-file
-	  (string-match "\\.emacs" calc-settings-file)
-	      (> arg 0))
+          (equal user-init-file calc-settings-file)
+          (> arg 0))
 	 (< arg 0)
 	 (load name t)
 	 (message "New file")))))
