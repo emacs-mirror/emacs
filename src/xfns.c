@@ -5664,7 +5664,7 @@ parse_image_spec (spec, keywords, nkeywords, type)
 
       /* Find key in KEYWORDS.  Error if not found.  */
       for (i = 0; i < nkeywords; ++i)
-	if (strcmp (keywords[i].name, XSYMBOL (key)->name->data) == 0)
+	if (strcmp (keywords[i].name, XSTRING (SYMBOL_NAME (key))->data) == 0)
 	  break;
 
       if (i == nkeywords)
