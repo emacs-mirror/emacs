@@ -168,9 +168,9 @@ mnemonics of the following coding systems:
   coding system for saving or writing the current buffer
   coding system for keyboard input (if Emacs is running on terminal)
   coding system for terminal output (if Emacs is running on terminal)"
-;; Currently not:
-;;  coding system for decoding output of buffer process (if any)
-;;  coding system for encoding text to send to buffer process (if any)."
+;;; Currently not:
+;;;  coding system for decoding output of buffer process (if any)
+;;;  coding system for encoding text to send to buffer process (if any)."
 )
 
 (make-variable-buffer-local 'mode-line-mule-info)
