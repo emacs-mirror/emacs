@@ -1,3 +1,7 @@
+2000-09-19  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-revert-buffer): Set vc-checkout-time correctly.
+
 2000-09-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* gnus/: Update to emacs-21-branch of the Gnus CVS repository.
