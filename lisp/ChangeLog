@@ -105,7 +105,7 @@
 	* international/fontset.el (setup-default-fontset): For Thai
 	font, specify "*" family.
 
-2003-09-01  Kevin Rodgers <ihs_4664@yahoo.com>
+2003-09-01  Kevin Rodgers <ihs_4664@yahoo.com>  (tiny change)
 
 	* progmodes/compile.el (previous-error): Accept a prefix
 	argument, similarly to next-error.
@@ -771,7 +771,7 @@
 	Check `x-last-selected-text-primary'.  Don't barf if it or
 	`x-last-selected-text' aren't bound.
 
-2003-07-25  Kevin Rodgers  <ihs_4664@yahoo.com>
+2003-07-25  Kevin Rodgers  <ihs_4664@yahoo.com>  (tiny change)
 
 	* menu-bar.el (menu-bar-tools-menu): Minor change in strings.
 
@@ -6397,7 +6397,7 @@
 	* info.el (Info-following-node-name): Skip trailing period.
 	(Info-extract-menu-node-name): Allow period in node name.
 
-2003-03-07  Kevin Rodgers  <kevin.rodgers@ihs.com>
+2003-03-07  Kevin Rodgers  <kevin.rodgers@ihs.com>  (tiny change)
 
 	* dired-x.el (dired-guess-shell-case-fold-search): New user option.
 	(dired-guess-default): Use it.
@@ -6408,7 +6408,7 @@
 	(dcl-font-lock-defaults): New var.
 	(dcl-mode): Make and init local var `font-lock-defaults'.
 
-2003-03-06  Kevin Rodgers  <kevin.rodgers@ihs.com>
+2003-03-06  Kevin Rodgers  <kevin.rodgers@ihs.com>  (tiny change)
 
 	* ffap.el (dired-at-point): Check whether the user can create a
 	directory before asking about creating it.
