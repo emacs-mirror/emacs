@@ -1123,14 +1123,17 @@ want more than two views on the same outline, create additional indirect
 buffers.
 
 @node Foldout
-@subsection Folding editing with Foldout
+@subsection Folding editing
 
 @cindex folding editing
 The Foldout package provides folding editor extensions for Outline mode
 and Outline minor mode.  It may be used by putting in your @file{.emacs}
+
 @example
 (eval-after-load "outline" '(require 'foldout))
 @end example
+
+@noindent
 Folding editing works as follows.
 
 Consider an Outline mode buffer all the text and subheadings under
@@ -1233,7 +1236,8 @@ You can change the modifier keys used by setting
   @TeX{} is a powerful text formatter written by Donald Knuth; it is also
 free, like GNU Emacs.  La@TeX{} is a simplified input format for @TeX{},
 implemented by @TeX{} macros; it comes with @TeX{}.  Sli@TeX{} is a special
-form of La@TeX{}.@refill
+form of La@TeX{}.@footnote{Sli@TeX{} is obsoleted by the @samp{slides}
+document class in recent La@TeX{} versions.}
 
   Emacs has a special @TeX{} mode for editing @TeX{} input files.
 It provides facilities for checking the balance of delimiters and for
@@ -1266,6 +1270,45 @@ and @code{tex-mode-hook}.  Then it runs either
 appropriate.  For Sli@TeX{} files, it calls @code{slitex-mode-hook}.
 Starting the @TeX{} shell runs the hook @code{tex-shell-hook}.
 @xref{Hooks}.
+
+@findex iso-iso2tex
+@findex iso-tex2iso
+@findex iso-iso2gtex
+@findex iso-gtex2iso
+@cindex Latin-1 @TeX{} encoding
+@TeX{} encoding
+@vindex format-alist
+@findex format-find-file
+The commands @kbd{M-x iso-iso2tex}, @kbd{M-x iso-tex2iso}, @kbd{M-x
+iso-iso2gtex} and @kbd{M-x iso-gtex2iso} can be used to convert between
+Latin-1 encoded files and @TeX{}-encoded equivalents.  They are included
+by default in the @code{format-alist} variable, and so an be used with
+@kbd{M-x format-find-file}, for instance.
+
+@findex tildify-buffer
+@findex tildify-region
+@cindex ties, @TeX{}, inserting
+@cindex hard spaces, @TeX{}, inserting
+@cindex SGML
+@cindex HTML
+The commands @kbd{M-x tildify-buffer} and @kbd{M-x tildify-region} can
+be used to insert missing @samp{~} @dfn{tie} characters which should be
+present in the file to represent `hard spaces'.  This is set up for
+Czech---customize the group @samp{tildify} for other languages or for
+other sorts of markup; there is support for SGML (HTML).
+
+@cindex RefTeX package
+@cindex references, La@TeX{}
+@cindex La@TeX{} references
+  For managing all kinds of references for La@TeX{}, you can use
+Ref@TeX{}.  @xref{Top, , RefTeX, reftex}.
+
+@cindex Bib@TeX{} mode
+@cindex mode, Bib@TeX{}
+@pindex bibtex
+@findex bibtex-mode
+There is also a mode for editing files for the Bib@TeX{} bibliography
+program often used with La@TeX{}.
 
 @menu
 * Editing: TeX Editing.   Special commands for editing in TeX mode.
@@ -1561,9 +1604,6 @@ current buffer's file.  Generally, you need to do @kbd{C-c C-f}
 @kbd{C-c TAB} (@code{tex-bibtex-file}), and then repeat @kbd{C-c C-f}
 (@code{tex-file}) twice more to get the cross-references correct.
 
-  For managing all kinds of references, you can use Ref@TeX{}.
-@xref{Top, , RefTeX, reftex}.
-
 @node Nroff Mode
 @section Nroff Mode
 
@@ -1632,6 +1672,7 @@ used in conjunction with Text mode (@pxref{Text Mode}).  However, you
 can also use it with other major modes such as Outline mode and
 Paragraph-Indent Text mode.
 
+@cindex text/enriched MIME format
   Potentially, Emacs can store formatted text files in various file
 formats.  Currently, only one format is implemented: @dfn{text/enriched}
 format, which is defined by the MIME protocol.  @xref{Format
