@@ -1,3 +1,10 @@
+2001-01-29  Dave Love  <fx@gnu.org>
+
+	* ansi-color.el (ansi-color-for-comint-mode): Add :version.
+	(ansi-color-for-comint-mode-on, ansi-color-process-output): Add
+	autoload cookie.
+	(ansi-color-apply-sequence): Fix typo.
+
 2001-01-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* menu-bar.el (menu-bar-files-menu): Add menu items for 
