@@ -842,6 +842,12 @@ specifies the character set for the major languages of Western Europe."
     (setq language-name "English"))
   (if (null (get-language-info language-name 'setup-function))
       (error "Language environment not defined: %S" language-name))
+  (unless default-enable-multibyte-characters
+    (or (member (downcase language)
+		'("latin-1" "latin-2" "latin-3" "latin-4" "latin-5"))
+	(error "Language environment `%s' not supported in unibyte mode"))
+    (standard-display-european 1 (downcase language)))
+
   (if current-language-environment
       (let ((func (get-language-info current-language-environment
 				     'exit-function)))
