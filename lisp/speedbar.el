@@ -4318,7 +4318,7 @@ If we have an image associated with it, use that image."
 	;; underlying text.  This means if we leave it tangible, then I
 	;; don't have to change said giant piles o code.
 	(if (and a (symbol-value (cdr a)))
-	    (if (fboundp 'set-extent-property)
+	    (if (featurep 'xemacs)
 		(add-text-properties (+ start (length bt)) start
 				     (list 'end-glyph (symbol-value (cdr a))
 					   'rear-nonsticky (list 'display)
