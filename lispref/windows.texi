@@ -952,7 +952,10 @@ This function returns the position of the end of the display in window
 used.
 
 If the last redisplay of @var{window} was preempted, and did not finish,
-Emacs does not know the position of the end of display in that window;
+Emacs does not know the position of the end of display in that window.
+In that case, this function returns a value that is not correct.  In a
+future version, @code{window-end} will return @code{nil} in that case.
+@ignore
 in that case, this function returns @code{nil}.  You can compute where
 the end of the window @emph{would} have been, if redisplay had finished,
 like this:
@@ -964,6 +967,7 @@ like this:
                    window)
   (point))
 @end example
+@end ignore
 @end defun
 
 @defun set-window-start window position &optional noforce
