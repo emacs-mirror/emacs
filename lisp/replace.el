@@ -92,7 +92,7 @@ wants to replace FROM with TO."
 		 (format "%s: " string))
 	       nil nil nil
 	       query-replace-from-history-variable
-	       nil t))))
+	       nil t t))))
       (if (and (zerop (length from)) lastto lastfrom)
 	  (cons lastfrom
 		(query-replace-compile-replacement lastto regexp-flag))
@@ -156,7 +156,7 @@ the original string if not."
      (read-from-minibuffer
       (format "%s %s with: " string (query-replace-descr from))
       nil nil nil
-      query-replace-to-history-variable from t))
+      query-replace-to-history-variable from t t))
    regexp-flag))
 
 (defun query-replace-read-args (string regexp-flag &optional noerror)
