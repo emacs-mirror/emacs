@@ -888,6 +888,16 @@ print_error_message (data, stream)
   tail = Fcdr_safe (data);
   GCPRO1 (tail);
 
+  /* If we know from where the error was signaled, show it in
+     *Messages*.  */
+  if (!NILP (Vsignaling_function) && SYMBOLP (Vsignaling_function))
+    {
+      char *name = XSYMBOL (Vsignaling_function)->name->data;
+      message_dolog (name, strlen (name), 0, 0);
+      message_dolog (": ", 2, 0, 0);
+      Vsignaling_function = Qnil;
+    }
+
   /* For file-error, make error message by concatenating
      all the data items.  They are all strings.  */
   if (!NILP (file_error) && CONSP (tail))
