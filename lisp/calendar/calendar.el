@@ -2301,13 +2301,12 @@ If optional NODAY is t, does not ask for day, but just returns
                                 (calendar-current-date)))))
          (month-array calendar-month-name-array)
          (completion-ignore-case t)
-         (month (cdr (assoc
-                      (capitalize
+         (month (cdr (assoc-ignore-case
                        (completing-read
                         "Month name: "
                         (mapcar 'list (append month-array nil))
-                        nil t))
-                      (calendar-make-alist month-array 1 'capitalize))))
+                        nil t)
+                      (calendar-make-alist month-array 1))))
          (last (calendar-last-day-of-month month year)))
     (if noday
         (if (eq noday t)
