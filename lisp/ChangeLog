@@ -1,3 +1,38 @@
+2004-12-02  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (search-whitespace-regexp): Remove the group.  Doc fix.
+	(isearch-mode-map): No special definition for space.
+	(isearch-whitespace-chars): Command deleted.
+	(isearch-forward-regexp): Doc fix.
+	(isearch-quote-char): When a space is not inside brackets,
+	use `[ ]' instead of just space.
+	(isearch-lazy-highlight-search): Bind search-spaces-regexp.
+
+	* imenu.el (imenu--generic-function): Delete code to exclude
+	matches in comments.
+
+	* man.el (Man-reverse-face): Change default to `highlight'.
+
+	* replace.el (occur-1): Specify t for KEEP-PROPS to occur-engine.
+	(occur-engine): Use `face' prop rather than `font-lock-face'
+	when specifying use of `match-face'.
+	(occur-accumulate-lines): Change arg from NO-PROPS to KEEP-PROPS.
+
+	* emacs-lisp/elint.el (elint-standard-variables): Update list.
+
+	* add-log.el (add-log-current-defun): Handle the case where point
+	is in the header part of a DEFUN construct.
+
+2004-12-02  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el (python-font-lock-syntactic-keywords):
+	Fix previous change.
+
+2004-12-02  Richard G Bielawski  <Richard.G.Bielawski@wellsfargo.com>  (tiny change)
+
+	* paren.el (show-paren-function): Check for matching chars
+	specified by text props.
+
 2004-12-02  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-read-key-sequence): Leave the old message visible
@@ -78,6 +113,7 @@
 
 	* man.el (Man-fontify-manpage): Improve handling of ANSI escapes.
 
+>>>>>>> 1.6708
 2004-11-30  Markus Rost  <rost@ias.edu>
 
 	* textmodes/tex-mode.el (tex-main-file): Add a compatibility with
