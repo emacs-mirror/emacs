@@ -624,7 +624,7 @@ existing Java mode buffer by typing @kbd{M-x java-mode} there.
 Project for C; it is the default, so as to encourage use of our
 recommended style.
 
-  @xref{Customizing Indentation,,, cc-mode, the CC Mode Manual}, for
+  @xref{Customizing Indentation,,, ccmode, the CC Mode Manual}, for
 more information on customizing indentation for C and related modes,
 including how to override parts of an existing style and how to define
 your own styles.
