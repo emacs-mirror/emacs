@@ -1,3 +1,10 @@
+2000-07-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* faces.el (frame-background-mode): Doc fix.
+
+	* simple.el (eval-expression-print-length): Change custom type to
+	allow entering nil as value.
+
 2000-07-13  Dave Love  <fx@gnu.org>
 
 	* progmodes/fortran.el (fortran-imenu-generic-expression): Change
