@@ -1,3 +1,7 @@
+2003-10-27  Kenichi Handa  <handa@m17n.org>
+
+	* display.texi (Fontsets): Fix texinfo usage.
+
 2003-10-25  Kenichi Handa  <handa@m17n.org>
 
 	* display.texi (Fontsets): Add description of the function
