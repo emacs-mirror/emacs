@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.16) $
+ * $HopeName: MMsrc!eventdef.h(trunk.17) $
  * Copyright (C) 1997, 1998 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -85,7 +85,8 @@ RELATION(PoolFinish                      , 0x0016, TRUE, Pool, P)
 RELATION(PoolAlloc                       , 0x0017, TRUE, Object, PAW)
 RELATION(PoolFree                        , 0x0018, TRUE, Object, PAW)
 RELATION(CBSInit                         , 0x0019, TRUE, Pool, PP)
-
+RELATION(Intern                          , 0x001a, TRUE, User, WS)
+RELATION(Label                           , 0x001b, TRUE, User, AW)
 RELATION(TraceStart                      , 0x001c, TRUE, Trace, PPP)
 #if 0 /* Not in use */
 RELATION(TraceCreate                     , 0x001d, TRUE, Trace, PPPU)
@@ -116,8 +117,6 @@ RELATION(ArenaRetract                    , 0x0030, TRUE, Arena, PAW)
 RELATION(TraceSegGreyen                  , 0x0031, TRUE, Seg, PPU)
 /* RootScanned abuses kind, see .kind.abuse */
 RELATION(RootScan                        , 0x0032, TRUE, Seg, PWW)
-RELATION(Intern                          , 0x0033, TRUE, User, WS)
-RELATION(Label                           , 0x0034, TRUE, User, AW)
 /* TraceStep abuses kind, see .kind.abuse */
 RELATION(TraceStep                       , 0x0033, TRUE, Seg, PP)
 RELATION(BufferReserve                   , 0x0034, TRUE, Object, PAW)
