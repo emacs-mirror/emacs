@@ -1339,11 +1339,11 @@ this won't have the expected effect."
   (let ((face-list (face-list)))
     (while face-list
       (let* ((face (car face-list))
-	     (spec (get face 'face-defface-spec)))
+	     (spec (or (get face 'saved-face)
+		       (get face 'face-defface-spec))))
 	(when spec
 	  (face-spec-set face spec frame))
       (setq face-list (cdr face-list))))))
-
 
 
 
