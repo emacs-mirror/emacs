@@ -743,6 +743,10 @@ Search backwards or forwards for old shell commands that match @var{regexp}.
 @item C-c C-x @r{(Shell mode)}
 @findex comint-get-next-from-history
 Fetch the next subsequent command from the history.
+
+@item C-c . @r{(Shell mode)}
+@findex comint-input-previous-argument
+Fetch one argument from an old shell command.
 @end table
 
   Shell buffers provide a history of previously entered shell commands.  To
@@ -774,6 +778,15 @@ that will fetch the following command---the one that follows the command
 you just repeated.  Then type @key{RET} to reexecute this command.  You
 can reexecute several successive commands by typing @kbd{C-c C-x
 @key{RET}} over and over.
+
+  The command @kbd{C-c .}@: (@code{comint-input-previous-argument})
+copies an individual argument from a previous command, like @kbd{ESC
+.} in Bash.  The simplest use copies the last argument from the
+previous shell command.  With a prefix argument @var{n}, it copies the
+@var{n}th argument instead.  Repeating @kbd{C-c .} copies from an
+earlier shell command instead, always using the same value of @var{n}
+(don't give a prefix argument when you repeat the @kbd{C-c .}
+command).
 
   These commands get the text of previous shell commands from a special
 history list, not from the shell buffer itself.  Thus, editing the shell
@@ -1018,14 +1031,14 @@ subshell, except for the Term escape character, normally @kbd{C-c}.
   To switch between line and char mode, use these commands:
 
 @table @kbd
-@kindex C-c C-k @r{(Term mode)}
+@kindex C-c C-j @r{(Term mode)}
 @findex term-char-mode
-@item C-c C-k
+@item C-c C-j
 Switch to line mode.  Do nothing if already in line mode.
 
-@kindex C-c C-j @r{(Term mode)}
+@kindex C-c C-k @r{(Term mode)}
 @findex term-line-mode
-@item C-c C-j
+@item C-c C-k
 Switch to char mode.  Do nothing if already in char mode.
 @end table
 
