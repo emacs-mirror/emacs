@@ -1,3 +1,7 @@
+2003-04-05  Kevin Ryde  <user42@zip.com.au>
+
+	* info-look.el (emacs-lisp-mode): Add prefix/suffix matching regexps.
+
 2003-04-04  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* subr.el (number-sequence): Adjust code.
