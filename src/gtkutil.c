@@ -1122,10 +1122,6 @@ create_dialog (wv, select_cb, deactivate_cb)
 /***********************************************************************
                       File dialog functions
  ***********************************************************************/
-#ifdef HAVE_GTK_FILE_BOTH
-int use_old_gtk_file_dialog;
-#endif
-
 /* Function that is called when the file dialog pops down.
    W is the dialog widget, RESPONSE is the response code.
    USER_DATA is what we passed in to g_signal_connect (pointer to int).  */
@@ -1311,7 +1307,9 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
   xg_get_file_func func;
 
 #ifdef HAVE_GTK_FILE_BOTH
-  if (use_old_gtk_file_dialog)
+  extern int x_use_old_gtk_file_dialog;
+
+  if (x_use_old_gtk_file_dialog)
     w = xg_get_file_with_selection (f, prompt, default_filename,
                                     mustmatch_p, only_dir_p, &func);
   else

@@ -151,6 +151,10 @@ char *gray_bitmap_bits = gray_bits;
 
 int display_hourglass_p;
 
+/* Non-zero means prompt with the old GTK file selection dialog.  */
+
+int x_use_old_gtk_file_dialog;
+
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
 
@@ -5574,6 +5578,14 @@ such a font.  This is especially effective for such large fonts as
 Chinese, Japanese, and Korean.  */);
   Vx_pixel_size_width_font_regexp = Qnil;
 
+/* This is not ifdef:ed, so other builds than GTK can customize it.  */
+  DEFVAR_BOOL ("x-use-old-gtk-file-dialog", &x_use_old_gtk_file_dialog,
+    doc: /* *Non-nil means prompt with the old GTK file selection dialog.
+If nil or if the file selection dialog is not available, the new GTK file
+chooser is used instead.  To turn off all file dialogs set the
+variable `use-file-dialog'.  */);
+  x_use_old_gtk_file_dialog = 0;
+
 #ifdef USE_X_TOOLKIT
   Fprovide (intern ("x-toolkit"), Qnil);
 #ifdef USE_MOTIF
@@ -5592,14 +5604,6 @@ Chinese, Japanese, and Korean.  */);
      accepts --with-x-toolkit=gtk.  */
   Fprovide (intern ("x-toolkit"), Qnil);
   Fprovide (intern ("gtk"), Qnil);
-
-#ifdef HAVE_GTK_FILE_BOTH
-  DEFVAR_BOOL ("use-old-gtk-file-dialog", &use_old_gtk_file_dialog,
-    doc: /* *Non-nil means that the old GTK file selection dialog is used.
-If nil the new GTK file chooser is used instead.  To turn off
-all file dialogs set the variable `use-file-dialog'.  */);
-  use_old_gtk_file_dialog = 0;
-#endif
 
   DEFVAR_LISP ("gtk-version-string", &Vgtk_version_string,
                doc: /* Version info for GTK+.  */);

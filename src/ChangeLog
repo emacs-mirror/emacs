@@ -1,3 +1,12 @@
+2004-11-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_name): Rename use-old-gtk-file-dialog to
+	x-use-old-gtk-file-dialog.
+
+	* xfns.c: Define x_use_old_gtk_file_dialog.
+	(syms_of_xfns): Rename use-old-gtk-file-dialog to x-...  Move it
+	outside ifdef USE_GTK.
+
 2004-11-23  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P)
