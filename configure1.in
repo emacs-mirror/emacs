@@ -286,7 +286,7 @@ case "${srcdir}" in
   "" )
     confdir=`echo $0 | sed 's|//|/|' | sed 's|/[^/]*$||'`
     if [ -f $confdir/src/lisp.h -a -f $confdir/lisp/version.el ]; then
-      srcdir=$confdir
+      srcdir=`(cd $confdir ; pwd)`
     else
       if [ -f "./src/lisp.h" -a -f "./lisp/version.el" ]; then
         srcdir=`pwd`
@@ -309,6 +309,7 @@ sources may be found."
 
   ## Otherwise, check if the directory they specified is okay.
   * )
+    srcdir=`(cd ${srcdir}; pwd)`
     if [ ! -d "${srcdir}" -o ! -f "${srcdir}/src/lisp.h" -o ! -f "${srcdir}/lisp/version.el" ]; then
       (echo "\
 ${progname}: The directory specified with the \`--srcdir' option,
