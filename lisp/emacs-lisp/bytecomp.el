@@ -1553,8 +1553,8 @@ The value is non-nil if there were no errors, nil if errors."
       ;; unless the file itself forces unibyte with -*-coding: raw-text;-*-
       (set-buffer-multibyte t)
       (insert-file-contents filename)
-      ;; Mimic the way after-insert-file-set-buffer-file-coding-system
-      ;; can make the buffer unibyte when visiting this file.
+      ;; Mimic the way after-insert-file-set-coding can make the
+      ;; buffer unibyte when visiting this file.
       (when (or (eq last-coding-system-used 'no-conversion)
 		(eq (coding-system-type last-coding-system-used) 5))
 	;; For coding systems no-conversion and raw-text...,
