@@ -1306,10 +1306,15 @@ Change the state of this item."
 	       (condition-case nil
 		   (require load)
 		 (error nil)))
-	      ((assoc load load-history))
+	      ;; Don't reload a file already loaded.
+	      ((assoc (locate-library load) load-history))
 	      (t
 	       (condition-case nil
-		   (load-library load)
+		   ;; Without this, we would load cus-edit recursively.
+		   ;; We are still loading it when we call this,
+		   ;; and it is not in load-history yet.
+		   (or (equal load "cus-edit")
+		       (load-library load))
 		 (error nil))))))))
 
 (defun custom-load-widget (widget)
