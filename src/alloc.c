@@ -2183,14 +2183,10 @@ struct Lisp_Float *float_free_list;
 void
 init_float ()
 {
-  float_block = (struct float_block *) lisp_align_malloc (sizeof *float_block,
-							  MEM_TYPE_FLOAT);
-  float_block->next = 0;
-  bzero ((char *) float_block->floats, sizeof float_block->floats);
-  bzero ((char *) float_block->gcmarkbits, sizeof float_block->gcmarkbits);
-  float_block_index = 0;
+  float_block = NULL;
+  float_block_index = FLOAT_BLOCK_SIZE; /* Force alloc of new float_block.   */
   float_free_list = 0;
-  n_float_blocks = 1;
+  n_float_blocks = 0;
 }
 
 
@@ -2252,20 +2248,34 @@ make_float (float_value)
 /* We store cons cells inside of cons_blocks, allocating a new
    cons_block with malloc whenever necessary.  Cons cells reclaimed by
    GC are put on a free list to be reallocated before allocating
-   any new cons cells from the latest cons_block.
-
-   Each cons_block is just under 1020 bytes long,
-   since malloc really allocates in units of powers of two
-   and uses 4 bytes for its own overhead. */
+   any new cons cells from the latest cons_block.  */
 
 #define CONS_BLOCK_SIZE \
-  ((1020 - sizeof (struct cons_block *)) / sizeof (struct Lisp_Cons))
+  (((BLOCK_BYTES - sizeof (struct cons_block *)) * CHAR_BIT) \
+   / (sizeof (struct Lisp_Cons) * CHAR_BIT + 1))
+
+#define CONS_BLOCK(fptr) \
+  ((struct cons_block *)(((EMACS_UINT)(fptr)) & ~(BLOCK_ALIGN - 1)))
+
+#define CONS_INDEX(fptr) \
+  ((((EMACS_UINT)(fptr)) & (BLOCK_ALIGN - 1)) / sizeof (struct Lisp_Cons))
 
 struct cons_block
 {
-  struct cons_block *next;
+  /* Place `conses' at the beginning, to ease up CONS_INDEX's job.  */
   struct Lisp_Cons conses[CONS_BLOCK_SIZE];
+  int gcmarkbits[1 + CONS_BLOCK_SIZE / (sizeof(int) * CHAR_BIT)];
+  struct cons_block *next;
 };
+
+#define CONS_MARKED_P(fptr) \
+  GETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX ((fptr)))
+
+#define CONS_MARK(fptr) \
+  SETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX ((fptr)))
+
+#define CONS_UNMARK(fptr) \
+  UNSETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX ((fptr)))
 
 /* Current cons_block.  */
 
@@ -2289,13 +2299,10 @@ int n_cons_blocks;
 void
 init_cons ()
 {
-  cons_block = (struct cons_block *) lisp_malloc (sizeof *cons_block,
-						  MEM_TYPE_CONS);
-  cons_block->next = 0;
-  bzero ((char *) cons_block->conses, sizeof cons_block->conses);
-  cons_block_index = 0;
+  cons_block = NULL;
+  cons_block_index = CONS_BLOCK_SIZE; /* Force alloc of new cons_block.  */
   cons_free_list = 0;
-  n_cons_blocks = 1;
+  n_cons_blocks = 0;
 }
 
 
@@ -2332,8 +2339,8 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
       if (cons_block_index == CONS_BLOCK_SIZE)
 	{
 	  register struct cons_block *new;
-	  new = (struct cons_block *) lisp_malloc (sizeof *new,
-						   MEM_TYPE_CONS);
+	  new = (struct cons_block *) lisp_align_malloc (sizeof *new,
+							 MEM_TYPE_CONS);
 	  new->next = cons_block;
 	  cons_block = new;
 	  cons_block_index = 0;
@@ -2344,6 +2351,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 
   XSETCAR (val, car);
   XSETCDR (val, cdr);
+  CONS_UNMARK (XCONS (val));
   consing_since_gc += sizeof (struct Lisp_Cons);
   cons_cells_consed++;
   return val;
@@ -3435,6 +3443,7 @@ live_cons_p (m, p)
 	 one of the unused cells in the current cons block,
 	 and not be on the free-list.  */
       return (offset >= 0
+	      && offset < (CONS_BLOCK_SIZE * sizeof b->conses[0])
 	      && offset % sizeof b->conses[0] == 0
 	      && (b != cons_block
 		  || offset / sizeof b->conses[0] < cons_block_index)
@@ -3629,8 +3638,7 @@ mark_maybe_object (obj)
 	  break;
 
 	case Lisp_Cons:
-	  mark_p = (live_cons_p (m, po)
-		    && !XMARKBIT (XCONS (obj)->car));
+	  mark_p = (live_cons_p (m, po) && !CONS_MARKED_P (XCONS (obj)));
 	  break;
 
 	case Lisp_Symbol:
@@ -3704,8 +3712,7 @@ mark_maybe_pointer (p)
 	  break;
 
 	case MEM_TYPE_CONS:
-	  if (live_cons_p (m, p)
-	      && !XMARKBIT (((struct Lisp_Cons *) p)->car))
+	  if (live_cons_p (m, p) && !CONS_MARKED_P ((struct Lisp_Cons *) p))
 	    XSETCONS (obj, p);
 	  break;
 
@@ -4405,8 +4412,6 @@ returns nil, because real GC can't be done.  */)
       for (i = 0; i < tail->nvars; i++)
 	if (!XMARKBIT (tail->var[i]))
 	  {
-	    /* Explicit casting prevents compiler warning about
-	       discarding the `volatile' qualifier.  */
 	    mark_object (tail->var[i]);
 	    XMARK (tail->var[i]);
 	  }
@@ -4416,7 +4421,6 @@ returns nil, because real GC can't be done.  */)
   mark_byte_stack ();
   for (bind = specpdl; bind != specpdl_ptr; bind++)
     {
-      /* These casts avoid a warning for discarding `volatile'.  */
       mark_object (bind->symbol);
       mark_object (bind->old_value);
     }
@@ -5044,9 +5048,9 @@ mark_object (arg)
     case Lisp_Cons:
       {
 	register struct Lisp_Cons *ptr = XCONS (obj);
-	if (XMARKBIT (ptr->car)) break;
+	if (CONS_MARKED_P (ptr)) break;
 	CHECK_ALLOCATED_AND_LIVE (live_cons_p);
-	XMARK (ptr->car);
+	CONS_MARK (ptr);
 	/* If the cdr is nil, avoid recursion for the car.  */
 	if (EQ (ptr->cdr, Qnil))
 	  {
@@ -5105,14 +5109,14 @@ mark_buffer (buf)
 	{
 	  register struct Lisp_Cons *ptr = XCONS (tail);
 
-	  if (XMARKBIT (ptr->car))
+	  if (CONS_MARKED_P (ptr))
 	    break;
-	  XMARK (ptr->car);
+	  CONS_MARK (ptr);
 	  if (GC_CONSP (ptr->car)
-	      && ! XMARKBIT (XCAR (ptr->car))
+	      && !CONS_MARKED_P (XCONS (ptr->car))
 	      && GC_MARKERP (XCAR (ptr->car)))
 	    {
-	      XMARK (XCAR_AS_LVALUE (ptr->car));
+	      CONS_MARK (XCONS (ptr->car));
 	      mark_object (XCDR (ptr->car));
 	    }
 	  else
@@ -5178,23 +5182,15 @@ survives_gc_p (obj)
       break;
 
     case Lisp_String:
-      {
-	struct Lisp_String *s = XSTRING (obj);
-	survives_p = STRING_MARKED_P (s);
-      }
+      survives_p = STRING_MARKED_P (XSTRING (obj));
       break;
 
     case Lisp_Vectorlike:
-      if (GC_BUFFERP (obj))
-	survives_p = VECTOR_MARKED_P (XBUFFER (obj));
-      else if (GC_SUBRP (obj))
-	survives_p = 1;
-      else
-	survives_p = VECTOR_MARKED_P (XVECTOR (obj));
+      survives_p = GC_SUBRP (obj) || VECTOR_MARKED_P (XVECTOR (obj));
       break;
 
     case Lisp_Cons:
-      survives_p = XMARKBIT (XCAR (obj));
+      survives_p = CONS_MARKED_P (XCONS (obj));
       break;
 
     case Lisp_Float:
@@ -5239,7 +5235,7 @@ gc_sweep ()
 	register int i;
 	int this_free = 0;
 	for (i = 0; i < lim; i++)
-	  if (!XMARKBIT (cblk->conses[i].car))
+	  if (!CONS_MARKED_P (&cblk->conses[i]))
 	    {
 	      this_free++;
 	      *(struct Lisp_Cons **)&cblk->conses[i].cdr = cons_free_list;
@@ -5251,7 +5247,7 @@ gc_sweep ()
 	  else
 	    {
 	      num_used++;
-	      XUNMARK (cblk->conses[i].car);
+	      CONS_UNMARK (&cblk->conses[i]);
 	    }
 	lim = CONS_BLOCK_SIZE;
 	/* If this block contains only free conses and we have already
@@ -5262,7 +5258,7 @@ gc_sweep ()
 	    *cprev = cblk->next;
 	    /* Unhook from the free list.  */
 	    cons_free_list = *(struct Lisp_Cons **) &cblk->conses[0].cdr;
-	    lisp_free (cblk);
+	    lisp_align_free (cblk);
 	    n_cons_blocks--;
 	  }
 	else
