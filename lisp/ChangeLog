@@ -1,3 +1,20 @@
+2002-05-14  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el (define-coding-system): Docstring
+	fixed (sjis->shift-jis).
+
+	* international/mule-conf.el: Use decode-char instead of
+	make-char.
+
+	* international/encoded-kb.el
+	(encoded-kbd-self-insert-iso2022-8bit): New arg ARG.  Directly
+	call self-insert-command.   This is a temporary workaround to
+	make it work with latin-1.
+	(encoded-kbd-mode): Change `sjis' to `shift-jis'.
+
+	* international/characters.el: Setup char-width-table for CJK
+	characters.
+
 2002-05-15  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/ja-dic-utl.el (skkdic-jisx0208-hiragana-block):
