@@ -308,7 +308,7 @@ echo "Making links to \`leim' and its subdirectories for the LEIM distribution"
 ### Don't distribute TAGS, or =*.el files.
 (cd leim
  ln Makefile.in makefile.nt ../${tempdir}/real-leim
- ln ChangeLog.? README ../${tempdir}/real-leim
+ ln ChangeLog README ../${tempdir}/real-leim
 
  ln CXTERM-DIC/*.tit ../${tempdir}/real-leim/CXTERM-DIC
  ln SKK-DIC/README SKK-DIC/SKK-JISYO.L ../${tempdir}/real-leim/SKK-DIC
