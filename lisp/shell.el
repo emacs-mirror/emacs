@@ -135,7 +135,7 @@
 ;;; cmushell-mode-map, that sort of thing. All the names have been carefully
 ;;; chosen so that shell.el and cmushell.el won't tromp on each other.
 
-;;; Customisation and Buffer Variables
+;;; Customization and Buffer Variables
 ;;; ===========================================================================
 ;;; 
 
@@ -219,7 +219,7 @@ M-x dirs queries the shell and resyncs Emacs' idea of what the current
 M-x dirtrack-toggle turns directory tracking on and off.
 
 \\{shell-mode-map}
-Customisation: Entry to this mode runs the hooks on comint-mode-hook and
+Customization: Entry to this mode runs the hooks on comint-mode-hook and
 shell-mode-hook (in that order).
 
 Variables shell-cd-regexp, shell-pushd-regexp and shell-popd-regexp are used
@@ -548,7 +548,7 @@ command again."
 
 
 
-;;; Do the user's customisation...
+;;; Do the user's customization...
 ;;;===============================
 (defvar shell-load-hook nil
   "This hook is run when shell is loaded in.
