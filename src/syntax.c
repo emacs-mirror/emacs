@@ -1608,7 +1608,6 @@ between them, return t; otherwise return nil.")
   int comstyle = 0;	    /* style of comment encountered */
   int found;
   int count1;
-  int temp_pos;
   int out_charpos, out_bytepos;
 
   CHECK_NUMBER (count, 0);
@@ -1734,7 +1733,7 @@ between them, return t; otherwise return nil.")
 	  comstart_second = SYNTAX_COMSTART_SECOND (c);
 	  if (from > stop && SYNTAX_COMEND_SECOND (c)
 	      && prev_char_comend_first (from, from_byte)
-	      && !char_quoted (from - 1, temp_pos))
+	      && !char_quoted (from - 1, dec_bytepos (from_byte)))
 	    {
 	      /* We must record the comment style encountered so that
 		 later, we can match only the proper comment begin
@@ -1747,7 +1746,7 @@ between them, return t; otherwise return nil.")
 	    }
 	  if (from > stop && comstart_second
 	      && prev_char_comstart_first (from, from_byte)
-	      && !char_quoted (from - 1, temp_pos))
+	      && !char_quoted (from - 1, dec_bytepos (from_byte)))
 	    {
 	      /* We must record the comment style encountered so that
 		 later, we can match only the proper comment begin
