@@ -180,12 +180,24 @@ HEADER is a string without the colon."
   (setq header (downcase header))
   (cdr (assoc header mail-hist-header-ring-alist)))
 
+(defvar mail-hist-text-size-limit nil
+  "*Don't store any header or body with more than this many characters.
+If the value is nil, that means no limit on text size.")
+
+(defun mail-hist-text-too-long-p (text)
+  "Return t if TEXT does not exceed mail-hist's size limit.
+The variable `mail-hist-text-size-limit' defines this limit."
+  (if mail-hist-text-size-limit
+      (> (length text) mail-hist-text-size-limit)))
+
 (defsubst mail-hist-add-header-contents-to-ring (header &optional contents)
   "Add the contents of HEADER to the header history ring.
 Optional argument CONTENTS is a string which will be the contents
-(instead of whatever's found in the header)."
+\(instead of whatever's found in the header)."
   (setq header (downcase header))
-  (let ((ring (cdr (assoc header mail-hist-header-ring-alist))))
+  (let ((ctnts (or contents (mail-hist-current-header-contents)))
+        (ring  (cdr (assoc header mail-hist-header-ring-alist))))
+    (if (mail-hist-text-too-long-p ctnts) (setq ctnts ""))
     (or ring
         ;; If the ring doesn't exist, we'll have to make it and add it
         ;; to the mail-header-ring-alist:
@@ -193,9 +205,7 @@ Optional argument CONTENTS is a string which will be the contents
             (setq ring (make-ring mail-hist-history-size))
           (setq mail-hist-header-ring-alist
                 (cons (cons header ring) mail-hist-header-ring-alist))))
-    (ring-insert
-     ring
-     (or contents (mail-hist-current-header-contents)))))
+    (ring-insert ring ctnts)))
 
 ;;;###autoload
 (defun mail-hist-put-headers-into-history ()
