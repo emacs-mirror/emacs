@@ -1,3 +1,8 @@
+2003-05-31  Kenichi Handa  <handa@m17n.org>
+
+	* files.el (recover-file): Bind coding-system-for-read to
+	auto-save-coding.
+
 2003-05-31  Juanma Barranquero  <lektu@terra.es>
 
 	* misc.el (mark-beginning-of-buffer, mark-end-of-buffer)

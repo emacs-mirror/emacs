@@ -3,12 +3,27 @@
 	* charset.h (VALID_LEADING_CODE_P): New macro.
 	(UNIBYTE_STR_AS_MULTIBYTE_P): Check more rigidly.
 
+	* coding.c (DECODE_EMACS_MULE_COMPOSITION_CHAR): If coding->flags
+	is nonzero, accept multibyte form of eight-bit-control chars.
+	(decode_composition_emacs_mule): Likewise.
+	(decode_coding_emacs_mule): Likewise.
+	(encode_coding_emacs_mule): If coding->flags is nonzero, produce
+	multibyte form of eight-bit-control chars.
+
+	* fileio.c (Qauto_save_coding, auto_save_coding): New variables.
+	(Finsert_file_contents): If coding-system-for-read is bound to
+	Qauto_save_coding, use the coding system emacs-mule with special
+	setting for recovering a file.
+	(choose_write_coding_system): On auto saving, use the coding
+	system emacs-mule with special setting for auto saving.
+	(syms_of_fileio) <Qauto_save_coding>: Intern and staticpro it.
+
 2003-05-30  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (ccl_coding_driver): Set ccl->eight_bit_control
 	properly before calling ccl_driver.
 
-	* ccl.h (struct ccl_program) <eight_bit_control: Comment fixed.
+	* ccl.h (struct ccl_program) <eight_bit_control>: Comment fixed.
 
 	* ccl.c (CCL_WRITE_CHAR): Increment extra_bytes only when it is
 	nonzero.
