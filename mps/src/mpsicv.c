@@ -1,12 +1,13 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName: MMsrc!mpsicv.c(trunk.10) $
+ * $HopeName: MMsrc!mpsicv.c(trunk.11) $
  * Copyright (C) 1996, 1997 Harlequin Group, all rights reserved
  */
 
 #include "testlib.h"
 #include "mps.h"
 #include "mpscamc.h"
+#include "mpsavm.h"
 #include "mpscmv.h"
 #include "fmtdy.h"
 #include <stdio.h>
@@ -29,6 +30,7 @@ static mps_pool_t amcpool;
 static mps_ap_t ap;
 static mps_addr_t exact_roots[NR_EXACT_ROOTS];
 static mps_addr_t ambig_roots[NR_AMBIG_ROOTS];
+
 
 static mps_addr_t make(void)
 {
@@ -62,6 +64,7 @@ static mps_addr_t make_no_inline(void)
   return p;
 }
 
+
 static void alloc_v_test(mps_pool_t pool, ...)
 {
   void *p;
@@ -73,6 +76,7 @@ static void alloc_v_test(mps_pool_t pool, ...)
   va_end(args);
   mps_free(pool, p, size);
 }
+
 
 static void pool_create_v_test(mps_arena_t arena, ...)
 {
@@ -95,11 +99,13 @@ static void ap_create_v_test(mps_pool_t pool, ...)
   mps_ap_destroy(apt);
 }
 
+
 static mps_res_t root_single(mps_ss_t ss, void *p, size_t s)
 {
   testlib_unused(s);
   return mps_fix(ss, (mps_addr_t *)p);
 }
+
 
 static void *test(void *arg, size_t s)
 {
@@ -139,19 +145,19 @@ static void *test(void *arg, size_t s)
   die(mps_root_create_table(&exact_root, arena,
                             MPS_RANK_EXACT, (mps_rm_t)0,
                             &exact_roots[0], NR_EXACT_ROOTS),
-                            "root_create_table(exact)");
+      "root_create_table(exact)");
 
   die(mps_root_create_table(&ambig_root, arena,
                             MPS_RANK_AMBIG, (mps_rm_t)0,
                             &ambig_roots[0], NR_AMBIG_ROOTS),
-                            "root_create_table(ambig)");
+      "root_create_table(ambig)");
 
   obj = OBJNULL;
 
   die(mps_root_create(&single_root, arena,
                       MPS_RANK_EXACT, (mps_rm_t)0,
                       &root_single, &obj, 0),
-                      "root_create(single)");
+      "root_create(single)");
 
   /* test non-inlined reserve/commit */
   obj = make_no_inline();
@@ -159,14 +165,14 @@ static void *test(void *arg, size_t s)
   die(mps_alloc(&alloced_obj, mv, asize), "mps_alloc");
 
   die(dylan_init(alloced_obj, asize, exact_roots, NR_EXACT_ROOTS),
-    "dylan_init(alloced_obj)");
+      "dylan_init(alloced_obj)");
 
   die(mps_root_create_fmt(&fmt_root, arena,
                           MPS_RANK_EXACT, (mps_rm_t)0,
                           dylan_fmt_A()->scan,
                           alloced_obj,
                           (mps_addr_t)(((char*)alloced_obj)+asize)),
-                          "root_create_fmt");
+      "root_create_fmt");
 
   mps_ld_reset(&ld, arena);
   mps_ld_add(&ld, arena, obj);
@@ -216,6 +222,10 @@ static void *test(void *arg, size_t s)
   return NULL;
 }
 
+
+#define TEST_ARENA_SIZE              ((size_t)16<<20)
+
+
 int main(void)
 {
   mps_arena_t arena;
@@ -225,13 +235,15 @@ int main(void)
   void *marker = &marker;
 
   (void)mps_assert_install(mps_assert_default());
-  die(mps_arena_create(&arena), "arena_create");
+  die(mps_arena_create(&arena, mps_arena_class_vm(), TEST_ARENA_SIZE),
+      "arena_create");
   die(mps_thread_reg(&thread, arena), "thread_reg");
 
   die(mps_root_create_reg(&reg_root, arena,
                           MPS_RANK_AMBIG, (mps_rm_t)0,
-                          thread, &mps_stack_scan_ambig, marker, (size_t)0),
-                          "root_create_reg");
+                          thread, &mps_stack_scan_ambig,
+                          marker, (size_t)0),
+      "root_create_reg");
 
   (mps_tramp)(&r, test, arena, 0);  /* non-inlined trampoline */
   mps_tramp(&r, test, arena, 0);
