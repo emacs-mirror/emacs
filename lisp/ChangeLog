@@ -3,6 +3,8 @@
 	* window.el (fit-window-to-buffer): New function.
 	(shrink-window-if-larger-than-buffer): Use it.
 	* help.el (resize-temp-buffer-window): Use `fit-window-to-buffer'.
+	* international/quail.el (quail-update-guidance): Use
+	`fit-window-to-buffer' instead of `set-window-text-height'.
 
 	* international/quail.el (quail-show-guidance-buf): Make sure
 	guidance window really has enough room.
