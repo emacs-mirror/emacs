@@ -1,3 +1,7 @@
+2000-08-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* lread.c (openp): GCPRO local variable `filename'.
+
 2000-08-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.h (struct re_pattern_buffer): Use size_t for used/allocated.
