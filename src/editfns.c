@@ -1002,6 +1002,9 @@ DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 
 Programs can use this function to decode a time,\n\
 since the number of columns in each field is fixed.\n\
 The format is `Sun Sep 16 01:03:52 1973'.\n\
+However, see also the functions `decode-time' and `format-time-string'\n\
+which provide a much more powerful and general facility.\n\
+\n\
 If an argument is given, it specifies a time to format\n\
 instead of the current time.  The argument should have the form:\n\
   (HIGH . LOW)\n\
