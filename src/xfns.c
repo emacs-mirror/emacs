@@ -704,7 +704,7 @@ x_report_frame_params (f, alistptr)
        	   make_number (f->display.x->border_width));
   store_in_alist (alistptr, Qinternal_border_width,
        	   make_number (f->display.x->internal_border_width));
-  sprintf (buf, "%d", FRAME_X_WINDOW (f));
+  sprintf (buf, "%ld", (long) FRAME_X_WINDOW (f));
   store_in_alist (alistptr, Qwindow_id,
        	   build_string (buf));
   FRAME_SAMPLE_VISIBILITY (f);
