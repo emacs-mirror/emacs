@@ -5148,7 +5148,6 @@ x_calc_absolute_position (f)
 			     - 2 * f->display.x->border_width - win_y
 			     - PIXEL_HEIGHT (f)
 			     + f->display.x->top_pos);
-
 #else /* ! defined (HAVE_X11) */
   WINDOWINFO_TYPE parentinfo;
 
@@ -5171,6 +5170,11 @@ x_set_offset (f, xoff, yoff, change_gravity)
 {
   f->display.x->top_pos = yoff;
   f->display.x->left_pos = xoff;
+  f->display.x->size_hint_flags &= ~ (XNegative | YNegative);
+  if (xoff < 0)
+    f->display.x->size_hint_flags |= XNegative;
+  if (yoff < 0)
+    f->display.x->size_hint_flags |= YNegative;
   x_calc_absolute_position (f);
 
   BLOCK_INPUT;
@@ -5455,7 +5459,8 @@ x_make_frame_invisible (f)
 #ifdef HAVE_X11R4
 
 #ifdef USE_X_TOOLKIT
-  XtPopdown (f->display.x->widget);
+  if (! XWithdrawWindow (x_current_display, XtWindow (f->display.x->widget),
+			 DefaultScreen (x_current_display)))
 #else /* not USE_X_TOOLKIT */
   if (! XWithdrawWindow (x_current_display, FRAME_X_WINDOW (f),
 			 DefaultScreen (x_current_display)))
