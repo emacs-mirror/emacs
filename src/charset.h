@@ -118,6 +118,9 @@ Boston, MA 02111-1307, USA.  */
 #define MIN_CHARSET_PRIVATE_DIMENSION1	LEADING_CODE_EXT_11
 #define MIN_CHARSET_PRIVATE_DIMENSION2	LEADING_CODE_EXT_21
 
+/* Maximum value of overall charset identification number.  */
+#define MAX_CHARSET 0xFE
+
 /* Definition of special charsets.  */
 #define CHARSET_ASCII		0
 #define CHARSET_COMPOSITION	0x80
@@ -370,11 +373,11 @@ extern Lisp_Object Vcharset_symbol_table;
 #define CHARSET_VALID_P(charset)					 \
   ((charset) == 0							 \
    || ((charset) >= 0x80 && (charset) <= MAX_CHARSET_OFFICIAL_DIMENSION2) \
-   || ((charset) >= MIN_CHARSET_PRIVATE_DIMENSION1 && (charset) < MAX_CHARSET))
+   || ((charset) >= MIN_CHARSET_PRIVATE_DIMENSION1 && (charset) <= MAX_CHARSET))
 
 /* 1 if CHARSET is already defined, else 0.  */
 #define CHARSET_DEFINED_P(charset)			\
-  (((charset) >= 0) && ((charset) < MAX_CHARSET)	\
+  (((charset) >= 0) && ((charset) <= MAX_CHARSET)	\
    && !NILP (CHARSET_TABLE_ENTRY (charset)))
 
 /* Since the information CHARSET-BYTES and CHARSET-WIDTH of
@@ -493,8 +496,6 @@ extern int width_by_char_head[256];
     || split_non_ascii_string (str, len, &charset, &c1, &c2, 0) < 0)	\
    ? c1 = *(str), charset = CHARSET_ASCII			      	\
    : charset)
-
-#define MAX_CHARSET 0xFF
 
 /* Mapping table from ISO2022's charset (specified by DIMENSION,
    CHARS, and FINAL_CHAR) to Emacs' charset.  Should be accessed by
@@ -650,5 +651,7 @@ extern int n_cmpchars;
 /* This is the maximum length of multi-byte form.  */
 #define MAX_LENGTH_OF_MULTI_BYTE_FORM (MAX_COMPONENT_COUNT * 6)
 
-#endif /* _CHARSET_H */
+/* Maximum character code currently used.  */
+#define MAX_CHAR (MIN_CHAR_COMPOSITION + n_cmpchars)
 
+#endif /* _CHARSET_H */
