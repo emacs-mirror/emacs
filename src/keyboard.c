@@ -6607,6 +6607,7 @@ init_kboard (kb)
   kb->Vlast_kbd_macro = Qnil;
   kb->reference_count = 0;
   kb->Vsystem_key_alist = Qnil;
+  kb->Vdefault_minibuffer_frame = Qnil;
 }
 
 /*
