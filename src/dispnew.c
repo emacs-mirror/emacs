@@ -4997,7 +4997,7 @@ count_blanks (r, len)
      int len;
 {
   int i;
-
+  
   for (i = 0; i < len; ++i)
     if (!CHAR_GLYPH_SPACE_P (r[i]))
       break;
@@ -5047,6 +5047,12 @@ update_frame_line (frame, vpos)
   struct glyph_row *current_row = MATRIX_ROW (current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (desired_matrix, vpos);
   int must_write_whole_line_p;
+  int write_spaces_p = must_write_spaces;
+  int colored_spaces_p = (FACE_FROM_ID (frame, DEFAULT_FACE_ID)->background
+			  != FACE_TTY_DEFAULT_BG_COLOR);
+
+  if (colored_spaces_p)
+    write_spaces_p = 1;
 
   if (desired_row->inverse_p
       != (current_row->enabled_p && current_row->inverse_p))
@@ -5071,10 +5077,10 @@ update_frame_line (frame, vpos)
       obody = MATRIX_ROW_GLYPH_START (current_matrix, vpos);
       olen = current_row->used[TEXT_AREA];
       
-      if (! current_row->inverse_p)
+      if (!current_row->inverse_p)
 	{
 	  /* Ignore trailing spaces, if we can.  */
-	  if (!must_write_spaces)
+	  if (!write_spaces_p)
 	    while (olen > 0 && CHAR_GLYPH_SPACE_P (obody[olen-1]))
 	      olen--;
 	}
@@ -5107,7 +5113,7 @@ update_frame_line (frame, vpos)
   if (must_write_whole_line_p)
     {
       /* Ignore spaces at the end, if we can.  */
-      if (!must_write_spaces)
+      if (!write_spaces_p)
 	while (nlen > 0 && CHAR_GLYPH_SPACE_P (nbody[nlen - 1]))
 	  --nlen;
 
@@ -5139,7 +5145,7 @@ update_frame_line (frame, vpos)
      unless for one reason or another we must write all spaces.  */
   if (!desired_row->inverse_p)
     {
-      if (!must_write_spaces)
+      if (!write_spaces_p)
 	while (nlen > 0 && CHAR_GLYPH_SPACE_P (nbody[nlen - 1]))
 	  nlen--;
     }
@@ -5199,7 +5205,7 @@ update_frame_line (frame, vpos)
     {
       /* If current line is blank, skip over initial spaces, if
 	 possible, and write the rest.  */
-      if (must_write_spaces || desired_row->inverse_p)
+      if (write_spaces_p || desired_row->inverse_p)
 	nsp = 0;
       else
 	nsp = count_blanks (nbody, nlen);
@@ -5217,7 +5223,9 @@ update_frame_line (frame, vpos)
 
   /* Compute number of leading blanks in old and new contents.  */
   osp = count_blanks (obody, olen);
-  nsp = desired_row->inverse_p ? 0 : count_blanks (nbody, nlen);
+  nsp = (desired_row->inverse_p || colored_spaces_p
+	 ? 0
+	 : count_blanks (nbody, nlen));
 
   /* Compute number of matching chars starting with first non-blank.  */
   begmatch = count_match (obody + osp, obody + olen,
@@ -5225,7 +5233,7 @@ update_frame_line (frame, vpos)
 
   /* Spaces in new match implicit space past the end of old.  */
   /* A bug causing this to be a no-op was fixed in 18.29.  */
-  if (!must_write_spaces && osp + begmatch == olen)
+  if (!write_spaces_p && osp + begmatch == olen)
     {
       np1 = nbody + nsp;
       while (np1 + begmatch < nend && CHAR_GLYPH_SPACE_P (np1[begmatch]))
