@@ -31,6 +31,7 @@ The newline is marked with the text-property `hard'.
 With arg, insert that many newlines.
 In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
   (interactive "*P")
+  (barf-if-buffer-read-only)
   ;; Inserting a newline at the end of a line produces better redisplay in
   ;; try_window_id than inserting at the beginning of a line, and the textual
   ;; result is the same.  So, if we're at beginning of line, pretend to be at
