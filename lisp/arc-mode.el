@@ -1416,7 +1416,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (while (progn (goto-char p)		;beginning of a base header.
 		  (looking-at "\\(.\\|\n\\)\\(.\\|\n\\)-l[hz][0-9ds]-"))
       (let* ((hsize   (char-after p))	;size of the base header (level 0 and 1)
-             (csize   (archive-l-e (+ p 7) 4)) ;size of a compressed file to follow.
+	     (csize   (archive-l-e (+ p 7) 4)) ;size of a compressed file to follow (level 0 and 2),
+					;size of extended headers + the compressed file to follow (level 1).
              (ucsize  (archive-l-e (+ p 11) 4))	;size of an uncompressed file.
 	     (time1   (archive-l-e (+ p 15) 2))	;date/time (MSDOS format in level 0, 1 headers
 	     (time2   (archive-l-e (+ p 17) 2))	;and UNIX format in level 2 header.)
@@ -1515,8 +1516,12 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 				   (length text))
 			   visual)
 	      files (cons (vector prname ifnname fiddle mode (1- p))
-                          files)
-              p (+ p thsize 2 csize))))
+                          files))
+	(cond ((= hdrlvl 1)
+	       (setq p (+ p hsize 2 csize)))
+	      ((or (= hdrlvl 2) (= hdrlvl 0))
+	       (setq p (+ p thsize 2 csize))))
+	))
     (goto-char (point-min))
     (set-buffer-multibyte default-enable-multibyte-characters)
     (let ((dash (concat (if archive-alternate-display
