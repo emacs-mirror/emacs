@@ -381,7 +381,7 @@ unlock_all_files ()
   for (tail = Vbuffer_alist; GC_CONSP (tail); tail = XCONS (tail)->cdr)
     {
       b = XBUFFER (XCONS (XCONS (tail)->car)->cdr);
-      if (STRINGP (b->filename) && b->save_modified < BUF_MODIFF (b))
+      if (STRINGP (b->filename) && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
 	unlock_file (b->filename);
     }
 }
@@ -399,7 +399,7 @@ or else nothing is done if current buffer isn't visiting a file.")
     fn = current_buffer->filename;
   else
     CHECK_STRING (fn, 0);
-  if (current_buffer->save_modified < MODIFF
+  if (SAVE_MODIFF < MODIFF
       && !NILP (fn))
     lock_file (fn);
   return Qnil;    
@@ -411,8 +411,8 @@ DEFUN ("unlock-buffer", Funlock_buffer, Sunlock_buffer,
 if it should normally be locked.")
   ()
 {
-  if (current_buffer->save_modified < MODIFF &&
-      STRINGP (current_buffer->filename))
+  if (SAVE_MODIFF < MODIFF
+      && STRINGP (current_buffer->filename))
     unlock_file (current_buffer->filename);
   return Qnil;
 }
@@ -423,8 +423,8 @@ if it should normally be locked.")
 unlock_buffer (buffer)
      struct buffer *buffer;
 {
-  if (buffer->save_modified < BUF_MODIFF (buffer) &&
-      STRINGP (buffer->filename))
+  if (BUF_SAVE_MODIFF (buffer) < BUF_MODIFF (buffer)
+      && STRINGP (buffer->filename))
     unlock_file (buffer->filename);
 }
 
