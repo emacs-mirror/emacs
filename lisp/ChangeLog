@@ -1,3 +1,13 @@
+2000-06-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mouse.el (mouse-show-mark, mouse-save-then-kill): Don't use
+	window-system.
+
+	* man.el (Man-notify-when-ready): Don't use window-system.  If
+	Man-notify-method is newframe, and the display is not
+	multi-frame, select the frame created for the man page.
+	(Man-init-defvars): Doc fix.
+
 2000-06-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* replace.el (query-replace-map): Bind `e' like `E'.
