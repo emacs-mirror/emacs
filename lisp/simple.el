@@ -2583,8 +2583,9 @@ it were the arg to `interactive' (which see) to interactively read the value."
       (define-key map [mouse-2] 'mouse-choose-completion)
       (define-key map [down-mouse-2] nil)
       (define-key map "\C-m" 'choose-completion)
-      (define-key map [return] 'choose-completion)
       (define-key map "\e\e\e" 'delete-completion-window)
+      (define-key map [left] 'previous-completion)
+      (define-key map [right] 'next-completion)
       (setq completion-list-mode-map map)))
 
 ;; Completion mode is suitable only for specially formatted data.
@@ -2606,6 +2607,34 @@ Go to the window from which completion was requested."
     (delete-window (selected-window))
     (if (get-buffer-window buf)
 	(select-window (get-buffer-window buf)))))
+
+(defun previous-completion (n)
+  "Move to the previous item in the completion list."
+  (interactive "p")
+  (next-completion (- n)))
+
+(defun next-completion (n)
+  "Move to the next item in the completion list.
+WIth prefix argument N, move N items (negative N means move backward)."
+  (interactive "p")
+  (while (and (> n 0) (not (eobp)))
+    (let ((prop (get-text-property (point) 'mouse-face)))
+      ;; If in a completion, move to the end of it.
+      (if prop
+	  (goto-char (next-single-property-change (point) 'mouse-face)))
+      ;; Move to start of next one.
+      (goto-char (next-single-property-change (point) 'mouse-face)))
+    (setq n (1- n)))
+  (while (and (< n 0) (not (bobp)))
+    (let ((prop (get-text-property (1- (point)) 'mouse-face)))
+      ;; If in a completion, move to the start of it.
+      (if prop
+	  (goto-char (previous-single-property-change (point) 'mouse-face)))
+      ;; Move to end of the previous completion.
+      (goto-char (previous-single-property-change (point) 'mouse-face))
+      ;; Move to the start of that one.
+      (goto-char (previous-single-property-change (point) 'mouse-face)))
+    (setq n (1+ n))))
 
 (defun choose-completion ()
   "Choose the completion that point is in or next to."
@@ -2715,6 +2744,23 @@ select the completion near point.\n\n"))
 	  (goto-char end))))))
 
 (add-hook 'completion-setup-hook 'completion-setup-function)
+
+(define-key minibuffer-local-completion-map [prior]
+  'switch-to-completions)
+(define-key minibuffer-local-must-match-map [prior]
+  'switch-to-completions)
+(define-key minibuffer-local-completion-map "\M-v"
+  'switch-to-completions)
+(define-key minibuffer-local-must-match-map "\M-v"
+  'switch-to-completions)
+
+(defun switch-to-completions ()
+  "Select the completion list window."
+  (interactive)
+  (select-window (get-buffer-window "*Completions*"))
+  (goto-char (point-min))
+  (search-forward "\n\n")
+  (forward-line 1))
 
 ;;;; Keypad support.
 
