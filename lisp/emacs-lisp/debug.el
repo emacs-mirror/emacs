@@ -65,6 +65,7 @@
 (defvar debugger-outer-this-command)
 (defvar debugger-outer-unread-command-char)
 (defvar debugger-outer-unread-command-events)
+(defvar debugger-outer-unread-post-input-method-events)
 (defvar debugger-outer-last-input-event)
 (defvar debugger-outer-last-command-event)
 (defvar debugger-outer-last-nonmenu-event)
@@ -107,6 +108,8 @@ first will be printed into the backtrace buffer."
 	(debugger-outer-this-command this-command)
 	(debugger-outer-unread-command-char unread-command-char)
 	(debugger-outer-unread-command-events unread-command-events)
+	(debugger-outer-unread-post-input-method-events
+	 unread-post-input-method-events)
 	(debugger-outer-last-input-event last-input-event)
 	(debugger-outer-last-command-event last-command-event)
 	(debugger-outer-last-nonmenu-event last-nonmenu-event)
@@ -120,6 +123,7 @@ first will be printed into the backtrace buffer."
     ;; Don't let these magic variables affect the debugger itself.
     (let ((last-command nil) this-command track-mouse
 	  (unread-command-char -1) unread-command-events
+	  unread-post-input-method-events
 	  last-input-event last-command-event last-nonmenu-event
 	  last-event-frame
 	  overriding-local-map
@@ -214,6 +218,8 @@ first will be printed into the backtrace buffer."
     (setq this-command debugger-outer-this-command)
     (setq unread-command-char debugger-outer-unread-command-char)
     (setq unread-command-events debugger-outer-unread-command-events)
+    (setq unread-post-input-method-events
+	  debugger-outer-unread-post-input-method-events)
     (setq last-input-event debugger-outer-last-input-event)
     (setq last-command-event debugger-outer-last-command-event)
     (setq last-nonmenu-event debugger-outer-last-nonmenu-event)
@@ -348,6 +354,8 @@ Applies to the frame whose line point is on in the backtrace."
 	   (this-command debugger-outer-this-command)
 	   (unread-command-char debugger-outer-unread-command-char)
 	   (unread-command-events debugger-outer-unread-command-events)
+	   (unread-post-input-method-events
+	    debugger-outer-unread-post-input-method-events)
 	   (last-input-event debugger-outer-last-input-event)
 	   (last-command-event debugger-outer-last-command-event)
 	   (last-nonmenu-event debugger-outer-last-nonmenu-event)
@@ -371,6 +379,8 @@ Applies to the frame whose line point is on in the backtrace."
 	 (setq debugger-outer-this-command this-command)
 	 (setq debugger-outer-unread-command-char unread-command-char)
 	 (setq debugger-outer-unread-command-events unread-command-events)
+	 (setq debugger-outer-unread-post-input-method-events
+	       unread-post-input-method-events)
 	 (setq debugger-outer-last-input-event last-input-event)
 	 (setq debugger-outer-last-command-event last-command-event)
 	 (setq debugger-outer-last-nonmenu-event last-nonmenu-event)
