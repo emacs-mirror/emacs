@@ -79,6 +79,7 @@ OBJ1 =  $(BLD)/abbrev.$(O)			\
 	$(BLD)/lread.$(O)			\
 	$(BLD)/macros.$(O)			\
 	$(BLD)/marker.$(O)			\
+        $(BLD)/md5.$(O)                         \
 	$(BLD)/minibuf.$(O)			\
 	$(BLD)/mocklisp.$(O)			\
 	$(BLD)/w32.$(O)				\
@@ -575,7 +576,8 @@ $(BLD)/fns.$(O) : \
 	$(SRC)/dispextern.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/intervals.h \
-	$(SRC)/composite.h
+	$(SRC)/composite.h \
+        $(SRC)/md5.h
 
 $(BLD)/frame.$(O) : \
 	$(SRC)/frame.c \
@@ -736,6 +738,10 @@ $(BLD)/marker.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h
+
+$(BLD)/md5.$(O) : \
+        $(SRC)/md5.c \
+        $(SRC)/md5.h
 
 $(BLD)/minibuf.$(O) : \
 	$(SRC)/minibuf.c \
@@ -905,15 +911,6 @@ $(BLD)/strftime.$(O) : \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
-
-$(BLD)/sunfns.$(O) : \
-	$(SRC)/sunfns.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/src/config.h \
-	$(SRC)/window.h \
-	$(SRC)/buffer.h \
-	$(SRC)/termhooks.h
 
 $(BLD)/syntax.$(O) : \
 	$(SRC)/syntax.c \
