@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.13 2000/11/20 14:16:18 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.14 2001/01/08 16:24:56 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -47,7 +47,7 @@ A string or list of strings passed to the checkin program by
 (defcustom vc-cvs-header (or (cdr (assoc 'CVS vc-header-alist)) '("\$Id\$"))
   "*Header keywords to be inserted by `vc-insert-headers'."
   :version "21.1"
-  :type 'string
+  :type '(repeat string)
   :group 'vc)
 
 (defcustom vc-cvs-use-edit t
