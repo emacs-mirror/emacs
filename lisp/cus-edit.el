@@ -2547,8 +2547,7 @@ Match frames with dark backgrounds.")
   "Customize face."
   :sample-face 'custom-face-tag-face
   :help-echo "Set or reset this face."
-  :documentation-property '(lambda (face)
-			     (face-doc-string face))
+  :documentation-property (lambda (face) (face-doc-string face))
   :value-create 'custom-face-value-create
   :action 'custom-face-action
   :custom-category 'face
@@ -2889,7 +2888,7 @@ restoring it to the state of a face that has never been customized."
   :value-get 'widget-value-value-get
   :validate 'widget-children-validate
   :action 'widget-face-action
-  :match '(lambda (widget value) (symbolp value)))
+  :match (lambda (widget value) (symbolp value)))
 
 (defun widget-face-value-create (widget)
   "Create a `custom-face' child."
