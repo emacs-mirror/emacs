@@ -146,7 +146,7 @@
 
 	* gnus-start.el (gnus-setup-news): Honor user's setting to
 	gnus-message-archive-method.  Suggested by Lute Kamstra
-	<Lute.Kamstra@xs4all.nl>.
+	<lute@gnu.org>.
 
 2004-12-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
