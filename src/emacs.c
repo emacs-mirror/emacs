@@ -200,6 +200,76 @@ int initial_argc;
 
 static void sort_args ();
 void syms_of_emacs ();
+
+#define USAGE "\
+Usage: %s [OPTION-OR-FILENAME]...\n\
+\n\
+Run Emacs, the extensible, customizable, self-documenting real-time\n\
+display editor.  The recommended way to start Emacs for normal editing\n\
+is with no options at all.\n\
+\n\
+Run M-x info RET m emacs RET m command arguments RET inside Emacs to\n\
+read the main documentation for these command-line arguments.\n\
+\n\
+Initialization options:\n\
+\n\
+--batch			do not do interactive display; implies -q\n\
+--debug-init		enable Emacs Lisp debugger during init file\n\
+--help			display this help message and exit\n\
+--multibyte, --no-unibyte   run Emacs in multibyte mode\n\
+--no-init-file, -q	    load neither ~/.emacs nor default.el\n\
+--no-shared-memory, -nl	    do not use shared memory\n\
+--no-site-file		    do not load site-start.el\n\
+--no-windows, -nw	    don't communicate with X, ignoring $DISPLAY\n\
+--terminal, -t DEVICE	    use DEVICE for terminal I/O\n\
+--unibyte, --no-multibyte   run Emacs in unibyte mode\n\
+--user, -u USER		load ~USER/.emacs instead of your own\n\
+--version		display version information and exit\n\
+\n\
+Action options:\n\
+\n\
+FILE			visit FILE using find-file\n\
++LINENUM FILE		visit FILE using find-file, then go to line LINENUM\n\
+--directory, -L DIR	add DIR to variable load-path\n\
+--eval EXPR		evaluate Emacs Lisp expression EXPR\n\
+--execute EXPR		evaluate Emacs Lisp expression EXPR\n\
+--find-file FILE	visit FILE\n\
+--funcall, -f FUNC	call Emacs function FUNC with no arguments\n\
+--insert FILE		insert contents of FILE into current buffer\n\
+--kill			exit without asking for confirmation\n\
+--load, -l FILE		load FILE of Emacs Lisp code using the load function\n\
+--visit FILE		visit FILE\n\
+\n\
+X window system options:\n\
+\n\
+--background-color, -bg COLOR	window background color\n\
+--border-color, -bd COLOR	main border color\n\
+--border-width, -bw WIDTH	width of main border\n\
+--cursor-color, -cr COLOR	color of the Emacs cursor indicating point\n\
+--display, -d DISPLAY		use X server DISPLAY\n\
+--font, -fn FONT		default font; must be fixed-widthp\n\
+--foreground-color, -fg COLOR	window foreground color\n\
+--geometry, -g GEOMETRY		window geometry\n\
+--iconic			start Emacs in iconified state\n\
+--icon-type, -i			use picture of gnu for Emacs icon\n\
+--internal-border, -ib WIDTH	width between text and main border\n\
+--mouse-color, -ms COLOR 	mouse cursor color in Emacs window\n\
+--name NAME			title of main Emacs window\n\
+--reverse-video, -r, -rv	switch foreground and background\n\
+--title, -T, -wn, TITLE		title for Emacs windows\n\
+--vertical-scroll-bars, -vb	enable vertical scroll bars\n\
+--xrm XRESOURCES		set additional X resources\n\
+\n\
+You can generally also specify long option names with a single -; for\n\
+example, -batch as well as --batch.  You can use any unambiguous\n\
+abbreviation for a --option.\n\
+\n\
+Various environment variables and window system resources also affect\n\
+Emacs' operation.  See the main documentation.\n\
+\n\
+Report bugs to bug-gnu-emacs@gnu.org.  First, please see the Bugs\n\
+section of the Emacs manual or the file BUGS.\n"
+
 
 /* Signal code for the fatal signal that was received */
 int fatal_error_code;
@@ -869,16 +939,7 @@ main (argc, argv, envp)
   /* Handle the --help option, which gives a usage message..  */
   if (argmatch (argv, argc, "-help", "--help", 3, NULL, &skip_args))
     {
-      printf ("\
-Usage: %s [--batch]  [-t term] [--terminal term]\n\
-      [-d display] [--display display]  [-nw] [--no-windows]\n\
-      [-q] [--no-init-file]  [-u user] [--user user]  [--debug-init]\n\
-      [--unibyte] [--multibyte] [--version] [--no-site-file]\n\
-      [-f func] [--funcall func]  [-l file] [--load file]  [--eval expr]\n\
-      [--execute expr] [--visit file] [--file file] [--insert file]\n\
-      [+linenum] file-to-visit  [--kill]\n\
-Report bugs to bug-gnu-emacs@gnu.org.  First, please see\n\
-the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
+      printf (USAGE, argv[0]);
       exit (0);
     }
 
