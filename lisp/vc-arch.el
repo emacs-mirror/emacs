@@ -40,10 +40,17 @@
 
 ;; Bugs:
 
+;; - Opening a new file prompts "blabla was lost; check out? (yes or no)".
+;; - *VC-log*'s initial content lacks the `Summary:' lines.
 ;; - All files under the tree are considered as "under Arch's control"
 ;;   without regards to =tagging-method and such.
 ;; - Files are always considered as `edited'.
+;; - C-x v l does not work.
 ;; - C-x v i does not work.
+;; - C-x v ~ does not work.
+;; - C-x v u does not work.
+;; - C-x v s does not work.
+;; - C-x v r does not work.
 ;; - VC-dired does not work.
 ;; - And more...
 
@@ -141,7 +148,7 @@ Return non-nil if FILE is unchanged."
 	     (category (match-string 4 defbranch))
 	     (branch (match-string 3 defbranch))
 	     (version (match-string 2 defbranch))
-	     (rev-nb 0)
+	     (sealed nil) (rev-nb 0)
 	     (rev nil)
 	     logdir tmp)
 	(setq logdir (expand-file-name category root))
@@ -149,16 +156,20 @@ Return non-nil if FILE is unchanged."
 	(setq logdir (expand-file-name version logdir))
 	(setq logdir (expand-file-name archive logdir))
 	(setq logdir (expand-file-name "patch-log" logdir))
+	;; Revision names go: base-0, patch-N, version-0, versionfix-N.
 	(dolist (file (directory-files logdir))
+	  (when (and (eq (aref file 0) ?v) (not sealed))
+	    (setq sealed t rev-nb 0))
 	  (if (and (string-match "-\\([0-9]+\\)\\'" file)
 		   (setq tmp (string-to-number (match-string 1 file)))
+		   (or (not sealed) (eq (aref file 0) ?v))
 		   (>= tmp rev-nb))
 	      (setq rev-nb tmp rev file)))
 	(concat defbranch "--" rev)))))
 
 
 (defcustom vc-arch-mode-line-rewrite
-  '(("\\`.*--\\(.*--.*\\)--.*-\\([0-9]+\\)\\'" . "\\2[\\1]"))
+  '(("\\`.*--\\(.*--.*\\)--\\(v?\\).*-\\([0-9]+\\)\\'" . "\\2\\3[\\1]"))
   "Rewrite rules to shorten Arch's revision names on the mode-line."
   :type '(repeat (cons regexp string)))
 
@@ -209,8 +220,14 @@ Return non-nil if FILE is unchanged."
 
 (defun vc-arch-checkin (file rev comment)
   (if rev (error "Committing to a specific revision is unsupported."))
-  (vc-arch-command nil 0 file "commit" "-L" comment "--"
-		   (vc-switches 'Arch 'checkin)))
+  (let ((summary (file-relative-name file (vc-arch-root file))))
+    ;; Extract a summary from the comment.
+    (when (or (string-match "\\`Summary:[ \t]*\\(.*[^ \t\n]\\)\\([ \t]*\n\\)*" comment)
+	      (string-match "\\`[ \t]*\\(.*[^ \t\n]\\)[ \t]*\\(\n?\\'\\|\n\\([ \t]*\n\\)+\\)" comment))
+      (setq summary (match-string 1 comment))
+      (setq comment (substring comment (match-end 0))))
+    (vc-arch-command nil 0 file "commit" "-s" summary "-L" comment "--"
+		     (vc-switches 'Arch 'checkin))))
 
 (defun vc-arch-diff (file &optional oldvers newvers)
   "Get a difference report using Arch between two versions of FILE."
