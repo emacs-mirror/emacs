@@ -1305,9 +1305,15 @@ It returns t if it got any new messages."
 	     (file-name-nondirectory buffer-file-name)))
   (let (file tofile delete-files movemail popmail got-password password)
     (while files
-      (setq file (file-truename
-		  (expand-file-name (substitute-in-file-name (car files))))
-	    tofile (expand-file-name
+      ;; Handle POP mailbox names specially; don't expand as filenames
+      ;; in case the userid contains a directory separator.
+      (setq file (car files))
+      (setq popmail (string-match "^po:" file))
+      (if popmail
+	  (setq renamep t)
+	(setq file (file-truename
+		    (expand-file-name (substitute-in-file-name file)))))
+      (setq tofile (expand-file-name
 		    ;; Generate name to move to from inbox name,
 		    ;; in case of multiple inboxes that need moving.
 		    (concat ".newmail-" (file-name-nondirectory file))
@@ -1327,10 +1333,7 @@ It returns t if it got any new messages."
 ;;;			      (file-truename
 ;;;			       (concat rmail-spool-directory
 ;;;				       (file-name-nondirectory file)))))
-      (setq popmail (string-match "^po:" (file-name-nondirectory file)))
-      (if popmail (setq file (file-name-nondirectory file)
-			renamep t))
-      (if movemail
+      (if (and movemail (not popmail))
 	  (progn
 	    ;; On some systems, /usr/spool/mail/foo is a directory
 	    ;; and the actual inbox is /usr/spool/mail/foo/foo.
@@ -1345,7 +1348,8 @@ It returns t if it got any new messages."
 		 ;; cannot have "po:" in file name
 		 (setq tofile
 		       (expand-file-name
-			(concat ".newmail-pop-" (substring file (+ popmail 3)))
+			(concat ".newmail-pop-"
+				(file-name-nondirectory (substring file 3)))
 			(file-name-directory
 			 (expand-file-name buffer-file-name)))))
 	     (message "Getting mail from post office ..."))
