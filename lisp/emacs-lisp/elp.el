@@ -300,9 +300,9 @@ For example, to instrument all ELP functions, do the following:
 				    (function
 				     (lambda (sym)
 				       (and (fboundp sym)
-					    (not (eq (car-safe
-						      (symbol-function sym))
-						     'macro)))))))))
+					    (not (memq (car-safe
+							(symbol-function sym))
+						       '(macro keymap autoload))))))))))
 
 (defun elp-restore-list (&optional list)
   "Restore the original definitions for all functions in `elp-function-list'.
