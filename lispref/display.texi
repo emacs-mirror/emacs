@@ -841,7 +841,7 @@ the range of the overlay.
 @kindex display @r{(overlay property)}
 This property activates various features that change the
 way text is displayed.  For example, it can make text appear taller
-or shorter, higher or lower, wider or narror, or replaced with an image.
+or shorter, higher or lower, wider or narrower, or replaced with an image.
 @xref{Display Property}.
 
 @item help-echo
@@ -1278,12 +1278,12 @@ one.
 @kindex underline @r{(face name)}
 This face underlines text.
 
-@item fixed-patch
-@kindex fixed-patch @r{(face name)}
+@item fixed-pitch
+@kindex fixed-pitch @r{(face name)}
 This face forces use of a particular fixed-width font.
 
-@item variable-patch
-@kindex variable-patch @r{(face name)}
+@item variable-pitch
+@kindex variable-pitch @r{(face name)}
 This face forces use of a particular variable-width font.  It's
 reasonable to customize this to use a different variable-width font, if
 you like, but you should not make it a fixed-width font.
