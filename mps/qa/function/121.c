@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!121.c(trunk.2) $
  summary = very small arenas
  language = c
  link = testlib.o
@@ -13,6 +13,7 @@ END_HEADER
 #include "mpsavm.h"
 #include "mpscmv.h"
 
+
 void *stackpointer;
 
 mps_arena_t arena;
@@ -20,18 +21,34 @@ mps_thr_t thread;
 mps_pool_t pool;
 mps_pool_t pools[100];
 
-static void test(void) {
 
- int i;
- for (i=64; i>0; i--) {
-  comment("Trying arena of %dKB.", i);
-  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*i)),
-   "create arena");
-  cdie(mps_thread_reg(&thread, arena), "register thread");
-  mps_thread_dereg(thread);
-  mps_arena_destroy(arena);
- }
+static void test(void)
+{
+  int i;
+  for (i = 64; i >= 0; i--) {
+    mps_res_t res;
+
+    comment("Trying arena of %d kB.", i);
+    res = mps_arena_create(&arena, mps_arena_class_vm(), (size_t)(1024*i));
+    if (res == MPS_RES_OK) {
+      res = mps_thread_reg(&thread, arena);
+      if (res == MPS_RES_OK) {
+        mps_thread_dereg(thread);
+      } else {
+        if (res != MPS_RES_MEMORY) {
+          error("Wrong error code, %d, for mps_thread_reg.", res);
+        }
+      }
+      mps_arena_destroy(arena);
+    } else {
+      report_res("arena_create", res);
+      if (res != MPS_RES_MEMORY) {
+        error("Wrong error code.");
+      }
+    }
+  }
 }
+
 
 int main(void)
 {
