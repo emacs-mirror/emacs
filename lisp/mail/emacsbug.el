@@ -89,8 +89,6 @@ Prompts for bug subject.  Leaves you in a mail buffer."
     (forward-line 1)
 
     (let ((signature (buffer-substring (point) (point-max))))
-      ;; Discourage users to write non-English text.
-      (set-buffer-multibyte nil)
       (delete-region (point) (point-max))
       (insert signature)
       (backward-char (length signature)))
