@@ -429,7 +429,7 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 	      ((eq (car-safe elt) 'menu-item)
 	       (setq plist (cdr-safe (cdr-safe (cdr-safe elt))))
 	       (setq km (nth 2 elt))
-	       (setq str (nth 1 elt))
+	       (setq str (eval (nth 1 elt)))
 	       (setq filter (plist-get plist :filter))
 	       (if filter
 		   (setq km (funcall filter km)))
@@ -463,9 +463,7 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 	  (setq km nil)))
       (and km str
 	   (or (assoc str tmm-km-list)
-	       (setq tmm-km-list 
-		     (cons (cons str (cons event km)) tmm-km-list)))
-	   ))))
+	       (push (cons str (cons event km)) tmm-km-list))))))
 
 (defun tmm-get-keybind (keyseq)
   "Return the current binding of KEYSEQ, merging prefix definitions.
