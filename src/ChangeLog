@@ -1,3 +1,12 @@
+2004-05-10  Juanma Barranquero  <lektu@terra.es>
+
+	* process.c (Fstart_process): Fix docstring.
+
+	* charset.c (Fget_unused_iso_final_char): Fix typos in docstring.
+	(Fchar_bytes, Fchar_width, Fstring_width, Fchar_direction)
+	(Fsplit_char, Fchar_charset): Make argument names match their use
+	in docstring.
+
 2004-05-10  Richard M. Stallman  <rms@gnu.org>
 
 	* print.c (print_preprocess): Use being_printed, loop_count and

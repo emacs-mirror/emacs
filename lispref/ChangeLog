@@ -1,3 +1,9 @@
+2004-05-10  Juanma Barranquero  <lektu@terra.es>
+
+	* modes.texi (Mode Line Variables): Fix description of
+	global-mode-string, which is now after which-func-mode, not the
+	buffer name.
+
 2004-05-07  Lars Hansen  <larsh@math.ku.dk>
 
 	* modes.texi (Desktop Save Mode): Add.
