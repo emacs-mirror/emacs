@@ -133,15 +133,16 @@ Commands:
 
 (defun help-with-tutorial (&optional arg)
   "Select the Emacs learn-by-doing tutorial.
-A tutorial written in the current primary language is selected.
-If there's no tutorial in the language, \"TUTORIAL\" is selected.
-With arg, users are asked to select language."
+If there is a tutorial version written in the language
+of the selected anguage envgironment, that version is used.
+If there's no tutorial in that language, `TUTORIAL' is selected.
+With arg, you are asked to select which language."
   (interactive "P")
   (let (lang filename file)
     (if arg
 	(or (setq lang (read-language-name 'tutorial "Language: "))
 	    (error "No tutorial file of the specified language"))
-      (setq lang primary-language))
+      (setq lang current-language-environment))
     (setq filename (or (get-language-info lang 'tutorial)
 		       "TUTORIAL"))
     (setq file (expand-file-name (concat "~/" filename)))
