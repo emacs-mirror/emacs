@@ -5518,6 +5518,13 @@ DIR defaults to current buffer's directory default.")
 }
 
 void
+init_fileio_once ()
+{
+  /* Must be set before any path manipulation is performed.  */
+  XSETFASTINT (Vdirectory_sep_char, '/');
+}
+
+void
 syms_of_fileio ()
 {
   Qexpand_file_name = intern ("expand-file-name");
@@ -5661,7 +5668,6 @@ The value should be either ?/ or ?\\ (any other value is treated as ?\\).\n\
 This variable affects the built-in functions only on Windows,\n\
 on other platforms, it is initialized so that Lisp code can find out\n\
 what the normal separator is.");
-  XSETFASTINT (Vdirectory_sep_char, '/');
 
   DEFVAR_LISP ("file-name-handler-alist", &Vfile_name_handler_alist,
     "*Alist of elements (REGEXP . HANDLER) for file names handled specially.\n\
