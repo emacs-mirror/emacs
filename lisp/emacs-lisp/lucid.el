@@ -52,18 +52,6 @@
     (if tail
 	(setcdr tail new-parent))))
 
-(defun remove-hook (hook-var function)
-  "Remove a function from a hook, if it is present.
-First argument HOOK-VAR (a symbol) is the name of a hook, second
- argument FUNCTION is the function to remove (compared with `eq')."
-  (if (boundp 'hook-var)
-      (let ((old (symbol-value hook-var)))
-	;; If the hook value is a single function, turn it into a list.
-	(if (or (not (listp old)) (eq (car old) 'lambda))
-	    (set hook-var (list old)))
-	;; Now delete FUNCTION.
-	(set hook-var (delq function (symbol-value hook-var))))))
-
 (defun remprop (symbol prop)
   (let ((plist (symbol-plist symbol)))
     (while (eq (car plist) prop)
