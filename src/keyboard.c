@@ -199,6 +199,10 @@ Lisp_Object Voverriding_local_map;
 /* If non-nil, Voverriding_local_map applies to the menu bar.  */
 Lisp_Object Voverriding_local_map_menu_flag;
 
+/* Keymap that defines special misc events that should
+   be processed immediately at a low level.  */
+Lisp_Object Vspecial_event_map;
+
 /* Current depth in recursive edits.  */
 int command_loop_level;
 
@@ -1645,11 +1649,14 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   jmp_buf local_getcjmp;
   jmp_buf save_jump;
   int key_already_recorded = 0;
+  Lisp_Object tem;
   Lisp_Object also_record;
   also_record = Qnil;
 
   before_command_key_count = this_command_key_count;
   before_command_echo_length = echo_length ();
+
+ retry:
 
   if (CONSP (Vunread_command_events))
     {
@@ -2018,6 +2025,18 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (key_already_recorded)
     return c;
+
+  /* Process special events within read_char
+     and loop around to read another event.  */
+  tem = get_keyelt (access_keymap (get_keymap_1 (Vspecial_event_map, 0, 0),
+				   c, 0, 0), 1);
+
+  if (!NILP (tem))
+    {
+      last_input_char = c;
+      Fcommand_execute (tem, Qnil);
+      goto retry;
+    }
 
   /* Wipe the echo area.  */
   echo_area_glyphs = 0;
@@ -7220,6 +7239,10 @@ Otherwise, the menu bar continues to reflect the buffer's local map\n\
 and the minor mode maps regardless of `overriding-local-map'.");
   Voverriding_local_map_menu_flag = Qnil;
 
+  DEFVAR_LISP ("special-event-map", &Vspecial_event_map,
+    "Keymap defining bindings for special events to execute at low level.");
+  Vspecial_event_map = Fcons (intern ("keymap"), Qnil);
+
   DEFVAR_LISP ("track-mouse", &do_mouse_tracking,
     "*Non-nil means generate motion events for mouse motion.");
 
@@ -7248,4 +7271,11 @@ keys_of_keyboard ()
   initial_define_key (meta_map, Ctl ('C'), "exit-recursive-edit");
   initial_define_key (global_map, Ctl (']'), "abort-recursive-edit");
   initial_define_key (meta_map, 'x', "execute-extended-command");
+
+  initial_define_lispy_key (Vspecial_event_map, "delete-frame",
+			    "handle-delete-frame");
+  initial_define_lispy_key (Vspecial_event_map, "iconify-frame",
+			    "ignore-event");
+  initial_define_lispy_key (Vspecial_event_map, "make-frame-visible",
+			    "ignore-event");
 }
