@@ -47,7 +47,10 @@
 	     (latin-iso8859-2 . (nil . "ISO8859-2"))
 	     (latin-iso8859-3 . (nil . "ISO8859-3"))
 	     (latin-iso8859-4 . (nil . "ISO8859-4"))
-	     (thai-tis620 . (nil . "TIS620"))
+	     ;; Setting "*" family is for a workaround of the problem
+	     ;; that a font of wrong size is preferred if the font
+	     ;; family matches with a requested one.
+	     (thai-tis620 . ("*" . "TIS620"))
 	     (greek-iso8859-7 . (nil . "ISO8859-7"))
 	     (arabic-iso8859-6 . (nil . "ISO8859-6"))
 	     (hebrew-iso8859-8 . (nil . "ISO8859-8"))
