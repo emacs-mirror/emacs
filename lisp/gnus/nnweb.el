@@ -391,7 +391,7 @@ and `altavista'.")
 ;;;
 
 (defun nnweb-dejanews-create-mapping ()
-  "Perform the search and create an number-to-url alist."
+  "Perform the search and create a number-to-url alist."
   (save-excursion
     (set-buffer nnweb-buffer)
     (erase-buffer)
@@ -499,7 +499,7 @@ and `altavista'.")
 ;;;
 
 (defun nnweb-reference-create-mapping ()
-  "Perform the search and create an number-to-url alist."
+  "Perform the search and create a number-to-url alist."
   (save-excursion
     (set-buffer nnweb-buffer)
     (erase-buffer)
@@ -627,7 +627,7 @@ and `altavista'.")
 ;;;
 
 (defun nnweb-altavista-create-mapping ()
-  "Perform the search and create an number-to-url alist."
+  "Perform the search and create a number-to-url alist."
   (save-excursion
     (set-buffer nnweb-buffer)
     (erase-buffer)
@@ -759,7 +759,7 @@ and `altavista'.")
     (while (re-search-forward
 	    "a href=/groups\\(\\?[^ \">]*selm=\\([^ &\">]+\\)\\)" nil t)
       (setq mid (match-string 2)
-	    url (format 
+	    url (format
 		 "http://groups.google.com/groups?selm=%s&output=gplain" mid))
       (narrow-to-region (search-forward ">" nil t)
 			(search-forward "</a>" nil t))
@@ -811,7 +811,7 @@ and `altavista'.")
       (caar map))))
 
 (defun nnweb-google-create-mapping ()
-  "Perform the search and create an number-to-url alist."
+  "Perform the search and create a number-to-url alist."
   (save-excursion
     (set-buffer nnweb-buffer)
     (erase-buffer)
@@ -925,7 +925,7 @@ and `altavista'.")
   "Insert the contents from an URL in the current buffer.
 If FOLLOW-REFRESH is non-nil, redirect refresh url in META."
   (let ((name buffer-file-name))
-    (if follow-refresh 
+    (if follow-refresh
 	(save-restriction
 	  (narrow-to-region (point) (point))
 	  (url-insert-file-contents url)
