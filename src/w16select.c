@@ -433,7 +433,7 @@ DEFUN ("win16-set-clipboard-data", Fwin16_set_clipboard_data, Swin16_set_clipboa
   if (ok1 == 0)
     {
       message2 (no_mem_msg, sizeof (no_mem_msg) - 1);
-      sit_for (2, 0, 0, 1);
+      sit_for (2, 0, 0, 1, 1);
     }
   
  done:
