@@ -1,3 +1,9 @@
+2002-03-03  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* calendar/diary-lib.el (list-diary-entries): Use
+	`buffer-substring' instead of `buffer-substring-no-properties' to
+	support enriched mode.
+
 2002-03-02  Richard M. Stallman  <rms@gnu.org>
 
 	* find-dired.el (find-grep-dired): Call shell-quote-argument.
@@ -59,7 +65,7 @@
 	* vc-hooks.el (vc-menu-map): New entry "Update to Latest Version",
 	which calls vc-update.  Use the term "Base Version" instead of
 	"Last Version" for the entries "Revert" and "Compare".
-	
+
 2002-02-28  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (shell-command-on-region): Report non-zero exit
@@ -172,7 +178,7 @@
 2002-02-25  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* ps-print.el (ps-print-printer): Added `lpr' customize group
-	member. 
+	member.
 
 2002-02-25  Juanma Barranquero  <lektu@terra.es>
 
