@@ -192,8 +192,11 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
     (set-buffer (get-buffer-create lunar-phases-buffer))
     (setq buffer-read-only nil)
     (calendar-set-mode-line
-          (format "Phases of the moon from %s, %d to %s, %d%%-"
-                  (calendar-month-name m1) y1 (calendar-month-name m2) y2))
+     (if (= y1 y2)
+         (format "Phases of the Moon from %s to %s, %d%%-"
+                 (calendar-month-name m1) (calendar-month-name m2) y2)
+       (format "Phases of the Moon from %s, %d to %s, %d%%-"
+               (calendar-month-name m1) y1 (calendar-month-name m2) y2)))
     (erase-buffer)
     (insert
      (mapconcat
