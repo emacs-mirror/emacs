@@ -225,7 +225,8 @@ Value is FACE."
 
 (defun face-id (face &optional frame)
   "Return the internal ID of face with name FACE.
-If optional argument FRAME is nil or omitted, use the selected frame."
+The optional argument FRAME is ignored, since the internal face ID
+of a face name is the same for all frames."
   (check-face face)
   (get face 'face))
 
