@@ -787,46 +787,54 @@ lisp_time_argument (specified_time, result)
     }
 }
 
-DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 2, 0,
-  "Use FORMAT-STRING to format the time TIME.\n\
-TIME is specified as (HIGH LOW . IGNORED) or (HIGH . LOW), as from\n\
-`current-time' and `file-attributes'.\n\
-FORMAT-STRING may contain %-sequences to substitute parts of the time.\n\
-%a is replaced by the abbreviated name of the day of week.\n\
-%A is replaced by the full name of the day of week.\n\
-%b is replaced by the abbreviated name of the month.\n\
-%B is replaced by the full name of the month.\n\
-%c stands for the preferred date/time format of the C locale.\n\
-%d is replaced by the day of month, zero-padded.\n\
-%D is a synonym for \"%m/%d/%y\".\n\
-%e is replaced by the day of month, blank-padded.\n\
-%h is a synonym for \"%b\".\n\
-%H is replaced by the hour (00-23).\n\
-%I is replaced by the hour (00-12).\n\
-%j is replaced by the day of the year (001-366).\n\
-%k is replaced by the hour (0-23), blank padded.\n\
-%l is replaced by the hour (1-12), blank padded.\n\
-%m is replaced by the month (01-12).\n\
-%M is replaced by the minute (00-59).\n\
-%n is a synonym for \"\\n\".\n\
-%p is replaced by AM or PM, as appropriate.\n\
-%r is a synonym for \"%I:%M:%S %p\".\n\
-%R is a synonym for \"%H:%M\".\n\
-%S is replaced by the second (00-60).\n\
-%t is a synonym for \"\\t\".\n\
-%T is a synonym for \"%H:%M:%S\".\n\
-%U is replaced by the week of the year (00-53), first day of week is Sunday.\n\
-%w is replaced by the day of week (0-6), Sunday is day 0.\n\
-%W is replaced by the week of the year (00-53), first day of week is Monday.\n\
-%x is a locale-specific synonym, which defaults to \"%D\" in the C locale.\n\
-%X is a locale-specific synonym, which defaults to \"%T\" in the C locale.\n\
-%y is replaced by the year without century (00-99).\n\
-%Y is replaced by the year with century.\n\
-%Z is replaced by the time zone abbreviation.\n\
+DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
+  "Use FORMAT-STRING to format the time TIME, or now if omitted.\n\
+TIME is specified as (HIGH LOW . IGNORED) or (HIGH . LOW), as returned by\n\
+`current-time' or `file-attributes'.\n\
+The third, optional, argument UNIVERSAL, if non-nil, means describe TIME\n\
+as Universal Time; nil means describe TIME in the local time zone.\n\
+The value is a copy of FORMAT-STRING, but with certain constructs replaced\n\
+by text that describes the specified date and time in TIME:\n\
 \n\
-The number of options reflects the `strftime' function.")
-  (format_string, time)
-     Lisp_Object format_string, time;
+%Y is the year, %y within the century, %C the century.\n\
+%G is the year corresponding to the ISO week, %g within the century.\n\
+%m is the numeric month, %b and %h the abbreviated name, %B the full name.\n\
+%d is the day of the month, zero-padded, %e is blank-padded.\n\
+%u is the numeric day of week from 1 (Monday) to 7, %w from 0 (Sunday) to 6.\n\
+%a is the abbreviated name of the day of week, %A the full name.\n\
+%U is the week number starting on Sunday, %W starting on Monday,\n\
+ %V according to ISO 8601.\n\
+%j is the day of the year.\n\
+\n\
+%H is the hour on a 24-hour clock, %I is on a 12-hour clock, %k is like %H\n\
+ only blank-padded, %l is like %I blank-padded.\n\
+%p is AM or PM.\n\
+%M is the minute.\n\
+%S is the second.\n\
+%Z is the time zone name, %z is the numeric form.\n\
+%s is the number of seconds since 1970-01-01 00:00:00 +0000.\n\
+\n\
+%c is the locale's date and time format.\n\
+%x is the locale's \"preferred\" date format.\n\
+%D is like \"%m/%d/%y\".\n\
+\n\
+%R is like \"%H:%M\", %T is like \"%H:%M:%S\", %r is like \"%I:%M:%S %p\".\n\
+%X is the locale's \"preferred\" time format.\n\
+\n\
+Finally, %n is like \n, %t is like \t, %% is a literal %.\n\
+\n\
+Certain flags and modifiers are available with some format controls.
+The flags are `_' and `-'.  For certain characters X, %_X is like %X,\n\
+but padded with blanks; %-X is like %X, but without padding.\n\
+%NX (where N stands for an integer) is like %X,\n\
+but takes up at least N (a number) positions.\n\
+The modifiers are `E' and `O'.  For certain characters X,\n\
+%EX is a locale's alternative version of %X;\n\
+%OX is like %X, but uses the locale's number symbols.\n\
+\n\
+For example, to produce full ISO 8601 format, use \"%Y-%m-%dT%T%z\".")
+  (format_string, time, universal)
+     Lisp_Object format_string, time, universal;
 {
   time_t value;
   int size;
@@ -841,14 +849,22 @@ The number of options reflects the `strftime' function.")
 
   while (1)
     {
-      char *buf = (char *) alloca (size);
-      *buf = 1;
-      if (emacs_strftime (buf, size, XSTRING (format_string)->data,
-			  localtime (&value))
-	  || !*buf)
+      char *buf = (char *) alloca (size + 1);
+      int result;
+
+      result = emacs_strftime (buf, size, XSTRING (format_string)->data,
+			       (NILP (universal) ? localtime (&value)
+				: gmtime (&value)));
+      if (result > 0 && result < size)
 	return build_string (buf);
-      /* If buffer was too small, make it bigger.  */
-      size *= 2;
+      if (result < 0)
+	error ("Invalid time format specification");
+
+      /* If buffer was too small, make it bigger and try again.  */
+      result = emacs_strftime (buf, 0, XSTRING (format_string)->data,
+			       (NILP (universal) ? localtime (&value)
+				: gmtime (&value)));
+      size = result + 1;
     }
 }
 
