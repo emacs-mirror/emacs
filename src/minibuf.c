@@ -1413,6 +1413,7 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
   "Read a string in the minibuffer, with completion.\n\
 PROMPT is a string to prompt with; normally it ends in a colon and a space.\n\
 TABLE is an alist whose elements' cars are strings, or an obarray.\n\
+TABLE can also be a function to do the completion itself.\n\
 PREDICATE limits completion to a subset of TABLE.\n\
 See `try-completion' and `all-completions' for more details\n\
  on completion, TABLE, and PREDICATE.\n\
