@@ -3163,7 +3163,7 @@ direct_output_for_insert (g)
   /* Increment buffer positions for glyphs following the newly 
      inserted ones.  */
   for (glyph = glyphs + n; glyph < end; ++glyph)
-    if (glyph->charpos > 0)
+    if (glyph->charpos > 0 && BUFFERP (glyph->object))
       glyph->charpos += delta;
   
   if (MATRIX_ROW_END_CHARPOS (glyph_row) > 0)
