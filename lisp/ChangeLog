@@ -1,5 +1,7 @@
 2000-12-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* server.el (server-visit-files): Push files on file-name-history.
+
 	* progmodes/cc-langs.el: Update copyright.
 
 	* progmodes/idlw-shell.el, progmodes/idlwave.el: Update copyright.
