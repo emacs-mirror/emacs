@@ -7875,12 +7875,13 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 
 	    case inDrag:
 #if TARGET_API_MAC_CARBON
-	      {
-	        BitMap bm;
-
-	        GetQDGlobalsScreenBits (&bm);
-	        DragWindow (window_ptr, er.where, &bm.bounds);
-	      }
+              if (er.what == mouseDown)  
+		{
+		  BitMap bm;
+		  
+		  GetQDGlobalsScreenBits (&bm);
+		  DragWindow (window_ptr, er.where, &bm.bounds);
+		}
 #else /* not TARGET_API_MAC_CARBON */
 	      DragWindow (window_ptr, er.where, &qd.screenBits.bounds);
 #endif /* not TARGET_API_MAC_CARBON */

@@ -1,5 +1,8 @@
 2003-10-12  Andrew Choi  <akochoi@shaw.ca>
 
+	* macterm.c (XTread_socket): Call DragWindow only for mouseDown
+	events.
+
 	* s/darwin.h (GC_MARK_STACK): Define.
 
 2003-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
