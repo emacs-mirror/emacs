@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.45) $
+# $HopeName: MMsrc!comm.gmk(trunk.46) $
 # Copyright (C) 1997.  Harlequin Group plc.  All rights reserved.
 #
 # DESCRIPTION
@@ -172,6 +172,7 @@ AMC = poolamc.c
 AMS = poolams.c
 AWL = poolawl.c
 LO = poollo.c
+SNC = poolsnc.c
 POOLN = pooln.c
 ARENAAN = arenaan.c
 TESTLIB = testlib.c
@@ -213,6 +214,8 @@ AWLOBJ = $(AWL:%.c=$(PFM)/$(VARIETY)/%.o)
 AWLDEP = $(AWL:%.c=$(PFM)/$(VARIETY)/%.d)
 LOOBJ = $(LO:%.c=$(PFM)/$(VARIETY)/%.o)
 LODEP = $(LO:%.c=$(PFM)/$(VARIETY)/%.d)
+SNCOBJ = $(SNC:%.c=$(PFM)/$(VARIETY)/%.o)
+SNCDEP = $(SNC:%.c=$(PFM)/$(VARIETY)/%.d)
 POOLNOBJ = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.o)
 POOLNDEP = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.d)
 ARENAANOBJ = $(ARENAAN:%.c=$(PFM)/$(VARIETY)/%.o)
@@ -373,9 +376,9 @@ $(PFM)/$(VARIETY)/mv2eptst: $(PFM)/$(VARIETY)/mv2eptst.o \
 $(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
 	$(MPMOBJ) $(TESTLIBOBJ) $(ARENAANOBJ)
 
-$(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(POOLNOBJ)
+$(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) $(POOLNOBJ)
 
-$(PFM)/$(VARIETY)/mmdw.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(POOLNOBJ) \
+$(PFM)/$(VARIETY)/mmdw.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) $(POOLNOBJ) \
 $(DWOBJ) $(AWLOBJ)
 
 $(PFM)/$(VARIETY)/mpsplan.a: $(PLINTHOBJ)

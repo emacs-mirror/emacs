@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.48) $
+ * $HopeName: MMsrc!mps.h(trunk.49) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -34,6 +34,8 @@ typedef struct mps_message_s
   *mps_message_t;                          /* message */
 typedef struct mps_alloc_pattern_s
   *mps_alloc_pattern_t;                    /* allocation patterns */
+typedef struct mps_frame_s
+  *mps_frame_t;                            /* allocation frames */
 
 /* Concrete Types */
 
@@ -105,6 +107,8 @@ typedef struct mps_ap_s {       /* allocation point descriptor */
   mps_addr_t init;              /* limit of initialized memory */
   mps_addr_t alloc;             /* limit of allocated memory */
   mps_addr_t limit;             /* limit of available memory */
+  mps_addr_t frameptr;          /* lightweight frame pointer */
+  mps_bool_t enabled;           /* lightweight frame status */
 } mps_ap_s;
 
 
@@ -256,6 +260,10 @@ extern mps_res_t mps_ap_fill(mps_addr_t *, mps_ap_t, size_t);
 extern mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *, 
                                                    mps_ap_t, 
                                                    size_t);
+
+extern mps_res_t (mps_ap_frame_push)(mps_frame_t *, mps_ap_t);
+extern mps_res_t (mps_ap_frame_pop)(mps_ap_t, mps_frame_t);
+
 extern mps_bool_t mps_ap_trip(mps_ap_t, mps_addr_t, size_t);
 
 extern mps_alloc_pattern_t mps_alloc_pattern_ramp(void);

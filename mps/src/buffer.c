@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.45) $
+ * $HopeName: MMsrc!buffer.c(trunk.46) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -25,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.45) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.46) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -64,6 +64,7 @@ Bool BufferCheck(Buffer buffer)
     CHECKL(buffer->apStruct.init == (Addr)0);
     CHECKL(buffer->apStruct.alloc == (Addr)0);
     CHECKL(buffer->apStruct.limit == (Addr)0);
+    /* Nothing reliable to check for lightweight frame state */
     CHECKL(buffer->poolLimit == (Addr)0);
   } else {
     /* The buffer is attached to a segment.  Make sure its fields */
@@ -113,6 +114,7 @@ Bool BufferCheck(Buffer buffer)
         /* Nothing special to check in the logged mode */
 	NOOP;
       }
+      /* Nothing reliable to check for lightweight frame state */
     }
   }
 
@@ -199,6 +201,8 @@ static Res BufferInitV(Buffer buffer, Pool pool, Bool isMutator, va_list args)
   buffer->apStruct.init = (Addr)0;
   buffer->apStruct.alloc = (Addr)0;
   buffer->apStruct.limit = (Addr)0;
+  buffer->apStruct.frameptr = NULL;
+  buffer->apStruct.enabled = FALSE;
   buffer->poolLimit = (Addr)0;
   buffer->rampCount = 0;
   buffer->p = NULL;
@@ -294,6 +298,8 @@ void BufferDetach(Buffer buffer, Pool pool)
     /* Ask the owning pool to do whatever it needs to before the */
     /* buffer is detached (e.g. copy buffer state into pool state). */
     (*pool->class->bufferEmpty)(pool, buffer);
+    /* Use of lightweight frames must have been disabled by now */
+    AVER(BufferFrameState(buffer) == BufferFrameDISABLED);
 
     spare = AddrOffset(buffer->apStruct.alloc, 
                        buffer->poolLimit);
@@ -318,6 +324,7 @@ void BufferDetach(Buffer buffer, Pool pool)
     buffer->apStruct.limit = (Addr)0;
     buffer->poolLimit = (Addr)0;
     buffer->mode &= ~(BufferModeATTACHED|BufferModeFLIPPED);
+    BufferFrameSetState(buffer, BufferFrameDISABLED);
   }
 }
 
@@ -417,6 +424,152 @@ Bool BufferIsMutator(Buffer buffer)
 }
 
 
+/* BufferSetUnflipped
+ *
+ * Unflip a buffer if it was flipped
+ */
+
+static void BufferSetUnflipped(Buffer buffer)
+{
+  AVERT(Buffer, buffer);
+  AVER(buffer->mode & BufferModeFLIPPED);
+  buffer->mode &= ~BufferModeFLIPPED;
+  /* restore apStruct.limit if appropriate */
+  if(!BufferIsTrapped(buffer)) {
+    buffer->apStruct.limit = buffer->poolLimit;
+  }
+  buffer->initAtFlip = (Addr)0;
+}
+
+
+/* BufferFrameState
+ *
+ * Returns the frame state of a buffer.
+ * See design.mps.alloc-frame.lw-frame.states
+ */
+
+FrameState BufferFrameState(Buffer buffer)
+{
+  AVERT(Buffer, buffer);
+  if(buffer->apStruct.enabled) {
+    if (buffer->apStruct.frameptr == NULL) {
+      return BufferFrameVALID;
+    } else {
+      return BufferFramePOP_PENDING;
+    }
+  } else {
+    AVER(buffer->apStruct.frameptr == NULL);
+    return BufferFrameDISABLED;
+  }
+}
+
+/* BufferFrameSetState
+ *
+ * Sets the frame state of a buffer.
+ * See design.mps.alloc-frame.lw-frame.states
+ * Only the mutator may set the PopPending state
+ */
+
+void BufferFrameSetState(Buffer buffer, FrameState state)
+{
+  AVERT(Buffer, buffer);
+  AVER(state == BufferFrameVALID || state == BufferFrameDISABLED);
+  buffer->apStruct.frameptr = NULL;
+  buffer->apStruct.enabled = (state == BufferFrameVALID);
+}
+
+
+/* BufferSetAllocAddr
+ *
+ * Sets the init & alloc pointers of a buffer, without changing segment.
+ */
+
+void BufferSetAllocAddr(Buffer buffer, Addr addr)
+{
+  AVERT(Buffer, buffer);
+  /* Can't check Addr */
+  AVER(BufferIsReady(buffer));
+  AVER(buffer->base <= addr);
+  AVER(buffer->poolLimit >= addr);
+
+  buffer->apStruct.init = addr;
+  buffer->apStruct.alloc = addr;
+}
+
+
+/* BufferFrameNotifyPopPending
+ *
+ * Notifies the pool when a lightweight frame pop operation
+ * has been defered and needs to be processed
+ * See design.mps.alloc-frame.lw-frame.sync.trip.
+ */
+
+static void BufferFrameNotifyPopPending(Buffer buffer)
+{
+  AllocFrame frame;
+  Pool pool;
+  AVER(BufferIsTrappedByMutator(buffer));
+  AVER(BufferFrameState(buffer) == BufferFramePOP_PENDING);
+  frame = (AllocFrame)buffer->apStruct.frameptr;
+  /* Unset PopPending state & notify the pool */
+  BufferFrameSetState(buffer, BufferFrameVALID);
+  /* If the frame is no longer trapped, undo the trap by resetting */
+  /* the AP limit pointer */
+  if (!BufferIsTrapped(buffer)) {
+    buffer->apStruct.limit = buffer->poolLimit;
+  }
+  pool = BufferPool(buffer);
+  (*pool->class->framePopPending)(pool, buffer, frame);
+}
+
+
+
+/* BufferFramePush
+ *
+ * see design.mps.alloc-frame
+ */
+
+Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer)
+{
+  Pool pool;
+  AVERT(Buffer, buffer);
+  AVER(frameReturn != NULL);
+
+
+  /* Process any flip or PopPending */
+  if(!BufferIsReset(buffer) && buffer->apStruct.limit == (Addr)0) {
+    /* .fill.unflip: If the buffer is flipped then we unflip the buffer. */
+    if(buffer->mode & BufferModeFLIPPED) {
+      BufferSetUnflipped(buffer);
+    }
+  
+    /* check for PopPending */
+    if (BufferIsTrappedByMutator(buffer)) {
+      BufferFrameNotifyPopPending(buffer);
+    }
+  }
+  pool = BufferPool(buffer);
+  return (*pool->class->framePush)(frameReturn, pool, buffer);
+}
+
+
+/* BufferFramePop
+ *
+ * see design.mps.alloc-frame
+ */
+
+Res BufferFramePop(Buffer buffer, AllocFrame frame)
+{
+  Pool pool;
+  AVERT(Buffer, buffer);
+  /* frame is of an abstract type & can't be checked */
+  pool = BufferPool(buffer);
+  return (*pool->class->framePop)(pool, buffer, frame);
+  
+}
+
+
+
 /* BufferReserve -- reserve memory from an allocation buffer
  *
  * .reserve: Keep in sync with impl.h.mps.reserve.
@@ -449,6 +602,57 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
 }
 
 
+/* BufferAttach -- attach a segment to a buffer
+ *
+ * BufferReattach is entered because of a BufferFill,
+ * or because of a Pop operation on a lightweight frame.
+ */
+
+void BufferAttach(Buffer buffer, Seg seg, 
+                   Addr base, Addr limit, Addr init, Size size)
+{
+  Size filled;
+
+  AVERT(Buffer, buffer);
+  AVER(BufferIsReset(buffer));
+  AVER(SegCheck(seg));
+  AVER(SegBuffer(seg) == NULL);
+  AVER(SegBase(seg) <= base);
+  AVER(AddrAdd(base, size) <= limit);
+  AVER(base <= init);
+  AVER(init <= limit);
+  AVER(limit <= SegLimit(seg));
+
+  /* Set up the buffer to point at the supplied segment */
+  buffer->mode |= BufferModeATTACHED;
+  buffer->seg = seg;
+  SegSetBuffer(seg, buffer);
+  buffer->base = base;
+  buffer->apStruct.init = init;
+  buffer->apStruct.alloc = AddrAdd(init, size);
+  /* only set limit if not logged */
+  if((buffer->mode & BufferModeLOGGED) == 0) {
+    buffer->apStruct.limit = limit;
+  } else {
+    AVER(buffer->apStruct.limit == (Addr)0);
+  }
+  AVER(buffer->initAtFlip == (Addr)0);
+  buffer->poolLimit = limit;
+
+  filled = AddrOffset(base, limit);
+  buffer->fillSize += filled;
+  if(buffer->isMutator) {
+    buffer->pool->fillMutatorSize += filled;
+    buffer->arena->fillMutatorSize += filled;
+  } else {
+    buffer->pool->fillInternalSize += filled;
+    buffer->arena->fillInternalSize += filled;
+  }
+
+  AVERT(Buffer, buffer);
+}
+
+
 /* BufferFill -- refill an empty buffer
  *
  * BufferFill is entered by the "reserve" operation on a buffer if
@@ -464,7 +668,6 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
   Pool pool;
   Seg seg;
   Addr base, limit, next;
-  Size filled;
 
   AVER(pReturn != NULL);
   AVERT(Buffer, buffer);
@@ -479,15 +682,15 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
   if(!BufferIsReset(buffer) && buffer->apStruct.limit == (Addr)0) {
     /* .fill.unflip: If the buffer is flipped then we unflip the buffer. */
     if(buffer->mode & BufferModeFLIPPED) {
-      buffer->mode &= ~BufferModeFLIPPED;
-      /* restore apStruct.limit if appropriate */
-      if(!BufferIsTrapped(buffer)) {
-        buffer->apStruct.limit = buffer->poolLimit;
-      }
-      buffer->initAtFlip = (Addr)0;
+      BufferSetUnflipped(buffer);
     }
-    /* .fill.logged: If the buffer is logged then we leave it logged. */
 
+    /* design.mps.alloc-frame.lw-frame.sync.trip */
+    if (BufferIsTrappedByMutator(buffer)) {
+      BufferFrameNotifyPopPending(buffer);
+    }
+
+    /* .fill.logged: If the buffer is logged then we leave it logged. */
     next = AddrAdd(buffer->apStruct.alloc, size);
     if(next > buffer->apStruct.alloc &&
        next <= buffer->poolLimit) {
@@ -513,40 +716,9 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
   if(res != ResOK)
     return res;
 
-  AVER(SegCheck(seg));
-  AVER(SegBuffer(seg) == NULL);
-  AVER(SegBase(seg) <= base);
-  AVER(AddrAdd(base, size) <= limit);
-  AVER(limit <= SegLimit(seg));
-
   /* Set up the buffer to point at the memory given by the pool */
   /* and do the allocation that was requested by the client. */
-  buffer->mode |= BufferModeATTACHED;
-  buffer->seg = seg;
-  SegSetBuffer(seg, buffer);
-  buffer->base = base;
-  buffer->apStruct.init = base;
-  buffer->apStruct.alloc = AddrAdd(base, size);
-  /* only set limit if not logged */
-  if((buffer->mode & BufferModeLOGGED) == 0) {
-    buffer->apStruct.limit = limit;
-  } else {
-    AVER(buffer->apStruct.limit == (Addr)0);
-  }
-  AVER(buffer->initAtFlip == (Addr)0);
-  buffer->poolLimit = limit;
-
-  filled = AddrOffset(base, limit);
-  buffer->fillSize += filled;
-  if(buffer->isMutator) {
-    buffer->pool->fillMutatorSize += filled;
-    buffer->arena->fillMutatorSize += filled;
-  } else {
-    buffer->pool->fillInternalSize += filled;
-    buffer->arena->fillInternalSize += filled;
-  }
-
-  AVERT(Buffer, buffer);
+  BufferAttach(buffer, seg, base, limit, base, size);
 
   if(buffer->mode & BufferModeLOGGED) {
     EVENT_PAW(BufferReserve, buffer, buffer->apStruct.init, size);
@@ -555,6 +727,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
   *pReturn = base;
   return res;
 }
+
 
 
 /* BufferCommit -- commit memory previously reserved
@@ -616,6 +789,8 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
   AVER(buffer->apStruct.limit == 0);
   /* Of course we should be trapped. */
   AVER(BufferIsTrapped(buffer));
+  /* But the mutator shouldn't have caused the trap */
+  AVER(!BufferIsTrappedByMutator(buffer));
 
   /* The init and alloc fields should be equal at this point, because */
   /* the step .commit.update has happened. */
@@ -797,10 +972,31 @@ Addr (BufferLimit)(Buffer buffer)
   return BufferLimit(buffer);
 }
 
+
+/* BufferIsTrapped
+ *
+ * Indicates whether the buffer is trapped - either by MPS or the mutator
+ */
+
 Bool BufferIsTrapped(Buffer buffer)
 {
   /* Can't check buffer, see .check.use-trapped */
-  return (buffer->mode & (BufferModeFLIPPED|BufferModeLOGGED)) != 0;
+  return BufferIsTrappedByMutator(buffer) ||
+         ((buffer->mode & (BufferModeFLIPPED|BufferModeLOGGED)) != 0);
+}
+
+
+/* BufferIsTrappedByMutator
+ *
+ * Indicates whether the mutator trapped the buffer.
+ * See design.mps.alloc-frame.lw-frame.sync.trip
+ */
+
+Bool BufferIsTrappedByMutator(Buffer buffer)
+{
+  /* Can't check buffer, see .check.use-trapped */
+  return (buffer->apStruct.enabled && 
+          buffer->apStruct.frameptr != NULL);
 }
 
 

@@ -1,6 +1,6 @@
 /* impl.c.poolabs: ABSTRACT POOL CLASSES
  *
- * $HopeName: MMsrc!poolabs.c(MMdevel_tony_inheritance.3) $
+ * $HopeName: MMsrc!poolabs.c(trunk.2) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -30,7 +30,7 @@
 
 #include "mpm.h"
 
-SRCID(poolabs, "$HopeName: MMsrc!poolabs.c(MMdevel_tony_inheritance.3) $");
+SRCID(poolabs, "$HopeName: MMsrc!poolabs.c(trunk.2) $");
 
 typedef PoolClassStruct AbstractPoolClassStruct;
 typedef PoolClassStruct AbstractAllocFreePoolClassStruct;
@@ -77,6 +77,9 @@ void PoolClassMixInBuffer(PoolClass class)
   class->bufferFill = PoolTrivBufferFill;
   class->bufferEmpty = PoolTrivBufferEmpty;
   class->bufferFinish = PoolTrivBufferFinish;
+  /* By default, buffered pools treat frame operations as NOOPs */
+  class->framePush = PoolTrivFramePush; 
+  class->framePop = PoolTrivFramePop;
 }
 
 
@@ -90,6 +93,7 @@ void PoolClassMixInScan(PoolClass class)
   /* Can't check class because it's not initialized yet */
   class->attr |= AttrSCAN;
   class->access = PoolSegAccess;
+  class->blacken = PoolTrivBlacken;
   class->grey = PoolTrivGrey;
   /* Scan is part of the scanning  protocol - but there is */
   /* no useful default method */
@@ -121,7 +125,6 @@ void PoolClassMixInCollect(PoolClass class)
   /* Can't check class because it's not initialized yet */
   class->attr |= (AttrGC | AttrINCR_RB);
   class->traceBegin = PoolTrivTraceBegin;
-  class->blacken = PoolTrivBlacken;
   class->whiten = PoolTrivWhiten;
   /* Fix, reclaim & benefit are part of the collection */
   /* protocol - but there are no useful default methods */
@@ -166,6 +169,9 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->act = PoolNoAct;
   class->rampBegin = PoolNoRampBegin;
   class->rampEnd = PoolNoRampEnd;
+  class->framePush = PoolNoFramePush;
+  class->framePop = PoolNoFramePop;
+  class->framePopPending = PoolNoFramePopPending;
   class->walk = PoolNoWalk;
   class->describe = PoolTrivDescribe;
   class->debugMixin = PoolNoDebugMixin;

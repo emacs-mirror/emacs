@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.60) $
+ * $HopeName: MMsrc!mpsi.c(trunk.61) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.60) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.61) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -729,6 +729,100 @@ mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p, size_t size)
 
   return mps_commit(mps_ap, p, size);
 }
+
+
+/* Allocation frame support
+ *
+ * These are candidates for being inlineable as macros.
+ * These functions are easier to maintain, so we'll avoid
+ * macros for now.
+ */
+
+
+/* mps_ap_frame_push -- push a new allocation frame
+ *
+ * See design.mps.alloc-frame.lw-frame.push
+ */
+mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
+{
+  AVER(frame_o != NULL);  
+  AVER(mps_ap != NULL); 
+
+  /* Fail if between reserve & commit */
+  if ((char *)mps_ap->alloc != (char *)mps_ap->init) {
+    return MPS_RES_FAIL;
+  }
+
+  if (mps_ap->enabled && 
+      mps_ap->frameptr == NULL &&
+      mps_ap->limit != (mps_addr_t)0) {
+    /* Valid state for a lightweight push */
+    *frame_o = (mps_frame_t)mps_ap->init;
+    return MPS_RES_OK;
+
+  } else {
+    /* Need a heavyweight push */
+    Buffer buf = BufferOfAP((AP)mps_ap);
+    Arena arena;
+    AllocFrame frame;
+    Res res;
+
+    AVER(CHECKT(Buffer, buf));
+    arena = BufferArena(buf);
+    
+    ArenaEnter(arena);
+    AVERT(Buffer, buf);
+    
+    res = BufferFramePush(&frame, buf);
+
+    if(res == ResOK) {
+      *frame_o = (mps_frame_t)frame;
+    }
+    ArenaLeave(arena);
+    return (mps_res_t)res;
+  }
+}
+
+/* mps_ap_frame_pop -- push a new allocation frame
+ *
+ * See design.mps.alloc-frame.lw-frame.pop
+ */
+
+mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
+{
+  AVER(mps_ap != NULL); 
+  /* Can't check frame because it's an arbitrary value */
+
+  /* Fail if between reserve & commit */
+  if ((char *)mps_ap->alloc != (char *)mps_ap->init) {
+    return MPS_RES_FAIL;
+  }
+
+  if (mps_ap->enabled) {
+    /* Valid state for a lightweight pop */
+    mps_ap->frameptr = (mps_addr_t)frame; /* record pending pop */
+    mps_ap->limit = (mps_addr_t)0; /* trap the buffer */
+    return MPS_RES_OK;
+
+  } else {
+    /* Need a heavyweight pop */
+    Buffer buf = BufferOfAP((AP)mps_ap);
+    Arena arena;
+    Res res;
+
+    AVER(CHECKT(Buffer, buf));
+    arena = BufferArena(buf);
+    
+    ArenaEnter(arena);
+    AVERT(Buffer, buf);
+    
+    res = BufferFramePop(buf, (AllocFrame)frame);
+
+    ArenaLeave(arena);
+    return (mps_res_t)res;
+  }
+}
+
 
 
 /* mps_ap_fill -- called by mps_reserve when an AP hasn't enough arena

@@ -1,6 +1,6 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.26) $
+# $HopeName: MMsrc!commpost.nmk(trunk.27) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -177,7 +177,8 @@ $(PFM)\$(VARIETY)\mmsw.lib: $(SWOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
-$(PFM)\$(VARIETY)\mmdw.lib: $(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(AWLOBJ) $(LOOBJ)
+$(PFM)\$(VARIETY)\mmdw.lib: $(MPMOBJ) $(AMCOBJ) $(DWOBJ) \
+        $(AWLOBJ) $(LOOBJ) $(SNCOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
