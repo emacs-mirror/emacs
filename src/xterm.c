@@ -483,8 +483,16 @@ XTcursor_to (row, col)
 {
   int mask;
   int orow = row;
+  struct frame *f;
+  
+  f = updating_frame;
+  if (f == 0)
+    f = selected_frame;
 
   curs_x = col;
+  if (curs_x >= FRAME_CURSOR_X_LIMIT (f))
+    curs_x = FRAME_CURSOR_X_LIMIT (f) - 1;
+
   curs_y = row;
 
   if (updating_frame == 0)
@@ -1204,8 +1212,8 @@ XTwrite_glyphs (start, len)
       f = selected_frame;
       /* If not within an update,
 	 output at the frame's visible cursor.  */
-      curs_x = f->cursor_x;
-      curs_y = f->cursor_y;
+      curs_x = FRAME_CURSOR_X (f);
+      curs_y = FRAME_CURSOR_Y (f);
     }
 
   dumpglyphs (f,
@@ -1219,10 +1227,13 @@ XTwrite_glyphs (start, len)
       && curs_x + len > f->phys_cursor_x)
     f->phys_cursor_on = 0;
 
+  curs_x += len;
+  if (curs_x >= FRAME_CURSOR_X_LIMIT (f))
+    curs_x = FRAME_CURSOR_X_LIMIT (f) - 1;
+
   if (updating_frame == 0)
-    x_display_cursor (f, 1, FRAME_CURSOR_X (f) + len, FRAME_CURSOR_Y (f));
-  else
-    curs_x += len;
+    x_display_cursor (f, 1, curs_x, FRAME_CURSOR_Y (f));
+      
 
   UNBLOCK_INPUT;
 }
