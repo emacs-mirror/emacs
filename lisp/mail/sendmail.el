@@ -153,9 +153,7 @@ so you can edit or delete these lines.")
     ;; Insert the signature.
     (cond ((eq mail-signature t)
 	   (if (file-exists-p "~/.signature")
-	       (progn
-		 (insert "--\n")
-		 (insert-file-contents "~/.signature"))))
+	       (insert-file-contents "~/.signature")))
 	  (mail-signature
 	   (insert mail-signature)))
     (goto-char (point-max))
