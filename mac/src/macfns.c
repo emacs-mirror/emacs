@@ -8970,7 +8970,7 @@ static Lisp_Object x_create_tip_frame P_ ((struct w32_display_info *,
      
 /* The frame of a currently visible tooltip, or null.  */
 
-struct frame *tip_frame;
+Lisp_Object tip_frame;
 
 /* If non-nil, a timer started that hides the last tooltip when it
    fires.  */
@@ -9272,7 +9272,7 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
   /* Create a frame for the tooltip, and record it in the global
      variable tip_frame.  */
   frame = x_create_tip_frame (FRAME_MAC_DISPLAY_INFO (f), parms);
-  tip_frame = f = XFRAME (frame);
+  f = XFRAME (frame);
 
   /* Set up the frame's root window.  Currently we use a size of 80
      columns x 40 lines.  If someone wants to show a larger tip, he
@@ -9363,28 +9363,43 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
 Value is t is tooltip was open, nil otherwise.")
   ()
 {
-  int count = specpdl_ptr - specpdl;
-  int deleted_p = 0;
+  int count;
+  Lisp_Object deleted;
+
+  /* Return quickly if nothing to do.  */
+  if (NILP (tip_timer) && !FRAMEP (tip_frame))
+    return Qnil;
   
+  count = BINDING_STACK_SIZE ();
+  deleted = Qnil;
   specbind (Qinhibit_redisplay, Qt);
+  specbind (Qinhibit_quit, Qt);
   
   if (!NILP (tip_timer))
     {
-      call1 (intern ("cancel-timer"), tip_timer);
+      Lisp_Object tem;
+      struct gcpro gcpro1;
+      tem = tip_timer;
+      GCPRO1 (tem);
       tip_timer = Qnil;
+      call1 (intern ("cancel-timer"), tem);
+      UNGCPRO;
     }
 
-  if (tip_frame)
+  if (FRAMEP (tip_frame))
     {
       Lisp_Object frame;
-      
-      XSETFRAME (frame, tip_frame);
-      Fdelete_frame (frame, Qt);
-      tip_frame = NULL;
-      deleted_p = 1;
+      struct gcpro gcpro1;
+
+      frame = tip_frame;
+      GCPRO1 (frame);
+      tip_frame = Qnil;
+      Fdelete_frame (frame, Qnil);
+      deleted = Qt;
+      UNGCPRO;
     }
 
-  return unbind_to (count, deleted_p ? Qt : Qnil);
+  return unbind_to (count, deleted);
 }
 
 
