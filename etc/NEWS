@@ -1264,6 +1264,7 @@ Groff or `troff' commands are not readily available.
 The command `M-x woman-find-file' asks for the file name of a man
 page, then formats and displays it like `M-x woman' does.
 
++++
 *** The new command M-x re-builder offers a convenient interface for
 authoring regular expressions with immediate visual feedback.
 
