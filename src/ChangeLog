@@ -1,3 +1,34 @@
+2003-11-23  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (buffer_posn_from_coords): Return actual row/column
+	for glyph clicked on, rather than (unused) pixel positions.
+	(mode_line_string, marginal_area_string): Change X and Y args to
+	pointers for returning actual row/column for glyph clicked on.
+	Simplify and optimize loops.
+
+	* dispextern.h (mode_line_string, marginal_area_string): 
+	Update prototypes. 
+
+	* keyboard.c (make_lispy_position): New function for generating
+	mouse click positions from frame and pixel coordinates.
+	Enhanced to return buffer position and actual row/column for
+	events outside the text area using updated mode_line_string and
+	marginal_area_string functions.
+	Return left-fringe and right-fringe clicks as such, rather than
+	clicks in text area.
+	(make_lispy_event) [USE_X_TOOLKIT, USE_GTK]: Don't call
+	pixel_to_glyph_coords, as we never use the results.
+	(make_lispy_event): Use make_lispy_position for MOUSE_CLICK_EVENT,
+	WHEEL_EVENT, and DRAG_N_DROP_EVENT to replace redundant code.
+	Eliminate unused code in WHEEL_EVENT handling.
+	(make_lispy_movement): Use make_lispy_position.
+
+	* window.c (coordinates_in_window): Remove redundant tests.
+	Fix returned X pixel value for left-margin.
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Adapt to new
+	mode_line_string and marginal_area_string parameters.
+
 2003-11-22  Lars Hansen <larsh@math.ku.dk>
 
 	* w32.c (struct the_group): Added.
