@@ -1290,11 +1290,36 @@ set_text_properties (start, end, properties, object, signal_after_change_p)
 	return Qnil;
     }
 
-  s = XINT (start);
-  len = XINT (end) - s;
-
   if (BUFFERP (object))
     modify_region (XBUFFER (object), XINT (start), XINT (end));
+
+  set_text_properties_1 (start, end, properties, object, i);
+
+  if (BUFFERP (object) && !NILP (signal_after_change_p))
+    signal_after_change (XINT (start), XINT (end) - XINT (start),
+			 XINT (end) - XINT (start));
+  return Qt;
+}
+
+/* Replace properties of text from START to END with new list of
+   properties PROPERTIES.  BUFFER is the buffer containing
+   the text.  This does not obey any hooks.
+   You can provide the interval that START is located in as I,
+   or pass NULL for I and this function will find it.  */
+
+void
+set_text_properties_1 (start, end, properties, buffer, i)
+     Lisp_Object start, end, properties, buffer;
+     INTERVAL i;
+{
+  register INTERVAL prev_changed = NULL_INTERVAL;
+  register int s, len;
+  INTERVAL unchanged;
+
+  s = XINT (start);
+  len = XINT (end) - s;
+  if (i == 0)
+    i = find_interval (BUF_INTERVALS (XBUFFER (buffer)), s);
 
   if (i->position != s)
     {
@@ -1305,24 +1330,14 @@ set_text_properties (start, end, properties, object, signal_after_change_p)
 	{
 	  copy_properties (unchanged, i);
 	  i = split_interval_left (i, len);
-	  set_properties (properties, i, object);
-	  if (BUFFERP (object) && !NILP (signal_after_change_p))
-	    signal_after_change (XINT (start), XINT (end) - XINT (start),
-				 XINT (end) - XINT (start));
-
-	  return Qt;
+	  set_properties (properties, i, buffer);
+	  return;
 	}
 
-      set_properties (properties, i, object);
+      set_properties (properties, i, buffer);
 
       if (LENGTH (i) == len)
-	{
-	  if (BUFFERP (object) && !NILP (signal_after_change_p))
-	    signal_after_change (XINT (start), XINT (end) - XINT (start),
-				 XINT (end) - XINT (start));
-
-	  return Qt;
-	}
+	return;
 
       prev_changed = i;
       len -= LENGTH (i);
@@ -1343,13 +1358,10 @@ set_text_properties (start, end, properties, object, signal_after_change_p)
 	  /* We have to call set_properties even if we are going to
 	     merge the intervals, so as to make the undo records
 	     and cause redisplay to happen.  */
-	  set_properties (properties, i, object);
+	  set_properties (properties, i, buffer);
 	  if (!NULL_INTERVAL_P (prev_changed))
 	    merge_interval_left (i);
-	  if (BUFFERP (object) && !NILP (signal_after_change_p))
-	    signal_after_change (XINT (start), XINT (end) - XINT (start),
-				 XINT (end) - XINT (start));
-	  return Qt;
+	  return;
 	}
 
       len -= LENGTH (i);
@@ -1357,7 +1369,7 @@ set_text_properties (start, end, properties, object, signal_after_change_p)
       /* We have to call set_properties even if we are going to
 	 merge the intervals, so as to make the undo records
 	 and cause redisplay to happen.  */
-      set_properties (properties, i, object);
+      set_properties (properties, i, buffer);
       if (NULL_INTERVAL_P (prev_changed))
 	prev_changed = i;
       else
@@ -1365,11 +1377,6 @@ set_text_properties (start, end, properties, object, signal_after_change_p)
 
       i = next_interval (i);
     }
-
-  if (BUFFERP (object) && !NILP (signal_after_change_p))
-    signal_after_change (XINT (start), XINT (end) - XINT (start),
-			 XINT (end) - XINT (start));
-  return Qt;
 }
 
 DEFUN ("remove-text-properties", Fremove_text_properties,
