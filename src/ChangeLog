@@ -1,6 +1,6 @@
 1999-12-22  Gerd Moellmann  <gerd@gnu.org>
 
-	* xfaces.c (clear_font_table): Don't use uninitialized local
+	* xfaces.c (realize_x_face): Don't use uninitialized local
 	variable in xassert.
 
 1999-12-22  Kenichi Handa  <handa@etl.go.jp>
