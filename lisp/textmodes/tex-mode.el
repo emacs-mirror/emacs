@@ -573,7 +573,6 @@ An alternative value is \" . \", if you use a font with a narrow period."
     (define-key map "\C-c\C-r" 'tex-region)
     (define-key map "\C-c\C-b" 'tex-buffer)
     (define-key map "\C-c\C-f" 'tex-file)
-    (define-key map "\C-c\C-c" 'tex-compile)
     (define-key map "\C-c\C-i" 'tex-bibtex-file)
     (define-key map "\C-c\C-o" 'tex-latex-block)
     (define-key map "\C-c\C-e" 'tex-close-latex-block)
