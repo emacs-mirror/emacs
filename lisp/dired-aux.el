@@ -329,7 +329,7 @@ file name added at the end of COMMAND (separated by a space).
 `*' and `?' when not surrounded by whitespace have no special
 significance for `dired-do-shell-command', and are passed through
 normally to the shell, but you must confirm first.  To pass `*' by
-itself to the shell as a wildcard, type `*""'.
+itself to the shell as a wildcard, type `*\"\"'.
 
 If COMMAND produces output, it goes to a separate buffer.
 
