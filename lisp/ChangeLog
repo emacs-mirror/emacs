@@ -1,3 +1,13 @@
+2003-05-20  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-save): Ensure parameter is expanded and ends
+	with a slash before assigning it to desktop-dirname and
+	default-directory.
+	(desktop-read): Put buffers existing prior to evaluating the
+	desktop (and not reused) at the end of the buffer list.
+	(desktop-create-buffer): Don't update desktop-first-buffer for old
+	desktop files.
+
 2003-05-19  John Paul Wallington  <jpw@gnu.org>
 
 	* xml.el (xml-name-regexp): Wrap in `eval-and-compile'.
