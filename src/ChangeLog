@@ -1,3 +1,8 @@
+2004-09-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (x_reply_selection_request): XSync and UNBLOCK before
+	x_uncatch_errors so that possible protocol errors are delivered.
+
 2004-09-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (msdos_set_cursor_shape): Add debugging print-out to

@@ -744,9 +744,11 @@ x_reply_selection_request (event, format, data, size, type)
      refering to the deleted window, and we'll get a BadWindow error
      in XTread_socket when processing the events.  I don't have
      an idea how to fix that.  gerd, 2001-01-98.   */
-  XFlush (display);
-  x_uncatch_errors (display, count);
+  /* 2004-09-10: XSync and UNBLOCK so that possible protocol errors are
+     delivered before uncatch errors.  */
+  XSync (display, False);
   UNBLOCK_INPUT;
+  x_uncatch_errors (display, count);
 }
 
 /* Handle a SelectionRequest event EVENT.
