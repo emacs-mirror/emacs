@@ -1,3 +1,11 @@
+2001-01-28  Andrew Choi  <akochoi@i-cable.com>
+
+	* alloc.c (allocate_string) [macintosh]: Call check_string_bytes
+	only if current_sblock has been initialized.
+
+	* frame.c (Fdelete_frame) [macintosh]: Allow deletion of initial
+	terminal frame even if it is the only visible frame.
+
 2001-01-28  Kenichi Handa  <handa@etl.go.jp>
 
 	* fontset.c (font_family_registry): Even if FONTNAME conform to

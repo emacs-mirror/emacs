@@ -4365,7 +4365,7 @@ Lisp_Object Qxbm;
 extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
 extern Lisp_Object QCdata;
 Lisp_Object QCtype, QCascent, QCmargin, QCrelief;
-Lisp_Object QCalgorithm, QCcolor_symbols, QCheuristic_mask;
+Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
 Lisp_Object QCindex;
 
 /* Other symbols.  */
@@ -4756,7 +4756,7 @@ image_ascent (img, face)
      struct image *img;
      struct face *face;
 {
-  int height = img->height + img->margin;
+  int height = img->height + img->vmargin;
   int ascent;
 
   if (img->ascent == CENTERED_IMAGE_ASCENT)
@@ -5044,8 +5044,7 @@ lookup_image (f, spec)
 	{
 	  /* Handle image type independent image attributes
 	     `:ascent PERCENT', `:margin MARGIN', `:relief RELIEF'.  */
-	  Lisp_Object ascent, margin, relief, algorithm, heuristic_mask;
-	  Lisp_Object file;
+	  Lisp_Object ascent, margin, relief;
 
 	  ascent = image_spec_value (spec, QCascent, NULL);
 	  if (INTEGERP (ascent))
@@ -5055,24 +5054,23 @@ lookup_image (f, spec)
 
 	  margin = image_spec_value (spec, QCmargin, NULL);
 	  if (INTEGERP (margin) && XINT (margin) >= 0)
-	    img->margin = XFASTINT (margin);
+	    img->vmargin = img->hmargin = XFASTINT (margin);
+	  else if (CONSP (margin) && INTEGERP (XCAR (margin))
+		   && INTEGERP (XCDR (margin)))
+	    {
+	      if (XINT (XCAR (margin)) > 0)
+		img->hmargin = XFASTINT (XCAR (margin));
+	      if (XINT (XCDR (margin)) > 0)
+		img->vmargin = XFASTINT (XCDR (margin));
+	    }
 	  
 	  relief = image_spec_value (spec, QCrelief, NULL);
 	  if (INTEGERP (relief))
 	    {
 	      img->relief = XINT (relief);
-	      img->margin += abs (img->relief);
+	      img->hmargin += abs (img->relief);
+	      img->vmargin += abs (img->relief);
 	    }
-
-	  /* Should we apply a Laplace edge-detection algorithm?  */
-	  algorithm = image_spec_value (spec, QCalgorithm, NULL);
-	  if (img->pixmap && EQ (algorithm, Qlaplace))
-	    x_laplace (f, img);
-
-	  /* Should we built a mask heuristically?  */
-	  heuristic_mask = image_spec_value (spec, QCheuristic_mask, NULL);
-	  if (img->pixmap && !img->mask && !NILP (heuristic_mask))
-	      x_build_heuristic_mask (f, img, heuristic_mask);
 	}
     }
 
@@ -9785,8 +9783,8 @@ meaning don't clear the cache.");
   staticpro (&Qxbm);
   QCtype = intern (":type");
   staticpro (&QCtype);
-  QCalgorithm = intern (":algorithm");
-  staticpro (&QCalgorithm);
+  QCconversion = intern (":conversion");
+  staticpro (&QCconversion);
   QCheuristic_mask = intern (":heuristic-mask");
   staticpro (&QCheuristic_mask);
   QCcolor_symbols = intern (":color-symbols");

@@ -1074,7 +1074,13 @@ frame.  The hook is called with one argument FRAME.")
   if (! FRAME_LIVE_P (f))
     return Qnil;
 
-  if (NILP (force) && !other_visible_frames (f))
+  if (NILP (force) && !other_visible_frames (f)
+#ifdef macintosh
+      /* Terminal frame deleted before any other visible frames are
+	 created.  */
+      && strcmp (XSTRING (f->name)->data, "F1") != 0
+#endif
+     )
     error ("Attempt to delete the sole visible or iconified frame");
 
 #if 0

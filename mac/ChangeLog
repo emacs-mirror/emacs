@@ -1,3 +1,18 @@
+2001-01-28  Andrew Choi  <akochoi@i-cable.com>
+
+	* src/macfns.c (QCconversion): Replaces QCalgorithm.
+
+	* src/macfns.c (image_ascent, lookup_image): Adapt to change of
+	image margins.
+
+	* src/macterm.c (x_produce_image_glyph, x_draw_image_foreground)
+	(x_draw_image_relief, x_draw_image_foreground_1)
+	(x_draw_image_glyph_string): Adapt to change of image margins.
+
+	* src/macterm.c (mac_to_x_fontname): Change charset name of
+	Simplify Chinese fonts from gb2312 to gb2312.1980 and Korean fonts
+	from ksc5601 to ksc5601.1989.
+	
 2000-12-12  Andrew Choi  <akochoi@i-cable.com>
 
 	* cw5-mcp.xml: add md5.c to project.
