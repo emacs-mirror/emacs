@@ -1,5 +1,10 @@
 2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* info.el (Info-select-node): If Info-use-header-line is nil, set
+	header-line-format to nil.
+	(Info-fontify-node): Don't put a keymap text property on the
+	heading if we are not going to display the header line.
+
 	* ls-lisp.el (insert-directory): Insert the amount of free disk
 	space, like files.el's insert-directory does.
 
