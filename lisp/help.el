@@ -751,14 +751,12 @@ Returns the documentation as a string, also."
 	  ;; anything expects the current format.)
 	  (let ((file-name (describe-function-find-file variable)))
 	    (when file-name
-	      ;; Don't quote this, or it can get re-interpreted later
-	      ;; by `help-make-xrefs'.
-	      (princ "\n\nDefined in ")
+	      (princ "\n\nDefined in `")
 	      (princ file-name)
-	      (princ ".")
+	      (princ "'.")
 	      (with-current-buffer "*Help*"
 		(save-excursion
-		  (re-search-backward "Defined in \\([^.]+\\)." nil t)
+		  (re-search-backward "`\\([^`']+\\)'" nil t)
 		  (help-xref-button 1 (lambda (arg)
 					(let ((location
 					       (find-variable-noselect arg)))
@@ -1029,17 +1027,19 @@ MATCH-NUMBER is the subexpression of interest in the last matched
 regexp.  FUNCTION is a function to invoke when the button is
 activated, applied to DATA.  DATA may be a single value or a list.
 See `help-make-xrefs'."
-  (add-text-properties (match-beginning match-number)
-                     (match-end match-number)
-                       (list 'mouse-face 'highlight  
-                     'help-xref (cons function
-                                      (if (listp data)
-                                          data
-                                        (list data)))))
-  (if help-highlight-p
-      (put-text-property (match-beginning match-number)
-                         (match-end match-number)
-                         'face help-highlight-face)))
+  ;; Don't mung properties we've added specially in some instances.
+  (unless (get-text-property (match-beginning match-number) 'help-xref)
+    (add-text-properties (match-beginning match-number)
+			 (match-end match-number)
+			 (list 'mouse-face 'highlight  
+			       'help-xref (cons function
+						(if (listp data)
+						    data
+						  (list data)))))
+    (if help-highlight-p
+	(put-text-property (match-beginning match-number)
+			   (match-end match-number)
+			   'face help-highlight-face))))
 
 
 ;; Additional functions for (re-)creating types of help buffers.
