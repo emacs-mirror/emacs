@@ -76,17 +76,17 @@
 
 (defvar mouse-avoidance-mode nil
   "Value is t or a symbol if the mouse pointer should avoid the cursor.
-See function mouse-avoidance-mode for possible values.  Changing this
-variable is NOT the recommended way to change modes; use the function 
+See function `mouse-avoidance-mode' for possible values.  Changing this
+variable is NOT the recommended way to change modes; use that function 
 instead.")
 
 (defvar mouse-avoidance-nudge-dist 15
   "*Average distance that mouse will be moved when approached by cursor.
-Only applies in mode-avoidance-mode and `jump' and its derivatives.
-For best results make this larger than mouse-avoidance-threshhold.")
+Only applies in mode-avoidance-mode `jump' and its derivatives.
+For best results make this larger than `mouse-avoidance-threshhold'.")
 
 (defvar mouse-avoidance-nudge-var 10
-  "*Variability of mouse-avoidance-nudge-dist (which see).")
+  "*Variability of `mouse-avoidance-nudge-dist' (which see).")
 
 (defvar mouse-avoidance-animation-delay .01
   "Delay between animation steps, in seconds.")
@@ -104,7 +104,7 @@ Only applies in mouse-avoidance-modes `animate' and `jump'.")
 ;;; Functions:
 
 (defun mouse-avoidance-point-position ()
-  "Return the position of point as (frame x . y).
+  "Return the position of point as (FRAME X . Y).
 Analogous to mouse-position."
   (let* ((w (selected-window))
 	 (edges (window-edges w))
@@ -145,7 +145,7 @@ Analogous to mouse-position."
 	    mouse-avoidance-threshhold))))
 
 (defun mouse-avoidance-banish-destination ()
-  "The position to which mouse-avoidance-mode 'banish moves the mouse.
+  "The position to which mouse-avoidance-mode `banish' moves the mouse.
 You can redefine this if you want the mouse banished to a different corner."
  (cons (1- (frame-width))
        0))
@@ -209,9 +209,8 @@ You can redefine this if you want the mouse banished to a different corner."
 		  (setq x-pointer-shape (mouse-avoidance-random-shape))
 		  (set-mouse-color color)))
 	    (sit-for mouse-avoidance-animation-delay)))
-      (mouse-avoidance-set-mouse-position
-       (cons (mod (+ (car (cdr cur)) deltax) (window-width))
-	     (mod (+ (cdr (cdr cur)) deltay) (window-height)))))))
+      (mouse-avoidance-set-mouse-position (cons (+ (car (cdr cur)) deltax)
+						(+ (cdr (cdr cur)) deltay))))))
 
 (defun mouse-avoidance-random-shape ()
   "Return a random cursor shape.
@@ -270,7 +269,7 @@ redefine this function to suit your own tastes."
 
 (defun mouse-avoidance-kbd-command (key)
   "Return t if the KEYSEQENCE is composed of keyboard events only.
-Returns nil if there are any lists in the key sequence."
+Return nil if there are any lists in the key sequence."
   (cond ((null key) nil)		; Null event seems to be
 					; returned occasionally.
 	((not (vectorp key)) t)		; Strings are keyboard events.
@@ -293,14 +292,14 @@ modes.  Positive numbers and symbols other than the above are treated
 as equivalent to `banish'; negative numbers and `-' are equivalent to `none'.
 
 Effects of the different modes: 
- * BANISH: Move the mouse to the upper-right corner on any keypress.
- * EXILE: Move the mouse to the corner only if the cursor gets too close,
+ * banish: Move the mouse to the upper-right corner on any keypress.
+ * exile: Move the mouse to the corner only if the cursor gets too close,
      and allow it to return once the cursor is out of the way.
- * JUMP: If the cursor gets too close to the mouse, displace the mouse
+ * jump: If the cursor gets too close to the mouse, displace the mouse
      a random distance & direction.
- * ANIMATE: As `jump', but shows steps along the way for illusion of motion.
- * CAT-AND-MOUSE: Same as `animate'.
- * PROTEUS: As `animate', but changes the shape of the mouse pointer too.
+ * animate: As `jump', but shows steps along the way for illusion of motion.
+ * cat-and-mouse: Same as `animate'.
+ * proteus: As `animate', but changes the shape of the mouse pointer too.
 
 Whenever the mouse is moved, the frame is also raised.
 
