@@ -1,5 +1,9 @@
 2000-03-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* editfns.c (Fsubst_char_in_region): Don't use INC_POS in unibyte
+	buffers because it looks for multibyte character sequences which
+	don't exist in unibyte text.
+
 	* xterm.h (x_specified_cursor_type, x_copy_color): Add prototypes.
 
 	* xfaces.c (register_color, unregister_colors, unregister_colors)
