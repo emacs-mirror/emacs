@@ -3,6 +3,8 @@
 	Most of the following changes are still conditional on HAVE_IMAGES
 	which is not set by default on Windows.
 
+	* emacs.c (main) [WINDOWSNT]: Call init_xfns.
+
 	* w32fns.c (x_set_cursor_color): Set foreground of cursor, not frame.
 	(Fimage_size, Fimage_mask_p, XPutPixel): New functions.
 	(four_corners_best, x_clear_image_1, x_clear_image)

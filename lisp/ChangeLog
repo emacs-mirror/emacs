@@ -1,3 +1,7 @@
+2002-03-20  Jason Rumney  <jasonr@gnu.org>
+
+	* frame.el (display-images-p): Do not explicitly check display type.
+
 2002-03-20  pmr-sav  <pmr-sav@hamm.pajato.com>
 
 	* mail-utils.el:
