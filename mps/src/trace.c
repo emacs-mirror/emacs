@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.94) $
+ * $HopeName: MMsrc!trace.c(trunk.95) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -10,7 +10,7 @@
 #include "mpm.h"
 #include <limits.h> /* for LONG_MAX */
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.94) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.95) $");
 
 
 /* Types
@@ -530,7 +530,8 @@ static void TraceFlipBuffers(Arena arena)
  *
  * Scans a root.  By calling RootScan mostly.
  * This version is allowed to fail and returns an appropriate result
- * code. */
+ * code.
+ */
 
 static Res TraceScanRootRes(TraceSet ts, Rank rank, Arena arena, Root root)
 {
@@ -555,7 +556,8 @@ static Res TraceScanRootRes(TraceSet ts, Rank rank, Arena arena, Root root)
 /* TraceScanRoot
  *
  * Scan a root without fail.  The traces may enter emergency mode
- * to ensure this. */
+ * to ensure this.
+ */
 
 static void TraceScanRoot(TraceSet ts, Rank rank, Arena arena, Root root)
 {
@@ -567,7 +569,8 @@ static void TraceScanRoot(TraceSet ts, Rank rank, Arena arena, Root root)
   AVERT(Root, root);
 
   res = TraceScanRootRes(ts, rank, arena, root);
-  if(res != ResOK) {
+  if (res != ResOK) {
+    AVER(ResIsAllocFailure(res));
     TraceSetSignalEmergency(ts, arena);
     res = TraceScanRootRes(ts, rank, arena, root);
     /* Should be OK in emergency mode */
@@ -1156,7 +1159,8 @@ static Res TraceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 /* TraceScanSeg
  *
  * Scans a segment without fail.  May put the traces into emergency
- * mode to ensure this. */
+ * mode to ensure this.
+ */
 
 static void TraceScanSeg(TraceSet ts, Rank rank, Arena arena, Seg seg)
 {
@@ -1168,7 +1172,8 @@ static void TraceScanSeg(TraceSet ts, Rank rank, Arena arena, Seg seg)
   AVER(SegCheck(seg));
 
   res = TraceScanSegRes(ts, rank, arena, seg);
-  if(res != ResOK) {
+  if (res != ResOK) {
+    AVER(ResIsAllocFailure(res));
     TraceSetSignalEmergency(ts, arena);
     res = TraceScanSegRes(ts, rank, arena, seg);
     /* should be OK in emergency mode */
@@ -1234,30 +1239,6 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 }
 
 
-static Res TraceRun(Trace trace)
-{
-  Res res;
-  Arena arena;
-  Seg seg;
-  Rank rank;
-
-  AVERT(Trace, trace);
-  AVER(trace->state == TraceFLIPPED);
-
-  arena = trace->arena;
-
-  if(traceFindGrey(&seg, &rank, arena, trace->ti)) {
-    AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
-    res = TraceScanSegRes(TraceSetSingle(trace), rank, arena, seg);
-    if(res != ResOK)
-      return res;
-  } else
-    trace->state = TraceRECLAIM;
-
-  return ResOK;
-}
-
-
 /* TraceWorkClock -- a measure of the work done for this trace */
 
 static Size TraceWorkClock(Trace trace)
@@ -1269,59 +1250,41 @@ static Size TraceWorkClock(Trace trace)
 }
 
 
-/* TraceStep -- progresses a trace by some small amount */
-
-Res TraceStep(Trace trace)
-{
-  Res res = ResOK;
-
-  AVERT(Trace, trace);
-
-  switch(trace->state) {
-  case TraceUNFLIPPED:
-    /* all traces are flipped in TraceStart at the moment */
-    NOTREACHED;
-    break;
-  case TraceFLIPPED:
-    res = TraceRun(trace);
-    break;
-  case TraceRECLAIM:
-    TraceReclaim(trace);
-    break;
-  default:
-    NOTREACHED;
-    break;
-  }
-
-  return res;
-}
-
-
-/* TraceQuantum -- progresses a trace, without returning errors */
+/* TraceQuantum -- progresses a trace by one quantum */
 
 static void TraceQuantum(Trace trace)
 {
-  Res res;
   Size pollEnd;
 
   AVERT(Trace, trace);
 
   pollEnd = TraceWorkClock(trace) + trace->rate;
   do {
-    res = TraceStep(trace);
-    if (res != ResOK) {
-      AVER(ResIsAllocFailure(res));
-      /* Signal an emergency on the trace and push it through. */
-      trace->emergency = TRUE;
-      while(trace->state != TraceFINISHED) {
-        res = TraceStep(trace);
-        /* Because we are using emergencyFix the trace shouldn't */
-        /* raise any error conditions. */
-        AVER(res == ResOK);
-      }
-      return;
+    switch(trace->state) {
+    case TraceUNFLIPPED:
+      /* all traces are flipped in TraceStart at the moment */
+      NOTREACHED;
+      break;
+    case TraceFLIPPED: {
+      Arena arena = trace->arena;
+      Seg seg;
+      Rank rank;
+
+      if (traceFindGrey(&seg, &rank, arena, trace->ti)) {
+        AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
+        TraceScanSeg(TraceSetSingle(trace), rank, arena, seg);
+      } else
+        trace->state = TraceRECLAIM;
+    } break;
+    case TraceRECLAIM:
+      TraceReclaim(trace);
+      break;
+    default:
+      NOTREACHED;
+      break;
     }
-  } while(trace->state != TraceFINISHED && TraceWorkClock(trace) < pollEnd);
+  } while(trace->state != TraceFINISHED
+          && (trace->emergency || TraceWorkClock(trace) < pollEnd));
 }
 
 
