@@ -29,6 +29,18 @@
 #define HAVE_VFORK 1
 #endif
 
+/* Newer versions of Solaris have bcopy etc. as functions, with
+   prototypes in strings.h.  They lose if the defines from usg5-4.h
+   are visible, which happens when X headers are included.  */
+#ifdef HAVE_BCOPY
+#undef bcopy
+#undef bzero
+#undef bcmp
+#ifndef NOT_C_CODE
+#include <strings.h>
+#endif
+#endif
+
 #if 0 /* A recent patch in unexelf.c should eliminate the need for this.  */
 /* Don't use the shared libraries for -lXt and -lXaw,
    to work around a linker bug in Solaris 2.5.
