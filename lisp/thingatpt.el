@@ -195,7 +195,7 @@ a symbol as a valid THING."
 
 ;;  Filenames and URLs  www.com/foo%32bar
 
-(defvar thing-at-point-file-name-chars "-~/[:alnum:]_.${}#%,:"
+(defvar thing-at-point-file-name-chars "~/A-Za-z0-9---_.${}#%,:"
   "Characters allowable in filenames.")
 
 (put 'filename 'end-op    
