@@ -1207,7 +1207,8 @@ where FACE is a valid face specification, as it can be used with
 
 
 (defun display-startup-echo-area-message ()
-  (message (startup-echo-area-message)))
+  (let ((resize-mini-windows t))
+    (message (startup-echo-area-message))))
 
 
 (defun command-line-1 (command-line-args-left)
