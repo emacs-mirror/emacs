@@ -4,8 +4,7 @@
 	instead of name and key.
 	(update_submenu_strings): New function.
 	(set_frame_menubar): Remove call to inhibit_garbage_collection,
-	call update_submenu_strings.  Call ENCODE_MENU_STRING for top level
-	menu names.
+	call update_submenu_strings.
 
 	* gtkutil.h (_widget_value): Added lname and lkey.
 

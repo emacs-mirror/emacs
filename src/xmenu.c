@@ -2056,7 +2056,7 @@ set_frame_menubar (f, first_time, deep_p)
 	  string = XVECTOR (items)->contents[i + 1];
 	  if (NILP (string))
             break;
-          wv->name = (char *) SDATA (ENCODE_MENU_STRING (string));
+          wv->name = (char *) SDATA (string);
           update_submenu_strings (wv->contents);
           wv = wv->next;
 	}
@@ -2088,7 +2088,7 @@ set_frame_menubar (f, first_time, deep_p)
 	    break;
 
 	  wv = xmalloc_widget_value ();
-	  wv->name = (char *) SDATA (ENCODE_MENU_STRING (string));
+	  wv->name = (char *) SDATA (string);
 	  wv->value = 0;
 	  wv->enabled = 1;
 	  wv->button_type = BUTTON_TYPE_NONE;
