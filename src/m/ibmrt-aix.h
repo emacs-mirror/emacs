@@ -160,8 +160,6 @@ Boston, MA 02111-1307, USA.  */
 
 #include </usr/include/bsd/BSDtoAIX.h>
 #define BSTRING
-#define HAVE_GETTIMEOFDAY
-#define HAVE_VFORK
 
 /* AIX utimes allegedly causes SIGSEGV.  */
 #undef HAVE_UTIMES /* override configuration decision */
