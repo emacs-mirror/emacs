@@ -1752,6 +1752,60 @@ Both must be integers or markers.")
   return val;
 }
 
+DEFUN ("mod", Fmod, Smod, 2, 2, 0,
+  "Returns X modulo Y.\n\
+The result falls between zero (inclusive) and Y (exclusive).\n\
+Both X and Y must be numbers or markers.")
+  (num1, num2)
+     register Lisp_Object num1, num2;
+{
+  Lisp_Object val;
+  int i1, i2;
+
+#ifdef LISP_FLOAT_TYPE
+  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (num1, 0);
+  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (num2, 1);
+
+  if (XTYPE (num1) == Lisp_Float || XTYPE (num2) == Lisp_Float)
+    {
+      double f1, f2;
+
+      f1 = XTYPE (num1) == Lisp_Float ? XFLOAT (num1)->data : XINT (num1);
+      f2 = XTYPE (num2) == Lisp_Float ? XFLOAT (num2)->data : XINT (num2);
+      if (f2 == 0)
+	Fsignal (Qarith_error, Qnil);
+
+#if defined (USG) || defined (sun) || defined (ultrix) || defined (hpux)
+      f1 = fmod (f1, f2);
+#else
+      f1 = drem (f1, f2);
+#endif
+      /* If the "remainder" comes out with the wrong sign, fix it.  */
+      if ((f1 < 0) != (f2 < 0))
+	f1 += f2;
+      return (make_float (f1));
+    }
+#else /* not LISP_FLOAT_TYPE */
+  CHECK_NUMBER_COERCE_MARKER (num1, 0);
+  CHECK_NUMBER_COERCE_MARKER (num2, 1);
+#endif /* not LISP_FLOAT_TYPE */
+
+  i1 = XINT (num1);
+  i2 = XINT (num2);
+
+  if (i2 == 0)
+    Fsignal (Qarith_error, Qnil);
+  
+  i1 %= i2;
+
+  /* If the "remainder" comes out with the wrong sign, fix it.  */
+  if ((i1 < 0) != (i2 < 0))
+    i1 += i2;
+
+  XSET (val, Lisp_Int, i1);
+  return val;
+}
+
 DEFUN ("max", Fmax, Smax, 1, MANY, 0,
   "Return largest of all the arguments (which must be numbers or markers).\n\
 The value is always a number; markers are converted to numbers.")
@@ -2194,6 +2248,7 @@ syms_of_data ()
   defsubr (&Stimes);
   defsubr (&Squo);
   defsubr (&Srem);
+  defsubr (&Smod);
   defsubr (&Smax);
   defsubr (&Smin);
   defsubr (&Slogand);
