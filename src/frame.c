@@ -743,6 +743,8 @@ A frame may not be deleted if its minibuffer is used by other frames.")
 
 DEFUN ("mouse-position", Fmouse_position, Smouse_position, 0, 0, 0,
   "Return a list (FRAME X . Y) giving the current mouse frame and position.\n\
+The position is given in character cells, where (0, 0) is the\n\
+upper-left corner.\n\
 If Emacs is running on a mouseless terminal or hasn't been programmed\n\
 to read the mouse position, it returns the selected frame for FRAME\n\
 and nil for X and Y.")
