@@ -1,3 +1,8 @@
+2002-10-11  Miles Bader  <miles@gnu.org>
+
+	* vc-cvs.el (vc-cvs-parse-entry): Don't barf when an `Entries'
+	files contains an invalid timestamp.
+
 2002-10-11  Simon Josefsson  <jas@extundo.com>
 
 	* mail/sendmail.el (mail-envelope-from): New option `header' to
