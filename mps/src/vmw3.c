@@ -1,6 +1,6 @@
 /*  impl.c.vmnt: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmw3.c(trunk.19) $
+ *  $HopeName: MMsrc!vmw3.c(trunk.20) $
  *  Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  *  Design: design.mps.vm
@@ -53,9 +53,9 @@
 #error "vmw3.c compiled with VM_RM set"
 #endif
 
-#include <windows.h>
+#include "mpswin.h"
 
-SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(MMdevel_config_thread.2) $");
+SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.20) $");
 
 
 /* VMStruct -- virtual memory structure */
