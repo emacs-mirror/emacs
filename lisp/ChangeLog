@@ -1,3 +1,7 @@
+2004-07-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.
+
 2004-07-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frame.el (modify-all-frames-parameters): Minor doc fix.
