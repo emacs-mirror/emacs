@@ -1,7 +1,7 @@
 ;;; auto-show.el --- perform automatic horizontal scrolling as point moves
 ;;; This file is in the public domain.
 
-;;; Keywords: scroll display minor-mode
+;;; Keywords: scroll display convenience
 ;;; Author: Pete Ware <ware@cis.ohio-state.edu>
 ;;; Maintainer: FSF
 
@@ -41,13 +41,19 @@
   "Perform automatic horizontal scrolling as point moves."
   :group 'editing)
 
-(defcustom auto-show-mode t
-  "*Non-nil enables automatic horizontal scrolling, when lines are truncated.
-The default value is t.  To change the default, do this:
-	(set-default 'auto-show-mode nil)
-See also command `auto-show-mode'.
-This variable has no effect when lines are not being truncated.
-This variable is automatically local in each buffer where it is set."
+;;;###autoload
+(defcustom auto-show-mode nil
+  "Non-nil means do automatic horizontal scrolling, when lines are truncated.
+
+This variable is automatically local in each buffer where it is set.
+
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `auto-show-mode'."
+  :set (lambda (symbol value) (auto-show mode value))
+  :require 'auto-show
+  :initialize 'custom-initialize-default
+  :link '(emacs-commentary-link "auto-show.el")
+  :version "20.4"
   :type 'boolean
   :group 'auto-show)
 
@@ -81,7 +87,13 @@ It takes effect only when `truncate-lines' is non-nil."
   (setq auto-show-mode
 	(if (null arg)
 	    (not auto-show-mode)
-	  (> (prefix-numeric-value arg) 0))))
+	  (> (prefix-numeric-value arg) 0)))
+  (when auto-show-mode
+    ;; Do auto-scrolling after commands.
+    (add-hook 'post-command-hook 'auto-show-make-point-visible)
+    ;; Do auto-scrolling in comint buffers after process output also.
+    (add-hook 'comint-output-filter-functions
+	      'auto-show-make-point-visible t)))
   
 (defun auto-show-make-point-visible (&optional ignore-arg)
   "Scroll horizontally to make point visible, if that is enabled.
@@ -107,19 +119,7 @@ See also the command `auto-show-mode'."
 		    (and (= col right-col)
 			 (not (eolp))))
 		(scroll-left (+ auto-show-shift-amount 
-				(- col (+ scroll w-width))))
-	      )
-	    )
-	  )
-	)
-    )
-  )
-
-;; Do auto-scrolling after commands.
-(add-hook 'post-command-hook 'auto-show-make-point-visible)
-
-;; Do auto-scrolling in comint buffers after process output also.
-(add-hook 'comint-output-filter-functions 'auto-show-make-point-visible t)
+				(- col (+ scroll w-width))))))))))
 
 (provide 'auto-show)
 
