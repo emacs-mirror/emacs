@@ -248,37 +248,46 @@ Goes backward if ARG is negative; error if CHAR not found."
 
 (defun beginning-of-buffer (&optional arg)
   "Move point to the beginning of the buffer; leave mark at previous position.
-With arg N, put point N/10 of the way from the true beginning.
+With arg N, put point N/10 of the way from the beginning.
+
+If the buffer is narrowed, this command uses the beginning and size
+of the accessible part of the buffer.
 
 Don't use this command in Lisp programs!
 \(goto-char (point-min)) is faster and avoids clobbering the mark."
   (interactive "P")
   (push-mark)
-  (goto-char (if arg
-		 (if (> (buffer-size) 10000)
-		     ;; Avoid overflow for large buffer sizes!
-		     (* (prefix-numeric-value arg)
-			(/ (buffer-size) 10))
-		   (/ (+ 10 (* (buffer-size) (prefix-numeric-value arg))) 10))
-	       (point-min)))
+  (let ((size (- (point-max) (point-min))))
+    (goto-char (if arg
+		   (+ (point-min)
+		      (if (> size 10000)
+			  ;; Avoid overflow for large buffer sizes!
+			  (* (prefix-numeric-value arg)
+			     (/ size 10))
+			(/ (+ 10 (* size (prefix-numeric-value arg))) 10)))
+		 (point-min))))
   (if arg (forward-line 1)))
 
 (defun end-of-buffer (&optional arg)
   "Move point to the end of the buffer; leave mark at previous position.
-With arg N, put point N/10 of the way from the true end.
+With arg N, put point N/10 of the way from the end.
+
+If the buffer is narrowed, this command uses the beginning and size
+of the accessible part of the buffer.
 
 Don't use this command in Lisp programs!
 \(goto-char (point-max)) is faster and avoids clobbering the mark."
   (interactive "P")
   (push-mark)
-  (goto-char (if arg
-		 (- (1+ (buffer-size))
-		    (if (> (buffer-size) 10000)
-			;; Avoid overflow for large buffer sizes!
-			(* (prefix-numeric-value arg)
-			   (/ (buffer-size) 10))
-		      (/ (* (buffer-size) (prefix-numeric-value arg)) 10)))
-	       (point-max)))
+  (let ((size (- (point-max) (point-min))))
+    (goto-char (if arg
+		   (- (point-max)
+		      (if (> size 10000)
+			  ;; Avoid overflow for large buffer sizes!
+			  (* (prefix-numeric-value arg)
+			     (/ size 10))
+			(/ (* size (prefix-numeric-value arg)) 10)))
+		 (point-max))))
   ;; If we went to a place in the middle of the buffer,
   ;; adjust it to the beginning of a line.
   (if arg (forward-line 1)
@@ -2491,6 +2500,27 @@ At top-level, as an editor command, this simply beeps."
   (signal 'quit nil))
 
 (define-key global-map "\C-g" 'keyboard-quit)
+
+(defun keyboard-escape-quit ()
+  "Exit the current \"mode\" (in a generalized sense of the word).
+This command can exit an interactive command such as `query-replace',
+can clear out a prefix argument or a region,
+can get out of the minibuffer or other recursive edit,
+or delete other windows."
+  (interactive)
+  (cond ((eq last-command 'mode-exited) nil)
+	((> (minibuffer-depth) 0)
+	 (abort-recursive-edit))
+	(current-prefix-arg
+	 nil)
+	((and transient-mark-mode
+	      mark-active)
+	 (deactivate-mark))
+	((not (one-window-p t))
+	 (delete-other-windows))))
+
+;;; This may not be safe yet.
+;;;(define-key global-map "\e\e\e" 'keyboard-escape-quit)
 
 (defun set-variable (var val)
   "Set VARIABLE to VALUE.  VALUE is a Lisp object.
