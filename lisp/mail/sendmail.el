@@ -42,7 +42,7 @@ Delete these headers from old message when it's inserted in a reply.")
 ;;;###autoload
 (defconst send-mail-function 'sendmail-send-it "\
 Function to call to send the current buffer as mail.
-The headers are be delimited by a line which is mail-header-separator.")
+The headers are be delimited by a line which is `mail-header-separator'.")
 
 ;;;###autoload
 (defvar mail-header-separator "--text follows this line--" "\
@@ -211,7 +211,7 @@ C-c C-v  mail-sent-via (add a sent-via field for each To or CC)."
   (define-key mail-mode-map "\C-c\C-s" 'mail-send))
 
 (defun mail-send-and-exit (arg)
-  "Send message like mail-send, then, if no errors, exit from mail buffer.
+  "Send message like `mail-send', then, if no errors, exit from mail buffer.
 Prefix arg means don't delete this window."
   (interactive "P")
   (mail-send)
@@ -518,7 +518,7 @@ the user from the mailer."
   (search-forward (concat "\n" mail-header-separator "\n")))
 
 (defun mail-signature (atpoint)
-  "Sign letter with contents of mail-signature-file."
+  "Sign letter with contents of `mail-signature-file'."
   (interactive "P")
   (save-excursion
     (or atpoint

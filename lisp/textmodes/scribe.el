@@ -42,8 +42,8 @@ if typed after an @Command form.")
   "Open parenthesis characters for Scribe.")
 
 (defconst scribe-close-parentheses "])}>"
-  "Close parenthesis characters for Scribe.  These should match up with
-scribe-open-parenthesis.")
+  "Close parenthesis characters for Scribe.
+These should match up with `scribe-open-parenthesis'.")
 
 (if (null scribe-mode-syntax-table)
     (let ((st (syntax-table)))
@@ -149,9 +149,9 @@ scribe-electric-parenthesis
   (call-interactively 'compile))
 
 (defun scribe-envelop-word (string count)
-  "Surround current word with Scribe construct @STRING[...].  COUNT
-specifies how many words to surround.  A negative count means to skip 
-backward."
+  "Surround current word with Scribe construct @STRING[...].
+COUNT specifies how many words to surround.  A negative count means
+to skip backward."
   (let ((spos (point)) (epos (point)) (ccoun 0) noparens)
     (if (not (zerop count))
 	(progn (if (= (char-syntax (preceding-char)) ?w)
@@ -253,7 +253,8 @@ backward."
   (forward-char -1))
 
 (defun scribe-insert-quote (count)
-  "If scribe-electric-quote is non-NIL, insert ``, '' or \" according
+  "Insert ``, '' or \" according to preceding character.
+If `scribe-electric-quote' is non-NIL, insert ``, '' or \" according
 to preceding character.  With numeric arg N, always insert N \" characters.
 Else just insert \"."
   (interactive "P")
