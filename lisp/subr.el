@@ -1431,19 +1431,21 @@ Replaces `category' properties with their defined properties."
 	(while (< (point) end)
 	  (let ((cat (get-text-property (point) 'category))
 		run-end)
-	    (when cat
-	      (setq run-end
-		    (next-single-property-change (point) 'category nil end))
-	      (remove-list-of-text-properties (point) run-end '(category))
-	      (add-text-properties (point) run-end (symbol-plist cat))
-	      (goto-char (or run-end end)))
 	    (setq run-end
 		  (next-single-property-change (point) 'category nil end))
-	    (goto-char (or run-end end))))))
+	    (when cat
+	      (let (run-end2 original)
+		(remove-list-of-text-properties (point) run-end '(category))
+		(while (< (point) run-end)
+		  (setq run-end2 (next-property-change (point) nil run-end))
+		  (setq original (text-properties-at (point)))
+		  (set-text-properties (point) run-end2 (symbol-plist cat))
+		  (add-text-properties (point) run-end2 original)
+		  (goto-char run-end2))))
+	    (goto-char run-end)))))
     (if (eq yank-excluded-properties t)
 	(set-text-properties start end nil)
-      (remove-list-of-text-properties start end
-				      yank-excluded-properties))))
+      (remove-list-of-text-properties start end yank-excluded-properties))))
 
 (defun insert-for-yank (&rest strings)
   "Insert STRINGS at point, stripping some text properties.
