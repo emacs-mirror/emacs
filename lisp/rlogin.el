@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; Support for remote logins using `rlogin'.
-;; $Id: rlogin.el,v 1.12 1993/10/18 07:05:11 friedman Exp rms $
+;; $Id: rlogin.el,v 1.13 1993/10/22 17:12:54 rms Exp friedman $
 
 ;;; Todo:
 
@@ -174,25 +174,16 @@ If `rlogin-mode-hook' is set, run it."
   (let (proc-mark region-begin window)
     (save-excursion
       (set-buffer (process-buffer proc))
-      (setq proc-mark (process-mark proc)
-            region-begin (point)
-            ;; If process mark is at window start, insert-before-markers
-            ;; will insert text off-window since it's also inserting before
-            ;; the start window mark.  Make sure we can see the most recent
-            ;; text.  (note: it's a buglet that this isn't necessary if
-            ;; scroll-step is 0, but that works to our advantage since it
-            ;; makes the filter a little faster.)
-            window (and (/= 0 scroll-step)
-                        (= proc-mark (window-start))
+      (setq proc-mark (process-mark proc))
+      (setq region-begin (marker-position proc-mark))
+      ;; If process mark is at window start, insert-before-markers will
+      ;; insert text off-window since it's also inserting before the start
+      ;; window mark.  Make sure we can see the most recent text.  
+      (setq window (and (= proc-mark (window-start))
                         (get-buffer-window (current-buffer))))
       (goto-char proc-mark)
       (insert-before-markers string)
       (goto-char region-begin)
-      ;; I think something fishy is going on with save-excursion and
-      ;; search-forward.  If you don't make search-forward move to the end
-      ;; of the search region when it's done, then if the user switches
-      ;; buffers back and forth, it leaves point sitting behind the
-      ;; process-mark, so that text inserted later goes off-screen.
       (while (search-forward "\C-m" proc-mark 'goto-end)
         (delete-char -1)))
     ;; Frob window-start outside of save-excursion so it works whether the
