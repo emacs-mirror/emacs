@@ -260,7 +260,7 @@ case "${canonical}" in
     # This is necessary on 5.0 to avoid mangling src/Makefile.
     # Separated out in case it causes problems on earlier versions.
     alpha*-dec-osf[5-9]*)
-      NON_GNU_CPP='cc -E -std0' ;;
+      NON_GNU_CPP='cpp' ;;
     esac
   ;;
 
@@ -980,6 +980,7 @@ case "${canonical}" in
   i[3456]86-*-* )
     machine=intel386
     case "${canonical}" in
+      *-lynxos* )               opsys=lynxos ;;
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
       *-isc2.2* )		opsys=isc2-2 ;;
       *-isc4.0* )		opsys=isc4-0 ;;
