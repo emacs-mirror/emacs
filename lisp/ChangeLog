@@ -1,3 +1,7 @@
+2000-07-11  Dave Love  <fx@gnu.org>
+
+	* widget.el (widget-plist-member): New alias.
+
 2000-07-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* eshell/esh-module.el (toplevel): Reference
