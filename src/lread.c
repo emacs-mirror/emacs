@@ -597,7 +597,7 @@ point remains at the end of the last character read from the buffer.")
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
   BUF_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
   readevalloop (buf, 0, Feval, !NILP (printflag));
-  unbind_to (count);
+  unbind_to (count, Qnil);
 
   return Qnil;
 }
