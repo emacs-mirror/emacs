@@ -1619,9 +1619,23 @@ Do not call directly!"
   (while (re-search-forward "^[ \t]*\n\\([ \t]*\n\\)+" nil t)
     (replace-match "\n" t t))
 
+  ;; CJK characters are underlined by double-sized "__".
+  ;; (Code lifted from man.el, with trivial changes.)
+  (if (< (buffer-size) (position-bytes (point-max)))
+      ;; Multibyte characters exist.
+      (progn
+	(goto-char (point-min))
+	(while (search-forward "__\b\b" nil t)
+	  (backward-delete-char 4)
+	  (woman-set-face (point) (1+ (point)) 'woman-italic-face))
+	(goto-char (point-min))
+	(while (search-forward "\b\b__" nil t)
+	  (backward-delete-char 4)
+	  (woman-set-face (1- (point)) (point) 'woman-italic-face))))
+
   ;; Interpret overprinting to indicate bold face:
   (goto-char (point-min))
-  (while (re-search-forward "\\(.\\)\\(\\(\\1\\)+\\)" nil t)
+  (while (re-search-forward "\\(.\\)\\(\\(+\\1\\)+\\)" nil t)
     (woman-delete-match 2)
     (woman-set-face (1- (point)) (point) 'woman-bold-face))
 
