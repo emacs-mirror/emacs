@@ -1,5 +1,7 @@
 1999-11-02  Dave Love  <fx@gnu.org>
 
+	* gnu-linux.h: Use SIGCHLD, not SIGCLD (not in glibc 2.1).
+
 	* process.c: Define _GNU_SOURCE before config.h to get strsignal
 	declared with glibc2.
 
