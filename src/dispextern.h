@@ -2097,6 +2097,7 @@ extern int tool_bar_button_relief;
 
 /* Defined in xdisp.c */
 
+int display_prop_intangible_p P_ ((Lisp_Object));
 void resize_echo_area_axactly P_ ((void));
 int resize_mini_window P_ ((struct window *, int));
 int try_window P_ ((Lisp_Object, struct text_pos));
