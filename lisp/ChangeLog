@@ -1,3 +1,8 @@
+2002-11-04  Robert Fenk  <Robert.Fenk@gmx.de>  (tiny change)
+
+	* desktop.el (desktop-relative-file-names): New variable.
+	(desktop-save): Use it.
+
 2002-11-03  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-dired-mode): Adapt dired-move-to-filename-regexp to
@@ -415,7 +420,7 @@
 	(cp866): Delete this alias.
 	("Bulgarian"): Fix the value of `input-method'.
 
-2002-10-16  Luc Teirlinck  <teirllm@mail.auburn.edu>  (tiny change)
+2002-10-16  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* dired-aux.el (dired-add-entry): Put point in correct position
 	before inserting marker char.
