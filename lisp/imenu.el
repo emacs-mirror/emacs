@@ -1,11 +1,10 @@
 ;;; imenu.el --- Framework for mode-specific buffer indexes.
 
-;; Copyright (C) 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
 ;; Created: 8 Feb 1994
-;; Version: 1.17
 ;; Keywords: tools
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -62,16 +61,14 @@
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defvar imenu-use-keymap-menu nil
-  "* Set this to non-nil for using a keymap when making 
-  the mouse menu.")
+  "*Non-nil means use a keymap when making the mouse menu.")
 
 (defvar imenu-auto-rescan nil
-  "* T if we always should rescan the buffers, nil to disable
-  automatic rescan.")
+  "*Non-nil means Imenu should always rescan the buffers.")
 
 (defvar imenu-auto-rescan-maxout 60000 
   "* auto-rescan is disabled in buffers larger than this.
-  This variable is buffer-local.")
+This variable is buffer-local.")
 
 (defvar imenu-always-use-completion-buffer-p nil
   "*Set this to non-nil for displaying the index in a completion buffer.
@@ -99,7 +96,7 @@ element should come before the second.  The arguments are cons cells;
 (defvar imenu-max-items 25
   "*Maximum number of elements in an index mouse-menu.")
 
-(defvar imenu-scanning-message "Scanning buffer for index. (%3d%%)"
+(defvar imenu-scanning-message "Scanning buffer for index (%3d%%)"
   "*Progress message during the index scanning of the buffer.
 If non-nil, user gets a message during the scanning of the buffer
 
@@ -133,9 +130,9 @@ MENU-TITLE is a string used as the title for the submenu or nil if the
 entries are not nested.
 
 REGEXP is a regexp that should match a construct in the buffer that is
-to be displayed in the menu i.e. function or variable definitions,
-etc. It contains a substring which is the name to appear in the
-menu. See the info section on Regexps for more information.
+to be displayed in the menu; i.e., function or variable definitions,
+etc.  It contains a substring which is the name to appear in the
+menu.  See the info section on Regexps for more information.
 
 INDEX points to the substring in REGEXP that contains the name (of the
 function, variable or type) that is to appear in the menu.
@@ -148,11 +145,7 @@ For emacs-lisp-mode for example PATTERN would look like:
 
 The variable is buffer-local.")
 
-;;;###autoload
-(make-variable-buffer-local 'imenu-create-index-pattern)
-
-;; make sure the default is nil
-(setq-default imenu-create-index-pattern nil)
+(make-variable-buffer-local 'imenu-generic-expression)
 
 ;;;; Hooks
 
@@ -160,8 +153,8 @@ The variable is buffer-local.")
   "The function to use for creating a buffer index.
 
 It should be a function that takes no arguments and returns an index
-of the current buffer as an alist. The elements in the alist look
-like: (INDEX-NAME . INDEX-POSITION). You may also nest index list like
+of the current buffer as an alist.  The elements in the alist look
+like: (INDEX-NAME . INDEX-POSITION).  You may also nest index list like
 \(INDEX-NAME . INDEX-ALIST).
 
 This function is called within a `save-excursion'.
@@ -178,7 +171,7 @@ to a function that will find the next index, looking backwards in the
 file.
 
 The function should leave point at the place to be connected to the
-index and it should return nil when it doesn't find another index. ")
+index and it should return nil when it doesn't find another index.")
 (make-variable-buffer-local 'imenu-prev-index-position-function)
 
 (defvar imenu-extract-index-name-function nil
@@ -305,9 +298,7 @@ This function is called after the function pointed out by
 	 "^\\s-*(def\\(type\\|struct\\|class\\|ine-condition\\)\\s-+\\([-A-Za-z0-9+]+\\)" 
 	 2))
 
-  "imenu generic expression for Lisp mode in the form
-(PATTERN), where PATTERN is a list containing entries of the form 
-(MENU-TITLE REGEXP INDEX). See `imenu-generic-expression'.")
+  "Imenu generic expression for Lisp mode.  See `imenu-generic-expression'.")
 
 ;;;
 ;;; C++
@@ -337,7 +328,7 @@ This function is called after the function pointed out by
        "[^a-zA-Z1-9_][^(]*"	      ; ...or operator
        " \\)"
        "[ \t]*([^)]*)[ \t\n]*[^	      ;]" ; require something other than a ; after
-					; the (...) to avoid prototypes. Can't
+					; the (...) to avoid prototypes.  Can't
 					; catch cases with () inside the parentheses
 					; surrounding the parameters
 					; (like "int foo(int a=bar()) {...}"
@@ -352,7 +343,7 @@ This function is called after the function pointed out by
 	 "[ \t]*[:{]"
 	 )) 2)
 ;; Example of generic expression for finding prototypes, structs, unions, enums.
-;; Uncomment if You want to find these too. It will be at bit slower gathering
+;; Uncomment if You want to find these too.  It will be at bit slower gathering
 ;; the indexes.
 ;    ("Prototypes"
 ;     (, 
@@ -408,9 +399,7 @@ This function is called after the function pointed out by
 ;	 "[ \t]*[{]"
 ;	 )) 3)
     ))
-  "imenu generic expression for C++ mode in the form
-(PATTERN), where PATTERN is a list containing entries of the form 
-(MENU-TITLE REGEXP INDEX). See `imenu-generic-expression'.")
+  "Imenu generic expression for C++ mode.  See `imenu-generic-expression'.")
 
 ;;;
 ;;; C
@@ -419,9 +408,7 @@ This function is called after the function pointed out by
 (defvar imenu-generic-c-expression 
   ;; Use the C++ expression above.
   imenu-generic-c++-expression
-  "imenu generic expression for C mode in the form
-(PATTERN), where PATTERN is a list containing entries of the form 
-(MENU-TITLE REGEXP INDEX). See `imenu-generic-expression'.")
+  "Imenu generic expression for C mode.  See `imenu-generic-expression'.")
 
 ;; Regular expression to find C functions
 (defvar imenu-example--function-name-regexp-c
@@ -464,9 +451,7 @@ This function is called after the function pointed out by
       '((nil "^\\s-*\\(procedure\\|function\\)\\s-+\\([A-Za-z0-9_]+\\)" 2)
 	("Type Defs" "^\\s-*\\(sub\\)?type\\s-+\\([A-Za-z0-9_]+\\)" 2))
 
-  "imenu generic expression for Ada mode in the form
-(PATTERN), where PATTERN is a list containing entries of the form 
-(MENU-TITLE REGEXP INDEX). See `imenu-generic-expression'.")
+  "Imenu generic expression for Ada mode.  See `imenu-generic-expression'.")
 
 ;;; 
 ;;; TexInfo
@@ -478,9 +463,7 @@ This function is called after the function pointed out by
   '((nil "^@node[ \t]+\\([^,\n]*\\)" 1)
     ("Chapters" "^@chapter[ \t]+\\(.*\\)$" 1))
 
-  "imenu generic expression for TexInfo mode in the form
-(PATTERN), where PATTERN is a list containing entries of the form 
-(MENU-TITLE REGEXP INDEX). See `imenu-generic-expression'.
+  "Imenu generic expression for TexInfo mode.  See `imenu-generic-expression'.
 
 To overide this example, Either set 'imenu-generic-expression
 or 'imenu-create-index-function")
@@ -502,9 +485,7 @@ or 'imenu-create-index-function")
     ;; being printed.
     ("Equations" "%[ \t]*\\([0-9]+\\.[0-9]+\\)[,;]?[ \t]?" 1))  
 
-  "imenu generic expression for LaTex mode in the form
-(PATTERN), where PATTERN is a list containing entries of the form 
-(MENU-TITLE REGEXP INDEX). See `imenu-generic-expression'.")
+  "Imenu generic expression for LaTex mode.  See `imenu-generic-expression'.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -521,9 +502,8 @@ or 'imenu-create-index-function")
 (make-variable-buffer-local 'imenu--index-alist)
 
 ;; History list for 'jump-to-function-in-buffer'.
-;; Buffer local.
+;; Making this buffer local caused it not to work!
 (defvar imenu--history-list nil)
-(make-variable-buffer-local 'imenu--history-list)
 
 (defvar imenu--scanning-method-alist
   '((emacs-lisp-mode  imenu-generic-lisp-expression)
@@ -536,11 +516,11 @@ or 'imenu-create-index-function")
 
   "Alist of major mode and imenu scanning methods.  
 
-Each item should be a list of the form: (MAJOR-MODE
-IMENU-SCANNING-METHOD) where both MAJOR-MODE and IMENU-SCANNING-METHOD
-are symbols. If IMENU-SCANNING-METHOD is a function then it is called
-to create an index. If it is a `pattern' (See `imenu-generic-expression') 
-it is passed to imenu--generic-function to create an index.")
+Each item should be a list of the form (MAJOR-MODE
+IMENU-SCANNING-METHOD), where both MAJOR-MODE and IMENU-SCANNING-METHOD
+are symbols.  If IMENU-SCANNING-METHOD is a function then it is called
+to create an index.  If it is a \"pattern\" (see `imenu-generic-expression') 
+it is passed to `imenu--generic-function' to create an index.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -625,7 +605,7 @@ it is passed to imenu--generic-function to create an index.")
 	    (save-excursion
 	      (funcall imenu-create-index-function))))
   (or imenu--index-alist
-      (error "No items suitable for an index found in this buffer."))
+      (error "No items suitable for an index found in this buffer"))
   ;; Add a rescan option to the index.
   (cons imenu--rescan-item imenu--index-alist))
 ;;;
@@ -768,15 +748,15 @@ Their results are gathered into an index alist."
   "Return an index of the current buffer as an alist.
 
 PATTERN is an alist with elements that look like this: (MENU-TITLE
-REGEXP INDEX). 
+REGEXP INDEX).
 
 MENU-TITLE is a string used as the title for the submenu or nil if the
 entries are not nested.
 
 REGEXP is a regexp that should match a construct in the buffer that is
-to be displayed in the menu i.e. function or variable definitions,
-etc. It contains a substring which is the name to appear in the
-menu. See the info section on Regexps for more information.
+to be displayed in the menu; i.e., function or variable definitions,
+etc.  It contains a substring which is the name to appear in the
+menu.  See the info section on Regexps for more information.
 
 INDEX points to the substring in REGEXP that contains the name (of the
 function, variable or type) that is to appear in the menu.
@@ -787,8 +767,8 @@ For emacs-lisp-mode for example PATTERN would look like:
   (\"*Vars*\" \"^\\s-*(def\\(var\\|const\\)\\s-+\\([-A-Za-z0-9]+\\)\" 2)
   (\"*Types*\" \"^\\s-*(def\\(type\\|struct\\|class\\|ine-condition\\)\\s-+\\([-A-Za-z0-9]+\\)\" 2))'
 
-Returns an index of the current buffer as an alist. The elements in
-the alist look like: (INDEX-NAME . INDEX-POSITION). They may also be
+Returns an index of the current buffer as an alist.  The elements in
+the alist look like: (INDEX-NAME . INDEX-POSITION).  They may also be
 nested index lists like (INDEX-NAME . INDEX-ALIST) depending on
 pattern.
 
@@ -982,8 +962,7 @@ The returned value is on the form (INDEX-NAME . INDEX-POSITION)."
 
 ;;;###autoload
 (defun imenu-add-to-menubar (name)
-  "Adds an \"imenu\" entry to the menubar for the 
-current local keymap.
+  "Adds an \"imenu\" entry to the menubar for the current local keymap.
 NAME is the string naming the menu to be added.
 See 'imenu' for more information."
   (interactive "sMenu name: ")
@@ -992,29 +971,29 @@ See 'imenu' for more information."
 	 (cons name 'imenu))))
 
 ;;;###autoload
-(defun imenu ()
+(defun imenu (index-item)
   "Jump to a place in the buffer chosen using a buffer menu or mouse menu.
 See `imenu-choose-buffer-index' for more information."
-  (interactive)
-  (let ((index-item (save-restriction 
-		      (widen)
-		      (imenu-choose-buffer-index))))
-    (and index-item
-	 (progn
-	   (push-mark)
-	   (cond
-	    ((markerp (cdr index-item))
-	     (if (or ( > (marker-position (cdr index-item)) (point-min))
-		     ( < (marker-position (cdr index-item)) (point-max)))
-		 ;; widen if outside narrowing
-		 (widen))
-	     (goto-char (marker-position (cdr index-item))))
-	    (t
-	     (if (or ( > (cdr index-item) (point-min))
-		     ( < (cdr index-item) (point-max)))
-		 ;; widen if outside narrowing
-		 (widen))
-	     (goto-char (cdr index-item))))))))
+  (interactive
+   (list (save-restriction 
+	   (widen)
+	   (imenu-choose-buffer-index))))
+  (and index-item
+       (progn
+	 (push-mark)
+	 (cond
+	  ((markerp (cdr index-item))
+	   (if (or ( > (marker-position (cdr index-item)) (point-min))
+		   ( < (marker-position (cdr index-item)) (point-max)))
+	       ;; widen if outside narrowing
+	       (widen))
+	   (goto-char (marker-position (cdr index-item))))
+	  (t
+	   (if (or ( > (cdr index-item) (point-min))
+		   ( < (cdr index-item) (point-max)))
+	       ;; widen if outside narrowing
+	       (widen))
+	   (goto-char (cdr index-item)))))))
 
 (provide 'imenu)
 
