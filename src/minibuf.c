@@ -1,5 +1,6 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985, 1986, 93, 94, 95, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997
+         Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -376,7 +377,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   current_buffer->keymap = map;
 
   /* Turn on an input method stored in INPUT_METHOD if any.  */
-  if (STRINGP (input_method) && Ffboundp (Qactivate_input_method))
+  if (STRINGP (input_method) && !NILP (Ffboundp (Qactivate_input_method)))
     call1 (Qactivate_input_method, input_method);
 
   /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
