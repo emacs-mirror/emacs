@@ -1878,6 +1878,16 @@ if test "${HAVE_X11}" = "yes"; then
 
   if test "${HAVE_JPEG}" = "yes"; then
     AC_DEFINE(HAVE_JPEG)
+    AC_EGREP_CPP(
+changequote({, })dnl avoid leadingspace on the next line
+{version= *(6[2-9]|[7-9][0-9])},
+changequote([, ])dnl
+        [#include <jpeglib.h>
+	 version=JPEG_LIB_VERSION
+],    
+        AC_DEFINE(HAVE_JPEG),
+        [AC_MSG_WARN([libjpeg found, but not version 6b or later])
+        HAVE_JPEG=no])
   fi
 fi
   
@@ -1915,7 +1925,9 @@ HAVE_GIF=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_gif}" != "no"; then
     AC_CHECK_HEADER(gif_lib.h,
-      AC_CHECK_LIB(ungif, DGifOpen, HAVE_GIF=yes))
+# EGifPutExtensionLast only exists from version libungif-4.1.0b1.
+# Earlier versions can crash Emacs.
+      AC_CHECK_LIB(ungif, EGifPutExtensionLast, HAVE_GIF=yes))
   fi
 
   if test "${HAVE_GIF}" = "yes"; then
