@@ -1,3 +1,11 @@
+2003-09-19  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* startup.el (command-line-1): Stop startup-echo-area-message
+	being hidden by "Loading image..." message.
+
+	* progmodes/sh-script.el (sh-font-lock-keywords): Highlight
+	escaped EOLs differently from other backslash constructs.
+
 2003-09-19  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/edebug.el (edebug-var-status, edebug-restore-status): 
