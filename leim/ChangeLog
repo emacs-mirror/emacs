@@ -1,3 +1,7 @@
+2000-03-31  Wlodzimierz Bzyl <matwb@monika.univ.gda.pl>
+
+	* quail/latin-pre.el ("polish-slash"): New input method.
+
 2000-03-02  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/latin-pre.el ("latin-1-prefix"): Add rules for symbols.

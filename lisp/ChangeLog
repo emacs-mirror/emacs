@@ -1,3 +1,8 @@
+2000-03-31  Kenichi Handa  <handa@etl.go.jp>
+
+	* language/european.el ("Polish"): New language environment.
+	(setup-polish-environment): New function.
+
 2000-03-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file-form-autoload):
