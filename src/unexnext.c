@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdarg.h>
 #include <mach/mach.h>
 #include <mach-o/loader.h>
+#include <mach-o/reloc.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <libc.h>
@@ -243,7 +244,7 @@ unexec_doit(
 	struct load_command **the_commands = NULL;
 	unsigned the_commands_len;
 	struct mach_header the_header;
-	int fgrowth;
+	int fgrowth = 0;
 	int fdatastart;
 	int fdatasize;
 	int size;
@@ -251,8 +252,17 @@ unexec_doit(
 	char *buf;
 	vm_address_t data_address;
 	vm_size_t data_size;
+	vm_size_t vmaddr_growth = 0;
+	vm_size_t dataseg_vmaddr, dataseg_vmend;
 
 	struct segment_command *segment;
+
+#ifdef NS_TARGET
+	unsigned long extreloff = 0;
+	unsigned long nextrel = 0;
+	struct dysymtab_command *dysymtab;
+	struct relocation_info reloc_info;
+#endif
 
 	if (!read_macho(infd, &the_header, &the_commands, &the_commands_len)) {
 		return (0);
@@ -284,7 +294,17 @@ unexec_doit(
 						   segment->filesize);
 					segment->vmsize = data_size;
 					segment->filesize = data_size;
+					dataseg_vmaddr = segment->vmaddr;
+					dataseg_vmend = segment->vmaddr + segment->vmsize;
+					vmaddr_growth = segment->vmaddr + segment->vmsize;
+				} else {
+					((struct segment_command *)the_commands[i])->fileoff += fgrowth;
 				}
+
+				if( strcmp( segment->segname, SEG_LINKEDIT ) == 0 ) {
+					segment->vmaddr = vmaddr_growth;
+				}
+
 				break;
 			case LC_SYMTAB:
 				((struct symtab_command *)
@@ -296,6 +316,15 @@ unexec_doit(
 				((struct symseg_command *)
 				 the_commands[i])->offset += fgrowth;
 				break;
+#ifdef NS_TARGET
+			case LC_DYSYMTAB:
+				dysymtab = ((struct dysymtab_command *)the_commands[i]);
+				extreloff = dysymtab->extreloff;
+				nextrel = dysymtab->nextrel;
+				dysymtab->indirectsymoff += fgrowth;
+				dysymtab->extreloff += fgrowth;
+				break;
+#endif
 			default:
 				break;
 			}
@@ -382,6 +411,55 @@ unexec_doit(
 		return (0);
 	}
 	free(buf);
+
+#ifdef NS_TARGET
+        /*
+         * Fix up relocation entries in the data segment.
+         */
+
+	if (lseek(infd, extreloff, L_SET) < 0) {
+		fatal_unexec("cannot seek input file");
+		return (0);
+	}
+        
+        for (i = 0; i < nextrel; i++)
+        {
+          long zeroval = 0;
+
+          if (read(infd, &reloc_info, sizeof (reloc_info)) != sizeof (reloc_info)) {
+            fatal_unexec("cannot read input file");
+            return (0);
+          }
+          if (reloc_info.r_address >= dataseg_vmaddr && reloc_info.r_address < dataseg_vmend)
+          {
+            if (lseek (outfd, fdatastart + reloc_info.r_address - dataseg_vmaddr, L_SET) < 0 ) {
+              fatal_unexec("cannot seek input file");
+              return (0);
+            }
+            switch (reloc_info.r_length) {
+              case 0:
+		if (write(outfd, &zeroval, 1) != 1) {
+			fatal_unexec("cannot write output file");
+			return (0);
+		}
+                break;
+              case 1:
+		if (write(outfd, &zeroval, 2) != 2) {
+			fatal_unexec("cannot write output file");
+			return (0);
+		}
+                break;
+              case 2:
+		if (write(outfd, &zeroval, 4) != 4) {
+			fatal_unexec("cannot write output file");
+			return (0);
+		}
+                break;
+            }
+          }
+        }
+#endif
+
 	return (1);
 }
 
