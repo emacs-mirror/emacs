@@ -122,6 +122,43 @@ typed
 
 Run `make' and `make install', the latter as root.
 
+* BUILDING BINARY DISTRIBUTIONS FOR MAC OS X
+
+If you are intending to build a binary distribution of Emacs, there is
+a script that will greatly simplify the process.  It is called
+make-package and it is contained in this directory.  It will generate
+a disc image containing a installer bundle.  By default the installer
+will place the emacs common files in /usr/local/* and the carbon
+application in /Applications.  Typical usage would be
+
+./make-package
+
+After running, an compressed disk image of the installer will be placed
+in a file called EmacsInstaller.dmg.  This file can be then distributed
+to whomever would like a binary distribution.  Here are the common
+options to user
+
+--with-x         -  Use the X11 GUI instead of the Carbon GUI. 
+--prefix=DIR     -  Place the common emacs files in the given DIR.  The
+		    default is /usr/local.  See note below if placing
+		    in /usr
+--without-app    -  Do not install the carbon gui in /Applications
+      	       	    This will be commonly used for terminal-only or X
+      	       	    windows installs.
+--self-contained -  Place the common emacs files inside the Emacs.app
+		    itself.  This makes the application trivial to
+		    uninstall and copy between computers.
+--app-symlink    -  Use a symlink inside the Application to the 
+	      	    $prefix/bin/emacs to reduce disk space.  Note, this
+		    option may removed in the future.
+
+If you are intending to build a binary distribution for X windows, you
+will probably want to follow the directions above to create static
+X11R6 libraries and run the make-package script like this
+
+./make-package --with-x -C,--x-libraries=/usr/X11R6/libstatic
+
+For usage of other options, use the --help option.
 
 * BUILDING EMACS ON MAC OS 8/9
 
@@ -166,7 +203,7 @@ dialog and include the Profiler PPC.Lib library.
 
 * NOTES
 
-Emacs should build and run on a PowerMac running Mac OS 8.6 - 10.1.
+Emacs should build and run on a PowerMac running Mac OS 8.6 - 10.2.
 
 You will need around 100 MB of disk space for the source files and
 intermediate files.
@@ -185,6 +222,10 @@ NT, define GNU_ICON in mac/src/Emacs.r.  Currently Emacs uses a
 generic application icon on the Mac OS X.  A better looking one is
 coming soon.
 
+On Mac OS X, installing the emacs files in /usr can cause issues with
+system sofware updates possibly overwriting the distribution.  If this
+is a concern, as it should be in normal binary distributions, please
+use /usr/local as the prefix for installation.
 
 Enjoy!
 
