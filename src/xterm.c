@@ -1970,10 +1970,16 @@ note_mouse_highlight (f, x, y)
 	  Lisp_Object mouse_face, overlay, position;
 	  Lisp_Object *overlay_vec;
 	  int len, noverlays, ignor1;
+	  struct buffer *obuf;
+
+	  /* If we get an out-of-range value, return now;
+	     don't get an error.  */
+	  if (pos > BUF_ZV (XBUFFER (w->buffer)))
+	    return;
 
 	  /* Make the window's buffer temporarily current for
 	     overlays_at and compute_char_face.  */
-	  struct buffer *obuf = current_buffer;
+	  obuf = current_buffer;
 	  current_buffer = XBUFFER (w->buffer);
 
 	  /* Yes.  Clear the display of the old active region, if any.  */
