@@ -90,10 +90,38 @@ Non-nil arg (prefix arg) means append to last macro defined;\n\
     }
   else
     {
-      message ("Appending to kbd macro...");
-      current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_end;
+      int i, len;
+
+      /* Check the type of last-kbd-macro in case Lisp code changed it.  */
+      if (!STRINGP (current_kboard->Vlast_kbd_macro)
+	  && !VECTORP (current_kboard->Vlast_kbd_macro))
+	current_kboard->Vlast_kbd_macro
+	  = wrong_type_argument (Qarrayp, current_kboard->Vlast_kbd_macro);
+
+      len = XINT (Flength (current_kboard->Vlast_kbd_macro));
+
+      /* Copy last-kbd-macro into the buffer, in case the Lisp code
+	 has put another macro there.  */
+      if (current_kboard->kbd_macro_bufsize < len + 30)
+	{
+	  current_kboard->kbd_macro_bufsize = len + 30;
+	  current_kboard->kbd_macro_buffer
+	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
+				       (len + 30) * sizeof (Lisp_Object));
+	}
+      for (i = 0; i < len; i++)
+	current_kboard->kbd_macro_buffer[i]
+	  = Faref (current_kboard->Vlast_kbd_macro, make_number (i));
+
+      current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer + len;
+      current_kboard->kbd_macro_end = current_kboard->kbd_macro_ptr;
+
+      /* Re-execute the macro we are appending to,
+	 for consistency of behavior.  */
       Fexecute_kbd_macro (current_kboard->Vlast_kbd_macro,
 			  make_number (1));
+
+      message ("Appending to kbd macro...");
     }
   current_kboard->defining_kbd_macro = Qt;
   
