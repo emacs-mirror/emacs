@@ -94,15 +94,12 @@ extern Display *x_current_display;
 #define x_destroy_bitmap(p1,p2)
 #define load_pixmap(p1,p2,p3,p4) (0)
 #define XGetGeometry(p1,p2,p3,p4,p5,p6,p7,p8,p9)
-#define DisplayWidth(p1,p2) (the_only_frame.width)
-#define DisplayHeight(p1,p2) (the_only_frame.height)
+#define DisplayWidth(p1,p2) (selected_frame->width)
+#define DisplayHeight(p1,p2) (selected_frame->height)
 #define XMenuSetAEQ (void)
 #define XMenuSetFreeze (void)
 #define XMenuRecompute (void)
 #define FONT_WIDTH(foo) 1
-/* Function `getcbrk' is the most harmless I can think of right now...  */
-#define check_x if (FRAME_TERMCAP_P (bar)) error ("Not running under a windows system."); else getcbrk
-#define x_mouse_leave getcbrk
 #define XM_FAILURE -1
 #define XM_SUCCESS 1
 #define XM_NO_SELECT 2
