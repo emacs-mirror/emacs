@@ -1314,8 +1314,8 @@ try_window_id (window)
   return 1;
 }
 
-/* Copy part of the contents of the string FROM into a glyph-vector at S.
-   But don't actually copy the parts that would come in before T.
+/* Copy glyphs from the rope FROM to T.
+   But don't actually copy the parts that would come in before S.
    Value is T, advanced past the copied data.
 
    Characters in FROM are grouped into units of `sizeof GLYPH' chars;
