@@ -35,7 +35,7 @@
 		(input-method . "tamil-itrans")
 		(features tml-util)
 		(documentation . "\
-South Indian Language Tamikl supported in this language environment."))
+South Indian Language Tamil supported in this language environment."))
  '("Indian"))
 
 (provide 'tamil)
