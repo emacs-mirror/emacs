@@ -2131,7 +2131,7 @@ A prefix arg makes KEEP-TIME non-nil.")
 	  if (set_file_times (XSTRING (newname)->data, atime, mtime))
 	    Fsignal (Qfile_date_error,
 		     Fcons (build_string ("File already exists"),
-			    Fcons (absname, Qnil)));
+			    Fcons (newname, Qnil)));
 	}
 #ifndef MSDOS
       chmod (XSTRING (newname)->data, st.st_mode & 07777);
@@ -3033,6 +3033,7 @@ This does code conversion according to the value of\n\
   int not_regular = 0;
   char read_buf[READ_BUF_SIZE];
   struct coding_system coding;
+  unsigned char buffer[1 << 14];
 
   if (current_buffer->base_buffer && ! NILP (visit))
     error ("Cannot do file visiting in an indirect buffer");
@@ -3141,20 +3142,49 @@ This does code conversion according to the value of\n\
 	error ("maximum buffer size exceeded");
     }
 
+  /* Try to determine the character coding now,
+     hoping we can recognize that no coding is used
+     and thus enable the REPLACE feature to work.  */
+  if (!NILP (replace) && (coding.type == coding_type_automatic
+			  || coding.eol_type == CODING_EOL_AUTOMATIC))
+    {
+      int nread, bufpos;
+
+      nread = read (fd, buffer, sizeof buffer);
+      if (nread < 0)
+	error ("IO error reading %s: %s",
+	       XSTRING (filename)->data, strerror (errno));
+      else if (nread > 0)
+	{
+	  if (coding.type == coding_type_automatic)
+	    detect_coding (&coding, buffer, nread);
+	  if (coding.eol_type == CODING_EOL_AUTOMATIC)
+	    detect_eol (&coding, buffer, nread);
+	  if (lseek (fd, 0, 0) < 0)
+	    report_file_error ("Setting file position",
+			       Fcons (filename, Qnil));
+	  /* If we still haven't found anything other than
+	     "automatic", change to "no conversion"
+	     so that the replace feature will work.  */
+	  if (coding.type == coding_type_automatic)
+	    coding.type = coding_type_no_conversion;
+	  if (coding.eol_type == CODING_EOL_AUTOMATIC)
+	    coding.eol_type = CODING_EOL_LF;
+	}
+    }
+
   /* If requested, replace the accessible part of the buffer
      with the file contents.  Avoid replacing text at the
      beginning or end of the buffer that matches the file contents;
-     that preserves markers pointing to the unchanged parts.  */
-  if (!NILP (replace) && CODING_REQUIRE_CONVERSION (&coding))
+     that preserves markers pointing to the unchanged parts.
+
+     Here we implement this feature in an optimized way
+     for the case where code conversion is NOT needed.
+     The following if-statement handles the case of conversion
+     in a less optimal way.  */
+  if (!NILP (replace)
+      && ! CODING_REQUIRE_CONVERSION (&coding))
     {
-      /* We have to decode the input, which means replace mode is
-         quite difficult.  We give it up for the moment.  */
-      replace = Qnil;
-      del_range_1 (BEGV, ZV, 0);
-    }
-  if (!NILP (replace))
-    {
-      unsigned char buffer[1 << 14];
       int same_at_start = BEGV;
       int same_at_end = ZV;
       int overlap;
@@ -3184,26 +3214,6 @@ This does code conversion according to the value of\n\
 		   XSTRING (filename)->data, strerror (errno));
 	  else if (nread == 0)
 	    break;
-
-	  if (coding.type == coding_type_automatic)
-	    detect_coding (&coding, buffer, nread);
-	  if (CODING_REQUIRE_TEXT_CONVERSION (&coding))
-	    /* We found that the file should be decoded somehow.
-               Let's give up here.  */
-	    {
-	      giveup_match_end = 1;
-	      break;
-	    }
-
-	  if (coding.eol_type == CODING_EOL_AUTOMATIC)
-	    detect_eol (&coding, buffer, nread);
-	  if (CODING_REQUIRE_EOL_CONVERSION (&coding))
-	    /* We found that the format of eol should be decoded.
-               Let's give up here.  */
-	    {
-	      giveup_match_end = 1;
-	      break;
-	    }
 
 	  bufpos = 0;
 	  while (bufpos < nread && same_at_start < ZV
@@ -3266,10 +3276,6 @@ This does code conversion according to the value of\n\
 	     Otherwise loop around and scan the preceding bufferful.  */
 	  if (bufpos != 0)
 	    break;
-	  /* If display current starts at beginning of line,
-	     keep it that way.  */
-	  if (XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
-	    XWINDOW (selected_window)->start_at_line_beg = Fbolp ();
 	}
       immediate_quit = 0;
 
@@ -3285,6 +3291,163 @@ This does code conversion according to the value of\n\
       del_range_1 (same_at_start, same_at_end, 0);
       /* Insert from the file at the proper position.  */
       SET_PT (same_at_start);
+
+      /* If display currently starts at beginning of line,
+	 keep it that way.  */
+      if (XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+	XWINDOW (selected_window)->start_at_line_beg = Fbolp ();
+    }
+
+  /* If requested, replace the accessible part of the buffer
+     with the file contents.  Avoid replacing text at the
+     beginning or end of the buffer that matches the file contents;
+     that preserves markers pointing to the unchanged parts.
+
+     Here we implement this feature for the case where code conversion
+     is needed, in a simple way that needs a lot of memory.
+     The preceding if-statement handles the case of no conversion
+     in a more optimized way.  */
+  if (!NILP (replace) && CODING_REQUIRE_CONVERSION (&coding))
+    {
+      int same_at_start = BEGV;
+      int same_at_end = ZV;
+      int overlap;
+      int bufpos;
+      /* Make sure that the gap is large enough.  */
+      int bufsize = 2 * st.st_size;
+      unsigned char *conversion_buffer = (unsigned char *) malloc (bufsize);
+
+      /* First read the whole file, performing code conversion into
+	 CONVERSION_BUFFER.  */
+
+      total = st.st_size;	/* Total bytes in the file.  */
+      how_much = 0;		/* Bytes read from file so far.  */
+      inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
+      unprocessed = 0;		/* Bytes not processed in previous loop.  */
+
+      while (how_much < total)
+	{
+	  /* try is reserved in some compilers (Microsoft C) */
+	  int trytry = min (total - how_much, READ_BUF_SIZE - unprocessed);
+	  char *destination = read_buf + unprocessed;
+	  int this;
+
+	  /* Allow quitting out of the actual I/O.  */
+	  immediate_quit = 1;
+	  QUIT;
+	  this = read (fd, destination, trytry);
+	  immediate_quit = 0;
+
+	  if (this < 0 || this + unprocessed == 0)
+	    {
+	      how_much = this;
+	      break;
+	    }
+
+	  how_much += this;
+
+	  if (CODING_REQUIRE_CONVERSION (&coding))
+	    {
+	      int require, produced, consumed;
+
+	      this += unprocessed;
+
+	      /* If we are using more space than estimated,
+		 make CONVERSION_BUFFER bigger.  */
+	      require = decoding_buffer_size (&coding, this);
+	      if (inserted + require + 2 * (total - how_much) > bufsize)
+		{
+		  bufsize = inserted + require + 2 * (total - how_much);
+		  conversion_buffer = (unsigned char *) realloc (conversion_buffer, bufsize);
+		}
+
+	      /* Convert this batch with results in CONVERSION_BUFFER.  */
+	      if (how_much >= total)  /* This is the last block.  */
+		coding.last_block = 1;
+	      produced = decode_coding (&coding, read_buf,
+					conversion_buffer + inserted,
+					this, bufsize - inserted,
+					&consumed);
+
+	      /* Save for next iteration whatever we didn't convert.  */
+	      unprocessed = this - consumed;
+	      bcopy (read_buf + consumed, read_buf, unprocessed);
+	      this = produced;
+	    }
+
+	  inserted += this;
+	}
+
+      /* At this point, INSERTED is how many characters
+	 are present in CONVERSION_BUFFER.
+	 HOW_MUCH should equal TOTAL,
+	 or should be <= 0 if we couldn't read the file.  */
+
+      if (how_much < 0)
+	{
+	  free (conversion_buffer);
+
+	  if (how_much == -1)
+	    error ("IO error reading %s: %s",
+		   XSTRING (filename)->data, strerror (errno));
+	  else if (how_much == -2)
+	    error ("maximum buffer size exceeded");
+	}
+
+      /* Compare the beginning of the converted file
+	 with the buffer text.  */
+
+      bufpos = 0;
+      while (bufpos < inserted && same_at_start < same_at_end
+	     && FETCH_BYTE (same_at_start) == conversion_buffer[bufpos])
+	same_at_start++, bufpos++;
+
+      /* If the file matches the buffer completely,
+	 there's no need to replace anything.  */
+
+      if (bufpos == inserted)
+	{
+	  free (conversion_buffer);
+	  close (fd);
+	  specpdl_ptr--;
+	  /* Truncate the buffer to the size of the file.  */
+	  del_range_1 (same_at_start, same_at_end, 0);
+	  goto handled;
+	}
+
+      /* Scan this bufferful from the end, comparing with
+	 the Emacs buffer.  */
+      bufpos = inserted;
+
+      /* Compare with same_at_start to avoid counting some buffer text
+	 as matching both at the file's beginning and at the end.  */
+      while (bufpos > 0 && same_at_end > same_at_start
+	     && FETCH_BYTE (same_at_end - 1) == conversion_buffer[bufpos - 1])
+	same_at_end--, bufpos--;
+
+      /* Don't try to reuse the same piece of text twice.  */
+      overlap = same_at_start - BEGV - (same_at_end + inserted - ZV);
+      if (overlap > 0)
+	same_at_end += overlap;
+
+      /* Replace the chars that we need to replace,
+	 and update INSERTED to equal the number of bytes
+	 we are taking from the file.  */
+      inserted -= (Z - same_at_end) + (same_at_start - BEG);
+      move_gap (same_at_start);
+      del_range_1 (same_at_start, same_at_end, 0);
+      make_gap (inserted);
+      insert (conversion_buffer + same_at_start - BEG, inserted);
+
+      free (conversion_buffer);
+      close (fd);
+      specpdl_ptr--;
+
+      /* If display currently starts at beginning of line,
+	 keep it that way.  */
+      if (XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+	XWINDOW (selected_window)->start_at_line_beg = Fbolp ();
+      goto handled;
     }
 
   total = XINT (end) - XINT (beg);
