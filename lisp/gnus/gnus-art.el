@@ -249,7 +249,7 @@ is the face used for highlighting."
   :group 'gnus-article-emphasis)
 
 (defface gnus-emphasis-underline-italic '((t (:italic t :underline t)))
-  "Face used for displaying underlined italic emphasized text (_*word*_)."
+  "Face used for displaying underlined italic emphasized text (_/word/_)."
   :group 'gnus-article-emphasis)
 
 (defface gnus-emphasis-bold-italic '((t (:bold t :italic t)))
