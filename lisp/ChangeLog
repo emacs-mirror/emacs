@@ -1,3 +1,15 @@
+1999-11-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/supercite.el: New maintainer.
+
+1999-11-16  Reto Zimmermann  <reto@synopsys.com>
+
+	* progmodes/vhdl-mode.el: Use new backquote syntax.
+
+1999-11-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (with-syntax-table): New.
+
 1999-11-15  Sam Steingold  <sds@ksp.com>
 
 	* dabbrev.el (dabbrev-filter-elements): Use the new backquote syntax.
