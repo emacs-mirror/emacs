@@ -484,8 +484,9 @@ file_name_as_directory (out, in)
 
   if (size < 0)
     {
-      out[0] = '/';
-      out[1] = 0;
+      out[0] = '.';
+      out[1] = '/';
+      out[2] = 0;
       return out;
     }
 
