@@ -1,6 +1,7 @@
-;;; faces.el --- Lisp interface to the c "face" structure
+;;; faces.el --- Lisp faces
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998
+;;   Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,740 +22,1435 @@
 
 ;;; Commentary:
 
-;; Mostly derived from Lucid.
-
 ;;; Code:
 
 (eval-when-compile
- ;; These used to be defsubsts, now they're subrs.  Avoid losing if we're
- ;; being compiled with an old Emacs that still has defsubrs in it.
- (put 'face-name 'byte-optimizer nil)
- (put 'face-id 'byte-optimizer nil)
- (put 'face-font 'byte-optimizer nil)
- (put 'face-font-explicit 'byte-optimizer nil)
- (put 'face-foreground 'byte-optimizer nil)
- (put 'face-background 'byte-optimizer nil)
- (put 'face-stipple 'byte-optimizer nil)
- (put 'face-underline-p 'byte-optimizer nil)
- (put 'set-face-font 'byte-optimizer nil)
- (put 'set-face-font-auto 'byte-optimizer nil)
- (put 'set-face-foreground 'byte-optimizer nil)
- (put 'set-face-background 'byte-optimizer nil)
- (put 'set-face-stipple 'byte-optimizer nil)
- (put 'set-face-underline-p 'byte-optimizer nil))
+  (require 'custom)
+  (require 'cl))
+
+(require 'cus-face)
+
 
-;;;; Functions for manipulating face vectors.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Font selection.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; A face vector is a vector of the form:
-;;;    [face NAME ID FONT FOREGROUND BACKGROUND STIPPLE
-;;;          UNDERLINE-P INVERSE-VIDEO-P FONT-EXPLICIT-P BOLD-P ITALIC-P]
+(defgroup font-selection nil
+  "Influencing face font selection."
+  :group 'faces)
 
-;;; Type checkers.
-(defsubst internal-facep (x)
-  (and (vectorp x) (= (length x) 12) (eq (aref x 0) 'face)))
 
-(defun facep (x)
-  "Return t if X is a face name or an internal face vector."
-  (and (or (internal-facep x)
-	   (and (symbolp x) (assq x global-face-data)))
-       t))
-      
-(defmacro internal-check-face (face)
-  (` (or (internal-facep (, face))
-	 (signal 'wrong-type-argument (list 'internal-facep (, face))))))
+(defcustom face-font-selection-order
+  '(:width :height :weight :slant)
+  "*A list specifying how face font selection chooses fonts.
+Each of the four symbols `:width', `:height', `:weight', and `:slant'
+must appear once in the list, and the list must not contain any other
+elements.  Font selection tries to find a best matching font for
+those face attributes first that appear first in the list.  For
+example, if `:slant' appears before `:height', font selection first
+tries to find a font with a suitable slant, even if this results in
+a font height that isn't optimal."
+  :tag "Font selection order."
+  :group 'font-selection
+  :set #'(lambda (symbol value)
+	   (set-default symbol value)
+	   (internal-set-font-selection-order value)))
 
-;;; Accessors.
-(defun face-name (face)
-  "Return the name of face FACE."
-  (aref (internal-get-face face) 1))
 
-(defun face-id (face)
-  "Return the internal ID number of face FACE."
-  (aref (internal-get-face face) 2))
+(defcustom face-font-family-alternatives
+  '(("courier" "fixed")
+    ("helv" "helvetica" "fixed"))
+  "*Alist of alternative font family names.
+Each element has the the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
+If fonts of family FAMILY can't be loaded, try ALTERNATIVE1, then
+ALTERNATIVE2 etc."
+  :tag "Alternative font families to try."
+  :group 'font-selection
+  :set #'(lambda (symbol value)
+	   (set-default symbol value)
+	   (internal-set-alternative-font-family-alist value)))
 
-(defun face-font (face &optional frame)
-  "Return the font name of face FACE, or nil if it is unspecified.
-If the optional argument FRAME is given, report on face FACE in that frame.
-If FRAME is t, report on the defaults for face FACE (for new frames).
-  The font default for a face is either nil, or a list
-  of the form (bold), (italic) or (bold italic).
-If FRAME is omitted or nil, use the selected frame."
-  (aref (internal-get-face face frame) 3))
 
-(defun face-foreground (face &optional frame)
-  "Return the foreground color name of face FACE, or nil if unspecified.
-If the optional argument FRAME is given, report on face FACE in that frame.
-If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
-  (aref (internal-get-face face frame) 4))
-
-(defun face-background (face &optional frame)
-  "Return the background color name of face FACE, or nil if unspecified.
-If the optional argument FRAME is given, report on face FACE in that frame.
-If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
-  (aref (internal-get-face face frame) 5))
-
-(defun face-stipple (face &optional frame)
- "Return the stipple pixmap name of face FACE, or nil if unspecified.
-If the optional argument FRAME is given, report on face FACE in that frame.
-If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
- (aref (internal-get-face face frame) 6))
-
-(defalias 'face-background-pixmap 'face-stipple)
-
-(defun face-underline-p (face &optional frame)
- "Return t if face FACE is underlined.
-If the optional argument FRAME is given, report on face FACE in that frame.
-If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
- (aref (internal-get-face face frame) 7))
-
-(defun face-inverse-video-p (face &optional frame)
- "Return t if face FACE is in inverse video.
-If the optional argument FRAME is given, report on face FACE in that frame.
-If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
- (aref (internal-get-face face frame) 8))
-
-(defun face-font-explicit (face &optional frame)
-  "Return non-nil if this face's font was explicitly specified."
-  (aref (internal-get-face face frame) 9))
-
-(defun face-bold-p (face &optional frame)
-  "Return non-nil if the font of FACE is bold.
-If the optional argument FRAME is given, report on face FACE in that frame.
-If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
-  (aref (internal-get-face face frame) 10))
-
-(defun face-italic-p (face &optional frame)
-  "Return non-nil if the font of FACE is italic.
-If the optional argument FRAME is given, report on face FACE in that frame.
-If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
-  (aref (internal-get-face face frame) 11))
-
-(defalias 'face-doc-string 'face-documentation)
-(defun face-documentation (face)
-  "Get the documentation string for FACE."
-  (get face 'face-documentation))
 
-;;; Mutators.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Creation, copying.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun set-face-font (face font &optional frame)
-  "Change the font of face FACE to FONT (a string).
-If the optional FRAME argument is provided, change only
-in that frame; otherwise change each frame."
-  (interactive (internal-face-interactive "font"))
-  (if (stringp font)
-      (setq font (or (resolve-fontset-name font)
-		     (x-resolve-font-name font 'default frame))))
-  (internal-set-face-1 face 'font font 3 frame)
-  ;; Record that this face's font was set explicitly, not automatically,
-  ;; unless we are setting it to nil.
-  (internal-set-face-1 face nil (not (null font)) 9 frame))
-
-(defun set-face-font-auto (face font &optional frame)
-  "Change the font of face FACE to FONT (a string), for an automatic change.
-An automatic change means that we don't change the \"explicit\" flag;
-if the font was derived from the frame font before, it is now.
-If the optional FRAME argument is provided, change only
-in that frame; otherwise change each frame."
-  (interactive (internal-face-interactive "font"))
-  (if (stringp font)
-      (setq font (or (resolve-fontset-name font)
-		     (x-resolve-font-name font 'default frame))))
-  (internal-set-face-1 face 'font font 3 frame))
-
-(defun set-face-font-explicit (face flag &optional frame)
-  "Set the explicit-font flag of face FACE to FLAG.
-If the optional FRAME argument is provided, change only
-in that frame; otherwise change each frame."
-  (internal-set-face-1 face nil flag 9 frame))
-
-(defun set-face-foreground (face color &optional frame)
-  "Change the foreground color of face FACE to COLOR (a string).
-If the optional FRAME argument is provided, change only
-in that frame; otherwise change each frame."
-  (interactive (internal-face-interactive "foreground" 'color))
-  (internal-set-face-1 face 'foreground color 4 frame))
-
-(defvar face-default-stipple "gray3" 
-  "Default stipple pattern used on monochrome displays.
-This stipple pattern is used on monochrome displays
-instead of shades of gray for a face background color.
-See `set-face-stipple' for possible values for this variable.")
-
-(defun face-color-gray-p (color &optional frame)
-  "Return t if COLOR is a shade of gray (or white or black).
-FRAME specifies the frame and thus the display for interpreting COLOR."
-  (let* ((values (x-color-values color frame))
-	 (r (nth 0 values))
-	 (g (nth 1 values))
-	 (b (nth 2 values)))
-    (and values
-	 (< (abs (- r g)) (/ (max 1 (abs r) (abs g)) 20))
-	 (< (abs (- g b)) (/ (max 1 (abs g) (abs b)) 20))
-	 (< (abs (- b r)) (/ (max 1 (abs b) (abs r)) 20)))))
-
-(defun set-face-background (face color &optional frame)
-  "Change the background color of face FACE to COLOR (a string).
-If the optional FRAME argument is provided, change only
-in that frame; otherwise change each frame."
-  (interactive (internal-face-interactive "background" 'color))
-  ;; For a specific frame, use gray stipple instead of gray color
-  ;; if the display does not support a gray color.
-  (if (and frame (not (eq frame t)) color
-	   ;; Check for support for foreground, not for background!
-	   ;; face-color-supported-p is smart enough to know
-	   ;; that grays are "supported" as background
-	   ;; because we are supposed to use stipple for them!
-	   (not (face-color-supported-p frame color nil)))
-      (set-face-stipple face face-default-stipple frame)
-    (if (null frame)
-	(let ((frames (frame-list)))
-	  (while frames
-	    (set-face-background (face-name face) color (car frames))
-	    (setq frames (cdr frames)))
-	  (set-face-background face color t)
-	  color)
-      (internal-set-face-1 face 'background color 5 frame))))
-
-(defun set-face-stipple (face pixmap &optional frame)
-  "Change the stipple pixmap of face FACE to PIXMAP.
-PIXMAP should be a string, the name of a file of pixmap data.
-The directories listed in the `x-bitmap-file-path' variable are searched.
-
-Alternatively, PIXMAP may be a list of the form (WIDTH HEIGHT DATA)
-where WIDTH and HEIGHT are the size in pixels,
-and DATA is a string, containing the raw bits of the bitmap.  
-
-If the optional FRAME argument is provided, change only
-in that frame; otherwise change each frame."
-  (interactive (internal-face-interactive-stipple "stipple"))
-  (internal-set-face-1 face 'background-pixmap pixmap 6 frame))
-
-(defalias 'set-face-background-pixmap 'set-face-stipple)
-
-(defun set-face-underline-p (face underline-p &optional frame)
-  "Specify whether face FACE is underlined.  (Yes if UNDERLINE-P is non-nil.)
-If the optional FRAME argument is provided, change only
-in that frame; otherwise change each frame."
-  (interactive (internal-face-interactive "underline-p" "underlined"))
-  (internal-set-face-1 face 'underline underline-p 7 frame))
-
-(defun set-face-inverse-video-p (face inverse-video-p &optional frame)
-  "Specify whether face FACE is in inverse video.
-\(Yes if INVERSE-VIDEO-P is non-nil.)
-If the optional FRAME argument is provided, change only
-in that frame; otherwise change each frame."
-  (interactive (internal-face-interactive "inverse-video-p" "inverse-video"))
-  (internal-set-face-1 face 'inverse-video inverse-video-p 8 frame))
-
-(defun set-face-bold-p (face bold-p &optional frame)
-  "Specify whether face FACE is bold.  (Yes if BOLD-P is non-nil.)
-If the optional FRAME argument is provided, change only
-in that frame; otherwise change each frame."
-  (cond ((eq bold-p nil) (make-face-unbold face frame t))
-	(t (make-face-bold face frame t))))
-
-(defun set-face-italic-p (face italic-p &optional frame)
-  "Specify whether face FACE is italic.  (Yes if ITALIC-P is non-nil.)
-If the optional FRAME argument is provided, change only
-in that frame; otherwise change each frame."
-  (cond ((eq italic-p nil) (make-face-unitalic face frame t))
-	(t (make-face-italic face frame t))))
-
-(defalias 'set-face-doc-string 'set-face-documentation)
-(defun set-face-documentation (face string)
-  "Set the documentation string for FACE to STRING."
-  (put face 'face-documentation string))
-
-(defun modify-face-read-string (face default name alist)
-  (let ((value
-	 (completing-read
-	  (if default
-	      (format "Set face %s %s (default %s): "
-		      face name (downcase default))
-	    (format "Set face %s %s: " face name))
-	  alist)))
-    (cond ((equal value "none")
-	   '(nil))
-	  ((equal value "")
-	   default)
-	  (t value))))
-
-(defun modify-face (face foreground background stipple
-		    bold-p italic-p underline-p &optional inverse-p frame)
-  "Change the display attributes for face FACE.
-If the optional FRAME argument is provided, change only
-in that frame; otherwise change each frame.
-
-FOREGROUND and BACKGROUND should be a colour name string (or list of strings to
-try) or nil.  STIPPLE should be a stipple pattern name string or nil.
-If nil, means do not change the display attribute corresponding to that arg.
-If (nil), that means clear out the attribute.
-
-BOLD-P, ITALIC-P, UNDERLINE-P, and INVERSE-P specify whether
-the face should be set bold, italic, underlined or in inverse-video,
-respectively.  If one of these arguments is neither nil or t, it means do not
-change the display attribute corresponding to that argument.
-
-If called interactively, prompts for a face name and face attributes."
-  (interactive
-   (let* ((completion-ignore-case t)
-	  (face		(symbol-name (read-face-name "Modify face: ")))
-	  (colors	(mapcar 'list x-colors))
-	  (stipples	(mapcar 'list (apply 'nconc
-					    (mapcar 'directory-files
-						    x-bitmap-file-path))))
-	  (foreground	(modify-face-read-string
-			 face (face-foreground (intern face))
-			 "foreground" colors))
-	  (background	(modify-face-read-string
-			 face (face-background (intern face))
-			 "background" colors))
-	  ;; If the stipple value is a list (WIDTH HEIGHT DATA),
-	  ;; represent that as a string by printing it out.
-	  (old-stipple-string
-	   (if (stringp (face-stipple (intern face)))
-	       (face-stipple (intern face))
-	     (if (face-stipple (intern face))
-		 (prin1-to-string (face-stipple (intern face))))))
-	  (new-stipple-string
-	   (modify-face-read-string
-	    face old-stipple-string
-	    "stipple" stipples))
-	  ;; Convert the stipple value text we read
-	  ;; back to a list if it looks like one.
-	  ;; This makes the assumption that a pixmap file name
-	  ;; won't start with an open-paren.
-	  (stipple
-	   (and new-stipple-string
-		(if (string-match "^(" new-stipple-string)
-		    (read new-stipple-string)
-		  new-stipple-string)))
-	  (bold-p	(y-or-n-p (concat "Should face " face " be bold ")))
-	  (italic-p	(y-or-n-p (concat "Should face " face " be italic ")))
-	  (underline-p	(y-or-n-p (concat "Should face " face " be underlined ")))
-	  (inverse-p	(y-or-n-p (concat "Should face " face " be inverse-video ")))
-	  (all-frames-p	(y-or-n-p (concat "Modify face " face " in all frames "))))
-     (message "Face %s: %s" face
-      (mapconcat 'identity
-       (delq nil
-	(list (if (equal foreground '(nil))
-		  " no foreground"
-		(and foreground (concat (downcase foreground) " foreground")))
-	      (if (equal background '(nil))
-		  " no background"
-		(and background (concat (downcase background) " background")))
-	      (if (equal stipple '(nil))
-		  " no stipple"
-		(and stipple (concat (downcase new-stipple-string) " stipple")))
-	      (and bold-p "bold") (and italic-p "italic")
-	      (and inverse-p "inverse")
-	      (and underline-p "underline"))) ", "))
-     (list (intern face) foreground background stipple
-	   bold-p italic-p underline-p inverse-p
-	   (if all-frames-p nil (selected-frame)))))
-  ;; Clear this before we install the new foreground and background;
-  ;; otherwise, clearing it after would swap them!
-  (when (and (or foreground background) (face-inverse-video-p face))
-    (set-face-inverse-video-p face nil frame)
-    ;; Arrange to restore it after, if we are not setting it now.
-    (or (memq inverse-p '(t nil))
-	(setq inverse-p t)))
-  (condition-case nil
-      (face-try-color-list 'set-face-foreground face foreground frame)
-    (error nil))
-  (condition-case nil
-      (face-try-color-list 'set-face-background face background frame)
-    (error nil))
-  (condition-case nil
-      (set-face-stipple face stipple frame)
-    (error nil))
-  ;; Now that we have the new colors, 
-  (if (memq inverse-p '(nil t))
-      (set-face-inverse-video-p face inverse-p frame))
-  (cond ((eq bold-p nil)
-	 (if (face-font face frame)
-	     (make-face-unbold face frame t)))
-	((eq bold-p t)
-	 (make-face-bold face frame t)))
-  (cond ((eq italic-p nil)
-	 (if (face-font face frame)
-	     (make-face-unitalic face frame t)))
-	((eq italic-p t) (make-face-italic face frame t)))
-  (if (memq underline-p '(nil t))
-      (set-face-underline-p face underline-p frame))
-  (and (interactive-p) (redraw-display)))
-
-;;;; Associating face names (symbols) with their face vectors.
-
-(defvar global-face-data nil
-  "Internal data for face support functions.  Not for external use.
-This is an alist associating face names with the default values for
-their parameters.  Newly created frames get their data from here.")
 
 (defun face-list ()
-  "Returns a list of all defined face names."
-  (mapcar 'car global-face-data))
+  "Return a list of all defined face names."
+  (mapcar #'car face-new-frame-defaults))
+
+
+;;; ### If not frame-local initialize by what X resources?
+
+(defun make-face (face &optional no-init-from-resources)
+  "Define a new face with name FACE, a symbol.
+NO-INIT-FROM-RESOURCES non-nil means don't initialize frame-local
+variants of FACE from X resources.  (X resources recognized are found
+in the global variable `face-x-resources'.)  If FACE is already known
+as a face, leave it unmodified.  Value is FACE."
+  (interactive "SMake face: ")
+  (unless (facep face)
+    ;; Make frame-local faces (this also makes the global one).
+    (dolist (frame (frame-list))
+      (internal-make-lisp-face face frame))
+    ;; Add the face to the face menu.
+    (when (fboundp 'facemenu-add-new-face)
+      (facemenu-add-new-face face))
+    ;; Define frame-local faces for all frames from X resources.
+    (unless no-init-from-resources
+      (make-face-x-resource-internal face)))
+  face)
+
+
+(defun make-empty-face (face)
+  "Define a new, empty face with name FACE.
+If the face already exists, it is left unmodified.  Value is FACE."
+  (interactive "SMake empty face: ")
+  (make-face face 'no-init-from-resources))
+
+
+(defun copy-face (old-face new-face &optional frame new-frame)
+  "Define a face just like OLD-FACE, with name NEW-FACE.
+
+If NEW-FACE already exists as a face, it is modified to be like
+OLD-FACE.  If it doesn't already exist, it is created.
+
+If the optional argument FRAME is given as a frame,  NEW-FACE is
+changed on FRAME only.
+If FRAME is t, the frame-independent default specification for OLD-FACE
+is copied to NEW-FACE.
+If FRAME is nil, copying is done for the frame-independent defaults
+and for each existing frame.
+
+If the optional fourth argument NEW-FRAME is given,
+copy the information from face OLD-FACE on frame FRAME
+to NEW-FACE on frame NEW-FRAME."
+  (let ((inhibit-quit t))
+    (if (null frame)
+	(progn
+	  (dolist (frame (frame-list))
+	    (copy-face old-face new-face frame))
+	  (copy-face old-face new-face t))
+      (internal-copy-lisp-face old-face new-face frame new-frame))
+    new-face))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Obsolete functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; The functions in this section are defined because Lisp packages use
+;; them, despite the prefix `internal-' suggesting that they are
+;; private to the face implementation.  
 
 (defun internal-find-face (name &optional frame)
-  "Retrieve the face named NAME.  Return nil if there is no such face.
+  "Retrieve the face named NAME.
+Return nil if there is no such face.
 If the optional argument FRAME is given, this gets the face NAME for
 that frame; otherwise, it uses the selected frame.
 If FRAME is the symbol t, then the global, non-frame face is returned.
-If NAME is already a face, it is simply returned."
-  (if (and (eq frame t) (not (symbolp name)))
-      (setq name (face-name name)))
-  (if (symbolp name)
-      (cdr (assq name
-		 (if (eq frame t)
-		     global-face-data
-		   (frame-face-alist (or frame (selected-frame))))))
-    (internal-check-face name)
-    name))
+If NAME is already a face, it is simply returned.
+
+This function is defined for compatibility with Emacs 20.2.  It
+should not be used anymore."
+  (facep name))
+
 
 (defun internal-get-face (name &optional frame)
   "Retrieve the face named NAME; error if there is none.
 If the optional argument FRAME is given, this gets the face NAME for
 that frame; otherwise, it uses the selected frame.
 If FRAME is the symbol t, then the global, non-frame face is returned.
-If NAME is already a face, it is simply returned."
+If NAME is already a face, it is simply returned.
+
+This function is defined for compatibility with Emacs 20.2.  It
+should not be used anymore."
   (or (internal-find-face name frame)
-      (internal-check-face name)))
+      (check-face name)))
 
 
-(defun internal-set-face-1 (face name value index frame)
-  (let ((inhibit-quit t))
-    (if (null frame)
-	(let ((frames (frame-list)))
-	  (while frames
-	    (internal-set-face-1 (face-name face) name value index (car frames))
-	    (setq frames (cdr frames)))
-	  (aset (internal-get-face (if (symbolp face) face (face-name face)) t)
-		index value)
-	  value)
-      (let ((internal-face (internal-get-face face frame)))
-	(or (eq frame t)
-	    (if (eq name 'inverse-video)
-		(or (eq value (aref internal-face index))
-		    (invert-face face frame))
-	      (and name (fboundp 'set-face-attribute-internal)
-		   (set-face-attribute-internal (face-id face)
-						name value frame))))
-	(aset internal-face index value)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Predicates, type checks.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun facep (face)
+  "Return non-nil if FACE is a face name."
+  (internal-lisp-face-p face))
 
 
-(defun read-face-name (prompt)
-  (let (face)
-    (while (= (length face) 0)
-      (setq face (completing-read prompt
-				  (mapcar '(lambda (x) (list (symbol-name x)))
-					  (face-list))
-				  nil t)))
-    (intern face)))
-
-(defun internal-face-interactive (what &optional bool)
-  (let* ((fn (intern (concat "face-" what)))
-	 (prompt (concat "Set " what " of face"))
-	 (face (read-face-name (concat prompt ": ")))
-	 (default (if (fboundp fn)
-		      (or (funcall fn face (selected-frame))
-			  (funcall fn 'default (selected-frame)))))
-	 value)
-    (setq value
-	  (cond ((eq bool 'color)
-		 (completing-read (concat prompt " " (symbol-name face) " to: ")
-				  (mapcar (function (lambda (color)
-						      (cons color color)))
-					  x-colors)
-				  nil nil nil nil default))
-		(bool
-		 (y-or-n-p (concat "Should face " (symbol-name face)
-				   " be " bool "? ")))
-		(t
-		 (read-string (concat prompt " " (symbol-name face) " to: ")
-			      nil nil default))))
-    (list face (if (equal value "") nil value))))
-
-(defun internal-face-interactive-stipple (what)
-  (let* ((fn (intern (concat "face-" what)))
-	 (prompt (concat "Set " what " of face"))
-	 (face (read-face-name (concat prompt ": ")))
-	 (default (if (fboundp fn)
-		      (or (funcall fn face (selected-frame))
-			  (funcall fn 'default (selected-frame)))))
-	 ;; If the stipple value is a list (WIDTH HEIGHT DATA),
-	 ;; represent that as a string by printing it out.
-	 (old-stipple-string
-	  (if (stringp (face-stipple face))
-	      (face-stipple face)
-	    (if (null (face-stipple face))
-		nil
-	      (prin1-to-string (face-stipple face)))))
-	 (new-stipple-string
-	  (read-string
-	   (concat prompt " " (symbol-name face) " to: ")
-	   old-stipple-string))
-	 ;; Convert the stipple value text we read
-	 ;; back to a list if it looks like one.
-	 ;; This makes the assumption that a pixmap file name
-	 ;; won't start with an open-paren.
-	 (stipple
-	  (if (string-match "^(" new-stipple-string)
-	      (read new-stipple-string)
-	    new-stipple-string)))
-    (list face (if (equal stipple "") nil stipple))))
-
-(defun make-face (name &optional no-resources)
-  "Define a new FACE on all frames.  
-You can modify the font, color, etc of this face with the set-face- functions.
-If NO-RESOURCES is non-nil, then we ignore X resources
-and always make a face whose attributes are all nil.
-
-If the face already exists, it is unmodified."
-  (interactive "SMake face: ")
-  (or (internal-find-face name)
-      (let ((face (make-vector 12 nil)))
-	(aset face 0 'face)
-	(aset face 1 name)
-	(let* ((frames (frame-list))
-	       (inhibit-quit t)
-	       (id (internal-next-face-id)))
-	  (if (fboundp 'make-face-internal)
-	      (make-face-internal id))
-	  (aset face 2 id)
-	  (while frames
-	    (set-frame-face-alist (car frames)
-				  (cons (cons name (copy-sequence face))
-					(frame-face-alist (car frames))))
-	    (setq frames (cdr frames)))
-	  (setq global-face-data (cons (cons name face) global-face-data)))
-	;; When making a face after frames already exist
-	(or no-resources
-	    (if (memq window-system '(x w32))
-		(make-face-x-resource-internal face)))
-	;; Add to menu of faces.
-	(if (fboundp 'facemenu-add-new-face)
-	    (facemenu-add-new-face name))
-	face))
-  name)
-
-(defun make-empty-face (face)
-  "Define a new FACE on all frames, which initially reflects the defaults.
-You can modify the font, color, etc of this face with the set-face- functions.
-If the face already exists, it is unmodified."
-  (interactive "SMake empty face: ")
-  (make-face face t))
-
-;; Fill in a face by default based on X resources, for all existing frames.
-;; This has to be done when a new face is made.
-(defun make-face-x-resource-internal (face &optional frame set-anyway)
-  (cond ((null frame)
-	 (let ((frames (frame-list)))
-	   (while frames
-	     (if (memq (framep (car frames)) '(x w32))
-		 (make-face-x-resource-internal (face-name face)
-						(car frames) set-anyway))
-	     (setq frames (cdr frames)))))
-	(t
-	 (setq face (internal-get-face (face-name face) frame))
-	 ;;
-	 ;; These are things like "attributeForeground" instead of simply
-	 ;; "foreground" because people tend to do things like "*foreground",
-	 ;; which would cause all faces to be fully qualified, making faces
-	 ;; inherit attributes in a non-useful way.  So we've made them slightly
-	 ;; less obvious to specify in order to make them work correctly in
-	 ;; more random environments.
-	 ;;
-	 ;; I think these should be called "face.faceForeground" instead of
-	 ;; "face.attributeForeground", but they're the way they are for
-	 ;; hysterical reasons.
-	 ;; 
-	 (let* ((name (symbol-name (face-name face)))
-		(fn  (or (x-get-resource (concat name ".attributeFont")
-					 "Face.AttributeFont")
-			 (and set-anyway (face-font face))))
-		(fg  (or (x-get-resource (concat name ".attributeForeground")
-					 "Face.AttributeForeground")
-			 (and set-anyway (face-foreground face))))
-		(bg  (or (x-get-resource (concat name ".attributeBackground")
-					 "Face.AttributeBackground")
-			 (and set-anyway (face-background face))))
-		(bgp (or (x-get-resource (concat name ".attributeStipple")
-					 "Face.AttributeStipple")
-			 (x-get-resource (concat name ".attributeBackgroundPixmap")
-					 "Face.AttributeBackgroundPixmap")
-			 (and set-anyway (face-stipple face))))
-		(ulp (let ((resource (x-get-resource
-				      (concat name ".attributeUnderline")
-				      "Face.AttributeUnderline")))
-		       (if resource
-			   (member (downcase resource) '("on" "true"))
-			 (and set-anyway (face-underline-p face)))))
-		)
-	   (if fn
-	       (condition-case ()
-		   (cond ((string= fn "italic")
-			  (make-face-italic face))
-			 ((string= fn "bold")
-			  (make-face-bold face))
-			 ((string= fn "bold-italic")
-			  (make-face-bold-italic face))
-			 (t
-			  (set-face-font face fn frame)))
-		 (error
-		  (if (member fn '("italic" "bold" "bold-italic"))
-		      (message "no %s version found for face `%s'" fn name)
-		    (message "font `%s' not found for face `%s'" fn name)))))
-	   (if fg
-	       (condition-case ()
-		   (set-face-foreground face fg frame)
-		 (error (message "color `%s' not allocated for face `%s'" fg name))))
-	   (if bg
-	       (condition-case ()
-		   (set-face-background face bg frame)
-		 (error (message "color `%s' not allocated for face `%s'" bg name))))
-	   (if bgp
-	       (condition-case ()
-		   (set-face-stipple face bgp frame)
-		 (error (message "pixmap `%s' not found for face `%s'" bgp name))))
-	   (if (or ulp set-anyway)
-	       (set-face-underline-p face ulp frame))
-	   )))
+(defun check-face (face)
+  "Signal an error if FACE doesn't name a face.
+Value is FACE."
+  (unless (facep face)
+    (error "Not a face: %s" face))
   face)
 
-(defun copy-face (old-face new-face &optional frame new-frame)
-  "Define a face just like OLD-FACE, with name NEW-FACE.
-If NEW-FACE already exists as a face, it is modified to be like OLD-FACE.
-If it doesn't already exist, it is created.
 
-If the optional argument FRAME is given as a frame,
-NEW-FACE is changed on FRAME only.
-If FRAME is t, the frame-independent default specification for OLD-FACE
-is copied to NEW-FACE.
-If FRAME is nil, copying is done for the frame-independent defaults
-and for each existing frame.
-If the optional fourth argument NEW-FRAME is given, 
-copy the information from face OLD-FACE on frame FRAME
-to NEW-FACE on frame NEW-FRAME."
-  (or new-frame (setq new-frame frame))
-  (let ((inhibit-quit t))
-    (if (null frame)
-	(let ((frames (frame-list)))
-	  (while frames
-	    (copy-face old-face new-face (car frames))
-	    (setq frames (cdr frames)))
-	  (copy-face old-face new-face t))
-      (setq old-face (internal-get-face old-face frame))
-      (setq new-face (or (internal-find-face new-face new-frame)
-			 (make-face new-face)))
-      (condition-case nil
-	  ;; A face that has a global symbolic font modifier such as `bold'
-	  ;; might legitimately get an error here.
-	  ;; Use the frame's default font in that case.
-	  (set-face-font new-face (face-font old-face frame) new-frame)
-	(error
-	 (set-face-font new-face nil new-frame)))
-      (set-face-font-explicit new-face (face-font-explicit old-face frame)
-			      new-frame)
-      (set-face-foreground new-face (face-foreground old-face frame) new-frame)
-      (set-face-background new-face (face-background old-face frame) new-frame)
-      (set-face-stipple new-face
-			(face-stipple old-face frame)
-			new-frame)
-      (set-face-underline-p new-face (face-underline-p old-face frame)
-			    new-frame))
-    new-face))
+;; The ID returned is not to be confused with the internally used IDs
+;; of realized faces.  The ID assigned to Lisp faces is used to
+;; support faces in display table entries.
+
+(defun face-id (face &optional frame)
+  "Return the interNal ID of face with name FACE.
+If optional argument FRAME is nil or omitted, use the selected frame."
+  (check-face face)
+  (get face 'face))
+
 
 (defun face-equal (face1 face2 &optional frame)
-  "True if the faces FACE1 and FACE2 display in the same way."
-  (setq face1 (internal-get-face face1 frame)
-	face2 (internal-get-face face2 frame))
-  (and (equal (face-foreground face1 frame) (face-foreground face2 frame))
-       (equal (face-background face1 frame) (face-background face2 frame))
-       (equal (face-font face1 frame) (face-font face2 frame))
-       (eq (face-underline-p face1 frame) (face-underline-p face2 frame))
-       (equal (face-stipple face1 frame)
-	      (face-stipple face2 frame))))
+  "Non-nil if faces FACE1 and FACE2 are equal.
+Faces are considered equal if all their attributes are equal.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+If FRAME is omitted or nil, use the selected frame."
+  (internal-lisp-face-equal-p face1 face2 frame))
+
 
 (defun face-differs-from-default-p (face &optional frame)
-  "True if face FACE displays differently from the default face, on FRAME.
-A face is considered to be ``the same'' as the default face if it is 
-actually specified in the same way (equivalent fonts, etc) or if it is 
-fully unspecified, and thus inherits the attributes of any face it 
-is displayed on top of.
+  "Non-nil if FACE displays differently from the default face.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+If FRAME is omitted or nil, use the selected frame.
+A face is considered to be ``the same'' as the default face if it is
+actually specified in the same way (equal attributes) or if it is
+fully-unspecified, and thus inherits the attributes of any face it
+is displayed on top of."
+  (or (internal-lisp-face-empty-p face frame)
+      (not (internal-lisp-face-equal-p face 'default frame))))
 
-The optional argument FRAME specifies which frame to test;
-if FRAME is t, test the default for new frames.
-If FRAME is nil or omitted, test the selected frame."
-  (let ((default (internal-get-face 'default frame)))
-    (setq face (internal-get-face face frame))
-    (not (and (or (equal (face-foreground default frame)
-			 (face-foreground face frame))
-		  (null (face-foreground face frame)))
-	      (or (equal (face-background default frame)
-			 (face-background face frame))
-		  (null (face-background face frame)))
-	      (or (null (face-font face frame))
-		  (equal (face-font face frame)
-			 (or (face-font default frame)
-			     (downcase
-			      (cdr (assq 'font (frame-parameters frame)))))))
-	      (or (equal (face-stipple default frame)
-			 (face-stipple face frame))
-		  (null (face-stipple face frame)))
-	      (equal (face-underline-p default frame)
-		     (face-underline-p face frame))
-	      ))))
 
 (defun face-nontrivial-p (face &optional frame)
   "True if face FACE has some non-nil attribute.
-The optional argument FRAME specifies which frame to test;
-if FRAME is t, test the default for new frames.
-If FRAME is nil or omitted, test the selected frame."
-  (setq face (internal-get-face face frame))
-  (or (face-foreground face frame)
-      (face-background face frame)
-      (face-font face frame)
-      (face-stipple face frame)
-      (face-underline-p face frame)))
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+If FRAME is omitted or nil, use the selected frame."
+  (not (internal-lisp-face-empty-p face frame)))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Setting face attributes from X resources.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defcustom face-x-resources
+  '((:family (".attributeFamily" . "Face.AttributeFamily"))
+    (:width (".attributeWidth" . "Face.AttributeWidth"))
+    (:height (".attributeHeight" . "Face.AttributeHeight"))
+    (:weight (".attributeWeight" . "Face.AttributeWeight"))
+    (:slant (".attributeSlant" . "Face.AttributeSlant"))
+    (:foreground (".attributeForeground" . "Face.AttributeForeground"))
+    (:background (".attributeBackground" . "Face.AttributeBackground"))
+    (:overline (".attributeOverline" . "Face.AttributeOverline"))
+    (:strike-through (".attributeStrikeThrough" . "Face.AttributeStrikeThrough"))
+    (:box (".attributeBox" . "Face.AttributeBox"))
+    (:underline (".attributeUnderline" . "Face.AttributeUnderline"))
+    (:inverse-video (".attributeInverse" . "Face.AttributeInverse"))
+    (:stipple
+     (".attributeStipple" . "Face.AttributeStipple")
+     (".attributeBackgroundPixmap" . "Face.AttributeBackgroundPixmap"))
+    (:font (".attributeFont" . "Face.AttributeFont"))
+    (:bold (".attributeBold" . "Face.AttributeBold"))
+    (:italic (".attributeItalic" . "Face.AttributeItalic"))
+    (:font (".attributeFont" . "Face.AttributeFont")))
+  "*List of X resources and classes for face attributes.
+Each element has the form (ATTRIBUTE ENTRY1 ENTRY2...) where ATTRIBUTE is
+the name of a face attribute, and each ENTRY is a cons of the form
+(RESOURCE . CLASS) with RESOURCE being the resource and CLASS being the
+X resource class for the attribute."
+  :type 'sexp
+  :group 'faces)
+
+
+(defun set-face-attribute-from-resource (face attribute resource class frame)
+  "Set FACE's ATTRIBUTE from X resource RESOURCE, class CLASS on FRAME.
+Value is the attribute value specified by the resource, or nil
+if not present.  This function displays a message if the resource
+specifies an invalid attribute."
+  (let* ((face-name (face-name face))
+	 (value (internal-face-x-get-resource (concat face-name resource)
+					      class frame)))
+    (when value
+      (condition-case ()
+	  (internal-set-lisp-face-attribute-from-resource
+	   face attribute (downcase value) frame)
+	(error
+	 (message "Face %s, frame %s: invalid attribute %s %s from X resource"
+		  face-name frame attribute value))))
+    value))
+
+
+(defun set-face-attributes-from-resources (face frame)
+  "Set attributes of FACE from X resources for FRAME."
+  (when (memq (framep frame) '(x w32))
+    (dolist (definition face-x-resources)
+      (let ((attribute (car definition)))
+	(dolist (entry (cdr definition))
+	  (set-face-attribute-from-resource face attribute (car entry)
+					    (cdr entry) frame))))))
+    
+  
+(defun make-face-x-resource-internal (face &optional frame)
+  "Fill frame-local FACE on FRAME from X resources.
+FRAME nil or not specified means do it for all frames."
+  (if (null frame)
+      (dolist (frame (frame-list))
+	(set-face-attributes-from-resources face frame))
+    (set-face-attributes-from-resources face frame)))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Retrieving face attributes.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun face-name (face)
+  "Return the name of face FACE."
+  (symbol-name (check-face face)))
+
+
+(defun face-attribute (face attribute &optional frame)
+  "Return the value of FACE's ATTRIBUTE on FRAME.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+If FRAME is omitted or nil, use the selected frame."
+  (internal-get-lisp-face-attribute face attribute frame))
+
+
+(defun face-foreground (face &optional frame)
+  "Return the foreground color name of FACE, or nil if unspecified.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+If FRAME is omitted or nil, use the selected frame."
+  (internal-get-lisp-face-attribute face :foreground frame))
+
+
+(defun face-background (face &optional frame)
+  "Return the background color name of FACE, or nil if unspecified.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+If FRAME is omitted or nil, use the selected frame."
+  (internal-get-lisp-face-attribute face :background frame))
+
+
+(defun face-stipple (face &optional frame)
+ "Return the stipple pixmap name of FACE, or nil if unspecified.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+If FRAME is omitted or nil, use the selected frame."
+  (internal-get-lisp-face-attribute face :stipple frame))
+
+
+(defalias 'face-background-pixmap 'face-stipple)
+
+
+(defun face-underline-p (face &optional frame)
+ "Return non-nil if FACE is underlined.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+If FRAME is omitted or nil, use the selected frame."
+ (eq (face-attribute face :underline frame) t))
+
+
+(defun face-inverse-video-p (face &optional frame)
+ "Return non-nil if FACE is in inverse video on FRAME.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+If FRAME is omitted or nil, use the selected frame."
+ (eq (face-attribute face :inverse-video frame) t))
+
+
+(defun face-bold-p (face &optional frame)
+  "Return non-nil if the font of FACE is bold on FRAME.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+If FRAME is omitted or nil, use the selected frame.
+Use `face-attribute' for finer control."
+  (let ((bold (face-attribute face :weight frame)))
+    (not (memq bold '(normal unspecified)))))
+
+
+(defun face-italic-p (face &optional frame)
+  "Return non-nil if the font of FACE is italic on FRAME.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+If FRAME is omitted or nil, use the selected frame.
+Use `face-attribute' for finer control."
+  (let ((italic (face-attribute face :slant frame)))
+    (not (memq italic '(normal unspecified)))))
+    
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Face documentation.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun face-documentation (face)
+  "Get the documentation string for FACE."
+  (get face 'face-documentation))
+
+
+(defun set-face-documentation (face string)
+  "Set the documentation string for FACE to STRING."
+  (put face 'face-documentation string))
+
+
+(defalias 'face-doc-string 'face-documentation)
+(defalias 'set-face-doc-string 'set-face-documentation)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Setting face attributes.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defun set-face-attribute (face frame &rest args)
+  "Set attributes of FACE on FRAME from ARGS.
+
+FRAME nil means change attributes on all frames.  FRAME t means change
+the default for new frames (this is done automatically each time an
+attribute is changed on all frames).
+
+ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a valid
+face attribute name.  All attributes can be set to `unspecified';
+this fact is not further mentioned below.
+
+The following attributes are recognized:
+
+`:family'
+
+VALUE must be a string specifying the font family, e.g. ``courier'',
+or a fontset alias name.  If a font family is specified, wild-cards `*'
+and `?' are allowed.
+
+`:width'
+
+VALUE specifies the relative proportionate width of the font to use.
+It must be one of the symbols `ultra-condensed', `extra-condensed',
+`condensed', `semi-condensed', `normal', `semi-expanded', `expanded',
+`extra-expanded', or `ultra-expanded'.
+
+`:height'
+
+VALUE must be an integer specifying the height of the font to use in
+1/10 pt.
+
+`:weight'
+
+VALUE specifies the weight of the font to use.  It must be one of the
+symbols `ultra-bold', `extra-bold', `bold', `semi-bold', `normal',
+`semi-light', `light', `extra-light', `ultra-light'.
+
+`:slant'
+
+VALUE specifies the slant of the font to use.  It must be one of the
+symbols `italic', `oblique', `normal', `reverse-italic', or
+`reverse-oblique'.
+
+`:foreground', `:background'
+
+VALUE must be a color name, a string.
+
+`:underline'
+
+VALUE specifies whether characters in FACE should be underlined.  If
+VALUE is t, underline with foreground color of the face.  If VALUE is
+a string, underline with that color.  If VALUE is nil, explicitly
+don't underline.
+
+`:overline'
+
+VALUE specifies whether characters in FACE should be overlined.  If
+VALUE is t, overline with foreground color of the face.  If VALUE is a
+string, overline with that color.  If VALUE is nil, explicitly don't
+overline.
+
+`:strike-through'
+
+VALUE specifies whether characters in FACE should be drawn with a line
+striking through them.  If VALUE is t, use the foreground color of the
+face.  If VALUE is a string, strike-through with that color.  If VALUE
+is nil, explicitly don't strike through.
+
+`:box'
+
+VALUE specifies whether characters in FACE should have a box drawn
+around them.  If VALUE is nil, explicitly don't draw boxes.  If
+VALUE is t, draw a box with lines of width 1 in the foreground color
+of the face.  If VALUE is a string, the string must be a color name,
+and the box is drawn in that color with a line width of 1.  Otherwise,
+VALUE must be a property list of the form `(:line-width WIDTH
+:color COLOR :style STYLE)'.  If a keyword/value pair is missing from
+the property list, a default value will be used for the value, as
+specified below.  WIDTH specifies the width of the lines to draw; it
+defaults to 1.  COLOR is the name of the color to draw in, default is
+the foreground color of the face for simple boxes, and the background
+color of the face for 3D boxes.  STYLE specifies whether a 3D box
+should be draw.  If STYLE is `released-button', draw a box looking
+like a released 3D button.  If STYLE is `pressed-button' draw a box
+that appears like a pressed button.  If STYLE is nil, the default if
+the property list doesn't contain a style specification, draw a 2D
+box.
+
+`:inverse-video'
+
+VALUE specifies whether characters in FACE should be displayed in
+inverse video. VALUE must be one of t or nil.
+
+`:stipple'
+
+If VALUE is a string, it must be the name of a file of pixmap data.
+The directories listed in the `x-bitmap-file-path' variable are
+searched.  Alternatively, VALUE may be a list of the form (WIDTH
+HEIGHT DATA) where WIDTH and HEIGHT are the size in pixels, and DATA
+is a string containing the raw bits of the bitmap.  VALUE nil means
+explicitly don't use a stipple pattern.
+
+For convenience, attributes `:family', `:width', `:height', `:weight',
+and `:slant' may also be set in one step from an X font name:
+
+`:font'
+
+Set font-related face attributes from VALUE.  VALUE must be a valid
+XLFD font name.  If it is a font name pattern, the first matching font
+will be used.
+
+For compatibility with Emacs 20, keywords `:bold' and `:italic' can
+be used to specify that a bold or italic font should be used.  VALUE
+must be t or nil in that case.  A value of `unspecified' is not allowed."
+  (cond ((null frame)
+	 ;; Change face on all frames.
+	 (dolist (frame (frame-list))
+	   (apply #'set-face-attribute face frame args))
+	 ;; Record that as a default for new frames.
+	 (apply #'set-face-attribute face t args))
+	(t
+	 (while args
+	   (internal-set-lisp-face-attribute face (car args)
+					     (car (cdr args)) frame)
+	   (setq args (cdr (cdr args)))))))
+
+
+(defun make-face-bold (face &optional frame)
+  "Make the font of FACE be bold, if possible.
+FRAME nil or not specified means change face on all frames.
+Use `set-face-attribute' for finer control of the font weight."
+  (interactive (list (read-face-name "Make which face bold: ")))
+  (set-face-attribute face frame :weight 'bold))
+
+
+(defun make-face-unbold (face &optional frame)
+  "Make the font of FACE be non-bold, if possible.
+FRAME nil or not specified means change face on all frames."
+  (interactive (list (read-face-name "Make which face non-bold: ")))
+  (set-face-attribute face frame :weight 'normal))
+
+  
+(defun make-face-italic (face &optional frame)
+  "Make the font of FACE be italic, if possible.
+FRAME nil or not specified means change face on all frames.
+Use `set-face-attribute' for finer control of the font slant."
+  (interactive (list (read-face-name "Make which face italic: ")))
+  (set-face-attribute face frame :slant 'italic))
+
+
+(defun make-face-unitalic (face &optional frame)
+  "Make the font of FACE be non-italic, if possible.
+FRAME nil or not specified means change face on all frames."
+  (interactive (list (read-face-name "Make which face non-italic: ")))
+  (set-face-attribute face frame :slant 'normal))
+
+  
+(defun make-face-bold-italic (face &optional frame)
+  "Make the font of FACE be bold and italic, if possible.
+FRAME nil or not specified means change face on all frames.
+Use `set-face-attribute' for finer control of font weight and slant."
+  (interactive (list (read-face-name "Make which face bold-italic: ")))
+  (set-face-attribute face frame :weight 'bold :slant 'italic))
+
+
+(defun set-face-font (face font &optional frame)
+  "Change font-related attributes of FACE to those of FONT (a string).
+FRAME nil or not specified means change face on all frames.
+This sets the attributes `:family', `:width', `:height', `:weight',
+and `:slant'.  When called interactively, prompt for the face and font."
+  (interactive (read-face-and-attribute :font))
+  (set-face-attribute face frame :font font))
+
+
+;; Implementation note: Emulating gray background colors with a
+;; stipple pattern is now part of the face realization process, and is
+;; done in C depending on the frame on which the face is realized.
+
+(defun set-face-background (face color &optional frame)
+  "Change the background color of face FACE to COLOR (a string).
+FRAME nil or not specified means change face on all frames.
+When called interactively, prompt for the face and color."
+  (interactive (read-face-and-attribute :background))
+  (set-face-attribute face frame :background color))
+
+
+(defun set-face-foreground (face color &optional frame)
+  "Change the foreground color of face FACE to COLOR (a string).
+FRAME nil or not specified means change face on all frames.
+When called interactively, prompt for the face and color."
+  (interactive (read-face-and-attribute :foreground))
+  (set-face-attribute face frame :foreground color))
+
+
+(defun set-face-stipple (face stipple &optional frame)
+  "Change the stipple pixmap of face FACE to STIPPLE.
+FRAME nil or not specified means change face on all frames.
+STIPPLE. should be a string, the name of a file of pixmap data.
+The directories listed in the `x-bitmap-file-path' variable are searched.
+
+Alternatively, STIPPLE may be a list of the form (WIDTH HEIGHT DATA)
+where WIDTH and HEIGHT are the size in pixels,
+and DATA is a string, containing the raw bits of the bitmap."
+  (interactive (read-face-and-attribute :stipple))
+  (set-face-attribute face frame :stipple stipple))
+
+
+(defun set-face-underline (face underline &optional frame)
+  "Specify whether face FACE is underlined.
+UNDERLINE nil means FACE explicitly doesn't underline.
+UNDERLINE non-nil means FACE explicitly does underlining
+with the same of the foreground color.
+If UNDERLINE is a string, underline with the color named UNDERLINE.
+FRAME nil or not specified means change face on all frames.
+Use `set-face-attribute' to ``unspecify'' underlining."
+  (interactive
+   (let ((list (read-face-and-attribute :underline)))
+     (list (car list) (eq (car (cdr list)) t))))
+  (set-face-attribute face frame :underline underline))
+
+
+(defun set-face-underline-p (face underline-p &optional frame)
+  "Specify whether face FACE is underlined.
+UNDERLINE-P nil means FACE explicitly doesn't underline.
+UNDERLINE-P non-nil means FACE explicitly does underlining.
+FRAME nil or not specified means change face on all frames.
+Use `set-face-attribute' to ``unspecify'' underlining."
+  (interactive
+   (let ((list (read-face-and-attribute :underline)))
+     (list (car list) (eq (car (cdr list)) t))))
+  (set-face-attribute face frame :underline underline-p))
+
+
+(defun set-face-inverse-video-p (face inverse-video-p &optional frame)
+  "Specify whether face FACE is in inverse video.
+INVERSE-VIDEO-P non-nil means FACE displays explicitly in inverse video.
+INVERSE-VIDEO-P nil means FACE explicitly is not in inverse video.
+FRAME nil or not specified means change face on all frames.
+Use `set-face-attribute' to ``unspecify'' the inverse video attribute."
+  (interactive
+   (let ((list (read-face-and-attribute :inverse-video)))
+     (list (car list) (eq (car (cdr list)) t))))
+  (set-face-attribute face frame :inverse-video inverse-video-p))
+
+
+(defun set-face-bold-p (face bold-p &optional frame)
+  "Specify whether face FACE is bold.
+BOLD-P non-nil means FACE should explicitly display bold.
+BOLD-P nil means FACE should explicitly display non-bold.
+FRAME nil or not specified means change face on all frames.
+Use `set-face-attribute' or `modify-face' for finer control."
+  (if (null bold-p)
+      (make-face-unbold face frame)
+    (make-face-bold face frame)))
+
+
+(defun set-face-italic-p (face italic-p &optional frame)
+  "Specify whether face FACE is italic.
+ITALIC-P non-nil means FACE should explicitly display italic.
+ITALIC-P nil means FACE should explicitly display non-italic.
+FRAME nil or not specified means change face on all frames.
+Use `set-face-attribute' or `modify-face' for finer control."
+  (if (null italic-p)
+      (make-face-unitalic face frame)
+    (make-face-italic face frame)))
+
+
+(defalias 'set-face-background-pixmap 'set-face-stipple)
 
 
 (defun invert-face (face &optional frame)
-  "Swap the foreground and background colors of face FACE.
-If the face doesn't specify both foreground and background, then
-set its foreground and background to the default background and foreground."
+  "Swap the foreground and background colors of FACE.
+FRAME nil or not specified means change face on all frames.
+If FACE specifies neither foreground nor background color,
+set its foreground and background to the background and foreground
+of the default face.  Value is FACE."
   (interactive (list (read-face-name "Invert face: ")))
-  (setq face (internal-get-face face frame))
-  (let ((fg (face-foreground face frame))
-	(bg (face-background face frame)))
+  (let ((fg (face-attribute face :foreground frame))
+	(bg (face-attribute face :background frame)))
     (if (or fg bg)
-	(progn
-	  (set-face-foreground face bg frame)
-	  (set-face-background face fg frame))
-      (let* ((frame-bg (cdr (assq 'background-color (frame-parameters frame))))
-	     (default-bg (or (face-background 'default frame)
-			     frame-bg))
-	     (frame-fg (cdr (assq 'foreground-color (frame-parameters frame))))
-	     (default-fg (or (face-foreground 'default frame)
-			     frame-fg)))
-	(set-face-foreground face default-bg frame)
-	(set-face-background face default-fg frame))))
+	(set-face-attribute face frame :foreground bg :background fg)
+      (set-face-attribute face frame
+			  :foreground
+			  (face-attribute 'default :background frame)
+			  :background
+			  (face-attribute 'default :foreground frame))))
   face)
 
-
-(defun internal-try-face-font (face font &optional frame)
-  "Like set-face-font, but returns nil on failure instead of an error."
-  (condition-case ()
-      (set-face-font-auto face font frame)
-    (error nil)))
 
-;; Manipulating font names.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Interactively modifying faces.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun read-face-name (prompt)
+  "Read and return a face symbol, prompting with PROMPT.
+Value is a symbol naming a known face."
+  (let ((face-list (mapcar #'(lambda (x) (cons (symbol-name x) x))
+			   (face-list)))
+	face)
+    (while (equal "" (setq face (completing-read prompt face-list nil t))))
+    (intern face)))
+
+
+(defun face-valid-attribute-values (attribute &optional frame)
+  "Return valid values for face attribute ATTRIBUTE.
+The optional argument FRAME is used to determine available fonts
+and colors.  If it is nil or not specified, the selected frame is
+used.  Value is an alist of (NAME . VALUE) if ATTRIBUTE expects a value
+out of a set of discrete values.  Value is `integerp' if ATTRIBUTE expects
+an integer value."
+  (case attribute
+    (:family
+     (if window-system
+	 (mapcar #'(lambda (x) (cons (car x) (car x)))
+		 (x-font-family-list))
+       ;; Only one font on TTYs.
+       (cons "default" "default")))
+    ((:width :weight :slant :inverse-video)
+     (mapcar #'(lambda (x) (cons (symbol-name x) x))
+	     (internal-lisp-face-attribute-values attribute)))
+    ((:underline :overline :strike-through :box)
+     (if window-system
+	 (nconc (mapcar #'(lambda (x) (cons (symbol-name x) x))
+			(internal-lisp-face-attribute-values attribute))
+		(mapcar #'(lambda (c) (cons c c))
+			(x-defined-colors frame)))
+       (mapcar #'(lambda (x) (cons (symbol-name x) x))
+	       (internal-lisp-face-attribute-values attribute))))
+    ((:foreground :background)
+     (mapcar #'(lambda (c) (cons c c))
+	     (or (and window-system (x-defined-colors frame))
+		 (tty-defined-colors))))
+    ((:height)
+     'integerp)
+    (:stipple
+     (and window-system
+	  (mapcar #'list
+		  (apply #'nconc (mapcar #'directory-files
+					 x-bitmap-file-path)))))
+    (t
+     (error "Internal error"))))
+
+
+(defvar face-attribute-name-alist
+  '((:family . "font family")
+    (:width . "character set width")
+    (:height . "height in 1/10 pt")
+    (:weight . "weight")
+    (:slant . "slant")
+    (:underline . "underline")
+    (:overline . "overline")
+    (:strike-through . "strike-through")
+    (:box . "box")
+    (:inverse-video . "inverse-video display")
+    (:foreground . "foreground color")
+    (:background . "background color")
+    (:stipple . "background stipple"))
+  "An alist of descriptive names for face attributes.
+Each element has the form (ATTRIBUTE-NAME . DESCRIPTION) where
+ATTRIBUTE-NAME is a face attribute name (a keyword symbol), and
+DESCRIPTION is a descriptive name for ATTRIBUTE-NAME.")
+
+
+(defun face-descriptive-attribute-name (attribute)
+  "Return a descriptive name for ATTRIBUTE."
+  (cdr (assq attribute face-attribute-name-alist)))
+
+
+(defun face-read-string (face default name &optional completion-alist)
+  "Interactively read a face attribute string value.
+FACE is the face whose attribute is read.  DEFAULT is the default
+value to return if no new value is entered.  NAME is a descriptive
+name of the attribute for prompting.  COMPLETION-ALIST is an alist
+of valid values, if non-nil.
+
+Entering ``none'' as attribute value means an unspecified attribute
+value.  Entering nothing accepts the default value DEFAULT.
+
+Value is the new attribute value."
+  (let* ((completion-ignore-case t)
+	 (value (completing-read
+		 (if default
+		     (format "Set face %s %s (default %s): "
+			     face name (downcase (if (symbolp default)
+						     (symbol-name default)
+						   default)))
+		   (format "Set face %s %s: " face name))
+		 completion-alist)))
+    (if (equal value "none")
+	nil
+      (if (equal value "") default value))))
+
+
+(defun face-read-integer (face default name)
+  "Interactively read an integer face attribute value.
+FACE is the face whose attribute is read.  DEFAULT is the default
+value to return if no new value is entered.  NAME is a descriptive
+name of the attribute for prompting.  Value is the new attribute value."
+  (let ((new-value (face-read-string face
+				     (and default (int-to-string default))
+				     name)))
+    (and new-value
+	 (string-to-int new-value))))
+
+
+(defun read-face-attribute (face attribute &optional frame)
+  "Interactively read a new value for FACE's ATTRIBUTE.
+Optional argument FRAME nil or unspecified means read an attribute value
+of a global face.  Value is the new attribute value."
+  (let* ((old-value (face-attribute face attribute frame))
+	 (attribute-name (face-descriptive-attribute-name attribute))
+	 (valid (face-valid-attribute-values attribute frame))
+	 new-value)
+    ;; Represent complex attribute values as strings by printing them
+    ;; out.  Stipple can be a vector; (WIDTH HEIGHT DATA).  Box can be
+    ;; a list `(:width WIDTH :color COLOR)' or `(:width WIDTH :shadow
+    ;; SHADOW)'.
+    (when (and (or (eq attribute :stipple)
+		   (eq attribute :box))
+	       (or (consp old-value)
+		   (vectorp old-value)))
+      (setq old-value (prin1-to-string old-value)))
+    (cond ((listp valid)
+	   (setq new-value
+		 (cdr (assoc (face-read-string face old-value
+					       attribute-name valid)
+			     valid))))
+	  ((eq valid 'integerp)
+	   (setq new-value (face-read-integer face old-value attribute-name)))
+	  (t (error "Internal error")))
+    ;; Convert stipple and box value text we read back to a list or
+    ;; vector if it looks like one.  This makes the assumption that a
+    ;; pixmap file name won't start with an open-paren.
+    (when (and (or (eq attribute :stipple)
+		   (eq attribute :box))
+	       (stringp new-value)
+	       (string-match "^[[(]" new-value))
+      (setq new-value (read new-value)))
+    new-value))
+
+
+(defun read-face-font (face &optional frame)
+  "Read the name of a font for FACE on FRAME.
+If optional argument FRAME Is nil or omitted, use the selected frame."
+  (let ((completion-ignore-case t))
+    (completing-read "Set font attributes of face %s from font: "
+		     face (x-list-fonts "*" nil frame))))
+
+
+(defun read-all-face-attributes (face &optional frame)
+  "Interactively read all attributes for FACE.
+If optional argument FRAME Is nil or omitted, use the selected frame.
+Value is a property list of attribute names and new values."
+  (let (result)
+    (dolist (attribute face-attribute-name-alist result)
+      (setq result (cons (car attribute)
+			 (cons (read-face-attribute face (car attribute) frame)
+			       result))))))
+
+    
+(defun modify-face (&optional frame)
+  "Modify attributes of faces interactively.
+If optional argument FRAME is nil or omitted, modify the face used
+for newly created frame, i.e. the global face."
+  (interactive)
+  (let ((face (read-face-name "Modify face: ")))
+    (apply #'set-face-attribute face frame
+	   (read-all-face-attributes face frame))))
+
+
+(defun read-face-and-attribute (attribute &optional frame)
+  "Read face name and face attribute value.
+ATTRIBUTE is the attribute whose new value is read.
+FRAME nil or unspecified means read attribute value of global face.
+Value is a list (FACE NEW-VALUE) where FACE is the face read
+(a symbol), and NEW-VALUE is value read."
+  (cond ((eq attribute :font)
+	 (let* ((prompt (format "Set font-related attributes of face: "))
+		(face (read-face-name prompt))
+		(font (read-face-font face frame)))
+	   (list face font)))
+	(t
+	 (let* ((attribute-name (face-descriptive-attribute-name attribute))
+		(prompt (format "Set %s of face: " attribute-name))
+		(face (read-face-name prompt))
+		(new-value (read-face-attribute face attribute frame)))
+	   (list face new-value)))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Listing faces.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar list-faces-sample-text
+  "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  "*Text string to display as the sample text for `list-faces-display'.")
+
+
+;; The name list-faces would be more consistent, but let's avoid a
+;; conflict with Lucid, which uses that name differently.
+
+(defun list-faces-display ()
+  "List all faces, using the same sample text in each.
+The sample text is a string that comes from the variable
+`list-faces-sample-text'."
+  (interactive)
+  (let ((faces (sort (face-list) #'string-lessp))
+	(face nil)
+	(frame (selected-frame))
+	disp-frame window)
+    (with-output-to-temp-buffer "*Faces*"
+      (save-excursion
+	(set-buffer standard-output)
+	(setq truncate-lines t)
+	(while faces
+	  (setq face (car faces))
+	  (setq faces (cdr faces))
+	  (insert (format "%25s " (face-name face)))
+	  (let ((beg (point)))
+	    (insert list-faces-sample-text)
+	    (insert "\n")
+	    (put-text-property beg (1- (point)) 'face face)
+	    ;; If the sample text has multiple lines, line up all of them.
+	    (goto-char beg)
+	    (forward-line 1)
+	    (while (not (eobp))
+	      (insert "                          ")
+	      (forward-line 1))))
+	(goto-char (point-min)))
+      (print-help-return-message))
+    ;; If the *Faces* buffer appears in a different frame,
+    ;; copy all the face definitions from FRAME,
+    ;; so that the display will reflect the frame that was selected.
+    (setq window (get-buffer-window (get-buffer "*Faces*") t))
+    (setq disp-frame (if window (window-frame window)
+		       (car (frame-list))))
+    (or (eq frame disp-frame)
+	(let ((faces (face-list)))
+	  (while faces
+	    (copy-face (car faces) (car faces) frame disp-frame)
+	    (setq faces (cdr faces)))))))
+
+
+(defun describe-face (face &optional frame)
+  "Display the properties of face FACE on FRAME.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+If FRAME is omitted or nil, use the selected frame."
+  (interactive (list (read-face-name "Describe face: ")))
+  (let* ((attrs '((:family . "Family")
+		  (:width . "Width")
+		  (:height . "Height")
+		  (:weight . "Weight")
+		  (:slant . "Slant")
+		  (:foreground . "Foreground")
+		  (:background . "Background")
+		  (:underline . "Underline")
+		  (:overline . "Overline")
+		  (:strike-through . "Strike-through")
+		  (:box . "Box")
+		  (:inverse-video . "Inverse")
+		  (:stipple . "Stipple")))
+	(max-width (apply #'max (mapcar #'(lambda (x) (length (cdr x)))
+					attrs))))
+    (with-output-to-temp-buffer "*Help*"
+      (save-excursion
+	(set-buffer standard-output)
+	(dolist (a attrs)
+	  (let ((attr (face-attribute face (car a) frame)))
+	    (insert (make-string (- max-width (length (cdr a))) ?\ )
+		    (cdr a) ": " (format "%s" attr) "\n")))
+	(insert "\nDocumentation:\n\n"
+		(or (face-documentation face)
+		    "not documented as a face.")))
+      (print-help-return-message))))
+  
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Face specifications (defface).
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Parameter FRAME Is kept for call compatibility to with previous
+;; face implementation.
+
+(defun face-attr-construct (face &optional frame)
+  "Return a defface-style attribute list for FACE on FRAME.
+Value is a property list of pairs ATTRIBUTE VALUE for all specified
+face attributes of FACE where ATTRIBUTE is the attribute name and
+VALUE is the specified value of that attribute."
+  (let (result)
+    (dolist (entry face-attribute-name-alist result)
+      (let* ((attribute (car entry))
+	     (value (face-attribute face attribute)))
+	(unless (eq value 'unspecified)
+	  (setq result (nconc (list attribute value) result)))))))
+    
+
+(defun face-spec-set-match-display (display frame)
+  "Non-nil if DISPLAY matches FRAME.
+DISPLAY is part of a spec such as can be used in `defface'.
+If FRAME is nil, the current FRAME is used."
+  (let* ((conjuncts display)
+	 conjunct req options
+	 ;; t means we have succeeded against all the conjuncts in
+	 ;; DISPLAY that have been tested so far.
+	 (match t))
+    (if (eq conjuncts t)
+	(setq conjuncts nil))
+    (while (and conjuncts match)
+      (setq conjunct (car conjuncts)
+	    conjuncts (cdr conjuncts)
+	    req (car conjunct)
+	    options (cdr conjunct)
+	    match (cond ((eq req 'type)
+			 (or (memq window-system options)
+			     (and (null window-system)
+				  (memq 'tty options))))
+			((eq req 'class)
+			 (memq (frame-parameter frame 'display-type) options))
+			((eq req 'background)
+			 (memq (frame-parameter frame 'background-mode)
+			       options))
+			(t (error "Unknown req `%S' with options `%S'" 
+				  req options)))))
+    match))
+
+
+(defun face-spec-choose (spec &optional frame)
+  "Choose the proper attributes for FRAME, out of SPEC."
+  (unless frame
+    (setq frame (selected-frame)))
+  (let ((tail spec)
+	result)
+    (while tail
+      (let* ((entry (car tail))
+	     (display (nth 0 entry))
+	     (attrs (nth 1 entry)))
+	(setq tail (cdr tail))
+	(when (face-spec-set-match-display display frame)
+	  (setq result attrs tail nil))))
+    result))
+
+
+(defun face-spec-reset-face (face &optional frame)
+  "Reset all attributes of FACE on FRAME to unspecified."
+  (let ((attrs face-attribute-name-alist)
+	params)
+    (while attrs
+      (let ((attr-and-name (car attrs)))
+	(setq params (cons (car attr-and-name) (cons 'unspecified params))))
+      (setq attrs (cdr attrs)))
+    (apply #'set-face-attribute face frame params)))
+
+
+(defun face-spec-set (face spec &optional frame)
+  "Set FACE's attributes according to the first matching entry in SPEC.
+FRAME is the frame whose frame-local face is set.  FRAME nil means
+do it on all frames.  See `defface' for information about SPEC."
+  (let ((attrs (face-spec-choose spec frame))
+	params)
+    (while attrs
+      (let ((attribute (car attrs))
+	    (value (car (cdr attrs))))
+	;; Support some old-style attribute names and values.
+	(case attribute
+	  (:bold (setq attribute :weight value (if value 'bold 'normal)))
+	  (:italic (setq attribute :slant value (if value 'italic 'normal))))
+	(setq params (cons attribute (cons value params))))
+      (setq attrs (cdr (cdr attrs))))
+    (face-spec-reset-face face frame)
+    (apply #'set-face-attribute face frame params)))
+
+
+(defun face-attr-match-p (face attrs &optional frame)
+  "Value is non-nil if attributes of FACE match values in plist ATTRS.
+Optional parameter FRAME is the frame whose definition of FACE
+is used.  If nil or omitted, use the selected frame."
+  (unless frame
+    (setq frame (selected-frame)))
+  (let ((list face-attribute-name-alist)
+	(match t))
+    (while (and match (not (null list)))
+      (let* ((attr (car (car list)))
+	     (specified-value (plist-get attrs attr))
+	     (value-now (face-attribute face attr frame)))
+	(when specified-value
+	  (setq match (equal specified-value value-now)))
+	(setq list (cdr list))))
+    match))
+
+
+(defun face-spec-match-p (face spec &optional frame)
+  "Return t if FACE, on FRAME, matches what SPEC says it should look like."
+  (face-attr-match-p face (face-spec-choose spec frame) frame))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Background mode.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defcustom frame-background-mode nil
+  "*The brightness of the background.
+Set this to the symbol `dark' if your background color is dark, `light' if
+your background is light, or nil (default) if you want Emacs to
+examine the brightness for you."
+  :group 'faces
+  :set #'(lambda (var value)
+	   (set var value)
+	   (mapcar 'frame-set-background-mode (frame-list)))
+  :initialize 'custom-initialize-changed
+  :type '(choice (choice-item dark) 
+		 (choice-item light)
+		 (choice-item :tag "default" nil)))
+
+
+(defun frame-set-background-mode (frame)
+  "Set up the `background-mode' and `display-type' frame parameters for FRAME."
+  (let* ((bg-resource
+	  (and window-system
+	       (x-get-resource ".backgroundMode" "BackgroundMode")))
+	 (params (frame-parameters frame))
+	 (bg-mode (cond (frame-background-mode)
+			((null window-system)
+			 ;; No way to determine this automatically (?).
+			 'dark)
+			(bg-resource
+			 (intern (downcase bg-resource)))
+			((< (apply '+ (x-color-values
+				       (cdr (assq 'background-color
+						  params))
+				       frame))
+			    ;; Just looking at the screen, colors whose
+			    ;; values add up to .6 of the white total
+			    ;; still look dark to me.
+			    (* (apply '+ (x-color-values "white" frame)) .6))
+			 'dark)
+			(t 'light)))
+	 (display-type (cond ((null window-system)
+			      (if (tty-display-color-p) 'color 'mono))
+			     ((x-display-color-p frame)
+			      'color)
+			     ((x-display-grayscale-p frame)
+			      'grayscale)
+			     (t 'mono))))
+    (modify-frame-parameters frame
+			     (list (cons 'background-mode bg-mode)
+				   (cons 'display-type display-type))))
+  
+  ;; For all named faces, choose face specs matching the new frame
+  ;; parameters.
+  (let ((face-list (face-list)))
+    (while face-list
+      (let* ((face (car face-list))
+	     (spec (get face 'face-defface-spec)))
+	(when spec
+	  (face-spec-set face spec frame))
+      (setq face-list (cdr face-list))))))
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Frame creation.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun x-handle-named-frame-geometry (parameters)
+  "Add geometry parameters for a named frame to parameter list PARAMETERS.
+Value is the new parameter list."
+  (let* ((name (or (cdr (assq 'name parameters))
+		   (cdr (assq 'name default-frame-alist))))
+	 (x-resource-name name)
+	 (res-geometry (if name (x-get-resource "geometry" "Geometry"))))
+    (when res-geometry
+      (let ((parsed (x-parse-geometry res-geometry)))
+	;; If the resource specifies a position, call the position
+	;; and size "user-specified".
+	(when (or (assq 'top parsed)
+		  (assq 'left parsed))
+	  (setq parsed (append '((user-position . t) (user-size . t)) parsed)))
+	;; Put the geometry parameters at the end.  Copy
+	;; default-frame-alist so that they go after it.
+	(setq parameters (append parameters default-frame-alist parsed))))
+    parameters))
+
+
+(defun x-handle-reverse-video (frame parameters)
+  "Handle the reverse-video frame parameter and X resource.
+`x-create-frame' does not handle this one."
+  (when (cdr (or (assq 'reverse parameters)
+		 (assq 'reverse default-frame-alist)
+		 (let ((resource (x-get-resource "reverseVideo"
+						 "ReverseVideo")))
+		   (if resource
+		       (cons nil (member (downcase resource)
+					 '("on" "true")))))))
+      (let* ((params (frame-parameters frame))
+	     (bg (cdr (assq 'foreground-color params)))
+	     (fg (cdr (assq 'background-color params))))
+	(modify-frame-parameters frame
+				 (list (cons 'foreground-color fg)
+				       (cons 'background-color bg)))
+	(if (equal bg (cdr (assq 'border-color params)))
+	    (modify-frame-parameters frame
+				     (list (cons 'border-color fg))))
+	(if (equal bg (cdr (assq 'mouse-color params)))
+	    (modify-frame-parameters frame
+				     (list (cons 'mouse-color fg))))
+	(if (equal bg (cdr (assq 'cursor-color params)))
+	    (modify-frame-parameters frame
+				     (list (cons 'cursor-color fg)))))))
+
+
+(defun x-create-frame-with-faces (&optional parameters)
+  "Create a frame from optional frame parameters PARAMETERS.
+Parameters not specified by PARAMETERS are taken from
+`default-frame-alist'.  If PARAMETERS specify a frame name,
+handle X geometry resources for that name.  If either PARAMETERS
+or `default-frame-alist' contains a `reverse' parameter, or
+the X resource ``reverseVideo'' is present, handle that.
+Value is the new frame created."
+  (setq parameters (x-handle-named-frame-geometry parameters))
+  (let ((visibility-spec (assq 'visibility parameters))
+	(frame-list (frame-list))
+	(frame (x-create-frame (cons '(visibility . nil) parameters)))
+	success)
+    (unwind-protect
+	(progn
+	  (x-handle-reverse-video frame parameters)
+	  (frame-set-background-mode frame)
+	  (face-set-after-frame-default frame)
+	  (if (or (null frame-list) (null visibility-spec))
+	      (make-frame-visible frame)
+	    (modify-frame-parameters frame (list visibility-spec)))
+	  (setq success t))
+      (unless success
+	(delete-frame frame)))
+    frame))
+
+
+(defun face-set-after-frame-default (frame)
+  "Set frame-local faces of FRAME from face specs and resources."
+  (dolist (face (face-list))
+    (let ((spec (or (get face 'saved-face)
+		    (get face 'face-defface-spec))))
+      (when spec
+	(face-spec-set face spec frame))
+      (internal-merge-in-global-face face frame)
+      (when window-system
+	(make-face-x-resource-internal face frame)))))
+
+
+(defun tty-create-frame-with-faces (&optional parameters)
+  "Create a frame from optional frame parameters PARAMETERS.
+Parameters not specified by PARAMETERS are taken from
+`default-frame-alist'.  If either PARAMETERS or `default-frame-alist'
+contains a `reverse' parameter, handle that.  Value is the new frame
+created."
+  (let ((frame (make-terminal-frame parameters))
+	success)
+    (unwind-protect
+	(progn
+	  (frame-set-background-mode frame)
+	  (face-set-after-frame-default frame)
+	  (setq success t))
+      (unless success
+	(delete-frame frame)))
+    frame))
+
+
+;; Called from C function init_display to initialize faces of the
+;; dumped terminal frame on startup.
+
+(defun tty-set-up-initial-frame-faces ()
+  (let ((frame (selected-frame)))
+    (frame-set-background-mode frame)
+    (face-set-after-frame-default frame)))
+  
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Compatiblity with 20.2
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Update a frame's faces when we change its default font.
+
+(defun frame-update-faces (frame)
+  nil)
+
+
+;; Update the colors of FACE, after FRAME's own colors have been
+;; changed.
+
+(defun frame-update-face-colors (frame)
+  (frame-set-background-mode frame))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Standard faces.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Make the standard faces.  The C code knows faces `default',
+;; `modeline', `toolbar' and `region', so they must be the first faces
+;; made.  Unspecified attributes of these three faces are filled-in
+;; from frame parameters in the C code.
+
+(defgroup basic-faces nil
+  "The standard faces of Emacs."
+  :group 'faces)
+
+
+(defface default
+  '((t nil))
+  "Basic default face."
+  :group 'basic-faces)
+
+
+(defface modeline
+  '((((type x) (class color))
+     (:box (:line-width 2 :style released-button) :background "grey75"))
+    (t
+     (:inverse-video t)))
+  "Basic mode line face."
+  :group 'basic-faces)
+
+
+(defface top-line
+  '((((type x) (class color))
+     (:box (:line-width 2 :style released-button) :background "grey75"))
+    (t
+     (:inverse-video t)))
+  "Basic top line face."
+  :group 'basic-faces)
+
+
+(defface toolbar
+  '((((type x) (class color))
+     (:box (:line-width 1 :style released-button) :background "grey75"))
+    (t
+     ()))
+  "Basic toolbar face."
+  :group 'basic-faces)
+
+
+(defface region
+  '((((type tty) (class color))
+     (:background "blue" :foreground "white"))
+    (((type tty) (class mono))
+     (:inverse-video t))
+    (((class color) (background dark))
+     (:background "blue"))
+    (((class color) (background light))
+     (:background "lightblue"))
+    (t (:background "gray")))
+  "Basic face for highlight the region."
+  :group 'basic-faces)
+
+
+(defface bitmap-area
+  '((((class color))
+     (:background "grey95"))
+    (t (:background "gray")))
+  "Basic face for bitmap areas under X."
+  :group 'basic-faces)
+
+
+(defface bold '((t (:weight bold)))
+  "Basic bold face."
+  :group 'basic-faces)
+
+
+(defface italic '((t (:slant italic)))
+  "Basic italic font."
+  :group 'basic-faces)
+
+
+(defface bold-italic '((t (:weight bold :slant italic)))
+  "Basic bold-italic face."
+  :group 'basic-faces)
+
+
+(defface underline '((t (:underline t)))
+  "Basic underlined face."
+  :group 'basic-faces)
+
+
+(defface highlight
+  '((((type tty) (class color))
+     (:background "green"))
+    (((class color) (background light))
+     (:background "darkseagreen2"))
+    (((class color) (background dark))
+     (:background "darkolivegreen"))
+    (t (:inverse-video t)))
+  "Basic face for highlighting.")
+
+
+(defface secondary-selection
+  '((((type tty) (class color))
+     (:background "cyan"))
+    (((class color) (background light))
+     (:background "paleturquoise"))
+    (((class color) (background dark))
+     (:background "darkslateblue"))
+    (t (:inverse-video t)))
+  "Basic face for displaying the secondary selection.")
+
+
+(defface fixed-pitch '((t (:family "courier*")))
+  "The basic fixed-pitch face."
+  :group 'basic-faces)
+
+
+(defface variable-pitch '((t (:family "helv*")))
+  "The basic variable-pitch face."
+  :group 'basic-faces)
+
+
+(defface trailing-whitespace
+  '((((class color) (background light))
+     (:background "red"))
+    (((class color) (background dark))
+     (:background "red"))
+    (t (:inverse-video t)))
+  "Basic face for highlighting trailing whitespace.")
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Manipulating font names.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; This is here for compatibilty with Emacs 20.2.  For example,
+;; international/fontset.el uses these functions to manipulate font
+;; names.  The following functions are not used in the face
+;; implementation itself.
 
 (defvar x-font-regexp nil)
 (defvar x-font-regexp-head nil)
@@ -803,6 +1499,7 @@ set its foreground and background to the default background and foreground."
   (setq x-font-regexp-weight (concat - weight -))
   nil)	    
 
+
 (defun x-resolve-font-name (pattern &optional face frame)
   "Return a font name matching PATTERN.
 All wildcards in PATTERN become substantiated.
@@ -832,6 +1529,7 @@ also the same size as FACE on FRAME, or fail."
 	(car fonts))
     (cdr (assq 'font (frame-parameters (selected-frame))))))
 
+
 (defun x-frob-font-weight (font which)
   (let ((case-fold-search t))
     (cond ((string-match x-font-regexp font)
@@ -851,6 +1549,7 @@ also the same size as FACE on FRAME, or fail."
 	  ((string-match x-font-regexp-weight font)
 	   (concat (substring font 0 (match-beginning 1)) which
 		   (substring font (match-end 1)))))))
+
 
 (defun x-frob-font-slant (font which)
   (let ((case-fold-search t))
@@ -872,813 +1571,50 @@ also the same size as FACE on FRAME, or fail."
 	   (concat (substring font 0 (match-beginning 1)) which
 		   (substring font (match-end 1)))))))
 
+
 (defun x-make-font-bold (font)
   "Given an X font specification, make a bold version of it.
 If that can't be done, return nil."
   (x-frob-font-weight font "bold"))
+
 
 (defun x-make-font-demibold (font)
   "Given an X font specification, make a demibold version of it.
 If that can't be done, return nil."
   (x-frob-font-weight font "demibold"))
 
+
 (defun x-make-font-unbold (font)
   "Given an X font specification, make a non-bold version of it.
 If that can't be done, return nil."
   (x-frob-font-weight font "medium"))
+
 
 (defun x-make-font-italic (font)
   "Given an X font specification, make an italic version of it.
 If that can't be done, return nil."
   (x-frob-font-slant font "i"))
 
+
 (defun x-make-font-oblique (font) ; you say tomayto...
   "Given an X font specification, make an oblique version of it.
 If that can't be done, return nil."
   (x-frob-font-slant font "o"))
+
 
 (defun x-make-font-unitalic (font)
   "Given an X font specification, make a non-italic version of it.
 If that can't be done, return nil."
   (x-frob-font-slant font "r"))
 
+
 (defun x-make-font-bold-italic (font)
   "Given an X font specification, make a bold and italic version of it.
 If that can't be done, return nil."
   (and (setq font (x-make-font-bold font))
        (x-make-font-italic font)))
-
-;;; non-X-specific interface
 
-(defun make-face-bold (face &optional frame noerror)
-  "Make the font of the given face be bold, if possible.  
-If NOERROR is non-nil, return nil on failure."
-  (interactive (list (read-face-name "Make which face bold: ")))
-  ;; Set the bold-p flag, first of all.
-  (internal-set-face-1 face nil t 10 frame)
-  (if (and (eq frame t) (listp (face-font face t)))
-      (set-face-font face (if (memq 'italic (face-font face t))
-			      '(bold italic) '(bold))
-		     t)
-    (let (font)
-      (if (null frame)
-	  (let ((frames (frame-list)))
-	    ;; Make this face bold in global-face-data.
-	    (make-face-bold face t noerror)
-	    ;; Make this face bold in each frame.
-	    (while frames
-	      (make-face-bold face (car frames) noerror)
-	      (setq frames (cdr frames))))
-	(setq face (internal-get-face face frame))
-	(setq font (or (face-font face frame)
-		       (face-font face t)))
-	(if (listp font)
-	    (setq font nil))
-	(setq font (or font
-		       (face-font 'default frame)
-		       (cdr (assq 'font (frame-parameters frame)))))
-	(or (and font (make-face-bold-internal face frame font))
-	    ;; We failed to find a bold version of the font.
-	    noerror
-	    (error "No bold version of %S" font))))))
-
-(defun make-face-bold-internal (face frame font)
-  (let (f2)
-    (or (and (setq f2 (x-make-font-bold font))
-	     (internal-try-face-font face f2 frame))
-	(and (setq f2 (x-make-font-demibold font))
-	     (internal-try-face-font face f2 frame)))))
-
-(defun make-face-italic (face &optional frame noerror)
-  "Make the font of the given face be italic, if possible.  
-If NOERROR is non-nil, return nil on failure."
-  (interactive (list (read-face-name "Make which face italic: ")))
-  ;; Set the italic-p flag, first of all.
-  (internal-set-face-1 face nil t 11 frame)
-  (if (and (eq frame t) (listp (face-font face t)))
-      (set-face-font face (if (memq 'bold (face-font face t))
-			      '(bold italic) '(italic))
-		     t)
-    (let (font)
-      (if (null frame)
-	  (let ((frames (frame-list)))
-	    ;; Make this face italic in global-face-data.
-	    (make-face-italic face t noerror)
-	    ;; Make this face italic in each frame.
-	    (while frames
-	      (make-face-italic face (car frames) noerror)
-	      (setq frames (cdr frames))))
-	(setq face (internal-get-face face frame))
-	(setq font (or (face-font face frame)
-		       (face-font face t)))
-	(if (listp font)
-	    (setq font nil))
-	(setq font (or font
-		       (face-font 'default frame)
-		       (cdr (assq 'font (frame-parameters frame)))))
-	(or (and font (make-face-italic-internal face frame font))
-	    ;; We failed to find an italic version of the font.
-	    noerror
-	    (error "No italic version of %S" font))))))
-
-(defun make-face-italic-internal (face frame font)
-  (let (f2)
-    (or (and (setq f2 (x-make-font-italic font))
-	     (internal-try-face-font face f2 frame))
-	(and (setq f2 (x-make-font-oblique font))
-	     (internal-try-face-font face f2 frame)))))
-
-(defun make-face-bold-italic (face &optional frame noerror)
-  "Make the font of the given face be bold and italic, if possible.  
-If NOERROR is non-nil, return nil on failure."
-  (interactive (list (read-face-name "Make which face bold-italic: ")))
-  ;; Set the bold-p and italic-p flags, first of all.
-  (internal-set-face-1 face nil t 10 frame)
-  (internal-set-face-1 face nil t 11 frame)
-  (if (and (eq frame t) (listp (face-font face t)))
-      (set-face-font face '(bold italic) t)
-    (let (font)
-      (if (null frame)
-	  (let ((frames (frame-list)))
-	    ;; Make this face bold-italic in global-face-data.
-	    (make-face-bold-italic face t noerror)
-	    ;; Make this face bold in each frame.
-	    (while frames
-	      (make-face-bold-italic face (car frames) noerror)
-	      (setq frames (cdr frames))))
-	(setq face (internal-get-face face frame))
-	(setq font (or (face-font face frame)
-		       (face-font face t)))
-	(if (listp font)
-	    (setq font nil))
-	(setq font (or font
-		       (face-font 'default frame)
-		       (cdr (assq 'font (frame-parameters frame)))))
-	(or (and font (make-face-bold-italic-internal face frame font))
-	    ;; We failed to find a bold italic version.
-	    noerror
-	    (error "No bold italic version of %S" font))))))
-
-(defun make-face-bold-italic-internal (face frame font)
-  (let (f2 f3)
-    (or (and (setq f2 (x-make-font-italic font))
-	     (not (equal font f2))
-	     (setq f3 (x-make-font-bold f2))
-	     (not (equal f2 f3))
-	     (internal-try-face-font face f3 frame))
-	(and (setq f2 (x-make-font-oblique font))
-	     (not (equal font f2))
-	     (setq f3 (x-make-font-bold f2))
-	     (not (equal f2 f3))
-	     (internal-try-face-font face f3 frame))
-	(and (setq f2 (x-make-font-italic font))
-	     (not (equal font f2))
-	     (setq f3 (x-make-font-demibold f2))
-	     (not (equal f2 f3))
-	     (internal-try-face-font face f3 frame))
-	(and (setq f2 (x-make-font-oblique font))
-	     (not (equal font f2))
-	     (setq f3 (x-make-font-demibold f2))
-	     (not (equal f2 f3))
-	     (internal-try-face-font face f3 frame)))))
-
-(defun make-face-unbold (face &optional frame noerror)
-  "Make the font of the given face be non-bold, if possible.  
-If NOERROR is non-nil, return nil on failure."
-  (interactive (list (read-face-name "Make which face non-bold: ")))
-  ;; Clear the bold-p flag, first of all.
-  (internal-set-face-1 face nil nil 10 frame)
-  (if (and (eq frame t) (listp (face-font face t)))
-      (set-face-font face (if (memq 'italic (face-font face t))
-			      '(italic) nil)
-		     t)
-    (let (font font1)
-      (if (null frame)
-	  (let ((frames (frame-list)))
-	    ;; Make this face unbold in global-face-data.
-	    (make-face-unbold face t noerror)
-	    ;; Make this face unbold in each frame.
-	    (while frames
-	      (make-face-unbold face (car frames) noerror)
-	      (setq frames (cdr frames))))
-	(setq face (internal-get-face face frame))
-	(setq font1 (or (face-font face frame)
-			(face-font face t)))
-	(if (listp font1)
-	    (setq font1 nil))
-	(setq font1 (or font1
-			(face-font 'default frame)
-			(cdr (assq 'font (frame-parameters frame)))))
-	(setq font (and font1 (x-make-font-unbold font1)))
-	(or (if font (internal-try-face-font face font frame))
-	    noerror
-	    (error "No unbold version of %S" font1))))))
-
-(defun make-face-unitalic (face &optional frame noerror)
-  "Make the font of the given face be non-italic, if possible.  
-If NOERROR is non-nil, return nil on failure."
-  (interactive (list (read-face-name "Make which face non-italic: ")))
-  ;; Clear the italic-p flag, first of all.
-  (internal-set-face-1 face nil nil 11 frame)
-  (if (and (eq frame t) (listp (face-font face t)))
-      (set-face-font face (if (memq 'bold (face-font face t))
-			      '(bold) nil)
-		     t)
-    (let (font font1)
-      (if (null frame)
-	  (let ((frames (frame-list)))
-	    ;; Make this face unitalic in global-face-data.
-	    (make-face-unitalic face t noerror)
-	    ;; Make this face unitalic in each frame.
-	    (while frames
-	      (make-face-unitalic face (car frames) noerror)
-	      (setq frames (cdr frames))))
-	(setq face (internal-get-face face frame))
-	(setq font1 (or (face-font face frame)
-			(face-font face t)))
-	(if (listp font1)
-	    (setq font1 nil))
-	(setq font1 (or font1
-			(face-font 'default frame)
-			(cdr (assq 'font (frame-parameters frame)))))
-	(setq font (and font1 (x-make-font-unitalic font1)))
-	(or (if font (internal-try-face-font face font frame))
-	    noerror
-	    (error "No unitalic version of %S" font1))))))
-
-(defvar list-faces-sample-text
-  "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-  "*Text string to display as the sample text for `list-faces-display'.")
-
-;; The name list-faces would be more consistent, but let's avoid a conflict
-;; with Lucid, which uses that name differently.
-(defun list-faces-display ()
-  "List all faces, using the same sample text in each.
-The sample text is a string that comes from the variable
-`list-faces-sample-text'.
-
-It is possible to give a particular face name different appearances in
-different frames.  This command shows the appearance in the
-selected frame."
-  (interactive)
-  (let ((faces (sort (face-list) (function string-lessp)))
-	(face nil)
-	(frame (selected-frame))
-	disp-frame window
-        (face-name-max-length
-         (car (sort (mapcar (function string-width)
-			    (mapcar (function symbol-name) (face-list)))
-                    (function >)))))
-    (with-output-to-temp-buffer "*Faces*"
-      (save-excursion
-	(set-buffer standard-output)
-	(setq truncate-lines t)
-	(while faces
-	  (setq face (car faces))
-	  (setq faces (cdr faces))
-	  (insert (format 
-                   (format "%%-%ds "
-                           face-name-max-length)
-                   (symbol-name face)))
-	  (let ((beg (point)))
-	    (insert list-faces-sample-text)
-	    (insert "\n")
-	    (put-text-property beg (1- (point)) 'face face)
-	    ;; If the sample text has multiple lines, line up all of them.
-	    (goto-char beg)
-	    (forward-line 1)
-	    (while (not (eobp))
-	      (insert-char ?  (1+ face-name-max-length))
-	      (forward-line 1))))
-	(goto-char (point-min)))
-      (print-help-return-message))
-    ;; If the *Faces* buffer appears in a different frame,
-    ;; copy all the face definitions from FRAME,
-    ;; so that the display will reflect the frame that was selected.
-    (setq window (get-buffer-window (get-buffer "*Faces*") t))
-    (setq disp-frame (if window (window-frame window)
-		       (car (frame-list))))
-    (or (eq frame disp-frame)
-	(let ((faces (face-list)))
-	  (while faces
-	    (copy-face (car faces) (car faces) frame disp-frame)
-	    (setq faces (cdr faces)))))))
-
-(defun describe-face (face)
-  "Display the properties of face FACE."
-  (interactive (list (read-face-name "Describe face: ")))
-  (with-output-to-temp-buffer "*Help*"
-    (princ "Properties of face `")
-    (princ (face-name face))
-    (princ "':") (terpri)
-    (princ "Foreground: ") (princ (face-foreground face)) (terpri)
-    (princ "Background: ") (princ (face-background face)) (terpri)
-    (princ "      Font: ") (princ (face-font face)) (terpri)
-    (princ "Underlined: ") (princ (if (face-underline-p face) "yes" "no")) (terpri)
-    (princ "   Stipple: ") (princ (or (face-stipple face) "none")) (terpri)
-    (terpri)
-    (princ "Documentation:") (terpri)
-    (let ((doc (face-documentation face)))
-      (if doc
-	  (princ doc)
-	(princ "not documented as a face.")))
-    (print-help-return-message)))
-
-;;; Setting a face based on a SPEC.
-
-(defun face-attr-match-p (face attrs &optional frame)
-  (or frame (setq frame (selected-frame)))
-  (and (face-attr-match-1 face frame attrs ':inverse-video
-			  'face-inverse-video-p)
-       (if (face-inverse-video-p face frame)
-	   (and
-	    (face-attr-match-1 face frame attrs
-			       ':foreground 'face-background
-			       (cdr (assq 'foreground-color
-					  (frame-parameters frame))))
-	    (face-attr-match-1 face frame attrs
-			       ':background 'face-foreground 
-			       (cdr (assq 'background-color
-					  (frame-parameters frame)))))
-	 (and
-	  (face-attr-match-1 face frame attrs ':foreground 'face-foreground)
-	  (face-attr-match-1 face frame attrs ':background 'face-background)))
-       (face-attr-match-1 face frame attrs ':stipple 'face-stipple)
-       (face-attr-match-1 face frame attrs ':bold 'face-bold-p)
-       (face-attr-match-1 face frame attrs ':italic 'face-italic-p)
-       (face-attr-match-1 face frame attrs ':underline 'face-underline-p)
-))
-
-(defun face-attr-match-1 (face frame plist property function
-			       &optional defaultval)
-  (while (and plist (not (eq (car plist) property)))
-    (setq plist (cdr (cdr plist))))
-  (eq (funcall function face frame)
-      (if plist
-	  (nth 1 plist)
-	(or defaultval
-	    (funcall function 'default frame)))))
-
-(defun face-spec-match-p (face spec &optional frame)
-  "Return t if FACE, on FRAME, matches what SPEC says it should look like."
-  (face-attr-match-p face (face-spec-choose spec frame) frame))
-
-(defun face-attr-construct (face &optional frame)
-  "Return a defface-style attribute list for FACE, as it exists on FRAME." 
-  (let (result)
-    (if (face-inverse-video-p face frame)
-	(progn
-	  (setq result (cons ':inverse-video (cons t result)))
-	  (or (face-attr-match-1 face frame nil
-				 ':foreground 'face-background
-				 (cdr (assq 'foreground-color
-					    (frame-parameters frame))))
-	      (setq result (cons ':foreground
-				 (cons (face-foreground face frame) result))))
-	  (or (face-attr-match-1 face frame nil
-				 ':background 'face-foreground 
-				 (cdr (assq 'background-color
-					    (frame-parameters frame))))
-	      (setq result (cons ':background
-				 (cons (face-background face frame) result)))))
-      (if (face-foreground face frame)
-	  (setq result (cons ':foreground
-			     (cons (face-foreground face frame) result))))
-      (if (face-background face frame)
-	  (setq result (cons ':background
-			     (cons (face-background face frame) result)))))
-    (if (face-stipple face frame)
-	(setq result (cons ':stipple
-			   (cons (face-stipple face frame) result))))
-    (if (face-bold-p face frame)
-	(setq result (cons ':bold
-			   (cons (face-bold-p face frame) result))))
-    (if (face-italic-p face frame)
-	(setq result (cons ':italic
-			   (cons (face-italic-p face frame) result))))
-    (if (face-underline-p face frame)
-	(setq result (cons ':underline
-			   (cons (face-underline-p face frame) result))))
-    result))
-    
-;; Choose the proper attributes for FRAME, out of SPEC.
-(defun face-spec-choose (spec &optional frame)
-  (or frame (setq frame (selected-frame)))
-  (let ((tail spec)
-	result)
-    (while tail
-      (let* ((entry (car tail))
-	     (display (nth 0 entry))
-	     (attrs (nth 1 entry)))
-	(setq tail (cdr tail))
-	(when (face-spec-set-match-display display frame)
-	  (setq result attrs tail nil))))
-    result))
-
-(defun face-spec-set (face spec &optional frame)
-  "Set FACE's face attributes according to the first matching entry in SPEC.
-If optional FRAME is non-nil, set it for that frame only.
-If it is nil, then apply SPEC to each frame individually.
-See `defface' for information about SPEC."
-  (if frame
-      (let ((attrs (face-spec-choose spec frame)))
-	(when attrs
-	  ;; If the font was set automatically, clear it out
-	  ;; to allow it to be set it again.
-	  (unless (face-font-explicit face frame)
-	    (set-face-font face nil frame))
-	  (modify-face face '(nil) '(nil) nil nil nil nil nil frame)
-	  (face-spec-set-1 face frame attrs ':foreground 'set-face-foreground)
-	  (face-spec-set-1 face frame attrs ':background 'set-face-background)
-	  (face-spec-set-1 face frame attrs ':stipple 'set-face-stipple)
-	  (face-spec-set-1 face frame attrs ':bold 'set-face-bold-p)
-	  (face-spec-set-1 face frame attrs ':italic 'set-face-italic-p)
-	  (face-spec-set-1 face frame attrs ':underline 'set-face-underline-p)
-	  (face-spec-set-1 face frame attrs ':inverse-video
-			   'set-face-inverse-video-p)))
-    (let ((frames (frame-list))
-	  frame)
-      (while frames
-	(setq frame (car frames)
-	      frames (cdr frames))
-	(face-spec-set face (or (get face 'saved-face)
-				(get face 'face-defface-spec))
-		       frame)
-	(face-spec-set face spec frame)))))
-
-(defun face-spec-set-1 (face frame plist property function)
-  (while (and plist (not (eq (car plist) property)))
-    (setq plist (cdr (cdr plist))))
-  (if plist
-      (funcall function face (nth 1 plist) frame)))
-
-(defun face-spec-set-match-display (display frame)
-  "Non-nil iff DISPLAY matches FRAME.
-DISPLAY is part of a spec such as can be used in `defface'.
-If FRAME is nil, the current FRAME is used."
-  (let* ((conjuncts display)
-	 conjunct req options
-	 ;; t means we have succeeded against all
-	 ;; the conjunts in DISPLAY that have been tested so far.
-	 (match t))
-    (if (eq conjuncts t)
-	(setq conjuncts nil))
-    (while (and conjuncts match)
-      (setq conjunct (car conjuncts)
-	    conjuncts (cdr conjuncts)
-	    req (car conjunct)
-	    options (cdr conjunct)
-	    match (cond ((eq req 'type)
-			 (memq window-system options))
-			((eq req 'class)
-			 (memq (frame-parameter frame 'display-type) options))
-			((eq req 'background)
-			 (memq (frame-parameter frame 'background-mode)
-			       options))
-			(t
-			 (error "Unknown req `%S' with options `%S'" 
-				req options)))))
-    match))
-
-;; Like x-create-frame but also set up the faces.
-
-(defun x-create-frame-with-faces (&optional parameters)
-  ;; Read this frame's geometry resource, if it has an explicit name,
-  ;; and put the specs into PARAMETERS.
-  (let* ((name (or (cdr (assq 'name parameters))
-		   (cdr (assq 'name default-frame-alist))))
-	 (x-resource-name name)
-	 (res-geometry (if name (x-get-resource "geometry" "Geometry"))))
-    (if res-geometry
-	(let ((parsed (x-parse-geometry res-geometry)))
-	  ;; If the resource specifies a position,
-	  ;; call the position and size "user-specified".
-	  (if (or (assq 'top parsed) (assq 'left parsed))
-	      (setq parsed (append '((user-position . t) (user-size . t))
-				   parsed)))
-	  ;; Put the geometry parameters at the end.
-	  ;; Copy default-frame-alist so that they go after it.
-	  (setq parameters (append parameters default-frame-alist parsed)))))
-
-  (if default-enable-multibyte-characters
-      ;; If an ASCII font is specified in PARAMETERS, we try to create
-      ;; a fontset from it, and use it for the new frame.
-      (condition-case nil
-	  (let ((font (cdr (assq 'font parameters))))
-	    (if (and font
-		     (not (query-fontset font)))
-		(setq parameters
-		      (cons (cons 'font (create-fontset-from-ascii-font font))
-			    parameters))))
-	(error nil)))
-
-  (let (frame)
-    (if (null global-face-data)
-	(progn
-	  (setq frame (x-create-frame parameters))
-	  (frame-set-background-mode frame))
-      (let* ((visibility-spec (assq 'visibility parameters))
-	     success faces rest)
-	(setq frame (x-create-frame (cons '(visibility . nil) parameters)))
-	(unwind-protect
-	    (progn
-	      ;; Copy the face alist, copying the face vectors
-	      ;; and emptying out their attributes.
-	      (setq faces
-		    (mapcar '(lambda (elt)
-			       (cons (car elt)
-				     (vector 'face
-					     (face-name (cdr elt))
-					     (face-id (cdr elt))
-					     nil
-					     nil nil nil nil
-					     nil nil nil nil)))
-			    global-face-data))
-	      (set-frame-face-alist frame faces)
-
-	      ;; Handle the reverse-video frame parameter
-	      ;; and X resource.  x-create-frame does not handle this one.
-	      (if (cdr (or (assq 'reverse parameters)
-			   (assq 'reverse default-frame-alist)
-			   (let ((resource (x-get-resource "reverseVideo"
-							   "ReverseVideo")))
-			     (if resource
-				 (cons nil (member (downcase resource)
-						   '("on" "true")))))))
-		  (let* ((params (frame-parameters frame))
-			 (bg (cdr (assq 'foreground-color params)))
-			 (fg (cdr (assq 'background-color params))))
-		    (modify-frame-parameters frame
-					     (list (cons 'foreground-color fg)
-						   (cons 'background-color bg)))
-		    (if (equal bg (cdr (assq 'border-color params)))
-			(modify-frame-parameters frame
-						 (list (cons 'border-color fg))))
-		    (if (equal bg (cdr (assq 'mouse-color params)))
-			(modify-frame-parameters frame
-						 (list (cons 'mouse-color fg))))
-		    (if (equal bg (cdr (assq 'cursor-color params)))
-			(modify-frame-parameters frame
-						 (list (cons 'cursor-color fg))))))
-
-	      (frame-set-background-mode frame)
-
-	      (face-set-after-frame-default frame)
-
-	      ;; Make the frame visible, if desired.
-	      (if (null visibility-spec)
-		  (make-frame-visible frame)
-		(modify-frame-parameters frame (list visibility-spec)))
-	      (setq success t))
-	  (or success
-	      (delete-frame frame)))))
-    frame))
-
-;; Update a frame's faces after the frame font changes.
-;; This is called from modify-frame-parameters
-;; as well as from elsewhere in this file.
-(defun face-set-after-frame-default (frame)
-  (let ((rest (frame-face-alist frame)))
-    (while rest
-      ;; Set up each face, first from the defface information,
-      ;; then the global face data, and then the X resources.
-      (let* ((face (car (car rest)))
-	     (spec (or (get face 'customized-face)
-		       (get face 'saved-face)
-		       (get face 'face-defface-spec)))
-	     (global (cdr (assq face global-face-data)))
-	     (local (cdr (car rest))))
-	(when spec
-	  (face-spec-set face spec frame))
-	(face-fill-in face global frame)
-	(make-face-x-resource-internal local frame))
-      (setq rest (cdr rest)))))
-
-(defcustom frame-background-mode nil
-  "*The brightness of the background.
-Set this to the symbol dark if your background color is dark, light if
-your background is light, or nil (default) if you want Emacs to
-examine the brightness for you."
-  :group 'faces
-  :set #'(lambda (var value)
-	   (set var value)
-	   (mapcar 'frame-set-background-mode (frame-list)))
-  :initialize 'custom-initialize-changed
-  :type '(choice (choice-item dark) 
-		 (choice-item light)
-		 (choice-item :tag "default" nil)))
-
-(defun frame-set-background-mode (frame)
-  "Set up the `background-mode' and `display-type' frame parameters for FRAME."
-  (unless (eq (framep frame) t)
-    (let ((bg-resource (x-get-resource ".backgroundMode"
-				       "BackgroundMode"))
-	  (params (frame-parameters frame))
-	  (bg-mode))
-      (setq bg-mode
-	    (cond (frame-background-mode)
-		  (bg-resource (intern (downcase bg-resource)))
-		  ((< (apply '+ (x-color-values
-				 (cdr (assq 'background-color params))
-				 frame))
-		      ;; Just looking at the screen,
-		      ;; colors whose values add up to .6 of the white total
-		      ;; still look dark to me.
-		      (* (apply '+ (x-color-values "white" frame)) .6))
-		   'dark)
-		  (t 'light)))
-      (modify-frame-parameters frame
-			       (list (cons 'background-mode bg-mode)
-				     (cons 'display-type
-					   (cond ((x-display-color-p frame)
-						  'color)
-						 ((x-display-grayscale-p frame)
-						  'grayscale)
-						 (t 'mono))))))))
-
-;; Update a frame's faces when we change its default font.
-(defun frame-update-faces (frame) nil)
-
-;; Update the colors of FACE, after FRAME's own colors have been changed.
-;; This applies only to faces with global color specifications
-;; that are not simple constants.
-(defun frame-update-face-colors (frame)
-  (frame-set-background-mode frame)
-  (let ((faces global-face-data))
-    (while faces
-      (condition-case nil
-	  (let* ((data (cdr (car faces)))
-		 (face (car (car faces)))
-		 (foreground (face-foreground data))
-		 (background (face-background data)))
-	    ;; If the global spec is a specific color,
-	    ;; which doesn't depend on the frame's attributes,
-	    ;; we don't need to recalculate it now.
-	    (or (listp foreground)
-		(setq foreground nil))
-	    (or (listp background)
-		(setq background nil))
-	    ;; If we are going to frob this face at all,
-	    ;; reinitialize it first.
-	    (if (or foreground background)
-		(progn (set-face-foreground face nil frame)
-		       (set-face-background face nil frame)))
-	    (if foreground
-		(face-try-color-list 'set-face-foreground
-				     face foreground frame))
-	    (if background
-		(face-try-color-list 'set-face-background
-				     face background frame)))
-	(error nil))
-      (setq faces (cdr faces)))))
-
-;; Fill in the face FACE from frame-independent face data DATA.
-;; DATA should be the non-frame-specific ("global") face vector
-;; for the face.  FACE should be a face name or face object.
-;; FRAME is the frame to act on; it must be an actual frame, not nil or t.
-(defun face-fill-in (face data frame)
-  (condition-case nil
-      (let ((foreground (face-foreground data))
-	    (background (face-background data))
-	    (font (face-font data))
-	    (stipple (face-stipple data)))
-	(if (face-underline-p data)
-	    (set-face-underline-p face (face-underline-p data) frame))
-	(if foreground
-	    (face-try-color-list 'set-face-foreground
-				 face foreground frame))
-	(if background
-	    (face-try-color-list 'set-face-background
-				 face background frame))
-	(if (listp font)
-	    (let ((bold (memq 'bold font))
-		  (italic (memq 'italic font)))
-	      (cond ((and bold italic)
-		     (make-face-bold-italic face frame))
-		    (bold
-		     (make-face-bold face frame))
-		    (italic
-		     (make-face-italic face frame))))
-	  (if font
-	      (set-face-font face font frame)))
-	(if stipple
-	    (set-face-stipple face stipple frame)))
-    (error nil)))
-
-;; Assuming COLOR is a valid color name,
-;; return t if it can be displayed on FRAME.
-(defun face-color-supported-p (frame color background-p)
-  (and window-system
-       (or (x-display-color-p frame)
-	   ;; A black-and-white display can implement these.
-	   (member color '("black" "white"))
-	   ;; A black-and-white display can fake gray for background.
-	   (and background-p
-		(face-color-gray-p color frame))
-	   ;; A grayscale display can implement colors that are gray (more or less).
-	   (and (x-display-grayscale-p frame)
-		(face-color-gray-p color frame)))))
-
-;; Use FUNCTION to store a color in FACE on FRAME.
-;; COLORS is either a single color or a list of colors.
-;; If it is a list, try the colors one by one until one of them
-;; succeeds.  We signal an error only if all the colors failed.
-;; t as COLORS or as an element of COLORS means to invert the face.
-;; That can't fail, so any subsequent elements after the t are ignored.
-(defun face-try-color-list (function face colors frame)
-  (if (stringp colors)
-      (if (face-color-supported-p frame colors
-				  (eq function 'set-face-background))
-	  (funcall function face colors frame))
-    (if (eq colors t)
-	(set-face-inverse-video-p face t frame)
-      (let (done)
-	(while (and colors (not done))
-	  (if (or (memq (car colors) '(t underline nil))
-		  (face-color-supported-p frame (car colors)
-					  (eq function 'set-face-background)))
-	      (if (cdr colors)
-		  ;; If there are more colors to try, catch errors
-		  ;; and set `done' if we succeed.
-		  (condition-case nil
-		      (progn
-			(cond ((eq (car colors) t)
-			       (set-face-inverse-video-p face t frame))
-			      ((eq (car colors) 'underline)
-			       (set-face-underline-p face t frame))
-			      (t
-			       (funcall function face (car colors) frame)))
-			(setq done t))
-		    (error nil))
-		;; If this is the last color, let the error get out if it fails.
-		;; If it succeeds, we will exit anyway after this iteration.
-		(cond ((eq (car colors) t)
-		       (set-face-inverse-video-p face t frame))
-		      ((eq (car colors) 'underline)
-		       (set-face-underline-p face t frame))
-		      (t
-		       (funcall function face (car colors) frame)))))
-	  (setq colors (cdr colors)))))))
-
-;;; Make the standard faces.
-;;; The C code knows the default and modeline faces as faces 0 and 1,
-;;; so they must be the first two faces made.
-(make-face 'default)
-(make-face 'modeline)
-(make-face 'highlight)
-
-;; These aren't really special in any way, but they're nice to have around.
-
-(make-face 'bold)
-(make-face 'italic)
-(make-face 'bold-italic)
-(make-face 'region)
-(make-face 'secondary-selection)
-(make-face 'underline)
-
-(setq region-face (face-id 'region))
-
-(defgroup basic-faces nil
-  "The standard faces of Emacs."
-  :prefix "huh"
-  :group 'faces)
-
-;; Specify how these faces look, and their documentation.
-(let ((all '((bold "Use bold font." ((t (:bold t))))
-	     (bold-italic "Use bold italic font." ((t (:bold t :italic t))))
-	     (italic "Use italic font." ((t (:italic t))))
-	     (underline "Underline text." ((t (:underline t))))
-	     (default "Used for text not covered by other faces." ((t nil)))
-	     (highlight "Highlight text in some way."
-			((((class color) (background light))
-			  (:background "darkseagreen2"))
-			 (((class color) (background dark))
-			  (:background "darkolivegreen"))
-			 (t (:inverse-video t))))
-	     (modeline "Used for displaying the modeline."
-		       ((t (:inverse-video t))))
-	     (region "Used for displaying the region."
-		     ((((class color) (background dark))
-		       (:background "blue"))
-		      (t (:background "gray"))))
-	     (secondary-selection
-	      "Used for displaying the secondary selection."
-	      ((((class color) (background light))
-		(:background "paleturquoise"))
-	       (((class color) (background dark))
-		(:background "darkslateblue"))
-	       (t (:inverse-video t))))))
-      entry symbol doc spec)
-  (while all
-    (setq entry (car all)
-	  all (cdr all)
-	  symbol (nth 0 entry)
-	  doc (nth 1 entry)
-	  spec (nth 2 entry))
-    (custom-add-to-group 'basic-faces symbol 'custom-face)
-    (put symbol 'face-documentation doc)
-    (put symbol 'face-defface-spec spec)))
 
 (provide 'faces)
 
-;;; faces.el ends here
+;;; end of faces.el
