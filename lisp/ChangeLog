@@ -1,3 +1,16 @@
+2002-12-29  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in: Generate cus-load.el and finder-inf.el in the
+	source directory.  Change dependencies on lisp files to explicitly
+	use $(lisp).
+	(compile-calc): Fix command substitution.
+	* cus-dep.el (generated-custom-dependencies-file): New variable.
+	(custom-make-dependencies): Use it instead of hardcoding
+	cus-load.el.
+	* finder.el (generated-finder-keywords-file): New variable.
+	(finder-compile-keywords): Use it instead of hardcoding
+	finder-inf.el.
+
 2002-12-28  Richard M. Stallman  <rms@gnu.org>
 
 	* info-look.el (info-lookup): Fix error message typo.
