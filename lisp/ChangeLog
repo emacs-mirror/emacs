@@ -2,6 +2,7 @@
 
 	* progmodes/etags.el (tags-apropos, list-tags): Require
 	apropos.
+	(etags-tags-completion-table): Show parsing progress.
 
 2004-05-20  Luc Teirlinck  <teirllm@auburn.edu>
 
