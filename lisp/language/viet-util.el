@@ -35,6 +35,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (defun setup-vietnamese-environment ()
   "Setup multilingual environment (MULE) for Vietnamese VISCII users."
   (interactive)
