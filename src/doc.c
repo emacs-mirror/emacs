@@ -61,9 +61,7 @@ munge_doc_file_name (name)
 #ifndef NO_HYPHENS_IN_FILENAMES
   strcpy (name, sys_translate_unix (name));
 #else /* NO_HYPHENS_IN_FILENAMES */
-  /* For VMS versions with limited file name syntax,
-     convert the name to something VMS will allow.  */
-  p = name;
+  char *p = name;
   while (*p)
     {
       if (*p == '-')
