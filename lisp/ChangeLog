@@ -1,3 +1,8 @@
+2004-11-17  Miles Bader  <miles@gnu.org>
+
+	* progmodes/idlw-shell.el, progmodes/idlw-toolbar.el
+	* progmodes/idlwave.el: Remove RCS keywords.
+	
 2004-11-16  Richard M. Stallman  <rms@gnu.org>
 
 	* international/iso-cvt.el (iso-tex2iso-trans-tab):

@@ -6,7 +6,6 @@
 ;;          Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 5.5
-;; Date: $Date: 2004/11/17 05:54:19 $
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
