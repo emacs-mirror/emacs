@@ -77,10 +77,14 @@ extern Lisp_Object Vglyph_table;
 
 /* Follow all aliases for G in the glyph table given by (BASE,
    LENGTH), and set G to the final glyph.  */
-#define GLYPH_FOLLOW_ALIASES(base, length, g)				\
-  while (GLYPH_ALIAS_P ((base), (length), (g)))				\
-    (g) = GLYPH_ALIAS ((base), (g));
-  
+#define GLYPH_FOLLOW_ALIASES(base, length, g)		\
+  do {							\
+    while (GLYPH_ALIAS_P ((base), (length), (g)))	\
+      (g) = GLYPH_ALIAS ((base), (g));			\
+    if (!GLYPH_CHAR_VALID_P (FAST_GLYPH_CHAR (g)))	\
+      g = FAST_MAKE_GLYPH (' ', FAST_GLYPH_FACE (g));	\
+  } while (0)
+
 /* Assuming that GLYPH_SIMPLE_P (BASE, LEN, G) is 0,
    return the length and the address of the character-sequence
    used for outputting GLYPH G.  */
