@@ -1,3 +1,9 @@
+2004-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-gcpro): New var
+	(compilation-fake-loc): Use it.
+	(compilation-forget-errors): Reset it.
+
 2004-05-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* diff-mode.el (diff-header-face, diff-file-header-face):
