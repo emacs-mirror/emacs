@@ -219,6 +219,11 @@ the current buffer.  The beginning of a string is at index 0, but the
 beginning of a buffer is at index 1.
 @end defun
 
+@defun substring-no-properties string start &optional end
+This works like @code{substring} but discards all text properties
+from the value.
+@end defun
+
 @defun concat &rest sequences
 @cindex copying strings
 @cindex concatenating strings
