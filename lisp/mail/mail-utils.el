@@ -211,6 +211,21 @@ If third arg ALL is non-nil, concatenate all such fields with commas between."
 		    "\\|"
 		    (substring labels (match-end 0))))))
   labels)
+
+(defun mail-rfc822-time-zone (time)
+  (let* ((sec (or (car (current-time-zone time)) 0))
+	 (absmin (/ (abs sec) 60)))
+    (format "%c%02d%02d" (if (< sec 0) ?- ?+) (/ absmin 60) (% absmin 60))))
+
+(defun mail-rfc822-date ()
+  (let* ((time (current-time))
+	 (s (current-time-string time)))
+    (string-match "[^ ]+ +\\([^ ]+\\) +\\([^ ]+\\) \\([^ ]+\\) \\([^ ]+\\)" s)
+    (concat (substring s (match-beginning 2) (match-end 2)) " "
+	    (substring s (match-beginning 1) (match-end 1)) " "
+	    (substring s (match-beginning 4) (match-end 4)) " "
+	    (substring s (match-beginning 3) (match-end 3)) " "
+	    (mail-rfc822-time-zone time))))
 
 (provide 'mail-utils)
 
