@@ -1567,7 +1567,7 @@ before each command.")
   if (XFRAME (WINDOW_FRAME (w)) != selected_frame)
     {
       XFRAME (WINDOW_FRAME (w))->selected_window = window;
-      Fselect_frame (WINDOW_FRAME (w), Qnil);
+      Fhandle_switch_frame (WINDOW_FRAME (w), Qnil);
     }
   else
     selected_frame->selected_window = window;
@@ -1632,7 +1632,7 @@ Returns the window displaying BUFFER.")
 	= Fframe_selected_window (call0 (Vpop_up_frame_function));
       Fset_window_buffer (window, buffer);
 #if 0
-      Fselect_frame (XWINDOW (window)->frame, Qnil);
+      Fhandle_switch_frame (XWINDOW (window)->frame, Qnil);
 #endif
       return window;
     }
@@ -2436,9 +2436,8 @@ DEFUN ("window-configuration-p", Fwindow_configuration_p, Swindow_configuration_
 }
 
 
-DEFUN ("set-window-configuration",
-       Fset_window_configuration, Sset_window_configuration,
-       1, 1, 0,
+DEFUN ("set-window-configuration", Fset_window_configuration,
+  Sset_window_configuration, 1, 1, 0,
   "Set the configuration of windows and buffers as specified by CONFIGURATION.\n\
 CONFIGURATION must be a value previously returned\n\
 by `current-window-configuration' (which see).")
@@ -2614,7 +2613,7 @@ by `current-window-configuration' (which see).")
          when the frame's old selected window has been deleted.  */
 #ifdef MULTI_FRAME
       if (f != selected_frame && ! FRAME_TERMCAP_P (f))
-	Fselect_frame (WINDOW_FRAME (XWINDOW (data->root_window)), Qnil);
+	Fhandle_switch_frame (WINDOW_FRAME (XWINDOW (data->root_window)), Qnil);
 #endif
 #endif
 
@@ -2627,12 +2626,12 @@ by `current-window-configuration' (which see).")
 
 #ifdef MULTI_FRAME
   /* Fselect_window will have made f the selected frame, so we
-     reselect the proper frame here.  Fselect_frame will change the
+     reselect the proper frame here.  Fhandle_switch_frame will change the
      selected window too, but that doesn't make the call to
      Fselect_window above totally superfluous; it still sets f's
      selected window.  */
   if (FRAME_LIVE_P (XFRAME (data->selected_frame)))
-    Fselect_frame (data->selected_frame, Qnil);
+    Fhandle_switch_frame (data->selected_frame, Qnil);
 #endif
 
   if (!NILP (new_current_buffer))
