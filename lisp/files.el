@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 92, 93, 94 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 92, 93, 94, 1995 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -1796,7 +1796,10 @@ Optional second argument EXITING means ask about certain non-file buffers
 
 (defun not-modified (&optional arg)
   "Mark current buffer as unmodified, not needing to be saved.
-With prefix arg, mark buffer as modified, so \\[save-buffer] will save."
+With prefix arg, mark buffer as modified, so \\[save-buffer] will save.
+
+It is not a good idea to use this function in Lisp programs, because it
+prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
   (interactive "P")
   (message (if arg "Modification-flag set"
 	       "Modification-flag cleared"))
