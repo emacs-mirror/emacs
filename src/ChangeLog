@@ -1,3 +1,11 @@
+2004-03-14  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (x_find_image_file): Add prototype.
+
+	* image.c (x_find_image_file): Make extern.
+
+	* xfns.c (x_find_image_file): Remove prototype.
+
 2004-03-13  Eli Zaretskii  <eliz@elta.co.il>
 
 	* Makefile.in (XMENU_OBJ): Include xmenu.o if HAVE_MENUS is
