@@ -1,3 +1,7 @@
+2001-12-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* test-distrib.c: Fix previous change.
+
 2001-12-18  Dave Love  <fx@gnu.org>
 
 	* test-distrib.c: Conditionally include fcntl.h.
