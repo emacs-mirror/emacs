@@ -4664,13 +4664,16 @@ amount of raising or lowering is computed without taking account of the
 *** Conditional display properties
 
 All display specifications can be conditionalized.  If a specification
-has the form `(:when CONDITION . SPEC)', the specification SPEC
-applies only when CONDITION yields a non-nil value when evaluated.
-During evaluation, point is temporarily set to the end position of
-the text having the `display' property.
+has the form `(when CONDITION . SPEC)', the specification SPEC applies
+only when CONDITION yields a non-nil value when evaluated.  During the
+evaluation, `object' is bound to the string or buffer having the
+conditional display property; `position' and `buffer-position' are
+bound to the position within `object' and the buffer position where
+the display property was found, respectively.  Both positions can be
+different when object is a string.
 
 The normal specification consisting of SPEC only is equivalent to
-`(:when t SPEC)'.
+`(when t . SPEC)'.
 
 +++
 ** New menu separator types.
