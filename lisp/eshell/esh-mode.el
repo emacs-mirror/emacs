@@ -188,7 +188,7 @@ This is used by `eshell-watch-for-password-prompt'."
 
 (defcustom eshell-skip-prompt-function nil
   "*A function called from beginning of line to skip the prompt."
-  :type 'function
+  :type '(choice (const nil) function)
   :group 'eshell-mode)
 
 (defcustom eshell-status-in-modeline t
