@@ -1414,6 +1414,7 @@ topsrcdir=${srcdir}
 makefile_command='echo "creating src/Makefile";
   topsrcdir='"${topsrcdir}"';
 ( cd ./src;
+  rm -f junk.c;
   sed -e '\''s/^# Generated.*//'\'' -e '\''s%/\*\*/#.*%%'\'' < Makefile.in > junk.c;
   eval `echo ${CPP} -I. -I${topsrcdir}/src ${CPPFLAGS} junk.c \>junk.cpp`;
   < junk.cpp							'\
