@@ -280,6 +280,4 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
 (define-coding-system-alias 'utf-16-le 'mule-utf-16-le)
 (define-coding-system-alias 'utf-16-be 'mule-utf-16-be)
 
-(provide 'utf-16)
-
 ;;; utf-16.el ends here
