@@ -1232,9 +1232,9 @@ unification on input operations."
 	 (if (and (>= key 128) val
 		  (not (aref safe key)))
 	     (aset char-coding-system-table key
-		   (delq 'mule-utf-8
-			 (delq 'mule-utf-16-le
-			       (delq 'mule-utf-16-be
+		   (remq 'mule-utf-8
+			 (remq 'mule-utf-16-le
+			       (remq 'mule-utf-16-be
 				     (aref char-coding-system-table key)))))))
        ucs-mule-to-mule-unicode)
     
@@ -1260,11 +1260,11 @@ unification on input operations."
 	     (if (and (>= key 128) val)
 		 (let ((codings (aref char-coding-system-table key)))
 		   (aset char-coding-system-table key
-			 (delq coding-system codings)))))
+			 (remq coding-system codings)))))
 	   (char-table-parent safe))
 	  (set-char-table-parent safe nil))
 	(coding-system-put coding-system 'translation-table-for-encode nil)))
-    (optimize-char-table char-coding-system-table)
+    (optimize-char-coding-system-table)
     (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
 
 (defun ucs-insert (arg)
