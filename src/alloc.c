@@ -1893,8 +1893,9 @@ compact_small_strings ()
 
 
 DEFUN ("make-string", Fmake_string, Smake_string, 2, 2, 0,
-       doc: /* Return a newly created string of length LENGTH, with each element being INIT.
-Both LENGTH and INIT must be numbers.  */)
+       doc: /* Return a newly created string of length LENGTH, with INIT in each element.
+LENGTH must be an integer.
+INIT must be an integer that represents a character.  */)
      (length, init)
      Lisp_Object length, init;
 {
