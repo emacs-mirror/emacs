@@ -368,16 +368,17 @@ non-address headers.")
 
 (defvar mail-abbrev-syntax-table
   (let* ((tab (copy-syntax-table mail-mode-header-syntax-table))
-	 (i (1- (length tab)))
 	 (_ (aref (standard-syntax-table) ?_))
 	 (w (aref (standard-syntax-table) ?w)))
-    (while (>= i 0)
-      (if (equal (aref tab i) _) (aset tab i w))
-      (setq i (1- i)))
-    tab)
-  "The syntax-table used for abbrev-expansion purposes; this is not actually
-made the current syntax table of the buffer, but simply controls the set of
-characters which may be a part of the name of a mail alias.")
+    (map-char-table
+     (function (lambda (key value)
+		 (if (equal value _)
+		     (set-char-table-range tab key w))))
+     tab))
+  "The syntax-table used for abbrev-expansion purposes.
+This is not actually made the current syntax table of the buffer, but
+simply controls the set of characters which may be a part of the name
+of a mail alias.")
 
 
 (defun mail-abbrev-in-expansion-header-p ()
