@@ -3329,8 +3329,8 @@ DEFUN ("require", Frequire, Srequire, 1, 3, 0,
 If FEATURE is not a member of the list `features', then the feature
 is not loaded; so load the file FILENAME.
 If FILENAME is omitted, the printname of FEATURE is used as the file name,
-and `load' will try to load this name appended with the suffix `.elc',
-`.el' or the unmodified name, in that order.
+and `load' will try to load this name appended with the suffix `.elc' or
+`.el', in that order.  The name without appended suffix will not be used.
 If the optional third argument NOERROR is non-nil,
 then return nil if the file is not found instead of signaling an error.
 Normally the return value is FEATURE.
