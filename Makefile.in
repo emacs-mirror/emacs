@@ -219,7 +219,7 @@ src/paths.h: Makefile ${srcdir}/src/paths.h.in
 # something notable, so the only unnecessary work we do is in building
 # paths.h.tmp$$$$, which isn't much.
 # Note that sed is not in /bin on 386bsd.
-paths-force: FRC.src.paths.h
+paths-force: FRC
 	@echo "Producing \`src/paths.h' from \`src/paths.h.in'."
 	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
@@ -233,13 +233,13 @@ paths-force: FRC.src.paths.h
 	  -e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";') &&		\
 	${srcdir}/move-if-change paths.h.tmp$$$$ src/paths.h
 
-src:	lib-src FRC.src src/paths.h
+src:	lib-src FRC src/paths.h
 
 # This ought to depend on src/paths.h, so that in parallel make
 # src/paths.h will be available for the compilations in lib-src.
 # But that causes trouble in `make install' if a different prefix
 # is specified at that time.
-lib-src: FRC.lib-src src/paths.h
+lib-src: FRC src/paths.h
 
 .RECURSIVE: ${SUBDIR}
 
@@ -347,7 +347,7 @@ install-arch-indep: mkdir
 ### we may be creating several layers of directories (for example,
 ### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use make-path
 ### instead of mkdir.  Not all systems' mkdirs have the `-p' flag.
-mkdir: FRC.mkdir
+mkdir: FRC
 	./lib-src/make-path ${COPYDESTS} ${lockdir} ${infodir} ${mandir} \
 	  ${bindir} ${datadir} ${docdir} ${libdir} \
 	  `echo ${locallisppath} | sed 's/:/ /g'`
@@ -381,10 +381,7 @@ uninstall:
 	(cd ${bindir};  rm -f emacs-${version} $(EMACS))
 
 
-### Some makes seem to remember that they've built something called FRC,
-### so you can only use a given FRC once per makefile.
-FRC FRC.src.paths.h FRC.src FRC.lib-src FRC.mkdir:
-FRC.mostlyclean FRC.clean FRC.distclean FRC.realclean:
+FRC:
 
 # ==================== Cleaning up and miscellanea ====================
 
@@ -395,7 +392,7 @@ FRC.mostlyclean FRC.clean FRC.distclean FRC.realclean:
 ###      normally don't want to recompile.  For example, the `mostlyclean'
 ###      target for GCC does not delete `libgcc.a', because recompiling it
 ###      is rarely necessary and takes a lot of time.
-mostlyclean: FRC.mostlyclean
+mostlyclean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) mostlyclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) mostlyclean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) mostlyclean)
@@ -410,7 +407,7 @@ mostlyclean: FRC.mostlyclean
 ###      with them.
 ### 
 ###      Delete `.dvi' files here if they are not part of the distribution.
-clean: FRC.clean
+clean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) clean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) clean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) clean)
@@ -427,7 +424,7 @@ top_distclean=\
 	rm -f config.status build-install ; \
 	rm -f Makefile ${SUBDIR_MAKEFILES} ; \
 	(cd lock ; rm -f *)
-distclean: FRC.distclean
+distclean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) distclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) distclean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) distclean)
@@ -447,7 +444,7 @@ distclean: FRC.distclean
 ###      Makefile.  More generally, `make realclean' should not delete
 ###      anything that needs to exist in order to run `configure' and then
 ###      begin to build the program.
-realclean: FRC.realclean
+realclean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) realclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) realclean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) realclean)
