@@ -49,12 +49,6 @@ Boston, MA 02111-1307, USA.  */
 #define MAX_SCORES 200
 #define MAX_DATA_LEN 1024
 
-#ifdef HAVE_SHARED_GAME_DIR
-#define SCORE_FILE_PREFIX HAVE_SHARED_GAME_DIR
-#else
-#define SCORE_FILE_PREFIX "~/.emacs.d/games"
-#endif
-
 #if !defined (__GNUC__) || __GNUC__ < 2
 #define __attribute__(x) 
 #endif
@@ -67,6 +61,7 @@ usage(int err)
   fprintf(stdout, " -h\t\tDisplay this help.\n");
   fprintf(stdout, " -m MAX\t\tLimit the maximum number of scores to MAX.\n");
   fprintf(stdout, " -r\t\tSort the scores in increasing order.\n");
+  fprintf(stdout, " -d DIR\t\tStore scores in DIR (only if not setuid).\n");
   exit(err);
 }
 
@@ -94,32 +89,6 @@ int
 write_scores(const char *filename, const struct score_entry *scores,
 	     int count);
 
-char *
-get_user_id(struct passwd *buf)
-{
-  char *name;
-  if (!buf)
-    {
-      int count = 1;
-      int uid = (int) getuid();
-      int tuid = uid;
-      while (tuid /= 10)
-	count++;
-      name = malloc(count+1);
-      sprintf(name, "%d", uid);
-      return name;
-    }
-  return buf->pw_name;
-}
-
-char *
-get_home_dir(struct passwd *buf)
-{
-  if (!buf)
-    return NULL;
-  return buf->pw_dir;
-}
-
 void lose(const char *msg, ...)
      __attribute__ ((format (printf,1,0), noreturn));
 
@@ -132,25 +101,64 @@ void lose(const char *msg, ...)
     exit(1);
 }
 
+char *
+get_user_id(void)
+{
+  char *name;
+  struct passwd *buf = getpwuid(getuid());
+  if (!buf)
+    {
+      int count = 1;
+      int uid = (int) getuid();
+      int tuid = uid;
+      while (tuid /= 10)
+	count++;
+      name = malloc(count+1);
+      if (!name)
+	return NULL;
+      sprintf(name, "%d", uid);
+      return name;
+    }
+  return buf->pw_name;
+}
+
+char *
+get_prefix(int running_suid, char *user_prefix)
+{
+  if (!running_suid && user_prefix == NULL)
+    lose("Not using a shared game directory, and no prefix given.\n");
+  if (running_suid)
+    {
+#ifdef HAVE_SHARED_GAME_DIR
+      return HAVE_SHARED_GAME_DIR;
+#else
+      lose("This program was compiled without HAVE_SHARED_GAME_DIR,\n and should not be suid.\n");
+#endif
+    }
+  return user_prefix;
+}
+
 int
 main(int argc, char **argv)
 {
-  int c;
+  int c, running_suid;
   void *lockstate;
-  char *scorefile, *prefix;
+  char *user_id, *scorefile, *prefix, *user_prefix = NULL;
   struct stat buf;
   struct score_entry *scores;
   int newscore, scorecount, reverse = 0, max = MAX_SCORES;
   char *newdata;
-  struct passwd *passwdbuf;
 
   srand(time(0));
 
-  while ((c = getopt(argc, argv, "hrm:")) != -1)
+  while ((c = getopt(argc, argv, "hrm:d:")) != -1)
     switch (c)
       {
       case 'h':
 	usage(0);
+	break;
+      case 'd':
+	user_prefix = optarg;
 	break;
       case 'r':
 	reverse = 1;
@@ -167,36 +175,24 @@ main(int argc, char **argv)
   if (optind+3 != argc)
     usage(1);
 
-  passwdbuf = getpwuid(getuid());
+  running_suid = (getuid() != geteuid());
 
-  if (!strncmp(SCORE_FILE_PREFIX, "~", 1))
-    {
-      char *homedir = get_home_dir(passwdbuf);
-      if (!homedir)
-	lose("Unable to determine home directory\n");
-      prefix = malloc(strlen(homedir) + strlen(SCORE_FILE_PREFIX) + 1);
-      strcpy(prefix, homedir);
-      /* Skip over the '~'. */
-      strcat(prefix, SCORE_FILE_PREFIX+1);
-    }
-  else
-    prefix = strdup(SCORE_FILE_PREFIX);
-
-  if (!prefix)
-    lose("Couldn't create score file name: %s\n", strerror(errno));
+  prefix = get_prefix(running_suid, user_prefix);
 
   scorefile = malloc(strlen(prefix) + strlen(argv[optind]) + 2);
   if (!scorefile)
     lose("Couldn't create score file name: %s\n", strerror(errno));
 
   strcpy(scorefile, prefix);
-  free(prefix);
   strcat(scorefile, "/");
   strcat(scorefile, argv[optind]);
   newscore = atoi(argv[optind+1]);
   newdata = argv[optind+2];
   if (strlen(newdata) > MAX_DATA_LEN)
     newdata[MAX_DATA_LEN] = '\0';
+
+  if ((user_id = get_user_id()) == NULL)
+    lose("Couldn't determine user id: %s\n", strerror(errno));
   
   if (stat(scorefile, &buf) < 0)
     lose("Failed to access scores file \"%s\": %s\n", scorefile,
@@ -210,7 +206,7 @@ main(int argc, char **argv)
       lose("Failed to read scores file \"%s\": %s\n", scorefile,
 	   strerror(errno));
     }
-  push_score(&scores, &scorecount, newscore, get_user_id(passwdbuf), newdata);
+  push_score(&scores, &scorecount, newscore, user_id, newdata);
   /* Limit the number of scores.  If we're using reverse sorting, then
      we should increment the beginning of the array, to skip over the
      *smallest* scores.  Otherwise, we just decrement the number of
