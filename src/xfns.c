@@ -301,12 +301,7 @@ check_x_display_info (frame)
     dpyinfo = x_display_info_for_name (frame);
   else
     {
-      FRAME_PTR f;
-
-      CHECK_LIVE_FRAME (frame);
-      f = XFRAME (frame);
-      if (! FRAME_X_P (f))
-	error ("Non-X frame used");
+      FRAME_PTR f = check_x_frame (frame);
       dpyinfo = FRAME_X_DISPLAY_INFO (f);
     }
 
