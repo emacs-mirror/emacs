@@ -661,6 +661,11 @@
 	* dired.el (dired-move-to-filename-regexp): Make it work
 	for LANG=de_DE.iso88591 on HPUX 11.0.
 
+1999-09-24  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* info.el (info-initialize): Don't test existence of ALTERNATIVE
+	if we know for some other reason it should not be used.
+
 1999-09-24  Carsten Dominik  <cd@gnu.org>
 
 	* textmodes/reftex-parse.el (reftex-parse-from-file): Scan for

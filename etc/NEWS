@@ -720,16 +720,6 @@ a cons cell which is its own cdr.
 If you bind print-circle to a non-nil value, the Lisp printer outputs
 #N= and #N# constructs to represent circular and shared structure.
 
-You can also do several calls to print functions using a common
-set of #N= constructs; here is how.
-
-  (let ((print-circle t)
-        (print-continuous-numbering t)
-        print-number-table)
-    (print1 ...)
-    (print1 ...)
-    ...)
-
 +++
 ** If the second argument to `move-to-column' is anything but nil or
 t, that means replace a tab with spaces if necessary to reach the
