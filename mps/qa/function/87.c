@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!87.c(trunk.2) $
  summary = EPVM make sure objects are left intact
  language = c
  link = testlib.o epvmfmt.o
@@ -43,6 +43,7 @@ static void myrestore(mps_epvm_save_level_t i) {
  }
 }
 
+
 static void mycheck(psobj *addr, size_t size) {
  int i;
  unsigned long ob, om, pb, pm;
@@ -60,6 +61,7 @@ static void mycheck(psobj *addr, size_t size) {
  }
 }
 
+
 static void myalloc(int i) {
  size_t s;
  psobj *a;
@@ -76,7 +78,8 @@ static void myalloc(int i) {
  levels[i] = lev1;
 }
 
-static void mysave() {
+
+static void mysave(void) {
  if (lev1 < MAX_SAVE) {
   lev1++;
   comment("save to %i", lev1);
@@ -84,7 +87,7 @@ static void mysave() {
  }
 }
 
-int myfindblank(int *ii) {
+static int myfindblank(int *ii) {
  int j;
 
  for (j=0; j<MAXOBJS; j++) {
@@ -154,6 +157,7 @@ static void test(void)
 
 }
 
+
 int main(void) {
  void *m;
  stackpointer=&m;
@@ -162,6 +166,3 @@ int main(void) {
  pass();
  return 0;
 }
-
-
-
