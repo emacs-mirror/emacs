@@ -466,6 +466,15 @@ struct x_display
   /* This is the Emacs structure for the X display this frame is on.  */
   struct x_display_info *display_info;
 
+  /* This is a button event that wants to activate the menubar.
+     We save it here until the  command loop gets to think about it.  */
+  XButtonEvent *saved_button_event;
+
+  /* This is the widget id used for this frame's menubar in lwlib.  */
+#ifdef USE_X_TOOLKIT
+  int id;
+#endif
+
   /* Nonzero means our parent is another application's window
      and was explicitly specified.  */
   char explicit_parent;
