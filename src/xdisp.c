@@ -5834,6 +5834,10 @@ echo_area_display (update_frame_p)
   if (!FRAME_VISIBLE_P (f) || !f->glyphs_initialized_p)
     return 0;
 
+#if 0 /* inhibit_window_system is not a valid way of testing
+	 whether a window system is in use.
+	 This code prevents all echo area display
+	 when you run plain `emacs' on a tty.  */
   /* When Emacs starts, selected_frame may be a visible terminal
      frame, even if we run under a window system.  If we let this
      through, a message would be displayed on the terminal.  */
@@ -5841,6 +5845,7 @@ echo_area_display (update_frame_p)
   if (!inhibit_window_system && !FRAME_WINDOW_P (sf))
     return 0;
 #endif /* HAVE_WINDOW_SYSTEM */
+#endif
 
   /* Redraw garbaged frames.  */
   if (frame_garbaged)
