@@ -43,6 +43,15 @@ Currently, \`yes', \`athena' and \`lucid' are synonyms.])
 	  esac
 	  with_x_toolkit=$val
 ])
+AC_ARG_WITH(pop,
+[  --with-pop              Support POP for mail retrieval],
+[AC_DEFINE(MAIL_USE_POP)])
+AC_ARG_WITH(kerberos,
+[  --with-kerberos         Support Kerberos-authenticated POP],
+[AC_DEFINE(KERBEROS)])
+AC_ARG_WITH(hesiod,
+[  --with-hesiod           Support Hesiod to get POP server host],
+[AC_DEFINE(HESIOD)])
 
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessary, since pwd can
