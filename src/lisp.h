@@ -1931,7 +1931,7 @@ EXFUN (Fread_non_nil_coding_system, 1);
 EXFUN (Ffind_operation_coding_system, MANY);
 EXFUN (Fencode_coding_string, 3);
 EXFUN (Fdecode_coding_string, 3);
-extern Lisp_Object detect_coding_system P_ ((unsigned char *, int, int));
+extern Lisp_Object detect_coding_system P_ ((unsigned char *, int, int, int));
 Lisp_Object code_convert_string_norecord P_ ((Lisp_Object, Lisp_Object, int));
 extern void init_coding P_ ((void));
 extern void init_coding_once P_ ((void));
