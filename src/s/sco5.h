@@ -101,11 +101,6 @@ Boston, MA 02111-1307, USA.  */
 /* We don't have -loldX, and we don't need it.  */
 #define LIB_XMENU_LIB
 
-/* Jean-Pierre Radley <jpr@jpr.com> reports in
-   <news:19970906220024.40892@jpr.com> (1997-09-07)
-   that mktime is broken in sco5 releases at least through 5.0.4.  */
-#define BROKEN_MKTIME 1
-
 /* SCO does have TIOCGWINSZ.  */
 #undef BROKEN_TIOCGWINSZ
 #define NEED_PTEM_H

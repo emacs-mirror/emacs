@@ -50,9 +50,6 @@ Boston, MA 02111-1307, USA.  */
 /* This should be true for recent NeXT systems.  At least since 3.2.  */
 #define HAVE_MACH_MACH_H
 
-/* mktime wrongly ignores TZ.  */
-#define BROKEN_MKTIME 1
-
 #if 0 /* I think these are never used--let's see.  -- rms.  */
 /* Mask for address bits within a memory segment */
 
