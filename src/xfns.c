@@ -2802,14 +2802,14 @@ This function is an internal primitive--use `make-frame' instead.")
 
   tem = x_get_arg (parms, Qminibuffer, 0, 0, symbol);
   if (EQ (tem, Qnone) || NILP (tem))
-    f = make_frame_without_minibuffer (Qnil, kb);
+    f = make_frame_without_minibuffer (Qnil, kb, display);
   else if (EQ (tem, Qonly))
     {
       f = make_minibuffer_frame ();
       minibuffer_only = 1;
     }
   else if (WINDOWP (tem))
-    f = make_frame_without_minibuffer (tem, kb);
+    f = make_frame_without_minibuffer (tem, kb, display);
   else
     f = make_frame (1);
 
