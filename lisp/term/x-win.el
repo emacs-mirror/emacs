@@ -437,11 +437,6 @@ This returns ARGS with the arguments that have been processed removed."
 (x-open-connection (or x-display-name
 		       (setq x-display-name (getenv "DISPLAY"))))
 
-;;; xterm.c depends on using interrupt-driven input, but we don't want
-;;; the fcntls to apply to the terminal, so we do this after opening
-;;; the display.
-(set-input-mode t nil t)
-
 (setq frame-creation-function 'x-create-frame)
 (setq suspend-hook
       '(lambda ()

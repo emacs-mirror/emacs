@@ -31,7 +31,7 @@ function, which should take an alist of parameters as its argument.")
 ;;; The default value for this must ask for a minibuffer.  There must
 ;;; always exist a frame with a minibuffer, and after we delete the
 ;;; terminal frame, this will be the only frame.
-(defvar initial-frame-alist '((minibuffer . nil))
+(defvar initial-frame-alist '((minibuffer . t))
   "Alist of values used when creating the initial emacs text frame.
 These may be set in your init file, like this:
  (setq initial-frame-alist '((top . 1) (left . 1) (width . 80) (height . 55)))
@@ -286,8 +286,27 @@ If FRAME is omitted, describe the currently selected frame."
 ;;;; Aliases for backward compatibility with Emacs 18.
 (fset 'screen-height 'frame-height)
 (fset 'screen-width 'frame-width)
-(fset 'set-screen-width 'set-frame-width)
-(fset 'set-screen-height 'set-frame-height)
+
+(defun set-screen-width (cols &optional pretend)
+  "Obsolete function to change the size of the screen to COLS columns.\n\
+Optional second arg non-nil means that redisplay should use COLS columns\n\
+but that the idea of the actual width of the frame should not be changed.\n\
+This function is provided only for compatibility with Emacs 18; new code\n\
+should use set-frame-width instead."
+  (set-frame-width (selected-frame) cols pretend))
+
+(defun set-screen-height (lines &optional pretend)
+  "Obsolete function to change the height of the screen to LINES lines.\n\
+Optional second arg non-nil means that redisplay should use LINES lines\n\
+but that the idea of the actual height of the screen should not be changed.\n\
+This function is provided only for compatibility with Emacs 18; new code\n\
+should use set-frame-width instead."
+  (set-frame-height (selected-frame) lines pretend))
+
+(make-obsolete 'screen-height 'frame-height)
+(make-obsolete 'screen-width  'frame-width)
+(make-obsolete 'set-screen-width 'set-frame-width)
+(make-obsolete 'set-screen-height 'set-frame-height)
 
 
 ;;;; Key bindings

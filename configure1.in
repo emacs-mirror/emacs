@@ -325,7 +325,7 @@ case "${window_system}" in
   "" )
     echo "  No window system specifed.  Looking for X Windows."
     window_system=none
-    if [ -r /usr/lib/libX11.a -a -d /usr/include/X11 ]; then
+    if [ -r /usr/lib/libX11.a -o -d /usr/include/X11 ]; then
       window_system=x11
     fi
   ;;
