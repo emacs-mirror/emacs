@@ -1,7 +1,11 @@
 2001-08-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* mail/emacsbug.el (report-emacs-bug): Make sure *Messages*
+	exists.  From Andy Petrusenco <andy@int.spb.ru>.
+
 	* hi-lock.el (hi-lock-unface-buffer): Don't call x-popup-menu if
-	display-popup-menus-p returns nil.
+	display-popup-menus-p returns nil.  Suggested by Andy Petrusenco
+	<andy@int.spb.ru>.
 
 2001-08-31  Gerd Moellmann  <gerd@gnu.org>
 
