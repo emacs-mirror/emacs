@@ -1,5 +1,7 @@
 2004-08-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* gnus-mule.el, smiley-ems.el: Removed obsolete files.
+
 	* mailcap.el (mailcap-mime-data): Mark as risky.
 
 	* gnus.el (gnus-group, gnus-summary, gnus-summary-sort): Fix
