@@ -589,6 +589,70 @@ lisp_time_argument (specified_time, result)
     }
 }
 
+DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 2, 2, 0,
+  "Use FORMAT-STRING to format the time TIME.\n\
+TIME is specified as (HIGH LOW . IGNORED) or (HIGH . LOW), as from\n\
+`current-time' and `file-attributes'.\n\
+FORMAT-STRING may contain %-sequences to substitute parts of the time.\n\
+%a is replaced by the abbreviated name of the day of week.\n\
+%A is replaced by the full name of the day of week.\n\
+%b is replaced by the abbreviated name of the month.\n\
+%B is replaced by the full name of the month.\n\
+%c is a synonym for \"%x %X\".\n\
+%C is a locale-specific synonym, which defaults to \"%A, %B %e, %Y\" in the C locale.\n\
+%d is replaced by the day of month, zero-padded.\n\
+%D is a synonym for \"%m/%d/%y\".\n\
+%e is replaced by the day of month, blank-padded.\n\
+%h is a synonym for \"%b\".\n\
+%H is replaced by the hour (00-23).\n\
+%I is replaced by the hour (00-12).\n\
+%j is replaced by the day of the year (001-366).\n\
+%k is replaced by the hour (0-23), blank padded.\n\
+%l is replaced by the hour (1-12), blank padded.\n\
+%m is replaced by the month (01-12).\n\
+%M is replaced by the minut (00-59).\n\
+%n is a synonym for \"\\n\".\n\
+%p is replaced by AM or PM, as appropriate.\n\
+%r is a synonym for \"%I:%M:%S %p\".\n\
+%R is a synonym for \"%H:%M\".\n\
+%S is replaced by the seconds (00-60).\n\
+%t is a synonym for \"\\t\".\n\
+%T is a synonym for \"%H:%M:%S\".\n\
+%U is replaced by the week of the year (01-52), first day of week is Sunday.\n\
+%w is replaced by the day of week (0-6), Sunday is day 0.\n\
+%W is replaced by the week of the year (01-52), first day of week is Monday.\n\
+%x is a locale-specific synonym, which defaults to \"%D\" in the C locale.\n\
+%X is a locale-specific synonym, which defaults to \"%T\" in the C locale.\n\
+%y is replaced by the year without century (00-99).\n\
+%Y is replaced by the year with century.\n\
+%Z is replaced by the time zone abbreviation.\n\
+\n\
+The number of options reflects the strftime(3) function.")
+  (format_string, time)
+     Lisp_Object format_string, time;
+{
+  time_t value;
+  int size;
+
+  CHECK_STRING (format_string, 1);
+
+  if (! lisp_time_argument (time, &value))
+    error ("Invalid time specification");
+
+  /* This is probably enough.  */
+  size = XSTRING (format_string)->size * 6 + 50;
+
+  while (1)
+    {
+      char *buf = (char *) alloca (size);
+      if (strftime (buf, size, XSTRING (format_string)->data,
+		    localtime (&value)))
+	return build_string (buf);
+      /* If buffer was too small, make it bigger.  */
+      size *= 2;
+    }
+}
+
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 0,
   "Return the current time, as a human-readable string.\n\
 Programs can use this function to decode a time,\n\
@@ -2090,6 +2154,7 @@ syms_of_editfns ()
   defsubr (&Suser_full_name);
   defsubr (&Semacs_pid);
   defsubr (&Scurrent_time);
+  defsubr (&Sformat_time_string);
   defsubr (&Scurrent_time_string);
   defsubr (&Scurrent_time_zone);
   defsubr (&Ssystem_name);
