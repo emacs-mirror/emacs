@@ -1048,29 +1048,37 @@ on a buffer attached to the file named in the current Dired buffer line."
 	  (replace-match (concat "\\1" rep "\\2") t)))
     )))
 
-;;; Note in Emacs 18 the following defun gets overridden
-;;; with the symbol 'vc-directory-18.  See below.
 ;;;###autoload
-(defun vc-directory (verbose)
-  "Show version-control status of all files under the current directory."
-  (interactive "P")
-  (let (nonempty
-	(dl (length default-directory))
-	(filelist nil) (userlist nil)
-	dired-buf
-	dired-buf-mod-count)
-    (vc-file-tree-walk
-     (function (lambda (f)
-		 (if (vc-registered f)
-		     (let ((user (vc-locking-user f)))
-		       (and (or verbose user)
-			    (setq filelist (cons (substring f dl) filelist))
-			    (setq userlist (cons user userlist))))))))
+(defun vc-directory (dir verbose &optional nested)
+  "Show version-control status of all files in the directory DIR.
+If the second argument VERBOSE is non-nil, show all files;
+otherwise show only files that current locked in the version control system.
+Interactively, supply a prefix arg to make VERBOSE non-nil.
+
+If the optional third argument NESTED is non-nil,
+scan the entire tree of subdirectories of the current directory."
+  (interactive "FVC status of directory: \nP")
+  (let* (nonempty
+	 (dl (length dir))
+	 (filelist nil) (userlist nil)
+	 dired-buf
+	 dired-buf-mod-count
+	 (subfunction
+	  (function (lambda (f)
+		      (if (vc-registered f)
+			  (let ((user (vc-locking-user f)))
+			    (and (or verbose user)
+				 (setq filelist (cons (substring f dl) filelist))
+				 (setq userlist (cons user userlist)))))))))
+    (let ((default-directory dir))
+      (if nested
+	  (vc-file-tree-walk subfunction)
+	(vc-dir-all-files subfunction)))
     (save-excursion
       ;; This uses a semi-documented feature of dired; giving a switch
       ;; argument forces the buffer to refresh each time.
       (dired
-       (cons default-directory (nreverse filelist))
+       (cons dir (nreverse filelist))
        dired-listing-switches)
       (setq dired-buf (current-buffer))
       (setq nonempty (not (zerop (buffer-size)))))
@@ -1094,36 +1102,6 @@ on a buffer attached to the file named in the current Dired buffer line."
       (message "No files are currently %s under %s"
 	       (if verbose "registered" "locked") default-directory))
     ))
-
-;; Emacs 18 version
-(defun vc-directory-18 (verbose)
-  "Show version-control status of all files under the current directory."
-  (interactive "P")
-  (let (nonempty (dir default-directory))
-    (save-excursion
-      (set-buffer (get-buffer-create "*vc-status*"))
-      (erase-buffer)
-      (cd dir)
-      (vc-file-tree-walk
-       (function (lambda (f)
-		   (if (vc-registered f)
-		       (let ((user (vc-locking-user f)))
-			 (if (or user verbose)
-			     (insert (format
-				      "%s	%s\n"
-				      (concat user) f))))))))
-      (setq nonempty (not (zerop (buffer-size)))))
-    (if nonempty
-	(progn
-	  (pop-to-buffer "*vc-status*" t)
-	  (goto-char (point-min))
-	  (shrink-window-if-larger-than-buffer)))
-      (message "No files are currently %s under %s"
-	       (if verbose "registered" "locked") default-directory))
-    )
-
-(or (boundp 'minor-mode-map-alist)
-    (fset 'vc-directory 'vc-directory-18))
 
 ; Emacs 18 also lacks these.
 (or (boundp 'compilation-old-error-list)
@@ -2068,6 +2046,17 @@ Invoke FUNC f ARGS on each non-directory file f underneath it."
 			 (file-symlink-p dirf) ;; Avoid possible loops
 			 (vc-file-tree-walk-internal dirf func args))))))
        (directory-files dir)))))
+
+(defun vc-dir-all-files (func &rest args)
+  "Invoke FUNC f ARGS on each regular file f in default directory."
+  (let ((dir default-directory))
+    (message "Scanning directory %s..." dir)
+    (mapcar (function (lambda (f)
+			(let ((dirf (expand-file-name f dir)))
+			  (if (file-regular-p dirf)
+			      (apply func dirf args)))))
+	    (directory-files dir))
+    (message "Scanning directory %s...done" dir)))
 
 (provide 'vc)
 
