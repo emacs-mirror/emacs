@@ -1,3 +1,8 @@
+2002-11-01  Andreas Schwab  <schwab@suse.de>
+
+	* editfns.c (Fmessage): Revert last change to properly handle %%
+	format.
+
 2002-11-01  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xmenu.c (unuse_menu_items): New fun.
