@@ -1,3 +1,10 @@
+2004-05-13  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-arg-highlighting-function)
+	(help-argument-name): Delete.
+	(help-default-arg-highlight): New function.
+	(help-do-arg-highlighting): Use it.
+
 2004-05-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/appt.el (appt-disp-window): Use
