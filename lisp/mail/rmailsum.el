@@ -1483,15 +1483,16 @@ The variables `rmail-secondary-file-directory' and
   (if rmail-delete-after-output
       (rmail-summary-delete-forward nil)))
 
-(defun rmail-summary-output ()
-  "Append this message to Unix mail file named FILE-NAME."
+(defun rmail-summary-output (&optional file-name)
+  "Append this message to Unix mail file named FILE-NAME.
+
+A prefix argument N says to output N consecutive messages
+starting with the current one.  Deleted messages are skipped and don't count."
   (interactive)
-  (save-excursion
-    (set-buffer rmail-buffer)
-    (let ((rmail-delete-after-output nil))
-      (call-interactively 'rmail-output)))
-  (if rmail-delete-after-output
-      (rmail-summary-delete-forward nil)))
+  (with-current-buffer rmail-buffer
+    (if file-name
+	(rmail-output file-name)
+      (call-interactively 'rmail-output))))
 
 (defun rmail-summary-construct-io-menu ()
   (let ((files (rmail-find-all-files rmail-secondary-file-directory)))
