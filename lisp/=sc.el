@@ -96,8 +96,9 @@
 ;; First, to connect supercite to any mail/news reading subsystem, put
 ;; this in your .emacs file:
 ;;
-;; (add-hooks 'mail-yank-hooks 'sc-cite-original)  ; for all but MH-E
+;; (setq mail-yank-hooks 'sc-cite-original)  ; for old mail agents
 ;; (setq mh-yank-hooks   'sc-cite-original)  ; for MH-E only
+;; (add-hook 'mail-citation-hook 'sc-cite-original) ; for newer mail agents
 ;;
 ;; If supercite is not pre-loaded into your emacs session, you should
 ;; add the following autoload:
