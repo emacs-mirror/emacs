@@ -1,3 +1,21 @@
+2004-11-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (calc-eval-error): Declare and initialize the
+	variable.
+	(calc-eval-error): Don't check if the variable calc-eval-error is bound.
+	(calc-buffer, calc-digit-value, math-expr-data): Declare them.
+	(math-alg-inequalities): Move declaration to earlier in the file.
+
+	* calc/calc-ext.el (calc-command-flags, calc-gnuplot-buffer)
+	(calc-gnuplot-input, math-normalize-a, math-integral-cache):
+	Declare them.
+
+	* calc/calc-lang.el (math-expr-data, math-expr-token)
+	(math-exp-old-pos): Declare them.
+
+	* calc/calc-vec.el (math-exp-pos, math-exp-str, math-exp-old-pos)
+	(math-exp-token, math-exp-keep-spaces, math-expr-data):	Declare them.
+
 2004-11-27  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/flymake.el: Use (featurep 'xemacs).
