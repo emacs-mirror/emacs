@@ -1,3 +1,27 @@
+2000-04-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* textmodes/ispell.el (ispell-menu-map): Menu items rearranged and
+	converted to the new menu-item format, names silightly changed,
+	help strings added.
+
+	Support for spelling without async subprocesses:
+
+	* textmodes/ispell.el (ispell-cmd-args, ispell-output-buffer)
+	(ispell-session-buffer): New variables.
+	(ispell-start-process, ispell-process-status,
+	ispell-accept-output, ispell-send-string): New functions, for
+	Ispell invocation when async subprocesses aren't supported.
+	(ispell-word, ispell-pdict-save, ispell-command-loop,
+	ispell-process-line, ispell-buffer-local-parsing): Replace calls
+	to process-send-string with calls to ispell-send-string, and
+	accept-process-output with ispell-accept-output.
+	(ispell-init-process): Call ispell-process-status instead of
+	process-status with.
+	(ispell-init-process): Call ispell-start-process.  Call
+	ispell-accept-output and ispell-send-string.  Don't call
+	process-kill-without-query and kill-process if they are unbound.
+	(ispell-async-processp): New function.
+
 2000-04-12  Dave Love  <fx@gnu.org>
 
 	* info.el: Add debug-ignored-errors.
