@@ -39,6 +39,12 @@
 (defvar bug-gnu-emacs "bug-gnu-emacs@prep.ai.mit.edu"
   "Address of site maintaining mailing list for GNU Emacs bugs.")
 
+(defvar report-emacs-bug-orig-size nil
+  "Size of automatically-created initial text of bug report.")
+
+(defvar report-emacs-bug-orig-text nil
+  "The automatically-created initial text of bug report.")
+
 ;;;###autoload
 (defun report-emacs-bug (topic)
   "Report a bug in GNU Emacs.
@@ -48,7 +54,25 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   (goto-char (point-min))
   (re-search-forward (concat "^" (regexp-quote mail-header-separator) "\n"))
   (insert "In " (emacs-version) "\n\n")
-  (message (substitute-command-keys "Type \\[mail-send] to send bug report.")))
+  (message (substitute-command-keys "Type \\[mail-send-and-exit] to send bug report."))
+  ;; Make it less likely people will send empty messages.
+  (make-local-variable 'mail-send-hook)
+  (add-hook 'mail-send-hook 'report-emacs-bug-hook)
+  (save-excursion
+    (goto-char (point-max))
+    (skip-chars-backward " \t\n")
+    (make-local-variable 'report-emacs-bug-orig-text)
+    (setq report-emacs-bug-orig-text (buffer-substring (point-min) (point)))))
+
+(defun report-emacs-bug-hook ()
+  (save-excursion
+    (goto-char (point-max))
+    (skip-chars-backward " \t\n")
+    (if (and (= (- (point) (point-min))
+		(length report-emacs-bug-orig-text))
+	     (equal (buffer-substring (point-min) (point))
+		    report-emacs-bug-orig-text))
+	(error "No text entered in bug report"))))
 
 (provide 'emacsbug)
 
