@@ -14930,7 +14930,7 @@ Here is the function:
        ;; check whether filename is that of a directory
        ((eq t (car (cdr (car current-directory-list))))
         ;; decide whether to skip or recurse
-        (if 
+        (if
             (equal "."
                    (substring (car (car current-directory-list)) -1))
             ;; then do nothing since filename is that of
@@ -17125,7 +17125,7 @@ problem recently.)
 @item  Ignore case when using `grep'@*
 @samp{-n}@w{  }   Prefix each line of output with line number@*
 @samp{-i}@w{  }   Ignore case distinctions@*
-@samp{-e}@w{  }   Protect patterns beginning with a hyphen character, @samp{-} 
+@samp{-e}@w{  }   Protect patterns beginning with a hyphen character, @samp{-}
 
 @smallexample
 (setq grep-command "grep  -n -i -e ")
@@ -17166,7 +17166,7 @@ If you want to write with Chinese `GB' characters, set this instead:
 @end itemize
 
 @subsubheading Fixing Unpleasant Key Bindings
-@cindex Key bindings, fixing 
+@cindex Key bindings, fixing
 @cindex Bindings, key, fixing unpleasant
 
 Some systems bind keys unpleasantly.  Sometimes, for example, the
