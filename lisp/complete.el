@@ -3,6 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
+;; Keywords: abbrev
 ;; Version: 2.02
 ;; Special thanks to Hallvard Furuseth for his many ideas and contributions.
 
