@@ -1,15 +1,16 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.50) $
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!poolamc.c(trunk.51) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
  */
 
 #include "mpscamc.h"
+#include "chain.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.50) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.51) $");
 
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
@@ -36,25 +37,19 @@ extern SegClass EnsureAMCSegClass(void);
 #define AMCGenSig       ((Sig)0x519A3C9E)  /* SIGnature AMC GEn */
 
 typedef struct AMCGenStruct {
-  Sig sig;                      /* impl.h.misc.sig */
-  Serial serial;                /* generation number */
+  PoolGenStruct pgen;
   int type;                     /* AMCPTypeGen for a gen */
-  AMC amc;                      /* owning AMC pool */
   RingStruct amcRing;           /* link in list of gens in pool */
   Buffer forward;               /* forwarding buffer */
   Count segs;                   /* number of segs in gen */
-  Size size;                    /* total size of segs in gen */
-  Size survivors;               /* size after last collection */
+  Sig sig;                      /* impl.h.misc.sig */
 } AMCGenStruct;
 
+#define AMCGenAMC(amcgen) PoolPoolAMC((amcgen)->pgen.pool)
+#define AMCGenPool(amcgen) ((amcgen)->pgen.pool)
 
-/* AMCRampGen -- the serial of the ramp generation
- *
- * .ramp.generation: The ramp gen has serial TraceTopGen+1.  Despite this, we
- * consider it to lie between TraceRampGenFollows and the next gen.
- */
+#define AMCGenNr(amcgen) ((amcgen)->pool.nr)
 
-#define AMCRampGen (TraceTopGen+1)
 
 enum {outsideRamp = 1, beginRamp, ramping, finishRamp, collectingRamp};
 
@@ -207,7 +202,8 @@ typedef struct AMCStruct {      /* design.mps.poolamc.struct */
   RankSet rankSet;              /* rankSet for entire pool */
   RingStruct genRing;           /* ring of generations */
   Bool gensBooted;              /* used during boot (init) */
-  Count gens;                   /* number of generations */
+  Chain chain;                  /* chain used by this pool */
+  size_t gens;                  /* number of generations */
   AMCGen *gen;                  /* (pointer to) array of generations */
   AMCGen nursery;               /* the default mutator generation */
   AMCGen rampGen;               /* the ramp generation */
@@ -216,25 +212,18 @@ typedef struct AMCStruct {      /* design.mps.poolamc.struct */
   int rampMode;                 /* design.mps.poolamc.ramp.mode */
   Bool collectAll;              /* full collection after ramp? */
   Bool collectAllNext;          /* full collection after next ramp? */
-  ActionStruct ephemeralGCStruct; /* action to start ephemeral GC */
-  ActionStruct dynamicGCStruct; /* action to start dynamic GC */
   Sig sig;                      /* design.mps.pool.outer-structure.sig */
 } AMCStruct;
 
 
 /* PoolPoolAMC -- convert generic Pool to AMC */
 
-#define PoolPoolAMC(pool) \
-  PARENT(AMCStruct, poolStruct, (pool))
+#define PoolPoolAMC(pool) PARENT(AMCStruct, poolStruct, (pool))
 
 
 /* AMCPool -- convert AMC to generic Pool */
 
-static Pool AMCPool(AMC amc)
-{
-  AVERT(AMC, amc);
-  return &amc->poolStruct;
-}
+#define AMCPool(amc) (&(amc)->poolStruct)
 
 
 /* AMCGenCheck -- check consistency of a generation structure */
@@ -242,37 +231,19 @@ static Pool AMCPool(AMC amc)
 static Bool AMCGenCheck(AMCGen gen)
 {
   Arena arena;
+  AMC amc;
+
   CHECKS(AMCGen, gen);
-  CHECKU(AMC, gen->amc);
+  CHECKD(PoolGen, &gen->pgen);
+  amc = AMCGenAMC(gen);
+  CHECKU(AMC, amc);
   CHECKL(gen->type == AMCPTypeGen);
   CHECKD(Buffer, gen->forward);
   CHECKL(RingCheck(&gen->amcRing));
-  CHECKL(gen->serial <= TraceTopGen + 1); /* see .ramp.generation */
-  CHECKL((gen->size == 0) == (gen->segs == 0));
-  arena = gen->amc->poolStruct.arena;
-  CHECKL(gen->size >= gen->segs * ArenaAlign(arena));
-  CHECKL(gen->survivors <= gen->size);
+  CHECKL((gen->pgen.totalSize == 0) == (gen->segs == 0));
+  arena = amc->poolStruct.arena;
+  CHECKL(gen->pgen.totalSize >= gen->segs * ArenaAlign(arena));
   return TRUE;
-}
-
-
-/* AMCGenNext -- calculate serial of next gen */
-
-static Serial AMCGenNext(AMC amc, Serial genSerial)
-{
-  AVER(genSerial != TraceTopGen);
-  if (amc->rampMode != outsideRamp) {
-    /* See .ramp.generation. */
-    if (genSerial == TraceRampGenFollows) {
-      return AMCRampGen;
-    } else if (genSerial == AMCRampGen) {
-      return TraceRampGenFollows + 1;
-    } else {
-      return genSerial + 1;
-    }
-  } else {
-    return genSerial + 1;
-  }
 }
 
 
@@ -287,7 +258,7 @@ static Bool AMCNailBoardCheck(AMCNailBoard board)
   /* We know that shift corresponds to pool->align */
   CHECKL(BoolCheck(board->newMarks));
   CHECKL(board->distinctNails <= board->nails);
-  CHECKL(1uL << board->markShift == PoolAlignment(AMCPool(board->gen->amc)));
+  CHECKL(1uL << board->markShift == PoolAlignment(AMCGenPool(board->gen)));
   /* weak check for BTs @@@@ */
   CHECKL(board->mark != NULL);
   return TRUE;
@@ -427,7 +398,7 @@ DEFINE_BUFFER_CLASS(AMCBufClass, class)
 
 /* AMCGenCreate -- create a generation */
 
-static Res AMCGenCreate(AMCGen *genReturn, AMC amc, Serial genNum)
+static Res AMCGenCreate(AMCGen *genReturn, AMC amc, Serial genNr)
 {
   Arena arena;
   Buffer buffer;
@@ -436,9 +407,7 @@ static Res AMCGenCreate(AMCGen *genReturn, AMC amc, Serial genNum)
   Res res;
   void *p;
 
-  AVERT(AMC, amc);
-
-  pool = &amc->poolStruct;
+  pool = AMCPool(amc);
   arena = pool->arena;
 
   res = ControlAlloc(&p, arena, sizeof(AMCGenStruct), FALSE);
@@ -450,25 +419,24 @@ static Res AMCGenCreate(AMCGen *genReturn, AMC amc, Serial genNum)
   if (res != ResOK)
     goto failBufferCreate;
 
-  RingInit(&gen->amcRing);
+  res = PoolGenInit(&gen->pgen, amc->chain, genNr, pool);
+  if (res != ResOK)
+    goto failGenInit;
   gen->type = AMCPTypeGen;
-  gen->amc = amc;
+  RingInit(&gen->amcRing);
   gen->segs = 0;
-  gen->size = 0;
   gen->forward = buffer;
-  gen->survivors = 0;
-
   gen->sig = AMCGenSig;
-  gen->serial = genNum;
 
   AVERT(AMCGen, gen);
 
   RingAppend(&amc->genRing, &gen->amcRing);
-
   EVENT_PP(AMCGenCreate, amc, gen);
   *genReturn = gen;
   return ResOK;
 
+failGenInit:
+  BufferDestroy(buffer);
 failBufferCreate:
   ControlFree(arena, p, sizeof(AMCGenStruct));
 failControlAlloc:
@@ -484,14 +452,15 @@ static void AMCGenDestroy(AMCGen gen)
 
   AVERT(AMCGen, gen);
   AVER(gen->segs == 0);
-  AVER(gen->size == 0);
+  AVER(gen->pgen.totalSize == 0);
 
   EVENT_P(AMCGenDestroy, gen);
-  arena = gen->amc->poolStruct.arena;
-  RingRemove(&gen->amcRing);
+  arena = PoolArena(AMCPool(AMCGenAMC(gen)));
   gen->sig = SigInvalid;
-  BufferDestroy(gen->forward);
+  RingRemove(&gen->amcRing);
   RingFinish(&gen->amcRing);
+  PoolGenFinish(&gen->pgen);
+  BufferDestroy(gen->forward);
   ControlFree(arena, gen, sizeof(AMCGenStruct));
 }
 
@@ -672,6 +641,7 @@ static Res AMCInitComm(Pool pool, RankSet rankSet, va_list arg)
   Arena arena;
   Index i;
   Size genArraySize;
+  size_t genCount;
 
   AVER(pool != NULL);
 
@@ -681,12 +651,13 @@ static Res AMCInitComm(Pool pool, RankSet rankSet, va_list arg)
   pool->format = va_arg(arg, Format);
   AVERT(Format, pool->format);
   pool->alignment = pool->format->alignment;
+  amc->chain = va_arg(arg, Chain);
+  AVERT(Chain, amc->chain);
   amc->rankSet = rankSet;
 
   RingInit(&amc->genRing);
   /* amc gets checked before the generations get created, but they */
   /* do get created later in this function. */
-  amc->gens = 0;
   amc->gen = NULL;
   amc->nursery = NULL;
   amc->rampGen = NULL;
@@ -697,9 +668,6 @@ static Res AMCInitComm(Pool pool, RankSet rankSet, va_list arg)
   amc->rampMode = outsideRamp;
   amc->collectAll = FALSE; amc->collectAllNext = FALSE;
 
-  ActionInit(&amc->ephemeralGCStruct, pool);
-  ActionInit(&amc->dynamicGCStruct, pool);
-
   if (pool->format->headerSize == 0) {
     pool->fix = AMCFix;
   } else {
@@ -709,37 +677,32 @@ static Res AMCInitComm(Pool pool, RankSet rankSet, va_list arg)
   amc->sig = AMCSig;
   AVERT(AMC, amc);
 
-  /* Generations are {0 .. TraceTopGen} u {RampGen}, so there are */
-  /* TraceTopGen + 2 of them */
-  amc->gens = TraceTopGen + 2;
+  /* Init generations. */
+  genCount = ChainGens(amc->chain);
   {
     void *p;
 
-    genArraySize = sizeof(AMCGen)*amc->gens;
+    genArraySize = sizeof(AMCGen) * (genCount + 1); /* chain plus dynamic gen */
     res = ControlAlloc(&p, arena, genArraySize, FALSE);
     if (res != ResOK)
       goto failGensAlloc;
     amc->gen = p;
-    for(i = 0; i < amc->gens; ++i) {
+    for(i = 0; i < genCount + 1; ++i) {
       res = AMCGenCreate(&amc->gen[i], amc, (Serial)i);
       if (res != ResOK) {
-        amc->gens = i;
         goto failGenAlloc;
       }
     }
-    /* set up forwarding buffers */
-    for(i = 0; i < TraceTopGen; ++i) {
+    /* Set up forwarding buffers. */
+    for(i = 0; i < genCount; ++i) {
       AMCBufSetGen(amc->gen[i]->forward, amc->gen[i+1]);
     }
-    /* TopGen forward to itself */
-    AMCBufSetGen(amc->gen[TraceTopGen]->forward, amc->gen[TraceTopGen]);
-    /* rampGen may as well forward into itself (though it's */
-    /* irrelevant as it is set at beginning and end of every ramp */
-    AMCBufSetGen(amc->gen[AMCRampGen]->forward, amc->gen[AMCRampGen]);
+    /* Dynamic gen forwards to itself. */
+    AMCBufSetGen(amc->gen[genCount]->forward, amc->gen[genCount]);
   }
   amc->nursery = amc->gen[0];
-  amc->rampGen = amc->gen[AMCRampGen];
-  amc->afterRampGen = amc->gen[TraceRampGenFollows + 1];
+  amc->rampGen = amc->gen[genCount-1]; /* last ephemeral gen */
+  amc->afterRampGen = amc->gen[genCount];
   amc->gensBooted = TRUE;
 
   AVERT(AMC, amc);
@@ -751,15 +714,12 @@ static Res AMCInitComm(Pool pool, RankSet rankSet, va_list arg)
   return ResOK;
 
 failGenAlloc:
-  i = amc->gens;
   while(i > 0) {
     --i;
     AMCGenDestroy(amc->gen[i]);
   }
   ControlFree(arena, amc->gen, genArraySize);
 failGensAlloc:
-  ActionFinish(&amc->dynamicGCStruct);
-  ActionFinish(&amc->ephemeralGCStruct);
   return res;
 }
 
@@ -795,12 +755,10 @@ static void AMCFinish(Pool pool)
   /* This is a hack which allows the pool to be destroyed */
   /* while it is collecting.  Note that there aren't any mutator */
   /* buffers by this time. */
-  ring = &amc->genRing;
-  RING_FOR(node, ring, nextNode) {
+  RING_FOR(node, &amc->genRing, nextNode) {
     AMCGen gen = RING_ELT(AMCGen, amcRing, node);
     BufferDetach(gen->forward, pool);
-    /* Reset survivors to maintain invariant survivors <= size. */
-    gen->survivors = 0;
+    gen->pgen.newSize = (Size)0; /* to maintain invariant < totalSize */
   }
 
   ring = PoolSegRing(pool);
@@ -811,7 +769,7 @@ static void AMCFinish(Pool pool)
 
     --gen->segs;
     size = SegSize(seg);
-    gen->size -= size;
+    gen->pgen.totalSize -= size;
 
     SegFree(seg);
   }
@@ -822,15 +780,10 @@ static void AMCFinish(Pool pool)
     AMCGen gen = RING_ELT(AMCGen, amcRing, node);
     AMCBufSetGen(gen->forward, NULL);
   }
-
-  ring = &amc->genRing;
   RING_FOR(node, ring, nextNode) {
     AMCGen gen = RING_ELT(AMCGen, amcRing, node);
     AMCGenDestroy(gen);
   }
-
-  ActionFinish(&amc->dynamicGCStruct);
-  ActionFinish(&amc->ephemeralGCStruct);
 
   amc->sig = SigInvalid;
 }
@@ -852,6 +805,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   Arena arena;
   Size alignedSize;
   AMCGen gen;
+  Serial genNr;
   SegPrefStruct segPrefStruct;
 
   AVERT(Pool, pool);
@@ -874,7 +828,8 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   alignedSize = SizeAlignUp(size, ArenaAlign(arena));
   segPrefStruct = *SegPrefDefault();
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
-  SegPrefExpress(&segPrefStruct, SegPrefGen, &gen->serial);
+  genNr = PoolGenNr(&gen->pgen);
+  SegPrefExpress(&segPrefStruct, SegPrefGen, &genNr);
   res = SegAlloc(&seg, EnsureAMCSegClass(), &segPrefStruct,
                  alignedSize, pool, withReservoirPermit,
                  &gen->type); /* .segtype */
@@ -890,7 +845,13 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
 
   /* Put the segment in the generation indicated by the buffer. */
   ++gen->segs;
-  gen->size += alignedSize;
+  gen->pgen.totalSize += alignedSize;
+  /* If ramping, don't count survivors in newSize. */
+  if (amc->rampMode != ramping
+      || buffer != amc->rampGen->forward || gen != amc->rampGen) {
+    gen->pgen.newSize += alignedSize;
+  }
+  PoolGenUpdateZones(&gen->pgen, seg);
 
   /* Give the buffer the entire segment to allocate in. */
   base = SegBase(seg);
@@ -936,68 +897,6 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 }
 
 
-/* amcArenaAvail -- return available memory in the arena
- *
- * Eventually, this will be an arena service.
- */
-
-static Size amcArenaAvail(Arena arena)
-{
-  Size sSwap;
-
-  sSwap = ArenaReserved(arena);
-  if (sSwap > ArenaCommitLimit(arena)) sSwap = ArenaCommitLimit(arena);
-  /* @@@@ sSwap should take actual paging file size into account */
-  return sSwap - ArenaCommitted(arena) + ArenaSpareCommitted(arena);
-}
-
-
-/* amcTopGenCriterion -- top generation as in strategy.lisp-machine */
-
-static double amcTopGenCriterion(AMC amc)
-{
-  Arena arena = PoolArena(AMCPool(amc));
-  Size sFoundation, sCondemned, sSurvivors, sConsTrace;
-  double tTracePerScan; /* tTrace/cScan */
-
-  AVERT(Arena, arena);
-  AVER(TraceTopGenMortality >= 0.0);
-  AVER(TraceTopGenMortality <= 1.0);
-  sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
-  /* @@@@ sCondemned should be scannable only */
-  sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
-  sSurvivors = (Size)(sCondemned * (1 - TraceTopGenMortality));
-  tTracePerScan = sFoundation + (sSurvivors * (1 + TRACE_COPY_SCAN_RATIO));
-  AVER(TraceWorkFactor >= 0);
-  AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
-  sConsTrace = (Size)(sSurvivors + tTracePerScan * TraceWorkFactor);
-  return (double)sConsTrace - (double)amcArenaAvail(arena);
-}
-
-
-/* AMCBenefit -- calculate benefit of collecting */
-
-static double AMCBenefit(Pool pool, Action action)
-{
-  AMC amc;
-
-  AVERT(Pool, pool);
-  amc = PoolPoolAMC(pool);
-  AVERT(AMC, amc);
-  AVERT(Action, action);
-
-  if (action == &amc->ephemeralGCStruct) {
-    double c;             /* capacity in kB */
-
-    c = (amc->rampMode != outsideRamp) ? TraceGen0RampmodeSize : TraceGen0Size;
-    return (double)(amc->nursery->size - amc->nursery->survivors) - c * 1024.0;
-  } else {
-    AVER(action == &amc->dynamicGCStruct);
-    return amcTopGenCriterion(amc);
-  }
-}
-
-
 /* AMCRampBegin -- note an entry into a ramp pattern */
 
 static void AMCRampBegin(Pool pool, Buffer buf, Bool collectAll)
@@ -1035,7 +934,8 @@ static void AMCRampEnd(Pool pool, Buffer buf)
   AVER(amc->rampCount > 0);
   --amc->rampCount;
   if (amc->rampCount == 0) {
-    if (amc->rampGen->size > 0) { /* if we have old objects, clean up */
+    /* @@@@ amc->rampGen->pgen.newSize should be adjusted, later. */
+    if (amc->rampMode == ramping) { /* if we are ramping, clean up */
       amc->rampMode = finishRamp;
       amc->collectAll = amc->collectAllNext;
     } else
@@ -1087,7 +987,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
               AMCNailMarkRange(seg, BufferScanLimit(buffer),
                                BufferLimit(buffer));
             ++trace->nailCount;
-            SegSetNailed(seg, TraceSetSingle(trace->ti));
+            SegSetNailed(seg, TraceSetSingle(trace));
           } else {
             /* Segment is nailed already, cannot create a nail board */
             /* (see .nail.new), just give up condemning. */
@@ -1099,7 +999,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
                || AMCNailRangeIsMarked(seg, BufferScanLimit(buffer),
                                        BufferLimit(buffer)));
           /* Nail it for this trace as well. */
-          SegSetNailed(seg, TraceSetAdd(SegNailed(seg), trace->ti));
+          SegSetNailed(seg, TraceSetAdd(SegNailed(seg), trace));
         }
         /* We didn't condemn the buffer, subtract it from the count. */
         /* @@@@ We could subtract all the nailed grains. */
@@ -1112,7 +1012,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
     }
   }
 
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
+  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   trace->condemned += SegSize(seg);
 
   /* ensure we are forwarding into the right generation */
@@ -1124,189 +1024,19 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   /* see design.mps.poolamc.gen.ramp */
   /* This switching needs to be more complex for multiple traces. */
   AVER(TraceSetIsSingle(PoolArena(pool)->busyTraces));
-  if (amc->rampMode == beginRamp && gen->serial == TraceRampGenFollows) {
+  if (amc->rampMode == beginRamp && gen == amc->rampGen) {
     BufferDetach(gen->forward, pool);
-    AMCBufSetGen(gen->forward, amc->rampGen);
-    AVER(amc->rampGen != NULL);
-    BufferDetach(amc->rampGen->forward, pool);
-    AMCBufSetGen(amc->rampGen->forward, amc->rampGen);
+    AMCBufSetGen(gen->forward, gen);
     amc->rampMode = ramping;
   } else {
-    if (amc->rampMode == finishRamp && gen->serial == TraceRampGenFollows) {
+    if (amc->rampMode == finishRamp && gen == amc->rampGen) {
       BufferDetach(gen->forward, pool);
       AMCBufSetGen(gen->forward, amc->afterRampGen);
-      AVER(amc->rampGen != NULL);
-      BufferDetach(amc->rampGen->forward, pool);
-      AMCBufSetGen(amc->rampGen->forward, amc->afterRampGen);
       amc->rampMode = collectingRamp;
     }
   }
 
-  /* .act.survivors: Whiten inits survivors; Reclaim will decrement it. */
-  /* .stop.restart: Stops AMCBenefit from trying to restart the trace. */
-  gen->survivors = gen->size;
-
   return ResOK;
-}
-
-
-/* amcCondemnGens -- condemn all zones belonging to condemned generations */
-
-static Res amcCondemnGens(AMC amc, Trace trace, Serial topCondemnedGenSerial)
-{
-  RefSet condemnedSet;
-  Ring node, nextNode; /* loop variables for looping over the segments */
-  Arena arena = PoolArena(AMCPool(amc));
-
-  AVERT(Arena, arena);
-
-  /* Identify the condemned set in this pool, and find its zone set */
-
-  if (topCondemnedGenSerial == AMCRampGen && amc->collectAll)
-    condemnedSet = RefSetUNIV; /* full gc */
-  else {
-    /* @@@@ Slow, could accumulate zone set for the generations at alloc. */
-    condemnedSet = RefSetEMPTY;
-    RING_FOR(node, PoolSegRing(AMCPool(amc)), nextNode) {
-      Seg seg = SegOfPoolRing(node);
-      Serial segGenSerial = AMCSegGen(seg)->serial;
-
-      /* Condemning the given generation and all previous ones. */
-      if (topCondemnedGenSerial == AMCRampGen
-          /* See .ramp.generation. */
-          ? (segGenSerial <= TraceRampGenFollows || segGenSerial == AMCRampGen)
-          : (segGenSerial <= topCondemnedGenSerial
-             || (segGenSerial == AMCRampGen
-                 && topCondemnedGenSerial > TraceRampGenFollows)))
-        condemnedSet = RefSetUnion(condemnedSet, RefSetOfSeg(arena, seg));
-    }
-  }
-
-  /* Condemn everything in these zones. */
-
-  if (condemnedSet != RefSetEMPTY) {
-    return TraceCondemnRefSet(trace, condemnedSet);
-  } else {
-    return ResOK;
-  }
-}
-
-
-/* AMCAct -- start collection described by the action */
-
-static Res AMCAct(Pool pool, Action action)
-{
-  Trace trace;
-  AMC amc;
-  Res res;
-  Arena arena;
-  AMCGen gen;
-  Serial topCondemnedGenSerial, currGenSerial;
-  Bool inRampMode;
-  Size capacity = (Size)0;
-
-  AVERT(Pool, pool);
-  amc = PoolPoolAMC(pool);
-  AVERT(AMC, amc);
-  AVERT(Action, action);
-
-  arena = PoolArena(pool);
-  AVERT(Arena, arena);
-
-  res = TraceCreate(&trace, arena);
-  if (res != ResOK)
-    goto failCreate;
-
-  res = PoolTraceBegin(pool, trace);
-  if (res != ResOK)
-    goto failBegin;
-
-  AVER(amc->rampMode != collectingRamp);
-
-  if (action == &amc->ephemeralGCStruct) {
-    /* Find lowest gen within its capacity, set topCondemnedGenSerial to the */
-    /* preceeding one. */
-    currGenSerial = 0; gen = amc->gen[0];
-    AVERT(AMCGen, gen);
-    AVER(gen->amc == amc);
-    do { /* At this point, we've decided to collect currGenSerial. */
-      topCondemnedGenSerial = currGenSerial;
-
-      if (currGenSerial == TraceTopGen)
-        break;
-      currGenSerial = AMCGenNext(amc, currGenSerial);
-      gen = amc->gen[currGenSerial];
-      AVERT(AMCGen, gen);
-      AVER(gen->amc == amc);
-
-      if (currGenSerial == TraceFinalGen)
-        break; /* Don't ever collect the final generation. */
-
-      /* Calculate capacity. */
-      inRampMode = (amc->rampMode == beginRamp || amc->rampMode == ramping);
-      switch(currGenSerial) {
-      case 0: capacity = inRampMode ? TraceGen0RampmodeSize : TraceGen0Size;
-        break;
-      case 1: capacity = inRampMode ? TraceGen1RampmodeSize : TraceGen1Size;
-        break;
-      case 2: capacity = inRampMode ? TraceGen2RampmodeSize : TraceGen2Size;
-        break;
-      default: {
-        if (currGenSerial == AMCRampGen) {
-          capacity = TraceRampGenSize;
-        } else {
-          capacity = inRampMode
-                     ? (TraceGen2RampmodeSize
-                        + TraceGen2plusRampmodeSizeMultiplier
-                          * (currGenSerial - 2))
-                     : (TraceGen2Size
-                        + TraceGen2plusSizeMultiplier * (currGenSerial - 2));
-        }
-      } break;
-      }
-      if (currGenSerial == TraceTopGen) {
-        if (amcTopGenCriterion(amc) > 0)
-          capacity = (Size)0; /* Do it now. */
-        else
-          capacity = SizeMAX;
-      }
-      /* See d.m.p.ramp.end. */
-      if (amc->rampMode == finishRamp
-          && (currGenSerial <= TraceRampGenFollows
-              || currGenSerial == AMCRampGen)) {
-        capacity = (Size)0; /* Do it now. */
-      }
-    } while (gen->size - gen->survivors >= capacity * (Size)1024);
-    AVER(topCondemnedGenSerial < amc->gens);
-  } else {
-    topCondemnedGenSerial = TraceTopGen;
-  }
-
-  res = amcCondemnGens(amc, trace, topCondemnedGenSerial);
-  if (res != ResOK)
-    goto failCondemn;
-
-  if (topCondemnedGenSerial != TraceTopGen) {
-    TraceStart(trace, TraceEphemeralMortality,
-               (TraceGen0IncrementalityMultiple * TraceGen0Size * 1024uL));
-  } else {
-    double finishingTime = amcArenaAvail(arena)
-                           - trace->condemned * (1.0 - TraceTopGenMortality);
-
-    if (finishingTime < 0)
-      /* Run out of time, should really try a smaller collection. @@@@ */
-      finishingTime = 0.0;
-    TraceStart(trace, TraceTopGenMortality, finishingTime);
-  }
-
-  return ResOK;
-
-failCondemn:
-  NOTREACHED; /* @@@@ Would leave white sets inconsistent. */
-failBegin:
-  TraceDestroy(trace);
-failCreate:
-  return res;
 }
 
 
@@ -1943,8 +1673,8 @@ static void AMCReclaimNailed(Pool pool, Trace trace, Seg seg)
   ShieldCover(arena, seg);
 
 adjustColour:
-  SegSetNailed(seg, TraceSetDel(SegNailed(seg), trace->ti));
-  SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace->ti));
+  SegSetNailed(seg, TraceSetDel(SegNailed(seg), trace));
+  SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
   if (SegNailed(seg) == TraceSetEMPTY && AMCSegHasNailBoard(seg)) {
     AMCSegDestroyNailBoard(seg, pool);
   }
@@ -1995,8 +1725,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   --gen->segs;
   size = SegSize(seg);
-  gen->size -= size;
-  gen->survivors -= size; /* see .act.survivors */
+  gen->pgen.totalSize -= size;
 
   trace->reclaimSize += size;
 
@@ -2215,8 +1944,6 @@ DEFINE_POOL_CLASS(AMCPoolClass, this)
   this->fix = AMCFix;
   this->fixEmergency = AMCFixEmergency;
   this->reclaim = AMCReclaim;
-  this->benefit = AMCBenefit;
-  this->act = AMCAct;
   this->rampBegin = AMCRampBegin;
   this->rampEnd = AMCRampEnd;
   this->walk = AMCWalk;
@@ -2255,13 +1982,12 @@ mps_class_t mps_class_amcz(void)
 
 /* mps_amc_apply -- apply function to all objects in pool
  *
- * The iterator that is passed by the client is stored in
- * a closure structure which is passed to a local iterator
- * in order to ensure that any type conversion necessary
- * between Addr and mps_addr_t happen.  They are almost
- * certainly the same on all platforms, but this is the
+ * The iterator that is passed by the client is stored in a closure
+ * structure which is passed to a local iterator in order to ensure that
+ * any type conversion necessary between Addr and mps_addr_t happen.
+ * They are almost certainly the same on all platforms, but this is the
  * correct way to do it.
- */
+*/
 
 typedef struct mps_amc_apply_closure_s {
   void (*f)(mps_addr_t object, void *p, size_t s);
@@ -2318,23 +2044,14 @@ static Bool AMCCheck(AMC amc)
   CHECKL(BoolCheck(amc->gensBooted));
   if (amc->gensBooted) {
     CHECKD(AMCGen, amc->nursery);
-    CHECKL(amc->gens > 0);
     CHECKL(amc->gen != NULL);
-  }
-  if (amc->rampGen != NULL)
     CHECKD(AMCGen, amc->rampGen);
-  if (amc->afterRampGen != NULL)
     CHECKD(AMCGen, amc->afterRampGen);
+  }
   /* nothing to check for rampCount */
   CHECKL(amc->rampMode >= outsideRamp && amc->rampMode <= collectingRamp);
   CHECKL(BoolCheck(amc->collectAll));
   CHECKL(BoolCheck(amc->collectAllNext));
-
-  CHECKD(Action, &amc->ephemeralGCStruct);
-  CHECKD(Action, &amc->dynamicGCStruct);
-
-  CHECKL(TraceFinalGen <= TraceTopGen);
-  CHECKL(TraceTopGen + 1 > 0); /* we can represent the ramp gen */
 
   return TRUE;
 }
