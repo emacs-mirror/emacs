@@ -129,11 +129,7 @@ This is relative to `smtpmail-queue-dir'.")
 	  (or (= (preceding-char) ?\n)
 	      (insert ?\n))
 	  ;; Change header-delimiter to be what sendmail expects.
-	  (goto-char (point-min))
-	  (re-search-forward
-	    (concat "^" (regexp-quote mail-header-separator) "\n"))
-	  (replace-match "\n")
-	  (backward-char 1)
+	  (mail-sendmail-undelimit-header)
 	  (setq delimline (point-marker))
 ;;	  (sendmail-synch-aliases)
 	  (if mail-aliases
