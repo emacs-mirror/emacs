@@ -156,18 +156,9 @@
 
 ;;; Code:
 
-(eval-and-compile
-  (defconst f90-xemacs-flag (string-match "XEmacs\\|Lucid" emacs-version)
-    "Non-nil means F90 mode thinks it is running under XEmacs."))
-
-;; Most of these are just to quieten the byte-compiler.
 (eval-when-compile 
   (defvar comment-auto-fill-only-comments)
-  (defvar font-lock-keywords)
-  (unless f90-xemacs-flag
-    ;; If you have GNU Emacs 19.22 or earlier, comment this out, or get imenu.
-    (require 'imenu)
-    (defvar current-menubar)))
+  (defvar font-lock-keywords))
 
 ;; User options
 
@@ -468,162 +459,79 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
     map)
   "Keymap used in F90 mode.")
 
-;; Menu bar support.
-(if f90-xemacs-flag
-    (defvar f90-xemacs-menu
-      '("F90"
-	["Indent Subprogram"       f90-indent-subprogram t]
-	["Mark Subprogram"         f90-mark-subprogram t]
-	["Beginning of Subprogram" f90-beginning-of-subprogram t]
-	["End of Subprogram"       f90-end-of-subprogram t]
-	"-----"
-	["(Un)Comment Region"      f90-comment-region t]
-	["Indent Region"           indent-region t]
-	["Fill Region"             f90-fill-region t]
-	"-----"
-	["Break Line at Point"     f90-break-line t]
-	["Join with Next Line"     f90-join-lines t]
-	["Insert Newline"          newline t]
-	["Insert Block End"        f90-insert-end t]
-	"-----"
-	["Upcase Keywords (buffer)"      f90-upcase-keywords t]
-	["Upcase Keywords (region)"      f90-upcase-region-keywords t]
-	["Capitalize Keywords (buffer)"  f90-capitalize-keywords t]
-	["Capitalize Keywords (region)"  f90-capitalize-region-keywords t]
-	["Downcase Keywords (buffer)"    f90-downcase-keywords t]
-	["Downcase Keywords (region)"    f90-downcase-region-keywords t]
-	"-----"
-	["Toggle abbrev-mode"   abbrev-mode t]
-	["Toggle auto-fill"     auto-fill-mode t])
-      "XEmacs menu for F90 mode.")
 
-  ;; Emacs.
-  (defvar f90-menu-bar-menu
-    (let ((map (make-sparse-keymap "F90")))
-      (define-key map [f90-imenu-menu]
-        '("Add imenu Menu" . f90-add-imenu-menu))
-      (define-key map [abbrev-mode]
-        '("Toggle abbrev-mode" . abbrev-mode))
-      (define-key map [auto-fill-mode]
-        '("Toggle auto-fill" . auto-fill-mode))
-      (define-key map [line1] '("--"))
-      (define-key map [f90-change-case-menu]
-        '("Change Keyword Case" . f90-change-case-menu))
-      (define-key map [f90-font-lock-menu]
-        '("Highlighting" . f90-font-lock-menu))
-      (define-key map [line2] '("--"))
-      (define-key map [f90-insert-end]
-        '("Insert Block End" . f90-insert-end))
-      (define-key map [f90-join-lines]
-        '("Join with Next Line" . f90-join-lines))
-      (define-key map [f90-break-line]
-        '("Break Line at Point" . f90-break-line))
-      (define-key map [line3] '("--"))
-      (define-key map [f90-fill-region]
-        '("Fill Region" . f90-fill-region))
-      (put 'f90-fill-region 'menu-enable 'mark-active)
-      (define-key map [indent-region]
-        '("Indent Region" . indent-region))
-      (define-key map [f90-comment-region]
-        '("(Un)Comment Region" . f90-comment-region))
-      (put 'f90-comment-region 'menu-enable 'mark-active)
-      (define-key map [line4] '("--"))
-      (define-key map [f90-end-of-subprogram]
-        '("End of Subprogram" . f90-end-of-subprogram))
-      (define-key map [f90-beginning-of-subprogram]
-        '("Beginning of Subprogram" . f90-beginning-of-subprogram))
-      (define-key map [f90-mark-subprogram]
-        '("Mark Subprogram" . f90-mark-subprogram))
-      (define-key map [f90-indent-subprogram]
-        '("Indent Subprogram" . f90-indent-subprogram))
-      map)
-    "F90 mode top-level menu bar menu.")
+(easy-menu-define f90-menu f90-mode-map "Menu for F90 mode."
+  '("F90"
+    ["Indent Subprogram"       f90-indent-subprogram       t]
+    ["Mark Subprogram"         f90-mark-subprogram         t]
+    ["Beginning of Subprogram" f90-beginning-of-subprogram t]
+    ["End of Subprogram"       f90-end-of-subprogram       t]
+    "--"
+    ["(Un)Comment Region" f90-comment-region mark-active]
+    ["Indent Region"      f90-indent-region  mark-active]
+    ["Fill Region"        f90-fill-region    mark-active]
+    "--"
+    ["Break Line at Point" f90-break-line t]
+    ["Join with Next Line" f90-join-lines t]
+    ["Insert Block End"    f90-insert-end t]
+    "--"
+    ("Highlighting"
+     ["Toggle font-lock-mode" font-lock-mode :active t
+      :selected font-lock-mode :style toggle]
+     "--"
+     ["Light highlighting (level 1)"    f90-font-lock-1 t]
+     ["Moderate highlighting (level 2)" f90-font-lock-2 t]
+     ["Heavy highlighting (level 3)"    f90-font-lock-3 t]
+     ["Maximum highlighting (level 4)"  f90-font-lock-4 t]
+     )
+    ("Change Keyword Case"
+     ["Upcase Keywords (buffer)"     f90-upcase-keywords     t]
+     ["Capitalize Keywords (buffer)" f90-capitalize-keywords t]
+     ["Downcase Keywords (buffer)"   f90-downcase-keywords   t]
+     "--"
+     ["Upcase Keywords (region)"     f90-upcase-region-keywords mark-active]
+     ["Capitalize Keywords (region)" f90-capitalize-region-keywords
+      mark-active]
+     ["Downcase Keywords (region)"   f90-downcase-region-keywords mark-active]
+     )
+    "--"
+    ["Toggle auto-fill"   auto-fill-mode :active t :selected auto-fill-function
+     :style toggle]
+    ["Toggle abbrev-mode" abbrev-mode    :active t :selected abbrev-mode
+     :style toggle]
+    ["Add imenu Menu" f90-add-imenu-menu :active (not f90-imenu-flag)
+     :visible (fboundp 'imenu-add-to-menubar)]
+    ))
 
-  (define-key f90-mode-map [menu-bar f90-menu]
-    (cons "F90" f90-menu-bar-menu))
+(defun f90-font-lock-1 ()
+  "Set `font-lock-keywords' to `f90-font-lock-keywords-1'."
+  (interactive)
+  (font-lock-mode 1)
+  (setq font-lock-keywords f90-font-lock-keywords-1)
+  (font-lock-fontify-buffer))
 
-  (defvar f90-change-case-menu
-    (let ((map (make-sparse-keymap "Change Keyword Case")))
-      (define-key map [dkr]
-        '("Downcase Keywords (region)" . f90-downcase-region-keywords))
-      (put 'f90-downcase-region-keywords 'menu-enable 'mark-active)
-      (define-key map [ckr]
-        '("Capitalize Keywords (region)" . f90-capitalize-region-keywords))
-      (put 'f90-capitalize-region-keywords 'menu-enable 'mark-active)
-      (define-key map [ukr]
-        '("Upcase Keywords (region)" . f90-upcase-region-keywords))
-      (put 'f90-upcase-region-keywords 'menu-enable 'mark-active)
-      (define-key map [line] '("--"))
-      (define-key map [dkb]
-        '("Downcase Keywords (buffer)" . f90-downcase-keywords))
-      (define-key map [ckb]
-        '("Capitalize Keywords (buffer)" . f90-capitalize-keywords))
-      (define-key map [ukb]
-        '("Upcase Keywords (buffer)" . f90-upcase-keywords))
-      map)
-    "Submenu for change of case.")
+(defun f90-font-lock-2 ()
+  "Set `font-lock-keywords' to `f90-font-lock-keywords-2'."
+  (interactive)
+  (font-lock-mode 1)
+  (setq font-lock-keywords f90-font-lock-keywords-2)
+  (font-lock-fontify-buffer))
 
-  (defalias 'f90-change-case-menu f90-change-case-menu)
+(defun f90-font-lock-3 ()
+  "Set `font-lock-keywords' to `f90-font-lock-keywords-3'."
+  (interactive)
+  (font-lock-mode 1)
+  (setq font-lock-keywords f90-font-lock-keywords-3)
+  (font-lock-fontify-buffer))
 
-  ;; Font-lock-menu and function calls.
-  (defalias 'f90-font-lock-on 'font-lock-mode)
-  (put 'f90-font-lock-on 'menu-enable 'font-lock-mode)
-  (put 'f90-font-lock-on 'menu-alias t)
+(defun f90-font-lock-4 ()
+  "Set `font-lock-keywords' to `f90-font-lock-keywords-4'."
+  (interactive)
+  (font-lock-mode 1)
+  (setq font-lock-keywords f90-font-lock-keywords-4)
+  (font-lock-fontify-buffer))
 
-  (defalias 'f90-font-lock-off 'font-lock-mode)
-  (put 'f90-font-lock-off 'menu-enable '(not font-lock-mode))
-  (put 'f90-font-lock-off 'menu-alias t)
-
-  (defun f90-font-lock-1 ()
-    "Set `font-lock-keywords' to `f90-font-lock-keywords-1'."
-    (interactive)
-    (font-lock-mode 1)
-    (setq font-lock-keywords f90-font-lock-keywords-1)
-    (font-lock-fontify-buffer))
-
-  (defun f90-font-lock-2 ()
-    "Set `font-lock-keywords' to `f90-font-lock-keywords-2'."
-    (interactive)
-    (font-lock-mode 1)
-    (setq font-lock-keywords f90-font-lock-keywords-2)
-    (font-lock-fontify-buffer))
-
-  (defun f90-font-lock-3 ()
-    "Set `font-lock-keywords' to `f90-font-lock-keywords-3'."
-    (interactive)
-    (font-lock-mode 1)
-    (setq font-lock-keywords f90-font-lock-keywords-3)
-    (font-lock-fontify-buffer))
-
-  (defun f90-font-lock-4 ()
-    "Set `font-lock-keywords' to `f90-font-lock-keywords-4'."
-    (interactive)
-    (font-lock-mode 1)
-    (setq font-lock-keywords f90-font-lock-keywords-4)
-    (font-lock-fontify-buffer))
-
-  (defvar f90-font-lock-menu
-    (let ((map (make-sparse-keymap "f90-font-lock-menu")))
-      (define-key map [h4]
-        '("Maximum highlighting (level 4)" . f90-font-lock-4))
-      (define-key map [h3]
-        '("Heavy highlighting (level 3)" . f90-font-lock-3))
-      (define-key map [h2]
-        '("Default highlighting (level 2)" . f90-font-lock-2))
-      (define-key map [h1]
-        '("Light highlighting (level 1)" . f90-font-lock-1))
-      (define-key map [line] '("--"))
-      (define-key map [floff]
-        '("Turn off font-lock-mode" . f90-font-lock-on))
-      (define-key map [flon]
-        '("Turn on font-lock-mode" . f90-font-lock-off))
-      map)
-    "Submenu for highlighting using font-lock-mode.")
-
-  (defalias 'f90-font-lock-menu f90-font-lock-menu)
-
-  )
-
+
 ;; Regexps for finding program structures.
 (defconst f90-blocks-re
   (concat "\\(block[ \t]*data\\|"
@@ -852,15 +760,8 @@ with no args, if that value is non-nil."
   (set (make-local-variable 'abbrev-all-caps) t)
   (set (make-local-variable 'normal-auto-fill-function) 'f90-do-auto-fill)
   (setq indent-tabs-mode nil)           ; auto buffer local
+  (easy-menu-add f90-menu)
   ;; Setting up things for font-lock.
-  (when f90-xemacs-flag
-    (put 'f90-mode 'font-lock-keywords-case-fold-search t)
-    (when (and (featurep 'menubar)
-               current-menubar
-               (not (assoc "F90" current-menubar)))
-      (set-buffer-menubar (copy-sequence current-menubar))
-      (add-submenu nil f90-xemacs-menu)))
-  ;; XEmacs: Does not need a special case, since both emacsen work alike -sb.
   (set (make-local-variable 'font-lock-defaults)
        '((f90-font-lock-keywords f90-font-lock-keywords-1
                                  f90-font-lock-keywords-2
@@ -1396,7 +1297,7 @@ A block is a subroutine, if-endif, etc."
     (push-mark)
     (goto-char pos)
     (setq program (f90-beginning-of-subprogram))
-    (if f90-xemacs-flag
+    (if (fboundp 'zmacs-activate-region)
         (zmacs-activate-region)
       (setq mark-active t
             deactivate-mark nil))
@@ -1574,7 +1475,7 @@ If run in the middle of a line, the line is not broken."
     (goto-char save-point)
     (set-marker end-region-mark nil)
     (set-marker save-point nil)
-    (if f90-xemacs-flag
+    (if (fboundp 'zmacs-deactivate-region)
  	(zmacs-deactivate-region)
       (deactivate-mark))))
 
@@ -1685,7 +1586,7 @@ Update keyword case first."
                        (zerop (forward-line 1)))
             f90-cache-position (point)))
     (setq f90-cache-position nil)
-    (if f90-xemacs-flag
+    (if (fboundp 'zmacs-deactivate-region)
  	(zmacs-deactivate-region)
       (deactivate-mark))))
 
@@ -1781,9 +1682,9 @@ Any other key combination is executed normally."
   (interactive)
   (let (c)
     (insert last-command-char)
-    (if f90-xemacs-flag
-        (setq c (event-to-character (next-command-event)))
-      (setq c (read-event)))
+    (setq c (if (fboundp 'next-command-event) ; XEmacs
+                (event-to-character (next-command-event))
+              (read-event)))
     ;; Insert char if not equal to `?'.
     (if (or (eq c ??) (eq c help-char))
 	(f90-abbrev-help)
