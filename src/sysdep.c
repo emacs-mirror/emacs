@@ -1958,17 +1958,14 @@ end_of_data ()
 
 #endif /* not CANNOT_DUMP */
 
-/* get_system_name returns as its value
- a string for the Lisp function system-name to return. */
+/* init_system_name sets up the string for the Lisp function
+   system-name to return. */
 
 #ifdef BSD4_1
 #include <whoami.h>
 #endif
 
-/* Can't have this within the function since `static' is #defined to 
-   nothing for some USG systems.  */
-static char *get_system_name_cache;
-static int get_system_name_predump_p;
+extern Lisp_Object Vsystem_name;
 
 #ifndef BSD4_1
 #ifndef VMS
@@ -1979,116 +1976,95 @@ static int get_system_name_predump_p;
 #endif /* not VMS */
 #endif /* not BSD4_1 */
 
-char *
-get_system_name ()
+void
+init_system_name ()
 {
 #ifdef BSD4_1
-  return sysname;
+  Vsystem_name = build_string (sysname);
 #else
-#ifndef CANNOT_DUMP
-  /* If the cached value is from before the dump, and we've dumped
-     since then, then the cached value is no good. */
-  if (get_system_name_predump_p && initialized && get_system_name_cache)
-    {
-      xfree (get_system_name_cache);
-      get_system_name_cache = 0;
-    }
-#endif
-  if (!get_system_name_cache)
-    {
-      /* No cached value, so get the name from the system.  */
 #ifdef VMS
-      char *sp;
-      if ((sp = egetenv ("SYS$NODE")) == 0)
-	sp = "vax-vms";
-      else
-	{
-	  char *end;
-
-	  if ((end = index (sp, ':')) != 0)
-	    *end = '\0';
-	}
-      get_system_name_cache = (char *) xmalloc (strlen (sp) + 1);
-      strcpy (get_system_name_cache, sp);
+  char *sp, *end;
+  if ((sp = egetenv ("SYS$NODE")) == 0)
+    Vsystem_name = build_string ("vax-vms");
+  else if ((end = index (sp, ':')) == 0)
+    Vsystem_name = build_string (sp);
+  else
+    Vsystem_name = make_string (sp, end - sp);
 #else
 #ifndef HAVE_GETHOSTNAME
-      struct utsname uts;
-      uname (&uts);
-      get_system_name_cache = (char *) xmalloc (strlen (uts.nodename) + 1);
-      strcpy (get_system_name_cache, uts.nodename);
+  struct utsname uts;
+  uname (&uts);
+  Vsystem_name = build_string (uts.nodename);
 #else /* HAVE_GETHOSTNAME */
-      {
-	int hostname_size = 256;
-	char *hostname = (char *) xmalloc (hostname_size);
+  int hostname_size = 256;
+  char *hostname = (char *) alloca (hostname_size);
 
-	/* Try to get the host name; if the buffer is too short, try
-	   again.  Apparently, the only indication gethostname gives of
-	   whether the buffer was large enough is the presence or absence
-	   of a '\0' in the string.  Eech.  */
-	for (;;)
-	  {
-	    gethostname (hostname, hostname_size - 1);
-	    hostname[hostname_size - 1] = '\0';
+  /* Try to get the host name; if the buffer is too short, try
+     again.  Apparently, the only indication gethostname gives of
+     whether the buffer was large enough is the presence or absence
+     of a '\0' in the string.  Eech.  */
+  for (;;)
+    {
+      gethostname (hostname, hostname_size - 1);
+      hostname[hostname_size - 1] = '\0';
 
-	    /* Was the buffer large enough for the '\0'?  */
-	    if (strlen (hostname) < hostname_size - 1)
-	      break;
+      /* Was the buffer large enough for the '\0'?  */
+      if (strlen (hostname) < hostname_size - 1)
+	break;
 
-	    hostname_size <<= 1;
-	    hostname = (char *) xrealloc (hostname, hostname_size);
-	  }
-	get_system_name_cache = hostname;
+      hostname_size <<= 1;
+      hostname = (char *) alloca (hostname_size);
+    }
 #ifdef HAVE_SOCKETS
-	/* Turn the hostname into the official, fully-qualified hostname.
-	   Don't do this if we're going to dump; this can confuse system
-	   libraries on some machines and make the dumped emacs core dump. */
+  /* Turn the hostname into the official, fully-qualified hostname.
+     Don't do this if we're going to dump; this can confuse system
+     libraries on some machines and make the dumped emacs core dump. */
 #ifndef CANNOT_DUMP
-	if (initialized)
+  if (initialized)
 #endif /* not CANNOT_DUMP */
-	  {
-	    struct hostent *hp = gethostbyname (hostname);
-	    if (hp)
-	      {
-		char *fqdn = hp->h_name;
-		char *p;
+    {
+      struct hostent *hp = gethostbyname (hostname);
+      if (hp)
+	{
+	  char *fqdn = hp->h_name;
+	  char *p;
 
-		if (!index (fqdn, '.'))
-		  {
-		    /* We still don't have a fully qualified domain name.
-		       Try to find one in the list of alternate names */
-		    char **alias = hp->h_aliases;
-		    while (*alias && !index (*alias, '.'))
-		      alias++;
-		    if (*alias)
-		      fqdn = *alias;
-		  }
-		hostname = (char *) xrealloc (hostname, strlen (fqdn) + 1);
-		strcpy (hostname, fqdn);
+	  if (!index (fqdn, '.'))
+	    {
+	      /* We still don't have a fully qualified domain name.
+		 Try to find one in the list of alternate names */
+	      char **alias = hp->h_aliases;
+	      while (*alias && !index (*alias, '.'))
+		alias++;
+	      if (*alias)
+		fqdn = *alias;
+	    }
+	  hostname = fqdn;
 #if 0
-		/* Convert the host name to lower case.  */
-		/* Using ctype.h here would introduce a possible locale
-		   dependence that is probably wrong for hostnames.  */
-		p = hostname
-		while (*p)
-		  {
-		    if (*p >= 'A' && *p <= 'Z')
-		      *p += 'a' - 'A';
-		    p++;
-		  }
+	  /* Convert the host name to lower case.  */
+	  /* Using ctype.h here would introduce a possible locale
+	     dependence that is probably wrong for hostnames.  */
+	  p = hostname;
+	  while (*p)
+	    {
+	      if (*p >= 'A' && *p <= 'Z')
+		*p += 'a' - 'A';
+	      p++;
+	    }
 #endif
-	      }
-	  }
+	}
+    }
 #endif /* HAVE_SOCKETS */
-	get_system_name_cache = hostname;
-      }
+  Vsystem_name = build_string (hostname);
 #endif /* HAVE_GETHOSTNAME */
 #endif /* VMS */
-#ifndef CANNOT_DUMP
-      get_system_name_predump_p = !initialized;
-#endif
-    }
-  return (get_system_name_cache);
 #endif /* BSD4_1 */
+  {
+    unsigned char *p;
+    for (p = XSTRING (Vsystem_name)->data; *p; p++)
+      if (*p == ' ' || *p == '\t')
+	*p = '-';
+  }
 }
 
 #ifndef VMS
