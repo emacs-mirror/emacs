@@ -1,3 +1,9 @@
+2004-12-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Sync with x-win.el.  Rearrange the contents.
+	Call mac-clear-font-name-table if invoked on Mac OS 8/9.  Call
+	x-open-connection on Mac OS X.
+
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
 	* bookmark.el (bookmark-jump): Nice error if BOOKMARK is nil.
