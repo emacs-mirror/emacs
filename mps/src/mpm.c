@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.30) $
+ * $HopeName: MMsrc!mpm.c(trunk.31) $
  * Copyright (C) 1996 Harlequin Limited.  All rights reserved.
  *
  * .purpose: Miscellaneous support for the implementation of the MPM
@@ -16,7 +16,7 @@
 #include <limits.h>
 
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.30) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.31) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -82,6 +82,7 @@ Bool MPMCheck(void)
 Bool (BoolCheck)(Bool b)
 {
   CHECKL(BoolCheck(b));
+  UNUSED(b); /* see .check.unused */
   return TRUE;
 }
 
@@ -92,6 +93,7 @@ Bool FunCheck(Fun f)
 {
   CHECKL(f != NULL);
   /* Could assert various platform-specific things here. */
+  UNUSED(f); /* see .check.unused */
   return TRUE;
 }
 
@@ -101,6 +103,7 @@ Bool FunCheck(Fun f)
 Bool ShiftCheck(Shift shift)
 {
   CHECKL(shift < MPS_WORD_WIDTH);         /* standard.ansic 6.3.7 */
+  UNUSED(shift); /* see .check.unused */
   return TRUE;
 }
 
@@ -111,6 +114,7 @@ Bool AttrCheck(Attr attr)
 {
   CHECKL((attr & ~AttrMASK) == 0);
   /* Could check for legal combinations of attributes. */
+  UNUSED(attr); /* see .check.unused */
   return TRUE;
 }
 
