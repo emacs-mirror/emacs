@@ -39,7 +39,7 @@
 ;;;###autoload
 (defun yow (&optional interactive)
   "Return or display a random Zippy quotation."
-  (interactive "P")
+  (interactive "p")
   (let ((yow (cookie
 	      yow-file "Am I CONSING yet?..." "I have SEEN the CONSING!!")))
     (cond ((not interactive)
