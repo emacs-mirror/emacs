@@ -13,3 +13,9 @@ Tasks needed before the next release.
 ** Check the Emacs manual.
 
 ** Update man/info.texi.
+
+** Make geometry specifications work correctly for GTK.
+
+** Make GTK scrollbars behave like others w.r.t. overscrolling.
+
+** Make GTK toolbar look OK on monochrome displays.
