@@ -105,16 +105,19 @@ shell it really is.")
   "*The executable file name for the shell being programmed.")
 
 
-;; bash and ksh do not need any options when run in a shell script,
-;; and Bill_Mann@praxisint.com says -p with ksh can do harm.
 (defvar sh-shell-arg
+  ;; bash does not need any options when run in a shell script,
   '((bash)
     (csh . "-f")
     (pdksh)
+    ;; Bill_Mann@praxisint.com says -p with ksh can do harm.
     (ksh88)
-    ;; Bill_Mann@praxisint.com says -p may be wrong for this too.
+    ;; -p means don't initialize functions from the environment.
     (rc . "-p")
-    (wksh . "-motif")
+    ;; Someone proposed -motif, but we don't want to encourage
+    ;; use of a non-free widget set.
+    (wksh)
+    ;; -f means don't run .zshrc.
     (zsh . "-f"))
   "*Single argument string for the magic number.  See `sh-feature'.")
 
