@@ -391,10 +391,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	    int size = encoding_buffer_size (&argument_coding,
 					     XSTRING (args[i])->size);
 	    int produced, dummy;
-	    unsigned char *dummy = (unsigned char *) alloca (size);
+	    unsigned char *dummy1 = (unsigned char *) alloca (size);
 
 	    /* The Irix 4.0 compiler barfs if we eliminate dummy.  */
-	    new_argv[i - 3] = dummy;
+	    new_argv[i - 3] = dummy1;
 	    produced = encode_coding (&argument_coding,
 				      XSTRING (args[i])->data, new_argv[i - 3],
 				      XSTRING (args[i])->size, size, &dummy);
