@@ -337,7 +337,15 @@ the face is also set; its value is the face name."
 			(concat "\\s\"\\|" comment-start-skip)
 		      "\\s\""))
 	    (cend (if comment-end
-		      (concat "\\s>\\|" (regexp-quote comment-end))
+		      (concat "\\s>\\|"
+			      (regexp-quote
+			       ;; Discard leading spaces from comment-end.
+			       ;; In C mode, it is " */"
+			       ;; and we don't want to fail to notice a */
+			       ;; just because there's no space there.
+			       (if (string-match "^ +" comment-end)
+				   (substring comment-end (match-end 0))
+				 comment-end)))
 		    "\\s>"))
 	    (startline (point))
 	    state prev prevstate)
@@ -462,8 +470,12 @@ the face is also set; its value is the face name."
       (if font-lock-no-comments
 	  (remove-text-properties beg end '(face nil))
 	(font-lock-fontify-region beg end))
-      ;; Now scan for keywords.
-      (font-lock-hack-keywords beg end))))
+      ;; Now scan for keywords, but not if we are inside a comment now.
+      (or (and (not font-lock-no-comments)
+	       (let ((state (parse-partial-sexp beg end nil nil 
+						font-lock-cache-state)))
+		 (or (nth 4 state) (nth 7 state))))
+	  (font-lock-hack-keywords beg end)))))
 
 ;;; Fontifying arbitrary patterns
 
