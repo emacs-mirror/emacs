@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.11) $
+ * $HopeName: MMsrc!eventdef.h(trunk.12) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -92,9 +92,9 @@ RELATION(TracePoll                       , 0x0025, TRUE, Trace, PP)
 RELATION(TraceFix                        , 0x0026, TRUE, Ref, PPAU)
 RELATION(TraceFixSeg                     , 0x0027, TRUE, Ref, P)
 RELATION(TraceFixWhite                   , 0x0028, TRUE, Ref, 0)
-/* TraceScanArea{Tagged,}'s kind isn't really Trace, but not Seg either */
-RELATION(TraceScanArea                   , 0x0029, TRUE, Trace, PPP)
-RELATION(TraceScanAreaTagged             , 0x002a, TRUE, Trace, PPP)
+/* TraceScanArea{Tagged}'s kind isn't really Trace, but not Seg either */
+RELATION(TraceScanArea                   , 0x0029, TRUE, Seg, PPP)
+RELATION(TraceScanAreaTagged             , 0x002a, TRUE, Seg, PPP)
 RELATION(VMCreate                        , 0x002b, TRUE, Arena, PAA)
 RELATION(VMDestroy                       , 0x002c, TRUE, Arena, P)
 RELATION(VMMap                           , 0x002d, TRUE, Seg, PAA)
@@ -116,3 +116,4 @@ RELATION(BufferFinish                    , 0x0037, TRUE, Pool, P)
 RELATION(MV2Finish                       , 0x0038, TRUE, Pool, P)
 RELATION(MV2BufferFill                   , 0x0039, TRUE, Seg, PPWAW)
 RELATION(MV2BufferEmpty                  , 0x003A, TRUE, Seg, PPW)
+RELATION(SegAllocFail                    , 0x003B, TRUE, Seg, PWP)
