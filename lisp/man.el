@@ -497,7 +497,10 @@ This guess is based on the text surrounding the cursor."
     (save-excursion
       ;; Default man entry title is any word the cursor is on, or if
       ;; cursor not on a word, then nearest preceding word.
-      (setq word (current-word))
+      (skip-chars-backward "-a-zA-Z0-9._+:")
+      (let ((start (point)))
+	(skip-chars-forward "-a-zA-Z0-9._+:")
+	(setq word (buffer-substring start (point))))
       (if (string-match "[._]+$" word)
 	  (setq word (substring word 0 (match-beginning 0))))
       ;; If looking at something like ioctl(2) or brc(1M), include the
