@@ -2590,7 +2590,9 @@ usage: (make-network-process &rest ARGS)  */)
   tem = Fplist_get (contact, QCserver);
   if (!NILP (tem))
     {
-#ifdef TERM
+      /* Don't support network sockets when non-blocking mode is
+	 not available, since a blocked Emacs is not useful.  */
+#if defined(TERM) || (!defined(O_NONBLOCK) && !defined(O_NDELAY))
       error ("Network servers not supported");
 #else
       is_server = 1;
