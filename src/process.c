@@ -2076,7 +2076,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 run timer events directly.
 	 (Callers that will immediately read keyboard events
 	 call timer_delay on their own.)  */
-      if (read_kbd >= 0)
+      if (XINT (read_kbd) >= 0)
 	{
 	  EMACS_TIME timer_delay;
 	  int old_timers_run = timers_run;
