@@ -308,13 +308,13 @@ current_column ()
       && MODIFF == last_known_column_modified)
     return last_known_column;
 
-  /* If the buffer has overlays, text properties, or multibyte, 
-     use a more general algorithm.  */
+  /* If the buffer has overlays, text properties,
+     or multibyte characters, use a more general algorithm.  */
   if (BUF_INTERVALS (current_buffer)
       || !NILP (current_buffer->overlays_before)
       || !NILP (current_buffer->overlays_after)
-      || !NILP (current_buffer->enable_multibyte_characters))
-    return current_column_1 (PT);
+      || Z != Z_BYTE)
+    return current_column_1 ();
 
   /* Scan backwards from point to the previous newline,
      counting width.  Tab characters are the only complicated case.  */
@@ -397,8 +397,7 @@ current_column ()
    due to text properties or overlays.  */
 
 static int
-current_column_1 (pos)
-     int pos;
+current_column_1 ()
 {
   register int tab_width = XINT (current_buffer->tab_width);
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
@@ -411,7 +410,7 @@ current_column_1 (pos)
   int next_boundary, next_boundary_byte;
   int opoint = PT, opoint_byte = PT_BYTE;
 
-  scan_newline (pos, CHAR_TO_BYTE (pos), BEGV, BEGV_BYTE, -1, 1);
+  scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, 1);
   current_column_bol_cache = PT;
   scan = PT, scan_byte = PT_BYTE;
   SET_PT_BOTH (opoint, opoint_byte);
@@ -421,7 +420,7 @@ current_column_1 (pos)
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   /* Scan forward to the target position.  */
-  while (scan < pos)
+  while (scan < opoint)
     {
       int c;
 
@@ -431,15 +430,15 @@ current_column_1 (pos)
 	  int old_scan = scan;
 	  /* This updates NEXT_BOUNDARY to the next place
 	     where we might need to skip more invisible text.  */
-	  scan = skip_invisible (scan, &next_boundary, pos, Qnil);
-	  if (scan >= pos)
+	  scan = skip_invisible (scan, &next_boundary, opoint, Qnil);
+	  if (scan >= opoint)
 	    goto endloop;
 	  if (scan != old_scan)
 	    scan_byte = CHAR_TO_BYTE (scan);
 	  next_boundary_byte = CHAR_TO_BYTE (next_boundary);
 	}
 
-      c = FETCH_BYTE (scan);
+      c = FETCH_BYTE (scan_byte);
       if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	{
 	  col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
