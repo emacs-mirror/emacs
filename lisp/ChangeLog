@@ -4,6 +4,10 @@
 
 2000-06-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* replace.el (perform-replace): Undo change of 2000-04-04.
+	Instead, move backward 1 character at the end of the loop when
+	necessary.
+	
 	* faces.el (fringe): Change face for different backgrounds.
 
 	* eshell/esh-module.el (toplevel): Load defgroup's differently;
