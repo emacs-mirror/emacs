@@ -48,15 +48,15 @@ extern sigset_t sys_sigmask ();
 #endif /* ! defined (__GNUC__) */
 #endif
 
-#define sigpause(SIG)    sys_sigpause(SIG)
-#define sigblock(SIG)    sys_sigblock(SIG)
-#define sigunblock(SIG)  sys_sigunblock(SIG)
-#define sigsetmask(SIG)  sys_sigsetmask(SIG)
+#define sigpause(SIG)    sys_sigpause (SIG)
+#define sigblock(SIG)    sys_sigblock (SIG)
+#define sigunblock(SIG)  sys_sigunblock (SIG)
+#define sigsetmask(SIG)  sys_sigsetmask (SIG)
 #define sighold(SIG)     ONLY_USED_IN_BSD_4_1
 #define sigrelse(SIG)    ONLY_USED_IN_BSD_4_1
 
 /* Whether this is what all systems want or not, this is what
-   appears to be assumed in the source, for example data.c:arith_error() */
+   appears to be assumed in the source, for example data.c:arith_error.  */
 typedef RETSIGTYPE (*signal_handler_t) (int);
 
 signal_handler_t sys_signal (int signal_number, signal_handler_t action);
@@ -65,12 +65,16 @@ sigset_t sys_sigblock   (sigset_t new_mask);
 sigset_t sys_sigunblock (sigset_t new_mask);
 sigset_t sys_sigsetmask (sigset_t new_mask);
 
-#define sys_sigdel(MASK,SIG) sigdelset(&MASK,SIG)
+#define sys_sigdel(MASK,SIG) sigdelset (&MASK,SIG)
 
 #else /* ! defined (POSIX_SIGNALS) */
 #ifdef USG5_4
 
-#define sigunblock(sig) (sigprocmask(SIG_SETMASK, SIGFULLMASK & ~(sig), NULL))
+#ifndef sigblock
+#define sigblock(sig) (sigprocmask (SIG_BLOCK, SIGEMPTYMASK & sig, NULL))
+#endif
+
+#define sigunblock(sig) (sigprocmask (SIG_SETMASK, SIGFULLMASK & ~(sig), NULL))
 
 #else
 #ifdef USG
