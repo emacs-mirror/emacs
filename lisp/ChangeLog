@@ -1,5 +1,17 @@
 2001-03-06  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* emulation/viper.el (viper-vi-state-mode-list): Add cperl-mode.
+
+	* which-func.el (which-func-modes): Add cperl-mode.
+	(which-func-mode-global): Use define-minor-mode.
+
+	* info-look.el: Docstring fixes and dead code eliminated.
+	(cperl-mode): Add support.
+	(emacs-lisp-mode): List all entries from elisp manual, whether
+	or not they are currently (f)bound or not.  Update regexp.
+
+	* add-log.el (add-log-current-defun): Accept `cperl-mode' as well.
+
 	* progmodes/cperl-mode.el (cperl-mode): Set major-mode to cperl-mode
 	so that C-h m shows the correct information.
 	Use make-local-variable rather than make-variable-buffer-local.
