@@ -705,7 +705,10 @@ instead of using default-major-mode.
 ---
 ** Perl mode has a new variable `perl-indent-continued-arguments'.
 
++++
 ** Fortran mode has a new variable `fortran-directive-re'.
+Adapt this to match the format of any compiler directives you use.
+Lines that match are never indented, and are given distinctive font-locking.
 
 ---
 ** F90 mode has new navigation commands `f90-end-of-block',

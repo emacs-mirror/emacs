@@ -2155,6 +2155,15 @@ full-line comments by setting the variable
 @code{fortran-comment-indent-char} to the single-character string you want
 to use.
 
+@vindex fortran-directive-re
+  Compiler directive lines, or preprocessor lines, have much the same
+appearance as comment lines.  It is important, though, that such lines
+never be indented at all, no matter what the value of
+@code{fortran-comment-indent-style}.  The variable
+@code{fortran-directive-re} is a regular expression that specifies which
+lines are directives.  Matching lines are never indented, and receive
+distinctive font-locking.
+
 @vindex comment-line-start
 @vindex comment-line-start-skip
   Fortran mode introduces two variables @code{comment-line-start} and
