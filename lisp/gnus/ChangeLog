@@ -1,3 +1,8 @@
+2000-11-29  Dave Love  <fx@gnu.org>
+
+	* qp.el (quoted-printable-decode-region): Use error, not message
+	to report malformed text (like base64).  Amend message.
+
 2000-11-29  Miles Bader  <miles@gnu.org>
 
 	* message.el (message-header-lines): Fontify tag.
