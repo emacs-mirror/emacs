@@ -1,3 +1,8 @@
+2003-08-29  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Overlay Properties): Clarify how priorities
+	affect use of the properties.
+
 2003-08-19  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* customize.texi (Type Keywords): Correct the description of

@@ -1,3 +1,21 @@
+2003-08-29  Richard M. Stallman  <rms@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix): Call window_box
+	whenever W is nonzero.
+
+	* data.c (Fmake_variable_buffer_local, Fmake_local_variable)
+	(Fkill_local_variable, Fmake_variable_frame_local)
+	(Flocal_variable_p, Flocal_variable_if_set_p): 
+	Use indirect_variable to trace thru variable aliases.
+
+	* config.in: Updated.
+
+	* callint.c (Fcall_interactively): Save and restore
+	Vthis_command, Vthis_original_command, real_this_command,
+	and current_kboard->Vlast_command.
+
+	* abbrev.c (Fexpand_abbrev): Insert before deleting.
+
 2003-08-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (lookup_rgb_color): Handle TrueColor visuals specially.

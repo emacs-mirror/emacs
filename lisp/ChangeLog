@@ -1,3 +1,28 @@
+2003-08-29  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/sendmail.el (sendmail-sync-aliases, mail-setup): 
+	Do nothing with mail-personal-alias-file if it is nil.
+
+	* mail/mailabbrev.el (mail-abbrevs-sync-aliases):
+	Do nothing if mail-personal-alias-file is nil.
+
+	* term.el (term-exec-1): Bind coding-system-for-read.
+
+	* dired.el (dired-mouse-find-file-other-window): 
+	Use dired-view-command-alist here, as in dired-view-file.
+	(dired-view-command-alist): Use %s to substitute file name.
+	Handle .ps_pages, .eps, .jpg, .gif, .png.
+
+2003-08-29  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* info.el (Info-mode-map): Bind S-tab and <backtab> to
+	`Info-prev-reference', instead of M-tab.
+
+2003-08-29  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* simple.el (blink-matching-open): Work correctly on chars that
+	are designated as parens through the syntax-table text property.
+
 2003-08-29  Thierry Emery <thierry.emery@club-internet.fr>  (tiny change)
 
 	* kinsoku.el (kinsoku-longer, kinsoku-shorter): Do not choose a

@@ -1,3 +1,7 @@
+2003-08-29  Richard M. Stallman  <rms@gnu.org>
+
+	* misc.texi (Saving Emacs Sessions): Correct previous change.
+
 2003-08-26  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* widget.texi (User Interface): Explain the need of static text
