@@ -96,6 +96,7 @@ extern int completion_ignore_case;
 extern Lisp_Object Vcompletion_regexp_list;
 
 Lisp_Object Vcompletion_ignored_extensions;
+Lisp_Object Qcompletion_ignored_extensions;
 Lisp_Object Qcompletion_ignore_case;
 Lisp_Object Qdirectory_files;
 Lisp_Object Qfile_name_completion;
@@ -684,6 +685,8 @@ syms_of_dired ()
   staticpro (&Qcompletion_ignore_case);
 #endif /* VMS */
 
+  Qcompletion_ignored_extensions = intern ("completion-ignored-extensions");
+  staticpro (&Qcompletion_ignored_extensions);
   DEFVAR_LISP ("completion-ignored-extensions", &Vcompletion_ignored_extensions,
     "*Completion ignores filenames ending in any string in this list.\n\
 This variable does not affect lists of possible completions,\n\
