@@ -1,3 +1,8 @@
+2002-04-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* frame.el (frames-on-display-list): Use `equal' to compare the
+	`display' frame parameter to the argument DISPLAY.
+
 2002-04-12  Dave Love  <fx@gnu.org>
 
 	* help.el (string-key-binding): Deal with margin events.
