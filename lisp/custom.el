@@ -234,8 +234,10 @@ element take effect; the other elements are ignored, on that frame.
 
 ATTS is a list of face attributes followed by their values:
   (ATTR VALUE ATTR VALUE...)
-The possible attributes are `:bold', `:italic', `:underline',
-`:foreground', `:background', `:stipple' and `:inverse-video'.
+
+The possible attributes are `:family', `:width', `:height', `:weight',
+`:slant', `:underline', `:overline', `:strike-through', `:box',
+`:foreground', `:background', `:stipple', and `:inverse-video'.
 
 DISPLAY can either be the symbol t, which will match all frames, or an
 alist of the form \((REQ ITEM...)...).  For the DISPLAY to match a
