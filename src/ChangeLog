@@ -1,3 +1,9 @@
+2001-08-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (move_it_by_lines) <DVPOS < 0>: Start at the beginning
+	of the screen line, not text line, containing IT's current
+	position.
+
 2001-08-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (window_scroll_pixel_based): Don't recenter if
