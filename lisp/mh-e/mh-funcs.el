@@ -72,18 +72,15 @@ digest are inserted into the folder after that message."
     (message "Bursting digest...done")))
 
 ;;;###mh-autoload
-(defun mh-copy-msg (msg-or-seq folder)
-  "Copy the specified MSG-OR-SEQ to another FOLDER without deleting them.
-Default is the displayed message.
-If optional prefix argument is provided, then prompt for the message sequence.
-If variable `transient-mark-mode' is non-nil and the mark is active, then the
-selected region is copied.
-In a program, MSG-OR-SEQ can be a message number, a list of message numbers, a
-region in a cons cell, or a sequence."
-  (interactive (list (mh-interactive-msg-or-seq "Copy")
+(defun mh-copy-msg (range folder)
+  "Copy the specified RANGE to another FOLDER without deleting them.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use."
+  (interactive (list (mh-interactive-range "Copy")
                      (mh-prompt-for-folder "Copy to" "" t)))
   (let ((msg-list (let ((result ()))
-                    (mh-iterate-on-msg-or-seq msg msg-or-seq
+                    (mh-iterate-on-range msg range
                       (mh-notate nil mh-note-copied mh-cmd-note)
                       (push msg result))
                     result)))
@@ -94,9 +91,13 @@ region in a cons cell, or a sequence."
 (defun mh-kill-folder ()
   "Remove the current folder and all included messages.
 Removes all of the messages (files) within the specified current folder,
-and then removes the folder (directory) itself."
+and then removes the folder (directory) itself.
+The value of `mh-kill-folder-suppress-prompt-hook' is a list of functions to
+be called, with no arguments, which should return a value of non-nil if
+verification is not desired."
   (interactive)
-  (if (or mh-index-data
+  (if (or (run-hook-with-args-until-success
+           'mh-kill-folder-suppress-prompt-hook)
           (yes-or-no-p (format "Remove folder %s (and all included messages)? "
                                mh-current-folder)))
       (let ((folder mh-current-folder)
@@ -154,7 +155,8 @@ First, offer to execute any outstanding commands for the current folder. If
 optional prefix argument provided, prompt for the RANGE of messages to display
 after packing. Otherwise, show the entire folder."
   (interactive (list (if current-prefix-arg
-                         (mh-read-msg-range mh-current-folder t)
+                         (mh-read-range "Scan" mh-current-folder t nil t
+                                        mh-interpret-number-as-range-flag)
                        '("all"))))
   (let ((threaded-flag (memq 'unthread mh-view-ops)))
     (mh-pack-folder-1 range)
@@ -231,22 +233,19 @@ Otherwise just send the message's body without the headers."
     (mh-recenter 0)))
 
 ;;;###mh-autoload
-(defun mh-print-msg (msg-or-seq)
-  "Print MSG-OR-SEQ on printer.
-Default is the displayed message.
-If optional prefix argument is provided, then prompt for the message sequence.
-If variable `transient-mark-mode' is non-nil and the mark is active, then the
-selected region is printed.
-In a program, MSG-OR-SEQ can be a message number, a list of message numbers, a
-region in a cons cell, or a sequence.
+(defun mh-print-msg (range)
+  "Print RANGE on printer.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use.
 
 The variable `mh-lpr-command-format' is used to generate the print command.
 The messages are formatted by mhl. See the variable `mhl-formfile'."
-  (interactive (list (mh-interactive-msg-or-seq "Print")))
+  (interactive (list (mh-interactive-range "Print")))
   (message "Printing...")
   (let (msgs)
     ;; Gather message numbers and add them to "printed" sequence.
-    (mh-iterate-on-msg-or-seq msg msg-or-seq
+    (mh-iterate-on-range msg range
       (mh-add-msgs-to-seq msg 'printed t)
       (mh-notate nil mh-note-printed mh-cmd-note)
       (push msg msgs))
@@ -258,12 +257,12 @@ The messages are formatted by mhl. See the variable `mhl-formfile'."
                                       (mh-coalesce-msg-list msgs)) " "))
                (lpr-command
                 (format mh-lpr-command-format
-                        (cond ((listp msg-or-seq)
+                        (cond ((listp range)
                                (format "Folder: %s, Messages: %s"
                                        mh-current-folder msgs-string))
-                              ((symbolp msg-or-seq)
+                              ((symbolp range)
                                (format "Folder: %s, Sequence: %s"
-                                       mh-current-folder msg-or-seq)))))
+                                       mh-current-folder range)))))
                (scan-command
                 (format "scan %s | %s" msgs-string lpr-command)))
           (if mh-print-background-flag
@@ -319,7 +318,7 @@ Argument IGNORE is deprecated."
                mh-seq-list nil
                mh-next-direction 'forward)
          (with-mh-folder-updating (nil)
-           (mh-unmark-all-headers t)))
+           (mh-remove-all-notation)))
         (t
          (message "Commands not undone.")
          ;; Remove by 2003-06-30 if nothing seems amiss. XXX

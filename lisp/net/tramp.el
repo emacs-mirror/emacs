@@ -2343,7 +2343,14 @@ If it doesn't exist, generate a new one."
 		 ;; (HIGH . LOW)?
 		 (let ((mt (visited-file-modtime)))
 		   (< (abs (tramp-time-diff
-			    modtime (list (car mt) (cdr mt)))) 2)))
+			    modtime
+			    ;; For compatibility, deal with both the old
+			    ;; (HIGH . LOW) and the new (HIGH LOW)
+			    ;; return values of `visited-file-modtime'.
+			    (if (atom (cdr mt))
+				(list (car mt) (cdr mt))
+			      mt)))
+		      2)))
 		(attr
 		 (save-excursion
 		   (tramp-send-command

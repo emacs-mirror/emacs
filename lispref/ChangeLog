@@ -1,3 +1,22 @@
+2004-07-16  Jim Blandy  <jimb@redhat.com>
+
+	* searching.texi (Regexp Backslash): Document new \_< and \_>
+	operators.
+
+2004-07-16  Juanma Barranquero  <lektu@terra.es>
+
+	* display.texi (Images): Fix Texinfo usage.
+
+2004-07-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffers.texi (Modification Time): `visited-file-modtime' now
+	returns a list of two integers, instead of a cons.
+
+2004-07-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* windows.texi: Various changes in addition to:
+	(Splitting Windows): Add `split-window-keep-point'.
+
 2004-07-09  Richard M. Stallman  <rms@gnu.org>
 
 	* frames.texi (Input Focus): Minor fix.

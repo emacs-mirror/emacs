@@ -126,7 +126,7 @@ point from the window that was split.  This means that scrolling is
 inevitable.  If this variable is @code{nil}, then @kbd{C-x 2} tries to
 avoid scrolling the text currently visible on the screen, by putting
 point in each window at a position already visible in the window.  It
-also selects whichever window contain the screen line that the cursor
+also selects whichever window contains the screen line that the cursor
 was previously on.  Some users prefer the latter mode on slow
 terminals.
 

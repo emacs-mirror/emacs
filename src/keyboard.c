@@ -802,6 +802,21 @@ echo_dash ()
       == SCHARS (current_kboard->echo_string))
     return;
 
+  /* Do nothing if we have already put a dash at the end.  */
+  if (SCHARS (current_kboard->echo_string) > 1)
+    {
+	  Lisp_Object last_char, prev_char, idx;
+
+	  idx = make_number (SCHARS (current_kboard->echo_string) - 2);
+	  prev_char = Faref (current_kboard->echo_string, idx);
+
+	  idx = make_number (SCHARS (current_kboard->echo_string) - 1);
+	  last_char = Faref (current_kboard->echo_string, idx);
+
+	  if (XINT (last_char) == '-' && XINT (prev_char) != ' ')
+	    return;
+    }
+
   /* Put a dash at the end of the buffer temporarily,
      but make it go away when the next character is added.  */
   current_kboard->echo_string = concat2 (current_kboard->echo_string,

@@ -1,3 +1,28 @@
+2004-07-15  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
+
+	* w32fns.c (Fx_file_dialog): Encode strings in system coding
+	system before passing them to OS functions for display.
+
+2004-07-15  David Kastrup  <dak@gnu.org>
+
+	* search.c (syms_of_search): Staticpro `saved_last_thing_searched'.
+	Apparently fixes an abort condition.
+
+2004-07-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fileio.c (Fvisited_file_modtime): Return a list of two integers,
+	instead of a cons.
+
+2004-07-14  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
+
+	* keyboard.c (echo_dash): Do nothing if there already is a dash
+	at the end of the echo string.
+
+2004-07-12  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (mark_object): Only look at Lisp_Misc_Save_Value
+	if GC_MARK_STACK.
+
 2004-07-10  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffer.c (Fswitch_to_buffer, Fpop_to_buffer): Doc fixes.

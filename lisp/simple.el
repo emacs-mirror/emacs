@@ -562,9 +562,13 @@ If BACKWARD-ONLY is non-nil, only delete spaces before point."
        (skip-chars-forward " \t")
        (constrain-to-field nil orig-pos t)))))
 
+(defvar inhibit-mark-movement nil
+  "If non-nil, \\[beginning-of-buffer] and \\[end-of-buffer] does not set the mark.")
+
 (defun beginning-of-buffer (&optional arg)
   "Move point to the beginning of the buffer; leave mark at previous position.
-With arg N, put point N/10 of the way from the beginning.
+With \\[universal-argument] prefix, do not set mark at previous position.
+With numeric arg N, put point N/10 of the way from the beginning.
 
 If the buffer is narrowed, this command uses the beginning and size
 of the accessible part of the buffer.
@@ -572,9 +576,10 @@ of the accessible part of the buffer.
 Don't use this command in Lisp programs!
 \(goto-char (point-min)) is faster and avoids clobbering the mark."
   (interactive "P")
-  (push-mark)
+  (unless (or inhibit-mark-movement (consp arg))
+    (push-mark))
   (let ((size (- (point-max) (point-min))))
-    (goto-char (if arg
+    (goto-char (if (and arg (not (consp arg)))
 		   (+ (point-min)
 		      (if (> size 10000)
 			  ;; Avoid overflow for large buffer sizes!
@@ -586,7 +591,8 @@ Don't use this command in Lisp programs!
 
 (defun end-of-buffer (&optional arg)
   "Move point to the end of the buffer; leave mark at previous position.
-With arg N, put point N/10 of the way from the end.
+With \\[universal-argument] prefix, do not set mark at previous position.
+With numeric arg N, put point N/10 of the way from the end.
 
 If the buffer is narrowed, this command uses the beginning and size
 of the accessible part of the buffer.
@@ -594,9 +600,10 @@ of the accessible part of the buffer.
 Don't use this command in Lisp programs!
 \(goto-char (point-max)) is faster and avoids clobbering the mark."
   (interactive "P")
-  (push-mark)
+  (unless (or inhibit-mark-movement (consp arg))
+    (push-mark))
   (let ((size (- (point-max) (point-min))))
-    (goto-char (if arg
+    (goto-char (if (and arg (not (consp arg)))
 		   (- (point-max)
 		      (if (> size 10000)
 			  ;; Avoid overflow for large buffer sizes!

@@ -414,7 +414,7 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 (defun grep (command-args &optional highlight-regexp)
   "Run grep, with user-specified args, and collect output in a buffer.
 While grep runs asynchronously, you can use \\[next-error] (M-x next-error),
-or \\<grep-minor-mode-map>\\[compile-goto-error] in the grep \
+or \\<grep-mode-map>\\[compile-goto-error] in the grep \
 output buffer, to go to the lines
 where grep found matches.
 

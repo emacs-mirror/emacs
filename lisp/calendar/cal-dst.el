@@ -70,14 +70,14 @@ absolute date ABS-DATE is the equivalent moment to X."
 (defun calendar-time-from-absolute (abs-date s)
   "Time of absolute date ABS-DATE, S seconds after midnight.
 
-Returns the pair (HIGH . LOW) where HIGH and LOW are the high and low
+Returns the list (HIGH LOW) where HIGH and LOW are the high and low
 16 bits, respectively, of the number of seconds 1970-01-01 00:00:00 UTC,
 ignoring leap seconds, that is the equivalent moment to S seconds after
 midnight UTC on absolute date ABS-DATE."
   (let* ((a (- abs-date calendar-system-time-basis))
          (u (+ (* 163 (mod a 512)) (floor s 128))))
     ;; Overflow is a terrible thing!
-    (cons
+    (list
      ;; floor((60*60*24*a + s) / 2^16)
      (+ a (* 163 (floor a 512)) (floor u 512))
      ;; (60*60*24*a + s) mod 2^16
