@@ -1623,7 +1623,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      while (! CHAR_HEAD_P (*charstart))
 		charstart--;
 	      untranslated = STRING_CHAR (charstart, ptr - charstart + 1);
-	      if (charset_base == (untranslated & ~0xff))
+	      if (charset_base == (untranslated & ~CHAR_FIELD3_MASK))
 		{
 		  TRANSLATE (ch, trt, untranslated);
 		  if (! CHAR_HEAD_P (*ptr))
