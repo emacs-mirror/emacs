@@ -1,3 +1,8 @@
+2003-11-29  Kim F. Storm  <storm@cua.dk>
+
+	* msdos.c (Qcursor_type, Qbar, Qhbar): Declare extern.
+	(syms_of_msdos): Don't intern and staticpro them.
+
 2003-11-27  Kim F. Storm  <storm@cua.dk>
 
 	* dispnew.c (buffer_posn_from_coords): Calculate and return pixel
