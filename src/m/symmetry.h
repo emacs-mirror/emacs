@@ -98,6 +98,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
   for (ma = 0; ma < sizeof(PTY_MAJOR) - 1; ma++)	\
     for (mi = 0; mi < sizeof(PTY_MINOR) - 1; mi++)
 #define PTY_NAME_SPRINTF \
-  sprintf (ptyname, "/dev/pty%c%c", PTY_MAJOR[ma], PTY_MINOR[mi]);
+  sprintf (pty_name, "/dev/pty%c%c", PTY_MAJOR[ma], PTY_MINOR[mi]);
 #define PTY_TTY_NAME_SPRINTF \
-  sprintf (ptyname, "/dev/tty%c%c", PTY_MAJOR[ma], PTY_MINOR[mi]);
+  sprintf (pty_name, "/dev/tty%c%c", PTY_MAJOR[ma], PTY_MINOR[mi]);
