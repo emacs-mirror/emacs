@@ -6,6 +6,11 @@ Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
 For older news, see the file ONEWS.
 
 
+* Installation Changes in Emacs 21.1
+
+** `movemail' defaults to supporting POP.  You can turn this off using
+the --without-pop configure option, should that be necessary.
+
 * Changes in Emacs 21.1
 
 ** Faces and frame parameters.
