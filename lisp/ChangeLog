@@ -1,3 +1,7 @@
+2000-12-12  Dave Love  <fx@gnu.org>
+
+	* subdirs.el: Add obsolete.
+
 2000-12-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/rmailsum.el (rmail-summary-expunge)

@@ -25,9 +25,10 @@
 
 2000-12-04  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
-	* gnus-msg.el (gnus-msg-mail): COMPOSEFUNC should return t if
-	succeed.
+	* gnus-msg.el (gnus-msg-mail): COMPOSEFUNC should return t if it
+	succeeds.
 	(gnus-setup-message): Remove a hack.
+
 	* gnus-win.el (gnus-configure-windows): Make sure
 	nntp-server-buffer is live.
 	(gnus-remove-some-windows): switch-to-buffer -> set-buffer.
@@ -37,7 +38,7 @@
 
 	* gnus-msg.el (gnus-summary-mail-forward): Fix typos in description.
 
-2000-11-17  Per Abrahamsen  <abraham@dina.kvl.dk>
+2000-12-04  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* gnus-msg.el (gnus-group-posting-charset-alist): No longer allow
 	raw 8-bit in headers in dk.* newsgroups.
