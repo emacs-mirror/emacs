@@ -279,7 +279,7 @@ format style.")
          (regexp-opt '("continue" "format" "end" "enddo" "if" "then"
                        "else" "endif" "elseif" "while" "inquire" "stop"
                        "return" "include" "open" "close" "read" "write"
-                       "format" "print" "select" "case"))))
+                       "format" "print" "select" "case" "cycle" "exit"))))
       (fortran-logicals
        (eval-when-compile
          (regexp-opt '("and" "or" "not" "lt" "le" "eq" "ge" "gt" "ne"
@@ -455,7 +455,7 @@ format style.")
        ["Momentary 72-column window" fortran-window-create-momentarily t]
        "----"
        ["Break Line at Point" fortran-split-line t]
-       ["Join Continuation Line" fortran-join-line t]
+       ["Join Line" fortran-join-line t]
        ["Fill Statement/Comment" fill-paragraph  t]
        "----"
        ["Add imenu menu"
@@ -829,13 +829,21 @@ See also `fortran-window-create'."
 	     (delete-indentation)
 	     t)))
 
-(defun fortran-join-line ()
-  "Join a continuation line to the previous one and re-indent."
-  (interactive)
+(defun fortran-join-line (arg)
+  "Join current line to the previous one and re-indent.
+With a prefix argument, repeat this operation that many times.
+If the prefix argument ARG is negative, join the next -ARG lines.
+Continuation lines are correctly handled."
+  (interactive "*p")
   (save-excursion
-    (beginning-of-line)
-    (if (not (fortran-remove-continuation))
-	(error "Not a continuation line"))
+    (when (> 0 arg)
+      (setq arg (- arg))
+      (forward-line arg))
+    (while (not (zerop arg))
+      (beginning-of-line)
+      (or (fortran-remove-continuation)
+          (delete-indentation))
+      (setq arg (1- arg)))
     (fortran-indent-line)))
 
 (defun fortran-numerical-continuation-char ()
