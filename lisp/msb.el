@@ -1132,9 +1132,7 @@ variable `msb-menu-cond'."
 ;; C-down-mouse-1).
 (defvar msb-mode-map
   (let ((map (make-sparse-keymap "Msb")))
-    (mapcar (lambda (key)
-	      (define-key map key #'msb))
-	    (where-is-internal 'mouse-buffer-menu (make-sparse-keymap)))
+    (substitute-key-definition 'mouse-buffer-menu 'msb map global-map)
     map))
 
 ;;;###autoload
@@ -1143,7 +1141,8 @@ variable `msb-menu-cond'."
 With arg, turn Msb mode on if and only if arg is positive.
 This mode overrides the binding(s) of `mouse-buffer-menu' to provide a
 different buffer menu using the function `msb'."
-  nil nil nil :global t
+  nil nil msb-mode-map
+  :global t
   (if msb-mode
       (progn
 	(add-hook 'menu-bar-update-hook 'msb-menu-bar-update-buffers)
