@@ -1,3 +1,7 @@
+2005-02-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-start.el (all): Comment change.
+
 2005-02-14  Lute Kamstra  <lute@gnu.org>
 
 	* cus-start.el (all): Check if symbol is void.
