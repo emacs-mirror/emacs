@@ -5984,8 +5984,9 @@ which in algebraic notation is written like @samp{ninteg(f(t), t, 0, x)}
 with any integrand @samp{f(t)}.  Define a @kbd{z s} command and
 @code{Si} function that implement this.  You will need to edit the
 default argument list a bit.  As a test, @samp{Si(1)} should return
-0.946083.  (Hint:  @code{ninteg} will run a lot faster if you reduce
-the precision to, say, six digits beforehand.)
+0.946083. (If you don't get this answer, you might want to check that
+Calc is in Radians mode.  Also, @code{ninteg} will run a lot faster if
+you reduce the precision to, say, six digits beforehand.)
 @xref{Programming Answer 1, 1}. (@bullet{})
 
 The simplest way to do real ``programming'' of Emacs is to define a
