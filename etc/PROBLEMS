@@ -1,6 +1,116 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* The PSGML package uses the obsolete variables
+`before-change-function' and `after-change-function', which are no
+longer used by Emacs.  These changes to PSGML 1.2.1 fix that.
+
+--- psgml-edit.el	1999/12/17 10:55:07	1.1
++++ psgml-edit.el	1999/12/17 11:36:37
+@@ -263,4 +263,4 @@
+ 					; inhibit-read-only
+-	(before-change-function nil)
+-	(after-change-function nil))
++	(before-change-functions nil)
++	(after-change-functions nil))
+     (setq selective-display t)
+@@ -1474,3 +1474,3 @@
+ 	(buffer-read-only nil)
+-	(before-change-function nil)
++	(before-change-functions nil)
+ 	(markup-index			; match-data index in tag regexp
+@@ -1526,3 +1526,3 @@
+ (defun sgml-expand-shortref-to-text (name)
+-  (let (before-change-function
++  (let (before-change-functions
+ 	(entity (sgml-lookup-entity name (sgml-dtd-entities sgml-dtd-info))))
+@@ -1543,3 +1543,3 @@
+ 	(re-found nil)
+-	before-change-function)
++	before-change-functions)
+     (goto-char sgml-markup-start)
+@@ -1576,3 +1576,3 @@
+     (goto-char (sgml-element-end element)) 
+-    (let ((before-change-function nil))
++    (let ((before-change-functions nil))
+       (sgml-normalize-content element only-one)))
+--- psgml-other.el	1999/12/17 10:40:02	1.1
++++ psgml-other.el	1999/12/17 11:30:43
+@@ -32,2 +32,3 @@
+ (require 'easymenu)
++(eval-when-compile (require 'cl))
+ 
+@@ -61,4 +62,9 @@
+ 		   (let ((submenu
+-			  (subseq entries 0 (min (length entries)
+-						 sgml-max-menu-size))))
++;;; 			  (subseq entries 0 (min (length entries)
++;;; 						 sgml-max-menu-size))
++			  (let ((new (copy-sequence entries)))
++			    (setcdr (nthcdr (1- (min (length entries)
++						     sgml-max-menu-size))
++					    new) nil)
++			    new)))
+ 		     (setq entries (nthcdr sgml-max-menu-size entries))
+@@ -113,7 +119,10 @@
+       (let ((inhibit-read-only t)
+-	    (after-change-function nil)	; obsolete variable
+-	    (before-change-function nil) ; obsolete variable
+ 	    (after-change-functions nil)
+-	    (before-change-functions nil))
+-	(put-text-property start end 'face face)))
++	    (before-change-functions nil)
++	    (modified (buffer-modified-p))
++	    (buffer-undo-list t)
++	    deactivate-mark)
++	(put-text-property start end 'face face)
++	(when (and (not modified) (buffer-modified-p))
++	   (set-buffer-modified-p nil))))
+      (t
+--- psgml-parse.el	1999/12/17 10:32:45	1.1
++++ psgml-parse.el	2000/12/05 17:12:34
+@@ -40,2 +40,4 @@
+ 
++(eval-when-compile (require 'cl))
++
+ 
+@@ -2474,8 +2476,8 @@
+       (setq sgml-scratch-buffer nil))
+-    (when after-change-function		;***
+-      (message "OOPS: after-change-function not NIL in scratch buffer %s: %s"
++    (when after-change-functions		;***
++      (message "OOPS: after-change-functions not NIL in scratch buffer %s: %S"
+ 	       (current-buffer)
+-	       after-change-function)
+-      (setq before-change-function nil
+-	    after-change-function nil))
++	       after-change-functions)
++      (setq before-change-functions nil
++	    after-change-functions nil))
+     (setq sgml-last-entity-buffer (current-buffer))
+@@ -2846,6 +2848,5 @@
+   "Set initial state of parsing"
+-  (make-local-variable 'before-change-function)
+-  (setq before-change-function 'sgml-note-change-at)
+-  (make-local-variable 'after-change-function)
+-  (setq after-change-function 'sgml-set-face-after-change)
++  (set (make-local-variable 'before-change-functions) '(sgml-note-change-at))
++  (set (make-local-variable 'after-change-functions)
++       '(sgml-set-face-after-change))
+   (sgml-set-active-dtd-indicator (sgml-dtd-doctype dtd))
+@@ -3887,7 +3888,7 @@
+ 
+-  (unless before-change-function
+-    (message "WARN: before-change-function has been lost, restoring (%s)"
++  (unless before-change-functions
++    (message "WARN: before-change-functions has been lost, restoring (%s)"
+ 	     (current-buffer))
+-    (setq before-change-function 'sgml-note-change-at)
+-    (setq after-change-function 'sgml-set-face-after-change)
++    (setq before-change-functions '(sgml-note-change-at))
++    (setq after-change-functions '(sgml-set-face-after-change))
+     )
+
 * On systems with shared libraries you might encounter run-time errors
 from the dynamic linker telling you that it is unable to find some
 shared libraries, for instance those for Xaw3d or image support.
