@@ -3917,6 +3917,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 		    if (bar)
 		      x_scroll_bar_handle_click (bar, &event, &emacs_event);
+#if 0 /* It doesn't make sense to do this.
+	 Menu bar clicks are handled within the toolkit itself.  */
 #ifdef USE_X_TOOLKIT
 		    else
 		      {
@@ -3926,6 +3928,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			break;
 		      }
 #endif /* USE_X_TOOLKIT */
+#endif
 		  }
 
 		if (event.type == ButtonPress)
