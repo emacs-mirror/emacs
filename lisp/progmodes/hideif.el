@@ -929,6 +929,7 @@ Turn off hiding by calling `show-ifdefs'."
 
   (interactive)
   (message "Hiding...")
+  (setq hif-outside-read-only buffer-read-only)
   (if (not hide-ifdef-mode)
       (hide-ifdef-mode 1)) ; turn on hide-ifdef-mode
   (if hide-ifdef-hiding
