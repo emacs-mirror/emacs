@@ -11468,24 +11468,15 @@ x_draw_phys_cursor_glyph (w, row, hl)
   if (w->phys_cursor.hpos < row->used[TEXT_AREA])
     {
       int on_p = w->phys_cursor_on_p;
+      int x1;
       
-      x_draw_glyphs (w, w->phys_cursor.x, row, TEXT_AREA,
-		     w->phys_cursor.hpos, w->phys_cursor.hpos + 1,
-		     hl, 0);
+      x1 = x_draw_glyphs (w, w->phys_cursor.x, row, TEXT_AREA,
+			  w->phys_cursor.hpos, w->phys_cursor.hpos + 1,
+			  hl, 0);
       w->phys_cursor_on_p = on_p;
 
       if (hl == DRAW_CURSOR)
-	{
-	  struct glyph *cursor_glyph = get_phys_cursor_glyph (w);
-	  if (cursor_glyph)
-	    {
-	      if (x_stretch_cursor_p)
-		w->phys_cursor_width = cursor_glyph->pixel_width;
-	      else
-		w->phys_cursor_width = min (CANON_X_UNIT (XFRAME (w->frame)),
-					    cursor_glyph->pixel_width);
-	    }
-	}
+	w->phys_cursor_width = x1 - w->phys_cursor.x;
 
       /* When we erase the cursor, and ROW is overlapped by other
 	 rows, make sure that these overlapping parts of other rows
@@ -11644,7 +11635,6 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
   struct glyph_matrix *current_glyphs;
   struct glyph_row *glyph_row;
   struct glyph *glyph;
-  int cursor_non_selected;
 
   /* This is pointless on invisible frames, and dangerous on garbaged
      windows and frames; in the latter case, the frame or window may
@@ -11680,9 +11670,6 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
      the cursor type given by the frame parameter.  If explicitly
      marked off, draw no cursor.  In all other cases, we want a hollow
      box cursor.  */
-  cursor_non_selected 
-    = !NILP (Fbuffer_local_value (Qcursor_in_non_selected_windows,
-				  w->buffer));
   new_cursor_width = -1;
   if (cursor_in_echo_area
       && FRAME_HAS_MINIBUF_P (f)
@@ -11690,7 +11677,8 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
     {
       if (w == XWINDOW (echo_area_window))
 	new_cursor_type = FRAME_DESIRED_CURSOR (f);
-      else if (cursor_non_selected)
+      else if (!NILP (Fbuffer_local_value (Qcursor_in_non_selected_windows,
+					   w->buffer)))
 	new_cursor_type = HOLLOW_BOX_CURSOR;
       else
 	new_cursor_type = NO_CURSOR;
@@ -11701,7 +11689,8 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	  || w != XWINDOW (f->selected_window))
 	{
 	  if ((MINI_WINDOW_P (w) && minibuf_level == 0)
-	      || !cursor_non_selected
+	      || NILP (Fbuffer_local_value (Qcursor_in_non_selected_windows,
+					    w->buffer))
 	      || NILP (XBUFFER (w->buffer)->cursor_type))
 	    new_cursor_type = NO_CURSOR;
 	  else
@@ -11740,9 +11729,12 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	      && new_cursor_width != w->phys_cursor_width)))
     x_erase_phys_cursor (w);
 
-  /* If the cursor is now invisible and we want it to be visible,
-     display it.  */
-  if (on && !w->phys_cursor_on_p)
+  /* Don't check phys_cursor_on_p here because that flag is only set
+     to zero in some cases where we know that the cursor has been
+     completely erased, to avoid the extra work of erasing the cursor
+     twice.  In other words, phys_cursor_on_p can be 1 and the cursor
+     still not be visible, or it has only been partly erased.  */
+  if (on)
     {
       w->phys_cursor_ascent = glyph_row->ascent;
       w->phys_cursor_height = glyph_row->height;
