@@ -251,8 +251,7 @@ can be modified by the global variable `repeat-on-final-keystroke'."
           (eval repeat-command))
       (if (null repeat-arg)
           (repeat-message "Repeating command %S" real-last-command)
-        (setq repeat-num-input-keys-at-prefix      num-input-keys
-              current-prefix-arg                   repeat-arg)
+        (setq current-prefix-arg                   repeat-arg)
         (repeat-message "Repeating command %S %S" repeat-arg real-last-command))
       (if (eq real-last-command 'self-insert-command)
           (let ((insertion
