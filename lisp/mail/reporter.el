@@ -81,7 +81,7 @@
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ;; user defined variables
 
-(defvar reporter-mailer '(vm-mail mail)
+(defvar reporter-mailer '(vm-mail reporter-mail)
   "*Mail package to use to generate bug report buffer.
 This can either be a function symbol or a list of function symbols.
 If a list, it tries to use each specified mailer in order until an
@@ -301,6 +301,14 @@ composed.")
      'move)				;search for and move
     (buffer-substring (match-beginning 0) (match-end 0))))
 
+;; Serves as an interface to `mail',
+;; but when the user says "no" to discarding an unset message,
+;; it gives an error.
+(defun reporter-mail (&rest args)
+  (interactive "P")
+  (or (apply 'mail args)
+      (error "Bug report aborted")))
+
 ;;;###autoload
 (defun reporter-submit-bug-report
   (address pkgname varlist &optional pre-hooks post-hooks salutation)
@@ -326,22 +334,21 @@ composed.")
 		      (read-string "(Very) brief summary of problem: ")))
 	(mailbuf
 	 (progn
-	   (or (call-interactively
-		(if (nlistp reporter-mailer)
-		    reporter-mailer
-		  (let ((mlist reporter-mailer)
-			(mailer nil))
-		    (while mlist
-		      (if (commandp (car mlist))
-			  (setq mailer (car mlist)
-				mlist nil)
-			(setq mlist (cdr mlist))))
-		    (if (not mailer)
-			(error
-			 "Variable `%s' does not contain a command for mailing"
-			 "reporter-mailer"))
-		    mailer)))
-	       (error "Bug report aborted"))
+	   (call-interactively
+	    (if (nlistp reporter-mailer)
+		reporter-mailer
+	      (let ((mlist reporter-mailer)
+		    (mailer nil))
+		(while mlist
+		  (if (commandp (car mlist))
+		      (setq mailer (car mlist)
+			    mlist nil)
+		    (setq mlist (cdr mlist))))
+		(if (not mailer)
+		    (error
+		     "Variable `%s' does not contain a command for mailing"
+		     "reporter-mailer"))
+		mailer)))
 	   (current-buffer))))
     (require 'sendmail)
     (pop-to-buffer reporter-eval-buffer)
