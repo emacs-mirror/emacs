@@ -1397,43 +1397,7 @@ If summary buffer is currently displayed, update current message there also."
 	  (narrow-to-region (point) end))
 	(goto-char (point-min))
 	(rmail-display-labels)
-	;; Find all occurrences of certain fields, and highlight them.
-	(save-excursion
-	  (search-forward "\n\n" nil 'move)
-	  (save-restriction
-	    (narrow-to-region (point-min) (point))
-	    (let ((case-fold-search t)
-		  (inhibit-read-only t)
-		  ;; Highlight with boldface if that is available.
-		  ;; Otherwise use the `highlight' face.
-		  (face (if (face-differs-from-default-p 'bold)
-			    'bold 'highlight))
-		  ;; List of overlays to reuse.
-		  (overlays rmail-overlay-list))
-	      (goto-char (point-min))
-	      (while (re-search-forward rmail-highlighted-headers nil t)
-		(skip-syntax-forward " ")
-		(let ((beg (point))
-		      overlay)
-		  (while (progn (forward-line 1)
-				(looking-at "[ \t]")))
-		  ;; Back up over newline, then trailing spaces or tabs
-		  (forward-char -1)
-		  (while (member (preceding-char) '(?  ?\t))
-		    (forward-char -1))
-		  (if overlays
-		      ;; Reuse an overlay we already have.
-		      (progn
-			(setq overlay (car overlays)
-			      overlays (cdr overlays))
-			(overlay-put overlay 'face face)
-			(move-overlay overlay beg (point)))
-		    ;; Make a new overlay and add it to
-		    ;; rmail-overlay-list.
-		    (setq overlay (make-overlay beg beg))
-		    (overlay-put overlay 'face face)
-		    (setq rmail-overlay-list
-			  (cons overlay rmail-overlay-list))))))))
+	(rmail-highlight-headers)
 	(run-hooks 'rmail-show-message-hook)
 	;; If there is a summary buffer, try to move to this message
 	;; in that buffer.  But don't complain if this message
@@ -1444,6 +1408,47 @@ If summary buffer is currently displayed, update current message there also."
 	       (rmail-summary-goto-msg curr-msg t t))))
 	(if blurb
 	    (message blurb))))))
+
+;; Find all occurrences of certain fields, and highlight them.
+(defun rmail-highlight-headers ()
+  ;; Do this only if the system supports faces.
+  (if (fboundp 'internal-find-face)
+      (save-excursion
+	(search-forward "\n\n" nil 'move)
+	(save-restriction
+	  (narrow-to-region (point-min) (point))
+	  (let ((case-fold-search t)
+		(inhibit-read-only t)
+		;; Highlight with boldface if that is available.
+		;; Otherwise use the `highlight' face.
+		(face (if (face-differs-from-default-p 'bold)
+			  'bold 'highlight))
+		;; List of overlays to reuse.
+		(overlays rmail-overlay-list))
+	    (goto-char (point-min))
+	    (while (re-search-forward rmail-highlighted-headers nil t)
+	      (skip-syntax-forward " ")
+	      (let ((beg (point))
+		    overlay)
+		(while (progn (forward-line 1)
+			      (looking-at "[ \t]")))
+		;; Back up over newline, then trailing spaces or tabs
+		(forward-char -1)
+		(while (member (preceding-char) '(?  ?\t))
+		  (forward-char -1))
+		(if overlays
+		    ;; Reuse an overlay we already have.
+		    (progn
+		      (setq overlay (car overlays)
+			    overlays (cdr overlays))
+		      (overlay-put overlay 'face face)
+		      (move-overlay overlay beg (point)))
+		  ;; Make a new overlay and add it to
+		  ;; rmail-overlay-list.
+		  (setq overlay (make-overlay beg (point)))
+		  (overlay-put overlay 'face face)
+		  (setq rmail-overlay-list
+			(cons overlay rmail-overlay-list))))))))))
 
 (defun rmail-next-message (n)
   "Show following message whether deleted or not.
