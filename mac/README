@@ -53,8 +53,6 @@ A number of things do not work yet:
 
 + No image support yet.
 
-+ There is no mouse-2 and mouse-3 emulation yet.
-
 If your Mac is connected to the Internet, report bugs by typing `M-x
 report-emacs-bug' or by choosing the entry `Send Bug Report...'  in
 the `Help' menu.  This will send the bug report to the address
