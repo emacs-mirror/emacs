@@ -122,7 +122,7 @@ init_editfns ()
 }
 
 DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
-  "Convert arg CHAR to a string containing multi-byte form of that character.")
+  "Convert arg CHAR to a string containing that character.")
   (character)
      Lisp_Object character;
 {
@@ -132,7 +132,7 @@ DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
   CHECK_NUMBER (character, 0);
 
   len = CHAR_STRING (XFASTINT (character), workbuf, str);
-  return make_multibyte_string (str, 1, len);
+  return make_string_from_bytes (str, 1, len);
 }
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
@@ -1476,7 +1476,10 @@ make_buffer_string_both (start, start_byte, end, end_byte, props)
   if (start < GPT && GPT < end)
     move_gap (start);
 
-  result = make_uninit_multibyte_string (end - start, end_byte - start_byte);
+  if (! NILP (current_buffer->enable_multibyte_characters))
+    result = make_uninit_multibyte_string (end - start, end_byte - start_byte);
+  else
+    result = make_uninit_string (end - start);
   bcopy (BYTE_POS_ADDR (start_byte), XSTRING (result)->data,
 	 end_byte - start_byte);
 
@@ -2491,7 +2494,7 @@ Use %% to put a single % into the output.")
 	*p++ = *format++, nchars++;
     }
 
-  val = make_multibyte_string (buf, nchars, p - buf);
+  val = make_specified_string (buf, nchars, p - buf, multibyte);
 
   /* If we allocated BUF with malloc, free it too.  */
   if (total >= 1000)
