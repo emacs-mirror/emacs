@@ -1,3 +1,11 @@
+2001-02-21  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el, international/mule.el: Doc fixes.
+
+	* play/fortune.el: Fix autoload cookies.  Add types to defcustoms.
+	(fortune) <defgroup>: Add :link.
+	(fortune-from-region): Use eq, not eql.
+
 2001-02-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (fancy-splash-screens): Use display-hourglass
