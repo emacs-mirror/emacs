@@ -892,10 +892,10 @@ search_command (string, bound, noerror, count, direction, RE, posix)
   np = search_buffer (string, PT, PT_BYTE, lim, lim_byte, n, RE,
 		      (!NILP (current_buffer->case_fold_search)
 		       ? current_buffer->case_canon_table
-		       : make_number (0)),
+		       : Qnil),
 		      (!NILP (current_buffer->case_fold_search)
 		       ? current_buffer->case_eqv_table
-		       : make_number (0)),
+		       : Qnil),
 		      posix);
   if (np <= 0)
     {
