@@ -608,6 +608,9 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	 (locate-library "parse-time"))
     (autoload 'parse-time-string "parse-time"))
 
+(eval-when-compile
+  (require 'ange-ftp))
+
 (defun eshell-parse-ange-ls (dir)
   (let (entry)
     (with-temp-buffer
