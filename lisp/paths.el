@@ -91,6 +91,10 @@ Will use `gnus-startup-file'-SERVER instead if exists.")
 (defconst rmail-spool-directory
   (cond ((string-match "^[^-]+-[^-]+-sco3.2v4" system-configuration)
 	 "/usr/spool/mail/")
+	;; On The Bull DPX/2 /usr/spool/mail is used although 
+	;; it is usg-unix-v.
+	((string-match "^m68k-bull-sysv3" system-configuration)
+	 "/usr/spool/mail/")
 	;; SVR4 and recent BSD are said to use this.
 	;; Rather than trying to know precisely which systems use it,
 	;; let's assume this dir is never used for anything else.
