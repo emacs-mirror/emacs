@@ -354,7 +354,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   "Major mode for typing and evaluating Lisp forms.
 Like Lisp mode except that \\[eval-print-last-sexp] evals the Lisp expression
 before point, and prints its value into the buffer, advancing point.
-Note that printing is controled by `eval-expression-print-length'
+Note that printing is controlled by `eval-expression-print-length'
 and `eval-expression-print-level'.
 
 Commands:
