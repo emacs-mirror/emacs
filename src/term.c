@@ -1506,6 +1506,17 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
       TS_standout_mode = tgetstr ("us", address);
     }
 
+  /* If no `se' string, try using a `me' string instead.
+     If that fails, we can't use standout mode at all.  */
+  if (TS_end_standout_mode == 0)
+    {
+      char *s = tgetstr ("me");
+      if (s != 0)
+	TS_end_standout_mode = s;
+      else
+	TS_standout_mode = 0;
+    }
+
   if (TF_teleray)
     {
       Wcm.cm_tab = 0;
