@@ -1523,6 +1523,12 @@ Lisp Coding Convention".
     S-f9 ethio-replace-space                unchanged
     C-f9 ethio-toggle-space                 f2
 
+** The rules of input method "slovak" is slightly changed.  Now the
+rules for translating "q" and "Q" to "`" (backquote) are deleted, thus
+typing them inserts "q" and "Q" respectively.  Rules for translating
+"=q", "+q", "=Q", and "+Q" to "`" are also deleted.  Now, to input
+"`", you must type "=q".
+
 +++
 ** Fortran mode has a new command `fortran-strip-sequence-nos' to
 remove text past column 72.  The syntax class of `\' in Fortran is now
