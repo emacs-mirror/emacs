@@ -2410,8 +2410,6 @@ size_window (window, size, width_p, nodelete_p)
   /* Maybe delete WINDOW if it's too small.  */
   if (!nodelete_p && !NILP (w->parent))
     {
-      int min_size;
-
       if (!MINI_WINDOW_P (w) && !NILP (w->too_small_ok))
 	min_size = width_p ? MIN_SAFE_WINDOW_WIDTH : MIN_SAFE_WINDOW_HEIGHT;
       else
