@@ -377,6 +377,7 @@ Returns the compilation buffer created."
 
 (defvar compilation-minor-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-2] 'compile-mouse-goto-error)
     (define-key map "\C-c\C-c" 'compile-goto-error)
     (define-key map "\C-c\C-k" 'kill-compilation)
     (define-key map "\M-n" 'compilation-next-error)
@@ -680,6 +681,42 @@ Does NOT find the source line like \\[next-error]."
 		;; errors before parsing more; restore that position.
 		(setq compilation-error-list error-list-pos))
 	    )))))
+
+(defun compile-mouse-goto-error (event)
+  (interactive "e")
+  (let (file)
+    (save-excursion
+      (set-buffer (window-buffer (posn-window (event-end event))))
+      (save-excursion
+	(goto-char (posn-point (event-end event)))
+	(or (compilation-buffer-p (current-buffer))
+	    (error "Not in a compilation buffer."))
+	(setq compilation-last-buffer (current-buffer))
+	(compile-reinitialize-errors nil (point))
+
+	;; Move to bol; the marker for the error on this line will point there.
+	(beginning-of-line)
+
+	;; Move compilation-error-list to the elt of compilation-old-error-list
+	;; we want.
+	(setq compilation-error-list compilation-old-error-list)
+	(while (and compilation-error-list
+		    (> (point) (car (car compilation-error-list))))
+	  (setq compilation-error-list (cdr compilation-error-list)))
+	(or compilation-error-list
+	    (error "No error to go to"))))
+    (select-window (posn-window (event-end event)))
+    ;; Move to another window, so that next-error's window changes
+    ;; result in the desired setup.
+    (or (one-window-p)
+	(progn
+	  (other-window -1)
+	  ;; other-window changed the selected buffer,
+	  ;; but we didn't want to do that.
+	  (set-buffer compilation-last-buffer)))
+
+    (push-mark)
+    (next-error 1)))
 
 (defun compile-goto-error (&optional argp)
   "Visit the source for the error message point is on.
