@@ -246,8 +246,10 @@ visiting FILE."
       (vc-file-setprop buffer-file-name 'vc-backend nil))
   (if (and (vc-mode-line buffer-file-name) (not vc-make-backup-files))
       (progn
-	(make-local-variable 'make-backup-files)
-	(setq make-backup-files nil))))
+	;; Use this variable, not make-backup-files,
+	;; because this is for things that depend on the file name.
+	(make-local-variable 'backup-inhibited)
+	(setq backup-inhibited t))))
 
 (add-hook 'find-file-hooks 'vc-find-file-hook)
 
