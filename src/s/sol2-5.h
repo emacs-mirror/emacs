@@ -24,6 +24,11 @@
 
 #undef USE_MMAP_FOR_BUFFERS
 
+/* This prevents crashes in "M-x shell".  */
+#ifndef HAVE_VFORK
+#define HAVE_VFORK 1
+#endif
+
 #if 0 /* A recent patch in unexelf.c should eliminate the need for this.  */
 /* Don't use the shared libraries for -lXt and -lXaw,
    to work around a linker bug in Solaris 2.5.

@@ -1,3 +1,7 @@
+2001-12-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* s/sol2-5.h (HAVE_VFORK): Define if undefined.
+
 2001-11-29  Dave Love  <fx@gnu.org>
 
 	* coding.c (syms_of_coding) <Qchar_coding_system>: Give it an
