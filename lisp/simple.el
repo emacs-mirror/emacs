@@ -1913,7 +1913,8 @@ text property to be set on the killed text.  See `insert-for-yank'."
 	  (if (eq last-command 'kill-region)
 	      (kill-append string (< end beg) yank-handler)
 	    (kill-new string nil yank-handler)))
-	(setq this-command 'kill-region))
+	(when (or string (eq last-command 'kill-region))
+	  (setq this-command 'kill-region)))
     ((buffer-read-only text-read-only)
      ;; The code above failed because the buffer, or some of the characters
      ;; in the region, are read-only.

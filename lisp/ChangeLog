@@ -1,3 +1,8 @@
+2003-05-28  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* simple.el (kill-region): If nothing was killed, and the
+	previous command was not a kill, break kill sequence.
+
 2003-05-28  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/refill.el (refill-fill-paragraph-at):
