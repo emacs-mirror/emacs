@@ -1,3 +1,19 @@
+2001-10-04  Andrew Innes  <andrewi@gnu.org>
+
+	* w32fns.c (x_to_w32_color): Fix argument to alloca.
+	(w32_load_system_font): Don't believe what GetLanguageFontInfo
+	says; query codepage info directly to determine if font is double
+	byte.
+	(x_to_w32_charset): Handle private format for unknown charsets.
+	Handle wildcards in charset spec, by ignoring them.
+	(w32_codepage_for_font): Fix argument to alloca.  Don't remove
+	"*-" prefix from charset.
+	(x_to_w32_font): Enlarge remainder array for safety.  Specifically
+	handle the truncated font spec form constructed by font_list_1, so
+	that we correctly identify the charset fields.  Don't remove "*-"
+	prefix from charset.
+	(w32_list_synthesized_fonts): Fix argument to alloca.
+
 2001-10-03  Miles Bader  <miles@gnu.org>
 
 	* callproc.c (syms_of_callproc): Explicitly state in the

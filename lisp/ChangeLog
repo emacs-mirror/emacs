@@ -1,3 +1,8 @@
+2001-10-04  Andrew Innes  <andrewi@gnu.org>
+
+	* faces.el (face-font-registry-alternatives) [windows-nt]: Make
+	gb2312 an alias for gb2312.1980.
+
 2001-10-03  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* pcvs-util.el (cvs-prefix-define): Typo cons->concat.
