@@ -43,8 +43,7 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 
 #undef HAVE_MULTILINGUAL_MENU
-#undef HAVE_BOXES /* NTEMACS_TODO: Fix native checkmarks and radios.  */
-#undef HAVE_DIALOGS /* NTEMACS_TODO: Fix native dialogs.  */
+#undef HAVE_DIALOGS /* NTEMACS_TODO: Implement native dialogs.  */
 
 /******************************************************************/
 /* Definitions copied from lwlib.h */
@@ -433,20 +432,11 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
   Lisp_Object pending_maps = Qnil;
   Lisp_Object tail, item;
   struct gcpro gcpro1, gcpro2;
-  int notbuttons = 0;
 
   if (maxdepth <= 0)
     return;
 
   push_menu_pane (pane_name, prefix);
-
-#ifndef HAVE_BOXES
-  /* Remember index for first item in this pane so we can go back and
-     add a prefix when (if) we see the first button.  After that, notbuttons
-     is set to 0, to mark that we have seen a button and all non button
-     items need a prefix.  */
-  notbuttons = menu_items_used;
-#endif
 
   for (tail = keymap; CONSP (tail); tail = XCDR (tail))
     {
@@ -456,7 +446,7 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
       item = XCAR (tail);
       if (CONSP (item))
 	single_menu_item (XCAR (item), XCDR (item),
-			  &pending_maps, notreal, maxdepth, &notbuttons);
+			  &pending_maps, notreal, maxdepth);
       else if (VECTORP (item))
 	{
 	  /* Loop over the char values represented in the vector.  */
@@ -467,7 +457,7 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
 	      Lisp_Object character;
 	      XSETFASTINT (character, c);
 	      single_menu_item (character, XVECTOR (item)->contents[c],
-				&pending_maps, notreal, maxdepth, &notbuttons);
+				&pending_maps, notreal, maxdepth);
 	    }
 	}
       UNGCPRO;
@@ -495,18 +485,13 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
    separate panes.
    If NOTREAL is nonzero, only check for equivalent key bindings, don't
    evaluate expressions in menu items and don't make any menu.
-   If we encounter submenus deeper than MAXDEPTH levels, ignore them.
-   NOTBUTTONS_PTR is only used when simulating toggle boxes and radio
-   buttons.  It points to variable notbuttons in single_keymap_panes,
-   which keeps track of if we have seen a button in this menu or not.  */
+   If we encounter submenus deeper than MAXDEPTH levels, ignore them.  */
 
 static void
-single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
-		  notbuttons_ptr)
+single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
      Lisp_Object key, item;
      Lisp_Object *pending_maps_ptr;
      int maxdepth, notreal;
-     int *notbuttons_ptr;
 {
   Lisp_Object map, item_string, enabled;
   struct gcpro gcpro1, gcpro2;
@@ -542,75 +527,6 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
       return;
     }
 
-#ifndef HAVE_BOXES
-  /* Simulate radio buttons and toggle boxes by putting a prefix in
-     front of them.  */
-  {
-    Lisp_Object prefix = Qnil;
-    Lisp_Object type = XVECTOR (item_properties)->contents[ITEM_PROPERTY_TYPE];
-    if (!NILP (type))
-      {
-	Lisp_Object selected
-	  = XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED];
-
-	if (*notbuttons_ptr)
-	  /* The first button. Line up previous items in this menu.  */
-	  {
-	    int index = *notbuttons_ptr; /* Index for first item this menu.  */
-	    int submenu = 0;
-	    Lisp_Object tem;
-	    while (index < menu_items_used)
-	      {
-		tem
-		  = XVECTOR (menu_items)->contents[index + MENU_ITEMS_ITEM_NAME];
-		if (NILP (tem))
-		  {
-		    index++;
-		    submenu++;		/* Skip sub menu.  */
-		  }
-		else if (EQ (tem, Qlambda))
-		  {
-		    index++;
-		    submenu--;		/* End sub menu.  */
-		  }
-		else if (EQ (tem, Qt))
-		  index += 3;		/* Skip new pane marker. */
-		else if (EQ (tem, Qquote))
-		  index++;		/* Skip a left, right divider. */
-		else
-		  {
-		    if (!submenu && XSTRING (tem)->data[0] != '\0'
-			&& XSTRING (tem)->data[0] != '-')
-		      XVECTOR (menu_items)->contents[index + MENU_ITEMS_ITEM_NAME]
-			= concat2 (build_string ("    "), tem);
-		    index += MENU_ITEMS_ITEM_LENGTH;
-		  }
-	      }
-	    *notbuttons_ptr = 0;
-	  }
-
-	/* Calculate prefix, if any, for this item.  */
-	if (EQ (type, QCtoggle))
-	  prefix = build_string (NILP (selected) ? "[ ] " : "[X] ");
-	else if (EQ (type, QCradio))
-	  prefix = build_string (NILP (selected) ? "( ) " : "(*) ");
-      }
-    /* Not a button. If we have earlier buttons, then we need a prefix.  */
-    else if (!*notbuttons_ptr && XSTRING (item_string)->data[0] != '\0'
-	     && XSTRING (item_string)->data[0] != '-')
-      prefix = build_string ("    ");
-
-    if (!NILP (prefix))
-      item_string = concat2 (prefix, item_string);
-  }
-#endif /* HAVE_BOXES */
- 
-#if 0
-  if (!NILP(map))
-    /* Indicate visually that this is a submenu.  */
-    item_string = concat2 (item_string, build_string (" >"));
-#endif
-
   push_menu_item (item_string, enabled, key,
 		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF],
 		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ],
@@ -618,7 +534,6 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
                   XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED],
                   XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]);
 
-#if 1
   /* Display a submenu using the toolkit.  */
   if (! (NILP (map) || NILP (enabled)))
     {
@@ -626,7 +541,6 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
       single_keymap_panes (map, Qnil, key, 0, maxdepth - 1);
       push_submenu_end ();
     }
-#endif
 }
 
 /* Push all the panes and items of a menu described by the
@@ -1769,7 +1683,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
             descrip = string_make_unibyte (descrip);
           if (STRINGP (help) && STRING_MULTIBYTE (help))
-            help_string = string_make_unibyte (help);
+            help = string_make_unibyte (help);
 #endif
 
           help_string = STRINGP (help) ? XSTRING (help)->data : NULL;
@@ -2126,6 +2040,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 {
   UINT fuFlags;
   char *out_string;
+  int return_value;
 
   if (name_is_separator (wv->name))
     fuFlags = MF_SEPARATOR;
@@ -2155,55 +2070,45 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	  fuFlags = MF_OWNERDRAW | MF_DISABLED;
 	}
 
-#ifdef HAVE_BOXES
       /* Draw radio buttons and tickboxes. */
       {
-      switch (wv->button_type)
-        {
-        case BUTTON_TYPE_TOGGLE:
-          CheckMenuItem (menu, (UINT)item,
-                         wv->selected ? MF_CHECKED : MF_UNCHECKED);
-          break;
-
-        case BUTTON_TYPE_RADIO:
-          /* CheckMenuRadioItem does not exist on NT 3.51 and
-             earlier. Fallback on CheckMenuItem.  */
-          {
-            HMODULE user32 = GetModuleHandle ("user32.dll");
-            FARPROC set_menu_item_info
-              = GetProcAddress (user32, "SetMenuItemInfo");
-            if (set_menu_item_info)
-              {
-                MENUITEMINFO info;
-                bzero (&info, sizeof (info));
-                info.cbSize = sizeof (info);
-                info.fMask = MIIM_TYPE | MIIM_STATE;
-                info.fType = MFT_RADIOCHECK;
-                info.fState = wv->selected ? MFS_CHECKED : MFS_UNCHECKED;
-                
-                set_menu_item_info (menu, item, FALSE, &info);
-              }
-            else
-              CheckMenuItem (menu, (UINT)item, wv->selected ?
-                             MF_CHECKED : MF_UNCHECKED);
-          }
-          break;
-
-        default:
-          CheckMenuItem (menu, (UINT)item, MF_UNCHECKED);
-          break;
-        }
+      if (wv->selected && (wv->button_type == BUTTON_TYPE_TOGGLE ||
+                           wv->button_type == BUTTON_TYPE_RADIO))
+        fuFlags |= MF_CHECKED;
+      else
+        fuFlags |= MF_UNCHECKED;
       }
-#endif
     }
-
   if (item != NULL)
     fuFlags = MF_POPUP;
 
-  return AppendMenu (menu,
-		     fuFlags,
-		     item != NULL ? (UINT) item : (UINT) wv->call_data,
-		     (fuFlags == MF_SEPARATOR) ? NULL: out_string );
+  return_value =
+    AppendMenu (menu,
+                fuFlags,
+                item != NULL ? (UINT) item : (UINT) wv->call_data,
+                (fuFlags == MF_SEPARATOR) ? NULL: out_string );
+
+  /* This must be done after the menu item is created.  */
+  if (wv->button_type == BUTTON_TYPE_RADIO)
+    {
+      /* CheckMenuRadioItem allows us to differentiate TOGGLE and
+         RADIO items, but is not available on NT 3.51 and earlier.  */
+      HMODULE user32 = GetModuleHandle ("user32.dll");
+      FARPROC set_menu_item_info = GetProcAddress (user32, "SetMenuItemInfo");
+
+      if (set_menu_item_info)
+        {
+          MENUITEMINFO info;
+          bzero (&info, sizeof (info));
+          info.cbSize = sizeof (info);
+          info.fMask = MIIM_TYPE | MIIM_STATE;
+          info.fType = MFT_RADIOCHECK;
+          info.fState = wv->selected ? MFS_CHECKED : MFS_UNCHECKED;
+          set_menu_item_info (menu, item, FALSE, &info);
+        }
+    }
+
+  return return_value;
 }
 
 /* Construct native Windows menu(bar) based on widget_value tree.  */
