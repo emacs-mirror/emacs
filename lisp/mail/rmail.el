@@ -1839,7 +1839,7 @@ typically for purposes of moderating a list."
 	  (goto-char (point-min))
 	  ;;>> Insert resent-from:
 	  (insert "Resent-From: " from "\n")
-	  (insert "Resent-Date: " (current-time-string) "\n")
+	  (insert "Resent-Date: " (mail-rfc822-date) "\n")
 	  ;;>> Insert resent-to: and bcc if need be.
 	  (let ((before (point)))
 	    (insert "Resent-To: " (if (stringp address)
