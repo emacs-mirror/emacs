@@ -992,8 +992,18 @@ AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(C_SWITCH_X_SITE)
 AC_SUBST(CFLAGS)
 
-AC_DEFINE(config_machfile,  \"${machfile}\")
-AC_DEFINE(config_opsysfile, \"${opsysfile}\")
+dnl   This is hopefully a temporary hack.  In autoconf version 1.3,
+dnl   the second argument to AC_DEFINE is quoted in every which way,
+dnl   so (as far as I can tell) there's no way to compute the value
+dnl   the CPP macro should receive.  We cripple that quoting for a
+dnl   bit, invoke AC_DEFINE, and then uncripple it.
+
+define([hold_ac_define_sedquote], defn([AC_DEFINE_SEDQUOTE]))
+define([AC_DEFINE_SEDQUOTE],[$1])
+AC_DEFINE(config_machfile,  "\"${machfile}\"")
+AC_DEFINE(config_opsysfile, "\"${opsysfile}\"")
+define([AC_DEFINE_SEDQUOTE],hold_ac_define_sedquote)
+
 AC_DEFINE(LD_SWITCH_X_SITE, ${LD_SWITCH_X_SITE})
 AC_DEFINE(C_SWITCH_X_SITE,  ${C_SWITCH_X_SITE})
 [
