@@ -338,15 +338,14 @@ overlays_around (pos, vec, len)
      Lisp_Object *vec;
      int len;
 {
-  Lisp_Object tail, overlay, start, end;
+  Lisp_Object overlay, start, end;
+  struct Lisp_Overlay *tail;
   int startpos, endpos;
   int idx = 0;
 
-  for (tail = current_buffer->overlays_before;
-       GC_CONSP (tail);
-       tail = XCDR (tail))
+  for (tail = current_buffer->overlays_before; tail; tail = tail->next)
     {
-      overlay = XCAR (tail);
+      XSETMISC (overlay, tail);
 
       end = OVERLAY_END (overlay);
       endpos = OVERLAY_POSITION (end);
@@ -363,11 +362,9 @@ overlays_around (pos, vec, len)
 	}
     }
 
-  for (tail = current_buffer->overlays_after;
-       GC_CONSP (tail);
-       tail = XCDR (tail))
+  for (tail = current_buffer->overlays_after; tail; tail = tail->next)
     {
-      overlay = XCAR (tail);
+      XSETMISC (overlay, tail);
 
       start = OVERLAY_START (overlay);
       startpos = OVERLAY_POSITION (start);
