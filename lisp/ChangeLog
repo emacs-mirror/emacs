@@ -1,8 +1,14 @@
+2001-04-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/cc-cmds.el (c-outline-level):
+	Bind buffer-invisibility-spec.  Originally from Dave Love, but
+	got lost when incorporating version 5.26.
+
 2001-04-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* emulation/pc-select.el (pc-selection-mode): Call
-	normal-erase-is-backspace-mode instead of binding keys
-	individually.
+	* emulation/pc-select.el (pc-selection-mode):
+	Call normal-erase-is-backspace-mode instead of binding
+	keys individually.
 
 	* cus-load.el (normal-erase-is-backspace): Use it instead of
 	delete-key-deletes-forward.
@@ -13,20 +19,20 @@
 	* simple.el (normal-erase-is-backspace): Rename from
 	delete-key-deletes-forward.  Doc fix.
 	(normal-erase-is-backspace-mode): Rename from
-	delete-key-deletes-forward-mode.  Doc fix.  Run
-	normal-erase-is-backspace-hook.
+	delete-key-deletes-forward-mode.  Doc fix.
+	Run normal-erase-is-backspace-hook.
 
 	* dired.el (dired-move-to-filename-regexp): Support file sizes in
-	``human-readable'' format produced by GNU `ls'.  
-	(dired-move-to-filename-regexp): Recognize ISO format dates.  From
-	Paul Eggert <eggert@twinsun.com>.
+	``human-readable'' format produced by GNU `ls'.
+	(dired-move-to-filename-regexp): Recognize ISO format dates.
+	From Paul Eggert <eggert@twinsun.com>.
 
 2001-04-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/lisp-mnt.el (lm-keywords-list, lm-keywords-finder-p):
 	New functions.
-	(lm-verify): Check keywords. 
-	From: Eric M. Ludlam <eric@siege-engine.com>.
+	(lm-verify): Check keywords.
+	From Eric M. Ludlam <eric@siege-engine.com>.
 
 2001-04-03  Eric M. Ludlam  <eric@siege-engine.com>
 
