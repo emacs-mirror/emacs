@@ -191,6 +191,16 @@ static int dylan_wrapper_check(mps_word_t *w)
   return 1;
 }
 
+mps_bool_t dylan_check(mps_addr_t addr)
+{
+  assert(addr != 0);
+  assert(((mps_word_t)addr & (ALIGN-1)) == 0);
+  assert(dylan_wrapper_check((mps_word_t *)((mps_word_t *)addr)[0]));
+  /* .assert.unused: Asserts throw away their conditions */
+  /* in hot varieties, so UNUSED is needed. */
+  unused(addr);
+  return 1;
+}
 
 /* Scan a contiguous array of references in [base, limit). */
 /* This code has been hand-optimised and examined using Metrowerks */
