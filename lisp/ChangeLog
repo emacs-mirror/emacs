@@ -1,3 +1,11 @@
+2005-01-05  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/find-func.el (find-variable)
+	(find-variable-other-window, find-variable-other-frame): 
+	Fix the TYPE args to find-function-read and find-function-do-it.
+	(find-function): Doc fix.
+	(find-function-at-point): Replace function-at-point alias.
+
 2005-01-04  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-face.el (custom-declare-face):
