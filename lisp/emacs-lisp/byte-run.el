@@ -91,9 +91,9 @@ was first made obsolete, for example a date or a release number."
   fn)
 
 (defun make-obsolete-variable (var new &optional when)
-  "Make the byte-compiler warn that VARIABLE is obsolete,
-and NEW should be used instead.  If NEW is a string, then that is the
-`use instead' message.
+  "Make the byte-compiler warn that VARIABLE is obsolete.
+The warning will say that NEW should be used instead.
+If NEW is a string, that is the `use instead' message.
 If provided, WHEN should be a string indicating when the variable
 was first made obsolete, for example a date or a release number."
   (interactive

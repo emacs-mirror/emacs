@@ -57,6 +57,299 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_in_display_line_to): Fix MOVE_TO_POS case when
+	to_charpos corresponds to newline in right fringe.  Use local
+	BUFFER_POS_REACHED_P macro.
+
+2004-03-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xdisp.c (calc_pixel_width_or_height): Add ifdef HAVE_WINDOW_SYSTEM
+	to compile on non-window system.
+
+2004-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (calc_pixel_width_or_height): Add prototype.
+
+	* image.c (Qcenter): Move to xdisp.c.
+
+	* xdisp.c (Qcenter): Declare here.
+	(syms_of_xdisp): intern and staticpro it.
+	(handle_single_display_prop): Allow space display property on all
+	platforms.
+	(display_mode_line): Set mode_line_p before displaying line.
+	(calc_pixel_width_or_height): Declare extern.  Add separate :align-to
+	handling.  Remove complex cases for fringes and scroll-bars.
+	Add left, right, and center alignment positions. Add text (area)
+	width/height.  Return width or height for image specs.
+	(produce_stretch_glyph): Improve handling of :align-to.  Is now
+	relative to left of text area by default, but other base offsets
+	can be specified -- also for text lines.
+
+	* term.c (produce_glyphs): Handle IT_STRETCH.
+	(produce_stretch_glyph): New function to handle space width and
+	align-to display properties on non-window systems.
+
+2004-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fread_file_name): Set completion-ignore-case for
+	case-insensitive systems.
+
+2004-03-14  Masatake YAMATO  <jet@gyve.org>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Accept HEADER_LINE
+	when keymap and cursor are setup.
+
+2004-03-14  Steven Tamm <steventamm@mac.com>
+
+	* Makefile.in (XMENU_OBJ): Do not include xmenu.o if
+	HAVE_CARBON is defined.
+
+2004-03-14  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (x_find_image_file): Add prototype.
+
+	* image.c (x_find_image_file): Make extern.
+
+	* xfns.c (x_find_image_file): Remove prototype.
+
+2004-03-13  Eli Zaretskii  <eliz@elta.co.il>
+
+	* Makefile.in (XMENU_OBJ): Include xmenu.o if HAVE_MENUS is defined.
+
+	* emacs.c (main): Call syms_of_xmenu only if HAVE_MENUS is defined.
+
+2004-03-12  Richard M. Stallman  <rms@gnu.org>
+
+	* fns.c (internal_equal): New arg PROPS controls comparing
+	text properties.  All callers changed.
+	(Fequal_including_properties): New function.
+	(syms_of_fns): defsubr it.
+
+2004-03-12  Kim F. Storm  <storm@cua.dk>
+
+	Fix image support on MAC.  From YAMAMOTO Mitsuharu.
+
+	* dispextern.h (XImagePtr, XImagePtr_or_DC): Add typedefs.
+	(image_background, image_background_transparent): Fix prototypes.
+
+	* image.c (XImagePtr, XImagePtr_or_DC): Move typedefs to dispextern.h.
+
+	* macfns.c (x_list_fonts, x_get_font_info, x_load_font)
+	(x_query_font, x_find_ccl_program, x_set_window_size)
+	(x_make_frame_visible, mac_initialize, XCreatePixmap)
+	(XCreatePixmapFromBitmapData, XFreePixmap, XSetForeground)
+	(mac_draw_line_to_pixmap): Move prototypes to macterm.h.
+
+	* macterm.h (x_list_fonts, x_get_font_info, x_load_font)
+	(x_query_font, x_find_ccl_program, x_set_window_size)
+	(x_make_frame_visible, mac_initialize, XCreatePixmap)
+	(XCreatePixmapFromBitmapData, XFreePixmap, XSetForeground)
+	(mac_draw_line_to_pixmap): Add prototypes.
+
+2004-03-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (XTread_socket): Fix mouse click on tool bar.
+
+2004-03-11  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h: Move image related prototypes from xfns.c section
+	to image.c.  Condition them by HAVE_WINDOW_SYSTEM rather than
+	HAVE_X_WINDOWS.
+
+	* Makefile.in (XOBJ): Consolidate into one list.  Add image.o.
+	Move gtkutil.o to new GTK_OBJ list.
+	(XMENU_OBJ) [HAVE_MENUS]: Move declaration to proper place.
+	(GTK_OBJ) [USE_GTK]: New declaration.
+	(obj): Add $(GTK_OBJ) to list.
+
+2004-03-11  Steven Tamm <steventamm@mac.com>
+
+	* image.c [MAC_OSX]: Include sys/stat.h
+
+	* macfns.c (syms_of_macfns): Remove definitions of things now
+	defined in image.c
+
+2004-03-11  Kim F. Storm  <storm@cua.dk>
+
+	The following changes consolidates the identical/similar image
+	support code previously found in xfns.c, w32fns.c, and macfns.c
+	into a new file image.c.
+
+	* makefile.w32-in (OBJ1): Add image.o.
+	($(BLD)/image.$(O)): Add dependencies.
+
+	* Makefile.in (XOBJ, MAC_OBJ): Add image.o.
+	(image.o): Add dependencies.
+
+	* image.c: New file with consolidated image support code.
+	(COLOR_TABLE_SUPPORT): New define to control whether
+	color table support is available (X only).
+	(Bitmap_Record): Common name for x_bitmap_record,
+	w32_bitmap_record, and mac_bitmap_record.
+	(XImagePtr): Common name for pointer to XImage or equivalent.
+	(XImagePtr_or_DC): New type to simplify code sharing; equivalent
+	to XImagePtr on X+MAC, and to HDC on W32.
+	(GET_PIXEL): Wrapper for XGetPixel or equivalent.
+	(NO_PIXMAP): Common name for "None" or equivalent.
+	(PNG_BG_COLOR_SHIFT): Bits to shift PNG background colors.
+	(RGB_PIXEL_COLOR): Common type for an integer "pixel color" value.
+	(PIX_MASK_RETAIN, PIX_MASK_DRAW): Portability macros (from macfns.c).
+	(FRAME_X_VISUAL, x_defined_color, DefaultDepthOfScreen):
+	Define with suitable equivalents on W32 and MAC for code sharing.
+	(XDrawLine): Define on MAC for code sharing.
+	(Destroy_Image, Free_Pixmap): Wrappers for code sharing.
+	(IF_LIB_AVAILABLE): Macro to simplify code sharing.
+	(Vx_bitmap_file_path, Vimage_cache_eviction_delay)
+	(x_bitmap_height, x_bitmap_width, x_bitmap_pixmap)
+	(x_reference_bitmap, x_create_bitmap_from_data)
+	(x_create_bitmap_from_file, x_destroy_bitmap)
+	(x_destroy_all_bitmaps, x_create_bitmap_mask)
+	(XGetImage, XPutPixel, XGetPixel, XDestroyImage)
+	(QCascent, QCmargin, QCrelief, QCconversion, QCcolor_symbols)
+	(QCheuristic_mask, QCindex, QCmatrix, QCcolor_adjustment, QCmask)
+	(Qlaplace, Qemboss, Qedge_detection, Qheuristic, Qcenter)
+	(define_image_type, lookup_image_type, valid_image_p)
+	(image_error, enum image_value_type, struct image_keyword)
+	(parse_image_spec, image_spec_value, Fimage_size, Fimage_mask_p)
+	(make_image, free_image, prepare_image_for_display, image_ascent)
+	(four_corners_best, image_background, image_background_transparent)
+	(x_clear_image_1,  x_clear_image, x_alloc_image_color)
+	(make_image_cache, free_image_cache, clear_image_cache)
+	(Fclear_image_cache, postprocess_image, lookup_image, cache_image)
+	(forall_images_in_image_cache, x_create_x_image_and_pixmap)
+	(x_destroy_x_image, x_put_x_image, x_find_image_file, slurp_file)
+	(find_image_fsspec, image_load_qt_1, image_load_quicktime)
+	(init_image_func_pointer, image_load_quartz2d)
+	(struct ct_color, init_color_table, free_color_table)
+	(lookup_rgb_color, lookup_pixel_color, colors_in_color_table)
+	(cross_disabled_images, x_to_xcolors, x_from_xcolors)
+	(x_detect_edges, x_emboss, x_laplace, x_edge_detection)
+	(x_disable_image, x_build_heuristic_mask)
+	(XBM support, XPM support, PBM support, PNG support, JPEG support)
+	(TIFF support, GIF support, Ghostscript support): Consolidate image
+	code from xfns.c, w32fns.c, and macfns.c.
+	(syms_of_image): Consolidate image related symbol setup here.
+	(init_image): Consolidate image related initializations here.
+
+	* emacs.c (main) [HAVE_WINDOW_SYSTEM]: Add calls to syms_of_image
+	and init_image.  Remove call to init_xfns.
+
+	* macterm.h (struct mac_bitmap_record): Add file member.
+	Not currently used, but simplifies code sharing.
+
+	* macfns.c (Vx_bitmap_file_path, Vimage_cache_eviction_delay)
+	(x_bitmap_height, x_bitmap_width, x_bitmap_pixmap)
+	(x_reference_bitmap, x_create_bitmap_from_data)
+	(x_create_bitmap_from_file, x_destroy_bitmap)
+	(x_destroy_all_bitmaps, x_create_bitmap_mask)
+	(XGetImage, XPutPixel, XGetPixel, XDestroyImage)
+	(QCascent, QCmargin, QCrelief, QCconversion, QCcolor_symbols)
+	(QCheuristic_mask, QCindex, QCmatrix, QCcolor_adjustment, QCmask)
+	(Qlaplace, Qemboss, Qedge_detection, Qheuristic, Qcenter)
+	(define_image_type, lookup_image_type, valid_image_p)
+	(image_error, enum image_value_type, struct image_keyword)
+	(parse_image_spec, image_spec_value, Fimage_size, Fimage_mask_p)
+	(make_image, free_image, prepare_image_for_display, image_ascent)
+	(four_corners_best, image_background, image_background_transparent)
+	(x_clear_image_1,  x_clear_image, x_alloc_image_color)
+	(make_image_cache, free_image_cache, clear_image_cache)
+	(Fclear_image_cache, postprocess_image, lookup_image, cache_image)
+	(forall_images_in_image_cache, x_create_x_image_and_pixmap)
+	(x_destroy_x_image, x_put_x_image, x_find_image_file, slurp_file)
+	(find_image_fsspec, image_load_qt_1, image_load_quicktime)
+	(init_image_func_pointer, image_load_quartz2d)
+	(struct ct_color, init_color_table, free_color_table)
+	(lookup_rgb_color, lookup_pixel_color, colors_in_color_table)
+	(cross_disabled_images, x_to_xcolors, x_from_xcolors)
+	(x_detect_edges, x_emboss, x_laplace, x_edge_detection)
+	(x_disable_image, x_build_heuristic_mask)
+	(XBM support, XPM support, PBM support, PNG support, JPEG support)
+	(TIFF support, GIF support, Ghostscript support): Merge with image
+	code from xfns.c and macfns.c into image.c.
+	(syms_of_xfns): Move image related symbols to image.c.
+	(init_external_image_libraries, init_xfns): Remove; initialization
+	moved to init_image in image.c.
+
+	* w32fns.c (Vx_bitmap_file_path, Vimage_cache_eviction_delay)
+	(x_bitmap_height, x_bitmap_width, x_bitmap_pixmap)
+	(x_reference_bitmap, x_create_bitmap_from_data)
+	(x_create_bitmap_from_file, x_destroy_bitmap)
+	(x_destroy_all_bitmaps, x_create_bitmap_mask)
+	(QCascent, QCmargin, QCrelief, QCconversion, QCcolor_symbols)
+	(QCheuristic_mask, QCindex, QCmatrix, QCcolor_adjustment, QCmask)
+	(Qlaplace, Qemboss, Qedge_detection, Qheuristic, Qcenter)
+	(define_image_type, lookup_image_type, valid_image_p)
+	(image_error, enum image_value_type, struct image_keyword)
+	(parse_image_spec, image_spec_value, Fimage_size, Fimage_mask_p)
+	(make_image, free_image, prepare_image_for_display, image_ascent)
+	(four_corners_best, image_background, image_background_transparent)
+	(x_clear_image_1,  x_clear_image, x_alloc_image_color)
+	(make_image_cache, free_image_cache, clear_image_cache)
+	(Fclear_image_cache, postprocess_image, lookup_image, cache_image)
+	(forall_images_in_image_cache, x_create_x_image_and_pixmap)
+	(x_destroy_x_image, x_put_x_image, x_find_image_file, slurp_file)
+	(struct ct_color, init_color_table, free_color_table)
+	(lookup_rgb_color, lookup_pixel_color, colors_in_color_table)
+	(cross_disabled_images, x_to_xcolors, x_from_xcolors)
+	(x_detect_edges, x_emboss, x_laplace, x_edge_detection)
+	(x_disable_image, x_build_heuristic_mask)
+	(XBM support, XPM support, PBM support, PNG support, JPEG support)
+	(TIFF support, GIF support, Ghostscript support): Merge with image
+	code from xfns.c and macfns.c into image.c.
+	(syms_of_xfns): Move image related symbols to image.c.
+	(init_external_image_libraries, init_xfns): Remove; initialization
+	moved to init_image in image.c.
+
+	* xfns.c (Vx_bitmap_file_path, Vimage_cache_eviction_delay)
+	(x_bitmap_height, x_bitmap_width, x_bitmap_pixmap)
+	(x_reference_bitmap, x_create_bitmap_from_data)
+	(x_create_bitmap_from_file, x_destroy_bitmap)
+	(x_destroy_all_bitmaps, x_create_bitmap_mask)
+	(QCascent, QCmargin, QCrelief, QCconversion, QCcolor_symbols)
+	(QCheuristic_mask, QCindex, QCmatrix, QCcolor_adjustment, QCmask)
+	(Qlaplace, Qemboss, Qedge_detection, Qheuristic, Qcenter)
+	(define_image_type, lookup_image_type, valid_image_p)
+	(image_error, enum image_value_type, struct image_keyword)
+	(parse_image_spec, image_spec_value, Fimage_size, Fimage_mask_p)
+	(make_image, free_image, prepare_image_for_display, image_ascent)
+	(four_corners_best, image_background, image_background_transparent)
+	(x_clear_image_1,  x_clear_image, x_alloc_image_color)
+	(make_image_cache, free_image_cache, clear_image_cache)
+	(Fclear_image_cache, postprocess_image, lookup_image, cache_image)
+	(forall_images_in_image_cache, x_create_x_image_and_pixmap)
+	(x_destroy_x_image, x_put_x_image, x_find_image_file, slurp_file)
+	(struct ct_color, init_color_table, free_color_table)
+	(lookup_rgb_color, lookup_pixel_color, colors_in_color_table)
+	(cross_disabled_images, x_to_xcolors, x_from_xcolors)
+	(x_detect_edges, x_emboss, x_laplace, x_edge_detection)
+	(x_disable_image, x_build_heuristic_mask)
+	(XBM support, XPM support, PBM support, PNG support, JPEG support)
+	(TIFF support, GIF support, Ghostscript support): Merge with
+	w32fns.c and macfns.c image code into image.c.
+	(syms_of_xfns): Move image related symbols to image.c.
+	(init_xfns): Remove; initialization moved to init_image in image.c.
+
+	* lisp.h (syms_of_image, init_image): Add protoypes.
+	(init_xfns): Remove prototype.
+
+	* dispextern.h (x_bitmap_height, x_bitmap_width, x_bitmap_pixmap)
+	(x_reference_bitmap, x_create_bitmap_from_data)
+	(x_create_bitmap_from_file, x_destroy_bitmap)
+	(x_create_bitmap_mask): Move prototypes from dispextern.h.
+	(gamma_correct) [MAC_OS]: Add prototype.
+
+	* xterm.h (x_bitmap_height, x_bitmap_width, x_bitmap_pixmap)
+	(x_reference_bitmap, x_create_bitmap_from_data)
+	(x_create_bitmap_from_file, x_destroy_bitmap)
+	(x_create_bitmap_mask): Move prototypes to dispextern.h.
+
+2004-03-09  Kenichi Handa  <handa@etlken2>
+
+	* coding.c (decode_coding_emacs_mule): Handle insufficent source
+	correctly.
+
 2004-03-04  Richard M. Stallman  <rms@gnu.org>
 
 	* s/sol2-6.h (LD_SWITCH_SYSTEM_TEMACS): New definition.

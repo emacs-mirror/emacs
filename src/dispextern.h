@@ -50,23 +50,29 @@ typedef struct {
 
 #ifdef HAVE_X_WINDOWS
 typedef struct x_display_info Display_Info;
+typedef XImage * XImagePtr;
+typedef XImagePtr XImagePtr_or_DC;
 #define NativeRectangle XRectangle
 #endif
 
 #ifdef HAVE_NTGUI
 #include "w32gui.h"
 typedef struct w32_display_info Display_Info;
+typedef XImage *XImagePtr;
+typedef HDC XImagePtr_or_DC;
 #endif
 
 #ifdef HAVE_CARBON
 #include "macgui.h"
 typedef struct mac_display_info Display_Info;
+/* Mac equivalent of XImage.  */
+typedef Pixmap XImagePtr;
+typedef XImagePtr XImagePtr_or_DC;
 #endif
 
 #ifndef NativeRectangle
 #define NativeRectangle int
 #endif
-
 
 /* Structure forward declarations.  Some are here because function
    prototypes below reference structure types before their definition
@@ -2527,6 +2533,9 @@ extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
 extern int mouse_autoselect_window;
 
+extern int calc_pixel_width_or_height P_ ((double *, struct it *, Lisp_Object,
+					   /* XFontStruct */ void *, int, int *));
+
 #ifdef HAVE_WINDOW_SYSTEM
 
 #if GLYPH_DEBUG
@@ -2595,6 +2604,41 @@ void w32_init_fringe P_ ((void));
 void w32_reset_fringes P_ ((void));
 #endif
 
+/* Defined in image.c */
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+extern int x_bitmap_height P_ ((struct frame *, int));
+extern int x_bitmap_width P_ ((struct frame *, int));
+extern int x_bitmap_pixmap P_ ((struct frame *, int));
+extern void x_reference_bitmap P_ ((struct frame *, int));
+extern int x_create_bitmap_from_data P_ ((struct frame *, char *,
+					  unsigned int, unsigned int));
+extern int x_create_bitmap_from_file P_ ((struct frame *, Lisp_Object));
+#ifndef x_destroy_bitmap
+extern void x_destroy_bitmap P_ ((struct frame *, int));
+#endif
+extern void x_destroy_all_bitmaps P_ ((Display_Info *));
+extern int x_create_bitmap_mask P_ ((struct frame * , int));
+extern Lisp_Object x_find_image_file P_ ((Lisp_Object));
+
+void x_kill_gs_process P_ ((Pixmap, struct frame *));
+struct image_cache *make_image_cache P_ ((void));
+void free_image_cache P_ ((struct frame *));
+void clear_image_cache P_ ((struct frame *, int));
+void forall_images_in_image_cache P_ ((struct frame *,
+				       void (*) P_ ((struct image *))));
+int valid_image_p P_ ((Lisp_Object));
+void prepare_image_for_display P_ ((struct frame *, struct image *));
+int lookup_image P_ ((struct frame *, Lisp_Object));
+
+unsigned long image_background P_ ((struct image *, struct frame *,
+				    XImagePtr_or_DC ximg));
+int image_background_transparent P_ ((struct image *, struct frame *,
+				      XImagePtr_or_DC mask));
+
+#endif
+
 /* Defined in sysdep.c */
 
 void get_frame_size P_ ((int *, int *));
@@ -2647,27 +2691,14 @@ void gamma_correct P_ ((struct frame *, XColor *));
 #ifdef WINDOWSNT
 void gamma_correct P_ ((struct frame *, COLORREF *));
 #endif
+#ifdef MAC_OS
+void gamma_correct P_ ((struct frame *, unsigned long *));
+#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-void x_kill_gs_process P_ ((Pixmap, struct frame *));
 int x_screen_planes P_ ((struct frame *));
 void x_implicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
-struct image_cache *make_image_cache P_ ((void));
-void free_image_cache P_ ((struct frame *));
-void clear_image_cache P_ ((struct frame *, int));
-void forall_images_in_image_cache P_ ((struct frame *,
-				       void (*) P_ ((struct image *))));
-int valid_image_p P_ ((Lisp_Object));
-void prepare_image_for_display P_ ((struct frame *, struct image *));
-int lookup_image P_ ((struct frame *, Lisp_Object));
-
-#ifdef HAVE_X_WINDOWS
-unsigned long image_background P_ ((struct image *, struct frame *,
-				    XImage *ximg));
-int image_background_transparent P_ ((struct image *, struct frame *,
-				      XImage *mask));
-#endif /* HAVE_X_WINDOWS */
 
 extern Lisp_Object tip_frame;
 extern Window tip_window;

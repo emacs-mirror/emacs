@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.142 $")
+(defconst byte-compile-version "$Revision: 2.143 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -2982,7 +2982,8 @@ If BINDING is non-nil, VAR is being bound."
 
 (defmacro byte-compile-get-constant (const)
   `(or (if (stringp ,const)
-	   (assoc ,const byte-compile-constants)
+	   (assoc-default ,const byte-compile-constants
+			  'equal-including-properties nil)
 	 (assq ,const byte-compile-constants))
        (car (setq byte-compile-constants
 		  (cons (list ,const) byte-compile-constants)))))

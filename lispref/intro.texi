@@ -132,8 +132,7 @@ worry about it; this manual is self-contained.
 
 @pindex cl
   A certain amount of Common Lisp emulation is available via the
-@file{cl} library.  @xref{Top,, Common Lisp Extension, cl, Common Lisp
-Extensions}.
+@file{cl} library.  @inforef{Top, Overview, cl}.
 
   Emacs Lisp is not at all influenced by Scheme; but the GNU project has
 an implementation of Scheme, called Guile.  We use Guile in all new GNU
@@ -476,7 +475,7 @@ replaced by `User Option'.
   These facilities provide information about which version of Emacs is
 in use.
 
-@deffn Command emacs-version
+@deffn Command emacs-version &optional here
 This function returns a string describing the version of Emacs that is
 running.  It is useful to include this string in bug reports.
 
@@ -488,8 +487,10 @@ running.  It is useful to include this string in bug reports.
 @end group
 @end smallexample
 
-Called interactively, the function prints the same information in the
-echo area.
+If @var{here} is non-@code{nil}, it inserts the text in the buffer
+before point, and returns @code{nil}.  Called interactively, the
+function prints the same information in the echo area, but giving a
+prefix argument makes @var{here} non-@code{nil}.
 @end deffn
 
 @defvar emacs-build-time

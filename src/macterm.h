@@ -56,6 +56,7 @@ Boston, MA 02111-1307, USA.  */
 struct mac_bitmap_record
 {
   char *bitmap_data;
+  char *file;
   int refcount;
   int height, width;
 };
@@ -239,6 +240,12 @@ extern struct x_display_info *x_display_info_for_name P_ ((Lisp_Object));
 
 extern struct mac_display_info *mac_term_init ();
 
+extern Lisp_Object x_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
+extern struct font_info *x_get_font_info P_ ((struct frame *f, int));
+extern struct font_info *x_load_font P_ ((struct frame *, char *, int));
+extern struct font_info *x_query_font P_ ((struct frame *, char *));
+extern void x_find_ccl_program P_ ((struct font_info *));
+
 /* When Emacs uses a tty window, tty_display in frame.c points to an
    x_output struct .  */
 struct x_output
@@ -563,6 +570,22 @@ struct frame * check_x_frame (Lisp_Object);
 
 void activate_scroll_bars (FRAME_PTR);
 void deactivate_scroll_bars (FRAME_PTR);
+
+/* Defined in macterm.c.  */
+
+extern void x_set_window_size P_ ((struct frame *, int, int, int));
+extern void x_make_frame_visible P_ ((struct frame *));
+extern void mac_initialize P_ ((void));
+extern Pixmap XCreatePixmap P_ ((Display *, WindowPtr, unsigned int,
+				 unsigned int, unsigned int));
+extern Pixmap XCreatePixmapFromBitmapData P_ ((Display *, WindowPtr, char *,
+					       unsigned int, unsigned int,
+					       unsigned long, unsigned long,
+					       unsigned int));
+extern void XFreePixmap P_ ((Display *, Pixmap));
+extern void XSetForeground P_ ((Display *, GC, unsigned long));
+extern void mac_draw_line_to_pixmap P_ ((Display *, Pixmap, GC, int, int,
+					 int, int));
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0

@@ -1,3 +1,12 @@
+2004-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* TODO: Remove entries for fringe related issues (DONE).
+	Remove entry about image-relative coordinates of mouse clicks (DONE).
+
+2004-03-11  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* compilation.txt: New file.
+
 2004-02-29  Juanma Barranquero  <lektu@terra.es>
 
 	* NEWS: Remove bogus reference to user option unicode-data.

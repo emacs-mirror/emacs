@@ -1,3 +1,20 @@
+2004-03-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* info.texi (Advanced): Replace @unnumberedsubsec by @subheading
+	(as suggested by Karl Berry).  Update information about colored
+	stars in menus.  Add new subheading describing M-n.
+
+2004-03-12  Richard M. Stallman  <rms@gnu.org>
+
+	* cl.texi (Top): Rename top node's title.
+
+	* buffers.texi (Misc Buffer): Add index entry for rename-uniquely.
+
+2004-03-08  Karl Berry  <karl@gnu.org>
+
+	* info.texi: \input texinfo.tex instead of just texinfo, to avoid
+	problems making the texinfo distribution.
+
 2004-03-04  Richard M. Stallman  <rms@gnu.org>
 
 	* search.texi (Regexps): Explain that ^ and $ have their
@@ -59,6 +76,10 @@
 	(Title X): Remove alias -title.
 	(Icons X): Remove alias -iconic.
 	(Misc X): New node.
+
+2004-02-17  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Help-Int): mention the new line number feature.
 
 2004-02-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 

@@ -187,6 +187,299 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-03-19  David Ponce  <david@dponce.com>
+
+	* ruler-mode.el (ruler-mode-header-line-format-old): Don't
+	`make-variable-buffer-local'.
+	(ruler-mode-ruler-function): Default to `ruler-mode-ruler'.
+	(ruler-mode-header-line-format): Simply funcall the above.
+	(ruler-mode): Use `make-local-variable' and `kill-local-variable'
+	to save/restore a previous header line format.
+	(ruler-mode-space): Don't depend on a numeric WIDTH value.
+	(ruler-mode-ruler): Use symbolic display elements for scrollbar,
+	fringes and margins width.
+	(ruler-mode-ruler-function): Default to ruler-mode-ruler
+
+2004-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* hexl.el (hexl-mode-ruler): Adapt to new :align-to semantics.
+	(hexl-follow-line): Don't require 'fringe.
+
+	* progmodes/compile.el (compilation-start): Always set
+	compilation-last-buffer and return it.
+
+2004-03-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (clone-buffer): Doc fix.
+
+2004-03-18  Juanma Barranquero  <lektu@terra.es>
+
+	* emacs-lisp/byte-run.el (make-obsolete-variable): Fix docstring.
+
+2004-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-edit.el (log-edit-font-lock-keywords): New var.
+	(log-edit-mode): Use it.
+
+2004-03-17  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-var-list-children-handler): Handle C++ classes
+	properly for watching in speedbar.
+
+2004-03-17  Masatake YAMATO  <jet@gyve.org>
+
+	* smerge-mode.el (smerge-popup-context-menu):
+	Put `unwind-protect' around `overlay-put' and `popup-menu'.
+
+2004-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-workfile-unchanged-p): Define to avoid dup-diff.
+	(vc-arch-workfile-version, vc-arch-mode-line-rewrite):
+	Take sealed revisions into account.
+	(vc-arch-checkin): Extract a summary line from the message.
+
+2004-03-16  Masatake YAMATO  <jet@gyve.org>
+
+	* register.el (register): Provide `register' feature.
+
+2004-03-15  Masatake YAMATO  <jet@gyve.org>
+
+	Added context menu support in smerge mode.
+	Most of the part is written by Stefan Monnier.
+
+	* smerge-mode.el (smerge-context-menu-map, smerge-context-menu):
+	New keymap and menu.
+	(smerge-text-properties): New function.
+	(smerge-remove-props): New function.
+	(smerge-popup-context-menu): New function.
+	(smerge-resolve): Call `smerge-remove-props'.
+	(smerge-keep-base, smerge-keep-other, smerge-keep-mine): Ditto.
+	(smerge-keep-current): Ditto.
+	(smerge-kill-current): New function.
+	(smerge-match-conflict): Put text properties.
+	Detect the file as `same-diff conflict' if the filename is "ANCESTOR".
+
+2004-03-15  David Ponce  <david@dponce.com>
+
+	* ruler-mode.el: (ruler-mode-left-fringe-cols)
+	(ruler-mode-right-fringe-cols, ruler-mode-left-scroll-bar-cols)
+	(ruler-mode-right-scroll-bar-cols): Remove.
+	(ruler-mode-window-col, ruler-mode-mouse-set-left-margin)
+	(ruler-mode-mouse-set-right-margin, ruler-mode-ruler):
+	Use fringe-columns and scroll-bar-columns.
+
+2004-03-15  Masatake YAMATO  <jet@gyve.org>
+
+	* hl-line.el (hl-line-range-function): New variable.
+	(hl-line-move): New function.
+	(global-hl-line-highlight): Use `hl-line-move'.
+	(hl-line-highlight): Ditto.
+
+	* scroll-bar.el (scroll-bar-columns):
+	* fringe.el (fringe-columns): New function derived from ruler-mode.el.
+
+	* ruler-mode.el (top-level): Require scroll-bar and fringe.
+	(ruler-mode-left-fringe-cols)
+	(ruler-mode-right-fringe-cols): Use `fringe-columns'.
+	(ruler-mode-right-scroll-bar-cols)
+	(ruler-mode-left-scroll-bar-cols): Use `scroll-bar-columns'.
+	(ruler-mode-ruler-function): New variable.
+	(ruler-mode-header-line-format): Call `ruler-mode-ruler-function'
+	if the value for `ruler-mode-ruler-function'is given.
+
+	* hexl.el (hexl-mode-hook): Make the hook customizable.
+	(hexl-address-area, hexl-ascii-area): New customize variables.
+	(hexlify-buffer): Put font-lock-faces on the address area and
+	the ascii area.
+	(hexl-activate-ruler): New function.
+	(hexl-follow-line): New function.
+	(hexl-highlight-line-range): New function.
+	(hexl-mode-ruler): New function.
+
+2004-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-handled-backends): Add Arch.  Move MCVS down.
+	(vc-default-find-file-hook): New fun.
+	(vc-find-file-hook): Call new find-file-hook operation.
+
+	* vc-arch.el: New file.
+
+2004-03-12  Jesper Harder  <harder@ifa.au.dk>
+
+	* info-look.el (info-lookup): Reuse an existing Info window.
+
+2004-03-12  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
+
+	* woman.el (woman-preserve-ascii): Default value changed to t and
+	doc string revised.
+
+2004-03-12  Richard M. Stallman  <rms@gnu.org>
+
+	* pcvs.el (cvs-mode-add-change-log-entry-other-window):
+	Fix minor bug.
+
+	* replace.el (occur-engine): Change message for count of matches.
+
+	* emacs-lisp/bytecomp.el (byte-compile-get-constant):
+	For strings, do compare text properties.
+
+2004-03-11  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compile-auto-highlight)
+	(compilation-error-list, compilation-old-error-list)
+	(compilation-parse-errors-function, compilation-parsing-end)
+	(compilation-error-message, compilation-directory-stack)
+	(compilation-enter-directory-regexp-alist)
+	(compilation-leave-directory-regexp-alist)
+	(compilation-file-regexp-alist, compilation-nomessage-regexp-alist)
+	(compilation-current-file, compilation-regexps): Remove vars.
+
+	(compile-error-at-point, compilation-error-filedata)
+	(compilation-error-filedata-file-name, compile-reinitialize-errors)
+	(compilation-next-error-locus, compilation-forget-errors)
+	(count-regexp-groupings, compilation-parse-errors)
+	(compile-collect-regexps, compile-buffer-substring): Remove funs.
+
+	(compile-internal): Make obsolete.
+
+	(compilation-first-column, compilation-error)
+	(compilation-directory-matcher, compilation-page-delimiter)
+	(compilation-mode-font-lock-keywords, compilation-debug)
+	(compilation-error-face, compilation-warning-face)
+	(compilation-info-face, compilation-line-face)
+	(compilation-column-face, compilation-enter-directory-face)
+	(compilation-leave-directory-face, compilation-skip-threshold)
+	(compilation-skip-visited, compilation-context-lines): New vars.
+
+	(compilation-warning-face, compilation-info-face)
+	(compilation-message-face): New faces.
+
+	(compilation-error-regexp-alist-alist): New constant.
+
+	(compilation-face, compilation-directory-properties)
+	(compilation-assq, compilation-error-properties, compilation-start)
+	(define-compilation-mode, compilation-loop)
+	(compilation-set-window): New functions.
+
+	(compile): Additional argument for interactive compiles like TeX.
+
+	* progmodes/grep.el (kill-grep): Move here from compile.el
+	(grep-error, grep-hit-face, grep-error-face)
+	(grep-mode-font-lock-keywords): New variables.
+	(grep-regexp-alist): Simplify regexp and add `binary' case.
+	(grep-mode): New mode.
+	(grep-process-setup): Simplify.
+
+2004-03-11  Jason Rumney  <jasonr@gnu.org>
+
+	* net/ldap.el (ldap-search-internal): Handle file URLs with drive
+	letters on DOS/Windows.
+
+2004-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-name): New var.
+	(server-socket-dir): New var to replace server-socket-name.
+	(server-start): Use them.
+
+2004-03-11  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-read-response): Abort if process has
+	died to avoid infloop.  Reported by Jonathan Glauner
+	<jglauner@sbum.org>.
+
+2004-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-check-cache, smerge-check): New var and fun.
+	(smerge-mode-menu): Use it to deactivate menu entries.
+	(smerge-keep-current): New fun.
+	(smerge-keep-current): Use it.
+
+2004-03-10  John Paul Wallington  <jpw@gnu.org>
+
+	* foldout.el (foldout-fold-list, foldout-modeline-string):
+	Declare them as variables, not constants.
+
+2004-03-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Modification to print *Messages* buffer.
+	(ps-print-version): New version 6.6.4.
+	(ps-message-log-max): New fun.
+	(ps-spool-without-faces, ps-spool-with-faces)
+	(ps-count-lines-preprint): Code fix.
+
+	* printing.el: New tips in Tips section.
+
+2004-03-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* delim-col.el: Doc fix.
+
+	* printing.el: Doc fix.  New doc section (Tips).
+
+2004-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* type-break.el (type-break-emacs-variant): Remove.
+	(type-break-run-at-time, type-break-cancel-function-timers):
+	Use fboundp rather than version name and number.
+
+2004-03-09  Masatake YAMATO  <jet@gyve.org>
+
+	* hexl.el (hexl-mode): Use `make-local-variable' instead of
+	`make-variable-buffer-local'.
+
+2004-03-08  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* find-dired.el (find-dired): Call `shell-command' instead of
+	`start-process-shell-command'.  By this, Tramp takes over
+	handling of remote directories.
+
+2004-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-use-global-state): New var.
+	(comment-search-forward): Use it.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Set it.
+
+	* cus-edit.el (fill) <defgroup>: Move to fill.el.
+
+	* textmodes/fill.el (fill) <defgroup>: Move from cus-edit.el.
+	(enable-kinsoku): Make it a defcustom.
+	(fill-comment-paragraph): Don't rely on fill-prefix to bound the
+	paragraph to same-comment-start-marker.
+
+2004-03-07  Dave Love  <fx@gnu.org>
+
+	* net/browse-url.el (rfc2368-parse-mailto-url): Autoload.
+	(browse-url-mail): Use it.
+
+	* mail/rfc2368.el (rfc2368-unhexify-char): Delete.
+	(rfc2368-unhexify-string): Use replace-regexp-in-string.
+
+2004-03-07  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
+
+	* woman.el (woman-man.conf-path): Doc fix.
+	(woman-parse-man.conf): Also parse OPTIONAL_MANPATH.
+
+2004-03-07  Eli Zaretskii  <eliz@elta.co.il>
+
+	* sort.el (sort-columns): Remove ms-dos from the list of systems
+	where the external `sort' command is not used.
+
+2004-03-07  Kim F. Storm  <storm@cua.dk>
+
+	* gdb-ui.el (gdb-overlay-arrow-position): Add defvar.
+	(gdb-reset): Reset gdb-overlay-arrow-position marker and remove it
+	from overlay-arrow-variable-list.
+	(gdb-assembler-mode): Use add-to-list for gdb-overlay-arrow-position.
+
+2004-03-06  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-assembler-mode, gdb-assembler-custom): Set up
+	overlay arrow string properly for the assembler buffer.
+
+2004-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/sendmail.el (mail-mode): Fix last change.
+
 2004-03-05  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-assembler-mode): Create a second overlay arrow
@@ -195,6 +488,11 @@
 	(gdb-put-arrow, gdb-remove-arrow): Delete functions.
 
 2004-03-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-paren): Add @ in case patterns.
+
+	* pcvs-info.el (cvs-fileinfo->backup-file): Use a more constraining
+	regexp to distinguish .#ChangeLog.9.1.400 and .#ChangeLog.1.400.
 
 	* mail/sendmail.el (mail-mode): Set comment-start-skip.
 
@@ -253,6 +551,11 @@
 
 	* textmodes/fill.el (fill-comment-paragraph): Be more careful when
 	recognizing leading comment on code line.
+
+2004-03-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (setwins, setwins_almost): Skip .arch-ids and other
+	hidden files/directories.
 
 2004-03-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 

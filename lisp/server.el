@@ -159,8 +159,10 @@ This means that the server should not kill the buffer when you say you
 are done with it in the server.")
 (make-variable-buffer-local 'server-existing-buffer)
 
-(defvar server-socket-name
-  (format "/tmp/emacs%d/server" (user-uid)))
+(defvar server-name "server")
+
+(defvar server-socket-dir
+  (format "/tmp/emacs%d" (user-uid)))
 
 (defun server-log (string &optional client)
   "If a *server* buffer exists, write STRING to it for logging purposes."
@@ -246,12 +248,14 @@ Emacs distribution as your standard \"editor\".
 Prefix arg means just kill any existing server communications subprocess."
   (interactive "P")
   ;; Make sure there is a safe directory in which to place the socket.
-  (server-ensure-safe-dir (file-name-directory server-socket-name))
+  (server-ensure-safe-dir server-socket-dir)
   ;; kill it dead!
   (if server-process
       (condition-case () (delete-process server-process) (error nil)))
   ;; Delete the socket files made by previous server invocations.
-  (condition-case () (delete-file server-socket-name) (error nil))
+  (condition-case ()
+      (delete-file (expand-file-name server-name server-socket-dir))
+    (error nil))
   ;; If this Emacs already had a server, clear out associated status.
   (while server-clients
     (let ((buffer (nth 1 (car server-clients))))
@@ -263,7 +267,7 @@ Prefix arg means just kill any existing server communications subprocess."
       (setq server-process
 	    (make-network-process
 	     :name "server" :family 'local :server t :noquery t
-	     :service server-socket-name
+	     :service (expand-file-name server-name server-socket-dir)
 	     :sentinel 'server-sentinel :filter 'server-process-filter
 	     ;; We must receive file names without being decoded.
 	     ;; Those are decoded by server-process-filter according
@@ -301,6 +305,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	  client nowait eval
 	  (files nil)
 	  (lineno 1)
+	  (tmp-frame nil) ; Sometimes used to embody the selected display.
 	  (columnno 0))
       ;; Remove this line from STRING.
       (setq string (substring string (match-end 0)))
@@ -315,7 +320,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	    (let ((display (server-unquote-arg (match-string 1 request))))
 	      (setq request (substring request (match-end 0)))
 	      (condition-case err
-		  (server-select-display display)
+		  (setq tmp-frame (server-select-display display))
 		(error (process-send-string proc (nth 1 err))
 		       (setq request "")))))
 	   ;; ARG is a line number option.
@@ -362,7 +367,9 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	  (run-hooks 'server-switch-hook)
 	  (unless nowait
 	    (message (substitute-command-keys
-		      "When done with a buffer, type \\[server-edit]")))))))
+		      "When done with a buffer, type \\[server-edit]")))))
+      ;; Avoid preserving the connection after the last real frame is deleted.
+      (if tmp-frame (delete-frame tmp-frame))))
   ;; Save for later any partial line that remains.
   (when (> (length string) 0)
     (process-put proc 'previous-string string)))

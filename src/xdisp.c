@@ -301,6 +301,7 @@ extern Lisp_Object Qface, Qinvisible, Qwidth;
 Lisp_Object Vdisplay_pixels_per_inch;
 Lisp_Object Qspace, QCalign_to, QCrelative_width, QCrelative_height;
 Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qraise;
+Lisp_Object Qcenter;
 Lisp_Object Qmargin, Qpointer;
 extern Lisp_Object Qheight;
 extern Lisp_Object QCwidth, QCheight, QCascent;
@@ -3607,16 +3608,11 @@ handle_single_display_prop (it, prop, object, position,
 	  value = prop;
 	}
 
+      valid_p = (STRINGP (value)
 #ifdef HAVE_WINDOW_SYSTEM
-      if (FRAME_TERMCAP_P (it->f))
-	valid_p = STRINGP (value);
-      else
-	valid_p = (STRINGP (value)
-		   || (CONSP (value) && EQ (XCAR (value), Qspace))
-		   || valid_image_p (value));
-#else /* not HAVE_WINDOW_SYSTEM */
-      valid_p = STRINGP (value);
+		 || (!FRAME_TERMCAP_P (it->f) && valid_image_p (value))
 #endif /* not HAVE_WINDOW_SYSTEM */
+		 || (CONSP (value) && EQ (XCAR (value), Qspace)));
 
       if ((EQ (location, Qleft_margin)
 	   || EQ (location, Qright_margin)
@@ -5598,15 +5594,18 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
   saved_glyph_row = it->glyph_row;
   it->glyph_row = NULL;
 
+#define BUFFER_POS_REACHED_P()			    \
+  ((op & MOVE_TO_POS) != 0			    \
+   && BUFFERP (it->object)			    \
+   && IT_CHARPOS (*it) >= to_charpos)
+
   while (1)
     {
       int x, i, ascent = 0, descent = 0;
 
       /* Stop when ZV or TO_CHARPOS reached.  */
       if (!get_next_display_element (it)
-	  || ((op & MOVE_TO_POS) != 0
-	      && BUFFERP (it->object)
-	      && IT_CHARPOS (*it) >= to_charpos))
+	  || BUFFER_POS_REACHED_P ())
 	{
 	  result = MOVE_POS_MATCH_OR_ZV;
 	  break;
@@ -5693,7 +5692,8 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 #ifdef HAVE_WINDOW_SYSTEM
 			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 			    {
-			      if (!get_next_display_element (it))
+			      if (!get_next_display_element (it)
+				  || BUFFER_POS_REACHED_P ())
 				{
 				  result = MOVE_POS_MATCH_OR_ZV;
 				  break;
@@ -5765,7 +5765,8 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 #ifdef HAVE_WINDOW_SYSTEM
 	  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
-	      if (!get_next_display_element (it))
+	      if (!get_next_display_element (it)
+		  || BUFFER_POS_REACHED_P ())
 		{
 		  result = MOVE_POS_MATCH_OR_ZV;
 		  break;
@@ -5781,6 +5782,8 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 	  break;
 	}
     }
+
+#undef BUFFER_POS_REACHED_P
 
   /* Restore the iterator settings altered at the beginning of this
      function.  */
@@ -15065,6 +15068,8 @@ display_mode_line (w, face_id, format)
   init_iterator (&it, w, -1, -1, NULL, face_id);
   prepare_desired_row (it.glyph_row);
 
+  it.glyph_row->mode_line_p = 1;
+
   if (! mode_line_inverse_video)
     /* Force the mode-line to be displayed in the default face.  */
     it.base_face_id = it.face_id = DEFAULT_FACE_ID;
@@ -15081,7 +15086,6 @@ display_mode_line (w, face_id, format)
 
   compute_line_metrics (&it);
   it.glyph_row->full_width_p = 1;
-  it.glyph_row->mode_line_p = 1;
   it.glyph_row->continued_p = 0;
   it.glyph_row->truncated_on_left_p = 0;
   it.glyph_row->truncated_on_right_p = 0;
@@ -16695,6 +16699,252 @@ invisible_p (propval, list)
   return 0;
 }
 
+/* Calculate a width or height in pixels from a specification using
+   the following elements:
+
+   SPEC ::= 
+     NUM      - a (fractional) multiple of the default font width/height
+     (NUM)    - specifies exactly NUM pixels
+     UNIT     - a fixed number of pixels, see below.
+     ELEMENT  - size of a display element in pixels, see below.
+     (NUM . SPEC) - equals NUM * SPEC
+     (+ SPEC SPEC ...)  - add pixel values
+     (- SPEC SPEC ...)  - subtract pixel values
+     (- SPEC)           - negate pixel value
+
+   NUM ::= 
+     INT or FLOAT   - a number constant
+     SYMBOL         - use symbol's (buffer local) variable binding.
+
+   UNIT ::=
+     in       - pixels per inch  *)
+     mm       - pixels per 1/1000 meter  *)
+     cm       - pixels per 1/100 meter   *)
+     width    - width of current font in pixels.
+     height   - height of current font in pixels.
+
+     *) using the ratio(s) defined in display-pixels-per-inch.
+
+   ELEMENT ::=
+
+     left-fringe          - left fringe width in pixels
+     right-fringe         - right fringe width in pixels
+
+     left-margin          - left margin width in pixels
+     right-margin         - right margin width in pixels
+
+     scroll-bar           - scroll-bar area width in pixels
+
+   Examples:
+
+   Pixels corresponding to 5 inches:
+     (5 . in)     
+		
+   Total width of non-text areas on left side of window (if scroll-bar is on left):
+     '(space :width (+ left-fringe left-margin scroll-bar))
+
+   Align to first text column (in header line):
+     '(space :align-to 0)
+
+   Align to middle of text area minus half the width of variable `my-image' 
+   containing a loaded image:
+     '(space :align-to (0.5 . (- text my-image)))
+
+   Width of left margin minus width of 1 character in the default font:
+     '(space :width (- left-margin 1))
+
+   Width of left margin minus width of 2 characters in the current font:
+     '(space :width (- left-margin (2 . width)))
+
+   Center 1 character over left-margin (in header line):
+     '(space :align-to (+ left-margin (0.5 . left-margin) -0.5))
+
+   Different ways to express width of left fringe plus left margin minus one pixel:
+     '(space :width (- (+ left-fringe left-margin) (1)))
+     '(space :width (+ left-fringe left-margin (- (1))))
+     '(space :width (+ left-fringe left-margin (-1)))
+
+*/
+
+#define NUMVAL(X)				\
+     ((INTEGERP (X) || FLOATP (X))		\
+      ? XFLOATINT (X)				\
+      : - 1)
+
+int
+calc_pixel_width_or_height (res, it, prop, font, width_p, align_to)
+     double *res;
+     struct it *it;
+     Lisp_Object prop;
+     void *font;
+     int width_p, *align_to;
+{
+  double pixels;
+
+#define OK_PIXELS(val) ((*res = (double)(val)), 1)
+#define OK_ALIGN_TO(val) ((*align_to = (int)(val)), 1)
+
+  if (NILP (prop))
+    return OK_PIXELS (0);
+
+  if (SYMBOLP (prop))
+    {
+      if (SCHARS (SYMBOL_NAME (prop)) == 2)
+	{
+	  char *unit =  SDATA (SYMBOL_NAME (prop));
+
+	  if (unit[0] == 'i' && unit[1] == 'n')
+	    pixels = 1.0;
+	  else if (unit[0] == 'm' && unit[1] == 'm')
+	    pixels = 25.4;
+	  else if (unit[0] == 'c' && unit[1] == 'm')
+	    pixels = 2.54;
+	  else
+	    pixels = 0;
+	  if (pixels > 0)
+	    {
+	      double ppi;
+	      if ((ppi = NUMVAL (Vdisplay_pixels_per_inch), ppi > 0)
+		  || (CONSP (Vdisplay_pixels_per_inch)
+		      && (ppi = (width_p
+				 ? NUMVAL (XCAR (Vdisplay_pixels_per_inch))
+				 : NUMVAL (XCDR (Vdisplay_pixels_per_inch))),
+			  ppi > 0)))
+		return OK_PIXELS (ppi / pixels);
+
+	      return 0;
+	    }
+	}
+
+#ifdef HAVE_WINDOW_SYSTEM
+      if (EQ (prop, Qheight))
+	return OK_PIXELS (font ? FONT_HEIGHT ((XFontStruct *)font) : FRAME_LINE_HEIGHT (it->f));
+      if (EQ (prop, Qwidth))
+	return OK_PIXELS (font ? FONT_WIDTH ((XFontStruct *)font) : FRAME_COLUMN_WIDTH (it->f));
+#else
+      if (EQ (prop, Qheight) || EQ (prop, Qwidth))
+	return OK_PIXELS (1);
+#endif
+
+      if (EQ (prop, Qtext))
+	  return OK_PIXELS (width_p
+			    ? window_box_width (it->w, TEXT_AREA)
+			    : WINDOW_BOX_HEIGHT_NO_MODE_LINE (it->w));
+
+      if (align_to && *align_to < 0)
+	{
+	  *res = 0;
+	  if (EQ (prop, Qleft))
+	    return OK_ALIGN_TO (window_box_left_offset (it->w, TEXT_AREA));
+	  if (EQ (prop, Qright))
+	    return OK_ALIGN_TO (window_box_right_offset (it->w, TEXT_AREA));
+	  if (EQ (prop, Qcenter))
+	    return OK_ALIGN_TO (window_box_left_offset (it->w, TEXT_AREA)
+				+ window_box_width (it->w, TEXT_AREA) / 2);
+	  if (EQ (prop, Qleft_fringe))
+	    return OK_ALIGN_TO (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (it->w)
+				? WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (it->w)
+				: window_box_right_offset (it->w, LEFT_MARGIN_AREA));
+	  if (EQ (prop, Qright_fringe))
+	    return OK_ALIGN_TO (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (it->w)
+				? window_box_right_offset (it->w, RIGHT_MARGIN_AREA)
+				: window_box_right_offset (it->w, TEXT_AREA));
+	  if (EQ (prop, Qleft_margin))
+	    return OK_ALIGN_TO (window_box_left_offset (it->w, LEFT_MARGIN_AREA));
+	  if (EQ (prop, Qright_margin))
+	    return OK_ALIGN_TO (window_box_left_offset (it->w, RIGHT_MARGIN_AREA));
+	  if (EQ (prop, Qscroll_bar))
+	    return OK_ALIGN_TO (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (it->w)
+				? 0
+				: (window_box_right_offset (it->w, RIGHT_MARGIN_AREA)
+				   + (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (it->w)
+				      ? WINDOW_RIGHT_FRINGE_WIDTH (it->w)
+				      : 0)));
+	}
+      else
+	{
+	  if (EQ (prop, Qleft_fringe))
+	    return OK_PIXELS (WINDOW_LEFT_FRINGE_WIDTH (it->w));
+	  if (EQ (prop, Qright_fringe))
+	    return OK_PIXELS (WINDOW_RIGHT_FRINGE_WIDTH (it->w));
+	  if (EQ (prop, Qleft_margin))
+	    return OK_PIXELS (WINDOW_LEFT_MARGIN_WIDTH (it->w));
+	  if (EQ (prop, Qright_margin))
+	    return OK_PIXELS (WINDOW_RIGHT_MARGIN_WIDTH (it->w));
+	  if (EQ (prop, Qscroll_bar))
+	    return OK_PIXELS (WINDOW_SCROLL_BAR_AREA_WIDTH (it->w));
+	}
+
+      prop = Fbuffer_local_value (prop, it->w->buffer);
+    }
+
+  if (INTEGERP (prop) || FLOATP (prop))
+    {
+      int base_unit = (width_p
+		       ? FRAME_COLUMN_WIDTH (it->f)
+		       : FRAME_LINE_HEIGHT (it->f));
+      return OK_PIXELS (XFLOATINT (prop) * base_unit);
+    }
+
+  if (CONSP (prop))
+    {
+      Lisp_Object car = XCAR (prop);
+      Lisp_Object cdr = XCDR (prop);
+
+      if (SYMBOLP (car))
+	{
+#ifdef HAVE_WINDOW_SYSTEM
+	  if (valid_image_p (prop))
+	    {
+	      int id = lookup_image (it->f, prop);
+	      struct image *img = IMAGE_FROM_ID (it->f, id);
+
+	      return OK_PIXELS (width_p ? img->width : img->height);
+	    }
+#endif
+	  if (EQ (car, Qplus) || EQ (car, Qminus))
+	    {
+	      int first = 1;
+	      double px;
+
+	      pixels = 0;
+	      while (CONSP (cdr))
+		{
+		  if (!calc_pixel_width_or_height (&px, it, XCAR (cdr),
+						   font, width_p, align_to))
+		    return 0;
+		  if (first)
+		    pixels = (EQ (car, Qplus) ? px : -px), first = 0;
+		  else
+		    pixels += px;
+		  cdr = XCDR (cdr);
+		}
+	      if (EQ (car, Qminus))
+		pixels = -pixels;
+	      return OK_PIXELS (pixels);
+	    }
+
+	  car = Fbuffer_local_value (car, it->w->buffer);
+	}
+
+      if (INTEGERP (car) || FLOATP (car))
+	{
+	  double fact;
+	  pixels = XFLOATINT (car);
+	  if (NILP (cdr))
+	    return OK_PIXELS (pixels);
+	  if (calc_pixel_width_or_height (&fact, it, cdr,
+					  font, width_p, align_to))
+	    return OK_PIXELS (pixels * fact);
+	  return 0;
+	}
+
+      return 0;
+    }
+
+  return 0;
+}
+
 
 /***********************************************************************
 			     Glyph Display
@@ -17978,209 +18228,6 @@ append_stretch_glyph (it, object, width, height, ascent)
 }
 
 
-/* Calculate a width or height in pixels from a specification using
-   the following elements:
-
-   SPEC ::= 
-     NUM      - a (fractional) multiple of the default font width/height
-     (NUM)    - specifies exactly NUM pixels
-     UNIT     - a fixed number of pixels, see below.
-     ELEMENT  - size of a display element in pixels, see below.
-     (NUM . SPEC) - equals NUM * SPEC
-     (+ SPEC SPEC ...)  - add pixel values
-     (- SPEC SPEC ...)  - subtract pixel values
-     (- SPEC)           - negate pixel value
-
-   NUM ::= 
-     INT or FLOAT   - a number constant
-     SYMBOL         - use symbol's (buffer local) variable binding.
-
-   UNIT ::=
-     in       - pixels per inch  *)
-     mm       - pixels per 1/1000 meter  *)
-     cm       - pixels per 1/100 meter   *)
-     width    - width of current font in pixels.
-     height   - height of current font in pixels.
-
-     *) using the ratio(s) defined in display-pixels-per-inch.
-
-   ELEMENT ::=
-
-     left-fringe         - left fringe width in pixels
-     (left-fringe . nil) - left fringe width if inside margins, else 0
-     (left-fringe . t)   - left fringe width if outside margins, else 0
-
-     right-fringe         - right fringe width in pixels
-     (right-fringe . nil) - right fringe width if inside margins, else 0
-     (right-fringe . t)   - right fringe width if outside margins, else 0
-
-     left-margin          - left margin width in pixels
-     right-margin         - right margin width in pixels
-
-     scroll-bar           - scroll-bar area width in pixels
-     (scroll-bar . left)  - scroll-bar width if on left, else 0
-     (scroll-bar . right) - scroll-bar width if on right, else 0
-
-   Examples:
-
-   Pixels corresponding to 5 inches:
-     (5 . in)     
-		
-   Total width of non-text areas on left side of window:
-     (+ left-fringe left-margin (scroll-bar . left))
-
-   Total width of fringes if inside display margins:
-     (+ (left-fringe) (right-fringe))
-
-   Width of left margin minus width of 1 character in the default font:
-     (- left-margin 1)
-
-   Width of left margin minus width of 2 characters in the current font:
-     (- left-margin (2 . width))
-
-   Width of left fringe plus left margin minus one pixel:
-     (- (+ left-fringe left-margin) (1))
-     (+ left-fringe left-margin (- (1)))
-     (+ left-fringe left-margin (-1))
-
-*/
-
-#define NUMVAL(X)				\
-     ((INTEGERP (X) || FLOATP (X))		\
-      ? XFLOATINT (X)				\
-      : - 1)
-
-static int
-calc_pixel_width_or_height (res, it, prop, font, width_p)
-     double *res;
-     struct it *it;
-     Lisp_Object prop;
-     XFontStruct *font;
-     int width_p;
-{
-  double pixels;
-
-#define OK_PIXELS(val) ((*res = (val)), 1)
-
-  if (SYMBOLP (prop))
-    {
-      if (SCHARS (SYMBOL_NAME (prop)) == 2)
-	{
-	  char *unit =  SDATA (SYMBOL_NAME (prop));
-
-	  if (unit[0] == 'i' && unit[1] == 'n')
-	    pixels = 1.0;
-	  else if (unit[0] == 'm' && unit[1] == 'm')
-	    pixels = 25.4;
-	  else if (unit[0] == 'c' && unit[1] == 'm')
-	    pixels = 2.54;
-	  else
-	    pixels = 0;
-	  if (pixels > 0)
-	    {
-	      double ppi;
-	      if ((ppi = NUMVAL (Vdisplay_pixels_per_inch), ppi > 0)
-		  || (CONSP (Vdisplay_pixels_per_inch)
-		      && (ppi = (width_p
-				 ? NUMVAL (XCAR (Vdisplay_pixels_per_inch))
-				 : NUMVAL (XCDR (Vdisplay_pixels_per_inch))),
-			  ppi > 0)))
-		return OK_PIXELS (ppi / pixels);
-
-	      return 0;
-	    }
-	}
-
-      if (EQ (prop, Qheight))
-	return OK_PIXELS (font ? FONT_HEIGHT (font) : FRAME_LINE_HEIGHT (it->f));
-      if (EQ (prop, Qwidth))
-	return OK_PIXELS (font ? FONT_WIDTH (font) : FRAME_COLUMN_WIDTH (it->f));
-      if (EQ (prop, Qleft_fringe))
-	return OK_PIXELS (WINDOW_LEFT_FRINGE_WIDTH (it->w));
-      if (EQ (prop, Qright_fringe))
-	return OK_PIXELS (WINDOW_RIGHT_FRINGE_WIDTH (it->w));
-      if (EQ (prop, Qleft_margin))
-	return OK_PIXELS (WINDOW_LEFT_MARGIN_WIDTH (it->w));
-      if (EQ (prop, Qright_margin))
-	return OK_PIXELS (WINDOW_RIGHT_MARGIN_WIDTH (it->w));
-      if (EQ (prop, Qscroll_bar))
-	return OK_PIXELS (WINDOW_SCROLL_BAR_AREA_WIDTH (it->w));
-
-      prop = Fbuffer_local_value (prop, it->w->buffer);
-    }
-
-  if (INTEGERP (prop) || FLOATP (prop))
-    {
-      int base_unit = (width_p
-		       ? FRAME_COLUMN_WIDTH (it->f)
-		       : FRAME_LINE_HEIGHT (it->f));
-      return OK_PIXELS (XFLOATINT (prop) * base_unit);
-    }
-
-  if (CONSP (prop))
-    {
-      Lisp_Object car = XCAR (prop);
-      Lisp_Object cdr = XCDR (prop);
-
-      if (SYMBOLP (car))
-	{
-	  if (EQ (car, Qplus) || EQ (car, Qminus))
-	    {
-	      int first = 1;
-	      double px;
-
-	      pixels = 0;
-	      while (CONSP (cdr))
-		{
-		  if (!calc_pixel_width_or_height (&px, it, XCAR (cdr), font, width_p))
-		    return 0;
-		  if (first)
-		    pixels = (EQ (car, Qplus) ? px : -px), first = 0;
-		  else
-		    pixels += px;
-		  cdr = XCDR (cdr);
-		}
-	      if (EQ (car, Qminus))
-		pixels = -pixels;
-	      return OK_PIXELS (pixels);
-	    }
-
-	  if (EQ (car, Qleft_fringe))
-	    return OK_PIXELS ((WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (it->w)
-			       == !NILP (cdr))
-			      ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
-			      : 0);
-	  if (EQ (car, Qright_fringe))
-	    return OK_PIXELS ((WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (it->w)
-			       == !NILP (cdr))
-			      ? WINDOW_RIGHT_FRINGE_WIDTH (it->w)
-			      : 0);
-	  if (EQ (car, Qscroll_bar))
-	    return OK_PIXELS ((WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (it->w)
-				== EQ (cdr, Qleft))
-			       ? WINDOW_SCROLL_BAR_AREA_WIDTH (it->w)
-			       : 0);
-
-	  car = Fbuffer_local_value (car, it->w->buffer);
-	}
-
-      if (INTEGERP (car) || FLOATP (car))
-	{
-	  double fact;
-	  pixels = XFLOATINT (car);
-	  if (NILP (cdr))
-	    return OK_PIXELS (pixels);
-	  if (calc_pixel_width_or_height (&fact, it, cdr, font, width_p))
-	    return OK_PIXELS (pixels * fact);
-	  return 0;
-	}
-
-      return 0;
-    }
-
-  return 0;
-}
-
 /* Produce a stretch glyph for iterator IT.  IT->object is the value
    of the glyph property displayed.  The value must be a list
    `(space KEYWORD VALUE ...)' with the following KEYWORD/VALUE pairs
@@ -18218,7 +18265,7 @@ produce_stretch_glyph (it)
 {
   /* (space :width WIDTH :height HEIGHT ...)  */
   Lisp_Object prop, plist;
-  int width = 0, height = 0;
+  int width = 0, height = 0, align_to = -1;
   int zero_width_ok_p = 0, zero_height_ok_p = 0;
   int ascent = 0;
   double tem;
@@ -18233,7 +18280,7 @@ produce_stretch_glyph (it)
 
   /* Compute the width of the stretch.  */
   if ((prop = Fplist_get (plist, QCwidth), !NILP (prop))
-      && calc_pixel_width_or_height (&tem, it, prop, font, 1))
+      && calc_pixel_width_or_height (&tem, it, prop, font, 1, 0))
     {
       /* Absolute width `:width WIDTH' specified and valid.  */
       zero_width_ok_p = 1;
@@ -18264,9 +18311,15 @@ produce_stretch_glyph (it)
       width = NUMVAL (prop) * it2.pixel_width;
     }
   else if ((prop = Fplist_get (plist, QCalign_to), !NILP (prop))
-	   && calc_pixel_width_or_height (&tem, it, prop, font, 1))
+	   && calc_pixel_width_or_height (&tem, it, prop, font, 1, &align_to))
     {
-      width = max (0, (int)tem - it->current_x);
+      if (it->glyph_row == NULL || !it->glyph_row->mode_line_p)
+	align_to = (align_to < 0 
+		    ? 0
+		    : align_to - window_box_left_offset (it->w, TEXT_AREA));
+      else if (align_to < 0)
+	align_to = window_box_left_offset (it->w, TEXT_AREA);
+      width = max (0, (int)tem + align_to - it->current_x);
       zero_width_ok_p = 1;
     }
   else
@@ -18278,7 +18331,7 @@ produce_stretch_glyph (it)
 
   /* Compute height.  */
   if ((prop = Fplist_get (plist, QCheight), !NILP (prop))
-      && calc_pixel_width_or_height (&tem, it, prop, font, 0))
+      && calc_pixel_width_or_height (&tem, it, prop, font, 0, 0))
     {
       height = (int)tem;
       zero_height_ok_p = 1;
@@ -18299,7 +18352,7 @@ produce_stretch_glyph (it)
       NUMVAL (prop) > 0 && NUMVAL (prop) <= 100)
     ascent = height * NUMVAL (prop) / 100.0;
   else if (!NILP (prop)
-	   && calc_pixel_width_or_height (&tem, it, prop, font, 0))
+	   && calc_pixel_width_or_height (&tem, it, prop, font, 0, 0))
     ascent = min (max (0, (int)tem), height);
   else
     ascent = (height * FONT_BASE (font)) / FONT_HEIGHT (font);
@@ -20349,7 +20402,7 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 	pointer = Fget_text_property (pos, Qpointer, string);
 
      /* Change the mouse pointer according to what is under X/Y.  */
-      if (NILP (pointer) && area == ON_MODE_LINE)
+      if (NILP (pointer) && ((area == ON_MODE_LINE) || (area == ON_HEADER_LINE)))
 	{
 	  Lisp_Object map;
 	  map = Fget_text_property (pos, Qlocal_map, string);
@@ -21523,6 +21576,8 @@ syms_of_xdisp ()
   staticpro (&Qleft_margin);
   Qright_margin = intern ("right-margin");
   staticpro (&Qright_margin);
+  Qcenter = intern ("center");
+  staticpro (&Qcenter);
   QCalign_to = intern (":align-to");
   staticpro (&QCalign_to);
   QCrelative_width = intern (":relative-width");

@@ -53,7 +53,7 @@
 ;; used to support encoding and decoding of about a quarter of the CJK
 ;; space between U+3400 and U+DFFF.
 
-;; UTF-8 is defined in RFC 2279.  A sketch of the encoding is:
+;; UTF-8 is defined in RFC 3629.  A sketch of the encoding is:
 
 ;;        scalar       |               utf-8
 ;;        value        | 1st byte  | 2nd byte  | 3rd byte

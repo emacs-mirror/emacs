@@ -76,39 +76,13 @@
 (defconst rfc2368-mailto-query-index 4
   "Describes the portion of the url after '?'.")
 
-;; for dealing w/ unhexifying strings, my preferred approach is to use
-;; a 'string-replace-match-using-function' which can perform a
-;; string-replace-match and compute the replacement text based on a
-;; passed function -- however, emacs doesn't seem to have such a
-;; function yet :-(
-
-;; for the moment a rip-off of url-unhex (w3/url.el)
-(defun rfc2368-unhexify-char (char)
-  "Unhexify CHAR -- e.g. %20 -> <SPC>."
-  (if (> char ?9)
-      (if (>= char ?a)
-	  (+ 10 (- char ?a))
-	(+ 10 (- char ?A)))
-    (- char ?0)))
-
-;; for the moment a rip-off of url-unhex-string (w3/url.el) (slightly modified)
 (defun rfc2368-unhexify-string (string)
   "Unhexify STRING -- e.g. 'hello%20there' -> 'hello there'."
-  (let ((case-fold-search t)
-	(result ""))
-    (while (string-match "%[0-9a-f][0-9a-f]" string)
-      (let* ((start (match-beginning 0))
-	     (hex-code (+ (* 16
-			     (rfc2368-unhexify-char (elt string (+ start 1))))
-			  (rfc2368-unhexify-char (elt string (+ start 2))))))
-	(setq result (concat
-		      result (substring string 0 start)
-		      (char-to-string hex-code))
-	      string (substring string (match-end 0)))))
-    ;; it seems clearer to do things this way than to just return:
-    ;; (concat result string)
-    (setq result (concat result string))
-    result))
+  (replace-regexp-in-string "%[[:xdigit:]]\\{2\\}"
+			    (lambda (match)
+			      (string (string-to-number (substring match 1)
+							16)))
+			    string t t))
 
 (defun rfc2368-parse-mailto-url (mailto-url)
   "Parse MAILTO-URL, and return an alist of header-name, header-value pairs.

@@ -63,14 +63,6 @@ Important features:
 * Remove the limitation that window and frame widths and heights can
   be only full columns/lines.
 
-* Move fringe to be displayed between display margins and text area.
-  [KFS is looking into this].
-
-* Set fringe widths per-window/per-buffer.
-
-* Make fringe bitmaps user configurable.  Maybe add ability to add
-  additional bitmaps to the fringe from lisp.
-
 Other features we would like:
 
 * Have a command suggestion help system that recognizes patterns
@@ -262,10 +254,6 @@ Other features we would like:
   cmacexp, hideif, mantemp [obsolete?], pcomplete, assoc, xml,
   cvs-status (should be described in PCL-CVS manual); other progmodes,
   probably in separate manual.
-
-* Provide a means to extract image-relative coordinates from mouse
-  clicks on images.  (Needed for W3, at least.)  Also useful for W3
-  and Gnus: allow images to scroll properly.
 
 * Convert the XPM bitmaps to PPM, replace the PBMs with them and scrap
   the XPMs so that the colour versions work generally.  (Requires care

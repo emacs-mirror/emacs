@@ -1024,9 +1024,26 @@ decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
 	}
       else
 	{
-	  bytes = CHAR_STRING (*src, tmp);
-	  p = tmp;
+	  int i, c;
+
+	  bytes = BYTES_BY_CHAR_HEAD (*src);
 	  src++;
+	  for (i = 1; i < bytes; i++)
+	    {
+	      ONE_MORE_BYTE (c);
+	      if (CHAR_HEAD_P (c))
+		break;
+	    }
+	  if (i < bytes)
+	    {
+	      bytes = CHAR_STRING (*src_base, tmp);
+	      p = tmp;
+	      src = src_base + 1;
+	    }
+	  else
+	    {
+	      p = src_base;
+	    }
 	}
       if (dst + bytes >= (dst_bytes ? dst_end : src))
 	{
@@ -4029,7 +4046,7 @@ setup_raw_text_coding_system (coding)
    o coding-category-utf-8
 
 	The category for a coding system which has the same code range
-	as UTF-8 (cf. RFC2279).  Assigned the coding-system (Lisp
+	as UTF-8 (cf. RFC3629).  Assigned the coding-system (Lisp
 	symbol) `utf-8' by default.
 
    o coding-category-utf-16-be

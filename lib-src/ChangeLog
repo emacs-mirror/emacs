@@ -1,3 +1,15 @@
+2004-03-09  Juanma Barranquero  <lektu@terra.es>
+
+	* grep-changelog: Changes to support ChangeLog.10+.
+	(main): Tidy up usage string.  Fix "Use of uninitialized value"
+	warning.  Set version to 0.2.  Parse the directory listing to get
+	any ChangeLog.n file, not just 1..9.
+	(header_match_p, entry_match_p, print_log, parse_changelog):
+	Remove Perl prototypes (their purpose is to help the parser, which
+	isn't needed here, not declare arguments).
+	(parse_changelog): Make --reverse faster on big batches by not
+	modifying the entries list.
+
 2004-03-01  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (obj): Add fringe.c.

@@ -1,6 +1,6 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages
 
-;; Copyright (C) 1999,2000,2003  Free Software Foundation, Inc.
+;; Copyright (C) 1999,2000,2003,2004  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
@@ -299,6 +299,11 @@ automatically."
 ;;; Actual code
 ;;;
 
+(defvar log-edit-font-lock-keywords
+  '(("\\`\\(Summary:\\)\\(.*\\)"
+     (1 font-lock-keyword-face)
+     (2 font-lock-function-name-face))))
+
 ;;;###autoload
 (defun log-edit (callback &optional setup listfun buffer &rest ignore)
   "Setup a buffer to enter a log message.
@@ -337,6 +342,8 @@ the package from which this is used might also provide additional
 commands (under C-x v for VC, for example).
 
 \\{log-edit-mode-map}"
+  (set (make-local-variable 'font-lock-defaults)
+       '(log-edit-font-lock-keywords t))
   (make-local-variable 'log-edit-comment-ring-index))
 
 (defun log-edit-hide-buf (&optional buf where)

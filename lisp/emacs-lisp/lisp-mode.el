@@ -1,6 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands
 
-;; Copyright (C) 1985, 1986, 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1985,86,1999,2000,01,03,2004  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -197,6 +197,8 @@
   (setq comment-column 40)
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'lisp-comment-indent)
+  ;; Don't get confused by `;' in doc strings when paragraph-filling.
+  (set (make-local-variable 'comment-use-global-state) t)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression lisp-imenu-generic-expression)
   (make-local-variable 'multibyte-syntax-as-symbol)

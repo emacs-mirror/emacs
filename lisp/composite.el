@@ -193,7 +193,7 @@ text in the composition."
     (if (or (vectorp components) (listp components))
 	(setq components (encode-composition-components components)))
     (compose-region-internal start end components modification-func)
-    (set-buffer-modified-p modified-p)))
+    (restore-buffer-modified-p modified-p)))
 
 ;;;###autoload
 (defun decompose-region (start end)

@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Time-stamp: <2001-10-13 10:02:26 pavel>
+;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Time-stamp: <2004/03/09 21:32:06 vinicius>
 ;; Version: 2.1
 ;; Keywords: internal
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/

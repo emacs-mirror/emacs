@@ -2146,13 +2146,27 @@ Symbols must match exactly.  */)
      (o1, o2)
      register Lisp_Object o1, o2;
 {
-  return internal_equal (o1, o2, 0) ? Qt : Qnil;
+  return internal_equal (o1, o2, 0, 0) ? Qt : Qnil;
 }
 
-static int
-internal_equal (o1, o2, depth)
+DEFUN ("equal-including-properties", Fequal_including_properties, Sequal_including_properties, 2, 2, 0,
+       doc: /* Return t if two Lisp objects have similar structure and contents.
+This is like `equal' except that it compares the text properties
+of strings.  (`equal' ignores text properties.)  */)
+     (o1, o2)
      register Lisp_Object o1, o2;
-     int depth;
+{
+  return internal_equal (o1, o2, 0, 1) ? Qt : Qnil;
+}
+
+/* DEPTH is current depth of recursion.  Signal an error if it
+   gets too deep.
+   PROPS, if non-nil, means compare string text properties too.  */
+
+static int
+internal_equal (o1, o2, depth, props)
+     register Lisp_Object o1, o2;
+     int depth, props;
 {
   if (depth > 200)
     error ("Stack overflow in equal");
@@ -2178,7 +2192,7 @@ internal_equal (o1, o2, depth)
       }
 
     case Lisp_Cons:
-      if (!internal_equal (XCAR (o1), XCAR (o2), depth + 1))
+      if (!internal_equal (XCAR (o1), XCAR (o2), depth + 1, props))
 	return 0;
       o1 = XCDR (o1);
       o2 = XCDR (o2);
@@ -2190,7 +2204,7 @@ internal_equal (o1, o2, depth)
       if (OVERLAYP (o1))
 	{
 	  if (!internal_equal (OVERLAY_START (o1), OVERLAY_START (o2),
-			       depth + 1)
+			       depth + 1, props)
 	      || !internal_equal (OVERLAY_END (o1), OVERLAY_END (o2),
 				  depth + 1))
 	    return 0;
@@ -2244,7 +2258,7 @@ internal_equal (o1, o2, depth)
 	    Lisp_Object v1, v2;
 	    v1 = XVECTOR (o1)->contents [i];
 	    v2 = XVECTOR (o2)->contents [i];
-	    if (!internal_equal (v1, v2, depth + 1))
+	    if (!internal_equal (v1, v2, depth + 1, props))
 	      return 0;
 	  }
 	return 1;
@@ -2258,6 +2272,8 @@ internal_equal (o1, o2, depth)
 	return 0;
       if (bcmp (SDATA (o1), SDATA (o2),
 		SBYTES (o1)))
+	return 0;
+      if (props && !compare_string_intervals (o1, o2))
 	return 0;
       return 1;
 
@@ -5725,6 +5741,7 @@ used if both `use-dialog-box' and this variable are non-nil.  */);
   defsubr (&Slax_plist_get);
   defsubr (&Slax_plist_put);
   defsubr (&Sequal);
+  defsubr (&Sequal_including_properties);
   defsubr (&Sfillarray);
   defsubr (&Sclear_string);
   defsubr (&Schar_table_subtype);

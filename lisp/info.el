@@ -387,7 +387,9 @@ Do the right thing if the file has been compressed or zipped."
       ;; version, so we should look there first.  `Info-insert-dir'
       ;; currently expects to find `alternative' first on the list.
       (cons alternative
-	    (reverse (cdr (reverse Info-default-directory-list)))))))
+	    ;; Don't drop the last part, it might contain non-Emacs stuff.
+	    ;; (reverse (cdr (reverse
+	    Info-default-directory-list)))) ;; )))
 
 (defun info-initialize ()
   "Initialize `Info-directory-list', if that hasn't been done yet."

@@ -1,7 +1,11 @@
+2004-03-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* info/dir (File): Add SMTP and SES.
+
 2004-03-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (maintainer-clean): Clean in the lisp dir as well.
-	(bootstrap): Use the new boostrap-prepare target in lisp.
+	(bootstrap): Use the new bootstrap-prepare target in lisp.
 
 2004-02-18  Kim F. Storm  <storm@cua.dk>
 

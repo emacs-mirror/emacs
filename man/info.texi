@@ -1,4 +1,7 @@
-\input texinfo    @c -*-texinfo-*-
+\input texinfo.tex    @c -*-texinfo-*-
+@c We must \input texinfo.tex instead of texinfo, otherwise make
+@c distcheck in the Texinfo distribution fails, because the texinfo Info
+@c file is made first, and texi2dvi must include . first in the path.
 @comment %**start of header
 @setfilename info.info
 @settitle Info
@@ -936,7 +939,7 @@ Documentation Format}.
 
 Here are some more Info commands that make it easier to move around.
 
-@unnumberedsubsec @kbd{g} goes to a node by name
+@subheading @kbd{g} goes to a node by name
 
 @kindex g @r{(Info mode)}
 @findex Info-goto-node
@@ -962,7 +965,7 @@ the node @samp{Top} in the Info file @file{dir}.  Likewise,
 all of the current file by typing @kbd{g*@key{RET}} or all of any
 other file with @kbd{g(@var{filename})@key{RET}}.
 
-@unnumberedsubsec @kbd{1} -- @kbd{9} choose a menu subtopic by its number
+@subheading @kbd{1} -- @kbd{9} choose a menu subtopic by its number
 
 @kindex 1 @r{through} 9 @r{(Info mode)}
 @findex Info-nth-menu-item
@@ -976,17 +979,18 @@ In the stand-alone reader, @kbd{0} goes through the last menu item;
 this is so you need not count how many entries are there.  In Emacs,
 the digit keys run the command @code{Info-nth-menu-item}.
 
-  If your display supports multiple fonts, and you are using Emacs'
-Info mode to read Info files, the @samp{*} for the fifth menu item
-stands out, either in color or in some other attribute, such as
-underline, and so is the @samp{*} for the ninth item; this makes it
-easy to see at a glance which number to use for an item.
+  If your display supports multiple fonts, colors or underlining, and
+you are using Emacs' Info mode to read Info files, the third, sixth
+and ninth menu items have a @samp{*} that stands out, either in color
+or in some other attribute, such as underline; this makes it easy to
+see at a glance which number to use for an item.
 
-  Some terminals don't support colors or underlining.  If you need to
-actually count items, it is better to use @kbd{m} instead, and specify
-the name, or use @key{TAB} to quickly move between menu items.
+  Some terminals don't support either multiple fonts, colors or
+underlining.  If you need to actually count items, it is better to use
+@kbd{m} instead, and specify the name, or use @key{TAB} to quickly
+move between menu items.
 
-@unnumberedsubsec @kbd{e} makes Info document editable
+@subheading @kbd{e} makes Info document editable
 
 @kindex e @r{(Info mode)}
 @findex Info-edit
@@ -1000,6 +1004,23 @@ only if the variable @code{Info-enable-edit} is non-@code{nil}.
 @code{Info-edit}.  The stand-alone Info reader doesn't allow you to
 edit the Info file, so typing @kbd{e} there goes to the end of the
 current node.
+
+@subheading @kbd{M-n} creates a new independent Info buffer in Emacs
+
+@kindex M-n @r{(Info mode)}
+@findex clone-buffer
+@cindex multiple Info buffers
+  If you are reading Info in Emacs, you can select a new independent
+Info buffer in another window by typing @kbd{M-n}.  The new buffer
+starts out as an exact copy of the old one, but you will be able to
+move independently between nodes in the two buffers.  (In Info mode,
+@kbd{M-n} runs the Emacs command @code{clone-buffer}.)
+
+  In Emacs Info, you can also produce new Info buffers by giving a
+numeric prefix argument to the @kbd{m} and @kbd{g} commands.  @kbd{C-u
+m} and @kbd{C-u g} go to a new node in exactly the same way that
+@kbd{m} and @kbd{g} do, but they do so in a new Info buffer which they
+select in another window.
 
 @node Info Search, Add, Advanced, Expert Info
 @comment  node-name,  next,  previous,  up

@@ -8262,7 +8262,6 @@ XTread_socket (int sd, int expected, struct input_event *hold_quit)
 	            {
 		      Lisp_Object window;
 
-	              inev.kind = MOUSE_CLICK_EVENT;
 		      XSETFRAME (inev.frame_or_window, mwp->mFP);
 		      if (er.what == mouseDown)
 			mouse_tracking_in_progress
@@ -8285,6 +8284,8 @@ XTread_socket (int sd, int expected, struct input_event *hold_quit)
 						   );
 			  break;
 			}
+		      else
+			inev.kind = MOUSE_CLICK_EVENT;
 		    }
 
 #if USE_CARBON_EVENTS

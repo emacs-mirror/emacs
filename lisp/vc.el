@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.331.2.4 2004/02/05 14:48:33 uid65618 Exp $
+;; $Id: vc.el,v 1.368 2004/03/15 03:55:24 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -432,6 +432,10 @@
 ;;   repository.  If this function is not provided, the renaming
 ;;   will be done by (vc-delete-file old) and (vc-register new).
 ;;
+;; - find-file-hook ()
+;;
+;;   Operation called in current buffer when opening a new file.  This can
+;;   be used by the backend to setup some local variables it might need.
 
 ;;; Code:
 

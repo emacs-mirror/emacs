@@ -2115,8 +2115,8 @@ With prefix argument, prompt for cvs flags."
   "Add a ChangeLog entry in the ChangeLog of the current directory."
   (interactive)
   (dolist (fi (cvs-mode-marked nil nil))
-    (let ((default-directory (cvs-expand-dir-name (cvs-fileinfo->dir fi)))
-	  (buffer-file-name (expand-file-name (cvs-fileinfo->file fi))))
+    (let* ((default-directory (cvs-expand-dir-name (cvs-fileinfo->dir fi)))
+	   (buffer-file-name (expand-file-name (cvs-fileinfo->file fi))))
       (kill-local-variable 'change-log-default-name)
       (save-excursion (add-change-log-entry-other-window)))))
 

@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996,97,1999,2000,01,02,2003  Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,1999,2000,01,02,03,2004  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -285,11 +285,6 @@
 (defgroup modeline nil
   "Content of the modeline."
   :group 'environment)
-
-(defgroup fill nil
-  "Indenting and filling text."
-  :link '(custom-manual "(emacs)Filling Text")
-  :group 'editing)
 
 (defgroup editing-basics nil
   "Most basic editing facilities."

@@ -78,6 +78,22 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
   :group 'hexl
   :version "20.3")
 
+(defcustom hexl-mode-hook '(hexl-follow-line hexl-activate-ruler)
+  "Normal hook run when entering Hexl mode."
+  :type 'hook
+  :options '(hexl-follow-line hexl-activate-ruler turn-on-eldoc-mode)
+  :group 'hexl)
+
+(defface hexl-address-area
+  '((t (:inherit header-line)))
+  "Face used in address are of hexl-mode buffer."
+  :group 'hexl)
+
+(defface hexl-ascii-area
+  '((t (:inherit header-line)))
+  "Face used in ascii are of hexl-mode buffer."
+  :group 'hexl)
+
 (defvar hexl-max-address 0
   "Maximum offset into hexl buffer.")
 
@@ -239,7 +255,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
 
     ;; Set a callback function for eldoc.
-    (set (make-variable-buffer-local 'eldoc-print-current-symbol-info-function)
+    (set (make-local-variable 'eldoc-print-current-symbol-info-function)
 	 'hexl-print-current-point-info)
     (eldoc-add-command-completions "hexl-")
     (eldoc-remove-command "hexl-save-buffer" 
@@ -648,6 +664,15 @@ This discards the buffer's undo information."
     (apply 'call-process-region (point-min) (point-max)
 	   (expand-file-name hexl-program exec-directory)
 	   t t nil (split-string hexl-options))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "^[0-9a-f]+:" nil t)
+	(put-text-property (match-beginning 0) (match-end 0)
+			   'font-lock-face 'hexl-address-area))
+      (goto-char (point-min))
+      (while (re-search-forward "  \\(.+$\\)" nil t)
+	(put-text-property (match-beginning 1) (match-end 1) 
+			   'font-lock-face 'hexl-ascii-area)))
     (if (> (point) (hexl-address-to-marker hexl-max-address))
 	(hexl-goto-address hexl-max-address))))
 
@@ -865,6 +890,31 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
 	    (remove-hook 'post-command-hook 'hexl-follow-ascii-find t)
 	    )))))
 
+(defun hexl-activate-ruler ()
+  "Activate `ruler-mode'"
+  (require 'ruler-mode)
+  (set (make-local-variable 'ruler-mode-ruler-function) 
+       'hexl-mode-ruler)
+  (ruler-mode 1))
+
+(defun hexl-follow-line ()
+  "Activate `hl-line-mode'"
+  (require 'frame)
+  (require 'hl-line)
+  (set (make-local-variable 'hl-line-range-function)
+       'hexl-highlight-line-range)
+  (set (make-local-variable 'hl-line-face) 
+       'highlight)
+  (hl-line-mode 1))
+
+(defun hexl-highlight-line-range ()
+  "Return the range of address area for the point.
+This function is assumed to be used as call back function for `hl-line-mode'."
+  (cons
+   (line-beginning-position)
+   ;; 9 stands for (length "87654321:")
+   (+ (line-beginning-position) 9)))
+
 (defun hexl-follow-ascii-find ()
   "Find and highlight the ASCII element corresponding to current point."
   (let ((pos (+ 51
@@ -872,6 +922,29 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
 		(mod (hexl-current-address) 16))))
     (move-overlay hexl-ascii-overlay pos (1+ pos))
     ))
+
+(defun hexl-mode-ruler ()
+  "Return a string ruler for hexl mode."
+  (let* ((highlight (mod (hexl-current-address) 16))
+	 (s " 87654321  0011 2233 4455 6677 8899 aabb ccdd eeff  0123456789abcdef")
+	 (pos 0))
+    (set-text-properties 0 (length s) nil s)
+    ;; Turn spaces in the header into stretch specs so they work
+    ;; regardless of the header-line face.
+    (while (string-match "[ \t]+" s pos)
+      (setq pos (match-end 0))
+      (put-text-property (match-beginning 0) pos 'display
+			 ;; Assume fixed-size chars
+			 `(space :align-to ,(1- pos))
+			 s))
+    ;; Highlight the current column.
+    (put-text-property (+ 11 (/ (* 5 highlight) 2))
+		       (+ 13 (/ (* 5 highlight) 2))
+		       'face 'highlight s)
+    ;; Highlight the current ascii column
+    (put-text-property (+ 13 39 highlight) (+ 13 40 highlight)
+		       'face 'highlight s)
+    s))
 
 ;; startup stuff.
 

@@ -2301,6 +2301,10 @@ extern void syms_of_fringe P_ ((void));
 extern void init_fringe P_ ((void));
 extern void init_fringe_once P_ ((void));
 
+/* Defined in image.c */
+extern void syms_of_image P_ ((void));
+extern void init_image P_ ((void));
+
 /* Defined in insdel.c */
 extern Lisp_Object Qinhibit_modification_hooks;
 extern void move_gap P_ ((int));
@@ -3073,7 +3077,6 @@ extern int getloadavg P_ ((double *, int));
 #ifdef HAVE_X_WINDOWS
 /* Defined in xfns.c */
 extern void syms_of_xfns P_ ((void));
-extern void init_xfns P_ ((void));
 extern Lisp_Object Vx_resource_name;
 extern Lisp_Object Vx_resource_class;
 EXFUN (Fxw_display_color_p, 1);

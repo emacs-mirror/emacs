@@ -59,6 +59,7 @@
 (defvar gdb-var-list nil "List of variables in watch window")
 (defvar gdb-var-changed nil "Non-nil means that gdb-var-list has changed.")
 (defvar gdb-buffer-type nil)
+(defvar gdb-overlay-arrow-position nil)
 (defvar gdb-variables '()
   "A list of variables that are local to the GUD buffer.")
 
@@ -250,7 +251,7 @@ speedbar."
 	     `(lambda () (gdb-var-list-children-handler ,varnum)))))
 
 (defconst gdb-var-list-children-regexp
-"name=\"\\(.*?\\)\",exp=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",type=\"\\(.*?\\)\"")
+"name=\"\\(.*?\\)\",exp=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\"")
 
 (defun gdb-var-list-children-handler (varnum)
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
@@ -265,9 +266,9 @@ speedbar."
 		 (let ((varchild (list (match-string 2)
 				       (match-string 1)
 				       (match-string 3)
-				       (match-string 5)
-				       (match-string 4)
-				       nil)))
+				       nil nil nil)))
+		   (if (looking-at ",type=\"\\(.*?\\)\"")
+		       (setcar (nthcdr 3 varchild) (match-string 1)))
 		   (dolist (var1 gdb-var-list)
 		     (if (string-equal (cadr var1) (cadr varchild))
 			 (throw 'child-already-watched nil)))
@@ -1682,7 +1683,12 @@ This arrangement depends on the value of `gdb-many-windows'."
 		(gdb-remove-breakpoint-icons (point-min) (point-max) t)
 		(setq gud-minor-mode nil)
 		(kill-local-variable 'tool-bar-map)
-		(setq gud-running nil)))))))
+		(setq gud-running nil))))))
+  (when (markerp gdb-overlay-arrow-position)
+    (move-marker gdb-overlay-arrow-position nil)
+    (setq gdb-overlay-arrow-position nil))
+  (setq overlay-arrow-variable-list
+	(delq 'gdb-overlay-arrow-position overlay-arrow-variable-list)))
 
 (defun gdb-source-info ()
   "Find the source file where the program starts and displays it with related
@@ -1831,7 +1837,6 @@ BUFFER nil or omitted means use the current buffer."
 	    (if (re-search-forward gdb-current-address nil t)
 		(progn
 		  (setq pos (point))
-		  (setq gdb-overlay-arrow-string "=>")
 		  (beginning-of-line)
 		  (or gdb-overlay-arrow-position
 		      (setq gdb-overlay-arrow-position (make-marker)))
@@ -1870,8 +1875,9 @@ BUFFER nil or omitted means use the current buffer."
 \\{gdb-assembler-mode-map}"
   (setq major-mode 'gdb-assembler-mode)
   (setq mode-name "Machine")
-  (push 'gdb-overlay-arrow-position overlay-arrow-variable-list)
   (setq gdb-overlay-arrow-position nil)
+  (add-to-list 'overlay-arrow-variable-list 'gdb-overlay-arrow-position)
+  (put 'gdb-overlay-arrow-position 'overlay-arrow-string "=>")
   (setq fringes-outside-margins t)
   (setq buffer-read-only t)
   (use-local-map gdb-assembler-mode-map)

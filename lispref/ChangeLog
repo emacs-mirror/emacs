@@ -1,3 +1,22 @@
+2004-03-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* intro.texi (Lisp History): Replace xref to `cl' manual with
+	inforef.
+
+2004-03-12  Richard M. Stallman  <rms@gnu.org>
+
+	* intro.texi (Version Info): Add arg to emacs-version.
+	(Lisp History): Change xref to CL manual.
+
+2004-03-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.texi (Completion Commands): Add xref to Emacs manual
+	for Partial Completion mode.
+
+2004-03-07  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* customize.texi: Fix typo. Remove eol whitespace.
+
 2004-03-04  Richard M. Stallman  <rms@gnu.org>
 
 	* processes.texi: Fix typos.

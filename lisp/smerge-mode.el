@@ -1,10 +1,9 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts
 
-;; Copyright (C) 1999, 2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 01, 03, 2004  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
-;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.24 2003/10/06 16:34:59 fx Exp $
+;; Keywords: revision-control merge diff3 cvs conflict
 
 ;; This file is part of GNU Emacs.
 
@@ -137,26 +136,67 @@ Used in `smerge-diff-base-mine' and related functions."
   `((,smerge-command-prefix . ,smerge-basic-map))
   "Keymap for `smerge-mode'.")
 
+(defvar smerge-check-cache nil)
+(make-variable-buffer-local 'smerge-check-cache)
+(defun smerge-check (n)
+  (condition-case nil
+      (let ((state (cons (point) (buffer-modified-tick))))
+	(unless (equal (cdr smerge-check-cache) state)
+	  (smerge-match-conflict)
+	  (setq smerge-check-cache (cons (match-data) state)))
+	(nth (* 2 n) (car smerge-check-cache)))
+    (error nil)))
+
 (easy-menu-define smerge-mode-menu smerge-mode-map
   "Menu for `smerge-mode'."
   '("SMerge"
     ["Next" smerge-next :help "Go to next conflict"]
     ["Previous" smerge-prev :help "Go to previous conflict"]
-    ["Keep All" smerge-keep-all :help "Keep all three versions"]
-    ["Revert to Base" smerge-keep-base :help "Revert to base version"]
-    ["Keep Other" smerge-keep-other :help "Keep `other' version"]
-    ["Keep Yours" smerge-keep-mine :help "Keep your version"]
-    ["Keep Current" smerge-keep-current :help "Use current (at point) version"]
+    "--"
+    ["Keep All" smerge-keep-all :help "Keep all three versions"
+     :active (smerge-check 1)]
+    ["Keep Current" smerge-keep-current :help "Use current (at point) version"
+     :active (and (smerge-check 1) (> (smerge-get-current) 0))]
+    "--"
+    ["Revert to Base" smerge-keep-base :help "Revert to base version"
+     :active (smerge-check 2)]
+    ["Keep Other" smerge-keep-other :help "Keep `other' version"
+     :active (smerge-check 3)]
+    ["Keep Yours" smerge-keep-mine :help "Keep your version"
+     :active (smerge-check 1)]
     "--"
     ["Diff Base/Mine" smerge-diff-base-mine
-     :help "Diff `base' and `mine' for current conflict"]
+     :help "Diff `base' and `mine' for current conflict"
+     :active (smerge-check 2)]
     ["Diff Base/Other" smerge-diff-base-other
-     :help "Diff `base' and `other' for current conflict"]
+     :help "Diff `base' and `other' for current conflict"
+     :active (smerge-check 2)]
     ["Diff Mine/Other" smerge-diff-mine-other
-     :help "Diff `mine' and `other' for current conflict"]
+     :help "Diff `mine' and `other' for current conflict"
+     :active (smerge-check 1)]
     "--"
     ["Invoke Ediff" smerge-ediff
-     :help "Use Ediff to resolve the conflicts"]
+     :help "Use Ediff to resolve the conflicts"
+     :active (smerge-check 1)]
+    ["Auto Resolve" smerge-resolve
+     :help "Use mode-provided resolution function"
+     :active (and (smerge-check 1) (local-variable-p 'smerge-resolve-function))]
+    ["Combine" smerge-combine-with-next
+     :help "Combine current conflict with next"
+     :active (smerge-check 1)]
+    ))
+
+(easy-mmode-defmap smerge-context-menu-map
+  `(([down-mouse-3] . smerge-activate-context-menu))
+  "Keymap for context menu appeared on conflicts area.")
+(easy-menu-define smerge-context-menu nil
+  "Context menu for mine area in `smerge-mode'."
+  '(nil
+    ["Keep Current" smerge-keep-current :help "Use current (at point) version"]
+    ["Kill Current" smerge-kill-current :help "Remove current (at point) version"]
+    ["Keep All" smerge-keep-all :help "Keep all three versions"]
+    "---"
+    ["More..." (popup-menu smerge-mode-menu) :help "Show full SMerge mode menu"]
     ))
 
 (defconst smerge-font-lock-keywords
@@ -255,12 +295,55 @@ Convenient for the kind of conflicts that can arise in ChangeLog files."
 The function is called with no argument and with the match data set
 according to `smerge-match-conflict'.")
 
+(defvar smerge-text-properties
+  `(help-echo "merge conflict: mouse-3 shows a menu"
+    ;; mouse-face highlight
+    keymap (keymap (down-mouse-3 . smerge-popup-context-menu))))
+
+(defun smerge-remove-props (&optional beg end)
+  (remove-text-properties
+   (or beg (match-beginning 0))
+   (or end (match-end 0))
+   smerge-text-properties))
+
+(defun smerge-popup-context-menu (event)
+  "Pop up the Smerge mode context menu under mouse."
+  (interactive "e")
+  (if (and smerge-mode
+          (save-excursion (mouse-set-point event) (smerge-check 1)))
+      (progn
+       (mouse-set-point event)
+       (smerge-match-conflict)
+       (let ((i (smerge-get-current))
+	     o)
+	 (if (<= i 0)
+	     ;; Out of range
+	     (popup-menu smerge-mode-menu)
+	   ;; Install overlay.
+	   (setq o (make-overlay (match-beginning i) (match-end i)))  
+	   (unwind-protect
+	       (progn
+		 (overlay-put o 'face 'highlight)
+		 (sit-for 0)
+		 (popup-menu (if (smerge-check 2) 
+				 smerge-mode-menu
+			       smerge-context-menu)))
+	     ;; Delete overlay.
+	     (delete-overlay o)))))
+    ;; There's no conflict at point, the text-props are just obsolete.
+    (save-excursion
+      (let ((beg (re-search-backward smerge-end-re nil t))
+           (end (re-search-forward smerge-begin-re nil t)))
+       (smerge-remove-props (or beg (point-min)) (or end (point-max)))
+       (push event unread-command-events)))))
+
 (defun smerge-resolve ()
   "Resolve the conflict at point intelligently.
 This relies on mode-specific knowledge and thus only works in
 some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (interactive)
   (smerge-match-conflict)
+  (smerge-remove-props)
   (funcall smerge-resolve-function)
   (smerge-auto-leave))
 
@@ -269,6 +352,7 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (interactive)
   (smerge-match-conflict)
   (smerge-ensure-match 2)
+  (smerge-remove-props)
   (replace-match (match-string 2) t t)
   (smerge-auto-leave))
 
@@ -277,6 +361,7 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (interactive)
   (smerge-match-conflict)
   ;;(smerge-ensure-match 3)
+  (smerge-remove-props)
   (replace-match (match-string 3) t t)
   (smerge-auto-leave))
 
@@ -285,20 +370,39 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (interactive)
   (smerge-match-conflict)
   ;;(smerge-ensure-match 1)
+  (smerge-remove-props)
   (replace-match (match-string 1) t t)
   (smerge-auto-leave))
 
-(defun smerge-keep-current ()
-  "Use the current (under the cursor) version."
-  (interactive)
-  (smerge-match-conflict)
+(defun smerge-get-current ()
   (let ((i 3))
     (while (or (not (match-end i))
 	       (< (point) (match-beginning i))
 	       (>= (point) (match-end i)))
       (decf i))
+    i))
+
+(defun smerge-keep-current ()
+  "Use the current (under the cursor) version."
+  (interactive)
+  (smerge-match-conflict)
+  (let ((i (smerge-get-current)))
     (if (<= i 0) (error "Not inside a version")
+      (smerge-remove-props)
       (replace-match (match-string i) t t)
+      (smerge-auto-leave))))
+
+(defun smerge-kill-current ()
+  "Remove the current (under the cursor) version."
+  (interactive)
+  (smerge-match-conflict)
+  (let ((i (smerge-get-current)))
+    (if (<= i 0) (error "Not inside a version")
+      (smerge-remove-props)
+      (replace-match (mapconcat
+		      (lambda (j)
+			(match-string j))
+		      (remove i '(1 2 3)) "") t t)
       (smerge-auto-leave))))
 
 (defun smerge-diff-base-mine ()
@@ -357,20 +461,28 @@ An error is raised if not inside a conflict."
 	    (setq mine-end (match-beginning 0))
 	    (setq base-start (match-end 0)))
 
-	  ((string= filename (file-name-nondirectory
-			      (or buffer-file-name "")))
-	   ;; a 2-parts conflict
-	   (set (make-local-variable 'smerge-conflict-style) 'diff3-E))
+	   ((string= filename (file-name-nondirectory
+			       (or buffer-file-name "")))
+	    ;; a 2-parts conflict
+	    (set (make-local-variable 'smerge-conflict-style) 'diff3-E))
 
-	  ((and (not base-start)
-		(or (eq smerge-conflict-style 'diff3-A)
-		    (string-match "^[.0-9]+\\'" filename)))
-	   ;; a same-diff conflict
-	   (setq base-start mine-start)
-	   (setq base-end   mine-end)
-	   (setq mine-start other-start)
-	   (setq mine-end   other-end)))
+	   ((and (not base-start)
+		 (or (eq smerge-conflict-style 'diff3-A)
+		     (equal filename "ANCESTOR")
+		     (string-match "\\`[.0-9]+\\'" filename)))
+	    ;; a same-diff conflict
+	    (setq base-start mine-start)
+	    (setq base-end   mine-end)
+	    (setq mine-start other-start)
+	    (setq mine-end   other-end)))
 
+	  (let ((inhibit-read-only t)
+		(inhibit-modification-hooks t)
+		(m (buffer-modified-p)))
+	    (unwind-protect
+		(add-text-properties start end smerge-text-properties)
+	      (restore-buffer-modified-p m)))
+              
 	  (store-match-data (list start end
 				  mine-start mine-end
 				  base-start base-end
