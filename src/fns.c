@@ -18,7 +18,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
-#include "config.h"
+#include <config.h>
 
 /* Note on some machines this defines `vector' as a typedef,
    so make sure we don't use that name in this file.  */

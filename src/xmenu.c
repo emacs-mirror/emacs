@@ -30,7 +30,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* On 4.3 this loses if it comes after xterm.h.  */
 #include <signal.h>
-#include "config.h"
+#include <config.h>
 #include "lisp.h"
 #include "frame.h"
 #include "window.h"

@@ -18,7 +18,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Written by jla, 4/90 */
 
 #ifdef emacs
-#include "config.h"
+#include <config.h>
 #endif
 
 #include <stdio.h>

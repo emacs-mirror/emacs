@@ -40,7 +40,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
   gb@entity.com
 */
 
-#include "config.h"
+#include <config.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <sys/file.h>

@@ -32,7 +32,7 @@ by Hallvard:
   o  all conditionals now only do QUIT if they jump.
  */
 
-#include "config.h"
+#include <config.h>
 #include "lisp.h"
 #include "buffer.h"
 #include "syntax.h"

@@ -19,7 +19,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
 #define NO_SHORTNAMES
-#include "../src/config.h"
+#include <../src/config.h>
 
 #if defined (BSD) && !defined (BSD4_1) && !defined (USE_FAKEMAIL)
 /* This program isnot used in BSD, so just avoid loader complaints.  */

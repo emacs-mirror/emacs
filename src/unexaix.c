@@ -160,7 +160,7 @@ pointer looks like an int) but not on all machines.
 #ifndef emacs
 #define PERROR(arg) perror (arg); return -1
 #else
-#include "config.h"
+#include <config.h>
 #define PERROR(file) report_error (file, new)
 #endif
 

@@ -59,7 +59,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <ctype.h>
 #undef NULL
 
-#include "config.h"
+#include <config.h>
 #include "lisp.h"
 #include <descrip.h>
 #include <dvidef.h>

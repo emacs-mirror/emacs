@@ -163,7 +163,7 @@ pointer looks like an int) but not on all machines.
 
 */
 
-#include "config.h"
+#include <config.h>
 #define PERROR(file) report_error (file, new)
 
 #include <a.out.h>

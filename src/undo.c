@@ -19,7 +19,7 @@ file named COPYING.  Among other things, the copyright notice
 and this notice must be preserved on all copies.  */
 
 
-#include "config.h"
+#include <config.h>
 #include "lisp.h"
 #include "buffer.h"
 

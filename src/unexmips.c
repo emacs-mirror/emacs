@@ -25,7 +25,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
-#include "config.h"
+#include <config.h>
 #include <sys/types.h>
 #include <sys/file.h>
 #include <sys/stat.h>

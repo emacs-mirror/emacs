@@ -104,7 +104,7 @@ extern void __vms_free __P ((__ptr_t __ptr));
 #include <stdio.h>		/* Harmless, gets __GNU_LIBRARY__ defined.  */
 
 #if defined(HAVE_CONFIG_H) || defined(emacs)
-#include "config.h"
+#include <config.h>
 #endif
 
 #if	defined(__GNU_LIBRARY__) || defined(STDC_HEADERS) || defined(USG)

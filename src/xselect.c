@@ -23,7 +23,7 @@ x_reply_selection_request  */
 
 /* Rewritten by jwz */
 
-#include "config.h"
+#include <config.h>
 #include "lisp.h"
 #if 0
 #include <stdio.h>	/* termhooks.h needs this */

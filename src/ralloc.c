@@ -25,7 +25,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef emacs
 
-#include "config.h"
+#include <config.h>
 #include "lisp.h"		/* Needed for VALBITS.  */
 
 #undef NULL

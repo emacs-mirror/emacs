@@ -24,7 +24,7 @@
  *
  */
 #ifdef emacs
-#include "config.h"
+#include <config.h>
 #endif
 
 #include <sys/param.h>

@@ -21,7 +21,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef VMS
 
-#include "config.h"
+#include <config.h>
 #include "lisp.h"
 #include <rab.h>
 #include <fab.h>

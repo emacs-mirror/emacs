@@ -20,7 +20,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <sys/types.h>
 
-#include "config.h"
+#include <config.h>
 
 #ifdef VMS
 #include "vms-pwd.h"

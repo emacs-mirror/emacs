@@ -17,7 +17,7 @@
 #include <fcntl.h>      /* FASYNC */
 #include <sys/types.h>  /* time_t */
 
-#include "../src/config.h"
+#include <../src/config.h>
 #ifdef USG
 #undef SIGIO
 #define SIGIO	SIGUSR1

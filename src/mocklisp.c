@@ -20,7 +20,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Compatibility for mocklisp */
 
-#include "config.h"
+#include <config.h>
 #include "lisp.h"
 #include "buffer.h"
 

@@ -33,7 +33,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <stdio.h>
 #include <signal.h>
 
-#include "config.h"
+#include <config.h>
 
 #ifdef HAVE_X_WINDOWS
 

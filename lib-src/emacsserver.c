@@ -25,7 +25,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    up to the Emacs which then executes them.  */
 
 #define NO_SHORTNAMES
-#include "../src/config.h"
+#include <../src/config.h>
 #undef read
 #undef write
 #undef open

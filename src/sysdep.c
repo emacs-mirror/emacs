@@ -21,7 +21,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <signal.h>
 #include <setjmp.h>
 
-#include "config.h"
+#include <config.h>
 #include "lisp.h"
 #include "blockinput.h"
 #undef NULL

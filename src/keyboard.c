@@ -20,7 +20,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Allow config.h to undefine symbols found here.  */
 #include <signal.h>
 
-#include "config.h"
+#include <config.h>
 #include <stdio.h>
 #undef NULL
 #include "termchar.h"

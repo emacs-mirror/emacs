@@ -164,7 +164,7 @@ pointer looks like an int) but not on all machines.
 #define PERROR(arg) perror (arg); return -1
 #else
 #define IN_UNEXEC
-#include "config.h"
+#include <config.h>
 #define PERROR(file) report_error (file, new)
 #endif
 

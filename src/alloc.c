@@ -19,7 +19,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <signal.h>
 
-#include "config.h"
+#include <config.h>
 #include "lisp.h"
 #include "intervals.h"
 #include "puresize.h"

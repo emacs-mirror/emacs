@@ -20,7 +20,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <signal.h>
 
-#include "config.h"
+#include <config.h>
 
 /* This file is split into two parts by the following preprocessor
    conditional.  The 'then' clause contains all of the support for

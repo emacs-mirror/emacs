@@ -19,7 +19,7 @@
 #include <time.h>
 #include <sys/types.h>
 
-#include "../src/config.h"
+#include <../src/config.h>
 
 #ifdef USG
 #include <string.h>
