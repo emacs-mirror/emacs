@@ -779,6 +779,8 @@ static Lisp_Object x_default_scroll_bar_color_parameter P_ ((struct frame *,
 							     char *, char *,
 							     int));
 static void x_set_screen_gamma P_ ((struct frame *, Lisp_Object, Lisp_Object));
+static void x_edge_detection P_ ((struct frame *, struct image *, Lisp_Object,
+				  Lisp_Object));
 
 static struct x_frame_parm_table x_frame_parms[] =
 {
@@ -5033,11 +5035,11 @@ extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
 extern Lisp_Object QCdata;
 Lisp_Object QCtype, QCascent, QCmargin, QCrelief;
 Lisp_Object QCalgorithm, QCcolor_symbols, QCheuristic_mask;
-Lisp_Object QCindex;
+Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask;
 
 /* Other symbols.  */
 
-Lisp_Object Qlaplace;
+Lisp_Object Qlaplace, Qemboss, Qedge_detection, Qheuristic;
 
 /* Time in seconds after which images should be removed from the cache
    if not displayed.  */
@@ -5050,6 +5052,7 @@ static void define_image_type P_ ((struct image_type *type));
 static struct image_type *lookup_image_type P_ ((Lisp_Object symbol));
 static void image_error P_ ((char *format, Lisp_Object, Lisp_Object));
 static void x_laplace P_ ((struct frame *, struct image *));
+static void x_emboss P_ ((struct frame *, struct image *));
 static int x_build_heuristic_mask P_ ((struct frame *, struct image *,
 				       Lisp_Object));
 
@@ -5725,7 +5728,7 @@ lookup_image (f, spec)
 	{
 	  /* Handle image type independent image attributes
 	     `:ascent ASCENT', `:margin MARGIN', `:relief RELIEF'.  */
-	  Lisp_Object ascent, margin, relief, algorithm, heuristic_mask;
+	  Lisp_Object ascent, margin, relief, algorithm;
 	  Lisp_Object file;
 
 	  ascent = image_spec_value (spec, QCascent, NULL);
@@ -5745,15 +5748,69 @@ lookup_image (f, spec)
 	      img->margin += abs (img->relief);
 	    }
 
-	  /* Should we apply a Laplace edge-detection algorithm?  */
+	  /* Should we apply an image transformation algorithm?  */
 	  algorithm = image_spec_value (spec, QCalgorithm, NULL);
-	  if (img->pixmap && EQ (algorithm, Qlaplace))
-	    x_laplace (f, img);
+	  if (img->pixmap)
+	    {
+	      if (EQ (algorithm, Qlaplace))
+		x_laplace (f, img);
+	      else if (EQ (algorithm, Qemboss))
+		x_emboss (f, img);
+	      else if (CONSP (algorithm)
+		       && EQ (XCAR (algorithm), Qedge_detection))
+		{
+		  Lisp_Object tem;
+		  tem = XCDR (algorithm);
+		  if (CONSP (tem))
+		    x_edge_detection (f, img,
+				      Fplist_get (tem, QCmatrix),
+				      Fplist_get (tem, QCcolor_adjustment));
+		}
+	    }
 
-	  /* Should we built a mask heuristically?  */
-	  heuristic_mask = image_spec_value (spec, QCheuristic_mask, NULL);
-	  if (img->pixmap && !img->mask && !NILP (heuristic_mask))
-	    x_build_heuristic_mask (f, img, heuristic_mask);
+	  /* Manipulation of the image's mask.  */
+	  if (img->pixmap)
+	    {
+	      /* `:heuristic-mask t'
+		 `:mask heuristic'
+			means build a mask heuristically.
+		 `:heuristic-mask (R G B)'
+		 `:mask (heuristic (R G B))'
+			measn build a mask from color (R G B) in the
+			image.
+		 `:mask nil'
+			means remove a mask, if any.  */
+	      
+	      Lisp_Object mask;
+
+	      mask = image_spec_value (spec, QCheuristic_mask, NULL);
+	      if (!NILP (mask))
+		x_build_heuristic_mask (f, img, mask);
+	      else
+		{
+		  int found_p;
+		    
+		  mask = image_spec_value (spec, QCmask, &found_p);
+		  
+		  if (EQ (mask, Qheuristic))
+		    x_build_heuristic_mask (f, img, Qt);
+		  else if (CONSP (mask)
+			   && EQ (XCAR (mask), Qheuristic))
+		    {
+		      if (CONSP (XCDR (mask)))
+			x_build_heuristic_mask (f, img, XCAR (XCDR (mask)));
+		      else
+			x_build_heuristic_mask (f, img, XCDR (mask));
+		    }
+		  else if (NILP (mask) && found_p && img->mask)
+		    {
+		      BLOCK_INPUT;
+		      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
+		      img->mask = 0;
+		      UNBLOCK_INPUT;
+		    }
+    		}
+	    }
 	}
     }
 
@@ -6026,6 +6083,7 @@ enum xbm_keyword_index
   XBM_RELIEF,
   XBM_ALGORITHM,
   XBM_HEURISTIC_MASK,
+  XBM_MASK,
   XBM_LAST
 };
 
@@ -6045,7 +6103,8 @@ static struct image_keyword xbm_format[XBM_LAST] =
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
 /* Structure describing the image type XBM.  */
@@ -6654,6 +6713,7 @@ enum xpm_keyword_index
   XPM_RELIEF,
   XPM_ALGORITHM,
   XPM_HEURISTIC_MASK,
+  XPM_MASK,
   XPM_COLOR_SYMBOLS,
   XPM_LAST
 };
@@ -6671,6 +6731,7 @@ static struct image_keyword xpm_format[XPM_LAST] =
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":color-symbols",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
@@ -7087,133 +7148,253 @@ static void x_laplace_write_row P_ ((struct frame *, long *,
 				     int, XImage *, int));
 static void x_laplace_read_row P_ ((struct frame *, Colormap,
 				    XColor *, int, XImage *, int));
+static XColor *x_to_xcolors P_ ((struct frame *, struct image *, int));
+static void x_from_xcolors P_ ((struct frame *, struct image *, XColor *));
+static void x_detect_edges P_ ((struct frame *, struct image *, int[9], int));
+
+/* Edge detection matrices for different edge-detection
+   strategies.  */
+
+static int emboss_matrix[9] = {
+   /* x - 1	x	x + 1  */
+        2,     -1,  	  0,		/* y - 1 */
+       -1,      0,        1,		/* y     */
+        0,      1,       -2		/* y + 1 */
+};
+
+static int laplace_matrix[9] = {
+   /* x - 1	x	x + 1  */
+        1,      0,  	  0,		/* y - 1 */
+        0,      0,        0,		/* y     */
+        0,      0,       -1		/* y + 1 */
+};
 
 
-/* Fill COLORS with RGB colors from row Y of image XIMG.  F is the
-   frame we operate on, CMAP is the color-map in effect, and WIDTH is
-   the width of one row in the image.  */
+/* On frame F, return an array of XColor structures describing image
+   IMG->pixmap.  Each XColor structure has its pixel color set.  RGB_P
+   non-zero means also fill the red/green/blue members of the XColor
+   structures.  Value is a pointer to the array of XColors structures,
+   allocated with xmalloc; it must be freed by the caller.  */
 
-static void
-x_laplace_read_row (f, cmap, colors, width, ximg, y)
+static XColor *
+x_to_xcolors (f, img, rgb_p)
      struct frame *f;
-     Colormap cmap;
-     XColor *colors;
-     int width;
-     XImage *ximg;
-     int y;
+     struct image *img;
+     int rgb_p;
 {
-  int x;
+  int x, y;
+  XColor *colors, *p;
+  XImage *ximg;
 
-  for (x = 0; x < width; ++x)
-    colors[x].pixel = XGetPixel (ximg, x, y);
-
-  XQueryColors (FRAME_X_DISPLAY (f), cmap, colors, width);
-}
-
-
-/* Write row Y of image XIMG.  PIXELS is an array of WIDTH longs
-   containing the pixel colors to write.  F is the frame we are
-   working on.  */
-
-static void
-x_laplace_write_row (f, pixels, width, ximg, y)
-     struct frame *f;
-     long *pixels;
-     int width;
-     XImage *ximg;
-     int y;
-{
-  int x;
+  BLOCK_INPUT;
   
-  for (x = 0; x < width; ++x)
-    XPutPixel (ximg, x, y, pixels[x]);
+  colors = (XColor *) xmalloc (img->width * img->height * sizeof *colors);
+
+  /* Get the X image IMG->pixmap.  */
+  ximg = XGetImage (FRAME_X_DISPLAY (f), img->pixmap,
+		    0, 0, img->width, img->height, ~0, ZPixmap);
+
+  /* Fill the `pixel' members of the XColor array.  I wished there
+     were an easy and portable way to circumvent XGetPixel.  */
+  p = colors;
+  for (y = 0; y < img->height; ++y)
+    {
+      XColor *row = p;
+      
+      for (x = 0; x < img->width; ++x, ++p)
+	p->pixel = XGetPixel (ximg, x, y);
+
+      if (rgb_p)
+	XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
+		      row, img->width);
+    }
+
+  XDestroyImage (ximg);
+
+  UNBLOCK_INPUT;
+  return colors;
 }
 
 
-/* Transform image IMG which is used on frame F with a Laplace
-   edge-detection algorithm.  The result is an image that can be used
-   to draw disabled buttons, for example.  */
+/* Create IMG->pixmap from an array COLORS of XColor structures, whose
+   RGB members are set.  F is the frame on which this all happens.
+   COLORS will be freed; an existing IMG->pixmap will be freed, too.  */
+
+static void
+x_from_xcolors (f, img, colors)
+     struct frame *f;
+     struct image *img;
+     XColor *colors;
+{
+  int x, y;
+  XImage *oimg;
+  Pixmap pixmap;
+  XColor *p;
+  
+  BLOCK_INPUT;
+  init_color_table ();
+  
+  x_create_x_image_and_pixmap (f, img->width, img->height, 0,
+			       &oimg, &pixmap);
+  p = colors;
+  for (y = 0; y < img->height; ++y)
+    for (x = 0; x < img->width; ++x, ++p)
+      {
+	unsigned long pixel;
+	pixel = lookup_rgb_color (f, p->red, p->green, p->blue);
+	XPutPixel (oimg, x, y, pixel);
+      }
+
+  xfree (colors);
+  x_clear_image (f, img);
+
+  x_put_x_image (f, oimg, pixmap, img->width, img->height);
+  x_destroy_x_image (oimg);
+  img->pixmap = pixmap;
+  img->colors = colors_in_color_table (&img->ncolors);
+  free_color_table ();
+  UNBLOCK_INPUT;
+}
+
+
+/* On frame F, perform edge-detection on image IMG.
+
+   MATRIX is a nine-element array specifying the transformation
+   matrix.  See emboss_matrix for an example.
+   
+   COLOR_ADJUST is a color adjustment added to each pixel of the
+   outgoing image.  */
+
+static void
+x_detect_edges (f, img, matrix, color_adjust)
+     struct frame *f;
+     struct image *img;
+     int matrix[9], color_adjust;
+{
+  XColor *colors = x_to_xcolors (f, img, 1);
+  XColor *new, *p;
+  int x, y, i, sum;
+
+  for (i = sum = 0; i < 9; ++i)
+    sum += abs (matrix[i]);
+
+#define COLOR(A, X, Y) ((A) + (Y) * img->width + (X))
+
+  new = (XColor *) xmalloc (img->width * img->height * sizeof *new);
+
+  for (y = 0; y < img->height; ++y)
+    {
+      p = COLOR (new, 0, y);
+      p->red = p->green = p->blue = 0xffff/2;
+      p = COLOR (new, img->width - 1, y);
+      p->red = p->green = p->blue = 0xffff/2;
+    }
+  
+  for (x = 1; x < img->width - 1; ++x)
+    {
+      p = COLOR (new, x, 0);
+      p->red = p->green = p->blue = 0xffff/2;
+      p = COLOR (new, x, img->height - 1);
+      p->red = p->green = p->blue = 0xffff/2;
+    }
+
+  for (y = 1; y < img->height - 1; ++y)
+    {
+      p = COLOR (new, 1, y);
+      
+      for (x = 1; x < img->width - 1; ++x, ++p)
+	{
+	  int r, g, b, intensity, y1, x1;
+
+	  r = g = b = i = 0;
+	  for (y1 = y - 1; y1 < y + 2; ++y1)
+	    for (x1 = x - 1; x1 < x + 2; ++x1, ++i)
+	      if (matrix[i])
+	        {
+	          XColor *t = COLOR (colors, x1, y1);
+		  r += matrix[i] * t->red;
+		  g += matrix[i] * t->green;
+		  b += matrix[i] * t->blue;
+		}
+
+	  r = (r / sum + color_adjust) & 0xffff;
+	  g = (g / sum + color_adjust) & 0xffff;
+	  b = (b / sum + color_adjust) & 0xffff;
+
+	  intensity = (2 * r + 3 * g + b) / 6;
+	  p->red = p->green = p->blue = intensity;
+	}
+    }
+
+  xfree (colors);
+  x_from_xcolors (f, img, new);
+
+#undef COLOR
+}
+
+
+/* Perform the pre-defined `emboss' edge-detection on image IMG
+   on frame F.  */
+
+static void
+x_emboss (f, img)
+     struct frame *f;
+     struct image *img;
+{
+  x_detect_edges (f, img, emboss_matrix, 0xffff / 2);
+}
+
+
+/* Perform the pre-defined `laplace' edge-detection on image IMG
+   on frame F.  */
 
 static void
 x_laplace (f, img)
      struct frame *f;
      struct image *img;
 {
-  Colormap cmap = FRAME_X_COLORMAP (f);
-  XImage *ximg, *oimg;
-  XColor *in[3];
-  long *out;
-  Pixmap pixmap;
-  int x, y, i;
-  long pixel;
-  int in_y, out_y, rc;
-  int mv2 = 45000;
+  x_detect_edges (f, img, laplace_matrix, 45000);
+}
 
-  BLOCK_INPUT;
 
-  /* Get the X image IMG->pixmap.  */
-  ximg = XGetImage (FRAME_X_DISPLAY (f), img->pixmap,
-		    0, 0, img->width, img->height, ~0, ZPixmap);
+/* Perform edge-detection on image IMG on frame F, with specified
+   transformation matrix MATRIX and color-adjustment COLOR_ADJUST.
 
-  /* Allocate 3 input rows, and one output row of colors.  */
-  for (i = 0; i < 3; ++i)
-    in[i] = (XColor *) alloca (img->width * sizeof (XColor));
-  out = (long *) alloca (img->width * sizeof (long));
+   MATRIX must be either
 
-  /* Create an X image for output.  */
-  rc = x_create_x_image_and_pixmap (f, img->width, img->height, 0,
-				    &oimg, &pixmap);
+   - a list of at least 9 numbers in row-major form
+   - a vector of at least 9 numbers
 
-  /* Fill first two rows.  */
-  x_laplace_read_row (f, cmap, in[0], img->width, ximg, 0);
-  x_laplace_read_row (f, cmap, in[1], img->width, ximg, 1);
-  in_y = 2;
+   COLOR_ADJUST nil means use a default; otherwise it must be a
+   number.  */
 
-  /* Write first row, all zeros.  */
-  init_color_table ();
-  pixel = lookup_rgb_color (f, 0, 0, 0);
-  for (x = 0; x < img->width; ++x)
-    out[x] = pixel;
-  x_laplace_write_row (f, out, img->width, oimg, 0);
-  out_y = 1;
-
-  for (y = 2; y < img->height; ++y)
+static void
+x_edge_detection (f, img, matrix, color_adjust)
+     struct frame *f;
+     struct image *img;
+     Lisp_Object matrix, color_adjust;
+{
+  int i = 0;
+  int trans[9];
+  
+  if (CONSP (matrix))
     {
-      int rowa = y % 3;
-      int rowb = (y + 2) % 3;
-
-      x_laplace_read_row (f, cmap, in[rowa], img->width, ximg, in_y++);
-
-      for (x = 0; x < img->width - 2; ++x)
-	{
-	  int r = 0xffff & (in[rowa][x].red + mv2 - in[rowb][x + 2].red);
-	  int g = 0xffff & (in[rowa][x].green + mv2 - in[rowb][x + 2].green);
-	  int b = 0xffff & (in[rowa][x].blue + mv2 - in[rowb][x + 2].blue);
-	  out[x + 1] = lookup_rgb_color (f, r, g, b);
-	}
-
-      x_laplace_write_row (f, out, img->width, oimg, out_y++);
+      for (i = 0;
+	   i < 9 && CONSP (matrix) && NUMBERP (XCAR (matrix));
+	   ++i, matrix = XCDR (matrix))
+	trans[i] = XFLOATINT (XCAR (matrix));
+    }
+  else if (VECTORP (matrix) && ASIZE (matrix) >= 9)
+    {
+      for (i = 0; i < 9 && NUMBERP (AREF (matrix, i)); ++i)
+	trans[i] = XFLOATINT (AREF (matrix, i));
     }
 
-  /* Write last line, all zeros.  */
-  for (x = 0; x < img->width; ++x)
-    out[x] = pixel;
-  x_laplace_write_row (f, out, img->width, oimg, out_y);
+  if (NILP (color_adjust))
+    color_adjust = make_number (0xffff / 2);
 
-  /* Free the input image, and free resources of IMG.  */
-  XDestroyImage (ximg);
-  x_clear_image (f, img);
-  
-  /* Put the output image into pixmap, and destroy it.  */
-  x_put_x_image (f, oimg, pixmap, img->width, img->height);
-  x_destroy_x_image (oimg);
-
-  /* Remember new pixmap and colors in IMG.  */
-  img->pixmap = pixmap;
-  img->colors = colors_in_color_table (&img->ncolors);
-  free_color_table ();
-
-  UNBLOCK_INPUT;
+  if (i == 9 && NUMBERP (color_adjust))
+    x_detect_edges (f, img, trans, (int) XFLOATINT (color_adjust));
 }
 
 
@@ -7236,6 +7417,12 @@ x_build_heuristic_mask (f, img, how)
   unsigned long bg = 0;
 
   BLOCK_INPUT;
+
+  if (img->mask)
+    {
+      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
+      img->mask = 0;
+    }
   
   /* Create an image and pixmap serving as mask.  */
   rc = x_create_x_image_and_pixmap (f, img->width, img->height, 1,
@@ -7350,6 +7537,7 @@ enum pbm_keyword_index
   PBM_RELIEF,
   PBM_ALGORITHM,
   PBM_HEURISTIC_MASK,
+  PBM_MASK,
   PBM_LAST
 };
 
@@ -7365,7 +7553,8 @@ static struct image_keyword pbm_format[PBM_LAST] =
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
 /* Structure describing the image type `pbm'.  */
@@ -7668,6 +7857,7 @@ enum png_keyword_index
   PNG_RELIEF,
   PNG_ALGORITHM,
   PNG_HEURISTIC_MASK,
+  PNG_MASK,
   PNG_LAST
 };
 
@@ -7683,7 +7873,8 @@ static struct image_keyword png_format[PNG_LAST] =
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
 /* Structure describing the image type `png'.  */
@@ -8152,6 +8343,7 @@ enum jpeg_keyword_index
   JPEG_RELIEF,
   JPEG_ALGORITHM,
   JPEG_HEURISTIC_MASK,
+  JPEG_MASK,
   JPEG_LAST
 };
 
@@ -8167,7 +8359,8 @@ static struct image_keyword jpeg_format[JPEG_LAST] =
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
 /* Structure describing the image type `jpeg'.  */
@@ -8514,6 +8707,7 @@ enum tiff_keyword_index
   TIFF_RELIEF,
   TIFF_ALGORITHM,
   TIFF_HEURISTIC_MASK,
+  TIFF_MASK,
   TIFF_LAST
 };
 
@@ -8529,7 +8723,8 @@ static struct image_keyword tiff_format[TIFF_LAST] =
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
 /* Structure describing the image type `tiff'.  */
@@ -8838,6 +9033,7 @@ enum gif_keyword_index
   GIF_RELIEF,
   GIF_ALGORITHM,
   GIF_HEURISTIC_MASK,
+  GIF_MASK,
   GIF_IMAGE,
   GIF_LAST
 };
@@ -8855,6 +9051,7 @@ static struct image_keyword gif_format[GIF_LAST] =
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":image",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0}
 };
 
@@ -9151,6 +9348,7 @@ enum gs_keyword_index
   GS_RELIEF,
   GS_ALGORITHM,
   GS_HEURISTIC_MASK,
+  GS_MASK,
   GS_LAST
 };
 
@@ -9169,7 +9367,8 @@ static struct image_keyword gs_format[GS_LAST] =
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
 /* Structure describing the image type `ghostscript'.  */
@@ -10421,7 +10620,19 @@ syms_of_xfns ()
 
   Qlaplace = intern ("laplace");
   staticpro (&Qlaplace);
-  
+  Qemboss = intern ("emboss");
+  staticpro (&Qemboss);
+  Qedge_detection = intern ("edge-detection");
+  staticpro (&Qedge_detection);
+  Qheuristic = intern ("heuristic");
+  staticpro (&Qheuristic);
+  QCmatrix = intern (":matrix");
+  staticpro (&QCmatrix);
+  QCcolor_adjustment = intern (":color-adjustment");
+  staticpro (&QCcolor_adjustment);
+  QCmask = intern (":mask");
+  staticpro (&QCmask);
+ 
   Qface_set_after_frame_default = intern ("face-set-after-frame-default");
   staticpro (&Qface_set_after_frame_default);
 
