@@ -794,7 +794,7 @@ string_escape_byte8 (string)
 
   if (multibyte)
     /* Convert 2-byte sequence of byte8 chars to 4-byte octal.  */
-    val = make_uninit_multibyte_string (nchars + byte8_count * 2,
+    val = make_uninit_multibyte_string (nchars + byte8_count * 3,
 					nbytes + byte8_count * 2);
   else
     /* Convert 1-byte sequence of byte8 chars to 4-byte octal.  */
