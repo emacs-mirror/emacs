@@ -35,7 +35,8 @@
 
 (eval-when-compile
   (require 'skeleton)
-  (require 'outline))
+  (require 'outline)
+  (require 'cl))
 
 (defgroup sgml nil
   "SGML editing mode"
