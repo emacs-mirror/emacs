@@ -738,7 +738,7 @@ do_symval_forwarding (valcontents)
 
       case Lisp_Misc_Buffer_Objfwd:
 	offset = XBUFFER_OBJFWD (valcontents)->offset;
-	return *(Lisp_Object *)(offset + (char *)current_buffer);
+	return BUFFER_LOCAL_VALUE (current_buffer, offset);
 
       case Lisp_Misc_Kboard_Objfwd:
 	offset = XKBOARD_OBJFWD (valcontents)->offset;
@@ -783,7 +783,7 @@ store_symval_forwarding (symbol, valcontents, newval)
 	    int offset = XBUFFER_OBJFWD (valcontents)->offset;
 	    Lisp_Object type;
 
-	    type = *(Lisp_Object *)(offset + (char *)&buffer_local_types);
+	    type = BUFFER_LOCAL_TYPE (offset);
 	    if (XINT (type) == -1)
 	      error ("Variable %s is read-only", XSYMBOL (symbol)->name->data);
 
@@ -791,7 +791,7 @@ store_symval_forwarding (symbol, valcontents, newval)
 		&& XTYPE (newval) != XINT (type))
 	      buffer_slot_type_mismatch (offset);
 
-	    *(Lisp_Object *)(offset + (char *)current_buffer) = newval;
+	    BUFFER_LOCAL_VALUE (current_buffer, offset) = newval;
 	  }
 	  break;
 
@@ -902,8 +902,8 @@ find_symbol_value (symbol)
 	  return *XOBJFWD (valcontents)->objvar;
 
 	case Lisp_Misc_Buffer_Objfwd:
-	  return *(Lisp_Object *)(XBUFFER_OBJFWD (valcontents)->offset
-				  + (char *)current_buffer);
+	  return BUFFER_LOCAL_VALUE (current_buffer,
+				     XBUFFER_OBJFWD (valcontents)->offset);
 
 	case Lisp_Misc_Kboard_Objfwd:
 	  return *(Lisp_Object *)(XKBOARD_OBJFWD (valcontents)->offset
@@ -990,12 +990,12 @@ set_internal (symbol, newval, buf, bindflag)
 
   if (BUFFER_OBJFWDP (valcontents))
     {
-      register int idx = XBUFFER_OBJFWD (valcontents)->offset;
-      register int mask = XINT (*((Lisp_Object *)
-				  (idx + (char *)&buffer_local_flags)));
-      if (mask > 0 && ! bindflag
-	  && ! let_shadows_buffer_binding_p (symbol))
-	buf->local_var_flags |= mask;
+      int offset = XBUFFER_OBJFWD (valcontents)->offset;
+      int idx = BUFFER_LOCAL_IDX (offset);
+      if (idx > 0
+	  && !bindflag
+	  && !let_shadows_buffer_binding_p (symbol))
+	SET_BUFFER_HAS_LOCAL_VALUE_P (buf, idx, 1);
     }
 
   else if (BUFFER_LOCAL_VALUEP (valcontents)
@@ -1107,10 +1107,9 @@ default_value (symbol)
      rather than letting do_symval_forwarding get the current value.  */
   if (BUFFER_OBJFWDP (valcontents))
     {
-      register int idx = XBUFFER_OBJFWD (valcontents)->offset;
-
-      if (XINT (*(Lisp_Object *) (idx + (char *) &buffer_local_flags)) != 0)
-	return *(Lisp_Object *)(idx + (char *) &buffer_defaults);
+      int offset = XBUFFER_OBJFWD (valcontents)->offset;
+      if (BUFFER_LOCAL_IDX (offset) != 0)
+	return BUFFER_LOCAL_DEFAULT_VALUE (offset);
     }
 
   /* Handle user-created local variables.  */
@@ -1180,20 +1179,20 @@ for this variable.")
      variables.  */
   if (BUFFER_OBJFWDP (valcontents))
     {
-      register int idx = XBUFFER_OBJFWD (valcontents)->offset;
-      register struct buffer *b;
-      register int mask = XINT (*((Lisp_Object *)
-				  (idx + (char *)&buffer_local_flags)));
+      int offset = XBUFFER_OBJFWD (valcontents)->offset;
+      int idx = BUFFER_LOCAL_IDX (offset);
 
-      *(Lisp_Object *)(idx + (char *) &buffer_defaults) = value;
+      BUFFER_LOCAL_DEFAULT_VALUE (offset) = value;
 
       /* If this variable is not always local in all buffers,
 	 set it in the buffers that don't nominally have a local value.  */
-      if (mask > 0)
+      if (idx > 0)
 	{
+	  struct buffer *b;
+	  
 	  for (b = all_buffers; b; b = b->next)
-	    if (!(b->local_var_flags & mask))
-	      *(Lisp_Object *)(idx + (char *) b) = value;
+	    if (!BUFFER_HAS_LOCAL_VALUE_P (b, idx))
+	      BUFFER_LOCAL_VALUE (b, offset) = value;
 	}
       return value;
     }
@@ -1410,15 +1409,14 @@ From now on the default value will apply in this buffer.")
 
   if (BUFFER_OBJFWDP (valcontents))
     {
-      register int idx = XBUFFER_OBJFWD (valcontents)->offset;
-      register int mask = XINT (*((Lisp_Object*)
-				  (idx + (char *)&buffer_local_flags)));
+      int offset = XBUFFER_OBJFWD (valcontents)->offset;
+      int idx = BUFFER_LOCAL_IDX (offset);
 
-      if (mask > 0)
+      if (idx > 0)
 	{
-	  *(Lisp_Object *)(idx + (char *) current_buffer)
-	    = *(Lisp_Object *)(idx + (char *) &buffer_defaults);
-	  current_buffer->local_var_flags &= ~mask;
+	  SET_BUFFER_HAS_LOCAL_VALUE_P (current_buffer, idx, 0);
+	  BUFFER_LOCAL_VALUE (current_buffer, offset)
+	    = BUFFER_LOCAL_DEFAULT_VALUE (offset);
 	}
       return variable;
     }
@@ -1534,8 +1532,8 @@ BUFFER defaults to the current buffer.")
   if (BUFFER_OBJFWDP (valcontents))
     {
       int offset = XBUFFER_OBJFWD (valcontents)->offset;
-      int mask = XINT (*(Lisp_Object *)(offset + (char *)&buffer_local_flags));
-      if (mask == -1 || (buf->local_var_flags & mask))
+      int idx = BUFFER_LOCAL_IDX (offset);
+      if (idx == -1 || BUFFER_HAS_LOCAL_VALUE_P (buf, idx))
 	return Qt;
     }
   return Qnil;
