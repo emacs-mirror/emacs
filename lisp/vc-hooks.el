@@ -65,6 +65,16 @@ when creating new masters.")
   "*If non-nil, backups of registered files are made as with other files.
 If nil (the default), files covered by version control don't get backups.")
 
+(defvar vc-follow-symlinks 'ask
+  "*Indicates what to do if you visit a symbolic link to a file
+that is under version control.  Editing such a file through the
+link bypasses the version control system, which is dangerous and
+probably not what you want.  
+  If this variable is t, VC follows the link and visits the real file,
+telling you about it in the echo area.  If it is `ask', VC asks for
+confirmation whether it should follow the link.  If nil, the link is
+visited and a warning displayed.")
+
 (defvar vc-display-status t
   "*If non-nil, display revision number and lock status in modeline.
 Otherwise, not displayed.")
@@ -924,9 +934,22 @@ control system name."
      ((let* ((link (file-symlink-p buffer-file-name))
 	     (link-type (and link (vc-backend link))))
 	(if link-type
-	    (message
-	     "Warning: symbolic link to %s-controlled source file"
-	     link-type))))))))
+            (cond ((eq vc-follow-symlinks nil)
+                   (message
+        "Warning: symbolic link to %s-controlled source file" link-type))
+                  ((eq vc-follow-symlinks 'ask)
+                   (if (yes-or-no-p (format
+        "Symbolic link to %s-controlled source file; follow link? " link-type))
+                       (progn (setq buffer-file-name 
+                                    (file-truename buffer-file-name))
+                              (message "Followed link to %s" buffer-file-name)
+                              (vc-find-file-hook))
+                     (message 
+        "Warning: editing through the link bypasses version control")
+                     ))
+                  (t (setq buffer-file-name (file-truename buffer-file-name))
+                     (message "Followed link to %s" buffer-file-name)
+                     (vc-find-file-hook))))))))))
 
 (add-hook 'find-file-hooks 'vc-find-file-hook)
 
