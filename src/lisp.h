@@ -889,30 +889,9 @@ typedef unsigned char UCHAR;
 	 which contains the argument values.
     UNEVALLED means pass the list of unevaluated arguments
  `prompt' says how to read arguments for an interactive call.
-    This can be zero or a C string.
-    Zero means that interactive calls are not allowed.
-    A string is interpreted in a hairy way:
-     it should contain one line for each argument to be read, terminated by \n.
-     The first character of the line controls the type of parsing:
-       s  --  read a string.
-       S  --  read a symbol.
-       k  --  read a key sequence and return it as a string.
-       a  --  read a function name (symbol) with completion.
-       C  --  read a command name (symbol) with completion.
-       v  --  read a variable name (symbol) with completion.
-       b  --  read a buffer name (a string) with completion.
-       B  --  buffer name, may be existing buffer or may not be.
-       f  --  read a file name, file must exist.
-       F  --  read a file name, file need not exist.
-       n  --  read a number.
-       c  --  read a character and return it as a number.
-       p  --  use the numeric value of the prefix argument.
-       P  --  use raw value of prefix - can be nil, -, (NUMBER) or NUMBER.
-       x  --  read a Lisp object from the minibuffer.
-       X  --  read a Lisp form from the minibuffer and use its value.
+    See the doc string for `interactive'.
     A null string means call interactively with no arguments.
- `doc' is documentation for the user.
-*/
+ `doc' is documentation for the user.  */
 
 #if !defined (__STDC__) || defined (USE_NONANSI_DEFUN)
 #define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc) \
