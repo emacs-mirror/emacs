@@ -1524,6 +1524,28 @@ with more keys."
       (let (pos)
 	(quail-delete-region)
 	(setq pos (point))
+	(or enable-multibyte-characters
+	    (let (char)
+	      (if (stringp quail-current-str)
+		  (catch 'tag
+		    (mapc #'(lambda (ch)
+			      (when (/= (unibyte-char-to-multibyte
+					 (multibyte-char-to-unibyte ch))
+					ch)
+				  (setq char ch)
+				  (throw 'tag nil)))
+			  quail-current-str))
+		(if (/= (unibyte-char-to-multibyte
+			 (multibyte-char-to-unibyte quail-current-str))
+			quail-current-str)
+		    (setq char quail-current-str)))
+	      (when char
+		(message "Can't input %c in the current unibyte buffer" char)
+		(ding)
+		(sit-for 2)
+		(message nil)
+		(setq quail-current-str nil)
+		(throw 'quail-tag nil))))
 	(insert quail-current-str)
 	(move-overlay quail-overlay pos (point))
 	(if (overlayp quail-conv-overlay)
