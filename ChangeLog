@@ -1,3 +1,8 @@
+2002-03-18  Kim F. Storm  <storm@cua.dk>
+
+	* configure.in: Test for sendto, recvfrom, getsockopt, setsockopt,
+	and getsockname functions.  Test for sys/un.h include file.
+
 2002-03-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure.in: Support AIX 5.1.
