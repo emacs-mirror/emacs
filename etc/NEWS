@@ -933,16 +933,18 @@ The recent file list is now automatically cleanup when recentf mode is
 enabled.  The new option `recentf-auto-cleanup' controls when to do
 automatic cleanup.
 
+The `recentf-keep' option replaces `recentf-keep-non-readable-files-p'
+and provides a more general mechanism to customize which file names to
+keep in the recent list.
+
 With the more advanced option: `recentf-filename-handler', you can
 specify a function that transforms filenames handled by recentf.  For
 example, if set to `file-truename', the same file will not be in the
 recent list with different symbolic links.
 
-To follow naming convention, `recentf-keep-non-readable-files-flag'
-and `recentf-menu-append-commands-flag' respectively replace the
-misnamed options `recentf-keep-non-readable-files-p' and
-`recentf-menu-append-commands-p'.  The old names remain available as
-aliases, but have been marked obsolete.
+To follow naming convention, `recentf-menu-append-commands-flag'
+replaces the misnamed option `recentf-menu-append-commands-p'.  The
+old name remains available as alias, but has been marked obsolete.
 
 +++
 ** The default for the paper size (variable ps-paper-type) is taken
