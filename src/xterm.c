@@ -1097,6 +1097,7 @@ static struct face *x_get_glyph_face_and_encoding P_ ((struct frame *,
 						       XChar2b *));
 static struct face *x_get_char_face_and_encoding P_ ((struct frame *, int,
 						      int, XChar2b *, int));
+static XCharStruct *x_per_char_metric_1 P_ ((XFontStruct *, XChar2b *));
 static XCharStruct *x_per_char_metric P_ ((XFontStruct *, XChar2b *));
 static void x_encode_char P_ ((int, XChar2b *, struct font_info *));
 static void x_append_glyph P_ ((struct it *));
@@ -1105,27 +1106,14 @@ static void x_append_stretch_glyph P_ ((struct it *it, Lisp_Object,
 					int, int, double));
 static void x_produce_glyphs P_ ((struct it *));
 static void x_produce_image_glyph P_ ((struct it *it));
-     
-
-/* Return a pointer to per-char metric information in FONT of a
-   character pointed by B which is a pointer to an XChar2b.  */
-
-#define PER_CHAR_METRIC(font, b)					   \
-  ((font)->per_char							   \
-   ? ((font)->per_char + (b)->byte2 - (font)->min_char_or_byte2		   \
-      + (((font)->min_byte1 || (font)->max_byte1)			   \
-	 ? (((b)->byte1 - (font)->min_byte1)				   \
-	    * ((font)->max_char_or_byte2 - (font)->min_char_or_byte2 + 1)) \
-	 : 0))								   \
-   : &((font)->max_bounds))
+static XCharStruct *x_default_char P_ ((XFontStruct *, XChar2b *));
 
 
-/* Get metrics of character CHAR2B in FONT.  Value is always non-null.
-   If CHAR2B is not contained in FONT, the font's default character
-   metric is returned.  */
+/* Get metrics of character CHAR2B in FONT.  Value is null if CHAR2B
+   is not contained in the font.  */
 
 static INLINE XCharStruct *
-x_per_char_metric (font, char2b)
+x_per_char_metric_1 (font, char2b)
      XFontStruct *font;
      XChar2b *char2b;
 {
@@ -1186,27 +1174,82 @@ x_per_char_metric (font, char2b)
 	pcm = &font->max_bounds;
     }
 
+  if (pcm && pcm->width == 0)
+    pcm = NULL;
+  
+  return pcm;
+}
 
-  if (pcm == NULL || pcm->width == 0)
+
+/* Return in *DEFAULT_CHAR the default char to use for characters not
+   contained in FONT.  This is either FONT->default_char if that is
+   valid, or some suitable other character if FONT->default_char is
+   invalid.  Value is a pointer to the XCharStruct of
+   FONT->default_char or null if FONT->default_char is invalid.  */
+
+static INLINE XCharStruct *
+x_default_char (font, default_char)
+     XFontStruct *font;
+     XChar2b *default_char;
+{
+  XCharStruct *pcm;
+  
+  /* FONT->default_char is a 16-bit character code with byte1 in the
+     most significant byte and byte2 in the least significant
+     byte.  */
+  default_char->byte1 = (font->default_char >> BITS_PER_CHAR) & 0xff;
+  default_char->byte2 = font->default_char & 0xff;
+  pcm = x_per_char_metric_1 (font, default_char);
+
+  /* If FONT->default_char is invalid, choose a better one.  */
+  if (pcm == NULL)
+    {
+      if (font->per_char)
+	{
+	  if (font->min_byte1 == 0 && font->max_byte1 == 0)
+	    {
+	      default_char->byte1 = 0;
+	      default_char->byte2 = font->min_char_or_byte2;
+	    }
+	  else
+	    {
+	      default_char->byte1 = font->min_byte1;
+	      default_char->byte2 = font->min_char_or_byte2;
+	    }
+	}
+      else
+	default_char->byte2 = font->min_char_or_byte2;
+    }
+
+  return pcm;
+}
+
+
+/* Get metrics of character CHAR2B in FONT.  Value is always non-null.
+   If CHAR2B is not contained in FONT, a default character metric is
+   returned.  */
+
+static INLINE XCharStruct *
+x_per_char_metric (font, char2b)
+     XFontStruct *font;
+     XChar2b *char2b;
+{
+  XCharStruct *pcm = x_per_char_metric_1 (font, char2b);
+  
+  if (pcm == NULL)
     {
       /* Character not contained in the font.  FONT->default_char
 	 gives the character that will be printed.  FONT->default_char
 	 is a 16-bit character code with byte1 in the most significant
 	 byte and byte2 in the least significant byte.  */
       XChar2b default_char;
-      default_char.byte1 = (font->default_char >> BITS_PER_CHAR) & 0xff;
-      default_char.byte2 = font->default_char & 0xff;
-
-      /* Avoid an endless recursion if FONT->default_char itself
-	 hasn't per char metrics.  handa@etl.go.jp reports that some
-	 fonts have this problem.  */
-      if (default_char.byte1 != char2b->byte1
-	  || default_char.byte2 != char2b->byte2)
-	pcm = x_per_char_metric (font, &default_char);
-      else
-	pcm = &font->max_bounds;
+      
+      pcm = x_default_char (font, &default_char);
+      if (pcm == NULL)
+	pcm = x_per_char_metric_1 (font, &default_char);
     }
   
+  xassert (pcm != NULL);
   return pcm;
 }
 
@@ -3049,9 +3092,20 @@ x_draw_glyph_string_foreground (s)
     {
       char *char1b = (char *) s->char2b;
       int boff = s->font_info->baseline_offset;
+      XChar2b default_char;
 
       if (s->font_info->vertical_centering)
 	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
+
+      /* If S->font has an invalid default char, X might output some
+         characters with zero width which is highly undesirable.
+         Choose another default char in this case, and replace all
+         occurrences of invalid characters in the string with that
+         char.  */
+      if (!x_default_char (s->font, &default_char))
+	for (i = 0; i < s->nchars; ++i)
+	  if (!x_per_char_metric_1 (s->font, s->char2b + i))
+	    s->char2b[i] = default_char;
 
       /* If we can use 8-bit functions, condense S->char2b.  */
       if (!s->two_byte_p)
