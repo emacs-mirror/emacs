@@ -1,6 +1,6 @@
 * BUILDING EMACS ON MAC OS 8/9 AND MAC OS X     -*- outline -*-
 
-Copyright (c) 2001, 2002 Free Software Foundation, Inc.
+Copyright (c) 2001, 2002, 2004 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim
    copies of this document as received, in any medium, provided that
@@ -205,7 +205,7 @@ Emacs should build and run on a PowerMac running Mac OS 8.6 - 10.2.
 You will need around 100 MB of disk space for the source files and
 intermediate files.
 
-It will not run on machines running Mac OS 8/9 with more than 256 MB
+It will not run on machines running Mac OS 8/9 with more than 512 MB
 of physical or virtual memory.  It does not have this restriction when
 it is run under Mac OS X.  But the usual 128MB buffer limit of a
 32-bit Emacs still exists.
