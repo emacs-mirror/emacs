@@ -1539,7 +1539,7 @@ configuration."
   (or (and (symbolp object) (fboundp object)
 	   (setq object (indirect-function object))
 	   (eq (car-safe object) 'autoload)
-	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr object)))))))
+	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
       (subrp object) (byte-code-function-p object)
       (eq (car-safe object) 'lambda)))
 
