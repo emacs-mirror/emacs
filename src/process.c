@@ -51,6 +51,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <client.h>
 #endif
 
+/* DGUX inet_addr returns a 'struct in_addr'. */
+#ifdef DGUX
+#define IN_ADDR struct in_addr
+#define NUMERIC_ADDR_ERROR (numeric_addr.s_addr == -1)
+#else
+#define IN_ADDR unsigned long
+#define NUMERIC_ADDR_ERROR (numeric_addr == -1)
+#endif
+
 #if defined(BSD) || defined(STRIDE)
 #include <sys/ioctl.h>
 #if !defined (O_NDELAY) && defined (HAVE_PTYS) && !defined(USG5)
@@ -1380,7 +1389,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   struct servent *svc_info;
   struct hostent *host_info_ptr, host_info;
   char *(addr_list[2]);
-  unsigned long numeric_addr;
+  IN_ADDR numeric_addr;
   int s, outch, inch;
   char errstring[80];
   int port;
@@ -1407,7 +1416,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
     /* Attempt to interpret host as numeric inet address */
     {
       numeric_addr = inet_addr ((char *) XSTRING (host)->data);
-      if (numeric_addr == -1)
+      if (NUMERIC_ADDR_ERROR)
 	error ("Unknown host \"%s\"", XSTRING (host)->data);
 
       host_info_ptr = &host_info;
