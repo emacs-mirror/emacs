@@ -539,8 +539,10 @@ If a form, the result from the form will be used instead."
 
 ;;;###autoload
 (defcustom message-signature-file "~/.signature"
-  "*File containing the text inserted at end of message buffer."
-  :type 'file
+  "*Name of file containing the text inserted at end of message buffer.
+Ignored if the named file doesn't exist.
+If nil, don't insert a signature."
+  :type '(choice file (const :tags "None" nil))
   :group 'message-insertion)
 
 (defcustom message-distribution-function nil
