@@ -4679,7 +4679,12 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
 
   if (coding->eol_type == CODING_EOL_UNDECIDED
       && coding->type != coding_type_ccl)
-    detect_eol (coding, source, src_bytes);
+    {
+      detect_eol (coding, source, src_bytes);
+      /* We had better recover the original eol format if we
+	 encounter an inconsitent eol format while decoding.  */
+      coding->mode |= CODING_MODE_INHIBIT_INCONSISTENT_EOL;
+    }
 
   coding->produced = coding->produced_char = 0;
   coding->consumed = coding->consumed_char = 0;
@@ -5304,7 +5309,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   int multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
 
   deletion = Qnil;
-  saved_coding_symbol = Qnil;
+  saved_coding_symbol = coding->symbol;
 
   if (from < PT && PT < to)
     {
@@ -5356,7 +5361,6 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       if (coding->eol_type == CODING_EOL_UNDECIDED
 	  && coding->type != coding_type_ccl)
 	{
-	  saved_coding_symbol = coding->symbol;
 	  detect_eol (coding, BYTE_POS_ADDR (from_byte), len_byte);
 	  if (coding->eol_type == CODING_EOL_UNDECIDED)
 	    coding->eol_type = CODING_EOL_LF;
@@ -5794,7 +5798,7 @@ decode_coding_string (str, coding, nocopy)
   from = 0;
   to_byte = STRING_BYTES (XSTRING (str));
 
-  saved_coding_symbol = Qnil;
+  saved_coding_symbol = coding->symbol;
   coding->src_multibyte = STRING_MULTIBYTE (str);
   coding->dst_multibyte = 1;
   if (CODING_REQUIRE_DETECTION (coding))
@@ -5883,6 +5887,8 @@ decode_coding_string (str, coding, nocopy)
 	extend_conversion_buffer (&buf);
       else if (result == CODING_FINISH_INCONSISTENT_EOL)
 	{
+	  Lisp_Object eol_type;
+
 	  /* Recover the original EOL format.  */
 	  if (coding->eol_type == CODING_EOL_CR)
 	    {
@@ -5906,8 +5912,19 @@ decode_coding_string (str, coding, nocopy)
 	      produced += num_eol;
 	      produced_char += num_eol;
 	    } 
+	  /* Suppress eol-format conversion in the further conversion.  */
 	  coding->eol_type = CODING_EOL_LF;
-	  coding->symbol = saved_coding_symbol;
+
+	  /* Set the coding system symbol to that for Unix-like EOL.  */
+	  eol_type = Fget (saved_coding_symbol, Qeol_type);
+	  if (VECTORP (eol_type)
+	      && XVECTOR (eol_type)->size == 3
+	      && SYMBOLP (XVECTOR (eol_type)->contents[CODING_EOL_LF]))
+	    coding->symbol = XVECTOR (eol_type)->contents[CODING_EOL_LF];
+	  else
+	    coding->symbol = saved_coding_symbol;
+
+
 	}
     }
 
