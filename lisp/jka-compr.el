@@ -55,28 +55,6 @@
 ;;;   compressed, but there is little point in trying to compress an encrypted
 ;;;   file.
 ;;;
-;;;
-;;; tar-mode
-;;;   Some people like to use extensions like .trz for compressed tar files.
-;;;   To handle these sorts of files, you have to add an entry to
-;;;   jka-compr-compression-info-list that looks something like this: 
-;;;
-;;;      ["\\.trz\\'" "\037\213"
-;;;       "zip"   "gzip"  nil  ("-q")
-;;;       "unzip" "gzip"  nil  ("-q" "-d")
-;;;       t
-;;;       nil]
-;;;
-;;;   The last nil in the vector (the "extension" field) prevents jka-compr
-;;;   from attempting to add .trz to an ordinary file name when it is looking
-;;;   for a compressed version of that file (i.e. don't look for things like
-;;;   foobar.c.trz).
-;;;
-;;;   Finally, to make tar-mode start up automatically, you have to add an
-;;;   entry to auto-mode-alist that looks like this
-;;;
-;;;       ("\\.trz\\'" . tar-mode)
-;;;
 
 
 ;;; ACKNOWLEDGMENTS
@@ -124,6 +102,10 @@ for `jka-compr-compression-info-list').")
      "compressing"    "compress"     ("-c")
      "uncompressing"  "uncompress"   ("-c")
      nil t]
+    ["\\.tgz\\'"
+     "zipping"        "gzip"         ("-c" "-q")
+     "unzipping"      "gzip"         ("-c" "-q" "-d")
+     t nil]
     ["\\.gz\\(~\\|\\.~[0-9]+~\\)?\\'"
      "zipping"        "gzip"         ("-c" "-q")
      "unzipping"      "gzip"         ("-c" "-q" "-d")
@@ -162,6 +144,9 @@ Because of the way `call-process' is defined, discarding the stderr output of
 a program adds the overhead of starting a shell each time the program is
 invoked.")
 
+(defvar jka-compr-mode-alist-additions
+  (list (cons "\\.tgz\\'" 'tar-mode))
+  "A list of pairs to add to auto-mode-alist when jka-compr is installed.")
 
 (defvar jka-compr-file-name-handler-entry
   nil
@@ -747,7 +732,9 @@ This adds entries to `file-name-handler-alist' and `auto-mode-alist'."
 						  nil 'jka-compr)
 					    auto-mode-alist)))))
 
-   jka-compr-compression-info-list))
+   jka-compr-compression-info-list)
+  (setq auto-mode-alist
+	(append auto-mode-alist jka-compr-mode-alist-additions)))
 
 
 (defun jka-compr-uninstall ()
@@ -771,8 +758,9 @@ that were created by `jka-compr-installed'."
 
     (while (cdr last)
       (setq entry (car (cdr last)))
-      (if (and (consp (cdr entry))
-	       (eq (nth 2 entry) 'jka-compr))
+      (if (or (member entry jka-compr-mode-alist-additions)
+	      (and (consp (cdr entry))
+		   (eq (nth 2 entry) 'jka-compr)))
 	  (setcdr last (cdr (cdr last)))
 	(setq last (cdr last))))
     
