@@ -42,7 +42,8 @@
 
 (require 'case-table)
 
-(let ((tbl (standard-case-table)))
+(let ((tbl (standard-case-table))
+      (set-case-syntax-charset 'iso-8859-14))
   (set-case-syntax-pair 161 162 tbl)	;latin letter b with dot above *
   (set-case-syntax 163 "w" tbl)		;pound sign
   (set-case-syntax-pair 164 165 tbl)	;latin letter c with dot above *
@@ -94,11 +95,6 @@
   (set-case-syntax-pair 221 253 tbl)	;latin letter y with acute
   (set-case-syntax-pair 222 254 tbl)	;latin letter y with circumflex *
   (set-case-syntax 223 "w" tbl))	;latin small letter sharp s
-
-;; When preloading this file, don't provide the feature.
-;; Explicit `require' is used to load this for 8-bit characters.
-(or set-case-syntax-set-multibyte
-    (provide 'latin-8))
 
 ;;; Don't compile this file: src/Makefile.in instructs make-docfile
 ;;; to look at the .el file!
