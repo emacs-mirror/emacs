@@ -1650,7 +1650,6 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	  Vlast_coding_system_used = Vnext_selection_coding_system;
 	  Vnext_selection_coding_system = Qnil;
 	}
-      compose_chars_in_text (0, XSTRING (str)->size, str);
       return str;
     }
   /* Convert a single atom to a Lisp_Symbol.  Convert a set of atoms to
