@@ -39,8 +39,8 @@
 (if electric-help-map
     ()
   (let ((map (make-keymap)))
-    (fillarray (car (cdr map)) 'electric-help-undefined)
-    (define-key map (char-to-string meta-prefix-char) (copy-keymap map))
+    ;; allow all non-self-inserting keys - search, scroll, etc
+    (suppress-keymap map)
     (define-key map (char-to-string help-char) 'electric-help-help)
     (define-key map "?" 'electric-help-help)
     (define-key map " " 'scroll-up)
@@ -53,6 +53,7 @@
     (define-key map "Q" 'electric-help-exit)
     ;;a better key than this?
     (define-key map "r" 'electric-help-retain)
+    (define-key map "R" 'electric-help-retain)
 
     (setq electric-help-map map)))
    
@@ -126,7 +127,7 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit"
 (defun electric-help-command-loop ()
   (catch 'exit
     (if (pos-visible-in-window-p (point-max))
-	(progn (message "<<< Press Space to bury the help buffer >>>")
+	(progn (message (substitute-command-keys "<<< Press Space to bury the help buffer, Press \\[electric-help-retain] to retain it >>>"))
 	       (if (equal (setq unread-command-events (list (read-event)))
 			  '(?\ ))
 		   (progn (setq unread-command-events nil)
@@ -136,31 +137,31 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit"
 			     'scroll-up)
 			 (eq (key-binding "\^?")
 			     'scroll-down)
-			 (eq (key-binding "Q")
-			     'electric-help-exit)
 			 (eq (key-binding "q")
-			     'electric-help-exit))))
+			     'electric-help-exit)
+			 (eq (key-binding "r")
+			     'electric-help-retain))))
       (Electric-command-loop
         'exit
 	(function (lambda ()
 	  (let ((min (pos-visible-in-window-p (point-min)))
 		(max (pos-visible-in-window-p (point-max))))
 	    (cond ((and min max)
-		   (cond (standard "Press Q to exit ")
+		   (cond (standard "Press q to exit, r to retain ")
 			 (neither)
-			 (t (setq neither (substitute-command-keys "Press \\[scroll-up] to exit ")))))
+			 (t (setq neither (substitute-command-keys "Press \\[electric-help-exit] to exit, \\[electric-help-retain] to retain ")))))
 		  (min
-		   (cond (standard "Press SPC to scroll, Q to exit ")
+		   (cond (standard "Press SPC to scroll, q to exit, r to retain ")
 			 (up)
-			 (t (setq up (substitute-command-keys "Press \\[scroll-up] to scroll; \\[electric-help-exit] to exit ")))))
+			 (t (setq up (substitute-command-keys "Press \\[scroll-up] to scroll, \\[electric-help-exit] to exit, \\[electric-help-retain] to retain ")))))
 		  (max
-		   (cond (standard "Press DEL to scroll back, Q to exit ")
+		   (cond (standard "Press DEL to scroll back, q to exit ")
 			 (down)
-			 (t (setq down (substitute-command-keys "Press \\[scroll-down] to scroll back, \\[scroll-up] to exit ")))))
+			 (t (setq down (substitute-command-keys "Press \\[scroll-down] to scroll back, \\[electric-help-exit] to exit, \\[electric-help-retain] to retain ")))))
 		  (t
-		   (cond (standard "Press SPC to scroll, DEL to scroll back, Q to exit ")
+		   (cond (standard "Press SPC to scroll, DEL to scroll back, q to exit ")
 			 (both)
-			 (t (setq both (substitute-command-keys "Press \\[scroll-up] to scroll, \\[scroll-down] to scroll back, \\[electric-help-exit] to exit ")))))))))
+			 (t (setq both (substitute-command-keys "Press \\[scroll-up] to scroll, \\[scroll-down] to scroll back, \\[electric-help-exit] to exit, \\[electric-help-retain] to retain ")))))))))
 		    t))))
 
 
@@ -197,14 +198,12 @@ will select it.)"
 ;>>> this needs to be hairified (recursive help, anybody?)
 (defun electric-help-help ()
   (interactive)
-  (if (and (eq (key-binding "Q") 'electric-help-exit)
+  (if (and (eq (key-binding "q") 'electric-help-exit)
 	   (eq (key-binding " ") 'scroll-up)
-	   (eq (key-binding "\^?") 'scroll-down))
-      (message "SPC scrolls forward, DEL scrolls back, Q exits and burys help buffer")
-    ;; to give something for user to look at while slow substitute-cmd-keys
-    ;;  grinds away
-    (message "Help...")
-    (message "%s" (substitute-command-keys "\\[scroll-up] scrolls forward, \\[scroll-down] scrolls back, \\[electric-help-exit] exits.")))
+	   (eq (key-binding "\^?") 'scroll-down)
+	   (eq (key-binding "r") 'electric-help-retain))
+      (message "SPC scrolls up, DEL scrolls down, q exits burying help buffer, r exits")
+    (message "%s" (substitute-command-keys "\\[scroll-up] scrolls up, \\[scroll-down] scrolls down, \\[electric-help-exit] exits burying help buffer, \\[electric-help-retain] exits")))
   (sit-for 2))
 
 
@@ -299,6 +298,9 @@ will select it.)"
 
 ;(define-key help-map "a" 'electric-command-apropos)
 
+(defun electric-apropos ()
+  (interactive)
+  (electric-helpify 'apropos))
 
 
 ;;;; ehelp-map
@@ -307,6 +309,7 @@ will select it.)"
 (if ehelp-map
     nil
   (let ((map (copy-keymap help-map))) 
+    (substitute-key-definition 'command-apropos 'electric-command-apropos map)
     (substitute-key-definition 'describe-key 'electric-describe-key map)
     (substitute-key-definition 'describe-mode 'electric-describe-mode map)
     (substitute-key-definition 'view-lossage 'electric-view-lossage map)
