@@ -1055,6 +1055,7 @@ and nil for X and Y.")
   f = selected_frame;
   x = y = Qnil;
 
+#ifdef HAVE_MOUSE
   /* It's okay for the hook to refrain from storing anything.  */
   if (mouse_position_hook)
     (*mouse_position_hook) (&f,
@@ -1069,6 +1070,7 @@ and nil for X and Y.")
       XSETINT (x, col);
       XSETINT (y, row);
     }
+#endif
   XSETFRAME (lispy_dummy, f);
   return Fcons (lispy_dummy, Fcons (x, y));
 }
