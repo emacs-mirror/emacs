@@ -394,6 +394,7 @@ static
 XTframe_up_to_date (f)
      FRAME_PTR f;
 {
+  BLOCK_INPUT;
   if (FRAME_X_DISPLAY_INFO (f)->mouse_face_deferred_gc
       || f == FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame)
     {
@@ -402,6 +403,7 @@ XTframe_up_to_date (f)
 			    FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_y);
       FRAME_X_DISPLAY_INFO (f)->mouse_face_deferred_gc = 0;
     }
+  UNBLOCK_INPUT;
 }
 
 /* External interface to control of standout mode.
