@@ -458,6 +458,7 @@ prepare_standard_handles (int in, int out, int err, HANDLE handles[4])
   stdout_save = GetStdHandle (STD_OUTPUT_HANDLE);
   stderr_save = GetStdHandle (STD_ERROR_HANDLE);
 
+#ifndef HAVE_NTGUI
   if (!DuplicateHandle (parent, 
 		       GetStdHandle (STD_INPUT_HANDLE), 
 		       parent,
@@ -484,6 +485,7 @@ prepare_standard_handles (int in, int out, int err, HANDLE handles[4])
 		       FALSE,
 		       DUPLICATE_SAME_ACCESS))
     report_file_error ("Duplicating parent's error handle", Qnil);
+#endif /* !HAVE_NTGUI */
   
   if (!SetStdHandle (STD_INPUT_HANDLE, (HANDLE) _get_osfhandle (in)))
     report_file_error ("Changing stdin handle", Qnil);
@@ -528,6 +530,7 @@ reset_standard_handles (int in, int out, int err, HANDLE handles[4])
   HANDLE err_handle = handles[3];
   int i;
 
+#ifndef HAVE_NTGUI
   if (!SetStdHandle (STD_INPUT_HANDLE, stdin_save))
     report_file_error ("Resetting input handle", Qnil);
   
@@ -539,6 +542,7 @@ reset_standard_handles (int in, int out, int err, HANDLE handles[4])
   
   if (!SetStdHandle (STD_ERROR_HANDLE, stderr_save))
     report_file_error ("Resetting error handle", Qnil);
+#endif /* !HAVE_NTGUI */
   
   if (out == err) 
     {
@@ -660,6 +664,109 @@ crlf_to_lf (n, buf)
   if (buf < endp)
     *np++ = *buf++;
   return np - startp;
+}
+
+#define REG_ROOT "SOFTWARE\\GNU\\Emacs\\"
+
+LPBYTE 
+nt_get_resource (key, lpdwtype)
+    char *key;
+    LPDWORD lpdwtype;
+{
+  LPBYTE lpvalue;
+  HKEY hrootkey = NULL;
+  DWORD cbData;
+  BOOL ok = FALSE;
+  
+  /* Check both the current user and the local machine to see if 
+     we have any resources.  */
+  
+  if (RegOpenKeyEx (HKEY_CURRENT_USER, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
+    {
+      lpvalue = NULL;
+
+      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS 
+	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL 
+	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
+	{
+	  return (lpvalue);
+	}
+
+      if (lpvalue) xfree (lpvalue);
+	
+      RegCloseKey (hrootkey);
+    } 
+  
+  if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
+    {
+      lpvalue = NULL;
+	
+      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS &&
+	  (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL &&
+	  RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
+	{
+	  return (lpvalue);
+	}
+	
+      if (lpvalue) xfree (lpvalue);
+	
+      RegCloseKey (hrootkey);
+    } 
+  
+  return (NULL);
+}
+
+void
+init_environment ()
+{
+  /* Open a console window to display messages during dumping. */
+  if (!initialized)
+    AllocConsole ();
+
+  /* Check for environment variables and use registry if they don't exist */
+  {
+      int i;
+      LPBYTE lpval;
+      DWORD dwType;
+
+      static char * env_vars[] = 
+      {
+	  "emacs_path",
+	  "EMACSLOADPATH",
+	  "SHELL",
+	  "EMACSDATA",
+	  "EMACSPATH",
+	  "EMACSLOCKDIR",
+	  "INFOPATH",
+	  "EMACSDOC",
+	  "TERM",
+      };
+
+      for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++) 
+	{
+	  if (!getenv (env_vars[i]) &&
+	      (lpval = nt_get_resource (env_vars[i], &dwType)) != NULL)
+	    {
+	      if (dwType == REG_EXPAND_SZ)
+		{
+		  char buf1[500], buf2[500];
+
+		  ExpandEnvironmentStrings ((LPSTR) lpval, buf1, 500);
+		  _snprintf (buf2, 499, "%s=%s", env_vars[i], buf1);
+		  putenv (strdup (buf2));
+		}
+	      else if (dwType == REG_SZ)
+		{
+		  char buf[500];
+		  
+		  _snprintf (buf, 499, "%s=%s", env_vars[i], lpval);
+		  putenv (strdup (buf));
+		}
+
+	      xfree (lpval);
+	    }
+	}
+    }
 }
 
 #ifdef HAVE_TIMEVAL
