@@ -1,3 +1,11 @@
+2002-12-22  Nick Roberts  <nick@nick.uklinux.net>
+
+	* tooltip.el (tooltip-gud-tips): Output tooltip without switching
+	process filter (gdba in gdb-ui.el only).
+	(gdb-tooltip-print): New function.
+	(tooltip-gud-process-output): Undo previous change.
+	(tooltip-strip-annotations): Remove.
+
 2002-12-22  Zoltan Kemenczy <zoltan@ieee.org>
 
 	* gud.el (gud-menu-map): Add jdb support for "run".
@@ -13,7 +21,7 @@
 
 2002-12-21  Nick Roberts  <nick@nick.uklinux.net>
 
-	* gdb-ui.el Remove the concept of an instance. This means that
+	* gdb-ui.el: Remove the concept of an instance. This means that
 	a lot of functions have been renamed. Accessors are prefixed with
 	gdb-get, setters with gdb-set and the word instance has been
 	removed from many function and variable names.
