@@ -7562,7 +7562,9 @@ escape sequence (e.g `latin-1') on reading by \\[universal-coding-system-argumen
   inhibit_iso_escape_detection = 0;
 
   DEFVAR_LISP ("translation-table-for-input", &Vtranslation_table_for_input,
-	       doc: /* Char table for translating self-inserting characters.  */);
+	       doc: /* Char table for translating self-inserting characters.
+This is applied to the result of input methods, not their input.  See also
+`keyboard-translate-table'.  */);
     Vtranslation_table_for_input = Qnil;
 }
 
