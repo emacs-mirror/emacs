@@ -2511,7 +2511,7 @@ init_display ()
   /* If no window system has been specified, try to use the terminal.  */
   if (! isatty (0))
     {
-      fprintf (stderr, "emacs: standard input is not a tty\n");
+      fatal ("standard input is not a tty");
       exit (1);
     }
 
@@ -2558,11 +2558,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
     /* If these sizes are so big they cause overflow,
        just ignore the change.  It's not clear what better we could do.  */
     if (total_glyphs / sizeof (GLYPH) / height != width + 2)
-      {
-	fprintf (stderr, "emacs: screen size %dx%d too big\n,",
-		 width, height);
-	exit (1);
-      }
+      fatal ("screen size %dx%d too big", width, height);
   }
 
   remake_frame_glyphs (selected_frame);
