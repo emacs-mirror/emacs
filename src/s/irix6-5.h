@@ -2,12 +2,6 @@
 #define IRIX6_5
 #include "irix5-0.h"
 
-/* David Starks-Browning <starksb@ebi.ac.uk> reports this is necessary
-   for building Emacs on IRIX64 6.5 IP27 mips with GCC 2.95.2.  */
-#if __GNUC__ && __GNUC_MINOR__ >= 95
-#undef LD_SWITCH_SYSTEM
-#endif
-
 /* Irix 6 tries to do 64 bits, but doesn't do it fully,
    so inhibit that.  */
 #define IRIX_FORCE_32_BITS
@@ -33,10 +27,12 @@
 #undef C_DEBUG_SWITCH
 #define C_DEBUG_SWITCH -g
 #else
-/* Optimize, inaccurate debugging.  This should also be applicable
-   other than on Irix 6.5, but I don't know for which compiler
-   versions.  -- fx */
-#define C_DEBUG_SWITCH -g3 -O
+/* Optimize, inaccurate debugging, increase limit on size of what's
+   optimized.
+
+   This should also be applicable other than on Irix 6.5, but I don't
+   know for which compiler versions.  -- fx */
+#define C_DEBUG_SWITCH -g3 -O -OPT:Olimit=3500
 #endif
 
 #undef SA_RESTART
