@@ -1,0 +1,6 @@
+# ==== MM PROJECT ROBOT ENVIRONMENT SETUP ====
+#
+# $Id$
+#
+
+PATH=/usr/local/bin:/usr/ucb:/usr/bin:/bin export PATH

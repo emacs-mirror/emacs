@@ -1,0 +1,5 @@
+# $Id: crontab,v 1.1 1994/04/14 12:51:29 mm Exp $
+#
+#
+ 0 23  *  *  *  etc/checkout
+ 0  0  *  *  *	etc/overnight
