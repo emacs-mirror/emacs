@@ -904,6 +904,12 @@ See `imenu-choose-buffer-index' for more information."
 	       ;; widen if outside narrowing
 	       (widen))
 	   (goto-char (cdr index-item)))
+	  ((integerp (cdr index-item))
+	   (if (or (< (cdr index-item) (point-min))
+		   (> (cdr index-item) (point-max)))
+	       ;; widen if outside narrowing
+	       (widen))
+	   (goto-char (cdr index-item)))
 	  (t
 	   ;; A special item with a function.
 	   (let ((function (cadr index-item))
