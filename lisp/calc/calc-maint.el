@@ -185,17 +185,13 @@ Unix usage:
   (message "Wrote %s" filename)
   nil)
 
-
-
 (defun calc-split-tutorial (&optional force)
   (interactive "P")
   (calc-split-manual force 1))
 
-
 (defun calc-split-reference (&optional force)
   (interactive "P")
   (calc-split-manual force 2))
-
 
 (defun calc-split-manual (&optional force part)
   "Split the Calc manual into separate Tutorial and Reference manuals.
@@ -205,9 +201,9 @@ Usage:  C-x C-f calc.texinfo RET
         M-x calc-split-manual RET"
   (interactive "P")
   (or (let ((case-fold-search t))
-	(string-match "calc\\.texinfo" (buffer-name)))
+	(string-match "calc\\.texi" (buffer-name)))
       force
-      (error "This command should be used in the calc.texinfo buffer"))
+      (error "This command should be used in the calc.texi buffer"))
   (let ((srcbuf (current-buffer))
 	tutpos refpos endpos (maxpos (point-max)))
     (goto-char 1)
@@ -390,69 +386,5 @@ Usage:  C-x C-f calc.texinfo RET
       (switch-to-buffer buf))
     (save-buffer))
   (message "Wrote file calcsum.tex"))
-
-
-
-(defun calc-public-autoloads ()
-  "Modify the public \"default\" file to contain the necessary autoload and
-global-set-key commands for Calc."
-  (interactive)
-  (let ((home default-directory)
-	(p load-path)
-	instbuf name)
-    (while (and p
-		(not (file-exists-p
-		      (setq name (expand-file-name "default" (car p)))))
-		(not (file-exists-p
-		      (setq name (expand-file-name "default.el" (car p))))))
-      (setq p (cdr p)))
-    (unless p
-      (error "Unable to find \"default\" file.  Create one and try again"))
-    (find-file name)
-    (if buffer-read-only (error "No write permission for \"%s\"" buffer-file-name))
-    (goto-char (point-max))
-    (calc-add-autoloads home "calc-public-autoloads")))
-
-(defun calc-private-autoloads ()
-  "Modify the user's \".emacs\" file to contain the necessary autoload and
-global-set-key commands for Calc."
-  (interactive)
-  (let ((home default-directory))
-    (find-file "~/.emacs")
-    (goto-char (point-max))
-    (calc-add-autoloads home "calc-private-autoloads")))
-
-(defun calc-add-autoloads (home cmd)
-  (barf-if-buffer-read-only)
-  (let (top)
-    (if (and (re-search-backward ";;; Commands added by calc-.*-autoloads"
-				 nil t)
-	     (setq top (point))
-	     (search-forward ";;; End of Calc autoloads" nil t))
-	(progn
-	  (forward-line 1)
-	  (message "(Removing previous autoloads)")
-	  (delete-region top (point)))
-      (insert "\n\n")
-      (backward-char 1)))
-  (insert ";;; Commands added by " cmd " on "
-	  (current-time-string) ".
-\(autoload 'calc-dispatch	   \"calc\" \"Calculator Options\" t)
-\(autoload 'full-calc		   \"calc\" \"Full-screen Calculator\" t)
-\(autoload 'full-calc-keypad	   \"calc\" \"Full-screen X Calculator\" t)
-\(autoload 'calc-eval		   \"calc\" \"Use Calculator from Lisp\")
-\(autoload 'defmath		   \"calc\" nil t t)
-\(autoload 'calc			   \"calc\" \"Calculator Mode\" t)
-\(autoload 'quick-calc		   \"calc\" \"Quick Calculator\" t)
-\(autoload 'calc-keypad		   \"calc\" \"X windows Calculator\" t)
-\(autoload 'calc-embedded	   \"calc\" \"Use Calc inside any buffer\" t)
-\(autoload 'calc-embedded-activate  \"calc\" \"Activate =>'s in buffer\" t)
-\(autoload 'calc-grab-region	   \"calc\" \"Grab region of Calc data\" t)
-\(autoload 'calc-grab-rectangle	   \"calc\" \"Grab rectangle of data\" t)
-\(setq load-path (nconc load-path (list \"" (directory-file-name home) "\")))
-\(global-set-key \"\\e#\" 'calc-dispatch)
-;;; End of Calc autoloads.\n")
-  (let ((trim-versions-without-asking t))
-    (save-buffer)))
 
 ;;; calc-maint.el ends here
