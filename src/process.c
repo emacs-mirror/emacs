@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
    Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 96, 98, 1999,
-      2001, 2002 Free Software Foundation, Inc.
+      2001, 2002, 2003 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -459,16 +459,8 @@ status_message (status)
 int
 allocate_pty ()
 {
-  struct stat stb;
   register int c, i;
   int fd;
-
-  /* Some systems name their pseudoterminals so that there are gaps in
-     the usual sequence - for example, on HP9000/S700 systems, there
-     are no pseudoterminals with names ending in 'f'.  So we wait for
-     three failures in a row before deciding that we've reached the
-     end of the ptys.  */
-  int failed_count = 0;
 
 #ifdef PTY_ITERATION
   PTY_ITERATION
@@ -486,28 +478,39 @@ allocate_pty ()
 #ifdef PTY_OPEN
 	PTY_OPEN;
 #else /* no PTY_OPEN */
-#ifdef IRIS
-	/* Unusual IRIS code */
- 	*ptyv = emacs_open ("/dev/ptc", O_RDWR | O_NDELAY, 0);
- 	if (fd < 0)
- 	  return -1;
-	if (fstat (fd, &stb) < 0)
-	  return -1;
-#else /* not IRIS */
-	if (stat (pty_name, &stb) < 0)
-	  {
-	    failed_count++;
-	    if (failed_count >= 3)
-	      return -1;
+	{
+	  struct stat stb;
+# ifdef IRIS
+	  /* Unusual IRIS code */
+	  *ptyv = emacs_open ("/dev/ptc", O_RDWR | O_NDELAY, 0);
+	  if (fd < 0)
+	    return -1;
+	  if (fstat (fd, &stb) < 0)
+	    return -1;
+# else /* not IRIS */
+	  { /* Some systems name their pseudoterminals so that there are gaps in
+	       the usual sequence - for example, on HP9000/S700 systems, there
+	       are no pseudoterminals with names ending in 'f'.  So we wait for
+	       three failures in a row before deciding that we've reached the
+	       end of the ptys.  */
+	    int failed_count = 0;
+	    
+	    if (stat (pty_name, &stb) < 0)
+	      {
+		failed_count++;
+		if (failed_count >= 3)
+		  return -1;
+	      }
+	    else
+	      failed_count = 0;
 	  }
-	else
-	  failed_count = 0;
-#ifdef O_NONBLOCK
-	fd = emacs_open (pty_name, O_RDWR | O_NONBLOCK, 0);
-#else
-	fd = emacs_open (pty_name, O_RDWR | O_NDELAY, 0);
-#endif
-#endif /* not IRIS */
+#  ifdef O_NONBLOCK
+	  fd = emacs_open (pty_name, O_RDWR | O_NONBLOCK, 0);
+#  else
+	  fd = emacs_open (pty_name, O_RDWR | O_NDELAY, 0);
+#  endif
+# endif /* not IRIS */
+	}
 #endif /* no PTY_OPEN */
 
 	if (fd >= 0)
@@ -523,11 +526,11 @@ allocate_pty ()
 	    if (access (pty_name, 6) != 0)
 	      {
 		emacs_close (fd);
-#if !defined(IRIS) && !defined(__sgi)
+# if !defined(IRIS) && !defined(__sgi)
 		continue;
-#else
+# else
 		return -1;
-#endif /* IRIS */
+# endif /* IRIS */
 	      }
 #endif /* not UNIPLUS */
 	    setup_pty (fd);
@@ -2203,7 +2206,7 @@ conv_lisp_to_sockaddr (family, address, sa, len)
      int len;
 {
   register struct Lisp_Vector *p;
-  register unsigned char *cp;
+  register unsigned char *cp = NULL;
   register int i;
 
   bzero (sa, len);
