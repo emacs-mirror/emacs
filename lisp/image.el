@@ -88,7 +88,7 @@ FILE-OR-DATA is an image file name or image data.
 Optional TYPE is a symbol describing the image type.  If TYPE is omitted
 or nil, try to determine the image type from its first few bytes
 of image data.  If that doesn't work, and FILE-OR-DATA is a file name,
-use its file extension.as image type.
+use its file extension as image type.
 Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data.
 Optional PROPS are additional image attributes to assign to the image,
 like, e.g. `:mask MASK'.
