@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.340 2002/10/07 16:24:42 monnier Exp $
+;; $Id: vc.el,v 1.341 2002/10/07 16:50:43 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -211,16 +211,22 @@
 ;;   check-in comment.  The implementation should pass the value of
 ;;   vc-checkin-switches to the backend command.
 ;;
-;; * checkout (file &optional editable rev destfile)
+;; * find-version (file rev buffer)
+;;
+;;   Fetch revision REV of file FILE and put it into BUFFER.
+;;   If REV is the empty string, fetch the head of the trunk.
+;;   The implementation should pass the value of vc-checkout-switches
+;;   to the backend command.
+;;
+;; * checkout (file &optional editable rev)
 ;;
 ;;   Check out revision REV of FILE into the working area.  If EDITABLE
 ;;   is non-nil, FILE should be writable by the user and if locking is
 ;;   used for FILE, a lock should also be set.  If REV is non-nil, that
 ;;   is the revision to check out (default is current workfile version);
 ;;   if REV is the empty string, that means to check out the head of the
-;;   trunk.  If optional arg DESTFILE is given, it is an alternate
-;;   filename to write the contents to.  The implementation should
-;;   pass the value of vc-checkout-switches to the backend command.
+;;   trunk.  The implementation should pass the value of vc-checkout-switches
+;;   to the backend command.
 ;;
 ;; * revert (file &optional contents-done)
 ;;
@@ -1927,12 +1933,41 @@ If `F.~REV~' already exists, use it instead of checking it out again."
 (defun vc-find-version (file version)
   "Read VERSION of FILE into a buffer and return the buffer."
   (let ((automatic-backup (vc-version-backup-file-name file version))
-        (manual-backup (vc-version-backup-file-name file version 'manual)))
-    (unless (file-exists-p manual-backup)
+	(filebuf (or (get-file-buffer file) (current-buffer)))
+        (filename (vc-version-backup-file-name file version 'manual)))
+    (unless (file-exists-p filename)
       (if (file-exists-p automatic-backup)
-          (rename-file automatic-backup manual-backup nil)
-        (vc-call checkout file nil version manual-backup)))
-    (find-file-noselect manual-backup)))
+          (rename-file automatic-backup filename nil)
+	(message "Checking out %s..." filename)
+	(with-current-buffer filebuf
+	  (let ((failed t))
+	    (unwind-protect
+		(let ((coding-system-for-read 'no-conversion)
+		      (coding-system-for-write 'no-conversion))
+		  (with-temp-file filename
+		    (let ((outbuf (current-buffer)))
+		      ;; Change buffer to get local value of
+		      ;; vc-checkout-switches.
+		      (with-current-buffer filebuf
+			(vc-call find-version file version outbuf))))
+		  (setq failed nil))
+	      (if (and failed (file-exists-p filename))
+		  (delete-file filename))))
+	  (vc-mode-line file))
+	(message "Checking out %s...done" filename)))
+    (find-file-noselect filename)))
+
+(defun vc-default-find-version (backend file rev buffer)
+  "Provide the new `find-version' op based on the old `checkout' op.
+This is only for compatibility with old backends.  They should be updated
+to provide the `find-version' operation instead."
+  (let ((tmpfile (make-temp-file (expand-file-name file))))
+    (unwind-protect
+	(progn
+	  (vc-call-backend backend 'checkout file nil rev tmpfile)
+	  (with-current-buffer buffer
+	    (insert-file-contents-literally tmpfile)))
+      (delete-file tmpfile))))
 
 ;; Header-insertion code
 
