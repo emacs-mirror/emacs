@@ -1,3 +1,11 @@
+2002-11-15   Markus Rost  <rost@math.ohio-state.edu>
+
+	* mail/rmailedit.el:  Add provide call.
+
+	* play/bruce.el: Add provide call.
+
+	* emacs-lisp/gulp.el: Add provide call.
+
 2002-11-14  Richard M. Stallman  <rms@gnu.org>
 
 	* international/mule.el (set-buffer-file-coding-system): Undo prv chg.
