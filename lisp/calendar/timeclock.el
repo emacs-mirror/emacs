@@ -679,7 +679,7 @@ identical to what would be return if `timeclock-relative' were nil."
 		 (setq last-date-limited
 		       (timeclock-time-to-date (cadr event))
 		       last-date-seconds
-		       (string-to-number (nth 2 event))))
+		       (* (string-to-number (nth 2 event)) 3600)))
 		((equal (car event) "i")
 		 (when (and (nth 2 event)
 			    (> (length (nth 2 event)) 0))
