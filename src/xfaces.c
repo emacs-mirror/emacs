@@ -172,6 +172,9 @@ static int new_computed_face ( /* FRAME_PTR, struct face * */ );
 static int intern_computed_face ( /* FRAME_PTR, struct face * */ );
 static void ensure_face_ready ( /* FRAME_PTR, int id */ );
 void recompute_basic_faces ( /* FRAME_PTR f */ );
+static void merge_face_list ( /* FRAME_PTR, struct face *, Lisp_Object */ );
+
+extern Lisp_Object Qforeground_color, Qbackground_color;
 
 /* Allocating, copying, and comparing struct faces.  */
 
@@ -386,7 +389,7 @@ load_color (f, name)
   CHECK_STRING (name, 0);
   /* if the colormap is full, defined_color will return a best match
      to the values in an an existing cell. */
-  result = defined_color(f, (char *) XSTRING (name)->data, &color, 1);
+  result = defined_color (f, (char *) XSTRING (name)->data, &color, 1);
   if (! result)
     Fsignal (Qerror, Fcons (build_string ("undefined color"),
 			    Fcons (name, Qnil)));
@@ -980,87 +983,23 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit, mouse)
 
   compute_base_face (f, &face);
 
-  if (CONSP (prop))
-    {
-      /* We have a list of faces, merge them in reverse order */
-      Lisp_Object length;
-      int len;
-      Lisp_Object *faces;
-
-      length = Fsafe_length (prop);
-      len = XFASTINT (length);
-
-      /* Put them into an array */
-      faces = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-      for (j = 0; j < len; j++)
-	{
-	  faces[j] = Fcar (prop);
-	  prop = Fcdr (prop);
-	}
-      /* So that we can merge them in the reverse order */
-      for (j = len - 1; j >= 0; j--)
-	{
-	  facecode = face_name_id_number (f, faces[j]);
-	  if (facecode >= 0 && facecode < FRAME_N_PARAM_FACES (f)
-	      && FRAME_PARAM_FACES (f) [facecode] != 0)
-	    merge_faces (FRAME_PARAM_FACES (f) [facecode], &face);
-	}
-    }
-  else if (!NILP (prop))
-    {
-      facecode = face_name_id_number (f, prop);
-      if (facecode >= 0 && facecode < FRAME_N_PARAM_FACES (f)
-	  && FRAME_PARAM_FACES (f) [facecode] != 0)
-	merge_faces (FRAME_PARAM_FACES (f) [facecode], &face);
-    }
+  merge_face_list (f, &face, prop);
 
   noverlays = sort_overlays (overlay_vec, noverlays, w);
 
   /* Now merge the overlay data in that order.  */
   for (i = 0; i < noverlays; i++)
     {
+      Lisp_Object oend;
+      int oendpos;
+
       prop = Foverlay_get (overlay_vec[i], propname);
-      if (CONSP (prop))
-	{
-	  /* We have a list of faces, merge them in reverse order */
-	  Lisp_Object length;
-	  int len;
-	  Lisp_Object *faces;
+      merge_face_list (f, &face, prop);
 
-	  length = Fsafe_length (prop);
-	  len = XFASTINT (length);
-
-	  /* Put them into an array */
-	  faces = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	  for (j = 0; j < len; j++)
-	    {
-	      faces[j] = Fcar (prop);
-	      prop = Fcdr (prop);
-	    }
-	  /* So that we can merge them in the reverse order */
-	  for (j = len - 1; j >= 0; j--)
-	    {
-	      facecode = face_name_id_number (f, faces[j]);
-	      if (facecode >= 0 && facecode < FRAME_N_PARAM_FACES (f)
-		  && FRAME_PARAM_FACES (f) [facecode] != 0)
-		merge_faces (FRAME_PARAM_FACES (f) [facecode], &face);
-	    }
-	}
-      else if (!NILP (prop))
-	{
-	  Lisp_Object oend;
-	  int oendpos;
-
-	  facecode = face_name_id_number (f, prop);
-	  if (facecode >= 0 && facecode < FRAME_N_PARAM_FACES (f)
-	      && FRAME_PARAM_FACES (f) [facecode] != 0)
-	    merge_faces (FRAME_PARAM_FACES (f)[facecode], &face);
-
-	  oend = OVERLAY_END (overlay_vec[i]);
-	  oendpos = OVERLAY_POSITION (oend);
-	  if (oendpos < endpos)
-	    endpos = oendpos;
-	}
+      oend = OVERLAY_END (overlay_vec[i]);
+      oendpos = OVERLAY_POSITION (oend);
+      if (oendpos < endpos)
+	endpos = oendpos;
     }
 
   if (pos >= region_beg && pos < region_end)
@@ -1075,6 +1014,61 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit, mouse)
 
   return intern_computed_face (f, &face);
 }
+
+static void
+merge_face_list (f, face, prop)
+     FRAME_PTR f;
+     struct face *face;
+     Lisp_Object prop;
+{
+  Lisp_Object length;
+  int len;
+  Lisp_Object *faces;
+  int j;
+
+  if (CONSP (prop)
+      && ! STRINGP (XCONS (prop)->cdr))
+    {
+      /* We have a list of faces, merge them in reverse order.  */
+
+      length = Fsafe_length (prop);
+      len = XFASTINT (length);
+
+      /* Put them into an array.  */
+      faces = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
+      for (j = 0; j < len; j++)
+	{
+	  faces[j] = Fcar (prop);
+	  prop = Fcdr (prop);
+	}
+      /* So that we can merge them in the reverse order.  */
+    }
+  else
+    {
+      faces = (Lisp_Object *) alloca (sizeof (Lisp_Object));
+      faces[0] = prop;
+      len = 1;
+    }
+
+  for (j = len - 1; j >= 0; j--)
+    {
+      if (CONSP (faces[j]))
+	{
+	  if (EQ (XCONS (faces[j])->car, Qbackground_color))
+	    face->background = load_color (f, XCONS (faces[j])->cdr);
+	  if (EQ (XCONS (faces[j])->car, Qforeground_color))
+	    face->foreground = load_color (f, XCONS (faces[j])->cdr);
+	}
+      else
+	{
+	  int facecode = face_name_id_number (f, faces[j]);
+	  if (facecode >= 0 && facecode < FRAME_N_PARAM_FACES (f)
+	      && FRAME_PARAM_FACES (f) [facecode] != 0)
+	    merge_faces (FRAME_PARAM_FACES (f) [facecode], face);
+	}
+    }
+}
+
 
 /* Recompute the GC's for the default and modeline faces.
    We call this after changing frame parameters on which those GC's
