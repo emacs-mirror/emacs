@@ -1827,6 +1827,9 @@ struct font_name
   /* Numeric values for those fields that interest us.  See
      split_font_name for which these are.  */
   int numeric[XLFD_LAST];
+
+  /* Lower value mean higher priority.  */
+  int registry_priority;
 };
 
 /* The frame in effect when sorting font names.  Set temporarily in
@@ -2175,6 +2178,10 @@ split_font_name (f, font, numeric_p)
       font->numeric[XLFD_WEIGHT] = xlfd_numeric_weight (font);
       font->numeric[XLFD_SWIDTH] = xlfd_numeric_swidth (font);
     }
+
+  /* Initialize it to zero.  It will be overridden by font_list while
+     trying alternate registries.  */
+  font->registry_priority = 0;
 
   return success_p;
 }
@@ -2547,13 +2554,34 @@ font_list_1 (f, pattern, family, registry, fonts)
 }
 
 
+/* Concatenate font list FONTS1 and FONTS2.  FONTS1 and FONTS2
+   contains NFONTS1 fonts and NFONTS2 fonts respectively.  Return a
+   pointer to a newly allocated font list.  FONTS1 and FONTS2 are
+   freed.  */
+
+static struct font_name *
+concat_font_list (fonts1, nfonts1, fonts2, nfonts2)
+     struct font_name *fonts1, *fonts2;
+     int nfonts1, nfonts2;
+{
+  int new_nfonts = nfonts1 + nfonts2;
+  struct font_name *new_fonts;
+
+  new_fonts = (struct font_name *) xmalloc (sizeof *new_fonts * new_nfonts);
+  bcopy (fonts1, new_fonts, sizeof *new_fonts * nfonts1);
+  bcopy (fonts2, new_fonts + nfonts1, sizeof *new_fonts * nfonts2);
+  xfree (fonts1);
+  xfree (fonts2);
+  return new_fonts;
+}
+
+
 /* Get a sorted list of fonts of family FAMILY on frame F.
 
    If PATTERN is non-nil list fonts matching that pattern.
 
-   If REGISTRY is non-nil, retur fonts with that registry.  If none
-   are found, try alternative registries from
-   Vface_alternative_font_registry_alist.
+   If REGISTRY is non-nil, return fonts with that registry and the
+   alternative registries from Vface_alternative_font_registry_alist.
    
    If REGISTRY is nil return fonts of any registry.
 
@@ -2569,8 +2597,7 @@ font_list (f, pattern, family, registry, fonts)
 {
   int nfonts = font_list_1 (f, pattern, family, registry, fonts);
   
-  if (nfonts == 0
-      && !NILP (registry)
+  if (!NILP (registry)
       && CONSP (Vface_alternative_font_registry_alist))
     {
       Lisp_Object alter;
@@ -2578,11 +2605,25 @@ font_list (f, pattern, family, registry, fonts)
       alter = Fassoc (registry, Vface_alternative_font_registry_alist);
       if (CONSP (alter))
 	{
-	  for (alter = XCDR (alter);
-	       CONSP (alter) && nfonts == 0;
-	       alter = XCDR (alter))
+	  int reg_prio, i;
+
+	  for (alter = XCDR (alter), reg_prio = 1;
+	       CONSP (alter);
+	       alter = XCDR (alter), reg_prio++)
 	    if (STRINGP (XCAR (alter)))
-	      nfonts = font_list_1 (f, pattern, family, XCAR (alter), fonts);
+	      {
+		int nfonts2;
+		struct font_name *fonts2;
+
+		nfonts2 = font_list_1 (f, pattern, family, XCAR (alter),
+				       &fonts2);
+		for (i = 0; i < nfonts2; i++)
+		  fonts2[i].registry_priority = reg_prio;
+		*fonts = (nfonts > 0
+			  ? concat_font_list (*fonts, nfonts, fonts2, nfonts2)
+			  : fonts2);
+		nfonts += nfonts2;
+	      }
 	}
     }
 
@@ -5614,6 +5655,10 @@ font_scalable_p (font)
 }
 
 
+/* Ignore the difference of font point size less than this value.  */
+
+#define FONT_POINT_SIZE_QUANTUM 5
+
 /* Value is non-zero if FONT1 is a better match for font attributes
    VALUES than FONT2.  VALUES is an array of face attribute values in
    font sort order.  COMPARE_PT_P zero means don't compare point
@@ -5636,6 +5681,9 @@ better_font_p (values, font1, font2, compare_pt_p)
 	  int delta1 = abs (values[i] - font1->numeric[xlfd_idx]);
 	  int delta2 = abs (values[i] - font2->numeric[xlfd_idx]);
 
+	  if (xlfd_idx == XLFD_POINT_SIZE
+	      && abs (delta1 - delta2) < FONT_POINT_SIZE_QUANTUM)
+	    continue;
 	  if (delta1 > delta2)
 	    return 0;
 	  else if (delta1 < delta2)
@@ -5653,7 +5701,7 @@ better_font_p (values, font1, font2, compare_pt_p)
 	}
     }
 
-  return 0;
+  return (font1->registry_priority < font2->registry_priority);
 }
 
 
