@@ -1,3 +1,10 @@
+2004-09-04  Christopher J. Madsen  <cjm@pobox.com>
+
+	* textmodes/ispell.el (ispell-really-aspell): New defvar.
+	(ispell-check-version): Set it.
+	(ispell-send-replacement): New function.
+	(ispell-process-line): Call ispell-send-replacement.
+
 2004-09-04  Matt Hodges  <matt@stchem.bham.ac.uk>  (tiny change)
 
 	* eshell/em-pred.el (eshell-predicate-help-string): Doc fix.
