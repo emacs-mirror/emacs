@@ -427,7 +427,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   GCPRO5 (map, initial, val, ambient_dir, input_method);
 
   if (!STRINGP (prompt))
-    prompt = build_string ("");
+    prompt = empty_string;
 
   if (!enable_recursive_minibuffers
       && minibuf_level > 0)
@@ -1103,7 +1103,9 @@ is used to further constrain the set of candidates.  */)
   int bestmatchsize = 0;
   /* These are in bytes, too.  */
   int compare, matchsize;
-  int list = CONSP (alist) || NILP (alist);
+  int list = NILP (alist) || (CONSP (alist)
+			      && (!SYMBOLP (XCAR (alist))
+				  || NILP (XCAR (alist))));
   int index = 0, obsize = 0;
   int matchcount = 0;
   Lisp_Object bucket, zero, end, tem;
@@ -1133,11 +1135,11 @@ is used to further constrain the set of candidates.  */)
 
       if (list)
 	{
-	  if (NILP (tail))
+	  if (!CONSP (tail))
 	    break;
-	  elt = Fcar (tail);
-	  eltstring = Fcar (elt);
-	  tail = Fcdr (tail);
+	  elt = XCAR (tail);
+	  eltstring = CONSP (elt) ? XCAR (elt) : elt;
+	  tail = XCDR (tail);
 	}
       else
 	{
@@ -1225,6 +1227,7 @@ is used to further constrain the set of candidates.  */)
 		matchsize = XINT (tem) - 1;
 
 	      if (matchsize < 0)
+		/* When can this happen ?  -stef  */
 		matchsize = compare;
 	      if (completion_ignore_case)
 		{
@@ -1259,6 +1262,10 @@ is used to further constrain the set of candidates.  */)
 		    bestmatch = eltstring;
 		}
 	      bestmatchsize = matchsize;
+	      if (matchsize <= XSTRING (string)->size
+		  && matchcount > 1)
+		/* No need to look any further.  */
+		break;
 	    }
 	}
     }
@@ -1316,7 +1323,9 @@ are ignored unless STRING itself starts with a space.  */)
 {
   Lisp_Object tail, elt, eltstring;
   Lisp_Object allmatches;
-  int list = CONSP (alist) || NILP (alist);
+  int list = NILP (alist) || (CONSP (alist)
+			      && (!SYMBOLP (XCAR (alist))
+				  || NILP (XCAR (alist))));
   int index = 0, obsize = 0;
   Lisp_Object bucket, tem;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -1346,11 +1355,11 @@ are ignored unless STRING itself starts with a space.  */)
 
       if (list)
 	{
-	  if (NILP (tail))
+	  if (!CONSP (tail))
 	    break;
-	  elt = Fcar (tail);
-	  eltstring = Fcar (elt);
-	  tail = Fcdr (tail);
+	  elt = XCAR (tail);
+	  eltstring = CONSP (elt) ? XCAR (elt) : elt;
+	  tail = XCDR (tail);
 	}
       else
 	{
@@ -1486,7 +1495,7 @@ Completion ignores case if the ambient value of
   specbind (Qminibuffer_completion_table, table);
   specbind (Qminibuffer_completion_predicate, predicate);
   specbind (Qminibuffer_completion_confirm,
-	    EQ (require_match, Qt) ? Qnil : Qt);
+	    EQ (require_match, Qt) ? Qnil : require_match);
   last_exact_completion = Qnil;
 
   position = Qnil;
@@ -1535,47 +1544,70 @@ Completion ignores case if the ambient value of
 }
 
 Lisp_Object Fminibuffer_completion_help ();
-Lisp_Object assoc_for_completion ();
+Lisp_Object Fassoc_string ();
 
 /* Test whether TXT is an exact completion.  */
-Lisp_Object
-test_completion (txt)
-     Lisp_Object txt;
+DEFUN ("test-completion", Ftest_completion, Stest_completion, 2, 3, 0,
+       doc: /* Return non-nil if STRING is a valid completion.
+Takes the same arguments as `all-completions' and `try-completion'.
+If ALIST is a function, it is called with three arguments:
+the values STRING, PREDICATE and `lambda'.  */)
+       (string, alist, predicate)
+     Lisp_Object string, alist, predicate;
 {
-  Lisp_Object tem;
+  Lisp_Object regexps, tem = Qnil;
 
-  if (CONSP (Vminibuffer_completion_table)
-      || NILP (Vminibuffer_completion_table))
-    return assoc_for_completion (txt, Vminibuffer_completion_table);
-  else if (VECTORP (Vminibuffer_completion_table))
+  CHECK_STRING (string);
+
+  if ((CONSP (alist) && (!SYMBOLP (XCAR (alist)) || NILP (XCAR (alist))))
+      || NILP (alist))
     {
-      /* Bypass intern-soft as that loses for nil */
-      tem = oblookup (Vminibuffer_completion_table,
-		      XSTRING (txt)->data,
-		      XSTRING (txt)->size,
-		      STRING_BYTES (XSTRING (txt)));
+      tem = Fassoc_string (string, alist, completion_ignore_case ? Qt : Qnil);
+      if (CONSP (tem))
+	tem = XCAR (tem);
+      else
+	return Qnil;
+    }
+  else if (VECTORP (alist))
+    {
+      /* Bypass intern-soft as that loses for nil.  */
+      tem = oblookup (alist,
+		      XSTRING (string)->data,
+		      XSTRING (string)->size,
+		      STRING_BYTES (XSTRING (string)));
       if (!SYMBOLP (tem))
 	{
-	  if (STRING_MULTIBYTE (txt))
-	    txt = Fstring_make_unibyte (txt);
+	  if (STRING_MULTIBYTE (string))
+	    string = Fstring_make_unibyte (string);
 	  else
-	    txt = Fstring_make_multibyte (txt);
+	    string = Fstring_make_multibyte (string);
 
 	  tem = oblookup (Vminibuffer_completion_table,
-			  XSTRING (txt)->data,
-			  XSTRING (txt)->size,
-			  STRING_BYTES (XSTRING (txt)));
+			  XSTRING (string)->data,
+			  XSTRING (string)->size,
+			  STRING_BYTES (XSTRING (string)));
 	  if (!SYMBOLP (tem))
 	    return Qnil;
 	}
-      if (!NILP (Vminibuffer_completion_predicate))
-	return call1 (Vminibuffer_completion_predicate, tem);
-      else
-	return Qt;
     }
   else
-    return call3 (Vminibuffer_completion_table, txt,
-		  Vminibuffer_completion_predicate, Qlambda);
+    return call3 (alist, string, predicate, Qlambda);
+
+  /* Reject this element if it fails to match all the regexps.  */
+  for (regexps = Vcompletion_regexp_list; CONSP (regexps);
+       regexps = XCDR (regexps))
+    {
+      if (NILP (Fstring_match (XCAR (regexps),
+			       SYMBOLP (tem) ? string : tem,
+			       Qnil)))
+	return Qnil;
+    }
+
+  /* Finally, check the predicate.  */
+  if (!NILP (predicate))
+    return call1 (predicate, tem);
+  else
+    return Qt;
 }
 
 /* returns:
@@ -1645,7 +1677,9 @@ do_completion ()
     }
 
   /* It did find a match.  Do we match some possibility exactly now? */
-  tem = test_completion (Fminibuffer_contents ());
+  tem = Ftest_completion (Fminibuffer_contents (),
+			  Vminibuffer_completion_table,
+			  Vminibuffer_completion_predicate);
   if (NILP (tem))
     {
       /* not an exact match */
@@ -1679,10 +1713,15 @@ do_completion ()
 
 /* Like assoc but assumes KEY is a string, and ignores case if appropriate.  */
 
-Lisp_Object
-assoc_for_completion (key, list)
+DEFUN ("assoc-string", Fassoc_string, Sassoc_string, 2, 3, 0,
+       doc: /* Like `assoc' but specifically for strings.
+Unibyte strings are converted to multibyte for comparison.
+And case is ignored if CASE-FOLD is non-nil.
+As opposed to `assoc', it will also match an entry consisting of a single
+string rather than a cons cell whose car is a string.  */)
+       (key, list, case_fold)
      register Lisp_Object key;
-     Lisp_Object list;
+     Lisp_Object list, case_fold;
 {
   register Lisp_Object tail;
 
@@ -1690,13 +1729,12 @@ assoc_for_completion (key, list)
     {
       register Lisp_Object elt, tem, thiscar;
       elt = Fcar (tail);
-      if (!CONSP (elt)) continue;
-      thiscar = Fcar (elt);
+      thiscar = CONSP (elt) ? XCAR (elt) : elt;
       if (!STRINGP (thiscar))
 	continue;
       tem = Fcompare_strings (thiscar, make_number (0), Qnil,
 			      key, make_number (0), Qnil,
-			      completion_ignore_case ? Qt : Qnil);
+			      case_fold);
       if (EQ (tem, Qt))
 	return elt;
       QUIT;
@@ -1797,7 +1835,9 @@ a repetition of this command will exit.  */)
   if (XINT (Fminibuffer_prompt_end ()) == ZV)
     goto exit;
 
-  if (!NILP (test_completion (Fminibuffer_contents ())))
+  if (!NILP (Ftest_completion (Fminibuffer_contents (),
+			       Vminibuffer_completion_table,
+			       Vminibuffer_completion_predicate)))
     goto exit;
 
   /* Call do_completion, but ignore errors.  */
@@ -2476,6 +2516,8 @@ properties.  */);
 
   defsubr (&Stry_completion);
   defsubr (&Sall_completions);
+  defsubr (&Stest_completion);
+  defsubr (&Sassoc_string);
   defsubr (&Scompleting_read);
   defsubr (&Sminibuffer_complete);
   defsubr (&Sminibuffer_complete_word);
