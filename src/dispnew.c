@@ -299,7 +299,7 @@ make_frame_glyphs (frame, empty)
       bzero (new->total_contents, total_glyphs);
 
       new->total_charstarts = (int *) xmalloc (total_charstarts);
-      bzero (new->total_charstarts, total_glyphs);
+      bzero (new->total_charstarts, total_charstarts);
     }
   else
     {
