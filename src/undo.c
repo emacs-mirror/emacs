@@ -36,6 +36,61 @@ Lisp_Object Qinhibit_read_only;
    an undo-boundary.  */
 Lisp_Object pending_boundary;
 
+/* Record point as it was at beginning of this command (if necessary)
+   And prepare the undo info for recording a change.
+   PT is the position of point that will naturally occur as a result of the
+   undo record that will be added just after this command terminates.  */
+
+static void
+record_point (pt)
+{
+  int at_boundary;
+
+  /* Allocate a cons cell to be the undo boundary after this command.  */
+  if (NILP (pending_boundary))
+    pending_boundary = Fcons (Qnil, Qnil);
+
+  if (!BUFFERP (last_undo_buffer)
+      || current_buffer != XBUFFER (last_undo_buffer))
+    Fundo_boundary ();
+  XSETBUFFER (last_undo_buffer, current_buffer);
+
+  if (CONSP (current_buffer->undo_list))
+    {
+      /* Set AT_BOUNDARY to 1 only when we have nothing other than
+         marker adjustment before undo boundary.  */
+
+      Lisp_Object tail = current_buffer->undo_list, elt;
+
+      while (1)
+	{
+	  if (NILP (tail))
+	    elt = Qnil;
+	  else
+	    elt = XCAR (tail);
+	  if (NILP (elt) || ! (CONSP (elt) && MARKERP (XCAR (elt))))
+	    break;
+	  tail = XCDR (tail);
+	}
+      at_boundary = NILP (elt);
+    }
+  else
+    at_boundary = 1;
+
+  if (MODIFF <= SAVE_MODIFF)
+    record_first_change ();
+
+  /* If we are just after an undo boundary, and 
+     point wasn't at start of deleted range, record where it was.  */
+  if (at_boundary
+      && last_point_position != pt
+      /* If we're called from batch mode, this could be nil.  */
+      && BUFFERP (last_point_position_buffer)
+      && current_buffer == XBUFFER (last_point_position_buffer))
+    current_buffer->undo_list
+      = Fcons (make_number (last_point_position), current_buffer->undo_list);
+}
+
 /* Record an insertion that just happened or is about to happen,
    for LENGTH characters at position BEG.
    (It is possible to record an insertion before or after the fact
@@ -50,17 +105,7 @@ record_insert (beg, length)
   if (EQ (current_buffer->undo_list, Qt))
     return;
 
-  /* Allocate a cons cell to be the undo boundary after this command.  */
-  if (NILP (pending_boundary))
-    pending_boundary = Fcons (Qnil, Qnil);
-
-  if (!BUFFERP (last_undo_buffer)
-      || current_buffer != XBUFFER (last_undo_buffer))
-    Fundo_boundary ();
-  XSETBUFFER (last_undo_buffer, current_buffer);
-
-  if (MODIFF <= SAVE_MODIFF)
-    record_first_change ();
+  record_point (beg);
 
   /* If this is following another insertion and consecutive with it
      in the buffer, combine the two.  */
@@ -93,59 +138,20 @@ record_delete (beg, string)
      Lisp_Object string;
 {
   Lisp_Object sbeg;
-  int at_boundary;
 
   if (EQ (current_buffer->undo_list, Qt))
     return;
 
-  /* Allocate a cons cell to be the undo boundary after this command.  */
-  if (NILP (pending_boundary))
-    pending_boundary = Fcons (Qnil, Qnil);
-
-  if (BUFFERP (last_undo_buffer)
-      && current_buffer != XBUFFER (last_undo_buffer))
-    Fundo_boundary ();
-  XSETBUFFER (last_undo_buffer, current_buffer);
-
-  if (CONSP (current_buffer->undo_list))
+  if (PT == beg + XSTRING (string)->size)
     {
-      /* Set AT_BOUNDARY to 1 only when we have nothing other than
-         marker adjustment before undo boundary.  */
-
-      Lisp_Object tail = current_buffer->undo_list, elt;
-
-      while (1)
-	{
-	  if (NILP (tail))
-	    elt = Qnil;
-	  else
-	    elt = XCAR (tail);
-	  if (NILP (elt) || ! (CONSP (elt) && MARKERP (XCAR (elt))))
-	    break;
-	  tail = XCDR (tail);
-	}
-      at_boundary = NILP (elt);
+      XSETINT (sbeg, -beg);
+      record_point (PT);
     }
   else
-    at_boundary = 0;
-
-  if (MODIFF <= SAVE_MODIFF)
-    record_first_change ();
-
-  if (PT == beg + XSTRING (string)->size)
-    XSETINT (sbeg, -beg);
-  else
-    XSETFASTINT (sbeg, beg);
-
-  /* If we are just after an undo boundary, and 
-     point wasn't at start of deleted range, record where it was.  */
-  if (at_boundary
-      && last_point_position != XFASTINT (sbeg)
-      /* If we're called from batch mode, this could be nil.  */
-      && BUFFERP (last_point_position_buffer)
-      && current_buffer == XBUFFER (last_point_position_buffer))
-    current_buffer->undo_list
-      = Fcons (make_number (last_point_position), current_buffer->undo_list);
+    {
+      XSETFASTINT (sbeg, beg);
+      record_point (beg);
+    }
 
   current_buffer->undo_list
     = Fcons (Fcons (string, sbeg), current_buffer->undo_list);
