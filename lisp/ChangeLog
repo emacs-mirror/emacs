@@ -1,3 +1,9 @@
+2001-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* textmodes/texinfmt.el (texinfo-format-scan): Signal an error if
+	@ follows an accent command such as @'.  Support optional braces
+	in commands that insert accents, like makeinfo does.
+
 2001-02-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (fancy-splash-text): Add a line for ordering
