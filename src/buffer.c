@@ -1683,12 +1683,22 @@ static int
 advance_to_char_boundary (byte_pos)
      int byte_pos;
 {
-  int c = FETCH_BYTE (byte_pos);
+  int c;
 
-  while (! CHAR_HEAD_P (c))
+  if (byte_pos == BEG)
+    /* Beginning of buffer is always a character boundary.  */
+    return 1;
+
+  c = FETCH_BYTE (byte_pos);
+  if (! CHAR_HEAD_P (c))
     {
-      byte_pos++;
-      c = FETCH_BYTE (byte_pos);
+      /* We should advance BYTE_POS only when C is a constituen of a
+         multibyte sequence.  */
+      DEC_POS (byte_pos);
+      INC_POS (byte_pos);
+      /* If C is a constituent of a multibyte sequence, BYTE_POS was
+         surely advance to the correct character boundary.  If C is
+         not, BYTE_POS was unchanged.  */
     }
 
   return byte_pos;
