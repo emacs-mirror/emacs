@@ -391,6 +391,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   if (inherit_input_method)
     current_buffer->enable_multibyte_characters = enable_multibyte;
 
+  if (!NILP (current_buffer->enable_multibyte_characters)
+      && ! STRING_MULTIBYTE (minibuf_prompt))
+    minibuf_prompt = Fstring_make_multibyte (minibuf_prompt);
+
   /* Run our hook, but not if it is empty.
      (run-hooks would do nothing if it is empty,
      but it's important to save time here in the usual case).  */
@@ -398,7 +402,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       && !NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qminibuffer_setup_hook);
 
-/* ??? MCC did redraw_screen here if switching screens.  */
   recursive_edit_1 ();
 
   /* If cursor is on the minibuffer line,
@@ -415,9 +418,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   /* Make minibuffer contents into a string.  */
   Fset_buffer (minibuffer);
   val = make_buffer_string (1, Z, allow_props);
-#if 0  /* make_buffer_string should handle the gap.  */
-  bcopy (GAP_END_ADDR, XSTRING (val)->data + GPT - BEG, Z - GPT);
-#endif
 
   /* VAL is the string of minibuffer text.  */
 
@@ -1396,8 +1396,20 @@ test_completion (txt)
 		      XSTRING (txt)->size,
 		      STRING_BYTES (XSTRING (txt)));
       if (!SYMBOLP (tem))
-	return Qnil;
-      else if (!NILP (Vminibuffer_completion_predicate))
+	{
+	  if (STRING_MULTIBYTE (txt))
+	    txt = Fstring_make_unibyte (txt);
+	  else
+	    txt = Fstring_make_multibyte (txt);
+
+	  tem = oblookup (Vminibuffer_completion_table,
+			  XSTRING (txt)->data,
+			  XSTRING (txt)->size,
+			  STRING_BYTES (XSTRING (txt)));
+	  if (!SYMBOLP (tem))
+	    return Qnil;
+	}
+      if (!NILP (Vminibuffer_completion_predicate))
 	return call1 (Vminibuffer_completion_predicate, tem);
       else
 	return Qt;
@@ -1494,9 +1506,6 @@ assoc_for_completion (key, list)
 {
   register Lisp_Object tail;
 
-  if (completion_ignore_case)
-    key = Fupcase (key);
-
   for (tail = list; !NILP (tail); tail = Fcdr (tail))
     {
       register Lisp_Object elt, tem, thiscar;
@@ -1505,10 +1514,11 @@ assoc_for_completion (key, list)
       thiscar = Fcar (elt);
       if (!STRINGP (thiscar))
 	continue;
-      if (completion_ignore_case)
-	thiscar = Fupcase (thiscar);
-      tem = Fequal (thiscar, key);
-      if (!NILP (tem)) return elt;
+      tem = Fcompare_strings (thiscar, make_number (0), Qnil,
+			      key, make_number (0), Qnil,
+			      completion_ignore_case ? Qt : Qnil);
+      if (EQ (tem, Qt))
+	return elt;
       QUIT;
     }
   return Qnil;
@@ -1902,7 +1912,7 @@ It can find the completion buffer in `standard-output'.")
 	    }
 
 	  /* Output this element.
-	     If necessary, convert it to unibyte first.  */
+	     If necessary, convert it to unibyte or to multibyte first.  */
 	  if (CONSP (elt))
 	    string = Fcar (elt);
 	  else
@@ -1910,6 +1920,9 @@ It can find the completion buffer in `standard-output'.")
 	  if (NILP (current_buffer->enable_multibyte_characters)
 	      && STRING_MULTIBYTE (string))
 	    string = Fstring_make_unibyte (string);
+	  else if (!NILP (current_buffer->enable_multibyte_characters)
+		   && !STRING_MULTIBYTE (string))
+	    string = Fstring_make_multibyte (string);
 	  Fprinc (string, Qnil);
 
 	  /* Output the annotation for this element.  */
