@@ -62,12 +62,12 @@ for that purpose.  If the large key not far above the @key{RET} or
 @key{ENTER} key doesn't delete backwards, you need to do this.
 @xref{DEL Gets Help}, for an explanation of how.
 
-  Many keyboards have both a @key{BACKSPACE} key a short ways above
-@key{RET} or @key{ENTER}, and a @key{DELETE} key elsewhere.  In that
-case, the @key{BACKSPACE} key is @key{DEL}, and the @key{DELETE} key
-does something else---it deletes ``forwards,'' deleting the character
-after point, the one underneath the cursor, like @kbd{C-d} (see
-below).
+  Most PC keyboards have both a @key{BACKSPACE} key a short ways above
+@key{RET} or @key{ENTER}, and a @key{DELETE} key elsewhere.  On these
+keyboards, Emacs supports when possible the usual convention that the
+@key{BACKSPACE} key deletes backwards (it is @key{DEL}), while the
+@key{DELETE} key deletes ``forwards,'' deleting the character after
+point, the one underneath the cursor, like @kbd{C-d} (see below).
 
 @kindex RET
 @cindex newline
