@@ -1,3 +1,7 @@
+2001-10-30  Simon Josefsson  <jas@extundo.com>
+
+	* nnimap.el (nnimap-date-days-ago): Defeat locale.
+
 2001-10-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* gnus-msg.el (gnus-setup-message): Setup reaper for MML buffers.
