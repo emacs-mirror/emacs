@@ -1,7 +1,7 @@
 2001-07-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* calendar/cal-islam.el (calendar-goto-islamic-date): Add 
-	autload cookie.
+	autoload cookie.
 
 	* play/fortune.el: Add types to defcustoms.
 
