@@ -105,9 +105,9 @@ SOURCES = COPYING ChangeLog Makefile.in README aixcc.lex emacs.csh \
 ### HAVE_CONFIG_H #defined before they know they can take advantage of
 ### the information in ../src/config.h.
 ALL_CFLAGS = ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H \
-   -I${srcdir} -I${srcdir}/../src -I. -I../src ${CFLAGS}
+   -I. -I../src -I${srcdir} -I${srcdir}/../src ${CFLAGS}
 CPP_CFLAGS = ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H \
-   -I${srcdir} -I${srcdir}/../src -I. -I../src ${CPPFLAGS} ${CFLAGS}
+   -I. -I../src -I${srcdir} -I${srcdir}/../src ${CPPFLAGS} ${CFLAGS}
 # This is the default compilation command.
 # But we should never rely on it, because some make version
 # failed to find it for getopt.o.  Using an explicit command made it work.
