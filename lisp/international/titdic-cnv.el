@@ -206,7 +206,7 @@ SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy
 
 ;; Return a value of the key in the current line.
 (defsubst tit-read-key-value ()
-  (if (looking-at "[^ \t\n]+")
+  (if (looking-at "[^ \t\r\n]+")
       (car (read-from-string (concat "\"" (match-string 0) "\"")))))
 
 ;; Return an appropriate quail-package filename from FILENAME (TIT
