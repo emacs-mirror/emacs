@@ -247,6 +247,27 @@ other buffers.  Most of the kill commands move point across the text
 they copy in this way, so that successive kill commands build up a
 single kill ring entry as usual.
 
+@node Graphical Kill
+@subsection Killing on Graphical Terminals
+
+  On multi-window terminals, the most recent kill done in Emacs is
+also the primary selection, if it is more recent than any selection
+you made in another program.  This means that the paste commands of
+other applications with separate windows copy the text that you killed
+in Emacs.  In addition, Emacs yank commands treat other applications'
+selections as part of the kill ring, so you can yank them into Emacs.
+
+@cindex Delete Selection mode
+@cindex mode, Delete Selection
+@findex delete-selection-mode
+  Many window systems follow the convention that insertion while text
+is selected deletes the selected text.  You can make Emacs behave this
+way by enabling Delete Selection mode, with @kbd{M-x
+delete-selection-mode}, or using Custom.  Another effect of this mode
+is that @key{DEL}, @kbd{C-d} and some other keys, when a selection
+exists, will kill the whole selection.  It also enables Transient Mark
+mode (@pxref{Transient Mark}).
+
 @node Yanking, Accumulating Text, Killing, Top
 @section Yanking
 @cindex moving text
@@ -628,28 +649,6 @@ rectangle shifts right.
   The command @kbd{M-x string-insert-rectangle} is similar to
 @code{string-rectangle}, but inserts the string on each line,
 shifting the original text to the right.
-
-@node Graphical Kill
-@section Killing on Graphical Terminals
-
-  On multi-window terminals, the most recent kill done in Emacs is
-also the primary selection, if it is more recent than any selection
-you made in another program.  This means that the paste commands of
-other applications with separate windows copy the text that you killed
-in Emacs.  In addition, Emacs yank commands treat other applications'
-selections as part of the kill ring, so you can yank them into Emacs.
-
-@cindex Delete Selection mode
-@cindex mode, Delete Selection
-@findex delete-selection-mode
-  Many window systems follow the convention that insertion while text
-is selected deletes the selected text.  You can make Emacs behave this
-way by enabling Delete Selection mode, with @kbd{M-x
-delete-selection-mode}, or using Custom.  Another effect of this mode
-is that @key{DEL}, @kbd{C-d} and some other keys, when a selection
-exists, will kill the whole selection.  It also enables Transient Mark
-mode (@pxref{Transient Mark}).
-
 
 @ifnottex
 @lowersections
