@@ -1395,13 +1395,26 @@ according to the `background-mode' and `display-type' frame parameters."
 	  (frame-parameter frame 'display-type)))
 
     (unless (and (eq bg-mode old-bg-mode) (eq display-type old-display-type))
-      (modify-frame-parameters frame
-			       (list (cons 'background-mode bg-mode)
-				     (cons 'display-type display-type)))
-      ;; For all named faces, choose face specs matching the new frame
-      ;; parameters.
-      (dolist (face (face-list))
-	(face-spec-set face (face-user-default-spec face) frame)))))
+      (let ((locally-modified-faces nil))
+	;; Before modifying the frame parameters, we collect a list of
+	;; faces that don't match what their face-spec says they should
+	;; look like; we then avoid changing these faces below.  A
+	;; negative list is used on the assumption that most faces will
+	;; be unmodified, so we can avoid consing in the common case.
+	(dolist (face (face-list))
+	  (when (not (face-spec-match-p face
+					(face-user-default-spec face)
+					(selected-frame)))
+	    (push face locally-modified-faces)))
+	;; Now change to the new frame parameters
+	(modify-frame-parameters frame
+				 (list (cons 'background-mode bg-mode)
+				       (cons 'display-type display-type)))
+	;; For all named faces, choose face specs matching the new frame
+	;; parameters, unless they have been locally modified.
+	(dolist (face (face-list))
+	  (unless (memq face locally-modified-faces)
+	    (face-spec-set face (face-user-default-spec face) frame)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
