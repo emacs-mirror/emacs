@@ -1168,11 +1168,16 @@ single_submenu (item_key, item_name, maps)
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
 	  char *pane_string;
+
 	  pane_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_NAME];
 	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
+
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
-	    pane_name = ENCODE_SYSTEM (pane_name);
+	    {
+	      pane_name = ENCODE_SYSTEM (pane_name);
+	      AREF (menu_items, i + MENU_ITEMS_PANE_NAME) = pane_name;
+	    }
 #endif
 	  pane_string = (NILP (pane_name)
 			 ? "" : (char *) XSTRING (pane_name)->data);
@@ -1210,21 +1215,27 @@ single_submenu (item_key, item_name, maps)
 	  Lisp_Object item_name, enable, descrip, def, type, selected;
           Lisp_Object help;
 
-	  item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
-	  enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
-	  descrip
-	    = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
-	  def = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_DEFINITION];
-	  type = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_TYPE];
-	  selected = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_SELECTED];
-	  help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
+	  item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
+	  enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
+	  descrip = AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY);
+	  def = AREF (menu_items, i + MENU_ITEMS_ITEM_DEFINITION);
+	  type = AREF (menu_items, i + MENU_ITEMS_ITEM_TYPE);
+	  selected = AREF (menu_items, i + MENU_ITEMS_ITEM_SELECTED);
+	  help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
 
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRING_MULTIBYTE (item_name))
-	    item_name = ENCODE_SYSTEM (item_name);
+	    {
+	      item_name = ENCODE_SYSTEM (item_name);
+	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
+	    }
+
 	  if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
-	    descrip = ENCODE_SYSTEM (descrip);
-#endif
+	    {
+	      descrip = ENCODE_SYSTEM (descrip);
+	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
+	    }
+#endif /* not HAVE_MULTILINGUAL_MENU */
 
 	  wv = xmalloc_widget_value ();
 	  if (prev_wv) 
@@ -1522,7 +1533,7 @@ free_frame_menubar (f)
     f->output_data.w32->menubar_widget = NULL;
     DestroyMenu (old);
   }
-    
+
   UNBLOCK_INPUT;
 }
 
@@ -1613,11 +1624,14 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
 	  char *pane_string;
-	  pane_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_NAME];
-	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
+	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
+	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
 #ifndef HAVE_MULTILINGUAL_MENU
-	  if (!NILP (pane_name) && STRING_MULTIBYTE (pane_name))
-	    pane_name = ENCODE_SYSTEM (pane_name);
+	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
+	    {
+	      pane_name = ENCODE_SYSTEM (pane_name);
+	      AREF (menu_items, i + MENU_ITEMS_PANE_NAME) = pane_name;
+	    }
 #endif
 	  pane_string = (NILP (pane_name)
 			 ? "" : (char *) XSTRING (pane_name)->data);
@@ -1658,21 +1672,26 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	  /* Create a new item within current pane.  */
 	  Lisp_Object item_name, enable, descrip, def, type, selected, help;
 
-	  item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
-	  enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
-	  descrip
-	    = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
-	  def = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_DEFINITION];
-	  type = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_TYPE];
-	  selected = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_SELECTED];
-          help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
+	  item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
+	  enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
+	  descrip = AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY);
+	  def = AREF (menu_items, i + MENU_ITEMS_ITEM_DEFINITION);
+	  type = AREF (menu_items, i + MENU_ITEMS_ITEM_TYPE);
+	  selected = AREF (menu_items, i + MENU_ITEMS_ITEM_SELECTED);
+          help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
 
 #ifndef HAVE_MULTILINGUAL_MENU
           if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
-            item_name = ENCODE_SYSTEM (item_name);
+	    {
+	      item_name = ENCODE_SYSTEM (item_name);
+	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
+	    }
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
-            descrip = ENCODE_SYSTEM (descrip);
-#endif
+            {
+	      descrip = ENCODE_SYSTEM (descrip);
+	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
+	    }
+#endif /* not HAVE_MULTILINGUAL_MENU */
 
 	  wv = xmalloc_widget_value ();
 	  if (prev_wv) 
@@ -1698,11 +1717,8 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	    abort ();
 
 	  wv->selected = !NILP (selected);
-
           if (STRINGP (help))
-            wv->help = (char *) XSTRING (help)->data;
-          else
-            wv->help = NULL;
+            wv->help = XSTRING (help)->data;
 
 	  prev_wv = wv;
 
