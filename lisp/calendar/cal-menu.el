@@ -195,6 +195,10 @@
             (setq l (cons ["Mark Holidays" mark-calendar-holidays t]
                           (cons ["Unmark Calendar" calendar-unmark t] l)))
             (easy-menu-change nil "holidays" (nreverse l))
+            (define-key calendar-mode-map [menu-bar holidays today]
+                `(,(format "For Today (%s)"
+                           (calendar-date-string (calendar-current-date) t t))
+                  . cal-menu-today-holidays))
             (let ((title
                    (let ((m1 displayed-month)
                          (y1 displayed-year)
@@ -212,7 +216,7 @@
                                y1
                                (calendar-month-name m2 3)
                                y2)))))
-              (define-key  calendar-mode-map [menu-bar holidays 3-day]
+              (define-key  calendar-mode-map [menu-bar holidays 3-month]
                 `(,(format "For Current Window (%s)" title)
                   . list-calendar-holidays)))
             (let ((date (calendar-cursor-to-date)))
@@ -265,6 +269,13 @@ ERROR is t, otherwise just returns nil."
   (save-excursion
     (calendar-mouse-goto-date (calendar-event-to-date))
     (calendar-sunrise-sunset)))
+
+(defun cal-menu-today-holidays ()
+  "Show holidays for today's date."
+  (interactive)
+  (save-excursion
+    (calendar-cursor-to-date (calendar-current-date))
+    (calendar-cursor-holidays)))
 
 (defun calendar-mouse-holidays ()
   "Show holidays for mouse-selected date."
