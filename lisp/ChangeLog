@@ -1,3 +1,10 @@
+2002-02-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* menu-bar.el (menu-bar-options-save): Take care of
+	line-number-mode and column-number-mode variables.
+	(menu-bar-showhide-menu): New menu-items "Show Line Number" and
+	"Show Column Number" in "Show/Hide" menu.
+
 2002-02-09  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/mailabbrev.el (mail-mode-map): Use eval-after-load to change it.

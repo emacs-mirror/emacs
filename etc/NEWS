@@ -45,7 +45,9 @@ the mode line of the currently selected window.
 ** A menu item "Show/Hide" was added to the top-level menu "Options".
 This menu allows you to turn various display features on and off (like
 tool bar and the menu bar itself).  You can also move the vertical
-scroll bar to either side here or turn it off completely.
+scroll bar to either side here or turn it off completely.  There is also
+a menu-item to toggle displaying of current date and time, current line
+and column number in the mode-line.
 
 ** Emacs can now indicate in the mode-line the presence of new e-mails in
 directory in addition to file.  See the documentation of the user option
