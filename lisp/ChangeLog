@@ -14,6 +14,10 @@
 
 2004-06-07  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* dired-aux.el (dired-do-redisplay, dired-maybe-insert-subdir):
+	Update docstring.
+	(dired-reset-subdir-switches): New function.
+
 	* dired.el (dired-undo): Call `dired-build-subdir-alist'.
 	Limit scope of `buffer-read-only' binding.
 
