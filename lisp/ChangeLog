@@ -20,6 +20,12 @@
 
 2001-01-02  Dave Love  <fx@gnu.org>
 
+	* progmodes/cperl-mode.el (cperl-invalid-face): Don't double-quote
+	value.
+	(cperl-init-faces): Allow cperl-invalid-face to be a normal face.
+
+	* ls-lisp.el (ls-lisp) <defgroup>: Add :version.
+
 	* net/browse-url.el (browse-url-filename-alist): Avoid backquote
 	read syntax.
 
