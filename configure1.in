@@ -1169,7 +1169,7 @@ AC_HAVE_LIBRARY(-lXbsd, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd"
 if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
   LIBS="$LD_SWITCH_X_SITE $LIBX $LIBS"
-  AC_HAVE_FUNCS(XrmSetDatabase random)
+  AC_HAVE_FUNCS(XrmSetDatabase random bcopy)
 fi
 
 AC_ALLOCA
