@@ -31,7 +31,28 @@
 ;;; Code
 
 (defun setup-english-environment ()
-  "Reset MULE (multilingual environment) to the default status."
+  "Reset multilingual environment of Emacs to the default status.
+The default status is as follows.
+
+  The default value of enable-multibyte-characters is t.
+
+  The default value of buffer-file-coding-system is iso-8859-1.
+  The coding system for terminal output is nil.
+  The coding system for keyboard input is nil.
+
+  The order of priorities of coding categories and the coding system
+  bound to each category are as follows
+	coding category			coding system
+	--------------------------------------------------
+	coding-category-iso-7		iso-2022-7
+	coding-category-iso-8-2		iso-8859-1
+	coding-category-iso-8-1		iso-8859-1
+	coding-category-iso-else	iso-8859-1
+	coding-category-internal 	internal
+	coding-category-binary		no-conversion
+	coding-category-sjis		sjis
+	coding-category-big5		big5
+"
   (interactive)
   (setq-default enable-multibyte-characters t)
   (if (local-variable-p 'enable-multibyte-characters)
@@ -57,16 +78,28 @@
      coding-category-big5))
 
   (setq-default buffer-file-coding-system 'iso-8859-1)
-  (set-terminal-coding-system 'iso-8859-1)
-  (set-keyboard-coding-system 'iso-8859-1)
+  (set-terminal-coding-system nil)
+  (set-keyboard-coding-system nil)
+
+  (setq sendmail-coding-system nil
+	rmail-file-coding-system nil)
   )
+
+(defun describe-english-support ()
+  "Describe how Emacs support English."
+  (interactive)
+  (describe-language-support-internal "English"))
 
 (set-language-info-alist
  "English" '((setup-function . setup-english-environment)
+	     (describe-function . describe-english-support)
 	     (tutorial . "TUTORIAL")
 	     (charset . (ascii))
-	     (documentation . t)
-	     (sample-text . "Hello!, Hi!, How are you?")))
+	     (sample-text . "Hello!, Hi!, How are you?")
+	     (documentation . "\
+There's nothing special you should care to handle English in Emacs.
+You can use English both with enable-multibyte-characters t and nil.")
+	     ))
 
 (register-input-method "English"
 		       '("quail-dvorak" quail-use-package "quail/latin"))
