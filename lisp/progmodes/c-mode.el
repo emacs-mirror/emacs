@@ -375,8 +375,6 @@ if that value is non-nil."
   (setq comment-start "/* ")
   (make-local-variable 'comment-end)
   (setq comment-end " */")
-  (make-local-variable 'comment-column)
-  (setq comment-column 32)
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip "/\\*+ *")
   (make-local-variable 'comment-indent-function)
