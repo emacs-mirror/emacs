@@ -2014,7 +2014,7 @@ special value `onewindow' means always use another window."
   (require 'ibuf-ext)
 
   (when ibuffer-use-other-window
-    (setq other-window-p (not other-window-p)))
+    (setq other-window-p t))
   (let* ((buf (get-buffer-create (or name "*Ibuffer*")))
 	 (already-in (eq (current-buffer) buf))
 	 (need-update nil))
