@@ -79,7 +79,7 @@ stored in the file.")
     nil
   (make-face 'excerpt)
   (if window-system
-      (make-face-italic 'excerpt)))
+      (make-face-italic 'excerpt nil t)))
 
 (defconst enriched-display-table (or (copy-sequence standard-display-table)
 				     (make-display-table)))
