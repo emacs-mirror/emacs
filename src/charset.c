@@ -1225,8 +1225,8 @@ CHARSET should be defined by `define-charset' in advance.  */)
 	   true for a unibyte string.  For a multibyte string, true if
 	   it contains only ASCII characters.
 
-	1: No charsets other than ascii, eight-bit-control, and
-	latin-1 are found.
+	1: No charsets other than ascii, control-1, and latin-1 are
+	   found.
 
 	2: Otherwise.
 */
@@ -1302,7 +1302,7 @@ find_charsets_in_text (ptr, nchars, nbytes, charsets, table)
     }
 }
 
-
+/* Fixme: returns nil for unibyte.  */
 DEFUN ("find-charset-region", Ffind_charset_region, Sfind_charset_region,
        2, 3, 0,
        doc: /* Return a list of charsets in the region between BEG and END.
@@ -1356,6 +1356,7 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
   return val;
 }
 
+/* Fixme: returns nil for unibyte.  */
 DEFUN ("find-charset-string", Ffind_charset_string, Sfind_charset_string,
        1, 2, 0,
        doc: /* Return a list of charsets in STR.
@@ -1471,7 +1472,8 @@ decode_char (charset, code)
 Lisp_Object charset_work;
 
 /* Return a code-point of CHAR in CHARSET.  If CHAR doesn't belong to
-   CHARSET, return CHARSET_INVALID_CODE (CHARSET).  */
+   CHARSET, return CHARSET_INVALID_CODE (CHARSET).  If STRICT is true,
+   use CHARSET's strict_max_char instead of max_char.  */
 
 unsigned
 encode_char (charset, c)
