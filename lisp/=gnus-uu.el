@@ -2425,14 +2425,14 @@ ARG delimits the number of files to be decoded."
   (define-key gnus-uu-mode-map "\C-c\C-v" 'gnus-uu-interactive-execute)
   (define-key gnus-uu-mode-map "\C-m" 'gnus-uu-interactive-execute)
   (define-key gnus-uu-mode-map "\C-c\C-c" 'gnus-uu-interactive-end)
-  (define-key gnus-uu-mode-map "\C-cs" 
+  (define-key gnus-uu-mode-map "\C-c\C-z" 
     'gnus-uu-interactive-save-current-file)
   (define-key gnus-uu-mode-map "\C-c\C-s"
     'gnus-uu-interactive-save-current-file-silent)
   (define-key gnus-uu-mode-map "\C-c\C-w" 'gnus-uu-interactive-save-all-files)
   (define-key gnus-uu-mode-map "\C-c\C-o" 'gnus-uu-interactive-save-original-file)
   (define-key gnus-uu-mode-map "\C-c\C-r" 'gnus-uu-interactive-rescan-directory)
-  (define-key gnus-uu-mode-map "\C-cr" 'gnus-uu-interactive-scan-directory)
+  (define-key gnus-uu-mode-map "\C-c\C-d" 'gnus-uu-interactive-scan-directory)
   )
 
 (defun gnus-uu-interactive-set-up-windows ()
