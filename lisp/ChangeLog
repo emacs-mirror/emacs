@@ -1,5 +1,8 @@
 2001-10-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* term/pc-win.el (x-frob-font-slant, x-frob-font-weight): Add
+	make-obsolete cookies, to follow faces.el.
+
 	These changes avoid warnings from the byte compiler in faces.el:
 	
 	* faces.el (internal-get-face): Use facep instead of the obsolete

@@ -1,5 +1,8 @@
 2001-10-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* fileio.c (Faccess_file): Run the argument filename through
+	Fexpand_file_name, before using it.
+
 	* dispnew.c (syms_of_display) <visible-bell>: Add a reference to
 	ring-bell-function.  Suggested by Alf-Ivar Holm <alfh@ifi.uio.no>
 
