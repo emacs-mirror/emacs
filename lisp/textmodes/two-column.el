@@ -30,7 +30,8 @@
 ;; GNU Emacs; vidu la dosieron COPYING.	 with GNU Emacs; see the file
 ;; Alikaze skribu al la			 COPYING.  If not, write to the
 
-;; Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; Free Software Foundation, 59 Temple Place - Suite 330
+;; Boston, MA 02111-1307, USA.
 
 
 ;;; Komentario:				 Commentary:
@@ -175,6 +176,7 @@
     (define-key map "1" '2C-merge)
     (define-key map "d" '2C-dissociate)
     (define-key map "o" '2C-associated-buffer)
+    (define-key map "\^m" '2C-newline)
     (define-key map "|" '2C-toggle-autoscroll)
     map)
   "Keymap for commands for use in two-column mode.")
@@ -238,7 +240,7 @@ minus this value.")
 
 
 (defvar 2C-autoscroll t
-  "If this is non-nil, Emacs attempts to keep the two buffers aligned.")
+  "If non-nil, Emacs attempts to keep the two column's buffers aligned.")
 
 
 
@@ -249,18 +251,19 @@ minus this value.")
 
 ;; The access method for the other buffer.  This tries to remedy against
 ;; lost local variables and lost buffers.
-(defun 2C-other ()
-  (if 2C-mode
-      (or (prog1
-	      (marker-buffer 2C-mode)
-	    (setq mode-line-format 2C-mode-line-format))
-	  ;; The associated buffer somehow got killed.
-	  (progn
-	    ;; The other variables may later be useful if the user
-	    ;; reestablishes the association.
-	    (kill-local-variable '2C-mode)
-	    (kill-local-variable 'mode-line-format)
-	    nil))))
+(defun 2C-other (&optional req)
+  (or (if 2C-mode
+	  (or (prog1
+		  (marker-buffer 2C-mode)
+		(setq mode-line-format 2C-mode-line-format))
+	      ;; The associated buffer somehow got killed.
+	      (progn
+		;; The other variables may later be useful if the user
+		;; reestablishes the association.
+		(kill-local-variable '2C-mode)
+		(kill-local-variable 'mode-line-format)
+		nil)))
+      (if req (error "You must first set two-column minor mode."))))
 
 
 
@@ -288,7 +291,8 @@ You have the following commands at your disposal:
 \\[2C-two-columns]   Rearrange screen with current buffer first
 \\[2C-associate-buffer]   Reassociate buffer after changing major mode
 \\[shrink-window-horizontally], \\[enlarge-window-horizontally]   Shrink, enlarge current column
-\\[2C-associated-buffer]   Switch to associated buffer
+\\[2C-associated-buffer]   Switch to associated buffer at same point
+\\[2C-newline] Insert newline(s) in both buffers at same point
 \\[2C-merge]   Merge both buffers
 \\[2C-dissociate]   Dissociate the two buffers
 
@@ -335,8 +339,7 @@ first and the associated buffer to it's right."
 	       (other-window 1)
 	       (switch-to-buffer
 		(or buffer
-		    (generate-new-buffer
-		     (concat "2C/" (buffer-name)))))
+		    (generate-new-buffer (concat "2C/" (buffer-name)))))
 	       (or buffer
 		   (run-hooks '2C-other-buffer-hook))))
     
@@ -480,17 +483,14 @@ this one, then this one becomes the left column.
 If you want `2C-separator' on empty lines in the second column,
 you should put just one space in them.  In the final result, you can strip
 off trailing spaces with \\[beginning-of-buffer] \\[replace-regexp] [ SPC TAB ] + $ RET RET"
-
   (interactive)
-  (or (2C-other)
-      (error "You must first set two-column minor mode."))
   (and (> (car (window-edges)) 0)	; not touching left edge of screen
        (eq (window-buffer (previous-window))
-	   (2C-other))
+	   (2C-other t))
        (other-window -1))
   (save-excursion
     (let ((b1 (current-buffer))
-	  (b2 (2C-other))
+	  (b2 (2C-other t))
 	  string)
       (goto-char (point-min))
       (set-buffer b2)
@@ -516,18 +516,30 @@ off trailing spaces with \\[beginning-of-buffer] \\[replace-regexp] [ SPC TAB ] 
 (defun 2C-associated-buffer ()
   "Switch to associated buffer."
   (interactive)
-  (or (2C-other)
-      (error "You must set two-column minor mode."))
-  (if (get-buffer-window (2C-other))
-      (select-window (get-buffer-window (2C-other)))
-    (switch-to-buffer (2C-other))))
+  (let ((line (+ (count-lines (point-min) (point))
+		 (if (bolp) 1 0)))
+	(col (if (eolp) (if (bolp) 0) (current-column))))
+    (if (get-buffer-window (2C-other t))
+	(select-window (get-buffer-window (2C-other)))
+      (switch-to-buffer (2C-other)))
+    (newline (goto-line line))
+    (if col
+	(move-to-column col)
+      (end-of-line 1))))
 
-
+(defun 2C-newline (arg)
+  "Insert ARG newlines in both buffers."
+  (interactive "P")
+  (save-window-excursion
+    (2C-associated-buffer)
+    (newline arg))
+  (newline arg))
 
 (defun 2C-toggle-autoscroll (arg)
   "Toggle autoscrolling, or set it iff prefix ARG is non-nil and positive.
 When autoscrolling is turned on, this also realigns the two buffers."
   (interactive "P")
+  ;(sit-for 0)
   (setq 2C-autoscroll-start (window-start))
   (if (setq 2C-autoscroll (if arg
 			      (>= (prefix-numeric-value arg) 0)
@@ -535,10 +547,8 @@ When autoscrolling is turned on, this also realigns the two buffers."
       (select-window
        (prog1 (selected-window)
 	 (message "Autoscrolling is on.")
-	 (or (2C-other)
-	     (error "You must set two-column minor mode."))
 	 (setq arg (count-lines (point-min) (window-start)))
-	 (if (get-buffer-window (2C-other))
+	 (if (get-buffer-window (2C-other t))
 	     (progn
 	       (select-window (get-buffer-window (2C-other)))
 	       (setq arg (- arg (count-lines (point-min) (window-start))))
