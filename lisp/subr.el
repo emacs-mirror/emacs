@@ -809,7 +809,7 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 	    (insert-before-markers string)
 	    (setq insert-end (point))
 	    ;; If the message end is off screen, recenter now.
-	    (if (> (window-end) insert-end)
+	    (if (< (window-end) insert-end)
 		(recenter (/ (window-height) 2)))
 	    ;; If that pushed message start off the screen,
 	    ;; scroll to start it at the top of the screen.
