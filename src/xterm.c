@@ -460,11 +460,11 @@ static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int));
 static int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
 				       XRectangle *));
 static void expose_frame P_ ((struct frame *, int, int, int, int));
-static void expose_window_tree P_ ((struct window *, XRectangle *));
+static int expose_window_tree P_ ((struct window *, XRectangle *));
 static int expose_window P_ ((struct window *, XRectangle *));
 static void expose_area P_ ((struct window *, struct glyph_row *,
 			     XRectangle *, enum glyph_row_area));
-static void expose_line P_ ((struct window *, struct glyph_row *,
+static int expose_line P_ ((struct window *, struct glyph_row *,
 			     XRectangle *));
 static void x_update_cursor_in_window_tree P_ ((struct window *, int));
 static void x_update_window_cursor P_ ((struct window *, int));
@@ -5816,6 +5816,7 @@ expose_frame (f, x, y, w, h)
      int x, y, w, h;
 {
   XRectangle r;
+  int mouse_face_overwritten_p = 0;
 
   TRACE ((stderr, "expose_frame "));
 
@@ -5851,36 +5852,69 @@ expose_frame (f, x, y, w, h)
     }
 
   TRACE ((stderr, "(%d, %d, %d, %d)\n", r.x, r.y, r.width, r.height));
-  expose_window_tree (XWINDOW (f->root_window), &r);
+  mouse_face_overwritten_p = expose_window_tree (XWINDOW (f->root_window), &r);
 
   if (WINDOWP (f->tool_bar_window))
-    expose_window (XWINDOW (f->tool_bar_window), &r);
+    mouse_face_overwritten_p
+      |= expose_window (XWINDOW (f->tool_bar_window), &r);
 
 #ifndef USE_X_TOOLKIT
   if (WINDOWP (f->menu_bar_window))
-    expose_window (XWINDOW (f->menu_bar_window), &r);
+    mouse_face_overwritten_p
+      |= expose_window (XWINDOW (f->menu_bar_window), &r);
 #endif /* not USE_X_TOOLKIT */
+
+  /* Some window managers support a focus-follows-mouse style with
+     delayed raising of frames.  Imagine a partially obscured frame,
+     and moving the mouse into partially obscured mouse-face on that
+     frame.  The visible part of the mouse-face will be highlighted,
+     then the WM raises the obscured frame.  With at least one WM, KDE
+     2.1, Emacs is not getting any event for the raising of the frame
+     (even tried with SubstructureRedirectMask), only Expose events.
+     These expose events will draw text normally, i.e. not
+     highlighted.  Which means we must redo the highlight here.
+     Subsume it under ``we love X''.  --gerd 2001-08-15  */
+  if (mouse_face_overwritten_p && !FRAME_GARBAGED_P (f))
+    {
+      struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+      if (f == dpyinfo->mouse_face_mouse_frame)
+	{
+	  int x = dpyinfo->mouse_face_mouse_x;
+	  int y = dpyinfo->mouse_face_mouse_y;
+	  clear_mouse_face (dpyinfo);
+	  note_mouse_highlight (f, x, y);
+	}
+    }
 }
 
 
 /* Redraw (parts) of all windows in the window tree rooted at W that
-   intersect R.  R contains frame pixel coordinates.  */
+   intersect R.  R contains frame pixel coordinates.  Value is
+   non-zero if the exposure overwrites mouse-face.  */
 
-static void
+static int
 expose_window_tree (w, r)
      struct window *w;
      XRectangle *r;
 {
-  while (w)
+  struct frame *f = XFRAME (w->frame);
+  int mouse_face_overwritten_p = 0;
+  
+  while (w && !FRAME_GARBAGED_P (f))
     {
       if (!NILP (w->hchild))
-	expose_window_tree (XWINDOW (w->hchild), r);
+	mouse_face_overwritten_p
+	  |= expose_window_tree (XWINDOW (w->hchild), r);
       else if (!NILP (w->vchild))
-	expose_window_tree (XWINDOW (w->vchild), r);
-      else if (expose_window (w, r) == 0)
-	break;
+	mouse_face_overwritten_p
+	  |= expose_window_tree (XWINDOW (w->vchild), r);
+      else
+	mouse_face_overwritten_p |= expose_window (w, r);
+      
       w = NILP (w->next) ? NULL : XWINDOW (w->next);
     }
+
+  return mouse_face_overwritten_p;
 }
 
 
@@ -5949,9 +5983,10 @@ expose_area (w, row, r, area)
       
 
 /* Redraw the parts of the glyph row ROW on window W intersecting
-   rectangle R.  R is in window-relative coordinates.  */
+   rectangle R.  R is in window-relative coordinates.  Value is
+   non-zero if mouse-face was overwritten.  */
 
-static void
+static int
 expose_line (w, row, r)
      struct window *w;
      struct glyph_row *row;
@@ -5973,6 +6008,8 @@ expose_line (w, row, r)
 	expose_area (w, row, r, RIGHT_MARGIN_AREA);
       x_draw_row_bitmaps (w, row);
     }
+
+  return row->mouse_face_p;
 }
 
 
@@ -6002,7 +6039,8 @@ x_phys_cursor_in_rect_p (w, r)
 
 /* Redraw the part of window W intersection rectangle FR.  Pixel
    coordinates in FR are frame-relative.  Call this function with
-   input blocked.  */
+   input blocked.  Value is non-zero if the exposure overwrites
+   mouse-face.  */
 
 static int
 expose_window (w, fr)
@@ -6011,13 +6049,14 @@ expose_window (w, fr)
 {
   struct frame *f = XFRAME (w->frame);
   XRectangle wr, r;
+  int mouse_face_overwritten_p = 0;
 
   /* If window is not yet fully initialized, do nothing.  This can
      happen when toolkit scroll bars are used and a window is split.
      Reconfiguring the scroll bar will generate an expose for a newly
      created window.  */
   if (w->current_matrix == NULL)
-    return 1;
+    return 0;
 
   /* When we're currently updating the window, display and current
      matrix usually don't agree.  Arrange for a thorough display
@@ -6069,8 +6108,11 @@ expose_window (w, fr)
 	      || (y1 > r.y && y1 < r.y + r.height)
 	      || (r.y >= y0 && r.y < y1)
 	      || (r.y + r.height > y0 && r.y + r.height < y1))
-	    expose_line (w, row, &r);
-
+	    {
+	      if (expose_line (w, row, &r))
+		mouse_face_overwritten_p = 1;
+	    }
+	      
 	  if (y1 >= yb)
 	    break;
 	}
@@ -6080,7 +6122,10 @@ expose_window (w, fr)
 	  && (row = MATRIX_MODE_LINE_ROW (w->current_matrix),
 	      row->enabled_p)
 	  && row->y < r.y + r.height)
-	expose_line (w, row, &r);
+	{
+	  if (expose_line (w, row, &r))
+	    mouse_face_overwritten_p = 1;
+	}
 
       if (!w->pseudo_window_p)
 	{
@@ -6092,8 +6137,8 @@ expose_window (w, fr)
 	    x_update_window_cursor (w, 1);
 	}
     }
-  
-  return 1;
+
+  return mouse_face_overwritten_p;
 }
 
 
