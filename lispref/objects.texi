@@ -711,7 +711,7 @@ that represents the @sc{car} and @sc{cdr} explicitly.  In this syntax,
 @code{(@var{a} .@: @var{b})} stands for a cons cell whose @sc{car} is
 the object @var{a}, and whose @sc{cdr} is the object @var{b}.  Dotted
 pair notation is therefore more general than list syntax.  In the dotted
-pair notation, the list @samp{(1 2 3)} is written as @samp{(1 .  (2 . (3
+pair notation, the list @samp{(1 2 3)} is written as @samp{(1 . (2 . (3
 . nil)))}.  For @code{nil}-terminated lists, you can use either
 notation, but list notation is usually clearer and more convenient.
 When printing a list, the dotted pair notation is only used if the
@@ -801,7 +801,7 @@ the list.
 
 @example
 (setq alist-of-colors
-      '((rose . red) (lily . white)  (buttercup . yellow)))
+      '((rose . red) (lily . white) (buttercup . yellow)))
 @end example
 
 @noindent
