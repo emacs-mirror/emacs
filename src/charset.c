@@ -798,6 +798,11 @@ Optional arg TABLE if non-nil is a translation table to look up.")
   from = XFASTINT (beg);
   stop = to = XFASTINT (end);
 
+  if (NILP (current_buffer->enable_multibyte_characters))
+    return (from == to
+	    ? Qnil
+	    : Fcons (Qascii, Qnil));
+
   if (from < GPT && GPT < to)
     {
       stop = GPT;
@@ -843,7 +848,9 @@ Optional arg TABLE if non-nil is a translation table to look up.")
   CHECK_STRING (str, 0);
 
   if (! STRING_MULTIBYTE (str))
-    return Qnil;
+    return (XSTRING (str)->size == 0
+	    ? Qnil
+	    : Fcons (Qascii, Qnil));
 
   bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
   find_charset_in_str (XSTRING (str)->data, STRING_BYTES (XSTRING (str)),
