@@ -651,15 +651,15 @@ This list is a copy of a list used inside Emacs; modifying it has no
 effect on the ordering of buffers.
 @end defun
 
-@defun other-buffer &optional buffer-or-name visible-ok
+@defun other-buffer &optional buffer visible-ok
 This function returns the first buffer in the buffer list other than
-@var{buffer-or-name}.  Usually this is the buffer most recently shown in
-the selected window, aside from @var{buffer-or-name}.  Buffers whose
+@var{buffer}.  Usually this is the buffer most recently shown in
+the selected window, aside from @var{buffer}.  Buffers whose
 names start with a space are not considered.
 
-If @var{buffer-or-name} is not supplied (or if it is not a buffer),
-then @code{other-buffer} returns the first buffer on the buffer list
-that is not visible in any window in a visible frame.
+If @var{buffer} is not supplied (or if it is not a buffer), then
+@code{other-buffer} returns the first buffer on the buffer list that is
+not visible in any window in a visible frame.
 
 If the selected frame has a non-@code{nil} @code{buffer-predicate}
 parameter, then @code{other-buffer} uses that predicate to decide which
