@@ -1860,7 +1860,7 @@ to hosts on the same network as the local host.
 
 @item :keepalive @var{keepalive-flag}
 If @var{keepalive-flag} is non-@code{nil} for a stream connection,
-enable exchange of low-level keep-alive messa
+enable exchange of low-level keep-alive messages.
 
 @item :linger @var{linger-arg}
 If @var{linger-arg} is non-@code{nil}, wait for successful
