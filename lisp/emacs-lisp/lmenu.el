@@ -395,6 +395,27 @@ NEW-NAME is the string that the menu item will be printed as from now on."
     (set-menubar-dirty-flag)
     item))
 
+;; XEmacs compatibility
+(defun add-menu (menu-path menu-name menu-items &optional before)
+  "Add a menu to the menubar or one of its submenus.
+If the named menu exists already, it is changed.
+MENU-PATH identifies the menu under which the new menu should be inserted.
+ It is a list of strings; for example, (\"File\") names the top-level \"File\"
+ menu.  (\"File\" \"Foo\") names a hypothetical submenu of \"File\".
+ If MENU-PATH is nil, then the menu will be added to the menubar itself.
+MENU-NAME is the string naming the menu to be added.
+MENU-ITEMS is a list of menu item descriptions.
+ Each menu item should be a vector of three elements:
+   - a string, the name of the menu item;
+   - a symbol naming a command, or a form to evaluate;
+   - and a form whose value determines whether this item is selectable.
+BEFORE, if provided, is the name of a menu before which this menu should
+ be added, if this menu is not on its parent already.  If the menu is already
+ present, it will not be moved."
+  (or menu-name (error "must specify a menu name"))
+  (or menu-items (error "must specify some menu items"))
+  (add-menu-item-1 nil menu-path menu-name menu-items t before))
+
 
 
 (defvar put-buffer-names-in-file-menu t)
