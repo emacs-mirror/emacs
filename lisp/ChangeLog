@@ -1,5 +1,8 @@
 2000-05-26  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/mule-diag.el (print-fontset): Combine family part
+	and registry part of the fontname by "-*-" instead of "-".
+
 	* international/mule-cmds.el (encode-coding-char): Make strings
 	multibyte before calling encode-coding-string.
 
