@@ -184,7 +184,7 @@ to continue it."
   (scheme-mode-variables)
   (setq major-mode 'inferior-scheme-mode)
   (setq mode-name "Inferior Scheme")
-  (setq mode-line-process '(": %s"))
+  (setq mode-line-process '(":%s"))
   (use-local-map inferior-scheme-mode-map)
   (setq comint-input-filter (function scheme-input-filter))
   (setq comint-get-old-input (function scheme-get-old-input))
