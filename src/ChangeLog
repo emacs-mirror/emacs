@@ -1,5 +1,10 @@
 2004-11-05  Kim F. Storm  <storm@cua.dk>
 
+	* fileio.c (Ffile_modes): Doc fix.
+	(auto_save_1): Check for Ffile_modes nil value.
+
+2004-11-05  Kim F. Storm  <storm@cua.dk>
+
 	* xselect.c (struct selection_event_queue, selection_queue)
 	(x_queue_selection_requests, x_queue_event)
 	(x_start_queuing_selection_requests)
