@@ -1706,7 +1706,6 @@ BUFFER defaults to the current buffer.  */)
     {
       Lisp_Object tail, elt;
 
-      variable = indirect_variable (variable);
       for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
 	{
 	  elt = XCAR (tail);
@@ -1763,6 +1762,41 @@ BUFFER defaults to the current buffer.  */)
 	    return Qt;
 	}
     }
+  return Qnil;
+}
+
+DEFUN ("variable-binding-locus", Fvariable_binding_locus, Svariable_binding_locus,
+       1, 1, 0,
+       doc: /* Return a value indicating where VARIABLE's current binding comes from.
+If the current binding is buffer-local, the value is the current buffer.
+If the current binding is frame-local, the value is the selected frame.
+If the current binding is global (the default), the value is nil.  */)
+     (variable)
+     register Lisp_Object variable;
+{
+  Lisp_Object valcontents;
+
+  CHECK_SYMBOL (variable);
+  variable = indirect_variable (variable);
+
+  /* Make sure the current binding is actually swapped in.  */
+  find_symbol_value (variable);
+
+  valcontents = XSYMBOL (variable)->value;
+
+  if (BUFFER_LOCAL_VALUEP (valcontents)
+      || SOME_BUFFER_LOCAL_VALUEP (valcontents)
+      || BUFFER_OBJFWDP (valcontents))
+    {
+      /* For a local variable, record both the symbol and which
+	 buffer's or frame's value we are saving.  */
+      if (!NILP (Flocal_variable_p (variable, Qnil)))
+	return Fcurrent_buffer ();
+      else if (!BUFFER_OBJFWDP (valcontents)
+	       && XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame)
+	return XBUFFER_LOCAL_VALUE (valcontents)->frame;
+    }
+
   return Qnil;
 }
 
@@ -3185,6 +3219,7 @@ syms_of_data ()
   defsubr (&Smake_variable_frame_local);
   defsubr (&Slocal_variable_p);
   defsubr (&Slocal_variable_if_set_p);
+  defsubr (&Svariable_binding_locus);
   defsubr (&Saref);
   defsubr (&Saset);
   defsubr (&Snumber_to_string);
