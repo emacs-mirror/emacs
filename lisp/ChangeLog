@@ -1,4 +1,4 @@
-2004-02-14  Martin Stjernholm  <mast@lysator.liu.se>
+2004-02-14  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* Makefile.in: Fixed the CC Mode recompile kludge so it works
 	when building in a different directory.
