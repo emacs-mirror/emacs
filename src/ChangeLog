@@ -1,3 +1,27 @@
+2000-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	Support for the menu-help feature:
+
+	* msdos.h: Change prototypes of XMenuAddSelection and
+	XMenuActivate.
+
+	* msdos.c (IT_clear_end_of_line): Print the extent of the cleared
+	part of the line to the termscript file.
+	(IT_clear_to_end): Clear the entire line, not just its beginning.
+	(menu_help_message, prev_menu_help_message): New variables.
+	(IT_menu_make_room): Make room for the help_text member.
+	(IT_menu_display): New argument disp_help; all callers changed.
+	If disp_help is non-zero, store the help text of the active menu
+	item in menu_help_message.
+	(XMenuAddPane): Initialize the help_text member to NULL.
+	(XMenuAddSelection): New argument help_text.  Store it in the
+	XMenu structure.
+	(XMenuActivate): New argument help_callback.  If the value of
+	menu_help_message has changed since the last time, display the
+	menu help message text while waiting for the mouse to move.  Clear
+	the echo area before exiting.
+	(XMenuDestroy): Free the help_text member.
+
 2000-01-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* xmenu.c (xmenu_show) [!USE_X_TOOLKIT]: Pass help to
