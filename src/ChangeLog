@@ -1,3 +1,8 @@
+2002-04-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* indent.c (Fvertical_motion): Move to the start of the line
+	containing PT before moving up or down.
+
 2002-04-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (update_text_area): Set phys_cursor_on_p to 0 in the
