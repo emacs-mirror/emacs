@@ -1,5 +1,5 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1989, 1992, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2297,7 +2297,8 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
       emacs_event->part = scroll_bar_below_handle;
 
     /* Just because the user has clicked on the handle doesn't mean
-       they want to drag it.  */
+       they want to drag it.  Lisp code needs to be able to decide
+       whether or not we're dragging.  */
 #if 0
     /* If the user has just clicked on the handle, record where they're
        holding it.  */
@@ -2317,12 +2318,17 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
 	bar->dragging = Qnil;
       }
 
+    /* Same deal here as the other #if 0.  */
+#if 0
     /* Clicks on the handle are always reported as occuring at the top of 
        the handle.  */
     if (emacs_event->part == scroll_bar_handle)
       emacs_event->x = bar->start;
     else
       XSET (emacs_event->x, Lisp_Int, y);
+#else
+    XSET (emacs_event->x, Lisp_Int, y);
+#endif
 
     XSET (emacs_event->y, Lisp_Int, top_range);
   }
