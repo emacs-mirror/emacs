@@ -1,3 +1,18 @@
+2002-08-25  Miles Bader  <miles@gnu.org>
+
+	* rfn-eshadow.el (file-name-shadow-properties-custom-type):
+	Renamed from `read-file-name-electric-shadow-properties-custom-type'.
+	Change name of face.
+	(file-name-shadow-properties): Renamed from
+	`read-file-name-electric-shadow-properties'.
+	(file-name-shadow-tty-properties): Renamed from
+	`read-file-name-electric-shadow-tty-properties'.
+	(file-name-shadow): Renamed from `read-file-name-electric-shadow'.
+	(rfn-eshadow-setup-minibuffer): Update references to renamed variables.
+	(file-name-shadow-mode): Renamed from
+	`read-file-name-electric-shadow-mode'.  Update references to
+	renamed variables.
+
 2002-08-24  Sam Steingold  <sds@gnu.org>
 
 	* subr.el (eval-after-load): Do not call
