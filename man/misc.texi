@@ -392,7 +392,6 @@ and will store the decoded output into the file whose name is
 specified in the encoded text.
 
 @vindex shell-file-name
-@cindex environment
   Both @kbd{M-!} and @kbd{M-|} use @code{shell-file-name} to specify the
 shell to use.  This variable is initialized based on your @env{SHELL}
 environment variable when Emacs is started.  If the file name does not
@@ -449,6 +448,7 @@ a buffer name, and create (or reuse) a subshell in that buffer.  All
 subshells in different buffers run independently and in parallel.
 
 @vindex explicit-shell-file-name
+@cindex environment variables for subshells
 @cindex @env{ESHELL} environment variable
 @cindex @env{SHELL} environment variable
   The file name used to load the subshell is the value of the variable
@@ -471,9 +471,11 @@ from.  For example, if you use bash, the file sent to it is
 specify a coding system after starting the shell by using @kbd{C-x
 @key{RET} p} in the shell buffer.  @xref{Specify Coding}.
 
-  Emacs defines the environment variable @env{EMACS} in the subshell,
-with value @code{t}.  A shell script can check this variable to
-determine whether it has been run from an Emacs subshell.
+@cindex @env{EMACS} environment variable
+  Unless the environment variable @env{EMACS} is already defined,
+Emacs defines it in the subshell, with value @code{t}.  A shell script
+can check this variable to determine whether it has been run from an
+Emacs subshell.
 
 @node Shell Mode
 @subsection Shell Mode
