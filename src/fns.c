@@ -3872,7 +3872,8 @@ make_hash_table (test, size, rehash_size, rehash_threshold, weak,
   h->key_and_value = Fmake_vector (make_number (2 * sz), Qnil);
   h->hash = Fmake_vector (size, Qnil);
   h->next = Fmake_vector (size, Qnil);
-  index_size = next_almost_prime (sz / XFLOATINT (rehash_threshold));
+  /* Cast to int here avoids losing with gcc 2.95 on Tru64/Alpha...  */
+  index_size = next_almost_prime ((int) (sz / XFLOATINT (rehash_threshold)));
   h->index = Fmake_vector (make_number (index_size), Qnil);
 
   /* Set up the free list.  */
@@ -3949,8 +3950,9 @@ maybe_resize_hash_table (h)
       else
 	new_size = old_size * XFLOATINT (h->rehash_size);
       new_size = max (old_size + 1, new_size);
-      index_size = next_almost_prime (new_size
-				      / XFLOATINT (h->rehash_threshold));
+      index_size = next_almost_prime ((int)
+				      (new_size
+				       / XFLOATINT (h->rehash_threshold)));
       if (max (index_size, 2 * new_size) & ~VALMASK)
 	error ("Hash table too large to resize");
 
