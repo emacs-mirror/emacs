@@ -125,7 +125,7 @@ static int highlight_nonselected_windows;
 
 /* If cursor motion alone moves point off frame,
    Try scrolling this many lines up or down if that will bring it back.  */
-int scroll_step;
+static int scroll_step;
 
 /* Nonzero if try_window_id has made blank lines at window bottom
  since the last redisplay that paused */
@@ -143,7 +143,7 @@ int buffer_shared;
 static int cursor_vpos;
 static int cursor_hpos;
 
-int debug_end_pos;
+static int debug_end_pos;
 
 /* Nonzero means display mode line highlighted */
 int mode_line_inverse_video;
@@ -212,7 +212,7 @@ int windows_or_buffers_changed;
 int line_number_displayed;
 
 /* Maximum buffer size for which to display line numbers.  */
-int line_number_display_limit;
+static int line_number_display_limit;
 
 /* Number of lines to keep in the message log buffer.
    t means infinite.  nil means don't log at all.  */
@@ -675,6 +675,8 @@ prepare_menu_bars ()
 	  if (FRAME_WINDOW_SIZES_CHANGED (XFRAME (frame)))
 	    {
 	      Lisp_Object functions;
+	      /* Clear flag first in case we get error below.  */
+	      FRAME_WINDOW_SIZES_CHANGED (XFRAME (frame)) = 0;
 	      functions = Vwindow_size_change_functions;
 	      GCPRO2 (tail, functions);
 	      while (CONSP (functions))
@@ -683,7 +685,6 @@ prepare_menu_bars ()
 		  functions = XCONS (functions)->cdr;
 		}
 	      UNGCPRO;
-	      FRAME_WINDOW_SIZES_CHANGED (XFRAME (frame)) = 0;
 	    }
 	  GCPRO1 (tail);
 	  update_menu_bar (XFRAME (frame));
@@ -1551,7 +1552,8 @@ redisplay_window (window, just_this_one)
 	    goto scroll_fail;
 	}
 
-      pos = *vmotion (startp, PT < startp ? - scroll_step : scroll_step,
+      pos = *vmotion (startp,
+		      (PT < startp ? - scroll_step : scroll_step),
 		      width, hscroll, window);
 
       if (PT >= pos.bufpos)
