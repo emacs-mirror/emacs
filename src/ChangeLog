@@ -1,3 +1,8 @@
+2004-08-30  Steven Tamm  <steventamm@mac.com>
+
+	* macmenu.c (mac_menu_show): Remove shadowing of menu variable
+	by using different names for inner loop variables.
+
 2004-08-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (set_frame_menubar): Reintroduce inhibit_garbage_collection

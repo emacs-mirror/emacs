@@ -1807,9 +1807,9 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   /* Get the refcon to find the correct item*/
   if (menu_item_selection)
     {
-      menu = GetMenuHandle (HiWord (menu_item_choice));
-      if (menu) {
-	GetMenuItemRefCon (menu, menu_item_selection, &refcon);
+      MenuHandle sel_menu = GetMenuHandle (HiWord (menu_item_choice));
+      if (sel_menu) {
+	GetMenuItemRefCon (sel_menu, menu_item_selection, &refcon);
       }
     }
 
@@ -1831,11 +1831,11 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   {
     int i = MIN_POPUP_SUBMENU_ID;
     MenuHandle submenu = GetMenuHandle (i);
-    while (menu != NULL)
+    while (submenu != NULL)
       {
 	DeleteMenu (i);
-	DisposeMenu (menu);
-	menu = GetMenuHandle (++i);
+	DisposeMenu (submenu);
+	submenu = GetMenuHandle (++i);
       }
   }
 
