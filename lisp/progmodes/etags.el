@@ -152,8 +152,7 @@ One argument, the tag info returned by `snarf-tag-function'.")
 (defvar tags-included-tables-function nil
   "Function to do the work of `tags-included-tables' (which see).")
 (defvar verify-tags-table-function nil
-  "Function to return t iff the current buffer contains a valid
-\(already initialized\) tags file.")
+  "Function to return t iff current buffer contains valid tags file.")
 
 ;; Initialize the tags table in the current buffer.
 ;; Returns non-nil iff it is a valid tags table.  On
@@ -314,10 +313,21 @@ Returns non-nil iff it is a valid table."
 	(set-buffer (get-file-buffer file))
 	(setq win (or verify-tags-table-function (initialize-new-tags-table)))
 	(if (or (verify-visited-file-modtime (current-buffer))
-		(not (yes-or-no-p
-		      (format "Tags file %s has changed, read new contents? "
-			      file))))
-	    (and win (funcall verify-tags-table-function))
+		;; Decide whether to revert the file.
+		;; revert-without-query can say to revert
+		;; or the user can say to revert.
+		(not (or (let ((tail revert-without-query)
+			       (found nil))
+			   (while tail
+			     (if (string-match (car tail) buffer-file-name)
+				 (setq found t))
+			     (setq tail (cdr tail)))
+			   found)
+			 (yes-or-no-p
+			  (format "Tags file %s has changed, read new contents? "
+				  file)))))
+	    (and verify-tags-table-function
+		 (funcall verify-tags-table-function))
 	  (revert-buffer t t)
 	  (initialize-new-tags-table)))
     (and (file-exists-p file)
