@@ -7474,10 +7474,10 @@ redisplay_internal (preserve_echo_area)
 				     - MATRIX_ROW_START_BYTEPOS (row));
 		    }
   
-  		  increment_glyph_matrix_buffer_positions (w->current_matrix,
-							   this_line_vpos + 1,
-							   w->current_matrix->nrows,
-							   delta, delta_bytes);
+  		  increment_matrix_positions (w->current_matrix,
+					      this_line_vpos + 1,
+					      w->current_matrix->nrows,
+					      delta, delta_bytes);
 		}
 
 	      /* If this row displays text now but previously didn't,
@@ -10056,19 +10056,38 @@ try_window_id (w)
 
   /* If window starts after a line end, and the last change is in
      front of that newline, then changes don't affect the display.
-     This case happens with stealth-fontification.  */
+     This case happens with stealth-fontification.  Note that although
+     the display is unchanged, glyph positions in the matrix have to
+     be adjusted, of course.  */
   row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
   if (CHARPOS (start) > BEGV
       && Z - END_UNCHANGED < CHARPOS (start) - 1
       && FETCH_BYTE (BYTEPOS (start) - 1) == '\n'
       && PT < MATRIX_ROW_END_CHARPOS (row))
     {
-      /* We have to update window end positions because the buffer's
-	 size has changed.  */
+      struct glyph_row *r0 = MATRIX_FIRST_TEXT_ROW (current_matrix);
+      int delta = CHARPOS (start) - MATRIX_ROW_START_CHARPOS (r0);
+
+      if (delta)
+	{
+	  struct glyph_row *r1 = MATRIX_BOTTOM_TEXT_ROW (current_matrix, w);
+	  int delta_bytes = BYTEPOS (start) - MATRIX_ROW_START_BYTEPOS (r0);
+
+	  increment_matrix_positions (w->current_matrix,
+				      MATRIX_ROW_VPOS (r0, current_matrix),
+				      MATRIX_ROW_VPOS (r1, current_matrix),
+				      delta, delta_bytes);
+	}
+      
+#if 0  /* If changes are all in front of the window start, the
+	  distance of the last displayed glyph from Z hasn't
+	  changed.  */
       w->window_end_pos
 	= make_number (Z - MATRIX_ROW_END_CHARPOS (row));
       w->window_end_bytepos
 	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
+#endif
+
       return 1;
     }
 
@@ -10383,9 +10402,9 @@ try_window_id (w)
 
   /* Adjust buffer positions in reused rows.  */
   if (delta)
-    increment_glyph_matrix_buffer_positions (current_matrix,
-					     first_unchanged_at_end_vpos + dvpos,
-					     bottom_vpos, delta, delta_bytes);
+    increment_matrix_positions (current_matrix,
+				first_unchanged_at_end_vpos + dvpos,
+				bottom_vpos, delta, delta_bytes);
 
   /* Adjust Y positions.  */
   if (dy)
