@@ -1719,6 +1719,13 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	      break;
 	    }
 	}
+      else if (event.type == UnmapNotify)
+	{
+	  /* If the menu disappears, there is no need to stay in the
+             loop.  */
+	  if (event.xunmap.window == menu->core.window)
+	    break;
+	}
 
       XtDispatchEvent (&event);
       if (queue_and_exit
