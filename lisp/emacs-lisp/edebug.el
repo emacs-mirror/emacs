@@ -1231,9 +1231,10 @@ This controls how we read comma constructs.")
   `(edebug-enter
     (quote ,edebug-def-name)
     ,(if edebug-inside-func  
-	 `(list (;; Doesn't work with more than one def-body!!
-		 ;; But the list will just be reversed.
-		 ,@(nreverse edebug-def-args)))
+	 `(list
+	   ;; Doesn't work with more than one def-body!!
+	   ;; But the list will just be reversed.
+	   ,@(nreverse edebug-def-args))
        'nil)
     (function (lambda () ,@forms))
     ))
