@@ -1,4 +1,4 @@
-;;; czech.el -- support for Czech
+;;; czech.el -- support for Czech -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1998 Free Software Foundation.
 

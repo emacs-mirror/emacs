@@ -1,4 +1,4 @@
-;;; japanese.el --- Japanese support
+;;; japanese.el --- Japanese support -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

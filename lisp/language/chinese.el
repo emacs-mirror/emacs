@@ -1,4 +1,4 @@
-;;; chinese.el --- Support for Chinese
+;;; chinese.el --- Support for Chinese -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

@@ -1,4 +1,4 @@
-;;; tibetan.el --- Support for Tibetan language
+;;; tibetan.el --- Support for Tibetan language -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

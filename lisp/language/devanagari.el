@@ -1,4 +1,4 @@
-;;; devanagari.el --- Support for Devanagari Languages
+;;; devanagari.el --- Support for Devanagari -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 

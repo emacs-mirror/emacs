@@ -1,4 +1,4 @@
-;;; european.el --- Support for European languages
+;;; european.el --- European languages -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

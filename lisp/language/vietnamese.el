@@ -1,4 +1,4 @@
-;;; vietnamese.el --- Support for Vietnamese
+;;; vietnamese.el --- Support for Vietnamese -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

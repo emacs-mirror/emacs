@@ -1,4 +1,4 @@
-;;; indian.el --- Support for Indian Languages
+;;; indian.el --- Support for Indian Languages -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 
