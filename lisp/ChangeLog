@@ -1,3 +1,8 @@
+2003-02-24  Ramakrishnan M  <rkrishnan@alpha.m17n.org>  (tiny change)
+
+	* language/mlm-util.el (mlm-char-glyph): Add entries for "halant +
+	rakar + halant" and "halant + rrakar + halant".
+
 2003-02-22  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* files.el (abbreviate-file-name): Shorten docstring: variables
