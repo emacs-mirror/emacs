@@ -1,3 +1,8 @@
+2004-12-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el (hs-inside-comment-p): Fix omission bug:
+	When extending backwards, move outside the current comment first.
+
 2004-12-22  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-start-translation): Fix prompt
@@ -23,7 +28,7 @@
 	(undo-outer-limit-function): Use undo-outer-limit-truncate.
 
 2004-12-21  Eli Barzilay  <eli@barzilay.org>
-	
+
 	* calculator.el: (calculator-radix-grouping-mode)
 	(calculator-radix-grouping-digits)
 	(calculator-radix-grouping-separator):
