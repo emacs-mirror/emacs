@@ -1,3 +1,9 @@
+2001-09-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/quail.el (quail-use-package, quail-inactivate)
+	(quail-activate): Mention the hooks these functions run in their
+	doc strings.
+
 2001-09-05  Edward M. Reingold <reingold@iit.edu>
 
 	* cal-menu.el (calendar-mouse-view-other-diary-entries): Fix name

@@ -1,3 +1,7 @@
+2001-09-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* INSTALL: Mention that "make install" can be "nmake install".
+
 2001-09-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* makefile.w32-in ($(INSTALL_DIR)/bin): Depend on $(INSTALL_DIR),
