@@ -646,7 +646,7 @@ echo_area_display ()
 	     i < vpos + XFASTINT (XWINDOW (mini_window)->height); i++)
 	  {
 	    get_display_line (f, i, 0);
-	    display_string (XWINDOW (mini_window), vpos,
+	    display_string (XWINDOW (mini_window), i,
 			    "", 0, 
                             FRAME_LEFT_SCROLL_BAR_WIDTH (f),
 			    0, 0, 0, FRAME_WIDTH (f));
