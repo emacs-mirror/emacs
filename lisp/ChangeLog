@@ -25,7 +25,8 @@
 	* filecache.el (file-cache-directory-name)
 	(file-cache-minibuffer-complete): Ignore the minibuffer prompt.
 
-	From Milan Zamazal <Milan.Zamazal@qbizm.com>:
+2000-12-01 Milan Zamazal <Milan.Zamazal@qbizm.com>
+	
 	* filecache.el (file-cache-minibuffer-complete): Don't try to
 	delete the minibuffer prompt.
 
@@ -710,9 +711,11 @@
 
 	* Makefile.in (DONTCOMPILE): Omit bindings.el.
 
-2000-11-20  Gerd Moellmann  <gerd@gnu.org>
+2000-11-20  Eli Barzilay <eli@www.barzilay.org>
 
-	* calculator.el: New version from author.
+	* calculator.el (calculator-paste): Use `if' instead of `and'
+	and `or'.
+	(calculator-help): Don't use electric-describe-mode for XEmacs.
 
 2000-11-19  Gerd Moellmann  <gerd@gnu.org>
 
@@ -749,9 +752,10 @@
 	(mode-line-toggle-modified, mode-line-widen)
 	(mode-line-abbrev-mode, mode-line-auto-fill-mode): Fix typos.
 
-2000-11-17  Gerd Moellmann  <gerd@gnu.org>
+2000-11-17  Vinicius Jose Latorre <vinicius@cpqd.com.br>
 
-	* ps-print.el: Minor fixes from author.
+	* ps-print.el (toplevel): Test for find-coding-system being
+	fboundp before calling ps-x-find-coding-system.
 
 2000-11-16  Stefan Monnier  <monnier@cs.yale.edu>
 
