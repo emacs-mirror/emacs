@@ -253,8 +253,8 @@ are considered temporary."
        (string-match server-temp-file-regexp (buffer-file-name buffer))))
 
 (defun server-done ()
-  "Offer to save current buffer, mark it as \"done\" for clients,
-bury it, and return a suggested buffer to select next."
+  "Offer to save current buffer, mark it as \"done\" for clients.
+Then bury it, and return a suggested buffer to select next."
   (let ((buffer (current-buffer)))
     (if server-buffer-clients
 	(progn
