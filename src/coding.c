@@ -46,8 +46,8 @@ Boston, MA 02111-1307, USA.  */
 
 CODING SYSTEM
 
-  Coding system is an object for a encoding mechanism that contains
-  information about how to convert byte sequence to character
+  A coding system is an object for an encoding mechanism that contains
+  information about how to convert byte sequences to character
   sequences and vice versa.  When we say "decode", it means converting
   a byte sequence of a specific coding system into a character
   sequence that is represented by Emacs' internal coding system
@@ -57,12 +57,12 @@ CODING SYSTEM
 
   In Emacs Lisp, a coding system is represented by a Lisp symbol.  In
   C level, a coding system is represented by a vector of attributes
-  stored in the hash table Vcharset_hash_table.  The conversion from a
+  stored in the hash table Vcharset_hash_table.  The conversion from
   coding system symbol to attributes vector is done by looking up
   Vcharset_hash_table by the symbol.
 
   Coding systems are classified into the following types depending on
-  the mechanism of encoding.  Here's a brief descrition about type.
+  the encoding mechanism.  Here's a brief description of the types.
 
   o UTF-8
 
@@ -71,12 +71,12 @@ CODING SYSTEM
   o Charset-base coding system
 
   A coding system defined by one or more (coded) character sets.
-  Decoding and encoding are done by code converter defined for each
+  Decoding and encoding are done by a code converter defined for each
   character set.
 
-  o Old Emacs' internal format (emacs-mule)
+  o Old Emacs internal format (emacs-mule)
 
-  The coding system adopted by an old versions of Emacs (20 and 21).
+  The coding system adopted by old versions of Emacs (20 and 21).
 
   o ISO2022-base coding system
 
@@ -101,7 +101,7 @@ CODING SYSTEM
 
   o CCL
 
-  If a user wants to decode/encode a text encoded in a coding system
+  If a user wants to decode/encode text encoded in a coding system
   not listed above, he can supply a decoder and an encoder for it in
   CCL (Code Conversion Language) programs.  Emacs executes the CCL
   program while decoding/encoding.
@@ -109,7 +109,7 @@ CODING SYSTEM
   o Raw-text
 
   A coding system for a text containing raw eight-bit data.  Emacs
-  treat each byte of source text as a character (except for
+  treats each byte of source text as a character (except for
   end-of-line conversion).
 
   o No-conversion
@@ -119,13 +119,13 @@ CODING SYSTEM
 
 END-OF-LINE FORMAT
 
-  How end-of-line of a text is encoded depends on a system.  For
+  How text end-of-line is encoded depends on operating system.  For
   instance, Unix's format is just one byte of LF (line-feed) code,
   whereas DOS's format is two-byte sequence of `carriage-return' and
   `line-feed' codes.  MacOS's format is usually one byte of
   `carriage-return'.
 
-  Since text characters encoding and end-of-line encoding are
+  Since text character encoding and end-of-line encoding are
   independent, any coding system described above can take any format
   of end-of-line (except for no-conversion).
 
@@ -134,7 +134,7 @@ STRUCT CODING_SYSTEM
   Before using a coding system for code conversion (i.e. decoding and
   encoding), we setup a structure of type `struct coding_system'.
   This structure keeps various information about a specific code
-  conversion (e.g.  the location of source and destination data).
+  conversion (e.g. the location of source and destination data).
 
 */
 
@@ -7628,7 +7628,8 @@ DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
     }
 
   Fputhash (alias, spec, Vcoding_system_hash_table);
-  Vcoding_system_alist = Fcons (Fcons (alias, Qnil), Vcoding_system_alist);
+  Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (alias), Qnil),
+				Vcoding_system_alist);
 
   return Qnil;
 }
