@@ -1528,10 +1528,10 @@ Try to categorize it into one of four categories:
 good, skip, fatal, or unknown."
   (cond ((string-match ange-ftp-xfer-size-msgs line)
 	 (setq ange-ftp-xfer-size
-	       (ash (string-to-int (substring line
-					      (match-beginning 1)
-					      (match-end 1)))
-		    -10)))
+	       (/ (string-to-number (substring line
+					       (match-beginning 1)
+					       (match-end 1)))
+		  1024)))
 	((string-match ange-ftp-skip-msgs line)
 	 t)
 	((string-match ange-ftp-good-msgs line)
@@ -1563,7 +1563,11 @@ good, skip, fatal, or unknown."
 	  (if buf
 	      (save-excursion
 		(set-buffer buf)
-		(setq ange-ftp-xfer-size (ash bytes -10))))))))
+		(setq ange-ftp-xfer-size
+		      ;; For very large files, BYTES can be a float.
+		      (if (integerp bytes)
+			  (ash bytes -10)
+			(/ bytes 1024)))))))))
 
 (defun ange-ftp-process-handle-hash (str)
   "Remove hash marks from STRING and display count so far."
