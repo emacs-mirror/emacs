@@ -1152,7 +1152,7 @@ of FORM by signalling the error at compile-time."
 	      (numberp (nth 1 form)))
 	 (list 'forward-word (eval (- (nth 1 form)))))
 	((= 1 (safe-length form))
-	 '(forward-char -1))
+	 '(forward-word -1))
 	(t form)))
 
 (put 'char-before 'byte-optimizer 'byte-optimize-char-before)

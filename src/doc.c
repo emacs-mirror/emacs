@@ -776,9 +776,13 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  idx = strp - SDATA (string);
 	  tem = Fintern (make_string (start, length_byte), Qnil);
 
+	  /* Ignore remappings unless there are no ordinary bindings. */
+ 	  tem = Fwhere_is_internal (tem, keymap, Qt, Qnil, Qt);
+ 	  if (NILP (tem))
+	    tem = Fwhere_is_internal (tem, keymap, Qt, Qnil, Qnil);
+
 	  /* Note the Fwhere_is_internal can GC, so we have to take
 	     relocation of string contents into account.  */
-	  tem = Fwhere_is_internal (tem, keymap, Qt, Qnil, Qnil);
 	  strp = SDATA (string) + idx;
 	  start = SDATA (string) + start_idx;
 

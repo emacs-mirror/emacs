@@ -1,3 +1,64 @@
+2004-10-12  Simon Josefsson  <jas@extundo.com>
+
+	* url-vars.el (url-gateway-method): Add new method `tls'.
+
+	* url-news.el (url-snews): Use nntp-open-tls-stream if
+	url-gateway-method is tls.
+
+	* url-ldap.el (url-ldap-certificate-formatter): Use
+	tls-certificate-information if ssl.el is not available.
+
+	* url-https.el (url-https-create-secure-wrapper): Use tls if ssl
+	is not available.
+
+	* url-gw.el (url-open-stream): Support tls url-gateway-method.
+	(url-open-stream): Likewise.
+
+2004-10-10  Lars Hansen  <larsh@math.ku.dk>
+
+	* url-auth.el: Fix copyright notice.
+
+	* url-cache.el: Fix copyright notice.
+
+	* url-cookie.el: Fix copyright notice.
+
+	* url-dired.el: Fix copyright notice.
+
+	* url-file.el: Fix copyright notice.
+
+	* url-ftp.el: Fix copyright notice.
+
+	* url-handlers.el: Fix copyright notice.
+
+	* url-history.el: Fix copyright notice.
+
+	* url-irc.el: Fix copyright notice.
+
+	* url-mailto.el: Fix copyright notice.
+
+	* url-methods.el: Fix copyright notice.
+
+	* url-misc.el: Fix copyright notice.
+
+	* url-news.el: Fix copyright notice.
+
+	* url-nfs.el: Fix copyright notice.
+
+	* url-parse.el: Fix copyright notice.
+
+	* url-privacy.el: Fix copyright notice.
+
+	* url-vars.el: Fix copyright notice.
+
+	* url.el: Fix copyright notice.
+
+	* url-util.el: Fix copyright notice.
+
+2004-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (url-insert-file-contents): Use the URL to decide the
+	encoding, not the buffer-file-name (which might not even exist).
+
 2004-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-handlers.el (url-insert-file-contents): Decode contents.

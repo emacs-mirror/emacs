@@ -317,9 +317,12 @@ The function in this variable is called when selecting a normal index-item.")
 ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Return the current/previous sexp and the location of the sexp (its
-;; beginning) without moving the point.
+;; FIXME: This is the only imenu-example-* definition that's actually used,
+;; and it seems to only be used by cperl-mode.el.  We should just move it to
+;; cperl-mode.el and remove the rest.
 (defun imenu-example--name-and-position ()
+  "Return the current/previous sexp and its (beginning) location.
+Don't move point."
   (save-excursion
     (forward-sexp -1)
     ;; [ydi] modified for imenu-use-markers
@@ -549,12 +552,10 @@ A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).")
 	     (cond
 	      ((consp (cdr item))
 	       (imenu--truncate-items (cdr item)))
-	      (t
-	       ;; truncate if necessary
-	       (if (and (numberp imenu-max-item-length)
-			(> (length (car item)) imenu-max-item-length))
-		   (setcar item (substring (car item) 0
-					   imenu-max-item-length)))))))
+	      ;; truncate if necessary
+	      ((and (numberp imenu-max-item-length)
+		    (> (length (car item)) imenu-max-item-length))
+	       (setcar item (substring (car item) 0 imenu-max-item-length))))))
 	  menulist))
 
 
@@ -854,7 +855,7 @@ depending on PATTERNS."
 (defun imenu--completion-buffer (index-alist &optional prompt)
   "Let the user select from INDEX-ALIST in a completion buffer with PROMPT.
 
-Returns t for rescan and otherwise a position number."
+Return one of the entries in index-alist or nil."
   ;; Create a list for this buffer only when needed.
   (let ((name (thing-at-point 'symbol))
 	choice
@@ -880,13 +881,11 @@ Returns t for rescan and otherwise a position number."
 				  prepared-index-alist
 				  nil t nil 'imenu--history-list name)))
 
-    (cond ((not (stringp name)) nil)
-	  ((string= name (car imenu--rescan-item)) t)
-	  (t
-	   (setq choice (assoc name prepared-index-alist))
-	   (if (imenu--subalist-p choice)
-	       (imenu--completion-buffer (cdr choice) prompt)
-	     choice)))))
+    (when (stringp name)
+      (setq choice (assoc name prepared-index-alist))
+      (if (imenu--subalist-p choice)
+	  (imenu--completion-buffer (cdr choice) prompt)
+	choice))))
 
 (defun imenu--mouse-menu (index-alist event &optional title)
   "Let the user select from a buffer index from a mouse menu.
@@ -937,9 +936,9 @@ The returned value is of the form (INDEX-NAME . INDEX-POSITION)."
 		     (or (eq imenu-use-popup-menu t) mouse-triggered))
 		(imenu--mouse-menu index-alist last-nonmenu-event)
 	      (imenu--completion-buffer index-alist prompt)))
-      (and (eq result t)
+      (and (equal result imenu--rescan-item)
 	   (imenu--cleanup)
-	   (setq imenu--index-alist nil)))
+	   (setq result t imenu--index-alist nil)))
     result))
 
 ;;;###autoload
@@ -1014,7 +1013,7 @@ A trivial interface to `imenu-add-to-menubar' suitable for use in a hook."
     nil))
 
 (defun imenu-default-goto-function (name position &optional rest)
-  "Move the point to the given position.
+  "Move to the given position.
 
 NAME is ignored.  POSITION is where to move.  REST is also ignored.
 The ignored args just make this function have the same interface as a
@@ -1054,5 +1053,5 @@ for more information."
 
 (provide 'imenu)
 
-;;; arch-tag: 98a2f5f5-4b91-4704-b18c-3aacf77d77a7
+;; arch-tag: 98a2f5f5-4b91-4704-b18c-3aacf77d77a7
 ;;; imenu.el ends here

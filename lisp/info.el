@@ -79,8 +79,8 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defface info-xref
-  '((((class color) (background light)) :foreground "blue")
-    (((class color) (background dark)) :foreground "cyan")
+  '((((class color) (background light)) :foreground "blue" :underline t)
+    (((class color) (background dark)) :foreground "cyan" :underline t)
     (t :underline t))
   "Face for Info cross-references."
   :group 'info)
@@ -455,6 +455,7 @@ Do the right thing if the file has been compressed or zipped."
 
 ;;;###autoload (add-hook 'same-window-regexps "\\*info\\*\\(\\|<[0-9]+>\\)")
 
+;;;###autoload (put 'info 'info-file "emacs")
 ;;;###autoload
 (defun info (&optional file buffer)
   "Enter Info, the documentation browser.
@@ -1729,7 +1730,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
       (let ((inhibit-read-only t))
         (erase-buffer)
         (goto-char (point-min))
-        (insert "\n\^_\nFile: history Node: Top, Up: (dir)\n\n")
+        (insert "\n\^_\nFile: history,  Node: Top,  Up: (dir)\n\n")
         (insert "Recently Visited Nodes\n**********************\n\n")
         (insert "* Menu:\n\n")
         (let ((hl (delete '("history" "Top") Info-history-list)))
@@ -1749,26 +1750,31 @@ If SAME-FILE is non-nil, do not move to a different Info file."
   "Go to a node with table of contents of the current Info file.
 Table of contents is created from the tree structure of menus."
   (interactive)
-  (let ((curr-file Info-current-file)
-        (curr-node Info-current-node)
+  (let ((curr-file (substring-no-properties Info-current-file))
+        (curr-node (substring-no-properties Info-current-node))
         p)
     (with-current-buffer (get-buffer-create " *info-toc*")
       (let ((inhibit-read-only t)
             (node-list (Info-build-toc curr-file)))
         (erase-buffer)
         (goto-char (point-min))
-        (insert "\n\^_\nFile: toc Node: Top, Up: (dir)\n\n")
+        (insert "\n\^_\nFile: toc,  Node: Top,  Up: (dir)\n\n")
         (insert "Table of Contents\n*****************\n\n")
-        (insert "*Note Top::\n")
+        (insert "*Note Top: (" curr-file ")Top.\n")
         (Info-insert-toc
          (nth 2 (assoc "Top" node-list)) ; get Top nodes
-         node-list 0 (substring-no-properties curr-file)))
+         node-list 0 curr-file))
       (if (not (bobp))
           (let ((Info-hide-note-references 'hide)
                 (Info-fontify-visited-nodes nil))
             (Info-mode)
             (setq Info-current-file "toc" Info-current-node "Top")
-            (Info-fontify-node)))
+            (goto-char (point-min))
+            (narrow-to-region (or (re-search-forward "\n[\^_\f]\n" nil t)
+                                  (point-min))
+                              (point-max))
+            (Info-fontify-node)
+            (widen)))
       (goto-char (point-min))
       (if (setq p (search-forward (concat "*Note " curr-node ":") nil t))
           (setq p (- p (length curr-node) 2))))
@@ -1789,14 +1795,12 @@ Table of contents is created from the tree structure of menus."
 
 (defun Info-build-toc (file)
   "Build table of contents from menus of Info FILE and its subfiles."
-  (if (equal file "dir")
-      (error "Table of contents for Info directory is not supported yet"))
   (with-temp-buffer
-    (let* ((default-directory (or (and (stringp file)
-                                       (file-name-directory
-                                        (setq file (Info-find-file file))))
+    (let* ((file (and (stringp file) (Info-find-file file)))
+           (default-directory (or (and (stringp file)
+                                       (file-name-directory file))
                                   default-directory))
-           (main-file file)
+           (main-file (and (stringp file) file))
            (sections '(("Top" "Top")))
            nodes subfiles)
       (while (or main-file subfiles)
@@ -3258,6 +3262,7 @@ The locations are of the format used in `Info-history', i.e.
 			   (car elt)
 			 elt))
 		 (file (if (consp elt) (cdr elt) elt))
+		 (case-fold-search nil)
 		 (regexp (concat "\\`" (regexp-quote name)
 				 "\\(\\'\\|-\\)")))
 	    (if (string-match regexp (symbol-name command))

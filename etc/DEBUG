@@ -69,9 +69,11 @@ fatal error, you can use the GDB command `pr'.  First print the value
 in the ordinary way, with the `p' command.  Then type `pr' with no
 arguments.  This calls a subroutine which uses the Lisp printer.
 
-Note: It is not a good idea to try `pr' if you know that Emacs is in
-deep trouble: its stack smashed (e.g., if it encountered SIGSEGV due
-to stack overflow), or crucial data structures, such as `obarray',
+You can also use `pp value' to print the emacs value directly.
+
+Note: It is not a good idea to try `pr' or `pp' if you know that Emacs
+is in deep trouble: its stack smashed (e.g., if it encountered SIGSEGV
+due to stack overflow), or crucial data structures, such as `obarray',
 corrupted, etc.  In such cases, the Emacs subroutine called by `pr'
 might make more damage, like overwrite some data that is important for
 debugging the original problem.
@@ -441,6 +443,9 @@ of this function for more details.
 Several more functions for debugging display code are available in
 Emacs compiled with GLYPH_DEBUG defined; type "C-h f dump- TAB" and
 "C-h f trace- TAB" to see the full list.
+
+When you debug display problems running emacs under X, you can use
+the `ff' command to flush all pending display updates to the screen.
 
 
 ** Debugging LessTif

@@ -1,3 +1,18 @@
+2004-10-08  Steven Tamm  <steventamm@mac.com>
+
+	* configure.in (HAVE_MALLOC_MALLOC_H): Test for malloc/malloc.h
+	* configure: Rebuild
+
+2004-10-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_RANDOM_HEAPSTART): Change AC_MSG_ERROR to
+	AC_MSG_WARN.  Move output of warning message to end of configure run.
+
+2004-10-05  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_RANDOM_HEAPSTART): Renamed HAVE_EXECSHIELD.
+	Run test to see if heap start address is random.
+
 2004-09-29  Miles Bader  <miles@gnu.org>
 
 	* configure.in (HAVE_EXECSHIELD): Test correct env variable to see

@@ -216,7 +216,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
      int nargs;
      register Lisp_Object *args;
 {
-  Lisp_Object infile, buffer, current_dir, display, path;
+  Lisp_Object infile, buffer, current_dir, path;
+  int display_p;
   int fd[2];
   int filefd;
   register int pid;
@@ -372,7 +373,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     UNGCPRO;
   }
 
-  display = nargs >= 4 ? args[3] : Qnil;
+  display_p = INTERACTIVE && nargs >= 4 && !NILP (args[3]);
 
   filefd = emacs_open (SDATA (infile), O_RDONLY, 0);
   if (filefd < 0)
@@ -739,7 +740,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     int first = 1;
     int total_read = 0;
     int carryover = 0;
-    int display_on_the_fly = !NILP (display) && INTERACTIVE;
+    int display_on_the_fly = display_p;
     struct coding_system saved_coding;
 
     saved_coding = process_coding;
@@ -803,6 +804,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		    display_on_the_fly = 0;
 		    process_coding = saved_coding;
 		    carryover = nread;
+		    /* This is to make the above condition always
+		       fails in the future.  */
+		    saved_coding.type = coding_type_no_conversion;
 		    continue;
 		  }
 
@@ -832,12 +836,16 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	    bufptr = tempptr;
 	  }
 
-	if (!NILP (display) && INTERACTIVE)
+	if (display_p)
 	  {
 	    if (first)
 	      prepare_menu_bars ();
 	    first = 0;
 	    redisplay_preserve_echo_area (1);
+	    /* This variable might have been set to 0 for code
+	       detection.  In that case, we set it back to 1 because
+	       we should have already detected a coding system.  */
+	    display_on_the_fly = 1;
 	  }
 	immediate_quit = 1;
 	QUIT;

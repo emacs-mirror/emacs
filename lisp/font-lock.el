@@ -1324,6 +1324,12 @@ HIGHLIGHT should be of the form MATCH-HIGHLIGHT, see `font-lock-keywords'."
 	  (add-text-properties start end (cddr val))
 	  (setq val (cadr val)))
 	(cond
+	 ((not (or val (eq override t)))
+	  ;; If `val' is nil, don't do anything.  It is important to do it
+	  ;; explicitly, because when adding nil via things like
+	  ;; font-lock-append-text-property, the property is actually
+	  ;; changed from <face> to (<face>) which is undesirable.  --Stef
+	  nil)
 	 ((not override)
 	  ;; Cannot override existing fontification.
 	  (or (text-property-not-all start end 'face nil)

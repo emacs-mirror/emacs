@@ -34,6 +34,7 @@
 (require 'wid-edit)
 (require 'mm-util)
 (require 'nnheader)
+(autoload 'message-y-or-n-p "message" nil nil 'macro)
 
 (defgroup gnus nil
   "The coffee-brewing, all singing, all dancing, kitchen sink newsreader."

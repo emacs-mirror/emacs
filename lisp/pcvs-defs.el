@@ -1,7 +1,7 @@
 ;;; pcvs-defs.el --- variable definitions for PCL-CVS
 
-;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 03, 2004
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
@@ -248,9 +248,6 @@ Output from cvs is placed here for asynchronous commands.")
   :group 'pcl-cvs
   :type '(choice (const :tag "Ediff" (cvs-ediff-diff . cvs-ediff-merge))
 		 (const :tag "Emerge" (cvs-emerge-diff . cvs-emerge-merge))))
-
-(defvar pcl-cvs-load-hook nil
-  "Run after loading pcl-cvs.")
 
 (defvar cvs-mode-hook nil
   "Run after `cvs-mode' was setup.")
@@ -510,5 +507,5 @@ message and replace it with a message tell you to change this variable.")
 ;;
 (provide 'pcvs-defs)
 
-;;; arch-tag: c7c701d0-d1d4-4aa9-a302-007bb03aca5e
+;; arch-tag: c7c701d0-d1d4-4aa9-a302-007bb03aca5e
 ;;; pcvs-defs.el ends here

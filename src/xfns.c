@@ -5551,7 +5551,7 @@ Chinese, Japanese, and Korean.  */);
   last_show_tip_args = Qnil;
   staticpro (&last_show_tip_args);
 
-#ifdef USE_MOTIF
+#if defined (USE_MOTIF) || defined (USE_GTK)
   defsubr (&Sx_file_dialog);
 #endif
 }

@@ -1,6 +1,7 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands
 
-;; Copyright (C) 1985,86,1999,2000,01,03,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1999, 2000, 2001, 2003, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -1153,7 +1154,8 @@ paragraph of it that point is in, preserving the comment's indentation
 and initial semicolons."
   (interactive "P")
   (or (fill-comment-paragraph justify)
-      ;; Point is on a program line (a line no comment); we are interested
+      ;; Since fill-comment-paragraph returned nil, that means we're not in
+      ;; a comment: Point is on a program line; we are interested
       ;; particularly in docstring lines.
       ;;
       ;; We bind `paragraph-start' and `paragraph-separate' temporarily.  They
@@ -1182,7 +1184,7 @@ and initial semicolons."
       ;; The `fill-column' is temporarily bound to
       ;; `emacs-lisp-docstring-fill-column' if that value is an integer.
       (let ((paragraph-start (concat paragraph-start
-				     "\\|\\s-*\\([\(;:\"]\\|`\(\\)"))
+				     "\\|\\s-*\\([(;:\"]\\|`(\\|#'(\\)"))
 	    (paragraph-separate
 	     (concat paragraph-separate "\\|\\s-*\".*[,\\.]$"))
             (fill-column (if (integerp emacs-lisp-docstring-fill-column)
@@ -1227,5 +1229,5 @@ means don't indent that line."
 
 (provide 'lisp-mode)
 
-;;; arch-tag: 414c7f93-c245-4b77-8ed5-ed05ef7ff1bf
+;; arch-tag: 414c7f93-c245-4b77-8ed5-ed05ef7ff1bf
 ;;; lisp-mode.el ends here

@@ -1,4 +1,4 @@
-;;; url-https.el --- HTTP over SSL routines
+;;; url-https.el --- HTTP over SSL/TLS routines
 
 ;; Copyright (c) 1999, 2004 Free Software Foundation, Inc.
 
@@ -30,6 +30,7 @@
 (require 'url-parse)
 (require 'url-cookie)
 (require 'url-http)
+(require 'tls)
 
 (defconst url-https-default-port 443 "Default HTTPS port.")
 (defconst url-https-asynchronous-p t "HTTPS retrievals are asynchronous.")
@@ -38,12 +39,11 @@
 (defmacro url-https-create-secure-wrapper (method args)
   `(defun ,(intern (format (if method "url-https-%s" "url-https") method)) ,args
     ,(format "HTTPS wrapper around `%s' call." (or method "url-http"))
-    (condition-case ()
-	(require 'ssl)
-      (error
-       (error "HTTPS support could not find `ssl' library")))
-    (let ((url-gateway-method 'ssl))
-      ( ,(intern (format (if method "url-http-%s" "url-http") method)) ,@(remove '&rest (remove '&optional args))))))
+    (let ((url-gateway-method (condition-case ()
+				  (require 'ssl)
+				(error 'tls))))
+      (,(intern (format (if method "url-http-%s" "url-http") method))
+       ,@(remove '&rest (remove '&optional args))))))
 
 (url-https-create-secure-wrapper nil (url callback cbargs))
 (url-https-create-secure-wrapper file-exists-p (url))

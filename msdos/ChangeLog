@@ -1,3 +1,8 @@
+2004-10-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (LC_ALL=C): Fix src/Makefile breakage caused by
+	recent (2004-09-24) changes in src/Makefile.in.
+
 2004-08-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedleim.inp: Remove the lines which say "<TAB>@true", to avoid

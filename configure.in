@@ -1286,25 +1286,6 @@ AC_LINK_IFELSE([main(){return 0;}],
 dnl checks for Unix variants
 AC_AIX
 
-dnl check if exec-shield is present.
-AC_CHECK_FILE(/proc/sys/kernel/exec-shield, emacs_cv_execshield=1,
-                                            emacs_cv_execshield=0)
-if test "$emacs_cv_execshield" = 1; then
-  AC_PATH_PROG(SETARCH, setarch, no)
-  AC_SUBST(SETARCH)
-  if test "$SETARCH" != no && test "$machine" = "intel386"; then
-    AC_DEFINE(HAVE_EXECSHIELD, 1,
-    [Define to 1 if this OS has exec shield and we can handle it.])
-  else
-    case "`cat /proc/sys/kernel/exec-shield`" in
-      0) ;;
-      *)
-        AC_MSG_ERROR([Exec-shield is turned on.
-Emacs can not dump itself if exec-shield is turned on.
-See `etc/PROBLEMS' for further information.])
-    esac
-  fi
-fi
 
 #### Extract some information from the operating system and machine files.
 
@@ -1590,6 +1571,53 @@ fi
 AH_TEMPLATE(POINTER_TYPE,
 	    [Define as `void' if your compiler accepts `void *'; otherwise
 	     define as `char'.])dnl
+
+dnl Test if heap start address is randomized (exec-shield does this).
+dnl The test program requires unistd.h and stdlib.h.  They are present
+dnl on the systems that currently have exec-shield.
+AC_MSG_CHECKING(whether heap start address is randomized)
+if test x"$ac_cv_header_unistd_h" != x && test x"$ac_cv_header_stdlib_h" != x
+then
+  AC_TRY_RUN([#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+int main (int argc, char *argv[])
+{
+  unsigned long old_sbrk = 0;
+  unsigned long this_sbrk = (unsigned long) sbrk(0);
+  int nr = 1;
+  if (argc != 1) {
+    old_sbrk = strtoul (argv[1], 0, 0);
+    nr = atoi (argv[2])+1;
+  }
+  if (argc == 1 || (old_sbrk == this_sbrk && nr < 3))
+  {
+    char buf1[32], buf2[32];
+    sprintf (buf1, "%lu", this_sbrk);
+    sprintf (buf2, "%d", nr);
+    execl (argv[0], argv[0], buf1, buf2, 0);
+    exit (-1);
+  }
+  exit (this_sbrk == old_sbrk);
+}], emacs_cv_randomheap=yes, emacs_cv_randomheap=no,
+     emacs_cv_randomheap='assuming no')
+else
+  emacs_cv_randomheap='assuming no'
+fi
+AC_MSG_RESULT($emacs_cv_randomheap)
+
+if test "$emacs_cv_randomheap" = yes; then
+  AC_PATH_PROG(SETARCH, setarch, no)
+  AC_SUBST(SETARCH)
+  if test "$SETARCH" != no && test "$machine" = "intel386"; then
+    AC_DEFINE(HAVE_RANDOM_HEAPSTART, 1,
+    [Define to 1 if this OS randomizes the start address of the heap.])
+  else
+    dnl We do the warning at the end of the configure run so it is seen.
+    emacs_cv_randomheap=warn
+  fi
+fi
+
 
 dnl This could be used for targets which can have both byte sexes.
 dnl We could presumably replace the hardwired WORDS_BIG_ENDIAN generally.
@@ -2284,6 +2312,9 @@ HAVE_CARBON=no
 if test "${with_carbon}" != "no"; then
   AC_CHECK_HEADER(Carbon/Carbon.h, HAVE_CARBON=yes)
 fi
+
+dnl Check for malloc/malloc.h on darwin
+AC_CHECK_HEADER(malloc/malloc.h, AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.]))
 
 if test "${HAVE_CARBON}" = "yes"; then
   AC_DEFINE(HAVE_CARBON, 1, [Define to 1 if you are using the Carbon API on Mac OS X.])
@@ -3057,6 +3088,19 @@ echo "  Does Emacs use -lungif?                                 ${HAVE_GIF}"
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
+
+if test "$emacs_cv_randomheap" = warn; then 
+  AC_MSG_WARN([
+**********************************************************************
+
+Heap start address is randomized and no workaround is known.
+Emacs will probably dump core when temacs is run in the build phase.
+Maybe exec-shield is turned on.  Read about exec-shield in `etc/PROBLEMS'
+for further information.
+
+**********************************************************************
+])
+fi
 
 # Remove any trailing slashes in these variables.
 [test "${prefix}" != NONE &&

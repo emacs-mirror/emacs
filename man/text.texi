@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001, 2002
+@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001, 2002, 2004
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text, Programs, Indentation, Top
@@ -55,7 +55,7 @@ Then the formatting appears on the screen in Emacs while you edit.
 @cindex autotyping
 @cindex automatic typing
   The ``automatic typing'' features may be useful when writing text.
-@xref{Top,, Autotyping, autotype, Features for Automatic Typing}.
+@inforef{Top,, autotype}.
 
 @menu
 * Words::	        Moving over and killing words.
@@ -215,10 +215,12 @@ followed by the end of a line or two spaces, with any number of
 A sentence also begins or ends wherever a paragraph begins or ends.
 
 @vindex sentence-end
-  The variable @code{sentence-end} controls recognition of the end of a
-sentence.  It is a regexp that matches the last few characters of a
-sentence, together with the whitespace following the sentence.  Its
-normal value is
+  The variable @code{sentence-end} controls recognition of the end of
+a sentence.  If non-@code{nil}, it is a regexp that matches the last
+few characters of a sentence, together with the whitespace following
+the sentence.  If the value is @code{nil}, the default, then Emacs
+computes the regexp according to various criteria.  The result is
+normally similar to the following regexp:
 
 @example
 "[.?!][]\"')]*\\($\\| $\\|\t\\|  \\)[ \t\n]*"
@@ -298,9 +300,10 @@ that either starts or separates paragraphs.  The value of
 that separate paragraphs without being part of any paragraph (for
 example, blank lines).  Lines that start a new paragraph and are
 contained in it must match only @code{paragraph-start}, not
-@code{paragraph-separate}.  For example, in Fundamental mode,
-@code{paragraph-start} is @w{@code{"[ \t\n\f]"}}, and
-@code{paragraph-separate} is @w{@code{"\f\\|[ \t]*$"}}.
+@code{paragraph-separate}.  Each regular expression must match at the
+left margin.  For example, in Fundamental mode, @code{paragraph-start}
+is @w{@code{"\f\\|[ \t]*$"}}, and @code{paragraph-separate} is
+@w{@code{"[ \t\f]*$"}}.
 
   Normally it is desirable for page boundaries to separate paragraphs.
 The default values of these variables recognize the usual separator for
@@ -312,9 +315,9 @@ pages.
 @cindex pages
 @cindex formfeed
   Files are often thought of as divided into @dfn{pages} by the
-@dfn{formfeed} character (@acronym{ASCII} control-L, octal code 014).  When you
-print hardcopy for a file, this character forces a page break; thus,
-each page of the file goes on a separate page on paper.  Most Emacs
+@dfn{formfeed} character (@acronym{ASCII} control-L, octal code 014).
+When you print hardcopy for a file, this character forces a page break;
+thus, each page of the file goes on a separate page on paper.  Most Emacs
 commands treat the page-separator character just like any other
 character: you can insert it with @kbd{C-q C-l}, and delete it with
 @key{DEL}.  Thus, you are free to paginate your file or not.  However,
@@ -575,7 +578,7 @@ period.  Set the variable @code{sentence-end-without-period} to
 conditions for where line-breaking is allowed.  Its value is either
 @code{nil} or a Lisp function; the function is called with no
 arguments, and if it returns a non-@code{nil} value, then point is not
-a good place to break the line.  The standard functions you can use
+a good place to break the line.  Two standard functions you can use are
 @code{fill-single-word-nobreak-p} (don't break after the first word of
 a sentence or before the last) and @code{fill-french-nobreak-p} (don't
 break after @samp{(} or before @samp{)}, @samp{:} or @samp{?}).
@@ -606,11 +609,12 @@ a new paragraph.
 
 @kindex C-x .
 @findex set-fill-prefix
-  To specify a fill prefix, move to a line that starts with the desired
-prefix, put point at the end of the prefix, and give the command
-@w{@kbd{C-x .}}@: (@code{set-fill-prefix}).  That's a period after the
-@kbd{C-x}.  To turn off the fill prefix, specify an empty prefix: type
-@w{@kbd{C-x .}}@: with point at the beginning of a line.@refill
+  To specify a fill prefix for the current buffer, move to a line that
+starts with the desired prefix, put point at the end of the prefix,
+and give the command @w{@kbd{C-x .}}@: (@code{set-fill-prefix}).
+That's a period after the @kbd{C-x}.  To turn off the fill prefix,
+specify an empty prefix: type @w{@kbd{C-x .}}@: with point at the
+beginning of a line.@refill
 
   When a fill prefix is in effect, the fill commands remove the fill
 prefix from each line before filling and insert it on each line after
@@ -824,14 +828,14 @@ filling determines what indentation to use when filling a paragraph.
 @kindex TAB @r{(Text mode)}
   Text mode defines @key{TAB} to run @code{indent-relative}
 (@pxref{Indentation}), so that you can conveniently indent a line like
-the previous line.  When the previous line is not indented,
-@code{indent-relative} runs @code{tab-to-tab-stop}, which uses Emacs tab
-stops that you can set (@pxref{Tab Stops}).
+the previous line.
 
   Text mode turns off the features concerned with comments except when
-you explicitly invoke them.  It changes the syntax table so that periods
-are not considered part of a word, while apostrophes, backspaces and
-underlines are considered part of words.
+you explicitly invoke them.  It changes the syntax table so that
+single-quotes are considered part of words.  However, if a word starts
+with single-quotes, then these are treated as a prefix for purposes
+such as capitalization.  That is, @kbd{M-c} will convert
+@samp{'hello'} into @samp{'Hello'}, as expected.
 
 @cindex Paragraph-Indent Text mode
 @cindex mode, Paragraph-Indent Text
@@ -896,8 +900,8 @@ invisible lines follow).
 
   Editing commands that operate on lines, such as @kbd{C-n} and
 @kbd{C-p}, treat the text of the invisible line as part of the previous
-visible line.  Killing an entire visible line, including its terminating
-newline, really kills all the following invisible lines along with it.
+visible line.  Killing the ellipsis at the end of a visible line
+really kills all the following invisible lines.
 
   Outline minor mode provides the same commands as the major mode,
 Outline mode, but you can use it in conjunction with other major modes.
@@ -1137,12 +1141,9 @@ except the top @var{n} levels of heading lines.
 @findex hide-other
 @kindex C-c C-o @r{(Outline mode)}
   The command @kbd{C-c C-o} (@code{hide-other}) hides everything except
-the heading or body text that point is in, plus its parents (the headers
-leading up from there to top level in the outline).
-
-  You can turn off the use of ellipses at the ends of visible lines by
-setting @code{selective-display-ellipses} to @code{nil}.  Then there is
-no visible indication of the presence of invisible lines.
+the heading and body text that point is in, plus its parents (the headers
+leading up from there to top level in the outline) and the top level
+headings.
 
 @findex reveal-mode
   When incremental search finds text that is hidden by Outline mode,
@@ -1180,7 +1181,7 @@ buffers.
 nested portion of the outline, while hiding its relatives at higher
 levels.
 
-  Consider an Outline mode buffer all the text and subheadings under
+  Consider an Outline mode buffer with all the text and subheadings under
 level-1 headings hidden.  To look at what is hidden under one of these
 headings, you could use @kbd{C-c C-e} (@kbd{M-x show-entry}) to expose
 the body, or @kbd{C-c C-i} to expose the child (level-2) headings.
@@ -1215,8 +1216,8 @@ particular chapter or section of your document.
   To unzoom (exit) a fold, use @kbd{C-c C-x} (@kbd{M-x foldout-exit-fold}).
 This hides all the text and subheadings under the top-level heading and
 returns you to the previous view of the buffer.  Specifying a numeric
-argument exits that many levels of folds.  Specifying a zero argument exits all
-folds.
+argument exits that many levels of folds.  Specifying a zero argument
+exits all folds.
 
   To cancel the narrowing of a fold without hiding the text and
 subheadings, specify a negative argument.  For example, @kbd{M--2 C-c
@@ -1633,7 +1634,7 @@ current buffer's file.  Generally, you need to do @kbd{C-c C-f}
 @findex iso-iso2gtex
 @findex iso-gtex2iso
 @cindex Latin-1 @TeX{} encoding
-@TeX{} encoding
+@cindex @TeX{} encoding
   The commands @kbd{M-x iso-iso2tex}, @kbd{M-x iso-tex2iso}, @kbd{M-x
 iso-iso2gtex} and @kbd{M-x iso-gtex2iso} can be used to convert
 between Latin-1 encoded files and @TeX{}-encoded equivalents.
@@ -1659,7 +1660,7 @@ required.  This is set up for Czech---customize the group
 @cindex references, La@TeX{}
 @cindex La@TeX{} references
   For managing all kinds of references for La@TeX{}, you can use
-Ref@TeX{}.  @xref{Top, , RefTeX, reftex}.
+Ref@TeX{}.  @inforef{Top,, reftex}.
 
 @node HTML Mode
 @section SGML, XML, and HTML Modes
@@ -1880,16 +1881,6 @@ into the file.  When you visit the file again, Emacs will automatically
 recognize the format, reconvert the text, and turn on Enriched mode
 again.
 
-@vindex enriched-fill-after-visiting
-  Normally, after visiting a file in text/enriched format, Emacs refills
-each paragraph to fit the specified right margin.  You can turn off this
-refilling, to save time, by setting the variable
-@code{enriched-fill-after-visiting} to @code{nil} or to @code{ask}.
-
-  However, when visiting a file that was saved from Enriched mode, there
-is no need for refilling, because Emacs saves the right margin settings
-along with the text.
-
 @vindex enriched-translations
   You can add annotations for saving additional text properties, which
 Emacs normally does not save, by adding to @code{enriched-translations}.
@@ -1951,22 +1942,22 @@ commands directly:
 @table @code
 @findex facemenu-remove-face-props
 @item Remove Face Properties
-Delete from the region all the text properties that the Text Properties
-menu works with (@code{facemenu-remove-face-props}).
+Delete from the region all face and color text properties
+(@code{facemenu-remove-face-props}).
 
 @findex facemenu-remove-all
-@item Remove All
+@item Remove Text Properties
 Delete @emph{all} text properties from the region
 (@code{facemenu-remove-all}).
 
-@findex describe-text-at
+@findex describe-text-properties
 @cindex text properties of characters
 @cindex overlays at character position
 @cindex widgets at buffer position
 @cindex buttons at buffer position
-@item Describe Text
+@item Describe Properties
 List all the text properties, widgets, buttons, and overlays of the
-character following point (@code{describe-text-at}).
+character following point (@code{describe-text-properties}).
 
 @item Display Faces
 Display a list of all the defined faces (@code{list-faces-display}).
@@ -2018,8 +2009,20 @@ Set the region, or the next inserted character, to the face @var{face}
 
   If you use these commands with a prefix argument---or, in Transient Mark
 mode, if the region is not active---then these commands specify a face
-to use for your next self-inserting input.  @xref{Transient Mark}.  This
-applies to both the keyboard commands and the menu commands.
+to use for any immediately following self-inserting input.
+@xref{Transient Mark}.  This applies to both the keyboard commands and
+the menu commands.
+
+  Specifying the @code{default} face also resets foreground and
+background color to their defaults.(@pxref{Format Colors}).
+
+  Any self-inserting character you type inherits, by default, the face
+properties (as well as most other text properties) of the preceding
+character.  Specifying any face property, including foreground or
+background color, for your next self-inserting character will prevent
+it from inheriting any face properties from the preceding character,
+although it will still inherit other text properties.  Characters
+inserted by yanking do not inherit text properties.
 
   Enriched mode defines two additional faces: @code{excerpt} and
 @code{fixed}.  These correspond to codes used in the text/enriched file
@@ -2029,20 +2032,17 @@ format.
 same as @code{italic} unless you customize it (@pxref{Face Customization}).
 
   The @code{fixed} face means, ``Use a fixed-width font for this part
-of the text.''  This makes a visible difference only if you have
-specified a variable-width font in the default face; however, even if
-the default font is fixed-width, applying the @code{fixed} face to a
-part of the text will cause that part of the text to appear in a
-fixed-width font, if the file is ever displayed with a variable-width
-default font.  This applies to Emacs and to other systems that display
-text/enriched format.  So if you specifically want a certain part of
-the text to use a fixed-width font, you should specify the
-@code{fixed} face for that part.
+of the text.''  Applying the @code{fixed} face to a part of the text
+will cause that part of the text to appear in a fixed-width font, even
+if the default font is variable-width.  This applies to Emacs and to
+other systems that display text/enriched format.  So if you
+specifically want a certain part of the text to use a fixed-width
+font, you should specify the @code{fixed} face for that part.
 
-  The @code{fixed} face is normally set up to use a different font
-from the default, even if the default face is also fixed-width.
-Different systems have different fonts installed, so you may need to
-customize this.  @xref{Face Customization}.
+  By default, the @code{fixed} face looks the same as @code{bold}.
+This is an attempt to distinguish it from @code{default}.  You may
+wish to customize @code{fixed} to some other fixed-width medium font.
+@xref{Face Customization}.
 
   If your terminal cannot display different faces, you will not be
 able to see them, but you can still edit documents containing faces,
@@ -2058,20 +2058,20 @@ text.  There is a menu for specifying the foreground color and a menu
 for specifying the background color.  Each color menu lists all the
 colors that you have used in Enriched mode in the current Emacs session.
 
-  If you specify a color with a prefix argument---or, in Transient Mark
-mode, if the region is not active---then it applies to your next
-self-inserting input.  @xref{Transient Mark}.  Otherwise, the command
-applies to the region.
+  If you specify a color with a prefix argument---or, in Transient
+Mark mode, if the region is not active---then it applies to any
+immediately following self-inserting input.  @xref{Transient Mark}.
+Otherwise, the command applies to the region.
 
   Each color menu contains one additional item: @samp{Other}.  You can use
 this item to specify a color that is not listed in the menu; it reads
-the color name with the minibuffer.  To display list of available colors
+the color name with the minibuffer.  To display a list of available colors
 and their names, use the @samp{Display Colors} menu item in the Text
 Properties menu (@pxref{Editing Format Info}).
 
   Any color that you specify in this way, or that is mentioned in a
-formatted text file that you read in, is added to both color menus for
-the duration of the Emacs session.
+formatted text file that you read in, is added to the corresponding
+color menu for the duration of the Emacs session.
 
 @findex facemenu-set-foreground
 @findex facemenu-set-background
@@ -2113,32 +2113,41 @@ Remove 4 columns of indentation from the right margin.
   You can use these commands repeatedly to increase or decrease the
 indentation.
 
-  The most common way to use these commands is to change the indentation
-of an entire paragraph.  However, that is not the only use.  You can
-change the margins at any point; the new values take effect at the end
-of the line (for right margins) or the beginning of the next line (for
-left margins).
+  The most common way to use them is to change the indentation of an
+entire paragraph.  For other uses, the effects of refilling can be
+hard to predict, except in some special cases like the one described
+next.
 
-  This makes it possible to format paragraphs with @dfn{hanging indents},
-which means that the first line is indented less than subsequent lines.
-To set up a hanging indent, increase the indentation of the region
-starting after the first word of the paragraph and running until the end
-of the paragraph.
+  The most common other use is to format paragraphs with @dfn{hanging
+indents}, which means that the first line is indented less than
+subsequent lines.  To set up a hanging indent, increase the
+indentation of the region starting after the first word of the
+paragraph and running until the end of the paragraph.
 
   Indenting the first line of a paragraph is easier.  Set the margin for
 the whole paragraph where you want it to be for the body of the
 paragraph, then indent the first line by inserting extra spaces or tabs.
-
-  Sometimes, as a result of editing, the filling of a paragraph becomes
-messed up---parts of the paragraph may extend past the left or right
-margins.  When this happens, use @kbd{M-q} (@code{fill-paragraph}) to
-refill the paragraph.
 
 @vindex standard-indent
   The variable @code{standard-indent} specifies how many columns these
 commands should add to or subtract from the indentation.  The default
 value is 4.  The overall default right margin for Enriched mode is
 controlled by the variable @code{fill-column}, as usual.
+
+@kindex C-c [ @r{(Enriched mode)}
+@kindex C-c ] @r{(Enriched mode)}
+@findex set-left-margin
+@findex set-right-margin
+  There are also two commands for setting the left or right margin of
+the region absolutely: @code{set-left-margin} and
+@code{set-right-margin}.  Enriched mode binds these commands to
+@kbd{C-c [} and @kbd{C-c ]}, respectively.  You can specify the
+margin width either with a numeric argument or in the minibuffer.
+
+  Sometimes, as a result of editing, the filling of a paragraph becomes
+messed up---parts of the paragraph may extend past the left or right
+margins.  When this happens, use @kbd{M-q} (@code{fill-paragraph}) to
+refill the paragraph.
 
   The fill prefix, if any, works in addition to the specified paragraph
 indentation: @kbd{C-x .} does not include the specified indentation's
@@ -2157,11 +2166,11 @@ affects the Emacs fill commands.
 the style.  The submenu contains five items:
 
 @table @code
-@item Flush Left
+@item Left
 This is the most common style of justification (at least for English).
 Lines are aligned at the left margin but left uneven at the right.
 
-@item Flush Right
+@item Right
 This aligns each line with the right margin.  Spaces and tabs are added
 on the left, if necessary, to make lines line up on the right.
 
@@ -2175,7 +2184,7 @@ the width of spaces in a line to achieve elegant justification.
 @item Center
 This centers every line between the current margins.
 
-@item None
+@item Unfilled
 This turns off filling entirely.  Each line will remain as you wrote it;
 the fill and auto-fill functions will have no effect on text which has
 this setting.  You can, however, still indent the left margin.  In
@@ -2195,9 +2204,9 @@ Make the region left-filled (@code{set-justification-left}).
 @findex set-justification-right
 @item M-j r
 Make the region right-filled (@code{set-justification-right}).
-@kindex M-j f @r{(Enriched mode)}
+@kindex M-j b @r{(Enriched mode)}
 @findex set-justification-full
-@item M-j f
+@item M-j b
 Make the region fully justified (@code{set-justification-full}).
 @kindex M-j c @r{(Enriched mode)}
 @kindex M-S @r{(Enriched mode)}
@@ -2220,11 +2229,15 @@ region.
   The default justification style is specified by the variable
 @code{default-justification}.  Its value should be one of the symbols
 @code{left}, @code{right}, @code{full}, @code{center}, or @code{none}.
+This is a per-buffer variable.  Setting the variable directly affects
+only the current buffer.  However, customizing it in a Custom buffer
+sets (as always) the default value for buffers that do not override it.
+@xref{Locals}, and @ref{Easy Customization}.
 
 @node Format Properties
 @subsection Setting Other Text Properties
 
-  The Other Properties menu lets you add or remove three other useful text
+  The Special Properties menu lets you add or remove three other useful text
 properties: @code{read-only}, @code{invisible} and @code{intangible}.
 The @code{intangible} property disallows moving point within the text,
 the @code{invisible} text property hides text from display, and the
@@ -2253,10 +2266,10 @@ When you visit a file that was created with some other editor, Emacs may
 not recognize the file as being in the text/enriched format.  In this
 case, when you visit the file you will see the formatting commands
 rather than the formatted text.  Type @kbd{M-x format-decode-buffer} to
-translate it.
+translate it.  This also automatically turns on Enriched mode.
 
 @item
-When you @emph{insert} a file into a buffer, rather than visiting it.
+When you @emph{insert} a file into a buffer, rather than visiting it,
 Emacs does the necessary conversions on the text which you insert, but
 it does not enable Enriched mode.  If you wish to do that, type @kbd{M-x
 enriched-mode}.
@@ -2268,7 +2281,7 @@ to translate from; however, normally you can type just @key{RET}, which
 tells Emacs to guess the format.
 
 @findex format-find-file
-  If you wish to look at text/enriched file in its raw form, as a
+  If you wish to look at a text/enriched file in its raw form, as a
 sequence of characters rather than as formatted text, use the @kbd{M-x
 find-file-literally} command.  This visits a file, like
 @code{find-file}, but does not do format conversion.  It also inhibits

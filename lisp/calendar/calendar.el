@@ -1769,6 +1769,10 @@ Driven by the variable `calendar-date-display-form'.")
   "Move cursor to ISO date."
   t)
 
+(autoload 'calendar-goto-iso-week "cal-iso"
+  "Move cursor to start of ISO week."
+  t)
+
 (autoload 'calendar-print-iso-date "cal-iso"
   "Show the ISO date equivalents of date."
   t)
@@ -2204,6 +2208,7 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "ge"  'calendar-goto-ethiopic-date)
   (define-key calendar-mode-map "gp"  'calendar-goto-persian-date)
   (define-key calendar-mode-map "gc"  'calendar-goto-iso-date)
+  (define-key calendar-mode-map "gw"  'calendar-goto-iso-week)
   (define-key calendar-mode-map "gf"  'calendar-goto-french-date)
   (define-key calendar-mode-map "gml"  'calendar-goto-mayan-long-count-date)
   (define-key calendar-mode-map "gmpc" 'calendar-previous-calendar-round-date)

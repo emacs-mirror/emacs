@@ -77,7 +77,7 @@
 
 	* multi-install-info.bat: New file.
 
-2003-06-27  Jan D.  <jan.h.d@swipnet.se>
+2003-06-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* config.nt (my_strftime): New define.
 

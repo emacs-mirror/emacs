@@ -268,7 +268,8 @@ get_keymap (object, error, autoload)
 
       /* Should we do an autoload?  Autoload forms for keymaps have
 	 Qkeymap as their fifth element.  */
-      if ((autoload || !error) && EQ (XCAR (tem), Qautoload))
+      if ((autoload || !error) && EQ (XCAR (tem), Qautoload)
+	  && SYMBOLP (object))
 	{
 	  Lisp_Object tail;
 

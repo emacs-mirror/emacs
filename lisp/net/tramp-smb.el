@@ -1087,7 +1087,7 @@ Return the difference in the format of a time value."
 ;; `PC-do-completion' touches the returning "$$" by `substitute-in-file-name'.
 ;; Must be corrected.
 
-(defadvice PC-do-completion (around tramp-smb-advice-PC-do-completion activate)
+(defadvice PC-do-completion (around tramp-smb-advice-PC-do-completion)
   "Changes \"$\" back to \"$$\" in minibuffer."
   (if (funcall PC-completion-as-file-name-predicate)
 
@@ -1122,6 +1122,13 @@ Return the difference in the format of a time value."
 
     ;; No file names. Behave unchanged.
     ad-do-it))
+
+;; Activate advice.  Recent Emacsen don't need that.
+(when (functionp 'PC-do-completion)
+  (condition-case nil
+      (substitute-in-file-name "C$/")
+    (error
+     (ad-activate 'PC-do-completion))))
 
 (provide 'tramp-smb)
 

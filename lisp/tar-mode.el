@@ -405,11 +405,12 @@ MODE should be an integer which is a file mode value."
 Place a dired-like listing on the front;
 then narrow to it, so that only that listing
 is visible (and the real data of the buffer is hidden)."
-  (message "Parsing tar file...")
+  (set-buffer-multibyte nil)
   (let* ((result '())
 	 (pos (point-min))
-	 (bs (max 1 (- (buffer-size) 1024))) ; always 2+ empty blocks at end.
-	 (bs100 (max 1 (/ bs 100)))
+	 (progress-reporter
+	  (make-progress-reporter "Parsing tar file..."
+				  (point-min) (max 1 (- (buffer-size) 1024))))
 	 tokens)
     (while (and (<= (+ pos 512) (point-max))
 		(not (eq 'empty-tar-block
@@ -417,10 +418,7 @@ is visible (and the real data of the buffer is hidden)."
 			       (tar-header-block-tokenize
 				(buffer-substring pos (+ pos 512)))))))
       (setq pos (+ pos 512))
-      (message "Parsing tar file...%d%%"
-	       ;(/ (* pos 100) bs)   ; this gets round-off lossage
-	       (/ pos bs100)         ; this doesn't
-	       )
+      (progress-reporter-update progress-reporter pos)
       (if (eq (tar-header-link-type tokens) 20)
 	  ;; Foo.  There's an extra empty block after these.
 	  (setq pos (+ pos 512)))
@@ -447,7 +445,7 @@ is visible (and the real data of the buffer is hidden)."
     ;; A tar file should end with a block or two of nulls,
     ;; but let's not get a fatal error if it doesn't.
     (if (eq tokens 'empty-tar-block)
-	(message "Parsing tar file...done")
+	(progress-reporter-done progress-reporter)
       (message "Warning: premature EOF parsing tar file")))
   (save-excursion
     (goto-char (point-min))

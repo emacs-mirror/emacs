@@ -1961,8 +1961,8 @@ struct it
 
   /* Object and position where the current display element came from.
      Object can be a Lisp string in case the current display element
-     comes from an overlay string, or it is buffer.  Position is
-     a position in object.  */
+     comes from an overlay string, or it is buffer.  It may also be nil
+     during mode-line update.  Position is a position in object.  */
   Lisp_Object object;
   struct text_pos position;
 
@@ -2637,7 +2637,7 @@ extern int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
 int lookup_fringe_bitmap (Lisp_Object);
 void draw_fringe_bitmap P_ ((struct window *, struct glyph_row *, int));
 void draw_row_fringe_bitmaps P_ ((struct window *, struct glyph_row *));
-void draw_window_fringes P_ ((struct window *));
+int draw_window_fringes P_ ((struct window *, int));
 int update_window_fringes P_ ((struct window *, int));
 void compute_fringe_widths P_ ((struct frame *, int));
 

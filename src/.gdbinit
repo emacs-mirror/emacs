@@ -60,6 +60,16 @@ Print the emacs s-expression which is $.
 Works only when an inferior emacs is executing.
 end
 
+# Print out s-expressions
+define pp
+  set $tmp = $arg0
+  set debug_print ($tmp)
+end
+document pp
+Print the argument as an emacs s-expression
+Works only when an inferior emacs is executing.
+end
+
 define xtype
   xgettype $
   output $type
@@ -451,6 +461,16 @@ document xreload
   This function reloads them.
 end
 xreload
+
+# Flush display (X only)
+define ff
+  set x_flush (0)
+end
+document ff
+Flush pending X window display updates to screen.
+Works only when an inferior emacs is executing.
+end
+
 
 define hook-run
   xreload

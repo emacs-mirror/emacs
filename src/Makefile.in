@@ -887,7 +887,7 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) \
 #define OBJECTS_MACHINE
 #endif
 
-#ifdef HAVE_EXECSHIELD
+#ifdef HAVE_RANDOM_HEAPSTART
 #undef i386
 RUN_TEMACS = @SETARCH@ i386 ./temacs
 #else

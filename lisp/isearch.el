@@ -676,16 +676,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
     (if isearch-small-window
 	(goto-char found-point)
       ;; Exiting the save-window-excursion clobbers window-start; restore it.
-      (set-window-start (selected-window) found-start t))
-
-    ;; If there was movement, mark the starting position.
-    ;; Maybe should test difference between and set mark iff > threshold.
-    (if (/= (point) isearch-opoint)
-	(or (and transient-mark-mode mark-active)
-	    (progn
-	      (push-mark isearch-opoint t)
-	      (or executing-kbd-macro (> (minibuffer-depth) 0)
-		  (message "Mark saved where search started"))))))
+      (set-window-start (selected-window) found-start t)))
 
   (setq isearch-mode nil)
   (if isearch-input-method-local-p
@@ -710,6 +701,16 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
       (isearch-update-ring isearch-string isearch-regexp))
 
   (run-hooks 'isearch-mode-end-hook)
+
+  ;; If there was movement, mark the starting position.
+  ;; Maybe should test difference between and set mark iff > threshold.
+  (if (/= (point) isearch-opoint)
+      (or (and transient-mark-mode mark-active)
+	  (progn
+	    (push-mark isearch-opoint t)
+	    (or executing-kbd-macro (> (minibuffer-depth) 0)
+		(message "Mark saved where search started")))))
+
   (and (not edit) isearch-recursive-edit (exit-recursive-edit)))
 
 (defun isearch-update-ring (string &optional regexp)
@@ -1249,8 +1250,8 @@ might return the position of the end of the line."
 (defun isearch-yank-line ()
   "Pull rest of line from buffer into search string."
   (interactive)
-  (isearch-yank-internal 'line-end-position))
-
+  (isearch-yank-internal
+   (lambda () (line-end-position (if (eolp) 2 1)))))
 
 (defun isearch-search-and-update ()
   ;; Do the search and update the display.
