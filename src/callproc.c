@@ -381,7 +381,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     struct gcpro gcpro1;
 
     GCPRO1 (current_dir);
-    openp (Vexec_path, args[0], Vexec_suffixes, &path, 1);
+    openp (Vexec_path, args[0], Vexec_suffixes, &path, make_number (X_OK));
     UNGCPRO;
   }
   if (NILP (path))
