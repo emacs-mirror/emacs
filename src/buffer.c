@@ -1236,6 +1236,17 @@ with SIGHUP.")
 	return Qnil;
     }
 
+  /* Notice if the buffer to kill is the sole visible buffer
+     when we're currently in the mini-buffer, and give up if so.  */
+  XSETBUFFER (tem, current_buffer);
+  if (EQ (tem, XWINDOW (minibuf_window)->buffer))
+    {
+      tem = Fother_buffer (buf, Qnil, Qnil);
+      Fset_buffer (tem);
+      if (EQ (buf, tem))
+	return Qnil;
+    }
+
   /* Now there is no question: we can kill the buffer.  */
 
 #ifdef CLASH_DETECTION
