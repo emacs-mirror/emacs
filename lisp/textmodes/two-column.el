@@ -302,6 +302,7 @@ and \\[tc-associate-buffer] (tc-associate-buffer), on both buffers.")
 	    (kill-local-variable 'mode-line-format)
 	    nil))))
 
+;;;###autoload
 (defun tc-two-columns (&optional buffer)
   "Split current window vertically for two-column editing.
 
@@ -376,6 +377,7 @@ The appearance of the screen can be customized by the variables
 
 (fset 'tc-mode 'tc-two-columns)
 
+;;;###autoload
 (defun tc-associate-buffer ()
   "Associate another buffer with this one in two-column minor mode.
 Can also be used to associate a just previously visited file, by
@@ -399,6 +401,7 @@ See  \\[tc-two-columns]  and  `lisp/two-column.el'  for further details."
     (if b1 (setq tc-window-width (- (frame-width) b1)))
     (tc-two-columns b2)))
 
+;;;###autoload
 (defun tc-split (arg)
   "Unmerge a two-column text into two buffers in two-column minor mode.
 The text is unmerged at the cursor's column which becomes the local
@@ -466,6 +469,7 @@ See  \\[tc-two-columns]  and  `lisp/two-column.el'  for further details."
 	  (setq n 0))
 	(next-line 1)))))
 
+;;;###autoload
 (defun tc-kill-association ()
   "Turn off two-column minor mode in current and associated buffer.
 If the associated buffer is unmodified and empty, it is killed."
@@ -493,6 +497,7 @@ If the associated buffer is unmodified and empty, it is killed."
 
 ;; this doesn't use yank-rectangle, so that the first column can
 ;; contain long lines
+;;;###autoload
 (defun tc-merge ()
   "Merges the associated buffer with the current buffer.
 They get merged at the column, which is the value of
@@ -539,6 +544,7 @@ off trailing spaces with \\[beginning-of-buffer] \\[replace-regexp] [ SPC TAB ] 
 
 ;;;;; utility functions ;;;;;
 
+;;;###autoload
 (defun tc-associated-buffer ()
   "Switch to associated buffer."
   (interactive)
@@ -550,6 +556,7 @@ off trailing spaces with \\[beginning-of-buffer] \\[replace-regexp] [ SPC TAB ] 
 
 ;; It would be desirable to intercept anything that causes the current
 ;; window to scroll.  Maybe a `scroll-hook'?
+;;;###autoload
 (defun tc-scroll-line (arg)
   "Scroll current window upward by ARG lines.
 The associated window gets scrolled to the same line."
@@ -575,6 +582,7 @@ The associated window gets scrolled to the same line."
 	    (scroll-up arg))
 	(select-window window))))
 
+;;;###autoload
 (defun tc-scroll-up (arg)
   "Scroll current window upward by ARG screens.
 The associated window gets scrolled to the same line."
@@ -582,6 +590,7 @@ The associated window gets scrolled to the same line."
   (tc-scroll-line (* arg (- (window-height)
 				    next-screen-context-lines 1))))
 
+;;;###autoload
 (defun tc-scroll-down (arg)
   "Scroll current window downward by ARG screens.
 The associated window gets scrolled to the same line."
@@ -589,6 +598,7 @@ The associated window gets scrolled to the same line."
   (tc-scroll-line (* arg (- next-screen-context-lines
 				    (window-height) -1))))
 
+;;;###autoload
 (defun tc-recenter (arg)
   "Center point in window.  With ARG, put point on line ARG.
 This counts from bottom if ARG is negative.  The associated window
