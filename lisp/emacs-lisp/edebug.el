@@ -504,9 +504,6 @@ Return the result of the last expression in BODY."
 ;; read is redefined to maybe instrument forms.
 ;; eval-defun is redefined to check edebug-all-forms and edebug-all-defs.
 
-;; Use the Lisp version of eval-region.
-(require 'eval-reg "eval-reg")
-
 ;; Save the original read function
 (or (fboundp 'edebug-original-read)
     (defalias 'edebug-original-read  (symbol-function 'read)))
@@ -615,15 +612,13 @@ or if an error occurs, leave point after it with mark at the original point."
 (defun edebug-install-read-eval-functions ()
   (interactive)
   ;; Don't install if already installed.
-  (if (eq (symbol-function 'read) 'edebug-read) nil
-    (elisp-eval-region-install)
-    (defalias 'read 'edebug-read)
+  (unless load-read-function
+    (setq load-read-function 'edebug-read)
     (defalias 'eval-defun 'edebug-eval-defun)))
 
 (defun edebug-uninstall-read-eval-functions ()
   (interactive)
-  (elisp-eval-region-uninstall)
-  (defalias 'read (symbol-function 'edebug-original-read))
+  (setq load-read-function nil)
   (defalias 'eval-defun (symbol-function 'edebug-original-eval-defun)))
 
 
