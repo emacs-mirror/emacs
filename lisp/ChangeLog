@@ -1,3 +1,8 @@
+2003-05-07  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
+
+	* files.el (insert-file-contents-literally): Allow it to be called
+	within a magic file name handler.
+
 2003-05-07  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* uniquify.el (uniquify-item, uniquify-get-proposed-name)
@@ -96,7 +101,7 @@
 
 	* newcomment.el (comment-search-forward): Delete autoload cookie.
 
-2003-05-06  Kenichi Handa  <handa@etlken2>
+2003-05-06  Kenichi Handa  <handa@m17n.org>
 
 	* arc-mode.el (archive-set-buffer-as-visiting-file):
 	Use after-insert-file-set-coding, not
