@@ -686,22 +686,12 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
      struct window *w;
      int cursor_on_p, mouse_face_overwritten_p;
 {
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (w->frame));
+      
   if (!w->pseudo_window_p)
     {
-      struct x_display_info *dpyinfo
-	= FRAME_X_DISPLAY_INFO (XFRAME (w->frame));
-      
       BLOCK_INPUT;
 
-      /* If a row with mouse-face was overwritten, arrange for
-	 XTframe_up_to_date to redisplay the mouse highlight.  */
-      if (mouse_face_overwritten_p)
-	{
-	  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-	  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-	  dpyinfo->mouse_face_window = Qnil;
-	}
-      
       if (cursor_on_p)
 	x_display_and_set_cursor (w, 1, output_cursor.hpos,
 				  output_cursor.vpos,
@@ -711,6 +701,15 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
       UNBLOCK_INPUT;
     }
   
+  /* If a row with mouse-face was overwritten, arrange for
+     XTframe_up_to_date to redisplay the mouse highlight.  */
+  if (mouse_face_overwritten_p)
+    {
+      dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
+      dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
+      dpyinfo->mouse_face_window = Qnil;
+    }
+      
   updated_window = NULL;
 }
 
@@ -7154,7 +7153,7 @@ note_tool_bar_highlight (f, x, y)
   int i;
   Lisp_Object enabled_p;
   int prop_idx;
-  enum draw_glyphs_face draw = DRAW_IMAGE_RAISED;
+  enum draw_glyphs_face draw;
   int mouse_down_p, rc;
 
   /* Function note_mouse_highlight is called with negative x(y
@@ -7173,7 +7172,6 @@ note_tool_bar_highlight (f, x, y)
       return;
     }
   else if (rc == 0)
-    /* On same tool-bar item as before.  */
     goto set_help_echo;
 
   clear_mouse_face (dpyinfo);
@@ -7481,7 +7479,7 @@ show_mouse_face (dpyinfo, draw)
 
       if (end_hpos > start_hpos)
 	{
-	  row->mouse_face_p = draw == DRAW_MOUSE_FACE;
+	  row->mouse_face_p = draw == DRAW_MOUSE_FACE || DRAW_IMAGE_RAISED;
 	  x_draw_glyphs (w, start_x, row, TEXT_AREA, 
 			 start_hpos, end_hpos, draw, NULL, NULL, 0);
 	}
