@@ -24,6 +24,12 @@
 	* makefile.w32-in (DONTCOMPILE, bootstrap-clean-CMD)
 	(bootstrap-clean-SH): Rename loaddefs-boot.el to ldefs-boot.el
 
+2003-10-03  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* info.el (Info-mode): Revert previous change.
+	(Info-escape-percent): New function.
+	(Info-fontify-node): Use it.
+
 2003-10-02  Andreas Schwab  <schwab@suse.de>
 
 	* loaddefs-boot.el: Regenerated.
