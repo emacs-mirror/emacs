@@ -120,7 +120,7 @@ check_syntax_table (obj)
   register Lisp_Object tem;
   while (tem = Fsyntax_table_p (obj),
 	 NILP (tem))
-    obj = wrong_type_argument (Qsyntax_table_p, obj, 0);
+    obj = wrong_type_argument (Qsyntax_table_p, obj);
   return obj;
 }   
 
@@ -449,7 +449,7 @@ describe_syntax_1 (vector)
 {
   struct buffer *old = current_buffer;
   set_buffer_internal (XBUFFER (Vstandard_output));
-  describe_vector (vector, Qnil, describe_syntax, 0, Qnil, Qnil);
+  describe_vector (vector, Qnil, describe_syntax, 0, Qnil);
   set_buffer_internal (old);
   return Qnil;
 }
@@ -560,6 +560,263 @@ and nil is returned.")
       return Qnil;
     }
   SET_PT (val);
+  return Qt;
+}
+
+DEFUN ("forward-comment", Fforward_comment, Sforward_comment, 1, 1, 0,
+  "Move forward across up to N comments.  If N is negative, move backward.\n\
+Set point to the far end of the last comment found.\n\
+Stop scanning if we find something other than a comment or whitespace.\n\
+If N comments are found as expected, with nothing except whitespace\n\
+between them, return t; otherwise return nil.")
+  (count)
+     int count;
+{
+  register int from;
+  register int stop;
+  register int c;
+  register enum syntaxcode code;
+  int comstyle = 0;	    /* style of comment encountered */
+
+  immediate_quit = 1;
+  QUIT;
+
+  from = PT;
+
+  while (count > 0)
+    {
+      stop = ZV;
+      while (from < stop)
+	{
+	  c = FETCH_CHAR (from);
+	  code = SYNTAX (c);
+	  from++;
+	  comstyle = 0;
+	  if (from < stop && SYNTAX_COMSTART_FIRST (c)
+	      && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from)))
+	    {
+	      /* we have encountered a comment start sequence and we 
+		 are ignoring all text inside comments. we must record
+		 the comment style this sequence begins so that later,
+		 only a comment end of the same style actually ends
+		 the comment section */
+	      code = Scomment;
+	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from));
+	      from++;
+	    }
+
+	  if (code == Scomment)
+	    {
+	      while (1)
+		{
+		  if (from == stop)
+		    {
+		      immediate_quit = 0;
+		      return Qnil;
+		    }
+		  c = FETCH_CHAR (from);
+		  if (SYNTAX (c) == Sendcomment
+		      && SYNTAX_COMMENT_STYLE (c) == comstyle)
+		    /* we have encountered a comment end of the same style
+		       as the comment sequence which began this comment
+		       section */
+		    break;
+		  from++;
+		  if (from < stop && SYNTAX_COMEND_FIRST (c)
+		      && SYNTAX_COMEND_SECOND (FETCH_CHAR (from))
+		      && SYNTAX_COMMENT_STYLE (c) == comstyle)
+		    /* we have encountered a comment end of the same style
+		       as the comment sequence which began this comment
+		       section */
+		    { from++; break; }
+		}
+	      /* We have skipped one comment.  */
+	      break;
+	    }
+	  else if (code != Swhitespace)
+	    {
+	      immediate_quit = 0;
+	      return Qnil;
+	    }
+	}
+
+      /* End of comment reached */
+      count--;
+    }
+
+  while (count < 0)
+    {
+      stop = BEGV;
+      while (from > stop)
+	{
+	  int quoted;
+
+	  from--;
+	  quoted = char_quoted (from);
+	  if (quoted)
+	    from--;
+	  c = FETCH_CHAR (from);
+	  code = SYNTAX (c);
+	  comstyle = 0;
+	  if (from > stop && SYNTAX_COMEND_SECOND (c)
+	      && SYNTAX_COMEND_FIRST (FETCH_CHAR (from - 1))
+	      && !char_quoted (from - 1))
+	    {
+	      /* we must record the comment style encountered so that
+		 later, we can match only the proper comment begin
+		 sequence of the same style */
+	      code = Sendcomment;
+	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from - 1));
+	      from--;
+	    }
+
+	  if (code == Sendcomment && !quoted)
+	    {
+	      if (code != SYNTAX (c))
+		/* For a two-char comment ender, we can assume
+		   it does end a comment.  So scan back in a simple way.  */
+		{
+		  if (from != stop) from--;
+		  while (1)
+		    {
+		      if (SYNTAX (c = FETCH_CHAR (from)) == Scomment
+			  && SYNTAX_COMMENT_STYLE (c) == comstyle)
+			break;
+		      if (from == stop)
+			{
+			  immediate_quit = 0;
+			  return Qnil;
+			}
+		      from--;
+		      if (SYNTAX_COMSTART_SECOND (c)
+			  && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from))
+			  && SYNTAX_COMMENT_STYLE (c) == comstyle
+			  && !char_quoted (from))
+			break;
+		    }
+		  break;
+		}
+
+	      /* Look back, counting the parity of string-quotes,
+		 and recording the comment-starters seen.
+		 When we reach a safe place, assume that's not in a string;
+		 then step the main scan to the earliest comment-starter seen
+		 an even number of string quotes away from the safe place.
+
+		 OFROM[I] is position of the earliest comment-starter seen
+		 which is I+2X quotes from the comment-end.
+		 PARITY is current parity of quotes from the comment end.  */
+	      {
+		int parity = 0;
+		char my_stringend = 0;
+		int string_lossage = 0;
+		int comment_end = from;
+		int comstart_pos = 0;
+		int comstart_parity = 0;
+
+		/* At beginning of range to scan, we're outside of strings;
+		   that determines quote parity to the comment-end.  */
+		while (from != stop)
+		  {
+		    /* Move back and examine a character.  */
+		    from--;
+
+		    c = FETCH_CHAR (from);
+		    code = SYNTAX (c);
+
+		    /* If this char is the second of a 2-char comment sequence,
+		       back up and give the pair the appropriate syntax.  */
+		    if (from > stop && SYNTAX_COMEND_SECOND (c)
+			&& SYNTAX_COMEND_FIRST (FETCH_CHAR (from - 1)))
+		      {
+			code = Sendcomment;
+			from--;
+		      }
+			
+		    else if (from > stop && SYNTAX_COMSTART_SECOND (c)
+			     && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from - 1))
+			     && comstyle == SYNTAX_COMMENT_STYLE (c))
+		      {
+			code = Scomment;
+			from--;
+		      }
+
+		    /* Ignore escaped characters.  */
+		    if (char_quoted (from))
+		      continue;
+
+		    /* Track parity of quotes.  */
+		    if (code == Sstring)
+		      {
+			parity ^= 1;
+			if (my_stringend == 0)
+			  my_stringend = c;
+			/* If we have two kinds of string delimiters.
+			   There's no way to grok this scanning backwards.  */
+			else if (my_stringend != c)
+			  string_lossage = 1;
+		      }
+
+		    /* Record comment-starters according to that
+		       quote-parity to the comment-end.  */
+		    if (code == Scomment)
+		      {
+			comstart_parity = parity;
+			comstart_pos = from;
+		      }
+
+		    /* If we find another earlier comment-ender,
+		       any comment-starts earier than that don't count
+		       (because they go with the earlier comment-ender).  */
+		    if (code == Sendcomment
+			&& SYNTAX_COMMENT_STYLE (FETCH_CHAR (from)) == comstyle)
+		      break;
+
+		    /* Assume a defun-start point is outside of strings.  */
+		    if (code == Sopen
+			&& (from == stop || FETCH_CHAR (from - 1) == '\n'))
+		      break;
+		  }
+
+		if (comstart_pos == 0)
+		  from = comment_end;
+		/* If the earliest comment starter
+		   is followed by uniform paired string quotes or none,
+		   we know it can't be inside a string
+		   since if it were then the comment ender would be inside one.
+		   So it does start a comment.  Skip back to it.  */
+		else if (comstart_parity == 0 && !string_lossage)
+		  from = comstart_pos;
+		else
+		  {
+		    /* We had two kinds of string delimiters mixed up
+		       together.  Decode this going forwards.
+		       Scan fwd from the previous comment ender
+		       to the one in question; this records where we
+		       last passed a comment starter.  */
+		    struct lisp_parse_state state;
+		    scan_sexps_forward (&state, find_defun_start (comment_end),
+					comment_end - 1, -10000, 0, Qnil);
+		    if (state.incomment)
+		      from = state.comstart;
+		    else
+		      /* We can't grok this as a comment; scan it normally.  */
+		      from = comment_end;
+		  }
+	      }
+	    }
+	  else if (code != Swhitespace || quoted)
+	    {
+	      immediate_quit = 0;
+	      return Qnil;
+	    }
+	}
+
+      count++;
+    }
+
+  SET_PT (from);
+  immediate_quit = 0;
   return Qt;
 }
 
@@ -1418,6 +1675,7 @@ syms_of_syntax ()
 
   defsubr (&Sforward_word);
 
+  defsubr (&Sforward_comment);
   defsubr (&Sscan_lists);
   defsubr (&Sscan_sexps);
   defsubr (&Sbackward_prefix_chars);
