@@ -174,7 +174,7 @@ non_ascii_char_to_string (c, workbuf, str)
    directly if STR can hold an ASCII character.  */
 
 string_to_non_ascii_char (str, len, actual_len)
-     unsigned char *str;
+     const unsigned char *str;
      int len, *actual_len;
 {
   int charset;
@@ -200,7 +200,7 @@ string_to_non_ascii_char (str, len, actual_len)
 /* Return the length of the multi-byte form at string STR of length LEN.  */
 int
 multibyte_form_length (str, len)
-     unsigned char *str;
+     const unsigned char *str;
      int len;
 {
   int charset;
@@ -222,7 +222,8 @@ multibyte_form_length (str, len)
    which checks range of STR in advance.  */
 
 split_non_ascii_string (str, len, charset, c1, c2)
-     register unsigned char *str, *c1, *c2;
+     register const unsigned char *str;
+     register unsigned char *c1, *c2;
      register int len, *charset;
 {
   register unsigned int cs = *str++;
@@ -1205,7 +1206,7 @@ static int *cmpchar_hash_table[CMPCHAR_HASH_TABLE_SIZE];
    is the sole function for assigning CMPCHAR-ID.  */
 int
 str_cmpchar_id (str, len)
-     unsigned char *str;
+     const unsigned char *str;
      int len;
 {
   int hash_idx, *hashp;
@@ -1220,7 +1221,7 @@ str_cmpchar_id (str, len)
 
   /* At first, get the actual length of the composite character.  */
   {
-    unsigned char *p, *endp = str + 1, *lastp = str + len;
+    const unsigned char *p, *endp = str + 1, *lastp = str + len;
     int bytes;
 
     while (endp < lastp && ! CHAR_HEAD_P (*endp)) endp++;
