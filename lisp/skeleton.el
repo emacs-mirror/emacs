@@ -381,7 +381,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 	 opoint)
     (or str
 	(setq str `(setq str (skeleton-read ',(car skeleton) nil ,recursive))))
-    (when (and (eq (cadr skeleton) '\n)
+    (when (and (eq (cadr skeleton) '\n) (not recursive)
 	       (save-excursion (skip-chars-backward " \t") (bolp)))
       (setq skeleton (cons nil (cons '> (cddr skeleton)))))
     (while (setq skeleton-modified (eq opoint (point))
@@ -432,7 +432,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 	(indent-region (line-beginning-position)
 		       (car skeleton-regions) nil))
        ;; \n as last element only inserts \n if not at eol.
-       ((and (null (cdr skeleton)) (eolp))
+       ((and (null (cdr skeleton)) (not recursive) (eolp))
 	(if pos (indent-according-to-mode)))
        (skeleton-newline-indent-rigidly
 	(let ((pt (point)))
