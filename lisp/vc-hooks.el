@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.147 2003/02/05 23:14:06 lektu Exp $
+;; $Id: vc-hooks.el,v 1.148 2003/05/07 17:20:29 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -633,7 +633,7 @@ current, and kill the buffer that visits the link."
       (kill-buffer this-buffer))))
 
 (defun vc-find-file-hook ()
-  "Function for `find-file-hooks' activating VC mode if appropriate."
+  "Function for `find-file-hook' activating VC mode if appropriate."
   ;; Recompute whether file is version controlled,
   ;; if user has killed the buffer and revisited.
   (if vc-mode
@@ -676,13 +676,13 @@ current, and kill the buffer that visits the link."
         "Warning: editing through the link bypasses version control")
                      )))))))))
 
-(add-hook 'find-file-hooks 'vc-find-file-hook)
+(add-hook 'find-file-hook 'vc-find-file-hook)
 
 ;; more hooks, this time for file-not-found
 (defun vc-file-not-found-hook ()
   "When file is not found, try to check it out from version control.
 Returns t if checkout was successful, nil otherwise.
-Used in `find-file-not-found-hooks'."
+Used in `find-file-not-found-hook'."
   ;; When a file does not exist, ignore cached info about it
   ;; from a previous visit.
   (vc-file-clearprops buffer-file-name)
@@ -695,7 +695,7 @@ Used in `find-file-not-found-hooks'."
       (setq default-directory (file-name-directory buffer-file-name))
       (not (vc-error-occurred (vc-checkout buffer-file-name))))))
 
-(add-hook 'find-file-not-found-hooks 'vc-file-not-found-hook)
+(add-hook 'find-file-not-found-hook 'vc-file-not-found-hook)
 
 (defun vc-kill-buffer-hook ()
   "Discard VC info about a file when we kill its buffer."
