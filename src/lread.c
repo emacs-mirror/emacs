@@ -1420,13 +1420,29 @@ defvar_per_buffer (namestring, address, doc)
 
 #endif /* standalone */
 
-init_read ()
+init_lread ()
 {
   char *normal = PATH_LOADSEARCH;
   Lisp_Object normal_path;
 
+  /* Compute the default load-path.  */
+#ifndef CANNOT_DUMP
+  /* If running a dumped Emacs in which load-path was set before dumping
+     to a nonstandard value, use that value.  */
+  if (initialized
+      && !(XTYPE (Vload_path) == Lisp_Cons
+	   && XTYPE (XCONS (Vload_path)->car) == Lisp_String
+	   && !strcmp (XSTRING (XCONS (Vload_path)->car)->data, "../lisp")))
+    normal_path = Vload_path;
+  else
+#endif
+    {
+      normal_path = decode_env_path ("", normal);
+
+      Vload_path = normal_path;
+    }
+
   /* Warn if dirs in the *standard* path don't exist.  */
-  normal_path = decode_env_path ("", normal);
   for (; !NULL (normal_path); normal_path = XCONS (normal_path)->cdr)
     {
       Lisp_Object dirfile;
@@ -1440,18 +1456,20 @@ init_read ()
 	}
     }
 
-  Vvalues = Qnil;
-
-  Vload_path = decode_env_path ("EMACSLOADPATH", normal);
+  if (egetenv ("EMACSLOADPATH"))
+    Vload_path = decode_env_path ("EMACSLOADPATH", normal);
 #ifndef CANNOT_DUMP
   if (!NULL (Vpurify_flag))
     Vload_path = Fcons (build_string ("../lisp"), Vload_path);
-#endif /* not CANNOT_DUMP */
+#endif
+
+  Vvalues = Qnil;
+
   load_in_progress = 0;
 }
 
 void
-syms_of_read ()
+syms_of_lread ()
 {
   defsubr (&Sread);
   defsubr (&Sread_from_string);
