@@ -78,6 +78,18 @@
 
 (define-abbrev-table 'lisp-mode-abbrev-table ())
 
+(defvar lisp-imenu-generic-expression
+      '(
+	(nil 
+	 "^\\s-*(def\\(un\\|subst\\|macro\\|advice\\)\\s-+\\([-A-Za-z0-9+]+\\)" 2)
+	("Variables" 
+	 "^\\s-*(def\\(var\\|const\\)\\s-+\\([-A-Za-z0-9+]+\\)" 2)
+	("Types" 
+	 "^\\s-*(def\\(type\\|struct\\|class\\|ine-condition\\)\\s-+\\([-A-Za-z0-9+]+\\)" 
+	 2))
+
+  "Imenu generic expression for Lisp mode.  See `imenu-generic-expression'.")
+
 (defun lisp-mode-variables (lisp-syntax)
   (cond (lisp-syntax
 	  (set-syntax-table lisp-mode-syntax-table)))
@@ -105,7 +117,9 @@
   (make-local-variable 'comment-column)
   (setq comment-column 40)
   (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'lisp-comment-indent))
+  (setq comment-indent-function 'lisp-comment-indent)
+  (make-local-variable 'imenu-generic-expression)
+  (setq imenu-generic-expression lisp-imenu-generic-expression))
 
 (defvar shared-lisp-mode-map ()
   "Keymap for commands shared by all sorts of Lisp modes.")
