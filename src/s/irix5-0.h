@@ -17,6 +17,9 @@
 #undef SETUP_SLAVE_PTY
 #endif
 
+/* thomas@mathematik.uni-bremen.de says this is needed.  */
+/* Make process_send_signal work by "typing" a signal character on the pty.  */
+#define SIGNALS_VIA_CHARACTERS
 
 /* Define HAVE_ALLOCA to say that the system provides a properly
    working alloca function and it should be used. */
