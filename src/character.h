@@ -157,6 +157,10 @@ Boston, MA 02111-1307, USA.  */
    form.  */
 #define LEADING_CODE_P(byte) (((byte) & 0xC0) == 0xC0)
 
+/* Nonzero iff BYTE is a trailing code of a non-ASCII character in a
+   multibyte form.  */
+#define TRAILING_CODE_P(byte) (((byte) & 0xC0) == 0x80)
+
 /* Nonzero iff BYTE starts a character in a multibyte form.
    This is equivalent to:
 	(ASCII_BYTE_P (byte) || LEADING_CODE_P (byte))  */
@@ -459,7 +463,7 @@ Boston, MA 02111-1307, USA.  */
 	{							\
 	  if (SYMBOLP (val))					\
 	    {							\
-	      Funify_charset (val, Qnil);			\
+	      Funify_charset (val, Qnil, Qnil);			\
 	      val = CHAR_TABLE_REF (Vchar_unify_table, c);	\
 	    }							\
 	  if ((unified = XINT (val)) >= 0)			\
@@ -492,8 +496,8 @@ Boston, MA 02111-1307, USA.  */
    : XINT (CHAR_TABLE_REF (Vchar_width_table, c)))
 
 extern int char_string_with_unification P_ ((int, unsigned char *));
-extern int string_char_with_unification P_ ((unsigned char *,
-					     unsigned char **, int *));
+extern int string_char_with_unification P_ ((const unsigned char *,
+					     const unsigned char **, int *));
 
 extern int translate_char P_ ((Lisp_Object, int c));
 extern int char_printable_p P_ ((int c));
@@ -522,6 +526,8 @@ extern Lisp_Object string_escape_byte8 P_ ((Lisp_Object));
 
 /* A char-table for characters which may invoke auto-filling.  */
 extern Lisp_Object Vauto_fill_chars;
+
+extern Lisp_Object Vscript_alist;
 
 /* Copy LEN bytes from FROM to TO.  This macro should be used only
    when a caller knows that LEN is short and the obvious copy loop is
