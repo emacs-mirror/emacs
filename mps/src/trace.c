@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- *  $HopeName: MMsrc!trace.c(trunk.9) $
+ * $HopeName: MMsrc!trace.c(trunk.10) $
  */
 
 #include "std.h"
@@ -14,178 +14,168 @@
 #include "rootst.h"
 #include <limits.h>
 
-SRCID("$HopeName: MMsrc!trace.c(trunk.9) $");
+SRCID("$HopeName: MMsrc!trace.c(trunk.10) $");
 
-
-
-#ifdef DEBUG
-
-Bool TraceIsValid(Trace trace, ValidationType validParam)
+Bool ScanStateIsValid(ScanState ss, ValidationType validParam)
 {
-  RefRank rank;
-  AVER(trace != NULL);
-  AVER(trace->sig == TraceSig);
-  AVER(ISVALIDNESTED(Space, trace->space));
-  for(rank = 0; rank < RefRankMAX; ++rank)
-    AVER(trace->work[rank].marked >= trace->work[rank].scanned);
-  AVER(ISVALIDNESTED(RefRank, trace->rank));
-  AVER(TraceSetIsMember(trace->space->busyTraces,
-                        trace - trace->space->trace));
+  AVER(ss != NULL);
+  AVER(ss->sig == ScanStateSig);
+  AVER(ISVALIDNESTED(Space, ss->space));
+  AVER(ss->zoneShift == ss->space->zoneShift);
+  AVER(ISVALIDNESTED(RefRank, ss->rank));
+  AVER(ss->condemned == ss->space->trace[ss->traceId].condemned);
   return TRUE;
 }
 
-#endif /* DEBUG */
-
-
-Error TraceCreate(Trace *traceReturn, Space space)
+Error TraceCreate(TraceId *tiReturn, Space space)
 {
-  RefRank rank;
-  TraceId id;
-  Trace trace;
+  TraceId ti;
 
   /* .single-collection */
   AVER(TRACE_MAX == 1);
 
-  AVER(traceReturn != NULL);
+  AVER(tiReturn != NULL);
   AVER(ISVALID(Space, space));
 
   /* allocate free TraceId */
-  for(id = 0; id < TRACE_MAX; ++id)
-    if(!TraceSetIsMember(space->busyTraces, id))
+  for(ti = 0; ti < TRACE_MAX; ++ti)
+    if(!TraceSetIsMember(space->busyTraces, ti))
       goto found;
   return ErrLIMIT;
 
 found:
-  trace = &space->trace[id];
-  trace->space = space;
-  for(rank = 0; rank < RefRankMAX; ++rank) {
-    trace->work[rank].scanned = 0;
-    trace->work[rank].marked = 0;
-  }
-  trace->ss.fix = TraceFix;
-  trace->ss.zoneShift = space->zoneShift;
-  trace->ss.condemned = RefSetEmpty;
-  trace->ss.summary = RefSetEmpty;
-  trace->rank = 0;                /* current rank */
+  space->trace[ti].condemned = RefSetEmpty;
+  space->busyTraces = TraceSetAdd(space->busyTraces, ti);
 
-  trace->sig = TraceSig;
-  
-  space->busyTraces = TraceSetAdd(space->busyTraces, id);
-
-  AVER(ISVALID(Trace, trace));
-  
+  *tiReturn = ti;
   return ErrSUCCESS;
 }
 
-void TraceDestroy(Trace trace)
+void TraceDestroy(Space space, TraceId ti)
 {
-  Space space;
-  TraceId id;
-
-  AVER(ISVALID(Trace, trace));
-  
-  space = trace->space;
-  id = TraceTraceId(trace);
-
-#ifdef DEBUG
-  {
-    RefRank rank;
-
-    /* Check that all scanning has been done. */
-    for(rank = 0; rank < RefRankMAX; ++rank)  
-      AVER(trace->work[rank].scanned == trace->work[rank].marked);
-  }
-#endif
-
-  space->busyTraces = TraceSetDelete(space->busyTraces, id);
-
-  trace->sig = SigInvalid;
+  AVER(ISVALID(Space, space));
+  space->busyTraces = TraceSetDelete(space->busyTraces, ti);
 }  
 
-
-Error TraceDescribe(Trace trace, LibStream stream)
+Error TraceFlip(Space space, TraceId ti, RefSet condemned)
 {
-  RefRank rank;
+  Deque deque;
+  DequeNode node;
+  Trace trace;
+  ScanStateStruct ss;
+  Error e;
 
-  AVER(ISVALID(Trace, trace));
-  
-  LibFormat(stream,
-            "Trace %p {\n"
-            "  space = %p\n"
-            "  condemned refset = %lX\n",
-            (void *)trace,
-            (unsigned long)TraceTraceId(trace),
-            (void *)trace->space,
-            (unsigned long)trace->ss.condemned);
-  
-  LibFormat(stream, "  rank    marked   scanned\n");
-  for(rank = 0; rank < RefRankMAX; ++rank)
-    LibFormat(stream, "  %4d  %8lX  %8lX\n",
-              rank,
-              (unsigned long)trace->work[rank].marked,
-              (unsigned long)trace->work[rank].scanned);
+  AVER(ISVALID(Space, space));
 
-  LibFormat(stream, "} Trace %p\n", (void *)trace);
+  trace = &space->trace[ti];
+  AVER(trace->condemned == RefSetEmpty);
+  trace->condemned = condemned;
+
+  /* Grey all the roots and pools. */
+
+  deque = SpacePoolDeque(space);
+  node = DequeFirst(deque);
+  while(node != DequeSentinel(deque)) {
+    DequeNode next = DequeNodeNext(node);
+    Pool pool = DEQUENODEELEMENT(Pool, spaceDeque, node);
+
+    PoolGrey(pool, space, ti);	/* implicitly excludes condemned set */
+
+    node = next;
+  }
+
+  deque = SpaceRootDeque(space);
+  node = DequeFirst(deque);
+  while(node != DequeSentinel(deque)) {
+    DequeNode next = DequeNodeNext(node);
+    Root root = DEQUENODEELEMENT(Root, spaceDeque, node);
+
+    RootGrey(root, space, ti);
+
+    node = next;
+  }
+
+  ss.fix = TraceFix;
+  ss.zoneShift = space->zoneShift;
+  ss.condemned = space->trace[ti].condemned;
+  ss.space = space;
+  ss.traceId = ti;
+  ss.sig = ScanStateSig;
+
+  /* At the moment we must scan all roots, because we don't have */
+  /* a mechanism for shielding them.  There can't be any weak or */
+  /* final roots either, since we must protect these in order to */
+  /* avoid scanning them too early, before the pool contents. */
+
+  /* @@@@ This isn't correct if there are higher ranking roots than */
+  /* data in pools. */
+
+  ShieldEnter(space);
+
+  for(ss.rank = RefRankAMBIG; ss.rank <= RefRankEXACT; ++ss.rank) {
+    deque = SpaceRootDeque(space);
+    node = DequeFirst(deque);
+    while(node != DequeSentinel(deque)) {
+      DequeNode next = DequeNodeNext(node);
+      Root root = DEQUENODEELEMENT(Root, spaceDeque, node);
+
+      AVER(RootRank(root) <= RefRankEXACT); /* see above */
+
+      if(RootRank(root) == ss.rank) {
+        e = RootScan(&ss, root);
+        if(e != ErrSUCCESS) {
+          ShieldLeave(space);
+          return e;
+        }
+      }
+
+      node = next;
+    }
+  }
+
+  ShieldLeave(space);
+
+  ss.sig = SigInvalid;	/* just in case */
 
   return ErrSUCCESS;
 }
 
-
-TraceId TraceTraceId(Trace trace)
+static void TraceReclaim(Space space, TraceId ti)
 {
-  AVER(ISVALID(Trace, trace));
-  return trace - trace->space->trace;
+  DequeNode node;
+
+  node = DequeFirst(&space->poolDeque);
+  while(node != DequeSentinel(&space->poolDeque)) {
+    DequeNode next = DequeNodeNext(node);
+    Pool pool = DEQUENODEELEMENT(Pool, spaceDeque, node);
+
+    PoolReclaim(pool, space, ti);
+
+    node = next;
+  }
 }
 
-Space TraceSpace(Trace trace)
+Size TracePoll(Space space, TraceId ti)
 {
-  AVER(ISVALID(Trace, trace));
-  return trace->space;
-}
+  Error e;
+  Bool finished;
+  Trace trace;
 
-RefRank TraceRank(Trace trace)
-{
-  AVER(ISVALID(Trace, trace));
-  return trace->rank;
-}
+  trace = &space->trace[ti];
 
-ScanState TraceScanState(Trace trace)
-{
-  AVER(ISVALID(Trace, trace));
-  return &trace->ss;
-}
+  if(trace->condemned != RefSetEmpty) {
+    e = TraceRun(space, ti, &finished);
+    AVER(e == ErrSUCCESS);	/* @@@@ */
+    if(finished) {
+      TraceReclaim(space, ti);
+      TraceDestroy(space, ti);
+      return SPACE_POLL_MAX;
+    }
+  }
 
-
-void TraceCondemn(Trace trace, RefSet rs)
-{
-  Arena arena;
-
-  AVER(ISVALID(Trace, trace));
-
-  arena = SpaceArena(trace->space);
-  trace->ss.condemned = RefSetUnion(trace->ss.condemned, rs);
-}
-
-
-void TraceNoteMarked(Trace trace, RefRank rank, Addr count)
-{
-  AVER(ISVALID(Trace, trace));
-  AVER(ISVALID(RefRank, rank));
-  
-  trace->work[rank].marked += count;
-}
-
-void TraceNoteScanned(Trace trace, Addr count)
-{
-  AVER(ISVALID(Trace, trace));
-  AVER(count > 0);
-  
-  trace->work[trace->rank].scanned += count;
-}
-
-Size TracePoll(Trace trace)
-{
-  return SPACE_POLL_MAX;
+  /* We need to calculate a rate depending on the amount of work */
+  /* remaining and the deadline for the collection to finish. */
+  return (Size)4096;		/* @@@@ */
 }
 
 Error TraceFix(ScanState ss, Ref *refIO)
@@ -193,19 +183,17 @@ Error TraceFix(ScanState ss, Ref *refIO)
   Arena arena;
   Pool pool;
   Ref ref;
-  Trace trace = PARENT(TraceStruct, ss, ss);
 
-  AVER(ISVALID(Trace, trace));
+  AVER(ISVALID(ScanState, ss));
   AVER(refIO != NULL);
 
-  arena = SpaceArena(trace->space);
+  arena = SpaceArena(ss->space);
   ref = *refIO;
   if(PoolOfAddr(&pool, arena, ref))
-    return PoolFix(pool, trace, arena, refIO);
+    return PoolFix(pool, ss, arena, refIO);
 
   return ErrSUCCESS;
 }
-
 
 Error TraceScanArea(ScanState ss, Addr *base, Addr *limit)
 {
@@ -225,95 +213,54 @@ Error TraceScanArea(ScanState ss, Addr *base, Addr *limit)
   return ErrSUCCESS;
 }
 
-
-Error TraceRunAtomic(Trace trace)
+Error TraceRun(Space space, TraceId ti, Bool *finishedReturn)
 {
   Error e;
-  RefRank rank;
-  Space space;
-
-  AVER(ISVALID(Trace, trace));
+  ScanStateStruct ss;
   
-  space = trace->space;
+  AVER(ISVALID(Space, space));
+  AVER(finishedReturn != NULL);
+  
+  ss.fix = TraceFix;
+  ss.zoneShift = space->zoneShift;
+  ss.condemned = space->trace[ti].condemned;
+  ss.space = space;
+  ss.traceId = ti;
+  ss.sig = ScanStateSig;
 
-  /* At the moment we must scan all roots, because we don't have */
-  /* a mechanism for shielding them.  There can't be any weak or */
-  /* final roots either, since we must protect these in order to */
-  /* avoid scanning them too early, before the pool contents. */
+  ShieldEnter(space);
 
-  for(rank = RefRankAMBIG; rank <= RefRankEXACT; ++rank) {
+  for(ss.rank = 0; ss.rank < RefRankMAX; ++ss.rank) {
     Deque deque;
     DequeNode node;
 
-    ShieldEnter(space);
-
-    trace->rank = rank;
-
-    deque = SpaceRootDeque(space);
+    deque = SpacePoolDeque(space);
     node = DequeFirst(deque);
+
     while(node != DequeSentinel(deque)) {
       DequeNode next = DequeNodeNext(node);
-      Root root = DEQUENODEELEMENT(Root, spaceDeque, node);
+      Pool pool = DEQUENODEELEMENT(Pool, spaceDeque, node);
+      Bool finished;
+    
+      e = PoolScan(&ss, pool, &finished); 
+      if(e != ErrSUCCESS) {
+	ShieldLeave(space);
+	return e;
+      }
 
-      AVER(RootRank(root) <= RefRankEXACT); /* see above */
-
-      if(RootRank(root) == rank) {
-        e = RootScan(root, trace);
-        if(e != ErrSUCCESS) return e;
+      if(!finished) {
+	*finishedReturn = FALSE;
+	ShieldLeave(space);
+	return ErrSUCCESS;
       }
 
       node = next;
     }
-
-    ShieldLeave(space);
   }
 
-  return ErrSUCCESS;
-}
- 
+  ShieldLeave(space);
 
-Error TraceRun(Trace trace, Bool *finishedReturn)
-{
-  Error e;
-  RefRank rank;
-  Space space;
-  
-  AVER(ISVALID(Trace, trace));
-  AVER(finishedReturn != NULL);
-  
-  space = trace->space;
-
-  for(rank = 0; rank < RefRankMAX; ++rank) {
-
-    trace->rank = rank;
-
-    if(trace->work[rank].scanned < trace->work[rank].marked) {
-      Deque deque;
-      DequeNode node;
-
-      ShieldEnter(space);
-
-      deque = SpacePoolDeque(space);
-      node = DequeFirst(deque);
-      while(node != DequeSentinel(deque)) {
-        DequeNode next = DequeNodeNext(node);
-        Pool pool = DEQUENODEELEMENT(Pool, spaceDeque, node);
-      
-        e = PoolScan(pool, trace);
-        if(e != ErrSUCCESS) {
-          ShieldLeave(space);
-          return e;
-        }
-
-        node = next;
-      }
-
-      ShieldLeave(space);
-
-      *finishedReturn = FALSE;
-      return ErrSUCCESS;
-    }
-  }
+  ss.sig = SigInvalid;	/* just in case */
 
   *finishedReturn = TRUE;
   return ErrSUCCESS;
