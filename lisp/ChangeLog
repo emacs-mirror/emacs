@@ -6,6 +6,7 @@
 	(f90-equal-symbols, f90-looking-at-do, f90-looking-at-select-case)
 	(f90-looking-at-if-then): Remove lets.
 	(f90-looking-at-where-or-forall): Handle if split over lines.
+	(f90-change-keywords): Doc fix.
 
 2002-05-19  Richard M. Stallman  <rms@gnu.org>
 
