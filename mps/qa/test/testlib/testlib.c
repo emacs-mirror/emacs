@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.11) $
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.12) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -174,7 +174,7 @@ void verror(const char *format, va_list args)
  myabort();
 }
 
-/* asserts(1=0, "Axiom violation.");
+/* asserts(1<0, "Axiom violation.");
    assert, with textual message instead of expr printed
 */
 
@@ -323,4 +323,117 @@ unsigned long ranrange(unsigned long min, unsigned long max)
 {
  return min+ranint(max-min);
 }
+
+/* Event log running
+
+   Event logs contain lines of the form
+   A <id> <size>     -- alloc
+   F <id> <size>     -- free
+*/
+
+int read_event(log_event* event) {
+ int r;
+ unsigned long a, b;
+ r = scanf("A%lu%lu\n", &a, &b);
+ if (r == EOF) {
+  return 0;
+ } else if (r > 0) {
+/*  comment("A %lu %lu", a, b);
+*/
+  asserts(r == 2, "bad alloc event");
+  event->type = EVENT_ALLOC;
+  event->alloc.id = a;
+  event->alloc.size = b;
+  return 1;
+ }
+ r = scanf("F%lu\n", &a);
+ if (r == EOF) {
+  return 0;
+ } else if (r > 0) {
+/*
+  comment("F %lu", a);
+*/
+  asserts(r == 1, "bad free event");
+  event->type = EVENT_FREE;
+  event->free.id = a;
+  return 1;
+ } else {
+  comment("unknown event: ");
+  for (r = 0; r < 5; r++) {
+   comment("%d", getchar());
+  }
+  error("unknown event");
+ }
+}
+
+
+/* TimeQueue
+   s are implemented as heaps, stored in arrays. First array element
+   used to keep track of size, how much used, &c. Rest of elements are
+   entries.
+*/
+
+void TQInit(TimeQueue TQ, TQElt* element, long int size) {
+ TQ->size = size;
+ TQ->used = 0;
+ TQ->element = element;
+}
+
+unsigned long TQSize(TimeQueue TQ) {
+ return TQ->size;
+}
+
+unsigned long TQCount(TimeQueue TQ) {
+ return TQ->used;
+}
+
+int TQEmpty(TimeQueue TQ) {
+ return (TQ->used == 0);
+}
+
+int TQFull(TimeQueue TQ) {
+ return (TQ->used == TQ->size);
+}
+
+unsigned long TQTime(TimeQueue TQ) {
+ asserts(!TQEmpty(TQ), "TQTime called on empty TimeQueue");
+ return (TQ->element[0].time);
+}
+
+void *TQElement(TimeQueue TQ) {
+ asserts(!TQEmpty(TQ), "TQElement called on empty TimeQueue");
+ return (TQ->element[0].ref);
+}
+
+void *TQPop(TimeQueue TQ) {
+ void *ref;
+ void *nref;
+ unsigned long ntime;
+ unsigned long i, c, s;
+
+ asserts(!TQEmpty(TQ), "TQPop called on empty TimeQueue");
+
+ ref = TQ->element[0].ref;
+ TQ->used -= 1;
+ s = TQ->used;
+ ntime = TQ->element[s].time;
+ nref = TQ->element[s].ref;
+ i = 0;
+ while (1) {
+  c = (2*i)+1;
+  if (c >= s-1) break;
+  if (TQ->element[c].time > TQ->element[c+1].time) {
+   c+=1;
+  }
+  if (TQ->element[c].time < i) {
+   TQ->element[i].time = TQ->element[c].time;
+   TQ->element[i].ref  = TQ->element[c].ref;
+   i = c;
+  } else {
+   break;
+  }
+ }
+ return NULL;
+}
+
 
