@@ -416,14 +416,26 @@ If the variable `sort-coding-systems-predicate' (which see) is
 non-nil, it is used to sort CODINGS in the different way than above."
   (if sort-coding-systems-predicate
       (sort codings sort-coding-systems-predicate)
-    (let* ((most-preferred (symbol-value (car coding-category-list)))
+    (let* ((from-categories (mapcar #'(lambda (x) (symbol-value x))
+				    coding-category-list))
+	   (most-preferred (car from-categories))
 	   (lang-preferred (get-language-info current-language-environment
 					      'coding-system))
 	   (func (function
 		  (lambda (x)
 		    (let ((base (coding-system-base x)))
-		      (+ (if (eq base most-preferred) 64 0)
-			 (let ((mime (coding-system-get base 'mime-charset)))
+		      ;; We calculate the priority number 0..255 by
+		      ;; using the 8 bits PMMLCEII as this:
+		      ;; P: 1 iff most preferred.
+		      ;; MM: greater than 0 iff mime-charset.
+		      ;; L: 1 iff one of the current lang. env.'s codings.
+		      ;; C: 1 iff one of codings listed in the category list.
+		      ;; E: 1 iff not XXX-with-esc
+		      ;; II: if iso-2022 based, 0..3, else 1.
+		      (logior
+		       (lsh (if (eq base most-preferred) 1 0) 7)
+		       (lsh
+			(let ((mime (coding-system-get base 'mime-charset)))
 			   ;; Prefer coding systems corresponding to a
 			   ;; MIME charset.
 			   (if mime
@@ -432,27 +444,30 @@ non-nil, it is used to sort CODINGS in the different way than above."
 			       ;; x-ctext below that.
 			       (cond ((string-match "utf-16"
 						    (symbol-name mime))
-				      16)
+				      2)
 				     ((string-match "^x-" (symbol-name mime))
-				      8)
-				     (t 32))
+				      1)
+				     (t 3))
 			     0))
-			 (if (memq base lang-preferred) 8 0)
-			 (if (string-match "-with-esc\\'" (symbol-name base))
-			     0 4)
-			 (if (eq (coding-system-type base) 2)
-			     ;; For ISO based coding systems, prefer
-			     ;; one that doesn't use escape sequences.
-			     (let ((flags (coding-system-flags base)))
-			       (if (or (consp (aref flags 0))
-				       (consp (aref flags 1))
-				       (consp (aref flags 2))
-				       (consp (aref flags 3)))
-				   (if (or (aref flags 8) (aref flags 9))
-				       0
-				     1)
-				 2))
-			   1)))))))
+			5)
+		       (lsh (if (memq base lang-preferred) 1 0) 4)
+		       (lsh (if (memq base from-categories) 1 0) 3)
+		       (lsh (if (string-match "-with-esc\\'"
+					      (symbol-name base))
+				0 1) 2)
+		       (if (eq (coding-system-type base) 2)
+			   ;; For ISO based coding systems, prefer
+			   ;; one that doesn't use escape sequences.
+			   (let ((flags (coding-system-flags base)))
+			     (if (or (consp (aref flags 0))
+				     (consp (aref flags 1))
+				     (consp (aref flags 2))
+				     (consp (aref flags 3)))
+				 (if (or (aref flags 8) (aref flags 9))
+				     0
+				   1)
+			       2))
+			 1)))))))
       (sort codings (function (lambda (x y)
 				(> (funcall func x) (funcall func y))))))))
 
