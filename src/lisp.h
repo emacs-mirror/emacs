@@ -1374,7 +1374,7 @@ typedef unsigned char UCHAR;
 
 /* Data type checking */
 
-#define NILP(x)  (XFASTINT (x) == XFASTINT (Qnil))
+#define NILP(x)  EQ (x, Qnil)
 #define GC_NILP(x) GC_EQ (x, Qnil)
 
 #define NUMBERP(x) (INTEGERP (x) || FLOATP (x))
