@@ -176,15 +176,17 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   Lisp_Object val;
   int count = specpdl_ptr - specpdl;
   Lisp_Object mini_frame, ambient_dir;
-  struct gcpro gcpro1, gcpro2, gcpro3;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   single_kboard_state ();
 
   val = Qnil;
+  ambient_dir = current_buffer->directory;
+
   /* Don't need to protect PROMPT, HISTVAR, and HISTPOS because we
      store them away before we can GC.  Don't need to protect
      BACKUP_N because we use the value only if it is an integer.  */
-  GCPRO3 (map, initial, val);
+  GCPRO4 (map, initial, val, ambient_dir);
 
   if (!STRINGP (prompt))
     prompt = build_string ("");
@@ -193,8 +195,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
       && minibuf_level > 0
       && (EQ (selected_window, minibuf_window)))
     error ("Command attempted to use minibuffer while in minibuffer");
-
-  ambient_dir = current_buffer->directory;
 
   /* Choose the minibuffer window and frame, and take action on them.  */
 
