@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.84) $
+ * $HopeName: MMsrc!mpm.h(trunk.85) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
@@ -84,6 +84,12 @@ extern Addr (AddrAlignDown)(Addr addr, Align align);
 #define SizeIsAligned(s, a)     WordIsAligned(SizeWord(s), (a))
 #define SizeAlignUp(s, a)       ((Size)WordAlignUp(SizeWord(s), (a)))
 #define SizeAlignDown(s, a)     ((Size)WordAlignDown(SizeWord(s), (a)))
+
+
+/* Accumulator methods */
+
+extern void AccumulatorReset(Accumulation *a);
+extern void Accumulate(Accumulation *augend, unsigned long addend);
 
 
 /* Logs and Powers
