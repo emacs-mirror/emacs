@@ -172,7 +172,7 @@ to write negative floating point numbers, as in @samp{-1.0}.
 which provides for positive infinity and negative infinity as floating point
 values.  It also provides for a class of values called NaN or
 ``not-a-number''; numerical functions return such values in cases where
-there is no correct answer.  For example, @code{(sqrt -1.0)} returns a
+there is no correct answer.  For example, @code{(/ 0.0 0.0)} returns a
 NaN.  For practical purposes, there's no significant difference between
 different NaN values in Emacs Lisp, and there's no rule for precisely
 which NaN value should be used in a particular case, so Emacs Lisp
@@ -1146,7 +1146,7 @@ integer values.
 
 @defun sqrt arg
 This returns the square root of @var{arg}.  If @var{arg} is negative,
-the value is a NaN.
+it signals a @code{domain-error} error.
 @end defun
 
 @node Random Numbers
