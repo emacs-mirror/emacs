@@ -2863,7 +2863,10 @@ and this buffer is not full-frame width.");
 #ifdef DOS_NT
   DEFVAR_PER_BUFFER ("buffer-file-type", &current_buffer->buffer_file_type,
 		     Qnil,
-    "*If visited file is text, nil; otherwise, t.");
+    "Non-nil if the visited file is a binary file.\n\
+This variable is meaningful on MS-DOG and Windows NT.\n\
+On those systems, it is automatically local in every buffer.\n\
+On other systems, this variable is normally always nil.")
 #endif
 
   DEFVAR_PER_BUFFER ("default-directory", &current_buffer->directory,
