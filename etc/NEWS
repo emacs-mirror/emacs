@@ -680,7 +680,7 @@ multiple files, and C-x d passes it to `dired'.
 ** Info mode:
 
 *** A numeric prefix argument of `info' selects an Info buffer
-with the number appended to the *info* buffer name.
+with the number appended to the *info* buffer name (e.g. "*info*<2>").
 
 *** Regexp isearch (C-M-s and C-M-r) can search through multiple nodes.
 Failed isearch wraps to the top/final node.
@@ -688,6 +688,10 @@ Failed isearch wraps to the top/final node.
 *** New search commands: `Info-search-case-sensitively' (bound to S),
 `Info-search-backward', and `Info-search-next' which repeats the last
 search without prompting for a new search string.
+
+*** New command `Info-history-forward' (bound to r and new toolbar icon)
+moves forward in history to the node you returned from after using
+`Info-history-back' (renamed from `Info-last').
 
 *** New command `Info-history' (bound to L) displays a menu of visited nodes.
 
