@@ -49,7 +49,7 @@
 	(setq losers (cdr losers))))
     (goto-char (point-min)) (insert "(Unparsable address -- "
 				    reason
-				    ":\n\t  \"")
+				    ": \"")
     (goto-char (point-max)) (insert "\")"))
   (rfc822-nuke-whitespace)
   (throw 'address (buffer-substring address-start (point))))
