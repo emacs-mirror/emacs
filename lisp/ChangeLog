@@ -1,3 +1,8 @@
+2003-03-16  Deepak Goel  <deego@gnufans.org>
+
+	* calc/calc-forms.el (math-tzone-names): Introduce UTC as an alias
+	for GMT.  Suggested by bob@rattlesnake.com. 
+
 2003-03-15  Mark A. Hershberger  <mah@everybody.org>
 
 	* xml.el (xml-ucs-to-string): New function to convert Unicode
