@@ -5787,6 +5787,8 @@ syms_of_window ()
   staticpro (&Qtemp_buffer_show_hook);
 
   staticpro (&Vwindow_list);
+
+  minibuf_selected_window = Qnil;
   staticpro (&minibuf_selected_window);
 
   DEFVAR_LISP ("temp-buffer-show-function", &Vtemp_buffer_show_function,
