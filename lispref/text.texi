@@ -2192,6 +2192,12 @@ appear on the screen.  This works much like selective display.  Details
 of this feature are likely to change in future versions, so check the
 @file{etc/NEWS} file in the version you are using.
 
+@item intangible
+@kindex intangible @r{(text property)}
+A non-@code{nil} @code{intangible} property on a character prevents
+putting point before that character.  If you try, point actually goes
+after the character (and after all succeeding intangible characters).
+
 @item modification-hooks
 @cindex change hooks for a character
 @cindex hooks for changing a character
@@ -2624,29 +2630,39 @@ data if they do anything that uses regular expressions; otherwise, they
 will interfere in bizarre ways with the editing operations that call
 them.
 
+@defvar before-change-functions
+This variable holds a list of a functions to call before any buffer
+modification.  Each function gets two arguments, the beginning and end
+of the region that is about to change, represented as integers.  The
+buffer that is about to change is always the current buffer.
+@end defvar
+
+@defvar after-change-functions
+This variable holds a list of a functions to call after any buffer
+modification.  Each function receives three arguments: the beginning and
+end of the region just changed, and the length of the text that existed
+before the change.  (To get the current length, subtract the region
+beginning from the region end.)  All three arguments are integers.  The
+buffer that's about to change is always the current buffer.
+@end defvar
+
 @defvar before-change-function
-If this variable is non-@code{nil}, then it should be a function; the
-function is called before any buffer modification.  Its arguments are
-the beginning and end of the region that is about to change,
-represented as integers.  The buffer that is about to change is always
-the current buffer.
+This variable holds one function to call before any buffer modification
+(or @code{nil} for no function).  It is called just like the functions
+in @code{before-change-functions}.
 @end defvar
 
 @defvar after-change-function
-If this variable is non-@code{nil}, then it should be a function; the
-function is called after any buffer modification.  It receives three
-arguments: the beginning and end of the region just changed, and the
-length of the text that existed before the change.  (To get the
-current length, subtract the region beginning from the region end.)
-All three arguments are integers.  The buffer that's about to change
-is always the current buffer.
+This variable holds one function to call after any buffer modification
+(or @code{nil} for no function).  It is called just like the functions in
+@code{after-change-functions}.
 @end defvar
 
-Both of these variables are temporarily bound to @code{nil} during the
-time that either of these hooks is running.  This means that if one of
+The four variables above are temporarily bound to @code{nil} during the
+time that any of these functions is running.  This means that if one of
 these functions changes the buffer, that change won't run these
-functions.  If you do want the hook function to run recursively,
-design your hook functions to bind these variables back to their usual
+functions.  If you do want a hook function to make changes that run
+these functions, make it bind these variables back to their usual
 values.
 
 @defvar first-change-hook
