@@ -1,3 +1,16 @@
+2002-05-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* charset.h: New enums charset_arg_min_code and
+	charset_arg_max_code.
+	(struct charset): New member char_index_offset.
+
+	* charset.c (CODE_POINT_TO_INDEX): Take charset->char_index_offset
+	into account.
+	(INDEX_TO_CODE_POINT): Likewise.
+	(Fdefine_charset_internal): Handle args[charset_arg_min_code] and
+	args[charset_arg_max_code].  Setup charset.char_index_offset.
+	(syms_of_charset): Fix args to Fdefine_charset_internal.
+
 2002-05-27  Dave Love  <fx@gnu.org>
 
 	* coding.c (decode_coding_utf_8): Reject overlong sequences.

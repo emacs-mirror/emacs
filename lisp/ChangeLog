@@ -1,3 +1,11 @@
+2002-05-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-conf.el (chinese-gbk): Change :code-offset to
+	#x160000.
+	(gb18030-2-byte, gb18030-4-byte-bmp, gb18030-4-byte-smp,
+	gb18030-4-byte-ext-1, gb18030-4-byte-ext-2, gb18030): New
+	charsets.
+
 2002-05-29  Dave Love  <fx@gnu.org>
 
 	* language/thai.el (iso-8859-11): New coding system.
