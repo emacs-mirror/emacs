@@ -3912,6 +3912,7 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
   ccl->last_block = coding->mode & CODING_MODE_LAST_BLOCK;
   if (encodep)
     ccl->eol_type = coding->eol_type;
+  ccl->multibyte = coding->src_multibyte;
   coding->produced = ccl_driver (ccl, source, destination,
 				 src_bytes, dst_bytes, &(coding->consumed));
   if (encodep)
