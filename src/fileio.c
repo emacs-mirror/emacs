@@ -1560,7 +1560,8 @@ A prefix arg makes KEEP-TIME non-nil.")
   return Qnil;
 }
 
-DEFUN ("make-directory", Fmake_directory, Smake_directory, 1, 1, "FMake directory: ",
+DEFUN ("make-directory-internal", Fmake_directory_internal,
+       Smake_directory_internal, 1, 1, 0)
   "Create a directory.  One argument, a file name string.")
   (dirname)
      Lisp_Object dirname;
@@ -1573,8 +1574,8 @@ DEFUN ("make-directory", Fmake_directory, Smake_directory, 1, 1, "FMake director
 
   handler = find_file_handler (dirname);
   if (!NILP (handler))
-    return call2 (handler, Qmake_directory, dirname);
- 
+    return call3 (handler, Qmake_directory, dirname, Qnil);
+
   dir = XSTRING (dirname)->data;
 
   if (mkdir (dir, 0777) != 0)
@@ -3248,7 +3249,7 @@ and FILENAME is handled by HANDLER, then HANDLER is called like this:\n\
   defsubr (&Sexpand_file_name);
   defsubr (&Ssubstitute_in_file_name);
   defsubr (&Scopy_file);
-  defsubr (&Smake_directory);
+  defsubr (&Smake_directory_internal);
   defsubr (&Sdelete_directory);
   defsubr (&Sdelete_file);
   defsubr (&Srename_file);
