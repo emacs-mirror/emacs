@@ -446,9 +446,8 @@ previous input lines in the buffer.  @xref{Faces}.
 prefix argument (e.g. @kbd{C-u M-x shell}), which will read a buffer
 name and create (or reuse) a subshell in that buffer.  You can also
 rename the @samp{*shell*} buffer using @kbd{M-x rename-uniquely}, then
-then create a new @samp{*shell*} buffer using plain @kbd{M-x shell}.
-All the subshells in different buffers run independently and in
-parallel.
+create a new @samp{*shell*} buffer using plain @kbd{M-x shell}.  All the
+subshells in different buffers run independently and in parallel.
 
 @vindex explicit-shell-file-name
 @cindex environment variables for subshells
