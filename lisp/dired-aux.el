@@ -592,7 +592,8 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
   ;; Confirmation consists in a y-or-n question with a file list
   ;; pop-up unless OP-SYMBOL is a member of `dired-no-confirm'.
   ;; The files used are determined by ARG (as in dired-get-marked-files).
-  (or (memq op-symbol dired-no-confirm)
+  (or (eq dired-no-confirm t)
+      (memq op-symbol dired-no-confirm)
       (let ((files (dired-get-marked-files t arg))
 	    (string (if (eq op-symbol 'compress) "Compress or uncompress"
 		      (capitalize (symbol-name op-symbol)))))
