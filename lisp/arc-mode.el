@@ -556,8 +556,6 @@ archive.
       (make-local-variable 'archive-file-list-start)
       (make-local-variable 'archive-file-list-end)
       (make-local-variable 'archive-file-name-indent)
-      ;; Always edit an archive file in unibyte mode.
-      (set-buffer-multibyte nil)
       (archive-summarize nil)
       (setq buffer-read-only t))))
 
@@ -890,6 +888,15 @@ using `make-temp-name', and the generated name is returned."
 	      (progn
 		(set-buffer-modified-p nil)
 		(kill-buffer buffer))
+	    ;; If Emacs were to visit the file we've extracted, it would make
+	    ;; the buffer be unibyte if the detected coding-system is
+	    ;; no-conversion or raw-text-*.  We want the same behavior here
+	    ;; as if we were visiting the file, even though some extractors
+	    ;; read the file's contents from a pipe.
+	    (if (or (eq last-coding-system-used 'no-conversion)
+		    ;; type 5 is raw-text
+		    (eq (coding-system-type last-coding-system-used) 5))
+		(set-buffer-multibyte nil))
 	    (goto-char (point-min))
 	    (rename-buffer bufname)
 	    (setq buffer-read-only read-only-p)
