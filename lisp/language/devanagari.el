@@ -57,25 +57,15 @@ devanagari-compose-from-is13194-region
  "Devanagari" '("quail-devanagari-hindi-transliteration" quail-use-package
 		"quail/devanagari"))
 
-(defun setup-devanagari-environment ()
-  "Setup multilingual environment (MULE) for languages using Devanagari."
-  (interactive)
-  (setq coding-category-iso-8-1 'in-is13194-devanagari)
-
-  (set-coding-priority
-   '(coding-category-iso-7
-     coding-category-iso-8-1))
-
-  (setq-default buffer-file-coding-system 'in-is13194-devanagari)
-
-  (setq default-input-method '("Devanagari" . "quail-devanagari-itrans"))
-  )
-
 (set-language-info-alist
- "Devanagari" '((setup-function . setup-devanagari-environment)
+ "Devanagari" '((setup-function . (setup-devanagari-environment
+				   . setup-indian-environment-map))
 		(charset . (indian-is13194 indian-2-column indian-1-column))
 		(coding-system . (in-is13194-devanagari))
-		(documentation . t)))
+		(documentation . ("\
+Such languages using Devanagari script as Hindi and Marathi
+are supported in this language environment."
+				  . describe-indian-support-map))))
 
 ;;
 ;; Devanagari Glyph List

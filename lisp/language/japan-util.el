@@ -24,6 +24,37 @@
 
 ;;; Code:
 
+;;;###autoload
+(defun setup-japanese-environment ()
+  "Setup multilingual environment (MULE) for Japanese."
+  (interactive)
+  (setup-english-environment)
+  (setq coding-category-iso-8-2 'euc-japan-1990)
+
+  (set-coding-priority
+   '(coding-category-iso-7
+     coding-category-iso-8-2
+     coding-category-sjis
+     coding-category-iso-8-1
+     coding-category-iso-else
+     coding-category-emacs-mule))
+
+  (if (eq system-type 'ms-dos)
+      (progn
+	(setq-default buffer-file-coding-system 'sjis)
+	(set-terminal-coding-system-internal 'sjis)
+	(set-keyboard-coding-system-internal 'sjis)
+	(setq default-process-coding-system '(sjis-dos . sjis-dos)))
+    (setq-default buffer-file-coding-system 'iso-2022-jp)
+    (set-terminal-coding-system-internal 'iso-2022-jp)
+    (set-keyboard-coding-system-internal 'iso-2022-jp))
+
+  (set-default-input-method "Japanese" "quail-ja")
+
+  (setq sendmail-coding-system 'iso-2022-jp
+	rmail-file-coding-system 'iso-2022-jp)
+  )
+
 (defconst japanese-kana-table
   '((?あ ?ア ?ｱ) (?い ?イ ?ｲ) (?う ?ウ ?ｳ) (?え ?エ ?ｴ) (?お ?オ ?ｵ)
     (?か ?カ ?ｶ) (?き ?キ ?ｷ) (?く ?ク ?ｸ) (?け ?ケ ?ｹ) (?こ ?コ ?ｺ)

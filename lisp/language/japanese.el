@@ -59,35 +59,6 @@
 (register-input-method
  "Japanese" '("quail-ja" quail-use-package "quail/japanese"))
 
-(defun setup-japanese-environment ()
-  "Setup multilingual environment (MULE) for Japanese."
-  (interactive)
-  (setq coding-category-iso-8-2 'euc-japan-1990)
-
-  (set-coding-priority
-   '(coding-category-iso-7
-     coding-category-iso-8-2
-     coding-category-sjis
-     coding-category-iso-8-1
-     coding-category-iso-else
-     coding-category-emacs-mule))
-
-  (if (eq system-type 'ms-dos)
-      (progn
-	(setq-default buffer-file-coding-system 'sjis)
-	(set-terminal-coding-system 'sjis)
-	(set-keyboard-coding-system 'sjis)
-	(setq default-process-coding-system '(sjis-dos . sjis-dos)))
-    (setq-default buffer-file-coding-system 'iso-2022-jp)
-    (set-terminal-coding-system 'iso-2022-jp)
-    (set-keyboard-coding-system 'iso-2022-jp))
-
-  (set-default-input-method "Japanese" "quail-ja")
-
-  (setq sendmail-coding-system 'iso-2022-jp
-	rmail-file-coding-system 'iso-2022-jp)
-  )
-
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment)
 	      (tutorial . "TUTORIAL.jp")

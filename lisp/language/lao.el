@@ -36,20 +36,6 @@
 (register-input-method
  "Lao" '("quail-lrt" quail-use-package "quail/lrt"))
 
-(defun setup-lao-environment ()
-  "Setup multilingual environment (MULE) for Lao."
-  (interactive)
-  (setup-english-environment)
-  (setq coding-category-iso-8-1 'lao)
-
-  (set-coding-priority
-   '(coding-category-iso-7
-     coding-category-iso-8-1))
-
-  (set-default buffer-file-coding-system 'iso-2022-7)
-
-  (setq default-input-method '("Lao" . "quail-lao")))
-
 (set-language-info-alist
  "Lao" '((setup-function . setup-lao-environment)
 	 (charset . (lao))

@@ -29,6 +29,16 @@
 
 ;;; Code:
 
+(define-prefix-command 'describe-cyrillic-support-map)
+(define-key-after describe-language-support-map [Cyrillic]
+  '("Cyrillic" . describe-cyrillic-support-map)
+  t)
+
+(define-prefix-command 'setup-cyrillic-environment-map)
+(define-key-after setup-language-environment-map [Cyrillic]
+  '("Cyrillic" . setup-cyrillic-environment-map)
+  t)
+
 ;; ISO-8859-5 staff
 
 (make-coding-system
@@ -171,7 +181,7 @@
       (cons (cons "alternativnyj" ccl-encode-alternativnyj-font)
 	    font-ccl-encoder-alist))
 
-;;; GENERAL
+;;; For all Cyrillics.
 
 (register-input-method
  "Cyrillic" '("quail-jcuken" quail-use-package "quail/cyrillic"))
@@ -186,29 +196,30 @@
 (register-input-method
  "Cyrillic" '("quail-yawerty" quail-use-package "quail/cyrillic"))
 
-(defun setup-cyrillic-environment ()
-  "Setup multilingual environment for Cyrillic users."
-  (interactive)
-  (setq primary-language "Cyrillic")
-
-  (setq coding-category-iso-8-1 'iso-8859-5)
-
-  (set-coding-priority
-   '(coding-category-iso-7
-     coding-category-iso-8-1))
-
-  (setq-default buffer-file-coding-system 'iso-8859-5)
-  (set-terminal-coding-system 'iso-8859-5)
-  (set-keyboard-coding-system 'iso-8859-5)
-
-  (setq default-input-method '("Cyrillic" . "quail-yawerty"))
-  )
+(set-language-info-alist
+ "Cyrillic-ISO" '((setup-function . (setup-cyrillic-iso-environment
+				     . setup-cyrillic-environment-map))
+		  (charset . (cyrillic-iso8859-5))
+		  (coding-system . (iso-8859-5))
+		  (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
+		  (documentation . (t . describe-cyrillic-support-map))))
 
 (set-language-info-alist
- "Cyrillic" '((setup-function . setup-cyrillic-environment)
-	      (charset . (cyrillic-iso8859-5))
-	      (coding-system . (iso-8859-5 koi8 alternativnyj))
-	      (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
-	      (documentation . t)))
+ "Cyrillic-KOI8" '((setup-function . (setup-cyrillic-iso-environment
+				      . setup-cyrillic-environment-map))
+		   (charset . (cyrillic-iso8859-5))
+		   (coding-system . (koi8-4))
+		   (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
+		   (documentation . (t . describe-cyrillic-support-map))))
+
+(set-language-info-alist
+ "Cyrillic-ALTERNATIVNYJ" '((setup-function
+			     . (setup-cyrillic-iso-environment
+				. setup-cyrillic-environment-map))
+			    (charset . (cyrillic-iso8859-5))
+			    (coding-system . (alternativnyj))
+			    (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
+			    (documentation
+			     . (t . describe-cyrillic-support-map))))
 
 ;;; cyrillic.el ends here

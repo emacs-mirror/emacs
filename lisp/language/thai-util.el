@@ -24,6 +24,13 @@
 
 ;;; Code:
 
+;;;autoload
+(defun setup-thai-environment ()
+  "Setup multilingual environment (MULE) for Thai."
+  (interactive)
+  (setup-8-bit-environment 'thai-tis620 'th-tis620
+			   '("Thai" . "quail-thai")))
+
 ;; Setting information of Thai characters.
 
 (let ((l '((?,T!(B consonant "LETTER KO KAI")				; 0xA1

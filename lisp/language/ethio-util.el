@@ -26,6 +26,42 @@
 
 ;;; Code:
 
+;;;###autoload
+(defun setup-ethiopic-environment ()
+  "Setup multilingual environment for Ethiopic."
+  (interactive)
+  (setup-english-environment)
+  (setq primary-language "Ethiopic")
+
+  (setq default-input-method '("Ethiopic" . "quail-ethio"))
+
+  ;;
+  ;;  key bindings
+  ;;
+  (define-key global-map [f4] 'sera-to-fidel-buffer)
+  (define-key global-map [S-f4] 'sera-to-fidel-region)
+  (define-key global-map [C-f4] 'sera-to-fidel-marker)
+  (define-key global-map [f5] 'fidel-to-sera-buffer)
+  (define-key global-map [S-f5] 'fidel-to-sera-region)
+  (define-key global-map [C-f5] 'fidel-to-sera-marker)
+  (define-key global-map [f6] 'ethio-modify-vowel)
+  (define-key global-map [f7] 'ethio-replace-space)
+  (define-key global-map [f8] 'ethio-input-special-character)
+  (define-key global-map [S-f2] 'ethio-replace-space) ; as requested
+
+  (add-hook
+   'rmail-mode-hook
+   '(lambda ()
+      (define-key rmail-mode-map [C-f4] 'sera-to-fidel-mail)
+      (define-key rmail-mode-map [C-f5] 'fidel-to-sera-mail)))
+
+  (add-hook
+   'mail-mode-hook
+   '(lambda ()
+      (define-key mail-mode-map [C-f4] 'sera-to-fidel-mail)
+      (define-key mail-mode-map [C-f5] 'fidel-to-sera-mail)))
+  )
+
 ;;
 ;; ETHIOPIC UTILITY FUNCTIONS
 ;;

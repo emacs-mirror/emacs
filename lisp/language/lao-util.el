@@ -24,6 +24,13 @@
 
 ;;; Code:
 
+;;;###autoload
+(defun setup-lao-environment ()
+  "Setup multilingual environment (MULE) for Lao."
+  (interactive)
+  (setup-8-bit-environment 'lao 'iso-2022-7
+			   '("Lao" . "quail-lao")))
+
 (let ((l '((?(1!(B consonant "LETTER KOR  KAI'" "CHICKEN")
 	   (?(1"(B consonant "LETTER KHOR KHAI'" "EGG")
 	   (?(1#(B invalid nil)
@@ -130,4 +137,7 @@
 ;;
 (provide 'language/lao-util)
 
+;;; Local Variables:
+;;; generated-autoload-file: "../loaddefs.el"
+;;; End:
 ;;; lao-util.el ends here

@@ -41,21 +41,6 @@
 (register-input-method
  "Thai" '("quail-thai" quail-use-package "quail/thai"))
 
-(defun setup-thai-environment ()
-  "Setup multilingual environment (MULE) for Thai."
-  (interactive)
-  (setup-english-environment)
-  (setq coding-category-iso-8-1 'th-tis620)
-
-  (set-coding-priority
-   '(coding-category-iso-7
-     coding-category-iso-8-1))
-
-  (setq-default buffer-file-coding-system 'th-tis620)
-
-  (setq default-input-method '("Thai" . "quail-thai"))
-  )
-
 (set-language-info-alist
  "Thai" '((tutorial . "TUTORIAL.th")
 	  (setup-function . setup-thai-environment)

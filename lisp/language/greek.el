@@ -39,18 +39,8 @@
 (defun setup-greek-environment ()
   "Setup multilingual environment (MULE) for Greek."
   (interactive)
-  (setq coding-category-iso-8-1 'iso-8859-7)
-
-  (set-coding-priority
-   '(coding-category-iso-7
-     coding-category-iso-8-1))
-
-  (setq-default buffer-file-coding-system 'iso-8859-7)
-  (set-terminal-coding-system 'iso-8859-7)
-  (set-keyboard-coding-system 'iso-8859-7)
-
-  (setq default-input-method '("Greek" . "quail-greek"))
-  )
+  (setup-8-bit-environment 'greek-iso8859-7 'iso-8859-7
+			   '("Greek" . "quail-greek")))
 
 (set-language-info-alist
  "Greek" '((setup-function . setup-greek-environment)

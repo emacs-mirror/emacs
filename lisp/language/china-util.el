@@ -24,6 +24,87 @@
 
 ;;; Code:
 
+;;;###autoload
+(defun setup-chinese-gb-environment ()
+  "Setup multilingual environment (MULE) for Chinese GB2312 users."
+  (interactive)
+  (setup-english-environment)
+
+  (setq primary-language "Chinese-GB")
+
+  (setq coding-category-iso-8-2 'cn-gb-2312)
+  (setq coding-category-iso-else 'iso-2022-cn)
+  (setq coding-category-big5 'cn-big5)
+
+  (set-coding-priority
+   '(coding-category-iso-7
+     coding-category-iso-else
+     coding-category-iso-8-2
+     coding-category-big5
+     coding-category-iso-8-1
+     coding-category-emacs-mule))
+
+  (setq-default buffer-file-coding-system 'cn-gb-2312)
+  (set-terminal-coding-system-internal 'cn-gb-2312)
+  (set-keyboard-coding-system-internal 'cn-gb-2312)
+  (setq sendmail-coding-system nil
+	rmail-file-coding-system 'iso-2022-cn)
+
+  (setq default-input-method '("Chinese-GB" . "quail-py")))
+
+;;;###autoload
+(defun setup-chinese-big5-environment ()
+  "Setup multilingual environment (MULE) for Chinese Big5 users."
+  (interactive)
+  (setup-english-environment)
+
+  (setq primary-language "Chinese-BIG5")
+
+  (setq coding-category-iso-8-2 'cn-big5)
+  (setq coding-category-iso-else 'iso-2022-cn)
+  (setq coding-category-big5 'cn-big5)
+
+  (set-coding-priority
+   '(coding-category-iso-7
+     coding-category-iso-else
+     coding-category-big5
+     coding-category-iso-8-2
+     coding-category-emacs-mule))
+
+  (setq-default buffer-file-coding-system 'cn-big5)
+  (set-terminal-coding-system-internal 'cn-big5)
+  (set-keyboard-coding-system-internal 'cn-big5)
+  (setq sendmail-coding-system nil
+	rmail-file-coding-system 'iso-2022-cn)
+
+  (setq default-input-method '("Chinese-BIG5" . "quail-py-b5")))
+
+;;;###autoload
+(defun setup-chinese-cns-environment ()
+  "Setup multilingual environment (MULE) for Chinese CNS11643 family users."
+  (interactive)
+  (setup-english-environment)
+
+  (setq primary-language "Chinese-CNS")
+
+  (setq coding-category-iso-else 'iso-2022-cn)
+  (setq coding-category-big5 'cn-big5)
+  (setq coding-category-iso-8-2 'cn-big5)
+
+  (set-coding-priority
+   '(coding-category-iso-7
+     coding-category-iso-else
+     coding-category-iso-8-2
+     coding-category-big5))
+
+  (setq-default buffer-file-coding-system 'iso-2022-cn)
+  (set-terminal-coding-system-internal 'iso-2022-cn)
+  (set-keyboard-coding-system-internal 'iso-2022-cn)
+  (setq sendmail-coding-system nil
+	rmail-file-coding-system 'iso-2022-cn)
+
+  (setq default-input-method '("Chinese-CNS" . "quail-quick-cns")))
+
 ;; Hz/ZW encoding stuffs
 
 ;; HZ is an encoding method for Chinese character set GB2312 used

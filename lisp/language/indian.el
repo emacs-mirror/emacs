@@ -51,14 +51,15 @@
 
 ;;; Code:
 
-(set-language-info-alist
- "Indian" '((describe-function . describe-indian-support)
-	    (charset . (indian-is13194))
-	    (documentation . ("\
-Among Indian languages, such languages using Devanagari scripts as
-Hindi and Marathi are supproted.  For them, please specify Devanagari
-for more detail."))
-	    ))
+(define-prefix-command 'describe-indian-support-map)
+(define-key-after describe-language-support-map [Indian]
+  '("Indian" . describe-indian-support-map)
+  t)
+
+(define-prefix-command 'setup-indian-environment-map)
+(define-key-after setup-language-environment-map [Indian]
+  '("Indian" . setup-indian-environment-map)
+  t)
 
 ;;  Followings are what you see when you refer to the Emacs
 ;;  representations of IS 13194 charcters.  However, this is merely

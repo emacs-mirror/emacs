@@ -226,33 +226,15 @@ Both tables are indexed by the position code of Vietnamese characters.")
 (register-input-method
  "Vietnamese" '("quail-viqr" quail-use-package "quail/viqr"))
 
-(defun setup-vietnamese-environment ()
-  "Setup multilingual environment (MULE) for Vietnamese."
-  (interactive)
-  ;; for VISCII users
-  (setq coding-category-binary 'viscii)
-
-  ;; for VSCII users
-  ;; (setq coding-category-binary 'vscii)
-
-  (set-coding-priority
-   '(coding-category-iso-7
-     coding-category-binary))
-
-  (setq-default buffer-file-coding-system 'viscii)
-
-  (setq default-input-method '("Vietnamese" . "quail-viqr"))
-  )
-
 (set-language-info-alist
  "Vietnamese" '((setup-function . setup-vietnamese-environment)
 		(charset . (vietnamese-viscii-lower
 			    vietnamese-viscii-upper))
 		(coding-system . (viscii vscii viqr))
 		(sample-text . "Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn")
-		(documentation . '("\
+		(documentation . "\
 For Vietnamese, Emacs uses special charasets internally.
-They can be decoded from and encoded to VISCC, VSCII, and VIQR."))
+They can be decoded from and encoded to VISCC, VSCII, and VIQR.")
 		))
 
 ;;; vietnamese.el ends here

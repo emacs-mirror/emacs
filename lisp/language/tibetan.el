@@ -102,17 +102,6 @@
 (register-input-method
  "Tibetan" '("quail-tibetan-tibkey" quail-use-package "quail/tibetan"))
 
-(defun setup-tibetan-environment ()
-  (setq coding-category-iso-7 'tibetan)
-
-  (set-coding-priority
-   '(coding-category-iso-7
-     coding-category-iso-8-1))
-
-  (setq-default buffer-file-coding-system 'iso-2022-7)
-
-  (setq default-input-method '("Tibetan" . "quail-tibetan-wylie")))
-
 (set-language-info-alist
  "Tibetan" '((setup-function . setup-tibetan-environment)
 	     (charset . (tibetan tibetan-1-column))

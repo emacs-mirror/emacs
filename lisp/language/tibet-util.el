@@ -32,6 +32,19 @@
 
 ;;; Code:
 
+;;;###autoload
+(defun setup-tibetan-environment ()
+  (interactive)
+  (setup-english-environment)
+  (setq coding-category-iso-8-2 'tibetan)
+
+  (setq-default buffer-file-coding-system 'iso-2022-7)
+
+  (setq default-input-method '("Tibetan" . "quail-tibetan-wylie"))
+
+  (setq sendmail-coding-system 'iso-2022-7
+	rmail-file-coding-system 'iso-2022-7))
+
 ;;; This function makes a transcription string for
 ;;; re-composing a character.
 
@@ -454,4 +467,7 @@ See also docstring of the function tibetan-compose-region."
 
 (provide 'language/tibet-util)
 
+;;; Local Variables:
+;;; generated-autoload-file: "../loaddefs.el"
+;;; End:
 ;;; language/tibet-util.el ends here.

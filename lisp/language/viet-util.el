@@ -35,6 +35,11 @@
 
 ;;; Code:
 
+(defun setup-vietnamese-environment ()
+  "Setup multilingual environment (MULE) for Vietnamese."
+  (interactive)
+  (setup-8-bit-environment nil 'viscii  '("Vietnamese" . "quail-viqr")))
+
 ;; VIQR is a menmonic encoding specification for Vietnamese.
 ;; It represents diacritical marks by ASCII characters as follows:
 ;; ------------+----------+--------
