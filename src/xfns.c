@@ -1939,6 +1939,13 @@ x_window (f, window_prompting, minibuffer_only)
                    NULL);
     menubar_size += ibw;
 
+    if (FRAME_EXTERNAL_MENU_BAR (f))
+      {
+        int ibw;
+        XtVaGetValues (pane_widget, XtNinternalBorderWidth, &ibw, NULL);
+        menubar_size += ibw;
+      }
+
     if (window_prompting & USPosition)
       {
 	int left = f->display.x->left_pos;
