@@ -3,7 +3,7 @@
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
-)
+
 ;; Keywords: multilingual, Hebrew
 
 ;; This file is part of GNU Emacs.
@@ -28,6 +28,7 @@
 ;; For Hebrew, the character set ISO8859-8 is supported.
 ;; See http://www.ecma.ch/ecma1/STAND/ECMA-121.HTM.
 ;; Windows-1255 is also supported.
+
 ;;; Code:
 
 (make-coding-system
@@ -55,16 +56,14 @@
 	    (input-method . "hebrew")
 	    (unibyte-display . hebrew-iso-8bit)
 	    (sample-text . "Hebrew	,Hylem(B")
-	    (documentation . "Right-to-left writing is not yet supported.")
-	    ))
+	    (documentation . "Right-to-left writing is not yet supported.")))
 
 (set-language-info-alist
  "Windows-1255" '((coding-priority windows-1255)
 		  (coding-system windows-1255)
 		  (features code-pages)
 		  (documentation . "Support for Windows-1255 encoding, e.g. for Yiddish.
-Right-to-left writing is not yet supported.")
-		  ))
+Right-to-left writing is not yet supported.")))
 
 (provide 'hebrew)
 
