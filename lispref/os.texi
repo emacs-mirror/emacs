@@ -85,10 +85,10 @@ It loads the library @file{site-start}, unless the option
 @cindex @file{site-start.el}
 
 @item 
-It loads your init file (usually @file{~/.emacs}), unless @samp{-q} or
-@samp{-batch} was specified on the command line.  The @samp{-u} option
-can specify another user whose home directory should be used instead of
-@file{~}.
+It loads your init file (usually @file{~/.emacs}), unless @samp{-q},
+@samp{-no-init-file}, or @samp{-batch} was specified on the command line.
+The @samp{-u} option can specify another user whose home directory
+should be used instead of @file{~}.
 
 @item 
 It loads the library @file{default}, unless @code{inhibit-default-init}
@@ -985,11 +985,12 @@ the number of years since the year 1 B.C., and do not skip zero as
 traditional Gregorian years do; for example, the year number @minus{}37
 represents the Gregorian year 38 B.C@.
 
-@defun format-time-string format-string time
-This function converts @var{time} to a string according to
-@var{format-string}.  The argument @var{format-string} may contain
-@samp{%}-sequences which say to substitute parts of the time.  Here is a
-table of what the @samp{%}-sequences mean:
+@defun format-time-string format-string &optional time universal
+This function converts @var{time} (or the current time, if @var{time} is
+omitted) to a string according to @var{format-string}.  The argument
+@var{format-string} may contain @samp{%}-sequences which say to
+substitute parts of the time.  Here is a table of what the
+@samp{%}-sequences mean:
 
 @table @samp
 @item %a
@@ -1073,6 +1074,20 @@ For example, @samp{%S} specifies the number of seconds since the minute;
 @samp{%03S} means to pad this with zeros to 3 positions, @samp{%_3S} to
 pad with spaces to 3 positions.  Plain @samp{%3S} pads with zeros,
 because that is how @samp{%S} normally pads to two positions.
+
+The characters @samp{E} and @samp{O} act as modifiers when used between
+@samp{%} and one of the letters in the table above.  @samp{E} specifies
+using the locale's ``alternative'' version of a format, as specified by
+POSIX.  @samp{E} is allowed in @samp{%Ec}, @samp{%EC}, @samp{%Ex},
+@samp{%EX}, @samp{%Ey}, and @samp{%EY}.
+
+@samp{O} means to use the current locale's number symbols to format each
+number, instead of the ordinary @sc{ascii} digits.  It is allowed with
+most letters.
+
+If @var{universal} is non-@code{nil}, that means to describe the time as
+Universal Time; @code{nil} means describe it using what Emacs believes
+is the local time zone (see @code{current-time-zone}).
 @end defun
 
 @defun decode-time time
@@ -1566,7 +1581,7 @@ they were used as parts of key sequences.  Thus, you always get the last
 should be enough to see the events that invoked the macros.)
 @end defun
 
-@deffn Command open-dribble-file  filename
+@deffn Command open-dribble-file filename
 @cindex dribble file
 This function opens a @dfn{dribble file} named @var{filename}.  When a
 dribble file is open, each input event from the keyboard or mouse (but
