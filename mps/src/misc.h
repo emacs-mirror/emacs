@@ -1,6 +1,6 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName: MMsrc!misc.h(trunk.16) $
+ * $HopeName: MMsrc!misc.h(trunk.17) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * Small general things which are useful for C but aren't part of the
@@ -52,7 +52,7 @@ typedef const struct SrcIdStruct {
 
 #define SRCID(id, hopename) \
   static SrcIdStruct FileSrcIdStruct = \
-  {__FILE__, hopename, __DATE__, __TIME__}; \
+  {__FILE__, (hopename), __DATE__, __TIME__}; \
   SrcId id ## SrcId = &FileSrcIdStruct
 
 
@@ -122,12 +122,12 @@ typedef const struct SrcIdStruct {
 #define BS_SINGLE(ty, i)        ((ty)1 << (i))
 #define BS_IS_MEMBER(s, i)      (((s) >> (i)) & 1)
 #define BS_UNION(s1, s2)        ((s1) | (s2))
-#define BS_ADD(ty, s, i)        BS_UNION(s, BS_SINGLE(ty, i))
+#define BS_ADD(ty, s, i)        BS_UNION((s), BS_SINGLE(ty, (i)))
 #define BS_INTER(s1, s2)        ((s1) & (s2))
-#define BS_DIFF(s1, s2)         BS_INTER(s1, BS_COMP(s2))
-#define BS_DEL(ty, s, i)        BS_DIFF(s, BS_SINGLE(ty, i))
-#define BS_SUPER(s1, s2)        (BS_INTER(s1, s2) == s2)
-#define BS_SUB(s1, s2)          BS_SUPER(s2, s1)
+#define BS_DIFF(s1, s2)         BS_INTER((s1), BS_COMP(s2))
+#define BS_DEL(ty, s, i)        BS_DIFF((s), BS_SINGLE(ty, (i)))
+#define BS_SUPER(s1, s2)        (BS_INTER((s1), (s2)) == (s2))
+#define BS_SUB(s1, s2)          BS_SUPER((s2), (s1))
 #define BS_IS_SINGLE(s)         (((s) & ((s)-1)) == 0)
 
 
