@@ -391,12 +391,6 @@ alarm_signal_handler (signo)
       EMACS_GET_TIME (now);
     }
   
-#if defined (USG) && !defined (POSIX_SIGNALS)
-  /* USG systems forget handlers when they are used;
-     must reestablish each time.  */
-  signal (SIGALRM, alarm_signal_handler);
-#endif /* USG */
-  
   set_alarm ();
 }
 
