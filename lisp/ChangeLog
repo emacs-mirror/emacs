@@ -1,3 +1,15 @@
+2004-12-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* play/zone.el (zone): Init `line-spacing' from orig buffer.
+	(zone-replace-char): Take `count' and `del-count'
+	instead of `direction'.  Update callers.  When `del-count' is
+	non-nil, delete that many characters, otherwise `count' characters
+	backwards.  Insert the newly-replaced string `count' times.
+	(zone-fret): Handle chars w/ width greater than one.
+	(zone-fall-through-ws): No longer take window width `ww'.
+	Update callers.  Add handling for `char-width' greater than one.
+	(zone-pgm-drip): Update var holding window-end position every cycle.
+
 2004-12-17  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-default-update-changelog): Use insert-file-contents,
