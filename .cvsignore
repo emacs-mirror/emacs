@@ -12,3 +12,4 @@ emacs*.tar.gz
 leim*.tar.gz
 *.xdelta
 autom4te.cache
+.arch-inventory
