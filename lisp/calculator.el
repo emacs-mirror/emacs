@@ -51,6 +51,7 @@
 (defgroup calculator nil
   "Simple pocket calculator."
   :prefix "calculator"
+  :version "21.1"
   :group 'tools
   :group 'convenience)
 
@@ -155,8 +156,8 @@ operators.  It is probably not a good idea to modify this value with
 
 Examples:
 
-* A very simple one, adding a postfix \"x-to-y\" convertion keys, using
-  `t' as a prefix key:
+* A very simple one, adding a postfix \"x-to-y\" conversion keys, using
+  t as a prefix key:
 
   (setq calculator-user-operators
         '((\"tf\" cl-to-fr (+ 32 (/ (* X 9) 5)) 1)
@@ -631,7 +632,14 @@ See the documentation for `calculator-mode' for more information."
                   (let ((split-window-keep-point nil)
                         (window-min-height 2))
                     (select-window
-                     (split-window-vertically (- (window-height) 2)))
+		     ;; Maybe leave two lines for our window because
+		     ;; of the normal `raised' modeline in Emacs 21.
+                     (split-window-vertically 
+		      (- (window-height)
+			 (if (plist-get (face-attr-construct 'modeline)
+					:box)
+			     3
+			   2))))
                     (switch-to-buffer
                      (get-buffer-create "*calculator*"))))))
       (set-buffer calculator-buffer)
