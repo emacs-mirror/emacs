@@ -1128,6 +1128,9 @@ do:
   (make-local-variable 'outline-regexp)
   (make-local-variable 'outline-heading-end-regexp)
   (make-local-variable 'outline-level)
+  (make-local-variable 'sentence-end)
+  (setq sentence-end
+	"[.?!][]\"')}]*\\(<[^>]*>\\)*\\($\\| $\\|\t\\|  \\)[ \t\n]*")
   (setq mode-name "HTML"
         major-mode 'html-mode
 	sgml-tag-alist html-tag-alist
