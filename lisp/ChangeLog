@@ -1,3 +1,7 @@
+2000-10-24  Dave Love  <fx@gnu.org>
+
+	* log-edit.el (log-edit): Add :version and a :group for vc.
+
 2000-10-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* wid-edit.el (widget-field-keymap, widget-text-keymap): Define
