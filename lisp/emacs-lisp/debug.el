@@ -272,6 +272,13 @@ That buffer should be current already."
 		    (cdr debugger-args) debugger-args)
 		(current-buffer))
 	 (insert ?\n)))
+  (when (re-search-forward "^  eval-buffer(" nil t)
+    (end-of-line)
+    (insert (format "\n  ;;; Reading at buffer position %d"
+		    (let ((level (+ (debugger-frame-number)
+				    debugger-frame-offset -4)))
+		      (with-current-buffer (nth 2 (backtrace-frame level))
+			(point))))))
   (debugger-make-xrefs))
 
 (defun debugger-make-xrefs (&optional buffer)
@@ -423,6 +430,8 @@ will be used, such as in a debug on exit from a frame."
 		 (forward-sexp 2))
 	       (forward-line 1)
 	       (<= (point) opoint))
+	(if (looking-at " *;;;")
+	    (forward-line 1))
 	(setq count (1+ count)))
       count)))
 
