@@ -1367,7 +1367,8 @@ If the BUFFER's visited filename or default-directory is an ftp filename
 then kill the related ftp process."
   (interactive "bKill FTP process associated with buffer: ")
   (if (null buffer)
-      (setq buffer (current-buffer)))
+      (setq buffer (current-buffer))
+    (setq buffer (get-buffer buffer)))
   (let ((file (or (buffer-file-name buffer)
 		  (save-excursion (set-buffer buffer) default-directory))))
     (if file
