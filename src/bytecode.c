@@ -292,19 +292,19 @@ mark_byte_stack ()
       for (obj = stack->bottom; obj <= stack->top; ++obj)
 	if (!XMARKBIT (*obj))
 	  {
-	    mark_object (obj);
+	    mark_object (*obj);
 	    XMARK (*obj);
 	  }
 
       if (!XMARKBIT (stack->byte_string))
 	{
-          mark_object (&stack->byte_string);
+          mark_object (stack->byte_string);
 	  XMARK (stack->byte_string);
 	}
 
       if (!XMARKBIT (stack->constants))
 	{
-	  mark_object (&stack->constants);
+	  mark_object (stack->constants);
 	  XMARK (stack->constants);
 	}
     }
