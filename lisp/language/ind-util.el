@@ -39,7 +39,6 @@
 ;; used in quail/indian.el for typing Indian script in Emacs.
 
 (eval-and-compile
-(require 'cl)
 
 (defun range (from to)
   "Make the list of the integers of range FROM to TO."
@@ -52,7 +51,8 @@
     (regexp-opt
      (sort 
       (let (dummy)
-	(maphash (function (lambda (key val) (setq dummy (cons key dummy)))) hashtbl)
+	(maphash (function (lambda (key val) (setq dummy (cons key dummy))))
+		 hashtbl)
 	dummy)
       (function (lambda (x y) (> (length x) (length y))))))))
 
@@ -205,7 +205,7 @@ FUNCTION will be called 15 times."
        (lambda (x)
          (apply 
           'mapthread 
-          `(lambda (&rest y) (apply (quote ,function) ,x y))
+          (lambda (&rest y) (apply function x y))
           seqrest))
        seq1)
   (mapcar function seq1)))
@@ -221,45 +221,49 @@ FUNCTION will be called 15 times."
       (if (char-valid-p char) (setq char (char-to-string char)))
       (puthash char (car trans-char) encode-hash)
       (mapc
-       '(lambda (trans)
-	  (puthash trans char decode-hash))
+       (lambda (trans)
+	 (puthash trans char decode-hash))
        trans-char))))
 
+(defun indian--map (f l1 l2)
+  (while l1
+    (funcall f (pop l1) (pop l2))))
+
 (defun indian--puthash-v (v trans-v hashtbls)
-  (mapcar* 
-   '(lambda (v trans-v)
-      (indian--puthash-char (car v) trans-v hashtbls))
+  (indian--map 
+   (lambda (v trans-v)
+     (indian--puthash-char (car v) trans-v hashtbls))
    v trans-v))
 
 (defun indian--puthash-c (c trans-c halant hashtbls)
-  (mapcar*
-   '(lambda (c trans-c)
-      (if (char-valid-p c) (setq c (char-to-string c)))
-      (indian--puthash-char (concat c halant) trans-c hashtbls))
+  (indian--map
+   (lambda (c trans-c)
+     (if (char-valid-p c) (setq c (char-to-string c)))
+     (indian--puthash-char (concat c halant) trans-c hashtbls))
    c trans-c))
 
 (defun indian--puthash-m (m trans-m hashtbls)
-  (mapcar*
-   '(lambda (m trans-m)
-      (indian--puthash-char m trans-m hashtbls))
+  (indian--map
+   (lambda (m trans-m)
+     (indian--puthash-char m trans-m hashtbls))
    m trans-m))
 
 (defun indian--puthash-cv (c trans-c v trans-v hashtbls)
-  (mapcar*
-   '(lambda (c trans-c)
-      (mapcar*
-       (lambda (v trans-v)
-	 (when (and c trans-c  v trans-v)
-	   (if (char-valid-p c) (setq c (char-to-string c)))
-	   (setq v (if (char-valid-p (cadr v)) (char-to-string (cadr v)) ""))
-	   (if (stringp trans-c) (setq trans-c (list trans-c)))
-	   (if (stringp trans-v) (setq trans-v (list trans-v)))
-	   (indian--puthash-char 
-	    (concat c v)
-	    (apply 'append
-		   (mapthread 'concat trans-c trans-v))
-	    hashtbls)))
-       v trans-v))
+  (indian--map
+   (lambda (c trans-c)
+     (indian--map
+      (lambda (v trans-v)
+	(when (and c trans-c  v trans-v)
+	  (if (char-valid-p c) (setq c (char-to-string c)))
+	  (setq v (if (char-valid-p (cadr v)) (char-to-string (cadr v)) ""))
+	  (if (stringp trans-c) (setq trans-c (list trans-c)))
+	  (if (stringp trans-v) (setq trans-v (list trans-v)))
+	  (indian--puthash-char 
+	   (concat c v)
+	   (apply 'append
+		  (mapthread 'concat trans-c trans-v))
+	   hashtbls)))
+      v trans-v))
    c trans-c))
 
 (defun indian-make-hash (table trans-table)
@@ -306,7 +310,9 @@ FUNCTION will be called 15 times."
 	 (goto-char (point-min))
 	 (while (re-search-forward regexp nil t)
 	   (let ((matchstr (gethash (match-string 0) 
-				    (if ,encode-p (car ,hashtable) (cdr ,hashtable)))))
+				    (if ,encode-p
+					(car ,hashtable)
+				      (cdr ,hashtable)))))
 	     (if matchstr (replace-match matchstr))))))))
 
 ;;;
@@ -987,10 +993,47 @@ Returns new end position."
           (let ((len (- (match-end 0) (match-beginning 0)))
                 subst)
             (if (= len 1)
-                (setq subst (aref indian-2-column-to-ucs-chartable (char-after (match-beginning 0))))
+                (setq subst (aref indian-2-column-to-ucs-chartable
+				  (char-after (match-beginning 0))))
               (setq subst (assoc (match-string 0) alist)))
             (replace-match (if subst subst "?"))))
         (indian-compose-region (point-min) (point-max))))))
+
+;;;###autoload
+(defun indian-glyph-char (index &optional script)
+  "Return character of charset `indian-glyph' made from glyph index INDEX.
+The variable `indian-default-script' specifies the script of the glyph.
+Optional argument SCRIPT, if non-nil, overrides `indian-default-script'.
+See also the function `indian-char-glyph'."
+  (or script
+      (setq script indian-default-script))
+  (let ((offset (get script 'indian-glyph-code-offset)))
+    (or (integerp offset)
+	(error "Invalid script name: %s" script))
+    (or (and (>= index 0) (< index 256))
+	(error "Invalid glyph index: %d" index))
+    (setq index (+ offset index))
+    (make-char 'indian-glyph (+ (/ index 96) 32) (+ (% index 96) 32))))
+
+(defvar indian-glyph-max-char
+  (indian-glyph-char
+   255 (aref indian-script-table (1- (length indian-script-table))))
+  "The maximum valid code of characters in the charset `indian-glyph'.")
+
+;;;###autoload
+(defun indian-char-glyph (char)
+  "Return information about the glphy code for CHAR of `indian-glyph' charset.
+The value is (INDEX . SCRIPT), where INDEX is the glyph index
+in the font that Indian script name SCRIPT specifies.
+See also the function `indian-glyph-char'."
+  (let ((split (split-char char))
+	code)
+    (or (eq (car split) 'indian-glyph)
+	(error "Charset of `%c' is not indian-glyph" char))
+    (or (<= char indian-glyph-max-char)
+	(error "Invalid indian-glyph char: %d" char))
+    (setq code (+ (* (- (nth 1 split) 32) 96) (nth 2 split) -32))
+    (cons (% code 256) (aref indian-script-table (/ code 256)))))
     
 (provide 'ind-util)
  
