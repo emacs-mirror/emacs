@@ -1154,7 +1154,7 @@ is not *inside* the region START...END."
 
 (defvar shell-command-default-error-buffer nil
   "*Buffer name for `shell-command' and `shell-command-on-region' error output.
-This buffer is used when `shell-command' or 'shell-command-on-region'
+This buffer is used when `shell-command' or `shell-command-on-region'
 is run interactively.  A value of nil means that output to stderr and
 stdout will be intermixed in the output stream.")
 
