@@ -110,7 +110,6 @@ extern Lisp_Object Vshell_file_name;
 static time_t
 get_boot_time ()
 {
-#ifdef BOOT_TIME
   struct utmp ut, *utp;
   int fd;
   EMACS_TIME time_before, after;
@@ -166,6 +165,7 @@ get_boot_time ()
   }
 #endif /* defined (CTL_KERN) && defined (KERN_BOOTTIME) */
 
+#ifdef BOOT_TIME
   /* Try to get boot time from the current wtmp file.  */
   get_boot_time_1 (WTMP_FILE);
 
