@@ -97,19 +97,22 @@ void
 free_fontset_data (fontset_data)
      struct fontset_data *fontset_data;
 {
-  int i;
-
-  for (i = 0; i < fontset_data->n_fontsets; i++)
+  if (fontset_data->fontset_table)
     {
-      int j;
+      int i;
 
-      xfree (fontset_data->fontset_table[i]->name);
-      for (j = 0; j <= MAX_CHARSET; j++)
-	if (fontset_data->fontset_table[i]->fontname[j])
-	  xfree (fontset_data->fontset_table[i]->fontname[j]);
-      xfree (fontset_data->fontset_table[i]);
+      for (i = 0; i < fontset_data->n_fontsets; i++)
+	{
+	  int j;
+	  
+	  xfree (fontset_data->fontset_table[i]->name);
+	  for (j = 0; j <= MAX_CHARSET; j++)
+	    if (fontset_data->fontset_table[i]->fontname[j])
+	      xfree (fontset_data->fontset_table[i]->fontname[j]);
+	  xfree (fontset_data->fontset_table[i]);
+	}
+      xfree (fontset_data->fontset_table);
     }
-  xfree (fontset_data->fontset_table);
 
   xfree (fontset_data);
 }
