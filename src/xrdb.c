@@ -34,10 +34,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #endif /* 1 */
 
-/* This should be included before the X include files; otherwise, we get
-   warnings about redefining NULL under BSD 4.3.  */
-#include <sys/param.h>
-
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #if 0
@@ -52,10 +48,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <pwd.h>
 #endif
 #include <sys/stat.h>
-
-#ifndef MAXPATHLEN
-#define MAXPATHLEN	256
-#endif
 
 #if !defined(S_ISDIR) && defined(S_IFDIR)
 #define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
