@@ -5671,7 +5671,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	      {
 		/* It has shrunk too much; turn off auto-saving here.  */
 		minibuffer_auto_raise = orig_minibuffer_auto_raise;
-		message_with_string ("Buffer %s has shrunk a lot; auto save turned off there",
+		message_with_string ("Buffer %s has shrunk a lot; auto save disabled in that buffer until next real save",
 				     b->name, 1);
 		minibuffer_auto_raise = 0;
 		/* Turn off auto-saving until there's a real save,
