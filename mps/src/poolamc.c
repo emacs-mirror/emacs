@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.23) $
+ * $HopeName: MMsrc!poolamc.c(trunk.24) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.23) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.24) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -676,10 +676,9 @@ static Res AMCBufferFill(Seg *segReturn,
  * See design.mps.poolamc.flush.
  */
 
-static void AMCBufferEmpty(Pool pool, Buffer buffer)
+static void AMCBufferEmpty(Pool pool, Buffer buffer, Seg seg)
 {
   AMC amc;
-  Seg seg;
   Word size;
   Arena arena;
 
@@ -687,10 +686,9 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer)
   amc = PoolPoolAMC(pool);
   AVERT(AMC, amc);
   AVERT(Buffer, buffer);
-  AVER(!BufferIsReset(buffer));
   AVER(BufferIsReady(buffer));
+  AVER(SegCheck(seg));
 
-  seg = BufferSeg(buffer);
   arena = BufferArena(buffer);
 
   /* design.mps.poolamc.flush.pad */

@@ -1,6 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE POOL, II
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.8) $
+ * $HopeName: MMsrc!poolmv2.c(trunk.9) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: any MPS developer
@@ -18,7 +18,7 @@
 #include "cbs.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.8) $");
+SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.9) $");
 
 
 /* Signatures */
@@ -36,7 +36,7 @@ static Res MV2BufferFill(Seg *segReturn,
                          Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size minSize,
                          Bool withReservoirPermit);
-static void MV2BufferEmpty(Pool pool, Buffer buffer);
+static void MV2BufferEmpty(Pool pool, Buffer buffer, Seg seg);
 static void MV2Free(Pool pool, Addr base, Size size);
 static Res MV2Describe(Pool pool, mps_lib_FILE *stream);
 static Res MV2SegAlloc(Seg *segReturn, MV2 mv2, Size size, Pool pool,
@@ -575,10 +575,9 @@ done:
  *
  * See design.mps.poolmv2:impl.c.ap.empty
  */
-static void MV2BufferEmpty(Pool pool, Buffer buffer)
+static void MV2BufferEmpty(Pool pool, Buffer buffer, Seg seg)
 {
   MV2 mv2;
-  Seg seg;
   Addr base, limit;
   Size size;
 
@@ -586,10 +585,9 @@ static void MV2BufferEmpty(Pool pool, Buffer buffer)
   mv2 = PoolPoolMV2(pool);
   AVERT(MV2, mv2);
   AVERT(Buffer, buffer);
-  AVER(!BufferIsReset(buffer));
   AVER(BufferIsReady(buffer));
+  AVER(SegCheck(seg));
 
-  seg = BufferSeg(buffer);
   base = BufferGetInit(buffer);
   limit = BufferLimit(buffer);
   size = AddrOffset(base, limit);

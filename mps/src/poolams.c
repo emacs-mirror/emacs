@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.36) $
+ * $HopeName: MMsrc!poolams.c(trunk.37) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -23,7 +23,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.36) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.37) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -498,22 +498,20 @@ found:
  * need to be changed.  See design.mps.poolams.empty.
  */
 
-void AMSBufferEmpty(Pool pool, Buffer buffer)
+void AMSBufferEmpty(Pool pool, Buffer buffer, Seg seg)
 {
   AMS ams;
   Addr init, limit;
   Index initIndex, limitIndex;
-  Seg seg;
   AMSGroup group;
 
   AVERT(Pool, pool);
   ams = PoolPoolAMS(pool);
   AVERT(AMS, ams);
   AVERT(Buffer,buffer);
-  AVER(!BufferIsReset(buffer));
   AVER(BufferIsReady(buffer));
+  AVER(SegCheck(seg));
 
-  seg = BufferSeg(buffer);
   group = AMSSegGroup(seg);
   AVERT(AMSGroup, group);
   AVER(group->seg == seg);

@@ -1,6 +1,6 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.9) $
+ * $HopeName: MMsrc!poollo.c(trunk.10) $
  * Copyright (C) 1997,1998 Harlequin Group plc, all rights reserved.
  *
  * READERSHIP
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.9) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.10) $");
 
 
 /* MACROS */
@@ -558,12 +558,11 @@ failGroup:
 
 /* Synchronise the buffer with the alloc Bit Table in the group. */
 
-static void LOBufferEmpty(Pool pool, Buffer buffer)
+static void LOBufferEmpty(Pool pool, Buffer buffer, Seg seg)
 {
   LO lo;
   Addr base, alloc, limit, segBase;
   LOGroup group;
-  Seg seg;
   Index baseIndex, allocIndex, limitIndex;
   Arena arena;
 
@@ -571,10 +570,9 @@ static void LOBufferEmpty(Pool pool, Buffer buffer)
   lo = PARENT(LOStruct, poolStruct, pool);
   AVERT(LO, lo);
   AVERT(Buffer, buffer);
-  AVER(!BufferIsReset(buffer));
   AVER(BufferIsReady(buffer));
+  AVER(SegCheck(seg));
   
-  seg = BufferSeg(buffer);
   group = (LOGroup)SegP(seg);
 
   AVERT(LOGroup, group);
