@@ -439,22 +439,25 @@ comint mode, which see."
   ;; Here's where the actual buffer insertion is done
   (save-excursion
     (set-buffer (process-buffer proc))
-    (let ((output-after-point (< (point) (process-mark proc))))
-      (goto-char (process-mark proc))
-      ;; If we have been so requested, delete the debugger prompt.
-      (if (marker-buffer gud-delete-prompt-marker)
-	  (progn
-	    (delete-region (point) gud-delete-prompt-marker)
-	    (set-marker gud-delete-prompt-marker nil)))
-      (insert-before-markers string)
-      ;; Check for a filename-and-line number.
-      ;; Don't display the specified file
-      ;; unless (1) point is at or after the position where output appears
-      ;; and (2) this buffer is on the screen.
-      (if (and gud-last-frame
-	       (not output-after-point)
-	       (get-buffer-window (current-buffer)))
-	  (gud-display-frame)))))
+    (let ((moving (= (point) (process-mark proc)))
+	  (output-after-point (< (point) (process-mark proc))))
+      (save-excursion
+	(goto-char (process-mark proc))
+	;; If we have been so requested, delete the debugger prompt.
+	(if (marker-buffer gud-delete-prompt-marker)
+	    (progn
+	      (delete-region (point) gud-delete-prompt-marker)
+	      (set-marker gud-delete-prompt-marker nil)))
+	(insert-before-markers string)
+	;; Check for a filename-and-line number.
+	;; Don't display the specified file
+	;; unless (1) point is at or after the position where output appears
+	;; and (2) this buffer is on the screen.
+	(if (and gud-last-frame
+		 (not output-after-point)
+		 (get-buffer-window (current-buffer)))
+	    (gud-display-frame)))
+      (if moving (goto-char (process-mark proc))))))
 
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
