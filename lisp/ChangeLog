@@ -1,3 +1,7 @@
+2005-03-19  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* simple.el (goto-line): Doc fix.
+
 2005-03-19  Aaron Hawley  <Aaron.Hawley@uvm.edu>  (tiny change)
 
 	* files.el (save-buffer): Doc fix.
