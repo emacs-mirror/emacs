@@ -1,3 +1,13 @@
+2001-10-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* tooltip.el (tooltip-x-offset, tooltip-y-offset): Mention in the
+	doc string the effect of `left' and `top' parameters in
+	tooltip-frame-parameters, the default values, and the units.
+	(tooltip-frame-parameters): Mention `top' and `left' in the doc
+	string.
+	(tooltip-show): Mention in the doc string the `top' and `left'
+	parameters in tooltip-frame-parameters, and x-max-tooltip-size.
+
 2001-10-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* saveplace.el (save-place): Require `saveplace'.
