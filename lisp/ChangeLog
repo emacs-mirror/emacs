@@ -46,7 +46,7 @@
 	(reftex-parse-bibtex-entry): Use `reftex-syntax-table-for-bib'.
 	(reftex-with-special-syntax-for-bib): new macro.
 
-2002-07-21  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-07-21  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Bump version to 2.0.2.
 	(tramp-methods): Rename methods invoking "ssh1" or "ssh2" to
