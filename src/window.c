@@ -1187,6 +1187,7 @@ delete_window (window)
   Vwindow_list = Qnil;
   frame = XFRAME (WINDOW_FRAME (p));
   FRAME_WINDOW_SIZES_CHANGED (frame) = 1;
+  ensure_frame_matrix (frame);
 
   /* Are we trying to delete any frame's selected window?  */
   {
@@ -3195,6 +3196,7 @@ SIZE includes that window's scroll bar, or the divider column to its right.")
     error ("Attempt to split fixed-size window");
 
   check_min_window_sizes ();
+  ensure_frame_matrix (fo);
 
   if (NILP (horflag))
     {
@@ -4697,7 +4699,8 @@ the return value is nil.  Otherwise the value is t.")
 
   frame = XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame;
   f = XFRAME (frame);
-
+  ensure_frame_matrix (f);
+  
   /* If f is a dead frame, don't bother rebuilding its window tree.
      However, there is other stuff we should still try to do below.  */
   if (FRAME_LIVE_P (f))
