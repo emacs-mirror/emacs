@@ -229,7 +229,7 @@ actually occur.")
 
 (defvar mail-send-hook nil
   "Normal hook run before sending mail, in Mail mode.")
-
+
 (defun sendmail-sync-aliases ()
   (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
     (or (equal mail-alias-modtime modtime)
@@ -299,7 +299,7 @@ actually occur.")
   (or to subject in-reply-to
       (set-buffer-modified-p nil))
   (run-hooks 'mail-setup-hook))
-
+
 ;;;###autoload
 (defun mail-mode ()
   "Major mode for editing mail to be sent.
@@ -328,6 +328,8 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
   (setq font-lock-defaults '(mail-font-lock-keywords t))
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-start)
+  (make-local-variable 'normal-auto-fill-function)
+  (setq normal-auto-fill-function 'mail-mode-auto-fill)
   ;; `-- ' precedes the signature.  `-----' appears at the start of the
   ;; lines that delimit forwarded messages.
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
@@ -339,6 +341,25 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
 				   "$\\|[ \t]*[-_][-_][-_]+$\\|-- $\\|-----\\|"
 				   paragraph-separate))
   (run-hooks 'text-mode-hook 'mail-mode-hook))
+
+(defun mail-mode-auto-fill ()
+  "Carry out Auto Fill for Mail mode.
+If within the headers, this makes the new lines into continuation lines."
+  (if (< (point)
+	 (save-excursion
+	   (goto-char (point-min))
+	   (if (search-forward mail-header-separator nil t)
+	       (point)
+	     0)))
+      (let ((old-line-start (save-excursion (beginning-of-line) (point))))
+	(if (do-auto-fill)
+	    (save-excursion
+	      (beginning-of-line)
+	      (while (not (eq (point) old-line-start))
+		(insert "   ")
+		(forward-line -1))
+	      t)))
+    (do-auto-fill)))
 
 ;;; Set up keymap.
 
@@ -409,6 +430,8 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
 (define-key mail-mode-map [menu-bar headers to]
   '("To" . mail-to))
 
+;; User-level commands for sending.
+
 (defun mail-send-and-exit (arg)
   "Send message like `mail-send', then, if no errors, exit from mail buffer.
 Prefix arg means don't delete this window."
@@ -477,6 +500,9 @@ the user from the mailer."
 	    (progn
 	      (set-buffer-modified-p nil)
 	      (delete-auto-save-file-if-necessary t))))))
+
+;; This does the real work of sending a message via sendmail.
+;; It is called via the variable send-mail-function.
 
 (defun sendmail-send-it ()
   (require 'mail-utils)
