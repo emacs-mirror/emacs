@@ -11,7 +11,6 @@
 @settitle     CC Mode Version 5 Documentation
 @dircategory Emacs
 @direntry
-@direntry
 * CC Mode: (cc-mode).   Emacs mode for editing C, C++, Objective-C,
                           Java, Pike, and IDL code.
 @end direntry
