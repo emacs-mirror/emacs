@@ -11221,6 +11221,7 @@ display_line (it)
     {
       int n_glyphs_before, hpos_before, x_before;
       int x, i, nglyphs;
+      int ascent, descent, phys_ascent, phys_descent;
       
       /* Retrieve the next thing to display.  Value is zero if end of
 	 buffer reached.  */
@@ -11249,6 +11250,17 @@ display_line (it)
 	 generates glyphs in `row' (which is IT->glyph_row).  */
       n_glyphs_before = row->used[TEXT_AREA];
       x = it->current_x;
+
+      /* Remember the line height so far in case the next element doesn't
+	 fit on the line.  */
+      if (!it->truncate_lines_p)
+	{
+	  ascent = it->max_ascent;
+	  descent = it->max_descent;
+	  phys_ascent = it->max_phys_ascent;
+	  phys_descent = it->max_phys_descent;
+	}
+      
       PRODUCE_GLYPHS (it);
 
       /* If this display element was in marginal areas, continue with
@@ -11313,9 +11325,10 @@ display_line (it)
 		      || (new_x == it->last_visible_x
 			  && FRAME_WINDOW_P (it->f)))
 		    {
-		      /* Current glyph fits exactly on the line.  We
-			 must continue the line because we can't draw
-			 the cursor after the glyph.  */
+		      /* Current glyph is the only one on the line or
+			 fits exactly on the line.  We must continue
+			 the line because we can't draw the cursor
+			 after the glyph.  */
 		      row->continued_p = 1;
 		      it->current_x = new_x;
 		      it->continuation_lines_width += new_x;
@@ -11339,7 +11352,15 @@ display_line (it)
 		      
 		      it->current_x = x;
 		      it->continuation_lines_width += x;
+		      
+		      /* Restore the height to what it was before the
+			 element not fitting on the line.  */
+		      it->max_ascent = ascent;
+		      it->max_descent = descent;
+		      it->max_phys_ascent = phys_ascent;
+		      it->max_phys_descent = phys_descent;
 		    }
+
 		  break;
 		}
 	      else if (new_x > it->first_visible_x)
