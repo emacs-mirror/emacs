@@ -158,8 +158,8 @@ install: all
 	- $(DEL) $(INSTALL_DIR)/same-dir.tst
 
 clean mostlyclean:
-	$(FOREACH) $(TIT) $(FORDO) $(DEL) $(FORVAR)c $(ENDFOR)
-	$(FOREACH) $(TIT) $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)
+	- $(FOREACH) $(TIT) $(FORDO) $(DEL) $(FORVAR)c $(ENDFOR)
+	- $(FOREACH) $(TIT) $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)
 	- $(DEL) leim-list.el
 
 distclean maintainer-clean:
