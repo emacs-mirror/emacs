@@ -1,3 +1,8 @@
+2000-01-08  Dave Love  <fx@gnu.org>
+
+	* backquote.el: Remove inappropriate customization (allowing
+	custom.el to use backquote).
+
 2000-01-07  Dave Love  <fx@gnu.org>
 
 	* add-log.el (add-log-debugging): Deleted.

@@ -1,3 +1,7 @@
+2000-01-08  Dave Love  <fx@gnu.org>
+
+	* eval.c (Fuser_variable_p): Check customizability too.
+
 2000-01-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* minibuf.c (Fcompleting_read): Doc fix.
@@ -224,7 +228,7 @@
 	(gif_image_p): GIF is valid with :file _or_ :data
 	(gif_read_from_memory): New GIF input function to read from a
 	memory buffer.
-	(gif_load): Pay attention tot he :data keyword.  Uses DGifOpen()
+	(gif_load): Pay attention to the :data keyword.  Uses DGifOpen()
 	instead of DGifOpenFileName() if specified.
 
 1999-12-31  Gerd Moellmann  <gerd@gnu.org>
