@@ -843,6 +843,7 @@ and selects that window."
 ;; Choose a completion with the mouse.
 
 (defun mouse-choose-completion (event)
+  "Click on an alternative in the `*Completions*' buffer to choose it."
   (interactive "e")
   (let (choice)
     (save-excursion
@@ -861,7 +862,8 @@ and selects that window."
 		    (not (string= tail (substring choice 0 (length tail))))))
 	(forward-char 1))
       (insert choice)
-      (delete-region (point) (point-max)))))
+      (delete-region (point) (point-max))
+      (minibuffer-complete-and-exit))))
 
 ;; Font selection.
 
