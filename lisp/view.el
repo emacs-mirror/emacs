@@ -700,7 +700,7 @@ Also set the mark at the position where point was."
 ;    (goto-char (point-max))
 ;    (beginning-of-line))
 ;  (view-recenter))
-  
+
 (defun View-goto-line (&optional line)
   "Move to first (or prefix LINE) line in View mode.
 Display is centered at LINE.
@@ -792,7 +792,7 @@ If LINES is more than a window-full, only the last window-full is shown."
 See also `View-scroll-page-forward'."
   (interactive "P")
   (view-scroll-lines lines t view-page-size nil))
-  
+
 (defun View-scroll-page-forward-set-page-size (&optional lines)
   "Scroll forward LINES lines in View mode, setting the \"page size\".
 This is the number of lines which \\[View-scroll-page-forward] and
@@ -866,7 +866,7 @@ invocations return to earlier marks."
   (goto-char (or (mark t) (point-min)))
   (pop-mark)
   (view-recenter))
-	     
+
 (defun View-search-regexp-forward (n regexp)
   "Search forward for first (or prefix Nth) occurrence of REGEXP in View mode.
 

@@ -172,7 +172,7 @@ To save places automatically in all files, put this in your `.emacs' file:
                 (delete-region (point-min) (point-max))
                 (insert-file-contents file)
                 (goto-char (point-min))
-                (setq save-place-alist 
+                (setq save-place-alist
                       (car (read-from-string
                             (buffer-substring (point-min) (point-max)))))
 
@@ -192,7 +192,7 @@ To save places automatically in all files, put this in your `.emacs' file:
                               (setcdr s nil)
                             (setq count (1+ count)))
                           (setq s (cdr s))))))
-                  
+
                 (kill-buffer (current-buffer))
                 (message "Loading places from %s...done" file)))
           nil))))

@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: rcs sccs cvs log version-control
-;; Revision: $Id: log-view.el,v 1.13 2001/12/31 20:25:41 rms Exp $
+;; Revision: $Id: log-view.el,v 1.14 2003/01/14 21:46:13 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -181,7 +181,7 @@
   (interactive "d")
   (save-excursion
     (goto-char pos)
-    (switch-to-buffer (vc-find-version (log-view-current-file) 
+    (switch-to-buffer (vc-find-version (log-view-current-file)
                                        (log-view-current-tag)))))
 
 ;;

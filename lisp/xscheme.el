@@ -215,7 +215,7 @@ With argument, asks for a command line."
   (kill-local-variable 'xscheme-buffer-name)
   (kill-local-variable 'xscheme-process-name)
   (kill-local-variable 'xscheme-runlight))
-  
+
 (defun verify-xscheme-buffer (buffer-name localp)
   (if (and localp (xscheme-process-buffer-current-p))
       (error "Cannot change the interaction buffer of an interaction buffer"))

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; Author: Christian Plaunt <chris@bliss.berkeley.edu>
-;; Maintainer: FSF 
+;; Maintainer: FSF
 ;; Keywords: matching
 ;; Created: Sat May 15 14:48:18 1993
 

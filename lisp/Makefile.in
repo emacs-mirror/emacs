@@ -248,7 +248,7 @@ compile-always: $(lisp)/subdirs.el doit
 	  fi \
 	done
 
-compile-calc: 
+compile-calc:
 	for el in `find $(lisp)/calc -name '*.el'`; do \
 	  echo Compiling $$el; \
 	  $(emacs) -f batch-byte-compile $$el || exit 1; \

@@ -204,7 +204,7 @@ This should only be bound to mouse buttons 4 and 5."
     (if mwheel-inhibit-click-event-timer
 	(cancel-timer mwheel-inhibit-click-event-timer)
       (add-hook 'pre-command-hook 'mwheel-filter-click-events))
-    (setq mwheel-inhibit-click-event-timer 
+    (setq mwheel-inhibit-click-event-timer
 	  (run-with-timer mouse-wheel-inhibit-click-time nil
 			  'mwheel-inhibit-click-timeout))))
 

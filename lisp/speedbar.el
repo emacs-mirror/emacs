@@ -932,7 +932,7 @@ This basically creates a sparse keymap, and makes it's parent be
 		     (looking-at "[0-9]+: *\\[[+-]\\] [^ \n]+ \\*?[!#]$"))]
     )
   "Additional menu items while in file-mode.")
- 
+
 (defvar speedbar-easymenu-definition-trailer
   (append
    (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
@@ -981,7 +981,7 @@ directories.")
 (if (fboundp 'frame-parameter)
 
     (defalias 'speedbar-frame-parameter 'frame-parameter)
-  
+
   (defun speedbar-frame-parameter (frame parameter)
     "Return FRAME's PARAMETER value."
     (cdr (assoc parameter (frame-parameters frame)))))
@@ -2325,7 +2325,7 @@ position to insert a new item, and that the new item will end with a CR."
 			    (if tag-button-function 'speedbar-highlight-face nil)
 			    tag-button-function tag-button-data))
     ))
-  
+
 (defun speedbar-change-expand-button-char (char)
   "Change the expansion button character to CHAR for the current line."
   (save-excursion
@@ -2639,7 +2639,7 @@ name will have the function FIND-FUN and not token."
   (speedbar-insert-generic-list indent lst
 				'speedbar-tag-expand
 				'speedbar-tag-find))
-				
+
 (defun speedbar-insert-etags-list (indent lst)
   "At level INDENT, insert the etags generated LST."
   (speedbar-insert-generic-list indent lst
@@ -3343,7 +3343,7 @@ directory with these items.  This function is replaceable in
 `speedbar-mode-functions-list' as `speedbar-line-path'."
   (let ((rf (speedbar-fetch-replacement-function 'speedbar-line-path)))
     (if rf (funcall rf depth) default-directory)))
-      
+
 (defun speedbar-files-line-path (&optional depth)
   "Retrieve the pathname associated with the current line.
 This may require traversing backwards from DEPTH and combining the default
@@ -3427,12 +3427,12 @@ With universal argument ARG, flush cached data."
 	  (forward-char -2)
 	  (speedbar-do-function-pointer))
       (error (speedbar-position-cursor-on-line)))))
-  
+
 (defun speedbar-flush-expand-line ()
   "Expand the line under the cursor and flush any cached information."
   (interactive)
   (speedbar-expand-line 1))
-  
+
 (defun speedbar-contract-line ()
   "Contract the line under the cursor."
   (interactive)
@@ -4194,7 +4194,7 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
     (defalias 'defimage-speedbar 'defimage)
 
   (if (not (fboundp 'make-glyph))
-      
+
 (defmacro defimage-speedbar (variable imagespec docstring)
   "Don't bother loading up an image...
 Argument VARIABLE is the variable to define.

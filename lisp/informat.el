@@ -57,7 +57,7 @@
         (let (tag-list
               refillp
               (case-fold-search t)
-              (regexp 
+              (regexp
                (concat
                 "\\("
 
@@ -116,7 +116,7 @@
                   (delete-region  (match-beginning 0) (match-end 0))))
               ;; else this is a Node
               (setq tag-list
-                    (cons (list 
+                    (cons (list
                            (concat "Node: " (match-string-no-properties 13))
                            (1+ (match-beginning 10)))
                           tag-list))))
@@ -453,7 +453,7 @@ For example, invoke \"emacs -batch -f batch-info-validate $info/ ~/*.info\""
 	(cond ((not (file-exists-p file))
 	       (message ">> %s does not exist!" file)
 	       (setq error 1
-		     command-line-args-left (cdr command-line-args-left))) 
+		     command-line-args-left (cdr command-line-args-left)))
 	      ((file-directory-p file)
 	       (setq command-line-args-left (nconc (directory-files file)
 					      (cdr command-line-args-left))))

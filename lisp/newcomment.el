@@ -262,7 +262,7 @@ This is obsolete because you might as well use \\[newline-and-indent]."
 		     (if (and comment-quote-nested (<= (length ce) 1)) "" "+")
 		     (regexp-quote (substring ce 1))
 		     "\\)"))))))
- 
+
 (defun comment-quote-re (str unp)
   (concat (regexp-quote (substring str 0 1))
 	  "\\\\" (if unp "+" "*")
@@ -789,7 +789,7 @@ rather than at left margin."
     (unless block (setq cce nil))
     ;; Continuation defaults to the same as CS and CE.
     (unless ccs (setq ccs cs cce ce))
-    
+
     (save-excursion
       (goto-char end)
       ;; If the end is not at the end of a line and the comment-end
@@ -811,7 +811,7 @@ rather than at left margin."
 		(end-of-line)
 		(setq max-indent (max max-indent (current-column)))
 		(not (or (eobp) (progn (forward-line) nil)))))
-	  
+
 	  ;; Inserting ccs can change max-indent by (1- tab-width).
 	  (setq max-indent
 		(+ max-indent (max (length cs) (length ccs)) tab-width -1))
@@ -824,7 +824,7 @@ rather than at left margin."
 		    cs ce ccs cce min-indent max-indent block)))
 	      (setq cs (car csce))
 	      (setq ce (cdr csce))))
-	  
+
 	  (goto-char (point-min))
 	  ;; Loop over all lines from BEG to END.
 	  (while

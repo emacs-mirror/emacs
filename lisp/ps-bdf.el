@@ -224,7 +224,7 @@ CODE, where N and CODE are in the following relation:
 	 (relative-compose 'false)
 	 (baseline-offset 0)
 	 size
-	 font-bounding-box 
+	 font-bounding-box
 	 default-char
 	 code-range
 	 offset-vector)

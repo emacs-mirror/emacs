@@ -2688,7 +2688,7 @@ See `term-prompt-regexp'."
 				(term-move-columns columns)
 				(delete-region pos (point))))
 			    (setq term-current-column nil)
-							 
+
 			    (put-text-property old-point (point)
 					       'face term-current-face)
 			    ;; If the last char was written in last column,
@@ -3739,7 +3739,7 @@ See `term-dynamic-complete-filename'.  Returns t if successful."
 			  (t (car term-completion-addsuffix))))
 	 (filesuffix (cond ((not term-completion-addsuffix) "")
 			   ((not (consp term-completion-addsuffix)) " ")
-			   (t (cdr term-completion-addsuffix))))	 
+			   (t (cdr term-completion-addsuffix))))
 	 (filename (or (term-match-partial-filename) ""))
 	 (pathdir (file-name-directory filename))
 	 (pathnondir (file-name-nondirectory filename))

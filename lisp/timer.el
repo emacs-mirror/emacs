@@ -261,7 +261,7 @@ TIME is a time-list."
   (let ((high (- (car time) (aref timer 1)))
 	(low (- (nth 1 time) (aref timer 2))))
     (+ low (* high 65536))))
-  
+
 (defun timer-event-handler (timer)
   "Call the handler for the timer TIMER.
 This function is called, by name, directly by the C code."

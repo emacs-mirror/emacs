@@ -1299,7 +1299,7 @@ key (or menu-item)"))
 
 (defun help-with-tutorial-spec-language ()
   "Use the Emacs tutorial, specifying which language you want."
-  (interactive) 
+  (interactive)
   (help-with-tutorial t))
 
 (define-key menu-bar-help-menu [emacs-tutorial-language-specific]

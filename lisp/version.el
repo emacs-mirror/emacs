@@ -53,13 +53,13 @@ If optional argument HERE is non-nil, insert string at point.
 Don't use this function in programs to choose actions according
 to the system configuration; look at `system-configuration' instead."
   (interactive "P")
-  (let ((version-string 
+  (let ((version-string
          (format (if (not (interactive-p))
 		     "GNU Emacs %s (%s%s%s)\n of %s on %s"
 		   "GNU Emacs %s (%s%s%s) of %s on %s")
                  emacs-version
 		 system-configuration
-		 (cond ((featurep 'motif) 
+		 (cond ((featurep 'motif)
 			(concat ", " (substring motif-version-string 4)))
 		       ((featurep 'x-toolkit) ", X toolkit")
 		       (t ""))
@@ -70,7 +70,7 @@ to the system configuration; look at `system-configuration' instead."
 		   "")
 		 (format-time-string "%Y-%m-%d" emacs-build-time)
                  emacs-build-system)))
-    (if here 
+    (if here
         (insert version-string)
       (if (interactive-p)
           (message "%s" version-string)

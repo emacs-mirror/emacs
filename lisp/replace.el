@@ -678,7 +678,7 @@ This function acts on multiple buffers; otherwise, it is exactly like
 	   (buf nil)
 	   (ido-ignore-item-temp-list bufs))
       (while (not (string-equal
-		   (setq buf (read-buffer 
+		   (setq buf (read-buffer
 			      (if (eq read-buffer-function 'ido-read-buffer)
 				  "Next buffer to search (C-j to end): "
 				"Next buffer to search (RET to end): ")

@@ -366,7 +366,7 @@ from being initialized."
 More precisely, this uses only the subdirectories whose names
 start with letters or digits; it excludes any subdirectory named `RCS'
 or `CVS', and any subdirectory that contains a file named `.nosearch'."
-  (let (dirs 
+  (let (dirs
 	attrs
 	(pending (list default-directory)))
     ;; This loop does a breadth-first tree walk on DIR's subtree,
@@ -485,7 +485,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			      (make-directory
 			       (file-name-directory auto-save-list-file-prefix)
 			       t)
-			      (concat 
+			      (concat
 			       (make-temp-name
 				(expand-file-name
 				 auto-save-list-file-prefix))
@@ -880,7 +880,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; Run the site-start library if it exists.  The point of this file is
     ;; that it is run before .emacs.  There is no point in doing this after
     ;; .emacs; that is useless.
-    (if site-run-file 
+    (if site-run-file
 	(load site-run-file t t))
 
     ;; Sites should not disable this.  Only individuals should disable
@@ -907,7 +907,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			     (if (directory-files "~" nil "^\\.emacs\\(\\.elc?\\)?$")
 				 "~/.emacs"
 			       "~/_emacs"))
-			    ((eq system-type 'vax-vms) 
+			    ((eq system-type 'vax-vms)
 			     "sys$login:.emacs")
 			    (t
 			     (concat "~" init-file-user "/.emacs")))))
@@ -915,7 +915,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		      ;; into user-init-file.
 		      (setq user-init-file t)
 		      (load user-init-file-1 t t)
-		      
+
 		      (when (eq user-init-file t)
 			;; If we did not find ~/.emacs, try
 			;; ~/.emacs.d/.emacs.
@@ -933,7 +933,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			  ;; Don't let it be set from default.el.
 			  (when (eq user-init-file t)
 			    (setq user-init-file user-init-file-1))))
-		      
+
 		      ;; If we loaded a compiled file, set
 		      ;; `user-init-file' to the source version if that
 		      ;; exists.
@@ -951,13 +951,13 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 				       source user-init-file)
 			      (sit-for 1))
 			    (setq user-init-file source))))
-		      
+
 		      (when (and (stringp custom-file)
 				 (not (assoc custom-file load-history)))
 			;; If the .emacs file has set `custom-file' but hasn't
 			;; loaded the file yet, let's load it.
 			(load custom-file t t))
-		      
+
 		      (or inhibit-default-init
 			  (let ((inhibit-startup-message nil))
 			    ;; Users are supposed to be told their rights.
@@ -1025,7 +1025,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	;; originally done before unibyte was set and is sensitive to
 	;; unibyte (display table, terminal coding system &c).
 	(set-language-environment current-language-environment)))
-    
+
     ;; Do this here in case the init file sets mail-host-address.
     (if (equal user-mail-address "")
 	(setq user-mail-address (concat (user-login-name) "@"
@@ -1039,7 +1039,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		 (eq font-list-limit old-font-list-limit)
 		 (eq face-ignored-fonts old-face-ignored-fonts))
       (clear-face-cache)))
-    
+
   (run-hooks 'after-init-hook)
 
   ;; If *scratch* exists and init file didn't change its mode, initialize it.
@@ -1047,7 +1047,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
       (with-current-buffer "*scratch*"
 	(if (eq major-mode 'fundamental-mode)
 	    (funcall initial-major-mode))))
-  
+
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
   (and term-file-prefix (not noninteractive) (not window-system)
@@ -1310,7 +1310,7 @@ where FACE is a valid face specification, as it can be used with
 		    display-hourglass nil
 		    minor-mode-map-alist nil
 		    buffer-undo-list t
-		    mode-line-format (propertize "---- %b %-" 
+		    mode-line-format (propertize "---- %b %-"
 						 'face '(:weight bold))
 		    fancy-splash-stop-time (+ (float-time)
 					      (max 60 fancy-splash-max-time))
@@ -1357,7 +1357,7 @@ we put it on this frame."
     (unwind-protect
 	(with-current-buffer (get-buffer-create "GNU Emacs")
 	  (let ((tab-width 8)
-		(mode-line-format (propertize "---- %b %-" 
+		(mode-line-format (propertize "---- %b %-"
 					      'face '(:weight bold))))
 
 	    ;; The convention for this piece of code is that
@@ -1448,7 +1448,7 @@ Copyright (C) 2002 Free Software Foundation, Inc.")
 	      (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
 		       (eq (key-binding "\C-h\C-d") 'describe-distribution)
 		       (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
-		  (insert 
+		  (insert
 		   "\n
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for full details.
 Emacs is Free Software--Free as in Freedom--so you can redistribute copies

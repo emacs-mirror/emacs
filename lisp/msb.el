@@ -41,11 +41,11 @@
 ;;   There are some constants for you to try here:
 ;;   msb--few-menus
 ;;   msb--very-many-menus (default)
-;;   
+;;
 ;;   Look at the variable `msb-item-handling-function' for customization
 ;;   of the appearance of every menu item.  Try for instance setting
 ;;   it to `msb-alon-item-handler'.
-;;  
+;;
 ;;   Look at the variable `msb-item-sort-function' for customization
 ;;   of sorting the menus.  Set it to t for instance, which means no
 ;;   sorting - you will get latest used buffer first.
@@ -320,7 +320,7 @@ No buffers at all if less than 1 or nil (or any non-number)."
   :type 'string
   :set 'msb-custom-set
   :group 'msb)
- 
+
 (defvar msb-horizontal-shift-function '(lambda () 0)
   "*Function that specifies how many pixels to shift the top menu leftwards.")
 
@@ -362,7 +362,7 @@ Set this to nil or t if you don't want any sorting (faster)."
 		 (const :tag "Oldest first" nil))
   :set 'msb-custom-set
   :group 'msb)
-		
+
 (defcustom msb-files-by-directory nil
   "*Non-nil means that files should be sorted by directory.
 This is instead of the groups in `msb-menu-cond'."
@@ -729,7 +729,7 @@ to the buffer-list variable in function-info."
 			      max-buffer-name-length)
 		     buffer)
 	       (eval list-symbol)))))
- 
+
 (defsubst msb--choose-menu (buffer function-info-vector max-buffer-name-length)
   "Select the appropriate menu for BUFFER."
   ;; This is all side-effects, folks!

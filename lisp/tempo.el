@@ -279,7 +279,7 @@ The elements in ELEMENTS can be of several types:
 	 (command-name template-name))
     (set template-name elements)
     (fset command-name (list 'lambda (list '&optional 'arg)
-			     (or documentation 
+			     (or documentation
 				 (concat "Insert a " name "."))
 			     (list 'interactive "*P")
 			     (list 'tempo-insert-template (list 'quote
@@ -540,7 +540,7 @@ and insert the results."
 	       (setq lp (cdr lp)))
 	     (if (not (= mark (car lp)))
 		 (setcdr lp (cons mark (cdr lp))))))))
-	  
+
 ;;;
 ;;; tempo-forward-mark
 
@@ -577,7 +577,7 @@ and insert the results."
 		       last))))
     (if prev-mark
 	(goto-char prev-mark))))
-	
+
 ;;;
 ;;; tempo-add-tag
 

@@ -5,7 +5,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-parse.el,v 1.12 2002/06/24 22:49:06 monnier Exp $
+;; Revision: $Id: pcvs-parse.el,v 1.13 2002/09/03 01:23:15 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -202,7 +202,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
   "Table of message objects for `cvs-parse-process'."
   (let (c file dir path type base-rev subtype)
     (cvs-or
-     
+
      (cvs-parse-status)
      (cvs-parse-merge)
      (cvs-parse-commit)
@@ -211,7 +211,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
      ;; such duplicate info and luckily the second info is the one we want.
      ;; (and (cvs-match "M \\(.*\\)$" (path 1))
      ;;      (cvs-parse-merge path))
-     
+
      ;; Normal file state indicator.
      (and
       (cvs-match "\\([MARCUPNJ?]\\) \\(.*\\)$" (c 1) (path 2))
@@ -311,7 +311,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 				 'MISSING
 			       '(UP-TO-DATE . UPDATED))
 			     path))
-     
+
        ;; Mode conflicts (rather than contents)
        (and
 	(cvs-match "conflict: ")
@@ -333,7 +333,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 	 (cvs-match "sticky tag .* for file `\\(.*\\)' is not a branch$"
 		    (file 1)))
 	(cvs-parsed-fileinfo 'MESSAGE file))
-     
+
        ;; File unknown.
        (and (cvs-match "use `.+ add' to create an entry for \\(.*\\)$" (path 1))
 	    (cvs-parsed-fileinfo 'UNKNOWN path))
@@ -351,7 +351,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 	     'MESSAGE "" " "
 	     "*** Add (setq cvs-execute-single-dir t) to your .emacs ***
 	See the FAQ file or the variable's documentation for more info."))
-       
+
        ;; Cvs waits for a lock.  Ignored: already handled by the process filter
        (cvs-match "\\[..:..:..\\] \\(waiting for\\|obtained\\) .*lock in .*$")
        ;; File you removed still exists.  Ignore (will be noted as removed).
@@ -368,7 +368,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        (cvs-match "Rebuilding administrative file database$")
        ;; ???
        (cvs-match "--> Using per-directory sticky tag `.*'")
-     
+
        ;; CVS is running a *info program.
        (and
 	(cvs-match "Executing.*$")
@@ -380,7 +380,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
      (and
       (cvs-match "cvs[.ex]* \\[[a-z]+ aborted\\]:.*$")
       (cvs-parsed-fileinfo 'MESSAGE ""))
-     
+
      ;; sadly you can't do much with these since the path is in the repository
      (cvs-match "Directory .* added to the repository$")
      )))
@@ -502,7 +502,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 	;; a `current-dir' set to something different from ""
 	(cvs-parsed-fileinfo (cons 'UP-TO-DATE subtype) path 'trust
 			     :base-rev base-rev)))
-     
+
      ;; useless message added before the actual addition: ignored
      (cvs-match "RCS file: .*\ndone$"))))
 

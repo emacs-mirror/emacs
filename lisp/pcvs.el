@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.45 2002/11/18 20:53:24 rost Exp $
+;; Revision: $Id: pcvs.el,v 1.46 2002/12/05 15:23:37 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -60,7 +60,7 @@
 ;;; Todo:
 
 ;; ******** FIX THE DOCUMENTATION *********
-;; 
+;;
 ;; - rework the displaying of error messages.
 ;; - allow to flush messages only
 ;; - allow to protect files like ChangeLog from flushing
@@ -72,7 +72,7 @@
 ;; - allow cvs-confirm-removals to force always confirmation.
 ;; - cvs-checkout should ask for a revision (with completion).
 ;; - removal confirmation should allow specifying another file name.
-;; 
+;;
 ;; - hide fileinfos without getting rid of them (will require ewok work).
 ;; - add toolbar entries
 ;; - marking

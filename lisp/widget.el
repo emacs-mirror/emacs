@@ -25,7 +25,7 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-;; 
+;;
 ;; The widget library is partially documented in the `widget' Info
 ;; file.
 ;;
@@ -50,15 +50,15 @@
 
 ;;;(define-widget-keywords :documentation-indent
 ;;;  :complete-function :complete :button-overlay
-;;;  :field-overlay  
-;;;  :documentation-shown :button-prefix  
-;;;  :button-suffix :mouse-down-action :glyph-up :glyph-down :glyph-inactive  
+;;;  :field-overlay
+;;;  :documentation-shown :button-prefix
+;;;  :button-suffix :mouse-down-action :glyph-up :glyph-down :glyph-inactive
 ;;;  :prompt-internal :prompt-history :prompt-match
-;;;  :prompt-value  :deactivate :active  
+;;;  :prompt-value  :deactivate :active
 ;;;  :inactive :activate :sibling-args :delete-button-args
-;;;  :insert-button-args :append-button-args :button-args 
+;;;  :insert-button-args :append-button-args :button-args
 ;;;  :tag-glyph :off-glyph :on-glyph :valid-regexp
-;;;  :secret :sample-face :sample-face-get :case-fold 
+;;;  :secret :sample-face :sample-face-get :case-fold
 ;;;  :create :convert-widget :format :value-create :offset :extra-offset
 ;;;  :tag :doc :from :to :args :value :action
 ;;;  :value-set :value-delete :match :parent :delete :menu-tag-get
@@ -68,7 +68,7 @@
 ;;;  :indent :size :value-to-external :validate :error :directory
 ;;;  :must-match :type-error :value-inline :inline :match-inline :greedy
 ;;;  :button-face-get :button-face :value-face :keymap :entry-from
-;;;  :entry-to :help-echo :documentation-property :tab-order) 
+;;;  :entry-to :help-echo :documentation-property :tab-order)
 
 (defun define-widget (name class doc &rest args)
   "Define a new widget type named NAME from CLASS.

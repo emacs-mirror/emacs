@@ -97,7 +97,7 @@ same as ENDRECFUN."
 				   ((consp (car (car sort-lists)))
 				    (function
 				     (lambda (a b)
-				       (> 0 (compare-buffer-substrings 
+				       (> 0 (compare-buffer-substrings
 					     nil (car a) (cdr a)
 					     nil (car b) (cdr b))))))
 				   (t
@@ -108,7 +108,7 @@ same as ENDRECFUN."
 			      ((consp (car (car sort-lists)))
 			       (function
 				(lambda (a b)
-				  (> 0 (compare-buffer-substrings 
+				  (> 0 (compare-buffer-substrings
 					nil (car (car a)) (cdr (car a))
 					nil (car (car b)) (cdr (car b)))))))
 			      (t
@@ -205,7 +205,7 @@ same as ENDRECFUN."
 	(delete-region min (1+ min))))))
 
 ;;;###autoload
-(defun sort-lines (reverse beg end) 
+(defun sort-lines (reverse beg end)
   "Sort lines in region alphabetically; argument means descending order.
 Called from a program, there are three arguments:
 REVERSE (non-nil means reverse order), BEG and END (region to sort).
@@ -429,7 +429,7 @@ For example: to sort lines in the region by the first word on each line
   ;; using negative prefix arg to mean "reverse" is now inconsistent with
   ;; other sort-.*fields functions but then again this was before, since it
   ;; didn't use the magnitude of the arg to specify anything.
-  (interactive "P\nsRegexp specifying records to sort: 
+  (interactive "P\nsRegexp specifying records to sort:
 sRegexp specifying key within record: \nr")
   (cond ((or (equal key-regexp "") (equal key-regexp "\\&"))
 	 (setq key-regexp 0))

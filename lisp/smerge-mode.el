@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.19 2002/10/10 13:01:14 monnier Exp $
+;; Revision: $Id: smerge-mode.el,v 1.20 2002/10/10 17:30:20 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -203,7 +203,7 @@ Can be nil if the style is undecided, or else:
 	     (save-excursion (goto-char (point-min))
 			     (not (re-search-forward smerge-begin-re nil t))))
     (smerge-mode -1)))
-    
+
 
 (defun smerge-keep-all ()
   "Keep all three versions.
@@ -337,7 +337,7 @@ An error is raised if not inside a conflict."
 
 	       (_ (re-search-forward smerge-end-re))
 	       (_ (assert (< orig-point (match-end 0))))
-	       
+
 	       (other-end (match-beginning 0))
 	       (end (match-end 0))
 
@@ -370,7 +370,7 @@ An error is raised if not inside a conflict."
 	   (setq base-end   mine-end)
 	   (setq mine-start other-start)
 	   (setq mine-end   other-end)))
-	       
+
 	  (store-match-data (list start end
 				  mine-start mine-end
 				  base-start base-end
@@ -469,7 +469,7 @@ buffer names."
       (buffer-enable-undo)
       (set-buffer-modified-p nil)
       (funcall mode))
-    
+
     (when base
       (setq base (generate-new-buffer
 		  (or name-base (concat "*" filename " BASE*"))))
@@ -482,7 +482,7 @@ buffer names."
 	(buffer-enable-undo)
 	(set-buffer-modified-p nil)
 	(funcall mode)))
-    
+
     ;; the rest of the code is inspired from vc.el
     ;; Fire up ediff.
     (set-buffer
@@ -491,7 +491,7 @@ buffer names."
 	  ;; nil 'ediff-merge-revisions-with-ancestor buffer-file-name)
        (ediff-merge-buffers mine other)))
         ;; nil 'ediff-merge-revisions buffer-file-name)))
-    
+
     ;; Ediff is now set up, and we are in the control buffer.
     ;; Do a few further adjustments and take precautions for exit.
     (set (make-local-variable 'smerge-ediff-windows) config)

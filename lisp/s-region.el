@@ -32,7 +32,7 @@
 
 ;; Currently, s-region-move may be bound only to events that are vectors
 ;; of length one and whose last element is a symbol.  Also, the functions
-;; that are given this kind of overlay should be (interactive "p") 
+;; that are given this kind of overlay should be (interactive "p")
 ;; functions.
 
 ;; If the following keys are not already bound then...

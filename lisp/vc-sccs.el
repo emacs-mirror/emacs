@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.19 2002/11/13 12:37:58 spiegel Exp $
+;; $Id: vc-sccs.el,v 1.20 2002/12/26 14:07:15 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -28,10 +28,10 @@
 
 ;;; Code:
 
-(eval-when-compile 
+(eval-when-compile
   (require 'vc))
 
-;;; 
+;;;
 ;;; Customization options
 ;;;
 
@@ -242,7 +242,7 @@ locked.  REV is the revision to check out."
 	  ;; the file in the right place.
 	  (setq default-directory (file-name-directory file))
 
-	  (and rev (or (string= rev "") 
+	  (and rev (or (string= rev "")
                        (not (stringp rev)))
                (setq rev nil))
 	  (apply 'vc-do-command nil 0 "get" (vc-name file)
@@ -294,7 +294,7 @@ EDITABLE non-nil means previous version should be locked."
   "Get a difference report using SCCS between two versions of FILE."
   (setq oldvers (vc-sccs-lookup-triple file oldvers))
   (setq newvers (vc-sccs-lookup-triple file newvers))
-  (apply 'vc-do-command "*vc-diff*" 1 "vcdiff" (vc-name file) 
+  (apply 'vc-do-command "*vc-diff*" 1 "vcdiff" (vc-name file)
          (append (list "-q"
                        (and oldvers (concat "-r" oldvers))
                        (and newvers (concat "-r" newvers)))

@@ -41,7 +41,7 @@
 ;; This code now understands the extra fields that GNU tar adds to tar files.
 
 ;; This interacts correctly with "uncompress.el" in the Emacs library,
-;; which you get with 
+;; which you get with
 ;;
 ;;  (autoload 'uncompress-while-visiting "uncompress")
 ;;  (setq auto-mode-alist (cons '("\\.Z$" . uncompress-while-visiting)
@@ -49,11 +49,11 @@
 ;;
 ;; Do not attempt to use tar-mode.el with crypt.el, you will lose.
 
-;;    ***************   TO DO   *************** 
+;;    ***************   TO DO   ***************
 ;;
 ;; o  chmod should understand "a+x,og-w".
 ;;
-;; o  It's not possible to add a NEW file to a tar archive; not that 
+;; o  It's not possible to add a NEW file to a tar archive; not that
 ;;    important, but still...
 ;;
 ;; o  The code is less efficient that it could be - in a lot of places, I
@@ -64,7 +64,7 @@
 ;;    of an archive, where <esc> would leave you in a subfile-edit buffer.
 ;;    (Like the Meta-R command of the Zmacs mail reader.)
 ;;
-;; o  Sometimes (but not always) reverting the tar-file buffer does not 
+;; o  Sometimes (but not always) reverting the tar-file buffer does not
 ;;    re-grind the listing, and you are staring at the binary tar data.
 ;;    Typing 'g' again immediately after that will always revert and re-grind
 ;;    it, though.  I have no idea why this happens.
@@ -76,7 +76,7 @@
 ;;    might be a problem if the tar write-file-hook does not come *first* on
 ;;    the list.
 ;;
-;; o  Block files, sparse files, continuation files, and the various header 
+;; o  Block files, sparse files, continuation files, and the various header
 ;;    types aren't editable.  Actually I don't know that they work at all.
 
 ;; Rationale:
@@ -103,7 +103,7 @@
 (defcustom tar-anal-blocksize 20
   "*The blocksize of tar files written by Emacs, or nil, meaning don't care.
 The blocksize of a tar file is not really the size of the blocks; rather, it is
-the number of blocks written with one system call.  When tarring to a tape, 
+the number of blocks written with one system call.  When tarring to a tape,
 this is the size of the *tape* blocks, but when writing to a file, it doesn't
 matter much.  The only noticeable difference is that if a tar file does not
 have a blocksize of 20, tar will tell you that; all this really controls is
@@ -117,7 +117,7 @@ If this is true, then editing and saving a tar file entry back into its
 tar file will update its datestamp.  If false, the datestamp is unchanged.
 You may or may not want this - it is good in that you can tell when a file
 in a tar archive has been changed, but it is bad for the same reason that
-editing a file in the tar archive at all is bad - the changed version of 
+editing a file in the tar archive at all is bad - the changed version of
 the file never exists on disk."
   :type 'boolean
   :group 'tar)
@@ -201,7 +201,7 @@ This information is useful, but it takes screen space away from file names."
 
 (defun tar-header-block-tokenize (string)
   "Return a `tar-header' structure.
-This is a list of name, mode, uid, gid, size, 
+This is a list of name, mode, uid, gid, size,
 write-date, checksum, link-type, and link-name."
   (cond ((< (length string) 512) nil)
 	(;(some 'plusp string)		 ; <-- oops, massive cycle hog!
@@ -555,15 +555,15 @@ is visible (and the real data of the buffer is hidden)."
 ;;;###autoload
 (define-derived-mode tar-mode nil "Tar"
   "Major mode for viewing a tar file as a dired-like listing of its contents.
-You can move around using the usual cursor motion commands. 
+You can move around using the usual cursor motion commands.
 Letters no longer insert themselves.
 Type `e' to pull a file out of the tar file and into its own buffer;
 or click mouse-2 on the file's line in the Tar mode buffer.
 Type `c' to copy an entry from the tar file into another file on disk.
 
-If you edit a sub-file of this archive (as with the `e' command) and 
-save it with Control-x Control-s, the contents of that buffer will be 
-saved back into the tar-file buffer; in this way you can edit a file 
+If you edit a sub-file of this archive (as with the `e' command) and
+save it with Control-x Control-s, the contents of that buffer will be
+saved back into the tar-file buffer; in this way you can edit a file
 inside of a tar archive without extracting it and re-archiving it.
 
 See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
@@ -764,7 +764,7 @@ appear on disk when you save the tar-file's buffer."
 		  (decode-coding-region (point-min) (point-max) coding)
 		  (set-buffer-file-coding-system coding))
 		;; Set the default-directory to the dir of the
-		;; superior buffer. 
+		;; superior buffer.
 		(setq default-directory
 		      (save-excursion
 			(set-buffer tar-buffer)
@@ -775,7 +775,7 @@ appear on disk when you save the tar-file's buffer."
 		(make-local-variable 'tar-superior-descriptor)
 		(setq tar-superior-buffer tar-buffer)
 		(setq tar-superior-descriptor descriptor)
-		(setq buffer-read-only read-only-p)		
+		(setq buffer-read-only read-only-p)
 		(set-buffer-modified-p nil)
 		(tar-subfile-mode 1))
 	      (set-buffer tar-buffer))
@@ -1064,7 +1064,7 @@ for this to be permanent."
 	    (delete-region p (point))
 	    (insert (tar-header-block-summarize tokens) "\n")
 	    (setq tar-header-offset (position-bytes (point-max))))
-	  
+
 	  (widen)
 	  (set-buffer-multibyte nil)
 	  (let* ((start (+ (tar-desc-data-start descriptor) tar-header-offset -513)))

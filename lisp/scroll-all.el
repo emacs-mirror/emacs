@@ -99,7 +99,7 @@
 	 (call-interactively 'scroll-all-beginning-of-buffer-all))
 	((eq this-command 'end-of-buffer)
 	 (call-interactively 'scroll-all-end-of-buffer-all))))
- 
+
 
 ;;;###autoload
 (define-minor-mode scroll-all-mode

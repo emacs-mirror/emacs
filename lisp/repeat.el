@@ -126,7 +126,7 @@ only occurs if the final character by which `repeat' was invoked is a
 member of that sequence.  If this variable is nil, no re-execution occurs."
   :group 'convenience
   :type 'boolean)
-  
+
 ;;;;; ****************** HACKS TO THE REST OF EMACS ******************* ;;;;;
 
 ;; The basic strategy is to use last-command, a variable built in to Emacs.
@@ -262,7 +262,7 @@ can be modified by the global variable `repeat-on-final-keystroke'."
                          (setq repeat-last-self-insert
                                (buffer-substring (car range)
                                                  (cdr range)))
-                       (error (error "%s %s %s" ;Danger, Will Robinson! 
+                       (error (error "%s %s %s" ;Danger, Will Robinson!
                                      "repeat can't intuit what you"
                                      "inserted before auto-fill"
                                      "clobbered it, sorry")))))))

@@ -64,13 +64,13 @@ otherwise)."
   :type 'integer
   :group 'paren-showing
   :version "21.1")
-  
+
 (defcustom show-paren-ring-bell-on-mismatch nil
   "*If non-nil, beep if mismatched paren is detected."
   :type 'boolean
   :group 'paren-showing
   :version "20.3")
-  
+
 (defface show-paren-match-face
   '((((class color) (background light))
      :background "turquoise")		; looks OK on tty (becomes cyan)

@@ -51,7 +51,7 @@ regexp subexpression that matched.")
 
 ;; A list of minibuffers to which we've added a post-command-hook.
 (defvar minibuf-eldef-frobbed-minibufs nil)
-      
+
 ;;; The following are all local variables in the minibuffer
 
 ;; Input pre-inserted into the minibuffer before the user can edit it.

@@ -65,7 +65,7 @@
 					    (vector down-where down-command)
 					  (vector down-command))))
 	     (is-click (string-match "^mouse" (symbol-name (car down)))))
-	    
+
 	(unless is-click
 	  (unless (and (eq (read-char) ?\e)
 		       (eq (read-char) ?\[)
@@ -140,7 +140,7 @@
 				       (max 0 (1- (window-hscroll)))))
 		    (point))
 		where))
-	 (mouse (intern 
+	 (mouse (intern
 		 ;; For buttons > 3, the release-event looks
 		 ;; differently (see xc/programs/xterm/button.c,
 		 ;; function EditorButton), and there seems to come in

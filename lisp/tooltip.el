@@ -286,7 +286,7 @@ ACTIVATEP non-nil means activate mouse motion events."
 
 (defun tooltip-set-param (alist key value)
   "Change the value of KEY in alist ALIST to VALUE.
-If there's no association for KEY in ALIST, add one, otherwise 
+If there's no association for KEY in ALIST, add one, otherwise
 change the existing association.  Value is the resulting alist."
   (let ((param (assq key alist)))
     (if (consp param)
@@ -321,7 +321,7 @@ position."
 		      tooltip-hide-delay
 		      tooltip-x-offset
 		      tooltip-y-offset))
-      (error 
+      (error
        (message "Error while displaying tooltip: %s" error)
        (sit-for 1)
        (message "%s" text)))))
@@ -411,7 +411,7 @@ This event can be examined by forms in TOOLTIP-GUD-DISPLAY.")
     (message "Dereferencing is now %s."
 	     (if tooltip-gud-dereference "on" "off"))))
 
-; This will only display data that comes in one chunk. 
+; This will only display data that comes in one chunk.
 ; Larger arrays (say 400 elements) are displayed in
 ; the tootip incompletely and spill over into the gud buffer.
 ; Switching the process-filter creates timing problems and
@@ -455,16 +455,16 @@ This function must return nil if it doesn't handle EVENT."
 	  (let ((cmd (tooltip-gud-print-command expr)))
 	    (unless (null cmd)	       ; CMD can be nil if unknown debugger
 	      (case gud-minor-mode
-		    (gdba (gdb-enqueue-input 
+		    (gdba (gdb-enqueue-input
 			   (list  (concat cmd "\n") 'gdb-tooltip-print)))
-		    (t 
+		    (t
 		     (setq tooltip-gud-original-filter (process-filter process))
 		       (set-process-filter process 'tooltip-gud-process-output)
 		       (gud-basic-call cmd)))
 		    expr)))))))
 
 (defun gdb-tooltip-print ()
-  (tooltip-show 
+  (tooltip-show
    (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
      (buffer-string))))
 
@@ -488,7 +488,7 @@ MSG is either a help string to display, or nil to cancel the display."
 	   ;; Keep what we have.
 	   )
 	  (t
-	   ;; A different help.  Remove a previous tooltip, and 
+	   ;; A different help.  Remove a previous tooltip, and
 	   ;; display a new one, with some delay.
 	   (tooltip-hide)
 	   (tooltip-start-delayed-tip)))))

@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
-;; Revision: $Id: log-edit.el,v 1.16 2001/05/11 20:42:58 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.17 2001/10/30 04:32:58 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -38,9 +38,9 @@
 (require 'ring)
 (require 'vc)
 
-;;;; 
+;;;;
 ;;;; Global Variables
-;;;; 
+;;;;
 
 (defgroup log-edit nil
   "Major mode for editing RCS and CVS commit messages."
@@ -328,7 +328,7 @@ To select default log text, we:
   (interactive)
   (when (file-readable-p "CVS/Template")
     (insert-file-contents "CVS/Template")))
-  
+
 
 (defun log-edit-add-to-changelog ()
   "Insert this log message into the appropriate ChangeLog file."
@@ -341,10 +341,10 @@ To select default log text, we:
       (save-excursion
 	(vc-comment-to-change-log)))))
 
-;;;; 
+;;;;
 ;;;; functions for getting commit message from ChangeLog a file...
 ;;;; Courtesy Jim Blandy
-;;;; 
+;;;;
 
 (defun log-edit-narrow-changelog ()
   "Narrow to the top page of the current buffer, a ChangeLog file.
@@ -446,7 +446,7 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
 	(save-restriction
 	  (log-edit-narrow-changelog)
 	  (goto-char (point-min))
-	  
+
 	  ;; Search for the name of FILE relative to the ChangeLog.  If that
 	  ;; doesn't occur anywhere, they're not using full relative
 	  ;; filenames in the ChangeLog, so just look for FILE; we'll accept

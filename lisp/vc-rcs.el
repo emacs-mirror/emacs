@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.34 2003/01/03 15:27:35 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.35 2003/01/07 08:28:15 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -143,9 +143,9 @@ For a description of possible values, see `vc-check-master-templates'."
               (cond
                ((string-match ".rw..-..-." (nth 8 (file-attributes file)))
                 (vc-file-setprop file 'vc-checkout-model 'implicit)
-		(setq state 
-		      (if (vc-rcs-workfile-is-newer file) 
-			  'edited 
+		(setq state
+		      (if (vc-rcs-workfile-is-newer file)
+			  'edited
 			'up-to-date)))
                ((string-match ".r-..-..-." (nth 8 (file-attributes file)))
                 (vc-file-setprop file 'vc-checkout-model 'locking))))
@@ -162,7 +162,7 @@ For a description of possible values, see `vc-check-master-templates'."
 		       (if (file-ownership-preserved-p file)
 			   'edited
 			 (vc-user-login-name owner-uid))
-		     (if (vc-rcs-workfile-is-newer file) 
+		     (if (vc-rcs-workfile-is-newer file)
 			 'edited
 		       'up-to-date)))
                   (t
@@ -243,7 +243,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 		     (if (stringp vc-rcs-register-switches)
 		     (list vc-rcs-register-switches)
 		     vc-rcs-register-switches))))
-      
+
       (and (not (file-exists-p subdir))
 	   (not (directory-files (file-name-directory file)
 				 nil ".*,v$" t))
@@ -305,7 +305,7 @@ whether to remove it."
     (and (string= (file-name-nondirectory (directory-file-name dir)) "RCS")
 	 ;; check whether RCS dir is empty, i.e. it does not
 	 ;; contain any files except "." and ".."
-	 (not (directory-files dir nil 
+	 (not (directory-files dir nil
 			       "^\\([^.]\\|\\.[^.]\\|\\.\\.[^.]\\).*"))
 	 (yes-or-no-p (format "Directory %s is empty; remove it? " dir))
 	 (delete-directory dir))))
@@ -317,7 +317,7 @@ whether to remove it."
 		    vc-checkin-switches)))
     (let ((old-version (vc-workfile-version file)) new-version
 	  (default-branch (vc-file-getprop file 'vc-rcs-default-branch)))
-      ;; Force branch creation if an appropriate 
+      ;; Force branch creation if an appropriate
       ;; default branch has been set.
       (and (not rev)
 	   default-branch
@@ -351,7 +351,7 @@ whether to remove it."
        ((and old-version new-version
 	     (not (string= (vc-branch-part old-version)
 			   (vc-branch-part new-version))))
-	(vc-rcs-set-default-branch file 
+	(vc-rcs-set-default-branch file
 				   (if (vc-trunk-p new-version) nil
 				     (vc-branch-part new-version)))
 	;; If this is an old RCS release, we might have
@@ -407,7 +407,7 @@ whether to remove it."
                        (concat "-r" rev)
                      (let ((workrev (vc-workfile-version file)))
                        (if workrev
-                           (concat "-r" 
+                           (concat "-r"
                                    (if (not rev)
                                        ;; no revision specified:
                                        ;; use current workfile version
@@ -428,7 +428,7 @@ whether to remove it."
 	    (vc-file-setprop file 'vc-workfile-version new-version)
 	    ;; if necessary, adjust the default branch
 	    (and rev (not (string= rev ""))
-		 (vc-rcs-set-default-branch 
+		 (vc-rcs-set-default-branch
 		  file
 		  (if (vc-rcs-latest-on-branch-p file new-version)
 		      (if (vc-trunk-p new-version) nil
@@ -439,7 +439,7 @@ whether to remove it."
 (defun vc-rcs-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
   (vc-do-command nil 0 "co" (vc-name file) "-f"
-                 (concat (if (eq (vc-state file) 'edited) "-u" "-r") 
+                 (concat (if (eq (vc-state file) 'edited) "-u" "-r")
                          (vc-workfile-version file))))
 
 (defun vc-rcs-cancel-version (file editable)
@@ -483,7 +483,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   "Steal the lock on the current workfile for FILE and revision REV.
 Needs RCS 5.6.2 or later for -M."
   (vc-do-command nil 0 "rcs" (vc-name file) "-M" (concat "-u" rev))
-  ;; Do a real checkout after stealing the lock, so that we see 
+  ;; Do a real checkout after stealing the lock, so that we see
   ;; expanded headers.
   (vc-do-command nil 0 "co" (vc-name file) "-f" (concat "-l" rev)))
 

@@ -258,7 +258,7 @@ and mark at opposite ends of the quoted section, and use
 Suppose you wanted to build a keyword table in C where each entry
 looked like this:
 
-    { \"foo\", foo_data, foo_function }, 
+    { \"foo\", foo_data, foo_function },
     { \"bar\", bar_data, bar_function },
     { \"baz\", baz_data, baz_function },
 

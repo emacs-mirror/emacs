@@ -151,7 +151,7 @@ If you have the bug (or the real fix :-), please let me know."
       (set-buffer end-buffer)
       (x-set-selection 'SECONDARY (buffer-substring beg end)))))
 
-    
+
 (defun mouse-drag-secondary-pasting (start-event)
   "Drag out a secondary selection, then paste it at the current point.
 
@@ -182,7 +182,7 @@ put the point at one place, then click and drag over some other region."
 	(insert (x-get-selection 'SECONDARY))
 	(setq mouse-copy-last-paste-end (point)))
     (setq mouse-copy-last-paste-start nil)))
-  
+
 
 (defun mouse-kill-preserving-secondary ()
   "Kill the text in the secondary selection, but leave the selection set.

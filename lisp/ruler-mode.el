@@ -179,7 +179,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
           (integer :tag "Integer char value"
                    :validate ruler-mode-character-validate)))
 
-(defcustom ruler-mode-margins-char ?\ 
+(defcustom ruler-mode-margins-char ?\
   "*Character used in margin areas."
   :group 'ruler-mode
   :type '(choice

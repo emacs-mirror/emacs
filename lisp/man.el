@@ -618,7 +618,7 @@ all sections related to a subject, put something appropriate into the
 	     (start-process manual-program buffer "sh" "-c"
 			    (format (Man-build-man-command) man-args))
 	     'Man-bgproc-sentinel)
-	  (let ((process-environment 
+	  (let ((process-environment
 		 (cons "GROFF_NO_SGR=1" process-environment)))
 
 	    (let ((exit-status

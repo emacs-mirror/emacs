@@ -1058,7 +1058,7 @@ This is the last value stored with `(process-put PROCESS PROPNAME VALUE)'."
 (defun process-put (process propname value)
   "Change PROCESS' PROPNAME property to VALUE.
 It can be retrieved with `(process-get PROCESS PROPNAME)'."
-  (set-process-plist process 
+  (set-process-plist process
 		     (plist-put (process-plist process) propname value)))
 
 
@@ -1480,7 +1480,7 @@ If NOEXCLUDE is present and non-nil, the normal removal of the
  if FUNCTION adjusts point before or after inserting the object.
 If UNDO is present and non-nil, it is a function that will be called
  by `yank-pop' to undo the insertion of the current object.  It is
- called with two arguments, the start and end of the current region. 
+ called with two arguments, the start and end of the current region.
  FUNCTION may set `yank-undo-function' to override the UNDO value."
   (let* ((handler (and (stringp string)
 		       (get-text-property 0 'yank-handler string)))
@@ -1496,7 +1496,7 @@ If UNDO is present and non-nil, it is a function that will be called
 	(setq yank-undo-function (nth 3 handler))) ;; UNDO
     (if (nth 4 handler) ;; COMMAND
 	(setq this-command (nth 4 handler)))))
-    
+
 (defun insert-buffer-substring-no-properties (buf &optional start end)
   "Insert before point a substring of buffer BUFFER, without text properties.
 BUFFER may be a buffer or a buffer name.

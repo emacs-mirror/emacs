@@ -94,7 +94,7 @@
 ;; and you can set the macro counter format with C-x C-k C-f.
 
 ;; The following key bindings are performed:
-;; 
+;;
 ;;           Normal                         While defining macro
 ;;           ---------------------------    ------------------------------
 ;;  f3       Define macro                   Insert current counter value
@@ -102,13 +102,13 @@
 ;;           counter value (default 0)      (default increment: 1)
 ;;
 ;;  C-u f3   APPENDs to last macro
-;; 
-;;  f4       Call last macro                End macro 
+;;
+;;  f4       Call last macro                End macro
 ;;           Prefix arg specifies number
 ;;           of times to execute macro.
 ;;
 ;;  C-u f4   Swap last and head of macro ring.
-;; 
+;;
 ;;  S-mouse-3  Set point at click and       End macro and execute macro at
 ;;             execute last macro.          click.
 
@@ -339,7 +339,7 @@ Non-nil arg RAW means just return raw first element."
 Non-nil arg RAW means just return raw first element."
   (unless (kmacro-ring-empty-p)
     (kmacro-pop-ring1 raw)))
-      
+
 
 (defun kmacro-ring-length ()
   "Return length of macro ring, including pseudo head."
@@ -368,7 +368,7 @@ Check only `last-kbd-macro' if optional arg NONE is non-nil."
 	     (m (format-kbd-macro macro))
 	     (l (length m))
 	     (z (and nil trunc (> l x))))
-	(message (format "%s: %s%s" (or descr "Macro") 
+	(message (format "%s: %s%s" (or descr "Macro")
 			 (if z (substring m 0 (1- x)) m) (if z "..." ""))))
     (message (or empty "No keyboard macros defined"))))
 
@@ -439,7 +439,7 @@ Check only `last-kbd-macro' if optional arg NONE is non-nil."
     (kmacro-display (car (car kmacro-ring)) "2nd macro")))
 
 
-  
+
 (defun kmacro-cycle-ring-next (&optional arg)
   "Move to next keyboard macro in keyboard macro ring.
 Displays the selected macro in the echo area."
@@ -500,7 +500,7 @@ Displays the selected macro in the echo area."
 
 ;;; Traditional bindings:
 
-  
+
 ;;;###autoload
 (defun kmacro-start-macro (arg)
   "Record subsequent keyboard input, defining a keyboard macro.
@@ -527,7 +527,7 @@ The format of the counter can be modified via \\[kmacro-set-format]."
       (unless append
 	(if last-kbd-macro
 	    (let ((len (length kmacro-ring)))
-	      (setq kmacro-ring 
+	      (setq kmacro-ring
 		    (cons
 		     (list last-kbd-macro kmacro-counter kmacro-counter-format-start)
 		     kmacro-ring))
@@ -538,7 +538,7 @@ The format of the counter can be modified via \\[kmacro-set-format]."
 	      kmacro-last-counter kmacro-counter
 	      kmacro-counter-format-start kmacro-counter-format))
 
-      (start-kbd-macro append 
+      (start-kbd-macro append
 		       (and append
 			    (if kmacro-execute-before-append
 				(> (car arg) 4)
@@ -592,7 +592,7 @@ others, use M-x name-last-kbd-macro."
 		       kmacro-call-repeat-key)))
       (setq repeat-key-str (format-kbd-macro (vector repeat-key) nil))
       (while repeat-key
-	(message "(Type %s to repeat macro%s)" 
+	(message "(Type %s to repeat macro%s)"
 		 repeat-key-str
 		 (if (and kmacro-call-repeat-with-arg
 			  arg (> arg 1))
@@ -640,7 +640,7 @@ The format of the counter can be modified via \\[kmacro-set-format]."
 With numeric prefix ARG, repeat macro that many times.
 With \\[universal-argument], call second macro in macro ring."
   (interactive "P")
-  (cond 
+  (cond
    (defining-kbd-macro
      (if kmacro-call-repeat-key
 	 (kmacro-call-macro arg no-repeat t)
@@ -796,7 +796,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	      (format "Macro: %s%s%s%s%s\n"
 		      (format-kbd-macro kmacro-step-edit-new-macro 1)
 		      (if (and kmacro-step-edit-new-macro (> (length kmacro-step-edit-new-macro) 0)) " " "")
-		      (propertize (if keys (format-kbd-macro keys) 
+		      (propertize (if keys (format-kbd-macro keys)
 				    (if kmacro-step-edit-appending "<APPEND>" "<INSERT>")) 'face 'region)
 		      (if future " " "")
 		      (if future (format-kbd-macro future) ""))
@@ -813,7 +813,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 			curmsg))
 	       (t ""))
 	      (if keys
-		  (format "%s\n%s%s %S [yn iIaArR C-k kq!] " 
+		  (format "%s\n%s%s %S [yn iIaArR C-k kq!] "
 			  (propertize "\
 --------------Step Edit Keyboard Macro  [?: help]---------------" 'face 'mode-line)
 			  (if kmacro-step-edit-help "\
@@ -826,7 +826,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 " "")
 			  (propertize "Next command:" 'face 'bold)
 			  this-command)
-		(propertize 
+		(propertize
 		 (format "Type key sequence%s to insert and execute%s: "
 			 (if (numberp kmacro-step-edit-inserting) ""  "s")
 			 (if (numberp kmacro-step-edit-inserting) ""  " (end with C-j)"))
@@ -864,7 +864,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	  (clear-this-command-keys) ;; recent-keys actually
 	  (let (unread-command-events)
 	    (quoted-insert (prefix-numeric-value current-prefix-arg))
-	    (setq kmacro-step-edit-new-macro 
+	    (setq kmacro-step-edit-new-macro
 		  (vconcat kmacro-step-edit-new-macro (recent-keys)))
 	    (when unread-command-events
 	      (setq kmacro-step-edit-new-macro
@@ -957,7 +957,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
       (if (> executing-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
 	  (setq kmacro-step-edit-new-macro
 		(vconcat kmacro-step-edit-new-macro
-			 (substring executing-kbd-macro 
+			 (substring executing-kbd-macro
 				    (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index)
 				    (if (eq act t) nil executing-macro-index)))
 		kmacro-step-edit-prefix-index nil))
@@ -1068,7 +1068,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
     (add-hook 'pre-command-hook 'kmacro-step-edit-pre-command nil nil)
     (if kmacro-step-edit-key-index
 	(setq executing-macro-index kmacro-step-edit-key-index)
-      (setq kmacro-step-edit-key-index executing-macro-index))))  
+      (setq kmacro-step-edit-key-index executing-macro-index))))
 
 
 (defun kmacro-step-edit-macro ()

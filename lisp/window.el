@@ -525,7 +525,7 @@ Return non-nil if the window was shrunk."
 		       (not (eq frame (window-frame mini-window)))
 		       (< (nth 3 edges)
 			  (nth 1 (window-edges mini-window)))
-		       (> (nth 1 edges) 
+		       (> (nth 1 edges)
 			  (frame-parameter frame 'menu-bar-lines))))))
 	(fit-window-to-buffer window (window-height window)))))
 

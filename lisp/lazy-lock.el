@@ -38,7 +38,7 @@
 ;; See also the fast-lock package.  (But don't use them at the same time!)
 
 ;; Installation:
-;; 
+;;
 ;; Put in your ~/.emacs:
 ;;
 ;; (setq font-lock-support-mode 'lazy-lock-mode)
@@ -449,7 +449,7 @@ To reduce machine load during stealth fontification, at the cost of stealth
 taking longer to fontify, you could increase the value of this variable.
 See also `lazy-lock-stealth-load'."
   :type '(choice (const :tag "never" nil)
-		 (number :tag "seconds"))	  
+		 (number :tag "seconds"))
   :group 'lazy-lock)
 
 (defcustom lazy-lock-stealth-verbose

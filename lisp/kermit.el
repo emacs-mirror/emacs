@@ -54,7 +54,7 @@
 ;; ^C^Q^C to send an interrupt, and ^C^Q^Z for a stop signal, etc.  (since ^C^C
 ;; just generates a local stop signal, which kermit ignores).
 ;; To connect to a VMS system, I use a shell script to invoke kermit thru the
-;; tr filter, do "M-X kermit-send-cr", and then tell VMS that I'm on a 
+;; tr filter, do "M-X kermit-send-cr", and then tell VMS that I'm on a
 ;; half-duplex terminal.
 
 ;; Some caveats:
@@ -84,14 +84,14 @@
 (defun kermit-esc ()
   "For sending escape sequences to a kermit running in shell mode."
   (interactive)
-  (process-send-string 
+  (process-send-string
    (get-buffer-process (current-buffer))
    (concat kermit-esc-char (char-to-string (read-char)))))
 
 (defun kermit-send-char ()
   "Send an arbitrary character to a program in shell mode."
   (interactive)
-  (process-send-string 
+  (process-send-string
    (get-buffer-process (current-buffer))
    (char-to-string (read-char))))
 

@@ -187,7 +187,7 @@ the function is called."
 	(setq val (concat "        " val)
 	      n (- n 8)))
       (concat val (aref spaces-strings n)))))
-    
+
 ;;;###autoload
 (defun delete-rectangle (start end &optional fill)
   "Delete (don't save) text in the region-rectangle.

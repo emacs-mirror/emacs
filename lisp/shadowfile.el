@@ -406,7 +406,7 @@ expansion or contraction, you must do that yourself first."
 	(if regexp
 	    (string-match (nth 2 pattern-sup) (nth 2 file-sup))
 	  (string-equal (nth 2 pattern-sup) (nth 2 file-sup))))))
- 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; User-level Commands
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -497,7 +497,7 @@ Each site can be either a hostname or the name of a cluster \(see
 	  (cons (shadow-make-group regexp sites usernames)
 		shadow-regexp-groups))
     (shadow-write-info-file)))
-    
+
 (defun shadow-shadows ()
   ;; Mostly for debugging.
   "Interactive function to display shadows of a buffer."

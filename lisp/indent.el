@@ -303,16 +303,16 @@ If `auto-fill-mode' is active, re-fills region to fit in new margin."
 With optional argument, move forward N-1 lines first.
 From the beginning of the line, moves past the left-margin indentation, the
 fill-prefix, and any indentation used for centering or right-justifying the
-line, but does not move past any whitespace that was explicitly inserted 
+line, but does not move past any whitespace that was explicitly inserted
 \(such as a tab used to indent the first line of a paragraph)."
   (interactive "p")
   (beginning-of-line n)
   (skip-chars-forward " \t")
   ;; Skip over fill-prefix.
-  (if (and fill-prefix 
+  (if (and fill-prefix
 	   (not (string-equal fill-prefix "")))
       (if (equal fill-prefix
-		 (buffer-substring 
+		 (buffer-substring
 		  (point) (min (point-max) (+ (length fill-prefix) (point)))))
 	  (forward-char (length fill-prefix)))
     (if (and adaptive-fill-mode adaptive-fill-regexp

@@ -1498,11 +1498,11 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
 (defsubst strokes-xpm-encode-length-as-string (length)
   "Given some LENGTH in [0,62) do a fast lookup of its encoding."
   (aref strokes-base64-chars length))
-		   
+
 (defsubst strokes-xpm-decode-char (character)
   "Given a CHARACTER, do a fast lookup to find its corresponding integer value."
   (aref strokes-char-table character))
-		   
+
 (defun strokes-xpm-to-compressed-string (&optional xpm-buffer)
   "Convert XPM in XPM-BUFFER to compressed string representing the stroke.
 XPM-BUFFER defaults to ` *strokes-xpm*'."

@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.346 2002/11/03 15:08:29 spiegel Exp $
+;; $Id: vc.el,v 1.347 2002/12/26 14:04:21 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -148,7 +148,7 @@
 ;;   contents with those of the master version.  If the backend does not
 ;;   have such a brief-comparison feature, the default implementation of
 ;;   this function can be used, which delegates to a full
-;;   vc-BACKEND-diff.  (Note that vc-BACKEND-diff must not run 
+;;   vc-BACKEND-diff.  (Note that vc-BACKEND-diff must not run
 ;;   asynchronously in this case.)
 ;;
 ;; - mode-line-string (file)
@@ -722,7 +722,7 @@ The keys are \(BUFFER . BACKEND\).  See also `vc-annotate-get-backend'.")
 (defun vc-default-previous-version (backend file rev)
   "Guess the version number immediately preceding REV for FILE.
 This default implementation works for <major>.<minor>-style version numbers
-as used by RCS and CVS."  
+as used by RCS and CVS."
   (let ((branch (vc-branch-part rev))
         (minor-num (string-to-number (vc-minor-part rev))))
     (when branch
@@ -782,7 +782,7 @@ somebody else, signal error."
            (error (format "File not under version control: `%s'" file)))
        (unless (vc-editable-p ,filevar)
          (let ((state (vc-state ,filevar)))
-           (if (stringp state) 
+           (if (stringp state)
                (error (format "`%s' is locking `%s'" state ,filevar))
              (vc-checkout ,filevar t))))
        (save-excursion
@@ -1787,7 +1787,7 @@ versions of all registered files in or below it."
        (setq rel1-default (vc-workfile-version file)))
       ;; if the file is not locked, use last and previous version as default
       (t
-       (setq rel1-default (vc-call previous-version file 
+       (setq rel1-default (vc-call previous-version file
                                    (vc-workfile-version file)))
        (if (string= rel1-default "") (setq rel1-default nil))
        (setq rel2-default (vc-workfile-version file))))
@@ -2187,7 +2187,7 @@ There is a special command, `*l', to mark all files currently locked."
 Replace various columns with version control information, VC-INFO.
 This code, like dired, assumes UNIX -l format."
   (beginning-of-line)
-  (when (re-search-forward  
+  (when (re-search-forward
          ;; Match link count, owner, group, size.  Group may be missing,
          ;; and only the size is present in OS/2 -l format.
          "^..[drwxlts-]+ \\( *[0-9]+\\( [^ ]+ +\\([^ ]+ +\\)?[0-9]+\\)?\\) "
@@ -2514,7 +2514,7 @@ changes found in the master file; use \\[universal-argument] \\[vc-next-action] 
   "Update the current buffer's file to the latest version on its branch.
 If the file contains no changes, and is not locked, then this simply replaces
 the working file with the latest version on its branch.  If the file contains
-changes, and the backend supports merging news, then any recent changes from 
+changes, and the backend supports merging news, then any recent changes from
 the current branch are merged into the working file."
   (interactive)
   (vc-ensure-vc-buffer)
@@ -2524,15 +2524,15 @@ the current branch are merged into the working file."
         (vc-checkout file nil "")
       (if (eq (vc-checkout-model file) 'locking)
           (if (eq (vc-state file) 'edited)
-              (error 
-               (substitute-command-keys 
+              (error
+               (substitute-command-keys
            "File is locked--type \\[vc-revert-buffer] to discard changes"))
-            (error 
+            (error
              (substitute-command-keys
-           "Unexpected file state (%s)--type \\[vc-next-action] to correct") 
+           "Unexpected file state (%s)--type \\[vc-next-action] to correct")
                    (vc-state file)))
         (if (not (vc-find-backend-function (vc-backend file) 'merge-news))
-            (error "Sorry, merging news is not implemented for %s" 
+            (error "Sorry, merging news is not implemented for %s"
                    (vc-backend file))
           (vc-call merge-news file)
           (vc-resynch-window file t t))))))

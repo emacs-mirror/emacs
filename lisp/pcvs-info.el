@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-info.el,v 1.13 2002/09/11 01:56:47 rms Exp $
+;; Revision: $Id: pcvs-info.el,v 1.14 2003/01/14 21:53:39 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -170,7 +170,7 @@ to confuse some users sometimes."
                 ;; untouched version resides.
 
   ;; The meaning of the type field:
-  
+
   ;; Value	      ---Used by---	Explanation
   ;; 		      update status
   ;; NEED-UPDATE		x	file needs update
@@ -269,9 +269,9 @@ to confuse some users sometimes."
       (error "Invalid :%s in cvs-fileinfo %s" check fi))))
 
 
-;;;; 
+;;;;
 ;;;; State table to indicate what you can do when.
-;;;; 
+;;;;
 
 (defconst cvs-states
   `((NEED-UPDATE	update diff)

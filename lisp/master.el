@@ -51,14 +51,14 @@
 ;; Rob Riepel <networking.stanford.edu>
 
 ;;; History:
-;; 
+;;
 
 ;;; Code:
 
 (require 'easy-mmode)
 
 ;; Variables that don't need initialization.
-  
+
 (defvar master-of nil
   "Slave buffer of the current buffer.  See `master-mode'.
 You can set this variable using `master-set-slave'.")

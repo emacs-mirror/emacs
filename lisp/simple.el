@@ -955,7 +955,7 @@ as an argument limits undo to changes within the current region."
   (let ((modified (buffer-modified-p))
 	(recent-save (recent-auto-save-p)))
     (or (eq (selected-window) (minibuffer-window))
-	(message (if (and transient-mark-mode mark-active) 
+	(message (if (and transient-mark-mode mark-active)
 		     "Undo in region!"
 		   "Undo!")))
     (unless (eq last-command 'undo)
@@ -1004,8 +1004,8 @@ Some change-hooks test this variable to do something different.")
 Call `undo-start' to get ready to undo recent changes,
 then call `undo-more' one or more times to undo them."
   (or pending-undo-list
-      (error (format "No further undo information%s" 
-		     (if (and transient-mark-mode mark-active) 
+      (error (format "No further undo information%s"
+		     (if (and transient-mark-mode mark-active)
 			 " for region" ""))))
   (let ((undo-in-progress t))
     (setq pending-undo-list (primitive-undo count pending-undo-list))))
@@ -1528,7 +1528,7 @@ specifies the value of ERROR-BUFFER."
 					 nil shell-command-switch command)))
 	  ;; Report the output.
 	  (with-current-buffer buffer
-	    (setq mode-line-process 
+	    (setq mode-line-process
 		  (cond ((null exit-status)
 			 " - Error")
 			((stringp exit-status)
@@ -1765,7 +1765,7 @@ Optional second argument REPLACE non-nil means that STRING will replace
 the front of the kill ring, rather than being added to the list.
 
 Optional third arguments YANK-HANDLER controls how the STRING is later
-inserted into a buffer; see `insert-for-yank' for details.  
+inserted into a buffer; see `insert-for-yank' for details.
 When a yank handler is specified, STRING must be non-empty (the yank
 handler is stored as a `yank-handler'text property on STRING).
 
@@ -1774,11 +1774,11 @@ argument is not used by `insert-for-yank'.  However, since Lisp code
 may access and use elements from the kill-ring directly, the STRING
 argument should still be a \"useful\" string for such uses."
   (if (> (length string) 0)
-      (if yank-handler 
+      (if yank-handler
 	  (put-text-property 0 1 'yank-handler yank-handler string)
 	(remove-list-of-text-properties 0 1 '(yank-handler) string))
     (if yank-handler
-	(signal 'args-out-of-range 
+	(signal 'args-out-of-range
 		(list string "yank-handler specified for empty string"))))
   (if (fboundp 'menu-bar-update-yank-menu)
       (menu-bar-update-yank-menu string (and replace (car kill-ring))))
@@ -1798,7 +1798,7 @@ Optional third argument YANK-HANDLER specifies the yank-handler text
 property to be set on the combined kill ring string.  If the specified
 yank-handler arg differs from the yank-handler property of the latest
 kill string, STRING is added as a new kill ring element instead of
-being appending to the last kill. 
+being appending to the last kill.
 If `interprogram-cut-function' is set, pass the resulting kill to it."
   (let* ((cur (car kill-ring)))
     (kill-new (if before-p (concat string cur) (concat cur string))
@@ -1868,7 +1868,7 @@ the text killed this time appends to the text killed last time
 to make one entry in the kill ring.
 
 In Lisp code, optional third arg YANK-HANDLER specifies the yank-handler
-text property to be set on the killed text.  See `insert-for-yank'." 
+text property to be set on the killed text.  See `insert-for-yank'."
   (interactive "r")
   (condition-case nil
       (let ((string (delete-and-extract-region beg end)))
@@ -2537,7 +2537,7 @@ and it reactivates the mark.
 With prefix arg, `transient-mark-mode' is enabled temporarily."
   (interactive "P")
   (if arg
-      (if mark-active 
+      (if mark-active
 	  (if (null transient-mark-mode)
 	      (setq transient-mark-mode 'lambda))
 	(setq arg nil)))
@@ -3152,7 +3152,7 @@ Setting this variable automatically makes it local to the current buffer.")
 	       (not (and fill-indent-according-to-mode
 			 (string-match "\\`[ \t]*\\'" prefix)))
 	       (setq fill-prefix prefix))))
-      
+
       (while (and (not give-up) (> (current-column) fc))
 	;; Determine where to split the line.
 	(let* (after-prefix
@@ -3740,7 +3740,7 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
 
   (if make-local
       (make-local-variable var))
-	
+
   (set var val)
 
   ;; Force a thorough redisplay for the case that the variable
@@ -3908,7 +3908,7 @@ to decide what to delete."
 		 (not (equal buffer
 			     (window-buffer (active-minibuffer-window))))))
 	(error "Minibuffer is not active for completion")
-      (unless (run-hook-with-args-until-success 
+      (unless (run-hook-with-args-until-success
 	       'choose-completion-string-functions
 	       choice buffer mini-p base-size)
 	;; Insert the completion into the buffer where it was requested.
@@ -4405,10 +4405,10 @@ See also `normal-erase-is-backspace'."
 ;    (message "You cannot modify the prompt")))
 ;
 ;
-;(setq minibuffer-prompt-properties 
+;(setq minibuffer-prompt-properties
 ;  (list 'modification-hooks '(minibuffer-prompt-modification)
 ;	'insert-in-front-hooks '(minibuffer-prompt-insertion)))
-;  
+;
 
 (provide 'simple)
 ;;; simple.el ends here

@@ -139,7 +139,7 @@ The `ORGANIZATION' environment variable is used instead if defined.")
 (defconst rmail-spool-directory
   (cond ((string-match "^[^-]+-[^-]+-sco3.2v4" system-configuration)
 	 "/usr/spool/mail/")
-	;; On The Bull DPX/2 /usr/spool/mail is used although 
+	;; On The Bull DPX/2 /usr/spool/mail is used although
 	;; it is usg-unix-v.
 	((string-match "^m68k-bull-sysv3" system-configuration)
 	 "/usr/spool/mail/")
@@ -193,7 +193,7 @@ If non-nil, Emacs startup does (load (concat term-file-prefix (getenv \"TERM\"))
 You may set this variable to nil in your `.emacs' file if you do not wish
 the terminal-initialization file to be loaded.")
 
-(defconst abbrev-file-name 
+(defconst abbrev-file-name
   (if (eq system-type 'vax-vms)
       "~/abbrev.def"
     (convert-standard-filename "~/.abbrev_defs"))
