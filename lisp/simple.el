@@ -3610,18 +3610,22 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
 	    (same-window-regexps nil))
 	(funcall switch-function "*mail*")))
   (let ((cc (cdr (assoc-ignore-case "cc" other-headers)))
-	(in-reply-to (cdr (assoc-ignore-case "in-reply-to" other-headers))))
+	(in-reply-to (cdr (assoc-ignore-case "in-reply-to" other-headers)))
+	(body (cdr (assoc-ignore-case "body" other-headers))))
     (or (mail continue to subject in-reply-to cc yank-action send-actions)
 	continue
 	(error "Message aborted"))
     (save-excursion
       (rfc822-goto-eoh)
       (while other-headers
-	(if (not (assoc-ignore-case (car (car other-headers))
-				    '(("in-reply-to") ("cc"))))
+	(unless (member-ignore-case (car (car other-headers))
+				    '("in-reply-to" "cc" "body"))
 	    (insert (car (car other-headers)) ": "
 		    (cdr (car other-headers)) "\n"))
 	(setq other-headers (cdr other-headers)))
+      (when body
+	(forward-line 1)
+	(insert body))
       t)))
 
 (define-mail-user-agent 'mh-e-user-agent
