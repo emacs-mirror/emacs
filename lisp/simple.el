@@ -2221,8 +2221,9 @@ a completion with the mouse."
   (save-excursion
     (completion-mode)
     (goto-char (point-min))
-    (insert (substitute-command-keys
-	     "Click \\[mouse-choose-completion] on a completion to select it.\n\n"))))
+    (if window-system
+	(insert (substitute-command-keys
+		 "Click \\[mouse-choose-completion] on a completion to select it.\n\n")))))
 
 (add-hook 'completion-setup-hook 'completion-setup-function)
 
