@@ -48,6 +48,7 @@ Boston, MA 02111-1307, USA.  */
 extern void abort ();
 extern void free_frame_menubar ();
 extern struct scroll_bar *x_window_to_scroll_bar ();
+extern int w32_console_toggle_lock_key (int vk_code, Lisp_Object new_state);
 extern int quit_char;
 
 extern char *lispy_function_keys[];
@@ -69,6 +70,10 @@ Lisp_Object Vw32_pass_lwindow_to_system;
 /* Non nil if right window key events are passed on to Windows (this
    only affects whether "tapping" the key opens the Start menu).  */
 Lisp_Object Vw32_pass_rwindow_to_system;
+
+/* Virtual key code used to generate "phantom" key presses in order
+   to stop system from acting on Windows key events.  */
+Lisp_Object Vw32_phantom_key_code;
 
 /* Modifier associated with the left "Windows" key, or nil to act as a
    normal key.  */
@@ -201,6 +206,14 @@ Lisp_Object Qx_resource_name;
 Lisp_Object Quser_position;
 Lisp_Object Quser_size;
 Lisp_Object Qdisplay;
+
+Lisp_Object Qhyper;
+Lisp_Object Qsuper;
+Lisp_Object Qmeta;
+Lisp_Object Qalt;
+Lisp_Object Qctrl;
+Lisp_Object Qcontrol;
+Lisp_Object Qshift;
 
 /* State variables for emulating a three button mouse. */
 #define LMOUSE 1
@@ -3091,15 +3104,12 @@ reset_modifiers ()
 {
   SHORT ctrl, alt;
 
-  if (!modifiers_recorded)
+  if (GetFocus () == NULL)
+    /* Emacs doesn't have keyboard focus.  Do nothing.  */
     return;
 
   ctrl = GetAsyncKeyState (VK_CONTROL);
   alt = GetAsyncKeyState (VK_MENU);
-
-  if (ctrl == 0 || alt == 0)
-    /* Emacs doesn't have keyboard focus.  Do nothing.  */
-    return;
 
   if (!(ctrl & 0x08000))
     /* Clear any recorded control modifier state.  */
@@ -3109,8 +3119,27 @@ reset_modifiers ()
     /* Clear any recorded alt modifier state.  */
     modifiers[EMACS_RMENU] = modifiers[EMACS_LMENU] = 0;
 
-  /* Otherwise, leave the modifier state as it was when Emacs lost
-     keyboard focus.  */
+  /* Update the state of all modifier keys, because modifiers used in
+     hot-key combinations can get stuck on if Emacs loses focus as a
+     result of a hot-key being pressed.  */
+  {
+    BYTE keystate[256];
+
+#define CURRENT_STATE(key) ((GetAsyncKeyState (key) & 0x8000) >> 8)
+
+    GetKeyboardState (keystate);
+    keystate[VK_SHIFT] = CURRENT_STATE (VK_SHIFT);
+    keystate[VK_CONTROL] = CURRENT_STATE (VK_CONTROL);
+    keystate[VK_LCONTROL] = CURRENT_STATE (VK_LCONTROL);
+    keystate[VK_RCONTROL] = CURRENT_STATE (VK_RCONTROL);
+    keystate[VK_MENU] = CURRENT_STATE (VK_MENU);
+    keystate[VK_LMENU] = CURRENT_STATE (VK_LMENU);
+    keystate[VK_RMENU] = CURRENT_STATE (VK_RMENU);
+    keystate[VK_LWIN] = CURRENT_STATE (VK_LWIN);
+    keystate[VK_RWIN] = CURRENT_STATE (VK_RWIN);
+    keystate[VK_APPS] = CURRENT_STATE (VK_APPS);
+    SetKeyboardState (keystate);
+  }
 }
 
 /* Synchronize modifier state with what is reported with the current
@@ -3178,19 +3207,25 @@ w32_key_to_modifier (int key)
       key_mapping = Qnil;
     }
 
-  if (EQ (key_mapping, intern ("hyper")))
+  /* NB. This code runs in the input thread, asychronously to the lisp
+     thread, so we must be careful to ensure access to lisp data is
+     thread-safe.  The following code is safe because the modifier
+     variable values are updated atomically from lisp and symbols are
+     not relocated by GC.  Also, we don't have to worry about seeing GC
+     markbits here.  */
+  if (EQ (key_mapping, Qhyper))
     return hyper_modifier;
-  if (EQ (key_mapping, intern ("super")))
+  if (EQ (key_mapping, Qsuper))
     return super_modifier;
-  if (EQ (key_mapping, intern ("meta")))
+  if (EQ (key_mapping, Qmeta))
     return meta_modifier;
-  if (EQ (key_mapping, intern ("alt")))
+  if (EQ (key_mapping, Qalt))
     return alt_modifier;
-  if (EQ (key_mapping, intern ("ctrl")))
+  if (EQ (key_mapping, Qctrl))
     return ctrl_modifier;
-  if (EQ (key_mapping, intern ("control"))) /* synonym for ctrl */
+  if (EQ (key_mapping, Qcontrol)) /* synonym for ctrl */
     return ctrl_modifier;
-  if (EQ (key_mapping, intern ("shift")))
+  if (EQ (key_mapping, Qshift))
     return shift_modifier;
 
   /* Don't generate any modifier if not explicitly requested.  */
@@ -3404,10 +3439,46 @@ w32_msg_pump (deferred_msg * msg_buf)
 	      focus_window = GetFocus ();
 	      if (focus_window != NULL)
 		UnregisterHotKey (focus_window, HOTKEY_ID (msg.wParam));
-	      /* Mark item as erased.  */
+	      /* Mark item as erased.  NB: this code must be
+                 thread-safe.  The next line is okay because the cons
+                 cell is never made into garbage and is not relocated by
+                 GC.  */
 	      XCAR ((Lisp_Object) msg.lParam) = Qnil;
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
 		abort ();
+	      break;
+	    case WM_EMACS_TOGGLE_LOCK_KEY:
+	      {
+		int vk_code = (int) msg.wParam;
+		int cur_state = (GetKeyState (vk_code) & 1);
+		Lisp_Object new_state = (Lisp_Object) msg.lParam;
+
+		/* NB: This code must be thread-safe.  It is safe to
+                   call NILP because symbols are not relocated by GC,
+                   and pointer here is not touched by GC (so the markbit
+                   can't be set).  Numbers are safe because they are
+                   immediate values.  */
+		if (NILP (new_state)
+		    || (NUMBERP (new_state)
+			&& (XUINT (new_state)) & 1 != cur_state))
+		  {
+		    one_w32_display_info.faked_key = vk_code;
+
+		    keybd_event ((BYTE) vk_code,
+				 (BYTE) MapVirtualKey (vk_code, 0),
+				 KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+		    keybd_event ((BYTE) vk_code,
+				 (BYTE) MapVirtualKey (vk_code, 0),
+				 KEYEVENTF_EXTENDEDKEY | 0, 0);
+		    keybd_event ((BYTE) vk_code,
+				 (BYTE) MapVirtualKey (vk_code, 0),
+				 KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+		    cur_state = !cur_state;
+		  }
+		if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE,
+					cur_state, 0))
+		  abort ();
+	      }
 	      break;
 	    default:
 	      DebPrint (("msg %x not expected by w32_msg_pump\n", msg.message));
@@ -3638,7 +3709,9 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       if (dpyinfo->faked_key == wParam)
 	{
 	  dpyinfo->faked_key = 0;
-	  return 0;
+	  /* Make sure TranslateMessage sees them though.  */
+	  windows_translate = 1;
+	  goto translate;
 	}
 
       /* Synchronize modifiers with current keystroke.  */
@@ -3658,33 +3731,44 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 		 press of Space which we will ignore.  */
 	      if (GetAsyncKeyState (wParam) & 1)
 		{
-		  dpyinfo->faked_key = VK_SPACE;
-		  keybd_event (VK_SPACE,
-			       (BYTE) MapVirtualKey (VK_SPACE, 0), 0, 0);
+		  if (NUMBERP (Vw32_phantom_key_code))
+		    wParam = XUINT (Vw32_phantom_key_code) & 255;
+		  else
+		    wParam = VK_SPACE;
+		  dpyinfo->faked_key = wParam;
+		  keybd_event (wParam, (BYTE) MapVirtualKey (wParam, 0), 0, 0);
 		}
 	    }
 	  if (!NILP (Vw32_lwindow_modifier))
 	    return 0;
+	  windows_translate = 1;
 	  break;
 	case VK_RWIN:
 	  if (NILP (Vw32_pass_rwindow_to_system))
 	    {
 	      if (GetAsyncKeyState (wParam) & 1)
 		{
-		  dpyinfo->faked_key = VK_SPACE;
-		  keybd_event (VK_SPACE,
-			       (BYTE) MapVirtualKey (VK_SPACE, 0), 0, 0);
+		  if (NUMBERP (Vw32_phantom_key_code))
+		    wParam = XUINT (Vw32_phantom_key_code) & 255;
+		  else
+		    wParam = VK_SPACE;
+		  dpyinfo->faked_key = wParam;
+		  keybd_event (wParam, (BYTE) MapVirtualKey (wParam, 0), 0, 0);
 		}
 	    }
 	  if (!NILP (Vw32_rwindow_modifier))
 	    return 0;
+	  windows_translate = 1;
 	  break;
 	case VK_APPS:
 	  if (!NILP (Vw32_apps_modifier))
 	    return 0;
+	  windows_translate = 1;
 	  break;
 	case VK_MENU:
 	  if (NILP (Vw32_pass_alt_to_system)) 
+	    /* Prevent DefWindowProc from activating the menu bar if an
+               Alt key is pressed and released by itself.  */
 	    return 0;
 	  windows_translate = 1;
 	  break;
@@ -3692,42 +3776,65 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	  /* Decide whether to treat as modifier or function key.  */
 	  if (NILP (Vw32_enable_caps_lock))
 	    goto disable_lock_key;
-	  return 0;
+	  windows_translate = 1;
+	  break;
 	case VK_NUMLOCK:
 	  /* Decide whether to treat as modifier or function key.  */
 	  if (NILP (Vw32_enable_num_lock))
 	    goto disable_lock_key;
-	  return 0;
+	  windows_translate = 1;
+	  break;
 	case VK_SCROLL:
 	  /* Decide whether to treat as modifier or function key.  */
 	  if (NILP (Vw32_scroll_lock_modifier))
 	    goto disable_lock_key;
-	  return 0;
+	  windows_translate = 1;
+	  break;
 	disable_lock_key:
-	  /* Ensure the appropriate lock key state is off (and the
-             indicator light as well).  */
-	  if (GetAsyncKeyState (wParam) & 0x8000)
-	    {
-	      /* Fake another press of the relevant key.  Apparently,
-                 this really is the only way to turn off the indicator.  */
-	      dpyinfo->faked_key = wParam;
-	      keybd_event ((BYTE) wParam, (BYTE) MapVirtualKey (wParam, 0),
-			   KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
-	      keybd_event ((BYTE) wParam, (BYTE) MapVirtualKey (wParam, 0),
-			   KEYEVENTF_EXTENDEDKEY | 0, 0);
-	      keybd_event ((BYTE) wParam, (BYTE) MapVirtualKey (wParam, 0),
-			   KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
-	    }
+	  /* Ensure the appropriate lock key state (and indicator light)
+             remains in the same state. We do this by faking another
+             press of the relevant key.  Apparently, this really is the
+             only way to toggle the state of the indicator lights.  */
+	  dpyinfo->faked_key = wParam;
+	  keybd_event ((BYTE) wParam, (BYTE) MapVirtualKey (wParam, 0),
+		       KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+	  keybd_event ((BYTE) wParam, (BYTE) MapVirtualKey (wParam, 0),
+		       KEYEVENTF_EXTENDEDKEY | 0, 0);
+	  keybd_event ((BYTE) wParam, (BYTE) MapVirtualKey (wParam, 0),
+		       KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+	  /* Ensure indicator lights are updated promptly on Windows 9x
+             (TranslateMessage apparently does this), after forwarding
+             input event.  */
+	  post_character_message (hwnd, msg, wParam, lParam,
+				  w32_get_key_modifiers (wParam, lParam));
+	  windows_translate = 1;
 	  break;
 	case VK_CONTROL: 
 	case VK_SHIFT:
 	case VK_PROCESSKEY:  /* Generated by IME.  */
 	  windows_translate = 1;
 	  break;
+	case VK_CANCEL:
+	  /* Windows maps Ctrl-Pause (aka Ctrl-Break) into VK_CANCEL,
+             which is confusing for purposes of key binding; convert
+	     VK_CANCEL events into VK_PAUSE events.  */
+	  wParam = VK_PAUSE;
+	  break;
+	case VK_PAUSE:
+	  /* Windows maps Ctrl-NumLock into VK_PAUSE, which is confusing
+             for purposes of key binding; convert these back into
+             VK_NUMLOCK events, at least when we want to see NumLock key
+             presses.  (Note that there is never any possibility that
+             VK_PAUSE with Ctrl really is C-Pause as per above.)  */
+	  if (NILP (Vw32_enable_num_lock) && modifier_set (VK_CONTROL))
+	    wParam = VK_NUMLOCK;
+	  break;
 	default:
 	  /* If not defined as a function key, change it to a WM_CHAR message. */
 	  if (lispy_function_keys[wParam] == 0)
 	    {
+	      DWORD modifiers = construct_console_modifiers ();
+
 	      if (!NILP (Vw32_recognize_altgr)
 		  && modifier_set (VK_LCONTROL) && modifier_set (VK_RMENU))
 		{
@@ -3736,11 +3843,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 		     chords correctly.  */
 		  windows_translate = 1;
 		}
-	      else if (modifier_set (VK_CONTROL) || modifier_set (VK_MENU))
+	      else if ((modifiers & (~SHIFT_PRESSED & ~CAPSLOCK_ON)) != 0)
 		{
-		  /* Handle key chords including any modifiers other than shift
-		     directly, in order to preserve as much modifier information as
-		     possible.  */
+		  /* Handle key chords including any modifiers other
+		     than shift directly, in order to preserve as much
+		     modifier information as possible.  */
 		  if ('A' <= wParam && wParam <= 'Z')
 		    {
 		      /* Don't translate modified alphabetic keystrokes,
@@ -3766,7 +3873,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 		      key.wVirtualKeyCode = wParam;
 		      key.wVirtualScanCode = (lParam & 0xFF0000) >> 16;
 		      key.uChar.AsciiChar = 0;
-		      key.dwControlKeyState = construct_console_modifiers ();
+		      key.dwControlKeyState = modifiers;
 
 		      add = w32_kbd_patch_key (&key);
 		      /* 0 means an unrecognised keycode, negative means
@@ -3790,6 +3897,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	    }
 	}
 
+    translate:
       if (windows_translate)
 	{
 	  MSG windows_msg = { hwnd, msg, wParam, lParam, 0, {0,0} };
@@ -3860,7 +3968,8 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	  {
 	    /* Hold onto message for now. */
 	    mouse_button_timer =
-	      SetTimer (hwnd, MOUSE_BUTTON_ID, XINT (Vw32_mouse_button_tolerance), NULL);
+	      SetTimer (hwnd, MOUSE_BUTTON_ID,
+			XINT (Vw32_mouse_button_tolerance), NULL);
 	    saved_mouse_button_msg.msg.hwnd = hwnd;
 	    saved_mouse_button_msg.msg.message = msg;
 	    saved_mouse_button_msg.msg.wParam = wParam;
@@ -3960,7 +4069,8 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 
       if (saved_mouse_move_msg.msg.hwnd == 0)
 	mouse_move_timer =
-	  SetTimer (hwnd, MOUSE_MOVE_ID, XINT (Vw32_mouse_move_interval), NULL);
+	  SetTimer (hwnd, MOUSE_MOVE_ID,
+		    XINT (Vw32_mouse_move_interval), NULL);
 
       /* Hold onto message for now. */
       saved_mouse_move_msg.msg.hwnd = hwnd;
@@ -4146,8 +4256,6 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 #endif
 
     case WM_ACTIVATEAPP:
-      dpyinfo->faked_key = 0;
-      reset_modifiers ();
     case WM_ACTIVATE:
     case WM_WINDOWPOSCHANGED:
     case WM_SHOWWINDOW:
@@ -4157,6 +4265,8 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       goto dflt;
 
     case WM_SETFOCUS:
+      dpyinfo->faked_key = 0;
+      reset_modifiers ();
       register_hot_keys (hwnd);
       goto command;
     case WM_KILLFOCUS:
@@ -6600,6 +6710,39 @@ DEFUN ("w32-reconstruct-hot-key", Fw32_reconstruct_hot_key, Sw32_reconstruct_hot
 
   return key;
 }
+
+DEFUN ("w32-toggle-lock-key", Fw32_toggle_lock_key, Sw32_toggle_lock_key, 1, 2, 0,
+   "Toggle the state of the lock key KEY.\n\
+KEY can be `capslock', `kp-numlock', or `scroll'.\n\
+If the optional parameter NEW-STATE is a number, then the state of KEY\n\
+is set to off if the low bit of NEW-STATE is zero, otherwise on.")
+  (key, new_state)
+     Lisp_Object key, new_state;
+{
+  int vk_code;
+  int cur_state;
+
+  if (EQ (key, intern ("capslock")))
+    vk_code = VK_CAPITAL;
+  else if (EQ (key, intern ("kp-numlock")))
+    vk_code = VK_NUMLOCK;
+  else if (EQ (key, intern ("scroll")))
+    vk_code = VK_SCROLL;
+  else
+    return Qnil;
+
+  if (!dwWindowsThreadId)
+    return make_number (w32_console_toggle_lock_key (vk_code, new_state));
+
+  if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_TOGGLE_LOCK_KEY,
+			 (WPARAM) vk_code, (LPARAM) new_state))
+    {
+      MSG msg;
+      GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
+      return make_number (msg.wParam);
+    }
+  return Qnil;
+}
 
 syms_of_w32fns ()
 {
@@ -6677,6 +6820,21 @@ syms_of_w32fns ()
   staticpro (&Qdisplay);
   /* This is the end of symbol initialization.  */
 
+  Qhyper = intern ("hyper");
+  staticpro (&Qhyper);
+  Qsuper = intern ("super");
+  staticpro (&Qsuper);
+  Qmeta = intern ("meta");
+  staticpro (&Qmeta);
+  Qalt = intern ("alt");
+  staticpro (&Qalt);
+  Qctrl = intern ("ctrl");
+  staticpro (&Qctrl);
+  Qcontrol = intern ("control");
+  staticpro (&Qcontrol);
+  Qshift = intern ("shift");
+  staticpro (&Qshift);
+
   Qface_set_after_frame_default = intern ("face-set-after-frame-default");
   staticpro (&Qface_set_after_frame_default);
 
@@ -6714,6 +6872,16 @@ When non-nil, the Start menu is opened by tapping the key.");
 	       "Non-nil if the right \"Windows\" key is passed on to Windows.\n\
 When non-nil, the Start menu is opened by tapping the key.");
   Vw32_pass_rwindow_to_system = Qt;
+
+  DEFVAR_INT ("w32-phantom-key-code",
+	       &Vw32_phantom_key_code,
+	       "Virtual key code used to generate \"phantom\" key presses.\n\
+Value is a number between 0 and 255.\n\
+\n\
+Phantom key presses are generated in order to stop the system from\n\
+acting on \"Windows\" key events when `w32-pass-lwindow-to-system' or\n\
+`w32-pass-rwindow-to-system' is nil.");
+  Vw32_phantom_key_code = VK_SPACE;
 
   DEFVAR_LISP ("w32-enable-num-lock", 
 	       &Vw32_enable_num_lock,
@@ -6885,6 +7053,7 @@ displayed according to the current fontset.");
   defsubr (&Sw32_unregister_hot_key);
   defsubr (&Sw32_registered_hot_keys);
   defsubr (&Sw32_reconstruct_hot_key);
+  defsubr (&Sw32_toggle_lock_key);
 
   /* Setting callback functions for fontset handler.  */
   get_font_info_func = w32_get_font_info;
