@@ -1,4 +1,5 @@
 ;;; etags.el --- etags facility for Emacs
+
 ;; Copyright (C) 1985, 86, 88, 89, 92, 93, 94, 95, 96, 98, 2000, 2001
 ;;	Free Software Foundation, Inc.
 
@@ -1743,7 +1744,7 @@ See documentation of variable `tags-file-name'."
 				   ;; will see it.
 				   '(goto-char (match-beginning 0))))
 	tags-loop-operate (list 'perform-replace
-				(list 'quote from) (list 'quote to) nil nil
+				(list 'quote from) (list 'quote to)
 				t t (list 'quote delimited)))
   (tags-loop-continue (or file-list-form t)))
 
