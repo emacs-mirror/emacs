@@ -198,7 +198,7 @@ named by variable `unread-bib-file'."
    (concat
       "the\\|and\\|of\\|is\\|a\\|an\\|of\\|for\\|in\\|to\\|in\\|on\\|at\\|"
       "by\\|with\\|that\\|its")
-   "Words not to be capitialized in a title (unless they're the first word
+   "Words not to be capitalized in a title (unless they're the first word
 in the title).")
 
 (defvar capitalize-title-stop-regexp
