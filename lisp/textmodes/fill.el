@@ -247,6 +247,11 @@ act as a paragraph-separator."
 					   (concat result "a"))))
 		  result)))))))
 
+(defvar fill-nobreak-predicate nil
+  "If non-nil, a predicate for recognizing places not to break a line.
+The predicate is called with no arguments, with point at the place
+to be tested.  If it returns t, fill commands do not break the line there.")
+
 (defun fill-region-as-paragraph (from to &optional justify
 				      nosqueeze squeeze-after)
   "Fill the region as one paragraph.
@@ -421,14 +426,17 @@ space does not end a sentence, so don't break a line there."
 		;; further fills will assume it ends a sentence.
 		;; If we now know it does not end a sentence,
 		;; avoid putting it at the end of the line.
-		(if sentence-end-double-space
-		    (while (and (> (point) (+ linebeg 2))
+		(while (or (and sentence-end-double-space
+				(> (point) (+ linebeg 2))
 				(eq (preceding-char) ?\ )
 				(not (eq (following-char) ?\ ))
-				(eq (char-after (- (point) 2)) ?\.))
-		      (forward-char -2)
-		      (if (re-search-backward " \\|\\c|.\\|.\\c|" linebeg 0)
-			  (forward-char 1))))
+				(eq (char-after (- (point) 2)) ?\.)
+				(progn (forward-char -2) t))
+			   (and fill-nobreak-predicate
+				(funcall fill-nobreak-predicate)
+				(goto-char (match-beginning 0))))
+		  (if (re-search-backward " \\|\\c|.\\|.\\c|" linebeg 0)
+		      (forward-char 1)))
 		;; If the left margin and fill prefix by themselves
 		;; pass the fill-column. or if they are zero
 		;; but we have no room for even one word,
@@ -450,7 +458,9 @@ space does not end a sentence, so don't break a line there."
 					   sentence-end-double-space
 					   (save-excursion (forward-char -1)
 							   (and (looking-at "\\. ")
-								(not (looking-at "\\.  ")))))))
+								(not (looking-at "\\.  ")))))
+				      (and fill-nobreak-predicate
+					   (funcall fill-nobreak-predicate))))
 			;; Find a breakable point while ignoring the
 			;; following spaces.
 			(skip-chars-forward " \t")
@@ -495,7 +505,9 @@ space does not end a sentence, so don't break a line there."
 					   sentence-end-double-space
 					   (save-excursion (forward-char -1)
 							   (and (looking-at "\\. ")
-								(not (looking-at "\\.  ")))))))
+								(not (looking-at "\\.  ")))))
+				      (and fill-nobreak-predicate
+					   (funcall fill-nobreak-predicate))))
 			;; Find a breakable point while ignoring the
 			;; following spaces.
 			(skip-chars-forward " \t")
