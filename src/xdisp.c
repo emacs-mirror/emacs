@@ -508,6 +508,10 @@ static struct glyph scratch_glyphs[MAX_SCRATCH_GLYPHS];
 
 static int last_max_ascent, last_height;
 
+/* Non-zero if there's a help-echo in the echo area.  */
+
+int help_echo_showing_p;
+
 /* The maximum distance to look ahead for text properties.  Values
    that are too small let us call compute_char_face and similar 
    functions too often which is expensive.  Values that are too large
@@ -6153,6 +6157,7 @@ set_message (s, string, nbytes, multibyte_p)
   with_echo_area_buffer (0, -1, set_message_1,
 			 (EMACS_INT) s, string, nbytes, multibyte_p);
   message_buf_print = 0;
+  help_echo_showing_p = 0;
 }
 
 
@@ -13701,6 +13706,8 @@ init_xdisp ()
     frame_title_ptr = NULL;
   }
 #endif /* HAVE_WINDOW_SYSTEM */
+  
+  help_echo_showing_p = 0;
 }
 
 
