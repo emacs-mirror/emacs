@@ -317,6 +317,10 @@ A positive number means to include that many lines both before and after.")
 
 (defalias 'list-matching-lines 'occur)
 
+(defvar list-matching-lines-face 'bold
+  "*Face used by M-x list-matching-lines to show the text that matches.
+If the value is nil, don't highlight the matching portions specially.")
+
 (defun occur (regexp &optional nlines)
   "Show all lines in the current buffer containing a match for REGEXP.
 
@@ -352,6 +356,8 @@ It serves as a menu to find any of the occurrences in this buffer.
 	(dir default-directory)
 	(linenum 1)
 	(prevpos (point-min))
+	sje-start
+	sje-len
 	(final-context-start (make-marker)))
 ;;;	(save-excursion
 ;;;	  (beginning-of-line)
@@ -399,6 +405,14 @@ It serves as a menu to find any of the occurrences in this buffer.
 				(forward-line (1+ nlines))
 				(forward-line 1))
 			    (point)))
+		     ;; Record where the actual match 
+		     (match-offset
+		      (save-excursion
+			(goto-char (match-beginning 0))
+			(beginning-of-line)
+			;; +6 to skip over line number
+			(+ 6 (- (match-beginning 0) (point)))))
+		     (match-len (- (match-end 0) (match-beginning 0)))
 		     (tag (format "%5d" linenum))
 		     (empty (make-string (length tag) ?\ ))
 		     tem)
@@ -424,13 +438,20 @@ It serves as a menu to find any of the occurrences in this buffer.
 		      (if (null tag)
 			  (setq tag (format "%5d" this-linenum)))
 		      (insert tag ?:)
-		      (put-text-property (save-excursion
-					   (beginning-of-line)
-					   (point))
+		      (setq line-start
+			    (save-excursion
+			      (beginning-of-line)
+			      (point)))
+		      (put-text-property line-start
 					 (save-excursion
 					   (end-of-line)
 					   (point))
 					 'mouse-face 'highlight)
+		      (if list-matching-lines-face
+			  (put-text-property
+			   (+ line-start match-offset)
+			   (+ line-start match-offset match-len)
+			   'face list-matching-lines-face))
 		      (forward-line 1)
 		      (setq tag nil)
 		      (setq this-linenum (1+ this-linenum)))
