@@ -1,5 +1,7 @@
 2001-04-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* info.el (Info-additional-directory-list): Doc fix.
+
 	* find-lisp.el (find-lisp-find-dired-filter)
 	(find-lisp-find-dired-subdirectories, find-lisp-find-dired): Add
 	autoload cookies.  From Richard Y. Kim <ryk@dspwiz.com>.
