@@ -44,6 +44,8 @@
 
 ;;; Code:
 
+(require 'help-mode)
+
 (defgroup quail nil
   "Quail: multilingual input method."
   :group 'leim)
@@ -2411,7 +2413,6 @@ should be made by `quail-build-decode-map' (which see)."
 Optional arg PACKAGE specifies the name of alternative Quail
 package to describe."
   (interactive)
-  (require 'help-mode)
   (let ((help-xref-mule-regexp help-xref-mule-regexp-template)
 	(default-enable-multibyte-characters enable-multibyte-characters)
 	(package-def
