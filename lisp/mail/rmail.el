@@ -69,7 +69,8 @@ It is useful to set this variable in the site customization file.")
 
 ;;;###autoload
 (defvar rmail-highlighted-headers "^From:\\|^Subject:" "\
-*Regexp to match Header fields that rmail should normally highlight.")
+*Regexp to match Header fields that rmail should normally highlight.
+A value of nil means don't highlight.")
 
 ;;;###autoload
 (defvar rmail-delete-after-output nil "\
@@ -1404,7 +1405,8 @@ If summary buffer is currently displayed, update current message there also."
 ;; Find all occurrences of certain fields, and highlight them.
 (defun rmail-highlight-headers ()
   ;; Do this only if the system supports faces.
-  (if (fboundp 'internal-find-face)
+  (if (and (fboundp 'internal-find-face)
+	   rmail-highlighted-headers)
       (save-excursion
 	(search-forward "\n\n" nil 'move)
 	(save-restriction
