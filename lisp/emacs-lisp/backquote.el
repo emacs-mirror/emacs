@@ -25,6 +25,10 @@
 
 ;;; Commentary:
 
+;; When the Lisp reader sees `(...), it generates (\` (...)).
+;; When it sees ,... inside such a backquote form, it generates (\, ...).
+;; For ,@... it generates (\,@ ...).
+
 ;; This backquote will generate calls to the backquote-list* form.
 ;; Both a function version and a macro version are included.
 ;; The macro version is used by default because it is faster
