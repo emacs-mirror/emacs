@@ -1,3 +1,7 @@
+2002-05-26  Colin Walters  <walters@verbum.org>
+
+	* replace.el (perform-replace): Document return value.  Use `pop'.
+
 2002-05-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el (f90-previous-block, f90-next-block): New names,
@@ -106,7 +110,7 @@
 	* font-core.el (font-lock-function): New variable.
 	(font-lock-default-function): New function, created from
 	`font-lock-mode'.
-	(font-lock-mode): Just funcall `font-lock-default-function'.
+	(font-lock-mode): Just funcall `font-lock-function'.
 	(font-lock-symbol-category-alist): New variable.
 
 2002-05-22  Markus Rost  <rost@math.ohio-state.edu>
