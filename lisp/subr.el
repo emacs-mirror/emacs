@@ -429,6 +429,8 @@ as returned by the `event-start' and `event-end' functions."
 Please convert your programs to use the variable `baud-rate' directly."
   baud-rate)
 
+(defalias 'focus-frame 'ignore)
+(defalias 'unfocus-frame 'ignore)
 
 ;;;; Alternate names for functions - these are not being phased out.
 
