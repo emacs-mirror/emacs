@@ -583,35 +583,6 @@ typedef unsigned char UCHAR;
 #define XFLOATINT(n) XINT((n))
 #endif /* LISP_FLOAT_TYPE */
 
-#ifdef VIRT_ADDR_VARIES
-
-/* For machines like APOLLO where text and data can go anywhere
-   in virtual memory.  */
-#define CHECK_IMPURE(obj) \
-  { extern int pure[]; \
-    if ((PNTR_COMPARISON_TYPE) XPNTR (obj) < (PNTR_COMPARISON_TYPE) ((char *) pure + PURESIZE) \
-	&& (PNTR_COMPARISON_TYPE) XPNTR (obj) >= (PNTR_COMPARISON_TYPE) pure) \
-      pure_write_error (); }
-
-#else /* not VIRT_ADDR_VARIES */
-#ifdef PNTR_COMPARISON_TYPE
-
-/* when PNTR_COMPARISON_TYPE is not the default (unsigned int) */
-#define CHECK_IMPURE(obj) \
-  { extern int my_edata; \
-    if ((PNTR_COMPARISON_TYPE) XPNTR (obj) < (PNTR_COMPARISON_TYPE) &my_edata) \
-      pure_write_error (); }
-
-#else /* not VIRT_ADDRESS_VARIES, not PNTR_COMPARISON_TYPE */
-
-#define CHECK_IMPURE(obj) \
-  { extern int my_edata; \
-    if (XPNTR (obj) < (unsigned int) &my_edata) \
-      pure_write_error (); }
-
-#endif /* PNTR_COMPARISON_TYPE */
-#endif /* VIRT_ADDRESS_VARIES */
-
 /* Cast pointers to this type to compare them.  Some machines want int.  */
 #ifndef PNTR_COMPARISON_TYPE
 #define PNTR_COMPARISON_TYPE unsigned int
@@ -736,12 +707,14 @@ extern char *stack_bottom;
 
 /* 1 if CH is upper case.  */
 
-#define UPPERCASEP(CH) (XSTRING (current_buffer->downcase_table)->data[CH] != (CH))
+#define UPPERCASEP(CH) \
+  (XSTRING (current_buffer->downcase_table)->data[CH] != (CH))
 
 /* 1 if CH is lower case.  */
 
 #define LOWERCASEP(CH) \
-  (!UPPERCASEP (CH) && XSTRING (current_buffer->upcase_table)->data[CH] != (CH))
+  (!UPPERCASEP (CH) \
+   && XSTRING (current_buffer->upcase_table)->data[CH] != (CH))
 
 /* 1 if CH is neither upper nor lower case.  */
 
@@ -749,8 +722,9 @@ extern char *stack_bottom;
 
 /* Upcase a character, or make no change if that cannot be done.  */
 
-#define UPCASE(CH) (XSTRING (current_buffer->downcase_table)->data[CH] == (CH) \
-		    ? UPCASE1 (CH) : (CH))
+#define UPCASE(CH) \
+  (XSTRING (current_buffer->downcase_table)->data[CH] == (CH) \
+   ? UPCASE1 (CH) : (CH))
 
 /* Upcase a character known to be not upper case.  */
 
