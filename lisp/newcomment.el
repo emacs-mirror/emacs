@@ -6,7 +6,7 @@
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.10 2000/05/17 19:32:32 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.11 2000/05/19 15:37:41 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -134,7 +134,8 @@ two semi-colons.")
     (aligned	. (nil t nil t))
     (multi-line	. (t nil nil t))
     (extra-line	. (t nil t t))
-    (box	. (t t t t)))
+    (box	. (nil t t t))
+    (box-multi	. (t t t t)))
   "Possible comment styles of the form (STYLE . (MULTI ALIGN EXTRA INDENT)).
 STYLE should be a mnemonic symbol.
 MULTI specifies that comments are allowed to span multiple lines.
@@ -204,7 +205,8 @@ This is obsolete because you might as well use \\[newline-and-indent]."
     ;; comment-continue
     (unless (or comment-continue (string= comment-end ""))
       (set (make-local-variable 'comment-continue)
-	   (concat " " (substring comment-start 1))))
+	   (concat (if (string-match "\\S-\\S-" comment-start) " " "|")
+		   (substring comment-start 1))))
     ;; comment-skip regexps
     (unless comment-start-skip
       (set (make-local-variable 'comment-start-skip)
@@ -264,8 +266,10 @@ Moves point to inside the comment and returns the position of the
 comment-starter.  If no comment is found, moves point to LIMIT
 and raises an error or returns nil of NOERROR is non-nil."
   (if (not comment-use-syntax)
-      (when (re-search-forward comment-start-skip limit noerror)
-	(or (match-end 1) (match-beginning 0)))
+      (if (re-search-forward comment-start-skip limit noerror)
+	  (or (match-end 1) (match-beginning 0))
+	(goto-char limit)
+	(unless noerror (error "No comment")))
     (let* ((pt (point))
 	   ;; Assume (at first) that pt is outside of any string.
 	   (s (parse-partial-sexp pt (or limit (point-max)) nil nil nil t)))
@@ -279,15 +283,15 @@ and raises an error or returns nil of NOERROR is non-nil."
       (if (not (and (nth 8 s) (not (nth 3 s))))
 	  (unless noerror (error "No comment"))
 	;; We found the comment.
-	(let ((pt (point))
+	(let ((pos (point))
 	      (start (nth 8 s))
-	      (bol (save-excursion (beginning-of-line) (point)))
+	      (bol (line-beginning-position))
 	      (end nil))
 	  (while (and (null end) (>= (point) bol))
 	    (if (looking-at comment-start-skip)
 		(setq end (min (or limit (point-max)) (match-end 0)))
 	      (backward-char)))
-	  (goto-char end)
+	  (goto-char (or end pos))
 	  start)))))
 
 (defun comment-search-backward (&optional limit noerror)
@@ -387,10 +391,10 @@ If CONTINUE is non-nil, use the `comment-continuation' markers if any."
      (t (let* ((eolpos (line-end-position))
                cpos indent begpos)
           (beginning-of-line)
-          (when (setq begpos (comment-search-forward eolpos t))
+          (if (not (setq begpos (comment-search-forward eolpos t)))
+	      (setq begpos (point))
 	    (setq cpos (point-marker))
 	    (goto-char begpos))
-	  (setq begpos (point))
           ;; Compute desired indent.
           (if (= (current-column)
                  (setq indent (if comment-indent-hook
@@ -403,8 +407,7 @@ If CONTINUE is non-nil, use the `comment-continuation' markers if any."
             (indent-to indent))
           ;; An existing comment?
           (if cpos
-              (progn (goto-char cpos)
-                     (set-marker cpos nil))
+              (progn (goto-char cpos) (set-marker cpos nil))
             ;; No, insert one.
             (insert starter)
             (save-excursion
@@ -465,14 +468,22 @@ the string for any N."
 	  (rpad (concat (substring str (match-end 1)) ;original right padding
 			(substring comment-padding ;additional right padding
 				   (min (- (match-end 0) (match-end 1))
-					(length comment-padding))))))
+					(length comment-padding)))))
+	  ;; We can only duplicate C if the comment-end has multiple chars
+	  ;; or if comments can be nested, else the comment-end `}' would
+	  ;; be turned into `}}}' where only the first ends the comment
+	  ;; and the rest becomes bogus junk.
+	  (multi (not (and comment-quote-nested
+			   ;; comment-end is a single char
+			   (string-match "\\`\\s-*\\S-\\s-*\\'" comment-end)))))
       (if (not (symbolp n))
-	  (concat lpad s (make-string n (aref str (1- (match-end 1)))) rpad)
+	  (concat lpad s (when multi (make-string n (aref str (1- (match-end 1))))) rpad)
 	;; construct a regexp that would match anything from just S
 	;; to any possible output of this function for any N.
 	(concat (mapconcat (lambda (c) (concat (regexp-quote (string c)) "?"))
 			   lpad "")	;padding is not required
-		(regexp-quote s) "+"	;the last char of S might be repeated
+		(regexp-quote s)
+		(when multi "+")	;the last char of S might be repeated
 		(mapconcat (lambda (c) (concat (regexp-quote (string c)) "?"))
 			   rpad "")))))) ;padding is not required
 
@@ -543,6 +554,9 @@ comment markers."
 	    ;; Remove the comment-start.
 	    (goto-char ipt)
 	    (skip-syntax-backward " ")
+	    ;; Check for special `=' used sometimes in comment-box.
+	    (when (and (= (- (point) (point-min)) 1) (looking-at "=\\{7\\}"))
+	      (skip-chars-forward "="))
 	    ;; A box-comment starts with a looong comment-start marker.
 	    (when (> (- (point) (point-min) (length comment-start)) 7)
 	      (setq box t))
@@ -556,8 +570,12 @@ comment markers."
 
 	    ;; Remove the end-comment (and leading padding and such).
 	    (goto-char (point-max)) (comment-enter-backward)
-	    (unless (string-match "\\`\\(\n\\|\\s-\\)*\\'"
-				  (buffer-substring (point) (point-max)))
+	    ;; Check for special `=' used sometimes in comment-box.
+	    (when (and (= (- (point-max) (point)) 1) (> (point) 7)
+		       (save-excursion (backward-char 7)
+				       (looking-at "=\\{7\\}")))
+	      (skip-chars-backward "="))
+	    (unless (looking-at "\\(\n\\|\\s-\\)*\\'")
 	      (when (and (bolp) (not (bobp))) (backward-char))
 	      (if (null arg) (delete-region (point) (point-max))
 		(skip-syntax-forward " ")
@@ -588,33 +606,30 @@ comment markers."
 (defun comment-make-extra-lines (cs ce ccs cce min-indent max-indent &optional block)
   "Make the leading and trailing extra lines.
 This is used for `extra-line' style (or `box' style if BLOCK is specified)."
-  (if block
-      (let* ((s (concat cs "a=m" cce "\n"
-			(make-string min-indent ? ) ccs))
-	     (e (concat cce "\n" (make-string min-indent ? )
-			ccs "a=m" ce))
-	     ;;(_ (assert (string-match "\\s-*\\(a=m\\)\\s-*" s)))
-	     (fill (make-string (+ (- max-indent
-				      min-indent
-				      (match-beginning 0))
-				   (- (match-end 0)
-				      (match-end 1)))
-				(aref s (match-end 0)))))
+  (let ((eindent 0))
+    (if (not block)
+	;; Try to match CS and CE's content so they align aesthetically.
+	(progn
+	  (setq ce (comment-string-strip ce t t))
+	  (when (string-match "\\(.+\\).*\n\\(.*?\\)\\1" (concat ce "\n" cs))
+	    (setq eindent
+		  (max (- (match-end 2) (match-beginning 2) (match-beginning 0))
+		       0))))
+      ;; box comment
+      (let* ((width (- max-indent min-indent))
+	     (s (concat cs "a=m" cce))
+	     (e (concat ccs "a=m" ce))
+	     (c (if (string-match ".*\\S-\\S-" cs)
+		    (aref cs (1- (match-end 0))) ?=))
+	     (_ (assert (string-match "\\s-*a=m\\s-*" s)))
+	     (fill
+	      (make-string (+ width (- (match-end 0)
+				       (match-beginning 0) (length cs) 3)) c)))
 	(setq cs (replace-match fill t t s))
-	;;(assert (string-match "\\s-*\\(a=m\\)\\s-*" e))
-	(setq ce (replace-match fill t t e)))
-    (when (and ce (string-match "\\`\\s-*\\(.*\\S-\\)\\s-*\\'" ce))
-      (setq ce (match-string 1 ce)))
-    (let* ((c (concat ce "a=m" cs))
-	   (indent (if (string-match "\\(.+\\).*a=m\\(.*\\)\\1" c)
-		       (max (+ min-indent
-			       (- (match-end 2) (match-beginning 2))
-			       (- (match-beginning 0)))
-			    0)
-		     min-indent)))
-      (setq ce (concat cce "\n" (make-string indent ? ) (or ce cs)))
-      (setq cs (concat cs "\n" (make-string min-indent ? ) ccs))))
-  (cons cs ce))
+	(assert (string-match "\\s-*a=m\\s-*" e))
+	(setq ce (replace-match fill t t e))))
+    (cons (concat cs "\n" (make-string min-indent ? ) ccs)
+	  (concat cce "\n" (make-string (+ min-indent eindent) ? ) ce))))
 
 (def-edebug-spec comment-with-narrowing t)
 (put 'comment-with-narrowing 'lisp-indent-function 2)
@@ -755,7 +770,7 @@ The strings used as comment starts are built from
       ;; sanitize LINES
       (setq lines
 	    (and
-	     lines multi
+	     lines ;; multi
 	     (progn (goto-char beg) (beginning-of-line)
 		    (skip-syntax-forward " ")
 		    (>= (point) beg))
@@ -792,7 +807,8 @@ The strings used as comment starts are built from
 The numeric prefix ARG specifies how many characters to add to begin- and
 end- comment markers additionally to what `comment-add' already specifies."
   (interactive "*r\np")
-  (let ((comment-style 'box))
+  (let ((comment-style (if (cadr (assoc comment-style comment-styles))
+			   'box-multi 'box)))
     (comment-region beg end (+ comment-add arg))))
 
 (defun comment-dwim (arg)
@@ -922,6 +938,18 @@ unless optional argument SOFT is non-nil."
 
 ;;; Change Log:
 ;; $Log: newcomment.el,v $
+;; Revision 1.11  2000/05/19 15:37:41  monnier
+;; Fix license text and author.
+;; Move aliases (indent-for-comment, set-comment-column, kill-comment
+;; and indent-new-comment-line) to the beginning of the file.
+;; Get rid of the last few CLisms.
+;; (comment-forward): Avoid decf.
+;; (comment-make-extra-lines): Comment-out asserts.
+;; (comment-with-narrowing): Properly create uninterned symbol.
+;; (comment-region-internal): Comment-out asserts.  Avoid incf and decf.
+;; (comment-indent-new-line): Fix bug where compt could be set but
+;; not comstart.  Set comment-column more carefully.
+;;
 ;; Revision 1.10  2000/05/17 19:32:32  monnier
 ;; (comment-beginning): Handle unclosed comment.
 ;; (comment-auto-fill-only-comments): New var.
