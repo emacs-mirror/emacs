@@ -2313,6 +2313,9 @@ if test "${with_carbon}" != "no"; then
   AC_CHECK_HEADER(Carbon/Carbon.h, HAVE_CARBON=yes)
 fi
 
+dnl Check for malloc/malloc.h on darwin
+AC_CHECK_HEADER(malloc/malloc.h, AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.]))
+
 if test "${HAVE_CARBON}" = "yes"; then
   AC_DEFINE(HAVE_CARBON, 1, [Define to 1 if you are using the Carbon API on Mac OS X.])
   window_system=mac
