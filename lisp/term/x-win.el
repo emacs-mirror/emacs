@@ -3,7 +3,7 @@
 ;; Author: FSF
 ;; Keywords: terminals
 
-;; Copyright (C) 1990 Free Software Foundation, Inc.
+;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -432,6 +432,9 @@ This returns ARGS with the arguments that have been processed removed."
 (define-key global-map [down] 'next-line)
 (define-key global-map [prior] 'scroll-down)
 (define-key global-map [next] 'scroll-up)
+;; We use a different symbol to prevent
+;; doc strings from listing M-next as the preferred way to do this.
+(fset 'advertised-scroll-other-window 'scroll-other-window)
 (define-key global-map [M-next] 'scroll-other-window)
 (define-key global-map [begin] 'beginning-of-buffer)
 (define-key global-map [end] 'end-of-buffer)
@@ -478,9 +481,9 @@ This returns ARGS with the arguments that have been processed removed."
 ;;; Also, set the value of X cut buffer 0, for backward compatibility
 ;;; with older X applications.
 (defun x-select-text (text)
-  (x-set-cut-buffer 0 text)
-  (x-set-selection 'clipboard text)
-  (x-set-selection 'primary text)
+  (x-set-cut-buffer text)
+  (x-set-selection 'CLIPBOARD text)
+  (x-set-selection 'PRIMARY text)
   (setq x-last-selected-text text))
 
 ;;; Return the value of the current X selection.  For compatibility
@@ -493,7 +496,7 @@ This returns ARGS with the arguments that have been processed removed."
     ;; as if they were unset.
     (setq text (x-get-cut-buffer 0))
     (if (string= text "") (setq text nil))
-    (or text (setq text (x-selection 'primary)))
+    (or text (setq text (x-get-selection 'PRIMARY)))
     (if (string= text "") (setq text nil))
 
     (cond
@@ -518,7 +521,9 @@ This returns ARGS with the arguments that have been processed removed."
 
 (defun x-win-suspend-error ()
   (error "Suspending an emacs running under X makes no sense"))
-(add-hook 'suspend-hooks 'x-win-suspend-error)
+(add-hook 'suspend-hook 'x-win-suspend-error)
+
+(require 'select)
 
 ;;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-cut-function 'x-select-text)
