@@ -75,11 +75,11 @@ TYPE should be `list' or `vector'."
 ;;;###autoload
 (defun truncate-string-to-width (str end-column &optional start-column padding)
   "Truncate string STR to end at column END-COLUMN.
-The optional 2nd arg START-COLUMN, if non-nil, specifies
+The optional 3rd arg START-COLUMN, if non-nil, specifies
 the starting column; that means to return the characters occupying
 columns START-COLUMN ... END-COLUMN of STR.
 
-The optional 3rd arg PADDING, if non-nil, specifies a padding character
+The optional 4th arg PADDING, if non-nil, specifies a padding character
 to add at the end of the result if STR doesn't reach column END-COLUMN,
 or if END-COLUMN comes in the middle of a character in STR.
 PADDING is also added at the beginning of the result
