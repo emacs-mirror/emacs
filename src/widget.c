@@ -423,10 +423,12 @@ set_frame_size (ew)
 
     /* Take into account the size of the scrollbar */
     frame->display.x->vertical_scroll_bar_extra
-      = (FRAME_HAS_VERTICAL_SCROLL_BARS (frame)
+      = (!FRAME_HAS_VERTICAL_SCROLL_BARS (frame)
+	 ? 0
+	 : FRAME_SCROLL_BAR_PIXEL_WIDTH (frame) > 0
 	 ? FRAME_SCROLL_BAR_PIXEL_WIDTH (frame)
-	 : 0);
-
+	 : (FRAME_SCROLL_BAR_COLS (frame)
+	    * FONT_WIDTH (frame->display.x->font)));
 
     change_frame_size (frame, h, w, 1, 0);
     char_to_pixel_size (ew, w, h, &pixel_width, &pixel_height);
@@ -883,9 +885,12 @@ EmacsFrameSetCharSize (widget, columns, rows)
 
   check_frame_size (f, &rows, &columns);
   f->display.x->vertical_scroll_bar_extra
-    = (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
+    = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
+       ? 0
+       : FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
        ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
-       : 0);
+       : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->display.x->font)));
+
   char_to_pixel_size (ew, columns, rows, &pixel_width, &pixel_height);
 
   /* Recompute the entire geometry management.  */
