@@ -5,8 +5,8 @@
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2001/08/15 17:15:15 vinicius>
-;; Version: 1.1
+;; Time-stamp: <2001/09/24 10:17:13 vinicius>
+;; Version: 1.2
 
 ;; This file is part of GNU Emacs.
 
@@ -383,14 +383,16 @@ See documentation for variable `ebnf-yac-lex'."
   (< (point) ebnf-limit))
 
 
+;; replace the range "\177-\377" (see `ebnf-range-regexp').
+(defconst ebnf-yac-skip-chars
+  (ebnf-range-regexp "^{}/'\"\000-\010\013\016-\037" ?\177 ?\377))
+
+
 (defun ebnf-yac-skip-code ()
   (forward-char)
   (let ((pair 1))
     (while (> pair 0)
-      ;; replace the range "\177-\377" (see `ebnf-range-regexp').
-      (skip-chars-forward (ebnf-range-regexp "^{}/'\"\000-\010\013\016-\037"
-					     ?\177 ?\377)
-			  ebnf-limit)
+      (skip-chars-forward ebnf-yac-skip-chars ebnf-limit)
       (cond
        ((= (following-char) ?{)
 	(forward-char)
