@@ -1,3 +1,7 @@
+2000-09-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_clear_mouse_face): Block/unblock input.
+
 2000-09-24  Dave Love  <fx@gnu.org>
 
 	* fns.c (base64_encode_1): Fix last change.
