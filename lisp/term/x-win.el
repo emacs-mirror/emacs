@@ -491,13 +491,19 @@ This returns ARGS with the arguments that have been processed removed."
 ;;; from x-cut-buffer-or-selection-value.
 (defvar x-last-selected-text nil)
 
+(defvar x-cut-buffer-max 20000
+  "Max number of characters to put in the cut buffer.")
+
 ;;; Make TEXT, a string, the primary and clipboard X selections.
 ;;; If you are running xclipboard, this means you can effectively
 ;;; have a window on a copy of the kill-ring.
 ;;; Also, set the value of X cut buffer 0, for backward compatibility
 ;;; with older X applications.
 (defun x-select-text (text &optional push)
-  (x-set-cut-buffer text push)
+  ;; Don't send the cut buffer too much text.
+  ;; It becomes slow, and if really big it causes errors.
+  (if (< (length text) x-cut-buffer-max)
+      (x-set-cut-buffer text push))
   (x-set-selection 'CLIPBOARD text)
   (x-set-selection 'PRIMARY text)
   (setq x-last-selected-text text))
