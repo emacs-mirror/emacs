@@ -67,7 +67,7 @@
 		   '(("jpegphoto" . eudc-display-jpeg-inline)
 		     ("labeledurl" . eudc-display-url)
 		     ("audio" . eudc-display-sound)
-		     ("labeledurl" . eudc-display-url)
+		     ("labeleduri" . eudc-display-url)
 		     ("url" . eudc-display-url)) 
 		   'ldap)
 (eudc-protocol-set 'eudc-switch-to-server-hook 
