@@ -390,13 +390,11 @@ if [ `pwd` != `(cd ${srcdir} && pwd)` ] \
    echo "   use GNU make.  If you do not have GNU make, then you must"
    echo "   now do \`make distclean' in ${srcdir},"
    echo "   and then run ${progname} again.") >&2
-  # We need a multi-line sed script, which cannot go in a makefile.
-  vpath_sed='-f vpath.sed'
-else
-  # Do the normal substitution for VPATH.  This will not crash non-GNU make.
-  vpath_sed=]'AC_QUOTE_SQUOTE(AC_QUOTE_SQUOTE('-e '\''s|^\(VPATH *=\).*$$|\1 ='\''"${srcdir}/${subdir}|"'))'[
+  extrasub='/^VPATH[	 ]*=/c\
+vpath %.c $(srcdir)\
+vpath %.h $(srcdir)\
+vpath %.in $(srcdir)'
 fi
-] AC_SUBST(vpath_sed) [
 
 ### Make the necessary directories, if they don't exist.
 for dir in ./src ./lib-src ./cpp ./oldXMenu ./etc ; do
