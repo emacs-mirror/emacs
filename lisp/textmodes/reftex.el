@@ -314,14 +314,14 @@
 (defvar reftex-syntax-table nil)
 (defvar reftex-syntax-table-for-bib nil)
 
-;; Prepare the special syntax tables.
 (unless reftex-syntax-table
-  (setq reftex-syntax-table (copy-syntax-table (syntax-table)))
+  (setq reftex-syntax-table (copy-syntax-table))
   (modify-syntax-entry ?\( "." reftex-syntax-table)
   (modify-syntax-entry ?\) "." reftex-syntax-table))
-
+	
 (unless reftex-syntax-table-for-bib
-  (setq reftex-syntax-table-for-bib (copy-syntax-table reftex-syntax-table))
+  (setq reftex-syntax-table-for-bib
+	(copy-syntax-table reftex-syntax-table))
   (modify-syntax-entry ?\' "." reftex-syntax-table-for-bib)
   (modify-syntax-entry ?\" "." reftex-syntax-table-for-bib)
   (modify-syntax-entry ?\[ "." reftex-syntax-table-for-bib)
@@ -381,6 +381,19 @@ on the menu bar.
 	  (and reftex-auto-view-crossref
 	       (reftex-toggle-auto-view-crossref))
 	  (put 'reftex-auto-view-crossref 'initialized t))
+
+	;; Prepare the special syntax tables.
+	(setq reftex-syntax-table (copy-syntax-table (syntax-table)))
+	(modify-syntax-entry ?\( "." reftex-syntax-table)
+	(modify-syntax-entry ?\) "." reftex-syntax-table)
+	
+	(setq reftex-syntax-table-for-bib
+	      (copy-syntax-table reftex-syntax-table))
+	(modify-syntax-entry ?\' "." reftex-syntax-table-for-bib)
+	(modify-syntax-entry ?\" "." reftex-syntax-table-for-bib)
+	(modify-syntax-entry ?\[ "." reftex-syntax-table-for-bib)
+	(modify-syntax-entry ?\] "." reftex-syntax-table-for-bib)
+
         (run-hooks 'reftex-mode-hook))
     ;; Mode was turned off
     (easy-menu-remove reftex-mode-menu)))
