@@ -1,3 +1,8 @@
+2003-03-26  Kenichi Handa  <handa@etlken2>
+
+	* international/characters.el: Setup categories for Indian
+	characters.
+
 2003-03-26  Steve Youngs  <youngs@xemacs.org>
 
 	* em-unix.el (eshell-plain-locate-behavior): Make the default the
