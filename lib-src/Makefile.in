@@ -1,5 +1,5 @@
 # Makefile for lib-src subdirectory in GNU Emacs.
-# Copyright (C) 1985, 1987, 1988, 1993, 1994, 2002, 2003
+# Copyright (C) 1985, 1987, 1988, 1993, 1994, 2002, 2003, 2004
 #  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -447,7 +447,7 @@ yow${EXEEXT}: ${srcdir}/yow.c ../src/epaths.h
 
 emacsclient${EXEEXT}: ${srcdir}/emacsclient.c ../src/config.h $(GETOPTDEPS)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c $(GETOPTOBJS)  \
-	   -DVERSION=`sed -n -e '/(defconst emacs-version/ s/^[^"]*\("[^"]*"\).*/\1/p' ${srcdir}/../lisp/version.el` \
+	   -DVERSION="\"${version}\"" \
 	   $(LOADLIBES) -o emacsclient
 
 hexl${EXEEXT}: ${srcdir}/hexl.c ../src/config.h

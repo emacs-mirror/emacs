@@ -1516,46 +1516,51 @@ for the overlay."
 ;*---------------------------------------------------------------------*/
 (defun flyspell-highlight-incorrect-region (beg end poss)
   "Set up an overlay on a misspelled word, in the buffer from BEG to END."
-  (unless (run-hook-with-args-until-success
-           'flyspell-incorrect-hook beg end poss)
-    (if (or flyspell-highlight-properties (not (flyspell-properties-at-p beg)))
-        (progn
-          ;; we cleanup current overlay at the same position
-          (if (and (not flyspell-persistent-highlight)
-                   (overlayp flyspell-overlay))
-              (delete-overlay flyspell-overlay)
-            (let ((overlays (overlays-at beg)))
-              (while (consp overlays)
-                (if (flyspell-overlay-p (car overlays))
-                    (delete-overlay (car overlays)))
-                (setq overlays (cdr overlays)))))
-          ;; now we can use a new overlay
-          (setq flyspell-overlay
-                (make-flyspell-overlay beg end
-				       'flyspell-incorrect-face
-				       'highlight))))))
+  (let ((inhibit-read-only t))
+    (unless (run-hook-with-args-until-success
+	     'flyspell-incorrect-hook beg end poss)
+      (if (or flyspell-highlight-properties
+	      (not (flyspell-properties-at-p beg)))
+	  (progn
+	    ;; we cleanup current overlay at the same position
+	    (if (and (not flyspell-persistent-highlight)
+		     (overlayp flyspell-overlay))
+		(delete-overlay flyspell-overlay)
+	      (let ((overlays (overlays-at beg)))
+		(while (consp overlays)
+		  (if (flyspell-overlay-p (car overlays))
+		      (delete-overlay (car overlays)))
+		  (setq overlays (cdr overlays)))))
+	    ;; now we can use a new overlay
+	    (setq flyspell-overlay
+		  (make-flyspell-overlay
+		   beg end 'flyspell-incorrect-face 'highlight)))))))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-highlight-duplicate-region ...                          */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-highlight-duplicate-region (beg end)
   "Set up an overlay on a duplicated word, in the buffer from BEG to END."
-  (if (or flyspell-highlight-properties (not (flyspell-properties-at-p beg)))
-      (progn
-	;; we cleanup current overlay at the same position
-	(if (and (not flyspell-persistent-highlight)
-		 (overlayp flyspell-overlay))
-	    (delete-overlay flyspell-overlay)
-	  (let ((overlays (overlays-at beg)))
-	    (while (consp overlays)
-	      (if (flyspell-overlay-p (car overlays))
-		  (delete-overlay (car overlays)))
-	      (setq overlays (cdr overlays)))))
-	;; now we can use a new overlay
-	(setq flyspell-overlay
-	      (make-flyspell-overlay beg end
-				     'flyspell-duplicate-face
-				     'highlight)))))
+  (let ((inhibit-read-only t))
+    (unless (run-hook-with-args-until-success
+	     'flyspell-incorrect-hook beg end poss)
+      (if (or flyspell-highlight-properties
+	      (not (flyspell-properties-at-p beg)))
+	  (progn
+	    ;; we cleanup current overlay at the same position
+	    (if (and (not flyspell-persistent-highlight)
+		     (overlayp flyspell-overlay))
+		(delete-overlay flyspell-overlay)
+	      (let ((overlays (overlays-at beg)))
+		(while (consp overlays)
+		  (if (flyspell-overlay-p (car overlays))
+		      (delete-overlay (car overlays)))
+		  (setq overlays (cdr overlays)))))
+	    ;; now we can use a new overlay
+	    (setq flyspell-overlay
+		  (make-flyspell-overlay beg end
+					 'flyspell-duplicate-face
+					 'highlight)))))))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-auto-correct-cache ...                                  */
@@ -2061,23 +2066,23 @@ possible corrections as returned by 'ispell-parse-output'.
 
 This function is meant to be added to 'flyspell-incorrect-hook'."
   (when (consp poss)
-    (let ((temp-buffer (get-buffer-create " *flyspell-temp*"))
-	  found)
-    (save-excursion
-      (copy-to-buffer temp-buffer beg end)
-      (set-buffer temp-buffer)
-      (goto-char (1+ (point-min)))
-      (while (and (not (eobp)) (not found))
-	  (transpose-chars 1)
-	  (if (member (buffer-string) (nth 2 poss))
-	      (setq found (point))
-	    (transpose-chars -1)
-	    (forward-char))))
-    (when found
-      (save-excursion
-	(goto-char (+ beg found -1))
-	(transpose-chars -1)
-	t)))))
+    (catch 'done
+      (let ((str (buffer-substring beg end))
+	    (i 0) (len (- end beg)) tmp)
+	(while (< (1+ i) len)
+	  (setq tmp (aref str i))
+	  (aset str i (aref str (1+ i)))
+	  (aset str (1+ i) tmp)
+          (when (member str (nth 2 poss))
+	    (save-excursion
+	      (goto-char (+ beg i 1))
+	      (transpose-chars 1))
+	    (throw 'done t))
+	  (setq tmp (aref str i))
+	  (aset str i (aref str (1+ i)))
+	  (aset str (1+ i) tmp)
+	  (setq i (1+ i))))
+      nil)))
 
 (defun flyspell-maybe-correct-doubling (beg end poss)
   "Check replacements for doubled characters.
@@ -2091,24 +2096,19 @@ possible corrections as returned by 'ispell-parse-output'.
 
 This function is meant to be added to 'flyspell-incorrect-hook'."
   (when (consp poss)
-    (let ((temp-buffer (get-buffer-create " *flyspell-temp*"))
-	  found)
-    (save-excursion
-      (copy-to-buffer temp-buffer beg end)
-      (set-buffer temp-buffer)
-      (goto-char (1+ (point-min)))
-      (while (and (not (eobp)) (not found))
-	(when (char-equal (char-after) (char-before))
-	  (delete-char 1)
-	  (if (member (buffer-string) (nth 2 poss))
-	      (setq found (point))
-	    (insert-char (char-before) 1)))
-	(forward-char)))
-    (when found
-      (save-excursion
-	(goto-char (+ beg found -1))
-	(delete-char 1)
-	t)))))
+    (catch 'done
+      (let ((str (buffer-substring beg end))
+	    (i 0) (len (- end beg)))
+	(while (< (1+ i) len)
+	  (when (and (= (aref str i) (aref str (1+ i)))
+		     (member (concat (substring str 0 (1+ i))
+				     (substring str (+ i 2)))
+			     (nth 2 poss)))
+	    (goto-char (+ beg i))
+	    (delete-char 1)
+	    (throw 'done t))
+	  (setq i (1+ i))))
+      nil)))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-already-abbrevp ...                                     */

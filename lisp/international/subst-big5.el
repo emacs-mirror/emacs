@@ -1,6 +1,6 @@
 ;;; subst-big5.el --- Unicode/GB2312 translation     -*-coding: big5;-*-
 
-;; Copyright (C) 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; Provides translation tables between Unicode and chinese-big5 for
-;; use by the `utf-translate-cjk' option.  See subst-jis.el for the
+;; use by the `utf-translate-cjk-mode' option.  See subst-jis.el for the
 ;; method used.
 
 ;;; Code:

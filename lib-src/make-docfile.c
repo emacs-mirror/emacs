@@ -104,7 +104,7 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
@@ -1210,3 +1210,5 @@ scan_lisp_file (filename, mode)
 
 /* arch-tag: f7203aaf-991a-4238-acb5-601db56f2894
    (do not change this comment) */
+
+/* make-docfile.c ends here */

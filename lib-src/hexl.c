@@ -270,15 +270,17 @@ main (argc, argv)
 	fclose (fp);
 
     } while (*argv != NULL);
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 void
 usage ()
 {
   fprintf (stderr, "usage: %s [-de] [-iso]\n", progname);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 /* arch-tag: 20e04fb7-926e-4e48-be86-64fe869ecdaa
    (do not change this comment) */
+
+/* hexl.c ends here */

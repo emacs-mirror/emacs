@@ -111,7 +111,7 @@ lose (msg)
      const char *msg;
 {
   fprintf (stderr, "%s\n", msg);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 void lose_syserr P_ ((const char *msg)) NO_RETURN;
@@ -138,7 +138,7 @@ lose_syserr (msg)
      const char *msg;
 {
   fprintf (stderr, "%s: %s\n", msg, strerror (errno));
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 char *
@@ -199,7 +199,7 @@ main (argc, argv)
     switch (c)
       {
       case 'h':
-	usage (0);
+	usage (EXIT_SUCCESS);
 	break;
       case 'd':
 	user_prefix = optarg;
@@ -213,11 +213,11 @@ main (argc, argv)
 	  max = MAX_SCORES;
 	break;
       default:
-	usage (1);
+	usage (EXIT_FAILURE);
       }
 
   if (optind+3 != argc)
-    usage (1);
+    usage (EXIT_FAILURE);
 
   running_suid = (getuid () != geteuid ());
 
@@ -266,7 +266,7 @@ main (argc, argv)
       lose_syserr ("Failed to write scores file");
     }
   unlock_file (scorefile, lockstate);
-  exit (0);
+  exit (EXIT_SUCCESS);
 }
 
 int
@@ -531,3 +531,5 @@ unlock_file (filename, state)
 
 /* arch-tag: 2bf5c52e-4beb-463a-954e-c58b9c64736b
    (do not change this comment) */
+
+/* update-game-score.c ends here */

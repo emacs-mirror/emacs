@@ -123,6 +123,22 @@ The holidays are those in the list `calendar-holidays'.")
 (autoload 'mark-islamic-calendar-date-pattern "cal-islam"
    "Mark dates in calendar window that conform to Islamic date MONTH/DAY/YEAR.")
 
+(autoload 'diary-bahai-date "cal-bahai"
+  "Baha'i calendar equivalent of date diary entry."
+  t)
+
+(autoload 'list-bahai-diary-entries "cal-bahai"
+  "Add any Baha'i date entries from the diary file to `diary-entries-list'."
+  t)
+
+(autoload 'mark-bahai-diary-entries "cal-bahai"
+  "Mark days in the calendar window that have Baha'i date diary entries."
+  t)
+
+(autoload 'mark-bahai-calendar-date-pattern "cal-bahai"
+   "Mark dates in calendar window that conform to Baha'i date MONTH/DAY/YEAR."
+  t)
+
 (autoload 'diary-hebrew-date "cal-hebrew"
   "Hebrew calendar equivalent of date diary entry.")
 
@@ -1128,6 +1144,8 @@ be used instead of a colon (:) to separate the hour and minute parts."
 	      (if (equal ?a (downcase (aref s (match-beginning 3))))
 		  0 1200)))
 	  (t diary-unknown-time)))) ; Unrecognizable
+
+;; Unrecognizable
 
 (defun list-sexp-diary-entries (date)
   "Add sexp entries for DATE from the diary file to `diary-entries-list'.

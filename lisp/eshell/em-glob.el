@@ -122,10 +122,6 @@ This option slows down recursive glob processing by quite a bit."
   :type '(repeat (cons character (choice regexp function)))
   :group 'eshell-glob)
 
-;;; Internal Variables:
-
-(defvar eshell-glob-chars-regexp nil)
-
 ;;; Functions:
 
 (defun eshell-glob-initialize ()
@@ -134,8 +130,6 @@ This option slows down recursive glob processing by quite a bit."
   (when (boundp 'eshell-special-chars-outside-quoting)
     (set (make-local-variable 'eshell-special-chars-outside-quoting)
 	 (append eshell-glob-chars-list eshell-special-chars-outside-quoting)))
-  (set (make-local-variable 'eshell-glob-chars-regexp)
-       (format "[%s]+" (apply 'string eshell-glob-chars-list)))
   (add-hook 'eshell-parse-argument-hook 'eshell-parse-glob-chars t t)
   (add-hook 'eshell-pre-rewrite-command-hook
 	    'eshell-no-command-globbing nil t))
@@ -184,6 +178,8 @@ interpretation."
 		  (buffer-substring-no-properties (1- (point)) (1+ end))
 		(goto-char (1+ end))))))))))
 
+(defvar eshell-glob-chars-regexp nil)
+
 (defun eshell-glob-regexp (pattern)
   "Convert glob-pattern PATTERN to a regular expression.
 The basic syntax is:
@@ -204,8 +200,11 @@ set to true, then these characters will match themselves in the
 resulting regular expression."
   (let ((matched-in-pattern 0)          ; How much of PATTERN handled
 	regexp)
-    (while (string-match eshell-glob-chars-regexp
-			 pattern matched-in-pattern)
+    (while (string-match
+	    (or eshell-glob-chars-regexp
+		(set (make-local-variable 'eshell-glob-chars-regexp)
+		     (format "[%s]+" (apply 'string eshell-glob-chars-list))))
+	    pattern matched-in-pattern)
       (let* ((op-begin (match-beginning 0))
 	     (op-char (aref pattern op-begin)))
 	(setq regexp

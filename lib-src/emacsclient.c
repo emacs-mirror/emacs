@@ -48,9 +48,6 @@ Boston, MA 02111-1307, USA.  */
 char *getenv (), *getwd ();
 char *getcwd ();
 
-/* This is defined with -D from the compilation command,
-   which extracts it from ../lisp/version.el.  */
-
 #ifndef VERSION
 #define VERSION "unspecified"
 #endif
@@ -157,7 +154,7 @@ decode_options (argc, argv)
 
 	case 'V':
 	  printf ("emacsclient %s\n", VERSION);
-	  exit (0);
+	  exit (EXIT_SUCCESS);
 	  break;
 
         case 't':
@@ -176,7 +173,7 @@ decode_options (argc, argv)
 
 	default:
 	  fprintf (stderr, "Try `%s --help' for more information\n", progname);
-	  exit (1);
+	  exit (EXIT_FAILURE);
 	  break;
 	}
     }
@@ -209,7 +206,7 @@ The following OPTIONS are accepted:\n\
                         Editor to fallback to if the server is not running\n\
 \n\
 Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
-  exit (0);
+  exit (EXIT_SUCCESS);
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
@@ -222,7 +219,7 @@ xmalloc (size)
   if (result == NULL)
     {
       perror ("malloc");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
   return result;
 }
@@ -236,7 +233,7 @@ xstrdup (const char *s)
   if (result == NULL)
     {
       perror ("strdup");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
   return result;
 }
@@ -336,7 +333,7 @@ fail (void)
     }
   else
     {
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 }
 
@@ -520,7 +517,7 @@ main (argc, argv)
     {
       fprintf (stderr, "%s: file name or argument required\n", progname);
       fprintf (stderr, "Try `%s --help' for more information\n", progname);
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 
   /*
@@ -598,7 +595,7 @@ main (argc, argv)
 		  {
 		    fprintf (stderr, "%s: socket-name %s too long",
 			     argv[0], socket_name);
-		    exit (1);
+		    exit (EXIT_FAILURE);
 		  }
 
 		sock_status = socket_status (server.sun_path);
@@ -819,9 +816,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
 
   /* Maybe wait for an answer.   */
   if (nowait)
-    {
-      return 0;
-    }
+    return EXIT_SUCCESS;
 
   if (!eval && !tty)
     {
@@ -883,7 +878,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   fflush (stdout);
   fsync (1);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 #endif /* HAVE_SOCKETS */
@@ -905,3 +900,5 @@ strerror (errnum)
 
 /* arch-tag: f39bb9c4-73eb-477e-896d-50832e2ca9a7
    (do not change this comment) */
+
+/* emacsclient.c ends here */

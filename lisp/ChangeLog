@@ -1,3 +1,57 @@
+2004-05-08  Andreas Schwab  <schwab@suse.de>
+
+	* international/subst-ksc.el: Fix references to utf-translate-cjk
+	into utf-translate-cjk-mode.
+	* international/subst-big5.el: Likewise.
+	* international/subst-gb2312.el: Likewise.
+	* international/subst-jis.el: Likewise.
+	* international/utf-16.el: Likewise.
+	* international/utf-8.el: Likewise.
+
+2004-05-08  John Wiegley  <johnw@newartisans.com>
+
+	* iswitchb.el (iswitchb-use-virtual-buffers): Added support for
+	"virtual buffers" (off by default), which makes it possible to
+	switch to the "virtual" buffers of recently visited files.  When a
+	buffer name search fails, and this option is on, iswitchb will
+	look at the list of recently visited files, and permit matching
+	against those names.  When the user hits RET on a match, it will
+	revisit that file.
+	(iswitchb-read-buffer): Added two optional arguments, which makes
+	isearchb.el possible.
+	(iswitchb-completions, iswitchb-set-matches, iswitchb-prev-match,
+	iswitchb-next-match): Added support for virtual buffers.
+
+	* isearchb.el: This module extends iswitchb to provide "as you
+	type" buffer selection.
+
+	* textmodes/flyspell.el (flyspell-highlight-incorrect-region):
+	Ignore the read-only property when flyspell highlighting is on.
+	Not ignoring it leads to a series of confusing errors.
+	(flyspell-highlight-duplicate-region): Ignore read-only, as above,
+	but also make sure to call flyspell-incorrect-hook.
+	(flyspell-maybe-correct-transposition): Perform transposition test
+	by bit twiddling a string, rather than using a temp buffer.
+	(flyspell-maybe-correct-doubling): Use a string rather than a temp
+	buffer.  This is also the original version of the code, which
+	could not be checked in before due to a previous lack of
+	assignment papers.  This version has seen heavy usage on my system
+	for several years now.
+
+	* calendar/cal-bahai.el: New file, which adds support for the
+	Baha'i calendar to Emacs.  This calendar is based on a solar year
+	of 19 months of 19 days, with 4 intercalary days.  Each year
+	begins on March 21, with the calendar starting in 1844.
+	
+	* calendar/cal-menu.el, calendar/calendar.el,
+	calendar/diary-lib.el, calendar/holidays.el: Added support for
+	using cal-bahai.el.
+
+	* eshell/em-glob.el (eshell-glob-initialize): Move initialization
+	of `eshell-glob-chars-regexp' into `eshell-glob-regexp', so that
+	function can be used outside of eshell buffers.
+	(eshell-glob-regexp): Initialize `eshell-glob-chars-regexp' here.
+
 2004-05-08  Juanma Barranquero  <lektu@terra.es>
 
 	* help-fns.el (help-do-arg-highlight): Temporarily set ?\- to be a

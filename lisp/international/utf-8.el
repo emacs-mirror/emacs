@@ -1,6 +1,6 @@
 ;;; utf-8.el --- UTF-8 decoding/encoding support -*- coding: iso-2022-7bit -*-
 
-;; Copyright (C) 2001 Electrotechnical Laboratory, JAPAN.
+;; Copyright (C) 2001, 2004 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 
@@ -97,7 +97,7 @@ translation-table named `utf-translation-table-for-encode'")
 (defvar ucs-mule-cjk-to-unicode (make-hash-table :test 'eq)
   "Hash table mapping Emacs CJK character sets to Unicode code points.
 
-If `utf-translate-cjk' is non-nil, this table populates the
+If `utf-translate-cjk-mode' is non-nil, this table populates the
 translation-hash-table named `utf-subst-table-for-encode'.")
 
 (define-translation-hash-table 'utf-subst-table-for-encode
@@ -106,7 +106,7 @@ translation-hash-table named `utf-subst-table-for-encode'.")
 (defvar ucs-unicode-to-mule-cjk (make-hash-table :test 'eq)
   "Hash table mapping Unicode code points to Emacs CJK character sets.
 
-If `utf-translate-cjk' is non-nil, this table populates the
+If `utf-translate-cjk-mode' is non-nil, this table populates the
 translation-hash-table named `utf-subst-table-for-decode'.")
 
 (define-translation-hash-table 'utf-subst-table-for-decode
@@ -814,7 +814,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."
    (dependency unify-8859-on-encoding-mode
 	       unify-8859-on-decoding-mode
 	       utf-fragment-on-decoding
-	       utf-translate-cjk)))
+	       utf-translate-cjk-mode)))
 
 (define-coding-system-alias 'utf-8 'mule-utf-8)
 

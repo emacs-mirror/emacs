@@ -1,5 +1,5 @@
 ;;; subst-jis.el --- Unicode/JISX translation    -*-coding: euc-jp;-*-
-;; Copyright (C) 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -23,7 +23,7 @@
 
 ;; Provides translation tables between Unicode and
 ;; japanese-jisx0208/japanese-jisx0212 charsets for use by the
-;; `utf-translate-cjk' option.
+;; `utf-translate-cjk-mode' option.
 
 ;;; Code:
 
