@@ -99,7 +99,7 @@
 ;; * By default, mouse-insert-selection (mouse-2) inserts the selection at
 ;;   the mouse position.  You can tell it to insert at point instead with:
 ;;
-;;     (setq mouse-sel-insert-at-point t)
+;;     (setq mouse-yank-at-point t)
 ;;
 ;; * I like to leave point at the end of the region nearest to where the
 ;;   mouse was, even though this makes region highlighting mis-leading (the
@@ -178,10 +178,6 @@ If nil, highlighting will be turned off when the mouse is lifted.")
 (defvar mouse-sel-cycle-clicks t
   "*If non-nil, \\[mouse-select] cycles the click-counts after 3 clicks.
 Ie. 4 clicks = 1 click, 5 clicks = 2 clicks, etc.")
-
-(defvar mouse-sel-insert-at-point nil
-  "*If non-nil, \\[mouse-insert-selection] inserts at point.
-Normally, \\[mouse-insert-selection] inserts at the mouse position.")
 
 (defvar mouse-sel-default-bindings t
   "Set to nil before loading `mouse-sel' to prevent default mouse bindings.")
@@ -419,9 +415,9 @@ This should be bound to a down-mouse event."
 
 (defun mouse-insert-selection (click)
   "Insert the contents of the selection at mouse click.
-If `mouse-sel-insert-at-point' is non-nil, insert at point instead."
+If `mouse-yank-at-point' is non-nil, insert at point instead."
   (interactive "e")
-  (or mouse-sel-insert-at-point 
+  (or mouse-yank-at-point 
       (mouse-set-point click))
   (deactivate-mark)
   (if mouse-sel-get-selection-function
