@@ -1402,7 +1402,8 @@ characters on the line."
    ;; Put in the days of the month
    (calendar-for-loop i from 1 to last do
       (insert (format "%2d " i))
-      (put-text-property (- (point) 3) (1- (point)) 'mouse-face 'highlight)
+      (put-text-property (- (point) (if (< i 10) 2 3)) (1- (point))
+			 'mouse-face 'highlight)
       (and (zerop (mod (+ i blank-days) 7))
            (/= i last)
            (calendar-insert-indented "" 0 t)    ;; Force onto following line
