@@ -1,6 +1,6 @@
 ;;; isearch.el --- incremental search minor mode.
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1999, 2000
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1999, 2000, 2001
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
@@ -271,6 +271,7 @@ Default value, nil, means edit the string instead."
     (define-key map "\M-\C-r" 'isearch-repeat-backward)
     (define-key map "\177" 'isearch-delete-char)
     (define-key map "\C-g" 'isearch-abort)
+
     ;; This assumes \e is the meta-prefix-char.
     (or (= ?\e meta-prefix-char)
 	(error "Inconsistency in isearch.el"))
@@ -402,6 +403,9 @@ Default value, nil, means edit the string instead."
 ;; A flag to tell if input-method-function is locally bound when
 ;; isearch is invoked.
 (defvar isearch-input-method-local-p nil)
+
+;; Value of `signal-hook-function' before setting our own.
+(defvar isearch-old-signal-hook nil)
 
 ;; Minor-mode-alist changes - kind of redundant with the
 ;; echo area, but if isearching in multiple windows, it can be useful.
@@ -575,6 +579,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (run-hooks 'isearch-mode-hook)
 
   (add-hook 'mouse-leave-buffer-hook 'isearch-done)
+  (setq isearch-old-signal-hook signal-hook-function
+	signal-hook-function 'isearch-done)
 
   ;; isearch-mode can be made modal (in the sense of not returning to 
   ;; the calling function until searching is completed) by entering 
@@ -635,6 +641,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
       (setq command-history (cons command command-history))))
 
   (remove-hook 'mouse-leave-buffer-hook 'isearch-done)
+  (setq signal-hook-function isearch-old-signal-hook)
+
   ;; Called by all commands that terminate isearch-mode.
   ;; If NOPUSH is non-nil, we don't push the string on the search ring.
   (setq overriding-terminal-local-map nil)
@@ -1460,8 +1468,7 @@ If there is no completion possible, say so and continue searching."
 
 (defun isearch-pop-state ()
   (setq isearch-cmds (cdr isearch-cmds))
-  (isearch-top-state)
-  )
+  (isearch-top-state))
 
 (defun isearch-push-state ()
   (setq isearch-cmds 
