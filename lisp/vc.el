@@ -1182,17 +1182,18 @@ If nil, uses `change-log-default-name'."
 	(log-version vc-log-version)
 	(log-entry (buffer-string))
 	(after-hook vc-log-after-operation-hook))
-    ;; Return to "parent" buffer of this checkin and remove checkin window
     (pop-to-buffer vc-parent-buffer)
-    (let ((logbuf (get-buffer "*VC-log*")))
-      (delete-windows-on logbuf)
-      (kill-buffer logbuf))
     ;; OK, do it to it
     (save-excursion
       (funcall log-operation 
 	       log-file
 	       log-version
 	       log-entry))
+    ;; Remove checkin window (after the checkin so that if that fails
+    ;; we don't zap the *VC-log* buffer and the typing therein).
+    (let ((logbuf (get-buffer "*VC-log*")))
+      (delete-windows-on logbuf)
+      (kill-buffer logbuf))
     ;; Now make sure we see the expanded headers
     (if buffer-file-name
 	(vc-resynch-window buffer-file-name vc-keep-workfiles t))
