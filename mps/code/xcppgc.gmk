@@ -1,12 +1,13 @@
 # xcppgc.gmk: BUILD FOR MACOS X (CARBON)/POWERPC/GCC PLATFORM
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001,2005 Ravenbrook Limited.  See end of file for license.
 
 PFM = xcppgc
 
 MPMPF = lockan.c than.c vmxc.c \
-        protan.c prmcan.c span.c ssan.c
+        protan.c prmcan.c span.c
+MPMS = ssxcpp.s
 SWPF = than.c vmxc.c protsw.c prmcan.c ssan.c
 
 LIBS =
