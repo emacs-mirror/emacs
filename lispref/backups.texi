@@ -18,7 +18,7 @@ current session.
 * Reverting::      @code{revert-buffer}, and how to customize what it does.
 @end menu
 
-@node Backup Files, Auto-Saving, Backups and Auto-Saving, Backups and Auto-Saving
+@node Backup Files
 @section Backup Files
 @cindex backup file
 
@@ -47,7 +47,7 @@ don't want them any more, or Emacs can delete them automatically.
 * Backup Names::       How backup file names are computed; customization.
 @end menu
 
-@node Making Backups, Rename or Copy, Backup Files, Backup Files
+@node Making Backups
 @subsection Making Backup Files
 
 @defun backup-buffer
@@ -111,7 +111,7 @@ backups based on which file is visited.  Major modes should not set this
 variable.
 @end defvar
 
-@node Rename or Copy, Numbered Backups, Making Backups, Backup Files
+@node Rename or Copy
 @subsection Backup by Renaming or by Copying?
 @cindex backup files, how to make them
 
@@ -173,7 +173,7 @@ This variable is significant only if @code{backup-by-copying} is
 non-@code{nil}.
 @end defvar
 
-@node Numbered Backups, Backup Names, Rename or Copy, Backup Files
+@node Numbered Backups
 @subsection Making and Deleting Numbered Backup Files
 
   If a file's name is @file{foo}, the names of its numbered backup
@@ -233,7 +233,7 @@ same thing @code{kept-new-versions} does when you make a new backup
 file.  The default value is 2.
 @end defopt
 
-@node Backup Names, , Numbered Backups, Backup Files
+@node Backup Names
 @subsection Naming Backup Files
 
   The functions in this section are documented mainly because you can
@@ -343,7 +343,7 @@ Some file comparison commands use this function in order to compare
 a file by default with its most recent backup.
 @end defun 
 
-@node Auto-Saving, Reverting, Backup Files, Backups and Auto-Saving
+@node Auto-Saving
 @section Auto-Saving
 @cindex auto-saving
 
@@ -534,7 +534,19 @@ file.  If the visited file name has not changed, this function does
 nothing.
 @end defun
 
-@node Reverting,  , Auto-Saving, Backups and Auto-Saving
+@defvar buffer-saved-size
+The value of this buffer-local variable is the former length of the
+current buffer, as of the last time it was read in, saved or auto-saved.
+This is used to detect a substantial decrease in size, and turn off
+auto-saving in response.
+
+If it is -1, that means auto-saving is temporarily shut off in this
+buffer due to a substantial deletion.  Explicitly saving the buffer
+stores a positive value in this variable, thus reenabling auto-save.
+Turning Auto-Save mode off or on also alters this variable.
+@end defvar
+
+@node Reverting
 @section Reverting
 
   If you have made extensive changes to a file and then change your mind
