@@ -1913,12 +1913,13 @@ static void
 IT_update_begin (struct frame *f)
 {
   struct display_info *display_info = FRAME_X_DISPLAY_INFO (f);
+  struct frame *mouse_face_frame = display_info->mouse_face_mouse_frame;
   
   highlight = 0;
 
   BLOCK_INPUT;
 
-  if (f == display_info->mouse_face_mouse_frame)
+  if (f && f == mouse_face_frame)
     {
       /* Don't do highlighting for mouse motion during the update.  */
       display_info->mouse_face_defer = 1;
@@ -1955,7 +1956,7 @@ IT_update_begin (struct frame *f)
 	    clear_mouse_face (display_info);
 	}
     }
-  else if (!FRAME_LIVE_P (display_info->mouse_face_mouse_frame))
+  else if (mouse_face_frame && !FRAME_LIVE_P (mouse_face_frame))
     {
       /* If the frame with mouse highlight was deleted, invalidate the
 	 highlight info.  */
@@ -1986,7 +1987,7 @@ IT_frame_up_to_date (struct frame *f)
   struct window *sw;
 
   if (dpyinfo->mouse_face_deferred_gc
-      || f == dpyinfo->mouse_face_mouse_frame)
+      || (f && f == dpyinfo->mouse_face_mouse_frame))
     {
       BLOCK_INPUT;
       if (dpyinfo->mouse_face_mouse_frame)
