@@ -1,6 +1,12 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Process output truncated on Mac OS X (Carbon) when using pty's.
+
+There appears to be a problem with the implementation of pty's on the
+Mac OS X that causes process output to be truncated.  To avoid this,
+leave process-connection-type set to its default value of nil.
+
 * Emacs crashes on Mac OS X (Carbon) after system software upgrade.
 
 This problem seems to be now solved by Steven Tamm's patch to
