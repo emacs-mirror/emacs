@@ -1,3 +1,11 @@
+2002-09-09  Richard M. Stallman  <rms@gnu.org>
+
+	* regex.c (regnum_t): Use signed int, not unsigned int.
+
+	* s/sol2-6.h: New file.
+
+	* s/sol2-5.h (UNEXEC): Definition deleted.
+
 2002-09-08  Kim F. Storm  <storm@cua.dk>
 
 	* macros.c (executing_macro_index): Change type to EMACS_INT.

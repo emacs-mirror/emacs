@@ -1,3 +1,37 @@
+2002-09-09  Richard M. Stallman  <rms@gnu.org>
+
+	* calendar/calendar.el (mouse-scroll-calendar-left) 
+	(mouse-scroll-calendar-right, mouse-calendar-other-month):
+	New commands.
+	(calendar-mode-line-format): Use them.
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory):
+	Set and then bind default-directory.
+
+	* startup.el (fancy-splash-head, normal-splash-screen): 
+	Change the messages that explain about GNU or GNU/Linux.
+
+	* info.el (Info-search): Add (point-min) to subfile positions
+	to get them right.  Skip the current subfile using forward-line.
+
+	* files.el (make-backup-file-name-1): When make-directory fails,
+	ignore backup-directory-alist.
+	(make-directory): Expand DIR before looking for handler.
+
+2002-09-09  Jari Aalto  <jari.aalto@poboxes.com>
+
+ 	* progmodes/cperl-mode.el (cperl-noscan-files-regexp): 
+        In addition to RCS, exclude CVS directories.
+
+	* ls-lisp.el (ls-lisp-format-time-list): New variable.
+	(ls-lisp-format-time): Use it.
+
+        * files.el (auto-mode-alist): Use sh-mode for .bash files.
+	
+2002-09-09  Dave Love  <d.love@dl.ac.uk>
+
+	* ps-print.el: Many doc fixes.
+
 2002-09-09  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* play/doctor.el (doctor-cadr, doctor-caddr, doctor-cddr): Remove.

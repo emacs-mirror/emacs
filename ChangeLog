@@ -1,3 +1,10 @@
+2002-09-09  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in (powerpcle-*-solaris2.5*): New configuration.
+	(powerpcle-*-solaris*): Use version 2.6 as default.
+	(*-sunos5.6*, *-solaris2.6*): New alternative.
+	(*-sunos5*): Use version 2.6 as default.
+
 2002-09-06  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* configure.in: Fix typo.
