@@ -1,3 +1,11 @@
+2001-11-03  Ken Raeburn  <raeburn@gnu.org>
+
+	* lisp.h (CHECK_STRING_CAR): New macro.
+	* lread.c (Fload): Use XSETCARFASTINT, XSETCDRFASTINT instead of
+	treating XCAR and XCDR as lvalues.
+	(openp): Use CHECK_STRING_CAR.
+	(read_list): Use XSETCDR instead of treating XCDR as lvalue.
+
 2001-11-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* s/sco5.h (sigprocmask_set): Declare as extern SIGMASKTYPE.
