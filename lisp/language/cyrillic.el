@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003  Free Software Foundation, Inc.
 
 ;; Author: Kenichi Handa <handa@etl.go.jp>
 ;; Keywords: multilingual, Cyrillic, i18n
@@ -216,11 +216,27 @@ This works whether or not the table is Unicode-based or
 			    'translation-table))
 		   (coding-system cyrillic-koi8)
 		   (coding-priority cyrillic-koi8 cyrillic-iso-8bit)
-		   (input-method . "cyrillic-jcuken")
+		   (input-method . "russian-typewriter")
 		   (features cyril-util)
 		   (unibyte-display . cyrillic-koi8)
 		   (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
 		   (documentation . "Support for Cyrillic KOI8-R."))
+ '("Cyrillic"))
+
+(set-language-info-alist
+ "Russian" `((charset cyrillic-iso8859-5)
+	     (nonascii-translation
+	      . ,(get 'cyrillic-koi8-r-nonascii-translation-table
+		      'translation-table))
+	     (coding-system cyrillic-koi8)
+	     (coding-priority cyrillic-koi8 cyrillic-iso-8bit)
+	     (input-method . "russian-computer")
+	     (features cyril-util)
+	     (unibyte-display . cyrillic-koi8)
+	     (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
+	     (documentation . "\
+Support for Russian using koi8-r and the russian-computer input method.")
+	     (tutorial . "TUTORIAL.ru"))
  '("Cyrillic"))
 
 
@@ -436,12 +452,12 @@ This works whether or not the table is Unicode-based or
 
 (set-language-info-alist
  "Tajik" `((coding-system cyrillic-koi8-t)
-		     (coding-priority cyrillic-koi8-t)
-		     (nonascii-translation
-		      . ,(get 'decode-koi8-t 'translation-table))
-		     (input-method . "russian-typewriter") ; fixme?
-		     (features code-pages)
-		     (documentation . "Support for Tajik using KOI8-T."))
+	   (coding-priority cyrillic-koi8-t)
+	   (nonascii-translation
+	    . ,(get 'decode-koi8-t 'translation-table))
+	   (input-method . "russian-typewriter") ; fixme?
+	   (features code-pages)
+	   (documentation . "Support for Tajik using KOI8-T."))
  '("Cyrillic"))
 
 (set-language-info-alist
@@ -452,7 +468,8 @@ This works whether or not the table is Unicode-based or
 	       (input-method . "bulgarian-bds")
 		  (features code-pages)
 	       (documentation
-		. "Support for Bulgarian with windows-1251 character set."))
+		. "Support for Bulgarian with windows-1251 character set.")
+	       (tutorial . "TUTORIAL.bg"))
  '("Cyrillic"))
 
 (set-language-info-alist
