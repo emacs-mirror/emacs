@@ -1,3 +1,17 @@
+2000-03-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* minibuf.c (Fminibuffer_complete): Set point to ZV if finding
+	a sole completion.
+
+	* process.c (send_process): Add a hint that the function
+	can call Lisp code to its comment.
+
+	* lread.c (load_dangerous_libraries): New variable.
+	(Vbytecomp_version_regexp): New variable.
+	(safe_to_load_p): New function.
+	(Fload): Handle files not compiled with Emacs specially.
+	(syms_of_lread): New Lisp variable load-dangerous-libraries.
+
 2000-03-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* lisp.h (free_frame_xic) [HAVE_X_I18N]: Add missing semicolon.

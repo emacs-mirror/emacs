@@ -8,7 +8,15 @@ For older news, see the file ONEWS.
 
 * Installation Changes in Emacs 21.1
 
-** There are two new resources for colormap handling under X.
+** Emacs now refuses to load compiled Lisp files which weren't
+compiled with Emacs.  Set `load-dangerous-libraries' to t to change
+this behavior.
+
+The reason for this change is an incompatible change in XEmacs' byte
+compiler.  Files compiled with XEmacs can contain byte codes that let
+Emacs dump core.
+
+** New X resources recognized
 
 *** The X resource `synchronous', class `Synchronous', specifies
 whether Emacs should run in synchronous mode.  Synchronous mode
@@ -16,7 +24,7 @@ is useful for debugging X problems.
 
 Example:
 
-	emacs.synchronous: true
+  emacs.synchronous: true
 
 *** The X resource `visualClass, class `VisualClass', specifies the
 visual Emacs should use.  The resource's value should be a string of
@@ -42,7 +50,7 @@ visual.
 
 Example:
 
-	emacs.visualClass: TrueColor-8
+  emacs.visualClass: TrueColor-8
 
 *** The X resource `privateColormap', class `PrivateColormap',
 specifies that Emacs should use a private colormap if it is using the
@@ -51,7 +59,7 @@ resource values are `true' or `on'.
 
 Example:
 
-	emacs.privateColormap: true
+  emacs.privateColormap: true
 
 ** `movemail' defaults to supporting POP.  You can turn this off using
 the --without-pop configure option, should that be necessary.
