@@ -2059,21 +2059,31 @@ If FRAME is omitted, return information on the currently selected frame.")
 	 unspecified and reversed, take the frame's background pixel
 	 for foreground and vice versa.  */
       elt = Fassq (Qforeground_color, alist);
-      if (!NILP (elt) && CONSP (elt)
-	  && STRINGP (XCDR (elt))
-	  && strncmp (XSTRING (XCDR (elt))->data,
-		      unspecified_bg,
-		      XSTRING (XCDR (elt))->size) == 0)
-	store_in_alist (&alist, Qforeground_color, tty_color_name (f, bg));
+      if (!NILP (elt) && CONSP (elt) && STRINGP (XCDR (elt)))
+	{
+	  if (strncmp (XSTRING (XCDR (elt))->data,
+		       unspecified_bg,
+		       XSTRING (XCDR (elt))->size) == 0)
+	    store_in_alist (&alist, Qforeground_color, tty_color_name (f, bg));
+	  else if (strncmp (XSTRING (XCDR (elt))->data,
+			    unspecified_fg,
+			    XSTRING (XCDR (elt))->size) == 0)
+	    store_in_alist (&alist, Qforeground_color, tty_color_name (f, fg));
+	}
       else
 	store_in_alist (&alist, Qforeground_color, tty_color_name (f, fg));
       elt = Fassq (Qbackground_color, alist);
-      if (!NILP (elt) && CONSP (elt)
-	  && STRINGP (XCDR (elt))
-	  && strncmp (XSTRING (XCDR (elt))->data,
-		      unspecified_fg,
-		      XSTRING (XCDR (elt))->size) == 0)
-	store_in_alist (&alist, Qbackground_color, tty_color_name (f, fg));
+      if (!NILP (elt) && CONSP (elt) && STRINGP (XCDR (elt)))
+	{
+	  if (strncmp (XSTRING (XCDR (elt))->data,
+		       unspecified_fg,
+		       XSTRING (XCDR (elt))->size) == 0)
+	    store_in_alist (&alist, Qbackground_color, tty_color_name (f, fg));
+	  else if (strncmp (XSTRING (XCDR (elt))->data,
+			    unspecified_bg,
+			    XSTRING (XCDR (elt))->size) == 0)
+	    store_in_alist (&alist, Qbackground_color, tty_color_name (f, bg));
+	}
       else
 	store_in_alist (&alist, Qbackground_color, tty_color_name (f, bg));
       store_in_alist (&alist, intern ("font"),
