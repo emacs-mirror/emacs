@@ -620,6 +620,9 @@ do_switch_frame (frame, no_enter, track)
 #endif /* HAVE_X_WINDOWS */
 #endif /* ! 0 */
 
+  if (FRAME_HAS_MINIBUF_P (sf))
+    resize_mini_window (XWINDOW (FRAME_MINIBUF_WINDOW (sf)), 1);
+
   selected_frame = frame;
   if (! FRAME_MINIBUF_ONLY_P (XFRAME (selected_frame)))
     last_nonminibuf_frame = XFRAME (selected_frame);
