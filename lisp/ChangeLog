@@ -1,3 +1,8 @@
+2004-12-30  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-store.el (calc-copy-variable):  Fix mistyped variable
+	name.  Change the way a variable is displayed in a message.
+
 2004-12-30  Kenichi Handa  <handa@m17n.org>
 
 	* files.el (basic-save-buffer-1): Set
