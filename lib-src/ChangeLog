@@ -1,3 +1,8 @@
+2001-12-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* cvtmail.c, emacsclient.c, emacsserver.c, pop.c, sorted-doc.c,
+	* yow.c: Include <config.h>.
+
 2001-12-21  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (Perl_functions): Tag packages and use them in sub tags.
