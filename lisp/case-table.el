@@ -54,17 +54,14 @@
       (describe-vector vector))))
 
 ;;;###autoload
-(defun set-case-syntax-delims (l r)
+(defun set-case-syntax-delims (l r table)
   "Make characters L and R a matching pair of non-case-converting delimiters.
-This sets the entries for L and R in the standard case table.
+This sets the entries for L and R in TABLE, which is a string
+that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table', and `text-mode-syntax-table' to
 indicate left and right delimiters."
-  (aset (car (cdr (standard-case-table))) l l)
-  (aset (car (cdr (standard-case-table))) r r)
-  ;; Recompute the equivalence and canonicalize tables.
-  (set-standard-case-table (list (car (standard-case-table))
-				 (nth 1 (standard-case-table))
-				 nil nil))
+  (aset table l l)
+  (aset table r r)
   (modify-syntax-entry l (concat "(" (char-to-string r) "  ")
 		       (standard-syntax-table))
   (modify-syntax-entry l (concat "(" (char-to-string r) "  ")
@@ -75,36 +72,27 @@ indicate left and right delimiters."
 		       text-mode-syntax-table))
 
 ;;;###autoload
-(defun set-case-syntax-pair (uc lc)
+(defun set-case-syntax-pair (uc lc table)
   "Make characters UC and LC a pair of inter-case-converting letters.
-This sets the entries for characters UC and LC in the standard case table.
+This sets the entries for characters UC and LC in TABLE, which is a string
+that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table' and `text-mode-syntax-table'
 to indicate an (uppercase, lowercase) pair of letters."
-  (aset (car (cdr (standard-case-table))) lc uc)
-  (aset (car (cdr (standard-case-table))) uc uc)
-  (aset (car (standard-case-table)) uc lc)
-  (aset (car (standard-case-table)) lc lc)
-  ;; Recompute the equivalence and canonicalize tables.
-  (set-standard-case-table (list (car (standard-case-table))
-				 (nth 1 (standard-case-table))
-				 nil nil))
+  (aset table uc lc)
+  (aset table lc lc)
   (modify-syntax-entry lc "w   " (standard-syntax-table))
   (modify-syntax-entry lc "w   " text-mode-syntax-table)
   (modify-syntax-entry uc "w   " (standard-syntax-table))
   (modify-syntax-entry uc "w   " text-mode-syntax-table))
 
 ;;;###autoload
-(defun set-case-syntax (c syntax)
+(defun set-case-syntax (c syntax table)
   "Make characters C case-invariant with syntax SYNTAX.
-This sets the entries for character C in the standard case table.
+This sets the entries for character C in TABLE, which is a string
+that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table' and `text-mode-syntax-table'.
 SYNTAX should be \" \", \"w\", \".\" or \"_\"."
-  (aset (car (cdr (standard-case-table))) c c)
-  (aset (car (standard-case-table)) c c)
-  ;; Recompute the equivalence and canonicalize tables.
-  (set-standard-case-table (list (car (standard-case-table))
-				 (nth 1 (standard-case-table))
-				 nil nil))
+  (aset table c c)
   (modify-syntax-entry c syntax (standard-syntax-table))
   (modify-syntax-entry c syntax text-mode-syntax-table))
 
