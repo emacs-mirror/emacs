@@ -906,15 +906,8 @@ xmenu_show (f, val, x, y, menubarp, vw)
 
     if (menubarp)
       {
-#if 0
-	/* we are in the menubar */
-	XtUnmapWidget (f->display.x->menubar_widget); 
-	vw->call_data = (XtPointer) 1;
-	XtMapWidget (f->display.x->menubar_widget);
-#else
 	vw->call_data = (XtPointer) 1;
 	dispatch_dummy_expose (f->display.x->menubar_widget, x, y);
-#endif
       }
 
 
@@ -949,15 +942,8 @@ xmenu_show (f, val, x, y, menubarp, vw)
       
   if (menubarp)
     {
-#if 1
-      XtUnmapWidget (f->display.x->menubar_widget); 
       vw->call_data = (XtPointer) 0;
-      XtMapWidget (f->display.x->menubar_widget);
-#else
-      vw->call_data = (XtPointer) 0;
-      dispatch_dummy_expose (f->display.x->menubar_widget, 0, 0);
-      XFlushQueue ();
-#endif
+      dispatch_dummy_expose (f->display.x->menubar_widget, x, y);
     }
 
   /* Return any foreign events that were queued to the X event queue.  */
