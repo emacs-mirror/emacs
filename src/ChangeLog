@@ -1,5 +1,7 @@
 2001-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* editfns.c (Fconstrain_to_field): Doc fix.
+
 	* xfaces.c (Fclear_face_cache): Rename the `thorougly' argument
 	into `thoroughly', to make it consistent with the doc string.
 
