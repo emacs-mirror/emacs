@@ -593,7 +593,12 @@ all sections related to a subject, put something appropriate into the
 	     (if default-enable-multibyte-characters
 		 locale-coding-system 'raw-text-unix))
 	    ;; Avoid possible error by using a directory that always exists.
-	    (default-directory "/"))
+	    (default-directory
+	      (if (and (file-directory-p default-directory)
+		       (not (find-file-name-handler default-directory
+						    'file-directory-p)))
+		  default-directory
+		"/")))
 	;; Prevent any attempt to use display terminal fanciness.
 	(setenv "TERM" "dumb")
 	;; In Debian Woody, at least, we get overlong lines under X

@@ -1,3 +1,8 @@
+2003-03-07  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* man.el (Man-getpage-in-background): Only change
+	default-directory if necessary.
+
 2003-03-07  Andreas Schwab  <schwab@suse.de>
 
 	* info.el (Info-following-node-name): Skip trailing period.
