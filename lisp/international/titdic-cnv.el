@@ -176,6 +176,10 @@
 	       (cond ((looking-at "KEYPROMPT(\\(.*\\)):[ \t]*")
 		      (let ((key-char (match-string 1)))
 			(goto-char (match-end 0))
+			(if (string-match "\\\\[0-9]+" key-char)
+			    (setq key-char
+				  (car (read-from-string (format "\"%s\""
+								 key-char)))))
 			(setq tit-keyprompt
 			      (cons (cons key-char (tit-read-key-value))
 				    tit-keyprompt))))))))
@@ -320,17 +324,18 @@
 	  (if tit-phrase
 	      (progn
 		;; PHRASE1 PHRASE2 ... => ["PHRASE1" "PHRASE2" ...]
-		(insert "[\"")
-		(skip-chars-forward "^ \t\n")
+		(insert "[")
+		(skip-chars-forward " \t")
 		(while (not (eolp))
 		  (insert "\"")
-		  (forward-char 1)
+		  (skip-chars-forward "^ \t\n")
 		  (insert "\"")
-		  (skip-chars-forward "^ \t\n"))
-		(insert "\"])"))
+		  (skip-chars-forward " \t"))
+		(insert "])"))
 	    ;; TRANSLATIONS => "TRANSLATIONS"
 	    (insert "\"")
 	    (end-of-line)
+	    (skip-chars-backward " \t")
 	    (insert "\")"))
 	  (forward-line 1))))
     (insert ")\n")))
