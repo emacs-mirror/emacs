@@ -9053,7 +9053,22 @@ draw_row_fringe_bitmaps (w, row)
 }
 
 
-/* Compute actual fringe widths */
+/* Compute actual fringe widths for frame F.  
+
+   If REDRAW is 1, redraw F if the fringe settings was actually
+   modified and F is visible.
+
+   Since the combined left and right fringe must occupy an integral
+   number of columns, we may need to add some pixels to each fringe.
+   Typically, we add an equal amount (+/- 1 pixel) to each fringe,
+   but a negative width value is taken literally (after negating it).
+
+   We never make the fringes narrower than specified.  It is planned
+   to make fringe bitmaps customizable and expandable, and at that
+   time, the user will typically specify the minimum number of pixels
+   needed for his bitmaps, so we shouldn't select anything less than
+   what is specified.
+*/
 
 void
 compute_fringe_widths (f, redraw)
