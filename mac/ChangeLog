@@ -1,3 +1,9 @@
+2003-11-02  Andrew Choi  <akochoi@shaw.ca>
+
+	* src/Emacs.r [!TARGET_API_MAC_CARBON]: Don't define hfdr
+	resource.
+	* Emacs.app/Contents/Resources/Emacs.rsrc: Remove.
+	
 2003-10-31  Andrew Choi  <akochoi@shaw.ca>
 
 	* INSTALL: Add Nozomu Ando's changes to instructions for
