@@ -326,7 +326,12 @@ is less convenient."
   :type '(choice (const nil) string)
   :group 'mail)
 
-(defcustom user-mail-address nil
+(defcustom user-mail-address (if command-line-processed
+				 (concat (user-login-name) "@"
+					 (or mail-host-address
+					     (system-name)))
+			       ;; Empty string means "not set yet".
+			       "")
   "*Full mailing address of this user.
 This is initialized based on `mail-host-address',
 after your init file is read, in case it sets `mail-host-address'."
@@ -1007,7 +1012,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(set-language-environment current-language-environment)))
     
     ;; Do this here in case the init file sets mail-host-address.
-    (or user-mail-address
+    (or (equal user-mail-address "")
 	(setq user-mail-address (concat (user-login-name) "@"
 					(or mail-host-address
 					    (system-name)))))
