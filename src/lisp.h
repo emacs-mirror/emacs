@@ -66,29 +66,9 @@ enum Lisp_Type
        as well as pointing to the code. */
     Lisp_Subr,
 
-    /* Forwarding pointer to an int variable.
-       This is allowed only in the value cell of a symbol,
-       and it means that the symbol's value really lives in the
-       specified int variable.
-       XINTPTR(obj) points to the int variable. */
-    Lisp_Intfwd,
-
-    /* Boolean forwarding pointer to an int variable.
-       This is like Lisp_Intfwd except that the ostensible
-       "value" of the symbol is t if the int variable is nonzero,
-       nil if it is zero.  XINTPTR(obj) points to the int variable. */
-    Lisp_Boolfwd,
-
     /* Object describing a connection to a subprocess.
        It points to storage of type  struct Lisp_Process  */
     Lisp_Process,
-
-    /* Forwarding pointer to a Lisp_Object variable.
-       This is allowed only in the value cell of a symbol,
-       and it means that the symbol's value really lives in the
-       specified variable.
-       XOBJFWD(obj) points to the Lisp_Object variable. */
-    Lisp_Objfwd,
 
 #ifdef MULTI_FRAME
     /* Pointer to a vector-like object describing a display frame
@@ -137,11 +117,6 @@ enum Lisp_Type
        Only make-local-variable does that.  */
     Lisp_Some_Buffer_Local_Value,
 
-
-    /* Like Lisp_Objfwd except that value lives in a slot
-       in the current buffer.  Value is byte index of slot within buffer */
-    Lisp_Buffer_Objfwd,
-
     /* Window used for Emacs display.
        Data inside looks like a Lisp_Vector.  */
     Lisp_Window,
@@ -166,8 +141,12 @@ enum Lisp_Type
    The first member of the structure is a type code from this set.  */
 enum Lisp_Misc_Type
   {
+    Lisp_Misc_Free,
     Lisp_Misc_Marker,
-    Lisp_Misc_Free
+    Lisp_Misc_Intfwd,
+    Lisp_Misc_Boolfwd,
+    Lisp_Misc_Objfwd,
+    Lisp_Misc_Buffer_Objfwd
   };
 
 #ifndef NO_UNION_TYPE
@@ -432,12 +411,14 @@ extern int pure_size;
 #define XSTRING(a) ((struct Lisp_String *) XPNTR(a))
 #define XSYMBOL(a) ((struct Lisp_Symbol *) XPNTR(a))
 #define XMISC(a)   ((union Lisp_Misc *) XPNTR(a))
-#define XOBJFWD(a) ((Lisp_Object *) XPNTR(a))
-#define XINTPTR(a) ((int *) XPNTR(a))
 #define XWINDOW(a) ((struct window *) XPNTR(a))
 #define XPROCESS(a) ((struct Lisp_Process *) XPNTR(a))
 #define XFLOAT(a) ((struct Lisp_Float *) XPNTR(a))
 #define XMARKER(a) (&(XMISC(a)->u_marker))
+#define XINTFWD(a) (&(XMISC(a)->u_intfwd))
+#define XBOOLFWD(a) (&(XMISC(a)->u_boolfwd))
+#define XOBJFWD(a) (&(XMISC(a)->u_objfwd))
+#define XBUFFER_OBJFWD(a) (&(XMISC(a)->u_buffer_objfwd))
 
 #define XSETINT(a, b) XSET (a, Lisp_Int, b)
 #define XSETCONS(a, b) XSET (a, Lisp_Cons, b)
@@ -447,14 +428,10 @@ extern int pure_size;
 #define XSETSTRING(a, b) XSET (a, Lisp_String, b)
 #define XSETSYMBOL(a, b) XSET (a, Lisp_Symbol, b)
 #define XSETMISC(a, b) XSET (a, Lisp_Misc, b)
-#define XSETOBJFWD(a, b) XSET (a, Lisp_Objfwd, b)
 #define XSETWINDOW(a, b) XSET (a, Lisp_Window, b)
 #define XSETPROCESS(a, b) XSET (a, Lisp_Process, b)
 #define XSETFLOAT(a, b) XSET (a, Lisp_Float, b)
-#define XSETBOOLFWD(a, b) XSET (a, Lisp_Boolfwd, b)
-#define XSETBUFFER_OBJFWD(a, b) XSET (a, Lisp_Buffer_Objfwd, b)
 #define XSETWINDOW_CONFIGURATION(a, b) XSET (a, Lisp_Window_Configuration, b)
-#define XSETINTFWD(a, b) XSET (a, Lisp_Intfwd, b)
 #define XSETMARKER(a, b) (XSETMISC (a, b), XMISC (a)->type = Lisp_Misc_Marker)
 
 #ifdef USE_TEXT_PROPERTIES
@@ -577,9 +554,15 @@ struct Lisp_Subr
     char *prompt;
     char *doc;
   };
+
+/* A miscellaneous object, when it's on the free list.  */
+struct Lisp_Free
+  {
+    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Free */
+    union Lisp_Misc *chain;
+  };
 
 /* In a marker, the markbit of the chain field is used as the gc mark bit */
-
 struct Lisp_Marker
   {
     enum Lisp_Misc_Type type;	/* = Lisp_Misc_Marker */
@@ -588,11 +571,42 @@ struct Lisp_Marker
     int bufpos;
   };
 
-/* A miscellaneous object, when it's on the free list.  */
-struct Lisp_Free
+/* Forwarding pointer to an int variable.
+   This is allowed only in the value cell of a symbol,
+   and it means that the symbol's value really lives in the
+   specified int variable.  */
+struct Lisp_Intfwd
   {
-    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Free */
-    union Lisp_Misc *chain;
+    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Intfwd */
+    int *intvar;
+  };
+
+/* Boolean forwarding pointer to an int variable.
+   This is like Lisp_Intfwd except that the ostensible
+   "value" of the symbol is t if the int variable is nonzero,
+   nil if it is zero.  */
+struct Lisp_Boolfwd
+  {
+    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Boolfwd */
+    int *boolvar;
+  };
+
+/* Forwarding pointer to a Lisp_Object variable.
+   This is allowed only in the value cell of a symbol,
+   and it means that the symbol's value really lives in the
+   specified variable.  */
+struct Lisp_Objfwd
+  {
+    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Objfwd */
+    Lisp_Object *objvar;
+  };
+
+/* Like Lisp_Objfwd except that value lives in a slot in the
+   current buffer.  Value is byte index of slot within buffer.  */
+struct Lisp_Buffer_Objfwd
+  {
+    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Buffer_Objfwd */
+    int offset;
   };
 
 union Lisp_Misc
@@ -600,6 +614,10 @@ union Lisp_Misc
     enum Lisp_Misc_Type type;
     struct Lisp_Free u_free;
     struct Lisp_Marker u_marker;
+    struct Lisp_Intfwd u_intfwd;
+    struct Lisp_Boolfwd u_boolfwd;
+    struct Lisp_Objfwd u_objfwd;
+    struct Lisp_Buffer_Objfwd u_buffer_objfwd;
   };
 
 #ifdef LISP_FLOAT_TYPE
@@ -735,13 +753,13 @@ typedef unsigned char UCHAR;
 #define FLOATP(x) (0)
 #endif
 #define OVERLAYP(x) (XTYPE ((x)) == Lisp_Overlay)
-#define BOOLFWDP(x) (XTYPE ((x)) == Lisp_Boolfwd)
-#define INTFWDP(x) (XTYPE ((x)) == Lisp_Intfwd)
-#define OBJFWDP(x) (XTYPE ((x)) == Lisp_Objfwd)
 #define BUFFER_LOCAL_VALUEP(x) (XTYPE ((x)) == Lisp_Buffer_Local_Value)
 #define SOME_BUFFER_LOCAL_VALUEP(x) (XTYPE ((x)) == Lisp_Some_Buffer_Local_Value)
-#define BUFFER_OBJFWDP(x) (XTYPE ((x)) == Lisp_Buffer_Objfwd)
 #define MARKERP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Marker)
+#define INTFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Intfwd)
+#define BOOLFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Boolfwd)
+#define OBJFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Objfwd)
+#define BUFFER_OBJFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Buffer_Objfwd)
 
 #define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
 #define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))
@@ -1204,7 +1222,7 @@ extern Lisp_Object Fcopy_alist ();
 
 /* Defined in alloc.c */
 extern Lisp_Object Vpurify_flag;
-extern Lisp_Object Fcons (), Flist(), Fmake_list ();
+extern Lisp_Object Fcons (), Flist(), Fmake_list (), allocate_misc ();
 extern Lisp_Object Fmake_vector (), Fvector (), Fmake_symbol (), Fmake_marker ();
 extern Lisp_Object Fmake_string (), build_string (), make_string ();
 extern Lisp_Object make_event_array (), make_uninit_string ();
