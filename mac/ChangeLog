@@ -1,3 +1,7 @@
+2001-07-20  Pavel Janík  <Pavel@Janik.cz>
+
+	* src/macterm.c (xim_open_dpy): Fix typo.
+
 2001-06-26  Andrew Choi  <akochoi@i-cable.com>
 
 	* README: Change references to SourceForge site to

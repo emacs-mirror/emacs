@@ -9272,7 +9272,7 @@ xim_open_dpy (dpyinfo, resource_name)
 #ifdef HAVE_X11R6
       destroy.callback = xim_destroy_callback;
       destroy.client_data = (XPointer)dpyinfo;
-      /* This isn't prptotyped in OSF 5.0.  */
+      /* This isn't prototyped in OSF 5.0.  */
       XSetIMValues (xim, XNDestroyCallback, &destroy, NULL);
 #endif
     }
