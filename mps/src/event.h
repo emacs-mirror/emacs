@@ -1,7 +1,7 @@
 /* impl.h.event -- Event Logging Interface
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!event.h(trunk.6) $
+ * $HopeName: MMsrc!event.h(trunk.7) $
  *
  * READERSHIP
  *
@@ -10,12 +10,6 @@
  * DESIGN
  *
  * .design: design.mps.telemetry.
- *
- * TRANSGRESSIONS
- *
- * .trans.macro.memcpy: We define _memcpy (similar to ISO memcpy) as
- * a macro in this file.  This is done so that it gets optimised.
- * This is perhaps not a terribly good reason.
  */
 
 #ifndef event_h
@@ -29,7 +23,7 @@ extern Res EventFlush(void);
 extern Res EventInit(void);
 extern void EventFinish(void);
 extern Word EventControl(Word, Word);
-extern Word EventInternString(char *);
+extern Word EventInternString(const char *);
 extern void EventLabelAddr(Addr, Word);
 
 typedef Index EventKind;
@@ -70,23 +64,6 @@ typedef Index EventKind;
 #undef RELATION
 
 
-/* @@@@ We can't use memcpy, because it's a dependence on the ANSI C
- * library, despite the fact that many compilers will inline it.
- * Also, because we're always dealing with aligned words, we could 
- * copy more efficiently.
- */
-/* see .trans.macro.memcpy */
-
-#define _memcpy(to, from, length) \
-  BEGIN \
-    Index _i; \
-    char *_to = (char *)(to); \
-    char *_from = (char *)(from); \
-    Count _length2 = (length); \
-    for(_i = 0; _i < _length2; _i++) \
-      _to[_i] = _from[_i]; \
-  END
-
 extern EventUnion Event;
 
 #define EVENT_BEGIN(type, format, _length) \
@@ -105,7 +82,7 @@ extern EventUnion Event;
     if((length) > (size_t)(EventLimit - EventNext)) \
       EventFlush(); /* @@@ should pass length */ \
     AVER((length) <= (size_t)(EventLimit - EventNext)); \
-    _memcpy(EventNext, &Event, (length)); \
+    MPS_MEMCPY(EventNext, &Event, (length)); \
     EventNext += (length); \
   } \
   END

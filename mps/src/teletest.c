@@ -1,18 +1,18 @@
 /*  impl.c.teletest: TELEMETRY TEST
  *
- *  $HopeName: MMsrc!teletest.c(MMdevel_telemetry_intern2.1) $
+ *  $HopeName: MMsrc!teletest.c(trunk.2) $
  * Copyright (C) 1998 Harlequin Group plc, all rights reserved.
+ *
+ * .source: The command parser here was taken and adapted from bttest.c.
  */
 
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
-#include <time.h>
 
 #include "mpm.h"
 #include "mps.h"
-#include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
+#include "mpsaan.h" /* ANSI arena */
 #include "testlib.h"
 
 #ifdef MPS_OS_SU
@@ -20,10 +20,10 @@
 #endif /* MPS_OS_SU */
 
 
-SRCID(bttest, "$HopeName: MMsrc!teletest.c(MMdevel_telemetry_intern2.1) $");
+SRCID(teletest, "$HopeName: MMsrc!teletest.c(trunk.2) $");
 
 
-static mps_arena_t arena; /* the ANSI arena which we use to allocate the BT */
+static mps_arena_t arena; 
 
 
 #define MAX_ARGS 3
@@ -41,49 +41,42 @@ static mps_word_t args[MAX_ARGS];
 static char *stringArg;
 static Count argCount;
 
-static void doControl(void) 
+static void callControl(mps_word_t reset, mps_word_t flip)
 {
   mps_word_t old, new;
-  old = mps_telemetry_control(args[0], args[1]);
+  old = mps_telemetry_control(reset, flip);
   new = mps_telemetry_control((mps_word_t)0, (mps_word_t)0);
 
-  printf(WORD_FORMAT " -> " WORD_FORMAT "\n", old, new);
+  (void)printf(WORD_FORMAT " -> " WORD_FORMAT "\n", old, new);
+}
+
+static void doControl(void) 
+{
+  callControl(args[0], args[1]);
 }
 
 static void doRead(void)
 {
-   mps_word_t old;
-   old = mps_telemetry_control((mps_word_t)0, (mps_word_t)0);
+  mps_word_t old;
+  old = mps_telemetry_control((mps_word_t)0, (mps_word_t)0);
        
-  printf(WORD_FORMAT "\n", old);
+  (void)printf(WORD_FORMAT "\n", old);
 }
 
 
 static void doSet(void) 
 {
-  mps_word_t old, new;
-  old = mps_telemetry_control(args[0], args[0]);
-  new = mps_telemetry_control((mps_word_t)0, (mps_word_t)0);
-
-  printf(WORD_FORMAT " -> " WORD_FORMAT "\n", old, new);
+  callControl(args[0], args[0]);
 }
 
 static void doReset(void) 
 {
-  mps_word_t old, new;
-  old = mps_telemetry_control(args[0], (mps_word_t)0);
-  new = mps_telemetry_control((mps_word_t)0, (mps_word_t)0);
-
-  printf(WORD_FORMAT " -> " WORD_FORMAT "\n", old, new);
+  callControl(args[0], (mps_word_t)0);
 }
 
 static void doFlip(void) 
 {
-  mps_word_t old, new;
-  old = mps_telemetry_control((mps_word_t)0, args[0]);
-  new = mps_telemetry_control((mps_word_t)0, (mps_word_t)0);
-
-  printf(WORD_FORMAT " -> " WORD_FORMAT "\n", old, new);
+  callControl((mps_word_t)0, args[0]);
 }
  
 static void doIntern(void) 
@@ -91,7 +84,7 @@ static void doIntern(void)
   mps_word_t id;
 
   id = mps_telemetry_intern(stringArg);
-  printf(WORD_FORMAT "\n", id);
+  (void)printf(WORD_FORMAT "\n", id);
 }
  
 static void doLabel(void) 
@@ -108,15 +101,15 @@ static void doQuit(void)
 
 static void doHelp(void)
 {
-  printf("control <reset> <flip>   -> <old> <new>    Control filter\n"
-	 "read                     -> <old>          Read filter\n"
-	 "set <mask>               -> <old> <new>    Set filter\n"
-	 "reset <mask>             -> <old> <new>    Reset filter\n"
-	 "flip <mask>              -> <old> <new>    Toggle filter\n"
-	 "intern <string>          -> <id>           Intern string\n"
-	 "label <address> <id>                       Label address\n"
-	 "help                                       Print this message\n"
-	 "quit                                       Quit\n");
+  (void)printf("control <reset> <flip>   -> <old> <new>    Control filter\n"
+               "read                     -> <old>          Read filter\n"
+               "set <mask>               -> <old> <new>    Set filter\n"
+               "reset <mask>             -> <old> <new>    Reset filter\n"
+               "flip <mask>              -> <old> <new>    Toggle filter\n"
+               "intern <string>          -> <id>           Intern string\n"
+               "label <address> <id>                       Label address\n"
+               "help                                       Print this message\n"
+               "quit                                       Quit\n");
 }
 
 
