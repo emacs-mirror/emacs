@@ -171,21 +171,24 @@ int windows_or_buffers_changed;
    zero if being used by message.  */
 int message_buf_print;
 
-/* dump an informative message to the minibuf */
+/* Dump an informative message to the minibuf.  If m is 0, clear out
+   any existing message, and let the minibuffer text show through.  */
 /* VARARGS 1 */
-
 void
 message (m, a1, a2, a3)
      char *m;
 {
   if (noninteractive)
     {
-      if (noninteractive_need_newline)
-	putc ('\n', stderr);
-      noninteractive_need_newline = 0;
-      fprintf (stderr, m, a1, a2, a3);
-      fprintf (stderr, "\n");
-      fflush (stderr);
+      if (m)
+	{
+	  if (noninteractive_need_newline)
+	    putc ('\n', stderr);
+	  noninteractive_need_newline = 0;
+	  fprintf (stderr, m, a1, a2, a3);
+	  fprintf (stderr, "\n");
+	  fflush (stderr);
+	}
     }
   /* A null message buffer means that the frame hasn't really been
      initialized yet.  Error messages get reported properly by
@@ -202,22 +205,27 @@ message (m, a1, a2, a3)
 	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (minibuf_window)));
 #endif
 
-      {
+      if (m)
+	{
+	  {
 #ifdef NO_ARG_ARRAY
-	int a[3];
-	a[0] = a1;
-	a[1] = a2;
-	a[2] = a3;
+	    int a[3];
+	    a[0] = a1;
+	    a[1] = a2;
+	    a[2] = a3;
 
-	doprnt (FRAME_MESSAGE_BUF (selected_frame),
-		FRAME_WIDTH (selected_frame), m, 0, 3, a);
+	    doprnt (FRAME_MESSAGE_BUF (selected_frame),
+		    FRAME_WIDTH (selected_frame), m, 0, 3, a);
 #else
-	doprnt (FRAME_MESSAGE_BUF (selected_frame),
-		FRAME_WIDTH (selected_frame), m, 0, 3, &a1);
+	    doprnt (FRAME_MESSAGE_BUF (selected_frame),
+		    FRAME_WIDTH (selected_frame), m, 0, 3, &a1);
 #endif				/* NO_ARG_ARRAY */
-      }
+	  }
 
-      echo_area_glyphs = FRAME_MESSAGE_BUF (selected_frame);
+	  echo_area_glyphs = FRAME_MESSAGE_BUF (selected_frame);
+	}
+      else
+	echo_area_glyphs = previous_echo_glyphs = 0;
 
       /* Print should start at the beginning of the message
 	 buffer next time.  */
