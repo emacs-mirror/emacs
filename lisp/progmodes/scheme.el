@@ -1,6 +1,6 @@
 ;;; scheme.el --- Scheme (and DSSSL) editing mode.
 
-;; Copyright (C) 1986, 87, 88, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 87, 88, 97, 1998 Free Software Foundation, Inc.
 
 ;; Author: Bill Rozas <jinx@martigny.ai.mit.edu>
 ;; Adapted-by: Dave Love <d.love@dl.ac.uk>
@@ -163,7 +163,13 @@
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression scheme-imenu-generic-expression)
   (make-local-variable 'imenu-syntax-alist)
-  (setq imenu-syntax-alist '(("+-*/.<>=?!$%_&~^:" . "w"))))
+  (setq imenu-syntax-alist '(("+-*/.<>=?!$%_&~^:" . "w")))
+  (make-local-variable 'font-lock-defaults)  
+  (setq font-lock-defaults
+        '((scheme-font-lock-keywords
+           scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
+          nil t (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
+          (font-lock-mark-block-function . mark-defun))))
 
 (defvar scheme-mode-line-process "")
 
@@ -248,13 +254,13 @@ doctype, as required for Jade."
   :group 'scheme)
 
 (defcustom scheme-mode-hook nil
-  "*Normal hook (list of functions) run when entering scheme-mode.
+  "Normal hook (list of functions) run when entering scheme-mode.
 See `run-hooks'."
   :type 'hook
   :group 'scheme)
 
 (defcustom dsssl-mode-hook nil
-  "*Normal hook (list of functions) run when entering dsssl-mode.
+  "Normal hook (list of functions) run when entering dsssl-mode.
 See `run-hooks'."
   :type 'hook
   :group 'scheme)
@@ -276,6 +282,62 @@ See `run-hooks'."
      "^(declare\\(-\\sw+\\)+\\>\\s-+\\(\\sw+\\)" 2))
   "Imenu generic expression for DSSSL mode.  See `imenu-generic-expression'.")
 
+(defconst scheme-font-lock-keywords-1
+  (eval-when-compile
+    (list
+     ;;
+     ;; Declarations.  Hannes Haug <hannes.haug@student.uni-tuebingen.de> says
+     ;; this works for SOS, STklos, SCOOPS, Meroon and Tiny CLOS.
+     (list (concat "(\\(define\\("
+		   ;; Function names.
+		   "\\(\\|-method\\|-generic\\(-procedure\\)?\\)\\|"
+		   ;; Macro names, as variable names.  A bit dubious, this.
+		   "\\(-syntax\\)\\|"
+		   ;; Class names.
+		   "-class"
+		   "\\)\\)\\>"
+		   ;; Any whitespace and declared object.
+		   "[ \t]*(?"
+		   "\\(\\sw+\\)?")
+	   '(1 font-lock-keyword-face)
+	   '(6 (cond ((match-beginning 3) font-lock-function-name-face)
+		     ((match-beginning 5) font-lock-variable-name-face)
+		     (t font-lock-type-face))
+	       nil t))
+     ))
+  "Subdued expressions to highlight in Scheme modes.")
+
+(defconst scheme-font-lock-keywords-2
+  (append scheme-font-lock-keywords-1
+   (eval-when-compile
+     (list
+      ;;
+      ;; Control structures.
+      (cons
+       (concat
+	"(" (regexp-opt
+	     '("begin" "call-with-current-continuation" "call/cc"
+	       "call-with-input-file" "call-with-output-file" "case" "cond"
+	       "do" "else" "for-each" "if" "lambda"
+	       "let" "let*" "let-syntax" "letrec" "letrec-syntax"
+	       ;; Hannes Haug <hannes.haug@student.uni-tuebingen.de> wants:
+	       "and" "or" "delay"
+	       ;; Stefan Monnier <stefan.monnier@epfl.ch> says don't bother:
+	       ;;"quasiquote" "quote" "unquote" "unquote-splicing"
+	       "map" "syntax" "syntax-rules") t)
+	"\\>") 1)
+      ;;
+      ;; David Fox <fox@graphics.cs.nyu.edu> for SOS/STklos class specifiers.
+      '("\\<<\\sw+>\\>" . font-lock-type-face)
+      ;;
+      ;; Scheme `:' keywords as builtins.
+      '("\\<:\\sw+\\>" . font-lock-builtin-face)
+      )))
+  "Gaudy expressions to highlight in Scheme modes.")
+
+(defvar scheme-font-lock-keywords scheme-font-lock-keywords-1
+  "Default expressions to highlight in Scheme modes.")
+
 ;;;###autoload
 (defun dsssl-mode ()
   "Major mode for editing DSSSL code.
@@ -285,19 +347,13 @@ Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
 \\{scheme-mode-map}
-Entry to this mode calls the value of dsssl-mode-hook
-if that value is non-nil and inserts the value of
-`dsssl-sgml-declaration' if that variable's value is a string."
+Entering this mode runs the hooks `scheme-mode-hook' and then
+`dsssl-mode-hook' and inserts the value of `dsssl-sgml-declaration' if
+that variable's value is a string."
   (interactive)
   (kill-all-local-variables)
   (use-local-map scheme-mode-map)
   (scheme-mode-initialize)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(dsssl-font-lock-keywords
-			     nil t (("+-*/.<>=?$%_&~^:" . "w"))
-			     beginning-of-defun
-			     (font-lock-comment-start-regexp . ";")
-			     (font-lock-mark-block-function . mark-defun)))
   (make-local-variable 'page-delimiter)
   (setq page-delimiter "^;;;" ; ^L not valid SGML char
 	major-mode 'dsssl-mode
@@ -307,12 +363,16 @@ if that value is non-nil and inserts the value of
        (stringp dsssl-sgml-declaration)
        (not buffer-read-only)
        (insert dsssl-sgml-declaration))
-  (run-hooks 'scheme-mode-hook)
-  (run-hooks 'dsssl-mode-hook)
   (scheme-mode-variables)
+  (setq font-lock-defaults '(dsssl-font-lock-keywords
+			     nil t (("+-*/.<>=?$%_&~^:" . "w"))
+			     beginning-of-defun
+			     (font-lock-mark-block-function . mark-defun)))
   (setq imenu-case-fold-search nil)
   (setq imenu-generic-expression dsssl-imenu-generic-expression)
-  (setq imenu-syntax-alist '(("+-*/.<>=?$%_&~^:" . "w"))))
+  (setq imenu-syntax-alist '(("+-*/.<>=?$%_&~^:" . "w")))
+  (run-hooks 'scheme-mode-hook)
+  (run-hooks 'dsssl-mode-hook))
 
 ;; Extra syntax for DSSSL.  This isn't separated from Scheme, but
 ;; shouldn't cause much trouble in scheme-mode.
