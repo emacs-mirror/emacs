@@ -2698,7 +2698,10 @@ For that it has to be fbound with a non-autoload definition."
       ;; Need to turn off auto-activation
       ;; because `byte-compile' uses `fset':
       (ad-with-auto-activation-disabled
-       (byte-compile function))))
+       (let ((symbol (make-symbol "advice-compilation")))
+	 (fset symbol (symbol-function function))
+	 (byte-compile symbol)
+	 (fset function (symbol-function symbol))))))
 
 
 ;; @@ Constructing advised definitions:
