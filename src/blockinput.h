@@ -43,7 +43,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    interrupt_input_pending to a non-zero value.  If that flag is set
    when input becomes unblocked, UNBLOCK_INPUT will send a new SIGIO.  */
 
-extern unsigned int interrupt_input_blocked;
+extern int interrupt_input_blocked;
 
 /* Nonzero means an input interrupt has arrived
    during the current critical section.  */
