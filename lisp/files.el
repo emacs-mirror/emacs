@@ -2181,6 +2181,10 @@ After saving the buffer, run `after-save-hook'."
 		;; If a hook returned t, file is already "written".
 		;; Otherwise, write it the usual way now.
 		(setq setmodes (basic-save-buffer-1)))
+	    ;; Now we have saved the current buffer.  Let's make sure
+	    ;; that buffer-file-coding-system is fixed to what
+	    ;; actually used for saving by binding it locally.
+	    (setq buffer-file-coding-system last-coding-system-used)
 	    (setq buffer-file-number
 		  (nthcdr 10 (file-attributes buffer-file-name)))
 	    (if setmodes
