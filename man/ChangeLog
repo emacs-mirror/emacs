@@ -1,3 +1,8 @@
+2004-07-01  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Incremental Search): Add C-M-w, C-M-y, M-%, C-M-%, M-e.
+	(Regexp Search): Add M-r.
+
 2004-06-30  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* makefile.w32-in (EMACSSOURCES): Remove emacs-xtra.
