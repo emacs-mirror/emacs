@@ -395,9 +395,10 @@ store_in_keymap (keymap, idx, def)
      register Lisp_Object idx;
      register Lisp_Object def;
 {
-  /* If we are preparing to dump, and DEF might be pure,
-     copy it to ensure it is not pure.  */
-  if (!NILP (Vpurify_flag) && CONSP (def))
+  /* If we are preparing to dump, and DEF is a menu element
+     with a menu item string, copy it to ensure it is not pure.  */
+  if (!NILP (Vpurify_flag) && CONSP (def)
+      && STRINGP (XCONS (def)->car))
     def = Fcons (XCONS (def)->car, XCONS (def)->cdr);
 
   if (!CONSP (keymap) || ! EQ (XCONS (keymap)->car, Qkeymap))
