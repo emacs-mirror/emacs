@@ -1326,7 +1326,13 @@ general_insert_function (insert_func, insert_from_string_func,
 	  if (!NILP (current_buffer->enable_multibyte_characters))
 	    len = CHAR_STRING (XFASTINT (val), workbuf, str);
 	  else
-	    workbuf[0] = XINT (val), str = workbuf, len = 1;
+	    {
+	      workbuf[0] = (SINGLE_BYTE_CHAR_P (XINT (val))
+			    ? XINT (val)
+			    : multibyte_char_to_unibyte (XINT (val), Qnil));
+	      str = workbuf;
+	      len = 1;
+	    }
 	  (*insert_func) (str, len);
 	}
       else if (STRINGP (val))
