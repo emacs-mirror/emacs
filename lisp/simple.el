@@ -201,18 +201,6 @@ column specified by the variable `left-margin'."
   (newline)
   (indent-according-to-mode))
 
-;; Internal subroutine of delete-char
-(defun kill-forward-chars (arg)
-  (if (listp arg) (setq arg (car arg)))
-  (if (eq arg '-) (setq arg -1))
-  (kill-region (point) (+ (point) arg)))
-
-;; Internal subroutine of backward-delete-char
-(defun kill-backward-chars (arg)
-  (if (listp arg) (setq arg (car arg)))
-  (if (eq arg '-) (setq arg -1))
-  (kill-region (point) (- (point) arg)))
-
 (defun backward-delete-char-untabify (arg &optional killp)
   "Delete characters backward, changing tabs into spaces.
 Delete ARG chars, and kill (save in kill ring) if KILLP is non-nil.
@@ -580,7 +568,7 @@ Get previous element of history which is a completion of minibuffer contents."
       (forward-line (1- arg)))))
 
 ;Put this on C-x u, so we can force that rather than C-_ into startup msg
-(fset 'advertised-undo 'undo)
+(defalias 'advertised-undo 'undo)
 
 (defun undo (&optional arg)
   "Undo some previous changes.
@@ -849,8 +837,13 @@ Repeating \\[universal-argument] without digits or minus sign
   (forward-line (- arg))
   (skip-chars-forward " \t"))
 
+(defvar kill-whole-line nil
+  "*If non-nil, kill-line kills the whole line (including the newline)
+ if point is positioned at the beginning of a line.")
+
 (defun kill-line (&optional arg)
-  "Kill the rest of the current line; if no nonblanks there, kill thru newline.
+  "Kill the rest of the current line; if the line is blank, or if point is at
+the beginning of the line and kill-whole-line is non-nil, kill thru newline.
 With prefix argument, kill that many lines from point.
 Negative arguments kill lines backward.
 
@@ -865,7 +858,7 @@ a number counts as a prefix arg."
 		     (forward-line (prefix-numeric-value arg))
 		   (if (eobp)
 		       (signal 'end-of-buffer nil))
-		   (if (looking-at "[ \t]*$")
+		   (if (or (looking-at "[ \t]*$") (and kill-whole-line (bolp)))
 		       (forward-line 1)
 		     (end-of-line)))
 		 (point))))
@@ -1261,7 +1254,7 @@ Does not set point.  Does nothing if mark ring is empty."
 	(if (null (mark)) (ding))
 	(setq mark-ring (cdr mark-ring)))))
 
-(fset 'exchange-dot-and-mark 'exchange-point-and-mark)
+(defalias 'exchange-dot-and-mark 'exchange-point-and-mark)
 (defun exchange-point-and-mark ()
   "Put the mark where point is now, and point where the mark is now.
 This command works even when the mark is not active,
@@ -1274,14 +1267,21 @@ and it reactivates the mark."
     (goto-char omark)
     nil))
 
+(defvar next-line-add-newlines t
+  "*If non-nil, next-line will insert a newline into the buffer
+ when invoked with no newline character between the point and the end
+ of the buffer.")
+
 (defun next-line (arg)
   "Move cursor vertically down ARG lines.
 If there is no character in the target line exactly under the current column,
 the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
-If there is no line in the buffer after this one,
-a newline character is inserted to create a line
-and the cursor moves to that line.
+If there is no line in the buffer after this one, behavior depends on the
+value of next-line-add-newlines.  If non-nil, a newline character is inserted
+to create a line and the cursor moves to that line, otherwise the cursor is
+moved to the end of the buffer (if already at the end of the buffer, an error
+is signaled).
 
 The command \\[set-goal-column] can be used to create
 a semipermanent goal column to which this command always moves.
@@ -1292,15 +1292,20 @@ If you are thinking of using this in a Lisp program, consider
 using `forward-line' instead.  It is usually easier to use
 and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
-  (if (= arg 1)
-      (let ((opoint (point)))
-	(forward-line 1)
-	(if (or (= opoint (point))
-		(not (eq (preceding-char) ?\n)))
-	    (insert ?\n)
-	  (goto-char opoint)
-	  (line-move arg)))
-    (line-move arg))
+  (let ((opoint (point)))
+    (if next-line-add-newlines
+	(if (/= arg 1)
+	    (line-move arg)
+	  (forward-line 1)
+	  (if (or (= opoint (point)) (not (eq (preceding-char) ?\n)))
+	      (insert ?\n)
+	    (goto-char opoint)
+	    (line-move arg)))
+      (if (eobp)
+	  (signal 'end-of-buffer nil))
+      (line-move arg)
+      (if (= opoint (point))
+	  (end-of-line))))
   nil)
 
 (defun previous-line (arg)
@@ -1381,6 +1386,24 @@ The goal column is stored in the variable `goal-column'."
 	      "Goal column %d (use \\[set-goal-column] with an arg to unset it)")
 	     goal-column))
   nil)
+
+(defun right-arrow (arg)
+  "Move right one character on the screen (with prefix ARG, that many chars).
+Scroll right if needed to keep point horizontally onscreen."
+  (interactive "P")
+  (forward-char arg)
+  (if truncate-lines
+      (let ((x (current-column)) (w (- (window-width) 2)))
+	(set-window-hscroll (selected-window) (- x (% x w)) ))))
+
+(defun left-arrow (arg)
+  "Move left one character on the screen (with prefix ARG, that many chars).
+Scroll left if needed to keep point horizontally onscreen."
+  (interactive "P")
+  (backward-char arg)
+  (if truncate-lines
+      (let ((x (current-column)) (w (- (window-width) 2)))
+	(set-window-hscroll (selected-window) (- x (% x w)) ))))
 
 (defun transpose-chars (arg)
   "Interchange characters around point, moving forward one character.
