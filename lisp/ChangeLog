@@ -1,5 +1,8 @@
 2000-11-21  Miles Bader  <miles@gnu.org>
 
+	* emacs-lisp/advice.el (ad-special-forms): Correct the conditional
+	inclusion of `track-mouse'.
+
 	* textmodes/refill.el (refill-ignorable-overlay): New variable.
 	(refill-adjust-ignorable-overlay): New function.
 	(refill-fill-paragraph-at): Use `refill-ignorable-overlay' to fill
