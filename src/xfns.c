@@ -886,7 +886,7 @@ x_set_frame_parameters (f, alist)
 	f->display.x->win_gravity = NorthWestGravity;
 
 	/* Actually set that position, and convert to absolute.  */
-	x_set_offset (f, leftpos, toppos, 1);
+	x_set_offset (f, leftpos, toppos, -1);
       }
 
     if ((!NILP (icon_left) || !NILP (icon_top))
