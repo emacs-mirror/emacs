@@ -1,4 +1,4 @@
-/* Graphical user interface functions for Mac OS.
+s/* Graphical user interface functions for Mac OS.
    Copyright (C) 2000, 2001, 2004 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2687,6 +2687,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
     BLOCK_INPUT;
     /* First, try whatever font the caller has specified.  */
+#if 0 /* MAC_TODO: This crashed */
     if (STRINGP (font))
       {
 	tem = Fquery_fontset (font, Qnil);
@@ -2695,6 +2696,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 	else
 	  font = x_new_font (f, SDATA (font));
       }
+#endif
 
     /* Try out a font which we hope has bold and italic variations.  */
     if (! STRINGP (font))
@@ -3803,6 +3805,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 
     BLOCK_INPUT;
     /* First, try whatever font the caller has specified.  */
+#if 0  /* MAC_TODO: This crashed */
     if (STRINGP (font))
       {
 	tem = Fquery_fontset (font, Qnil);
@@ -3811,6 +3814,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 	else
 	  font = x_new_font (f, SDATA (font));
       }
+#endif
 
     /* Try out a font which we hope has bold and italic variations.  */
     if (! STRINGP (font))
