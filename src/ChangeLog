@@ -1,4 +1,4 @@
-2002-05-23  Kim F. Storm  <no-spam@cua.dk>
+2002-05-23  Kim F. Storm  <storm@cua.dk>
 
 	* xterm.c (x_write_glyphs): Clear phys_cursor_on_p if current
 	phys_cursor's hpos is overwritten.  This is still not completely
