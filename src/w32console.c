@@ -64,23 +64,17 @@ static void set_terminal_modes (void);
 static void set_terminal_window (int size);
 static void update_begin (FRAME_PTR f);
 static void update_end (FRAME_PTR f);
-static void reset_kbd (void);
-static void unset_kbd (void);
 static int  hl_mode (int new_highlight);
 
-void
-DebPrint ()
-{
-}
-
-/* Init hook called in init_keyboard.  */
-void (*keyboard_init_hook)(void) = reset_kbd;
-    
 COORD	cursor_coords;
 HANDLE	prev_screen, cur_screen;
 UCHAR	char_attr, char_attr_normal, char_attr_reverse;
 HANDLE  keyboard_handle;
 DWORD   prev_console_mode;
+
+#ifndef USE_SEPARATE_SCREEN
+CONSOLE_CURSOR_INFO prev_console_cursor;
+#endif
 
 
 /* Setting this as the ctrl handler prevents emacs from being killed when
@@ -90,7 +84,9 @@ DWORD   prev_console_mode;
 BOOL
 ctrl_c_handler (unsigned long type)
 {
-  return (type == CTRL_C_EVENT || type == CTRL_BREAK_EVENT);
+  /* Only ignore "interrupt" events when running interactively.  */
+  return (!noninteractive
+	  && (type == CTRL_C_EVENT || type == CTRL_BREAK_EVENT));
 }
 
 /* If we're updating a frame, use it as the current frame
@@ -453,20 +449,16 @@ SOUND is nil to use the normal beep.")
 
   return sound;
 }
-
-/* Put our console back up, for ending a suspended session.  */
-void
-take_console (void)
-{
-  reset_kbd ();
-  SetConsoleActiveScreenBuffer (cur_screen);
-}
    
 void
 reset_terminal_modes (void)
 {
-  unset_kbd ();
+#ifdef USE_SEPARATE_SCREEN
   SetConsoleActiveScreenBuffer (prev_screen);
+#else
+  SetConsoleCursorInfo (prev_screen, &prev_console_cursor);
+#endif
+  SetConsoleMode (keyboard_handle, prev_console_mode);
 }
 
 void
@@ -474,29 +466,18 @@ set_terminal_modes (void)
 {
   CONSOLE_CURSOR_INFO cci;
 
-  if (cur_screen == NULL)
-    {
-      reset_kbd ();
-      cur_screen = CreateConsoleScreenBuffer (GENERIC_READ | GENERIC_WRITE,
-                                              0, NULL,
-                                              CONSOLE_TEXTMODE_BUFFER,
-                                              NULL);
+  /* make cursor big and visible (100 on Win95 makes it disappear)  */
+  cci.dwSize = 99;
+  cci.bVisible = TRUE;
+  (void) SetConsoleCursorInfo (cur_screen, &cci);
 
-      if (cur_screen == INVALID_HANDLE_VALUE)
-        {
-	  printf ("CreateConsoleScreenBuffer failed in ResetTerm\n");
-	  printf ("LastError = 0x%lx\n", GetLastError ());
-	  fflush (stdout);
-	  exit (0);
-	}
+  SetConsoleActiveScreenBuffer (cur_screen);
 
-      SetConsoleActiveScreenBuffer (cur_screen);
+  SetConsoleMode (keyboard_handle, ENABLE_MOUSE_INPUT | ENABLE_WINDOW_INPUT);
 
-      /* make cursor big and visible (100 on Windows 95 makes it disappear)  */
-      cci.dwSize = 99;
-      cci.bVisible = TRUE;
-      (void) SetConsoleCursorInfo (cur_screen, &cci);
-    }
+  /* Initialize input mode: interrupt_input off, no flow control, allow
+     8 bit character input, standard quit char.  */
+  Fset_input_mode (Qnil, Qnil, make_number (2), Qnil);
 }
 
 /* hmmm... perhaps these let us bracket screen changes so that we can flush
@@ -517,23 +498,6 @@ update_end (FRAME_PTR f)
 void
 set_terminal_window (int size)
 {
-}
-
-void
-unset_kbd (void)
-{
-  SetConsoleMode (keyboard_handle, prev_console_mode);
-}
-
-void
-reset_kbd (void)
-{
-  keyboard_handle = GetStdHandle (STD_INPUT_HANDLE);
-  GetConsoleMode (keyboard_handle, &prev_console_mode);
-  SetConsoleMode (keyboard_handle, ENABLE_MOUSE_INPUT | ENABLE_WINDOW_INPUT);
-
-  /* Try to use interrupt input; if we can't, then start polling.  */
-  Fset_input_mode (Qt, Qnil, Qt, Qnil);
 }
 
 typedef int (*term_hook) ();
@@ -563,11 +527,31 @@ initialize_w32_display (void)
   
   read_socket_hook = w32_console_read_socket;
   mouse_position_hook = w32_mouse_position;
-  
+
+  /* Remember original console settings.  */
+  keyboard_handle = GetStdHandle (STD_INPUT_HANDLE);
+  GetConsoleMode (keyboard_handle, &prev_console_mode);
+
   prev_screen = GetStdHandle (STD_OUTPUT_HANDLE);
   
-  set_terminal_modes ();
-  
+#ifdef USE_SEPARATE_SCREEN
+  cur_screen = CreateConsoleScreenBuffer (GENERIC_READ | GENERIC_WRITE,
+					  0, NULL,
+					  CONSOLE_TEXTMODE_BUFFER,
+					  NULL);
+
+  if (cur_screen == INVALID_HANDLE_VALUE)
+    {
+      printf ("CreateConsoleScreenBuffer failed in ResetTerm\n");
+      printf ("LastError = 0x%lx\n", GetLastError ());
+      fflush (stdout);
+      exit (0);
+    }
+#else
+  cur_screen = prev_screen;
+  GetConsoleCursorInfo (prev_screen, &prev_console_cursor);
+#endif
+
   GetConsoleScreenBufferInfo (cur_screen, &info);
   
   meta_key = 1;
@@ -578,9 +562,9 @@ initialize_w32_display (void)
   FRAME_HEIGHT (selected_frame) = info.dwSize.Y;	/* lines per page */
   SET_FRAME_WIDTH (selected_frame, info.dwSize.X); /* characters per line */
   
-  move_cursor (0, 0);
+//  move_cursor (0, 0);
   
-  clear_frame ();
+//  clear_frame ();
 }
 
 DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
