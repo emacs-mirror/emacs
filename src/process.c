@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
    Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 96, 98, 1999,
-      2001, 2002, 2003 Free Software Foundation, Inc.
+      2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4296,7 +4296,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		  proc = chan_process[channel];
 		  if (NILP (proc))
 		    continue;
-		  if (XPROCESS (proc)->read_output_delay > 0)
+		  if (XINT (XPROCESS (proc)->read_output_delay) > 0)
 		    {
 		      check_delay--;
 		      if (NILP (XPROCESS (proc)->read_output_skip))
