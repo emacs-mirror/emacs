@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; Support for remote logins using `rlogin'.
-;; $Id: rlogin.el,v 1.17 1994/02/05 21:13:43 roland Exp friedman $
+;; $Id: rlogin.el,v 1.18 1994/06/16 08:09:34 friedman Exp pot $
 
 ;; If you wish for rlogin mode to prompt you in the minibuffer for
 ;; passwords when a password prompt appears, just enter m-x send-invisible
@@ -87,21 +87,30 @@ run.  It can be a relative or absolute path.
 
 The variable `rlogin-explicit-args' is a list of arguments to give to
 the rlogin when starting.  They are added after any arguments given in ARGS."
-  (interactive (list (read-from-minibuffer "rlogin arguments (hostname first): ")
-                     current-prefix-arg))
+  (interactive (list
+		(read-from-minibuffer "rlogin arguments (hostname first): ")
+		current-prefix-arg))
   (let* ((process-connection-type rlogin-process-connection-type)
          (buffer-name (format "*rlogin-%s*" input-args))
          args
+	 host
+	 user
 	 proc
          (old-match-data (match-data)))
     (while (string-match "[ \t]*\\([^ \t]+\\)$" input-args)
-      (setq args 
-            (cons (substring input-args (match-beginning 1) (match-end 1))
-                  args)
+      (setq args (cons (substring input-args
+				  (match-beginning 1) (match-end 1))
+		       args)
             input-args (substring input-args 0 (match-beginning 0))))
     (store-match-data old-match-data)
-    (setq buffer-name (format "*rlogin-%s*" (car args))
-          args (append args rlogin-explicit-args))
+    (setq args (append args rlogin-explicit-args))
+    (setq host (car args))
+    (let ((tmpargs (cdr args)))
+      (while (and tmpargs
+		  (not (string= (car tmpargs) "-l")))
+	(setq tmpargs (cdr tmpargs)))
+      (setq user (car (cdr tmpargs))))
+    (setq buffer-name (format "*rlogin-%s*" host))
     (and prefix (setq buffer-name 
                       (buffer-name (generate-new-buffer buffer-name))))
     (switch-to-buffer buffer-name)
@@ -116,12 +125,15 @@ the rlogin when starting.  They are added after any arguments given in ARGS."
           (rlogin-mode)
           ;; Set the prefix for filename completion and directory tracking
           ;; to find the remote machine's files by ftp.
-          (setq comint-file-name-prefix (concat "/" (car args) ":"))
+          (setq comint-file-name-prefix (concat "/"
+						(and user (concat user "@"))
+						host ":"))
           (and rlogin-initially-track-cwd
                ;; Presume the user will start in his remote home directory.
                ;; If this is wrong, M-x dirs will fix it.
-               (cd-absolute (concat "/" (car args) ":~/")))))))
-
+               (cd-absolute (concat "/"
+				    (and user (concat user "@"))
+				    host ":~/")))))))
 (defun rlogin-mode ()
   "Set major-mode for rlogin sessions. 
 If `rlogin-mode-hook' is set, run it."
