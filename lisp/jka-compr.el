@@ -126,32 +126,32 @@ for `jka-compr-compression-info-list')."
   ;;[regexp
   ;; compr-message  compr-prog  compr-args
   ;; uncomp-message uncomp-prog uncomp-args
-  ;; can-append auto-mode-flag]
+  ;; can-append auto-mode-flag strip-extension-flag file-magic-bytes]
   '(["\\.Z\\(~\\|\\.~[0-9]+~\\)?\\'"
      "compressing"    "compress"     ("-c")
      "uncompressing"  "uncompress"   ("-c")
-     nil t]
+     nil t "\037\235"]
      ;; Formerly, these had an additional arg "-c", but that fails with
      ;; "Version 0.1pl2, 29-Aug-97." (RedHat 5.1 GNU/Linux) and
      ;; "Version 0.9.0b, 9-Sept-98".
     ["\\.bz2\\'"
      "bzip2ing"        "bzip2"         nil
      "bunzip2ing"      "bzip2"         ("-d")
-     nil t]
+     nil t "BZh"]
     ["\\.tgz\\'"
      "zipping"        "gzip"         ("-c" "-q")
      "unzipping"      "gzip"         ("-c" "-q" "-d")
-     t nil]
+     t nil "\037\213"]
     ["\\.gz\\(~\\|\\.~[0-9]+~\\)?\\'"
      "zipping"        "gzip"         ("-c" "-q")
      "unzipping"      "gzip"         ("-c" "-q" "-d")
-     t t])
+     t t "\037\213"])
 
   "List of vectors that describe available compression techniques.
 Each element, which describes a compression technique, is a vector of
 the form [REGEXP COMPRESS-MSG COMPRESS-PROGRAM COMPRESS-ARGS
 UNCOMPRESS-MSG UNCOMPRESS-PROGRAM UNCOMPRESS-ARGS
-APPEND-FLAG EXTENSION], where:
+APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS], where:
 
    regexp                is a regexp that matches filenames that are
                          compressed with this format
@@ -173,8 +173,11 @@ APPEND-FLAG EXTENSION], where:
    append-flag           is non-nil if this compression technique can be
                          appended
 
-   auto-mode flag        non-nil means strip the regexp from file names
+   strip-extension-flag  non-nil means strip the regexp from file names
                          before attempting to set the mode.
+
+   file-magic-chars      is a string of characters that you would find
+			 at the beginning of a file compressed in this way.
 
 Because of the way `call-process' is defined, discarding the stderr output of
 a program adds the overhead of starting a shell each time the program is
@@ -204,6 +207,10 @@ invoked."
 (defvar jka-compr-file-name-handler-entry
   nil
   "The entry in `file-name-handler-alist' used by the jka-compr I/O functions.")
+
+(defvar jka-compr-really-do-compress nil
+  "Non-nil in a buffer whose visited file was uncompressed on visiting it.")
+(put 'jka-compr-really-do-compress 'permanent-local t)
 
 ;;; Functions for accessing the return value of jka-compr-get-compression-info
 (defun jka-compr-info-regexp               (info)  (aref info 0))
@@ -215,6 +222,7 @@ invoked."
 (defun jka-compr-info-uncompress-args      (info)  (aref info 6))
 (defun jka-compr-info-can-append           (info)  (aref info 7))
 (defun jka-compr-info-strip-extension      (info)  (aref info 8))
+(defun jka-compr-info-file-magic-bytes     (info)  (aref info 9))
 
 
 (defun jka-compr-get-compression-info (filename)
@@ -366,96 +374,116 @@ There should be no more than seven characters after the final `/'."
 (defun jka-compr-write-region (start end file &optional append visit)
   (let* ((filename (expand-file-name file))
 	 (visit-file (if (stringp visit) (expand-file-name visit) filename))
-	 (info (jka-compr-get-compression-info visit-file)))
-      
-      (if info
+	 (info (jka-compr-get-compression-info visit-file))
+	 (magic (and info (jka-compr-info-file-magic-bytes info))))
 
-	  (let ((can-append (jka-compr-info-can-append info))
-		(compress-program (jka-compr-info-compress-program info))
-		(compress-message (jka-compr-info-compress-message info))
-		(uncompress-program (jka-compr-info-uncompress-program info))
-		(uncompress-message (jka-compr-info-uncompress-message info))
-		(compress-args (jka-compr-info-compress-args info))
-		(uncompress-args (jka-compr-info-uncompress-args info))
-		(base-name (file-name-nondirectory visit-file))
-		temp-file temp-buffer
-		;; we need to leave `last-coding-system-used' set to its
-		;; value after calling write-region the first time, so
-		;; that `basic-save-buffer' sees the right value.
-		(coding-system-used last-coding-system-used))
+    ;; If we uncompressed this file when visiting it,
+    ;; then recompress it when writing it
+    ;; even if the contents look compressed already.
+    (if (and jka-compr-really-do-compress
+	     (eq start 1)
+	     (eq end (1+ (buffer-size))))
+	(setq magic nil))
 
-	    (setq temp-buffer (get-buffer-create " *jka-compr-wr-temp*"))
-	    (with-current-buffer temp-buffer
-	      (widen) (erase-buffer))
+    (if (and info
+	     ;; If the contents to be written out
+	     ;; are properly compressed already,
+	     ;; don't try to compress them over again.
+	     (not (and magic
+		       (equal (if (stringp start)
+				  (substring start 0 (min (length start)
+							  (length magic)))
+				(buffer-substring start
+						  (min end
+						       (+ start (length magic)))))
+			      magic))))
+	(let ((can-append (jka-compr-info-can-append info))
+	      (compress-program (jka-compr-info-compress-program info))
+	      (compress-message (jka-compr-info-compress-message info))
+	      (uncompress-program (jka-compr-info-uncompress-program info))
+	      (uncompress-message (jka-compr-info-uncompress-message info))
+	      (compress-args (jka-compr-info-compress-args info))
+	      (uncompress-args (jka-compr-info-uncompress-args info))
+	      (base-name (file-name-nondirectory visit-file))
+	      temp-file temp-buffer
+	      ;; we need to leave `last-coding-system-used' set to its
+	      ;; value after calling write-region the first time, so
+	      ;; that `basic-save-buffer' sees the right value.
+	      (coding-system-used last-coding-system-used))
 
-	    (if (and append
-		     (not can-append)
-		     (file-exists-p filename))
-		
-		(let* ((local-copy (file-local-copy filename))
-		       (local-file (or local-copy filename)))
-		  
-		  (setq temp-file local-file))
+	  (setq temp-buffer (get-buffer-create " *jka-compr-wr-temp*"))
+	  (with-current-buffer temp-buffer
+	    (widen) (erase-buffer))
 
-	      (setq temp-file (jka-compr-make-temp-name)))
+	  (if (and append
+		   (not can-append)
+		   (file-exists-p filename))
 
-	    (and 
-	     compress-message
-	     (message "%s %s..." compress-message base-name))
-	    
-	    (jka-compr-run-real-handler 'write-region
-					(list start end temp-file t 'dont))
-	    ;; save value used by the real write-region
-	    (setq coding-system-used last-coding-system-used)
+	      (let* ((local-copy (file-local-copy filename))
+		     (local-file (or local-copy filename)))
 
-	    ;; Here we must read the output of compress program as is
-	    ;; without any code conversion.
-	    (let ((coding-system-for-read 'no-conversion))
-	      (jka-compr-call-process compress-program
-				      (concat compress-message
-					      " " base-name)
-				      temp-file
-				      temp-buffer
-				      nil
-				      compress-args))
+		(setq temp-file local-file))
 
-	    (with-current-buffer temp-buffer
-              (let ((coding-system-for-write 'no-conversion))
-                (if (memq system-type '(ms-dos windows-nt))
-                    (setq buffer-file-type t) )
-                (jka-compr-run-real-handler 'write-region
-                                            (list (point-min) (point-max)
-                                                  filename
-                                                  (and append can-append) 'dont))
-                (erase-buffer)) )
+	    (setq temp-file (jka-compr-make-temp-name)))
 
-	    (jka-compr-delete-temp-file temp-file)
+	  (and 
+	   compress-message
+	   (message "%s %s..." compress-message base-name))
 
-	    (and
-	     compress-message
-	     (message "%s %s...done" compress-message base-name))
+	  (jka-compr-run-real-handler 'write-region
+				      (list start end temp-file t 'dont))
+	  ;; save value used by the real write-region
+	  (setq coding-system-used last-coding-system-used)
 
-	    (cond
-	     ((eq visit t)
-	      (setq buffer-file-name filename)
-	      (set-visited-file-modtime))
-	     ((stringp visit)
-	      (setq buffer-file-name visit)
-	      (let ((buffer-file-name filename))
-		(set-visited-file-modtime))))
+	  ;; Here we must read the output of compress program as is
+	  ;; without any code conversion.
+	  (let ((coding-system-for-read 'no-conversion))
+	    (jka-compr-call-process compress-program
+				    (concat compress-message
+					    " " base-name)
+				    temp-file
+				    temp-buffer
+				    nil
+				    compress-args))
 
-	    (and (or (eq visit t)
-		     (eq visit nil)
-		     (stringp visit))
-		 (message "Wrote %s" visit-file))
+	  (with-current-buffer temp-buffer
+	    (let ((coding-system-for-write 'no-conversion))
+	      (if (memq system-type '(ms-dos windows-nt))
+		  (setq buffer-file-type t) )
+	      (jka-compr-run-real-handler 'write-region
+					  (list (point-min) (point-max)
+						filename
+						(and append can-append) 'dont))
+	      (erase-buffer)) )
 
-	    ;; ensure `last-coding-system-used' has an appropriate value
-	    (setq last-coding-system-used coding-system-used)
+	  (jka-compr-delete-temp-file temp-file)
 
-	    nil)
+	  (and
+	   compress-message
+	   (message "%s %s...done" compress-message base-name))
+
+	  (cond
+	   ((eq visit t)
+	    (setq buffer-file-name filename)
+	    (setq jka-compr-really-do-compress t)
+	    (set-visited-file-modtime))
+	   ((stringp visit)
+	    (setq buffer-file-name visit)
+	    (let ((buffer-file-name filename))
+	      (set-visited-file-modtime))))
+
+	  (and (or (eq visit t)
+		   (eq visit nil)
+		   (stringp visit))
+	       (message "Wrote %s" visit-file))
+
+	  ;; ensure `last-coding-system-used' has an appropriate value
+	  (setq last-coding-system-used coding-system-used)
+
+	  nil)
 	      
-	(jka-compr-run-real-handler 'write-region
-				    (list start end filename append visit)))))
+      (jka-compr-run-real-handler 'write-region
+				  (list start end filename append visit)))))
 
 
 (defun jka-compr-insert-file-contents (file &optional visit beg end replace)
@@ -562,6 +590,7 @@ There should be no more than seven characters after the final `/'."
 	   (progn
 	     (unlock-buffer)
 	     (setq buffer-file-name filename)
+	     (setq jka-compr-really-do-compress t)
 	     (set-visited-file-modtime)))
 	    
 	  (and
