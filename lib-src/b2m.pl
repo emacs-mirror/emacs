@@ -30,7 +30,7 @@ use Mail::Address;
 use Date::Parse;
 
 my($whoami) = basename $0;
-my($version) = '$Revision: 1.1 $';
+my($version) = '$Revision: 1.2 $';
 my($usage) = "Usage: $whoami [--help] [--version] [--[no]full-headers] [Babyl-file]
 \tBy default, full headers are printed.\n";
 
@@ -122,7 +122,7 @@ while (<>) {
     }
     else {
 	foreach my $addr_header qw(return-path from really-from sender) {
-	    if ($full_header =~ /(?:^|\n)$addr_header:\s*((?:\S.*\n)+)/i) {
+	    if ($full_header =~ /(?:^|\n)$addr_header:\s*(.*\n(?:\B.*\n)*)/i) {
 		my($addr) = Mail::Address->parse($1);
 		$from_addr = $addr->address($addr);
 		last;
