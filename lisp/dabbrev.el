@@ -493,9 +493,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 		;; as our expansion this time.
 		(re-search-forward
 		 (concat "\\(\\(" dabbrev--abbrev-char-regexp "\\)+\\)"))
-		(setq expansion
-		      (buffer-substring dabbrev--last-expansion-location
-					(point)))
+		(setq expansion (buffer-substring-no-properties
+				 dabbrev--last-expansion-location (point)))
 		(if dabbrev--last-case-pattern
 		    (setq expansion (upcase expansion)))
 
@@ -624,8 +623,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	    (error "No possible abbreviation preceding point"))))
     ;; Now find the beginning of that one.
     (dabbrev--goto-start-of-abbrev)
-    (buffer-substring dabbrev--last-abbrev-location
-		      (point))))
+    (buffer-substring-no-properties
+     dabbrev--last-abbrev-location (point))))
 	
 ;;; Initializes all global variables
 (defun dabbrev--reset-global-variables ()
@@ -884,8 +883,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	      nil
 	    ;; We have a truly valid match.  Find the end.
 	    (re-search-forward pattern2)
-	    (setq found-string
-		  (buffer-substring (match-beginning 1) (match-end 1)))
+	    (setq found-string (buffer-substring-no-properties
+				(match-beginning 1) (match-end 1)))
 	    (and ignore-case (setq found-string (downcase found-string)))
 	    ;; Ignore this match if it's already in the table.
 	    (if (dabbrev-filter-elements
@@ -900,8 +899,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	(if found-string
 	    ;; Put it into `dabbrev--last-table'
 	    ;; and return it (either downcased, or as is).
-	    (let ((result
-		   (buffer-substring (match-beginning 0) (match-end 0))))
+	    (let ((result (buffer-substring-no-properties
+			   (match-beginning 0) (match-end 0))))
 	      (setq dabbrev--last-table
 		    (cons found-string dabbrev--last-table))
 	      (if (and ignore-case (eval dabbrev-case-replace))
