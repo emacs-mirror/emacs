@@ -1035,9 +1035,9 @@ Remaining arguments are strings to give program as arguments.")
 
     GCPRO2 (buffer, current_dir);
 
-    current_dir = 
-      expand_and_dir_to_file
-	(Funhandled_file_name_directory (current_dir), Qnil);
+    current_dir 
+      = expand_and_dir_to_file (Funhandled_file_name_directory (current_dir),
+				Qnil);
     if (NILP (Ffile_accessible_directory_p (current_dir)))
       report_file_error ("Setting current directory",
 			 Fcons (current_buffer->directory, Qnil));
@@ -1116,6 +1116,11 @@ Remaining arguments are strings to give program as arguments.")
   XPROCESS (proc)->sentinel = Qnil;
   XPROCESS (proc)->filter = Qnil;
   XPROCESS (proc)->command = Flist (nargs - 2, args + 2);
+
+  /* Make the process marker point into the process buffer (if any).  */
+  if (!NILP (buffer))
+    Fset_marker (XPROCESS (proc)->mark,
+		 make_number (BUF_ZV (XBUFFER (buffer))), buffer);
 
   create_process (proc, new_argv, current_dir);
 
