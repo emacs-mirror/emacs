@@ -51,16 +51,6 @@ Boston, MA 02111-1307, USA.  */
     }						\
   if (! FRAME_W32_P (f))
 
-/* Emulate XCharStruct.  */
-typedef struct _XCharStruct
-{
-  int rbearing;
-  int lbearing;
-  int width;
-  int ascent;
-  int descent;
-} XCharStruct;
-
 
 /* Indicates whether we are in the readsocket call and the message we
    are processing in the current loop */
@@ -264,6 +254,7 @@ extern struct w32_display_info *w32_term_init ();
 
 extern Lisp_Object w32_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
 extern struct font_info *w32_get_font_info (), *w32_query_font ();
+extern void w32_cache_char_metrics (XFontStruct *font);
 extern void w32_find_ccl_program();
 
 #define PIX_TYPE COLORREF
