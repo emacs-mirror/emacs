@@ -1,3 +1,43 @@
+2004-08-29  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-auto-expand-rectangles): Remove
+	automatic rectangle padding feature; replace by non-destructive
+	virtual rectangle edges feature.
+	(cua-virtual-rectangle-edges): New defcustom.
+	(cua-auto-tabify-rectangles): New defcustom.
+	(cua-paste): If paste into a marked rectangle, insert rectangle at
+	current column, even if virtual; also paste exactly as many lines
+	as has been marked (ignore additional lines or add empty lines),
+	but paste whole source if only one line is marked.
+	(cua--update-indications): No longer use overwrite-cursor to
+	indicate rectangle padding
+
+	* emulation/cua-rect.el (cua--rectangle-padding): Remove.
+	(cua--rectangle-virtual-edges): New defun.
+	(cua--rectangle-get-corners): Remove optional PAD arg.
+	(cua--rectangle-set-corners): Never do padding.
+	(cua--forward-line): Remove optional PAD arg.  Simplify.
+	(cua-resize-rectangle-right, cua-resize-rectangle-left)
+	(cua-resize-rectangle-down, cua-resize-rectangle-up):
+	(cua-resize-rectangle-bot, cua-resize-rectangle-top)
+	(cua-resize-rectangle-page-up, cua-resize-rectangle-page-down)
+	(cua--rectangle-move): Never do padding.  Simplify.
+	(cua--tabify-start): New defun.
+	(cua--rectangle-operation): Add tabify arg.  All callers changed.
+	(cua--pad-rectangle): Remove.
+	(cua--delete-rectangle): Handle delete with virtual edges.
+	(cua--extract-rectangle): Add spaces if rectangle has virtual edges.
+	(cua--insert-rectangle): Handle insert at virtual column.
+	Perform auto-tabify if necessary.
+	(cua--activate-rectangle): Remove optional FORCE arg.
+	Never do padding.  Simplify.
+	(cua--highlight-rectangle): Enhance for virtual edges.
+	(cua-toggle-rectangle-padding): Remove command.
+	(cua-toggle-rectangle-virtual-edges): New command.
+	(cua-sequence-rectangle): Add optional TABIFY arg.  Callers changed.
+	(cua--rectangle-post-command): Don't force rectangle padding.
+	(cua--init-rectangles): Bind M-p to cua-toggle-rectangle-virtual-edges.
+
 2004-08-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* indent.el (edit-tab-stops-buffer): Doc fix.
