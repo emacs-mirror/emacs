@@ -901,14 +901,21 @@ over minor mode keymaps.
 ** A hex escape in a string forces the string to be multibyte.
 An octal escape makes it unibyte.
 
-** The position after an invisible, intangible character
-is considered an unacceptable value for point;
-intangibility processing effectively treats the following character
-as part of the intangible region even if it is not itself intangible.
+** Only one of the beginning or end of an invisible, intangible region is
+considered an acceptable value for point; which one is determined by
+examining how the invisible/intangible properties are inherited when new
+text is inserted adjacent to them.  If text inserted at the beginning would
+inherit the invisible/intangible properties, then that position is
+considered unacceptable, and point is forced to the position following the
+invisible/intangible text.  If text inserted at the end would inherit the
+properties, then the opposite happens.
 
-Thus, point can go before an invisible, intangible region, but not
-after it.  This prevents C-f and C-b from appearing to stand still on
-the screen.
+Thus, point can only go to one end of an invisible, intangible region, but
+not the other one.  This prevents C-f and C-b from appearing to stand still
+on the screen.
+
+** field-beginning and field-end now accept an additional optional
+argument, LIMIT.
 
 +++
 ** define-abbrev now accepts an optional argument SYSTEM-FLAG.  If
@@ -952,6 +959,10 @@ refontification of `bar' whenever the `e' is added/removed.
 
 ** describe-vector now takes a second argument `describer' which is
 called to print the entries' values.  It defaults to `princ'.
+
+** face-attribute, face-foreground, face-background, and face-stipple now
+accept a new optional argument, INHERIT, which controls how face
+inheritance is used when determining the value of a face attribute.
 
 ** defcustom and other custom declarations now use a default group
 (the last group defined in the same file) when no :group was given.
