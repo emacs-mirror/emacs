@@ -1850,7 +1850,8 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
     (setq compilation-old-error-list (cdr compilation-old-error-list)))
   (setq compilation-error-list nil
 	compilation-directory-stack (list default-directory))
-  (set-marker compilation-parsing-end 1)
+  (if compilation-parsing-end
+      (set-marker compilation-parsing-end 1))
   ;; Remove the highlighting added by compile-reinitialize-errors:
   (let ((inhibit-read-only t)
 	(buffer-undo-list t)
