@@ -2335,10 +2335,6 @@ get_local_map (position, buffer, type)
   BUF_BEGV_BYTE (buffer) = BUF_BEG_BYTE (buffer);
   BUF_ZV_BYTE (buffer) = BUF_Z_BYTE (buffer);
 
-  /* There are no properties at the end of the buffer, so in that case
-     check for a local map on the last character of the buffer instead.  */
-  if (position == BUF_Z (buffer) && BUF_Z (buffer) > BUF_BEG (buffer))
-    --position;
   XSETFASTINT (lispy_position, position);
   XSETBUFFER (lispy_buffer, buffer);
   /* First check if the CHAR has any property.  This is because when
