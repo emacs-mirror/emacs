@@ -117,7 +117,9 @@ When a buffer is marked as \"done\", it is removed from this list.")
 (defvar server-window nil
   "*The window to use for selecting Emacs server buffers.
 If nil, use the selected window.
-If it is a frame, use the frame's selected window.")
+If it is a frame, use the frame's selected window.
+If it is a function, it should take one argument (a buffer) and
+display and select it.  A common value is `pop-to-buffer'.")
 
 (defcustom server-temp-file-regexp "^/tmp/Re\\|/draft$"
   "*Regexp which should match filenames of temporary files
@@ -166,13 +168,20 @@ are done with it in the server.")
   ;; Purge server-previous-strings of the now irrelevant entry.
   (setq server-previous-strings
 	(delq (assq proc server-previous-strings) server-previous-strings))
-  (let ((ps (assq proc server-clients)))
-    (dolist (buf (cdr ps))
-      (with-current-buffer buf
-	;; Remove PROC from the clients of each buffer.
-	(setq server-buffer-clients (delq proc server-buffer-clients))))
+  (let ((client (assq proc server-clients)))
     ;; Remove PROC from the list of clients.
-    (if ps (setq server-clients (delq ps server-clients))))
+    (when client
+      (setq server-clients (delq client server-clients))
+      (dolist (buf (cdr client))
+	(with-current-buffer buf
+	  ;; Remove PROC from the clients of each buffer.
+	  (setq server-buffer-clients (delq proc server-buffer-clients))
+	  ;; Kill the buffer if necessary.
+	  (when (and (null server-buffer-clients)
+		     (or (and server-kill-new-buffers
+			      (not server-existing-buffer))
+			 (server-temp-file-p)))
+	    (kill-buffer (current-buffer)))))))
   (server-log (format "Status changed to %s" (process-status proc)) proc))
 
 (defun server-select-display (display)
@@ -408,8 +417,7 @@ FOR-KILLING if non-nil indicates that we are called from `kill-buffer'."
 	;; if we do, do not call server-buffer-done recursively
 	;; from kill-buffer-hook.
 	(let ((server-kill-buffer-running t))
-	  (save-excursion
-	    (set-buffer buffer)
+	  (with-current-buffer buffer
 	    (setq server-buffer-clients nil)
 	    (run-hooks 'server-done-hook))
 	  ;; Notice whether server-done-hook killed the buffer.
@@ -433,7 +441,7 @@ FOR-KILLING if non-nil indicates that we are called from `kill-buffer'."
 		  (bury-buffer buffer)))))))
     (list next-buffer killed)))
 
-(defun server-temp-file-p (buffer)
+(defun server-temp-file-p (&optional buffer)
   "Return non-nil if BUFFER contains a file considered temporary.
 These are files whose names suggest they are repeatedly
 reused to pass information to another program.
@@ -450,20 +458,18 @@ of the form (NEXT-BUFFER KILLED).  NEXT-BUFFER is another server buffer,
 as a suggestion for what to select next, or nil.
 KILLED is t if we killed BUFFER, which happens if it was created
 specifically for the clients and did not exist before their request for it."
-  (let ((buffer (current-buffer)))
-    (if server-buffer-clients
-	(progn
- 	  (if (server-temp-file-p buffer)
-	      ;; For a temp file, save, and do make a non-numeric backup
-	      ;; (unless make-backup-files is nil).
-	      (let ((version-control nil)
-		    (buffer-backed-up nil))
-		(save-buffer))
-	    (if (and (buffer-modified-p)
-		     buffer-file-name
-		     (y-or-n-p (concat "Save file " buffer-file-name "? ")))
-		(save-buffer)))
-	  (server-buffer-done buffer)))))
+  (when server-buffer-clients
+    (if (server-temp-file-p)
+	;; For a temp file, save, and do make a non-numeric backup
+	;; (unless make-backup-files is nil).
+	(let ((version-control nil)
+	      (buffer-backed-up nil))
+	  (save-buffer))
+      (if (and (buffer-modified-p)
+	       buffer-file-name
+	       (y-or-n-p (concat "Save file " buffer-file-name "? ")))
+	  (save-buffer)))
+    (server-buffer-done (current-buffer))))
 
 ;; Ask before killing a server buffer.
 ;; It was suggested to release its client instead,
@@ -541,38 +547,40 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 	;; and try the next surviving server buffer.
 	(apply 'server-switch-buffer (server-buffer-done next-buffer))
       ;; OK, we know next-buffer is live, let's display and select it.
-      (let ((win (get-buffer-window next-buffer 0)))
-	(if (and win (not server-window))
-	    ;; The buffer is already displayed: just reuse the window.
-	    (let ((frame (window-frame win)))
-	      (if (eq (frame-visible-p frame) 'icon)
-		  (raise-frame frame))
-	      (select-window win)
-	      (set-buffer next-buffer))
-	  ;; Otherwise, let's find an appropriate window.
-	  (cond ((and (windowp server-window)
-		      (window-live-p server-window))
-		 (select-window server-window))
-		((framep server-window)
-		 (if (not (frame-live-p server-window))
-		     (setq server-window (make-frame)))
-		 (select-window (frame-selected-window server-window))))
-	  (if (window-minibuffer-p (selected-window))
-	      (select-window (next-window nil 'nomini 0)))
-	  ;; Move to a non-dedicated window, if we have one.
-	  (when (window-dedicated-p (selected-window))
-	    (select-window
-	     (get-window-with-predicate
-	      (lambda (w)
-		(and (not (window-dedicated-p w))
-		     (equal (frame-parameter (window-frame w) 'display)
-			    (frame-parameter (selected-frame) 'display))))
-	      'nomini 'visible (selected-window))))
-	  (condition-case nil
-	      (switch-to-buffer next-buffer)
-	    ;; After all the above, we might still have ended up with
-	    ;; a minibuffer/dedicated-window (if there's no other).
-	    (error (pop-to-buffer next-buffer))))))))
+      (if (functionp server-window)
+	  (funcall server-window next-buffer)
+	(let ((win (get-buffer-window next-buffer 0)))
+	  (if (and win (not server-window))
+	      ;; The buffer is already displayed: just reuse the window.
+	      (let ((frame (window-frame win)))
+		(if (eq (frame-visible-p frame) 'icon)
+		    (raise-frame frame))
+		(select-window win)
+		(set-buffer next-buffer))
+	    ;; Otherwise, let's find an appropriate window.
+	    (cond ((and (windowp server-window)
+			(window-live-p server-window))
+		   (select-window server-window))
+		  ((framep server-window)
+		   (if (not (frame-live-p server-window))
+		       (setq server-window (make-frame)))
+		   (select-window (frame-selected-window server-window))))
+	    (if (window-minibuffer-p (selected-window))
+		(select-window (next-window nil 'nomini 0)))
+	    ;; Move to a non-dedicated window, if we have one.
+	    (when (window-dedicated-p (selected-window))
+	      (select-window
+	       (get-window-with-predicate
+		(lambda (w)
+		  (and (not (window-dedicated-p w))
+		       (equal (frame-parameter (window-frame w) 'display)
+			      (frame-parameter (selected-frame) 'display))))
+		'nomini 'visible (selected-window))))
+	    (condition-case nil
+		(switch-to-buffer next-buffer)
+	      ;; After all the above, we might still have ended up with
+	      ;; a minibuffer/dedicated-window (if there's no other).
+	      (error (pop-to-buffer next-buffer)))))))))
 
 (global-set-key "\C-x#" 'server-edit)
 
