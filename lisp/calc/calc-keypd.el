@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -27,14 +26,10 @@
 
 ;;; Code:
 
-
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-keypd () nil)
-
 
 (defvar calc-keypad-buffer nil)
 (defvar calc-keypad-menu 0)
@@ -612,6 +607,7 @@
 	(command-execute cmd)
       (error "Not a Calc command: %s" (key-description keys)))))
 
+(provide 'calc-keypd)
 
 ;;; arch-tag: 4ba0d360-2bb6-40b8-adfa-eb373765b3f9
 ;;; calc-keypd.el ends here
