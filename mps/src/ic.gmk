@@ -1,0 +1,15 @@
+# impl.gmk.ic: GNUMAKEFILE FRAGMENT FOR IRIX CC
+#
+# $HopeName$
+# Copyright (C) 1996 Harlequin Group, all rights reserved
+#
+# This file is included by platform makefiles that use the IRIX CC
+# compiler.  It defines the compiler specific variables that the
+# common makefile fragment (impl.gmk.comm) requires.
+
+CC = cc
+CFLAGSCOMPILER = -ansi -w2 -fullwarn
+CFLAGSDEBUG = -g
+CFLAGSOPTIMIZE = -O
+
+include comm.gmk
