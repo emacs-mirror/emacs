@@ -1201,7 +1201,7 @@ If ARG is zero, move to the beginning of the current line."
 	    (if (get-text-property (1- (point)) 'invisible)
 		(goto-char (previous-single-property-change (point) 'invisible))
 	      (goto-char (previous-overlay-change (point))))
-	    (or (zerop (vertical-motion -1))
+	    (or (zerop (forward-line -1))
 		(signal 'beginning-of-buffer nil)))
 	  (setq arg (1+ arg))))
     ((beginning-of-buffer end-of-buffer)
