@@ -192,7 +192,7 @@ with the buffer narrowed to the listing."
 ;; Note this can't simply be run inside function `dired-ls' as the hook
 ;; functions probably depend on the dired-subdir-alist to be OK.
 
-;;; Internal variables
+;; Internal variables
 
 (defvar dired-marker-char ?*		; the answer is 42
   ;; so that you can write things like
@@ -304,11 +304,10 @@ Subexpression 2 must end right before the \\n or \\r.")
    ;;
    ;; Files suffixed with `completion-ignored-extensions'.
    '(eval .
-     (let ((extensions (mapcar 'regexp-quote completion-ignored-extensions)))
-       ;; It is quicker to first find just an extension, then go back to the
-       ;; start of that file name.  So we do this complex MATCH-ANCHORED form.
-       (list (concat "\\(" (mapconcat 'identity extensions "\\|") "\\|#\\)$")
-	     '(".+" (dired-move-to-filename) nil (0 font-lock-string-face))))))
+     ;; It is quicker to first find just an extension, then go back to the
+     ;; start of that file name.  So we do this complex MATCH-ANCHORED form.
+     (list (concat "\\(" (regexp-opt completion-ignored-extensions) "\\|#\\)$")
+	   '(".+" (dired-move-to-filename) nil (0 font-lock-string-face)))))
   "Additional expressions to highlight in Dired mode.")
 
 ;;; Macros must be defined before they are used, for the byte compiler.
@@ -1449,7 +1448,7 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 	  (setq file
 		(read
 		 (concat "\""
-			 ;; some ls -b don't escape quotes, argh!
+			 ;; Some ls -b don't escape quotes, argh!
 			 ;; This is not needed for GNU ls, though.
 			 (or (dired-string-replace-match
 			      "\\([^\\]\\|\\`\\)\"" file "\\1\\\\\"" nil t)
@@ -1584,17 +1583,21 @@ regardless of the language.")
 ;; Returns position (point) or nil if no filename on this line."
 (defun dired-move-to-filename (&optional raise-error eol)
   ;; This is the UNIX version.
-  (or eol (setq eol (progn (end-of-line) (point))))
+  (or eol (setq eol (line-end-position)))
   (beginning-of-line)
   ;; First try assuming `ls --dired' was used.
-  (let ((change (next-single-property-change (point) 'dired-filename
-					     nil eol)))
-    (if (and change (< change eol))
-	(goto-char change)
-      (if (re-search-forward dired-move-to-filename-regexp eol t)
-	  (goto-char (match-end 0))
-	(if raise-error
-	    (error "No file on this line"))))))
+  (let ((change (next-single-property-change (point) 'dired-filename nil eol)))
+    (cond
+     ((and change (< change eol))
+      (goto-char change))
+     ((re-search-forward dired-move-to-filename-regexp eol t)
+      (goto-char (match-end 0)))
+     ((re-search-forward dired-permission-flags-regexp eol t)
+      ;; Ha!  There *is* a file.  Our regexp-from-hell just failed to find it.
+      (funcall (if raise-error 'error 'message)
+	       "Unrecognized line!  Check dired-move-to-filename-regexp"))
+     (raise-error
+      (error "No file on this line")))))
 
 (defun dired-move-to-end-of-filename (&optional no-error)
   ;; Assumes point is at beginning of filename,
@@ -2244,9 +2247,8 @@ Command symbols are `byte-compile', `chgrp', `chmod', `chown', `compress',
 `uncompress'.")
 
 (defun dired-mark-pop-up (bufname op-symbol files function &rest args)
-  "Args BUFNAME OP-SYMBOL FILES FUNCTION &rest ARGS.
-Return FUNCTION's result on ARGS after popping up a window (in a buffer
-named BUFNAME, nil gives \" *Marked Files*\") showing the marked
+  "Return FUNCTION's result on ARGS after popping up a window
+\(in a buffer named BUFNAME, nil gives \" *Marked Files*\") showing the marked
 files.  Uses function `dired-pop-to-buffer' to do that.
  FUNCTION should not manipulate files.
  It should only read input (an argument or confirmation).
@@ -2749,7 +2751,7 @@ With a prefix argument you can edit the current listing switches instead."
 	  (if (string-match " " dired-actual-switches)
 	      ;; New toggle scheme: add/remove a trailing " -t"
 	      (if (string-match " -t\\'" dired-actual-switches)
-		  (dired-replace-in-string " -t\\'" "" dired-actual-switches)
+		  (substring dired-actual-switches 0 (match-beginning 0))
 		(concat dired-actual-switches " -t"))
 	    ;; old toggle scheme: look for some 't' switch and add/remove it
 	    (concat
