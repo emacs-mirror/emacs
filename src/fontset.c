@@ -979,14 +979,14 @@ check_fontset_name (name)
 }
 
 DEFUN ("set-fontset-font", Fset_fontset_font, Sset_fontset_font, 3, 4, 0,
-  "Modify fontset NAME to use FONTNAME for character CHAR.
-
-CHAR may be a cons; (FROM . TO), where FROM and TO are
-non-generic characters.  In that case, use FONTNAME
-for all characters in the range FROM and TO (inclusive).
-
-If NAME is t, an entry in the default fontset is modified.
-In that case, FONTNAME should be a registry and encoding name
+  "Modify fontset NAME to use FONTNAME for character CHAR.\n\
+\n\
+CHAR may be a cons; (FROM . TO), where FROM and TO are\n\
+non-generic characters.  In that case, use FONTNAME\n\
+for all characters in the range FROM and TO (inclusive).\n\
+\n\
+If NAME is t, an entry in the default fontset is modified.\n\
+In that case, FONTNAME should be a registry and encoding name\n\
 of a font for CHAR.")
   (name, ch, fontname, frame)
      Lisp_Object name, ch, fontname, frame;
@@ -1223,7 +1223,7 @@ loading failed.")
 }
 
 DEFUN ("fontset-font", Ffontset_font, Sfontset_font, 2, 2, 0,
-  "Return a font name pattern for character CH in fontset NAME.
+  "Return a font name pattern for character CH in fontset NAME.\n\
 If NAME is t, find a font name pattern in the default fontset.")
   (name, ch)
      Lisp_Object name, ch;
