@@ -1,3 +1,8 @@
+2002-06-15  Colin Walters  <walters@debian.org>
+
+	* ibuffer.el (ibuffer-movement-cycle): New variable.
+	(ibuffer-backward-line, ibuffer-forward-line): Use it.
+
 2002-06-15  Richard M. Stallman  <rms@gnu.org>
 
 	* comint.el (comint-skip-input): New function.
