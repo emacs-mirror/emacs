@@ -1,3 +1,8 @@
+2004-11-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* commands.texi (Keyboard Macros): Document `append' return value
+	of `defining-kbd-macro'.
+
 2004-11-01  Richard M. Stallman  <rms@gnu.org>
 
 	* commands.texi (Interactive Call): Add called-interactively-p.

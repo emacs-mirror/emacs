@@ -1,3 +1,7 @@
+2004-11-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* macros.c (syms_of_macros) <defining-kbd-macro>: Doc fix.
+
 2004-11-05  Kim F. Storm  <storm@cua.dk>
 
 	* print.c (print_object): Print Lisp_Misc_Save_Value objects.
