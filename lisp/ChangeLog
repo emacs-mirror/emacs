@@ -5,7 +5,7 @@
 	as [delete] directly, like pc-select.el did before
 	normal-erase-is-backspace was invented.
 
-2001-04-11  Eli Zaretskii  <eliz@is.elta.co.il>
+2001-04-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ls-lisp.el (ls-lisp-format): Leave a blank before "root".
 
@@ -15,7 +15,7 @@
 	font-lock-defaults to nil, to prevent fontification in dired
 	buffers, if Eshell's ls is being used.
 
-2001-04-10  John Wiegley  <johnw@gnu.org>
+2001-04-11  John Wiegley  <johnw@gnu.org>
 
 	* calendar/timeclock.el (timeclock-completing-read): new function.
 	(timeclock-ask-for-project, timeclock-ask-for-reason): Call
@@ -24,7 +24,7 @@
 	* eshell/em-alias.el (eshell-command-aliased-p): `assoc' was
 	required where `member' was being used.
 
-2001-04-09  Colin Walters  <walters@cis.ohio-state.edu>
+2001-04-11  Colin Walters  <walters@cis.ohio-state.edu>
 
 	* eshell/em-hist.el (eshell-previous-matching-input): Don't
 	display "History item" if the the minibuffer is active.
