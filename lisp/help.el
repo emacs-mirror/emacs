@@ -332,7 +332,8 @@ With numeric argument, display information on correspondingly older changes."
 
 To record all your input on a file, use `open-dribble-file'."
   (interactive)
-  (with-output-to-temp-buffer "*Help*"
+  (help-setup-xref (list #'view-lossage) (interactive-p))
+  (with-output-to-temp-buffer (help-buffer)
     (princ (mapconcat (function (lambda (key)
 				  (if (or (integerp key)
 					  (symbolp key)
@@ -345,8 +346,7 @@ To record all your input on a file, use `open-dribble-file'."
       (goto-char (point-min))
       (while (progn (move-to-column 50) (not (eobp)))
 	(search-forward " " nil t)
-	(insert "\n"))
-      (help-setup-xref nil t))
+	(insert "\n")))
     (print-help-return-message)))
 
 
@@ -360,13 +360,11 @@ The optional argument PREFIX, if non-nil, should be a key sequence;
 then we display only bindings that start with that prefix.
 The optional argument BUFFER specifies which buffer's bindings
 to display (default, the current buffer)."
-  (interactive "P")
+  (interactive)
   (or buffer (setq buffer (current-buffer)))
+  (help-setup-xref (list #'describe-bindings prefix buffer) (interactive-p))
   (with-current-buffer buffer
-    (describe-bindings-internal nil prefix))
-  (with-current-buffer "*Help*"
-    (help-setup-xref (list #'describe-bindings prefix buffer)
-		     (interactive-p))))
+    (describe-bindings-internal nil prefix)))
 
 ;; This function used to be in keymap.c.
 (defun describe-bindings-internal (&optional menus prefix)
@@ -484,18 +482,18 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
       (let ((defn (or (string-key-binding key) (key-binding key))))
 	(if (or (null defn) (integerp defn))
 	    (message "%s is undefined" (key-description key))
-	  (with-output-to-temp-buffer "*Help*"
+	  (help-setup-xref (list #'describe-function defn) (interactive-p))
+	  (with-output-to-temp-buffer (help-buffer)
 	    (princ (key-description key))
 	    (if (windowp window)
 		(princ " at that spot"))
 	    (princ " runs the command ")
 	    (prin1 defn)
 	    (princ "\n   which is ")
-	    (describe-function-1 defn nil (interactive-p))
+	    (describe-function-1 defn)
 	    (print-help-return-message)))))))
 
 
-;;;###autoload
 (defun describe-mode (&optional buffer)
   "Display documentation of current major mode and minor modes.
 The major mode description comes first, followed by the minor modes,
@@ -505,14 +503,14 @@ For this to work correctly for a minor mode, the mode's indicator variable
 describes the minor mode."
   (interactive)
   (when buffer (set-buffer buffer))
-  (with-output-to-temp-buffer "*Help*"
+  (help-setup-xref (list #'describe-mode (current-buffer)) (interactive-p))
+  (with-output-to-temp-buffer (help-buffer)
     (when minor-mode-alist
       (princ "The major mode is described first.
 For minor modes, see following pages.\n\n"))
     (princ mode-name)
     (princ " mode:\n")
     (princ (documentation major-mode))
-    (help-setup-xref (list #'describe-mode (current-buffer)) (interactive-p))
     (let ((minor-modes minor-mode-alist))
       (while minor-modes
 	(let* ((minor-mode (car (car minor-modes)))
