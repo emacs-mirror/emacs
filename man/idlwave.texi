@@ -214,7 +214,7 @@ Code indentation and formatting.
 Font-lock support on three levels. 
 @item 
 Display of calling sequence and keywords of more than 1000 IDL
-routines routines and any routines in your local IDL library.
+routines and any routines in your local IDL library.
 @item
 Name space conflict search.
 @item
@@ -2659,7 +2659,7 @@ user is King!
     (font-lock-mode 1)                   ; Turn on font-lock mode
     (idlwave-auto-fill-mode 0)           ; Turn off auto filling
     ;;
-    ;; Pad with with 1 space (if -n is used then make the
+    ;; Pad with 1 space (if -n is used then make the
     ;; padding a minimum of n spaces.)  The defaults use -1
     ;; instead of 1.
     (idlwave-action-and-binding "=" '(idlwave-expand-equal 1 1))
