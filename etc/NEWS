@@ -482,8 +482,7 @@ if Emacs has been built with XPM image support.  Otherwise monochrome
 icons will be used.
 
 To make the tool bar more useful, we need contributions of extra icons
-for specific modes (with copyright assignments).  Contributions would
-also be useful to touch up some of the PBM icons manually.
+for specific modes (with copyright assignments).
 
 ** Tooltips.
 
