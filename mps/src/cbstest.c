@@ -1,6 +1,6 @@
 /*  impl.c.cbstest: COALESCING BLOCK STRUCTURE TEST
  *
- *  $HopeName: MMsrc!cbstest.c(trunk.3) $
+ *  $HopeName: MMsrc!cbstest.c(trunk.4) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  */
 
@@ -15,12 +15,12 @@
 #include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
 #include "testlib.h"
 
-SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.3) $");
+SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.4) $");
 
 #define ArraySize ((Size)123456)
 #define NOperations ((Size)125000)
 #define MinSize ((Size)120) /* Arbitrary size */
-#define Alignment ((Align)8)
+#define Alignment ((Align)sizeof(void *))
 
 static Count NAllocateTried, NAllocateSucceeded, NDeallocateTried,
   NDeallocateSucceeded, NNewBlocks, NDeleteBlocks, NGrowBlocks,
@@ -519,7 +519,7 @@ extern int main(int argc, char *argv[])
   die((mps_res_t)CBSInit(arena, &cbsStruct, &cbsNewCallback, 
                          &cbsDeleteCallback, &cbsGrowCallback,
                          &cbsShrinkCallback, MinSize, 
-                         (Align)8, TRUE, TRUE),
+                         Alignment, TRUE, TRUE),
     "failed to initialise CBS");
   cbs = &cbsStruct;
 
