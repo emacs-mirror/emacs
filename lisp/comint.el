@@ -784,7 +784,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 		(dolist (ov (overlays-at (posn-point (event-end event))))
 		  (when (eq (overlay-get ov 'field) 'input)
 		    (throw 'found ov))))))
-    ;; do we have input in this area?
+    ;; Do we have input in this area?
     (if over
 	(let ((input-str (buffer-substring (overlay-start over)
 					   (overlay-end over))))
@@ -794,9 +794,10 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 		(process-mark (get-buffer-process (current-buffer))))
 	   (point))
 	  (insert input-str))
-      ;; fall back to the user's previous definition if we aren't
-      ;; on previous input region.
-      (let ((fun (lookup-key global-map (this-command-keys))))
+      ;; Fall back to the global definition.
+      (let* ((keys (this-command-keys))
+	     (last-key (and (vectorp keys) (aref keys (1- (length keys)))))
+	     (fun (and last-key (lookup-key global-map (vector last-key)))))
 	(if fun (call-interactively fun))))))
 
 
