@@ -1,3 +1,9 @@
+2002-06-09  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-style.el (c-set-style, c-set-style-1): Added
+	another state for the `dont-override' flag where it only keeps
+	globally set variables.
+
 2002-06-08  Colin Walters  <walters@gnu.org>
 
 	* descr-text.el (describe-text-properties): Sort the output by the
