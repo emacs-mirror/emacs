@@ -1667,6 +1667,9 @@ sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
 `"
 changequote([, ])dnl
 
+echo creating src/paths.h
+make paths-force
+
 echo creating lib-src/Makefile
 ( cd lib-src
   rm -f junk.c junk1.c junk2.c
