@@ -37,12 +37,12 @@ Boston, MA 02111-1307, USA.  */
    categories.  Total number of categories is limited to 95.
 
    A category set is a set of categories represented by Lisp
-   bool-vector of length 128 (only elements of 31th through 125th
+   bool-vector of length 128 (only elements of 31th through 126th
    are used).
 
    A category table is like syntax-table, represented by a Lisp
    char-table.  The contents are category sets or nil.  It has two
-   extra slots. for a vector of doc string of each category and a
+   extra slots, for a vector of doc string of each category and a
    version number.
 
    The first extra slot is a vector of doc strings of categories, the
@@ -101,7 +101,7 @@ extern Lisp_Object _temp_category_set;
 #define CATEGORY_SET(c)							     \
   ({ Lisp_Object table = current_buffer->category_table;		     \
      Lisp_Object temp;							     \
-     if ((c) < CHAR_TABLE_ORDINARY_SLOTS)				     \
+     if ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS)				     \
        while (NILP (temp = XCHAR_TABLE (table)->contents[(unsigned char) c]) \
 	      && NILP (temp = XCHAR_TABLE (table)->defalt))		     \
 	 table = XCHAR_TABLE (table)->parent;				     \
@@ -111,7 +111,7 @@ extern Lisp_Object _temp_category_set;
      temp; })
 #else
 #define CATEGORY_SET(c)							     \
-  ((c) < CHAR_TABLE_ORDINARY_SLOTS					     \
+  ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS					     \
    ? Faref (current_buffer->category_table, make_number ((unsigned char) c)) \
    : Faref (current_buffer->category_table,				     \
 	           COMPOSITE_CHAR_P (c) ? cmpchar_component ((c), 0) : (c))

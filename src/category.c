@@ -352,7 +352,7 @@ If optional forth argument RESET is non NIL,\n\
   
   set_value = NILP (reset) ? Qt : Qnil;
 
-  if (SINGLE_BYTE_CHAR_P (c))
+  if ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS)
     {
       val = XCHAR_TABLE (table)->contents[c];
       if (!CATEGORY_SET_P (val))
@@ -366,11 +366,11 @@ If optional forth argument RESET is non NIL,\n\
   SPLIT_NON_ASCII_CHAR (c, charset, c1, c2);
 
   /* The top level table.  */
-  val = XCHAR_TABLE (table)->contents[charset];
+  val = XCHAR_TABLE (table)->contents[charset + 128];
   if (NILP (val))
     {
       category_set = MAKE_CATEGORY_SET;
-      XCHAR_TABLE (table)->contents[charset] = category_set;
+      XCHAR_TABLE (table)->contents[charset + 128] = category_set;
     }
   else if (CATEGORY_SET_P (val))
     category_set = val;
@@ -390,7 +390,7 @@ If optional forth argument RESET is non NIL,\n\
   if (!CHAR_TABLE_P (val))
     {
       val = Fmake_char_table (Qnil, Qnil);
-      XCHAR_TABLE (table)->contents[charset] = val;
+      XCHAR_TABLE (table)->contents[charset + 128] = val;
       /* We must set default category set of CHARSET in `defalt' slot.  */
       XCHAR_TABLE (val)->defalt = category_set;
     }
