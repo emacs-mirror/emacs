@@ -1856,4 +1856,6 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 
 ;;;###end dired-ins.el
 
+(provide 'dired-aux)
+
 ;;; dired-aux.el ends here
