@@ -264,7 +264,7 @@ line, but does not move past any whitespace that was explicitly inserted
 		 (buffer-substring 
 		  (point) (min (point-max) (+ (length fill-prefix) (point)))))
 	  (forward-char (length fill-prefix)))
-    (if (and adaptive-fill-mode 
+    (if (and adaptive-fill-mode adaptive-fill-regexp
 	     (looking-at adaptive-fill-regexp))
 	(goto-char (match-end 0))))
   ;; Skip centering or flushright indentation
