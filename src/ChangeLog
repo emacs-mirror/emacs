@@ -1,3 +1,19 @@
+2003-06-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* alloc.c (make_interval, Fmake_symbol, allocate_misc):
+	Initialize the new field `gcmarkbit'.
+	(mark_interval, MARK_INTERVAL_TREE): Use the new `gcmarkbit' field.
+	(mark_interval_tree): Don't mark the tree separately from the nodes.
+	(UNMARK_BALANCE_INTERVALS): Don't unmark the tree.
+	(mark_maybe_object, mark_maybe_pointer, Fgarbage_collect)
+	(mark_object, survives_gc_p, gc_sweep): Use new `gcmarkbit' fields.
+
+	* lisp.h (struct interval, struct Lisp_Symbol, struct Lisp_Free)
+	(struct Lisp_Marker, struct Lisp_Intfwd, struct Lisp_Boolfwd)
+	(struct Lisp_Kboard_Objfwd, struct Lisp_Save_Value)
+	(struct Lisp_Buffer_Local_Value, struct Lisp_Overlay)
+	(struct Lisp_Objfwd, struct Lisp_Buffer_Objfwd): Add `gcmarkbit' field.
+
 2003-06-24  Dave Love  <fx@gnu.org>
 
 	* xterm.c (xim_initialize): Use XRegisterIMInstantiateCallback_arg6.
