@@ -200,19 +200,21 @@ the call to the function.  If REPEAT is nil or 0, call it just once."
     (timer-set-function timer function args)
     (timer-activate timer)))
 
-(defun run-after-delay (secs usecs repeat function &rest args)
-  "Perform an action after a delay of SECS seconds and USECS microseconds.
+;;;###autoload
+(defun run-after-delay (secs repeat function &rest args)
+  "Perform an action after a delay of SECS seconds.
 Repeat the action every REPEAT seconds, if REPEAT is non-nil.
+SECS and REPEAT need not be integers.
 The action is to call FUNCTION with arguments ARGS."
   (interactive "sRun after delay (seconds): \nNRepeat interval: \naFunction: ")
 
   (or (null repeat)
-      (natnump repeat)
+      (and (numberp repeat) (>= repeat 0))
       (error "Invalid repetition interval"))
 
   (let ((timer (timer-create)))
     (timer-set-time timer (current-time))
-    (timer-inc-time timer secs usecs)
+    (timer-inc-time timer secs)
     (timer-set-function timer function args)
     (timer-activate timer)))
 
