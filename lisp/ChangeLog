@@ -1,3 +1,8 @@
+2004-06-21  Juanma Barranquero  <lektu@terra.es>
+
+	* image.el (image-library-alist): Rewrite docstring in active
+	voice.
+
 2004-06-20  Richard M. Stallman  <rms@gnu.org>
 
 	* mouse.el (mouse-set-region-1): Set transient-mark-mode to `only'.
