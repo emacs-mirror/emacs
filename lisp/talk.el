@@ -80,7 +80,7 @@ Each element has the form (DISPLAY FRAME BUFFER).")
 	  (cons (list (frame-tty-name frame) frame buffer) (delq elt talk-display-alist)))))
 
 (defun talk-handle-delete-tty (tty)
-  (let (elt (assoc tty talk-display-alist))
+  (let ((elt (assoc tty talk-display-alist)))
     (setq talk-display-alist (delq elt talk-display-alist))
     (talk-update-buffers)))
 
