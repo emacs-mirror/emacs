@@ -307,7 +307,7 @@ struct sockaddr_and_len {
   int len;
 } datagram_address[MAXDESC];
 #define DATAGRAM_CHAN_P(chan)	(datagram_address[chan].sa != 0)
-#define DATAGRAM_CONN_P(proc)	(PROCESSP (proc) && datagram_address[XPROCESS (proc)->infd].sa != 0)
+#define DATAGRAM_CONN_P(proc)	(PROCESSP (proc) && datagram_address[XINT (XPROCESS (proc)->infd)].sa != 0)
 #else
 #define DATAGRAM_CHAN_P(chan)	(0)
 #define DATAGRAM_CONN_P(proc)	(0)
@@ -1200,7 +1200,7 @@ list_processes_1 (query_only)
 	  if (INTEGERP (port))
 	    port = Fnumber_to_string (port);
 	  sprintf (tembuf, "(network %s server on %s)\n",
-		   (DATAGRAM_CHAN_P (p->infd) ? "datagram" : "stream"),
+		   (DATAGRAM_CHAN_P (XINT (p->infd)) ? "datagram" : "stream"),
 		   XSTRING (port)->data);
 	  insert_string (tembuf);
 	}
@@ -1216,7 +1216,7 @@ list_processes_1 (query_only)
 		host = Fnumber_to_string (host);
 	    }
 	  sprintf (tembuf, "(network %s connection to %s)\n",
-		   (DATAGRAM_CHAN_P (p->infd) ? "datagram" : "stream"),
+		   (DATAGRAM_CHAN_P (XINT (p->infd)) ? "datagram" : "stream"),
 		   XSTRING (host)->data);
 	  insert_string (tembuf);
         }
@@ -2119,7 +2119,7 @@ DEFUN ("process-datagram-address", Fprocess_datagram_address, Sprocess_datagram_
   if (!DATAGRAM_CONN_P (process))
     return Qnil;
 
-  channel = XPROCESS (process)->infd;
+  channel = XINT (XPROCESS (process)->infd);
   return conv_sockaddr_to_lisp (datagram_address[channel].sa,
 				datagram_address[channel].len);
 }
@@ -2139,7 +2139,7 @@ Returns nil upon error setting address, ADDRESS otherwise.  */)
   if (!DATAGRAM_CONN_P (process))
     return Qnil;
 
-  channel = XPROCESS (process)->infd;
+  channel = XINT (XPROCESS (process)->infd);
 
   len = get_lisp_to_sockaddr_size (address, &family);
   if (datagram_address[channel].len != len)
@@ -2374,10 +2374,10 @@ usage: (set-network-process-options PROCESS &rest OPTIONS)  */)
 
   process = args[0];
   CHECK_PROCESS (process);
-  if (nargs > 1 && XPROCESS (process)->infd >= 0)
+  if (nargs > 1 && XINT (XPROCESS (process)->infd) >= 0)
     {
       opts = Flist (nargs, args);
-      set_socket_options (XPROCESS (process)->infd, opts, 0);
+      set_socket_options (XINT (XPROCESS (process)->infd), opts, 0);
     }
   return process;
 }
@@ -3528,7 +3528,7 @@ server_accept_connection (server, channel)
 		      (STRINGP (host) ? host : build_string ("-")),
 		      build_string ("\n")));
 
-  if (p->sentinel)
+  if (!NILP (p->sentinel))
     exec_sentinel (proc, 
 		   concat3 (build_string ("open from "),
 			    (STRINGP (host) ? host : build_string ("-")),
