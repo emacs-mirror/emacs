@@ -1,6 +1,6 @@
 ;;; tpu-extras.el --- Scroll margins and free cursor mode for TPU-edt
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -102,10 +102,9 @@
 ;;; Code:
 
 
-;;;  Revision Information
+;;;  Gotta have tpu-edt
 
-(defconst tpu-extras-revision "$Revision: 1.5 $"
-  "Revision number of the TPU-edt extras.")
+(require 'tpu-edt)
 
 
 ;;;  Customization variables
