@@ -4598,6 +4598,9 @@ back_to_previous_visible_line_start (it)
 	    visible_p = 0;
 	}
 
+#if 0
+      /* Commenting this out fixes the bug described in
+	 http://www.math.ku.dk/~larsh/emacs/emacs-loops-on-large-images/test-case.txt.  */
       if (visible_p)
 	{
 	  struct it it2 = *it;
@@ -4605,6 +4608,7 @@ back_to_previous_visible_line_start (it)
 	  if (handle_display_prop (&it2) == HANDLED_RETURN)
 	    visible_p = 0;
 	}
+#endif
 
       /* Back one more newline if the current one is invisible.  */
       if (!visible_p)
