@@ -805,12 +805,16 @@ definitions to shadow the loaded ones for use in file byte-compilation.")
 	  if (EQ (XCONS (def)->car, Qautoload))
 	    {
 	      /* Autoloading function: will it be a macro when loaded?  */
-	      tem = Fcar (Fnthcdr (make_number (4), def));
-	      if (NILP (tem))
+	      tem = Fnth (make_number (4), def);
+	      if (EQ (XCONS (tem)->car, Qt)
+		  || EQ (XCONS (tem)->car, Qmacro))
+		/* Yes, load it and try again.  */
+		{
+		  do_autoload (def, sym);
+		  continue;
+		}
+	      else
 		break;
-	      /* Yes, load it and try again.  */
-	      do_autoload (def, sym);
-	      continue;
 	    }
 	  else if (!EQ (XCONS (def)->car, Qmacro))
 	    break;
@@ -1311,13 +1315,16 @@ DEFUN ("autoload", Fautoload, Sautoload, 2, 5, 0,
 FUNCTION is a symbol; FILE is a file name string to pass to `load'.\n\
 Third arg DOCSTRING is documentation for the function.\n\
 Fourth arg INTERACTIVE if non-nil says function can be called interactively.\n\
-Fifth arg MACRO if non-nil says the function is really a macro.\n\
+Fifth arg TYPE indicates the type of the object:\n\
+   nil or omitted says FUNCTION is a function,\n\
+   `keymap' says FUNCTION is really a keymap, and\n\
+   `macro' or t says FUNCTION is really a macro.\n\
 Third through fifth args give info about the real definition.\n\
 They default to nil.\n\
 If FUNCTION is already defined other than as an autoload,\n\
 this does nothing and returns nil.")
-  (function, file, docstring, interactive, macro)
-     Lisp_Object function, file, docstring, interactive, macro;
+  (function, file, docstring, interactive, type)
+     Lisp_Object function, file, docstring, interactive, type;
 {
 #ifdef NO_ARG_ARRAY
   Lisp_Object args[4];
@@ -1336,7 +1343,7 @@ this does nothing and returns nil.")
   args[0] = file;
   args[1] = docstring;
   args[2] = interactive;
-  args[3] = macro;
+  args[3] = type;
 
   return Ffset (function, Fcons (Qautoload, Flist (4, &args[0])));
 #else /* NO_ARG_ARRAY */
