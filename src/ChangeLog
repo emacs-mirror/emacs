@@ -1,3 +1,9 @@
+2003-11-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/freebsd.h (LD_SWITCH_SYSTEM_TEMACS)
+	[__FreeBSD_version >= 500042]: Define as -znocombreloc because
+	ld's default is incompatible with unexec.
+
 2003-11-23  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (enum window_loop): Add REDISPLAY_BUFFER_WINDOWS.
