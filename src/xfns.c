@@ -5304,6 +5304,7 @@ enum image_value_type
   IMAGE_STRING_VALUE,
   IMAGE_SYMBOL_VALUE,
   IMAGE_POSITIVE_INTEGER_VALUE,
+  IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,
   IMAGE_NON_NEGATIVE_INTEGER_VALUE,
   IMAGE_ASCENT_VALUE,
   IMAGE_INTEGER_VALUE,
@@ -5407,6 +5408,15 @@ parse_image_spec (spec, keywords, nkeywords, type)
 	  if (!INTEGERP (value) || XINT (value) <= 0)
 	    return 0;
 	  break;
+
+	case IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR:
+	  if (INTEGERP (value) && XINT (value) >= 0)
+	    break;
+	  if (CONSP (value)
+	      && INTEGERP (XCAR (value)) && INTEGERP (XCDR (value))
+	      && XINT (XCAR (value)) >= 0 && XINT (XCDR (value)) >= 0)
+	    break;
+	  return 0;
 
 	case IMAGE_ASCENT_VALUE:
 	  if (SYMBOLP (value) && EQ (value, Qcenter))
@@ -5514,8 +5524,8 @@ or omitted means use the selected frame.")
       struct frame *f = check_x_frame (frame);
       int id = lookup_image (f, spec);
       struct image *img = IMAGE_FROM_ID (f, id);
-      int width = img->width + 2 * img->margin;
-      int height = img->height + 2 * img->margin;
+      int width = img->width + 2 * img->hmargin;
+      int height = img->height + 2 * img->vmargin;
   
       if (NILP (pixels))
 	size = Fcons (make_float ((double) width / CANON_X_UNIT (f)),
@@ -5644,7 +5654,7 @@ image_ascent (img, face)
      struct image *img;
      struct face *face;
 {
-  int height = img->height + img->margin;
+  int height = img->height + img->vmargin;
   int ascent;
 
   if (img->ascent == CENTERED_IMAGE_ASCENT)
@@ -5963,13 +5973,22 @@ lookup_image (f, spec)
 	  
 	  margin = image_spec_value (spec, QCmargin, NULL);
 	  if (INTEGERP (margin) && XINT (margin) >= 0)
-	    img->margin = XFASTINT (margin);
+	    img->vmargin = img->hmargin = XFASTINT (margin);
+	  else if (CONSP (margin) && INTEGERP (XCAR (margin))
+		   && INTEGERP (XCDR (margin)))
+	    {
+	      if (XINT (XCAR (margin)) > 0)
+		img->hmargin = XFASTINT (XCAR (margin));
+	      if (XINT (XCDR (margin)) > 0)
+		img->vmargin = XFASTINT (XCDR (margin));
+	    }
 	  
 	  relief = image_spec_value (spec, QCrelief, NULL);
 	  if (INTEGERP (relief))
 	    {
 	      img->relief = XINT (relief);
-	      img->margin += abs (img->relief);
+	      img->hmargin += abs (img->relief);
+	      img->vmargin += abs (img->relief);
 	    }
 
 	  /* Manipulation of the image's mask.  */
@@ -6329,7 +6348,7 @@ static struct image_keyword xbm_format[XBM_LAST] =
   {":foreground",	IMAGE_STRING_VALUE,			0},
   {":background",	IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,   0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -6962,7 +6981,7 @@ static struct image_keyword xpm_format[XPM_LAST] =
   {":file",		IMAGE_STRING_VALUE,			0},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -8047,7 +8066,7 @@ static struct image_keyword pbm_format[PBM_LAST] =
   {":file",		IMAGE_STRING_VALUE,			0},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -8374,7 +8393,7 @@ static struct image_keyword png_format[PNG_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -8851,7 +8870,7 @@ static struct image_keyword jpeg_format[JPEG_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -9206,7 +9225,7 @@ static struct image_keyword tiff_format[TIFF_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -9529,7 +9548,7 @@ static struct image_keyword gif_format[GIF_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -9842,7 +9861,7 @@ static struct image_keyword gs_format[GS_LAST] =
   {":loader",		IMAGE_FUNCTION_VALUE,			0},
   {":bounding-box",	IMAGE_DONT_CHECK_VALUE_TYPE,		1},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
