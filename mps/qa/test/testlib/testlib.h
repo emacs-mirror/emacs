@@ -61,6 +61,11 @@ void asserts(int expr, const char *format, ...);
 
 void easy_tramp(void (*f)(void));
 
+/* Pause for n seconds
+*/
+
+void pause(unsigned long);
+
 /* Random number from 0 to x-1
 */
 
