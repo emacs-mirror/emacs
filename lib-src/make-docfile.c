@@ -198,6 +198,42 @@ scan_file (filename)
 
 char buf[128];
 
+/* Add CH to either outfile, if PRINTFLAG is positive, or to the buffer
+   whose end is pointed to by BUFP, if PRINTFLAG is negative.
+   If the counters pointed to by PENDING_NEWLINES and PENDING_SPACES are
+   non-zero, that many newlines and spaces are output before CH, and
+   the counters are zeroed.  */
+
+static INLINE void
+put_char (ch, printflag, bufp, pending_newlines, pending_spaces)
+     int ch, printflag;
+     char **bufp;
+     unsigned *pending_newlines, *pending_spaces;
+{
+  int out_ch;
+  do
+    {
+      if (*pending_newlines > 0)
+	{
+	  (*pending_newlines)--;
+	  out_ch = '\n';
+	}
+      else if (*pending_spaces > 0)
+	{
+	  (*pending_spaces)--;
+	  out_ch = ' ';
+	}
+      else
+	out_ch = ch;
+
+      if (printflag > 0)
+	putc (out_ch, outfile);
+      else if (printflag < 0)
+	*(*bufp)++ = out_ch;
+    }
+  while (out_ch != ch);
+}
+
 /* Skip a C string or C-style comment from INFILE, and return the
    character that follows.  COMMENT non-zero means skip a comment.  If
    PRINTFLAG is positive, output string contents to outfile.  If it is
@@ -210,6 +246,7 @@ read_c_string_or_comment (infile, printflag, comment)
      int printflag;
 {
   register int c;
+  unsigned pending_spaces = 0, pending_newlines = 0;
   char *p = buf;
 
   if (comment)
@@ -239,10 +276,16 @@ read_c_string_or_comment (infile, printflag, comment)
 		c = '\t';
 	    }
 	  
-	  if (printflag > 0)
-	    putc (c, outfile);
-	  else if (printflag < 0)
-	    *p++ = c;
+	  if (c == ' ')
+	    pending_spaces++;
+	  else if (c == '\n')
+	    {
+	      pending_newlines++;
+	      pending_spaces = 0;
+	    }
+	  else
+	    put_char (c, printflag, &p, &pending_newlines, &pending_spaces);
+
 	  c = getc (infile);
 	}
 
@@ -257,10 +300,7 @@ read_c_string_or_comment (infile, printflag, comment)
 	      break;
 	    }
 	  
-	  if (printflag > 0)
-	    putc ('*', outfile);
-	  else if (printflag < 0)
-	    *p++ = '*';
+	  put_char ('*', printflag, &p, &pending_newlines, &pending_spaces);
 	}
       else
 	{
