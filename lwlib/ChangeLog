@@ -1,3 +1,8 @@
+2000-03-08  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (liblw.a): Don't bother testing for ranlib failing
+	since configure sets it up.
+
 2000-03-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* lwlib-Xm.c (make_menubar): Set XmNresizeHeight and

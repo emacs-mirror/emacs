@@ -1,3 +1,10 @@
+2000-03-08  Dave Love  <fx@gnu.org>
+
+	* configure.in: Use AC_PROG_RANLIB, AC_C_PROTOTYPES,
+	AC_C_VOLATILE.  Define POINTER_TYPE.
+
+	* aclocal.m4: New file.
+
 2000-03-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in (machine): Add `mipsel-*-netbsd*' and

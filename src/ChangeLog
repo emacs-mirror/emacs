@@ -1,5 +1,8 @@
 2000-03-08  Dave Love  <fx@gnu.org>
 
+	* config.in: Don't depend on __STDC__ for volatile.
+	Add POINTER_TYPE, PTR, PROTOTYPES.
+
 	* hftctl.c, strftime.c: Use PROTOTYPES.
 	* eval.c (find_handler_clause): Likewise.
 
