@@ -121,75 +121,82 @@ Three types of values are possible:
 
 ;; Called from sendmail-send-it, or similar functions,
 ;; only if some mail aliases are defined.
+;;;###autoload
 (defun expand-mail-aliases (beg end &optional exclude)
   "Expand all mail aliases in suitable header fields found between BEG and END.
+If interactive, expand in header fields before `mail-header-separator'.
 Suitable header fields are `To', `From', `CC' and `BCC', `Reply-to', and
 their `Resent-' variants.
 
 Optional second arg EXCLUDE may be a regular expression defining text to be
 removed from alias expansions."
+  (interactive
+   (save-excursion
+     (list (goto-char (point-min))
+	   (search-forward (concat "\n" mail-header-separator "\n")))))
   (sendmail-sync-aliases)
-  (if (eq mail-aliases t)
-      (progn (setq mail-aliases nil) (build-mail-aliases)))
-  (goto-char beg)
-  (setq end (set-marker (make-marker) end))
-  (let ((case-fold-search nil))
-    (while (let ((case-fold-search t))
-	     (re-search-forward mail-address-field-regexp end t))
-      (skip-chars-forward " \t")
-      (let ((beg1 (point))
-	    end1 pos epos seplen
-	    ;; DISABLED-ALIASES records aliases temporarily disabled
-	    ;; while we scan text that resulted from expanding those aliases.
-	    ;; Each element is (ALIAS . TILL-WHEN), where TILL-WHEN
-	    ;; is where to reenable the alias (expressed as number of chars
-	    ;; counting from END1).
-	    (disabled-aliases nil))
-	(re-search-forward "^[^ \t]" end 'move)
-	(beginning-of-line)
-	(skip-chars-backward " \t\n")
-	(setq end1 (point-marker))
-	(goto-char beg1)
-	(while (< (point) end1)
-	  (setq pos (point))
-	  ;; Reenable any aliases which were disabled for ranges
-	  ;; that we have passed out of.
-	  (while (and disabled-aliases (> pos (- end1 (cdr (car disabled-aliases)))))
-	    (setq disabled-aliases (cdr disabled-aliases)))
-	  ;; EPOS gets position of end of next name;
-	  ;; SEPLEN gets length of whitespace&separator that follows it.
-	  (if (re-search-forward "[ \t]*[\n,][ \t]*" end1 t)
-	      (setq epos (match-beginning 0)
-		    seplen (- (point) epos))
-	    (setq epos (marker-position end1) seplen 0))
-	  (let (translation
-		(string (buffer-substring-no-properties pos epos)))
-	    (if (and (not (assoc string disabled-aliases))
-		     (setq translation
-			   (cdr (assoc string mail-aliases))))
-		(progn
-		  ;; This name is an alias.  Disable it.
-		  (setq disabled-aliases (cons (cons string (- end1 epos))
-					       disabled-aliases))
-		  ;; Replace the alias with its expansion
-		  ;; then rescan the expansion for more aliases.
-		  (goto-char pos)
-		  (insert translation)
-		  (if exclude
- 		      (let ((regexp
-			     (concat "\\b\\(" exclude "\\)\\b"))
+  (when (eq mail-aliases t)
+    (setq mail-aliases nil)
+    (build-mail-aliases))
+  (save-excursion
+    (goto-char beg)
+    (setq end (set-marker (make-marker) end))
+    (let ((case-fold-search nil))
+      (while (let ((case-fold-search t))
+	       (re-search-forward mail-address-field-regexp end t))
+	(skip-chars-forward " \t")
+	(let ((beg1 (point))
+	      end1 pos epos seplen
+	      ;; DISABLED-ALIASES records aliases temporarily disabled
+	      ;; while we scan text that resulted from expanding those aliases.
+	      ;; Each element is (ALIAS . TILL-WHEN), where TILL-WHEN
+	      ;; is where to reenable the alias (expressed as number of chars
+	      ;; counting from END1).
+	      (disabled-aliases nil))
+	  (re-search-forward "^[^ \t]" end 'move)
+	  (beginning-of-line)
+	  (skip-chars-backward " \t\n")
+	  (setq end1 (point-marker))
+	  (goto-char beg1)
+	  (while (< (point) end1)
+	    (setq pos (point))
+	    ;; Reenable any aliases which were disabled for ranges
+	    ;; that we have passed out of.
+	    (while (and disabled-aliases
+			(> pos (- end1 (cdr (car disabled-aliases)))))
+	      (setq disabled-aliases (cdr disabled-aliases)))
+	    ;; EPOS gets position of end of next name;
+	    ;; SEPLEN gets length of whitespace&separator that follows it.
+	    (if (re-search-forward "[ \t]*[\n,][ \t]*" end1 t)
+		(setq epos (match-beginning 0)
+		      seplen (- (point) epos))
+	      (setq epos (marker-position end1) seplen 0))
+	    (let ((string (buffer-substring-no-properties pos epos))
+		  translation)
+	      (if (and (not (assoc string disabled-aliases))
+		       (setq translation (cdr (assoc string mail-aliases))))
+		  (progn
+		    ;; This name is an alias.  Disable it.
+		    (setq disabled-aliases (cons (cons string (- end1 epos))
+						 disabled-aliases))
+		    ;; Replace the alias with its expansion
+		    ;; then rescan the expansion for more aliases.
+		    (goto-char pos)
+		    (insert translation)
+		    (when exclude
+		      (let ((regexp (concat "\\b\\(" exclude "\\)\\b"))
 			    (end (point-marker)))
 			(goto-char pos)
 			(while (re-search-forward regexp end t)
 			  (replace-match ""))
 			(goto-char end)))
-		  (delete-region (point) (+ (point) (- epos pos)))
-		  (goto-char pos))
-	      ;; Name is not an alias.  Skip to start of next name.
-	      (goto-char epos)
-	      (forward-char seplen))))
-	(set-marker end1 nil)))
-    (set-marker end nil)))
+		    (delete-region (point) (+ (point) (- epos pos)))
+		    (goto-char pos))
+		;; Name is not an alias.  Skip to start of next name.
+		(goto-char epos)
+		(forward-char seplen))))
+	  (set-marker end1 nil)))
+      (set-marker end nil))))
 
 ;; Called by mail-setup, or similar functions, only if the file specified
 ;; by mail-personal-alias-file (usually `~/.mailrc') exists.
