@@ -1,3 +1,7 @@
+2001-05-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (try_window_id): Add some xasserts.
+
 2001-05-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* lisp.h (GLYPH_CHAR_VALID_P): Use CHAR_VALID_P.
