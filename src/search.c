@@ -417,19 +417,13 @@ skip_chars (forwardp, syntaxp, string, lim)
     CHECK_NUMBER_COERCE_MARKER (lim, 1);
 
   /* In any case, don't allow scan outside bounds of buffer.  */
-
-  /* I don't know what things this breaks, and there is no entry in the
-     ChangeLog, so I reinstated the end of buffer limit check.  This code
-     breaks without it. (bfox) */
-/* #if 0				/* This breaks some things... jla. */
-#if 1
-  if (XFASTINT (lim) > ZV)
+  /* jla turned this off, for no known reason.
+     bfox turned the ZV part on, and rms turned the
+     BEGV part back on.  */
+  if (XINT (lim) > ZV)
     XFASTINT (lim) = ZV;
-#endif
-#if 0
-  if (XFASTINT (lim) < BEGV)
+  if (XINT (lim) < BEGV)
     XFASTINT (lim) = BEGV;
-#endif
 
   p = XSTRING (string)->data;
   pend = p + XSTRING (string)->size;
