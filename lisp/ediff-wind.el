@@ -94,7 +94,9 @@ The basic guidelines:
        Buffer C may not be used in jobs that compare only two buffers.
 If you plan to do something fancy, take a close look at how the two
 provided functions are written."
-  :type 'function
+  :type '(choice (const :tag "Multi Frame" ediff-setup-windows-multiframe)
+		 (const :tag "Single Frame" ediff-setup-windows-plain)
+		 (function :tag "Other function"))
   :group 'ediff-window)
 
 ;; indicates if we are in a multiframe setup
