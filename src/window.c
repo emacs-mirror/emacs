@@ -4154,7 +4154,12 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	     in the scroll margin at the top.  */
 	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
 	  while (it.current_y < this_scroll_margin)
-	    move_it_by_lines (&it, 1, 1);
+	    {
+	      int prev = it.current_y;
+	      move_it_by_lines (&it, 1, 1);
+	      if (prev == it.current_y)
+		break;
+	    }
 	  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 	}
       else if (n < 0)
