@@ -1,10 +1,7 @@
-;  impl.asm.spi3
+;  impl.asm.spi3: STACK PROBE
 ;
-;                    STACK PROBE
-;
-;  $HopeName$
-;
-;  Copyright (C) 1997 Harlequin Group PLC, all rights reserved
+;  $HopeName: MMsrc!spi3.asm(trunk.1) $
+;  Copyright (C) 1997 Harlequin Limited.  All rights reserved.
 ;
 ;  This function reads a location that is probeDepth words beyond
 ;  the current stack pointer.  On intel platforms the stack grows
@@ -17,7 +14,7 @@
 .model flat
 .code
 
-_StackProbe proc public ; (Word probeDepth)
+_StackProbe proc public ; (Size probeDepth)
   push ebp              ; frame pointer
   mov  ebp,esp
   mov  eax, [ebp+08]
