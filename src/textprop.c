@@ -1,5 +1,5 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001
+   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1554,6 +1554,63 @@ containing the text.  */)
     }
   return Qnil;
 }
+
+
+/* Return the direction from which the text-property PROP would be
+   inherited by any new text inserted at POS: 1 if it would be
+   inherited from the char after POS, -1 if it would be inherited from
+   the char before POS, and 0 if from neither.  */
+
+int
+text_property_stickiness (prop, pos)
+     Lisp_Object prop;
+     Lisp_Object pos;
+{
+  Lisp_Object prev_pos, front_sticky;
+  int is_rear_sticky = 1, is_front_sticky = 0; /* defaults */
+
+  if (XINT (pos) > BEGV)
+    /* Consider previous character.  */
+    {
+      Lisp_Object rear_non_sticky;
+
+      prev_pos = make_number (XINT (pos) - 1);
+      rear_non_sticky = Fget_text_property (prev_pos, Qrear_nonsticky, Qnil);
+
+      if (!NILP (CONSP (rear_non_sticky)
+		 ? Fmemq (prop, rear_non_sticky)
+		 : rear_non_sticky))
+	/* PROP is rear-non-sticky.  */
+	is_rear_sticky = 0;
+    }
+
+  /* Consider following character.  */
+  front_sticky = Fget_text_property (pos, Qfront_sticky, Qnil);
+
+  if (EQ (front_sticky, Qt)
+      || (CONSP (front_sticky)
+	  && !NILP (Fmemq (prop, front_sticky))))
+    /* PROP is inherited from after.  */
+    is_front_sticky = 1;
+
+  /* Simple cases, where the properties are consistent.  */
+  if (is_rear_sticky && !is_front_sticky)
+    return -1;
+  else if (!is_rear_sticky && is_front_sticky)
+    return 1;
+  else if (!is_rear_sticky && !is_front_sticky)
+    return 0;
+
+  /* The stickiness properties are inconsistent, so we have to
+     disambiguate.  Basically, rear-sticky wins, _except_ if the
+     property that would be inherited has a value of nil, in which case
+     front-sticky wins.  */
+  if (XINT (pos) == BEGV || NILP (Fget_text_property (prev_pos, prop, Qnil)))
+    return 1;
+  else
+    return -1;
+}
+
 
 /* I don't think this is the right interface to export; how often do you
    want to do something like this, other than when you're copying objects
