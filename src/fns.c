@@ -139,9 +139,7 @@ To get the number of bytes, use `string-bytes'")
   else if (VECTORP (sequence))
     XSETFASTINT (val, XVECTOR (sequence)->size);
   else if (CHAR_TABLE_P (sequence))
-    XSETFASTINT (val, (MIN_CHAR_COMPOSITION
-		       + (CHAR_FIELD2_MASK | CHAR_FIELD3_MASK)
-		       - 1));
+    XSETFASTINT (val, MAX_CHAR);
   else if (BOOL_VECTOR_P (sequence))
     XSETFASTINT (val, XBOOL_VECTOR (sequence)->size);
   else if (COMPILEDP (sequence))
@@ -823,14 +821,11 @@ concat (nargs, args, target_type, last_special)
 		     we already decided to make a multibyte string.  */
 		  {
 		    int c = XINT (elt);
-		    unsigned char work[4], *str;
-		    int i = CHAR_STRING (c, work, str);
-
 		    /* P exists as a variable
 		       to avoid a bug on the Masscomp C compiler.  */
 		    unsigned char *p = & XSTRING (val)->data[toindex_byte];
-		    bcopy (str, p, i);
-		    toindex_byte += i;
+
+		    toindex_byte += CHAR_STRING (c, p);
 		    toindex++;
 		  }
 	      }
@@ -1982,8 +1977,8 @@ ARRAY is a vector, string, char-table, or bool-vector.")
       size = XSTRING (array)->size;
       if (STRING_MULTIBYTE (array))
 	{
-	  unsigned char workbuf[4], *str;
-	  int len = CHAR_STRING (charval, workbuf, str);
+	  unsigned char str[MAX_MULTIBYTE_LENGTH];
+	  int len = CHAR_STRING (charval, str);
 	  int size_byte = STRING_BYTES (XSTRING (array));
 	  unsigned char *p1 = p, *endp = p + size_byte;
 	  int i;
@@ -2230,7 +2225,7 @@ See also the documentation of make-char.")
 
   /* Even if C is not a generic char, we had better behave as if a
      generic char is specified.  */
-  if (charset == CHARSET_COMPOSITION || CHARSET_DIMENSION (charset) == 1)
+  if (CHARSET_DIMENSION (charset) == 1)
     code1 = 0;
   temp = XCHAR_TABLE (char_table)->contents[charset + 128];
   if (!code1)
@@ -3912,9 +3907,10 @@ hash_lookup (h, key, hash)
 
 
 /* Put an entry into hash table H that associates KEY with VALUE.
-   HASH is a previously computed hash code of KEY.  */
+   HASH is a previously computed hash code of KEY.
+   Value is the index of the entry in H matching KEY.  */
 
-void
+int
 hash_put (h, key, value, hash)
      struct Lisp_Hash_Table *h;
      Lisp_Object key, value;
@@ -3941,6 +3937,7 @@ hash_put (h, key, value, hash)
   start_of_bucket = hash % XVECTOR (h->index)->size;
   HASH_NEXT (h, i) = HASH_INDEX (h, start_of_bucket);
   HASH_INDEX (h, start_of_bucket) = make_number (i);
+  return i;
 }
 
 
