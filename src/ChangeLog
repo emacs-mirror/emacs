@@ -1,3 +1,8 @@
+2001-10-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (XTset_vertical_scroll_bar) [!USE_TOOLKIT_SCROLL_BARS]:
+	Fix clearing of area not covered by scroll bar.
+
 2001-10-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xterm.c: (x_insert_glyphs): Remove unused variables `real_end'
