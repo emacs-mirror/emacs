@@ -58,9 +58,6 @@ values are 'apop.")
   "Timestamp returned when initially connected to the POP server.
 Used for APOP authentication.")
 
-(defvar pop3-movemail-file-coding-system nil
-  "Coding system for the crashbox made by `pop3-movemail'.")
-
 (defvar pop3-read-point nil)
 (defvar pop3-debug nil)
 
@@ -93,7 +90,7 @@ Used for APOP authentication.")
 	  (pop3-retr process n crashbuf)
 	  (save-excursion
 	    (set-buffer crashbuf)
-	    (let ((coding-system-for-write pop3-movemail-file-coding-system))
+	    (let ((coding-system-for-write 'binary))
 	      (write-region (point-min) (point-max) crashbox t 'nomesg))
 	    (set-buffer (process-buffer process))
 	    (while (> (buffer-size) 5000)
