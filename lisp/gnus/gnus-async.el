@@ -47,8 +47,8 @@ If a number, prefetch only that many articles forward;
 if t, prefetch as many articles as possible."
   :group 'gnus-asynchronous
   :type '(choice (const :tag "off" nil)
-		 (const :tag "all" t)
-		 (integer :tag "some" 0)))
+		 (integer :tag "some" 0)
+		 (other :tag "all" t)))
 
 (defcustom gnus-prefetched-article-deletion-strategy '(read exit)
   "List of symbols that say when to remove articles from the prefetch buffer.
