@@ -106,6 +106,10 @@ A byte-code function object is also allowed.")
     XSETFASTINT (val, XSTRING (obj)->size);
   else if (VECTORP (obj))
     XSETFASTINT (val, XVECTOR (obj)->size);
+  else if (CHAR_TABLE_P (obj))
+    XSETFASTINT (val, CHAR_TABLE_ORDINARY_SLOTS);
+  else if (BOOL_VECTOR_P (obj))
+    XSETFASTINT (val, XBOOL_VECTOR (obj)->size);
   else if (COMPILEDP (obj))
     XSETFASTINT (val, XVECTOR (obj)->size & PSEUDOVECTOR_SIZE_MASK);
   else if (CONSP (obj))
@@ -289,6 +293,41 @@ with the original.")
      Lisp_Object arg;
 {
   if (NILP (arg)) return arg;
+
+  if (CHAR_TABLE_P (arg))
+    {
+      int i, size;
+      Lisp_Object copy;
+
+      /* Calculate the number of extra slots.  */
+      size = CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (arg));
+      copy = Fmake_char_table (make_number (size), Qnil);
+      /* Copy all the slots, including the extra ones.  */
+      bcopy (XCHAR_TABLE (arg)->contents, XCHAR_TABLE (copy)->contents,
+	     (XCHAR_TABLE (arg)->size & PSEUDOVECTOR_SIZE_MASK) * sizeof (Lisp_Object));
+
+      /* Recursively copy any char-tables in the ordinary slots.  */
+      for (i = 0; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
+	if (CHAR_TABLE_P (XCHAR_TABLE (arg)->contents[i]))
+	  XCHAR_TABLE (copy)->contents[i]
+	    = Fcopy_sequence (XCHAR_TABLE (copy)->contents[i]);
+
+      return copy;
+    }
+
+  if (BOOL_VECTOR_P (arg))
+    {
+      Lisp_Object val;
+      int bits_per_char = INTBITS / sizeof (int);
+      int size_in_chars
+	= (XBOOL_VECTOR (arg)->size + bits_per_char) / bits_per_char;
+
+      val = Fmake_bool_vector (Flength (arg), Qnil);
+      bcopy (XBOOL_VECTOR (arg)->data, XBOOL_VECTOR (val)->data,
+	     size_in_chars);
+      return val;
+    }
+
   if (!CONSP (arg) && !VECTORP (arg) && !STRINGP (arg))
     arg = wrong_type_argument (Qsequencep, arg);
   return concat (1, &arg, CONSP (arg) ? Lisp_Cons : XTYPE (arg), 0);
@@ -324,7 +363,7 @@ concat (nargs, args, target_type, last_special)
     {
       this = args[argnum];
       if (!(CONSP (this) || NILP (this) || VECTORP (this) || STRINGP (this)
-	    || COMPILEDP (this)))
+	    || COMPILEDP (this) || BOOL_VECTOR_P (this)))
 	{
 	  if (INTEGERP (this))
             args[argnum] = Fnumber_to_string (this);
@@ -391,6 +430,19 @@ concat (nargs, args, target_type, last_special)
 	      if (thisindex >= thisleni) break;
 	      if (STRINGP (this))
 		XSETFASTINT (elt, XSTRING (this)->data[thisindex++]);
+	      else if (BOOL_VECTOR_P (this))
+		{
+		  int bits_per_char = INTBITS / sizeof (int);
+		  int size_in_chars
+		    = ((XBOOL_VECTOR (this)->size + bits_per_char)
+		       / bits_per_char);
+		  int byte;
+		  byte = XBOOL_VECTOR (val)->data[thisindex / bits_per_char];
+		  if (byte & (1 << thisindex))
+		    elt = Qt;
+		  else
+		    elt = Qnil;
+		}
 	      else
 		elt = XVECTOR (this)->contents[thisindex++];
 	    }
@@ -521,7 +573,8 @@ DEFUN ("elt", Felt, Selt, 2, 2, 0,
     {
       if (CONSP (seq) || NILP (seq))
 	return Fcar (Fnthcdr (n, seq));
-      else if (STRINGP (seq) || VECTORP (seq))
+      else if (STRINGP (seq) || VECTORP (seq) || BOOL_VECTOR_P (seq)
+	       || CHAR_TABLE_P (seq))
 	return Faref (seq, n);
       else
 	seq = wrong_type_argument (Qsequencep, seq);
@@ -1019,11 +1072,26 @@ internal_equal (o1, o2, depth)
 	   same size.  */
 	if (XVECTOR (o2)->size != size)
 	  return 0;
-	/* But only true vectors and compiled functions are actually sensible
-	   to compare, so eliminate the others now.  */
+	/* Boolvectors are compared much like strings.  */
+	if (BOOL_VECTOR_P (o1))
+	  {
+	    int bits_per_char = INTBITS / sizeof (int);
+	    int size_in_chars
+	      = (XBOOL_VECTOR (o1)->size + bits_per_char) / bits_per_char;
+
+	    if (XBOOL_VECTOR (o1)->size != XBOOL_VECTOR (o2)->size)
+	      return 0;
+	    if (bcmp (XBOOL_VECTOR (o1)->data, XBOOL_VECTOR (o2)->data,
+		      size_in_chars))
+	      return 0;
+	    return 1;
+	  }
+
+	/* Aside from them, only true vectors, char-tables, and compiled
+	   functions are sensible to compare, so eliminate the others now.  */
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
-	    if (!(size & PVEC_COMPILED))
+	    if (!(size & (PVEC_COMPILED | PVEC_CHAR_TABLE)))
 	      return 0;
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  }
@@ -1058,7 +1126,8 @@ internal_equal (o1, o2, depth)
 }
 
 DEFUN ("fillarray", Ffillarray, Sfillarray, 2, 2, 0,
-  "Store each element of ARRAY with ITEM.  ARRAY is a vector or string.")
+  "Store each element of ARRAY with ITEM.\n\
+ARRAY is a vector, string, char-table, or bool-vector.")
   (array, item)
      Lisp_Object array, item;
 {
@@ -1071,6 +1140,14 @@ DEFUN ("fillarray", Ffillarray, Sfillarray, 2, 2, 0,
       for (index = 0; index < size; index++)
 	p[index] = item;
     }
+  else if (CHAR_TABLE_P (array))
+    {
+      register Lisp_Object *p = XCHAR_TABLE (array)->contents;
+      size = CHAR_TABLE_ORDINARY_SLOTS;
+      for (index = 0; index < size; index++)
+	p[index] = item;
+      XCHAR_TABLE (array)->defalt = Qnil;
+    }
   else if (STRINGP (array))
     {
       register unsigned char *p = XSTRING (array)->data;
@@ -1078,6 +1155,17 @@ DEFUN ("fillarray", Ffillarray, Sfillarray, 2, 2, 0,
       charval = XINT (item);
       size = XSTRING (array)->size;
       for (index = 0; index < size; index++)
+	p[index] = charval;
+    }
+  else if (BOOL_VECTOR_P (array))
+    {
+      register unsigned char *p = XBOOL_VECTOR (array)->data;
+      int bits_per_char = INTBITS / sizeof (int);
+      int size_in_chars
+	= (XBOOL_VECTOR (array)->size + bits_per_char) / bits_per_char;
+
+      charval = (! NILP (item) ? -1 : 0);
+      for (index = 0; index < size_in_chars; index++)
 	p[index] = charval;
     }
   else
@@ -1088,6 +1176,152 @@ DEFUN ("fillarray", Ffillarray, Sfillarray, 2, 2, 0,
   return array;
 }
 
+DEFUN ("char-table-parent", Fchar_table_parent, Schar_table_parent,
+       1, 1, 0,
+  "Return the parent char-table of CHAR-TABLE.\n\
+The value is either nil or another char-table.\n\
+If CHAR-TABLE holds nil for a given character,\n\
+then the actual applicable value is inherited from the parent char-table\n\
+\(or from its parents, if necessary).")
+  (chartable)
+     Lisp_Object chartable;
+{
+  CHECK_CHAR_TABLE (chartable, 0);  
+
+  return XCHAR_TABLE (chartable)->parent;
+}
+
+DEFUN ("set-char-table-parent", Fset_char_table_parent, Sset_char_table_parent,
+       2, 2, 0,
+  "Set the parent char-table of CHAR-TABLE to PARENT.\n\
+PARENT must be either nil or another char-table.")
+  (chartable, parent)
+     Lisp_Object chartable, parent;
+{
+  Lisp_Object temp;
+
+  CHECK_CHAR_TABLE (chartable, 0);  
+  CHECK_CHAR_TABLE (parent, 0);  
+
+  for (temp = parent; !NILP (temp); temp = XCHAR_TABLE (temp)->parent)
+    if (EQ (temp, chartable))
+      error ("Attempt to make a chartable be its own parent");
+
+  XCHAR_TABLE (chartable)->parent = parent;
+
+  return parent;
+}
+
+DEFUN ("char-table-extra-slot", Fchar_table_extra_slot, Schar_table_extra_slot,
+       2, 2, 0,
+  "Return the value in extra-slot number N of char-table CHAR-TABLE.")
+  (chartable, n)
+     Lisp_Object chartable, n;
+{
+  CHECK_CHAR_TABLE (chartable, 1);
+  CHECK_NUMBER (n, 2);
+  if (XINT (n) < 0
+      || XINT (n) >= CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (chartable)))
+    args_out_of_range (chartable, n);
+
+  return XCHAR_TABLE (chartable)->extras[XINT (n)];
+}
+
+DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
+       Sset_char_table_extra_slot,
+       3, 3, 0,
+  "Set extra-slot number N of CHAR-TABLE to VALUE.")
+  (chartable, n, value)
+     Lisp_Object chartable, n, value;
+{
+  CHECK_CHAR_TABLE (chartable, 1);
+  CHECK_NUMBER (n, 2);
+  if (XINT (n) < 0
+      || XINT (n) >= CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (chartable)))
+    args_out_of_range (chartable, n);
+
+  return XCHAR_TABLE (chartable)->extras[XINT (n)] = value;
+}
+
+DEFUN ("set-char-table-range", Fset_char_table_range, Sset_char_table_range,
+       3, 3, 0,
+  "Set the value in CHARTABLE for a range of characters RANGE to VALUE.\n\
+RANGE should be t (for all characters), nil (for the default value)\n\
+a vector which identifies a character set or a row of a character set,\n\
+or a character code.")
+  (chartable, range, value)
+     Lisp_Object chartable, range, value;
+{
+  int i;
+
+  CHECK_CHAR_TABLE (chartable, 0);
+  
+  if (EQ (range, Qt))
+    for (i = 0; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
+      XCHAR_TABLE (chartable)->contents[i] = value;
+  else if (EQ (range, Qnil))
+    XCHAR_TABLE (chartable)->defalt = value;
+  else if (INTEGERP (range))
+    Faset (chartable, range, value);
+  else if (VECTORP (range))
+    {
+      for (i = 0; i < XVECTOR (range)->size - 1; i++)
+	chartable = Faref (chartable, XVECTOR (range)->contents[i]);
+
+      if (EQ (XVECTOR (range)->contents[i], Qnil))
+	XCHAR_TABLE (chartable)->defalt = value;
+      else
+	Faset (chartable, XVECTOR (range)->contents[i], value);
+    }
+  else
+    error ("Invalid RANGE argument to `set-char-table-range'");
+
+  return value;
+}
+
+static void
+map_char_table (function, chartable, depth, indices)
+     Lisp_Object function, chartable, depth, *indices;
+{
+  int i;
+  int size = XCHAR_TABLE (chartable)->size;
+
+  /* Make INDICES longer if we are about to fill it up.  */
+  if ((depth % 10) == 9)
+    {
+      Lisp_Object *new_indices
+	= (Lisp_Object *) alloca ((depth += 10) * sizeof (Lisp_Object));
+      bcopy (indices, new_indices, depth * sizeof (Lisp_Object));
+      indices = new_indices;
+    }
+
+  for (i = 0; i < size; i++)
+    {
+      Lisp_Object elt;
+      indices[depth] = i;
+      elt = XCHAR_TABLE (chartable)->contents[i];
+      if (!CHAR_TABLE_P (elt))
+	call2 (function, Fvector (depth + 1, indices), elt);
+      else
+	map_char_table (chartable, function, depth + 1, indices);
+    }
+}
+
+DEFUN ("map-char-table", Fmap_char_table, Smap_char_table,
+  2, 2, 0,
+  "Call FUNCTION for each range of like characters in CHARTABLE.\n\
+FUNCTION is called with two arguments--a key and a value.\n\
+The key is always a possible RANGE argument to `set-char-table-range'.")
+  (function, chartable)
+     Lisp_Object function, chartable;
+{
+  Lisp_Object keyvec;
+  Lisp_Object *indices = (Lisp_Object *) alloca (10 * sizeof (Lisp_Object));
+
+  map_char_table (function, chartable, 0, indices);
+  return Qnil;
+}
+
 /* ARGSUSED */
 Lisp_Object
 nconc2 (s1, s2)
@@ -1570,6 +1804,12 @@ Used by `featurep' and `require', and altered by `provide'.");
   defsubr (&Sput);
   defsubr (&Sequal);
   defsubr (&Sfillarray);
+  defsubr (&Schar_table_parent);
+  defsubr (&Sset_char_table_parent);
+  defsubr (&Schar_table_extra_slot);
+  defsubr (&Sset_char_table_extra_slot);
+  defsubr (&Sset_char_table_range);
+  defsubr (&Smap_char_table);
   defsubr (&Snconc);
   defsubr (&Smapcar);
   defsubr (&Smapconcat);
