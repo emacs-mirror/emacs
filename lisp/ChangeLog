@@ -1,5 +1,19 @@
 2000-03-31  Dave Love  <fx@gnu.org>
 
+	* add-log.el: Don't require cl, fortran.
+	(add-log-current-defun-function): Doc fix.
+	(change-log-version-number-regexp-list): Remove SCCS part.  Doc
+	fix.
+	(change-log-version-rcs): Function deleted.
+	(change-log-version-number-search): Doc fix.  Use
+	vc-workfile-version.  Avoid CL dolist.
+	(add-change-log-entry): Just call add-log-current-defun to get
+	defun.  Simplify somewhat.
+	(change-log-get-method-definition-1): Likewise.
+	(add-log-current-defun): Return nil if calling
+	add-log-current-defun-function does so.  Move Fortran stuff to
+	fortran.el.  Return string without properties.
+
 	* textmodes/ooutline.el (outline-font-lock-keywords): Use :upper:
 	and :alpha: char classes.
 
