@@ -1,6 +1,6 @@
 /* impl.c.lockutw3: LOCK COVERAGE TEST
  *
- * $HopeName: MMsrc!lockutw3.c(trunk.6) $
+ * $HopeName: MMsrc!lockutw3.c(trunk.7) $
  */
 
 #include "mpm.h"
@@ -12,16 +12,16 @@
 
 #include "mpswin.h"
 
-SRCID(lockutw3, "$HopeName: MMsrc!lockutw3.c(trunk.6) $");
+SRCID(lockutw3, "$HopeName: MMsrc!lockutw3.c(trunk.7) $");
 
 
-static LockStruct lockStruct;
+static Lock lock;
 unsigned long shared,tmp;
 
 
 void incR(unsigned long i)
 {
-  LockClaimRecursive(&lockStruct);
+  LockClaimRecursive(lock);
   if(i<100) {
     while(i--) {
       tmp=shared;
@@ -31,7 +31,7 @@ void incR(unsigned long i)
     incR(i>>1);
     incR(i+1>>1);
   }
-  LockReleaseRecursive(&lockStruct);
+  LockReleaseRecursive(lock);
 }
 
 void inc(unsigned long i)
@@ -39,7 +39,7 @@ void inc(unsigned long i)
   incR(i+1>>1);
   i>>=1;
   while(i){
-    LockClaim(&lockStruct);
+    LockClaim(lock);
     if(i>10000){
       incR(5000);
       i-=5000;
@@ -47,7 +47,7 @@ void inc(unsigned long i)
     tmp=shared;
     shared=tmp+1;
     i--;
-    LockReleaseMPM(&lockStruct);
+    LockReleaseMPM(lock);
   }
 }
 
@@ -67,7 +67,10 @@ int main(void)
 
   nthreads = 4;
 
-  LockInit(&lockStruct);
+  lock = malloc(LockSize());
+  AVER(lock != NULL);
+
+  LockInit(lock);
 
   shared = 0;
 
@@ -79,7 +82,7 @@ int main(void)
 
   AVER(shared == nthreads*COUNT);
 
-  LockFinish(&lockStruct);
+  LockFinish(lock);
 
   return 0;
 }
