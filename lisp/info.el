@@ -174,7 +174,7 @@ Marker points nowhere if file has no tag table.")
   (if (eq system-type 'ms-dos)
       '( (".gz"      . "gunzip")
 	 (".z"       . "gunzip")
-	 (".bz2"     . "bzip2 -dc")
+	 (".bz2"     . ("bzip2" "-dc"))
 	 (".inz"     . "gunzip")
 	 (".igz"     . "gunzip")
 	 (".info.Z"  . "gunzip")
@@ -192,29 +192,34 @@ Marker points nowhere if file has no tag table.")
        (".info.Y".    "unyabba")
        (".info.gz".   "gunzip")
        (".info.z".    "gunzip")
-       (".info.bz2" . "bzip2 -dc")
+       (".info.bz2" . ("bzip2" "-dc"))
        (".info".      nil)
        ("-info.Z".   "uncompress")
        ("-info.Y".   "unyabba")
        ("-info.gz".  "gunzip")
-       ("-info.bz2" . "bzip2 -dc")
+       ("-info.bz2" . ("bzip2" "-dc"))
        ("-info.z".   "gunzip")
        ("-info".     nil)
        ("/index.Z".   "uncompress")
        ("/index.Y".   "unyabba")
        ("/index.gz".  "gunzip")
        ("/index.z".   "gunzip")
-       ("/index.bz2". "bzip2 -dc")
+       ("/index.bz2". ("bzip2" "-dc"))
        ("/index".     nil)
        (".Z".         "uncompress")
        (".Y".         "unyabba")
        (".gz".        "gunzip")
        (".z".         "gunzip")
-       (".bz2" .      "bzip2 -dc")
+       (".bz2" .      ("bzip2" "-dc"))
        ("".           nil)))
   "List of file name suffixes and associated decoding commands.
 Each entry should be (SUFFIX . STRING); the file is given to
-the command as standard input.  If STRING is nil, no decoding is done.
+the command as standard input.
+
+STRING may be a list of strings.  In that case, the first element is
+the command name, and the rest are arguments to that command.
+
+If STRING is nil, no decoding is done.
 Because the SUFFIXes are tried in order, the empty string should
 be last in the list.")
 
@@ -284,7 +289,10 @@ Do the right thing if the file has been compressed or zipped."
 		(coding-system-for-write 'no-conversion)
 		(default-directory (or (file-name-directory fullname)
 				       default-directory)))
-	    (call-process-region (point-min) (point-max) decoder t t)))
+	    (or (consp decoder)
+		(setq decoder (list decoder)))
+	    (apply 'call-process-region (point-min) (point-max)
+		   (car decoder) t t nil (cdr decoder))))
       (insert-file-contents fullname visit))))
 
 (defun info-initialize ()
