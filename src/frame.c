@@ -293,7 +293,9 @@ make_frame (mini_p)
   f->column_width = 1;  /* !FRAME_WINDOW_P value */
   f->line_height = 1;  /* !FRAME_WINDOW_P value */
   f->x_pixels_diff = f->y_pixels_diff = 0;
+#ifdef HAVE_WINDOW_SYSTEM
   f->want_fullscreen = FULLSCREEN_NONE;
+#endif
   f->size_hint_flags = 0;
   f->win_gravity = 0;
 

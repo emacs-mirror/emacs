@@ -1,3 +1,8 @@
+2003-05-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frame.c (make_frame): Condition want_fullscreen with
+	HAVE_WINDOW_SYSTEM.
+
 2003-05-25  Juanma Barranquero  <lektu@terra.es>
 
 	* window.c (Fset_window_scroll_bars): Fix typo in argument name.
