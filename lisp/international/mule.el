@@ -247,10 +247,10 @@ See the function `charset-info' for more detail."
   (aset (charset-info  charset) 14 plist))
 
 (defun make-char (charset &optional c1 c2)
-  "Return a character of CHARSET and position-codes CODE1 and CODE2.
+  "Return a character of CHARSET and position codes CODE1 and CODE2.
 CODE1 and CODE2 are optional, but if you don't supply
-sufficient position-codes, return a generic character which stands for
-all characters or group of characters in the character sets.
+sufficient position codes, return a generic character which stands for
+all characters or group of characters in the character set.
 A generic character can be used to index a char table (e.g. syntax-table)."
   (make-char-internal (charset-id charset) c1 c2))
 
