@@ -1,3 +1,8 @@
+2001-03-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/autoload.el (generate-file-autoloads): Remove
+	warning about line lengths.
+
 2001-03-12  Philippe Waroquiers  <wao@gull.tact.cfmu.eurocontrol.be>
 
 	* progmodes/etags.el (tags-compression-info-list): New variable.
@@ -35,11 +40,11 @@
 	(vc-print-log): Don't switch to the *vc* buffer before the
 	command, so that local variable bindings are preserved.
 
-	* vc-{cvs,rcs,sccs}.el: (vc-*-print-log): Output to buffer *vc*,
+	* vc-{cvs,rcs,sccs}.el (vc-*-print-log): Output to buffer *vc*,
 	not the current buffer.
 	(vc-*-diff): Output to buffer *vc-diff*, not the current buffer.
 
-	* vc-cvs.el: (vc-cvs-checkin): When removing the sticky tag,
+	* vc-cvs.el (vc-cvs-checkin): When removing the sticky tag,
 	make output go to buffer *vc*, not the current buffer.
 
 2001-03-09  Stefan Monnier  <monnier@cs.yale.edu>
