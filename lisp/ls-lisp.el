@@ -3,6 +3,7 @@
 ;; Copyright (C) 1992, 1994 by Sebastian Kremer <sk@thp.uni-koeln.de>
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
+;; Maintainer: FSF
 ;; Keywords: unix
 
 ;; This file is part of GNU Emacs.

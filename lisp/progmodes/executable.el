@@ -2,7 +2,8 @@
 
 ;; Copyright (C) 1994, 1995, 1996 by Free Software Foundation, Inc.
 
-;; Author: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
+;; Author: Daniel.Pfeiffer@Informatik.START.dbp.de
+;;		 fax (+49 69) 7588-2389
 ;; Keywords: languages, unix
 
 ;; This file is part of GNU Emacs.

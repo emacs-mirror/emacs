@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1991, 1993, 1995, 1996 Free Software Foundation, Inc.
 
-;; Maintainer: Morten Welinder (terra@diku.dk)
+;; Maintainer: Morten Welinder <terra@diku.dk>
 ;; Keywords: internal
 
 ;; This file is part of GNU Emacs.

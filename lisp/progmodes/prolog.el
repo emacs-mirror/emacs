@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1986, 1987 Free Software Foundation, Inc.
 
-;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
+;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
-;; Author: Morten Welinder (terra@diku.dk)
+;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: terminals
 ;; Favourite-brand-of-beer: None, I hate beer.
 

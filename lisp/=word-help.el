@@ -2,7 +2,7 @@
 
 ;; Copyright (c) 1996 Free Software Foundation, Inc.
 
-;; Maintainer: Jens T. Berger Thielemann, <jensthi@ifi.uio.no>
+;; Author: Jens T. Berger Thielemann <jensthi@ifi.uio.no>
 ;; Keywords: help, keyword, languages, completion
 
 ;; This file is part of GNU Emacs.
