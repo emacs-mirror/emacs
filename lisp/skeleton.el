@@ -100,6 +100,11 @@ skeleton elements.")
 (defvar skeleton-debug nil
   "*If non-nil `define-skeleton' will override previous definition.")
 
+(defvar skeleton-marks nil
+  "Variable used to keep the list of positions marked with @ after
+skeleton insertion. The list is in the reverse order of the insertion
+order. This list is reseted before skeleton insertion.")
+
 ;; reduce the number of compiler warnings
 (defvar skeleton)
 (defvar skeleton-modified)
@@ -250,6 +255,7 @@ If ELEMENT is a string or a character it gets inserted (see also
 	\\n	go to next line and indent according to mode
 	_	interesting point, interregion here, point after termination
 	>	indent line (or interregion if > _) according to major mode
+	@	add position to `skeleton-marks'
 	&	do next ELEMENT if previous moved point
 	|	do next ELEMENT if previous didn't move point
 	-num	delete num preceding characters (see `skeleton-untabify')
@@ -299,6 +305,7 @@ When done with skeleton, but before going back to `_'-point call
        (setq skeleton-regions (cdr skeleton-regions)))
   (let ((beg (point))
 	skeleton-modified skeleton-point resume: help input v1 v2)
+    (setq skeleton-marks nil)
     (unwind-protect
 	(eval `(let ,skeleton-further-elements
 		 (skeleton-internal-list skeleton str)))
@@ -431,6 +438,8 @@ automatically, and you are prompted to fill in the variable parts.")))
 	((eq element '|)
 	 (or skeleton-modified
 	     (setq skeleton (cdr skeleton))))
+	((eq element '@)
+	 (setq skeleton-marks (cons (point) skeleton-marks)))
 	((eq 'quote (car-safe element))
 	 (eval (nth 1 element)))
 	((or (stringp (car-safe element))
