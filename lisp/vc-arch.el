@@ -73,18 +73,10 @@
 (put 'Arch 'vc-functions nil)
 
 ;;;###autoload (defun vc-arch-registered (file)
-;;;###autoload   (let ((dir file))
-;;;###autoload     (while (and (stringp dir)
-;;;###autoload                 (not (equal
-;;;###autoload                       dir (setq dir (file-name-directory dir))))
-;;;###autoload                 dir)
-;;;###autoload       (setq dir (if (file-directory-p
-;;;###autoload                      (expand-file-name "{arch}" dir))
-;;;###autoload                     t (directory-file-name dir))))
-;;;###autoload     (if (eq dir t)
-;;;###autoload          (progn
-;;;###autoload           (load "vc-arch")
-;;;###autoload           (vc-arch-registered file)))))
+;;;###autoload   (if (vc-find-root file "{arch}/=tagging-method")
+;;;###autoload       (progn
+;;;###autoload         (load "vc-arch")
+;;;###autoload         (vc-arch-registered file))))
 
 (defun vc-arch-add-tagline ()
   "Add an `arch-tag' to the end of the current file."
@@ -186,18 +178,10 @@ Only the value `maybe' can be trusted :-(."
 (defun vc-arch-root (file)
   "Return the root directory of a Arch project, if any."
   (or (vc-file-getprop file 'arch-root)
-      (vc-file-setprop
-       file 'arch-root
-       (let ((root nil))
-	 (while (not (or root
-			 (equal file (setq file (file-name-directory file)))
-			 (null file)))
-	   ;; Check the =tagging-method, in case someone naively manually
-	   ;; creates a {arch} directory somewhere.
-	   (if (file-exists-p (expand-file-name "{arch}/=tagging-method" file))
-	       (setq root file)
-	     (setq file (directory-file-name file))))
-	 root))))
+      (vc-file-setprop 
+       ;; Check the =tagging-method, in case someone naively manually
+       ;; creates a {arch} directory somewhere.
+       file 'arch-root (vc-find-root file "{arch}/=tagging-method"))))
 
 (defun vc-arch-register (file &optional rev comment)
   (if rev (error "Explicit initial revision not supported for Arch"))

@@ -1,5 +1,5 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001, 2002, 2003
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001, 2002, 2003, 2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -396,6 +396,7 @@ unmark_byte_stack ()
 	Vquit_flag = Qnil;				\
         BEFORE_POTENTIAL_GC ();				\
 	Fsignal (Qquit, Qnil);				\
+	AFTER_POTENTIAL_GC ();				\
       }							\
   } while (0)
 
@@ -606,9 +607,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 	      TOP = Qnil;
 	    else
 	      {
-		BEFORE_POTENTIAL_GC ();
-		Fcar (wrong_type_argument (Qlistp, v1));
-		AFTER_POTENTIAL_GC ();
+		wrong_type_argument (Qlistp, v1);
 	      }
 	    break;
 	  }
@@ -641,9 +640,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 	      TOP = Qnil;
 	    else
 	      {
-		BEFORE_POTENTIAL_GC ();
-		Fcdr (wrong_type_argument (Qlistp, v1));
-		AFTER_POTENTIAL_GC ();
+		wrong_type_argument (Qlistp, v1);
 	      }
 	    break;
 	  }
@@ -974,11 +971,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 		else if (!NILP (v1))
 		  {
 		    immediate_quit = 0;
-		    BEFORE_POTENTIAL_GC ();
-		    v1 = wrong_type_argument (Qlistp, v1);
-		    AFTER_POTENTIAL_GC ();
-		    immediate_quit = 1;
-		    op++;
+		    wrong_type_argument (Qlistp, v1);
 		  }
 	      }
 	    immediate_quit = 0;
@@ -987,11 +980,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 	    else if (NILP (v1))
 	      TOP = Qnil;
 	    else
-	      {
-		BEFORE_POTENTIAL_GC ();
-		Fcar (wrong_type_argument (Qlistp, v1));
-		AFTER_POTENTIAL_GC ();
-	      }
+	      wrong_type_argument (Qlistp, v1);
 	    break;
 	  }
 
@@ -1621,11 +1610,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 		    else if (!NILP (v1))
 		      {
 			immediate_quit = 0;
-			BEFORE_POTENTIAL_GC ();
-			v1 = wrong_type_argument (Qlistp, v1);
-			AFTER_POTENTIAL_GC ();
-			immediate_quit = 1;
-			op++;
+			wrong_type_argument (Qlistp, v1);
 		      }
 		  }
 		immediate_quit = 0;
@@ -1634,11 +1619,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 		else if (NILP (v1))
 		  TOP = Qnil;
 		else
-		  {
-		    BEFORE_POTENTIAL_GC ();
-		    Fcar (wrong_type_argument (Qlistp, v1));
-		    AFTER_POTENTIAL_GC ();
-		  }
+		  wrong_type_argument (Qlistp, v1);
 	      }
 	    else
 	      {

@@ -1015,7 +1015,10 @@ currently used by buffers."
   "Toggle current view to buffers with filename matching QUALIFIER."
   (:description "filename"
    :reader (read-from-minibuffer "Filter by filename (regexp): "))
-  (ibuffer-awhen (buffer-file-name buf)
+  (ibuffer-awhen (with-current-buffer buf
+		   (or buffer-file-name
+		       (and (boundp 'dired-directory)
+			    dired-directory)))
     (string-match qualifier it)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-size-gt  "ibuf-ext.el")

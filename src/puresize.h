@@ -47,7 +47,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* Increase BASE_PURESIZE by a ratio depending on the machine's word size.  */
 #ifndef PURESIZE_RATIO
-#if VALBITS + GCTYPEBITS + 1 > 32
+#if BITS_PER_EMACS_INT > 32
 #define PURESIZE_RATIO 9/5	/* Don't surround with `()'. */
 #else
 #define PURESIZE_RATIO 1

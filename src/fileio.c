@@ -1,6 +1,6 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985,86,87,88,93,94,95,96,97,98,99,2000,01,03,2004
-     Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997, 1998,
+     1999, 2000, 2001, 2003, 2004  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4327,7 +4327,7 @@ actually used.  */)
       /* Replace the chars that we need to replace,
 	 and update INSERTED to equal the number of bytes
 	 we are taking from the file.  */
-      inserted -= (Z_BYTE - same_at_end) + (same_at_start - BEG_BYTE);
+      inserted -= (ZV_BYTE - same_at_end) + (same_at_start - BEGV_BYTE);
 
       if (same_at_end != same_at_start)
 	{
@@ -4341,7 +4341,7 @@ actually used.  */)
 	}
       /* Insert from the file at the proper position.  */
       SET_PT_BOTH (temp, same_at_start);
-      insert_1 (conversion_buffer + same_at_start - BEG_BYTE, inserted,
+      insert_1 (conversion_buffer + same_at_start - BEGV_BYTE, inserted,
 		0, 0, 0);
       if (coding.cmp_data && coding.cmp_data->used)
 	coding_restore_composition (&coding, Fcurrent_buffer ());

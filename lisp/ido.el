@@ -482,11 +482,17 @@ Value can be toggled within `ido' using `ido-toggle-regexp'."
   :group 'ido)
 
 (defcustom ido-enable-prefix nil
-  "*Nil means that `ido' will match if the inserted text is an
-arbitrary substring (default). If non-nil `ido' will only match if the inserted
-text is a prefix \(this behavior is like the standard unix- or
-emacs-completion works).
+  "*Non-nil means only match if the entered text is a prefix of file name.
+This behavior is like the standard emacs-completion.
+Nil means to match if the entered text is an arbitrary substring.
 Value can be toggled within `ido' using `ido-toggle-prefix'."
+  :type 'boolean
+  :group 'ido)
+
+(defcustom ido-enable-dot-prefix nil
+  "*Non-nil means to match leading dot as prefix.
+I.e. hidden files and buffers will match only if you type a dot
+as first char even if `ido-enable-prefix' is nil."
   :type 'boolean
   :group 'ido)
 
@@ -2928,13 +2934,22 @@ for first matching file."
 		       (concat "\\`" re "\\'")))
 	 (prefix-re (and full-re (not ido-enable-prefix)
 			 (concat "\\`" rexq)))
+	 (non-prefix-dot (or (not ido-enable-dot-prefix)
+			     (not ido-process-ignore-lists)
+			     ido-enable-prefix
+			     (= (length ido-text) 0)))
+
 	 full-matches
 	 prefix-matches
 	 matches)
     (mapcar
      (lambda (item)
        (let ((name (ido-name item)))
-	 (if (string-match re name)
+	 (if (and (or non-prefix-dot
+		      (if (= (aref ido-text 0) ?.)
+			  (= (aref name 0) ?.)
+			(/= (aref name 0) ?.)))
+		  (string-match re name))
 	     (cond
 	      ((and full-re (string-match full-re name))
 	       (setq full-matches (cons item full-matches)))

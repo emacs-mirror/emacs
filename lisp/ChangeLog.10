@@ -14327,7 +14327,7 @@
 2002-06-01  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el: Reworked previous change.
-	(choose-completion-string1): Merged back into choose-completion-string.
+	(choose-completion-string1): Merge back into choose-completion-string.
 	(choose-completion-string): Run choose-completion-string-functions
 	after checking for proper minibuffer window.  Added mini-p arg to
 	the hook functions.  Insert choice if all hook functions return nil.
@@ -14348,7 +14348,7 @@
 2002-06-01  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (choose-completion-string-functions): New special hook.
-	(choose-completion-string1): Renamed from choose-completion-string.
+	(choose-completion-string1): Rename from choose-completion-string.
 	(choose-completion-string): Run choose-completion-string-functions
 	until success, and only call choose-completion-string1 if it fails.
 

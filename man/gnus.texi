@@ -14011,8 +14011,8 @@ is run.  That's why @code{(widen)} needs to be called after
 @code{save-excursion} and @code{save-restriction} in the example
 above.  Also note that with the nnimap backend, message bodies will
 not be downloaded by default.  You need to set
-@code{nnimap-split-download-body} to t to do that (@pxref{Splitting in
-IMAP}).
+@code{nnimap-split-download-body} to @code{t} to do that
+(@pxref{Splitting in IMAP}).
 
 @item (! @var{func} @var{split})
 If the split is a list, and the first element is @code{!}, then
@@ -16209,7 +16209,17 @@ RFC 2060 for more information on valid strings.
 A file containing credentials used to log in on servers.  The format is
 (almost) the same as the @code{ftp} @file{~/.netrc} file.  See the
 variable @code{nntp-authinfo-file} for exact syntax; also see
-@ref{NNTP}.
+@ref{NNTP}.  An example of an .authinfo line for an IMAP server, is: 
+
+@example
+machine students.uio.no login larsi password geheimnis port imap
+@end example
+
+Note that it should be @code{port imap}, or @code{port 143}, if you
+use a @code{nnimap-stream} of @code{tls} or @code{ssl}, even if the
+actual port number used is port 993 for secured IMAP.  For
+convenience, Gnus will accept @code{port imaps} as a synonym of
+@code{port imap}.
 
 @item nnimap-need-unselect-to-notice-new-mail
 @vindex nnimap-need-unselect-to-notice-new-mail
@@ -22249,16 +22259,18 @@ server or when you sort through incoming mail.  If you get 200 spam
 messages per day from @samp{random-address@@vmadmin.com}, you block
 @samp{vmadmin.com}.  If you get 200 messages about @samp{VIAGRA}, you
 discard all messages with @samp{VIAGRA} in the message.  If you get
-lots of spam from China, for example, you try to filter all mail from
-Chinese IPs.
+lots of spam from Bulgaria, for example, you try to filter all mail
+from Bulgarian IPs.  
 
-This, unfortunately, is a great way to discard legitimate e-mail.  For
-instance, the very informative and useful RISKS digest has been
-blocked by overzealous mail filters because it @strong{contained}
-words that were common in spam messages.  The risks of blocking a
-whole country from contacting you should also be obvious, so don't do
-it if you have the choice.  Nevertheless, in isolated cases, with
-great care, direct filtering of mail can be useful.
+This, unfortunately, is a great way to discard legitimate e-mail.  The
+risks of blocking a whole country (Bulgaria, Norway, Nigeria, China,
+etc.) or even a continent (Asia, Africa, Europe, etc.) from contacting
+you should be obvious, so don't do it if you have the choice.
+
+In another instance, the very informative and useful RISKS digest has
+been blocked by overzealous mail filters because it @strong{contained}
+words that were common in spam messages.  Nevertheless, in isolated
+cases, with great care, direct filtering of mail can be useful.
 
 Another approach to filtering e-mail is the distributed spam
 processing, for instance DCC implements such a system.  In essence,
@@ -22435,8 +22447,8 @@ call the external tools during splitting.  Example fancy split method:
 
 Note that with the nnimap backend, message bodies will not be
 downloaded by default.  You need to set
-@code{nnimap-split-download-body} to t to do that (@pxref{Splitting in
-IMAP}).
+@code{nnimap-split-download-body} to @code{t} to do that
+(@pxref{Splitting in IMAP}).
 
 That is about it.  As some spam is likely to get through anyway, you
 might want to have a nifty function to call when you happen to read
@@ -22672,8 +22684,8 @@ any are set, and the processed mail is moved to the
 @code{ham-process-destination} or the @code{spam-process-destination}
 depending on the article's classification.  If the
 @code{ham-process-destination} or the @code{spam-process-destination},
-whichever is appropriate, are nil, the article is left in the current
-group.
+whichever is appropriate, are @code{nil}, the article is left in the
+current group.
 
 If a spam is found in any group (this can be changed to only non-spam
 groups with @code{spam-move-spam-nonspam-groups-only}), it is
@@ -22685,11 +22697,11 @@ You have to load the @code{gnus-registry.el} package and enable the
 @code{spam-log-to-registry} variable if you want spam to be processed
 no more than once.  Thus, spam is detected and processed everywhere,
 which is what most people want.  If the
-@code{spam-process-destination} is nil, the spam is marked as
+@code{spam-process-destination} is @code{nil}, the spam is marked as
 expired, which is usually the right thing to do.
 
-If spam can not be moved - because of a read-only backend such as NNTP,
-for example, it will be copied.
+If spam can not be moved---because of a read-only backend such as
+@acronym{NNTP}, for example, it will be copied.
 
 If a ham mail is found in a ham group, as determined by the
 @code{ham-marks} parameter, it is processed as ham by the active ham
@@ -22703,11 +22715,11 @@ no more than once.  Thus, ham is detected and processed only when
 necessary, which is what most people want.  More on this in
 @xref{Spam ELisp Package Configuration Examples}.
 
-If ham can not be moved - because of a read-only backend such as NNTP,
-for example, it will be copied.
+If ham can not be moved---because of a read-only backend such as
+@acronym{NNTP}, for example, it will be copied.
 
 If all this seems confusing, don't worry.  Soon it will be as natural
-as typing Lisp one-liners on a neural interface... err, sorry, that's
+as typing Lisp one-liners on a neural interface@dots{} err, sorry, that's
 50 years in the future yet.  Just trust us, it's not so bad.
 
 @node Spam ELisp Package Filtering of Incoming Mail
@@ -22728,6 +22740,8 @@ Note that the fancy split may be called @code{nnmail-split-fancy} or
 @code{nnimap-split-fancy}, depending on whether you use the nnmail or
 nnimap back ends to retrieve your mail.
 
+Also, @code{spam-split} will not modify incoming mail in any way.
+
 The @code{spam-split} function will process incoming mail and send the
 mail considered to be spam into the group name given by the variable
 @code{spam-split-group}.  By default that group name is @samp{spam},
@@ -22741,7 +22755,7 @@ actually give you the group
 work depending on your server's tolerance for strange group names.
 
 You can also give @code{spam-split} a parameter,
-e.g. @samp{'spam-use-regex-headers} or @samp{"maybe-spam"}.  Why is
+e.g. @code{spam-use-regex-headers} or @code{"maybe-spam"}.  Why is
 this useful?
 
 Take these split rules (with @code{spam-use-regex-headers} and
@@ -22751,7 +22765,7 @@ Take these split rules (with @code{spam-use-regex-headers} and
  nnimap-split-fancy '(|
                       (any "ding" "ding")
                       (: spam-split)
-                      ;; default mailbox
+                      ;; @r{default mailbox}
                       "mail")
 @end example
 
@@ -22767,14 +22781,15 @@ You can let SpamAssassin headers supersede ding rules, but all other
 regex-headers check) will be after the ding rule:
 
 @example
- nnimap-split-fancy '(|
-;;; all spam detected by spam-use-regex-headers goes to "regex-spam"
-                      (: spam-split "regex-spam" 'spam-use-regex-headers)
-                      (any "ding" "ding")
-;;; all other spam detected by spam-split goes to spam-split-group
-                      (: spam-split)
-                      ;; default mailbox
-                      "mail")
+nnimap-split-fancy
+      '(|
+        ;; @r{all spam detected by @code{spam-use-regex-headers} goes to @samp{regex-spam}}
+        (: spam-split "regex-spam" 'spam-use-regex-headers)
+        (any "ding" "ding")
+        ;; @r{all other spam detected by spam-split goes to @code{spam-split-group}}
+        (: spam-split)
+        ;; @r{default mailbox}
+        "mail")
 @end example
 
 This lets you invoke specific @code{spam-split} checks depending on
@@ -22827,7 +22842,7 @@ processors take mail known to be spam and process it so similar spam
 will be detected later.
 
 The format of the spam or ham processor entry used to be a symbol,
-but now it is a cons cell.  See the individual spam processor entries
+but now it is a @sc{cons} cell.  See the individual spam processor entries
 for more information.
 
 @vindex gnus-spam-newsgroup-contents
@@ -22905,18 +22920,16 @@ not done for @emph{unclassified} or @emph{ham} groups.  Also, any
 determined by either the @code{ham-process-destination} group
 parameter or a match in the @code{gnus-ham-process-destinations}
 variable, which is a list of regular expressions matched with group
-names (it's easiest to customize this variable with
-@code{customize-variable gnus-ham-process-destinations}).  Each
-newsgroup specification has the format (REGEXP PROCESSOR) in a
-standard Lisp list, if you prefer to customize the variable manually.
-The ultimate location is a group name or names.  If the
-@code{ham-process-destination} parameter is not set, ham articles are
-left in place.  If the
+names (it's easiest to customize this variable with @kbd{M-x
+customize-variable @key{RET} gnus-ham-process-destinations}).  Each
+group name list is a standard Lisp list, if you prefer to customize
+the variable manually.  If the @code{ham-process-destination}
+parameter is not set, ham articles are left in place.  If the
 @code{spam-mark-ham-unread-before-move-from-spam-group} parameter is
-set, the ham articles are marked as unread before being moved.  
+set, the ham articles are marked as unread before being moved.
 
-If ham can not be moved - because of a read-only backend such as NNTP,
-for example, it will be copied.
+If ham can not be moved---because of a read-only backend such as
+@acronym{NNTP}, for example, it will be copied.
 
 Note that you can use multiples destinations per group or regular
 expression!  This enables you to send your ham to a regular mail
@@ -22944,18 +22957,16 @@ When you leave a @emph{ham} or @emph{unclassified} group, all
 the @code{spam-process-destination} group parameter or a match in the
 @code{gnus-spam-process-destinations} variable, which is a list of
 regular expressions matched with group names (it's easiest to
-customize this variable with @code{customize-variable
-gnus-spam-process-destinations}).  Each newsgroup specification has
-the repeated format (REGEXP GROUP) and they are all in a standard Lisp
-list, if you prefer to customize the variable manually.  The ultimate
-location is a group name or names.  If the
+customize this variable with @kbd{M-x customize-variable @key{RET}
+gnus-spam-process-destinations}).  Each group name list is a standard
+Lisp list, if you prefer to customize the variable manually.  If the
 @code{spam-process-destination} parameter is not set, the spam
 articles are only expired.  The group name is fully qualified, meaning
 that if you see @samp{nntp:servername} before the group name in the
-group buffer then you need it here as well.  
+group buffer then you need it here as well.
 
-If spam can not be moved - because of a read-only backend such as NNTP,
-for example, it will be copied.
+If spam can not be moved---because of a read-only backend such as
+@acronym{NNTP}, for example, it will be copied.
 
 Note that you can use multiples destinations per group or regular
 expression!  This enables you to send your spam to multiple @emph{spam
@@ -22971,15 +22982,15 @@ entries, this won't work as well as it does without a limit.
 
 @vindex spam-mark-only-unseen-as-spam
 Set this variable if you want only unseen articles in spam groups to
-be marked as spam.  By default, it is set.  If you set it to nil,
-unread articles will also be marked as spam.
+be marked as spam.  By default, it is set.  If you set it to
+@code{nil}, unread articles will also be marked as spam.
 
 @vindex spam-mark-ham-unread-before-move-from-spam-group
 Set this variable if you want ham to be unmarked before it is moved
 out of the spam group.  This is very useful when you use something
-like the tick mark @samp{!} to mark ham - the article will be placed
-in your ham-process-destination, unmarked as if it came fresh from
-the mail server.
+like the tick mark @samp{!} to mark ham---the article will be placed
+in your @code{ham-process-destination}, unmarked as if it came fresh
+from the mail server.
 
 @vindex spam-autodetect-recheck-messages
 When autodetecting spam, this variable tells @code{spam.el} whether
@@ -22997,87 +23008,86 @@ spam.  It is recommended that you leave it off.
 
 From Ted Zlatanov <tzz@@lifelogs.com>.
 @example
-
-;; for gnus-registry-split-fancy-with-parent and spam autodetection
-;; see gnus-registry.el for more information
+;; @r{for @code{gnus-registry-split-fancy-with-parent} and spam autodetection}
+;; @r{see @file{gnus-registry.el} for more information}
 (gnus-registry-initialize)
 (spam-initialize)
 
-;; I like control-S for marking spam
+;; @r{I like @kbd{C-s} for marking spam}
 (define-key gnus-summary-mode-map "\C-s" 'gnus-summary-mark-as-spam)
 
 (setq
- spam-log-to-registry t ;; for spam autodetection
+ spam-log-to-registry t     ; @r{for spam autodetection}
  spam-use-BBDB t
- spam-use-regex-headers t               ; catch X-Spam-Flag (SpamAssassin)
- ;; all groups with "spam" in the name contain spam
- gnus-spam-newsgroup-contents '(("spam" gnus-group-spam-classification-spam))
- ;; see documentation for these
+ spam-use-regex-headers t   ; @r{catch X-Spam-Flag (SpamAssassin)}
+ ;; @r{all groups with @samp{spam} in the name contain spam}
+ gnus-spam-newsgroup-contents
+  '(("spam" gnus-group-spam-classification-spam))
+ ;; @r{see documentation for these}
  spam-move-spam-nonspam-groups-only nil
  spam-mark-only-unseen-as-spam t
  spam-mark-ham-unread-before-move-from-spam-group t
  nnimap-split-rule 'nnimap-split-fancy
- ;; understand what this does before you copy it to your own setup!
+ ;; @r{understand what this does before you copy it to your own setup!}
  nnimap-split-fancy '(|
-                      ;; trace references to parents and put in their group
+                      ;; @r{trace references to parents and put in their group}
                       (: gnus-registry-split-fancy-with-parent)
-                      ;; this will catch server-side SpamAssassin tags
+                      ;; @r{this will catch server-side SpamAssassin tags}
                       (: spam-split 'spam-use-regex-headers)
                       (any "ding" "ding")
-                      ;; note that spam by default will go to "spam"
+                      ;; @r{note that spam by default will go to @samp{spam}}
                       (: spam-split)
-                      ;; default mailbox
+                      ;; @r{default mailbox}
                       "mail"))
 
-;; my parameters, set with `G p'
+;; @r{my parameters, set with @kbd{G p}}
 
-;; all nnml groups, and all nnimap groups except
-;; "nnimap+mail.lifelogs.com:train" and
-;; "nnimap+mail.lifelogs.com:spam": any spam goes to nnimap training,
-;; because it must have been detected manually
+;; @r{all nnml groups, and all nnimap groups except}
+;; @r{@samp{nnimap+mail.lifelogs.com:train} and}
+;; @r{@samp{nnimap+mail.lifelogs.com:spam}: any spam goes to nnimap training,}
+;; @r{because it must have been detected manually}
 
 ((spam-process-destination . "nnimap+mail.lifelogs.com:train"))
 
-;; all NNTP groups
-;; autodetect spam with the blacklist and ham with the BBDB
+;; @r{all @acronym{NNTP} groups}
+;; @r{autodetect spam with the blacklist and ham with the BBDB}
 ((spam-autodetect-methods spam-use-blacklist spam-use-BBDB)
-;; send all spam to the training group
+;; @r{send all spam to the training group}
  (spam-process-destination . "nnimap+mail.lifelogs.com:train"))
 
-;; only some NNTP groups, where I want to autodetect spam
+;; @r{only some @acronym{NNTP} groups, where I want to autodetect spam}
 ((spam-autodetect . t))
 
-;; my nnimap "nnimap+mail.lifelogs.com:spam" group
+;; @r{my nnimap @samp{nnimap+mail.lifelogs.com:spam} group}
 
-;; this is a spam group
+;; @r{this is a spam group}
 ((spam-contents gnus-group-spam-classification-spam)
 
- ;; any spam (which happens when I enter for all unseen messages,
- ;; because of the gnus-spam-newsgroup-contents setting above), goes to
- ;; "nnimap+mail.lifelogs.com:train" unless I mark it as ham
+ ;; @r{any spam (which happens when I enter for all unseen messages,}
+ ;; @r{because of the @code{gnus-spam-newsgroup-contents} setting above), goes to}
+ ;; @r{@samp{nnimap+mail.lifelogs.com:train} unless I mark it as ham}
 
  (spam-process-destination "nnimap+mail.lifelogs.com:train")
 
- ;; any ham goes to my "nnimap+mail.lifelogs.com:mail" folder, but
- ;; also to my "nnimap+mail.lifelogs.com:trainham" folder for training
+ ;; @r{any ham goes to my @samp{nnimap+mail.lifelogs.com:mail} folder, but}
+ ;; @r{also to my @samp{nnimap+mail.lifelogs.com:trainham} folder for training}
 
  (ham-process-destination "nnimap+mail.lifelogs.com:mail" 
                           "nnimap+mail.lifelogs.com:trainham")
- ;; in this group, only '!' marks are ham
+ ;; @r{in this group, only @samp{!} marks are ham}
  (ham-marks
   (gnus-ticked-mark))
- ;; remembers senders in the blacklist on the way out - this is
- ;; definitely not needed, it just makes me feel better
+ ;; @r{remembers senders in the blacklist on the way out---this is}
+ ;; @r{definitely not needed, it just makes me feel better}
  (spam-process (gnus-group-spam-exit-processor-blacklist)))
 
-;; Later, on the IMAP server I use the "train" group for training
-;; SpamAssassin to recognize spam, and the "trainham" group for
-;; recognizing ham - but Gnus has nothing to do with it.
+;; @r{Later, on the @acronym{IMAP} server I use the @samp{train} group for training}
+;; @r{SpamAssassin to recognize spam, and the @samp{trainham} group fora}
+;; @r{recognizing ham---but Gnus has nothing to do with it.}
 
 @end example
 
 @subsubheading Using @file{spam.el} on an IMAP server with a statistical filter on the server
-
 From Reiner Steib <reiner.steib@@gmx.de>.
 
 My provider has set up bogofilter (in combination with @acronym{DCC}) on
@@ -23115,7 +23125,7 @@ Because of the @code{gnus-group-spam-classification-spam} entry, all
 messages are marked as spam (with @code{$}).  When I find a false
 positive, I mark the message with some other ham mark (@code{ham-marks},
 @ref{Spam ELisp Package Global Variables}).  On group exit, those
-messages are copied to both groups, @samp{INBOX} (were I want to have
+messages are copied to both groups, @samp{INBOX} (where I want to have
 the article) and @samp{training.ham} (for training bogofilter) and
 deleted from the @samp{spam.detected} folder.
 
@@ -23147,7 +23157,7 @@ groups as spam and reports the to Gmane at group exit:
     (spam-process (gnus-group-spam-exit-processor-report-gmane)))
 @end lisp
 
-Additionally, I use `(setq spam-report-gmane-use-article-number nil)'
+Additionally, I use @code{(setq spam-report-gmane-use-article-number nil)}
 because I don't read the groups directly from news.gmane.org, but
 through my local news server (leafnode).  I.e. the article numbers are
 not the same as on news.gmane.org, thus @code{spam-report.el} has to check
@@ -23702,7 +23712,7 @@ the same way, we promise.
 Add this symbol to a group's @code{spam-process} parameter by
 customizing the group parameter or the
 @code{gnus-spam-process-newsgroups} variable.  When this symbol is added
-to a grup's @code{spam-process} parameter, the ham-marked articles in
+to a group's @code{spam-process} parameter, the ham-marked articles in
 @emph{ham} groups will be sent to the SpamOracle as samples of ham
 messages.  Note that this ham processor has no effect in @emph{spam} or
 @emph{unclassified} groups.
@@ -23742,7 +23752,7 @@ incoming mail, provide the following:
 @enumerate
 
 @item
-code
+Code
 
 @lisp
 (defvar spam-use-blackbox nil
@@ -23750,32 +23760,34 @@ code
 @end lisp
 
 Add
-@example
-    (spam-use-blackbox   . spam-check-blackbox)
-@end example
+@lisp
+(spam-use-blackbox   . spam-check-blackbox)
+@end lisp
 to @code{spam-list-of-checks}.
 
 Add
-@example
-    (gnus-group-ham-exit-processor-blackbox     ham spam-use-blackbox)
-    (gnus-group-spam-exit-processor-blackbox    spam spam-use-blackbox)
-@end example
+@lisp
+(gnus-group-ham-exit-processor-blackbox  ham spam-use-blackbox)
+(gnus-group-spam-exit-processor-blackbox spam spam-use-blackbox)
+@end lisp
+
 to @code{spam-list-of-processors}.
 
 Add
-@example
-    (spam-use-blackbox  spam-blackbox-register-routine
-                 nil
-                 spam-blackbox-unregister-routine
-                 nil)
-@end example
+@lisp
+(spam-use-blackbox spam-blackbox-register-routine
+                   nil
+                   spam-blackbox-unregister-routine
+                   nil)
+@end lisp
+
 to @code{spam-registration-functions}.  Write the register/unregister
 routines using the bogofilter register/unregister routines as a
 start, or other restister/unregister routines more appropriate to
 Blackbox.
 
 @item
-functionality
+Functionality
 
 Write the @code{spam-check-blackbox} function.  It should return
 @samp{nil} or @code{spam-split-group}, observing the other
@@ -23794,7 +23806,7 @@ For processing spam and ham messages, provide the following:
 @enumerate
 
 @item
-code
+Code
 
 Note you don't have to provide a spam or a ham processor.  Only
 provide them if Blackbox supports spam or ham processing.
@@ -23819,18 +23831,18 @@ Only applicable to non-spam (unclassified and ham) groups.")
 Gnus parameters
 
 Add
-@example
-                   (const :tag "Spam: Blackbox"   (spam spam-use-blackbox))
-                   (const :tag "Ham: Blackbox"    (ham spam-use-blackbox))
-@end example
+@lisp
+(const :tag "Spam: Blackbox" (spam spam-use-blackbox))
+(const :tag "Ham: Blackbox"  (ham spam-use-blackbox))
+@end lisp
 to the @code{spam-process} group parameter in @code{gnus.el}.  Make
 sure you do it twice, once for the parameter and once for the
 variable customization.
 
 Add
-@example
-          (variable-item spam-use-blackbox)
-@end example
+@lisp
+(variable-item spam-use-blackbox)
+@end lisp
 to the @code{spam-autodetect-methods} group parameter in
 @code{gnus.el}.
 

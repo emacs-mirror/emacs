@@ -559,7 +559,8 @@ If command is repeated at same position, delete the rectangle."
   ;; Rectangle is padded if PAD = t or numeric and (cua--rectangle-virtual-edges)
   ;; Perform auto-tabify after operation if TABIFY is non-nil.
   ;; Mark is kept if keep-clear is 'keep and cleared if keep-clear is 'clear.
-  (let* ((start (cua--rectangle-top))
+  (let* ((inhibit-field-text-motion t)
+	 (start (cua--rectangle-top))
          (end   (cua--rectangle-bot))
          (l (cua--rectangle-left))
          (r (1+ (cua--rectangle-right)))

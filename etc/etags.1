@@ -50,7 +50,7 @@ format understood by
 .BR vi ( 1 )\c
 \&.  Both forms of the program understand
 the syntax of C, Objective C, C++, Java, Fortran, Ada, Cobol, Erlang, HTML,
-LaTeX, Emacs Lisp/Common Lisp, makefiles, Pascal, Perl, PHP, Postscript,
+LaTeX, Emacs Lisp/Common Lisp, Lua, makefile, Pascal, Perl, PHP, Postscript,
 Python, Prolog, Scheme and
 most assembler\-like syntaxes.
 Both forms read the files specified on the command line, and write a tag
@@ -58,7 +58,9 @@ table (defaults: \fBTAGS\fP for \fBetags\fP, \fBtags\fP for
 \fBctags\fP) in the current working directory.
 Files specified with relative file names will be recorded in the tag
 table with file names relative to the directory where the tag table
-resides.  Files specified with absolute file names will be recorded
+resides.  If the tag table is in /dev, however, the file names are made
+relative to the working directory.  Files specified with absolute file
+names will be recorded
 with absolute file names.  Files generated from a source file\-\-like
 a C file generated from a source Cweb file\-\-will be recorded with
 the name of the source file.
