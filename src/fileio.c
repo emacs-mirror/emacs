@@ -5911,15 +5911,36 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
       if (NILP (Vread_file_name_predicate)
 	  || EQ (Vread_file_name_predicate, Qfile_exists_p))
 	return all;
-      GCPRO3 (all, comp, specdir);
-      count = specpdl_ptr - specpdl;
-      record_unwind_protect (read_file_name_cleanup, current_buffer->directory);
-      current_buffer->directory = realdir;
-      for (comp = Qnil; CONSP (all); all = XCDR (all))
-	if (!NILP (call1 (Vread_file_name_predicate, XCAR (all))))
-	  comp = Fcons (XCAR (all), comp);
-      unbind_to (count, Qnil);
-      UNGCPRO;
+
+#ifndef VMS
+      if (EQ (Vread_file_name_predicate, Qfile_directory_p))
+	{
+	  /* Brute-force speed up for directory checking: 
+	     Discard strings which don't end in a slash.  */
+	  for (comp = Qnil; CONSP (all); all = XCDR (all))
+	    {
+	      Lisp_Object tem = XCAR (all);
+	      int len;
+	      if (STRINGP (tem) &&
+		  (len = XSTRING (tem)->size, len > 0) &&
+		  IS_DIRECTORY_SEP (XSTRING (tem)->data[len-1]))
+		comp = Fcons (tem, comp);
+	    }
+	}
+      else
+#endif
+	{
+	  /* Must do it the hard (and slow) way.  */
+	  GCPRO3 (all, comp, specdir);
+	  count = specpdl_ptr - specpdl;
+	  record_unwind_protect (read_file_name_cleanup, current_buffer->directory);
+	  current_buffer->directory = realdir;
+	  for (comp = Qnil; CONSP (all); all = XCDR (all))
+	    if (!NILP (call1 (Vread_file_name_predicate, XCAR (all))))
+	      comp = Fcons (XCAR (all), comp);
+	  unbind_to (count, Qnil);
+	  UNGCPRO;
+	}
       return Fnreverse (comp);
     }
 
