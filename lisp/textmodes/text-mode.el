@@ -155,6 +155,6 @@ the distance between the end of the text and `fill-column'."
       (delete-horizontal-space)
       (setq line-length (current-column))
       (indent-line-to 
-	(+ lm (/ (- (fill-column) lm line-length) 2))))))
+	(+ lm (/ (- fill-column lm line-length) 2))))))
 
 ;;; text-mode.el ends here
