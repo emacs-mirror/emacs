@@ -76,7 +76,7 @@ Multibyte characters are conserned."
 (defun truncate-string-to-width (str width &optional start-column padding)
   "Truncate string STR to fit in WIDTH columns.
 Optional 1st arg START-COLUMN if non-nil specifies the starting column.
-Optional 2nd arg PADDING if non-nil, space characters are padded at
+Optional 2nd arg PADDING if non-nil is a padding character to be padded at
 the head and tail of the resulting string to fit in WIDTH if necessary.
 If PADDING is nil, the resulting string may be narrower than WIDTH."
   (or start-column
@@ -93,7 +93,7 @@ If PADDING is nil, the resulting string may be narrower than WIDTH."
 		idx (+ idx (char-bytes ch))))
       (args-out-of-range (setq idx len)))
     (if (< column start-column)
-	(if padding (make-string width ?\ ) "")
+	(if padding (make-string width padding) "")
       (if (and padding (> column start-column))
 	  (setq head-padding (make-string (- column start-column) ?\ )))
       (setq from-idx idx)
@@ -108,7 +108,7 @@ If PADDING is nil, the resulting string may be narrower than WIDTH."
       (if (> column width)
 	  (setq column last-column idx last-idx))
       (if (and padding (< column width))
-	  (setq tail-padding (make-string (- width column) ?\ )))
+	  (setq tail-padding (make-string (- width column) padding)))
       (setq str (substring str from-idx idx))
       (if padding
 	  (concat head-padding str tail-padding)
