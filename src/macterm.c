@@ -12616,11 +12616,17 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	  the_modifiers |= shift_modifier;
 	if (er.modifiers & controlKey)
 	  the_modifiers |= ctrl_modifier;
-	/* use option or command key as meta depending on value of
-	   mac-command-key-is-meta */
+	/* Use option or command key as meta depending on value of
+	   mac-command-key-is-meta.  */
 	if (er.modifiers
 	    & (NILP (Vmac_command_key_is_meta) ? optionKey : cmdKey))
 	  the_modifiers |= meta_modifier;
+ 
+	/* If the Mac option key is meta, then make Emacs recognize
+	   the Mac command key as alt.  */
+	if (NILP (Vmac_command_key_is_meta) && (er.modifiers & cmdKey))
+	  the_modifiers |= alt_modifier;
+
 	bufp->modifiers	= the_modifiers;
 				
 	{
