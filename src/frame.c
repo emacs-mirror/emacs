@@ -1837,6 +1837,28 @@ DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   XFASTINT (tem) = 0;
   return tem;
 }
+
+DEFUN ("frame-first-window", Fframe_first_window, Sframe_first_window, 0, 1, 0,
+  0)
+  (frame)
+     Lisp_Object frame;
+{
+  Lisp_Object w;
+
+  w = FRAME_ROOT_WINDOW (selected_frame);
+
+  while (NILP (XWINDOW (w)->buffer))
+    {
+      if (! NILP (XWINDOW (w)->hchild))
+	w = XWINDOW (w)->hchild;
+      else if (! NILP (XWINDOW (w)->vchild))
+	w = XWINDOW (w)->vchild;
+      else
+	abort ();
+    }
+  return w;
+}
+
 DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
   /* Don't confuse make-docfile by having two doc strings for this function.
      make-docfile does not pay attention to #if, for good reason!  */
@@ -2078,6 +2100,7 @@ syms_of_frame ()
   XFASTINT (Vterminal_frame) = 0;
 
   defsubr (&Sselected_frame);
+  defsubr (&Sframe_first_window);
   defsubr (&Sframep);
   defsubr (&Sframe_char_height);
   defsubr (&Sframe_char_width);
