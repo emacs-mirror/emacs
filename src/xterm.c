@@ -3801,7 +3801,8 @@ x_io_error_quitter (display)
 }
 
 /* A buffer for storing X error messages.  */
-static char (*x_caught_error_message)[200];
+static char *x_caught_error_message;
+#define X_CAUGHT_ERROR_MESSAGE_SIZE 200
 
 /* An X error handler which stores the error message in
    x_caught_error_message.  This is what's installed when
@@ -3812,7 +3813,7 @@ x_error_catcher (display, error)
      XErrorEvent *error;
 {
   XGetErrorText (display, error->error_code,
-		 *x_caught_error_message, sizeof (*x_caught_error_message));
+		 x_caught_error_message, X_CAUGHT_ERROR_MESSAGE_SIZE);
 }
 
 
@@ -3836,8 +3837,8 @@ x_catch_errors ()
 
   /* Set up the error buffer.  */
   x_caught_error_message
-    = (char (*)[200]) xmalloc (sizeof (*x_caught_error_message));
-  (*x_caught_error_message)[0] = '\0';
+    = (char*) xmalloc (X_CAUGHT_ERROR_MESSAGE_SIZE);
+  x_caught_error_message[0] = '\0';
 
   /* Install our little error handler.  */
   XHandleError (x_error_catcher);
@@ -3853,13 +3854,11 @@ x_check_errors (format)
   /* Make sure to catch any errors incurred so far.  */
   XSync (x_current_display, False);
 
-  if ((*x_caught_error_message)[0])
+  if (x_caught_error_message[0])
     {
-      char buf[256];
+      char buf[X_CAUGHT_ERROR_MESSAGE_SIZE + 56];
 
-      sprintf (buf, format, *x_caught_error_message);
-      xfree (x_caught_error_message);
-
+      sprintf (buf, format, x_caught_error_message);
       x_uncatch_errors ();
       error (buf);
     }
@@ -3869,6 +3868,7 @@ void
 x_uncatch_errors ()
 {
   xfree (x_caught_error_message);
+  x_caught_error_message = 0;
   XHandleError (x_error_quitter);
 }
 
