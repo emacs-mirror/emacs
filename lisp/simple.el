@@ -2093,9 +2093,15 @@ you can use this command to copy text from a read-only buffer."
 		     (forward-visible-line (prefix-numeric-value arg))
 		   (if (eobp)
 		       (signal 'end-of-buffer nil))
-		   (if (or (looking-at "[ \t]*$") (and kill-whole-line (bolp)))
-		       (forward-visible-line 1)
-		     (end-of-visible-line)))
+		   (let ((end
+			  (save-excursion
+			    (end-of-visible-line) (point))))
+		     (if (or (save-excursion
+			       (skip-chars-forward " \t" end)
+			       (= (point) end))
+			     (and kill-whole-line (bolp)))
+			 (forward-visible-line 1)
+		       (goto-char end))))
 		 (point))))
 
 (defun forward-visible-line (arg)
@@ -2157,12 +2163,15 @@ If ARG is zero, move to the beginning of the current line."
   ;; skip all characters with that same `invisible' property value,
   ;; then find the next newline.
   (while (and (not (eobp))
-	      (let ((prop
-		     (get-char-property (point) 'invisible)))
-		(if (eq buffer-invisibility-spec t)
-		    prop
-		  (or (memq prop buffer-invisibility-spec)
-		      (assq prop buffer-invisibility-spec)))))
+	      (save-excursion
+		(skip-chars-forward "^\n")
+		(let ((prop
+		       (get-char-property (point) 'invisible)))
+		  (if (eq buffer-invisibility-spec t)
+		      prop
+		    (or (memq prop buffer-invisibility-spec)
+			(assq prop buffer-invisibility-spec))))))
+    (skip-chars-forward "^\n")
     (if (get-text-property (point) 'invisible)
 	(goto-char (next-single-property-change (point) 'invisible))
       (goto-char (next-overlay-change (point))))
@@ -3932,7 +3941,7 @@ The completion list buffer is available as the value of `standard-output'.")
 		(save-excursion
 		  (set-buffer mainbuf)
 		  (goto-char (point-max))
-		  (skip-chars-backward (format "^%c" directory-sep-char))
+		  (skip-chars-backward "^/")
 		  (- (point) (minibuffer-prompt-end))))
 	;; Otherwise, in minibuffer, the whole input is being completed.
 	(save-match-data
