@@ -467,7 +467,11 @@ which will run faster and probably do exactly what you want."
 	(next-rotate-count 0)
 	(replace-count 0)
 	(lastrepl nil)			;Position after last match considered.
-	(match-again t))
+	(match-again t)
+	(message
+	 (if query-flag
+	     (substitute-command-keys
+	      "Query replacing %s with %s: (\\<query-replace-map>\\[help] for help) "))))
     (if (stringp replacements)
 	(setq next-replacement replacements)
       (or repeat-count (setq repeat-count 1)))
@@ -525,9 +529,7 @@ which will run faster and probably do exactly what you want."
 	      ;; which means it has finished handling this occurrence.
 	      (while (not done)
 		(replace-highlight (match-beginning 0) (match-end 0))
-		(message (substitute-command-keys
-			  "Query replacing %s with %s: (\\<query-replace-map>\\[help] for help) ")
-			 from-string next-replacement)
+		(message message from-string next-replacement)
 		(setq key (read-event))
 		(setq key (vector key))
 		(setq def (lookup-key map key))
