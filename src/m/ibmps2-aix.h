@@ -123,10 +123,16 @@ so disable it for them.  */
 #endif
 
 #define BSTRING
-#define HAVE_GETTIMEOFDAY
 #define HAVE_SELECT
 #define HAVE_TIMEVAL
 #define HAVE_VFORK
+#define HAVE_SETSID
+#undef  HAVE_TERMIO
+#define HAVE_TERMIOS
+
+/* Send signals to subprocesses by "typing" special chars at them.  */
+
+#define SIGNALS_VIA_CHARACTERS
 
 /*
  * 	Define SYSV_SYSTEM_DIR to use the V.3 getdents/readir
@@ -209,7 +215,7 @@ so disable it for them.  */
 #endif
 /* -g fails to work, so it is omitted.  */
 /* tranle says that -fstrength-reduce does not help.  */
-#define C_DEBUG_SWITCH -O -fwritable-strings
+#define C_DEBUG_SWITCH
 #else
 #define C_ALLOCA
 #define STACK_DIRECTION -1 /* tell alloca.c which way it grows */
@@ -218,6 +224,7 @@ so disable it for them.  */
 
 #define OBJECTS_MACHINE hftctl.o
 #define LD_SWITCH_MACHINE -T0x00400000 -K -e start
+#define LIBS_DEBUG		/* no -lg on aix ps/2 */
 
 #ifdef USG5_3
 #define XICCC
@@ -228,8 +235,10 @@ so disable it for them.  */
 /* Things defined in s-usg5-3.h that need to be overridden.  */
 #undef NOMULTIPLEJOBS
 #undef BROKEN_TIOCGETC
+#undef BROKEN_TIOCGWINSZ
 #undef LIBX10_SYSTEM
 #undef LIBX11_SYSTEM
+#undef LIB_X11_LIB
 #endif
 
 /* Shared libraries are supported in a patch release of ps/2 1.2.1.
