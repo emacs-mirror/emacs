@@ -1588,9 +1588,9 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
      ("\\.idl\\'" . idl-mode)
-     ;; .emacs following a directory delimiter
-     ;; in Unix, MSDOG or VMS syntax.
-     ("[]>:/\\]\\..*emacs\\'" . emacs-lisp-mode)
+     ;; .emacs or .gnus or .viper following a directory delimiter in
+     ;; Unix, MSDOG or VMS syntax.
+     ("[]>:/\\]\\..*\\(emacs\\|gnus\\|viper\\)\\'" . emacs-lisp-mode)
      ("\\`\\..*emacs\\'" . emacs-lisp-mode)
      ;; _emacs following a directory delimiter
      ;; in MsDos syntax

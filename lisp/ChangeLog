@@ -1,3 +1,8 @@
+2002-09-10  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* files.el (auto-mode-alist): ~/.gnus, ~/.viper are in
+	emacs-lisp-mode, like ~/.emacs.
+
 2002-09-10  Deepak Goel  <deego@glue.umd.edu>
 
 	* play/doctor.el (doc//): Rename from `//'.  Update callers.
