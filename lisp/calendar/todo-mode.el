@@ -6,9 +6,11 @@
 ;;       please contact   (address) O Seidel, Lessingstr 8, Eschborn, FRG
 ;;                        (e-mail ) Oliver.Seidel@cl.cam.ac.uk (2 Aug 1997)
 
-;; $Id:$
+;; $Id: todomode.el,v 1.1 1997/08/03 12:15:13 os10000 Exp os10000 $
 ;;
-;; $Log:$
+;; $Log: todomode.el,v $
+;; Revision 1.1  1997/08/03 12:15:13  os10000
+;; Initial revision
 ;;
 
 ;; ---------------------------------------------------------------------------
