@@ -685,7 +685,7 @@ Return t if file exists.")
       UNGCPRO;
     }
 
-  if (fd < 0)
+  if (fd == -1)
     {
       if (NILP (noerror))
 	while (1)
@@ -699,8 +699,8 @@ Return t if file exists.")
   if (EQ (Qt, Vuser_init_file))
     Vuser_init_file = found;
 
-  /* If FD is 0, that means openp found a magic file.  */
-  if (fd == 0)
+  /* If FD is -2, that means openp found a magic file.  */
+  if (fd == -2)
     {
       if (NILP (Fequal (found, file)))
 	/* If FOUND is a different file name from FILE,
@@ -734,44 +734,46 @@ Return t if file exists.")
       Vloads_in_progress = Fcons (found, Vloads_in_progress);
     }
 
-  /* Load .elc files directly, but not when they are
-     remote and have no handler!  */
   if (!bcmp (&(XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 4]),
-	     ".elc", 4)
-      && fd != 0)
+	     ".elc", 4))
+    /* Load .elc files directly, but not when they are
+       remote and have no handler!  */
     {
-      struct stat s1, s2;
-      int result;
-
-      if (!safe_to_load_p (fd))
+      if (fd != -2)
 	{
-	  safe_p = 0;
-	  if (!load_dangerous_libraries)
-	    error ("File `%s' was not compiled in Emacs",
-		   XSTRING (found)->data);
-	  else if (!NILP (nomessage))
-	    message_with_string ("File `%s' not compiled in Emacs", found, 1);
+	  struct stat s1, s2;
+	  int result;
+
+	  if (!safe_to_load_p (fd))
+	    {
+	      safe_p = 0;
+	      if (!load_dangerous_libraries)
+		error ("File `%s' was not compiled in Emacs",
+		       XSTRING (found)->data);
+	      else if (!NILP (nomessage))
+		message_with_string ("File `%s' not compiled in Emacs", found, 1);
+	    }
+
+	  compiled = 1;
+
+    #ifdef DOS_NT
+	  fmode = "rb";
+    #endif /* DOS_NT */
+	  stat ((char *)XSTRING (found)->data, &s1);
+	  XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 1] = 0;
+	  result = stat ((char *)XSTRING (found)->data, &s2);
+	  if (result >= 0 && (unsigned) s1.st_mtime < (unsigned) s2.st_mtime)
+	    {
+	      /* Make the progress messages mention that source is newer.  */
+	      newer = 1;
+
+	      /* If we won't print another message, mention this anyway.  */
+	      if (! NILP (nomessage))
+		message_with_string ("Source file `%s' newer than byte-compiled file",
+				     found, 1);
+	    }
+	  XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 1] = 'c';
 	}
-
-      compiled = 1;
-
-#ifdef DOS_NT
-      fmode = "rb";
-#endif /* DOS_NT */
-      stat ((char *)XSTRING (found)->data, &s1);
-      XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 1] = 0;
-      result = stat ((char *)XSTRING (found)->data, &s2);
-      if (result >= 0 && (unsigned) s1.st_mtime < (unsigned) s2.st_mtime)
-	{
-	  /* Make the progress messages mention that source is newer.  */
-	  newer = 1;
-
-	  /* If we won't print another message, mention this anyway.  */
-	  if (! NILP (nomessage))
-	    message_with_string ("Source file `%s' newer than byte-compiled file",
-				 found, 1);
-	}
-      XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 1] = 'c';
     }
   else
     {
@@ -781,8 +783,8 @@ Return t if file exists.")
       if (!NILP (Vload_source_file_function))
 	{
 	  Lisp_Object val;
-	  
-	  if (fd != 0)
+
+	  if (fd >= 0)
 	    emacs_close (fd);
 	  val = call4 (Vload_source_file_function, found, file,
 		       NILP (noerror) ? Qnil : Qt,
@@ -928,7 +930,7 @@ complete_filename_p (pathname)
    the file actually found should be stored as a Lisp string.
    nil is stored there on failure.
 
-   If the file we find is remote, return 0
+   If the file we find is remote, return -2
    but store the found remote file name in *STOREPTR.
    We do not check for remote files if EXEC_ONLY is nonzero.  */
 
@@ -1032,7 +1034,7 @@ openp (path, str, suffix, storeptr, exec_only)
 		  if (storeptr)
 		    *storeptr = build_string (fn);
 		  UNGCPRO;
-		  return 0;
+		  return -2;
 		}
 	    }
 	  else
