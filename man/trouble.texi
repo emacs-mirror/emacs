@@ -144,7 +144,9 @@ normally, and how to recognize them and correct them.
   Every keyboard has a large key, a little ways above the @key{RET} or
 @key{ENTER} key, which you normally use outside Emacs to erase the
 last character that you typed.  We call this key @dfn{the usual
-erasure key}.  In Emacs, it is supposed to be equivalent to @key{DEL}.
+erasure key}.  In Emacs, it is supposed to be equivalent to @key{DEL},
+and when Emacs is properly configured for your terminal, it translates
+that key into the character @key{DEL}.
 
   When Emacs starts up using a window system, it determines
 automatically which key should be @key{DEL}.  In some unusual cases
@@ -168,7 +170,7 @@ isn't.
 
   In all of those cases, the immediate remedy is the same: use the
 command @kbd{M-x normal-erase-is-backspace-mode}.  That should make
-the proper @key{DEL} key work.  On a text-only terminal, if you do
+the proper key work as @key{DEL}.  On a text-only terminal, if you do
 want to ask for help, use @key{F1} or @kbd{C-?}.
 
 @findex normal-erase-is-backspace-mode
@@ -703,12 +705,14 @@ To get the error message text accurately, copy it from the
 @samp{*Messages*} buffer into the bug report.  Copy all of it, not just
 part.
 
-To make a backtrace for the error, evaluate the Lisp expression
-@code{(setq @w{debug-on-error t})} before the error happens (that is to
-say, you must execute that expression and then make the bug happen).
-This causes the error to run the Lisp debugger, which shows you a
-backtrace.  Copy the text of the debugger's backtrace into the bug
-report.
+@findex toggle-debug-on-error
+To make a backtrace for the error, use @kbd{M-x toggle-debug-on-error}
+before the error happens (that is to say, you must give that command
+and then make the bug happen).  This causes the error to run the Lisp
+debugger, which shows you a backtrace.  Copy the text of the
+debugger's backtrace into the bug report.  @xref{Debugger,, The Lisp
+Debugger, elisp, the Emacs Lisp Reference Manual}, for information on
+debugging Emacs Lisp programs.
 
 This use of the debugger is possible only if you know how to make the
 bug happen again.  If you can't make it happen again, at least copy
