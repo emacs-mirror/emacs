@@ -500,13 +500,11 @@ header-line."
 			 (1- (point))
 		       (point))))))
 	(set-window-vscroll window 0)
-	(prog1
-	 (list desired-height max-height)
 	(while (and (< desired-height max-height)
 		    (= desired-height (window-height window))
 		    (not (pos-visible-in-window-p end window t)))
 	  (enlarge-window 1)
-	  (setq desired-height (1+ desired-height))))))))
+	  (setq desired-height (1+ desired-height)))))))
 
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink the WINDOW to be as small as possible to display its contents.
