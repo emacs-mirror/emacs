@@ -1,3 +1,9 @@
+2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* sed1v2.inp: Use djecho for buildobj.lst.
+
+	* sed1.inp: Ditto.
+
 2004-11-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlisp.inp (bootstrap-clean): Copy ldefs-boot.el onto
