@@ -725,6 +725,7 @@ case "${configuration}" in
     esac
     case "${configuration}" in
       *-sunos4.0*	  ) opsys=sunos4-0 ;;
+      *-sunos4.1.3*	  ) opsys=sunos4-1-3 ;;
       *-sunos4* | *-sunos ) opsys=sunos4-1 ;;
       *-sunos5* | *-solaris* ) opsys=sol2 ;;
       *			  ) opsys=bsd4-2   ;;
