@@ -610,10 +610,10 @@ If NOERROR is non-nil, return nil on failure."
   (make-face 'bold)
   (make-face 'italic)
   (make-face 'bold-italic)
-  (make-face 'primary-selection)
+  (make-face 'region)
   (make-face 'secondary-selection)
 
-  (setq region-face (face-id 'primary-selection))
+  (setq region-face (face-id 'region))
 
   ;; Set up the faces of all existing X Window frames.
   (let ((frames (frame-list)))
@@ -682,10 +682,10 @@ If NOERROR is non-nil, return nil on failure."
 ;;;	    (set-face-background-pixmap 'highlight "gray1" frame)
 	(error (invert-face 'highlight frame))))
 
-  (or (face-differs-from-default-p 'primary-selection frame)
+  (or (face-differs-from-default-p 'region frame)
       (condition-case ()
-	  (set-face-background 'primary-selection "gray" frame)
-	(error (invert-face 'primary-selection frame))))
+	  (set-face-background 'region "gray" frame)
+	(error (invert-face 'region frame))))
 
   (or (face-differs-from-default-p 'secondary-selection frame)
       (condition-case ()
