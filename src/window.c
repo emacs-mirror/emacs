@@ -5415,8 +5415,8 @@ Value is a multiple of the canonical character height of WINDOW.  */)
 DEFUN ("set-window-vscroll", Fset_window_vscroll, Sset_window_vscroll,
        2, 2, 0,
        doc: /* Set amount by which WINDOW should be scrolled vertically to VSCROLL.
-WINDOW nil or omitted means use the selected window.  VSCROLL is a
-non-negative multiple of the canonical character height of WINDOW.  */)
+WINDOW nil means use the selected window.  VSCROLL is a non-negative
+multiple of the canonical character height of WINDOW.  */)
      (window, vscroll)
      Lisp_Object window, vscroll;
 {
