@@ -15320,8 +15320,11 @@ get_window_cursor_type (w, width)
     }
 
   /* Nonselected window or nonselected frame.  */
-  else if (f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame
-      || w != XWINDOW (f->selected_window))
+  else if (w != XWINDOW (f->selected_window)
+#ifdef HAVE_WINDOW_SYSTEM
+	   || f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame
+#endif
+	   )
     {
       if (MINI_WINDOW_P (w) && minibuf_level == 0)
 	return NO_CURSOR;
