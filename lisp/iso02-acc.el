@@ -1,4 +1,4 @@
-;;; iso02-acc.el -- electric accent keys for Eastern Europe (ISO latin2)
+;;; iso02-acc.el --- electric accent keys for Eastern Europe (ISO latin2)
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 
