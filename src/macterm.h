@@ -331,7 +331,7 @@ struct mac_output {
   struct Cursor *text_cursor;
   struct Cursor *nontext_cursor;
   struct Cursor *modeline_cursor;
-  struct Cursor *cross_cursor;
+  struct Cursor *hand_cursor;
   struct Cursor *hourglass_cursor;
 #if 0
   /* Window whose cursor is hourglass_cursor.  This window is temporarily
@@ -652,6 +652,9 @@ struct scroll_bar {
 			  - (f)->output_data.mac->internal_border_width)))
 
 struct frame * check_x_frame (Lisp_Object);
+
+void activate_scroll_bars (FRAME_PTR);
+void deactivate_scroll_bars (FRAME_PTR);
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
