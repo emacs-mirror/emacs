@@ -1,5 +1,7 @@
 2000-03-30  Ken Raeburn  <raeburn@gnu.org>
 
+	* lisp.h (NO_UNION_TYPE) [ENABLE_CHECKING]: Undef.
+
 	* lisp.h (XCONS, XSTRING, XSYMBOL, XFLOAT, XPROCESS, XWINDOW,
 	XSUBR, XBUFFER): Verify correct object type before returning
 	pointer, using eassert.

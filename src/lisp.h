@@ -48,13 +48,25 @@ Boston, MA 02111-1307, USA.  */
 
 /* Extra internal type checking?  */
 extern int suppress_checking;
-#ifdef ENABLE_CHECKING
 extern void die P_((const char *, const char *, int));
-#define CHECK(check,msg) ((check || suppress_checking ? 0 : die (msg, __FILE__, __LINE__)), 0)
+
+#ifdef ENABLE_CHECKING
+
+#define CHECK(check,msg) ((check || suppress_checking		\
+			   ? 0					\
+			   : die (msg, __FILE__, __LINE__)),	\
+			  0)
+
+/* Let's get some compile-time checking too.  */
+#undef NO_UNION_TYPE
+
 #else
+
 /* Produce same side effects and result, but don't complain.  */
 #define CHECK(check,msg) ((check),0)
+
 #endif
+
 /* Define an Emacs version of "assert", since some system ones are
    flaky.  */
 #if defined (__GNUC__) && __GNUC__ >= 2 && defined (__STDC__)
