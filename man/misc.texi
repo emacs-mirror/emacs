@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93-95, 97, 2000 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Miscellaneous Commands
@@ -1868,7 +1869,7 @@ Turn on keybindings to emulate the CRiSP/Brief editor with @kbd{M-x
 crisp-mode}.  Note that this rebinds @kbd{M-x} to exit Emacs unless you
 change the user option @code{crisp-override-meta-x}.  You can also load
 the @code{scroll-all} package to emulate CRiSP's scroll-all feature
-(scrolling all windows together).  Do thsi either with @kbd{M-x
+(scrolling all windows together).  Do this either with @kbd{M-x
 scroll-all-mode} or set the user option @code{crisp-load-scroll-all} to
 load it along with @code{crisp-mode}.
 
