@@ -433,7 +433,8 @@ by `lisp-body-indent'."
 	   (throw 1)
 	   (unless 1)
 	   (unwind-protect (5 &body))
-	   (when 1))))
+           (when 1)
+           (with-standard-io-syntax (2)))))
   (while l
     (put (car (car l)) 'common-lisp-indent-function
 	 (if (symbolp (cdr (car l)))
