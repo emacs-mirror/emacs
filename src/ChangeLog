@@ -1,3 +1,8 @@
+2001-08-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* keyboard.c (syms_of_keyboard) <double-click-fuzz>: Fix a typo in
+	a doc string.
+
 2001-08-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (Vpre_help_message): New variable.
