@@ -777,36 +777,36 @@ PROPERTIES is an alist of properties vs the corresponding values.  The
 following properties are recognized:
 
   o post-read-conversion
- 
+
   The value is a function to call after some text is inserted and
   decoded by the coding system itself and before any functions in
   `after-insert-functions' are called.  The argument of this
   function is the same as for a function in
   `after-insert-file-functions', i.e. LENGTH of the text inserted,
   with point at the head of the text to be decoded.
- 
+
   o pre-write-conversion
- 
+
   The value is a function to call after all functions in
   `write-region-annotate-functions' and `buffer-file-format' are
   called, and before the text is encoded by the coding system itself.
   The arguments to this function are the same as those of a function
   in `write-region-annotate-functions', i.e. FROM and TO, specifying
   a region of text.
- 
+
   o translation-table-for-decode
- 
+
   The value is a translation table to be applied on decoding.  See
   the function `make-translation-table' for the format of translation
   table.  This is not applicable to type 4 (CCL-based) coding systems.
- 
+
   o translation-table-for-encode
- 
+
   The value is a translation table to be applied on encoding.  This is
   not applicable to type 4 (CCL-based) coding systems.
- 
+
   o safe-chars
- 
+
   The value is a char table.  If a character has non-nil value in it,
   the character is safely supported by the coding system.  This
   overrides the specification of safe-charsets.
@@ -819,14 +819,14 @@ following properties are recognized:
   mean that the charset can't be encoded in the coding system;
   it just means that some other receiver of text encoded
   in the coding system won't be able to handle that charset.
- 
+
   o mime-charset
- 
+
   The value is a symbol whose name is the `MIME-charset' parameter of
   the coding system.
- 
+
   o valid-codes (meaningful only for a coding system based on CCL)
- 
+
   The value is a list to indicate valid byte ranges of the encoded
   file.  Each element of the list is an integer or a cons of integer.
   In the former case, the integer value is a valid byte code.  In the
@@ -1463,7 +1463,7 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
 ;;; FILE I/O
 
 (defcustom auto-coding-alist
-  '(("\\.\\(arc\\|zip\\|lzh\\|zoo\\|jar\\|tar\\|tgz\\)\\'" . no-conversion)
+  '(("\\.\\(arc\\|zip\\|lzh\\|zoo\\|jar\\|sx[dmicw]\\|tar\\|tgz\\)\\'" . no-conversion)
     ("\\.\\(gz\\|Z\\|bz\\|bz2\\|gpg\\)\\'" . no-conversion)
     ("/#[^/]+#\\'" . emacs-mule))
   "Alist of filename patterns vs corresponding coding systems.
@@ -1553,7 +1553,7 @@ function by default."
 	    (let ((regexp (car (car alist))))
 	      (when (re-search-forward regexp (+ (point) size) t)
 		(setq coding-system (cdr (car alist)))))
-	    (setq alist (cdr alist))) 
+	    (setq alist (cdr alist)))
 	  coding-system))
       (let* ((case-fold-search t)
 	     (head-start (point))
@@ -1959,7 +1959,7 @@ This function is intended to be added to `auto-coding-functions'."
 	    sym
 	  (message "Warning: unknown coding system \"%s\"" match)
 	  nil))))
-      
+
 ;;;
 (provide 'mule)
 
