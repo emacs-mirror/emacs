@@ -1486,6 +1486,7 @@ method buffers use to resolve name collisions."
   (define-key bookmark-bmenu-mode-map "j" 'bookmark-bmenu-this-window)
   (define-key bookmark-bmenu-mode-map "\C-c\C-c" 'bookmark-bmenu-this-window)
   (define-key bookmark-bmenu-mode-map "f" 'bookmark-bmenu-this-window)
+  (define-key bookmark-bmenu-mode-map "\C-m" 'bookmark-bmenu-this-window)
   (define-key bookmark-bmenu-mode-map "o" 'bookmark-bmenu-other-window)
   (define-key bookmark-bmenu-mode-map "\C-o"
     'bookmark-bmenu-switch-other-window)
