@@ -106,7 +106,10 @@ With argument t, set the random number seed from the current time and pid.")
 
 DEFUN ("length", Flength, Slength, 1, 1, 0,
   "Return the length of vector, list or string SEQUENCE.\n\
-A byte-code function object is also allowed.")
+A byte-code function object is also allowed.\n\
+If the string contains multibyte characters, this is not the necessarily\n\
+the number of characters in the string; it is the number of bytes.\n\
+To get the number of characters, use `chars-in-string'")
   (sequence)
      register Lisp_Object sequence;
 {
