@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This file contains multibyte characters.  Save this file always in
-;; `coding-system-iso-2022-7'.
+;; the coding system `iso-2022-7'.
 
 ;;; Predefined categories.
 
@@ -46,6 +46,7 @@
 (define-category ?e "Ethiopic (Ge'ez)")
 (define-category ?v "Vietnamese")
 (define-category ?i "Indian")
+(define-category ?o "Lao")
 
 ;; For each group (row) of 2-byte character sets.
 
@@ -68,7 +69,8 @@
 (define-category ?5 "vowel")
 (define-category ?6 "digit")
 (define-category ?7 "vowel-modifying diacritical mark")
-(define-category ?8 "vowel-signs.")
+(define-category ?8 "vowel-signs")
+(define-category ?9 "semivowel lower")
 
 ;; For filling.
 (define-category ?| "While filling, we can break a line at this character.")
@@ -323,6 +325,41 @@
 (modify-category-entry (make-char 'korean-ksc5601 42) ?H)
 (modify-category-entry (make-char 'korean-ksc5601 43) ?K)
 (modify-category-entry (make-char 'korean-ksc5601 44) ?Y)
+
+;; Lao character set
+
+(modify-category-entry (make-char 'lao) ?o)
+
+(let ((deflist	'(;; chars	syntax	category
+		  ("(1!(B-(1N(B"	"w"	?0) ; consonant
+		  ("(1PRS]`(B-(1d(B"	"w"	?1) ; vowel base
+		  ("(1QT(B-(1W[m(B"	"w"	?2) ; vowel upper
+		  ("(1XY(B"		"w"	?3) ; vowel lower
+		  ("(1h(B-(1l(B"	"w"	?4) ; tone mark 
+		  ("(1\(B"		"w"	?9) ; semivowel lower
+		  ("(1p(B-(1y(B"	"w"	?0) ; digit and misc
+		  ("(1Of(B"		"_"	?0) ; symbol
+		  ))
+      elm chars len syntax category to ch i)
+  (while deflist
+    (setq elm (car deflist))
+    (setq chars (car elm)
+	  len (length chars)
+	  syntax (nth 1 elm)
+	  category (nth 2 elm)
+	  i 0)
+    (while (< i len)
+      (if (= (aref chars i) ?-)
+	  (setq i (1+ i)
+		to (sref chars i))
+	(setq ch (sref chars i)
+	      to ch))
+      (while (<= ch to)
+	(modify-syntax-entry ch syntax)
+	(modify-category-entry ch category)
+	(setq ch (1+ ch)))
+      (setq i (+ i (char-bytes to))))
+    (setq deflist (cdr deflist))))
 
 ;; Thai character set (TIS620)
 
