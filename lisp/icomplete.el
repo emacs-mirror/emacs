@@ -246,7 +246,7 @@ and `minibuffer-setup-hook'."
 Should be run via minibuffer `post-command-hook'.  See `icomplete-mode'
 and `minibuffer-setup-hook'."
   (if (icomplete-simple-completing-p)
-      (let ((contents (buffer-substring (point-min)(point-max)))
+      (let ((contents (buffer-substring (minibuffer-prompt-end)(point-max)))
 	    (buffer-undo-list t))
 	(save-excursion
 	  (goto-char (point-max))
