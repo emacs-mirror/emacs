@@ -98,8 +98,8 @@ direct request, such as using the return key or the <fixed>C-o
 <indent>The fill functions also understand margins, which can be set for
 any region of a document.  In addition to the menu items, which
 increase or decrease the margins, there are two commands for
-setting the margins absolutely: <fixed>C-c C-l (set-left-margin)</fixed> and <fixed>C-c
-C-r (set-right-margin)</fixed>.
+setting the margins absolutely: <fixed>C-c [ (set-left-margin)</fixed> and <fixed>C-c
+] (set-right-margin)</fixed>.
 
 
 You <indent>can change indentation at any point in a paragraph, which
