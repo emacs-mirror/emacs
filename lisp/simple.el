@@ -1202,9 +1202,11 @@ If ARG is zero, move to the beginning of the current line."
 			      prop
 			    (or (memq prop buffer-invisibility-spec)
 				(assq prop buffer-invisibility-spec)))))
-	      (if (get-text-property (point) 'invisible)
-		  (goto-char (next-single-property-change (point) 'invisible))
-		(goto-char (next-overlay-change (point))))
+	      (goto-char
+	       (if (get-text-property (point) 'invisible)
+		   (or (next-single-property-change (point) 'invisible)
+		       (point-max))
+		 (next-overlay-change (point))))
 	      (or (zerop (forward-line 1))
 		  (signal 'end-of-buffer nil)))
 	    (setq arg (1- arg)))
@@ -1221,9 +1223,11 @@ If ARG is zero, move to the beginning of the current line."
 			      prop
 			    (or (memq prop buffer-invisibility-spec)
 				(assq prop buffer-invisibility-spec)))))
-	      (if (get-text-property (1- (point)) 'invisible)
-		  (goto-char (previous-single-property-change (point) 'invisible))
-		(goto-char (previous-overlay-change (point))))
+	      (goto-char
+	       (if (get-text-property (1- (point)) 'invisible)
+		   (or (previous-single-property-change (point) 'invisible)
+		       (point-min))
+		 (previous-overlay-change (point))))
 	      (or (zerop (forward-line -1))
 		  (signal 'beginning-of-buffer nil)))
 	    (setq first nil)
