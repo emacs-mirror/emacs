@@ -334,7 +334,7 @@ insert_1 (string, length, inherit)
   register Lisp_Object temp;
 
   /* Make sure point-max won't overflow after this insertion.  */
-  XSET (temp, Lisp_Int, length + Z);
+  XSETINT (temp, length + Z);
   if (length + Z != XINT (temp))
     error ("maximum buffer size exceeded");
 
@@ -400,7 +400,7 @@ insert_from_string_1 (string, pos, length, inherit)
   struct gcpro gcpro1;
 
   /* Make sure point-max won't overflow after this insertion.  */
-  XSET (temp, Lisp_Int, length + Z);
+  XSETINT (temp, length + Z);
   if (length + Z != XINT (temp))
     error ("maximum buffer size exceeded");
 
