@@ -51,6 +51,7 @@
    VMS
    __linux__			Linux: assumes /proc filesystem mounted.
    				Support from Michael K. Johnson.
+   __NetBSD__			NetBSD: assumes /kern filesystem mounted.
 
    In addition, to avoid nesting many #ifdefs, we internally set
    LDAV_DONE to indicate that the load average has been computed.
@@ -510,6 +511,35 @@ getloadavg (loadavg, nelem)
   return elem;
 
 #endif /* __linux__ */
+
+#if !defined (LDAV_DONE) && defined (__NetBSD__)
+#define LDAV_DONE
+#undef LOAD_AVE_TYPE
+
+#ifndef NETBSD_LDAV_FILE
+#define NETBSD_LDAV_FILE "/kern/loadavg"
+#endif
+
+  unsigned long int load_ave[3], scale;
+  int count;
+  FILE *fp;
+
+  fp = fopen (LINUX_LDAV_FILE, "r");
+  if (fp == NULL)
+    return -1;
+  count = fscanf (fp, "%lu %lu %lu %lu\n",
+		  &load_ave[0], &load_ave[1], &load_ave[2],
+		  &scale);
+  (void) fclose (fp);
+  if (count != 4)
+    return -1;
+
+  for (elem = 0; elem < nelem; elem++)
+    loadavg[elem] = (double) load_ave[elem] / (double) scale;
+
+  return elem;
+
+#endif /* __NetBSD__ */
 
 #if !defined (LDAV_DONE) && defined (NeXT)
 #define LDAV_DONE
