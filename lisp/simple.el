@@ -1122,34 +1122,6 @@ is not *inside* the region START...END."
 	    (t
 	     '(0 . 0)))
     '(0 . 0)))
-
-(defun undo-get-state ()
-  "Return a handler for the current state to which we might want to undo.
-The returned handler can then be passed to `undo-revert-to-handle'."
-  (unless (eq buffer-undo-list t)
-    buffer-undo-list))
-
-(defun undo-revert-to-state (handle)
-  "Revert to the state HANDLE earlier grabbed with `undo-get-handle'.
-This undoing is not itself undoable (aka redoable)."
-  (unless (eq buffer-undo-list t)
-    (let ((new-undo-list (cons (car handle) (cdr handle))))
-      ;; Truncate the undo log at `handle'.
-      (when handle
-	(setcar handle nil) (setcdr handle nil))
-      (unless (eq last-command 'undo) (undo-start))
-      ;; Make sure there's no confusion.
-      (when (and handle (not (eq handle (last pending-undo-list))))
-	(error "Undoing to some unrelated state"))
-      ;; Undo it all.
-      (while pending-undo-list (undo-more 1))
-      ;; Reset the modified cons cell to its original content.
-      (when handle
-	(setcar handle (car new-undo-list))
-	(setcdr handle (cdr new-undo-list)))
-      ;; Revert the undo info to what it was when we grabbed the state.
-      (setq buffer-undo-list handle))))
-  
 
 (defvar shell-command-history nil
   "History list for some commands that read shell commands.")
@@ -2825,11 +2797,13 @@ With argument 0, interchanges line point is in with line mark is in."
     (let ((swap pos1))
       (setq pos1 pos2 pos2 swap)))
   (if (> (cdr pos1) (car pos2)) (error "Don't have two things to transpose"))
-  (let ((word2 (delete-and-extract-region (car pos2) (cdr pos2))))
-    (goto-char (car pos2))
-    (insert (delete-and-extract-region (car pos1) (cdr pos1)))
-    (goto-char (car pos1))
-    (insert word2)))
+  (atomic-change-group
+   (let (word2)
+     (setq word2 (delete-and-extract-region (car pos2) (cdr pos2)))
+     (goto-char (car pos2))
+     (insert (delete-and-extract-region (car pos1) (cdr pos1)))
+     (goto-char (car pos1))
+     (insert word2))))
 
 (defun backward-word (arg)
   "Move backward until encountering the beginning of a word.
