@@ -1036,9 +1036,9 @@ and selects that window."
   '("List all keystroke commands" . describe-bindings))
 
 (define-key help-admin-map "n"
-  '("view Emacs news" . view-emacs-news))
+  '("View Emacs news" . view-emacs-news))
 (define-key help-admin-map "l"
-  '("View the GNU Emacs license" . describe-copying))
+  '("View Emacs copying conditions" . describe-copying))
 (define-key help-admin-map "d"
   '("Describe distribution" . describe-distribution))
 (define-key help-admin-map "w"
