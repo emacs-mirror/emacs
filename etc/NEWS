@@ -6,6 +6,30 @@ Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
 For older news, see the file ONEWS
 
 
+* Changes in Emacs 21.2
+
+
+* Lisp Changes in Emacs 21.2
+
+** Variable aliases have been implemented
+
+- macro: defvaralias ALIAS-VAR BASE-VAR
+
+This defines the symbol ALIAS-VAR as a variable alias for symbol
+BASE-VAR.  This means that retrieving the value of ALIAS-VAR returns
+the value of BASE-VAR, and changing the value of ALIAS-VAR changes the
+value of BASE-VAR.
+
+- function: indirect-variable VARIABLE
+
+This function returns the variable at the end of the chain of aliases
+of VARIABLE.  If VARIABLE is not a symbol, or if VARIABLE is not
+defined as an alias, the function returns VARIABLE.
+
+It might be noteworthy that variables aliases work for all kinds of
+variables, including buffer-local and frame-local variables.
+
+
 * Installation Changes in Emacs 21.1
 
 See the INSTALL file for information on installing extra libraries and
