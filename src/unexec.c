@@ -176,7 +176,31 @@ pointer looks like an int) but not on all machines.
 int need_coff_header = 1;
 #include <coff-encap/a.out.encap.h> /* The location might be a poor assumption */
 #else
+#ifdef MSDOS
+#include <../go32/gotypes.h>
+#include <../go32/ed/coff.h>
+#define filehdr external_filehdr
+#define scnhdr external_scnhdr
+#define syment external_syment
+#define auxent external_auxent
+#define n_numaux e_numaux
+#define n_type e_type
+struct aouthdr
+{
+  word16 	magic;		/* type of file				*/
+  word16	vstamp;		/* version stamp			*/
+  word32	tsize;		/* text size in bytes, padded to FW bdry*/
+  word32	dsize;		/* initialized data "  "		*/
+  word32	bsize;		/* uninitialized data "   "		*/
+  word32	entry;		/* entry pt.				*/
+  word32 	text_start;	/* base of text used for this file */
+  word32 	data_start;	/* base of data used for this file */
+};
+
+
+#else /* not MSDOS */
 #include <a.out.h>
+#endif /* not MSDOS */
 #endif
 
 /* Define getpagesize () if the system does not.
@@ -686,7 +710,11 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
        */
       ERROR0 ("can't build a COFF file from scratch yet");
 #else
+#ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
+      bzero ((void *)&hdr, sizeof hdr);
+#else
       bzero (&hdr, sizeof hdr);
+#endif
 #endif
     }
 
@@ -898,7 +926,11 @@ write_segment (new, ptr, end)
 	 a gap between the old text segment and the old data segment.
 	 This gap has probably been remapped into part of the text segment.
 	 So write zeros for it.  */
-      if (ret == -1 && errno == EFAULT)
+      if (ret == -1
+#ifdef EFAULT
+	  && errno == EFAULT
+#endif
+	  )
 	write (new, zeros, nwrite);
       else if (nwrite != ret)
 	{
@@ -1021,7 +1053,11 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
   if (!lnnoptr || !f_hdr.f_symptr)
     return 0;
 
+#ifdef MSDOS
+  if ((new = writedesc) < 0)
+#else
   if ((new = open (new_name, 2)) < 0)
+#endif
     {
       PERROR (new_name);
       return -1;
@@ -1043,7 +1079,10 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
 	    }
 	}
     }
+#ifndef MSDOS
   close (new);
+#endif
+  return 0;
 }
 
 #endif /* COFF_BSD_SYMBOLS */
