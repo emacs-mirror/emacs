@@ -568,44 +568,44 @@ If UNIQUE is non-nil, come up with a new name using\n\
 Interactively, you can set UNIQUE with a prefix argument.\n\
 We return the name we actually gave the buffer.\n\
 This does not change the name of the visited file (if any).")
-  (name, unique)
-     register Lisp_Object name, unique;
+  (newname, unique)
+     register Lisp_Object newname, unique;
 {
   register Lisp_Object tem, buf;
 
-  CHECK_STRING (name, 0);
+  CHECK_STRING (newname, 0);
 
-  if (XSTRING (name)->size == 0)
+  if (XSTRING (newname)->size == 0)
     error ("Empty string is invalid as a buffer name");
 
-  tem = Fget_buffer (name);
+  tem = Fget_buffer (newname);
   /* Don't short-circuit if UNIQUE is t.  That is a useful way to rename
      the buffer automatically so you can create another with the original name.
      It makes UNIQUE equivalent to
-     (rename-buffer (generate-new-buffer-name NAME)).  */
+     (rename-buffer (generate-new-buffer-name NEWNAME)).  */
   if (NILP (unique) && XBUFFER (tem) == current_buffer)
-    return current_buffer->name;
+    return current_buffer->newname;
   if (!NILP (tem))
     {
       if (!NILP (unique))
-	name = Fgenerate_new_buffer_name (name, current_buffer->name);
+	newname = Fgenerate_new_buffer_name (newname, current_buffer->name);
       else
-	error ("Buffer name \"%s\" is in use", XSTRING (name)->data);
+	error ("Buffer name `%s' is in use", XSTRING (newname)->data);
     }
 
-  current_buffer->name = name;
+  current_buffer->name = newname;
 
   /* Catch redisplay's attention.  Unless we do this, the mode lines for
      any windows displaying current_buffer will stay unchanged.  */
   update_mode_lines++;
 
   XSETBUFFER (buf, current_buffer);
-  Fsetcar (Frassq (buf, Vbuffer_alist), name);
+  Fsetcar (Frassq (buf, Vbuffer_alist), newname);
   if (NILP (current_buffer->filename)
       && !NILP (current_buffer->auto_save_file_name))
     call0 (intern ("rename-auto-save-file"));
   /* refetch since that last call may have done GC */
-  return current_buffer->name;
+  return current_buffer->newname;
 }
 
 DEFUN ("other-buffer", Fother_buffer, Sother_buffer, 0, 2, 0,
