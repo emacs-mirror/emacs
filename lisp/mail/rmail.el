@@ -2813,6 +2813,7 @@ typically for purposes of moderating a list."
 	  "^ *---+ +Original message +---+ *$\\|"
 	  "^ *--+ +begin message +--+ *$\\|"
 	  "^ *---+ +Original message follows +---+ *$\\|"
+	  "^ *---+ +Your message follows +---+ *$\\|"
 	  "^|? *---+ +Message text follows: +---+ *|?$")
   "A regexp that matches the separator before the text of a failed message.")
 
@@ -2856,13 +2857,11 @@ specifying headers which should not be copied into the new message."
 	      (or (re-search-forward mail-mime-unsent-header nil t)
 		  (error "Cannot find beginning of header in failed message"))
 	      (or (search-forward "\n\n" nil t)
-		  (error "Cannot find end of Mime data in failed message"))
+		  (error "Cannot find start of Mime data in failed message"))
 	      (setq bounce-start (point))
-	      (or (search-forward codestring nil t)
-		  (error "Cannot find end of Mime data in failed message"))
-	      (setq bounce-end (match-beginning 0))
-;	      (or (search-forward "\n\n" nil t)
-;		  (error "Cannot find end of header in failed message"))
+	      (if (search-forward codestring nil t)
+		  (setq bounce-end (match-beginning 0))
+		(setq bounce-end (point-max)))
 	      )
 	  ;; non-MIME bounce
 	  (or (re-search-forward mail-unsent-separator nil t)
