@@ -95,7 +95,7 @@ use keyboard commands to set the mark.  @xref{Mouse Commands}.
 @findex exchange-point-and-mark
   Ordinary terminals have only one cursor, so there is no way for Emacs
 to show you where the mark is located.  You have to remember.  The usual
-solution to this problem is to set the mark and then use it before
+solution to this problem is to set the mark and then use it soon, before
 you forget where it is.  Alternatively, you can see where the mark is
 with the command @kbd{C-x C-x} (@code{exchange-point-and-mark}) which
 puts the mark where point was and point where the mark was.  The extent
@@ -175,7 +175,7 @@ on a region will get an error and refuse to operate.  You can make the
 region active again by typing @kbd{C-x C-x}.
 
 @item
-Commands like @kbd{M->} and @kbd{C-s} that ``leave the mark behind'', in
+Commands like @kbd{M->} and @kbd{C-s} that ``leave the mark behind'' in
 addition to some other primary purpose, do not activate the new mark.
 You can activate the new region by executing @kbd{C-x C-x}
 (@code{exchange-point-and-mark}).
@@ -249,7 +249,7 @@ Print hardcopy with @kbd{M-x print-region} (@pxref{Hardcopy}).
 Evaluate it as Lisp code with @kbd{M-x eval-region} (@pxref{Lisp Eval}).
 @end itemize
 
-  Most commands that operate on text in the region have the word
+  Most commands that operate on the text in the region have the word
 @code{region} in their names.
 
 @node Marking Objects
