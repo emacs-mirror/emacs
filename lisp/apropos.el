@@ -102,6 +102,10 @@ for the regexp; the part that matches gets displayed in this font."
   :group 'apropos
   :type 'face)
 
+(defcustom apropos-show-scores nil
+  "*Non-nil means show score for each match, and sort matches by scores."
+  :group 'apropos
+  :type 'boolean)
 
 (defvar apropos-mode-map
   (let ((map (make-sparse-keymap)))
@@ -118,9 +122,6 @@ for the regexp; the part that matches gets displayed in this font."
 
 (defvar apropos-mode-hook nil
   "*Hook run when mode is turned on.")
-
-(defvar apropos-show-scores nil
-  "*Show apropos scores if non-nil.")
 
 (defvar apropos-regexp nil
   "Regexp used in current apropos run.")
@@ -468,7 +469,7 @@ time-consuming.  Returns list of symbols and documentation found."
     (while p
       (setcar p (list
 		 (setq symbol (car p))
-		 0
+		 (apropos-score-symbol symbol)
 		 (when (fboundp symbol)
 		   (if (setq doc (condition-case nil
 				     (documentation symbol t)
@@ -766,10 +767,15 @@ separate items with that string."
   (if (null apropos-accumulator)
       (message "No apropos matches for `%s'" apropos-orig-regexp)
     (setq apropos-accumulator
-	  (sort apropos-accumulator (lambda (a b)
-				      (or (> (cadr a) (cadr b))
-					  (and (= (cadr a) (cadr b))
-					       (string-lessp (car a) (car b)))))))
+	  (sort apropos-accumulator
+		(lambda (a b)
+		  ;; Don't sort by score if user can't see the score.
+		  ;; It would be confusing.  -- rms.
+		  (if apropos-show-scores
+		      (or (> (cadr a) (cadr b))
+			  (and (= (cadr a) (cadr b))
+			       (string-lessp (car a) (car b))))
+		    (string-lessp (car a) (car b))))))
     (with-output-to-temp-buffer "*Apropos*"
       (let ((p apropos-accumulator)
 	    (old-buffer (current-buffer))
