@@ -1,3 +1,11 @@
+2002-03-02  Miles Bader  <miles@gnu.org>
+
+	* mwheel.el (mwheel-scroll): Remove `double' and `triple' from the
+	event-modifiers before looking up in `mouse-wheel-scroll-amount'.
+	If there's no applicable modifiers entry in the alist in
+	`mouse-wheel-scroll-amount', fall back to the default, not to
+	nil (which causes full screen scrolls).
+
 2002-03-01  Andreas Schwab  <schwab@suse.de>
 
 	* textmodes/texnfo-upd.el (texinfo-start-menu-description): Remove
