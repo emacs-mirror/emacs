@@ -83,7 +83,7 @@
 Integer below INDEX/4 gives the lunation number, counting from Jan 1, 1900;
 remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
 3 last quarter."
-  (let* ((phase (calendar-mod index 4))
+  (let* ((phase (mod index 4))
          (index (/ index 4.0))
          (time (/ index 1236.85))
          (date (+ (calendar-absolute-from-gregorian '(1 0.5 1900))

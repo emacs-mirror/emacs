@@ -1384,7 +1384,7 @@ is currently located, but indented INDENT spaces.  The indentation is done
 from the first character on the line and does not disturb the first INDENT
 characters on the line."
   (let* ((blank-days;; at start of month
-          (calendar-mod
+          (mod
            (- (calendar-day-of-week (list month 1 year))
               calendar-week-start-day)
            7))
@@ -1397,7 +1397,7 @@ characters on the line."
    (calendar-insert-indented "" indent);; Go to proper spot
    (calendar-for-loop i from 0 to 6 do
       (insert (substring (aref calendar-day-name-array 
-                               (calendar-mod (+ calendar-week-start-day i) 7))
+                               (mod (+ calendar-week-start-day i) 7))
                          0 2))
       (insert " "))
    (calendar-insert-indented "" 0 t);; Force onto following line
@@ -1408,7 +1408,7 @@ characters on the line."
    (calendar-for-loop i from 1 to last do
       (insert (format "%2d " i))
       (put-text-property (- (point) 3) (1- (point)) 'mouse-face 'highlight)
-      (and (zerop (calendar-mod (+ i blank-days) 7))
+      (and (zerop (mod (+ i blank-days) 7))
            (/= i last)
            (calendar-insert-indented "" 0 t)    ;; Force onto following line
            (calendar-insert-indented "" indent)))));; Go to proper spot
@@ -2062,7 +2062,7 @@ Moves forward if ARG is negative."
     (calendar-backward-day
      (if (= day calendar-week-start-day)
          (* 7 arg)
-       (+ (calendar-mod (- day calendar-week-start-day) 7)
+       (+ (mod (- day calendar-week-start-day) 7)
           (* 7 (1- arg)))))))
 
 (defun calendar-end-of-week (arg)
@@ -2071,9 +2071,9 @@ Moves forward if ARG is negative."
   (calendar-cursor-to-nearest-date)
   (let ((day (calendar-day-of-week (calendar-cursor-to-date))))
     (calendar-forward-day
-     (if (= day (calendar-mod (1- calendar-week-start-day) 7))
+     (if (= day (mod (1- calendar-week-start-day) 7))
          (* 7 arg)
-       (+ (- 6 (calendar-mod (- day calendar-week-start-day) 7))
+       (+ (- 6 (mod (- day calendar-week-start-day) 7))
           (* 7 (1- arg)))))))
 
 (defun calendar-beginning-of-month (arg)
@@ -2196,13 +2196,6 @@ Gregorian date Sunday, December 31, 1 BC."
           (setq month (1+ month)))
         (list month day year)))))
 
-(defun calendar-mod (x y)
-  "Returns X % Y; value is *always* non-negative."
-  (let ((v (mod x y)))
-    (if (> 0 v)
-	(+ v y)
-      v)))
-
 (defun calendar-cursor-to-visible-date (date)
   "Move the cursor to DATE that is on the screen."
   (let* ((month (extract-calendar-month date))
@@ -2211,7 +2204,7 @@ Gregorian date Sunday, December 31, 1 BC."
 	 (first-of-month-weekday (calendar-day-of-week (list month 1 year))))
     (goto-line (+ 3
 		  (/ (+ day  -1
-                        (calendar-mod
+                        (mod
                          (- (calendar-day-of-week (list month 1 year))
                             calendar-week-start-day)
                          7))
@@ -2220,7 +2213,7 @@ Gregorian date Sunday, December 31, 1 BC."
 		       (* 25
 			  (1+ (calendar-interval
 			       displayed-month displayed-year month year)))
-		       (* 3 (calendar-mod
+		       (* 3 (mod
                              (- (calendar-day-of-week date)
                                 calendar-week-start-day)
                              7))))))
