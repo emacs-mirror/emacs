@@ -543,10 +543,35 @@ displays the documentation string as well as the variable name.  The
 documentation string is either the one you specify with @code{:doc}, or
 @var{variable}'s own documentation string.
 
-@item (set @var{elements}@dots{})
-The value must be a list and each element of the list must be one of the
-@var{elements} specified.  This appears in the customization buffer as a
-checklist.
+@item (set @var{types}@dots{})
+The value must be a list, and each element of the list must match one of
+the @var{types} specified.
+
+This appears in the customization buffer as a checklist, so that each of
+@var{types} may have either one corresponding element or none.  It is
+not possible to specify two different elements that match the same one
+of @var{types}.  For example, @code{(set integer symbol)} allows one
+integer and/or one symbol in the list; it does not allow multiple
+integers or multiple symbols.  As a result, it is rare to use
+nonspecific types such as @code{integer} in a @code{set}.
+
+Most often, the @var{types} in a @code{set} are @code{const} types, as
+shown here:
+
+@example
+(set (const :bold) (const :italic))
+@end example
+
+Sometimes they describe possible elements in an alist:
+
+@example
+(set (cons :tag "Height" (const height) integer)
+     (cons :tag "Width" (const width) integer))
+@end example
+
+@noindent
+That lets the user specify a height value optionally
+and a width value optionally.
 
 @item (repeat @var{element-type})
 The value must be a list and each element of the list must fit the type
