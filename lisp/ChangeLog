@@ -1,3 +1,17 @@
+2000-02-28  Eli Barzilay  <eli@cs.cornell.edu>
+
+	* calculator.el (calculator-use-menu): New option.
+	(calculator-initial-bindings): Changed some bindings to work as
+	macros.
+	(calculator-forced-input): Removed.
+	(calculator-restart-other-mode): New variable.
+	(calculator-mode-map): Set up menu.
+	
+2000-02-28  Jari Aalto  <jari.aalto@poboxes.com>
+
+	* font-lock.el (java-keywords): Added missing java 1.2.2 Javadoc
+	tags.
+	
 2000-02-28  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* viper-cmd.el (viper-envelop-ESC-key): added the option to
@@ -11,7 +25,6 @@
 	* viper.el (viper-vi-state-mode-list): added major modes.
 	* ediff-wind.el: minor comment changes.
 	* ediff.el: copyright notice date fix.
-	
 	
 2000-02-27  Jason Rumney  <jasonr@gnu.org>
 
