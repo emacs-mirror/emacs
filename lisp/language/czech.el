@@ -41,8 +41,8 @@
 	   (sample-text . "P,Bx(Bejeme v,Ba(Bm hezk,B}(B den!")
 	   (documentation . "\
 This language environment is almost the same as Latin-2,
-but default input method is set to \"czech\",
-and the Czech tutorial is selected."))
+but sets the default input method is set to \"czech\",
+and selects the Czech tutorial."))
  '("European"))
 
 (provide 'czech)

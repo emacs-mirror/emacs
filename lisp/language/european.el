@@ -266,8 +266,8 @@ German (Deutsch Nord)	Guten Tag
 German (Deutsch S,A|(Bd)	Gr,A|_(B Gott")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
-but the default input method is set to \"german-postfix\".
-Additionally, the tutorial is set to \"TUTORIAL.de\"."))
+but sets the default input method to \"german-postfix\".
+Additionally, it selects the German tutorial."))
  '("European"))
 
 (set-language-info-alist
@@ -282,7 +282,7 @@ Additionally, the tutorial is set to \"TUTORIAL.de\"."))
 	    (sample-text . "French (Fran,Ag(Bais)	Bonjour, Salut")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
-but the tutorial is set to \"TUTORIAL.fr\"."))
+but it selects the French tutorial."))
  '("European"))
 
 (set-language-info-alist
@@ -310,7 +310,7 @@ but the tutorial is set to \"TUTORIAL.fr\"."))
 	    (sample-text . "Spanish (Espa,Aq(Bol)	,A!(BHola!")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
-but the default input method is set to \"spanish-postfix\",
+but it sets the default input method to \"spanish-postfix\",
 and it selects the Spanish tutorial."))
  '("European"))
 
@@ -325,7 +325,7 @@ and it selects the Spanish tutorial."))
 	   (sample-text . "Er is een aantal manieren waarop je dit kan doen")
 	   (documentation . "\
 This language environment is almost the same as Latin-1,
-but the Dutch tutorial is selected."))
+but it selects the Dutch tutorial."))
  '("European"))
 
 ;; For Turkish, the character set ISO-8859-9 (Latin-5) is used.  But,
