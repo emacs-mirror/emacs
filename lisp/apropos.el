@@ -108,8 +108,9 @@ This looks good, but slows down the commands several times."
 (defvar apropos-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-m" 'apropos-follow)
-    (define-key map " "      'scroll-up)
-    (define-key map "\177"   'scroll-down)
+    (define-key map " "    'scroll-up)
+    (define-key map "\177" 'scroll-down)
+    (define-key map "q"    'quit-window)
     (define-key map [mouse-2] 'apropos-mouse-follow)
     (define-key map [down-mouse-2] nil)
     map)
