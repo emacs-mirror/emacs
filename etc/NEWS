@@ -2972,9 +2972,9 @@ identifing the bitmap such as `left-truncation or `continued-line'.
 previously created bitmap, or restore a built-in bitmap.
 
 *** New function 'set-fringe-bitmap-face' can now be used to set a
-specific face to be used for a specific fringe bitmap.  Normally,
-this should be a face derived from the `fringe' face, specifying
-the foreground color as the desired color of the bitmap.
+specific face to be used for a specific fringe bitmap.  The face is
+automatically merged with the `fringe' face, so normally, the face
+should only specify the foreground color of the bitmap.
 
 *** There are new display properties, left-fringe and right-fringe,
 that can be used to show a specific bitmap in the left or right fringe
