@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.55) $
+# $HopeName: MMsrc!comm.gmk(trunk.56) $
 # Copyright (C) 2000.  Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -236,8 +236,6 @@ TESTLIBOBJ = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.o)
 TESTLIBDEP = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYOBJ = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTDYDEP = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d)
-DWOBJ = $(DW:%.c=$(PFM)/$(VARIETY)/%.o)
-DWDEP = $(DW:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTPSOBJ = $(FMTPS:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTPSDEP = $(FMTPS:%.c=$(PFM)/$(VARIETY)/%.d)
 PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
@@ -408,7 +406,7 @@ $(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
 $(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) $(POOLNOBJ)
 
 $(PFM)/$(VARIETY)/mmdw.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) $(POOLNOBJ) \
-$(DWOBJ) $(AWLOBJ)
+$(FMTDYOBJ) $(AWLOBJ)
 
 $(PFM)/$(VARIETY)/mpsplan.a: $(PLINTHOBJ)
 
