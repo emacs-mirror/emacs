@@ -1297,7 +1297,7 @@ recenter:
   /* Forget any previously recorded base line for line number display.  */
   w->base_line_number = Qnil;
 
-  pos = *vmotion (point, - height / 2, width, hscroll, window);
+  pos = *vmotion (point, - (height / 2), width, hscroll, window);
   try_window (window, pos.bufpos);
 
   startp = marker_position (w->start);
