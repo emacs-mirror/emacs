@@ -94,6 +94,7 @@ and this notice must be preserved on all copies.  */
 #undef CRAY_STACKSEG_END
 #undef STACK_DIRECTION
 #undef const
+#undef UNEXEC_SRC
 
 /* If using GNU, then support inline function declarations. */
 #ifdef __GNUC__
