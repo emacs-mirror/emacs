@@ -703,7 +703,7 @@ Commands for sorting the summary:
 (define-key rmail-summary-mode-map [menu-bar mail rmail-summary-get-new-mail]
   '("Get New Mail" . rmail-summary-get-new-mail))
 
-(define-key rmail-summary--mode-map [menu-bar mail lambda]
+(define-key rmail-summary-mode-map [menu-bar mail lambda]
   '("----"))
 
 (define-key rmail-summary-mode-map [menu-bar mail continue]
