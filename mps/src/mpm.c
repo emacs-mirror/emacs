@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.27) $
+ * $HopeName: MMsrc!mpm.c(trunk.28) $
  * Copyright (C) 1996.  Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -17,7 +17,7 @@
 #include <float.h>
 
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.27) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.28) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -73,9 +73,13 @@ Bool MPMCheck(void)
 }
 
 
-/* BoolCheck -- check that a boolean is valid */
+/* BoolCheck -- check that a boolean is valid
+ *
+ * See design.mps.type.bool.check.
+ * We expect this to be inlined (by the macro in impl.h.mpm).
+ * See design.mps.type.bool.check.inline. */
 
-Bool BoolCheck(Bool b)
+Bool (BoolCheck)(Bool b)
 {
   AVER(b == TRUE || b == FALSE);
   return TRUE;
