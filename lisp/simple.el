@@ -1357,7 +1357,7 @@ In Transient Mark mode, this does not activate the mark."
   (set-marker (mark-marker) (or location (point)) (current-buffer))
   ;; Now push the mark on the global mark ring.
   (if (and global-mark-ring
-	   (eq (marker-buffer (car global-mark-ring) (current-buffer))))
+	   (eq (marker-buffer (car global-mark-ring)) (current-buffer)))
       ;; The last global mark pushed was in this same buffer.
       ;; Don't push another one.
       nil
