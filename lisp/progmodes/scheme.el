@@ -502,7 +502,7 @@ that variable's value is a string."
 (put 'let-syntax 'scheme-indent-function 1)
 (put 'letrec-syntax 'scheme-indent-function 1)
 (put 'syntax-rules 'scheme-indent-function 1)
-
+(put 'syntax-case 'scheme-indent-function 2) ; not r5rs
 
 (put 'call-with-input-file 'scheme-indent-function 1)
 (put 'with-input-from-file 'scheme-indent-function 1)
