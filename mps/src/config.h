@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.44) $
+ * $HopeName: MMsrc!config.h(trunk.45) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
@@ -194,8 +194,8 @@
 
 /* VM Configuration -- see impl.c.vm* */
 
-#define VMAN_ALIGN              ((Align)4096)
-#define VM_JUNKBYTE             ((unsigned char)0xA9)
+#define VMANPageALIGNMENT ((Align)4096)
+#define VMJunkBYTE ((unsigned char)0xA9)
 
 
 /* Tracer Configuration -- see impl.c.trace */
