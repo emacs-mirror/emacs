@@ -1944,15 +1944,19 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 
   while (1)
     {
+#if 0
 #ifdef TRY_AGAIN
       h_errno = 0;
+#endif
 #endif
       immediate_quit = 1;
       QUIT;
       host_info_ptr = gethostbyname (XSTRING (host)->data);
       immediate_quit = 0;
+#if 0
 #ifdef TRY_AGAIN
       if (! (host_info_ptr == 0 && h_errno == TRY_AGAIN))
+#endif
 #endif
 	break;
       Fsleep_for (make_number (1), Qnil);
