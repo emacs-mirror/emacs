@@ -1,5 +1,5 @@
 /* Implementation of GUI terminal on the Mac OS.
-   Copyright (C) 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -729,7 +729,7 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
      int nchars, mode, bytes_per_char;
 {
   SetPortWindowPort (w);
-#ifdef MAC_OSX
+#ifdef MAC_OS_X_VERSION_10_2
   UInt32 textFlags, savedFlags;
   if (!NILP(Vmac_use_core_graphics)) {
     textFlags = kQDUseCGTextRendering;
@@ -746,7 +746,7 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 
   MoveTo (x, y);
   DrawText (buf, 0, nchars * bytes_per_char);
-#ifdef MAC_OSX
+#ifdef MAC_OS_X_VERSION_10_2
   if (!NILP(Vmac_use_core_graphics))
     SwapQDTextFlags(savedFlags);
 #endif
