@@ -2112,7 +2112,7 @@ scrolling the current window.  Leave the new window selected."
    MISS-LIST and GUESS-LIST are possibly null lists of guesses and misses.
 4: Nil when an error has occurred.
 
-Optinal second arg ACCEPT-LIST is list of words already accepted.
+Optional second arg ACCEPT-LIST is list of words already accepted.
 Optional third arg SHIFT is an offset to apply based on previous corrections."
   (cond
    ((string= output "") t)		; for startup with pipes...
