@@ -446,6 +446,10 @@ case $basic_machine in
 		basic_machine=pdp10-dec
 		os=-tops20
 		;;
+	delta | 3300 | motorola-3300 | motorola-delta \
+	      | 3300-motorola | delta-motorola)
+		basic_machine=m68k-motorola
+		;;
 	delta88)
 		basic_machine=m88k-motorola
 		os=-sysv3
