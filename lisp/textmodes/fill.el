@@ -100,7 +100,7 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
       (goto-char (max from to))
       ;; If specified region ends before a newline,
       ;; include that newline.
-      (if (and (eolp) (not (eobp)))
+      (if (and (eolp) (not (eobp)) (not (bolp)))
 	  (forward-char 1))
       (narrow-to-region (min from to) (point))
       (goto-char (point-min))
@@ -264,7 +264,7 @@ space does not end a sentence, so don't break a line there."
     (goto-char (max from to))
     ;; If specified region ends before a newline,
     ;; include that newline.
-    (if (and (eolp) (not (eobp)))
+    (if (and (eolp) (not (eobp)) (not (bolp)))
 	(forward-char 1))
     (narrow-to-region (min from to) (point))
     (goto-char (point-min))
