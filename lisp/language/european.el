@@ -347,4 +347,26 @@ but default input method is set to \"german-postfix\"."))
 	     (sample-text . "Turkish (T,M|(Brk,Mg(Be)	Merhaba")
 	     (documentation . t)))
 
+;; Polish ISO 8859-2 environment.
+;; Maintainer: Wlodek Bzyl <matwb@univ.gda.pl>
+;; Keywords: multilingual, Polish
+
+(defun setup-polish-environment ()
+  "Setup multilingual environment (MULE) for Polish."
+  (interactive)
+  (set-language-environment "Polish"))
+
+(set-language-info-alist
+ "Polish" '((charset . (ascii latin-iso8859-2))
+	   (coding-system . (iso-8859-2))
+	   (coding-priority . (iso-8859-2))
+	   (input-method . "polish-slash")
+	   (nonascii-translation . latin-iso8859-2)
+	   (unibyte-syntax . "latin-2")
+	   (unibyte-display . iso-8859-2)
+	   (tutorial . "TUTORIAL.pl")
+	   (sample-text . ",B1!fFjJ3#qQsS6&?/<,(B")
+	   (documentation . t))
+ '("European"))
+
 ;;; european.el ends here
