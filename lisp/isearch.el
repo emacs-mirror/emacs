@@ -1583,8 +1583,8 @@ If there is no completion possible, say so and continue searching."
 	  isearch-invalid-regexp)
 	 (setq isearch-invalid-regexp "incomplete input")))
     (error
-     ;; stack overflow in regexp search.
-     (setq isearch-invalid-regexp (car (cdr lossage)))))
+     ;; Stack overflow in regexp search, for instance.
+     (setq isearch-invalid-regexp (format "%s" lossage))))
 
   (if isearch-success
       nil
