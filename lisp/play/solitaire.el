@@ -48,7 +48,7 @@
   (substitute-key-definition 'undo 'solitaire-undo
 			     solitaire-mode-map global-map)
   (define-key solitaire-mode-map " " 'solitaire-do-check)
-  (define-key solitaire-mode-map "q" 'solitaire-quit)
+  (define-key solitaire-mode-map "q" 'quit-window)
 
   (define-key solitaire-mode-map [right] 'solitaire-right)
   (define-key solitaire-mode-map [left] 'solitaire-left)
@@ -415,11 +415,6 @@ Seen in info on text lines."
   (+ (count-lines (point-min) (point))
      (if (= (current-column) 0) 1 0)
      -1))
-
-(defun solitaire-quit ()
-  "Quit playing Solitaire."
-  (interactive)
-  (kill-buffer "*Solitaire*"))
 
 ;; And here's the spoiler:)
 (defun solitaire-solve ()
