@@ -3015,8 +3015,9 @@ and (2) it puts less data in the undo list.\n\
 When REPLACE is non-nil, the value is the number of characters actually read,\n\
 which is often less than the number of characters to be read.\n\
 This does code conversion according to the value of\n\
-  `coding-system-for-read' or `coding-system-alist', and sets the variable\n\
-  `last-coding-system-used' to the coding system actually used.")
+  `coding-system-for-read' or `file-coding-system-alist',\n\
+  and sets the variable `last-coding-system-used' to the coding system\n\
+  actually used.")
   (filename, visit, beg, end, replace)
      Lisp_Object filename, visit, beg, end, replace;
 {
@@ -3071,7 +3072,7 @@ This does code conversion according to the value of\n\
 
 	args[0] = Qinsert_file_contents, args[1] = filename, args[2] = visit,
 	  args[3] = beg, args[4] = end, args[5] = replace;
-	coding_systems = Ffind_coding_system (6, args);
+	coding_systems = Ffind_operation_coding_system (6, args);
 	val = CONSP (coding_systems) ? XCONS (coding_systems)->car : Qnil;
       }
     setup_coding_system (Fcheck_coding_system (val), &coding);
@@ -3818,7 +3819,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 	args[0] = Qwrite_region, args[1] = start, args[2] = end,
 	  args[3] = filename, args[4] = append, args[5] = visit,
 	  args[6] = lockname;
-	coding_systems = Ffind_coding_system (7, args);
+	coding_systems = Ffind_operation_coding_system (7, args);
 	val = (CONSP (coding_systems)
 	       ? XCONS (coding_systems)->cdr
 	       : current_buffer->buffer_file_coding_system);
