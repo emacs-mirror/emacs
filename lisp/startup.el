@@ -939,6 +939,11 @@ Mode-specific menu   C-mouse-3 (third button, with CTRL)"))
 \(`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
 If you have no Meta key, you may instead type ESC followed by the character.)")
 			 (and auto-save-list-file-prefix
+			      ;; Don't signal an error if the
+			      ;; directory for auto-save-list files
+			      ;; does not yet exist.
+			      (file-directory-p (file-name-directory
+						 auto-save-list-file-prefix))
 			      (directory-files
 			       (file-name-directory auto-save-list-file-prefix)
 			       nil
