@@ -1,5 +1,7 @@
 2000-05-25  Dave Love  <fx@gnu.org>
 
+	* xdisp.c (Fdump_glyph_matrix): Declare the arg.
+
 	* coding.c (encode_eol): Add null statement after label.
 
 2000-05-25  Eli Zaretskii  <eliz@is.elta.co.il>
