@@ -1,3 +1,9 @@
+2000-07-22  Miles Bader  <miles@gnu.org>
+
+	* textprop.c (Fprevious_single_char_property_change): The initial
+	property value should be from the position preceding POSITION, not
+	following it.
+
 2000-07-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* coding.c (syms_of_coding): Doc fix for
