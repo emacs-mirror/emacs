@@ -1,3 +1,9 @@
+2003-05-21  Jason Rumney  <jasonr@gnu.org>
+
+	* unexw32.c (_start): Remove _fmode initialization.
+
+	* emacs.c (main) [WINDOWSNT]: Move it here.
+
 2003-05-20  Dave Love  <fx@gnu.org>
 
 	* s/gnu-linux.h (MAIL_USE_FLOCK): Make it conditional.
