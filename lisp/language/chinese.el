@@ -46,21 +46,13 @@
 
 (define-coding-system-alias 'iso-2022-cn 'iso-2022-cn-ext)
 
-(defun describe-chinese-support ()
-  "Describe how Emacs supports Chinese."
-  (interactive)
-  (with-output-to-temp-buffer "*Help*"
-    (princ (get-language-info "Chinese" 'documentation))
-    (princ "\n")))
-	   
 (set-language-info-alist
- "Chinese" '((describe-function . describe-chinese-support)
-	     (documentation . "\
+ "Chinese" '((documentation . "\
 Emacs provides the following three kinds of Chinese support:
   Chinese-GB: for users of the charset GB2312
   Chinese-BIG5: for users of the charset Big5
   Chinese-CNS: for users of the charset CNS11643 family
-Please specify one of them to get more information.")
+Please specify/select one of them to get more information.")
 	     ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -131,7 +123,7 @@ Please specify one of them to get more information.")
      coding-category-iso-8-2
      coding-category-big5
      coding-category-iso-8-1
-     coding-category-internal
+     coding-category-emacs-mule
      ))
 
   (setq-default buffer-file-coding-system 'cn-gb-2312)
@@ -141,18 +133,12 @@ Please specify one of them to get more information.")
   (setq default-input-method '("Chinese-GB" . "quail-py"))
   )
 
-(defun describe-chinese-gb-support ()
-  "Describe how Emacs supports Chinese for GB2312 users."
-  (interactive)
-  (describe-language-support-internal "Chinese-GB"))
-
 (set-language-info-alist
  "Chinese-GB" '((setup-function . setup-chinese-gb-environment)
-		(describe-function . describe-chinese-gb-support)
 		(charset . (chinese-gb2312 chinese-sisheng))
 		(coding-system . (cn-gb-2312 hz-gb-2312 iso-2022-cn))
 		(sample-text . "Chinese ($AVPND(B,$AFUM(;0(B,$A::So(B)	$ADc:C(B")
-		(documentation . nil)))
+		(documentation . t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Chinese BIG5 (traditional)
@@ -225,18 +211,12 @@ Please specify one of them to get more information.")
   (setq default-input-method '("Chinese-BIG5" . "quail-py-b5"))
   )
 
-(defun describe-chinese-big5-support ()
-  "Describe how Emacs supports Chinese for Big5 users."
-  (interactive)
-  (describe-language-support-internal "Chinese-BIG5"))
-
 (set-language-info-alist
  "Chinese-BIG5" '((setup-function . setup-chinese-big5-environment)
-		  (describe-function . describe-chinese-big5-support)
 		  (charset . (chinese-big5-1 chinese-big5-2))
 		  (coding-system . (cn-big5 iso-2022-cn))
 		  (sample-text . "Cantonese ($(0GnM$(B,$(0N]0*Hd(B)	$(0*/=((B, $(0+$)p(B")
-		  (documentation . nil)))
+		  (documentation . t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Chinese CNS11643 (traditional)
@@ -269,19 +249,13 @@ Please specify one of them to get more information.")
   (setq default-input-method '("Chinese-CNS" . "quail-quick-cns"))
   )
 
-(defun describe-chinese-cns-support ()
-  "Describe how Emacs supports Chinese for CNS11643 family users."
-  (interactive)
-  (describe-language-support-internal "Chinese-CNS"))
-
 (set-language-info-alist
  "Chinese-CNS" '((setup-function . setup-chinese-cns-environment)
-		 (describe-function . describe-chinese-cns-support)
 		 (charset . (chinese-cns11643-1 chinese-cns11643-2
 			     chinese-cns11643-3 chinese-cns11643-4
 			     chinese-cns11643-5 chinese-cns11643-6
 			     chinese-cns11643-7))
 		 (coding-system . (iso-2022-cn))
-		 (documentation . nil)))
+		 (documentation . t)))
 
 ;;; chinese.el ends here

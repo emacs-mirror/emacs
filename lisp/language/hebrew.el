@@ -54,17 +54,13 @@ But, please note that right-to-left writing is not yet supported."
   (setq default-input-method '("Hebrew" . "quail-hebrew"))
   )
 
-(defun describe-hebrew-support ()
-  "Describe how Emacs supports Hebrew."
-  (interactive)
-  (describe-language-support-internal "Hebrew"))
-
 (set-language-info-alist
  "Hebrew" '((setup-function . setup-hebrew-environment)
 	    (describe-function . describe-hebrew-support)
 	    (charset . (hebrew-iso8859-8))
 	    (coding-system . (iso-8859-8))
 	    (sample-text . "Hebrew	,Hylem(B")
-	    (documentation . "Right-to-left writing is not yet supported.")))
+	    (documentation . ("Right-to-left writing is not yet supported."))
+	    ))
 
 ;;; hebew.el ends here

@@ -70,18 +70,12 @@
   (setq default-input-method '("Korean" . "quail-hangul"))
   )
 
-(defun describe-korean-support ()
-  "Describe How Emacs supports Korean."
-  (interactive)
-  (describe-language-support-internal "Korean"))
-
 (set-language-info-alist
  "Korean" '((setup-function . setup-korean-environment)
-	    (describe-function . describe-korean-support)
 	    (tutorial . "TUTORIAL.kr")
 	    (charset . (korean-ksc5601))
 	    (coding-system . (euc-kr iso-2022-kr))
 	    (sample-text . "Hangul (한글)	안녕하세요, 안녕하십니까")
-	    (documentation . nil)))
+	    (documentation . t)))
 
 ;;; korean.el ends here

@@ -71,17 +71,11 @@ devanagari-compose-from-is13194-region
   (setq default-input-method '("Devanagari" . "quail-devanagari-itrans"))
   )
 
-(defun describe-devanagari-support ()
-  "Describe how Emacs support languages using Devanagari script."
-  (interactive)
-  (describe-language-support-internal "Devanagari"))
-
 (set-language-info-alist
  "Devanagari" '((setup-function . setup-devanagari-environment)
-		(describe-function . describe-devanagari-support)
 		(charset . (indian-is13194 indian-2-column indian-1-column))
 		(coding-system . (in-is13194-devanagari))
-		(documentation . nil)))
+		(documentation . t)))
 
 ;;
 ;; Devanagari Glyph List

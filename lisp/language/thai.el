@@ -56,18 +56,12 @@
   (setq default-input-method '("Thai" . "quail-thai"))
   )
 
-(defun describe-thai-support ()
-  "Describe how Emacs supports Thai."
-  (interactive)
-  (describe-language-support-internal "Thai"))
-
 (set-language-info-alist
  "Thai" '((tutorial . "TUTORIAL.th")
 	  (setup-function . setup-thai-environment)
-	  (describe-function . describe-thai-support)
 	  (charset . (thai-tis620))
 	  (coding-system . (th-tis620))
 	  (sample-text . "Thai (,T@RIRd7B(B)		,TJ0GQ1J04U1$0CQ1:(B, ,TJ0GQ1J04U10$h1P(B")
-	  (documentation . nil)))
+	  (documentation . t)))
 
 ;;; thai.el ends here

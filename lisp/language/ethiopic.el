@@ -85,16 +85,10 @@
       (define-key mail-mode-map [C-f5] 'fidel-to-sera-mail)))
   )
 
-(defun describe-ethiopic-support ()
-  "Describe how Emacs supports Ethiopic."
-  (interactive)
-  (describe-language-support-internal "Ethiopic"))
-
 (set-language-info-alist
  "Ethiopic" '((setup-function . setup-ethiopic-environment)
-	      (describe-function . describe-ethiopic-support)
 	      (charset . (ethiopic))
 	      (sample-text . "$(3$O#U!.(B")
-	      (documentation . nil)))
+	      (documentation . t)))
 
 ;;; ethiopic.el ends here

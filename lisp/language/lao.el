@@ -50,18 +50,12 @@
 
   (setq default-input-method '("Lao" . "quail-lao")))
 
-(defun describe-lao-support ()
-  "Describe how Emacs supports Lao."
-  (interactive)
-  (describe-language-support-internal "Lao"))
-
 (set-language-info-alist
  "Lao" '((setup-function . setup-lao-environment)
-	 (describe-function . describe-lao-support)
 	 (charset . (lao))
 	 (coding-system . (lao))
 	 (sample-text . "Lao((1>RJRERG(B)            (1JP:R-04U1(B, 0(1"i1M-`0;Q190$[19ERG(B")
-	 (documentation . nil)))
+	 (documentation . t)))
 
 (aset use-default-ascent ?(1;(B t)
 (aset use-default-ascent ?(1=(B t)

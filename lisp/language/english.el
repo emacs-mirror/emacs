@@ -48,7 +48,7 @@ The default status is as follows.
 	coding-category-iso-8-2		iso-8859-1
 	coding-category-iso-8-1		iso-8859-1
 	coding-category-iso-else	iso-8859-1
-	coding-category-internal 	internal
+	coding-category-emacs-mule 	emacs-mule
 	coding-category-binary		no-conversion
 	coding-category-sjis		sjis
 	coding-category-big5		big5
@@ -58,7 +58,7 @@ The default status is as follows.
   (if (local-variable-p 'enable-multibyte-characters)
       (setq enable-multibyte-characters t))
 
-  (setq coding-category-internal	'internal
+  (setq coding-category-emacs-mule	'emacs-mule
 	coding-category-iso-7		'iso-2022-7
 	coding-category-iso-8-1		'iso-8859-1
 	coding-category-iso-8-2		'iso-8859-1
@@ -72,7 +72,7 @@ The default status is as follows.
      coding-category-iso-8-2
      coding-category-iso-8-1
      coding-category-iso-else
-     coding-category-internal 
+     coding-category-emacs-mule 
      coding-category-binary
      coding-category-sjis
      coding-category-big5))
@@ -85,20 +85,14 @@ The default status is as follows.
 	rmail-file-coding-system nil)
   )
 
-(defun describe-english-support ()
-  "Describe how Emacs support English."
-  (interactive)
-  (describe-language-support-internal "English"))
-
 (set-language-info-alist
  "English" '((setup-function . setup-english-environment)
-	     (describe-function . describe-english-support)
 	     (tutorial . "TUTORIAL")
 	     (charset . (ascii))
 	     (sample-text . "Hello!, Hi!, How are you?")
-	     (documentation . "\
+	     (documentation . ("\
 There's nothing special you should care to handle English in Emacs.
-You can use English both with enable-multibyte-characters t and nil.")
+You can use English both with enable-multibyte-characters t and nil."))
 	     ))
 
 (register-input-method "English"

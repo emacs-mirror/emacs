@@ -76,25 +76,19 @@ See also the documentation of setup-english-environment."
   (setup-english-environment)
   (setq default-input-method '("European" . "quail-latin-1")))
 
-(defun describe-european-support ()
-  "Describe how Emacs support European languages."
-  (interactive)
-  (describe-language-support-internal "European"))
-
 (set-language-info-alist
  "European" '((setup-function . setup-european-environment)
-	      (describe-function . describe-european-support)
 	      (charset . (ascii latin-iso8859-1 latin-iso8859-2
 			  latin-iso8859-3 latin-iso8859-4 latin-iso8859-9))
 	      (coding-system . (iso-8859-1 iso-8859-2 iso-8859-3
 				iso-8859-4 iso-8859-9))
 	      (sample-text
 	       . "Hello, Hej, Tere, Hei, Bonjour, Gr,A|_(B Gott, Ciao, ,A!(BHola!")
-	      (documentation . "\
+	      (documentation . ("\
 Almost all of European languages are supported by the character sets and
 coding systems listed below.
 To input them, LEIM (Libraries for Emacs Input Methods) should have been
-installed.")
+installed."))
 	      ))
 
 (let ((languages '("French" "German" "Spanish" "Italian"

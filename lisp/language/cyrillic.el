@@ -204,17 +204,11 @@
   (setq default-input-method '("Cyrillic" . "quail-yawerty"))
   )
 
-(defun describe-cyrillic-support ()
-  "Describe how Emacs support Cyrillic."
-  (interactive)
-  (describe-language-support-internal "Cyrillic"))
-
 (set-language-info-alist
  "Cyrillic" '((setup-function . setup-cyrillic-environment)
-	      (describe-function . describe-cyrillic-support)
 	      (charset . (cyrillic-iso8859-5))
 	      (coding-system . (iso-8859-5 koi8 alternativnyj))
 	      (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
-	      (documentation . nil)))
+	      (documentation . t)))
 
 ;;; cyrillic.el ends here

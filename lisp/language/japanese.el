@@ -70,7 +70,7 @@
      coding-category-sjis
      coding-category-iso-8-1
      coding-category-iso-else
-     coding-category-internal))
+     coding-category-emacs-mule))
 
   (if (eq system-type 'ms-dos)
       (progn
@@ -88,14 +88,8 @@
 	rmail-file-coding-system 'iso-2022-jp)
   )
 
-(defun describe-japanese-support ()
-  "Describe how Emacs supports Japanese."
-  (interactive)
-  (describe-language-support-internal "Japanese"))
-
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment)
-	      (describe-function . describe-japanese-support)
 	      (tutorial . "TUTORIAL.jp")
 	      (charset . (japanese-jisx0208 japanese-jisx0208-1978
 			  japanese-jisx0212 latin-jisx0201
@@ -103,6 +97,6 @@
 	      (coding-system . (euc-japan-1990 sjis
 				iso-2022-jp iso-2022-jp-1978-irv))
 	      (sample-text . "Japanese (日本語)		こんにちは, ｺﾝﾆﾁﾊ")
-	      (documentation . nil)))
+	      (documentation . t)))
 
 ;;; japanese.el ends here
