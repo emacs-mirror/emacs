@@ -2,8 +2,7 @@
 
 ;; Copyright (C) 1991, 92, 93, 94, 95, 1998 Free Software Foundation, Inc.
 
-;; Author: Daniel.Pfeiffer@Informatik.START.dbp.de
-;;		 fax (+49 69) 7588-2389
+;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: maint, tools
 
 ;; This file is part of GNU Emacs.

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1993, 94, 95, 96, 1997 by Free Software Foundation, Inc.
 
-;; Author: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
+;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0e
 ;; Maintainer: FSF
 ;; Keywords: languages, unix

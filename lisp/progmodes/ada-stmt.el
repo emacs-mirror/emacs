@@ -2,7 +2,8 @@
 
 ;; Copyright (C) 1987, 1993, 1994, 1996, 1997 Free Software Foundation, Inc.
 
-;; Authors: Daniel Pfeiffer, Markus Heritsch, Rolf Ebert <ebert@waporo.muc.de>
+;; Authors: Daniel Pfeiffer <occitan@esperanto.org>, Markus Heritsch,
+;;   Rolf Ebert <ebert@waporo.muc.de>
 ;; Maintainer: Rolf Ebert <ebert@waporo.muc.de>
 ;; Keywords: languages, ada
 ;; Rolf Ebert's version: 2.26

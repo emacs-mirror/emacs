@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1989, 1993, 1994 Free Software Foundation, Inc.
 
-;; Author: Daniel Pfieffer <pfieffer@cix.cict.fr> January 1991
+;; Author: Daniel Pfeiffer <occitan@esperanto.org>,
 ;;	Jim Blandy <jimb@occs.cs.oberlin.edu>
 ;; Keywords: terminals
 

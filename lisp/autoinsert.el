@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985, 86, 87, 94, 95, 98 Free Software Foundation, Inc.
 
 ;; Author: Charlie Martin <crm@cs.duke.edu>
-;; Adapted-By: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
+;; Adapted-By: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: convenience
 ;; Maintainer: FSF
 

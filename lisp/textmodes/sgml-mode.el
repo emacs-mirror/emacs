@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1995, 1996, 1998 Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
-;; Adapted-By: ESR; Daniel.Pfeiffer@Informatik.START.dbp.de
+;; Adapted-By: ESR, Daniel Pfeiffer <occitan@esperanto.org>,
 ;;             F.Potorti@cnuce.cnr.it
 ;; Keywords: wp, hypermedia, comm, languages
 

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1993, 1994, 1995, 1996 by Free Software Foundation, Inc.
 
-;; Author: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
+;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Maintainer: FSF
 ;; Keywords: extensions, abbrev, languages, tools
 
