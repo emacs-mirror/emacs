@@ -475,6 +475,10 @@ update_compositions (from, to, check_mask)
   Lisp_Object prop, hook;
   int start, end;
 
+  /* If FROM and TO are not in a valid range, do nothing.  */
+  if (! (BEGV <= from && from <= to && to <= ZV))
+    return;
+
   if (check_mask & CHECK_HEAD)
     {
       /* FROM should be at composition boundary.  But, insertion or
