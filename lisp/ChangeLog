@@ -1,3 +1,8 @@
+2000-11-28  Colin Walters  <walters@cis.ohio-state.edu>
+
+	* chistory.el (Command-history-setup): Remove extraneous `keymap'
+	reference.
+
 2000-11-28  Miles Bader  <miles@gnu.org>
 
 	* cus-face.el (custom-face-attributes): Add post-filter function
