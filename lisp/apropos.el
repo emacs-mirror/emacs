@@ -432,6 +432,14 @@ satisfy the predicate VAR-PREDICATE."
 
 
 ;;;###autoload
+(defun apropos-documentation-property (symbol property raw)
+  "Like (documentation-property SYMBOL PROPERTY RAW) but handle errors."
+  (condition-case ()
+      (let ((doc (documentation-property symbol property raw)))
+	(if doc (substring doc 0 (string-match "\n" doc))
+	  "(not documented)"))
+    (error "(error retrieving documentation)")))
+
 (defun apropos (apropos-regexp &optional do-all)
   "Show all bound symbols whose names match APROPOS-REGEXP.
 With optional prefix DO-ALL or if `apropos-do-all' is non-nil, also
@@ -463,37 +471,28 @@ time-consuming.  Returns list of symbols and documentation found."
 		   (if (setq doc (condition-case nil
 				     (documentation symbol t)
 				   (void-function
-				    "(alias for undefined function)")))
+				    "(alias for undefined function)")
+				   (error
+				    "(error retrieving function documentation")))
 		       (substring doc 0 (string-match "\n" doc))
 		     "(not documented)"))
 		 (when (boundp symbol)
-		   (if (setq doc (documentation-property
-				  symbol 'variable-documentation t))
-		       (substring doc 0 (string-match "\n" doc))
-		     "(not documented)"))
+		   (apropos-documentation-property
+		    symbol 'variable-documentation t))
 		 (when (setq properties (symbol-plist symbol))
 		   (setq doc (list (car properties)))
 		   (while (setq properties (cdr (cdr properties)))
 		     (setq doc (cons (car properties) doc)))
 		   (mapconcat #'symbol-name (nreverse doc) " "))
 		 (when (get symbol 'widget-type)
-		   (if (setq doc (documentation-property
-				  symbol 'widget-documentation t))
-		       (substring doc 0
-				  (string-match "\n" doc))
-		     "(not documented)"))
+		   (apropos-documentation-property
+		    symbol 'widget-documentation t))
 		 (when (facep symbol)
-		   (if (setq doc (documentation-property
-				  symbol 'face-documentation t))
-		       (substring doc 0
-				  (string-match "\n" doc))
-		     "(not documented)"))
+		   (apropos-documentation-property
+		    symbol 'face-documentation t))
 		 (when (get symbol 'custom-group)
-		   (if (setq doc (documentation-property
-				  symbol 'group-documentation t))
-		       (substring doc 0
-				  (string-match "\n" doc))
-		     "(not documented)"))))
+		   (apropos-documentation-property
+		    symbol 'group-documentation t))))
       (setq p (cdr p))))
   (apropos-print
    (or do-all apropos-do-all)
