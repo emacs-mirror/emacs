@@ -1881,8 +1881,8 @@ describe_map_tree (startmap, partial, shadow, prefix, title, nomenu)
      char *title;
      int nomenu;
 {
-  Lisp_Object maps, seen;
-  struct gcpro gcpro1, gcpro2;
+  Lisp_Object maps, seen, sub_shadows;
+  struct gcpro gcpro1, gcpro2, gcpro3;
   int something = 0;
   char *key_heading
     = "\
@@ -1891,7 +1891,8 @@ key             binding\n\
 
   maps = Faccessible_keymaps (startmap, prefix);
   seen = Qnil;
-  GCPRO2 (maps, seen);
+  sub_shadows = Qnil;
+  GCPRO3 (maps, seen, sub_shadows);
 
   if (nomenu)
     {
@@ -1931,7 +1932,7 @@ key             binding\n\
 
   for (; !NILP (maps); maps = Fcdr (maps))
     {
-      register Lisp_Object elt, prefix, sub_shadows, tail;
+      register Lisp_Object elt, prefix, tail;
 
       elt = Fcar (maps);
       prefix = Fcar (elt);
