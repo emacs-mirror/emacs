@@ -761,7 +761,8 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'octave-mode
  :regexp "[_a-zA-Z0-9]+"
- :doc-spec '(("(octave)Function Index" nil "^ - [^:]+:[ ]+" nil)
+ :doc-spec '(("(octave)Function Index" nil 
+	      "^ - [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)
 	     ("(octave)Variable Index" nil "^ - [^:]+:[ ]+" nil)
 	     ;; Catch lines of the form "xyz statement"
 	     ("(octave)Concept Index"
