@@ -48,11 +48,10 @@ Don't rebind TAB unless you really need to.")
 (defcustom tab-always-indent t
   "*Controls the operation of the TAB key.
 If t, hitting TAB always just indents the current line.
-If `never', hitting TAB just inserts a tab.
 If nil, hitting TAB indents the current line if point is at the left margin
   or in the line's indentation, otherwise it insert a `real' tab character."
   :group 'indent
-  :type '(choice (const nil) (const t) (const never) (const always)))
+  :type '(choice (const nil) (const t) (const always)))
 
 (defun indent-according-to-mode ()
   "Indent line in proper way for current major mode."
@@ -81,8 +80,7 @@ The function actually called to indent is determined by the value of
 `indent-line-function'."
   (interactive "P")
   (cond
-   ((or (eq tab-always-indent 'never)
-	;; indent-to-left-margin is only meant for indenting,
+   ((or ;; indent-to-left-margin is only meant for indenting,
 	;; so we force it to always insert a tab here.
 	(eq indent-line-function 'indent-to-left-margin)
 	(and (not tab-always-indent)
