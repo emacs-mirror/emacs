@@ -3,3 +3,8 @@ elisp-[1-9]*
 texput.log
 elisp.??
 elisp.???
+configure
+config.log
+config.cache
+config.status
+Makefile
