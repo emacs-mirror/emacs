@@ -11709,10 +11709,9 @@ meaning don't clear the cache.");
   Vimage_cache_eviction_delay = make_number (30 * 60);
 
 #ifdef USE_X_TOOLKIT
-  Fprovide (intern ("x-toolkit"));
-  
+  Fprovide (intern ("x-toolkit"), Qnil);
 #ifdef USE_MOTIF
-  Fprovide (intern ("motif"));
+  Fprovide (intern ("motif"), Qnil);
 
   DEFVAR_LISP ("motif-version-string", &Vmotif_version_string,
      "Version info for LessTif/Motif.");
