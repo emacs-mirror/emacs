@@ -4,8 +4,7 @@
 ;;           Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -139,6 +138,8 @@ C-w  Describe how there is no warranty for Calc."
   (interactive "kDescribe key briefly: ")
   (calc-describe-key key t))
 
+(defvar Info-history)
+
 (defun calc-describe-key (key &optional briefly)
   (interactive "kDescribe key: ")
   (let ((defn (if (eq (key-binding key) 'calc-dispatch)
@@ -157,7 +158,8 @@ C-w  Describe how there is no warranty for Calc."
 		      (lookup-key calc-help-map key2))
 		  (key-binding key))))
 	(inv nil)
-	(hyp nil))
+	(hyp nil)
+        calc-summary-indentation)
     (while (or (equal key "I") (equal key "H"))
       (if (equal key "I")
 	  (setq inv (not inv))
@@ -400,6 +402,12 @@ C-w  Describe how there is no warranty for Calc."
     (delete-region (point-min) (point))
     (goto-char (point-min))))
 
+(defvar calc-help-long-names '((?b . "binary/business")
+			       (?g . "graphics")
+			       (?j . "selection")
+			       (?k . "combinatorics/statistics")
+			       (?u . "units/statistics")))
+
 (defun calc-full-help ()
   (interactive)
   (with-output-to-temp-buffer "*Help*"
@@ -455,12 +463,6 @@ C-w  Describe how there is no warranty for Calc."
 		calc-shift-Z-prefix-help
 		calc-z-prefix-help)))
     (print-help-return-message)))
-
-(defvar calc-help-long-names '((?b . "binary/business")
-			       (?g . "graphics")
-			       (?j . "selection")
-			       (?k . "combinatorics/statistics")
-			       (?u . "units/statistics")))
 
 (defun calc-h-prefix-help ()
   (interactive)
