@@ -327,7 +327,7 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 	    (princ " runs the command ")
 	    (prin1 defn)
 	    (princ "\n   which is ")
-	    (describe-function-1 defn nil)
+	    (describe-function-1 defn nil (interactive-p))
 	    (print-help-return-message)))))))
 
 (defun describe-mode ()
@@ -591,7 +591,7 @@ It can also be nil, if the definition is not associated with any file."
 	;; Use " is " instead of a colon so that
 	;; it is easier to get out the function name using forward-sexp.
 	(princ " is ")
-	(describe-function-1 function nil)
+	(describe-function-1 function nil (interactive-p))
 	(print-help-return-message)
 	(save-excursion
 	  (set-buffer standard-output)
@@ -599,7 +599,7 @@ It can also be nil, if the definition is not associated with any file."
 	  (buffer-string)))
     (message "You didn't specify a function")))
 
-(defun describe-function-1 (function parens)
+(defun describe-function-1 (function parens interactive-p)
   (let* ((def (if (symbolp function)
 		  (symbol-function function)
 		function))
@@ -685,7 +685,7 @@ It can also be nil, if the definition is not associated with any file."
       (if doc
 	  (progn (terpri)
 		 (princ doc)
-		 (help-setup-xref (list #'describe-function function) (interactive-p)))
+		 (help-setup-xref (list #'describe-function function) interactive-p))
 	(princ "not documented")))))
 
 (defun variable-at-point ()
