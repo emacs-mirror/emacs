@@ -40,7 +40,7 @@ Boston, MA 02111-1307, USA.  */
   ((f)->bdf ? (f)->bdf->width : (f)->tm.tmMaxCharWidth)
 
 #define CP_DEFAULT 1004
-/* Special psuedo-codepages. */
+/* Special pseudo-codepages. */
 #define CP_8BIT      -1
 #define CP_UNICODE   -2
 #define CP_INVALID   -3

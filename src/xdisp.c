@@ -552,7 +552,7 @@ int automatic_hscrolling_p;
 Lisp_Object Vimage_types;
 
 /* The variable `resize-mini-windows'.  If nil, don't resize
-   mini-winodws.  If t, always resize them to fit the text they
+   mini-windows.  If t, always resize them to fit the text they
    display.  If `grow-only', let mini-windows grow only until they
    become empty.  */
 
