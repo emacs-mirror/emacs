@@ -9570,7 +9570,7 @@ That is not right.\n\
 \n\
 Calling this function directs the translated event to replace\n\
 the original event, so that only one version of the event actually\n\
-appears in the echo area and in the value of `this-command-keys.'.")
+appears in the echo area and in the value of `this-command-keys'.")
   ()
 {
   before_command_restore_flag = 1;
@@ -10779,11 +10779,11 @@ If the value is non-nil and not a number, we wait 2 seconds.");
   Vsuggest_key_bindings = Qt;
 
   DEFVAR_LISP ("timer-list", &Vtimer_list,
-    "List of active absolute time timers in order of increasing time");
+    "List of active absolute time timers in order of increasing time.");
   Vtimer_list = Qnil;
 
   DEFVAR_LISP ("timer-idle-list", &Vtimer_idle_list,
-    "List of active idle-time timers in order of increasing time");
+    "List of active idle-time timers in order of increasing time.");
   Vtimer_idle_list = Qnil;
 
   DEFVAR_LISP ("input-method-function", &Vinput_method_function,
@@ -10828,7 +10828,7 @@ the boundary of the region.  But, several special commands sets this\n\
 variable to non-nil, then we suppress the point adjustment.\n\
 \n\
 This variable is set to nil before reading a command, and is checked\n\
-just after executing the command");
+just after executing the command.");
   Vdisable_point_adjustment = Qnil;
 
   DEFVAR_LISP ("global-disable-point-adjustment",

@@ -1,3 +1,10 @@
+2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* keyboard.c (Freset_this_command_lengths): Doc fix.
+	(timer-list): Doc fix.
+	(timer-idle-list): Doc fix.
+	(disable-point-adjustment): Doc fix.
+
 2001-10-30  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_to_x_charset): Increase size of XLFD charset buffer.
