@@ -121,7 +121,9 @@ static SIGTYPE float_error ();
 static int in_float;
 
 /* If an argument is out of range for a mathematical function,
-   here is the actual argument value to use in the error message.  */
+   here is the actual argument value to use in the error message.
+   These variables are used only across the floating point library call
+   so there is no need to staticpro them.  */
 
 static Lisp_Object float_error_arg, float_error_arg2;
 
