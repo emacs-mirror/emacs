@@ -87,15 +87,56 @@ int unibyte_to_multibyte_table[256];
 
 
 int
-char_string_with_unification (c, p)
+char_string (c, p)
      int c;
      unsigned char *p;
 {
   int bytes;
 
+  if (c & CHAR_MODIFIER_MASK)
+    {
+      /* As a character not less than 256 can't have modifier bits, we
+	 just ignore the bits.  */
+      if (SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
+	{
+	  /* For Meta, Shift, and Control modifiers, we need special care.  */
+	  if (c & CHAR_META)
+	    {
+	      /* Move the meta bit to the right place for a string.  */
+	      c = (c & ~CHAR_META) | 0x80;
+	    }
+	  if (c & CHAR_SHIFT)
+	    {
+	      /* Shift modifier is valid only with [A-Za-z].  */
+	      if ((c & 0377) >= 'A' && (c & 0377) <= 'Z')
+		c &= ~CHAR_SHIFT;
+	      else if ((c & 0377) >= 'a' && (c & 0377) <= 'z')
+		c = (c & ~CHAR_SHIFT) - ('a' - 'A');
+	    }
+	  if (c & CHAR_CTL)
+	    {
+	      /* Simulate the code in lread.c.  */
+	      /* Allow `\C- ' and `\C-?'.  */
+	      if (c == (CHAR_CTL | ' '))
+		c = 0;
+	      else if (c == (CHAR_CTL | '?'))
+		c = 127;
+	      /* ASCII control chars are made from letters (both cases),
+		 as well as the non-letters within 0100...0137.  */
+	      else if ((c & 0137) >= 0101 && (c & 0137) <= 0132)
+		c &= (037 | (~0177 & ~CHAR_CTL));
+	      else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
+		c &= (037 | (~0177 & ~CHAR_CTL));
+	    }
+	}
+
+      /* If C still has any modifier bits, just ignore it.  */
+      c &= ~CHAR_MODIFIER_MASK;
+    }
+
   MAYBE_UNIFY_CHAR (c);
 
-  if (c <= MAX_3_BYTE_CHAR || c > MAX_5_BYTE_CHAR)
+  if (c <= MAX_3_BYTE_CHAR)
     {
       bytes = CHAR_STRING (c, p);
     }
@@ -107,7 +148,7 @@ char_string_with_unification (c, p)
       p[3] = (0x80 | (c & 0x3F));
       bytes = 4;
     }
-  else
+  else if (c <= MAX_5_BYTE_CHAR)
     {
       p[0] = 0xF8;
       p[1] = (0x80 | ((c >> 18) & 0x0F));
@@ -116,13 +157,18 @@ char_string_with_unification (c, p)
       p[4] = (0x80 | (c & 0x3F));
       bytes = 5;
     }
+  else
+    {
+      c = CHAR_TO_BYTE8 (c);
+      bytes = BYTE8_STRING (c, p);
+    }
 
   return bytes;
 }
 
 
 int
-string_char_with_unification (p, advanced, len)
+string_char (p, advanced, len)
      const unsigned char *p;
      const unsigned char **advanced;
      int *len;
