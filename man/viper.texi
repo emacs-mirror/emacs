@@ -20,7 +20,7 @@
 @titlepage
 @title Viper Is a Package for Emacs Rebels
 @subtitle a Vi emulator for Emacs
-@subtitle October 2000, Viper Version 3.09
+@subtitle January 2002, Viper Version 3.11.2
 
 @author Michael Kifer (Viper)
 @author Aamod Sane (VIP 4.4)
@@ -33,7 +33,7 @@
 @unnumbered Distribution
 
 @noindent
-Copyright @copyright{} 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
+Copyright @copyright{} 1995, 1996, 1997, 2001, 2002 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -58,7 +58,7 @@ license to the document, as described in section 6 of the license.
 @unnumbered Viper
 
 We believe that one or more of the following statements are adequate
-descriptions:
+descriptions of Viper:
 
 @example
 Viper Is a Package for Emacs Rebels;
@@ -80,7 +80,7 @@ new features of Viper.
 
 Viper, formerly known as VIP-19, was written by Michael Kifer.  It is based
 on VIP version 3.5 by Masahiko Sato and VIP version 4.4 by Aamod Sane.
-Viper tries to be compatible with these packages.
+About 15% of the code still comes from those older packages.
 
 Viper is intended to be usable without reading this manual --- the defaults
 are set to make Viper as close to Vi as possible.  At startup, Viper will
@@ -89,19 +89,19 @@ your familiarity with Emacs.  It will also tell you the basic GNU Emacs window
 management commands to help you start immediately.
 
 Although this manual explains how to customize Viper, some basic
-familiarity with Emacs Lisp would be a plus.
+familiarity with Emacs Lisp is a plus.
 
 It is recommended that you read the Overview node.  The other nodes may
 be visited as needed.
 
 Comments and bug reports are welcome.
-@code{kifer@@cs.sunysb.edu} is the current address for Viper bug reports.
+@code{kifer@@cs.stonybrook.edu} is the current address for Viper bug reports.
 Please use the Ex command @kbd{:submitReport} for this purpose.@refill
 
 @end ifinfo
 
 @menu
-* Overview::                    Must read to get started
+* Overview::                    Read for a smoother start
 * Improvements over Vi::        New features, Improvements
 * Customization::               How to customize Viper
 * Commands::                    Vi and Ex Commands
@@ -118,7 +118,7 @@ Please use the Ex command @kbd{:submitReport} for this purpose.@refill
 @unnumbered Introduction
 
 We believe that one or more of the following statements are adequate
-descriptions:
+descriptions of Viper:
 
 @example
 Viper Is a Package for Emacs Rebels;
@@ -134,8 +134,8 @@ This manual describes Viper, concentrating on the differences from Vi
 and on the new features of Viper.
 
 Viper was written by Michael Kifer.  It is based on VIP version 3.5 by
-Masahiko Sato and VIP version 4.4 by Aamod Sane.  Viper tries to be
-compatible with these packages.
+Masahiko Sato and VIP version 4.4 by Aamod Sane.  About 15% of the code
+still comes from those older packages.
 
 Viper is intended to be usable out of the box, without reading this manual
 --- the defaults are set to make Viper as close to Vi as possible.  At
@@ -144,7 +144,7 @@ for you, based on your familiarity with Emacs.  It will also tell you the
 basic GNU Emacs window management commands to help you start immediately.
 
 Although this manual explains how to customize Viper, some basic
-familiarity with Emacs Lisp would be a plus.
+familiarity with Emacs Lisp is a plus.
 
 It is recommended that you read the chapter Overview.  The other chapters
 will be useful for customization and advanced usage.
@@ -154,7 +154,7 @@ comes with Emacs.  This manual can be read as an Info file.  Try the command
 @kbd{@key{ESC} x info} with vanilla Emacs sometime.
 
 Comments and bug reports are welcome.
-@code{kifer@@cs.sunysb.edu} is the current address for Viper bug reports.
+@code{kifer@@cs.stonybrook.edu} is the current address for Viper bug reports.
 Please use the Ex command @kbd{:submitReport} for this purpose.@refill
 
 @end iftex
@@ -179,12 +179,9 @@ enables additional Emacs bindings under Viper.  These customizations can be
 included in your @file{~/.viper} file and are found at the following URL:
 @file{http://www.eecs.umich.edu/~jshawkin/viper-sample}.
 
-Viper was formerly known as VIP-19, which was
-a descendant of VIP 3.5 by Masahiko Sato and VIP 4.4 by Aamod Sane.
-
 @menu
 * Emacs Preliminaries::         Basic concepts in Emacs.
-* Loading Viper::                       Loading and Preliminary Configuration.
+* Loading Viper::               Loading and Preliminary Configuration.
 * States in Viper::             Viper has four states orthogonal to Emacs
                                 modes.
 * The Minibuffer::              Command line in Emacs.
@@ -339,14 +336,6 @@ version 20.0, Emacsen have an interactive interface, which simplifies the
 job of customization significantly.
 
 Viper also uses the file @file{~/.viper} for Viper-specific customization.
-If you wish to be in Vi command state whenever this is deemed appropriate
-by the author, you can include the following line in your @file{.viper}:
-@lisp
-(setq viper-always t)
-@end lisp
-@noindent
-(@xref{Vi State}, for the explanation of Vi command state.)
-
 The location of Viper customization file can be changed by setting the
 variable @code{viper-custom-file-name} in @file{.emacs} @emph{prior} to loading
 Viper.
@@ -362,8 +351,8 @@ whenever this makes sense.
 @xref{Packages that Change Keymaps}, to find out when forcing Vi command state
 on a buffer may be counter-productive.
 
-Even if your @file{.emacs} and @file{.viper} files do not contain any of the
-above lines, you can still load Viper and enter Vi command state by typing the
+Even if your @file{.emacs} file does not invoke Viper automatically,
+you can still load Viper and enter the Vi command state by typing the
 following from within Emacs:
 
 @lisp
@@ -378,7 +367,7 @@ editing files by using @kbd{:e}, @kbd{:vi}, or @kbd{v} commands.
 new commands that, in many cases, are more convenient than @kbd{:e},
 @kbd{:vi}, and similar old-style Vi commands.)@refill
 
-Finally, if at some point you would want to get de-Viperize your running
+Finally, if at some point you would want to de-Viperize your running
 copy of Emacs after Viper has been loaded, the command @kbd{M-x
 viper-go-away} will do it for you.  The function @code{toggle-viper-mode}
 toggles Viperization of Emacs on and off.
@@ -476,7 +465,7 @@ Insert state, you cannot do many interesting things, like language
 sensitive editing.  For the novice user (at Viper level 1), all major mode
 bindings are turned off in Vi state as well.  This includes the bindings for
 key sequences that start with @kbd{C-c}, which practically means that all
-major mode bindings are supported.  @xref{Customization}, to find out how
+major mode bindings are unsupported.  @xref{Customization}, to find out how
 to allow Emacs keys in Insert state.
 
 @menu
@@ -571,7 +560,8 @@ Viper uses @key{ESC} as a switch between Insert and Vi states.  Emacs uses
 functions are accessible only via that key as @kbd{M-x function-name}.
 Therefore, we need to simulate it somehow.  In Viper's Vi, Insert, and
 Replace states, the meta key is set to be @kbd{C-\}.  Thus, to get
-@kbd{M-x}, you should type @kbd{C-\ x} (if the keyboard has no Meta key).
+@kbd{M-x}, you should type @kbd{C-\ x} (if the keyboard has no Meta key,
+which is rare these days).
 This works both in the Vi command state and in the Insert and Replace
 states.  In Vi command state, you can also use @kbd{\ @key{ESC}} as the
 meta key.
@@ -900,9 +890,9 @@ Unimplemented features include:
 
 @itemize @bullet
 @item
-@kbd{:ab} and @kbd{:una} are not implemented.
-Both @kbd{:map} and @kbd{:ab} are considered obsolete, since Emacs has much
-more powerful facilities for defining keyboard macros and abbreviations.
+@kbd{:ab} and @kbd{:una} are not implemented, since
+@kbd{:ab} is considered obsolete, since Emacs has much
+more powerful facilities for defining abbreviations.
 @item
 @kbd{:set option?} is not implemented.  The current
 @kbd{:set} can also be used to set Emacs variables.
@@ -1202,7 +1192,8 @@ will have to change @code{viper-search-face} to your liking.  The easiest
 way to do this is to use Emacs customization widget, which is accessible
 from the menubar.  Viper customization group is located under the
 @emph{Emulations} customization group, which in turn is under the
-@emph{Editing} group.  All Viper faces are grouped together under Viper's
+@emph{Editing} group (or simply by typing @kbd{:customize}).  All Viper
+faces are grouped together under Viper's 
 @emph{Highlighting} group.
 
 Try it: it is really simple!
@@ -1583,28 +1574,30 @@ Customization can be done in 2 ways.
 @cindex .viper
 Elisp code in a @file{.viper} file in your home directory.  Viper
 loads @file{.viper} just before it does the binding for mode
-hooks.  This is the recommended method.
+hooks.  This is recommended for experts only.
 @item
 @cindex .emacs
 Elisp code in your @file{.emacs} file before and after the @code{(require
-'viper)} line.  This method is not recommended, unless you know what you are
-doing.  Only two variables, @code{viper-mode} and
-@code{viper-custom-file-name} are supposed to be customized in @file{.emacs},
-prior to loading Viper.@refill
-@end itemize
-
-@noindent
-Most of Viper's behavior can be customized via the interactive Emacs user
-interface.  Choose "Customize" from the menubar, click on "Editing", then on
-"Emulations".  The customization widget is self-explanatory.  Once you are
-satisfied with your changes, save them into a file and then include the
-contents of that file in the Viper customization repository, @file{.viper}
-(except for @code{viper-mode} and @code{viper-custom-file-name}, which are
-supposed to go into @code{.emacs}).
+'viper)} line.  This method is @emph{not} recommended, unless you know what
+you are doing.  Only two variables, @code{viper-mode} and
+@code{viper-custom-file-name}, are supposed to be customized in @file{.emacs},
+prior to loading Viper (i.e., prior to @code{(require 'viper)} command.@refill
+@item
+@cindex :customize
+By executing the @kbd{:customize} Ex command. This takes you to the Emacs
+customization widget, which lets you change the values of Viper
+customizable variables easily. This method is good for novice and
+experts alike. The customization code in the form of Lisp commands will be
+placed in @file{~/.emacs} or some other customization file depending on the
+version of Emacs that you use. Still, it is recommended to separate
+Viper-related customization produced by the Emacs customization widget
+and keep in in the @file{.viper} file.
 
 Some advanced customization cannot be accomplished this way, however, and
-has to be done in Emacs Lisp.  For the common cases, examples are provided
-that you can use directly.
+has to be done in Emacs Lisp in the @file{.viper} file.  For the common
+cases, examples are provided that you can use directly.
+@end itemize
+
 
 @menu
 * Rudimentary Changes::          Simple constant definitions.
@@ -2002,8 +1995,8 @@ so you can just type
 @end lisp
 
 @noindent
-to bind L1 so it will invoke the Emacs Calendar and to bind L4 so it will
-undo changes.
+to bind L1 (a key that exists on some SUN workstations) so it will invoke
+the Emacs Calendar and to bind L4 so it will undo changes.
 However, on a dumb terminal or in an Xterm window, even the standard arrow
 keys may
 not emit the right signals for Emacs to understand.  To let Emacs know about
@@ -2144,9 +2137,9 @@ buffer switches to some other Viper state and then back to Emacs state).  To
 avoid this, one should add @code{viper-change-state-to-emacs} to an
 appropriate hook of that major mode.  (Check the function
 @code{viper-set-hooks} in @file{viper.el} for examples.)  However, if you
-have set @code{viper-always} to @code{t}, chances are that you won't need to
-perform the above procedure, because Viper will take care of most useful
-defaults.
+did not set @code{viper-always} to @code{nil}, chances are that you won't
+need to perform the above procedure, because Viper will take care of most
+useful defaults.
 
 
 Finally, Viper has a facility that lets the user define per-buffer
@@ -2224,7 +2217,8 @@ means that bindings set by those modes are generally available with Viper
 (unless you explicitly prohibit them by setting
 @code{viper-want-emacs-keys-in-vi} and @code{viper-want-emacs-keys-in-insert} to
 @code{nil}).
-If @code{viper-always} is set to @code{t}, Viper will try to bring each buffer
+If @code{viper-always} is set to @code{t} (which is the default), Viper
+will try to bring each buffer 
 in the Viper state that is most appropriate for that buffer.
 Usually, this would be the Vi state, but sometimes it could be the Insert
 state or the Emacs state.
@@ -2611,8 +2605,7 @@ command in @code{~/.viper} after setting @code{viper-mouse-search-key}:
 @end lisp
 
 You can also change this setting interactively, through the customization
-widget of Emacs (choose option "Customize.Customize Group" from the
-menubar).
+widget of Emacs (type @kbd{:customize}).
 
 The region that is chosen as a pattern to search for is determined as
 follows.  If search is invoked via a single click, Viper chooses the region
@@ -2727,7 +2720,8 @@ register (a lowercase letter); such macros can then be executed by typing
 If, however, you need to use a macro regularly, it must be given a
 permanent name and saved.  Emacs manual explains how to do this, but
 invocation of named Emacs macros is quite different from Vi's.  First,
-invocation of permanent Emacs macros takes time because of the extra keys.
+invocation of permanent Emacs macros takes time because it requires typing
+too many keys (to  a Vi user's taste, anyway).
 Second, binding such macros to function keys, for
 fast access, hogs valuable real estate on the keyboard.
 
@@ -2735,8 +2729,9 @@ Vi-style macros are better in that respect, since Vi lets the user overload
 the meaning of key sequences: keys typed in fast succession are treated
 specially, if this key sequence is bound to a macro.
 
-Viper provides keyboard macros through the usual Ex commands, @kbd{:map} and
-@kbd{:map!}.  Vi-style macros are much more powerful in Viper than
+Viper provides Vi-style keyboard macros through the usual Ex commands,
+@kbd{:map} and 
+@kbd{:map!}.  These macros are much more powerful in Viper than
 they are in the original Vi and in other emulators.  This is because Viper
 implements an enhanced vi-style
 interface to the powerful Emacs keyboard macro facility.
@@ -4481,7 +4476,7 @@ martin@@xemacs.org (Martin Buchholz),
 mbutler@@redfernnetworks.com (Malcolm Butler),
 mveiga@@dit.upm.es (Marcelino Veiga Tuimil),
 paulk@@summit.esg.apertus.com (Paul Keusemann),
-pfister@@cs.sunysb.edu (Hanspeter Pfister),
+pfister@@cs.stonybrook.edu (Hanspeter Pfister),
 phil_brooks@@MENTORG.COM (Phil Brooks),
 pogrell@@informatik.hu-berlin.de (Lutz Pogrell),
 pradyut@@cs.uchicago.edu (Pradyut Shah),

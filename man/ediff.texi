@@ -30,7 +30,7 @@
 This file documents Ediff, a comprehensive visual interface to Unix diff
 and patch utilities.
 
-Copyright 1995, 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+Copyright 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -54,16 +54,16 @@ license to the document, as described in section 6 of the license.
 @titlepage
 @title Ediff User's Manual
 @sp 4
-@subtitle Ediff version 2.70
+@subtitle Ediff version 2.76.1
 @sp 1
-@subtitle March 1998
+@subtitle January 2002
 @sp 5
 @author Michael Kifer
 @page
 
 @vskip 0pt plus 1filll
 @noindent
-Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -225,11 +225,16 @@ Compare windows line-by-line.
 
 @item ediff-regions-wordwise
 @findex ediff-regions-wordwise
-Compare regions word-by-word.
+Compare regions word-by-word.  The regions can come from the same buffer
+and they can even overlap.  You will be asked to specify the buffers that
+contain the regions, which you want to compare. For each buffer, you will
+also be asked to mark the regions to be compared. Pay attention to the
+messages that appear in the minibuffer.
 
 @item ediff-regions-linewise
 @findex ediff-regions-linewise
-Compare regions line-by-line.
+Similar to @code{ediff-windows-linewise}, but compares the regions
+line-by-line. See @code{ediff-windows-linewise} for more details.
 
 @item ediff-revision
 @findex ediff-revision
@@ -384,15 +389,14 @@ On a color display, fine differences are highlighted with color; on a
 monochrome display, they are underlined.  @xref{Highlighting Difference
 Regions}, for information on how to customize this.
 
-The functions @code{ediff-windows-wordwise},
+The commands @code{ediff-windows-wordwise},
 @code{ediff-windows-linewise}, @code{ediff-regions-wordwise} and
 @code{ediff-regions-linewise} do comparison on parts of existing Emacs
-buffers.  Since @code{ediff-windows-wordwise} and
+buffers.  The commands @code{ediff-windows-wordwise} and
 @code{ediff-regions-wordwise} are intended for relatively small segments
-of buffers, comparison is done on the basis of words rather than lines.
-No refinement is necessary in this case.  These commands are recommended
-only for relatively small regions (perhaps, up to 100 lines), because
-these functions have a relatively slow startup.
+of buffers (e.g., up to 100 lines, depending on the speed of your machine),
+as they perform comparison on the basis of words rather than lines.
+(Word-wise comparison of large chunks of text can be slow.)
 
 To compare large regions, use @code{ediff-regions-linewise}.  This
 command displays differences much like @code{ediff-files} and
@@ -948,6 +952,21 @@ these modes the default one.
 This function can also be invoked from the Menubar.  However, in some
 cases, the change will take place only after you execute one of the Ediff
 commands, such as going to the next difference or redisplaying.
+
+@item ediff-toggle-use-toolbar
+@findex ediff-toggle-use-toolbar
+Available in XEmacs only.  The Ediff toolbar provides quick access to some
+of the common Ediff functions.  This function toggles the display of the
+toolbar.  If invoked from the menubar, the function may take sometimes
+effect only after you execute an Ediff command, such as going to the next
+difference.
+
+@item ediff-use-toolbar-p
+@vindex ediff-use-toolbar-p
+The use of the toolbar can also be specified via the variable
+@code{ediff-use-toolbar-p} (default is @code{t}).  This variable can be set
+only in @file{.emacs} --- do @strong{not} change it interactively.  Use the
+function @code{ediff-toggle-use-toolbar} instead.
 
 @item ediff-revert-buffers-then-recompute-diffs
 @findex ediff-revert-buffers-then-recompute-diffs
@@ -2347,7 +2366,7 @@ control buffer is in its own frame.
 @node Credits, Index, Customization, Top
 @chapter Credits
 
-Ediff was written by Michael Kifer <kifer@@cs.sunysb.edu>.  It was inspired
+Ediff was written by Michael Kifer <kifer@@cs.stonybrook.edu>.  It was inspired
 by emerge.el written by Dale R.@: Worley <drw@@math.mit.edu>.  An idea due to
 Boris Goldowsky <boris@@cs.rochester.edu> made it possible to highlight
 fine differences in Ediff buffers.  Alastair Burt <burt@@dfki.uni-kl.de>
@@ -2396,7 +2415,6 @@ Karl Heuer (kwzh@@gnu.org),
 (jaffe@@chipmunk.cita.utoronto.ca),
 David Karr (dkarr@@nmo.gtegsc.com),
 Norbert Kiesel (norbert@@i3.informatik.rwth-aachen.de),
-Sam Steingold (sds@@goems.com),
 Leigh L Klotz (klotz@@adoc.xerox.com),
 Fritz Knabe (Fritz.Knabe@@ecrc.de),
 Heinz Knutzen (hk@@informatik.uni-kiel.d400.de),
@@ -2406,6 +2424,7 @@ Ken Laprade (laprade@@dw3f.ess.harris.com),
 Will C Lauer (wcl@@cadre.com),
 Richard Levitte (levitte@@e.kth.se),
 Mike Long (mike.long@@analog.com),
+Dave Love (d.love@@dl.ac.uk),
 Martin Maechler (maechler@@stat.math.ethz.ch),
 Simon Marshall (simon@@gnu.org),
 Paul C. Meuse (pmeuse@@delcomsys.com),
@@ -2432,6 +2451,7 @@ Vin Shelton (acs@@xemacs.org),
 Scott O. Sherman (Scott.Sherman@@mci.com),
 Richard Stallman (rms@@gnu.org),
 Richard Stanton (stanton@@haas.berkeley.edu),
+Sam Steingold (sds@@goems.com),
 Ake Stenhoff (etxaksf@@aom.ericsson.se),
 Stig (stig@@hackvan.com),
 Peter Stout (Peter_Stout@@cs.cmu.edu),

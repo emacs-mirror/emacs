@@ -3,12 +3,12 @@
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
 
-;; Author: Michael Kifer <kifer@cs.sunysb.edu>
+;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
 
-(defconst viper-version "3.11.1 of September 9, 2001"
+(defconst viper-version "3.11.2 of January 4, 2002"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -353,9 +353,6 @@ user decide when to invoke Viper in a major mode."
 ;; Non-viper variables that need to be saved in case the user decides to
 ;; de-viperize emacs.
 (defvar viper-saved-non-viper-variables nil)
-;; Contains user settings for vars affected by viper-set-expert-level function.
-;; Not a user option.
-(defvar viper-saved-user-settings nil)
 	       
 (defcustom viper-mode (cond (noninteractive nil)
 			    (t 'ask))
@@ -1056,26 +1053,6 @@ remains buffer-local."
 
   ) ; end viper-non-hook-settings
 
-;; Viperized read-key-sequence
-(defun viper-read-key-sequence (prompt &optional continue-echo)
-  (let (inhibit-quit event keyseq)
-    (setq keyseq (read-key-sequence prompt continue-echo))
-    (setq event (if viper-xemacs-p
-		    (elt keyseq 0) ; XEmacs returns vector of events
-		  (elt (listify-key-sequence keyseq) 0)))
-    (if (viper-ESC-event-p event)
-	(let (unread-command-events)
-	  (viper-set-unread-command-events keyseq)
-	  (if (viper-fast-keysequence-p)
-	      (let ((viper-vi-global-user-minor-mode  nil)
-		    (viper-vi-local-user-minor-mode  nil)
-		    (viper-replace-minor-mode nil) ; actually unnecessary
-		    (viper-insert-global-user-minor-mode  nil)
-		    (viper-insert-local-user-minor-mode  nil))
-		(setq keyseq (read-key-sequence prompt continue-echo))) 
-	    (setq keyseq (read-key-sequence prompt continue-echo)))))
-    keyseq))
-
 
 
 ;; Ask only if this-command/last-command are nil, i.e., when loading
@@ -1122,14 +1099,6 @@ These two lines must come in the order given.
 
 
 
-;; Get viper standard value of SYMBOL.  If symbol is customized, get its
-;; standard value.  Otherwise, get the value saved in the alist STORAGE.  If
-;; STORAGE is nil, use viper-saved-user-settings. 
-(defun viper-standard-value (symbol &optional storage)
-  (or (eval (car (get symbol 'customized-value)))
-      (eval (car (get symbol 'saved-value)))
-      (nth 1 (assoc symbol (or storage viper-saved-user-settings)))))
-
 
 
 ;; save non-viper vars that Viper might change

@@ -1,8 +1,8 @@
 ;;; ediff-help.el --- Code related to the contents of Ediff help buffers
 
-;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
 
-;; Author: Michael Kifer <kifer@cs.sunysb.edu>
+;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -190,12 +190,15 @@ the value of this variable and the variables `ediff-help-message-*' in
   (let ((pos (ediff-event-point last-command-event))
 	overl cmd)
 
-    (if ediff-xemacs-p
-	(setq overl (extent-at pos (current-buffer) 'ediff-help-info)
-	      cmd   (ediff-overlay-get overl 'ediff-help-info))
-      (setq cmd (car (mapcar (lambda (elt)
-			       (overlay-get elt 'ediff-help-info))
-			     (overlays-at pos)))))
+    (ediff-cond-compile-for-xemacs-or-emacs
+     ;; xemacs
+     (setq overl (extent-at pos (current-buffer) 'ediff-help-info)
+	   cmd   (ediff-overlay-get overl 'ediff-help-info))
+     ;; emacs
+     (setq cmd (car (mapcar (lambda (elt)
+			      (overlay-get elt 'ediff-help-info))
+			    (overlays-at pos))))
+     )
     
     (if (not (stringp cmd))
 	(error "Hmm...  I don't see an Ediff command around here..."))

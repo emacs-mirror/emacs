@@ -1,8 +1,8 @@
 ;;; ediff-vers.el --- version control interface to Ediff
 
-;;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+;;; Copyright (C) 1995, 96, 97, 2002 Free Software Foundation, Inc.
 
-;; Author: Michael Kifer <kifer@cs.sunysb.edu>
+;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -35,16 +35,20 @@
 
 (and noninteractive
      (eval-when-compile
-       (load "pcl-cvs" 'noerror)
-       (load "rcs" 'noerror)
-       ;; On 8+3 MS-DOS filesystems, generic-x.el is loaded
-       ;; instead of (the missing) generic-sc.el.  Since the
-       ;; version of Emacs which supports MS-DOS doesn't have
-       ;; generic-sc, we simply avoid loading it.
-       (or (and (fboundp 'msdos-long-file-names)
-		(not (msdos-long-file-names)))
-	   (load "generic-sc" 'noerror))
-       (load "vc" 'noerror)))
+       (let ((load-path (cons (expand-file-name ".") load-path)))
+	 (load "pcl-cvs" 'noerror)
+	 (load "rcs" 'noerror)
+	 ;; On 8+3 MS-DOS filesystems, generic-x.el is loaded
+	 ;; instead of (the missing) generic-sc.el.  Since the
+	 ;; version of Emacs which supports MS-DOS doesn't have
+	 ;; generic-sc, we simply avoid loading it.
+	 (or (and (fboundp 'msdos-long-file-names)
+		  (not (msdos-long-file-names)))
+	     (load "generic-sc" 'noerror))
+	 ;; (load "vc" 'noerror) ; this sometimes causes compiler error
+	 (or (featurep 'ediff-init)
+	     (load "ediff-init.el" nil nil 'nosuffix))
+	 )))
 ;; end pacifier
       
 ;; VC.el support
@@ -246,7 +250,7 @@
 
 ;; PCL-CVS.el support
 
-
+;; MK: Check. This function doesn't seem to be used any more by pcvs or pcl-cvs
 (defun cvs-run-ediff-on-file-descriptor (tin)
 ;; This is a replacement for cvs-emerge-mode
 ;; Runs after cvs-update.

@@ -1,8 +1,8 @@
 ;;; viper-macs.el --- functions implementing keyboard macros for Viper
 
-;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 2000, 01, 02 Free Software Foundation, Inc.
 
-;; Author: Michael Kifer <kifer@cs.sunysb.edu>
+;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -855,30 +855,10 @@ name from there."
 	  (error "Wrong type macro component, symbol-or-listp, %S" elt)
 	macro)))
   
-(defun viper-char-array-p (array)
-  (eval (cons 'and (mapcar 'viper-characterp array))))
-  
 (defun viper-macro-to-events (macro-body)
   (vconcat (mapcar 'viper-key-to-emacs-key macro-body)))
 	    
-			 
-;; check if vec is a vector of character symbols
-(defun viper-char-symbol-sequence-p (vec)
-  (and
-   (sequencep vec)
-   (eval
-    (cons 'and
-	  (mapcar (lambda (elt)
-		    (and (symbolp elt) (= (length (symbol-name elt)) 1)))
-		  vec)))))
 	       
-
-;; Check if vec is a vector of key-press events representing characters
-;; XEmacs only
-(defun viper-event-vector-p (vec)
-  (and (vectorp vec)
-       (eval (cons 'and (mapcar '(lambda (elt) (if (eventp elt) t)) vec)))))
-    
 
 ;;; Reading fast key sequences
     

@@ -1,8 +1,8 @@
 ;;; viper-cmd.el --- Vi command support for Viper
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
 
-;; Author: Michael Kifer <kifer@cs.sunysb.edu>
+;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -41,6 +41,8 @@
 (defvar quail-current-str)
 (defvar zmacs-region-stays)
 (defvar mark-even-if-inactive)
+(defvar init-message)
+(defvar initial)
 
 ;; loading happens only in non-interactive compilation
 ;; in order to spare non-viperized emacs from being viperized
@@ -144,6 +146,10 @@
 
 ;; Where viper saves mark. This mark is resurrected by m^
 (defvar viper-saved-mark nil)
+
+;; Contains user settings for vars affected by viper-set-expert-level function.
+;; Not a user option.
+(defvar viper-saved-user-settings nil)
 
 
 
@@ -298,12 +304,15 @@
   ;; desirable that viper-pre-command-sentinel is the last hook and
   ;; viper-post-command-sentinel is the first hook.
 
-  (if viper-xemacs-p
-      (progn
-	(make-local-hook 'viper-after-change-functions)
-	(make-local-hook 'viper-before-change-functions)
-	(make-local-hook 'viper-post-command-hooks)
-	(make-local-hook 'viper-pre-command-hooks)))
+  (viper-cond-compile-for-xemacs-or-emacs
+   ;; xemacs
+   (progn
+     (make-local-hook 'viper-after-change-functions)
+     (make-local-hook 'viper-before-change-functions)
+     (make-local-hook 'viper-post-command-hooks)
+     (make-local-hook 'viper-pre-command-hooks))
+   nil ; emacs
+   )
 
   (remove-hook 'post-command-hook 'viper-post-command-sentinel)
   (add-hook 'post-command-hook 'viper-post-command-sentinel)
@@ -744,14 +753,16 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 
 	  ;; this-command, last-command-char, last-command-event
 	  (setq this-command com)
-	  (if viper-xemacs-p ; XEmacs represents key sequences as vectors
-	      (setq last-command-event
-		    (viper-copy-event (viper-seq-last-elt key))
-		    last-command-char (event-to-character last-command-event))
-	    ;; Emacs represents them as sequences (str or vec)
-	    (setq last-command-event
-		  (viper-copy-event (viper-seq-last-elt key))
-		  last-command-char last-command-event))
+	  (viper-cond-compile-for-xemacs-or-emacs
+	   ;; XEmacs represents key sequences as vectors
+	   (setq last-command-event
+		 (viper-copy-event (viper-seq-last-elt key))
+		 last-command-char (event-to-character last-command-event))
+	   ;; Emacs represents them as sequences (str or vec)
+	   (setq last-command-event
+		 (viper-copy-event (viper-seq-last-elt key))
+		 last-command-char last-command-event)
+	   )
 
 	  (if (commandp com)
 	      (progn
@@ -850,7 +861,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 	      (viper-copy-event (if viper-xemacs-p
 				    (character-to-event ch) ch)))
 	) ; let
-    (error)
+    (error nil)
     ) ; condition-case
       
   (viper-set-input-method nil)
@@ -1766,13 +1777,14 @@ invokes the command before that, etc."
     (message " `.' runs  %s%s"
 	     (concat "`" (viper-array-to-string keys) "'")
 	     (viper-abbreviate-string
-	      (if viper-xemacs-p
-		  (replace-in-string
-		   (cond ((characterp text) (char-to-string text))
-			 ((stringp text) text)
-			 (t ""))
-		   "\n" "^J")
-		text)
+	      (viper-cond-compile-for-xemacs-or-emacs
+	       (replace-in-string ; xemacs
+		(cond ((characterp text) (char-to-string text))
+		      ((stringp text) text)
+		      (t ""))
+		"\n" "^J")
+	       text ; emacs
+	       )
 	      max-text-len
 	      "  inserting  `" "'" "    ......."))
     ))
@@ -2059,9 +2071,10 @@ To turn this feature off, set this variable to nil."
 		  (setq cmd
 			(key-binding (setq key (read-key-sequence nil))))
 		  (cond ((eq cmd 'self-insert-command)
-			 (if viper-xemacs-p
-			     (insert (events-to-keys key))
-			   (insert key)))
+			 (viper-cond-compile-for-xemacs-or-emacs
+			  (insert (events-to-keys key)) ; xemacs
+			  (insert key) ; emacs
+			  ))
 			((memq cmd '(exit-minibuffer viper-exit-minibuffer))
 			 nil)
 			(t (command-execute cmd)))
@@ -2642,7 +2655,7 @@ On reaching beginning of line, stop and signal error."
   (let ((pt (point)))
     (condition-case nil
 	(forward-char arg)
-      (error))
+      (error nil))
     (if (< (point) pt) ; arg was negative
 	(- (viper-chars-in-region pt (point)))
       (viper-chars-in-region pt (point)))))
@@ -2656,7 +2669,7 @@ On reaching beginning of line, stop and signal error."
   (let ((pt (point)))
     (condition-case nil
 	(backward-char arg)
-      (error))
+      (error nil))
     (if (> (point) pt) ; arg was negative
 	(viper-chars-in-region pt (point))
       (- (viper-chars-in-region pt (point))))))
@@ -3323,9 +3336,11 @@ controlled by the sign of prefix numeric value."
 ;; (which is called from viper-search-forward/backward/next).  If the value of
 ;; viper-search-scroll-threshold is negative - don't scroll.
 (defun viper-adjust-window ()
-  (let ((win-height (if viper-emacs-p
-			(1- (window-height)) ; adjust for modeline
-		      (window-displayed-height)))
+  (let ((win-height (viper-cond-compile-for-xemacs-or-emacs
+		     (window-displayed-height) ; xemacs
+		     ;; emacs
+		     (1- (window-height)) ; adjust for modeline
+		     ))
 	(pt (point))
 	at-top-p at-bottom-p
 	min-scroll direction)
@@ -4575,8 +4590,6 @@ One can use `` and '' to temporarily jump 1 step back."
 	  (t (error viper-InvalidTextmarker reg)))))
 
 
-
-;; commands in insertion mode
 
 (defun viper-delete-backward-word (arg)
   "Delete previous word."
@@ -4586,6 +4599,17 @@ One can use `` and '' to temporarily jump 1 step back."
     (backward-word arg)
     (delete-region (point) (mark t))
     (pop-mark)))
+
+
+
+;; Get viper standard value of SYMBOL.  If symbol is customized, get its
+;; standard value.  Otherwise, get the value saved in the alist STORAGE.  If
+;; STORAGE is nil, use viper-saved-user-settings. 
+(defun viper-standard-value (symbol &optional storage)
+  (or (eval (car (get symbol 'customized-value)))
+      (eval (car (get symbol 'saved-value)))
+      (nth 1 (assoc symbol (or storage viper-saved-user-settings)))))
+
 
 
 (defun viper-set-expert-level (&optional dont-change-unless)
@@ -4913,7 +4937,7 @@ Mail anyway (y or n)? ")
 	  (require 'reporter)
 	  (set-window-configuration window-config)
 
-	  (reporter-submit-bug-report "kifer@cs.sunysb.edu"
+	  (reporter-submit-bug-report "kifer@cs.stonybrook.edu"
 				      (viper-version)
 				      varlist
 				      nil 'delete-other-windows
@@ -4921,54 +4945,6 @@ Mail anyway (y or n)? ")
 	  ))
 
 
-
-;; Smoothes out the difference between Emacs' unread-command-events
-;; and XEmacs unread-command-event.  Arg is a character, an event, a list of
-;; events or a sequence of keys.
-;;
-;; Due to the way unread-command-events in Emacs (not XEmacs), a non-event
-;; symbol in unread-command-events list may cause Emacs to turn this symbol
-;; into an event.  Below, we delete nil from event lists, since nil is the most
-;; common symbol that might appear in this wrong context.
-(defun viper-set-unread-command-events (arg)
-  (if viper-emacs-p
-      (setq
-       unread-command-events
-       (let ((new-events
-	      (cond ((eventp arg) (list arg))
-		    ((listp arg) arg)
-		    ((sequencep arg)
-		     (listify-key-sequence arg))
-		    (t (error
-			"viper-set-unread-command-events: Invalid argument, %S"
-			arg)))))
-	 (if (not (eventp nil))
-	     (setq new-events (delq nil new-events)))
-	 (append new-events unread-command-events)))
-    ;; XEmacs
-    (setq
-     unread-command-events
-     (append
-      (cond ((viper-characterp arg) (list (character-to-event arg)))
-	    ((eventp arg)  (list arg))
-	    ((stringp arg) (mapcar 'character-to-event arg))
-	    ((vectorp arg) (append arg nil)) ; turn into list
-	    ((listp arg) (viper-eventify-list-xemacs arg))
-	    (t (error
-		"viper-set-unread-command-events: Invalid argument, %S" arg)))
-      unread-command-events))))
-
-;; list is assumed to be a list of events of characters
-(defun viper-eventify-list-xemacs (lis)
-  (mapcar
-   (lambda (elt)
-     (cond ((viper-characterp elt) (character-to-event elt))
-	   ((eventp elt)  elt)
-	   (t (error
-	       "viper-eventify-list-xemacs: can't convert to event, %S"
-	       elt))))
-   lis))
-  
   
 
 ;;; viper-cmd.el ends here

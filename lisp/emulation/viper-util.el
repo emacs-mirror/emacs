@@ -1,8 +1,8 @@
 ;;; viper-util.el --- Utilities used by viper.el
 
-;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 99, 2000, 01, 02 Free Software Foundation, Inc.
 
-;; Author: Michael Kifer <kifer@cs.sunysb.edu>
+;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -39,6 +39,7 @@
 (defvar ex-unix-type-shell-options)
 (defvar viper-ex-tmp-buf-name)
 (defvar viper-syntax-preference)
+(defvar viper-saved-mark)
 
 (require 'cl)
 (require 'ring)
@@ -66,48 +67,46 @@
 ;;; XEmacs support
 
 
-(if viper-xemacs-p
-    (progn
-      (fset 'viper-read-event (symbol-function 'next-command-event))
-      (fset 'viper-make-overlay (symbol-function 'make-extent))
-      (fset 'viper-overlay-start (symbol-function 'extent-start-position))
-      (fset 'viper-overlay-end (symbol-function 'extent-end-position))
-      (fset 'viper-overlay-put (symbol-function 'set-extent-property))
-      (fset 'viper-overlay-p (symbol-function 'extentp))
-      (fset 'viper-overlay-get (symbol-function 'extent-property))
-      (fset 'viper-move-overlay (symbol-function 'set-extent-endpoints))
-      (fset 'viper-overlay-live-p (symbol-function 'extent-live-p))
-      (if (viper-window-display-p)
-	  (fset 'viper-iconify (symbol-function 'iconify-frame)))
-      (cond ((viper-has-face-support-p)
-	     (fset 'viper-get-face (symbol-function 'get-face))
-	     (fset 'viper-color-defined-p
-		   (symbol-function 'valid-color-name-p))
-	     )))
-  (fset 'viper-read-event (symbol-function 'read-event))
-  (fset 'viper-make-overlay (symbol-function 'make-overlay))
-  (fset 'viper-overlay-start (symbol-function 'overlay-start))
-  (fset 'viper-overlay-end (symbol-function 'overlay-end))
-  (fset 'viper-overlay-put (symbol-function 'overlay-put))
-  (fset 'viper-overlay-p (symbol-function 'overlayp))
-  (fset 'viper-overlay-get (symbol-function 'overlay-get))
-  (fset 'viper-move-overlay (symbol-function 'move-overlay))
-  (fset 'viper-overlay-live-p (symbol-function 'overlayp))
-  (if (viper-window-display-p)
-      (fset 'viper-iconify (symbol-function 'iconify-or-deiconify-frame)))
-  (cond ((viper-has-face-support-p)
-	 (fset 'viper-get-face (symbol-function 'internal-get-face))
-	 (fset 'viper-color-defined-p (symbol-function 'x-color-defined-p))
-	 )))
+(viper-cond-compile-for-xemacs-or-emacs
+ (progn ; xemacs
+   (fset 'viper-overlay-p (symbol-function 'extentp))
+   (fset 'viper-make-overlay (symbol-function 'make-extent))
+   (fset 'viper-overlay-live-p (symbol-function 'extent-live-p))
+   (fset 'viper-move-overlay (symbol-function 'set-extent-endpoints))
+   (fset 'viper-overlay-start (symbol-function 'extent-start-position))
+   (fset 'viper-overlay-end (symbol-function 'extent-end-position))
+   (fset 'viper-overlay-get (symbol-function 'extent-property))
+   (fset 'viper-overlay-put (symbol-function 'set-extent-property))
+   (fset 'viper-read-event (symbol-function 'next-command-event))
+   (fset 'viper-characterp (symbol-function 'characterp))
+   (fset 'viper-int-to-char (symbol-function 'int-to-char))
+   (if (viper-window-display-p)
+       (fset 'viper-iconify (symbol-function 'iconify-frame)))
+   (cond ((viper-has-face-support-p)
+	  (fset 'viper-get-face (symbol-function 'get-face))
+	  (fset 'viper-color-defined-p (symbol-function 'valid-color-name-p))
+	  )))
+ (progn ; emacs
+   (fset 'viper-overlay-p (symbol-function 'overlayp))
+   (fset 'viper-make-overlay (symbol-function 'make-overlay))
+   (fset 'viper-overlay-live-p (symbol-function 'overlayp))
+   (fset 'viper-move-overlay (symbol-function 'move-overlay))
+   (fset 'viper-overlay-start (symbol-function 'overlay-start))
+   (fset 'viper-overlay-end (symbol-function 'overlay-end))
+   (fset 'viper-overlay-get (symbol-function 'overlay-get))
+   (fset 'viper-overlay-put (symbol-function 'overlay-put))
+   (fset 'viper-read-event (symbol-function 'read-event))
+   (fset 'viper-characterp (symbol-function 'integerp))
+   (fset 'viper-int-to-char (symbol-function 'identity))
+   (if (viper-window-display-p)
+       (fset 'viper-iconify (symbol-function 'iconify-or-deiconify-frame)))
+   (cond ((viper-has-face-support-p)
+	  (fset 'viper-get-face (symbol-function 'internal-get-face))
+	  (fset 'viper-color-defined-p (symbol-function 'x-color-defined-p))
+	  )))
+ )
 
 
-(fset 'viper-characterp
-      (symbol-function
-       (if viper-xemacs-p 'characterp 'integerp)))
-
-(fset 'viper-int-to-char
-      (symbol-function
-       (if viper-xemacs-p 'int-to-char 'identity)))
 
 ;; CHAR is supposed to be a char or an integer (positive or negative)
 ;; LIST is a list of chars, nil, and negative numbers
@@ -133,14 +132,17 @@
 	(t nil)))
 
 (defsubst viper-color-display-p ()
-  (if viper-emacs-p
-      (x-display-color-p)
-    (eq (device-class (selected-device)) 'color)))
+  (viper-cond-compile-for-xemacs-or-emacs
+   (eq (device-class (selected-device)) 'color) ; xemacs
+   (x-display-color-p)  ; emacs
+   ))
    
 (defsubst viper-get-cursor-color ()
-  (if viper-emacs-p
-      (cdr (assoc 'cursor-color (frame-parameters)))
-    (color-instance-name (frame-property (selected-frame) 'cursor-color))))
+  (viper-cond-compile-for-xemacs-or-emacs
+   ;; xemacs
+   (color-instance-name (frame-property (selected-frame) 'cursor-color))
+   (cdr (assoc 'cursor-color (frame-parameters))) ; emacs
+   ))
   
 
 ;; OS/2
@@ -154,11 +156,12 @@
   (if (and (viper-window-display-p)  (viper-color-display-p)
 	   (stringp new-color) (viper-color-defined-p new-color)
 	   (not (string= new-color (viper-get-cursor-color))))
-      (if viper-emacs-p
-	  (modify-frame-parameters
-	   (selected-frame) (list (cons 'cursor-color new-color)))
-	(set-frame-property
-	 (selected-frame) 'cursor-color (make-color-instance new-color)))
+      (viper-cond-compile-for-xemacs-or-emacs
+       (set-frame-property
+	(selected-frame) 'cursor-color (make-color-instance new-color))
+       (modify-frame-parameters
+	(selected-frame) (list (cons 'cursor-color new-color)))
+       )
     ))
 	 
 ;; By default, saves current frame cursor color in the
@@ -824,14 +827,20 @@
 	)))
        
 (defun viper-check-minibuffer-overlay ()
-  (or (viper-overlay-p viper-minibuffer-overlay)
-      (setq viper-minibuffer-overlay
-	    (if viper-xemacs-p
-		(viper-make-overlay 1 (1+ (buffer-size)) (current-buffer))
-	      ;; make overlay open-ended
-	      (viper-make-overlay
-	       1 (1+ (buffer-size)) (current-buffer) nil 'rear-advance)))
-      ))
+  (if (viper-overlay-live-p viper-minibuffer-overlay)
+      (viper-move-overlay
+       viper-minibuffer-overlay
+       (if (fboundp 'minibuffer-prompt-end) (minibuffer-prompt-end) 1)
+       (1+ (buffer-size)))
+    (setq viper-minibuffer-overlay
+	  (if viper-xemacs-p
+	      (viper-make-overlay 1 (1+ (buffer-size)) (current-buffer))
+	    ;; make overlay open-ended
+	    (viper-make-overlay
+	     (if (fboundp 'minibuffer-prompt-end) (minibuffer-prompt-end) 1)
+	     (1+ (buffer-size))
+	     (current-buffer) nil 'rear-advance)))
+    ))
 
 
 (defsubst viper-is-in-minibuffer ()
@@ -843,10 +852,12 @@
 ;;; XEmacs compatibility
 
 (defun viper-abbreviate-file-name (file)
-  (if viper-emacs-p
-      (abbreviate-file-name file)
-    ;; XEmacs requires addl argument
-    (abbreviate-file-name file t)))
+  (viper-cond-compile-for-xemacs-or-emacs
+   ;; XEmacs requires addl argument
+   (abbreviate-file-name file t)
+   ;; emacs
+   (abbreviate-file-name file)
+   ))
     
 ;; Sit for VAL milliseconds.  XEmacs doesn't support the millisecond arg 
 ;; in sit-for, so this function smoothes out the differences.
@@ -871,9 +882,10 @@
 	  (and (<= pos (point-max)) (<= (point-min) pos))))))
   
 (defsubst viper-mark-marker ()
-  (if viper-xemacs-p
-      (mark-marker t)
-    (mark-marker)))
+  (viper-cond-compile-for-xemacs-or-emacs
+   (mark-marker t) ; xemacs
+   (mark-marker) ; emacs
+   ))
 
 ;; like (set-mark-command nil) but doesn't push twice, if (car mark-ring)
 ;; is the same as (mark t).
@@ -886,13 +898,16 @@
 ;; highlighted due to Viper's pushing marks.  So, we deactivate marks, unless
 ;; the user explicitly wants highlighting, e.g., by hitting '' or ``
 (defun viper-deactivate-mark ()
-  (if viper-xemacs-p
-      (zmacs-deactivate-region)
-    (deactivate-mark)))
+  (viper-cond-compile-for-xemacs-or-emacs
+   (zmacs-deactivate-region)
+   (deactivate-mark)
+   ))
 
 (defsubst viper-leave-region-active ()
-  (if viper-xemacs-p
-      (setq zmacs-region-stays t)))
+  (viper-cond-compile-for-xemacs-or-emacs
+   (setq zmacs-region-stays t)
+   nil
+   ))
 
 ;; Check if arg is a valid character for register
 ;; TYPE is a list that can contain `letter', `Letter', and `digit'.
@@ -911,26 +926,60 @@
 
     
 (defsubst viper-events-to-keys (events)
-  (cond (viper-xemacs-p (events-to-keys events))
-	(t events)))
+  (viper-cond-compile-for-xemacs-or-emacs
+   (events-to-keys events) ; xemacs
+   events ; emacs
+   ))
 		  
     
 ;; it is suggested that an event must be copied before it is assigned to
 ;; last-command-event in XEmacs
 (defun viper-copy-event (event)
-  (if viper-xemacs-p
-      (copy-event event)
-    event))
+  (viper-cond-compile-for-xemacs-or-emacs
+   (copy-event event) ; xemacs
+   event ; emacs
+   ))
+    
+;; Uses different timeouts for ESC-sequences and others
+(defsubst viper-fast-keysequence-p ()
+  (not (viper-sit-for-short 
+	(if (viper-ESC-event-p last-input-event)
+	    viper-ESC-keyseq-timeout
+	  viper-fast-keyseq-timeout)
+	t)))
     
 ;; like read-event, but in XEmacs also try to convert to char, if possible
 (defun viper-read-event-convert-to-char ()
   (let (event)
-    (if viper-emacs-p
-	(read-event)
-      (setq event (next-command-event))
-      (or (event-to-character event)
-	  event))
+    (viper-cond-compile-for-xemacs-or-emacs
+     (progn
+       (setq event (next-command-event))
+       (or (event-to-character event)
+	   event))
+     (read-event)
+     )
     ))
+
+;; Viperized read-key-sequence
+(defun viper-read-key-sequence (prompt &optional continue-echo)
+  (let (inhibit-quit event keyseq)
+    (setq keyseq (read-key-sequence prompt continue-echo))
+    (setq event (if viper-xemacs-p
+		    (elt keyseq 0) ; XEmacs returns vector of events
+		  (elt (listify-key-sequence keyseq) 0)))
+    (if (viper-ESC-event-p event)
+	(let (unread-command-events)
+	  (viper-set-unread-command-events keyseq)
+	  (if (viper-fast-keysequence-p)
+	      (let ((viper-vi-global-user-minor-mode  nil)
+		    (viper-vi-local-user-minor-mode  nil)
+		    (viper-replace-minor-mode nil) ; actually unnecessary
+		    (viper-insert-global-user-minor-mode  nil)
+		    (viper-insert-local-user-minor-mode  nil))
+		(setq keyseq (read-key-sequence prompt continue-echo))) 
+	    (setq keyseq (read-key-sequence prompt continue-echo)))))
+    keyseq))
+
 
 ;; This function lets function-key-map convert key sequences into logical
 ;; keys.  This does a better job than viper-read-event when it comes to kbd
@@ -954,44 +1003,45 @@
 (defun viper-event-key (event)
   (or (and event (eventp event))
       (error "viper-event-key: Wrong type argument, eventp, %S" event))
-  (when (cond (viper-xemacs-p (or (key-press-event-p event)
-				  (mouse-event-p event)))
-	      (t t))
+  (when (viper-cond-compile-for-xemacs-or-emacs
+	 (or (key-press-event-p event) (mouse-event-p event)) ; xemacs
+	 t ; emacs
+	 )
     (let ((mod (event-modifiers event))
 	  basis)
       (setq basis
-	    (cond
-	     (viper-xemacs-p
-	      (cond ((key-press-event-p event)
-		     (event-key event))
-		    ((button-event-p event)
-		     (concat "mouse-" (prin1-to-string (event-button event))))
-		    (t 
-		     (error "viper-event-key: Unknown event, %S" event))))
-	     (t 
-	      ;; Emacs doesn't handle capital letters correctly, since
-	      ;; \S-a isn't considered the same as A (it behaves as
-	      ;; plain `a' instead).  So we take care of this here
-	      (cond ((and (viper-characterp event) (<= ?A event) (<= event ?Z))
-		     (setq mod nil
-			   event event))
-		    ;; Emacs has the oddity whereby characters 128+char
-		    ;; represent M-char *if* this appears inside a string.
-		    ;; So, we convert them manually to (meta char).
-		    ((and (viper-characterp event)
-			  (< ?\C-? event) (<= event 255))
-		     (setq mod '(meta)
-			   event (- event ?\C-? 1)))
-		    ((and (null mod) (eq event 'return))
-		     (setq event ?\C-m))
-		    ((and (null mod) (eq event 'space))
-		     (setq event ?\ ))
-		    ((and (null mod) (eq event 'delete))
-		     (setq event ?\C-?))
-		    ((and (null mod) (eq event 'backspace))
-		     (setq event ?\C-h))
-		    (t (event-basic-type event)))
-	      )))
+	    (viper-cond-compile-for-xemacs-or-emacs
+	     ;; XEmacs
+	     (cond ((key-press-event-p event)
+		    (event-key event))
+		   ((button-event-p event)
+		    (concat "mouse-" (prin1-to-string (event-button event))))
+		   (t 
+		    (error "viper-event-key: Unknown event, %S" event)))
+	     ;; Emacs doesn't handle capital letters correctly, since
+	     ;; \S-a isn't considered the same as A (it behaves as
+	     ;; plain `a' instead).  So we take care of this here
+	     (cond ((and (viper-characterp event) (<= ?A event) (<= event ?Z))
+		    (setq mod nil
+			  event event))
+		   ;; Emacs has the oddity whereby characters 128+char
+		   ;; represent M-char *if* this appears inside a string.
+		   ;; So, we convert them manually to (meta char).
+		   ((and (viper-characterp event)
+			 (< ?\C-? event) (<= event 255))
+		    (setq mod '(meta)
+			  event (- event ?\C-? 1)))
+		   ((and (null mod) (eq event 'return))
+		    (setq event ?\C-m))
+		   ((and (null mod) (eq event 'space))
+		    (setq event ?\ ))
+		   ((and (null mod) (eq event 'delete))
+		    (setq event ?\C-?))
+		   ((and (null mod) (eq event 'backspace))
+		    (setq event ?\C-h))
+		   (t (event-basic-type event)))
+	     ) ; viper-cond-compile-for-xemacs-or-emacs
+	    )
       (if (viper-characterp basis)
 	  (setq basis
 		(if (viper= basis ?\C-?)
@@ -1046,6 +1096,77 @@
     ))
 
 
+;; LIS is assumed to be a list of events of characters
+(defun viper-eventify-list-xemacs (lis)
+  (mapcar
+   (lambda (elt)
+     (cond ((viper-characterp elt) (character-to-event elt))
+	   ((eventp elt)  elt)
+	   (t (error
+	       "viper-eventify-list-xemacs: can't convert to event, %S"
+	       elt))))
+   lis))
+  
+
+;; Smoothes out the difference between Emacs' unread-command-events
+;; and XEmacs unread-command-event.  Arg is a character, an event, a list of
+;; events or a sequence of keys.
+;;
+;; Due to the way unread-command-events in Emacs (not XEmacs), a non-event
+;; symbol in unread-command-events list may cause Emacs to turn this symbol
+;; into an event.  Below, we delete nil from event lists, since nil is the most
+;; common symbol that might appear in this wrong context.
+(defun viper-set-unread-command-events (arg)
+  (if viper-emacs-p
+      (setq
+       unread-command-events
+       (let ((new-events
+	      (cond ((eventp arg) (list arg))
+		    ((listp arg) arg)
+		    ((sequencep arg)
+		     (listify-key-sequence arg))
+		    (t (error
+			"viper-set-unread-command-events: Invalid argument, %S"
+			arg)))))
+	 (if (not (eventp nil))
+	     (setq new-events (delq nil new-events)))
+	 (append new-events unread-command-events)))
+    ;; XEmacs
+    (setq
+     unread-command-events
+     (append
+      (cond ((viper-characterp arg) (list (character-to-event arg)))
+	    ((eventp arg)  (list arg))
+	    ((stringp arg) (mapcar 'character-to-event arg))
+	    ((vectorp arg) (append arg nil)) ; turn into list
+	    ((listp arg) (viper-eventify-list-xemacs arg))
+	    (t (error
+		"viper-set-unread-command-events: Invalid argument, %S" arg)))
+      unread-command-events))))
+
+
+;; Check if vec is a vector of key-press events representing characters
+;; XEmacs only
+(defun viper-event-vector-p (vec)
+  (and (vectorp vec)
+       (eval (cons 'and (mapcar '(lambda (elt) (if (eventp elt) t)) vec)))))
+
+			 
+;; check if vec is a vector of character symbols
+(defun viper-char-symbol-sequence-p (vec)
+  (and
+   (sequencep vec)
+   (eval
+    (cons 'and
+	  (mapcar (lambda (elt)
+		    (and (symbolp elt) (= (length (symbol-name elt)) 1)))
+		  vec)))))
+    
+  
+(defun viper-char-array-p (array)
+  (eval (cons 'and (mapcar 'viper-characterp array))))
+
+
 ;; Args can be a sequence of events, a string, or a Viper macro.  Will try to
 ;; convert events to keys and, if all keys are regular printable
 ;; characters, will return a string.  Otherwise, will return a string
@@ -1071,20 +1192,13 @@
 	  (t (prin1-to-string event-seq)))))
 
 (defun viper-key-press-events-to-chars (events)
-  (mapconcat (if viper-emacs-p
-		 'char-to-string
-	       (lambda (elt) (char-to-string (event-to-character elt))))
+  (mapconcat (viper-cond-compile-for-xemacs-or-emacs
+	      (lambda (elt) (char-to-string (event-to-character elt))) ; xemacs
+	      'char-to-string ; emacs
+	      )
 	     events
 	     ""))
 	   
-    
-;; Uses different timeouts for ESC-sequences and others
-(defsubst viper-fast-keysequence-p ()
-  (not (viper-sit-for-short 
-	(if (viper-ESC-event-p last-input-event)
-	    viper-ESC-keyseq-timeout
-	  viper-fast-keyseq-timeout)
-	t)))
     
 (defun viper-read-char-exclusive ()
   (let (char

@@ -1,8 +1,8 @@
 ;;; ediff-hook.el --- setup for Ediff's menus and autoloads
 
-;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
 
-;; Author: Michael Kifer <kifer@cs.sunysb.edu>
+;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -46,104 +46,114 @@
 ;; allow menus to be set up without ediff-wind.el being loaded
 ;;;###autoload
 (defvar ediff-window-setup-function)
+
+;; This is used to avoid compilation warnings. When emacs/xemacs forms can
+;; generate compile time warnings, we use this macro.
+;; In this case, the macro will expand into the form that is appropriate to the
+;; compiler at hand.
+;; Suggested by rms.
+(defmacro ediff-cond-compile-for-xemacs-or-emacs (xemacs-form emacs-form)
+  (if (string-match "XEmacs" emacs-version)
+      xemacs-form emacs-form))
  
 ;; Note we wrap this in a progn so that we pick up the whole def
 ;; for auto-autoload. That way we do not load ediff-hook.el when defining
 ;; the menus.
 ;;;###autoload
 (progn
-  (defun ediff-xemacs-init-menus ()
-    (if (featurep 'menubar)
-	(progn
-	  (add-submenu
-	   '("Tools") ediff-menu "OO-Browser...")
-	  (add-submenu
-	   '("Tools") ediff-merge-menu "OO-Browser...")
-	  (add-submenu
-	   '("Tools") epatch-menu "OO-Browser...")
-	  (add-submenu
-	   '("Tools") ediff-misc-menu "OO-Browser...")
-	  (add-menu-button
-	   '("Tools") "-------" "OO-Browser...")
-	  ))))
+  (ediff-cond-compile-for-xemacs-or-emacs
+   ;; xemacs form
+   (defun ediff-xemacs-init-menus ()
+     (if (featurep 'menubar)
+	 (progn
+	   (add-submenu
+	    '("Tools") ediff-menu "OO-Browser...")
+	   (add-submenu
+	    '("Tools") ediff-merge-menu "OO-Browser...")
+	   (add-submenu
+	    '("Tools") epatch-menu "OO-Browser...")
+	   (add-submenu
+	    '("Tools") ediff-misc-menu "OO-Browser...")
+	   (add-menu-button
+	    '("Tools") "-------" "OO-Browser...")
+	   )))
+   nil ; emacs form
+   ))
 
 
-;; explicit string-match is needed: ediff-xemacs-p is not defined at build time
 ;;;###autoload
-(cond ((string-match "XEmacs" emacs-version)
-       (defvar ediff-menu
-	 '("Compare"
-	   ["Two Files..."  ediff-files t]
-	   ["Two Buffers..." ediff-buffers t]
-	   ["Three Files..."  ediff-files3 t]
-	   ["Three Buffers..." ediff-buffers3 t]
-	   "---"
-	   ["Two Directories..." ediff-directories t]
-	   ["Three Directories..." ediff-directories3 t]
-	   "---"
-	   ["File with Revision..."  ediff-revision t]
-	   ["Directory Revisions..."  ediff-directory-revisions t]
-	   "---"
-	   ["Windows Word-by-word..." ediff-windows-wordwise t]
-	   ["Windows Line-by-line..." ediff-windows-linewise t]
-	   "---"
-	   ["Regions Word-by-word..." ediff-regions-wordwise t]
-	   ["Regions Line-by-line..." ediff-regions-linewise t]
-	   ))
-       (defvar ediff-merge-menu
-	 '("Merge"
-	   ["Files..."  ediff-merge-files t]
-	   ["Files with Ancestor..." ediff-merge-files-with-ancestor t]
-	   ["Buffers..."  ediff-merge-buffers t]
-	   ["Buffers with Ancestor..."
-	    ediff-merge-buffers-with-ancestor t]
-	   "---"
-	   ["Directories..."  ediff-merge-directories t]
-	   ["Directories with Ancestor..."
-	    ediff-merge-directories-with-ancestor t]
-	   "---"
-	   ["Revisions..."  ediff-merge-revisions t]
-	   ["Revisions with Ancestor..."
-	    ediff-merge-revisions-with-ancestor t]
-	   ["Directory Revisions..." ediff-merge-directory-revisions t]
-	   ["Directory Revisions with Ancestor..."
-	    ediff-merge-directory-revisions-with-ancestor t]
-	   ))
-       (defvar epatch-menu
-	 '("Apply Patch"
-	   ["To a file..."  ediff-patch-file t]
-	   ["To a buffer..." ediff-patch-buffer t]
-	   ))
-       (defvar ediff-misc-menu
-	 '("Ediff Miscellanea"
-	   ["Ediff Manual..." ediff-documentation t]
-	   ["Customize Ediff..." ediff-customize t]
-	   ["List Ediff Sessions..." ediff-show-registry t]
-	   ["Use separate frame for Ediff control buffer..."
-	    ediff-toggle-multiframe
-	    :style toggle
-	    :selected (if (and (featurep 'ediff-util)
-			       (boundp 'ediff-window-setup-function))
-			  (eq ediff-window-setup-function
-			      'ediff-setup-windows-multiframe))]
-	   ["Use a toolbar with Ediff control buffer"
-	    ediff-toggle-use-toolbar
-	    :style toggle
-	    :selected (if (featurep 'ediff-tbar)
-			  (ediff-use-toolbar-p))]
-	   ))
-       
-       ;; put these menus before Object-Oriented-Browser in Tools menu
-;;;      (add-hook 'before-init-hook 'ediff-xemacs-init-menus)
-;;;      (if (not purify-flag)
-;;;	   (ediff-xemacs-init-menus))
-;;;      )       
-       (if (and (featurep 'menubar) (not (featurep 'infodock))
-		(not (featurep 'ediff-hook)))
+(ediff-cond-compile-for-xemacs-or-emacs
+ (progn
+   (defvar ediff-menu
+     '("Compare"
+       ["Two Files..."  ediff-files t]
+       ["Two Buffers..." ediff-buffers t]
+       ["Three Files..."  ediff-files3 t]
+       ["Three Buffers..." ediff-buffers3 t]
+       "---"
+       ["Two Directories..." ediff-directories t]
+       ["Three Directories..." ediff-directories3 t]
+       "---"
+       ["File with Revision..."  ediff-revision t]
+       ["Directory Revisions..."  ediff-directory-revisions t]
+       "---"
+       ["Windows Word-by-word..." ediff-windows-wordwise t]
+       ["Windows Line-by-line..." ediff-windows-linewise t]
+       "---"
+       ["Regions Word-by-word..." ediff-regions-wordwise t]
+       ["Regions Line-by-line..." ediff-regions-linewise t]
+       ))
+   (defvar ediff-merge-menu
+     '("Merge"
+       ["Files..."  ediff-merge-files t]
+       ["Files with Ancestor..." ediff-merge-files-with-ancestor t]
+       ["Buffers..."  ediff-merge-buffers t]
+       ["Buffers with Ancestor..."
+	ediff-merge-buffers-with-ancestor t]
+       "---"
+       ["Directories..."  ediff-merge-directories t]
+       ["Directories with Ancestor..."
+	ediff-merge-directories-with-ancestor t]
+       "---"
+       ["Revisions..."  ediff-merge-revisions t]
+       ["Revisions with Ancestor..."
+	ediff-merge-revisions-with-ancestor t]
+       ["Directory Revisions..." ediff-merge-directory-revisions t]
+       ["Directory Revisions with Ancestor..."
+	ediff-merge-directory-revisions-with-ancestor t]
+       ))
+   (defvar epatch-menu
+     '("Apply Patch"
+       ["To a file..."  ediff-patch-file t]
+       ["To a buffer..." ediff-patch-buffer t]
+       ))
+   (defvar ediff-misc-menu
+     '("Ediff Miscellanea"
+       ["Ediff Manual..." ediff-documentation t]
+       ["Customize Ediff..." ediff-customize t]
+       ["List Ediff Sessions..." ediff-show-registry t]
+       ["Use separate frame for Ediff control buffer..."
+	ediff-toggle-multiframe
+	:style toggle
+	:selected (if (and (featurep 'ediff-util)
+			   (boundp 'ediff-window-setup-function))
+		      (eq ediff-window-setup-function
+			  'ediff-setup-windows-multiframe))]
+       ["Use a toolbar with Ediff control buffer"
+	ediff-toggle-use-toolbar
+	:style toggle
+	:selected (if (featurep 'ediff-tbar)
+		      (ediff-use-toolbar-p))]
+       ))
+   
+   ;; put these menus before Object-Oriented-Browser in Tools menu
+   (if (and (featurep 'menubar) (not (featurep 'infodock))
+	    (not (featurep 'ediff-hook)))
 	   (ediff-xemacs-init-menus)))
-      
-      ;; Emacs--only if menu-bar is loaded
-      ((featurep 'menu-bar)
+ 
+ ;; Emacs--only if menu-bar is loaded
+ (if (featurep 'menu-bar)
+     (progn
        ;; initialize menu bar keymaps
        (defvar menu-bar-ediff-misc-menu
 	 (make-sparse-keymap "Ediff Miscellanea"))
@@ -240,7 +250,8 @@
 	 '("Ediff Manual..." . ediff-documentation))
        )
       
-      ) ; cond
+      ) ; emacs case
+ ) ; ediff-cond-compile-for-xemacs-or-emacs
 
 ;; arrange for autoloads
 (if purify-flag

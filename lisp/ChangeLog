@@ -1,3 +1,99 @@
+2002-01-07  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper-init.el (viper-cond-compile-for-xemacs-or-emacs):
+	new macro that replaces viper-emacs-p and viper-xemacs-p in many
+	cases. Used to reduce the number of warnings.
+	
+	* viper-cmd.el: use viper-cond-compile-for-xemacs-or-emacs.
+	(viper-standard-value): moved here from viper.el.
+	(viper-set-unread-command-events): moved to viper-util.el
+	(viper-check-minibuffer-overlay): make sure
+	viper-minibuffer-overlay is moved to cover the entire input field.
+	
+	* viper-util.el:  use viper-cond-compile-for-xemacs-or-emacs.
+	(viper-read-key-sequence, viper-set-unread-command-events,
+	viper-char-symbol-sequence-p, viper-char-array-p): moved here.
+	
+	* viper-ex.el: use viper-cond-compile-for-xemacs-or-emacs.
+	
+	* viper-keym.el: use viper-cond-compile-for-xemacs-or-emacs.
+	
+	* viper-mous.el: use viper-cond-compile-for-xemacs-or-emacs.
+	
+	* viper-macs.el (viper-char-array-p, viper-char-symbol-sequence-p,
+	viper-event-vector-p): moved to viper-util.el
+	
+	* viper.el (viper-standard-value): moved to viper-cmd.el.
+	Use viper-cond-compile-for-xemacs-or-emacs.
+
+	* ediff-help.el: use ediff-cond-compile-for-xemacs-or-emacs.
+	
+	* ediff-hook.el: use ediff-cond-compile-for-xemacs-or-emacs.
+	
+	* ediff-init.el (ediff-cond-compile-for-xemacs-or-emacs): new
+	macro designed to be used in many places where ediff-emacs-p or
+	ediff-xemacs-p was previously used. Reduces the number of
+	warnings.
+	Use ediff-cond-compile-for-xemacs-or-emacs in many places in lieue
+	of ediff-xemacs-p.
+	(ediff-make-current-diff-overlay, ediff-highlight-diff-in-one-buffer,
+	ediff-convert-fine-diffs-to-overlays, ediff-empty-diff-region-p,
+	ediff-whitespace-diff-region-p, ediff-get-region-contents):
+	moved to ediff-util.el.
+	(ediff-event-key): moved here.
+	
+	* ediff-merge.el: got rid of unreferenced variables.
+	
+	* ediff-mult.el: use ediff-cond-compile-for-xemacs-or-emacs.
+	
+	* ediff-util.el: use ediff-cond-compile-for-xemacs-or-emacs.
+	(ediff-cleanup-mess): improved the way windows are set up after
+	quitting ediff.
+	(ediff-janitor): use ediff-dispose-of-variant-according-to-user.
+	(ediff-dispose-of-variant-according-to-user): new function
+	designed to be smarter and also understands indirect buffers.
+	(ediff-highlight-diff-in-one-buffer,
+	ediff-unhighlight-diff-in-one-buffer,
+	ediff-unhighlight-diffs-totally-in-one-buffer,
+	ediff-highlight-diff, ediff-highlight-diff,
+	ediff-unhighlight-diff, ediff-unhighlight-diffs-totally,
+	ediff-empty-diff-region-p, ediff-whitespace-diff-region-p,
+	ediff-get-region-contents, ediff-make-current-diff-overlay):
+	moved here.
+	(ediff-format-bindings-of): new function by Hannu Koivisto
+	<azure@iki.fi>.
+	(ediff-setup): make sure the merge buffer is always widened and
+	modifiable.
+	(ediff-write-merge-buffer-and-maybe-kill): refuse to write the
+	result of a merge into a file visited by another buffer.
+	(ediff-arrange-autosave-in-merge-jobs): check if the merge file
+	is visited by another buffer and ask to save/delete that buffer.
+	(ediff-verify-file-merge-buffer): new function to do the above.
+	
+	* ediff-vers.el: load ediff-init.el at compile time.
+	
+	* ediff-wind.el: use ediff-cond-compile-for-xemacs-or-emacs.
+	
+	* ediff.el (ediff-windows, ediff-regions-wordwise,
+	ediff-regions-linewise): use indirect buffers to improve
+	robustness and make it possible to compare regions of the same
+	buffer (even overlapping regions).
+	(ediff-clone-buffer-for-region-comparison,
+	ediff-clone-buffer-for-window-comparison): new functions.
+	(ediff-files-internal): refuse to compare identical files.
+	(ediff-regions-internal): get rid of the warning about comparing
+	regions of the same buffer.
+	
+	* ediff-diff.el (ediff-convert-fine-diffs-to-overlays): moved here.
+	Plus the following fixes courtesy of Dave Love:
+	Doc fixes.
+	(ediff-word-1): Use word class and move - to the
+	front per regexp documentation.
+	(ediff-wordify): Bind forward-word-function outside loop.
+	(ediff-copy-to-buffer): Use insert-buffer-substring rather than
+	consing buffer contents.
+	(ediff-goto-word): Move syntax table setting outside loop.
+	
 2002-01-07  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.el (dired-copy-filename-as-kill): Call kill-append

@@ -1,8 +1,8 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
 
-;; Author: Michael Kifer <kifer@cs.sunysb.edu>
+;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -35,6 +35,7 @@
 (defvar ediff-whitespace)
 (defvar ediff-multiframe)
 (defvar ediff-use-toolbar-p)
+(defvar mswindowsx-bitmap-file-path)
 
 (and noninteractive
      (eval-when-compile
@@ -46,6 +47,15 @@
 ;; Is it Emacs?
 (defconst ediff-emacs-p (not ediff-xemacs-p))
 
+;; This is used to avoid compilation warnings. When emacs/xemacs forms can
+;; generate compile time warnings, we use this macro.
+;; In this case, the macro will expand into the form that is appropriate to the
+;; compiler at hand.
+;; Suggested by rms.
+(defmacro ediff-cond-compile-for-xemacs-or-emacs (xemacs-form emacs-form)
+  (if (string-match "XEmacs" emacs-version)
+      xemacs-form emacs-form))
+
 (defvar ediff-force-faces nil
   "If t, Ediff will think that it is running on a display that supports faces.
 This is provided as a temporary relief for users of face-capable displays
@@ -53,9 +63,10 @@ that Ediff doesn't know about.")
 
 ;; Are we running as a window application or on a TTY?
 (defsubst ediff-device-type ()
-  (if ediff-emacs-p
-      window-system
-    (device-type (selected-device))))
+  (ediff-cond-compile-for-xemacs-or-emacs
+   (device-type (selected-device)) ; xemacs form
+   window-system  ; emacs form
+   ))
 
 ;; in XEmacs: device-type is tty on tty and stream in batch.
 (defun ediff-window-display-p ()
@@ -69,10 +80,12 @@ that Ediff doesn't know about.")
 	(ediff-emacs-p (memq (ediff-device-type) '(pc)))
 	(ediff-xemacs-p (memq (ediff-device-type) '(tty pc)))))
 
+;; toolbar support for emacs hasn't been implemented in ediff
 (defun ediff-has-toolbar-support-p ()
-  (and ediff-xemacs-p
-       (featurep 'toolbar)
-       (console-on-window-system-p)))
+  (ediff-cond-compile-for-xemacs-or-emacs
+   (and (featurep 'toolbar) (console-on-window-system-p)) ; xemacs form
+   nil ; emacs form
+   ))
 
 (defun ediff-use-toolbar-p ()
   (and (ediff-has-toolbar-support-p)	;Can it do it ?
@@ -107,6 +120,10 @@ that Ediff doesn't know about.")
 (ediff-defvar-local ediff-ancestor-buffer nil "")
 ;; The Ediff control buffer
 (ediff-defvar-local ediff-control-buffer nil "")
+
+(ediff-defvar-local ediff-temp-indirect-buffer nil
+  "If t, the buffer is a temporary indirect buffer.
+It needs to be killed when we quit the session.")
 
 
 ;; Association between buff-type and ediff-buffer-*
@@ -731,16 +748,18 @@ to temp files when Ediff needs to find fine differences."
   :group 'ediff)
 
 
-(if ediff-xemacs-p
-    (progn
-      (fset 'ediff-read-event (symbol-function 'next-command-event))
-      (fset 'ediff-overlayp (symbol-function 'extentp))
-      (fset 'ediff-make-overlay (symbol-function 'make-extent))
-      (fset 'ediff-delete-overlay (symbol-function 'delete-extent)))
-  (fset 'ediff-read-event (symbol-function 'read-event))
-  (fset 'ediff-overlayp (symbol-function 'overlayp))
-  (fset 'ediff-make-overlay (symbol-function 'make-overlay))
-  (fset 'ediff-delete-overlay (symbol-function 'delete-overlay)))
+(ediff-cond-compile-for-xemacs-or-emacs
+ (progn ; xemacs
+   (fset 'ediff-read-event (symbol-function 'next-command-event))
+   (fset 'ediff-overlayp (symbol-function 'extentp))
+   (fset 'ediff-make-overlay (symbol-function 'make-extent))
+   (fset 'ediff-delete-overlay (symbol-function 'delete-extent)))
+ (progn ; emacs
+   (fset 'ediff-read-event (symbol-function 'read-event))
+   (fset 'ediff-overlayp (symbol-function 'overlayp))
+   (fset 'ediff-make-overlay (symbol-function 'make-overlay))
+   (fset 'ediff-delete-overlay (symbol-function 'delete-overlay)))
+ )
 
 ;; Check the current version against the major and minor version numbers
 ;; using op: cur-vers op major.minor If emacs-major-version or
@@ -772,41 +791,43 @@ to temp files when Ediff needs to find fine differences."
 
 (defun ediff-color-display-p ()
   (condition-case nil
-      (if ediff-emacs-p
-	  (if (fboundp 'display-color-p)
-	      (display-color-p)
-	    (x-display-color-p))
-	(eq (device-class (selected-device)) 'color))
-    (error
-     nil)))
+      (ediff-cond-compile-for-xemacs-or-emacs
+       (eq (device-class (selected-device)) 'color) ; xemacs form
+       (if (fboundp 'display-color-p) ; emacs form
+	   (display-color-p)
+	 (x-display-color-p))
+	)
+    (error nil)))
 
 
 (if (ediff-has-face-support-p)
-    (if ediff-xemacs-p
-	(progn
-	  (fset 'ediff-valid-color-p (symbol-function 'valid-color-name-p))
-	  (fset 'ediff-get-face (symbol-function 'get-face)))
-      (fset 'ediff-valid-color-p (symbol-function
-				  (if (fboundp 'color-defined-p)
-				      'color-defined-p
-				    'x-color-defined-p)))
-      (fset 'ediff-get-face (symbol-function 'internal-get-face))))
+    (ediff-cond-compile-for-xemacs-or-emacs
+     (progn ; xemacs
+       (defalias 'ediff-valid-color-p 'valid-color-name-p)
+       (defalias 'ediff-get-face 'get-face))
+     (progn ; emacs
+       (defalias 'ediff-valid-color-p (if (fboundp 'color-defined-p)
+					  'color-defined-p
+					'x-color-defined-p))
+       (defalias 'ediff-get-face 'internal-get-face))
+     ))
 
 (if (ediff-window-display-p)
-    (if ediff-xemacs-p
-	(progn
-	  (fset 'ediff-display-pixel-width
-		(symbol-function 'device-pixel-width))
-	  (fset 'ediff-display-pixel-height
-		(symbol-function 'device-pixel-height)))
-      (fset 'ediff-display-pixel-width (symbol-function
-					(if (fboundp 'display-pixel-width)
-					    'display-pixel-width
-					  'x-display-pixel-width)))
-      (fset 'ediff-display-pixel-height (symbol-function
-					 (if (fboundp 'display-pixel-height)
-					     'display-pixel-height
-					   'x-display-pixel-height)))))
+    (ediff-cond-compile-for-xemacs-or-emacs
+     (progn   ; xemacs
+       (fset 'ediff-display-pixel-width (symbol-function 'device-pixel-width))
+       (fset 'ediff-display-pixel-height
+	     (symbol-function 'device-pixel-height)))
+     (progn   ; emacs
+       (fset 'ediff-display-pixel-width
+	     (if (fboundp 'display-pixel-width)
+		 (symbol-function 'display-pixel-width)
+	       (symbol-function 'x-display-pixel-width)))
+       (fset 'ediff-display-pixel-height
+	     (if (fboundp 'display-pixel-height)
+		 (symbol-function 'display-pixel-height)
+	       (symbol-function 'x-display-pixel-height))))
+     ))
 
 ;; A-list of current-diff-overlay symbols associated with buf types
 (defconst ediff-current-diff-overlay-alist
@@ -822,21 +843,6 @@ to temp files when Ediff needs to find fine differences."
     (C . ediff-current-diff-face-C)
     (Ancestor . ediff-current-diff-face-Ancestor)))
 
-
-(defun ediff-make-current-diff-overlay (type)
-  (if (ediff-has-face-support-p)
-      (let ((overlay (ediff-get-symbol-from-alist
-		      type ediff-current-diff-overlay-alist))
-	    (buffer (ediff-get-buffer type))
-	    (face (face-name
-		   (symbol-value
-		    (ediff-get-symbol-from-alist
-		     type ediff-current-diff-face-alist)))))
-	(set overlay
-	     (ediff-make-bullet-proof-overlay (point-max) (point-max) buffer))
-	(ediff-set-overlay-face (symbol-value overlay) face)
-	(ediff-overlay-put (symbol-value overlay) 'ediff ediff-control-buffer))
-    ))
 
 (defun ediff-set-overlay-face (extent face)
   (ediff-overlay-put extent 'face face)
@@ -1194,31 +1200,33 @@ this variable represents.")
 (defun ediff-highest-priority (start end buffer)
   (let ((pos (max 1 (1- start)))
 	ovr-list)
-    (if ediff-xemacs-p
-	(1+ ediff-shadow-overlay-priority)
-      (ediff-with-current-buffer buffer
-	(while (< pos (min (point-max) (1+ end)))
-	  (setq ovr-list (append (overlays-at pos) ovr-list))
-	  (setq pos (next-overlay-change pos)))
-	(+ 1 ediff-shadow-overlay-priority
-	   (apply 'max
-		  (cons
-		   1
-		   (mapcar
-		    (lambda (ovr)
-		      (if (and ovr
-			       ;; exclude ediff overlays from priority
-			       ;; calculation, or else priority will keep
-			       ;; increasing
-			       (null (ediff-overlay-get ovr 'ediff))
-			       (null (ediff-overlay-get ovr 'ediff-diff-num)))
-			  ;; use the overlay priority or 0
-			  (or (ediff-overlay-get ovr 'priority) 0)
-			0))
-		    ovr-list)
-		   )
-		  ))
-	))))
+    (ediff-cond-compile-for-xemacs-or-emacs
+     (1+ ediff-shadow-overlay-priority)  ; xemacs form
+     ;; emacs form
+     (ediff-with-current-buffer buffer
+       (while (< pos (min (point-max) (1+ end)))
+	 (setq ovr-list (append (overlays-at pos) ovr-list))
+	 (setq pos (next-overlay-change pos)))
+       (+ 1 ediff-shadow-overlay-priority
+	  (apply 'max
+		 (cons
+		  1
+		  (mapcar
+		   (lambda (ovr)
+		     (if (and ovr
+			      ;; exclude ediff overlays from priority
+			      ;; calculation, or else priority will keep
+			      ;; increasing
+			      (null (ediff-overlay-get ovr 'ediff))
+			      (null (ediff-overlay-get ovr 'ediff-diff-num)))
+			 ;; use the overlay priority or 0
+			 (or (ediff-overlay-get ovr 'priority) 0)
+		       0))
+		   ovr-list)
+		  )
+		 )))
+     ) ; ediff-cond-compile-for-xemacs-or-emacs
+    ))
 
 
 (defvar ediff-toggle-read-only-function nil
@@ -1306,8 +1314,6 @@ This default should work without changes."
 (ediff-defvar-local ediff-temp-file-C nil "")
 
 
-;;; In-line functions
-
 ;; If file-remote-p is defined (as in XEmacs, use it. Otherwise, check
 ;; if find-file-name-handler is defined for 'file-local-copy
 (defun ediff-file-remote-p (file-name)
@@ -1375,93 +1381,6 @@ This default should work without changes."
   (ediff-paint-background-regions-in-one-buffer
    'Ancestor unhighlight))
 
-(defun ediff-highlight-diff-in-one-buffer (n buf-type)
-  (if (ediff-buffer-live-p (ediff-get-buffer buf-type))
-      (let* ((buff (ediff-get-buffer buf-type))
-	     (last (ediff-with-current-buffer buff (point-max)))
-	     (begin (ediff-get-diff-posn buf-type 'beg n))
-	     (end (ediff-get-diff-posn buf-type 'end n))
-	     (xtra (if (equal begin end) 1 0))
-	     (end-hilit (min last (+ end xtra)))
-	     (current-diff-overlay
-	      (symbol-value
-	       (ediff-get-symbol-from-alist
-		buf-type ediff-current-diff-overlay-alist))))
-
-	(if ediff-xemacs-p
-	    (ediff-move-overlay current-diff-overlay begin end-hilit)
-	  (ediff-move-overlay current-diff-overlay begin end-hilit buff))
-	(ediff-overlay-put current-diff-overlay 'priority
-			   (ediff-highest-priority begin end-hilit buff))
-	(ediff-overlay-put current-diff-overlay 'ediff-diff-num n)
-
-	;; unhighlight the background overlay for diff n so it won't
-	;; interfere with the current diff overlay
-	(ediff-set-overlay-face (ediff-get-diff-overlay n buf-type) nil)
-	)))
-
-
-(defun ediff-unhighlight-diff-in-one-buffer (buf-type)
-  (if (ediff-buffer-live-p (ediff-get-buffer buf-type))
-      (let ((current-diff-overlay
-	     (symbol-value
-	      (ediff-get-symbol-from-alist
-	       buf-type ediff-current-diff-overlay-alist)))
-	    (overlay
-	     (ediff-get-diff-overlay ediff-current-difference buf-type))
-	    )
-
-	(ediff-move-overlay current-diff-overlay 1 1)
-
-	;; rehighlight the overlay in the background of the
-	;; current difference region
-	(ediff-set-overlay-face
-	 overlay
-	 (if (and (ediff-has-face-support-p)
-		  ediff-use-faces ediff-highlight-all-diffs)
-	     (ediff-background-face buf-type ediff-current-difference)))
-	)))
-
-(defun ediff-unhighlight-diffs-totally-in-one-buffer (buf-type)
-  (ediff-unselect-and-select-difference -1)
-  (if (and (ediff-has-face-support-p) ediff-use-faces)
-      (let* ((inhibit-quit t)
-	     (current-diff-overlay-var
-	      (ediff-get-symbol-from-alist
-	       buf-type ediff-current-diff-overlay-alist))
-	     (current-diff-overlay (symbol-value current-diff-overlay-var)))
-	(ediff-paint-background-regions 'unhighlight)
-	(if (ediff-overlayp current-diff-overlay)
-	    (ediff-delete-overlay current-diff-overlay))
-	(set current-diff-overlay-var nil)
-	)))
-
-
-(defsubst ediff-highlight-diff (n)
-  "Put face on diff N.  Invoked for X displays only."
-  (ediff-highlight-diff-in-one-buffer n 'A)
-  (ediff-highlight-diff-in-one-buffer n 'B)
-  (ediff-highlight-diff-in-one-buffer n 'C)
-  (ediff-highlight-diff-in-one-buffer n 'Ancestor)
-  )
-
-
-(defsubst ediff-unhighlight-diff ()
-  "Remove overlays from buffers A, B, and C."
-  (ediff-unhighlight-diff-in-one-buffer 'A)
-  (ediff-unhighlight-diff-in-one-buffer 'B)
-  (ediff-unhighlight-diff-in-one-buffer 'C)
-  (ediff-unhighlight-diff-in-one-buffer 'Ancestor)
-  )
-
-;; delete highlighting overlays, restore faces to their original form
-(defsubst ediff-unhighlight-diffs-totally ()
-  (ediff-unhighlight-diffs-totally-in-one-buffer 'A)
-  (ediff-unhighlight-diffs-totally-in-one-buffer 'B)
-  (ediff-unhighlight-diffs-totally-in-one-buffer 'C)
-  (ediff-unhighlight-diffs-totally-in-one-buffer 'Ancestor)
-  )
-
 
 ;; arg is a record for a given diff in a difference vector
 ;; this record is itself a vector
@@ -1481,49 +1400,55 @@ This default should work without changes."
       (ediff-clear-fine-differences-in-one-buffer n 'C)))
 
 
-(defsubst ediff-convert-fine-diffs-to-overlays (diff-list region-num)
-  (ediff-set-fine-overlays-in-one-buffer 'A diff-list region-num)
-  (ediff-set-fine-overlays-in-one-buffer 'B diff-list region-num)
-  (if ediff-3way-job
-      (ediff-set-fine-overlays-in-one-buffer 'C diff-list region-num)
-    ))
-
 (defsubst ediff-mouse-event-p (event)
-  (if ediff-xemacs-p
-      (button-event-p event)
-    (string-match "mouse" (format "%S" (event-basic-type event)))
-    ))
+  (ediff-cond-compile-for-xemacs-or-emacs
+   (button-event-p event) ; xemacs form
+   (string-match "mouse" (format "%S" (event-basic-type event))) ; emacs form
+   ))
 
 
 (defsubst ediff-key-press-event-p (event)
-  (if ediff-xemacs-p
-      (key-press-event-p event)
-    (or (char-or-string-p event) (symbolp event))))
+  (ediff-cond-compile-for-xemacs-or-emacs
+   (key-press-event-p event) ; xemacs form
+   (or (char-or-string-p event) (symbolp event)) ; emacs form
+   ))
 
 (defun ediff-event-point (event)
   (cond ((ediff-mouse-event-p event)
-	 (if ediff-xemacs-p
-	     (event-point event)
-	   (posn-point (event-start event))))
+	 (ediff-cond-compile-for-xemacs-or-emacs
+	  (event-point event)               ; xemacs form
+	  (posn-point (event-start event))  ; emacs form
+	  )
+	 )
 	((ediff-key-press-event-p event)
 	 (point))
-	(t (error))))
+	(t (error nil))))
 
 (defun ediff-event-buffer (event)
   (cond ((ediff-mouse-event-p event)
-	 (if ediff-xemacs-p
-	     (event-buffer event)
-	   (window-buffer (posn-window (event-start event)))))
+	 (ediff-cond-compile-for-xemacs-or-emacs
+	  (event-buffer event)                              ; xemacs form
+	  (window-buffer (posn-window (event-start event))) ; emacs form
+	  )
+	 )
 	((ediff-key-press-event-p event)
 	 (current-buffer))
-	(t (error))))
+	(t (error nil))))
+
+(defun ediff-event-key (event-or-key)
+  (ediff-cond-compile-for-xemacs-or-emacs
+   (if (eventp event-or-key) (event-key event-or-key) event-or-key) ; xemacs
+   event-or-key   ; emacs form
+   ))
 
 
 (defsubst ediff-frame-iconified-p (frame)
   (if (and (ediff-window-display-p) (frame-live-p frame))
-      (if ediff-xemacs-p
-	  (frame-iconified-p frame)
-	(eq (frame-visible-p frame) 'icon))))
+      (ediff-cond-compile-for-xemacs-or-emacs
+       (frame-iconified-p frame)          ; xemacs form
+       (eq (frame-visible-p frame) 'icon) ; emacs form
+       )
+    ))
 
 (defsubst ediff-window-visible-p (wind)
   ;; under TTY, window-live-p also means window is visible
@@ -1533,9 +1458,10 @@ This default should work without changes."
 
 
 (defsubst ediff-frame-char-width (frame)
-  (if ediff-xemacs-p
-      (/ (frame-pixel-width frame) (frame-width frame))
-    (frame-char-width frame)))
+  (ediff-cond-compile-for-xemacs-or-emacs
+   (/ (frame-pixel-width frame) (frame-width frame)) ; xemacs
+   (frame-char-width frame) ; emacs
+   ))
 
 (defun ediff-reset-mouse (&optional frame do-not-grab-mouse)
   (or frame (setq frame (selected-frame)))
@@ -1580,23 +1506,29 @@ This default should work without changes."
 	    (t nil))))
 
 (defsubst ediff-frame-char-height (frame)
-  (if ediff-xemacs-p
-      (glyph-height ediff-H-glyph (selected-window frame))
-    (frame-char-height frame)))
+  (ediff-cond-compile-for-xemacs-or-emacs 
+   (glyph-height ediff-H-glyph (selected-window frame)) ; xemacs cse
+   (frame-char-height frame) ; emacs case
+   )
+  )
 
 ;; Some overlay functions
 
 (defsubst ediff-overlay-start (overl)
   (if (ediff-overlayp overl)
-      (if ediff-emacs-p
-	  (overlay-start overl)
-	(extent-start-position overl))))
+      (ediff-cond-compile-for-xemacs-or-emacs
+       (extent-start-position overl) ; xemacs form
+       (overlay-start overl)         ; emacs form
+       )
+    ))
 
 (defsubst ediff-overlay-end  (overl)
   (if (ediff-overlayp overl)
-      (if ediff-emacs-p
-	  (overlay-end overl)
-	(extent-end-position overl))))
+      (ediff-cond-compile-for-xemacs-or-emacs
+       (extent-end-position overl) ; xemacs form
+       (overlay-end overl) ; emacs form
+       )
+    ))
 
 (defsubst ediff-empty-overlay-p (overl)
   (= (ediff-overlay-start overl) (ediff-overlay-end overl)))
@@ -1604,16 +1536,18 @@ This default should work without changes."
 ;; like overlay-buffer in Emacs.  In XEmacs, returns nil if the extent is
 ;; dead.  Otherwise, works like extent-buffer
 (defun ediff-overlay-buffer (overl)
-  (if ediff-emacs-p
-      (overlay-buffer overl)
-    (and (extent-live-p overl) (extent-object overl))))
+  (ediff-cond-compile-for-xemacs-or-emacs
+   (and (extent-live-p overl) (extent-object overl)) ; xemacs form
+   (overlay-buffer overl) ; emacs form
+   ))
 
 ;; like overlay-get in Emacs.  In XEmacs, returns nil if the extent is
 ;; dead.  Otherwise, like extent-property
 (defun ediff-overlay-get (overl property)
-  (if ediff-emacs-p
-      (overlay-get overl property)
-    (and (extent-live-p overl) (extent-property overl property))))
+  (ediff-cond-compile-for-xemacs-or-emacs
+   (and (extent-live-p overl) (extent-property overl property)) ; xemacs form
+   (overlay-get overl property) ; emacs form
+   ))
 
 
 ;; These two functions are here because XEmacs refuses to
@@ -1623,9 +1557,10 @@ This default should work without changes."
 Checks if overlay's buffer exists before actually doing the move."
   (let ((buf (and overlay (ediff-overlay-buffer overlay))))
     (if (ediff-buffer-live-p buf)
-	(if ediff-xemacs-p
-	    (set-extent-endpoints overlay beg end)
-	  (move-overlay overlay beg end buffer))
+	(ediff-cond-compile-for-xemacs-or-emacs
+	 (set-extent-endpoints overlay beg end) ; xemacs form
+	 (move-overlay overlay beg end buffer)  ; emacs form
+	 )
       ;; buffer's dead
       (if overlay
 	  (ediff-delete-overlay overlay)))))
@@ -1634,36 +1569,11 @@ Checks if overlay's buffer exists before actually doing the move."
   "Calls `overlay-put' or `set-extent-property' depending on Emacs version.
 Checks if overlay's buffer exists."
   (if (ediff-buffer-live-p (ediff-overlay-buffer overlay))
-      (if ediff-xemacs-p
-	  (set-extent-property overlay prop value)
-	(overlay-put overlay prop value))
+      (ediff-cond-compile-for-xemacs-or-emacs
+       (set-extent-property overlay prop value) ; xemacs form
+       (overlay-put overlay prop value) ; emacs form
+       )
     (ediff-delete-overlay overlay)))
-
-;; Some diff region tests
-
-;; t if diff region is empty.
-;; In case of buffer C, t also if it is not a 3way
-;; comparison job (merging jobs return t as well).
-(defun ediff-empty-diff-region-p (n buf-type)
-  (if (eq buf-type 'C)
-      (or (not ediff-3way-comparison-job)
-	  (= (ediff-get-diff-posn 'C 'beg n)
-	     (ediff-get-diff-posn 'C 'end n)))
-    (= (ediff-get-diff-posn buf-type 'beg n)
-       (ediff-get-diff-posn buf-type 'end n))))
-
-;; Test if diff region is white space only.
-;; If 2-way job and buf-type = C, then returns t.
-(defun ediff-whitespace-diff-region-p (n buf-type)
-  (or (and (eq buf-type 'C) (not ediff-3way-job))
-      (ediff-empty-diff-region-p n buf-type)
-      (let ((beg (ediff-get-diff-posn buf-type 'beg n))
-	    (end (ediff-get-diff-posn buf-type 'end n)))
-	(ediff-with-current-buffer (ediff-get-buffer buf-type)
-	  (save-excursion
-	    (goto-char beg)
-	    (skip-chars-forward ediff-whitespace)
-	    (>= (point) end))))))
 
 ;; temporarily uses DIR to abbreviate file name
 ;; if DIR is nil, use default-directory
@@ -1671,9 +1581,13 @@ Checks if overlay's buffer exists."
   (cond ((stringp dir)
 	 (let ((directory-abbrev-alist (list (cons dir ""))))
 	   (abbreviate-file-name file)))
-	(ediff-emacs-p (abbreviate-file-name file))
-	(t ; XEmacs requires addl argument
-	 (abbreviate-file-name file t))))
+	(t
+	 (ediff-cond-compile-for-xemacs-or-emacs
+	  ;; XEmacs requires addl argument
+	  (abbreviate-file-name file t) ; xemacs form
+	  (abbreviate-file-name file))  ; emacs form
+	 )
+	))
 
 ;; Takes a directory and returns the parent directory.
 ;; does nothing to `/'.  If the ARG is a regular file,
@@ -1739,13 +1653,6 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	  (subst-char-in-string ?- ?\  (substring (symbol-name jobname) 6))))
 	))
 
-
-(defsubst ediff-get-region-contents (n buf-type ctrl-buf &optional start end)
-  (ediff-with-current-buffer
-      (ediff-with-current-buffer ctrl-buf (ediff-get-buffer buf-type))
-    (buffer-substring
-     (or start (ediff-get-diff-posn buf-type 'beg n ctrl-buf))
-     (or end (ediff-get-diff-posn buf-type 'end n ctrl-buf)))))
 
 ;; If ediff modified mode line, strip the modification
 (defsubst ediff-strip-mode-line-format ()

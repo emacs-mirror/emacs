@@ -1,13 +1,13 @@
 ;;; ediff.el --- a comprehensive visual interface to diff & patch
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
 
-;; Author: Michael Kifer <kifer@cs.sunysb.edu>
+;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, tools, unix
 
-(defconst ediff-version "2.76" "The current version of Ediff")
-(defconst ediff-date "July 18, 2001" "Date of last update")  
+(defconst ediff-version "2.76.1" "The current version of Ediff")
+(defconst ediff-date "January 4, 2002" "Date of last update")  
 
 
 ;; This file is part of GNU Emacs.
@@ -172,7 +172,7 @@
 	 (let ((current (dired-get-filename nil 'no-error))
 	       (marked (condition-case nil
 			   (dired-get-marked-files 'no-dir)
-			 (error)))
+			 (error nil)))
 	       aux-list choices result)
 	   (or (integerp fileno) (setq fileno 0))
 	   (if (stringp default)
@@ -199,8 +199,10 @@
 		  default-directory))
 	 dir-B f)
      (list (setq f (ediff-read-file-name
-		    "File A to compare" dir-A 
-		    (ediff-get-default-file-name)))
+		    "File A to compare"
+		    dir-A 
+		    (ediff-get-default-file-name)
+		    'no-dirs))
 	   (ediff-read-file-name "File B to compare" 
 				 (setq dir-B
 				       (if ediff-use-last-dir
@@ -233,8 +235,10 @@
 		  default-directory))
 	 dir-B dir-C f ff)
      (list (setq f (ediff-read-file-name
-		    "File A to compare" dir-A
-		    (ediff-get-default-file-name)))
+		    "File A to compare"
+		    dir-A
+		    (ediff-get-default-file-name)
+		    'no-dirs))
 	   (setq ff (ediff-read-file-name "File B to compare" 
 					  (setq dir-B
 						(if ediff-use-last-dir
@@ -332,6 +336,11 @@
 (defun ediff-files-internal (file-A file-B file-C startup-hooks job-name
 				    &optional merge-buffer-file)
   (let (buf-A buf-B buf-C)
+    (if (string= file-A file-B)
+	(error "Files A and B are the same"))
+    (if (stringp file-C)
+	(or (and (string= file-A file-C) (error "Files A and C are the same"))
+	    (and (string= file-B file-C) (error "Files B and C are the same"))))
     (message "Reading file %s ... " file-A)
     ;;(sit-for 0)
     (ediff-find-file 'file-A 'buf-A 'ediff-last-dir-A 'startup-hooks)
@@ -828,14 +837,59 @@ If WIND-B is nil, use window next to WIND-A."
 	(select-window wind-B)
 	(setq beg-B (window-start)
 	      end-B (window-end))))
+    (setq buffer-A
+	  (ediff-clone-buffer-for-window-comparison
+	   buffer-A wind-A "-Window1-")
+	  buffer-B
+	  (ediff-clone-buffer-for-window-comparison
+	   buffer-B wind-B "-Window2-"))
     (ediff-regions-internal
      buffer-A beg-A end-A buffer-B beg-B end-B
      startup-hooks job-name word-mode nil)))
      
+;; Suggested by Hannu Koivisto <azure@iki.fi>
+(defun ediff-clone-buffer-for-region-comparison (buff-name region-name)
+  (let ((cloned-buff (ediff-make-indirect-buffer
+		      buff-name
+		      (concat buff-name region-name
+			      (symbol-name (gensym)))))
+	(wind (ediff-get-visible-buffer-window buff-name)))
+    (ediff-with-current-buffer cloned-buff
+      (setq ediff-temp-indirect-buffer t))
+    (if (window-live-p wind)
+	(set-window-buffer wind cloned-buff))
+    (pop-to-buffer cloned-buff)
+    (message 
+     "Mark a region in buffer %s; then type %s. Use %s to abort."
+     (buffer-name cloned-buff)
+     (ediff-format-bindings-of 'exit-recursive-edit)
+     (ediff-format-bindings-of 'abort-recursive-edit))
+    (recursive-edit)
+    cloned-buff))
+
+(defun ediff-clone-buffer-for-window-comparison (buff wind region-name)
+  (let ((cloned-buff (ediff-make-indirect-buffer
+		      buff
+		      (concat (buffer-name buff)
+			      region-name (symbol-name (gensym))))))
+    (ediff-with-current-buffer cloned-buff
+      (setq ediff-temp-indirect-buffer t))
+    (set-window-buffer wind cloned-buff)
+    cloned-buff))
+
+(defun ediff-make-indirect-buffer (base-buf indirect-buf-name)
+  (ediff-cond-compile-for-xemacs-or-emacs
+   (make-indirect-buffer base-buf indirect-buf-name) ; xemacs
+   (make-indirect-buffer base-buf indirect-buf-name 'clone) ; emacs
+   ))
+
 ;;;###autoload
 (defun ediff-regions-wordwise (buffer-A buffer-B &optional startup-hooks)
-  "Run Ediff on a pair of regions in two different buffers.
-Regions \(i.e., point and mark\) are assumed to be set in advance.
+  "Run Ediff on a pair of regions in specified buffers.
+Regions \(i.e., point and mark\) are assumed to be set in advance except
+for the second region in the case both regions are from the same buffer.
+In such a case the user is asked to interactively establish the second
+region.
 This function is effective only for relatively small regions, up to 200
 lines.  For large regions, use `ediff-regions-linewise'."
   (interactive 
@@ -855,7 +909,11 @@ lines.  For large regions, use `ediff-regions-linewise'."
       (error "Buffer %S doesn't exist" buffer-B))
   
   
-  (let (reg-A-beg reg-A-end reg-B-beg reg-B-end)
+  (let ((buffer-A
+         (ediff-clone-buffer-for-region-comparison buffer-A "-Region1-"))
+	(buffer-B
+         (ediff-clone-buffer-for-region-comparison buffer-B "-Region2-"))
+        reg-A-beg reg-A-end reg-B-beg reg-B-end)
     (save-excursion
       (set-buffer buffer-A)
       (setq reg-A-beg (region-beginning)
@@ -871,8 +929,11 @@ lines.  For large regions, use `ediff-regions-linewise'."
      
 ;;;###autoload
 (defun ediff-regions-linewise (buffer-A buffer-B &optional startup-hooks)
-  "Run Ediff on a pair of regions in two different buffers.
-Regions \(i.e., point and mark\) are assumed to be set in advance.
+  "Run Ediff on a pair of regions in specified buffers.
+Regions \(i.e., point and mark\) are assumed to be set in advance except
+for the second region in the case both regions are from the same buffer.
+In such a case the user is asked to interactively establish the second
+region.
 Each region is enlarged to contain full lines.
 This function is effective for large regions, over 100-200
 lines.  For small regions, use `ediff-regions-wordwise'."
@@ -892,7 +953,11 @@ lines.  For small regions, use `ediff-regions-wordwise'."
   (if (not (ediff-buffer-live-p buffer-B))
       (error "Buffer %S doesn't exist" buffer-B))
   
-  (let (reg-A-beg reg-A-end reg-B-beg reg-B-end)
+  (let ((buffer-A
+         (ediff-clone-buffer-for-region-comparison buffer-A "-Region1-"))
+	(buffer-B
+         (ediff-clone-buffer-for-region-comparison buffer-B "-Region2-"))
+        reg-A-beg reg-A-end reg-B-beg reg-B-end)
     (save-excursion
       (set-buffer buffer-A)
       (setq reg-A-beg (region-beginning)
@@ -941,25 +1006,6 @@ lines.  For small regions, use `ediff-regions-wordwise'."
       (setq beg-B (move-marker (make-marker) beg-B)
 	    end-B (move-marker (make-marker) end-B)))
 	
-    (if (and (eq buffer-A buffer-B)
-	     (or (and (< beg-A end-B) (<= beg-B beg-A))   ; b-B b-A e-B
-		 (and (< beg-B end-A) (<= end-A end-B)))) ; b-B e-A e-B
-	(progn
-	  (with-output-to-temp-buffer ediff-msg-buffer
-	    (ediff-with-current-buffer standard-output
-	      (fundamental-mode))
-	    (princ "
-You have requested to compare overlapping regions of the same buffer.
-
-In this case, Ediff's highlighting may be confusing---in the same window,
-you may see highlighted regions that belong to different regions.
-
-Continue anyway? (y/n) "))
-
-	  (if (y-or-n-p "Continue anyway? ")
-	      ()
-	    (error "%S aborted" job-name))))
-	    
     ;; make file-A
     (if word-mode
 	(ediff-wordify beg-A end-A buffer-A tmp-buffer)
@@ -1011,8 +1057,10 @@ Continue anyway? (y/n) "))
 		  default-directory))
 	 dir-B f)
      (list (setq f (ediff-read-file-name
-		    "File A to merge" dir-A
-		    (ediff-get-default-file-name)))
+		    "File A to merge"
+		    dir-A
+		    (ediff-get-default-file-name)
+		    'no-dirs))
 	   (ediff-read-file-name "File B to merge" 
 				 (setq dir-B
 				       (if ediff-use-last-dir
@@ -1053,8 +1101,10 @@ Continue anyway? (y/n) "))
 		  default-directory))
 	 dir-B dir-ancestor f ff)
      (list (setq f (ediff-read-file-name
-		    "File A to merge" dir-A
-		    (ediff-get-default-file-name)))
+		    "File A to merge"
+		    dir-A
+		    (ediff-get-default-file-name)
+		    'no-dirs))
 	   (setq ff (ediff-read-file-name "File B to merge" 
 					  (setq dir-B
 						(if ediff-use-last-dir
@@ -1221,6 +1271,7 @@ buffer."
      (intern (format "ediff-%S-merge-internal" ediff-version-control-package))
      rev1 rev2 ancestor-rev startup-hooks merge-buffer-file)))
 
+;; MK: Check. This function doesn't seem to be used any more by pcvs or pcl-cvs
 ;;;###autoload
 (defun run-ediff-from-cvs-buffer (pos)
   "Run Ediff-merge on appropriate revisions of the selected file.
@@ -1306,7 +1357,8 @@ Uses `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
 				(if ediff-use-last-dir
 				    ediff-last-dir-A
 				  default-directory)
-				(ediff-get-default-file-name)))) 
+				(ediff-get-default-file-name)
+				'no-dirs))) 
   (find-file file)
   (if (and (buffer-modified-p)
 	   (y-or-n-p (message "Buffer %s is modified. Save buffer? "

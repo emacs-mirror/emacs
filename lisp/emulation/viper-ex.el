@@ -1,8 +1,8 @@
 ;;; viper-ex.el --- functions implementing the Ex commands for Viper
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 2000, 01, 02 Free Software Foundation, Inc.
 
-;; Author: Michael Kifer <kifer@cs.sunysb.edu>
+;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -39,6 +39,7 @@
 (defvar viper-custom-file-name)
 (defvar viper-case-fold-search)
 (defvar explicit-shell-file-name)
+(defvar compile-command)
 
 ;; loading happens only in non-interactive compilation
 ;; in order to spare non-viperized emacs from being viperized
@@ -2016,9 +2017,9 @@ Please contact your system administrator. "
   (let ((end (car ex-addresses))
 	(beg (car (cdr ex-addresses))) 
 	(orig-buf (current-buffer))
-	(orig-buf-file-name (buffer-file-name))
-	(orig-buf-name (buffer-name))
-	(buff-changed-p (buffer-modified-p))
+	;;(orig-buf-file-name (buffer-file-name))
+	;;(orig-buf-name (buffer-name))
+	;;(buff-changed-p (buffer-modified-p))
 	temp-buf writing-same-file region
 	file-exists writing-whole-file)
     (if (> beg end) (error viper-FirstAddrExceedsSecond))
@@ -2072,9 +2073,10 @@ Please contact your system administrator. "
 	      ;; create temp buffer for the region
 	      (setq temp-buf (get-buffer-create " *ex-write*"))
 	      (set-buffer temp-buf)
-	      (if viper-xemacs-p
-		  (set-visited-file-name ex-file)
-		(set-visited-file-name ex-file 'noquerry))
+	      (viper-cond-compile-for-xemacs-or-emacs
+	       (set-visited-file-name ex-file) ; xemacs
+	       (set-visited-file-name ex-file 'noquerry) ; emacs
+	       )
 	      (erase-buffer)
 	      (if (and file-exists ex-append)
 		  (insert-file-contents ex-file))

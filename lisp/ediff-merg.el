@@ -1,8 +1,8 @@
 ;;; ediff-merg.el --- merging utilities
 
-;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
 
-;; Author: Michael Kifer <kifer@cs.sunysb.edu>
+;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -122,7 +122,7 @@ Buffer B."
 	(combo-region "")
 	(err-msg
 	 "ediff-combination-pattern: Invalid format. Please consult the documentation")
-	diff-region region-delim region-spec)
+	region-delim region-spec)
 
     (if (< (length pattern-list) 5)
 	(error err-msg))
@@ -133,7 +133,7 @@ Buffer B."
       (or (and (stringp region-delim) (memq region-spec '(A B Ancestor)))
 	  (error err-msg))
 
-      (condition-case err
+      (condition-case nil
 	  (setq combo-region
 		(concat combo-region
 			region-delim "\n"
@@ -221,9 +221,10 @@ Buffer B."
       (setq state-of-merge (ediff-get-state-of-merge n))
 
       (if remerging
-	  (let ((reg-A (ediff-get-region-contents n 'A ediff-control-buffer))
-		(reg-B (ediff-get-region-contents n 'B ediff-control-buffer))
-		(reg-C (ediff-get-region-contents n 'C ediff-control-buffer)))
+	  ;;(let ((reg-A (ediff-get-region-contents n 'A ediff-control-buffer))
+	  ;;	(reg-B (ediff-get-region-contents n 'B ediff-control-buffer))
+	  ;;	(reg-C (ediff-get-region-contents n 'C ediff-control-buffer)))
+	  (let ()
 		
 	    ;; if region was edited since it was first set by default
 	    (if (or (ediff-merge-changed-from-default-p n)
@@ -307,7 +308,7 @@ Combining is done according to the specifications in variable
   (interactive "P")
   (setq n (if (numberp n) (1- n) ediff-current-difference))
   
-  (let (regA regB reg-combined)
+  (let (reg-combined)
     ;;(setq regA (ediff-get-region-contents n 'A ediff-control-buffer)
     ;;	  regB (ediff-get-region-contents n 'B ediff-control-buffer))
     ;;(setq reg-combined (ediff-make-combined-diff regA regB))

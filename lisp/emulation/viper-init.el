@@ -1,8 +1,8 @@
 ;;; viper-init.el --- some common definitions for Viper
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
 
-;; Author: Michael Kifer <kifer@cs.sunysb.edu>
+;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -37,6 +37,9 @@
 (defvar current-input-method)
 (defvar default-input-method)
 (defvar describe-current-input-method-function)
+(defvar bar-cursor)
+(defvar default-cursor-type)
+(defvar cursor-type)
 ;; end pacifier
 
 
@@ -50,10 +53,23 @@
 ;; Is it Emacs?
 (defconst viper-emacs-p (not viper-xemacs-p))
 ;; Tell whether we are running as a window application or on a TTY
+
+;; This is used to avoid compilation warnings. When emacs/xemacs forms can
+;; generate compile time warnings, we use this macro.
+;; In this case, the macro will expand into the form that is appropriate to the
+;; compiler at hand.
+;; Suggested by rms.
+(defmacro viper-cond-compile-for-xemacs-or-emacs (xemacs-form emacs-form)
+  (if (string-match "XEmacs" emacs-version)
+      xemacs-form emacs-form))
+
+
 (defsubst viper-device-type ()
-  (if viper-emacs-p
-      window-system
-    (device-type (selected-device))))
+  (viper-cond-compile-for-xemacs-or-emacs
+   (device-type (selected-device))
+   window-system
+   ))
+
 ;; in XEmacs: device-type is tty on tty and stream in batch.
 (defun viper-window-display-p ()
   (and (viper-device-type) (not (memq (viper-device-type) '(tty stream pc)))))
@@ -434,15 +450,18 @@ color displays.  By default, the delimiters are used only on TTYs."
   :group 'viper)
 
 ;; XEmacs requires glyphs
-(if viper-xemacs-p
-    (progn
-      (or (glyphp viper-replace-region-end-delimiter)
-	  (setq viper-replace-region-end-delimiter
-		(make-glyph viper-replace-region-end-delimiter)))
-      (or (glyphp viper-replace-region-start-delimiter)
-	  (setq viper-replace-region-start-delimiter
-		(make-glyph viper-replace-region-start-delimiter)))
-      ))
+(viper-cond-compile-for-xemacs-or-emacs
+ (progn ; xemacs
+   (or (glyphp viper-replace-region-end-delimiter)
+       (setq viper-replace-region-end-delimiter
+	     (make-glyph viper-replace-region-end-delimiter)))
+   (or (glyphp viper-replace-region-start-delimiter)
+       (setq viper-replace-region-start-delimiter
+	     (make-glyph viper-replace-region-start-delimiter)))
+   )
+  nil ; emacs
+ )
+
 
 
 ;; These are local marker that must be initialized to nil and moved with
@@ -978,7 +997,7 @@ Should be set in `~/.viper' file."
       (if viper-xemacs-p
 	  (setq bar-cursor nil)
 	(setq cursor-type default-cursor-type))
-    (error)))
+    (error nil)))
 
 (defun viper-set-insert-cursor-type ()
   (if viper-xemacs-p
