@@ -1,3 +1,36 @@
+2005-03-15  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-error): New variable.
+	(isearch-invalid-regexp, isearch-within-brackets): Remove.
+	(isearch-error-state): Renamed from `isearch-invalid-regexp-state'.
+	(isearch-within-brackets-state): Remove.
+	(isearch-case-fold-search-state, isearch-pop-fun-state):
+	Decrease frame index.
+	(isearch-mode, isearch-top-state, isearch-push-state)
+	(isearch-edit-string, isearch-abort, isearch-search-and-update)
+	(isearch-fallback, isearch-message-prefix, isearch-message-suffix)
+	(isearch-search, isearch-lazy-highlight-new-loop):
+	Replace `isearch-invalid-regexp' with `isearch-error'.
+	Remove `isearch-within-brackets'.
+	(isearch-search): Add `search-failed' handler to `condition-case'.
+	(isearch-lazy-highlight-search): Add `condition-case' to catch
+	errors and allow `isearch-lazy-highlight-update' to try
+	highlighting from the beginning of the window.
+	(isearch-repeat): Move up code to set isearch-wrapped to t
+	before calling isearch-wrap-function.
+
+	* info.el (Info-isearch-initial-node): New internal variable.
+	(Info-search): Signal an error in isearch mode when search leaves
+	the initial node.  Signal an error when `bound' is non-nil and
+	nothing was found in the current subfile.
+	(Info-isearch-search): Remove `condition-case'.
+	(Info-isearch-wrap): Don't wrap when search failed during leaving
+	the initial node.  If `Info-isearch-search' is nil, wrap around
+	the current node.
+	(Info-isearch-start): New fun.
+	(Info-mode): Add buffer-local hook `Info-isearch-start' to
+	`isearch-mode-hook'.
+
 2005-03-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* simple.el (normal-erase-is-backspace): Set default to t if
