@@ -562,7 +562,11 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   ;; inset all files listed in the cdr (the car is the passed-in directory
   ;; list).
   (let ((opoint (point))
+	(process-environment (copy-sequence process-environment))
 	end)
+    ;; This makes sure that month names come out in English
+    ;; so we can find the start of the file name.
+    (setenv "LC_ALL" "C")
     (if (consp dir-or-list)
 	;; In this case, use the file names in the cdr
 	;; exactly as originally given to dired-noselect.
