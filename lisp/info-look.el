@@ -173,6 +173,11 @@ REFER-MODES is a list of other help modes to use.")
       ("(termcap)Var Index" nil
        "^[ \t]*`" "'"))
      info-lookup-guess-c-symbol)
+    (emacs-lisp-mode
+     "[-_a-zA-Z+=*:&%$#@!^~][-_a-zA-Z0-9+=*:&%$#@!^~]*" nil
+     ("(elisp)Index" nil
+       "^[ \t]+- \\(Function\\|Macro\\|User Option\\|Variable\\): .*\\<"
+       "\\>"))
     (m4-mode
      "[_a-zA-Z][_a-zA-Z0-9]*" nil
      (("(m4)Macro index"))
@@ -353,26 +358,28 @@ The default file name is the one found at point."
 
 (defun info-lookup-make-completions (topic mode)
   "Create a unique alist from all index entries."
-  (condition-case nil
-      (let ((doc-spec (info-lookup->doc-spec topic mode))
-	    (regexp (concat "^\\(" (info-lookup->regexp topic mode)
-			    "\\)\\([ \t].*\\)?$"))
-	    node trans entry item prefix result)
-	(save-window-excursion
-	  (info)
-	  (while doc-spec
-	    (setq node (nth 0 (car doc-spec))
-		  trans (cond ((eq (nth 1 (car doc-spec)) nil)
-			       (lambda (arg)
-				 (if (string-match regexp arg)
-				     (match-string 1 arg))))
-			      ((stringp (nth 1 (car doc-spec)))
-			       (setq prefix (nth 1 (car doc-spec)))
-			       (lambda (arg)
-				 (if (string-match "^\\([^: \t\n]+\\)" arg)
-				     (concat prefix (match-string 1 arg)))))
-			      (t (nth 1 (car doc-spec)))))
-	    (message "Processing Info node \"%s\"..." node)
+  (let ((doc-spec (info-lookup->doc-spec topic mode))
+	(regexp (concat "^\\(" (info-lookup->regexp topic mode)
+			"\\)\\([ \t].*\\)?$"))
+	node trans entry item prefix result
+	(buffer (get-buffer-create " temp-info-look")))
+    (with-current-buffer buffer
+      (Info-mode))
+    (while doc-spec
+      (setq node (nth 0 (car doc-spec))
+	    trans (cond ((eq (nth 1 (car doc-spec)) nil)
+			 (lambda (arg)
+			   (if (string-match regexp arg)
+			       (match-string 1 arg))))
+			((stringp (nth 1 (car doc-spec)))
+			 (setq prefix (nth 1 (car doc-spec)))
+			 (lambda (arg)
+			   (if (string-match "^\\([^: \t\n]+\\)" arg)
+			       (concat prefix (match-string 1 arg)))))
+			(t (nth 1 (car doc-spec)))))
+      (condition-case nil
+	  (with-current-buffer buffer
+	    (message "Processing Info node `%s'..." node)
 	    (Info-goto-node node)
 	    (goto-char (point-min))
 	    (and (search-forward "\n* Menu:" nil t)
@@ -384,12 +391,11 @@ The default file name is the one found at point."
 		   (and (string-equal entry item)
 			(setq entry nil))
 		   (or (assoc item result)
-		       (setq result (cons (cons item entry) result)))))
-	    (message "Processing Info node \"%s\"... done" node)
-	    (setq doc-spec (cdr doc-spec)))
-	  (Info-directory))
-	result)
-    (error nil)))
+		       (setq result (cons (cons item entry) result))))))
+	(error nil))
+      (message "Processing Info node `%s'...done" node)
+      (setq doc-spec (cdr doc-spec)))
+    result))
 
 (defun info-lookup-guess-default (topic mode)
   "Pick up default item at point (with favor to look back).
