@@ -1,3 +1,37 @@
+2000-10-26  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-ems.el: Remove gnus-xemacs.  Autoload smiley.
+	(gnus-kill-all-overlays): Move here.
+
+	* gnus-util.el (gnus-kill-all-overlays): Move out.
+
+2000-10-26  Dave Love  <fx@gnu.org>
+
+	* mail-source.el: Require imap when compiling and defvar
+	display-time-mail-function.  Require mm-util.
+	(nnheader-cancel-timer): Autoload.
+	(mail-source-imap-authenticators, mail-source-imap-streams): New
+	variables.
+	(mail-sources): Use them.
+	(defvar): Use rmail-spool-directory unconditionally.
+
+2000-10-26  Dirk Meyer <dischi@tzi.de>
+
+	* gnus-demon.el (gnus-demon-time-to-step): theHour was set to
+	seconds instead of hour.
+
+2000-10-26  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* mail-source.el (mail-sources): Better `:type'.
+
+2000-10-26  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* mail-source.el (mail-source-keyword-map): Use
+	`rmail-spool-directory' as a default directory for the `file'
+	source, if the variable is defined.  Fall back to hardcoded
+	"/usr/spool/mail/", as before.  Suggestion by Steven E. Harris
+	<seh@speakeasy.org>.
+
 2000-10-25  Jason Rumney  <jasonr@gnus.org>
 
 	* gnus-art.el (gnus-signature-face): Use italic on any frame that
