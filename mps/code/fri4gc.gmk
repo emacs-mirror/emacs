@@ -15,8 +15,9 @@ LIBS = -lm -pthread
 
 include gc.gmk
 
-CFLAGSDEBUG = -g
-CFLAGSOPT = -O -g
+CFLAGSCOMPILER := $(subst -pedantic,,$(CFLAGSCOMPILER))
+CFLAGSDEBUG = -g3
+CFLAGSOPT = -O -g3
 
 CC = cc
 
