@@ -124,8 +124,11 @@ use either M-x customize or the function `scroll-all-mode'."
 
 
 ;;;###autoload
-(defun scroll-all-mode (arg)
-  "Toggle Scroll-All minor mode."
+(defun scroll-all-mode (&optional arg)
+  "Toggle Scroll-All minor mode.
+With ARG, turn Scroll-All minor mode on if ARG is positive, off otherwise.
+When Scroll-All mode is on, scrolling commands entered in one window
+apply to all visible windows in the same frame."
   (interactive "P")
   (setq scroll-all-mode
  	(if (null arg) (not scroll-all-mode)
