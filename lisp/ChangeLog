@@ -1,6 +1,8 @@
 2002-06-14  Miles Bader  <miles@gnu.org>
 
 	* subr.el (copy-tree): Use `nconc' and `nreverse' instead of `nreconc'.
+	(pop): Move the call to `car' outside the prog1, as the compiler
+	then generates better code.
 
 2002-06-13  Richard M. Stallman  <rms@gnu.org>
 
