@@ -2906,6 +2906,7 @@ EXFUN (Fevent_convert_list, 1);
 EXFUN (Fread_key_sequence, 5);
 EXFUN (Fset_input_mode, 4);
 extern int detect_input_pending P_ ((void));
+extern int detect_input_pending_ignore_squeezables P_ ((void));
 extern int detect_input_pending_run_timers P_ ((int));
 extern void safe_run_hooks P_ ((Lisp_Object));
 extern void cmd_error_internal P_ ((Lisp_Object, char *));

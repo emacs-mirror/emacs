@@ -1,3 +1,35 @@
+2005-01-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (READABLE_EVENTS_DO_TIMERS_NOW)
+	(READABLE_EVENTS_FILTER_EVENTS)
+	(READABLE_EVENTS_IGNORE_SQUEEZABLES): New flags for readable_events.
+	get_filtered_input_pending, readable_filtered_events): Removed.
+	(tracking_off): Call readable_events and get_input_pending with
+	flag READABLE_EVENTS_DO_TIMERS_NOW.
+	(readable_events): Move code from old readable_filtered_events here,
+	but check new READABLE_EVENTS_* in argument flags instead of previous
+	two boolean arguments do_timers_now and filter_events.
+	If we are doing mouse tracking and the mouse moved, return only if
+	READABLE_EVENTS_IGNORE_SQUEEZABLES is not set in flags.
+	(swallow_events): Call get_input_pending with flag
+	READABLE_EVENTS_DO_TIMERS_NOW.
+	(get_input_pending): Move code from old   get_filtered_input_pending
+	here.  Replace boolean arguments do_timers_now, filter_events with
+	flags, and pass flags to readable_events.  Document new
+	READABLE_EVENTS_* flags.
+	(detect_input_pending_ignore_squeezables): New function.
+	(detect_input_pending_run_timers): Call get_input_pending with flag
+	READABLE_EVENTS_DO_TIMERS_NOW.
+	(Finput_pending_p): Call get_input_pending with flags
+	READABLE_EVENTS_DO_TIMERS_NOW and READABLE_EVENTS_FILTER_EVENTS.
+
+	* dispnew.c (update_window, update_frame_1): Replace calls to
+	detect_input_pending with detect_input_pending_ignore_squeezables
+	so that redisplay is not paused if the event queue contains only 
+	mouse movements.
+
+	* lisp.h: Declare detect_input_pending_ignore_squeezables.
+
 2005-01-15  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (Vmac_use_core_graphics): defined for
