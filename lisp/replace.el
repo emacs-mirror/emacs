@@ -477,6 +477,8 @@ The valid answers include `act', `skip', `act-and-show',
 (define-key query-replace-map "!" 'automatic)
 (define-key query-replace-map "^" 'backup)
 (define-key query-replace-map "\C-h" 'help)
+(define-key query-replace-map [f1] 'help)
+(define-key query-replace-map [help] 'help)
 (define-key query-replace-map "?" 'help)
 (define-key query-replace-map "\C-g" 'quit)
 (define-key query-replace-map "\C-]" 'quit)
