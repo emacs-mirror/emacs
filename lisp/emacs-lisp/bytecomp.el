@@ -4,13 +4,13 @@
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
-;; Keywords: internal
+;; Keywords: lisp
 
 ;; Subsequently modified by RMS.
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.34 $")
+(defconst byte-compile-version "$Revision: 2.35 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -190,11 +190,18 @@
 ;; 	    list))))
 
 
-(defvar emacs-lisp-file-regexp (if (eq system-type 'vax-vms)
-				   "\\.EL\\(;[0-9]+\\)?$"
-				 "\\.el$")
+(defgroup bytecomp nil
+  "Emacs Lisp byte-compiler"
+  :group 'lisp)
+
+(defcustom emacs-lisp-file-regexp (if (eq system-type 'vax-vms)
+				      "\\.EL\\(;[0-9]+\\)?$"
+				    "\\.el$")
   "*Regexp which matches Emacs Lisp source files.
-You may want to redefine `byte-compile-dest-file' if you change this.")
+You may want to redefine the function `byte-compile-dest-file'
+if you change this variable."
+  :group 'bytecomp
+  :type 'regexp)
 
 ;; This enables file name handlers such as jka-compr
 ;; to remove parts of the file name that should not be copied
@@ -234,12 +241,16 @@ You may want to redefine `byte-compile-dest-file' if you change this.")
 ;; thing to do.
 (autoload 'byte-decompile-bytecode "byte-opt")
 
-(defvar byte-compile-verbose
+(defcustom byte-compile-verbose
   (and (not noninteractive) (> baud-rate search-slow-speed))
-  "*Non-nil means print messages describing progress of byte-compiler.")
+  "*Non-nil means print messages describing progress of byte-compiler."
+  :group 'bytecomp
+  :type 'boolean)
 
-(defvar byte-compile-compatibility nil
-  "*Non-nil means generate output that can run in Emacs 18.")
+(defcustom byte-compile-compatibility nil
+  "*Non-nil means generate output that can run in Emacs 18."
+  :group 'bytecomp
+  :type 'boolean)
 
 ;; (defvar byte-compile-generate-emacs19-bytecodes
 ;;         (not (or (and (boundp 'epoch::version) epoch::version)
@@ -248,19 +259,26 @@ You may want to redefine `byte-compile-dest-file' if you change this.")
 ;; makes use of byte-ops which are present only in Emacs 19.  Code generated
 ;; this way can never be run in Emacs 18, and may even cause it to crash.")
 
-(defvar byte-optimize t
+(defcustom byte-optimize t
   "*Enables optimization in the byte compiler.
 nil means don't do any optimization.
 t means do all optimizations.
 `source' means do source-level optimizations only.
-`byte' means do code-level optimizations only.")
+`byte' means do code-level optimizations only."
+  :group 'bytecomp
+  :type '(choice (const :tag "none" nil)
+		 (const :tag "all" t)
+		 (const :tag "source-level" source)
+		 (const :tag "byte-level" byte)))
 
-(defvar byte-compile-delete-errors t
+(defcustom byte-compile-delete-errors t
   "*If non-nil, the optimizer may delete forms that may signal an error.
-This includes variable references and calls to functions such as `car'.")
+This includes variable references and calls to functions such as `car'."
+  :group 'bytecomp
+  :type 'boolean)
 
 (defvar byte-compile-dynamic nil
-  "*If non-nil, compile function bodies so they load lazily.
+  "If non-nil, compile function bodies so they load lazily.
 They are hidden comments in the compiled file, and brought into core when the
 function is called.
 
@@ -271,7 +289,7 @@ For example, add  -*-byte-compile-dynamic: t;-*- on the first line.
 When this option is true, if you load the compiled file and then move it,
 the functions you loaded will not be able to run.")
 
-(defvar byte-compile-dynamic-docstrings t
+(defcustom byte-compile-dynamic-docstrings t
   "*If non-nil, compile doc strings for lazy access.
 We bury the doc strings of functions and variables
 inside comments in the file, and bring them into core only when they
@@ -285,19 +303,28 @@ in the source file.  For example, add this to the first line:
   -*-byte-compile-dynamic-docstrings:nil;-*-
 You can also set the variable globally.
 
-This option is enabled by default because it reduces Emacs memory usage.")
+This option is enabled by default because it reduces Emacs memory usage."
+  :group 'bytecomp
+  :type 'boolean)
 
-(defvar byte-optimize-log nil
+(defcustom byte-optimize-log nil
   "*If true, the byte-compiler will log its optimizations into *Compile-Log*.
 If this is 'source, then only source-level optimizations will be logged.
-If it is 'byte, then only byte-level optimizations will be logged.")
+If it is 'byte, then only byte-level optimizations will be logged."
+  :group 'bytecomp
+  :type '(choice (const :tag "none" nil)
+		 (const :tag "all" t)
+		 (const :tag "source-level" source)
+		 (const :tag "byte-level" byte)))
 
-(defvar byte-compile-error-on-warn nil
-  "*If true, the byte-compiler reports warnings with `error'.")
+(defcustom byte-compile-error-on-warn nil
+  "*If true, the byte-compiler reports warnings with `error'."
+  :group 'bytecomp
+  :type 'boolean)
 
 (defconst byte-compile-warning-types
   '(redefine callargs free-vars unresolved obsolete))
-(defvar byte-compile-warnings t
+(defcustom byte-compile-warnings t
   "*List of warnings that the byte-compiler should issue (t for all).
 Elements of the list may be be:
 
@@ -308,9 +335,13 @@ Elements of the list may be be:
               versa, or redefined to take a different number of arguments.
   obsolete      obsolete variables and functions.
 
-See also the macro `byte-compiler-options'.")
+See also the macro `byte-compiler-options'."
+  :group 'bytecomp
+  :type '(set (const free-vars) (const unresolved)
+	      (const callargs) (const redefined)
+	      (const obsolete)))
 
-(defvar byte-compile-generate-call-tree nil
+(defcustom byte-compile-generate-call-tree nil
   "*Non-nil means collect call-graph information when compiling.
 This records functions were called and from where.
 If the value is t, compilation displays the call graph when it finishes.
@@ -323,7 +354,10 @@ not reported.
 
 The call tree also lists those functions which are not known to be called
 \(that is, to which no calls have been compiled).  Functions which can be
-invoked interactively are excluded from this list.")
+invoked interactively are excluded from this list."
+  :group 'bytecomp
+  :type '(choice (const :tag "Yes" t) (const :tag "No" nil)
+		 (const :tag "Ask" lambda)))
 
 (defconst byte-compile-call-tree nil "Alist of functions and their call tree.
 Each element looks like
@@ -334,10 +368,13 @@ where CALLERS is a list of functions that call FUNCTION, and CALLS
 is a list of functions for which calls were generated while compiling
 FUNCTION.")
 
-(defvar byte-compile-call-tree-sort 'name
+(defcustom byte-compile-call-tree-sort 'name
   "*If non-nil, sort the call tree.
 The values `name', `callers', `calls', `calls+callers'
-specify different fields to sort on.")
+specify different fields to sort on."
+  :group 'bytecomp
+  :type '(choice (const name) (const callers) (const calls)
+		 (const calls+callers) (const nil)))
 
 ;; (defvar byte-compile-overwrite-file t
 ;;   "If nil, old .elc files are deleted before the new is saved, and .elc
@@ -1119,7 +1156,8 @@ otherwise pop it")
 	     (prog1 (selected-window)
 	       (select-window (display-buffer (current-buffer)))
 	       (goto-char byte-compile-warnings-point-max)
-	       (previous-line 1)
+	       (beginning-of-line)
+	       (forward-line -1)
 	       (recenter 0))))))))
 
 
