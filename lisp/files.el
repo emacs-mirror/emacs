@@ -3411,6 +3411,50 @@ and `list-directory-verbose-switches'."
 	(let ((wildcard (not (file-directory-p dirname))))
 	  (insert-directory dirname switches wildcard (not wildcard)))))))
 
+(defun shell-quote-wildcard-pattern (pattern)
+  "Quote characters special to the shell in PATTERN, leave wildcards alone.
+
+PATTERN is assumed to represent a file-name wildcard suitable for the
+underlying filesystem.  For Unix and GNU/Linux, the characters from the
+set [ \\t\\n;<>&|()#$] are quoted with a backslash; for DOS/Windows, all
+the parts of the pattern which don't include wildcard characters are
+quoted with double quotes.
+Existing quote characters in PATTERN are left alone, so you can pass
+PATTERN that already quotes some of the special characters."
+  (save-match-data
+    (cond
+     ((memq system-type '(ms-dos windows-nt))
+      ;; DOS/Windows don't allow `"' in file names.  So if the
+      ;; argument has quotes, we can safely assume it is already
+      ;; quoted by the caller.
+      (if (or (string-match "[\"]" pattern)
+	      ;; We quote [&()#$'] in case their shell is a port of a
+	      ;; Unixy shell.  We quote [,=+] because stock DOS and
+	      ;; Windows shells require that in some cases, such as
+	      ;; passing arguments to batch files that use positional
+	      ;; arguments like %1.
+	      (not (string-match "[ \t;&()#$',=+]" pattern)))
+	  pattern
+	(let ((result "\"")
+	      (beg 0)
+	      end)
+	  (while (string-match "[*?]+" pattern beg)
+	    (setq end (match-beginning 0)
+		  result (concat result (substring pattern beg end)
+				 "\""
+				 (substring pattern end (match-end 0))
+				 "\"")
+		  beg (match-end 0)))
+	  (concat result (substring pattern beg) "\""))))
+     (t
+      (let ((beg 0))
+	(while (string-match "[ \t\n;<>&|()#$]" pattern beg)
+	  (setq pattern
+		(concat (substring pattern 0 (match-beginning 0))
+			"\\"
+			(substring pattern (match-beginning 0)))
+		beg (1+ (match-end 0)))))))))
+
 (defvar insert-directory-program "ls"
   "Absolute or relative name of the `ls' program used by `insert-directory'.")
 
@@ -3461,30 +3505,28 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 		(if wildcard
 		    ;; Run ls in the directory of the file pattern we asked for
 		    (let ((default-directory (file-name-directory file))
-			  (pattern (file-name-nondirectory file))
-			  (beg 0))
-		      ;; Quote some characters that have special
-		      ;; meanings in shells; but don't quote the
-		      ;; wildcards--we want them to be special.
-		      ;; We also currently don't quote the quoting
-		      ;; characters in case people want to use them
-		      ;; explicitly to quote wildcard characters.
-		      (while (string-match "[ \t\n;<>&|()#$]" pattern beg)
-			(setq pattern
-			      (concat (substring pattern 0 (match-beginning 0))
-				      "\\"
-				      (substring pattern (match-beginning 0)))
-			      beg (1+ (match-end 0))))
+			  (pattern (file-name-nondirectory file)))
 		      (call-process
                        shell-file-name nil t nil
-                       "-c" (concat "\\" ; Disregard shell aliases!
+                       "-c" (concat (if (memq system-type '(ms-dos windows-nt))
+					""
+				      "\\") ; Disregard Unix shell aliases!
                                     insert-directory-program
                                     " -d "
                                     (if (stringp switches)
                                         switches
                                         (mapconcat 'identity switches " "))
                                     " -- "
-                                    pattern)))
+				    ;; Quote some characters that have
+				    ;; special meanings in shells; but
+				    ;; don't quote the wildcards--we
+				    ;; want them to be special.  We
+				    ;; also currently don't quote the
+				    ;; quoting characters in case
+				    ;; people want to use them
+				    ;; explicitly to quote wildcard
+				    ;; characters.
+                                    (shell-quote-wildcard-pattern pattern))))
 		  ;; SunOS 4.1.3, SVr4 and others need the "." to list the
 		  ;; directory if FILE is a symbolic link.
 		  (apply 'call-process
