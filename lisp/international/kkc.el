@@ -234,7 +234,7 @@ and the return value is the length of the conversion."
 	(force-mode-line-update)
 	(setq kkc-converting t)
 	(while kkc-converting
-	  (let* ((echo-keystrokes 0)
+	  (let* ((overriding-terminal-local-map kkc-keymap)
 		 (keyseq (read-key-sequence nil))
 		 (cmd (lookup-key kkc-keymap keyseq)))
 	    (if (commandp cmd)
