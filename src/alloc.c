@@ -771,6 +771,7 @@ See `char-table-extra-slot' and `set-char-table-extra-slot'.")
   /* Add 2 to the size for the defalt and parent slots.  */
   vector = Fmake_vector (make_number (CHAR_TABLE_STANDARD_SLOTS + XINT (n)),
 			 init);
+  XCHAR_TABLE (vector)->parent = Qnil;
   XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
   return vector;
 }
