@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!152.c(trunk.2) $
  summary = SNC scanning test
  language = c
  link = testlib.o rankfmt.o
@@ -25,15 +25,23 @@ END_HEADER
 #include "mpsavm.h"
 #include "rankfmt.h"
 
+
 #define ARENA_SIZE (100ul*1024ul*1024ul)
 #define BIGSIZE (10ul*1024*1024)
 #define SMALLSIZE (4096)
+
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 
 static void test(void)
 {
  mps_ap_t ap, sap;
  mps_arena_t arena;
  mps_fmt_t format;
+ mps_chain_t chain;
  mps_pool_t pool, spool;
  mps_thr_t thread;
  mps_frame_t frame1;
@@ -44,27 +52,24 @@ static void test(void)
  alloccomments=1;
  fixcomments=1;
 
-/* create an arena (no particular size limit) */
+ /* create an arena (no particular size limit) */
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)ARENA_SIZE),
-  "create arena");
+      "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
-/* because we know objects in the stack pool don't move, 
-   we can do without roots. Hooray!
-*/
+ /* because we know objects in the stack pool don't move, 
+    we can do without roots. Hooray! */
 
- cdie(
-  mps_fmt_create_A(&format, arena, &fmtA),
-  "create format");
- cdie(
-  mps_pool_create(&pool, arena, mps_class_amc(), format),
-  "create AMC pool");
+ cdie(mps_fmt_create_A(&format, arena, &fmtA), "create format");
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
+ die(mmqa_pool_create_chain(&pool, arena, mps_class_amc(), format, chain),
+     "create AMC pool");
  cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "create ap");
- cdie(
-  mps_pool_create(&spool, arena, mps_class_snc(), format),
-  "create SNC pool");
+ cdie(mps_pool_create(&spool, arena, mps_class_snc(), format),
+      "create SNC pool");
  cdie(mps_ap_create(&sap, spool, MPS_RANK_EXACT), "create ap");
 
  /* push, alloc, check object is scanned */
@@ -103,16 +108,13 @@ static void test(void)
  mps_pool_destroy(spool);
  comment("Destroyed pool.");
 
+ mps_chain_destroy(chain);
  mps_fmt_destroy(format);
- comment("Destroyed format.");
-
  mps_thread_dereg(thread);
- comment("Deregistered thread.");
-
  mps_arena_destroy(arena);
  comment("Destroyed arena.");
-
 }
+
 
 int main(void)
 {
