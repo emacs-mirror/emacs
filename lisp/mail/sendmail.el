@@ -434,16 +434,20 @@ Here are commands that move to a header field (and create it if there isn't):
 
 (defun mail-header-end ()
   "Return the buffer location of the end of headers, as a number."
-  (save-excursion
-    (rfc822-goto-eoh)
-    (point)))
+  (save-restriction
+    (widen)
+    (save-excursion
+      (rfc822-goto-eoh)
+      (point))))
 
 (defun mail-text-start ()
   "Return the buffer location of the start of text, as a number."
-  (save-excursion
-    (rfc822-goto-eoh)
-    (forward-line 1)
-    (point)))
+  (save-restriction
+    (widen)
+    (save-excursion
+      (rfc822-goto-eoh)
+      (forward-line 1)
+      (point))))
 
 (defun mail-sendmail-delimit-header ()
   "Set up whatever header delimiter convention sendmail will use.
