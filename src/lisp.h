@@ -2199,6 +2199,7 @@ extern void syms_of_editfns P_ ((void));
 
 /* defined in buffer.c */
 extern void nsberror P_ ((Lisp_Object));
+extern char *no_switch_window P_ ((Lisp_Object window));
 EXFUN (Fset_buffer_multibyte, 1);
 EXFUN (Foverlay_start, 1);
 EXFUN (Foverlay_end, 1);
