@@ -1070,6 +1070,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	    }
 	  if (val >= 0)
 	    {
+	      pos_byte = search_regs.start[0] + BEGV_BYTE;
 	      for (i = 0; i < search_regs.num_regs; i++)
 		if (search_regs.start[i] >= 0)
 		  {
@@ -1102,6 +1103,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	    }
 	  if (val >= 0)
 	    {
+	      pos_byte = search_regs.end[0] + BEGV_BYTE;
 	      for (i = 0; i < search_regs.num_regs; i++)
 		if (search_regs.start[i] >= 0)
 		  {
