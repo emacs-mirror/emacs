@@ -133,6 +133,8 @@ we expect to find and remove the wrapper characters =?ISO-8859-1?Q?....?=."
 			      (char-after (1+ (match-beginning 1)))))))
 	   t t))))))
 
+(eval-when-compile (require 'rfc822))
+
 (defun mail-strip-quoted-names (address)
   "Delete comments and quoted strings in an address list ADDRESS.
 Also delete leading/trailing whitespace and replace FOO <BAR> with just BAR.
@@ -244,8 +246,9 @@ the comma-separated list.  The pruned list is returned."
 	    (setq cur-pos (and cur-pos (1+ cur-pos))
 		  start-pos cur-pos))))))
   ;; get rid of any trailing commas
-  (if (setq pos (string-match "[ ,\t\n]*\\'" destinations))
-      (setq destinations (substring destinations 0 pos)))
+  (let ((pos (string-match "[ ,\t\n]*\\'" destinations)))
+    (if pos
+        (setq destinations (substring destinations 0 pos))))
   ;; remove leading spaces. they bother me.
   (if (string-match "\\(\\s \\|,\\)*" destinations)
       (substring destinations (match-end 0))
