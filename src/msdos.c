@@ -1,5 +1,5 @@
 /* MS-DOS specific C utilities.
-   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -956,18 +956,36 @@ IT_set_frame_parameters (f, alist)
      Lisp_Object alist;
 {
   Lisp_Object tail;
+  int length = XINT (Flength (alist));
+  int i;
+  Lisp_Object *parms
+    = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
+  Lisp_Object *values
+    = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
   int redraw;
   extern unsigned long load_color ();
 
   redraw = 0;
+
+  /* Extract parm names and values into those vectors.  */
+  i = 0;
   for (tail = alist; CONSP (tail); tail = Fcdr (tail))
     {
-      Lisp_Object elt, prop, val;
+      Lisp_Object elt;
 
       elt = Fcar (tail);
-      prop = Fcar (elt);
-      val = Fcdr (elt);
-      CHECK_SYMBOL (prop, 1);
+      parms[i] = Fcar (elt);
+      CHECK_SYMBOL (parms[i], 1);
+      values[i] = Fcdr (elt);
+      i++;
+    }
+
+
+  /* Now process them in reverse of specified order.  */
+  for (i--; i >= 0; i--)
+    {
+      Lisp_Object prop = parms[i];
+      Lisp_Object val  = values[i];
 
       if (EQ (prop, intern ("foreground-color")))
 	{
@@ -993,6 +1011,9 @@ IT_set_frame_parameters (f, alist)
 	}
       else if (EQ (prop, intern ("menu-bar-lines")))
 	x_set_menu_bar_lines (f, val, 0);
+
+      store_frame_param (f, prop, val);
+
     }
 
   if (redraw)
