@@ -454,7 +454,7 @@ that string instead of from the current buffer."
 			 ; which do support stderr redirection.
 			 (if (not (fboundp 'start-process))
 			     " %s"
-			   " %s 2>/dev/null")))
+			   (concat " %s 2>" null-device))))
 	(flist Man-filter-list))
     (while (and flist (car flist))
       (let ((pcom (car (car flist)))
