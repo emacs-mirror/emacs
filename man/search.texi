@@ -720,8 +720,11 @@ character set matching whitespace characters, repeated any number of
 times.
 
   To enter the same regexp interactively, you would type @key{TAB} to
-enter a tab, and @kbd{C-j} to enter a newline.  You would also type
-single backslashes as themselves, instead of doubling them for Lisp syntax.
+enter a tab, and @kbd{C-j} to enter a newline.  (When typed
+interactively, @kbd{C-j} should be preceded by a @kbd{C-q}, to prevent
+Emacs from running the command bound to a newline.)  You would also type
+single backslashes as themselves, instead of doubling them for Lisp
+syntax.
 
 @ignore
 @c I commented this out because it is missing vital information
