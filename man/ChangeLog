@@ -1,3 +1,7 @@
+2004-09-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (Display Custom): Remove stray `@end defvar'.
+
 2004-09-23  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Display Custom): Add `overflow-newline-into-fringe',

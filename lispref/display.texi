@@ -25,9 +25,9 @@ that Emacs presents to the user.
 * Faces::               A face defines a graphics style for text characters:
                           font, colors, etc.
 * Fringes::             Controlling window fringes.
-* Fringe Bitmaps::     Customizing fringe bitmaps.
+* Fringe Bitmaps::      Customizing fringe bitmaps.
 * Scroll Bars::         Controlling vertical scroll bars.
-* Pointer Shape::      Controlling the mouse pointer shape.
+* Pointer Shape::       Controlling the mouse pointer shape.
 * Display Property::    Enabling special display features.
 * Images::              Displaying images in Emacs buffers.
 * Buttons::             Adding clickable buttons to Emacs buffers.
