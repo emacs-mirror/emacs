@@ -1,6 +1,6 @@
 /* impl.c.tract: PAGE TABLES
  *
- * $HopeName: MMsrc!tract.c(trunk.3) $
+ * $HopeName: MMsrc!tract.c(trunk.4) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .ullagepages: Pages whose page index is < allocBase are recorded as
@@ -13,7 +13,7 @@
 #include "boot.h"
 #include "mpm.h"
 
-SRCID(tract, "$HopeName: MMsrc!tract.c(trunk.3) $");
+SRCID(tract, "$HopeName: MMsrc!tract.c(trunk.4) $");
 
 
 static void ChunkDecache(Arena arena, Chunk chunk);
@@ -234,6 +234,7 @@ failAllocTable:
 void ChunkFinish(Chunk chunk)
 {
   AVERT(Chunk, chunk);
+  AVER(BTIsResRange(chunk->allocTable, 0, chunk->pages));
   ChunkDecache(chunk->arena, chunk);
   chunk->sig = SigInvalid;
   RingRemove(&chunk->chunkRing);
