@@ -32,23 +32,28 @@
 
 (defun make-autoload (form file)
   "Turn FORM, a defun or defmacro, into an autoload for source file FILE.
-Returns nil if FORM is not a defun or defmacro."
+Returns nil if FORM is not a defun, define-skeleton or defmacro."
   (let ((car (car-safe form)))
-    (if (memq car '(defun defmacro))
+    (if (memq car '(defun define-skeleton defmacro))
 	(let ((macrop (eq car 'defmacro))
 	      name doc)
-	  (setq form (cdr form))
-	  (setq name (car form))
-	  ;; Ignore the arguments.
-	  (setq form (cdr (cdr form)))
-	  (setq doc (car form))
+	  (setq form (cdr form)
+		name (car form)
+		;; Ignore the arguments.
+		form (cdr (if (eq car 'define-skeleton)
+			      form
+			    (cdr form)))
+		doc (car form))
 	  (if (stringp doc)
 	      (setq form (cdr form))
 	    (setq doc nil))
 	  (list 'autoload (list 'quote name) file doc
-		(eq (car-safe (car form)) 'interactive)
+		(or (eq car 'define-skeleton)
+		    (eq (car-safe (car form)) 'interactive))
 		(if macrop (list 'quote 'macro) nil)))
       nil)))
+
+(put 'define-skeleton 'doc-string-elt 3)
 
 (defconst generate-autoload-cookie ";;;###autoload"
   "Magic comment indicating the following form should be autoloaded.
