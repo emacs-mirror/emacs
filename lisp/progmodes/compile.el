@@ -921,7 +921,8 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	       (error "compilation-parse-errors: Impossible regexp match!"))
 	     
 	     ;; Extract the file name and line number from the error message.
-	     (let ((filename
+	     (let ((beginning-of-match (match-beginning 0)) ;looking-at nukes
+		   (filename
 		    (cons default-directory
 			  (buffer-substring (match-beginning (nth 1 alist))
 					    (match-end (nth 1 alist)))))
@@ -941,26 +942,30 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 		 (setq compilation-error-list
 		       (cons (cons (point-marker)
 				   (cons filename linenum))
-			     compilation-error-list))))
-	     (setq compilation-num-errors-found
-		   (1+ compilation-num-errors-found))
-	     (and find-at-least (>= compilation-num-errors-found find-at-least)
-		  ;; We have found as many new errors as the user wants.
-		  ;; We continue to parse until we have seen all
-		  ;; the consecutive errors in the same file,
-		  ;; so the error positions will be recorded as markers
-		  ;; in this buffer that might change.
-		  (not (equal (car (cdr (nth 0 compilation-error-list)))
-			      (car (cdr (nth 1 compilation-error-list)))))
-		  (progn
-		    ;; Discard the error just parsed, so that the next
-		    ;; parsing run can get it and the following errors in
-		    ;; the same file all at once.  If we didn't do this, we
-		    ;; would have the same problem we are trying to avoid
-		    ;; with the test above, just delayed until the next run!
-		    (setq compilation-error-list (cdr compilation-error-list))
-		    (goto-char (match-beginning 0))
-		    (setq found-desired t)))
+			     compilation-error-list)))
+	       (setq compilation-num-errors-found
+		     (1+ compilation-num-errors-found))
+	       (and find-at-least (>= compilation-num-errors-found
+				      find-at-least)
+		    ;; We have found as many new errors as the user wants.
+		    ;; We continue to parse until we have seen all
+		    ;; the consecutive errors in the same file,
+		    ;; so the error positions will be recorded as markers
+		    ;; in this buffer that might change.
+		    (cdr compilation-error-list) ; Must check at least two.
+		    (not (equal (car (cdr (nth 0 compilation-error-list)))
+				(car (cdr (nth 1 compilation-error-list)))))
+		    (progn
+		      ;; Discard the error just parsed, so that the next
+		      ;; parsing run can get it and the following errors in
+		      ;; the same file all at once.  If we didn't do this, we
+		      ;; would have the same problem we are trying to avoid
+		      ;; with the test above, just delayed until the next run!
+		      (setq compilation-error-list
+			    (cdr compilation-error-list))
+		      (goto-char beginning-of-match)
+		      (setq found-desired t)))
+	       )
 	     )
 	    (t
 	     (error "compilation-parse-errors: impossible regexp match!")))
