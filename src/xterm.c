@@ -6930,8 +6930,8 @@ x_term_init (display_name, xrm_option, resource_name)
 #endif /* ! 0 */
 
   dpyinfo->x_id_name
-    = (char *) xmalloc (XSTRING (Vinvocation_name)->size
-			+ XSTRING (Vsystem_name)->size
+    = (char *) xmalloc (XSTRING (Vinvocation_name)->size_byte
+			+ XSTRING (Vsystem_name)->size_byte
 			+ 2);
   sprintf (dpyinfo->x_id_name, "%s@%s",
 	   XSTRING (Vinvocation_name)->data, XSTRING (Vsystem_name)->data);
