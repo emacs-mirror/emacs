@@ -143,8 +143,6 @@ sbrk (unsigned long increment)
   else if (size > 0) 
     {
       /* Sanity checks.  */
-      if (size % get_page_size () != 0)
-	return NULL;
       if ((data_region_end + size) >
 	  (data_region_base + get_reserved_heap_size ()))
 	return NULL;
