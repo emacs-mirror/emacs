@@ -1,0 +1,22 @@
+2003-06-06  Dave Love  <fx@gnu.org>
+
+	This is based on Boehm's 6.2alpha4 version.
+
+	* include/private/gcconfig.h (GET_MEM): Comment out top
+	definition.
+	[GC_PRIVATE_H]: Test GET_MEM.
+
+	* include/gc.h (GC_custom_finalize, GC_collect_start_callback)
+	(GC_collect_end_callback): Declare.
+
+	* os_dep.c: Use AVOID_MMAP.
+
+	* finalize.c (GC_custom_finalize): New.
+	(GC_finalize): Use it.
+
+	* configure.in: Use AC_PROG_RANLIB, AM_PROG_LIBTOOL,
+	AC_CONFIG_FILES, AC_CONFIG_COMMANDS.  Add --enable-cppflags arg.
+
+	* alloc.c (GC_collect_start_callback, *GC_collect_end_callback): New.
+	(stop_func): Use them.
+
