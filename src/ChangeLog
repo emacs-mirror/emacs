@@ -1,3 +1,7 @@
+2001-01-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (update_window): Don't check_current_matrix_flags.
+
 2001-01-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (x_figure_window_size): Do not allow new_height and

@@ -1,3 +1,11 @@
+2001-01-02  Eric M. Ludlam  <zappo@gnu.org>
+
+	* emacs-lisp/lisp-mnt.el (lm-copyright-prefix): New Variable.
+	(lm-copyright-mark): New function.
+	(lm-crack-copyright): New function.
+	(lm-verify): Check that the file has a copyright.
+	Check that the file is copyright Free Software Foundation.
+
 2000-12-30  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-diag.el (print-fontset): Indent font name by
