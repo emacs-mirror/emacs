@@ -793,7 +793,8 @@ selected frame."
 (defun x-create-frame-with-faces (&optional parameters)
   (if (null global-face-data)
       (x-create-frame parameters)
-    (let* ((frame (x-create-frame parameters))
+    (let* ((visibility-spec (assq 'visibility parameters))
+	   (frame (x-create-frame (cons '(visibility . nil) parameters)))
 	   (faces (copy-alist global-face-data))
 	   (rest faces))
       (set-frame-face-alist frame faces)
@@ -823,6 +824,9 @@ selected frame."
 	  (face-fill-in (car (car rest)) global frame))
 	(make-face-x-resource-internal (cdr (car rest)) frame t)
 	(setq rest (cdr rest)))
+      (if (null visibility-spec)
+	  (make-frame-visible frame)
+	(modify-frame-parameters frame (list visibility-spec)))
       frame)))
 
 ;; Fill in the face FACE from frame-independent face data DATA.
