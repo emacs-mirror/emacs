@@ -620,7 +620,8 @@ With argument, move up ARG levels."
 	      (> arg 0)
 	      (not (bobp)))
     (let ((present-level (funcall outline-level)))
-      (while (not (< (funcall outline-level) present-level))
+      (while (and (not (< (funcall outline-level) present-level))
+		  (not (bobp)))
 	(outline-previous-visible-heading 1))
       (setq arg (- arg 1)))))
 
