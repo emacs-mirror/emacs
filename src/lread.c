@@ -1752,17 +1752,14 @@ defalias (sname, string)
 }
 #endif /* NOTDEF */
 
-/* New replacement for DefIntVar; it ignores the doc string argument
-   on the assumption that make-docfile will handle that.  */
 /* Define an "integer variable"; a symbol whose value is forwarded
  to a C variable of type int.  Sample call: */
   /* DEFVARINT ("indent-tabs-mode", &indent_tabs_mode, "Documentation");  */
 
 void
-defvar_int (namestring, address, doc)
+defvar_int (namestring, address)
      char *namestring;
      int *address;
-     char *doc;
 {
   Lisp_Object sym;
   sym = intern (namestring);
@@ -1773,10 +1770,9 @@ defvar_int (namestring, address, doc)
  NIL if address contains 0 */
 
 void
-defvar_bool (namestring, address, doc)
+defvar_bool (namestring, address)
      char *namestring;
      int *address;
-     char *doc;
 {
   Lisp_Object sym;
   sym = intern (namestring);
@@ -1786,10 +1782,9 @@ defvar_bool (namestring, address, doc)
 /* Similar but define a variable whose value is the Lisp Object stored at address. */
 
 void
-defvar_lisp (namestring, address, doc)
+defvar_lisp (namestring, address)
      char *namestring;
      Lisp_Object *address;
-     char *doc;
 {
   Lisp_Object sym;
   sym = intern (namestring);
@@ -1802,10 +1797,9 @@ defvar_lisp (namestring, address, doc)
    since marking the same slot twice can cause trouble with strings.  */
 
 void
-defvar_lisp_nopro (namestring, address, doc)
+defvar_lisp_nopro (namestring, address)
      char *namestring;
      Lisp_Object *address;
-     char *doc;
 {
   Lisp_Object sym;
   sym = intern (namestring);
