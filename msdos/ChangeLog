@@ -1,5 +1,14 @@
 2004-11-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* mainmake.v2 (mostlyclean, distclean, maintainer-clean)
+	(extraclean, bootfast): New targets.
+	(top_distclean): New macro, used by distclean, maintainer-clean,
+	and extraclean.
+	(.PHONY): Add bootfast.
+	(bootstrap): Make bootstrap-after in lisp.
+	(bootstrap-clean-before): Clean in man, lispref, and lispintro as
+	well.
+
 	* sed2v2.inp (HAVE_BZERO): Define for GCC v3.x and later.
 
 2004-10-06  Eli Zaretskii  <eliz@gnu.org>
