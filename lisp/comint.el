@@ -182,35 +182,33 @@ See also `comint-read-input-ring' and `comint-write-input-ring'.
 
 This variable is buffer-local, and is a good thing to set in mode hooks.")
 
-(defvar comint-scroll-to-bottom-on-input
-  nil
+(defvar comint-scroll-to-bottom-on-input nil
   "*Controls whether input to interpreter causes window to scroll.
 If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
 If `this', scroll only the selected window.
 
-The default nil.
+The default is nil.
 
 See `comint-preinput-scroll-to-bottom'.  This variable is buffer-local.")
 
-(defvar comint-scroll-to-bottom-on-output 
-  nil
+(defvar comint-scroll-to-bottom-on-output nil
   "*Controls whether interpreter output causes window to scroll.
 If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
 If `this', scroll only the selected window.
 If `others', scroll only those that are not the selected window.
- 
-The default is `this' for fast terminals, nil for slower ones.
+
+The default is nil.
 
 See variable `comint-scroll-show-maximum-output' and function
 `comint-postoutput-scroll-to-bottom'.  This variable is buffer-local.")
- 
+
 (defvar comint-scroll-show-maximum-output t
   "*Controls how interpreter output causes window to scroll.
 If non-nil, then show the maximum output when the window is scrolled.
- 
+
 See variable `comint-scroll-to-bottom-on-output' and function
 `comint-postoutput-scroll-to-bottom'.  This variable is buffer-local.")
- 
+
 (defvar comint-input-ring-size 32
   "Size of input history ring.")
 
@@ -1112,60 +1110,59 @@ Similarly for Soar, Scheme, etc."
 ;; when output is inserted.
 (defun comint-output-filter (process string)
   ;; First check for killed buffer
-  (if (not (comint-check-proc (process-buffer process)))
-      (message
-       "comint-output-filter: buffer %s received output with no process"
-       (process-buffer process))
-    (let ((obuf (current-buffer))
-	  (opoint nil) (obeg nil) (oend nil))
-      (set-buffer (process-buffer process))
-      (setq opoint (point))
-      (setq obeg (point-min))
-      (setq oend (point-max))
-      (let ((buffer-read-only nil)
-	    (nchars (length string))
-	    (ostart nil))
-	(widen)
-	(goto-char (process-mark process))
-	(setq ostart (point))
-	(if (<= (point) opoint)
-	    (setq opoint (+ opoint nchars)))
-	;; Insert after old_begv, but before old_zv.
-	(if (< (point) obeg)
-	    (setq obeg (+ obeg nchars)))
-	(if (<= (point) oend)
-	    (setq oend (+ oend nchars)))
-	(insert-before-markers string)
-	;; Don't insert initial prompt outside the top of the window.
-	(if (= (window-start (selected-window)) (point))
-	    (set-window-start (selected-window) (- (point) (length string))))
-	(if (and comint-last-input-end
-		 (marker-buffer comint-last-input-end)
-		 (= (point) comint-last-input-end))
-	    (set-marker comint-last-input-end (- comint-last-input-end nchars)))
-	(set-marker comint-last-output-start ostart)
-	(set-marker (process-mark process) (point))
-	(force-mode-line-update))
+  (let ((oprocbuf (process-buffer process)))
+    (if (and oprocbuf (buffer-name oprocbuf))
+	(let ((obuf (current-buffer))
+	      (opoint nil) (obeg nil) (oend nil))
+	  (set-buffer oprocbuf)
+	  (setq opoint (point))
+	  (setq obeg (point-min))
+	  (setq oend (point-max))
+	  (let ((buffer-read-only nil)
+		(nchars (length string))
+		(ostart nil))
+	    (widen)
+	    (goto-char (process-mark process))
+	    (setq ostart (point))
+	    (if (<= (point) opoint)
+		(setq opoint (+ opoint nchars)))
+	    ;; Insert after old_begv, but before old_zv.
+	    (if (< (point) obeg)
+		(setq obeg (+ obeg nchars)))
+	    (if (<= (point) oend)
+		(setq oend (+ oend nchars)))
+	    (insert-before-markers string)
+	    ;; Don't insert initial prompt outside the top of the window.
+	    (if (= (window-start (selected-window)) (point))
+		(set-window-start (selected-window) (- (point) (length string))))
+	    (if (and comint-last-input-end
+		     (marker-buffer comint-last-input-end)
+		     (= (point) comint-last-input-end))
+		(set-marker comint-last-input-end (- comint-last-input-end nchars)))
+	    (set-marker comint-last-output-start ostart)
+	    (set-marker (process-mark process) (point))
+	    (force-mode-line-update))
 
-      (narrow-to-region obeg oend)
-      (goto-char opoint)
-      (let ((functions comint-output-filter-functions))
-	(while functions
-	  (funcall (car functions) string)
-	  (setq functions (cdr functions))))
-      (set-buffer obuf))))
+	  (narrow-to-region obeg oend)
+	  (goto-char opoint)
+	  (let ((functions comint-output-filter-functions))
+	    (while functions
+	      (funcall (car functions) string)
+	      (setq functions (cdr functions))))
+	  (set-buffer obuf)))))
 
 (defun comint-preinput-scroll-to-bottom ()
   "Go to the end of buffer in all windows showing it.
 Movement occurs if point in the selected window is not after the process mark,
 and `this-command' is an insertion command.  Insertion commands recognised
-are `self-insert-command', `yank', `mouse-yank-at-click', and `hilit-yank'.
+are `self-insert-command', `comint-magic-space', `yank', `mouse-yank-at-click',
+and `hilit-yank'.
 Depends on the value of `comint-scroll-to-bottom-on-input'.
 
 This function should be a pre-command hook."
   (if (and comint-scroll-to-bottom-on-input
-	   (memq this-command '(self-insert-command yank mouse-yank-at-click
-				hilit-yank)))
+	   (memq this-command '(self-insert-command comint-magic-space yank
+				mouse-yank-at-click hilit-yank)))
       (let* ((selected (selected-window))
 	     (current (current-buffer))
 	     (process (get-buffer-process current))
