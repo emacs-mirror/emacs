@@ -323,6 +323,7 @@ install-arch-indep: mkdir
 	      (cd $${dir}; tar -cf - . ) \
 		|(cd $${dest};umask 022; tar -xvf - && cat > /dev/null); \
 	      for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
+		chmod a+rx $${subdir} ; \
 		rm -rf $${subdir}/RCS ; \
 		rm -rf $${subdir}/CVS ; \
 		rm -f  $${subdir}/\#* ; \
