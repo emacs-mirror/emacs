@@ -3454,6 +3454,19 @@ and second, t if reading the auto-save file.
 
 The function you specify is responsible for updating (or preserving) point.")
 
+(defvar buffer-stale-function nil
+  "Function to check whether a non-file buffer needs reverting.
+This should be a function with one optional argument NOCONFIRM.
+Auto Revert Mode sets NOCONFIRM to t.  The function should return
+non-nil if the buffer should be reverted.  The buffer is current
+when this function is called.
+
+The idea behind the NOCONFIRM argument is that the same function
+can also be used to ask the user whether the buffer should be
+reverted.  In such a situation one has to be less careful about,
+say, reverting remote files, than if the function is called at
+regular intervals by Auto Revert Mode.")
+
 (defvar before-revert-hook nil
   "Normal hook for `revert-buffer' to run before reverting.
 If `revert-buffer-function' is used to override the normal revert
