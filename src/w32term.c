@@ -1681,6 +1681,14 @@ dumprectangle (f, left, top, cols, rows)
       if (! active_frame->enable[y] || left > active_frame->used[y])
 	continue;
 
+      while (*line & GLYPH_MASK_PADDING)
+	{
+	  /* We must display the whole glyph of a wide-column
+	     character.  */
+	  left--;
+	  line--;
+	  cols++;
+	}
       dumpglyphs (f,
 		  CHAR_TO_PIXEL_COL (f, left),
 		  CHAR_TO_PIXEL_ROW (f, y),
