@@ -1835,6 +1835,11 @@ or a byte-code object.  IDX starts at 0.")
     }
 }
 
+/* Don't use alloca for relocating string data larger than this, lest
+   we overflow their stack.  The value is the same as what used in
+   fns.c for base64 handling.  */
+#define MAX_ALLOCA 16*1024
+
 DEFUN ("aset", Faset, Saset, 3, 3, 0,
   "Store into the element of ARRAY at index IDX the value NEWELT.\n\
 ARRAY may be a vector, a string, a char-table or a bool-vector.\n\
@@ -1916,41 +1921,81 @@ IDX starts at 0.")
     }
   else if (STRING_MULTIBYTE (array))
     {
-      int idxval_byte, new_len, actual_len;
-      int prev_byte;
-      unsigned char *p, workbuf[MAX_MULTIBYTE_LENGTH], *str = workbuf;
+      int idxval_byte, prev_bytes, new_bytes;
+      unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
 
       if (idxval < 0 || idxval >= XSTRING (array)->size)
 	args_out_of_range (array, idx);
+      CHECK_NUMBER (newelt, 2);
 
       idxval_byte = string_char_to_byte (array, idxval);
-      p = &XSTRING (array)->data[idxval_byte];
+      p1 = &XSTRING (array)->data[idxval_byte];
+      PARSE_MULTIBYTE_SEQ (p1, nbytes - idxval_byte, prev_bytes);
+      new_bytes = CHAR_STRING (XINT (newelt), p0);
+      if (prev_bytes != new_bytes)
+	{
+	  /* We must relocate the string data.  */
+	  int nchars = XSTRING (array)->size;
+	  int nbytes = STRING_BYTES (XSTRING (array));
+	  unsigned char *str;
 
-      actual_len = MULTIBYTE_FORM_LENGTH (p, STRING_BYTES (XSTRING (array)));
-      CHECK_NUMBER (newelt, 2);
-      new_len = CHAR_STRING (XINT (newelt), str);
-      if (actual_len != new_len)
-	error ("Attempt to change byte length of a string");
-
-      /* We can't accept a change causing byte combining.  */
-      if (!ASCII_BYTE_P (*str)
-	  && ((idxval > 0 && !CHAR_HEAD_P (*str)
-	       && (prev_byte = string_char_to_byte (array, idxval - 1),
-		   BYTES_BY_CHAR_HEAD (XSTRING (array)->data[prev_byte])
-		   > idxval_byte - prev_byte))
-	      || (idxval < XSTRING (array)->size - 1
-		  && !CHAR_HEAD_P (p[actual_len])
-		  && new_len < BYTES_BY_CHAR_HEAD (*str))))
-	error ("Attempt to change char length of a string");
-      while (new_len--)
-	*p++ = *str++;
+	  str = (nbytes <= MAX_ALLOCA
+		 ? (unsigned char *) alloca (nbytes)
+		 : (unsigned char *) xmalloc (nbytes));
+	  bcopy (XSTRING (array)->data, str, nbytes);
+	  allocate_string_data (XSTRING (array), nchars,
+				nbytes + new_bytes - prev_bytes);
+	  bcopy (str, XSTRING (array)->data, idxval_byte);
+	  p1 = XSTRING (array)->data + idxval_byte;
+	  bcopy (str + idxval_byte + prev_bytes, p1 + new_bytes,
+		 nbytes - (idxval_byte + prev_bytes));
+	  if (nbytes > MAX_ALLOCA)
+	    xfree (str);
+	  clear_string_char_byte_cache ();
+	}
+      while (new_bytes--)
+	*p1++ = *p0++;
     }
   else
     {
       if (idxval < 0 || idxval >= XSTRING (array)->size)
 	args_out_of_range (array, idx);
       CHECK_NUMBER (newelt, 2);
-      XSTRING (array)->data[idxval] = XINT (newelt);
+
+      if (XINT (newelt) < 0 || SINGLE_BYTE_CHAR_P (XINT (newelt)))
+	XSTRING (array)->data[idxval] = XINT (newelt);
+      else
+	{
+	  /* We must relocate the string data while converting it to
+	     multibyte.  */
+	  int idxval_byte, prev_bytes, new_bytes;
+	  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
+	  unsigned char *origstr = XSTRING (array)->data, *str;
+	  int nchars, nbytes;
+
+	  nchars = XSTRING (array)->size;
+	  nbytes = idxval_byte = count_size_as_multibyte (origstr, idxval);
+	  nbytes += count_size_as_multibyte (origstr + idxval,
+					     nchars - idxval);
+	  str = (nbytes <= MAX_ALLOCA
+		 ? (unsigned char *) alloca (nbytes)
+		 : (unsigned char *) xmalloc (nbytes));
+	  copy_text (XSTRING (array)->data, str, nchars, 0, 1);
+	  PARSE_MULTIBYTE_SEQ (str + idxval_byte, nbytes - idxval_byte,
+			       prev_bytes);
+	  new_bytes = CHAR_STRING (XINT (newelt), p0);
+	  allocate_string_data (XSTRING (array), nchars,
+				nbytes + new_bytes - prev_bytes);
+	  bcopy (str, XSTRING (array)->data, idxval_byte);
+	  p1 = XSTRING (array)->data + idxval_byte;
+	  while (new_bytes--)
+	    *p1++ = *p0++;
+	  bcopy (str + idxval_byte + prev_bytes, p1,
+		 nbytes - (idxval_byte + prev_bytes));
+	  if (nbytes > MAX_ALLOCA)
+	    xfree (str);
+	  clear_string_char_byte_cache ();
+	}
     }
 
   return newelt;
