@@ -618,7 +618,7 @@ This layout is almost the same as that of VT100,
  but the location of key \\ (backslash) is just right of key ' (single-quote),
  not right of RETURN key.")
 
-(defvar quail-keyboard-layout quail-keyboard-layout-standard
+(defcustom quail-keyboard-layout quail-keyboard-layout-standard
   "A string which represents physical key layout of a particular keyboard.
 We assume there are six rows and each row has 15 keys (columns),
 	the first row is above the `1' - `0' row,
@@ -630,7 +630,13 @@ We assume there are six rows and each row has 15 keys (columns),
 Nth (N is even) and (N+1)th characters in the string are non-shifted
 and shifted characters respectively at the same location.
 The location of Nth character is row (N / 30) and column ((N mod 30) / 2).
-The command `quail-set-keyboard-layout' usually sets this variable.")
+The command `quail-set-keyboard-layout' usually sets this variable."
+  :group 'quail
+  :type `(choice
+	  ,@(mapcar (lambda (pair)
+		      (list 'const :tag (car pair) (cdr pair)))
+		    quail-keyboard-layout-alist)
+	  (string :tag "Other")))
 
 (defconst quail-keyboard-layout-len 180)
 
@@ -671,7 +677,7 @@ The command `quail-set-keyboard-layout' usually sets this variable.")
                               ")
    '("pc105-uk" . "\
                               \
-`\2541!2\3\243$5%6^7&8*9(0)-_=+    \
+`\2541!2\"3\2434$5%6^7&8*9(0)-_=+     \
   qQwWeErRtTyYuUiIoOpP[{]}    \
   aAsSdDfFgGhHjJkKlL;:'@#~    \
 \\|zZxXcCvVbBnNmM,<.>/?        \
@@ -894,7 +900,7 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 The variable `quail-keyboard-layout-type' holds the currently selected
 keyboard type."
   (interactive
-   (list (completing-read "Keyboard type (default, current choise): "
+   (list (completing-read "Keyboard type (default, current choice): "
 			  quail-keyboard-layout-alist
 			  nil t)))
   (or (and keyboard-type (> (length keyboard-type) 0))
