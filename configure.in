@@ -1114,6 +1114,11 @@ case "${canonical}" in
     CPP="cc -E -traditional-cpp"
   ;;
 
+  ## AMD x86-64 Linux-based GNU system
+  x86_64-*-linux-gnu* )
+    machine=amdx86-64 opsys=gnu-linux 
+  ;;
+
   * )
     unported=yes
   ;;

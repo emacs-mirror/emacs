@@ -49,6 +49,7 @@ Emacs with Leim.
 ** Support for MacOS X was added.
 See the files mac/README and mac/INSTALL for build instructions.
 
+** Support for GNU/Linux systems on X86-64 machines was added.
 
 * Changes in Emacs 21.4
 
