@@ -1,3 +1,10 @@
+2004-03-21  Dave Love  <fx@gnu.org>
+
+	* progmodes/cfengine.el (cfengine-mode): Set
+	parse-sexp-ignore-comments.
+
+	* emacs-lisp/rx.el (rx): Work at compile time, not run time.
+
 2004-03-21  Juanma Barranquero  <lektu@terra.es>
 
 	* allout.el (allout-mode): Fix docstring.
@@ -21,7 +28,7 @@
 	(ruler-mode-space): Don't depend on a numeric WIDTH value.
 	(ruler-mode-ruler): Use symbolic display elements for scrollbar,
 	fringes and margins width.
-	(ruler-mode-ruler-function): Default to ruler-mode-ruler
+	(ruler-mode-ruler-function): Default to ruler-mode-ruler.
 
 2004-03-19  Kim F. Storm  <storm@cua.dk>
 
