@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, Hebrew
 
@@ -60,10 +60,17 @@
 (set-language-info-alist
  "Windows-1255" '((coding-priority windows-1255)
 		  (coding-system windows-1255)
-		  (features code-pages)
 		  (documentation . "\
 Support for Windows-1255 encoding, e.g. for Yiddish.
 Right-to-left writing is not yet supported.")))
+
+(define-coding-system 'windows-1255
+  "windows-1255 (Hebrew) encoding (MIME: WINDOWS-1255)"
+  :coding-type 'charset
+  :mnemonic ?h
+  :charset-list '(windows-1255)
+  :mime-charset 'windows-1255)
+(define-coding-system-alias 'cp1255 'windows-1255)
 
 (provide 'hebrew)
 
