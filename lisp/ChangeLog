@@ -24,6 +24,11 @@
 
 2000-10-26  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* cus-edit.el (custom-mode-map): Use a sparse map.
+	(custom-mode): Don't bother with make-local-hook.
+
+	* wid-edit.el (widget-add-change): Don't bother with make-local-hook.
+
 	* vc.el (vc-start-entry): Only erase the buffer if comment is set.
 
 2000-10-26  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
@@ -53,8 +58,8 @@
 	string.  When in transient-mark-mode, treat all prefix-args as
 	numeric.
 
-	* simple.el (previous-matching-history-element): Position point on
-	match.  Handle N == 0 correctly.  Miscellaneous cleanup.
+	* simple.el (previous-matching-history-element): Miscellaneous cleanup.
+	Position point on match.  Handle N == 0 correctly.
 
 	* comint.el (comint-mode): Locally set `next-line-add-newlines' to nil.
 	(comint-mode-map): Reverse order of `comint-write-output' and
@@ -68,8 +73,7 @@
 
 2000-10-25  Gerd Moellmann  <gerd@gnu.org>
 
-	* Makefile.in (update-authors): New target for maintenance
-	purposes.
+	* Makefile.in (update-authors): New target for maintenance purposes.
 
 	* emacs-lisp/authors.el (batch-update-authors): New function.
 	(authors-fixed-entries): New defconst.
@@ -88,8 +92,8 @@
 
 2000-10-25  Stephen Gildea  <gildea@alum.mit.edu>
 
-	* time-stamp.el (time-stamp-string-preprocess): Fix a wrong
-	type argument error.
+	* time-stamp.el (time-stamp-string-preprocess):
+	Fix a wrong type argument error.
 
 2000-10-25  Miles Bader  <miles@gnu.org>
 
@@ -101,8 +105,8 @@
 
 2000-10-25  Dave Love  <fx@gnu.org>
 
-	* progmodes/cperl-mode.el (cperl-mode): Set
-	normal-auto-fill-function correctly.
+	* progmodes/cperl-mode.el (cperl-mode):
+	Set normal-auto-fill-function correctly.
 
 	* wid-edit.el (widget-field-keymap, widget-text-keymap): Don't
 	inherit from global-map and don't nullify menu-bar and tool-bar
