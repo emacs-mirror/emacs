@@ -1,3 +1,9 @@
+2004-03-08  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (reseat_1): Call bidi_init_it with a previous position.
+
+	* bidi.c (bidi_init_it): Set bidi_it->ch_len even if POS > 0.
+
 2004-03-04  Kenichi Handa  <handa@m17n.org>
 
 	The following changes are to support for bi-directional text
