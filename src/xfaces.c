@@ -3150,6 +3150,18 @@ merge_face_vectors (f, from, to, cycle_check)
       && !NILP (from[LFACE_INHERIT_INDEX]))
     merge_face_inheritance (f, from[LFACE_INHERIT_INDEX], to, cycle_check);
 
+  /* If TO specifies a :font attribute, and FROM specifies some
+     font-related attribute, we need to clear TO's :font attribute
+     (because it will be inconsistent with whatever FROM specifies, and
+     FROM takes precedence).  */
+  if (!NILP (to[LFACE_FONT_INDEX])
+      && (!UNSPECIFIEDP (from[LFACE_FAMILY_INDEX])
+	  || !UNSPECIFIEDP (from[LFACE_HEIGHT_INDEX])
+	  || !UNSPECIFIEDP (from[LFACE_WEIGHT_INDEX])
+	  || !UNSPECIFIEDP (from[LFACE_SLANT_INDEX])
+	  || !UNSPECIFIEDP (from[LFACE_SWIDTH_INDEX])))
+    to[LFACE_FONT_INDEX] = Qnil;
+
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (!UNSPECIFIEDP (from[i]))
       if (i == LFACE_HEIGHT_INDEX && !INTEGERP (from[i]))
@@ -3186,6 +3198,13 @@ merge_face_vectors (f, from, to, cycle_check)
    : Fmemq ((el), (check))						      \
    ? Qnil								      \
    : Fcons ((el), (check)))
+
+
+/* Merge face attributes from the face on frame F whose name is
+   INHERITS, into the vector of face attributes TO; INHERITS may also be
+   a list of face names, in which case they are applied in order.
+   CYCLE_CHECK is used to detect loops in face inheritance.
+   Returns true if any of the inherited attributes are `font-related'.  */
 
 static void
 merge_face_inheritance (f, inherit, to, cycle_check)
