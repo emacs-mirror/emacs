@@ -70,6 +70,8 @@ existing support and the extra stuff at
 
  * Defining CCL coding systems currently doesn't work.
 
+	This should be fixed by the changes of 2003-01-30.
+
  * iso-2022 charsets get unified on i/o.
 
 	With the change on 2003-01-06, decoding routines put `charset'

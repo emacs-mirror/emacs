@@ -1,3 +1,8 @@
+2003-01-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/ccl.el (define-ccl-program): Fset charset-id
+	to charset-id-internal temporarily.
+
 2003-01-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (list-block-of-chars): Use
