@@ -517,11 +517,13 @@ alphabetically by symbol name; but this function also sets
 	(set-buffer standard-output)
 	(apropos-mode)
 	(if (display-mouse-p)
-	    (insert "If you move the mouse over text that changes color,\n"
+	    (insert "If moving the mouse over text changes the text's color,\n"
 		    (substitute-command-keys
-		     "you can click \\[apropos-mouse-follow] to get more information.\n")))
-	(insert (substitute-command-keys
-		 "In this buffer, type \\[apropos-follow] to get full documentation.\n\n"))
+		     "you can click \\[apropos-mouse-follow] on that text to get more information.\n")))
+	(insert "In this buffer, go to the name of the command, or function"
+		" or variable,\n"
+		(substitute-command-keys
+		 "and type \\[apropos-follow] to get full documentation.\n\n"))
 	(while (consp p)
 	  (or (not spacing) (bobp) (terpri))
 	  (setq apropos-item (car p)
