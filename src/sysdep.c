@@ -2116,6 +2116,12 @@ read_input_waiting ()
   e.modifiers = 0;
   for (i = 0; i < nread; i++)
     {
+      /* If the user says she has a meta key, then believe her. */
+      if (meta_key == 1 && (buf[i] & 0x80))
+	e.modifiers = meta_modifier;
+      if (meta_key != 2)
+	buf[i] &= ~0x80;
+
       XSET (e.code, Lisp_Int, buf[i]);
       kbd_buffer_store_event (&e);
       /* Don't look at input that follows a C-g too closely.
@@ -2586,11 +2592,27 @@ sys_write (fildes, buf, nbyte)
      char *buf;
      unsigned int nbyte;
 {
-  register int rtnval;
+  register int rtnval, bytes_written;
 
-  while ((rtnval = write (fildes, buf, nbyte)) == -1
-	 && (errno == EINTR));
-  return (rtnval);
+  bytes_written = 0;
+
+  while (nbyte > 0)
+    {
+      rtnval = write (fildes, buf, nbyte);
+
+      if (rtnval == -1)
+	{
+	  if (errno == EINTR)
+	    continue;
+	  else
+	    return (-1);
+	}
+
+      buf += rtnval;
+      nbyte -= rtnval;
+      bytes_written += rtnval;
+    }
+  return (bytes_written);
 }
 
 #endif /* INTERRUPTIBLE_IO */
