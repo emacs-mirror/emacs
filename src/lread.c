@@ -113,6 +113,9 @@ Lisp_Object read_objects;
 /* Nonzero means load should forcibly load all dynamic doc strings.  */
 static int load_force_doc_strings;
 
+/* Nonzero means read should convert strings to unibyte.  */
+static int load_convert_to_unibyte;
+
 /* Function to use for loading an Emacs lisp source file (not
    compiled) instead of readevalloop.  */
 Lisp_Object Vload_source_file_function;
@@ -616,7 +619,7 @@ Return t if file exists.")
   load_descriptor_list
     = Fcons (make_number (fileno (stream)), load_descriptor_list);
   load_in_progress++;
-  readevalloop (Qget_file_char, stream, file, Feval, 0);
+  readevalloop (Qget_file_char, stream, file, Feval, 0, Qnil);
   unbind_to (count, Qnil);
 
   /* Run any load-hooks for this file.  */
@@ -924,13 +927,25 @@ unreadpure ()	/* Used as unwind-protect function in readevalloop */
   return Qnil;
 }
 
+static Lisp_Object
+readevalloop_1 (old)
+     Lisp_Object old;
+{
+  load_convert_to_unibyte = ! NILP (old);
+  return Qnil;
+}
+
+/* UNIBYTE specifies how to set load_convert_to_unibyte
+   for this invocation.  */
+
 static void
-readevalloop (readcharfun, stream, sourcename, evalfun, printflag)
+readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte)
      Lisp_Object readcharfun;
      FILE *stream;
      Lisp_Object sourcename;
      Lisp_Object (*evalfun) ();
      int printflag;
+     int unibyte;
 {
   register int c;
   register Lisp_Object val;
@@ -945,6 +960,8 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag)
 
   specbind (Qstandard_input, readcharfun);
   specbind (Qcurrent_load_list, Qnil);
+  record_unwind_protect (readevalloop_1, load_convert_to_unibyte ? Qt : Qnil);
+  load_convert_to_unibyte = !NILP (unibyte);
 
   readchar_backlog = 0;
 
@@ -1006,7 +1023,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag)
 
 #ifndef standalone
 
-DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0, 3, "",
+DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0, 4, "",
   "Execute the current buffer as Lisp code.\n\
 Programs can pass two arguments, BUFFER and PRINTFLAG.\n\
 BUFFER is the buffer to evaluate (nil means use current buffer).\n\
@@ -1017,8 +1034,8 @@ If the optional third argument FILENAME is non-nil,\n\
 it specifies the file name to use for `load-history'.\n\
 \n\
 This function preserves the position of point.")
-  (buffer, printflag, filename)
-     Lisp_Object buffer, printflag, filename;
+  (buffer, printflag, filename, unibyte)
+     Lisp_Object buffer, printflag, filename, unibyte;
 {
   int count = specpdl_ptr - specpdl;
   Lisp_Object tem, buf;
@@ -1041,7 +1058,7 @@ This function preserves the position of point.")
   specbind (Qstandard_output, tem);
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
   BUF_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
-  readevalloop (buf, 0, filename, Feval, !NILP (printflag));
+  readevalloop (buf, 0, filename, Feval, !NILP (printflag), unibyte);
   unbind_to (count, Qnil);
 
   return Qnil;
@@ -1070,7 +1087,8 @@ point remains at the end of the last character read from the buffer.")
   specbind (Qstandard_output, tem);
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
   SET_PT (BEGV);
-  readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval, !NILP (printflag));
+  readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval,
+		!NILP (printflag), Qnil);
   return unbind_to (count, Qnil);
 }
 #endif
@@ -1105,7 +1123,8 @@ This function does not move point.")
   /* This both uses start and checks its type.  */
   Fgoto_char (start);
   Fnarrow_to_region (make_number (BEGV), end);
-  readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval, !NILP (printflag));
+  readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval,
+		!NILP (printflag), Qnil);
 
   return unbind_to (count, Qnil);
 }
@@ -1757,6 +1776,8 @@ read1 (readcharfun, pch, first_in_list)
 		    p += length;
 		    continue;
 		  }
+		/* If an escape specifies a non-ASCII single-byte character,
+		   this must be a unibyte string.  */
 		else if (! ASCII_BYTE_P (c))
 		  force_singlebyte = 1;
 	      }
@@ -1797,9 +1818,19 @@ read1 (readcharfun, pch, first_in_list)
 
 	if (force_singlebyte)
 	  nchars = p - read_buffer;
-	else if (! NILP (buffer_defaults.enable_multibyte_characters)
-		 || force_multibyte)
+	else if (force_multibyte)
 	  nchars = multibyte_chars_in_text (read_buffer, p - read_buffer);
+	else if (load_convert_to_unibyte)
+	  {
+	    Lisp_Object string;
+	    nchars = multibyte_chars_in_text (read_buffer, p - read_buffer);
+	    if (p - read_buffer != nchars)
+	      {
+		string = make_multibyte_string (read_buffer, nchars,
+						p - read_buffer);
+		return Fstring_make_unibyte (string);
+	      }
+	  }
 	else
 	  nchars = p - read_buffer;
 
@@ -2935,6 +2966,12 @@ See `load' for the meaning of the remaining arguments.");
      "Non-nil means `load' should force-load all dynamic doc strings.\n\
 This is useful when the file being loaded is a temporary copy.");
   load_force_doc_strings = 0;
+
+  DEFVAR_BOOL ("load-convert-to-unibyte", &load_convert_to_unibyte,
+     "Non-nil means `load' converts strings to unibyte whenever possible.\n\
+This is normally used in `load-with-code-conversion'\n\
+for loading non-compiled files.");
+  load_convert_to_unibyte = 0;
 
   DEFVAR_LISP ("source-directory", &Vsource_directory,
      "Directory in which Emacs sources were found when Emacs was built.\n\
