@@ -527,7 +527,7 @@ to lower case.
 `:mime-text-unsuitable'
 
 VALUE non-nil means the `:mime-charset' property names a charset which
-is unsuitable for the top-level media type "text".
+is unsuitable for the top-level media type \"text\".
 
 `:flags'
 
@@ -954,90 +954,71 @@ Now we have more convenient function `set-coding-system-priority'."
 
 ;;; X selections
 
-(defvar non-standard-icccm-encodings-alist
-  '(("ISO8859-15" . latin-iso8859-15)
-    ("ISO8859-14" . latin-iso8859-14)
+(defvar ctext-non-standard-encodings-alist
+  '(("ISO8859-10" . iso-8859-10)
+    ("ISO8859-13" . iso-8859-13)
+    ("ISO8859-14" . iso-8859-14)
+    ("ISO8859-15" . iso-8859-15)
+    ("ISO8859-16" . iso-8859-16)
     ("KOI8-R" . koi8-r)
     ("BIG5-0" . big5))
-  "Alist of font charset names defined by XLFD, and the corresponding Emacs
-charsets or coding systems.")
-
-;; Fixme: this needs sorting out
+  "Alist of non-standard encoding names vs Emacs coding systems.
+This alist is used to decode an extened segment of a compound text.")
 
 ;; Functions to support "Non-Standard Character Set Encodings" defined
-;; by the ICCCM spec.  We support that by converting the leading
-;; sequence of the ``extended segment'' to the corresponding ISO-2022
-;; sequences (if the leading sequence names an Emacs charset), or decode
-;; the segment (if it names a coding system).  Encoding does the reverse.
+;; by the COMPOUND TEXT spec.
+
+(defvar ctext-non-standard-encodings-regexp
+  (string-to-multibyte
+   (concat
+    ;; For non-standard encodings.
+    "\\(\e%/[0-4][\200-\377][\200-\377]\\([^\002]+\\)\002\\)"
+    "\\|"
+    ;; For UTF-8 encoding.
+    "\\(\e%G[^\e]*\e%@\\)")))
+
 (defun ctext-post-read-conversion (len)
   "Decode LEN characters encoded as Compound Text with Extended Segments."
-  (buffer-disable-undo)	; minimize consing due to insertions and deletions
-  (narrow-to-region (point) (+ (point) len))
+  ;; We don't need the following because it is expected that this
+  ;; function is mainly used for decoding X selection which is not
+  ;; that big data.
+  ;;(buffer-disable-undo) ; minimize consing due to insertions and deletions
   (save-match-data
-    (let ((pt (point-marker))
-	  (oldpt (point-marker))
-	  (newpt (make-marker))
-	  (modified-p (buffer-modified-p))
-	  (case-fold-search nil)
-	  last-coding-system-used
-	  encoding textlen chset)
-      (while (re-search-forward
-	      "\\(\e\\)%/[0-4]\\([\200-\377][\200-\377]\\)\\([^\002]+\\)\002"
-	      nil 'move)
-	(set-marker newpt (point))
-	(set-marker pt (match-beginning 0))
-	(setq encoding (match-string 3))
-	(setq textlen (- (+ (* (- (aref (match-string 2) 0) 128) 128)
-			    (- (aref (match-string 2) 1) 128))
-			 (1+ (length encoding))))
-	(setq
-	 chset (cdr (assoc-ignore-case encoding
-				       non-standard-icccm-encodings-alist)))
-	(cond ((null chset)
-	       ;; This charset is not supported--leave this extended
-	       ;; segment unaltered and skip over it.
-	       (goto-char (+ (point) textlen)))
-	      ((charsetp chset)
-	     ;; If it's a charset, replace the leading escape sequence
-	     ;; with a standard ISO-2022 sequence.  We will decode all
-	      ;; such segments later, in one go, when we exit the loop
-	       ;; or find an extended segment that names a coding
-	       ;; system, not a charset.
-	       (replace-match
-		(concat "\\1"
-			(if (= 0 (charset-iso-graphic-plane chset))
-			    ;; GL charsets
-			    (if (= 1 (charset-dimension chset)) "(" "$(")
-			  ;; GR charsets
-			  (if (= 96 (charset-chars chset))
-			      "-"
-			    (if (= 1 (charset-dimension chset)) ")" "$)")))
-			(string (charset-iso-final-char chset)))
-		t)
-	       (goto-char (+ (point) textlen)))
-	      ((coding-system-p chset)
-	     ;; If it's a coding system, we need to decode the segment
-	       ;; right away.  But first, decode what we've skipped
-	       ;; across until now.
-	       (when (> pt oldpt)
-		 (decode-coding-region oldpt pt 'ctext-no-compositions))
-	       (delete-region pt newpt)
-	       (set-marker newpt (+ newpt textlen))
-	       (decode-coding-region pt newpt chset)
-	       (goto-char newpt)
-	       (set-marker oldpt newpt))))
-      ;; Decode what's left.
-      (when (> (point) oldpt)
-	(decode-coding-region oldpt (point) 'ctext-no-compositions))
-     ;; This buffer started as unibyte, because the string we get from
-      ;; the X selection is a unibyte string.  We must now make it
-      ;; multibyte, so that the decoded text is inserted as multibyte
-      ;; into its buffer.
-      (set-buffer-multibyte t)
-      (set-buffer-modified-p modified-p)
-      (- (point-max) (point-min)))))
+    (save-restriction
+      (narrow-to-region (point) (+ (point) len))
+      (let ((case-fold-search nil)
+	    last-coding-system-used
+	    pos bytes)
+	(decode-coding-region (point-min) (point-max) 'ctext)
+	(while (re-search-forward ctext-non-standard-encodings-regexp
+				  nil 'move)
+	  (setq pos (match-beginning 0))
+	  (if (match-beginning 1)
+	      ;; ESC % / [0-4] M L --ENCODING-NAME-- \002 --BYTES--
+	      (let* ((M (char-after (+ pos 4)))
+		     (L (char-after (+ pos 5)))
+		     (encoding (match-string 2))
+		     (coding (or (cdr (assoc-ignore-case 
+				       encoding
+				       ctext-non-standard-encodings-alist))
+				 (coding-system-p
+				  (intern (downcase encoding))))))
+		(if enable-multibyte-characters
+		    (setq M (multibyte-char-to-unibyte M)
+			  L (multibyte-char-to-unibyte L)))
+		(setq bytes (- (+ (* (- M 128) 128) (- L 128))
+			       (- (point) (+ pos 6))))
+		(when coding
+		  (delete-region pos (point))
+		  (forward-char bytes)
+		  (decode-coding-region (- (point) bytes) (point) coding)))
+	    ;; ESC % G --UTF-8-BYTES-- ESC % @
+	    (setq bytes (- (point) pos))
+	    (decode-coding-region (- (point) bytes) (point) 'utf-8))))
+      (goto-char (point-min))
+      (- (point-max) (point)))))
 
-(defvar non-standard-designations-alist
+(defvar ctext-non-standard-designations-alist
   '(("$(0" . (big5 "big5-0" 2))
     ("$(1" . (big5 "big5-0" 2))
     ("-V"  . (t "iso8859-10" 1))
@@ -1045,10 +1026,10 @@ charsets or coding systems.")
     ("-_"  . (t "iso8859-14" 1))
     ("-b"  . (t "iso8859-15" 1))
     ("-f"  . (t "iso8859-16" 1)))
-  "Alist of ctext control sequences that introduce character sets which
-are not in the list of approved ICCCM encodings, and the corresponding
-coding system, identifier string, and number of octets per encoded
-character.
+  "Alist of ctext control sequences that introduce character sets
+which are not in the list of approved COMPOUND TEXT encodings, and the
+corresponding coding system, identifier string, and number of octets
+per encoded character.
 
 Each element has the form (CTLSEQ . (ENCODING CHARSET NOCTETS)).  CTLSEQ
 is the control sequence (sans the leading ESC) that introduces the character
@@ -1067,65 +1048,51 @@ of octets per character is variable), 1, 2, 3, or 4.")
 If FROM is a string, or if the current buffer is not the one set up for us
 by run_pre_post_conversion_on_str, generate a new temp buffer, insert the
 text, and convert it in the temporary buffer.  Otherwise, convert in-place."
-  (cond ((and (string= (buffer-name) " *code-converting-work*")
-	      (not (stringp from)))
-	 ; Minimize consing due to subsequent insertions and deletions.
-	 (buffer-disable-undo)
-	 (narrow-to-region from to))
-	(t
-	 (let ((buf (current-buffer)))
-	   (set-buffer (generate-new-buffer " *temp"))
-	   (buffer-disable-undo)
-	   (if (stringp from)
-	       (insert from)
-	     (insert-buffer-substring buf from to)))))
-  (encode-coding-region from to 'ctext-no-compositions)
-  ;; Replace ISO-2022 charset designations with extended segments, for
-  ;; those charsets that are not part of the official X registry.
   (save-match-data
-    (goto-char (point-min))
-    (let ((newpt (make-marker))
-	  (case-fold-search nil)
-	  pt desig encode-info encoding chset noctets textlen)
+    (save-restriction
+      (narrow-to-region from to)
+      (goto-char from)
+      (encode-coding-region from to 'ctext-no-compositions)
       (set-buffer-multibyte nil)
-      ;; The regexp below finds the leading sequences for big5 and
-      ;; iso8859-1[03-6] charsets.
-      (while (re-search-forward "\e\\(\$([01]\\|-[VY_bf]\\)" nil 'move)
-	(setq desig (match-string 1)
-	      pt (point-marker)
-	      encode-info (cdr (assoc desig non-standard-designations-alist))
-	      encoding (car encode-info)
-	      chset (cadr encode-info)
-	      noctets (car (cddr encode-info)))
-	(skip-chars-forward "^\e")
-	(set-marker newpt (point))
-	(cond
-	 ((eq encoding t)  ; only the leading sequence needs to be changed
-	  (setq textlen (+ (- newpt pt) (length chset) 1))
-	  ;; Generate the ICCCM control sequence for an extended segment.
-	  (replace-match (format "\e%%/%d%c%c%s"
-				 noctets
-				 (+ (/ textlen 128) 128)
-				 (+ (% textlen 128) 128)
-				 chset)
-			 t t))
-	 ((coding-system-p encoding) ; need to recode the entire segment...
-	  (set-marker pt (match-beginning 0))
-	  (decode-coding-region pt newpt 'ctext-no-compositions)
-	  (set-buffer-multibyte t)
-	  (encode-coding-region pt newpt encoding)
-	  (set-buffer-multibyte nil)
-	  (setq textlen (+ (- newpt pt) (length chset) 1))
-	  (goto-char pt)
-	  (insert (format "\e%%/%d%c%c%s"
-			  noctets
-			  (+ (/ textlen 128) 128)
-			  (+ (% textlen 128) 128)
-			  chset))))
-	(goto-char newpt))))
-  (set-buffer-multibyte t)
-  ;; Must return nil, as build_annotations_2 expects that.
-  nil)
+      ;; Replace ISO-2022 charset designations with extended segments,
+      ;; for those charsets that are not part of the official X
+      ;; registry.
+      (let ((case-fold-search nil)
+	    pos posend desig encode-info encoding chset noctets textlen)
+	;; The regexp below finds the leading sequences for big5 and
+	;; iso8859-1[03-6] charsets.
+	(while (re-search-forward "\e\\(\$([01]\\|-[VY_bf]\\)" nil 'move)
+	  (setq pos (match-beginning 0)
+		posend (point)
+		desig (match-string 1)
+		encode-info (cdr (assoc desig
+					ctext-non-standard-designations-alist))
+		encoding (car encode-info)
+		chset (cadr encode-info)
+		noctets (car (cddr encode-info)))
+	  (skip-chars-forward "^\e")
+	  (cond
+	   ((eq encoding t) ; only the leading sequence needs to be changed
+	    (setq textlen (+ (- (point) posend) (length chset) 1))
+	    ;; Generate the ICCCM control sequence for an extended segment.
+	    (replace-match (format "\e%%/%d%c%c%s"
+				   noctets
+				   (+ (/ textlen 128) 128)
+				   (+ (% textlen 128) 128)
+				   chset)
+			   t t))
+	   ((coding-system-p encoding) ; need to recode the entire segment...
+	    (decode-coding-region pos (point) 'ctext-no-compositions)
+	    (encode-coding-region pos (point) encoding)
+	    (setq textlen (+ (- (point) pos) (length chset) 1))
+	    (save-excursion
+	      (goto-char pos)
+	      (insert (format "\e%%/%d%c%c%s"
+			      noctets
+			      (+ (/ textlen 128) 128)
+			      (+ (% textlen 128) 128)
+			      chset)))))))
+      (goto-char (point-min)))))
 
 (make-obsolete 'set-coding-priority 'set-coding-system-priority "22.1")
 
