@@ -2,20 +2,20 @@
 
 ;;Copyright (C) 1990, 1991 Free Software Foundation, Inc.
 ;;
-;;This file is part of GNU ISPELL.
+;;This file is part of GNU Emacs.
 ;;
-;;GNU ISPELL is free software; you can redistribute it and/or modify
+;;GNU Emacs is free software; you can redistribute it and/or modify
 ;;it under the terms of the GNU General Public License as published by
 ;;the Free Software Foundation; either version 2, or (at your option)
 ;;any later version.
 ;;
-;;GNU ISPELL is distributed in the hope that it will be useful,
+;;GNU Emacs is distributed in the hope that it will be useful,
 ;;but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;GNU General Public License for more details.
 ;;
 ;;You should have received a copy of the GNU General Public License
-;;along with GNU ISPELL; see the file COPYING.  If not, write to
+;;along with GNU Emacs; see the file COPYING.  If not, write to
 ;;the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 (defvar ispell-have-new-look t
@@ -119,22 +119,22 @@ that have not already been dumped will be lost."
 (defun ispell-cmd (&rest strings)
   "Send a command to ispell.  Choices are:
 
-word		any word is checked for spelling.  Result is
+WORD		Check spelling of WORD.  Result is
 
-			nil			not found
-			t			spelled ok
-			list of strings		near misses
+			nil			   not found
+			t			   spelled ok
+			list of strings		   near misses
 
-:file filename	scan the named file, and print the file offsets of
+:file FILENAME	scan the named file, and print the file offsets of
 		any misspelled words
 
-:insert word	put word in private dictonary
+:insert WORD	put word in private dictonary
 
-:accept word	don't complain about word any more this session
+:accept WORD	don't complain about word any more this session
 
 :dump		write out the current private dictionary, if necessary.
 
-:reload		reread ~/ispell.words
+:reload		reread `~/ispell.words'
 
 :tex
 :troff
@@ -188,8 +188,8 @@ word		any word is checked for spelling.  Result is
 
 ;;;###autoload
 (defun ispell (&optional buf start end)
-  "Run ispell over current buffer's visited file.
-First the file is scanned for misspelled words, then ispell
+  "Run Ispell over current buffer's visited file.
+First the file is scanned for misspelled words, then Ispell
 enters a loop with the following commands for every misspelled word:
 
 DIGIT	Near miss selector.  If the misspelled word is close to
@@ -291,22 +291,24 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
 	   (message "Bad ispell internal list"))))
   (ispell-dump))
 
-
 ;;;###autoload
-(defun ispell-word ()
+(defun ispell-word (&optional resume)
   "Check the spelling of the word under the cursor.
-See `ispell' for more information."
-  (interactive)
-  (condition-case err
-      (catch 'quit
-	(save-window-excursion
-	  (ispell-point (point) "at point."))
-	(ispell-dump))
-    (ispell-startup-error
-     (cond ((y-or-n-p "Problem starting ispell, use old-style spell instead? ")
-	    (load-library "spell")
-	    (define-key esc-map "$" 'spell-word)
-	    (spell-word))))))
+See `ispell' for more information.
+With a prefix argument, resume handling of the previous Ispell command."
+  (interactive "P")
+  (if resume
+      (ispell-next)
+    (condition-case err
+	(catch 'quit
+	  (save-window-excursion
+	    (ispell-point (point) "at point."))
+	  (ispell-dump))
+      (ispell-startup-error
+       (cond ((y-or-n-p "Problem starting ispell, use old-style spell instead? ")
+	      (load-library "spell")
+	      (define-key esc-map "$" 'spell-word)
+	      (spell-word)))))))
 ;;;###autoload
 (define-key esc-map "$" 'ispell-word)
 
@@ -532,10 +534,6 @@ L lookup; Q quit\n")
   "Tell ispell to re-read your private dictionary."
   (interactive)
   (ispell-cmd ":reload"))
-
-(define-key esc-map "$" 'ispell-word)
-;; This conflicts with set-selective-display.  What should we do???
-;;(define-key ctl-x-map "$" 'ispell-next)
 
 (defun batch-make-ispell ()
   (byte-compile-file "ispell.el")
