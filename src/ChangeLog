@@ -1,3 +1,8 @@
+2005-03-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* unexec.c (write_segment, unexec): Move these functions to avoid
+	forward references (which cause errors with "gcc -gcoff").
+
 2005-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_create_tip_frame): Removed setting of Vx_resource_name so
