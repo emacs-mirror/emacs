@@ -12,3 +12,6 @@
 #undef GNU_MALLOC
 #undef REL_ALLOC
 #endif
+
+/* Make room for enough symbols, so dispnew.c does not fail.  */
+#define C_SWITCH_SYSTEM -Wp,-H200000
