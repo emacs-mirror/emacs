@@ -1,3 +1,8 @@
+2001-12-29  Ken Raeburn  <raeburn@gnu.org>
+
+	* abbrev.c (Fexpand_abbrev): Use NILP instead of implicit zero
+	comparison to test lisp value returned by Fget.
+
 2001-12-29  Richard M. Stallman  <rms@gnu.org>
 
 	* fileio.c (Fdo_auto_save): If NO_MESSAGE, don't call push_message.
