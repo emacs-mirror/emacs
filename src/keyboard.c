@@ -8243,6 +8243,15 @@ appears in the echo area and in the value of `this-command-keys.'.")
   return Qnil;
 }
 
+DEFUN ("clear-this-command-keys", Fclear_this_command_keys,
+  Sclear_this_command_keys, 0, 0, 0,
+  "Clear out the vector that `this-command-keys' returns.")
+  ()
+{
+  this_command_key_count = 0;
+  return Qnil;
+}
+
 DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
   "Return the current depth in recursive edits.")
   ()
@@ -9062,6 +9071,7 @@ syms_of_keyboard ()
   defsubr (&Sthis_single_command_keys);
   defsubr (&Sthis_single_command_raw_keys);
   defsubr (&Sreset_this_command_lengths);
+  defsubr (&Sclear_this_command_keys);
   defsubr (&Ssuspend_emacs);
   defsubr (&Sabort_recursive_edit);
   defsubr (&Sexit_recursive_edit);
