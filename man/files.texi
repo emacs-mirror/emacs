@@ -97,6 +97,8 @@ with @samp{/usr/tmp/} and you add @samp{/x1/rms/foo}, you get
 first slash in the double slash; the result is @samp{/x1/rms/foo}.
 @xref{Minibuffer File}.
 
+@cindex environment variables in file names
+@cindex expansion of environment variables
   @samp{$} in a file name is used to substitute environment variables.
 For example, if you have used the shell command @command{export
 FOO=rms/hacks} to set up an environment variable named @env{FOO}, then
@@ -107,10 +109,16 @@ alternatively, it may be enclosed in braces after the @samp{$}.  Note
 that shell commands to set environment variables affect Emacs only if
 done before Emacs is started.
 
+@cindex home directory shorthand
+  You can use the @file{~/} in a file name to mean your home directory,
+or @file{~@var{user-id}/} to mean the home directory of a user whose
+login name is @code{user-id}.
+
   To access a file with @samp{$} in its name, type @samp{$$}.  This pair
 is converted to a single @samp{$} at the same time as variable
 substitution is performed for single @samp{$}.  Alternatively, quote the
-whole file name with @samp{/:} (@pxref{Quoted File Names}).
+whole file name with @samp{/:} (@pxref{Quoted File Names}).  File names
+which begin with a literal @samp{~} should also be quoted with @samp{/:}.
 
 @findex substitute-in-file-name
   The Lisp function that performs the substitution is called
