@@ -419,13 +419,6 @@ as returned by the `event-start' and `event-end' functions."
 (defalias 'eval-current-buffer 'eval-buffer)
 (defalias 'compiled-function-p 'byte-code-function-p)
 
-;;; This name isn't mentioned in the manual, and we've been hoping to
-;;; phase it out, but there's still a lot of code out there, even for
-;;; Emacs 18.59, which uses mod.  I'm going to let the byte compiler's
-;;; make-obsolete function to poke people a little more, and leave the
-;;; `mod' name around for a while longer.
-(defalias 'mod '%)
-
 ;; Some programs still use this as a function.
 (defun baud-rate ()
   "Obsolete function returning the value of the `baud-rate' variable.
