@@ -19,12 +19,13 @@
 #  Boston, MA 02111-1307, USA.
 #
 
-ALL	      = make-docfile hexl ctags etags movemail fakemail
+ALL	      = make-docfile hexl ctags etags movemail fakemail ebrowse
 
 .PHONY: $(ALL)
 
 LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 \
-		  -DNO_ARCHIVES=1 -DHAVE_CONFIG_H=1 -I../nt/inc -I../src
+		  -DNO_ARCHIVES=1 -DHAVE_CONFIG_H=1 -I../nt/inc \
+                  -I../src -DVERSION="\"$(VERSION)\""
 
 # don't know what (if) to do with these yet...
 #
@@ -51,6 +52,7 @@ $(BLD)/fakemail.exe: 		$(BLD)/fakemail.$(O) $(BLD)/ntlib.$(O)
 make-docfile:	$(BLD) $(BLD)/make-docfile.exe
 ctags:		$(BLD) $(BLD)/ctags.exe
 etags:		$(BLD) $(BLD)/etags.exe
+ebrowse:        $(BLD) $(BLD)/ebrowse.exe
 hexl:		$(BLD) $(BLD)/hexl.exe
 movemail:	$(BLD) $(BLD)/movemail.exe
 fakemail:	$(BLD) $(BLD)/fakemail.exe
@@ -75,6 +77,14 @@ ETAGSOBJ      = $(BLD)/etags.$(O) \
 $(BLD)/etags.exe: 	$(ETAGSOBJ)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(ETAGSOBJ) $(LIBS)
 
+
+EBROWSEOBJ    = $(BLD)/ebrowse.$(O) \
+                $(BLD)/getopt.$(O) \
+                $(BLD)/getopt1.$(O) \
+                $(BLD)/ntlib.$(O)
+
+$(BLD)/ebrowse.exe:     $(EBROWSEOBJ)
+                $(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(EBROWSEOBJ) $(LIBS)
 
 $(BLD)/regex.$(O): ../src/regex.c ../src/regex.h ../src/config.h
 		$(CC)  $(CFLAGS) -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER \
@@ -216,6 +226,7 @@ INSTALL_FILES = $(ALL)
 install:	$(INSTALL_FILES)
 		- mkdir "$(INSTALL_DIR)/bin"
 		$(CP) $(BLD)/etags.exe $(INSTALL_DIR)/bin
+                $(CP) $(BLD)/ebrowse.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/ctags.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/hexl.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/movemail.exe $(INSTALL_DIR)/bin
