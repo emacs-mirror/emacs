@@ -2,6 +2,10 @@
 
 	* letter.xpm: Use transparent/opaque `colours'.
 
+	* letter.xbm: Deleted.
+
+	* letter.pbm: New.
+
 2003-03-24  Andreas Schwab  <schwab@suse.de>
 
 	* HELLO: Remove extra TAB in Greek entries.

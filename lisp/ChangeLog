@@ -1,3 +1,12 @@
+2003-04-01  Dave Love  <fx@gnu.org>
+
+	* time.el: Doc fixes.
+	(display-time-mail-face): Change :type and default to nil.
+	(display-time-mail-icon): Use pbm, not xbm.
+	(display-time-mail-string): New.
+	(display-time-string-forms): Use display-time-mail-string.  Add
+	checks in display property.
+
 2003-04-01  Kenichi Handa  <handa@m17n.org>
 
 	* language/indian.el (indian-font-char-index-table): Fix the
