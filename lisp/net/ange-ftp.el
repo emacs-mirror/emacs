@@ -4423,6 +4423,9 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	(ange-ftp-real-shell-command command output-buffer error-buffer)
       (if (> (length name) 0)		; else it's $HOME
 	  (setq command (concat "cd " name "; " command)))
+      ;; Remove port from the hostname
+      (string-match "\\(.*\\)#\\(.*\\)" host)
+      (setq host (match-string 1 host))
       (setq command
 	    (format  "%s %s \"%s\""	; remsh -l USER does not work well
 					; on a hp-ux machine I tried
