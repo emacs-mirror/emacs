@@ -498,7 +498,7 @@ syms_of_sunfns()
 #ifdef  Menu_Base_Kludge
   /* i'm just too lazy to re-write this into C code */
   /* so we will call this elisp function from C */
-  sm_kludge_string = make_pure_string ("sm::menu-kludge", 15);
+  sm_kludge_string = make_pure_string ("sm::menu-kludge", 15, 15, 0);
 #endif /* Menu_Base_Kludge */
 
   defsubr(&Ssun_window_init);
