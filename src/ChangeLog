@@ -1,7 +1,11 @@
+2000-03-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* lread.c (read_integer): Unread the last char not consumed.
+
 2000-03-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_update_window_cursor): Don't update in frames
-	who are in the process of being deleted.
+	which are in the process of being deleted.
 
 2000-03-16  Gerd Moellmann  <gerd@gnu.org>
 

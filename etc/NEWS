@@ -760,9 +760,14 @@ as octal and numbers starting with `0x' or `0X' as hexadecimal.  The
 new user-option sort-numberic-base can be used to specify a default
 numeric base.
 
-** Ange-ftp allows you to specify of a port number in remote file
+** Changes to Ange-ftp
+
+*** Ange-ftp allows you to specify of a port number in remote file
 names cleanly.  It is appended to the host name, separated by a hash
 sign, e.g. `/foo@bar.org#666:mumble'.  (This syntax comes from EFS.)
+
+*** If the new user-option `ange-ftp-try-passive-mode' is set, passive
+ftp mode will be used if the ftp client supports that.
 
 ** Shell script mode changes.
 
@@ -1052,6 +1057,16 @@ Note that +++ before an item means the Lisp manual has been updated.
 --- means that I have decided it does not need to be in the Lisp manual.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
+
+** The new function `string-to-syntax' can be used to translate syntax
+specificationa in string form as accepted my `modify-syntax-entry' to
+the cons-cell form that is used for the values of the `syntax-table'
+text property, and in `font-lock-syntactic-keywords'.
+
+Example:
+
+  (string-to-syntax "()")
+    => (4 . 41)
 
 ** Emacs' reader supports CL read syntax for integers in bases
 other than 10.

@@ -1,3 +1,15 @@
+2000-03-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* font-lock.el (font-lock-apply-syntactic-highlight): if VALUE
+	is a string, convert it to a syntax cell using string-to-syntax.
+
+	* simple.el (syntax-code-table, syntax-flag-table): New variables.
+	(string-to-syntax): New function.
+
+	* ange-ftp.el (ange-ftp-try-passive-mode): New user-option.
+	(ange-ftp-get-process): If ange-ftp-try-passive-mode is set,
+	try to use poassive ftp mode.
+
 2000-03-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/awk-mode.el (awk-font-lock-keywords): All `else'.
