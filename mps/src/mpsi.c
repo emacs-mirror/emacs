@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.55) $
+ * $HopeName: MMsrc!mpsi.c(trunk.56) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.55) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.56) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -90,7 +90,6 @@ static Bool mpsi_check(void)
   CHECKL((int)MPS_RANK_AMBIG == (int)RankAMBIG);
   CHECKL((int)MPS_RANK_EXACT == (int)RankEXACT);
   CHECKL((int)MPS_RANK_WEAK == (int)RankWEAK);
-  CHECKL((int)MPS_RANK_FINAL == (int)RankFINAL);
 
   /* The external idea of a word width and the internal one */
   /* had better match.  See design.mps.interface.c.cons. */
@@ -130,7 +129,14 @@ static Bool mpsi_check(void)
   return TRUE;
 }
 
-/* Ranks */
+/* Ranks
+ * 
+ * Here a rank returning function is defined for all client visible
+ * ranks.
+ * 
+ * .rank.final.not: RankFINAL does not have a corresponding function as it
+ * is only used internally.
+ */
 
 mps_rank_t mps_rank_ambig(void)
 {
@@ -140,11 +146,6 @@ mps_rank_t mps_rank_ambig(void)
 mps_rank_t mps_rank_exact(void)
 {
   return RankEXACT;
-}
-
-mps_rank_t mps_rank_final(void)
-{
-  return RankFINAL;
 }
 
 mps_rank_t mps_rank_weak(void)
