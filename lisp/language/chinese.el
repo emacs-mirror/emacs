@@ -42,7 +42,10 @@
    (nil chinese-cns11643-3 chinese-cns11643-4 chinese-cns11643-5
 	chinese-cns11643-6 chinese-cns11643-7)
    nil ascii-eol ascii-cntl seven locking-shift single-shift nil nil nil
-   init-bol))
+   init-bol)
+ '(ascii chinese-gb2312 chinese-cns11643-1 chinese-cns11643-2
+	 chinese-cns11643-3 chinese-cns11643-4 chinese-cns11643-5
+	 chinese-cns11643-6 chinese-cns11643-7))
 
 (define-coding-system-alias 'iso-2022-cn 'chinese-iso-7bit)
 (define-coding-system-alias 'iso-2022-cn-ext 'chinese-iso-7bit)
@@ -65,15 +68,18 @@
  'chinese-iso-8bit 2 ?c
  "ISO 2022 based EUC encoding for Chinese GB2312 (MIME:CN-GB-2312)"
  '((ascii t) chinese-gb2312 chinese-sisheng nil
-   nil ascii-eol ascii-cntl nil nil single-shift nil))
+   nil ascii-eol ascii-cntl nil nil single-shift nil)
+ '(ascii chinese-gb2312 chinese-sisheng))
 
 (define-coding-system-alias 'cn-gb-2312 'chinese-iso-8bit)
 (define-coding-system-alias 'euc-china 'chinese-iso-8bit)
+(define-coding-system-alias 'euc-cn 'chinese-iso-8bit)
 
 (make-coding-system
  'chinese-hz 0 ?z
  "Hz/ZW 7-bit encoding for Chinese GB2312 (MIME:HZ-GB-2312)"
- nil)
+ nil
+ '(ascii chinese-gb2312))
 (coding-system-put 'chinese-hz 'post-read-conversion 'post-read-decode-hz)
 (coding-system-put 'chinese-hz 'pre-write-conversion 'pre-write-encode-hz)
 
@@ -116,7 +122,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (make-coding-system
- 'chinese-big5 3 ?B "BIG5 8-bit encoding for Chinese (MIME:CN-BIG5)")
+ 'chinese-big5 3 ?B "BIG5 8-bit encoding for Chinese (MIME:CN-BIG5)"
+ nil '(chinese-big5-1 chinese-big5-2))
 
 (define-coding-system-alias 'big5 'chinese-big5)
 (define-coding-system-alias 'cn-big5 'chinese-big5)
