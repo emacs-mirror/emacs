@@ -1003,12 +1003,13 @@ x_real_positions (f, xptr, yptr)
 	 If so, we get an error in XTranslateCoordinates.
 	 Detect that and try the whole thing over.  */
       if (! x_had_errors_p (FRAME_X_DISPLAY (f)))
-	break;
+	{
+	  x_uncatch_errors (FRAME_X_DISPLAY (f));
+	  break;
+	}
 
       x_uncatch_errors (FRAME_X_DISPLAY (f));
     }
-
-  x_uncatch_errors (FRAME_X_DISPLAY (f));
 
   *xptr = f->output_data.x->left_pos - win_x;
   *yptr = f->output_data.x->top_pos - win_y;
