@@ -7891,9 +7891,18 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 				      Qmouse_movement)))
     {
       /* But first wait, and skip the message if there is input.  */
-      if (!NILP (Fsit_for ((NUMBERP (Vsuggest_key_bindings)
-			    ? Vsuggest_key_bindings : make_number (2)),
-			   Qnil, Qnil))
+      int delay_time;
+      if (echo_area_glyphs != 0)
+	/* This command displayed something in the echo area;
+	   so wait a few seconds, then display our suggestion message.  */
+	delay_time = (NUMBERP (Vsuggest_key_bindings)
+		      ? XINT (Vsuggest_key_bindings) : 2);
+      else
+	/* This command left the echo area empty,
+	   so display our message immediately.  */
+	delay_time = 0;
+
+      if (!NILP (Fsit_for (make_number (delay_time), Qnil, Qnil))
 	  && ! CONSP (Vunread_command_events))
 	{
 	  Lisp_Object binding;
