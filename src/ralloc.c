@@ -91,7 +91,8 @@ static POINTER page_break_value;
 /* This is the size of a page.  We round memory requests to this boundary.  */
 static int page_size;
 
-/* Whenever we get memory from the system, get this many extra bytes.  */
+/* Whenever we get memory from the system, get this many extra bytes.  This 
+   must be a multiple of page_size.  */
 static int extra_bytes;
 
 /* Macros for rounding.  Note that rounding to any value is possible
@@ -258,6 +259,8 @@ get_bloc (size)
    indicated by ADDRESS.  Direction of relocation is determined by
    the position of ADDRESS relative to BLOC->data.
 
+   If BLOC is NIL_BLOC, nothing is done.
+
    Note that ordering of blocs is not affected by this function. */
 
 static void
@@ -265,21 +268,23 @@ relocate_some_blocs (bloc, address)
      bloc_ptr bloc;
      POINTER address;
 {
-  register bloc_ptr b;
-  POINTER data_zone = bloc->data;
-  register SIZE data_zone_size = 0;
-  register SIZE offset = bloc->data - address;
-  POINTER new_data_zone = data_zone - offset;
-
-  for (b = bloc; b != NIL_BLOC; b = b->next)
+  if (bloc != NIL_BLOC)
     {
-      data_zone_size += b->size;
-      b->data -= offset;
-      *b->variable = b->data;
-    }
+      register SIZE offset = address - bloc->data;
+      register SIZE data_size = 0;
+      register bloc_ptr b;
+      
+      for (b = bloc; b != NIL_BLOC; b = b->next)
+	{
+	  data_size += b->size;
+	  b->data += offset;
+	  *b->variable = b->data;
+	}
 
-  safe_bcopy (data_zone, new_data_zone, data_zone_size);
+      safe_bcopy (address - offset, address, data_size);
+    }
 }
+
 
 /* Free BLOC from the chain of blocs, relocating any blocs above it
    and returning BLOC->size bytes to the free area. */
@@ -301,15 +306,14 @@ free_bloc (bloc)
     {
       first_bloc = bloc->next;
       first_bloc->prev = NIL_BLOC;
-      relocate_some_blocs (bloc->next, bloc->data);
     }
   else
     {
       bloc->next->prev = bloc->prev;
       bloc->prev->next = bloc->next;
-      relocate_some_blocs (bloc->next, bloc->data);
     }
 
+  relocate_some_blocs (bloc->next, bloc->data);
   relinquish (bloc->size);
   free (bloc);
 }
@@ -355,13 +359,11 @@ r_alloc_sbrk (size)
 	return 0;
 
       if (first_bloc)
-	{
-	  relocate_some_blocs (first_bloc, first_bloc->data + get);
+	relocate_some_blocs (first_bloc, first_bloc->data + get);
 
-	  /* Zero out the space we just allocated, to help catch bugs
-	     quickly.  */
-	  bzero (virtual_break_value, get);
-	}
+      /* Zero out the space we just allocated, to help catch bugs
+	 quickly.  */
+      bzero (virtual_break_value, get);
     }
   /* Can we keep extra_bytes of gap while freeing at least extra_bytes?  */
   else if (size < 0 && already_available - size > 2 * extra_bytes)
