@@ -18,9 +18,6 @@ now uses normal-erase-is-backspace-mode.
 ** `buffer-menu' and `list-buffers' now list buffers whose names begin
 with a space, if they visit files.
 
-** tab-always-indent can be set to `never' to make sure indent-for-tab-command
-always tabs rather than indents.
-
 ** You can now customize fill-nobreak-predicate to control where
 filling can break lines.  We provide two sample predicates,
 fill-single-word-nobreak-p and fill-french-nobreak-p.

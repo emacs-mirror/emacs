@@ -1,3 +1,7 @@
+2001-11-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* macros.c: Don't include keymap.h any more.
+
 2001-11-01  Richard M. Stallman  <rms@gnu.org>
 
 	* keymap.c (Fdescribe_buffer_bindings): Print character property
@@ -15,10 +19,10 @@
 
 	* xfns.c (x_build_heuristic_mask): Use four_corners_best
 	instead of IMAGE_BACKGROUND.
-	
+
 	* xfns.c (four_corners_best): Reindent.
 
-	* xfaces.c (Finternal_set_lisp_face_attribute_from_resource): 
+	* xfaces.c (Finternal_set_lisp_face_attribute_from_resource):
 	Handle :box so that it is possible to specify sexprs.
 
 2001-11-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
@@ -58,8 +62,7 @@
 	(free_face_colors): Do nothing for a face whose colors have been
 	copied bitwise.
 
-	* dispextern.h (struct face) <colors_copied_bitwise_p>: New
-	member.
+	* dispextern.h (struct face) <colors_copied_bitwise_p>: New member.
 
 2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 

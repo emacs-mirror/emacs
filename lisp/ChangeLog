@@ -1,4 +1,7 @@
-2001-11-01  Stefan Monnier  <monnier@rum.cs.yale.edu>
+2001-11-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* indent.el (tab-always-indent, indent-for-tab-command):
+	Remove redundant `never' setting.
 
 	* fill.el (fill-region-as-paragraph): Don't forget to skip
 	over current whitespace before looking for a preceding space.
@@ -35,8 +38,8 @@
 	* bindings.el (mode-line-frame-identification): Add doc string.
 	(mode-line-position, mode-line-modes): New variables.
 	(mode-line-format): Use mode-line-position for the part
-	that displays the position-in-buffer info.  Use
-	mode-line-modes for the part that displays major and minor modes.
+	that displays the position-in-buffer info.
+	Use mode-line-modes for the part that displays major and minor modes.
 
 2001-10-31  Sam Steingold  <sds@gnu.org>
 
