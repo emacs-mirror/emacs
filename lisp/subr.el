@@ -2094,6 +2094,14 @@ If SUFFIX is non-nil, add that at the end of the file name."
       (set-default-file-modes umask))))
 
 
+;; If a minor mode is not defined with define-minor-mode,
+;; add it here explicitly.
+;; isearch-mode is deliberately excluded, since you should
+;; not call it yourself.
+(defvar minor-mode-list '(auto-save-mode auto-fill-mode abbrev-mode
+					 overwrite-mode view-mode)
+  "List of all minor mode functions.")
+
 (defun add-minor-mode (toggle name &optional keymap after toggle-fun)
   "Register a new minor mode.
 
@@ -2118,6 +2126,9 @@ It defaults to (and should by convention be) TOGGLE.
 If TOGGLE has a non-nil `:included' property, an entry for the mode is
 included in the mode-line minor mode menu.
 If TOGGLE has a `:menu-tag', that is used for the menu item's label."
+  (unless (memq toggle minor-mode-list)
+    (push toggle minor-mode-list))
+    
   (unless toggle-fun (setq toggle-fun toggle))
   ;; Add the name to the minor-mode-alist.
   (when name
