@@ -1,8 +1,9 @@
+;;; -*- coding: iso-2022-7bit; -*-
 ;;; tramp-uu.el --- uuencode in Lisp
 
 ;; Copyright (C) 2002  Free Software Foundation, Inc.
 
-;; Author: Kai Groﬂjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+;; Author: Kai Gro,A_(Bjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;; Keywords: comm, terminals
 
 ;; This file is free software; you can redistribute it and/or modify

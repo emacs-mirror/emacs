@@ -1,3 +1,55 @@
+2003-06-17  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	Version 2.0.35 of Tramp released.
+
+	* net/tramp.el (tramp-password-end-of-line): Use "xy" with plink.
+	(tramp-completion-function-alist): Add completion function for
+	"remcp", "remsh" and "plink1".
+	Factor out the `regular' file name handling via a remote shell of
+	some sort into a specific function.  Intent is to later put that
+	part of Tramp into a special file, so that the Tramp `core' is
+	just a dispatcher that dispatches to various handlers.
+	(tramp-sh-file-name-handler): New function.
+	(tramp-foreign-file-name-handler-alist): New default value.  Call
+	tramp-sh-file-name-handler as default case.
+	(tramp-file-name-handler): Do not invoke the old remote-shell
+	handler.
+	(tramp-find-foreign-file-name-handler): Return after first match
+	is found.  From Francis Litterio <franl@world.std.com>.
+	(tramp-handle-file-newer-than-file-p):  `tramp-time-diff' returns
+	integer, not list.  Do not apply `car' to the return value of
+	`tramp-time-diff'.  Reported by David D. Smith
+	<ultrasoul@ultrasoul.com>.
+	(tramp-time-diff): Convert return value of subtract-time to a
+	number of seconds in a correct manner, by applying float-time or
+	time-to-seconds.  Also correct compat code accordingly.  The
+	XEmacs branch for itimer-time-difference didn't need correction,
+	it returned a float already.  Reported by David D. Smith
+	<ultrasoul@ultrasoul.com>.
+	(tramp-handle-insert-file-contents): When calling
+	`file-local-copy', let-bind `inhibit-file-name-operation'
+	accordingly.  This makes sure that jka-compr is not called when
+	`insert-file-contents-literally' is invoked.  From Katsumi Yamaoka
+	<yamaoka@jpl.org>.
+	(tramp-do-copy-or-rename-via-buffer): Avoid calling jka-compr when
+	writing the target file.
+	(tramp-foreign-file-name-handler-alist): Add comment about default
+	value having to come last.
+	(tramp-handle-file-local-copy, tramp-handle-write-region): Add the
+	"-p" hack.
+	(tramp-handle-copy-file): Set file modes of target file.
+	(tramp-handle-file-local-copy)
+	(tramp-do-copy-or-rename-via-buffer): Use binary coding system,
+	instead of no-conversion.  They are the same on Emacs but
+	different on XEmacs.
+	(tramp-shell-prompt-pattern): Allow multiple escape
+	sequences (each with optional trailing space).
+
+	* net/tramp-uu.el: 
+	* net/tramp-util.el: 
+	* net/tramp-efs.el: Use iso-2022-7bit encoding with coding cookie
+	for XEmacs compatibility.
+
 2003-06-17  Kenichi Handa  <handa@m17n.org>
 
 	* term/x-win.el (x-select-request-type): New variable.

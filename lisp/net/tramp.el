@@ -238,28 +238,28 @@ This variable defaults to the value of `tramp-encoding-shell'."
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           nil)
               (tramp-copy-args            nil)
-              (tramp-copy-keep-date-arg    "-p"))
+              (tramp-copy-keep-date-arg   "-p"))
      ("scp"   (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         "scp")
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           ("-e" "none"))
-              (tramp-copy-args             nil)
-              (tramp-copy-keep-date-arg    "-p"))
+              (tramp-copy-args            nil)
+              (tramp-copy-keep-date-arg   "-p"))
      ("scp1"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         "scp")
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           ("-1" "-e" "none"))
               (tramp-copy-args            ("-1"))
-              (tramp-copy-keep-date-arg    "-p"))
+              (tramp-copy-keep-date-arg   "-p"))
      ("scp2"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         "scp")
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           ("-2" "-e" "none"))
               (tramp-copy-args            ("-2"))
-              (tramp-copy-keep-date-arg    "-p"))
+              (tramp-copy-keep-date-arg   "-p"))
      ("scp1_old"
               (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh1")
@@ -267,7 +267,7 @@ This variable defaults to the value of `tramp-encoding-shell'."
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           ("-e" "none"))
               (tramp-copy-args            nil)
-              (tramp-copy-keep-date-arg    "-p"))
+              (tramp-copy-keep-date-arg   "-p"))
      ("scp2_old"
               (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh2")
@@ -275,49 +275,49 @@ This variable defaults to the value of `tramp-encoding-shell'."
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           ("-e" "none"))
               (tramp-copy-args            nil)
-              (tramp-copy-keep-date-arg    "-p"))
+              (tramp-copy-keep-date-arg   "-p"))
      ("rsync" (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         "rsync")
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           ("-e" "none"))
               (tramp-copy-args            ("-e" "ssh"))
-              (tramp-copy-keep-date-arg    "-t"))
+              (tramp-copy-keep-date-arg   "-t"))
      ("remcp" (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "remsh")
               (tramp-copy-program         "rcp")
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           nil)
               (tramp-copy-args            nil)
-              (tramp-copy-keep-date-arg    "-p"))
+              (tramp-copy-keep-date-arg   "-p"))
      ("rsh"   (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "rsh")
               (tramp-copy-program         nil)
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           nil)
-              (tramp-copy-args             nil)
-              (tramp-copy-keep-date-arg    nil))
+              (tramp-copy-args            nil)
+              (tramp-copy-keep-date-arg   nil))
      ("ssh"   (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         nil)
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           ("-e" "none"))
-              (tramp-copy-args             nil)
-              (tramp-copy-keep-date-arg    nil))
+              (tramp-copy-args            nil)
+              (tramp-copy-keep-date-arg   nil))
      ("ssh1"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         nil)
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           ("-1" "-e" "none"))
               (tramp-copy-args            ("-1"))
-              (tramp-copy-keep-date-arg    nil))
+              (tramp-copy-keep-date-arg   nil))
      ("ssh2"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         nil)
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           ("-2" "-e" "none"))
               (tramp-copy-args            ("-2"))
-              (tramp-copy-keep-date-arg    nil))
+              (tramp-copy-keep-date-arg   nil))
      ("ssh1_old"
               (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh1")
@@ -325,7 +325,7 @@ This variable defaults to the value of `tramp-encoding-shell'."
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           ("-e" "none"))
               (tramp-copy-args            nil)
-              (tramp-copy-keep-date-arg    nil))
+              (tramp-copy-keep-date-arg   nil))
      ("ssh2_old"
               (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh2")
@@ -333,14 +333,14 @@ This variable defaults to the value of `tramp-encoding-shell'."
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           ("-e" "none"))
               (tramp-copy-args            nil)
-              (tramp-copy-keep-date-arg    nil))
+              (tramp-copy-keep-date-arg   nil))
      ("remsh" (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "remsh")
               (tramp-copy-program         nil)
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           nil)
               (tramp-copy-args            nil)
-              (tramp-copy-keep-date-arg    nil))
+              (tramp-copy-keep-date-arg   nil))
      ("telnet"
               (tramp-connection-function  tramp-open-connection-telnet)
               (tramp-login-program        "telnet")
@@ -348,14 +348,14 @@ This variable defaults to the value of `tramp-encoding-shell'."
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           nil)
               (tramp-copy-args            nil)
-              (tramp-copy-keep-date-arg    nil))
+              (tramp-copy-keep-date-arg   nil))
      ("su"    (tramp-connection-function  tramp-open-connection-su)
               (tramp-login-program        "su")
               (tramp-copy-program         nil)
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           ("-" "%u"))
               (tramp-copy-args            nil)
-              (tramp-copy-keep-date-arg    nil))
+              (tramp-copy-keep-date-arg   nil))
      ("sudo"  (tramp-connection-function  tramp-open-connection-su)
               (tramp-login-program        "sudo")
               (tramp-copy-program         nil)
@@ -363,28 +363,28 @@ This variable defaults to the value of `tramp-encoding-shell'."
               (tramp-login-args           ("-u" "%u" "-s"
 					   "-p" "Password:"))
               (tramp-copy-args            nil)
-              (tramp-copy-keep-date-arg    nil))
+              (tramp-copy-keep-date-arg   nil))
      ("multi" (tramp-connection-function  tramp-open-connection-multi)
               (tramp-login-program        nil)
               (tramp-copy-program         nil)
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           nil)
               (tramp-copy-args            nil)
-              (tramp-copy-keep-date-arg    nil))
+              (tramp-copy-keep-date-arg   nil))
      ("scpx"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         "scp")
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           ("-e" "none" "-t" "-t" "/bin/sh"))
               (tramp-copy-args            nil)
-              (tramp-copy-keep-date-arg    "-p"))
+              (tramp-copy-keep-date-arg   "-p"))
      ("sshx"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         nil)
               (tramp-remote-sh            "/bin/sh")
               (tramp-login-args           ("-e" "none" "-t" "-t" "/bin/sh"))
               (tramp-copy-args            nil)
-              (tramp-copy-keep-date-arg    nil))
+              (tramp-copy-keep-date-arg   nil))
      ("krlogin"
               (tramp-connection-function  tramp-open-connection-rsh)
 	      (tramp-login-program        "krlogin")
@@ -392,7 +392,7 @@ This variable defaults to the value of `tramp-encoding-shell'."
 	      (tramp-remote-sh            "/bin/sh")
 	      (tramp-login-args           ("-x"))
 	      (tramp-copy-args            nil)
-	      (tramp-copy-keep-date-arg    nil))
+	      (tramp-copy-keep-date-arg   nil))
      ("plink"
               (tramp-connection-function  tramp-open-connection-rsh)
 	      (tramp-login-program        "plink")
@@ -400,7 +400,7 @@ This variable defaults to the value of `tramp-encoding-shell'."
 	      (tramp-remote-sh            "/bin/sh")
 	      (tramp-login-args           ("-ssh")) ;optionally add "-v"
 	      (tramp-copy-args            nil)
-	      (tramp-copy-keep-date-arg    nil))
+	      (tramp-copy-keep-date-arg   nil))
      ("plink1"
               (tramp-connection-function  tramp-open-connection-rsh)
 	      (tramp-login-program        "plink")
@@ -408,7 +408,7 @@ This variable defaults to the value of `tramp-encoding-shell'."
 	      (tramp-remote-sh            "/bin/sh")
 	      (tramp-login-args           ("-1" "-ssh")) ;optionally add "-v"
 	      (tramp-copy-args            nil)
-	      (tramp-copy-keep-date-arg    nil))
+	      (tramp-copy-keep-date-arg   nil))
      ("pscp"
               (tramp-connection-function  tramp-open-connection-rsh)
 	      (tramp-login-program        "plink")
@@ -416,7 +416,7 @@ This variable defaults to the value of `tramp-encoding-shell'."
 	      (tramp-remote-sh            "/bin/sh")
 	      (tramp-login-args           ("-ssh"))
 	      (tramp-copy-args            nil)
-	      (tramp-copy-keep-date-arg    "-p"))
+	      (tramp-copy-keep-date-arg   "-p"))
      ("fcp"   
 	      (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "fsh")
@@ -424,7 +424,7 @@ This variable defaults to the value of `tramp-encoding-shell'."
               (tramp-remote-sh            "/bin/sh -i")
               (tramp-login-args           ("sh" "-i"))
               (tramp-copy-args            nil)
-              (tramp-copy-keep-date-arg    "-p"))
+              (tramp-copy-keep-date-arg   "-p"))
      )
   "*Alist of methods for remote files.
 This is a list of entries of the form (NAME PARAM1 PARAM2 ...).
@@ -620,12 +620,14 @@ See `tramp-methods' for a list of possibilities for METHOD."
 	(cons "scp1_old" tramp-completion-function-alist-ssh)
 	(cons "scp2_old" tramp-completion-function-alist-ssh)
 	(cons "rsync"    tramp-completion-function-alist-rsh)
+	(cons "remcp"    tramp-completion-function-alist-rsh)
 	(cons "rsh"      tramp-completion-function-alist-rsh)
  	(cons "ssh"      tramp-completion-function-alist-ssh)
  	(cons "ssh1"     tramp-completion-function-alist-ssh)
  	(cons "ssh2"     tramp-completion-function-alist-ssh)
  	(cons "ssh1_old" tramp-completion-function-alist-ssh)
  	(cons "ssh2_old" tramp-completion-function-alist-ssh)
+	(cons "remsh"    tramp-completion-function-alist-rsh)
  	(cons "telnet"   tramp-completion-function-alist-telnet)
  	(cons "su"       tramp-completion-function-alist-su)
  	(cons "sudo"     tramp-completion-function-alist-su)
@@ -634,6 +636,7 @@ See `tramp-methods' for a list of possibilities for METHOD."
  	(cons "sshx"     tramp-completion-function-alist-ssh)
 	(cons "krlogin"  tramp-completion-function-alist-rsh)
  	(cons "plink"    tramp-completion-function-alist-ssh)
+ 	(cons "plink1"   tramp-completion-function-alist-ssh)
  	(cons "pscp"     tramp-completion-function-alist-ssh)
  	(cons "fcp"      tramp-completion-function-alist-ssh)
      )
@@ -665,7 +668,12 @@ Also see `tramp-password-end-of-line'."
   :group 'tramp
   :type 'string)
 
-(defcustom tramp-password-end-of-line tramp-rsh-end-of-line
+(defcustom tramp-password-end-of-line
+  (if (string-match "plink" tramp-default-method)
+      ;; Any two characters will do for plink!  Doesn't have to be
+      ;; newline characters.
+      "xy"
+    tramp-rsh-end-of-line)
   "*String used for end of line after sending a password.
 It seems that people using plink under Windows need to send
 \"\\r\\n\" (carriage-return, then newline) after a password, but just
@@ -696,7 +704,7 @@ The regexp should match at end of buffer."
   :type 'regexp)
 
 (defcustom tramp-shell-prompt-pattern
-  "^[^#$%>\n]*[#$%>] *\\(\e\\[[0-9;]*[a-zA-Z]\\)?"
+  "^[^#$%>\n]*[#$%>] *\\(\e\\[[0-9;]*[a-zA-Z] *\\)*"
   "Regexp to match prompts from remote shell.
 Normally, Tramp expects you to configure `shell-prompt-pattern'
 correctly, but sometimes it happens that you are connecting to a
@@ -1580,7 +1588,10 @@ mentioned here will be handled by `tramp-file-name-handler-alist' or the
 normal Emacs functions.")
 
 ;; Handlers for foreign methods, like FTP or SMB, shall be plugged here.
-(defvar tramp-foreign-file-name-handler-alist nil
+(defvar tramp-foreign-file-name-handler-alist
+  ;; (identity . tramp-sh-file-name-handler) should always be the last
+  ;; entry, since `identity' always matches.
+  '((identity . tramp-sh-file-name-handler))
   "Alist of elements (FUNCTION . HANDLER) for foreign methods handled specially.
 If (FUNCTION FILENAME) returns non-nil, then all I/O on that file is done by
 calling HANDLER.")
@@ -2168,7 +2179,7 @@ if the remote host can't provide the modtime."
 		 (fa2 (file-attributes file2)))
 	     (if (and (not (equal (nth 5 fa1) '(0 0)))
 		      (not (equal (nth 5 fa2) '(0 0))))
-		 (> 0 (car (tramp-time-diff (nth 5 fa1) (nth 5 fa2))))
+		 (> 0 (tramp-time-diff (nth 5 fa1) (nth 5 fa2)))
 	       ;; If one of them is the dont-know value, then we can
 	       ;; still try to run a shell command on the remote host.
 	       ;; However, this only works if both files are Tramp
@@ -2458,8 +2469,10 @@ if the remote host can't provide the modtime."
   ;; At least one file a tramp file?
   (if (or (tramp-tramp-file-p filename)
           (tramp-tramp-file-p newname))
-      (tramp-do-copy-or-rename-file
-       'copy filename newname ok-if-already-exists keep-date)
+      (let ((modes (file-modes filename)))
+	(tramp-do-copy-or-rename-file
+	 'copy filename newname ok-if-already-exists keep-date)
+	(set-file-modes newname modes))
     (tramp-run-real-handler
      'copy-file
      (list filename newname ok-if-already-exists keep-date))))
@@ -2555,7 +2568,10 @@ KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
     (save-excursion
       (set-buffer trampbuf) (erase-buffer)
       (insert-file-contents-literally filename)
-      (let ((coding-system-for-write 'no-conversion))
+      ;; We don't want the target file to be compressed, so we let-bind
+      ;; `jka-compr-inhibit' to t.
+      (let ((coding-system-for-write 'binary)
+	    (jka-compr-inhibit t))
 	(write-region (point-min) (point-max) newname)))
     ;; If the operation was `rename', delete the original file.
     (unless (eq op 'copy)
@@ -2961,6 +2977,12 @@ This will break if COMMAND prints a newline, followed by the value of
 	       filename))
       (setq tmpfil (tramp-make-temp-file))
       (cond (copy-program
+	     ;; The following should be changed.  We need a more general
+	     ;; mechanism to parse extra host args.
+	     (when (string-match "\\([^#]*\\)#\\(.*\\)" host)
+	       (setq copy-args (cons "-p" (cons (match-string 2 host)
+						rsh-args)))
+	       (setq host (match-string 1 host)))
 	     ;; Use rcp-like program for file transfer.
 	     (tramp-message-for-buffer
 	      multi-method method user host
@@ -3021,7 +3043,7 @@ This will break if COMMAND prints a newline, followed by the value of
 		     ;; line from the output here.  Go to point-max,
 		     ;; search backward for tramp_exit_status, delete
 		     ;; between point and point-max if found.
-		     (let ((coding-system-for-write 'no-conversion))
+		     (let ((coding-system-for-write 'binary))
 		       (funcall loc-dec (point-min) (point-max))
 		       (write-region (point-min) (point-max) tmpfil))
 		     (kill-buffer tmpbuf))
@@ -3058,7 +3080,12 @@ This will break if COMMAND prints a newline, followed by the value of
 	  (signal 'file-error
 		  (format "File `%s' not found on remote host" filename))
 	  (list (expand-file-name filename) 0))
-      (let ((local-copy (file-local-copy filename))
+      ;; `insert-file-contents-literally' takes care to avoid calling
+      ;; jka-compr.  By let-binding inhibit-file-name-operation, we
+      ;; propagate that care to the file-local-copy operation.
+      (let ((local-copy
+	     (let ((inhibit-file-name-operation 'file-local-copy))
+	       (file-local-copy filename)))
 	    (coding-system-used nil)
 	    (result nil))
 	(when visit
@@ -3148,6 +3175,13 @@ This will break if COMMAND prints a newline, followed by the value of
       ;; _also_ specifies an encoding function, then that is used for
       ;; encoding the contents of the tmp file.
       (cond (copy-program
+	     ;; The following should be changed.  We need a more general
+	     ;; mechanism to parse extra host args.
+	     (when (string-match "\\([^#]*\\)#\\(.*\\)" host)
+	       (setq copy-args (cons "-p" (cons (match-string 2 host)
+						rsh-args)))
+	       (setq host (match-string 1 host)))
+
 	     ;; use rcp-like program for file transfer
 	     (let ((argl (append copy-args
 				 (list
@@ -3411,28 +3445,40 @@ ARGS are the arguments OPERATION has been called with."
 (defun tramp-find-foreign-file-name-handler (filename)
   "Return foreign file name handler if exists."
   (when (tramp-tramp-file-p filename)
-    (let (elt res)
-      (dolist (elt tramp-foreign-file-name-handler-alist res)
+    (let (elt
+	  res
+	  (handler-alist tramp-foreign-file-name-handler-alist))
+      (while handler-alist
+	(setq elt (car handler-alist)
+	      handler-alist (cdr handler-alist))
 	(when (funcall (car elt) filename)
+	  (setq handler-alist nil)
 	  (setq res (cdr elt))))
       res)))
 
 ;; Main function.
 ;;;###autoload
 (defun tramp-file-name-handler (operation &rest args)
-  "Invoke tramp file name handler.
+  "Invoke Tramp file name handler.
 Falls back to normal file name handler if no tramp file name handler exists."
   (save-match-data
-    (let* ((fn (assoc operation tramp-file-name-handler-alist))
-	   (filename (apply 'tramp-file-name-for-operation operation args))
+    (let* ((filename (apply 'tramp-file-name-for-operation operation args))
 	   (foreign (tramp-find-foreign-file-name-handler filename)))
       (cond
        (foreign (apply foreign operation args))
-       (fn (apply (cdr fn) args))
        (t (tramp-run-real-handler operation args))))))
 
 ;;;###autoload
 (put 'tramp-file-name-handler 'file-remote-p t)	;for file-remote-p
+
+(defun tramp-sh-file-name-handler (operation &rest args)
+  "Invoke remote-shell Tramp file name handler.
+Fall back to normal file name handler if no Tramp handler exists."
+  (save-match-data
+    (let ((fn (assoc operation tramp-file-name-handler-alist)))
+      (if fn
+	  (apply (cdr fn) args)
+	(tramp-run-real-handler operation args)))))
 
 ;;;###autoload
 (defun tramp-completion-file-name-handler (operation &rest args)
@@ -6097,18 +6143,28 @@ T1 and T2 are time values (as returned by `current-time' for example).
 NOTE: This function will fail if the time difference is too large to
 fit in an integer."
   ;; Pacify byte-compiler with `symbol-function'.
-  (cond ((fboundp 'subtract-time)
-         (cadr (funcall (symbol-function 'subtract-time) t1 t2)))
+  (cond ((and (fboundp 'subtract-time)
+	      (fboundp 'float-time))
+         (funcall (symbol-function 'float-time)
+		  (funcall (symbol-function 'subtract-time) t1 t2)))
+	((and (fboundp 'subtract-time)
+	      (fboundp 'time-to-seconds))
+         (funcall (symbol-function 'time-to-seconds)
+		  (funcall (symbol-function 'subtract-time) t1 t2)))
         ((fboundp 'itimer-time-difference)
          (floor (funcall
 		 (symbol-function 'itimer-time-difference)
 		 (if (< (length t1) 3) (append t1 '(0)) t1)
 		 (if (< (length t2) 3) (append t2 '(0)) t2))))
         (t
-         ;; snarfed from Emacs 21 time-date.el
-         (cadr (let ((borrow (< (cadr t1) (cadr t2))))
+         ;; snarfed from Emacs 21 time-date.el; combining
+	 ;; time-to-seconds and subtract-time
+	 (let ((time  (let ((borrow (< (cadr t1) (cadr t2))))
                  (list (- (car t1) (car t2) (if borrow 1 0))
-                       (- (+ (if borrow 65536 0) (cadr t1)) (cadr t2))))))))
+                       (- (+ (if borrow 65536 0) (cadr t1)) (cadr t2))))))
+	   (+ (* (car time) 65536.0)
+	      (cadr time)
+	      (/ (or (nth 2 time) 0) 1000000.0))))))
 
 (defun tramp-coding-system-change-eol-conversion (coding-system eol-type)
   "Return a coding system like CODING-SYSTEM but with given EOL-TYPE.
