@@ -78,9 +78,9 @@ CHINESE-GB=${TIT-GB} \
 	quail/py-punct.el
 
 CHINESE-BIG5=${TIT-BIG5} \
-	quail/quick-b5.el quail/tsangchi-b5.el quail/py-punct-b5.el
+	quail/quick-b5.el quail/tsang-b5.el quail/pypunct-b5.el
 
-CHINESE-CNS=quail/quick-cns.el quail/tsangchi-cns.el
+CHINESE-CNS=quail/quick-cns.el quail/tsang-cns.el
 
 JAPANESE=quail/japanese.el skk/skkdic.el
 
@@ -139,18 +139,26 @@ ${TIT}:
 	@LN_S@ ${srcdir}/$@ $@
 	@LN_S@ ${srcdir}/$@c $@c
 
+# Before running update-leim-list-file, delete all old files which are
+# not contained in ${WORLD}.
 leim-list.el: ${SUBDIRS} ${WORLD}
+	for dir in ${SUBDIRS}; do \
+	  for f in $${dir}/*.el; do \
+	    if echo ${WORLD} | grep $${f} > /dev/null; then true; \
+	    else rm -f $${f}* ; fi \
+	  done \
+	done
 	${RUN-EMACS} -l ${buildlisppath}/international/quail \
 	    --eval "(update-leim-list-file \".\")"
 
 install: all
 	if [ x`(cd ${INSTALLDIR}; /bin/pwd)` != x`(/bin/pwd)` ] ; then \
+	  rm -rf ${INSTALLDIR}/leim-list.el; \
 	  rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/skk ; \
-	  echo "Copying leim/quail/* and leim/skk/* to ${INSTALLDIR} ..." ; \
-	  tar -chf - ${SUBDIRS} | (cd ${INSTALLDIR}; umask 0; tar -xvf -) ; \
+	  echo "Copying leim files to ${INSTALLDIR} ..." ; \
+	  tar -chf - leim-list.el ${SUBDIRS} \
+		| (cd ${INSTALLDIR}; umask 0; tar -xvf -) ; \
 	else true; fi
-	${RUN-EMACS} -l ${buildlisppath}/international/quail \
-	    --eval "(update-leim-list-file \"${INSTALLDIR}\")"
 
 clean mostlyclean:
 	ELC=`echo ${TIT} | sed 's/\.el/.elc/g'`; \
