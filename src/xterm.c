@@ -347,6 +347,7 @@ extern FONT_TYPE *XOpenFont ();
 
 static void flashback ();
 static void redraw_previous_char ();
+static void redraw_following_char ();
 static unsigned int x_x_to_emacs_modifiers ();
 
 static void note_mouse_highlight ();
@@ -541,6 +542,8 @@ XTcursor_to (row, col)
    WINDOW is the x-window to output to.  LEFT and TOP are starting coords.
    HL is 1 if this text is highlighted, 2 if the cursor is on it,
    3 if should appear in its mouse-face.
+   JUST_FOREGROUND if 1 means draw only the foreground;
+   don't alter the background.
 
    FONT is the default font to use (for glyphs whose font-code is 0).
 
@@ -555,12 +558,13 @@ XTcursor_to (row, col)
 /* This is the multi-face code.  */
 
 static void
-dumpglyphs (f, left, top, gp, n, hl)
+dumpglyphs (f, left, top, gp, n, hl, just_foreground)
      struct frame *f;
      int left, top;
      register GLYPH *gp; /* Points to first GLYPH. */
      register int n;  /* Number of glyphs to display. */
      int hl;
+     int just_foreground;
 {
   /* Holds characters to be displayed. */
   char *buf = (char *) alloca (f->width * sizeof (*buf));
@@ -568,6 +572,7 @@ dumpglyphs (f, left, top, gp, n, hl)
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
   Window window = FRAME_X_WINDOW (f);
+  int orig_left = left;
 
   while (n > 0)
     {
@@ -691,8 +696,36 @@ dumpglyphs (f, left, top, gp, n, hl)
 	if ((int) font == FACE_DEFAULT)
 	  font = f->display.x->font;
 
-	XDrawImageString (x_current_display, window, gc,
-			  left, top + FONT_BASE (font), buf, len);
+	if (just_foreground)
+	  XDrawString (x_current_display, window, gc,
+		       left, top + FONT_BASE (font), buf, len);
+	else
+	  {
+	    XDrawImageString (x_current_display, window, gc,
+			      left, top + FONT_BASE (font), buf, len);
+	    /* Clear the rest of the line's height.  */
+	    if (f->display.x->line_height != FONT_HEIGHT (font))
+	      XClearArea (x_current_display, window, left,
+			  top + FONT_HEIGHT (font),
+			  FONT_WIDTH (font) * len,
+			  /* This is how many pixels of height
+			     we have to clear.  */
+			  f->display.x->line_height - FONT_HEIGHT (font),
+			  False);
+	  }
+
+#if 0 /* Doesn't work, because it uses FRAME_CURRENT_GLYPHS,
+	 which often is not up to date yet.  */
+	if (!just_foreground)
+	  {
+	    if (left == orig_left)
+	      redraw_previous_char (f, PIXEL_TO_CHAR_COL (f, left),
+				    PIXEL_TO_CHAR_ROW (f, top), hl == 1);
+	    if (n == 0)
+	      redraw_following_char (f, PIXEL_TO_CHAR_COL (f, left + len * FONT_WIDTH (font)),
+				     PIXEL_TO_CHAR_ROW (f, top), hl == 1);
+	  }
+#endif
 
 	if (gc_temporary)
 	  XFreeGC (x_current_display, gc);
@@ -783,7 +816,7 @@ XTwrite_glyphs (start, len)
   dumpglyphs (f,
 	      CHAR_TO_PIXEL_COL (f, curs_x),
 	      CHAR_TO_PIXEL_ROW (f, curs_y),
-	      start, len, highlight);
+	      start, len, highlight, 0);
 
   /* If we drew on top of the cursor, note that it is turned off.  */
   if (curs_y == f->phys_cursor_y
@@ -841,7 +874,7 @@ XTclear_end_of_line (first_unused)
 	      FONT_WIDTH (f->display.x->font) * (first_unused - curs_x),
 	      f->display.x->line_height, False);
 #if 0
-  redraw_previous_char (f, curs_x, curs_y);
+  redraw_previous_char (f, curs_x, curs_y, highlight);
 #endif
 #else /* ! defined (HAVE_X11) */
   XPixSet (FRAME_X_WINDOW (f),
@@ -853,39 +886,6 @@ XTclear_end_of_line (first_unused)
 #endif /* ! defined (HAVE_X11) */
 
   UNBLOCK_INPUT;
-}
-
-/* Erase the character (if any) at the position just before X, Y in frame F,
-   then redraw it and the character before it.
-   This is necessary when we erase starting at X,
-   in case the character after X overlaps into the one before X.
-   Call this function with input blocked.  */
-
-static void
-redraw_previous_char (f, x, y)
-     FRAME_PTR f;
-     int x, y;
-{
-  /* Erase the character before the new ones, in case
-     what was here before overlaps it.
-     Reoutput that character, and the previous character
-     (in case the previous character overlaps it).  */
-  if (x > 0)
-    {
-      int start_x = x - 2;
-      if (start_x < 0)
-	start_x = 0;
-      XClearArea (x_current_display, FRAME_X_WINDOW (f),
-		  CHAR_TO_PIXEL_COL (f, x - 1),
-		  CHAR_TO_PIXEL_ROW (f, y),
-		  FONT_WIDTH (f->display.x->font),
-		  f->display.x->line_height, False);
-
-      dumpglyphs (f, CHAR_TO_PIXEL_COL (f, start_x),
-		  CHAR_TO_PIXEL_ROW (f, y),
-		  &FRAME_CURRENT_GLYPHS (f)->glyphs[y][start_x],
-		  x - start_x, highlight);
-    }
 }
 
 static
@@ -916,6 +916,179 @@ XTclear_frame ()
   XFlushQueue ();
   UNBLOCK_INPUT;
 }
+
+#if 0
+/* This currently does not work because FRAME_CURRENT_GLYPHS doesn't
+   always contain the right glyphs to use.
+
+   It also needs to be changed to look at the details of the font and
+   see whether there is really overlap, and do nothing when there is
+   not.  This can use font_char_overlap_left and font_char_overlap_right,
+   but just how to use them is not clear.  */
+
+/* Erase the character (if any) at the position just before X, Y in frame F,
+   then redraw it and the character before it.
+   This is necessary when we erase starting at X,
+   in case the character after X overlaps into the one before X.
+   Call this function with input blocked.  */
+
+static void
+redraw_previous_char (f, x, y, highlight_flag)
+     FRAME_PTR f;
+     int x, y;
+     int highlight_flag;
+{
+  /* Erase the character before the new ones, in case
+     what was here before overlaps it.
+     Reoutput that character, and the previous character
+     (in case the previous character overlaps it).  */
+  if (x > 0)
+    {
+      int start_x = x - 2;
+      if (start_x < 0)
+	start_x = 0;
+      XClearArea (x_current_display, FRAME_X_WINDOW (f),
+		  CHAR_TO_PIXEL_COL (f, x - 1),
+		  CHAR_TO_PIXEL_ROW (f, y),
+		  FONT_WIDTH (f->display.x->font),
+		  f->display.x->line_height, False);
+
+      dumpglyphs (f, CHAR_TO_PIXEL_COL (f, start_x),
+		  CHAR_TO_PIXEL_ROW (f, y),
+		  &FRAME_CURRENT_GLYPHS (f)->glyphs[y][start_x],
+		  x - start_x, highlight_flag, 1);
+    }
+}
+
+/* Erase the character (if any) at the position X, Y in frame F,
+   then redraw it and the character after it.
+   This is necessary when we erase endng at X,
+   in case the character after X overlaps into the one before X.
+   Call this function with input blocked.  */
+
+static void
+redraw_following_char (f, x, y, highlight_flag)
+     FRAME_PTR f;
+     int x, y;
+     int highlight_flag;
+{
+  int limit = FRAME_CURRENT_GLYPHS (f)->used[y];
+  /* Erase the character after the new ones, in case
+     what was here before overlaps it.
+     Reoutput that character, and the following character
+     (in case the following character overlaps it).  */
+  if (x < limit
+      && FRAME_CURRENT_GLYPHS (f)->glyphs[y][x] != SPACEGLYPH)
+    {
+      int end_x = x + 2;
+      if (end_x > limit)
+	end_x = limit;
+      XClearArea (x_current_display, FRAME_X_WINDOW (f),
+		  CHAR_TO_PIXEL_COL (f, x),
+		  CHAR_TO_PIXEL_ROW (f, y),
+		  FONT_WIDTH (f->display.x->font),
+		  f->display.x->line_height, False);
+
+      dumpglyphs (f, CHAR_TO_PIXEL_COL (f, x),
+		  CHAR_TO_PIXEL_ROW (f, y),
+		  &FRAME_CURRENT_GLYPHS (f)->glyphs[y][x],
+		  end_x - x, highlight_flag, 1);
+    }
+}
+#endif /* 0 */
+
+#if 0 /* Not in use yet */
+
+/* Return 1 if character C in font F extends past its left edge.  */
+
+static int
+font_char_overlap_left (font, c)
+     XFontStruct *font;
+     int c;
+{
+  XCharStruct *s;
+
+  /* Find the bounding-box info for C.  */
+  if (font->per_char == 0)
+    s = &font->max_bounds;
+  else
+    {
+      int rowlen = font->max_char_or_byte2 - font->min_char_or_byte2 + 1;
+      int row, within;
+	
+      /* Decode char into row number (byte 1) and code within row (byte 2).  */
+      row = c >> 8;
+      within = c & 0177;
+      if (!(within >= font->min_char_or_byte2
+	    && within <= font->max_char_or_byte2
+	    && row >= font->min_byte1
+	    && row <= font->max_byte1))
+	{
+	  /* If char is out of range, try the font's default char instead.  */
+	  c = font->default_char;
+	  row = c >> (INTBITS - 8);
+	  within = c & 0177;
+	}
+      if (!(within >= font->min_char_or_byte2
+	    && within <= font->max_char_or_byte2
+	    && row >= font->min_byte1
+	    && row <= font->max_byte1))
+	/* Still out of range means this char does not overlap.  */
+	return 0;
+      else
+	/* We found the info for this char.  */
+	s = (font->per_char + (within - font->min_char_or_byte2)
+	     + row * rowlen);
+    }
+
+  return (s && s->lbearing < 0);
+}
+
+/* Return 1 if character C in font F extends past its right edge.  */
+
+static int
+font_char_overlap_right (font, c)
+     XFontStruct *font;
+     int c;
+{
+  XCharStruct *s;
+
+  /* Find the bounding-box info for C.  */
+  if (font->per_char == 0)
+    s = &font->max_bounds;
+  else
+    {
+      int rowlen = font->max_char_or_byte2 - font->min_char_or_byte2 + 1;
+      int row, within;
+	
+      /* Decode char into row number (byte 1) and code within row (byte 2).  */
+      row = c >> 8;
+      within = c & 0177;
+      if (!(within >= font->min_char_or_byte2
+	    && within <= font->max_char_or_byte2
+	    && row >= font->min_byte1
+	    && row <= font->max_byte1))
+	{
+	  /* If char is out of range, try the font's default char instead.  */
+	  c = font->default_char;
+	  row = c >> (INTBITS - 8);
+	  within = c & 0177;
+	}
+      if (!(within >= font->min_char_or_byte2
+	    && within <= font->max_char_or_byte2
+	    && row >= font->min_byte1
+	    && row <= font->max_byte1))
+	/* Still out of range means this char does not overlap.  */
+	return 0;
+      else
+	/* We found the info for this char.  */
+	s = (font->per_char + (within - font->min_char_or_byte2)
+	     + row * rowlen);
+    }
+
+  return (s && s->rbearing >= s->width);
+}
+#endif /* 0 */
 
 /* Invert the middle quarter of the frame for .15 sec.  */
 
@@ -1336,7 +1509,7 @@ dumprectangle (f, left, top, cols, rows)
 		  CHAR_TO_PIXEL_COL (f, left),
 		  CHAR_TO_PIXEL_ROW (f, y),
 		  line, min (cols, active_frame->used[y] - left),
-		  active_frame->highlight[y]);
+		  active_frame->highlight[y], 0);
     }
 
   /* Turn the cursor on if we turned it off.  */
@@ -1981,9 +2154,11 @@ note_mouse_highlight (f, x, y)
   if (! EQ (window, mouse_face_window))
     clear_mouse_face ();
 
-  /* Are we in a window whose display is up to date?  */
+  /* Are we in a window whose display is up to date?
+     And verify the buffer's text has not changed.  */
   if (WINDOWP (window) && portion == 0
-      && EQ (w->window_end_valid, w->buffer))
+      && EQ (w->window_end_valid, w->buffer)
+      && w->last_modified == BUF_MODIFF (XBUFFER (w->buffer)))
     {
       int *ptr = FRAME_CURRENT_GLYPHS (f)->charstarts[row];
       int i, pos;
@@ -2202,7 +2377,7 @@ show_mouse_face (hl)
 		  FRAME_CURRENT_GLYPHS (f)->glyphs[i] + column,
 		  endcolumn - column,
 		  /* Highlight with mouse face if hl > 0.  */
-		  hl > 0 ? 3 : 0);
+		  hl > 0 ? 3 : 0, 0);
     }
 
   /* If we turned the cursor off, turn it back on.  */
@@ -4275,7 +4450,7 @@ x_draw_single_glyph (f, row, column, glyph, highlight)
   dumpglyphs (f,
 	      CHAR_TO_PIXEL_COL (f, column),
 	      CHAR_TO_PIXEL_ROW (f, row),
-	      &glyph, 1, highlight);
+	      &glyph, 1, highlight, 0);
 }
 
 static void
@@ -4383,6 +4558,14 @@ x_display_box_cursor (f, on)
 	  || (f->display.x->current_cursor != hollow_box_cursor
 	      && (f != x_highlight_frame))))
     {
+      /* If the font is not as tall as a whole line,
+	 we must explicitly clear the line's whole height.  */
+      if (FONT_HEIGHT (f->display.x->font) != f->display.x->line_height)
+	XClearArea (x_current_display, FRAME_X_WINDOW (f),
+		    CHAR_TO_PIXEL_COL (f, f->phys_cursor_x),
+		    CHAR_TO_PIXEL_ROW (f, f->phys_cursor_y),
+		    FONT_WIDTH (f->display.x->font),
+		    f->display.x->line_height, False);
       /* Erase the cursor by redrawing the character underneath it.  */
       x_draw_single_glyph (f, f->phys_cursor_y, f->phys_cursor_x,
 			   f->phys_cursor_glyph,
@@ -4903,7 +5086,7 @@ x_new_font (f, fontname)
   else
     /* If we are setting a new frame's font for the first time,
        there are no faces yet, so this font's height is the line height.  */
-    f->display.x->line_height = FONT_HEIGHT (f);
+    f->display.x->line_height = FONT_HEIGHT (f->display.x->font);
 
   {
     Lisp_Object lispy_name;
@@ -5051,6 +5234,7 @@ x_set_window_size (f, change_gravity, cols, rows)
 #ifdef HAVE_X11
   x_wm_set_size_hint (f, 0, change_gravity, 0, 0);
 #endif /* ! defined (HAVE_X11) */
+  XSync (x_current_display, False);
   XChangeWindowSize (FRAME_X_WINDOW (f), pixelwidth, pixelheight);
 
   /* Now, strictly speaking, we can't be sure that this is accurate,
