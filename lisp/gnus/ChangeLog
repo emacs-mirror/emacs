@@ -1,3 +1,12 @@
+2000-11-27  Dave Love  <fx@gnu.org>
+
+	* nnlistserv.el: Ignore errors when requiring nnweb and avoid a
+	compiler warning.
+
+2000-11-26  Dave Love  <fx@gnu.org>
+
+	* mm-uu.el (mm-uu-configure-list): Fix typo in :type.
+
 2000-11-23  Dave Love  <fx@gnu.org>
 
 	* uu-post.pbm, uu-decode.pbm: new files from XPMs.

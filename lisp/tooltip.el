@@ -145,7 +145,7 @@ only tooltips in the buffer containing the overlay arrow."
 This is only relevant GUD display, since otherwise it is equivalent to
 turning off Tooltip mode."
   :type 'boolean
-  :tag "use echo area"
+  :tag "Use echo area"
   :group 'tooltip)
 
 
