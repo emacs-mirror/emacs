@@ -1,3 +1,7 @@
+2002-12-09  Dave Love  <fx@gnu.org>
+
+	* s/sol2-8.h: Removed.  (Not necessary.)
+
 2002-12-08  Dave Love  <fx@gnu.org>
 
 	* m/ibms390.h: New file.
