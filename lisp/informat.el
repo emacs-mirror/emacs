@@ -76,7 +76,8 @@
 		(setq list (nreverse list))
 		(while list
 		  (insert "Node: " (car (car list)) ?\177)
-		  (princ (car (cdr (car list))) (current-buffer))
+		  (princ (position-bytes (car (cdr (car list))))
+			 (current-buffer))
 		  (insert ?\n)
 		  (setq list (cdr list)))
 		(insert "\^_\nEnd tag table\n")))))
@@ -106,7 +107,8 @@ contains just the tag table and a directory of subfiles."
   (search-forward "\^_")
   (forward-char -1)
   (let ((start (point))
-	(chars-deleted 0)
+	(start-byte (position-bytes (point)))
+	(bytes-deleted 0)
 	subfiles
 	(subfile-number 1)
 	(case-fold-search t)
@@ -128,7 +130,7 @@ contains just the tag table and a directory of subfiles."
 	(goto-char (min (+ (point) 50000) (point-max)))
 	(search-forward "\^_" nil 'move)
 	(setq subfiles
-	      (cons (list (+ start chars-deleted)
+	      (cons (list (+ start-byte bytes-deleted)
 			  (concat (file-name-nondirectory filename)
 				  (format "-%d" subfile-number)))
 		    subfiles))
@@ -139,7 +141,8 @@ contains just the tag table and a directory of subfiles."
 	(delete-region (1- (point)) (point))
 	;; Back up over the final ^_.
 	(forward-char -1)
-	(setq chars-deleted (+ chars-deleted (- (point) start)))
+	(setq bytes-deleted (+ bytes-deleted (- (position-bytes (point))
+						start-byte)))
 	(delete-region start (point))
 	(setq subfile-number (1+ subfile-number))))
     (while subfiles
