@@ -2383,7 +2383,6 @@ searchable directory.")
 {
   Lisp_Object handler;
   int tem;
-  struct gcpro gcpro1;
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2393,10 +2392,8 @@ searchable directory.")
 
   /* Need to gcpro in case the first function call has a handler that
      causes filename to be relocated.  */
-  GCPRO1 (filename);
   tem = (NILP (Ffile_directory_p (filename))
 	 || NILP (Ffile_executable_p (filename)));
-  UNGCPRO;
   return tem ? Qnil : Qt;
 }
 
@@ -3271,9 +3268,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   /* Discard the unwind protect for close_file_unwind.  */
   specpdl_ptr = specpdl + count1;
   /* Restore the original current buffer.  */
-  GCPRO1 (visit_file);
-  unbind_to (count);
-  UNGCPRO;
+  visit_file = unbind_to (count, visit_file);
 
 #ifdef CLASH_DETECTION
   if (!auto_saving)
