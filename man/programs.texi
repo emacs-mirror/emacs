@@ -169,11 +169,13 @@ adding @samp{-hook}.  For example, turning on C mode runs the hook
 
 @cindex Control-Meta
   By convention, Emacs keys for dealing with balanced expressions are
-usually Control-Meta characters.  They tend to be analogous in
-function to their Control and Meta equivalents.  These commands are
-usually thought of as pertaining to expressions in programming
-languages, but can be useful with any language in which some sort of
-parentheses exist (including human languages).
+usually Control-Meta characters.  They tend to be analogous in function
+to their Control and Meta equivalents.  (For example, @kbd{C-M-b} moves
+back over one balanced expression, which is analogous to @kbd{C-b} that
+moves one character back and to @kbd{M-b} which moves one word back.)
+These commands are usually thought of as pertaining to expressions in
+programming languages, but can be useful with any language in which some
+sort of parentheses exist (including human languages).
 
 @cindex list
 @cindex sexp
@@ -329,6 +331,15 @@ regardless of what its contents are, and regardless of the programming
 language in use.  For example, in C, the body of a function definition is a
 defun.
 
+
+@cindex move to beginning or end of function
+@cindex function, move to beginning or end
+@kindex C-M-a
+@kindex C-M-e
+@kindex C-M-h
+@findex beginning-of-defun
+@findex end-of-defun
+@findex mark-defun
 @c doublewidecommands
 @table @kbd
 @item C-M-a
@@ -339,17 +350,6 @@ Move to end of current or following defun (@code{end-of-defun}).
 @item C-M-h
 Put region around whole current or following defun (@code{mark-defun}).
 @end table
-
-@cindex move to beginning or end of function
-@cindex function, move to beginning or end
-@kindex C-M-a
-@kindex C-M-e
-@kindex C-M-h
-@findex beginning-of-defun
-@findex end-of-defun
-@findex mark-defun
-  The commands to move to the beginning and end of the current defun are
-@kbd{C-M-a} (@code{beginning-of-defun}) and @kbd{C-M-e} (@code{end-of-defun}).
 
 @kindex C-M-h @r{(C mode)}
 @findex c-mark-function
