@@ -31,8 +31,6 @@
   (require 'comint)
   (require 'gud))
 
-(provide 'tooltip)
-
 
 ;;; Customizable settings
 
@@ -53,13 +51,11 @@
   :type 'number
   :group 'tooltip)
 
-
 (defcustom tooltip-short-delay 0.1
   "Seconds to wait between subsequent tooltips on different items."
   :tag "Short delay"
   :type 'number
   :group 'tooltip)
-
 
 (defcustom tooltip-recent-seconds 1
   "Display tooltips if changing tip items within this many seconds.
@@ -68,13 +64,11 @@ Do so after `tooltip-short-delay'."
   :type 'number
   :group 'tooltip)
 
-
 (defcustom tooltip-hide-delay 10
   "Hide tooltips automatically after this many seconds."
   :tag "Hide delay"
   :type 'number
   :group 'tooltip)
-
 
 (defcustom tooltip-x-offset nil
   "X offset, in pixels, for the display of tooltips.
@@ -90,7 +84,6 @@ the value of `tooltip-x-offset' is ignored."
 		 (integer :tag "Offset" :value 1))
   :group 'tooltip)
 
-
 (defcustom tooltip-y-offset nil
   "Y offset, in pixels, for the display of tooltips.
 The offset is relative to the position of the mouse.  It must
@@ -105,7 +98,6 @@ the value of `tooltip-y-offset' is ignored."
 		 (integer :tag "Offset" :value 1))
   :group 'tooltip)
 
-
 (defcustom tooltip-frame-parameters
   '((name . "tooltip")
     (internal-border-width . 5)
@@ -118,14 +110,12 @@ position to pop up the tooltip."
   :tag "Frame Parameters"
   :group 'tooltip)
 
-
 (defface tooltip
   '((((class color))
      (:background "lightyellow" :foreground "black"))
     (t ()))
   "Face for tooltips."
   :group 'tooltip)
-
 
 (defcustom tooltip-gud-tips-p nil
   "*Non-nil means show tooltips in GUD sessions.
@@ -138,13 +128,11 @@ or use the function `tooltip-gud-tips-activate'."
 	   (setq tooltip-gud-tips-p on))
   :group 'tooltip)
 
-
 (defcustom tooltip-gud-modes '(gud-mode c-mode c++-mode)
   "List of modes for which to enable GUD tips."
   :type 'sexp
   :tag "GUD modes"
   :group 'tooltip)
-
 
 (defcustom tooltip-gud-display
   '((eq (tooltip-event-buffer tooltip-gud-event)
@@ -156,7 +144,6 @@ only tooltips in the buffer containing the overlay arrow."
   :type 'sexp
   :tag "GUD buffers predicate"
   :group 'tooltip)
-
 
 (defcustom tooltip-use-echo-area nil
   "Use the echo area instead of tooltip frames.
@@ -174,18 +161,14 @@ turning off Tooltip mode."
 Each function is called with one argument EVENT which is a copy of
 the last mouse movement event that occurred.")
 
-
 (defvar tooltip-timeout-id nil
   "The id of the timeout started when Emacs becomes idle.")
-
 
 (defvar tooltip-last-mouse-motion-event nil
   "A copy of the last mouse motion event seen.")
 
-
 (defvar tooltip-hide-time nil
   "Time when the last tooltip was hidden.")
-
 
 
 ;;; Event accessors
@@ -195,7 +178,6 @@ the last mouse movement event that occurred.")
 This might return nil if the event did not occur over a buffer."
   (let ((window (posn-window (event-end event))))
     (and window (window-buffer window))))
-
 
 
 ;;; Switching tooltips on/off
@@ -228,7 +210,6 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
     (define-key global-map [mouse-movement]
       (if on 'tooltip-mouse-motion 'ignore))))
 
-
 
 ;;; Timeout for tooltip display
 
@@ -241,25 +222,21 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
       (setq delay tooltip-short-delay))
     delay))
 
-
 (defun tooltip-cancel-delayed-tip ()
   "Disable the tooltip timeout."
   (when tooltip-timeout-id
     (disable-timeout tooltip-timeout-id)
     (setq tooltip-timeout-id nil)))
 
-
 (defun tooltip-start-delayed-tip ()
   "Add a one-shot timeout to call function tooltip-timeout."
   (setq tooltip-timeout-id
 	(add-timeout (tooltip-delay) 'tooltip-timeout nil)))
 
-
 (defun tooltip-timeout (object)
   "Function called when timer with id tooltip-timeout-id fires."
   (run-hook-with-args-until-success 'tooltip-hook
 				    tooltip-last-mouse-motion-event))
-
 
 
 ;;; Reacting on mouse movements
@@ -267,7 +244,6 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
 (defun tooltip-change-major-mode ()
   "Function added to `change-major-mode-hook' when tooltip mode is on."
   (add-hook 'post-command-hook 'tooltip-activate-mouse-motions-if-enabled))
-
 
 (defun tooltip-activate-mouse-motions-if-enabled ()
   "Reconsider for all buffers whether mouse motion events are desired."
@@ -307,7 +283,6 @@ ACTIVATEP non-nil means activate mouse motion events."
     (setq tooltip-last-mouse-motion-event (copy-sequence event))
     (tooltip-start-delayed-tip)))
 
-
 
 ;;; Displaying tips
 
@@ -320,7 +295,6 @@ change the existing association.  Value is the resulting alist."
 	(setcdr param value)
       (push (cons key value) alist))
     alist))
-
 
 (defun tooltip-show (text)
   "Show a tooltip window displaying TEXT.
@@ -354,14 +328,12 @@ position."
        (sit-for 1)
        (message "%s" text)))))
 
-
 (defun tooltip-hide (&optional ignored-arg)
   "Hide a tooltip, if one is displayed.
 Value is non-nil if tooltip was open."
   (tooltip-cancel-delayed-tip)
   (when (x-hide-tip)
     (setq tooltip-hide-time (float-time))))
-
 
 
 ;;; Debugger-related functions
@@ -378,13 +350,11 @@ is based on the current syntax table."
 	(when (> (point) start)
 	  (buffer-substring start (point)))))))
 
-
 (defmacro tooltip-region-active-p ()
   "Value is non-nil if the region is currently active."
   (if (string-match "^GNU" (emacs-version))
       `(and transient-mark-mode mark-active)
     `(region-active-p)))
-
 
 (defun tooltip-expr-to-print (event)
   "Return an expression that should be printed for EVENT.
@@ -398,7 +368,6 @@ where the mouse is."
 	  (when (and (<= (region-beginning) point) (<= point (region-end)))
 	    (buffer-substring (region-beginning) (region-end)))
 	(tooltip-identifier-from-point point)))))
-
 
 (defun tooltip-process-prompt-regexp (process)
   "Return regexp matching the prompt of PROCESS at the end of a string.
@@ -414,7 +383,6 @@ of PROCESS."
       (setq prompt-regexp "\\*"))
     (concat "\n*" prompt-regexp "$")))
 
-
 (defun tooltip-strip-prompt (process output)
   "Return OUTPUT with any prompt of PROCESS stripped from its end."
   (let ((prompt-regexp (tooltip-process-prompt-regexp process)))
@@ -423,23 +391,19 @@ of PROCESS."
 	(setq output (substring output 0 (match-beginning 0)))))
     output))
 
-
 
 ;;; Tips for `gud'
 
 (defvar tooltip-gud-original-filter nil
   "Process filter to restore after GUD output has been received.")
 
-
 (defvar tooltip-gud-dereference nil
   "Non-nil means print expressions with a `*' in front of them.
 For C this would dereference a pointer expression.")
 
-
 (defvar tooltip-gud-event nil
   "The mouse movement event that led to a tooltip display.
 This event can be examined by forms in TOOLTIP-GUD-DISPLAY.")
-
 
 (defun tooltip-gud-toggle-dereference ()
   "Toggle whether tooltips should show `* expr' or `expr'."
@@ -449,12 +413,41 @@ This event can be examined by forms in TOOLTIP-GUD-DISPLAY.")
     (message "Dereferencing is now %s."
 	     (if tooltip-gud-dereference "on" "off"))))
 
-
+; This will only display data that comes in one chunk. 
+; The prompt is lost in first chunk so needn't be stripped. 
+; Larger arrays (say 400 elements) are displayed in
+; the tootip incompletely (only the last chunk is displayed
+; with the rest going to the gud buffer).
+; Switching the process-filter creates timing problems and
+; it may be difficult to do better.
 (defun tooltip-gud-process-output (process output)
   "Process debugger output and show it in a tooltip window."
   (set-process-filter process tooltip-gud-original-filter)
-  (tooltip-show (tooltip-strip-prompt process output)))
+  (case gud-minor-mode
+    (gdba (tooltip-show (tooltip-strip-annotations output)))
+    (t (tooltip-show (tooltip-strip-prompt process output)))))
 
+; this is derived from gdb-output-burst in gdb-ui.el. It
+; also only processes data that comes in one chunk properly.
+(defun tooltip-strip-annotations (string)
+  "Strip annotations from the output of the gdb process."
+  (save-match-data
+    (let ((output ""))
+
+      ;; Process all the complete markers in this chunk.
+      (while (string-match "\n\032\032\\(.*\\)\n" string)
+
+	;; Stuff prior to the match is just ordinary output.
+	;; It is either concatenated to OUTPUT or directed
+	;; elsewhere.
+	(setq output
+	      (gdb-concat-output 
+	       output
+	       (substring string 0 (match-beginning 0))))
+
+	;; Take that stuff off the string.
+	(setq string (substring string (match-end 0))))
+      output)))
 
 (defun tooltip-gud-print-command (expr)
   "Return a suitable command to print the expression EXPR.
@@ -467,7 +460,6 @@ If TOOLTIP-GUD-DEREFERENCE is t, also prepend a `*' to EXPR."
     (xdb (concat "p " expr))
     (sdb (concat expr "/"))
     (perldb expr)))
-
 
 (defun tooltip-gud-tips (event)
   "Show tip for identifier or selection under the mouse.
@@ -500,7 +492,6 @@ This function must return nil if it doesn't handle EVENT."
 (defvar tooltip-help-message nil
   "The last help message received via `tooltip-show-help-function'.")
 
-
 (defun tooltip-show-help-function (msg)
   "Function installed as `show-help-function'.
 MSG is either a help string to display, or nil to cancel the display."
@@ -520,7 +511,6 @@ MSG is either a help string to display, or nil to cancel the display."
 	   (tooltip-hide)
 	   (tooltip-start-delayed-tip)))))
 
-
 (defun tooltip-help-tips (event)
   "Hook function to display a help tooltip.
 This is installed on the hook `tooltip-hook', which is run when
@@ -529,7 +519,6 @@ Value is non-nil if this function handled the tip."
   (when (stringp tooltip-help-message)
     (tooltip-show tooltip-help-message)
     t))
-
 
 
 ;;; Do this after all functions have been defined that are called from
@@ -548,5 +537,6 @@ use either \\[customize] or the function `tooltip-mode'."
   :require 'tooltip
   :group 'tooltip)
 
+(provide 'tooltip)
 
 ;;; tooltip.el ends here
