@@ -268,6 +268,30 @@ interval_has_some_properties (plist, i)
 
   return 0;
 }
+
+/* Return nonzero if the plist of interval I has any of the
+   property names in LIST, regardless of their values.  */
+
+static INLINE int
+interval_has_some_properties_list (list, i)
+     Lisp_Object list;
+     INTERVAL i;
+{
+  register Lisp_Object tail1, tail2, sym;
+
+  /* Go through each element of LIST.  */
+  for (tail1 = list; ! NILP (tail1); tail1 = XCDR (tail1))
+    {
+      sym = Fcar (tail1);
+
+      /* Go through i's plist, looking for tail1 */
+      for (tail2 = i->plist; ! NILP (tail2); tail2 = XCDR (XCDR (tail2)))
+	if (EQ (sym, XCAR (tail2)))
+	  return 1;
+    }
+
+  return 0;
+}
 
 /* Changing the plists of individual intervals.  */
 
@@ -414,58 +438,70 @@ add_properties (plist, i, object)
   return changed;
 }
 
-/* For any members of PLIST which are properties of I, remove them
-   from I's plist.
+/* For any members of PLIST, or LIST,
+   which are properties of I, remove them from I's plist.
+   (If PLIST is non-nil, use that, otherwise use LIST.)
    OBJECT is the string or buffer containing I.  */
 
 static int
-remove_properties (plist, i, object)
-     Lisp_Object plist;
+remove_properties (plist, list, i, object)
+     Lisp_Object plist, list;
      INTERVAL i;
      Lisp_Object object;
 {
   register Lisp_Object tail1, tail2, sym, current_plist;
   register int changed = 0;
 
-  current_plist = i->plist;
-  /* Go through each element of plist.  */
-  for (tail1 = plist; ! NILP (tail1); tail1 = Fcdr (Fcdr (tail1)))
-    {
-      sym = Fcar (tail1);
+  /* Nonzero means tail1 is a list, otherwise it is a plist.  */
+  int use_list;
 
-      /* First, remove the symbol if its at the head of the list */
-      while (! NILP (current_plist) && EQ (sym, Fcar (current_plist)))
+  current_plist = i->plist;
+
+  if (! NILP (plist))
+    tail1 = plist, use_list = 0;
+  else
+    tail1 = list, use_list = 1;
+
+  /* Go through each element of LIST or PLIST.  */
+  while (! NILP (tail1))
+    {
+      sym = XCAR (tail1);
+
+      /* First, remove the symbol if it's at the head of the list */
+      while (! NILP (current_plist) && EQ (sym, XCAR (current_plist)))
 	{
 	  if (BUFFERP (object))
-	    {
-	      record_property_change (i->position, LENGTH (i),
-				      sym, Fcar (Fcdr (current_plist)),
-				      object);
-	    }
+	    record_property_change (i->position, LENGTH (i),
+				    sym, XCAR (XCDR (current_plist)),
+				    object);
 
-	  current_plist = Fcdr (Fcdr (current_plist));
+	  current_plist = XCDR (XCDR (current_plist));
 	  changed++;
 	}
 
-      /* Go through i's plist, looking for sym */
+      /* Go through I's plist, looking for SYM.  */
       tail2 = current_plist;
       while (! NILP (tail2))
 	{
 	  register Lisp_Object this;
-	  this = Fcdr (Fcdr (tail2));
-	  if (EQ (sym, Fcar (this)))
+	  this = XCDR (XCDR (tail2));
+	  if (EQ (sym, XCAR (this)))
 	    {
 	      if (BUFFERP (object))
-		{
-		  record_property_change (i->position, LENGTH (i),
-					  sym, Fcar (Fcdr (this)), object);
-		}
+		record_property_change (i->position, LENGTH (i),
+					sym, XCAR (XCDR (this)), object);
 
-	      Fsetcdr (Fcdr (tail2), Fcdr (Fcdr (this)));
+	      Fsetcdr (XCDR (tail2), XCDR (XCDR (this)));
 	      changed++;
 	    }
 	  tail2 = this;
 	}
+
+      /* Advance thru TAIL1 one way or the other.  */
+      if (use_list)
+	tail1 = XCDR (tail1);
+      else
+	tail1 = XCDR (XCDR (tail1));
     }
 
   if (changed)
@@ -1459,7 +1495,7 @@ Return t if any property was actually removed, nil otherwise.  */)
 
 	  if (LENGTH (i) == len)
 	    {
-	      remove_properties (properties, i, object);
+	      remove_properties (properties, Qnil, i, object);
 	      if (BUFFERP (object))
 		signal_after_change (XINT (start), XINT (end) - XINT (start),
 				     XINT (end) - XINT (start));
@@ -1470,7 +1506,7 @@ Return t if any property was actually removed, nil otherwise.  */)
 	  unchanged = i;
 	  i = split_interval_left (i, len);
 	  copy_properties (unchanged, i);
-	  remove_properties (properties, i, object);
+	  remove_properties (properties, Qnil, i, object);
 	  if (BUFFERP (object))
 	    signal_after_change (XINT (start), XINT (end) - XINT (start),
 				 XINT (end) - XINT (start));
@@ -1478,7 +1514,94 @@ Return t if any property was actually removed, nil otherwise.  */)
 	}
 
       len -= LENGTH (i);
-      modified += remove_properties (properties, i, object);
+      modified += remove_properties (properties, Qnil, i, object);
+      i = next_interval (i);
+    }
+}
+
+DEFUN ("remove-list-of-text-properties", Fremove_list_of_text_properties,
+       Sremove_list_of_text_properties, 3, 4, 0,
+       doc: /* Remove some properties from text from START to END.
+The third argument LIST-OF-PROPERTIES is a list of property names to remove.
+The optional fourth argument, OBJECT,
+is the string or buffer containing the text, defaulting to the current buffer.
+Return t if any property was actually removed, nil otherwise.  */)
+     (start, end, list_of_properties, object)
+     Lisp_Object start, end, list_of_properties, object;
+{
+  register INTERVAL i, unchanged;
+  register int s, len, modified = 0;
+  Lisp_Object properties;
+  properties = list_of_properties;
+
+  if (NILP (object))
+    XSETBUFFER (object, current_buffer);
+
+  i = validate_interval_range (object, &start, &end, soft);
+  if (NULL_INTERVAL_P (i))
+    return Qnil;
+
+  s = XINT (start);
+  len = XINT (end) - s;
+
+  if (i->position != s)
+    {
+      /* No properties on this first interval -- return if
+         it covers the entire region.  */
+      if (! interval_has_some_properties_list (properties, i))
+	{
+	  int got = (LENGTH (i) - (s - i->position));
+	  if (got >= len)
+	    return Qnil;
+	  len -= got;
+	  i = next_interval (i);
+	}
+      /* Split away the beginning of this interval; what we don't
+	 want to modify.  */
+      else
+	{
+	  unchanged = i;
+	  i = split_interval_right (unchanged, s - unchanged->position);
+	  copy_properties (unchanged, i);
+	}
+    }
+
+  if (BUFFERP (object))
+    modify_region (XBUFFER (object), XINT (start), XINT (end));
+
+  /* We are at the beginning of an interval, with len to scan */
+  for (;;)
+    {
+      if (i == 0)
+	abort ();
+
+      if (LENGTH (i) >= len)
+	{
+	  if (! interval_has_some_properties_list (properties, i))
+	    return modified ? Qt : Qnil;
+
+	  if (LENGTH (i) == len)
+	    {
+	      remove_properties (Qnil, properties, i, object);
+	      if (BUFFERP (object))
+		signal_after_change (XINT (start), XINT (end) - XINT (start),
+				     XINT (end) - XINT (start));
+	      return Qt;
+	    }
+
+	  /* i has the properties, and goes past the change limit */
+	  unchanged = i;
+	  i = split_interval_left (i, len);
+	  copy_properties (unchanged, i);
+	  remove_properties (Qnil, properties, i, object);
+	  if (BUFFERP (object))
+	    signal_after_change (XINT (start), XINT (end) - XINT (start),
+				 XINT (end) - XINT (start));
+	  return Qt;
+	}
+
+      len -= LENGTH (i);
+      modified += remove_properties (Qnil, properties, i, object);
       i = next_interval (i);
     }
 }
@@ -2132,6 +2255,7 @@ rear-nonsticky properties of the character overrides NONSTICKINESS.  */);
   defsubr (&Sput_text_property);
   defsubr (&Sset_text_properties);
   defsubr (&Sremove_text_properties);
+  defsubr (&Sremove_list_of_text_properties);
   defsubr (&Stext_property_any);
   defsubr (&Stext_property_not_all);
 /*  defsubr (&Serase_text_properties); */
