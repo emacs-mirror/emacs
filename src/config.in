@@ -53,10 +53,10 @@ and this notice must be preserved on all copies.  */
 /* Define this if you're using XFree386.  */
 #undef HAVE_XFREE386
 
-/* Define HAVE_X_MENU if you want to use the X window menu system.
-   This appears to work on some machines that support X
-   and not on others.  */
-#undef HAVE_X_MENU
+/* Define HAVE_MENUS if you have mouse menus.
+   (This is automatic if you use X, but the option to specify it remains.)
+   It is also defined with other window systems that support xmenu.c.  */
+#undef HAVE_MENUS
 
 /* Define if we have the X11R6 or newer version of Xt.  */
 #undef HAVE_X11XTR6
