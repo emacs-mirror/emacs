@@ -463,8 +463,8 @@
    coding-category-sjis 
    coding-category-big5
    coding-category-ccl
-   coding-category-utf-8
    coding-category-binary
+   coding-category-utf-8
    coding-category-utf-16-be
    coding-category-utf-16-le))
 
