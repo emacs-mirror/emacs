@@ -475,7 +475,7 @@ run_composition_function (from, to, prop)
 
 void
 update_compositions (from, to, check_mask)
-     int from, to;
+     int from, to, check_mask;
 {
   Lisp_Object prop;
   int start, end;
