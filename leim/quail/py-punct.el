@@ -34,10 +34,10 @@
  t
  "汉字输入 拼音方案 and `v' for 标点符号输入
 
-This is the combination of Quail packages \"chinese-py\" and \"chinese-punct\".
-You can enter normal Chinese characters by the same way as \"chinese-py\".
+This is the combination of the input methods `chinese-py' and `chinese-punct'.
+You can enter normal Chinese characters by the same way as `chinese-py'.
 And, you can enter symbols by typing `v' followed by any key sequences
-defined in \"chinese-punct\".
+defined in `chinese-punct'.
 
 For instance, typing `v' and `%' insert `％'.
 ")
@@ -46,3 +46,22 @@ For instance, typing `v' and `%' insert `％'.
 	(nth 2 (assoc "chinese-py" quail-package-alist)))
 
 (quail-defrule "v" (nth 2 (assoc "chinese-punct" quail-package-alist)))
+
+(load "quail/TONEPY")
+
+(quail-define-package
+ "chinese-tonepy-punct" "Chinese-GB" "拼符"
+ t
+ "汉字输入 带调拼音方案 and `v' for 标点符号输入
+
+This is the combination of the input methods `chinese-tonepy' and
+`chinese-punct'.
+
+You can enter normal Chinese characters by the same way as
+`chinese-tonepy'.  And, you can enter symbols by typing `v' followed
+by any key sequences defined in `chinese-punct'.
+
+For instance, typing `v' and `%' insert `％'.
+")
+
+(quail-defrule "v" (nth 2 (assoc "chinese-punct-b5" quail-package-alist)))
