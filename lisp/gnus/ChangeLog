@@ -31,7 +31,6 @@
 	(rfc2047-encode): Use longer chunks for base64.
 	(rfc2047-fold-region): Insert single characters, not strings.
 	(rfc2047-encoded-word-regexp): Wrap in eval-and-compile.
-	(rfc2047-decode-region): Avoid consing regexp in loop.
 
 	* gnus-sum.el (gnus-summary-mode, gnus-summary-display-article)
 	(gnus-summary-select-article, gnus-summary-edit-article): Use
