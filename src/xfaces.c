@@ -975,7 +975,7 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
     error ("Face id out of range");
 
   if (! FRAME_X_P (f))
-    return;
+    return Qnil;
 
   ensure_face_ready (f, id);
   face = FRAME_PARAM_FACES (f) [XFASTINT (face_id)];
