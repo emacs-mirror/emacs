@@ -32,8 +32,7 @@
 
 (eval-when-compile
   (autoload 'widget-convert "wid-edit")
-  (autoload 'shell-mode "shell")
-  (require 'cl))
+  (autoload 'shell-mode "shell"))
 
 
 (defgroup killing nil
