@@ -3311,8 +3311,7 @@ Use %% to put a single % into the output.")
 	  if (STRINGP (args[n]))
 	    {
 	      int padding, nbytes;
-	      int width = strwidth (XSTRING (args[n])->data,
-				    STRING_BYTES (XSTRING (args[n])));
+	      int width = lisp_string_width (args[n], -1, NULL, NULL);
 	      int start = nchars;
 
 	      /* If spec requires it, pad on right with spaces.  */
