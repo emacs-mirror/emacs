@@ -36,7 +36,7 @@ clarity; also, for a fighting chance that your binding may be useful to someone
 else someday.
 
    For example, if your terminal has a `find' key, observe that terminfo
-supports a key_find capability and call your cookie [key-find].
+supports a key_find capability and call your cookie [find].
 
 Here is a complete list, with corresponding X keysyms.
 
