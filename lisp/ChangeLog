@@ -1,3 +1,10 @@
+2003-02-06  John Paul Wallington  <jpw@gnu.org>
+
+	* mail/rmailsum.el (rmail-summary-previous-msg): Add docstring.
+	(rmail-summary-line-count-flag, rmail-summary-previous-labeled-message)
+	(rmail-summary-next-labeled-message, rmail-summary-resend)
+	(rmail-summary-override-mail-send-and-exit): Doc fixes.
+
 2003-02-06  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* language/european.el ("Italian"): New.
