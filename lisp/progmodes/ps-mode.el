@@ -5,7 +5,7 @@
 ;; Author:     Peter Kleiweg <kleiweg@let.rug.nl>
 ;; Maintainer: Peter Kleiweg <kleiweg@let.rug.nl>
 ;; Created:    20 Aug 1997
-;; Version:    1.1c, 5 Nov 1999
+;; Version:    1.1d, 9 Nov 1999
 ;; Keywords:   PostScript, languages
 
 ;; This file is part of GNU Emacs.
@@ -30,7 +30,8 @@
 
 ;;; Code:
 
-(defconst ps-mode-version "1.1c, 5 Nov 1999")
+(defconst ps-mode-version "1.1d, 9 Nov 1999")
+(defconst ps-mode-maintainer-address "Peter Kleiweg <kleiweg@let.rug.nl>")
 
 (require 'easymenu)
 
@@ -394,6 +395,10 @@ If nil, the following are tried in turn, until success:
     "---"
     ["Customize for PostScript"
      (customize-group "PostScript")
+     t]
+    "---"
+    ["Submit Bug Report"
+     ps-mode-submit-bug-report
      t]))
 
 
@@ -534,6 +539,16 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
   "Show current version of PostScript mode"
   (interactive)
   (message " *** PostScript Mode (ps-mode) Version %s *** " ps-mode-version))
+
+(defun ps-mode-submit-bug-report ()
+  "Submit via mail a bug report on PostScript mode"
+  (interactive)
+  (when (y-or-n-p "Submit bug report on PostScript mode? ")  
+    (let ((reporter-prompt-for-summary-p nil))
+      (reporter-submit-bug-report
+       ps-mode-maintainer-address
+       (concat "ps-mode.el " ps-mode-version)
+       nil))))
 
 
 ;; Helper functions for font-lock.
