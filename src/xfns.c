@@ -1373,8 +1373,7 @@ x_set_foreground_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  unsigned long pixel
-    = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+  unsigned long pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
 
   unload_color (f, f->output_data.x->foreground_pixel);
   f->output_data.x->foreground_pixel = pixel;
@@ -1398,8 +1397,7 @@ x_set_background_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  unsigned long pixel
-    = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
+  unsigned long pixel = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
 
   unload_color (f, f->output_data.x->background_pixel);
   f->output_data.x->background_pixel = pixel;
@@ -1447,7 +1445,10 @@ x_set_mouse_color (f, arg, oldval)
   /* Don't let pointers be invisible.  */
   if (mask_color == pixel
       && mask_color == f->output_data.x->background_pixel)
-    pixel = f->output_data.x->foreground_pixel;
+    {
+      x_free_colors (f, &pixel, 1);
+      pixel = x_copy_color (f, f->output_data.x->foreground_pixel);
+    }
 
   unload_color (f, f->output_data.x->mouse_pixel);
   f->output_data.x->mouse_pixel = pixel;
