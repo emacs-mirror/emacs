@@ -82,6 +82,7 @@ static unsigned char *read_bytecode_pointer;
 
 int
 read_bytecode_char (unreadflag)
+     int unreadflag;
 {
   if (unreadflag)
     {
