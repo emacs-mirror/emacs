@@ -1,6 +1,6 @@
 /* impl.c.cbs: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
- * $HopeName: MMsrc!cbs.c(trunk.12) $
+ * $HopeName: MMsrc!cbs.c(trunk.13) $
  * Copyright (C) 1998 Harlequin Group plc, all rights reserved.
  *
  * .readership: Any MPS developer.
@@ -18,10 +18,8 @@
 #include "mpm.h"
 
 
-SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.12) $");
+SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.13) $");
 
-typedef void **CBSEmergencyBlock; /* next, limit */
-typedef void **CBSEmergencyGrain; /* next */
 
 /* See design.mps.cbs.align */
 #define CBSMinimumAlignment ((Align)sizeof(void *))
