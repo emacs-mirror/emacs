@@ -920,7 +920,7 @@ of a global face.  Value is the new attribute value."
   "Read the name of a font for FACE on FRAME.
 If optional argument FRAME Is nil or omitted, use the selected frame."
   (let ((completion-ignore-case t))
-    (completing-read (format "Set font attributes of face %s from font: " face)
+    (completing-read (format "Set font attributes of face `%s' from font: " face)
 		     (mapcar 'list (x-list-fonts "*" nil frame)))))
 
 
@@ -952,7 +952,7 @@ FRAME nil or unspecified means read attribute value of global face.
 Value is a list (FACE NEW-VALUE) where FACE is the face read
 (a symbol), and NEW-VALUE is value read."
   (cond ((eq attribute :font)
-	 (let* ((prompt (format "Set font-related attributes of face "))
+	 (let* ((prompt "Set font-related attributes of face")
 		(face (read-face-name prompt))
 		(font (read-face-font face frame)))
 	   (list face font)))
