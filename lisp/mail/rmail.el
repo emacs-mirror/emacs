@@ -1856,6 +1856,15 @@ typically for purposes of moderating a list."
 	  (set-buffer tembuf)
 	  (insert-buffer-substring mailbuf)
 	  (goto-char (point-min))
+	  ;; Delete any Sender field, since that's not specifyable.
+	  (if (re-search-forward "^Sender:" nil t)
+	      (let (beg)
+		(beginning-of-line)
+		(setq beg (point))
+		(forward-line 1)
+		(while (looking-at "[ \t]")
+		  (forward-line 1))
+		(delete-region beg (point))))
 	  ;;>> Insert resent-from:
 	  (insert "Resent-From: " from "\n")
 	  (insert "Resent-Date: " (mail-rfc822-date) "\n")
