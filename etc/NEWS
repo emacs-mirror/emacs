@@ -2543,8 +2543,10 @@ Reference manual for more detailed documentation.
 ** The new mode-line construct `(:propertize ELT PROPS...)' can be
 used to add text properties to mode-line elements.
 
-** Mode line display ignores text properties in the value
-of a variable whose `risky-local-variables' property is nil.
++++
+** Mode line display ignores text properties as well as the
+:propertize and :eval forms in the value of a variable whose
+`risky-local-variable' property is nil.
 
 +++
 ** The new `%i' and `%I' constructs for `mode-line-format' can be used

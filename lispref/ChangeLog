@@ -1,3 +1,10 @@
+2003-09-29  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* modes.texi (Mode Line Data): Explain when symbols in mode-line
+	constructs should be marked as risky.  
+	Change cons cell into proper list.
+	(Mode Line Variables): Change cons cell into proper list.
+
 2003-09-26  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* modes.texi (Mode Line Data): Document the :propertize construct.
