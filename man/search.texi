@@ -632,12 +632,12 @@ If a particular @samp{\( @dots{} \)} construct matches more than once
 match is recorded.
 
 @item \`
-matches the empty string, but only at the beginning
-of the buffer or string being matched against.
+matches the empty string, but only at the beginning of the string or
+buffer (or its accessible portion) being matched against.
 
 @item \'
-matches the empty string, but only at the end of
-the buffer or string being matched against.
+matches the empty string, but only at the end of the string or buffer
+(or its accessible portion) being matched against.
 
 @item \=
 matches the empty string, but only at point.
