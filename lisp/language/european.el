@@ -232,4 +232,24 @@ This language environment is almost the same as Latin-1,
 but default input method is set to \"german-postfix\"."))
  '("European"))
 
+(defun setup-slovenian-environment ()
+  "Setup multilingual environment (MULE) for Slovenian."
+  (interactive)
+  (set-language-environment "Slovenian"))
+
+(set-language-info-alist
+ "Slovenian" '((charset . (ascii latin-iso8859-2))
+	      (coding-system . (iso-8859-2))
+	      (coding-priority . (iso-8859-2))
+	      (nonascii-translation . latin-iso8859-2)
+	      (input-method . "latin-2-postfix")
+	      (unibyte-syntax . "latin-2")
+	      (unibyte-display . iso-8859-2)
+	      (tutorial . "TUTORIAL.sl")
+	      (sample-text . ",B.(Belimo vam uspe,B9(Ben dan!")
+	      (documentation . t))
+ '("European"))
+
+(provide 'slovenian)
+
 ;;; european.el ends here
