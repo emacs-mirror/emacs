@@ -215,11 +215,7 @@ to its second argument."
   (when (timerp midnight-timer) (cancel-timer midnight-timer))
   (setq midnight-timer
         (run-at-time (if (numberp tm) (+ (midnight-next) tm) tm)
-                     midnight-period 'midnight-timer-function)))
-
-(defun midnight-timer-function ()
-  "This is the function run by the `midnight-mode' timer once each day."
-  (run-hooks 'midnight-hook))
+                     midnight-period 'run-hooks 'midnight-hook)))
 
 (defcustom midnight-delay 3600
   "*The number of seconds after the midnight when the `midnight-timer' is run.
