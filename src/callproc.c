@@ -285,7 +285,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	if (!NILP (Vcoding_system_for_read))
 	  val = Vcoding_system_for_read;
 	else if (NILP (current_buffer->enable_multibyte_characters))
-	  val = Qemacs_mule;
+	  val = Qraw_text;
 	else
 	  {
 	    if (!EQ (coding_systems, Qt))
@@ -447,16 +447,16 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	      int size = encoding_buffer_size (&argument_coding,
 					       XSTRING (args[i])->size_byte);
 	      unsigned char *dummy1 = (unsigned char *) alloca (size);
-	      int produced, dummy;
+	      int dummy;
 
 	      /* The Irix 4.0 compiler barfs if we eliminate dummy.  */
 	      new_argv[i - 3] = dummy1;
-	      produced = encode_coding (&argument_coding,
-					XSTRING (args[i])->data,
-					new_argv[i - 3],
-					XSTRING (args[i])->size_byte,
-					size, &dummy);
-	      new_argv[i - 3][produced] = 0;
+	      encode_coding (&argument_coding,
+			     XSTRING (args[i])->data,
+			     new_argv[i - 3],
+			     XSTRING (args[i])->size_byte,
+			     size);
+	      new_argv[i - 3][argument_coding.produced] = 0;
 	    }
 	  UNGCPRO;
 	}
@@ -666,6 +666,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     register int nread;
     int first = 1;
     int total_read = 0;
+    int carryover = 0;
 
     while (1)
       {
@@ -673,11 +674,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	   of the buffer size we have.  But don't read
 	   less than 1024--save that for the next bufferful.  */
 
-	nread = process_coding.carryover_size; /* This value is initially 0. */
+	nread = carryover;
 	while (nread < bufsize - 1024)
 	  {
-	    int this_read
-	      = read (fd[0], bufptr + nread, bufsize - nread);
+	    int this_read = read (fd[0], bufptr + nread, bufsize - nread);
 
 	    if (this_read < 0)
 	      goto give_up;
@@ -691,13 +691,13 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       give_up_1:
 
 	/* Now NREAD is the total amount of data in the buffer.  */
-	if (nread == 0)
+	if (nread == carryover)
 	  /* Here, just tell decode_coding that we are processing the
              last block.  We break the loop after decoding.  */
-	  process_coding.last_block = 1;
+	  process_coding.mode |= CODING_MODE_LAST_BLOCK;
 
 	immediate_quit = 0;
-	total_read += nread;
+	total_read += nread - carryover;
 	
 	if (!NILP (buffer))
 	  {
@@ -705,19 +705,32 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	      insert (bufptr, nread);
 	    else
 	      {			/* We have to decode the input.  */
-		int size = decoding_buffer_size (&process_coding, bufsize);
+		int size = decoding_buffer_size (&process_coding, nread);
 		char *decoding_buf = get_conversion_buffer (size);
-		int dummy;
 
-		nread = decode_coding (&process_coding, bufptr, decoding_buf,
-				       nread, size, &dummy);
-		if (nread > 0)
-		  insert (decoding_buf, nread);
+		decode_coding (&process_coding, bufptr, decoding_buf,
+			       nread, size);
+		if (process_coding.produced > 0)
+		  insert (decoding_buf, process_coding.produced);
+		carryover = process_coding.produced - process_coding.consumed;
+		if (carryover > 0)
+		  {
+		    /* As CARRYOVER should not be that large, we had
+		       better avoid overhead of bcopy.  */
+		    char *p = bufptr + process_coding.consumed;
+		    char *pend = p + carryover;
+		    char *dst = bufptr;
+
+		    while (p < pend) *dst++ = *p++;
+		  }
 	      }
 	  }
-
-	if (process_coding.last_block)
-	  break;
+	if (process_coding.mode & CODING_MODE_LAST_BLOCK)
+	  {
+	    if (carryover > 0)
+	      insert (bufptr, carryover);
+	    break;
+	  }
 
 	/* Make the buffer bigger as we continue to read more data,
 	   but not past 64k.  */
@@ -726,12 +739,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	    bufsize *= 2;
 	    bufptr = (char *) alloca (bufsize);
 	  }
-
-	if (!NILP (buffer) && process_coding.carryover_size > 0)
-	  /* We have carryover in the last decoding.  It should be
-             processed again after reading more data.  */
-	  bcopy (process_coding.carryover, bufptr,
-		 process_coding.carryover_size);
 
 	if (!NILP (display) && INTERACTIVE)
 	  {
