@@ -264,16 +264,6 @@ DEFUN ("exp", Fexp, Sexp, 1, 1, 0,
   return make_float (d);
 }
 
-DEFUN ("expm1", Fexpm1, Sexpm1, 1, 1, 0,
-  "Return the exp (x)-1 of ARG.")
-  (num)
-     register Lisp_Object num;
-{
-  double d = extract_float (num);
-  IN_FLOAT (d = expm1 (d), num);
-  return make_float (d);
-}
-
 DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
   "Return the exponential X ** Y.")
   (num1, num2)
@@ -310,13 +300,22 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
   return make_float (f1);
 }
 
-DEFUN ("log", Flog, Slog, 1, 1, 0,
-  "Return the natural logarithm of ARG.")
-  (num)
+DEFUN ("log", Flog, Slog, 1, 2, 0,
+  "Return the natural logarithm of NUM.
+If second optional argument BASE is given, return log NUM using that base.")
+  (num, base)
      register Lisp_Object num;
 {
   double d = extract_float (num);
-  IN_FLOAT (d = log (d), num);
+
+  if (NILP (base))
+    IN_FLOAT (d = log (d), num);
+  else
+    {
+      double b = extract_float (base);
+
+      IN_FLOAT (d = log (num) / log (b), num);
+    }
   return make_float (d);
 }
 
@@ -327,16 +326,6 @@ DEFUN ("log10", Flog10, Slog10, 1, 1, 0,
 {
   double d = extract_float (num);
   IN_FLOAT (d = log10 (d), num);
-  return make_float (d);
-}
-
-DEFUN ("log1p", Flog1p, Slog1p, 1, 1, 0,
-  "Return the log (1+x) of ARG.")
-  (num)
-     register Lisp_Object num;
-{
-  double d = extract_float (num);
-  IN_FLOAT (d = log1p (d), num);
   return make_float (d);
 }
 
@@ -447,14 +436,17 @@ This is the same as the exponent of a float.")
      (num)
 Lisp_Object num;
 {
+#ifdef USG
+  /* System V apparently doesn't have a `logb' function.  */
+  return Flog (num, make_number (2));
+#else
   Lisp_Object val;
-  double f;
+  double f = extract_float (num);
 
-  CHECK_NUMBER_OR_FLOAT (num, 0);
-  f = (XTYPE (num) == Lisp_Float) ? XFLOAT (num)->data : XINT (num);
   IN_FLOAT (val = logb (f), num);
   XSET (val, Lisp_Int, val);
   return val;
+#endif
 }
 
 /* the rounding functions  */
@@ -493,7 +485,14 @@ DEFUN ("round", Fround, Sround, 1, 1, 0,
   CHECK_NUMBER_OR_FLOAT (num, 0);
 
   if (XTYPE (num) == Lisp_Float)
-    IN_FLOAT (XSET (num, Lisp_Int, rint (XFLOAT (num)->data)), num);
+    {
+#ifdef USG
+      /* Screw the prevailing rounding mode.  */
+      IN_FLOAT (XSET (num, Lisp_Int, floor (XFLOAT (num)->data + 0.5)), num);
+#else
+      IN_FLOAT (XSET (num, Lisp_Int, rint (XFLOAT (num)->data)), num);
+#endif
+    }
 
   return num;
 }
@@ -568,11 +567,9 @@ syms_of_floatfns ()
   defsubr (&Scbrt);
 #endif
   defsubr (&Sexp);
-  defsubr (&Sexpm1);
   defsubr (&Sexpt);
   defsubr (&Slog);
   defsubr (&Slog10);
-  defsubr (&Slog1p);
   defsubr (&Ssqrt);
 
   defsubr (&Sabs);
