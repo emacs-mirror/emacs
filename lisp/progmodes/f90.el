@@ -25,24 +25,29 @@
 
 ;;; Commentary:
 
-;; Smart mode for editing F90 programs in FREE FORMAT.
+;; Major mode for editing F90 programs in FREE FORMAT.
+;; The minor language revision F95 is also supported (with font-locking).
+
 ;; Knows about continuation lines, named structured statements, and other
-;; new features in F90 including HPF (High Performance Fortran) structures.
-;; The basic feature is to provide an accurate indentation of F90 programs.
+;; features in F90 including HPF (High Performance Fortran) structures.
+;; The basic feature provides accurate indentation of F90 programs.
 ;; In addition, there are many more features like automatic matching of all
 ;; end statements, an auto-fill function to break long lines, a join-lines
-;; function which joins continued lines etc etc.
-;;  To facilitate typing, a fairly complete list of abbreviations is provided.
-;;    For example, `i is short-hand for integer (if abbrev-mode is on).
+;; function which joins continued lines, etc.
 
-;; There are two separate features for highlighting the code.
+;; To facilitate typing, a fairly complete list of abbreviations is provided.
+;; All abbreviations begin with the backquote character "`"
+;; (this requires modification of the syntax-table).
+;; For example, `i expands to integer (if abbrev-mode is on).
+
+;; There are two separate features for altering the appearance of code:
 ;;   1) Upcasing or capitalizing of all keywords.
-;;   2) Colors/fonts using font-lock-mode. (only when using X-windows)
-;;  Automatic upcase of downcase of keywords is controlled by the parameter
-;;  f90-auto-keyword-case.
+;;   2) Colors/fonts using font-lock-mode.
+;; Automatic upcase or downcase of keywords is controlled by the variable
+;; f90-auto-keyword-case.
 
 ;; The indentations of lines starting with ! is determined by the first of the
-;; following matches (the values in the left column are the default values):
+;; following matches (values in the left column are the defaults):
 
 ;; start-string/regexp  indent         variable holding start-string/regexp
 ;;    !!!                  0
@@ -56,25 +61,27 @@
 ;;          !                    as code             as code
 ;;          !!                   comment-column      as code
 ;;          ![^!]                as code             comment-column
-;; Trailing comments are indented to comment-column with indent-for-comment M-;
-;; f90-comment-region (C-c;) toggles insertion of f90-comment-region in region.
+;; Trailing comments are indented to comment-column with indent-for-comment.
+;; The function f90-comment-region toggles insertion of
+;; the variable f90-comment-region in every line of the region.
 
 ;; One common convention for free vs. fixed format is that free-format files
-;; have the ending .f90 while the fixed format files have the ending .f. 
-;; To make f90-mode work, put this file in, for example, your directory
-;;  ~/lisp, and be sure that you have the following in your .emacs-file
-;;     (setq load-path (append load-path '("~/lisp")))
-;;     (autoload 'f90-mode "f90"
-;;       "Major mode for editing Fortran 90 code in free format." t)
-;;     (setq auto-mode-alist (append auto-mode-alist 
-;;                           (list '("\\.f90$" . f90-mode))))
-;; Once you have entered f90-mode, you may get more info by using
-;; the command describe-mode (C-h m). For online help describing various
-;; functions use  C-h f <Name of function you want described>
+;; have the ending .f90 or .f95 while fixed format files have the ending .f. 
+;; Emacs automatically loads Fortran files in the appropriate mode based
+;; on extension. You can modify this by adjusting the variable auto-mode-alist.
+;; For example:
+;; (add-to-list 'auto-mode-alist '("\\.f\\'" . f90-mode))
 
-;; To customize the f90-mode for your taste, use, for example:
-;;    (you don't have to specify values for all the parameters below)
+;; Once you have entered f90-mode, you may get more info by using
+;; the command describe-mode (C-h m). For online help use 
+;; C-h f <Name of function you want described>, or
+;; C-h v <Name of variable you want described>.
+
+;; To customize f90-mode for your taste, use, for example:
+;; (you don't have to specify values for all the parameters below)
+;;
 ;;(add-hook 'f90-mode-hook
+;;      ;; These are the default values.
 ;;      '(lambda () (setq f90-do-indent 3
 ;;                        f90-if-indent 3
 ;;                        f90-type-indent 3
@@ -83,33 +90,35 @@
 ;;                        f90-comment-region "!!$"
 ;;                        f90-directive-comment-re "!hpf\\$"
 ;;                        f90-indented-comment-re "!"
-;;                        f90-break-delimiters "[-+\\*/,><=% \t]"
+;;                        f90-break-delimiters "[-+\\*/><=,% \t]"
 ;;                        f90-break-before-delimiters t
 ;;                        f90-beginning-ampersand t
 ;;                        f90-smart-end 'blink
 ;;                        f90-auto-keyword-case nil
-;;                        f90-leave-line-no  nil
+;;                        f90-leave-line-no nil
 ;;                        indent-tabs-mode nil
 ;;                        f90-font-lock-keywords f90-font-lock-keywords-2
 ;;                  )
-;;       ;;The rest is not default.
+;;       ;; These are not default.
 ;;       (abbrev-mode 1)             ; turn on abbreviation mode
 ;;       (f90-add-imenu-menu)        ; extra menu with functions etc.
 ;;       (if f90-auto-keyword-case   ; change case of all keywords on startup
 ;;           (f90-change-keywords f90-auto-keyword-case))
 ;;	 ))
-;; in your .emacs file (the shown values are the defaults). You can also
-;; change the values of the lists f90-keywords etc.
-;; The auto-fill and abbreviation minor modes are accessible from the menu,
+;;
+;; in your .emacs file. You can also customize the lists
+;; f90-font-lock-keywords, etc.
+;;
+;; The auto-fill and abbreviation minor modes are accessible from the F90 menu,
 ;; or by using M-x auto-fill-mode and M-x abbrev-mode, respectively.
 
 ;; Remarks
 ;; 1) Line numbers are by default left-justified. If f90-leave-line-no is
 ;;    non-nil, the line numbers are never touched.
-;; 2) Multi-; statements like > do i=1,20 ; j=j+i ; end do < are not handled
+;; 2) Multi-; statements like "do i=1,20 ; j=j+i ; end do" are not handled
 ;;    correctly, but I imagine them to be rare.
 ;; 3) Regexps for hilit19 are no longer supported.
-;; 4) For FIXED FORMAT code, use the ordinary fortran mode.
+;; 4) For FIXED FORMAT code, use fortran mode.
 ;; 5) This mode does not work under emacs-18.x.
 ;; 6) Preprocessor directives, i.e., lines starting with # are left-justified
 ;;    and are untouched by all case-changing commands. There is, at present, no
@@ -134,22 +143,27 @@
 ;;   f90-add-imenu-menu
 ;;   f90-font-lock-1, f90-font-lock-2, f90-font-lock-3, f90-font-lock-4
 
+;; Original author's thanks
 ;; Thanks to all the people who have tested the mode. Special thanks to Jens
 ;; Bloch Helmers for encouraging me to write this code, for creative
 ;; suggestions as well as for the lists of hpf-commands.
 ;; Also thanks to the authors of the fortran and pascal modes, on which some
 ;; of this code is built.
 
+;; TODO
+;; Support for hideshow, align.
+;; OpenMP, preprocessor highlighting.
+
 ;;; Code:
 
 ;; User options
 
 (defgroup f90 nil
-  "Fortran-90 mode"
+  "Major mode for editing Fortran 90,95 code."
   :group 'languages)
 
 (defgroup f90-indent nil
-  "Fortran-90 indentation"
+  "Indentation in free-format Fortran."
   :prefix "f90-"
   :group 'f90)
 
@@ -180,13 +194,12 @@
   :group 'f90-indent)
 
 (defcustom f90-comment-region "!!$"
-  "*String inserted by \\[f90-comment-region]\
- at start of each line in region."
+  "*String inserted by \\[f90-comment-region] at start of each line in region."
   :type 'string
   :group 'f90-indent)
 
 (defcustom f90-indented-comment-re "!"
-  "*Regexp saying which comments to be indented like code."
+  "*Regexp saying which comments to indent like code."
   :type 'regexp
   :group 'f90-indent)
 
@@ -196,7 +209,7 @@
   :group 'f90-indent)
 
 (defcustom f90-beginning-ampersand t
-  "*t makes automatic insertion of \& at beginning of continuation line."
+  "*Non-nil gives automatic insertion of \& at start of continuation line."
   :type 'boolean
   :group 'f90)
 
@@ -219,13 +232,13 @@ whether to blink the matching beginning."
 
 (defcustom f90-auto-keyword-case nil
   "*Automatic case conversion of keywords.
-  The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil"
+The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
   :type '(choice (const downcase-word) (const upcase-word)
 		 (const capitalize-word) (const nil))
   :group 'f90)
 
 (defcustom f90-leave-line-no nil
-  "*If nil, left-justify linenumbers."
+  "*If non-nil, line numbers are not left justified."
   :type 'boolean
   :group 'f90)
 
@@ -258,7 +271,6 @@ whether to blink the matching beginning."
      ;; F95 keywords.
      "elemental" "pure") 'words)
   "Keyword-regexp for font-lock level >= 3.")
-
 
 (defconst f90-procedures-re
   (concat "\\<"
@@ -356,7 +368,7 @@ whether to blink the matching beginning."
 	 (1 font-lock-keyword-face) (2 font-lock-constant-face))
        ;; line numbers (lines whose first character after number is letter)
        '("^[ \t]*\\([0-9]+\\)[ \t]*[a-z]+" (1 font-lock-constant-face t))))
-  "Highlights declarations, do-loops and other constructions")
+  "Highlights declarations, do-loops and other constructs.")
 
 (defvar f90-font-lock-keywords-3
   (append f90-font-lock-keywords-2
@@ -374,7 +386,7 @@ whether to blink the matching beginning."
   "Highlights all F90 and HPF keywords.")
 
 (defvar f90-font-lock-keywords
-      f90-font-lock-keywords-2
+  f90-font-lock-keywords-2
   "*Default expressions to highlight in F90 mode.")
 
 ;; syntax table
@@ -644,11 +656,11 @@ program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
        "\\)"
        "[ \t]*\\(function\\|subroutine\\)[ \t]+\\(\\sw+\\)")
     4)))
-  "imenu generic expression for F90 mode.")
+  "Generic imenu expression for F90 mode.")
 
 (defun f90-add-imenu-menu ()
-  (interactive)
   "Add an imenu menu to the menubar."
+  (interactive)
   (if (not f90-imenu)
       (progn
 	(imenu-add-to-menubar "F90-imenu")
@@ -735,12 +747,12 @@ program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
 
 ;;;###autoload
 (defun f90-mode ()
-  "Major mode for editing Fortran 90 code in free format.
+  "Major mode for editing Fortran 90,95 code in free format.
 
 \\[f90-indent-new-line] corrects current indentation and creates new\
  indented line.
-\\[f90-indent-line] indents the current line correctly. 
-\\[f90-indent-subprogram] indents the current subprogram. 
+\\[f90-indent-line] indents the current line correctly.
+\\[f90-indent-subprogram] indents the current subprogram.
 
 Type `? or `\\[help-command] to display a list of built-in\
  abbrevs for F90 keywords.
@@ -750,44 +762,44 @@ Key definitions:
 
 Variables controlling indentation style and extra features:
 
- f90-do-indent
+ `f90-do-indent'
     Extra indentation within do blocks.  (default 3)
- f90-if-indent
-    Extra indentation within if/select case/where/forall blocks. (default 3)
- f90-type-indent
+ `f90-if-indent'
+    Extra indentation within if/select case/where/forall blocks.  (default 3)
+ `f90-type-indent'
     Extra indentation within type/interface/block-data blocks.  (default 3)
- f90-program-indent
+ `f90-program-indent'
     Extra indentation within program/module/subroutine/function blocks.
-      (default 2)
- f90-continuation-indent
+    (default 2)
+ `f90-continuation-indent'
     Extra indentation applied to continuation lines.  (default 5)
- f90-comment-region
+ `f90-comment-region'
     String inserted by \\[f90-comment-region] at start of each line in 
     region.  (default \"!!!$\")
- f90-indented-comment-re
+ `f90-indented-comment-re'
     Regexp determining the type of comment to be intended like code.
     (default \"!\")
- f90-directive-comment-re
+ `f90-directive-comment-re'
     Regexp of comment-like directive like \"!HPF\\\\$\", not to be indented.
     (default \"!hpf\\\\$\")
- f90-break-delimiters
+ `f90-break-delimiters'
     Regexp holding list of delimiters at which lines may be broken.
     (default \"[-+*/><=,% \\t]\")
- f90-break-before-delimiters
+ `f90-break-before-delimiters'
     Non-nil causes `f90-do-auto-fill' to break lines before delimiters.
     (default t)
- f90-beginning-ampersand 
+ `f90-beginning-ampersand'
     Automatic insertion of \& at beginning of continuation lines. (default t)
- f90-smart-end 
+ `f90-smart-end'
     From an END statement, check and fill the end using matching block start.
     Allowed values are 'blink, 'no-blink, and nil, which determine
-    whether to blink the matching beginning.) (default 'blink)
- f90-auto-keyword-case
-    Automatic change of case of keywords. (default nil)
+    whether to blink the matching beginning.  (default 'blink)
+ `f90-auto-keyword-case'
+    Automatic change of case of keywords.  (default nil)
     The possibilities are 'downcase-word, 'upcase-word, 'capitalize-word.
- f90-leave-line-no
-    Do not left-justify line numbers. (default nil)
- f90-keywords-re
+ `f90-leave-line-no'
+    Do not left-justify line numbers.  (default nil)
+ `f90-keywords-re'
     List of keywords used for highlighting/upcase-keywords etc.
 
 Turning on F90 mode calls the value of the variable `f90-mode-hook'
@@ -877,7 +889,7 @@ Line-numbers are considered whitespace characters."
 
 (defsubst f90-indent-to (col &optional no-line-number)
   "Indent current line to column COL.
-If no-line-number nil, jump over a possible line-number."
+If optional argument NO-LINE-NUMBER is nil, jump over a possible line-number."
   (beginning-of-line)
   (if (not no-line-number)
       (skip-chars-forward " \t0-9"))
@@ -1040,8 +1052,8 @@ block[ \t]*data\\)\\>")
 		   (f90-change-keywords f90-auto-keyword-case bol eol))))))
 
 (defun f90-electric-insert ()
+  "Call `f90-do-auto-fill' at each operator insertion."
   (interactive)
-  "Calls f90-do-auto-fill at each operator insertion."
   (self-insert-command 1)
   (f90-update-line)
   (if auto-fill-function (f90-do-auto-fill)))
@@ -1241,7 +1253,9 @@ or, if already present, remove it."
     (set-marker end nil)))
 
 (defun f90-indent-line (&optional no-update)
-  "Indent current line as F90 code."
+  "Indent current line as F90 code.
+Unless optional argument NO-UPDATE is non-nil, call `f90-update-line'
+after indenting."
   (interactive)
   (let (indent (no-line-number nil) (pos (make-marker)) (case-fold-search t))
     (set-marker pos (point))
@@ -1266,8 +1280,8 @@ or, if already present, remove it."
     (set-marker pos nil)))
 
 (defun f90-indent-new-line ()
-  "Reindent the current F90 line, insert a newline and indent the newline.
-An abbrev before point is expanded if `abbrev-mode' is non-nil.
+  "Reindent current line, insert a newline and indent the newline.
+An abbrev before point is expanded if the variable `abbrev-mode' is non-nil.
 If run in the middle of a line, the line is not broken."
   (interactive)
   (let (string cont (case-fold-search t))
@@ -1408,7 +1422,9 @@ If run in the middle of a line, the line is not broken."
 
 ;; autofill and break-line
 (defun f90-break-line (&optional no-update)
-  "Break line at point, insert continuation marker(s) and indent."
+  "Break line at point, insert continuation marker(s) and indent.
+Unless in a string or comment, or if the optional argument NO-UPDATE
+is non-nil, call `f90-update-line' after inserting the continuation marker."
   (interactive)
   (let (ctype)
     (cond ((f90-in-string)
@@ -1424,7 +1440,7 @@ If run in the middle of a line, the line is not broken."
   (indent-according-to-mode))
   
 (defun f90-find-breakpoint ()
-  "From fill-column, search backward for break-delimiter."
+  "From `fill-column', search backward for break-delimiter."
   (let ((bol (line-beginning-position)))
     (re-search-backward f90-break-delimiters bol)
     (if f90-break-before-delimiters
@@ -1436,7 +1452,7 @@ If run in the middle of a line, the line is not broken."
 	(forward-char)))))
 
 (defun f90-do-auto-fill ()
-  "Break line if non-white characters beyond fill-column. Also, update line. "
+  "Break line if non-white characters beyond `fill-column'. Also, update line."
   (interactive)
   ;; Break the line before or after the last delimiter (non-word char) if
   ;; position is beyond fill-column.
@@ -1585,7 +1601,7 @@ Leave point at the end of line."
 	      (f90-block-match beg-block beg-name end-block end-name)))))))
 
 (defun f90-insert-end ()
-  "Inserts an complete end statement matching beginning of present block."
+  "Insert a complete end statement matching beginning of present block."
   (interactive)
   (let ((f90-smart-end (if f90-smart-end f90-smart-end 'blink)))
     (insert "end")
