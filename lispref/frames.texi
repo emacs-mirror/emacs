@@ -7,7 +7,7 @@
 @chapter Frames
 @cindex frame
 
-  A @var{frame} is a rectangle on the screen that contains one or more
+  A @dfn{frame} is a rectangle on the screen that contains one or more
 Emacs windows.  A frame initially contains a single main window (plus
 perhaps a minibuffer window), which you can subdivide vertically or
 horizontally into smaller windows.
@@ -61,7 +61,7 @@ This predicate returns @code{t} if @var{object} is a frame, and
 
 To create a new frame, call the function @code{make-frame}.
 
-@defun make-frame alist
+@defun make-frame &optional alist
 This function creates a new frame.  If you are using X, it makes
 an X window frame; otherwise, it makes a terminal frame.
 
@@ -313,8 +313,9 @@ and when the frame is iconified.
 Non-@code{nil} if the screen position of the frame was explicitly
 requested by the user (for example, with the @samp{-geometry} option).
 Nothing automatically makes this parameter non-@code{nil}; it is up to
-Lisp programs that call @code{make-frame} to specify this parameter as
-well as specifying the @code{left} and @code{top} parameters.
+Lisp programs that call @code{make-frame} to specify this parameter to
+indicate that the values of the @code{left} and @code{top} parameters
+are user-specified positions.
 
 @item height
 The height of the frame contents, in characters.  (To get the height in
@@ -739,7 +740,7 @@ Emacs cooperates with the X server and the window managers by arranging
 to select frames according to what the server and window manager ask
 for.  It does so by generating a special kind of input event, called a
 @dfn{focus} event.  The command loop handles a focus event by calling
-@code{handle-select-frame}.  @xref{Focus Events}.
+@code{handle-switch-frame}.  @xref{Focus Events}.
 
 @deffn Command handle-switch-frame frame
 This function handles a focus event by selecting frame @var{frame}.
@@ -1253,13 +1254,13 @@ If you specify them, the key is
 @node Server Data
 @section Data about the X Server
 
-  This section describes functions and a variable that you can use to
-get information about the capabilities and origin of an X display that
-Emacs is using.  Each of these functions lets you specify the display
-you are interested in: the @var{display} argument can be either a
-display name, or a frame (meaning use the display that frame is on).  If
-you omit the @var{display} argument, or specify @code{nil}, that means
-to use the selected frame's display.
+  This section describes functions you can use to get information about
+the capabilities and origin of an X display that Emacs is using.  Each
+of these functions lets you specify the display you are interested in:
+the @var{display} argument can be either a display name, or a frame
+(meaning use the display that frame is on).  If you omit the
+@var{display} argument, or specify @code{nil}, that means to use the
+selected frame's display.
 
 @defun x-display-screens &optional display
 This function returns the number of screens associated with the display.
