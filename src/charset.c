@@ -1075,14 +1075,14 @@ usage: (define-charset-internal ...)  */)
 static int
 define_charset_internal (name, dimension, code_space, min_code, max_code,
 			 iso_final, iso_revision, emacs_mule_id,
-			 ascii_compatible, supprementary,
+			 ascii_compatible, supplementary,
 			 code_offset)
      Lisp_Object name;
      int dimension;
      unsigned char *code_space;
      unsigned min_code, max_code;
      int iso_final, iso_revision, emacs_mule_id;
-     int ascii_compatible, supprementary;
+     int ascii_compatible, supplementary;
      int code_offset;
 {
   Lisp_Object args[charset_arg_max];
@@ -1104,7 +1104,7 @@ define_charset_internal (name, dimension, code_space, min_code, max_code,
   args[charset_arg_emacs_mule_id]
     = (emacs_mule_id < 0 ? Qnil : make_number (emacs_mule_id));
   args[charset_arg_ascii_compatible_p] = ascii_compatible ? Qt : Qnil;
-  args[charset_arg_supplementary_p] = supprementary ? Qt : Qnil;
+  args[charset_arg_supplementary_p] = supplementary ? Qt : Qnil;
   args[charset_arg_invalid_code] = Qnil;
   args[charset_arg_code_offset] = make_number (code_offset);
   args[charset_arg_map] = Qnil;
