@@ -44,14 +44,20 @@ See function `beginning-of-defun'."
   :type 'boolean
   :group 'lisp)
 
+(defvar forward-sexp-function nil
+  "If non-nil, `forward-sexp' delegates to this function.
+Should take the same arguments and behave similarly to `forward-sexp'.")
+
 (defun forward-sexp (&optional arg)
   "Move forward across one balanced expression (sexp).
 With ARG, do it that many times.  Negative arg -N means
 move backward across N balanced expressions."
   (interactive "p")
   (or arg (setq arg 1))
-  (goto-char (or (scan-sexps (point) arg) (buffer-end arg)))
-  (if (< arg 0) (backward-prefix-chars)))
+  (if forward-sexp-function
+      (funcall forward-sexp-function arg)
+    (goto-char (or (scan-sexps (point) arg) (buffer-end arg)))
+    (if (< arg 0) (backward-prefix-chars))))
 
 (defun backward-sexp (&optional arg)
   "Move backward across one balanced expression (sexp).
@@ -354,19 +360,32 @@ considered."
   (interactive)
   (let* ((end (point))
 	 (beg (with-syntax-table emacs-lisp-mode-syntax-table
-		  (save-excursion
-		    (backward-sexp 1)
-		    (while (= (char-syntax (following-char)) ?\')
-		      (forward-char 1))
-		    (point))))
+		(save-excursion
+		  (backward-sexp 1)
+		  (while (= (char-syntax (following-char)) ?\')
+		    (forward-char 1))
+		  (point))))
 	 (pattern (buffer-substring-no-properties beg end))
 	 (predicate
 	  (or predicate
-	      (if (eq (char-after (1- beg)) ?\()
-		  'fboundp
-		(function (lambda (sym)
-			    (or (boundp sym) (fboundp sym)
-				(symbol-plist sym)))))))
+	      (save-excursion
+		(goto-char beg)
+		(if (not (eq (char-before) ?\())
+		    (lambda (sym)	;why not just nil ?   -sm
+		      (or (boundp sym) (fboundp sym)
+			  (symbol-plist sym)))
+		  ;; Looks like a funcall position.  Let's double check.
+		  (backward-char 1)	;skip paren
+		  (if (condition-case nil
+			  (progn (up-list -2) (forward-char 1)
+				 (eq (char-after) ?\())
+			(error nil))
+		      ;; If the first element of the parent list is an open
+		      ;; parenthesis we are probably not in a funcall position.
+		      ;; Maybe a `let' varlist or something.
+		      nil
+		    ;; Else, we assume that a function name is expected.
+		    'fboundp)))))
 	 (completion (try-completion pattern obarray predicate)))
     (cond ((eq completion t))
 	  ((null completion)
