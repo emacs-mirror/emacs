@@ -27,8 +27,10 @@
 (eval-and-compile
   (or (fboundp  'base64-decode-region)
       (require 'base64)))
-(eval-when-compile
-  (require 'mm-uu))
+
+;; This leads to a recursive load.
+;;(eval-when-compile
+;;  (require 'mm-uu))
 
 (require 'mm-util)
 (require 'rfc2047)
