@@ -3718,13 +3718,13 @@ the toplevel; bind it instead. */);
   Vread_with_symbol_positions = Qnil;
 
   DEFVAR_LISP ("read-symbol-positions-list", &Vread_symbol_positions_list,
-	       doc: /* An list mapping read symbols to their positions.
+	       doc: /* A list mapping read symbols to their positions.
 This variable is modified during calls to `read' or
 `read-from-string', but only when `read-with-symbol-positions' is
 non-nil.
 
 Each element of the list looks like (SYMBOL . CHAR-POSITION), where
-CHAR-POSITION is an integer giving the offset of that occurence of the
+CHAR-POSITION is an integer giving the offset of that occurrence of the
 symbol from the position where `read' or `read-from-string' started.
 
 Note that a symbol will appear multiple times in this list, if it was
