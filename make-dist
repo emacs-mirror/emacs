@@ -134,7 +134,7 @@ echo "Updating version number in README."
 echo "Creating subdirectories."
 # I think we're not going to distribute anything in external-lisp, so
 # I've removed it from this list.
-for subdir in lisp lisp/term local-lisp \
+for subdir in lisp lisp/term site-lisp \
 	      src src/m src/s src/bitmaps lib-src oldXMenu \
 	      etc lock cpp info man shortnames vms; do
   mkdir ${tempdir}/${subdir}

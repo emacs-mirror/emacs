@@ -166,7 +166,7 @@ buildlisppath=${srcdir}/lisp
 
 @rip_paths@lispdir=${srcdir}/lisp
 @rip_paths@externallispdir=${srcdir}/externallisp
-@rip_paths@locallisppath=${datadir}/emacs/site-lisp
+@rip_paths@locallisppath=${srcdir}/site-lisp:${datadir}/emacs/site-lisp
 @rip_paths@etcdir=${srcdir}/etc
 @rip_paths@lockdir=${srcdir}/lock
 @rip_paths@archlibdir=${srcdir}/lib-src
