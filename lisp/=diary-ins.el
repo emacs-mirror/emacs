@@ -147,16 +147,20 @@ Prefix arg will make the entry nonmarking."
   "Insert a cyclic diary entry starting at the date given by point.
 Prefix arg will make the entry nonmarking."
   (interactive "P")
-  (make-diary-entry
-   (format "%s(diary-cyclic %d %s)"
-           sexp-diary-entry-symbol
-           (calendar-read "Repeat every how many days: "
-                          '(lambda (x) (> x 0)))
-           (calendar-date-string
-            (or (calendar-cursor-to-date)
-                (error "Cursor is not on a date!"))
-            nil t))
-   arg))
+  (let* ((calendar-date-display-form
+          (if european-calendar-style
+              '(day " " month " " year)
+            '(month " " day " " year))))
+    (make-diary-entry
+     (format "%s(diary-cyclic %d %s)"
+             sexp-diary-entry-symbol
+             (calendar-read "Repeat every how many days: "
+                            '(lambda (x) (> x 0)))
+             (calendar-date-string
+              (or (calendar-cursor-to-date)
+                  (error "Cursor is not on a date!"))
+              nil t))
+     arg)))
 
 (defun insert-hebrew-diary-entry (arg)
   "Insert a diary entry.
