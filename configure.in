@@ -850,7 +850,7 @@ case "${canonical}" in
 				NON_GNU_CPP=/lib/cpp
 				# Prevent -belf from being passed to $CPP.
 				# /lib/cpp does not accept it.
-				OVERRIDE_CPPFLAGS=
+				OVERRIDE_CPPFLAGS=" "
 				;;
       *-bsd386* | *-bsdi1* )	opsys=bsd386 ;;
       *-bsdi2.0* )		opsys=bsdos2 ;;
@@ -1245,7 +1245,7 @@ LISP_FLOAT_TYPE=yes
 #### Add the libraries to LIBS and check for some functions.
 
 if test x"${OVERRIDE_CPPFLAGS}" != x; then
-  CPPFLAGS="$(OVERRIDE_CPPFLAGS)"
+  CPPFLAGS="${OVERRIDE_CPPFLAGS}"
 else
   CPPFLAGS="$c_switch_system $c_switch_machine $CPPFLAGS"
 fi
