@@ -1755,7 +1755,7 @@ extern Lisp_Object Fset_standard_case_table ();
 /* defined in keyboard.c */
 
 extern Lisp_Object Qdisabled;
-extern Lisp_Object Vhelp_form, Vtop_level;
+extern Lisp_Object Vtty_erase_char, Vhelp_form, Vtop_level;
 extern Lisp_Object Fdiscard_input (), Frecursive_edit ();
 extern Lisp_Object Fcommand_execute (), Finput_pending_p ();
 extern Lisp_Object menu_bar_items ();
