@@ -1,3 +1,11 @@
+2002-09-10  Kim F. Storm  <no-spam@cua.dk>
+
+	* macros.el (apply-macro-to-region-lines): Let-bind mark-active to
+	nil while executing macro to avoid triggering delete-selection-mode.
+
+	* simple.el (keyboard-quit): Set defining-kbd-macro to nil to
+	cancel defining keyboard macro when applicablex.
+
 2002-09-09  Markus Rost  <rost@math.ohio-state.edu>
 
 	* files.el (save-some-buffers-action-alist):  Use lower case for

@@ -1,3 +1,13 @@
+2002-09-10  Kim F. Storm  <no-spam@cua.dk>
+
+	* macros.c (end_kbd_macro): New function.
+	(Fend_kbd_macro): Use it.
+
+	* macros.h (end_kbd_macro): Declare extern.
+
+	* keyboard.c (Fdiscard_input): If defining keyboard macro,
+	end and save it instead of discarding it.
+
 2002-09-09  Markus Rost  <rost@math.ohio-state.edu>
 
 	* s/sol2-6.h: Fix typo.  Add comment.
