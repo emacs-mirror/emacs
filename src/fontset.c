@@ -460,9 +460,14 @@ load_font_get_repertory (f, face, font_def, fontset)
 {
   char *font_name;
   struct font_info *font_info;
+  int charset;
 
   font_name = choose_face_font (f, face->lface, AREF (font_def, 0), NULL);
-  if (! (font_info = fs_load_font (f, font_name, XINT (AREF (font_def, 1)))))
+  if (NATNUMP (AREF (font_def, 1)))
+    charset = XINT (AREF (font_def, 1));
+  else
+    charset = -1;
+  if (! (font_info = fs_load_font (f, font_name, charset)))
     return -1;
 
   if (NILP (AREF (font_def, 2))
