@@ -1,3 +1,8 @@
+2002-01-02  Richard M. Stallman  <rms@gnu.org>
+
+	* editfns.c (Fformat): Update thissize from field_width
+	based on the actual width, in the string case.
+
 2002-01-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* charset.h (UNIBYTE_STR_AS_MULTIBYTE_P): Parenthesize assignment
