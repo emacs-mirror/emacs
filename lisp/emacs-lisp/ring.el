@@ -42,16 +42,6 @@
 ;; These functions are used by the input history mechanism, but they can
 ;; be used for other purposes as well.
 
-;;; Change Log:
-
-;;  Sun Aug 22 12:58:54 1999  Kevin Blake <kblake@ticnet.com>
-;;   * Added the `ring-size' and `ring-copy' functions.  Added documentation
-to
-;;     the `ring-empty-p' and `ring-index' functions.  Enhanced the
-documentation
-;;     of several functions.  Added comments to the layout of this module to
-;;     make things more obvious.
-
 ;;; Code:
 
 ;;; User Functions:
@@ -112,10 +102,9 @@ VECLEN is the size of the vector in the ring."
 
 (defun ring-copy (ring)
   "Returns a copy of RING."
-  (let*
-      ((vec (cdr (cdr ring)))
-       (hd  (car ring))
-       (ln  (car (cdr ring))))
+  (let* ((vec (cdr (cdr ring)))
+	 (hd  (car ring))
+	 (ln  (car (cdr ring))))
     (cons hd (cons ln (copy-sequence vec)))))
 
 (defun ring-insert (ring item)
@@ -158,7 +147,7 @@ numeric, remove the element indexed."
   "Returns RING's INDEX element.
 INDEX = 0 is the most recently inserted; higher indices
 correspond to older elements.
-INDEX need not be <= the ring length, the appropriate modulo operation
+INDEX need not be <= the ring length; the appropriate modulo operation
 will be performed."
   (if (ring-empty-p ring)
       (error "Accessing an empty ring")
