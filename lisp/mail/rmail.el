@@ -1836,9 +1836,12 @@ It returns t if it got any new messages."
 		       (when
 			   (condition-case nil
 			       (progn
-				 (base64-decode-region header-end (point))
+				 (base64-decode-region (1+ header-end) (point))
 				 t)
 			     (error nil))
+			 (goto-char header-end)
+			 (while (search-forward "\r\n" (point-max) t)
+			   (replace-match "\n"))
 			 ;; Change "base64" to "8bit", to reflect the
 			 ;; decoding we just did.
 			 (goto-char base64-header-field-end)
