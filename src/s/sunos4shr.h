@@ -46,7 +46,7 @@
 #undef USE_DL_STUBS
 
 #ifdef __GNUC__
-#define LIBXMU -Xlinker -Bstatic -lXmu -Xlinker -Bdynamic
+#define LIBXMU -Xlinker -Bdynamic -lXmu -Xlinker -Bdynamic
 #else
-#define LIBXMU -Bstatic -lXmu -Bdynamic
+#define LIBXMU -Bdynamic -lXmu -Bdynamic
 #endif
