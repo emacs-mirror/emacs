@@ -137,6 +137,15 @@ document xsubr
 Print the address of the subr which the Lisp_Object $ points to.
 end
 
+define xprocess
+print (struct Lisp_Process *) (($ & 0x00ffffff) | $data_seg_bits)
+output *$
+echo \n
+end
+document xprocess
+Print the address of the struct Lisp_process which the Lisp_Object $ points to.
+end
+
 define xscrollbar
 print (struct scrollbar *) (($ & 0x00ffffff) | $data_seg_bits)
 output *$
