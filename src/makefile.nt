@@ -184,10 +184,10 @@ all:            $(BLD) $(EMACS)
 #
 # Headers we would preprocess if we could.
 #
-PREPARED_HEADERS = config.h paths.h
+PREPARED_HEADERS = config.h epaths.h
 config.h:	..\nt\$(CONFIG_H)
 		$(CP) $** $@
-paths.h:	..\nt\paths.h
+epaths.h:	..\nt\paths.h
 		$(CP) $** $@
 
 #
@@ -263,7 +263,7 @@ install:        all
 # Maintenance
 # 
 clean:;         - $(DEL) *~ s\*~
-		- $(DEL) *.pdb config.h paths.h
+		- $(DEL) *.pdb config.h epaths.h
 		- $(DEL) *.orig *.rej *.crlf
 		- $(DEL) s\*.orig s\*.rej s\*.crlf
 		- $(DEL_TREE) deleted
@@ -557,7 +557,7 @@ $(BLD)\filelock.obj : \
 	$(EMACS_ROOT)\nt\inc\pwd.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
 	$(SRC)\lisp.h \
-	$(EMACS_ROOT)\src\paths.h \
+	$(EMACS_ROOT)\src\epaths.h \
 	$(SRC)\buffer.h \
 	$(SRC)\vmsdir.h \
 	$(SRC)\ndir.h
@@ -733,7 +733,7 @@ $(BLD)\lread.obj : \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
 	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
-	$(EMACS_ROOT)\src\paths.h \
+	$(EMACS_ROOT)\src\epaths.h \
 	$(SRC)\commands.h \
 	$(SRC)\keyboard.h \
 	$(SRC)\termhooks.h \
@@ -1124,7 +1124,7 @@ $(BLD)\w32fns.obj: \
 	$(SRC)\dispextern.h \
 	$(SRC)\keyboard.h \
 	$(SRC)\blockinput.h \
-	$(SRC)\paths.h \
+	$(SRC)\epaths.h \
 	$(SRC)\w32heap.h \
 	$(SRC)\termhooks.h
 
