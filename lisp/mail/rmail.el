@@ -170,11 +170,13 @@ See also `rmail-highlight-face'."
 `nil' means the default, which is (\"/usr/spool/mail/$USER\")
 \(the name varies depending on the operating system,
 and the value of the environment variable MAIL overrides it)."
-  :type `(choice (const :tag "Default" nil)
-		 (repeat :value (,(or (getenv "MAIL")
-				      (concat "/var/spool/mail/"
-					      (getenv "USER"))))
-			 file))
+  ;; Don't use backquote here, because we don't want to need it
+  ;; at load time.
+  :type (list 'choice '(const :tag "Default" nil)
+	      (list 'repeat ':value ,(or (getenv "MAIL")
+					 (concat "/var/spool/mail/"
+						 (getenv "USER")))
+		    'file))
   :group 'rmail-retrieve
   :group 'rmail-files)
 
@@ -2725,7 +2727,7 @@ The variable `rmail-retry-ignored-headers' is a regular expression
 specifying headers which should not be copied into the new message."
   (interactive)
   (require 'mail-utils)
-  (let ((rmail-buffer (current-buffer))
+  (let ((rmail-this-buffer (current-buffer))
 	(msgnum rmail-current-message)
 	bounce-start bounce-end bounce-indent resending)
     (save-excursion
@@ -2797,9 +2799,9 @@ specifying headers which should not be copied into the new message."
     ;; Turn off the usual actions for initializing the message body
     ;; because we want to get only the text from the failure message.
     (let (mail-signature mail-setup-hook)
-      (if (rmail-start-mail nil nil nil nil nil rmail-buffer
+      (if (rmail-start-mail nil nil nil nil nil rmail-this-buffer
 			    (list (list 'rmail-mark-message
-					rmail-buffer
+					rmail-this-buffer
 					(aref rmail-msgref-vector msgnum)
 					"retried")))
 	  ;; Insert original text as initial text of new draft message.
@@ -2807,7 +2809,7 @@ specifying headers which should not be copied into the new message."
 	  ;; of the previous message was probably read-only.
 	  (let ((inhibit-read-only t))
 	    (erase-buffer)
-	    (insert-buffer-substring rmail-buffer bounce-start bounce-end)
+	    (insert-buffer-substring rmail-this-buffer bounce-start bounce-end)
 	    (goto-char (point-min))
 	    (if bounce-indent
 		(indent-rigidly (point-min) (point-max) bounce-indent))
@@ -2825,7 +2827,7 @@ specifying headers which should not be copied into the new message."
 		    (insert "BCC: " (user-login-name) "\n"))))
 	    (insert mail-header-separator)
 	    (mail-position-on-field (if resending "Resent-To" "To") t)
-	    (set-buffer rmail-buffer)
+	    (set-buffer rmail-this-buffer)
 	    (rmail-beginning-of-message))))))
 
 (defun rmail-summary-exists ()
