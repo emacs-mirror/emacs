@@ -1900,7 +1900,7 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
     AC_MSG_ERROR([Conflicting options, --with-gtk is incompatible with --with-x-toolkit=${with_x_toolkit}]);
   fi
   GLIB_REQUIRED=2.0.1
-  GTK_REQUIRED=2.0.1
+  GTK_REQUIRED=2.2
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
   dnl Check if --with-pkg-config-prog has been given.
