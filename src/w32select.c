@@ -146,10 +146,9 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
   {
     /* Since we are now handling multilingual text, we must consider
        encoding text for the clipboard.  */
-    int charset_info = find_charset_in_text (src, SCHARS (string),
-					     nbytes, NULL, Qnil);
+    int result = string_xstring_p (string);
 
-    if (charset_info == 0)
+    if (result == 0)
       {
 	/* No multibyte character in OBJ.  We need not encode it.  */
 
@@ -195,7 +194,6 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
       {
 	/* We must encode contents of OBJ to the selection coding
            system. */
-	int bufsize;
 	struct coding_system coding;
 	HANDLE htext2;
 
@@ -203,24 +201,20 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
 	  Vnext_selection_coding_system = Vselection_coding_system;
 	setup_coding_system
 	  (Fcheck_coding_system (Vnext_selection_coding_system), &coding);
-	if (SYMBOLP (coding.pre_write_conversion)
-	    && !NILP (Ffboundp (coding.pre_write_conversion)))
-	  {
-	    string = run_pre_post_conversion_on_str (string, &coding, 1);
-	    src = SDATA (string);
-	    nbytes = SBYTES (string);
-	  }
-	coding.src_multibyte = 1;
-	coding.dst_multibyte = 0;
+	coding.mode |= (CODING_MODE_SAFE_ENCODING | CODING_MODE_LAST_BLOCK);
+
 	Vnext_selection_coding_system = Qnil;
-	coding.mode |= CODING_MODE_LAST_BLOCK;
-	bufsize = encoding_buffer_size (&coding, nbytes);
-	if ((htext = GlobalAlloc (GMEM_MOVEABLE | GMEM_DDESHARE, bufsize)) == NULL)
+
+	/* We suppress producing escape sequences for composition.  */
+	coding.common_flags &= ~CODING_ANNOTATION_MASK;
+	coding.dst_bytes = SCHARS (string) * 2;
+	if ((htext = GlobalAlloc (GMEM_MOVEABLE | GMEM_DDESHARE, coding.dst_bytes)) == NULL)
 	  goto error;
-	if ((dst = (unsigned char *) GlobalLock (htext)) == NULL)
+	if ((coding.destination = (unsigned char *) GlobalLock (htext)) == NULL)
 	  goto error;
-	encode_coding (&coding, src, dst, nbytes, bufsize);
-	Vlast_coding_system_used = coding.symbol;
+	encode_coding_object (&coding, string, 0, 0,
+			      SCHARS (string), SBYTES (string), Qnil);
+	Vlast_coding_system_used =  CODING_ID_NAME (coding.id);
 
 	/* If clipboard sequence numbers are not supported, keep a copy for
 	   later comparison.  */
@@ -237,7 +231,8 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
 							 clipboard_storage_size);
 	      }
 	    if (last_clipboard_text)
-	      memcpy (last_clipboard_text, dst, coding.produced);
+	      memcpy (last_clipboard_text, coding.destination,
+		      coding.produced);
 	  }
 
 	GlobalUnlock (htext);
@@ -337,8 +332,6 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
 
     if (require_decoding)
       {
-	int bufsize;
-	unsigned char *buf;
 	struct coding_system coding;
 
 	if (NILP (Vnext_selection_coding_system))
@@ -349,20 +342,17 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
 	coding.dst_multibyte = 1;
 	Vnext_selection_coding_system = Qnil;
 	coding.mode |= CODING_MODE_LAST_BLOCK;
-	/* We explicitely disable composition handling because
+	/* We explicitly disable composition handling because
 	   selection data should not contain any composition
 	   sequence.  */
-	coding.composing = COMPOSITION_DISABLED;
-	bufsize = decoding_buffer_size (&coding, nbytes);
-	buf = (unsigned char *) xmalloc (bufsize);
-	decode_coding (&coding, src, buf, nbytes, bufsize);
-	Vlast_coding_system_used = coding.symbol;
-        ret = make_string_from_bytes ((char *) buf,
+	coding.common_flags &= ~CODING_ANNOTATION_MASK;
+	coding.dst_bytes = nbytes * 2;
+	coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
+	decode_coding_c_string (&coding, src, nbytes, Qnil);
+	Vlast_coding_system_used =  CODING_ID_NAME (coding.id);
+        ret = make_string_from_bytes ((char *) coding.destination,
                                       coding.produced_char, coding.produced);
-	xfree (buf);
-	if (SYMBOLP (coding.post_read_conversion)
-	    && !NILP (Ffboundp (coding.post_read_conversion)))
-	  ret = run_pre_post_conversion_on_str (ret, &coding, 0);
+	xfree (coding.destination);
       }
     else
       {
