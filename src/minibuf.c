@@ -1540,6 +1540,9 @@ HIST, if non-nil, specifies a history list
   and HISTPOS is the initial position (the position in the list
   which INITIAL-INPUT corresponds to).
   Positions are counted starting from 1 at the beginning of the list.
+  The variable `history-length' controls the maximum length of a
+  history list.
+
 DEF, if non-nil, is the default value.
 
 If INHERIT-INPUT-METHOD is non-nil, the minibuffer inherits
