@@ -34,6 +34,12 @@
 #include "lisp.h"
 #include "nt.h"
 #include "systime.h"
+#include "syswait.h"
+#include "process.h"
+
+#ifndef SYS_SIGLIST_DECLARED
+extern char *sys_siglist[];
+#endif
 
 /* #define FULL_DEBUG */
 
@@ -330,10 +336,6 @@ remove_child (child_process *cp)
    When it does, close its handle
    Return the pid and fill in the status if non-NULL.  */
 
-/* From callproc.c */
-extern int synch_process_alive;
-extern int synch_process_retcode;
-
 int 
 win32_wait (int *status)
 {
@@ -423,8 +425,25 @@ win32_wait (int *status)
   else if (synch_process_alive)
     {
       synch_process_alive = 0;
-      synch_process_retcode = retval;
 
+      /* Report the status of the synchronous process.  */
+      if (WIFEXITED (retval))
+	synch_process_retcode = WRETCODE (retval);
+      else if (WIFSIGNALED (retval))
+	{
+	  int code = WTERMSIG (retval);
+	  char *signame = 0;
+	  
+	  if (code < NSIG)
+	    {
+	      /* Suppress warning if the table has const char *.  */
+	      signame = (char *) sys_siglist[code];
+	    }
+	  if (signame == 0)
+	    signame = "unknown";
+
+	  synch_process_death = signame;
+	}
       TerminateThread (cp->thrd, 0);
       CloseHandle (cp->thrd);
       CloseHandle (cp->char_consumed);
