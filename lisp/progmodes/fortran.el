@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (c) 1986, 1993, 1994, 1995, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (c) 1986, 93, 94, 95, 97, 98, 1999 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: Dave Love <fx@gnu.org>
@@ -235,7 +235,7 @@ format style.")
   (modify-syntax-entry ?/ "." fortran-mode-syntax-table)
   (modify-syntax-entry ?\' "\"" fortran-mode-syntax-table)
   (modify-syntax-entry ?\" "\"" fortran-mode-syntax-table)
-  (modify-syntax-entry ?\\ "/" fortran-mode-syntax-table)
+  (modify-syntax-entry ?\\ "\\" fortran-mode-syntax-table)
   ;; This might be better as punctuation, as for C, but this way you
   ;; can treat floating-point numbers as symbols.
   (modify-syntax-entry ?. "_" fortran-mode-syntax-table) ; e.g. `a.ne.b'
@@ -244,10 +244,11 @@ format style.")
   (modify-syntax-entry ?\! "<" fortran-mode-syntax-table)
   (modify-syntax-entry ?\n ">" fortran-mode-syntax-table))
 
-;; Comments are real pain in Fortran because there is no way to represent the
-;; standard comment syntax in an Emacs syntax table (we can for VAX-style).
-;; Therefore an unmatched quote in a standard comment will throw fontification
-;; off on the wrong track.  So we do syntactic fontification with regexps.
+;; Comments are real pain in Fortran because there is no way to
+;; represent the standard comment syntax in an Emacs syntax table.
+;; (We can do so for F90-style).  Therefore an unmatched quote in a
+;; standard comment will throw fontification off on the wrong track.
+;; So we do syntactic fontification with regexps.
 
 ;; Regexps done by simon@gnu with help from Ulrik Dickow <dickow@nbi.dk> and
 ;; probably others Si's forgotten about (sorry).
@@ -261,14 +262,11 @@ format style.")
 (defconst fortran-font-lock-keywords-3 nil
   "Gaudy level highlighting for Fortran mode.")
 
-(defun fortran-fontify-string (limit)
-  (let ((match (match-string 1)))
-    (cond ((string= "'" match)
-	   (re-search-forward "\\([^'\n]*'?\\)" limit))
-	  ((string= "\"" match)
-	   (re-search-forward "\\([^\"\n]*\"?\\)" limit)))))
+(defconst fortran-font-lock-syntactic-keywords nil
+  "`font-lock-syntactic-keywords' for Fortran.
+These get fixed-format comments fontified.")
 
-(let ((comment-chars "c!*d")		; `d' for `debugging' comments
+(let ((comment-chars "cd")		; `d' for `debugging' comments
       (fortran-type-types
        (eval-when-compile
 	 (let ((re (regexp-opt
@@ -304,19 +302,16 @@ format style.")
          (regexp-opt '("and" "or" "not" "lt" "le" "eq" "ge" "gt" "ne"
                        "true" "false")))))
 
+  (setq fortran-font-lock-syntactic-keywords
+	;; Fixed format comments.  (!-style handled normally.)
+	(list
+	 (list (concat "^[" comment-chars "]") 0 '(11))
+	 (list (concat "^[^" comment-chars "\t\n]" (make-string 71 ?.)
+		       "\\([^\n]+\\)")
+	       1 '(11))))
+
   (setq fortran-font-lock-keywords-1
         (list
-         ;;
-         ;; Fontify syntactically (assuming strings cannot be quoted
-         ;; or span lines).
-         (cons (concat "^[" comment-chars "].*") 'font-lock-comment-face)
-         '(fortran-match-!-comment . font-lock-comment-face)
-         (list (concat "^[^" comment-chars "\t\n]" (make-string 71 ?.)
-                       "\\(.*\\)")
-               '(1 font-lock-comment-face))
-  	 '("\\(\\s\"\\)"		; single- or double-quoted string
-  	   (1 font-lock-string-face)
-  	   (fortran-fontify-string nil nil (1 font-lock-string-face)))
          ;;
          ;; Program, subroutine and function declarations, plus calls.
          (list (concat "\\<\\(block[ \t]*data\\|call\\|entry\\|function\\|"
@@ -640,7 +635,10 @@ with no args, if that value is non-nil."
 			      fortran-font-lock-keywords-1
 			      fortran-font-lock-keywords-2
 			      fortran-font-lock-keywords-3)
-			     t t ((?/ . "$/") ("_$" . "w"))))
+			     nil t ((?/ . "$/") ("_$" . "w"))
+			     beginning-of-fortran-subprogram))
+  (set (make-local-variable 'font-lock-syntactic-keywords)
+       fortran-font-lock-syntactic-keywords)
   (make-local-variable 'fortran-break-before-delimiters)
   (setq fortran-break-before-delimiters t)
   (make-local-variable 'indent-line-function)
@@ -951,30 +949,32 @@ Auto-indent does not happen if a numeric ARG is used."
 (defun beginning-of-fortran-subprogram ()
   "Moves point to the beginning of the current Fortran subprogram."
   (interactive)
-  (let ((case-fold-search t))
-    (beginning-of-line -1)
-    (if (catch 'ok
-	  (while (re-search-backward fortran-end-prog-re nil 'move)
-	    (if (fortran-check-end-prog-re)
-		(throw 'ok t))))
-	(forward-line))))
+  (save-match-data
+    (let ((case-fold-search t))
+      (beginning-of-line -1)
+      (if (catch 'ok
+	    (while (re-search-backward fortran-end-prog-re nil 'move)
+	      (if (fortran-check-end-prog-re)
+		  (throw 'ok t))))
+	  (forward-line)))))
 
 (defun end-of-fortran-subprogram ()
   "Moves point to the end of the current Fortran subprogram."
   (interactive)
-  (let ((case-fold-search t))
-    (if (save-excursion			; on END
-	  (beginning-of-line)
-	  (and (looking-at fortran-end-prog-re)
-	       (fortran-check-end-prog-re)))
-	(forward-line)
-      (beginning-of-line 2)
-      (catch 'ok
-	(while (re-search-forward fortran-end-prog-re nil 'move)
-	  (if (fortran-check-end-prog-re)
-	      (throw 'ok t))))
-      (goto-char (match-beginning 0))
-      (forward-line))))
+  (save-match-data
+    (let ((case-fold-search t))
+      (if (save-excursion		; on END
+	    (beginning-of-line)
+	    (and (looking-at fortran-end-prog-re)
+		 (fortran-check-end-prog-re)))
+	  (forward-line)
+	(beginning-of-line 2)
+	(catch 'ok
+	  (while (re-search-forward fortran-end-prog-re nil 'move)
+	    (if (fortran-check-end-prog-re)
+		(throw 'ok t))))
+	(goto-char (match-beginning 0))
+	(forward-line)))))
 
 (defun mark-fortran-subprogram ()
   "Put mark at end of Fortran subprogram, point at beginning.
@@ -1591,26 +1591,6 @@ Return t if `comment-start-skip' found, nil if not."
 	  (goto-char (match-end 0))
 	  t))
     nil))
-
-;;From: simon@gnu (Simon Marshall)
-;; Find the next ! not in a string.
-(defun fortran-match-!-comment (limit)
-  (let (found)
-    (while (and (setq found (search-forward "!" limit t))
-                (fortran-is-in-string-p (point))))
-    (if (not found)
-	nil
-      ;; Cheaper than `looking-at' "!.*".
-      (set-match-data
-       (list (1- (point)) (progn (end-of-line) (min (point) limit))))
-      t)))
-
-;; The above function is about 10% faster than the below...
-;;(defun fortran-match-!-comment (limit)
-;;  (let (found)
-;;    (while (and (setq found (re-search-forward "!.*" limit t))
-;;                (fortran-is-in-string-p (match-beginning 0))))
-;;    found))
 
 ;;From: ralf@up3aud1.gwdg.de (Ralf Fassel)
 ;; Test if TAB format continuation lines work.
