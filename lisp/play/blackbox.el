@@ -1,6 +1,6 @@
 ;;; blackbox.el --- blackbox game in Emacs Lisp
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: F. Thomas May <uw-nsr!uw-warp!tom@beaver.cs.washington.edu>
 ;; Adapted-By: ESR
@@ -275,33 +275,33 @@ a reflection."
     (insert (format "\nThere are %d balls in the box" (length bb-board)))
     ))
 
-(defun bb-right ()
-  (interactive)
-  (if (= bb-x 8)
-      ()
+(defun bb-right (count)
+  (interactive "p")
+  (while (and (> count 0) (< bb-x 8))
     (forward-char 2)
-    (setq bb-x (1+ bb-x))))
+    (setq bb-x (1+ bb-x))
+    (setq count (1- count))))
 
-(defun bb-left ()
-  (interactive)
-  (if (= bb-x -1)
-      ()
+(defun bb-left (count)
+  (interactive "p")
+  (while (and (> count 0) (> bb-x -1))
     (backward-char 2)
-    (setq bb-x (1- bb-x))))
+    (setq bb-x (1- bb-x))
+    (setq count (1- count))))
 
-(defun bb-up ()
-  (interactive)
-  (if (= bb-y -1)
-      ()
+(defun bb-up (count)
+  (interactive "p")
+  (while (and (> count 0) (> bb-y -1))
     (previous-line 1)
-    (setq bb-y (1- bb-y))))
+    (setq bb-y (1- bb-y))
+    (setq count (1- count))))
 
-(defun bb-down ()
-  (interactive)
-  (if (= bb-y 8)
-      ()
+(defun bb-down (count)
+  (interactive "p")
+  (while (and (> count 0) (< bb-y 8))
     (next-line 1)
-    (setq bb-y (1+ bb-y))))
+    (setq bb-y (1+ bb-y))
+    (setq count (1- count))))
 
 (defun bb-eol ()
   (interactive)
