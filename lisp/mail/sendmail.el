@@ -470,14 +470,16 @@ the user from the mailer."
   (goto-char (point-min))
   (search-forward (concat "\n" mail-header-separator "\n")))
 
-(defun mail-signature ()
+(defun mail-signature (atpoint)
   "Sign letter with contents of ~/.signature file."
-  (interactive)
+  (interactive "P")
   (save-excursion
-    (goto-char (point-max))
+    (or atpoint
+	(goto-char (point-max)))
     (skip-chars-backward " \t\n")
     (end-of-line)
-    (delete-region (point) (point-max))
+    (or atpoint
+	(delete-region (point) (point-max)))
     (insert "\n\n--\n")
     (insert-file-contents (expand-file-name "~/.signature"))))
 
