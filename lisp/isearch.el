@@ -138,6 +138,10 @@ You might want to use something like \"[ \\t\\r\\n]+\" instead.")
 (defvar search-highlight nil
   "*Non-nil means incremental search highlights the current match.")
 
+(defvar search-invisible nil
+  "*Non-nil means incremental search can match text hidden by an overlay.
+\(This applies when using `noutline.el'.)")
+
 (defvar isearch-mode-hook nil
   "Function(s) to call after starting up an incremental search.")
 
@@ -1350,20 +1354,31 @@ If there is no completion possible, say so and continue searching."
 	    (isearch-no-upper-case-p isearch-string isearch-regexp)))
   (condition-case lossage
       (let ((inhibit-quit nil)
-	    (case-fold-search isearch-case-fold-search))
+	    (case-fold-search isearch-case-fold-search)
+	    (retry t))
 	(if isearch-regexp (setq isearch-invalid-regexp nil))
 	(setq isearch-within-brackets nil)
-	(setq isearch-success
-	      (funcall
-	       (cond (isearch-word
-		      (if isearch-forward
-			  'word-search-forward 'word-search-backward))
-		     (isearch-regexp
-		      (if isearch-forward
-			  're-search-forward 're-search-backward))
-		     (t
-		      (if isearch-forward 'search-forward 'search-backward)))
-	       isearch-string nil t))
+	(while retry
+	  (setq isearch-success
+		(funcall
+		 (cond (isearch-word
+			(if isearch-forward
+			    'word-search-forward 'word-search-backward))
+		       (isearch-regexp
+			(if isearch-forward
+			    're-search-forward 're-search-backward))
+		       (t
+			(if isearch-forward 'search-forward 'search-backward)))
+		 isearch-string nil t))
+	  ;; Clear RETRY unless we matched some invisible text
+	  ;; and we aren't supposed to do that.
+	  (if (or search-invisible
+		  (not isearch-success)
+		  (bobp) (eobp)
+		  (= (match-beginning 0) (match-end 0))
+		  (not (isearch-range-invisible
+			(match-beginning 0) (match-end 0))))
+	      (setq retry nil)))
 	(setq isearch-just-started nil)
 	(if isearch-success
 	    (setq isearch-other-end
@@ -1391,6 +1406,28 @@ If there is no completion possible, say so and continue searching."
 	 (ding))
     (goto-char (nth 2 (car isearch-cmds)))))
 
+(defun isearch-range-invisible (beg end)
+  "Return t if all the bext from BEG to END is invisible."
+  (and (/= beg end)
+       ;; Check that invisibility runs up to END.
+       (save-excursion
+	 (goto-char beg)
+	 ;; If the following character is currently invisible,
+	 ;; skip all characters with that same `invisible' property value.
+	 ;; Do that over and over.
+	 (while (and (< (point) end)
+		     (let ((prop
+			    (get-char-property (point) 'invisible)))
+		       (if (eq buffer-invisibility-spec t)
+			   prop
+			 (or (memq prop buffer-invisibility-spec)
+			     (assq prop buffer-invisibility-spec)))))
+	   (if (get-text-property (point) 'invisible)
+	       (goto-char (next-single-property-change (point) 'invisible
+						       nil end))
+	     (goto-char (next-overlay-change (point)))))
+	 ;; See if invisibility reaches up thru END.
+	 (>= (point) end))))
 
 
 ;;; Highlighting
