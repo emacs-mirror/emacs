@@ -1640,7 +1640,7 @@ ffap most of the time."
 	       (not current-prefix-arg)
 	     current-prefix-arg))
       (let (current-prefix-arg)		; already interpreted
-	(call-interactively dired-function))
+	(call-interactively 'dired))
     (or filename (setq filename (dired-at-point-prompter)))
     (cond
      ((ffap-url-p filename)
@@ -1678,6 +1678,7 @@ ffap most of the time."
      (global-set-key "\C-x\C-f" 'find-file-at-point)
      (global-set-key "\C-x4f"   'ffap-other-window)
      (global-set-key "\C-x5f"   'ffap-other-frame)
+     (define-key ctl-x-map "\C-xd" 'dired-at-point)
      (add-hook 'gnus-summary-mode-hook 'ffap-gnus-hook)
      (add-hook 'gnus-article-mode-hook 'ffap-gnus-hook)
      (add-hook 'vm-mode-hook 'ffap-ro-mode-hook)
