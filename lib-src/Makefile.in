@@ -282,6 +282,7 @@ relock:
 check:
 	@echo "We don't have any tests for GNU Emacs yet."
 
+tags: TAGS
 TAGS: etags
 	etags *.[ch]
 
