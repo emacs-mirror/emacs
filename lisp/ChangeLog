@@ -1,8 +1,31 @@
 2000-04-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* simple.el (sendmail-user-agent-compose): Recognize a `body'
+	header and insert its value as mail body.
+
+	* subr.el (member-ignore-case): New function.
+
+	* dabbrev.el (dabbrev-ignored-regexps): New user-option.
+	(dabbrev--find-expansion): Ignore buffers matching a regexp
+	from dabbrev-ignored-regexps.
+
 	* jka-compr.el (jka-compr-compression-info-list): Add `.z'
 	to extensions handled by gzip.
 
+2000-04-03  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (insert-directory): List the total free space
+	along with the used space.
+	
+	* textmodes/fill.el (fill-individual-paragraphs): If a no-prefix
+	line is followed by one that matches CITATION-REGEXP, end the
+	paragraph.
+
+2000-04-03  Markus Rost  <rost@delysid.gnu.org>
+
+	* mail/rmailsum.el (rmail-user-mail-address-regexp): New option.
+	(rmail-make-basic-summary-line): Use that option.
+	
 2000-04-03  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-cmds.el (encoded-string-description):

@@ -475,6 +475,17 @@ the buffer whose process should be used from the mini-buffer.
 
 ** Changes to Rmail mode
 
+*** The new user-option rmail-rmail-user-mail-address-regexp can be
+set to fine tune the identification of of the correspondent when
+receiving new mail.  If it matches the address of the sender, the
+recipient is taken as correspondent of a mail.  If nil, the default,
+`user-login-name' and `user-mail-address' are used to exclude yourself
+as correspondent.
+
+Usually you don't have to set this variable, except if you collect
+mails sent by you under different user names.  Then it should be a
+regexp matching your mail adresses.
+
 *** The new user-option rmail-confirm-expunge controls whether and how
 to ask for confirmation before expunging deleted messages from an
 Rmail file.  You can choose between no confirmation, confirmation
@@ -866,6 +877,10 @@ appropriate for C-style escape sequences in strings.
 
 ** A new command `view-emacs-problems' (C-h P) displays the PROBLEMS file.
 
+** The Dabbrev package has a new user-option `dabbrev-ignore-regexps'
+containing a list of regular expressions.  Buffers matching a regular
+expression from that list, are not checked.
+
 ** New modes and packages
 
 *** The new command M-x re-builder offers a convenient interface for
@@ -1071,7 +1086,13 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
-*** The buffer-local variable cursor-type can be used to specify the
+** The function sendmail-user-agent-compose now recognizes a `body'
+header is the list of headers passed to it.
+
+** The new function member-ignore-case works like `member', but
+ignores differences in case and text representation.
+
+** The buffer-local variable cursor-type can be used to specify the
 cursor to use in windows displaying a buffer.  Values are interpreted
 as follows:
 
