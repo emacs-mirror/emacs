@@ -3481,7 +3481,6 @@ read_non_regular ()
   nbytes = emacs_read (non_regular_fd,
 		       BEG_ADDR + PT_BYTE - 1 + non_regular_inserted,
 		       non_regular_nbytes);
-  Fsignal (Qquit, Qnil);
   immediate_quit = 0;
   return make_number (nbytes);
 }
