@@ -1,6 +1,6 @@
 /* impl.h.protocol: PROTOCOL INHERITANCE DEFINITIONS
  *
- * $HopeName: MMsrc!protocol.h(trunk.2) $
+ * $HopeName: MMsrc!protocol.h(trunk.3) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  */
 
@@ -171,7 +171,7 @@ extern Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super);
 
 /* Protocol introspection interface */
 
-/* The following a macros because of the need to cast */
+/* The following are macros because of the need to cast */
 /* subtypes of ProtocolClass. Nevertheless they are named */
 /* as functions. See design.mps.protocol.introspect.c-lang */
 
@@ -183,6 +183,17 @@ extern Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super);
 
 #define IsSubclassPoly(sub, super) \
    ProtocolIsSubclass((ProtocolClass)(sub), (ProtocolClass)(super))
+
+
+/* SUPERCLASS  - get the superclass object, given a class name
+ *
+ * Returns the superclass, with type ProtocolClass. Clients will
+ * probably wish to cast this. See 
+ * design.mps.protocol.int.static-superclass
+ */
+
+#define SUPERCLASS(className)  \
+  ProtocolClassSuperclassPoly(DERIVE_ENSURE(className)())
 
 
 #endif /* protocol_h */
