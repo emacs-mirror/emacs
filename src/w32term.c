@@ -1288,7 +1288,7 @@ note_mouse_movement (frame, msg)
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
   else if (LOWORD (msg->lParam) < last_mouse_glyph.left
 	   || LOWORD (msg->lParam) > last_mouse_glyph.right
-	   || HIWORD (msg->lParam) < last_mouse_glyph.left
+	   || HIWORD (msg->lParam) < last_mouse_glyph.top
 	   || HIWORD (msg->lParam) > last_mouse_glyph.bottom)
     {
       frame->mouse_moved = 1;
