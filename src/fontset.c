@@ -1397,10 +1397,14 @@ syms_of_fontset ()
   FONTSET_ID (Vdefault_fontset) = make_number (0);
   FONTSET_NAME (Vdefault_fontset)
     = build_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
-#ifdef macintosh
+#if defined (macintosh)
   FONTSET_ASCII (Vdefault_fontset)
     = Fcons (make_number (0),
 	     build_string ("-apple-monaco-medium-r-*--*-120-*-*-*-*-mac-roman"));
+#elif defined (WINDOWSNT)
+  FONTSET_ASCII (Vdefault_fontset)
+    = Fcons (make_number (0),
+	     build_string ("-outline-courier new-normal-r-*-*-*-120-*-*-*-*-iso8859-1"));
 #else
   FONTSET_ASCII (Vdefault_fontset)
     = Fcons (make_number (0),
