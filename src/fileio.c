@@ -1459,8 +1459,8 @@ DEFUN ("make-directory", Fmake_directory, Smake_directory, 1, 1, "FMake director
     return Qnil;
 }
 
-DEFUN ("remove-directory", Fremove_directory, Sremove_directory, 1, 1, "FRemove directory: ",
-  "Remove a directory.  One argument, a file name string.")
+DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete directory: ",
+  "Delete a directory.  One argument, a file name string.")
   (dirname)
      Lisp_Object dirname;
 {
@@ -2838,7 +2838,7 @@ nil means use format `var'.  This variable is meaningful only on VMS.");
   defsubr (&Ssubstitute_in_file_name);
   defsubr (&Scopy_file);
   defsubr (&Smake_directory);
-  defsubr (&Sremove_directory);
+  defsubr (&Sdelete_directory);
   defsubr (&Sdelete_file);
   defsubr (&Srename_file);
   defsubr (&Sadd_name_to_file);

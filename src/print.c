@@ -961,12 +961,12 @@ A value of nil means to use `%.20g'.");
 #endif /* LISP_FLOAT_TYPE */
 
   DEFVAR_LISP ("print-length", &Vprint_length,
-    "Maximum length of list to print before abbreviating.\
+    "Maximum length of list to print before abbreviating.\n\
 A value of nil means no limit.");
   Vprint_length = Qnil;
 
   DEFVAR_LISP ("print-level", &Vprint_level,
-    "Maximum depth of list nesting to print before abbreviating.\
+    "Maximum depth of list nesting to print before abbreviating.\n\
 A value of nil means no limit.");
   Vprint_level = Qnil;
 
