@@ -500,9 +500,12 @@ If the third argument is incorrect, Emacs may crash.")
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
-	    if (CONSP (v1)) TOP = XCAR (v1);
-	    else if (NILP (v1)) TOP = Qnil;
-	    else Fcar (wrong_type_argument (Qlistp, v1));
+	    if (CONSP (v1))
+	      TOP = XCAR (v1);
+	    else if (NILP (v1))
+	      TOP = Qnil;
+	    else
+	      Fcar (wrong_type_argument (Qlistp, v1));
 	    break;
 	  }
 
@@ -526,9 +529,12 @@ If the third argument is incorrect, Emacs may crash.")
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
-	    if (CONSP (v1)) TOP = XCDR (v1);
-	    else if (NILP (v1)) TOP = Qnil;
-	    else Fcdr (wrong_type_argument (Qlistp, v1));
+	    if (CONSP (v1))
+	      TOP = XCDR (v1);
+	    else if (NILP (v1))
+	      TOP = Qnil;
+	    else
+	      Fcdr (wrong_type_argument (Qlistp, v1));
 	    break;
 	  }
 
@@ -566,8 +572,12 @@ If the third argument is incorrect, Emacs may crash.")
 	  op = FETCH2;
 	  goto varbind;
 
-	case Bvarbind: case Bvarbind+1: case Bvarbind+2: case Bvarbind+3:
-	case Bvarbind+4: case Bvarbind+5:
+	case Bvarbind:
+	case Bvarbind+1:
+	case Bvarbind+2:
+	case Bvarbind+3:
+	case Bvarbind+4:
+	case Bvarbind+5:
 	  op -= Bvarbind;
 	varbind:
 	  specbind (vectorp[op], POP);
@@ -581,11 +591,16 @@ If the third argument is incorrect, Emacs may crash.")
 	  op = FETCH2;
 	  goto docall;
 
-	case Bcall: case Bcall+1: case Bcall+2: case Bcall+3:
-	case Bcall+4: case Bcall+5:
+	case Bcall:
+	case Bcall+1:
+	case Bcall+2:
+	case Bcall+3:
+	case Bcall+4:
+	case Bcall+5:
 	  op -= Bcall;
 	docall:
 	  {
+	    BEFORE_POTENTIAL_GC ();
 	    DISCARD (op);
 #ifdef BYTE_CODE_METER
 	    if (byte_metering_on && SYMBOLP (TOP))
@@ -602,7 +617,6 @@ If the third argument is incorrect, Emacs may crash.")
 		  }
 	      }
 #endif
-	    BEFORE_POTENTIAL_GC ();
 	    TOP = Ffuncall (op + 1, &TOP);
 	    AFTER_POTENTIAL_GC ();
 	    break;
@@ -616,8 +630,12 @@ If the third argument is incorrect, Emacs may crash.")
 	  op = FETCH2;
 	  goto dounbind;
 
-	case Bunbind: case Bunbind+1: case Bunbind+2: case Bunbind+3:
-	case Bunbind+4: case Bunbind+5:
+	case Bunbind:
+	case Bunbind+1:
+	case Bunbind+2:
+	case Bunbind+3:
+	case Bunbind+4:
+	case Bunbind+5:
 	  op -= Bunbind;
 	dounbind:
 	  BEFORE_POTENTIAL_GC ();
@@ -737,7 +755,8 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bsave_excursion:
-	  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+	  record_unwind_protect (save_excursion_restore,
+				 save_excursion_save ());
 	  break;
 
 	case Bsave_current_buffer:
@@ -752,13 +771,13 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bsave_restriction:
-	  record_unwind_protect (save_restriction_restore, save_restriction_save ());
+	  record_unwind_protect (save_restriction_restore,
+				 save_restriction_save ());
 	  break;
 
 	case Bcatch:
 	  {
 	    Lisp_Object v1;
-
 	    v1 = POP;
 	    BEFORE_POTENTIAL_GC ();
 	    TOP = internal_catch (TOP, Feval, v1);
@@ -823,9 +842,12 @@ If the third argument is incorrect, Emacs may crash.")
 		  }
 	      }
 	    immediate_quit = 0;
-	    if (CONSP (v1)) TOP = XCAR (v1);
-	    else if (NILP (v1)) TOP = Qnil;
-	    else Fcar (wrong_type_argument (Qlistp, v1));
+	    if (CONSP (v1))
+	      TOP = XCAR (v1);
+	    else if (NILP (v1))
+	      TOP = Qnil;
+	    else
+	      Fcar (wrong_type_argument (Qlistp, v1));
 	    break;
 	  }
 
@@ -941,7 +963,9 @@ If the third argument is incorrect, Emacs may crash.")
 	  {
 	    Lisp_Object v1, v2;
 	    v2 = POP; v1 = POP;
+	    BEFORE_POTENTIAL_GC ();
 	    TOP = Fsubstring (TOP, v1, v2);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
@@ -1121,8 +1145,8 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case BinsertN:
 	  op = FETCH;
-	  DISCARD (op - 1);
 	  BEFORE_POTENTIAL_GC ();
+	  DISCARD (op - 1);
 	  TOP = Finsert (op, &TOP);
 	  AFTER_POTENTIAL_GC ();
 	  break;
@@ -1373,9 +1397,12 @@ If the third argument is incorrect, Emacs may crash.")
 		      }
 		  }
 		immediate_quit = 0;
-		if (CONSP (v1)) TOP = XCAR (v1);
-		else if (NILP (v1)) TOP = Qnil;
-		else Fcar (wrong_type_argument (Qlistp, v1));
+		if (CONSP (v1))
+		  TOP = XCAR (v1);
+		else if (NILP (v1))
+		  TOP = Qnil;
+		else
+		  Fcar (wrong_type_argument (Qlistp, v1));
 	      }
 	    else
 	      {
