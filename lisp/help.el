@@ -534,7 +534,7 @@ m  describe-mode.  Print documentation of current minor modes,
 	and the current major mode, including their special commands.
 n  view-emacs-news.  Display news of recent Emacs changes.
 p  finder-by-keyword. Find packages matching a given topic keyword.
-s  describe-syntax.  Display contents of syntax table, plus explanations
+s  describe-syntax.  Display contents of syntax table, plus explanations.
 t  help-with-tutorial.  Select the Emacs learn-by-doing tutorial.
 v  describe-variable.  Type name of a variable;
 	it displays the variable's documentation and value.
