@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.43) $
+# $HopeName: MMsrc!comm.gmk(trunk.44) $
 # Copyright (C) 1997.  Harlequin Group plc.  All rights reserved.
 #
 # DESCRIPTION
@@ -118,36 +118,42 @@ CFLAGSCOMMON = \
 #            variety.
 
 # These flags are added to compilations for the indicated variety.
+CFWE = -DCONFIG_VAR_WE -DNDEBUG $(CFLAGSOPTNODEBUG)
+CFWI = -DCONFIG_VAR_WI -DNDEBUG $(CFLAGSOPT)
+CFHE = -DCONFIG_VAR_HE -DNDEBUG $(CFLAGSOPTNODEBUG) 
 CFHI = -DCONFIG_VAR_HI -DNDEBUG $(CFLAGSOPT)
+CFII = -DCONFIG_VAR_II -DNDEBUG $(CFLAGSOPT)
+CFCE = -DCONFIG_VAR_CE          $(CFLAGSOPTNODEBUG)
 CFCI = -DCONFIG_VAR_CI          $(CFLAGSDEBUG)
 CFTI = -DCONFIG_VAR_TI          $(CFLAGSDEBUG)
-CFHE = -DCONFIG_VAR_HE -DNDEBUG $(CFLAGSOPTNODEBUG) 
-CFCE = -DCONFIG_VAR_CE          $(CFLAGSOPTNODEBUG)
-CFWI = -DCONFIG_VAR_WI -DNDEBUG $(CFLAGSOPT)
-CFII = -DCONFIG_VAR_II -DNDEBUG $(CFLAGSOPT)
 
 # Bind CFLAGS to the appropriate set of flags for the variety.
 # %%VARIETY: Add a test for the variety and set CFLAGS here.
-ifeq ($(VARIETY),ci)
-CFLAGS=$(CFLAGSCOMMON) $(CFCI)
-else
-ifeq ($(VARIETY),hi)
-CFLAGS=$(CFLAGSCOMMON) $(CFHI)
-else
-ifeq ($(VARIETY),ti)
-CFLAGS=$(CFLAGSCOMMON) $(CFTI)
-else
-ifeq ($(VARIETY),ce)
-CFLAGS=$(CFLAGSCOMMON) $(CFCE)
-else
-ifeq ($(VARIETY),he)
-CFLAGS=$(CFLAGSCOMMON) $(CFHE)
+ifeq ($(VARIETY),we)
+CFLAGS=$(CFLAGSCOMMON) $(CFWE)
 else
 ifeq ($(VARIETY),wi)
 CFLAGS=$(CFLAGSCOMMON) $(CFWI)
 else
+ifeq ($(VARIETY),he)
+CFLAGS=$(CFLAGSCOMMON) $(CFHE)
+else
+ifeq ($(VARIETY),hi)
+CFLAGS=$(CFLAGSCOMMON) $(CFHI)
+else
 ifeq ($(VARIETY),ii)
 CFLAGS=$(CFLAGSCOMMON) $(CFII)
+else
+ifeq ($(VARIETY),ce)
+CFLAGS=$(CFLAGSCOMMON) $(CFCE)
+else
+ifeq ($(VARIETY),ci)
+CFLAGS=$(CFLAGSCOMMON) $(CFCI)
+else
+ifeq ($(VARIETY),ti)
+CFLAGS=$(CFLAGSCOMMON) $(CFTI)
+else
+endif
 endif
 endif
 endif
@@ -277,10 +283,9 @@ clean: phony
 	$(ECHO) "$(PFM): $@"
 	rm -rf "$(PFM)"
 
-# "target" builds all varieties of the target named in the TARGET macro.
-# %%VARIETY: Add a recursive make call for the new variety.
-# In fact, it builds all varieties needed for development and
-# internal customers.
+# "target" builds some varieties of the target named in the TARGET macro.
+# %%VARIETY: Optionally, add a recursive make call for the new variety, 
+#  if it should be built by default.
 
 ifdef TARGET
 ifndef VARIETY
