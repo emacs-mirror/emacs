@@ -1,3 +1,11 @@
+2001-05-18  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (compile-files-CMD, bootstrap-clean-CMD): Use
+	. instead of absolute path for lisp dir, to avoid bug in W2K
+	cmd.exe's handling of FOR loops.
+	(autoloads): Set find-file-suppress-same-file-warnings to t to
+	avoid slew of spurious messages.
+
 2001-05-18  Simon Josefsson  <simon@josefsson.org>
 
 	* mail/smtpmail.el (maybe-append-domain): Renamed to
