@@ -1,5 +1,7 @@
 2001-10-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* saveplace.el (save-place): Require `saveplace'.
+
 	* progmodes/cwarn.el (cwarn-font-lock-feature-keywords-alist): 
 	Use `sexp' for :value-type instead of `face'.
 
