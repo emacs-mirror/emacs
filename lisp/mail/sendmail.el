@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs.
 
-;; Copyright (C) 1985, 1986, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -129,8 +129,17 @@ so you can edit or delete these lines.")
 ;; Note: could use /usr/ucb/mail instead of sendmail;
 ;; options -t, and -v if not interactive.
 (defvar mail-mailer-swallows-blank-line
-  (if (string-match "sparc-sun-sunos\\(\\'\\|[^5]\\)" system-configuration)
-      '(looking-at " \t")
+  (if (and (string-match "sparc-sun-sunos\\(\\'\\|[^5]\\)" system-configuration)
+	   (let ((buffer (get-buffer-create " *temp*")))
+	     (unwind-protect
+		 (save-excursion
+		   (set-buffer buffer)
+		   (insert-file-contents "/etc/sendmail.cf")
+		   (goto-char (point-min))
+		   (let ((case-fold-search nil))
+		     (re-search-forward "^OR\>" nil t)))
+	       (kill-buffer buffer))))
+      '(looking-at " \t"))
   "Set this non-nil if the system's mailer runs the header and body together.
 \(This problem exists on Sunos 4 when sendmail is run in remote mode.)
 The value should be an expression to test whether the problem will
