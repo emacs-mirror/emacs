@@ -1295,7 +1295,7 @@ If there is no completion possible, say so and continue searching."
 	    (setq isearch-other-end
 		  (if isearch-forward (match-beginning 0) (match-end 0)))))
 
-    (quit (isearch-unread (nth 3 (current-input-mode)))
+    (quit (isearch-unread ?\C-g)
 	  (setq isearch-success nil))
 
     (invalid-regexp 
