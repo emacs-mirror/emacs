@@ -5,8 +5,6 @@
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news
 
-;; $Header: gnusmail.el,v 1.1 90/03/23 13:24:39 umerin Locked $
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

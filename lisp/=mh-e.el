@@ -7,7 +7,6 @@
 ;; Keywords: mail
 
 (defvar mh-e-RCS-id)
-(setq mh-e-RCS-id "$Header: /var/home/larus/lib/emacs/RCS/mh-e.el,v 3.1 90/09/28 15:47:58 larus Exp Locker: larus $")
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but without any warranty.  No author or distributor

@@ -160,7 +160,11 @@ static Lisp_Object read0 (), read1 (), read_list (), read_vector ();
 
 DEFUN ("read-char", Fread_char, Sread_char, 0, 0, 0,
   "Read a character from the command input (keyboard or macro).\n\
-It is returned as a number.")
+It is returned as a number.\n\
+If the user generates an event which is not a character (i.e. a mouse\n\
+click or function key event), `read-char' signals an error.  If you\n\
+want to read non-character events, or ignore them, call `read-event'\n\
+or `read-char-exclusive' instead.")
   ()
 {
   register Lisp_Object val;
@@ -179,7 +183,6 @@ It is returned as a number.")
   return val;
 }
 
-#ifdef HAVE_X_WINDOWS
 DEFUN ("read-event", Fread_event, Sread_event, 0, 0, 0,
   "Read an event object from the input stream.")
   ()
@@ -189,7 +192,6 @@ DEFUN ("read-event", Fread_event, Sread_event, 0, 0, 0,
   val = read_char (0);
   return val;
 }
-#endif
 
 DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 0, 0,
   "Read a character from the command input (keyboard or macro).\n\
@@ -199,9 +201,11 @@ It is returned as a number.  Non character events are ignored.")
   register Lisp_Object val;
 
 #ifndef standalone
-  val = read_char (0);
-  while (XTYPE (val) != Lisp_Int)
-    val = read_char (0);
+  do
+    {
+      val = read_char (0);
+    }
+  while (XTYPE (val) != Lisp_Int);
 #else
   val = getchar ();
 #endif
@@ -1565,9 +1569,7 @@ syms_of_lread ()
   defsubr (&Seval_region);
   defsubr (&Sread_char);
   defsubr (&Sread_char_exclusive);
-#ifdef HAVE_X_WINDOWS
   defsubr (&Sread_event);
-#endif /* HAVE_X_WINDOWS */
   defsubr (&Sget_file_char);
   defsubr (&Smapatoms);
 

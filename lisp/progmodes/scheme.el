@@ -5,8 +5,6 @@
 ;; Author: Bill Rozas <jinz@prep.ai.mit.edu>
 ;; Keywords: languages, lisp
 
-;;; $Header: scheme.el,v 1.7 88/07/15 20:20:00 GMT cph Exp $
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

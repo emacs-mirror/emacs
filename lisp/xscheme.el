@@ -5,8 +5,6 @@
 ;; Maintainer: FSF
 ;; Keywords: languages
 
-;;; $Header: xscheme.el,v 1.26 90/09/11 01:51:20 GMT cph Exp $
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

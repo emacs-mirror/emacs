@@ -4,8 +4,6 @@
 
 ;; Author: Chris Hanson <cph@zurich.ai.mit.edu>
 
-;;; $Header: netunam.el,v 1.3 88/12/21 16:32:23 GMT cph Exp $
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

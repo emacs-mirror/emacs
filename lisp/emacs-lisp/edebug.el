@@ -53,8 +53,6 @@
 ;;; Change list
 ;;; -----------
 
-;;; $Header: /import/kaplan/kaplan/liberte/Edebug/RCS/edebug.el,v 2.5 91/07/25 13:32:53 liberte Exp Locker: liberte $
-;;; $Log:	edebug.el,v $
 ;;; Revision 2.5  91/07/25  13:32:53  liberte
 ;;; Doc string cleanup.
 ;;; If edebug-form-hook is t, evaluate all arguments.
