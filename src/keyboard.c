@@ -36,6 +36,7 @@ Boston, MA 02111-1307, USA.  */
 #include "disptab.h"
 #include "dispextern.h"
 #include "keyboard.h"
+#include "syntax.h"
 #include "intervals.h"
 #include "blockinput.h"
 #include <setjmp.h>
@@ -7081,6 +7082,44 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 4, 0,
   UNGCPRO;
   return make_event_array (i, keybuf);
 }
+
+DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
+       Sread_key_sequence_vector, 1, 4, 0,
+  "Like `read-key-sequence' but always return a vector.")
+  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame)
+     Lisp_Object prompt, continue_echo, dont_downcase_last;
+     Lisp_Object can_return_switch_frame;
+{
+  Lisp_Object keybuf[30];
+  register int i;
+  struct gcpro gcpro1, gcpro2;
+
+  if (!NILP (prompt))
+    CHECK_STRING (prompt, 0);
+  QUIT;
+
+  bzero (keybuf, sizeof keybuf);
+  GCPRO1 (keybuf[0]);
+  gcpro1.nvars = (sizeof keybuf/sizeof (keybuf[0]));
+
+  if (NILP (continue_echo))
+    {
+      this_command_key_count = 0;
+      this_single_command_key_start = 0;
+    }
+
+  i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
+			 prompt, ! NILP (dont_downcase_last),
+			 ! NILP (can_return_switch_frame), 0);
+
+  if (i == -1)
+    {
+      Vquit_flag = Qt;
+      QUIT;
+    }
+  UNGCPRO;
+  return Fvector (i, keybuf);
+}
 
 DEFUN ("command-execute", Fcommand_execute, Scommand_execute, 1, 4, 0,
  "Execute CMD as an editor command.\n\
@@ -7437,18 +7476,26 @@ The value is a string or a vector.")
 			   XVECTOR (this_command_keys)->contents);
 }
 
+DEFUN ("this-command-keys-vector", Fthis_command_keys_vector, Sthis_command_keys_vector, 0, 0, 0,
+  "Return the key sequence that invoked this command, as a vector.")
+  ()
+{
+  return Fvector (this_command_key_count,
+		  XVECTOR (this_command_keys)->contents);
+}
+
 DEFUN ("this-single-command-keys", Fthis_single_command_keys,
        Sthis_single_command_keys, 0, 0, 0,
   "Return the key sequence that invoked this command.\n\
 Unlike `this-command-keys', this function's value\n\
 does not include prefix arguments.\n\
-The value is a string or a vector.")
+The value is always a vector.")
   ()
 {
-  return make_event_array (this_command_key_count
-			   - this_single_command_key_start,
-			   (XVECTOR (this_command_keys)->contents
-			    + this_single_command_key_start));
+  return Fvector (this_command_key_count
+		  - this_single_command_key_start,
+		  (XVECTOR (this_command_keys)->contents
+		   + this_single_command_key_start));
 }
 
 DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,
@@ -7775,9 +7822,17 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
 	 then quit right away.  */
       if (immediate_quit && NILP (Vinhibit_quit))
 	{
+	  struct gl_state_s saved;
+	  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+
 	  immediate_quit = 0;
           sigfree ();
+	  saved = gl_state;
+	  GCPRO4 (saved.object, saved.global_code,
+		  saved.current_syntax_table, saved.old_prop);
 	  Fsignal (Qquit, Qnil);
+	  gl_state = saved;
+	  UNGCPRO;
 	}
       else
 	/* Else request quit when it's safe */
@@ -8221,6 +8276,7 @@ syms_of_keyboard ()
 
   defsubr (&Sevent_convert_list);
   defsubr (&Sread_key_sequence);
+  defsubr (&Sread_key_sequence_vector);
   defsubr (&Srecursive_edit);
 #ifdef HAVE_MOUSE
   defsubr (&Strack_mouse);
@@ -8229,6 +8285,7 @@ syms_of_keyboard ()
   defsubr (&Scommand_execute);
   defsubr (&Srecent_keys);
   defsubr (&Sthis_command_keys);
+  defsubr (&Sthis_command_keys_vector);
   defsubr (&Sthis_single_command_keys);
   defsubr (&Sreset_this_command_lengths);
   defsubr (&Ssuspend_emacs);
