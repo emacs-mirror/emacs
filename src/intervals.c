@@ -51,8 +51,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define TMEM(sym, set) (CONSP (set) ? ! NILP (Fmemq (sym, set)) : ! NILP (set))
 
-#define min(x, y) ((x) < (y) ? (x) : (y))
-
 Lisp_Object merge_properties_sticky ();
 static INTERVAL reproduce_tree P_ ((INTERVAL, INTERVAL));
 static INTERVAL reproduce_tree_obj P_ ((INTERVAL, Lisp_Object));

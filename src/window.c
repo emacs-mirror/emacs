@@ -221,8 +221,6 @@ Lisp_Object Vscroll_preserve_screen_position;
 static int inhibit_frame_unsplittable;
 #endif /* 0 */
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
-
 extern int scroll_margin;
 
 extern Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;

@@ -63,9 +63,6 @@ static void turn_off_face P_ ((struct frame *, int face_id));
 static void tty_show_cursor P_ ((void));
 static void tty_hide_cursor P_ ((void));
 
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#define min(a, b) ((a) < (b) ? (a) : (b))
-
 #define OUTPUT(a) \
      tputs (a, (int) (FRAME_HEIGHT (XFRAME (selected_frame)) - curY), cmputc)
 #define OUTPUT1(a) tputs (a, 1, cmputc)

@@ -198,9 +198,6 @@ Boston, MA 02111-1307, USA.  */
 #include "macterm.h"
 #endif
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
 #define INFINITY 10000000
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (macintosh)

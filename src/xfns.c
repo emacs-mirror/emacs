@@ -117,9 +117,6 @@ static Lisp_Object Vmotif_version_string;
 
 #endif /* USE_X_TOOLKIT */
 
-#define min(a,b) ((a) < (b) ? (a) : (b))
-#define max(a,b) ((a) > (b) ? (a) : (b))
-
 #ifdef HAVE_X11R4
 #define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
 #else

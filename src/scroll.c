@@ -29,9 +29,6 @@ Boston, MA 02111-1307, USA.  */
 #include "frame.h"
 #include "window.h"
 
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#define min(a, b) ((a) < (b) ? (a) : (b))
-
 /* All costs measured in characters.
    So no cost can exceed the area of a frame, measured in characters.
    Let's hope this is never more than 1000000 characters.  */

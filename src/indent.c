@@ -39,9 +39,6 @@ Boston, MA 02111-1307, USA.  */
 
 int indent_tabs_mode;
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
 #define CR 015
 
 /* These three values memoize the current column to avoid recalculation.  */

@@ -80,9 +80,6 @@ extern __malloc_size_t __malloc_extra_blocks;
 
 #endif /* not DOUG_LEA_MALLOC */
 
-#define max(A,B) ((A) > (B) ? (A) : (B))
-#define min(A,B) ((A) < (B) ? (A) : (B))
-
 /* Macro to verify that storage intended for Lisp objects is not
    out of range to fit in the space for a pointer.
    ADDRESS is the start of the block, and SIZE

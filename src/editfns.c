@@ -51,9 +51,6 @@ Boston, MA 02111-1307, USA.  */
 #define MAX_10_EXP	310
 #endif
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
 #ifndef NULL
 #define NULL 0
 #endif

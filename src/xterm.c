@@ -144,13 +144,6 @@ extern void _XEditResCheckMessages ();
 #endif
 #endif
 
-#ifndef min
-#define min(a,b) ((a) < (b) ? (a) : (b))
-#endif
-#ifndef max
-#define max(a,b) ((a) > (b) ? (a) : (b))
-#endif
-
 #define abs(x)	((x) < 0 ? -(x) : (x))
 
 #define BETWEEN(X, LOWER, UPPER)  ((X) >= (LOWER) && (X) < (UPPER))

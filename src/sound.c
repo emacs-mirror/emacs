@@ -53,8 +53,6 @@ Boston, MA 02111-1307, USA.  */
 #define DEFAULT_SOUND_DEVICE "/dev/dsp"
 #endif
 
-#define max(X, Y) ((X) > (Y) ? (X) : (Y))
-#define min(X, Y) ((X) < (Y) ? (X) : (Y))
 #define abs(X)    ((X) < 0 ? -(X) : (X))
 
 /* Structure forward declarations.  */

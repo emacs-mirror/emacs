@@ -33,8 +33,6 @@ Boston, MA 02111-1307, USA.  */
 #include "syntax.h"
 #include "intervals.h"
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
-
 extern int quit_char;
 
 /* List of buffers for use as minibuffers.

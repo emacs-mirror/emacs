@@ -98,8 +98,6 @@ extern struct re_pattern_buffer *compile_pattern ();
 /* From filemode.c.  Can't go in Lisp.h because of `stat'.  */
 extern void filemodestring P_ ((struct stat *, char *));
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
-
 /* if system does not have symbolic links, it does not have lstat.
    In that case, use ordinary stat instead.  */
 

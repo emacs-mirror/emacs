@@ -33,9 +33,6 @@ Boston, MA 02111-1307, USA.  */
 #define NULL 0
 #endif
 
-#define min(x, y) ((x) < (y) ? (x) : (y))
-#define max(x, y) ((x) > (y) ? (x) : (y))
-
 static void insert_from_string_1 P_ ((Lisp_Object, int, int, int, int, int, int));
 static void insert_from_buffer_1 ();
 static void gap_left P_ ((int, int, int));

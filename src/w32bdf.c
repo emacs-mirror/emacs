@@ -34,9 +34,6 @@ Boston, MA 02111-1307, USA.  */
 #include "w32term.h"
 #include "w32bdf.h"
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
 /* 10 planes */
 #define BDF_CODEPOINT_HEAP_INITIAL_SIZE (96 * 10)
 /* about 96 characters */

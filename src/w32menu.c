@@ -113,9 +113,6 @@ typedef struct _widget_value
 
 /******************************************************************/
 
-#define min(x,y) (((x) < (y)) ? (x) : (y))
-#define max(x,y) (((x) > (y)) ? (x) : (y))
-
 #ifndef TRUE
 #define TRUE 1
 #define FALSE 0

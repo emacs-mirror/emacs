@@ -32,8 +32,6 @@ Boston, MA 02111-1307, USA.  */
 #include "puresize.h"
 #include "intervals.h"
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
-
 /* The number of elements in keymap vectors.  */
 #define DENSE_TABLE_SIZE (0200)
 

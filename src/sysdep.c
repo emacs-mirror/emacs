@@ -58,8 +58,6 @@ static int delete_exited_processes;
 #endif
 #endif  /* macintosh */
 
-#define min(x,y) ((x) > (y) ? (y) : (x))
-
 #ifdef WINDOWSNT
 #define read sys_read
 #define write sys_write

@@ -81,9 +81,6 @@ Boston, MA 02111-1307, USA.  */
 #endif /* not USE_X_TOOLKIT */
 #endif /* HAVE_X_WINDOWS */
 
-#define min(x,y) (((x) < (y)) ? (x) : (y))
-#define max(x,y) (((x) > (y)) ? (x) : (y))
-
 #ifndef TRUE
 #define TRUE 1
 #define FALSE 0

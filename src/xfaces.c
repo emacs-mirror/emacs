@@ -288,11 +288,7 @@ x_free_gc (f, gc)
 #include <stdio.h>
 #include <ctype.h>
 
-#ifndef max
-#define max(A, B)	((A) > (B) ? (A) : (B))
-#define min(A, B)	((A) < (B) ? (A) : (B))
 #define abs(X)		((X) < 0 ? -(X) : (X))
-#endif
 
 /* Number of pt per inch (from the TeXbook).  */
 

@@ -35,11 +35,6 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/time.h>
 #endif
 
-/* The ubiquitous min/max macros.  */
-
-#define max(X, Y) ((X) > (Y) ? (X) : (Y))
-#define min(X, Y) ((X) < (Y) ? (X) : (Y))
-
 /* Free-list of atimer structures.  */
 
 static struct atimer *free_atimers;

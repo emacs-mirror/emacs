@@ -107,8 +107,6 @@ Lisp_Object Vnonascii_translation_table;
 /* List of all possible generic characters.  */
 Lisp_Object Vgeneric_character_list;
 
-#define min(X, Y) ((X) < (Y) ? (X) : (Y))
-#define max(X, Y) ((X) > (Y) ? (X) : (Y))
 
 void
 invalid_character (c)

@@ -50,11 +50,6 @@ Boston, MA 02111-1307, USA.  */
 #define NULL (void *)0
 #endif
 
-#ifndef min
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#endif
-
 /* Nonzero enables use of dialog boxes for questions
    asked by mouse commands.  */
 int use_dialog_box;

@@ -33,9 +33,6 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/types.h>
 #include "regex.h"
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
 #define REGEXP_CACHE_SIZE 20
 
 /* If the regexp is non-nil, then the buffer contains the compiled form

@@ -159,9 +159,6 @@ extern int use_dialog_box;
 #  define lstat stat
 #endif
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
 /* Nonzero during writing of auto-save files */
 int auto_saving;
 

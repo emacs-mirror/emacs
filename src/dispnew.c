@@ -75,9 +75,6 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #endif
 
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#define min(a, b) ((a) < (b) ? (a) : (b))
-
 /* Get number of chars of output now in the buffer of a stdio stream.
    This ought to be built in in stdio, but it isn't.  Some s- files
    override this because their stdio internals differ.  */
