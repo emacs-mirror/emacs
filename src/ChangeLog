@@ -1,3 +1,12 @@
+2005-03-31  Kenichi Handa  <handa@etlken2>
+
+	* coding.c (syms_of_coding): Fix type in the previous change.
+
+2005-03-25  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (syms_of_coding): Suggest to use set-coding-category in
+	the docstring of coding-category-list.
+
 2005-03-31  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c (Qmouse_fixup_help_message): New var.
