@@ -144,6 +144,24 @@ Otherwise they are treated as Emacs regexps (for backward compatibility)."
   :type 'boolean
   :group 'ls-lisp)
 
+(defcustom ls-lisp-format-time-list
+  '("%b %e %H:%M"
+    "%b %e  %Y")
+  "*List of `format-time-string' specs to display file time stamps.
+They are used whenever a locale is not specified to use instead.
+
+Syntax:  (EARLY-TIME-FORMAT OLD-TIME-FORMAT)
+
+The EARLY-TIME-FORMAT is used if file has been modified within the
+current year. The OLD-TIME-FORMAT is used for older files.  To use ISO
+8601 dates, you could set:
+
+\(setq ls-lisp-format-time-list
+       '(\"%Y-%m-%d %H:%M\"
+         \"%Y-%m-%d      \"))"
+  :type  '(list string)
+  :group 'ls-lisp)
+
 ;; Remember the original insert-directory function
 (or (featurep 'ls-lisp)  ; FJW: unless this file is being reloaded!
     (fset 'original-insert-directory (symbol-function 'insert-directory)))
@@ -557,8 +575,8 @@ All ls time options, namely c, t and u, are handled."
 	      (setq locale nil))
 	  (format-time-string
 	   (if (and (<= past-cutoff diff) (<= diff 0))
-	       (if locale "%m-%d %H:%M" "%b %e %H:%M")
-	     (if locale "%Y-%m-%d " "%b %e  %Y"))
+	       (if locale "%m-%d %H:%M" (nth 0 ls-lisp-format-time-list))
+	     (if locale "%Y-%m-%d " (nth 1 ls-lisp-format-time-list)))
 	   time))
       (error "Unk  0  0000"))))
 
