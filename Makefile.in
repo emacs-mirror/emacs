@@ -309,6 +309,8 @@ install-arch-dep: mkdir
 
 ### Note that we copy the DOC-* files from the build etc directory
 ### as well as lots of things from ${srcdir}/etc.
+### Note that we copy DOC* and then delete DOC
+### as a workaround for a bug in tar on Ultrix 4.2.
 
 install-arch-indep: mkdir
 	-set ${COPYDESTS} ; \
@@ -341,7 +343,8 @@ install-arch-indep: mkdir
 	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
 	then \
 	   echo "Copying etc/DOC-* ..." ; \
-	   (cd etc; tar -cf - DOC-*)|(cd ${docdir}; umask 0; tar -xvf - ); \
+	   (cd etc; tar -cf - DOC*)|(cd ${docdir}; umask 0; tar -xvf - ); \
+	   (cd $(docdir); rm DOC) \
 	else true; fi
 	thisdir=`/bin/pwd`; \
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
@@ -350,7 +353,7 @@ install-arch-indep: mkdir
 	   if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
 	     (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/dir ${infodir}/dir); \
 	   fi ; \
-	   for f in cl* dired-x* emacs* forms* gnus* info* mh-e* sc* vip*; do \
+	   for f in cl* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*; do \
 	     (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/$$f ${infodir}/$$f); \
 	   done); \
 	else true; fi
@@ -391,7 +394,7 @@ uninstall:
 	    esac ;					\
 	  fi ;						\
 	done
-	(cd ${infodir} && rm -f cl* dired-x* emacs* forms* gnus* info* mh-e* sc* vip*)
+	(cd ${infodir} && rm -f cl* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*)
 	(cd ${mandir}  && rm -f emacs.1 etags.1 ctags.1)
 	(cd ${bindir}  && rm -f emacs-${version} $(EMACS))
 
