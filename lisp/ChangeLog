@@ -1,3 +1,8 @@
+2000-04-24  Sam Steingold  <sds@gnu.org>
+
+	* time-stamp.el (time-stamp-string-preprocess): Always convert
+	`field-result' to a string.
+
 2000-04-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.el (scrolling): New group.
@@ -100,7 +105,7 @@
 2000-04-15  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Check for line-beginning-position definition.
-	
+
 	* ps-print.el: Fix counting lines in a region.
 	(ps-print-version): New version number (5.1.5).
 	(ps-spool-without-faces, ps-spool-with-faces): Adjust code.
@@ -157,7 +162,7 @@
 	(ps-printer-name, ps-lpr-switches, ps-user-defined-prologue)
 	(ps-print-prologue-header, ps-print-control-characters)
 	(ps-spool-config): Customization fix.
-	
+
 2000-04-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/ispell.el (ispell-menu-map): Menu items rearranged and
@@ -224,7 +229,7 @@
 2000-04-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/ebrowse-ffh.el: New file.
-	
+
 	* progmodes/ebrowse.el (ebrowse-find-file-hook-fn): Moved
 	to ebrowse-ffh.el.
 	(ebrowse-load): Add autoload.
@@ -255,9 +260,9 @@
 
 	* viper-util.el (viper-put-on-search-overlay): New subroutine.
 	(viper-flash-search-pattern): No operation when using Emacs
-	doesn't support face. 
+	doesn't support face.
 	Use `viper-put-on-search-overlay'.
-	
+
 2000-04-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* isearch.el (isearch-mode-map): Define M-C-s like C-s and M-C-r
@@ -313,7 +318,7 @@
 
 	* files.el (insert-directory): List the total free space
 	along with the used space.
-	
+
 	* textmodes/fill.el (fill-individual-paragraphs): If a no-prefix
 	line is followed by one that matches CITATION-REGEXP, end the
 	paragraph.
@@ -322,7 +327,7 @@
 
 	* mail/rmailsum.el (rmail-user-mail-address-regexp): New option.
 	(rmail-make-basic-summary-line): Use that option.
-	
+
 2000-04-03  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-cmds.el (encoded-string-description):
@@ -349,7 +354,7 @@
 
 	* vc.el (vc-backend-diff): Return the correct status if we had to
 	retry the rcsdiff command without the --brief option.
-	
+
 2000-03-31  Dave Love  <fx@gnu.org>
 
 	* help.el (help-manyarg-func-alist): Correct several omissions.
@@ -387,11 +392,11 @@
 	systems `usg-unix-v*, `dgux', `hpux', `irix'.
 
 2000-03-31  Dave Love  <fx@gnu.org>
-	
+
 	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Look
 	for function definition in symbol's function value slot first
 	instead of first consulting byte-compile-function-environment.
-	
+
 2000-03-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/european.el ("Polish"): New language environment.
@@ -424,14 +429,14 @@
 	(ps-format-color, ps-rgb-color): New funs.
 	(ps-default-foreground): New var.
 	(ps-printer-name-option): New const.
-	
+
 2000-03-30  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* net/net-utils.el:
 	(network-connection-host, network-connection-service): New variables
 	(network-connection-mode): New mode, derived from comint-mode
 	(network-connection-mode-setup): New function, saves host and
-	service information in local variables.	
+	service information in local variables.
 
 	* lisp/locate.el:
 	(locate-word-at-point): Added this function
@@ -567,7 +572,7 @@
 	* ps-print.el: Skip banner page fix.
 	(ps-print-version): New version number (5.1.2).
 	(ps-begin-file, ps-end-file, ps-generate): Code fix.
-	
+
 2000-03-23  Dave Pearson  <davep@davep.org>
 
 	* net/quickurl.el Changed the type of parameter passed to the
@@ -581,7 +586,7 @@
 	(quickurl-list-insert): Changed the `url' case so that it makes
 	use of `quickurl-format-function', previous to this the format was
 	hard wired.
-	
+
 2000-03-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el: Change some spellings for the X Window System.
@@ -601,7 +606,7 @@
 	* ps-print.el: N-up last page fix.
 	(ps-print-version): New version number (5.1.1).
 	(ps-end-file, ps-end-job, ps-generate): Code fix.
-	
+
 2000-03-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* files.el (find-file-run-dired): Update docstring.
@@ -732,7 +737,7 @@
 	change.
 	(instantiate-fontset, resolve-fontset-name): Functions removed.
 	(fontset-list): Now implemented by C code.
-	
+
 	* faces.el (read-face-font): Fix TABLE arg to completing-read.
 	(describe-face): Include `font' attribute in the description.
 
@@ -745,7 +750,7 @@
 	* rcompile.el, rlogin.el, telnet.el, net-utils.el, quickurl.el,
 	ange-ftp.el, browse-url.el, goto-addr.el, webjump.el,
 	zone-mode.el, snmp-mode.el: Moved to net subdirectory.
-	
+
 	* jit-lock.el (with-buffer-prepared-for-font-lock): Add comment
 	about behavior of set-buffer-modified-p wrt redisplay.
 
@@ -806,7 +811,7 @@
 	(custom-face-tag-face, custom-group-tag-face-1)
 	(custom-group-tag-face): Ditto.
 	(custom-group-tag-face-1): Add :group.
-	
+
 	* info.el (Info-fontify-maximum-menu-size): Increase to 100000.
 
 2000-03-15  Gerd Moellmann  <gerd@gnu.org>
@@ -823,7 +828,7 @@
 	(ps-print-prologue-0, ps-error-handler-alist): New vars.
 	(ps-setup, ps-begin-file, ps-begin-job): Code fix.
 	(ps-insert-string): New function.
-	
+
 2000-03-15  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/ccl.el (ccl-compile-expression): Don't generate
@@ -948,8 +953,8 @@
 	* octave-mod.el (octave-font-lock-keywords): To font-lock the
 	builtin operators, use `font-lock-builtin-face' for Emacs and
 	`font-lock-preprocessor-face' otherwise.
-	
-	* font-lock.el (lisp-font-lock-keywords-1): Highlight 
+
+	* font-lock.el (lisp-font-lock-keywords-1): Highlight
 	`(defun (setf foo)' differently.
 
 2000-03-08  Stefan Monnier  <monnier@cs.yale.edu>
@@ -1017,7 +1022,7 @@
 	(mail-send): Test mail-send-nonascii also for the new `mime' value.
 	(sendmail-send-it): Conditionally add MIME headers specifying the
 	used character set.
-	
+
 2000-03-07  Dave Love  <fx@gnu.org>
 
 	* winner.el: Fix keywords, autoload cookies.  Split
@@ -1046,7 +1051,7 @@
 	code abstracted out of `bookmark-jump-noselect'.  Now tries info
 	extensions as well as compression extensions.
 	(bookmark-jump-noselect): Use above new func.
-	
+
 2000-03-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* strokes.el: Change maintainer's mail address.
@@ -1098,7 +1103,7 @@
 
 	* image.el (defimage): Look for image files in load-path.
 
-	* frame.el (busy-cursor-delay-seconds): Change type to 
+	* frame.el (busy-cursor-delay-seconds): Change type to
 	`number'.
 
 2000-03-01  David Ponce  <david.ponce@wanadoo.fr>
@@ -1211,14 +1216,14 @@
 	(calculator-forced-input): Removed.
 	(calculator-restart-other-mode): New variable.
 	(calculator-mode-map): Set up menu.
-	
+
 2000-02-28  Jari Aalto  <jari.aalto@poboxes.com>
 
 	* font-lock.el (java-keywords): Added missing java 1.2.2 Javadoc
 	tags.
-	
+
 2000-02-28  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* viper-cmd.el (viper-envelop-ESC-key): added the option to
 	translate all ESC key sequences.
 	(viper-goto-mark-subr): restore markers for files for which
@@ -1230,7 +1235,7 @@
 	* viper.el (viper-vi-state-mode-list): added major modes.
 	* ediff-wind.el: minor comment changes.
 	* ediff.el: copyright notice date fix.
-	
+
 2000-02-27  Jason Rumney  <jasonr@gnu.org>
 
 	* faces.el (face-font-family-alternatives): Add arial to helv.
@@ -1244,7 +1249,7 @@
 
 	* emacs-lisp/cl-indent.el (toplvel): Indent `pprint-logical-block'
 	properly.
-	
+
 2000-02-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* mail/rmail.el (rmail-resend): Verify buffer is really Rmail.
@@ -1620,7 +1625,7 @@
 	explicit.
 	(bibtex-field-const): Allow capital letters.
 	(bibtex-start-of-string): Deleted because unused.
-	
+
 	* textmodes/bibtex.el: Unified some nomenclature.  We no longer
 	use the term 'reference' to describe a bibtex entry as a whole.
 	Further, reference keys are no longer called 'labels'.
@@ -1654,7 +1659,7 @@
 	extracted from bibtex-format-entry.
 	(bibtex-autokey-get-yearfield-digits): New function, functionality
 	extracted from bibtex-autokey-get-yearfield.
-	
+
 	* textmodes/bibtex.el: Completely reimplemented parsing of bibtex
 	entries in order to avoid stack overflow in the regexp matcher if
 	field contents become large.
@@ -1716,11 +1721,11 @@
 
 	* textmodes/bibtex.el: Copyright notice is up to date.
 	Added constant 'bibtex-maintainer-salutation.
-	
+
 	* textmodes/bibtex.el (bibtex-mode): use with-temp-buffer rather
 	than make-temp-name, use match-string-no-properties and eliminate
 	a quadratic behavior when building bibtex-strings.
-	
+
 	* bibtex.el (bibtex-reference-key): Accept string entries whose
 	reference key contains upper case letters.
 

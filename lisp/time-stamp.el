@@ -457,7 +457,7 @@ Optionally use FORMAT."
 				  ?\0))
 		 (or (eq ?. cur-char)
 		     (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
-		     (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char) 
+		     (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char)
 		     (eq ?\  cur-char) (eq ?# cur-char) (eq ?^ cur-char)
 		     (and (eq ?\( cur-char)
 			  (not (eq prev-char ?\\))
@@ -573,7 +573,7 @@ Optionally use FORMAT."
 	  (time-stamp-mail-host-name))
 	 ))
 	(if (string-equal field-width "")
-	    field-result
+	    (format "%s" field-result)
 	  (let ((padded-result
 		 (format (format "%%%s%c"
 				 field-width
