@@ -721,7 +721,7 @@ init_x_parm_symbols ()
 	  make_number (i));
 }
 
-/* Change the parameters of FRAME as specified by ALIST.
+/* Change the parameters of frame F as specified by ALIST.
    If a parameter is not specially recognized, do nothing;
    otherwise call the `x_set_...' function for that parameter.  */
 
@@ -2373,8 +2373,8 @@ x_get_and_record_arg (f, alist, param, attribute, class, type)
 }
 
 /* Record in frame F the specified or default value according to ALIST
-   of the parameter named PARAM (a Lisp symbol).
-   If no value is specified for PARAM, look for an X default for XPROP
+   of the parameter named PROP (a Lisp symbol).
+   If no value is specified for PROP, look for an X default for XPROP
    on the frame named NAME.
    If that is not found either, use the value DEFLT.  */
 
