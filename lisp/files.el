@@ -92,6 +92,30 @@ even if the buffer is not visiting a file.
 Automatically local in all buffers.")
 (make-variable-buffer-local 'buffer-offer-save)
 
+(defconst find-file-existing-other-name nil
+  "*Non-nil means find a file under alternative names, in existing buffers.
+This means if any existing buffer is visiting the file you want
+under another name, you get the existing buffer instead of a new buffer.")
+
+(defconst find-file-visit-truename nil
+  "*Non-nil means visit a file under its truename.
+The truename of a file is found by chasing all links
+both at the file level and at the levels of the containing directories.")
+
+(defvar buffer-file-truename nil
+  "The truename of the file visited in the current buffer.
+This variable is automatically local in all buffers, when non-nil.")
+(make-variable-buffer-local 'buffer-file-truename)
+(put 'buffer-file-truename 'permanent-local t)
+
+(defvar buffer-file-number nil
+  "The device number and file number of the file visited in the current buffer.
+The value is a list of the form (FILENUM DEVNUM).
+This pair of numbers uniquely identifies the file.
+If the buffer is visiting a new file, the value is nil.")
+(make-variable-buffer-local 'buffer-file-number)
+(put 'buffer-file-number 'permanent-local t)
+
 (defconst file-precious-flag nil
   "*Non-nil means protect against I/O errors while saving files.
 Some modes set this non-nil in particular buffers.")
@@ -238,6 +262,27 @@ accessible."
     (if handler
 	(funcall handler 'file-local-copy file)
       nil)))
+
+(defun file-truename (filename)
+  "Return the truename of FILENAME, which should be absolute.
+The truename of a file name is found by chasing symbolic links
+both at the level of the file and at the level of the directories
+containing it, until no links are left at any level."
+  (let ((dir (file-name-directory filename))
+	target)
+    ;; Get the truename of the directory.
+    (or (string= dir "/")
+	(setq dir (file-name-as-directory (file-truename (directory-file-name dir)))))
+    ;; Put it back on the file name.
+    (setq filename (concat (file-name-nondirectory filename) dir))
+    ;; Is the file name the name of a link?
+    (setq target (file-symlink-p filename))
+    (if target
+	;; Yes => chase that link, then start all over
+	;; since the link may point to a directory name that uses links.
+	(file-truename (expand-file-name target dir))
+      ;; No, we are done!
+      filename)))
 
 (defun switch-to-buffer-other-window (buffer)
   "Select buffer BUFFER in another window."
@@ -379,8 +424,46 @@ The buffer is not selected, just returned to the caller."
       (if find-file-run-dired
 	  (dired-noselect filename)
 	(error "%s is a directory." filename))
-    (let ((buf (get-file-buffer filename))
-	  error)
+    (let* ((buf (get-file-buffer filename))
+	   (truename (abbreviate-file-name (file-truename filename)))
+	   (number (nthcdr 10 (file-attributes truename)))
+	   ;; Find any buffer for a file which has same truename.
+	   (same-truename
+	    (or buf ; Shortcut
+		(let (found
+		      (list (buffer-list)))
+		  (while (and (not found) list)
+		    (save-excursion
+		      (set-buffer (car list))
+		      (if (string= buffer-file-truename truename)
+			(setq found (car list))))
+		    (setq list (cdr list)))
+		  found)))
+	   (same-number
+	    (or buf ; Shortcut
+		(and number
+		     (let (found
+			   (list (buffer-list)))
+		       (while (and (not found) list)
+			 (save-excursion
+			   (set-buffer (car list))
+			   (if (equal buffer-file-number number)
+			     (setq found (car list))))
+			 (setq list (cdr list)))
+		       found))))
+	   error)
+      ;; Let user know if there is a buffer with the same truename.
+      (if (and (not buf) same-truename (not nowarn))
+	  (message "%s and %s are the same file (%s)"
+		   filename (buffer-file-name same-truename)
+		   truename)
+	(if (and (not buf) same-number (not nowarn))
+	  (message "%s and %s are the same file"
+		   filename (buffer-file-name same-number))))
+
+      ;; Optionally also find that buffer.
+      (if (or find-file-existing-other-name find-file-visit-truename)
+	  (setq buf (or same-truename same-number)))
       (if buf
 	  (or nowarn
 	      (verify-visited-file-modtime buf)
@@ -396,12 +479,13 @@ The buffer is not selected, just returned to the caller."
 		       (set-buffer buf)
 		       (revert-buffer t t)))))
 	(save-excursion
-	  (let* ((link-name (car (file-attributes filename)))
-		 (linked-buf (and (stringp link-name)
-				  (get-file-buffer link-name))))
-	    (if (bufferp linked-buf)
-		(message "Symbolic link to file in buffer %s"
-			 (buffer-name linked-buf))))
+;;; The truename stuff makes this obsolete.
+;;;	  (let* ((link-name (car (file-attributes filename)))
+;;;		 (linked-buf (and (stringp link-name)
+;;;				  (get-file-buffer link-name))))
+;;;	    (if (bufferp linked-buf)
+;;;		(message "Symbolic link to file in buffer %s"
+;;;			 (buffer-name linked-buf))))
 	  (setq buf (create-file-buffer filename))
 	  (set-buffer buf)
 	  (erase-buffer)
@@ -414,6 +498,10 @@ The buffer is not selected, just returned to the caller."
 	       (while (and hooks
 			   (not (funcall (car hooks))))
 		 (setq hooks (cdr hooks))))))
+	  ;; Find the file's truename, and maybe use that as visited name.
+	  (setq buffer-file-truename (abbreviate-file-name truename))
+	  (setq buffer-file-number number) 
+	  (if find-file-visit-truename (setq filename buffer-file-truename))
 	  ;; Set buffer's default directory to that of the file.
 	  (setq default-directory (file-name-directory filename))
 	  ;; Turn off backup files for certain file names.  Since
@@ -562,7 +650,7 @@ compares the filename against the entries in auto-mode-alist.  It does
 not check for the \"mode:\" local variable in the Local Variables
 section of the file; for that, use `hack-local-variables'.
 
-If enable-local-variables is nil, this function will not check for a
+If `enable-local-variables' is nil, this function does not check for a
 -*- mode tag."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
   (let (beg end mode)
@@ -609,8 +697,72 @@ If enable-local-variables is nil, this function will not check for a
 	      (setq alist (cdr alist)))))))
     (if mode (funcall mode))))
 
+(defun hack-local-variables-prop-line ()
+  ;; Set local variables specified in the -*- line.
+  ;; Returns t if mode was set.
+  (save-excursion
+    (goto-char (point-min))
+    (skip-chars-forward " \t\n\r")
+    (let ((result '())
+	  (end (save-excursion (end-of-line) (point)))
+	  mode-p)
+      ;; Parse the -*- line into the `result' alist.
+      (cond ((not (search-forward "-*-" end t))
+	     ;; doesn't have one.
+	     nil)
+	    ((looking-at "[ \t]*\\([^ \t\n\r:;]+\\)\\([ \t]*-\\*-\\)")
+	     ;; Simple form: "-*- MODENAME -*-".
+	     (setq result
+	       (list (cons 'mode
+			   (intern (buffer-substring
+				    (match-beginning 1)
+				    (match-end 1)))))))
+	    (t
+	     ;; Hairy form: '-*-' [ <variable> ':' <value> ';' ]* '-*-'
+	     ;; (last ";" is optional).
+	     (save-excursion
+	       (if (search-forward "-*-" end t)
+		   (setq end (- (point) 3))
+		 (error "-*- not terminated before end of line")))
+	     (while (< (point) end)
+	       (or (looking-at "[ \t]*\\([^ \t\n:]+\\)[ \t]*:[ \t]*")
+		   (error "malformed -*- line"))
+	       (goto-char (match-end 0))
+	       (let ((key (intern (downcase (buffer-substring
+					     (match-beginning 1)
+					     (match-end 1)))))
+		     (val (save-restriction
+			    (narrow-to-region (point) end)
+			    (read (current-buffer)))))
+		 (setq result (cons (cons key val) result))
+		 (skip-chars-forward " \t;")))
+	     (setq result (nreverse result))))
+
+      ;; Mode is magic.
+      (let (mode)
+	(while (setq mode (assq 'mode result))
+	  (setq mode-p t result (delq mode result))
+	  (funcall (intern (concat (downcase (symbol-name (cdr mode)))
+				   "-mode")))))
+      
+      (if (and result
+	       (or (eq enable-local-variables t)
+		   (and enable-local-variables
+			(save-window-excursion
+			  (switch-to-buffer (current-buffer))
+			  (y-or-n-p (format "Set local variables as specified in -*- line of %s? "
+					    (file-name-nondirectory buffer-file-name)))))))
+	  (while result
+	    (let ((key (car (car result)))
+		  (val (cdr (car result))))
+	      ;; 'mode has already been removed from this list.
+	      (hack-one-local-variable key val))
+	    (setq result (cdr result))))
+      mode-p)))
+
 (defun hack-local-variables ()
   "Parse and put into effect this buffer's local variables spec."
+  (hack-local-variables-prop-line)
   ;; Look for "Local variables:" line in last page.
   (save-excursion
     (goto-char (point-max))
@@ -674,27 +826,39 @@ If enable-local-variables is nil, this function will not check for a
 		(or (if suffix (looking-at suffix) (eolp))
 		    (error "Local variables entry is terminated incorrectly"))
 		;; Set the variable.  "Variables" mode and eval are funny.
-		(cond ((eq var 'mode)
-		       (funcall (intern (concat (downcase (symbol-name val))
-						"-mode"))))
-		      ((eq var 'enable-local-eval)
-		       nil)
-		      ((eq var 'eval)
-		       (if (and (not (string= (user-login-name) "root"))
-				(or (eq enable-local-eval t)
-				    (and enable-local-eval
-					 (save-window-excursion
-					   (switch-to-buffer (current-buffer))
-					   (save-excursion
-					     (beginning-of-line)
-					     (set-window-start (selected-window) (point)))
-					   (setq enable-local-eval
-						 (y-or-n-p (format "Process `eval' local variable in file %s? "
-								   (file-name-nondirectory buffer-file-name))))))))
-			   (save-excursion (eval val))
-			 (message "Ignoring `eval:' in file's local variables")))
-		      (t (make-local-variable var)
-			 (set var val))))))))))
+		(hack-one-local-variable var val))))))))
+
+(defconst ignored-local-variables
+  '(enable-local-eval)
+  "Variables to be ignored in a file's local variable spec.")
+
+;; "Set" one variable in a local variables spec.
+;; A few variable names are treated specially.
+(defun hack-one-local-variable (var val)
+  (cond ((eq var 'mode)
+	 (funcall (intern (concat (downcase (symbol-name val))
+				  "-mode"))))
+	((memq var ignored-local-variables)
+	 nil)
+	;; "Setting" eval means either eval it or do nothing.
+	((eq var 'eval)
+	 (if (and (not (string= (user-login-name) "root"))
+		  (or (eq enable-local-eval t)
+		      (and enable-local-eval
+			   (save-window-excursion
+			     (switch-to-buffer (current-buffer))
+			     (save-excursion
+			       (beginning-of-line)
+			       (set-window-start (selected-window) (point)))
+			     (setq enable-local-eval
+				   (y-or-n-p (format "Process `eval' local variable in file %s? "
+						     (file-name-nondirectory buffer-file-name))))))))
+	     (save-excursion (eval val))
+	   (message "Ignoring `eval:' in file's local variables")))
+	;; Ordinary variable, really set it.
+	(t (make-local-variable var)
+	   (set var val))))
+
 
 (defun set-visited-file-name (filename)
   "Change name of file visited in current buffer to FILENAME.
@@ -724,6 +888,14 @@ if you wish to pass an empty string as the argument."
 	(rename-buffer new-name t)))
   (setq buffer-backed-up nil)
   (clear-visited-file-modtime)
+  (if filename
+      (progn
+	(setq buffer-file-truename
+	      (abbreviate-file-name (file-truename buffer-file-name)))
+	(if find-file-visit-truename
+	    (setq buffer-file-name buffer-file-truename))
+	(setq buffer-file-number (nth 10 (file-attributes buffer-file-name))))
+    (setq buffer-file-truename nil buffer-file-number nil))
   ;; write-file-hooks is normally used for things like ftp-find-file
   ;; that visit things that are not local files as if they were files.
   ;; Changing to visit an ordinary local file instead should flush the hook.
@@ -1067,40 +1239,28 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 		   (or buffer-backed-up
 		       (setq setmodes (backup-buffer)))
 		   (if file-precious-flag
-		       ;; If file is precious, rename it away before
-		       ;; overwriting it.
-		       (let ((rename t)
-			     realname tempname temp)
-			 ;; Chase symlinks; rename the ultimate actual file.
-			 (setq realname buffer-file-name)
-			 (while (setq temp (file-symlink-p realname))
-			   (setq realname temp))
-			 (setq tempname (concat realname "#"))
-			 (condition-case ()
-			     (progn (rename-file realname tempname t)
-				    (setq setmodes (file-modes tempname)))
-			   (file-error (setq rename nil tempname nil)))
-			 (if (file-directory-p realname)
-			     (error "%s is a directory" realname))
+		       ;; If file is precious, write temp name, then rename it.
+		       (let ((dir (file-name-directory buffer-file-name))
+			     (realname buffer-file-name)
+			     tempname temp nogood i succeed)
+			 (setq i 0)
+			 (setq nogood t)
+			 ;; Find the temporary name to write under.
+			 (while nogood
+			   (setq tempname (format "%s#tmp#%d" dir i))
+			   (setq nogood (file-exists-p tempname))
+			   (setq i (1+ i)))
 			 (unwind-protect
 			     (progn (clear-visited-file-modtime)
 				    (write-region (point-min) (point-max)
-						  realname nil t)
-				    (setq rename nil))
-			   ;; If rename is still t, writing failed.
-			   ;; So rename the old file back to original name,
-			   (if rename
-			       (progn
-				 (rename-file tempname realname t)
-				 (clear-visited-file-modtime))
-			     ;; Otherwise we don't need the original file,
-			     ;; so flush it, if we still have it.
-			     ;; If rename failed due to name length restriction
-			     ;; then TEMPNAME is now nil.
-			     (if tempname
-				 (condition-case ()
-				     (delete-file tempname)
-				   (error nil))))))
+						  tempname nil realname)
+				    (setq succeed t))
+			   ;; If writing the temp file fails,
+			   ;; delete the temp file.
+			   (or succeed (delete-file tempname)))
+			 ;; We succeeded in writing the temp file,
+			 ;; so rename it.
+			 (rename-file tempname buffer-file-name t))
 		     ;; If file not writable, see if we can make it writable
 		     ;; temporarily while we write it.
 		     ;; But no need to do so if we have just backed it up
@@ -1111,9 +1271,10 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 			    (set-file-modes buffer-file-name 511)))
 		     (write-region (point-min) (point-max)
 				   buffer-file-name nil t)))))
+	  (setq buffer-file-number (nth 10 (file-attributes buffer-file-name)))
 	  (if setmodes
 	      (condition-case ()
-		   (set-file-modes buffer-file-name setmodes)
+		  (set-file-modes buffer-file-name setmodes)
 		(error nil))))
 	;; If the auto-save file was recent before this command,
 	;; delete it now.
@@ -1355,7 +1516,7 @@ do the work."
 
 (defun auto-save-mode (arg)
   "Toggle auto-saving of contents of current buffer.
-With ARG, turn auto-saving on if positive, else off."
+With prefix argument ARG, turn auto-saving on if positive, else off."
   (interactive "P")
   (setq buffer-auto-save-file-name
         (and (if (null arg)
