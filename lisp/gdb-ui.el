@@ -35,22 +35,21 @@
 (defvar gdb-current-address nil)
 (defvar gdb-display-in-progress nil)
 (defvar gdb-dive nil)
-(defvar gdb-first-time nil)
 
 ;;;###autoload
 (defun gdba (command-line)
-  "Run gdb on program FILE in buffer *gdb-FILE*.
+  "Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger.
 
-If `gdb-many-windows' is set to t this works best in X (depending on the size
-of your monitor) using most of the screen. After a short delay the following
-layout will appear (keybindings given in relevant buffer) :
+If `gdb-many-windows' is nil (the default value) then gdb starts with
+just two windows : the GUD and the source buffer. If it is t the
+following layout will appear (keybindings given in relevant buffer) :
 
 ---------------------------------------------------------------------
                                GDB Toolbar
 ---------------------------------------------------------------------
-GUD buffer (I/O of gdb)           | Locals buffer
+GUD buffer (I/O of GDB)           | Locals buffer
                                   |
                                   |
                                   |
@@ -75,17 +74,19 @@ window e.g after typing g on a breakpoint in the breakpoints buffer. Breakpoint
 icons are displayed both by setting a break with gud-break and by typing break
 in the GUD buffer.
 
+This works best (depending on the size of your monitor) using most of the
+screen.
+
 Displayed expressions appear in separate frames. Arrays may be displayed
 as slices and visualised using the graph program from plotutils if installed.
-
-If `gdb-many-windows' is set to nil then gdb starts with just two windows :
-the GUD and the source buffer.
+Pointers in structures may be followed in a tree-like fashion.
 
 The following interactive lisp functions help control operation :
 
-`gdb-many-windows'  - Toggle the number of windows gdb uses.
-`gdb-restore-windows' - to restore the layout if its lost.
-`gdb-quit'            - to delete (most) of the buffers used by gdb."
+`gdb-many-windows'    - Toggle the number of windows gdb uses.
+`gdb-restore-windows' - To restore the window layout.
+`gdb-quit'            - To delete (most) of the buffers used by GDB-UI and 
+                        reset variables."
 
   (interactive (list (gud-query-cmdline 'gdba)))
 
@@ -1384,7 +1385,7 @@ buffer."
   (gdb-invalidate-breakpoints))
 
 (defun gdb-toggle-bp-this-line ()
-"Enable/disable the breakpoint on this line."
+"Enable/disable the breakpoint of the current line."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -1401,7 +1402,7 @@ buffer."
 	'ignore)))))
 
 (defun gdb-delete-bp-this-line ()
-"Delete the breakpoint on this line."
+"Delete the breakpoint of the current line."
   (interactive)
     (beginning-of-line 1)
     (if (not (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)"))
@@ -1417,7 +1418,7 @@ buffer."
 (defvar gdb-source-window nil)
 
 (defun gdb-goto-bp-this-line ()
-  "Display the file at the specified breakpoint."
+  "Display the file in the source buffer at the specified breakpoint."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -1502,7 +1503,8 @@ buffer."
       n)))
 
 (defun gdb-frames-mouse-select (e)
-"Display the source of the selected frame."
+"Make the selected frame become the current frame and
+display the source in the source buffer."
   (interactive "e")
   (let (selection)
     (save-excursion
@@ -1694,7 +1696,7 @@ buffer."
    (gdb-get-create-instance-buffer 'gdb-display-buffer)))
 
 (defun gdb-toggle-disp-this-line ()
-"Enable/disable the displayed expression on this line."
+"Enable/disable the displayed expression of the current line."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -1711,7 +1713,7 @@ buffer."
 	'ignore)))))
 
 (defun gdb-delete-disp-this-line ()
-"Delete the displayed expression on this line."
+"Delete the displayed expression of the current line."
   (interactive)
   (save-excursion
     (set-buffer
@@ -1890,7 +1892,7 @@ buffer."
 (define-minor-mode gdb-many-windows
   "Toggle the number of windows in the basic arrangement."
   :group 'gud
-  :init-value t
+  :init-value nil
   (gdb-restore-windows))
 
 (defun gdb-restore-windows ()
@@ -1943,8 +1945,9 @@ static char *magick[] = {
   "Icon for disabled breakpoint in display margin")
 
 (defun gdb-quit ()
-  "Kill the GUD and ancillary (including source) buffers.
-Just the partial-output buffer is left."
+  "Kill the GUD and instance buffers and reset variables.
+Use this command to exit a debugging session cleanly and reset
+things like the toolbar and margin in the source buffers."
   (interactive)
   (let ((buffers (buffer-list)))
     (save-excursion
