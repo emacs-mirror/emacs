@@ -926,7 +926,10 @@ In either case, the output is inserted after point (leaving mark after it)."
 			    (buffer-substring (point)
 					      (progn (end-of-line) (point))))))
 		(t 
-		 (set-window-start (display-buffer buffer) 1))))))))
+		 (save-excursion
+		   (set-buffer buffer)
+		   (goto-char (point-min)))
+		 (display-buffer buffer))))))))
 
 (defconst universal-argument-map
   (let ((map (make-sparse-keymap)))
