@@ -1,12 +1,13 @@
 /* impl.c.action: STRATEGIC ACTION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!action.c(MMdevel_action2.3) $
+ * $HopeName: MMsrc!action.c(trunk.2) $
  */
 
 #include "mpm.h"
+#include <float.h>	/* @@@@ for DBL_MAX */
 
-SRCID(action, "$HopeName: MMsrc!action.c(MMdevel_action2.3) $");
+SRCID(action, "$HopeName: MMsrc!action.c(trunk.2) $");
 
 
 /* ActionCheck -- check consistency of an Action structure */
@@ -57,44 +58,18 @@ void ActionFinish(Action action)
 
 /* Noddy collection policy -- condemn first pool found */
 
-static Res ActionCollect(Space space)
+static Res ActionCollect(Action action)
 {
-  Ring ring, node;
   Trace trace;
   Res res;
-  Pool pool;
+  Space space;
 
-  ring = SpacePoolRing(space);
-  node = RingNext(ring);
-  while(node != ring) {
-    Ring next = RingNext(node);
+  space = PoolSpace(action->pool);
 
-    pool = RING_ELT(Pool, spaceRing, node);
-    if((pool->class->attr & AttrGC) != 0)
-      goto found;
-
-    node = next;
-  }
-
-  /* No GC-able pool found. */
-  return ResOK;
-
-found:
-  res = TraceCreate(&trace, space);
-  if(res != ResOK) goto failTraceCreate;
-
-  res = TraceStart(trace, pool);
-  if(res != ResOK) goto failStart;
+  res = TraceCreate(&trace, space, action);
+  if(res != ResOK) return res;
 
   return ResOK;
-
-failStart:
-  /* .improve.undo-condemn: This is unsatisfactory as pools which
-   * successfully completed a condemn aren't given a chance to
-   * release any resources they may have allocated. */
-  TraceDestroy(trace);
-failTraceCreate:
-  return res;
 }
 
 
@@ -103,15 +78,39 @@ failTraceCreate:
  * This is the brain of the system.  The function weighs up the
  * costs and benefits of the various actions exhibited by the pools,
  * and takes those which are worthwhile.
- *
- * @@@@ At the moment, it just launches a collection whenever it
- * can.
  */
 
 void ActionPoll(Space space)
 {
+  Ring poolNode;
+  double bestBenefit;
+  Action bestAction;
+  
   AVERT(Space, space);
+  
+  bestBenefit = -DBL_MAX;
+  bestAction = NULL;
 
-  if(space->busyTraces == TraceSetEMPTY)
-    (void)ActionCollect(space);
+  RING_FOR(poolNode, &space->poolRing) {
+    Pool pool = RING_ELT(Pool, spaceRing, poolNode);
+    Ring actionNode;
+
+    RING_FOR(actionNode, &pool->actionRing) {
+      Action action = RING_ELT(Action, poolRing, actionNode);
+      double benefit;
+      AVERT(Action, action);
+      
+      benefit = PoolBenefit(action->pool, action);
+      if(benefit >= bestBenefit) {
+        bestBenefit = benefit;
+        bestAction = action;
+      }
+    }
+  }
+
+  /* @@@@ ignores failure */
+  if(bestBenefit > 0) {
+    AVER(bestAction != NULL);
+    (void)ActionCollect(bestAction);
+  }
 }

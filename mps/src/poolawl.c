@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.3) $
+ * $HopeName: MMsrc!poolawl.c(trunk.4) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.3) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.4) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -26,6 +26,8 @@ typedef struct AWLStruct {
   PoolStruct poolStruct;
   Format format;
   Shift alignShift;
+  ActionStruct actionStruct;
+  double lastCollected;
   Sig sig;
 } AWLStruct, *AWL;
 
@@ -49,6 +51,8 @@ static Bool AWLGroupCheck(AWLGroup group);
 
 #define PoolPoolAWL(pool) \
   PARENT(AWLStruct, poolStruct, (pool))
+
+#define ActionAWL(action)	PARENT(AWLStruct, actionStruct, action)
 
 
 static void AWLGroupDestroy(AWLGroup group)
@@ -192,6 +196,8 @@ static Res AWLInit(Pool pool, va_list arg)
   AVERT(Format, format);
   awl->format = format;
   awl->alignShift = SizeLog2(pool->alignment);
+  ActionInit(&awl->actionStruct, pool);
+  awl->lastCollected = PoolSpace(pool)->allocTime;
   awl->sig = AWLSig;
 
   AVERT(AWL, awl);
@@ -223,6 +229,7 @@ static void AWLFinish(Pool pool)
     AWLGroupDestroy(group);
     node = next;
   }
+  ActionFinish(&awl->actionStruct);
 }
 
 
@@ -307,7 +314,7 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer)
 }
 
 
-static Res AWLCondemn(Pool pool, Trace trace, Seg seg)
+static Res AWLCondemn(Pool pool, Trace trace, Seg seg, Action action)
 {
   Count bits;
   AWL awl;
@@ -322,13 +329,16 @@ static Res AWLCondemn(Pool pool, Trace trace, Seg seg)
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
 
+  AVERT(Action, action);
+  AVER(awl == ActionAWL(action));
+
   group = (AWLGroup)seg->p;
   AVERT(AWLGroup, group);
   bits = SegSize(PoolSpace(pool), seg) >> awl->alignShift;
-
+  
   BTResRange(group->mark, 0, bits);
   seg->white = TraceSetAdd(seg->white, trace->ti);
-  
+    
   return ResOK;
 }
 
@@ -566,6 +576,40 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   BTResRange(group->mark, 0, bits);
 }
 
+static Res AWLTraceBegin(Pool pool, Trace trace, Action action)
+{
+  AWL awl;
+
+  AVERT(Pool, pool);
+  awl = PoolPoolAWL(pool);
+  AVERT(AWL, awl);
+  AVERT(Trace, trace);
+  AVERT(Action, action);
+  AVER(awl == ActionAWL(action));
+
+  awl->lastCollected = PoolSpace(pool)->allocTime;
+  return ResOK;
+}
+
+/* @@@@ completely made-up benefit calculation: each AWL pool gradually
+ * becomes a better candidate for collection as allocation goes
+ * by. Starting a trace on a pool makes it a bad candidate. nickb
+ * 1997-06-19 */
+
+static double AWLBenefit(Pool pool, Action action)
+{
+  AWL awl;
+
+  AVERT(Pool, pool);
+  awl = PoolPoolAWL(pool);
+  AVERT(AWL, awl);
+  AVERT(Action, action);
+  AVER(awl == ActionAWL(action));
+
+  return (PoolSpace(pool)->allocTime - awl->lastCollected) - 10*1024*1024.0;
+}
+
+
 struct PoolClassStruct PoolClassAWLStruct = {
   PoolClassSig,
   "AWL",
@@ -580,11 +624,14 @@ struct PoolClassStruct PoolClassAWLStruct = {
   AWLBufferFill,
   AWLBufferEmpty,
   PoolTrivBufferFinish,
+  AWLTraceBegin,
   AWLCondemn,
   AWLGrey,
   AWLScan,
   AWLFix,
   AWLReclaim,
+  PoolTrivTraceEnd,
+  AWLBenefit,
   PoolTrivDescribe,
   PoolClassSig
 };
@@ -602,6 +649,8 @@ static Bool AWLCheck(AWL awl)
   CHECKD(Pool, &awl->poolStruct);
   CHECKL(awl->poolStruct.class == &PoolClassAWLStruct);
   CHECKL(1uL << awl->alignShift == awl->poolStruct.alignment);
+  CHECKD(Action, &awl->actionStruct);
+  CHECKL(awl->poolStruct.space->allocTime >= awl->lastCollected);
   return TRUE;
 }
 

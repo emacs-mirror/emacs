@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.8) $
+ * $HopeName: MMsrc!config.h(trunk.9) $
  */
 
 #ifndef config_h
@@ -79,12 +79,15 @@
 #elif defined(CONFIG_PROD_DYLAN)
 #define MPS_PROD_DYLAN
 #define ARENA_SIZE              ((Size)1<<30)
+#define AMC_SIZE_LIMIT		((Size)64<<20)  /* experimentally reasonable limit */
 #elif defined(CONFIG_PROD_MPS)
 #define MPS_PROD_MPS
 #ifdef MPS_OS_S7
 #define ARENA_SIZE              ((Size)2<<20)
+#define AMC_SIZE_LIMIT		ARENA_SIZE
 #else
 #define ARENA_SIZE              ((Size)64<<20)
+#define AMC_SIZE_LIMIT		ARENA_SIZE
 #endif /* MPS_OS_S7 */
 #else
 #error "No target product configured."

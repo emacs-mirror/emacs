@@ -1,6 +1,6 @@
 /* impl.c.pooln: NULL POOL
  *
- * $HopeName: MMsrc!pooln.c(MMdevel_bufferscan.2) $
+ * $HopeName: MMsrc!pooln.c(trunk.12) $
  * Copyright(C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the null pool class.  Begin null it
@@ -10,7 +10,7 @@
 #include "mpm.h"
 #include "pooln.h"
 
-SRCID(pooln, "$HopeName: MMsrc!pooln.c(MMdevel_bufferscan.2) $");
+SRCID(pooln, "$HopeName: MMsrc!pooln.c(trunk.12) $");
 
 
 typedef struct PoolNStruct {
@@ -148,7 +148,7 @@ static Res NDescribe(Pool pool, mps_lib_FILE *stream)
   return ResOK;
 }
 
-static Res NCondemn(Pool pool, Trace trace, Seg seg)
+static Res NCondemn(Pool pool, Trace trace, Seg seg, Action action)
 {
   PoolN poolN;
 
@@ -158,8 +158,11 @@ static Res NCondemn(Pool pool, Trace trace, Seg seg)
 
   AVERT(Trace, trace);
   AVERT(Seg, seg);
+  AVERT(Action, action);
+  
+  NOTREACHED; /* pool doesn't have any actions */
 
-  return ResOK;
+  return ResUNIMPL;
 }
 
 static void NGrey(Pool pool, Trace trace, Seg seg)
@@ -231,11 +234,14 @@ static PoolClassStruct PoolClassNStruct = {
   NBufferFill,                          /* bufferFill */
   NBufferEmpty,                         /* bufferEmpty */
   NBufferFinish,                        /* bufferFinish */
+  PoolNoTraceBegin,			/* traceBegin */
   NCondemn,                             /* condemn */
   NGrey,                                /* grey */
   NScan,                                /* scan */
   NFix,                                 /* fix */
   NReclaim,                             /* reclaim */
+  PoolNoTraceEnd,			/* traceEnd */
+  PoolNoBenefit,			/* benefit */
   NDescribe,                            /* describe */
   PoolClassSig                          /* impl.h.mpmst.class.end-sig */
 };
