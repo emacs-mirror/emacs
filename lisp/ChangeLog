@@ -1,3 +1,11 @@
+2000-10-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (fancy-splash-pending-command): New variable.
+	(fancy-splash-pre-command): New function.
+	(fancy-splash-screens): Rewritten.
+	(command-line-1): If fancy-splash-pending-command is set, call it
+	interactively.
+
 2000-10-04  Dave Love  <fx@gnu.org>
 
 	* toolbar/tool-bar.el (tool-bar-setup): New function.
@@ -33,8 +41,8 @@
 
 2000-10-04  Peter Breton  <pbreton@ne.mediaone.net>
 
-	* net/net-utils.el (nslookup-font-lock-keywords,
-	ftp-font-lock-keywords, smbclient-font-lock-keywords): 
+	* net/net-utils.el (nslookup-font-lock-keywords)
+	(ftp-font-lock-keywords, smbclient-font-lock-keywords): 
 	Only set if window-system is non-nil
 	(net-utils-run-program): Returns buffer.
 	(network-connection-reconnect): Added this function.
@@ -43,20 +51,20 @@
 	Incorporates extensive cleanup and docfixes by 
 	Stefan Monnier (monnier+gnu/emacs@flint.cs.yale.edu).
 	Uses cl compile-time macros.
-	(generic-mode-name, generic-comment-list,
-	generic-keywords-list, generic-font-lock-expressions,
-	generic-mode-function-list, generic-mode-syntax-table):
+	(generic-mode-name, generic-comment-list)
+	(generic-keywords-list, generic-font-lock-expressions)
+	(generic-mode-function-list, generic-mode-syntax-table):
 	Removed variables.
 	(generic-mode-alist): Renamed to generic-mode-list.
 	(generic-find-file-regexp): Default changed to "^#".
 	(generic-read-type): Uses completing read on generic-mode-list.
 	(generic-mode-sanity-check): removed this function.
 	(generic-add-to-auto-mode): Removed this function
-	(generic-mode-internal): Binds mode-specific definitions
+	(generic-mode-internal): Bind mode-specific definitions
 	into function instead of putting them in alist.
 	(generic-mode-set-comments): Reworked extensively.
 	(generic-mode-find-file-hook): Simplified regexp searching
-	(generic-make-keywords-list):  Omit extra pair of parens	
+	(generic-make-keywords-list): Omit extra pair of parens	
 
 	* find-lisp.el (find-lisp-find-files-internal): 
 	Make sure directory name ends with "/".

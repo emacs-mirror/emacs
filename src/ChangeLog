@@ -1,3 +1,10 @@
+2000-10-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (update_menu_bindings): New variable.
+	(parse_menu_item): Use AREF.  If update_menu_bindings
+	is 0, don't update menu bindings.
+	(syms_of_keyboard): New Lisp variable `update-menu-bindings'.
+
 2000-10-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* alloc.c (Fgarbage_collect): Prevent compiler warning for a call
