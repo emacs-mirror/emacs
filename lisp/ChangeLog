@@ -1,3 +1,14 @@
+2002-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-regexp): Make (C) optional.
+
+2002-01-13  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/copyright.el: Doc fixes.
+	(copyright-regexp): Add Latin-9 copyright sign.
+	Match comment delimiters in year lists.
+	(copyright-current-year): Initialize to load-time year.
+
 2002-01-13  Andreas Schwab  <schwab@suse.de>
 
 	* dired-aux.el (dired-do-shell-command): Doc fix.
