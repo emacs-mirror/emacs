@@ -237,8 +237,6 @@ Published by the Free Software Foundation, Inc.@*
 59 Temple Place, Suite 330@*
 Boston, MA 02111-1307 USA@*
 
-Edition @value{edition-number}, @value{update-date}
-
 @c Printed copies are available for $30 each.@*
 ISBN 1-882114-43-4
 
