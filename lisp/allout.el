@@ -1157,11 +1157,11 @@ OPEN:	A topic that is not closed, though its' offspring or body may be."
       ;; Paragraphs are broken by topic headlines.
       (make-local-variable 'paragraph-start)
       (outline-resumptions 'paragraph-start
-			  (list (concat paragraph-start "\\|^\\("
+			  (list (concat paragraph-start "\\|\\("
 					outline-regexp "\\)")))
       (make-local-variable 'paragraph-separate)
       (outline-resumptions 'paragraph-separate
-			  (list (concat paragraph-separate "\\|^\\("
+			  (list (concat paragraph-separate "\\|\\("
 					outline-regexp "\\)")))
 
       (or (assq 'outline-mode minor-mode-alist)
