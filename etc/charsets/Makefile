@@ -47,7 +47,9 @@ MAPS =	8859-2.map \
 	viscii.map \
 	koi8-r.map \
 	ibm866.map \
-	mac-roman.map
+	mac-roman.map \
+	gb18030-2.map \
+	gb18030-4.map
 
 all: ${MAPS}
 
