@@ -3,6 +3,7 @@
 ;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; Author: Scott Draves <spot@cs.cmu.edu>
+;; Maintainer: FSF
 ;; Adapted-By: ESR
 ;; Keywords: extensions
 
