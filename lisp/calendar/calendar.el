@@ -1938,12 +1938,8 @@ the STRINGS are just concatenated and the result truncated."
 
 (defun calendar-current-date ()
   "Returns the current date in a list (month day year)."
-  (let ((s (current-time-string)))
-    (list (length (member (substring s 4 7)
-                          '("Dec" "Nov" "Oct" "Sep" "Aug" "Jul"
-                            "Jun" "May" "Apr" "Mar" "Feb" "Jan")))
-          (string-to-number (substring s 8 10))
-          (string-to-number (substring s 20 24)))))
+  (let ((now (decode-time)))
+    (list (nth 4 now) (nth 3 now) (nth 5 now))))
 
 (defun calendar-cursor-to-date (&optional error)
   "Returns a list (month day year) of current cursor position.
