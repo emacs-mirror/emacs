@@ -1349,7 +1349,10 @@ create_process (process, new_argv, current_dir)
 	  }
 #endif /* not UNIPLUS and not RTU */
 #ifdef SETUP_SLAVE_PTY
-	SETUP_SLAVE_PTY;
+	if (pty_flag)
+	  {
+	    SETUP_SLAVE_PTY;
+	  }
 #endif /* SETUP_SLAVE_PTY */
 #ifdef AIX
 	/* On AIX, we've disabled SIGHUP above once we start a child on a pty.
