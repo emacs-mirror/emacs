@@ -1,3 +1,8 @@
+2000-10-11  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* faces.el (frame-set-background-mode): Pay attention to saved
+	face specs as well as default ones.
+
 2000-10-10  Sam Steingold  <sds@gnu.org>
 
 	* chistory.el, ielm.el, ledit.el:
