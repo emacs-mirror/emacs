@@ -96,6 +96,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 Lisp_Object Qprocessp;
 Lisp_Object Qrun, Qstop, Qsignal, Qopen, Qclosed;
+Lisp_Object Qlast_nonmenu_event;
 /* Qexit is declared and initialized in eval.c.  */
 
 /* a process object is a network connection when its childp field is neither
@@ -2231,6 +2232,7 @@ read_process_output (proc, channel)
       obuffer = Fcurrent_buffer ();
 
       specbind (Qinhibit_quit, Qt);
+      specbind (Qlast_nonmenu_event, Qt);
       call2 (outstream, proc, make_string (chars, nchars));
 
       /* Handling the process output should not deactivate the mark.  */
@@ -3092,6 +3094,7 @@ exec_sentinel (proc, reason)
   record_unwind_protect (exec_sentinel_unwind, Fcons (proc, sentinel));
   /* Inhibit quit so that random quits don't screw up a running filter.  */
   specbind (Qinhibit_quit, Qt);
+  specbind (Qlast_nonmenu_event, Qt);
   call2 (sentinel, proc, reason);
 
   Vdeactivate_mark = odeactivate;
@@ -3271,6 +3274,9 @@ syms_of_process ()
   staticpro (&Qopen);
   Qclosed = intern ("closed");
   staticpro (&Qclosed);
+
+  Qlast_nonmenu_event = intern ("last-nonmenu-event");
+  staticpro (&Qlast_nonmenu_event);
 
   staticpro (&Vprocess_alist);
 
