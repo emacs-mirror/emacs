@@ -2962,6 +2962,8 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 			  (file-name-directory . nil)
 			  (file-name-as-directory . nil)
 			  (directory-file-name . nil)
+			  (file-name-completion 0 1)
+			  (file-name-all-completions 0 1)
 			  (rename-file 0 1)
 			  (copy-file 0 1)
 			  (make-symbolic-link 0 1)
