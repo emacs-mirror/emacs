@@ -1,3 +1,7 @@
+2000-11-17  Dave Love  <fx@gnu.org>
+
+	* lread.c (Fload): Fix #ifdef for pcc.
+
 2000-11-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (pos_visible_p): Compute the default character height
