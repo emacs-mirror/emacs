@@ -1658,7 +1658,7 @@ Any other key combination is executed normally."
 	  (setq c (event-to-character e)))
       (setq c (read-event)))
     ;; insert char if not equal to `?'
-    (if (or (= c ??) (eq c help-char))
+    (if (or (eq c ??) (eq c help-char))
 	(f90-abbrev-help)
       (if (string-match "XEmacs" emacs-version)
 	  (setq unread-command-event e)
