@@ -211,8 +211,7 @@ no aliases, which is represented by this being a table with no entries.)")
 ;		(message "** %s \"%s\"" name (buffer-substring start (point)))(sit-for 1)
 		(define-mail-alias
 		    name
-		    (buffer-substring start (point))
-		    t))))
+		    (buffer-substring start (point))))))
 	  ;; Resolve forward references in .mailrc file.
 	  ;; This would happen automatically before the first abbrev was
 	  ;; expanded, but why not do it now.
