@@ -697,7 +697,7 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 	      (message (isearch-message-prefix nil nil t))
 	      (if (eq 'isearch-yank-word
 		      (lookup-key isearch-mode-map (vector e)))
-		  (setq isearch-word t  ;; so message-prefix is right
+		  (setq isearch-word t;; so message-prefix is right
 			isearch-new-word t)
 		(cancel-kbd-macro-events)
 		(isearch-unread e))
@@ -705,7 +705,7 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 	      (setq isearch-new-string
 		    (let (junk-ring)
 		      (read-from-minibuffer
- 		       (isearch-message-prefix nil nil isearch-nonincremental)
+		       (isearch-message-prefix nil nil isearch-nonincremental)
 		       isearch-string
 		       minibuffer-local-isearch-map nil
 		       'junk-ring))
@@ -808,7 +808,6 @@ Use `isearch-exit' to quit without signaling."
 	;; If already have what to search for, repeat it.
 	(or isearch-success
 	    (progn 
-
 	      (goto-char (if isearch-forward (point-min) (point-max)))
 	      (setq isearch-wrapped t))))
     ;; C-s in reverse or C-r in forward, change direction.
@@ -1147,16 +1146,14 @@ If you want to search for just a space, type C-q SPC."
 
 (defun isearch-ring-adjust (advance)
   ;; Helper for isearch-ring-advance and isearch-ring-retreat
-  (if (cdr isearch-cmds)  ;; is there more than one thing on stack?
-      (isearch-pop-state))
   (isearch-ring-adjust1 advance)
-  (isearch-push-state)
   (if search-ring-update
       (progn
 	(isearch-search)
 	(isearch-update))
     (isearch-edit-string)
-    ))
+    )
+  (isearch-push-state))
 
 (defun isearch-ring-advance ()
   "Advance to the next search string in the ring."
