@@ -28,6 +28,9 @@ topdontcompile = cus-load.el forms-d2.el forms-pass.el patcomp.el \
 		 subdirs.el version.el
 maildontcompile = mail\blessmail.el mail\sc.el
 playdontcompile = play\bruce.el
+interdontcompile = international\latin-1.el international\latin-2.el \
+		 international\latin-3.el international\latin-4.el \
+		 international\latin-5.el international\mule-conf.el
 
 #
 # Assuming INSTALL_DIR is defined, copy the elisp files to it
@@ -44,8 +47,9 @@ install:;	- mkdir $(INSTALL_DIR)\lisp
 		if not exist .\same-dir.tst for %%f in ( $(maildontcompile) ) do $(CP) %%f $(INSTALL_DIR)\lisp\mail
 		if not exist .\same-dir.tst for %%f in ( $(playdontcompile) ) do $(CP) %%f $(INSTALL_DIR)\lisp\play
 !endif
+		if not exist .\same-dir.tst for %%f in ( $(interdontcompile) ) do $(CP) %%f $(INSTALL_DIR)\lisp\international
 		- $(DEL) $(INSTALL_DIR)\lisp\same-dir.tst
-		
+
 #
 # Maintenance
 # 
