@@ -1,6 +1,6 @@
 ;;; wid-edit.el --- Functions for creating and using widgets -*-byte-compile-dynamic: t;-*-
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -3398,11 +3398,13 @@ To use this type, you must define :match or :match-alternatives."
 (defun widget-color-sample-face-get (widget)
   (let* ((value (condition-case nil
 		    (widget-value widget)
-		  (error (widget-get widget :value))))
-	 (symbol (intern (concat "fg:" value))))
-    (condition-case nil
-	(facemenu-get-face symbol)
-      (error 'default))))
+		  (error (widget-get widget :value)))))
+    (if (color-defined-p value)
+	(let ((symbol (intern (concat "fg:" value))))
+	  (condition-case nil
+	      (facemenu-get-face symbol)
+	    (error 'default)))
+      'default)))
 
 (defun widget-color-action (widget &optional event)
   "Prompt for a color."
