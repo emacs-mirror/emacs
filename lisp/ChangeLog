@@ -1,3 +1,10 @@
+2003-11-29  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gud-watch, gdb-var-create-handler)
+	(gdb-var-list-children, gdb-var-list-children-handler)
+	(gdb-var-update-handler, gdb-var-delete): Add server prefix to the
+	gdb commands that use mi to keep them out of the command history.
+
 2003-11-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add use-file-dialog.
