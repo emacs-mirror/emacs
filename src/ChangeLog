@@ -1,3 +1,15 @@
+2005-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_output): New member, toolbar_detached.
+
+	* gtkutil.c (xg_create_frame_widgets): Set initial tool bar height to
+	38.
+	(xg_tool_bar_detach_callback): Set toolbar_detached to 1.
+	(xg_tool_bar_attach_callback): Set toolbar_detached to 0.
+	(xg_create_tool_bar): Initialize toolbar_detached.
+	(update_frame_tool_bar): Only set FRAME_TOOLBAR_HEIGHT (f) if
+	toolbar_detached is zero.
+
 2005-01-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (create_and_show_popup_menu): Pass zero as button to

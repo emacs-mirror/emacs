@@ -756,7 +756,7 @@ xg_create_frame_widgets (f)
      So we cheat a bit by setting a height that is what it will have
      later on when tool bar items are added.  */
   if (FRAME_EXTERNAL_TOOL_BAR (f) && f->n_tool_bar_items == 0)
-    FRAME_TOOLBAR_HEIGHT (f) = 34;
+    FRAME_TOOLBAR_HEIGHT (f) = 38;
 
 
   /* We don't want this widget double buffered, because we draw on it
@@ -3156,6 +3156,8 @@ xg_tool_bar_detach_callback (wbox, w, client_data)
 
   if (f)
     {
+      FRAME_X_OUTPUT (f)->toolbar_detached = 1;
+
       /* When detaching a tool bar, not everything dissapear.  There are
          a few pixels left that are used to drop the tool bar back into
          place.  */
@@ -3187,11 +3189,13 @@ xg_tool_bar_attach_callback (wbox, w, client_data)
     {
       GtkRequisition req;
 
+      FRAME_X_OUTPUT (f)->toolbar_detached = 0;
+
       gtk_widget_size_request (w, &req);
       FRAME_TOOLBAR_HEIGHT (f) = req.height;
 
       /* The height has changed, resize outer widget and set columns
-         rows to what we had before detaching the tool bar.  */
+         rows to what we had before attaching the tool bar.  */
       xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
     }
 }
@@ -3305,6 +3309,8 @@ xg_create_tool_bar (f)
 
   x->toolbar_widget = gtk_toolbar_new ();
   x->handlebox_widget = gtk_handle_box_new ();
+  x->toolbar_detached = 0;
+
   gtk_container_add (GTK_CONTAINER (x->handlebox_widget),
                      x->toolbar_widget);
 
@@ -3537,7 +3543,8 @@ update_frame_tool_bar (f)
     }
 
   gtk_widget_size_request (x->toolbar_widget, &new_req);
-  if (old_req.height != new_req.height)
+  if (old_req.height != new_req.height
+      && ! FRAME_X_OUTPUT (f)->toolbar_detached)
     {
       FRAME_TOOLBAR_HEIGHT (f) = new_req.height;
       xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
