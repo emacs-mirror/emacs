@@ -247,7 +247,6 @@ extern int mac_initialized;
 /* Functions in macterm.c.  */
 extern void x_set_offset (struct frame *, int, int, int);
 extern void x_wm_set_icon_position (struct frame *, int, int);
-extern void x_display_cursor (struct window *, int, int, int, int, int);
 extern void x_set_window_size (struct frame *, int, int, int);
 extern void x_make_frame_visible (struct frame *);
 extern struct mac_display_info *mac_term_init (Lisp_Object, char *, char *);
@@ -2162,7 +2161,7 @@ x_set_mouse_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  Cursor cursor, nontext_cursor, mode_cursor, cross_cursor;
+  Cursor cursor, nontext_cursor, mode_cursor, hand_cursor;
   int count;
   int mask_color;
 
@@ -2225,12 +2224,12 @@ x_set_mouse_color (f, arg, oldval)
   if (!EQ (Qnil, Vx_sensitive_text_pointer_shape))
     {
       CHECK_NUMBER (Vx_sensitive_text_pointer_shape);
-      cross_cursor
+      hand_cursor
 	= XCreateFontCursor (FRAME_W32_DISPLAY (f),
 			     XINT (Vx_sensitive_text_pointer_shape));
     }
   else
-    cross_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_crosshair);
+    hand_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_crosshair);
 
   if (!NILP (Vx_window_horizontal_drag_shape))
     {
@@ -2266,7 +2265,7 @@ x_set_mouse_color (f, arg, oldval)
 		    &fore_color, &back_color);
     XRecolorCursor (FRAME_W32_DISPLAY (f), mode_cursor,
 		    &fore_color, &back_color);
-    XRecolorCursor (FRAME_W32_DISPLAY (f), cross_cursor,
+    XRecolorCursor (FRAME_W32_DISPLAY (f), hand_cursor,
                     &fore_color, &back_color);
     XRecolorCursor (FRAME_W32_DISPLAY (f), hourglass_cursor,
                     &fore_color, &back_color);
@@ -2294,10 +2293,10 @@ x_set_mouse_color (f, arg, oldval)
     XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->modeline_cursor);
   f->output_data.w32->modeline_cursor = mode_cursor;
 
-  if (cross_cursor != f->output_data.w32->cross_cursor
-      && f->output_data.w32->cross_cursor != 0)
-    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->cross_cursor);
-  f->output_data.w32->cross_cursor = cross_cursor;
+  if (hand_cursor != f->output_data.w32->hand_cursor
+      && f->output_data.w32->hand_cursor != 0)
+    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->hand_cursor);
+  f->output_data.w32->hand_cursor = hand_cursor;
 
   XFlush (FRAME_W32_DISPLAY (f));
   UNBLOCK_INPUT;
@@ -2334,8 +2333,10 @@ x_set_cursor_color (f, arg, oldval)
     {
       if (FRAME_VISIBLE_P (f))
 	{
-	  x_display_cursor (f, 0);
-	  x_display_cursor (f, 1);
+	  BLOCK_INPUT;
+	  display_and_set_cursor (f, 0);
+	  display_and_set_cursor (f, 1);
+	  UNBLOCK_INPUT;
 	}
     }
 #endif
