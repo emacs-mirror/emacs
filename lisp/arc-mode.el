@@ -211,14 +211,12 @@ Archive and member name will be added."
 ;; ------------------------------
 ;; Zip archive configuration
 
-(defcustom archive-zip-use-pkzip (memq system-type '(ms-dos windows-nt))
-  "*If non-nil then pkzip option are used instead of zip options.
-Only set to true for msdog systems!"
-  :type 'boolean
-  :group 'archive-zip)
-
 (defcustom archive-zip-extract
-  (if archive-zip-use-pkzip '("pkunzip" "-e" "-o-") '("unzip" "-qq" "-c"))
+  (if (locate-file "unzip" nil 'file-executable-p)
+      '("unzip" "-qq" "-c")
+    (if (locate-file "pkunzip" nil 'file-executable-p)
+	'("pkunzip" "-e" "-o-")
+      '("unzip" "-qq" "-c")))
   "*Program and its options to run in order to extract a zip file member.
 Extraction should happen to standard output.  Archive and member name will
 be added.  If `archive-zip-use-pkzip' is non-nil then this program is
@@ -235,7 +233,11 @@ expected to extract to a file junking the directory part of the name."
 ;; names.
 
 (defcustom archive-zip-expunge
-  (if archive-zip-use-pkzip '("pkzip" "-d") '("zip" "-d" "-q"))
+  (if (locate-file "zip" nil 'file-executable-p)
+      '("zip" "-d" "-q")
+    (if (locate-file "zip" nil 'file-executable-p)
+	 '("pkzip" "-d")
+      '("zip" "-d" "-q")))
   "*Program and its options to run in order to delete zip file members.
 Archive and member names will be added."
   :type '(list (string :tag "Program")
@@ -245,7 +247,11 @@ Archive and member names will be added."
   :group 'archive-zip)
 
 (defcustom archive-zip-update
-  (if archive-zip-use-pkzip '("pkzip" "-u" "-P") '("zip" "-q"))
+  (if (locate-file "zip" nil 'file-executable-p)
+      '("zip" "-q")
+    (if (locate-file "zip" nil 'file-executable-p)
+	 '("pkzip" "-u" "-P")
+      '("zip" "-q")))
   "*Program and its options to run in order to update a zip file member.
 Options should ensure that specified directory will be put into the zip
 file.  Archive and member name will be added."
@@ -256,7 +262,11 @@ file.  Archive and member name will be added."
   :group 'archive-zip)
 
 (defcustom archive-zip-update-case
-  (if archive-zip-use-pkzip archive-zip-update '("zip" "-q" "-k"))
+  (if (locate-file "zip" nil 'file-executable-p)
+      '("zip" "-q" "-k")
+    (if (locate-file "zip" nil 'file-executable-p)
+	 '("pkzip" "-u" "-P")
+      '("zip" "-q" "-k")))
   "*Program and its options to run in order to update a case fiddled zip member.
 Options should ensure that specified directory will be put into the zip file.
 Archive and member name will be added."
@@ -1637,7 +1647,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (apply 'vector (nreverse files))))
 
 (defun archive-zip-extract (archive name)
-  (if archive-zip-use-pkzip
+  (if (equal (car archive-zip-extract) "pkzip")
       (archive-*-extract archive name archive-zip-extract)
     (archive-extract-by-stdout archive name archive-zip-extract)))
 
