@@ -1,6 +1,6 @@
 ;;; isearch.el --- incremental search minor mode.
 
-;; Copyright (C) 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 93, 94, 95, 96, 1997 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: FSF
@@ -105,38 +105,61 @@
 
 ;;; Some additional options and constants.
 
-(defvar search-exit-option t
-  "*Non-nil means random control characters terminate incremental search.")
+(defgroup isearch nil
+  "Incremental search minor mode."
+  :prefix "isearch-"
+  :prefix "search-"
+  :group 'matching)
 
-(defvar search-slow-window-lines 1
+
+(defcustom search-exit-option t
+  "*Non-nil means random control characters terminate incremental search."
+  :type 'boolean
+  :group 'isearch)
+
+(defcustom search-slow-window-lines 1
   "*Number of lines in slow search display windows.
 These are the short windows used during incremental search on slow terminals.
 Negative means put the slow search window at the top (normally it's at bottom)
-and the value is minus the number of lines.")
+and the value is minus the number of lines."
+  :type 'integer
+  :group 'isearch)
 
-(defvar search-slow-speed 1200
+(defcustom search-slow-speed 1200
   "*Highest terminal speed at which to use \"slow\" style incremental search.
 This is the style where a one-line window is created to show the line
-that the search has reached.")
+that the search has reached."
+  :type 'integer
+  :group 'isearch)
 
-(defvar search-upper-case 'not-yanks
+(defcustom search-upper-case 'not-yanks
   "*If non-nil, upper case chars disable case fold searching.
 That is, upper and lower case chars must match exactly.
 This applies no matter where the chars come from, but does not
 apply to chars in regexps that are prefixed with `\\'.
-If this value is `not-yanks', yanked text is always downcased.")
+If this value is `not-yanks', yanked text is always downcased."
+  :type '(choice (const :tag "off" nil)
+		 (const not-yanks)
+		 (sexp :tag "on" :format "%t\n" t))
+  :group 'isearch)
 
-(defvar search-nonincremental-instead t
+(defcustom search-nonincremental-instead t
   "*If non-nil, do a nonincremental search instead if exiting immediately.
 Actually, `isearch-edit-string' is called to let you enter the search
-string, and RET terminates editing and does a nonincremental search.")
+string, and RET terminates editing and does a nonincremental search."
+  :type 'boolean
+  :group 'isearch)
 
-(defvar search-whitespace-regexp "\\s-+"
+(defcustom search-whitespace-regexp "\\s-+"
   "*If non-nil, regular expression to match a sequence of whitespace chars.
-You might want to use something like \"[ \\t\\r\\n]+\" instead.")
+You might want to use something like \"[ \\t\\r\\n]+\" instead."
+  :type 'regexp
+  :group 'isearch)
 
-(defvar search-highlight nil
-  "*Non-nil means incremental search highlights the current match.")
+(defcustom search-highlight nil
+  "*Non-nil means incremental search highlights the current match."
+  :type 'boolean
+  :group 'isearch)
 
 (defvar search-invisible nil
   "*Non-nil means incremental search can match text hidden by an overlay.
@@ -155,10 +178,14 @@ You might want to use something like \"[ \\t\\r\\n]+\" instead.")
 (defvar regexp-search-ring nil
   "List of regular expression search string sequences.")
 
-(defvar search-ring-max 16
-  "*Maximum length of search ring before oldest elements are thrown away.")
-(defvar regexp-search-ring-max 16
-  "*Maximum length of regexp search ring before oldest elements are thrown away.")
+(defcustom search-ring-max 16
+  "*Maximum length of search ring before oldest elements are thrown away."
+  :type 'integer
+  :group 'isearch)
+(defcustom regexp-search-ring-max 16
+  "*Maximum length of regexp search ring before oldest elements are thrown away."
+  :type 'integer
+  :group 'isearch)
 
 (defvar search-ring-yank-pointer nil
   "Index in `search-ring' of last string reused.
@@ -167,9 +194,11 @@ nil if none yet.")
   "Index in `regexp-search-ring' of last string reused.
 nil if none yet.")
 
-(defvar search-ring-update nil
+(defcustom search-ring-update nil
   "*Non-nil if advancing or retreating in the search ring should cause search.
-Default value, nil, means edit the string instead.")
+Default value, nil, means edit the string instead."
+  :type 'boolean
+  :group 'isearch)
 
 ;;; Define isearch-mode keymap.
 
