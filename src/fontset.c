@@ -899,10 +899,14 @@ FONTLIST is an alist of charsets vs corresponding font name patterns.")
       tem = XCAR (tail);
       if (!CONSP (tem)
 	  || (charset = get_charset_id (XCAR (tem))) < 0
-	  || !STRINGP (XCDR (tem)))
-	error ("Elements of fontlist must be a cons of charset and font name");
+	  || (!STRINGP (XCDR (tem)) && !CONSP (XCDR (tem))))
+	error ("Elements of fontlist must be a cons of charset and font name pattern");
 
-      tem = Fdowncase (XCDR (tem));
+      tem = XCDR (tem);
+      if (STRINGP (tem))
+	tem = Fdowncase (tem);
+      else
+	tem = Fcons (Fdowncase (Fcar (tem)), Fdowncase (Fcdr (tem)));
       if (charset == CHARSET_ASCII)
 	ascii_font = tem;
       else
@@ -920,7 +924,10 @@ FONTLIST is an alist of charsets vs corresponding font name patterns.")
   for (; CONSP (elements); elements = XCDR (elements))
     {
       elt = XCAR (elements);
-      tem = Fcons (XCAR (elt), font_family_registry (XCDR (elt), 0));
+      tem = XCDR (elt);
+      if (STRINGP (tem))
+	tem = font_family_registry (tem, 0);
+      tem = Fcons (XCAR (elt), tem);
       FONTSET_SET (fontset, XINT (XCAR (elt)), tem);
     }
 
