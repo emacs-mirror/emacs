@@ -429,6 +429,7 @@ unlock_file (fn)
   register char *lfname;
 
   fn = Fexpand_file_name (fn, Qnil);
+  fn = ENCODE_FILE (fn);
 
   MAKE_LOCK_NAME (lfname, fn);
 
