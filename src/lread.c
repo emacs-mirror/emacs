@@ -384,7 +384,7 @@ static void readevalloop ();
 static Lisp_Object load_unwind ();
 static Lisp_Object load_descriptor_unwind ();
 
-DEFUN ("load", Fload, Sload, 1, 4, 0,
+DEFUN ("load", Fload, Sload, 1, 5, 0,
   "Execute a file of Lisp code named FILE.\n\
 First try FILE with `.elc' appended, then try with `.el',\n\
  then try FILE unmodified.\n\
@@ -395,9 +395,11 @@ Print messages at start and end of loading unless\n\
  optional third arg NOMESSAGE is non-nil.\n\
 If optional fourth arg NOSUFFIX is non-nil, don't try adding\n\
  suffixes `.elc' or `.el' to the specified name FILE.\n\
+If optional fifth arg MUST-SUFFIX is non-nil, insist on adding\n\
+ the suffixe `.elc' or `.el'; don't accept just FILE.\n\
 Return t if file exists.")
-  (file, noerror, nomessage, nosuffix)
-     Lisp_Object file, noerror, nomessage, nosuffix;
+  (file, noerror, nomessage, nosuffix, must_suffix)
+     Lisp_Object file, noerror, nomessage, nosuffix, must_suffix;
 {
   register FILE *stream;
   register int fd = -1;
@@ -432,7 +434,10 @@ Return t if file exists.")
   if (XSTRING (file)->size > 0)
     {
       GCPRO1 (file);
-      fd = openp (Vload_path, file, !NILP (nosuffix) ? "" : ".elc:.el:",
+      fd = openp (Vload_path, file,
+		  (!NILP (nosuffix) ? ""
+		   : ! NILP (must_suffix) ? ".elc:.el"
+		   : ".elc:.el:"),
 		  &found, 0);
       UNGCPRO;
     }
