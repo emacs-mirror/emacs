@@ -644,7 +644,7 @@ to be sure of changing the value of `foo'.")
   return list;
 }
 
-DEFUN ("delq", Fdelq, Sdelq, 2, 2, 0,
+DEFUN ("delete", Fdelete, Sdelete, 2, 2, 0,
   "Delete by side effect any occurrences of ELT as a member of LIST.\n\
 The modified LIST is returned.  Comparison is done with `equal'.\n\
 If the first member of LIST is ELT, there is no way to remove it by side effect;\n\
@@ -1491,6 +1491,7 @@ Used by `featurep' and `require', and altered by `provide'.");
   defsubr (&Sassoc);
   defsubr (&Srassq);
   defsubr (&Sdelq);
+  defsubr (&Sdelete);
   defsubr (&Snreverse);
   defsubr (&Sreverse);
   defsubr (&Ssort);
