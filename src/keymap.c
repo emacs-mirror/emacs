@@ -1892,6 +1892,8 @@ describe_command (definition)
       insert1 (tem1);
       insert_string ("\n");
     }
+  else if (STRINGP (definition))
+    insert_string ("Keyboard Macro\n");
   else
     {
       tem1 = Fkeymapp (definition);
