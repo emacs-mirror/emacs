@@ -1,3 +1,34 @@
+2003-04-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* add-log.el (change-log-version-number-search): Fix old bug.
+	(add-change-log-entry): Avoid inserting the same funname again.
+	(add-log-indent-text): New var.
+	(add-log-indent): New fun.
+	(change-log-mode): Use it.
+
+	* net/browse-url.el: Don't autoload all these defcustoms.
+	(browse-url-default-macosx-browser): New fun.
+	(browse-url-browser-function): Use it for system-type = darwin.
+	(browse-url-usr1-signal): Remove.
+	(browse-url-mosaic): Use SIGUSR1 directly instead.
+	(browse-url-gnome-moz-program): New var.
+	(browse-url-gnome-moz, browse-url-default-browser): Use it.
+
+	* emacs-lisp/bytecomp.el: Use push, with-current-buffer, dolist, ...
+	(byte-compile-const-variables): New var.
+	(byte-compile-close-variables): Reset it.
+	(byte-compile-file-form-defvar, byte-compile-defvar): Update it.
+	(byte-compile-const-symbol-p): Now arg `value' to check defconsts.
+	(byte-compile-variable-ref): Use it and improve warning message.
+	(byte-compile-check-lambda-list): Use byte-compile-const-symbol-p.
+	(byte-compile-lapcode): Remove unused vars.
+	(byte-compile-eval): Fix thinko in handling of old-autoloads.
+	(byte-recompile-directory): Use the expanded form for directory.
+	(byte-compile-track-mouse): Use modern backquote syntax.
+	(byte-compile-defvar): Detect and properly handle (defconst a).
+	(byte-compile-defalias-warn): Remove unused arg `alias'.
+	(byte-compile-defalias): Update call.
+
 2003-04-13  Masatake YAMATO  <jet@gyve.org>
 
 	* help.el (describe-minor-mode): New function implementation.
