@@ -1,5 +1,13 @@
 2001-05-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_set_double_buffer): New function.
+	(x_frame_parms): Add x_set_double_buffer.
+	(Fx_create_frame): Remove call to dbe_make_frame_buffered.
+	Add call to x_default_parameter for double-buffer.
+	(dbe_make_frame_buffered): Add an int parameter.
+
+	* xterm.h (dbe_make_frame_buffered): Change prototype.
+
 	* config.in (HAVE_DBE): Add.
 
 	* xterm.c: Use FRAME_X_DRAWABLE instead of FRAME_X_WINDOW
