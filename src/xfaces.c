@@ -281,7 +281,7 @@ Lisp_Object Qx_charset_registry;
 /* Names of basic faces.  */
 
 Lisp_Object Qdefault, Qmodeline, Qtool_bar, Qregion, Qmargin;
-Lisp_Object Qtop_line;
+Lisp_Object Qheader_line;
 
 /* Default stipple pattern used on monochrome displays.  This stipple
    pattern is used on monochrome displays instead of shades of gray
@@ -5132,7 +5132,7 @@ realize_basic_faces (f)
       realize_named_face (f, Qmodeline, MODE_LINE_FACE_ID);
       realize_named_face (f, Qtool_bar, TOOL_BAR_FACE_ID);
       realize_named_face (f, Qmargin, BITMAP_AREA_FACE_ID);
-      realize_named_face (f, Qtop_line, TOP_LINE_FACE_ID);
+      realize_named_face (f, Qheader_line, HEADER_LINE_FACE_ID);
       success_p = 1;
     }
 
@@ -5954,7 +5954,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
    REGION_BEG and REGION_END give the start and end positions of the
    region; both are -1 if no region is visible.  BASE_FACE_ID is the
    id of the basic face to merge with.  It is usually equal to
-   DEFAULT_FACE_ID but can be MODE_LINE_FACE_ID or TOP_LINE_FACE_ID
+   DEFAULT_FACE_ID but can be MODE_LINE_FACE_ID or HEADER_LINE_FACE_ID
    for strings displayed in the mode or top line.
    
    Set *ENDPTR to the next position where to check for faces in
@@ -6248,8 +6248,8 @@ syms_of_xfaces ()
   staticpro (&Qregion);
   Qmargin = intern ("margin");
   staticpro (&Qmargin);
-  Qtop_line = intern ("top-line");
-  staticpro (&Qtop_line);
+  Qheader_line = intern ("header-line");
+  staticpro (&Qheader_line);
 
   defsubr (&Sinternal_make_lisp_face);
   defsubr (&Sinternal_lisp_face_p);

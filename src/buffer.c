@@ -3850,7 +3850,7 @@ init_buffer_once ()
 
   /* real setup is done in loaddefs.el */
   buffer_defaults.mode_line_format = build_string ("%-");
-  buffer_defaults.top_line_format = Qnil;
+  buffer_defaults.header_line_format = Qnil;
   buffer_defaults.abbrev_mode = Qnil;
   buffer_defaults.overwrite_mode = Qnil;
   buffer_defaults.case_fold_search = Qt;
@@ -3949,7 +3949,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.indicate_empty_lines, 0x400000);
   XSETFASTINT (buffer_local_flags.scroll_up_aggressively, 0x800000);
   XSETFASTINT (buffer_local_flags.scroll_down_aggressively, 0x1000000);
-  XSETFASTINT (buffer_local_flags.top_line_format, 0x2000000);
+  XSETFASTINT (buffer_local_flags.header_line_format, 0x2000000);
   
   Vbuffer_alist = Qnil;
   current_buffer = 0;
@@ -4097,10 +4097,10 @@ syms_of_buffer ()
     "Default value of `mode-line-format' for buffers that don't override it.\n\
 This is the same as (default-value 'mode-line-format).");
 
-  DEFVAR_LISP_NOPRO ("default-top-line-format",
-		     &buffer_defaults.top_line_format,
-    "Default value of `top-line-format' for buffers that don't override it.\n\
-This is the same as (default-value 'top-line-format).");
+  DEFVAR_LISP_NOPRO ("default-header-line-format",
+		     &buffer_defaults.header_line_format,
+    "Default value of `header-line-format' for buffers that don't override it.\n\
+This is the same as (default-value 'header-line-format).");
 
   DEFVAR_LISP_NOPRO ("default-abbrev-mode",
 	      &buffer_defaults.abbrev_mode,
@@ -4187,7 +4187,8 @@ don't override it.  This is the same as (default-value\n\
 don't override it.  This is the same as (default-value\n\
 'scroll-down-aggressively).");
   
-  DEFVAR_PER_BUFFER ("top-line-format", &current_buffer->top_line_format, 
+  DEFVAR_PER_BUFFER ("header-line-format",
+		     &current_buffer->header_line_format, 
 		     Qnil,
    "Analogous to `mode-line-format', but for a mode line displayed\n\
 at the top of windows.");

@@ -289,7 +289,7 @@ extern Lisp_Object Qscroll_bar_movement;
   (Fget ((event_head), Qevent_kind))
 
 /* Symbols to use for non-text mouse positions.  */
-extern Lisp_Object Qmode_line, Qvertical_line, Qtop_line;
+extern Lisp_Object Qmode_line, Qvertical_line, Qheader_line;
 
 /* Forward declaration for prototypes.  */
 struct input_event;

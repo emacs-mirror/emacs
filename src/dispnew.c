@@ -508,18 +508,18 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
   int i;
   int new_rows;
   int marginal_areas_changed_p = 0;
-  int top_line_changed_p = 0;
-  int top_line_p = 0;
+  int header_line_changed_p = 0;
+  int header_line_p = 0;
   int left = -1, right = -1;
   int window_x, window_y, window_width, window_height;
 
   /* See if W had a top line that has disappeared now, or vice versa.  */
   if (w)
     {
-      top_line_p = WINDOW_WANTS_TOP_LINE_P (w);
-      top_line_changed_p = top_line_p != matrix->top_line_p;
+      header_line_p = WINDOW_WANTS_HEADER_LINE_P (w);
+      header_line_changed_p = header_line_p != matrix->header_line_p;
     }
-  matrix->top_line_p = top_line_p;
+  matrix->header_line_p = header_line_p;
 
   /* Do nothing if MATRIX' size, position, vscroll, and marginal areas
      haven't changed.  This optimization is important because preserving
@@ -535,7 +535,7 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
 
       if (!marginal_areas_changed_p
 	  && !fonts_changed_p
-	  && !top_line_changed_p
+	  && !header_line_changed_p
 	  && matrix->window_top_y == XFASTINT (w->top)
 	  && matrix->window_height == window_height
 	  && matrix->window_vscroll == w->vscroll
@@ -584,7 +584,7 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
 	  
 	  if (w == NULL
 	      || row == matrix->rows + dim.height - 1
-	      || (row == matrix->rows && matrix->top_line_p))
+	      || (row == matrix->rows && matrix->header_line_p))
 	    {
 	      row->glyphs[TEXT_AREA]
 		= row->glyphs[LEFT_MARGIN_AREA];
@@ -613,7 +613,7 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
 	 its own memory.  Allocate glyph memory from the heap.  */
       if (dim.width > matrix->matrix_w
 	  || new_rows
-	  || top_line_changed_p
+	  || header_line_changed_p
 	  || marginal_areas_changed_p)
 	{
 	  struct glyph_row *row = matrix->rows;
@@ -628,7 +628,7 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
 	      
 	      /* The mode line never has marginal areas.  */
 	      if (row == matrix->rows + dim.height - 1
-		  || (row == matrix->rows && matrix->top_line_p))
+		  || (row == matrix->rows && matrix->header_line_p))
 		{
 		  row->glyphs[TEXT_AREA]
 		    = row->glyphs[LEFT_MARGIN_AREA];
@@ -848,7 +848,7 @@ shift_glyph_matrix (w, matrix, start, end, dy)
   xassert (start >= 0 && start < matrix->nrows);
   xassert (end >= 0 && end <= matrix->nrows);
   
-  min_y = WINDOW_DISPLAY_TOP_LINE_HEIGHT (w);
+  min_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
   max_y = WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE (w);
   
   for (; start < end; ++start)
@@ -998,7 +998,7 @@ blank_row (w, row, y)
 {
   int min_y, max_y;
   
-  min_y = WINDOW_DISPLAY_TOP_LINE_HEIGHT (w);
+  min_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
   max_y = WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE (w);
   
   clear_glyph_row (row);
@@ -3602,7 +3602,7 @@ update_window (w, force_p)
     {
       struct glyph_row *row, *end;
       struct glyph_row *mode_line_row;
-      struct glyph_row *top_line_row = NULL;
+      struct glyph_row *header_line_row = NULL;
       int yb, changed_p = 0;
 
       rif->update_window_begin_hook (w);
@@ -3613,7 +3613,7 @@ update_window (w, force_p)
       row = desired_matrix->rows;
       end = row + desired_matrix->nrows - 1;
       if (row->mode_line_p)
-	top_line_row = row++;
+	header_line_row = row++;
 
       /* Update the mode line, if necessary.  */
       mode_line_row = MATRIX_MODE_LINE_ROW (desired_matrix);
@@ -3634,7 +3634,7 @@ update_window (w, force_p)
       /* Try reusing part of the display by inserting/deleting lines.  */
       if (row < end && !desired_matrix->no_scrolling_p)
 	{
-	  int rc = scrolling_window (w, top_line_row != NULL);
+	  int rc = scrolling_window (w, header_line_row != NULL);
 	  if (rc < 0)
 	    {
 	      /* All rows were found to be equal.  */
@@ -3649,9 +3649,9 @@ update_window (w, force_p)
       /* Update the top mode line after scrolling because a new top
 	 line would otherwise overwrite lines at the top of the window
 	 that can be scrolled.  */
-      if (top_line_row && top_line_row->enabled_p)
+      if (header_line_row && header_line_row->enabled_p)
 	{
-	  top_line_row->y = 0;
+	  header_line_row->y = 0;
 	  update_window_line (w, 0);
 	  changed_p = 1;
 	}
@@ -4085,7 +4085,7 @@ set_window_cursor_after_update (w)
 
 
 /* Try to reuse part of the current display of W by scrolling lines.
-   TOP_LINE_P non-zero means W has a top mode line.
+   HEADER_LINE_P non-zero means W has a top mode line.
 
    The algorithm is taken from Communications of the ACM, Apr78 "A
    Technique for Isolating Differences Between Files."  It should take
@@ -4111,9 +4111,9 @@ set_window_cursor_after_update (w)
    1	if we did scroll.  */
 
 static int
-scrolling_window (w, top_line_p)
+scrolling_window (w, header_line_p)
      struct window *w;
-     int top_line_p;
+     int header_line_p;
 {
   struct symbol 
   {
@@ -4142,7 +4142,7 @@ scrolling_window (w, top_line_p)
   int yb = window_text_bottom_y (w);
 
   /* Skip over rows equal at the start.  */
-  i = top_line_p ? 1 : 0;
+  i = header_line_p ? 1 : 0;
   while (i < current_matrix->nrows - 1
          && MATRIX_ROW_ENABLED_P (current_matrix, i)
 	 && MATRIX_ROW_ENABLED_P (desired_matrix, i)
@@ -5121,7 +5121,7 @@ mode_line_string (w, x, y, mode_line_p, charpos)
   if (mode_line_p)
     row = MATRIX_MODE_LINE_ROW (w->current_matrix);
   else
-    row = MATRIX_TOP_LINE_ROW (w->current_matrix);
+    row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
 
   if (row->mode_line_p && row->enabled_p)
     {

@@ -587,7 +587,7 @@ struct buffer
     
     /* Analogous to mode_line_format for the line displayed at the top
        of windows.  Nil means don't display that line.  */
-    Lisp_Object top_line_format;
+    Lisp_Object header_line_format;
 
     /* Keys that are bound local to this buffer.  */
     Lisp_Object keymap;

@@ -868,7 +868,7 @@ x_draw_row_bitmaps (w, row)
   struct frame *f = XFRAME (w->frame);
   enum bitmap_type bitmap;
   struct face *face;
-  int top_line_height = -1;
+  int header_line_height = -1;
 
   xassert (interrupt_input_blocked);
 
@@ -904,8 +904,8 @@ x_draw_row_bitmaps (w, row)
 		    ? 1 : 0);
       int left = window_box_left (w, -1);
 
-      if (top_line_height < 0)
-	top_line_height = WINDOW_DISPLAY_TOP_LINE_HEIGHT (w);
+      if (header_line_height < 0)
+	header_line_height = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
       
       /* In case the same realized face is used for bitmap areas and
 	 for something displayed in the text (e.g. face `region' on
@@ -921,7 +921,7 @@ x_draw_row_bitmaps (w, row)
 		      (left
 		       - FRAME_X_LEFT_FLAGS_AREA_WIDTH (f)
 		       + border),
-		      WINDOW_TO_FRAME_PIXEL_Y (w, max (top_line_height,
+		      WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
 						       row->y)),
 		      FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - border,
 		      row->visible_height);
@@ -949,8 +949,8 @@ x_draw_row_bitmaps (w, row)
     {
       int right = window_box_right (w, -1);
 
-      if (top_line_height < 0)
-	top_line_height = WINDOW_DISPLAY_TOP_LINE_HEIGHT (w);
+      if (header_line_height < 0)
+	header_line_height = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
 
       /* In case the same realized face is used for bitmap areas and
 	 for something displayed in the text (e.g. face `region' on
@@ -963,7 +963,7 @@ x_draw_row_bitmaps (w, row)
       XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		      face->gc,
 		      right,
-		      WINDOW_TO_FRAME_PIXEL_Y (w, max (top_line_height,
+		      WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
 						       row->y)),
 		      FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f),
 		      row->visible_height);
@@ -2435,7 +2435,7 @@ x_get_glyph_string_clip_rect (s, r)
      partially visible lines at the top of a window.  */
   if (!s->row->full_width_p
       && MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (s->w, s->row))
-    r->y = WINDOW_DISPLAY_TOP_LINE_HEIGHT (s->w);
+    r->y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (s->w);
   else
     r->y = max (0, s->row->y);
 
@@ -2449,7 +2449,7 @@ x_get_glyph_string_clip_rect (s, r)
      intentionally draws over other lines.  */
   if (s->for_overlaps_p)
     {
-      r->y = WINDOW_DISPLAY_TOP_LINE_HEIGHT (s->w);
+      r->y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (s->w);
       r->height = window_text_bottom_y (s->w) - r->y;
     }
       
@@ -4722,7 +4722,7 @@ x_clear_end_of_line (to_x)
       to_x = WINDOW_AREA_TO_FRAME_PIXEL_X (w, updated_area, to_x);
     }
   
-  min_y = WINDOW_DISPLAY_TOP_LINE_HEIGHT (w);
+  min_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
   from_y = WINDOW_TO_FRAME_PIXEL_Y (w, max (min_y, output_cursor.y));
   to_y = WINDOW_TO_FRAME_PIXEL_Y (w, to_y);
   
@@ -6047,7 +6047,7 @@ note_mode_line_highlight (w, x, mode_line_p)
   if (mode_line_p)
     row = MATRIX_MODE_LINE_ROW (w->current_matrix);
   else
-    row = MATRIX_TOP_LINE_ROW (w->current_matrix);
+    row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
   
   if (row->enabled_p)
     {
@@ -10000,7 +10000,7 @@ x_erase_phys_cursor (w)
   if (w->phys_cursor_type == HOLLOW_BOX_CURSOR)
     {
       int x;
-      int top_line_height = WINDOW_DISPLAY_TOP_LINE_HEIGHT (w);
+      int header_line_height = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
 
       cursor_glyph = get_phys_cursor_glyph (w);
       if (cursor_glyph == NULL)
@@ -10010,7 +10010,7 @@ x_erase_phys_cursor (w)
       
       XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		  x,
-		  WINDOW_TO_FRAME_PIXEL_Y (w, max (top_line_height,
+		  WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
 						   cursor_row->y)),
 		  cursor_glyph->pixel_width,
 		  cursor_row->visible_height,

@@ -758,8 +758,8 @@ window_box_height (w)
   if (WINDOW_WANTS_MODELINE_P (w))
     height -= CURRENT_MODE_LINE_HEIGHT (w);
 
-  if (WINDOW_WANTS_TOP_LINE_P (w))
-    height -= CURRENT_TOP_LINE_HEIGHT (w);
+  if (WINDOW_WANTS_HEADER_LINE_P (w))
+    height -= CURRENT_HEADER_LINE_HEIGHT (w);
 
   return height;
 }
@@ -828,8 +828,8 @@ window_box (w, area, box_x, box_y, box_width, box_height)
   *box_x = window_box_left (w, area);
   *box_y = (FRAME_INTERNAL_BORDER_WIDTH_SAFE (f)
 	    + XFASTINT (w->top) * CANON_Y_UNIT (f));
-  if (WINDOW_WANTS_TOP_LINE_P (w))
-    *box_y += CURRENT_TOP_LINE_HEIGHT (w);
+  if (WINDOW_WANTS_HEADER_LINE_P (w))
+    *box_y += CURRENT_HEADER_LINE_HEIGHT (w);
 }
 
 
@@ -1159,11 +1159,11 @@ check_window_end (w)
 
    BASE_FACE_ID is the id of a base face to use.  It must be one of
    DEFAULT_FACE_ID for normal text, MODE_LINE_FACE_ID or
-   TOP_LINE_FACE_ID for displaying mode lines, or TOOL_BAR_FACE_ID for
+   HEADER_LINE_FACE_ID for displaying mode lines, or TOOL_BAR_FACE_ID for
    displaying the tool-bar.
    
    If ROW is null and BASE_FACE_ID is equal to MODE_LINE_FACE_ID or
-   TOP_LINE_FACE_ID, the iterator will be initialized to use the
+   HEADER_LINE_FACE_ID, the iterator will be initialized to use the
    corresponding mode line glyph row of the desired matrix of W.  */
 
 void
@@ -1195,8 +1195,8 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
     {
       if (base_face_id == MODE_LINE_FACE_ID)
 	row = MATRIX_MODE_LINE_ROW (w->desired_matrix);
-      else if (base_face_id == TOP_LINE_FACE_ID)
-	row = MATRIX_TOP_LINE_ROW (w->desired_matrix);
+      else if (base_face_id == HEADER_LINE_FACE_ID)
+	row = MATRIX_HEADER_LINE_ROW (w->desired_matrix);
     }
   
   /* Clear IT.  */
@@ -1349,8 +1349,8 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 	    it->last_visible_x -= it->continuation_pixel_width;
 	}
 
-      it->top_line_p = WINDOW_WANTS_TOP_LINE_P (w);
-      it->current_y = WINDOW_DISPLAY_TOP_LINE_HEIGHT (w) + w->vscroll;
+      it->header_line_p = WINDOW_WANTS_HEADER_LINE_P (w);
+      it->current_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w) + w->vscroll;
     }
 
   /* Leave room for a border glyph.  */
@@ -1407,7 +1407,7 @@ start_display (it, w, pos)
 {
   int start_at_line_beg_p;
   struct glyph_row *row;
-  int first_vpos = WINDOW_WANTS_TOP_LINE_P (w) ? 1 : 0;
+  int first_vpos = WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0;
   int first_y;
 
   row = w->desired_matrix->rows + first_vpos;
@@ -7841,7 +7841,7 @@ make_cursor_line_fully_visible (w)
 {
   struct glyph_matrix *matrix;
   struct glyph_row *row;
-  int top_line_height;
+  int header_line_height;
   
   /* It's not always possible to find the cursor, e.g, when a window
      is full of overlay strings.  Don't do anything in that case.  */
@@ -7854,8 +7854,8 @@ make_cursor_line_fully_visible (w)
   /* If row->y == top y of window display area, the window isn't tall
      enough to display a single line.  There is nothing we can do
      about it.  */
-  top_line_height = WINDOW_DISPLAY_TOP_LINE_HEIGHT (w);
-  if (row->y == top_line_height)
+  header_line_height = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
+  if (row->y == header_line_height)
     return;
 
   if (MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (w, row))
@@ -8000,7 +8000,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	{
 	  aggressive = current_buffer->scroll_down_aggressively;
 	  height = (WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE (w)
-		    - WINDOW_DISPLAY_TOP_LINE_HEIGHT (w));
+		    - WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w));
 	  if (NUMBERP (aggressive))
 	    amount_to_scroll = XFLOATINT (aggressive) * height;
 	}
@@ -8053,7 +8053,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	    {
 	      aggressive = current_buffer->scroll_up_aggressively;
 	      height = (WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE (w)
-			- WINDOW_DISPLAY_TOP_LINE_HEIGHT (w));
+			- WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w));
 	      if (NUMBERP (aggressive))
 		amount_to_scroll = XFLOATINT (aggressive) * height;
 	    }
@@ -8124,7 +8124,7 @@ compute_window_start_on_continuation_line (w)
       
       /* Find the start of the continued line.  This should be fast
 	 because scan_buffer is fast (newline cache).  */
-      row = w->desired_matrix->rows + (WINDOW_WANTS_TOP_LINE_P (w) ? 1 : 0);
+      row = w->desired_matrix->rows + (WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0);
       init_iterator (&it, w, CHARPOS (start_pos), BYTEPOS (start_pos),
 		     row, DEFAULT_FACE_ID);
       reseat_at_previous_visible_line_start (&it);
@@ -8868,7 +8868,7 @@ redisplay_window (window, just_this_one_p)
 	   && XFASTINT (w->column_number_displayed) != current_column ()))
        /* This means that the window has a mode line.  */
        && (WINDOW_WANTS_MODELINE_P (w)
-	   || WINDOW_WANTS_TOP_LINE_P (w)))
+	   || WINDOW_WANTS_HEADER_LINE_P (w)))
     {
       display_mode_lines (w);
 
@@ -8884,12 +8884,12 @@ redisplay_window (window, just_this_one_p)
       
       /* If top line height has changed, arrange for a thorough
 	 immediate redisplay using the correct mode line height.  */
-      if (WINDOW_WANTS_TOP_LINE_P (w)
-	  && CURRENT_TOP_LINE_HEIGHT (w) != DESIRED_TOP_LINE_HEIGHT (w))
+      if (WINDOW_WANTS_HEADER_LINE_P (w)
+	  && CURRENT_HEADER_LINE_HEIGHT (w) != DESIRED_HEADER_LINE_HEIGHT (w))
 	{
 	  fonts_changed_p = 1;
-	  MATRIX_TOP_LINE_ROW (w->current_matrix)->height
-	    = DESIRED_TOP_LINE_HEIGHT (w);
+	  MATRIX_HEADER_LINE_ROW (w->current_matrix)->height
+	    = DESIRED_HEADER_LINE_HEIGHT (w);
 	}
 
       if (fonts_changed_p)
@@ -9089,8 +9089,8 @@ try_window_reusing_current_matrix (w)
     return 0;
 
   /* If top-line visibility has changed, give up.  */
-  if (WINDOW_WANTS_TOP_LINE_P (w)
-      != MATRIX_TOP_LINE_ROW (w->current_matrix)->mode_line_p)
+  if (WINDOW_WANTS_HEADER_LINE_P (w)
+      != MATRIX_HEADER_LINE_ROW (w->current_matrix)->mode_line_p)
     return 0;
 
   /* Give up if old or new display is scrolled vertically.  We could
@@ -9197,7 +9197,7 @@ try_window_reusing_current_matrix (w)
 	  
 	  /* Re-compute Y positions.  */
 	  row = MATRIX_FIRST_TEXT_ROW (w->current_matrix) + nrows_scrolled;
-	  min_y = WINDOW_DISPLAY_TOP_LINE_HEIGHT (w);
+	  min_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
 	  max_y = it.last_visible_y;
 	  while (row < bottom_row)
 	    {
@@ -9340,7 +9340,7 @@ try_window_reusing_current_matrix (w)
 
       /* Scroll the display.  */
       run.current_y = first_reusable_row->y;
-      run.desired_y = WINDOW_DISPLAY_TOP_LINE_HEIGHT (w);
+      run.desired_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
       run.height = it.last_visible_y - run.current_y;
       if (run.height)
 	{
@@ -9356,7 +9356,7 @@ try_window_reusing_current_matrix (w)
       bottom_row = MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w);
       row = first_reusable_row;
       dy = first_reusable_row->y;
-      min_y = WINDOW_DISPLAY_TOP_LINE_HEIGHT (w);
+      min_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
       max_y = it.last_visible_y;
       while (row < first_row_to_display)
 	{
@@ -10180,13 +10180,13 @@ try_window_id (w)
       /* Displayed to end of window, but no line containing text was
 	 displayed.  Lines were deleted at the end of the window.  */
       int vpos;
-      int top_line_p = WINDOW_WANTS_TOP_LINE_P (w) ? 1 : 0;
+      int header_line_p = WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0;
 
       for (vpos = XFASTINT (w->window_end_vpos); vpos > 0; --vpos)
-	if ((w->desired_matrix->rows[vpos + top_line_p].enabled_p
-	     && w->desired_matrix->rows[vpos + top_line_p].displays_text_p)
-	    || (!w->desired_matrix->rows[vpos + top_line_p].enabled_p
-		&& w->current_matrix->rows[vpos + top_line_p].displays_text_p))
+	if ((w->desired_matrix->rows[vpos + header_line_p].enabled_p
+	     && w->desired_matrix->rows[vpos + header_line_p].displays_text_p)
+	    || (!w->desired_matrix->rows[vpos + header_line_p].enabled_p
+		&& w->current_matrix->rows[vpos + header_line_p].displays_text_p))
 	  break;
 
       w->window_end_vpos = make_number (vpos);
@@ -10538,7 +10538,7 @@ compute_line_metrics (it)
 
   if (FRAME_WINDOW_P (it->f))
     {
-      int i, top_line_height;
+      int i, header_line_height;
 
       /* The line may consist of one space only, that was added to
 	 place the cursor on it.  If so, the row's height hasn't been
@@ -10577,9 +10577,9 @@ compute_line_metrics (it)
       /* Compute how much of the line is visible.  */
       row->visible_height = row->height;
       
-      top_line_height = WINDOW_DISPLAY_TOP_LINE_HEIGHT (it->w);
-      if (row->y < top_line_height)
-	row->visible_height -= top_line_height - row->y;
+      header_line_height = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (it->w);
+      if (row->y < header_line_height)
+	row->visible_height -= header_line_height - row->y;
       else
 	{
 	  int max_y = WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE (it->w);
@@ -11296,15 +11296,17 @@ display_mode_lines (w)
   w->column_number_displayed = Qnil;
 
   if (WINDOW_WANTS_MODELINE_P (w))
-    display_mode_line (w, MODE_LINE_FACE_ID, current_buffer->mode_line_format);
+    display_mode_line (w, MODE_LINE_FACE_ID,
+		       current_buffer->mode_line_format);
   
-  if (WINDOW_WANTS_TOP_LINE_P (w))
-    display_mode_line (w, TOP_LINE_FACE_ID, current_buffer->top_line_format);
+  if (WINDOW_WANTS_HEADER_LINE_P (w))
+    display_mode_line (w, HEADER_LINE_FACE_ID,
+		       current_buffer->header_line_format);
 }
 
 
 /* Display mode or top line of window W.  FACE_ID specifies which line
-   to display; it is either MODE_LINE_FACE_ID or TOP_LINE_FACE_ID.
+   to display; it is either MODE_LINE_FACE_ID or HEADER_LINE_FACE_ID.
    FORMAT is the mode line format to display.  */
 
 static void

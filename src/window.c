@@ -480,8 +480,8 @@ coordinates_in_window (w, x, y)
 	   && *y >= bottom_y - CURRENT_MODE_LINE_HEIGHT (w))
     /* On the mode line.  */
     return 2;
-  else if (WINDOW_WANTS_TOP_LINE_P (w)
-	   && *y < top_y + CURRENT_TOP_LINE_HEIGHT (w))
+  else if (WINDOW_WANTS_HEADER_LINE_P (w)
+	   && *y < top_y + CURRENT_HEADER_LINE_HEIGHT (w))
     /* On the top line.  */
     return 4;
   else if (*x < left_x || *x >= right_x)
@@ -519,7 +519,7 @@ frame.\n\
 If COORDINATES are in the text portion of WINDOW,\n\
    the coordinates relative to the window are returned.\n\
 If they are in the mode line of WINDOW, `mode-line' is returned.\n\
-If they are in the top mode line of WINDOW, `top-line' is returned.\n\
+If they are in the top mode line of WINDOW, `header-line' is returned.\n\
 If they are in the bitmap-area to the left of the window,\n\
    `left-bitmap-area' is returned, if they are in the area on the right of\n\
    the window, `right-bitmap-area' is returned.\n\
@@ -563,7 +563,7 @@ If they are on the border between WINDOW and its right sibling,\n\
       return Qvertical_line;
 
     case 4:
-      return Qtop_line;
+      return Qheader_line;
 
     case 5:
       return Qleft_bitmap_area;
@@ -2089,7 +2089,7 @@ window_min_size_1 (w, width_p)
 	{
 	  if (MINI_WINDOW_P (w)
 	      || (!WINDOW_WANTS_MODELINE_P (w)
-		  && !WINDOW_WANTS_TOP_LINE_P (w)))
+		  && !WINDOW_WANTS_HEADER_LINE_P (w)))
 	    size = 1;
 	  else
 	    size = window_min_height;

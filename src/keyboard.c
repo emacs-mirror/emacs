@@ -4281,7 +4281,7 @@ make_lispy_event (event)
 		    Lisp_Object string;
 		    int charpos;
 		    
-		    posn = part == 1 ? Qmode_line : Qtop_line;
+		    posn = part == 1 ? Qmode_line : Qheader_line;
 		    string = mode_line_string (w, wx, wy, part == 1, &charpos);
 		    if (STRINGP (string))
 		      string_info = Fcons (string, make_number (charpos));
@@ -4564,7 +4564,7 @@ make_lispy_event (event)
 	    else if (part == 2)
 	      posn = Qvertical_line;
 	    else if (part == 3)
-	      posn = Qtop_line;
+	      posn = Qheader_line;
 	    else
 	      XSETINT (posn,
 		       buffer_posn_from_coords (XWINDOW (window),
@@ -4645,7 +4645,7 @@ make_lispy_event (event)
 	    else if (part == 2)
 	      posn = Qvertical_line;
 	    else if (part == 3)
-	      posn = Qtop_line;
+	      posn = Qheader_line;
 	    else
 	      XSETINT (posn, buffer_posn_from_coords (w, &wx, &wy));
 	  }
@@ -4758,7 +4758,7 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
 	  else if (area == 2)
 	    posn = Qvertical_line;
 	  else if (area == 3)
-	    posn = Qtop_line;
+	    posn = Qheader_line;
 	  else
 	    XSETINT (posn, buffer_posn_from_coords (w, &wx, &wy));
 	}

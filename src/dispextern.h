@@ -461,7 +461,7 @@ struct glyph_matrix
 
   /* Non-zero means window displayed in this matrix has a top mode
      line.  */
-  unsigned top_line_p : 1;
+  unsigned header_line_p : 1;
 
 #ifdef GLYPH_DEBUG
   /* A string identifying the method used to display the matrix.  */
@@ -674,7 +674,7 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
    This is always the first row in MATRIX because that's the only
    way that works in frame-based redisplay.  */
 
-#define MATRIX_TOP_LINE_ROW(MATRIX) (MATRIX)->rows
+#define MATRIX_HEADER_LINE_ROW(MATRIX) (MATRIX)->rows
 
 /* Return a pointer to first row in MATRIX used for text display.  */
 
@@ -744,7 +744,7 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
      
 #define MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P(W, ROW)		\
      (MATRIX_ROW_PARTIALLY_VISIBLE_P ((ROW))			\
-      && (ROW)->y < WINDOW_DISPLAY_TOP_LINE_HEIGHT ((W)))
+      && (ROW)->y < WINDOW_DISPLAY_HEADER_LINE_HEIGHT ((W)))
 
 /* Non-zero if ROW is partially visible at the bottom of window W.  */
      
@@ -863,9 +863,9 @@ extern struct glyph_row scratch_glyph_row;
    if not known.  This macro is called under circumstances where
    MATRIX might not have been allocated yet.  */
 
-#define MATRIX_TOP_LINE_HEIGHT(MATRIX)		\
+#define MATRIX_HEADER_LINE_HEIGHT(MATRIX)	\
      ((MATRIX) && (MATRIX)->rows		\
-      ? MATRIX_TOP_LINE_ROW (MATRIX)->height	\
+      ? MATRIX_HEADER_LINE_ROW (MATRIX)->height	\
       : 0)
 
 /* Return the current height of the mode line of window W.  If not
@@ -881,10 +881,10 @@ extern struct glyph_row scratch_glyph_row;
    known from W's current glyph matrix, return an estimation based on
    the height of the font of the face `top-line'.  */
 
-#define CURRENT_TOP_LINE_HEIGHT(W)					   \
-      (MATRIX_TOP_LINE_HEIGHT ((W)->current_matrix)			   \
-      ? MATRIX_TOP_LINE_HEIGHT ((W)->current_matrix)			   \
-      : estimate_mode_line_height (XFRAME ((W)->frame), TOP_LINE_FACE_ID))
+#define CURRENT_HEADER_LINE_HEIGHT(W)					   \
+      (MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)			   \
+      ? MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)			   \
+      : estimate_mode_line_height (XFRAME ((W)->frame), HEADER_LINE_FACE_ID))
 
 /* Return the height of the desired mode line of window W.  */
 
@@ -893,8 +893,8 @@ extern struct glyph_row scratch_glyph_row;
 
 /* Return the height of the desired top line of window W.  */
 
-#define DESIRED_TOP_LINE_HEIGHT(W) \
-     MATRIX_TOP_LINE_HEIGHT ((W)->desired_matrix)
+#define DESIRED_HEADER_LINE_HEIGHT(W) \
+     MATRIX_HEADER_LINE_HEIGHT ((W)->desired_matrix)
 
 /* Like FRAME_INTERNAL_BORDER_WIDTH but checks whether frame F is a
    window-system frame.  */
@@ -930,9 +930,9 @@ extern struct glyph_row scratch_glyph_row;
 /* Height in pixels of the top line.  Zero if W doesn't have a top
    line.  */
      
-#define WINDOW_DISPLAY_TOP_LINE_HEIGHT(W)	\
-     (WINDOW_WANTS_TOP_LINE_P ((W))		\
-      ? CURRENT_TOP_LINE_HEIGHT (W)		\
+#define WINDOW_DISPLAY_HEADER_LINE_HEIGHT(W)	\
+     (WINDOW_WANTS_HEADER_LINE_P ((W))		\
+      ? CURRENT_HEADER_LINE_HEIGHT (W)		\
       : 0)
 
 /* Pixel height of window W without mode line.  */
@@ -946,7 +946,7 @@ extern struct glyph_row scratch_glyph_row;
 #define WINDOW_DISPLAY_TEXT_HEIGHT(W)		\
      (WINDOW_DISPLAY_PIXEL_HEIGHT ((W))		\
       - WINDOW_DISPLAY_MODE_LINE_HEIGHT ((W))	\
-      - WINDOW_DISPLAY_TOP_LINE_HEIGHT ((W)))
+      - WINDOW_DISPLAY_HEADER_LINE_HEIGHT ((W)))
 
 /* Left edge of W in pixels relative to its frame.  */
      
@@ -1056,11 +1056,11 @@ extern struct glyph_row scratch_glyph_row;
 
 /* Value is non-zero if window W wants a top line.  */
 
-#define WINDOW_WANTS_TOP_LINE_P(W)					\
+#define WINDOW_WANTS_HEADER_LINE_P(W)					\
      (!MINI_WINDOW_P (W)						\
       && !(W)->pseudo_window_p						\
       && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME (W)))		\
-      && !NILP (XBUFFER ((W)->buffer)->top_line_format))
+      && !NILP (XBUFFER ((W)->buffer)->header_line_format))
 
      
 /***********************************************************************
@@ -1266,7 +1266,7 @@ enum face_id
   MODE_LINE_FACE_ID,
   TOOL_BAR_FACE_ID,
   BITMAP_AREA_FACE_ID,
-  TOP_LINE_FACE_ID,
+  HEADER_LINE_FACE_ID,
   BASIC_FACE_ID_SENTINEL
 };
 
@@ -1473,7 +1473,7 @@ struct it
   unsigned multibyte_p : 1;
 
   /* 1 means window has a mode line at its top.  */
-  unsigned top_line_p : 1;
+  unsigned header_line_p : 1;
 
   /* 1 means `string' is the value of a `display' property.
      Don't handle some `display' properties in these strings.  */
