@@ -78,6 +78,8 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
   (setq paragraph-start (concat "[ \t]*$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
+  (make-local-variable 'indent-line-function)
+  (setq indent-line-function 'indent-relative-maybe)
   (setq mode-name "Text")
   (setq major-mode 'text-mode)
   (run-hooks 'text-mode-hook))
