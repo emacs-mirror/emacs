@@ -1,3 +1,32 @@
+2001-11-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* category.h (CHECK_CATEGORY, CHECK_CATEGORY_SET): Remove unused
+	argument `i' in macros.
+
+	* frame.h (CHECK_FRAME, CHECK_LIVE_FRAME): Remove unused argument
+	`i' in macros.
+
+	* lisp.h (CHECK_STRING_OR_BUFFER, CHECK_HASH_TABLE, CHECK_LIST,
+	CHECK_STRING, CHECK_CONS, CHECK_SYMBOL, CHECK_CHAR_TABLE,
+	CHECK_VECTOR, CHECK_VECTOR_OR_CHAR_TABLE, CHECK_BUFFER,
+	CHECK_WINDOW, CHECK_LIVE_WINDOW, CHECK_PROCESS, CHECK_NUMBER,
+	CHECK_NATNUM, CHECK_MARKER, CHECK_NUMBER_COERCE_MARKER,
+	CHECK_FLOAT, CHECK_NUMBER_OR_FLOAT,
+	CHECK_NUMBER_OR_FLOAT_COERCE_MARKER, CHECK_OVERLAY,
+	CHECK_NUMBER_CAR, CHECK_NUMBER_CDR): Remove unused argument `i'
+	in macros.
+
+	* abbrev.c, alloc.c, buffer.c, bytecode.c, callint.c, callproc.c,
+	casefiddle.c, category.c, ccl.c, charset.c, cmds.c, coding.c,
+	composite.c, data.c, dired.c, dispnew.c, doc.c, dosfns.c, emacs.c,
+	eval.c, fileio.c, filelock.c, fns.c, fontset.c, frame.c, frame.h,
+	indent.c, keyboard.c, keymap.c, lread.c, macros.c, marker.c,
+	minibuf.c, mocklisp.c, msdos.c, print.c, process.c, search.c,
+	sunfns.c, syntax.c, textprop.c, undo.c, w16select.c, w32console.c,
+	w32fns.c, w32menu.c, w32proc.c, w32select.c, window.c, xdisp.c,
+	xfaces.c, xmenu.c, xselect.c : Update usage of CHECK_ macros
+	(remove unused second argument).
+
 2001-11-02  Richard M. Stallman  <rms@gnu.org>
 
 	* textprop.c (Fget_char_property): Doc fix.
