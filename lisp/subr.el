@@ -566,7 +566,17 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 	    ;; defeat file locking... don't try this at home, kids!
 	    (setq buffer-file-name nil)
 	    (insert-before-markers string)
-	    (setq insert-end (point)))
+	    (setq insert-end (point))
+	    ;; If the message end is off screen, recenter now.
+	    (if (> (window-end) insert-end)
+		(recenter (/ (window-height) 2)))
+	    ;; If that pushed message start off the screen,
+	    ;; scroll to start it at the top of the screen.
+	    (move-to-window-line 0)
+	    (if (> (point) pos)
+		(progn
+		  (goto-char pos)
+		  (recenter 0))))
 	  (message (or message "Type %s to continue editing.")
 		   (single-key-description exit-char))
 	  (let ((char (read-event)))
