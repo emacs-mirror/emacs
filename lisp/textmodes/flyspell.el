@@ -382,6 +382,7 @@ property of the major mode name.")
 ;*---------------------------------------------------------------------*/
 (eval-when-compile (defvar flyspell-local-mouse-map))
 
+;;;###autoload
 (defvar flyspell-mode nil)
 (make-variable-buffer-local 'flyspell-mode)
 

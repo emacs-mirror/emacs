@@ -1,3 +1,8 @@
+2002-02-20  Sam Steingold  <sds@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-mode): Autoload the variable
+	since it is used in the menu bar.
+
 2002-02-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* tar-mode.el (tar-next-line, tar-previous-line): Add doc string,
