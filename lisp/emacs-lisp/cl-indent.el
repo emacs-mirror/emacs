@@ -438,6 +438,7 @@ by `lisp-body-indent'."
 	   (unless 1)
 	   (unwind-protect (5 &body))
            (when 1)
+           (with-output-to-string (4 2))
            (with-standard-io-syntax (2)))))
   (while l
     (put (caar l) 'common-lisp-indent-function
