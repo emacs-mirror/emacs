@@ -1929,6 +1929,7 @@ extern void replace_range P_ ((int, int, Lisp_Object, int, int, int));
 extern void syms_of_insdel P_ ((void));
 
 /* Defined in dispnew.c */
+extern Lisp_Object selected_frame;
 EXFUN (Fding, 1);
 EXFUN (Fredraw_frame, 1);
 EXFUN (Fredraw_display, 0);
