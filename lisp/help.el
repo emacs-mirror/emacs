@@ -39,9 +39,13 @@
   "Keymap for help mode.")
 
 (define-key global-map (char-to-string help-char) 'help-command)
+(define-key global-map [help] 'help-command)
+(define-key global-map [f1] 'help-command)
 (fset 'help-command help-map)
 
 (define-key help-map (char-to-string help-char) 'help-for-help)
+(define-key help-map [help] 'help-for-help)
+(define-key help-map [f1] 'help-for-help)
 (define-key help-map "?" 'help-for-help)
 
 (define-key help-map "\C-c" 'describe-copying)
