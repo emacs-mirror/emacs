@@ -2308,12 +2308,13 @@ Finding/Getting Emacs and Related Packages
   so before you use or modify a Lisp package, see if the author has provided
   any hints in the source code.
 
-  If a package does not come with Emacs, check the Lisp Code Directory,
-  (formerly?) maintained by Dave Brennan.  The directory is contained
-  in the file LCD-datafile.Z, available from the Emacs Lisp Archive (see
-  question 90), and is accessed using the "lispdir" package, available from
-  the same site.  Note that lispdir.el requires crypt++, which you can grab
-  from the Emacs Lisp Archive's "misc" subdirectory when you get
+  If a package does not come with Emacs, check the Lisp Code
+  Directory, maintained (unfortunately slowly at present) by Dave
+  Brennan <brennan@gnu.org>.  The directory is contained in the file
+  LCD-datafile.Z, available from the Emacs Lisp Archive (see question
+  90), and is accessed using the "lispdir" package, available from the
+  same site.  Note that lispdir.el requires crypt++, which you can
+  grab from the Emacs Lisp Archive's "misc" subdirectory when you get
   lispdir.el.
 
   Once you have installed lispdir.el and LCD-datafile, you can use "M-x
@@ -2376,9 +2377,6 @@ Finding/Getting Emacs and Related Packages
           compressed, so you should use "binary" mode in FTP to retrieve
           them.  You should also use binary mode whenever you retrieve any
           files with names ending in ".elc".
-
-  Note that the archive is apparently not being maintained at the time of
-  writing; a volunteer to take on the task would be welcome.
 
   Packages which have been posted to gnu.emacs.sources should be locatable
   via a service like Dejanews.
