@@ -2278,8 +2278,8 @@ dissociate_if_controlling_tty (int fd)
       /* Unknown system. */
       croak ();
 #endif  /* ! TIOCNOTTY */
-    }
 #endif  /* ! USG */
+    }
 }
 
 /* Create a termcap display on the tty device with the given name and
