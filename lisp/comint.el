@@ -1331,6 +1331,16 @@ Argument 0 is the command name."
 ;;
 ;; Input processing stuff
 ;;
+(defun comint-add-to-input-history (cmd)
+  "Add CMD to the input history.
+Ignore duplicates if `comint-input-ignoredups' is non-nil."
+  (if (and (funcall comint-input-filter cmd)
+	   (or (null comint-input-ignoredups)
+	       (not (ring-p comint-input-ring))
+	       (ring-empty-p comint-input-ring)
+	       (not (string-equal (ring-ref comint-input-ring 0)
+				  cmd))))
+      (ring-insert comint-input-ring cmd)))
 
 (defun comint-send-input ()
   "Send input to process.
@@ -1406,13 +1416,7 @@ Similarly for Soar, Scheme, etc."
 	      (delete-region pmark (point))
 	    (insert ?\n))
 
-	  (if (and (funcall comint-input-filter history)
-		   (or (null comint-input-ignoredups)
-		       (not (ring-p comint-input-ring))
-		       (ring-empty-p comint-input-ring)
-		       (not (string-equal (ring-ref comint-input-ring 0)
-					  history))))
-	      (ring-insert comint-input-ring history))
+	  (comint-add-to-input-history history)
 
 	  (run-hook-with-args 'comint-input-filter-functions
 			      (concat input "\n"))
